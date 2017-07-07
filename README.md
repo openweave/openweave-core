@@ -33,3 +33,12 @@ A SW module implements a fault-injection API by doing the following:
    and executes the extra code if it returns true.  The invocations of CheckFault
    are counted per faultID, which allows a test harness to automatically loop over
    different valid configurations.
+
+## Interact
+
+There are numerous avenues for nlfaultinjection support:
+
+  * Bugs and feature requests — [submit to the Issue Tracker](https://github.com/nestlabs/nlfaultinjection/issues)
+  * Google Groups — discussion and announcements
+    * [nlfaultinjection-announce](https://groups.google.com/forum/#!forum/nlfaultinjection-announce) — release notes and new updates on nlfaultinjection
+    * [nlfaultinjection-users](https://groups.google.com/forum/#!forum/nlfaultinjection-users) — discuss use of and enhancements to nlfaultinjection
