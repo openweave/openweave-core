@@ -126,7 +126,7 @@ There are numerous avenues for nlbuild-autotools support:
     * [nlbuild-autotools-announce](https://groups.google.com/forum/#!forum/nlbuild-autotools-announce) — release notes and new updates on nlbuild-autotools
     * [nlbuild-autotools-users](https://groups.google.com/forum/#!forum/nlbuild-autotools-users) — discuss use of and enhancements to nlbuild-autotools
 
-# FAQ {#FAQ}
+# FAQ
 
 Q: Why does nlbuild-autotools have an option for its own built versions
    of GNU autotools rather than leveraging whatever versions exist on
