@@ -23,7 +23,7 @@ namespace Weave {
 namespace Profiles {
 namespace WeaveMakeManagedNamespaceIdentifier(DataManagement, kWeaveManagedNamespaceDesignation_Current) {
 
-LoggingConfiguration :: LoggingConfiguration(void) :
+LoggingConfiguration::LoggingConfiguration(void) :
     mGlobalImportance(WEAVE_CONFIG_EVENT_LOGGING_DEFAULT_IMPORTANCE),
     mImportanceExpiration(0),
     mMinimumLogUploadInterval(WEAVE_CONFIG_EVENT_LOGGING_MINIMUM_UPLOAD_SECONDS*1000),
@@ -36,7 +36,7 @@ LoggingConfiguration :: LoggingConfiguration(void) :
 
 }
 
-bool LoggingConfiguration :: SupportsPerProfileImportance(void) const
+bool LoggingConfiguration::SupportsPerProfileImportance(void) const
 {
     return false;
 }

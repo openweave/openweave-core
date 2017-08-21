@@ -269,7 +269,7 @@ exit:
     return err;
 }
 
-void LogBDXUpload :: Abort(void)
+void LogBDXUpload::Abort(void)
 {
     // Upload was aborted; last transmitted event Id not updated,
     // instead, we rollback the last scheduled event IDs
@@ -283,7 +283,7 @@ void LogBDXUpload :: Abort(void)
     mLogger->SignalUploadDone();
 }
 
-void LogBDXUpload :: Done(void)
+void LogBDXUpload::Done(void)
 {
     //Upload was successful.  Transfer last scheduled event IDs to the
     //last transmitted event IDS
@@ -298,13 +298,13 @@ void LogBDXUpload :: Done(void)
     mLogger->SignalUploadDone();
 }
 
-void LogBDXUpload :: Shutdown(void)
+void LogBDXUpload::Shutdown(void)
 {
     mBdxNode.Shutdown();
     mState = UploaderUninitialized;
 }
 
-uint32_t LogBDXUpload :: GetUploadPosition(void)
+uint32_t LogBDXUpload::GetUploadPosition(void)
 {
     return mUploadPosition;
 }

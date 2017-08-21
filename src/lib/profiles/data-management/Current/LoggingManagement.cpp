@@ -847,7 +847,7 @@ void LoggingManagement::UnregisterEventCallbackForImportance(ImportanceType inIm
 
 // Internal API used in copying an event out of the event buffers
 
-WEAVE_ERROR LoggingManagement :: CopyAndAdjustDeltaTime(const TLVReader &aReader, size_t aDepth, void *aContext)
+WEAVE_ERROR LoggingManagement::CopyAndAdjustDeltaTime(const TLVReader &aReader, size_t aDepth, void *aContext)
 {
     WEAVE_ERROR err;
     CopyAndAdjustDeltaTimeContext *ctx = static_cast<CopyAndAdjustDeltaTimeContext *>(aContext);
@@ -941,7 +941,7 @@ WEAVE_ERROR LoggingManagement :: CopyAndAdjustDeltaTime(const TLVReader &aReader
  * @return event_id_t      The event ID if the event was written to the
  *                         log, 0 otherwise.
  */
-event_id_t LoggingManagement :: LogEvent(const EventSchema &inSchema, EventWriterFunct inEventWriter, void *inAppData, const EventOptions *inOptions)
+event_id_t LoggingManagement::LogEvent(const EventSchema &inSchema, EventWriterFunct inEventWriter, void *inAppData, const EventOptions *inOptions)
 {
     event_id_t event_id = 0;
 
@@ -961,7 +961,7 @@ exit:
 // Note: the function below must be called with the critical section
 // locked, and only when the logger is not shutting down
 
-inline event_id_t LoggingManagement :: LogEventPrivate(const EventSchema &inSchema, EventWriterFunct inEventWriter, void *inAppData, const EventOptions *inOptions)
+inline event_id_t LoggingManagement::LogEventPrivate(const EventSchema &inSchema, EventWriterFunct inEventWriter, void *inAppData, const EventOptions *inOptions)
 {
     event_id_t event_id = 0;
     CircularTLVWriter writer;
@@ -1130,7 +1130,7 @@ void LoggingManagement::UnthrottleLogger(void)
 }
 
 // internal API, used to copy events to external buffers
-WEAVE_ERROR LoggingManagement :: CopyEvent(const TLVReader & aReader, TLVWriter & aWriter, EventLoadOutContext *aContext)
+WEAVE_ERROR LoggingManagement::CopyEvent(const TLVReader & aReader, TLVWriter & aWriter, EventLoadOutContext *aContext)
 {
     TLVReader reader;
     TLVType containerType;
@@ -1175,7 +1175,7 @@ exit:
  * @retval #WEAVE_ERROR_BUFFER_TOO_SMALL Function could not write a
  *                          portion of the event to the TLVWriter.
  */
-WEAVE_ERROR LoggingManagement :: CopyEventsSince(const TLVReader & aReader, size_t aDepth, void *aContext)
+WEAVE_ERROR LoggingManagement::CopyEventsSince(const TLVReader & aReader, size_t aDepth, void *aContext)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
     const bool recurse = false;
@@ -1303,7 +1303,7 @@ inline event_id_t LoggingManagement::GetEndOfExternalEventRange(ImportanceType i
  *                         available.
  *
  */
-WEAVE_ERROR LoggingManagement :: FetchEventsSince(TLVWriter &ioWriter, ImportanceType inImportance, event_id_t &ioEventID)
+WEAVE_ERROR LoggingManagement::FetchEventsSince(TLVWriter &ioWriter, ImportanceType inImportance, event_id_t &ioEventID)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
     const bool recurse = false;
@@ -1374,7 +1374,7 @@ exit:
  *
  * @retval #WEAVE_NO_ERROR Unconditionally.
  */
-WEAVE_ERROR LoggingManagement :: GetEventReader(TLVReader &ioReader, ImportanceType inImportance)
+WEAVE_ERROR LoggingManagement::GetEventReader(TLVReader &ioReader, ImportanceType inImportance)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
     CircularEventBuffer *buffer;
@@ -1392,7 +1392,7 @@ exit:
 }
 
 //internal API
-WEAVE_ERROR LoggingManagement :: FetchEventParameters(const TLVReader & aReader, size_t aDepth, void *aContext)
+WEAVE_ERROR LoggingManagement::FetchEventParameters(const TLVReader & aReader, size_t aDepth, void *aContext)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
     EventEnvelopeContext * envelope = static_cast<EventEnvelopeContext *>(aContext);
@@ -1435,7 +1435,7 @@ exit:
 
 // internal API: determine importance of an event, and the space the event requires
 
-WEAVE_ERROR LoggingManagement :: EvictEvent(WeaveCircularTLVBuffer &inBuffer, void * inAppData, TLVReader & inReader)
+WEAVE_ERROR LoggingManagement::EvictEvent(WeaveCircularTLVBuffer &inBuffer, void * inAppData, TLVReader & inReader)
 {
     ReclaimEventCtx *ctx = static_cast<ReclaimEventCtx *>(inAppData);
     CircularEventBuffer *eventBuffer = ctx->mEventBuffer;
@@ -1810,7 +1810,7 @@ CircularEventBuffer::CircularEventBuffer(uint8_t *inBuffer, size_t inBufferLengt
  * a result of queue overflow.  False if the event will be instead
  * bumped to the next queue.
  */
-bool CircularEventBuffer :: IsFinalDestinationForImportance(ImportanceType inImportance) const
+bool CircularEventBuffer::IsFinalDestinationForImportance(ImportanceType inImportance) const
 {
     return !((mNext != NULL) && (mNext->mImportance >= inImportance));
 }
@@ -1823,7 +1823,7 @@ bool CircularEventBuffer :: IsFinalDestinationForImportance(ImportanceType inImp
  *
  * @return int32_t         Time delta to encode for the event.
  */
-void CircularEventBuffer :: AddEvent(timestamp_t inEventTimestamp)
+void CircularEventBuffer::AddEvent(timestamp_t inEventTimestamp)
 {
     if (mFirstEventTimestamp == 0)
     {
@@ -1843,7 +1843,7 @@ void CircularEventBuffer :: AddEvent(timestamp_t inEventTimestamp)
  *
  * @return int64_t         Time delta to encode for the event.
  */
-void CircularEventBuffer :: AddEventUTC(utc_timestamp_t inEventTimestamp)
+void CircularEventBuffer::AddEventUTC(utc_timestamp_t inEventTimestamp)
 {
     if (mUTCInitialized == false)
     {
@@ -1854,7 +1854,7 @@ void CircularEventBuffer :: AddEventUTC(utc_timestamp_t inEventTimestamp)
 }
 #endif // WEAVE_CONFIG_EVENT_LOGGING_UTC_TIMESTAMPS
 
-void CircularEventBuffer :: RemoveEvent(void)
+void CircularEventBuffer::RemoveEvent(void)
 {
 #if WEAVE_CONFIG_EVENT_LOGGING_NUM_EXTERNAL_CALLBACKS
     ExternalEvents *ev;
@@ -1880,7 +1880,7 @@ void CircularEventBuffer :: RemoveEvent(void)
  * @return WEAVE_ERROR_NO_MEMORY If all callbacks are in use.
  * @return WEAVE_NO_ERROR Otherwise
  */
-WEAVE_ERROR CircularEventBuffer :: RegisterExternalEventsCallback(
+WEAVE_ERROR CircularEventBuffer::RegisterExternalEventsCallback(
         FetchExternalEventsFunct aFetchCallback,
         NotifyExternalEventsDeliveredFunct aNotifyCallback,
         size_t aNumEvents,
@@ -1934,7 +1934,7 @@ exit:
  *
  * @param inPtr   Pointer to ExternalEvents struct to unregister.
  */
-void CircularEventBuffer :: UnregisterExternalEventsCallback(
+void CircularEventBuffer::UnregisterExternalEventsCallback(
         ExternalEvents *inPtr)
 {
 #if WEAVE_CONFIG_EVENT_LOGGING_NUM_EXTERNAL_CALLBACKS
@@ -1957,7 +1957,7 @@ void CircularEventBuffer :: UnregisterExternalEventsCallback(
  *
  * @retval NULL if aEventID is not externally stored.
  */
-ExternalEvents *CircularEventBuffer :: GetExternalEventsFromEventID(
+ExternalEvents *CircularEventBuffer::GetExternalEventsFromEventID(
         event_id_t aEventID)
 {
     uint8_t idx;
@@ -1988,7 +1988,7 @@ ExternalEvents *CircularEventBuffer :: GetExternalEventsFromEventID(
  *
  * @retval NULL if all callbacks are in use.
  */
-ExternalEvents *CircularEventBuffer :: GetNextAvailableExternalEvents(void)
+ExternalEvents *CircularEventBuffer::GetNextAvailableExternalEvents(void)
 {
     uint8_t idx;
     ExternalEvents *ev = NULL;
@@ -2035,7 +2035,7 @@ void CircularEventReader::Init(CircularEventBuffer *inBuf)
     }
 }
 
-WEAVE_ERROR CircularEventBuffer :: GetNextBufferFunct(TLVReader& ioReader, uintptr_t &inBufHandle, const uint8_t *&outBufStart, uint32_t &outBufLen)
+WEAVE_ERROR CircularEventBuffer::GetNextBufferFunct(TLVReader& ioReader, uintptr_t &inBufHandle, const uint8_t *&outBufStart, uint32_t &outBufLen)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
     CircularEventBuffer *buf;

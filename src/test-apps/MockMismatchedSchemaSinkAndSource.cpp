@@ -33,7 +33,7 @@ using namespace Schema::Nest::Test::Trait;
 using namespace ::nl::Weave::TLV;
 using namespace ::nl::Weave::Profiles::DataManagement;
 
-TestMismatchedCTraitDataSource :: TestMismatchedCTraitDataSource(void)
+TestMismatchedCTraitDataSource::TestMismatchedCTraitDataSource(void)
     : TraitDataSource(&TestMismatchedCTrait::TraitSchema)
 {
 
