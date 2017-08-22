@@ -29,6 +29,7 @@
 #include <InetLayer/IPPrefix.h>
 
 #if WEAVE_CONFIG_ENABLE_TUNNELING
+// clang-format off
 
 #define MAX_NUM_ROUTES                                 (16)
 #define MAX_BORDER_GW                                  (8)
@@ -46,6 +47,8 @@
 #define NL_TUNNEL_LIVENESS_TYPE_SIZE_IN_BYTES          (1)
 #define NL_TUNNEL_LIVENESS_MAX_TIMEOUT_SIZE_IN_BYTES   (2)
 #define TUN_HDR_SIZE_IN_BYTES                          (TUN_HDR_VERSION_FIELD_SIZE_IN_BYTES)
+
+// clang-format on
 
 namespace nl {
 namespace Weave {

@@ -33,6 +33,7 @@
 #define WEAVE_ERROR_H
 
 #include "WeaveConfig.h"
+// clang-format off
 
 /**
  *  @def WEAVE_NO_ERROR
@@ -1637,5 +1638,7 @@ typedef WEAVE_CONFIG_ERROR_TYPE WEAVE_ERROR;
 // !!!!! IMPORTANT !!!!!  If you add new Weave errors, please update the translation
 // of error codes to strings in support/ErrorStr.cpp, and add them to unittest
 // in test-apps/TestErrorStr.cpp
+
+// clang-format on
 
 #endif // WEAVE_ERROR_H

@@ -35,6 +35,8 @@
 
 #include <SystemLayer/SystemError.h>
 
+// clang-format off
+
 /**
  *  The basic type for all InetLayer errors.
  *
@@ -348,6 +350,8 @@ typedef INET_CONFIG_ERROR_TYPE          INET_ERROR;
 /**
  *  @}
  */
+
+// clang-format on
 
 #if INET_CONFIG_PROVIDE_OBSOLESCENT_INTERFACES
 

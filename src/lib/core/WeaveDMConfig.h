@@ -16,6 +16,8 @@
  *    limitations under the License.
  */
 
+// clang-format off
+
 /**
  *    @file
  *      This file defines default compile-time configuration constants
@@ -537,5 +539,7 @@
 #ifndef WDM_RESUBSCRIBE_WAIT_TIME_MULTIPLIER_MS
 #define WDM_RESUBSCRIBE_WAIT_TIME_MULTIPLIER_MS 10000
 #endif
+
+// clang-format on
 
 #endif // _WEAVE_DATA_MANAGEMENT_CONFIG_H

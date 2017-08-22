@@ -46,6 +46,8 @@
 #include "WoBleTest.h"
 #endif
 
+// clang-format off
+
 // Define below to enable extremely verbose, BLE end point-specific debug logging.
 #undef NL_BLE_END_POINT_DEBUG_LOGGING_ENABLED
 
@@ -86,11 +88,13 @@
  */
 #define BLE_UNSUBSCRIBE_TIMEOUT_MS                            5000 // 5 seconds
 
-#define BTP_ACK_RECEIVED_TIMEOUT_MS 15000 // 15 seconds
-#define BTP_ACK_SEND_TIMEOUT_MS 2500 // 2.5 seconds
+#define BTP_ACK_RECEIVED_TIMEOUT_MS                          15000 // 15 seconds
+#define BTP_ACK_SEND_TIMEOUT_MS                               2500 // 2.5 seconds
 
-#define BTP_WINDOW_NO_ACK_SEND_THRESHOLD 1 // Data fragments may only be sent without piggybacked acks if receiver's
-                                           // window size is above this threshold.
+#define BTP_WINDOW_NO_ACK_SEND_THRESHOLD                         1 // Data fragments may only be sent without piggybacked
+                                                                   // acks if receiver's window size is above this threshold.
+
+// clang-format on
 
 namespace nl {
 namespace Ble {

@@ -66,6 +66,8 @@
 #include <Weave/Support/logging/WeaveLogging.h>
 #include <Weave/Support/CodeUtils.h>
 
+// clang-format off
+
 #define CAPABILITIES_REQUEST_MAGICNUM_LEN 2
 #define CAPABILITIES_REQUEST_L2CAP_MTU_LEN 2
 #define CAPABILITIES_REQUEST_SUPPORTED_VERSIONS_LEN 4
@@ -87,6 +89,8 @@
 // Magic values expected in first 2 bytes of valid BLE transport capabilities request or response:
 #define CAPABILITIES_MSG_CHECK_BYTE_1 'n'
 #define CAPABILITIES_MSG_CHECK_BYTE_2 'l'
+
+// clang-format on
 
 namespace nl {
 namespace Ble {

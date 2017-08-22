@@ -36,6 +36,8 @@ typedef int32_t ASN1_ERROR;
 #define NLASN1_ERROR_MAX  5999
 #define _NLASN1_ERROR(e) (NLASN1_ERROR_BASE + (e))
 
+// clang-format off
+
 // ASN1 Error Definitions
 //
 #define NLASN1_END                        _NLASN1_ERROR(0)
@@ -48,5 +50,7 @@ typedef int32_t ASN1_ERROR;
 #define NLASN1_ERROR_TAG_OVERFLOW         _NLASN1_ERROR(7)
 #define NLASN1_ERROR_LENGTH_OVERFLOW      _NLASN1_ERROR(8)
 #define NLASN1_ERROR_VALUE_OVERFLOW       _NLASN1_ERROR(9)
+
+// clang-format on
 
 #endif // __NLWEAVE_NLASN1_ERROR_CODES_H__

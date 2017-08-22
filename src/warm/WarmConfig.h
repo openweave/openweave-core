@@ -37,6 +37,8 @@
 #include "WarmProjectConfig.h"
 #endif
 
+// clang-format off
+
 /**
  *  @note
  *    Configurations for expected devices.
@@ -196,5 +198,7 @@
 #ifndef WARM_CONFIG_SUPPORT_BORDER_ROUTING
 #define WARM_CONFIG_SUPPORT_BORDER_ROUTING          (WARM_CONFIG_SUPPORT_THREAD && WARM_CONFIG_SUPPORT_WEAVE_TUNNEL && (WARM_CONFIG_SUPPORT_WIFI || WARM_CONFIG_SUPPORT_CELLULAR))
 #endif
+
+// clang-format on
 
 #endif /* WARMCONFIG_H_ */

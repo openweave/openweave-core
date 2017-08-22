@@ -33,6 +33,8 @@
 
 #include "BleConfig.h"
 
+// clang-format off
+
 /**
  *  @def BLE_NO_ERROR
  *
@@ -416,5 +418,6 @@ typedef BLE_CONFIG_ERROR_TYPE BLE_ERROR;
 // of error codes to strings in support/ErrorStr.cpp, and add them to unittest
 // in test-apps/TestErrorStr.cpp
 
+// clang-format on
 
 #endif /* BLEERROR_H_ */

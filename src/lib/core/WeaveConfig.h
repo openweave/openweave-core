@@ -48,6 +48,8 @@
 #include "WeaveProjectConfig.h"
 #endif
 
+// clang-format off
+
 /**
  *  @def WEAVE_CONFIG_PROVIDE_OBSOLESCENT_INTERFACES
  *
@@ -2020,5 +2022,7 @@
 #ifdef WEAVE_NON_PRODUCTION_MARKER
 extern const char WEAVE_NON_PRODUCTION_MARKER[];
 #endif
+
+// clang-format on
 
 #endif /* WEAVE_CONFIG_H_ */

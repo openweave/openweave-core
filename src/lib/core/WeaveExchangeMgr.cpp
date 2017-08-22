@@ -1016,7 +1016,7 @@ WEAVE_ERROR WeaveExchangeManager::PrependHeader(WeaveExchangeHeader *exchangeHea
                     arg = faultArgs[0];
                 }
             ,
-            // Code executed withouth the Manager's lock:
+            // Code executed without the Manager's lock:
                 nl::Weave::FaultInjection::FuzzExchangeHeader(buf->Start(), arg);
             );
 

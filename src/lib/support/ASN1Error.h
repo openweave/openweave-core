@@ -35,6 +35,8 @@ namespace nl {
 namespace Weave {
 namespace ASN1 {
 
+// clang-format off
+
 /**
  *  @def ASN1_NO_ERROR
  *
@@ -209,6 +211,7 @@ typedef ASN1_CONFIG_ERROR_TYPE ASN1_ERROR;
 // codes to strings in support/ErrorStr.cpp, and add them to unittest
 // in test-apps/TestErrorStr.cpp
 
+// clang-format on
 
 } // namespace ASN1
 } // namespace Weave

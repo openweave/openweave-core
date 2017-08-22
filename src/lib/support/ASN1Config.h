@@ -28,6 +28,8 @@
 
 #include <Weave/Core/WeaveConfig.h>
 
+// clang-format off
+
 /**
  *  @def ASN1_CONFIG_ERROR_TYPE
  *
@@ -86,5 +88,7 @@
 #ifndef _ASN1_CONFIG_ERROR
 #define _ASN1_CONFIG_ERROR(e)                               (ASN1_ERROR_MIN + (e))
 #endif // _ASN1_CONFIG_ERROR
+
+// clang-format on
 
 #endif /* WEAVE_SUPPORT_ASN1_CONFIG_H_ */

@@ -54,6 +54,8 @@
 #error "FORBIDDEN: WEAVE_SYSTEM_CONFIG_USE_LWIP && WEAVE_SYSTEM_CONFIG_USE_SOCKETS"
 #endif // WEAVE_SYSTEM_CONFIG_USE_LWIP && WEAVE_SYSTEM_CONFIG_USE_SOCKETS
 
+// clang-format off
+
 /**
  *  @def WEAVE_SYSTEM_CONFIG_PROVIDE_OBSOLESCENT_INTERFACES
  *
@@ -403,6 +405,8 @@ struct LwIPEvent;
 #ifndef WEAVE_SYSTEM_CONFIG_TEST
 #define WEAVE_SYSTEM_CONFIG_TEST 0
 #endif
+
+// clang-format on
 
 // Configuration parameters with header inclusion dependencies
 

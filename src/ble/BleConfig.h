@@ -42,6 +42,8 @@
 #include "BleProjectConfig.h"
 #endif
 
+// clang-format off
+
 /**
  *  @def BLE_CONFIG_PROVIDE_OBSOLESCENT_INTERFACES
  *
@@ -225,6 +227,8 @@
 #ifndef _BLE_CONFIG_ERROR
 #define _BLE_CONFIG_ERROR(e)                               (BLE_ERROR_MIN + (e))
 #endif // _BLE_CONFIG_ERROR
+
+// clang-format on
 
 #include <Weave/Core/WeaveConfig.h>
 

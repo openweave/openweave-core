@@ -37,6 +37,7 @@ typedef int INET_ERROR;
 // Macro for defining InetLayer errors
 #define _NLINET_ERROR(e) (NLINET_ERROR_BASE + (e))
 
+// clang-format off
 
 // InetLayer Error Definitions
 //
@@ -59,5 +60,7 @@ typedef int INET_ERROR;
 #define NLINET_ERROR_ADDRESS_NOT_FOUND                        _NLINET_ERROR(16)
 #define NLINET_ERROR_HOST_NAME_TOO_LONG                       _NLINET_ERROR(17)
 #define NLINET_ERROR_INVALID_HOST_NAME                        _NLINET_ERROR(18)
+
+// clang-format on
 
 #endif // __NLWEAVE_NLINET_ERROR_CODES_H__

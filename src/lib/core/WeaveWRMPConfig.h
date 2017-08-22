@@ -28,6 +28,8 @@
 namespace nl {
 namespace Weave {
 
+// clang-format off
+
 /**
  *  @def WEAVE_CONFIG_ENABLE_RELIABLE_MESSAGING
  *
@@ -127,6 +129,9 @@ const WRMPConfig gDefaultWRMPConfig = { WEAVE_CONFIG_WRMP_DEFAULT_INITIAL_RETRAN
                                         WEAVE_CONFIG_WRMP_DEFAULT_ACTIVE_RETRANS_TIMEOUT,
                                         WEAVE_CONFIG_WRMP_DEFAULT_ACK_TIMEOUT,
                                         WEAVE_CONFIG_WRMP_DEFAULT_MAX_RETRANS };
+
+// clang-format on
+
 }; // Weave
 }; // nl
 

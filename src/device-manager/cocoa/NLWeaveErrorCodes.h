@@ -38,6 +38,8 @@ typedef int32_t WEAVE_ERROR;
 
 #define _NLWEAVE_ERROR(e) (NLWEAVE_ERROR_BASE + (e))
 
+// clang-format off
+
 // Weave Error Definitions
 //
 #define NLWEAVE_ERROR_TOO_MANY_CONNECTIONS                        _NLWEAVE_ERROR(0)
@@ -114,5 +116,7 @@ typedef int32_t WEAVE_ERROR;
 #define NLWEAVE_ERROR_NOT_CONNECTED                               _NLWEAVE_ERROR(72)
 #define NLWEAVE_ERROR_INVALID_PASE_CONFIGURATION                  _NLWEAVE_ERROR(109)
 #define NLWEAVE_ERROR_NO_COMMON_PASE_CONFIGURATIONS               _NLWEAVE_ERROR(110)
+
+// clang-format on
 
 #endif // __NLWEAVE_ERROR_CODES_H__
