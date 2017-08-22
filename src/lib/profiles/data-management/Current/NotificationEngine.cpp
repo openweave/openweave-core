@@ -287,7 +287,7 @@ WEAVE_ERROR NotificationEngine::IntermediateGraphSolver::SetDirty(TraitDataHandl
                 }
             }
         }
-#endif
+#endif // TDM_ENABLE_PUBLISHER_DICTIONARY_SUPPORT
 
         mDirtyStore.AddItem(TraitPath(aDataHandle, handleToAdd));
     }
@@ -326,7 +326,7 @@ PropertyPathHandle NotificationEngine::IntermediateGraphSolver::GetNextCandidate
 
         aChangeStoreCursor++;
     }
-#endif
+#endif // TDM_ENABLE_PUBLISHER_DICTIONARY_SUPPORT
 
     return candidateHandle;
 }
@@ -405,7 +405,7 @@ WEAVE_ERROR NotificationEngine::IntermediateGraphSolver::RetrieveTraitInstanceDa
             if (modifyDeleteToModify) {
                 candidateHandleIsDelete = false;
             }
-#endif
+#endif // TDM_ENABLE_PUBLISHER_DICTIONARY_SUPPORT
 
             WeaveLogDetail(DataManagement, "Candidate Handle = %u:%u (%c -> %c)", GetPropertyDictionaryKey(candidateHandle), GetPropertySchemaHandle(candidateHandle), oldCandidateHandleIsDelete ? 'D' : 'M', candidateHandleIsDelete ? 'D' : 'M');
 
@@ -558,7 +558,7 @@ WEAVE_ERROR NotificationEngine::IntermediateGraphSolver::RetrieveTraitInstanceDa
     if (numDeleteHandles > 0) {
         VerifyOrDie(schemaEngine->IsDictionary(currentCommonHandle));
     }
-#endif
+#endif // TDM_ENABLE_PUBLISHER_DICTIONARY_SUPPORT
 
     WeaveLogDetail(DataManagement, "<ISolver::Retr> Final handle = (%u:%u), numMergeHandles = %d, numDeleteHandles = %d", GetPropertyDictionaryKey(currentCommonHandle), GetPropertySchemaHandle(currentCommonHandle), numMergeHandles, numDeleteHandles);
 
@@ -766,7 +766,7 @@ WEAVE_ERROR NotificationEngine::NotifyRequestBuilder::WriteDataElement(TraitData
             err = mWriter->EndContainer(dummyContainerType);
             SuccessOrExit(err);
         }
-#endif
+#endif // TDM_ENABLE_PUBLISHER_DICTIONARY_SUPPORT
 
         if (aNumMergeDataHandles > 0) {
             err = mWriter->StartContainer(ContextTag(DataElement::kCsTag_Data), kTLVType_Structure, dummyContainerType);

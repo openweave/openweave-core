@@ -349,7 +349,7 @@ INET_ERROR LogPacket(const DecodedIPPacket &decodedPacket, bool isTunneled)
                          (decodedPacket.exchFlags & nl::Weave::kWeaveExchangeFlag_Initiator) ? 1 : 0);
 
                 WeaveLogDetail(Inet, "%s Weave Msg %08" PRIX32 ":%d Src=%016" PRIX64 " Dst=%016" PRIX64 " ExchId=%04" PRIX16 " MsgId=%08" PRIX32 " KeyId=%d %s", tunnelStr, decodedPacket.profileId, decodedPacket.msgType, decodedPacket.srcNodeId, decodedPacket.destNodeId, decodedPacket.exchangeId, decodedPacket.messageId, decodedPacket.keyId, weaveFlags);
-#endif
+#endif // WEAVE_CONFIG_ENABLE_RELIABLE_MESSAGING
             }
             else
             {  // Encrypted: Exclude exchange header fields.
@@ -359,7 +359,7 @@ INET_ERROR LogPacket(const DecodedIPPacket &decodedPacket, bool isTunneled)
                 WeaveLogDetail(Inet, "%s Weave Msg %08" PRIX32 ":%d Src=%016" PRIX64 " Dst=%016" PRIX64 " MsgId=%08" PRIX32 " AckMsgId=%08" PRIX32 " KeyId=%d %s", tunnelStr, decodedPacket.profileId, decodedPacket.msgType, decodedPacket.srcNodeId, decodedPacket.destNodeId, decodedPacket.messageId, decodedPacket.ackMsgId, decodedPacket.keyId, weaveFlags);
 #else
                 WeaveLogDetail(Inet, "%s Weave Msg %08" PRIX32 ":%d Src=%016" PRIX64 " Dst=%016" PRIX64 " MsgId=%08" PRIX32 " KeyId=%d %s", tunnelStr, decodedPacket.profileId, decodedPacket.msgType, decodedPacket.srcNodeId, decodedPacket.destNodeId, decodedPacket.messageId, decodedPacket.keyId, weaveFlags);
-#endif
+#endif // WEAVE_CONFIG_ENABLE_RELIABLE_MESSAGING
             }
         }
     }

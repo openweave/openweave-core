@@ -185,7 +185,7 @@ WEAVE_ERROR TraitSchemaEngine::RetrieveData(PropertyPathHandle aHandle, uint64_t
             err = WEAVE_NO_ERROR;
         }
         else
-#endif
+#endif // TDM_ENABLE_PUBLISHER_DICTIONARY_SUPPORT
         {
             PropertyPathHandle childProperty;
 
@@ -871,7 +871,7 @@ void TraitDataSource::DeleteKey(PropertyPathHandle aPropertyHandle)
         SubscriptionEngine::GetInstance()->GetNotificationEngine()->DeleteKey(this, aPropertyHandle);
     }
 }
-#endif
+#endif // TDM_ENABLE_PUBLISHER_DICTIONARY_SUPPORT
 
 WEAVE_ERROR TraitDataSource::Lock()
 {
