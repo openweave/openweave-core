@@ -1,6 +1,6 @@
 /*
  *
- *    Copyright 2016 The nlfaultinjection Authors.
+ *    Copyright 2016-2017 The nlfaultinjection Authors.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -132,6 +132,9 @@ int32_t Manager::Init(size_t inNumFaults,
     mNumFaults = inNumFaults;
     mFaultRecords = inFaultArray;
     mFaultNames = inFaultNames;
+    mLock = NULL;
+    mUnlock = NULL;
+    mLockContext = NULL;
 
     // Link all callback lists to the two default callbacks.
     for (i = 0; i < mNumFaults; i++)
@@ -162,9 +165,13 @@ int32_t Manager::FailRandomlyAtFault(Identifier inId,
                     exit,
                     err = -EINVAL);
 
+    Lock();
+
     mFaultRecords[inId].mNumCallsToSkip = 0;
     mFaultRecords[inId].mNumCallsToFail = 0;
     mFaultRecords[inId].mPercentage = inPercentage;
+
+    Unlock();
 
 exit:
     return err;
@@ -177,24 +184,47 @@ exit:
  * @param[in]   inNumCallsToSkip    The number of times this fault is to be skipped before it
  *                                  starts to fail.
  * @param[in]   inNumCallsToFail    The number of times the fault should be triggered.
+ * @param[in]   inTakeMutex         By default this method takes the Manager's mutex.
+ *                                  If inTakeMutex is set to kMutexDoNotTake, the mutex is not taken.
  *
  * @return      -EINVAL if the inputs are not valid.
  *              0 otherwise.
  */
 int32_t Manager::FailAtFault(Identifier inId,
                              uint32_t inNumCallsToSkip,
-                             uint32_t inNumCallsToFail)
+                             uint32_t inNumCallsToFail,
+                             bool inTakeMutex)
 {
     int32_t err = 0;
 
     nlEXPECT_ACTION(inId < mNumFaults, exit, err = -EINVAL);
 
+    if (inTakeMutex)
+    {
+        Lock();
+    }
+
     mFaultRecords[inId].mNumCallsToSkip = inNumCallsToSkip;
     mFaultRecords[inId].mNumCallsToFail = inNumCallsToFail;
     mFaultRecords[inId].mPercentage = 0;
 
+    if (inTakeMutex)
+    {
+        Unlock();
+    }
+
 exit:
     return err;
+}
+
+/**
+ * @overload int32_t FailAtFault(Identifier inId, uint32_t inNumCallsToSkip, uint32_t inNumCallsToFail, bool inTakeMutex)
+ */
+int32_t Manager::FailAtFault(Identifier inId,
+                             uint32_t inNumCallsToSkip,
+                             uint32_t inNumCallsToFail)
+{
+    return FailAtFault(inId, inNumCallsToSkip, inNumCallsToFail, kMutexTake);
 }
 
 /**
@@ -215,7 +245,11 @@ int32_t Manager::RebootAtFault(Identifier inId)
 
     nlEXPECT_ACTION(inId < mNumFaults, exit, err = -EINVAL);
 
+    Lock();
+
     mFaultRecords[inId].mReboot = true;
+
+    Unlock();
 
 exit:
     return err;
@@ -247,12 +281,16 @@ int32_t Manager::StoreArgsAtFault(Identifier inId, uint16_t inNumArgs, int32_t *
                     exit,
                     err = -EINVAL);
 
+    Lock();
+
     for (i = 0; i < inNumArgs; i++)
     {
         mFaultRecords[inId].mArguments[i] = inArgs[i];
     }
 
     mFaultRecords[inId].mNumArguments = inNumArgs;
+
+    Unlock();
 
 exit:
     return err;
@@ -279,11 +317,15 @@ int32_t Manager::InsertCallbackAtFault(Identifier inId,
 
     nlEXPECT_SUCCESS(err, exit);
 
+    Lock();
+
     // Insert the callback at the beginning of the list.
     // Remember that all lists end into the two default (deterministic
     // and random) callbacks!
     inCallBack->mNext = mFaultRecords[inId].mCallbackList;
     mFaultRecords[inId].mCallbackList = inCallBack;
+
+    Unlock();
 
 exit:
     return err;
@@ -294,17 +336,25 @@ exit:
  *
  * @param[in]   inId        The fault
  * @param[in]   inCallback  The callback node to be removed.
+ * @param[in]   inTakeMutex         By default this method takes the Manager's mutex.
+ *                                  If inTakeMutex is set to kMutexDoNotTake, the mutex is not taken.
  *
  * @return      -EINVAL if the inputs are not valid.
  *              0 otherwise.
  */
 int32_t Manager::RemoveCallbackAtFault(Identifier inId,
-                                       Callback *inCallBack)
+                                       Callback *inCallBack,
+                                       bool inTakeMutex)
 {
     int32_t err = 0;
     Callback **cb = NULL;
 
     nlEXPECT_ACTION((inId < mNumFaults) && (inCallBack != NULL), exit, err = -EINVAL);
+
+    if (inTakeMutex)
+    {
+        Lock();
+    }
 
     cb = &mFaultRecords[inId].mCallbackList;
 
@@ -318,8 +368,22 @@ int32_t Manager::RemoveCallbackAtFault(Identifier inId,
         cb = &((*cb)->mNext);
     }
 
+    if (inTakeMutex)
+    {
+        Unlock();
+    }
+
 exit:
     return err;
+}
+
+/**
+ * @overload int32_t Manager::RemoveCallbackAtFault(Identifier inId, Callback *inCallBack, bool inTakeMutex)
+ */
+int32_t Manager::RemoveCallbackAtFault(Identifier inId,
+                                       Callback *inCallBack)
+{
+    return RemoveCallbackAtFault(inId, inCallBack, kMutexTake);
 }
 
 /**
@@ -330,17 +394,25 @@ exit:
  * All three types of trigger can be installed at the same time, and they all get a chance of
  * injecting the fault.
  *
- * @param[in] inId     The fault ID
+ * @param[in] inId                The fault ID
+ * @param[in] inTakeMutex         By default this method takes the Manager's mutex.
+ *                                If inTakeMutex is set to kMutexDoNotTake, the mutex is not taken.
  *
  * @return    true if the fault should be injected; false otherwise.
  */
-bool Manager::CheckFault(Identifier inId)
+bool Manager::CheckFault(Identifier inId, bool inTakeMutex)
 {
     bool retval = false;
     Callback *cb = NULL;
     Callback *next = NULL;
+    bool reboot = false;
 
     nlEXPECT(inId < mNumFaults, exit);
+
+    if (inTakeMutex)
+    {
+        Lock();
+    }
 
     cb = mFaultRecords[inId].mCallbackList;
 
@@ -356,12 +428,14 @@ bool Manager::CheckFault(Identifier inId)
         cb = next;
     }
 
+    reboot = mFaultRecords[inId].mReboot;
+
     if (retval && sGlobalContext && sGlobalContext->mCbTable.mPostInjectionCb)
     {
         sGlobalContext->mCbTable.mPostInjectionCb(this, inId, &mFaultRecords[inId]);
     }
 
-    if (retval && mFaultRecords[inId].mReboot)
+    if (retval && reboot)
     {
         // If the application has not setup a context and/or reboot callback, the system will crash
         if (sGlobalContext && sGlobalContext->mCbTable.mRebootCb)
@@ -376,8 +450,21 @@ bool Manager::CheckFault(Identifier inId)
 
     mFaultRecords[inId].mNumTimesChecked++;
 
+    if (inTakeMutex)
+    {
+        Unlock();
+    }
+
 exit:
     return retval;
+}
+
+/**
+ * @overload bool CheckFault(Identifier inId, bool inTakeMutex)
+ */
+bool Manager::CheckFault(Identifier inId)
+{
+    return CheckFault(inId, kMutexTake);
 }
 
 /**
@@ -390,24 +477,44 @@ exit:
  * All three types of trigger can be installed at the same time, and they all get a chance of
  * injecting the fault.
  *
- * @param[in] inId        The fault ID
- * @param[in] outNumArgs  The length of the array pointed to by outArgs
- * @param[in] outArgs     The array of arguments configured for the faultId
+ * @param[in] inId            The fault ID
+ * @param[in] outNumArgs      The length of the array pointed to by outArgs
+ * @param[in] outArgs         The array of arguments configured for the faultId
+ * @param[in] inTakeMutex     By default this method takes the Manager's mutex.
+ *                            If inTakeMutex is set to kMutexDoNotTake, the mutex is not taken.
  *
  * @return    true if the fault should be injected; false otherwise.
  */
-bool Manager::CheckFault(Identifier inId, uint16_t &outNumArgs, int32_t *&outArgs)
+bool Manager::CheckFault(Identifier inId, uint16_t &outNumArgs, int32_t *&outArgs, bool inTakeMutex)
 {
     bool retval = false;
 
-    retval = CheckFault(inId);
+    if (inTakeMutex)
+    {
+        Lock();
+    }
+
+    retval = CheckFault(inId, kMutexDoNotTake);
     if (retval)
     {
         outNumArgs = mFaultRecords[inId].mNumArguments;
         outArgs = mFaultRecords[inId].mArguments;
     }
 
+    if (inTakeMutex)
+    {
+        Unlock();
+    }
+
     return retval;
+}
+
+/**
+ * @overload bool CheckFault(Identifier inId, uint16_t &outNumArgs, int32_t *&outArgs, bool inTakeMutex)
+ */
+bool Manager::CheckFault(Identifier inId, uint16_t &outNumArgs, int32_t *&outArgs)
+{
+    return CheckFault(inId, outNumArgs, outArgs, kMutexTake);
 }
 
 /**
@@ -420,10 +527,14 @@ void Manager::ResetFaultCounters(void)
 {
     Identifier id = 0;
 
+    Lock();
+
     for (id = 0; id < mNumFaults; id++)
     {
         mFaultRecords[id].mNumTimesChecked = 0;
     }
+
+    Unlock();
 }
 
 /**
@@ -443,6 +554,8 @@ int32_t Manager::ResetFaultConfigurations(Identifier inId)
                     exit,
                     err = -EINVAL);
 
+    Lock();
+
     mFaultRecords[inId].mNumCallsToSkip = 0;
     mFaultRecords[inId].mNumCallsToFail = 0;
     mFaultRecords[inId].mPercentage = 0;
@@ -454,9 +567,11 @@ int32_t Manager::ResetFaultConfigurations(Identifier inId)
     // that custom callbacks are inserted at the beginning of the list
     while (cb != sEndOfCustomCallbacks && cb != NULL)
     {
-        (void)RemoveCallbackAtFault(inId, cb);
+        (void)RemoveCallbackAtFault(inId, cb, kMutexDoNotTake);
         cb = mFaultRecords[inId].mCallbackList;
     }
+
+    Unlock();
 
 exit:
     return err;
@@ -484,7 +599,31 @@ exit:
 }
 
 /**
+ * Take the Manager's mutex.
+ */
+void Manager::Lock(void)
+{
+    if (mLock)
+    {
+        mLock(mLockContext);
+    }
+}
+
+/**
+ * Release the Manager's mutex.
+ */
+void Manager::Unlock(void)
+{
+    if (mUnlock)
+    {
+        mUnlock(mLockContext);
+    }
+}
+
+/**
  * Configure the instance of GlobalContext to use.
+ * On systems in which faults are configured and injected from different threads,
+ * this function should be called before threads are started.
  *
  * @param[in] inGlobalContext   Pointer to the GlobalContext provided by the application
  */

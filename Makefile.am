@@ -38,7 +38,9 @@ EXTRA_DIST                                = \
     .default-version                        \
     bootstrap                               \
     bootstrap-configure                     \
+    $(srcdir)/build/cstyle                  \
     $(srcdir)/third_party/nlbuild-autotools \
+    $(srcdir)/third_party/cstyle/repo       \
     $(NULL)
 
 BUILT_SOURCES                             = \

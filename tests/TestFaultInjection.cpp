@@ -1,6 +1,6 @@
 /*
  *
- *    Copyright 2016 The nlfaultinjection Authors.
+ *    Copyright 2016-2017 The nlfaultinjection Authors.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -98,8 +98,31 @@ static Manager &GetTestFIMgr(void)
     return sTestFaultInMgr;
 }
 
-#define TEST_FAULT_INJECT( aId, aStatement ) \
-    nlFAULT_INJECT(GetTestFIMgr(), aId, aStatement)
+static int sLockCounter = 0;
+static nlTestSuite *sSuite;
+void TestLock(void *inLockContext)
+{
+    int *counter = static_cast<int *>(inLockContext);
+
+    NL_TEST_ASSERT(sSuite, *counter == 0);
+
+    (*counter)++;
+}
+
+void TestUnlock(void *inLockContext)
+{
+    int *counter = static_cast<int *>(inLockContext);
+
+    NL_TEST_ASSERT(sSuite, *counter == 1);
+
+    (*counter)--;
+}
+
+#define TEST_FAULT_INJECT( aId, aStatements ) \
+    nlFAULT_INJECT(GetTestFIMgr(), aId, aStatements)
+
+#define TEST_FAULT_INJECT_WITH_ARGS( aId, aProtectedStatements, aUnprotectedStatements ) \
+    nlFAULT_INJECT_WITH_ARGS(GetTestFIMgr(), aId, aProtectedStatements, aUnprotectedStatements )
 
 static bool DoA()
 {
@@ -125,7 +148,7 @@ static int DoAWithArgs()
 
     // Show that we can access the arguments saved in the Record
 
-    TEST_FAULT_INJECT(kTestFaultInjectionID_A,
+    TEST_FAULT_INJECT_WITH_ARGS(kTestFaultInjectionID_A,
                       {
                           int i;
                           for (i = 0; i < numFaultArgs; i++)
@@ -133,6 +156,10 @@ static int DoAWithArgs()
                               printf("arg %d: %d\n", i, faultArgs[i]);
                               retval += faultArgs[i];
                           }
+                      },
+                      {
+                          printf("printing without the lock: counter: %d\n", sLockCounter);
+                          NL_TEST_ASSERT(sSuite, sLockCounter == 0);
                       });
 
     return retval;
@@ -152,7 +179,7 @@ static int DoAExportingArgs()
         const nl::FaultInjection::Record *records = mgr.GetFaultRecords();
 
         // Check for existing arguments to tell if the harness has
-        // install arguments already, not to override them.
+        // installed arguments already, not to override them.
         if (records[kTestFaultInjectionID_A].mNumArguments == 0)
         {
             // Assuming this fault id takes two arguments, lets save 4 values,
@@ -165,7 +192,7 @@ static int DoAExportingArgs()
         }
     }
 
-    TEST_FAULT_INJECT(kTestFaultInjectionID_A,
+    TEST_FAULT_INJECT_WITH_ARGS(kTestFaultInjectionID_A,
                       {
                           int i;
                           for (i = 0; i < numFaultArgs; i++)
@@ -173,6 +200,10 @@ static int DoAExportingArgs()
                               printf("arg %d: %d\n", i, faultArgs[i]);
                               retval += faultArgs[i];
                           }
+                      },
+                      {
+                          printf("printing without the lock: counter: %d\n", sLockCounter);
+                          NL_TEST_ASSERT(sSuite, sLockCounter == 0);
                       });
     return retval;
 }
@@ -223,12 +254,12 @@ static bool cbFn0(Identifier aFaultID, Record *aFaultRecord, void *aContext)
 
     if (sTriggerFault2)
     {
-        (void)fMgr.FailAtFault(kTestFaultInjectionID_B, 0, 1);
+        (void)fMgr.FailAtFault(kTestFaultInjectionID_B, 0, 1, Manager::kMutexDoNotTake);
     }
 
     if (sCbRemoveItself[0])
     {
-        (void)fMgr.RemoveCallbackAtFault(aFaultID, &sCb[0]);
+        (void)fMgr.RemoveCallbackAtFault(aFaultID, &sCb[0], Manager::kMutexDoNotTake);
 
     }
 
@@ -304,6 +335,8 @@ void TestFailAtFault(nlTestSuite *inSuite, void *inContext)
 
     (void)inContext;
 
+    sSuite = inSuite;
+
     // fMgr is a singleton, get it twice
     fMgr = GetTestFIMgr();
 
@@ -361,6 +394,8 @@ void TestRebootAndPrintAtFault(nlTestSuite *inSuite, void *inContext)
 
     (void)inContext;
 
+    sSuite = inSuite;
+
     // fMgr is a singleton, get it twice
     fMgr = GetTestFIMgr();
 
@@ -405,6 +440,8 @@ void TestTheMacro(nlTestSuite *inSuite, void *inContext)
 
     (void)inContext;
 
+    sSuite = inSuite;
+
     failed = DoA();
     NL_TEST_ASSERT(inSuite, failed == false);
 
@@ -426,6 +463,8 @@ void TestInsertRemoveCallback(nlTestSuite *inSuite, void *inContext)
     int i, j;
 
     (void)inContext;
+
+    sSuite = inSuite;
 
     err = fMgr.RemoveCallbackAtFault(kTestFaultInjectionID_NumItems, &sCb[0]);
     NL_TEST_ASSERT(inSuite, err == -EINVAL);
@@ -543,6 +582,8 @@ void TestCallbackRemovesItself(nlTestSuite *inSuite, void *inContext)
 
     (void)inContext;
 
+    sSuite = inSuite;
+
     err = fMgr.InsertCallbackAtFault(kTestFaultInjectionID_A, &sCb[0]);
     NL_TEST_ASSERT(inSuite, err == 0);
 
@@ -574,6 +615,8 @@ void TestFailRandomly(nlTestSuite *inSuite, void *inContext)
     int i;
 
     (void)inContext;
+
+    sSuite = inSuite;
 
     err = fMgr.FailRandomlyAtFault(kTestFaultInjectionID_A, percentage);
     NL_TEST_ASSERT(inSuite, err == 0);
@@ -627,6 +670,8 @@ void TestArguments(nlTestSuite *inSuite, void *inContext)
 
     (void)inContext;
 
+    sSuite = inSuite;
+
     err = fMgr.FailAtFault(kTestFaultInjectionID_A, timesToSkip, timesToFail);
     NL_TEST_ASSERT(inSuite, err == 0);
     err = fMgr.StoreArgsAtFault(kTestFaultInjectionID_A, numArgs, args);
@@ -665,6 +710,8 @@ void TestParser(nlTestSuite *inSuite, void *inContext)
     int expectedRetVal = (12 -7);
 
     (void)inContext;
+
+    sSuite = inSuite;
 
     for (id = 0; id < kTestFaultInjectionID_NumItems; id++)
     {
@@ -746,6 +793,8 @@ void TestExportArguments(nlTestSuite *inSuite, void *inContext)
     int32_t outputContext[4];
     (void)inContext;
 
+    sSuite = inSuite;
+
     // cleanup
     fMgr.StoreArgsAtFault(kTestFaultInjectionID_A, 0, NULL);
 
@@ -794,6 +843,8 @@ void TestResetFaultCounters(nlTestSuite *inSuite, void *inContext)
 
     (void)inContext;
 
+    sSuite = inSuite;
+
     (void)fMgr.CheckFault(kTestFaultInjectionID_A);
     NL_TEST_ASSERT(inSuite, fMgr.GetFaultRecords()[id].mNumTimesChecked != 0);
 
@@ -835,6 +886,8 @@ void TestResetFaultConfigurations(nlTestSuite *inSuite, void *inContext)
     uint8_t percentage = 80;
 
     (void)inContext;
+
+    sSuite = inSuite;
 
     err = fMgr.FailAtFault(kTestFaultInjectionID_A, timesToSkip, timesToFail);
     NL_TEST_ASSERT(inSuite, err == 0);
@@ -909,6 +962,7 @@ static int TestTeardown(void *inContext)
  */
 int main(int argc, char *argv[])
 {
+    nl::FaultInjection::Manager &mgr = GetTestFIMgr();
     (void)argc;
     (void)argv;
 
@@ -920,6 +974,9 @@ int main(int argc, char *argv[])
     theSuite.tests = &sTests[0];
     theSuite.setup = TestSetup;
     theSuite.tear_down = TestTeardown;
+
+    // Set the critical section callbacks once here, instead of in every test
+    mgr.SetLockCallbacks(TestLock, TestUnlock, &sLockCounter);
 
     // Generate machine-readable, comma-separated value (CSV) output.
     nl_test_set_output_style(OUTPUT_CSV);

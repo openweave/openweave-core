@@ -1,6 +1,6 @@
 /*
  *
- *    Copyright 2016 The nlfaultinjection Authors.
+ *    Copyright 2016-2017 The nlfaultinjection Authors.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -49,7 +49,7 @@ enum {
  * A function of this type can be attached to a fault ID, and will be invoked every time
  * FaultInjectionMgr::CheckFault is called on the fault ID.
  * The main purpose of registering a callback is to be able to turn on lower-level faults from
- * higher level events; e.g. "fail in SendMessage for the next WDM ViewRequest".
+ * higher level events; e.g., "fail in SendMessage for the next WDM ViewRequest."
  * The callback can also be used to let the application decide if the fault is supposed to be
  * triggered at each invocation. If the callback returns true, the fault is triggered.
  *
@@ -87,7 +87,7 @@ struct _Record
     uint32_t  mNumCallsToFail;    /**< The number of times this fault should fail, before disabling
                                        itself */
     uint8_t   mPercentage;        /**< A number between 0 and 100 that indicates the percentage of
-                                       times the fault should be triggered. */
+                                       times the fault should be triggered */
     uint8_t   mReboot;            /**< This fault should reboot the system */
 
     Callback *mCallbackList;      /**< A list of callbacks */
@@ -101,7 +101,7 @@ struct _Record
     int32_t  *mArguments;         /**< A pointer to an array of integers to store extra arguments; this array is meant to
                                        be populated by either of the following:
                                        - the ParseFaultInjectionStr, so the values are available at the fault injection site
-                                         and when the fault is injected
+                                         and when the fault is injected.
                                        - the logic around the fault injection site, to save useful values that can then
                                          be logged by a callback installed by the application, and so made available for use
                                          in subsequent test runs as arguments to the injected code.
@@ -117,6 +117,9 @@ class Manager
 {
 public:
 
+    static const bool kMutexDoNotTake = false;
+    static const bool kMutexTake = true;
+
     int32_t Init(size_t inNumFaults, Record *inFaultArray, const char *inName, const char **inFaultNames);
 
     int32_t FailRandomlyAtFault(Identifier inId, uint8_t inPercentage = 10);
@@ -124,6 +127,10 @@ public:
     int32_t FailAtFault(Identifier inId,
                         uint32_t inNumCallsToSkip,
                         uint32_t inNumCallsToFail);
+    int32_t FailAtFault(Identifier inId,
+                        uint32_t inNumCallsToSkip,
+                        uint32_t inNumCallsToFail,
+                        bool inTakeMutex);
 
     int32_t RebootAtFault(Identifier inId);
 
@@ -132,9 +139,12 @@ public:
     int32_t InsertCallbackAtFault(Identifier inId, Callback *inCallBack);
 
     int32_t RemoveCallbackAtFault(Identifier inId, Callback *inCallBack);
+    int32_t RemoveCallbackAtFault(Identifier inId, Callback *inCallBack, bool inTakeMutex);
 
     bool CheckFault(Identifier inId);
+    bool CheckFault(Identifier inId, bool inTakeMutex);
     bool CheckFault(Identifier inId, uint16_t &outNumArgs, int32_t *&outArgs);
+    bool CheckFault(Identifier inId, uint16_t &outNumArgs, int32_t *&outArgs, bool inTakeMutex);
 
     /**
      * Get the number of fault IDs defined by the Manager.
@@ -148,7 +158,7 @@ public:
 
     /**
      * Get the name of the Manager. Every Manager object is initialized with a name,
-     * so that faults can be configured using human readable strings.
+     * so that faults can be configured using human-readable strings.
      *
      * @return  The Manager's name, as a pointer to a const null-terminated string.
      */
@@ -178,12 +188,49 @@ public:
     int32_t ResetFaultConfigurations(void);
     int32_t ResetFaultConfigurations(Identifier inId);
 
+    /**
+     * Pointer to a function to be called when entering or exiting a critical section
+     */
+    typedef void (*LockCbFn)(void *inLockContext);
+
+    /**
+     * On multithreaded systems, the Manager's data structures need to be protected with
+     * a mutex; a common example is the case of the system being configured by one thread (calling
+     * ParseFaultInjectionStr, ResetFaultConfigurations etc) while another thread runs the
+     * code in which faults are injected.
+     * The application is supposed to provide two function pointers, one to enter the
+     * critical section and one to exit it.
+     * The application can decide to use the same mutex for all Managers, or to protect different
+     * Managers with different mutexes.
+     * In case the platform does not support re-entrant mutexes, the application's callbacks installed
+     * at the fault injection points must use the inTakeMutex argument to the Manager's method to
+     * avoid taking the same mutes twice.
+     *
+     * @param[in] inLock            The callback to take the mutex
+     * @param[in] inUnlock          The callback to release the mutex
+     * @param[in] inLockContext     a void pointer to the mutex context, which is passed to the
+     *                              callbacks
+     */
+    void SetLockCallbacks(LockCbFn inLock, LockCbFn inUnlock, void *inLockContext)
+    {
+        mLock = inLock;
+        mUnlock = inUnlock;
+        mLockContext = inLockContext;
+    }
+
+    void Lock(void);
+
+    void Unlock(void);
+
 private:
 
     size_t  mNumFaults;
     Record *mFaultRecords;
     const char *mName;
     const char **mFaultNames;
+    LockCbFn mLock;
+    LockCbFn mUnlock;
+    void *mLockContext;
 };
 
 /**
@@ -207,16 +254,16 @@ typedef void (*RebootCallbackFn)(void);
 typedef void (*PostInjectionCallbackFn)(Manager *aManager, Identifier aId, Record *aFaultRecord);
 
 /**
- * A table of callbacks used by all managers
+ * A table of callbacks used by all managers.
  */
 typedef struct _GlobalCallbackTable {
     RebootCallbackFn        mRebootCb;        /**< See RebootCallbackFn */
-    PostInjectionCallbackFn mPostInjectionCb; /**< PostInjectionCallbackFn */
+    PostInjectionCallbackFn mPostInjectionCb; /**< See PostInjectionCallbackFn */
 } GlobalCallbackTable;
 
 /**
  * A structure to hold global state that is used
- * by all Managers
+ * by all Managers.
  */
 typedef struct _GlobalContext {
     GlobalCallbackTable mCbTable;             /**< A table of callbacks */
@@ -234,7 +281,7 @@ bool ParseFaultInjectionStr(char *inStr, GetManagerFn *inTable, size_t inTableSi
  * The macro to inject the fault code.
  * Typically the module offering a fault-injection API
  * wraps this macro into a macro that:
- * 1. translates to a no-op if faults are disabled at compile time;
+ * 1. translates to a no-op if faults are disabled at compile time.
  * 2. hardcodes aManager to the module's own.
  *
  * @param[in] aManager    The Manager
@@ -244,16 +291,50 @@ bool ParseFaultInjectionStr(char *inStr, GetManagerFn *inTable, size_t inTableSi
  *                            - a single statement without terminating ";"
  *                            - two or more statements, separated by ";"
  *                            - a whole C++ block, enclosed in "{}"
- *                        The statements can refer to a local array of int32_t
- *                        args called faultArgs, of length numFaultArgs.
  */
 #define nlFAULT_INJECT( aManager, aId, aStatements ) \
     do { \
-        uint16_t numFaultArgs = 0; \
-        int32_t *faultArgs = NULL; \
-        if ((aManager).CheckFault(aId, numFaultArgs, faultArgs)) \
+        if ((aManager).CheckFault(aId)) \
         { \
             aStatements; \
+        } \
+    } while (0)
+
+/**
+ * The macro to inject fault code that depends on extra arguments (see StoreArgsAtFault).
+ * Typically the module offering a fault-injection API
+ * wraps this macro into a macro that:
+ * 1. translates to a no-op if faults are disabled at compile time;
+ * 2. hardcodes aManager to the module's own.
+ *
+ * Note that on multithreaded systems the statements that consume the
+ * arguments need to be protected by the Manager's mutex.
+ * Any other statements should be executed outside of the mutex
+ * (this is a must in particular for statements that trigger the execution
+ * of a different fault injection site).
+ *
+ * @param[in] aManager    The Manager
+ * @param[in] aId         The fault ID
+ * @param[in] aProtectedStatements      C++ code to be executed if the fault is to be injected,
+ *                        while holding the Manager's mutex.
+ *                        These statements usually refer to a local array of int32_t
+ *                        args called faultArgs, of length numFaultArgs to access the extra arguments.
+ * @param[in] aUnprotectedStatements    C++ code to be executed if the fault is to be injected,
+ *                        outside of the Manager's mutex
+ */
+#define nlFAULT_INJECT_WITH_ARGS( aManager, aId, aProtectedStatements, aUnprotectedStatements ) \
+    do { \
+        uint16_t numFaultArgs = 0; \
+        int32_t *faultArgs = NULL; \
+        \
+        (aManager).Lock(); \
+        if ((aManager).CheckFault(aId, numFaultArgs, faultArgs, nl::FaultInjection::Manager::kMutexDoNotTake)) \
+        { \
+            aProtectedStatements; \
+            (aManager).Unlock(); \
+            aUnprotectedStatements; \
+        } else { \
+            (aManager).Unlock(); \
         } \
     } while (0)
 
