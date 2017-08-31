@@ -20,7 +20,7 @@
 
 #
 #    @file
-#       WeaveTimeSync test (mode: "local")
+#       WeaveTimeSync test (mode: "auto")
 #
 
 import itertools
@@ -73,7 +73,7 @@ class test_weave_time_01(unittest.TestCase):
         options = happy.HappyNodeList.option()
         options["quiet"] = True
 
-        mode = "local"
+        mode = "auto"
 
         value, data = self.__run_time_test_between("node01", "node02",
                                                    "node03", mode)
