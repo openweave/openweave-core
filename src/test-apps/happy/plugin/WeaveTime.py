@@ -42,7 +42,12 @@ options = {
     "quiet": False,
     "tap": None,
     "skip_service_end": False,
-    "skip_coordinator_end": False
+    "skip_coordinator_end": False,
+    "client_faults": False,
+    "server_faults": False,
+    "coordinator_faults": False,
+    "iterations": None,
+    "test_tag": ""
 }
 
 
@@ -54,6 +59,9 @@ class WeaveTime(HappyNode, HappyNetwork, WeaveTest):
     """
     weave-time [-h --help] [-q --quiet] [-c --client <NAME>] [-o --coordinator <NAME>]
                [-s --server <NAME>] [-m --mode <MODE>] [-p --tap <TAP_INTERFACE>]
+               [--client_faults <fault-injection configuration>]
+               [--server_faults <fault-injection configuration>]
+               [--coordinator_faults <fault-injection configuration>]
 
     commands to test Time profile:
         $ weave-time -c node01 -o node02 -s node03 -m auto
@@ -82,18 +90,12 @@ class WeaveTime(HappyNode, HappyNetwork, WeaveTest):
         HappyNetwork.__init__(self)
         WeaveTest.__init__(self)
 
-        self.quiet = opts["quiet"]
-        self.client = opts["client"]
-        self.coordinator = opts["coordinator"]
-        self.mode = opts["mode"]
-        self.server = opts["server"]
-        self.tap = opts["tap"]
-        self.skip_service_end = opts["skip_service_end"]
-        self.skip_coordinator_end = opts["skip_coordinator_end"]
+        self.__dict__.update(options)
+        self.__dict__.update(opts)
 
-        self.client_process_tag = "WEAVE-TIME-CLIENT"
-        self.coordinator_process_tag = "WEAVE-TIME-COORDINATOR"
-        self.server_process_tag = "WEAVE-TIME-SERVER"
+        self.client_process_tag = "WEAVE-TIME-CLIENT" + opts.get("test_tag")
+        self.coordinator_process_tag = "WEAVE-TIME-COORDINATOR" + opts.get("test_tag")
+        self.server_process_tag = "WEAVE-TIME-SERVER" + opts.get("test_tag")
 
         self.client_node_id = None
         self.coordinator_node_id = None
@@ -233,6 +235,7 @@ class WeaveTime(HappyNode, HappyNetwork, WeaveTest):
         if not cmd:
             return
 
+        cmd += " --debug-resource-usage --print-fault-counters"
         cmd += " --node-addr " + self.client_ip
         cmd += " --time-sync-client"
 
@@ -250,6 +253,12 @@ class WeaveTime(HappyNode, HappyNetwork, WeaveTest):
         if self.tap:
             cmd += " --interface " + self.tap
 
+        if self.client_faults:
+            cmd += " --faults " + self.client_faults
+
+        if self.iterations:
+            cmd += " --iterations " + str(self.iterations)
+
         self.start_weave_process(self.client_node_id, cmd, self.client_process_tag, sync_on_output=self.ready_to_service_events_str)
 
 
@@ -262,11 +271,15 @@ class WeaveTime(HappyNode, HappyNetwork, WeaveTest):
         if not cmd:
             return
 
+        cmd += " --debug-resource-usage --print-fault-counters"
         cmd += " --node-addr " + self.coordinator_ip
         cmd += " --time-sync-coordinator"
 
         if self.tap:
             cmd += " --interface " + self.tap
+
+        if self.coordinator_faults:
+            cmd += " --faults " + self.coordinator_faults
 
         self.start_weave_process(self.coordinator_node_id, cmd, self.coordinator_process_tag, sync_on_output=self.ready_to_service_events_str)
 
@@ -279,11 +292,15 @@ class WeaveTime(HappyNode, HappyNetwork, WeaveTest):
         if not cmd:
             return
 
+        cmd += " --debug-resource-usage --print-fault-counters"
         cmd += " --node-addr " + self.server_ip
         cmd += " --time-sync-server"
 
         if self.tap:
             cmd += " --interface " + self.tap
+
+        if self.server_faults:
+            cmd += " --faults " + self.server_faults
 
         self.start_weave_process(self.server_node_id, cmd, self.server_process_tag, sync_on_output=self.ready_to_service_events_str)
 
