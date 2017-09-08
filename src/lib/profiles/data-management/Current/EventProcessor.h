@@ -176,13 +176,15 @@ protected:
     WEAVE_ERROR UpdateContextQualifyHeader(EventHeader &inOutEventHeader,
                                            StreamParsingContext &inOutContext,
                                            uint64_t inReceivedMask);
-    WEAVE_ERROR UpdateGapDetection(const EventHeader &inEventHeader);
+    WEAVE_ERROR ProcessHeader(const EventHeader &inEventHeader);
 
     virtual WEAVE_ERROR ProcessEvent(nl::Weave::TLV::TLVReader inReader,
                                      nl::Weave::Profiles::DataManagement::SubscriptionClient &inClient,
                                      const EventHeader &inEventHeader) = 0;
 
     virtual WEAVE_ERROR GapDetected(const EventHeader &inEventHeader) = 0;
+
+    virtual WEAVE_ERROR EventsProcessed() = 0;
 
     uint64_t mLocalNodeId;
 

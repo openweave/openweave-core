@@ -50,6 +50,9 @@ EventProcessor::ProcessEvents(nl::Weave::TLV::TLVReader &inReader,
     err = ParseEventList(inReader, inClient);
     SuccessOrExit(err);
 
+    err = EventsProcessed();
+    SuccessOrExit(err);
+
 exit:
     return err;
 }
@@ -310,7 +313,7 @@ EventProcessor::ParseEvent(nl::Weave::TLV::TLVReader &inReader,
                 // Potentially this could be moved to outside the while(inReader.Next())?
                 // but so could the call to ProcessEvent (this would enable data-less events).
                 // For now leaving both together makes up for it in readability.
-                err = UpdateGapDetection(eventHeader);
+                err = ProcessHeader(eventHeader);
                 SuccessOrExit(err);
 
                 err = ProcessEvent(inReader, inClient, eventHeader);
@@ -468,22 +471,25 @@ exit:
 }
 
 WEAVE_ERROR
-EventProcessor::UpdateGapDetection(const EventHeader &inEventHeader)
+EventProcessor::ProcessHeader(const EventHeader &inEventHeader)
 {
     // If any event was ever received for that importance
     if (mLastEventId[inEventHeader.mImportance] != 0)
     {
-        if (inEventHeader.mId != (mLastEventId[inEventHeader.mImportance] + 1))
+        if (inEventHeader.mId > mLastEventId[inEventHeader.mImportance])
         {
-            WeaveLogDetail(DataManagement, "EventProcessor found gap for importance: %u (0x%" PRIx32 " -> 0x%" PRIx64 ") NodeId=0x%" PRIx64,
-                inEventHeader.mImportance,
-                mLastEventId[inEventHeader.mImportance],
-                inEventHeader.mId,
-                inEventHeader.mSource);
-            GapDetected(inEventHeader);
-        }
+            if (inEventHeader.mId > (mLastEventId[inEventHeader.mImportance] + 1))
+            {
+                WeaveLogDetail(DataManagement, "EventProcessor found gap for importance: %u (0x%" PRIx32 " -> 0x%" PRIx64 ") NodeId=0x%" PRIx64,
+                    inEventHeader.mImportance,
+                    mLastEventId[inEventHeader.mImportance],
+                    inEventHeader.mId,
+                    inEventHeader.mSource);
+                GapDetected(inEventHeader);
+            }
 
-        mLastEventId[inEventHeader.mImportance] = inEventHeader.mId;
+            mLastEventId[inEventHeader.mImportance] = inEventHeader.mId;
+        }
     }
     else
     {
