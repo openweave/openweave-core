@@ -129,21 +129,25 @@ public:
         kState_Preparing                            = 3,
         kState_PreparingAddress                     = 4,
         kState_PreparingTransport                   = 5,
-        kState_PreparingSecurity                    = 6,
-        kState_PreparingSecurity_EstablishSession   = 7,
-        kState_PreparingSecurity_WaitSecurityMgr    = 8,
-        kState_Ready                                = 9,
-        kState_Resetting                            = 10,
-        kState_Closed                               = 11,
-        kState_Failed                               = 12,
+        kState_PreparingTransport_TCPConnect        = 6,
+        kState_PreparingSecurity                    = 7,
+        kState_PreparingSecurity_EstablishSession   = 8,
+        kState_PreparingSecurity_WaitSecurityMgr    = 9,
+        kState_Ready                                = 10,
+        kState_Resetting                            = 11,
+        kState_Closed                               = 12,
+        kState_Failed                               = 13,
+
+        kState_MaxState                             = 15, // limited to 4 bits
     };
 
     enum EventType
     {
-        kEvent_BindingReady                         = 1,    //< The prepare action on the binding succeeded and the binding may now be used to communicate with the peer.
-        kEvent_PrepareFailed                        = 2,    //< The prepare action on the binding failed.
-        kEvent_BindingFailed                        = 3,    //< The binding failed and can no longer be used to communicate with the peer.
-        kEvent_PrepareRequested                     = 4,    //< The application is requested to configure and prepare the binding for use by the network stack.
+        kEvent_ConnectionEstablished                = 1,    //< The requested Weave connection has been established.
+        kEvent_BindingReady                         = 2,    //< The prepare action on the binding succeeded and the binding may now be used to communicate with the peer.
+        kEvent_PrepareFailed                        = 3,    //< The prepare action on the binding failed.
+        kEvent_BindingFailed                        = 4,    //< The binding failed and can no longer be used to communicate with the peer.
+        kEvent_PrepareRequested                     = 5,    //< The application is requested to configure and prepare the binding for use by the network stack.
 
         kEvent_DefaultCheck                         = 100,  //< Used to verify correct default event handling in the application.
     };
@@ -179,6 +183,7 @@ public:
 #endif // #if WEAVE_CONFIG_ENABLE_RELIABLE_MESSAGING
     EventCallback GetEventCallback() const;
     void SetEventCallback(EventCallback aEventCallback);
+    WeaveConnection *GetConnection() const;
 
     void GetProtocolLayerCallback(EventCallback& callback, void *& state) const;
     void SetProtocolLayerCallback(EventCallback callback, void *state);
@@ -228,6 +233,7 @@ private:
     enum Flags
     {
         kFlag_KeyReserved                           = 0x1,
+        kFlag_ConnectionReferenced                  = 0x2,
     };
 
     WeaveExchangeManager * mExchangeManager;
@@ -249,19 +255,18 @@ private:
     InterfaceId mInterfaceId;
     uint16_t mPeerPort;
 
-    // Security-specific configuration
-    uint8_t mEncType;
-    WeaveAuthMode mAuthMode;
-    uint32_t mKeyId;
-
+    // Transport-specific configuration
+    nl::Inet::IPAddress mPeerAddress;
+    WeaveConnection *mCon;
     uint32_t mDefaultResponseTimeoutMsec;
 #if WEAVE_CONFIG_ENABLE_RELIABLE_MESSAGING
     WRMPConfig mDefaultWRMPConfig;
 #endif
 
-    // Note that IPAddress has a (redundant) copy assignment operator defined, so it cannot be part of any union pre C++11
-    // This is not a big deal, but peer address is not really needed in ServiceDirectory scenarios
-    nl::Inet::IPAddress mPeerAddress;
+    // Security-specific configuration
+    uint8_t mEncType;
+    WeaveAuthMode mAuthMode;
+    uint32_t mKeyId;
 
     WEAVE_ERROR Init(void * apAppState, EventCallback aEventCallback);
 
@@ -279,11 +284,16 @@ private:
     void HandleBindingFailed(WEAVE_ERROR err, bool raiseEvent);
     void OnKeyFailed(uint64_t peerNodeId, uint32_t keyId, WEAVE_ERROR keyErr);
     void OnSecurityManagerAvailable(void);
+    void OnConnectionClosed(WeaveConnection *con, WEAVE_ERROR conErr);
 
     static void OnSecureSessionReady(WeaveSecurityManager *sm, WeaveConnection *con, void *reqState,
             uint16_t keyId, uint64_t peerNodeId, uint8_t encType);
     static void OnSecureSessionFailed(WeaveSecurityManager *sm, WeaveConnection *con, void *reqState,
             WEAVE_ERROR localErr, uint64_t peerNodeId, Profiles::StatusReporting::StatusReport *statusReport);
+    void OnSecureSessionReady(uint64_t peerNodeId, uint8_t encType, WeaveAuthMode authMode, uint16_t keyId);
+    void OnKeyError(const uint32_t aKeyId, const uint64_t aPeerNodeId, const WEAVE_ERROR aKeyErr);
+
+    static void OnConnectionComplete(WeaveConnection *con, WEAVE_ERROR conErr);
 };
 
 /**
@@ -471,6 +481,11 @@ inline void Binding::SetProtocolLayerCallback(EventCallback callback, void *stat
 {
     mProtocolLayerCallback = callback;
     mProtocolLayerState = state;
+}
+
+inline WeaveConnection *Binding::GetConnection() const
+{
+    return mCon;
 }
 
 inline Binding::Configuration Binding::BeginConfiguration()

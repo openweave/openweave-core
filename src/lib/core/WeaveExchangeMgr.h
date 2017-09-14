@@ -176,6 +176,8 @@ public:
     void SetAutoRequestAck(bool autoReqAck);
     bool GetAutoReleaseKey() const;
     void SetAutoReleaseKey(bool autoReleaseKey);
+    bool ShouldAutoReleaseConnection() const;
+    void SetShouldAutoReleaseConnection(bool autoReleaseCon);
 
     WEAVE_ERROR SendMessage(uint32_t profileId, uint8_t msgType, PacketBuffer *msgPayload, uint16_t sendFlags = 0, void *msgCtxt = 0);
     WEAVE_ERROR SendMessage(uint32_t profileId, uint8_t msgType, PacketBuffer *msgBuf, uint16_t sendFlags, WeaveMessageInfo * msgInfo, void *msgCtxt = 0);

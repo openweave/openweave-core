@@ -43,6 +43,44 @@
 namespace nl {
 namespace Weave {
 
+/**
+ * Reserve a reference to the WeaveConnection object.
+ *
+ * The AddRef() method increments the reference count associated with the WeaveConnection object.  For every
+ * call to AddRef(), the application is responsible for making a corresponding call to either Release(), Close()
+ * or Abort().
+ */
+void WeaveConnection::AddRef()
+{
+    VerifyOrDie(mRefCount < UINT8_MAX);
+    ++mRefCount;
+}
+
+/**
+ *  Decrement the reference count on the WeaveConnection object.
+ *
+ *  The Release() method decrements the reference count associated with the WeaveConnection object.  If
+ *  this results in the reference count reaching zero, the connection is closed and the connection object
+ *  is freed.  When this happens, the application must have no further interactions with the object.
+ */
+void WeaveConnection::Release()
+{
+    // If the only reference that will remain after this call is the one that was automatically added
+    // when the connection started, close the connection.
+    if (mRefCount == 2 && State != kState_ReadyToConnect && State != kState_Closed)
+    {
+        // Suppress callbacks.
+        OnConnectionComplete = NULL;
+        OnConnectionClosed = NULL;
+
+        // Perform a graceful close.
+        DoClose(WEAVE_NO_ERROR, kDoCloseFlag_SuppressCallback);
+    }
+
+    VerifyOrDie(mRefCount != 0);
+    mRefCount--;
+}
+
 WEAVE_ERROR WeaveConnection::StartConnectToAddressLiteral(const char aAddressLiteral[])
 {
     WEAVE_ERROR lReturn = WEAVE_ERROR_UNSUPPORTED_WEAVE_FEATURE;
@@ -590,16 +628,20 @@ WEAVE_ERROR WeaveConnection::Shutdown()
  *  protocol level has been received by the remote peer. For both TCP and BLE, the underlying protocol stack
  *  will make a best-effort to deliver any pending outgoing data before resetting the connection. For TCP,
  *  Shutdown() should be used before Close() if a transport-layer message receipt confirmation is required
- *  before closing the connection. BLE connections provide no Shutdown() equivalent.
+ *  before closing the connection.  BLE connections provide no Shutdown() equivalent.
  *
- *  For BLE-based connections, Close() frees the WeaveConnection and returns immediately, but may cause the
+ *  For BLE-based connections, Close() closes the WeaveConnection and returns immediately, but may cause the
  *  underlying BLEEndPoint object to linger until all outgoing data has been sent. This is a side effect of
  *  the Weave over BLE transport protocol implementation existing within the Weave BleLayer.
  *
- *  A call to Close() terminates the WeaveConnection. Any further use of a WeaveConnection needs to be
- *  initiated by a call to WeaveMessageLayer::NewConnection();
+ *  Once Close() has been called, the WeaveConnection object can no longer be used for further communication.
  *
- *  @sa Shutdown() and Abort().
+ *  Calling Close() decrements the reference count associated with the WeaveConnection object, whether or not
+ *  the connection is open/active at the time the method is called.  If this results in the reference count
+ *  reaching zero, the resources associated with the connection object are freed.  When this happens, the
+ *  application must have no further interactions with the object.
+ *
+ *  @sa Shutdown(), Abort(), AddRef() and Release().
  *
  *  @return #WEAVE_NO_ERROR unconditionally.
  *
@@ -617,26 +659,28 @@ WEAVE_ERROR WeaveConnection::Close()
  *  protocol level has been received by the remote peer. For both TCP and BLE, the underlying protocol stack
  *  will make a best-effort to deliver any pending outgoing data before resetting the connection. For TCP,
  *  Shutdown() should be used before Close() if a transport-layer message receipt confirmation is required
- *  before closing the connection. BLE connections provide no Shutdown() equivalent.
+ *  before closing the connection.  BLE connections provide no Shutdown() equivalent.
  *
- *  For BLE-based connections, Close() frees the WeaveConnection and returns immediately, but may cause the
+ *  For BLE-based connections, Close() closes the WeaveConnection and returns immediately, but may cause the
  *  underlying BLEEndPoint object to linger until all outgoing data has been sent. This is a side effect of
  *  the Weave over BLE transport protocol implementation existing within the Weave BleLayer.
  *
- *  A call to Close() terminates the WeaveConnection. Any further use of a WeaveConnection needs to be
- *  initiated by a call to WeaveMessageLayer::NewConnection();
+ *  Once Close() has been called, the WeaveConnection object can no longer be used for further communication.
+ *
+ *  Calling Close() decrements the reference count associated with the WeaveConnection object, whether or not
+ *  the connection is open/active at the time the method is called.  If this results in the reference count
+ *  reaching zero, the resources associated with the connection object are freed.  When this happens, the
+ *  application must have no further interactions with the object.
  *
  *  @param[in]    suppressCloseLog    true if logs need to be suppressed, false otherwise.
  *
- *  @sa Shutdown() and Abort().
+ *  @sa Shutdown(), Abort(), AddRef() and Release().
  *
  *  @return #WEAVE_NO_ERROR unconditionally.
  *
  */
 WEAVE_ERROR WeaveConnection::Close(bool suppressCloseLog)
 {
-    VerifyOrDie(mRefCount != 0);
-
     // Suppress callbacks.
     OnConnectionComplete = NULL;
     OnConnectionClosed = NULL;
@@ -646,25 +690,29 @@ WEAVE_ERROR WeaveConnection::Close(bool suppressCloseLog)
 
     // Decrement the ref count that was added when the WeaveConnection object
     // was allocated (in WeaveMessageLayer::NewConnection()).
+    VerifyOrDie(mRefCount != 0);
     mRefCount--;
 
     return WEAVE_NO_ERROR;
 }
 
 /**
- *  Performs an un-graceful close of the TCP- or BLE-based WeaveConnection, freeing all local state
- *  without informing the remote host.
+ *  Performs an un-graceful close of the TCP- or BLE-based WeaveConnection, discarding any data that might be
+ *  in flight to or from the peer.
  *
- *  A call to Abort() terminates the WeaveConnection. Any further use of a WeaveConnection needs to be
- *  initiated by a call to WeaveMessageLayer::NewConnection();
+ *  A call to Abort() immediately terminates the underlying connection.  After this point, the WeaveConnection
+ *  object can no longer be used for further communication.
  *
- *  @sa Shutdown() and Close().
+ *  Calling Abort() decrements the reference count associated with the WeaveConnection object, whether or not
+ *  the connection is open/active at the time the method is called.  If this results in the reference count
+ *  reaching zero, the resources associated with the connection object are freed.  When this happens, the
+ *  application must have no further interactions with the object.
+ *
+ *  @sa Shutdown(), Abort(), AddRef() and Release().
  *
  */
 void WeaveConnection::Abort()
 {
-    VerifyOrDie(mRefCount != 0);
-
     // Suppress callbacks.
     OnConnectionComplete = NULL;
     OnConnectionClosed = NULL;
@@ -674,6 +722,7 @@ void WeaveConnection::Abort()
 
     // Decrement the ref count that was added when the WeaveConnection object
     // was allocated (in WeaveMessageLayer::NewConnection()).
+    VerifyOrDie(mRefCount != 0);
     mRefCount--;
 }
 
@@ -897,7 +946,7 @@ WEAVE_ERROR WeaveConnection::SetIdleTimeout(uint32_t timeoutMS)
     return WEAVE_NO_ERROR;
 }
 
-void WeaveConnection::DoClose (WEAVE_ERROR err, uint8_t flags)
+void WeaveConnection::DoClose(WEAVE_ERROR err, uint8_t flags)
 {
     if (State != kState_Closed)
     {
@@ -966,7 +1015,10 @@ void WeaveConnection::DoClose (WEAVE_ERROR err, uint8_t flags)
 
         // Decrement the ref count that was added when the connection started.
         if (oldState != kState_ReadyToConnect && oldState != kState_Closed)
+        {
+            VerifyOrDie(mRefCount != 0);
             mRefCount--;
+        }
     }
 }
 

@@ -139,6 +139,15 @@ namespace Weave {
  */
 
 /**
+ * @fn WeaveConnection *Binding::GetConnection() const
+ *
+ * Get the Weave connection object associated with the binding.
+ *
+ * @return                          A pointer to a WeaveConnection object, or NULL if there is
+ *                                  no connection associated with the binding.
+ */
+
+/**
  * @fn Binding::Configuration Binding::BeginConfiguration()
  *
  * Being the process of configuring the Binding.  Applications must call BeginConfiguration() to
@@ -333,6 +342,14 @@ void Binding::DoReset(State newState)
         sm->ReleaseKey(mPeerNodeId, mKeyId);
     }
 
+    // Release the reference to the connection object, if held.  Block any callback to our
+    // connection complete handler that may result from releasing the connection.
+    if (GetFlag(kFlag_ConnectionReferenced))
+    {
+        mCon->OnConnectionComplete = NULL;
+        mCon->Release();
+    }
+
     // If a session establishment was in progress, cancel it.
     if (origState == kState_PreparingSecurity_EstablishSession)
     {
@@ -376,6 +393,8 @@ void Binding::ResetConfig()
     mAddressingOption = kAddressing_NotSpecified;
     mPeerPort = WEAVE_PORT;
     mInterfaceId = INET_NULL_INTERFACEID;
+
+    mCon = NULL;
 
     mTransportOption = kTransport_NotSpecified;
     mDefaultResponseTimeoutMsec = 0;
@@ -472,6 +491,10 @@ WEAVE_ERROR Binding::DoPrepare(WEAVE_ERROR configErr)
     // App must pick a security option
     VerifyOrExit(kSecurityOption_NotSpecified != mSecurityOption, err = WEAVE_ERROR_INVALID_ARGUMENT);
 
+    // Shared session not allowed over connection-oriented transports.
+    VerifyOrExit(mSecurityOption != kSecurityOption_SharedCASESession || mTransportOption == kTransport_UDP || mTransportOption == kTransport_UDP_WRM,
+                 err = WEAVE_ERROR_INVALID_ARGUMENT);
+
     mState = kState_Preparing;
 
     WeaveLogDetail(ExchangeManager, "Binding[%" PRIu8 "] (%" PRIu16 "): Preparing", GetLogId(), mRefCount);
@@ -513,15 +536,55 @@ void Binding::PrepareAddress()
 }
 
 /**
- * Do any work necessary to determine to establish transport-level communication with the peer.
+ * Do any work necessary to establish transport-level communication with the peer.
  */
 void Binding::PrepareTransport()
 {
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
+
     mState = kState_PreparingTransport;
 
-    // TODO FUTURE: Add support for TCP and existing connection
+    // If the application has requested TCP, and no existing connection has been supplied...
+    if (mTransportOption == kTransport_TCP && mCon == NULL)
+    {
+        // Construct a new WeaveConnection object.  This method implicitly establishes a reference
+        // to the connection object, which will be owned by the Binding until it is closed or fails.
+        mCon = mExchangeManager->MessageLayer->NewConnection();
+        VerifyOrExit(mCon != NULL, err = WEAVE_ERROR_NO_MEMORY);
 
-    PrepareSecurity();
+        // Remember that we have to release the connection later when the binding closes.
+        SetFlag(kFlag_ConnectionReferenced);
+
+        // Setup a callback function to be called when the connection attempt completes
+        // and store a back-reference to the binding in the connection's AppState member.
+        mCon->OnConnectionComplete = OnConnectionComplete;
+        mCon->AppState = this;
+
+        mState = kState_PreparingTransport_TCPConnect;
+
+        // Initiate a connection to the peer.
+        err = mCon->Connect(mPeerNodeId, kWeaveAuthMode_None, mPeerAddress, mPeerPort, mInterfaceId);
+        SuccessOrExit(err);
+    }
+
+    else
+    {
+        // If using a connection supplied by the application, take a reference to the object.
+        if (mTransportOption == kTransport_TCP || mTransportOption == kTransport_ExistingConnection)
+        {
+            mCon->AddRef();
+            SetFlag(kFlag_ConnectionReferenced);
+        }
+
+        // No further work to do in preparing the transport, so proceed to preparing security.
+        PrepareSecurity();
+    }
+
+exit:
+    if (WEAVE_NO_ERROR != err)
+    {
+        HandleBindingFailed(err, true);
+    }
 }
 
 /**
@@ -577,7 +640,7 @@ void Binding::PrepareSecurity()
             // Call the security manager to initiate the CASE session.  Note that security manager will call the
             // OnSecureSessionReady function during this call if a shared session is requested and the session is
             // already available.
-            err = sm->StartCASESession(NULL, mPeerNodeId, peerAddress, peerPort, mAuthMode, this,
+            err = sm->StartCASESession(mCon, mPeerNodeId, peerAddress, peerPort, mAuthMode, this,
                     OnSecureSessionReady, OnSecureSessionFailed, NULL, terminatingNodeId);
 
             // If the security manager is currently busy, wait for it to finish.  When this happens,
@@ -636,35 +699,49 @@ void Binding::HandleBindingReady()
     // Transition to the Ready state.
     mState = kState_Ready;
 
+#if WEAVE_DETAIL_LOGGING
     {
-        char ipAddrStr[64];
-        char intfStr[64];
-        const char *transportStr;
-        mPeerAddress.ToString(ipAddrStr, sizeof(ipAddrStr));
-        nl::Inet::GetInterfaceName(mInterfaceId, intfStr, sizeof(intfStr));
+        char ipAddrBuf[64];
+        char intfBuf[64];
+        char transportBuf[20];
+        const char *transport;
+        mPeerAddress.ToString(ipAddrBuf, sizeof(ipAddrBuf));
+        nl::Inet::GetInterfaceName(mInterfaceId, intfBuf, sizeof(intfBuf));
         switch (mTransportOption)
         {
         case kTransport_UDP:
-            transportStr = "UDP";
+            transport = "UDP";
             break;
         case kTransport_UDP_WRM:
-            transportStr = "WRM";
+            transport = "WRM";
             break;
         case kTransport_TCP:
-            transportStr = "TCP"; // TODO FUTURE: Add id of connection
-            break;
         case kTransport_ExistingConnection:
-            transportStr = "ExistingCon"; // TODO FUTURE: Add id of connection
+            switch (mCon->NetworkType)
+            {
+            case WeaveConnection::kNetworkType_IP:
+                transport = "TCP";
+                break;
+            case WeaveConnection::kNetworkType_BLE:
+                transport = "WoBLE";
+                break;
+            default:
+                transport = "Unknown";
+                break;
+            }
+            snprintf(transportBuf, sizeof(transportBuf), "%s (%04" PRIX16 ")", transport, mCon->LogId());
+            transport = transportBuf;
             break;
         default:
-            transportStr = "Unknown";
+            transport = "Unknown";
             break;
         }
         WeaveLogDetail(ExchangeManager, "Binding[%" PRIu8 "] (%" PRIu16 "): Ready, peer %016" PRIX64 " @ [%s]:%" PRId16 " (%s) via %s",
-                GetLogId(), mRefCount, mPeerNodeId, ipAddrStr, mPeerPort,
-                (mInterfaceId != INET_NULL_INTERFACEID) ? intfStr : "default",
-                transportStr);
+                GetLogId(), mRefCount, mPeerNodeId, ipAddrBuf, mPeerPort,
+                (mInterfaceId != INET_NULL_INTERFACEID) ? intfBuf : "default",
+                transport);
     }
+#endif // WEAVE_DETAIL_LOGGING
 
     inParam.Clear();
     inParam.Source = this;
@@ -735,7 +812,75 @@ void Binding::HandleBindingFailed(WEAVE_ERROR err, bool raiseEvents) // TODO: ad
 }
 
 /**
- * Invoked when security session establishment has completed successfully.
+ * Invoked when TCP connection establishment completes (successfully or otherwise).
+ */
+void Binding::OnConnectionComplete(WeaveConnection *con, WEAVE_ERROR conErr)
+{
+    Binding *_this = (Binding *)con->AppState;
+
+    VerifyOrDie(_this->mState == kState_PreparingTransport_TCPConnect);
+    VerifyOrDie(_this->mCon == con);
+
+    // If the connection was successfully established...
+    if (conErr == WEAVE_NO_ERROR)
+    {
+        WeaveLogDetail(ExchangeManager, "Binding[%" PRIu8 "] (%" PRIu16 "): TCP con established (%04" PRIX16 ")",
+                _this->GetLogId(), _this->mRefCount, con->LogId());
+
+        // Deliver a ConnectionEstablished API event to the application.  This gives the application an opportunity
+        // to adjust the configuration of the connection, e.g. to enable TCP keep-alive.
+        {
+            InEventParam inParam;
+            OutEventParam outParam;
+            inParam.Clear();
+            inParam.Source = _this;
+            outParam.Clear();
+            _this->mAppEventCallback(_this->AppState, kEvent_ConnectionEstablished, inParam, outParam);
+        }
+
+        // If the binding is still in the TCPConnect state, proceed to preparing security.
+        if (_this->mState == kState_PreparingTransport_TCPConnect)
+        {
+            _this->PrepareSecurity();
+        }
+    }
+
+    // Otherwise the connection failed...
+    else
+    {
+        WeaveLogDetail(ExchangeManager, "Binding[%" PRIu8 "] (%" PRIu16 "): TCP con failed (%04" PRIX16 "): %s",
+                _this->GetLogId(), _this->mRefCount, con->LogId(), ErrorStr(conErr));
+        _this->HandleBindingFailed(conErr, true);
+    }
+}
+
+/**
+ * Invoked when a Weave connection (of any type) closes.
+ */
+void Binding::OnConnectionClosed(WeaveConnection *con, WEAVE_ERROR err)
+{
+    // NOTE: This method is called whenever a connection is closed anywhere in the system.  Thus
+    // this code must filter for events that apply to the current binding only.
+
+    // Ignore the close if it is associated with a different connection.
+    VerifyOrExit(mCon == con, /* no-op */);
+
+    // If the other side closed the connection gracefully, signal this to the user by indicating
+    // that the connection closed unexpectedly.
+    if (err == WEAVE_NO_ERROR)
+    {
+        err = WEAVE_ERROR_CONNECTION_CLOSED_UNEXPECTEDLY;
+    }
+
+    // Transition the binding to a failed state.
+    HandleBindingFailed(err, true);
+
+exit:
+    return;
+}
+
+/**
+ * Invoked when a security session establishment has completed successfully.
  */
 void Binding::OnSecureSessionReady(WeaveSecurityManager *sm, WeaveConnection *con, void *reqState, uint16_t keyId, uint64_t peerNodeId, uint8_t encType)
 {
@@ -926,8 +1071,6 @@ WEAVE_ERROR Binding::NewExchangeContext(nl::Weave::ExchangeContext *& ec)
     ec = mExchangeManager->NewContext(mPeerNodeId, mPeerAddress, mPeerPort, mInterfaceId, NULL);
     VerifyOrExit(NULL != ec, err = WEAVE_ERROR_NO_MEMORY);
 
-    // TODO FUTURE: Add support for connection-based exchanges
-
 #if WEAVE_CONFIG_ENABLE_RELIABLE_MESSAGING
 
     // Set the default WRMP configuration in the new exchange.
@@ -942,6 +1085,17 @@ WEAVE_ERROR Binding::NewExchangeContext(nl::Weave::ExchangeContext *& ec)
     }
 
 #endif // WEAVE_CONFIG_ENABLE_RELIABLE_MESSAGING
+
+    // If using a connection-oriented transport...
+    if (mTransportOption == kTransport_TCP || mTransportOption == kTransport_ExistingConnection)
+    {
+        // Add a reference to the connection object.
+        mCon->AddRef();
+
+        // Configure the exchange context to use the connection and release it when it's done.
+        ec->Con = mCon;
+        ec->SetShouldAutoReleaseConnection(true);
+    }
 
     // If message encryption is enabled...
     if (mSecurityOption != kSecurityOption_None)
@@ -1079,7 +1233,7 @@ Binding::Configuration& Binding::Configuration::TargetAddress_WeaveFabric(uint16
  */
 Binding::Configuration& Binding::Configuration::Transport_TCP()
 {
-    mError = WEAVE_ERROR_NOT_IMPLEMENTED;
+    mBinding.mTransportOption = kTransport_TCP;
     return *this;
 }
 
@@ -1129,9 +1283,10 @@ Binding::Configuration& Binding::Configuration::Transport_DefaultWRMPConfig(cons
 /**
  * Use an existing Weave connection to communicate with the peer.
  */
-Binding::Configuration& Binding::Configuration::Transport_ExistingConnection(WeaveConnection *)
+Binding::Configuration& Binding::Configuration::Transport_ExistingConnection(WeaveConnection *con)
 {
-    mError = WEAVE_ERROR_NOT_IMPLEMENTED;
+    mBinding.mTransportOption = kTransport_ExistingConnection;
+    mBinding.mCon = con;
     return *this;
 }
 

@@ -102,6 +102,7 @@ static uint32_t gEchoCount = 5;
 static uint32_t gEchoSendDelay = 100; // in ms
 static uint32_t gEchoResponseTimeout = 5000; // in ms
 static bool gOnDemandPrepare = false;
+static bool gCloseBindingDuringRequest = false;
 
 static TestMode gSelectedTestMode = kTestMode_Sequential;
 static uint32_t gTestDriversStarted = 0;
@@ -569,6 +570,13 @@ void BindingTestDriver::BindingEventCallback(void *apAppState, Binding::EventTyp
 
     switch (aEvent)
     {
+    case Binding::kEvent_ConnectionEstablished:
+        VerifyOrQuit(binding->GetState() == Binding::kState_PreparingTransport_TCPConnect);
+        VerifyOrQuit(!binding->IsReady());
+        VerifyOrQuit(binding->IsPreparing());
+        VerifyOrQuit(!binding->CanBePrepared());
+        VerifyOrQuit(binding->GetConnection() != NULL);
+        break;
     case Binding::kEvent_BindingReady:
         VerifyOrQuit(binding->GetState() == Binding::kState_Ready);
         VerifyOrQuit(binding->IsReady());
@@ -643,6 +651,12 @@ void BindingTestDriver::SendEcho()
         Failed(err, "ExchangeContext::SendMessage() failed");
         return;
     }
+
+    if (gCloseBindingDuringRequest)
+    {
+        binding->Close();
+        binding = NULL;
+    }
 }
 
 void BindingTestDriver::SendDelayComplete(System::Layer* aLayer, void* aAppState, System::Error aError)
@@ -663,17 +677,24 @@ void BindingTestDriver::OnEchoResponseReceived(ExchangeContext *ec, const IPPack
 
     _this->echosSent++;
 
-    VerifyOrQuit(_this->binding->IsAuthenticMessageFromPeer(msgInfo));
-
-    if (_this->echosSent < gEchoCount)
+    if (_this->binding != NULL)
     {
-        if (gEchoSendDelay == 0)
+        VerifyOrQuit(_this->binding->IsAuthenticMessageFromPeer(msgInfo));
+
+        if (_this->echosSent < gEchoCount)
         {
-            _this->SendEcho();
+            if (gEchoSendDelay == 0)
+            {
+                _this->SendEcho();
+            }
+            else
+            {
+                SystemLayer.StartTimer(gEchoSendDelay, SendDelayComplete, _this);
+            }
         }
         else
         {
-            SystemLayer.StartTimer(gEchoSendDelay, SendDelayComplete, _this);
+            _this->Complete();
         }
     }
     else
@@ -686,8 +707,11 @@ void BindingTestDriver::Complete()
 {
     gTestDriversActive--;
 
-    binding->Close();
-    binding = NULL;
+    if (binding != NULL)
+    {
+        binding->Close();
+        binding = NULL;
+    }
 
     switch (gSelectedTestMode)
     {

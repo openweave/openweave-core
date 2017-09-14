@@ -233,6 +233,9 @@ public:
                                                              an explicitly encoded destination node identifier, false
                                                              otherwise. */
 
+    void AddRef(void);
+    void Release(void);
+
     // Note: a downcall to Connect() may call OnConnectionComplete before it returns.
     WEAVE_ERROR Connect(uint64_t peerNodeId);
     WEAVE_ERROR Connect(uint64_t peerNodeId, const IPAddress &peerAddr, uint16_t peerPort = 0);
