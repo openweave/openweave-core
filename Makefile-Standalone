@@ -67,10 +67,11 @@ ProjectConfigDir               ?= $(AbsTopSourceDir)/build/config/standalone
 
 configure_OPTIONS               = CPPFLAGS="-maes"
 
-# NOTE: iOS SDKs starting at 10 seem to have issues with clock_gettime, 
+# NOTE: Mac OS SDKs generated on OS X Sierra (or higher) seem to have trouble
+#       running on El Capitan (or earlier) due to issues with clock_gettime: 
 #       declaring the interface in time.h but not making the symbol 
 #       available in libSystem.dylib, resulting in a runtime crash. For 
-#       now, suppress use of clock_getttime on iOS by overriding 
+#       now, suppress use of clock_getttime on OS X by overriding 
 #       configure and asserting:
 #
 #         ac_cv_func_clock_gettime=no
