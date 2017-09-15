@@ -390,6 +390,11 @@ WEAVE_ERROR TimeSyncNode::SetupUnicastCommContext(Contact * const aContact)
             // we're not using connection to sync
             mExchageContext = GetExchangeMgr()->NewContext(aContact->mNodeId, aContact->mNodeAddr, this);
 
+            if (NULL == mExchageContext)
+            {
+                ExitNow(err = WEAVE_ERROR_NO_MEMORY);
+            }
+
             // Configure the encryption and key used to send the request
             mExchageContext->EncryptionType = mEncryptionType;
             mExchageContext->KeyId = mKeyId;
