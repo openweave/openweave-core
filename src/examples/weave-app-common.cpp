@@ -42,6 +42,13 @@ nl::Weave::System::Layer SystemLayer;
 
 nl::Inet::InetLayer Inet;
 
+static void UseStdoutLineBuffering()
+{
+    // Set stdout to be line buffered with a buffer of 512 (will flush on new line
+    // or when the buffer of 512 is exceeded).
+    setvbuf(stdout, NULL, _IOLBF, 512);
+}
+
 void InitializeWeave(bool listenTCP)
 {
     WEAVE_ERROR err;
@@ -95,6 +102,8 @@ void InitializeWeave(bool listenTCP)
         printf("WeaveExchangeManager.Init failed: %s\n", nl::ErrorStr(err));
         exit(EXIT_FAILURE);
     }
+
+    UseStdoutLineBuffering();
 }
 
 void ShutdownWeave(void)

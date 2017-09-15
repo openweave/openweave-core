@@ -317,8 +317,6 @@ int main(int argc, char *argv[])
         while (!EchoIntervalExpired())
         {
             DriveIO();
-
-            fflush(stdout);
         }
 
         // Check if expected response was received.

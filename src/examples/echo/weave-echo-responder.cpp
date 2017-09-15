@@ -118,8 +118,6 @@ int main(int argc, char *argv[])
     while (!TestDone)
     {
         DriveIO();
-
-        fflush(stdout);
     }
 
     // Shutdown the Weave EchoServer.
