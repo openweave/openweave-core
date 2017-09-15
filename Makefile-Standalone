@@ -67,6 +67,22 @@ ProjectConfigDir               ?= $(AbsTopSourceDir)/build/config/standalone
 
 configure_OPTIONS               = CPPFLAGS="-maes"
 
+# NOTE: iOS SDKs starting at 10 seem to have issues with clock_gettime, 
+#       declaring the interface in time.h but not making the symbol 
+#       available in libSystem.dylib, resulting in a runtime crash. For 
+#       now, suppress use of clock_getttime on iOS by overriding 
+#       configure and asserting:
+#
+#         ac_cv_func_clock_gettime=no
+#         ac_cv_have_decl_clock_gettime=no
+#
+#       below.
+#
+
+ifeq ($(HOSTOS),darwin)
+configure_OPTIONS              += ac_cv_func_clock_gettime=no  ac_cv_have_decl_clock_gettime=no
+endif
+
 # By default, build using the system's OpenSSL library, except on OSX which needs
 # the Weave internal OpenSSL.
 # However, if NO_OPENSSL = 1, build with an alternate configuration that avoids the
