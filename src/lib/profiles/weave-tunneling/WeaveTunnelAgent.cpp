@@ -1210,12 +1210,6 @@ WEAVE_ERROR WeaveTunnelAgent::HandleTunneledReceive(PacketBuffer *msg, TunnelTyp
     WeaveTunnelHeader tunHeader;
     bool dropPacket = false;
 
-#if WEAVE_CONFIG_TUNNEL_LIVENESS_SUPPORTED
-    // Received message over tunnel. Restart the liveness timer.
-
-    RestartTunnelLivenessTimer(tunType);
-#endif // WEAVE_CONFIG_TUNNEL_LIVENESS_SUPPORTED
-
 #if WEAVE_CONFIG_TUNNEL_ENABLE_STATISTICS
     WeaveTunnelCommonStatistics *tunStats = NULL;
 

@@ -885,13 +885,6 @@ void WeaveTunnelControl::HandleTunnelRouteUpdateResponse(ExchangeContext *ec, co
         // The connection state is kState_TunnelOpen
 
         connMgr->mConnectionState = WeaveTunnelConnectionMgr::kState_TunnelOpen;
-
-#if WEAVE_CONFIG_TUNNEL_LIVENESS_SUPPORTED
-        // Tunnel is closed. Stop the Tunnel Liveness timer
-
-        connMgr->RestartLivenessTimer();
-#endif // WEAVE_CONFIG_TUNNEL_LIVENESS_SUPPORTED
-
     }
     else
     {
