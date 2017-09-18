@@ -405,13 +405,13 @@ WEAVE_ERROR TimeSyncNode::SetupUnicastCommContext(Contact * const aContact)
             // we're syncing with the cloud service
             // use the security settings of the connection
             mExchageContext = GetExchangeMgr()->NewContext(mConnectionToService, this);
+
+            if (NULL == mExchageContext)
+            {
+                ExitNow(err = WEAVE_ERROR_NO_MEMORY);
+            }
         }
 #endif // WEAVE_CONFIG_TIME_CLIENT_CONNECTION_FOR_SERVICE
-
-        if (NULL == mExchageContext)
-        {
-            ExitNow(err = WEAVE_ERROR_NO_MEMORY);
-        }
 
         mExchageContext->OnMessageReceived = HandleUnicastSyncResponse;
 
