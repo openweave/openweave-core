@@ -1,0 +1,70 @@
+Certificate:
+    Data:
+        Version: 1 (0x0)
+        Serial Number:
+            5f:60:58:5f:00:00:00:00
+        Signature Algorithm: sha1WithRSAEncryption
+        Issuer: C=JP, O=Japan Certification Services, Inc., CN=SecureSign RootCA1
+        Validity
+            Not Before: Sep 15 15:00:01 1999 GMT
+            Not After : Sep 15 14:59:59 2020 GMT
+        Subject: C=JP, O=Japan Certification Services, Inc., CN=SecureSign RootCA1
+        Subject Public Key Info:
+            Public Key Algorithm: rsaEncryption
+            RSA Public Key: (2048 bit)
+                Modulus (2048 bit):
+                    00:94:90:0c:4b:71:29:1c:da:f6:68:79:7a:a4:ba:
+                    e7:d2:cc:8d:af:e8:47:90:99:1f:c6:2a:ea:97:63:
+                    e8:1f:ce:17:57:c6:1a:b3:a8:c7:7c:87:ed:35:35:
+                    80:ba:ba:6e:6d:be:17:fe:cc:2d:1b:6c:ef:8a:00:
+                    49:16:e1:ee:06:5e:4a:07:5d:ab:3d:d1:50:b8:91:
+                    46:d4:d4:da:15:d8:94:5c:0e:ca:d7:da:bf:a0:f7:
+                    49:3c:c8:bb:ce:ea:26:81:0a:14:2d:9c:0d:37:45:
+                    6b:41:ca:57:8b:38:f0:26:1f:31:fc:cf:34:8e:8f:
+                    77:c1:3f:e3:ab:54:3c:27:b4:ce:32:4c:55:13:62:
+                    fc:fe:3a:16:25:cf:1b:6b:a2:23:b7:e0:ea:02:69:
+                    bb:f7:22:71:6d:7c:0b:19:93:a1:97:9c:e3:91:69:
+                    1f:68:e4:2f:7d:10:6d:8f:67:ae:c1:10:a2:b0:5e:
+                    63:4a:97:f7:e6:78:a9:ad:26:bb:54:c9:df:b4:ee:
+                    c5:9e:d3:25:dd:13:68:53:f9:8f:e8:ec:e5:de:81:
+                    d6:78:3e:ee:50:40:b4:01:3c:ac:15:c1:82:3b:2e:
+                    7f:f1:52:27:8b:72:e0:e7:db:f9:8b:29:c3:c3:4a:
+                    2b:33:89:ab:5c:2a:07:fc:7c:23:1e:2b:4f:08:22:
+                    fe:c1
+                Exponent: 65537 (0x10001)
+    Signature Algorithm: sha1WithRSAEncryption
+        55:ed:6f:7b:93:e5:45:31:4e:68:d5:55:81:a2:08:1f:6c:dd:
+        09:c5:78:1a:70:57:c8:df:08:81:ae:66:77:c6:75:0f:e4:ef:
+        49:8b:03:5c:6c:ff:1c:90:a4:72:b2:d3:16:12:b2:06:f8:46:
+        86:ae:bf:a7:15:db:85:4d:fa:c2:2d:4d:b3:b5:b0:43:ef:7c:
+        7e:07:db:5f:b3:57:46:51:76:07:86:44:fd:07:ea:f1:cb:4b:
+        45:4d:66:a7:33:26:c4:f9:43:aa:8d:12:b3:d4:8d:68:b6:f7:
+        02:79:b4:2d:5a:d7:03:98:04:2c:69:99:af:f4:66:3b:64:ac:
+        b2:c0:2b:c8:69:54:9e:4c:4e:48:18:8d:ce:57:b5:3b:51:e5:
+        1b:d7:fa:39:60:db:56:45:13:be:e7:66:d5:23:f6:7c:48:00:
+        b0:4c:ef:34:8d:22:ac:b2:2e:d1:4c:38:cd:fa:58:03:06:ee:
+        3a:73:87:0a:05:3a:ca:e4:af:d4:c1:ee:1c:85:7f:25:16:cf:
+        27:01:1f:84:8a:77:08:d0:d3:46:e8:20:ec:9f:a4:8c:f1:bc:
+        cd:c4:12:36:80:1e:c7:09:28:af:e8:08:be:c0:d3:b2:3e:d7:
+        2e:67:3d:a3:ce:bb:34:fa:e2:85:cd:ac:ce:55:1d:45:5b:78:
+        85:d3:85:7a
+SHA1 Fingerprint=CA:BB:51:67:24:00:58:8E:64:19:F1:D4:08:78:D0:40:3A:A2:02:64
+-----BEGIN CERTIFICATE-----
+MIIDKTCCAhECCF9gWF8AAAAAMA0GCSqGSIb3DQEBBQUAMFcxCzAJBgNVBAYTAkpQ
+MSswKQYDVQQKEyJKYXBhbiBDZXJ0aWZpY2F0aW9uIFNlcnZpY2VzLCBJbmMuMRsw
+GQYDVQQDExJTZWN1cmVTaWduIFJvb3RDQTEwHhcNOTkwOTE1MTUwMDAxWhcNMjAw
+OTE1MTQ1OTU5WjBXMQswCQYDVQQGEwJKUDErMCkGA1UEChMiSmFwYW4gQ2VydGlm
+aWNhdGlvbiBTZXJ2aWNlcywgSW5jLjEbMBkGA1UEAxMSU2VjdXJlU2lnbiBSb290
+Q0ExMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAlJAMS3EpHNr2aHl6
+pLrn0syNr+hHkJkfxirql2PoH84XV8Yas6jHfIftNTWAurpubb4X/swtG2zvigBJ
+FuHuBl5KB12rPdFQuJFG1NTaFdiUXA7K19q/oPdJPMi7zuomgQoULZwNN0VrQcpX
+izjwJh8x/M80jo93wT/jq1Q8J7TOMkxVE2L8/joWJc8ba6Ijt+DqAmm79yJxbXwL
+GZOhl5zjkWkfaOQvfRBtj2euwRCisF5jSpf35niprSa7VMnftO7FntMl3RNoU/mP
+6Ozl3oHWeD7uUEC0ATysFcGCOy5/8VIni3Lg59v5iynDw0orM4mrXCoH/HwjHitP
+CCL+wQIDAQABMA0GCSqGSIb3DQEBBQUAA4IBAQBV7W97k+VFMU5o1VWBoggfbN0J
+xXgacFfI3wiBrmZ3xnUP5O9JiwNcbP8ckKRystMWErIG+EaGrr+nFduFTfrCLU2z
+tbBD73x+B9tfs1dGUXYHhkT9B+rxy0tFTWanMybE+UOqjRKz1I1otvcCebQtWtcD
+mAQsaZmv9GY7ZKyywCvIaVSeTE5IGI3OV7U7UeUb1/o5YNtWRRO+52bVI/Z8SACw
+TO80jSKssi7RTDjN+lgDBu46c4cKBTrK5K/Uwe4chX8lFs8nAR+EincI0NNG6CDs
+n6SM8bzNxBI2gB7HCSiv6Ai+wNOyPtcuZz2jzrs0+uKFzazOVR1FW3iF04V6
+-----END CERTIFICATE-----

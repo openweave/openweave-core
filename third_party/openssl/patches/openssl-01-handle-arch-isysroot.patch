@@ -1,0 +1,51 @@
+Correctly handle '-arch' and '-isysroot' GCC/clang/LLVM
+options when compiling for Mac OS X or iOS using targets such as
+BSD-generic32 in which the external environment passes in the processor
+architecture and toolchain root.
+
+This patch has been submitted to the OpenSSL request tracker as
+Ticket 3520 (http://rt.openssl.org/Ticket/Display.html?id=3520).
+
+---
+ openssl/Configure | 12 +++++++++++-
+ 1 file changed, 11 insertions(+), 1 deletion(-)
+
+diff --git a/openssl/Configure b/openssl/Configure
+index 9c803dc..524201d 100755
+--- a/openssl/Configure
++++ b/openssl/Configure
+@@ -742,6 +742,7 @@ my $no_sse2=0;
+ 
+ &usage if ($#ARGV < 0);
+ 
++my $expect_option=0;
+ my $flags;
+ my $depflags;
+ my $openssl_experimental_defines;
+@@ -790,7 +791,12 @@ PROCESS_ARGS:
+ 		s /^zlib$/enable-zlib/;
+ 		s /^zlib-dynamic$/enable-zlib-dynamic/;
+ 
+-		if (/^no-(.+)$/ || /^disable-(.+)$/)
++		if ($expect_option == 1)
++		   {
++		   $flags .= $_ . " ";
++		   $expect_option = 0;
++		   }
++		elsif (/^no-(.+)$/ || /^disable-(.+)$/)
+ 			{
+ 			if (!($disabled{$1} eq "experimental"))
+ 				{
+@@ -873,6 +879,10 @@ PROCESS_ARGS:
+ 				}
+ 			elsif (/^-[^-]/ or /^\+/)
+ 				{
++				if (/^-arch$/ or /^-isysroot$/)
++				     {
++				     $expect_option=1;
++				     }
+ 				$_ =~ s/%([0-9a-f]{1,2})/chr(hex($1))/gei;
+ 				$flags.=$_." ";
+ 				}
+-- 
+2.1.0

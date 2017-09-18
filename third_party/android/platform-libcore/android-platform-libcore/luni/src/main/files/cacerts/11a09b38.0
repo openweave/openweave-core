@@ -1,0 +1,108 @@
+Certificate:
+    Data:
+        Version: 3 (0x2)
+        Serial Number: 1044954564 (0x3e48bdc4)
+        Signature Algorithm: sha1WithRSAEncryption
+        Issuer: C=DK, O=TDC, CN=TDC OCES CA
+        Validity
+            Not Before: Feb 11 08:39:30 2003 GMT
+            Not After : Feb 11 09:09:30 2037 GMT
+        Subject: C=DK, O=TDC, CN=TDC OCES CA
+        Subject Public Key Info:
+            Public Key Algorithm: rsaEncryption
+            RSA Public Key: (2048 bit)
+                Modulus (2048 bit):
+                    00:ac:62:f6:61:20:b2:cf:c0:c6:85:d7:e3:79:e6:
+                    cc:ed:f2:39:92:a4:97:2e:64:a3:84:5b:87:9c:4c:
+                    fd:a4:f3:c4:5f:21:bd:56:10:eb:db:2e:61:ec:93:
+                    69:e3:a3:cc:bd:99:c3:05:fc:06:b8:ca:36:1c:fe:
+                    90:8e:49:4c:c4:56:9a:2f:56:bc:cf:7b:0c:f1:6f:
+                    47:a6:0d:43:4d:e2:e9:1d:39:34:cd:8d:2c:d9:12:
+                    98:f9:e3:e1:c1:4a:7c:86:38:c4:a9:c4:61:88:d2:
+                    5e:af:1a:26:4d:d5:e4:a0:22:47:84:d9:64:b7:19:
+                    96:fc:ec:19:e4:b2:97:26:4e:4a:4c:cb:8f:24:8b:
+                    54:18:1c:48:61:7b:d5:88:68:da:5d:b5:ea:cd:1a:
+                    30:c1:80:83:76:50:aa:4f:d1:d4:dd:38:f0:ef:16:
+                    f4:e1:0c:50:06:bf:ea:fb:7a:49:a1:28:2b:1c:f6:
+                    fc:15:32:a3:74:6a:8f:a9:c3:62:29:71:31:e5:3b:
+                    a4:60:17:5e:74:e6:da:13:ed:e9:1f:1f:1b:d1:b2:
+                    68:73:c6:10:34:75:46:10:10:e3:90:00:76:40:cb:
+                    8b:b7:43:09:21:ff:ab:4e:93:c6:58:e9:a5:82:db:
+                    77:c4:3a:99:b1:72:95:49:04:f0:b7:2b:fa:7b:59:
+                    8e:dd
+                Exponent: 65537 (0x10001)
+        X509v3 extensions:
+            X509v3 Basic Constraints: critical
+                CA:TRUE
+            X509v3 Key Usage: critical
+                Certificate Sign, CRL Sign
+            X509v3 Certificate Policies: 
+                Policy: 1.2.208.169.1.1.1
+                  CPS: http://www.certifikat.dk/repository
+                  User Notice:
+                    Organization: TDC
+                    Number: 1
+                    Explicit Text: Certifikater fra denne CA udstedes under OID 1.2.208.169.1.1.1. Certificates from this CA are issued under OID 1.2.208.169.1.1.1.
+
+            Netscape Cert Type: 
+                SSL CA, S/MIME CA, Object Signing CA
+            X509v3 CRL Distribution Points: 
+                DirName:/C=DK/O=TDC/CN=TDC OCES CA/CN=CRL1
+                URI:http://crl.oces.certifikat.dk/oces.crl
+
+            X509v3 Private Key Usage Period: 
+                Not Before: Feb 11 08:39:30 2003 GMT, Not After: Feb 11 09:09:30 2037 GMT
+            X509v3 Authority Key Identifier: 
+                keyid:60:B5:85:EC:56:64:7E:12:19:27:67:1D:50:15:4B:73:AE:3B:F9:12
+
+            X509v3 Subject Key Identifier: 
+                60:B5:85:EC:56:64:7E:12:19:27:67:1D:50:15:4B:73:AE:3B:F9:12
+            1.2.840.113533.7.65.0: 
+                0...V6.0:4.0....
+    Signature Algorithm: sha1WithRSAEncryption
+        0a:ba:26:26:46:d3:73:a8:09:f3:6b:0b:30:99:fd:8a:e1:57:
+        7a:11:d3:b8:94:d7:09:10:6e:a3:b1:38:03:d1:b6:f2:43:41:
+        29:62:a7:72:d8:fb:7c:05:e6:31:70:27:54:18:4e:8a:7c:4e:
+        e5:d1:ca:8c:78:88:cf:1b:d3:90:8b:e6:23:f8:0b:0e:33:43:
+        7d:9c:e2:0a:19:8f:c9:01:3e:74:5d:74:c9:8b:1c:03:e5:18:
+        c8:01:4c:3f:cb:97:05:5d:98:71:a6:98:6f:b6:7c:bd:37:7f:
+        be:e1:93:25:6d:6f:f0:0a:ad:17:18:e1:03:bc:07:29:c8:ad:
+        26:e8:f8:61:f0:fd:21:09:7e:9a:8e:a9:68:7d:48:62:72:bd:
+        00:ea:01:99:b8:06:82:51:81:4e:f1:f5:b4:91:54:b9:23:7a:
+        00:9a:9f:5d:8d:e0:3c:64:b9:1a:12:92:2a:c7:82:44:72:39:
+        dc:e2:3c:c6:d8:55:f5:15:4e:c8:05:0e:db:c6:d0:62:a6:ec:
+        15:b4:b5:02:82:db:ac:8c:a2:81:f0:9b:99:31:f5:20:20:a8:
+        88:61:0a:07:9f:94:fc:d0:d7:1b:cc:2e:17:f3:04:27:76:67:
+        eb:54:83:fd:a4:90:7e:06:3d:04:a3:43:2d:da:fc:0b:62:ea:
+        2f:5f:62:53
+SHA1 Fingerprint=87:81:C2:5A:96:BD:C2:FB:4C:65:06:4F:F9:39:0B:26:04:8A:0E:01
+-----BEGIN CERTIFICATE-----
+MIIFGTCCBAGgAwIBAgIEPki9xDANBgkqhkiG9w0BAQUFADAxMQswCQYDVQQGEwJE
+SzEMMAoGA1UEChMDVERDMRQwEgYDVQQDEwtUREMgT0NFUyBDQTAeFw0wMzAyMTEw
+ODM5MzBaFw0zNzAyMTEwOTA5MzBaMDExCzAJBgNVBAYTAkRLMQwwCgYDVQQKEwNU
+REMxFDASBgNVBAMTC1REQyBPQ0VTIENBMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8A
+MIIBCgKCAQEArGL2YSCyz8DGhdfjeebM7fI5kqSXLmSjhFuHnEz9pPPEXyG9VhDr
+2y5h7JNp46PMvZnDBfwGuMo2HP6QjklMxFaaL1a8z3sM8W9Hpg1DTeLpHTk0zY0s
+2RKY+ePhwUp8hjjEqcRhiNJerxomTdXkoCJHhNlktxmW/OwZ5LKXJk5KTMuPJItU
+GBxIYXvViGjaXbXqzRowwYCDdlCqT9HU3Tjw7xb04QxQBr/q+3pJoSgrHPb8FTKj
+dGqPqcNiKXEx5TukYBdedObaE+3pHx8b0bJoc8YQNHVGEBDjkAB2QMuLt0MJIf+r
+TpPGWOmlgtt3xDqZsXKVSQTwtyv6e1mO3QIDAQABo4ICNzCCAjMwDwYDVR0TAQH/
+BAUwAwEB/zAOBgNVHQ8BAf8EBAMCAQYwgewGA1UdIASB5DCB4TCB3gYIKoFQgSkB
+AQEwgdEwLwYIKwYBBQUHAgEWI2h0dHA6Ly93d3cuY2VydGlmaWthdC5kay9yZXBv
+c2l0b3J5MIGdBggrBgEFBQcCAjCBkDAKFgNUREMwAwIBARqBgUNlcnRpZmlrYXRl
+ciBmcmEgZGVubmUgQ0EgdWRzdGVkZXMgdW5kZXIgT0lEIDEuMi4yMDguMTY5LjEu
+MS4xLiBDZXJ0aWZpY2F0ZXMgZnJvbSB0aGlzIENBIGFyZSBpc3N1ZWQgdW5kZXIg
+T0lEIDEuMi4yMDguMTY5LjEuMS4xLjARBglghkgBhvhCAQEEBAMCAAcwgYEGA1Ud
+HwR6MHgwSKBGoESkQjBAMQswCQYDVQQGEwJESzEMMAoGA1UEChMDVERDMRQwEgYD
+VQQDEwtUREMgT0NFUyBDQTENMAsGA1UEAxMEQ1JMMTAsoCqgKIYmaHR0cDovL2Ny
+bC5vY2VzLmNlcnRpZmlrYXQuZGsvb2Nlcy5jcmwwKwYDVR0QBCQwIoAPMjAwMzAy
+MTEwODM5MzBagQ8yMDM3MDIxMTA5MDkzMFowHwYDVR0jBBgwFoAUYLWF7FZkfhIZ
+J2cdUBVLc647+RIwHQYDVR0OBBYEFGC1hexWZH4SGSdnHVAVS3OuO/kSMB0GCSqG
+SIb2fQdBAAQQMA4bCFY2LjA6NC4wAwIEkDANBgkqhkiG9w0BAQUFAAOCAQEACrom
+JkbTc6gJ82sLMJn9iuFXehHTuJTXCRBuo7E4A9G28kNBKWKnctj7fAXmMXAnVBhO
+inxO5dHKjHiIzxvTkIvmI/gLDjNDfZziChmPyQE+dF10yYscA+UYyAFMP8uXBV2Y
+caaYb7Z8vTd/vuGTJW1v8AqtFxjhA7wHKcitJuj4YfD9IQl+mo6paH1IYnK9AOoB
+mbgGglGBTvH1tJFUuSN6AJqfXY3gPGS5GhKSKseCRHI53OI8xthV9RVOyAUO28bQ
+YqbsFbS1AoLbrIyigfCbmTH1ICCoiGEKB5+U/NDXG8wuF/MEJ3Zn61SD/aSQfgY9
+BKNDLdr8C2LqL19iUw==
+-----END CERTIFICATE-----

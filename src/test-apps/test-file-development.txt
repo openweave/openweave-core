@@ -1,0 +1,19 @@
+This is a file with some data
+
+and not much else...
+
+
+Zebras!
+Elephants!
+Lions!
+Oh My!!!11!!
+
+Need more bytes.......
+
+And more.... 
+maybe a few more????
+
+Actually a loooooooooooooooooooooooooooooooooooooooooot morrrrrrrrrrrrrrrrrrrrreeeeeeeeeeeeeeeeeeeeeeeee
+yaaaaaaaaaaaaaaaaaaaaaaaarrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr I'mmmmmmmmmmmmm a pirrrrrrrrrrrrrrrrrrrate ye seeeeeeeeeeeeeeeeeeeeeeeeeeeeee!???!?!?!?!?
+
+Let's add some more bytes so we're right on a block boundary to check an edge case: fifteen bytes!!

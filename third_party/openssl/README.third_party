@@ -1,0 +1,24 @@
+URL: https://www.openssl.org/source/openssl-1.0.1m.tar.gz
+Version: 1.0.1m
+License: Multiple BSD-style Open Source licenses.
+License File: LICENSE
+
+Description:
+
+  OpenSSL Cryptography Library
+
+Local Modifications:
+
+  A number of minor changes have been made to the original OpenSSL code:
+  
+  -- The OpenSSL build system has been modified such that it's possible to build the
+  cryptographic library (libcrypto) only.
+  
+  -- Small changes to the Configure script have been made to better support building on
+  Android and iOS.
+  
+  -- A new implementation of the J-PAKE cryptographic authentication protocol has been 
+  introduced based on elliptic curves.
+  
+  Patches capturing the above changes can be found in the patches/ directory.
+

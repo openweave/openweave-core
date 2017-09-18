@@ -1,0 +1,9 @@
+# Copyright 2010 Google Inc. All Rights Reserved.
+#Fri Jul 16 10:03:08 PDT 2010
+currentVersion=5.0M10
+version=Unknown
+isNative=false
+name=apache_harmony
+keywords=apache harmony
+onDevice=true
+homepage=http\://harmony.apache.org/

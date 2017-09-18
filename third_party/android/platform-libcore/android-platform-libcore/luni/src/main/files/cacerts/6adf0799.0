@@ -1,0 +1,80 @@
+Certificate:
+    Data:
+        Version: 3 (0x2)
+        Serial Number: 971282334 (0x39e4979e)
+        Signature Algorithm: sha1WithRSAEncryption
+        Issuer: C=US, O=Wells Fargo, OU=Wells Fargo Certification Authority, CN=Wells Fargo Root Certificate Authority
+        Validity
+            Not Before: Oct 11 16:41:28 2000 GMT
+            Not After : Jan 14 16:41:28 2021 GMT
+        Subject: C=US, O=Wells Fargo, OU=Wells Fargo Certification Authority, CN=Wells Fargo Root Certificate Authority
+        Subject Public Key Info:
+            Public Key Algorithm: rsaEncryption
+            RSA Public Key: (2048 bit)
+                Modulus (2048 bit):
+                    00:d5:a8:33:3b:26:f9:34:ff:cd:9b:7e:e5:04:47:
+                    ce:00:e2:7d:77:e7:31:c2:2e:27:a5:4d:68:b9:31:
+                    ba:8d:43:59:97:c7:73:aa:7f:3d:5c:40:9e:05:e5:
+                    a1:e2:89:d9:4c:b8:3f:9b:f9:0c:b4:c8:62:19:2c:
+                    45:ae:91:1e:73:71:41:c4:4b:13:fd:70:c2:25:ac:
+                    22:f5:75:0b:b7:53:e4:a5:2b:dd:ce:bd:1c:3a:7a:
+                    c3:f7:13:8f:26:54:9c:16:6b:6b:af:fb:d8:96:b1:
+                    60:9a:48:e0:25:22:24:79:34:ce:0e:26:00:0b:4e:
+                    ab:fd:8b:ce:82:d7:2f:08:70:68:c1:a8:0a:f9:74:
+                    4f:07:ab:a4:f9:e2:83:7e:27:73:74:3e:b8:f9:38:
+                    42:fc:a5:a8:5b:48:23:b3:eb:e3:25:b2:80:ae:96:
+                    d4:0a:9c:c2:78:9a:c6:68:18:ae:37:62:37:5e:51:
+                    75:a8:58:63:c0:51:ee:40:78:7e:a8:af:1a:a0:e1:
+                    b0:78:9d:50:8c:7b:e7:b3:fc:8e:23:b0:db:65:00:
+                    70:84:01:08:00:14:6e:54:86:9a:ba:cc:f9:37:10:
+                    f6:e0:de:84:2d:9d:a4:85:37:d3:87:e3:15:d0:c1:
+                    17:90:7e:19:21:6a:12:a9:76:fd:12:02:e9:4f:21:
+                    5e:17
+                Exponent: 65537 (0x10001)
+        X509v3 extensions:
+            X509v3 Basic Constraints: critical
+                CA:TRUE
+            X509v3 Certificate Policies: 
+                Policy: 2.16.840.1.114171.903.1.11
+                  CPS: http://www.wellsfargo.com/certpolicy
+
+    Signature Algorithm: sha1WithRSAEncryption
+        d2:27:dd:9c:0a:77:2b:bb:22:f2:02:b5:4a:4a:91:f9:d1:2d:
+        be:e4:bb:1a:68:ef:0e:a4:00:e9:ee:e7:ef:ee:f6:f9:e5:74:
+        a4:c2:d8:52:58:c4:74:fb:ce:6b:b5:3b:29:79:18:5a:ef:9b:
+        ed:1f:6b:36:ee:48:25:25:14:b6:56:a2:10:e8:ee:a7:7f:d0:
+        3f:a3:d0:c3:5d:26:ee:07:cc:c3:c1:24:21:87:1e:df:2a:12:
+        53:6f:41:16:e7:ed:ae:94:fa:8c:72:fa:13:47:f0:3c:7e:ae:
+        7d:11:3a:13:ec:ed:fa:6f:72:64:7b:9d:7d:7f:26:fd:7a:fb:
+        25:ad:ea:3e:29:7f:4c:e3:00:57:32:b0:b3:e9:ed:53:17:d9:
+        8b:b2:14:0e:30:e8:e5:d5:13:c6:64:af:c4:00:d5:d8:58:24:
+        fc:f5:8f:ec:f1:c7:7d:a5:db:0f:27:d1:c6:f2:40:88:e6:1f:
+        f6:61:a8:f4:42:c8:b9:37:d3:a9:be:2c:56:78:c2:72:9b:59:
+        5d:35:40:8a:e8:4e:63:1a:b6:e9:20:6a:51:e2:ce:a4:90:df:
+        76:70:99:5c:70:43:4d:b7:b6:a7:19:64:4e:92:b7:c5:91:3c:
+        7f:48:16:65:7b:16:fd:cb:fc:fb:d9:d5:d6:4f:21:65:3b:4a:
+        7f:47:a3:fb
+SHA1 Fingerprint=93:E6:AB:22:03:03:B5:23:28:DC:DA:56:9E:BA:E4:D1:D1:CC:FB:65
+-----BEGIN CERTIFICATE-----
+MIID5TCCAs2gAwIBAgIEOeSXnjANBgkqhkiG9w0BAQUFADCBgjELMAkGA1UEBhMC
+VVMxFDASBgNVBAoTC1dlbGxzIEZhcmdvMSwwKgYDVQQLEyNXZWxscyBGYXJnbyBD
+ZXJ0aWZpY2F0aW9uIEF1dGhvcml0eTEvMC0GA1UEAxMmV2VsbHMgRmFyZ28gUm9v
+dCBDZXJ0aWZpY2F0ZSBBdXRob3JpdHkwHhcNMDAxMDExMTY0MTI4WhcNMjEwMTE0
+MTY0MTI4WjCBgjELMAkGA1UEBhMCVVMxFDASBgNVBAoTC1dlbGxzIEZhcmdvMSww
+KgYDVQQLEyNXZWxscyBGYXJnbyBDZXJ0aWZpY2F0aW9uIEF1dGhvcml0eTEvMC0G
+A1UEAxMmV2VsbHMgRmFyZ28gUm9vdCBDZXJ0aWZpY2F0ZSBBdXRob3JpdHkwggEi
+MA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQDVqDM7Jvk0/82bfuUER84A4n13
+5zHCLielTWi5MbqNQ1mXx3Oqfz1cQJ4F5aHiidlMuD+b+Qy0yGIZLEWukR5zcUHE
+SxP9cMIlrCL1dQu3U+SlK93OvRw6esP3E48mVJwWa2uv+9iWsWCaSOAlIiR5NM4O
+JgALTqv9i86C1y8IcGjBqAr5dE8Hq6T54oN+J3N0Prj5OEL8pahbSCOz6+MlsoCu
+ltQKnMJ4msZoGK43YjdeUXWoWGPAUe5AeH6orxqg4bB4nVCMe+ez/I4jsNtlAHCE
+AQgAFG5Uhpq6zPk3EPbg3oQtnaSFN9OH4xXQwReQfhkhahKpdv0SAulPIV4XAgMB
+AAGjYTBfMA8GA1UdEwEB/wQFMAMBAf8wTAYDVR0gBEUwQzBBBgtghkgBhvt7hwcB
+CzAyMDAGCCsGAQUFBwIBFiRodHRwOi8vd3d3LndlbGxzZmFyZ28uY29tL2NlcnRw
+b2xpY3kwDQYJKoZIhvcNAQEFBQADggEBANIn3ZwKdyu7IvICtUpKkfnRLb7kuxpo
+7w6kAOnu5+/u9vnldKTC2FJYxHT7zmu1Oyl5GFrvm+0fazbuSCUlFLZWohDo7qd/
+0D+j0MNdJu4HzMPBJCGHHt8qElNvQRbn7a6U+oxy+hNH8Dx+rn0ROhPs7fpvcmR7
+nX1/Jv16+yWt6j4pf0zjAFcysLPp7VMX2YuyFA4w6OXVE8Zkr8QA1dhYJPz1j+zx
+x32l2w8n0cbyQIjmH/ZhqPRCyLk306m+LFZ4wnKbWV01QIroTmMatukgalHizqSQ
+33ZwmVxwQ023tqcZZE6St8WRPH9IFmV7Fv3L/PvZ1dZPIWU7Sn9Ho/s=
+-----END CERTIFICATE-----

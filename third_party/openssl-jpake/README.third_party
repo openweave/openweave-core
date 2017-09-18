@@ -1,0 +1,29 @@
+URL: https://www.openssl.org/source/openssl-1.0.1m.tar.gz
+Version: 1.0.1m
+License: Multiple BSD-style Open Source licenses.
+License File: LICENSE
+
+Description:
+
+  OpenSSL J-PAKE implementation
+  
+  This directory contains a copy of the OpenSSL J-PAKE code extracted from the OpenSSL
+  source distribution and modified slightly to compile on its own.
+  
+  The following files originated from the OpenSSL source distribution:
+
+    ./openssl/crypto/jpake/jpake.c
+    ./openssl/crypto/jpake/jpake.h
+    ./openssl/crypto/jpake/jpake_err.c
+    ./openssl/crypto/jpake/jpaketest.c
+
+Local Modifications:
+
+  -- The jpake.h header file was modified to defeat the compilation-time check for the
+  OPENSSL_NO_JPAKE flag.
+  
+  -- The jpake.c file was modified to eliminate reference to memory.h.
+  
+  -- A new implementation of the J-PAKE cryptographic authentication protocol based on
+  elliptic curves has been added.  This implementation was authored by Nest and DID NOT
+  originate from the OpenSSL source distribution.

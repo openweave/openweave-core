@@ -1,0 +1,158 @@
+#!/bin/bash
+
+#
+#    Copyright (c) 2014-2017 Nest Labs, Inc.
+#    All rights reserved.
+#
+#    Licensed under the Apache License, Version 2.0 (the "License");
+#    you may not use this file except in compliance with the License.
+#    You may obtain a copy of the License at
+#
+#        http://www.apache.org/licenses/LICENSE-2.0
+#
+#    Unless required by applicable law or agreed to in writing, software
+#    distributed under the License is distributed on an "AS IS" BASIS,
+#    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#    See the License for the specific language governing permissions and
+#    limitations under the License.
+#
+
+#
+#    Description:
+#      This file is built in the spirit of and in replacement of the
+#      'ndk-which' tool from the Android NDK. The Android NDK tool, at
+#      least in R10, is broken in that it does not allow the
+#      specification of the ABI in addition to the tool.
+#
+
+#
+# usage <status>
+#
+# Display program usage.
+#
+usage() {
+    name=`basename $0`
+
+    echo "Usage: ${name} [ -h ] [ --ndk-home <DIR> ] <tool> [ <ABI> ]"
+
+    if [ $1 -ne 0 ]; then
+        echo "Try '${name} -h' for more information."
+    fi
+
+    if [ $1 -ne 1 ]; then
+        echo "  -h, --help      Print this help, then exit."
+	echo "  --ndk-home DIR  Set the Android NDK home to DIR."
+    fi
+
+    exit $1
+}
+
+#
+# createskel
+#
+# Create a temporary Android NDK project skeleton, required by
+# build-local.mk.
+#
+# The caller is required to save the returned directory to TMPSKELDIR
+# in the environment.
+#
+createskel() {
+    local tmpskeldir=`mktemp -d tmp.XXXXXXXXXX`
+
+    mkdir -p ${tmpskeldir}/jni
+    touch ${tmpskeldir}/jni/Android.mk
+
+    echo ${tmpskeldir}
+}
+
+#
+# removeskel
+#
+# Remove the temporary Android NDK skeleton.
+#
+removeskel() {
+    rm -Rf ${TMPSKELDIR}
+}
+
+#
+# ndk_which <NDK home> <tool> [ <ABI> ]
+#
+# Determine the fully-qualified path name of the Android NDK tool in
+# the specified Android NDK home, optionally, for the specified ABI.
+#
+# If the ABI is not specified, it defaults to armeabi.
+#
+ndk_which() {
+    local ndkhome=${1}
+    local tool=${2}
+    if [ ${#} -eq 3 ]; then
+        local abi=${3}
+    else
+	local abi=armeabi
+    fi
+
+    if [ -z "$GNUMAKE" ]; then
+        GNUMAKE=make
+    fi
+
+    prefix=`NDK_PROJECT_PATH=${TMPSKELDIR} ${GNUMAKE} --no-print-dir -f ${ndkhome}/build/core/build-local.mk DUMP_TOOLCHAIN_PREFIX APP_ABI=${abi}`
+
+    bindir=`dirname ${prefix}`
+
+    PATH="${bindir}:${PATH}" which "${prefix}${tool}"
+}
+
+# Parse out any command line options
+
+while [ ${#} -gt 2 ]; do
+    if [ ${1} == "-h" ] || [ ${1} == "--help" ]; then
+	usage 0
+
+    elif [ ${1} == "--ndk-home" ]; then
+	export NDK_HOME="${2}"
+	shift 2
+
+    else
+	usage 1
+
+    fi
+done
+
+# Ensure, at minimum, at least one argument, the tool is specified.
+
+if [ ${#} -lt 1 ]; then
+    usage 1
+fi
+
+# Ensure that the Android NDK home directory is known.
+
+if [ -z "${NDK_HOME}" ]; then
+    if [ -z "${ANDROID_NDK_HOME}" ]; then
+        echo "One of either ANDROID_NDK_HOME or NDK_HOME must be set in the environment or the --ndk-home option must be specified."
+
+    else
+	export NDK_HOME="${ANDROID_NDK_HOME}"
+
+    fi
+fi
+
+# Create the temporary Android NDK project skeleton.
+
+trap "removeskel" 1 2 3 9 15
+
+TMPSKELDIR=`createskel`
+
+# Attempt to determine the requested Android NDK tool.
+
+ndk_which "${NDK_HOME}" ${1} ${2}
+
+# Save the status.
+
+status=${?}
+
+# Remove the temporary Android NDK project skeleton.
+
+removeskel
+
+exit ${status}
+

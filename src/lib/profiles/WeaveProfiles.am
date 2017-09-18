@@ -1,0 +1,111 @@
+#
+#    Copyright (c) 2014-2017 Nest Labs, Inc.
+#    All rights reserved.
+#
+#    Licensed under the Apache License, Version 2.0 (the "License");
+#    you may not use this file except in compliance with the License.
+#    You may obtain a copy of the License at
+#
+#        http://www.apache.org/licenses/LICENSE-2.0
+#
+#    Unless required by applicable law or agreed to in writing, software
+#    distributed under the License is distributed on an "AS IS" BASIS,
+#    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#    See the License for the specific language governing permissions and
+#    limitations under the License.
+#
+
+#
+#    Description:
+#      This file is the GNU automake template for the Nest Weave
+#      Profiles library.
+#
+#      These sources are shared by other SDK makefiles and consequently
+#      must be anchored relative to the top build directory.
+#
+
+nl_WeaveProfiles_sources                                                              = \
+    @top_builddir@/src/lib/profiles/bulk-data-transfer/BulkDataTransfer.cpp             \
+    @top_builddir@/src/lib/profiles/bulk-data-transfer/Development/BDXMessages.cpp      \
+    @top_builddir@/src/lib/profiles/bulk-data-transfer/Development/BDXNode.cpp          \
+    @top_builddir@/src/lib/profiles/bulk-data-transfer/Development/BDXProtocol.cpp      \
+    @top_builddir@/src/lib/profiles/bulk-data-transfer/Development/BDXTransferState.cpp \
+    @top_builddir@/src/lib/profiles/common/RetainedPacketBuffer.cpp                     \
+    @top_builddir@/src/lib/profiles/common/WeaveMessage.cpp                             \
+    @top_builddir@/src/lib/profiles/data-management/Legacy/Binding.cpp                  \
+    @top_builddir@/src/lib/profiles/data-management/Legacy/ClientNotifier.cpp           \
+    @top_builddir@/src/lib/profiles/data-management/Legacy/DMClient.cpp                 \
+    @top_builddir@/src/lib/profiles/data-management/Legacy/DMPublisher.cpp              \
+    @top_builddir@/src/lib/profiles/data-management/Legacy/ProfileDatabase.cpp          \
+    @top_builddir@/src/lib/profiles/data-management/Legacy/ProtocolEngine.cpp           \
+    @top_builddir@/src/lib/profiles/data-management/Current/MessageDef.cpp              \
+    @top_builddir@/src/lib/profiles/data-management/Current/NotificationEngine.cpp      \
+    @top_builddir@/src/lib/profiles/data-management/Current/SubscriptionClient.cpp      \
+    @top_builddir@/src/lib/profiles/data-management/Current/SubscriptionEngine.cpp      \
+    @top_builddir@/src/lib/profiles/data-management/Current/SubscriptionHandler.cpp	    \
+    @top_builddir@/src/lib/profiles/data-management/Current/TraitData.cpp               \
+    @top_builddir@/src/lib/profiles/data-management/Current/ViewClient.cpp              \
+    @top_builddir@/src/lib/profiles/data-management/Current/Command.cpp                 \
+    @top_builddir@/src/lib/profiles/data-management/Current/EventLogging.cpp            \
+    @top_builddir@/src/lib/profiles/data-management/Current/EventLoggingTypes.cpp       \
+    @top_builddir@/src/lib/profiles/data-management/Current/EventProcessor.cpp          \
+    @top_builddir@/src/lib/profiles/data-management/Current/LogBDXUpload.cpp            \
+    @top_builddir@/src/lib/profiles/data-management/Current/LoggingConfiguration.cpp    \
+    @top_builddir@/src/lib/profiles/data-management/Current/LoggingManagement.cpp       \
+    @top_builddir@/src/lib/profiles/device-control/DeviceControl.cpp                    \
+    @top_builddir@/src/lib/profiles/device-description/DeviceDescription.cpp            \
+    @top_builddir@/src/lib/profiles/device-description/DeviceDescriptionClient.cpp      \
+    @top_builddir@/src/lib/profiles/device-description/DeviceDescriptionServer.cpp      \
+    @top_builddir@/src/lib/profiles/echo/WeaveEchoClient.cpp                            \
+    @top_builddir@/src/lib/profiles/echo/WeaveEchoServer.cpp                            \
+    @top_builddir@/src/lib/profiles/fabric-provisioning/FabricProvisioning.cpp          \
+    @top_builddir@/src/lib/profiles/heartbeat/WeaveHeartbeatReceiver.cpp                \
+    @top_builddir@/src/lib/profiles/heartbeat/WeaveHeartbeatSender.cpp                  \
+    @top_builddir@/src/lib/profiles/network-provisioning/NetworkProvisioning.cpp        \
+    @top_builddir@/src/lib/profiles/security/ApplicationKeysTrait.cpp                   \
+    @top_builddir@/src/lib/profiles/security/ApplicationKeysTraitDataSink.cpp           \
+    @top_builddir@/src/lib/profiles/security/WeaveAccessToken.cpp                       \
+    @top_builddir@/src/lib/profiles/security/WeaveApplicationKeys.cpp                   \
+    @top_builddir@/src/lib/profiles/security/WeaveCASEEngine.cpp                        \
+    @top_builddir@/src/lib/profiles/security/WeaveCASEMessages.cpp                      \
+    @top_builddir@/src/lib/profiles/security/WeaveCert.cpp                              \
+    @top_builddir@/src/lib/profiles/security/WeaveDummyGroupKeyStore.cpp                \
+    @top_builddir@/src/lib/profiles/security/WeaveKeyExport.cpp                         \
+    @top_builddir@/src/lib/profiles/security/WeaveKeyExportClient.cpp                   \
+    @top_builddir@/src/lib/profiles/security/WeaveKeyExportTest.cpp                     \
+    @top_builddir@/src/lib/profiles/security/WeavePASEEngine.cpp                        \
+    @top_builddir@/src/lib/profiles/security/WeavePasscodes.cpp                         \
+    @top_builddir@/src/lib/profiles/security/WeavePrivateKey.cpp                        \
+    @top_builddir@/src/lib/profiles/security/WeaveProvBundle.cpp                        \
+    @top_builddir@/src/lib/profiles/security/WeaveProvHash.cpp                          \
+    @top_builddir@/src/lib/profiles/security/WeaveSecurity.cpp                          \
+    @top_builddir@/src/lib/profiles/security/WeaveSecurityDebug.cpp                     \
+    @top_builddir@/src/lib/profiles/security/WeaveSig.cpp                               \
+    @top_builddir@/src/lib/profiles/security/WeaveTAKEEngine.cpp                        \
+    @top_builddir@/src/lib/profiles/security/WeaveToX509.cpp                            \
+    @top_builddir@/src/lib/profiles/security/X509ToWeave.cpp                            \
+    @top_builddir@/src/lib/profiles/service-directory/ServiceDirectory.cpp              \
+    @top_builddir@/src/lib/profiles/service-provisioning/ServiceProvisioning.cpp        \
+    @top_builddir@/src/lib/profiles/service-provisioning/ServiceProvisioningServer.cpp  \
+    @top_builddir@/src/lib/profiles/software-update/SoftwareUpdateProfile.cpp           \
+    @top_builddir@/src/lib/profiles/software-update/WeaveImageAnnounceServer.cpp        \
+    @top_builddir@/src/lib/profiles/status-report/StatusReportProfile.cpp               \
+    @top_builddir@/src/lib/profiles/time/WeaveTime.cpp                                  \
+    @top_builddir@/src/lib/profiles/time/WeaveTimeClient.cpp                            \
+    @top_builddir@/src/lib/profiles/time/WeaveTimeCoordinator.cpp                       \
+    @top_builddir@/src/lib/profiles/time/WeaveTimeServer.cpp                            \
+    @top_builddir@/src/lib/profiles/time/WeaveTimeZone.cpp                              \
+    @top_builddir@/src/lib/profiles/token-pairing/TokenPairing.cpp                      \
+    @top_builddir@/src/lib/profiles/vendor/nestlabs/dropcam-legacy-pairing/DropcamLegacyPairing.cpp       \
+    @top_builddir@/src/lib/profiles/vendor/nestlabs/thermostat/IfjStatusStr.cpp         \
+    @top_builddir@/src/lib/profiles/weave-tunneling/WeaveTunnelAgent.cpp                \
+    @top_builddir@/src/lib/profiles/weave-tunneling/WeaveTunnelCommon.cpp               \
+    @top_builddir@/src/lib/profiles/weave-tunneling/WeaveTunnelConnectionMgr.cpp        \
+    @top_builddir@/src/lib/profiles/weave-tunneling/WeaveTunnelControl.cpp              \
+    $(NULL)
+
+if CONFIG_HAVE_HEAP
+nl_WeaveProfiles_sources += \
+    @top_builddir@/src/lib/profiles/network-provisioning/NetworkInfo.cpp                \
+    $(NULL)
+endif # CONFIG_HAVE_HEAP

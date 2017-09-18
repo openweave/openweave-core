@@ -1,0 +1,122 @@
+Certificate:
+    Data:
+        Version: 3 (0x2)
+        Serial Number:
+            cc:b8:e7:bf:4e:29:1a:fd:a2:dc:66:a5:1c:2c:0f:11
+        Signature Algorithm: sha1WithRSAEncryption
+        Issuer: C=HU, L=Budapest, O=Microsec Ltd., OU=e-Szigno CA, CN=Microsec e-Szigno Root CA
+        Validity
+            Not Before: Apr  6 12:28:44 2005 GMT
+            Not After : Apr  6 12:28:44 2017 GMT
+        Subject: C=HU, L=Budapest, O=Microsec Ltd., OU=e-Szigno CA, CN=Microsec e-Szigno Root CA
+        Subject Public Key Info:
+            Public Key Algorithm: rsaEncryption
+            RSA Public Key: (2048 bit)
+                Modulus (2048 bit):
+                    00:ed:c8:00:d5:81:7b:cd:38:00:47:cc:db:84:c1:
+                    21:69:2c:74:90:0c:21:d9:53:87:ed:3e:43:44:53:
+                    af:ab:f8:80:9b:3c:78:8d:d4:8d:ae:b8:ef:d3:11:
+                    dc:81:e6:cf:3b:96:8c:d6:6f:15:c6:77:7e:a1:2f:
+                    e0:5f:92:b6:27:d7:76:9a:1d:43:3c:ea:d9:ec:2f:
+                    ee:39:f3:6a:67:4b:8b:82:cf:22:f8:65:55:fe:2c:
+                    cb:2f:7d:48:7a:3d:75:f9:aa:a0:27:bb:78:c2:06:
+                    ca:51:c2:7e:66:4b:af:cd:a2:a7:4d:02:82:3f:82:
+                    ac:85:c6:e1:0f:90:47:99:94:0a:71:72:93:2a:c9:
+                    a6:c0:be:3c:56:4c:73:92:27:f1:6b:b5:f5:fd:fc:
+                    30:05:60:92:c6:eb:96:7e:01:91:c2:69:b1:1e:1d:
+                    7b:53:45:b8:dc:41:1f:c9:8b:71:d6:54:14:e3:8b:
+                    54:78:3f:be:f4:62:3b:5b:f5:a3:ec:d5:92:74:e2:
+                    74:30:ef:01:db:e1:d4:ab:99:9b:2a:6b:f8:bd:a6:
+                    1c:86:23:42:5f:ec:49:de:9a:8b:5b:f4:72:3a:40:
+                    c5:49:3e:a5:be:8e:aa:71:eb:6c:fa:f5:1a:e4:6a:
+                    fd:7b:7d:55:40:ef:58:6e:e6:d9:d5:bc:24:ab:c1:
+                    ef:b7
+                Exponent: 65537 (0x10001)
+        X509v3 extensions:
+            Authority Information Access: 
+                OCSP - URI:https://rca.e-szigno.hu/ocsp
+                CA Issuers - URI:http://www.e-szigno.hu/RootCA.crt
+
+            X509v3 Basic Constraints: critical
+                CA:TRUE
+            X509v3 Certificate Policies: 
+                Policy: 1.3.6.1.4.1.21528.2.1.1.1
+                  CPS: http://www.e-szigno.hu/SZSZ/
+                  User Notice:
+                    Explicit Text: 
+
+            X509v3 CRL Distribution Points: 
+                URI:http://www.e-szigno.hu/RootCA.crl
+                URI:ldap://ldap.e-szigno.hu/CN=Microsec%20e-Szigno%20Root%20CA,OU=e-Szigno%20CA,O=Microsec%20Ltd.,L=Budapest,C=HU?certificateRevocationList;binary
+
+            X509v3 Key Usage: critical
+                Certificate Sign, CRL Sign
+            X509v3 Subject Alternative Name: 
+                email:info@e-szigno.hu, DirName:/CN=Microsec e-Szign\xC3\xB3 Root CA/OU=e-Szign\xC3\xB3 HSZ/O=Microsec Kft./L=Budapest/C=HU
+            X509v3 Authority Key Identifier: 
+                keyid:C7:A0:49:75:16:61:84:DB:31:4B:84:D2:F1:37:40:90:EF:4E:DC:F7
+                DirName:/C=HU/L=Budapest/O=Microsec Ltd./OU=e-Szigno CA/CN=Microsec e-Szigno Root CA
+                serial:CC:B8:E7:BF:4E:29:1A:FD:A2:DC:66:A5:1C:2C:0F:11
+
+            X509v3 Subject Key Identifier: 
+                C7:A0:49:75:16:61:84:DB:31:4B:84:D2:F1:37:40:90:EF:4E:DC:F7
+    Signature Algorithm: sha1WithRSAEncryption
+        d3:13:9c:66:63:59:2e:ca:5c:70:0c:fc:83:bc:55:b1:f4:8e:
+        07:6c:66:27:ce:c1:3b:20:a9:1c:bb:46:54:70:ee:5a:cc:a0:
+        77:ea:68:44:27:eb:f2:29:dd:77:a9:d5:fb:e3:d4:a7:04:c4:
+        95:b8:0b:e1:44:68:60:07:43:30:31:42:61:e5:ee:d9:e5:24:
+        d5:1b:df:e1:4a:1b:aa:9f:c7:5f:f8:7a:11:ea:13:93:00:ca:
+        8a:58:b1:ee:ed:0e:4d:b4:d7:a8:36:26:7c:e0:3a:c1:d5:57:
+        82:f1:75:b6:fd:89:5f:da:f3:a8:38:9f:35:06:08:ce:22:95:
+        be:cd:d5:fc:be:5b:de:79:6b:dc:7a:a9:65:66:be:b1:25:5a:
+        5f:ed:7e:d3:ac:46:6d:4c:f4:32:87:b4:20:04:e0:6c:78:b0:
+        77:d1:85:46:4b:a6:12:b7:75:e8:4a:c9:56:6c:d7:92:ab:9d:
+        f5:49:38:d2:4f:53:e3:55:90:11:db:98:96:c6:49:f2:3e:f4:
+        9f:1b:e0:f7:88:dc:25:62:99:44:d8:73:bf:3f:30:f3:0c:37:
+        3e:d4:c2:28:80:73:b1:01:b7:9d:5a:96:14:01:4b:a9:11:9d:
+        29:6a:2e:d0:5d:81:c0:cf:b2:20:43:c7:03:e0:37:4e:5d:0a:
+        dc:59:20:25
+SHA1 Fingerprint=23:88:C9:D3:71:CC:9E:96:3D:FF:7D:3C:A7:CE:FC:D6:25:EC:19:0D
+-----BEGIN CERTIFICATE-----
+MIIHqDCCBpCgAwIBAgIRAMy4579OKRr9otxmpRwsDxEwDQYJKoZIhvcNAQEFBQAw
+cjELMAkGA1UEBhMCSFUxETAPBgNVBAcTCEJ1ZGFwZXN0MRYwFAYDVQQKEw1NaWNy
+b3NlYyBMdGQuMRQwEgYDVQQLEwtlLVN6aWdubyBDQTEiMCAGA1UEAxMZTWljcm9z
+ZWMgZS1Temlnbm8gUm9vdCBDQTAeFw0wNTA0MDYxMjI4NDRaFw0xNzA0MDYxMjI4
+NDRaMHIxCzAJBgNVBAYTAkhVMREwDwYDVQQHEwhCdWRhcGVzdDEWMBQGA1UEChMN
+TWljcm9zZWMgTHRkLjEUMBIGA1UECxMLZS1Temlnbm8gQ0ExIjAgBgNVBAMTGU1p
+Y3Jvc2VjIGUtU3ppZ25vIFJvb3QgQ0EwggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAw
+ggEKAoIBAQDtyADVgXvNOABHzNuEwSFpLHSQDCHZU4ftPkNEU6+r+ICbPHiN1I2u
+uO/TEdyB5s87lozWbxXGd36hL+BfkrYn13aaHUM86tnsL+4582pnS4uCzyL4ZVX+
+LMsvfUh6PXX5qqAnu3jCBspRwn5mS6/NoqdNAoI/gqyFxuEPkEeZlApxcpMqyabA
+vjxWTHOSJ/FrtfX9/DAFYJLG65Z+AZHCabEeHXtTRbjcQR/Ji3HWVBTji1R4P770
+Yjtb9aPs1ZJ04nQw7wHb4dSrmZsqa/i9phyGI0Jf7Enemotb9HI6QMVJPqW+jqpx
+62z69Rrkav17fVVA71hu5tnVvCSrwe+3AgMBAAGjggQ3MIIEMzBnBggrBgEFBQcB
+AQRbMFkwKAYIKwYBBQUHMAGGHGh0dHBzOi8vcmNhLmUtc3ppZ25vLmh1L29jc3Aw
+LQYIKwYBBQUHMAKGIWh0dHA6Ly93d3cuZS1zemlnbm8uaHUvUm9vdENBLmNydDAP
+BgNVHRMBAf8EBTADAQH/MIIBcwYDVR0gBIIBajCCAWYwggFiBgwrBgEEAYGoGAIB
+AQEwggFQMCgGCCsGAQUFBwIBFhxodHRwOi8vd3d3LmUtc3ppZ25vLmh1L1NaU1ov
+MIIBIgYIKwYBBQUHAgIwggEUHoIBEABBACAAdABhAG4A+gBzAO0AdAB2AOEAbgB5
+ACAA6QByAHQAZQBsAG0AZQB6AOkAcwDpAGgAZQB6ACAA6QBzACAAZQBsAGYAbwBn
+AGEAZADhAHMA4QBoAG8AegAgAGEAIABTAHoAbwBsAGcA4QBsAHQAYQB0APMAIABT
+AHoAbwBsAGcA4QBsAHQAYQB0AOEAcwBpACAAUwB6AGEAYgDhAGwAeQB6AGEAdABh
+ACAAcwB6AGUAcgBpAG4AdAAgAGsAZQBsAGwAIABlAGwAagDhAHIAbgBpADoAIABo
+AHQAdABwADoALwAvAHcAdwB3AC4AZQAtAHMAegBpAGcAbgBvAC4AaAB1AC8AUwBa
+AFMAWgAvMIHIBgNVHR8EgcAwgb0wgbqggbeggbSGIWh0dHA6Ly93d3cuZS1zemln
+bm8uaHUvUm9vdENBLmNybIaBjmxkYXA6Ly9sZGFwLmUtc3ppZ25vLmh1L0NOPU1p
+Y3Jvc2VjJTIwZS1Temlnbm8lMjBSb290JTIwQ0EsT1U9ZS1Temlnbm8lMjBDQSxP
+PU1pY3Jvc2VjJTIwTHRkLixMPUJ1ZGFwZXN0LEM9SFU/Y2VydGlmaWNhdGVSZXZv
+Y2F0aW9uTGlzdDtiaW5hcnkwDgYDVR0PAQH/BAQDAgEGMIGWBgNVHREEgY4wgYuB
+EGluZm9AZS1zemlnbm8uaHWkdzB1MSMwIQYDVQQDDBpNaWNyb3NlYyBlLVN6aWdu
+w7MgUm9vdCBDQTEWMBQGA1UECwwNZS1TemlnbsOzIEhTWjEWMBQGA1UEChMNTWlj
+cm9zZWMgS2Z0LjERMA8GA1UEBxMIQnVkYXBlc3QxCzAJBgNVBAYTAkhVMIGsBgNV
+HSMEgaQwgaGAFMegSXUWYYTbMUuE0vE3QJDvTtz3oXakdDByMQswCQYDVQQGEwJI
+VTERMA8GA1UEBxMIQnVkYXBlc3QxFjAUBgNVBAoTDU1pY3Jvc2VjIEx0ZC4xFDAS
+BgNVBAsTC2UtU3ppZ25vIENBMSIwIAYDVQQDExlNaWNyb3NlYyBlLVN6aWdubyBS
+b290IENBghEAzLjnv04pGv2i3GalHCwPETAdBgNVHQ4EFgQUx6BJdRZhhNsxS4TS
+8TdAkO9O3PcwDQYJKoZIhvcNAQEFBQADggEBANMTnGZjWS7KXHAM/IO8VbH0jgds
+ZifOwTsgqRy7RlRw7lrMoHfqaEQn6/Ip3Xep1fvj1KcExJW4C+FEaGAHQzAxQmHl
+7tnlJNUb3+FKG6qfx1/4ehHqE5MAyopYse7tDk2016g2JnzgOsHVV4Lxdbb9iV/a
+86g4nzUGCM4ilb7N1fy+W955a9x6qWVmvrElWl/tftOsRm1M9DKHtCAE4Gx4sHfR
+hUZLphK3dehKyVZs15KrnfVJONJPU+NVkBHbmJbGSfI+9J8b4PeI3CVimUTYc78/
+MPMMNz7UwiiAc7EBt51alhQBS6kRnSlqLtBdgcDPsiBDxwPgN05dCtxZICU=
+-----END CERTIFICATE-----

@@ -1,0 +1,72 @@
+Certificate:
+    Data:
+        Version: 3 (0x2)
+        Serial Number: 921770777 (0x36f11b19)
+        Signature Algorithm: sha1WithRSAEncryption
+        Issuer: C=ES, O=FNMT, OU=FNMT Clase 2 CA
+        Validity
+            Not Before: Mar 18 14:56:19 1999 GMT
+            Not After : Mar 18 15:26:19 2019 GMT
+        Subject: C=ES, O=FNMT, OU=FNMT Clase 2 CA
+        Subject Public Key Info:
+            Public Key Algorithm: rsaEncryption
+            RSA Public Key: (1024 bit)
+                Modulus (1024 bit):
+                    00:98:3f:ad:19:36:93:3d:3e:fe:76:42:14:fd:35:
+                    6f:f1:fa:ad:22:7a:58:e3:46:d0:5d:c6:5a:f9:62:
+                    2d:8f:31:5e:fe:b4:30:fe:50:74:ac:d6:9d:1d:e0:
+                    62:c6:49:dd:14:12:7d:71:0b:ac:06:c1:3f:d7:06:
+                    87:e0:90:89:d6:e5:e3:03:b2:f2:27:b1:9f:33:c8:
+                    aa:6b:36:4a:a3:c4:3f:79:41:9d:89:46:2f:2b:3e:
+                    63:d4:38:56:91:aa:1d:b1:0d:42:75:4d:f3:87:4e:
+                    e3:0f:4d:cc:b4:6c:bf:62:13:87:ea:d0:9b:8e:b6:
+                    e2:ff:19:f4:94:09:d5:96:61
+                Exponent: 3 (0x3)
+        X509v3 extensions:
+            Netscape Cert Type: 
+                SSL CA, S/MIME CA, Object Signing CA
+            X509v3 CRL Distribution Points: 
+                DirName:/C=ES/O=FNMT/OU=FNMT Clase 2 CA/CN=CRL1
+
+            X509v3 Private Key Usage Period: 
+                Not Before: Mar 18 14:56:19 1999 GMT, Not After: Mar 18 14:56:19 2019 GMT
+            X509v3 Key Usage: 
+                Certificate Sign, CRL Sign
+            X509v3 Authority Key Identifier: 
+                keyid:40:9A:76:44:97:74:07:C4:AC:14:CB:1E:8D:4F:3A:45:7C:30:D7:61
+
+            X509v3 Subject Key Identifier: 
+                40:9A:76:44:97:74:07:C4:AC:14:CB:1E:8D:4F:3A:45:7C:30:D7:61
+            X509v3 Basic Constraints: 
+                CA:TRUE
+            1.2.840.113533.7.65.0: 
+                0
+..V4.0....
+    Signature Algorithm: sha1WithRSAEncryption
+        61:4c:a0:7c:59:63:5b:66:f8:ee:65:13:ce:43:80:47:b9:b2:
+        35:c9:c8:84:c7:6b:73:60:45:e4:9d:37:9d:f5:8e:25:b9:f9:
+        aa:aa:ca:e3:f8:43:9c:2f:a0:89:05:b1:45:32:94:2a:1e:03:
+        8d:5d:a6:de:cf:57:95:da:df:26:60:5f:cb:df:95:1e:b8:ce:
+        08:d8:f8:8a:c9:4f:a9:68:75:93:e3:2f:05:4c:64:60:02:a2:
+        42:1e:6f:86:68:65:55:0e:d8:43:6f:f2:91:31:3e:a3:47:3c:
+        28:05:af:45:b6:9d:22:4c:26:7b:4b:7d:5b:15:f9:19:46:df:
+        08:5d
+SHA1 Fingerprint=43:F9:B1:10:D5:BA:FD:48:22:52:31:B0:D0:08:2B:37:2F:EF:9A:54
+-----BEGIN CERTIFICATE-----
+MIIC+TCCAmKgAwIBAgIENvEbGTANBgkqhkiG9w0BAQUFADA2MQswCQYDVQQGEwJF
+UzENMAsGA1UEChMERk5NVDEYMBYGA1UECxMPRk5NVCBDbGFzZSAyIENBMB4XDTk5
+MDMxODE0NTYxOVoXDTE5MDMxODE1MjYxOVowNjELMAkGA1UEBhMCRVMxDTALBgNV
+BAoTBEZOTVQxGDAWBgNVBAsTD0ZOTVQgQ2xhc2UgMiBDQTCBnTANBgkqhkiG9w0B
+AQEFAAOBiwAwgYcCgYEAmD+tGTaTPT7+dkIU/TVv8fqtInpY40bQXcZa+WItjzFe
+/rQw/lB0rNadHeBixkndFBJ9cQusBsE/1waH4JCJ1uXjA7LyJ7GfM8iqazZKo8Q/
+eUGdiUYvKz5j1DhWkaodsQ1CdU3zh07jD03MtGy/YhOH6tCbjrbi/xn0lAnVlmEC
+AQOjggEUMIIBEDARBglghkgBhvhCAQEEBAMCAAcwWAYDVR0fBFEwTzBNoEugSaRH
+MEUxCzAJBgNVBAYTAkVTMQ0wCwYDVQQKEwRGTk1UMRgwFgYDVQQLEw9GTk1UIENs
+YXNlIDIgQ0ExDTALBgNVBAMTBENSTDEwKwYDVR0QBCQwIoAPMTk5OTAzMTgxNDU2
+MTlagQ8yMDE5MDMxODE0NTYxOVowCwYDVR0PBAQDAgEGMB8GA1UdIwQYMBaAFECa
+dkSXdAfErBTLHo1POkV8MNdhMB0GA1UdDgQWBBRAmnZEl3QHxKwUyx6NTzpFfDDX
+YTAMBgNVHRMEBTADAQH/MBkGCSqGSIb2fQdBAAQMMAobBFY0LjADAgSQMA0GCSqG
+SIb3DQEBBQUAA4GBAGFMoHxZY1tm+O5lE85DgEe5sjXJyITHa3NgReSdN531jiW5
++aqqyuP4Q5wvoIkFsUUylCoeA41dpt7PV5Xa3yZgX8vflR64zgjY+IrJT6lodZPj
+LwVMZGACokIeb4ZoZVUO2ENv8pExPqNHPCgFr0W2nSJMJntLfVsV+RlG3whd
+-----END CERTIFICATE-----

@@ -1,0 +1,88 @@
+Certificate:
+    Data:
+        Version: 3 (0x2)
+        Serial Number:
+            39:11:45:10:94
+        Signature Algorithm: sha1WithRSAEncryption
+        Issuer: C=FR, ST=France, L=Paris, O=PM/SGDN, OU=DCSSI, CN=IGC/A/emailAddress=igca@sgdn.pm.gouv.fr
+        Validity
+            Not Before: Dec 13 14:29:23 2002 GMT
+            Not After : Oct 17 14:29:22 2020 GMT
+        Subject: C=FR, ST=France, L=Paris, O=PM/SGDN, OU=DCSSI, CN=IGC/A/emailAddress=igca@sgdn.pm.gouv.fr
+        Subject Public Key Info:
+            Public Key Algorithm: rsaEncryption
+            RSA Public Key: (2048 bit)
+                Modulus (2048 bit):
+                    00:b2:1f:d1:d0:62:c5:33:3b:c0:04:86:88:b3:dc:
+                    f8:88:f7:fd:df:43:df:7a:8d:9a:49:5c:f6:4e:aa:
+                    cc:1c:b9:a1:eb:27:89:f2:46:e9:3b:4a:71:d5:1d:
+                    8e:2d:cf:e6:ad:ab:63:50:c7:54:0b:6e:12:c9:90:
+                    36:c6:d8:2f:da:91:aa:68:c5:72:fe:17:0a:b2:17:
+                    7e:79:b5:32:88:70:ca:70:c0:96:4a:8e:e4:55:cd:
+                    1d:27:94:bf:ce:72:2a:ec:5c:f9:73:20:fe:bd:f7:
+                    2e:89:67:b8:bb:47:73:12:f7:d1:35:69:3a:f2:0a:
+                    b9:ae:ff:46:42:46:a2:bf:a1:85:1a:f9:bf:e4:ff:
+                    49:85:f7:a3:70:86:32:1c:5d:9f:60:f7:a9:ad:a5:
+                    ff:cf:d1:34:f9:7d:5b:17:c6:dc:d6:0e:28:6b:c2:
+                    dd:f1:f5:33:68:9d:4e:fc:87:7c:36:12:d6:a3:80:
+                    e8:43:0d:55:61:94:ea:64:37:47:ea:77:ca:d0:b2:
+                    58:05:c3:5d:7e:b1:a8:46:90:31:56:ce:70:2a:96:
+                    b2:30:b8:77:e6:79:c0:bd:29:3b:fd:94:77:4c:bd:
+                    20:cd:41:25:e0:2e:c7:1b:bb:ee:a4:04:41:d2:5d:
+                    ad:12:6a:8a:9b:47:fb:c9:dd:46:40:e1:9d:3c:33:
+                    d0:b5
+                Exponent: 65537 (0x10001)
+        X509v3 extensions:
+            X509v3 Basic Constraints: critical
+                CA:TRUE
+            X509v3 Key Usage: 
+                Non Repudiation, Certificate Sign, CRL Sign
+            X509v3 Certificate Policies: 
+                Policy: 1.2.250.1.121.1.1.1
+
+            X509v3 Subject Key Identifier: 
+                A3:05:2F:18:60:50:C2:89:0A:DD:2B:21:4F:FF:8E:4E:A8:30:31:36
+            X509v3 Authority Key Identifier: 
+                keyid:A3:05:2F:18:60:50:C2:89:0A:DD:2B:21:4F:FF:8E:4E:A8:30:31:36
+
+    Signature Algorithm: sha1WithRSAEncryption
+        05:dc:26:d8:fa:77:15:44:68:fc:2f:66:3a:74:e0:5d:e4:29:
+        ff:06:07:13:84:4a:ab:cf:6d:a0:1f:51:94:f8:49:cb:74:36:
+        14:bc:15:dd:db:89:2f:dd:8f:a0:5d:7c:f5:12:eb:9f:9e:38:
+        a4:47:cc:b3:96:d9:be:9c:25:ab:03:7e:33:0f:95:81:0d:fd:
+        16:e0:88:be:37:f0:6c:5d:d0:31:9b:32:2b:5d:17:65:93:98:
+        60:bc:6e:8f:b1:a8:3c:1e:d9:1c:f3:a9:26:42:f9:64:1d:c2:
+        e7:92:f6:f4:1e:5a:aa:19:52:5d:af:e8:a2:f7:60:a0:f6:8d:
+        f0:89:f5:6e:e0:0a:05:01:95:c9:8b:20:0a:ba:5a:fc:9a:2c:
+        3c:bd:c3:b7:c9:5d:78:25:05:3f:56:14:9b:0c:da:fb:3a:48:
+        fe:97:69:5e:ca:10:86:f7:4e:96:04:08:4d:ec:b0:be:5d:dc:
+        3b:8e:4f:c1:fd:9a:36:34:9a:4c:54:7e:17:03:48:95:08:11:
+        1c:07:6f:85:08:7e:5d:4d:c4:9d:db:fb:ae:ce:b2:d1:b3:b8:
+        83:6c:1d:b2:b3:79:f1:d8:70:99:7e:f0:13:02:ce:5e:dd:51:
+        d3:df:36:81:a1:1b:78:2f:71:b3:f1:59:4c:46:18:28:ab:85:
+        d2:60:56:5a
+SHA1 Fingerprint=60:D6:89:74:B5:C2:65:9E:8A:0F:C1:88:7C:88:D2:46:69:1B:18:2C
+-----BEGIN CERTIFICATE-----
+MIIEAjCCAuqgAwIBAgIFORFFEJQwDQYJKoZIhvcNAQEFBQAwgYUxCzAJBgNVBAYT
+AkZSMQ8wDQYDVQQIEwZGcmFuY2UxDjAMBgNVBAcTBVBhcmlzMRAwDgYDVQQKEwdQ
+TS9TR0ROMQ4wDAYDVQQLEwVEQ1NTSTEOMAwGA1UEAxMFSUdDL0ExIzAhBgkqhkiG
+9w0BCQEWFGlnY2FAc2dkbi5wbS5nb3V2LmZyMB4XDTAyMTIxMzE0MjkyM1oXDTIw
+MTAxNzE0MjkyMlowgYUxCzAJBgNVBAYTAkZSMQ8wDQYDVQQIEwZGcmFuY2UxDjAM
+BgNVBAcTBVBhcmlzMRAwDgYDVQQKEwdQTS9TR0ROMQ4wDAYDVQQLEwVEQ1NTSTEO
+MAwGA1UEAxMFSUdDL0ExIzAhBgkqhkiG9w0BCQEWFGlnY2FAc2dkbi5wbS5nb3V2
+LmZyMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAsh/R0GLFMzvABIaI
+s9z4iPf930Pfeo2aSVz2TqrMHLmh6yeJ8kbpO0px1R2OLc/mratjUMdUC24SyZA2
+xtgv2pGqaMVy/hcKshd+ebUyiHDKcMCWSo7kVc0dJ5S/znIq7Fz5cyD+vfcuiWe4
+u0dzEvfRNWk68gq5rv9GQkaiv6GFGvm/5P9JhfejcIYyHF2fYPepraX/z9E0+X1b
+F8bc1g4oa8Ld8fUzaJ1O/Id8NhLWo4DoQw1VYZTqZDdH6nfK0LJYBcNdfrGoRpAx
+Vs5wKpayMLh35nnAvSk7/ZR3TL0gzUEl4C7HG7vupARB0l2tEmqKm0f7yd1GQOGd
+PDPQtQIDAQABo3cwdTAPBgNVHRMBAf8EBTADAQH/MAsGA1UdDwQEAwIBRjAVBgNV
+HSAEDjAMMAoGCCqBegF5AQEBMB0GA1UdDgQWBBSjBS8YYFDCiQrdKyFP/45OqDAx
+NjAfBgNVHSMEGDAWgBSjBS8YYFDCiQrdKyFP/45OqDAxNjANBgkqhkiG9w0BAQUF
+AAOCAQEABdwm2Pp3FURo/C9mOnTgXeQp/wYHE4RKq89toB9RlPhJy3Q2FLwV3duJ
+L92PoF189RLrn544pEfMs5bZvpwlqwN+Mw+VgQ39FuCIvjfwbF3QMZsyK10XZZOY
+YLxuj7GoPB7ZHPOpJkL5ZB3C55L29B5aqhlSXa/oovdgoPaN8In1buAKBQGVyYsg
+Crpa/JosPL3Dt8ldeCUFP1YUmwza+zpI/pdpXsoQhvdOlgQITeywvl3cO45Pwf2a
+NjSaTFR+FwNIlQgRHAdvhQh+XU3Endv7rs6y0bO4g2wdsrN58dhwmX7wEwLOXt1R
+0982gaEbeC9xs/FZTEYYKKuF0mBWWg==
+-----END CERTIFICATE-----

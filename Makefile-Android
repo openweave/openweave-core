@@ -1,0 +1,399 @@
+#
+#    Copyright (c) 2014-2017 Nest Labs, Inc.
+#    All rights reserved.
+#
+#    Licensed under the Apache License, Version 2.0 (the "License");
+#    you may not use this file except in compliance with the License.
+#    You may obtain a copy of the License at
+#
+#        http://www.apache.org/licenses/LICENSE-2.0
+#
+#    Unless required by applicable law or agreed to in writing, software
+#    distributed under the License is distributed on an "AS IS" BASIS,
+#    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#    See the License for the specific language governing permissions and
+#    limitations under the License.
+#
+
+#
+#    Description:
+#      This file implements a glue makefile for building the Weave SDK
+#      for Android devices and simulators for multiple architectures.
+#
+#      This was largely directed and inspired by two Android NDK
+#      documents:
+#
+#        * Android NDK Programmer's Guide: Standalone Toolchain
+#        * Android NDK Programmer's Guide: C++ Support
+#
+
+# Don't allow this top-level makefile's targets to be built in parallel.
+
+.NOTPARALLEL:
+
+DEBUG                           ?= 0
+ENABLE_TARGETED_LISTEN          ?= 0
+
+ANDROID_ROOT                    ?= /usr/local/android
+ANDROID_NDK_HOME                ?= ${ANDROID_ROOT}/android-ndk-r10
+ANDROID_HOME                    ?= ${ANDROID_ROOT}/android-sdk-linux-r23.0.2
+
+ifndef JAVA_HOME
+$(error ERROR: JAVA_HOME not set)
+endif
+
+$(info note: JAVA_HOME is "${JAVA_HOME}" and comes from "$(origin JAVA_HOME)")
+$(info note: ANDROID_NDK_HOME is "${ANDROID_NDK_HOME}" and comes from "$(origin ANDROID_NDK_HOME)")
+$(info note: ANDROID_HOME is "${ANDROID_HOME}" and comes from "$(origin ANDROID_HOME)")
+
+ANDROID_RELEASE                 ?= 19
+
+ANDROID_CXXROOT                 = ${ANDROID_NDK_HOME}/sources/cxx-stl
+
+ANDROID_GABIXX_CXXHEADERS       = ${ANDROID_CXXROOT}/gabi++/include
+ANDROID_SYSTEM_CXXHEADERS       = ${ANDROID_CXXROOT}/system/include
+ANDROID_STLPORT_CXXHEADERS      = ${ANDROID_CXXROOT}/stlport/stlport
+ANDROID_LLVMSTL_CXXHEADERS      = ${ANDROID_CXXROOT}/llvm-libc++/libcxx/include
+ANDROID_GNUSTL_4_6_CXXHEADERS   = ${ANDROID_CXXROOT}/gnu-libstdc++/4.6/include
+ANDROID_GNUSTL_4_8_CXXHEADERS   = ${ANDROID_CXXROOT}/gnu-libstdc++/4.8/include
+ANDROID_GNUSTL_4_9_CXXHEADERS   = ${ANDROID_CXXROOT}/gnu-libstdc++/4.9/include
+
+ANDROID_CXX                     ?= SYSTEM
+
+ANDROID_CXXHEADERS              = ${ANDROID_${ANDROID_CXX}_CXXHEADERS}
+
+# NB: Regardless of where JAVA_HOME points, always use the JNI headers from the Android NDK,
+# and only include the top-most directory (include), not the system directory (include/linux). 
+# Because the NDK mixes the JNI headers in with the linux headers, listing the system
+# directory in the -I flags will result in strange compilation errors.  And unlike the standard
+# Java jni.h, the jni.h that comes with the Android NDK does not depend on any system-specific
+# JNI header files (e.g. jni_md.h).  Thus only the top-level include directory is needed.
+JNI_INCLUDE_DIRS                = ${ANDROID_SYSROOT}/usr/include
+
+android-ndk-which               = $(shell ${AbsTopSourceDir}/build/scripts/android-ndk-which --ndk-home ${ANDROID_NDK_HOME} $(1) ${ANDROID_NDK_ABI})
+
+AR                              = $(call android-ndk-which,ar)
+AS                              = $(call android-ndk-which,as)
+CPP                             = $(call android-ndk-which,cpp)
+CC                              = $(call android-ndk-which,gcc)
+CXX                             = $(call android-ndk-which,g++)
+LD                              = $(call android-ndk-which,ld)
+STRIP                           = $(call android-ndk-which,strip)
+NM                              = $(call android-ndk-which,nm)
+RANLIB                          = $(call android-ndk-which,ranlib)
+OBJCOPY                         = $(call android-ndk-which,objcopy)
+
+ifeq ($(DEBUG),1)
+DEFINES                         = -DDEBUG=$(DEBUG) -UNDEBUG
+configure_OPTIONS              += --enable-debug --enable-optimization=no
+else
+DEFINES                         = -DNDEBUG=1 -UDEBUG
+configure_OPTIONS              += 
+endif
+
+DEFINES                         += \
+    -DWEAVE_CONFIG_ENABLE_TARGETED_LISTEN=$(ENABLE_TARGETED_LISTEN) \
+    -DWEAVE_PROGRESS_LOGGING=$(DEBUG) \
+    -DWEAVE_ERROR_LOGGING=$(DEBUG) \
+    -DWEAVE_DETAIL_LOGGING=$(DEBUG)
+
+CPPFLAGS                        = $(DEFINES) --sysroot=${ANDROID_SYSROOT} -I${ANDROID_CXXHEADERS} $(target_CPPFLAGS)
+CFLAGS                          = ${CPPFLAGS} -ffunction-sections -funwind-tables $(target_CFLAGS)
+CXXFLAGS                        = ${CPPFLAGS} -fno-rtti $(target_CXXFLAGS)
+LDFLAGS                         = -Wl,--gc-sections $(target_LDFLAGS)
+
+ECHO                            := @echo
+MAKE                            := make
+MKDIR_P                         := mkdir -p
+LN_S                            := ln -s
+RM_F                            := rm -f
+
+INSTALL                         := /usr/bin/install
+INSTALLFLAGS                    := -p
+
+TopSourceDir                    := $(dir $(shell readlink $(firstword $(MAKEFILE_LIST))))
+AbsTopSourceDir                 := $(dir $(realpath $(firstword $(MAKEFILE_LIST))))
+
+BuildPath                       = build
+TopBuildDir                     = $(BuildPath)
+AbsTopBuildDir                  = $(PWD)/$(TopBuildDir)
+
+ResultPath                      = output
+TopResultDir                    = $(ResultPath)
+AbsTopResultDir                 = $(PWD)/$(TopResultDir)
+
+TargetTupleStem                 = unknown-linux
+TargetTuple                     = $(TargetTupleStem)-android
+
+ARCHS                           = arm armv7 i386
+
+TopTargetLibDir                 = $(TopResultDir)/$(if $(1),$(1)-,)$(TargetTuple)/lib
+
+ifndef BuildJobs
+BuildJobs := $(shell getconf _NPROCESSORS_ONLN)
+endif
+JOBSFLAG := -j$(BuildJobs)
+
+configure_OPTIONS               = --disable-cocoa \
+                                  --disable-docs \
+                                  --enable-java \
+                                  --disable-python \
+                                  --enable-shared \
+                                  --disable-tests \
+                                  --disable-tools
+
+ifeq ($(DEBUG),1)
+configure_OPTIONS              += --enable-debug --enable-optimization=no
+else
+configure_OPTIONS              += 
+endif
+
+
+#
+# configure-arch <arch>
+#
+# Configure the Weave SDK for the specified architecture.
+#
+#   arch - The architecture to configure.
+#
+define configure-arch
+$(ECHO) "  CONFIG   $(1)-$(TargetTuple)..."
+(cd $(BuildPath)/$(1)-$(TargetTuple) && $(AbsTopSourceDir)/configure \
+CPP="$(CPP)" CC="$(CC)" CXX="$(CXX)" OBJC="$(OBJC)" OBJCXX="$(OBJCXX)" AR="$(AR)" RANLIB="$(RANLIB)" NM="$(NM)" STRIP="$(STRIP)" \
+INSTALL="$(INSTALL) $(INSTALLFLAGS)" \
+CPPFLAGS="$(CPPFLAGS)" \
+CFLAGS="$(CFLAGS)" \
+CXXFLAGS="$(CXXFLAGS)" \
+OBJCFLAGS="$(OBJCFLAGS)" \
+OBJCXXFLAGS="$(OBJCXXFLAGS)" \
+LDFLAGS="$(LDFLAGS)" \
+JAVA_HOME="${JAVA_HOME}" \
+JNI_INCLUDE_DIRS="${JNI_INCLUDE_DIRS}" \
+--build=$(shell $(AbsTopSourceDir)/third_party/nlbuild-autotools/repo/autoconf/config.guess) \
+--host=$(1)-$(TargetTuple) \
+--target=$(1)-$(TargetTuple) \
+--with-sysroot=${ANDROID_SYSROOT} \
+--with-weave-project-includes=$(AbsTopSourceDir)/build/config/android \
+--prefix=/ \
+--exec-prefix=/$(1)-$(TargetTuple) \
+$(configure_OPTIONS))
+endef # configure-arch
+
+#
+# build-arch <arch>
+#
+# Build the Weave SDK intermediate build products for the specified
+# architecture.
+#
+#   arch - The architecture to build.
+#
+define build-arch
+$(ECHO) "  BUILD    $(1)-$(TargetTuple)"
+$(MAKE) $(JOBSFLAG) -C $(BuildPath)/$(1)-$(TargetTuple) --no-print-directory \
+all
+endef # build-arch
+
+#
+# stage-arch <arch>
+#
+# Stage (install) the Weave SDK final build products for the specified
+# architecture.
+#
+#   arch - The architecture to stage.
+#
+define stage-arch
+$(ECHO) "  STAGE    $(1)-$(TargetTuple)"
+$(MAKE) $(JOBSFLAG) -C $(BuildPath)/$(1)-$(TargetTuple) --no-print-directory \
+DESTDIR=$(AbsTopResultDir) \
+install
+endef # stage-arch
+
+#
+# pretty-arch <arch>
+#
+# Prettyify the Weave SDK source code for the specified architecture.
+#
+#   arch - The architecture to prettify.
+#
+define pretty-arch
+$(ECHO) "  PRETTY   $(1)"
+$(MAKE) $(JOBSFLAG) -C $(BuildPath)/$(1)-$(TargetTuple) --no-print-directory \
+pretty
+endef # pretty-arch
+
+#
+# pretty-check-arch <arch>
+#
+# Pretty-check (lint) the Weave SDK source code for the specified
+# architecture.
+#
+#   arch - The architecture to pretty-check (lint).
+#
+define pretty-check-arch
+$(ECHO) "  PRETTY   $(1)"
+$(MAKE) $(JOBSFLAG) -C $(BuildPath)/$(1)-$(TargetTuple) --no-print-directory \
+pretty-check
+endef # pretty-check-arch
+
+#
+# ARCH_template <arch>
+#
+# Define macros, targets and rules to configure, build, and stage the
+# Weave SDK for a single architecture.
+#
+#   arch - The architecture to instantiate the template for.
+#
+define ARCH_template
+CONFIGURE_TARGETS    += configure-$(1)
+BUILD_TARGETS        += do-build-$(1)
+STAGE_TARGETS        += stage-$(1)
+PRETTY_TARGETS       += pretty-$(1)
+PRETTY_CHECK_TARGETS += pretty-check-$(1)
+BUILD_DIRS           += $(BuildPath)/$(1)-$(TargetTuple)
+DIRECTORIES          += $(BuildPath)/$(1)-$(TargetTuple)
+
+configure-$(1): ANDROID_NDK_ABI=$($(1)_target_ABI)
+configure-$(1): ANDROID_SYSROOT=$($(1)_target_SYSROOT)
+configure-$(1): target_CPPFLAGS=$($(1)_target_CPPFLAGS)
+configure-$(1): target_CFLAGS=$($(1)_target_CFLAGS)
+configure-$(1): target_CXXFLAGS=$($(1)_target_CXXFLAGS)
+configure-$(1): target_LDFLAGS=$($(1)_target_LDFLAGS)
+
+configure-$(1): $(BuildPath)/$(1)-$(TargetTuple)/config.status
+
+$(BuildPath)/$(1)-$(TargetTuple)/config.status: | $(BuildPath)/$(1)-$(TargetTuple)
+	$$(call configure-arch,$(1))
+
+do-build-$(1): configure-$(1)
+
+do-build-$(1):
+	$$(call build-arch,$(1))
+
+stage-$(1): do-build-$(1)
+
+stage-$(1): | $(TopResultDir)
+	$$(call stage-arch,$(1))
+
+pretty-$(1): configure-$(1)
+	$$(call pretty-arch,$(1))
+
+lint-$(1) pretty-check-$(1): configure-$(1)
+	$$(call pretty-check-arch,$(1))
+
+$(1): stage-$(1)
+endef # ARCH_template
+
+.DEFAULT_GOAL := all
+
+all: stage
+
+#
+# ARMv5
+#
+
+arm_target_ABI                  = armeabi
+arm_target_SYSROOT              = ${ANDROID_NDK_HOME}/platforms/android-${ANDROID_RELEASE}/arch-arm
+arm_target_CPPFLAGS             = -march=armv5te -mtune=xscale -msoft-float
+arm_target_CFLAGS               = -fstack-protector
+arm_target_CXXFLAGS             = -I${ANDROID_NDK_HOME}/platforms/android-${ANDROID_RELEASE}/arch-arm/usr/include
+arm_target_LDFLAGS              =
+
+#
+# ARMv7
+#
+
+armv7_target_ABI                = armeabi-v7a
+armv7_target_SYSROOT            = ${ANDROID_NDK_HOME}/platforms/android-${ANDROID_RELEASE}/arch-arm
+armv7_target_CPPFLAGS           = -march=armv7-a -mfpu=vfpv3-d16 -mfloat-abi=softfp
+armv7_target_CFLAGS             = -fstack-protector
+armv7_target_CXXFLAGS           = -I${ANDROID_NDK_HOME}/platforms/android-${ANDROID_RELEASE}/arch-arm/usr/include
+armv7_target_LDFLAGS            = -march=armv7-a -Wl,--fix-cortex-a8
+
+#
+# i386
+#
+
+i386_target_ABI                 = x86
+i386_target_SYSROOT             = ${ANDROID_NDK_HOME}/platforms/android-${ANDROID_RELEASE}/arch-x86
+i386_target_CPPFLAGS            =
+i386_target_CFLAGS              =
+i386_target_CXXFLAGS            = -I${ANDROID_NDK_HOME}/platforms/android-${ANDROID_RELEASE}/arch-x86/usr/include
+i386_target_LDFLAGS             =
+
+#
+# x86_64
+#
+
+x86_64_target_ABI               = x86_64
+x86_64_target_SYSROOT           = ${ANDROID_NDK_HOME}/platforms/android-${ANDROID_RELEASE}/arch-x86
+x86_64_target_CPPFLAGS          =
+x86_64_target_CFLAGS            =
+x86_64_target_CXXFLAGS          = -I${ANDROID_NDK_HOME}/platforms/android-${ANDROID_RELEASE}/arch-x86/usr/include
+x86_64_target_LDFLAGS           =
+
+# Instantiate an architecture-specific build template for each target
+# architecture.
+
+$(foreach arch,$(ARCHS),$(eval $(call ARCH_template,$(arch))))
+
+#
+# Common / Finalization
+#
+
+configure: $(CONFIGURE_TARGETS)
+
+build: $(BUILD_TARGETS)
+
+stage: $(STAGE_TARGETS)
+
+pretty: $(PRETTY_TARGETS)
+
+lint pretty-check: $(PRETTY_CHECK_TARGETS)
+
+DIRECTORIES     = $(TopResultDir) $(TopResultDir)/$(TargetTuple)/lib $(BUILD_DIRS)
+
+CLEAN_DIRS      = $(TopResultDir) $(BUILD_DIRS)
+
+all: stage
+
+.PHONY : clean help
+
+$(DIRECTORIES):
+	$(ECHO) "  MKDIR    $@"
+	@$(MKDIR_P) "$@"
+
+clean:
+	$(ECHO) "  CLEAN"
+	@$(RM_F) -r $(CLEAN_DIRS)
+
+help:
+	$(ECHO) "Simply type 'make -f $(firstword $(MAKEFILE_LIST))' to build Weave for Android for the following "
+	$(ECHO) "architectures: "
+	$(ECHO) ""
+	$(ECHO) "    $(ARCHS)"
+	$(ECHO) ""
+	$(ECHO) "To build only a particular architecture, specify: "
+	$(ECHO) ""
+	$(ECHO) "    make -f $(firstword $(MAKEFILE_LIST)) <architecture>"
+	$(ECHO) ""
+	$(ECHO) "You may want or need to override the following make variables either on the "
+	$(ECHO) "command line or in the environment: "
+	$(ECHO) ""
+	$(ECHO) "  DEBUG                   Enable Weave debug code and logging (default: '$(DEBUG)')."
+	$(ECHO) "  ENABLE_TARGETED_LISTEN  Enable Weave support for listening on particular "
+	$(ECHO) "                          addresses or interfaces. This allows testing multiple "
+	$(ECHO) "                          instances of the Weave stack running on a single host "
+	$(ECHO) "                          '(default: $(ENABLE_TARGETED_LISTEN)')."
+	$(ECHO) ""
+	$(ECHO) "  JAVA_HOME               Directory in which the Java runtime is located."
+	$(ECHO) ""
+	$(ECHO) "  ANDROID_ROOT            Directory where Android NDK and SDK are installed (if "
+	$(ECHO) "                          the same) (default: '$(ANDROID_ROOT)')."
+	$(ECHO) "  ANDROID_NDK_HOME        Directory where Android NDK is installed (default: "
+	$(ECHO) "                          '$(ANDROID_NDK_HOME)')."
+	$(ECHO) "  ANDROID_HOME            Directory where Android SDK is installed (default: "
+	$(ECHO) "                          '$(ANDROID_HOME)')."
+	$(ECHO) "  ANDROID_RELEASE         Android NDK API release to build against (default: "
+	$(ECHO) "                          '$(ANDROID_RELEASE)')."
+	$(ECHO) "  ANDROID_CXX             Android NDK C++ library to build against (default: "
+	$(ECHO) "                          '$(ANDROID_CXX)')."

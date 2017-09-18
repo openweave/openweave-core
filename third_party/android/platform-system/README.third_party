@@ -1,0 +1,10 @@
+URL: https://android.googlesource.com/platform/system/core.git
+Version: 88880fd8a906b2bcd5fe98e99ff475d812ad6d4f
+License: Apache License, Version 2.0
+
+Description:
+
+MinCrypt is a cryptographic library, which is part of Android core implementation.
+Only MinCrypt library is present in this folder without other Android core components.
+MinCrypt supports SHA1, SHA256, DSA and ECDSA algorithms. Currently, Weave is only
+using SHA1 and SHA256 algorithms from MinCrypt library.

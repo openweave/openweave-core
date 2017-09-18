@@ -1,0 +1,31 @@
+[
+{
+  description: "absolutePath should have been transient in gingerbread",
+  names: [
+    "org.apache.harmony.luni.tests.java.io.FileTest#test_objectStreamClass_getFields",
+    "tests.api.java.io.FileTest#test_objectStreamClass_getFields"
+  ],
+  result: EXEC_FAILED,
+  substring: "expected:<1> but was:<2>"
+},
+{
+  description: "the test resources don't include the required classes.dex",
+  name: "tests.api.java.io.ObjectStreamClassTest#test_getSerialVersionUID_classloader",
+  result: EXEC_FAILED,
+  substring: "Parent ClassLoader may not be null"
+},
+{
+  description: "Random access file truncation doesn't seek properly in gingerbread",
+  name: "tests.api.java.io.RandomAccessFileTest#test_setLengthJ",
+  result: EXEC_FAILED,
+  substring: "File pointer not moved to the end of the truncated file."
+},
+{
+  description: "ResourceBundle returned the wrong locale in gingerbread",
+  names: [
+    "tests.api.java.util.ResourceBundleTest#test_getBundleLjava_lang_StringLjava_util_Locale",
+    "tests.api.java.util.ResourceBundleTest#test_getLocale"
+  ],
+  result: EXEC_FAILED
+}
+]

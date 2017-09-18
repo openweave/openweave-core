@@ -1,0 +1,12 @@
+The following scripts are using Happy to run Weave functional tests.
+
+To quickly setup happy do the following:
+
+    make
+
+Run happy tests manually after compiling weave and configuring happy:
+    ./run.sh
+
+Run happy from the top of weave:
+    ( install and configure happy )
+    make -f Makefile-Standalone COVERAGE=1 HAPPY=1 coverage

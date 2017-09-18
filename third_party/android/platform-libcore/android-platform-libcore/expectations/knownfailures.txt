@@ -1,0 +1,1018 @@
+/*
+ * This file contains expectations for tests that were annotated with @KnownFailure at the time
+ */
+[
+{
+  description: "Scanner needs to configure transparent and anchoring bounds in findWithinHorizon()",
+  name: "tests.api.java.util.ScannerTest#test_findWithinHorizon_LPatternI",
+  bug: 3037194
+},
+{
+  description: "RandomAccessFile missing finalizer",
+  name: "libcore.java.io.RandomAccessFileTest#testRandomAccessFileHasCleanupFinalizer",
+  bug: 3015023
+},
+{
+  description: "ICU seems to treat unknown and invalid locales differently",
+  name: "libcore.java.text.DateFormatSymbolsTest#test_getInstance_unknown_locale",
+  bug: 2541757
+},
+{
+  description: "Root locale uses INF for infinity but unknown locales use \u221e",
+  name: "libcore.java.text.DecimalFormatSymbolsTest#test_getInstance_unknown_or_invalid_locale",
+  bug: 3056617
+},
+{
+  description: "Minimal days in first week is broken",
+  names: [
+    "libcore.java.text.OldSimpleDateFormatTest#testFormattingWeekOfYear",
+    "libcore.java.text.OldSimpleDateFormatTest#testDefaultMinimalDaysInFirstWeek"
+  ],
+  bug: 1613709
+},
+{
+  description: "Custom SimpleTimeZones not honored by SimpleDateFormat",
+  name: "libcore.java.text.OldSimpleDateFormatTest#testFormattingTimezones",
+  bug: 3049014
+},
+{
+  description: "NaN character not found when deserializing DecimalFormatSymbols",
+  name: "libcore.java.text.OldDecimalFormatSymbolsTest#test_RIHarmony_compatible",
+  bug: 3056792
+},
+{
+  description: "DecimalFormat.formatToCharacterIterator() is failing tests",
+  names: [
+    "libcore.java.text.OldDecimalFormatTest#test_formatToCharacterIterator",
+    "org.apache.harmony.text.tests.java.text.DecimalFormatTest#test_formatToCharacterIteratorLjava_lang_Object",
+    "org.apache.harmony.text.tests.java.text.DecimalFormatTest#test_formatToCharacterIteratorLjava_lang_Object__ArithmeticException"
+  ],
+  bug: 3056865
+},
+{
+  description: "DecimalFormat.parse returns wrong type with multiplier: expected Long but was Double",
+  name: "libcore.java.text.OldDecimalFormatTest#test_parseLjava_lang_StringLjava_text_ParsePosition",
+  bug: 3057080
+},
+{
+  description: "DecimalFormat FieldPosition not updated with correct begin and end indices",
+  name: "libcore.java.text.OldDecimalFormatTest#test_formatDLjava_lang_StringBufferLjava_text_FieldPosition",
+  bug: 3057090
+},
+{
+  description: "finalize() called on objects whose constructor didn't complete normally",
+  name: "libcore.java.lang.SystemTest#testBackFromTheDead",
+  bug: 2645458
+},
+{
+  description: "DecimalFormat is limited to 127 digits",
+  name: "libcore.java.text.DecimalFormatTest#test_setMaximumIntegerDigits",
+  bug: 2400429
+},
+{
+  description: "Concurrent close tests fail on the device",
+  names: [
+    "libcore.java.net.ConcurrentCloseTest#test_connect",
+    "libcore.java.net.ConcurrentCloseTest#test_connect_nonBlocking"
+  ],
+  modes: [ "device" ],
+  bug: 3044772
+},
+{
+  description: "HTTPS connections should not be pooled.",
+  name: "libcore.java.net.URLConnectionTest#testConnectViaHttpsReusingConnectionsDifferentFactories",
+  bug: 3042192
+},
+{
+  description: "Cookie tests failing on the host",
+  bug: 3041920,
+  names: [
+    "libcore.java.net.CookiesTest#testNetscapeResponse",
+    "libcore.java.net.CookiesTest#testQuotedAttributeValues",
+    "libcore.java.net.CookiesTest#testRfc2109Response",
+    "libcore.java.net.CookiesTest#testRfc2965Response",
+    "libcore.java.net.CookiesTest#testSendingCookiesFromStore"
+  ],
+  modes: [ "host" ]
+},
+{
+  description: "Math failures when running on the host",
+  names: [
+    "org.apache.harmony.luni.tests.java.lang.MathTest#test_cbrt_D",
+    "org.apache.harmony.luni.tests.java.lang.MathTest#test_powDD",
+    "org.apache.harmony.luni.tests.java.lang.MathTest#test_sinh_D",
+    "org.apache.harmony.luni.tests.java.lang.StrictMathTest#test_log1p_D",
+    "org.apache.harmony.luni.tests.java.lang.StrictMathTest#test_rintD"
+  ],
+  bug: 2931959,
+  modes: [ "host" ]
+},
+{
+  description: "Double.parseDouble().toString does wrong rounding",
+  name: "org.apache.harmony.luni.tests.java.lang.DoubleTest#test_parseDoubleLjava_lang_String",
+  bug: 1607938
+},
+{
+  description: "We fake support for these by substituting similar (but not identical) charsets",
+  names: [
+    "libcore.java.nio.charset.OldCharset_MultiByte_Big5#test_Decode",
+    "libcore.java.nio.charset.OldCharset_MultiByte_Big5#test_Encode",
+    "libcore.java.nio.charset.OldCharset_MultiByte_EUC_JP#test_CodecDynamic",
+    "libcore.java.nio.charset.OldCharset_MultiByte_EUC_JP#test_Decode",
+    "libcore.java.nio.charset.OldCharset_MultiByte_EUC_JP#test_Encode",
+    "libcore.java.nio.charset.OldCharset_MultiByte_GB2312#test_Decode",
+    "libcore.java.nio.charset.OldCharset_MultiByte_GB2312#test_Encode",
+    "libcore.java.nio.charset.OldCharset_MultiByte_GB2312#test_nameMatch",
+    "libcore.java.nio.charset.OldCharset_MultiByte_GBK#test_Decode",
+    "libcore.java.nio.charset.OldCharset_MultiByte_GBK#test_Encode",
+    "libcore.java.nio.charset.OldCharset_MultiByte_ISO_2022_JP#test_Decode",
+    "libcore.java.nio.charset.OldCharset_MultiByte_ISO_2022_JP#test_Encode",
+    "libcore.java.nio.charset.OldCharset_MultiByte_x_windows_950#test_Encode",
+    "libcore.java.nio.charset.OldCharset_MultiByte_x_windows_950#test_nameMatch"
+  ],
+  bug: 2985901
+},
+{
+  description: "UTF-16 and UTF-32 encoders don't write big-endian output on little-endian devices",
+  names: [
+    "libcore.java.nio.charset.CharsetEncoderTest#test_defaultReplacementBytesUtf_16",
+    "libcore.java.nio.charset.OldCharset_MultiByte_UTF_16#test_Encode",
+    "libcore.java.nio.charset.OldCharsetTest#test_UTF_16",
+    "libcore.java.nio.charset.OldCharsetTest#test_UTF_32",
+    "libcore.java.nio.charset.OldCharsetTest#test_UTF_16BE",
+    "libcore.java.nio.charset.OldCharsetTest#test_UTF_16LE",
+    "libcore.java.nio.charset.OldCharsetTest#test_UTF_32BE",
+    "libcore.java.nio.charset.OldCharsetTest#test_UTF_32LE",
+    "libcore.java.nio.charset.OldCharsetTest#test_x_UTF_16LE_BOM",
+    "libcore.java.nio.charset.OldCharsetTest#test_X_UTF_32BE_BOM",
+    "libcore.java.nio.charset.OldCharsetTest#test_X_UTF_32LE_BOM"
+  ],
+  bug: 2702411
+},
+{
+  description: "Pre-NIO aliases not implemented",
+  name: "libcore.java.nio.charset.OldCharsetTest#test_preNioAliases",
+  bug: 3032697
+},
+{
+  description: "HTTPS proxy broken on host",
+  names: [
+    "org.apache.harmony.luni.tests.internal.net.www.protocol.https.HttpsURLConnectionTest#testConsequentProxyConnection",
+    "org.apache.harmony.luni.tests.internal.net.www.protocol.https.HttpsURLConnectionTest#testProxyAuthConnection",
+    "org.apache.harmony.luni.tests.internal.net.www.protocol.https.HttpsURLConnectionTest#testProxyAuthConnection_doOutput",
+    "org.apache.harmony.luni.tests.internal.net.www.protocol.https.HttpsURLConnectionTest#testProxyConnection",
+    "org.apache.harmony.luni.tests.internal.net.www.protocol.https.HttpsURLConnectionTest#testProxyConnection_Not_Found_Response"
+  ],
+  bug: 3032875,
+  modes: [ "host" ]
+},
+{
+  name: "libcore.java.net.URLConnectionTest#testConnectTimeouts",
+  bug: 3032900
+},
+{
+  description: "Fails in CTS but passes under run-core-tests",
+  result: EXEC_FAILED,
+  name: "tests.api.java.io.FileTest#test_deleteOnExit"
+},
+{
+  description: "Fails in CTS but passes under run-core-tests",
+  result: EXEC_FAILED,
+  name: "tests.api.java.io.SerializationStressTest4#test_writeObject_Proxy"
+},
+{
+  description: "Defining classes from byte[] not supported in Android",
+  result: EXEC_FAILED,
+  name: "org.apache.harmony.luni.tests.java.lang.ClassTest#test_getClasses_subtest0"
+},
+{
+  description: "There is no protection domain set in Android.",
+  result: EXEC_FAILED,
+  name: "org.apache.harmony.luni.tests.java.lang.ClassTest#test_getProtectionDomain"
+},
+{
+  description: "Fails in CTS but passes under run-core-tests",
+  result: EXEC_FAILED,
+  names: [
+    "org.apache.harmony.luni.tests.java.lang.RuntimeTest#test_traceMethodCalls",
+    "tests.api.java.net.MulticastSocketTest#test_joinGroupLjava_net_SocketAddressLjava_net_NetworkInterface",
+    "tests.api.java.util.FormatterTest#test_formatLjava_lang_String$Ljava_lang_Object_DateTimeConversion"
+  ]
+},
+{
+  description: "It's not allowed to pass null as parent class loader to a new ClassLoader anymore. Maybe we need
+                to change URLClassLoader to allow this? It's not specified.",
+  result: EXEC_FAILED,
+  name: "tests.api.java.util.ResourceBundleTest#test_getBundleLjava_lang_StringLjava_util_LocaleLjava_lang_ClassLoader"
+},
+{
+  description: "Fails in CTS but passes under run-core-tests",
+  result: EXEC_FAILED,
+  names: [
+    "tests.api.java.nio.charset.CharsetProviderTest#testForName_InsufficientPrivilege",
+    "tests.api.java.nio.charset.CharsetProviderTest#testIsSupported_And_ForName_NormalProvider"
+  ]
+},
+{
+  description: "Fails (probably) because no protection domain is set.",
+  result: EXEC_FAILED,
+  names: [
+    "org.apache.harmony.security.tests.java.security.AccessController2Test#test_checkPermission_InvalidPermission",
+    "org.apache.harmony.security.tests.java.security.AccessController2Test#test_doPrivilegedLjava_security_PrivilegedAction",
+    "org.apache.harmony.security.tests.java.security.AccessController2Test#test_doPrivilegedLjava_security_PrivilegedActionLjava_security_AccessControlContext",
+    "org.apache.harmony.security.tests.java.security.AccessController2Test#test_doPrivilegedLjava_security_PrivilegedExceptionAction",
+    "org.apache.harmony.security.tests.java.security.AccessController2Test#test_doPrivilegedLjava_security_PrivilegedExceptionActionLjava_security_AccessControlContext"
+  ]
+},
+{
+  description: "Android throws IllegalArgumentException, RI throws NullPointerException",
+  result: EXEC_FAILED,
+  name: "org.apache.harmony.security.tests.java.security.SignatureTest#testUpdatebyteArrayintint2"
+},
+{
+  description: "Android doesn't support protection domains.",
+  result: EXEC_FAILED,
+  name: "tests.api.java.security.PermissionCollectionTest#test_impliesLjava_security_Permission"
+},
+{
+  description: "Android doesn't allow null parent.",
+  result: EXEC_FAILED,
+  name: "tests.java.security.SecureClassLoaderTest#testSecureClassLoaderClassLoader"
+},
+{
+  description: "Assertion does not evaluate to true... Works in javax.Certificate",
+  result: EXEC_FAILED,
+  name: "tests.security.cert.CertificateTest#testGetEncoded"
+},
+{
+  description: "Not all Drivers are loaded in testsetup. ClassLoader issue in DriverManager.",
+  result: EXEC_FAILED,
+  name: "org.apache.harmony.sql.tests.java.sql.DriverManagerTest#testDeregisterDriver"
+},
+{
+  description: "not supported",
+  result: EXEC_FAILED,
+  names: [
+    "tests.java.sql.SelectFunctionalityTest#test_SelectRightOuterJoin",
+    "tests.java.sql.UpdateFunctionalityTest2#testUpdate2",
+    "tests.java.sql.UpdateFunctionalityTest2#testUpdate4",
+    "tests.java.sql.UpdateFunctionalityTest2#testUpdate6",
+    "tests.java.sql.UpdateFunctionalityTest2#testUpdate7",
+    "tests.java.sql.DeleteFunctionalityTest#testDelete6"
+  ]
+},
+{
+  description: "Not supported : pattern with %",
+  result: EXEC_FAILED,
+  name: "tests.java.sql.DatabaseMetaDataTest#test_getColumnsArbitrary"
+},
+{
+  description: "Wildcard operator does not seem wo work correctly.",
+  result: EXEC_FAILED,
+  name: "tests.java.sql.DatabaseMetaDataTest#test_getColumnsSpecific"
+},
+{
+  description: "Not supported ops applied: test fails on arguments: '', '', '%', '%'",
+  result: EXEC_FAILED,
+  name: "tests.java.sql.DatabaseMetaDataTest#test_getColumnsTableWithNoCatalogSchema"
+},
+{
+  description: "(Ticket 91) Tables apply foreign key constraint. Catalogs not supported",
+  result: EXEC_FAILED,
+  name: "tests.java.sql.DatabaseMetaDataTest#test_getCrossReferenceLjava_lang_StringLjava_lang_StringLjava_lang_StringLjava_lang_StringLjava_lang_StringLjava_lang_String"
+},
+{
+  description: "Ticket 98",
+  result: EXEC_FAILED,
+  names: [
+    "tests.java.sql.DatabaseMetaDataTest#test_getDatabaseMajorVersion",
+    "tests.java.sql.DatabaseMetaDataTest#test_getDatabaseMinorVersion",
+    "tests.java.sql.DatabaseMetaDataTest#test_getDatabaseProductName",
+    "tests.java.sql.DatabaseMetaDataTest#test_getDatabaseProductVersion",
+    "tests.java.sql.DatabaseMetaDataTest#test_getDefaultTransactionIsolation",
+    "tests.java.sql.DatabaseMetaDataTest#test_getDriverName",
+    "tests.java.sql.DatabaseMetaDataTest#test_getDriverVersion"
+  ]
+},
+{
+  description: "Keys are not supported: Ticket 91",
+  result: EXEC_FAILED,
+  name: "tests.java.sql.DatabaseMetaDataTest#test_getImportedKeysLjava_lang_StringLjava_lang_StringLjava_lang_String"
+},
+{
+  description: "Ticket 98",
+  result: EXEC_FAILED,
+  names: [
+    "tests.java.sql.DatabaseMetaDataTest#test_getJDBCMajorVersion",
+    "tests.java.sql.DatabaseMetaDataTest#test_getJDBCMinorVersion"
+  ]
+},
+{
+  description: "Not supported feature, Ticket 98. Broken because NUMERIC_FUNCTIONS not complete. When fixed
+                change to @KnownFailure",
+  result: EXEC_FAILED,
+  name: "tests.java.sql.DatabaseMetaDataTest#test_getNumericFunctions"
+},
+{
+  description: "Ticket 91 : relies on not supported features: getCatalog, keys",
+  result: EXEC_FAILED,
+  name: "tests.java.sql.DatabaseMetaDataTest#test_getPrimaryKeysLjava_lang_StringLjava_lang_StringLjava_lang_String"
+},
+{
+  description: "Ticket 98",
+  result: EXEC_FAILED,
+  names: [
+    "tests.java.sql.DatabaseMetaDataTest#test_getResultSetHoldability",
+    "tests.java.sql.DatabaseMetaDataTest#test_getSQLKeywords",
+    "tests.java.sql.DatabaseMetaDataTest#test_getSQLStateType",
+    "tests.java.sql.DatabaseMetaDataTest#test_getSchemas",
+    "tests.java.sql.DatabaseMetaDataTest#test_getSearchStringEscape"
+  ]
+},
+{
+  description: "not supported",
+  result: EXEC_FAILED,
+  names: [
+    "tests.java.sql.DatabaseMetaDataTest#test_getStringFunctions",
+    "tests.java.sql.DatabaseMetaDataTest#test_getSystemFunctions"
+  ]
+},
+{
+  description: "Ticket 98",
+  result: EXEC_FAILED,
+  name: "tests.java.sql.DatabaseMetaDataTest#test_getTableTypes"
+},
+{
+  description: "If no schema is associated: returns empty string where actually null be returned?. Ticket 98",
+  result: EXEC_FAILED,
+  name: "tests.java.sql.DatabaseMetaDataTest#test_getTablesLjava_lang_StringLjava_lang_StringLjava_lang_String$Ljava_lang_String"
+},
+{
+  description: "not supported",
+  result: EXEC_FAILED,
+  names: [
+    "tests.java.sql.DatabaseMetaDataTest#test_getTimeDateFunctions",
+    "tests.java.sql.DatabaseMetaDataTest#test_getTypeInfo"
+  ]
+},
+{
+  description: "Ticket 98",
+  result: EXEC_FAILED,
+  names: [
+    "tests.java.sql.DatabaseMetaDataTest#test_getURL",
+    "tests.java.sql.DatabaseMetaDataTest#test_insertsAreDetectedI",
+    "tests.java.sql.DatabaseMetaDataTest#test_isReadOnly",
+    "tests.java.sql.DatabaseMetaDataTest#test_othersDeletesAreVisibleI",
+    "tests.java.sql.DatabaseMetaDataTest#test_othersInsertsAreVisibleI",
+    "tests.java.sql.DatabaseMetaDataTest#test_othersUpdatesAreVisibleI"
+  ]
+},
+{
+  description: "not supported. SQLException checking test fails",
+  result: EXEC_FAILED,
+  name: "tests.java.sql.DatabaseMetaDataTest#test_supportsColumnAliasing"
+},
+{
+  description: "exception test fails",
+  result: EXEC_FAILED,
+  names: [
+    "tests.java.sql.DatabaseMetaDataTest#test_supportsExpressionsInOrderBy",
+    "tests.java.sql.DatabaseMetaDataTest#test_supportsGroupBy",
+    "tests.java.sql.DatabaseMetaDataTest#test_supportsGroupByUnrelated"
+  ]
+},
+{
+  description: "Ticket 98",
+  result: EXEC_FAILED,
+  name: "tests.java.sql.DatabaseMetaDataTest#test_supportsNonNullableColumns"
+},
+{
+  description: "exception test fails",
+  result: EXEC_FAILED,
+  names: [
+    "tests.java.sql.DatabaseMetaDataTest#test_supportsOrderByUnrelated",
+    "tests.java.sql.DatabaseMetaDataTest#test_supportsSelectForUpdate",
+    "tests.java.sql.DatabaseMetaDataTest#test_supportsSubqueriesInExists",
+    "tests.java.sql.DatabaseMetaDataTest#test_supportsTableCorrelationNames"
+  ]
+},
+{
+  description: "Not supported ops applied",
+  result: EXEC_FAILED,
+  name: "tests.java.sql.DatabaseMetaDataNotSupportedTest#test_allTablesAreSelectable"
+},
+{
+  description: "not supported",
+  result: EXEC_FAILED,
+  name: "tests.java.sql.DatabaseMetaDataNotSupportedTest#test_doesMaxRowSizeIncludeBlobs"
+},
+{
+  description: "not supported. Privileges are not supported.",
+  result: EXEC_FAILED,
+  name: "tests.java.sql.DatabaseMetaDataNotSupportedTest#test_getColumnPrivilegesLjava_lang_StringLjava_lang_StringLjava_lang_StringLjava_lang_String"
+},
+{
+  description: "not supported",
+  result: EXEC_FAILED,
+  names: [
+    "tests.java.sql.DatabaseMetaDataNotSupportedTest#test_getExportedKeysLjava_lang_StringLjava_lang_StringLjava_lang_String",
+    "tests.java.sql.DatabaseMetaDataNotSupportedTest#test_getIndexInfoLjava_lang_StringLjava_lang_StringLjava_lang_StringZZ"
+  ]
+},
+{
+  description: "Exception test fails",
+  result: EXEC_FAILED,
+  names: [
+    "tests.java.sql.DatabaseMetaDataNotSupportedTest#test_getMaxTableNameLength",
+    "tests.java.sql.DatabaseMetaDataNotSupportedTest#test_getMaxTablesInSelect",
+    "tests.java.sql.DatabaseMetaDataNotSupportedTest#test_getMaxUserNameLength",
+    "tests.java.sql.DatabaseMetaDataNotSupportedTest#test_getProcedureTerm",
+    "tests.java.sql.DatabaseMetaDataNotSupportedTest#test_getSchemaTerm"
+  ]
+},
+{
+  description: "not supported. Privileges are not supported.",
+  result: EXEC_FAILED,
+  name: "tests.java.sql.DatabaseMetaDataNotSupportedTest#test_getTablePrivilegesLjava_lang_StringLjava_lang_StringLjava_lang_String"
+},
+{
+  description: "Not supported ops applied",
+  result: EXEC_FAILED,
+  name: "tests.java.sql.DatabaseMetaDataNotSupportedTest#test_getVersionColumnsLjava_lang_StringLjava_lang_StringLjava_lang_String"
+},
+{
+  description: "Exception test fails",
+  result: EXEC_FAILED,
+  name: "tests.java.sql.DatabaseMetaDataNotSupportedTest#test_isCatalogAtStart"
+},
+{
+  description: "not supported",
+  result: EXEC_FAILED,
+  names: [
+    "tests.java.sql.DatabaseMetaDataNotSupportedTest#test_locatorsUpdateCopy",
+    "tests.java.sql.DatabaseMetaDataNotSupportedTest#test_supportsANSI92EntryLevelSQL",
+    "tests.java.sql.DatabaseMetaDataNotSupportedTest#test_supportsDataDefinitionAndDataManipulationTransactions",
+    "tests.java.sql.DatabaseMetaDataNotSupportedTest#test_supportsMinimumSQLGrammar",
+    "tests.java.sql.DatabaseMetaDataNotSupportedTest#test_supportsResultSetTypeI",
+    "tests.java.sql.DatabaseMetaDataNotSupportedTest#test_supportsSubqueriesInComparisons",
+    "tests.java.sql.DatabaseMetaDataNotSupportedTest#test_supportsSubqueriesInIns",
+    "tests.java.sql.DatabaseMetaDataNotSupportedTest#test_supportsTransactions",
+    "tests.java.sql.DatabaseMetaDataNotSupportedTest#test_usesLocalFiles",
+    "tests.sql.ConnectionTest#testClearWarnings",
+    "tests.sql.ConnectionTest#testCreateStatementIntIntIntNotSupported"
+  ]
+},
+{
+  description: "Scrolling on a forward only RS not allowed. conn.close() does not wrap up",
+  result: EXEC_FAILED,
+  name: "tests.sql.ConnectionTest#testCreateStatement_int_int"
+},
+{
+  description: "not supported",
+  result: EXEC_FAILED,
+  names: [
+    "tests.sql.ConnectionTest#testGetCatalog",
+    "tests.sql.ConnectionTest#testGetHoldability"
+  ]
+},
+{
+  description: "conn.close() does not wrap up",
+  result: EXEC_FAILED,
+  name: "tests.sql.ConnectionTest#testGetMetaData"
+},
+{
+  description: "not supported",
+  result: EXEC_FAILED,
+  names: [
+    "tests.sql.ConnectionTest#testGetTransactionIsolation",
+    "tests.sql.ConnectionTest#testGetWarnings"
+  ]
+},
+{
+  description: "conn.close() does not wrap up",
+  result: EXEC_FAILED,
+  name: "tests.sql.ConnectionTest#testIsReadOnly"
+},
+{
+  description: "not supported",
+  result: EXEC_FAILED,
+  names: [
+    "tests.sql.ConnectionTest#testPrepareStatementNotSupported",
+    "tests.sql.ConnectionTest#testPrepareStatement_String_int"
+  ]
+},
+{
+  description: "conn.close() does not wrap up",
+  result: EXEC_FAILED,
+  name: "tests.sql.ConnectionTest#testSetAutoCommit"
+},
+{
+  description: "not supported",
+  result: EXEC_FAILED,
+  names: [
+    "tests.sql.ConnectionTest#testSetHoldability",
+    "tests.sql.ConnectionTest#testSetReadOnly"
+  ]
+},
+{
+  description: "First Exception test fails: parameters not cleared.",
+  result: EXEC_FAILED,
+  name: "tests.sql.PreparedStatementTest#testClearParameters"
+},
+{
+  description: "preparedStatement.execute() does not return false on update.",
+  result: EXEC_FAILED,
+  name: "tests.sql.PreparedStatementTest#testExecute"
+},
+{
+  description: "it is not possible to invoke the method getMetaData on a PreparedStatement object before it is
+                executed: got NullPointerException.Test passes on RI.",
+  result: EXEC_FAILED,
+  name: "tests.sql.PreparedStatementTest#testGetMetaData"
+},
+{
+  description: "preparedStatement.execute() does not return false on update.",
+  result: EXEC_FAILED,
+  name: "tests.sql.PreparedStatementTest#testSetBigDecimal"
+},
+{
+  description: "exception test fails",
+  result: EXEC_FAILED,
+  names: [
+    "tests.sql.PreparedStatementTest#testSetBoolean",
+    "tests.sql.PreparedStatementTest#testSetByte"
+  ]
+},
+{
+  description: "preparedStatement.execute() does not return false on update.",
+  result: EXEC_FAILED,
+  name: "tests.sql.PreparedStatementTest#testSetBytes"
+},
+{
+  description: "preparedStatement.execute() does not return false on update. Setting a data for a declared
+                INTEGER should throw Exception",
+  result: EXEC_FAILED,
+  name: "tests.sql.PreparedStatementTest#testSetDate_int_Date"
+},
+{
+  description: "preparedStatement.execute() does not return false on update.",
+  result: EXEC_FAILED,
+  name: "tests.sql.PreparedStatementTest#testSetDate_int_Date_Calendar"
+},
+{
+  description: "exception test fails",
+  result: EXEC_FAILED,
+  names: [
+    "tests.sql.PreparedStatementTest#testSetDouble",
+    "tests.sql.PreparedStatementTest#testSetFloat",
+    "tests.sql.PreparedStatementTest#testSetInt",
+    "tests.sql.PreparedStatementTest#testSetLong",
+    "tests.sql.PreparedStatementTest#testSetObject_int_Object"
+  ]
+},
+{
+  description: "Fails for Types.DATE",
+  result: EXEC_FAILED,
+  names: [
+    "tests.sql.PreparedStatementTest#testSetObject_int_Object_int",
+    "tests.sql.PreparedStatementTest#testSetObject_int_Object_int_int"
+  ]
+},
+{
+  description: "exception test fails",
+  result: EXEC_FAILED,
+  names: [
+    "tests.sql.PreparedStatementTest#testSetShort",
+    "tests.sql.PreparedStatementTest#testSetString_charField",
+    "tests.sql.PreparedStatementTest#testSetString_longTextField"
+  ]
+},
+{
+  description: "statement.close() does not wrap up",
+  result: EXEC_FAILED,
+  name: "tests.sql.PreparedStatementTest#testSetString_tinyTextField"
+},
+{
+  description: "preparedStatement.execute() does not return False on update.",
+  result: EXEC_FAILED,
+  name: "tests.sql.PreparedStatementTest#testSetTime_int_Time_Calendar"
+},
+{
+  description: "statement.close() does not wrap up",
+  result: EXEC_FAILED,
+  name: "tests.sql.PreparedStatementTest#testSetTimeint_Time"
+},
+{
+  description: "preparedStatement.execute() does not return false on update.",
+  result: EXEC_FAILED,
+  names: [
+    "tests.sql.PreparedStatementTest#testSetTimestampIntTimestampCalendar",
+    "tests.sql.PreparedStatementTest#testSetTimestamp_int_Timestamp"
+  ]
+},
+{
+  description: "last assertion fails: invalid conversion. Test passes on RI",
+  result: EXEC_FAILED,
+  names: [
+    "tests.sql.ResultSetGetterTests#testGetBytesStringBinary",
+    "tests.sql.ResultSetGetterTests#testGetBytesStringVarbinary"
+  ]
+},
+{
+  description: "Wrong value returned for Long: java.lang.String (VARCHAR)",
+  result: EXEC_FAILED,
+  name: "tests.sql.ResultSetGetterTests#testGetMetaData"
+},
+{
+  description: "Wrong value returned for Long: java.lang.String",
+  result: EXEC_FAILED,
+  names: [
+    "tests.sql.ResultSetGetterTests#testGetObjectInt",
+    "tests.sql.ResultSetGetterTests#testGetObjectString"
+  ]
+},
+{
+  description: "If there is no current row 0 must be returned. res.close() does not wrap up",
+  result: EXEC_FAILED,
+  name: "tests.sql.ResultSetGetterTests#testGetRow"
+},
+{
+  description: "According to spec info.getStatement should return null but an exception is thrown: stale result
+                set.",
+  result: EXEC_FAILED,
+  name: "tests.sql.ResultSetGetterTests#testGetStatement"
+},
+{
+  description: "getTime should return Time value for a TIMESTAMP type but returns null",
+  result: EXEC_FAILED,
+  name: "tests.sql.ResultSetGetterTests#testGetTimeInt"
+},
+{
+  description: "getTime on TIMESTAMP value fails: returns null",
+  result: EXEC_FAILED,
+  name: "tests.sql.ResultSetGetterTests#testGetTimeIntCalendar"
+},
+{
+  description: "getTime should return a Time value for a TIMESTAMP type but returns null",
+  result: EXEC_FAILED,
+  name: "tests.sql.ResultSetGetterTests#testGetTimeString"
+},
+{
+  description: "getTime on TIMESTAMP value fails: returns null",
+  result: EXEC_FAILED,
+  name: "tests.sql.ResultSetGetterTests#testGetTimeStringCalendar"
+},
+{
+  description: "res.close() does not wrap up",
+  result: EXEC_FAILED,
+  name: "tests.sql.ResultSetGetterTests#testGetType"
+},
+{
+  description: "not supported",
+  result: EXEC_FAILED,
+  name: "tests.sql.ResultSetMetaDataTest#testGetCatalogName"
+},
+{
+  description: "SQLException checking test fails",
+  result: EXEC_FAILED,
+  name: "tests.sql.ResultSetMetaDataTest#testGetColumnCount"
+},
+{
+  description: "not supported",
+  result: EXEC_FAILED,
+  name: "tests.sql.ResultSetMetaDataTest#testGetColumnDisplaySize"
+},
+{
+  description: "Column label has format TABLE.COLUMN expected: COLUMN",
+  result: EXEC_FAILED,
+  names: [
+    "tests.sql.ResultSetMetaDataTest#testGetColumnLabel",
+    "tests.sql.ResultSetMetaDataTest#testGetColumnName"
+  ]
+},
+{
+  description: "not supported",
+  result: EXEC_FAILED,
+  name: "tests.sql.ResultSetMetaDataTest#testGetPrecision"
+},
+{
+  description: "Not supported",
+  result: EXEC_FAILED,
+  name: "tests.sql.ResultSetMetaDataTest#testGetScale"
+},
+{
+  description: "not supported",
+  result: EXEC_FAILED,
+  name: "tests.sql.ResultSetMetaDataTest#testGetSchema"
+},
+{
+  description: "For int = 0, exception expected",
+  result: EXEC_FAILED,
+  name: "tests.sql.ResultSetMetaDataTest#testGetTableName"
+},
+{
+  description: "not supported",
+  result: EXEC_FAILED,
+  names: [
+    "tests.sql.ResultSetMetaDataTest#testIsCaseSensitive",
+    "tests.sql.ResultSetMetaDataTest#testIsCurrency",
+    "tests.sql.ResultSetMetaDataTest#testIsDefinitlyWritable",
+    "tests.sql.ResultSetMetaDataTest#testIsNullable",
+    "tests.sql.ResultSetMetaDataTest#testIsReadOnly",
+    "tests.sql.ResultSetMetaDataTest#testIsSearchable",
+    "tests.sql.ResultSetMetaDataTest#testIsSigned",
+    "tests.sql.ResultSetMetaDataTest#testIsWritable",
+    "tests.sql.ResultSetMetaDataTest#testisAutoIncrement"
+  ]
+},
+{
+  description: "res.close() does not wrap up",
+  result: EXEC_FAILED,
+  name: "tests.sql.ResultSetTest#testAfterLast"
+},
+{
+  description: "statement.close() does not wrap up",
+  result: EXEC_FAILED,
+  name: "tests.sql.ResultSetTest#testBeforeFirst"
+},
+{
+  description: "Not supported",
+  result: EXEC_FAILED,
+  name: "tests.sql.ResultSetTest#testClearWarnings"
+},
+{
+  description: "Resultset.close() does not wrap up",
+  result: EXEC_FAILED,
+  names: [
+    "tests.sql.ResultSetTest#testClose1",
+    "tests.sql.ResultSetTest#testNext"
+  ]
+},
+{
+  description: "no exception is thrown when moving cursor backwards on forward only statement",
+  result: EXEC_FAILED,
+  name: "tests.sql.ResultSetTest#testRelative"
+},
+{
+  description: "Scrollable resultSet. Not supported",
+  result: EXEC_FAILED,
+  name: "tests.sql.ResultSetTest#testRelativeScrollableResultSet"
+},
+{
+  description: "not supported",
+  result: EXEC_FAILED,
+  name: "tests.sql.ResultSetTest#testUpdateObjectStringObject"
+},
+{
+  description: "Feature not supported",
+  result: EXEC_FAILED,
+  name: "tests.sql.ResultSetTest#testUpdateStringStringString"
+},
+{
+  description: "the default tests, and exception tests fail.",
+  result: EXEC_FAILED,
+  name: "tests.sql.ResultSetTest#testWasNull"
+},
+{
+  description: "statement.close() does not wrap up",
+  result: EXEC_FAILED,
+  names: [
+    "tests.sql.ResultSetTest#testtestFirst",
+    "tests.sql.ResultSetTest#testtestIsAfterLast"
+  ]
+},
+{
+  description: "In Second code block assertion fails. statement. close() does not wrap up",
+  result: EXEC_FAILED,
+  name: "tests.sql.ResultSetTest#testtestIsBeforeFirst"
+},
+{
+  description: "statement.close() does not wrap up",
+  result: EXEC_FAILED,
+  name: "tests.sql.ResultSetTest#testtestIsFirst"
+},
+{
+  description: "Second block first assertion fails. Is Last should evaluate true if the row on which the cursor
+                is actually provides a result.statement.close() does not wrap up",
+  result: EXEC_FAILED,
+  name: "tests.sql.ResultSetTest#testtestIsLast"
+},
+{
+  description: "statement.close() does not wrap up",
+  result: EXEC_FAILED,
+  name: "tests.sql.ResultSetTest#testtestLast"
+},
+{
+  description: "Bug in implementation of cancel: Does not fulfill spec.",
+  result: EXEC_FAILED,
+  name: "tests.sql.StatementTest#testCancel"
+},
+{
+  description: "statement.close() does not wrap up",
+  result: EXEC_FAILED,
+  name: "tests.sql.StatementTest#testClose"
+},
+{
+  description: "Return value wrong for queries below.",
+  result: EXEC_FAILED,
+  name: "tests.sql.StatementTest#testExecute"
+},
+{
+  description: "always returns 1 for no. of updates",
+  result: EXEC_FAILED,
+  name: "tests.sql.StatementTest#testExecuteBatch"
+},
+{
+  description: "Does throw an exception on non select statement.",
+  result: EXEC_FAILED,
+  name: "tests.sql.StatementTest#testExecuteQuery_String"
+},
+{
+  description: "Spec is not precise enough: should be: number of rows affected. eg. to be consistent for deletes:
+                'delete from s1;' should be different from 'delete from s1 where c1 = 1;'",
+  result: EXEC_FAILED,
+  name: "tests.sql.StatementTest#testExecuteUpdate_String"
+},
+{
+  description: "statement.close() does not wrap up",
+  result: EXEC_FAILED,
+  names: [
+    "tests.sql.StatementTest#testGetConnection",
+    "tests.sql.StatementTest#testGetFetchDirection",
+    "tests.sql.StatementTest#testGetFetchSize"
+  ]
+},
+{
+  description: "not supported",
+  result: EXEC_FAILED,
+  name: "tests.sql.StatementTest#testGetMoreResults"
+},
+{
+  description: "An other value is returned than was set (X * 1000)",
+  result: EXEC_FAILED,
+  name: "tests.sql.StatementTest#testGetQueryTimeout"
+},
+{
+  description: "Does not return null on update count > 0 (not a select statement)",
+  result: EXEC_FAILED,
+  name: "tests.sql.StatementTest#testGetResultSet"
+},
+{
+  description: "Not supported",
+  result: EXEC_FAILED,
+  name: "tests.sql.StatementTest#testGetResultSetConcurrency"
+},
+{
+  description: "Test for default value fails",
+  result: EXEC_FAILED,
+  name: "tests.sql.StatementTest#testGetResultSetHoldability"
+},
+{
+  description: "not fully supported",
+  result: EXEC_FAILED,
+  name: "tests.sql.StatementTest#testGetResultSetType"
+},
+{
+  description: "statement.close() does not wrap up",
+  result: EXEC_FAILED,
+  name: "tests.sql.StatementTest#testGetUpdateCount"
+},
+{
+  description: "Handshake Status is never finished. NPE in ClientSessionContext$HostAndPort.hashCode() when host
+                is null",
+  result: EXEC_FAILED,
+  name: "tests.api.javax.net.ssl.SSLEngineTest#testHandshake"
+},
+{
+  description: "org.apache.harmony.xnet.provider.jsse.SSLEngineImpl#getDelegatedTask() throws NPE instead of
+                returning null",
+  result: EXEC_FAILED,
+  name: "tests.api.javax.net.ssl.SSLEngineTest#test_getDelegatedTask"
+},
+{
+  description: "Fixed in DonutBurger, boundary checks missing",
+  result: EXEC_FAILED,
+  name: "tests.api.javax.net.ssl.SSLEngineTest#test_unwrap_02"
+},
+{
+  description: "Fixed on DonutBurger, Wrong Exception thrown",
+  result: EXEC_FAILED,
+  names: [
+    "tests.api.javax.net.ssl.SSLEngineTest#test_unwrap_03",
+    "tests.api.javax.net.ssl.SSLEngineTest#test_unwrap_04",
+    "tests.api.javax.net.ssl.SSLEngineTest#test_unwrap_ByteBuffer$ByteBuffer_02",
+    "tests.api.javax.net.ssl.SSLEngineTest#test_unwrap_ByteBuffer$ByteBuffer_03",
+    "tests.api.javax.net.ssl.SSLEngineTest#test_unwrap_ByteBuffer_ByteBuffer_02",
+    "tests.api.javax.net.ssl.SSLEngineTest#test_unwrap_ByteBuffer_ByteBuffer_03"
+  ]
+},
+{
+  description: "Fixed in DonutBurger, boundary checks missing",
+  result: EXEC_FAILED,
+  name: "tests.api.javax.net.ssl.SSLEngineTest#test_wrap_02"
+},
+{
+  description: "Fixed on DonutBurger, Wrong Exception thrown",
+  result: EXEC_FAILED,
+  names: [
+    "tests.api.javax.net.ssl.SSLEngineTest#test_wrap_04",
+    "tests.api.javax.net.ssl.SSLEngineTest#test_wrap_ByteBuffer$ByteBuffer_03",
+    "tests.api.javax.net.ssl.SSLEngineTest#test_wrap_ByteBuffer_ByteBuffer_03"
+  ]
+},
+{
+  description: "ManagerFactoryParameters object is not supported and InvalidAlgorithmParameterException was
+                thrown.",
+  result: EXEC_FAILED,
+  name: "tests.api.javax.net.ssl.TrustManagerFactory1Test#test_initLjavax_net_ssl_ManagerFactoryParameters"
+},
+{
+  description: "DefaultHostnameVerifier is broken on Android, fixed in donutburger",
+  result: EXEC_FAILED,
+  name: "tests.api.javax.net.ssl.HostnameVerifierTest#testSubjectAlt"
+},
+{
+  description: "NO SERVER CERTIFICATE FOUND - selectSuite should not pick a suite that needs a certificate if it is missing",
+  bug: 3045163,
+  name: "libcore.javax.net.ssl.SSLEngineTest#test_SSLEngine_beginHandshake_noKeyStore"
+},
+{
+  description: "AlertException instead of SSLException",
+  bug: 3045163,
+  name: "libcore.javax.net.ssl.SSLEngineTest#test_SSLEngine_setEnableSessionCreation_client"
+},
+{
+  description: "SSLException instead of failure to handshake",
+  bug: 3045163,
+  name: "libcore.javax.net.ssl.SSLEngineTest#test_SSLEngine_setEnableSessionCreation_server"
+},
+{
+  description: "SSLHandshakeException instead of failure to handshake",
+  bug: 3045163,
+  name: "libcore.javax.net.ssl.SSLEngineTest#test_SSLEngine_setUseClientMode"
+},
+{
+  description: "method test fails once in a while. Cannot be sure that exception is thrown in every test execution.",
+  result: EXEC_FAILED,
+  name: "tests.SQLite.DatabaseTest#testBusy_handler"
+},
+{
+  description: "Database does not lock values",
+  result: EXEC_FAILED,
+  name: "tests.SQLite.DatabaseTest#testBusy_timeout"
+},
+{
+  description: "Returns wrong number for updates: returns value > 1 for select.",
+  result: EXEC_FAILED,
+  name: "tests.SQLite.DatabaseTest#testChanges"
+},
+{
+  description: "Aggregation function not called",
+  result: EXEC_FAILED,
+  name: "tests.SQLite.DatabaseTest#testCreate_aggregate"
+},
+{
+  description: "Reason for failure unknown: Database should be locked. Specification of interrupt is scarce.",
+  result: EXEC_FAILED,
+  name: "tests.SQLite.DatabaseTest#testInterrupt"
+},
+{
+  description: "not supported",
+  result: EXEC_FAILED,
+  name: "tests.SQLite.DatabaseTest#testOpen_blob"
+},
+{
+  description: "Callback never made for authorization. Results of private table are returned without further checks.",
+  result: EXEC_FAILED,
+  name: "tests.SQLite.DatabaseTest#testSet_authorizer"
+},
+{
+  description: "ASCII encoding does not work: a UTF encoded val is returned. Spec is not sufficient. Might be that test impl is wrong or String constructor for the ASCII encoding.",
+  result: EXEC_FAILED,
+  name: "tests.SQLite.DatabaseTest#testSet_encoding"
+},
+{
+  description: "db.open_blob is not supported.",
+  result: EXEC_FAILED,
+  name: "tests.SQLite.BlobTest#testBlob"
+},
+{
+  description: "Wrong value is returned in case of a prepared statement to which a '*' bound",
+  result: EXEC_FAILED,
+  name: "tests.SQLite.StmtTest#testColumn_count"
+},
+{
+  description: "ZeroBlob not supported",
+  result: EXEC_FAILED,
+  name: "tests.SQLite.FunctionContextTest#testSet_result_zeroblob"
+},
+{
+  modes: [ "jvm" ],
+  description: "The RI's formatter doesn't localize arabic properly",
+  names: [
+    "libcore.java.util.FormatterTest#test_numberLocalization",
+    "libcore.java.util.FormatterTest#test_uppercaseConversions"
+  ],
+  result: EXEC_FAILED
+}
+]

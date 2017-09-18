@@ -1,0 +1,457 @@
+#
+#    Copyright (c) 2014-2017 Nest Labs, Inc.
+#    All rights reserved.
+#
+#    Licensed under the Apache License, Version 2.0 (the "License");
+#    you may not use this file except in compliance with the License.
+#    You may obtain a copy of the License at
+#
+#        http://www.apache.org/licenses/LICENSE-2.0
+#
+#    Unless required by applicable law or agreed to in writing, software
+#    distributed under the License is distributed on an "AS IS" BASIS,
+#    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#    See the License for the specific language governing permissions and
+#    limitations under the License.
+#
+
+#    Description:
+#      This file implements a glue makefile for building the Weave SDK
+#      for standalone desktop or server build host systems.
+#
+#      This is strictly a convenience makefile. Such systems can
+#      otherwise be built using the usual GNU autotools convention of:
+#
+#        % ./configure
+#        % make
+#
+
+# Don't allow this top-level makefile's targets to be built in parallel.
+
+.NOTPARALLEL:
+
+COVERAGE                       ?= 0
+DEBUG                          ?= 0
+TIMESTAMP                      ?= 0
+TUNNEL_FAILOVER                ?= 0
+USE_LWIP                       ?= 0
+NO_OPENSSL                     ?= 0
+BLUEZ                          ?= 0
+
+HOSTOS                          = $(shell uname -s |tr [:upper:] [:lower:])
+ARCH                            = $(shell uname -i |tr [:upper:] [:lower:])
+
+ECHO                           := @echo
+MAKE                           := make
+MKDIR_P                        := mkdir -p
+LN_S                           := ln -s
+RM_F                           := rm -f
+
+INSTALL                        := /usr/bin/install
+INSTALLFLAGS                   := -p
+
+TopSourceDir                   := $(dir $(shell readlink $(firstword $(MAKEFILE_LIST))))
+AbsTopSourceDir                := $(dir $(realpath $(firstword $(MAKEFILE_LIST))))
+
+BuildPath                       = build
+TopBuildDir                     = $(BuildPath)
+AbsTopBuildDir                  = $(PWD)/$(TopBuildDir)
+
+ResultPath                      = output
+TopResultDir                    = $(ResultPath)
+AbsTopResultDir                 = $(PWD)/$(TopResultDir)
+
+TargetTuple                     = $(shell ${AbsTopSourceDir}/third_party/nlbuild-autotools/repo/autoconf/config.guess | sed -e 's/[[:digit:].]*$$//g')
+
+ProjectConfigDir               ?= $(AbsTopSourceDir)/build/config/standalone
+
+configure_OPTIONS               = CPPFLAGS="-maes"
+
+# By default, build using the system's OpenSSL library, except on OSX which needs
+# the Weave internal OpenSSL.
+# However, if NO_OPENSSL = 1, build with an alternate configuration that avoids the
+# use of OpenSSL.  Note that building with NO_OPENSSL = 1 automatically suppresses
+# the building of various command line tools that depend on OpenSSL (e.g. the weave tool).
+
+ifeq ($(NO_OPENSSL),1)
+ProjectConfigDir                = $(AbsTopSourceDir)/build/config/standalone/no-openssl
+configure_OPTIONS              += --with-openssl=no --disable-tools
+else
+ifeq ($(HOSTOS),darwin)
+ProjectConfigDir                = $(AbsTopSourceDir)/build/config/standalone/darwin
+configure_OPTIONS              += --with-openssl=internal
+else
+configure_OPTIONS              += --with-openssl=
+endif
+endif
+
+# If the user has asserted COVERAGE, alter the configuration options
+# accordingly.
+
+ifeq ($(COVERAGE),1)
+# no point in enabling docs generation for a coverage build
+configure_OPTIONS              += --enable-coverage --enable-coverage-reports --disable-docs
+# Happy checks are time consuming, but on average less processor intensive than
+# compiling and running unit-tests.
+# Bump the number of builds, it primarily has an effect on the make check
+# phase of the build.
+BuildJobs                      ?= $(shell echo $$(( `getconf _NPROCESSORS_ONLN` * 2 )) )
+endif
+
+# On properly configured 64-bit Linux machines, recognize the
+# I686TARGET flag and build the 32-bit image.
+
+ifeq ($(HOSTOS),linux)
+ifeq ($(ARCH),x86_64)
+ifeq ($(I686TARGET),1)
+TargetTuple                     = i686-pc-linux-gnu
+configure_OPTIONS              += --build=$(TargetTuple) CFLAGS="-m32 -g -O2"  CXXFLAGS="-m32 -g -O2" LDFLAGS="-m32 -L/usr/lib/i386-linux-gnu/"
+endif
+endif
+endif
+
+# If the user has asserted DEBUG, alter the configuration options
+# accordingly.
+
+ifeq ($(DEBUG),1)
+configure_OPTIONS              += --enable-debug --enable-optimization=no
+else
+configure_OPTIONS              += 
+endif
+
+# Disable docs generation
+ifeq ($(DOCS),0)
+configure_OPTIONS              += --disable-docs
+else
+configure_OPTIONS              +=
+endif
+
+# If the user has asserted TIMESTAMP, alter the configuration options
+# accordingly.
+ifeq ($(TIMESTAMP),1)
+configure_OPTIONS              += --enable-stdio-logging-timestamps
+else
+configure_OPTIONS              +=
+endif
+
+# If the user has used tunnel failover, alter the configuration options
+# accordingly.
+ifeq ($(TUNNEL_FAILOVER),1)
+configure_OPTIONS              += --enable-tunnel-failover
+else
+configure_OPTIONS              +=
+endif
+
+# If the user has woble over bluez peripheral, alter the configuration options
+# accordingly.
+ifeq ($(BLUEZ),1)
+configure_OPTIONS              += --enable-experimental --enable-deprecated --enable-testing --enable-tools --disable-systemd --enable-library --enable-debug
+else
+configure_OPTIONS              += --with-bluez=no
+endif
+
+# If the user has asserted HAPPY, alter the configuration options
+# accordingly.
+
+ifdef HAPPY
+ifeq ($(HAPPY),1)
+configure_OPTIONS              += --with-happy
+else
+ifeq ($(HAPPY),0)
+configure_OPTIONS              += --without-happy
+else
+configure_OPTIONS              += --with-happy=$(HAPPY)
+endif
+endif
+else
+configure_OPTIONS              +=
+endif
+
+ifdef SERVICE
+BuildJobs                       = 1
+configure_OPTIONS              += --with-happy-service=$(SERVICE)
+ifdef SUITE
+configure_OPTIONS              += --with-happy-test-suite=$(SUITE)
+else # SUITE
+configure_OPTIONS              += --with-happy-test-suite=minimal
+endif # SUITE
+
+else # SERVICE
+
+ifdef SUITE
+configure_OPTIONS              += --with-happy-test-suite=$(SUITE)
+else # SUITE
+configure_OPTIONS              += --with-happy-test-suite=all
+endif # SUITE
+endif # SERVICE
+
+ifdef DNS
+configure_OPTIONS              += --with-happy-dns=$(DNS)
+else
+configure_OPTIONS              +=
+endif
+
+# If the user has asserted USE_LWIP, alter the configuration and
+# target tuple to use LwIP rather than the expected BSD sockets.
+
+ifeq ($(USE_LWIP),1)
+configure_OPTIONS               += --with-target-network=lwip --with-lwip=internal --disable-java
+TargetTuple                     := $(TargetTuple)-lwip
+endif
+
+ifeq ($(LONG_TESTS),1)
+configure_OPTIONS               += --enable-long-tests=yes
+endif
+
+ifeq ($(ENABLE_WOBLE_TEST),1)
+configure_OPTIONS               += --enable-woble-test=yes
+endif
+
+ifndef BuildJobs
+BuildJobs := $(shell getconf _NPROCESSORS_ONLN)
+endif
+JOBSFLAG := -j$(BuildJobs)
+
+#
+# configure-arch <target>
+#
+# Configure the Weave SDK for the specified target.
+#
+#   target - The target to configure.
+#
+define configure-target
+$(ECHO) "  CONFIG   $(1)..."
+(cd $(BuildPath)/$(1) && $(AbsTopSourceDir)/configure \
+INSTALL="$(INSTALL) $(INSTALLFLAGS)" \
+--prefix=/ \
+--exec-prefix=/$(1) \
+--with-weave-project-includes=$(ProjectConfigDir) \
+$(configure_OPTIONS))
+endef # configure-target
+
+#
+# build-target <target>
+#
+# Build the Weave SDK intermediate build products for the specified
+# target.
+#
+#   target - The target to build.
+#
+define build-target
+$(ECHO) "  BUILD    $(1)"
+$(MAKE) $(JOBSFLAG) -C $(BuildPath)/$(1) --no-print-directory \
+all
+endef # build-target
+
+#
+# check-target <target>
+#
+# Check (run unit tests) the Weave SDK for the specified target.
+#
+#   target - The target to check.
+#
+define check-target
+$(ECHO) "  CHECK    $(1)"
+$(MAKE) $(JOBSFLAG) -C $(BuildPath)/$(1) --no-print-directory \
+check
+endef # check-target
+
+#
+# coverage-target <target>
+#
+# Generate code coverage from unit tests for the Weave SDK for the
+# specified target.
+#
+#   target - The target to generate code coverage for.
+#
+define coverage-target
+$(ECHO) "  COVERAGE $(1)"
+$(MAKE) $(JOBSFLAG) -C $(BuildPath)/$(1) --no-print-directory \
+coverage
+endef # coverage-target
+
+#
+# stage-target <target>
+#
+# Stage (install) the Weave SDK final build products for the specified
+# target.
+#
+#   target - The target to stage.
+#
+define stage-target
+$(ECHO) "  STAGE    $(1)"
+$(MAKE) $(JOBSFLAG) -C $(BuildPath)/$(1) --no-print-directory \
+DESTDIR=$(AbsTopResultDir) \
+install
+endef # stage-target
+
+#
+# pretty-target <target>
+#
+# Prettyify the Weave SDK source code for the specified target.
+#
+#   target - The target to prettify.
+#
+define pretty-target
+$(ECHO) "  PRETTY   $(1)"
+$(MAKE) $(JOBSFLAG) -C $(BuildPath)/$(1) --no-print-directory \
+pretty
+endef # pretty-target
+
+#
+# pretty-check-target <target>
+#
+# Pretty-check (lint) the Weave SDK source code for the specified
+# target.
+#
+#   target - The target to pretty-check (lint).
+#
+define pretty-check-target
+$(ECHO) "  PRETTY   $(1)"
+$(MAKE) $(JOBSFLAG) -C $(BuildPath)/$(1) --no-print-directory \
+pretty-check
+endef # pretty-check-target
+
+#
+# TARGET_template <target>
+#
+# Define macros, targets and rules to configure, build, and stage the
+# Weave SDK for a single target.
+#
+#   target - The target to instantiate the template for.
+#
+define TARGET_template
+CONFIGURE_TARGETS    += configure-$(1)
+BUILD_TARGETS        += do-build-$(1)
+CHECK_TARGETS        += check-$(1)
+COVERAGE_TARGETS     += coverage-$(1)
+STAGE_TARGETS        += stage-$(1)
+PRETTY_TARGETS       += pretty-$(1)
+PRETTY_CHECK_TARGETS += pretty-check-$(1)
+BUILD_DIRS           += $(BuildPath)/$(1)
+DIRECTORIES          += $(BuildPath)/$(1)
+
+configure-$(1): $(BuildPath)/$(1)/config.status
+
+$(BuildPath)/$(1)/config.status: | $(BuildPath)/$(1)
+	$$(call configure-target,$(1))
+
+do-build-$(1): configure-$(1)
+
+do-build-$(1):
+	$$(call build-target,$(1))
+
+check-$(1): do-build-$(1)
+
+check-$(1):
+	$$(call check-target,$(1))
+
+coverage-$(1): do-build-$(1)
+
+coverage-$(1):
+	$$(call coverage-target,$(1))
+
+stage-$(1): do-build-$(1)
+
+stage-$(1): | $(TopResultDir)
+	$$(call stage-target,$(1))
+
+pretty-$(1): configure-$(1)
+	$$(call pretty-target,$(1))
+
+lint-$(1) pretty-check-$(1): configure-$(1)
+	$$(call pretty-check-target,$(1))
+
+$(1): stage-$(1)
+endef # TARGET_template
+
+.PHONY : clean ensure-sudo help
+
+ensure-sudo:
+	$(ECHO) "Selected target will require sudo access."
+	@sudo echo "Sudo access granted"
+
+.DEFAULT_GOAL := all
+
+all: stage
+
+# Instantiate an target-specific build template for the target.
+
+$(eval $(call TARGET_template,$(TargetTuple)))
+
+#
+# Common / Finalization
+#
+
+configure: $(CONFIGURE_TARGETS)
+
+build: $(BUILD_TARGETS)
+
+check: ensure-sudo $(CHECK_TARGETS)
+
+coverage: ensure-sudo $(COVERAGE_TARGETS)
+
+stage: $(STAGE_TARGETS)
+
+pretty: $(PRETTY_TARGETS)
+
+lint pretty-check: $(PRETTY_CHECK_TARGETS)
+
+DIRECTORIES     = $(TopResultDir) $(TopResultDir)/$(TargetTuple)/lib $(BUILD_DIRS)
+
+CLEAN_DIRS      = $(TopResultDir) $(BUILD_DIRS)
+
+all: stage
+
+$(DIRECTORIES):
+	$(ECHO) "  MKDIR    $@"
+	@$(MKDIR_P) "$@"
+
+clean:
+	$(ECHO) "  CLEAN"
+	@$(RM_F) -r $(CLEAN_DIRS)
+
+help:
+	$(ECHO) "Simply type 'make -f $(firstword $(MAKEFILE_LIST))' to build Weave for the following "
+	$(ECHO) "target:"
+	$(ECHO) ""
+	$(ECHO) "    $(TargetTuple)"
+	$(ECHO) ""
+	$(ECHO) "You may want or need to override the following make variables either on the "
+	$(ECHO) "command line or in the environment: "
+	$(ECHO) ""
+	$(ECHO) "  DEBUG                   Enable Weave debug code and logging (default: '$(DEBUG)')."
+	$(ECHO) ""
+	$(ECHO) "  COVERAGE                Enable generation of code coverage information "
+	$(ECHO) "                          (default: '$(COVERAGE)')."
+	$(ECHO) ""
+	$(ECHO) "  TIMESTAMP               Configure standalone logging module to output "
+	$(ECHO) "                          timestamps (default: '$(TIMESTAMP)')."
+	$(ECHO) ""
+	$(ECHO) "  USE_LWIP                Build the standalone configuration against the LwIP "
+	$(ECHO) "                          library rather than against sockets (default '$(USE_LWIP)')."
+	$(ECHO) "  "
+	$(ECHO) "  BLUEZ                   Enable support for BLE peripheral using BlueZ bindings"
+	$(ECHO) ""
+	$(ECHO) "  NO_OPENSSL              Build an alternate configuration that does not depend"
+	$(ECHO) "                          on the use of OpenSSL (default: '$(NO_OPENSSL)'.  Note"
+	$(ECHO) "                          that the various command line tools that depend on"
+	$(ECHO) "                          OpenSSL (e.g., the weave tool) will not be built in"
+	$(ECHO) "                          this configuration."
+	$(ECHO) ""
+	$(ECHO) "  TUNNEL_FAILOVER         Build support for redundant VPN to the Weave service "
+	$(ECHO) "                          (default: '$(TUNNEL_FAILOVER)')."
+	$(ECHO) ""
+	$(ECHO) "  I686TARGET              On a properly configured 64-bit Linux with multilib "
+	$(ECHO) "                          support, build a 32-bit target (default: '$(I686TARGET)')."
+	$(ECHO) ""
+	$(ECHO) "  DOCS                    Build Doxygen-generated documentation (default: '$(DOCS)')."
+	$(ECHO) "                          Note this flag only has an effect when Doxygen is"
+	$(ECHO) "                          installed."
+	$(ECHO) ""
+	$(ECHO) "  HAPPY                   When set to 0, skip the functional tests that require"
+	$(ECHO) "                          Happy orchestration tool.  When set to 1, pick the"
+	$(ECHO) "                          default location to the Happy tool.  When set to any"
+	$(ECHO) "                          other value, the value is treated as the location of"
+	$(ECHO) "                          the Happy tool."
+	$(ECHO) ""

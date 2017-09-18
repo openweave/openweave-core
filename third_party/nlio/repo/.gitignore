@@ -1,0 +1,3 @@
+*.a
+*.o
+autom4te.cache

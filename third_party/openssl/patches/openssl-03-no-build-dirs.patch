@@ -1,0 +1,73 @@
+In exceedingly minimal configurations of OpenSSL such as:
+
+    no-lock no-threads no-shared no-zlib no-idea no-camellia no-seed no-bf 
+    no-cast no-des no-rc2 no-rc4 no-rc5 no-md2 no-md4 no-ripemd no-mdc2 
+    no-rsa no-dsa no-dh no-whirlpool no-cms no-dgram no-sock no-ssl2 no-ssl3 
+    no-err no-krb5 no-apps no-engine no-test no-tools no-hw no-dso 
+    no-devrandom no-sha512 no-dir no-egd no-tty no-srtp no-speed 
+    no-tlsext
+
+none of the 'apps', 'test', nor 'tools' subdirectories can be successfully
+built. This patch adds the ability to suppressing building in the apps, test,
+tools directory, as well as the ssl directory itself, allowing one to create
+a libcrypto-only configuration of OpenSSL.
+
+An early version of this patch was submitted to the OpenSSL request tracker as
+Ticket 3522 (http://rt.openssl.org/Ticket/Display.html?id=3522).
+
+--- a/openssl/Configure	2017-05-11 06:19:28.519325912 -0700
++++ b/openssl/Configure	2017-05-11 06:18:55.223890292 -0700
+@@ -18,7 +18,7 @@
+ 
+ # see INSTALL for instructions.
+ 
+-my $usage="Usage: Configure [no-<cipher> ...] [enable-<cipher> ...] [-Dxxx] [-lxxx] [-Lxxx] [-fxxx] [-Kxxx] [no-hw-xxx|no-hw] [[no-]threads] [[no-]shared] [[no-]zlib|zlib-dynamic] [no-asm] [no-dso] [no-egd] [sctp] [386] [--prefix=DIR] [--openssldir=OPENSSLDIR] [--with-xxx[=vvv]] [--config=FILE] os/compiler[:flags]\n";
++my $usage="Usage: Configure [no-<cipher> ...] [enable-<cipher> ...] [-Dxxx] [-lxxx] [-Lxxx] [-fxxx] [-Kxxx] [no-hw-xxx|no-hw] [[no-]threads] [[no-]shared] [[no-]zlib|zlib-dynamic] [no-asm] [no-dso] [no-egd] [no-apps] [no-test] [no-tools] [no-ssl] [sctp] [386] [--prefix=DIR] [--openssldir=OPENSSLDIR] [--with-xxx[=vvv]] [--config=FILE] os/compiler[:flags]\n";
+ 
+ # Options:
+ #
+@@ -55,6 +55,10 @@
+ # no-dso        do not compile in any native shared-library methods. This
+ #               will ensure that all methods just return NULL.
+ # no-egd        do not compile support for the entropy-gathering daemon APIs
++# no-apps       do not build the openssl apps
++# no-test       do not build any code in the test directory
++# no-tools      do not build and code in the tools directory
++# no-ssl        do not build ssl or any code in the ssl directory
+ # [no-]zlib     [don't] compile support for zlib compression.
+ # zlib-dynamic	Like "zlib", but the zlib library is expected to be a shared
+ #		library and will be loaded in run-time by the OpenSSL library.
+@@ -323,6 +327,7 @@
+ 
+ my @disablables = (
+     "afalgeng",
++    "apps",
+     "asan",
+     "asm",
+     "async",
+@@ -394,8 +399,10 @@
+     "ssl-trace",
+     "static-engine",
+     "stdio",
++    "test",
+     "threads",
+     "tls",
++    "tools",
+     "ts",
+     "ubsan",
+     "ui",
+@@ -873,6 +880,14 @@
+ 		{ }
+ 	elsif (/^zlib-dynamic$/)
+ 		{ }
++	elsif (/^test$/)
++		{ }
++	elsif (/^tools$/)
++		{ }
++	elsif (/^apps$/)
++		{ }
++	elsif (/^ssl$/)
++		{ }
+ 	elsif (/^sse2$/)
+ 		{ $no_sse2 = 1; }
+ 	elsif (/^engine$/)

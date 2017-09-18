@@ -1,0 +1,10 @@
+# Copyright 2010 Google Inc. All Rights Reserved.
+#Fri Jul 16 10:03:09 PDT 2010
+currentVersion=3.6
+version=Unknown
+isNative=true
+feedurl=http\://www.icu-project.org/repos/icu/icu4jni/trunk/readme.html
+name=icu4jni
+keywords=icu4jni
+onDevice=true
+homepage=http\://www.icu-project.org/repos/icu/icu4jni/trunk/readme.html

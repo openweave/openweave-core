@@ -1,0 +1,73 @@
+Certificate:
+    Data:
+        Version: 3 (0x2)
+        Serial Number: 913315222 (0x36701596)
+        Signature Algorithm: sha1WithRSAEncryption
+        Issuer: C=US, O=Digital Signature Trust Co., OU=DSTCA E1
+        Validity
+            Not Before: Dec 10 18:10:23 1998 GMT
+            Not After : Dec 10 18:40:23 2018 GMT
+        Subject: C=US, O=Digital Signature Trust Co., OU=DSTCA E1
+        Subject Public Key Info:
+            Public Key Algorithm: rsaEncryption
+            RSA Public Key: (1024 bit)
+                Modulus (1024 bit):
+                    00:a0:6c:81:a9:cf:34:1e:24:dd:fe:86:28:cc:de:
+                    83:2f:f9:5e:d4:42:d2:e8:74:60:66:13:98:06:1c:
+                    a9:51:12:69:6f:31:55:b9:49:72:00:08:7e:d3:a5:
+                    62:44:37:24:99:8f:d9:83:48:8f:99:6d:95:13:bb:
+                    43:3b:2e:49:4e:88:37:c1:bb:58:7f:fe:e1:bd:f8:
+                    bb:61:cd:f3:47:c0:99:a6:f1:f3:91:e8:78:7c:00:
+                    cb:61:c9:44:27:71:69:55:4a:7e:49:4d:ed:a2:a3:
+                    be:02:4c:00:ca:02:a8:ee:01:02:31:64:0f:52:2d:
+                    13:74:76:36:b5:7a:b4:2d:71
+                Exponent: 3 (0x3)
+        X509v3 extensions:
+            Netscape Cert Type: 
+                SSL CA, S/MIME CA, Object Signing CA
+            X509v3 CRL Distribution Points: 
+                DirName:/C=US/O=Digital Signature Trust Co./OU=DSTCA E1/CN=CRL1
+
+            X509v3 Private Key Usage Period: 
+                Not Before: Dec 10 18:10:23 1998 GMT, Not After: Dec 10 18:10:23 2018 GMT
+            X509v3 Key Usage: 
+                Certificate Sign, CRL Sign
+            X509v3 Authority Key Identifier: 
+                keyid:6A:79:7E:91:69:46:18:13:0A:02:77:A5:59:5B:60:98:25:0E:A2:F8
+
+            X509v3 Subject Key Identifier: 
+                6A:79:7E:91:69:46:18:13:0A:02:77:A5:59:5B:60:98:25:0E:A2:F8
+            X509v3 Basic Constraints: 
+                CA:TRUE
+            1.2.840.113533.7.65.0: 
+                0
+..V4.0....
+    Signature Algorithm: sha1WithRSAEncryption
+        22:12:d8:7a:1d:dc:81:06:b6:09:65:b2:87:c8:1f:5e:b4:2f:
+        e9:c4:1e:f2:3c:c1:bb:04:90:11:4a:83:4e:7e:93:b9:4d:42:
+        c7:92:26:a0:5c:34:9a:38:72:f8:fd:6b:16:3e:20:ee:82:8b:
+        31:2a:93:36:85:23:88:8a:3c:03:68:d3:c9:09:0f:4d:fc:6c:
+        a4:da:28:72:93:0e:89:80:b0:7d:fe:80:6f:65:6d:18:33:97:
+        8b:c2:6b:89:ee:60:3d:c8:9b:ef:7f:2b:32:62:73:93:cb:3c:
+        e3:7b:e2:76:78:45:bc:a1:93:04:bb:86:9f:3a:5b:43:7a:c3:
+        8a:65
+SHA1 Fingerprint=81:96:8B:3A:EF:1C:DC:70:F5:FA:32:69:C2:92:A3:63:5B:D1:23:D3
+-----BEGIN CERTIFICATE-----
+MIIDKTCCApKgAwIBAgIENnAVljANBgkqhkiG9w0BAQUFADBGMQswCQYDVQQGEwJV
+UzEkMCIGA1UEChMbRGlnaXRhbCBTaWduYXR1cmUgVHJ1c3QgQ28uMREwDwYDVQQL
+EwhEU1RDQSBFMTAeFw05ODEyMTAxODEwMjNaFw0xODEyMTAxODQwMjNaMEYxCzAJ
+BgNVBAYTAlVTMSQwIgYDVQQKExtEaWdpdGFsIFNpZ25hdHVyZSBUcnVzdCBDby4x
+ETAPBgNVBAsTCERTVENBIEUxMIGdMA0GCSqGSIb3DQEBAQUAA4GLADCBhwKBgQCg
+bIGpzzQeJN3+hijM3oMv+V7UQtLodGBmE5gGHKlREmlvMVW5SXIACH7TpWJENySZ
+j9mDSI+ZbZUTu0M7LklOiDfBu1h//uG9+LthzfNHwJmm8fOR6Hh8AMthyUQncWlV
+Sn5JTe2io74CTADKAqjuAQIxZA9SLRN0dja1erQtcQIBA6OCASQwggEgMBEGCWCG
+SAGG+EIBAQQEAwIABzBoBgNVHR8EYTBfMF2gW6BZpFcwVTELMAkGA1UEBhMCVVMx
+JDAiBgNVBAoTG0RpZ2l0YWwgU2lnbmF0dXJlIFRydXN0IENvLjERMA8GA1UECxMI
+RFNUQ0EgRTExDTALBgNVBAMTBENSTDEwKwYDVR0QBCQwIoAPMTk5ODEyMTAxODEw
+MjNagQ8yMDE4MTIxMDE4MTAyM1owCwYDVR0PBAQDAgEGMB8GA1UdIwQYMBaAFGp5
+fpFpRhgTCgJ3pVlbYJglDqL4MB0GA1UdDgQWBBRqeX6RaUYYEwoCd6VZW2CYJQ6i
++DAMBgNVHRMEBTADAQH/MBkGCSqGSIb2fQdBAAQMMAobBFY0LjADAgSQMA0GCSqG
+SIb3DQEBBQUAA4GBACIS2Hod3IEGtgllsofIH160L+nEHvI8wbsEkBFKg05+k7lN
+QseSJqBcNJo4cvj9axY+IO6CizEqkzaFI4iKPANo08kJD038bKTaKHKTDomAsH3+
+gG9lbRgzl4vCa4nuYD3Im+9/KzJic5PLPON74nZ4RbyhkwS7hp86W0N6w4pl
+-----END CERTIFICATE-----

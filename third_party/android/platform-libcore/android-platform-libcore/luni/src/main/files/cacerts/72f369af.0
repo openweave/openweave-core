@@ -1,0 +1,77 @@
+Certificate:
+    Data:
+        Version: 3 (0x2)
+        Serial Number: 1 (0x1)
+        Signature Algorithm: sha1WithRSAEncryption
+        Issuer: C=NO, O=Buypass AS-983163327, CN=Buypass Class 2 CA 1
+        Validity
+            Not Before: Oct 13 10:25:09 2006 GMT
+            Not After : Oct 13 10:25:09 2016 GMT
+        Subject: C=NO, O=Buypass AS-983163327, CN=Buypass Class 2 CA 1
+        Subject Public Key Info:
+            Public Key Algorithm: rsaEncryption
+            RSA Public Key: (2048 bit)
+                Modulus (2048 bit):
+                    00:8b:3c:07:45:d8:f6:df:e6:c7:ca:ba:8d:43:c5:
+                    47:8d:b0:5a:c1:38:db:92:84:1c:af:13:d4:0f:6f:
+                    36:46:20:c4:2e:cc:71:70:34:a2:34:d3:37:2e:d8:
+                    dd:3a:77:2f:c0:eb:29:e8:5c:d2:b5:a9:91:34:87:
+                    22:59:fe:cc:db:e7:99:af:96:c1:a8:c7:40:dd:a5:
+                    15:8c:6e:c8:7c:97:03:cb:e6:20:f2:d7:97:5f:31:
+                    a1:2f:37:d2:be:ee:be:a9:ad:a8:4c:9e:21:66:43:
+                    3b:a8:bc:f3:09:a3:38:d5:59:24:c1:c2:47:76:b1:
+                    88:5c:82:3b:bb:2b:a6:04:d7:8c:07:8f:cd:d5:41:
+                    1d:f0:ae:b8:29:2c:94:52:60:34:94:3b:da:e0:38:
+                    d1:9d:33:3e:15:f4:93:32:c5:00:da:b5:29:66:0e:
+                    3a:78:0f:21:52:5f:02:e5:92:7b:25:d3:92:1e:2f:
+                    15:9d:81:e4:9d:8e:e8:ef:89:ce:14:4c:54:1d:1c:
+                    81:12:4d:70:a8:be:10:05:17:7e:1f:d1:b8:57:55:
+                    ed:cd:bb:52:c2:b0:1e:78:c2:4d:36:68:cb:56:26:
+                    c1:52:c1:bd:76:f7:58:d5:72:7e:1f:44:76:bb:00:
+                    89:1d:16:9d:51:35:ef:4d:c2:56:ef:6b:e0:8c:3b:
+                    0d:e9
+                Exponent: 65537 (0x10001)
+        X509v3 extensions:
+            X509v3 Basic Constraints: critical
+                CA:TRUE
+            X509v3 Subject Key Identifier: 
+                3F:8D:9A:59:8B:FC:7B:7B:9C:A3:AF:38:B0:39:ED:90:71:80:D6:C8
+            X509v3 Key Usage: critical
+                Certificate Sign, CRL Sign
+    Signature Algorithm: sha1WithRSAEncryption
+        15:1a:7e:13:8a:b9:e8:07:a3:4b:27:32:b2:40:91:f2:21:d1:
+        64:85:be:63:6a:d2:cf:81:c2:15:d5:7a:7e:0c:29:ac:37:1e:
+        1c:7c:76:52:95:da:b5:7f:23:a1:29:77:65:c9:32:9d:a8:2e:
+        56:ab:60:76:ce:16:b4:8d:7f:78:c0:d5:99:51:83:7f:5e:d9:
+        be:0c:a8:50:ed:22:c7:ad:05:4c:76:fb:ed:ee:1e:47:64:f6:
+        f7:27:7d:5c:28:0f:45:c5:5c:62:5e:a6:9a:91:91:b7:53:17:
+        2e:dc:ad:60:9d:96:64:39:bd:67:68:b2:ae:05:cb:4d:e7:5f:
+        1f:57:86:d5:20:9c:28:fb:6f:13:38:f5:f6:11:92:f6:7d:99:
+        5e:1f:0c:e8:ab:44:24:29:72:40:3d:36:52:af:8c:58:90:73:
+        c1:ec:61:2c:79:a1:ec:87:b5:3f:da:4d:d9:21:00:30:de:90:
+        da:0e:d3:1a:48:a9:3e:85:0b:14:8b:8c:bc:41:9e:6a:f7:0e:
+        70:c0:35:f7:39:a2:5d:66:d0:7b:59:9f:a8:47:12:9a:27:23:
+        a4:2d:8e:27:83:92:20:a1:d7:15:7f:f1:2e:18:ee:f4:48:7f:
+        2f:7f:f1:a1:18:b5:a1:0b:94:a0:62:20:32:9c:1d:f6:d4:ef:
+        bf:4c:88:68
+SHA1 Fingerprint=A0:A1:AB:90:C9:FC:84:7B:3B:12:61:E8:97:7D:5F:D3:22:61:D3:CC
+-----BEGIN CERTIFICATE-----
+MIIDUzCCAjugAwIBAgIBATANBgkqhkiG9w0BAQUFADBLMQswCQYDVQQGEwJOTzEd
+MBsGA1UECgwUQnV5cGFzcyBBUy05ODMxNjMzMjcxHTAbBgNVBAMMFEJ1eXBhc3Mg
+Q2xhc3MgMiBDQSAxMB4XDTA2MTAxMzEwMjUwOVoXDTE2MTAxMzEwMjUwOVowSzEL
+MAkGA1UEBhMCTk8xHTAbBgNVBAoMFEJ1eXBhc3MgQVMtOTgzMTYzMzI3MR0wGwYD
+VQQDDBRCdXlwYXNzIENsYXNzIDIgQ0EgMTCCASIwDQYJKoZIhvcNAQEBBQADggEP
+ADCCAQoCggEBAIs8B0XY9t/mx8q6jUPFR42wWsE425KEHK8T1A9vNkYgxC7McXA0
+ojTTNy7Y3Tp3L8DrKehc0rWpkTSHIln+zNvnma+WwajHQN2lFYxuyHyXA8vmIPLX
+l18xoS830r7uvqmtqEyeIWZDO6i88wmjONVZJMHCR3axiFyCO7srpgTXjAePzdVB
+HfCuuCkslFJgNJQ72uA40Z0zPhX0kzLFANq1KWYOOngPIVJfAuWSeyXTkh4vFZ2B
+5J2O6O+JzhRMVB0cgRJNcKi+EAUXfh/RuFdV7c27UsKwHnjCTTZoy1YmwVLBvXb3
+WNVyfh9EdrsAiR0WnVE1703CVu9r4Iw7DekCAwEAAaNCMEAwDwYDVR0TAQH/BAUw
+AwEB/zAdBgNVHQ4EFgQUP42aWYv8e3uco684sDntkHGA1sgwDgYDVR0PAQH/BAQD
+AgEGMA0GCSqGSIb3DQEBBQUAA4IBAQAVGn4TirnoB6NLJzKyQJHyIdFkhb5jatLP
+gcIV1Xp+DCmsNx4cfHZSldq1fyOhKXdlyTKdqC5Wq2B2zha0jX94wNWZUYN/Xtm+
+DKhQ7SLHrQVMdvvt7h5HZPb3J31cKA9FxVxiXqaakZG3Uxcu3K1gnZZkOb1naLKu
+BctN518fV4bVIJwo+28TOPX2EZL2fZleHwzoq0QkKXJAPTZSr4xYkHPB7GEseaHs
+h7U/2k3ZIQAw3pDaDtMaSKk+hQsUi4y8QZ5q9w5wwDX3OaJdZtB7WZ+oRxKaJyOk
+LY4ng5IgodcVf/EuGO70SH8vf/GhGLWhC5SgYiAynB321O+/TIho
+-----END CERTIFICATE-----

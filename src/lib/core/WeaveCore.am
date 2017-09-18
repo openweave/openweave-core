@@ -1,0 +1,49 @@
+#
+#    Copyright (c) 2014-2017 Nest Labs, Inc.
+#    All rights reserved.
+#
+#    Licensed under the Apache License, Version 2.0 (the "License");
+#    you may not use this file except in compliance with the License.
+#    You may obtain a copy of the License at
+#
+#        http://www.apache.org/licenses/LICENSE-2.0
+#
+#    Unless required by applicable law or agreed to in writing, software
+#    distributed under the License is distributed on an "AS IS" BASIS,
+#    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#    See the License for the specific language governing permissions and
+#    limitations under the License.
+#
+
+#
+#    Description:
+#      This file is the GNU automake template for the Nest Weave Core
+#      library sources.
+#
+#      These sources are shared by other SDK makefiles and consequently
+#      must be anchored relative to the top build directory.
+#
+
+nl_WeaveCore_sources                                      = \
+    @top_builddir@/src/lib/core/ExchangeContext.cpp         \
+    @top_builddir@/src/lib/core/HostPortList.cpp            \
+    @top_builddir@/src/lib/core/WeaveBinding.cpp            \
+    @top_builddir@/src/lib/core/WeaveConnection.cpp         \
+    @top_builddir@/src/lib/core/WeaveConnectionTunnel.cpp   \
+    @top_builddir@/src/lib/core/WeaveExchangeMgr.cpp        \
+    @top_builddir@/src/lib/core/WeaveFabricState.cpp        \
+    @top_builddir@/src/lib/core/WeaveGlobals.cpp            \
+    @top_builddir@/src/lib/core/WeaveKeyIds.cpp             \
+    @top_builddir@/src/lib/core/WeaveMessageLayer.cpp       \
+    @top_builddir@/src/lib/core/WeaveSecurityMgr-SimpleAlloc.cpp \
+    @top_builddir@/src/lib/core/WeaveSecurityMgr-Malloc.cpp \
+    @top_builddir@/src/lib/core/WeaveSecurityMgr.cpp        \
+    @top_builddir@/src/lib/core/WeaveServerBase.cpp         \
+    @top_builddir@/src/lib/core/WeaveTLVDebug.cpp           \
+    @top_builddir@/src/lib/core/WeaveTLVReader.cpp          \
+    @top_builddir@/src/lib/core/WeaveTLVUtilities.cpp       \
+    @top_builddir@/src/lib/core/WeaveTLVWriter.cpp          \
+    @top_builddir@/src/lib/core/WeaveTLVUpdater.cpp         \
+    @top_builddir@/src/lib/core/WeaveCircularTLVBuffer.cpp     \
+    @top_builddir@/src/lib/core/WeaveStats.cpp              \
+    $(NULL)

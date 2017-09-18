@@ -1,0 +1,1704 @@
+An implementation of the J-PAKE cryptographic protocol based on elliptic curves.
+
+diff -ruaN --no-dereference openssl-1.0.1m/Configure openssl/Configure
+--- openssl-1.0.1m/Configure	2015-08-17 15:44:12.275201194 -0700
++++ openssl/Configure	2015-08-17 15:44:34.818599289 -0700
+@@ -718,6 +718,7 @@
+ 		 "ec_nistp_64_gcc_128" => "default",
+ 		 "gmp"		  => "default",
+ 		 "jpake"          => "experimental",
++		 "ecjpake"        => "experimental",
+ 		 "md2"            => "default",
+ 		 "rc5"            => "default",
+ 		 "rfc3779"	  => "default",
+@@ -732,7 +733,7 @@
+ 
+ # This is what $depflags will look like with the above defaults
+ # (we need this to see if we should advise the user to run "make depend"):
+-my $default_depflags = " -DOPENSSL_NO_EC_NISTP_64_GCC_128 -DOPENSSL_NO_GMP -DOPENSSL_NO_JPAKE -DOPENSSL_NO_MD2 -DOPENSSL_NO_RC5 -DOPENSSL_NO_RFC3779 -DOPENSSL_NO_SCTP -DOPENSSL_NO_STORE -DOPENSSL_NO_UNIT_TEST";
++my $default_depflags = " -DOPENSSL_NO_EC_NISTP_64_GCC_128 -DOPENSSL_NO_GMP -DOPENSSL_NO_JPAKE -DOPENSSL_NO_ECJPAKE -DOPENSSL_NO_MD2 -DOPENSSL_NO_RC5 -DOPENSSL_NO_RFC3779 -DOPENSSL_NO_SCTP -DOPENSSL_NO_STORE -DOPENSSL_NO_UNIT_TEST";
+ 
+ # Explicit "no-..." options will be collected in %disabled along with the defaults.
+ # To remove something from %disabled, use "enable-foo" (unless it's experimental).
+diff -ruaN --no-dereference openssl-1.0.1m/crypto/ecjpake/ecjpake.c openssl/crypto/ecjpake/ecjpake.c
+--- openssl-1.0.1m/crypto/ecjpake/ecjpake.c	1969-12-31 16:00:00.000000000 -0800
++++ openssl/crypto/ecjpake/ecjpake.c	2015-08-17 16:31:00.241703253 -0700
+@@ -0,0 +1,792 @@
++/* ecjpake.c */
++/*
++ * Written by Evgeny Margolis (emargolis@nestlabs.com) for the OpenSSL project
++ * 2015.
++ */
++
++#include "ecjpake.h"
++
++#include <openssl/crypto.h>
++#include <openssl/err.h>
++#include <memory.h>
++
++/*
++ * In the definition, (xa, xb, xc, xd) are Alice's (x1, x2, x3, x4) or
++ * Bob's (x3, x4, x1, x2).
++ */
++
++typedef struct {
++    unsigned char *num;        /* Must be unique */
++    size_t len;
++} ECJPAKE_ID;
++
++struct ECJPAKE_CTX {
++    /* public values */
++    ECJPAKE_ID local_id;
++    ECJPAKE_ID peer_id;
++    const EC_GROUP *group;     /* Elliptic Curve Group */
++    EC_POINT *Gxc;             /* Alice's G*x3 or Bob's G*x1 */
++    EC_POINT *Gxd;             /* Alice's G*x4 or Bob's G*x2 */
++    /* secret values - should not be revealed publicly and
++                       should be cleared when released */
++    BIGNUM *secret;            /* The shared secret */
++    BN_CTX *ctx;
++    BIGNUM *xa;                /* Alice's x1 or Bob's x3 */
++    BIGNUM *xb;                /* Alice's x2 or Bob's x4 */
++    unsigned char key[SHA256_DIGEST_LENGTH]; /* The calculated (shared) key */
++};
++
++static int zkp_init(ECJPAKE_ZKP *zkp, const EC_GROUP *group)
++{
++    zkp->Gr = EC_POINT_new(group);
++    if (zkp->Gr == NULL)
++        return 0;
++    zkp->b = BN_new();
++    if (zkp->b == NULL)
++        return 0;
++    return 1;
++}
++
++static void zkp_release(ECJPAKE_ZKP *zkp)
++{
++    if (zkp->b != NULL)
++        BN_free(zkp->b);
++    if (zkp->Gr != NULL)
++        EC_POINT_free(zkp->Gr);
++}
++
++#define step_part_init       ECJPAKE_STEP2_init
++#define step_part_release    ECJPAKE_STEP2_release
++
++int step_part_init(ECJPAKE_STEP_PART *p, const ECJPAKE_CTX *ctx)
++{
++    memset(p, 0, sizeof(*p));
++    p->Gx = EC_POINT_new(ctx->group);
++    if (p->Gx == NULL)
++        goto err;
++    if (!zkp_init(&p->zkpx, ctx->group))
++        goto err;
++    return 1;
++
++err:
++    ECJPAKEerr(ECJPAKE_F_STEP_PART_INIT, ERR_R_MALLOC_FAILURE);
++    step_part_release(p);
++    return 0;
++}
++
++void step_part_release(ECJPAKE_STEP_PART *p)
++{
++    zkp_release(&p->zkpx);
++    if (p->Gx != NULL)
++        EC_POINT_free(p->Gx);
++}
++
++int ECJPAKE_STEP1_init(ECJPAKE_STEP1 *s1, const ECJPAKE_CTX *ctx)
++{
++    if (!step_part_init(&s1->p1, ctx))
++        return 0;
++    if (!step_part_init(&s1->p2, ctx))
++        return 0;
++    return 1;
++}
++
++void ECJPAKE_STEP1_release(ECJPAKE_STEP1 *s1)
++{
++    step_part_release(&s1->p2);
++    step_part_release(&s1->p1);
++}
++
++ECJPAKE_CTX *ECJPAKE_CTX_new(const EC_GROUP *group, const BIGNUM *secret,
++                             const unsigned char *local_id_num,
++                             const size_t local_id_len,
++                             const unsigned char *peer_id_num,
++                             const size_t peer_id_len)
++{
++    ECJPAKE_CTX *ctx = NULL;
++
++    /* init ecjpake context */
++    ctx = OPENSSL_malloc(sizeof(*ctx));
++    if (ctx == NULL)
++        goto err;
++    memset(ctx, 0, sizeof(*ctx));
++
++    /* init elliptic curve group */
++    if (group == NULL)
++        goto err;
++    ctx->group = group;
++
++    /* init local id */
++    ctx->local_id.num = (unsigned char *)OPENSSL_malloc(local_id_len);
++    if (ctx->local_id.num == NULL)
++        goto err;
++    memcpy(ctx->local_id.num, local_id_num, local_id_len);
++    ctx->local_id.len = local_id_len;
++
++    /* init peer id */
++    ctx->peer_id.num = (unsigned char *)OPENSSL_malloc(peer_id_len);
++    if (ctx->peer_id.num == NULL)
++        goto err;
++    memcpy(ctx->peer_id.num, peer_id_num, peer_id_len);
++    ctx->peer_id.len = peer_id_len;
++
++    /* init secret */
++    ctx->secret = BN_dup(secret);
++    if (ctx->secret == NULL)
++        goto err;
++
++    /* init remaining ecjpake context fields */
++    ctx->Gxc = EC_POINT_new(ctx->group);
++    if (ctx->Gxc == NULL)
++        goto err;
++    ctx->Gxd = EC_POINT_new(ctx->group);
++    if (ctx->Gxd == NULL)
++        goto err;
++    ctx->xa = BN_new();
++    if (ctx->xa == NULL)
++        goto err;
++    ctx->xb = BN_new();
++    if (ctx->xb == NULL)
++        goto err;
++    ctx->ctx = BN_CTX_new();
++    if (ctx->ctx == NULL)
++        goto err;
++
++    return ctx;
++
++err:
++    ECJPAKEerr(ECJPAKE_F_ECJPAKE_CTX_NEW, ERR_R_MALLOC_FAILURE);
++    ECJPAKE_CTX_free(ctx);
++    return NULL;
++}
++
++void ECJPAKE_CTX_free(ECJPAKE_CTX *ctx)
++{
++    if (ctx != NULL) {
++        if (ctx->ctx != NULL)
++            BN_CTX_free(ctx->ctx);
++        if (ctx->xb != NULL)
++            BN_clear_free(ctx->xb);
++        if (ctx->xa != NULL)
++            BN_clear_free(ctx->xa);
++        if (ctx->Gxd != NULL)
++            EC_POINT_free(ctx->Gxd);
++        if (ctx->Gxc != NULL)
++            EC_POINT_free(ctx->Gxc);
++        if (ctx->secret != NULL)
++            BN_clear_free(ctx->secret);
++        if (ctx->peer_id.num != NULL)
++            OPENSSL_free(ctx->peer_id.num);
++        if (ctx->local_id.num != NULL)
++            OPENSSL_free(ctx->local_id.num);
++        OPENSSL_free(ctx);
++    }
++}
++
++static void hashlength(SHA256_CTX *sha, size_t l)
++{
++    unsigned char b[2];
++
++    OPENSSL_assert(l <= 0xffff);
++    b[0] = l >> 8;
++    b[1] = l & 0xff;
++    SHA256_Update(sha, b, 2);
++}
++
++static int hashpoint_default(ECJPAKE_CTX *ctx, SHA256_CTX *sha,
++                             const EC_POINT *point)
++{
++    size_t point_len;
++    unsigned char *point_oct = NULL;
++    int ret = 0;
++
++    point_len = EC_POINT_point2oct(ctx->group, point,
++                                   POINT_CONVERSION_UNCOMPRESSED, NULL, 0, NULL);
++    if (point_len == 0)
++        goto err;
++
++    point_oct = (unsigned char *)OPENSSL_malloc(point_len);
++    if (point_oct == NULL)
++        goto err;
++
++    point_len = EC_POINT_point2oct(ctx->group, point,
++                                   POINT_CONVERSION_UNCOMPRESSED, point_oct,
++                                   point_len, ctx->ctx);
++    if (point_len == 0)
++        goto err;
++
++    hashlength(sha, point_len);
++    SHA256_Update(sha, point_oct, point_len);
++    ret = 1;
++
++err:
++    if (point_oct != NULL)
++        OPENSSL_free(point_oct);
++    return ret;
++}
++
++static ECJPAKE_HASHPOINT_FUNC_PTR hashpoint = &hashpoint_default;
++
++void ECJPAKE_Set_HashECPoint(ECJPAKE_HASHPOINT_FUNC_PTR hashpoint_custom)
++{
++    hashpoint = hashpoint_custom;
++}
++
++/* h = hash(G, G*r, G*x, ecjpake_id) */
++static int zkp_hash(ECJPAKE_CTX *ctx, BIGNUM *h, const EC_POINT *zkpG,
++                    const ECJPAKE_STEP_PART *p, const int use_local_id)
++{
++    unsigned char md[SHA256_DIGEST_LENGTH];
++    SHA256_CTX sha;
++
++    SHA256_Init(&sha);
++    if (!hashpoint(ctx, &sha, zkpG))
++        goto err;
++    if (!hashpoint(ctx, &sha, p->zkpx.Gr))
++        goto err;
++    if (!hashpoint(ctx, &sha, p->Gx))
++        goto err;
++    if (use_local_id)
++        SHA256_Update(&sha, ctx->local_id.num, ctx->local_id.len);
++    else
++        SHA256_Update(&sha, ctx->peer_id.num, ctx->peer_id.len);
++    SHA256_Final(md, &sha);
++    if (BN_bin2bn(md, SHA256_DIGEST_LENGTH, h) == NULL)
++        goto err;
++    return 1;
++
++err:
++    ECJPAKEerr(ECJPAKE_F_ZKP_HASH, ERR_R_MALLOC_FAILURE);
++    return 0;
++}
++
++/* Generate random number in [1, n - 1] ( i.e. [1, n) ) */
++static int genrand(BIGNUM *rnd, const BIGNUM *n)
++{
++    BIGNUM *nm1 = NULL;
++    int ret = 0;
++
++    nm1 = BN_new();
++    if (nm1 == NULL)
++        goto err;
++    /* n - 1 */
++    if (!BN_copy(nm1, n))
++        goto err;
++    if (!BN_sub_word(nm1, 1))
++        goto err;
++    /* random number in [0, n - 1) */
++    if (!BN_rand_range(rnd, nm1))
++        goto err;
++    /* [1, n) */
++    if (!BN_add_word(rnd, 1))
++        goto err;
++    ret = 1;
++
++err:
++    if (!ret)
++        ECJPAKEerr(ECJPAKE_F_GENRAND, ERR_R_MALLOC_FAILURE);
++    if (nm1 != NULL)
++        BN_free(nm1);
++    return ret;
++}
++
++/* Prove knowledge of x. (Note that p->Gx has already been calculated) */
++static int generate_zkp(ECJPAKE_STEP_PART *p, const BIGNUM *x,
++                        const EC_POINT *zkpG, ECJPAKE_CTX *ctx)
++{
++    BIGNUM *order = NULL;
++    BIGNUM *r = NULL;
++    BIGNUM *h = NULL;
++    BIGNUM *t = NULL;
++    int ret = 0;
++
++    order = BN_new();
++    if (order == NULL)
++        goto err;
++    if (!EC_GROUP_get_order(ctx->group, order, ctx->ctx))
++        goto err;
++    /* r in [1,n-1] */
++    r = BN_new();
++    if (r == NULL)
++        goto err;
++    if (!genrand(r, order))
++        goto err;
++    /* G * r */
++    if (!EC_POINT_mul(ctx->group, p->zkpx.Gr, NULL, zkpG, r, ctx->ctx))
++        goto err;
++    /* h = hash(G, G * r, G * x, ecjpake_id) */
++    h = BN_new();
++    if (h == NULL)
++        goto err;
++    if (!zkp_hash(ctx, h, zkpG, p, 1))
++        goto err;
++    /* b = r - x*h */
++    t = BN_new();
++    if (t == NULL)
++        goto err;
++    if (!BN_mod_mul(t, x, h, order, ctx->ctx))
++        goto err;
++    if (!BN_mod_sub(p->zkpx.b, r, t, order, ctx->ctx))
++        goto err;
++    ret = 1;
++
++err:
++    if (!ret)
++        ECJPAKEerr(ECJPAKE_F_GENERATE_ZKP, ERR_R_MALLOC_FAILURE);
++    if (t != NULL)
++        BN_free(t);
++    if (h != NULL)
++        BN_free(h);
++    if (r != NULL)
++        BN_free(r);
++    if (order != NULL)
++        BN_free(order);
++    return ret;
++}
++
++static int verify_zkp(const ECJPAKE_STEP_PART *p, const EC_POINT *zkpG,
++                      ECJPAKE_CTX *ctx)
++{
++    BIGNUM *h = NULL;
++    EC_POINT *point1 = NULL;
++    EC_POINT *point2 = NULL;
++    int ret = 0;
++
++    /* h = hash(G, G * r, G * x, ecjpake_id) */
++    h = BN_new();
++    if (h == NULL)
++        goto err;
++    if (!zkp_hash(ctx, h, zkpG, p, 0))
++        goto err;
++    /* point1 = G * b */
++    point1 = EC_POINT_new(ctx->group);
++    if (point1 == NULL)
++        goto err;
++    if (!EC_POINT_mul(ctx->group, point1, NULL, zkpG, p->zkpx.b, ctx->ctx))
++        goto err;
++    /* point2 = (G * x) * h = G * {h * x} */
++    point2 = EC_POINT_new(ctx->group);
++    if (point2 == NULL)
++        goto err;
++    if (!EC_POINT_mul(ctx->group, point2, NULL, p->Gx, h, ctx->ctx))
++        goto err;
++    /* point2 = point1 + point2 = G*{hx} + G*b = G*{hx+b} = G*r (allegedly) */
++    if (!EC_POINT_add(ctx->group, point2, point1, point2, ctx->ctx))
++        goto err;
++    /* verify (point2 == G * r) */
++    if (0 != EC_POINT_cmp(ctx->group, point2, p->zkpx.Gr, ctx->ctx))
++    {
++        ECJPAKEerr(ECJPAKE_F_VERIFY_ZKP, ECJPAKE_R_ZKP_VERIFY_FAILED);
++        goto clean;
++    }
++
++    ret = 1;
++    goto clean;
++
++err:
++    ECJPAKEerr(ECJPAKE_F_VERIFY_ZKP, ERR_R_MALLOC_FAILURE);
++clean:
++    if (point2 != NULL)
++        EC_POINT_free(point2);
++    if (point1 != NULL)
++        EC_POINT_free(point1);
++    if (h != NULL)
++        BN_free(h);
++    return ret;
++}
++
++static int step_part_generate(ECJPAKE_STEP_PART *p, const BIGNUM *x,
++                              const EC_POINT *G, ECJPAKE_CTX *ctx)
++{
++    if (!EC_POINT_mul(ctx->group, p->Gx, NULL, G, x, ctx->ctx))
++        goto err;
++    if (!generate_zkp(p, x, G, ctx))
++        goto err;
++    return 1;
++
++err:
++    ECJPAKEerr(ECJPAKE_F_STEP_PART_GENERATE, ERR_R_MALLOC_FAILURE);
++    return 0;
++}
++
++int ECJPAKE_STEP1_generate(ECJPAKE_STEP1 *send, ECJPAKE_CTX *ctx)
++{
++    BIGNUM *order = NULL;
++    const EC_POINT *generator = NULL;
++    int ret = 0;
++
++    order = BN_new();
++    if (order == NULL)
++        goto err;
++    if (!EC_GROUP_get_order(ctx->group, order, ctx->ctx))
++        goto err;
++
++    if (!genrand(ctx->xa, order))
++        goto err;
++    if (!genrand(ctx->xb, order))
++        goto err;
++
++    generator = EC_GROUP_get0_generator(ctx->group);
++    if (!step_part_generate(&send->p1, ctx->xa, generator, ctx))
++        goto err;
++    if (!step_part_generate(&send->p2, ctx->xb, generator, ctx))
++        goto err;
++
++    ret = 1;
++
++err:
++    if (!ret)
++        ECJPAKEerr(ECJPAKE_F_ECJPAKE_STEP1_GENERATE, ERR_R_MALLOC_FAILURE);
++    if (order != NULL)
++        BN_free(order);
++    return ret;
++}
++
++/*-
++ * Elliptic Curve Point Validity Check based on p. 25
++ * http://cs.ucsb.edu/~koc/ccs130h/notes/ecdsa-cert.pdf
++ */
++static int EC_POINT_is_legal(const EC_POINT *point, const ECJPAKE_CTX *ctx)
++{
++    BIGNUM *point_x = NULL;
++    BIGNUM *point_y = NULL;
++    BIGNUM *p = NULL;
++    BIGNUM *order = NULL;
++    EC_POINT *tmp_point = NULL;
++    int res = 0;
++
++    /* 1. Verify that point is not at Infinity */
++    if (EC_POINT_is_at_infinity(ctx->group, point))
++        goto illegal_point;
++
++    /* 2. Verify that point.X and point.Y are in the prime field */
++    point_x = BN_new();
++    if (point_x == NULL)
++        goto err;
++    point_y = BN_new();
++    if (point_y == NULL)
++        goto err;
++    p = BN_new();
++    if (p == NULL)
++        goto err;
++    if (!EC_POINT_get_affine_coordinates_GFp(ctx->group, point, point_x,
++                                             point_y, ctx->ctx))
++        goto err;
++    if (!EC_GROUP_get_curve_GFp(ctx->group, p, NULL, NULL, ctx->ctx))
++        goto err;
++    if (BN_is_negative(point_x) || BN_is_negative(point_y) ||
++        BN_cmp(point_x, p) >= 0 || BN_cmp(point_y, p) >= 0)
++        goto illegal_point;
++
++    /* 3. Check point lies on the curve */
++    if (!EC_POINT_is_on_curve(ctx->group, point, ctx->ctx))
++        goto illegal_point;
++
++    /* 4. Check that point*n is at Infinity */
++    order = BN_new();
++    if (order == NULL)
++        goto err;
++    tmp_point = EC_POINT_new(ctx->group);
++    if (tmp_point == NULL)
++        goto err;
++    if (!EC_GROUP_get_order(ctx->group, order, ctx->ctx))
++        goto err;
++    if (!EC_POINT_mul(ctx->group, tmp_point, NULL, point, order, ctx->ctx))
++        goto err;
++    if (!EC_POINT_is_at_infinity(ctx->group, tmp_point))
++        goto illegal_point;
++
++    res = 1;
++    goto clean;
++
++err:
++    ECJPAKEerr(ECJPAKE_F_EC_POINT_IS_LEGAL, ERR_R_MALLOC_FAILURE);
++    goto clean;
++illegal_point:
++    ECJPAKEerr(ECJPAKE_F_EC_POINT_IS_LEGAL, ECJPAKE_R_G_IS_NOT_LEGAL);
++clean:
++    if (tmp_point != NULL)
++        EC_POINT_free(tmp_point);
++    if (order != NULL)
++        BN_free(order);
++    if (p != NULL)
++        BN_free(p);
++    if (point_y != NULL)
++        BN_free(point_y);
++    if (point_x != NULL)
++        BN_free(point_x);
++    return res;
++}
++
++int ECJPAKE_STEP1_process(ECJPAKE_CTX *ctx, const ECJPAKE_STEP1 *received)
++{
++
++    /* check Gxc is a legal point on Elliptic Curve */
++    if (!EC_POINT_is_legal(received->p1.Gx, ctx))
++    {
++        ECJPAKEerr(ECJPAKE_F_ECJPAKE_STEP1_PROCESS,
++                   ECJPAKE_R_G_TO_THE_X3_IS_NOT_LEGAL);
++        return 0;
++    }
++
++    /* check Gxd is a legal point on Elliptic Curve */
++    if (!EC_POINT_is_legal(received->p2.Gx, ctx))
++    {
++        ECJPAKEerr(ECJPAKE_F_ECJPAKE_STEP1_PROCESS,
++                   ECJPAKE_R_G_TO_THE_X4_IS_NOT_LEGAL);
++        return 0;
++    }
++
++    /* verify ZKP(xc) */
++    if (!verify_zkp(&received->p1, EC_GROUP_get0_generator(ctx->group), ctx))
++    {
++        ECJPAKEerr(ECJPAKE_F_ECJPAKE_STEP1_PROCESS,
++                   ECJPAKE_R_VERIFY_X3_FAILED);
++        return 0;
++    }
++
++    /* verify ZKP(xd) */
++    if (!verify_zkp(&received->p2, EC_GROUP_get0_generator(ctx->group), ctx))
++    {
++        ECJPAKEerr(ECJPAKE_F_ECJPAKE_STEP1_PROCESS,
++                   ECJPAKE_R_VERIFY_X4_FAILED);
++        return 0;
++    }
++
++    /* Save the points we need for later */
++    if (!EC_POINT_copy(ctx->Gxc, received->p1.Gx) ||
++        !EC_POINT_copy(ctx->Gxd, received->p2.Gx))
++    {
++        ECJPAKEerr(ECJPAKE_F_ECJPAKE_STEP1_PROCESS, ERR_R_MALLOC_FAILURE);
++        return 0;
++    }
++
++    return 1;
++}
++
++int ECJPAKE_STEP2_generate(ECJPAKE_STEP2 *send, ECJPAKE_CTX *ctx)
++{
++    EC_POINT *point = NULL;
++    BIGNUM *order = NULL;
++    BIGNUM *xbs = NULL;
++    int ret = 0;
++
++    /*-
++     * X = G * {(xa + xc + xd) * xb * s}
++     */
++    point = EC_POINT_new(ctx->group);
++    if (point == NULL)
++        goto err;
++    /* point = G * xa */
++    if (!EC_POINT_mul(ctx->group, point, NULL,
++                      EC_GROUP_get0_generator(ctx->group), ctx->xa, ctx->ctx))
++        goto err;
++    /* point = G * xa + G * xc = G * {xa + xc} */
++    if (!EC_POINT_add(ctx->group, point, point, ctx->Gxc, ctx->ctx))
++        goto err;
++    /* point = G * {xa + xc} + G * xd = G * {xa + xc + xd} */
++    if (!EC_POINT_add(ctx->group, point, point, ctx->Gxd, ctx->ctx))
++        goto err;
++    /* xbs = xb * s */
++    order = BN_new();
++    if (order == NULL)
++        goto err;
++    xbs = BN_new();
++    if (xbs == NULL)
++        goto err;
++    if (!EC_GROUP_get_order(ctx->group, order, ctx->ctx))
++        goto err;
++    if (!BN_mod_mul(xbs, ctx->xb, ctx->secret, order, ctx->ctx))
++        goto err;
++
++    /*-
++     * ZKP(xb * s)
++     * For STEP2 the generator is:
++     *     G' = G * {xa + xc + xd}
++     * which means X is G' * {xb * s}
++     *     X  = G' * {xb * s} = G * {(xa + xc + xd) * xb * s}
++     */
++    if (!step_part_generate(send, xbs, point, ctx))
++        goto err;
++    ret = 1;
++
++err:
++    if (!ret)
++        ECJPAKEerr(ECJPAKE_F_ECJPAKE_STEP2_GENERATE, ERR_R_MALLOC_FAILURE);
++    if (xbs != NULL)
++        BN_clear_free(xbs);
++    if (order != NULL)
++        BN_free(order);
++    if (point != NULL)
++        EC_POINT_free(point);
++    return ret;
++}
++
++/* Gx = G * {(xc + xa + xb) * xd * secret} */
++static int compute_key(ECJPAKE_CTX *ctx, const EC_POINT *Gx)
++{
++    EC_POINT *point = NULL;
++    SHA256_CTX sha;
++    int ret = 0;
++
++    /*-
++     * K = (Gx - G * {xb * xd * secret}) * xb
++     *   = (G * {(xc + xa + xb) * xd * secret - xb * xd * secret}) * xb
++     *   = (G * {(xc + xa) * xd * secret}) * xb
++     *   =  G * {(xa + xc) * xb * xd * secret}
++     * [which is the same regardless of who calculates it]
++     */
++
++    /* point = (G * xd) * xb = G * {xb * xd} */
++    point = EC_POINT_new(ctx->group);
++    if (point == NULL)
++        goto err;
++    if (!EC_POINT_mul(ctx->group, point, NULL, ctx->Gxd, ctx->xb, ctx->ctx))
++        goto err;
++    /* point = - G * {xb * xd} */
++    if (!EC_POINT_invert(ctx->group, point, ctx->ctx))
++        goto err;
++    /* point = - G * {xb * xd * secret} */
++    if (!EC_POINT_mul(ctx->group, point, NULL, point, ctx->secret, ctx->ctx))
++        goto err;
++    /* point = Gx - G * {xb * xd * secret} */
++    if (!EC_POINT_add(ctx->group, point, Gx, point, ctx->ctx))
++        goto err;
++    /* point = point * xb */
++    if (!EC_POINT_mul(ctx->group, point, NULL, point, ctx->xb, ctx->ctx))
++        goto err;
++    /* Hash point to generate shared secret key */
++    SHA256_Init(&sha);
++    if (!hashpoint(ctx, &sha, point))
++        goto err;
++    SHA256_Final(ctx->key, &sha);
++    ret = 1;
++
++err:
++    if (!ret)
++        ECJPAKEerr(ECJPAKE_F_COMPUTE_KEY, ERR_R_MALLOC_FAILURE);
++    if (point != NULL)
++        EC_POINT_clear_free(point);
++    return ret;
++}
++
++int ECJPAKE_STEP2_process(ECJPAKE_CTX *ctx, const ECJPAKE_STEP2 *received)
++{
++    BIGNUM *order = NULL;
++    BIGNUM *tmp = NULL;
++    EC_POINT *point = NULL;
++    int ret = 0;
++
++    /* Get Order */
++    order = BN_new();
++    if (order == NULL)
++        goto err;
++    if (!EC_GROUP_get_order(ctx->group, order, ctx->ctx))
++        goto err;
++    /* G' = G * {xc + xa + xb} */
++    /* tmp = xa + xb */
++    tmp = BN_new();
++    if (tmp == NULL)
++        goto err;
++    if (!BN_mod_add(tmp, ctx->xa, ctx->xb, order, ctx->ctx))
++        goto err;
++    /* point = G * {xa + xb} */
++    point = EC_POINT_new(ctx->group);
++    if (point == NULL)
++        goto err;
++    if (!EC_POINT_mul(ctx->group, point, NULL,
++                      EC_GROUP_get0_generator(ctx->group), tmp, ctx->ctx))
++        goto err;
++    /* point = G * {xc + xa + xb} */
++    if (!EC_POINT_add(ctx->group, point, ctx->Gxc, point, ctx->ctx))
++        goto err;
++    /* Verify ZKP */
++    if (!verify_zkp(received, point, ctx))
++    {
++        ECJPAKEerr(ECJPAKE_F_ECJPAKE_STEP2_PROCESS, ECJPAKE_R_VERIFY_X4S_FAILED);
++        goto clean;
++    }
++    /* calculate shared secret (key) */
++    if (!compute_key(ctx, received->Gx))
++        goto err;
++
++    ret = 1;
++    goto clean;
++
++err:
++    ECJPAKEerr(ECJPAKE_F_ECJPAKE_STEP2_PROCESS, ERR_R_MALLOC_FAILURE);
++clean:
++    if (point != NULL)
++        EC_POINT_free(point);
++    if (tmp != NULL)
++        BN_free(tmp);
++    if (order != NULL)
++        BN_free(order);
++    return ret;
++}
++
++void ECJPAKE_STEP3A_init(ECJPAKE_STEP3A *s3a)
++{
++}
++
++int ECJPAKE_STEP3A_generate(ECJPAKE_STEP3A *send, ECJPAKE_CTX *ctx)
++{
++    SHA256(ctx->key, sizeof ctx->key, send->hhk);
++    SHA256(send->hhk, sizeof send->hhk, send->hhk);
++
++    return 1;
++}
++
++int ECJPAKE_STEP3A_process(ECJPAKE_CTX *ctx, const ECJPAKE_STEP3A *received)
++{
++    unsigned char hhk[SHA256_DIGEST_LENGTH];
++
++    SHA256(ctx->key, sizeof ctx->key, hhk);
++    SHA256(hhk, sizeof hhk, hhk);
++    if (memcmp(hhk, received->hhk, sizeof hhk)) {
++        ECJPAKEerr(ECJPAKE_F_ECJPAKE_STEP3A_PROCESS,
++                   ECJPAKE_R_HASH_OF_HASH_OF_KEY_MISMATCH);
++        return 0;
++    }
++    return 1;
++}
++
++void ECJPAKE_STEP3A_release(ECJPAKE_STEP3A *s3a)
++{
++}
++
++void ECJPAKE_STEP3B_init(ECJPAKE_STEP3B *s3b)
++{
++}
++
++int ECJPAKE_STEP3B_generate(ECJPAKE_STEP3B *send, ECJPAKE_CTX *ctx)
++{
++    SHA256(ctx->key, sizeof(ctx->key), send->hk);
++    return 1;
++}
++
++int ECJPAKE_STEP3B_process(ECJPAKE_CTX *ctx, const ECJPAKE_STEP3B *received)
++{
++    unsigned char hk[SHA256_DIGEST_LENGTH];
++
++    SHA256(ctx->key, sizeof(ctx->key), hk);
++    if (memcmp(hk, received->hk, sizeof(hk))) {
++        ECJPAKEerr(ECJPAKE_F_ECJPAKE_STEP3B_PROCESS,
++                   ECJPAKE_R_HASH_OF_KEY_MISMATCH);
++        return 0;
++    }
++    return 1;
++}
++
++void ECJPAKE_STEP3B_release(ECJPAKE_STEP3B *s3b)
++{
++}
++
++const EC_GROUP *ECJPAKE_get_ecGroup(const ECJPAKE_CTX *ctx)
++{
++    return ctx->group;
++}
++
++const unsigned char *ECJPAKE_get_shared_key(const ECJPAKE_CTX *ctx)
++{
++    return ctx->key;
++}
+diff -ruaN --no-dereference openssl-1.0.1m/crypto/ecjpake/ecjpake_err.c openssl/crypto/ecjpake/ecjpake_err.c
+--- openssl-1.0.1m/crypto/ecjpake/ecjpake_err.c	1969-12-31 16:00:00.000000000 -0800
++++ openssl/crypto/ecjpake/ecjpake_err.c	2015-08-17 15:44:34.818599289 -0700
+@@ -0,0 +1,118 @@
++/* crypto/ecjpake/ecjpake_err.c */
++/* ====================================================================
++ * Copyright (c) 1999-2010 The OpenSSL Project.  All rights reserved.
++ *
++ * Redistribution and use in source and binary forms, with or without
++ * modification, are permitted provided that the following conditions
++ * are met:
++ *
++ * 1. Redistributions of source code must retain the above copyright
++ *    notice, this list of conditions and the following disclaimer.
++ *
++ * 2. Redistributions in binary form must reproduce the above copyright
++ *    notice, this list of conditions and the following disclaimer in
++ *    the documentation and/or other materials provided with the
++ *    distribution.
++ *
++ * 3. All advertising materials mentioning features or use of this
++ *    software must display the following acknowledgment:
++ *    "This product includes software developed by the OpenSSL Project
++ *    for use in the OpenSSL Toolkit. (http://www.OpenSSL.org/)"
++ *
++ * 4. The names "OpenSSL Toolkit" and "OpenSSL Project" must not be used to
++ *    endorse or promote products derived from this software without
++ *    prior written permission. For written permission, please contact
++ *    openssl-core@OpenSSL.org.
++ *
++ * 5. Products derived from this software may not be called "OpenSSL"
++ *    nor may "OpenSSL" appear in their names without prior written
++ *    permission of the OpenSSL Project.
++ *
++ * 6. Redistributions of any form whatsoever must retain the following
++ *    acknowledgment:
++ *    "This product includes software developed by the OpenSSL Project
++ *    for use in the OpenSSL Toolkit (http://www.OpenSSL.org/)"
++ *
++ * THIS SOFTWARE IS PROVIDED BY THE OpenSSL PROJECT ``AS IS'' AND ANY
++ * EXPRESSED OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
++ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
++ * PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL THE OpenSSL PROJECT OR
++ * ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
++ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
++ * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
++ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
++ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
++ * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
++ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
++ * OF THE POSSIBILITY OF SUCH DAMAGE.
++ * ====================================================================
++ *
++ * This product includes cryptographic software written by Eric Young
++ * (eay@cryptsoft.com).  This product includes software written by Tim
++ * Hudson (tjh@cryptsoft.com).
++ *
++ */
++
++/*
++ * NOTE: this file was auto generated by the mkerr.pl script: any changes
++ * made to it will be overwritten when the script next updates this file,
++ * only reason strings will be preserved.
++ */
++
++#include <stdio.h>
++#include <openssl/err.h>
++#include <openssl/ecjpake.h>
++
++/* BEGIN ERROR CODES */
++#ifndef OPENSSL_NO_ERR
++
++# define ERR_FUNC(func) ERR_PACK(ERR_LIB_ECJPAKE,func,0)
++# define ERR_REASON(reason) ERR_PACK(ERR_LIB_ECJPAKE,0,reason)
++
++static ERR_STRING_DATA ECJPAKE_str_functs[] = {
++    {ERR_FUNC(ECJPAKE_F_COMPUTE_KEY), "compute_key"},
++    {ERR_FUNC(ECJPAKE_F_EC_POINT_IS_LEGAL), "EC_POINT_is_legal"},
++    {ERR_FUNC(ECJPAKE_F_ECJPAKE_CTX_NEW), "ECJPAKE_CTX_new"},
++    {ERR_FUNC(ECJPAKE_F_ECJPAKE_STEP1_GENERATE), "ECJPAKE_STEP1_generate"},
++    {ERR_FUNC(ECJPAKE_F_ECJPAKE_STEP1_PROCESS), "ECJPAKE_STEP1_process"},
++    {ERR_FUNC(ECJPAKE_F_ECJPAKE_STEP2_GENERATE), "ECJPAKE_STEP2_generate"},
++    {ERR_FUNC(ECJPAKE_F_ECJPAKE_STEP2_PROCESS), "ECJPAKE_STEP2_process"},
++    {ERR_FUNC(ECJPAKE_F_ECJPAKE_STEP3A_PROCESS), "ECJPAKE_STEP3A_process"},
++    {ERR_FUNC(ECJPAKE_F_ECJPAKE_STEP3B_PROCESS), "ECJPAKE_STEP3B_process"},
++    {ERR_FUNC(ECJPAKE_F_GENERATE_ZKP), "generate_zkp"},
++    {ERR_FUNC(ECJPAKE_F_GENRAND), "genrand"},
++    {ERR_FUNC(ECJPAKE_F_STEP_PART_GENERATE), "step_part_generate"},
++    {ERR_FUNC(ECJPAKE_F_STEP_PART_INIT), "step_part_init"},
++    {ERR_FUNC(ECJPAKE_F_VERIFY_ZKP), "verify_zkp"},
++    {ERR_FUNC(ECJPAKE_F_ZKP_HASH), "zkp_hash"},
++    {0,NULL}
++};
++
++static ERR_STRING_DATA ECJPAKE_str_reasons[] = {
++    {ERR_REASON(ECJPAKE_R_G_IS_NOT_LEGAL), "Gx is not legal"},
++    {ERR_REASON(ECJPAKE_R_G_TO_THE_X3_IS_NOT_LEGAL),
++     "Gx to the x3 is not legal"},
++    {ERR_REASON(ECJPAKE_R_G_TO_THE_X4_IS_NOT_LEGAL),
++     "Gx to the x4 is not legal"},
++    {ERR_REASON(ECJPAKE_R_HASH_OF_HASH_OF_KEY_MISMATCH),
++     "hash of hash of key mismatch"},
++    {ERR_REASON(ECJPAKE_R_HASH_OF_KEY_MISMATCH), "hash of key mismatch"},
++    {ERR_REASON(ECJPAKE_R_VERIFY_X3_FAILED), "verify x3 failed"},
++    {ERR_REASON(ECJPAKE_R_VERIFY_X4_FAILED), "verify x4 failed"},
++    {ERR_REASON(ECJPAKE_R_VERIFY_X4S_FAILED), "verify x4*s failed"},
++    {ERR_REASON(ECJPAKE_R_ZKP_VERIFY_FAILED), "zkp verify failed"},
++    {0,NULL}
++};
++
++#endif
++
++void ERR_load_ECJPAKE_strings(void)
++{
++#ifndef OPENSSL_NO_ERR
++
++    if (ERR_func_error_string(ECJPAKE_str_functs[0].error) == NULL) {
++        ERR_load_strings(0, ECJPAKE_str_functs);
++        ERR_load_strings(0, ECJPAKE_str_reasons);
++    }
++#endif
++}
+diff -ruaN --no-dereference openssl-1.0.1m/crypto/ecjpake/ecjpake.h openssl/crypto/ecjpake/ecjpake.h
+--- openssl-1.0.1m/crypto/ecjpake/ecjpake.h	1969-12-31 16:00:00.000000000 -0800
++++ openssl/crypto/ecjpake/ecjpake.h	2015-08-17 16:29:40.405982099 -0700
+@@ -0,0 +1,169 @@
++/*
++ * Implement EC J-PAKE, based on J-PAKE as described in
++ * http://grouper.ieee.org/groups/1363/Research/contributions/hao-ryan-2008.pdf
++ *
++ * Useful J-PAKE Java Demo:
++ * http://homepages.cs.ncl.ac.uk/feng.hao/files/JPAKEDemo.java
++ *
++ * Useful Elliptic Curve (EC) J-PAKE Java Demo:
++ * http://homepages.cs.ncl.ac.uk/feng.hao/files/EllipticCurveJPAKEDemo.java
++ */
++
++#ifndef HEADER_ECJPAKE_H
++# define HEADER_ECJPAKE_H
++
++# include <openssl/opensslconf.h>
++
++# ifdef OPENSSL_NO_ECJPAKE
++#  error ECJPAKE is disabled.
++# endif
++
++# ifdef  __cplusplus
++extern "C" {
++# endif
++
++# include <openssl/ec.h>
++# include <openssl/bn.h>
++# include <openssl/sha.h>
++
++typedef struct ECJPAKE_CTX ECJPAKE_CTX;
++
++typedef struct {
++    EC_POINT *Gr;            /* G * r (r random) */
++    BIGNUM *b;               /* b = r - x * h,
++				h = hash(G, G * r, G * x, name) */
++} ECJPAKE_ZKP;
++
++typedef struct {
++    EC_POINT *Gx;            /* G * x in step 1,
++				G * ((xa + xc + xd) * xb * s) in step 2 */
++    ECJPAKE_ZKP zkpx;        /* ZKP(x) or ZKP(xb * s) */
++} ECJPAKE_STEP_PART;
++
++typedef struct {
++    ECJPAKE_STEP_PART p1;    /* {G * x3, ZKP(x3)} or {G * x1, ZKP(x1)} */
++    ECJPAKE_STEP_PART p2;    /* {G * x4, ZKP(x4)} or {G * x2, ZKP(x2)} */
++} ECJPAKE_STEP1;
++
++typedef ECJPAKE_STEP_PART ECJPAKE_STEP2;
++
++typedef struct {
++    unsigned char hhk[SHA256_DIGEST_LENGTH];
++} ECJPAKE_STEP3A;
++
++typedef struct {
++    unsigned char hk[SHA256_DIGEST_LENGTH];
++} ECJPAKE_STEP3B;
++
++/*
++ * Defines pointer to the function that calculates SHA256 hash of elliptic curve
++ * point. ECJPAKE implements it's own point hash function.
++ * Use ECJPAKE_Set_HashECPoint() to provide alternative implementation of the
++ * point hash.
++ */
++typedef int(*ECJPAKE_HASHPOINT_FUNC_PTR)(ECJPAKE_CTX *, SHA256_CTX *,
++                                          const EC_POINT *);
++
++/*
++ * Sets the function that will be used to hash elliptic curve point.
++ * If this function is not called the ecjpake uses it's own (default)
++ * implementation of the point hash function.
++ */
++void ECJPAKE_Set_HashECPoint(ECJPAKE_HASHPOINT_FUNC_PTR hashpoint_custom);
++
++/* Initializes ECJPAKE_CTX with protocol parameters */
++ECJPAKE_CTX *ECJPAKE_CTX_new(const EC_GROUP *group, const BIGNUM *secret,
++                             const unsigned char *local_id_num,
++                             const size_t local_id_len,
++                             const unsigned char *peer_id_num,
++                             const size_t peer_id_len);
++
++/* Releases ECJPAKE_CTX */
++void ECJPAKE_CTX_free(ECJPAKE_CTX *ctx);
++
++/*
++ * Functions to initialize, generate, process, and release ECJPAKE_STEP1 data.
++ * Note that ECJPAKE_STEP1 can be used multiple times before release
++ * without another init.
++ */
++int ECJPAKE_STEP1_init(ECJPAKE_STEP1 *s1, const ECJPAKE_CTX *ctx);
++int ECJPAKE_STEP1_generate(ECJPAKE_STEP1 *send, ECJPAKE_CTX *ctx);
++int ECJPAKE_STEP1_process(ECJPAKE_CTX *ctx, const ECJPAKE_STEP1 *received);
++void ECJPAKE_STEP1_release(ECJPAKE_STEP1 *s1);
++
++/*
++ * Functions to initialize, generate, process, and release ECJPAKE_STEP2 data.
++ * Note that ECJPAKE_STEP2 can be used multiple times before release
++ * without another init.
++ */
++int ECJPAKE_STEP2_init(ECJPAKE_STEP2 *s2, const ECJPAKE_CTX *ctx);
++int ECJPAKE_STEP2_generate(ECJPAKE_STEP2 *send, ECJPAKE_CTX *ctx);
++int ECJPAKE_STEP2_process(ECJPAKE_CTX *ctx, const ECJPAKE_STEP2 *received);
++void ECJPAKE_STEP2_release(ECJPAKE_STEP2 *s2);
++
++/*
++ * Optionally verify the shared key. If the shared secrets do not
++ * match, the two ends will disagree about the shared key, but
++ * otherwise the protocol will succeed.
++ */
++void ECJPAKE_STEP3A_init(ECJPAKE_STEP3A *s3a);
++int ECJPAKE_STEP3A_generate(ECJPAKE_STEP3A *send, ECJPAKE_CTX *ctx);
++int ECJPAKE_STEP3A_process(ECJPAKE_CTX *ctx, const ECJPAKE_STEP3A *received);
++void ECJPAKE_STEP3A_release(ECJPAKE_STEP3A *s3a);
++
++void ECJPAKE_STEP3B_init(ECJPAKE_STEP3B *s3b);
++int ECJPAKE_STEP3B_generate(ECJPAKE_STEP3B *send, ECJPAKE_CTX *ctx);
++int ECJPAKE_STEP3B_process(ECJPAKE_CTX *ctx, const ECJPAKE_STEP3B *received);
++void ECJPAKE_STEP3B_release(ECJPAKE_STEP3B *s3b);
++
++/*
++ * Returns shared secret value. The value belongs to the library and will be
++ * released when ctx is released, and will change when a new handshake is
++ * performed.
++ */
++const unsigned char *ECJPAKE_get_shared_key(const ECJPAKE_CTX *ctx);
++
++/* Returns elliptic curve group used in the current ECJPAKE handshake. */
++const EC_GROUP *ECJPAKE_get_ecGroup(const ECJPAKE_CTX *ctx);
++
++/* BEGIN ERROR CODES */
++/*
++ * The following lines are auto generated by the script mkerr.pl. Any changes
++ * made after this point may be overwritten when the script is next run.
++ */
++void ERR_load_ECJPAKE_strings(void);
++
++/* Error codes for the ECJPAKE functions. */
++
++/* Function codes. */
++# define ECJPAKE_F_COMPUTE_KEY                            100
++# define ECJPAKE_F_EC_POINT_IS_LEGAL                      101
++# define ECJPAKE_F_ECJPAKE_CTX_NEW                        102
++# define ECJPAKE_F_ECJPAKE_STEP1_GENERATE                 103
++# define ECJPAKE_F_ECJPAKE_STEP1_PROCESS                  104
++# define ECJPAKE_F_ECJPAKE_STEP2_GENERATE                 105
++# define ECJPAKE_F_ECJPAKE_STEP2_PROCESS                  106
++# define ECJPAKE_F_ECJPAKE_STEP3A_PROCESS                 107
++# define ECJPAKE_F_ECJPAKE_STEP3B_PROCESS                 108
++# define ECJPAKE_F_GENERATE_ZKP                           109
++# define ECJPAKE_F_GENRAND                                110
++# define ECJPAKE_F_STEP_PART_GENERATE                     111
++# define ECJPAKE_F_STEP_PART_INIT                         112
++# define ECJPAKE_F_VERIFY_ZKP                             113
++# define ECJPAKE_F_ZKP_HASH                               114
++
++/* Reason codes. */
++# define ECJPAKE_R_G_IS_NOT_LEGAL                         100
++# define ECJPAKE_R_G_TO_THE_X3_IS_NOT_LEGAL               101
++# define ECJPAKE_R_G_TO_THE_X4_IS_NOT_LEGAL               102
++# define ECJPAKE_R_HASH_OF_HASH_OF_KEY_MISMATCH           103
++# define ECJPAKE_R_HASH_OF_KEY_MISMATCH                   104
++# define ECJPAKE_R_VERIFY_X3_FAILED                       105
++# define ECJPAKE_R_VERIFY_X4_FAILED                       106
++# define ECJPAKE_R_VERIFY_X4S_FAILED                      107
++# define ECJPAKE_R_ZKP_VERIFY_FAILED                      108
++
++# ifdef  __cplusplus
++}
++# endif
++#endif
+diff -ruaN --no-dereference openssl-1.0.1m/crypto/ecjpake/ecjpaketest.c openssl/crypto/ecjpake/ecjpaketest.c
+--- openssl-1.0.1m/crypto/ecjpake/ecjpaketest.c	1969-12-31 16:00:00.000000000 -0800
++++ openssl/crypto/ecjpake/ecjpaketest.c	2015-08-17 16:29:40.405982099 -0700
+@@ -0,0 +1,358 @@
++#include <openssl/opensslconf.h>
++
++#ifdef OPENSSL_NO_ECJPAKE
++
++# include <stdio.h>
++
++int main(int argc, char *argv[])
++{
++    printf("No EC J-PAKE support\n");
++    return(0);
++}
++
++#else
++
++# include "../e_os.h"
++# include <openssl/ecjpake.h>
++# include <openssl/crypto.h>
++# include <openssl/bio.h>
++# include <openssl/rand.h>
++# include <openssl/obj_mac.h>
++# include <openssl/err.h>
++# include <memory.h>
++
++static void showkey(const char *name, const unsigned char *key)
++{
++    int i;
++
++    fputs(name, stdout);
++    fputs(" = ", stdout);
++    for (i = 0; i < SHA256_DIGEST_LENGTH; i++)
++        fprintf(stdout, "%02X", key[i]);
++    putc('\n', stdout);
++}
++
++# if 0
++static void showbn(const char *name, const BIGNUM *bn)
++{
++    fputs(name, stdout);
++    fputs(" = ", stdout);
++    BN_print_fp(stdout, bn);
++    putc('\n', stdout);
++}
++
++static void showpoint(const char *name, const EC_POINT *point, ECJPAKE_CTX *ctx)
++{
++    BIGNUM *point_x = BN_new();
++    BIGNUM *point_y = BN_new();
++    BN_CTX *bn_ctx = BN_CTX_new();
++    const EC_GROUP *group = ECJPAKE_get_ecGroup(ctx);
++
++    if (bn_ctx == NULL || point_y == NULL || point_x == NULL)
++        goto err;
++
++    EC_POINT_get_affine_coordinates_GFp(group, point, point_x, point_y, bn_ctx);
++
++    fputs(name, stdout);
++    showbn(" X:", point_x);
++    fputs(name, stdout);
++    showbn(" Y:", point_y);
++
++err:
++    if (bn_ctx != NULL)
++        BN_CTX_free(bn_ctx);
++    if (point_y != NULL)
++        BN_free(point_y);
++    if (point_x != NULL)
++        BN_free(point_x);
++}
++# endif
++
++static const char rnd_seed[] =
++    "string to make the random number generator think it has entropy";
++
++/* generates random length value in a range [len_bottom, len_top] */
++static int generate_rand_len(size_t *rand_len,
++                             unsigned int len_bottom,
++                             unsigned int len_top)
++{
++    if (len_top > 0xffff || len_bottom > len_top)
++        return 0;
++
++    if (!RAND_bytes((unsigned char *)(rand_len), sizeof(size_t)))
++        return 0;
++
++    *rand_len = *rand_len % (len_top - len_bottom + 1) + len_bottom;
++
++    return 1;
++}
++
++static int run_ecjpake(ECJPAKE_CTX *alice, ECJPAKE_CTX *bob)
++{
++    ECJPAKE_STEP1 alice_s1;
++    ECJPAKE_STEP1 bob_s1;
++    ECJPAKE_STEP2 alice_s2;
++    ECJPAKE_STEP2 bob_s2;
++    ECJPAKE_STEP3A alice_s3a;
++    ECJPAKE_STEP3B bob_s3b;
++
++    /* Alice --> Bob: Step 1 */
++    fputs("\tAlice --> Bob: Step 1\n", stdout);
++    ECJPAKE_STEP1_init(&alice_s1, alice);
++    ECJPAKE_STEP1_generate(&alice_s1, alice);
++
++    if (!ECJPAKE_STEP1_process(bob, &alice_s1)) {
++        ECJPAKE_STEP1_release(&alice_s1);
++        fprintf(stderr, "Bob fails to process Alice's step 1\n");
++        ERR_print_errors_fp(stdout);
++        return 1;
++    }
++    ECJPAKE_STEP1_release(&alice_s1);
++
++    /* Bob --> Alice: Step 1 */
++    fputs("\tBob --> Alice: Step 1\n", stdout);
++    ECJPAKE_STEP1_init(&bob_s1, bob);
++    ECJPAKE_STEP1_generate(&bob_s1, bob);
++    if (!ECJPAKE_STEP1_process(alice, &bob_s1)) {
++        ECJPAKE_STEP1_release(&bob_s1);
++        fprintf(stderr, "Alice fails to process Bob's step 1\n");
++        ERR_print_errors_fp(stdout);
++        return 2;
++    }
++    ECJPAKE_STEP1_release(&bob_s1);
++
++    /* Alice --> Bob: Step 2 */
++    fputs("\tAlice --> Bob: Step 2\n", stdout);
++    ECJPAKE_STEP2_init(&alice_s2, alice);
++    ECJPAKE_STEP2_generate(&alice_s2, alice);
++    if (!ECJPAKE_STEP2_process(bob, &alice_s2)) {
++        ECJPAKE_STEP2_release(&alice_s2);
++        fprintf(stderr, "Bob fails to process Alice's step 2\n");
++        ERR_print_errors_fp(stdout);
++        return 3;
++    }
++    ECJPAKE_STEP2_release(&alice_s2);
++
++    /* Bob --> Alice: Step 2 */
++    fputs("\tBob --> Alice: Step 2\n", stdout);
++    ECJPAKE_STEP2_init(&bob_s2, bob);
++    ECJPAKE_STEP2_generate(&bob_s2, bob);
++    if (!ECJPAKE_STEP2_process(alice, &bob_s2)) {
++        ECJPAKE_STEP2_release(&bob_s2);
++        fprintf(stderr, "Alice fails to process Bob's step 2\n");
++        ERR_print_errors_fp(stdout);
++        return 4;
++    }
++    ECJPAKE_STEP2_release(&bob_s2);
++
++    showkey("\tAlice's key", ECJPAKE_get_shared_key(alice));
++    showkey("\tBob's key  ", ECJPAKE_get_shared_key(bob));
++
++    /* Alice --> Bob: Step 3A */
++    fputs("\tAlice --> Bob: Step 3A\n", stdout);
++    ECJPAKE_STEP3A_init(&alice_s3a);
++    ECJPAKE_STEP3A_generate(&alice_s3a, alice);
++    if (!ECJPAKE_STEP3A_process(bob, &alice_s3a)) {
++        ECJPAKE_STEP3A_release(&alice_s3a);
++        return 5;
++    }
++    ECJPAKE_STEP3A_release(&alice_s3a);
++
++    /* Bob --> Alice: Step 3B */
++    fputs("\tBob --> Alice: Step 3B\n", stdout);
++    ECJPAKE_STEP3B_init(&bob_s3b);
++    ECJPAKE_STEP3B_generate(&bob_s3b, bob);
++    if (!ECJPAKE_STEP3B_process(alice, &bob_s3b)) {
++        ECJPAKE_STEP3B_release(&bob_s3b);
++        return 6;
++    }
++    ECJPAKE_STEP3B_release(&bob_s3b);
++
++    return 0;
++}
++
++int main(int argc, char **argv)
++{
++    ECJPAKE_CTX *alice = NULL;
++    ECJPAKE_CTX *bob = NULL;
++    unsigned char *alice_id_num = NULL;
++    unsigned char *bob_id_num = NULL;
++    size_t alice_id_len;
++    size_t bob_id_len;
++    BIGNUM *secret = NULL;;
++    BIGNUM *secret_wrong = NULL;
++    size_t secret_len;
++    EC_GROUP *group = NULL;
++    BIO *bio_err;
++    int i;
++    int ret = 1;
++
++    typedef struct test_curve {
++        int nid;
++        char *name;
++    } test_curve;
++
++    test_curve test_curves[] = {
++        /* SECG PRIME CURVES TESTS */
++        {NID_secp160r1, "SECG Prime-Curve P-160"},
++        /* NIST PRIME CURVES TESTS */
++        {NID_X9_62_prime192v1, "NIST Prime-Curve P-192"},
++        {NID_secp224r1, "NIST Prime-Curve P-224"},
++        {NID_X9_62_prime256v1, "NIST Prime-Curve P-256"},
++        {NID_secp384r1, "NIST Prime-Curve P-384"},
++        {NID_secp521r1, "NIST Prime-Curve P-521"},
++# ifndef OPENSSL_NO_EC2M
++        /* NIST BINARY CURVES TESTS */
++        {NID_sect163k1, "NIST Binary-Curve K-163"},
++        {NID_sect163r2, "NIST Binary-Curve B-163"},
++        {NID_sect233k1, "NIST Binary-Curve K-233"},
++        {NID_sect233r1, "NIST Binary-Curve B-233"},
++        {NID_sect283k1, "NIST Binary-Curve K-283"},
++        {NID_sect283r1, "NIST Binary-Curve B-283"},
++        {NID_sect409k1, "NIST Binary-Curve K-409"},
++        {NID_sect409r1, "NIST Binary-Curve B-409"},
++        {NID_sect571k1, "NIST Binary-Curve K-571"},
++        {NID_sect571r1, "NIST Binary-Curve B-571"},
++# endif
++    };
++
++    CRYPTO_malloc_debug_init();
++    CRYPTO_dbg_set_options(V_CRYPTO_MDEBUG_ALL);
++    CRYPTO_mem_ctrl(CRYPTO_MEM_CHECK_ON);
++
++# ifdef OPENSSL_SYS_WIN32
++    CRYPTO_malloc_init();
++# endif
++
++    RAND_seed(rnd_seed, sizeof rnd_seed);
++
++    bio_err = BIO_new(BIO_s_file());
++    if (bio_err == NULL)
++        EXIT(1);
++    BIO_set_fp(bio_err, stdout, BIO_NOCLOSE);
++
++    for (i = 0; i < sizeof(test_curves)/sizeof(test_curve); i++) {
++
++        fprintf(stdout, "\nTesting ECJPAKE protocol for %s\n",
++		test_curves[i].name);
++
++        group = EC_GROUP_new_by_curve_name(test_curves[i].nid);
++        if (group == NULL)
++            goto err;
++
++        /* randomize length of a secret in a range [32, 1024] bits */
++        if (!generate_rand_len(&secret_len, 32, 512))
++            goto err;
++        /* randomize secret of secret_len bits */
++        secret = BN_new();
++	if (secret == NULL)
++	    goto err;
++        if (!BN_rand(secret, secret_len, 0, 0))
++            goto err;
++        /* randomize alice_id_len in a range [4, 128] bytes */
++        if (!generate_rand_len(&alice_id_len, 4, 128))
++            goto err;
++        /* randomize alice_id_num of alice_id_len bytes */
++        alice_id_num = (unsigned char *)OPENSSL_malloc(alice_id_len);
++	if (alice_id_num == NULL)
++            goto err;
++        if (!RAND_bytes(alice_id_num, alice_id_len))
++            goto err;
++        /* randomize bob_id_len in a range [4, 128] bytes */
++        if (!generate_rand_len(&bob_id_len, 4, 128))
++            goto err;
++        /* randomize bob_id_num of bob_id_len bytes */
++        bob_id_num = (unsigned char *)OPENSSL_malloc(bob_id_len);
++	if (bob_id_num == NULL)
++            goto err;
++        if (!RAND_bytes(bob_id_num, bob_id_len))
++            goto err;
++
++        /* Initialize ECJPAKE_CTX for Alice and Bob */
++        alice = ECJPAKE_CTX_new(group, secret, alice_id_num, alice_id_len,
++                                bob_id_num, bob_id_len);
++        if (alice == NULL)
++            goto err;
++        bob = ECJPAKE_CTX_new(group, secret, bob_id_num, bob_id_len,
++                              alice_id_num, alice_id_len);
++        if (bob == NULL)
++            goto err;
++
++        fprintf(stdout, "Plain EC J-PAKE run\n");
++        if (run_ecjpake(alice, bob) != 0) {
++            fprintf(stderr, "Plain EC J-PAKE run failed\n");
++            goto err;
++        }
++
++        ECJPAKE_CTX_free(bob);
++        bob = NULL;
++        ECJPAKE_CTX_free(alice);
++        alice = NULL;
++
++        /* Now give Alice and Bob different secrets */
++        alice = ECJPAKE_CTX_new(group, secret, alice_id_num, alice_id_len,
++                                bob_id_num, bob_id_len);
++        if (alice == NULL)
++            goto err;
++        /* randomize secret_wrong of secret_len bits */
++        secret_wrong = BN_new();
++	if (secret_wrong == NULL)
++	    goto err;
++        if (!BN_rand(secret_wrong, secret_len, 0, 0))
++            goto err;
++        if (!BN_add(secret_wrong, secret_wrong, secret))
++            goto err;
++        bob = ECJPAKE_CTX_new(group, secret_wrong, bob_id_num, bob_id_len,
++                              alice_id_num, alice_id_len);
++        if (bob == NULL)
++            goto err;
++
++        fprintf(stdout, "Mismatch secret EC J-PAKE run\n");
++        if (run_ecjpake(alice, bob) != 5) {
++            fprintf(stderr, "Mismatched secret EC J-PAKE run failed\n");
++            goto err;
++        }
++
++        ECJPAKE_CTX_free(bob);
++        bob = NULL;
++        ECJPAKE_CTX_free(alice);
++        alice = NULL;
++        BN_free(secret);
++        secret = NULL;
++        BN_free(secret_wrong);
++        secret_wrong = NULL;
++	OPENSSL_free(alice_id_num);
++	alice_id_num = NULL;
++	OPENSSL_free(bob_id_num);
++	bob_id_num = NULL;
++        EC_GROUP_free(group);
++	group = NULL;
++    }
++
++    ret = 0;
++
++err:
++    if (ret)
++        fprintf(stderr, "Exiting ecjpaketest with error.\n");
++    if (bob != NULL)
++        ECJPAKE_CTX_free(bob);
++    if (alice != NULL)
++        ECJPAKE_CTX_free(alice);
++    if (secret != NULL)
++        BN_free(secret);
++    if (secret_wrong != NULL)
++        BN_free(secret_wrong);
++    if (alice_id_num != NULL)
++	OPENSSL_free(alice_id_num);
++    if (bob_id_num != NULL)
++	OPENSSL_free(bob_id_num);
++    if (group != NULL)
++        EC_GROUP_free(group);
++    BIO_free(bio_err);
++    CRYPTO_cleanup_all_ex_data();
++    ERR_remove_thread_state(NULL);
++    CRYPTO_mem_leaks_fp(stderr);
++    return ret;
++}
++
++#endif
+diff -ruaN --no-dereference openssl-1.0.1m/crypto/ecjpake/Makefile openssl/crypto/ecjpake/Makefile
+--- openssl-1.0.1m/crypto/ecjpake/Makefile	1969-12-31 16:00:00.000000000 -0800
++++ openssl/crypto/ecjpake/Makefile	2015-08-17 15:44:34.818599289 -0700
+@@ -0,0 +1,81 @@
++#
++# crypto/ecjpake/Makefile
++#
++
++DIR=ecjpake
++TOP=../..
++CC=	cc
++INCLUDES= -I.. -I$(TOP) -I../../include
++CFLAG=-g -Wall
++MAKEFILE=	Makefile
++AR=		ar r
++
++CFLAGS= $(INCLUDES) $(CFLAG)
++
++LIB=$(TOP)/libcrypto.a
++LIBOBJ=ecjpake.o ecjpake_err.o
++LIBSRC=ecjpake.c ecjpake_err.c
++
++SRC= $(LIBSRC)
++
++EXHEADER=ecjpake.h
++TEST=ecjpaketest.c
++
++
++top:
++	(cd ../..; $(MAKE) DIRS=crypto SDIRS=$(DIR) sub_all)
++
++all:	lib
++
++lib:	$(LIBOBJ)
++	$(AR) $(LIB) $(LIBOBJ)
++	$(RANLIB) $(LIB) || echo Never mind.
++	@touch lib
++
++links:
++	@$(PERL) $(TOP)/util/mklink.pl ../../include/openssl $(EXHEADER)
++	@$(PERL) $(TOP)/util/mklink.pl ../../test $(TEST)
++
++install:
++	@[ -n "$(INSTALLTOP)" ] # should be set by top Makefile...
++	@headerlist="$(EXHEADER)"; for i in $$headerlist ; \
++	do  \
++	($(INSTALL) -m 644 $$i $(INSTALL_PREFIX)$(INSTALLTOP)/include/openssl/$$i ); \
++	done;
++
++update: depend
++
++depend:
++	@[ -n "$(MAKEDEPEND)" ] # should be set by upper Makefile...
++	$(MAKEDEPEND) -- $(CFLAG) $(INCLUDES) $(DEPFLAG) -- $(PROGS) $(LIBSRC)
++
++dclean:
++	$(PERL) -pe 'if (/^# DO NOT DELETE THIS LINE/) {print; exit(0);}' $(MAKEFILE) >Makefile.new
++	mv -f Makefile.new $(MAKEFILE)
++
++clean:
++	rm -f *.s *.o *.obj des lib tags core .pure .nfs* *.old *.bak fluff
++
++ecjpaketest: top ecjpaketest.c $(LIB)
++	$(CC) $(CFLAGS) -Wall -Werror -g -o ecjpaketest ecjpaketest.c $(LIB)
++# DO NOT DELETE THIS LINE -- make depend depends on it.
++
++ecjpake.o: ../../include/openssl/asn1.h ../../include/openssl/bio.h
++ecjpake.o: ../../include/openssl/bn.h ../../include/openssl/crypto.h
++ecjpake.o: ../../include/openssl/e_os2.h ../../include/openssl/ec.h
++ecjpake.o: ../../include/openssl/err.h ../../include/openssl/lhash.h
++ecjpake.o: ../../include/openssl/opensslconf.h ../../include/openssl/opensslv.h
++ecjpake.o: ../../include/openssl/ossl_typ.h ../../include/openssl/safestack.h
++ecjpake.o: ../../include/openssl/sha.h ../../include/openssl/stack.h
++ecjpake.o: ../../include/openssl/symhacks.h ecjpake.c ecjpake.h
++ecjpake_err.o: ../../include/openssl/asn1.h ../../include/openssl/bio.h
++ecjpake_err.o: ../../include/openssl/bn.h ../../include/openssl/crypto.h
++ecjpake_err.o: ../../include/openssl/e_os2.h ../../include/openssl/ec.h
++ecjpake_err.o: ../../include/openssl/ecjpake.h ../../include/openssl/err.h
++ecjpake_err.o: ../../include/openssl/lhash.h
++ecjpake_err.o: ../../include/openssl/opensslconf.h
++ecjpake_err.o: ../../include/openssl/opensslv.h
++ecjpake_err.o: ../../include/openssl/ossl_typ.h
++ecjpake_err.o: ../../include/openssl/safestack.h ../../include/openssl/sha.h
++ecjpake_err.o: ../../include/openssl/stack.h ../../include/openssl/symhacks.h
++ecjpake_err.o: ecjpake_err.c
+diff -ruaN --no-dereference openssl-1.0.1m/crypto/err/err_all.c openssl/crypto/err/err_all.c
+--- openssl-1.0.1m/crypto/err/err_all.c	2015-08-17 15:44:12.631191688 -0700
++++ openssl/crypto/err/err_all.c	2015-08-17 15:44:34.818599289 -0700
+@@ -107,6 +107,9 @@
+ #ifndef OPENSSL_NO_JPAKE
+ # include <openssl/jpake.h>
+ #endif
++#ifndef OPENSSL_NO_ECJPAKE
++# include <openssl/ecjpake.h>
++#endif
+ 
+ void ERR_load_crypto_strings(void)
+ {
+@@ -164,5 +167,8 @@
+ # ifndef OPENSSL_NO_JPAKE
+     ERR_load_JPAKE_strings();
+ # endif
++# ifndef OPENSSL_NO_ECJPAKE
++    ERR_load_ECJPAKE_strings();
++# endif
+ #endif
+ }
+diff -ruaN --no-dereference openssl-1.0.1m/crypto/err/err.h openssl/crypto/err/err.h
+--- openssl-1.0.1m/crypto/err/err.h	2015-08-17 15:44:12.631191688 -0700
++++ openssl/crypto/err/err.h	2015-08-17 15:44:34.818599289 -0700
+@@ -197,6 +197,7 @@
+ # define ERR_LIB_TS              47
+ # define ERR_LIB_HMAC            48
+ # define ERR_LIB_JPAKE           49
++# define ERR_LIB_ECJPAKE         50
+ 
+ # define ERR_LIB_USER            128
+ 
+@@ -233,6 +234,7 @@
+ # define TSerr(f,r) ERR_PUT_error(ERR_LIB_TS,(f),(r),__FILE__,__LINE__)
+ # define HMACerr(f,r) ERR_PUT_error(ERR_LIB_HMAC,(f),(r),__FILE__,__LINE__)
+ # define JPAKEerr(f,r) ERR_PUT_error(ERR_LIB_JPAKE,(f),(r),__FILE__,__LINE__)
++# define ECJPAKEerr(f,r) ERR_PUT_error(ERR_LIB_ECJPAKE,(f),(r),__FILE__,__LINE__)
+ 
+ /*
+  * Borland C seems too stupid to be able to shift and do longs in the
+diff -ruaN --no-dereference openssl-1.0.1m/crypto/err/openssl.ec openssl/crypto/err/openssl.ec
+--- openssl-1.0.1m/crypto/err/openssl.ec	2015-08-17 15:44:12.635191581 -0700
++++ openssl/crypto/err/openssl.ec	2015-08-17 15:44:34.818599289 -0700
+@@ -35,6 +35,7 @@
+ L HMAC		crypto/hmac/hmac.h		crypto/hmac/hmac_err.c
+ L CMS		crypto/cms/cms.h		crypto/cms/cms_err.c
+ L JPAKE		crypto/jpake/jpake.h		crypto/jpake/jpake_err.c
++L ECJPAKE	crypto/ecjpake/ecjpake.h	crypto/ecjpake/ecjpake_err.c
+ 
+ # additional header files to be scanned for function names
+ L NONE		crypto/x509/x509_vfy.h		NONE
+diff -ruaN --no-dereference openssl-1.0.1m/Makefile.org openssl/Makefile.org
+--- openssl-1.0.1m/Makefile.org	2015-08-17 15:44:12.715189445 -0700
++++ openssl/Makefile.org	2015-08-17 15:44:34.818599289 -0700
+@@ -147,7 +147,7 @@
+ 	bn ec rsa dsa ecdsa dh ecdh dso engine \
+ 	buffer bio stack lhash rand err \
+ 	evp asn1 pem x509 x509v3 conf txt_db pkcs7 pkcs12 comp ocsp ui krb5 \
+-	cms pqueue ts jpake srp store cmac
++	cms pqueue ts jpake ecjpake srp store cmac
+ # keep in mind that the above list is adjusted by ./Configure
+ # according to no-xxx arguments...
+ 
+diff -ruaN --no-dereference openssl-1.0.1m/test/Makefile openssl/test/Makefile
+--- openssl-1.0.1m/test/Makefile	2015-08-17 15:44:12.759188270 -0700
++++ openssl/test/Makefile	2015-08-17 16:50:00.574984277 -0700
+@@ -62,6 +62,7 @@
+ EVPEXTRATEST=evp_extra_test
+ IGETEST=	igetest
+ JPAKETEST=	jpaketest
++ECJPAKETEST=	ecjpaketest
+ SRPTEST=	srptest
+ ASN1TEST=	asn1test
+ HEARTBEATTEST=  heartbeat_test
+@@ -71,7 +72,7 @@
+ 
+ EXE=	$(BNTEST)$(EXE_EXT) $(ECTEST)$(EXE_EXT)  $(ECDSATEST)$(EXE_EXT) $(ECDHTEST)$(EXE_EXT) $(IDEATEST)$(EXE_EXT) \
+ 	$(MD2TEST)$(EXE_EXT)  $(MD4TEST)$(EXE_EXT) $(MD5TEST)$(EXE_EXT) $(HMACTEST)$(EXE_EXT) $(WPTEST)$(EXE_EXT) \
+-	$(RC2TEST)$(EXE_EXT) $(RC4TEST)$(EXE_EXT) $(RC5TEST)$(EXE_EXT) \
++	$(RC2TEST)$(EXE_EXT) $(RC4TEST)$(EXE_EXT) $(RC5TEST)$(EXE_EXT) $(ECJPAKETEST)$(EXE_EXT) \
+ 	$(DESTEST)$(EXE_EXT) $(SHATEST)$(EXE_EXT) $(SHA1TEST)$(EXE_EXT) $(SHA256TEST)$(EXE_EXT) $(SHA512TEST)$(EXE_EXT) \
+ 	$(MDC2TEST)$(EXE_EXT) $(RMDTEST)$(EXE_EXT) \
+ 	$(RANDTEST)$(EXE_EXT) $(DHTEST)$(EXE_EXT) $(ENGINETEST)$(EXE_EXT) \
+@@ -86,7 +87,7 @@
+ 	$(HMACTEST).o $(WPTEST).o \
+ 	$(RC2TEST).o $(RC4TEST).o $(RC5TEST).o \
+ 	$(DESTEST).o $(SHATEST).o $(SHA1TEST).o $(SHA256TEST).o $(SHA512TEST).o \
+-	$(MDC2TEST).o $(RMDTEST).o \
++	$(MDC2TEST).o $(RMDTEST).o $(ECJPAKETEST).o \
+ 	$(RANDTEST).o $(DHTEST).o $(ENGINETEST).o $(CASTTEST).o \
+ 	$(BFTEST).o  $(SSLTEST).o  $(DSATEST).o  $(EXPTEST).o $(RSATEST).o \
+ 	$(EVPTEST).o $(EVPEXTRATEST).o $(IGETEST).o $(JPAKETEST).o $(ASN1TEST).o \
+@@ -94,7 +95,7 @@
+ 
+ SRC=	$(BNTEST).c $(ECTEST).c  $(ECDSATEST).c $(ECDHTEST).c $(IDEATEST).c \
+ 	$(MD2TEST).c  $(MD4TEST).c $(MD5TEST).c \
+-	$(HMACTEST).c $(WPTEST).c \
++	$(HMACTEST).c $(WPTEST).c $(ECJPAKETEST).c \
+ 	$(RC2TEST).c $(RC4TEST).c $(RC5TEST).c \
+ 	$(DESTEST).c $(SHATEST).c $(SHA1TEST).c $(MDC2TEST).c $(RMDTEST).c \
+ 	$(RANDTEST).c $(DHTEST).c $(ENGINETEST).c $(CASTTEST).c \
+@@ -137,7 +138,7 @@
+ 
+ alltests: \
+ 	test_des test_idea test_sha test_md4 test_md5 test_hmac \
+-	test_md2 test_mdc2 test_wp \
++	test_md2 test_mdc2 test_wp test_ecjpake \
+ 	test_rmd test_rc2 test_rc4 test_rc5 test_bf test_cast test_aes \
+ 	test_rand test_bn test_ec test_ecdsa test_ecdh \
+ 	test_enc test_x509 test_rsa test_crl test_sid \
+@@ -319,6 +320,10 @@
+ 	@echo "Test JPAKE"
+ 	../util/shlib_wrap.sh ./$(JPAKETEST)
+ 
++test_ecjpake: $(ECJPAKETEST)$(EXE_EXT)
++	@echo "Test ECJPAKE"
++	../util/shlib_wrap.sh ./$(ECJPAKETEST)
++
+ test_cms:
+ 	@echo "CMS consistency test"
+ 	$(PERL) cms-test.pl
+@@ -489,6 +494,9 @@
+ $(JPAKETEST)$(EXE_EXT): $(JPAKETEST).o $(DLIBCRYPTO)
+ 	@target=$(JPAKETEST); $(BUILD_CMD)
+ 
++$(ECJPAKETEST)$(EXE_EXT): $(ECJPAKETEST).o $(DLIBCRYPTO)
++	@target=$(ECJPAKETEST); $(BUILD_CMD)
++
+ $(ASN1TEST)$(EXE_EXT): $(ASN1TEST).o $(DLIBCRYPTO)
+ 	@target=$(ASN1TEST); $(BUILD_CMD)
+ 
+@@ -593,6 +601,11 @@
+ ecdsatest.o: ../include/openssl/stack.h ../include/openssl/symhacks.h
+ ecdsatest.o: ../include/openssl/x509.h ../include/openssl/x509_vfy.h
+ ecdsatest.o: ecdsatest.c
++ecjpaketest.o: ../include/openssl/buffer.h ../include/openssl/crypto.h
++ecjpaketest.o: ../include/openssl/e_os2.h ../include/openssl/opensslconf.h
++ecjpaketest.o: ../include/openssl/opensslv.h ../include/openssl/ossl_typ.h
++ecjpaketest.o: ../include/openssl/safestack.h ../include/openssl/stack.h
++ecjpaketest.o: ../include/openssl/symhacks.h ecjpaketest.c
+ ectest.o: ../e_os.h ../include/openssl/asn1.h ../include/openssl/bio.h
+ ectest.o: ../include/openssl/bn.h ../include/openssl/buffer.h
+ ectest.o: ../include/openssl/crypto.h ../include/openssl/e_os2.h

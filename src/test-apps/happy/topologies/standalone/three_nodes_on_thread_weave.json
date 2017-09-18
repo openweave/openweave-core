@@ -1,0 +1,225 @@
+{
+    "identifiers": {
+        "000": {
+            "id": "node01"
+        }, 
+        "001": {
+            "id": "node02"
+        }, 
+        "002": {
+            "id": "node03"
+        }, 
+        "003": {
+            "id": "Home"
+        }, 
+        "004": {
+            "id": "thread0node"
+        }, 
+        "005": {
+            "id": "thread0net"
+        }, 
+        "006": {
+            "id": "thread0tap"
+        }, 
+        "007": {
+            "id": "thread0bridge"
+        }, 
+        "008": {
+            "id": "thread0"
+        }, 
+        "009": {
+            "id": "thread1node"
+        }, 
+        "010": {
+            "id": "thread1net"
+        }, 
+        "011": {
+            "id": "thread1tap"
+        }, 
+        "012": {
+            "id": "thread1bridge"
+        }, 
+        "013": {
+            "id": "thread1"
+        }, 
+        "014": {
+            "id": "thread2node"
+        }, 
+        "015": {
+            "id": "thread2net"
+        }, 
+        "016": {
+            "id": "thread2tap"
+        }, 
+        "017": {
+            "id": "thread2bridge"
+        }, 
+        "018": {
+            "id": "thread2"
+        }
+    }, 
+    "link": {
+        "thread0": {
+            "fix_hw_addr": "00:00:00:00:00:01", 
+            "network": "Home", 
+            "network_end": "happy005", 
+            "node": "node01", 
+            "node_end": "happy004", 
+            "number": 0, 
+            "tap": false, 
+            "type": "thread"
+        }, 
+        "thread1": {
+            "fix_hw_addr": "00:00:00:00:00:02", 
+            "network": "Home", 
+            "network_end": "happy010", 
+            "node": "node02", 
+            "node_end": "happy009", 
+            "number": 1, 
+            "tap": false, 
+            "type": "thread"
+        }, 
+        "thread2": {
+            "fix_hw_addr": "00:00:00:00:00:03", 
+            "network": "Home", 
+            "network_end": "happy015", 
+            "node": "node03", 
+            "node_end": "happy014", 
+            "number": 2, 
+            "tap": false, 
+            "type": "thread"
+        }
+    }, 
+    "netns": {
+        "Home": "003", 
+        "node01": "000", 
+        "node02": "001", 
+        "node03": "002", 
+        "thread0": "008", 
+        "thread0bridge": "007", 
+        "thread0net": "005", 
+        "thread0node": "004", 
+        "thread0tap": "006", 
+        "thread1": "013", 
+        "thread1bridge": "012", 
+        "thread1net": "010", 
+        "thread1node": "009", 
+        "thread1tap": "011", 
+        "thread2": "018", 
+        "thread2bridge": "017", 
+        "thread2net": "015", 
+        "thread2node": "014", 
+        "thread2tap": "016"
+    }, 
+    "network": {
+        "Home": {
+            "gateway": null, 
+            "interface": {
+                "thread0": {}, 
+                "thread1": {}, 
+                "thread2": {}
+            }, 
+            "prefix": {
+                "2001:0db8:0001:0002": {
+                    "mask": 64
+                }
+            }, 
+            "state": "UP", 
+            "type": "thread"
+        }
+    }, 
+    "node": {
+        "node01": {
+            "interface": {
+                "wpan0": {
+                    "ip": {
+                        "2001:0db8:0001:0002:0200:00ff:fe00:0001": {
+                            "mask": 64
+                        }, 
+                        "fd00:0000:fab1:0006:1ab4:3000:0000:0004": {
+                            "mask": 64
+                        }
+                    }, 
+                    "link": "thread0", 
+                    "type": "thread"
+                }
+            }, 
+            "process": {}, 
+            "route": {}, 
+            "tmux": {}, 
+            "type": null
+        }, 
+        "node02": {
+            "interface": {
+                "wpan0": {
+                    "ip": {
+                        "2001:0db8:0001:0002:0200:00ff:fe00:0002": {
+                            "mask": 64
+                        }, 
+                        "fd00:0000:fab1:0006:1ab4:3000:0000:0005": {
+                            "mask": 64
+                        }
+                    }, 
+                    "link": "thread1", 
+                    "type": "thread"
+                }
+            }, 
+            "process": {}, 
+            "route": {}, 
+            "tmux": {}, 
+            "type": null
+        }, 
+        "node03": {
+            "interface": {
+                "wpan0": {
+                    "ip": {
+                        "2001:0db8:0001:0002:0200:00ff:fe00:0003": {
+                            "mask": 64
+                        }, 
+                        "fd00:0000:fab1:0006:1ab4:3000:0000:000a": {
+                            "mask": 64
+                        }
+                    }, 
+                    "link": "thread2", 
+                    "type": "thread"
+                }
+            }, 
+            "process": {}, 
+            "route": {}, 
+            "tmux": {}, 
+            "type": null
+        }
+    }, 
+    "weave": {
+        "fabric": {
+            "global_prefix": "fd00:0000:fab1::/48", 
+            "id": "fab1"
+        }, 
+        "node": {
+            "node01": {
+                "eui64": "18-B4-30-00-00-00-00-04", 
+                "iid": "1ab4:3000:0000:0004", 
+                "pairing_code": "AAA123", 
+                "private_key": "${WEAVE_HOME}/certs/development/device/test-dev-18B4300000000004-key.pem", 
+                "weave_certificate": "${WEAVE_HOME}/certs/development/device/test-dev-18B4300000000004-cert.pem", 
+                "weave_node_id": "18B4300000000004"
+            }, 
+            "node02": {
+                "eui64": "18-B4-30-00-00-00-00-05", 
+                "iid": "1ab4:3000:0000:0005", 
+                "pairing_code": "AAA123", 
+                "private_key": "${WEAVE_HOME}/certs/development/device/test-dev-18B4300000000005-key.pem", 
+                "weave_certificate": "${WEAVE_HOME}/certs/development/device/test-dev-18B4300000000005-cert.pem", 
+                "weave_node_id": "18B4300000000005"
+            }, 
+            "node03": {
+                "eui64": "18-B4-30-00-00-00-00-0A", 
+                "iid": "1ab4:3000:0000:000a", 
+                "pairing_code": "AAA123", 
+                "private_key": "${WEAVE_HOME}/certs/development/device/test-dev-18B430000000000A-key.pem", 
+                "weave_certificate": "${WEAVE_HOME}/certs/development/device/test-dev-18B430000000000A-cert.pem", 
+                "weave_node_id": "18B430000000000A"
+            }
+        }
+    }
+}

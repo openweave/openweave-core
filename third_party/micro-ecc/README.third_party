@@ -1,0 +1,19 @@
+URL: https://github.com/kmackay/micro-ecc/tarball/28fdb2c363b00fb8b1b23ec1677abc37023c8b5b
+Version: 28fdb2c363b00fb8b1b23ec1677abc37023c8b5b
+License: BSD 2-Clause
+License File: LICENSE
+
+Description:
+
+A small and fast ECDH and ECDSA implementation for 8-bit, 32-bit, and 64-bit processors.
+
+See https://github.com/kmackay/micro-ecc for an overview.
+
+Local Modifications:
+
+The original code has undergone extensive modifications to support:
+
+- Runtime selection of curves
+- NIST P224/secp224r1 curve
+- New API methods to support EC J-PAKE implementation
+

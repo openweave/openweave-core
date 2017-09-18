@@ -1,0 +1,103 @@
+Certificate:
+    Data:
+        Version: 3 (0x2)
+        Serial Number: 2 (0x2)
+        Signature Algorithm: sha1WithRSAEncryption
+        Issuer: C=KR, O=KISA, OU=Korea Certification Authority Central, CN=KISA RootCA 3
+        Validity
+            Not Before: Nov 19 06:39:51 2004 GMT
+            Not After : Nov 19 06:39:51 2014 GMT
+        Subject: C=KR, O=KISA, OU=Korea Certification Authority Central, CN=KISA RootCA 3
+        Subject Public Key Info:
+            Public Key Algorithm: rsaEncryption
+            RSA Public Key: (2048 bit)
+                Modulus (2048 bit):
+                    00:de:ba:ed:17:65:ae:d1:bd:4a:3d:ac:db:80:72:
+                    cc:58:e1:e7:e1:93:da:cc:30:7a:cf:ef:0b:ae:2d:
+                    a7:43:ab:bf:a7:42:cf:08:56:08:a4:47:1d:7d:fa:
+                    86:ef:d8:30:97:26:34:61:3c:80:0e:f8:d4:eb:9f:
+                    fc:22:30:1b:a1:6d:3e:e3:4c:d2:55:4e:16:40:37:
+                    c2:f6:07:6e:db:07:b5:a5:8c:96:81:e2:9b:5c:7e:
+                    94:61:c8:ce:84:3c:b1:fa:00:e6:72:d3:09:85:77:
+                    e9:dc:5e:21:4f:b4:e4:4e:f4:e2:17:ab:50:af:1c:
+                    ff:a1:39:58:75:5b:12:b2:96:b9:8d:f0:70:62:48:
+                    5b:56:28:2a:a5:87:91:36:b9:1e:24:f5:b9:ba:7b:
+                    b6:52:51:5b:17:5a:60:05:6c:9c:c2:e6:c6:8c:3e:
+                    f9:ea:dd:3c:8c:ff:89:de:43:70:ac:1d:b8:f1:75:
+                    cd:38:ca:53:0d:47:68:6a:c6:3c:18:ca:bd:e1:b4:
+                    be:0e:f4:d0:e3:d2:13:fa:b0:51:11:11:d4:41:ab:
+                    e8:f4:39:8e:e1:34:84:4f:0b:93:aa:6a:38:fc:e5:
+                    c6:78:47:ae:76:17:fa:a1:80:37:06:00:15:08:fd:
+                    6b:23:8e:fa:72:0d:95:d6:4b:62:b1:68:c2:dd:34:
+                    9b:5d
+                Exponent: 3 (0x3)
+        X509v3 extensions:
+            X509v3 Authority Key Identifier: 
+                keyid:8F:81:F0:DA:A6:CD:74:3C:BE:66:F4:15:6B:46:A4:FE:06:28:CC:AA
+
+            X509v3 Subject Key Identifier: 
+                8F:81:F0:DA:A6:CD:74:3C:BE:66:F4:15:6B:46:A4:FE:06:28:CC:AA
+            X509v3 Key Usage: critical
+                Certificate Sign, CRL Sign
+            X509v3 Certificate Policies: 
+                Policy: X509v3 Any Policy
+                  CPS: http://www.rootca.or.kr/rca/cps.html
+                  User Notice:
+                    Explicit Text: Çt
+
+            X509v3 Subject Alternative Name: 
+                DirName:/CN=\xED\x95\x9C\xEA\xB5\xAD\xEC\xA0\x95\xEB\xB3\xB4\xEB\xB3\xB4\xED\x98\xB8\xEC\xA7\x84\xED\x9D\xA5\xEC\x9B\x90
+            X509v3 Issuer Alternative Name: 
+                DirName:/CN=\xED\x95\x9C\xEA\xB5\xAD\xEC\xA0\x95\xEB\xB3\xB4\xEB\xB3\xB4\xED\x98\xB8\xEC\xA7\x84\xED\x9D\xA5\xEC\x9B\x90
+            X509v3 Basic Constraints: critical
+                CA:TRUE
+            X509v3 Policy Constraints: 
+                Require Explicit Policy:0
+    Signature Algorithm: sha1WithRSAEncryption
+        cf:d6:f7:0e:fd:b0:8c:6e:05:15:8e:a8:5c:2b:b2:5a:d1:1e:
+        57:a6:5e:18:aa:82:11:08:fc:99:b7:5b:a7:e3:c8:d2:a2:d3:
+        f9:24:34:f7:e3:e4:ae:89:54:47:d3:69:49:c9:80:c1:11:eb:
+        e2:29:c7:f6:06:8b:5f:ba:e2:5e:cf:ab:c3:ce:cf:ee:92:25:
+        dc:9f:39:1e:0e:03:f4:de:90:5b:a1:70:99:5c:c7:73:4e:c9:
+        a4:75:49:7b:25:a1:9f:82:92:8d:4d:ec:61:c5:0c:32:a7:c7:
+        38:38:80:55:3a:2a:83:1d:9c:64:79:b9:0d:a7:35:4a:68:ef:
+        8f:ff:05:d8:ba:4e:56:61:d8:f8:4a:70:98:08:96:93:d8:60:
+        c7:3a:ec:5f:9f:1d:2b:35:4f:48:14:a1:9a:bb:6f:ee:d2:03:
+        86:53:f1:10:c7:07:54:62:5e:36:8e:e2:1c:2b:1d:17:4d:e6:
+        f5:5a:ef:8a:ba:82:e8:77:d9:28:11:7e:37:87:4a:94:0a:c9:
+        40:e9:35:a5:3a:fb:64:3e:f2:5f:16:7a:f3:76:d7:ce:ee:3f:
+        44:1d:45:aa:5f:11:aa:53:1c:3a:1f:52:51:62:54:0f:a3:90:
+        35:cf:4d:6f:ba:c7:be:2c:09:f1:35:f8:01:bb:24:dd:30:bc:
+        48:0f:ee:d9
+SHA1 Fingerprint=5F:4E:1F:CF:31:B7:91:3B:85:0B:54:F6:E5:FF:50:1A:2B:6F:C6:CF
+-----BEGIN CERTIFICATE-----
+MIIFUjCCBDqgAwIBAgIBAjANBgkqhkiG9w0BAQUFADBkMQswCQYDVQQGEwJLUjEN
+MAsGA1UEChMES0lTQTEuMCwGA1UECxMlS29yZWEgQ2VydGlmaWNhdGlvbiBBdXRo
+b3JpdHkgQ2VudHJhbDEWMBQGA1UEAxMNS0lTQSBSb290Q0EgMzAeFw0wNDExMTkw
+NjM5NTFaFw0xNDExMTkwNjM5NTFaMGQxCzAJBgNVBAYTAktSMQ0wCwYDVQQKEwRL
+SVNBMS4wLAYDVQQLEyVLb3JlYSBDZXJ0aWZpY2F0aW9uIEF1dGhvcml0eSBDZW50
+cmFsMRYwFAYDVQQDEw1LSVNBIFJvb3RDQSAzMIIBIDANBgkqhkiG9w0BAQEFAAOC
+AQ0AMIIBCAKCAQEA3rrtF2Wu0b1KPazbgHLMWOHn4ZPazDB6z+8Lri2nQ6u/p0LP
+CFYIpEcdffqG79gwlyY0YTyADvjU65/8IjAboW0+40zSVU4WQDfC9gdu2we1pYyW
+geKbXH6UYcjOhDyx+gDmctMJhXfp3F4hT7TkTvTiF6tQrxz/oTlYdVsSspa5jfBw
+YkhbVigqpYeRNrkeJPW5unu2UlFbF1pgBWycwubGjD756t08jP+J3kNwrB248XXN
+OMpTDUdoasY8GMq94bS+DvTQ49IT+rBRERHUQavo9DmO4TSETwuTqmo4/OXGeEeu
+dhf6oYA3BgAVCP1rI476cg2V1ktisWjC3TSbXQIBA6OCAg8wggILMB8GA1UdIwQY
+MBaAFI+B8NqmzXQ8vmb0FWtGpP4GKMyqMB0GA1UdDgQWBBSPgfDaps10PL5m9BVr
+RqT+BijMqjAOBgNVHQ8BAf8EBAMCAQYwggEuBgNVHSAEggElMIIBITCCAR0GBFUd
+IAAwggETMDAGCCsGAQUFBwIBFiRodHRwOi8vd3d3LnJvb3RjYS5vci5rci9yY2Ev
+Y3BzLmh0bWwwgd4GCCsGAQUFBwICMIHRHoHOx3QAIMd4yZ3BHLKUACCs9cd4x3jJ
+ncEcx4WyyLLkACgAVABoAGkAcwAgAGMAZQByAHQAaQBmAGkAYwBhAHQAZQAgAGkA
+cwAgAGEAYwBjAHIAZQBkAGkAdABlAGQAIAB1AG4AZABlAHIAIABFAGwAZQBjAHQA
+cgBvAG4AaQBjACAAUwBpAGcAbgBhAHQAdQByAGUAIABBAGMAdAAgAG8AZgAgAHQA
+aABlACAAUgBlAHAAdQBiAGwAaQBjACAAbwBmACAASwBvAHIAZQBhACkwMwYDVR0R
+BCwwKqQoMCYxJDAiBgNVBAMMG+2VnOq1reygleuztOuztO2YuOynhO2dpeybkDAz
+BgNVHRIELDAqpCgwJjEkMCIGA1UEAwwb7ZWc6rWt7KCV67O067O07Zi47KeE7Z2l
+7JuQMA8GA1UdEwEB/wQFMAMBAf8wDAYDVR0kBAUwA4ABADANBgkqhkiG9w0BAQUF
+AAOCAQEAz9b3Dv2wjG4FFY6oXCuyWtEeV6ZeGKqCEQj8mbdbp+PI0qLT+SQ09+Pk
+rolUR9NpScmAwRHr4inH9gaLX7riXs+rw87P7pIl3J85Hg4D9N6QW6FwmVzHc07J
+pHVJeyWhn4KSjU3sYcUMMqfHODiAVToqgx2cZHm5Dac1Smjvj/8F2LpOVmHY+Epw
+mAiWk9hgxzrsX58dKzVPSBShmrtv7tIDhlPxEMcHVGJeNo7iHCsdF03m9VrvirqC
+6HfZKBF+N4dKlArJQOk1pTr7ZD7yXxZ683bXzu4/RB1Fql8RqlMcOh9SUWJUD6OQ
+Nc9Nb7rHviwJ8TX4Absk3TC8SA/u2Q==
+-----END CERTIFICATE-----

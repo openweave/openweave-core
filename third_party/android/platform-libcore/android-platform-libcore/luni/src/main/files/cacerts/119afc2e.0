@@ -1,0 +1,98 @@
+Certificate:
+    Data:
+        Version: 3 (0x2)
+        Serial Number: 999181308 (0x3b8e4bfc)
+        Signature Algorithm: sha1WithRSAEncryption
+        Issuer: emailAddress=pki@sk.ee, C=EE, O=AS Sertifitseerimiskeskus, CN=Juur-SK
+        Validity
+            Not Before: Aug 30 14:23:01 2001 GMT
+            Not After : Aug 26 14:23:01 2016 GMT
+        Subject: emailAddress=pki@sk.ee, C=EE, O=AS Sertifitseerimiskeskus, CN=Juur-SK
+        Subject Public Key Info:
+            Public Key Algorithm: rsaEncryption
+            RSA Public Key: (2048 bit)
+                Modulus (2048 bit):
+                    00:81:71:36:3e:33:07:d6:e3:30:8d:13:7e:77:32:
+                    46:cb:cf:19:b2:60:31:46:97:86:f4:98:46:a4:c2:
+                    65:45:cf:d3:40:7c:e3:5a:22:a8:10:78:33:cc:88:
+                    b1:d3:81:4a:f6:62:17:7b:5f:4d:0a:2e:d0:cf:8b:
+                    23:ee:4f:02:4e:bb:eb:0e:ca:bd:18:63:e8:80:1c:
+                    8d:e1:1c:8d:3d:e0:ff:5b:5f:ea:64:e5:97:e8:3f:
+                    99:7f:0c:0a:09:33:00:1a:53:a7:21:e1:38:4b:d6:
+                    83:1b:ad:af:64:c2:f9:1c:7a:8c:66:48:4d:66:1f:
+                    18:0a:e2:3e:bb:1f:07:65:93:85:b9:1a:b0:b9:c4:
+                    fb:0d:11:f6:f5:d6:f9:1b:c7:2c:2b:b7:18:51:fe:
+                    e0:7b:f6:a8:48:af:6c:3b:4f:2f:ef:f8:d1:47:1e:
+                    26:57:f0:51:1d:33:96:ff:ef:59:3d:da:4d:d1:15:
+                    34:c7:ea:3f:16:48:7b:91:1c:80:43:0f:3d:b8:05:
+                    3e:d1:b3:95:cd:d8:ca:0f:c2:43:67:db:b7:93:e0:
+                    22:82:2e:be:f5:68:28:83:b9:c1:3b:69:7b:20:da:
+                    4e:9c:6d:e1:ba:cd:8f:7a:6c:b0:09:22:d7:8b:0b:
+                    db:1c:d5:5a:26:5b:0d:c0:ea:e5:60:d0:9f:fe:35:
+                    df:3f
+                Exponent: 65537 (0x10001)
+        X509v3 extensions:
+            X509v3 Basic Constraints: critical
+                CA:TRUE
+            X509v3 Certificate Policies: 
+                Policy: 1.3.6.1.4.1.10015.1.1.1
+                  User Notice:
+                    Explicit Text: 
+                  CPS: http://www.sk.ee/cps/
+
+            X509v3 CRL Distribution Points: 
+                URI:http://www.sk.ee/juur/crl/
+
+            X509v3 Subject Key Identifier: 
+                04:AA:7A:47:A3:E4:89:AF:1A:CF:0A:40:A7:18:3F:6F:EF:E9:7D:BE
+            X509v3 Authority Key Identifier: 
+                keyid:04:AA:7A:47:A3:E4:89:AF:1A:CF:0A:40:A7:18:3F:6F:EF:E9:7D:BE
+
+            X509v3 Key Usage: critical
+                Digital Signature, Non Repudiation, Key Encipherment, Certificate Sign, CRL Sign
+    Signature Algorithm: sha1WithRSAEncryption
+        7b:c1:18:94:53:a2:09:f3:fe:26:67:9a:50:e4:c3:05:2f:2b:
+        35:78:91:4c:7c:a8:11:11:79:4c:49:59:ac:c8:f7:85:65:5c:
+        46:bb:3b:10:a0:02:af:cd:4f:b5:cc:36:2a:ec:5d:fe:ef:a0:
+        91:c9:b6:93:6f:7c:80:54:ec:c7:08:70:0d:8e:fb:82:ec:2a:
+        60:78:69:36:36:d1:c5:9c:8b:69:b5:40:c8:94:65:77:f2:57:
+        21:66:3b:ce:85:40:b6:33:63:1a:bf:79:1e:fc:5c:1d:d3:1d:
+        93:1b:8b:0c:5d:85:bd:99:30:32:18:09:91:52:e9:7c:a1:ba:
+        ff:64:92:9a:ec:fe:35:ee:8c:2f:ae:fc:20:86:ec:4a:de:1b:
+        78:32:37:a6:81:d2:9d:af:5a:12:16:ca:99:5b:fc:6f:6d:0e:
+        c5:a0:1e:86:c9:91:d0:5c:98:82:5f:63:0c:8a:5a:ab:d8:95:
+        a6:cc:cb:8a:d6:bf:64:4b:8e:ca:8a:b2:b0:e9:21:32:9e:aa:
+        a8:85:98:34:81:39:21:3b:a8:3a:52:32:3d:f6:6b:37:86:06:
+        5a:15:98:dc:f0:11:66:fe:34:20:b7:03:f4:41:10:7d:39:84:
+        79:96:72:63:b6:96:02:e5:6b:b9:ad:19:4d:bb:c6:44:db:36:
+        cb:2a:9c:8e
+SHA1 Fingerprint=40:9D:4B:D9:17:B5:5C:27:B6:9B:64:CB:98:22:44:0D:CD:09:B8:89
+-----BEGIN CERTIFICATE-----
+MIIE5jCCA86gAwIBAgIEO45L/DANBgkqhkiG9w0BAQUFADBdMRgwFgYJKoZIhvcN
+AQkBFglwa2lAc2suZWUxCzAJBgNVBAYTAkVFMSIwIAYDVQQKExlBUyBTZXJ0aWZp
+dHNlZXJpbWlza2Vza3VzMRAwDgYDVQQDEwdKdXVyLVNLMB4XDTAxMDgzMDE0MjMw
+MVoXDTE2MDgyNjE0MjMwMVowXTEYMBYGCSqGSIb3DQEJARYJcGtpQHNrLmVlMQsw
+CQYDVQQGEwJFRTEiMCAGA1UEChMZQVMgU2VydGlmaXRzZWVyaW1pc2tlc2t1czEQ
+MA4GA1UEAxMHSnV1ci1TSzCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEB
+AIFxNj4zB9bjMI0TfncyRsvPGbJgMUaXhvSYRqTCZUXP00B841oiqBB4M8yIsdOB
+SvZiF3tfTQou0M+LI+5PAk676w7KvRhj6IAcjeEcjT3g/1tf6mTll+g/mX8MCgkz
+ABpTpyHhOEvWgxutr2TC+Rx6jGZITWYfGAriPrsfB2WThbkasLnE+w0R9vXW+RvH
+LCu3GFH+4Hv2qEivbDtPL+/40UceJlfwUR0zlv/vWT3aTdEVNMfqPxZIe5EcgEMP
+PbgFPtGzlc3Yyg/CQ2fbt5PgIoIuvvVoKIO5wTtpeyDaTpxt4brNj3pssAki14sL
+2xzVWiZbDcDq5WDQn/413z8CAwEAAaOCAawwggGoMA8GA1UdEwEB/wQFMAMBAf8w
+ggEWBgNVHSAEggENMIIBCTCCAQUGCisGAQQBzh8BAQEwgfYwgdAGCCsGAQUFBwIC
+MIHDHoHAAFMAZQBlACAAcwBlAHIAdABpAGYAaQBrAGEAYQB0ACAAbwBuACAAdgDk
+AGwAagBhAHMAdABhAHQAdQBkACAAQQBTAC0AaQBzACAAUwBlAHIAdABpAGYAaQB0
+AHMAZQBlAHIAaQBtAGkAcwBrAGUAcwBrAHUAcwAgAGEAbABhAG0ALQBTAEsAIABz
+AGUAcgB0AGkAZgBpAGsAYQBhAHQAaQBkAGUAIABrAGkAbgBuAGkAdABhAG0AaQBz
+AGUAawBzMCEGCCsGAQUFBwIBFhVodHRwOi8vd3d3LnNrLmVlL2Nwcy8wKwYDVR0f
+BCQwIjAgoB6gHIYaaHR0cDovL3d3dy5zay5lZS9qdXVyL2NybC8wHQYDVR0OBBYE
+FASqekej5ImvGs8KQKcYP2/v6X2+MB8GA1UdIwQYMBaAFASqekej5ImvGs8KQKcY
+P2/v6X2+MA4GA1UdDwEB/wQEAwIB5jANBgkqhkiG9w0BAQUFAAOCAQEAe8EYlFOi
+CfP+JmeaUOTDBS8rNXiRTHyoERF5TElZrMj3hWVcRrs7EKACr81Ptcw2Kuxd/u+g
+kcm2k298gFTsxwhwDY77guwqYHhpNjbRxZyLabVAyJRld/JXIWY7zoVAtjNjGr95
+HvxcHdMdkxuLDF2FvZkwMhgJkVLpfKG6/2SSmuz+Ne6ML678IIbsSt4beDI3poHS
+na9aEhbKmVv8b20OxaAehsmR0FyYgl9jDIpaq9iVpszLita/ZEuOyoqysOkhMp6q
+qIWYNIE5ITuoOlIyPfZrN4YGWhWY3PARZv40ILcD9EEQfTmEeZZyY7aWAuVrua0Z
+TbvGRNs2yyqcjg==
+-----END CERTIFICATE-----

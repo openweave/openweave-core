@@ -1,0 +1,28 @@
+Correctly handle '--sysroot' GCC toolchain option when compiling for the 
+Android NDK using targets such as linux-generic32 in which the external
+environment passes in the toolchain root.
+
+This patch has been submitted to the OpenSSL request tracker as
+Ticket 3521 (http://rt.openssl.org/Ticket/Display.html?id=3521).
+
+---
+ openssl/Configure | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/openssl/Configure b/openssl/Configure
+index 524201d..29c8ec6 100755
+--- a/openssl/Configure
++++ b/openssl/Configure
+@@ -930,6 +930,10 @@ PROCESS_ARGS:
+ 				{
+ 				$cross_compile_prefix=$1;
+ 				}
++			elsif (/^--sysroot=(.*)$/)
++				{
++				$flags.=$_." ";
++				}
+ 			else
+ 				{
+ 				print STDERR $usage;
+-- 
+2.1.0

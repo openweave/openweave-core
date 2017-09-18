@@ -1,0 +1,79 @@
+Certificate:
+    Data:
+        Version: 3 (0x2)
+        Serial Number: 38 (0x26)
+        Signature Algorithm: sha1WithRSAEncryption
+        Issuer: C=DE, O=Deutsche Telekom AG, OU=T-TeleSec Trust Center, CN=Deutsche Telekom Root CA 2
+        Validity
+            Not Before: Jul  9 12:11:00 1999 GMT
+            Not After : Jul  9 23:59:00 2019 GMT
+        Subject: C=DE, O=Deutsche Telekom AG, OU=T-TeleSec Trust Center, CN=Deutsche Telekom Root CA 2
+        Subject Public Key Info:
+            Public Key Algorithm: rsaEncryption
+            RSA Public Key: (2048 bit)
+                Modulus (2048 bit):
+                    00:ab:0b:a3:35:e0:8b:29:14:b1:14:85:af:3c:10:
+                    e4:39:6f:35:5d:4a:ae:dd:ea:61:8d:95:49:f4:6f:
+                    64:a3:1a:60:66:a4:a9:40:22:84:d9:d4:a5:e5:78:
+                    93:0e:68:01:ad:b9:4d:5c:3a:ce:d3:b8:a8:42:40:
+                    df:cf:a3:ba:82:59:6a:92:1b:ac:1c:9a:da:08:2b:
+                    25:27:f9:69:23:47:f1:e0:eb:2c:7a:9b:f5:13:02:
+                    d0:7e:34:7c:c2:9e:3c:00:59:ab:f5:da:0c:f5:32:
+                    3c:2b:ac:50:da:d6:c3:de:83:94:ca:a8:0c:99:32:
+                    0e:08:48:56:5b:6a:fb:da:e1:58:58:01:49:5f:72:
+                    41:3c:15:06:01:8e:5d:ad:aa:b8:93:b4:cd:9e:eb:
+                    a7:e8:6a:2d:52:34:db:3a:ef:5c:75:51:da:db:f3:
+                    31:f9:ee:71:98:32:c4:54:15:44:0c:f9:9b:55:ed:
+                    ad:df:18:08:a0:a3:86:8a:49:ee:53:05:8f:19:4c:
+                    d5:de:58:79:9b:d2:6a:1c:42:ab:c5:d5:a7:cf:68:
+                    0f:96:e4:e1:61:98:76:61:c8:91:7c:d6:3e:00:e2:
+                    91:50:87:e1:9d:0a:e6:ad:97:d2:1d:c6:3a:7d:cb:
+                    bc:da:03:34:d5:8e:5b:01:f5:6a:07:b7:16:b6:6e:
+                    4a:7f
+                Exponent: 65537 (0x10001)
+        X509v3 extensions:
+            X509v3 Subject Key Identifier: 
+                31:C3:79:1B:BA:F5:53:D7:17:E0:89:7A:2D:17:6C:0A:B3:2B:9D:33
+            X509v3 Basic Constraints: 
+                CA:TRUE, pathlen:5
+            X509v3 Key Usage: critical
+                Certificate Sign, CRL Sign
+    Signature Algorithm: sha1WithRSAEncryption
+        94:64:59:ad:39:64:e7:29:eb:13:fe:5a:c3:8b:13:57:c8:04:
+        24:f0:74:77:c0:60:e3:67:fb:e9:89:a6:83:bf:96:82:7c:6e:
+        d4:c3:3d:ef:9e:80:6e:bb:29:b4:98:7a:b1:3b:54:eb:39:17:
+        47:7e:1a:8e:0b:fc:1f:31:59:31:04:b2:ce:17:f3:2c:c7:62:
+        36:55:e2:22:d8:89:55:b4:98:48:aa:64:fa:d6:1c:36:d8:44:
+        78:5a:5a:23:3a:57:97:f5:7a:30:4f:ae:9f:6a:4c:4b:2b:8e:
+        a0:03:e3:3e:e0:a9:d4:d2:7b:d2:b3:a8:e2:72:3c:ad:9e:ff:
+        80:59:e4:9b:45:b4:f6:3b:b0:cd:39:19:98:32:e5:ea:21:61:
+        90:e4:31:21:8e:34:b1:f7:2f:35:4a:85:10:da:e7:8a:37:21:
+        be:59:63:e0:f2:85:88:31:53:d4:54:14:85:70:79:f4:2e:06:
+        77:27:75:2f:1f:b8:8a:f9:fe:c5:ba:d8:36:e4:83:ec:e7:65:
+        b7:bf:63:5a:f3:46:af:81:94:37:d4:41:8c:d6:23:d6:1e:cf:
+        f5:68:1b:44:63:a2:5a:ba:a7:35:59:a1:e5:70:05:9b:0e:23:
+        57:99:94:0a:6d:ba:39:63:28:86:92:f3:18:84:d8:fb:d1:cf:
+        05:56:64:57
+SHA1 Fingerprint=85:A4:08:C0:9C:19:3E:5D:51:58:7D:CD:D6:13:30:FD:8C:DE:37:BF
+-----BEGIN CERTIFICATE-----
+MIIDnzCCAoegAwIBAgIBJjANBgkqhkiG9w0BAQUFADBxMQswCQYDVQQGEwJERTEc
+MBoGA1UEChMTRGV1dHNjaGUgVGVsZWtvbSBBRzEfMB0GA1UECxMWVC1UZWxlU2Vj
+IFRydXN0IENlbnRlcjEjMCEGA1UEAxMaRGV1dHNjaGUgVGVsZWtvbSBSb290IENB
+IDIwHhcNOTkwNzA5MTIxMTAwWhcNMTkwNzA5MjM1OTAwWjBxMQswCQYDVQQGEwJE
+RTEcMBoGA1UEChMTRGV1dHNjaGUgVGVsZWtvbSBBRzEfMB0GA1UECxMWVC1UZWxl
+U2VjIFRydXN0IENlbnRlcjEjMCEGA1UEAxMaRGV1dHNjaGUgVGVsZWtvbSBSb290
+IENBIDIwggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQCrC6M14IspFLEU
+ha88EOQ5bzVdSq7d6mGNlUn0b2SjGmBmpKlAIoTZ1KXleJMOaAGtuU1cOs7TuKhC
+QN/Po7qCWWqSG6wcmtoIKyUn+WkjR/Hg6yx6m/UTAtB+NHzCnjwAWav12gz1Mjwr
+rFDa1sPeg5TKqAyZMg4ISFZbavva4VhYAUlfckE8FQYBjl2tqriTtM2e66foai1S
+NNs671x1Udrb8zH57nGYMsRUFUQM+ZtV7a3fGAigo4aKSe5TBY8ZTNXeWHmb0moc
+QqvF1afPaA+W5OFhmHZhyJF81j4A4pFQh+GdCuatl9Idxjp9y7zaAzTVjlsB9WoH
+txa2bkp/AgMBAAGjQjBAMB0GA1UdDgQWBBQxw3kbuvVT1xfgiXotF2wKsyudMzAP
+BgNVHRMECDAGAQH/AgEFMA4GA1UdDwEB/wQEAwIBBjANBgkqhkiG9w0BAQUFAAOC
+AQEAlGRZrTlk5ynrE/5aw4sTV8gEJPB0d8Bg42f76Ymmg7+Wgnxu1MM9756Abrsp
+tJh6sTtU6zkXR34ajgv8HzFZMQSyzhfzLMdiNlXiItiJVbSYSKpk+tYcNthEeFpa
+IzpXl/V6ME+un2pMSyuOoAPjPuCp1NJ70rOo4nI8rZ7/gFnkm0W09juwzTkZmDLl
+6iFhkOQxIY40sfcvNUqFENrnijchvllj4PKFiDFT1FQUhXB59C4Gdyd1Lx+4ivn+
+xbrYNuSD7Odlt79jWvNGr4GUN9RBjNYj1h7P9WgbRGOiWrqnNVmh5XAFmw4jV5mU
+Cm26OWMohpLzGITY+9HPBVZkVw==
+-----END CERTIFICATE-----
