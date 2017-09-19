@@ -259,7 +259,8 @@ class WeaveTime(HappyNode, HappyNetwork, WeaveTest):
         if self.iterations:
             cmd += " --iterations " + str(self.iterations)
 
-        self.start_weave_process(self.client_node_id, cmd, self.client_process_tag, sync_on_output=self.ready_to_service_events_str)
+        #self.start_weave_process(self.client_node_id, cmd, self.client_process_tag, sync_on_output=self.ready_to_service_events_str)
+        self.start_weave_process(self.client_node_id, cmd, self.client_process_tag, sync_on_output="Sync Succeeded")
 
 
     def __stop_client_side(self):
@@ -315,9 +316,9 @@ class WeaveTime(HappyNode, HappyNetwork, WeaveTest):
 
         if self.mode == "auto":
             # run a normal case (multicast)
-            self.__start_client_side()
-            self.__start_coordinator_side()
             self.__start_server_side()
+            self.__start_coordinator_side()
+            self.__start_client_side()
 
             # reserve enough time for the whole time sync procedure
             # There is a 30 seconds timer to trigger HandleUnreliableAfterBootTimer (WEAVE_CONFIG_TIME_SERVER_TIMER_UNRELIABLE_AFTER_BOOT_MSEC)
@@ -333,20 +334,9 @@ class WeaveTime(HappyNode, HappyNetwork, WeaveTest):
             time.sleep(40)
 
         else:
-            # run a failure case (no time sync peer)
-            self.__start_client_side()
-
-            # response time out is 2 seconds (WEAVE_CONFIG_TIME_CLIENT_TIMER_UNICAST_MSEC)
-            time.sleep(3)
-            self.__stop_client_side()
-
-            # run a success case
             self.__start_server_side()
             self.__start_coordinator_side()
             self.__start_client_side()
-
-            # reserve enough time for a single time sync procedure (Time Sync Request and Response)
-            time.sleep(3)
 
         self.__stop_client_side()
 
