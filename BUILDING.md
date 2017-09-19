@@ -268,9 +268,10 @@ Perl text::template.
 
 If you want to jump right in, the steps you need to perform are:
 
-1. Make sure that the Weave Happy tool is up to date.
+1. Make sure that the Weave Happy tool is installed and up to date.
 
-        % [[placeholder: add command to update Happy]]
+        % git clone https://github.com/openweave/happy.git
+        % make
 
 2. Unarchive the Nest Weave SDK:
 
