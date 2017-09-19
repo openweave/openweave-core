@@ -517,10 +517,7 @@ void TimeSyncNode::HandleSyncRequest(ExchangeContext *ec, const IPPacketInfo *pk
 
         // allocate buffer and then encode the response into it
         msgBuf = PacketBuffer::New();
-        if (NULL == msgBuf)
-        {
-            ExitNow(err = WEAVE_ERROR_NO_MEMORY);
-        }
+        VerifyOrExit(msgBuf != NULL, err = WEAVE_ERROR_NO_MEMORY);
 
         err = response.Encode(msgBuf);
         SuccessOrExit(err);
@@ -604,10 +601,7 @@ void TimeSyncNode::MulticastTimeChangeNotification(const uint8_t aEncryptionType
 
     // Create a new exchange context, targeting all nodes
     ec = GetExchangeMgr()->NewContext(nl::Weave::kAnyNodeId);
-    if (NULL == ec)
-    {
-        ExitNow(err = WEAVE_ERROR_NO_MEMORY);
-    }
+    VerifyOrExit(ec != NULL, err = WEAVE_ERROR_NO_MEMORY);
 
     // Configure the encryption and key used to send the request
     ec->EncryptionType = aEncryptionType;
@@ -615,10 +609,7 @@ void TimeSyncNode::MulticastTimeChangeNotification(const uint8_t aEncryptionType
 
     // allocate buffer and then encode the response into it
     msgBuf = PacketBuffer::New();
-    if (NULL == msgBuf)
-    {
-        ExitNow(err = WEAVE_ERROR_NO_MEMORY);
-    }
+    VerifyOrExit(msgBuf != NULL, err = WEAVE_ERROR_NO_MEMORY);
 
     err = notification.Encode(msgBuf);
     SuccessOrExit(err);
