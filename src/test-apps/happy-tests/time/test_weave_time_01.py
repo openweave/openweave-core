@@ -20,8 +20,8 @@
 
 #
 #    @file
-#       WeaveTimeSync test (mode: "local")
-#       Also available: fault-injection
+#       WeaveTimeSync test for sync mode: "local"
+#       Also available: fault-injection (optional)
 #
 
 import itertools

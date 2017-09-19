@@ -322,7 +322,7 @@ class WeaveTime(HappyNode, HappyNetwork, WeaveTest):
 
             # reserve enough time for the whole time sync procedure
             # There is a 30 seconds timer to trigger HandleUnreliableAfterBootTimer (WEAVE_CONFIG_TIME_SERVER_TIMER_UNRELIABLE_AFTER_BOOT_MSEC)
-            time.sleep(40)
+            # time.sleep(40)
 
             # run a TimeChangeNotification case
             self.__stop_server_side()
