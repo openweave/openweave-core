@@ -951,7 +951,7 @@ protected:
     /// communication context.
     //CommToken mCommToken[WEAVE_CONFIG_TIME_CLIENT_MAX_NUM_EXCHANGE_CONTEXTS];
     Contact * mActiveContact;
-    ExchangeContext * mExchageContext;
+    ExchangeContext * mExchangeContext;
     timesync_t mUnadjTimestampLastSent_usec;
     //@}
 
@@ -1205,7 +1205,7 @@ protected:
     bool mIsInCallback;
     ClientState mClientState;
 
-    ExchangeContext * mExchageContext;
+    ExchangeContext * mExchangeContext;
 
     /// used to store one way flight time.
     int32_t mFlightTime_usec;

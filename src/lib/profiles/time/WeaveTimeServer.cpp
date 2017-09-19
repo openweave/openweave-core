@@ -108,7 +108,7 @@ TimeSyncNode::TimeSyncNode() :
 #endif // WEAVE_CONFIG_TIME_CLIENT_CONNECTION_FOR_SERVICE
     ,
     mActiveContact(NULL),
-    mExchageContext(NULL),
+    mExchangeContext(NULL),
     mUnadjTimestampLastSent_usec(TIMESYNC_INVALID)
 
 #if WEAVE_CONFIG_TIME_CLIENT_FABRIC_LOCAL_DISCOVERY
@@ -223,7 +223,7 @@ void TimeSyncNode::ClearState(void)
     mIsAutoSyncEnabled = false;
     mSyncPeriod_msec = 0;
     mActiveContact = NULL;
-    mExchageContext = NULL;
+    mExchangeContext = NULL;
     mUnadjTimestampLastSent_usec = TIMESYNC_INVALID;
 
 #if WEAVE_CONFIG_TIME_CLIENT_FABRIC_LOCAL_DISCOVERY

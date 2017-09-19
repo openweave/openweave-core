@@ -118,7 +118,7 @@ WEAVE_ERROR TimeSyncNode::_InitClient(const uint8_t aEncryptionType,
     SuccessOrExit(err);
 
     mActiveContact = NULL;
-    mExchageContext = NULL;
+    mExchangeContext = NULL;
     mUnadjTimestampLastSent_usec = 0;
 
 exit:
@@ -365,7 +365,7 @@ WEAVE_ERROR TimeSyncNode::SetupUnicastCommContext(Contact * const aContact)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
 
-    if (NULL != mExchageContext)
+    if (NULL != mExchangeContext)
     {
         ExitNow(err = WEAVE_ERROR_NO_MEMORY);
     }
@@ -388,35 +388,29 @@ WEAVE_ERROR TimeSyncNode::SetupUnicastCommContext(Contact * const aContact)
 #endif // WEAVE_CONFIG_TIME_CLIENT_CONNECTION_FOR_SERVICE
         {
             // we're not using connection to sync
-            mExchageContext = GetExchangeMgr()->NewContext(aContact->mNodeId, aContact->mNodeAddr, this);
+            mExchangeContext = GetExchangeMgr()->NewContext(aContact->mNodeId, aContact->mNodeAddr, this);
 
-            if (NULL == mExchageContext)
-            {
-                ExitNow(err = WEAVE_ERROR_NO_MEMORY);
-            }
+            VerifyOrExit(mExchangeContext != NULL, err = WEAVE_ERROR_NO_MEMORY);
 
             // Configure the encryption and key used to send the request
-            mExchageContext->EncryptionType = mEncryptionType;
-            mExchageContext->KeyId = mKeyId;
+            mExchangeContext->EncryptionType = mEncryptionType;
+            mExchangeContext->KeyId = mKeyId;
         }
 #if WEAVE_CONFIG_TIME_CLIENT_CONNECTION_FOR_SERVICE
         else
         {
             // we're syncing with the cloud service
             // use the security settings of the connection
-            mExchageContext = GetExchangeMgr()->NewContext(mConnectionToService, this);
+            mExchangeContext = GetExchangeMgr()->NewContext(mConnectionToService, this);
 
-            if (NULL == mExchageContext)
-            {
-                ExitNow(err = WEAVE_ERROR_NO_MEMORY);
-            }
+            VerifyOrExit(mExchangeContext != NULL, err = WEAVE_ERROR_NO_MEMORY);
         }
 #endif // WEAVE_CONFIG_TIME_CLIENT_CONNECTION_FOR_SERVICE
 
-        mExchageContext->OnMessageReceived = HandleUnicastSyncResponse;
+        mExchangeContext->OnMessageReceived = HandleUnicastSyncResponse;
 
-        mExchageContext->ResponseTimeout = WEAVE_CONFIG_TIME_CLIENT_TIMER_UNICAST_MSEC;
-        mExchageContext->OnResponseTimeout = HandleUnicastResponseTimeout;
+        mExchangeContext->ResponseTimeout = WEAVE_CONFIG_TIME_CLIENT_TIMER_UNICAST_MSEC;
+        mExchangeContext->OnResponseTimeout = HandleUnicastResponseTimeout;
 
         mActiveContact = aContact;
 
@@ -427,10 +421,10 @@ WEAVE_ERROR TimeSyncNode::SetupUnicastCommContext(Contact * const aContact)
 
 exit:
     WeaveLogFunctError(err);
-    if ((WEAVE_NO_ERROR != err) && (NULL != mExchageContext))
+    if ((WEAVE_NO_ERROR != err) && (NULL != mExchangeContext))
     {
-        mExchageContext->Close();
-        mExchageContext = NULL;
+        mExchangeContext->Close();
+        mExchangeContext = NULL;
     }
 
     return err;
@@ -440,10 +434,10 @@ bool TimeSyncNode::DestroyCommContext(void)
 {
     bool HaveToClose = false;
 
-    if (NULL != mExchageContext)
+    if (NULL != mExchangeContext)
     {
-        mExchageContext->Close();
-        mExchageContext = NULL;
+        mExchangeContext->Close();
+        mExchangeContext = NULL;
         HaveToClose = true;
     }
     mActiveContact = NULL;
@@ -589,10 +583,7 @@ void TimeSyncNode::StoreNotifyingContact(const uint64_t aNodeId, const IPAddress
     // time change notification, if any
     Contact * const contact = FindReplaceableContact(aNodeId, aNodeAddr, true);
 
-    if (NULL == contact)
-    {
-        ExitNow(err = WEAVE_ERROR_INCORRECT_STATE);
-    }
+    VerifyOrExit(contact != NULL, err = WEAVE_ERROR_INCORRECT_STATE);
 
     // initialize the contact as if this is a unicast case
     contact->mCommState = uint8_t(kCommState_Idle);
@@ -676,10 +667,7 @@ WEAVE_ERROR TimeSyncNode::SendSyncRequest(bool * const rIsMessageSent, Contact *
 
     // allocate buffer and then encode the response into it
     msgBuf = PacketBuffer::NewWithAvailableSize(TimeSyncRequest::kPayloadLen);
-    if (NULL == msgBuf)
-    {
-        ExitNow(err = WEAVE_ERROR_NO_MEMORY);
-    }
+    VerifyOrExit(msgBuf != NULL, err = WEAVE_ERROR_NO_MEMORY);
 
     // encode request into the buffer
     // since this is unicast, we're using the maximum likelihood here
@@ -692,7 +680,7 @@ WEAVE_ERROR TimeSyncNode::SendSyncRequest(bool * const rIsMessageSent, Contact *
     SuccessOrExit(err);
 
     // send out the request
-    err = mExchageContext->SendMessage(kWeaveProfile_Time, kTimeMessageType_TimeSyncRequest, msgBuf,
+    err = mExchangeContext->SendMessage(kWeaveProfile_Time, kTimeMessageType_TimeSyncRequest, msgBuf,
         ExchangeContext::kSendFlag_ExpectResponse);
     msgBuf = NULL;
     if (WEAVE_NO_ERROR == err)
@@ -940,17 +928,14 @@ void TimeSyncNode::EnterState_Discover(void)
     SuccessOrExit(err);
 
     // Create a new exchange context, targeting all nodes
-    mExchageContext = GetExchangeMgr()->NewContext(nl::Weave::kAnyNodeId, this);
-    if (NULL == mExchageContext)
-    {
-        ExitNow(err = WEAVE_ERROR_NO_MEMORY);
-    }
+    mExchangeContext = GetExchangeMgr()->NewContext(nl::Weave::kAnyNodeId, this);
+    VerifyOrExit(mExchangeContext != NULL, err = WEAVE_ERROR_NO_MEMORY);
 
     // Configure the encryption and key used to send the request
-    mExchageContext->EncryptionType = mEncryptionType;
-    mExchageContext->KeyId = mKeyId;
+    mExchangeContext->EncryptionType = mEncryptionType;
+    mExchangeContext->KeyId = mKeyId;
 
-    mExchageContext->OnMessageReceived = HandleMulticastSyncResponse;
+    mExchangeContext->OnMessageReceived = HandleMulticastSyncResponse;
 
     mActiveContact = NULL;
 
@@ -962,10 +947,7 @@ void TimeSyncNode::EnterState_Discover(void)
 
     // allocate buffer and then encode the response into it
     msgBuf = PacketBuffer::NewWithAvailableSize(TimeSyncRequest::kPayloadLen);
-    if (NULL == msgBuf)
-    {
-        ExitNow(err = WEAVE_ERROR_NO_MEMORY);
-    }
+    VerifyOrExit(msgBuf != NULL, err = WEAVE_ERROR_NO_MEMORY);
 
     err = request.Encode(msgBuf);
     SuccessOrExit(err);
@@ -974,7 +956,7 @@ void TimeSyncNode::EnterState_Discover(void)
         TimeSyncRequest::kLikelihoodForResponse_Max);
 
     // send out the request
-    err = mExchageContext->SendMessage(kWeaveProfile_Time, kTimeMessageType_TimeSyncRequest, msgBuf);
+    err = mExchangeContext->SendMessage(kWeaveProfile_Time, kTimeMessageType_TimeSyncRequest, msgBuf);
     msgBuf = NULL;
     SuccessOrExit(err);
 
@@ -988,9 +970,9 @@ exit:
 
     if (WEAVE_NO_ERROR != err)
     {
-        if (NULL != mExchageContext)
+        if (NULL != mExchangeContext)
         {
-            mExchageContext->Close();
+            mExchangeContext->Close();
         }
 
         Abort();
@@ -1145,10 +1127,7 @@ void TimeSyncNode::UpdateMulticastSyncResponse(const uint64_t aNodeId,
 
     mActiveContact = FindReplaceableContact(aNodeId, aNodeAddr);
 
-    if (NULL == mActiveContact)
-    {
-        ExitNow(err = WEAVE_ERROR_INCORRECT_STATE);
-    }
+    VerifyOrExit(mActiveContact != NULL, err = WEAVE_ERROR_INCORRECT_STATE);
 
     // initialize the contact as if this is a unicast case
     mActiveContact->mCommState = uint8_t(kCommState_Active);
@@ -1892,7 +1871,7 @@ void TimeSyncNode::HandleMulticastSyncResponse(ExchangeContext *ec, const IPPack
         ExitNow(err = WEAVE_ERROR_UNSUPPORTED_AUTH_MODE);
     }
 
-    if (ec != client->mExchageContext)
+    if (ec != client->mExchangeContext)
     {
         ExitNow(err = WEAVE_ERROR_INCORRECT_STATE);
     }
@@ -2333,7 +2312,7 @@ WEAVE_ERROR SingleSourceTimeSyncClient::Init(void * const aApp, WeaveExchangeMan
     mBinding = NULL;
     SetClientState(kClientState_Idle);
     mIsInCallback = false;
-    mExchageContext = NULL;
+    mExchangeContext = NULL;
     mFlightTime_usec = kFlightTimeInvalid;
     mUnadjTimestampLastSent_usec = TIMESYNC_INVALID;
     mRemoteTimestamp_usec = TIMESYNC_INVALID;
@@ -2358,10 +2337,10 @@ void SingleSourceTimeSyncClient::Abort(void)
         mBinding = NULL;
     }
 
-    if (NULL != mExchageContext)
+    if (NULL != mExchangeContext)
     {
-        mExchageContext->Abort();
-        mExchageContext = NULL;
+        mExchangeContext->Abort();
+        mExchangeContext = NULL;
     }
 
     SetClientState(kClientState_Idle);
@@ -2412,10 +2391,7 @@ WEAVE_ERROR SingleSourceTimeSyncClient::SendSyncRequest(void)
 
     // allocate buffer and then encode the response into it
     msgBuf = PacketBuffer::NewWithAvailableSize(TimeSyncRequest::kPayloadLen);
-    if (NULL == msgBuf)
-    {
-        ExitNow(err = WEAVE_ERROR_NO_MEMORY);
-    }
+    VerifyOrExit(msgBuf != NULL, err = WEAVE_ERROR_NO_MEMORY);
 
     // encode request into the buffer
     // since this is unicast, we're using the maximum likelihood here
@@ -2424,28 +2400,28 @@ WEAVE_ERROR SingleSourceTimeSyncClient::SendSyncRequest(void)
     err = request.Encode(msgBuf);
     SuccessOrExit(err);
 
-    if (NULL != mExchageContext)
+    if (NULL != mExchangeContext)
     {
-        mExchageContext->Close();
-        mExchageContext = NULL;
+        mExchangeContext->Close();
+        mExchangeContext = NULL;
     }
 
-    err = mBinding->NewExchangeContext(mExchageContext);
+    err = mBinding->NewExchangeContext(mExchangeContext);
     SuccessOrExit(err);
 
-    if (0 == mExchageContext->ResponseTimeout)
+    if (0 == mExchangeContext->ResponseTimeout)
     {
-        mExchageContext->ResponseTimeout = WEAVE_CONFIG_TIME_CLIENT_TIMER_UNICAST_MSEC;
+        mExchangeContext->ResponseTimeout = WEAVE_CONFIG_TIME_CLIENT_TIMER_UNICAST_MSEC;
     }
-    mExchageContext->OnResponseTimeout = HandleResponseTimeout;
-    mExchageContext->OnMessageReceived = HandleSyncResponse;
-    mExchageContext->AppState = this;
+    mExchangeContext->OnResponseTimeout = HandleResponseTimeout;
+    mExchangeContext->OnMessageReceived = HandleSyncResponse;
+    mExchangeContext->AppState = this;
 
     // acquire unadjusted timestamp
     err = Platform::Time::GetMonotonicRawTime(&mUnadjTimestampLastSent_usec);
 
     // send out the request
-    err = mExchageContext->SendMessage(kWeaveProfile_Time, kTimeMessageType_TimeSyncRequest, msgBuf,
+    err = mExchangeContext->SendMessage(kWeaveProfile_Time, kTimeMessageType_TimeSyncRequest, msgBuf,
         ExchangeContext::kSendFlag_ExpectResponse);
     msgBuf = NULL;
     SuccessOrExit(err);
@@ -2459,7 +2435,7 @@ exit:
         msgBuf = NULL;
     }
 
-    // There is no need to release mBinding nor mExchageContext,
+    // There is no need to release mBinding nor mExchangeContext,
     // as the caller for this routine would needs its own error handling
 
     return err;
@@ -2615,10 +2591,10 @@ exit:
     }
 
     // close the incoming exchange context no matter what after the first response we get
-    if (NULL != mExchageContext)
+    if (NULL != mExchangeContext)
     {
-        mExchageContext->Close();
-        mExchageContext = NULL;
+        mExchangeContext->Close();
+        mExchangeContext = NULL;
     }
 
     ProceedToNextState();
@@ -2629,10 +2605,10 @@ void SingleSourceTimeSyncClient::OnResponseTimeout(void)
     WeaveLogDetail(TimeService, "Timed out at client state: %d (%s)", GetClientState(),
         GetClientStateName());
 
-    if (NULL != mExchageContext)
+    if (NULL != mExchangeContext)
     {
-        mExchageContext->Abort();
-        mExchageContext = NULL;
+        mExchangeContext->Abort();
+        mExchangeContext = NULL;
     }
 
     ProceedToNextState();
@@ -2659,7 +2635,7 @@ void SingleSourceTimeSyncClient::ProceedToNextState(void)
 
 void SingleSourceTimeSyncClient::HandleResponseTimeout(ExchangeContext *aEC)
 {
-    // assume aEC == mExchageContext
+    // assume aEC == mExchangeContext
     SingleSourceTimeSyncClient * const client = reinterpret_cast<SingleSourceTimeSyncClient *>(aEC->AppState);
     client->OnResponseTimeout();
 }
