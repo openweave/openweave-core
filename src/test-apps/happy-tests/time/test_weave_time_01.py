@@ -82,7 +82,10 @@ class test_weave_time_01(unittest.TestCase):
 
         value, data = self.__run_time_test_between("node01", "node02",
                                                    "node03", mode)
-        self.__process_result("node01", "node02", "node03", mode, value)
+        err = self.__process_result("node01", "node02", "node03", mode, value)
+        # err=True => failure, err=False => success
+        self.assertEqual(err, False, "failed to run success case")
+
 
         if not gOptions['enableFaults']:
             return
@@ -123,6 +126,7 @@ class test_weave_time_01(unittest.TestCase):
                 print "    " + failed
         self.assertEqual(num_failed_tests, 0, "Something failed")
 
+
     def __process_result(self, nodeA, nodeB, nodeC, mode, value):
         print "time sync test among client:" + nodeA + \
               ", coordinator:" + nodeB + ", server:" + nodeC + \
@@ -136,6 +140,7 @@ class test_weave_time_01(unittest.TestCase):
             failed = True
 
         return failed
+
 
     def __run_time_test_between(self, nodeA, nodeB, nodeC, mode, num_iterations=None, faults = {}, test_tag = ""):
         options = WeaveTime.option()

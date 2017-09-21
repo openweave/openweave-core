@@ -50,6 +50,7 @@ options = {
     "test_tag": ""
 }
 
+gsync_succeeded_str = "Sync Succeeded"
 
 def option():
     return options.copy()
@@ -207,7 +208,7 @@ class WeaveTime(HappyNode, HappyNetwork, WeaveTest):
         pass_test = False
 
         for line in output.split("\n"):
-            if "Sync Succeeded" in line:
+            if gsync_succeeded_str in line:
                 pass_test = True
                 break
 
@@ -230,7 +231,7 @@ class WeaveTime(HappyNode, HappyNetwork, WeaveTest):
         return (pass_test, output)
 
 
-    def __start_client_side(self):
+    def __start_client_side(self, block_until_sync_succeeds=False):
         cmd = self.getWeaveMockDevicePath()
         if not cmd:
             return
@@ -241,12 +242,15 @@ class WeaveTime(HappyNode, HappyNetwork, WeaveTest):
 
         if self.mode == "local":
             cmd += " --time-sync-mode-local" 
+
         elif self.mode == "service":                 ## TCP
             cmd += " --time-sync-mode-service"
+
         elif self.mode == "service-over-tunnel":     ## WRM over tunnel
             cmd += " --time-sync-mode-service-over-tunnel"
             cmd += " --ts-server-node-id " + self.server_weave_id
             cmd += " --ts-server-node-addr " + self.server_ip
+
         else: 
             cmd += " --time-sync-mode-auto" 
 
@@ -259,8 +263,13 @@ class WeaveTime(HappyNode, HappyNetwork, WeaveTest):
         if self.iterations:
             cmd += " --iterations " + str(self.iterations)
 
-        #self.start_weave_process(self.client_node_id, cmd, self.client_process_tag, sync_on_output=self.ready_to_service_events_str)
-        self.start_weave_process(self.client_node_id, cmd, self.client_process_tag, sync_on_output="Sync Succeeded")
+        if block_until_sync_succeeds:
+            wait_str = gsync_succeeded_str
+        else:
+            # block until client weave node is ready to service weave events
+            wait_str = self.ready_to_service_events_str
+
+        self.start_weave_process(self.client_node_id, cmd, self.client_process_tag, sync_on_output=wait_str)
 
 
     def __stop_client_side(self):
@@ -314,29 +323,36 @@ class WeaveTime(HappyNode, HappyNetwork, WeaveTest):
 
         self.__pre_check()
 
-        if self.mode == "auto":
-            # run a normal case (multicast)
-            self.__start_server_side()
-            self.__start_coordinator_side()
-            self.__start_client_side()
+        # Note: in all the cases below, we don't need any synchronous and
+        # deterministic wait time to allow for a time sync operation to complete
+        # because the __start_client_code will block until it performs a
+        # successful time sync operation (if block_until_sync_succeeds=True)
 
-            # reserve enough time for the whole time sync procedure
-            # There is a 30 seconds timer to trigger HandleUnreliableAfterBootTimer (WEAVE_CONFIG_TIME_SERVER_TIMER_UNRELIABLE_AFTER_BOOT_MSEC)
-            # time.sleep(40)
+        # Note: in all cases below that includes a server simulated by a happy
+        # weave node, a server restart is implicity performed as part of
+        # fault-injection. This will prompt the server node to send a time
+        # change notification and test if clients handle it successfully. There
+        # is, hence, no need to explicitly run a server-restart test
+        # (regardless of the sync mode).
 
-            # run a TimeChangeNotification case
-            self.__stop_server_side()
-            self.__start_server_side()
-            time.sleep(3)
+        # Note: in cases where __start_client_side is invoked with
+        # block_until_sync_succeeds=True, the order in which the nodes are
+        # created is important. Be sure to start the server and coordinator
+        # nodes before the client node is initialized, otherwise, the test will
+        # fail because the client node won't get any responses from the server
+        # and/or coordinator nodes (because they would not have been created).
 
-        elif self.mode == "service-over-tunnel":
-            self.__start_client_side()
-            time.sleep(40)
+        if self.mode == "service-over-tunnel":
+            # this test presumes that the service node (mock or real), the 
+            # border router and the tunnel between them have already been
+            # created and initialized successfully.
+            self.__start_client_side(block_until_sync_succeeds=True)
 
         else:
+            # mode in ["auto", "local", "service"]
             self.__start_server_side()
             self.__start_coordinator_side()
-            self.__start_client_side()
+            self.__start_client_side(block_until_sync_succeeds=True)
 
         self.__stop_client_side()
 
