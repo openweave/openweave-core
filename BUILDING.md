@@ -12,10 +12,10 @@ Linux-based system.
 
 On Mac OS X, OpenWeave Core requires a means by which to clone,
 with symbolic links, one directory subtree to another. On Linux,
-this is commonly provided with 'cp -Rs' available as part of GNU
-coreutils <http://www.gnu.org/software/coreutils/>. If installed,
-XQuartz <http://xquartz.macosforge.org/> provides similar
-functionality via 'lndir -silent'. If you don't already have GNU
+this is commonly provided with 'cp -Rs' available as part of [GNU
+coreutils](http://www.gnu.org/software/coreutils/). If installed,
+[XQuartz](http://xquartz.macosforge.org/) provides similar
+functionality via `lndir -silent`. If you don't already have GNU
 coreutils or XQuartz installed, you can install one of these,
 XQuartz being the easier of the two.
 
@@ -52,10 +52,11 @@ into a larger project, leveraging its GNU autotools-based build system.
 The easiest way to build OpenWeave Core for "Standalone" is to use the helper
 makefile, `Makefile-Standalone`, as shown here.
 
-However, if you prefer, it is also possible to build OpenWeave Core using GNU
-autotools directly, by invoking `configure`. More details on that are included
-below. See [Configuring and starting the build (detailed instructions)](#detailed).
-The example helper makefiles, `Makefile-Android` and `Makefile-iOS` illustrate
+However, if you prefer, you can build OpenWeave Core using GNU
+autotools directly, by invoking the `configure` command. More details on that
+are included below. See [Configuring and starting the build
+(detailed instructions)](#detailed). The example helper makefiles,
+`Makefile-Android` and `Makefile-iOS` illustrate
 how OpenWeave Core can be and, at Nest, is integrated into those platforms.
 
 If you want to jump right in, the steps you need to perform are:
