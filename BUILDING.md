@@ -320,7 +320,7 @@ Procedure:
         % cd happy
         % make
 
-1. Install OpenWeave Core.
+2. Install OpenWeave Core.
 
         % cd ..
         % git clone https://github.com/openweave/openweave-core.git
