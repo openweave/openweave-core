@@ -1,16 +1,16 @@
 ## System requirements for building Weave
 
-Building the Nest Weave SDK has fairly modest system requirements.
+Building OpenWeave Core has fairly modest system requirements.
 
 ### Linux
 
-The Nest Weave SDK officially recommends and supports Ubuntu
-12.04. However, the Nest Weave SDK should work on any similar
+OpenWeave Core officially recommends and supports Ubuntu
+12.04. However, OpenWeave Core should work on any similar
 Linux-based system.
 
 ### Mac OS X
 
-On Mac OS X, the Nest Weave SDK requires a means by which to clone,
+On Mac OS X, OpenWeave Core requires a means by which to clone,
 with symbolic links, one directory subtree to another. On Linux,
 this is commonly provided with 'cp -Rs' available as part of GNU
 coreutils <http://www.gnu.org/software/coreutils/>. If installed,
@@ -21,8 +21,38 @@ XQuartz being the easier of the two.
 
 ### Windows
 
-On Windows, the Nest Weave SDK requires [Cygwin](https://www.cygwin.com/).
+On Windows, OpenWeave Core requires [Cygwin](https://www.cygwin.com/).
 
+
+## Get started with OpenWeave Core (quick start)
+
+NOTE: These instructions have been tested on Ubuntu Linux.
+
+If you want to jump right in, the steps you need to perform are:
+
+1. Install Python setup tools.
+
+        % sudo apt-get install python-setuptools 
+
+1. Make sure that the Weave Happy tool is installed and up to date.
+
+        % git clone https://github.com/openweave/happy.git
+        % cd happy
+        % make
+
+1. Install OpenWeave Core.
+
+        % cd ..
+        % git clone https://github.com/openweave/openweave-core.git
+        % cd openweave-core
+        % make -f Makefile-Standalone
+
+
+For more detailed information on configuring and building OpenWeave
+for different platforms, see [Configuring and starting the build
+(detailed instructions)](#detailed).
+
+```
 ## Supported targets
 
 ### Linux
@@ -253,59 +283,73 @@ environment. However, because they have not been officially tested by Nest,
 they cannot be guaranteed to work or officially supported by Nest.
 
 
-## Configuring and starting the build
+## Configuring and starting the build (detailed instructions)<a name="detailed"></a>
 
-The Nest Weave SDK uses the GNU autotools system for its build. As a result,
-there are three phases to using the Nest Weave SDK build:
+OpenWeave Core uses the GNU autotools system for its build. As a result,
+there are three phases to using the OpenWeave Core build:
 
 * Configure
 * Build
 * Stage
 
-Prerequisite:
-If you're using Weave's bundled OpenSSL, make sure you've installed
-Perl text::template.
+Prerequisites:
 
-If you want to jump right in, the steps you need to perform are:
+* If you're using Weave's bundled OpenSSL, make sure you've installed
+  Perl text::template.
+
+  Text::Template is available from http://www.plover.com/~mjd/perl/Template/
+  or from CPAN (http://search.cpan.org/dist/Text-Template/).
+
+        % wget "http://search.cpan.org/CPAN/authors/id/M/MS/MSCHOUT/Text-Template-1.47.tar.gz" 
+        % tar -xvzf Text-Template-1.47.tar.gz
+        % cd Text-Template-1.47/
+        % perl Makefile.PL
+        % make test
+        % sudo make install
+
+* Install `libdbus-1-dev`.
+
+        % sudo apt-get install libdbus-1-dev
+
+
+Procedure:
 
 1. Make sure that the Weave Happy tool is installed and up to date.
 
         % git clone https://github.com/openweave/happy.git
+        % cd happy
         % make
 
-2. Unarchive the Nest Weave SDK:
+1. Install OpenWeave Core.
 
-
-        % tar -zxf weave-<version>.tar.gz
+        % cd ..
+        % git clone https://github.com/openweave/openweave-core.git
 
 
 3. Configure it:
 
-
-        % cd weave-<version>
+        % cd openweave-core
         % ./configure
 
 
 4. Build it:
-
 
         % make all
 
 
 5. Stage it to a place your code can compile and link against:
 
-
-        % mkdir weave-<version>-output
+        % mkdir openweave-core-output
 
 
 NOTE: Feel free to name this directory whatever you would like to or whatever
 your project's build system dictates.
 
 ```
-% make DESTDIR=`pwd`/weave-<version>-output install
+% make DESTDIR=`pwd`/openweave-core-output install
 ```
 
-At this point you will have in `weave-<version>-output`:
+At this point you will have in `openweave-core-output`:
 
 <table>
   <tr>
@@ -318,7 +362,7 @@ At this point you will have in `weave-<version>-output`:
   </tr>
   <tr>
     <td>include/</td>
-    <td>Weave SDK public headers</td>
+    <td>OpenWeave Core public headers</td>
   </tr>
   <tr>
     <td>lib/</td>
@@ -330,11 +374,11 @@ At this point you will have in `weave-<version>-output`:
   </tr>
   <tr>
     <td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;doc/</td>
-    <td>Weave SDK documentation</td>
+    <td>OpenWeave Core documentation</td>
   </tr>
   <tr>
     <td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;java/</td>
-    <td>Weave SDK Java language interface classes and,archives</td>
+    <td>OpenWeave Core Java language interface classes and,archives</td>
   </tr>
   <tr>
     <td>&lt;target tuple&gt;/</td>
@@ -383,27 +427,27 @@ files may be overridden:
 % make -f Makefile-Standalone help
 ```
 
-If you are using the Nest Weave SDK for an embedded system, you will likely
-need to interact with the Nest Weave SDK build system directly.
+If you are using OpenWeave Core for an embedded system, you will likely
+need to interact with the OpenWeave Core build system directly.
 
 ### Configure
 
 
-There are two ways to configure the Nest Weave SDK:
+There are two ways to configure OpenWeave Core:
 
 * Configuration Script
 * Configuration Headers
 
 #### Configuration script
 
-The Nest Weave SDK uses GNU autotools for its build. So, the first thing you
-need to do is run the `configure` script at the top level of the Nest Weave SDK,
+OpenWeave Core uses GNU autotools for its build. So, the first thing you
+need to do is run the `configure` script at the top level of OpenWeave Core,
 either in the SDK directory itself or from another non-colocated build directory.
 
 ##### In-the-SDK
 
 ```
-% cd weave-<version>
+% cd openweave-core
 % ./configure [ <options> ... ]
 ```
 
@@ -412,14 +456,14 @@ either in the SDK directory itself or from another non-colocated build directory
 NOTE: Feel free to name this directory whatever you would like.
 
 ```
-% mkdir weave-<version>-build
-% cd weave-<version>-build
-% ../weave-<version>-configure [ <options> ... ]
-```
+% mkdir openweave-core-build
+% cd openweave-core-build
+% ../openweave-core-configure [ <options> ... ]
+
 
 ##### Configuration options
 
-The Nest Weave SDK configuration script has been written to attempt to automatically
+The OpenWeave Core configuration script has been written to attempt to automatically
 use the most appropriate or relevant default options for the target you have selected;
 however, many of these options may be explicitly overridden.
 
@@ -435,8 +479,8 @@ to you:
 
 #### Configuration headers
 
-In addition to the Nest Weave SDK configuration script, there are two, optional
-project-specific configuration headers that you may provide to the Nest Weave SDK
+In addition to the OpenWeave Core configuration script, there are two, optional
+project-specific configuration headers that you may provide to OpenWeave Core
 to change, at compile time, Nest Weave behavior:
 
 * InetProjectConfig.h
@@ -459,7 +503,7 @@ search directory [default=none].
 Specify Weave Core project-specific configuration header (WeaveProjectConfig.h)
 search directory [default=none].
 
-These files SHOULD NOT be placed in the Weave SDK itself but rather should be
+These files SHOULD NOT be placed in OpenWeave Core itself but rather should be
 colocated with the your project's source and header files.
 
 For Android, iOS, and standalone systems, reasonable defaults that these headers

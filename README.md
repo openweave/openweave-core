@@ -60,13 +60,10 @@ technologies more widely available.
 # Get started with OpenWeave Core
 
 Want to try OpenWeave? The quickest way is to build the standalone
-distribution, and run through the attached examples. On Linux and OS X
-machines, you can build OpenWeave distribution with
+distribution, and run through the attached examples.
 
-    make -f Makefile-Standalone
-
-For more detailed information on configuring and building OpenWeave
-for different platforms, please consult [BUILDING.md](./BUILDING.md).
+For information on configuring and building OpenWeave, see
+[BUILDING.md](./BUILDING.md).
 
 Once the distribution is built, you can dive into a number of
 examples:
