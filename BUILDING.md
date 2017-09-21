@@ -23,26 +23,43 @@ XQuartz being the easier of the two.
 
 On Windows, OpenWeave Core requires [Cygwin](https://www.cygwin.com/).
 
+## Optional (recommended)
 
-## Get started with OpenWeave Core (quick start)
+* Install Python setup tools.
 
-NOTE: These instructions have been tested on Ubuntu Linux.
+        % sudo apt-get install python-setuptools
 
-If you want to jump right in, the steps you need to perform are:
-
-1. Install Python setup tools.
-
-        % sudo apt-get install python-setuptools 
-
-1. Make sure that the Weave Happy tool is installed and up to date.
+* Install the Weave Happy tool.
 
         % git clone https://github.com/openweave/happy.git
         % cd happy
         % make
 
-1. Install OpenWeave Core.
+* Install `libdbus-1-dev`. This package is **required** when building functional
+  tests for BLE against BlueZ.
 
-        % cd ..
+        % sudo apt-get install libdbus-1-dev
+
+
+## Get started with OpenWeave Core (quick start)
+
+NOTE: These instructions have been tested on Ubuntu Linux.
+
+OpenWeave Core can be built to support a standalone desktop or server development
+host (also known as, "Standalone"). In addition, OpenWeave Core can be integrated
+into a larger project, leveraging its GNU autotools-based build system.
+
+The easiest way to build OpenWeave Core for "Standalone" is to use the helper
+makefile, `Makefile-Standalone`, as shown here.
+
+However, if you prefer, it is also possible to build OpenWeave Core using GNU
+autotools directly, by invoking `configure`. More details on that are included
+below. See [Configuring and starting the build (detailed instructions)](#detailed).
+The example helper makefiles, `Makefile-Android` and `Makefile-iOS` illustrate
+how OpenWeave Core can be and, at Nest, is integrated into those platforms.
+
+If you want to jump right in, the steps you need to perform are:
+
         % git clone https://github.com/openweave/openweave-core.git
         % cd openweave-core
         % make -f Makefile-Standalone
@@ -52,7 +69,7 @@ For more detailed information on configuring and building OpenWeave
 for different platforms, see [Configuring and starting the build
 (detailed instructions)](#detailed).
 
-```
+
 ## Supported targets
 
 ### Linux
@@ -292,13 +309,13 @@ there are three phases to using the OpenWeave Core build:
 * Build
 * Stage
 
-Prerequisites:
+### Prerequisite
 
-* If you're using Weave's bundled OpenSSL, make sure you've installed
-  Perl text::template.
+If you're using Weave's bundled OpenSSL, make sure you've installed
+Perl text::template.
 
-  Text::Template is available from http://www.plover.com/~mjd/perl/Template/
-  or from CPAN (http://search.cpan.org/dist/Text-Template/).
+Text::Template is available from http://www.plover.com/~mjd/perl/Template/
+or from CPAN (http://search.cpan.org/dist/Text-Template/).
 
         % wget "http://search.cpan.org/CPAN/authors/id/M/MS/MSCHOUT/Text-Template-1.47.tar.gz" 
         % tar -xvzf Text-Template-1.47.tar.gz
@@ -307,37 +324,26 @@ Prerequisites:
         % make test
         % sudo make install
 
-* Install `libdbus-1-dev`.
+### Procedure
 
-        % sudo apt-get install libdbus-1-dev
-
-
-Procedure:
-
-1. Make sure that the Weave Happy tool is installed and up to date.
-
-        % git clone https://github.com/openweave/happy.git
-        % cd happy
-        % make
-
-2. Install OpenWeave Core.
+1. Install OpenWeave Core.
 
         % cd ..
         % git clone https://github.com/openweave/openweave-core.git
 
 
-3. Configure it:
+2. Configure it:
 
         % cd openweave-core
         % ./configure
 
 
-4. Build it:
+3. Build it:
 
         % make all
 
 
-5. Stage it to a place your code can compile and link against:
+4. Stage it to a place your code can compile and link against:
 
         % mkdir openweave-core-output
 
