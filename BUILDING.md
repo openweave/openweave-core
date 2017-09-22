@@ -465,7 +465,7 @@ NOTE: Feel free to name this directory whatever you would like.
 ```
 % mkdir openweave-core-build
 % cd openweave-core-build
-% ../openweave-core-configure [ <options> ... ]
+% {WEAVE_SRCDIR}/configure [ <options> ... ]
 
 
 ##### Configuration options
