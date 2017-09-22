@@ -30,9 +30,36 @@
 
 namespace nl {
 
-extern bool GetFlag(const uint8_t inFlags, const uint8_t inFlag);
-extern void ClearFlag(uint8_t &outFlags, const uint8_t inFlag);
-extern void SetFlag(uint8_t &outFlags, const uint8_t inFlag, const bool inValue);
+template<typename FlagsT, typename FlagT>
+inline bool GetFlag(const FlagsT& inFlags, const FlagT inFlag)
+{
+    return (inFlags & static_cast<FlagsT>(inFlag)) != 0;
+}
+
+template<typename FlagsT, typename FlagT>
+inline void ClearFlag(FlagsT& inFlags, const FlagT inFlag)
+{
+    inFlags &= ~ static_cast<FlagsT>(inFlag);
+}
+
+template<typename FlagsT, typename FlagT>
+inline void SetFlag(FlagsT& inFlags, const FlagT inFlag)
+{
+    inFlags |= static_cast<FlagsT>(inFlag);
+}
+
+template<typename FlagsT, typename FlagT>
+inline void SetFlag(FlagsT& inFlags, const FlagT inFlag, const bool inValue)
+{
+    if (inValue)
+    {
+        SetFlag(inFlags, inFlag);
+    }
+    else
+    {
+        ClearFlag(inFlags, inFlag);
+    }
+}
 
 }; // namespace nl
 
