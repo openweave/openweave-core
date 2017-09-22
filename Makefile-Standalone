@@ -55,11 +55,11 @@ AbsTopSourceDir                := $(dir $(realpath $(firstword $(MAKEFILE_LIST))
 
 BuildPath                       = build
 TopBuildDir                     = $(BuildPath)
-AbsTopBuildDir                  = $(PWD)/$(TopBuildDir)
+AbsTopBuildDir                  = $(CURDIR)/$(TopBuildDir)
 
 ResultPath                      = output
 TopResultDir                    = $(ResultPath)
-AbsTopResultDir                 = $(PWD)/$(TopResultDir)
+AbsTopResultDir                 = $(CURDIR)/$(TopResultDir)
 
 TargetTuple                     = $(shell ${AbsTopSourceDir}/third_party/nlbuild-autotools/repo/autoconf/config.guess | sed -e 's/[[:digit:].]*$$//g')
 
