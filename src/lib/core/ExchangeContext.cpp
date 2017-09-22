@@ -53,16 +53,17 @@ namespace Weave {
 using namespace nl::Weave::Encoding;
 
 enum {
-    kFlagInitiator            = 0x01, /// This context is the initiator of the exchange.
-    kFlagConnectionClosed     = 0x02, /// This context was associated with a WeaveConnection.
-    kFlagAutoRequestAck       = 0x04, /// When set, automatically request an acknowledgment whenever a message is sent via UDP.
-    kFlagDropAck              = 0x08, /// Internal and debug only: when set, the exchange layer does not send an acknowledgment.
-    kFlagResponseExpected     = 0x10, /// If a response is expected for a message that is being sent.
-    kFlagAckPending           = 0x20, /// When set, signifies that there is an acknowledgment pending to be sent back.
-    kFlagPeerRequestedAck     = 0x40, /// When set, signifies that at least one message received on this exchange requested an acknowledgment.
-                                      /// This flag is read by the application to decide if it needs to request an acknowledgment for the
-                                      /// response message it is about to send. This flag can also indicate whether peer is using WRMP.
-    kFlagMsgRcvdFromPeer      = 0x80, /// When set, signifies that at least one message has been received from peer on this exchange context.
+    kFlagInitiator            = 0x0001, /// This context is the initiator of the exchange.
+    kFlagConnectionClosed     = 0x0002, /// This context was associated with a WeaveConnection.
+    kFlagAutoRequestAck       = 0x0004, /// When set, automatically request an acknowledgment whenever a message is sent via UDP.
+    kFlagDropAck              = 0x0008, /// Internal and debug only: when set, the exchange layer does not send an acknowledgment.
+    kFlagResponseExpected     = 0x0010, /// If a response is expected for a message that is being sent.
+    kFlagAckPending           = 0x0020, /// When set, signifies that there is an acknowledgment pending to be sent back.
+    kFlagPeerRequestedAck     = 0x0040, /// When set, signifies that at least one message received on this exchange requested an acknowledgment.
+                                        /// This flag is read by the application to decide if it needs to request an acknowledgment for the
+                                        /// response message it is about to send. This flag can also indicate whether peer is using WRMP.
+    kFlagMsgRcvdFromPeer      = 0x0080, /// When set, signifies that at least one message has been received from peer on this exchange context.
+    kFlagAutoReleaseKey       = 0x0100, /// Automatically release the message encryption key when the exchange context is freed.
 };
 
 /**
@@ -267,6 +268,27 @@ bool ExchangeContext::AutoRequestAck() const
 void ExchangeContext::SetAutoRequestAck(bool autoReqAck)
 {
     SetFlag(mFlags, kFlagAutoRequestAck, autoReqAck);
+}
+
+/**
+ * Return whether the encryption key associated with the exchange should be
+ * released when the exchange is freed.
+ */
+bool ExchangeContext::GetAutoReleaseKey() const
+{
+    return GetFlag(mFlags, kFlagAutoReleaseKey);
+}
+
+/**
+ * Set whether the encryption key associated with the exchange should be
+ * released when the exchange is freed.
+ *
+ * @param[in] autoReleaseKey        True if the message encryption key should be
+ *                                  automatically released.
+ */
+void ExchangeContext::SetAutoReleaseKey(bool autoReleaseKey)
+{
+    SetFlag(mFlags, kFlagAutoReleaseKey, autoReleaseKey);
 }
 
 /**
@@ -805,6 +827,13 @@ void ExchangeContext::Release(void)
 #if defined(WEAVE_EXCHANGE_CONTEXT_DETAIL_LOGGING)
         uint16_t tmpid = ExchangeId;
 #endif
+
+        // If so configured, automatically release any reservation held on
+        // the message encryption key.
+        if (GetAutoReleaseKey())
+        {
+            em->MessageLayer->SecurityMgr->ReleaseKey(PeerNodeId, KeyId);
+        }
 
         DoClose(false);
         mRefCount = 0;

@@ -259,9 +259,7 @@ int main(int argc, char *argv[])
     switch (gWeaveSecurityMode.SecurityMode)
     {
     case WeaveSecurityMode::kNone:
-#if WORK_IN_PROGRESS
     case WeaveSecurityMode::kCASE:
-#endif
     case WeaveSecurityMode::kCASEShared:
     case WeaveSecurityMode::kGroupEnc:
         break;
@@ -528,11 +526,9 @@ void BindingTestDriver::PrepareBinding()
     default:
         bindingConf.Security_None();
         break;
-#if WORK_IN_PROGRESS
     case WeaveSecurityMode::kCASE:
         bindingConf.Security_CASESession();
         break;
-#endif
     case WeaveSecurityMode::kCASEShared:
         bindingConf.Security_SharedCASESession();
         break;

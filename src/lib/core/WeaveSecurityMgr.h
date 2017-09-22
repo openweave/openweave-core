@@ -211,6 +211,8 @@ public:
     bool CASEUseKnownECDHKey;                           // Enable the use of a known ECDH key pair in CASE to allow man-in-the-middle
                                                         // key recovery for testing purposes.
 #endif
+    uint32_t SessionEstablishTimeout;                   // The amount of time after which an in-progress session establishment will timeout.
+    uint32_t IdleSessionTimeout;                        // The amount of time after which an idle session will be removed.
 
     WeaveSecurityManager(void);
 
@@ -345,7 +347,17 @@ public:
     void HandleMsgCounterSyncRespMsg(WeaveMessageInfo *msgInfo, PacketBuffer *msgBuf);
 #endif
 
+    WEAVE_ERROR CancelSessionEstablishment(void *reqState);
+
+    void ReserveKey(uint64_t peerNodeId, uint16_t keyId);
+    void ReleaseKey(uint64_t peerNodeId, uint16_t keyId);
+
 private:
+    enum Flags
+    {
+        kFlag_IdleSessionTimerRunning   = 0x01
+    };
+
     ExchangeContext *mEC;
     WeaveConnection *mCon;
     union
@@ -405,11 +417,15 @@ private:
     WeaveAuthMode   mRequestedAuthMode;
     uint8_t         mEncType;
     System::Layer*  mSystemLayer;
-    uint32_t        mSessionTimeout;
+    uint8_t         mFlags;
 
     void StartSessionTimer(void);
     void CancelSessionTimer(void);
     static void HandleSessionTimeout(System::Layer* aSystemLayer, void* aAppState, System::Error aError);
+
+    void StartIdleSessionTimer(void);
+    void StopIdleSessionTimer(void);
+    static void HandleIdleSessionTimeout(System::Layer* aLayer, void* aAppState, System::Error aError);
 
     static void HandleUnsolicitedMessage(ExchangeContext *ec, const IPPacketInfo *pktInfo, const WeaveMessageInfo *msgInfo,
             uint32_t profileId, uint8_t msgType, PacketBuffer *msgBuf);
@@ -482,7 +498,6 @@ private:
     static void HandleKeyExportMessageInitiator(ExchangeContext *ec, const IPPacketInfo *pktInfo, const WeaveMessageInfo *msgInfo,
                                                 uint32_t profileId, uint8_t msgType, PacketBuffer *msgBuf);
     void HandleKeyExportError(WEAVE_ERROR err, PacketBuffer *statusReportMsgBuf);
-    void HandleSecureSessionFailed(uint64_t peerNodeId, uint16_t keyId, WEAVE_ERROR localErr, bool isKeyErr);
 
 #if WEAVE_CONFIG_ENABLE_RELIABLE_MESSAGING
     static void WRMPHandleAckRcvd(ExchangeContext *ec, void *msgCtxt);
@@ -490,6 +505,12 @@ private:
 #endif // WEAVE_CONFIG_ENABLE_RELIABLE_MESSAGING
 
     void Reset(void);
+
+    void AsyncNotifySecurityManagerAvailable();
+    static void DoNotifySecurityManagerAvailable(System::Layer *systemLayer, void *appState, System::Error err);
+
+    void ReserveSessionKey(WeaveSessionKey *sessionKey);
+    void ReleaseSessionKey(WeaveSessionKey *sessionKey);
 };
 
 } // namespace Weave

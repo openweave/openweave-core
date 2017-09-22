@@ -174,6 +174,8 @@ public:
     void SetResponseExpected(bool inResponseExpected);
     bool AutoRequestAck() const;
     void SetAutoRequestAck(bool autoReqAck);
+    bool GetAutoReleaseKey() const;
+    void SetAutoReleaseKey(bool autoReleaseKey);
 
     WEAVE_ERROR SendMessage(uint32_t profileId, uint8_t msgType, PacketBuffer *msgPayload, uint16_t sendFlags = 0, void *msgCtxt = 0);
     WEAVE_ERROR SendMessage(uint32_t profileId, uint8_t msgType, PacketBuffer *msgBuf, uint16_t sendFlags, WeaveMessageInfo * msgInfo, void *msgCtxt = 0);
@@ -324,6 +326,9 @@ private:
     uint32_t currentBcastMsgID;
     uint8_t msgsReceived;                       // number of messages heard during the backoff period
     uint8_t rebroadcastThreshold;               // re-broadcast threshold
+
+    uint16_t mFlags;                            // Internal state flags
+
     WEAVE_ERROR ResendMessage(void);
     bool MatchExchange(WeaveConnection *msgCon, const WeaveMessageInfo *msgInfo, const WeaveExchangeHeader *exchangeHeader);
     static void TimerTau(System::Layer* aSystemLayer, void* aAppState, System::Error aError);
@@ -334,12 +339,6 @@ private:
     void CancelResponseTimer(void);
     static void HandleResponseTimeout(System::Layer* aSystemLayer, void* aAppState, System::Error aError);
 
-    /*
-     * in order to avoid all sorts of problems with multiple simulataneous
-     * users of these things, we need to reference count so that we close
-     * no ExchangeContext before its time.
-     */
-    uint8_t  mRefCount;
     uint32_t mPendingPeerAckId;
 #if WEAVE_CONFIG_ENABLE_RELIABLE_MESSAGING
     uint16_t mWRMPNextAckTime;                  //Next time for triggering Solo Ack
@@ -357,7 +356,7 @@ private:
     WEAVE_ERROR HandleThrottleFlow(uint32_t PauseTimeMillis);
 #endif
 
-    uint8_t mFlags;
+    uint8_t mRefCount;
 };
 
 /**
@@ -424,9 +423,6 @@ public:
     WEAVE_ERROR UnregisterUnsolicitedMessageHandler(uint32_t profileId, uint8_t msgType, WeaveConnection *con);
 
     void AllowUnsolicitedMessages(WeaveConnection *con);
-
-    void NotifySecureSessionReady(uint64_t peerNodeId, uint8_t encType, WeaveAuthMode authMode, uint16_t keyId);
-    void NotifySecureSessionFailed(uint64_t peerNodeId, uint16_t keyId, WEAVE_ERROR localErr, bool isKeyErr);
 
 #if WEAVE_CONFIG_ENABLE_RELIABLE_MESSAGING
     void ClearMsgCounterSyncReq(uint64_t peerNodeId);
@@ -520,6 +516,9 @@ private:
     Binding * AllocBinding(void);
     void FreeBinding(Binding *binding);
     uint16_t GetBindingLogId(const Binding * const binding) const;
+
+    void NotifySecurityManagerAvailable();
+    void NotifyKeyFailed(uint64_t peerNodeId, uint16_t keyId, WEAVE_ERROR keyErr);
 
     WeaveExchangeManager(const WeaveExchangeManager&); // not defined
 };

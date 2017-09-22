@@ -92,6 +92,9 @@ enum
 // Key diversifier used for Weave message encryption key derivation.
 const uint8_t kWeaveMsgEncAppKeyDiversifier[] = { 0xB1, 0x1D, 0xAE, 0x5B };
 
+/**
+ * Initialize a WeaveSessionKey object.
+ */
 void WeaveSessionKey::Init(void)
 {
     NodeId = kNodeIdNotSpecified;
@@ -101,14 +104,84 @@ void WeaveSessionKey::Init(void)
     RcvFlags = 0;
     AuthMode = kWeaveAuthMode_NotSpecified;
     memset(&MsgEncKey, 0, sizeof(MsgEncKey));
-    SharedSession = false;
+    ReserveCount = 0;
+    Flags = 0;
 }
 
+/**
+ * Reset a WeaveSessionKey object.
+ */
 void WeaveSessionKey::Clear(void)
 {
     Init();
     ClearSecretData((uint8_t *)&MsgEncKey.EncKey, sizeof(MsgEncKey.EncKey));
 }
+
+/**
+ * fn bool WeaveSessionKey::IsAllocated() const
+ *
+ * Returns true if the WeaveSessionKey object is allocated.
+ */
+
+/**
+ * fn bool WeaveSessionKey::IsKeySet() const
+ *
+ * Returns true if the encryption key value has been set in a WeaveSessionKey object.
+ */
+
+/**
+ * fn bool WeaveSessionKey::IsLocallyInitiated() const
+ *
+ * Returns true if the session was initiated by the local node.
+ */
+
+/*
+ * fn void WeaveSessionKey::SetLocallyInitiated(bool val)
+ *
+ * Sets a flag indicating whether the session was initiated by the local node.
+ */
+
+/*
+ * fn bool WeaveSessionKey::IsSharedSession() const
+ *
+ * Returns true the session is a shared--i.e. can be used for multiplexed communication with different peer node ids.
+ */
+
+/**
+ * fn void WeaveSessionKey::SetSharedSession(bool val)
+ *
+ * Sets a flag indicating whether the session is a shared session.
+ */
+
+/**
+ * fn bool WeaveSessionKey::IsRemoveOnIdle() const
+ *
+ * Returns true if the session is flagged for automatic removal when idle for a period of time.
+ */
+
+/**
+ * fn void WeaveSessionKey::SetRemoveOnIdle(bool val)
+ *
+ * Sets a flag indicating whether the session should be automatically removed after a period of idle time.
+ */
+
+/**
+ * fn bool WeaveSessionKey::IsRecentlyActive() const
+ *
+ * Returns true if the session has been active in the recent past.
+ */
+
+/**
+ * fn void WeaveSessionKey::MarkRecentlyActive()
+ *
+ * Signals the session as having been active in the recent past.
+ */
+
+/**
+ * fn void WeaveSessionKey::ClearRecentlyActive()
+ *
+ * Signals the session as NOT having been active in the recent past.
+ */
 
 WeaveFabricState::WeaveFabricState()
 {
@@ -194,21 +267,17 @@ WEAVE_ERROR WeaveFabricState::Init(GroupKeyStoreBase *groupKeyStore)
 WEAVE_ERROR WeaveFabricState::Shutdown()
 {
     State = kState_NotInitialized;
+
 #if WEAVE_CONFIG_USE_APP_GROUP_KEYS_FOR_MSG_ENC
     AppKeyCache.Shutdown();
 #endif
+
     return WEAVE_NO_ERROR;
 }
 
-WEAVE_ERROR WeaveFabricState::AllocSessionKey(uint64_t peerNodeId, WeaveConnection *boundCon, uint16_t& keyId)
-{
-    return AllocSessionKey(peerNodeId, boundCon, keyId, false);
-}
-
-WEAVE_ERROR WeaveFabricState::AllocSessionKey(uint64_t peerNodeId, WeaveConnection *boundCon, uint16_t& keyId, bool sharedSession)
+WEAVE_ERROR WeaveFabricState::AllocSessionKey(uint64_t peerNodeId, uint16_t keyId, WeaveConnection *boundCon, WeaveSessionKey *& sessionKey)
 {
     WEAVE_ERROR err;
-    WeaveSessionKey *sessionKey;
     bool chooseRandomKeyId = (keyId == WeaveKeyId::kNone);
 
     while (true)
@@ -218,7 +287,7 @@ WEAVE_ERROR WeaveFabricState::AllocSessionKey(uint64_t peerNodeId, WeaveConnecti
         err = FindSessionKey(keyId, peerNodeId, true, sessionKey);
         if (err != WEAVE_NO_ERROR)
             return err;
-        if (sessionKey->MsgEncKey.KeyId == WeaveKeyId::kNone)
+        if (!sessionKey->IsAllocated())
             break;
         if (!chooseRandomKeyId)
             return WEAVE_ERROR_DUPLICATE_KEY_ID;
@@ -231,7 +300,8 @@ WEAVE_ERROR WeaveFabricState::AllocSessionKey(uint64_t peerNodeId, WeaveConnecti
     sessionKey->MaxRcvdMsgId = UINT32_MAX;
     sessionKey->BoundCon = boundCon;
     sessionKey->RcvFlags = 0;
-    sessionKey->SharedSession = sharedSession;
+    sessionKey->Flags = WeaveSessionKey::kFlag_RecentlyActive;
+    sessionKey->ReserveCount = 1;
 
     return WEAVE_NO_ERROR;
 }
@@ -242,9 +312,16 @@ WEAVE_ERROR WeaveFabricState::SetSessionKey(uint16_t keyId, uint64_t peerNodeId,
     WeaveSessionKey *sessionKey;
 
     err = FindSessionKey(keyId, peerNodeId, false, sessionKey);
-    if (err != WEAVE_NO_ERROR)
-        return err;
+    SuccessOrExit(err);
 
+    SetSessionKey(sessionKey, encType, authMode, encKey);
+
+exit:
+    return err;
+}
+
+void WeaveFabricState::SetSessionKey(WeaveSessionKey *sessionKey, uint8_t encType, WeaveAuthMode authMode, const WeaveEncryptionKey *encKey)
+{
     sessionKey->MsgEncKey.EncType = encType;
     sessionKey->MsgEncKey.EncKey = *encKey;
     sessionKey->NextMsgId.Init(0);
@@ -257,24 +334,35 @@ WEAVE_ERROR WeaveFabricState::SetSessionKey(uint16_t keyId, uint64_t peerNodeId,
     {
         char keyString[kMaxEncKeyStringSize];
         WeaveEncryptionKeyToString(encType, *encKey, keyString, sizeof(keyString));
-        WeaveLogDetail(MessageLayer, "Message Encryption Key: Id=%04" PRIX16 " Type=SessionKey Peer=%016" PRIX64 " EncType=%02" PRIX8 " Key=%s", keyId, peerNodeId, encType, keyString);
+        WeaveLogDetail(MessageLayer, "Message Encryption Key: Id=%04" PRIX16 " Type=SessionKey Peer=%016" PRIX64 " EncType=%02" PRIX8 " Key=%s",
+                sessionKey->MsgEncKey.KeyId, sessionKey->NodeId, encType, keyString);
     }
 #endif // WEAVE_CONFIG_SECURITY_TEST_MODE
-
-    return WEAVE_NO_ERROR;
 }
 
 WEAVE_ERROR WeaveFabricState::RemoveSessionKey(uint16_t keyId, uint64_t peerNodeId)
 {
     WEAVE_ERROR err;
-    SharedSessionEndNode *endNode = SharedSessionsNodes;
     WeaveSessionKey *sessionKey;
 
     err = FindSessionKey(keyId, peerNodeId, false, sessionKey);
     SuccessOrExit(err);
 
-    if (sessionKey->SharedSession)
+    RemoveSessionKey(sessionKey);
+
+exit:
+    return err;
+}
+
+void WeaveFabricState::RemoveSessionKey(WeaveSessionKey *sessionKey, bool wasIdle)
+{
+    WeaveLogDetail(MessageLayer, "Removing %ssession key: Id=%04" PRIX16 " Peer=%016" PRIX64,
+            (wasIdle) ? "idle " : "", sessionKey->MsgEncKey.KeyId, sessionKey->NodeId);
+
+    if (sessionKey->IsSharedSession())
     {
+        SharedSessionEndNode *endNode = SharedSessionsNodes;
+
         // Clear all information about shared session end nodes.
         for (int i = 0; i < WEAVE_CONFIG_MAX_SHARED_SESSIONS_END_NODES; i++, endNode++)
         {
@@ -286,9 +374,6 @@ WEAVE_ERROR WeaveFabricState::RemoveSessionKey(uint16_t keyId, uint64_t peerNode
     }
 
     sessionKey->Clear();
-
-exit:
-    return err;
 }
 
 WEAVE_ERROR WeaveFabricState::GetSessionKey(uint16_t keyId, uint64_t peerNodeId, WeaveSessionKey *& outSessionKey)
@@ -297,35 +382,35 @@ WEAVE_ERROR WeaveFabricState::GetSessionKey(uint16_t keyId, uint64_t peerNodeId,
 }
 
 /**
- * This method checks whether shared session exists to the specified session terminator node and the session
- * was authenticated using specified mode. If shared session exists function also returns key identifier
- * associated with that session.
+ * Search the session keys table for an established shared session key that targets the specified
+ * terminating node and matches the given auth mode and encryption type.
  *
  * @param[in]  terminatingNodeId  The node identifier of the session terminator.
- * @param[in]  authMode           The session authentication mode associated with @a keyId.
- * @param[in]  encType            Encryption type associated with @a keyId.
- * @param[out] keyId              The session key identifier.
+ * @param[in]  authMode           The desired session authentication mode.
+ * @param[in]  encType            The desired message encryption type.
  *
- * @retval     bool               Whether or not specified terminating node has shared session which
- *                                was authenticated using specified mode.
+ * @retval     WeaveSessionKey *  A pointer to a WeaveSessionKey object representing the matching
+ *                                shared session; or NULL if no matching session was found.
  *
  */
-bool WeaveFabricState::HasSharedSession(uint64_t terminatingNodeId, WeaveAuthMode authMode, uint8_t encType, uint16_t & keyId)
+WeaveSessionKey *WeaveFabricState::FindSharedSession(uint64_t terminatingNodeId, WeaveAuthMode authMode, uint8_t encType)
 {
-    WeaveSessionKey *curRec = SessionKeys;
-    bool retVal = false;
+    WeaveSessionKey *sessionKey;
 
-    for (int i = 0; i < WEAVE_CONFIG_MAX_SESSION_KEYS; i++, curRec++)
+    // Search the session keys table for an established shared session key that targets the specified
+    // terminating node and matches the given auth mode and encryption type.
+    sessionKey = SessionKeys;
+    for (int i = 0; i < WEAVE_CONFIG_MAX_SESSION_KEYS; i++, sessionKey++)
     {
-        if (curRec->NodeId == terminatingNodeId && curRec->AuthMode == authMode && curRec->MsgEncKey.EncType == encType && curRec->SharedSession)
+        if (sessionKey->IsAllocated() && sessionKey->IsKeySet() && sessionKey->IsSharedSession() &&
+            sessionKey->NodeId == terminatingNodeId && sessionKey->AuthMode == authMode &&
+            sessionKey->MsgEncKey.EncType == encType)
         {
-            retVal = true;
-            keyId = curRec->MsgEncKey.KeyId;
-            break;
+            return sessionKey;
         }
     }
 
-    return retVal;
+    return NULL;
 }
 
 /**
@@ -346,7 +431,7 @@ bool WeaveFabricState::IsSharedSession(uint16_t keyId, uint64_t peerNodeId)
     err = FindSessionKey(keyId, peerNodeId, false, sessionKey);
     SuccessOrExit(err);
 
-    retVal = sessionKey->SharedSession;
+    retVal = sessionKey->IsSharedSession();
 
 exit:
     return retVal;
@@ -380,31 +465,42 @@ bool WeaveFabricState::FindSharedSessionEndNode(uint64_t endNodeId, const WeaveS
     return retVal;
 }
 
+WEAVE_ERROR WeaveFabricState::AddSharedSessionEndNode(uint64_t endNodeId, uint64_t terminatingNodeId, uint16_t keyId)
+{
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
+    WeaveSessionKey *sessionKey;
+
+    err = FindSessionKey(keyId, endNodeId, false, sessionKey);
+    SuccessOrExit(err);
+
+    err = AddSharedSessionEndNode(sessionKey, endNodeId);
+    SuccessOrExit(err);
+
+exit:
+    return err;
+}
+
 /**
  * This method adds new end node to the shared end nodes record.
  *
- * @param[in]  endNodeId          The identifier of the session end node.
- * @param[in]  terminatingNodeId  The identifier of the session terminating node.
- * @param[in]  keyId              The session key identifier.
+ * @param[in]  sessionKey         The WeaveSessionKey object representing the session for which the new
+ *                                end node should be added.
+ * @param[in]  endNodeId          The node id of the session end node to be added.
  *
  * @retval #WEAVE_ERROR_TOO_MANY_SHARED_SESSION_END_NODES
  *                                If there is no free space for a new entry in the shared end nodes list.
  * @retval #WEAVE_NO_ERROR        On success.
  *
  */
-WEAVE_ERROR WeaveFabricState::AddSharedSessionEndNode(uint64_t endNodeId, uint64_t terminatingNodeId, uint16_t keyId)
+WEAVE_ERROR WeaveFabricState::AddSharedSessionEndNode(WeaveSessionKey *sessionKey, uint64_t endNodeId)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
     SharedSessionEndNode *endNode = SharedSessionsNodes;
     SharedSessionEndNode *freeEndNode = NULL;
-    WeaveSessionKey *sessionKey;
     uint8_t endNodeCount = 0;
 
-    err = FindSessionKey(keyId, terminatingNodeId, false, sessionKey);
-    SuccessOrExit(err);
-
     // No need to add new shared entry record if the end node is also the terminating node.
-    VerifyOrExit(endNodeId != terminatingNodeId, /* Exit without error. */);
+    VerifyOrExit(endNodeId != sessionKey->NodeId, /* Exit without error. */);
 
     // Check if entry already exists.
     for (int i = 0; i < WEAVE_CONFIG_MAX_SHARED_SESSIONS_END_NODES; i++, endNode++)
@@ -1146,10 +1242,17 @@ exit:
 
 void WeaveFabricState::HandleConnectionClosed(WeaveConnection *con)
 {
+    WeaveSessionKey *sessionKey;
+
     // Remove any session keys that are bound to the closed connection.
-    for (int i = 0; i < WEAVE_CONFIG_MAX_SESSION_KEYS; i++)
-        if (SessionKeys[i].MsgEncKey.KeyId != WeaveKeyId::kNone && SessionKeys[i].BoundCon == con)
-            SessionKeys[i].Clear();
+    sessionKey = SessionKeys;
+    for (int i = 0; i < WEAVE_CONFIG_MAX_SESSION_KEYS; i++, sessionKey++)
+    {
+        if (sessionKey->IsAllocated() && SessionKeys[i].BoundCon == con)
+        {
+            RemoveSessionKey(sessionKey);
+        }
+    }
 }
 
 // WeaveSessionState Members
@@ -1347,11 +1450,14 @@ WEAVE_ERROR WeaveFabricState::FindSessionKey(uint16_t keyId, uint64_t peerNodeId
 
     for (int i = 0; i < WEAVE_CONFIG_MAX_SESSION_KEYS; i++, curRec++)
     {
-        if (curRec->MsgEncKey.KeyId == WeaveKeyId::kNone && freeRec == NULL)
-            freeRec = curRec;
-        if (curRec->MsgEncKey.KeyId == keyId && (curRec->NodeId == peerNodeId ||
-                                                 (curRec->SharedSession &&
-                                                  FindSharedSessionEndNode(peerNodeId, curRec))))
+        if (!curRec->IsAllocated())
+        {
+            if (freeRec == NULL)
+                freeRec = curRec;
+        }
+        else if (curRec->MsgEncKey.KeyId == keyId &&
+                 (curRec->NodeId == peerNodeId ||
+                  (curRec->IsSharedSession() && FindSharedSessionEndNode(peerNodeId, curRec))))
         {
             retRec = curRec;
             return WEAVE_NO_ERROR;
@@ -1465,6 +1571,51 @@ exit:
 void WeaveFabricState::SetDelegate(FabricStateDelegate *aDelegate)
 {
     Delegate = aDelegate;
+}
+
+bool WeaveFabricState::RemoveIdleSessionKeys()
+{
+    WeaveSessionKey *sessionKey;
+    bool potentialIdleSessionsExist = false;
+
+    // For each allocated session key...
+    sessionKey = SessionKeys;
+    for (int i = 0; i < WEAVE_CONFIG_MAX_SESSION_KEYS; i++, sessionKey++)
+        if (sessionKey->IsAllocated())
+        {
+            // Ignore the session if it is still in the process of being established.
+            if (!sessionKey->IsKeySet())
+                continue;
+
+            // Capture and clear the recently active flag.
+            bool recentlyActive = sessionKey->IsRecentlyActive();
+            sessionKey->ClearRecentlyActive();
+
+            // Ignore the session if it is bound to a connection. (Connection bound
+            // sessions persist until their connections close).
+            if (sessionKey->BoundCon != NULL)
+                continue;
+
+            // If the session is marked for remove-on-idle and is not currently reserved...
+            if (sessionKey->IsRemoveOnIdle() && sessionKey->ReserveCount == 0)
+            {
+                // Remove the session if it hasn't been active since the last time RemoveIdleSessionKeys()
+                // was called.
+                if (!recentlyActive)
+                {
+                    RemoveSessionKey(sessionKey, true);
+                }
+
+                // Otherwise, tell the caller that unreserved, remove-on-idle sessions exist which may
+                // need to be removed on a future call to RemoveIdleSessionKeys().
+                else
+                {
+                    potentialIdleSessionsExist = true;
+                }
+            }
+        }
+
+    return potentialIdleSessionsExist;
 }
 
 // ============================================================

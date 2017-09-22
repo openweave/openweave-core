@@ -46,4 +46,7 @@
 
 #define WDM_ENFORCE_EXPIRY_TIME 1
 
+// Increase session idle timeout in stand-alone builds for the convenience of developers.
+#define WEAVE_CONFIG_DEFAULT_SECURITY_SESSION_IDLE_TIMEOUT           120000
+
 #endif /* WEAVEPROJECTCONFIG_H */

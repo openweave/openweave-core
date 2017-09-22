@@ -70,7 +70,7 @@ WEAVE_ERROR WeaveEchoClient::Shutdown()
 {
     if (ExchangeCtx != NULL)
     {
-        ExchangeCtx->Close();
+        ExchangeCtx->Abort();
         ExchangeCtx = NULL;
     }
 
@@ -95,7 +95,7 @@ WEAVE_ERROR WeaveEchoClient::SendEchoRequest(WeaveConnection *con, PacketBuffer 
     // a single node at any one time.
     if (ExchangeCtx != NULL)
     {
-        ExchangeCtx->Close();
+        ExchangeCtx->Abort();
         ExchangeCtx = NULL;
     }
 
@@ -146,7 +146,7 @@ WEAVE_ERROR WeaveEchoClient::SendEchoRequest(uint64_t nodeId, IPAddress nodeAddr
     // a single node at any one time.
     if (ExchangeCtx != NULL)
     {
-        ExchangeCtx->Close();
+        ExchangeCtx->Abort();
         ExchangeCtx = NULL;
     }
     if (nodeAddr == IPAddress::Any)

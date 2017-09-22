@@ -873,6 +873,12 @@ void WeaveExchangeManager::DispatchMessage(WeaveMessageInfo *msgInfo, PacketBuff
         }
 #endif
 
+        // Add a reservation for the message encryption key.  This will ensure the key is not removed until the exchange is freed.
+        MessageLayer->SecurityMgr->ReserveKey(ec->PeerNodeId, ec->KeyId);
+
+        // Arrange to automatically release the encryption key when the exchange is freed.
+        ec->SetAutoReleaseKey(true);
+
         ec->HandleMessage(msgInfo, &exchangeHeader, msgBuf, umhandler);
         msgBuf = NULL;
 
@@ -1082,17 +1088,15 @@ void WeaveExchangeManager::AllowUnsolicitedMessages(WeaveConnection *con)
 }
 
 /**
- *  Handle secure session error. Fail all pending messages and notify all applications that
- *  use specified encryption key in communication with specified destination node.
+ *  Invoked when a message encryption key has been rejected by a peer (via a KeyError), or a key has
+ *  otherwise become invalid (e.g. by ending a session).
  *
- *  @param[in] peerNodeId  Node ID of the destination node.
- *  @param[in] keyId       Key ID used for message encryption.
- *  @param[in] localErr    The error code resulted in session failure.
- *  @param[in] isKeyErr    A boolean value indicating whether session failed due to
- *                         a key error.
+ *  @param[in] peerNodeId  The ID of the peer node with which the key is associated.
+ *  @param[in] keyId       The ID of the key that has failed.
+ *  @param[in] keyErr      A WEAVE_ERROR representing the reason the key is no longer valid.
  *
  */
-void WeaveExchangeManager::NotifySecureSessionFailed(uint64_t peerNodeId, uint16_t keyId, WEAVE_ERROR localErr, bool isKeyErr)
+void WeaveExchangeManager::NotifyKeyFailed(uint64_t peerNodeId, uint16_t keyId, WEAVE_ERROR keyErr)
 {
     ExchangeContext *ec = (ExchangeContext *) ContextPool;
 
@@ -1105,12 +1109,12 @@ void WeaveExchangeManager::NotifySecureSessionFailed(uint64_t peerNodeId, uint16
             ec->AddRef();
 
             // Fail entries matching ec.
-            FailRetransmitTableEntries(ec, localErr);
+            FailRetransmitTableEntries(ec, keyErr);
 #endif
 
             // Application callback function in key error case.
-            if (isKeyErr && ec->OnKeyError)
-                ec->OnKeyError(ec, localErr);
+            if (ec->OnKeyError)
+                ec->OnKeyError(ec, keyErr);
 
 #if WEAVE_CONFIG_ENABLE_RELIABLE_MESSAGING
             // Release reference to the exchange context.
@@ -1121,7 +1125,22 @@ void WeaveExchangeManager::NotifySecureSessionFailed(uint64_t peerNodeId, uint16
 
     for (int i = 0; i < WEAVE_CONFIG_MAX_BINDINGS; i++)
     {
-        BindingPool[i].OnKeyError(keyId, peerNodeId, localErr);
+        BindingPool[i].OnKeyFailed(peerNodeId, keyId, keyErr);
+    }
+}
+
+/**
+ *  Invoked when the security manager becomes available for initiating new secure sessions.
+ */
+void WeaveExchangeManager::NotifySecurityManagerAvailable()
+{
+    // Notify each binding that the security manager is now available.
+    //
+    // Note that this algorithm is unfair to bindings that are positioned later in the pool.
+    // In practice, however, this is unlikely to cause any problems.
+    for (int i = 0; i < WEAVE_CONFIG_MAX_BINDINGS; i++)
+    {
+        BindingPool[i].OnSecurityManagerAvailable();
     }
 }
 
@@ -1810,28 +1829,6 @@ uint16_t WeaveExchangeManager::GetBindingLogId(const Binding * const binding) co
 {
     // note that the result of pointer subtraction should be ptrdiff_t
     return static_cast<uint16_t>(binding - BindingPool);
-}
-
-/**
- *  Handle secure session ready.
- *
- *  @param[in] peerNodeId  Node ID of the destination node.
- *  @param[in] encType     Encryption type associated with the session.
- *  @param[in] authMode    Weave authentication mode associated with the session.
- *  @param[in] keyId       Key ID used for message encryption.
- *
- */
-void WeaveExchangeManager::NotifySecureSessionReady(uint64_t peerNodeId, uint8_t encType, WeaveAuthMode authMode, uint16_t keyId)
-{
-    Binding * binding = BindingPool;
-
-    WeaveLogDetail(ExchangeManager, "%s: peer node ID: 0x%" PRIX64 ", KeyId(0x%" PRIX32 "), EncType(0x%" PRIX8 "), AuthMode(0x%" PRIX8 ")",
-            __func__, peerNodeId, keyId, encType, authMode);
-
-    for (int i = 0; i < WEAVE_CONFIG_MAX_BINDINGS; i++, binding++)
-    {
-        binding->OnSecureSessionReady(peerNodeId, encType, authMode, keyId);
-    }
 }
 
 } // namespace nl

@@ -137,6 +137,7 @@ void WeaveMessageEncryption_Test1(nlTestSuite *inSuite, void *inContext)
 
     WEAVE_ERROR err;
     PacketBuffer *msgBuf;
+    WeaveSessionKey *sessionKey;
     uint64_t srcNodeId;
     uint64_t destNodeId = 0x18B4300012345678;
     uint32_t msgId = 3;
@@ -165,18 +166,16 @@ void WeaveMessageEncryption_Test1(nlTestSuite *inSuite, void *inContext)
     memcpy(msgEncSessionKey.AES128CTRSHA1.IntegrityKey, sMsgEncKey_IntegrityKey, sizeof(sMsgEncKey_IntegrityKey));
 
     // Initialize session key with destination node id.
-    err = fabricState.AllocSessionKey(destNodeId, NULL, sessionKeyId);
+    err = fabricState.AllocSessionKey(destNodeId, sessionKeyId, NULL, sessionKey);
     NL_TEST_ASSERT(inSuite, err == WEAVE_NO_ERROR);
 
-    err = fabricState.SetSessionKey(sessionKeyId, destNodeId, encType, authMode, &msgEncSessionKey);
-    NL_TEST_ASSERT(inSuite, err == WEAVE_NO_ERROR);
+    fabricState.SetSessionKey(sessionKey, encType, authMode, &msgEncSessionKey);
 
     // Initialize the same session key with LocalNodeId as a destination node id.
-    err = fabricState.AllocSessionKey(srcNodeId, NULL, sessionKeyId);
+    err = fabricState.AllocSessionKey(srcNodeId, sessionKeyId, NULL, sessionKey);
     NL_TEST_ASSERT(inSuite, err == WEAVE_NO_ERROR);
 
-    err = fabricState.SetSessionKey(sessionKeyId, srcNodeId, encType, authMode, &msgEncSessionKey);
-    NL_TEST_ASSERT(inSuite, err == WEAVE_NO_ERROR);
+    fabricState.SetSessionKey(sessionKey, encType, authMode, &msgEncSessionKey);
 
     // Initialize the MessageLayer object.
     messageLayer.FabricState = &fabricState;

@@ -1079,6 +1079,31 @@
  */
 
 /**
+ *  @def WEAVE_CONFIG_DEFAULT_SECURITY_SESSION_ESTABLISHMENT_TIMEOUT
+ *
+ *  @brief
+ *    The default amount of time, in milliseconds, after which an in-progess
+ *    session establishment will fail due to a timeout.
+ *
+ */
+#ifndef WEAVE_CONFIG_DEFAULT_SECURITY_SESSION_ESTABLISHMENT_TIMEOUT
+#define WEAVE_CONFIG_DEFAULT_SECURITY_SESSION_ESTABLISHMENT_TIMEOUT  30000
+#endif // WEAVE_CONFIG_DEFAULT_SECURITY_SESSION_ESTABLISHMENT_TIMEOUT
+
+/**
+ *  @def WEAVE_CONFIG_DEFAULT_SECURITY_SESSION_IDLE_TIMEOUT
+ *
+ *  @brief
+ *    The default minimum amount of time, in milliseconds, that an unreserved and idle
+ *    security session will be allowed to exist before being destroyed.  In practice,
+ *    unreserved idle sessions can exist for up to twice this value.
+ *
+ */
+#ifndef WEAVE_CONFIG_DEFAULT_SECURITY_SESSION_IDLE_TIMEOUT
+#define WEAVE_CONFIG_DEFAULT_SECURITY_SESSION_IDLE_TIMEOUT           15000
+#endif // WEAVE_CONFIG_DEFAULT_SECURITY_SESSION_IDLE_TIMEOUT
+
+/**
  *  @def WEAVE_CONFIG_NUM_MESSAGE_BUFS
  *
  *  @brief

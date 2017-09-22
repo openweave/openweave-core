@@ -34,7 +34,6 @@
 namespace nl {
 namespace Weave {
 
-
 /**
  * @fn Binding::State Binding::GetState(void) const
  *
@@ -175,8 +174,7 @@ void Binding::AddRef()
 /**
  *  Release a reference to the binding object.
  *
- *  If there are no more references to the binding object, the binding is closed and the associated
- *  resources are freed.
+ *  If there are no more references to the binding object, the binding is closed and freed.
  */
 void Binding::Release()
 {
@@ -197,9 +195,13 @@ void Binding::Release()
 }
 
 /**
- * Close the binding object and release the reference.
+ * Close the binding object and release a reference.
  *
- * When closed, the state of the binding is reset and no further API callbacks will be made to the application.
+ * When called, this method causes the binding to enter the Closed state.  Any in-progress prepare actions
+ * for the binding are canceled and all external communications resources held by the binding are released.
+ *
+ * Calling Close() decrements the reference count associated with the binding, freeing the object if the
+ * reference count becomes zero.
  */
 void Binding::Close(void)
 {
@@ -208,6 +210,25 @@ void Binding::Close(void)
 
     DoClose();
     Release();
+}
+
+/**
+ * Reset the binding back to an unconfigured state.
+ *
+ * When Reset() is called, any in-progress prepare actions for the binding are canceled and all external
+ * communications resources held by the binding are released.  Reset() places the binding in the
+ * Unconfigured state, after which it may be configured and prepared again.
+ *
+ * Reset() does not alter the reference count of the binding.
+ */
+void Binding::Reset()
+{
+    VerifyOrDie(mState != kState_NotAllocated);
+    VerifyOrDie(mRefCount > 0);
+
+    DoReset(kState_NotConfigured);
+
+    WeaveLogDetail(ExchangeManager, "Binding[%" PRIu8 "] (%" PRIu16 "): Reset", GetLogId(), mRefCount);
 }
 
 /**
@@ -235,34 +256,6 @@ void Binding::DefaultEventHandler(void *apAppState, EventType aEvent, const InEv
 {
     // No actions required for current implementation
     aOutParam.DefaultHandlerCalled = true;
-}
-
-/**
- * Transition the Binding to the Closed state.
- */
-void Binding::DoClose()
-{
-    VerifyOrDie(mState != kState_NotAllocated);
-
-    // If not already closed...
-    if (mState != kState_Closed)
-    {
-        // TODO FUTURE: Abort any in-progress async prepare actions associated with the binding,
-        // such as pending connection / session establishments.
-
-        // Clear pointers to application state/code to prevent any further use.
-        AppState = NULL;
-        SetEventCallback(NULL);
-        SetProtocolLayerCallback(NULL, NULL);
-
-        // Reset the configuration fields.
-        ResetConfig();
-
-        // Mark the binding as closed.
-        mState = kState_Closed;
-
-        WeaveLogDetail(ExchangeManager, "Binding[%" PRIu8 "] (%" PRIu16 "): Closed", GetLogId(), mRefCount);
-    }
 }
 
 /**
@@ -319,6 +312,61 @@ exit:
 }
 
 /**
+ * Reset the state of the binding, canceling any outstanding activities and releasing all external resources.
+ */
+void Binding::DoReset(State newState)
+{
+    VerifyOrDie(mState != kState_NotAllocated);
+
+    WeaveSecurityManager *sm = mExchangeManager->MessageLayer->SecurityMgr;
+    State origState = mState;
+
+    // Temporarily enter the resetting state.  This has the effect of suppressing any callbacks
+    // from lower layers that might result from the effort of resetting the binding.
+    mState = kState_Resetting;
+
+    // Release any reservation held on the message encryption key.  In the case of
+    // locally-initiated, non-shared session keys, this will result in the session
+    // being removed.
+    if (GetFlag(kFlag_KeyReserved))
+    {
+        sm->ReleaseKey(mPeerNodeId, mKeyId);
+    }
+
+    // If a session establishment was in progress, cancel it.
+    if (origState == kState_PreparingSecurity_EstablishSession)
+    {
+        sm->CancelSessionEstablishment(this);
+    }
+
+    // Reset the configuration state of the binding.
+    ResetConfig();
+
+    // Advance to the new state.
+    mState = newState;
+}
+
+/**
+ * Transition the binding to the Closed state if not already closed.
+ */
+void Binding::DoClose(void)
+{
+    // If not already closed...
+    if (mState != kState_Closed)
+    {
+        // Clear pointers to application state/code to prevent any further use.
+        AppState = NULL;
+        SetEventCallback(NULL);
+        SetProtocolLayerCallback(NULL, NULL);
+
+        // Reset the binding and enter the Closed state.
+        DoReset(kState_Closed);
+
+        WeaveLogDetail(ExchangeManager, "Binding[%" PRIu8 "] (%" PRIu16 "): Closed", GetLogId(), mRefCount);
+    }
+}
+
+/**
  * Reset the configuration parameters to their default values.
  */
 void Binding::ResetConfig()
@@ -339,6 +387,8 @@ void Binding::ResetConfig()
     mKeyId = WeaveKeyId::kNone;
     mEncType = kWeaveEncryptionType_None;
     mAuthMode = kWeaveAuthMode_Unauthenticated;
+
+    mFlags = 0;
 }
 
 /**
@@ -392,20 +442,6 @@ exit:
     Release();
     WeaveLogFunctError(err);
     return err;
-}
-
-/**
- * Reset the binding back to an unconfigured state.
- *
- * Note that this method has no effect on a Binding that is already in the Closed state.
- */
-void Binding::Reset()
-{
-    if (mState != kState_NotAllocated && mState != kState_Closed)
-    {
-        ResetConfig();
-        mState = kState_NotConfigured;
-    }
 }
 
 /**
@@ -494,6 +530,7 @@ void Binding::PrepareTransport()
 void Binding::PrepareSecurity()
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
+    WeaveSecurityManager *sm = mExchangeManager->MessageLayer->SecurityMgr;
 
     mState = kState_PreparingSecurity;
 
@@ -505,30 +542,70 @@ void Binding::PrepareSecurity()
 
     switch (mSecurityOption)
     {
+    case kSecurityOption_CASESession:
     case kSecurityOption_SharedCASESession:
         {
-            // This is also defined in Weave/Profiles/ServiceDirectory.h, but this is in Weave Core
-            // TODO: move this to a common location.
-            static const uint64_t kServiceEndpoint_CoreRouter = 0x18B4300200000012ull;
+            IPAddress peerAddress;
+            uint16_t peerPort;
+            uint64_t terminatingNodeId;
+            const bool isSharedSession = (mSecurityOption == kSecurityOption_SharedCASESession);
 
-            const uint64_t fabricGlobalId = WeaveFabricIdToIPv6GlobalId(mExchangeManager->FabricState->FabricId);
-            const IPAddress coreRouterAddress = IPAddress::MakeULA(fabricGlobalId, nl::Weave::kWeaveSubnetId_Service,
-                                       nl::Weave::WeaveNodeIdToIPv6InterfaceId(kServiceEndpoint_CoreRouter));
+            if (isSharedSession)
+            {
+                // This is also defined in Weave/Profiles/ServiceDirectory.h, but this is in Weave Core
+                // TODO: move this to a common location.
+                static const uint64_t kServiceEndpoint_CoreRouter = 0x18B4300200000012ull;
 
-            WeaveLogDetail(ExchangeManager, "Binding[%" PRIu8 "] (%" PRIu16 "): Initiating shared CASE session", GetLogId(), mRefCount);
+                const uint64_t fabricGlobalId = WeaveFabricIdToIPv6GlobalId(mExchangeManager->FabricState->FabricId);
+                peerAddress = IPAddress::MakeULA(fabricGlobalId, nl::Weave::kWeaveSubnetId_Service,
+                                   nl::Weave::WeaveNodeIdToIPv6InterfaceId(kServiceEndpoint_CoreRouter));
+                peerPort = WEAVE_PORT;
+                terminatingNodeId = kServiceEndpoint_CoreRouter;
+            }
+            else
+            {
+                peerAddress = mPeerAddress;
+                peerPort = mPeerPort;
+                terminatingNodeId = kNodeIdNotSpecified;
+            }
+
+            WeaveLogDetail(ExchangeManager, "Binding[%" PRIu8 "] (%" PRIu16 "): Initiating %sCASE session",
+                    GetLogId(), mRefCount, isSharedSession ? "shared " : "");
 
             mState = kState_PreparingSecurity_EstablishSession;
 
-            // Note that security manager could drive the state of this binding to kState_Ready in this function
-            // if the session is already available. It could also call failure handler synchronously.
-            err = mExchangeManager->MessageLayer->SecurityMgr->StartCASESession(
-                    NULL, mPeerNodeId, coreRouterAddress, WEAVE_PORT, mAuthMode, NULL,
-                    NULL, NULL, NULL, kServiceEndpoint_CoreRouter);
+            // Call the security manager to initiate the CASE session.  Note that security manager will call the
+            // OnSecureSessionReady function during this call if a shared session is requested and the session is
+            // already available.
+            err = sm->StartCASESession(NULL, mPeerNodeId, peerAddress, peerPort, mAuthMode, this,
+                    OnSecureSessionReady, OnSecureSessionFailed, NULL, terminatingNodeId);
+
+            // If the security manager is currently busy, wait for it to finish.  When this happens,
+            // Binding::OnSecurityManagerAvailable() will be called, which will give the binding an opportunity
+            // to try again.
+            if (err == WEAVE_ERROR_SECURITY_MANAGER_BUSY)
+            {
+                WeaveLogDetail(ExchangeManager, "Binding[%" PRIu8 "] (%" PRIu16 "): Security manager busy; waiting.",
+                        GetLogId(), mRefCount);
+
+                mState = kState_PreparingSecurity_WaitSecurityMgr;
+                err = WEAVE_NO_ERROR;
+            }
+
             SuccessOrExit(err);
         }
         break;
 
     case kSecurityOption_SpecificKey:
+
+        // Add a reservation on the specified key.  This reservation will be owned by the binding
+        // until it closes.
+        sm->ReserveKey(mPeerNodeId, mKeyId);
+        SetFlag(kFlag_KeyReserved);
+
+        HandleBindingReady();
+        break;
+
     case kSecurityOption_None:
         // No further preparation needed.
         HandleBindingReady();
@@ -612,7 +689,7 @@ void Binding::HandleBindingReady()
 /**
  * Transition the Binding to the Failed state.
  */
-void Binding::HandleBindingFailed(WEAVE_ERROR err, bool raiseEvents)
+void Binding::HandleBindingFailed(WEAVE_ERROR err, bool raiseEvents) // TODO: add status report information.
 {
     InEventParam inParam;
     OutEventParam outParam;
@@ -633,14 +710,13 @@ void Binding::HandleBindingFailed(WEAVE_ERROR err, bool raiseEvents)
         eventType = kEvent_BindingFailed;
     }
 
-    mState = kState_Failed;
-
     WeaveLogDetail(ExchangeManager, "Binding[%" PRIu8 "] (%" PRIu16 "): %s: peer %" PRIX64 ", %s",
             GetLogId(), mRefCount,
             (eventType == kEvent_BindingFailed) ? "Binding FAILED" : "Prepare FAILED",
             mPeerNodeId, ErrorStr(err));
 
-    ResetConfig();
+    // Reset the binding and enter the Failed state.
+    DoReset(kState_Failed);
 
     // Prevent the application from freeing the Binding until we're done using it.
     AddRef();
@@ -659,37 +735,46 @@ void Binding::HandleBindingFailed(WEAVE_ERROR err, bool raiseEvents)
 }
 
 /**
- * Invoked when a security session establishment has completed successfully.
+ * Invoked when security session establishment has completed successfully.
  */
-void Binding::OnSecureSessionReady(uint64_t peerNodeId, uint8_t encType, WeaveAuthMode authMode, uint16_t keyId)
+void Binding::OnSecureSessionReady(WeaveSecurityManager *sm, WeaveConnection *con, void *reqState, uint16_t keyId, uint64_t peerNodeId, uint8_t encType)
 {
-    // NOTE: This method is called whenever a new session is established.  Thus the code
-    // must filter for the specific key applies to the current binding.
+    Binding *_this = (Binding *)reqState;
 
-    // Ignore the key if the binding is not in the Preparing_EstablishingSecureSession state.
-    VerifyOrExit(mState == kState_PreparingSecurity_EstablishSession, /* no-op */);
-
-    // Ignore the key if it is not for the specified peer node.
-    VerifyOrExit(peerNodeId == mPeerNodeId, /* no-op */);
-
-    // Ignore the key if its not a session key.
-    VerifyOrExit(WeaveKeyId::IsSessionKey(keyId), /* no-op */);
+    // Verify the state of the binding.
+    VerifyOrDie(_this->mState == kState_PreparingSecurity_EstablishSession);
 
     // Save the session key id and encryption type.
-    mKeyId = keyId;
-    mEncType = encType;
+    _this->mKeyId = keyId;
+    _this->mEncType = encType;
+
+    // Remember that the key must be released when the binding closes.
+    _this->SetFlag(kFlag_KeyReserved);
 
     // Tell the application that the binding is ready.
-    HandleBindingReady();
-
-exit:
-    return;
+    _this->HandleBindingReady();
 }
 
 /**
- * Invoked security session establishment has failed or a key error has occurred.
+ * Invoked when security session establishment fails.
  */
-void Binding::OnKeyError(uint32_t aKeyId, uint64_t aPeerNodeId, WEAVE_ERROR aKeyErr)
+void Binding::OnSecureSessionFailed(WeaveSecurityManager *sm, WeaveConnection *con, void *reqState,
+        WEAVE_ERROR localErr, uint64_t peerNodeId, Profiles::StatusReporting::StatusReport *statusReport)
+{
+    Binding *_this = (Binding *)reqState;
+
+    // Verify the state of the binding.
+    VerifyOrDie(_this->mState == kState_PreparingSecurity_EstablishSession);
+
+    // Tell the application that the binding has failed.
+    _this->HandleBindingFailed(localErr, true);
+}
+
+/**
+ * Invoked when a message encryption key has been rejected by a peer (via a KeyError), or a key has
+ * otherwise become invalid (e.g. by ending a session).
+ */
+void Binding::OnKeyFailed(uint64_t peerNodeId, uint32_t keyId, WEAVE_ERROR keyErr)
 {
     // NOTE: This method is called for any and all key errors that occur system-wide.  Thus this code
     // must filter for errors that apply to the current binding.
@@ -698,17 +783,32 @@ void Binding::OnKeyError(uint32_t aKeyId, uint64_t aPeerNodeId, WEAVE_ERROR aKey
     VerifyOrExit(IsPreparing() || mState == kState_Ready, /* no-op */);
 
     // Ignore the key error if it is not in relation to the specified peer node.
-    VerifyOrExit(aPeerNodeId == mPeerNodeId, /* no-op */);
+    VerifyOrExit(peerNodeId == mPeerNodeId, /* no-op */);
 
     // Ignore the key error if the binding is in the Ready state and the failed key id does
     // not match the key id associated with the binding.
-    VerifyOrExit(mState != kState_Ready || aKeyId == mKeyId, /* no-op */);
+    VerifyOrExit(mState != kState_Ready || keyId == mKeyId, /* no-op */);
 
     // Fail the binding.
-    HandleBindingFailed(aKeyErr, true);
+    HandleBindingFailed(keyErr, true);
 
 exit:
     return;
+}
+
+/**
+ *  Invoked when the security manager becomes available for initiating new sessions.
+ */
+void Binding::OnSecurityManagerAvailable()
+{
+    // NOTE: This method is called for all binding objects any time the security manager becomes
+    // available.  Thus this method must filter the notification based on the state of the binding.
+
+    // If the binding is waiting for the security manager, retry preparing security.
+    if (mState == kState_PreparingSecurity_WaitSecurityMgr)
+    {
+        PrepareSecurity();
+    }
 }
 
 /**
@@ -853,9 +953,15 @@ WEAVE_ERROR Binding::NewExchangeContext(nl::Weave::ExchangeContext *& ec)
         err = mExchangeManager->FabricState->GroupKeyStore->GetCurrentAppKeyId(mKeyId, keyId);
         SuccessOrExit(err);
 
-        // Configure the binding with the selected key id and encryption type.
+        // Configure the exchange context with the selected key id and encryption type.
         ec->KeyId = keyId;
         ec->EncryptionType = mEncType;
+
+        // Add a reservation for the key.
+        mExchangeManager->MessageLayer->SecurityMgr->ReserveKey(mPeerNodeId, keyId);
+
+        // Arrange for the exchange context to automatically release the key when it is freed.
+        ec->SetAutoReleaseKey(true);
     }
 
     err = AdjustResponseTimeout(ec);
@@ -1052,6 +1158,23 @@ Binding::Configuration& Binding::Configuration::Security_None()
     mBinding.mSecurityOption = kSecurityOption_None;
     mBinding.mKeyId = WeaveKeyId::kNone;
     mBinding.mAuthMode = kWeaveAuthMode_Unauthenticated;
+    return *this;
+}
+
+/**
+ * When communicating with the peer, send and receive messages encrypted using a CASE session key
+ * established with the peer node.
+ *
+ * If the necessary session is not available, it will be established automatically as part of
+ * preparing the binding.
+ *
+ * @return                              A reference to the binding object.
+ */
+Binding::Configuration& Binding::Configuration::Security_CASESession(void)
+{
+    mBinding.mSecurityOption = kSecurityOption_CASESession;
+    mBinding.mKeyId = WeaveKeyId::kNone;
+    mBinding.mAuthMode = kWeaveAuthMode_CASE_AnyCert;
     return *this;
 }
 

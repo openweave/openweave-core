@@ -68,8 +68,6 @@ using namespace nl::Weave::Profiles::Security::AppKeys;
 using namespace nl::Weave::Encoding;
 using namespace nl::Weave::Crypto;
 
-#define SESSION_TIMEOUT_MS (30000)
-
 WeaveSecurityManager::WeaveSecurityManager(void)
 {
     State = kState_NotInitialized;
@@ -85,7 +83,8 @@ WEAVE_ERROR WeaveSecurityManager::Init(WeaveExchangeManager& aExchangeMgr, Syste
 
     ExchangeManager = &aExchangeMgr;
     mSystemLayer = &aSystemLayer;
-    mSessionTimeout = SESSION_TIMEOUT_MS;
+    SessionEstablishTimeout = WEAVE_CONFIG_DEFAULT_SECURITY_SESSION_ESTABLISHMENT_TIMEOUT;
+    IdleSessionTimeout = WEAVE_CONFIG_DEFAULT_SECURITY_SESSION_IDLE_TIMEOUT;
     FabricState = aExchangeMgr.FabricState;
     OnSessionEstablished = NULL;
     OnSessionError = NULL;
@@ -138,6 +137,8 @@ WEAVE_ERROR WeaveSecurityManager::Init(WeaveExchangeManager& aExchangeMgr, Syste
     mRequestedAuthMode = kWeaveAuthMode_NotSpecified;
     mSessionKeyId = WeaveKeyId::kNone;
     mEncType = kWeaveEncryptionType_None;
+
+    mFlags = 0;
 
     err = ExchangeManager->RegisterUnsolicitedMessageHandler(kWeaveProfile_Security, HandleUnsolicitedMessage, this);
     SuccessOrExit(err);
@@ -196,7 +197,11 @@ void WeaveSecurityManager::HandleUnsolicitedMessage(ExchangeContext *ec, const I
     // Verify that we don't already have a session establishment in progress.
     VerifyOrExit(secMgr->State == kState_Idle, err = WEAVE_ERROR_SECURITY_MANAGER_BUSY);
 
-    WEAVE_FAULT_INJECT(nl::Weave::FaultInjection::kFault_SecMgrBusy, ExitNow(err = WEAVE_ERROR_SECURITY_MANAGER_BUSY));
+    WEAVE_FAULT_INJECT(nl::Weave::FaultInjection::kFault_SecMgrBusy,
+        {
+            secMgr->AsyncNotifySecurityManagerAvailable();
+            ExitNow(err = WEAVE_ERROR_SECURITY_MANAGER_BUSY);
+        });
 
 #if WEAVE_CONFIG_ENABLE_RELIABLE_MESSAGING
     if (!ec->HasPeerRequestedAck())
@@ -297,6 +302,7 @@ WEAVE_ERROR WeaveSecurityManager::StartPASESession(WeaveConnection *con, WeaveAu
                                                    const uint8_t *pw, uint16_t pwLen)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
+    WeaveSessionKey *sessionKey;
     bool clearStateOnError = false;
 
     // Verify security manager has been initialized.
@@ -305,7 +311,11 @@ WEAVE_ERROR WeaveSecurityManager::StartPASESession(WeaveConnection *con, WeaveAu
     // Verify there is no session in process.
     VerifyOrExit(State == kState_Idle, err = WEAVE_ERROR_SECURITY_MANAGER_BUSY);
 
-    WEAVE_FAULT_INJECT(nl::Weave::FaultInjection::kFault_SecMgrBusy, ExitNow(err = WEAVE_ERROR_SECURITY_MANAGER_BUSY));
+    WEAVE_FAULT_INJECT(nl::Weave::FaultInjection::kFault_SecMgrBusy,
+        {
+            AsyncNotifySecurityManagerAvailable();
+            ExitNow(err = WEAVE_ERROR_SECURITY_MANAGER_BUSY);
+        });
 
     // Verify correct authentication mode.
     VerifyOrExit(IsPASEAuthMode(requestedAuthMode), err = WEAVE_ERROR_INVALID_ARGUMENT);
@@ -328,8 +338,10 @@ WEAVE_ERROR WeaveSecurityManager::StartPASESession(WeaveConnection *con, WeaveAu
 
     // Allocate an entry in the session key table identified by a random key id. The actual
     // key itself will be set once the session is established.
-    err = FabricState->AllocSessionKey(con->PeerNodeId, con, mSessionKeyId, false);
+    err = FabricState->AllocSessionKey(con->PeerNodeId, WeaveKeyId::kNone, con, sessionKey);
     SuccessOrExit(err);
+    sessionKey->SetLocallyInitiated(true);
+    mSessionKeyId = sessionKey->MsgEncKey.KeyId;
 
     // Create a new exchange context.
     err = NewSessionExchange(mCon->PeerNodeId, mCon->PeerAddr, mCon->PeerPort);
@@ -731,6 +743,7 @@ __attribute__((noinline))
 WEAVE_ERROR WeaveSecurityManager::ProcessPASEInitiatorStep1(ExchangeContext *ec, PacketBuffer* msgBuf)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
+    WeaveSessionKey *sessionKey;
 
     // Generate and encode PASE step 1 message.
     Platform::Security::OnTimeConsumingCryptoStart();
@@ -744,8 +757,10 @@ WEAVE_ERROR WeaveSecurityManager::ProcessPASEInitiatorStep1(ExchangeContext *ec,
     //
     // If the initiator has proposed a key id that already exists, make sure we don't remove the
     // existing key during the error clean-up process.
-    err = FabricState->AllocSessionKey(ec->PeerNodeId, ec->Con, mPASEEngine->SessionKeyId);
+    err = FabricState->AllocSessionKey(ec->PeerNodeId, mPASEEngine->SessionKeyId, ec->Con, sessionKey);
     SuccessOrExit(err);
+    sessionKey->SetLocallyInitiated(false);
+    sessionKey->SetRemoveOnIdle(false); // TODO FUTURE: Set this to true when support for PASE over WRM is implemented.
 
     // Save the proposed session key id and encryption type.
     mSessionKeyId = mPASEEngine->SessionKeyId;
@@ -906,8 +921,10 @@ WEAVE_ERROR WeaveSecurityManager::StartCASESession(WeaveConnection *con, uint64_
                                                    WeaveCASEAuthDelegate *authDelegate, uint64_t terminatingNodeId)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
+    WeaveSessionKey *sessionKey = NULL;
     bool clearStateOnError = false;
     bool isSharedSession = (terminatingNodeId != kNodeIdNotSpecified);
+    const uint8_t encType = kWeaveEncryptionType_AES128CTRSHA1; // Only one encryption type supported for now.
 
     // Verify security manager has been initialized.
     VerifyOrExit(State != kState_NotInitialized, err = WEAVE_ERROR_INCORRECT_STATE);
@@ -915,26 +932,23 @@ WEAVE_ERROR WeaveSecurityManager::StartCASESession(WeaveConnection *con, uint64_
     // Verify correct authentication mode.
     VerifyOrExit(IsCASEAuthMode(requestedAuthMode), err = WEAVE_ERROR_INVALID_ARGUMENT);
 
-    // If requested session is shared.
+    // If requested session is shared...
     if (isSharedSession)
     {
-        uint16_t keyId;
-
-        // If shared session to the specified terminating node already exists.
-        if (FabricState->HasSharedSession(terminatingNodeId, requestedAuthMode, kWeaveEncryptionType_AES128CTRSHA1, keyId))
+        // Search for an established shared session to the specified terminating node that matches
+        // the requested auth mode and encryption type.  If such a session exists...
+        sessionKey = FabricState->FindSharedSession(terminatingNodeId, requestedAuthMode, encType);
+        if (sessionKey != NULL)
         {
-            // Add new shared session end node to the record.
-            err = FabricState->AddSharedSessionEndNode(peerNodeId, terminatingNodeId, keyId);
+            // Add a new end node to the list of end nodes associated with the session.
+            err = FabricState->AddSharedSessionEndNode(sessionKey, peerNodeId);
             SuccessOrExit(err);
 
-            // If the requested session is NOT currently in progress that means that the session
-            // is already established and exchange manager can be notified immediately.
-            // Otherwise, the exchange manager will be notified after current session is established.
-            if (!(State == kState_CASEInProgress && mEC->PeerNodeId == terminatingNodeId && mSessionKeyId == keyId))
-            {
-                // Note that currently only one encryption type is supported
-                ExchangeManager->NotifySecureSessionReady(peerNodeId, kWeaveEncryptionType_AES128CTRSHA1, requestedAuthMode, keyId);
-            }
+            // Add a reservation for the session.
+            ReserveSessionKey(sessionKey);
+
+            // Immediately notify the application that the session has been established.
+            onComplete(this, con, reqState, sessionKey->MsgEncKey.KeyId, peerNodeId, encType);
 
             ExitNow();
         }
@@ -943,11 +957,15 @@ WEAVE_ERROR WeaveSecurityManager::StartCASESession(WeaveConnection *con, uint64_
     // Verify there is no session in process.
     VerifyOrExit(State == kState_Idle, err = WEAVE_ERROR_SECURITY_MANAGER_BUSY);
 
-    WEAVE_FAULT_INJECT(nl::Weave::FaultInjection::kFault_SecMgrBusy, ExitNow(err = WEAVE_ERROR_SECURITY_MANAGER_BUSY));
+    WEAVE_FAULT_INJECT(nl::Weave::FaultInjection::kFault_SecMgrBusy,
+        {
+            AsyncNotifySecurityManagerAvailable();
+            ExitNow(err = WEAVE_ERROR_SECURITY_MANAGER_BUSY);
+        });
 
     State = kState_CASEInProgress;
     mRequestedAuthMode = requestedAuthMode;
-    mEncType = kWeaveEncryptionType_AES128CTRSHA1;
+    mEncType = encType;
     mCon = con;
     mStartSecureSession_OnComplete = onComplete;
     mStartSecureSession_OnError = onError;
@@ -960,14 +978,17 @@ WEAVE_ERROR WeaveSecurityManager::StartCASESession(WeaveConnection *con, uint64_
     // Allocate an entry in the session key table identified by a random key id. The actual
     // key itself will be set once the session is established.
     err = FabricState->AllocSessionKey((isSharedSession ? terminatingNodeId : peerNodeId),
-                                       con, mSessionKeyId, isSharedSession);
+                                       WeaveKeyId::kNone, con, sessionKey);
     SuccessOrExit(err);
+    sessionKey->SetLocallyInitiated(true);
+    sessionKey->SetSharedSession(isSharedSession);
+    mSessionKeyId = sessionKey->MsgEncKey.KeyId;
 
     // If requested session is shared.
     if (isSharedSession)
     {
         // Add new shared session end node to the record.
-        err = FabricState->AddSharedSessionEndNode(peerNodeId, terminatingNodeId, mSessionKeyId);
+        err = FabricState->AddSharedSessionEndNode(sessionKey, peerNodeId);
         SuccessOrExit(err);
     }
 
@@ -1007,8 +1028,8 @@ WEAVE_ERROR WeaveSecurityManager::StartCASESession(WeaveConnection *con, uint64_
 exit:
     if (err != WEAVE_NO_ERROR && clearStateOnError)
     {
-        if (mSessionKeyId != WeaveKeyId::kNone)
-            FabricState->RemoveSessionKey(mSessionKeyId, (isSharedSession ? terminatingNodeId : peerNodeId));
+        if (sessionKey != NULL)
+            FabricState->RemoveSessionKey(sessionKey);
 
         Reset();
     }
@@ -1202,6 +1223,7 @@ WEAVE_ERROR WeaveSecurityManager::StartCASESession(WeaveConnection *con, uint64_
 void WeaveSecurityManager::HandleCASESessionStart(ExchangeContext *ec, const IPPacketInfo *pktInfo, const WeaveMessageInfo *msgInfo, PacketBuffer* msgBuf)
 {
     WEAVE_ERROR                         err;
+    WeaveSessionKey                     *sessionKey;
     CASE::BeginSessionRequestMessage    req;
     CASE::ReconfigureMessage            reconf;
     PacketBuffer                        *respMsgBuf = NULL;
@@ -1292,8 +1314,12 @@ void WeaveSecurityManager::HandleCASESessionStart(ExchangeContext *ec, const IPP
         // Allocate an entry in the session key table using the key id proposed by the peer.
         // If the session is being established over a Weave connection, arrange for the session key to
         // be bound to the connection, such that when the connection closes, the key is removed.
-        err = FabricState->AllocSessionKey(ec->PeerNodeId, ec->Con, req.SessionKeyId);
+        // Set the RemoveOnIdle flag so that the session will be automatically removed after a period of
+        // inactivity (note that this only applies to sessions that are NOT bound to connections).
+        err = FabricState->AllocSessionKey(ec->PeerNodeId, req.SessionKeyId, ec->Con, sessionKey);
         SuccessOrExit(err);
+        sessionKey->SetLocallyInitiated(false);
+        sessionKey->SetRemoveOnIdle(true);
 
         // Save the proposed session key id and encryption type.
         mSessionKeyId = req.SessionKeyId;
@@ -1443,7 +1469,11 @@ WEAVE_ERROR WeaveSecurityManager::StartTAKESession(WeaveConnection *con, WeaveAu
     // Verify there is no session in process.
     VerifyOrExit(State == kState_Idle, err = WEAVE_ERROR_SECURITY_MANAGER_BUSY);
 
-    WEAVE_FAULT_INJECT(nl::Weave::FaultInjection::kFault_SecMgrBusy, ExitNow(err = WEAVE_ERROR_SECURITY_MANAGER_BUSY));
+    WEAVE_FAULT_INJECT(nl::Weave::FaultInjection::kFault_SecMgrBusy,
+        {
+            AsyncNotifySecurityManagerAvailable();
+            ExitNow(err = WEAVE_ERROR_SECURITY_MANAGER_BUSY);
+        });
 
     // Verify correct authentication mode (only one supported currently).
     VerifyOrExit(requestedAuthMode == kWeaveAuthMode_TAKE_IdentificationKey, err = WEAVE_ERROR_INVALID_ARGUMENT);
@@ -1467,8 +1497,11 @@ WEAVE_ERROR WeaveSecurityManager::StartTAKESession(WeaveConnection *con, WeaveAu
     // key itself will be set once the session is established.
     if (useSessionKeyID)
     {
-        err = FabricState->AllocSessionKey(con->PeerNodeId, con, mSessionKeyId, false);
+        WeaveSessionKey *sessionKey;
+        err = FabricState->AllocSessionKey(con->PeerNodeId, WeaveKeyId::kNone, con, sessionKey);
         SuccessOrExit(err);
+        sessionKey->SetLocallyInitiated(true);
+        mSessionKeyId = sessionKey->MsgEncKey.KeyId;
     }
 
     // Create a new exchange context.
@@ -1806,10 +1839,13 @@ void WeaveSecurityManager::HandleTAKESessionStart(ExchangeContext *ec, const IPP
 
     if (mTAKEEngine->UseSessionKey())
     {
+        WeaveSessionKey *sessionKey;
+        err = FabricState->AllocSessionKey(ec->PeerNodeId, mTAKEEngine->SessionKeyId, ec->Con, sessionKey);
+        SuccessOrExit(err);
+        sessionKey->SetLocallyInitiated(false);
+        sessionKey->SetRemoveOnIdle(true);
         mSessionKeyId = mTAKEEngine->SessionKeyId;
         mEncType = mTAKEEngine->GetEncryptionType();
-        err = FabricState->AllocSessionKey(ec->PeerNodeId, ec->Con, mSessionKeyId);
-        SuccessOrExit(err);
     }
 
     respMsgBuf = PacketBuffer::New();
@@ -2490,13 +2526,17 @@ exit:
 
 void WeaveSecurityManager::HandleKeyErrorMsg(ExchangeContext *ec, PacketBuffer* msgBuf)
 {
+    WEAVE_ERROR err;
+    WeaveSessionKey *sessionKey;
     uint8_t *p = msgBuf->Start();
-    uint64_t peerNodeId = ec->PeerNodeId;
+    uint64_t srcNodeId = ec->PeerNodeId;
     uint16_t keyId;
     uint8_t encType;
     uint16_t keyErrCode;
     uint32_t messageId;
     WEAVE_ERROR keyErr;
+    uint64_t endNodeIds[WEAVE_CONFIG_MAX_END_NODES_PER_SHARED_SESSION + 1];
+    uint8_t endNodeIdsCount = 0;
 
     // Verify correct message size.
     if (msgBuf->DataLength() != kWeaveKeyErrorMessageSize)
@@ -2539,24 +2579,45 @@ void WeaveSecurityManager::HandleKeyErrorMsg(ExchangeContext *ec, PacketBuffer* 
         break;
     }
 
-    // Note that all peers sharing the same secure session (key/enc/router)
-    // would have to be notified separately.
-
-    // Delete keyId if it is a session key.
+    // If the failed key is a session key...
     if (WeaveKeyId::IsSessionKey(keyId))
     {
-        // Handle secure session failed.
-        HandleSecureSessionFailed(peerNodeId, keyId, keyErr, true);
+        // Attempt to find the referenced session key.  If found...
+        err = FabricState->FindSessionKey(keyId, srcNodeId, false, sessionKey);
+        if (err == WEAVE_NO_ERROR)
+        {
+            // If the key refers to a shared session, add the shared session end nodes to the list
+            // of peer nodes associated with the key.
+            if (sessionKey->IsSharedSession())
+            {
+                FabricState->GetSharedSessionEndNodeIds(sessionKey, endNodeIds, sizeof(endNodeIds) / sizeof(uint64_t), endNodeIdsCount);
+            }
+
+            // Add the terminating node to the list of peer nodes associated with the key.
+            endNodeIds[endNodeIdsCount++] = sessionKey->NodeId;
+
+            // Discard the failed session key.
+            FabricState->RemoveSessionKey(keyId, srcNodeId);
+        }
     }
+
+    // Otherwise, the key is some other form of key (e.g. a group key), so add the node that sent the
+    // key error to the list of peers associated with the key.
     else
     {
-        // Notify exchange manager that key has failed.
-        ExchangeManager->NotifySecureSessionFailed(peerNodeId, keyId, keyErr, true);
+        endNodeIds[endNodeIdsCount++] = srcNodeId;
     }
+
+    // For each peer node associated with the key, notify the exchange manager that the key has failed
+    // with respect to that peer.
+    for (int i = 0; i < endNodeIdsCount; i++)
+        ExchangeManager->NotifyKeyFailed(endNodeIds[i], keyId, keyErr);
+
+    // TODO: fail the current in-progress session if the key error identifies the proposed key.
 
     // Call the general key error message handler.
     if (OnKeyErrorMsgRcvd != NULL)
-        OnKeyErrorMsgRcvd(keyId, encType, messageId, peerNodeId, keyErr);
+        OnKeyErrorMsgRcvd(keyId, encType, messageId, srcNodeId, keyErr);
 
 exit:
     if (msgBuf != NULL)
@@ -2565,43 +2626,6 @@ exit:
     if (ec != NULL)
         ec->Close();
 
-    return;
-}
-
-void WeaveSecurityManager::HandleSecureSessionFailed(uint64_t peerNodeId, uint16_t keyId, WEAVE_ERROR localErr, bool isKeyErr)
-{
-    WEAVE_ERROR err;
-    WeaveSessionKey *sessionKey;
-    uint64_t terminatingNodeId;
-    uint64_t endNodeIds[WEAVE_CONFIG_MAX_END_NODES_PER_SHARED_SESSION];
-    uint8_t endNodeIdsCount;
-    bool isSharedSession;
-
-    err = FabricState->FindSessionKey(keyId, peerNodeId, false, sessionKey);
-    SuccessOrExit(err);
-
-    terminatingNodeId = sessionKey->NodeId;
-    isSharedSession = sessionKey->SharedSession;
-
-    if (isSharedSession)
-    {
-        err = FabricState->GetSharedSessionEndNodeIds(sessionKey, endNodeIds, sizeof(endNodeIds) / sizeof(uint64_t), endNodeIdsCount);
-        SuccessOrExit(err);
-    }
-
-    FabricState->RemoveSessionKey(keyId, peerNodeId);
-
-    if (isSharedSession)
-    {
-        // For each end node notify exchange manager that secure session failed.
-        for (int i = 0; i < endNodeIdsCount; i++)
-            ExchangeManager->NotifySecureSessionFailed(endNodeIds[i], keyId, localErr, isKeyErr);
-    }
-
-    // Notify exchange manager that secure session to the terminating/peer node failed.
-    ExchangeManager->NotifySecureSessionFailed(terminatingNodeId, keyId, localErr, isKeyErr);
-
-exit:
     return;
 }
 
@@ -2850,48 +2874,15 @@ exit:
 
 void WeaveSecurityManager::HandleSessionComplete(void)
 {
-    WEAVE_ERROR err;
     WeaveConnection *con = mCon;
     uint64_t peerNodeId = mEC->PeerNodeId;
     uint16_t sessionKeyId = mSessionKeyId;
-    WeaveAuthMode authMode;
-    uint8_t encType;
+    uint8_t encType = mEncType;
     SessionEstablishedFunct userOnComplete = mStartSecureSession_OnComplete;
     void *reqState = mStartSecureSession_ReqState;
-    WeaveSessionKey *sessionKey;
-    uint64_t endNodeIds[WEAVE_CONFIG_MAX_END_NODES_PER_SHARED_SESSION];
-    uint8_t endNodeIdsCount;
 
     // Reset state.
     Reset();
-
-    // Lookup the newly established session.
-    err = FabricState->FindSessionKey(sessionKeyId, peerNodeId, false, sessionKey);
-    SuccessOrExit(err);
-
-    // Get copies of the encryption type and auth mode from the session key.
-    encType = sessionKey->MsgEncKey.EncType;
-    authMode = sessionKey->AuthMode;
-
-    // If shared session...
-    if (sessionKey->SharedSession)
-    {
-        // Get all end nodes associated with this shared sessions.
-        err = FabricState->GetSharedSessionEndNodeIds(sessionKey, endNodeIds, sizeof(endNodeIds) / sizeof(uint64_t), endNodeIdsCount);
-        SuccessOrExit(err);
-
-        // For each end node notify exchange manager that secure session is ready.
-        for (int i = 0; i < endNodeIdsCount; i++)
-        {
-            ExchangeManager->NotifySecureSessionReady(endNodeIds[i], encType, authMode, sessionKeyId);
-        }
-    }
-
-    // Notify exchange manager that secure session is ready.
-    // This call handles the following scenarios:
-    //   -- session is not shared.
-    //   -- session is shared, where peerNodeId is the session terminating node.
-    ExchangeManager->NotifySecureSessionReady(peerNodeId, encType, authMode, sessionKeyId);
 
     // Call the general session established handler.
     if (OnSessionEstablished != NULL)
@@ -2901,8 +2892,23 @@ void WeaveSecurityManager::HandleSessionComplete(void)
     if (userOnComplete != NULL)
         userOnComplete(this, con, reqState, sessionKeyId, peerNodeId, encType);
 
-exit:
-    return;
+    // If the session was initiated the remote party, release the reservation that was
+    // made when the session key record was allocated.  Provided that the application
+    // hasn't increased the reservation count during one of the above callbacks,
+    // this will result in the reservation count going to zero, which will make
+    // eligible for removal if it remains idle past the idle timeout period.
+    {
+        WeaveSessionKey *sessionKey;
+        if (FabricState->FindSessionKey(sessionKeyId, peerNodeId, false, sessionKey) == WEAVE_NO_ERROR &&
+            !sessionKey->IsLocallyInitiated())
+        {
+            ReleaseSessionKey(sessionKey);
+        }
+    }
+
+    // Asynchronously notify other subsystems that the security manager is now available
+    // for initiating additional sessions.
+    AsyncNotifySecurityManagerAvailable();
 }
 
 void WeaveSecurityManager::HandleSessionError(WEAVE_ERROR err, PacketBuffer* statusReportMsgBuf)
@@ -2941,11 +2947,11 @@ void WeaveSecurityManager::HandleSessionError(WEAVE_ERROR err, PacketBuffer* sta
         else
             SendStatusReport(err, mEC);
 
+        // Remove the session key from the key table.
+        FabricState->RemoveSessionKey(sessionKeyId, peerNodeId);
+
         // Reset state.
         Reset();
-
-        // Handle secure session failed.
-        HandleSecureSessionFailed(peerNodeId, sessionKeyId, err, false);
 
         // Call the general session error handler.
         if (OnSessionError != NULL)
@@ -2954,6 +2960,10 @@ void WeaveSecurityManager::HandleSessionError(WEAVE_ERROR err, PacketBuffer* sta
         // Call the user's error handler.
         if (userOnError != NULL)
             userOnError(this, con, reqState, err, peerNodeId, statusReportPtr);
+
+        // Asynchronously notify other subsystems that the security manager is now available
+        // for initiating another session.
+        AsyncNotifySecurityManagerAvailable();
     }
 }
 
@@ -3097,7 +3107,7 @@ void WeaveSecurityManager::Reset(void)
 {
     if (mEC != NULL)
     {
-        mEC->Close();
+        mEC->Abort();
         mEC = NULL;
     }
 
@@ -3165,9 +3175,9 @@ void WeaveSecurityManager::StartSessionTimer(void)
 {
     WeaveLogProgress(SecurityManager, "%s", __FUNCTION__);
 
-    if (mSessionTimeout != 0)
+    if (SessionEstablishTimeout != 0)
     {
-        mSystemLayer->StartTimer(mSessionTimeout, HandleSessionTimeout, this);
+        mSystemLayer->StartTimer(SessionEstablishTimeout, HandleSessionTimeout, this);
     }
 }
 
@@ -3185,6 +3195,43 @@ void WeaveSecurityManager::HandleSessionTimeout(System::Layer* aSystemLayer, voi
     if (securityMgr)
     {
         securityMgr->HandleSessionError(WEAVE_ERROR_TIMEOUT, NULL);
+    }
+}
+
+void WeaveSecurityManager::StartIdleSessionTimer(void)
+{
+    if (IdleSessionTimeout != 0 && !GetFlag(mFlags, kFlag_IdleSessionTimerRunning))
+    {
+        System::Layer *systemLayer = FabricState->MessageLayer->SystemLayer;
+        System::Error err = systemLayer->StartTimer(IdleSessionTimeout, HandleIdleSessionTimeout, this);
+        if (err == WEAVE_SYSTEM_NO_ERROR)
+        {
+            WeaveLogDetail(SecurityManager, "Session idle timer started");
+            SetFlag(mFlags, kFlag_IdleSessionTimerRunning);
+        }
+    }
+}
+
+void WeaveSecurityManager::StopIdleSessionTimer(void)
+{
+    System::Layer *systemLayer = FabricState->MessageLayer->SystemLayer;
+    systemLayer->CancelTimer(HandleIdleSessionTimeout, this);
+    ClearFlag(mFlags, kFlag_IdleSessionTimerRunning);
+    WeaveLogDetail(SecurityManager, "Session idle timer stopped");
+}
+
+void WeaveSecurityManager::HandleIdleSessionTimeout(System::Layer* aLayer, void* aAppState, System::Error aError)
+{
+    WeaveSecurityManager *_this = (WeaveSecurityManager *)aAppState;
+    bool unreservedSessionsExist;
+
+    ClearFlag(_this->mFlags, kFlag_IdleSessionTimerRunning);
+
+    unreservedSessionsExist = _this->FabricState->RemoveIdleSessionKeys();
+
+    if (unreservedSessionsExist)
+    {
+        _this->StartIdleSessionTimer();
     }
 }
 
@@ -3238,6 +3285,163 @@ void WeaveSecurityManager::WRMPHandleSendError(ExchangeContext *ec, WEAVE_ERROR 
 }
 
 #endif // WEAVE_CONFIG_ENABLE_RELIABLE_MESSAGING
+
+void WeaveSecurityManager::AsyncNotifySecurityManagerAvailable()
+{
+    mSystemLayer->ScheduleWork(DoNotifySecurityManagerAvailable, this);
+}
+
+void WeaveSecurityManager::DoNotifySecurityManagerAvailable(System::Layer *systemLayer, void *appState, System::Error err)
+{
+    WeaveSecurityManager *_this = (WeaveSecurityManager *)appState;
+    if (_this->State == kState_Idle)
+    {
+        _this->ExchangeManager->NotifySecurityManagerAvailable();
+    }
+}
+
+/**
+ * Cancel an in-progress session establishment.
+ *
+ * @param[in]  reqState         A pointer value that matches the value supplied by the application
+ *                              when the session was started.
+ *
+ * @retval #WEAVE_NO_ERROR      If a matching in-progress session establishment was found and canceled.
+ *
+ * @retval #WEAVE_ERROR_INCORRECT_STATE   If there was no session establishment in progress, or the
+ *                              in-progress session did not match the supplied request state pointer.
+ */
+WEAVE_ERROR WeaveSecurityManager::CancelSessionEstablishment(void *reqState)
+{
+    // If a session establishment is in progress and the supplied request state matches what was provided
+    // when the session was started...
+    if ((State == kState_CASEInProgress || State == kState_PASEInProgress || State == kState_TAKEInProgress) &&
+        reqState == mStartSecureSession_ReqState)
+    {
+        // Clear the application's OnError handler to prevent a callback.
+        mStartSecureSession_OnError = NULL;
+
+        // Fail the session with a canceled error.
+        HandleSessionError(WEAVE_ERROR_TRANSACTION_CANCELED, NULL);
+
+        return WEAVE_NO_ERROR;
+    }
+
+    // Otherwise, tell the caller there was no match.
+    else
+    {
+        return WEAVE_ERROR_INCORRECT_STATE;
+    }
+}
+
+/**
+ * Place a reservation on a message encryption key.
+ *
+ * Key reservations are used to signal that a particular key is actively in use and should be retained.
+ * Note that placing reservation on a key does not guarantee that the key wont be removed by an explicit
+ * action such as the reception of a KeyError message.
+ *
+ * For every reservation placed on a particular key, a corresponding call to ReleaseKey() must be made.
+ *
+ * This method accepts any form of key id, including None. Key ids that do not name actual keys are ignored.
+ *
+ * @param[in]  peerNodeId       The Weave node id of the peer with which the key shared.
+ *
+ * @param[in]  keyId            The id of the key to be reserved.
+ *
+ */
+void WeaveSecurityManager::ReserveKey(uint64_t peerNodeId, uint16_t keyId)
+{
+    // If the key is a session key, attempt to locate the specified key and increase its reservation count.
+    // (Currently reservations only apply to session keys).
+    if (WeaveKeyId::IsSessionKey(keyId))
+    {
+        WeaveSessionKey *sessionKey;
+        if (FabricState->FindSessionKey(keyId, peerNodeId, false, sessionKey) == WEAVE_NO_ERROR)
+        {
+            ReserveSessionKey(sessionKey);
+        }
+    }
+}
+
+/**
+ * Release a message encryption key reservation.
+ *
+ * Release a reservations that was previously placed on a message encryption key.
+ *
+ * For every reservation placed on a particular key, the ReleaseKey() method must be called no more than once.
+ *
+ * This method accepts any form of key id, including None. Key ids that do not name actual keys are ignored.
+ *
+ * @param[in]  peerNodeId       The Weave node id of the peer with which the key shared.
+ *
+ * @param[in]  keyId            The id of the key whose reservation should be released.
+ *
+ */
+void WeaveSecurityManager::ReleaseKey(uint64_t peerNodeId, uint16_t keyId)
+{
+    // If the key is a session key, attempt to locate the specified key and decrease its reservation count.
+    // (Currently reservations only apply to session keys).
+    if (WeaveKeyId::IsSessionKey(keyId))
+    {
+        WeaveSessionKey *sessionKey;
+        if (FabricState->FindSessionKey(keyId, peerNodeId, false, sessionKey) == WEAVE_NO_ERROR)
+        {
+            ReleaseSessionKey(sessionKey);
+        }
+    }
+}
+
+/**
+ * Place a reservation on a session key.
+ *
+ * @param[in]  sessionKey       A pointer to the session key to be reserved.
+ *
+ */
+void WeaveSecurityManager::ReserveSessionKey(WeaveSessionKey *sessionKey)
+{
+    VerifyOrDie(sessionKey->ReserveCount < UINT8_MAX);
+    sessionKey->ReserveCount++;
+    sessionKey->MarkRecentlyActive();
+    WeaveLogDetail(SecurityManager, "Reserve session key: Id=%04" PRIX16 " Peer=%016" PRIX64 " Reserve=%" PRId8,
+            sessionKey->MsgEncKey.KeyId, sessionKey->NodeId, sessionKey->ReserveCount);
+}
+
+/**
+ * Release a reservation on a session key.
+ *
+ * @param[in]  sessionKey       A pointer to the session key to be released.
+ *
+ */
+void WeaveSecurityManager::ReleaseSessionKey(WeaveSessionKey *sessionKey)
+{
+    VerifyOrDie(sessionKey->ReserveCount > 0);
+
+    sessionKey->ReserveCount--;
+
+    WeaveLogDetail(SecurityManager, "Release session key: Id=%04" PRIX16 " Peer=%016" PRIX64 " Reserve=%" PRId8,
+            sessionKey->MsgEncKey.KeyId, sessionKey->NodeId, sessionKey->ReserveCount);
+
+    // If the session key is subject to automatic removal and its reserve count is now zero...
+    if (sessionKey->BoundCon == NULL &&
+        sessionKey->IsKeySet() &&
+        sessionKey->ReserveCount == 0)
+    {
+        // If the session key is marked remove-on-idle, enable the idle session timer and mark the key as
+        // recently active.  This will give it the maximum lifetime before it gets removed for inactivity.
+        if (sessionKey->IsRemoveOnIdle())
+        {
+            StartIdleSessionTimer();
+            sessionKey->MarkRecentlyActive();
+        }
+
+        // Otherwise remove the session key immediately.
+        else
+        {
+            FabricState->RemoveSessionKey(sessionKey);
+        }
+    }
+}
 
 } // namespace Weave
 } // namespace nl

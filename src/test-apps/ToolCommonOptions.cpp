@@ -296,7 +296,7 @@ WeaveSecurityMode::WeaveSecurityMode()
 
     OptionDefs = optionDefs;
 
-    HelpGroupName = "WEAVE Security OPTIONS";
+    HelpGroupName = "WEAVE SECURITY OPTIONS";
 
     OptionHelp =
             "  --no-security\n"

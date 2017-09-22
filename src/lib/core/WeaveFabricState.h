@@ -39,6 +39,7 @@
 #include <Weave/Support/NLDLLUtil.h>
 #include <Weave/Support/WeaveCounter.h>
 #include <Weave/Support/PersistedCounter.h>
+#include <Weave/Support/FlagUtils.hpp>
 #include <Weave/Core/WeaveCore.h>
 #include <Weave/Core/WeaveKeyIds.h>
 #include <Weave/Profiles/security/WeaveSecurity.h>
@@ -339,6 +340,15 @@ private:
 class WeaveSessionKey
 {
 public:
+    enum FlagsEnum
+    {
+        kFlag_IsLocallyInitiated     = 0x01,            // The session was initiated by the local node.
+        kFlag_IsSharedSession        = 0x02,            // The session is a shared session.
+        kFlag_IsRemoveOnIdle         = 0x04,            // The session should be removed when idle (only applies to sessions
+                                                        // that are not bound to a connection).
+        kFlag_RecentlyActive         = 0x08,            // The session was recently active.
+    };
+
     uint64_t NodeId;                                    // The id of the node with which the session key is shared.
     MonotonicallyIncreasingCounter NextMsgId;           // The next message id to be used under the session key.
     uint32_t MaxRcvdMsgId;                              // The maximum message id received under the session key.
@@ -346,10 +356,23 @@ public:
     WeaveSessionState::ReceiveFlagsType RcvFlags;       // Flags tracking messages received under the key.
     WeaveAuthMode AuthMode;                             // The means by which the peer node was authenticated during session establishment.
     WeaveMsgEncryptionKey MsgEncKey;                    // The Weave message encryption key.
-    bool SharedSession;                                 // Flag indicating whether session is shared.
+    uint8_t ReserveCount;                               // Number of times the session key has been reserved.
+    uint8_t Flags;                                      // Various flags associated with the session.
 
     void Init(void);
     void Clear(void);
+
+    bool IsAllocated() const            { return MsgEncKey.KeyId != WeaveKeyId::kNone; }
+    bool IsKeySet() const               { return MsgEncKey.EncType != 0; }
+    bool IsLocallyInitiated() const     { return GetFlag(Flags, kFlag_IsLocallyInitiated); }
+    void SetLocallyInitiated(bool val)  { SetFlag(Flags, kFlag_IsLocallyInitiated, val); }
+    bool IsSharedSession() const        { return GetFlag(Flags, kFlag_IsSharedSession); }
+    void SetSharedSession(bool val)     { SetFlag(Flags, kFlag_IsSharedSession, val); }
+    bool IsRemoveOnIdle() const         { return GetFlag(Flags, kFlag_IsRemoveOnIdle); }
+    void SetRemoveOnIdle(bool val)      { SetFlag(Flags, kFlag_IsRemoveOnIdle, val); }
+    bool IsRecentlyActive() const       { return GetFlag(Flags, kFlag_RecentlyActive); }
+    void MarkRecentlyActive()           { SetFlag(Flags, kFlag_RecentlyActive); }
+    void ClearRecentlyActive()          { ClearFlag(Flags, kFlag_RecentlyActive); }
 };
 
 // Key cache for Weave message encryption keys.
@@ -459,16 +482,19 @@ public:
     WEAVE_ERROR Init(nl::Weave::Profiles::Security::AppKeys::GroupKeyStoreBase *groupKeyStore);
     WEAVE_ERROR Shutdown(void);
 
-    WEAVE_ERROR AllocSessionKey(uint64_t peerNodeId, WeaveConnection *boundCon, uint16_t& keyId);
-    WEAVE_ERROR AllocSessionKey(uint64_t peerNodeId, WeaveConnection *boundCon, uint16_t& keyId, bool sharedSession);
+    WEAVE_ERROR AllocSessionKey(uint64_t peerNodeId, uint16_t keyId, WeaveConnection *boundCon, WeaveSessionKey *& sessionKey);
     WEAVE_ERROR SetSessionKey(uint16_t keyId, uint64_t peerNodeId, uint8_t encType, WeaveAuthMode authMode, const WeaveEncryptionKey *encKey);
+    void SetSessionKey(WeaveSessionKey *sessionKey, uint8_t encType, WeaveAuthMode authMode, const WeaveEncryptionKey *encKey);
     WEAVE_ERROR GetSessionKey(uint16_t keyId, uint64_t peerNodeId, WeaveSessionKey *& outSessionKey);
     WEAVE_ERROR FindSessionKey(uint16_t keyId, uint64_t peerNodeId, bool create, WeaveSessionKey *& retRec);
     WEAVE_ERROR RemoveSessionKey(uint16_t keyId, uint64_t peerNodeId);
+    void RemoveSessionKey(WeaveSessionKey *sessionKey, bool wasIdle = false);
+    bool RemoveIdleSessionKeys();
 
-    bool HasSharedSession(uint64_t terminatingNodeId, WeaveAuthMode authMode, uint8_t encType, uint16_t & keyId);
+    WeaveSessionKey *FindSharedSession(uint64_t terminatingNodeId, WeaveAuthMode authMode, uint8_t encType);
     bool IsSharedSession(uint16_t keyId, uint64_t peerNodeId);
     WEAVE_ERROR AddSharedSessionEndNode(uint64_t endNodeId, uint64_t terminatingNodeId, uint16_t keyId);
+    WEAVE_ERROR AddSharedSessionEndNode(WeaveSessionKey *sessionKey, uint64_t endNodeId);
     WEAVE_ERROR GetSharedSessionEndNodeIds(const WeaveSessionKey *sessionKey, uint64_t *endNodeIds,
                                            uint8_t endNodeIdsBufSize, uint8_t& endNodeIdsCount);
 

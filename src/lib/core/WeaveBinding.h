@@ -37,6 +37,13 @@ namespace Weave {
 
 class WeaveExchangeManager;
 class ExchangeContext;
+class WeaveSecurityManager;
+
+namespace Profiles {
+namespace StatusReporting {
+class StatusReport;
+}
+}
 
 /**
  * @class Binding
@@ -124,9 +131,11 @@ public:
         kState_PreparingTransport                   = 5,
         kState_PreparingSecurity                    = 6,
         kState_PreparingSecurity_EstablishSession   = 7,
-        kState_Ready                                = 8,
-        kState_Closed                               = 9,
-        kState_Failed                               = 10,
+        kState_PreparingSecurity_WaitSecurityMgr    = 8,
+        kState_Ready                                = 9,
+        kState_Resetting                            = 10,
+        kState_Closed                               = 11,
+        kState_Failed                               = 12,
     };
 
     enum EventType
@@ -146,12 +155,11 @@ public:
     void AddRef(void);
     void Release(void);
     void Close(void);
+    void Reset(void);
 
     Configuration BeginConfiguration();
 
     WEAVE_ERROR RequestPrepare();
-
-    void Reset();
 
     State GetState(void) const;
     bool IsPreparing(void) const;
@@ -213,16 +221,23 @@ private:
         kSecurityOption_NotSpecified                = 0,
         kSecurityOption_None                        = 1,
         kSecurityOption_SpecificKey                 = 2,
-        kSecurityOption_SharedCASESession           = 3,
+        kSecurityOption_CASESession                 = 3,
+        kSecurityOption_SharedCASESession           = 4,
+    };
+
+    enum Flags
+    {
+        kFlag_KeyReserved                           = 0x1,
     };
 
     WeaveExchangeManager * mExchangeManager;
 
     uint8_t mRefCount;
     State mState : 4;
-    SecurityOption mSecurityOption : 4;
-    AddressingOption mAddressingOption : 4;
-    TransportOption mTransportOption : 4;
+    SecurityOption mSecurityOption : 3;
+    AddressingOption mAddressingOption : 3;
+    TransportOption mTransportOption : 3;
+    unsigned mFlags : 3;
 
     EventCallback mAppEventCallback;
     EventCallback mProtocolLayerCallback;
@@ -249,17 +264,26 @@ private:
     nl::Inet::IPAddress mPeerAddress;
 
     WEAVE_ERROR Init(void * apAppState, EventCallback aEventCallback);
-    void ResetConfig();
+
+    bool GetFlag(uint8_t flag) const { return (mFlags & flag) != 0; }
+    void SetFlag(uint8_t flag) { mFlags |= flag; }
 
     WEAVE_ERROR DoPrepare(WEAVE_ERROR configErr);
-    void PrepareAddress();
-    void PrepareTransport();
-    void PrepareSecurity();
+    void DoReset(State newState);
     void DoClose(void);
-    void HandleBindingReady();
+    void ResetConfig(void);
+    void PrepareAddress(void);
+    void PrepareTransport(void);
+    void PrepareSecurity(void);
+    void HandleBindingReady(void);
     void HandleBindingFailed(WEAVE_ERROR err, bool raiseEvent);
-    void OnSecureSessionReady(uint64_t peerNodeId, uint8_t encType, WeaveAuthMode authMode, uint16_t keyId);
-    void OnKeyError(const uint32_t aKeyId, const uint64_t aPeerNodeId, const WEAVE_ERROR aKeyErr);
+    void OnKeyFailed(uint64_t peerNodeId, uint32_t keyId, WEAVE_ERROR keyErr);
+    void OnSecurityManagerAvailable(void);
+
+    static void OnSecureSessionReady(WeaveSecurityManager *sm, WeaveConnection *con, void *reqState,
+            uint16_t keyId, uint64_t peerNodeId, uint8_t encType);
+    static void OnSecureSessionFailed(WeaveSecurityManager *sm, WeaveConnection *con, void *reqState,
+            WEAVE_ERROR localErr, uint64_t peerNodeId, Profiles::StatusReporting::StatusReport *statusReport);
 };
 
 /**
@@ -296,6 +320,7 @@ public:
     Configuration& Exchange_ResponseTimeoutMsec(uint32_t aResponseTimeoutMsec);
 
     Configuration& Security_None(void);
+    Configuration& Security_CASESession(void);
     Configuration& Security_SharedCASESession(void);
     Configuration& Security_SharedCASESession(uint64_t aRouterNodeId);
     Configuration& Security_Key(uint32_t aKeyId);
