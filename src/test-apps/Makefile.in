@@ -673,7 +673,8 @@ am__installdirs = "$(DESTDIR)$(libexecdir)"
 @WEAVE_BUILD_TESTS_TRUE@	TestThermostatStatus$(EXEEXT) \
 @WEAVE_BUILD_TESTS_TRUE@	TestPairingCodeUtils$(EXEEXT) \
 @WEAVE_BUILD_TESTS_TRUE@	$(am__EXEEXT_5) $(am__EXEEXT_2)
-@WEAVE_BUILD_TESTS_TRUE@am__EXEEXT_7 = TestDataManagement$(EXEEXT) \
+@WEAVE_BUILD_TESTS_TRUE@am__EXEEXT_7 = TestBinding$(EXEEXT) \
+@WEAVE_BUILD_TESTS_TRUE@	TestDataManagement$(EXEEXT) \
 @WEAVE_BUILD_TESTS_TRUE@	TestEventLogging$(EXEEXT) \
 @WEAVE_BUILD_TESTS_TRUE@	TestInetLayer$(EXEEXT) \
 @WEAVE_BUILD_TESTS_TRUE@	TestPersistedCounter$(EXEEXT) \
@@ -766,6 +767,17 @@ TestArgParser_OBJECTS = $(am_TestArgParser_OBJECTS)
 @WEAVE_BUILD_TESTS_TRUE@TestArgParser_DEPENDENCIES =  \
 @WEAVE_BUILD_TESTS_TRUE@	libWeaveTestCommon.a \
 @WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_6)
+am__TestBinding_SOURCES_DIST = TestBinding.cpp
+@WEAVE_BUILD_TESTS_TRUE@am_TestBinding_OBJECTS =  \
+@WEAVE_BUILD_TESTS_TRUE@	TestBinding.$(OBJEXT)
+TestBinding_OBJECTS = $(am_TestBinding_OBJECTS)
+@WEAVE_BUILD_TESTS_TRUE@TestBinding_DEPENDENCIES =  \
+@WEAVE_BUILD_TESTS_TRUE@	libWeaveTestCommon.a \
+@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_6) \
+@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_7)
+TestBinding_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) \
+	$(LIBTOOLFLAGS) --mode=link $(CXXLD) $(AM_CXXFLAGS) \
+	$(CXXFLAGS) $(TestBinding_LDFLAGS) $(LDFLAGS) -o $@
 am__TestCASE_SOURCES_DIST = TestCASE.cpp
 @WEAVE_BUILD_TESTS_TRUE@am_TestCASE_OBJECTS = TestCASE.$(OBJEXT)
 TestCASE_OBJECTS = $(am_TestCASE_OBJECTS)
@@ -1646,11 +1658,12 @@ SOURCES = $(libMockBleApplicationDelegate_a_SOURCES) \
 	$(libWeaveTestGroupKeyStore_a_SOURCES) \
 	$(libWeaveTestPlatform_a_SOURCES) $(GenerateEventLog_SOURCES) \
 	$(TestASN1_SOURCES) $(TestAppKeys_SOURCES) \
-	$(TestArgParser_SOURCES) $(TestCASE_SOURCES) \
-	$(TestCodeUtils_SOURCES) $(TestCrypto_SOURCES) \
-	$(TestDNSResolution_SOURCES) $(TestDRBG_SOURCES) \
-	$(TestDataManagement_SOURCES) $(TestDeviceDescriptor_SOURCES) \
-	$(TestECDH_SOURCES) $(TestECDSA_SOURCES) $(TestECMath_SOURCES) \
+	$(TestArgParser_SOURCES) $(TestBinding_SOURCES) \
+	$(TestCASE_SOURCES) $(TestCodeUtils_SOURCES) \
+	$(TestCrypto_SOURCES) $(TestDNSResolution_SOURCES) \
+	$(TestDRBG_SOURCES) $(TestDataManagement_SOURCES) \
+	$(TestDeviceDescriptor_SOURCES) $(TestECDH_SOURCES) \
+	$(TestECDSA_SOURCES) $(TestECMath_SOURCES) \
 	$(TestErrorStr_SOURCES) $(TestEventLogging_SOURCES) \
 	$(TestFabricStateDelegate_SOURCES) $(TestInetAddress_SOURCES) \
 	$(TestInetBuffer_SOURCES) $(TestInetEndPoint_SOURCES) \
@@ -1692,7 +1705,8 @@ DIST_SOURCES = $(am__libMockBleApplicationDelegate_a_SOURCES_DIST) \
 	$(am__libWeaveTestPlatform_a_SOURCES_DIST) \
 	$(am__GenerateEventLog_SOURCES_DIST) \
 	$(am__TestASN1_SOURCES_DIST) $(am__TestAppKeys_SOURCES_DIST) \
-	$(am__TestArgParser_SOURCES_DIST) $(am__TestCASE_SOURCES_DIST) \
+	$(am__TestArgParser_SOURCES_DIST) \
+	$(am__TestBinding_SOURCES_DIST) $(am__TestCASE_SOURCES_DIST) \
 	$(am__TestCodeUtils_SOURCES_DIST) \
 	$(am__TestCrypto_SOURCES_DIST) \
 	$(am__TestDNSResolution_SOURCES_DIST) \
@@ -2768,6 +2782,7 @@ EXTRA_DIST = \
 #
 # These will NOT be part of the externally-consumable binary SDK.
 @WEAVE_BUILD_TESTS_TRUE@network_test_programs = \
+@WEAVE_BUILD_TESTS_TRUE@    TestBinding                                  \
 @WEAVE_BUILD_TESTS_TRUE@    TestDataManagement                           \
 @WEAVE_BUILD_TESTS_TRUE@    TestEventLogging                             \
 @WEAVE_BUILD_TESTS_TRUE@    TestInetLayer                                \
@@ -2842,6 +2857,9 @@ EXTRA_DIST = \
 @WEAVE_BUILD_TESTS_TRUE@TestAppKeys_LDADD = libWeaveTestCommon.a $(COMMON_LDADD) $(TEST_PLATFORM_LDADD)
 @WEAVE_BUILD_TESTS_TRUE@TestArgParser_SOURCES = TestArgParser.cpp
 @WEAVE_BUILD_TESTS_TRUE@TestArgParser_LDADD = libWeaveTestCommon.a $(COMMON_LDADD)
+@WEAVE_BUILD_TESTS_TRUE@TestBinding_SOURCES = TestBinding.cpp
+@WEAVE_BUILD_TESTS_TRUE@TestBinding_LDFLAGS = $(AM_CPPFLAGS)
+@WEAVE_BUILD_TESTS_TRUE@TestBinding_LDADD = libWeaveTestCommon.a $(COMMON_LDADD) $(TEST_PLATFORM_LDADD)
 @WEAVE_BUILD_TESTS_TRUE@TestCASE_SOURCES = TestCASE.cpp
 @WEAVE_BUILD_TESTS_TRUE@TestCASE_LDFLAGS = $(AM_CPPFLAGS)
 @WEAVE_BUILD_TESTS_TRUE@TestCASE_LDADD = libWeaveTestCommon.a $(COMMON_LDADD) $(TEST_PLATFORM_LDADD)
@@ -3338,6 +3356,10 @@ TestArgParser$(EXEEXT): $(TestArgParser_OBJECTS) $(TestArgParser_DEPENDENCIES) $
 	@rm -f TestArgParser$(EXEEXT)
 	$(AM_V_CXXLD)$(CXXLINK) $(TestArgParser_OBJECTS) $(TestArgParser_LDADD) $(LIBS)
 
+TestBinding$(EXEEXT): $(TestBinding_OBJECTS) $(TestBinding_DEPENDENCIES) $(EXTRA_TestBinding_DEPENDENCIES) 
+	@rm -f TestBinding$(EXEEXT)
+	$(AM_V_CXXLD)$(TestBinding_LINK) $(TestBinding_OBJECTS) $(TestBinding_LDADD) $(LIBS)
+
 TestCASE$(EXEEXT): $(TestCASE_OBJECTS) $(TestCASE_DEPENDENCIES) $(EXTRA_TestCASE_DEPENDENCIES) 
 	@rm -f TestCASE$(EXEEXT)
 	$(AM_V_CXXLD)$(TestCASE_LINK) $(TestCASE_OBJECTS) $(TestCASE_LDADD) $(LIBS)
@@ -3754,6 +3776,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/TestASN1.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/TestAppKeys.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/TestArgParser.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/TestBinding.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/TestCASE.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/TestCodeUtils.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/TestCrypto-TestCrypto.Po@am__quote@
@@ -7527,10 +7550,10 @@ distclean-generic:
 maintainer-clean-generic:
 	@echo "This command is intended for maintainers to use"
 	@echo "it deletes files that may require special tools to rebuild."
+@WEAVE_BUILD_TESTS_FALSE@uninstall-local:
 @WEAVE_BUILD_COVERAGE_FALSE@clean-local:
 @WEAVE_BUILD_COVERAGE_REPORTS_FALSE@clean-local:
 @WEAVE_BUILD_TESTS_FALSE@clean-local:
-@WEAVE_BUILD_TESTS_FALSE@uninstall-local:
 @WEAVE_BUILD_TESTS_FALSE@install-exec-local:
 clean: clean-am
 

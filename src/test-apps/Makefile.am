@@ -418,6 +418,7 @@ endif
 # These will NOT be part of the externally-consumable binary SDK.
 
 network_test_programs                          = \
+    TestBinding                                  \
     TestDataManagement                           \
     TestEventLogging                             \
     TestInetLayer                                \
@@ -1040,6 +1041,10 @@ TestAppKeys_LDADD                        = libWeaveTestCommon.a $(COMMON_LDADD) 
 
 TestArgParser_SOURCES                    = TestArgParser.cpp
 TestArgParser_LDADD                      = libWeaveTestCommon.a $(COMMON_LDADD)
+
+TestBinding_SOURCES                      = TestBinding.cpp
+TestBinding_LDFLAGS                      = $(AM_CPPFLAGS)
+TestBinding_LDADD                        = libWeaveTestCommon.a $(COMMON_LDADD) $(TEST_PLATFORM_LDADD)
 
 TestCASE_SOURCES                         = TestCASE.cpp
 TestCASE_LDFLAGS                         = $(AM_CPPFLAGS)
