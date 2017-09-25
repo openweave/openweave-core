@@ -818,25 +818,32 @@ if WEAVE_RUN_HAPPY_TIME
 
 # Parse the time filename and generate the script:
 # e.g: t_weave_time_faults_1_of_8.sh
-happy-tests/servicedir/test_weave_time_faults_%.sh :
+happy-tests/time/test_weave_time_faults_%.sh :
 	mkdir -p happy-tests/time
 	matched_part_of_the_file_name=$(*F) ; \
 	IFS='_' tokens=( $${matched_part_of_the_file_name} ) ; \
 	echo "#!/bin/bash" > $@ ; \
-	echo "${abs_srcdir}/happy-tests/time/test_weave_time_01.py --enable-faults --group $${tokens[0]} --numgroups $${tokens[2]}" >> $@ ; \
-	echo "${abs_srcdir}/happy-tests/time/test_weave_time_02.py --enable-faults --group $${tokens[0]} --numgroups $${tokens[2]}" >> $@ ; \
+	echo "${abs_srcdir}/happy-tests/time/test_weave_time_01.py --enable-faults --syncmode $${tokens[0]} --group $${tokens[1]} --numgroups $${tokens[3]}" >> $@ ; \
 	echo 'exit $$?' >>$@
 	chmod u+x $@
 
 check_SCRIPTS                                 +=                \
-	happy-tests/time/test_weave_time_faults_1_of_8.sh \
-	happy-tests/time/test_weave_time_faults_2_of_8.sh \
-	happy-tests/time/test_weave_time_faults_3_of_8.sh \
-	happy-tests/time/test_weave_time_faults_4_of_8.sh \
-	happy-tests/time/test_weave_time_faults_5_of_8.sh \
-	happy-tests/time/test_weave_time_faults_6_of_8.sh \
-	happy-tests/time/test_weave_time_faults_7_of_8.sh \
-	happy-tests/time/test_weave_time_faults_8_of_8.sh \
+	happy-tests/time/test_weave_time_faults_local_1_of_4.sh \
+	happy-tests/time/test_weave_time_faults_local_2_of_4.sh \
+	happy-tests/time/test_weave_time_faults_local_3_of_4.sh \
+	happy-tests/time/test_weave_time_faults_local_4_of_4.sh \
+	happy-tests/time/test_weave_time_faults_service_1_of_4.sh \
+	happy-tests/time/test_weave_time_faults_service_2_of_4.sh \
+	happy-tests/time/test_weave_time_faults_service_3_of_4.sh \
+	happy-tests/time/test_weave_time_faults_service_4_of_4.sh \
+	happy-tests/time/test_weave_time_faults_auto_1_of_8.sh \
+	happy-tests/time/test_weave_time_faults_auto_2_of_8.sh \
+	happy-tests/time/test_weave_time_faults_auto_3_of_8.sh \
+	happy-tests/time/test_weave_time_faults_auto_4_of_8.sh \
+	happy-tests/time/test_weave_time_faults_auto_5_of_8.sh \
+	happy-tests/time/test_weave_time_faults_auto_6_of_8.sh \
+	happy-tests/time/test_weave_time_faults_auto_7_of_8.sh \
+	happy-tests/time/test_weave_time_faults_auto_8_of_8.sh \
 	$(NULL)
 
 endif # WEAVE_RUN_HAPPY_TIME

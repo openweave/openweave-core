@@ -384,14 +384,22 @@ target_triplet = @target@
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_TUNNEL_TRUE@@WEAVE_RUN_LONG_TESTS_TRUE@	$(NULL)
 
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TIME_TRUE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_LONG_TESTS_TRUE@am__append_27 = \
-@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TIME_TRUE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_LONG_TESTS_TRUE@	happy-tests/time/test_weave_time_faults_1_of_8.sh \
-@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TIME_TRUE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_LONG_TESTS_TRUE@	happy-tests/time/test_weave_time_faults_2_of_8.sh \
-@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TIME_TRUE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_LONG_TESTS_TRUE@	happy-tests/time/test_weave_time_faults_3_of_8.sh \
-@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TIME_TRUE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_LONG_TESTS_TRUE@	happy-tests/time/test_weave_time_faults_4_of_8.sh \
-@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TIME_TRUE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_LONG_TESTS_TRUE@	happy-tests/time/test_weave_time_faults_5_of_8.sh \
-@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TIME_TRUE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_LONG_TESTS_TRUE@	happy-tests/time/test_weave_time_faults_6_of_8.sh \
-@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TIME_TRUE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_LONG_TESTS_TRUE@	happy-tests/time/test_weave_time_faults_7_of_8.sh \
-@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TIME_TRUE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_LONG_TESTS_TRUE@	happy-tests/time/test_weave_time_faults_8_of_8.sh \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TIME_TRUE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_LONG_TESTS_TRUE@	happy-tests/time/test_weave_time_faults_local_1_of_4.sh \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TIME_TRUE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_LONG_TESTS_TRUE@	happy-tests/time/test_weave_time_faults_local_2_of_4.sh \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TIME_TRUE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_LONG_TESTS_TRUE@	happy-tests/time/test_weave_time_faults_local_3_of_4.sh \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TIME_TRUE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_LONG_TESTS_TRUE@	happy-tests/time/test_weave_time_faults_local_4_of_4.sh \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TIME_TRUE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_LONG_TESTS_TRUE@	happy-tests/time/test_weave_time_faults_service_1_of_4.sh \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TIME_TRUE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_LONG_TESTS_TRUE@	happy-tests/time/test_weave_time_faults_service_2_of_4.sh \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TIME_TRUE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_LONG_TESTS_TRUE@	happy-tests/time/test_weave_time_faults_service_3_of_4.sh \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TIME_TRUE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_LONG_TESTS_TRUE@	happy-tests/time/test_weave_time_faults_service_4_of_4.sh \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TIME_TRUE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_LONG_TESTS_TRUE@	happy-tests/time/test_weave_time_faults_auto_1_of_8.sh \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TIME_TRUE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_LONG_TESTS_TRUE@	happy-tests/time/test_weave_time_faults_auto_2_of_8.sh \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TIME_TRUE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_LONG_TESTS_TRUE@	happy-tests/time/test_weave_time_faults_auto_3_of_8.sh \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TIME_TRUE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_LONG_TESTS_TRUE@	happy-tests/time/test_weave_time_faults_auto_4_of_8.sh \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TIME_TRUE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_LONG_TESTS_TRUE@	happy-tests/time/test_weave_time_faults_auto_5_of_8.sh \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TIME_TRUE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_LONG_TESTS_TRUE@	happy-tests/time/test_weave_time_faults_auto_6_of_8.sh \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TIME_TRUE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_LONG_TESTS_TRUE@	happy-tests/time/test_weave_time_faults_auto_7_of_8.sh \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TIME_TRUE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_LONG_TESTS_TRUE@	happy-tests/time/test_weave_time_faults_auto_8_of_8.sh \
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TIME_TRUE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_LONG_TESTS_TRUE@	$(NULL)
 
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@am__append_28 = \
@@ -2103,14 +2111,22 @@ AM_RECURSIVE_TARGETS = check recheck
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_TUNNEL_TRUE@@WEAVE_RUN_LONG_TESTS_TRUE@	happy-tests/tunnel/test_weave_tunnel_faults_6_of_8.sh \
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_TUNNEL_TRUE@@WEAVE_RUN_LONG_TESTS_TRUE@	happy-tests/tunnel/test_weave_tunnel_faults_7_of_8.sh \
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_TUNNEL_TRUE@@WEAVE_RUN_LONG_TESTS_TRUE@	happy-tests/tunnel/test_weave_tunnel_faults_8_of_8.sh
-@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TIME_TRUE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_LONG_TESTS_TRUE@am__EXEEXT_21 = happy-tests/time/test_weave_time_faults_1_of_8.sh \
-@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TIME_TRUE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_LONG_TESTS_TRUE@	happy-tests/time/test_weave_time_faults_2_of_8.sh \
-@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TIME_TRUE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_LONG_TESTS_TRUE@	happy-tests/time/test_weave_time_faults_3_of_8.sh \
-@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TIME_TRUE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_LONG_TESTS_TRUE@	happy-tests/time/test_weave_time_faults_4_of_8.sh \
-@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TIME_TRUE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_LONG_TESTS_TRUE@	happy-tests/time/test_weave_time_faults_5_of_8.sh \
-@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TIME_TRUE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_LONG_TESTS_TRUE@	happy-tests/time/test_weave_time_faults_6_of_8.sh \
-@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TIME_TRUE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_LONG_TESTS_TRUE@	happy-tests/time/test_weave_time_faults_7_of_8.sh \
-@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TIME_TRUE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_LONG_TESTS_TRUE@	happy-tests/time/test_weave_time_faults_8_of_8.sh
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TIME_TRUE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_LONG_TESTS_TRUE@am__EXEEXT_21 = happy-tests/time/test_weave_time_faults_local_1_of_4.sh \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TIME_TRUE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_LONG_TESTS_TRUE@	happy-tests/time/test_weave_time_faults_local_2_of_4.sh \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TIME_TRUE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_LONG_TESTS_TRUE@	happy-tests/time/test_weave_time_faults_local_3_of_4.sh \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TIME_TRUE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_LONG_TESTS_TRUE@	happy-tests/time/test_weave_time_faults_local_4_of_4.sh \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TIME_TRUE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_LONG_TESTS_TRUE@	happy-tests/time/test_weave_time_faults_service_1_of_4.sh \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TIME_TRUE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_LONG_TESTS_TRUE@	happy-tests/time/test_weave_time_faults_service_2_of_4.sh \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TIME_TRUE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_LONG_TESTS_TRUE@	happy-tests/time/test_weave_time_faults_service_3_of_4.sh \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TIME_TRUE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_LONG_TESTS_TRUE@	happy-tests/time/test_weave_time_faults_service_4_of_4.sh \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TIME_TRUE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_LONG_TESTS_TRUE@	happy-tests/time/test_weave_time_faults_auto_1_of_8.sh \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TIME_TRUE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_LONG_TESTS_TRUE@	happy-tests/time/test_weave_time_faults_auto_2_of_8.sh \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TIME_TRUE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_LONG_TESTS_TRUE@	happy-tests/time/test_weave_time_faults_auto_3_of_8.sh \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TIME_TRUE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_LONG_TESTS_TRUE@	happy-tests/time/test_weave_time_faults_auto_4_of_8.sh \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TIME_TRUE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_LONG_TESTS_TRUE@	happy-tests/time/test_weave_time_faults_auto_5_of_8.sh \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TIME_TRUE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_LONG_TESTS_TRUE@	happy-tests/time/test_weave_time_faults_auto_6_of_8.sh \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TIME_TRUE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_LONG_TESTS_TRUE@	happy-tests/time/test_weave_time_faults_auto_7_of_8.sh \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TIME_TRUE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_LONG_TESTS_TRUE@	happy-tests/time/test_weave_time_faults_auto_8_of_8.sh
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@am__EXEEXT_22 = happy-tests/wdmNext/test_weave_wdm_next_one_way_subscribe_01.py \
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@	happy-tests/wdmNext/test_weave_wdm_next_one_way_subscribe_02.py \
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@	happy-tests/wdmNext/test_weave_wdm_next_one_way_subscribe_03.py \
@@ -6533,58 +6549,114 @@ happy-tests/tunnel/test_weave_tunnel_faults_8_of_8.sh.log: happy-tests/tunnel/te
 	--log-file $$b.log --trs-file $$b.trs \
 	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
 	"$$tst" $(AM_TESTS_FD_REDIRECT)
-happy-tests/time/test_weave_time_faults_1_of_8.sh.log: happy-tests/time/test_weave_time_faults_1_of_8.sh
-	@p='happy-tests/time/test_weave_time_faults_1_of_8.sh'; \
-	b='happy-tests/time/test_weave_time_faults_1_of_8.sh'; \
+happy-tests/time/test_weave_time_faults_local_1_of_4.sh.log: happy-tests/time/test_weave_time_faults_local_1_of_4.sh
+	@p='happy-tests/time/test_weave_time_faults_local_1_of_4.sh'; \
+	b='happy-tests/time/test_weave_time_faults_local_1_of_4.sh'; \
 	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
 	--log-file $$b.log --trs-file $$b.trs \
 	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
 	"$$tst" $(AM_TESTS_FD_REDIRECT)
-happy-tests/time/test_weave_time_faults_2_of_8.sh.log: happy-tests/time/test_weave_time_faults_2_of_8.sh
-	@p='happy-tests/time/test_weave_time_faults_2_of_8.sh'; \
-	b='happy-tests/time/test_weave_time_faults_2_of_8.sh'; \
+happy-tests/time/test_weave_time_faults_local_2_of_4.sh.log: happy-tests/time/test_weave_time_faults_local_2_of_4.sh
+	@p='happy-tests/time/test_weave_time_faults_local_2_of_4.sh'; \
+	b='happy-tests/time/test_weave_time_faults_local_2_of_4.sh'; \
 	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
 	--log-file $$b.log --trs-file $$b.trs \
 	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
 	"$$tst" $(AM_TESTS_FD_REDIRECT)
-happy-tests/time/test_weave_time_faults_3_of_8.sh.log: happy-tests/time/test_weave_time_faults_3_of_8.sh
-	@p='happy-tests/time/test_weave_time_faults_3_of_8.sh'; \
-	b='happy-tests/time/test_weave_time_faults_3_of_8.sh'; \
+happy-tests/time/test_weave_time_faults_local_3_of_4.sh.log: happy-tests/time/test_weave_time_faults_local_3_of_4.sh
+	@p='happy-tests/time/test_weave_time_faults_local_3_of_4.sh'; \
+	b='happy-tests/time/test_weave_time_faults_local_3_of_4.sh'; \
 	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
 	--log-file $$b.log --trs-file $$b.trs \
 	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
 	"$$tst" $(AM_TESTS_FD_REDIRECT)
-happy-tests/time/test_weave_time_faults_4_of_8.sh.log: happy-tests/time/test_weave_time_faults_4_of_8.sh
-	@p='happy-tests/time/test_weave_time_faults_4_of_8.sh'; \
-	b='happy-tests/time/test_weave_time_faults_4_of_8.sh'; \
+happy-tests/time/test_weave_time_faults_local_4_of_4.sh.log: happy-tests/time/test_weave_time_faults_local_4_of_4.sh
+	@p='happy-tests/time/test_weave_time_faults_local_4_of_4.sh'; \
+	b='happy-tests/time/test_weave_time_faults_local_4_of_4.sh'; \
 	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
 	--log-file $$b.log --trs-file $$b.trs \
 	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
 	"$$tst" $(AM_TESTS_FD_REDIRECT)
-happy-tests/time/test_weave_time_faults_5_of_8.sh.log: happy-tests/time/test_weave_time_faults_5_of_8.sh
-	@p='happy-tests/time/test_weave_time_faults_5_of_8.sh'; \
-	b='happy-tests/time/test_weave_time_faults_5_of_8.sh'; \
+happy-tests/time/test_weave_time_faults_service_1_of_4.sh.log: happy-tests/time/test_weave_time_faults_service_1_of_4.sh
+	@p='happy-tests/time/test_weave_time_faults_service_1_of_4.sh'; \
+	b='happy-tests/time/test_weave_time_faults_service_1_of_4.sh'; \
 	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
 	--log-file $$b.log --trs-file $$b.trs \
 	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
 	"$$tst" $(AM_TESTS_FD_REDIRECT)
-happy-tests/time/test_weave_time_faults_6_of_8.sh.log: happy-tests/time/test_weave_time_faults_6_of_8.sh
-	@p='happy-tests/time/test_weave_time_faults_6_of_8.sh'; \
-	b='happy-tests/time/test_weave_time_faults_6_of_8.sh'; \
+happy-tests/time/test_weave_time_faults_service_2_of_4.sh.log: happy-tests/time/test_weave_time_faults_service_2_of_4.sh
+	@p='happy-tests/time/test_weave_time_faults_service_2_of_4.sh'; \
+	b='happy-tests/time/test_weave_time_faults_service_2_of_4.sh'; \
 	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
 	--log-file $$b.log --trs-file $$b.trs \
 	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
 	"$$tst" $(AM_TESTS_FD_REDIRECT)
-happy-tests/time/test_weave_time_faults_7_of_8.sh.log: happy-tests/time/test_weave_time_faults_7_of_8.sh
-	@p='happy-tests/time/test_weave_time_faults_7_of_8.sh'; \
-	b='happy-tests/time/test_weave_time_faults_7_of_8.sh'; \
+happy-tests/time/test_weave_time_faults_service_3_of_4.sh.log: happy-tests/time/test_weave_time_faults_service_3_of_4.sh
+	@p='happy-tests/time/test_weave_time_faults_service_3_of_4.sh'; \
+	b='happy-tests/time/test_weave_time_faults_service_3_of_4.sh'; \
 	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
 	--log-file $$b.log --trs-file $$b.trs \
 	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
 	"$$tst" $(AM_TESTS_FD_REDIRECT)
-happy-tests/time/test_weave_time_faults_8_of_8.sh.log: happy-tests/time/test_weave_time_faults_8_of_8.sh
-	@p='happy-tests/time/test_weave_time_faults_8_of_8.sh'; \
-	b='happy-tests/time/test_weave_time_faults_8_of_8.sh'; \
+happy-tests/time/test_weave_time_faults_service_4_of_4.sh.log: happy-tests/time/test_weave_time_faults_service_4_of_4.sh
+	@p='happy-tests/time/test_weave_time_faults_service_4_of_4.sh'; \
+	b='happy-tests/time/test_weave_time_faults_service_4_of_4.sh'; \
+	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
+	--log-file $$b.log --trs-file $$b.trs \
+	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
+	"$$tst" $(AM_TESTS_FD_REDIRECT)
+happy-tests/time/test_weave_time_faults_auto_1_of_8.sh.log: happy-tests/time/test_weave_time_faults_auto_1_of_8.sh
+	@p='happy-tests/time/test_weave_time_faults_auto_1_of_8.sh'; \
+	b='happy-tests/time/test_weave_time_faults_auto_1_of_8.sh'; \
+	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
+	--log-file $$b.log --trs-file $$b.trs \
+	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
+	"$$tst" $(AM_TESTS_FD_REDIRECT)
+happy-tests/time/test_weave_time_faults_auto_2_of_8.sh.log: happy-tests/time/test_weave_time_faults_auto_2_of_8.sh
+	@p='happy-tests/time/test_weave_time_faults_auto_2_of_8.sh'; \
+	b='happy-tests/time/test_weave_time_faults_auto_2_of_8.sh'; \
+	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
+	--log-file $$b.log --trs-file $$b.trs \
+	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
+	"$$tst" $(AM_TESTS_FD_REDIRECT)
+happy-tests/time/test_weave_time_faults_auto_3_of_8.sh.log: happy-tests/time/test_weave_time_faults_auto_3_of_8.sh
+	@p='happy-tests/time/test_weave_time_faults_auto_3_of_8.sh'; \
+	b='happy-tests/time/test_weave_time_faults_auto_3_of_8.sh'; \
+	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
+	--log-file $$b.log --trs-file $$b.trs \
+	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
+	"$$tst" $(AM_TESTS_FD_REDIRECT)
+happy-tests/time/test_weave_time_faults_auto_4_of_8.sh.log: happy-tests/time/test_weave_time_faults_auto_4_of_8.sh
+	@p='happy-tests/time/test_weave_time_faults_auto_4_of_8.sh'; \
+	b='happy-tests/time/test_weave_time_faults_auto_4_of_8.sh'; \
+	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
+	--log-file $$b.log --trs-file $$b.trs \
+	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
+	"$$tst" $(AM_TESTS_FD_REDIRECT)
+happy-tests/time/test_weave_time_faults_auto_5_of_8.sh.log: happy-tests/time/test_weave_time_faults_auto_5_of_8.sh
+	@p='happy-tests/time/test_weave_time_faults_auto_5_of_8.sh'; \
+	b='happy-tests/time/test_weave_time_faults_auto_5_of_8.sh'; \
+	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
+	--log-file $$b.log --trs-file $$b.trs \
+	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
+	"$$tst" $(AM_TESTS_FD_REDIRECT)
+happy-tests/time/test_weave_time_faults_auto_6_of_8.sh.log: happy-tests/time/test_weave_time_faults_auto_6_of_8.sh
+	@p='happy-tests/time/test_weave_time_faults_auto_6_of_8.sh'; \
+	b='happy-tests/time/test_weave_time_faults_auto_6_of_8.sh'; \
+	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
+	--log-file $$b.log --trs-file $$b.trs \
+	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
+	"$$tst" $(AM_TESTS_FD_REDIRECT)
+happy-tests/time/test_weave_time_faults_auto_7_of_8.sh.log: happy-tests/time/test_weave_time_faults_auto_7_of_8.sh
+	@p='happy-tests/time/test_weave_time_faults_auto_7_of_8.sh'; \
+	b='happy-tests/time/test_weave_time_faults_auto_7_of_8.sh'; \
+	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
+	--log-file $$b.log --trs-file $$b.trs \
+	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
+	"$$tst" $(AM_TESTS_FD_REDIRECT)
+happy-tests/time/test_weave_time_faults_auto_8_of_8.sh.log: happy-tests/time/test_weave_time_faults_auto_8_of_8.sh
+	@p='happy-tests/time/test_weave_time_faults_auto_8_of_8.sh'; \
+	b='happy-tests/time/test_weave_time_faults_auto_8_of_8.sh'; \
 	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
 	--log-file $$b.log --trs-file $$b.trs \
 	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
@@ -7464,11 +7536,11 @@ distclean-generic:
 maintainer-clean-generic:
 	@echo "This command is intended for maintainers to use"
 	@echo "it deletes files that may require special tools to rebuild."
+@WEAVE_BUILD_TESTS_FALSE@install-exec-local:
+@WEAVE_BUILD_TESTS_FALSE@uninstall-local:
 @WEAVE_BUILD_COVERAGE_FALSE@clean-local:
 @WEAVE_BUILD_COVERAGE_REPORTS_FALSE@clean-local:
 @WEAVE_BUILD_TESTS_FALSE@clean-local:
-@WEAVE_BUILD_TESTS_FALSE@uninstall-local:
-@WEAVE_BUILD_TESTS_FALSE@install-exec-local:
 clean: clean-am
 
 clean-am: clean-checkPROGRAMS clean-generic clean-libexecPROGRAMS \
@@ -7631,13 +7703,12 @@ include $(abs_top_nlbuild_autotools_dir)/automake/pre.am
 
 # Parse the time filename and generate the script:
 # e.g: t_weave_time_faults_1_of_8.sh
-@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TIME_TRUE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_LONG_TESTS_TRUE@happy-tests/servicedir/test_weave_time_faults_%.sh :
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TIME_TRUE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_LONG_TESTS_TRUE@happy-tests/time/test_weave_time_faults_%.sh :
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TIME_TRUE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_LONG_TESTS_TRUE@	mkdir -p happy-tests/time
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TIME_TRUE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_LONG_TESTS_TRUE@	matched_part_of_the_file_name=$(*F) ; \
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TIME_TRUE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_LONG_TESTS_TRUE@	IFS='_' tokens=( $${matched_part_of_the_file_name} ) ; \
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TIME_TRUE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_LONG_TESTS_TRUE@	echo "#!/bin/bash" > $@ ; \
-@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TIME_TRUE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_LONG_TESTS_TRUE@	echo "${abs_srcdir}/happy-tests/time/test_weave_time_01.py --enable-faults --group $${tokens[0]} --numgroups $${tokens[2]}" >> $@ ; \
-@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TIME_TRUE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_LONG_TESTS_TRUE@	echo "${abs_srcdir}/happy-tests/time/test_weave_time_02.py --enable-faults --group $${tokens[0]} --numgroups $${tokens[2]}" >> $@ ; \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TIME_TRUE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_LONG_TESTS_TRUE@	echo "${abs_srcdir}/happy-tests/time/test_weave_time_01.py --enable-faults --syncmode $${tokens[0]} --group $${tokens[1]} --numgroups $${tokens[3]}" >> $@ ; \
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TIME_TRUE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_LONG_TESTS_TRUE@	echo 'exit $$?' >>$@
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TIME_TRUE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_LONG_TESTS_TRUE@	chmod u+x $@
 

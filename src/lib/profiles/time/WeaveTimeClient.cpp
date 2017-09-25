@@ -973,6 +973,7 @@ exit:
         if (NULL != mExchangeContext)
         {
             mExchangeContext->Close();
+            mExchangeContext = NULL;
         }
 
         Abort();

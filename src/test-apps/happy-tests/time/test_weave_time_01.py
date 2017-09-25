@@ -37,6 +37,7 @@ import plugins.weave.WeaveStateLoad as WeaveStateLoad
 import plugins.weave.WeaveStateUnload as WeaveStateUnload
 import plugin.WeaveTime as WeaveTime
 import plugin.WeaveUtilities as WeaveUtilities
+import plugins.plaid.Plaid as Plaid
 
 gFaultOpts = WeaveUtilities.FaultInjectionOptions()
 gOptions = { 'enableFaults': False, 'mode': "local" }
@@ -63,6 +64,17 @@ class test_weave_time_01(unittest.TestCase):
         setup_network = WeaveStateLoad.WeaveStateLoad(options)
         ret = setup_network.run()
 
+        # Wait for a second to ensure that Weave ULA addresses passed dad
+        # and are no longer tentative
+        time.sleep(2)
+
+        # set up Plaid for faster execution
+        plaid_opts = Plaid.default_options()
+        plaid_opts['num_clients'] = 3
+        plaid_opts['strace'] = self.show_strace
+        self.plaid = Plaid.Plaid(plaid_opts)
+        self.use_plaid = self.plaid.isPlaidConfigured()
+
 
     def tearDown(self):
         # cleaning up
@@ -80,8 +92,24 @@ class test_weave_time_01(unittest.TestCase):
 
         mode = gOptions['mode']
 
+        # The following no-fault run is used to compute the fault counters
+        # that are used to generate a set of tests with faults injected.
+        # Enabling Plaid here results in an unnecessary inflation of some
+        # fault counters, thereby generating a much larger number of tests
+        # than is effective or necessary. For now, we'll turn off Plaid only
+        # for this run and re-enable it at the start of each fault test.
+
+        # if self.use_plaid:
+        #     # print "starting plaid server"
+        #     self.__start_plaid_server()
+
         value, data = self.__run_time_test_between("node01", "node02",
-                                                   "node03", mode)
+                                                   "node03", mode, use_plaid=False)
+
+        # if self.use_plaid:
+        #     # print "stopping plaid server"
+        #     self.__stop_plaid_server()
+
         err = self.__process_result("node01", "node02", "node03", mode, value)
         # err=True => failure, err=False => success
         self.assertEqual(err, False, "failed to run success case")
@@ -105,17 +133,25 @@ class test_weave_time_01(unittest.TestCase):
             fault_configs = gFaultOpts.generate_fault_config_list(node, output_logs[node], restart) 
 
             for fault_config in fault_configs:
-                test_tag = "_" + "_".join([str(x) for x in num_tests, node, fault_config])
+                test_tag = "_" + "_".join([str(x) for x in num_tests, node, mode, fault_config])
                 print "tag: ", test_tag
+
+                if self.use_plaid:
+                    # print "starting plaid server"
+                    self.__start_plaid_server()
 
                 value, data = self.__run_time_test_between("node01", "node02",
                                 "node03", mode, num_iterations=3,
-                                faults = {node: fault_config}, test_tag=test_tag)
+                                faults = {node: fault_config}, test_tag=test_tag, use_plaid=self.use_plaid)
 
                 if self.__process_result("node01", "node02", "node03", mode, value):
                     # returns 'True' if test failed
                     num_failed_tests += 1
                     failed_tests.append(test_tag)
+
+                if self.use_plaid:
+                    # print "stopping plaid server"
+                    self.__stop_plaid_server()
 
                 num_tests += 1
 
@@ -142,7 +178,7 @@ class test_weave_time_01(unittest.TestCase):
         return failed
 
 
-    def __run_time_test_between(self, nodeA, nodeB, nodeC, mode, num_iterations=None, faults = {}, test_tag = ""):
+    def __run_time_test_between(self, nodeA, nodeB, nodeC, mode, num_iterations=None, faults = {}, test_tag = "", use_plaid=False):
         options = WeaveTime.option()
         options["quiet"] = False
         options["client"] = nodeA
@@ -156,6 +192,11 @@ class test_weave_time_01(unittest.TestCase):
         options["iterations"] = num_iterations
         options["test_tag"] = test_tag
 
+        if use_plaid:
+            options["plaid_client_env"] = self.plaid.getPlaidClientLibEnv(nodeA)
+            options["plaid_coordinator_env"] = self.plaid.getPlaidClientLibEnv(nodeB)
+            options["plaid_server_env"] = self.plaid.getPlaidClientLibEnv(nodeC)
+
         weave_time = WeaveTime.WeaveTime(options)
         ret = weave_time.run()
 
@@ -165,15 +206,23 @@ class test_weave_time_01(unittest.TestCase):
         return value, data
 
 
+    def __start_plaid_server(self):
+        self.plaid.startPlaidServerProcess()
+
+
+    def __stop_plaid_server(self):
+        self.plaid.stopPlaidServerProcess()
+
+
 if __name__ == "__main__":
     help_str = """usage:
     --help           Print this usage info and exit
-    --mode           Time sync mode (local, service, auto)
+    --syncmode       Time sync mode (local, service, auto)
     --enable-faults  Run fault injection tests\n"""
 
     help_str += gFaultOpts.help_string
 
-    longopts = ["help", "enable-faults", "mode="]
+    longopts = ["help", "enable-faults", "syncmode="]
     longopts.extend(gFaultOpts.getopt_config)
 
     try:
@@ -191,7 +240,7 @@ if __name__ == "__main__":
             print help_str
             sys.exit(0)
 
-        elif o in ("-m", "--mode"):
+        elif o in ("-m", "--syncmode"):
             gOptions["mode"] = a
 
         elif o in ("-f", "--enable-faults"):

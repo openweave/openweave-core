@@ -47,7 +47,10 @@ options = {
     "server_faults": False,
     "coordinator_faults": False,
     "iterations": None,
-    "test_tag": ""
+    "test_tag": "",
+    "plaid_server_env": {},
+    "plaid_coordinator_env": {},
+    "plaid_client_env": {}
 }
 
 gsync_succeeded_str = "Sync Succeeded"
@@ -269,7 +272,7 @@ class WeaveTime(HappyNode, HappyNetwork, WeaveTest):
             # block until client weave node is ready to service weave events
             wait_str = self.ready_to_service_events_str
 
-        self.start_weave_process(self.client_node_id, cmd, self.client_process_tag, sync_on_output=wait_str)
+        self.start_weave_process(self.client_node_id, cmd, self.client_process_tag, sync_on_output=wait_str, env=self.plaid_client_env)
 
 
     def __stop_client_side(self):
@@ -291,7 +294,7 @@ class WeaveTime(HappyNode, HappyNetwork, WeaveTest):
         if self.coordinator_faults:
             cmd += " --faults " + self.coordinator_faults
 
-        self.start_weave_process(self.coordinator_node_id, cmd, self.coordinator_process_tag, sync_on_output=self.ready_to_service_events_str)
+        self.start_weave_process(self.coordinator_node_id, cmd, self.coordinator_process_tag, sync_on_output=self.ready_to_service_events_str, env=self.plaid_coordinator_env)
 
     def __stop_coordinator_side(self):
         self.stop_weave_process(self.coordinator_node_id, self.coordinator_process_tag)
@@ -312,7 +315,7 @@ class WeaveTime(HappyNode, HappyNetwork, WeaveTest):
         if self.server_faults:
             cmd += " --faults " + self.server_faults
 
-        self.start_weave_process(self.server_node_id, cmd, self.server_process_tag, sync_on_output=self.ready_to_service_events_str)
+        self.start_weave_process(self.server_node_id, cmd, self.server_process_tag, sync_on_output=self.ready_to_service_events_str, env=self.plaid_server_env)
 
     def __stop_server_side(self):
         self.stop_weave_process(self.server_node_id, self.server_process_tag)
