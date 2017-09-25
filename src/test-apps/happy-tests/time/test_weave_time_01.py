@@ -20,8 +20,11 @@
 
 #
 #    @file
-#       WeaveTimeSync test for sync mode: "local"
-#       Also available: fault-injection (optional)
+#       WeaveTimeSync test with support for the following sync modes:
+#           - local
+#           - service
+#           - auto
+#       Also available: fault-injection (enabled via command-line option)
 #
 
 import itertools
