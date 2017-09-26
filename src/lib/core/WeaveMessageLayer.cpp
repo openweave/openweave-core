@@ -165,18 +165,23 @@ WEAVE_ERROR WeaveMessageLayer::Init(InitContext *context)
         mFlags |= kFlag_ListenBLE;
 #endif
 
-#if INET_CONFIG_ENABLE_IPV4
 #if WEAVE_CONFIG_ENABLE_TARGETED_LISTEN
+#if INET_CONFIG_ENABLE_IPV4
+    if (FabricState->ListenIPv6Addr != IPAddress::Any)
+        mFlags |= kFlag_ListenIPv6;
     if (FabricState->ListenIPv4Addr != IPAddress::Any)
         mFlags |= kFlag_ListenIPv4;
     if ((mFlags & (kFlag_ListenIPv4 | kFlag_ListenIPv6)) == 0)
         mFlags |= kFlag_ListenIPv4 | kFlag_ListenIPv6;
-#else // !WEAVE_CONFIG_ENABLE_TARGETED_LISTEN
-    mFlags |= kFlag_ListenIPv4 | kFlag_ListenIPv6;
-#endif // !WEAVE_CONFIG_ENABLE_TARGETED_LISTEN
 #else // !INET_CONFIG_ENABLE_IPV4
     mFlags |= kFlag_ListenIPv6;
 #endif // !INET_CONFIG_ENABLE_IPV4
+#else // !WEAVE_CONFIG_ENABLE_TARGETED_LISTEN
+    mFlags |= kFlag_ListenIPv6;
+#if INET_CONFIG_ENABLE_IPV4
+    mFlags |= kFlag_ListenIPv4;
+#endif // !INET_CONFIG_ENABLE_IPV4
+#endif // !WEAVE_CONFIG_ENABLE_TARGETED_LISTEN
 
     mIPv6TCPListen = NULL;
     mIPv6UDP = NULL;
