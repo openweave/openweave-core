@@ -1000,7 +1000,6 @@ check_SCRIPTS                                 +=                \
     happy-tests/swu/test_weave_swu_02.py                        \
     happy-tests/messagelayer/test_weave_messagelayer_01.py      \
     happy-tests/time/test_weave_time_01.py                      \
-    happy-tests/time/test_weave_time_02.py                      \
     happy-tests/dd/test_weave_dd_01.py                          \
     happy-tests/inet/test_weave_inet_01.py                      \
     happy-tests/heartbeat/test_weave_heartbeat_01.py            \
