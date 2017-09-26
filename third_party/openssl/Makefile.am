@@ -69,7 +69,7 @@ WEAVE_OPENSSL_DEFINES                = $(WEAVE_OPENSSL_TARGET_DEFINES)
 # Tell the OpenSSL configuration script what features we do and do not
 # want enabled.
 
-WEAVE_OPENSSL_DISABLE_OPTIONS	     = no-asm no-engine no-dso no-shared no-apps no-test no-ssl no-tools
+WEAVE_OPENSSL_DISABLE_OPTIONS	     = no-asm no-engine no-dso no-shared no-apps no-test no-ssl no-tools no-async
 
 WEAVE_OPENSSL_ENABLE_OPTIONS	     = 
 
