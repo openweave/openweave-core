@@ -27,6 +27,7 @@
 
 import getopt
 import sys
+import set_test_path
 
 from happy.Utils import *
 import plugin.WeaveWDMv0 as WeaveWDMv0

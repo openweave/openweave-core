@@ -27,6 +27,7 @@
 
 import getopt
 import sys
+import set_test_path
 
 import plugin.WeaveTunnelStart as WeaveTunnelStart
 from happy.Utils import *

@@ -27,6 +27,7 @@
 
 import getopt
 import sys
+import set_test_path
 
 import plugin.WeaveConnectionTunnel as WeaveConnectionTunnel
 from happy.Utils import *
