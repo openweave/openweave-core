@@ -382,4 +382,21 @@
 #define WEAVE_CONFIG_TUNNELING_MIN_WAIT_TIME_INTERVAL_PERCENT    (30)
 #endif // WEAVE_CONFIG_TUNNELING_MIN_WAIT_TIME_INTERVAL_PERCENT
 
+/**
+ *  @def WEAVE_CONFIG_TUNNELING_RESET_RECONNECT_TIMEOUT
+ *
+ *  @brief
+ *    The maximum time to wait when the current reconnect timeout
+ *    is reset.
+ *
+ *  @note
+ *    The actual wait period is chosen as a random duration
+ *    less than this value. The user can also request to not
+ *    wait and reconnect immediately.
+ *
+ */
+#ifndef WEAVE_CONFIG_TUNNELING_RESET_RECONNECT_TIMEOUT_SECS
+#define WEAVE_CONFIG_TUNNELING_RESET_RECONNECT_TIMEOUT_SECS      (10)
+#endif // WEAVE_CONFIG_TUNNELING_RESET_RECONNECT_TIMEOUT_SECS
+
 #endif /* WEAVE_TUNNEL_CONFIG_H_ */

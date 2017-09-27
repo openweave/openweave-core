@@ -214,7 +214,7 @@ class NL_DLL_EXPORT WeaveTunnelConnectionMgr
 /**
  * Stop Service tunnel connection and attempt to reconnect again.
  */
-    void StopAndReconnectTunnelConn(ReconnectParam &reconnParam);
+    void StopAndReconnectTunnelConn(ReconnectParam & reconnParam);
 
   private:
 
@@ -229,6 +229,7 @@ class NL_DLL_EXPORT WeaveTunnelConnectionMgr
     void ScheduleConnect(uint32_t delay);
     void CancelDelayedReconnect(void);
     void ReleaseResourcesAndStopTunnelConn(WEAVE_ERROR err);
+    WEAVE_ERROR ResetReconnectBackoff(bool reconnectImmediately);
     static void ServiceConnectTimeout(System::Layer* aSystemLayer, void* aAppState, System::Error aError);
 #if WEAVE_CONFIG_TUNNEL_LIVENESS_SUPPORTED
     void StartLivenessTimer(void);
@@ -257,9 +258,16 @@ class NL_DLL_EXPORT WeaveTunnelConnectionMgr
 
     uint16_t mMaxFailedConAttemptsBeforeNotify;
 
+    // The fibonacci index of the reconnect backoff.
+
+    uint16_t mTunReconnectFibonacciIndex;
     // The tunnel type of this connection
 
     TunnelType mTunType;
+
+    // Flag to indicate that the ResetReconnect timer is armed
+
+    bool mResetReconnectArmed;
 
     // The interface type for this connection
 

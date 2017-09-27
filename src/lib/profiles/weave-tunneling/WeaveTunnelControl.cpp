@@ -844,6 +844,7 @@ void WeaveTunnelControl::HandleTunnelOpenResponse(ExchangeContext *ec, const IPP
 
     connMgr->mTunFailedConnAttemptsInRow = 0;
 
+        connMgr->mTunReconnectFibonacciIndex = 0;
 #if WEAVE_CONFIG_TUNNEL_LIVENESS_SUPPORTED
     // Tunnel is up. Start the Tunnel Liveness timer
 
@@ -1084,6 +1085,8 @@ void WeaveTunnelControl::HandleTunnelReconnect(ExchangeContext *ec, const IPPack
     // Reset the failed connection attempts counter as this is a fresh reconnect.
 
     connMgr->mTunFailedConnAttemptsInRow = 0;
+
+    connMgr->mTunReconnectFibonacciIndex = 0;
 
     // Try reconnecting to the Service.
 

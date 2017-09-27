@@ -73,10 +73,12 @@ WEAVE_ERROR WeaveTunnelConnectionMgr::Init(WeaveTunnelAgent *tunAgent,
     mConnectionState                  = kState_NotConnected;
     mServiceCon                       = NULL;
     mTunFailedConnAttemptsInRow       = 0;
+    mTunReconnectFibonacciIndex       = 0;
     mTunType                          = tunType;
     mSrcInterfaceType                 = srcIntfType;
     mMaxFailedConAttemptsBeforeNotify = WEAVE_CONFIG_TUNNELING_MAX_NUM_CONNECT_BEFORE_NOTIFY;
     mServiceConnDelayPolicyCallback   = DefaultReconnectPolicyCallback;
+    mResetReconnectArmed              = false;
     if (connIntfName)
     {
         strncpy(mServiceConIntf, connIntfName, sizeof(mServiceConIntf) - 1);
@@ -423,6 +425,10 @@ void WeaveTunnelConnectionMgr::ServiceConnectTimeout(System::Layer* aSystemLayer
     WeaveLogDetail(WeaveTunnel, "Connecting to node %" PRIx64 "\n",
                    tConnMgr->mTunAgent->mPeerNodeId);
 
+    // Reset the reconnect armed flag.
+
+    tConnMgr->mResetReconnectArmed = false;
+
     aError = tConnMgr->TryConnectingNow();
 
     if (aError != WEAVE_NO_ERROR)
@@ -544,9 +550,9 @@ void WeaveTunnelConnectionMgr::StopServiceTunnelConn(WEAVE_ERROR err)
  * @param[in]  err    A WEAVE_ERROR passed in from the caller.
  *
  */
-void WeaveTunnelConnectionMgr::StopAndReconnectTunnelConn(ReconnectParam &reconnParam)
+void WeaveTunnelConnectionMgr::StopAndReconnectTunnelConn(ReconnectParam & reconnParam)
 {
-    StopServiceTunnelConn(reconnParam.mLastConnectError);
+    ReleaseResourcesAndStopTunnelConn(reconnParam.mLastConnectError);
 
     // Attempt Reconnecting
 
@@ -597,6 +603,7 @@ void WeaveTunnelConnectionMgr::ServiceTunnelClose(WEAVE_ERROR err)
 
     mTunFailedConnAttemptsInRow = 0;
 
+    mTunReconnectFibonacciIndex = 0;
 }
 
 /**
@@ -640,6 +647,8 @@ void WeaveTunnelConnectionMgr::ServiceMgrStatusHandler(void* appState, WEAVE_ERR
 
     tConnMgr->mConnectionState = WeaveTunnelConnectionMgr::kState_NotConnected;
 
+    tConnMgr->mServiceCon = NULL;
+
     // Increment the failed connection attempts counter.
 
     if (report)
@@ -650,6 +659,8 @@ void WeaveTunnelConnectionMgr::ServiceMgrStatusHandler(void* appState, WEAVE_ERR
     {
         reconnParam.PopulateReconnectParam(err);
     }
+
+    tConnMgr->ReleaseResourcesAndStopTunnelConn(err);
 
     tConnMgr->AttemptReconnect(reconnParam);
 }
@@ -806,13 +817,9 @@ void WeaveTunnelConnectionMgr::HandleServiceConnectionClosed (WeaveConnection *c
                       peerNodeId, ipAddrStr, (long)conErr, tConnMgr->mTunType == kType_TunnelPrimary?"primary":"backup");
     }
 
-    // Free any outstanding resources that might be held before reconnecting
-
-    tConnMgr->ReleaseResourcesAndStopTunnelConn(conErr);
-
     reconnParam.PopulateReconnectParam(conErr);
 
-    tConnMgr->AttemptReconnect(reconnParam);
+    tConnMgr->StopAndReconnectTunnelConn(reconnParam);
 }
 
 /**
@@ -851,6 +858,55 @@ void WeaveTunnelConnectionMgr::AttemptReconnect(ReconnectParam &reconnParam)
     mTunFailedConnAttemptsInRow++;
 
     DecideOnReconnect(reconnParam);
+}
+
+/**
+ * Reset the reconnect timeout to make the tunnel connect promptly
+ * after potentially backing off a random time within a configured period.
+ *
+ */
+WEAVE_ERROR WeaveTunnelConnectionMgr::ResetReconnectBackoff(bool reconnectImmediately)
+{
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
+    uint32_t waitTimeInMsec = 0;
+
+    /* Check if the WeaveConnectionManager is in the correct state to effect a
+     * reset of the reconnect backoff.
+     */
+    VerifyOrExit((mConnectionState == kState_Connecting || mConnectionState == kState_NotConnected),
+                  err = WEAVE_ERROR_INCORRECT_STATE);
+
+    /* A reconnect reset request is not honored when a previous one has
+     * not been executed yet.
+     */
+    VerifyOrExit(!mResetReconnectArmed, err = WEAVE_ERROR_TUNNEL_RESET_RECONNECT_ALREADY_ARMED);
+
+    // Cancel the currently running Reconnect timer
+
+    CancelDelayedReconnect();
+
+    // Reset the fibonacci index so that it starts from the beginning when
+    // connection fails.
+
+    mTunReconnectFibonacciIndex = 0;
+
+    if (reconnectImmediately)
+    {
+        // Schedule the connect attempt immediately.
+
+        ResetCacheAndScheduleConnect(CONNECT_NO_DELAY);
+    }
+    else
+    {
+        waitTimeInMsec = GetRandU32() % (WEAVE_CONFIG_TUNNELING_RESET_RECONNECT_TIMEOUT_SECS *
+                                         nl::Weave::System::kTimerFactor_milli_per_unit);
+
+        ResetCacheAndScheduleConnect(waitTimeInMsec);
+    }
+
+    mResetReconnectArmed = true;
+exit:
+    return err;
 }
 
 #if WEAVE_CONFIG_TUNNEL_LIVENESS_SUPPORTED
@@ -920,20 +976,15 @@ void WeaveTunnelConnectionMgr::DefaultReconnectPolicyCallback(void * const appSt
     uint32_t maxWaitTimeInMsec = 0;
     uint32_t waitTimeInMsec = 0;
     uint32_t minWaitTimeInMsec = 0;
-    uint32_t fibIndex = 0;
 
     WeaveTunnelConnectionMgr* tConnMgr = static_cast<WeaveTunnelConnectionMgr*>(appState);
 
-    if (tConnMgr->mTunFailedConnAttemptsInRow <= WEAVE_CONFIG_TUNNELING_RECONNECT_MAX_FIBONACCI_INDEX)
+    if (tConnMgr->mTunReconnectFibonacciIndex > WEAVE_CONFIG_TUNNELING_RECONNECT_MAX_FIBONACCI_INDEX)
     {
-        fibIndex = tConnMgr->mTunFailedConnAttemptsInRow;
-    }
-    else
-    {
-        fibIndex = WEAVE_CONFIG_TUNNELING_RECONNECT_MAX_FIBONACCI_INDEX;
+        tConnMgr->mTunReconnectFibonacciIndex = WEAVE_CONFIG_TUNNELING_RECONNECT_MAX_FIBONACCI_INDEX;
     }
 
-    fibonacciNum = GetFibonacciForIndex(fibIndex);
+    fibonacciNum = GetFibonacciForIndex(tConnMgr->mTunReconnectFibonacciIndex);
 
     maxWaitTimeInMsec = fibonacciNum * WEAVE_CONFIG_TUNNELING_CONNECT_WAIT_TIME_MULTIPLIER_SECS * System::kTimerFactor_milli_per_unit;
 
@@ -952,6 +1003,8 @@ void WeaveTunnelConnectionMgr::DefaultReconnectPolicyCallback(void * const appSt
     }
 
     delayMsec = waitTimeInMsec;
+
+    tConnMgr->mTunReconnectFibonacciIndex++;
 
     WeaveLogDetail(WeaveTunnel, "Tunnel reconnect policy: attempts %" PRIu32 ", max wait time %" PRIu32 " ms, selected wait time %" PRIu32 " ms",
                    tConnMgr->mTunFailedConnAttemptsInRow, maxWaitTimeInMsec, waitTimeInMsec);

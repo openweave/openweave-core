@@ -1623,6 +1623,14 @@ typedef WEAVE_CONFIG_ERROR_TYPE WEAVE_ERROR;
 #define WEAVE_ERROR_TUNNEL_ROUTING_RESTRICTED                   _WEAVE_ERROR(168)
 
 /**
+ *  @def WEAVE_ERROR_TUNNEL_RESET_RECONNECT_ALREADY_ARMED
+ *
+ *  @brief
+ *    The Tunnel reset reconnect timer is already armed
+ */
+#define WEAVE_ERROR_TUNNEL_RESET_RECONNECT_ALREADY_ARMED        _WEAVE_ERROR(169)
+
+/**
  *  @}
  */
 

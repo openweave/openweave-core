@@ -243,7 +243,19 @@ public:
  */
     void DisablePrimaryTunnel(void);
 
+/**
+ * Reset the Reconnect time for the primary tunnel
+ *
+ */
+    WEAVE_ERROR ResetPrimaryReconnectBackoff(bool reconnectImmediately);
+
 #if WEAVE_CONFIG_TUNNEL_FAILOVER_SUPPORTED
+
+/**
+ * Reset the Reconnect time for the backup tunnel
+ *
+ */
+    WEAVE_ERROR  ResetBackupReconnectBackoff(bool reconnectImmediately);
 
 /**
  *  Check if the backup tunnel is enabled.

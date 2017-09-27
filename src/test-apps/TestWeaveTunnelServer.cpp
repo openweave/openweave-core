@@ -193,7 +193,9 @@ void WeaveTunnelServer::HandleConnectionReceived(WeaveMessageLayer *msgLayer, We
 
     gConn->OnConnectionClosed = HandleConnectionClosed;
 
-    if (gCurrTestNum == kTestNum_TestTunnelConnectionDownReconnect)
+    if (gCurrTestNum == kTestNum_TestTunnelConnectionDownReconnect ||
+        gCurrTestNum == kTestNum_TestTunnelResetReconnectBackoffImmediately ||
+        gCurrTestNum == kTestNum_TestTunnelResetReconnectBackoffRandomized)
     {
         WeaveLogDetail(WeaveTunnel, "Closing Connection for test %d with node (%s)\n",
                        gCurrTestNum, ipAddrStr);

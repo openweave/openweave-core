@@ -91,6 +91,9 @@ bool gTestSucceeded = false;
 uint8_t  gEncryptionType = kWeaveEncryptionType_None;
 uint16_t gKeyId = WeaveKeyId::kNone;
 uint8_t gTunUpCount = 0;
+uint8_t gConnAttemptsBeforeReset = 0;
+bool gReconnectResetArmed = false;
+uint64_t gReconnectResetArmTime = 0;
 
 #if WEAVE_CONFIG_ENABLE_SERVICE_DIRECTORY
 bool gUseServiceDir = false;
@@ -1352,7 +1355,6 @@ exit:
 static void TestCallTunnelDownAfterMaxReconnects(nlTestSuite *inSuite, void *inContext)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
-    ExchangeContext *exchangeCtxt = NULL;
 
     Done = false;
     gTestSucceeded = false;
@@ -1368,12 +1370,10 @@ static void TestCallTunnelDownAfterMaxReconnects(nlTestSuite *inSuite, void *inC
     err = gTunAgent.Init(&Inet, &ExchangeMgr, gDestNodeId, fakeAddr,
                         gAuthMode);
 
-    gTunAgent.OnServiceTunStatusNotify = WeaveTunnelOnStatusNotifyHandlerCB;
-
     SuccessOrExit(err);
 
-    exchangeCtxt = ExchangeMgr.NewContext(gDestNodeId, gDestAddr, &gTunAgent);
-    VerifyOrExit(exchangeCtxt, err = WEAVE_ERROR_NO_MEMORY);
+    gTunAgent.OnServiceTunStatusNotify = WeaveTunnelOnStatusNotifyHandlerCB;
+
 
     err = gTunAgent.StartServiceTunnel();
     SuccessOrExit(err);
@@ -1807,6 +1807,12 @@ static void TestQueueingOfTunneledPackets(nlTestSuite *inSuite, void *inContext)
     }
 
 exit:
+    if (exchangeCtxt)
+    {
+        exchangeCtxt->Close();
+        exchangeCtxt = NULL;
+    }
+
     NL_TEST_ASSERT(inSuite, err == WEAVE_NO_ERROR);
     NL_TEST_ASSERT(inSuite, gTestSucceeded == true);
 
@@ -2080,6 +2086,12 @@ static void TestTunnelLivenessDisconnectOnNoResponse(nlTestSuite *inSuite, void 
     }
 
 exit:
+    if (exchangeCtxt)
+    {
+        exchangeCtxt->Close();
+        exchangeCtxt = NULL;
+    }
+
     NL_TEST_ASSERT(inSuite, err == WEAVE_NO_ERROR);
     NL_TEST_ASSERT(inSuite, gTestSucceeded == true);
 
@@ -2164,6 +2176,194 @@ static void TestTunnelRestrictedRoutingOnTunnelOpen(nlTestSuite *inSuite, void *
     }
 
 exit:
+    if (exchangeCtxt)
+    {
+        exchangeCtxt->Close();
+        exchangeCtxt = NULL;
+    }
+
+    NL_TEST_ASSERT(inSuite, err == WEAVE_NO_ERROR);
+    NL_TEST_ASSERT(inSuite, gTestSucceeded == true);
+
+    gTunAgent.Shutdown();
+}
+
+static void TestTunnelResetReconnectBackoffImmediately(nlTestSuite *inSuite, void *inContext)
+{
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
+    ExchangeContext *exchangeCtxt = NULL;
+
+    Done = false;
+    gTestSucceeded = false;
+    gConnAttemptsBeforeReset = 0;
+    gReconnectResetArmed = false;
+    gReconnectResetArmTime = 0;
+    gMaxTestDurationMillisecs = RECONNECT_RESET_TEST_DURATION_MILLISECS;
+    gCurrTestNum = kTestNum_TestTunnelResetReconnectBackoffImmediately;
+    gTestStartTime = Now();
+
+#if WEAVE_CONFIG_ENABLE_SERVICE_DIRECTORY
+    if (gUseServiceDir)
+    {
+        err = gTunAgent.Init(&Inet, &ExchangeMgr, gDestNodeId,
+                            gAuthMode, &gServiceMgr);
+    }
+    else
+#endif
+    {
+        err = gTunAgent.Init(&Inet, &ExchangeMgr, gDestNodeId, gDestAddr,
+                            gAuthMode);
+    }
+
+    SuccessOrExit(err);
+
+    gTunAgent.OnServiceTunStatusNotify = WeaveTunnelOnStatusNotifyHandlerCB;
+
+    exchangeCtxt = ExchangeMgr.NewContext(gDestNodeId, gDestAddr, &gTunAgent);
+    VerifyOrExit(exchangeCtxt, err = WEAVE_ERROR_NO_MEMORY);
+
+    err = SendTunnelTestMessage(exchangeCtxt, kWeaveProfile_TunnelTest_Start,
+                                kTestNum_TestTunnelResetReconnectBackoffImmediately,
+                                0);
+    SuccessOrExit(err);
+
+    err = gTunAgent.StartServiceTunnel();
+    SuccessOrExit(err);
+
+    while (!Done)
+    {
+        struct timeval sleepTime;
+        sleepTime.tv_sec = TEST_SLEEP_TIME_WITHIN_LOOP_SECS;
+        sleepTime.tv_usec = TEST_SLEEP_TIME_WITHIN_LOOP_MICROSECS;
+
+        ServiceNetwork(sleepTime);
+
+        if (Now() < gTestStartTime + gMaxTestDurationMillisecs * System::kTimerFactor_micro_per_milli)
+        {
+            if (gTestSucceeded)
+            {
+                Done = true;
+            }
+            else
+            {
+                continue;
+            }
+        }
+        else // Time's up
+        {
+            gTestSucceeded = false;
+            Done = true;
+        }
+
+        if (Done)
+        {
+            err = SendTunnelTestMessage(exchangeCtxt, kWeaveProfile_TunnelTest_End,
+                                        kTestNum_TestTunnelResetReconnectBackoffImmediately,
+                                        0);
+            SuccessOrExit(err);
+
+            gTunAgent.StopServiceTunnel(WEAVE_ERROR_NOT_CONNECTED);
+        }
+    }
+
+exit:
+    if (exchangeCtxt)
+    {
+        exchangeCtxt->Close();
+        exchangeCtxt = NULL;
+    }
+
+    NL_TEST_ASSERT(inSuite, err == WEAVE_NO_ERROR);
+    NL_TEST_ASSERT(inSuite, gTestSucceeded == true);
+
+    gTunAgent.Shutdown();
+}
+
+static void TestTunnelResetReconnectBackoffRandomized(nlTestSuite *inSuite, void *inContext)
+{
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
+    ExchangeContext *exchangeCtxt = NULL;
+
+    Done = false;
+    gTestSucceeded = false;
+    gConnAttemptsBeforeReset = 0;
+    gReconnectResetArmed = false;
+    gReconnectResetArmTime = 0;
+    gMaxTestDurationMillisecs = RECONNECT_RESET_TEST_DURATION_MILLISECS;
+    gCurrTestNum = kTestNum_TestTunnelResetReconnectBackoffRandomized;
+    gTestStartTime = Now();
+
+#if WEAVE_CONFIG_ENABLE_SERVICE_DIRECTORY
+    if (gUseServiceDir)
+    {
+        err = gTunAgent.Init(&Inet, &ExchangeMgr, gDestNodeId,
+                            gAuthMode, &gServiceMgr);
+    }
+    else
+#endif
+    {
+        err = gTunAgent.Init(&Inet, &ExchangeMgr, gDestNodeId, gDestAddr,
+                            gAuthMode);
+    }
+
+    SuccessOrExit(err);
+
+    gTunAgent.OnServiceTunStatusNotify = WeaveTunnelOnStatusNotifyHandlerCB;
+
+    exchangeCtxt = ExchangeMgr.NewContext(gDestNodeId, gDestAddr, &gTunAgent);
+    VerifyOrExit(exchangeCtxt, err = WEAVE_ERROR_NO_MEMORY);
+
+    err = SendTunnelTestMessage(exchangeCtxt, kWeaveProfile_TunnelTest_Start,
+                                kTestNum_TestTunnelResetReconnectBackoffRandomized,
+                                0);
+    SuccessOrExit(err);
+
+    err = gTunAgent.StartServiceTunnel();
+    SuccessOrExit(err);
+
+    while (!Done)
+    {
+        struct timeval sleepTime;
+        sleepTime.tv_sec = TEST_SLEEP_TIME_WITHIN_LOOP_SECS;
+        sleepTime.tv_usec = TEST_SLEEP_TIME_WITHIN_LOOP_MICROSECS;
+
+        ServiceNetwork(sleepTime);
+
+        if (Now() < gTestStartTime + gMaxTestDurationMillisecs * System::kTimerFactor_micro_per_milli)
+        {
+            if (gTestSucceeded)
+            {
+                Done = true;
+            }
+            else
+            {
+                continue;
+            }
+        }
+        else // Time's up
+        {
+            gTestSucceeded = false;
+            Done = true;
+        }
+
+        if (Done)
+        {
+            err = SendTunnelTestMessage(exchangeCtxt, kWeaveProfile_TunnelTest_End,
+                                        kTestNum_TestTunnelResetReconnectBackoffRandomized,
+                                        0);
+            SuccessOrExit(err);
+
+            gTunAgent.StopServiceTunnel(WEAVE_ERROR_NOT_CONNECTED);
+        }
+    }
+
+exit:
+    if (exchangeCtxt)
+    {
+        exchangeCtxt->Close();
+        exchangeCtxt = NULL;
+    }
+
     NL_TEST_ASSERT(inSuite, err == WEAVE_NO_ERROR);
     NL_TEST_ASSERT(inSuite, gTestSucceeded == true);
 
@@ -2630,6 +2830,65 @@ WeaveTunnelOnStatusNotifyHandlerCB(WeaveTunnelConnectionMgr::TunnelConnNotifyRea
 
         break;
 
+      case kTestNum_TestTunnelResetReconnectBackoffImmediately:
+      case kTestNum_TestTunnelResetReconnectBackoffRandomized:
+        if (reason == WeaveTunnelConnectionMgr::kStatus_TunPrimaryConnError)
+        {
+            if (gReconnectResetArmed)
+            {
+                WeaveLogDetail(WeaveTunnel, "Tunnel Connect error after reset armed\n");
+
+                if (gCurrTestNum == kTestNum_TestTunnelResetReconnectBackoffImmediately)
+                {
+                    if (Now() - gReconnectResetArmTime < (BACKOFF_RESET_IMMEDIATE_THRESHOLD_SECS *
+                                                          nl::Weave::System::kTimerFactor_micro_per_unit))
+                    {
+                        gTestSucceeded = true;
+                    }
+                    else
+                    {
+                        gTestSucceeded = false;
+                    }
+                }
+                else
+                {
+                    if (Now() - gReconnectResetArmTime < (BACKOFF_RESET_RANDOMIZED_THRESHOLD_SECS *
+                                                          nl::Weave::System::kTimerFactor_micro_per_unit))
+                    {
+                        gTestSucceeded = true;
+                    }
+                    else
+                    {
+                        gTestSucceeded = false;
+                    }
+
+                }
+            }
+            else
+            {
+                gConnAttemptsBeforeReset++;
+
+                if (gConnAttemptsBeforeReset == TEST_CONN_ATTEMPTS_BEFORE_RESET)
+                {
+                    if (gCurrTestNum == kTestNum_TestTunnelResetReconnectBackoffImmediately)
+                    {
+                        gTunAgent.ResetPrimaryReconnectBackoff(true);
+                    }
+                    else
+                    {
+                        gTunAgent.ResetPrimaryReconnectBackoff(false);
+                    }
+
+                    gReconnectResetArmTime = Now();
+
+                    gReconnectResetArmed = true;
+                    WeaveLogDetail(WeaveTunnel, "Tunnel Reconnect Reset armed\n");
+                }
+            }
+        }
+
+        break;
+
       default:
 
         break;
@@ -2677,6 +2936,8 @@ static const nlTest tunnelTests[] = {
     NL_TEST_DEF("TestTunnelLivenessDisconnectOnNoResponse", TestTunnelLivenessDisconnectOnNoResponse),
 #endif // WEAVE_CONFIG_TUNNEL_LIVENESS_SUPPORTED
     NL_TEST_DEF("TestTunnelRestrictedRoutingOnTunnelOpen", TestTunnelRestrictedRoutingOnTunnelOpen),
+    NL_TEST_DEF("TestTunnelResetReconnectBackoffImmediately", TestTunnelResetReconnectBackoffImmediately),
+    NL_TEST_DEF("TestTunnelResetReconnectBackoffRandomized", TestTunnelResetReconnectBackoffRandomized),
 #if WEAVE_SYSTEM_CONFIG_USE_SOCKETS && WEAVE_CONFIG_TUNNEL_TCP_USER_TIMEOUT_SUPPORTED && INET_CONFIG_OVERRIDE_SYSTEM_TCP_USER_TIMEOUT
     NL_TEST_DEF("TestTCPUserTimeoutOnAddrRemoval", TestTCPUserTimeoutOnAddrRemoval),
 #endif // WEAVE_SYSTEM_CONFIG_USE_SOCKETS && WEAVE_CONFIG_TUNNEL_TCP_USER_TIMEOUT_SUPPORTED && INET_CONFIG_OVERRIDE_SYSTEM_TCP_USER_TIMEOUT

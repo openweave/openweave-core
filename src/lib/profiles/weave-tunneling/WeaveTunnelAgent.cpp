@@ -377,17 +377,12 @@ WEAVE_ERROR WeaveTunnelAgent::Shutdown(void)
     mTunShortcutControl.DisableShortcutTunneling();
 #endif
 
+    // Shutdown the Primary Tunnel ConnectionManager.
+    mPrimaryTunConnMgr.Shutdown();
+
 #if WEAVE_CONFIG_TUNNEL_FAILOVER_SUPPORTED
 
-    mPrimaryTunConnMgr.Shutdown();
-
     mBackupTunConnMgr.Shutdown();
-
-#else // WEAVE_CONFIG_TUNNEL_FAILOVER_SUPPORTED
-
-    // Shutdown the Primary Tunnel ConnectionManager.
-
-    mPrimaryTunConnMgr.Shutdown();
 
 #endif // WEAVE_CONFIG_TUNNEL_FAILOVER_SUPPORTED
 
@@ -400,6 +395,42 @@ WEAVE_ERROR WeaveTunnelAgent::Shutdown(void)
 exit:
     return err;
 }
+
+/**
+ *  Reset the Reconnect time for the primary tunnel
+ *
+ *  @param[in] reconnectImmediately
+ *    True if required to reconnect immediately, else using
+ *    the configured reconenct timeout.
+ *
+ *  @note
+ *    Reset of the reconnect time only has effect when the
+ *    corresponding tunnel is disconnected, otherwise it is
+ *    ignored.
+ */
+WEAVE_ERROR WeaveTunnelAgent::ResetPrimaryReconnectBackoff(bool reconnectImmediately)
+{
+    return mPrimaryTunConnMgr.ResetReconnectBackoff(reconnectImmediately);
+}
+
+#if WEAVE_CONFIG_TUNNEL_FAILOVER_SUPPORTED
+/**
+ *  Reset the Reconnect time for the backup tunnel
+ *
+ *  @param[in] reconnectImmediately
+ *    True if required to reconnect immediately, else using
+ *    the configured reconenct timeout.
+ *
+ *  @note
+ *    Reset of the reconnect time only has effect when the
+ *    corresponding tunnel is disconnected, otherwise it is
+ *    ignored.
+ */
+WEAVE_ERROR WeaveTunnelAgent::ResetBackupReconnectBackoff(bool reconnectImmediately)
+{
+    return mBackupTunConnMgr.ResetReconnectBackoff(reconnectImmediately);
+}
+#endif // WEAVE_CONFIG_TUNNEL_FAILOVER_SUPPORTED
 
 #if WEAVE_CONFIG_TUNNEL_TCP_USER_TIMEOUT_SUPPORTED
 /**

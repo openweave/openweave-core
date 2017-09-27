@@ -33,9 +33,13 @@
 
 #define DEFAULT_TEST_DURATION_MILLISECS               (5000)
 #define RECONNECT_TEST_DURATION_MILLISECS             (2 * DEFAULT_TEST_DURATION_MILLISECS)
+#define RECONNECT_RESET_TEST_DURATION_MILLISECS       (10 * DEFAULT_TEST_DURATION_MILLISECS)
 #define TEST_SLEEP_TIME_WITHIN_LOOP_MICROSECS         (100000)
 #define TEST_SLEEP_TIME_WITHIN_LOOP_SECS              (0)
 #define TEST_TUNNEL_RECONNECT_HOSTNAME                "tunnel01.frontend.nestlabs.com"
+#define TEST_CONN_ATTEMPTS_BEFORE_RESET               (4)
+#define BACKOFF_RESET_IMMEDIATE_THRESHOLD_SECS        (1)
+#define BACKOFF_RESET_RANDOMIZED_THRESHOLD_SECS       (11)
 
 #if WEAVE_CONFIG_ENABLE_TUNNELING
 using namespace ::nl::Inet;
@@ -73,6 +77,8 @@ enum
     kTestNum_TestTCPUserTimeoutOnAddrRemoval                    = 21,
     kTestNum_TestTunnelLivenessSendAndRecvResponse              = 22,
     kTestNum_TestTunnelLivenessDisconnectOnNoResponse           = 23,
+    kTestNum_TestTunnelResetReconnectBackoffImmediately         = 24,
+    kTestNum_TestTunnelResetReconnectBackoffRandomized          = 25,
 };
 
 #endif // WEAVE_CONFIG_ENABLE_TUNNELING
