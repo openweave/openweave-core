@@ -54,6 +54,10 @@ WiFiSecurityType_WPAEnterprise              = 6
 WiFiSecurityType_WPA2Enterprise             = 7
 WiFiSecurityType_WPA2MixedEnterprise        = 8
 
+ThreadPANId_NotSpecified                    = 0xFFFFFFFF
+
+ThreadChannel_NotSpecified                  = 0xFF
+
 RendezvousMode_EnableWiFiRendezvousNetwork   = 0x0001
 RendezvousMode_Enable802154RendezvousNetwork = 0x0002
 RendezvousMode_EnableFabricRendezvousAddress = 0x0004
@@ -104,7 +108,7 @@ class NetworkInfo:
     def __init__(self, networkType=None, networkId=None, wifiSSID=None, wifiMode=None, wifiRole=None,
                  wifiSecurityType=None, wifiKey=None,
                  threadNetworkName=None, threadExtendedPANId=None, threadNetworkKey=None,
-                 wirelessSignalStrength=None):
+                 wirelessSignalStrength=None, threadPANId=None, threadChannel=None):
         self.NetworkType = networkType
         self.NetworkId = networkId
         self.WiFiSSID = wifiSSID
@@ -115,6 +119,8 @@ class NetworkInfo:
         self.ThreadNetworkName = threadNetworkName
         self.ThreadExtendedPANId = threadExtendedPANId
         self.ThreadNetworkKey = threadNetworkKey
+        self.ThreadPANId = threadPANId
+        self.ThreadChannel = threadChannel
         self.WirelessSignalStrength = wirelessSignalStrength
 
     def Print(self, prefix=""):
@@ -137,6 +143,10 @@ class NetworkInfo:
             print "%sThread Extended PAN Id: %s" % (prefix, _ByteArrayToHex(self.ThreadExtendedPANId))
         if self.ThreadNetworkKey != None:
             print "%sThread Network Key: %s" % (prefix, _ByteArrayToHex(self.ThreadNetworkKey))
+        if self.ThreadPANId != None:
+            print "%sThread PAN Id: %04x" % (prefix, self.ThreadPANId)
+        if self.ThreadChannel != None:
+            print "%sThread Channel: %d" % (prefix, self.ThreadChannel)
         if self.WirelessSignalStrength != None:
             print "%sWireless Signal Strength: %s" % (prefix, self.WirelessSignalStrength)
 
@@ -158,10 +168,14 @@ class NetworkInfo:
             self.WiFiKey = val
         elif (name == 'threadnetworkname' or name == 'thread-network-name' or name == 'thread-name'):
             self.ThreadNetworkName = val
-        elif (name == 'threadextendedpanid' or name == 'thread-extended-pan-id' or name == 'pan-id'):
+        elif (name == 'threadextendedpanid' or name == 'thread-extended-pan-id'):
             self.ThreadExtendedPANId = val
         elif (name == 'threadnetworkkey' or name == 'thread-network-key' or name == 'thread-key'):
             self.ThreadNetworkKey = val
+        elif (name == 'threadpanid' or name == 'thread-pan-id' or name == 'pan-id'):
+            self.ThreadPANId = val
+        elif (name == 'threadchannel' or name == 'thread-channel'):
+            self.ThreadChannel = val
         elif (name == 'wirelesssignalstrength' or name == 'wireless-signal-strength'):
             self.WirelessSignalStrength = val
         else:
@@ -295,6 +309,8 @@ class _NetworkInfoStruct(Structure):
         ('ThreadExtendedPANId', c_void_p),  # The Thread extended PAN id (8 bytes).
         ('ThreadNetworkKey', c_void_p),     # The Thread master network key.
         ('ThreadNetworkKeyLen', c_uint32),  # The length in bytes of the Thread master network key.
+        ('ThreadPANId', c_uint32),          # The 16-bit Thread PAN ID, or kThreadPANId_NotSpecified
+        ('ThreadChannel', c_uint8),         # The current channel on which the Thread network operates, or kThreadChannel_NotSpecified
         ('WirelessSignalStrength', c_int16),# The signal strength of the network, or INT16_MIN if not available/applicable.
         ('Hidden', c_bool)                  # Whether or not the network is hidden.
     ]
@@ -311,6 +327,8 @@ class _NetworkInfoStruct(Structure):
             threadNetworkName = self.ThreadNetworkName,
             threadExtendedPANId = _VoidPtrToByteArray(self.ThreadExtendedPANId, 8),
             threadNetworkKey = _VoidPtrToByteArray(self.ThreadNetworkKey, self.ThreadNetworkKeyLen),
+            threadPANId = self.ThreadPANId if self.ThreadPANId != ThreadPANId_NotSpecified else None,
+            threadChannel = self.ThreadChannel if self.ThreadChannel != ThreadChannel_NotSpecified else None,
             wirelessSignalStrength = self.WirelessSignalStrength if self.WirelessSignalStrength != -32768 else None
         )
 
@@ -329,6 +347,8 @@ class _NetworkInfoStruct(Structure):
         networkInfoStruct.ThreadExtendedPANId = _ByteArrayToVoidPtr(networkInfo.ThreadExtendedPANId)
         networkInfoStruct.ThreadNetworkKey = _ByteArrayToVoidPtr(networkInfo.ThreadNetworkKey)
         networkInfoStruct.ThreadNetworkKeyLen = len(networkInfo.ThreadNetworkKey) if (networkInfo.ThreadNetworkKey != None) else 0
+        networkInfoStruct.ThreadPANId = networkInfo.ThreadPANId if networkInfo.ThreadPANId != None else ThreadPANId_NotSpecified
+        networkInfoStruct.ThreadChannel = networkInfo.ThreadChannel if networkInfo.ThreadChannel != None else ThreadChannel_NotSpecified
         networkInfoStruct.WirelessSignalStrength = networkInfo.WirelessSignalStrength if networkInfo.WirelessSignalStrength != None else -32768
         return networkInfoStruct
 

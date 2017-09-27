@@ -82,6 +82,9 @@ public:
                                      * by `ThreadNetworkKeyLen`.  Destroyed on any condition that calls `Clear()` on
                                      * the object. */
     uint32_t ThreadNetworkKeyLen;   /**< The length in bytes of the Thread master network key. */
+    uint32_t ThreadPANId;           /**< The 16-bit Thread PAN ID, or kThreadPANId_NotSpecified */
+    uint8_t ThreadChannel;          /**< The current channel (currently [11..26]) on which the Thread network operates,
+                                     * or kThreadChannel_NotSpecified */
 
     // ---- General Fields ----
     int16_t WirelessSignalStrength; /**< The signal strength of the network, or INT16_MIN if not

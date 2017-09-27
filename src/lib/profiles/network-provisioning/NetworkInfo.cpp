@@ -53,6 +53,8 @@ NetworkInfo::NetworkInfo()
     ThreadNetworkKey = NULL;
     ThreadNetworkKeyLen = 0;
     WirelessSignalStrength = INT16_MIN;
+    ThreadPANId = kThreadPANId_NotSpecified;
+    ThreadChannel = kThreadChannel_NotSpecified;
 }
 
 NetworkInfo::~NetworkInfo()
@@ -126,6 +128,8 @@ WEAVE_ERROR NetworkInfo::CopyTo(NetworkInfo& dest)
     err = ReplaceValue(dest.ThreadNetworkKey, dest.ThreadNetworkKeyLen, ThreadNetworkKey, ThreadNetworkKeyLen);
     SuccessOrExit(err);
     dest.WirelessSignalStrength = WirelessSignalStrength;
+    dest.ThreadChannel = ThreadChannel;
+    dest.ThreadPANId = ThreadPANId;
 
 exit:
     return err;
@@ -171,6 +175,10 @@ WEAVE_ERROR NetworkInfo::MergeTo(NetworkInfo& dest)
         err = ReplaceValue(dest.ThreadNetworkKey, dest.ThreadNetworkKeyLen, ThreadNetworkKey, ThreadNetworkKeyLen);
         SuccessOrExit(err);
     }
+    if (ThreadChannel != kThreadChannel_NotSpecified)
+        dest.ThreadChannel = ThreadChannel;
+    if (ThreadPANId != kThreadPANId_NotSpecified)
+        dest.ThreadPANId = ThreadPANId;
     if (WirelessSignalStrength != INT16_MIN)
         dest.WirelessSignalStrength = WirelessSignalStrength;
 
@@ -252,6 +260,20 @@ WEAVE_ERROR NetworkInfo::Decode(nl::Weave::TLV::TLVReader& reader)
             VerifyOrExit(reader.GetLength() == 8, err = WEAVE_ERROR_INVALID_TLV_ELEMENT);
             err = reader.DupBytes(ThreadExtendedPANId, val);
             SuccessOrExit(err);
+            break;
+        case kTag_ThreadPANId:
+            VerifyOrExit(reader.GetType() == kTLVType_UnsignedInteger, err = WEAVE_ERROR_INVALID_TLV_ELEMENT);
+            err = reader.Get(val);
+            SuccessOrExit(err);
+            VerifyOrExit(val <= UINT16_MAX, err = WEAVE_ERROR_INVALID_TLV_ELEMENT);
+            ThreadPANId = val;
+            break;
+        case kTag_ThreadChannel:
+            VerifyOrExit(reader.GetType() == kTLVType_UnsignedInteger, err = WEAVE_ERROR_INVALID_TLV_ELEMENT);
+            err = reader.Get(val);
+            SuccessOrExit(err);
+            VerifyOrExit(val <= UINT8_MAX, err = WEAVE_ERROR_INVALID_TLV_ELEMENT);
+            ThreadChannel = val;
             break;
         case kTag_ThreadNetworkKey:
             VerifyOrExit(reader.GetType() == kTLVType_ByteString, err = WEAVE_ERROR_INVALID_TLV_ELEMENT);
@@ -344,6 +366,19 @@ WEAVE_ERROR NetworkInfo::Encode(nl::Weave::TLV::TLVWriter& writer, uint8_t encod
         SuccessOrExit(err);
     }
 
+    if (ThreadPANId != kThreadPANId_NotSpecified)
+    {
+        VerifyOrExit(ThreadPANId <= UINT16_MAX, err = WEAVE_ERROR_INVALID_ARGUMENT);
+        err = writer.Put(ProfileTag(kWeaveProfile_NetworkProvisioning, kTag_ThreadPANId), ThreadPANId);
+        SuccessOrExit(err);
+    }
+
+    if (ThreadChannel != kThreadChannel_NotSpecified)
+    {
+        err = writer.Put(ProfileTag(kWeaveProfile_NetworkProvisioning, kTag_ThreadChannel), ThreadChannel);
+        SuccessOrExit(err);
+    }
+
     if (ThreadNetworkKey != NULL && (encodeFlags & kEncodeFlag_EncodeCredentials) != 0)
     {
         err = writer.PutBytes(ProfileTag(kWeaveProfile_NetworkProvisioning, kTag_ThreadNetworkKey), ThreadNetworkKey,
@@ -375,6 +410,8 @@ void NetworkInfo::Clear()
     WiFiKeyLen = 0;
     ThreadNetworkKeyLen = 0;
     WirelessSignalStrength = INT16_MIN;
+    ThreadPANId = kThreadPANId_NotSpecified;
+    ThreadChannel = kThreadChannel_NotSpecified;
 
 #if HAVE_MALLOC && HAVE_FREE
     if (WiFiSSID != NULL)

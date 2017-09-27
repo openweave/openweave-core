@@ -141,7 +141,9 @@ enum
     kTag_ThreadExtendedPANId                    = 80,   /**< The Thread extended PAN ID. [ byte string ] */
     kTag_ThreadNetworkName                      = 81,   /**< A UTF-8 string containing the name of the Thread network. [ UTF-8 string ] */
     kTag_ThreadNetworkKey                       = 82,   /**< The Thread master network key. [ bytes string ] */
-    kTag_ThreadMeshPrefix                       = 83    /**< Thread mesh IPv6 /64 prefix (optional). [ bytes string, exactly 8 bytes ] */
+    kTag_ThreadMeshPrefix                       = 83,   /**< Thread mesh IPv6 /64 prefix (optional). [ bytes string, exactly 8 bytes ] */
+    kTag_ThreadChannel                          = 84,   /**< Thread channel number (optional). [ uint, 8-bit max ] */
+    kTag_ThreadPANId                            = 85    /**< Thread PAN ID (optional). [ uint, 16-bit max ] */
 };
 
 /**
@@ -192,6 +194,22 @@ enum WiFiRole
 
     kWiFiRole_Station                           = 1,
     kWiFiRole_AccessPoint                       = 2
+};
+
+/**
+ * Thread PAN Id.
+ */
+enum
+{
+    kThreadPANId_NotSpecified                   = UINT32_MAX
+};
+
+/**
+ * Thread Channel.
+ */
+enum
+{
+    kThreadChannel_NotSpecified                 = UINT8_MAX
 };
 
 /**
