@@ -523,6 +523,7 @@ NL_DLL_EXPORT const char *ErrorStr(int32_t err)
     case WEAVE_ERROR_PROFILE_STRING_CONTEXT_ALREADY_REGISTERED  : return WeaveFormatError(err, "String context already registered");
     case WEAVE_ERROR_PROFILE_STRING_CONTEXT_NOT_REGISTERED      : return WeaveFormatError(err, "String context not registered");
     case WEAVE_ERROR_INCOMPATIBLE_SCHEMA_VERSION                : return WeaveFormatError(err, "Incompatible data schema version");
+    case WEAVE_ERROR_TUNNEL_ROUTING_RESTRICTED                  : return WeaveFormatError(err, "Restricted Routing: Border Routing disabled");
 
     // ----- ASN1 Errors -----
     case ASN1_END                                               : return ASN1FormatError(err, "End of input");

@@ -1420,7 +1420,8 @@ void WeaveTunnelAgent::SendQueuedMessages(const WeaveTunnelConnectionMgr *connMg
 
 /* Post processing function after Tunnel has been opened */
 void WeaveTunnelAgent::WeaveTunnelConnectionUp(const WeaveMessageInfo *msgInfo,
-                                               const WeaveTunnelConnectionMgr *connMgr)
+                                               const WeaveTunnelConnectionMgr *connMgr,
+                                               const bool isRoutingRestricted)
 {
    // Update the Weave Tunnel Agent mode on tunnel establishment.
 
@@ -1434,7 +1435,8 @@ void WeaveTunnelAgent::WeaveTunnelConnectionUp(const WeaveMessageInfo *msgInfo,
               WeaveTunnelUpNotifyAndSetState(kState_PrimaryTunModeEstablished,
                                              Platform::kMode_Primary,
                                              WeaveTunnelConnectionMgr::kStatus_TunPrimaryUp,
-                                             &mPrimaryTunConnMgr);
+                                             &mPrimaryTunConnMgr,
+                                             isRoutingRestricted);
 #if WEAVE_CONFIG_TUNNEL_ENABLE_STATISTICS
               // Update tunnel statistics
               mWeaveTunnelStats.mPrimaryStats.mLastTimeTunnelEstablished = GetTimeMsec();
@@ -1447,7 +1449,8 @@ void WeaveTunnelAgent::WeaveTunnelConnectionUp(const WeaveMessageInfo *msgInfo,
               WeaveTunnelUpNotifyAndSetState(kState_BkupOnlyTunModeEstablished,
                                              Platform::kMode_BackupOnly,
                                              WeaveTunnelConnectionMgr::kStatus_TunBackupUp,
-                                             &mBackupTunConnMgr);
+                                             &mBackupTunConnMgr,
+                                             isRoutingRestricted);
 #if WEAVE_CONFIG_TUNNEL_ENABLE_STATISTICS
               // Update tunnel statistics
               mWeaveTunnelStats.mBackupStats.mLastTimeTunnelEstablished = GetTimeMsec();
@@ -1464,7 +1467,8 @@ void WeaveTunnelAgent::WeaveTunnelConnectionUp(const WeaveMessageInfo *msgInfo,
               WeaveTunnelUpNotifyAndSetState(kState_PrimaryTunModeEstablished,
                                              Platform::kMode_Primary,
                                              WeaveTunnelConnectionMgr::kStatus_TunPrimaryUp,
-                                             &mPrimaryTunConnMgr);
+                                             &mPrimaryTunConnMgr,
+                                             isRoutingRestricted);
           }
 #if WEAVE_CONFIG_TUNNEL_FAILOVER_SUPPORTED
           // When BackUp tunnel is established after Primary
@@ -1473,7 +1477,8 @@ void WeaveTunnelAgent::WeaveTunnelConnectionUp(const WeaveMessageInfo *msgInfo,
               WeaveTunnelUpNotifyAndSetState(kState_PrimaryAndBkupTunModeEstablished,
                                              Platform::kMode_PrimaryAndBackup,
                                              WeaveTunnelConnectionMgr::kStatus_TunPrimaryAndBackupUp,
-                                             &mBackupTunConnMgr);
+                                             &mBackupTunConnMgr,
+                                             isRoutingRestricted);
 #if WEAVE_CONFIG_TUNNEL_ENABLE_STATISTICS
               // Update tunnel statistics
               mWeaveTunnelStats.mBackupStats.mLastTimeTunnelEstablished = GetTimeMsec();
@@ -1492,7 +1497,8 @@ void WeaveTunnelAgent::WeaveTunnelConnectionUp(const WeaveMessageInfo *msgInfo,
               WeaveTunnelUpNotifyAndSetState(kState_PrimaryAndBkupTunModeEstablished,
                                              Platform::kMode_PrimaryAndBackup,
                                              WeaveTunnelConnectionMgr::kStatus_TunPrimaryAndBackupUp,
-                                             &mPrimaryTunConnMgr);
+                                             &mPrimaryTunConnMgr,
+                                             isRoutingRestricted);
 #if WEAVE_CONFIG_TUNNEL_ENABLE_STATISTICS
               // Update tunnel statistics
               mWeaveTunnelStats.mBackupStats.mLastTimeTunnelEstablished = GetTimeMsec();
@@ -1504,7 +1510,8 @@ void WeaveTunnelAgent::WeaveTunnelConnectionUp(const WeaveMessageInfo *msgInfo,
               WeaveTunnelUpNotifyAndSetState(kState_BkupOnlyTunModeEstablished,
                                              Platform::kMode_BackupOnly,
                                              WeaveTunnelConnectionMgr::kStatus_TunBackupUp,
-                                             &mBackupTunConnMgr);
+                                             &mBackupTunConnMgr,
+                                             isRoutingRestricted);
           }
 #endif // WEAVE_CONFIG_TUNNEL_FAILOVER_SUPPORTED
           break;
@@ -1636,15 +1643,22 @@ void WeaveTunnelAgent::WeaveTunnelConnectionDown(const WeaveTunnelConnectionMgr 
     }
 }
 
+void WeaveTunnelAgent::RemovePlatformTunnelRoute(void)
+{
+    // Notify platform about tunnel disconnection
+
+    Platform::ServiceTunnelDisconnected(mTunEP->GetTunnelInterfaceId());
+}
+
 void WeaveTunnelAgent::WeaveTunnelDownNotifyAndSetState(WEAVE_ERROR conErr)
 {
     // Change TunnelAgent state
 
     SetState(kState_Initialized_NoTunnel);
 
-    // Notify platform about tunnel disconnection
+    // Remove Platform Tunnel Route
 
-    Platform::ServiceTunnelDisconnected(mTunEP->GetTunnelInterfaceId());
+    RemovePlatformTunnelRoute();
 
     // When tunnel is down dump all queued messages
 
@@ -1661,8 +1675,11 @@ void WeaveTunnelAgent::WeaveTunnelDownNotifyAndSetState(WEAVE_ERROR conErr)
 void WeaveTunnelAgent::WeaveTunnelUpNotifyAndSetState(AgentState state,
                                                       Platform::TunnelAvailabilityMode tunMode,
                                                       WeaveTunnelConnectionMgr::TunnelConnNotifyReasons notifyReason,
-                                                      WeaveTunnelConnectionMgr *connMgr)
+                                                      WeaveTunnelConnectionMgr *connMgr,
+                                                      const bool isRoutingRestricted)
 {
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
+
     // Change TunnelAgent state
 
     SetState(state);
@@ -1670,10 +1687,32 @@ void WeaveTunnelAgent::WeaveTunnelUpNotifyAndSetState(AgentState state,
     // Perform address and route additions when the Service tunnel connection
     // is established.
 
-    Platform::ServiceTunnelEstablished(mTunEP->GetTunnelInterfaceId(),
-                                       tunMode);
+    if (isRoutingRestricted)
+    {
+        // Although tunnel is restricted, it is still open but can only be
+        // usable by the border gateway for itself to access a limited set of
+        // Service endpoints. The device is put in this mode, typically, when
+        // it is unpaired from the account.
+
+        err = WEAVE_ERROR_TUNNEL_ROUTING_RESTRICTED;
+
+        WeaveLogDetail(WeaveTunnel, "Tunnel in restricted mode; Not operating as a Border Router\n");
+    }
+    else
+    {
+        // Add Platform Tunnel Route
+
+        Platform::ServiceTunnelEstablished(mTunEP->GetTunnelInterfaceId(),
+                                           tunMode);
+    }
 
     // Check if queue is non-empty; then send queued packets through established tunnel;
+    //
+    // @note: Even if the tunnel is put in a restricted mode, we are sending
+    // queued messages up the tunnel because it is not possible to ascertain
+    // whether any of the queued packets are ones that this border router is forwarding
+    // on behalf of a Thread device or its own packets. So, it is better to send these
+    // across and have the Service decide to throw or accept.
 
     if (qFront != TUNNEL_PACKET_QUEUE_INVALID_INDEX)
     {
@@ -1684,7 +1723,7 @@ void WeaveTunnelAgent::WeaveTunnelUpNotifyAndSetState(AgentState state,
 
     if (OnServiceTunStatusNotify)
     {
-         OnServiceTunStatusNotify(notifyReason, WEAVE_NO_ERROR,
+         OnServiceTunStatusNotify(notifyReason, err,
                                   mAppContext);
     }
 }

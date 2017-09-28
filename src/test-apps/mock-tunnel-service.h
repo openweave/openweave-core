@@ -191,6 +191,8 @@ private:
 
     WEAVE_ERROR SendStatusReport(ExchangeContext *ec, uint32_t profileId, uint32_t tunStatusCode);
 
+    WEAVE_ERROR CreateTunnelTLVDataForRestrictedRouting(ReferencedTLVData & tunTLVData);
+
     TunEndPoint *mTunEP;
 
     InetLayer *mInet;                       // [READ ONLY] Associated InetLayer object

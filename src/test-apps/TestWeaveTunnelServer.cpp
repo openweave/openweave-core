@@ -40,6 +40,7 @@
 #include <Weave/Support/CodeUtils.h>
 #include <Weave/Support/logging/WeaveLogging.h>
 #include <Weave/Profiles/ProfileCommon.h>
+#include <Weave/Core/WeaveTLV.h>
 #include "mock-tunnel-service.h"
 #include "TestWeaveTunnel.h"
 
@@ -53,6 +54,7 @@
 using nl::StatusReportStr;
 using namespace nl::Weave::Encoding;
 using namespace nl::Weave::Profiles::WeaveTunnel;
+using namespace nl::Weave::TLV;
 
 static WEAVE_ERROR SendTunnelReconnectMessage(ExchangeContext *ec, const uint16_t port = WEAVE_PORT,
                                               const char *tunnelHostname = NULL, uint16_t hostLen = 0);
@@ -62,7 +64,8 @@ static void HandleReconnectResponse(ExchangeContext *ec, const IPPacketInfo *pkt
 static WEAVE_ERROR VerifyAndParseStatusResponse(uint32_t profileId,
                                                 uint8_t msgType, PacketBuffer *payload,
                                                 StatusReport &outReport);
-
+static WEAVE_ERROR SendStatusReportResponse(ExchangeContext *ec, uint32_t profileId, uint32_t tunStatusCode,
+                                            bool isRoutingRestricted = false);
 
 WeaveTunnelServer gTunServer;
 WeaveEchoServer gEchoServer;
@@ -418,24 +421,49 @@ exit:
 }
 
 /* Send a tunnel control status report message */
-WEAVE_ERROR WeaveTunnelServer::SendStatusReport(ExchangeContext *ec, uint32_t profileId, uint32_t tunStatusCode)
+WEAVE_ERROR SendStatusReportResponse(ExchangeContext *ec, uint32_t profileId, uint32_t tunStatusCode,
+                                     bool isRoutingRestricted)
 {
-    WEAVE_ERROR err;
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
     StatusReport tunStatusReport;
     PacketBuffer *msgBuf = NULL;
-
-    err = tunStatusReport.init(profileId, tunStatusCode);
-    SuccessOrExit(err);
+    nl::Weave::TLV::TLVWriter tunWriter;
+    nl::Weave::TLV::TLVType containerType;
+    uint8_t *p = NULL;
 
     msgBuf = PacketBuffer::New();
     VerifyOrExit(msgBuf != NULL, err = WEAVE_ERROR_NO_MEMORY);
 
-    err = tunStatusReport.pack(msgBuf);
-    SuccessOrExit(err);
+    p = msgBuf->Start();
+
+    // Encode the profile id and status code.
+    LittleEndian::Write32(p, profileId);
+    LittleEndian::Write16(p, tunStatusCode);
+    msgBuf->SetDataLength(4 + 2);
+
+    if (isRoutingRestricted)
+    {
+        // Encode the Tunnel TLVData.
+        tunWriter.Init(msgBuf);
+
+        // Start the anonymous container that wraps the contents.
+        err = tunWriter.StartContainer(AnonymousTag, kTLVType_Structure, containerType);
+        SuccessOrExit(err);
+
+        // Write the boolean tag
+        err = tunWriter.PutBoolean(ProfileTag(kWeaveProfile_Tunneling, kTag_TunnelRoutingRestricted), true);
+        SuccessOrExit(err);
+
+        // End the anonymous container that wraps the contents.
+        err = tunWriter.EndContainer(containerType);
+        SuccessOrExit(err);
+
+        err = tunWriter.Finalize();
+        SuccessOrExit(err);
+    }
 
     err = ec->SendMessage(kWeaveProfile_Common, Common::kMsgType_StatusReport, msgBuf, 0);
     msgBuf = NULL;
-    SuccessOrExit(err);
 
 exit:
     if (msgBuf != NULL)
@@ -578,6 +606,7 @@ void WeaveTunnelServer::HandleTunnelControlMsg (ExchangeContext *ec, const IPPac
     SrcInterfaceType srcIntfType;
     LivenessStrategy livenessStrategy;
     uint16_t livenessTimeout;
+    bool isRoutingRestricted = false;
     ExchangeContext *exchangeCtx = NULL;
 
     VerifyOrExit(tunServer, err = WEAVE_ERROR_INVALID_ARGUMENT);
@@ -658,8 +687,13 @@ void WeaveTunnelServer::HandleTunnelControlMsg (ExchangeContext *ec, const IPPac
                 {
                     WeaveLogDetail(WeaveTunnel, "Sending error StatusReport message for test %d\n", gCurrTestNum);
 
-                    tunServer->SendStatusReport(ec, kWeaveProfile_Common, Common::kStatus_UnexpectedMessage);
+                    SendStatusReportResponse(ec, kWeaveProfile_Common, Common::kStatus_UnexpectedMessage);
                     ExitNow();
+                }
+
+                if (gCurrTestNum == kTestNum_TestTunnelRestrictedRoutingOnTunnelOpen)
+                {
+                    isRoutingRestricted = true;
                 }
 
                 for (int i = 0; i < tunRoute.numOfPrefixes; i++)
@@ -702,7 +736,7 @@ void WeaveTunnelServer::HandleTunnelControlMsg (ExchangeContext *ec, const IPPac
 
                 // Send a status report
 
-                err = tunServer->SendStatusReport(ec, kWeaveProfile_Common, Common::kStatus_Success);
+                err = SendStatusReportResponse(ec, kWeaveProfile_Common, Common::kStatus_Success, isRoutingRestricted);
                 SuccessOrExit(err);
 
                 if (gCurrTestNum == kTestNum_TestReceiveReconnectFromService && !gReconnectSent)
@@ -738,7 +772,7 @@ void WeaveTunnelServer::HandleTunnelControlMsg (ExchangeContext *ec, const IPPac
 
                 // Send a status report
 
-                err = tunServer->SendStatusReport(ec, kWeaveProfile_Common, Common::kStatus_Success);
+                err = SendStatusReportResponse(ec, kWeaveProfile_Common, Common::kStatus_Success);
                 SuccessOrExit(err);
 
                 break;
@@ -747,14 +781,14 @@ void WeaveTunnelServer::HandleTunnelControlMsg (ExchangeContext *ec, const IPPac
                 {
                     WeaveLogDetail(WeaveTunnel, "Sending error StatusReport message for test %d\n", gCurrTestNum);
 
-                    tunServer->SendStatusReport(ec, kWeaveProfile_Common, Common::kStatus_UnexpectedMessage);
+                    SendStatusReportResponse(ec, kWeaveProfile_Common, Common::kStatus_UnexpectedMessage);
                     ExitNow();
                 }
 
                 err = WeaveTunnelRoute::DecodeFabricTunnelRoutes(&msgFabricId, &tunRoute, payload);
                 SuccessOrExit(err);
 
-                err = tunServer->SendStatusReport(ec, kWeaveProfile_Common, Common::kStatus_Success);
+                err = SendStatusReportResponse(ec, kWeaveProfile_Common, Common::kStatus_Success);
                 SuccessOrExit(err);
 
                 break;
@@ -765,7 +799,7 @@ void WeaveTunnelServer::HandleTunnelControlMsg (ExchangeContext *ec, const IPPac
                     ExitNow();
                 }
 
-                err = tunServer->SendStatusReport(ec, kWeaveProfile_Common, Common::kStatus_Success);
+                err = SendStatusReportResponse(ec, kWeaveProfile_Common, Common::kStatus_Success);
                 SuccessOrExit(err);
 
                 break;

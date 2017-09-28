@@ -2087,6 +2087,89 @@ exit:
 }
 #endif // WEAVE_CONFIG_TUNNEL_LIVENESS_SUPPORTED
 
+static void TestTunnelRestrictedRoutingOnTunnelOpen(nlTestSuite *inSuite, void *inContext)
+{
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
+    ExchangeContext *exchangeCtxt = NULL;
+
+    Done = false;
+    gTestSucceeded = false;
+    gLivenessTestTunnelUp = false;
+    gMaxTestDurationMillisecs = DEFAULT_TEST_DURATION_MILLISECS;
+    gCurrTestNum = kTestNum_TestTunnelRestrictedRoutingOnTunnelOpen;
+    gTestStartTime = Now();
+
+#if WEAVE_CONFIG_ENABLE_SERVICE_DIRECTORY
+    if (gUseServiceDir)
+    {
+        err = gTunAgent.Init(&Inet, &ExchangeMgr, gDestNodeId,
+                            gAuthMode, &gServiceMgr);
+    }
+    else
+#endif
+    {
+        err = gTunAgent.Init(&Inet, &ExchangeMgr, gDestNodeId, gDestAddr,
+                            gAuthMode);
+    }
+
+    SuccessOrExit(err);
+
+    gTunAgent.OnServiceTunStatusNotify = WeaveTunnelOnStatusNotifyHandlerCB;
+
+    exchangeCtxt = ExchangeMgr.NewContext(gDestNodeId, gDestAddr, &gTunAgent);
+    VerifyOrExit(exchangeCtxt, err = WEAVE_ERROR_NO_MEMORY);
+
+    err = SendTunnelTestMessage(exchangeCtxt, kWeaveProfile_TunnelTest_Start,
+                                kTestNum_TestTunnelRestrictedRoutingOnTunnelOpen,
+                                0);
+    SuccessOrExit(err);
+
+    err = gTunAgent.StartServiceTunnel();
+    SuccessOrExit(err);
+
+    while (!Done)
+    {
+        struct timeval sleepTime;
+        sleepTime.tv_sec = TEST_SLEEP_TIME_WITHIN_LOOP_SECS;
+        sleepTime.tv_usec = TEST_SLEEP_TIME_WITHIN_LOOP_MICROSECS;
+
+        ServiceNetwork(sleepTime);
+
+        if (Now() < gTestStartTime + gMaxTestDurationMillisecs * System::kTimerFactor_micro_per_milli)
+        {
+            if (gTestSucceeded)
+            {
+                Done = true;
+            }
+            else
+            {
+                continue;
+            }
+        }
+        else // Time's up
+        {
+            gTestSucceeded = false;
+            Done = true;
+        }
+
+        if (Done)
+        {
+            err = SendTunnelTestMessage(exchangeCtxt, kWeaveProfile_TunnelTest_End,
+                                        kTestNum_TestTunnelRestrictedRoutingOnTunnelOpen,
+                                        0);
+            SuccessOrExit(err);
+
+            gTunAgent.StopServiceTunnel(WEAVE_NO_ERROR);
+        }
+    }
+
+exit:
+    NL_TEST_ASSERT(inSuite, err == WEAVE_NO_ERROR);
+    NL_TEST_ASSERT(inSuite, gTestSucceeded == true);
+
+    gTunAgent.Shutdown();
+}
+
 #if WEAVE_SYSTEM_CONFIG_USE_SOCKETS && WEAVE_CONFIG_TUNNEL_TCP_USER_TIMEOUT_SUPPORTED && INET_CONFIG_OVERRIDE_SYSTEM_TCP_USER_TIMEOUT
 /**
  * Test to verify that the TCP User Timeout is enforced when the IP address
@@ -2270,8 +2353,23 @@ WeaveTunnelOnStatusNotifyHandlerCB(WeaveTunnelConnectionMgr::TunnelConnNotifyRea
         }
 
         break;
+      case  kTestNum_TestTunnelRestrictedRoutingOnTunnelOpen:
+        if (reason == WeaveTunnelConnectionMgr::kStatus_TunPrimaryUp)
+        {
+            // Check if we got the correct error code and the Fabric tunnel
+            // route is absent.
+            if (aErr == WEAVE_ERROR_TUNNEL_ROUTING_RESTRICTED && !Is48BitIPv6FabricRoutePresent())
+            {
+                gTestSucceeded = true;
+            }
+            else
+            {
+                gTestSucceeded = false;
+            }
+        }
 
-      case kTestNum_TestTunnelOpenCompleteThenStopStart:
+        break;
+      case  kTestNum_TestTunnelOpenCompleteThenStopStart:
         if (reason == WeaveTunnelConnectionMgr::kStatus_TunPrimaryUp)
         {
             if (gTunUpCount < 1)
@@ -2578,6 +2676,7 @@ static const nlTest tunnelTests[] = {
     NL_TEST_DEF("TestTunnelLivenessSendAndRecvResponse", TestTunnelLivenessSendAndRecvResponse),
     NL_TEST_DEF("TestTunnelLivenessDisconnectOnNoResponse", TestTunnelLivenessDisconnectOnNoResponse),
 #endif // WEAVE_CONFIG_TUNNEL_LIVENESS_SUPPORTED
+    NL_TEST_DEF("TestTunnelRestrictedRoutingOnTunnelOpen", TestTunnelRestrictedRoutingOnTunnelOpen),
 #if WEAVE_SYSTEM_CONFIG_USE_SOCKETS && WEAVE_CONFIG_TUNNEL_TCP_USER_TIMEOUT_SUPPORTED && INET_CONFIG_OVERRIDE_SYSTEM_TCP_USER_TIMEOUT
     NL_TEST_DEF("TestTCPUserTimeoutOnAddrRemoval", TestTCPUserTimeoutOnAddrRemoval),
 #endif // WEAVE_SYSTEM_CONFIG_USE_SOCKETS && WEAVE_CONFIG_TUNNEL_TCP_USER_TIMEOUT_SUPPORTED && INET_CONFIG_OVERRIDE_SYSTEM_TCP_USER_TIMEOUT

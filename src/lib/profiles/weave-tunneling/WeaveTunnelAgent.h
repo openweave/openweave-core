@@ -586,7 +586,8 @@ private:
     // Tunnel Control post-processing functions
 
     void WeaveTunnelConnectionUp(const WeaveMessageInfo *msgInfo,
-                                 const WeaveTunnelConnectionMgr *connMgr);
+                                 const WeaveTunnelConnectionMgr *connMgr,
+                                 const bool isRoutingRestricted);
     void WeaveTunnelConnectionDown(const WeaveTunnelConnectionMgr *connMgr, WEAVE_ERROR conErr);
     void WeaveTunnelServiceReconnectRequested(const WeaveTunnelConnectionMgr *connMgr,
                                               const char *redirectHost, const uint16_t redirectPort);
@@ -594,7 +595,10 @@ private:
     void WeaveTunnelUpNotifyAndSetState(AgentState state,
                                         Platform::TunnelAvailabilityMode tunMode,
                                         WeaveTunnelConnectionMgr::TunnelConnNotifyReasons notifyReason,
-                                        WeaveTunnelConnectionMgr *connMgr);
+                                        WeaveTunnelConnectionMgr *connMgr,
+                                        const bool isRoutingRestricted);
+    void RemovePlatformTunnelRoute(void);
+
 #if WEAVE_CONFIG_TUNNEL_FAILOVER_SUPPORTED
     void WeaveTunnelModeChangeNotifyAndSetState(AgentState state,
                                                 Platform::TunnelAvailabilityMode tunMode,

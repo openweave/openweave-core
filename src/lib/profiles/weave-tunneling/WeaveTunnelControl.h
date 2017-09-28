@@ -204,12 +204,17 @@ private:
 
     static WEAVE_ERROR VerifyAndParseStatusResponse(uint32_t profileId,
                                                     uint8_t msgType, PacketBuffer *payload,
-                                                    StatusReport &outReport);
+                                                    StatusReport & report,
+                                                    bool & isRoutingRestricted);
+
+    static WEAVE_ERROR ParseTunnelTLVData(StatusReport & report,
+                                          bool & isRoutingRestricted);
 
     WEAVE_ERROR DecodeTunnelReconnect(uint16_t &hostPort,
                                       char *hostName,
                                       uint8_t &hostNameLen,
                                       PacketBuffer *msg);
+
 
 #if WEAVE_CONFIG_TUNNEL_SHORTCUT_SUPPORTED
     WEAVE_ERROR GetSendInterfaceIdForBroadcast(InterfaceId &sendIntfId);

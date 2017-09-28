@@ -107,6 +107,17 @@ typedef enum LivenessStrategy
     kLiveness_TunnelControl = 2, ///<Used to indicate that the tunnel connection liveness is maintained by Tunnel Control Liveness messages.
 } LivenessStrategy;
 
+// Tunnel Profile Tags
+//
+//                                      Value         Tag Category      Element Type      Description
+//                                      ------------------------------------------------------------------------
+
+enum
+{
+    kTag_TunnelRoutingRestricted        = 0x0001,  // Profile-specific  Boolean           Tunnel is operating in a restricted mode
+                                                   //                                     and cannot route for other devices.
+};
+
 // Weave Tunnel Header
 class WeaveTunnelHeader
 {

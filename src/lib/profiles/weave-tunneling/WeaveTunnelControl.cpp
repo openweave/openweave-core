@@ -36,6 +36,7 @@
 #include <Weave/Support/CodeUtils.h>
 #include <Weave/Profiles/ProfileCommon.h>
 #include <Weave/Core/WeaveServerBase.h>
+#include <Weave/Core/WeaveTLV.h>
 
 #if WEAVE_CONFIG_ENABLE_TUNNELING
 
@@ -43,6 +44,7 @@ using namespace nl::Inet;
 using namespace nl::Weave::Profiles::WeaveTunnel;
 using namespace nl::Weave::Profiles::StatusReporting;
 using namespace nl::Weave::Encoding;
+using namespace nl::Weave::TLV;
 
 WeaveTunnelControl::WeaveTunnelControl(void)
 {
@@ -735,7 +737,8 @@ exit:
 
 WEAVE_ERROR WeaveTunnelControl::VerifyAndParseStatusResponse(uint32_t profileId,
                                                              uint8_t msgType, PacketBuffer *payload,
-                                                             StatusReport &outReport)
+                                                             StatusReport & outReport,
+                                                             bool & outIsRoutingRestricted)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
 
@@ -750,6 +753,66 @@ WEAVE_ERROR WeaveTunnelControl::VerifyAndParseStatusResponse(uint32_t profileId,
     err = StatusReport::parse(payload, outReport);
     SuccessOrExit(err);
 
+    VerifyOrExit(outReport.mProfileId == kWeaveProfile_Common && outReport.mStatusCode == Common::kStatus_Success,
+                 err = WEAVE_ERROR_STATUS_REPORT_RECEIVED);
+
+    // Check if there is TLV data in the StatusReport.
+
+    if (outReport.mAdditionalInfo.theLength > 0)
+    {
+        err = ParseTunnelTLVData(outReport, outIsRoutingRestricted);
+        SuccessOrExit(err);
+    }
+
+exit:
+    return err;
+}
+
+WEAVE_ERROR WeaveTunnelControl::ParseTunnelTLVData(StatusReport & report, bool & outIsRoutingRestricted)
+{
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
+    TLVReader tunReader;
+    nl::Weave::TLV::TLVType OuterContainerType;
+    const uint8_t *tlvData = NULL;
+    uint16_t tlvDataLen;
+    uint64_t tag = 0;
+
+    tlvData = report.mAdditionalInfo.theData;
+    tlvDataLen = report.mAdditionalInfo.theLength;
+
+    // Verify that TLV data supplied by the Service is encapsulated in an anonymous
+    // TLV structure. All anonymous TLV structures begin with an anonymous structure control
+    // byte (0x15) and end with an end-of-container control byte (0x18).
+
+    VerifyOrExit(tlvDataLen > 2, err = WEAVE_ERROR_INVALID_ARGUMENT);
+    VerifyOrExit(tlvData[0] == kTLVElementType_Structure, err = WEAVE_ERROR_INVALID_ARGUMENT);
+    VerifyOrExit(tlvData[tlvDataLen - 1] == kTLVElementType_EndOfContainer,
+                 err = WEAVE_ERROR_INVALID_ARGUMENT);
+
+    tunReader.Init(tlvData, tlvDataLen);
+
+    err = tunReader.Next();
+    SuccessOrExit(err);
+
+    err = tunReader.EnterContainer(OuterContainerType);
+    SuccessOrExit(err);
+
+    err = tunReader.Next();
+    SuccessOrExit(err);
+
+    tag = tunReader.GetTag();
+    VerifyOrExit(nl::Weave::TLV::IsProfileTag(tag),
+                 err = WEAVE_ERROR_INVALID_TLV_TAG);
+
+    VerifyOrExit(nl::Weave::TLV::ProfileIdFromTag(tag) == kWeaveProfile_Tunneling,
+                 err = WEAVE_ERROR_INVALID_TLV_TAG);
+
+    VerifyOrExit(nl::Weave::TLV::TagNumFromTag(tag) == kTag_TunnelRoutingRestricted,
+                 err = WEAVE_ERROR_INVALID_TLV_TAG);
+
+    err = tunReader.Get(outIsRoutingRestricted);
+    SuccessOrExit(err);
+
 exit:
     return err;
 }
@@ -761,10 +824,11 @@ void WeaveTunnelControl::HandleTunnelOpenResponse(ExchangeContext *ec, const IPP
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
     StatusReport report;
+    bool isRoutingRestricted = false;
     WeaveTunnelControl *tunControl = static_cast<WeaveTunnelControl *>(ec->AppState);
     WeaveTunnelConnectionMgr *connMgr = static_cast<WeaveTunnelConnectionMgr *>(ec->Con->AppState);
 
-    err = VerifyAndParseStatusResponse(profileId, msgType, payload, report);
+    err = VerifyAndParseStatusResponse(profileId, msgType, payload, report, isRoutingRestricted);
 
     // Free the payload buffer and close the ExchangeContext early to free up resources.
 
@@ -772,30 +836,24 @@ void WeaveTunnelControl::HandleTunnelOpenResponse(ExchangeContext *ec, const IPP
 
     SuccessOrExit(err);
 
-    if (report.mProfileId == kWeaveProfile_Common && report.mStatusCode == Common::kStatus_Success)
-    {
-        // Received a Tunnel Open Ack; Set the connection state
+    // Received a Tunnel Open Ack; Set the connection state
 
-        connMgr->mConnectionState = WeaveTunnelConnectionMgr::kState_TunnelOpen;
+    connMgr->mConnectionState = WeaveTunnelConnectionMgr::kState_TunnelOpen;
 
-        // Reset the failed connection attempts after a successful TunnelOpen.
+    // Reset the failed connection attempts after a successful TunnelOpen.
 
-        connMgr->mTunFailedConnAttemptsInRow = 0;
+    connMgr->mTunFailedConnAttemptsInRow = 0;
 
 #if WEAVE_CONFIG_TUNNEL_LIVENESS_SUPPORTED
-        // Tunnel is up. Start the Tunnel Liveness timer
+    // Tunnel is up. Start the Tunnel Liveness timer
 
-        connMgr->StartLivenessTimer();
+    connMgr->StartLivenessTimer();
 #endif // WEAVE_CONFIG_TUNNEL_LIVENESS_SUPPORTED
 
-        // Call the TunnelOpen post processing function.
+    // Call the TunnelOpen post processing function.
 
-        tunControl->mTunnelAgent->WeaveTunnelConnectionUp(msgInfo, connMgr);
-    }
-    else
-    {
-        err = WEAVE_ERROR_STATUS_REPORT_RECEIVED;
-    }
+    tunControl->mTunnelAgent->WeaveTunnelConnectionUp(msgInfo, connMgr, isRoutingRestricted);
+
 
 exit:
     if (err != WEAVE_NO_ERROR)
@@ -814,10 +872,11 @@ void WeaveTunnelControl::HandleTunnelCloseResponse(ExchangeContext *ec, const IP
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
     StatusReport report;
+    bool isRoutingRestricted = false;
     WeaveTunnelControl *tunControl = static_cast<WeaveTunnelControl *>(ec->AppState);
     WeaveTunnelConnectionMgr *connMgr = static_cast<WeaveTunnelConnectionMgr *>(ec->Con->AppState);
 
-    err = VerifyAndParseStatusResponse(profileId, msgType, payload, report);
+    err = VerifyAndParseStatusResponse(profileId, msgType, payload, report, isRoutingRestricted);
 
     // Free the payload buffer and close the ExchangeContext early to free up resources.
 
@@ -827,28 +886,21 @@ void WeaveTunnelControl::HandleTunnelCloseResponse(ExchangeContext *ec, const IP
 
     // Received successful response to a Tunnel control message
 
-    if (report.mProfileId == kWeaveProfile_Common && report.mStatusCode == Common::kStatus_Success)
-    {
 
 #if WEAVE_CONFIG_TUNNEL_LIVENESS_SUPPORTED
-        // Tunnel is closed. Stop the Tunnel Liveness timer
+    // Tunnel is closed. Stop the Tunnel Liveness timer
 
-        connMgr->StopLivenessTimer();
+    connMgr->StopLivenessTimer();
 #endif // WEAVE_CONFIG_TUNNEL_LIVENESS_SUPPORTED
 
-        // Close the connection; Do not restart the connection as we had proactively issued a
-        // Tunnel Close to the peer. The application would need to start the tunnel explicitly.
+    // Close the connection; Do not restart the connection as we had proactively issued a
+    // Tunnel Close to the peer. The application would need to start the tunnel explicitly.
 
-        connMgr->StopServiceTunnelConn(WEAVE_NO_ERROR);
+    connMgr->StopServiceTunnelConn(WEAVE_NO_ERROR);
 
-        // Received a Tunnel Close Ack: Call the TunnelClose post processing function.
+    // Received a Tunnel Close Ack: Call the TunnelClose post processing function.
 
-        tunControl->mTunnelAgent->WeaveTunnelConnectionDown(connMgr, WEAVE_NO_ERROR);
-    }
-    else
-    {
-        err = WEAVE_ERROR_STATUS_REPORT_RECEIVED;
-    }
+    tunControl->mTunnelAgent->WeaveTunnelConnectionDown(connMgr, WEAVE_NO_ERROR);
 
 exit:
     if (err != WEAVE_NO_ERROR)
@@ -867,10 +919,11 @@ void WeaveTunnelControl::HandleTunnelRouteUpdateResponse(ExchangeContext *ec, co
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
     StatusReport report;
+    bool isRoutingRestricted = false;
     WeaveTunnelControl *tunControl = static_cast<WeaveTunnelControl *>(ec->AppState);
     WeaveTunnelConnectionMgr *connMgr = static_cast<WeaveTunnelConnectionMgr *>(ec->Con->AppState);
 
-    err = VerifyAndParseStatusResponse(profileId, msgType, payload, report);
+    err = VerifyAndParseStatusResponse(profileId, msgType, payload, report, isRoutingRestricted);
 
     // Free the payload buffer and close the ExchangeContext early to free up resources.
 
@@ -880,15 +933,19 @@ void WeaveTunnelControl::HandleTunnelRouteUpdateResponse(ExchangeContext *ec, co
 
     // Received successful response to a Tunnel control message
 
-    if (report.mProfileId == kWeaveProfile_Common && report.mStatusCode == Common::kStatus_Success)
-    {
-        // The connection state is kState_TunnelOpen
+    // The connection state is kState_TunnelOpen
 
-        connMgr->mConnectionState = WeaveTunnelConnectionMgr::kState_TunnelOpen;
-    }
-    else
+    connMgr->mConnectionState = WeaveTunnelConnectionMgr::kState_TunnelOpen;
+
+    if (isRoutingRestricted)
     {
-        err = WEAVE_ERROR_STATUS_REPORT_RECEIVED;
+        // Although tunnel is restricted, it is still open but can only be
+        // usable by the border gateway for itself to access a limited set of
+        // Service endpoints. The device is put in this mode, typically, when
+        // it is unpaired from the account.
+        connMgr->mTunAgent->RemovePlatformTunnelRoute();
+
+        WeaveLogDetail(WeaveTunnel, "Tunnel in restricted mode; Not operating as a Border Router\n");
     }
 
 exit:
@@ -909,10 +966,11 @@ void WeaveTunnelControl::HandleTunnelLivenessResponse(ExchangeContext *ec, const
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
     StatusReport report;
+    bool isRoutingRestricted = false;
     WeaveTunnelControl *tunControl = static_cast<WeaveTunnelControl *>(ec->AppState);
     WeaveTunnelConnectionMgr *connMgr = static_cast<WeaveTunnelConnectionMgr *>(ec->Con->AppState);
 
-    err = VerifyAndParseStatusResponse(profileId, msgType, payload, report);
+    err = VerifyAndParseStatusResponse(profileId, msgType, payload, report, isRoutingRestricted);
 
     // Free the payload buffer and close the ExchangeContext early to free up resources.
 
@@ -922,20 +980,13 @@ void WeaveTunnelControl::HandleTunnelLivenessResponse(ExchangeContext *ec, const
 
     // Received successful response to a Tunnel control message
 
-    if (report.mProfileId == kWeaveProfile_Common && report.mStatusCode == Common::kStatus_Success)
-    {
-        // Tunnel is alive. Schedule the next Tunnel Liveness timer.
+    // Tunnel is alive. Schedule the next Tunnel Liveness timer.
 
-        connMgr->StartLivenessTimer();
+    connMgr->StartLivenessTimer();
 
-        // Notify the application of the successful Liveness probe response.
+    // Notify the application of the successful Liveness probe response.
 
-        connMgr->mTunAgent->NotifyTunnelLiveness(connMgr->mTunType, WEAVE_NO_ERROR);
-    }
-    else
-    {
-        err = WEAVE_ERROR_STATUS_REPORT_RECEIVED;
-    }
+    connMgr->mTunAgent->NotifyTunnelLiveness(connMgr->mTunType, WEAVE_NO_ERROR);
 
 exit:
     if (err != WEAVE_NO_ERROR)

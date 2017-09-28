@@ -1613,6 +1613,16 @@ typedef WEAVE_CONFIG_ERROR_TYPE WEAVE_ERROR;
 #define WEAVE_ERROR_INCOMPATIBLE_SCHEMA_VERSION                 _WEAVE_ERROR(167)
 
 /**
+ *  @def WEAVE_ERROR_TUNNEL_ROUTING_RESTRICTED
+ *
+ *  @brief
+ *    Indicates that the Tunnel can only be used by the border gateway
+ *    for itself and, it cannot forward packets for any other device.
+ *
+ */
+#define WEAVE_ERROR_TUNNEL_ROUTING_RESTRICTED                   _WEAVE_ERROR(168)
+
+/**
  *  @}
  */
 
