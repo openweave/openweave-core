@@ -17,23 +17,24 @@
 
 #
 #    Description:
-#      This file is the GNU automake template for the Nest BluezBleDelegates
+#      This file is the GNU automake template for the Nest WoBluez
 #      library.
 #
 
 include $(abs_top_nlbuild_autotools_dir)/automake/pre.am
 
-lib_LIBRARIES                       = libBluezBleDelegates.a
+lib_LIBRARIES                       = libWoBluez.a
 
-nl_BluezBleDelegates_sources                  = \
-    @top_builddir@/src/platform/ble/bluez/BluezBleDelegates.cpp                  \
+nl_WoBluez_sources                  = \
+    @top_builddir@/src/platform/ble/bluez/BluezBlePlatformDelegate.cpp           \
     @top_builddir@/src/platform/ble/bluez/BluezHelperCode.cpp                    \
     @top_builddir@/src/platform/ble/bluez/WoBluez.cpp                            \
     $(NULL)
 
-libBluezBleDelegates_a_CPPFLAGS             = \
+libWoBluez_a_CPPFLAGS              = \
+    $(BLUEZ_CPPFLAGS) \
     $(NULL)
 
-libBluezBleDelegates_a_SOURCES               = $(nl_BluezBleDelegates_sources)
+libWoBluez_a_SOURCES               = $(nl_WoBluez_sources)
 
 include $(abs_top_nlbuild_autotools_dir)/automake/post.am

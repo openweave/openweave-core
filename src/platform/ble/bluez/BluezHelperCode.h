@@ -53,12 +53,11 @@ extern "C" {
 #include <Weave/Support/ErrorStr.h>
 #include <Weave/Core/WeaveStats.h>
 #include "Weave/Support/logging/WeaveLogging.h"
+#include "BluezBlePlatformDelegate.h"
 
 using namespace nl::Inet;
 using namespace nl::Weave;
 using namespace nl::Weave::Profiles;
-
-#include "WoBluez.h"
 
 #define UUID_WEAVE_SHORT                "0xFEAF"
 #define UUID_WEAVE                      "0000feaf-0000-1000-8000-00805f9b34fb"
@@ -76,12 +75,33 @@ using namespace nl::Weave::Profiles;
 #define ADVERTISING_INTERFACE           "org.bluez.LEAdvertisement1"
 #define FLAGS_WEAVE_C1                  "write"
 #define FLAGS_WEAVE_C2                  "read,indicate"
-#define HCI_MAX_MTU   				    300
+/* TODO: Hard coding MTU size until COM-3395 is fixed.
+ * MAC OS uses MTU size 104, which is smallest among Android, MAC OS & IOS */
+#define HCI_MAX_MTU                     (104)
+#define WEAVE_SRV_DATA_BLOCK_TYPE       (1)
+#define WEAVE_SRV_DATA_MAJ_VER          (0x00)
+#define WEAVE_SRV_DATA_MIN_VER          (0x02)
+#define WEAVE_SRV_DATA_PAIRING_STATUS_NOT_PAIRED     (0)
+#define WEAVE_SRV_DATA_PAIRING_STATUS_PAIRED         (1)
 
 namespace nl {
 namespace Ble {
 namespace Platform {
 namespace BlueZ {
+
+/* Weave Service Data
+ * This structure is defined as per Nest BLE advertisement format specification
+ * https://docs.google.com/document/d/1WnbsrRJQTq-_CPu62k6hUoIUI-mowXlN20Ncqkp8kcc/edit#heading=h.bq6764dkq14o */
+struct WeaveServiceData {
+    uint8_t  mWeaveDataBlockLen;
+    uint8_t  mWeaveDataBlockType;
+    uint8_t  mWeaveSrvDataMajor;
+    uint8_t  mWeaveSrvDataMinor;
+    uint16_t mWeaveVendorId;
+    uint16_t mWeaveProductId;
+    uint64_t mWeaveDeviceId;
+    uint8_t  mWeavePairingStatus;
+}__attribute__ ((packed));
 
 struct Adapter{
     GDBusProxy *adapterProxy;
@@ -112,22 +132,33 @@ struct BluezServerEndpoint{
     char *adapterAddr;
     char *advertisingUUID;
     char *advertisingType;
+    WeaveServiceData *weaveServiceData;
     Characteristic *weaveC1;
     Characteristic *weaveC2;
     Service *weaveService;
 };
 
+struct BluezPeripheralArgs
+{
+    char *bleName;
+    char *bleAddress;
+    WeaveServiceData *weaveServiceData;
+    BluezBlePlatformDelegate *bluezBlePlatformDelegate;
+};
+
+extern BluezServerEndpoint *gBluezServerEndpoint;
+extern BluezBlePlatformDelegate *gBluezBlePlatformDelegate;
 /**
  * Exit BluezIO thread
  *
  */
-void ExitMainLoop(void);
+void ExitBluezIOThread(void);
 
 /**
  * Run WoBle over Bluez thread
  *
  */
-bool RunBluezIOThread(char *aBleName, char *aBleAddress);
+bool RunBluezIOThread(BluezPeripheralArgs *arg);
 
 } /* namespace Bluez */
 } /* namespace Platform */

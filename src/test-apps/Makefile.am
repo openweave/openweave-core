@@ -180,17 +180,18 @@ if CONFIG_BLE_PLATFORM_BLUEZ
 
 AM_CPPFLAGS                                   += \
     -I$(top_srcdir)/src/platform/ble/bluez       \
+    $(BLUEZ_CPPFLAGS)                            \
     $(NULL)
 
 libMockBlePlatformDelegate_a_DEPENDENCIES      = \
-    $(top_builddir)/src/platform/ble/bluez/libBluezBleDelegates.a \
+    $(top_builddir)/src/platform/ble/bluez/libWoBluez.a \
     $(NULL)
 
 MOCKBLE_LDADD                                 += \
     libMockBlePlatformDelegate.a                 \
-    $(top_builddir)/src/platform/ble/bluez/libBluezBleDelegates.a \
-    $(BLUEZ_BUILD_DIRECTORY)/gdbus/libgdbus-internal.la \
-    @GLIB_LIBS@ @DBUS_LIBS@ -ldl -lrt      \
+    $(top_builddir)/src/platform/ble/bluez/libWoBluez.a \
+    $(BLUEZ_LDFLAGS)                                    \
+    @BLUEZ_LIBS@ @GLIB_LIBS@ @DBUS_LIBS@ -ldl -lrt      \
     $(NULL)
 
 else

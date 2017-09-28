@@ -99,7 +99,7 @@ $(nl_public_BleLayer_ble_header_dirs):
 
 $(nl_public_BleLayer_ble_header_destinations): $(nl_public_BleLayer_ble_destination_dirstem)/%.h: $(abs_srcdir)/../$(nl_public_BleLayer_ble_source_dirstem)/%.h | $(nl_public_BleLayer_ble_header_dirs)
 	$(call create-link)
-endif CONFIG_NETWORK_LAYER_BLE
+endif # CONFIG_NETWORK_LAYER_BLE
 
 #
 # BleLayer : device-manager
@@ -216,6 +216,39 @@ $(nl_public_InetLayer_header_destinations): $(nl_public_InetLayer_destination_di
 	$(call create-link)
 
 inetdir = $(includedir)/$(nl_public_InetLayer_destination_dirstem)
+
+#
+# platform/ble/bluez
+#
+
+platform_ble_bluez_public_source_dirstem = platform/ble/bluez
+platform_ble_bluez_public_destination_dirstem = PlatformLayer/Ble/Bluez
+
+platform_ble_bluez_public_header_sources =
+
+if CONFIG_NETWORK_LAYER_BLE
+if CONFIG_BLE_PLATFORM_BLUEZ
+platform_ble_bluez_public_header_sources += \
+$(platform_ble_bluez_public_source_dirstem)/BluezBlePlatformDelegate.h \
+$(platform_ble_bluez_public_source_dirstem)/BluezHelperCode.h \
+$(NULL)
+endif # CONFIG_BLE_PLATFORM_BLUEZ
+endif # CONFIG_NETWORK_LAYER_BLE
+
+platform_ble_bluez_public_header_paths = $(subst $(platform_ble_bluez_public_source_dirstem)/,,$(platform_ble_bluez_public_header_sources))
+
+platform_ble_bluez_public_header_destinations = $(addprefix $(platform_ble_bluez_public_destination_dirstem)/,$(platform_ble_bluez_public_header_paths))
+
+platform_ble_bluez_public_header_dirs = $(call Deslashify,$(sort $(dir $(platform_ble_bluez_public_header_destinations))))
+
+$(platform_ble_bluez_public_header_dirs):
+	$(call create-directory)
+
+$(platform_ble_bluez_public_header_destinations): $(platform_ble_bluez_public_destination_dirstem)/%.h: $(abs_srcdir)/../$(platform_ble_bluez_public_source_dirstem)/%.h | $(platform_ble_bluez_public_header_dirs)
+	$(call create-link)
+
+platform_ble_bluezdir = $(includedir)/$(platform_ble_bluez_public_destination_dirstem)
+dist_platform_ble_bluez_HEADERS = $(addprefix ../,$(platform_ble_bluez_public_header_sources))
 
 #
 # SystemLayer
@@ -890,6 +923,10 @@ nl_public_headers                                           = \
     $(nl_public_WeaveProfiles_header_destinations)            \
     $(NULL)
 
+platform_public_headers                                     = \
+    $(platform_ble_bluez_public_header_destinations)          \
+    $(NULL)
+
 tps_public_headers                                          = \
     $(tps_public_micro_ecc_header_destinations)               \
     $(tps_public_mincrypt_header_destinations)                \
@@ -897,6 +934,7 @@ tps_public_headers                                          = \
 
 BUILT_SOURCES                                               = \
     $(nl_public_headers)                                      \
+    $(platform_public_headers)                                \
     $(tps_public_headers)                                     \
     $(NULL)
 
@@ -914,6 +952,10 @@ CLEANFILES                                                  = \
 # Headers to filter out of PRETTY_FILES
 #
 
+platform_public_header_sources                           = \
+    $(dist_platform_ble_bluez_HEADERS)                     \
+    $(NULL)
+
 tps_public_header_sources                                = \
     $(dist_micro_ecc_HEADERS)                              \
     $(dist_mincrypt_HEADERS)                               \
@@ -921,6 +963,7 @@ tps_public_header_sources                                = \
 
 nl_filtered_pretty_files                                 = \
     $(include_HEADERS)                                     \
+    $(platform_public_header_sources)                      \
     $(tps_public_header_sources)                           \
     $(NULL)
 
@@ -938,6 +981,10 @@ nl_public_header_dirs                                    = \
     $(nl_public_WeaveProfiles_header_dirs)                 \
     $(nl_public_WeaveSupport_header_dirs)                  \
     $(nl_public_Weave_header_dirs)                         \
+    $(NULL)
+
+platform_public_header_dirs                              = \
+    $(platform_ble_bluez_public_header_dirs)               \
     $(NULL)
 
 tps_public_header_dirs                                   = \
@@ -960,6 +1007,6 @@ install-headers: install-data
 # cleaned up.
 
 clean-local:
-	$(AM_V_at)rm -f -r $(nl_public_header_dirs) $(tps_public_header_dirs)
+	$(AM_V_at)rm -f -r $(nl_public_header_dirs) $(platform_public_header_dirs) $(tps_public_header_dirs)
 
 include $(abs_top_nlbuild_autotools_dir)/automake/post.am

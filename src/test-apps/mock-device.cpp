@@ -136,6 +136,7 @@ bool EnableDictionaryTest = false;
 // only for woble bluez peripheral
 static char * BleName = NULL;
 static char * BleAddress = NULL;
+static nl::Ble::Platform::BlueZ::WeaveServiceData WeaveSrvData;
 #endif
 
 // events
@@ -535,7 +536,7 @@ int main(int argc, char *argv[])
     uint32_t KeyId = WeaveKeyId::kNone;
 
 #if CONFIG_BLE_PLATFORM_BLUEZ
-    Bluez_PeripheralArgs Bluez_PeripheralArgs;
+    nl::Ble::Platform::BlueZ::BluezPeripheralArgs Bluez_PeripheralArgs;
 #endif
 
 #if WEAVE_CONFIG_TEST
@@ -811,16 +812,22 @@ int main(int argc, char *argv[])
     printf("Listening for requests...\n");
 
 #if CONFIG_BLE_PLATFORM_BLUEZ
-
     if (EnableWeaveBluezPeripheral)
     {
 
         if (BleName != NULL && BleAddress != NULL)
         {
+            WeaveSrvData.mWeaveDataBlockLen  = sizeof(nl::Ble::Platform::BlueZ::WeaveServiceData);
+            WeaveSrvData.mWeaveDataBlockType = WEAVE_SRV_DATA_BLOCK_TYPE;
+            WeaveSrvData.mWeaveSrvDataMajor  = WEAVE_SRV_DATA_MAJ_VER;
+            WeaveSrvData.mWeaveSrvDataMinor  = WEAVE_SRV_DATA_MIN_VER;
+
             printf("BLE Peripheral name is %s.\n", BleName);
             printf("BLE Peripheral mac address is %s.\n", BleAddress);
-            Bluez_PeripheralArgs.BleName = BleName;
-            Bluez_PeripheralArgs.BleAddress = BleAddress;
+            Bluez_PeripheralArgs.bleName = BleName;
+            Bluez_PeripheralArgs.bleAddress = BleAddress;
+            Bluez_PeripheralArgs.weaveServiceData = &WeaveSrvData;
+            Bluez_PeripheralArgs.bluezBlePlatformDelegate = getBluezPlatformDelegate();
             int pthreadErr = 0;
             pthreadErr = pthread_create(&sBLEThread, NULL, WeaveBleIOLoop, (void *)&Bluez_PeripheralArgs);
             if (pthreadErr)

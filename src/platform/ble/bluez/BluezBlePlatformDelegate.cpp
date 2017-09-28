@@ -17,25 +17,16 @@
  */
 /**
  *    @file
- *      This file provides the platform's implementation of the BluezBlePlatformDelegate and
- *      BluezBleApplicationDelegate objects.
+ *      This file provides the platform's implementation of the BluezBlePlatformDelegate
  *
  *      The BluezBlePlatformDelegate provides the Weave stack with an interface
  *      by which to form and cancel GATT subscriptions, read and write
  *      GATT characteristic values, send GATT characteristic notifications,
  *      respond to GATT read requests, and close BLE connections.
- *
- *      The BluezBleApplicationDelegate provides the implementation for Weave to inform
- *      the application when it has finished using a given BLE connection,
- *      i.e when the WeaveConnection object wrapping this connection has
- *      closed. This allows the application to either close the BLE connection
- *      or continue to keep it open for non-Weave purposes.
- *
- *
  */
 
 
-#include "BluezBleDelegates.h"
+#include "BluezBlePlatformDelegate.h"
 #include "BluezHelperCode.h"
 
 #if CONFIG_BLE_PLATFORM_BLUEZ
@@ -45,15 +36,12 @@ namespace Ble {
 namespace Platform {
 namespace BlueZ {
 
-BluezBleApplicationDelegate::BluezBleApplicationDelegate()
+BluezBlePlatformDelegate :: BluezBlePlatformDelegate(BleLayer *ble) :
+        Ble(ble),
+        SendIndicationCb(NULL),
+        GetMTUCb(NULL)
 {
-}
-
-void BluezBleApplicationDelegate::NotifyWeaveConnectionClosed(BLE_CONNECTION_OBJECT connObj)
-{
-    WeaveLogDetail(Ble, "NotifyWeaveConnectionClosed");
-    ExitMainLoop();
-}
+};
 
 uint16_t BluezBlePlatformDelegate::GetMTU(BLE_CONNECTION_OBJECT connObj) const
 {
@@ -66,22 +54,19 @@ uint16_t BluezBlePlatformDelegate::GetMTU(BLE_CONNECTION_OBJECT connObj) const
 
 bool BluezBlePlatformDelegate::SubscribeCharacteristic(BLE_CONNECTION_OBJECT connObj, const nl::Ble::WeaveBleUUID *svcId, const nl::Ble::WeaveBleUUID *charId)
 {
-    //central support not yet implemented
-    WeaveLogDetail(Ble, "SubscribeCharaceristic");
+    WeaveLogError(Ble, "SubscribeCharacteristic: Not implemented");
     return true;
 }
 
 bool BluezBlePlatformDelegate::UnsubscribeCharacteristic(BLE_CONNECTION_OBJECT connObj, const nl::Ble::WeaveBleUUID *svcId, const nl::Ble::WeaveBleUUID *charId)
 {
-    //central support not yet implemented
-    WeaveLogDetail(Ble, "UnsubscribeCharaceristic");
+    WeaveLogError(Ble, "UnsubscribeCharacteristic: Not implemented");
     return true;
 }
 
 bool BluezBlePlatformDelegate::CloseConnection(BLE_CONNECTION_OBJECT connObj)
 {
-    //central support not yet implemented
-    WeaveLogDetail(Ble, "CloseConnection");
+    WeaveLogError(Ble, "CloseConnection: Not implemented");
     return true;
 }
 
@@ -105,22 +90,19 @@ bool BluezBlePlatformDelegate::SendIndication(BLE_CONNECTION_OBJECT connObj, con
 
 bool BluezBlePlatformDelegate::SendWriteRequest(BLE_CONNECTION_OBJECT connObj, const nl::Ble::WeaveBleUUID *svcId, const nl::Ble::WeaveBleUUID *charId, nl::Inet::InetBuffer *pBuf)
 {
-    //central support not yet implemented
-    WeaveLogDetail(Ble, "SendWriteRequest");
+    WeaveLogError(Ble, "SendWriteRequest: Not implemented");
     return true;
 }
 
 bool BluezBlePlatformDelegate::SendReadRequest(BLE_CONNECTION_OBJECT connObj, const nl::Ble::WeaveBleUUID *svcId, const nl::Ble::WeaveBleUUID *charId, nl::Inet::InetBuffer *pBuf)
 {
-    //central support not yet implemented
-    WeaveLogDetail(Ble, "SendReadRequest");
+    WeaveLogError(Ble, "SendReadRequest: Not implemented");
     return true;
 }
 
 bool BluezBlePlatformDelegate::SendReadResponse(BLE_CONNECTION_OBJECT connObj, BLE_READ_REQUEST_CONTEXT requestContext, const nl::Ble::WeaveBleUUID *svcId, const nl::Ble::WeaveBleUUID *charId)
 {
-    //central support not yet implemented
-    WeaveLogDetail(Ble, "SendReadResponse");
+    WeaveLogError(Ble, "SendReadResponse: Not implemented");
     return true;
 }
 

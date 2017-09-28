@@ -70,12 +70,8 @@
 
 #if CONFIG_BLE_PLATFORM_BLUEZ
 
-//TODO insert shim for common BLE runloop interface:
-#include "BluezBleDelegates.h"
-#include "BluezHelperCode.h"
-
 static BleLayer sBle;
-static nl::Ble::Platform::BlueZ::BluezBleApplicationDelegate sBleApplicationDelegate;
+static BluezBleApplicationDelegate sBleApplicationDelegate;
 static nl::Ble::Platform::BlueZ::BluezBlePlatformDelegate sBlePlatformDelegate(&sBle);
 
 nl::Ble::Platform::BlueZ::BluezBlePlatformDelegate *getBluezPlatformDelegate()
@@ -1397,13 +1393,21 @@ void HandleAcceptConnectionError(WeaveMessageLayer *msgLayer, WEAVE_ERROR err)
 
 void *WeaveBleIOLoop(void *arg)
 {
-    Bluez_PeripheralArgs *peripheralArgs = (Bluez_PeripheralArgs *)arg;
-    if (!nl::Ble::Platform::BlueZ::RunBluezIOThread(peripheralArgs->BleName, peripheralArgs->BleAddress))
+    if (!nl::Ble::Platform::BlueZ::RunBluezIOThread((nl::Ble::Platform::BlueZ::BluezPeripheralArgs *)arg))
     {
         exit(EXIT_FAILURE);
     }
 
     return NULL;
+}
+
+BluezBleApplicationDelegate::BluezBleApplicationDelegate()
+{
+}
+
+void BluezBleApplicationDelegate::NotifyWeaveConnectionClosed(BLE_CONNECTION_OBJECT connObj)
+{
+    printf("NotifyWeaveConnectionClosed\n");
 }
 
 #endif /* CONFIG_BLE_PLATFORM_BLUEZ */

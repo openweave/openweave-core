@@ -162,7 +162,7 @@ endif
 # If the user has woble over bluez peripheral, alter the configuration options
 # accordingly.
 ifeq ($(BLUEZ),1)
-configure_OPTIONS              += --enable-experimental --enable-deprecated --enable-testing --enable-tools --disable-systemd --enable-library --enable-debug
+configure_OPTIONS              += --enable-experimental --enable-deprecated --enable-testing --enable-tools --disable-systemd --enable-debug
 else
 configure_OPTIONS              += --with-bluez=no
 endif

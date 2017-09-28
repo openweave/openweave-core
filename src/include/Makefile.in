@@ -111,15 +111,21 @@ target_triplet = @target@
 @INET_WANT_ENDPOINT_UDP_TRUE@am__append_4 = $(nl_public_InetLayer_source_dirstem)/UDPEndPoint.h
 @INET_WANT_ENDPOINT_TUN_TRUE@am__append_5 = $(nl_public_InetLayer_source_dirstem)/TunEndPoint.h
 @INET_CONFIG_ENABLE_ASYNC_DNS_SOCKETS_TRUE@@INET_WANT_ENDPOINT_DNS_TRUE@@WEAVE_SYSTEM_CONFIG_USE_SOCKETS_TRUE@am__append_6 = $(nl_public_InetLayer_source_dirstem)/AsyncDNSResolverSockets.h
+@CONFIG_BLE_PLATFORM_BLUEZ_TRUE@@CONFIG_NETWORK_LAYER_BLE_TRUE@am__append_7 = \
+@CONFIG_BLE_PLATFORM_BLUEZ_TRUE@@CONFIG_NETWORK_LAYER_BLE_TRUE@$(platform_ble_bluez_public_source_dirstem)/BluezBlePlatformDelegate.h \
+@CONFIG_BLE_PLATFORM_BLUEZ_TRUE@@CONFIG_NETWORK_LAYER_BLE_TRUE@$(platform_ble_bluez_public_source_dirstem)/BluezHelperCode.h \
+@CONFIG_BLE_PLATFORM_BLUEZ_TRUE@@CONFIG_NETWORK_LAYER_BLE_TRUE@$(NULL)
+
 subdir = src/include
 DIST_COMMON = $(srcdir)/Makefile.in $(srcdir)/Makefile.am \
 	$(srcdir)/BuildConfig.h.in \
 	$(top_srcdir)/third_party/nlbuild-autotools/repo/autoconf/mkinstalldirs \
 	$(dist_ble_ble_HEADERS) $(dist_ble_device_manager_HEADERS) \
 	$(dist_inet_HEADERS) $(dist_micro_ecc_HEADERS) \
-	$(dist_mincrypt_HEADERS) $(dist_system_HEADERS) \
-	$(dist_warm_HEADERS) $(dist_weave_HEADERS) \
-	$(dist_weave_core_HEADERS) $(dist_weave_support_base_HEADERS) \
+	$(dist_mincrypt_HEADERS) $(dist_platform_ble_bluez_HEADERS) \
+	$(dist_system_HEADERS) $(dist_warm_HEADERS) \
+	$(dist_weave_HEADERS) $(dist_weave_core_HEADERS) \
+	$(dist_weave_support_base_HEADERS) \
 	$(dist_weave_support_crypto_HEADERS) \
 	$(dist_weave_support_logging_HEADERS) \
 	$(dist_weave_support_platform_HEADERS) \
@@ -217,8 +223,9 @@ am__uninstall_files_from_dir = { \
 am__installdirs = "$(DESTDIR)$(ble_bledir)" \
 	"$(DESTDIR)$(ble_device_managerdir)" "$(DESTDIR)$(inetdir)" \
 	"$(DESTDIR)$(micro_eccdir)" "$(DESTDIR)$(mincryptdir)" \
-	"$(DESTDIR)$(systemdir)" "$(DESTDIR)$(warmdir)" \
-	"$(DESTDIR)$(weavedir)" "$(DESTDIR)$(weave_coredir)" \
+	"$(DESTDIR)$(platform_ble_bluezdir)" "$(DESTDIR)$(systemdir)" \
+	"$(DESTDIR)$(warmdir)" "$(DESTDIR)$(weavedir)" \
+	"$(DESTDIR)$(weave_coredir)" \
 	"$(DESTDIR)$(weave_support_basedir)" \
 	"$(DESTDIR)$(weave_support_cryptodir)" \
 	"$(DESTDIR)$(weave_support_loggingdir)" \
@@ -259,9 +266,10 @@ am__installdirs = "$(DESTDIR)$(ble_bledir)" \
 	"$(DESTDIR)$(weave_profiles_weave_tunnelingdir)"
 HEADERS = $(dist_ble_ble_HEADERS) $(dist_ble_device_manager_HEADERS) \
 	$(dist_inet_HEADERS) $(dist_micro_ecc_HEADERS) \
-	$(dist_mincrypt_HEADERS) $(dist_system_HEADERS) \
-	$(dist_warm_HEADERS) $(dist_weave_HEADERS) \
-	$(dist_weave_core_HEADERS) $(dist_weave_support_base_HEADERS) \
+	$(dist_mincrypt_HEADERS) $(dist_platform_ble_bluez_HEADERS) \
+	$(dist_system_HEADERS) $(dist_warm_HEADERS) \
+	$(dist_weave_HEADERS) $(dist_weave_core_HEADERS) \
+	$(dist_weave_support_base_HEADERS) \
 	$(dist_weave_support_crypto_HEADERS) \
 	$(dist_weave_support_logging_HEADERS) \
 	$(dist_weave_support_platform_HEADERS) \
@@ -680,6 +688,18 @@ nl_public_InetLayer_header_paths = $(subst $(nl_public_InetLayer_source_dirstem)
 nl_public_InetLayer_header_destinations = $(addprefix $(nl_public_InetLayer_destination_dirstem)/,$(nl_public_InetLayer_header_paths))
 nl_public_InetLayer_header_dirs = $(call Deslashify,$(sort $(dir $(nl_public_InetLayer_header_destinations))))
 inetdir = $(includedir)/$(nl_public_InetLayer_destination_dirstem)
+
+#
+# platform/ble/bluez
+#
+platform_ble_bluez_public_source_dirstem = platform/ble/bluez
+platform_ble_bluez_public_destination_dirstem = PlatformLayer/Ble/Bluez
+platform_ble_bluez_public_header_sources = $(am__append_7)
+platform_ble_bluez_public_header_paths = $(subst $(platform_ble_bluez_public_source_dirstem)/,,$(platform_ble_bluez_public_header_sources))
+platform_ble_bluez_public_header_destinations = $(addprefix $(platform_ble_bluez_public_destination_dirstem)/,$(platform_ble_bluez_public_header_paths))
+platform_ble_bluez_public_header_dirs = $(call Deslashify,$(sort $(dir $(platform_ble_bluez_public_header_destinations))))
+platform_ble_bluezdir = $(includedir)/$(platform_ble_bluez_public_destination_dirstem)
+dist_platform_ble_bluez_HEADERS = $(addprefix ../,$(platform_ble_bluez_public_header_sources))
 
 #
 # SystemLayer
@@ -1209,6 +1229,10 @@ nl_public_headers = \
     $(nl_public_WeaveProfiles_header_destinations)            \
     $(NULL)
 
+platform_public_headers = \
+    $(platform_ble_bluez_public_header_destinations)          \
+    $(NULL)
+
 tps_public_headers = \
     $(tps_public_micro_ecc_header_destinations)               \
     $(tps_public_mincrypt_header_destinations)                \
@@ -1216,6 +1240,7 @@ tps_public_headers = \
 
 BUILT_SOURCES = \
     $(nl_public_headers)                                      \
+    $(platform_public_headers)                                \
     $(tps_public_headers)                                     \
     $(NULL)
 
@@ -1233,6 +1258,10 @@ CLEANFILES = \
 #
 # Headers to filter out of PRETTY_FILES
 #
+platform_public_header_sources = \
+    $(dist_platform_ble_bluez_HEADERS)                     \
+    $(NULL)
+
 tps_public_header_sources = \
     $(dist_micro_ecc_HEADERS)                              \
     $(dist_mincrypt_HEADERS)                               \
@@ -1240,6 +1269,7 @@ tps_public_header_sources = \
 
 nl_filtered_pretty_files = \
     $(include_HEADERS)                                     \
+    $(platform_public_header_sources)                      \
     $(tps_public_header_sources)                           \
     $(NULL)
 
@@ -1257,6 +1287,10 @@ nl_public_header_dirs = \
     $(nl_public_WeaveProfiles_header_dirs)                 \
     $(nl_public_WeaveSupport_header_dirs)                  \
     $(nl_public_Weave_header_dirs)                         \
+    $(NULL)
+
+platform_public_header_dirs = \
+    $(platform_ble_bluez_public_header_dirs)               \
     $(NULL)
 
 tps_public_header_dirs = \
@@ -1424,6 +1458,27 @@ uninstall-dist_mincryptHEADERS:
 	@list='$(dist_mincrypt_HEADERS)'; test -n "$(mincryptdir)" || list=; \
 	files=`for p in $$list; do echo $$p; done | sed -e 's|^.*/||'`; \
 	dir='$(DESTDIR)$(mincryptdir)'; $(am__uninstall_files_from_dir)
+install-dist_platform_ble_bluezHEADERS: $(dist_platform_ble_bluez_HEADERS)
+	@$(NORMAL_INSTALL)
+	@list='$(dist_platform_ble_bluez_HEADERS)'; test -n "$(platform_ble_bluezdir)" || list=; \
+	if test -n "$$list"; then \
+	  echo " $(MKDIR_P) '$(DESTDIR)$(platform_ble_bluezdir)'"; \
+	  $(MKDIR_P) "$(DESTDIR)$(platform_ble_bluezdir)" || exit 1; \
+	fi; \
+	for p in $$list; do \
+	  if test -f "$$p"; then d=; else d="$(srcdir)/"; fi; \
+	  echo "$$d$$p"; \
+	done | $(am__base_list) | \
+	while read files; do \
+	  echo " $(INSTALL_HEADER) $$files '$(DESTDIR)$(platform_ble_bluezdir)'"; \
+	  $(INSTALL_HEADER) $$files "$(DESTDIR)$(platform_ble_bluezdir)" || exit $$?; \
+	done
+
+uninstall-dist_platform_ble_bluezHEADERS:
+	@$(NORMAL_UNINSTALL)
+	@list='$(dist_platform_ble_bluez_HEADERS)'; test -n "$(platform_ble_bluezdir)" || list=; \
+	files=`for p in $$list; do echo $$p; done | sed -e 's|^.*/||'`; \
+	dir='$(DESTDIR)$(platform_ble_bluezdir)'; $(am__uninstall_files_from_dir)
 install-dist_systemHEADERS: $(dist_system_HEADERS)
 	@$(NORMAL_INSTALL)
 	@list='$(dist_system_HEADERS)'; test -n "$(systemdir)" || list=; \
@@ -2397,7 +2452,7 @@ check: $(BUILT_SOURCES)
 	$(MAKE) $(AM_MAKEFLAGS) check-am
 all-am: Makefile $(HEADERS) BuildConfig.h
 installdirs:
-	for dir in "$(DESTDIR)$(ble_bledir)" "$(DESTDIR)$(ble_device_managerdir)" "$(DESTDIR)$(inetdir)" "$(DESTDIR)$(micro_eccdir)" "$(DESTDIR)$(mincryptdir)" "$(DESTDIR)$(systemdir)" "$(DESTDIR)$(warmdir)" "$(DESTDIR)$(weavedir)" "$(DESTDIR)$(weave_coredir)" "$(DESTDIR)$(weave_support_basedir)" "$(DESTDIR)$(weave_support_cryptodir)" "$(DESTDIR)$(weave_support_loggingdir)" "$(DESTDIR)$(weave_support_platformdir)" "$(DESTDIR)$(weave_support_verhoeffdir)" "$(DESTDIR)$(includedir)" "$(DESTDIR)$(weave_profiles_basedir)" "$(DESTDIR)$(weave_profiles_bulk_data_transferdir)" "$(DESTDIR)$(weave_profiles_bulk_data_transfer_currentdir)" "$(DESTDIR)$(weave_profiles_bulk_data_transfer_developmentdir)" "$(DESTDIR)$(weave_profiles_commondir)" "$(DESTDIR)$(weave_profiles_data_managementdir)" "$(DESTDIR)$(weave_profiles_data_management_currentdir)" "$(DESTDIR)$(weave_profiles_data_management_legacydir)" "$(DESTDIR)$(weave_profiles_device_controldir)" "$(DESTDIR)$(weave_profiles_device_descriptiondir)" "$(DESTDIR)$(weave_profiles_echodir)" "$(DESTDIR)$(weave_profiles_fabric_provisioningdir)" "$(DESTDIR)$(weave_profiles_heartbeatdir)" "$(DESTDIR)$(weave_profiles_localedir)" "$(DESTDIR)$(weave_profiles_nestlabs_boilerdir)" "$(DESTDIR)$(weave_profiles_nestlabs_device_descriptiondir)" "$(DESTDIR)$(weave_profiles_nestlabs_domestic_hot_waterdir)" "$(DESTDIR)$(weave_profiles_nestlabs_dropcam_legacy_pairingdir)" "$(DESTDIR)$(weave_profiles_nestlabs_heat_linkdir)" "$(DESTDIR)$(weave_profiles_nestlabs_hvac_equipment_controldir)" "$(DESTDIR)$(weave_profiles_nestlabs_protectdir)" "$(DESTDIR)$(weave_profiles_nestlabs_thermostatdir)" "$(DESTDIR)$(weave_profiles_nestlabs_time_variant_datadir)" "$(DESTDIR)$(weave_profiles_network_provisioningdir)" "$(DESTDIR)$(weave_profiles_securitydir)" "$(DESTDIR)$(weave_profiles_service_directorydir)" "$(DESTDIR)$(weave_profiles_service_provisioningdir)" "$(DESTDIR)$(weave_profiles_software_updatedir)" "$(DESTDIR)$(weave_profiles_status_reportdir)" "$(DESTDIR)$(weave_profiles_timedir)" "$(DESTDIR)$(weave_profiles_token_pairingdir)" "$(DESTDIR)$(weave_profiles_weave_tunnelingdir)"; do \
+	for dir in "$(DESTDIR)$(ble_bledir)" "$(DESTDIR)$(ble_device_managerdir)" "$(DESTDIR)$(inetdir)" "$(DESTDIR)$(micro_eccdir)" "$(DESTDIR)$(mincryptdir)" "$(DESTDIR)$(platform_ble_bluezdir)" "$(DESTDIR)$(systemdir)" "$(DESTDIR)$(warmdir)" "$(DESTDIR)$(weavedir)" "$(DESTDIR)$(weave_coredir)" "$(DESTDIR)$(weave_support_basedir)" "$(DESTDIR)$(weave_support_cryptodir)" "$(DESTDIR)$(weave_support_loggingdir)" "$(DESTDIR)$(weave_support_platformdir)" "$(DESTDIR)$(weave_support_verhoeffdir)" "$(DESTDIR)$(includedir)" "$(DESTDIR)$(weave_profiles_basedir)" "$(DESTDIR)$(weave_profiles_bulk_data_transferdir)" "$(DESTDIR)$(weave_profiles_bulk_data_transfer_currentdir)" "$(DESTDIR)$(weave_profiles_bulk_data_transfer_developmentdir)" "$(DESTDIR)$(weave_profiles_commondir)" "$(DESTDIR)$(weave_profiles_data_managementdir)" "$(DESTDIR)$(weave_profiles_data_management_currentdir)" "$(DESTDIR)$(weave_profiles_data_management_legacydir)" "$(DESTDIR)$(weave_profiles_device_controldir)" "$(DESTDIR)$(weave_profiles_device_descriptiondir)" "$(DESTDIR)$(weave_profiles_echodir)" "$(DESTDIR)$(weave_profiles_fabric_provisioningdir)" "$(DESTDIR)$(weave_profiles_heartbeatdir)" "$(DESTDIR)$(weave_profiles_localedir)" "$(DESTDIR)$(weave_profiles_nestlabs_boilerdir)" "$(DESTDIR)$(weave_profiles_nestlabs_device_descriptiondir)" "$(DESTDIR)$(weave_profiles_nestlabs_domestic_hot_waterdir)" "$(DESTDIR)$(weave_profiles_nestlabs_dropcam_legacy_pairingdir)" "$(DESTDIR)$(weave_profiles_nestlabs_heat_linkdir)" "$(DESTDIR)$(weave_profiles_nestlabs_hvac_equipment_controldir)" "$(DESTDIR)$(weave_profiles_nestlabs_protectdir)" "$(DESTDIR)$(weave_profiles_nestlabs_thermostatdir)" "$(DESTDIR)$(weave_profiles_nestlabs_time_variant_datadir)" "$(DESTDIR)$(weave_profiles_network_provisioningdir)" "$(DESTDIR)$(weave_profiles_securitydir)" "$(DESTDIR)$(weave_profiles_service_directorydir)" "$(DESTDIR)$(weave_profiles_service_provisioningdir)" "$(DESTDIR)$(weave_profiles_software_updatedir)" "$(DESTDIR)$(weave_profiles_status_reportdir)" "$(DESTDIR)$(weave_profiles_timedir)" "$(DESTDIR)$(weave_profiles_token_pairingdir)" "$(DESTDIR)$(weave_profiles_weave_tunnelingdir)"; do \
 	  test -z "$$dir" || $(MKDIR_P) "$$dir"; \
 	done
 install: $(BUILT_SOURCES)
@@ -2456,9 +2511,10 @@ info-am:
 install-data-am: install-dist_ble_bleHEADERS \
 	install-dist_ble_device_managerHEADERS \
 	install-dist_inetHEADERS install-dist_micro_eccHEADERS \
-	install-dist_mincryptHEADERS install-dist_systemHEADERS \
-	install-dist_warmHEADERS install-dist_weaveHEADERS \
-	install-dist_weave_coreHEADERS \
+	install-dist_mincryptHEADERS \
+	install-dist_platform_ble_bluezHEADERS \
+	install-dist_systemHEADERS install-dist_warmHEADERS \
+	install-dist_weaveHEADERS install-dist_weave_coreHEADERS \
 	install-dist_weave_support_baseHEADERS \
 	install-dist_weave_support_cryptoHEADERS \
 	install-dist_weave_support_loggingHEADERS \
@@ -2542,9 +2598,10 @@ ps-am:
 uninstall-am: uninstall-dist_ble_bleHEADERS \
 	uninstall-dist_ble_device_managerHEADERS \
 	uninstall-dist_inetHEADERS uninstall-dist_micro_eccHEADERS \
-	uninstall-dist_mincryptHEADERS uninstall-dist_systemHEADERS \
-	uninstall-dist_warmHEADERS uninstall-dist_weaveHEADERS \
-	uninstall-dist_weave_coreHEADERS \
+	uninstall-dist_mincryptHEADERS \
+	uninstall-dist_platform_ble_bluezHEADERS \
+	uninstall-dist_systemHEADERS uninstall-dist_warmHEADERS \
+	uninstall-dist_weaveHEADERS uninstall-dist_weave_coreHEADERS \
 	uninstall-dist_weave_support_baseHEADERS \
 	uninstall-dist_weave_support_cryptoHEADERS \
 	uninstall-dist_weave_support_loggingHEADERS \
@@ -2593,9 +2650,10 @@ uninstall-am: uninstall-dist_ble_bleHEADERS \
 	install-data-am install-dist_ble_bleHEADERS \
 	install-dist_ble_device_managerHEADERS \
 	install-dist_inetHEADERS install-dist_micro_eccHEADERS \
-	install-dist_mincryptHEADERS install-dist_systemHEADERS \
-	install-dist_warmHEADERS install-dist_weaveHEADERS \
-	install-dist_weave_coreHEADERS \
+	install-dist_mincryptHEADERS \
+	install-dist_platform_ble_bluezHEADERS \
+	install-dist_systemHEADERS install-dist_warmHEADERS \
+	install-dist_weaveHEADERS install-dist_weave_coreHEADERS \
 	install-dist_weave_support_baseHEADERS \
 	install-dist_weave_support_cryptoHEADERS \
 	install-dist_weave_support_loggingHEADERS \
@@ -2643,9 +2701,10 @@ uninstall-am: uninstall-dist_ble_bleHEADERS \
 	uninstall-am uninstall-dist_ble_bleHEADERS \
 	uninstall-dist_ble_device_managerHEADERS \
 	uninstall-dist_inetHEADERS uninstall-dist_micro_eccHEADERS \
-	uninstall-dist_mincryptHEADERS uninstall-dist_systemHEADERS \
-	uninstall-dist_warmHEADERS uninstall-dist_weaveHEADERS \
-	uninstall-dist_weave_coreHEADERS \
+	uninstall-dist_mincryptHEADERS \
+	uninstall-dist_platform_ble_bluezHEADERS \
+	uninstall-dist_systemHEADERS uninstall-dist_warmHEADERS \
+	uninstall-dist_weaveHEADERS uninstall-dist_weave_coreHEADERS \
 	uninstall-dist_weave_support_baseHEADERS \
 	uninstall-dist_weave_support_cryptoHEADERS \
 	uninstall-dist_weave_support_loggingHEADERS \
@@ -2704,6 +2763,12 @@ $(nl_public_InetLayer_header_dirs):
 	$(call create-directory)
 
 $(nl_public_InetLayer_header_destinations): $(nl_public_InetLayer_destination_dirstem)/%.h: $(abs_srcdir)/../$(nl_public_InetLayer_source_dirstem)/%.h | $(nl_public_InetLayer_header_dirs)
+	$(call create-link)
+
+$(platform_ble_bluez_public_header_dirs):
+	$(call create-directory)
+
+$(platform_ble_bluez_public_header_destinations): $(platform_ble_bluez_public_destination_dirstem)/%.h: $(abs_srcdir)/../$(platform_ble_bluez_public_source_dirstem)/%.h | $(platform_ble_bluez_public_header_dirs)
 	$(call create-link)
 
 $(nl_public_SystemLayer_header_dirs):
@@ -2788,7 +2853,7 @@ install-headers: install-data
 # cleaned up.
 
 clean-local:
-	$(AM_V_at)rm -f -r $(nl_public_header_dirs) $(tps_public_header_dirs)
+	$(AM_V_at)rm -f -r $(nl_public_header_dirs) $(platform_public_header_dirs) $(tps_public_header_dirs)
 
 include $(abs_top_nlbuild_autotools_dir)/automake/post.am
 

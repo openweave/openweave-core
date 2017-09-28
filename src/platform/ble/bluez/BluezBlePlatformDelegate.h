@@ -17,24 +17,16 @@
  */
 /**
  *    @file
- *      This file defines class definition for the BluezBlePlatformDelegate and
- *      BluezBleApplicationDelegate objects.
+ *      This file defines BluezBlePlatformDelegate class
  *
  *      The BluezBlePlatformDelegate provides the Weave stack with an interface
  *      by which to form and cancel GATT subscriptions, read and write
  *      GATT characteristic values, send GATT characteristic notifications,
  *      respond to GATT read requests, and close BLE connections.
- *
- *      The BluezBleApplicationDelegate provides the implementation for Weave to inform
- *      the application when it has finished using a given BLE connection,
- *      i.e when the WeaveConnection object wrapping this connection has
- *      closed. This allows the application to either close the BLE connection
- *      or continue to keep it open for non-Weave purposes.
- *
  */
 
-#ifndef BLUEZBLEDELEGATES_H_
-#define BLUEZBLEDELEGATES_H_
+#ifndef BLUEZBLEPLATFORMDELEGATE_H_
+#define BLUEZBLEPLATFORMDELEGATE_H_
 
 #include <BuildConfig.h>
 
@@ -43,10 +35,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include <BleLayer/BleApplicationDelegate.h>
 #include <BleLayer/BleLayer.h>
 #include <BleLayer/BlePlatformDelegate.h>
-#include "Weave/Support/logging/WeaveLogging.h"
+#include <Weave/Support/logging/WeaveLogging.h>
 
 namespace nl {
 namespace Ble {
@@ -57,13 +48,6 @@ typedef bool (*SendIndicationCallback)(void *connObj, uint8_t *buffer, size_t le
 
 typedef uint16_t (*GetMTUCallback)(void *connObj);
 
-class BluezBleApplicationDelegate : public nl::Ble::BleApplicationDelegate
-{
-public:
-    BluezBleApplicationDelegate();
-    void NotifyWeaveConnectionClosed(BLE_CONNECTION_OBJECT connObj);
-};
-
 using namespace nl::Ble;
 
 class BluezBlePlatformDelegate : public nl::Ble::BlePlatformDelegate
@@ -73,7 +57,7 @@ public:
     SendIndicationCallback SendIndicationCb;
     GetMTUCallback GetMTUCb;
 
-    BluezBlePlatformDelegate(BleLayer *ble) : SendIndicationCb(NULL) {};
+    BluezBlePlatformDelegate(BleLayer *ble);
 
     uint16_t GetMTU(BLE_CONNECTION_OBJECT connObj) const;
 
@@ -103,4 +87,4 @@ public:
 
 #endif /* CONFIG_BLE_PLATFORM_BLUEZ */
 
-#endif /* BLUEZBLEDELEGATES_H_ */
+#endif /* BLUEZBLEPLATFORMDELEGATE_H_ */

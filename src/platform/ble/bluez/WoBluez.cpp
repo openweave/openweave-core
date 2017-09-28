@@ -24,6 +24,7 @@
 
 #include "WoBluez.h"
 #include "BluezHelperCode.h"
+#include "BluezBlePlatformDelegate.h"
 
 #include <getopt.h>
 #include <inttypes.h>
@@ -88,7 +89,7 @@ const WeaveBleUUID WEAVE_BLE_CHAR_2_ID = {
 
 void WoBLEz_NewConnection(void *data)
 {
-    WeaveLogDetail(Ble, "WoBLEz_NewConnection: %p", data);
+    WeaveLogProgress(Ble, "WoBLEz_NewConnection: %p", data);
 }
 
 void WoBLEz_WriteReceived(void *data, const uint8_t *value, size_t len)
@@ -104,16 +105,16 @@ void WoBLEz_WriteReceived(void *data, const uint8_t *value, size_t len)
     memcpy(msgBuf->Start(), value, len);
     msgBuf->SetDataLength(len);
 
-    if (!MessageLayer.mBle->HandleWriteReceived(data, &(nl::Ble::WEAVE_BLE_SVC_ID), &WEAVE_BLE_CHAR_1_ID, msgBuf))
+    if (!gBluezBlePlatformDelegate->Ble->HandleWriteReceived(data, &(nl::Ble::WEAVE_BLE_SVC_ID), &WEAVE_BLE_CHAR_1_ID, msgBuf))
     {
-        WeaveLogDetail(Ble, "HandleWriteReceived failed to HandleWriteReceived ");
+        WeaveLogError(Ble, "WoBLEz_WriteReceived failed at HandleWriteReceived ");
     }
 
 exit:
 
     if (err != WEAVE_NO_ERROR)
     {
-        WeaveLogDetail(Ble, "WoBLEz_WriteReceived failed: %d", err);
+        WeaveLogError(Ble, "WoBLEz_WriteReceived failed: %d", err);
     }
 
     if (NULL != msgBuf)
@@ -129,6 +130,7 @@ bool WoBLEz_SendIndication(void *data, uint8_t *buffer, size_t len)
     bool success = false;
     BluezServerEndpoint *endpoint = static_cast<BluezServerEndpoint *>(data);
     VerifyOrExit(endpoint != NULL, msg = "endpoint is NULL in WoBLEz_SendIndication");
+    VerifyOrExit(endpoint == gBluezServerEndpoint, msg = "Unexpected endpoint in WoBLEz_SendIndication");
     VerifyOrExit(endpoint->weaveC2 != NULL, msg = "weaveC2 is NULL in WoBLEz_SendIndication" );
 
     g_free(endpoint->weaveC2->value);
@@ -141,7 +143,7 @@ exit:
 
     if (NULL != msg)
     {
-        WeaveLogDetail(Ble, msg);
+        WeaveLogError(Ble, msg);
     }
 
     return success;
@@ -149,49 +151,47 @@ exit:
 
 void WoBLEz_ConnectionClosed(void *data)
 {
-    WeaveLogDetail(Ble, "WoBLEz_ConnectionClosed: %p", data);
-    MessageLayer.mBle->HandleConnectionError(data, BLE_ERROR_REMOTE_DEVICE_DISCONNECTED);
+    WeaveLogProgress(Ble, "WoBLEz_ConnectionClosed: %p", data);
+    gBluezBlePlatformDelegate->Ble->HandleConnectionError(data, BLE_ERROR_REMOTE_DEVICE_DISCONNECTED);
 }
 
 void WoBLEz_SubscriptionChange(void *data)
 {
     const char * msg = NULL;
     bool enabled;
+    bool success = false;
     BluezServerEndpoint *endpoint = static_cast<BluezServerEndpoint *>(data);
-    VerifyOrExit(endpoint != NULL, msg = "endpoint is NULL in WoBLEz_SendIndication");
-    VerifyOrExit(endpoint->weaveC2 != NULL, msg = "weaveC2 is NULL in WoBLEz_SendIndication" );
+    VerifyOrExit(endpoint != NULL, msg = "endpoint is NULL in WoBLEz_SubscriptionChange");
+    VerifyOrExit(endpoint == gBluezServerEndpoint, msg = "Unexpected endpoint in WoBLEz_SubscriptionChange");
+    VerifyOrExit(endpoint->weaveC2 != NULL, msg = "weaveC2 is NULL in WoBLEz_SubscriptionChange" );
 
     enabled = endpoint->weaveC2->isNotifying;
 
     if (enabled)
     {
-        if (!MessageLayer.mBle->HandleSubscribeReceived(data, &(nl::Ble::WEAVE_BLE_SVC_ID), &WEAVE_BLE_CHAR_2_ID))
-        {
-            WeaveLogDetail(Ble, "HandleSubscribeReceived failed");
-        }
+        success = gBluezBlePlatformDelegate->Ble->HandleSubscribeReceived(data, &(nl::Ble::WEAVE_BLE_SVC_ID), &WEAVE_BLE_CHAR_2_ID);
+        VerifyOrExit(success == true, msg = "HandleSubscribeReceived failed");
     }
     else
     {
-        if (!MessageLayer.mBle->HandleUnsubscribeReceived(data, &(nl::Ble::WEAVE_BLE_SVC_ID), &WEAVE_BLE_CHAR_2_ID))
-        {
-            WeaveLogDetail(Ble, "HandleUnsubscribeReceived failed");
-        }
+        success = gBluezBlePlatformDelegate->Ble->HandleUnsubscribeReceived(data, &(nl::Ble::WEAVE_BLE_SVC_ID), &WEAVE_BLE_CHAR_2_ID);
+        VerifyOrExit(success == true, msg = "HandleUnsubscribeReceived failed");
     }
 
 exit:
 
     if (NULL != msg)
     {
-        WeaveLogDetail(Ble, msg);
+        WeaveLogError(Ble, msg);
     }
 }
 
 void WoBLEz_IndicationConfirmation(void *data)
 {
 
-    if (!MessageLayer.mBle->HandleIndicationConfirmation(data, &(nl::Ble::WEAVE_BLE_SVC_ID), &WEAVE_BLE_CHAR_2_ID))
+    if (!gBluezBlePlatformDelegate->Ble->HandleIndicationConfirmation(data, &(nl::Ble::WEAVE_BLE_SVC_ID), &WEAVE_BLE_CHAR_2_ID))
     {
-        WeaveLogDetail(Ble, "HandleIndicationConfirmation failed");
+        WeaveLogError(Ble, "HandleIndicationConfirmation failed");
     }
 }
 

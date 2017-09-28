@@ -1214,7 +1214,7 @@ NL_WITH_OPTIONAL_INTERNAL_PACKAGE(
   [BlueZ],
   [BLUEZ],
   [bluez],
-  [-lbluetooth],
+  [-lgdbus-internal],
   [
   # actions if not external
   # At this time, enable this only for linux, and only if the tests are enabled
@@ -1222,30 +1222,24 @@ NL_WITH_OPTIONAL_INTERNAL_PACKAGE(
       case "${target}" in
 
           *linux*)
-	      CONFIG_BLE_PLATFORM_BLUEZ=1
-	      BLUEZ_BUILD_DIRECTORY='$(abs_top_builddir)/third_party/bluez/repo'
-	      enable_woble_bluez="yes"
-	      BLUEZ_CPPFLAGS='-I$(abs_top_srcdir)/third_party/bluez/repo/'
-	      ;;
+              CONFIG_BLE_PLATFORM_BLUEZ=1
+              enable_woble_bluez="yes"
+              BLUEZ_CPPFLAGS="-I\${abs_top_srcdir}/third_party/bluez/repo/"
+              BLUEZ_LDFLAGS="-L${ac_pwd}/third_party/bluez/repo/gdbus/"
+              BLUEZ_LIBS="-lgdbus-internal"
+              ;;
 
           *)
               CONFIG_BLE_PLATFORM_BLUEZ=0
-	      ;;
+              ;;
 
           esac
       fi
   ],
   [ # actions if not internal
-  # for externally built bluez verify that the supplied directory contains the required libraries
-  AC_CHECK_FILES(
-      [${bluez_dir}/gdbus/libgdbus-internal.la],
-      [],
-      [AC_MSG_ERROR([Required BlueZ files missing.  Please either use the internal configuration or ensure that the --with-bluez= option points to a valid build directory of BlueZ])]
-  )
 
-  CONFIG_BLE_PLATFORM_BLUEZ=1
-  BLUEZ_BUILD_DIRECTORY=${bluez_dir}
-  enable_woble_bluez="yes"
+    CONFIG_BLE_PLATFORM_BLUEZ=1
+    enable_woble_bluez="yes"
   ]
 )
 
@@ -2278,10 +2272,6 @@ LIBS="${LIBS} ${NLFAULTINJECTION_LIBS}"
 CPPFLAGS="${CPPFLAGS} ${NL_COVERAGE_CPPFLAGS}"
 LDFLAGS="${LDFLAGS} ${NL_COVERAGE_LDFLAGS}"
 
-# Add flags for BlueZ.  Note: the libraries are handled via _LDADD rules in appropriate sub-Makefile.
-
-CPPFLAGS="${CPPFLAGS} ${BLUEZ_CPPFLAGS}"
-
 # Fold in the warning-as-errors flag, unless it was already in effect.
 
 if test "${nl_had_CPPFLAGS_werror}" = "no"; then
@@ -2432,6 +2422,8 @@ AC_MSG_NOTICE([
   BlueZ peripheral support                         : ${enable_woble_bluez:--}
   BlueZ source                                     : ${nl_with_bluez:--}
   BlueZ compile flags                              : ${BLUEZ_CPPFLAGS:--}
+  Bluez link flags                                 : ${BLUEZ_LDFLAGS:--}
+  Bluez link libraries                             : ${BLUEZ_LIBS:--}
   CURL source                                      : ${nl_with_libcurl:--}
   CURL compile flags                               : ${CURL_CPPFLAGS:--}
   CURL link flags                                  : ${CURL_LDFLAGS:--}

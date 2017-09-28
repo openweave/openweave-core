@@ -22,18 +22,18 @@
  */
 
 #include "BluezHelperCode.h"
-#include "BluezBleDelegates.h"
+#include "BluezBlePlatformDelegate.h"
+#include "WoBluez.h"
 
 #if CONFIG_BLE_PLATFORM_BLUEZ
-
-extern nl::Ble::Platform::BlueZ::BluezBlePlatformDelegate *getBluezPlatformDelegate();
 
 namespace nl {
 namespace Ble {
 namespace Platform {
 namespace BlueZ {
 
-static BluezServerEndpoint *gBluezServerEndpoint;
+BluezServerEndpoint *gBluezServerEndpoint = NULL;
+BluezBlePlatformDelegate *gBluezBlePlatformDelegate = NULL;
 static GMainLoop *gBluezMainLoop;
 static DBusConnection *gBluezDbusConn;
 static Adapter *gDefaultAdapter;
@@ -64,7 +64,7 @@ exit:
 
     if ((success != TRUE) && (msg != NULL))
     {
-        WeaveLogDetail(Ble, msg);
+        WeaveLogError(Ble, msg);
     }
 }
 
@@ -76,17 +76,17 @@ static void WeaveRegisterReply(DBusMessage *message, void *bluezData)
 
     if (TRUE == dbus_set_error_from_message(&error, message))
     {
-        WeaveLogDetail(Ble, "Fail to register weave advertisement in WeaveRegisterReply: %s", error.name);
+        WeaveLogError(Ble, "Fail to register weave advertisement in WeaveRegisterReply: %s", error.name);
         dbus_error_free(&error);
 
         if (FALSE == g_dbus_unregister_interface(dbusConn, ADVERTISING_PATH, ADVERTISING_INTERFACE))
         {
-            WeaveLogDetail(Ble, "Fail to unregister weave advertisement in WeaveRegisterReply");
+            WeaveLogError(Ble, "Fail to unregister weave advertisement in WeaveRegisterReply");
         }
     }
     else
     {
-        WeaveLogDetail(Ble, "Weave advertisement object registered");
+        WeaveLogProgress(Ble, "Weave advertisement object registered");
     }
 }
 
@@ -95,7 +95,7 @@ static gboolean WeaveAdvertisingGetType(const GDBusPropertyTable *property, DBus
     gboolean success = dbus_message_iter_append_basic(iter, DBUS_TYPE_STRING, &(gBluezServerEndpoint->advertisingType));
     if (FALSE == success)
     {
-        WeaveLogDetail(Ble, "Fail to get advertising type in WeaveAdvertisingGetType");
+        WeaveLogError(Ble, "Fail to get advertising type in WeaveAdvertisingGetType");
     }
 
     return success;
@@ -120,7 +120,121 @@ exit:
 
     if ((success != TRUE) && (msg != NULL))
     {
-        WeaveLogDetail(Ble, msg);
+        WeaveLogError(Ble, msg);
+    }
+
+    return success;
+}
+
+static gboolean WeaveServiceDataCheck(const GDBusPropertyTable *property, void *bluezData)
+{
+    gboolean success = FALSE;
+
+    if (NULL != gBluezServerEndpoint->weaveServiceData)
+    {
+        success = TRUE;
+    }
+
+    return success;
+}
+
+static gboolean AppendArrayVariant(DBusMessageIter *iter, int type, void *val, int nElements)
+{
+    const char * msg = NULL;
+    gboolean success = FALSE;
+    DBusMessageIter variant, array;
+    const char ***strArray = (const char ***)val;
+    int i;
+    char typeSig[2] = { (char)type, '\0' };
+    char arraySig[3] = { DBUS_TYPE_ARRAY, (char)type, '\0' };
+
+    success = dbus_message_iter_open_container(iter, DBUS_TYPE_VARIANT, arraySig, &variant);
+    VerifyOrExit(success == TRUE, msg = "Fail to open DBUS_TYPE_VARIANT container in AppendArrayVariant");
+
+    success = dbus_message_iter_open_container(&variant, DBUS_TYPE_ARRAY, typeSig, &array);
+    VerifyOrExit(success == TRUE, msg = "Fail to open DBUS_TYPE_ARRAY container in AppendArrayVariant");
+
+    if (dbus_type_is_fixed(type) == TRUE)
+    {
+        success = dbus_message_iter_append_fixed_array(&array, type, val, nElements);
+        VerifyOrExit(success == TRUE, msg = "Fail to append fixed array in AppendArrayVariant");
+    }
+    else if (type == DBUS_TYPE_STRING || type == DBUS_TYPE_OBJECT_PATH)
+    {
+        for (i = 0; i < nElements; i++)
+        {
+            success = dbus_message_iter_append_basic(&array, type, &((*strArray)[i]));
+            VerifyOrExit(success == TRUE, msg = "Fail to append basic in AppendArrayVariant");
+        }
+    }
+
+    success = dbus_message_iter_close_container(&variant, &array);
+    VerifyOrExit(success == TRUE, msg = "Fail to close DBUS_TYPE_ARRAY container in AppendArrayVariant");
+
+    success = dbus_message_iter_close_container(iter, &variant);
+    VerifyOrExit(success == TRUE, msg = "Fail to close DBUS_TYPE_VARIANT container in AppendArrayVariant");
+
+exit:
+
+    if ((success != TRUE) && (msg != NULL))
+    {
+        WeaveLogError(Ble, msg);
+    }
+
+    return success;
+}
+
+static gboolean DictAppendBasicArray(DBusMessageIter *dict, int keyType, const void *key, int type, void *val, int nElements)
+{
+    const char * msg = NULL;
+    gboolean success = FALSE;
+    DBusMessageIter entry;
+
+    success = dbus_message_iter_open_container(dict, DBUS_TYPE_DICT_ENTRY, NULL, &entry);
+    VerifyOrExit(success == TRUE, msg = "Fail to open DBUS_TYPE_DICT_ENTRY container in DictAppendBasicArray");
+
+    success = dbus_message_iter_append_basic(&entry, keyType, key);
+    VerifyOrExit(success == TRUE, msg = "Fail to append key in DictAppendBasicArray");
+
+    success = AppendArrayVariant(&entry, type, val, nElements);
+    VerifyOrExit(success == TRUE, msg = "Fail to append array variant in DictAppendBasicArray");
+
+    success = dbus_message_iter_close_container(dict, &entry);
+    VerifyOrExit(success == TRUE, msg = "Fail to close DBUS_TYPE_DICT_ENTRY container in DictAppendBasicArray");
+
+exit:
+
+    if ((success != TRUE) && (msg != NULL))
+    {
+        WeaveLogError(Ble, msg);
+    }
+
+    return success;
+}
+
+static gboolean GetWeaveServiceData(const GDBusPropertyTable *property, DBusMessageIter *iter, void *bluezData)
+{
+    const char *msg = NULL;
+    gboolean success = FALSE;
+    DBusMessageIter dict;
+
+    success = dbus_message_iter_open_container(iter, DBUS_TYPE_ARRAY, "{sv}", &dict);
+    VerifyOrExit(success == TRUE, msg = "Fail to open DBUS_TYPE_ARRAY container in GetWeaveServiceData");
+
+    success = DictAppendBasicArray(&dict,
+                  DBUS_TYPE_STRING, &gBluezServerEndpoint->advertisingUUID,
+                  DBUS_TYPE_BYTE, &gBluezServerEndpoint->weaveServiceData,
+                  sizeof(WeaveServiceData));
+    VerifyOrExit(success == TRUE, msg = "Fail to append dictionary in GetWeaveServiceData");
+
+    success = dbus_message_iter_close_container(iter, &dict);
+    VerifyOrExit(success == TRUE, msg = "Fail to close DBUS_TYPE_ARRAY container in GetWeaveServiceData");
+
+exit:
+
+    if ((success != TRUE) && (msg != NULL))
+    {
+        WeaveLogError(Ble, msg);
     }
 
     return success;
@@ -144,7 +258,7 @@ static gboolean WeaveGetName(const GDBusPropertyTable *property, DBusMessageIter
 
     if (FALSE == success)
     {
-        WeaveLogDetail(Ble, "Fail to get Weave Local name in WeaveGetName");
+        WeaveLogError(Ble, "Fail to get Weave Local name in WeaveGetName");
     }
 
     return success;
@@ -154,7 +268,7 @@ static DBusMessage *WeaveDestroyAdvertising(DBusConnection *dbusConn, DBusMessag
 {
     if (FALSE == g_dbus_unregister_interface(dbusConn, ADVERTISING_PATH, ADVERTISING_INTERFACE))
     {
-        WeaveLogDetail(Ble, "Fail to destroy advertising object in WeaveDestroyAdvertising");
+        WeaveLogError(Ble, "Fail to destroy advertising object in WeaveDestroyAdvertising");
     }
 
     return dbus_message_new_method_return(dbusMsg);
@@ -169,6 +283,7 @@ static const GDBusPropertyTable weaveAdvertisingProperties[] = {
     { "Type", "s", WeaveAdvertisingGetType },
     { "ServiceUUIDs", "as", GetWeaveUUIDs, NULL, NULL },
     { "LocalName", "s", WeaveGetName, NULL, WeaveNameCheck },
+    { "ServiceData", "a{sv}", GetWeaveServiceData, NULL, WeaveServiceDataCheck },
     { }
 };
 
@@ -187,7 +302,7 @@ exit:
 
     if ((success != TRUE) && (msg != NULL))
     {
-        WeaveLogDetail(Ble, msg);
+        WeaveLogError(Ble, msg);
     }
 
     return success;
@@ -197,7 +312,7 @@ static DBusMessage *WeaveDestroyProfile(DBusConnection *dbusConn, DBusMessage *d
 {
     if (FALSE == g_dbus_unregister_interface(dbusConn, WEAVE_PATH, PROFILE_INTERFACE))
     {
-        WeaveLogDetail(Ble, "Failed to destroy advertising object in WeaveDestroyProfile");
+        WeaveLogError(Ble, "Failed to destroy advertising object in WeaveDestroyProfile");
     }
 
     return dbus_message_new_method_return(dbusMsg);
@@ -228,7 +343,7 @@ exit:
 
     if ((success != TRUE) && (msg != NULL))
     {
-        WeaveLogDetail(Ble, msg);
+        WeaveLogError(Ble, msg);
     }
 }
 
@@ -238,7 +353,7 @@ static void RegisterWeaveAppReply(DBusMessage *message, void *bluezData)
     dbus_error_init(&error);
 
     if (TRUE == dbus_set_error_from_message(&error, message)) {
-        WeaveLogDetail(Ble, "Failed to setup weave application in RegisterWeaveAppReply: %s", error.name);
+        WeaveLogError(Ble, "Failed to setup weave application in RegisterWeaveAppReply: %s", error.name);
         dbus_error_free(&error);
     }
 }
@@ -272,7 +387,7 @@ exit:
 
     if ((success != TRUE) && (msg != NULL))
     {
-        WeaveLogDetail(Ble, msg);
+        WeaveLogError(Ble, msg);
     }
 
     return success;
@@ -313,7 +428,7 @@ static gboolean WeaveServiceGetUUID(const GDBusPropertyTable *property, DBusMess
     gboolean success = dbus_message_iter_append_basic(iter, DBUS_TYPE_STRING, &weaveService->uuid);
     if (FALSE == success)
     {
-        WeaveLogDetail(Ble, "Failed to get weave service uuid property in WeaveServiceGetUUID");
+        WeaveLogError(Ble, "Failed to get weave service uuid property in WeaveServiceGetUUID");
     }
 
     return success;
@@ -337,7 +452,7 @@ exit:
 
     if ((success != TRUE) && (msg != NULL))
     {
-        WeaveLogDetail(Ble, msg);
+        WeaveLogError(Ble, msg);
     }
 
     return success;
@@ -395,7 +510,7 @@ exit:
 
     if ((success != TRUE) && (msg != NULL))
     {
-        WeaveLogDetail(Ble, msg);
+        WeaveLogError(Ble, msg);
     }
 
     return success;
@@ -416,7 +531,7 @@ exit:
 
     if ((success != TRUE) && (msg != NULL))
     {
-        WeaveLogDetail(Ble, msg);
+        WeaveLogError(Ble, msg);
     }
 
     return success;
@@ -437,7 +552,7 @@ exit:
 
     if ((success != TRUE) && (msg != NULL))
     {
-        WeaveLogDetail(Ble, msg);
+        WeaveLogError(Ble, msg);
     }
 
     return success;
@@ -465,7 +580,7 @@ exit:
 
     if ((success != TRUE) && (msg != NULL))
     {
-        WeaveLogDetail(Ble, msg);
+        WeaveLogError(Ble, msg);
     }
 
     return success;
@@ -489,7 +604,7 @@ exit:
 
     if ((success != TRUE) && (msg != NULL))
     {
-        WeaveLogDetail(Ble, msg);
+        WeaveLogError(Ble, msg);
     }
 
     return success;
@@ -522,7 +637,7 @@ exit:
 
     if ((success != TRUE) && (msg != NULL))
     {
-        WeaveLogDetail(Ble, msg);
+        WeaveLogError(Ble, msg);
     }
 
     return success;
@@ -553,7 +668,7 @@ exit:
 
     if ((success != TRUE) && (NULL != msg))
     {
-        WeaveLogDetail(Ble, msg);
+        WeaveLogError(Ble, msg);
     }
 
     return readReply;
@@ -593,7 +708,7 @@ exit:
 
     if (NULL != msg)
     {
-        WeaveLogDetail(Ble, msg);
+        WeaveLogError(Ble, msg);
     }
 
     return writeReply;
@@ -611,7 +726,7 @@ static DBusMessage *CharacteristicStartNotify(DBusConnection *dbusConn, DBusMess
 
     characteristic->isNotifying = true;
     g_dbus_emit_property_changed(dbusConn, characteristic->path, CHARACTERISTIC_INTERFACE, "Notifying");
-    WeaveLogDetail(Ble,  "Characteristic path %s notification enabled", characteristic->path);
+    WeaveLogProgress(Ble,  "Characteristic path %s notification enabled", characteristic->path);
 
     if (strcmp(characteristic->uuid, UUID_WEAVE_C2) == 0)
     {
@@ -624,7 +739,7 @@ exit:
 
     if (NULL != msg)
     {
-        WeaveLogDetail(Ble, msg);
+        WeaveLogError(Ble, msg);
     }
 
     return notifyReply;
@@ -642,7 +757,7 @@ static DBusMessage *CharacteristicStopNotify(DBusConnection *dbusConn, DBusMessa
 
     characteristic->isNotifying = false;
     g_dbus_emit_property_changed(dbusConn, characteristic->path, CHARACTERISTIC_INTERFACE, "Notifying");
-    WeaveLogDetail(Ble,  "Characteristic path %s notification disabled", characteristic->path);
+    WeaveLogProgress(Ble,  "Characteristic path %s notification disabled", characteristic->path);
 
     notifyReply = g_dbus_create_reply(dbusMsg, DBUS_TYPE_INVALID);
 
@@ -650,7 +765,7 @@ exit:
 
     if (NULL != msg)
     {
-        WeaveLogDetail(Ble, msg);
+        WeaveLogError(Ble, msg);
     }
 
     return notifyReply;
@@ -714,7 +829,7 @@ exit:
 
     if ((success != TRUE) && (msg != NULL))
     {
-        WeaveLogDetail(Ble, msg);
+        WeaveLogError(Ble, msg);
     }
 
     return weaveCharacteristic;
@@ -722,12 +837,18 @@ exit:
 
 static void WeaveConnectHandler(DBusConnection *connection, void *bluezData)
 {
-    WoBLEz_NewConnection(gBluezServerEndpoint);
+    if (gBluezServerEndpoint != NULL)
+    {
+        WoBLEz_NewConnection(gBluezServerEndpoint);
+    }
 }
 
 static void WeaveDisconnectHandler(DBusConnection *connection, void *bluezData)
 {
-    WoBLEz_ConnectionClosed(gBluezServerEndpoint);
+    if (gBluezServerEndpoint != NULL)
+    {
+        WoBLEz_ConnectionClosed(gBluezServerEndpoint);
+    }
 }
 
 static void WeaveAdapterAdded(GDBusProxy *proxy)
@@ -831,7 +952,7 @@ exit:
 
     if (err != WEAVE_NO_ERROR)
     {
-        WeaveLogDetail(Ble, "PowerCb failed: %d", err);
+        WeaveLogError(Ble, "PowerCb failed: %d", err);
     }
 }
 
@@ -841,7 +962,7 @@ static void BluezClientReady(GDBusClient *weaveClient, void *bluezData)
     gboolean err = g_dbus_proxy_set_property_basic(gDefaultAdapter->adapterProxy, "Powered", DBUS_TYPE_BOOLEAN, &powered, PowerCb, NULL, NULL);
     if (FALSE == err)
     {
-        WeaveLogDetail(Ble, "Fail to set Power property in BluezClientReady");
+        WeaveLogError(Ble, "Fail to set Power property in BluezClientReady");
     }
 
     return;
@@ -854,12 +975,12 @@ uint16_t GetMTUWeaveCb(BLE_CONNECTION_OBJECT connObj)
     return mtu;
 }
 
-void ExitMainLoop(void)
+void ExitBluezIOThread(void)
 {
     g_main_loop_quit(gBluezMainLoop);
 }
 
-bool RunBluezIOThread(char *aBleName, char *aBleAddress)
+bool RunBluezIOThread(BluezPeripheralArgs *arg)
 {
     GDBusClient *weaveClient = NULL;
     const char * msg = NULL;
@@ -867,18 +988,21 @@ bool RunBluezIOThread(char *aBleName, char *aBleAddress)
     WEAVE_ERROR err = WEAVE_NO_ERROR;
     const char *advertisingType = "peripheral";
 
-    BluezBlePlatformDelegate *bleDelegate = getBluezPlatformDelegate();
-    VerifyOrExit(bleDelegate != NULL, err = WEAVE_ERROR_NO_MEMORY);
+    VerifyOrExit(arg != NULL, err = WEAVE_ERROR_INVALID_ARGUMENT);
+    gBluezBlePlatformDelegate = arg->bluezBlePlatformDelegate;
+    VerifyOrExit(gBluezBlePlatformDelegate != NULL, err = WEAVE_ERROR_NO_MEMORY);
 
-    bleDelegate->SetSendIndicationCallback(WoBLEz_SendIndication);
-    bleDelegate->SetGetMTUCallback(GetMTUWeaveCb);
+    gBluezBlePlatformDelegate->SetSendIndicationCallback(WoBLEz_SendIndication);
+    gBluezBlePlatformDelegate->SetGetMTUCallback(GetMTUWeaveCb);
     gBluezServerEndpoint = (BluezServerEndpoint *)g_new0(BluezServerEndpoint, 1);
     VerifyOrExit(gBluezServerEndpoint != NULL, err = WEAVE_ERROR_NO_MEMORY);
 
-    gBluezServerEndpoint->adapterName = g_strdup(aBleName);
-    gBluezServerEndpoint->adapterAddr = aBleAddress;
+    gBluezServerEndpoint->adapterName = g_strdup(arg->bleName);
+    gBluezServerEndpoint->adapterAddr = g_strdup(arg->bleAddress);
     gBluezServerEndpoint->advertisingUUID = g_strdup(UUID_WEAVE_SHORT);
     gBluezServerEndpoint->advertisingType = g_strdup(advertisingType);
+    gBluezServerEndpoint->weaveServiceData = (WeaveServiceData *)g_memdup(arg->weaveServiceData, sizeof(WeaveServiceData));
+    VerifyOrExit(gBluezServerEndpoint->weaveServiceData != NULL, err = WEAVE_ERROR_NO_MEMORY);
 
     gBluezMainLoop = g_main_loop_new(NULL, FALSE);
     gBluezDbusConn = g_dbus_setup_bus(DBUS_BUS_SYSTEM, NULL, NULL);
@@ -903,17 +1027,18 @@ bool RunBluezIOThread(char *aBleName, char *aBleAddress)
     VerifyOrExit(success == TRUE, msg = "Fail to set weave disconnect watch in RunBluezIOThread");
 
     g_main_loop_run(gBluezMainLoop);
-
+    WeaveLogProgress(Ble, "Exited from Bluez main loop");
 exit:
 
     if (err != WEAVE_NO_ERROR)
     {
-        WeaveLogDetail(Ble, "RunBluezIOThread failed: %d", err);
+        success = FALSE;
+        WeaveLogError(Ble, "RunBluezIOThread failed: %d", err);
     }
 
     if ((success != TRUE) && (msg != NULL))
     {
-        WeaveLogDetail(Ble, msg);
+        WeaveLogError(Ble, msg);
     }
 
     if (NULL != gBluezServerEndpoint)
@@ -942,6 +1067,12 @@ exit:
             gBluezServerEndpoint->adapterName = NULL;
         }
 
+        if (NULL != gBluezServerEndpoint->adapterAddr)
+        {
+            g_free(gBluezServerEndpoint->adapterAddr);
+            gBluezServerEndpoint->adapterAddr = NULL;
+        }
+
         if (NULL != gBluezServerEndpoint->advertisingUUID)
         {
             g_free(gBluezServerEndpoint->advertisingUUID);
@@ -952,6 +1083,12 @@ exit:
         {
             g_free(gBluezServerEndpoint->advertisingType);
             gBluezServerEndpoint->advertisingType = NULL;
+        }
+
+        if (NULL != gBluezServerEndpoint->weaveServiceData)
+        {
+            g_free(gBluezServerEndpoint->weaveServiceData);
+            gBluezServerEndpoint->weaveServiceData = NULL;
         }
 
         g_free(gBluezServerEndpoint);
@@ -973,7 +1110,8 @@ exit:
         g_main_loop_unref(gBluezMainLoop);
     }
 
-    return false;
+    gBluezBlePlatformDelegate = NULL;
+    return success;
 }
 
 } /* namespace Bluez */

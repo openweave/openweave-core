@@ -61,6 +61,13 @@
 #include <Weave/Support/ErrorStr.h>
 #include <Weave/Core/WeaveStats.h>
 
+#if CONFIG_BLE_PLATFORM_BLUEZ
+#include <BleLayer/BleApplicationDelegate.h>
+#include <PlatformLayer/Ble/Bluez/BluezBlePlatformDelegate.h>
+#include <PlatformLayer/Ble/Bluez/BluezHelperCode.h>
+#endif // CONFIG_BLE_PLATFORM_BLUEZ
+
+
 using namespace nl::Inet;
 using namespace nl::Weave;
 using namespace nl::Weave::Profiles;
@@ -83,15 +90,6 @@ extern uint16_t sTestDefaultSessionKeyId;
 
 extern bool Done;
 extern bool gSigusr1Received;
-#if CONFIG_BLE_PLATFORM_BLUEZ
-
-struct Bluez_PeripheralArgs
-{
-    char * BleName;
-    char * BleAddress;
-};
-
-#endif
 
 struct TestNodeCert
 {
@@ -158,9 +156,15 @@ extern bool GetTestCACert(uint64_t caId, const uint8_t *& cert, uint16_t& certLe
 extern bool GetTestCAPrivateKey(uint64_t caId, const uint8_t *& key, uint16_t& keyLen);
 
 #if CONFIG_BLE_PLATFORM_BLUEZ
-
 void *WeaveBleIOLoop(void *arg);
+nl::Ble::Platform::BlueZ::BluezBlePlatformDelegate *getBluezPlatformDelegate();
 
+class BluezBleApplicationDelegate : public nl::Ble::BleApplicationDelegate
+{
+public:
+    BluezBleApplicationDelegate();
+    void NotifyWeaveConnectionClosed(BLE_CONNECTION_OBJECT connObj);
+};
 #endif // CONFIG_BLE_PLATFORM_BLUEZ
 
 inline static void ServiceNetwork(struct ::timeval aSleepTime)
