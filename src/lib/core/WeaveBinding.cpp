@@ -342,6 +342,16 @@ void Binding::DoReset(State newState)
         sm->ReleaseKey(mPeerNodeId, mKeyId);
     }
 
+#if WEAVE_CONFIG_ENABLE_DNS_RESOLVER
+
+    // If host name resolution is in progress, cancel it.
+    if (origState == kState_PreparingAddress_ResolveHostName)
+    {
+        mExchangeManager->MessageLayer->Inet->CancelResolveHostAddress(OnResolveComplete, this);
+    }
+
+#endif
+
     // Release the reference to the connection object, if held.  Block any callback to our
     // connection complete handler that may result from releasing the connection.
     if (GetFlag(kFlag_ConnectionReferenced))
@@ -516,9 +526,9 @@ exit:
  */
 void Binding::PrepareAddress()
 {
-    mState = kState_PreparingAddress;
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
 
-    // TODO FUTURE: Add support for hostname resolution
+    mState = kState_PreparingAddress;
 
     // Default to using a Weave fabric address in the default subnet if an address was not specified.
     if (kAddressing_NotSpecified == mAddressingOption)
@@ -532,7 +542,38 @@ void Binding::PrepareAddress()
         mPeerAddress = mExchangeManager->FabricState->SelectNodeAddress(mPeerNodeId, mPeerAddress.Subnet());
     }
 
+    else if (kAddressing_HostName == mAddressingOption)
+    {
+#if WEAVE_CONFIG_ENABLE_DNS_RESOLVER
+
+        mState = kState_PreparingAddress_ResolveHostName;
+
+        // Initiate a DNS query for the specified host name.
+        err = mExchangeManager->MessageLayer->Inet->ResolveHostAddress(mHostName, mHostNameLen, 1, &mPeerAddress, OnResolveComplete, this);
+
+        ExitNow();
+
+#elif WEAVE_CONFIG_RESOLVE_IPADDR_LITERAL
+
+        if (!IPAddress::FromString(mHostName, mHostNameLen, mPeerAddress))
+        {
+            ExitNow(err = WEAVE_ERROR_INVALID_ARGUMENT);
+        }
+
+#else // !WEAVE_CONFIG_RESOLVE_IPADDR_LITERAL
+
+        ExitNow(err = WEAVE_ERROR_UNSUPPORTED_WEAVE_FEATURE);
+
+#endif // !WEAVE_CONFIG_RESOLVE_IPADDR_LITERAL
+    }
+
     PrepareTransport();
+
+exit:
+    if (WEAVE_NO_ERROR != err)
+    {
+        HandleBindingFailed(err, false);
+    }
 }
 
 /**
@@ -810,6 +851,38 @@ void Binding::HandleBindingFailed(WEAVE_ERROR err, bool raiseEvents) // TODO: ad
 
     Release();
 }
+
+#if WEAVE_CONFIG_ENABLE_DNS_RESOLVER
+
+/**
+ * Invoked when DNS host name resolution completes (successfully or otherwise).
+ */
+void Binding::OnResolveComplete(void *appState, INET_ERROR err, uint8_t addrCount, IPAddress *addrArray)
+{
+    Binding *_this = (Binding *)appState;
+
+    // It is legal for a DNS entry to exist but contain no A/AAAA records. If this happens, return a reasonable error
+    // to the user.
+    if (err == INET_NO_ERROR && addrCount == 0)
+        err = INET_ERROR_HOST_NOT_FOUND;
+
+    WeaveLogDetail(ExchangeManager, "Binding[%" PRIu8 "] (%" PRIu16 "): DNS resolution %s%s",
+            _this->GetLogId(), _this->mRefCount,
+            (err == INET_NO_ERROR) ? "succeeded" : "failed: ",
+            (err == INET_NO_ERROR) ? "" : ErrorStr(err));
+
+    // If the resolution succeeded, proceed to preparing the transport, otherwise fail the binding.
+    if (err == INET_NO_ERROR)
+    {
+        _this->PrepareTransport();
+    }
+    else
+    {
+        _this->HandleBindingFailed(err, true);
+    }
+}
+
+#endif // WEAVE_CONFIG_ENABLE_DNS_RESOLVER
 
 /**
  * Invoked when TCP connection establishment completes (successfully or otherwise).
@@ -1199,6 +1272,54 @@ Binding::Configuration& Binding::Configuration::TargetAddress_IP(const nl::Inet:
     mBinding.mPeerAddress = aPeerAddress;
     mBinding.mPeerPort = (aPeerPort != 0) ? aPeerPort : WEAVE_PORT;
     mBinding.mInterfaceId = aInterfaceId;
+    return *this;
+}
+
+/**
+ * When communicating with the peer, use the specific host name, port and network interface.
+ *
+ * NOTE: The caller must ensure that the supplied host name string remains valid until the
+ * binding preparation phase completes.
+ *
+ * @param[in] aHostName                 A NULL-terminated string containing the host name of the peer.
+ * @param[in] aPeerPort                 Remote port to use when communicating with the peer.
+ * @param[in] aInterfaceId              The ID of local network interface to use for communication.
+ *
+ * @return                              A reference to the binding object.
+ */
+Binding::Configuration& Binding::Configuration::TargetAddress_IP(const char *aHostName, uint16_t aPeerPort, InterfaceId aInterfaceId)
+{
+    return TargetAddress_IP(aHostName, strlen(aHostName), aPeerPort, aInterfaceId);
+}
+
+/**
+ * When communicating with the peer, use the specific host name, port and network interface.
+ *
+ * NOTE: The caller must ensure that the supplied host name string remains valid until the
+ * binding preparation phase completes.
+ *
+ * @param[in] aHostName                 A string containing the host name of the peer.  This string
+ *                                      does not need to be NULL terminated.
+ * @param[in] aHostNameLen              The length of the string pointed at by aHostName.
+ * @param[in] aPeerPort                 Remote port to use when communicating with the peer.
+ * @param[in] aInterfaceId              The ID of local network interface to use for communication.
+ *
+ * @return                              A reference to the binding object.
+ */
+Binding::Configuration& Binding::Configuration::TargetAddress_IP(const char *aHostName, size_t aHostNameLen, uint16_t aPeerPort, InterfaceId aInterfaceId)
+{
+    if (aHostNameLen <= UINT8_MAX)
+    {
+        mBinding.mAddressingOption = Binding::kAddressing_HostName;
+        mBinding.mHostName = aHostName;
+        mBinding.mHostNameLen = (uint8_t)aHostNameLen;
+        mBinding.mPeerPort = (aPeerPort != 0) ? aPeerPort : WEAVE_PORT;
+        mBinding.mInterfaceId = aInterfaceId;
+    }
+    else
+    {
+        mError = WEAVE_ERROR_INVALID_ARGUMENT;
+    }
     return *this;
 }
 

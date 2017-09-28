@@ -94,7 +94,8 @@ static bool gUseTCP = true;
 static bool gUseUDP = false;
 static bool gUseWRMP = false;
 static uint64_t gDestNodeId = kNodeIdNotSpecified;
-static IPAddress gDestIPAddr = IPAddress::Any;
+static char gDestHost[NL_DNS_HOSTNAME_MAX_LEN + 10];  // +10 for padding characters
+static uint16_t gDestHostLen = 0;
 static uint16_t gDestPort = WEAVE_PORT;
 static InterfaceId gDestIntf = INET_NULL_INTERFACEID;
 static uint32_t gTestCount = 1;
@@ -418,18 +419,23 @@ bool HandleNonOptionArgs(const char *progName, int argc, char *argv[])
 bool ParseDestAddress(const char *destAddr)
 {
     const char *host;
-    uint16_t hostLen;
 
-    if (ParseHostAndPort(destAddr, strlen(destAddr), host, hostLen, gDestPort) != WEAVE_NO_ERROR)
+    if (ParseHostAndPort(destAddr, strlen(destAddr), host, gDestHostLen, gDestPort) != WEAVE_NO_ERROR)
     {
         return false;
     }
 
-    char *hostCopy = strndup(host, hostLen);
-    bool isValidAddr = IPAddress::FromString(hostCopy, gDestIPAddr);
-    free(hostCopy);
+    if (gDestHostLen > NL_DNS_HOSTNAME_MAX_LEN)
+    {
+        return false;
+    }
 
-    return isValidAddr;
+    // Pad the host name buffer with extraneous characters to verify that the Binding API properly
+    // honors the host name length argument.
+    memset(gDestHost, '0', sizeof(gDestHost));
+    memcpy(gDestHost, host, gDestHostLen);
+
+    return true;
 }
 
 void StartTest()
@@ -500,9 +506,9 @@ void BindingTestDriver::PrepareBinding()
     bindingConf.Target_NodeId(gDestNodeId);
 
     // Configure the target address.
-    if (gDestIPAddr != IPAddress::Any)
+    if (gDestHostLen != 0)
     {
-        bindingConf.TargetAddress_IP(gDestIPAddr, gDestPort, gDestIntf);
+        bindingConf.TargetAddress_IP(gDestHost, gDestHostLen, gDestPort, gDestIntf);
     }
 
     // Configure the transport.

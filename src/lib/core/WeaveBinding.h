@@ -128,15 +128,16 @@ public:
         kState_Configuring                          = 2,
         kState_Preparing                            = 3,
         kState_PreparingAddress                     = 4,
-        kState_PreparingTransport                   = 5,
-        kState_PreparingTransport_TCPConnect        = 6,
-        kState_PreparingSecurity                    = 7,
-        kState_PreparingSecurity_EstablishSession   = 8,
-        kState_PreparingSecurity_WaitSecurityMgr    = 9,
-        kState_Ready                                = 10,
-        kState_Resetting                            = 11,
-        kState_Closed                               = 12,
-        kState_Failed                               = 13,
+        kState_PreparingAddress_ResolveHostName     = 5,
+        kState_PreparingTransport                   = 6,
+        kState_PreparingTransport_TCPConnect        = 7,
+        kState_PreparingSecurity                    = 8,
+        kState_PreparingSecurity_EstablishSession   = 9,
+        kState_PreparingSecurity_WaitSecurityMgr    = 10,
+        kState_Ready                                = 11,
+        kState_Resetting                            = 12,
+        kState_Closed                               = 13,
+        kState_Failed                               = 14,
 
         kState_MaxState                             = 15, // limited to 4 bits
     };
@@ -257,11 +258,13 @@ private:
 
     // Transport-specific configuration
     nl::Inet::IPAddress mPeerAddress;
+    const char *mHostName;
     WeaveConnection *mCon;
     uint32_t mDefaultResponseTimeoutMsec;
 #if WEAVE_CONFIG_ENABLE_RELIABLE_MESSAGING
     WRMPConfig mDefaultWRMPConfig;
 #endif
+    uint8_t mHostNameLen;
 
     // Security-specific configuration
     uint8_t mEncType;
@@ -270,8 +273,8 @@ private:
 
     WEAVE_ERROR Init(void * apAppState, EventCallback aEventCallback);
 
-    bool GetFlag(uint8_t flag) const { return (mFlags & flag) != 0; }
-    void SetFlag(uint8_t flag) { mFlags |= flag; }
+    bool GetFlag(uint8_t flag) const;
+    void SetFlag(uint8_t flag);
 
     WEAVE_ERROR DoPrepare(WEAVE_ERROR configErr);
     void DoReset(State newState);
@@ -293,6 +296,7 @@ private:
     void OnSecureSessionReady(uint64_t peerNodeId, uint8_t encType, WeaveAuthMode authMode, uint16_t keyId);
     void OnKeyError(const uint32_t aKeyId, const uint64_t aPeerNodeId, const WEAVE_ERROR aKeyErr);
 
+    static void OnResolveComplete(void *appState, INET_ERROR err, uint8_t addrCount, IPAddress *addrArray);
     static void OnConnectionComplete(WeaveConnection *con, WEAVE_ERROR conErr);
 };
 
@@ -320,6 +324,8 @@ public:
     Configuration& TargetAddress_WeaveService(void);
     Configuration& TargetAddress_WeaveFabric(uint16_t aSubnetId);
     Configuration& TargetAddress_IP(nl::Inet::IPAddress aPeerAddress, uint16_t aPeerPort = WEAVE_PORT, InterfaceId aInterfaceId = INET_NULL_INTERFACEID);
+    Configuration& TargetAddress_IP(const char *aHostName, uint16_t aPeerPort = WEAVE_PORT, InterfaceId aInterfaceId = INET_NULL_INTERFACEID);
+    Configuration& TargetAddress_IP(const char *aHostName, size_t aHostNameLen, uint16_t aPeerPort = WEAVE_PORT, InterfaceId aInterfaceId = INET_NULL_INTERFACEID);
 
     Configuration& Transport_TCP(void);
     Configuration& Transport_UDP(void);
@@ -486,6 +492,16 @@ inline void Binding::SetProtocolLayerCallback(EventCallback callback, void *stat
 inline WeaveConnection *Binding::GetConnection() const
 {
     return mCon;
+}
+
+inline bool Binding::GetFlag(uint8_t flag) const
+{
+    return (mFlags & flag) != 0;
+}
+
+inline void Binding::SetFlag(uint8_t flag)
+{
+    mFlags |= flag;
 }
 
 inline Binding::Configuration Binding::BeginConfiguration()
