@@ -184,7 +184,7 @@ protected:
 
     virtual WEAVE_ERROR GapDetected(const EventHeader &inEventHeader) = 0;
 
-    virtual WEAVE_ERROR EventsProcessed() = 0;
+    virtual WEAVE_ERROR EventListProcessed() = 0;
 
     uint64_t mLocalNodeId;
 

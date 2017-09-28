@@ -50,7 +50,7 @@ EventProcessor::ProcessEvents(nl::Weave::TLV::TLVReader &inReader,
     err = ParseEventList(inReader, inClient);
     SuccessOrExit(err);
 
-    err = EventsProcessed();
+    err = EventListProcessed();
     SuccessOrExit(err);
 
 exit:
