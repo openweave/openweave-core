@@ -111,7 +111,7 @@ The OpenWeave repository is structured as follows:
 
 | File / Folder | Contents |
 |----|----|
-| `aclocal.m4` | |
+| `aclocal.m4` | GNU autotools auto-generated file containing autoconf macros used by the OpenWeave build system. |
 | `bootstrap` | GNU autotools bootstrap script for the OpenWeave build system. |
 | `bootstrap-configure` | Convenience script that will bootstrap the OpenWeave build system, via `bootstrap`, and invoke `configure`.|
 | `build/` | OpenWeave-specific build system support content.|
