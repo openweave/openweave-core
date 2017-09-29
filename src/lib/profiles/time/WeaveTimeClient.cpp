@@ -1397,13 +1397,14 @@ void TimeSyncNode::EndServiceSyncAndTryCalculateTimeFix(void)
             + (unadjTimestamp_usec - mServiceContact.mUnadjTimestampLastContact_usec);
 
         const timesync_t DiffTime_usec = correctedRemoteSystemTime_usec - systemTimestamp_usec;
+        bool reliable = (uint8_t(kResponseStatus_ReliableResponse) == mServiceContact.mResponseStatus);
 
         WeaveLogDetail(TimeService, "Update from service");
 
         err = CallbackForSyncCompletion(
             true, // is sync successful,
             true, // if we should update,
-            true, // is the correction from reliable sources
+            reliable, // is the correction from reliable sources
             true, // is the correction from server nodes
             1, // number of contributors
             systemTimestamp_usec, // current system time
@@ -1617,7 +1618,16 @@ void TimeSyncNode::EndLocalSyncAndTryCalculateTimeFix(void)
             else
             {
                 WeaveLogDetail(TimeService,
-                    "Update from %d server(s) too small, skip", numServer);
+                    "Update from %d server(s) and coordinator(s) too small, skip", numServer);
+
+                err = CallbackForSyncCompletion(
+                    true, // is sync successful,
+                    false, // if we should update,
+                    true, // is the correction from reliable sources
+                    false, // is the correction from server nodes
+                    numServer, // number of contributors
+                    systemTimestamp_usec, // current system time
+                    DiffTime_usec /* correction for the system time */);
 
                 ExitNow();
             }

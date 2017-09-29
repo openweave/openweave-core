@@ -200,9 +200,9 @@ void MockTimeSyncClient::SetupContacts(void)
     mContacts[0].mNodeId = 0x18B430000000000A;
     IPAddress::FromString("fd00:0000:fab1:0006:1ab4:3000:0000:000A", mContacts[0].mNodeAddr);
 
-    /* client node (node01 in three_nodes_on_thread_weave.json) */
-    mContacts[1].mNodeId = 0x18B4300000000004;
-    IPAddress::FromString("fd00:0000:fab1:0006:1ab4:3000:0000:0004", mContacts[1].mNodeAddr);
+    /* coordinator node (node02 in three_nodes_on_thread_weave.json) */
+    mContacts[1].mNodeId = 0x18B4300000000005;
+    IPAddress::FromString("fd00:0000:fab1:0006:1ab4:3000:0000:0005", mContacts[1].mNodeAddr);
 }
 
 void MockTimeSyncClient::SetupServiceContact(uint64_t serviceNodeId, const char * serviceNodeAddr)
@@ -276,7 +276,7 @@ WEAVE_ERROR MockTimeSyncClient::Init(
         // periodically sync with local nodes using UDP connection
         err = mClient.GetExchangeMgr()->MessageLayer->SystemLayer->StartTimer(20 * 1000, HandleSyncTimer, this);
         SuccessOrExit(err);
-        err = mClient.SyncWithNodes(1, mContacts);
+        err = mClient.SyncWithNodes(1, &(mContacts[1]));
         SuccessOrExit(err);
         break;
     default:
@@ -388,7 +388,7 @@ void MockTimeSyncClient::HandleSyncTimer(nl::Weave::System::Layer* aSystemLayer,
         err = client->mClient.GetExchangeMgr()->MessageLayer->SystemLayer->StartTimer(30000,
             HandleSyncTimer, &client->mClient);
         SuccessOrExit(err);
-        err = client->mClient.SyncWithNodes(1, client->mContacts);
+        err = client->mClient.SyncWithNodes(1, &(client->mContacts[1]));
         SuccessOrExit(err);
         break;
     default:
@@ -442,11 +442,10 @@ bool MockTimeSyncClient::OnSyncSucceeded(void * const aApp, const timesync_t aOf
 
     if (aNumContributor > 0)
     {
-        WeaveLogProgress(TimeService, "++++++++++++++++++++++++++++++++++++++++++++");
-        WeaveLogProgress(TimeService, "++++           Sync Succeeded           ++++");
-        WeaveLogProgress(TimeService, "++++ Reliable: %c, # Contributors: %2d    ++++", aIsReliable ? 'Y' : 'N',
+        WeaveLogProgress(TimeService, "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
+        WeaveLogProgress(TimeService, "++++ Sync Succeeded: Reliable: %c, # Contributors: %2d      ++++", aIsReliable ? 'Y' : 'N',
             aNumContributor);
-        WeaveLogProgress(TimeService, "++++++++++++++++++++++++++++++++++++++++++++");
+        WeaveLogProgress(TimeService, "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
     }
     else
     {

@@ -558,33 +558,13 @@ TimeSyncNode::ServerState TimeSyncNode::GetServerState(void) const
 
 void TimeSyncNode::RegisterCorrectionFromServerOrNtp(void)
 {
-    WEAVE_ERROR err = WEAVE_NO_ERROR;
-
-    if (mIsInCallback)
-    {
-        ExitNow(err = WEAVE_ERROR_INCORRECT_STATE);
-    }
-
     (void) Platform::Time::GetSleepCompensatedMonotonicTime(&mTimestampLastCorrectionFromServerOrNtp_usec);
-
-exit:
-    WeaveLogFunctError(err);
 }
 
 void TimeSyncNode::RegisterLocalSyncOperation(const uint8_t aNumContributor)
 {
-    WEAVE_ERROR err = WEAVE_NO_ERROR;
-
-    if (mIsInCallback)
-    {
-        ExitNow(err = WEAVE_ERROR_INCORRECT_STATE);
-    }
-
     (void) Platform::Time::GetSleepCompensatedMonotonicTime(&mTimestampLastLocalSync_usec);
     mNumContributorInLastLocalSync = aNumContributor;
-
-exit:
-    WeaveLogFunctError(err);
 }
 
 void TimeSyncNode::MulticastTimeChangeNotification(const uint8_t aEncryptionType, const uint16_t aKeyId) const

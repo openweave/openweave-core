@@ -34,10 +34,10 @@ WEAVE_ERROR MockTimeSyncCoordinator::Init(nl::Weave::WeaveExchangeManager *excha
     const uint16_t keyId)
 {
 
-    // Sync period: 5 seconds
+    // Sync period: 10 seconds
     // Discovery period: 120 seconds
     // Discovery period in the existence of communication error: 30 seconds
-    return mCoordinator.InitCoordinator(exchangeMgr, encryptionType, keyId, 5000
+    return mCoordinator.InitCoordinator(exchangeMgr, encryptionType, keyId, 10000
 #if WEAVE_CONFIG_TIME_CLIENT_FABRIC_LOCAL_DISCOVERY
         , 120000, 30000
 #endif // WEAVE_CONFIG_TIME_CLIENT_FABRIC_LOCAL_DISCOVERY

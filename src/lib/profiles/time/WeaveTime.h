@@ -591,13 +591,11 @@ public:
 
     /// Called by higher layer to indicate that we just finished a round of time sync
     /// with either any Server or through some reliable means like NTP.
-    /// not available in callbacks.
     void RegisterCorrectionFromServerOrNtp(void);
 
     /**
      * Called by higher layer to indicate that we just finished a round of time sync with
      * other local Coordinators.
-     * not available in callbacks.
      *
      * @param[in] aNumContributor  number of coordinators contributed to this time sync
      *

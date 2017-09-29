@@ -67,13 +67,16 @@ class test_weave_time_01(unittest.TestCase):
         setup_network = WeaveStateLoad.WeaveStateLoad(options)
         ret = setup_network.run()
 
-        # Wait for a second to ensure that Weave ULA addresses passed dad
-        # and are no longer tentative
-        time.sleep(2)
-
         # set up Plaid for faster execution
         plaid_opts = Plaid.default_options()
         plaid_opts['num_clients'] = 3
+        if gOptions["mode"] == "service":
+            plaid_opts['num_clients'] = 2
+            plaid_opts["max_time_at_high_speed_secs"] = 40
+        if gOptions["mode"] == "local":
+            plaid_opts["max_time_at_high_speed_secs"] = 80
+        if gOptions["mode"] == "auto":
+            plaid_opts["max_time_at_high_speed_secs"] = 40
         plaid_opts['strace'] = self.show_strace
         self.plaid = Plaid.Plaid(plaid_opts)
         self.use_plaid = self.plaid.isPlaidConfigured()
@@ -97,21 +100,22 @@ class test_weave_time_01(unittest.TestCase):
 
         # The following no-fault run is used to compute the fault counters
         # that are used to generate a set of tests with faults injected.
-        # Enabling Plaid here results in an unnecessary inflation of some
-        # fault counters, thereby generating a much larger number of tests
-        # than is effective or necessary. For now, we'll turn off Plaid only
-        # for this run and re-enable it at the start of each fault test.
+        # Note that the nodes are allowed to run at plaid speed only for the
+        # duration of the sequence; otherwise, the nodes would race ahead in
+        # time while the python script is trying to terminate them; this would
+        # cause very large event counters that then cause the generation of
+        # useless tests.
 
-        # if self.use_plaid:
-        #     # print "starting plaid server"
-        #     self.__start_plaid_server()
+        if self.use_plaid:
+            # print "starting plaid server"
+            self.__start_plaid_server()
 
         value, data = self.__run_time_test_between("node01", "node02",
-                                                   "node03", mode, use_plaid=False)
+                                                   "node03", mode, use_plaid=self.use_plaid)
 
-        # if self.use_plaid:
-        #     # print "stopping plaid server"
-        #     self.__stop_plaid_server()
+        if self.use_plaid:
+            # print "stopping plaid server"
+            self.__stop_plaid_server()
 
         err = self.__process_result("node01", "node02", "node03", mode, value)
         # err=True => failure, err=False => success
@@ -130,13 +134,16 @@ class test_weave_time_01(unittest.TestCase):
         num_failed_tests = 0
         failed_tests = []
 
+        # During the fault injection tests, we don't need to limit the time executed at plaid speed.
+        self.plaid.max_time_at_high_speed_secs = 0
+
         for node in gFaultOpts.nodes:
             restart = True
 
             fault_configs = gFaultOpts.generate_fault_config_list(node, output_logs[node], restart) 
 
             for fault_config in fault_configs:
-                test_tag = "_" + "_".join([str(x) for x in num_tests, node, mode, fault_config])
+                test_tag = "_" + "_".join([str(x) for x in num_tests, node, fault_config])
                 print "tag: ", test_tag
 
                 if self.use_plaid:

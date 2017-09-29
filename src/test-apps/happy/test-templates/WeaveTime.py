@@ -48,12 +48,13 @@ options = {
     "coordinator_faults": False,
     "iterations": None,
     "test_tag": "",
+    "strace": False,
     "plaid_server_env": {},
     "plaid_coordinator_env": {},
     "plaid_client_env": {}
 }
 
-gsync_succeeded_str = "Sync Succeeded"
+gsync_succeeded_str = "Sync Succeeded: Reliable: Y"
 
 def option():
     return options.copy()
@@ -97,9 +98,9 @@ class WeaveTime(HappyNode, HappyNetwork, WeaveTest):
         self.__dict__.update(options)
         self.__dict__.update(opts)
 
-        self.client_process_tag = "WEAVE-TIME-CLIENT" + opts.get("test_tag")
-        self.coordinator_process_tag = "WEAVE-TIME-COORDINATOR" + opts.get("test_tag")
-        self.server_process_tag = "WEAVE-TIME-SERVER" + opts.get("test_tag")
+        self.client_process_tag = "WEAVE-TIME-CLIENT-" + self.mode + self.test_tag
+        self.coordinator_process_tag = "WEAVE-TIME-COORDINATOR-" + self.mode + self.test_tag
+        self.server_process_tag = "WEAVE-TIME-SERVER-" + self.mode + self.test_tag
 
         self.client_node_id = None
         self.coordinator_node_id = None
@@ -206,6 +207,10 @@ class WeaveTime(HappyNode, HappyNetwork, WeaveTest):
             self.logger.error("[localhost] WeaveTime: %s" % (emsg))
             sys.exit(1)
 
+        if self.mode in ["service"]:
+            # in this case, the client does not talk to the coordinator node at all
+            self.skip_coordinator_end = True
+
 
     def __process_results(self, output):
         pass_test = False
@@ -272,7 +277,7 @@ class WeaveTime(HappyNode, HappyNetwork, WeaveTest):
             # block until client weave node is ready to service weave events
             wait_str = self.ready_to_service_events_str
 
-        self.start_weave_process(self.client_node_id, cmd, self.client_process_tag, sync_on_output=wait_str, env=self.plaid_client_env)
+        self.start_weave_process(self.client_node_id, cmd, self.client_process_tag, sync_on_output=wait_str, strace=self.strace, env=self.plaid_client_env)
 
 
     def __stop_client_side(self):
@@ -294,7 +299,10 @@ class WeaveTime(HappyNode, HappyNetwork, WeaveTest):
         if self.coordinator_faults:
             cmd += " --faults " + self.coordinator_faults
 
-        self.start_weave_process(self.coordinator_node_id, cmd, self.coordinator_process_tag, sync_on_output=self.ready_to_service_events_str, env=self.plaid_coordinator_env)
+        # block until client weave node is ready to service weave events
+        wait_str = self.ready_to_service_events_str
+
+        self.start_weave_process(self.coordinator_node_id, cmd, self.coordinator_process_tag, sync_on_output=wait_str, strace=self.strace, env=self.plaid_coordinator_env)
 
     def __stop_coordinator_side(self):
         self.stop_weave_process(self.coordinator_node_id, self.coordinator_process_tag)
@@ -315,7 +323,7 @@ class WeaveTime(HappyNode, HappyNetwork, WeaveTest):
         if self.server_faults:
             cmd += " --faults " + self.server_faults
 
-        self.start_weave_process(self.server_node_id, cmd, self.server_process_tag, sync_on_output=self.ready_to_service_events_str, env=self.plaid_server_env)
+        self.start_weave_process(self.server_node_id, cmd, self.server_process_tag, sync_on_output=self.ready_to_service_events_str, strace=self.strace, env=self.plaid_server_env)
 
     def __stop_server_side(self):
         self.stop_weave_process(self.server_node_id, self.server_process_tag)
@@ -350,11 +358,11 @@ class WeaveTime(HappyNode, HappyNetwork, WeaveTest):
             # border router and the tunnel between them have already been
             # created and initialized successfully.
             self.__start_client_side(block_until_sync_succeeds=True)
-
         else:
             # mode in ["auto", "local", "service"]
             self.__start_server_side()
-            self.__start_coordinator_side()
+            if not self.skip_coordinator_end:
+                self.__start_coordinator_side()
             self.__start_client_side(block_until_sync_succeeds=True)
 
         self.__stop_client_side()
@@ -367,30 +375,35 @@ class WeaveTime(HappyNode, HappyNetwork, WeaveTest):
 
         client_output_value, client_output_data = \
             self.get_test_output(self.client_node_id, self.client_process_tag, True)
-        client_strace_value, client_strace_data = \
-            self.get_test_strace(self.client_node_id, self.client_process_tag, True)
+        client_strace_data = ""
+        client_strace_value = 0
+        if self.strace:
+            client_strace_value, client_strace_data = \
+                self.get_test_strace(self.client_node_id, self.client_process_tag, True)
 
+        coordinator_strace_data = ""
+        coordinator_strace_value = 0
         if self.skip_coordinator_end:
             coordinator_output_data = ""
             coordinator_output_value = 0
-            coordinator_strace_data = ""
-            coordinator_strace_value = 0
         else:
             coordinator_output_value, coordinator_output_data = \
                 self.get_test_output(self.coordinator_node_id, self.coordinator_process_tag, True)
-            coordinator_strace_value, coordinator_strace_data = \
-                self.get_test_strace(self.coordinator_node_id, self.coordinator_process_tag, True)
+            if self.strace:
+                coordinator_strace_value, coordinator_strace_data = \
+                    self.get_test_strace(self.coordinator_node_id, self.coordinator_process_tag, True)
 
+        server_strace_data = ""
+        server_strace_value = 0
         if self.skip_service_end:
             server_output_data = ""
             server_output_value = 0
-            server_strace_data = ""
-            server_strace_value = 0
         else:
             server_output_value, server_output_data = \
                     self.get_test_output(self.server_node_id, self.server_process_tag, True)
-            server_strace_value, server_strace_data = \
-                    self.get_test_strace(self.server_node_id, self.server_process_tag, True)
+            if self.strace:
+                server_strace_value, server_strace_data = \
+                        self.get_test_strace(self.server_node_id, self.server_process_tag, True)
 
         avg, results = self.__process_results(client_output_data)
 
