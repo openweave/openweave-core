@@ -178,18 +178,21 @@ protected:
                                            uint64_t inReceivedMask);
     WEAVE_ERROR ProcessHeader(const EventHeader &inEventHeader);
 
+    WEAVE_ERROR IsEventNew(const EventHeader &inEventHeader) const;
+
     virtual WEAVE_ERROR ProcessEvent(nl::Weave::TLV::TLVReader inReader,
                                      nl::Weave::Profiles::DataManagement::SubscriptionClient &inClient,
                                      const EventHeader &inEventHeader) = 0;
 
     virtual WEAVE_ERROR GapDetected(const EventHeader &inEventHeader) = 0;
 
-    virtual WEAVE_ERROR EventListProcessed() = 0;
+    virtual WEAVE_ERROR EventListProcessed();
 
     uint64_t mLocalNodeId;
 
     event_id_t mLastEventId[kImportanceType_Last - kImportanceType_First + 1];
-
+    event_id_t mEventIdWatermark[kImportanceType_Last - kImportanceType_First + 1];
+    // + Persisted Storage for Watermark.
 };
 
 #else // WEAVE_CONFIG_SERIALIZATION_ENABLE_DESERIALIZATION

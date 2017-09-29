@@ -33,7 +33,8 @@ ReadAndCheckPresence(nl::Weave::TLV::TLVReader &inReader,
 
 EventProcessor::EventProcessor(uint64_t inLocalNodeId) :
     mLocalNodeId(inLocalNodeId),
-    mLastEventId()
+    mLastEventId(),
+    mEventIdWatermark()
 {
 }
 
@@ -316,8 +317,11 @@ EventProcessor::ParseEvent(nl::Weave::TLV::TLVReader &inReader,
                 err = ProcessHeader(eventHeader);
                 SuccessOrExit(err);
 
-                err = ProcessEvent(inReader, inClient, eventHeader);
-                SuccessOrExit(err);
+                if (IsEventNew(eventHeader))
+                {
+                    err = ProcessEvent(inReader, inClient, eventHeader);
+                    SuccessOrExit(err);
+                }
 
                 break;
             }
@@ -498,6 +502,36 @@ EventProcessor::ProcessHeader(const EventHeader &inEventHeader)
     }
 
     return WEAVE_NO_ERROR;
+}
+
+WEAVE_ERROR
+EventProcessor::IsEventNew(const EventHeader &inEventHeader) const
+{
+    return inEventHeader.mId > mEventIdWatermark[inEventHeader.mImportance];
+}
+
+WEAVE_ERROR
+EventProcessor::EventListProcessed()
+{
+    WEAVE_ERROR r = WEAVE_NO_ERROR;
+
+    for (int importanceIdx = 0;
+        importanceIdx < (nl::Weave::Profiles::DataManagement::kImportanceType_Last - nl::Weave::Profiles::DataManagement::kImportanceType_First + 1);
+        importanceIdx++)
+    {
+        if (mEventIdWatermark[importanceIdx] != mLastEventId[importanceIdx])
+        {
+            NL_LOG((nlLPInfo, "%s EventId Watermark for (0x%" PRIx64 ":%d) is %" PRIx32,
+                    __FUNCTION__,
+                    mLocalNodeId,
+                    importanceIdx,
+                    mLastEventId[importanceIdx]));
+            mEventIdWatermark[importanceIdx] = mLastEventId[importanceIdx];
+            // UpdatePersistentWatermark()
+        }
+    }
+
+    return r;
 }
 
 WEAVE_ERROR
