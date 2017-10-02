@@ -41,6 +41,7 @@
 #include <Weave/Profiles/weave-tunneling/WeaveTunnelAgent.h>
 #include <Weave/Profiles/weave-tunneling/WeaveTunnelCommon.h>
 #include <InetLayer/InetInterface.h>
+#include <Weave/Support/WeaveFaultInjection.h>
 #include <Weave/Profiles/device-description/DeviceDescription.h>
 #include <Weave/Profiles/vendor/nestlabs/device-description/NestProductIdentifiers.hpp>
 
@@ -273,6 +274,11 @@ void TunneledPacketTransitHandler(const PacketBuffer &pkt, TunnelPktDirection pk
     // Log the header fields
 
     LogPacket(decodedPkt, true);
+
+    // Inject a packet drop by the application.
+    WEAVE_FAULT_INJECT(FaultInjection::kFault_TunnelPacketDropByPolicy,
+                       toDrop = true);
+
 }
 #endif // WEAVE_CONFIG_TUNNEL_ENABLE_TRANSIT_CALLBACK
 

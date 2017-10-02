@@ -69,6 +69,8 @@ typedef enum
     kFault_WDM_SendCommandBadVersion,           /**< Alter the version of a WDM command being transmitted */
     kFault_CASEKeyConfirm,                      /**< Trigger a WEAVE_ERROR_KEY_CONFIRMATION_FAILED error in WeaveCASEEngine */
     kFault_SecMgrBusy,                          /**< Trigger a WEAVE_ERROR_SECURITY_MANAGER_BUSY when starting an authentication session */
+    kFault_TunnelQueueFull,                     /**< Trigger a WEAVE_ERROR_TUNNEL_SERVICE_QUEUE_FULL when enqueueing a packet in the Tunnel queue */
+    kFault_TunnelPacketDropByPolicy,            /**< Trigger an explicit drop of the packet as if done by an application policy */
     kFault_NumItems,
 } Id;
 

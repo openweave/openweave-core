@@ -59,6 +59,8 @@ static const char *sFaultNames[] = {
     "WDMSendCommandBadVersion",
     "CASEKeyConfirm",
     "SecMgrBusy",
+    "TunnelQueueFull",
+    "TunnelPacketDropByPolicy",
 };
 
 

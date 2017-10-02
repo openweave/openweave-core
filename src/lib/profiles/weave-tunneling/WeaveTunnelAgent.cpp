@@ -37,6 +37,7 @@
 #include <SystemLayer/SystemTimer.h>
 #include <Weave/Profiles/time/WeaveTime.h>
 #include <Weave/Support/logging/WeaveLogging.h>
+#include <Weave/Support/WeaveFaultInjection.h>
 #include <Weave/Profiles/weave-tunneling/WeaveTunnelCommon.h>
 #include <Weave/Profiles/weave-tunneling/WeaveTunnelControl.h>
 
@@ -1094,6 +1095,7 @@ WEAVE_ERROR WeaveTunnelAgent::SendMessageUponPktTransitAnalysis(const WeaveTunne
         msgLen = msg->DataLength();
         err = connMgr->mServiceCon->SendTunneledMessage(msgInfo, msg);
         SuccessOrExit(err);
+
 #if WEAVE_CONFIG_TUNNEL_ENABLE_STATISTICS
         UpdateOutboundMessageStatistics(connMgr->mTunType, msgLen);
         mWeaveTunnelStats.mCurrentActiveTunnel = connMgr->mTunType;
@@ -1108,6 +1110,17 @@ WEAVE_ERROR WeaveTunnelAgent::SendMessageUponPktTransitAnalysis(const WeaveTunne
     }
 
 exit:
+    if (err != WEAVE_NO_ERROR)
+    {
+        // Count as a dropped message if the packet was attempted to be
+        // sent but failed at a lower layer. Note that, in this case,
+        // the packet would be freed by the lower layer.
+#if WEAVE_CONFIG_TUNNEL_ENABLE_STATISTICS
+        // Update tunnel statistics
+        mWeaveTunnelStats.mDroppedMessagesCount++;
+#endif // WEAVE_CONFIG_TUNNEL_ENABLE_STATISTICS
+    }
+
     return err;
 }
 
@@ -1128,9 +1141,9 @@ WEAVE_ERROR WeaveTunnelAgent::HandleSendingToService(PacketBuffer *msg)
         WeaveLogDetail(WeaveTunnel, "Tunnel connection not up: Enqueuing message\n");
         err = EnQueuePacket(msg);
 
-        if (err == WEAVE_NO_ERROR)
+        if (err != WEAVE_NO_ERROR)
         {
-            msg = NULL;
+            dropPacket = true;
         }
 
         ExitNow();
@@ -1159,20 +1172,20 @@ WEAVE_ERROR WeaveTunnelAgent::HandleSendingToService(PacketBuffer *msg)
     }
 #endif // WEAVE_CONFIG_TUNNEL_FAILOVER_SUPPORTED
 
-    if (!dropPacket)
-    {
-        msg = NULL;
-    }
-
 exit:
-    if (msg != NULL || dropPacket)
-    {
-        PacketBuffer::Free(msg);
 
+    if (dropPacket)
+    {
+        // Count as a drop and free the packet as it was flagged to be dropped
+        // by the application or could not be enqueued for future delivery.
+        // Note that when dropPacket is true, ownership of the PacketBuffer
+        // is still held by this function and hence it needs to free it.
 #if WEAVE_CONFIG_TUNNEL_ENABLE_STATISTICS
         // Update tunnel statistics
         mWeaveTunnelStats.mDroppedMessagesCount++;
 #endif // WEAVE_CONFIG_TUNNEL_ENABLE_STATISTICS
+
+        PacketBuffer::Free(msg);
     }
 
     return err;
@@ -1359,6 +1372,10 @@ WEAVE_ERROR WeaveTunnelAgent::EnQueuePacket(PacketBuffer *pkt)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
 
+    WEAVE_FAULT_INJECT(nl::Weave::FaultInjection::kFault_TunnelQueueFull,
+                       ExitNow(err = WEAVE_ERROR_TUNNEL_SERVICE_QUEUE_FULL);
+                      );
+
     if ((qFront == qRear + 1) || (qFront == 0 && qRear == WEAVE_CONFIG_TUNNELING_MAX_NUM_PACKETS_QUEUED - 1))
     {
         // Queue full;
@@ -1429,19 +1446,38 @@ void WeaveTunnelAgent::SendQueuedMessages(const WeaveTunnelConnectionMgr *connMg
 {
     WeaveMessageInfo  msgInfo;
     PacketBuffer*     queuedPkt   = NULL;
+    bool dropPacket;
 
     while ((queuedPkt = DeQueuePacket()) != NULL)
     {
+        dropPacket = false;
         PopulateTunnelMsgHeader(&msgInfo, connMgr);
 
         // Send over TCP Connection
 
         msgInfo.DestNodeId = connMgr->mServiceCon->PeerNodeId;
-        connMgr->mServiceCon->SendTunneledMessage(&msgInfo, queuedPkt);
+        SendMessageUponPktTransitAnalysis(connMgr, kDir_Outbound, connMgr->mTunType,
+                                          &msgInfo, queuedPkt, dropPacket);
 
+        if (dropPacket)
+        {
+            // Count as a drop and free the packet as it was flagged to be dropped
+            // by the application or could not be enqueued for future delivery.
+            // Note that when dropPacket is true, ownership of the PacketBuffer
+            // is still held by this function and hence it needs to free it.
 #if WEAVE_CONFIG_TUNNEL_ENABLE_STATISTICS
-        UpdateOutboundMessageStatistics(connMgr->mTunType, queuedPkt->DataLength());
+            // Update tunnel statistics
+            mWeaveTunnelStats.mDroppedMessagesCount++;
 #endif // WEAVE_CONFIG_TUNNEL_ENABLE_STATISTICS
+
+            PacketBuffer::Free(queuedPkt);
+        }
+        else
+        {
+#if WEAVE_CONFIG_TUNNEL_ENABLE_STATISTICS
+            UpdateOutboundMessageStatistics(connMgr->mTunType, queuedPkt->DataLength());
+#endif // WEAVE_CONFIG_TUNNEL_ENABLE_STATISTICS
+        }
 
         queuedPkt = NULL;
     }
