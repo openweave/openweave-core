@@ -477,9 +477,10 @@ exit:
 WEAVE_ERROR
 EventProcessor::ProcessHeader(const EventHeader &inEventHeader)
 {
-    // If any event was ever received for that importance
+    // If any event has already been received for that importance
     if (mLastEventId[inEventHeader.mImportance] != 0)
     {
+        // If larger than previous
         if (inEventHeader.mId > mLastEventId[inEventHeader.mImportance])
         {
             if (inEventHeader.mId > (mLastEventId[inEventHeader.mImportance] + 1))
@@ -521,13 +522,14 @@ EventProcessor::EventListProcessed()
     {
         if (mEventIdWatermark[importanceIdx] != mLastEventId[importanceIdx])
         {
-            NL_LOG((nlLPInfo, "%s EventId Watermark for (0x%" PRIx64 ":%d) is %" PRIx32,
+            WeaveLogDetail(DataManagement, "%s EventId Watermark for (0x%" PRIx64 ":%d) is %" PRIx32,
                     __FUNCTION__,
                     mLocalNodeId,
                     importanceIdx,
-                    mLastEventId[importanceIdx]));
+                    mLastEventId[importanceIdx]);
             mEventIdWatermark[importanceIdx] = mLastEventId[importanceIdx];
-            // UpdatePersistentWatermark()
+            // TODO(WEAV-2341): Here we could persist mEventIdWatermark[idx]
+            // so that we can resume from it on ::Init().
         }
     }
 

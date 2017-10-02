@@ -1884,7 +1884,7 @@ static WEAVE_ERROR VersionCompatibilityHelper(void *inContext, SchemaVersionRang
     WEAVE_ERROR err;
     TestLoggingContext *context = static_cast<TestLoggingContext *>(inContext);
 
-    InitializeEventLogging(context);
+    InitializeEventLoggingWithPersistedCounters(context, 1, nl::Weave::Profiles::DataManagement::Production);
 
     TLVReader testReader;
     uint8_t backingStore[1024];
@@ -1966,6 +1966,190 @@ static void CheckDataIncompatibility(nlTestSuite *inSuite, void *inContext)
     err = VersionCompatibilityHelper(inContext, encodedSchemaVersionRange, decodedSchemaVersionRange);
     NL_TEST_ASSERT(inSuite, err == WEAVE_NO_ERROR);
     NL_TEST_ASSERT(inSuite, encodedSchemaVersionRange == decodedSchemaVersionRange);
+}
+
+namespace {
+
+class FakeEventProcessor : public EventProcessor {
+public:
+    FakeEventProcessor();
+    void ClearMock();
+    WEAVE_ERROR ProcessEvent(TLVReader inReader, SubscriptionClient &inClient, const EventHeader &inEventHeader);
+    WEAVE_ERROR GapDetected(const EventHeader &inEventHeader);
+
+    EventHeader mLastEventHeader;
+    bool mGapDetected;
+    EventHeader mGapEventHeader;
+    int mEventsProcessed;
+};
+
+FakeEventProcessor::FakeEventProcessor()
+    : EventProcessor(0)
+    , mLastEventHeader()
+    , mGapDetected(false)
+    , mGapEventHeader()
+    , mEventsProcessed()
+{
+}
+
+void FakeEventProcessor::ClearMock()
+{
+    mLastEventHeader = EventHeader();
+    mGapDetected = false;
+    mGapEventHeader = EventHeader();
+    mEventsProcessed = 0;
+}
+
+WEAVE_ERROR FakeEventProcessor::ProcessEvent(TLVReader inReader, SubscriptionClient &inClient, const EventHeader &inEventHeader)
+{
+    mLastEventHeader = inEventHeader;
+    mEventsProcessed++;
+    return WEAVE_NO_ERROR;
+}
+
+WEAVE_ERROR FakeEventProcessor::GapDetected(const EventHeader &inEventHeader)
+{
+    mGapDetected = true;
+    mGapEventHeader = inEventHeader;
+    return WEAVE_NO_ERROR;
+}
+
+}
+
+static void CheckGapDetection(nlTestSuite *inSuite, void *inContext)
+{
+    WEAVE_ERROR err;
+    TestLoggingContext *context = static_cast<TestLoggingContext *>(inContext);
+
+    InitializeEventLoggingWithPersistedCounters(context, 1, nl::Weave::Profiles::DataManagement::Production);
+
+    TLVReader testReader;
+    uint8_t backingStore[1024];
+    uint32_t bytesWritten;
+    Schema::Nest::Test::Trait::TestETrait::TestEEvent evN = { 0 };
+    EventSchema testSchema = Schema::Nest::Test::Trait::TestETrait::TestEEvent::Schema;
+    FakeEventProcessor eventProcessor;
+
+    nl::MemoryManagement memMgmt = { malloc, free, realloc };
+    nl::SerializationContext serializationContext;
+    serializationContext.memMgmt = memMgmt;
+    nl::StructureSchemaPointerPair appData;
+
+    PrepareBinding(context);
+    InitSubscriptionClient(context);
+
+    appData.mStructureData = static_cast<void *>(&evN);
+    appData.mFieldSchema = &Schema::Nest::Test::Trait::TestETrait::TestEEvent::FieldSchema;
+
+    // Arrange two consecutive events
+    event_id_t eventId_A = nl::Weave::Profiles::DataManagement::LogEvent(testSchema, nl::SerializedDataToTLVWriterHelper, (void *)&appData);
+    event_id_t eventId_B = nl::Weave::Profiles::DataManagement::LogEvent(testSchema, nl::SerializedDataToTLVWriterHelper, (void *)&appData);
+
+    // Arrange testReader with all events from the start
+    err = FetchEventsHelper(testReader, eventId_A, backingStore, sizeof(backingStore));
+    NL_TEST_ASSERT(inSuite, err == WEAVE_NO_ERROR);
+    bytesWritten = testReader.GetRemainingLength() + testReader.GetLengthRead();
+    testReader.Init(backingStore, bytesWritten);
+    err = eventProcessor.ProcessEvents(testReader, *context->mSubClient);
+    NL_TEST_ASSERT(inSuite, err == WEAVE_NO_ERROR);
+
+    NL_TEST_ASSERT(inSuite, eventProcessor.mGapDetected == false);
+    NL_TEST_ASSERT(inSuite, eventProcessor.mEventsProcessed == 2);
+
+    eventProcessor.ClearMock();
+
+    // Arrange two more consecutive events
+    event_id_t eventId_C = nl::Weave::Profiles::DataManagement::LogEvent(testSchema, nl::SerializedDataToTLVWriterHelper, (void *)&appData);
+    event_id_t eventId_D = nl::Weave::Profiles::DataManagement::LogEvent(testSchema, nl::SerializedDataToTLVWriterHelper, (void *)&appData);
+
+    // Arrange testReader skipping eventId_C
+    err = FetchEventsHelper(testReader, eventId_D, backingStore, sizeof(backingStore));
+    NL_TEST_ASSERT(inSuite, err == WEAVE_NO_ERROR);
+    bytesWritten = testReader.GetRemainingLength() + testReader.GetLengthRead();
+    testReader.Init(backingStore, bytesWritten);
+    err = eventProcessor.ProcessEvents(testReader, *context->mSubClient);
+    NL_TEST_ASSERT(inSuite, err == WEAVE_NO_ERROR);
+
+    NL_TEST_ASSERT(inSuite, eventProcessor.mGapDetected == true);
+    NL_TEST_ASSERT(inSuite, eventProcessor.mEventsProcessed == 1);
+
+    eventProcessor.ClearMock();
+}
+
+static void CheckDropOverlap(nlTestSuite *inSuite, void *inContext)
+{
+    WEAVE_ERROR err;
+    TestLoggingContext *context = static_cast<TestLoggingContext *>(inContext);
+
+    InitializeEventLoggingWithPersistedCounters(context, 1, nl::Weave::Profiles::DataManagement::Production);
+
+    TLVReader testReader;
+    uint8_t backingStore[1024];
+    uint32_t bytesWritten;
+    Schema::Nest::Test::Trait::TestETrait::TestEEvent evN = { 0 };
+    EventSchema testSchema = Schema::Nest::Test::Trait::TestETrait::TestEEvent::Schema;
+    FakeEventProcessor eventProcessor;
+
+    nl::MemoryManagement memMgmt = { malloc, free, realloc };
+    nl::SerializationContext serializationContext;
+    serializationContext.memMgmt = memMgmt;
+    nl::StructureSchemaPointerPair appData;
+
+    PrepareBinding(context);
+    InitSubscriptionClient(context);
+
+    appData.mStructureData = static_cast<void *>(&evN);
+    appData.mFieldSchema = &Schema::Nest::Test::Trait::TestETrait::TestEEvent::FieldSchema;
+
+    // Arrange two consecutive events
+    event_id_t eventId_A = nl::Weave::Profiles::DataManagement::LogEvent(testSchema, nl::SerializedDataToTLVWriterHelper, (void *)&appData);
+    event_id_t eventId_B = nl::Weave::Profiles::DataManagement::LogEvent(testSchema, nl::SerializedDataToTLVWriterHelper, (void *)&appData);
+
+    // Arrange testReader with all events from the start
+    err = FetchEventsHelper(testReader, eventId_A, backingStore, sizeof(backingStore));
+    NL_TEST_ASSERT(inSuite, err == WEAVE_NO_ERROR);
+    bytesWritten = testReader.GetRemainingLength() + testReader.GetLengthRead();
+    testReader.Init(backingStore, bytesWritten);
+
+    err = eventProcessor.ProcessEvents(testReader, *context->mSubClient);
+    NL_TEST_ASSERT(inSuite, err == WEAVE_NO_ERROR);
+
+    NL_TEST_ASSERT(inSuite, eventProcessor.mGapDetected == false);
+    NL_TEST_ASSERT(inSuite, eventProcessor.mEventsProcessed == 2);
+
+    eventProcessor.ClearMock();
+
+    // Arrange two more consecutive events
+    event_id_t eventId_C = nl::Weave::Profiles::DataManagement::LogEvent(testSchema, nl::SerializedDataToTLVWriterHelper, (void *)&appData);
+    event_id_t eventId_D = nl::Weave::Profiles::DataManagement::LogEvent(testSchema, nl::SerializedDataToTLVWriterHelper, (void *)&appData);
+
+    // Arrange testReader overlapping eventId_B
+    err = FetchEventsHelper(testReader, eventId_B, backingStore, sizeof(backingStore));
+    NL_TEST_ASSERT(inSuite, err == WEAVE_NO_ERROR);
+    bytesWritten = testReader.GetRemainingLength() + testReader.GetLengthRead();
+    testReader.Init(backingStore, bytesWritten);
+
+    err = eventProcessor.ProcessEvents(testReader, *context->mSubClient);
+    NL_TEST_ASSERT(inSuite, err == WEAVE_NO_ERROR);
+
+    NL_TEST_ASSERT(inSuite, eventProcessor.mGapDetected == false);
+    NL_TEST_ASSERT(inSuite, eventProcessor.mEventsProcessed == 2);
+
+    eventProcessor.ClearMock();
+
+    // Arrange testReader overlapping all events
+    err = FetchEventsHelper(testReader, eventId_A, backingStore, sizeof(backingStore));
+    NL_TEST_ASSERT(inSuite, err == WEAVE_NO_ERROR);
+    bytesWritten = testReader.GetRemainingLength() + testReader.GetLengthRead();
+    testReader.Init(backingStore, bytesWritten);
+
+    err = eventProcessor.ProcessEvents(testReader, *context->mSubClient);
+    NL_TEST_ASSERT(inSuite, err == WEAVE_NO_ERROR);
+
+    NL_TEST_ASSERT(inSuite, eventProcessor.mGapDetected == false);
+    NL_TEST_ASSERT(inSuite, eventProcessor.mEventsProcessed == 0);
+
+    eventProcessor.ClearMock();
 }
 
 static void CheckNullableFieldsSimple(nlTestSuite *inSuite, void *inContext)
@@ -3190,6 +3374,8 @@ static const nlTest sTests[] = {
     NL_TEST_DEF("Check version 1 data schema compatibility encoding + decoding", CheckVersion1DataCompatibility),
     NL_TEST_DEF("Check forward data compatibility encoding + decoding", CheckForwardDataCompatibility),
     NL_TEST_DEF("Check data incompatible encoding + decoding", CheckDataIncompatibility),
+    NL_TEST_DEF("Check Gap detection", CheckGapDetection),
+    NL_TEST_DEF("Check Drop Overlapping Event Id Ranges", CheckDropOverlap),
     NL_TEST_SENTINEL()
 };
 

@@ -192,7 +192,6 @@ protected:
 
     event_id_t mLastEventId[kImportanceType_Last - kImportanceType_First + 1];
     event_id_t mEventIdWatermark[kImportanceType_Last - kImportanceType_First + 1];
-    // + Persisted Storage for Watermark.
 };
 
 #else // WEAVE_CONFIG_SERIALIZATION_ENABLE_DESERIALIZATION
