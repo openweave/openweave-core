@@ -176,9 +176,7 @@ protected:
     WEAVE_ERROR UpdateContextQualifyHeader(EventHeader &inOutEventHeader,
                                            StreamParsingContext &inOutContext,
                                            uint64_t inReceivedMask);
-    WEAVE_ERROR ProcessHeader(const EventHeader &inEventHeader);
-
-    WEAVE_ERROR IsEventNew(const EventHeader &inEventHeader) const;
+    WEAVE_ERROR ProcessHeader(const EventHeader &inEventHeader, bool &outIsNewEvent);
 
     virtual WEAVE_ERROR ProcessEvent(nl::Weave::TLV::TLVReader inReader,
                                      nl::Weave::Profiles::DataManagement::SubscriptionClient &inClient,
@@ -186,12 +184,9 @@ protected:
 
     virtual WEAVE_ERROR GapDetected(const EventHeader &inEventHeader) = 0;
 
-    virtual WEAVE_ERROR EventListProcessed();
-
     uint64_t mLocalNodeId;
 
-    event_id_t mLastEventId[kImportanceType_Last - kImportanceType_First + 1];
-    event_id_t mEventIdWatermark[kImportanceType_Last - kImportanceType_First + 1];
+    event_id_t mLastIncrementalEventId[kImportanceType_Last - kImportanceType_First + 1];
 };
 
 #else // WEAVE_CONFIG_SERIALIZATION_ENABLE_DESERIALIZATION

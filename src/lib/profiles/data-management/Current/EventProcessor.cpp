@@ -33,8 +33,7 @@ ReadAndCheckPresence(nl::Weave::TLV::TLVReader &inReader,
 
 EventProcessor::EventProcessor(uint64_t inLocalNodeId) :
     mLocalNodeId(inLocalNodeId),
-    mLastEventId(),
-    mEventIdWatermark()
+    mLastIncrementalEventId()
 {
 }
 
@@ -51,8 +50,8 @@ EventProcessor::ProcessEvents(nl::Weave::TLV::TLVReader &inReader,
     err = ParseEventList(inReader, inClient);
     SuccessOrExit(err);
 
-    err = EventListProcessed();
-    SuccessOrExit(err);
+    // TODO(WEAV-2341): Here would be a good hook to persist mLastIncrementalEventId
+    // so that we can resume from it on ::Init().
 
 exit:
     return err;
@@ -302,6 +301,8 @@ EventProcessor::ParseEvent(nl::Weave::TLV::TLVReader &inReader,
 
             case Event::kCsTag_Data:
             {
+                bool isEventNew;
+
                 // check if this tag has appeared before
                 VerifyOrExit((receivedMask & ReceivedEventHeaderFieldPresenceMask_Data) == 0, err = WEAVE_ERROR_INVALID_TLV_TAG);
                 receivedMask |= ReceivedEventHeaderFieldPresenceMask_Data;
@@ -314,10 +315,10 @@ EventProcessor::ParseEvent(nl::Weave::TLV::TLVReader &inReader,
                 // Potentially this could be moved to outside the while(inReader.Next())?
                 // but so could the call to ProcessEvent (this would enable data-less events).
                 // For now leaving both together makes up for it in readability.
-                err = ProcessHeader(eventHeader);
+                err = ProcessHeader(eventHeader, isEventNew);
                 SuccessOrExit(err);
 
-                if (IsEventNew(eventHeader))
+                if (isEventNew)
                 {
                     err = ProcessEvent(inReader, inClient, eventHeader);
                     SuccessOrExit(err);
@@ -475,65 +476,40 @@ exit:
 }
 
 WEAVE_ERROR
-EventProcessor::ProcessHeader(const EventHeader &inEventHeader)
+EventProcessor::ProcessHeader(const EventHeader &inEventHeader, bool &outIsNewEvent)
 {
     // If any event has already been received for that importance
-    if (mLastEventId[inEventHeader.mImportance] != 0)
+    if (mLastIncrementalEventId[inEventHeader.mImportance] != 0)
     {
         // If larger than previous
-        if (inEventHeader.mId > mLastEventId[inEventHeader.mImportance])
+        if (inEventHeader.mId > mLastIncrementalEventId[inEventHeader.mImportance])
         {
-            if (inEventHeader.mId > (mLastEventId[inEventHeader.mImportance] + 1))
+            if (inEventHeader.mId > (mLastIncrementalEventId[inEventHeader.mImportance] + 1))
             {
                 WeaveLogDetail(DataManagement, "EventProcessor found gap for importance: %u (0x%" PRIx32 " -> 0x%" PRIx64 ") NodeId=0x%" PRIx64,
                     inEventHeader.mImportance,
-                    mLastEventId[inEventHeader.mImportance],
+                    mLastIncrementalEventId[inEventHeader.mImportance],
                     inEventHeader.mId,
                     inEventHeader.mSource);
                 GapDetected(inEventHeader);
             }
 
-            mLastEventId[inEventHeader.mImportance] = inEventHeader.mId;
+            mLastIncrementalEventId[inEventHeader.mImportance] = inEventHeader.mId;
+            outIsNewEvent = true;
+        }
+        else
+        {
+            outIsNewEvent = false;
         }
     }
     else
     {
         WeaveLogDetail(DataManagement, "EventProcessor stream for importance: %u initialized with id: 0x%" PRIx64 , inEventHeader.mImportance, inEventHeader.mId);
-        mLastEventId[inEventHeader.mImportance] = inEventHeader.mId;
+        mLastIncrementalEventId[inEventHeader.mImportance] = inEventHeader.mId;
+        outIsNewEvent = true;
     }
 
     return WEAVE_NO_ERROR;
-}
-
-WEAVE_ERROR
-EventProcessor::IsEventNew(const EventHeader &inEventHeader) const
-{
-    return inEventHeader.mId > mEventIdWatermark[inEventHeader.mImportance];
-}
-
-WEAVE_ERROR
-EventProcessor::EventListProcessed()
-{
-    WEAVE_ERROR r = WEAVE_NO_ERROR;
-
-    for (int importanceIdx = 0;
-        importanceIdx < (nl::Weave::Profiles::DataManagement::kImportanceType_Last - nl::Weave::Profiles::DataManagement::kImportanceType_First + 1);
-        importanceIdx++)
-    {
-        if (mEventIdWatermark[importanceIdx] != mLastEventId[importanceIdx])
-        {
-            WeaveLogDetail(DataManagement, "%s EventId Watermark for (0x%" PRIx64 ":%d) is %" PRIx32,
-                    __FUNCTION__,
-                    mLocalNodeId,
-                    importanceIdx,
-                    mLastEventId[importanceIdx]);
-            mEventIdWatermark[importanceIdx] = mLastEventId[importanceIdx];
-            // TODO(WEAV-2341): Here we could persist mEventIdWatermark[idx]
-            // so that we can resume from it on ::Init().
-        }
-    }
-
-    return r;
 }
 
 WEAVE_ERROR
