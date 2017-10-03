@@ -33,7 +33,7 @@ ReadAndCheckPresence(nl::Weave::TLV::TLVReader &inReader,
 
 EventProcessor::EventProcessor(uint64_t inLocalNodeId) :
     mLocalNodeId(inLocalNodeId),
-    mLastIncrementalEventId()
+    mLargestEventId()
 {
 }
 
@@ -50,7 +50,7 @@ EventProcessor::ProcessEvents(nl::Weave::TLV::TLVReader &inReader,
     err = ParseEventList(inReader, inClient);
     SuccessOrExit(err);
 
-    // TODO(WEAV-2341): Here would be a good hook to persist mLastIncrementalEventId
+    // TODO(WEAV-2341): Here would be a good hook to persist mLargestEventId
     // so that we can resume from it on ::Init().
 
 exit:
@@ -479,33 +479,34 @@ WEAVE_ERROR
 EventProcessor::ProcessHeader(const EventHeader &inEventHeader, bool &outIsNewEvent)
 {
     // If any event has already been received for that importance
-    if (mLastIncrementalEventId[inEventHeader.mImportance] != 0)
+    if (mLargestEventId[inEventHeader.mImportance] != 0)
     {
         // If larger than previous
-        if (inEventHeader.mId > mLastIncrementalEventId[inEventHeader.mImportance])
+        if (inEventHeader.mId > mLargestEventId[inEventHeader.mImportance])
         {
-            if (inEventHeader.mId > (mLastIncrementalEventId[inEventHeader.mImportance] + 1))
+            if (inEventHeader.mId > (mLargestEventId[inEventHeader.mImportance] + 1))
             {
                 WeaveLogDetail(DataManagement, "EventProcessor found gap for importance: %u (0x%" PRIx32 " -> 0x%" PRIx64 ") NodeId=0x%" PRIx64,
                     inEventHeader.mImportance,
-                    mLastIncrementalEventId[inEventHeader.mImportance],
+                    mLargestEventId[inEventHeader.mImportance],
                     inEventHeader.mId,
                     inEventHeader.mSource);
                 GapDetected(inEventHeader);
             }
 
-            mLastIncrementalEventId[inEventHeader.mImportance] = inEventHeader.mId;
+            mLargestEventId[inEventHeader.mImportance] = inEventHeader.mId;
             outIsNewEvent = true;
         }
         else
         {
+            WeaveLogDetail(DataManagement, "EventProcessor dropping event %u:0x%" PRIx64 , inEventHeader.mImportance, inEventHeader.mId);
             outIsNewEvent = false;
         }
     }
     else
     {
         WeaveLogDetail(DataManagement, "EventProcessor stream for importance: %u initialized with id: 0x%" PRIx64 , inEventHeader.mImportance, inEventHeader.mId);
-        mLastIncrementalEventId[inEventHeader.mImportance] = inEventHeader.mId;
+        mLargestEventId[inEventHeader.mImportance] = inEventHeader.mId;
         outIsNewEvent = true;
     }
 

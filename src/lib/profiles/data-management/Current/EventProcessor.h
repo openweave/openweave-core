@@ -186,7 +186,7 @@ protected:
 
     uint64_t mLocalNodeId;
 
-    event_id_t mLastIncrementalEventId[kImportanceType_Last - kImportanceType_First + 1];
+    event_id_t mLargestEventId[kImportanceType_Last - kImportanceType_First + 1];
 };
 
 #else // WEAVE_CONFIG_SERIALIZATION_ENABLE_DESERIALIZATION
