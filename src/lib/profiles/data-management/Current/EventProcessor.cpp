@@ -478,6 +478,8 @@ exit:
 WEAVE_ERROR
 EventProcessor::ProcessHeader(const EventHeader &inEventHeader, bool &outIsNewEvent)
 {
+    bool isEventNew; // Set by all branches.
+
     // If any event has already been received for that importance
     if (mLargestEventId[inEventHeader.mImportance] != 0)
     {
@@ -495,20 +497,22 @@ EventProcessor::ProcessHeader(const EventHeader &inEventHeader, bool &outIsNewEv
             }
 
             mLargestEventId[inEventHeader.mImportance] = inEventHeader.mId;
-            outIsNewEvent = true;
+            isEventNew = true;
         }
         else
         {
             WeaveLogDetail(DataManagement, "EventProcessor dropping event %u:0x%" PRIx64 , inEventHeader.mImportance, inEventHeader.mId);
-            outIsNewEvent = false;
+            isEventNew = false;
         }
     }
     else
     {
         WeaveLogDetail(DataManagement, "EventProcessor stream for importance: %u initialized with id: 0x%" PRIx64 , inEventHeader.mImportance, inEventHeader.mId);
         mLargestEventId[inEventHeader.mImportance] = inEventHeader.mId;
-        outIsNewEvent = true;
+        isEventNew = true;
     }
+
+    outIsNewEvent = isEventNew;
 
     return WEAVE_NO_ERROR;
 }
