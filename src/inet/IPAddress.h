@@ -264,6 +264,22 @@ public:
     static bool FromString(const char *str, IPAddress& output);
 
     /**
+     * @brief   Scan the IP address from its conventional presentation text.
+     *
+     * @param[in]   str     a pointer to the text to be scanned.
+     * @param[in]   strLen  the length of the text to be scanned.
+     * @param[out]  output  the object to set to the scanned address.
+     *
+     * @details
+     *  Use <tt>FromString(const char *str, size_t strLen, IPAddress& output)</tt> to
+     *  overwrite an IP address by scanning the conventional text presentation
+     *  located at \c str.
+     *
+     * @return  \c true if the presentation format is valid, else \c false.
+     */
+    static bool FromString(const char *str, size_t strLen, IPAddress& output);
+
+    /**
      * @brief   Emit the IP address in standard network representation.
      *
      * @param[inout]    p   reference to the cursor to use for writing.

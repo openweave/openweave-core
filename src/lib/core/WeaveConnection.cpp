@@ -81,17 +81,17 @@ void WeaveConnection::Release()
     mRefCount--;
 }
 
-WEAVE_ERROR WeaveConnection::StartConnectToAddressLiteral(const char aAddressLiteral[])
+WEAVE_ERROR WeaveConnection::StartConnectToAddressLiteral(const char *peerAddr, size_t peerAddrLen)
 {
-    WEAVE_ERROR lReturn = WEAVE_ERROR_UNSUPPORTED_WEAVE_FEATURE;
+    WEAVE_ERROR err = WEAVE_ERROR_UNSUPPORTED_WEAVE_FEATURE;
 
 #if WEAVE_CONFIG_RESOLVE_IPADDR_LITERAL
     // Literal address conversion is only supported on BSD sockets network targets
-    if (IPAddress::FromString(aAddressLiteral, PeerAddr))
-        lReturn = StartConnect();
+    if (IPAddress::FromString(peerAddr, peerAddrLen, PeerAddr))
+        err = StartConnect();
 #endif // WEAVE_CONFIG_RESOLVE_IPADDR_LITERAL
 
-    return lReturn;
+    return err;
 }
 
 /**
@@ -352,7 +352,7 @@ WEAVE_ERROR WeaveConnection::Connect(uint64_t peerNodeId, WeaveAuthMode authMode
     State = kState_Resolving;
     err = MessageLayer->Inet->ResolveHostAddress(hostName, hostNameLen, WEAVE_CONFIG_CONNECT_IP_ADDRS, mPeerAddrs, HandleResolveComplete, this);
 #else // !WEAVE_CONFIG_ENABLE_DNS_RESOLVER
-    err = StartConnectToAddressLiteral(hostName);
+    err = StartConnectToAddressLiteral(hostName, hostNameLen);
 #endif // !WEAVE_CONFIG_ENABLE_DNS_RESOLVER
 
 exit:
@@ -1077,7 +1077,7 @@ WEAVE_ERROR WeaveConnection::TryNextPeerAddress(WEAVE_ERROR lastErr)
         err = MessageLayer->Inet->ResolveHostAddress(hostName, strlen(hostName), WEAVE_CONFIG_CONNECT_IP_ADDRS,
                                                      mPeerAddrs, HandleResolveComplete, this);
 #else // !WEAVE_CONFIG_ENABLE_DNS_RESOLVER
-        err = StartConnectToAddressLiteral(hostName);
+        err = StartConnectToAddressLiteral(hostName, strlen(hostName));
 #endif // !WEAVE_CONFIG_ENABLE_DNS_RESOLVER
     }
 

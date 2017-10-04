@@ -179,6 +179,19 @@ static void CheckFromString(nlTestSuite *inSuite, void *inContext)
         NL_TEST_ASSERT(inSuite, test_addr.Addr[2] == htonl(theContext->addr[2]));
         NL_TEST_ASSERT(inSuite, test_addr.Addr[3] == htonl(theContext->addr[3]));
 
+        char tmpBuf[64];
+        size_t addrStrLen = strlen(theContext->ip);
+
+        memset(tmpBuf, '1', sizeof(tmpBuf));
+        memcpy(tmpBuf, theContext->ip, addrStrLen);
+
+        IPAddress::FromString(tmpBuf, addrStrLen, test_addr);
+
+        NL_TEST_ASSERT(inSuite, test_addr.Addr[0] == htonl(theContext->addr[0]));
+        NL_TEST_ASSERT(inSuite, test_addr.Addr[1] == htonl(theContext->addr[1]));
+        NL_TEST_ASSERT(inSuite, test_addr.Addr[2] == htonl(theContext->addr[2]));
+        NL_TEST_ASSERT(inSuite, test_addr.Addr[3] == htonl(theContext->addr[3]));
+
         theContext++;
     }
 }

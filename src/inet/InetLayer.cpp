@@ -794,7 +794,7 @@ INET_ERROR InetLayer::ResolveHostAddress(const char *hostName, uint16_t hostName
         ExitNow(err = INET_ERROR_NO_MEMORY);
     }
 
-    if (IPAddress::FromString(hostName, *addrArray))
+    if (IPAddress::FromString(hostName, hostNameLen, *addrArray))
     {
         if (onComplete)
         {

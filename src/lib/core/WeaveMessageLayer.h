@@ -363,7 +363,7 @@ private:
     bool StateAllowsSend(void) const { return State == kState_EstablishingSession || State == kState_Connected; }
     bool StateAllowsReceive(void) const { return State == kState_EstablishingSession || State == kState_Connected || State == kState_SendShutdown; }
     void DisconnectOnError(WEAVE_ERROR err);
-    WEAVE_ERROR StartConnectToAddressLiteral(const char hostname[]);
+    WEAVE_ERROR StartConnectToAddressLiteral(const char *peerAddr, size_t peerAddrLen);
 
     static void HandleResolveComplete(void *appState, INET_ERROR err, uint8_t addrCount, IPAddress *addrArray);
     static void HandleConnectComplete(TCPEndPoint *endPoint, INET_ERROR conRes);
