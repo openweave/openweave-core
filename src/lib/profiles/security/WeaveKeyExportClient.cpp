@@ -443,10 +443,8 @@ WEAVE_ERROR WeaveStandAloneKeyExportClient::BeginCertValidation(bool isInitiator
                            kDecodeFlag_GenerateTBSHash, cert);
     SuccessOrExit(err);
 
-// by default DEBUG is off when building weave for iOS, so unit tests that
-// use the key export functionality in mobile-IOS would fail.  Commenting
-// out DEBUG for now, this code should be turned off in prod builds when we ship.
-//#if DEBUG
+// we need debug in order to get key export functionality working in mobile-ios
+#if DEBUG
 
     // If DEBUG is enabled and mTrustPreProdDevices == true, arrange to accept key export responses
     // from pre-production devices built with Nest development certificates.
@@ -470,7 +468,7 @@ WEAVE_ERROR WeaveStandAloneKeyExportClient::BeginCertValidation(bool isInitiator
         SuccessOrExit(err);
     }
 
-//#endif  DEBUG
+#endif //DEBUG
 
 exit:
     if (err != WEAVE_NO_ERROR && certSetInitialized)
