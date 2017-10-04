@@ -665,6 +665,32 @@ void nl::Weave::Profiles::WeaveTunnel::Platform::ServiceTunnelEstablished(Interf
 
 /**
  * This is a default implementation in a Standalone setting of the Weave Addressing and
+ * Routing(WARM) platform adaptation when Border Routing is enabled in Thread or any
+ * peripheral network.
+ * This may be overridden by asserting the preprocessor definition,
+ * #WEAVE_TUNNEL_CONFIG_WILL_OVERRIDE_ADDR_ROUTING_FUNCS.
+ *
+ */
+void nl::Weave::Profiles::WeaveTunnel::Platform::EnableBorderRouting(void)
+{
+    WeaveLogDetail(WeaveTunnel, "Border Routing enabled\n");
+}
+
+/**
+ * This is a default implementation in a Standalone setting of the Weave Addressing and
+ * Routing(WARM) platform adaptation when Border Routing is disabled in Thread or any
+ * peripheral network.
+ * This may be overridden by asserting the preprocessor definition,
+ * #WEAVE_TUNNEL_CONFIG_WILL_OVERRIDE_ADDR_ROUTING_FUNCS.
+ *
+ */
+void nl::Weave::Profiles::WeaveTunnel::Platform::DisableBorderRouting(void)
+{
+    WeaveLogDetail(WeaveTunnel, "Border Routing disabled\n");
+}
+
+/**
+ * This is a default implementation in a Standalone setting of the Weave Addressing and
  * Routing(WARM) platform adaptation when the Service tunnel connection is torn down.
  * This may be overridden by asserting the preprocessor definition,
  * #WEAVE_TUNNEL_CONFIG_WILL_OVERRIDE_ADDR_ROUTING_FUNCS.

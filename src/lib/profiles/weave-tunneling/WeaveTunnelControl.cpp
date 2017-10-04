@@ -943,8 +943,8 @@ void WeaveTunnelControl::HandleTunnelRouteUpdateResponse(ExchangeContext *ec, co
         // Although tunnel is restricted, it is still open but can only be
         // usable by the border gateway for itself to access a limited set of
         // Service endpoints. The device is put in this mode, typically, when
-        // it is unpaired from the account.
-        connMgr->mTunAgent->RemovePlatformTunnelRoute();
+        // it is removed from the account.
+        connMgr->mTunAgent->DisableBorderRouting();
 
         WeaveLogDetail(WeaveTunnel, "Tunnel in restricted mode; Not operating as a Border Router\n");
     }

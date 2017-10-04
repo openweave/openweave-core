@@ -1113,6 +1113,34 @@ void ServiceTunnelModeChange(InterfaceId tunIf, TunnelAvailabilityMode tunMode)
     Warm::TunnelPriorityStateChange(tunMode);
 }
 
+/**
+ *  A TunnelAgent Platform API implementation used by the Tunnel Agent to enable Border Routing
+ *  through Warm.
+ *
+ *  @return none.
+ *
+ */
+void EnableBorderRouting(void)
+{
+#if WARM_CONFIG_SUPPORT_BORDER_ROUTING
+    Warm::BorderRouterStateChange(Warm::kInterfaceStateUp);
+#endif // WARM_CONFIG_SUPPORT_BORDER_ROUTING
+}
+
+/**
+ *  A TunnelAgent Platform API implementation used by the Tunnel Agent to disable Border Routing
+ *  through Warm.
+ *
+ *  @return none.
+ *
+ */
+void DisableBorderRouting(void)
+{
+#if WARM_CONFIG_SUPPORT_BORDER_ROUTING
+    Warm::BorderRouterStateChange(Warm::kInterfaceStateDown);
+#endif // WARM_CONFIG_SUPPORT_BORDER_ROUTING
+}
+
 }; // namespace Platform
 
 }; // namespace WeaveTunnel

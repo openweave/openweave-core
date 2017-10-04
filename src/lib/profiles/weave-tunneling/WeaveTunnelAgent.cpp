@@ -1710,11 +1710,11 @@ void WeaveTunnelAgent::WeaveTunnelConnectionDown(const WeaveTunnelConnectionMgr 
     }
 }
 
-void WeaveTunnelAgent::RemovePlatformTunnelRoute(void)
+void WeaveTunnelAgent::DisableBorderRouting(void)
 {
-    // Notify platform about tunnel disconnection
+    // Disable border routing at the platform level.
 
-    Platform::ServiceTunnelDisconnected(mTunEP->GetTunnelInterfaceId());
+    Platform::DisableBorderRouting();
 }
 
 void WeaveTunnelAgent::WeaveTunnelDownNotifyAndSetState(WEAVE_ERROR conErr)
@@ -1723,9 +1723,11 @@ void WeaveTunnelAgent::WeaveTunnelDownNotifyAndSetState(WEAVE_ERROR conErr)
 
     SetState(kState_Initialized_NoTunnel);
 
-    // Remove Platform Tunnel Route
+    // Remove Platform Tunnel Route and disable border routing
 
-    RemovePlatformTunnelRoute();
+    Platform::ServiceTunnelDisconnected(mTunEP->GetTunnelInterfaceId());
+
+    DisableBorderRouting();
 
     // When tunnel is down dump all queued messages
 
@@ -1759,7 +1761,11 @@ void WeaveTunnelAgent::WeaveTunnelUpNotifyAndSetState(AgentState state,
         // Although tunnel is restricted, it is still open but can only be
         // usable by the border gateway for itself to access a limited set of
         // Service endpoints. The device is put in this mode, typically, when
-        // it is unpaired from the account.
+        // it is removed from the account.
+
+        // Disable border routing at the platform level.
+
+        Platform::DisableBorderRouting();
 
         err = WEAVE_ERROR_TUNNEL_ROUTING_RESTRICTED;
 
@@ -1767,11 +1773,18 @@ void WeaveTunnelAgent::WeaveTunnelUpNotifyAndSetState(AgentState state,
     }
     else
     {
-        // Add Platform Tunnel Route
+        // Enable border routing at the platform level.
 
-        Platform::ServiceTunnelEstablished(mTunEP->GetTunnelInterfaceId(),
-                                           tunMode);
+        Platform::EnableBorderRouting();
     }
+
+    // Add Platform Tunnel Route.
+    // The call to ServiceTunnelEstablished(..) and EnableBorderRouting() would
+    // enable a chain of events at the Thread level to setup the device as a
+    // fully functional border router.
+
+    Platform::ServiceTunnelEstablished(mTunEP->GetTunnelInterfaceId(),
+                                       tunMode);
 
     // Check if queue is non-empty; then send queued packets through established tunnel;
     //

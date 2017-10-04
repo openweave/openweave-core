@@ -2557,8 +2557,8 @@ WeaveTunnelOnStatusNotifyHandlerCB(WeaveTunnelConnectionMgr::TunnelConnNotifyRea
         if (reason == WeaveTunnelConnectionMgr::kStatus_TunPrimaryUp)
         {
             // Check if we got the correct error code and the Fabric tunnel
-            // route is absent.
-            if (aErr == WEAVE_ERROR_TUNNEL_ROUTING_RESTRICTED && !Is48BitIPv6FabricRoutePresent())
+            // route is installed.
+            if (aErr == WEAVE_ERROR_TUNNEL_ROUTING_RESTRICTED && Is48BitIPv6FabricRoutePresent())
             {
                 gTestSucceeded = true;
             }

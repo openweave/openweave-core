@@ -88,6 +88,12 @@ namespace Platform {
 
     extern void ServiceTunnelModeChange(InterfaceId tunIf, TunnelAvailabilityMode tunMode);
 
+    /// Enable Border Routing at the platform level.
+    extern void EnableBorderRouting(void);
+
+    /// Disable Border Routing at the platform level.
+    extern void DisableBorderRouting(void);
+
 } // namespace Platform
 
 #if WEAVE_CONFIG_TUNNEL_ENABLE_STATISTICS
@@ -609,7 +615,7 @@ private:
                                         WeaveTunnelConnectionMgr::TunnelConnNotifyReasons notifyReason,
                                         WeaveTunnelConnectionMgr *connMgr,
                                         const bool isRoutingRestricted);
-    void RemovePlatformTunnelRoute(void);
+    void DisableBorderRouting(void);
 
 #if WEAVE_CONFIG_TUNNEL_FAILOVER_SUPPORTED
     void WeaveTunnelModeChangeNotifyAndSetState(AgentState state,
