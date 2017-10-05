@@ -384,10 +384,11 @@ void BulkDataTransferServer::HandleSendInitRequest(ExchangeContext *ec, const IP
     SendReject sendReject;
 
     char *filename = NULL;
+    char *filename_buf = NULL;
     size_t filename_len = 0;
     size_t received_location_len = 0;
     uint8_t offset = 0;
-    char *fileDesignator = NULL;
+    char *destination_filename = NULL;
     PacketBuffer *SendInitResponsePayload = NULL;
 
     nlREQUIRE(ec, handle_send_init_request_failed);
@@ -408,49 +409,56 @@ void BulkDataTransferServer::HandleSendInitRequest(ExchangeContext *ec, const IP
     PacketBuffer::Free(payload);
     payload = NULL;
 
-    /**
-     * Allocate PacketBuffer
-     */
+    // Allocate PacketBuffer
     SendInitResponsePayload = PacketBuffer::New();
     nlREQUIRE_ACTION(SendInitResponsePayload != NULL, handle_send_init_request_failed,
                          printf("Error: BDX HandleSendInitRequest: PacketBuffer alloc failed\n"));
 
-    // get the received file and location and name
-    filename = strrchr(sendInit.theFileDesignator.theString, '/');
-    filename_len = sendInit.theFileDesignator.theLength;
+    // Copy out the name of the file being received to a NULL-terminated string
+    filename_buf = (char *)malloc(sendInit.theFileDesignator.theLength + 1);
+    memcpy(filename_buf, sendInit.theFileDesignator.theString, sendInit.theFileDesignator.theLength);
+    filename_buf[sendInit.theFileDesignator.theLength] = '\0';
+
+    printf("sendInit.theFileDesignator: %s\n", filename_buf);
+
+    // In case the file name is a path, keep only the file name;
+    // the file will be saved in bdxApp->mReceivedFileLocation.
+    filename = strrchr(filename_buf, '/');
     if (filename == NULL)
     {
-        filename = sendInit.theFileDesignator.theString;
+        filename = filename_buf;
     }
     else
     {
         filename++; //skip over '/'
-        filename_len--;
     }
+
+    filename_len = strlen(filename);
 
     received_location_len = strlen(bdxApp->mReceivedFileLocation);
 
     // malloc enough space for the NULL terminator and a '/'
-    fileDesignator = (char*)malloc(received_location_len + filename_len + 2);
-    nlREQUIRE(fileDesignator != NULL, handle_send_init_request_failed);
+    destination_filename = (char*)malloc(received_location_len + filename_len + 2);
+    nlREQUIRE(destination_filename != NULL, handle_send_init_request_failed);
 
-    memcpy(fileDesignator, bdxApp->mReceivedFileLocation, received_location_len);
+    memcpy(destination_filename, bdxApp->mReceivedFileLocation, received_location_len);
     if (bdxApp->mReceivedFileLocation[received_location_len - 1] != '/')
     {
         // if it doesn't end with '/', add one
-        fileDesignator[received_location_len] = '/';
+        destination_filename[received_location_len] = '/';
         offset++;
     }
-    memcpy(fileDesignator + received_location_len + offset, filename, filename_len);
-    fileDesignator[received_location_len + offset + filename_len] = '\0';
+    memcpy(destination_filename + received_location_len + offset, filename, filename_len);
+    destination_filename[received_location_len + offset + filename_len] = '\0';
 
-    printf("File being saved to: %s\n", fileDesignator);
-    xfer->FD = open(fileDesignator, O_CREAT | O_WRONLY, S_IRUSR | S_IWUSR);
-    free(fileDesignator);
+    printf("File being saved to: %s\n", destination_filename);
+    xfer->FD = open(destination_filename, O_CREAT | O_WRONLY, S_IRUSR | S_IWUSR);
+    free(destination_filename);
+    free(filename_buf);
 
     if (xfer->FD == -1)
     {
-        printf("Couldn't open file %s for writing...\n", filename);
+        printf("Couldn't open file for writing...\n");
 
         err = sendReject.init(kWeaveProfile_BDX, kStatus_UnknownFile);
         nlREQUIRE(err == WEAVE_NO_ERROR, handle_send_init_request_failed);
