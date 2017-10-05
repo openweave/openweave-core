@@ -384,6 +384,8 @@ void BulkDataTransferServer::HandleSendInitRequest(ExchangeContext *ec, const IP
     SendReject sendReject;
 
     char *filename = NULL;
+    size_t filename_len = 0;
+    size_t received_location_len = 0;
     uint8_t offset = 0;
     char *fileDesignator = NULL;
     PacketBuffer *SendInitResponsePayload = NULL;
@@ -415,6 +417,7 @@ void BulkDataTransferServer::HandleSendInitRequest(ExchangeContext *ec, const IP
 
     // get the received file and location and name
     filename = strrchr(sendInit.theFileDesignator.theString, '/');
+    filename_len = sendInit.theFileDesignator.theLength;
     if (filename == NULL)
     {
         filename = sendInit.theFileDesignator.theString;
@@ -422,20 +425,24 @@ void BulkDataTransferServer::HandleSendInitRequest(ExchangeContext *ec, const IP
     else
     {
         filename++; //skip over '/'
+        filename_len--;
     }
 
-    fileDesignator = (char*)malloc(strlen(bdxApp->mReceivedFileLocation) + strlen(filename) + 2);
+    received_location_len = strlen(bdxApp->mReceivedFileLocation);
+
+    // malloc enough space for the NULL terminator and a '/'
+    fileDesignator = (char*)malloc(received_location_len + filename_len + 2);
     nlREQUIRE(fileDesignator != NULL, handle_send_init_request_failed);
 
-    memcpy(fileDesignator, bdxApp->mReceivedFileLocation, strlen(bdxApp->mReceivedFileLocation));
-    if (bdxApp->mReceivedFileLocation[strlen(bdxApp->mReceivedFileLocation) - 1] != '/')
+    memcpy(fileDesignator, bdxApp->mReceivedFileLocation, received_location_len);
+    if (bdxApp->mReceivedFileLocation[received_location_len - 1] != '/')
     {
         // if it doesn't end with '/', add one
-        fileDesignator[strlen(bdxApp->mReceivedFileLocation)] = '/';
+        fileDesignator[received_location_len] = '/';
         offset++;
     }
-    memcpy(fileDesignator + strlen(bdxApp->mReceivedFileLocation) + offset, filename, strlen(filename));
-    fileDesignator[strlen(bdxApp->mReceivedFileLocation) + offset + strlen(filename)] = '\0';
+    memcpy(fileDesignator + received_location_len + offset, filename, filename_len);
+    fileDesignator[received_location_len + offset + filename_len] = '\0';
 
     printf("File being saved to: %s\n", fileDesignator);
     xfer->FD = open(fileDesignator, O_CREAT | O_WRONLY, S_IRUSR | S_IWUSR);
