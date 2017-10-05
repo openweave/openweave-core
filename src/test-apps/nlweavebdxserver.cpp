@@ -415,9 +415,8 @@ void BulkDataTransferServer::HandleSendInitRequest(ExchangeContext *ec, const IP
                          printf("Error: BDX HandleSendInitRequest: PacketBuffer alloc failed\n"));
 
     // Copy out the name of the file being received to a NULL-terminated string
-    filename_buf = (char *)malloc(sendInit.theFileDesignator.theLength + 1);
-    memcpy(filename_buf, sendInit.theFileDesignator.theString, sendInit.theFileDesignator.theLength);
-    filename_buf[sendInit.theFileDesignator.theLength] = '\0';
+    filename_buf = strndup(sendInit.theFileDesignator.theString, sendInit.theFileDesignator.theLength);
+    nlREQUIRE(filename_buf != NULL, handle_send_init_request_failed);
 
     printf("sendInit.theFileDesignator: %s\n", filename_buf);
 
@@ -454,7 +453,9 @@ void BulkDataTransferServer::HandleSendInitRequest(ExchangeContext *ec, const IP
     printf("File being saved to: %s\n", destination_filename);
     xfer->FD = open(destination_filename, O_CREAT | O_WRONLY, S_IRUSR | S_IWUSR);
     free(destination_filename);
+    destination_filename = NULL;
     free(filename_buf);
+    filename_buf = NULL;
 
     if (xfer->FD == -1)
     {
@@ -490,6 +491,18 @@ void BulkDataTransferServer::HandleSendInitRequest(ExchangeContext *ec, const IP
     return;
 
 handle_send_init_request_failed:
+
+    if (filename_buf)
+    {
+        free(filename_buf);
+        filename_buf = NULL;
+    }
+
+    if (destination_filename)
+    {
+        free(destination_filename);
+        destination_filename = NULL;
+    }
 
     printf("BDX HandleSendInitRequest exiting (failure)\n");
 
