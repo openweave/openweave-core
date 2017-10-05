@@ -595,15 +595,9 @@ WEAVE_ERROR ExchangeContext::SendMessage(uint32_t profileId, uint8_t msgType, Pa
 exit:
     if (sendCalled)
     {
-#if defined(DEBUG)
         WeaveLogRetain(ExchangeManager, "Msg %s %08" PRIX32 ":%d %d %016" PRIX64 " %04" PRIX16 " %04" PRIX16 " %ld MsgId:%08" PRIX32,
                        "sent", profileId, msgType, (int)payloadLen, msgInfo->DestNodeId,
                        (Con ? Con->LogId() : 0), ExchangeId, (long)err, msgInfo->MessageId);
-#else
-        WeaveLogRetain(ExchangeManager, "Msg %s %08" PRIX32 ":%d %d %016" PRIX64 " %04" PRIX16 " %04" PRIX16" %ld",
-                       "sent", profileId, msgType, (int)payloadLen, msgInfo->DestNodeId,
-                       (Con ? Con->LogId() : 0), ExchangeId, (long)err);
-#endif
     }
     if (err != WEAVE_NO_ERROR && IsResponseExpected())
     {

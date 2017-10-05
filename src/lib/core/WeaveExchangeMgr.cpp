@@ -657,16 +657,10 @@ void WeaveExchangeManager::DispatchMessage(WeaveMessageInfo *msgInfo, PacketBuff
 
     msgCon = msgInfo->InCon;
 
-#if defined(DEBUG)
     WeaveLogRetain(ExchangeManager, "Msg %s %08" PRIX32 ":%d %d %016" PRIX64 " %04" PRIX16 " %04" PRIX16 " %ld MsgId:%08" PRIX32,
                    "rcvd", exchangeHeader.ProfileId, exchangeHeader.MessageType,
                    (int)msgBuf->DataLength(), msgInfo->SourceNodeId, msgCon->LogId(), exchangeHeader.ExchangeId,
                    (long)err, msgInfo->MessageId);
-#else
-    WeaveLogRetain(ExchangeManager, "Msg %s %08" PRIX32 ":%d %d %016" PRIX64 " %04" PRIX16 " %04" PRIX16 " %ld",
-                   "rcvd", exchangeHeader.ProfileId, exchangeHeader.MessageType,
-                   (int)msgBuf->DataLength(), msgInfo->SourceNodeId, msgCon->LogId(), exchangeHeader.ExchangeId, (long)err);
-#endif
 
 #if WEAVE_CONFIG_USE_APP_GROUP_KEYS_FOR_MSG_ENC
     isMsgCounterSyncResp = exchangeHeader.ProfileId == nl::Weave::Profiles::kWeaveProfile_Security &&
