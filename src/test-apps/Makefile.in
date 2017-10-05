@@ -157,7 +157,9 @@ target_triplet = @target@
 @WEAVE_BUILD_TESTS_TRUE@	TestInetTimer$(EXEEXT) \
 @WEAVE_BUILD_TESTS_TRUE@	TestKeyExport$(EXEEXT) \
 @WEAVE_BUILD_TESTS_TRUE@	TestKeyIds$(EXEEXT) \
-@WEAVE_BUILD_TESTS_TRUE@	TestMsgEnc$(EXEEXT) TestPASE$(EXEEXT) \
+@WEAVE_BUILD_TESTS_TRUE@	TestMsgEnc$(EXEEXT) \
+@WEAVE_BUILD_TESTS_TRUE@	TestNetworkInfo$(EXEEXT) \
+@WEAVE_BUILD_TESTS_TRUE@	TestPASE$(EXEEXT) \
 @WEAVE_BUILD_TESTS_TRUE@	TestPacketBuffer$(EXEEXT) \
 @WEAVE_BUILD_TESTS_TRUE@	TestPasscodeEnc$(EXEEXT) \
 @WEAVE_BUILD_TESTS_TRUE@	TestPersistedCounter$(EXEEXT) \
@@ -650,7 +652,9 @@ am__installdirs = "$(DESTDIR)$(libexecdir)"
 @WEAVE_BUILD_TESTS_TRUE@	TestInetTimer$(EXEEXT) \
 @WEAVE_BUILD_TESTS_TRUE@	TestKeyExport$(EXEEXT) \
 @WEAVE_BUILD_TESTS_TRUE@	TestKeyIds$(EXEEXT) \
-@WEAVE_BUILD_TESTS_TRUE@	TestMsgEnc$(EXEEXT) TestPASE$(EXEEXT) \
+@WEAVE_BUILD_TESTS_TRUE@	TestMsgEnc$(EXEEXT) \
+@WEAVE_BUILD_TESTS_TRUE@	TestNetworkInfo$(EXEEXT) \
+@WEAVE_BUILD_TESTS_TRUE@	TestPASE$(EXEEXT) \
 @WEAVE_BUILD_TESTS_TRUE@	TestPacketBuffer$(EXEEXT) \
 @WEAVE_BUILD_TESTS_TRUE@	TestPasscodeEnc$(EXEEXT) \
 @WEAVE_BUILD_TESTS_TRUE@	TestProfileStringSupport$(EXEEXT) \
@@ -984,6 +988,18 @@ TestMsgEnc_OBJECTS = $(am_TestMsgEnc_OBJECTS)
 TestMsgEnc_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) \
 	$(LIBTOOLFLAGS) --mode=link $(CXXLD) $(AM_CXXFLAGS) \
 	$(CXXFLAGS) $(TestMsgEnc_LDFLAGS) $(LDFLAGS) -o $@
+am__TestNetworkInfo_SOURCES_DIST = TestNetworkInfo.cpp
+@WEAVE_BUILD_TESTS_TRUE@am_TestNetworkInfo_OBJECTS =  \
+@WEAVE_BUILD_TESTS_TRUE@	TestNetworkInfo.$(OBJEXT)
+TestNetworkInfo_OBJECTS = $(am_TestNetworkInfo_OBJECTS)
+@WEAVE_BUILD_TESTS_TRUE@TestNetworkInfo_DEPENDENCIES =  \
+@WEAVE_BUILD_TESTS_TRUE@	libWeaveTestCommon.a \
+@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_6) \
+@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_7)
+TestNetworkInfo_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
+	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CXXLD) \
+	$(AM_CXXFLAGS) $(CXXFLAGS) $(TestNetworkInfo_LDFLAGS) \
+	$(LDFLAGS) -o $@
 am__TestPASE_SOURCES_DIST = TestPASE.cpp
 @WEAVE_BUILD_TESTS_TRUE@am_TestPASE_OBJECTS = TestPASE.$(OBJEXT)
 TestPASE_OBJECTS = $(am_TestPASE_OBJECTS)
@@ -1669,9 +1685,10 @@ SOURCES = $(libMockBleApplicationDelegate_a_SOURCES) \
 	$(TestInetBuffer_SOURCES) $(TestInetEndPoint_SOURCES) \
 	$(TestInetLayer_SOURCES) $(TestInetTimer_SOURCES) \
 	$(TestKeyExport_SOURCES) $(TestKeyIds_SOURCES) \
-	$(TestMsgEnc_SOURCES) $(TestPASE_SOURCES) \
-	$(TestPacketBuffer_SOURCES) $(TestPairingCodeUtils_SOURCES) \
-	$(TestPasscodeEnc_SOURCES) $(TestPersistedCounter_SOURCES) \
+	$(TestMsgEnc_SOURCES) $(TestNetworkInfo_SOURCES) \
+	$(TestPASE_SOURCES) $(TestPacketBuffer_SOURCES) \
+	$(TestPairingCodeUtils_SOURCES) $(TestPasscodeEnc_SOURCES) \
+	$(TestPersistedCounter_SOURCES) \
 	$(TestPersistedStorage_SOURCES) \
 	$(TestProfileStringSupport_SOURCES) $(TestProvHash_SOURCES) \
 	$(TestRADaemon_SOURCES) $(TestRetainedPacketBuffer_SOURCES) \
@@ -1725,6 +1742,7 @@ DIST_SOURCES = $(am__libMockBleApplicationDelegate_a_SOURCES_DIST) \
 	$(am__TestInetTimer_SOURCES_DIST) \
 	$(am__TestKeyExport_SOURCES_DIST) \
 	$(am__TestKeyIds_SOURCES_DIST) $(am__TestMsgEnc_SOURCES_DIST) \
+	$(am__TestNetworkInfo_SOURCES_DIST) \
 	$(am__TestPASE_SOURCES_DIST) \
 	$(am__TestPacketBuffer_SOURCES_DIST) \
 	$(am__TestPairingCodeUtils_SOURCES_DIST) \
@@ -2760,8 +2778,8 @@ EXTRA_DIST = \
 @WEAVE_BUILD_TESTS_TRUE@	TestInetAddress TestInetBuffer \
 @WEAVE_BUILD_TESTS_TRUE@	TestInetEndPoint TestInetTimer \
 @WEAVE_BUILD_TESTS_TRUE@	TestKeyExport TestKeyIds TestMsgEnc \
-@WEAVE_BUILD_TESTS_TRUE@	TestPASE TestPacketBuffer \
-@WEAVE_BUILD_TESTS_TRUE@	TestPasscodeEnc \
+@WEAVE_BUILD_TESTS_TRUE@	TestNetworkInfo TestPASE \
+@WEAVE_BUILD_TESTS_TRUE@	TestPacketBuffer TestPasscodeEnc \
 @WEAVE_BUILD_TESTS_TRUE@	TestProfileStringSupport TestProvHash \
 @WEAVE_BUILD_TESTS_TRUE@	TestRetainedPacketBuffer \
 @WEAVE_BUILD_TESTS_TRUE@	TestSerialNumUtils TestSystemObject \
@@ -2936,6 +2954,9 @@ EXTRA_DIST = \
 @WEAVE_BUILD_TESTS_TRUE@TestMsgEnc_SOURCES = TestMsgEnc.cpp
 @WEAVE_BUILD_TESTS_TRUE@TestMsgEnc_LDFLAGS = $(AM_CPPFLAGS)
 @WEAVE_BUILD_TESTS_TRUE@TestMsgEnc_LDADD = libWeaveTestCommon.a $(COMMON_LDADD) $(TEST_PLATFORM_LDADD)
+@WEAVE_BUILD_TESTS_TRUE@TestNetworkInfo_SOURCES = TestNetworkInfo.cpp
+@WEAVE_BUILD_TESTS_TRUE@TestNetworkInfo_LDFLAGS = $(AM_CPPFLAGS)
+@WEAVE_BUILD_TESTS_TRUE@TestNetworkInfo_LDADD = libWeaveTestCommon.a $(COMMON_LDADD) $(TEST_PLATFORM_LDADD)
 @WEAVE_BUILD_TESTS_TRUE@TestPASE_SOURCES = TestPASE.cpp
 @WEAVE_BUILD_TESTS_TRUE@TestPASE_LDFLAGS = $(AM_CPPFLAGS)
 @WEAVE_BUILD_TESTS_TRUE@TestPASE_LDADD = libWeaveTestCommon.a $(COMMON_LDADD) $(TEST_PLATFORM_LDADD)
@@ -3456,6 +3477,10 @@ TestMsgEnc$(EXEEXT): $(TestMsgEnc_OBJECTS) $(TestMsgEnc_DEPENDENCIES) $(EXTRA_Te
 	@rm -f TestMsgEnc$(EXEEXT)
 	$(AM_V_CXXLD)$(TestMsgEnc_LINK) $(TestMsgEnc_OBJECTS) $(TestMsgEnc_LDADD) $(LIBS)
 
+TestNetworkInfo$(EXEEXT): $(TestNetworkInfo_OBJECTS) $(TestNetworkInfo_DEPENDENCIES) $(EXTRA_TestNetworkInfo_DEPENDENCIES) 
+	@rm -f TestNetworkInfo$(EXEEXT)
+	$(AM_V_CXXLD)$(TestNetworkInfo_LINK) $(TestNetworkInfo_OBJECTS) $(TestNetworkInfo_LDADD) $(LIBS)
+
 TestPASE$(EXEEXT): $(TestPASE_OBJECTS) $(TestPASE_DEPENDENCIES) $(EXTRA_TestPASE_DEPENDENCIES) 
 	@rm -f TestPASE$(EXEEXT)
 	$(AM_V_CXXLD)$(TestPASE_LINK) $(TestPASE_OBJECTS) $(TestPASE_LDADD) $(LIBS)
@@ -3801,6 +3826,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/TestKeyExport.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/TestKeyIds.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/TestMsgEnc.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/TestNetworkInfo.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/TestPASE.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/TestPacketBuffer.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/TestPairingCodeUtils.Po@am__quote@
@@ -5481,6 +5507,13 @@ TestKeyIds.log: TestKeyIds$(EXEEXT)
 TestMsgEnc.log: TestMsgEnc$(EXEEXT)
 	@p='TestMsgEnc$(EXEEXT)'; \
 	b='TestMsgEnc'; \
+	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
+	--log-file $$b.log --trs-file $$b.trs \
+	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
+	"$$tst" $(AM_TESTS_FD_REDIRECT)
+TestNetworkInfo.log: TestNetworkInfo$(EXEEXT)
+	@p='TestNetworkInfo$(EXEEXT)'; \
+	b='TestNetworkInfo'; \
 	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
 	--log-file $$b.log --trs-file $$b.trs \
 	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
@@ -7550,11 +7583,11 @@ distclean-generic:
 maintainer-clean-generic:
 	@echo "This command is intended for maintainers to use"
 	@echo "it deletes files that may require special tools to rebuild."
-@WEAVE_BUILD_TESTS_FALSE@uninstall-local:
+@WEAVE_BUILD_TESTS_FALSE@install-exec-local:
 @WEAVE_BUILD_COVERAGE_FALSE@clean-local:
 @WEAVE_BUILD_COVERAGE_REPORTS_FALSE@clean-local:
 @WEAVE_BUILD_TESTS_FALSE@clean-local:
-@WEAVE_BUILD_TESTS_FALSE@install-exec-local:
+@WEAVE_BUILD_TESTS_FALSE@uninstall-local:
 clean: clean-am
 
 clean-am: clean-checkPROGRAMS clean-generic clean-libexecPROGRAMS \

@@ -281,6 +281,7 @@ check_PROGRAMS                                 = \
     TestKeyExport                                \
     TestKeyIds                                   \
     TestMsgEnc                                   \
+    TestNetworkInfo                              \
     TestPASE                                     \
     TestPacketBuffer                             \
     TestPasscodeEnc                              \
@@ -373,6 +374,7 @@ local_test_programs                            = \
     TestKeyExport                                \
     TestKeyIds                                   \
     TestMsgEnc                                   \
+    TestNetworkInfo                              \
     TestPASE                                     \
     TestPacketBuffer                             \
     TestPasscodeEnc                              \
@@ -1142,6 +1144,10 @@ TestKeyIds_LDADD                         = libWeaveTestCommon.a $(COMMON_LDADD) 
 TestMsgEnc_SOURCES                       = TestMsgEnc.cpp
 TestMsgEnc_LDFLAGS                       = $(AM_CPPFLAGS)
 TestMsgEnc_LDADD                         = libWeaveTestCommon.a $(COMMON_LDADD) $(TEST_PLATFORM_LDADD)
+
+TestNetworkInfo_SOURCES                  = TestNetworkInfo.cpp
+TestNetworkInfo_LDFLAGS                  = $(AM_CPPFLAGS)
+TestNetworkInfo_LDADD                    = libWeaveTestCommon.a $(COMMON_LDADD) $(TEST_PLATFORM_LDADD)
 
 TestPASE_SOURCES                         = TestPASE.cpp
 TestPASE_LDFLAGS                         = $(AM_CPPFLAGS)
