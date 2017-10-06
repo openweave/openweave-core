@@ -412,6 +412,15 @@ public:
      * @return  The constructed IP address.
      */
     static IPAddress FromLwIPAddr(const ip_addr_t &addr);
+
+    /**
+     * @brief   Convert the INET layer address type to its underlying LwIP type.
+     *
+     * @details
+     *  Use <tt>ToLwIPAddrType(IPAddressType)</tt> to convert the IP address type
+     *  to its underlying LwIP address type code. (LWIP_VERSION_MAJOR > 1 only).
+     */
+    static lwip_ip_addr_type ToLwIPAddrType(IPAddressType);
 #endif // LWIP_VERSION_MAJOR > 1
 
     ip6_addr_t ToIPv6(void) const;

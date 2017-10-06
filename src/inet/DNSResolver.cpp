@@ -31,8 +31,13 @@
 #include <string.h>
 
 #if WEAVE_SYSTEM_CONFIG_USE_LWIP
+#include <lwip/init.h>
 #include <lwip/dns.h>
 #include <lwip/tcpip.h>
+
+#if LWIP_VERSION_MAJOR < 2
+#define LWIP_DNS_FOUND_CALLBACK_TYPE    dns_found_callback
+#endif // LWIP_VERSION_MAJOR < 2
 #endif // WEAVE_SYSTEM_CONFIG_USE_LWIP
 
 #if WEAVE_SYSTEM_CONFIG_USE_SOCKETS
@@ -113,8 +118,8 @@ INET_ERROR DNSResolver::Resolve(const char *hostName, uint16_t hostNameLen, uint
     LOCK_TCPIP_CORE();
 
     ip_addr_t lwipAddrArray[INET_CONFIG_MAX_DNS_ADDRS];
-
-    err_t lwipErr = dns_gethostbyname(hostNameBuf, lwipAddrArray, LwIPHandleResolveComplete, this);
+    LWIP_DNS_FOUND_CALLBACK_TYPE lwipCallback = reinterpret_cast<LWIP_DNS_FOUND_CALLBACK_TYPE>(LwIPHandleResolveComplete);
+    err_t lwipErr = dns_gethostbyname(hostNameBuf, lwipAddrArray, lwipCallback, this);
 
     // Unlock LwIP stack
     UNLOCK_TCPIP_CORE();

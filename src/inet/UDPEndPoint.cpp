@@ -93,6 +93,8 @@ INET_ERROR UDPEndPoint::Bind(IPAddressType addrType, IPAddress addr, uint16_t po
     {
 #if LWIP_VERSION_MAJOR > 1
         ip_addr_t ipAddr = addr.ToLwIPAddr();
+        lwip_ip_addr_type lType = IPAddress::ToLwIPAddrType(addrType);
+        IP_SET_TYPE_VAL(ipAddr, lType);
         res = Weave::System::MapErrorLwIP(udp_bind(mUDP, &ipAddr, port));
 #else // LWIP_VERSION_MAJOR <= 1
         if (addrType == kIPAddressType_IPv6)

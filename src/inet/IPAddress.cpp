@@ -119,6 +119,30 @@ IPAddress IPAddress::FromLwIPAddr(const ip_addr_t &addr)
 
     return ret;
 }
+
+lwip_ip_addr_type IPAddress::ToLwIPAddrType(IPAddressType typ)
+{
+    lwip_ip_addr_type ret;
+
+    switch (typ)
+    {
+#if INET_CONFIG_ENABLE_IPV4
+    case kIPAddressType_IPv4:
+        ret = IPADDR_TYPE_V4;
+        break;
+#endif // INET_CONFIG_ENABLE_IPV4
+
+    case kIPAddressType_IPv6:
+        ret = IPADDR_TYPE_V6;
+        break;
+
+    default:
+        ret = IPADDR_TYPE_ANY;
+        break;
+    }
+
+    return ret;
+}
 #endif // LWIP_VERSION_MAJOR > 1
 
 #if INET_CONFIG_ENABLE_IPV4
