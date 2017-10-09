@@ -27,6 +27,7 @@ import os
 import random
 import sys
 import time
+import datetime
 
 from happy.Utils import *
 from plugins.weave.Weave import Weave
@@ -36,6 +37,7 @@ import happy.HappyProcessStart
 import happy.HappyProcessStop
 import happy.HappyProcessStrace
 import happy.HappyProcessWait
+import happy.State
 
 gready_to_service_events_str = "Weave Node ready to service events"
 
@@ -81,7 +83,7 @@ class WeaveTest(Weave):
         stop_server.run()
 
 
-    def start_simple_weave_server(self, cmd_path, server_addr, node_id, tag, quiet = None, listen = True, strace = True, env = {}, 
+    def start_simple_weave_server(self, cmd_path, server_addr, node_id, tag, quiet = None, listen = True, strace = True, env = {},
                                   sync_on_output = gready_to_service_events_str, use_persistent_storage=True, reset_persistent_storage=True):
         cmd = cmd_path
 
@@ -170,6 +172,56 @@ class WeaveTest(Weave):
 
         wait_for_client = happy.HappyProcessWait.HappyProcessWait(options)
         wait_for_client.run()
+
+
+    def wait_for_test_time_secs(self, node_id, tag, secs = None):
+        emsg = "wait_for_test_time_secs for %d secs, tag %s " % (secs, tag)
+        self.logger.debug("[%s] WeaveTest: %s" % (node_id, emsg))
+
+        poll_interval_sec = 0.1
+        max_poll_time_sec = secs + 60
+        time_slept = 0
+
+        state = happy.State.State()
+        state.readState()
+        process = state.getNodeProcess(tag, node_id)
+        tail = open(process["out"], "r")
+        self.logger.debug("[%s] wait_for_test_time_secs: polling for output" % (self.node_id))
+
+        initial_timestamp = None
+
+        while (True):
+            line = tail.readline()
+            if not line:
+                time.sleep(poll_interval_sec)
+                time_slept += poll_interval_sec
+                if poll_interval_sec < 20:
+                    poll_interval_sec *= 2
+                if (time_slept > max_poll_time_sec):
+                    self.logger.debug("[%s] wait_for_test_time_secs: can't find a timestamp %d secs after %s" %
+                                      (self.node_id, secs, str(initial_timestamp)))
+                    self.exit()
+            else:
+                try:
+                    # Not every line begins with a timestamp; if they do, it look like this:
+                    # 2017-09-27 20:42:48-0700.402
+                    # Note that for the purpose of time deltas we don't care about the timezone,
+                    # so the first 19 chars are enough
+                    cur_timestamp = datetime.datetime.strptime(line[0:19],"%Y-%m-%d %H:%M:%S")
+                    if initial_timestamp is None:
+                        initial_timestamp = cur_timestamp
+                except Exception:
+                    # if this line does not start with a timestamp, continue
+                    continue
+                else:
+                    # read the timestamp and check
+                    delta = cur_timestamp - initial_timestamp
+                    #print "delta = " + str(delta.seconds)
+                    if delta.seconds >= secs:
+                        break
+
+        tail.close()
+        return
 
 
     def get_test_output(self, node_id, tag, quiet = False):

@@ -214,9 +214,12 @@ static OptionSet *gToolOptionSets[] =
     &gServiceDirClientOptions,
     &gFaultInjectionOptions,
     &gHelpOptions,
+    &gGeneralSecurityOptions,
     NULL
 };
 
+
+#if WEAVE_CONFIG_TEST
 static void ResetTestContext(void)
 {
     Done = false;
@@ -225,14 +228,18 @@ static void ResetTestContext(void)
     EchoRespCount = 0;
     SenderBusyRespCount = 0;
 }
+#endif // WEAVE_CONFIG_TEST
 
 int main(int argc, char *argv[])
 {
     WEAVE_ERROR err;
+#if WEAVE_CONFIG_TEST
     nl::Weave::System::Stats::Snapshot before;
     nl::Weave::System::Stats::Snapshot after;
     const bool printStats = true;
+    uint64_t lastListeningPrintTimeMs = 0;
     uint32_t iter;
+#endif
 
     InitToolCommon();
 
@@ -389,12 +396,38 @@ int main(int argc, char *argv[])
             if (!Listening && !Done)
                 DriveSending();
 
+#if WEAVE_CONFIG_TEST
+            if (Listening)
+            {
+                uint64_t nowMs = NowMs();
+
+                if (nowMs - lastListeningPrintTimeMs > gGeneralSecurityOptions.GetIdleSessionTimeout())
+                {
+                    // Print something to show progress to the harness.
+                    // The harness gives enough time to the listening node for the
+                    // idle session timer to expire twice and remove idle keys; the harness
+                    // needs the node to log something regularly to measure the
+                    // time elapsed by parsing the timestamps, since the tests can 
+                    // be run at faster than real time.
+                    // TODO (WEAV-2199) mark this log line as special
+                    WeaveLogProgress(Echo, "Listening...");
+                    lastListeningPrintTimeMs = nowMs;
+                }
+            }
+#endif
+
             fflush(stdout);
+        }
+
+#if WEAVE_CONFIG_TEST
+        if (!Listening && EchoCount == MaxEchoCount && EchoCount == EchoRespCount)
+        {
+            printf("The ping test was successful, no more iterations needed\n");
+            break;
         }
 
         ResetTestContext();
 
-#if WEAVE_CONFIG_TEST
         if (gSigusr1Received)
         {
             printf("Sigusr1Received\n");

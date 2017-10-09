@@ -101,13 +101,16 @@ class test_weave_echo_01(unittest.TestCase):
     def __process_result(self, nodeA, nodeB, value, data):
         print "ping from " + nodeA + " to " + nodeB + " ",
 
-        if value > 0:
-            print hred("Failed")
-        else:
+        passed = (value == 0 and not data["other_failure"])
+
+        if passed:
             print hgreen("Passed")
+        else:
+            print hred("Failed")
 
         try:
             self.assertTrue(value == 0, "%s > 0 %%" % (str(value)))
+            self.assertTrue(not data["other_failure"], "Other failure detected (leak or parser error)")
         except AssertionError, e:
             print str(e)
             print "Captured experiment result:"

@@ -289,7 +289,7 @@ class WeaveSecurityPing(HappyNode, HappyNetwork, WeaveTest):
                 print hred("%d%% packet loss" % (loss_percentage))
 
         return (loss_percentage, output) # indicate the loss for each client
-    
+
     def __start_plaid_server(self):
 
         self.plaid.startPlaidServerProcess()
@@ -305,7 +305,7 @@ class WeaveSecurityPing(HappyNode, HappyNetwork, WeaveTest):
         if not cmd:
             return
 
-        cmd += " --debug-resource-usage --print-fault-counters"
+        cmd += " --debug-resource-usage --print-fault-counters --idle-session-timeout 15000 --session-establishment-timeout 5000"
 
         if self.tcp:
             cmd += " --tcp"
@@ -342,7 +342,7 @@ class WeaveSecurityPing(HappyNode, HappyNetwork, WeaveTest):
         if not cmd:
             return
 
-        cmd += " --debug-resource-usage --print-fault-counters"
+        cmd += " --debug-resource-usage --print-fault-counters --session-establishment-timeout 5000"
 
         if self.tcp:
             cmd += " --tcp"
@@ -396,6 +396,11 @@ class WeaveSecurityPing(HappyNode, HappyNetwork, WeaveTest):
     def __stop_server_side(self):
         if self.no_service:
             return
+
+        if (self.udp or self.wrmp) and (self.case):
+            # Give enough time to the server to expire the session key at the end of the test.
+            # the idle session timer is configured to 15 seconds; it has to fire twice to free the idle key.
+            self.wait_for_test_time_secs(self.server_node_id, self.server_process_tag, secs=40)
 
         self.stop_weave_process(self.server_node_id, self.server_process_tag)
 
