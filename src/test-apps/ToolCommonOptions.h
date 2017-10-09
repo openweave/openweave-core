@@ -80,6 +80,8 @@ enum
     kToolCommonOpt_SecurityPASE,
     kToolCommonOpt_SecurityGroupEnc,
     kToolCommonOpt_SecurityTAKE,
+    kToolCommonOpt_GeneralSecurityIdleSessionTimeout,
+    kToolCommonOpt_GeneralSecuritySessionEstablishmentTimeout,
 };
 
 
@@ -201,6 +203,26 @@ private:
 };
 
 extern GroupKeyEncOptions gGroupKeyEncOptions;
+
+/**
+ * Handler for options that control the configuration of security related parameters
+ */
+class GeneralSecurityOptions : public OptionSetBase
+{
+public:
+    GeneralSecurityOptions();
+
+    uint32_t GetIdleSessionTimeout() const;
+    uint32_t GetSessionEstablishmentTimeout() const;
+
+    virtual bool HandleOption(const char *progName, OptionSet *optSet, int id, const char *name, const char *arg);
+
+private:
+    uint32_t IdleSessionTimeout;
+    uint32_t SessionEstablishmentTimeout;
+};
+
+extern GeneralSecurityOptions gGeneralSecurityOptions;
 
 
 /**

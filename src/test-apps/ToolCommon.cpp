@@ -1119,6 +1119,8 @@ void InitWeaveStack(bool listen, bool initExchangeMgr)
             printf("WeaveSecurityManager.Init failed: %s\n", ErrorStr(res));
             exit(EXIT_FAILURE);
         }
+        SecurityMgr.IdleSessionTimeout = gGeneralSecurityOptions.GetIdleSessionTimeout();
+        SecurityMgr.SessionEstablishTimeout = gGeneralSecurityOptions.GetSessionEstablishmentTimeout();
 
         if (gTAKEOptions.ForceReauth)
         {

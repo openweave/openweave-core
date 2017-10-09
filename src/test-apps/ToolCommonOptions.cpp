@@ -48,6 +48,7 @@ WeaveNodeOptions gWeaveNodeOptions;
 WeaveSecurityMode gWeaveSecurityMode;
 WRMPOptions gWRMPOptions;
 GroupKeyEncOptions gGroupKeyEncOptions;
+GeneralSecurityOptions gGeneralSecurityOptions;
 ServiceDirClientOptions gServiceDirClientOptions;
 FaultInjectionOptions gFaultInjectionOptions;
 
@@ -612,6 +613,70 @@ bool GroupKeyEncOptions::HandleOption(const char *progName, OptionSet *optSet, i
         break;
     }
 #endif // WEAVE_CONFIG_USE_APP_GROUP_KEYS_FOR_MSG_ENC
+    default:
+        PrintArgError("%s: INTERNAL ERROR: Unhandled option: %s\n", progName, name);
+        return false;
+    }
+
+    return true;
+}
+
+GeneralSecurityOptions::GeneralSecurityOptions()
+{
+    static OptionDef optionDefs[] =
+    {
+#if WEAVE_CONFIG_ENABLE_CASE_RESPONDER
+        { "idle-session-timeout",           kArgumentRequired, kToolCommonOpt_GeneralSecurityIdleSessionTimeout                },
+        { "session-establishment-timeout",  kArgumentRequired, kToolCommonOpt_GeneralSecuritySessionEstablishmentTimeout       },
+#endif
+        { NULL }
+    };
+    OptionDefs = optionDefs;
+
+    HelpGroupName = "GENERAL SECURITY OPTIONS";
+
+    OptionHelp =
+        "  --idle-session-timeout <int>\n"
+        "       The number of milliseconds after which an idle session will be removed.\n"
+        "\n"
+        "  --session-establishment-timeout <int>\n"
+        "       The number of milliseconds after which an in-progress session establishment will timeout.\n"
+        "\n"
+        "";
+
+    // Defaults.
+    IdleSessionTimeout = WEAVE_CONFIG_DEFAULT_SECURITY_SESSION_IDLE_TIMEOUT;
+    SessionEstablishmentTimeout = WEAVE_CONFIG_DEFAULT_SECURITY_SESSION_ESTABLISHMENT_TIMEOUT;
+}
+
+uint32_t GeneralSecurityOptions::GetIdleSessionTimeout() const
+{
+    return IdleSessionTimeout;
+}
+
+uint32_t GeneralSecurityOptions::GetSessionEstablishmentTimeout() const
+{
+    return SessionEstablishmentTimeout;
+}
+
+bool GeneralSecurityOptions::HandleOption(const char *progName, OptionSet *optSet, int id, const char *name, const char *arg)
+{
+    switch (id)
+    {
+    case kToolCommonOpt_GeneralSecurityIdleSessionTimeout:
+        if ((!ParseInt(arg, IdleSessionTimeout)) || IdleSessionTimeout == 0)
+        {
+            PrintArgError("%s: Invalid value specified for the idle session timeout: %s\n", progName, arg);
+            return false;
+        }
+        break;
+    case kToolCommonOpt_GeneralSecuritySessionEstablishmentTimeout:
+        if ((!ParseInt(arg, SessionEstablishmentTimeout)) || SessionEstablishmentTimeout == 0)
+        {
+            PrintArgError("%s: Invalid value specified for the session establishment timeout: %s\n", progName, arg);
+            return false;
+        }
+        break;
     default:
         PrintArgError("%s: INTERNAL ERROR: Unhandled option: %s\n", progName, name);
         return false;
