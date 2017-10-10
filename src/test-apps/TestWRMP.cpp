@@ -497,6 +497,7 @@ testStatus_t TestWRMPFlushedSolitaryAckReceipt(void)
     err = SendCustomMessage(WRMPClient.ExchangeCtx, kWeaveProfile_Test, kWeaveTestMessageType_No_Response, sendFlags, payloadBuf);
     if (err == WEAVE_NO_ERROR)
     {
+        PrepareNewBuf(&payloadBuf);
         err = SendCustomMessage(WRMPClient.ExchangeCtx, kWeaveProfile_Test, kWeaveTestMessageType_No_Response, sendFlags, payloadBuf);
         if (err != WEAVE_NO_ERROR)
         {
@@ -1017,6 +1018,7 @@ testStatus_t TestWRMPDuplicateMsgAcking(void)
                             payloadBuf);
     if (err == WEAVE_NO_ERROR)
     {
+        PrepareNewBuf(&payloadBuf);
         payloadBuf->SetStart(p);
         payloadBuf->SetDataLength(len);
         err = SendCustomMessage(WRMPClient.ExchangeCtx, kWeaveProfile_Test, kWeaveTestMessageType_No_Response,

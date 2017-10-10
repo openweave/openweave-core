@@ -582,6 +582,8 @@ void PacketBuffer::Free(PacketBuffer* aPacket)
     {
         PacketBuffer* lNextPacket = static_cast<PacketBuffer*>(aPacket->next);
 
+        VerifyOrDieWithMsg(aPacket->ref > 0, WeaveSystemLayer, "SystemPacketBuffer::Free: aPacket->ref = 0");
+
         aPacket->ref--;
         if (aPacket->ref == 0)
         {

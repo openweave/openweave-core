@@ -426,8 +426,8 @@ WEAVE_ERROR DropcamLegacyPairingServer::HandleCameraAuthDataRequest(ExchangeCont
 
     // Send MAC address and pairing data HMAC to client
     err = ec->SendMessage(kWeaveProfile_DropcamLegacyPairing, kMsgType_CameraAuthDataResponse, msgBuf, 0);
-    SuccessOrExit(err);
     msgBuf = NULL;
+    SuccessOrExit(err);
 
 exit:
     return err;

@@ -84,8 +84,8 @@ WEAVE_ERROR InitBdxReceive(BDXTransfer &aXfer, bool aICanDrive, bool aUCanDrive,
     flags = aXfer.GetDefaultFlags(true);
 
     err = aXfer.mExchangeContext->SendMessage(kWeaveProfile_BDX, kMsgType_ReceiveInit, buffer, flags);
-    SuccessOrExit(err);
     buffer = NULL;
+    SuccessOrExit(err);
 
 exit:
     if (buffer != NULL)
@@ -140,8 +140,8 @@ WEAVE_ERROR InitBdxSend(BDXTransfer &aXfer, bool aICanDrive, bool aUCanDrive,
     flags = aXfer.GetDefaultFlags(true);
 
     err = aXfer.mExchangeContext->SendMessage(kWeaveProfile_BDX, kMsgType_SendInit, buffer, flags);
-    SuccessOrExit(err);
     buffer = NULL;
+    SuccessOrExit(err);
 
 exit:
     if (buffer != NULL)
@@ -196,8 +196,8 @@ WEAVE_ERROR InitBdxSend(BDXTransfer &aXfer, bool aICanDrive, bool aUCanDrive,
     flags = aXfer.GetDefaultFlags(true);
 
     err = aXfer.mExchangeContext->SendMessage(kWeaveProfile_BDX, kMsgType_SendInit, buffer, flags);
-    SuccessOrExit(err);
     buffer = NULL;
+    SuccessOrExit(err);
 
 exit:
     if (buffer != NULL)

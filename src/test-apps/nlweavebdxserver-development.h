@@ -94,7 +94,6 @@ private:
         uint8_t mTransferMode;
         //TODO: bool mAckRcvd; ???
         uint16_t mMaxBlockSize;
-        PacketBuffer *BlockBuffer;
         bool CompletedSuccessfully;
         //TODO: int mSendFlags; ????
     } BDXTransfer;

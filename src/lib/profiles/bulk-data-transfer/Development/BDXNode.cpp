@@ -967,10 +967,12 @@ WEAVE_ERROR BdxNode::SendReject(ExchangeContext *anEc, uint8_t aVersion, uint16_
     if (aVersion == 0)
     {
         err = anEc->SendMessage(kWeaveProfile_BDX, aMsgType, responsePayload, flags);
+        responsePayload = NULL;
     }
     else if (aVersion == 1)
     {
         err = anEc->SendMessage(kWeaveProfile_Common, Common::kMsgType_StatusReport, responsePayload, flags);
+        responsePayload = NULL;
     }
     else
     {
@@ -979,8 +981,6 @@ WEAVE_ERROR BdxNode::SendReject(ExchangeContext *anEc, uint8_t aVersion, uint16_
 
     VerifyOrExit(err == WEAVE_NO_ERROR,
                  WeaveLogDetail(BDX, "SendReject error sending reject message: %d", err));
-
-    responsePayload = NULL;
 
 exit:
     if (responsePayload)

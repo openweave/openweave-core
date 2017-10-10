@@ -81,8 +81,6 @@ void WeaveEchoServer::HandleEchoRequest(ExchangeContext *ec, const IPPacketInfo 
     // Send an Echo Response back to the sender.
     ec->SendMessage(kWeaveProfile_Echo, kEchoMessageType_EchoResponse, payload);
 
-    // TODO: fix bug that results in payload not being freed.
-
     // Discard the exchange context.
     ec->Close();
 }

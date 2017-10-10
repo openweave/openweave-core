@@ -208,14 +208,6 @@ void BulkDataTransferServer::ShutdownTransfer(BDXTransfer *xfer)
         xfer->EC = NULL;
     }
 
-    // Free pbuf
-    if (xfer->BlockBuffer)
-    {
-        Log(kLogModule_BDX, kLogCategory_Detail, "3 BDX ShutdownTransfer closing BlockBuffer\n");
-        PacketBuffer::Free(xfer->BlockBuffer);
-        xfer->BlockBuffer = NULL;
-    }
-
     // Close file
     if (xfer->FD)
     {
@@ -594,6 +586,7 @@ void BulkDataTransferServer::HandleBlockQueryRequest(ExchangeContext *ec, const 
 
     BDXTransfer *xfer = (BDXTransfer* ) ec->AppState;
     BulkDataTransferServer *bdxApp = xfer->BdxApp;
+    PacketBuffer *responseBuf = NULL;
 
     // Free unused query payload.
     PacketBuffer::Free(payloadBlockQuery);
@@ -607,7 +600,7 @@ void BulkDataTransferServer::HandleBlockQueryRequest(ExchangeContext *ec, const 
     }
 
     //FIXME: should this be freed?  Or is setting to NULL good enough?
-    if ((xfer->BlockBuffer = PacketBuffer::New()) == NULL)
+    if ((responseBuf = PacketBuffer::New()) == NULL)
     {
         Log(kLogModule_BDX, kLogCategory_Error, "2 BDX HandleBlockQueryRequest (PacketBuffer alloc failed)\n");
         SendTransferError(ec, kWeaveProfile_Common, kStatus_InternalServerProblem);
@@ -616,9 +609,9 @@ void BulkDataTransferServer::HandleBlockQueryRequest(ExchangeContext *ec, const 
 
     Log(kLogModule_BDX, kLogCategory_Detail, "3 BDX HandleBlockQueryRequest");
 
-    block = (char *) xfer->BlockBuffer->Start();
+    block = (char *) responseBuf->Start();
     len = read_data(block, 1, xfer->mMaxBlockSize, xfer->FD);
-    xfer->BlockBuffer->SetDataLength((uint16_t) len);
+    responseBuf->SetDataLength((uint16_t) len);
 
     // EOF case first
     // TODO: we don't actually pack the payload using BlockSend/EOF objects
@@ -631,14 +624,14 @@ void BulkDataTransferServer::HandleBlockQueryRequest(ExchangeContext *ec, const 
         ec->OnMessageReceived = HandleBlockEOFAck;
 
         // Send a BlockEOF Response back to the sender.
-        ret = ec->SendMessage(kWeaveProfile_BDX, kMsgType_BlockEOF, xfer->BlockBuffer, ExchangeContext::kSendFlag_ExpectResponse);
+        ret = ec->SendMessage(kWeaveProfile_BDX, kMsgType_BlockEOF, responseBuf, ExchangeContext::kSendFlag_ExpectResponse);
+        responseBuf = NULL;
         if (ret != WEAVE_NO_ERROR)
         {
             Log(kLogModule_BDX, kLogCategory_Error, "7 BDX HandleBlockQueryRequest\n");
             goto exit;
         }
 
-        xfer->BlockBuffer = NULL;
     }
     else if (len > 0)
     {
@@ -648,14 +641,14 @@ void BulkDataTransferServer::HandleBlockQueryRequest(ExchangeContext *ec, const 
         ec->OnMessageReceived = HandleBlockQueryRequest;
 
         // Send a BlockSend Response back to the sender.
-        ret = ec->SendMessage(kWeaveProfile_BDX, kMsgType_BlockSend, xfer->BlockBuffer, ExchangeContext::kSendFlag_ExpectResponse);
+        ret = ec->SendMessage(kWeaveProfile_BDX, kMsgType_BlockSend, responseBuf, ExchangeContext::kSendFlag_ExpectResponse);
+        responseBuf = NULL;
         if (ret != WEAVE_NO_ERROR)
         {
             Log(kLogModule_BDX, kLogCategory_Detail, "5 BDX HandleBlockQueryRequest (SendMessage failed, err=%d)\n", ret);
             goto exit;
         }
 
-        xfer->BlockBuffer = NULL;
     }
     else
     {
@@ -671,6 +664,11 @@ void BulkDataTransferServer::HandleBlockQueryRequest(ExchangeContext *ec, const 
 exit:
     Log(kLogModule_BDX, kLogCategory_Error, "10 BDX HandleBlockQueryRequest exiting (failure)\n");
     bdxApp->ShutdownTransfer(xfer);
+    if (responseBuf)
+    {
+        PacketBuffer::Free(responseBuf);
+        responseBuf = NULL;
+    }
 }
 
 void BulkDataTransferServer::HandleBlockSend(ExchangeContext *ec, const IPPacketInfo *packetInfo, const WeaveMessageInfo *msgInfo, uint32_t profileId, uint8_t msgType, PacketBuffer *payload)
@@ -723,12 +721,14 @@ void BulkDataTransferServer::HandleBlockSend(ExchangeContext *ec, const IPPacket
         //TODO: deal with the block counter not being sent optionally
         blockEOFAck.init(blockSend.mBlockCounter-1); //final ack uses same block-counter of last block-query request
         PacketBuffer* blockEOFAckPayload = PacketBuffer::New();
+        VerifyOrExit(blockEOFAckPayload != NULL,
+                     Log(kLogModule_BDX, kLogCategory_Error, "Error: HandleBlockSend: no memory"));
         blockEOFAck.pack(blockEOFAckPayload);
 
         err = ec->SendMessage(kWeaveProfile_BDX, kMsgType_BlockEOFAck, blockEOFAckPayload);
+        blockEOFAckPayload = NULL;
         VerifyOrExit(err == WEAVE_NO_ERROR,
                      Log(kLogModule_BDX, kLogCategory_Error, "Error: HandleBlockSend: Failed to send message: err=%d", err));
-        blockEOFAckPayload = NULL;
 
         xfer->BdxApp->ShutdownTransfer(xfer);
     }
@@ -740,12 +740,14 @@ void BulkDataTransferServer::HandleBlockSend(ExchangeContext *ec, const IPPacket
         BlockAck blockAck;
         blockAck.init(blockSend.mBlockCounter);
         PacketBuffer* blockAckPayload = PacketBuffer::New();
+        VerifyOrExit(blockAckPayload != NULL,
+                     Log(kLogModule_BDX, kLogCategory_Error, "Error: HandleBlockSend: no memory"));
         blockAck.pack(blockAckPayload);
 
         err = ec->SendMessage(kWeaveProfile_BDX, kMsgType_BlockAck, blockAckPayload);
+        blockAckPayload = NULL;
         VerifyOrExit(err == WEAVE_NO_ERROR,
                      Log(kLogModule_BDX, kLogCategory_Error, "Error: HandleBlockSend: Failed to send message: err=%d", err));
-        blockAckPayload = NULL;
     }
 
 exit:

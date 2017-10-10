@@ -250,8 +250,8 @@ void FabricProvisioningServer::HandleClientRequest(ExchangeContext *ec, const IP
 
         // Send the get fabric config response.
         err = server->mCurClientOp->SendMessage(kWeaveProfile_FabricProvisioning, kMsgType_GetFabricConfigComplete, msgBuf, 0);
-        SuccessOrExit(err);
         msgBuf = NULL;
+        SuccessOrExit(err);
 
         server->mCurClientOp->Close();
         server->mCurClientOp = NULL;

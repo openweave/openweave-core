@@ -74,7 +74,6 @@ private:
         ExchangeContext *EC;
         int FD;
         uint16_t MaxBlockSize;
-        PacketBuffer *BlockBuffer;
         bool CompletedSuccessfully;
     } BDXTransfer;
     BDXTransfer mTransferPool[MAX_NUM_BDX_TRANSFERS];

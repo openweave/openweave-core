@@ -374,6 +374,7 @@ static void TestInetEndPoint(nlTestSuite *inSuite, void *inContext)
     // TcpEndPoint special cases to cover the error branch
     err = testTCPEP1->GetPeerInfo(NULL, NULL);
     NL_TEST_ASSERT(inSuite, err == INET_ERROR_INCORRECT_STATE);
+    buf = PacketBuffer::New();
     err = testTCPEP1->Send(buf, NULL);
     NL_TEST_ASSERT(inSuite, err == INET_ERROR_INCORRECT_STATE);
     err = testTCPEP1->EnableKeepAlive(10, 100);

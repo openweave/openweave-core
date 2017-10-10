@@ -945,6 +945,7 @@ void WeaveServiceManager::onConnectionComplete(WEAVE_ERROR aError)
                                         kMsgType_ServiceEndpointQuery,
                                         buf,
                                         ExchangeContext::kSendFlag_ExpectResponse);
+    buf = NULL;
 
 exit:
 

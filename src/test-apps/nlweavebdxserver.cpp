@@ -173,14 +173,6 @@ void BulkDataTransferServer::ShutdownTransfer(BDXTransfer *xfer, bool closeCon)
         xfer->EC = NULL;
     }
 
-    // Free pbuf
-    if (xfer->BlockBuffer)
-    {
-        printf("3 BDX ShutdownTransfer closing BlockBuffer\n");
-        PacketBuffer::Free(xfer->BlockBuffer);
-        xfer->BlockBuffer = NULL;
-    }
-
     // Close file
     if (xfer->FD != -1)
     {
@@ -249,11 +241,11 @@ void BulkDataTransferServer::HandleReceiveInitRequest(ExchangeContext *ec, const
 
         receiveReject.pack(payload);
         ret = ec->SendMessage(kWeaveProfile_Common, kMsgType_ReceiveReject, payload);
+        payload = NULL;
         if (ret != WEAVE_NO_ERROR)
         {
             printf("3 BDX HandleReceiveInitRequest err=%d\n", ret);
         }
-        payload = NULL;
         goto handle_receive_init_request_failed;
 
     }
@@ -550,17 +542,18 @@ void BulkDataTransferServer::HandleBlockSend(ExchangeContext *ec, const IPPacket
     BlockSend blockSend;
     BDXTransfer *xfer = static_cast<BDXTransfer *>(ec->AppState);
     BulkDataTransferServer *bdxApp = xfer->BdxApp;
+    PacketBuffer* ackPayload = PacketBuffer::New();
 
     // Parse message data to get the block counter later
     err = BlockSend::parse(payload, blockSend);
     //NOTE: we skip over the block counter so it doesn't appear in the file
     len = write(xfer->FD, blockSend.theData + sizeof(blockSend.theBlockCounter),
                      blockSend.theLength - sizeof(blockSend.theBlockCounter));
-    nlREQUIRE_ACTION(len >= 0, handle_block_send_failed,
-                 printf("Error: HandleBlockSend: Unable to read image into block\n"));
-
     PacketBuffer::Free(payload);
     payload = NULL;
+
+    nlREQUIRE_ACTION(len >= 0, handle_block_send_failed,
+                 printf("Error: HandleBlockSend: Unable to read image into block\n"));
 
     // Always need to ACK a BlockEOF
     if (msgType == kMsgType_BlockEOF)
@@ -568,21 +561,20 @@ void BulkDataTransferServer::HandleBlockSend(ExchangeContext *ec, const IPPacket
         printf("Sending BlockEOFAck");
 
         BlockEOFAck blockEOFAck;
-        PacketBuffer* blockEOFAckPayload = PacketBuffer::New();
-        nlREQUIRE_ACTION(blockEOFAckPayload, handle_block_send_failed,
+        nlREQUIRE_ACTION(ackPayload, handle_block_send_failed,
                          err = WEAVE_ERROR_NO_MEMORY;
                          printf("Error: BDX HandleBlockSend: PacketBuffer alloc failed\n"));
 
         err = blockEOFAck.init(blockSend.theBlockCounter-1); //final ack uses same block-counter of last block-query request
         nlREQUIRE(err == WEAVE_NO_ERROR, handle_block_send_failed);
 
-        err = blockEOFAck.pack(blockEOFAckPayload);
+        err = blockEOFAck.pack(ackPayload);
         nlREQUIRE(err == WEAVE_NO_ERROR, handle_block_send_failed);
 
-        err = ec->SendMessage(kWeaveProfile_BDX, kMsgType_BlockEOFAck, blockEOFAckPayload);
+        err = ec->SendMessage(kWeaveProfile_BDX, kMsgType_BlockEOFAck, ackPayload);
+        ackPayload = NULL;
         nlREQUIRE(err == WEAVE_NO_ERROR, handle_block_send_failed);
 
-        blockEOFAckPayload = NULL;
         bdxApp->ShutdownTransfer(xfer, true);
     }
 
@@ -591,20 +583,19 @@ void BulkDataTransferServer::HandleBlockSend(ExchangeContext *ec, const IPPacket
         printf("Sending BlockAck\n");
 
         BlockAck blockAck;
-        PacketBuffer* blockAckPayload = PacketBuffer::New();
-        nlREQUIRE_ACTION(blockAckPayload, handle_block_send_failed,
+        nlREQUIRE_ACTION(ackPayload, handle_block_send_failed,
                          err = WEAVE_ERROR_NO_MEMORY;
                          printf("Error: BDX HandleBlockSend: PacketBuffer alloc failed\n"));
 
         err = blockAck.init(blockSend.theBlockCounter);
         nlREQUIRE(err == WEAVE_NO_ERROR, handle_block_send_failed);
 
-        err = blockAck.pack(blockAckPayload);
+        err = blockAck.pack(ackPayload);
         nlREQUIRE(err == WEAVE_NO_ERROR, handle_block_send_failed);
 
-        err = ec->SendMessage(kWeaveProfile_BDX, kMsgType_BlockAck, blockAckPayload);
+        err = ec->SendMessage(kWeaveProfile_BDX, kMsgType_BlockAck, ackPayload);
+        ackPayload = NULL;
         nlREQUIRE(err == WEAVE_NO_ERROR, handle_block_send_failed);
-        blockAckPayload = NULL;
     }
 
 handle_block_send_failed:
@@ -612,6 +603,12 @@ handle_block_send_failed:
     if (err != WEAVE_NO_ERROR)
     {
         bdxApp->ShutdownTransfer(xfer, true);
+    }
+
+    if (ackPayload != NULL)
+    {
+        PacketBuffer::Free(ackPayload);
+        ackPayload = NULL;
     }
 
     printf("HandleBlockSend exiting");
@@ -656,6 +653,7 @@ void BulkDataTransferServer::HandleBlockQueryRequest(ExchangeContext *ec, const 
     BlockQuery blockQuery;
     BDXTransfer *xfer = (BDXTransfer* ) ec->AppState;
     BulkDataTransferServer *bdxApp = xfer->BdxApp;
+    PacketBuffer *responseBuf = NULL;
 
     // Parse message data to get the block counter later
     BlockQuery::parse(payloadBlockQuery, blockQuery);
@@ -670,7 +668,7 @@ void BulkDataTransferServer::HandleBlockQueryRequest(ExchangeContext *ec, const 
         goto handle_block_query_request_failed;
     }
 
-    if ((xfer->BlockBuffer = PacketBuffer::New()) == NULL)
+    if ((responseBuf = PacketBuffer::New()) == NULL)
     {
         printf("2 BDX HandleBlockQueryRequest (PacketBuffer alloc failed)\n");
         SendTransferError(ec, kWeaveProfile_Common, kStatus_InternalServerProblem);
@@ -679,45 +677,45 @@ void BulkDataTransferServer::HandleBlockQueryRequest(ExchangeContext *ec, const 
 
     printf("3 BDX HandleBlockQueryRequest (xfer->FD: %d)\n", xfer->FD);
 
-    block = (char *) xfer->BlockBuffer->Start();
+    block = (char *) responseBuf->Start();
     *block = blockQuery.theBlockCounter;
     len = read_n(xfer->FD, block + 1, xfer->MaxBlockSize);
 
     if (len == xfer->MaxBlockSize)
     {
         printf("4 BDX HandleBlockQueryRequest (len = %d)\n", len);
-        xfer->BlockBuffer->SetDataLength((uint16_t) len + 1);
+        responseBuf->SetDataLength((uint16_t) len + 1);
 
         // Prepare to handle next BlockQueryRequest.
         ec->OnMessageReceived = HandleBlockQueryRequest;
 
         // Send a BlockSend Response back to the sender.
-        ret = ec->SendMessage(kWeaveProfile_BDX, kMsgType_BlockSend, xfer->BlockBuffer, ExchangeContext::kSendFlag_ExpectResponse);
+        ret = ec->SendMessage(kWeaveProfile_BDX, kMsgType_BlockSend, responseBuf, ExchangeContext::kSendFlag_ExpectResponse);
+        responseBuf = NULL;
         if (ret != WEAVE_NO_ERROR)
         {
             printf("5 BDX HandleBlockQueryRequest (SendMessage failed, err=%d)\n", ret);
             goto handle_block_query_request_failed;
         }
-        xfer->BlockBuffer = NULL;
     }
     else if ((len >= 0) && (len < xfer-> MaxBlockSize))
     {
         printf("6 BDX HandleBlockQueryRequest (len == 0)\n");
 
         // At EOF, so send empty payload.
-        xfer->BlockBuffer->SetDataLength((uint16_t) len + 1);
+        responseBuf->SetDataLength((uint16_t) len + 1);
 
         // Prepare to handle BlockEOF ACK.
         ec->OnMessageReceived = HandleBlockEOFAck;
 
         // Send a BlockEOF Response back to the sender.
-        ret = ec->SendMessage(kWeaveProfile_BDX, kMsgType_BlockEOF, xfer->BlockBuffer, ExchangeContext::kSendFlag_ExpectResponse);
+        ret = ec->SendMessage(kWeaveProfile_BDX, kMsgType_BlockEOF, responseBuf, ExchangeContext::kSendFlag_ExpectResponse);
+        responseBuf = NULL;
         if (ret != WEAVE_NO_ERROR)
         {
             printf("7 BDX HandleBlockQueryRequest\n");
             goto handle_block_query_request_failed;
         }
-        xfer->BlockBuffer = NULL;
     }
     else
     {
@@ -733,6 +731,12 @@ void BulkDataTransferServer::HandleBlockQueryRequest(ExchangeContext *ec, const 
 handle_block_query_request_failed:
     printf("10 BDX HandleBlockQueryRequest exiting (failure)\n");
     bdxApp->ShutdownTransfer(xfer, true);
+
+    if (responseBuf)
+    {
+        PacketBuffer::Free(responseBuf);
+        responseBuf = NULL;
+    }
 }
 
 void BulkDataTransferServer::HandleBlockEOFAck(ExchangeContext *ec, const IPPacketInfo *packetInfo,

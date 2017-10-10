@@ -1855,6 +1855,7 @@ void WeaveSecurityManager::HandleTAKESessionStart(ExchangeContext *ec, const IPP
     SuccessOrExit(err);
 
     err = ec->SendMessage(kWeaveProfile_Security, kMsgType_TAKEIdentifyTokenResponse, respMsgBuf);
+    respMsgBuf = NULL;
     SuccessOrExit(err);
 
     if (mTAKEEngine->IsEncryptAuthPhase())
@@ -1866,6 +1867,8 @@ void WeaveSecurityManager::HandleTAKESessionStart(ExchangeContext *ec, const IPP
 exit:
     if (msgBuf != NULL)
         PacketBuffer::Free(msgBuf);
+    if (respMsgBuf != NULL)
+        PacketBuffer::Free(respMsgBuf);
     if (err != WEAVE_NO_ERROR)
         HandleSessionError(err, NULL);
 }
