@@ -1067,15 +1067,27 @@ void SubscriptionHandler::HandleSubscriptionTerminated(WEAVE_ERROR aReason,
 {
     void * const appState = mAppState;
     EventCallback callbackFunc = mEventCallback;
+    uint64_t peerNodeId;
 
     WeaveLogDetail(DataManagement, "Handler[%u] [%5.5s] %s Ref(%d)",
         SubscriptionEngine::GetInstance()->GetHandlerId(this), GetStateStr(), __func__, mRefCount);
 
     _AddRef();
 
+    // Retain a copy of the NodeId before AbortSubscription wipes it. We'll then stuff it back into mNodeId
+    // momentarily so that the application can still observe that field on the ensuing up-call.
+    // After the up-call returns, we'll nuke it back to 0.
+    //
+    // NOTE: This is a quick fix that has the least impact to the behaviors in this file. There's a lot that
+    // leaves to be desired around AddRef/_Release and its interactions with AbortSubscription. As part of cleaning
+    // that up, we'll find a better approach for retaining peer node ID through the up-call.
+    peerNodeId = mPeerNodeId;
+
     // Flush most internal states, except for mRefCount and mCurrentState
     // move to kState_Aborted
     AbortSubscription();
+
+    mPeerNodeId = peerNodeId;
 
     // Make app layer callback in kState_Aborted
     // Note that mRefCount should still be more than 0 when we make this callback.
@@ -1110,6 +1122,8 @@ void SubscriptionHandler::HandleSubscriptionTerminated(WEAVE_ERROR aReason,
         WeaveLogDetail(DataManagement, "Handler[%u] [%5.5s] %s Ref(%d) app layer callback skipped",
             SubscriptionEngine::GetInstance()->GetHandlerId(this), GetStateStr(), __func__, mRefCount);
     }
+
+    mPeerNodeId = 0;
 
     _Release();
 }
