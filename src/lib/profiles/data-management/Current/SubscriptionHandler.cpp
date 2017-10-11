@@ -1080,7 +1080,7 @@ void SubscriptionHandler::HandleSubscriptionTerminated(WEAVE_ERROR aReason,
     //
     // NOTE: This is a quick fix that has the least impact to the behaviors in this file. There's a lot that
     // leaves to be desired around AddRef/_Release and its interactions with AbortSubscription. As part of cleaning
-    // that up, we'll find a better approach for retaining peer node ID through the up-call.
+    // that up, we'll find a better approach for retaining peer node ID through the up-call (see WEAV-2367).
     peerNodeId = mPeerNodeId;
 
     // Flush most internal states, except for mRefCount and mCurrentState
