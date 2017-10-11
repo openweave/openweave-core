@@ -121,6 +121,8 @@ WEAVE_ERROR WeaveTunnelConnectionMgr::Init(WeaveTunnelAgent *tunAgent,
 #endif // WEAVE_CONFIG_TUNNEL_LIVENESS_SUPPORTED
     }
 
+    mOnlineCheckInterval = WEAVE_CONFIG_TUNNELING_ONLINE_CHECK_FAST_FREQ_SECS;
+
 #if WEAVE_CONFIG_TUNNEL_TCP_KEEPALIVE_SUPPORTED
     mMaxNumProbes                     = WEAVE_CONFIG_TUNNEL_MAX_KEEPALIVE_PROBES;
 #endif // WEAVE_CONFIG_TUNNEL_TCP_KEEPALIVE_SUPPORTED
@@ -140,6 +142,8 @@ exit:
  */
 void WeaveTunnelConnectionMgr::Shutdown(void)
 {
+
+    StopOnlineCheck();
 
     // Close the Tunnel Control
 
@@ -380,6 +384,12 @@ void WeaveTunnelConnectionMgr::DecideOnReconnect(ReconnectParam &reconnParam)
         // Notify about Tunnel down or failover.
 
         mTunAgent->WeaveTunnelConnectionDown(this, reconnParam.mLastConnectError);
+
+        // Connection went down; Start network online check at the fast interval.
+
+        SetOnlineCheckIntervalFast(true);
+
+        StartOnlineCheck();
     }
     else
     {
@@ -597,6 +607,10 @@ void WeaveTunnelConnectionMgr::ServiceTunnelClose(WEAVE_ERROR err)
         // Set the WeaveTunnelAgent state to tunnel disabled so that we do not reconnect.
 
         mTunAgent->WeaveTunnelConnectionDown(this, err);
+
+        // Stop the online checker if running.
+
+        StopOnlineCheck();
     }
 
     // Reset the failed connection attempts in a row as tunnel is being disabled.
@@ -952,6 +966,83 @@ void WeaveTunnelConnectionMgr::RestartLivenessTimer(void)
     StartLivenessTimer();
 }
 #endif // WEAVE_CONFIG_TUNNEL_LIVENESS_SUPPORTED
+
+void WeaveTunnelConnectionMgr::OnlineCheckTimeout(System::Layer* aSystemLayer, void* aAppState, System::Error aError)
+{
+    WeaveTunnelConnectionMgr* tConnMgr = static_cast<WeaveTunnelConnectionMgr*>(aAppState);
+
+    WeaveLogDetail(WeaveTunnel, "Sending Online check probe for %s tunnel\n",
+                   tConnMgr->mTunType == kType_TunnelPrimary ? "primary" : "backup");
+
+    if (tConnMgr->mTunAgent->NetworkOnlineCheck)
+    {
+        tConnMgr->mTunAgent->NetworkOnlineCheck(tConnMgr->mTunType, tConnMgr->mTunAgent->mAppContext);
+    }
+
+    // Schedule the next online check.
+
+    tConnMgr->StartOnlineCheck();
+}
+
+void WeaveTunnelConnectionMgr::SetOnlineCheckIntervalFast(bool aProbeFast)
+{
+    mOnlineCheckInterval = aProbeFast ? WEAVE_CONFIG_TUNNELING_ONLINE_CHECK_FAST_FREQ_SECS :
+                                       (mTunType == kType_TunnelPrimary ? WEAVE_CONFIG_TUNNELING_ONLINE_CHECK_PRIMARY_SLOW_FREQ_SECS :
+                                                                          WEAVE_CONFIG_TUNNELING_ONLINE_CHECK_BACKUP_SLOW_FREQ_SECS);
+}
+
+void WeaveTunnelConnectionMgr::StartOnlineCheck(void)
+{
+    if (mTunAgent->NetworkOnlineCheck)
+    {
+        mTunAgent->mExchangeMgr->MessageLayer->SystemLayer->StartTimer(mOnlineCheckInterval * nl::Weave::System::kTimerFactor_milli_per_unit,
+                                                                       OnlineCheckTimeout, this);
+    }
+    else
+    {
+        WeaveLogError(WeaveTunnel, "Online check failure: Platform application has not registered the Online check handler.");
+    }
+}
+
+void WeaveTunnelConnectionMgr::StopOnlineCheck(void)
+{
+    mTunAgent->mExchangeMgr->MessageLayer->SystemLayer->CancelTimer(OnlineCheckTimeout, this);
+}
+
+void WeaveTunnelConnectionMgr::ReStartOnlineCheck(void)
+{
+    StopOnlineCheck();
+
+    StartOnlineCheck();
+}
+
+void WeaveTunnelConnectionMgr::HandleOnlineCheckResult(bool isOnline)
+{
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
+    bool reconnectImmediately = true;
+
+    if (isOnline)
+    {
+        SetOnlineCheckIntervalFast(false);
+
+        // On the transition from offline to online reset tunnel backoff.
+        if (!mIsNetworkOnline)
+        {
+            // Reset the tunnel backoff and reconnect after a short randomized wait.
+
+            err = ResetReconnectBackoff(!reconnectImmediately);
+            if (err != WEAVE_NO_ERROR)
+            {
+                WeaveLogError(WeaveTunnel, "Tunnel ResetReconnectBackoff failed for %s tunnel : %s",
+                              mTunType == kType_TunnelPrimary ? "primary" : "backup", ErrorStr(err));
+            }
+        }
+    }
+
+    // Set the current state.
+
+    mIsNetworkOnline = isOnline;
+}
 
 /**
  * @brief The default policy implementation for fetching the next time to

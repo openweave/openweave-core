@@ -89,9 +89,11 @@ namespace Platform {
     extern void ServiceTunnelModeChange(InterfaceId tunIf, TunnelAvailabilityMode tunMode);
 
     /// Enable Border Routing at the platform level.
+
     extern void EnableBorderRouting(void);
 
     /// Disable Border Routing at the platform level.
+
     extern void DisableBorderRouting(void);
 
 } // namespace Platform
@@ -453,6 +455,20 @@ public:
 #endif // WEAVE_CONFIG_TUNNEL_ENABLE_TRANSIT_CALLBACK
 
 /**
+ * Function pointer to a handler provided by the application for performing a
+ * network level online check.
+ *
+ * @param[in] tunType          The tunnel type, Primary or Backup.
+ *
+ * @param[in] appCtxt          A pointer to an application context object
+ *
+ * @return void.
+ */
+    typedef void (*PlatformNetworkOnlineCheck)(TunnelType tunType, void *appCtxt);
+
+    PlatformNetworkOnlineCheck NetworkOnlineCheck;
+
+/**
  * Handler to receive IPv6 packets from the Tunnel EndPoint interface and forward, either to the Service
  * via the Service TCP connection after encapsulating IPv6 packet inside the tunnel header or to the Mobile
  * client over a shortcut tunnel. If the Service connection is not yet up, the message is queued until the
@@ -478,6 +494,14 @@ public:
  *
  */
     uint64_t GetTimeMsec(void);
+
+/**
+ * Callback invoked by the platform when the result of the network online
+ * checker is available.
+ *
+ */
+    void NetworkOnlineCheckResult(TunnelType tunType, bool isOnline);
+
 private:
 
     // Node Id of the Service endpoint
@@ -618,6 +642,7 @@ private:
     void DisableBorderRouting(void);
 
 #if WEAVE_CONFIG_TUNNEL_FAILOVER_SUPPORTED
+
     void WeaveTunnelModeChangeNotifyAndSetState(AgentState state,
                                                 Platform::TunnelAvailabilityMode tunMode,
                                                 WeaveTunnelConnectionMgr::TunnelConnNotifyReasons notifyReason,

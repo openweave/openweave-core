@@ -401,6 +401,44 @@
 #define WEAVE_CONFIG_TUNNELING_RESET_RECONNECT_TIMEOUT_SECS      (10)
 #endif // WEAVE_CONFIG_TUNNELING_RESET_RECONNECT_TIMEOUT_SECS
 
+/**
+ *  @def WEAVE_CONFIG_TUNNELING_ONLINE_CHECK_FAST_FREQ_SECS
+ *
+ *  @brief
+ *    The frequency of performing a network online check when
+ *    the corresponding tunnel is down.
+ *
+ */
+#ifndef WEAVE_CONFIG_TUNNELING_ONLINE_CHECK_FAST_FREQ_SECS
+#define WEAVE_CONFIG_TUNNELING_ONLINE_CHECK_FAST_FREQ_SECS       (30)
+#endif // WEAVE_CONFIG_TUNNELING_ONLINE_CHECK_FAST_FREQ_SECS
+
+/**
+ *  @def WEAVE_CONFIG_TUNNELING_ONLINE_CHECK_PRIMARY_SLOW_FREQ_SECS
+ *
+ *  @brief
+ *    The slower frequency of performing a network online check
+ *    after detecting that the network has come online and before
+ *    corresponding tunnel is established.
+ *
+ */
+#ifndef WEAVE_CONFIG_TUNNELING_ONLINE_CHECK_PRIMARY_SLOW_FREQ_SECS
+#define WEAVE_CONFIG_TUNNELING_ONLINE_CHECK_PRIMARY_SLOW_FREQ_SECS  (60)
+#endif // WEAVE_CONFIG_TUNNELING_ONLINE_CHECK_PRIMARY_SLOW_FREQ_SECS
+
+/**
+ *  @def WEAVE_CONFIG_TUNNELING_ONLINE_CHECK_BACKUP_SLOW_FREQ_SECS
+ *
+ *  @brief
+ *    The slower frequency of performing a network online check
+ *    after detecting that the network has come online and before
+ *    backup tunnel is established.
+ *
+ */
+#ifndef WEAVE_CONFIG_TUNNELING_ONLINE_CHECK_BACKUP_SLOW_FREQ_SECS
+#define WEAVE_CONFIG_TUNNELING_ONLINE_CHECK_BACKUP_SLOW_FREQ_SECS   (90)
+#endif // WEAVE_CONFIG_TUNNELING_ONLINE_CHECK_BACKUP_SLOW_FREQ_SECS
+
 // clang-format on
 
 #endif /* WEAVE_TUNNEL_CONFIG_H_ */

@@ -238,6 +238,12 @@ class NL_DLL_EXPORT WeaveTunnelConnectionMgr
     static void TunnelLivenessTimeout(System::Layer* aSystemLayer, void* aAppState, System::Error aError);
 #endif // WEAVE_CONFIG_TUNNEL_LIVENESS_SUPPORTED
 
+    void SetOnlineCheckIntervalFast(bool aProbeFast);
+    void StartOnlineCheck(void);
+    void StopOnlineCheck(void);
+    void ReStartOnlineCheck(void);
+    static void OnlineCheckTimeout(System::Layer* aSystemLayer, void* aAppState, System::Error aError);
+    void HandleOnlineCheckResult(bool isOnline);
     // Pointer to a Weave Tunnel Agent object.
 
     WeaveTunnelAgent *mTunAgent;
@@ -303,6 +309,14 @@ class NL_DLL_EXPORT WeaveTunnelConnectionMgr
     uint16_t mTunnelLivenessInterval;
 #endif // WEAVE_CONFIG_TUNNEL_LIVENESS_SUPPORTED
 
+    // Flag to check if the network is online for this Tunnel.
+
+    bool mIsNetworkOnline;
+
+    // The current periodic interval for performing any online checks
+    // over the network.
+
+    uint16_t mOnlineCheckInterval;
 };
 
 } // namespace WeaveTunnel

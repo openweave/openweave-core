@@ -844,7 +844,7 @@ void WeaveTunnelControl::HandleTunnelOpenResponse(ExchangeContext *ec, const IPP
 
     connMgr->mTunFailedConnAttemptsInRow = 0;
 
-        connMgr->mTunReconnectFibonacciIndex = 0;
+    connMgr->mTunReconnectFibonacciIndex = 0;
 #if WEAVE_CONFIG_TUNNEL_LIVENESS_SUPPORTED
     // Tunnel is up. Start the Tunnel Liveness timer
 
@@ -854,6 +854,14 @@ void WeaveTunnelControl::HandleTunnelOpenResponse(ExchangeContext *ec, const IPP
     // Call the TunnelOpen post processing function.
 
     tunControl->mTunnelAgent->WeaveTunnelConnectionUp(msgInfo, connMgr, isRoutingRestricted);
+
+    // Stop the online check if it is running since tunnel is established.
+
+    connMgr->StopOnlineCheck();
+
+    // Set the current online state to True.
+
+    connMgr->mIsNetworkOnline = true;
 
 
 exit:

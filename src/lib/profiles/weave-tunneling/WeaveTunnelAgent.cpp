@@ -950,6 +950,35 @@ const char *WeaveTunnelAgent::GetAgentStateName(const AgentState state)
     return NULL;
 }
 
+/**
+ * Callback invoked by the platform when the result of the network online
+ * checker is available.
+ *
+ * @param[in] tunType              The tunnel type corresponding to
+ *                                 the interface over which the network
+ *                                 connectivity check is performed.
+
+ * @param[in] isOnline             True if network is online, false otherwise.
+ */
+void WeaveTunnelAgent::NetworkOnlineCheckResult(TunnelType tunType, bool isOnline)
+{
+    switch (tunType)
+    {
+      case kType_TunnelPrimary:
+        mPrimaryTunConnMgr.HandleOnlineCheckResult(isOnline);
+        break;
+
+#if WEAVE_CONFIG_TUNNEL_FAILOVER_SUPPORTED
+      case kType_TunnelBackup:
+        mBackupTunConnMgr.HandleOnlineCheckResult(isOnline);
+        break;
+#endif // WEAVE_CONFIG_TUNNEL_FAILOVER_SUPPORTED
+      default:
+        break;
+    }
+
+}
+
 /* Create a new Tunnel endpoint */
 WEAVE_ERROR WeaveTunnelAgent::CreateTunEndPoint(void)
 {
