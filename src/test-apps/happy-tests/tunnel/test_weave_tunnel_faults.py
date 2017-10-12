@@ -71,11 +71,15 @@ class test_weave_tunnel_faults(unittest.TestCase):
         setup_network = WeaveStateLoad.WeaveStateLoad(options)
         ret = setup_network.run()
 
-        # Wait for a second to ensure that Weave ULA addresses passed dad
-        # and are no longer tentative
-        time.sleep(2)
-
         # set up Plaid for faster execution
+        # The tunnel tests need the amount time run at plaid speed to be
+        # limited to avoid the gateway to race ahead and process more events
+        # while the test script is sending it a SIGUSR1 to trigger a cleanup.
+        # Without a limit on the amount of time spent at plaid-speed, the
+        # gateway has time to process extra keepalive messages that will make the
+        # test not consistent with an execution at realtime speed.
+        # The number below is determined by looking at the logs of a real-time run.
+        plaid_opts["max_time_at_high_speed_secs"] = 90
         plaid_opts = Plaid.default_options()
         plaid_opts['num_clients'] = 3
         plaid_opts['strace'] = self.show_strace
@@ -370,7 +374,6 @@ class test_weave_tunnel_faults(unittest.TestCase):
         options["service_faults"] = faults.get("service")
         options["iterations"] = num_iterations
         options["test_tag"] = test_tag
-        options["sync_on_gateway_output"] = "ToState:PrimaryTunnelEstablished"
 
         weave_tunnel = WeaveTunnelStop.WeaveTunnelStop(options)
         ret = weave_tunnel.run()
