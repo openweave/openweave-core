@@ -1214,7 +1214,7 @@ NL_WITH_OPTIONAL_INTERNAL_PACKAGE(
   [BlueZ],
   [BLUEZ],
   [bluez],
-  [-lgdbus-internal],
+  [-lgdbus-internal -lshared-glib],
   [
   # actions if not external
   # At this time, enable this only for linux, and only if the tests are enabled
@@ -1225,8 +1225,8 @@ NL_WITH_OPTIONAL_INTERNAL_PACKAGE(
               CONFIG_BLE_PLATFORM_BLUEZ=1
               enable_woble_bluez="yes"
               BLUEZ_CPPFLAGS="-I\${abs_top_srcdir}/third_party/bluez/repo/"
-              BLUEZ_LDFLAGS="-L${ac_pwd}/third_party/bluez/repo/gdbus/"
-              BLUEZ_LIBS="-lgdbus-internal"
+              BLUEZ_LDFLAGS="-L${ac_pwd}/third_party/bluez/repo/gdbus/ -L${ac_pwd}/third_party/bluez/repo/src/"
+              BLUEZ_LIBS="-lgdbus-internal -lshared-glib"
               ;;
 
           *)

@@ -101,6 +101,16 @@
 #endif // BLE_CONNECTION_OBJECT
 
 /**
+ *  @def BLE_CONFIG_BLUEZ_MTU_FEATURE
+ *
+ *  @brief
+ *    This define if BLUEZ MTU FEATURE is enabled or not
+ */
+#ifndef BLE_CONFIG_BLUEZ_MTU_FEATURE
+#define BLE_CONFIG_BLUEZ_MTU_FEATURE 0
+#endif // BLE_CONFIG_BLUEZ_MTU_FEATURE
+
+/**
  *  @def BLE_CONNECTION_UNINITIALIZED
  *
  *  @brief

@@ -36,11 +36,15 @@
 #include <signal.h>
 #include <glib.h>
 #include <sys/signalfd.h>
-
+#include <fcntl.h>
 
 extern "C" {
 //BlueZ headers
 #include "gdbus/gdbus.h"
+#if BLE_CONFIG_BLUEZ_MTU_FEATURE
+#include "src/shared/queue.h"
+#include "src/shared/io.h"
+#endif //BLE_CONFIG_BLUEZ_MTU_FEATURE Todo: Remove this macro when enabling wobluez mtu
 }
 
 #include <Weave/WeaveVersion.h>
@@ -75,23 +79,23 @@ using namespace nl::Weave::Profiles;
 #define ADVERTISING_INTERFACE           "org.bluez.LEAdvertisement1"
 #define FLAGS_WEAVE_C1                  "write"
 #define FLAGS_WEAVE_C2                  "read,indicate"
-/* TODO: Hard coding MTU size until COM-3395 is fixed.
- * MAC OS uses MTU size 104, which is smallest among Android, MAC OS & IOS */
+
+/*MAC OS uses MTU size 104, which is smallest among Android, MAC OS & IOS */
 #define HCI_MAX_MTU                     (104)
+#define BUFF_SIZE   				    (1024)
 #define WEAVE_SRV_DATA_BLOCK_TYPE       (1)
 #define WEAVE_SRV_DATA_MAJ_VER          (0x00)
 #define WEAVE_SRV_DATA_MIN_VER          (0x02)
 #define WEAVE_SRV_DATA_PAIRING_STATUS_NOT_PAIRED     (0)
 #define WEAVE_SRV_DATA_PAIRING_STATUS_PAIRED         (1)
 
+
 namespace nl {
 namespace Ble {
 namespace Platform {
 namespace BlueZ {
 
-/* Weave Service Data
- * This structure is defined as per Nest BLE advertisement format specification
- * https://docs.google.com/document/d/1WnbsrRJQTq-_CPu62k6hUoIUI-mowXlN20Ncqkp8kcc/edit#heading=h.bq6764dkq14o */
+/* Weave Service Data*/
 struct WeaveServiceData {
     uint8_t  mWeaveDataBlockLen;
     uint8_t  mWeaveDataBlockType;
@@ -118,6 +122,10 @@ struct Characteristic{
     char *servicePath;
     char *uuid;
     char **flags;
+#if BLE_CONFIG_BLUEZ_MTU_FEATURE
+    struct io *writePipeIO;
+    struct io *indicatePipeIO;
+#endif //BLE_CONFIG_BLUEZ_MTU_FEATURE
 };
 
 struct Service{
@@ -136,6 +144,7 @@ struct BluezServerEndpoint{
     Characteristic *weaveC1;
     Characteristic *weaveC2;
     Service *weaveService;
+    uint16_t mtu;
 };
 
 struct BluezPeripheralArgs
@@ -148,6 +157,12 @@ struct BluezPeripheralArgs
 
 extern BluezServerEndpoint *gBluezServerEndpoint;
 extern BluezBlePlatformDelegate *gBluezBlePlatformDelegate;
+/**
+ * ClearWoBluezStatus to original setting.
+ *
+ */
+void ClearWoBluezStatus(void);
+
 /**
  * Exit BluezIO thread
  *

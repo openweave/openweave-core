@@ -398,26 +398,11 @@ static void WeaveCharacteristicDestroy(void *bluezData)
     Characteristic *WeaveCharacteristic = static_cast<Characteristic *>(bluezData);
     if(NULL != WeaveCharacteristic)
     {
-        if (NULL != WeaveCharacteristic->path)
-        {
-            g_free(WeaveCharacteristic->path);
-        }
-
-        if (NULL != WeaveCharacteristic->servicePath)
-        {
-            g_free(WeaveCharacteristic->servicePath);
-        }
-
-        if(NULL != WeaveCharacteristic->uuid)
-        {
-            g_free(WeaveCharacteristic->uuid);
-        }
-
-        if(NULL != WeaveCharacteristic->flags)
-        {
-            g_strfreev(WeaveCharacteristic->flags);
-        }
-
+        g_free(WeaveCharacteristic->path);
+        g_free(WeaveCharacteristic->servicePath);
+        g_free(WeaveCharacteristic->uuid);
+        g_strfreev(WeaveCharacteristic->flags);
+        g_free(WeaveCharacteristic->value);
         g_free(WeaveCharacteristic);
     }
 }
@@ -469,12 +454,8 @@ static void ServiceDestroy(void *bluezData)
     Service *weaveService = static_cast<Service *>(bluezData);
     if (NULL != weaveService)
     {
-        if (NULL != weaveService->path)
-            g_free(weaveService->path);
-
-        if (NULL != weaveService->uuid)
-            g_free(weaveService->uuid);
-
+        g_free(weaveService->path);
+        g_free(weaveService->uuid);
         g_free(weaveService);
     }
 }
@@ -646,7 +627,7 @@ exit:
 static DBusMessage *CharacteristicRead(DBusConnection *dbusConn, DBusMessage *dbusMsg, void *bluezData)
 {
     Characteristic *characteristic = static_cast<Characteristic *>(bluezData);
-    DBusMessage *readReply;
+    DBusMessage *readReply = NULL;
     DBusMessageIter iter, array;
     const char * msg = NULL;
     gboolean success = FALSE;
@@ -674,6 +655,289 @@ exit:
     return readReply;
 }
 
+#if BLE_CONFIG_BLUEZ_MTU_FEATURE
+static bool WritePipeIORead(struct io *io, void *bluezData)
+{
+	Characteristic *characteristic = static_cast<Characteristic *>(bluezData);
+    int fd;
+    const char * msg = NULL;
+	uint8_t writerData[BUFF_SIZE];
+	ssize_t writerDataLength;
+	bool success = false;
+
+    VerifyOrExit(bluezData != NULL, msg = "characteristic is NULL in WritePipeIORead");
+
+    if (io == characteristic->writePipeIO)
+    {
+        fd = io_get_fd(io);
+        VerifyOrExit(fd >= 0, msg = "expect file descriptor with non-negatvie value in WritePipeIORead");
+    }
+    else
+    {
+        msg = "expect writePipeIO in WritePipeIORead";
+        ExitNow();
+    }
+
+	writerDataLength = read(fd, writerData, sizeof(writerData));
+	VerifyOrExit(writerDataLength >= 0, msg = "writerDataLength should be larger than or equal to 0");
+
+    g_free(characteristic->value);
+    characteristic->value = static_cast<uint8_t*>(g_memdup(writerData, writerDataLength));
+    characteristic->valueLen = writerDataLength;
+
+    if (strcmp(characteristic->uuid, UUID_WEAVE_C1) == 0)
+    {
+        WoBLEz_WriteReceived(gBluezServerEndpoint, characteristic->value, characteristic->valueLen);
+        success = true;
+    }
+    else
+    {
+        msg = "current uuid is not UUID_WEAVE_C1";
+    }
+
+exit:
+
+    if (NULL != msg)
+    {
+        WeaveLogDetail(Ble, msg);
+    }
+
+    return success;
+}
+
+static bool PipeIODestroy(struct io *io, void *bluezData)
+{
+    const char * msg = NULL;
+    bool success = false;
+	Characteristic *characteristic = static_cast<Characteristic *>(bluezData);
+
+    VerifyOrExit(bluezData != NULL, msg = "characteristic is NULL in PipeIODestroy");
+
+	if (io == characteristic->indicatePipeIO)
+	{
+        io_destroy(characteristic->indicatePipeIO);
+        characteristic->indicatePipeIO = NULL;
+    }
+	else
+	{
+        io_destroy(characteristic->writePipeIO);
+        characteristic->writePipeIO = NULL;
+    }
+
+    success = true;
+
+exit:
+
+    if (NULL != msg)
+    {
+        WeaveLogDetail(Ble, msg);
+    }
+
+    return success;
+}
+
+static DBusMessage *CharacteristicCreatePipe(Characteristic *characteristic, DBusMessage *dbusMsg)
+{
+	int characteristicPipefd[2];
+	int fdToClose, fdToUse, ioSelection;
+	struct io *io;
+	const char * msg = NULL;
+	bool index;
+	DBusMessage *CharacteristicCreatePipeReply = NULL;
+
+    VerifyOrExit(characteristic != NULL, msg = "characteristic is NULL in CharacteristicAcquireWrite");
+
+	if (pipe2(characteristicPipefd, O_DIRECT | O_NONBLOCK | O_CLOEXEC) < 0)
+	{
+	    msg = strerror(errno);
+	    CharacteristicCreatePipeReply = g_dbus_create_error(dbusMsg, "org.bluez.Error.Failed", "%s", strerror(errno));
+	    ExitNow();
+	}
+
+	if (TRUE == dbus_message_has_member(dbusMsg, "AcquireWrite"))
+	{
+	    fdToClose = characteristicPipefd[1];
+        fdToUse = characteristicPipefd[0];
+        ioSelection = 1;
+
+	}
+	else if (TRUE == dbus_message_has_member(dbusMsg, "AcquireNotify"))
+	{
+        fdToClose = characteristicPipefd[0];
+        fdToUse = characteristicPipefd[1];
+        ioSelection = 0;
+	}
+	else
+	{
+	    msg = "dbus message expects member, AcquireWrite or AcquireNotify";
+	    ExitNow();
+	}
+
+	io = io_new(fdToUse);
+	if (io == NULL)
+	{
+		close(fdToClose);
+		close(fdToUse);
+		msg = strerror(errno);
+		CharacteristicCreatePipeReply = g_dbus_create_error(dbusMsg, "org.bluez.Error.Failed", "%s", strerror(errno));
+		ExitNow();
+	}
+
+	io_set_close_on_destroy(io, true);
+	io_set_read_handler(io, WritePipeIORead, characteristic, NULL);
+	io_set_disconnect_handler(io, PipeIODestroy, characteristic, NULL);
+
+	CharacteristicCreatePipeReply = g_dbus_create_reply(dbusMsg, DBUS_TYPE_UNIX_FD, &fdToClose,
+					DBUS_TYPE_UINT16, &gBluezServerEndpoint->mtu,
+					DBUS_TYPE_INVALID);
+
+	close(fdToClose);
+
+	if (ioSelection == 1)
+		characteristic->writePipeIO = io;
+	else
+		characteristic->indicatePipeIO = io;
+
+exit:
+
+    if (NULL != msg)
+    {
+        WeaveLogError(Ble, msg);
+    }
+
+	return CharacteristicCreatePipeReply;
+}
+
+static DBusMessage *CharacteristicAcquireWrite(DBusConnection *dbusConn, DBusMessage *dbusMsg, void *bluezData)
+{
+	Characteristic *characteristic = static_cast<Characteristic *>(bluezData);
+    const char * msg = NULL;
+    const char *key;
+	DBusMessageIter iter, dict, value, entry;
+	DBusMessage *acquireWriteReply = NULL;
+    bool acquireMTU = false;
+    dbus_bool_t iterCheck;
+
+    VerifyOrExit(characteristic != NULL, msg = "characteristic is NULL in CharacteristicAcquireWrite");
+
+	if (characteristic->writePipeIO != NULL)
+	{
+	    msg = "there exists writePipeIO, error";
+		acquireWriteReply = g_dbus_create_error(dbusMsg, "org.bluez.Error.NotPermitted", NULL);
+		ExitNow();
+    }
+
+	dbus_message_iter_init(dbusMsg, &iter);
+	VerifyOrExit(dbus_message_iter_get_arg_type(&iter) == DBUS_TYPE_ARRAY, msg = "dbus iterator is not array in CharacteristicAcquireWrite");
+
+	dbus_message_iter_recurse(&iter, &dict);
+
+	while (dbus_message_iter_get_arg_type(&dict) == DBUS_TYPE_DICT_ENTRY)
+	{
+		dbus_message_iter_recurse(&dict, &entry);
+		dbus_message_iter_get_basic(&entry, &key);
+		iterCheck = dbus_message_iter_next(&entry);
+		VerifyOrExit(iterCheck == TRUE, msg = "Reach the end of iterator");
+
+		dbus_message_iter_recurse(&entry, &value);
+
+        if (strcasecmp(key, "MTU") == 0)
+        {
+			dbus_message_iter_get_basic(&value, &gBluezServerEndpoint->mtu);
+			acquireMTU = true;
+			break;
+		}
+
+		dbus_message_iter_next(&dict);
+	}
+
+	if (!acquireMTU)
+	{
+	    msg = "AcquireWite cannot get MTU from bluez";
+		acquireWriteReply =  g_dbus_create_error(dbusMsg, "org.bluez.Error.InvalidArguments", NULL);
+		ExitNow();
+    }
+
+	acquireWriteReply = CharacteristicCreatePipe(characteristic, dbusMsg);
+
+	if (characteristic->writePipeIO != NULL)
+	{
+	    if (strcmp(characteristic->uuid, UUID_WEAVE_C1) == 0)
+        {
+		    g_dbus_emit_property_changed(dbusConn, characteristic->path, CHARACTERISTIC_INTERFACE, "WriteAcquired");
+        }
+        else
+        {
+            msg = "uuid expects UUID_WEAVE_C1";
+            ExitNow();
+        }
+    }
+
+exit:
+
+    if (NULL != msg)
+    {
+        WeaveLogDetail(Ble, msg);
+    }
+
+	return acquireWriteReply;
+}
+
+static DBusMessage *CharacteristicAcquireNotify(DBusConnection *dbusConn, DBusMessage *dbusMsg, void *bluezData)
+{
+    Characteristic *characteristic = static_cast<Characteristic *>(bluezData);
+    const char * msg = NULL;
+	DBusMessage *acquireNotifyReply = NULL;
+
+    VerifyOrExit(characteristic != NULL, msg = "characteristic is NULL in CharacteristicAcquireNotify");
+
+	if (characteristic->isNotifying)
+	{
+	    msg = "Notifying has been enabled in CharacteristicAcquireNotify";
+		acquireNotifyReply = g_dbus_create_error(dbusMsg, "org.bluez.Error.NotPermitted", NULL);
+		ExitNow();
+    }
+
+	if (characteristic->indicatePipeIO != NULL)
+	{
+	    msg = "there exists indicatePipeIO, error";
+		acquireNotifyReply = g_dbus_create_error(dbusMsg, "org.bluez.Error.NotPermitted", NULL);
+		ExitNow();
+    }
+
+	acquireNotifyReply = CharacteristicCreatePipe(characteristic, dbusMsg);
+
+	if (characteristic->indicatePipeIO != NULL)
+    {
+        characteristic->isNotifying = true;
+
+        WeaveLogProgress(Ble,  "Characteristic path %s notification enabled", characteristic->path);
+
+        if (strcmp(characteristic->uuid, UUID_WEAVE_C2) == 0)
+        {
+            WoBLEz_SubscriptionChange(gBluezServerEndpoint);
+        }
+        else
+        {
+            msg = "uuid expects UUID_WEAVE_C2";
+            ExitNow();
+        }
+
+        g_dbus_emit_property_changed(dbusConn, characteristic->path, CHARACTERISTIC_INTERFACE, "Notifying");
+		g_dbus_emit_property_changed(dbusConn, characteristic->path, CHARACTERISTIC_INTERFACE, "NotifyAcquired");
+    }
+
+exit:
+
+    if (NULL != msg)
+    {
+        WeaveLogError(Ble, msg);
+    }
+
+	return acquireNotifyReply;
+}
+#endif //BLE_CONFIG_BLUEZ_MTU_FEATURE
+
 static DBusMessage *CharacteristicWrite(DBusConnection *dbusConn, DBusMessage *dbusMsg,
 							void *bluezData)
 {
@@ -683,6 +947,8 @@ static DBusMessage *CharacteristicWrite(DBusConnection *dbusConn, DBusMessage *d
     const char * msg = NULL;
     DBusMessageIter array;
     DBusMessage *writeReply = NULL;
+	uint8_t *writerData = NULL;
+	int writerDataLength;
 
     VerifyOrExit(characteristic != NULL, msg = "characteristic is NULL in CharacteristicWrite");
 
@@ -694,12 +960,15 @@ static DBusMessage *CharacteristicWrite(DBusConnection *dbusConn, DBusMessage *d
     }
 
     dbus_message_iter_recurse(&iter, &array);
-    dbus_message_iter_get_fixed_array(&array, &(characteristic->value), &(characteristic->valueLen));
+    dbus_message_iter_get_fixed_array(&array, &(writerData), &(writerDataLength));
+    characteristic->value = static_cast<uint8_t*>(g_memdup(writerData, writerDataLength));
+    characteristic->valueLen = writerDataLength;
+
     g_dbus_emit_property_changed(dbusConn, characteristic->path, CHARACTERISTIC_INTERFACE, "Value");
 
     if (strcmp(characteristic->uuid, UUID_WEAVE_C1) == 0)
     {
-        WoBLEz_WriteReceived(gBluezServerEndpoint, gBluezServerEndpoint->weaveC1->value, gBluezServerEndpoint->weaveC1->valueLen);
+        WoBLEz_WriteReceived(gBluezServerEndpoint, characteristic->value, characteristic->valueLen);
     }
 
     writeReply = g_dbus_create_reply(dbusMsg, DBUS_TYPE_INVALID);
@@ -726,7 +995,7 @@ static DBusMessage *CharacteristicStartNotify(DBusConnection *dbusConn, DBusMess
 
     characteristic->isNotifying = true;
     g_dbus_emit_property_changed(dbusConn, characteristic->path, CHARACTERISTIC_INTERFACE, "Notifying");
-    WeaveLogProgress(Ble,  "Characteristic path %s notification enabled", characteristic->path);
+    WeaveLogDetail(Ble,  "Characteristic path %s notification enabled", characteristic->path);
 
     if (strcmp(characteristic->uuid, UUID_WEAVE_C2) == 0)
     {
@@ -759,6 +1028,11 @@ static DBusMessage *CharacteristicStopNotify(DBusConnection *dbusConn, DBusMessa
     g_dbus_emit_property_changed(dbusConn, characteristic->path, CHARACTERISTIC_INTERFACE, "Notifying");
     WeaveLogProgress(Ble,  "Characteristic path %s notification disabled", characteristic->path);
 
+    if (strcmp(characteristic->uuid, UUID_WEAVE_C2) == 0)
+    {
+        WoBLEz_SubscriptionChange(gBluezServerEndpoint);
+    }
+
     notifyReply = g_dbus_create_reply(dbusMsg, DBUS_TYPE_INVALID);
 
 exit:
@@ -773,11 +1047,58 @@ exit:
 
 static DBusMessage *CharacteristicIndicationConf(DBusConnection *dbusConn, DBusMessage *dbusMsg, void *bluezData)
 {
+    const char * msg = NULL;
     Characteristic *characteristic = static_cast<Characteristic *>(bluezData);
+    VerifyOrExit(characteristic != NULL, msg = "characteristic is NULL in CharacteristicIndicationConf");
+
     WeaveLogDetail(Ble,  "Indication confirmation received at %s", characteristic->path);
     WoBLEz_IndicationConfirmation(gBluezServerEndpoint);
+
+exit:
+
+    if (NULL != msg)
+    {
+        WeaveLogDetail(Ble, msg);
+    }
+
     return g_dbus_create_reply(dbusMsg, DBUS_TYPE_INVALID);
 }
+
+#if BLE_CONFIG_BLUEZ_MTU_FEATURE
+static gboolean CharacteristicPipeAcquired(const GDBusPropertyTable *property, DBusMessageIter *iter, void *bluezData)
+{
+    gboolean success = FALSE;
+	dbus_bool_t value = FALSE;
+	const char * msg = NULL;
+	Characteristic *characteristic = static_cast<Characteristic *>(bluezData);
+    VerifyOrExit(characteristic != NULL, msg = "characteristic is NULL in CharacteristicPipeAcquired");
+
+    if (strcmp(characteristic->uuid, UUID_WEAVE_C1) == 0)
+    {
+	    value = (characteristic->writePipeIO != NULL) ? TRUE : FALSE;
+
+    }
+    else if (strcmp(characteristic->uuid, UUID_WEAVE_C2) == 0)
+    {
+        value = (characteristic->indicatePipeIO != NULL) ? TRUE : FALSE;
+    }
+    else
+    {
+        VerifyOrExit(value == TRUE, msg = "writePipeIO or indicatePipeIO is not set in C1 and C2");
+    }
+
+	success = dbus_message_iter_append_basic(iter, DBUS_TYPE_BOOLEAN, &value);
+
+exit:
+
+    if (NULL != msg)
+    {
+        WeaveLogDetail(Ble, msg);
+    }
+
+	return success;
+}
+#endif // BLE_CONFIG_BLUEZ_MTU_FEATURE
 
 static const GDBusPropertyTable WeaveCharacteristicProperties[] = {
     { "UUID", "s", CharacteristicGetUUID, NULL, NULL },
@@ -785,11 +1106,19 @@ static const GDBusPropertyTable WeaveCharacteristicProperties[] = {
     { "Value", "ay", CharacteristicGetValue, NULL, NULL },
     { "Notifying", "b", CharacteristicGetNotifying, NULL, NULL },
     { "Flags", "as", CharacteristicGetFlags, NULL, NULL },
+#if BLE_CONFIG_BLUEZ_MTU_FEATURE
+    { "WriteAcquired", "b", CharacteristicPipeAcquired, NULL, NULL },
+    { "NotifyAcquired", "b", CharacteristicPipeAcquired, NULL, NULL },
+#endif // BLE_CONFIG_BLUEZ_MTU_FEATURE
     { }
 };
 
 static const GDBusMethodTable weaveCharacteristicMethods[] = {
     {"ReadValue", CharacteristicRead, G_DBUS_METHOD_FLAG_ASYNC, 0, GDBUS_ARGS({ "options", "a{sv}" }), GDBUS_ARGS({ "value", "ay" }) },
+#if BLE_CONFIG_BLUEZ_MTU_FEATURE
+    {"AcquireWrite", CharacteristicAcquireWrite, G_DBUS_METHOD_FLAG_ASYNC, 0, GDBUS_ARGS({ "options", "a{sv}" }), NULL },
+    {"AcquireNotify", CharacteristicAcquireNotify, G_DBUS_METHOD_FLAG_ASYNC, 0, GDBUS_ARGS({ "options", "a{sv}" }), NULL },
+#endif // BLE_CONFIG_BLUEZ_MTU_FEATURE
     {"WriteValue", CharacteristicWrite, G_DBUS_METHOD_FLAG_ASYNC, 0, GDBUS_ARGS({ "value", "ay" },{ "options", "a{sv}" }), NULL },
     {"StartNotify", CharacteristicStartNotify, G_DBUS_METHOD_FLAG_ASYNC, 0, NULL, NULL },
     {"StopNotify", CharacteristicStopNotify, G_DBUS_METHOD_FLAG_ASYNC, 0, NULL, NULL},
@@ -813,7 +1142,10 @@ Characteristic * RegisterWeaveCharacteristic(DBusConnection *dbusConn, const cha
     weaveCharacteristic->path = g_strdup_printf("%s/weaveCharacteristic%p", gBluezServerEndpoint->weaveService->path, weaveCharacteristic);
     weaveCharacteristic->servicePath = g_strdup_printf("%s",gBluezServerEndpoint->weaveService->path);
     weaveCharacteristic->flags = g_strsplit(flags, ",", -1);
-
+#if BLE_CONFIG_BLUEZ_MTU_FEATURE
+    weaveCharacteristic->writePipeIO = NULL;
+    weaveCharacteristic->indicatePipeIO = NULL;
+#endif // BLE_CONFIG_BLUEZ_MTU_FEATURE
     success = g_dbus_register_interface(dbusConn, weaveCharacteristic->path, CHARACTERISTIC_INTERFACE,
                                   weaveCharacteristicMethods, NULL, WeaveCharacteristicProperties,
                                   weaveCharacteristic, WeaveCharacteristicDestroy);
@@ -970,9 +1302,15 @@ static void BluezClientReady(GDBusClient *weaveClient, void *bluezData)
 
 uint16_t GetMTUWeaveCb(BLE_CONNECTION_OBJECT connObj)
 {
-    uint16_t mtu = HCI_MAX_MTU;
+    uint16_t mtu = gBluezServerEndpoint->mtu;
     WeaveLogDetail(Ble, "GetMTU: %d", mtu);
     return mtu;
+}
+
+void ClearWoBluezStatus()
+{
+    gBluezServerEndpoint->weaveC2->isNotifying = false;
+    g_dbus_emit_property_changed(gBluezServerEndpoint->weaveC2->dbusConn, gBluezServerEndpoint->weaveC2->path, CHARACTERISTIC_INTERFACE, "Notifying");
 }
 
 void ExitBluezIOThread(void)
@@ -1004,6 +1342,7 @@ bool RunBluezIOThread(BluezPeripheralArgs *arg)
     gBluezServerEndpoint->weaveServiceData = (WeaveServiceData *)g_memdup(arg->weaveServiceData, sizeof(WeaveServiceData));
     VerifyOrExit(gBluezServerEndpoint->weaveServiceData != NULL, err = WEAVE_ERROR_NO_MEMORY);
 
+    gBluezServerEndpoint->mtu = HCI_MAX_MTU;
     gBluezMainLoop = g_main_loop_new(NULL, FALSE);
     gBluezDbusConn = g_dbus_setup_bus(DBUS_BUS_SYSTEM, NULL, NULL);
     VerifyOrExit(gBluezDbusConn != NULL, err = WEAVE_ERROR_NO_MEMORY);
@@ -1061,36 +1400,16 @@ exit:
             gBluezServerEndpoint->weaveC2 = NULL;
         }
 
-        if (NULL != gBluezServerEndpoint->adapterName)
-        {
-            g_free(gBluezServerEndpoint->adapterName);
-            gBluezServerEndpoint->adapterName = NULL;
-        }
-
-        if (NULL != gBluezServerEndpoint->adapterAddr)
-        {
-            g_free(gBluezServerEndpoint->adapterAddr);
-            gBluezServerEndpoint->adapterAddr = NULL;
-        }
-
-        if (NULL != gBluezServerEndpoint->advertisingUUID)
-        {
-            g_free(gBluezServerEndpoint->advertisingUUID);
-            gBluezServerEndpoint->advertisingUUID = NULL;
-        }
-
-        if (NULL != gBluezServerEndpoint->advertisingType)
-        {
-            g_free(gBluezServerEndpoint->advertisingType);
-            gBluezServerEndpoint->advertisingType = NULL;
-        }
-
-        if (NULL != gBluezServerEndpoint->weaveServiceData)
-        {
-            g_free(gBluezServerEndpoint->weaveServiceData);
-            gBluezServerEndpoint->weaveServiceData = NULL;
-        }
-
+        g_free(gBluezServerEndpoint->adapterName);
+        gBluezServerEndpoint->adapterName = NULL;
+        g_free(gBluezServerEndpoint->adapterAddr);
+        gBluezServerEndpoint->adapterAddr = NULL;
+        g_free(gBluezServerEndpoint->advertisingUUID);
+        gBluezServerEndpoint->advertisingUUID = NULL;
+        g_free(gBluezServerEndpoint->advertisingType);
+        gBluezServerEndpoint->advertisingType = NULL;
+        g_free(gBluezServerEndpoint->weaveServiceData);
+        gBluezServerEndpoint->weaveServiceData = NULL;
         g_free(gBluezServerEndpoint);
         gBluezServerEndpoint = NULL;
     }

@@ -123,10 +123,12 @@ exit:
     }
 }
 
-
 bool WoBLEz_SendIndication(void *data, uint8_t *buffer, size_t len)
 {
     const char * msg = NULL;
+#if BLE_CONFIG_BLUEZ_MTU_FEATURE
+    struct iovec ioData;
+#endif // BLE_CONFIG_BLUEZ_MTU_FEATURE
     bool success = false;
     BluezServerEndpoint *endpoint = static_cast<BluezServerEndpoint *>(data);
     VerifyOrExit(endpoint != NULL, msg = "endpoint is NULL in WoBLEz_SendIndication");
@@ -136,8 +138,26 @@ bool WoBLEz_SendIndication(void *data, uint8_t *buffer, size_t len)
     g_free(endpoint->weaveC2->value);
     endpoint->weaveC2->valueLen = len;
     endpoint->weaveC2->value = static_cast<uint8_t*>(g_memdup(buffer, len));
+
+#if BLE_CONFIG_BLUEZ_MTU_FEATURE
+    if (endpoint->weaveC2->indicatePipeIO)
+    {
+        ioData.iov_base = static_cast<void*>(endpoint->weaveC2->value);
+        ioData.iov_len = endpoint->weaveC2->valueLen;
+
+        if (io_send(endpoint->weaveC2->indicatePipeIO, &ioData, 1) < 0)
+        {
+            msg = "weave C1 fails to write into pipe";
+        }
+        else
+        {
+            success = true;
+        }
+    }
+#else // BLE_CONFIG_BLUEZ_MTU_FEATURE,
     g_dbus_emit_property_changed(endpoint->weaveC2->dbusConn, endpoint->weaveC2->path, CHARACTERISTIC_INTERFACE, "Value");
     success = true;
+#endif // BLE_CONFIG_BLUEZ_MTU_FEATURE
 
 exit:
 
