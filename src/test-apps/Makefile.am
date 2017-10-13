@@ -99,9 +99,9 @@ EXTRA_DIST                                     =	\
     TestDNS.cpp						\
     TestWeaveDeviceMangerJNI				\
     connect-BR-Svc-ns.sh				\
-    happy-service-tests					\
+    happy/tests/service					\
     weave-parallel-test-engine				\
-    happy-tests						\
+    happy/tests/standalone						\
     remove-weave-devs.sh				\
     setup-weave-devs.sh					\
     test-weave-device-descriptor-encode.sh		\
@@ -515,71 +515,71 @@ if WEAVE_RUN_HAPPY_SERVICE
 
 if WEAVE_RUN_HAPPY_TUNNEL
 check_SCRIPTS                                 +=             \
-    happy-service-tests/tunnel/test_weave_tunnel_01.py       \
-    happy-service-tests/tunnel/test_weave_tunnel_02.py       \
+    happy/tests/service/tunnel/test_weave_tunnel_01.py       \
+    happy/tests/service/tunnel/test_weave_tunnel_02.py       \
     $(NULL)
 endif # WEAVE_RUN_HAPPY_TUNNEL
 
 if WEAVE_RUN_HAPPY_TIME
 check_SCRIPTS                                 +=             \
-    happy-service-tests/time/test_weave_time_01.py           \
+    happy/tests/service/time/test_weave_time_01.py           \
     $(NULL)
 endif #WEAVE_RUN_HAPPY_TIME
 
 if WEAVE_RUN_HAPPY_ECHO
 check_SCRIPTS                                 +=             \
-    happy-service-tests/echo/test_weave_echo_01.py           \
-    happy-service-tests/echo/test_weave_echo_02.py           \
-    happy-service-tests/echo/test_weave_echo_03.py           \
+    happy/tests/service/echo/test_weave_echo_01.py           \
+    happy/tests/service/echo/test_weave_echo_02.py           \
+    happy/tests/service/echo/test_weave_echo_03.py           \
     $(NULL)
 endif # WEAVE_RUN_HAPPY_ECHO
 
 if WEAVE_RUN_HAPPY_KEY_EXPORT
 check_SCRIPTS                                 +=             \
-    happy-service-tests/key_export/test_weave_key_export_01.py \
+    happy/tests/service/key_export/test_weave_key_export_01.py \
     $(NULL)
 endif # WEAVE_RUN_HAPPY_KEY_EXPORT
 
 if WEAVE_RUN_HAPPY_PAIRING
 check_SCRIPTS                                 +=             \
-    happy-service-tests/pairing/test_weave_pairing_01.py     \
+    happy/tests/service/pairing/test_weave_pairing_01.py     \
     $(NULL)
 endif # WEAVE_RUN_HAPPY_PAIRING
 
 if WEAVE_RUN_HAPPY_PERF
 check_SCRIPTS                                 +=             \
-    happy-service-tests/weave_service_perf_run.sh            \
+    happy/tests/service/weave_service_perf_run.sh            \
     $(NULL)
 endif # WEAVE_RUN_HAPPY_SERVICE_PERF
 
 if WEAVE_RUN_HAPPY_WDM
 check_SCRIPTS                                 +=             \
-    happy-service-tests/wdmNext/test_weave_wdm_next_service_mutual_subscribe_01.py                              \
-    happy-service-tests/wdmNext/test_weave_wdm_next_service_mutual_subscribe_02.py                              \
-    happy-service-tests/wdmNext/test_weave_wdm_next_service_mutual_subscribe_03.py                              \
-    happy-service-tests/wdmNext/test_weave_wdm_next_service_mutual_subscribe_04.py                              \
-    happy-service-tests/wdmNext/test_weave_wdm_next_service_mutual_subscribe_05.py                              \
-    happy-service-tests/wdmNext/test_weave_wdm_next_service_mutual_subscribe_06.py                              \
-    happy-service-tests/wdmNext/test_weave_wdm_next_service_mutual_subscribe_07.py                              \
-    happy-service-tests/wdmNext/test_weave_wdm_next_service_mutual_subscribe_08.py                              \
-    happy-service-tests/wdmNext/test_weave_wdm_next_service_mutual_subscribe_09.py                              \
-    happy-service-tests/wdmNext/test_weave_wdm_next_service_mutual_subscribe_10.py                              \
-    happy-service-tests/wdmNext/test_weave_wdm_next_service_mutual_subscribe_11.py                              \
-    happy-service-tests/wdmNext/test_weave_wdm_next_service_mutual_subscribe_12.py                              \
-    happy-service-tests/wdmNext/test_weave_wdm_next_service_mutual_subscribe_13.py                              \
-    happy-service-tests/wdmNext/test_weave_wdm_next_service_mutual_subscribe_14.py                              \
-    happy-service-tests/wdmNext/test_weave_wdm_next_service_mutual_subscribe_15.py                              \
-    happy-service-tests/wdmNext/test_weave_wdm_next_service_mutual_subscribe_16.py                              \
-    happy-service-tests/wdmNext/test_weave_wdm_next_service_mutual_subscribe_17.py                              \
-    happy-service-tests/wdmNext/test_weave_wdm_next_service_mutual_subscribe_18.py                              \
-    happy-service-tests/wdmNext/test_weave_wdm_next_service_mutual_subscribe_19.py                              \
-    happy-service-tests/wdmNext/test_weave_wdm_next_service_mutual_subscribe_20.py                              \
-    happy-service-tests/wdmNext/test_weave_wdm_next_service_mutual_subscribe_21.py                              \
-    happy-service-tests/wdmNext/test_weave_wdm_next_service_mutual_subscribe_22.py                              \
-    happy-service-tests/wdmNext/test_weave_wdm_next_service_mutual_subscribe_23.py                              \
-    happy-service-tests/wdmNext/test_weave_wdm_next_service_mutual_subscribe_24.py                              \
-    happy-service-tests/wdmNext/test_weave_wdm_next_service_mutual_subscribe_25.py                              \
-    happy-service-tests/wdmNext/test_weave_wdm_next_service_mutual_subscribe_application_key_01.py              \
+    happy/tests/service/wdmNext/test_weave_wdm_next_service_mutual_subscribe_01.py                              \
+    happy/tests/service/wdmNext/test_weave_wdm_next_service_mutual_subscribe_02.py                              \
+    happy/tests/service/wdmNext/test_weave_wdm_next_service_mutual_subscribe_03.py                              \
+    happy/tests/service/wdmNext/test_weave_wdm_next_service_mutual_subscribe_04.py                              \
+    happy/tests/service/wdmNext/test_weave_wdm_next_service_mutual_subscribe_05.py                              \
+    happy/tests/service/wdmNext/test_weave_wdm_next_service_mutual_subscribe_06.py                              \
+    happy/tests/service/wdmNext/test_weave_wdm_next_service_mutual_subscribe_07.py                              \
+    happy/tests/service/wdmNext/test_weave_wdm_next_service_mutual_subscribe_08.py                              \
+    happy/tests/service/wdmNext/test_weave_wdm_next_service_mutual_subscribe_09.py                              \
+    happy/tests/service/wdmNext/test_weave_wdm_next_service_mutual_subscribe_10.py                              \
+    happy/tests/service/wdmNext/test_weave_wdm_next_service_mutual_subscribe_11.py                              \
+    happy/tests/service/wdmNext/test_weave_wdm_next_service_mutual_subscribe_12.py                              \
+    happy/tests/service/wdmNext/test_weave_wdm_next_service_mutual_subscribe_13.py                              \
+    happy/tests/service/wdmNext/test_weave_wdm_next_service_mutual_subscribe_14.py                              \
+    happy/tests/service/wdmNext/test_weave_wdm_next_service_mutual_subscribe_15.py                              \
+    happy/tests/service/wdmNext/test_weave_wdm_next_service_mutual_subscribe_16.py                              \
+    happy/tests/service/wdmNext/test_weave_wdm_next_service_mutual_subscribe_17.py                              \
+    happy/tests/service/wdmNext/test_weave_wdm_next_service_mutual_subscribe_18.py                              \
+    happy/tests/service/wdmNext/test_weave_wdm_next_service_mutual_subscribe_19.py                              \
+    happy/tests/service/wdmNext/test_weave_wdm_next_service_mutual_subscribe_20.py                              \
+    happy/tests/service/wdmNext/test_weave_wdm_next_service_mutual_subscribe_21.py                              \
+    happy/tests/service/wdmNext/test_weave_wdm_next_service_mutual_subscribe_22.py                              \
+    happy/tests/service/wdmNext/test_weave_wdm_next_service_mutual_subscribe_23.py                              \
+    happy/tests/service/wdmNext/test_weave_wdm_next_service_mutual_subscribe_24.py                              \
+    happy/tests/service/wdmNext/test_weave_wdm_next_service_mutual_subscribe_25.py                              \
+    happy/tests/service/wdmNext/test_weave_wdm_next_service_mutual_subscribe_application_key_01.py              \
     $(NULL)
 endif # WEAVE_RUN_HAPPY_WDM
 
@@ -591,69 +591,69 @@ if WEAVE_RUN_HAPPY_BDX
 
 # Parse the bdx filename and generate the script:
 # e.g: test_weave_bdx_faults_download_v0_v0_1_of_2
-happy-tests/bdx/test_weave_bdx_faults_%.sh :
-	mkdir -p happy-tests/bdx
+happy/tests/standalone/bdx/test_weave_bdx_faults_%.sh :
+	mkdir -p happy/tests/standalone/bdx
 	matched_part_of_the_file_name=$(*F) ; \
 	IFS='_' tokens=( $${matched_part_of_the_file_name} ) ; \
 	echo "#!/bin/bash" > $@ ; \
-	echo "${abs_srcdir}/happy-tests/bdx/test_weave_bdx_faults_01.py --direction $${tokens[0]} --versions $${tokens[1]/v/}_$${tokens[2]/v/} --group $${tokens[3]} --numgroups $${tokens[5]}" >> $@ ; \
+	echo "${abs_srcdir}/happy/tests/standalone/bdx/test_weave_bdx_faults_01.py --direction $${tokens[0]} --versions $${tokens[1]/v/}_$${tokens[2]/v/} --group $${tokens[3]} --numgroups $${tokens[5]}" >> $@ ; \
 	echo 'exit $$?' >>$@
 	chmod u+x $@
 
 check_SCRIPTS                                 +=                \
-    happy-tests/bdx/test_weave_bdx_faults_download_v0_v0_1_of_4.sh     \
-    happy-tests/bdx/test_weave_bdx_faults_download_v0_v0_2_of_4.sh     \
-    happy-tests/bdx/test_weave_bdx_faults_download_v0_v0_3_of_4.sh     \
-    happy-tests/bdx/test_weave_bdx_faults_download_v0_v0_4_of_4.sh     \
+    happy/tests/standalone/bdx/test_weave_bdx_faults_download_v0_v0_1_of_4.sh     \
+    happy/tests/standalone/bdx/test_weave_bdx_faults_download_v0_v0_2_of_4.sh     \
+    happy/tests/standalone/bdx/test_weave_bdx_faults_download_v0_v0_3_of_4.sh     \
+    happy/tests/standalone/bdx/test_weave_bdx_faults_download_v0_v0_4_of_4.sh     \
 	$(NULL)
 
 check_SCRIPTS                                 +=                \
-    happy-tests/bdx/test_weave_bdx_faults_download_v0_v1_1_of_4.sh     \
-    happy-tests/bdx/test_weave_bdx_faults_download_v0_v1_2_of_4.sh     \
-    happy-tests/bdx/test_weave_bdx_faults_download_v0_v1_3_of_4.sh     \
-    happy-tests/bdx/test_weave_bdx_faults_download_v0_v1_4_of_4.sh     \
+    happy/tests/standalone/bdx/test_weave_bdx_faults_download_v0_v1_1_of_4.sh     \
+    happy/tests/standalone/bdx/test_weave_bdx_faults_download_v0_v1_2_of_4.sh     \
+    happy/tests/standalone/bdx/test_weave_bdx_faults_download_v0_v1_3_of_4.sh     \
+    happy/tests/standalone/bdx/test_weave_bdx_faults_download_v0_v1_4_of_4.sh     \
 	$(NULL)
 
 check_SCRIPTS                                 +=                \
-    happy-tests/bdx/test_weave_bdx_faults_download_v1_v0_1_of_4.sh     \
-    happy-tests/bdx/test_weave_bdx_faults_download_v1_v0_2_of_4.sh     \
-    happy-tests/bdx/test_weave_bdx_faults_download_v1_v0_3_of_4.sh     \
-    happy-tests/bdx/test_weave_bdx_faults_download_v1_v0_4_of_4.sh     \
+    happy/tests/standalone/bdx/test_weave_bdx_faults_download_v1_v0_1_of_4.sh     \
+    happy/tests/standalone/bdx/test_weave_bdx_faults_download_v1_v0_2_of_4.sh     \
+    happy/tests/standalone/bdx/test_weave_bdx_faults_download_v1_v0_3_of_4.sh     \
+    happy/tests/standalone/bdx/test_weave_bdx_faults_download_v1_v0_4_of_4.sh     \
 	$(NULL)
 
 check_SCRIPTS                                 +=                \
-    happy-tests/bdx/test_weave_bdx_faults_download_v1_v1_1_of_4.sh     \
-    happy-tests/bdx/test_weave_bdx_faults_download_v1_v1_2_of_4.sh     \
-    happy-tests/bdx/test_weave_bdx_faults_download_v1_v1_3_of_4.sh     \
-    happy-tests/bdx/test_weave_bdx_faults_download_v1_v1_4_of_4.sh     \
+    happy/tests/standalone/bdx/test_weave_bdx_faults_download_v1_v1_1_of_4.sh     \
+    happy/tests/standalone/bdx/test_weave_bdx_faults_download_v1_v1_2_of_4.sh     \
+    happy/tests/standalone/bdx/test_weave_bdx_faults_download_v1_v1_3_of_4.sh     \
+    happy/tests/standalone/bdx/test_weave_bdx_faults_download_v1_v1_4_of_4.sh     \
 	$(NULL)
 
 check_SCRIPTS                                 +=                \
-    happy-tests/bdx/test_weave_bdx_faults_upload_v0_v0_1_of_4.sh       \
-    happy-tests/bdx/test_weave_bdx_faults_upload_v0_v0_2_of_4.sh       \
-    happy-tests/bdx/test_weave_bdx_faults_upload_v0_v0_3_of_4.sh       \
-    happy-tests/bdx/test_weave_bdx_faults_upload_v0_v0_4_of_4.sh       \
+    happy/tests/standalone/bdx/test_weave_bdx_faults_upload_v0_v0_1_of_4.sh       \
+    happy/tests/standalone/bdx/test_weave_bdx_faults_upload_v0_v0_2_of_4.sh       \
+    happy/tests/standalone/bdx/test_weave_bdx_faults_upload_v0_v0_3_of_4.sh       \
+    happy/tests/standalone/bdx/test_weave_bdx_faults_upload_v0_v0_4_of_4.sh       \
 	$(NULL)
 
 check_SCRIPTS                                 +=                \
-    happy-tests/bdx/test_weave_bdx_faults_upload_v0_v1_1_of_4.sh       \
-    happy-tests/bdx/test_weave_bdx_faults_upload_v0_v1_2_of_4.sh       \
-    happy-tests/bdx/test_weave_bdx_faults_upload_v0_v1_3_of_4.sh       \
-    happy-tests/bdx/test_weave_bdx_faults_upload_v0_v1_4_of_4.sh       \
+    happy/tests/standalone/bdx/test_weave_bdx_faults_upload_v0_v1_1_of_4.sh       \
+    happy/tests/standalone/bdx/test_weave_bdx_faults_upload_v0_v1_2_of_4.sh       \
+    happy/tests/standalone/bdx/test_weave_bdx_faults_upload_v0_v1_3_of_4.sh       \
+    happy/tests/standalone/bdx/test_weave_bdx_faults_upload_v0_v1_4_of_4.sh       \
 	$(NULL)
 
 check_SCRIPTS                                 +=                \
-    happy-tests/bdx/test_weave_bdx_faults_upload_v1_v0_1_of_4.sh       \
-    happy-tests/bdx/test_weave_bdx_faults_upload_v1_v0_2_of_4.sh       \
-    happy-tests/bdx/test_weave_bdx_faults_upload_v1_v0_3_of_4.sh       \
-    happy-tests/bdx/test_weave_bdx_faults_upload_v1_v0_4_of_4.sh       \
+    happy/tests/standalone/bdx/test_weave_bdx_faults_upload_v1_v0_1_of_4.sh       \
+    happy/tests/standalone/bdx/test_weave_bdx_faults_upload_v1_v0_2_of_4.sh       \
+    happy/tests/standalone/bdx/test_weave_bdx_faults_upload_v1_v0_3_of_4.sh       \
+    happy/tests/standalone/bdx/test_weave_bdx_faults_upload_v1_v0_4_of_4.sh       \
 	$(NULL)
 
 check_SCRIPTS                                 +=                \
-    happy-tests/bdx/test_weave_bdx_faults_upload_v1_v1_1_of_4.sh       \
-    happy-tests/bdx/test_weave_bdx_faults_upload_v1_v1_2_of_4.sh       \
-    happy-tests/bdx/test_weave_bdx_faults_upload_v1_v1_3_of_4.sh       \
-    happy-tests/bdx/test_weave_bdx_faults_upload_v1_v1_4_of_4.sh       \
+    happy/tests/standalone/bdx/test_weave_bdx_faults_upload_v1_v1_1_of_4.sh       \
+    happy/tests/standalone/bdx/test_weave_bdx_faults_upload_v1_v1_2_of_4.sh       \
+    happy/tests/standalone/bdx/test_weave_bdx_faults_upload_v1_v1_3_of_4.sh       \
+    happy/tests/standalone/bdx/test_weave_bdx_faults_upload_v1_v1_4_of_4.sh       \
 	$(NULL)
 
 endif # WEAVE_RUN_HAPPY_BDX
@@ -662,45 +662,45 @@ if WEAVE_RUN_HAPPY_SECMGR
 
 # Parse the echo filename and generate the script:
 # e.g: test_weave_echo_secmgr_faults_case_wrmp_1_of_2.sh
-happy-tests/echo/test_weave_echo_secmgr_faults_%.sh :
-	mkdir -p happy-tests/echo
+happy/tests/standalone/echo/test_weave_echo_secmgr_faults_%.sh :
+	mkdir -p happy/tests/standalone/echo
 	matched_part_of_the_file_name=$(*F) ; \
 	IFS='_' tokens=( $${matched_part_of_the_file_name} ) ; \
 	echo "#!/bin/bash" > $@ ; \
-	echo "${abs_srcdir}/happy-tests/echo/test_weave_echo_secmgr_faults.py --$${tokens[0]} --$${tokens[1]} --group $${tokens[2]} --numgroups $${tokens[4]}" >> $@ ; \
+	echo "${abs_srcdir}/happy/tests/standalone/echo/test_weave_echo_secmgr_faults.py --$${tokens[0]} --$${tokens[1]} --group $${tokens[2]} --numgroups $${tokens[4]}" >> $@ ; \
 	echo 'exit $$?' >>$@
 	chmod u+x $@
 
 check_SCRIPTS                                 +=                \
-	happy-tests/echo/test_weave_echo_secmgr_faults_case_wrmp_1_of_8.sh \
-	happy-tests/echo/test_weave_echo_secmgr_faults_case_wrmp_2_of_8.sh \
-	happy-tests/echo/test_weave_echo_secmgr_faults_case_wrmp_3_of_8.sh \
-	happy-tests/echo/test_weave_echo_secmgr_faults_case_wrmp_4_of_8.sh \
-	happy-tests/echo/test_weave_echo_secmgr_faults_case_wrmp_5_of_8.sh \
-	happy-tests/echo/test_weave_echo_secmgr_faults_case_wrmp_6_of_8.sh \
-	happy-tests/echo/test_weave_echo_secmgr_faults_case_wrmp_7_of_8.sh \
-	happy-tests/echo/test_weave_echo_secmgr_faults_case_wrmp_8_of_8.sh \
+	happy/tests/standalone/echo/test_weave_echo_secmgr_faults_case_wrmp_1_of_8.sh \
+	happy/tests/standalone/echo/test_weave_echo_secmgr_faults_case_wrmp_2_of_8.sh \
+	happy/tests/standalone/echo/test_weave_echo_secmgr_faults_case_wrmp_3_of_8.sh \
+	happy/tests/standalone/echo/test_weave_echo_secmgr_faults_case_wrmp_4_of_8.sh \
+	happy/tests/standalone/echo/test_weave_echo_secmgr_faults_case_wrmp_5_of_8.sh \
+	happy/tests/standalone/echo/test_weave_echo_secmgr_faults_case_wrmp_6_of_8.sh \
+	happy/tests/standalone/echo/test_weave_echo_secmgr_faults_case_wrmp_7_of_8.sh \
+	happy/tests/standalone/echo/test_weave_echo_secmgr_faults_case_wrmp_8_of_8.sh \
 	$(NULL)
 
 check_SCRIPTS                                 +=                \
-	happy-tests/echo/test_weave_echo_secmgr_faults_group-key_wrmp_1_of_4.sh \
-	happy-tests/echo/test_weave_echo_secmgr_faults_group-key_wrmp_2_of_4.sh \
-	happy-tests/echo/test_weave_echo_secmgr_faults_group-key_wrmp_3_of_4.sh \
-	happy-tests/echo/test_weave_echo_secmgr_faults_group-key_wrmp_4_of_4.sh \
+	happy/tests/standalone/echo/test_weave_echo_secmgr_faults_group-key_wrmp_1_of_4.sh \
+	happy/tests/standalone/echo/test_weave_echo_secmgr_faults_group-key_wrmp_2_of_4.sh \
+	happy/tests/standalone/echo/test_weave_echo_secmgr_faults_group-key_wrmp_3_of_4.sh \
+	happy/tests/standalone/echo/test_weave_echo_secmgr_faults_group-key_wrmp_4_of_4.sh \
 	$(NULL)
 
 check_SCRIPTS                                 +=                \
-	happy-tests/echo/test_weave_echo_secmgr_faults_case_tcp_1_of_4.sh \
-	happy-tests/echo/test_weave_echo_secmgr_faults_case_tcp_2_of_4.sh \
-	happy-tests/echo/test_weave_echo_secmgr_faults_case_tcp_3_of_4.sh \
-	happy-tests/echo/test_weave_echo_secmgr_faults_case_tcp_4_of_4.sh \
+	happy/tests/standalone/echo/test_weave_echo_secmgr_faults_case_tcp_1_of_4.sh \
+	happy/tests/standalone/echo/test_weave_echo_secmgr_faults_case_tcp_2_of_4.sh \
+	happy/tests/standalone/echo/test_weave_echo_secmgr_faults_case_tcp_3_of_4.sh \
+	happy/tests/standalone/echo/test_weave_echo_secmgr_faults_case_tcp_4_of_4.sh \
 	$(NULL)
 
 check_SCRIPTS                                 +=                \
-	happy-tests/echo/test_weave_echo_secmgr_faults_pase_tcp_1_of_4.sh \
-	happy-tests/echo/test_weave_echo_secmgr_faults_pase_tcp_2_of_4.sh \
-	happy-tests/echo/test_weave_echo_secmgr_faults_pase_tcp_3_of_4.sh \
-	happy-tests/echo/test_weave_echo_secmgr_faults_pase_tcp_4_of_4.sh \
+	happy/tests/standalone/echo/test_weave_echo_secmgr_faults_pase_tcp_1_of_4.sh \
+	happy/tests/standalone/echo/test_weave_echo_secmgr_faults_pase_tcp_2_of_4.sh \
+	happy/tests/standalone/echo/test_weave_echo_secmgr_faults_pase_tcp_3_of_4.sh \
+	happy/tests/standalone/echo/test_weave_echo_secmgr_faults_pase_tcp_4_of_4.sh \
 	$(NULL)
 
 endif # WEAVE_RUN_HAPPY_SECMGR
@@ -709,39 +709,39 @@ if WEAVE_RUN_HAPPY_WDM
 
 # Parse the wdm filename and generate the script:
 # e.g: test_weave_echo_secmgr_faults_case_wrmp_1_of_2.sh
-happy-tests/wdmNext/test_weave_wdm_next_%.sh :
-	mkdir -p happy-tests/wdmNext
+happy/tests/standalone/wdmNext/test_weave_wdm_next_%.sh :
+	mkdir -p happy/tests/standalone/wdmNext
 	matched_part_of_the_file_name=$(*F) ; \
 	IFS='_' tokens=( $${matched_part_of_the_file_name} ) ; \
 	echo "#!/bin/bash" > $@ ; \
-	echo "${abs_srcdir}/happy-tests/wdmNext/test_weave_wdm_next_$${tokens[0]}_subscribe_faults.py --group $${tokens[3]} --numgroups $${tokens[5]}" >> $@ ; \
+	echo "${abs_srcdir}/happy/tests/standalone/wdmNext/test_weave_wdm_next_$${tokens[0]}_subscribe_faults.py --group $${tokens[3]} --numgroups $${tokens[5]}" >> $@ ; \
 	echo 'exit $$?' >>$@
 	chmod u+x $@
 
 check_SCRIPTS                                 +=                \
-	happy-tests/wdmNext/test_weave_wdm_next_mutual_subscribe_faults_1_of_12.sh \
-	happy-tests/wdmNext/test_weave_wdm_next_mutual_subscribe_faults_2_of_12.sh \
-	happy-tests/wdmNext/test_weave_wdm_next_mutual_subscribe_faults_3_of_12.sh \
-	happy-tests/wdmNext/test_weave_wdm_next_mutual_subscribe_faults_4_of_12.sh \
-	happy-tests/wdmNext/test_weave_wdm_next_mutual_subscribe_faults_5_of_12.sh \
-	happy-tests/wdmNext/test_weave_wdm_next_mutual_subscribe_faults_6_of_12.sh \
-	happy-tests/wdmNext/test_weave_wdm_next_mutual_subscribe_faults_7_of_12.sh \
-	happy-tests/wdmNext/test_weave_wdm_next_mutual_subscribe_faults_8_of_12.sh \
-	happy-tests/wdmNext/test_weave_wdm_next_mutual_subscribe_faults_9_of_12.sh \
-	happy-tests/wdmNext/test_weave_wdm_next_mutual_subscribe_faults_10_of_12.sh \
-	happy-tests/wdmNext/test_weave_wdm_next_mutual_subscribe_faults_11_of_12.sh \
-	happy-tests/wdmNext/test_weave_wdm_next_mutual_subscribe_faults_12_of_12.sh \
+	happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_faults_1_of_12.sh \
+	happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_faults_2_of_12.sh \
+	happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_faults_3_of_12.sh \
+	happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_faults_4_of_12.sh \
+	happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_faults_5_of_12.sh \
+	happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_faults_6_of_12.sh \
+	happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_faults_7_of_12.sh \
+	happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_faults_8_of_12.sh \
+	happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_faults_9_of_12.sh \
+	happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_faults_10_of_12.sh \
+	happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_faults_11_of_12.sh \
+	happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_faults_12_of_12.sh \
 	$(NULL)
 
 check_SCRIPTS                                 +=                \
-	happy-tests/wdmNext/test_weave_wdm_next_oneway_subscribe_faults_1_of_8.sh \
-	happy-tests/wdmNext/test_weave_wdm_next_oneway_subscribe_faults_2_of_8.sh \
-	happy-tests/wdmNext/test_weave_wdm_next_oneway_subscribe_faults_3_of_8.sh \
-	happy-tests/wdmNext/test_weave_wdm_next_oneway_subscribe_faults_4_of_8.sh \
-	happy-tests/wdmNext/test_weave_wdm_next_oneway_subscribe_faults_5_of_8.sh \
-	happy-tests/wdmNext/test_weave_wdm_next_oneway_subscribe_faults_6_of_8.sh \
-	happy-tests/wdmNext/test_weave_wdm_next_oneway_subscribe_faults_7_of_8.sh \
-	happy-tests/wdmNext/test_weave_wdm_next_oneway_subscribe_faults_8_of_8.sh \
+	happy/tests/standalone/wdmNext/test_weave_wdm_next_oneway_subscribe_faults_1_of_8.sh \
+	happy/tests/standalone/wdmNext/test_weave_wdm_next_oneway_subscribe_faults_2_of_8.sh \
+	happy/tests/standalone/wdmNext/test_weave_wdm_next_oneway_subscribe_faults_3_of_8.sh \
+	happy/tests/standalone/wdmNext/test_weave_wdm_next_oneway_subscribe_faults_4_of_8.sh \
+	happy/tests/standalone/wdmNext/test_weave_wdm_next_oneway_subscribe_faults_5_of_8.sh \
+	happy/tests/standalone/wdmNext/test_weave_wdm_next_oneway_subscribe_faults_6_of_8.sh \
+	happy/tests/standalone/wdmNext/test_weave_wdm_next_oneway_subscribe_faults_7_of_8.sh \
+	happy/tests/standalone/wdmNext/test_weave_wdm_next_oneway_subscribe_faults_8_of_8.sh \
 	$(NULL)
 
 endif # WEAVE_RUN_HAPPY_WDM
@@ -750,22 +750,22 @@ if WEAVE_RUN_HAPPY_KEY_EXPORT
 
 # Parse the key export filename and generate the script:
 # e.g: test_weave_key_export_faults_wrmp_1_of_4.sh
-happy-tests/key_export/test_weave_key_export_faults_%.sh :
-	mkdir -p happy-tests/key_export
+happy/tests/standalone/key_export/test_weave_key_export_faults_%.sh :
+	mkdir -p happy/tests/standalone/key_export
 	matched_part_of_the_file_name=$(*F) ; \
 	IFS='_' tokens=( $${matched_part_of_the_file_name} ) ; \
 	echo "#!/bin/bash" > $@ ; \
-	echo "${abs_srcdir}/happy-tests/key_export/test_weave_key_export_faults.py --$${tokens[0]} --group $${tokens[1]} --numgroups $${tokens[3]}" >> $@ ; \
+	echo "${abs_srcdir}/happy/tests/standalone/key_export/test_weave_key_export_faults.py --$${tokens[0]} --group $${tokens[1]} --numgroups $${tokens[3]}" >> $@ ; \
 	echo 'exit $$?' >>$@
 	chmod u+x $@
 
 check_SCRIPTS                                 +=                \
-	happy-tests/key_export/test_weave_key_export_faults_tcp_1_of_2.sh \
-	happy-tests/key_export/test_weave_key_export_faults_tcp_2_of_2.sh \
-	happy-tests/key_export/test_weave_key_export_faults_wrmp_1_of_4.sh \
-	happy-tests/key_export/test_weave_key_export_faults_wrmp_2_of_4.sh \
-	happy-tests/key_export/test_weave_key_export_faults_wrmp_3_of_4.sh \
-	happy-tests/key_export/test_weave_key_export_faults_wrmp_4_of_4.sh \
+	happy/tests/standalone/key_export/test_weave_key_export_faults_tcp_1_of_2.sh \
+	happy/tests/standalone/key_export/test_weave_key_export_faults_tcp_2_of_2.sh \
+	happy/tests/standalone/key_export/test_weave_key_export_faults_wrmp_1_of_4.sh \
+	happy/tests/standalone/key_export/test_weave_key_export_faults_wrmp_2_of_4.sh \
+	happy/tests/standalone/key_export/test_weave_key_export_faults_wrmp_3_of_4.sh \
+	happy/tests/standalone/key_export/test_weave_key_export_faults_wrmp_4_of_4.sh \
 	$(NULL)
 
 endif # WEAVE_RUN_HAPPY_KEY_EXPORT
@@ -774,20 +774,20 @@ if WEAVE_RUN_HAPPY_SERVICEDIR
 
 # Parse the servicedir filename and generate the script:
 # e.g: t_weave_service_directory_faults_1_of_4.sh
-happy-tests/servicedir/test_weave_service_directory_faults_%.sh :
-	mkdir -p happy-tests/servicedir
+happy/tests/standalone/servicedir/test_weave_service_directory_faults_%.sh :
+	mkdir -p happy/tests/standalone/servicedir
 	matched_part_of_the_file_name=$(*F) ; \
 	IFS='_' tokens=( $${matched_part_of_the_file_name} ) ; \
 	echo "#!/bin/bash" > $@ ; \
-	echo "${abs_srcdir}/happy-tests/servicedir/test_service_directory_01.py --fault-injection --group $${tokens[0]} --numgroups $${tokens[2]}" >> $@ ; \
+	echo "${abs_srcdir}/happy/tests/standalone/servicedir/test_service_directory_01.py --fault-injection --group $${tokens[0]} --numgroups $${tokens[2]}" >> $@ ; \
 	echo 'exit $$?' >>$@
 	chmod u+x $@
 
 check_SCRIPTS                                 +=                \
-	happy-tests/servicedir/test_weave_service_directory_faults_1_of_4.sh \
-	happy-tests/servicedir/test_weave_service_directory_faults_2_of_4.sh \
-	happy-tests/servicedir/test_weave_service_directory_faults_3_of_4.sh \
-	happy-tests/servicedir/test_weave_service_directory_faults_4_of_4.sh \
+	happy/tests/standalone/servicedir/test_weave_service_directory_faults_1_of_4.sh \
+	happy/tests/standalone/servicedir/test_weave_service_directory_faults_2_of_4.sh \
+	happy/tests/standalone/servicedir/test_weave_service_directory_faults_3_of_4.sh \
+	happy/tests/standalone/servicedir/test_weave_service_directory_faults_4_of_4.sh \
 	$(NULL)
 
 endif # WEAVE_RUN_HAPPY_SERVICEDIR
@@ -796,24 +796,24 @@ if WEAVE_RUN_HAPPY_TUNNEL
 
 # Parse the tunnel filename and generate the script:
 # e.g: test_weave_tunnel_faults_1_of_4.sh
-happy-tests/tunnel/test_weave_tunnel_faults_%.sh :
-	mkdir -p happy-tests/tunnel
+happy/tests/standalone/tunnel/test_weave_tunnel_faults_%.sh :
+	mkdir -p happy/tests/standalone/tunnel
 	matched_part_of_the_file_name=$(*F) ; \
 	IFS='_' tokens=( $${matched_part_of_the_file_name} ) ; \
 	echo "#!/bin/bash" > $@ ; \
-	echo "${abs_srcdir}/happy-tests/tunnel/test_weave_tunnel_faults.py --group $${tokens[0]} --numgroups $${tokens[2]}" >> $@ ; \
+	echo "${abs_srcdir}/happy/tests/standalone/tunnel/test_weave_tunnel_faults.py --group $${tokens[0]} --numgroups $${tokens[2]}" >> $@ ; \
 	echo 'exit $$?' >>$@
 	chmod u+x $@
 
 check_SCRIPTS                                 +=                \
-	happy-tests/tunnel/test_weave_tunnel_faults_1_of_8.sh \
-	happy-tests/tunnel/test_weave_tunnel_faults_2_of_8.sh \
-	happy-tests/tunnel/test_weave_tunnel_faults_3_of_8.sh \
-	happy-tests/tunnel/test_weave_tunnel_faults_4_of_8.sh \
-	happy-tests/tunnel/test_weave_tunnel_faults_5_of_8.sh \
-	happy-tests/tunnel/test_weave_tunnel_faults_6_of_8.sh \
-	happy-tests/tunnel/test_weave_tunnel_faults_7_of_8.sh \
-	happy-tests/tunnel/test_weave_tunnel_faults_8_of_8.sh \
+	happy/tests/standalone/tunnel/test_weave_tunnel_faults_1_of_8.sh \
+	happy/tests/standalone/tunnel/test_weave_tunnel_faults_2_of_8.sh \
+	happy/tests/standalone/tunnel/test_weave_tunnel_faults_3_of_8.sh \
+	happy/tests/standalone/tunnel/test_weave_tunnel_faults_4_of_8.sh \
+	happy/tests/standalone/tunnel/test_weave_tunnel_faults_5_of_8.sh \
+	happy/tests/standalone/tunnel/test_weave_tunnel_faults_6_of_8.sh \
+	happy/tests/standalone/tunnel/test_weave_tunnel_faults_7_of_8.sh \
+	happy/tests/standalone/tunnel/test_weave_tunnel_faults_8_of_8.sh \
 	$(NULL)
 
 endif # WEAVE_RUN_HAPPY_TUNNEL
@@ -822,32 +822,32 @@ if WEAVE_RUN_HAPPY_TIME
 
 # Parse the time filename and generate the script:
 # e.g: t_weave_time_faults_1_of_8.sh
-happy-tests/time/test_weave_time_faults_%.sh :
-	mkdir -p happy-tests/time
+happy/tests/standalone/time/test_weave_time_faults_%.sh :
+	mkdir -p happy/tests/standalone/time
 	matched_part_of_the_file_name=$(*F) ; \
 	IFS='_' tokens=( $${matched_part_of_the_file_name} ) ; \
 	echo "#!/bin/bash" > $@ ; \
-	echo "${abs_srcdir}/happy-tests/time/test_weave_time_01.py --enable-faults --syncmode $${tokens[0]} --group $${tokens[1]} --numgroups $${tokens[3]}" >> $@ ; \
+	echo "${abs_srcdir}/happy/tests/standalone/time/test_weave_time_01.py --enable-faults --syncmode $${tokens[0]} --group $${tokens[1]} --numgroups $${tokens[3]}" >> $@ ; \
 	echo 'exit $$?' >>$@
 	chmod u+x $@
 
 check_SCRIPTS                                 +=                \
-	happy-tests/time/test_weave_time_faults_local_1_of_4.sh \
-	happy-tests/time/test_weave_time_faults_local_2_of_4.sh \
-	happy-tests/time/test_weave_time_faults_local_3_of_4.sh \
-	happy-tests/time/test_weave_time_faults_local_4_of_4.sh \
-	happy-tests/time/test_weave_time_faults_service_1_of_4.sh \
-	happy-tests/time/test_weave_time_faults_service_2_of_4.sh \
-	happy-tests/time/test_weave_time_faults_service_3_of_4.sh \
-	happy-tests/time/test_weave_time_faults_service_4_of_4.sh \
-	happy-tests/time/test_weave_time_faults_auto_1_of_8.sh \
-	happy-tests/time/test_weave_time_faults_auto_2_of_8.sh \
-	happy-tests/time/test_weave_time_faults_auto_3_of_8.sh \
-	happy-tests/time/test_weave_time_faults_auto_4_of_8.sh \
-	happy-tests/time/test_weave_time_faults_auto_5_of_8.sh \
-	happy-tests/time/test_weave_time_faults_auto_6_of_8.sh \
-	happy-tests/time/test_weave_time_faults_auto_7_of_8.sh \
-	happy-tests/time/test_weave_time_faults_auto_8_of_8.sh \
+	happy/tests/standalone/time/test_weave_time_faults_local_1_of_4.sh \
+	happy/tests/standalone/time/test_weave_time_faults_local_2_of_4.sh \
+	happy/tests/standalone/time/test_weave_time_faults_local_3_of_4.sh \
+	happy/tests/standalone/time/test_weave_time_faults_local_4_of_4.sh \
+	happy/tests/standalone/time/test_weave_time_faults_service_1_of_4.sh \
+	happy/tests/standalone/time/test_weave_time_faults_service_2_of_4.sh \
+	happy/tests/standalone/time/test_weave_time_faults_service_3_of_4.sh \
+	happy/tests/standalone/time/test_weave_time_faults_service_4_of_4.sh \
+	happy/tests/standalone/time/test_weave_time_faults_auto_1_of_8.sh \
+	happy/tests/standalone/time/test_weave_time_faults_auto_2_of_8.sh \
+	happy/tests/standalone/time/test_weave_time_faults_auto_3_of_8.sh \
+	happy/tests/standalone/time/test_weave_time_faults_auto_4_of_8.sh \
+	happy/tests/standalone/time/test_weave_time_faults_auto_5_of_8.sh \
+	happy/tests/standalone/time/test_weave_time_faults_auto_6_of_8.sh \
+	happy/tests/standalone/time/test_weave_time_faults_auto_7_of_8.sh \
+	happy/tests/standalone/time/test_weave_time_faults_auto_8_of_8.sh \
 	$(NULL)
 
 endif # WEAVE_RUN_HAPPY_TIME
@@ -857,157 +857,157 @@ endif # WEAVE_RUN_LONG_TESTS
 if WEAVE_RUN_HAPPY_WDM
 
 check_SCRIPTS                                 +=                \
-    happy-tests/wdmNext/test_weave_wdm_next_one_way_subscribe_01.py    \
-    happy-tests/wdmNext/test_weave_wdm_next_one_way_subscribe_02.py    \
-    happy-tests/wdmNext/test_weave_wdm_next_one_way_subscribe_03.py    \
-    happy-tests/wdmNext/test_weave_wdm_next_one_way_subscribe_04.py    \
-    happy-tests/wdmNext/test_weave_wdm_next_one_way_subscribe_05.py    \
-    happy-tests/wdmNext/test_weave_wdm_next_one_way_subscribe_06.py    \
-    happy-tests/wdmNext/test_weave_wdm_next_one_way_subscribe_07.py    \
-    happy-tests/wdmNext/test_weave_wdm_next_one_way_subscribe_08.py    \
-    happy-tests/wdmNext/test_weave_wdm_next_one_way_subscribe_09.py    \
-    happy-tests/wdmNext/test_weave_wdm_next_one_way_subscribe_10.py    \
-    happy-tests/wdmNext/test_weave_wdm_next_one_way_subscribe_11.py    \
-    happy-tests/wdmNext/test_weave_wdm_next_one_way_subscribe_12.py    \
-    happy-tests/wdmNext/test_weave_wdm_next_one_way_subscribe_13.py    \
-    happy-tests/wdmNext/test_weave_wdm_next_one_way_subscribe_14.py    \
-    happy-tests/wdmNext/test_weave_wdm_next_one_way_subscribe_15.py    \
-    happy-tests/wdmNext/test_weave_wdm_next_one_way_subscribe_16.py    \
-    happy-tests/wdmNext/test_weave_wdm_next_mutual_subscribe_01.py     \
-    happy-tests/wdmNext/test_weave_wdm_next_mutual_subscribe_02.py     \
-    happy-tests/wdmNext/test_weave_wdm_next_mutual_subscribe_03.py     \
-    happy-tests/wdmNext/test_weave_wdm_next_mutual_subscribe_04.py     \
-    happy-tests/wdmNext/test_weave_wdm_next_mutual_subscribe_05.py     \
-    happy-tests/wdmNext/test_weave_wdm_next_mutual_subscribe_06.py     \
-    happy-tests/wdmNext/test_weave_wdm_next_mutual_subscribe_07.py     \
-    happy-tests/wdmNext/test_weave_wdm_next_mutual_subscribe_08.py     \
-    happy-tests/wdmNext/test_weave_wdm_next_mutual_subscribe_09.py     \
-    happy-tests/wdmNext/test_weave_wdm_next_mutual_subscribe_10.py     \
-    happy-tests/wdmNext/test_weave_wdm_next_mutual_subscribe_11.py     \
-    happy-tests/wdmNext/test_weave_wdm_next_mutual_subscribe_12.py     \
-    happy-tests/wdmNext/test_weave_wdm_next_mutual_subscribe_13.py     \
-    happy-tests/wdmNext/test_weave_wdm_next_mutual_subscribe_14.py     \
-    happy-tests/wdmNext/test_weave_wdm_next_mutual_subscribe_15.py     \
-    happy-tests/wdmNext/test_weave_wdm_next_mutual_subscribe_16.py     \
-    happy-tests/wdmNext/test_weave_wdm_next_mutual_subscribe_17.py     \
-    happy-tests/wdmNext/test_weave_wdm_next_mutual_subscribe_18.py     \
-    happy-tests/wdmNext/test_weave_wdm_next_mutual_subscribe_19.py     \
-    happy-tests/wdmNext/test_weave_wdm_next_mutual_subscribe_20.py     \
-    happy-tests/wdmNext/test_weave_wdm_next_mutual_subscribe_21.py     \
-    happy-tests/wdmNext/test_weave_wdm_next_mutual_subscribe_22.py     \
-    happy-tests/wdmNext/test_weave_wdm_next_mutual_subscribe_23.py     \
-    happy-tests/wdmNext/test_weave_wdm_next_mutual_subscribe_24.py     \
-    happy-tests/wdmNext/test_weave_wdm_next_mutual_subscribe_25.py     \
-    happy-tests/wdmNext/test_weave_wdm_next_mutual_subscribe_26.py     \
-    happy-tests/wdmNext/test_weave_wdm_next_mutual_subscribe_27.py     \
-    happy-tests/wdmNext/test_weave_wdm_next_mutual_subscribe_28.py     \
-    happy-tests/wdmNext/test_weave_wdm_next_mutual_subscribe_29.py     \
-    happy-tests/wdmNext/test_weave_wdm_next_mutual_subscribe_30.py     \
-    happy-tests/wdmNext/test_weave_wdm_next_mutual_subscribe_31.py     \
-    happy-tests/wdmNext/test_weave_wdm_next_mutual_subscribe_32.py     \
-    happy-tests/wdmNext/test_weave_wdm_next_mutual_subscribe_33.py     \
-    happy-tests/wdmNext/test_weave_wdm_next_mutual_subscribe_34.py     \
-    happy-tests/wdmNext/test_weave_wdm_next_mutual_subscribe_35.py     \
-    happy-tests/wdmNext/test_weave_wdm_next_mutual_subscribe_36.py     \
-    happy-tests/wdmNext/test_weave_wdm_next_mutual_subscribe_37.py     \
-    happy-tests/wdmNext/test_weave_wdm_next_mutual_subscribe_38.py     \
-    happy-tests/wdmNext/test_weave_wdm_next_mutual_subscribe_39.py     \
-    happy-tests/wdmNext/test_weave_wdm_next_mutual_subscribe_40.py     \
-    happy-tests/wdmNext/test_weave_wdm_next_mutual_subscribe_41.py     \
-    happy-tests/wdmNext/test_weave_wdm_next_mutual_subscribe_42.py     \
-    happy-tests/wdmNext/test_weave_wdm_next_mutual_subscribe_43.py     \
-    happy-tests/wdmNext/test_weave_wdm_next_mutual_subscribe_44.py     \
-    happy-tests/wdmNext/test_weave_wdm_next_mutual_subscribe_45.py     \
-    happy-tests/wdmNext/test_weave_wdm_next_mutual_subscribe_46.py     \
-    happy-tests/wdmNext/test_weave_wdm_next_mutual_subscribe_47.py     \
-    happy-tests/wdmNext/test_weave_wdm_next_mutual_subscribe_48.py     \
-    happy-tests/wdmNext/test_weave_wdm_next_mutual_subscribe_49.py     \
-    happy-tests/wdmNext/test_weave_wdm_next_mutual_subscribe_50.py     \
-    happy-tests/wdmNext/test_weave_wdm_next_mutual_subscribe_51.py     \
-    happy-tests/wdmNext/test_weave_wdm_next_mutual_subscribe_52.py     \
-    happy-tests/wdmNext/test_weave_wdm_next_mutual_subscribe_53.py     \
-    happy-tests/wdmNext/test_weave_wdm_next_mutual_subscribe_54.py     \
-    happy-tests/wdmNext/test_weave_wdm_next_mutual_subscribe_55.py     \
-    happy-tests/wdmNext/test_weave_wdm_next_mutual_subscribe_56.py     \
-    happy-tests/wdmNext/test_weave_wdm_next_mutual_subscribe_57.py     \
-    happy-tests/wdmNext/test_weave_wdm_next_mutual_subscribe_58.py     \
-    happy-tests/wdmNext/test_weave_wdm_next_mutual_subscribe_59.py     \
-    happy-tests/wdmNext/test_weave_wdm_next_mutual_subscribe_60.py     \
-    happy-tests/wdmNext/test_weave_wdm_next_mutual_subscribe_61.py     \
-    happy-tests/wdmNext/test_weave_wdm_next_mutual_subscribe_62.py     \
-    happy-tests/wdmNext/test_weave_wdm_next_mutual_subscribe_63.py     \
-    happy-tests/wdmNext/test_weave_wdm_next_mutual_subscribe_64.py     \
-    happy-tests/wdmNext/test_weave_wdm_next_mutual_subscribe_65.py     \
-    happy-tests/wdmNext/test_weave_wdm_next_application_key_01.py      \
-    happy-tests/wdmNext/test_weave_wdm_next_application_key_02.py      \
-    happy-tests/wdmNext/test_weave_wdm_next_oneway_resub.py            \
-    happy-tests/wdmNext/test_weave_wdm_next_mutual_resub.py            \
+    happy/tests/standalone/wdmNext/test_weave_wdm_next_one_way_subscribe_01.py    \
+    happy/tests/standalone/wdmNext/test_weave_wdm_next_one_way_subscribe_02.py    \
+    happy/tests/standalone/wdmNext/test_weave_wdm_next_one_way_subscribe_03.py    \
+    happy/tests/standalone/wdmNext/test_weave_wdm_next_one_way_subscribe_04.py    \
+    happy/tests/standalone/wdmNext/test_weave_wdm_next_one_way_subscribe_05.py    \
+    happy/tests/standalone/wdmNext/test_weave_wdm_next_one_way_subscribe_06.py    \
+    happy/tests/standalone/wdmNext/test_weave_wdm_next_one_way_subscribe_07.py    \
+    happy/tests/standalone/wdmNext/test_weave_wdm_next_one_way_subscribe_08.py    \
+    happy/tests/standalone/wdmNext/test_weave_wdm_next_one_way_subscribe_09.py    \
+    happy/tests/standalone/wdmNext/test_weave_wdm_next_one_way_subscribe_10.py    \
+    happy/tests/standalone/wdmNext/test_weave_wdm_next_one_way_subscribe_11.py    \
+    happy/tests/standalone/wdmNext/test_weave_wdm_next_one_way_subscribe_12.py    \
+    happy/tests/standalone/wdmNext/test_weave_wdm_next_one_way_subscribe_13.py    \
+    happy/tests/standalone/wdmNext/test_weave_wdm_next_one_way_subscribe_14.py    \
+    happy/tests/standalone/wdmNext/test_weave_wdm_next_one_way_subscribe_15.py    \
+    happy/tests/standalone/wdmNext/test_weave_wdm_next_one_way_subscribe_16.py    \
+    happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_01.py     \
+    happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_02.py     \
+    happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_03.py     \
+    happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_04.py     \
+    happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_05.py     \
+    happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_06.py     \
+    happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_07.py     \
+    happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_08.py     \
+    happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_09.py     \
+    happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_10.py     \
+    happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_11.py     \
+    happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_12.py     \
+    happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_13.py     \
+    happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_14.py     \
+    happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_15.py     \
+    happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_16.py     \
+    happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_17.py     \
+    happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_18.py     \
+    happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_19.py     \
+    happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_20.py     \
+    happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_21.py     \
+    happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_22.py     \
+    happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_23.py     \
+    happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_24.py     \
+    happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_25.py     \
+    happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_26.py     \
+    happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_27.py     \
+    happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_28.py     \
+    happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_29.py     \
+    happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_30.py     \
+    happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_31.py     \
+    happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_32.py     \
+    happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_33.py     \
+    happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_34.py     \
+    happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_35.py     \
+    happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_36.py     \
+    happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_37.py     \
+    happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_38.py     \
+    happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_39.py     \
+    happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_40.py     \
+    happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_41.py     \
+    happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_42.py     \
+    happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_43.py     \
+    happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_44.py     \
+    happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_45.py     \
+    happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_46.py     \
+    happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_47.py     \
+    happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_48.py     \
+    happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_49.py     \
+    happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_50.py     \
+    happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_51.py     \
+    happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_52.py     \
+    happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_53.py     \
+    happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_54.py     \
+    happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_55.py     \
+    happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_56.py     \
+    happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_57.py     \
+    happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_58.py     \
+    happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_59.py     \
+    happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_60.py     \
+    happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_61.py     \
+    happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_62.py     \
+    happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_63.py     \
+    happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_64.py     \
+    happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_65.py     \
+    happy/tests/standalone/wdmNext/test_weave_wdm_next_application_key_01.py      \
+    happy/tests/standalone/wdmNext/test_weave_wdm_next_application_key_02.py      \
+    happy/tests/standalone/wdmNext/test_weave_wdm_next_oneway_resub.py            \
+    happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_resub.py            \
     $(NULL)
 
 endif # WEAVE_RUN_HAPPY_WDM
 
 if WEAVE_RUN_HAPPY_BDX
 check_SCRIPTS                                 +=                \
-    happy-tests/bdx/test_weave_bdx_01.py                        \
-    happy-tests/bdx/test_weave_bdx_02.py                        \
-    happy-tests/bdx/test_weave_bdx_03.py                        \
-    happy-tests/bdx/test_weave_bdx_04.py                        \
-    happy-tests/bdx/test_weave_bdx_05.py                        \
+    happy/tests/standalone/bdx/test_weave_bdx_01.py                        \
+    happy/tests/standalone/bdx/test_weave_bdx_02.py                        \
+    happy/tests/standalone/bdx/test_weave_bdx_03.py                        \
+    happy/tests/standalone/bdx/test_weave_bdx_04.py                        \
+    happy/tests/standalone/bdx/test_weave_bdx_05.py                        \
     $(NULL)
 endif # WEAVE_RUN_HAPPY_BDX
 
 if WEAVE_RUN_HAPPY_ECHO
 check_SCRIPTS                                 +=                \
-    happy-tests/echo/test_weave_echo_01.py                      \
-    happy-tests/echo/test_weave_echo_03.py                      \
+    happy/tests/standalone/echo/test_weave_echo_01.py                      \
+    happy/tests/standalone/echo/test_weave_echo_03.py                      \
     $(NULL)
 endif # WEAVE_RUN_HAPPY_ECHO
 
 if WEAVE_RUN_HAPPY_SECMGR
 check_SCRIPTS                                 +=                \
-    happy-tests/echo/test_weave_echo_02.py                      \
+    happy/tests/standalone/echo/test_weave_echo_02.py                      \
     $(NULL)
 endif # WEAVE_RUN_HAPPY_SECMGR
 
 if WEAVE_RUN_HAPPY_TUNNEL
 check_SCRIPTS                                 +=                \
-    happy-tests/tunnel/test_weave_tunnel_01.py                  \
-    happy-tests/tunnel/test_weave_tunnel_02.py                  \
-    happy-tests/tunnel/test_weave_tunnel_03.py                  \
-    happy-tests/tunnel/test_weave_tunnel_04.py                  \
-    happy-tests/con_tunnel/test_weave_con_tunnel_01.py          \
+    happy/tests/standalone/tunnel/test_weave_tunnel_01.py                  \
+    happy/tests/standalone/tunnel/test_weave_tunnel_02.py                  \
+    happy/tests/standalone/tunnel/test_weave_tunnel_03.py                  \
+    happy/tests/standalone/tunnel/test_weave_tunnel_04.py                  \
+    happy/tests/standalone/con_tunnel/test_weave_con_tunnel_01.py          \
     $(NULL)
 endif # WEAVE_RUN_HAPPY_TUNNEL
 
 if WEAVE_RUN_HAPPY_KEY_EXPORT
 check_SCRIPTS                                 +=                \
-    happy-tests/key_export/test_weave_key_export_01.py          \
+    happy/tests/standalone/key_export/test_weave_key_export_01.py          \
     $(NULL)
 endif # WEAVE_RUN_HAPPY_KEY_EXPORT
 
 if WEAVE_RUN_HAPPY_PAIRING
 check_SCRIPTS                                 +=                \
-    happy-tests/pairing/test_weave_pairing_01.py                \
+    happy/tests/standalone/pairing/test_weave_pairing_01.py                \
     $(NULL)
 endif # WEAVE_RUN_HAPPY_PAIRING
 
 if WEAVE_RUN_HAPPY_SERVICEDIR
 check_SCRIPTS                                 +=                \
-    happy-tests/servicedir/test_service_directory_01.py         \
+    happy/tests/standalone/servicedir/test_service_directory_01.py         \
     $(NULL)
 endif
 
 if WEAVE_RUN_HAPPY_CORE
 check_SCRIPTS                                 +=                \
-    happy-tests/wdmv0/test_weave_wdmv0_01.py                    \
-    happy-tests/swu/test_weave_swu_01.py                        \
-    happy-tests/swu/test_weave_swu_02.py                        \
-    happy-tests/messagelayer/test_weave_messagelayer_01.py      \
-    happy-tests/time/test_weave_time_01.py                      \
-    happy-tests/dd/test_weave_dd_01.py                          \
-    happy-tests/inet/test_weave_inet_01.py                      \
-    happy-tests/heartbeat/test_weave_heartbeat_01.py            \
-    happy-tests/wrmp/test_weave_wrmp_01.py                      \
+    happy/tests/standalone/wdmv0/test_weave_wdmv0_01.py                    \
+    happy/tests/standalone/swu/test_weave_swu_01.py                        \
+    happy/tests/standalone/swu/test_weave_swu_02.py                        \
+    happy/tests/standalone/messagelayer/test_weave_messagelayer_01.py      \
+    happy/tests/standalone/time/test_weave_time_01.py                      \
+    happy/tests/standalone/dd/test_weave_dd_01.py                          \
+    happy/tests/standalone/inet/test_weave_inet_01.py                      \
+    happy/tests/standalone/heartbeat/test_weave_heartbeat_01.py            \
+    happy/tests/standalone/wrmp/test_weave_wrmp_01.py                      \
     $(NULL)
 endif # WEAVE_RUN_HAPPY_CORE
 

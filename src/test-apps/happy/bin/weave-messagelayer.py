@@ -30,7 +30,7 @@ import sys
 import set_test_path
 
 from happy.Utils import *
-import plugin.WeaveMessageLayer as WeaveMessageLayer
+import wrappers.WeaveMessageLayer as WeaveMessageLayer
 
 if __name__ == "__main__":
 	options = WeaveMessageLayer.option()

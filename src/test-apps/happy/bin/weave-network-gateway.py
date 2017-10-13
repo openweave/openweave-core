@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 
-
 #
 #    Copyright (c) 2016-2017 Nest Labs, Inc.
 #    All rights reserved.
@@ -18,55 +17,61 @@
 #    limitations under the License.
 #
 
-#
+##
 #    @file
-#       A Happy command line utility that tests WeaveConnectionTunnel functionality.
+#       A Happy command line utility that specifies Weave network gateway.
 #
-#       The command is executed by instantiating and running WeaveConnectionTunnel class.
+#       The command is executed by instantiating and running WeaveNetworkGateway class.
 #
 
 import getopt
 import sys
 import set_test_path
 
-import wrappers.WeaveConnectionTunnel as WeaveConnectionTunnel
+import wrappers.WeaveNetworkGateway as WeaveNetworkGateway
 from happy.Utils import *
 
 if __name__ == "__main__":
-    options = WeaveConnectionTunnel.option()
+    options = WeaveNetworkGateway.option()
 
     try:
-        opts, args = getopt.getopt(sys.argv[1:], "ha:s:d:qp:",
-            ["help", "agent=", "source=", "destination=", "quiet", "tap="])
+        opts, args = getopt.getopt(sys.argv[1:], "hi:qadg:",
+                                   ["help", "id=", "quiet", "add", "delete", "gateway="])
 
     except getopt.GetoptError as err:
-        print WeaveConnectionTunnel.WeaveConnectionTunnel.__doc__
+        print WeaveNetworkGateway.WeaveNetworkGateway.__doc__
         print hred(str(err))
         sys.exit(hred("%s: Failed to parse arguments." % (__file__)))
 
     for o, a in opts:
         if o in ("-h", "--help"):
-            print WeaveConnectionTunnel.WeaveConnectionTunnel.__doc__
+            print WeaveNetworkGateway.WeaveNetworkGateway.__doc__
             sys.exit(0)
 
         elif o in ("-q", "--quiet"):
             options["quiet"] = True
 
-        elif o in ("-a", "--agent"):
-            options["agent"] = a
+        elif o in ("-i", "--id"):
+            options["network_id"] = a
 
-        elif o in ("-s", "--source"):
-            options["source"] = a
+        elif o in ("-v", "--gateway"):
+            options["gateway"] = a
 
-        elif o in ("-d", "--destination"):
-            options["destination"] = a
+        elif o in ("-a", "--add"):
+            options["add"] = True
 
-        elif o in ("-p", "--tap"):
-            options["tap"] = a
+        elif o in ("-d", "--delete"):
+            options["delete"] = True
 
         else:
             assert False, "unhandled option"
 
-    cmd = WeaveConnectionTunnel.WeaveConnectionTunnel(options)
-    cmd.start()
+    if len(args) == 1:
+        options["network_id"] = args[0]
 
+    if len(args) == 2:
+        options["network_id"] = args[0]
+        options["gateway"] = args[1]
+
+    cmd = WeaveNetworkGateway.WeaveNetworkGateway(options)
+    cmd.start()

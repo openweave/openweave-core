@@ -23,19 +23,20 @@ import sys
 
 #
 # This module is imported by test scripts in the following directories:
-#   - happy-tests
-#   - happy-service-tests
+#   - happy/tests/standalone
+#   - happy/tests/service
 #
 # os.path.abspath(__file__) will return the path of the file that imports
 # this module, so the path to "src/test-apps/happy" is derived relative
 # to the above test scripts.
 #
 
-wrapper_home = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "happy"))
+wrapper_home = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "..", "..", "happy"))
 
 wrapper_dirs = [ ".",
+                 "..",
                  wrapper_home,
-                 wrapper_home + "/plugin",
+                 wrapper_home + "/wrappers",
                  wrapper_home + "/bin" ]
 
 for wrapper_dir in wrapper_dirs:

@@ -30,7 +30,7 @@ import sys
 import set_test_path
 
 from happy.Utils import *
-import plugin.WeavePing as WeavePing
+import wrappers.WeavePing as WeavePing
 
 if __name__ == "__main__":
     options = WeavePing.option()

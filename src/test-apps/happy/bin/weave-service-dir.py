@@ -30,7 +30,7 @@ import sys
 import set_test_path
 
 from happy.Utils import *
-import plugin.WeaveServiceDir as WeaveServiceDir
+import wrappers.WeaveServiceDir as WeaveServiceDir
 
 if __name__ == "__main__":
     options = WeaveServiceDir.option()

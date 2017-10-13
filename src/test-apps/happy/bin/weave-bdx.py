@@ -30,7 +30,7 @@ import sys
 import set_test_path
 
 from happy.Utils import *
-import plugin.WeaveBDX as WeaveBDX
+import wrappers.WeaveBDX as WeaveBDX
 
 if __name__ == "__main__":
 	options = WeaveBDX.option()

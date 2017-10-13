@@ -30,7 +30,7 @@ import sys
 import set_test_path
 
 from happy.Utils import *
-import plugin.WeaveWdmNext as WeaveWdmNext
+import wrappers.WeaveWdmNext as WeaveWdmNext
 
 helpstring = \
     """

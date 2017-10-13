@@ -1,8 +1,7 @@
 #!/usr/bin/env python
 
-
 #
-#    Copyright (c) 2016-2017 Nest Labs, Inc.
+#    Copyright (c) 2015-2017 Nest Labs, Inc.
 #    All rights reserved.
 #
 #    Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,55 +17,48 @@
 #    limitations under the License.
 #
 
-#
+##
 #    @file
-#       A Happy command line utility that tests WeaveConnectionTunnel functionality.
+#       A Happy command line utility that deletes weave node.
 #
-#       The command is executed by instantiating and running WeaveConnectionTunnel class.
+#       The command is executed by instantiating and running WeaveFabricDelete class.
 #
 
 import getopt
 import sys
 import set_test_path
 
-import wrappers.WeaveConnectionTunnel as WeaveConnectionTunnel
+import wrappers.WeaveFabricDelete as WeaveFabricDelete
 from happy.Utils import *
 
 if __name__ == "__main__":
-    options = WeaveConnectionTunnel.option()
+    options = WeaveFabricDelete.option()
 
     try:
-        opts, args = getopt.getopt(sys.argv[1:], "ha:s:d:qp:",
-            ["help", "agent=", "source=", "destination=", "quiet", "tap="])
+        opts, args = getopt.getopt(sys.argv[1:], "hi:q",
+                                   ["help", "id=", "quiet"])
 
     except getopt.GetoptError as err:
-        print WeaveConnectionTunnel.WeaveConnectionTunnel.__doc__
+        print WeaveFabricDelete.WeaveFabricDelete.__doc__
         print hred(str(err))
         sys.exit(hred("%s: Failed to parse arguments." % (__file__)))
 
     for o, a in opts:
         if o in ("-h", "--help"):
-            print WeaveConnectionTunnel.WeaveConnectionTunnel.__doc__
+            print WeaveFabricDelete.WeaveFabricDelete.__doc__
             sys.exit(0)
 
         elif o in ("-q", "--quiet"):
             options["quiet"] = True
 
-        elif o in ("-a", "--agent"):
-            options["agent"] = a
-
-        elif o in ("-s", "--source"):
-            options["source"] = a
-
-        elif o in ("-d", "--destination"):
-            options["destination"] = a
-
-        elif o in ("-p", "--tap"):
-            options["tap"] = a
+        elif o in ("-i", "--id"):
+            options["fabric_id"] = a
 
         else:
             assert False, "unhandled option"
 
-    cmd = WeaveConnectionTunnel.WeaveConnectionTunnel(options)
-    cmd.start()
+    if len(args) == 1:
+        options["fabric_id"] = args[0]
 
+    cmd = WeaveFabricDelete.WeaveFabricDelete(options)
+    cmd.start()
