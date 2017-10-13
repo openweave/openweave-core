@@ -1,3 +1,6 @@
+[![Build Status][nlfaultinjection-travis-svg]][nlfaultinjection-travis]
+[![Coverage Status][nlfaultinjection-codecov-svg]][nlfaultinjection-codecov]
+
 # Nest Labs Fault Injection
 
 ## Introduction
@@ -33,6 +36,11 @@ A SW module implements a fault-injection API by doing the following:
    and executes the extra code if it returns true.  The invocations of CheckFault
    are counted per faultID, which allows a test harness to automatically loop over
    different valid configurations.
+
+[nlfaultinjection-travis]: https://travis-ci.org/nestlabs/nlfaultinjection
+[nlfaultinjection-travis-svg]: https://travis-ci.org/nestlabs/nlfaultinjection.svg?branch=master
+[nlfaultinjection-codecov]: https://codecov.io/gh/nestlabs/nlfaultinjection
+[nlfaultinjection-codecov-svg]: https://codecov.io/gh/nestlabs/nlfaultinjection/branch/master/graph/badge.svg
 
 ## Interact
 
