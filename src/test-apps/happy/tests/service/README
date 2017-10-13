@@ -1,0 +1,20 @@
+The following scripts are using Happy to run Weave functional tests.
+
+To quickly setup happy do the following:
+
+    make
+
+Run happy from the top of weave:
+    ( install and configure happy )
+    make -f Makefile-Standalone HAPPY=1 coverage
+
+Please use system shell environment variables to pass configurations into the tests:
+happy_host_netif : specify network interface that should be used to connect Happy
+                   topology to the real Internet, example:
+                   export happy_host_netif=eth0.
+
+weave_service_address : used to specify NestService address, example:
+                   export weave_service_address="tunnel03.weave01.iad02.integration.nestlabs.com".
+
+happy_dns : specify a list of DNS servers that are used when connecting to the Internet, example,
+                   export happy_dns="8.8.8.8 172.16.255.1 172.16.255.153 172.16.255.53"

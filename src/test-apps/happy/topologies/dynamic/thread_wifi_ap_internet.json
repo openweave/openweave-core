@@ -1,0 +1,454 @@
+{
+    "identifiers": {
+        "000": {
+            "id": "HomeThread"
+        }, 
+        "001": {
+            "id": "HomeWiFi"
+        }, 
+        "002": {
+            "id": "TMobile"
+        }, 
+        "003": {
+            "id": "ThreadNode01"
+        }, 
+        "004": {
+            "id": "thread0node"
+        }, 
+        "005": {
+            "id": "thread0net"
+        }, 
+        "006": {
+            "id": "thread0tap"
+        }, 
+        "007": {
+            "id": "thread0bridge"
+        }, 
+        "008": {
+            "id": "thread0"
+        }, 
+        "009": {
+            "id": "mobile"
+        }, 
+        "010": {
+            "id": "cellular0node"
+        }, 
+        "011": {
+            "id": "cellular0net"
+        }, 
+        "012": {
+            "id": "cellular0tap"
+        }, 
+        "013": {
+            "id": "cellular0bridge"
+        }, 
+        "014": {
+            "id": "cellular0"
+        }, 
+        "015": {
+            "id": "BorderRouter"
+        }, 
+        "016": {
+            "id": "thread1node"
+        }, 
+        "017": {
+            "id": "thread1net"
+        }, 
+        "018": {
+            "id": "thread1tap"
+        }, 
+        "019": {
+            "id": "thread1bridge"
+        }, 
+        "020": {
+            "id": "thread1"
+        }, 
+        "021": {
+            "id": "wifi0node"
+        }, 
+        "022": {
+            "id": "wifi0net"
+        }, 
+        "023": {
+            "id": "wifi0tap"
+        }, 
+        "024": {
+            "id": "wifi0bridge"
+        }, 
+        "025": {
+            "id": "wifi0"
+        }, 
+        "026": {
+            "id": "cellular1node"
+        }, 
+        "027": {
+            "id": "cellular1net"
+        }, 
+        "028": {
+            "id": "cellular1tap"
+        }, 
+        "029": {
+            "id": "cellular1bridge"
+        }, 
+        "030": {
+            "id": "cellular1"
+        }, 
+        "031": {
+            "id": "onhub"
+        }, 
+        "032": {
+            "id": "wifi1node"
+        }, 
+        "033": {
+            "id": "wifi1net"
+        }, 
+        "034": {
+            "id": "wifi1tap"
+        }, 
+        "035": {
+            "id": "wifi1bridge"
+        }, 
+        "036": {
+            "id": "wifi1"
+        }
+    }, 
+    "link": {
+        "cellular0": {
+            "fix_hw_addr": null, 
+            "network": "TMobile", 
+            "network_end": "happy011", 
+            "node": "mobile", 
+            "node_end": "happy010", 
+            "number": 0, 
+            "tap": false, 
+            "type": "cellular"
+        }, 
+        "cellular1": {
+            "fix_hw_addr": null, 
+            "network": "TMobile", 
+            "network_end": "happy027", 
+            "node": "BorderRouter", 
+            "node_end": "happy026", 
+            "number": 1, 
+            "tap": false, 
+            "type": "cellular"
+        }, 
+        "thread0": {
+            "fix_hw_addr": null, 
+            "network": "HomeThread", 
+            "network_end": "happy005", 
+            "node": "ThreadNode01", 
+            "node_end": "happy004", 
+            "number": 0, 
+            "tap": false, 
+            "type": "thread"
+        }, 
+        "thread1": {
+            "fix_hw_addr": null, 
+            "network": "HomeThread", 
+            "network_end": "happy017", 
+            "node": "BorderRouter", 
+            "node_end": "happy016", 
+            "number": 1, 
+            "tap": false, 
+            "type": "thread"
+        }, 
+        "wifi0": {
+            "fix_hw_addr": null, 
+            "network": "HomeWiFi", 
+            "network_end": "happy022", 
+            "node": "BorderRouter", 
+            "node_end": "happy021", 
+            "number": 0, 
+            "tap": false, 
+            "type": "wifi"
+        }, 
+        "wifi1": {
+            "fix_hw_addr": null, 
+            "network": "HomeWiFi", 
+            "network_end": "happy033", 
+            "node": "onhub", 
+            "node_end": "happy032", 
+            "number": 1, 
+            "tap": false, 
+            "type": "wifi"
+        }
+    }, 
+    "netns": {
+        "HomeThread": "000", 
+        "HomeWiFi": "001", 
+        "TMobile": "002", 
+        "cellular0": "014", 
+        "cellular0bridge": "013", 
+        "cellular0net": "011", 
+        "cellular0node": "010", 
+        "cellular0tap": "012", 
+        "cellular1": "030", 
+        "cellular1bridge": "029", 
+        "cellular1net": "027", 
+        "cellular1node": "026", 
+        "cellular1tap": "028", 
+        "mobile": "009", 
+        "onhub": "031", 
+        "BorderRouter": "015", 
+        "ThreadNode01": "003", 
+        "thread0": "008", 
+        "thread0bridge": "007", 
+        "thread0net": "005", 
+        "thread0node": "004", 
+        "thread0tap": "006", 
+        "thread1": "020", 
+        "thread1bridge": "019", 
+        "thread1net": "017", 
+        "thread1node": "016", 
+        "thread1tap": "018", 
+        "wifi0": "025", 
+        "wifi0bridge": "024", 
+        "wifi0net": "022", 
+        "wifi0node": "021", 
+        "wifi0tap": "023", 
+        "wifi1": "036", 
+        "wifi1bridge": "035", 
+        "wifi1net": "033", 
+        "wifi1node": "032", 
+        "wifi1tap": "034"
+    }, 
+    "network": {
+        "HomeThread": {
+            "gateway": null, 
+            "interface": {
+                "thread0": {}, 
+                "thread1": {}
+            }, 
+            "prefix": {
+                "2001:0db8:0111:0001": {
+                    "mask": 64
+                }
+            }, 
+            "route": {
+                "default_v4": {
+                    "prefix": null, 
+                    "to": "default", 
+                    "via": "BorderRouter"
+                }
+            }, 
+            "state": "UP", 
+            "type": "thread"
+        }, 
+        "HomeWiFi": {
+            "gateway": null, 
+            "interface": {
+                "wifi0": {}, 
+                "wifi1": {}
+            }, 
+            "prefix": {
+                "10.0.1": {
+                    "mask": 24
+                }, 
+                "2001:0db8:0222:0002": {
+                    "mask": 64
+                }
+            }, 
+            "route": {
+                "default_v4": {
+                    "prefix": "10.0.1.0", 
+                    "to": "default", 
+                    "via": "onhub"
+                }, 
+                "default_v6": {
+                    "prefix": "2001:db8:222:2::", 
+                    "to": "default", 
+                    "via": "onhub"
+                }
+            }, 
+            "state": "UP", 
+            "type": "wifi"
+        }, 
+        "TMobile": {
+            "gateway": null, 
+            "interface": {
+                "cellular0": {}, 
+                "cellular1": {}
+            }, 
+            "prefix": {
+                "2001:0db8:0333:0003": {
+                    "mask": 64
+                }
+            }, 
+            "route": {
+                "default_v4": {
+                    "prefix": null, 
+                    "to": "default", 
+                    "via": "BorderRouter"
+                }
+            }, 
+            "state": "UP", 
+            "type": "cellular"
+        }
+    }, 
+    "node": {
+        "mobile": {
+            "interface": {
+                "ppp0": {
+                    "ip": {
+                        "2001:0db8:0333:0003:fa41:60ff:feeb:f222": {
+                            "mask": 64
+                        }, 
+                        "fd00:0000:fab1:0000:1ab4:3000:0000:0008": {
+                            "mask": 64
+                        }
+                    }, 
+                    "link": "cellular0", 
+                    "type": "cellular"
+                }
+            }, 
+            "process": {}, 
+            "route": {
+                "default_v4": {
+                    "prefix": null, 
+                    "to": "default", 
+                    "via": "BorderRouter"
+                }
+            }, 
+            "tmux": {}, 
+            "type": null
+        }, 
+        "onhub": {
+            "interface": {
+                "wlan0": {
+                    "ip": {
+                        "10.0.1.3": {
+                            "mask": 24
+                        }, 
+                        "2001:0db8:0222:0002:d299:2cff:febd:107d": {
+                            "mask": 64
+                        }
+                    }, 
+                    "link": "wifi1", 
+                    "type": "wifi"
+                }
+            }, 
+            "process": {}, 
+            "route": {}, 
+            "tmux": {}, 
+            "type": "ap"
+        }, 
+        "BorderRouter": {
+            "interface": {
+                "ppp0": {
+                    "ip": {
+                        "2001:0db8:0333:0003:521d:4cff:fed4:b18b": {
+                            "mask": 64
+                        }, 
+                        "fd00:0000:fab1:0000:1ab4:3000:0000:000a": {
+                            "mask": 64
+                        }
+                    }, 
+                    "link": "cellular1", 
+                    "type": "cellular"
+                }, 
+                "wlan0": {
+                    "ip": {
+                        "10.0.1.2": {
+                            "mask": 24
+                        }, 
+                        "2001:0db8:0222:0002:22b6:72ff:fe0a:c720": {
+                            "mask": 64
+                        }, 
+                        "fd00:0000:fab1:0001:1ab4:3000:0000:000a": {
+                            "mask": 64
+                        }
+                    }, 
+                    "link": "wifi0", 
+                    "type": "wifi"
+                }, 
+                "wpan0": {
+                    "ip": {
+                        "2001:0db8:0111:0001:eaa3:55ff:fe5b:4f1e": {
+                            "mask": 64
+                        }, 
+                        "fd00:0000:fab1:0006:1ab4:3000:0000:000a": {
+                            "mask": 64
+                        }
+                    }, 
+                    "link": "thread1", 
+                    "type": "thread"
+                }
+            }, 
+            "process": {}, 
+            "route": {
+                "default_v4": {
+                    "prefix": "10.0.1", 
+                    "to": "default", 
+                    "via": "onhub"
+                }, 
+                "default_v6": {
+                    "prefix": "2001:0db8:0222:0002", 
+                    "to": "default", 
+                    "via": "onhub"
+                }
+            }, 
+            "tmux": {}, 
+            "type": null
+        }, 
+        "ThreadNode01": {
+            "interface": {
+                "wpan0": {
+                    "ip": {
+                        "2001:0db8:0111:0001:364d:eaff:fe47:76f0": {
+                            "mask": 64
+                        }, 
+                        "fd00:0000:fab1:0006:1ab4:3000:0000:0004": {
+                            "mask": 64
+                        }
+                    }, 
+                    "link": "thread0", 
+                    "type": "thread"
+                }
+            }, 
+            "process": {}, 
+            "route": {
+                "default_v4": {
+                    "prefix": null, 
+                    "to": "default", 
+                    "via": "BorderRouter"
+                }
+            }, 
+            "tmux": {}, 
+            "type": null
+        }
+    }, 
+    "weave": {
+        "fabric": {
+            "global_prefix": "fd00:0000:fab1::/48", 
+            "id": "fab1"
+        }, 
+        "network": {}, 
+        "node": {
+            "mobile": {
+                "eui64": "18-B4-30-00-00-00-00-08", 
+                "iid": "1ab4:3000:0000:0008", 
+                "pairing_code": "AAA123", 
+                "private_key": "${WEAVE_HOME}/certs/development/device/test-dev-18B4300000000008-key.pem", 
+                "weave_certificate": "${WEAVE_HOME}/certs/development/device/test-dev-18B4300000000008-cert.pem", 
+                "weave_node_id": "18B4300000000008"
+            }, 
+            "BorderRouter": {
+                "eui64": "18-B4-30-00-00-00-00-0A", 
+                "iid": "1ab4:3000:0000:000a", 
+                "pairing_code": "AAA123", 
+                "private_key": "${WEAVE_HOME}/certs/development/device/test-dev-18B430000000000A-key.pem", 
+                "weave_certificate": "${WEAVE_HOME}/certs/development/device/test-dev-18B430000000000A-cert.pem", 
+                "weave_node_id": "18B430000000000A"
+            }, 
+            "ThreadNode01": {
+                "eui64": "18-B4-30-00-00-00-00-04", 
+                "iid": "1ab4:3000:0000:0004", 
+                "pairing_code": "AAA123", 
+                "private_key": "${WEAVE_HOME}/certs/development/device/test-dev-18B4300000000004-key.pem", 
+                "weave_certificate": "${WEAVE_HOME}/certs/development/device/test-dev-18B4300000000004-cert.pem", 
+                "weave_node_id": "18B4300000000004"
+            }
+        }
+    }
+}

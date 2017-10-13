@@ -37,6 +37,7 @@ wrapper_dirs = [ ".",
                  "..",
                  wrapper_home,
                  wrapper_home + "/wrappers",
+                 wrapper_home + "/topologies",
                  wrapper_home + "/bin" ]
 
 for wrapper_dir in wrapper_dirs:
