@@ -34,10 +34,10 @@ from happy.Utils import *
 import happy.HappyNodeList
 import wrappers.WeaveStateLoad as WeaveStateLoad
 import wrappers.WeaveStateUnload as WeaveStateUnload
-import wrappersServiceDir as WeaveServiceDir
-import wrappersUtilities as WeaveUtilities
+import WeaveServiceDir as WeaveServiceDir
+import WeaveUtilities as WeaveUtilities
 
-import wrappersUtilities as WeaveUtilities
+import WeaveUtilities as WeaveUtilities
 
 gFaultopts = WeaveUtilities.FaultInjectionOptions(nodes=["client", "service"])
 gOptions = { "fault-injection": False }
@@ -48,11 +48,11 @@ class test_service_directory_01(unittest.TestCase):
 
         if "WEAVE_SYSTEM_CONFIG_USE_LWIP" in os.environ.keys() and os.environ["WEAVE_SYSTEM_CONFIG_USE_LWIP"] == "1":
             self.topology_file = os.path.dirname(os.path.realpath(__file__)) + \
-                "/../../topologies/standalone/thread_wifi_on_tap_ap_service.json"
+                "/../../../topologies/standalone/thread_wifi_on_tap_ap_service.json"
             self.tap = "wpan0"
         else:
             self.topology_file = os.path.dirname(os.path.realpath(__file__)) + \
-                "/../../topologies/standalone/thread_wifi_ap_service.json"
+                "/../../../topologies/standalone/thread_wifi_ap_service.json"
 
         self.show_strace = False
 

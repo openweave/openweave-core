@@ -34,8 +34,8 @@ from happy.Utils import *
 import happy.HappyNodeList
 import wrappers.WeaveStateLoad as WeaveStateLoad
 import wrappers.WeaveStateUnload as WeaveStateUnload
-import wrappersSecurityPing as WeaveSecurityPing
-import wrappersUtilities as WeaveUtilities
+import WeaveSecurityPing as WeaveSecurityPing
+import WeaveUtilities as WeaveUtilities
 
 gFaultopts = WeaveUtilities.FaultInjectionOptions()
 gOptions = { 'wrmp': False, 'pase': False, 'group_key': False }
@@ -46,11 +46,11 @@ class test_weave_echo_01(unittest.TestCase):
 
         if os.environ.get("WEAVE_SYSTEM_CONFIG_USE_LWIP") == "1":
             self.topology_file = os.path.dirname(os.path.realpath(__file__)) + \
-                "/../../topologies/standalone/three_nodes_on_tap_wifi_weave.json"
+                "/../../../topologies/standalone/three_nodes_on_tap_wifi_weave.json"
             self.tap = "wlan0"
         else:
             self.topology_file = os.path.dirname(os.path.realpath(__file__)) + \
-                "/../../topologies/standalone/three_nodes_on_wifi_weave.json"
+                "/../../../topologies/standalone/three_nodes_on_wifi_weave.json"
 
         self.show_strace = False
 

@@ -32,9 +32,9 @@ from happy.Utils import *
 import happy.HappyNodeList
 import wrappers.WeaveStateLoad as WeaveStateLoad
 import wrappers.WeaveStateUnload as WeaveStateUnload
-import wrappersTunnelStart as WeaveTunnelStart
-import wrappersTunnelStop as WeaveTunnelStop
-import wrappersUtilities as WeaveUtilities
+import WeaveTunnelStart as WeaveTunnelStart
+import WeaveTunnelStop as WeaveTunnelStop
+import WeaveUtilities as WeaveUtilities
 
 class test_weave_tunnel_01(unittest.TestCase):
     def setUp(self):
@@ -42,11 +42,11 @@ class test_weave_tunnel_01(unittest.TestCase):
 
         if "WEAVE_SYSTEM_CONFIG_USE_LWIP" in os.environ.keys() and os.environ["WEAVE_SYSTEM_CONFIG_USE_LWIP"] == "1":
             self.topology_file = os.path.dirname(os.path.realpath(__file__)) + \
-                "/../../topologies/standalone/thread_wifi_on_tap_ap_service.json"
+                "/../../../topologies/standalone/thread_wifi_on_tap_ap_service.json"
             self.tap = "wpan0"
         else:
             self.topology_file = os.path.dirname(os.path.realpath(__file__)) + \
-                "/../../topologies/standalone/thread_wifi_ap_service.json"
+                "/../../../topologies/standalone/thread_wifi_ap_service.json"
 
         self.show_strace = False
 

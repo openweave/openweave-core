@@ -34,10 +34,10 @@ from happy.Utils import *
 import happy.HappyNodeList
 import wrappers.WeaveStateLoad as WeaveStateLoad
 import wrappers.WeaveStateUnload as WeaveStateUnload
-import wrappersWDMv0 as WeaveWDMv0
-import wrappersTunnelStart as WeaveTunnelStart
-import wrappersTunnelStop as WeaveTunnelStop
-import wrappersUtilities as WeaveUtilities
+import WeaveWDMv0 as WeaveWDMv0
+import WeaveTunnelStart as WeaveTunnelStart
+import WeaveTunnelStop as WeaveTunnelStop
+import WeaveUtilities as WeaveUtilities
 
 class test_weave_wdmv0_01(unittest.TestCase):
     def setUp(self):
@@ -45,11 +45,11 @@ class test_weave_wdmv0_01(unittest.TestCase):
 
         if "WEAVE_SYSTEM_CONFIG_USE_LWIP" in os.environ.keys() and os.environ["WEAVE_SYSTEM_CONFIG_USE_LWIP"] == "1":
             self.topology_file = os.path.dirname(os.path.realpath(__file__)) + \
-                "/../../topologies/standalone/three_nodes_on_tap_thread_weave.json"
+                "/../../../topologies/standalone/three_nodes_on_tap_thread_weave.json"
             self.tap = "wpan0"
         else:
             self.topology_file = os.path.dirname(os.path.realpath(__file__)) + \
-                "/../../topologies/standalone/three_nodes_on_thread_weave.json"
+                "/../../../topologies/standalone/three_nodes_on_thread_weave.json"
 
         self.show_strace = False
 

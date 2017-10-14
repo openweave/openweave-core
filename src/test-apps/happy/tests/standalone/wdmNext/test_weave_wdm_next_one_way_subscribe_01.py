@@ -31,7 +31,7 @@ import os
 import traceback
 import happy.HappyStateDelete
 from weave_wdm_next_test_base import weave_wdm_next_test_base
-import wrappersUtilities as WeaveUtilities
+import WeaveUtilities as WeaveUtilities
 
 
 class test_weave_wdm_next_one_way_subscribe_01(weave_wdm_next_test_base):

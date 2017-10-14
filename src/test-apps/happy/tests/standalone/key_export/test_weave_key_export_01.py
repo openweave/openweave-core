@@ -31,8 +31,8 @@ from happy.Utils import *
 import happy.HappyNodeList
 import wrappers.WeaveStateLoad as WeaveStateLoad
 import wrappers.WeaveStateUnload as WeaveStateUnload
-import wrappersKeyExport as WeaveKeyExport
-import wrappersUtilities as WeaveUtilities
+import WeaveKeyExport as WeaveKeyExport
+import WeaveUtilities as WeaveUtilities
 
 class test_weave_key_export_01(unittest.TestCase):
     def setUp(self):
@@ -40,11 +40,11 @@ class test_weave_key_export_01(unittest.TestCase):
 
         if os.environ.get("WEAVE_SYSTEM_CONFIG_USE_LWIP") == "1":
             self.topology_file = os.path.dirname(os.path.realpath(__file__)) + \
-                "/../../topologies/standalone/three_nodes_on_tap_wifi_weave.json"
+                "/../../../topologies/standalone/three_nodes_on_tap_wifi_weave.json"
             self.tap = "wpan0"
         else:
             self.topology_file = os.path.dirname(os.path.realpath(__file__)) + \
-                "/../../topologies/standalone/three_nodes_on_wifi_weave.json"
+                "/../../../topologies/standalone/three_nodes_on_wifi_weave.json"
 
         self.show_strace = False
 
