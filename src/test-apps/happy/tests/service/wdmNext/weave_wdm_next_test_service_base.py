@@ -30,14 +30,11 @@ import unittest
 import set_test_path
 
 from happy.Utils import *
-import plugin.WeaveTunnelStart as WeaveTunnelStart
-import plugin.WeaveTunnelStop as WeaveTunnelStop
-import plugin.WeaveWdmNext as WeaveWdmNext
-import plugins.weave.Weave as Weave
+import wrappers.WeaveTunnelStart as WeaveTunnelStart
+import wrappers.WeaveTunnelStop as WeaveTunnelStop
+import wrappers.WeaveWdmNext as WeaveWdmNext
+import wrappers.Weave as Weave
 import plugins.testrail.TestrailResultOutput
-
-
-sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 from topologies.dynamic.thread_wifi_ap_internet_configurable_topology import thread_wifi_ap_internet_configurable_topology
 
 TEST_OPTION_QUIET = True
