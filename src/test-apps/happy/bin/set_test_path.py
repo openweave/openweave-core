@@ -34,10 +34,8 @@ import sys
 wrapper_home = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "..", "..", "happy"))
 
 wrapper_dirs = [ ".",
-                 "..",
                  wrapper_home,
                  wrapper_home + "/wrappers",
-                 wrapper_home + "/topologies",
                  wrapper_home + "/bin" ]
 
 for wrapper_dir in wrapper_dirs:
