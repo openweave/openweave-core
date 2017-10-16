@@ -74,6 +74,8 @@ void WoBLEz_WriteReceived(void * data, const uint8_t * value, size_t len)
         WeaveLogError(Ble, "WoBLEz_WriteReceived failed at HandleWriteReceived ");
     }
 
+    msgBuf = NULL;
+
 exit:
 
     if (err != WEAVE_NO_ERROR)
