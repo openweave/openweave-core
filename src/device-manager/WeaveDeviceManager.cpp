@@ -400,7 +400,7 @@ WEAVE_ERROR WeaveDeviceManager::InitiateDeviceEnumeration()
     // Construct an exchange context if necessary. Otherwise, reuse existing multicast ExchangeContext.
     if (NULL == mCurReq)
     {
-        mCurReq = mExchangeMgr->NewContext(kAnyNodeId, this);
+        mCurReq = mExchangeMgr->NewContext(kAnyNodeId, mRendezvousAddr, this);
         VerifyOrExit(NULL != mCurReq, err = WEAVE_ERROR_NO_MEMORY);
         mCurReq->OnMessageReceived = HandleDeviceEnumerationIdentifyResponse;
     }

@@ -163,6 +163,8 @@ INET_ERROR UDPEndPoint::Bind(IPAddressType addrType, IPAddress addr, uint16_t po
         else if (addrType == kIPAddressType_IPv4)
         {
             struct sockaddr_in sa;
+            int enable = 1;
+
             memset(&sa, 0, sizeof(sa));
             sa.sin_family = AF_INET;
             sa.sin_port = htons(port);
@@ -177,6 +179,10 @@ INET_ERROR UDPEndPoint::Bind(IPAddressType addrType, IPAddress addr, uint16_t po
             if (res == INET_NO_ERROR)
                 setsockopt(mSocket, IPPROTO_IP, IP_MULTICAST_IF, &sa, sizeof(sa));
 #endif // defined(IP_MULTICAST_IF)
+
+            // Allow socket transmitting broadcast packets.
+            if (res == INET_NO_ERROR)
+                setsockopt(mSocket, SOL_SOCKET, SO_BROADCAST, &enable, sizeof(enable));
         }
 #endif // INET_CONFIG_ENABLE_IPV4
         else
