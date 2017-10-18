@@ -24,7 +24,7 @@
  *
  *  This file contains the declaration of the EventProcessor base class.
  *  It's intended to be overridden on specific platforms as needed.
-*/
+ */
 #ifndef _WEAVE_DATA_MANAGEMENT_EVENT_PROCESSOR_CURRENT_H
 #define _WEAVE_DATA_MANAGEMENT_EVENT_PROCESSOR_CURRENT_H
 
@@ -46,16 +46,17 @@ public:
     EventProcessor(uint64_t inLocalNodeId);
     virtual ~EventProcessor(void);
 
-    WEAVE_ERROR ProcessEvents(nl::Weave::TLV::TLVReader &inReader,
-                              nl::Weave::Profiles::DataManagement::SubscriptionClient &inClient);
+    WEAVE_ERROR ProcessEvents(nl::Weave::TLV::TLVReader & inReader,
+                              nl::Weave::Profiles::DataManagement::SubscriptionClient & inClient);
 
 public:
     struct EventHeader
     {
         // Not a simple POD anymore given that we have a constructor for mDataSchemaVersionRange now.
-        EventHeader() : mSource(0), mImportance(kImportanceType_Invalid), mId(0), mRelatedImportance(kImportanceType_Invalid),
-                            mRelatedId(0), mUTCTimestamp(0), mSystemTimestamp(0), mResourceId(0), mTraitProfileId(0),
-                            mTraitInstanceId(0), mType(0), mDeltaUTCTime(0), mDeltaSystemTime(0), mPresenceMask(0)
+        EventHeader() :
+            mSource(0), mImportance(kImportanceType_Invalid), mId(0), mRelatedImportance(kImportanceType_Invalid), mRelatedId(0),
+            mUTCTimestamp(0), mSystemTimestamp(0), mResourceId(0), mTraitProfileId(0), mTraitInstanceId(0), mType(0),
+            mDeltaUTCTime(0), mDeltaSystemTime(0), mPresenceMask(0)
         { }
 
         uint64_t mSource;
@@ -138,14 +139,9 @@ protected:
     struct StreamParsingContext
     {
         StreamParsingContext(uint64_t inPublisherSourceId) :
-            mPublisherSourceId(inPublisherSourceId),
-            mCurrentEventImportance(kImportanceType_Invalid),
-            mCurrentEventId(0),
-            mCurrentEventType(0),
-            mCurrentSystemTimestamp(0),
-            mCurrentUTCTimestamp(0)
-        {
-        }
+            mPublisherSourceId(inPublisherSourceId), mCurrentEventImportance(kImportanceType_Invalid), mCurrentEventId(0),
+            mCurrentEventType(0), mCurrentSystemTimestamp(0), mCurrentUTCTimestamp(0)
+        { }
 
         // The Weave node ID of the publisher..
         uint64_t mPublisherSourceId;
@@ -166,23 +162,20 @@ protected:
         uint64_t mCurrentUTCTimestamp;
     };
 
-    WEAVE_ERROR ParseEventList(nl::Weave::TLV::TLVReader &inReader,
-                               nl::Weave::Profiles::DataManagement::SubscriptionClient &inClient);
-    WEAVE_ERROR ParseEvent(nl::Weave::TLV::TLVReader &inReader,
-                           nl::Weave::Profiles::DataManagement::SubscriptionClient &inClient,
-                           StreamParsingContext &inOutParsingContext);
-    WEAVE_ERROR MapReceivedMaskToPublishedMask(const uint64_t &inReceivedMask,
-                                               uint64_t &inOutPublishedMask);
-    WEAVE_ERROR UpdateContextQualifyHeader(EventHeader &inOutEventHeader,
-                                           StreamParsingContext &inOutContext,
+    WEAVE_ERROR ParseEventList(nl::Weave::TLV::TLVReader & inReader,
+                               nl::Weave::Profiles::DataManagement::SubscriptionClient & inClient);
+    WEAVE_ERROR ParseEvent(nl::Weave::TLV::TLVReader & inReader, nl::Weave::Profiles::DataManagement::SubscriptionClient & inClient,
+                           StreamParsingContext & inOutParsingContext);
+    WEAVE_ERROR MapReceivedMaskToPublishedMask(const uint64_t & inReceivedMask, uint64_t & inOutPublishedMask);
+    WEAVE_ERROR UpdateContextQualifyHeader(EventHeader & inOutEventHeader, StreamParsingContext & inOutContext,
                                            uint64_t inReceivedMask);
-    WEAVE_ERROR ProcessHeader(const EventHeader &inEventHeader, bool &outIsNewEvent);
+    WEAVE_ERROR ProcessHeader(const EventHeader & inEventHeader, bool & outIsNewEvent);
 
     virtual WEAVE_ERROR ProcessEvent(nl::Weave::TLV::TLVReader inReader,
-                                     nl::Weave::Profiles::DataManagement::SubscriptionClient &inClient,
-                                     const EventHeader &inEventHeader) = 0;
+                                     nl::Weave::Profiles::DataManagement::SubscriptionClient & inClient,
+                                     const EventHeader & inEventHeader) = 0;
 
-    virtual WEAVE_ERROR GapDetected(const EventHeader &inEventHeader) = 0;
+    virtual WEAVE_ERROR GapDetected(const EventHeader & inEventHeader) = 0;
 
     uint64_t mLocalNodeId;
 
@@ -195,8 +188,8 @@ typedef void * EventProcessor;
 
 #endif // WEAVE_CONFIG_SERIALIZATION_ENABLE_DESERIALIZATION
 
-} // WeaveMakeManagedNamespaceIdentifier(DataManagement, kWeaveManagedNamespaceDesignation_Current)
-} // Profiles
-} // Weave
-} // nl
+} // namespace WeaveMakeManagedNamespaceIdentifier(DataManagement, kWeaveManagedNamespaceDesignation_Current)
+} // namespace Profiles
+} // namespace Weave
+} // namespace nl
 #endif // _WEAVE_DATA_MANAGEMENT_EVENT_PROCESSOR_CURRENT_H

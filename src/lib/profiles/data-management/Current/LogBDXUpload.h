@@ -31,39 +31,36 @@ namespace Weave {
 namespace Profiles {
 namespace WeaveMakeManagedNamespaceIdentifier(DataManagement, kWeaveManagedNamespaceDesignation_Current) {
 
-WEAVE_ERROR BdxSendAcceptHandler(nl::Weave::Profiles::BulkDataTransfer::BDXTransfer *aXfer,
-                                 nl::Weave::Profiles::BulkDataTransfer::SendAccept *aSendAcceptMsg);
-void BdxRejectHandler(nl::Weave::Profiles::BulkDataTransfer::BDXTransfer *aXfer,
-                      nl::Weave::Profiles::StatusReporting::StatusReport *aReport);
-void BdxGetBlockHandler(nl::Weave::Profiles::BulkDataTransfer::BDXTransfer *aXfer,
-                        uint64_t *aLength,
-                        uint8_t **aDataBlock,
-                        bool *aIsLastBlock);
-void BdxXferErrorHandler(nl::Weave::Profiles::BulkDataTransfer::BDXTransfer *aXfer,
-                         nl::Weave::Profiles::StatusReporting::StatusReport *aXferError);
+WEAVE_ERROR BdxSendAcceptHandler(nl::Weave::Profiles::BulkDataTransfer::BDXTransfer * aXfer,
+                                 nl::Weave::Profiles::BulkDataTransfer::SendAccept * aSendAcceptMsg);
+void BdxRejectHandler(nl::Weave::Profiles::BulkDataTransfer::BDXTransfer * aXfer,
+                      nl::Weave::Profiles::StatusReporting::StatusReport * aReport);
+void BdxGetBlockHandler(nl::Weave::Profiles::BulkDataTransfer::BDXTransfer * aXfer, uint64_t * aLength, uint8_t ** aDataBlock,
+                        bool * aIsLastBlock);
+void BdxXferErrorHandler(nl::Weave::Profiles::BulkDataTransfer::BDXTransfer * aXfer,
+                         nl::Weave::Profiles::StatusReporting::StatusReport * aXferError);
 
-void BdxXferDoneHandler(nl::Weave::Profiles::BulkDataTransfer::BDXTransfer *aXfer);
-void BdxErrorHandler(nl::Weave::Profiles::BulkDataTransfer::BDXTransfer *aXfer, WEAVE_ERROR aErrorCode);
+void BdxXferDoneHandler(nl::Weave::Profiles::BulkDataTransfer::BDXTransfer * aXfer);
+void BdxErrorHandler(nl::Weave::Profiles::BulkDataTransfer::BDXTransfer * aXfer, WEAVE_ERROR aErrorCode);
 
-
-class NL_DLL_EXPORT LogBDXUpload {
+class NL_DLL_EXPORT LogBDXUpload
+{
 
 public:
-    enum UploaderState {
+    enum UploaderState
+    {
         UploaderUninitialized,
         UploaderInitialized,
         UploaderInProgress
     };
 
     LogBDXUpload(void);
-    WEAVE_ERROR Init(LoggingManagement *inLogger);
+    WEAVE_ERROR Init(LoggingManagement * inLogger);
 
-    WEAVE_ERROR StartUpload(nl::Weave::Binding *aBinding);
+    WEAVE_ERROR StartUpload(nl::Weave::Binding * aBinding);
 
-    void BlockHandler(nl::Weave::Profiles::BulkDataTransfer::BDXTransfer *aXfer,
-                      uint64_t *aLength,
-                      uint8_t **aDataBlock,
-                      bool *aIsLastBlock);
+    void BlockHandler(nl::Weave::Profiles::BulkDataTransfer::BDXTransfer * aXfer, uint64_t * aLength, uint8_t ** aDataBlock,
+                      bool * aIsLastBlock);
 
     void Abort(void);
     void Done(void);
@@ -71,24 +68,25 @@ public:
 
     uint32_t GetUploadPosition(void);
 
-    UploaderState                                  mState;
+    UploaderState mState;
+
 private:
     void ThrottleIfNeeded(void);
 
-    LoggingManagement *                            mLogger;
+    LoggingManagement * mLogger;
     nl::Weave::Profiles::BulkDataTransfer::BdxNode mBdxNode;
-    ImportanceType                                 mCurrentImportance;
-    event_id_t                                     mCurrentEventID;
-    event_id_t                                     mLastScheduledEventId[kImportanceType_Last - kImportanceType_First + 1];
-    event_id_t                                     mLastTransmittedEventId[kImportanceType_Last - kImportanceType_First + 1];
-    uint32_t                                       mUploadPosition;
-    bool                                           mThrottled;
-    bool                                           mFirstXfer;
+    ImportanceType mCurrentImportance;
+    event_id_t mCurrentEventID;
+    event_id_t mLastScheduledEventId[kImportanceType_Last - kImportanceType_First + 1];
+    event_id_t mLastTransmittedEventId[kImportanceType_Last - kImportanceType_First + 1];
+    uint32_t mUploadPosition;
+    bool mThrottled;
+    bool mFirstXfer;
 };
 
-} // WeaveMakeManagedNamespaceIdentifier(DataManagement, kWeaveManagedNamespaceDesignation_Current)
-} // Profiles
-} // Weave
-} // nl
+} // namespace WeaveMakeManagedNamespaceIdentifier(DataManagement, kWeaveManagedNamespaceDesignation_Current)
+} // namespace Profiles
+} // namespace Weave
+} // namespace nl
 
 #endif // _WEAVE_DATA_MANAGEMENT_EVENT_LOGGING_BDX_UPLOAD_CURRENT_H

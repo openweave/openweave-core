@@ -32,29 +32,27 @@ namespace Ble {
 namespace Platform {
 namespace BlueZ {
 
-BluezServerEndpoint *gBluezServerEndpoint = NULL;
-BluezBlePlatformDelegate *gBluezBlePlatformDelegate = NULL;
-static GMainLoop *gBluezMainLoop;
-static DBusConnection *gBluezDbusConn;
-static Adapter *gDefaultAdapter;
+BluezServerEndpoint * gBluezServerEndpoint           = NULL;
+BluezBlePlatformDelegate * gBluezBlePlatformDelegate = NULL;
+static GMainLoop * gBluezMainLoop;
+static DBusConnection * gBluezDbusConn;
+static Adapter * gDefaultAdapter;
 static bool gAdapterFound = false;
 
-
-static void WeaveRegisterSetup(DBusMessageIter *iter, void *bluezData)
+static void WeaveRegisterSetup(DBusMessageIter * iter, void * bluezData)
 {
     DBusMessageIter dict;
-    const char *path = ADVERTISING_PATH;
-    gboolean success = FALSE;
-    const char * msg = NULL;
+    const char * path = ADVERTISING_PATH;
+    gboolean success  = FALSE;
+    const char * msg  = NULL;
 
     success = dbus_message_iter_append_basic(iter, DBUS_TYPE_OBJECT_PATH, &path);
     VerifyOrExit(success == TRUE, msg = "Fail to append basic in WeaveRegisterSetup");
 
     success = dbus_message_iter_open_container(iter, DBUS_TYPE_ARRAY,
-                    DBUS_DICT_ENTRY_BEGIN_CHAR_AS_STRING
-                    DBUS_TYPE_STRING_AS_STRING
-                    DBUS_TYPE_VARIANT_AS_STRING
-                    DBUS_DICT_ENTRY_END_CHAR_AS_STRING, &dict);
+                                               DBUS_DICT_ENTRY_BEGIN_CHAR_AS_STRING DBUS_TYPE_STRING_AS_STRING
+                                                   DBUS_TYPE_VARIANT_AS_STRING DBUS_DICT_ENTRY_END_CHAR_AS_STRING,
+                                               &dict);
     VerifyOrExit(success == TRUE, msg = "Fail to open container in WeaveRegisterSetup");
 
     success = dbus_message_iter_close_container(iter, &dict);
@@ -68,9 +66,9 @@ exit:
     }
 }
 
-static void WeaveRegisterReply(DBusMessage *message, void *bluezData)
+static void WeaveRegisterReply(DBusMessage * message, void * bluezData)
 {
-    DBusConnection *dbusConn = static_cast<DBusConnection *>(bluezData);
+    DBusConnection * dbusConn = static_cast<DBusConnection *>(bluezData);
     DBusError error;
     dbus_error_init(&error);
 
@@ -90,7 +88,7 @@ static void WeaveRegisterReply(DBusMessage *message, void *bluezData)
     }
 }
 
-static gboolean WeaveAdvertisingGetType(const GDBusPropertyTable *property, DBusMessageIter *iter, void *bluezData)
+static gboolean WeaveAdvertisingGetType(const GDBusPropertyTable * property, DBusMessageIter * iter, void * bluezData)
 {
     gboolean success = dbus_message_iter_append_basic(iter, DBUS_TYPE_STRING, &(gBluezServerEndpoint->advertisingType));
     if (FALSE == success)
@@ -101,7 +99,7 @@ static gboolean WeaveAdvertisingGetType(const GDBusPropertyTable *property, DBus
     return success;
 }
 
-static gboolean GetWeaveUUIDs(const GDBusPropertyTable *property, DBusMessageIter *iter, void *bluezData)
+static gboolean GetWeaveUUIDs(const GDBusPropertyTable * property, DBusMessageIter * iter, void * bluezData)
 {
     const char * msg = NULL;
     gboolean success = FALSE;
@@ -126,7 +124,7 @@ exit:
     return success;
 }
 
-static gboolean WeaveServiceDataCheck(const GDBusPropertyTable *property, void *bluezData)
+static gboolean WeaveServiceDataCheck(const GDBusPropertyTable * property, void * bluezData)
 {
     gboolean success = FALSE;
 
@@ -138,15 +136,15 @@ static gboolean WeaveServiceDataCheck(const GDBusPropertyTable *property, void *
     return success;
 }
 
-static gboolean AppendArrayVariant(DBusMessageIter *iter, int type, void *val, int nElements)
+static gboolean AppendArrayVariant(DBusMessageIter * iter, int type, void * val, int nElements)
 {
     const char * msg = NULL;
     gboolean success = FALSE;
     DBusMessageIter variant, array;
-    const char ***strArray = (const char ***)val;
+    const char *** strArray = (const char ***) val;
     int i;
-    char typeSig[2] = { (char)type, '\0' };
-    char arraySig[3] = { DBUS_TYPE_ARRAY, (char)type, '\0' };
+    char typeSig[2]  = { (char) type, '\0' };
+    char arraySig[3] = { DBUS_TYPE_ARRAY, (char) type, '\0' };
 
     success = dbus_message_iter_open_container(iter, DBUS_TYPE_VARIANT, arraySig, &variant);
     VerifyOrExit(success == TRUE, msg = "Fail to open DBUS_TYPE_VARIANT container in AppendArrayVariant");
@@ -184,7 +182,7 @@ exit:
     return success;
 }
 
-static gboolean DictAppendBasicArray(DBusMessageIter *dict, int keyType, const void *key, int type, void *val, int nElements)
+static gboolean DictAppendBasicArray(DBusMessageIter * dict, int keyType, const void * key, int type, void * val, int nElements)
 {
     const char * msg = NULL;
     gboolean success = FALSE;
@@ -212,19 +210,17 @@ exit:
     return success;
 }
 
-static gboolean GetWeaveServiceData(const GDBusPropertyTable *property, DBusMessageIter *iter, void *bluezData)
+static gboolean GetWeaveServiceData(const GDBusPropertyTable * property, DBusMessageIter * iter, void * bluezData)
 {
-    const char *msg = NULL;
+    const char * msg = NULL;
     gboolean success = FALSE;
     DBusMessageIter dict;
 
     success = dbus_message_iter_open_container(iter, DBUS_TYPE_ARRAY, "{sv}", &dict);
     VerifyOrExit(success == TRUE, msg = "Fail to open DBUS_TYPE_ARRAY container in GetWeaveServiceData");
 
-    success = DictAppendBasicArray(&dict,
-                  DBUS_TYPE_STRING, &gBluezServerEndpoint->advertisingUUID,
-                  DBUS_TYPE_BYTE, &gBluezServerEndpoint->weaveServiceData,
-                  sizeof(WeaveServiceData));
+    success = DictAppendBasicArray(&dict, DBUS_TYPE_STRING, &gBluezServerEndpoint->advertisingUUID, DBUS_TYPE_BYTE,
+                                   &gBluezServerEndpoint->weaveServiceData, sizeof(WeaveServiceData));
     VerifyOrExit(success == TRUE, msg = "Fail to append dictionary in GetWeaveServiceData");
 
     success = dbus_message_iter_close_container(iter, &dict);
@@ -240,7 +236,7 @@ exit:
     return success;
 }
 
-static gboolean WeaveNameCheck(const GDBusPropertyTable *property, void *bluezData)
+static gboolean WeaveNameCheck(const GDBusPropertyTable * property, void * bluezData)
 {
     gboolean success = FALSE;
 
@@ -252,7 +248,7 @@ static gboolean WeaveNameCheck(const GDBusPropertyTable *property, void *bluezDa
     return success;
 }
 
-static gboolean WeaveGetName(const GDBusPropertyTable *property, DBusMessageIter *iter, void *bluezData)
+static gboolean WeaveGetName(const GDBusPropertyTable * property, DBusMessageIter * iter, void * bluezData)
 {
     gboolean success = dbus_message_iter_append_basic(iter, DBUS_TYPE_STRING, &(gBluezServerEndpoint->adapterName));
 
@@ -264,7 +260,7 @@ static gboolean WeaveGetName(const GDBusPropertyTable *property, DBusMessageIter
     return success;
 }
 
-static DBusMessage *WeaveDestroyAdvertising(DBusConnection *dbusConn, DBusMessage *dbusMsg, void *bluezData)
+static DBusMessage * WeaveDestroyAdvertising(DBusConnection * dbusConn, DBusMessage * dbusMsg, void * bluezData)
 {
     if (FALSE == g_dbus_unregister_interface(dbusConn, ADVERTISING_PATH, ADVERTISING_INTERFACE))
     {
@@ -275,24 +271,23 @@ static DBusMessage *WeaveDestroyAdvertising(DBusConnection *dbusConn, DBusMessag
 }
 
 static const GDBusMethodTable weaveAdvertisingMethods[] = {
-    {"Release", WeaveDestroyAdvertising, (GDBusMethodFlags)0, 0, NULL, NULL},
-    { }
+    { "Release", WeaveDestroyAdvertising, (GDBusMethodFlags) 0, 0, NULL, NULL }, { }
 };
 
-static const GDBusPropertyTable weaveAdvertisingProperties[] = {
-    { "Type", "s", WeaveAdvertisingGetType },
-    { "ServiceUUIDs", "as", GetWeaveUUIDs, NULL, NULL },
-    { "LocalName", "s", WeaveGetName, NULL, WeaveNameCheck },
-    { "ServiceData", "a{sv}", GetWeaveServiceData, NULL, WeaveServiceDataCheck },
-    { }
-};
+static const GDBusPropertyTable weaveAdvertisingProperties[] = { { "Type", "s", WeaveAdvertisingGetType },
+                                                                 { "ServiceUUIDs", "as", GetWeaveUUIDs, NULL, NULL },
+                                                                 { "LocalName", "s", WeaveGetName, NULL, WeaveNameCheck },
+                                                                 { "ServiceData", "a {sv}", GetWeaveServiceData, NULL,
+                                                                   WeaveServiceDataCheck },
+                                                                 { } };
 
-gboolean AdvertisingRegister(DBusConnection *dbusConn, GDBusProxy *proxy)
+gboolean AdvertisingRegister(DBusConnection * dbusConn, GDBusProxy * proxy)
 {
     gboolean success = FALSE;
     const char * msg = NULL;
 
-    success = g_dbus_register_interface(dbusConn, ADVERTISING_PATH, ADVERTISING_INTERFACE, weaveAdvertisingMethods, NULL, weaveAdvertisingProperties, NULL, NULL);
+    success = g_dbus_register_interface(dbusConn, ADVERTISING_PATH, ADVERTISING_INTERFACE, weaveAdvertisingMethods, NULL,
+                                        weaveAdvertisingProperties, NULL, NULL);
     VerifyOrExit(success == TRUE, msg = "Failed to register advertising object in AdvertisingRegister");
 
     success = g_dbus_proxy_method_call(proxy, "RegisterAdvertisement", WeaveRegisterSetup, WeaveRegisterReply, dbusConn, NULL);
@@ -308,7 +303,7 @@ exit:
     return success;
 }
 
-static DBusMessage *WeaveDestroyProfile(DBusConnection *dbusConn, DBusMessage *dbusMsg, void *bluezData)
+static DBusMessage * WeaveDestroyProfile(DBusConnection * dbusConn, DBusMessage * dbusMsg, void * bluezData)
 {
     if (FALSE == g_dbus_unregister_interface(dbusConn, WEAVE_PATH, PROFILE_INTERFACE))
     {
@@ -318,22 +313,20 @@ static DBusMessage *WeaveDestroyProfile(DBusConnection *dbusConn, DBusMessage *d
     return dbus_message_new_method_return(dbusMsg);
 }
 
-static void RegisterWeaveAppSetup(DBusMessageIter *iter, void *bluezData)
+static void RegisterWeaveAppSetup(DBusMessageIter * iter, void * bluezData)
 {
     DBusMessageIter dict;
-    const char *path = "/";
-    gboolean success = FALSE;
-    const char * msg = NULL;
+    const char * path = "/";
+    gboolean success  = FALSE;
+    const char * msg  = NULL;
 
     success = dbus_message_iter_append_basic(iter, DBUS_TYPE_OBJECT_PATH, &path);
     VerifyOrExit(success == TRUE, msg = "Fail to append basic in RegisterWeaveAppSetup");
 
     success = dbus_message_iter_open_container(iter, DBUS_TYPE_ARRAY,
-                        DBUS_DICT_ENTRY_BEGIN_CHAR_AS_STRING
-                        DBUS_TYPE_STRING_AS_STRING
-                        DBUS_TYPE_VARIANT_AS_STRING
-                        DBUS_DICT_ENTRY_END_CHAR_AS_STRING,
-                        &dict);
+                                               DBUS_DICT_ENTRY_BEGIN_CHAR_AS_STRING DBUS_TYPE_STRING_AS_STRING
+                                                   DBUS_TYPE_VARIANT_AS_STRING DBUS_DICT_ENTRY_END_CHAR_AS_STRING,
+                                               &dict);
     VerifyOrExit(success == TRUE, msg = "Fail to open container in RegisterWeaveAppSetup");
 
     success = dbus_message_iter_close_container(iter, &dict);
@@ -347,32 +340,28 @@ exit:
     }
 }
 
-static void RegisterWeaveAppReply(DBusMessage *message, void *bluezData)
+static void RegisterWeaveAppReply(DBusMessage * message, void * bluezData)
 {
     DBusError error;
     dbus_error_init(&error);
 
-    if (TRUE == dbus_set_error_from_message(&error, message)) {
+    if (TRUE == dbus_set_error_from_message(&error, message))
+    {
         WeaveLogError(Ble, "Failed to setup weave application in RegisterWeaveAppReply: %s", error.name);
         dbus_error_free(&error);
     }
 }
 
-static const GDBusMethodTable weaveAppMethods[] = {
-    {"Release", WeaveDestroyProfile, GDBusMethodFlags(0), 0, NULL, NULL },
-    { }
-};
+static const GDBusMethodTable weaveAppMethods[] = { { "Release", WeaveDestroyProfile, GDBusMethodFlags(0), 0, NULL, NULL }, { } };
 
-static const GDBusPropertyTable weaveAppProperties[] = {
-    { "UUIDs", "as", GetWeaveUUIDs },
-    { }
-};
+static const GDBusPropertyTable weaveAppProperties[] = { { "UUIDs", "as", GetWeaveUUIDs }, { } };
 
-gboolean SetupWeaveApp(DBusConnection *dbusConn, GDBusProxy *proxy)
+gboolean SetupWeaveApp(DBusConnection * dbusConn, GDBusProxy * proxy)
 {
     gboolean success = FALSE;
     const char * msg = NULL;
-    success = g_dbus_register_interface(dbusConn, WEAVE_PATH, PROFILE_INTERFACE, weaveAppMethods, NULL, weaveAppProperties, NULL, NULL);
+    success =
+        g_dbus_register_interface(dbusConn, WEAVE_PATH, PROFILE_INTERFACE, weaveAppMethods, NULL, weaveAppProperties, NULL, NULL);
     VerifyOrExit(success == TRUE, msg = "Fail in register interface in SetupWeaveApp");
 
     success = g_dbus_proxy_method_call(proxy, "RegisterApplication", RegisterWeaveAppSetup, RegisterWeaveAppReply, NULL, NULL);
@@ -393,10 +382,10 @@ exit:
     return success;
 }
 
-static void WeaveCharacteristicDestroy(void *bluezData)
+static void WeaveCharacteristicDestroy(void * bluezData)
 {
-    Characteristic *WeaveCharacteristic = static_cast<Characteristic *>(bluezData);
-    if(NULL != WeaveCharacteristic)
+    Characteristic * WeaveCharacteristic = static_cast<Characteristic *>(bluezData);
+    if (NULL != WeaveCharacteristic)
     {
         g_free(WeaveCharacteristic->path);
         g_free(WeaveCharacteristic->servicePath);
@@ -407,10 +396,10 @@ static void WeaveCharacteristicDestroy(void *bluezData)
     }
 }
 
-static gboolean WeaveServiceGetUUID(const GDBusPropertyTable *property, DBusMessageIter *iter, void *bluezData)
+static gboolean WeaveServiceGetUUID(const GDBusPropertyTable * property, DBusMessageIter * iter, void * bluezData)
 {
-    Service *weaveService = static_cast<Service *>(bluezData);
-    gboolean success = dbus_message_iter_append_basic(iter, DBUS_TYPE_STRING, &weaveService->uuid);
+    Service * weaveService = static_cast<Service *>(bluezData);
+    gboolean success       = dbus_message_iter_append_basic(iter, DBUS_TYPE_STRING, &weaveService->uuid);
     if (FALSE == success)
     {
         WeaveLogError(Ble, "Failed to get weave service uuid property in WeaveServiceGetUUID");
@@ -419,9 +408,9 @@ static gboolean WeaveServiceGetUUID(const GDBusPropertyTable *property, DBusMess
     return success;
 }
 
-static gboolean WeaveServiceGetPrimary(const GDBusPropertyTable *property, DBusMessageIter *iter, void *bluezData)
+static gboolean WeaveServiceGetPrimary(const GDBusPropertyTable * property, DBusMessageIter * iter, void * bluezData)
 {
-    Service *weaveService = static_cast<Service *>(bluezData);
+    Service * weaveService = static_cast<Service *>(bluezData);
     dbus_bool_t servicePrimary;
     gboolean success = FALSE;
     const char * msg = NULL;
@@ -443,15 +432,13 @@ exit:
     return success;
 }
 
-static const GDBusPropertyTable serviceProperties[] = {
-    { "UUID", "s", WeaveServiceGetUUID },
-    { "Primary", "b", WeaveServiceGetPrimary },
-    { }
-};
+static const GDBusPropertyTable serviceProperties[] = { { "UUID", "s", WeaveServiceGetUUID },
+                                                        { "Primary", "b", WeaveServiceGetPrimary },
+                                                        { } };
 
-static void ServiceDestroy(void *bluezData)
+static void ServiceDestroy(void * bluezData)
 {
-    Service *weaveService = static_cast<Service *>(bluezData);
+    Service * weaveService = static_cast<Service *>(bluezData);
     if (NULL != weaveService)
     {
         g_free(weaveService->path);
@@ -460,24 +447,22 @@ static void ServiceDestroy(void *bluezData)
     }
 }
 
-gboolean RegisterWeaveService(DBusConnection *dbusConn)
+gboolean RegisterWeaveService(DBusConnection * dbusConn)
 {
     gboolean success = FALSE;
     const char * msg = NULL;
-    Service *weaveService;
+    Service * weaveService;
     weaveService = g_new0(Service, 1);
 
     VerifyOrExit(weaveService != NULL, msg = "weaveService is NULL in RegisterWeaveService");
 
-    weaveService->dbusConn = dbusConn;
-    weaveService->path = g_strdup_printf("%s/WeaveService%p", WEAVE_PATH, weaveService);
+    weaveService->dbusConn  = dbusConn;
+    weaveService->path      = g_strdup_printf("%s/WeaveService%p", WEAVE_PATH, weaveService);
     weaveService->isPrimary = true;
-    weaveService->uuid = g_strdup(UUID_WEAVE);
+    weaveService->uuid      = g_strdup(UUID_WEAVE);
 
-    success = g_dbus_register_interface(dbusConn, weaveService->path,
-                        SERVICE_INTERFACE, NULL, NULL,
-                        serviceProperties, weaveService,
-                        ServiceDestroy);
+    success = g_dbus_register_interface(dbusConn, weaveService->path, SERVICE_INTERFACE, NULL, NULL, serviceProperties,
+                                        weaveService, ServiceDestroy);
     if (FALSE == success)
     {
         msg = "Failed to register weave service";
@@ -497,11 +482,11 @@ exit:
     return success;
 }
 
-static gboolean CharacteristicGetUUID(const GDBusPropertyTable *property, DBusMessageIter *iter, void *bluezData)
+static gboolean CharacteristicGetUUID(const GDBusPropertyTable * property, DBusMessageIter * iter, void * bluezData)
 {
-    Characteristic *characteristic = static_cast<Characteristic *>(bluezData);
-    const char * msg = NULL;
-    gboolean success = FALSE;
+    Characteristic * characteristic = static_cast<Characteristic *>(bluezData);
+    const char * msg                = NULL;
+    gboolean success                = FALSE;
 
     VerifyOrExit(characteristic != NULL, msg = "characteristic is NULL in CharacteristicGetUUID");
 
@@ -518,11 +503,11 @@ exit:
     return success;
 }
 
-static gboolean CharacteristicGetService(const GDBusPropertyTable *property, DBusMessageIter *iter, void *bluezData)
+static gboolean CharacteristicGetService(const GDBusPropertyTable * property, DBusMessageIter * iter, void * bluezData)
 {
-    Characteristic *characteristic = static_cast<Characteristic *>(bluezData);
-    const char * msg = NULL;
-    gboolean success = FALSE;
+    Characteristic * characteristic = static_cast<Characteristic *>(bluezData);
+    const char * msg                = NULL;
+    gboolean success                = FALSE;
 
     VerifyOrExit(characteristic != NULL, msg = "characteristic is NULL in CharacteristicGetService");
 
@@ -539,9 +524,9 @@ exit:
     return success;
 }
 
-static gboolean CharacteristicGetValue(const GDBusPropertyTable *property, DBusMessageIter *iter, void *bluezData)
+static gboolean CharacteristicGetValue(const GDBusPropertyTable * property, DBusMessageIter * iter, void * bluezData)
 {
-    Characteristic *characteristic = static_cast<Characteristic *>(bluezData);
+    Characteristic * characteristic = static_cast<Characteristic *>(bluezData);
     DBusMessageIter array;
     const char * msg = NULL;
     gboolean success = FALSE;
@@ -567,9 +552,9 @@ exit:
     return success;
 }
 
-static gboolean CharacteristicGetNotifying(const GDBusPropertyTable *property, DBusMessageIter *iter, void *bluezData)
+static gboolean CharacteristicGetNotifying(const GDBusPropertyTable * property, DBusMessageIter * iter, void * bluezData)
 {
-    Characteristic *characteristic = static_cast<Characteristic *>(bluezData);
+    Characteristic * characteristic = static_cast<Characteristic *>(bluezData);
     dbus_bool_t characteristicNotify;
     const char * msg = NULL;
     gboolean success = FALSE;
@@ -591,10 +576,10 @@ exit:
     return success;
 }
 
-static gboolean CharacteristicGetFlags(const GDBusPropertyTable *property, DBusMessageIter *iter, void *bluezData)
+static gboolean CharacteristicGetFlags(const GDBusPropertyTable * property, DBusMessageIter * iter, void * bluezData)
 {
-    Characteristic *characteristic = static_cast<Characteristic *>(bluezData);
-    int flagIndex = 0;
+    Characteristic * characteristic = static_cast<Characteristic *>(bluezData);
+    int flagIndex                   = 0;
     DBusMessageIter array;
     const char * msg = NULL;
     gboolean success = FALSE;
@@ -624,14 +609,14 @@ exit:
     return success;
 }
 
-static DBusMessage *CharacteristicRead(DBusConnection *dbusConn, DBusMessage *dbusMsg, void *bluezData)
+static DBusMessage * CharacteristicRead(DBusConnection * dbusConn, DBusMessage * dbusMsg, void * bluezData)
 {
-    Characteristic *characteristic = static_cast<Characteristic *>(bluezData);
-    DBusMessage *readReply = NULL;
+    Characteristic * characteristic = static_cast<Characteristic *>(bluezData);
+    DBusMessage * readReply         = NULL;
     DBusMessageIter iter, array;
     const char * msg = NULL;
     gboolean success = FALSE;
-    readReply = g_dbus_create_reply(dbusMsg, DBUS_TYPE_INVALID);
+    readReply        = g_dbus_create_reply(dbusMsg, DBUS_TYPE_INVALID);
     dbus_message_iter_init_append(readReply, &iter);
 
     VerifyOrExit(characteristic != NULL, msg = "characteristic is NULL in CharacteristicRead");
@@ -656,14 +641,14 @@ exit:
 }
 
 #if BLE_CONFIG_BLUEZ_MTU_FEATURE
-static bool WritePipeIORead(struct io *io, void *bluezData)
+static bool WritePipeIORead(struct io * io, void * bluezData)
 {
-	Characteristic *characteristic = static_cast<Characteristic *>(bluezData);
+    Characteristic * characteristic = static_cast<Characteristic *>(bluezData);
     int fd;
     const char * msg = NULL;
-	uint8_t writerData[BUFF_SIZE];
-	ssize_t writerDataLength;
-	bool success = false;
+    uint8_t writerData[BUFF_SIZE];
+    ssize_t writerDataLength;
+    bool success = false;
 
     VerifyOrExit(bluezData != NULL, msg = "characteristic is NULL in WritePipeIORead");
 
@@ -678,11 +663,11 @@ static bool WritePipeIORead(struct io *io, void *bluezData)
         ExitNow();
     }
 
-	writerDataLength = read(fd, writerData, sizeof(writerData));
-	VerifyOrExit(writerDataLength >= 0, msg = "writerDataLength should be larger than or equal to 0");
+    writerDataLength = read(fd, writerData, sizeof(writerData));
+    VerifyOrExit(writerDataLength >= 0, msg = "writerDataLength should be larger than or equal to 0");
 
     g_free(characteristic->value);
-    characteristic->value = static_cast<uint8_t*>(g_memdup(writerData, writerDataLength));
+    characteristic->value    = static_cast<uint8_t *>(g_memdup(writerData, writerDataLength));
     characteristic->valueLen = writerDataLength;
 
     if (strcmp(characteristic->uuid, UUID_WEAVE_C1) == 0)
@@ -705,21 +690,21 @@ exit:
     return success;
 }
 
-static bool PipeIODestroy(struct io *io, void *bluezData)
+static bool PipeIODestroy(struct io * io, void * bluezData)
 {
-    const char * msg = NULL;
-    bool success = false;
-	Characteristic *characteristic = static_cast<Characteristic *>(bluezData);
+    const char * msg                = NULL;
+    bool success                    = false;
+    Characteristic * characteristic = static_cast<Characteristic *>(bluezData);
 
     VerifyOrExit(bluezData != NULL, msg = "characteristic is NULL in PipeIODestroy");
 
-	if (io == characteristic->indicatePipeIO)
-	{
+    if (io == characteristic->indicatePipeIO)
+    {
         io_destroy(characteristic->indicatePipeIO);
         characteristic->indicatePipeIO = NULL;
     }
-	else
-	{
+    else
+    {
         io_destroy(characteristic->writePipeIO);
         characteristic->writePipeIO = NULL;
     }
@@ -736,67 +721,65 @@ exit:
     return success;
 }
 
-static DBusMessage *CharacteristicCreatePipe(Characteristic *characteristic, DBusMessage *dbusMsg)
+static DBusMessage * CharacteristicCreatePipe(Characteristic * characteristic, DBusMessage * dbusMsg)
 {
-	int characteristicPipefd[2];
-	int fdToClose, fdToUse, ioSelection;
-	struct io *io;
-	const char * msg = NULL;
-	bool index;
-	DBusMessage *CharacteristicCreatePipeReply = NULL;
+    int characteristicPipefd[2];
+    int fdToClose, fdToUse, ioSelection;
+    struct io * io;
+    const char * msg = NULL;
+    bool index;
+    DBusMessage * CharacteristicCreatePipeReply = NULL;
 
     VerifyOrExit(characteristic != NULL, msg = "characteristic is NULL in CharacteristicAcquireWrite");
 
-	if (pipe2(characteristicPipefd, O_DIRECT | O_NONBLOCK | O_CLOEXEC) < 0)
-	{
-	    msg = strerror(errno);
-	    CharacteristicCreatePipeReply = g_dbus_create_error(dbusMsg, "org.bluez.Error.Failed", "%s", strerror(errno));
-	    ExitNow();
-	}
+    if (pipe2(characteristicPipefd, O_DIRECT | O_NONBLOCK | O_CLOEXEC) < 0)
+    {
+        msg                           = strerror(errno);
+        CharacteristicCreatePipeReply = g_dbus_create_error(dbusMsg, "org.bluez.Error.Failed", "%s", strerror(errno));
+        ExitNow();
+    }
 
-	if (TRUE == dbus_message_has_member(dbusMsg, "AcquireWrite"))
-	{
-	    fdToClose = characteristicPipefd[1];
-        fdToUse = characteristicPipefd[0];
+    if (TRUE == dbus_message_has_member(dbusMsg, "AcquireWrite"))
+    {
+        fdToClose   = characteristicPipefd[1];
+        fdToUse     = characteristicPipefd[0];
         ioSelection = 1;
-
-	}
-	else if (TRUE == dbus_message_has_member(dbusMsg, "AcquireNotify"))
-	{
-        fdToClose = characteristicPipefd[0];
-        fdToUse = characteristicPipefd[1];
+    }
+    else if (TRUE == dbus_message_has_member(dbusMsg, "AcquireNotify"))
+    {
+        fdToClose   = characteristicPipefd[0];
+        fdToUse     = characteristicPipefd[1];
         ioSelection = 0;
-	}
-	else
-	{
-	    msg = "dbus message expects member, AcquireWrite or AcquireNotify";
-	    ExitNow();
-	}
+    }
+    else
+    {
+        msg = "dbus message expects member, AcquireWrite or AcquireNotify";
+        ExitNow();
+    }
 
-	io = io_new(fdToUse);
-	if (io == NULL)
-	{
-		close(fdToClose);
-		close(fdToUse);
-		msg = strerror(errno);
-		CharacteristicCreatePipeReply = g_dbus_create_error(dbusMsg, "org.bluez.Error.Failed", "%s", strerror(errno));
-		ExitNow();
-	}
+    io = io_new(fdToUse);
+    if (io == NULL)
+    {
+        close(fdToClose);
+        close(fdToUse);
+        msg                           = strerror(errno);
+        CharacteristicCreatePipeReply = g_dbus_create_error(dbusMsg, "org.bluez.Error.Failed", "%s", strerror(errno));
+        ExitNow();
+    }
 
-	io_set_close_on_destroy(io, true);
-	io_set_read_handler(io, WritePipeIORead, characteristic, NULL);
-	io_set_disconnect_handler(io, PipeIODestroy, characteristic, NULL);
+    io_set_close_on_destroy(io, true);
+    io_set_read_handler(io, WritePipeIORead, characteristic, NULL);
+    io_set_disconnect_handler(io, PipeIODestroy, characteristic, NULL);
 
-	CharacteristicCreatePipeReply = g_dbus_create_reply(dbusMsg, DBUS_TYPE_UNIX_FD, &fdToClose,
-					DBUS_TYPE_UINT16, &gBluezServerEndpoint->mtu,
-					DBUS_TYPE_INVALID);
+    CharacteristicCreatePipeReply = g_dbus_create_reply(dbusMsg, DBUS_TYPE_UNIX_FD, &fdToClose, DBUS_TYPE_UINT16,
+                                                        &gBluezServerEndpoint->mtu, DBUS_TYPE_INVALID);
 
-	close(fdToClose);
+    close(fdToClose);
 
-	if (ioSelection == 1)
-		characteristic->writePipeIO = io;
-	else
-		characteristic->indicatePipeIO = io;
+    if (ioSelection == 1)
+        characteristic->writePipeIO = io;
+    else
+        characteristic->indicatePipeIO = io;
 
 exit:
 
@@ -805,66 +788,67 @@ exit:
         WeaveLogError(Ble, msg);
     }
 
-	return CharacteristicCreatePipeReply;
+    return CharacteristicCreatePipeReply;
 }
 
-static DBusMessage *CharacteristicAcquireWrite(DBusConnection *dbusConn, DBusMessage *dbusMsg, void *bluezData)
+static DBusMessage * CharacteristicAcquireWrite(DBusConnection * dbusConn, DBusMessage * dbusMsg, void * bluezData)
 {
-	Characteristic *characteristic = static_cast<Characteristic *>(bluezData);
-    const char * msg = NULL;
-    const char *key;
-	DBusMessageIter iter, dict, value, entry;
-	DBusMessage *acquireWriteReply = NULL;
-    bool acquireMTU = false;
+    Characteristic * characteristic = static_cast<Characteristic *>(bluezData);
+    const char * msg                = NULL;
+    const char * key;
+    DBusMessageIter iter, dict, value, entry;
+    DBusMessage * acquireWriteReply = NULL;
+    bool acquireMTU                 = false;
     dbus_bool_t iterCheck;
 
     VerifyOrExit(characteristic != NULL, msg = "characteristic is NULL in CharacteristicAcquireWrite");
 
-	if (characteristic->writePipeIO != NULL)
-	{
-	    msg = "there exists writePipeIO, error";
-		acquireWriteReply = g_dbus_create_error(dbusMsg, "org.bluez.Error.NotPermitted", NULL);
-		ExitNow();
+    if (characteristic->writePipeIO != NULL)
+    {
+        msg               = "there exists writePipeIO, error";
+        acquireWriteReply = g_dbus_create_error(dbusMsg, "org.bluez.Error.NotPermitted", NULL);
+        ExitNow();
     }
 
-	dbus_message_iter_init(dbusMsg, &iter);
-	VerifyOrExit(dbus_message_iter_get_arg_type(&iter) == DBUS_TYPE_ARRAY, msg = "dbus iterator is not array in CharacteristicAcquireWrite");
+    dbus_message_iter_init(dbusMsg, &iter);
+    VerifyOrExit(dbus_message_iter_get_arg_type(&iter) == DBUS_TYPE_ARRAY,
+                 msg = "dbus iterator is not array in CharacteristicAcquireWrite");
 
-	dbus_message_iter_recurse(&iter, &dict);
+    dbus_message_iter_recurse(&iter, &dict);
 
-	while (dbus_message_iter_get_arg_type(&dict) == DBUS_TYPE_DICT_ENTRY)
-	{
-		dbus_message_iter_recurse(&dict, &entry);
-		dbus_message_iter_get_basic(&entry, &key);
-		iterCheck = dbus_message_iter_next(&entry);
-		VerifyOrExit(iterCheck == TRUE, msg = "Reach the end of iterator");
+    while (dbus_message_iter_get_arg_type(&dict) == DBUS_TYPE_DICT_ENTRY)
+    {
+        dbus_message_iter_recurse(&dict, &entry);
+        dbus_message_iter_get_basic(&entry, &key);
+        iterCheck = dbus_message_iter_next(&entry);
+        VerifyOrExit(iterCheck == TRUE, msg = "Reach the end of iterator");
 
-		dbus_message_iter_recurse(&entry, &value);
+        dbus_message_iter_recurse(&entry, &value);
 
         if (strcasecmp(key, "MTU") == 0)
         {
-			dbus_message_iter_get_basic(&value, &gBluezServerEndpoint->mtu);
-			acquireMTU = true;
-			break;
-		}
+            dbus_message_iter_get_basic(&value, &gBluezServerEndpoint->mtu);
+            acquireMTU = true;
+            break;
+        }
 
-		dbus_message_iter_next(&dict);
-	}
-
-	if (!acquireMTU)
-	{
-	    msg = "AcquireWite cannot get MTU from bluez";
-		acquireWriteReply =  g_dbus_create_error(dbusMsg, "org.bluez.Error.InvalidArguments", NULL);
-		ExitNow();
+        dbus_message_iter_next(&dict);
     }
 
-	acquireWriteReply = CharacteristicCreatePipe(characteristic, dbusMsg);
+    if (!acquireMTU)
+    {
+        msg               = "AcquireWite cannot get MTU from bluez";
+        acquireWriteReply = g_dbus_create_error(dbusMsg, "org.bluez.Error.InvalidArguments", NULL);
+        ExitNow();
+    }
 
-	if (characteristic->writePipeIO != NULL)
-	{
-	    if (strcmp(characteristic->uuid, UUID_WEAVE_C1) == 0)
+    acquireWriteReply = CharacteristicCreatePipe(characteristic, dbusMsg);
+
+    if (characteristic->writePipeIO != NULL)
+    {
+        if (strcmp(characteristic->uuid, UUID_WEAVE_C1) == 0)
         {
-		    g_dbus_emit_property_changed(dbusConn, characteristic->path, CHARACTERISTIC_INTERFACE, "WriteAcquired");
+            g_dbus_emit_property_changed(dbusConn, characteristic->path, CHARACTERISTIC_INTERFACE, "WriteAcquired");
         }
         else
         {
@@ -880,38 +864,38 @@ exit:
         WeaveLogDetail(Ble, msg);
     }
 
-	return acquireWriteReply;
+    return acquireWriteReply;
 }
 
-static DBusMessage *CharacteristicAcquireNotify(DBusConnection *dbusConn, DBusMessage *dbusMsg, void *bluezData)
+static DBusMessage * CharacteristicAcquireNotify(DBusConnection * dbusConn, DBusMessage * dbusMsg, void * bluezData)
 {
-    Characteristic *characteristic = static_cast<Characteristic *>(bluezData);
-    const char * msg = NULL;
-	DBusMessage *acquireNotifyReply = NULL;
+    Characteristic * characteristic  = static_cast<Characteristic *>(bluezData);
+    const char * msg                 = NULL;
+    DBusMessage * acquireNotifyReply = NULL;
 
     VerifyOrExit(characteristic != NULL, msg = "characteristic is NULL in CharacteristicAcquireNotify");
 
-	if (characteristic->isNotifying)
-	{
-	    msg = "Notifying has been enabled in CharacteristicAcquireNotify";
-		acquireNotifyReply = g_dbus_create_error(dbusMsg, "org.bluez.Error.NotPermitted", NULL);
-		ExitNow();
+    if (characteristic->isNotifying)
+    {
+        msg                = "Notifying has been enabled in CharacteristicAcquireNotify";
+        acquireNotifyReply = g_dbus_create_error(dbusMsg, "org.bluez.Error.NotPermitted", NULL);
+        ExitNow();
     }
 
-	if (characteristic->indicatePipeIO != NULL)
-	{
-	    msg = "there exists indicatePipeIO, error";
-		acquireNotifyReply = g_dbus_create_error(dbusMsg, "org.bluez.Error.NotPermitted", NULL);
-		ExitNow();
+    if (characteristic->indicatePipeIO != NULL)
+    {
+        msg                = "there exists indicatePipeIO, error";
+        acquireNotifyReply = g_dbus_create_error(dbusMsg, "org.bluez.Error.NotPermitted", NULL);
+        ExitNow();
     }
 
-	acquireNotifyReply = CharacteristicCreatePipe(characteristic, dbusMsg);
+    acquireNotifyReply = CharacteristicCreatePipe(characteristic, dbusMsg);
 
-	if (characteristic->indicatePipeIO != NULL)
+    if (characteristic->indicatePipeIO != NULL)
     {
         characteristic->isNotifying = true;
 
-        WeaveLogProgress(Ble,  "Characteristic path %s notification enabled", characteristic->path);
+        WeaveLogProgress(Ble, "Characteristic path %s notification enabled", characteristic->path);
 
         if (strcmp(characteristic->uuid, UUID_WEAVE_C2) == 0)
         {
@@ -924,7 +908,7 @@ static DBusMessage *CharacteristicAcquireNotify(DBusConnection *dbusConn, DBusMe
         }
 
         g_dbus_emit_property_changed(dbusConn, characteristic->path, CHARACTERISTIC_INTERFACE, "Notifying");
-		g_dbus_emit_property_changed(dbusConn, characteristic->path, CHARACTERISTIC_INTERFACE, "NotifyAcquired");
+        g_dbus_emit_property_changed(dbusConn, characteristic->path, CHARACTERISTIC_INTERFACE, "NotifyAcquired");
     }
 
 exit:
@@ -934,34 +918,33 @@ exit:
         WeaveLogError(Ble, msg);
     }
 
-	return acquireNotifyReply;
+    return acquireNotifyReply;
 }
-#endif //BLE_CONFIG_BLUEZ_MTU_FEATURE
+#endif // BLE_CONFIG_BLUEZ_MTU_FEATURE
 
-static DBusMessage *CharacteristicWrite(DBusConnection *dbusConn, DBusMessage *dbusMsg,
-							void *bluezData)
+static DBusMessage * CharacteristicWrite(DBusConnection * dbusConn, DBusMessage * dbusMsg, void * bluezData)
 {
-    Characteristic *characteristic = static_cast<Characteristic *>(bluezData);
+    Characteristic * characteristic = static_cast<Characteristic *>(bluezData);
     DBusMessageIter iter;
     dbus_message_iter_init(dbusMsg, &iter);
     const char * msg = NULL;
     DBusMessageIter array;
-    DBusMessage *writeReply = NULL;
-	uint8_t *writerData = NULL;
-	int writerDataLength;
+    DBusMessage * writeReply = NULL;
+    uint8_t * writerData     = NULL;
+    int writerDataLength;
 
     VerifyOrExit(characteristic != NULL, msg = "characteristic is NULL in CharacteristicWrite");
 
     if (dbus_message_iter_get_arg_type(&iter) != DBUS_TYPE_ARRAY)
     {
-        msg = "Fail to get arg type in CharacteristicWrite";
+        msg        = "Fail to get arg type in CharacteristicWrite";
         writeReply = g_dbus_create_error(dbusMsg, "org.bluez.Error.InvalidArguments", NULL);
         ExitNow();
     }
 
     dbus_message_iter_recurse(&iter, &array);
     dbus_message_iter_get_fixed_array(&array, &(writerData), &(writerDataLength));
-    characteristic->value = static_cast<uint8_t*>(g_memdup(writerData, writerDataLength));
+    characteristic->value    = static_cast<uint8_t *>(g_memdup(writerData, writerDataLength));
     characteristic->valueLen = writerDataLength;
 
     g_dbus_emit_property_changed(dbusConn, characteristic->path, CHARACTERISTIC_INTERFACE, "Value");
@@ -983,11 +966,11 @@ exit:
     return writeReply;
 }
 
-static DBusMessage *CharacteristicStartNotify(DBusConnection *dbusConn, DBusMessage *dbusMsg, void *bluezData)
+static DBusMessage * CharacteristicStartNotify(DBusConnection * dbusConn, DBusMessage * dbusMsg, void * bluezData)
 {
-    Characteristic *characteristic = static_cast<Characteristic *>(bluezData);
-    const char * msg = NULL;
-    DBusMessage *notifyReply = NULL;
+    Characteristic * characteristic = static_cast<Characteristic *>(bluezData);
+    const char * msg                = NULL;
+    DBusMessage * notifyReply       = NULL;
 
     VerifyOrExit(characteristic != NULL, msg = "characteristic is NULL in CharacteristicStartNotify");
 
@@ -995,7 +978,7 @@ static DBusMessage *CharacteristicStartNotify(DBusConnection *dbusConn, DBusMess
 
     characteristic->isNotifying = true;
     g_dbus_emit_property_changed(dbusConn, characteristic->path, CHARACTERISTIC_INTERFACE, "Notifying");
-    WeaveLogDetail(Ble,  "Characteristic path %s notification enabled", characteristic->path);
+    WeaveLogDetail(Ble, "Characteristic path %s notification enabled", characteristic->path);
 
     if (strcmp(characteristic->uuid, UUID_WEAVE_C2) == 0)
     {
@@ -1014,11 +997,11 @@ exit:
     return notifyReply;
 }
 
-static DBusMessage *CharacteristicStopNotify(DBusConnection *dbusConn, DBusMessage *dbusMsg, void *bluezData)
+static DBusMessage * CharacteristicStopNotify(DBusConnection * dbusConn, DBusMessage * dbusMsg, void * bluezData)
 {
-    Characteristic *characteristic = static_cast<Characteristic *>(bluezData);
-    const char * msg = NULL;
-    DBusMessage *notifyReply = NULL;
+    Characteristic * characteristic = static_cast<Characteristic *>(bluezData);
+    const char * msg                = NULL;
+    DBusMessage * notifyReply       = NULL;
 
     VerifyOrExit(characteristic != NULL, msg = "characteristic is NULL in CharacteristicStopNotify");
 
@@ -1026,7 +1009,7 @@ static DBusMessage *CharacteristicStopNotify(DBusConnection *dbusConn, DBusMessa
 
     characteristic->isNotifying = false;
     g_dbus_emit_property_changed(dbusConn, characteristic->path, CHARACTERISTIC_INTERFACE, "Notifying");
-    WeaveLogProgress(Ble,  "Characteristic path %s notification disabled", characteristic->path);
+    WeaveLogProgress(Ble, "Characteristic path %s notification disabled", characteristic->path);
 
     if (strcmp(characteristic->uuid, UUID_WEAVE_C2) == 0)
     {
@@ -1045,13 +1028,13 @@ exit:
     return notifyReply;
 }
 
-static DBusMessage *CharacteristicIndicationConf(DBusConnection *dbusConn, DBusMessage *dbusMsg, void *bluezData)
+static DBusMessage * CharacteristicIndicationConf(DBusConnection * dbusConn, DBusMessage * dbusMsg, void * bluezData)
 {
-    const char * msg = NULL;
-    Characteristic *characteristic = static_cast<Characteristic *>(bluezData);
+    const char * msg                = NULL;
+    Characteristic * characteristic = static_cast<Characteristic *>(bluezData);
     VerifyOrExit(characteristic != NULL, msg = "characteristic is NULL in CharacteristicIndicationConf");
 
-    WeaveLogDetail(Ble,  "Indication confirmation received at %s", characteristic->path);
+    WeaveLogDetail(Ble, "Indication confirmation received at %s", characteristic->path);
     WoBLEz_IndicationConfirmation(gBluezServerEndpoint);
 
 exit:
@@ -1065,18 +1048,17 @@ exit:
 }
 
 #if BLE_CONFIG_BLUEZ_MTU_FEATURE
-static gboolean CharacteristicPipeAcquired(const GDBusPropertyTable *property, DBusMessageIter *iter, void *bluezData)
+static gboolean CharacteristicPipeAcquired(const GDBusPropertyTable * property, DBusMessageIter * iter, void * bluezData)
 {
-    gboolean success = FALSE;
-	dbus_bool_t value = FALSE;
-	const char * msg = NULL;
-	Characteristic *characteristic = static_cast<Characteristic *>(bluezData);
+    gboolean success                = FALSE;
+    dbus_bool_t value               = FALSE;
+    const char * msg                = NULL;
+    Characteristic * characteristic = static_cast<Characteristic *>(bluezData);
     VerifyOrExit(characteristic != NULL, msg = "characteristic is NULL in CharacteristicPipeAcquired");
 
     if (strcmp(characteristic->uuid, UUID_WEAVE_C1) == 0)
     {
-	    value = (characteristic->writePipeIO != NULL) ? TRUE : FALSE;
-
+        value = (characteristic->writePipeIO != NULL) ? TRUE : FALSE;
     }
     else if (strcmp(characteristic->uuid, UUID_WEAVE_C2) == 0)
     {
@@ -1087,7 +1069,7 @@ static gboolean CharacteristicPipeAcquired(const GDBusPropertyTable *property, D
         VerifyOrExit(value == TRUE, msg = "writePipeIO or indicatePipeIO is not set in C1 and C2");
     }
 
-	success = dbus_message_iter_append_basic(iter, DBUS_TYPE_BOOLEAN, &value);
+    success = dbus_message_iter_append_basic(iter, DBUS_TYPE_BOOLEAN, &value);
 
 exit:
 
@@ -1096,7 +1078,7 @@ exit:
         WeaveLogDetail(Ble, msg);
     }
 
-	return success;
+    return success;
 }
 #endif // BLE_CONFIG_BLUEZ_MTU_FEATURE
 
@@ -1114,41 +1096,42 @@ static const GDBusPropertyTable WeaveCharacteristicProperties[] = {
 };
 
 static const GDBusMethodTable weaveCharacteristicMethods[] = {
-    {"ReadValue", CharacteristicRead, G_DBUS_METHOD_FLAG_ASYNC, 0, GDBUS_ARGS({ "options", "a{sv}" }), GDBUS_ARGS({ "value", "ay" }) },
+    { "ReadValue", CharacteristicRead, G_DBUS_METHOD_FLAG_ASYNC, 0, GDBUS_ARGS( { "options", "a {sv}" }),
+      GDBUS_ARGS( { "value", "ay" }) },
 #if BLE_CONFIG_BLUEZ_MTU_FEATURE
-    {"AcquireWrite", CharacteristicAcquireWrite, G_DBUS_METHOD_FLAG_ASYNC, 0, GDBUS_ARGS({ "options", "a{sv}" }), NULL },
-    {"AcquireNotify", CharacteristicAcquireNotify, G_DBUS_METHOD_FLAG_ASYNC, 0, GDBUS_ARGS({ "options", "a{sv}" }), NULL },
+    { "AcquireWrite", CharacteristicAcquireWrite, G_DBUS_METHOD_FLAG_ASYNC, 0, GDBUS_ARGS( { "options", "a {sv}" }), NULL },
+    { "AcquireNotify", CharacteristicAcquireNotify, G_DBUS_METHOD_FLAG_ASYNC, 0, GDBUS_ARGS( { "options", "a {sv}" }), NULL },
 #endif // BLE_CONFIG_BLUEZ_MTU_FEATURE
-    {"WriteValue", CharacteristicWrite, G_DBUS_METHOD_FLAG_ASYNC, 0, GDBUS_ARGS({ "value", "ay" },{ "options", "a{sv}" }), NULL },
-    {"StartNotify", CharacteristicStartNotify, G_DBUS_METHOD_FLAG_ASYNC, 0, NULL, NULL },
-    {"StopNotify", CharacteristicStopNotify, G_DBUS_METHOD_FLAG_ASYNC, 0, NULL, NULL},
-    {"Confirm", CharacteristicIndicationConf, G_DBUS_METHOD_FLAG_ASYNC, 0, NULL, NULL},
+    { "WriteValue", CharacteristicWrite, G_DBUS_METHOD_FLAG_ASYNC, 0, GDBUS_ARGS( { "value", "ay" }, { "options", "a {sv}" }), NULL },
+    { "StartNotify", CharacteristicStartNotify, G_DBUS_METHOD_FLAG_ASYNC, 0, NULL, NULL },
+    { "StopNotify", CharacteristicStopNotify, G_DBUS_METHOD_FLAG_ASYNC, 0, NULL, NULL },
+    { "Confirm", CharacteristicIndicationConf, G_DBUS_METHOD_FLAG_ASYNC, 0, NULL, NULL },
     { }
 };
 
-Characteristic * RegisterWeaveCharacteristic(DBusConnection *dbusConn, const char *uuid, const char *flags)
+Characteristic * RegisterWeaveCharacteristic(DBusConnection * dbusConn, const char * uuid, const char * flags)
 {
-    Characteristic *weaveCharacteristic = NULL;
-    gboolean success = FALSE;
-    const char * msg = NULL;
+    Characteristic * weaveCharacteristic = NULL;
+    gboolean success                     = FALSE;
+    const char * msg                     = NULL;
 
     weaveCharacteristic = g_new0(Characteristic, 1);
 
     VerifyOrExit(weaveCharacteristic != NULL, msg = "no memory allocated for characteristic in RegisterWeaveCharacteristic");
 
     weaveCharacteristic->dbusConn = dbusConn;
-    weaveCharacteristic->uuid = g_strdup(uuid);
-    weaveCharacteristic->value = NULL;
-    weaveCharacteristic->path = g_strdup_printf("%s/weaveCharacteristic%p", gBluezServerEndpoint->weaveService->path, weaveCharacteristic);
-    weaveCharacteristic->servicePath = g_strdup_printf("%s",gBluezServerEndpoint->weaveService->path);
-    weaveCharacteristic->flags = g_strsplit(flags, ",", -1);
+    weaveCharacteristic->uuid     = g_strdup(uuid);
+    weaveCharacteristic->value    = NULL;
+    weaveCharacteristic->path =
+        g_strdup_printf("%s/weaveCharacteristic%p", gBluezServerEndpoint->weaveService->path, weaveCharacteristic);
+    weaveCharacteristic->servicePath = g_strdup_printf("%s", gBluezServerEndpoint->weaveService->path);
+    weaveCharacteristic->flags       = g_strsplit(flags, ",", -1);
 #if BLE_CONFIG_BLUEZ_MTU_FEATURE
-    weaveCharacteristic->writePipeIO = NULL;
+    weaveCharacteristic->writePipeIO    = NULL;
     weaveCharacteristic->indicatePipeIO = NULL;
 #endif // BLE_CONFIG_BLUEZ_MTU_FEATURE
-    success = g_dbus_register_interface(dbusConn, weaveCharacteristic->path, CHARACTERISTIC_INTERFACE,
-                                  weaveCharacteristicMethods, NULL, WeaveCharacteristicProperties,
-                                  weaveCharacteristic, WeaveCharacteristicDestroy);
+    success = g_dbus_register_interface(dbusConn, weaveCharacteristic->path, CHARACTERISTIC_INTERFACE, weaveCharacteristicMethods,
+                                        NULL, WeaveCharacteristicProperties, weaveCharacteristic, WeaveCharacteristicDestroy);
 
     if (FALSE == success)
     {
@@ -1167,7 +1150,7 @@ exit:
     return weaveCharacteristic;
 }
 
-static void WeaveConnectHandler(DBusConnection *connection, void *bluezData)
+static void WeaveConnectHandler(DBusConnection * connection, void * bluezData)
 {
     if (gBluezServerEndpoint != NULL)
     {
@@ -1175,7 +1158,7 @@ static void WeaveConnectHandler(DBusConnection *connection, void *bluezData)
     }
 }
 
-static void WeaveDisconnectHandler(DBusConnection *connection, void *bluezData)
+static void WeaveDisconnectHandler(DBusConnection * connection, void * bluezData)
 {
     if (gBluezServerEndpoint != NULL)
     {
@@ -1183,49 +1166,49 @@ static void WeaveDisconnectHandler(DBusConnection *connection, void *bluezData)
     }
 }
 
-static void WeaveAdapterAdded(GDBusProxy *proxy)
+static void WeaveAdapterAdded(GDBusProxy * proxy)
 {
-    Adapter *adapter;
+    Adapter * adapter;
     DBusMessageIter iter;
-    const char *str;
+    const char * str;
     gAdapterFound = false;
-    
+
     if (g_dbus_proxy_get_property(proxy, "Address", &iter) == FALSE)
         return;
-    
+
     dbus_message_iter_get_basic(&iter, &str);
-    
+
     if (!strcasecmp(str, gBluezServerEndpoint->adapterAddr))
     {
-        adapter = static_cast<Adapter *>(g_new0(Adapter, 1));
+        adapter               = static_cast<Adapter *>(g_new0(Adapter, 1));
         adapter->adapterProxy = proxy;
-        gDefaultAdapter = adapter;
-        gAdapterFound = true;
+        gDefaultAdapter       = adapter;
+        gAdapterFound         = true;
     }
 }
 
-static void WeaveProfileAdded(GDBusProxy *proxy)
+static void WeaveProfileAdded(GDBusProxy * proxy)
 {
     if (!gAdapterFound)
         return;
-    
+
     gDefaultAdapter->profileProxy = proxy;
 }
 
-static void WeaveAdvertisingAdded(GDBusProxy *proxy)
+static void WeaveAdvertisingAdded(GDBusProxy * proxy)
 {
     if (!gAdapterFound)
         return;
-    
+
     gDefaultAdapter->advertisingProxy = proxy;
 }
 
-static void WeaveProxyAdded(GDBusProxy *proxy, void *bluezData)
+static void WeaveProxyAdded(GDBusProxy * proxy, void * bluezData)
 {
-    const char *interface;
-    
+    const char * interface;
+
     interface = g_dbus_proxy_get_interface(proxy);
-    
+
     if (!strcmp(interface, ADAPTER_INTERFACE))
     {
         WeaveAdapterAdded(proxy);
@@ -1240,12 +1223,12 @@ static void WeaveProxyAdded(GDBusProxy *proxy, void *bluezData)
     }
 }
 
-static void WeaveProxyDeleted(GDBusProxy *proxy, void *bluezData)
+static void WeaveProxyDeleted(GDBusProxy * proxy, void * bluezData)
 {
-    const char *interface;
+    const char * interface;
     interface = g_dbus_proxy_get_interface(proxy);
-    
-    if (!strcmp(interface, ADAPTER_INTERFACE)) 
+
+    if (!strcmp(interface, ADAPTER_INTERFACE))
     {
         if (gDefaultAdapter && gDefaultAdapter->adapterProxy == proxy)
         {
@@ -1255,9 +1238,9 @@ static void WeaveProxyDeleted(GDBusProxy *proxy, void *bluezData)
     }
 }
 
-static void PowerCb(const DBusError *error, void *bluezData)
+static void PowerCb(const DBusError * error, void * bluezData)
 {
-    WEAVE_ERROR err = WEAVE_NO_ERROR;
+    WEAVE_ERROR err  = WEAVE_NO_ERROR;
     gboolean success = FALSE;
     VerifyOrExit(!dbus_error_is_set(error), err = WEAVE_ERROR_INCORRECT_STATE);
 
@@ -1272,7 +1255,7 @@ static void PowerCb(const DBusError *error, void *bluezData)
     gBluezServerEndpoint->weaveC2 = RegisterWeaveCharacteristic(gBluezDbusConn, UUID_WEAVE_C2, FLAGS_WEAVE_C2);
     VerifyOrExit(gBluezServerEndpoint->weaveC2 != NULL, err = WEAVE_ERROR_NO_MEMORY);
 
-    WeaveLogDetail(Ble, "weave C2 uuid: %s, path: %s", gBluezServerEndpoint->weaveC2->uuid,gBluezServerEndpoint->weaveC2->path);
+    WeaveLogDetail(Ble, "weave C2 uuid: %s, path: %s", gBluezServerEndpoint->weaveC2->uuid, gBluezServerEndpoint->weaveC2->path);
 
     success = SetupWeaveApp(gBluezDbusConn, gDefaultAdapter->profileProxy);
     VerifyOrExit(success == TRUE, err = WEAVE_ERROR_INCORRECT_STATE);
@@ -1288,10 +1271,11 @@ exit:
     }
 }
 
-static void BluezClientReady(GDBusClient *weaveClient, void *bluezData)
+static void BluezClientReady(GDBusClient * weaveClient, void * bluezData)
 {
     dbus_bool_t powered = TRUE;
-    gboolean err = g_dbus_proxy_set_property_basic(gDefaultAdapter->adapterProxy, "Powered", DBUS_TYPE_BOOLEAN, &powered, PowerCb, NULL, NULL);
+    gboolean err =
+        g_dbus_proxy_set_property_basic(gDefaultAdapter->adapterProxy, "Powered", DBUS_TYPE_BOOLEAN, &powered, PowerCb, NULL, NULL);
     if (FALSE == err)
     {
         WeaveLogError(Ble, "Fail to set Power property in BluezClientReady");
@@ -1310,7 +1294,8 @@ uint16_t GetMTUWeaveCb(BLE_CONNECTION_OBJECT connObj)
 void ClearWoBluezStatus()
 {
     gBluezServerEndpoint->weaveC2->isNotifying = false;
-    g_dbus_emit_property_changed(gBluezServerEndpoint->weaveC2->dbusConn, gBluezServerEndpoint->weaveC2->path, CHARACTERISTIC_INTERFACE, "Notifying");
+    g_dbus_emit_property_changed(gBluezServerEndpoint->weaveC2->dbusConn, gBluezServerEndpoint->weaveC2->path,
+                                 CHARACTERISTIC_INTERFACE, "Notifying");
 }
 
 void ExitBluezIOThread(void)
@@ -1318,13 +1303,13 @@ void ExitBluezIOThread(void)
     g_main_loop_quit(gBluezMainLoop);
 }
 
-bool RunBluezIOThread(BluezPeripheralArgs *arg)
+bool RunBluezIOThread(BluezPeripheralArgs * arg)
 {
-    GDBusClient *weaveClient = NULL;
-    const char * msg = NULL;
-    gboolean success = FALSE;
-    WEAVE_ERROR err = WEAVE_NO_ERROR;
-    const char *advertisingType = "peripheral";
+    GDBusClient * weaveClient    = NULL;
+    const char * msg             = NULL;
+    gboolean success             = FALSE;
+    WEAVE_ERROR err              = WEAVE_NO_ERROR;
+    const char * advertisingType = "peripheral";
 
     VerifyOrExit(arg != NULL, err = WEAVE_ERROR_INVALID_ARGUMENT);
     gBluezBlePlatformDelegate = arg->bluezBlePlatformDelegate;
@@ -1332,19 +1317,19 @@ bool RunBluezIOThread(BluezPeripheralArgs *arg)
 
     gBluezBlePlatformDelegate->SetSendIndicationCallback(WoBLEz_SendIndication);
     gBluezBlePlatformDelegate->SetGetMTUCallback(GetMTUWeaveCb);
-    gBluezServerEndpoint = (BluezServerEndpoint *)g_new0(BluezServerEndpoint, 1);
+    gBluezServerEndpoint = (BluezServerEndpoint *) g_new0(BluezServerEndpoint, 1);
     VerifyOrExit(gBluezServerEndpoint != NULL, err = WEAVE_ERROR_NO_MEMORY);
 
-    gBluezServerEndpoint->adapterName = g_strdup(arg->bleName);
-    gBluezServerEndpoint->adapterAddr = g_strdup(arg->bleAddress);
-    gBluezServerEndpoint->advertisingUUID = g_strdup(UUID_WEAVE_SHORT);
-    gBluezServerEndpoint->advertisingType = g_strdup(advertisingType);
-    gBluezServerEndpoint->weaveServiceData = (WeaveServiceData *)g_memdup(arg->weaveServiceData, sizeof(WeaveServiceData));
+    gBluezServerEndpoint->adapterName      = g_strdup(arg->bleName);
+    gBluezServerEndpoint->adapterAddr      = g_strdup(arg->bleAddress);
+    gBluezServerEndpoint->advertisingUUID  = g_strdup(UUID_WEAVE_SHORT);
+    gBluezServerEndpoint->advertisingType  = g_strdup(advertisingType);
+    gBluezServerEndpoint->weaveServiceData = (WeaveServiceData *) g_memdup(arg->weaveServiceData, sizeof(WeaveServiceData));
     VerifyOrExit(gBluezServerEndpoint->weaveServiceData != NULL, err = WEAVE_ERROR_NO_MEMORY);
 
     gBluezServerEndpoint->mtu = HCI_MAX_MTU;
-    gBluezMainLoop = g_main_loop_new(NULL, FALSE);
-    gBluezDbusConn = g_dbus_setup_bus(DBUS_BUS_SYSTEM, NULL, NULL);
+    gBluezMainLoop            = g_main_loop_new(NULL, FALSE);
+    gBluezDbusConn            = g_dbus_setup_bus(DBUS_BUS_SYSTEM, NULL, NULL);
     VerifyOrExit(gBluezDbusConn != NULL, err = WEAVE_ERROR_NO_MEMORY);
 
     success = g_dbus_attach_object_manager(gBluezDbusConn);
@@ -1433,7 +1418,7 @@ exit:
     return success;
 }
 
-} /* namespace Bluez */
+} // namespace BlueZ
 } /* namespace Platform */
 } /* namespace Ble */
 } /* namespace nl */

@@ -51,30 +51,28 @@ namespace Profiles {
 namespace WeaveMakeManagedNamespaceIdentifier(DataManagement, kWeaveManagedNamespaceDesignation_Current) {
 
 // Do nothing
-SubscriptionClient::SubscriptionClient ()
-{
-}
+SubscriptionClient::SubscriptionClient() { }
 
-void SubscriptionClient::InitAsFree ()
+void SubscriptionClient::InitAsFree()
 {
     mCurrentState = kState_Free;
-    mRefCount = 0;
+    mRefCount     = 0;
     Reset();
 }
 
 void SubscriptionClient::Reset(void)
 {
-    mBinding = NULL;
-    mEC = NULL;
-    mAppState = NULL;
-    mEventCallback = NULL;
-    mResubscribePolicyCallback = NULL;
-    mDataSinkCatalog = NULL;
+    mBinding                                = NULL;
+    mEC                                     = NULL;
+    mAppState                               = NULL;
+    mEventCallback                          = NULL;
+    mResubscribePolicyCallback              = NULL;
+    mDataSinkCatalog                        = NULL;
     mInactivityTimeoutDuringSubscribingMsec = kNoTimeOut;
-    mLivenessTimeoutMsec = kNoTimeOut;
-    mSubscriptionId = 0;
-    mIsInitiator = false;
-    mRetryCounter = 0;
+    mLivenessTimeoutMsec                    = kNoTimeOut;
+    mSubscriptionId                         = 0;
+    mIsInitiator                            = false;
+    mRetryCounter                           = 0;
 
 #if WDM_ENABLE_PROTOCOL_CHECKS
     mPrevTraitDataHandle = -1;
@@ -86,11 +84,9 @@ void SubscriptionClient::Reset(void)
 // AddRef to Binding
 // store pointers to binding and delegate
 // null out EC
-WEAVE_ERROR SubscriptionClient::Init (Binding * const apBinding,
-    void * const apAppState,
-    EventCallback const aEventCallback,
-    const TraitCatalogBase<TraitDataSink>* const apCatalog,
-    const uint32_t aInactivityTimeoutDuringSubscribingMsec)
+WEAVE_ERROR SubscriptionClient::Init(Binding * const apBinding, void * const apAppState, EventCallback const aEventCallback,
+                                     const TraitCatalogBase<TraitDataSink> * const apCatalog,
+                                     const uint32_t aInactivityTimeoutDuringSubscribingMsec)
 {
     WeaveLogIfFalse(0 == mRefCount);
 
@@ -98,15 +94,15 @@ WEAVE_ERROR SubscriptionClient::Init (Binding * const apBinding,
     apBinding->AddRef();
 
     // make a copy of the pointers
-    mBinding = apBinding;
-    mAppState = apAppState;
-    mEventCallback = aEventCallback;
-    mDataSinkCatalog = apCatalog;
+    mBinding                                = apBinding;
+    mAppState                               = apAppState;
+    mEventCallback                          = aEventCallback;
+    mDataSinkCatalog                        = apCatalog;
     mInactivityTimeoutDuringSubscribingMsec = aInactivityTimeoutDuringSubscribingMsec;
 
     MoveToState(kState_Initialized);
 
-    _AddRef ();
+    _AddRef();
 
     return WEAVE_NO_ERROR;
 }
@@ -148,7 +144,7 @@ const char * SubscriptionClient::GetStateStr() const
     }
     return "N/A";
 }
-#else // WEAVE_DETAIL_LOGGING
+#else  // WEAVE_DETAIL_LOGGING
 const char * SubscriptionClient::GetStateStr() const
 {
     return "N/A";
@@ -158,8 +154,8 @@ const char * SubscriptionClient::GetStateStr() const
 void SubscriptionClient::MoveToState(const ClientState aTargetState)
 {
     mCurrentState = aTargetState;
-    WeaveLogDetail(DataManagement, "Client[%u] moving to [%5.5s] Ref(%d)",
-        SubscriptionEngine::GetInstance()->GetClientId(this), GetStateStr(), mRefCount);
+    WeaveLogDetail(DataManagement, "Client[%u] moving to [%5.5s] Ref(%d)", SubscriptionEngine::GetInstance()->GetClientId(this),
+                   GetStateStr(), mRefCount);
 
 #if WEAVE_DETAIL_LOGGING
     if (kState_Free == mCurrentState)
@@ -200,8 +196,7 @@ void SubscriptionClient::DisableResubscribe(void)
     if (mCurrentState == kState_Resubscribe_Holdoff)
     {
         // cancel timer
-        SubscriptionEngine::GetInstance()->GetExchangeManager()->MessageLayer->
-                SystemLayer->CancelTimer(OnTimerCallback, this);
+        SubscriptionEngine::GetInstance()->GetExchangeManager()->MessageLayer->SystemLayer->CancelTimer(OnTimerCallback, this);
 
         // app doesn't need to know since it triggered this
         AbortSubscription();
@@ -216,8 +211,7 @@ void SubscriptionClient::ResetResubscribe(void)
     if (mCurrentState == kState_Resubscribe_Holdoff)
     {
         // cancel timer
-        SubscriptionEngine::GetInstance()->GetExchangeManager()->MessageLayer->
-                SystemLayer->CancelTimer(OnTimerCallback, this);
+        SubscriptionEngine::GetInstance()->GetExchangeManager()->MessageLayer->SystemLayer->CancelTimer(OnTimerCallback, this);
         MoveToState(kState_Initialized);
     }
 
@@ -229,10 +223,9 @@ void SubscriptionClient::ResetResubscribe(void)
     }
 }
 
-
-WEAVE_ERROR SubscriptionClient::GetSubscriptionId (uint64_t * const apSubscriptionId)
+WEAVE_ERROR SubscriptionClient::GetSubscriptionId(uint64_t * const apSubscriptionId)
 {
-    WEAVE_ERROR err =  WEAVE_NO_ERROR;
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
 
     *apSubscriptionId = 0;
 
@@ -273,20 +266,19 @@ void SubscriptionClient::DefaultEventHandler(EventID aEvent, const InEventParam 
  * When the retry count resets to 0, the sequence starts from the beginning again.
  */
 
-void SubscriptionClient::DefaultResubscribePolicyCallback(void * const aAppState,
-                                                    ResubscribeParam & aInParam,
-                                                    uint32_t & aOutIntervalMsec)
+void SubscriptionClient::DefaultResubscribePolicyCallback(void * const aAppState, ResubscribeParam & aInParam,
+                                                          uint32_t & aOutIntervalMsec)
 {
     IgnoreUnusedVariable(aAppState);
 
-    uint32_t fibonacciNum = 0;
+    uint32_t fibonacciNum      = 0;
     uint32_t maxWaitTimeInMsec = 0;
-    uint32_t waitTimeInMsec = 0;
+    uint32_t waitTimeInMsec    = 0;
     uint32_t minWaitTimeInMsec = 0;
 
     if (aInParam.mNumRetries <= WDM_RESUBSCRIBE_MAX_FIBONACCI_STEP_INDEX)
     {
-        fibonacciNum = GetFibonacciForIndex(aInParam.mNumRetries);
+        fibonacciNum      = GetFibonacciForIndex(aInParam.mNumRetries);
         maxWaitTimeInMsec = fibonacciNum * WDM_RESUBSCRIBE_WAIT_TIME_MULTIPLIER_MS;
     }
     else
@@ -297,13 +289,15 @@ void SubscriptionClient::DefaultResubscribePolicyCallback(void * const aAppState
     if (maxWaitTimeInMsec != 0)
     {
         minWaitTimeInMsec = (WDM_RESUBSCRIBE_MIN_WAIT_TIME_INTERVAL_PERCENT_PER_STEP * maxWaitTimeInMsec) / 100;
-        waitTimeInMsec = minWaitTimeInMsec + (GetRandU32() % (maxWaitTimeInMsec - minWaitTimeInMsec));
+        waitTimeInMsec    = minWaitTimeInMsec + (GetRandU32() % (maxWaitTimeInMsec - minWaitTimeInMsec));
     }
 
     aOutIntervalMsec = waitTimeInMsec;
 
-    WeaveLogDetail(DataManagement, "Computing resubscribe policy: attempts %" PRIu32 ", max wait time %" PRIu32 " ms, selected wait time %" PRIu32 " ms",
-        aInParam.mNumRetries, maxWaitTimeInMsec, waitTimeInMsec);
+    WeaveLogDetail(DataManagement,
+                   "Computing resubscribe policy: attempts %" PRIu32 ", max wait time %" PRIu32 " ms, selected wait time %" PRIu32
+                   " ms",
+                   aInParam.mNumRetries, maxWaitTimeInMsec, waitTimeInMsec);
 
     return;
 }
@@ -312,8 +306,8 @@ void SubscriptionClient::_InitiateSubscription(void)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
 
-    WeaveLogDetail(DataManagement, "Client[%u] [%5.5s] %s Ref(%d)",
-        SubscriptionEngine::GetInstance()->GetClientId(this), GetStateStr(), __func__, mRefCount);
+    WeaveLogDetail(DataManagement, "Client[%u] [%5.5s] %s Ref(%d)", SubscriptionEngine::GetInstance()->GetClientId(this),
+                   GetStateStr(), __func__, mRefCount);
 
     // Make sure the client object is not freed during the callback to the application.
     _AddRef();
@@ -387,37 +381,35 @@ exit:
 
 WEAVE_ERROR SubscriptionClient::SendSubscribeRequest(void)
 {
-    WEAVE_ERROR     err     = WEAVE_NO_ERROR;
-    PacketBuffer*   msgBuf  = NULL;
-    uint8_t         msgType = kMsgType_SubscribeRequest;
+    WEAVE_ERROR err       = WEAVE_NO_ERROR;
+    PacketBuffer * msgBuf = NULL;
+    uint8_t msgType       = kMsgType_SubscribeRequest;
     InEventParam inSubscribeParam;
     OutEventParam outSubscribeParam;
 
-    WeaveLogDetail(DataManagement, "Client[%u] [%5.5s] %s Ref(%d)",
-        SubscriptionEngine::GetInstance()->GetClientId(this), GetStateStr(), __func__, mRefCount);
+    WeaveLogDetail(DataManagement, "Client[%u] [%5.5s] %s Ref(%d)", SubscriptionEngine::GetInstance()->GetClientId(this),
+                   GetStateStr(), __func__, mRefCount);
 
     inSubscribeParam.Clear();
     outSubscribeParam.Clear();
 
     outSubscribeParam.mSubscribeRequestPrepareNeeded.mVersionedPathList = NULL;
-    outSubscribeParam.mSubscribeRequestPrepareNeeded.mPathList = NULL;
+    outSubscribeParam.mSubscribeRequestPrepareNeeded.mPathList          = NULL;
 
     inSubscribeParam.mSubscribeRequestPrepareNeeded.mClient = this;
-    mEventCallback(mAppState, kEvent_OnSubscribeRequestPrepareNeeded,
-            inSubscribeParam, outSubscribeParam);
+    mEventCallback(mAppState, kEvent_OnSubscribeRequestPrepareNeeded, inSubscribeParam, outSubscribeParam);
 
     if (!mIsInitiator)
     {
         mSubscriptionId = outSubscribeParam.mSubscribeRequestPrepareNeeded.mSubscriptionId;
     }
 
-    VerifyOrExit(kState_Initialized == mCurrentState,
-                 err = WEAVE_ERROR_INCORRECT_STATE);
+    VerifyOrExit(kState_Initialized == mCurrentState, err = WEAVE_ERROR_INCORRECT_STATE);
     VerifyOrExit((outSubscribeParam.mSubscribeRequestPrepareNeeded.mTimeoutSecMin <= kMaxTimeoutSec) ||
-                 (kNoTimeOut == outSubscribeParam.mSubscribeRequestPrepareNeeded.mTimeoutSecMin),
+                     (kNoTimeOut == outSubscribeParam.mSubscribeRequestPrepareNeeded.mTimeoutSecMin),
                  err = WEAVE_ERROR_INVALID_ARGUMENT);
     VerifyOrExit((outSubscribeParam.mSubscribeRequestPrepareNeeded.mTimeoutSecMax <= kMaxTimeoutSec) ||
-                 (kNoTimeOut == outSubscribeParam.mSubscribeRequestPrepareNeeded.mTimeoutSecMax),
+                     (kNoTimeOut == outSubscribeParam.mSubscribeRequestPrepareNeeded.mTimeoutSecMax),
                  err = WEAVE_ERROR_INVALID_ARGUMENT);
 
     msgBuf = PacketBuffer::New();
@@ -453,19 +445,23 @@ WEAVE_ERROR SubscriptionClient::SendSubscribeRequest(void)
 
             for (size_t i = 0; i < outSubscribeParam.mSubscribeRequestPrepareNeeded.mPathListSize; ++i)
             {
-                TraitDataSink *pDataSink;
+                TraitDataSink * pDataSink;
                 nl::Weave::TLV::TLVType dummyContainerType;
                 SchemaVersionRange versionIntersection;
                 VersionedTraitPath versionedTraitPath;
 
                 // Applications can set either the versioned or non versioned path lists for now. We pick either
                 // depending on which is non-NULL. If both are non-NULL, we then select the versioned list.
-                if (outSubscribeParam.mSubscribeRequestPrepareNeeded.mVersionedPathList) {
+                if (outSubscribeParam.mSubscribeRequestPrepareNeeded.mVersionedPathList)
+                {
                     versionedTraitPath = outSubscribeParam.mSubscribeRequestPrepareNeeded.mVersionedPathList[i];
                 }
-                else {
-                    versionedTraitPath.mTraitDataHandle = outSubscribeParam.mSubscribeRequestPrepareNeeded.mPathList[i].mTraitDataHandle;
-                    versionedTraitPath.mPropertyPathHandle = outSubscribeParam.mSubscribeRequestPrepareNeeded.mPathList[i].mPropertyPathHandle;
+                else
+                {
+                    versionedTraitPath.mTraitDataHandle =
+                        outSubscribeParam.mSubscribeRequestPrepareNeeded.mPathList[i].mTraitDataHandle;
+                    versionedTraitPath.mPropertyPathHandle =
+                        outSubscribeParam.mSubscribeRequestPrepareNeeded.mPathList[i].mPropertyPathHandle;
                 }
 
                 err = mDataSinkCatalog->Locate(versionedTraitPath.mTraitDataHandle, &pDataSink);
@@ -476,7 +472,8 @@ WEAVE_ERROR SubscriptionClient::SendSubscribeRequest(void)
                 SuccessOrExit(err);
 
                 // Start, fill, and close the TLV Structure that contains ResourceID, ProfileID, and InstanceID
-                err = mDataSinkCatalog->HandleToAddress(versionedTraitPath.mTraitDataHandle, writer, versionedTraitPath.mRequestedVersionRange);
+                err = mDataSinkCatalog->HandleToAddress(versionedTraitPath.mTraitDataHandle, writer,
+                                                        versionedTraitPath.mRequestedVersionRange);
                 SuccessOrExit(err);
 
                 // Append zero or more TLV tags based on the Path Handle
@@ -497,21 +494,26 @@ WEAVE_ERROR SubscriptionClient::SendSubscribeRequest(void)
 
             for (size_t i = 0; i < outSubscribeParam.mSubscribeRequestPrepareNeeded.mPathListSize; ++i)
             {
-                TraitDataSink *pDataSink;
+                TraitDataSink * pDataSink;
                 VersionedTraitPath versionedTraitPath;
 
-                if (outSubscribeParam.mSubscribeRequestPrepareNeeded.mVersionedPathList) {
+                if (outSubscribeParam.mSubscribeRequestPrepareNeeded.mVersionedPathList)
+                {
                     versionedTraitPath = outSubscribeParam.mSubscribeRequestPrepareNeeded.mVersionedPathList[i];
                 }
-                else {
-                    versionedTraitPath.mTraitDataHandle = outSubscribeParam.mSubscribeRequestPrepareNeeded.mPathList[i].mTraitDataHandle;
-                    versionedTraitPath.mPropertyPathHandle = outSubscribeParam.mSubscribeRequestPrepareNeeded.mPathList[i].mPropertyPathHandle;
+                else
+                {
+                    versionedTraitPath.mTraitDataHandle =
+                        outSubscribeParam.mSubscribeRequestPrepareNeeded.mPathList[i].mTraitDataHandle;
+                    versionedTraitPath.mPropertyPathHandle =
+                        outSubscribeParam.mSubscribeRequestPrepareNeeded.mPathList[i].mPropertyPathHandle;
                 }
 
                 err = mDataSinkCatalog->Locate(versionedTraitPath.mTraitDataHandle, &pDataSink);
                 SuccessOrExit(err);
 
-                if (pDataSink->IsVersionValid()) {
+                if (pDataSink->IsVersionValid())
+                {
                     versionList.AddVersion(pDataSink->GetVersion());
                 }
                 else
@@ -539,10 +541,10 @@ WEAVE_ERROR SubscriptionClient::SendSubscribeRequest(void)
                     event.SourceId(outSubscribeParam.mSubscribeRequestPrepareNeeded.mLastObservedEventList[n].mSourceId)
                         .Importance(outSubscribeParam.mSubscribeRequestPrepareNeeded.mLastObservedEventList[n].mImportance)
                         .EventId(outSubscribeParam.mSubscribeRequestPrepareNeeded.mLastObservedEventList[n].mEventId)
-                        .EndOfEvent ();
+                        .EndOfEvent();
                     SuccessOrExit(err = event.GetError());
                 }
-                eventList.EndOfEventList ();
+                eventList.EndOfEventList();
                 SuccessOrExit(err = eventList.GetError());
             }
         }
@@ -554,14 +556,14 @@ WEAVE_ERROR SubscriptionClient::SendSubscribeRequest(void)
         SuccessOrExit(err);
     }
 
-    err = ReplaceExchangeContext ();
+    err = ReplaceExchangeContext();
     SuccessOrExit(err);
 
     // NOTE: State could be changed in sync error callback by message layer
     WEAVE_FAULT_INJECT(FaultInjection::kFault_WDM_SendUnsupportedReqMsgType, msgType += 50);
 
-    err = mEC->SendMessage(nl::Weave::Profiles::kWeaveProfile_WDM, msgType, msgBuf,
-            nl::Weave::ExchangeContext::kSendFlag_ExpectResponse);
+    err    = mEC->SendMessage(nl::Weave::Profiles::kWeaveProfile_WDM, msgType, msgBuf,
+                           nl::Weave::ExchangeContext::kSendFlag_ExpectResponse);
     msgBuf = NULL;
     SuccessOrExit(err);
 
@@ -601,7 +603,7 @@ void SubscriptionClient::InitiateCounterSubscription(const uint32_t aLivenessTim
     _InitiateSubscription();
 }
 
-void SubscriptionClient::_AddRef ()
+void SubscriptionClient::_AddRef()
 {
     WeaveLogIfFalse(mRefCount < INT8_MAX);
 
@@ -613,7 +615,7 @@ void SubscriptionClient::_AddRef ()
     // increase: in callback to app layer
 }
 
-void SubscriptionClient::_Release ()
+void SubscriptionClient::_Release()
 {
     WeaveLogIfFalse(mRefCount > 0);
 
@@ -637,7 +639,7 @@ uint64_t SubscriptionClient::GetPeerNodeId(void) const
     return (mBinding != NULL) ? mBinding->GetPeerNodeId() : kNodeIdNotSpecified;
 }
 
-WEAVE_ERROR SubscriptionClient::ReplaceExchangeContext ()
+WEAVE_ERROR SubscriptionClient::ReplaceExchangeContext()
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
     InEventParam inParam;
@@ -651,13 +653,13 @@ WEAVE_ERROR SubscriptionClient::ReplaceExchangeContext ()
     err = mBinding->NewExchangeContext(mEC);
     SuccessOrExit(err);
 
-    mEC->AppState = this;
+    mEC->AppState          = this;
     mEC->OnMessageReceived = OnMessageReceivedFromLocallyInitiatedExchange;
     mEC->OnResponseTimeout = OnResponseTimeout;
-    mEC->OnSendError = OnSendError;
-    mEC->OnAckRcvd = NULL;
+    mEC->OnSendError       = OnSendError;
+    mEC->OnAckRcvd         = NULL;
 
-    inParam.mExchangeStart.mEC = mEC;
+    inParam.mExchangeStart.mEC     = mEC;
     inParam.mExchangeStart.mClient = this;
 
     // NOTE: app layer is not supposed to change state/ref count in this callback
@@ -666,20 +668,20 @@ WEAVE_ERROR SubscriptionClient::ReplaceExchangeContext ()
 exit:
     WeaveLogFunctError(err);
 
-    _Release ();
+    _Release();
 
     return err;
 }
 
-void SubscriptionClient::FlushExistingExchangeContext (const bool aAbortNow)
+void SubscriptionClient::FlushExistingExchangeContext(const bool aAbortNow)
 {
     if (NULL != mEC)
     {
-        mEC->AppState = NULL;
+        mEC->AppState          = NULL;
         mEC->OnMessageReceived = NULL;
         mEC->OnResponseTimeout = NULL;
-        mEC->OnSendError = NULL;
-        mEC->OnAckRcvd = NULL;
+        mEC->OnSendError       = NULL;
+        mEC->OnAckRcvd         = NULL;
         if (aAbortNow)
         {
             mEC->Abort();
@@ -693,15 +695,15 @@ void SubscriptionClient::FlushExistingExchangeContext (const bool aAbortNow)
 }
 
 #if WDM_ENABLE_SUBSCRIPTION_CANCEL
-WEAVE_ERROR SubscriptionClient::EndSubscription ()
+WEAVE_ERROR SubscriptionClient::EndSubscription()
 {
-    WEAVE_ERROR                     err         = WEAVE_NO_ERROR;
-    PacketBuffer*                   msgBuf      = NULL;
-    nl::Weave::TLV::TLVWriter       writer;
+    WEAVE_ERROR err       = WEAVE_NO_ERROR;
+    PacketBuffer * msgBuf = NULL;
+    nl::Weave::TLV::TLVWriter writer;
     SubscribeCancelRequest::Builder request;
 
-    WeaveLogDetail(DataManagement, "Client[%u] [%5.5s] %s Ref(%d)",
-        SubscriptionEngine::GetInstance()->GetClientId(this), GetStateStr(), __func__, mRefCount);
+    WeaveLogDetail(DataManagement, "Client[%u] [%5.5s] %s Ref(%d)", SubscriptionEngine::GetInstance()->GetClientId(this),
+                   GetStateStr(), __func__, mRefCount);
 
     // Make sure we're not freed by accident.
     _AddRef();
@@ -713,7 +715,7 @@ WEAVE_ERROR SubscriptionClient::EndSubscription ()
     case kState_Subscribing_IdAssigned:
 
         WeaveLogDetail(DataManagement, "Client[%u] [%5.5s] %s: subscription not established yet, abort",
-                SubscriptionEngine::GetInstance()->GetClientId(this), GetStateStr(), __func__);
+                       SubscriptionEngine::GetInstance()->GetClientId(this), GetStateStr(), __func__);
 
         AbortSubscription();
 
@@ -729,22 +731,20 @@ WEAVE_ERROR SubscriptionClient::EndSubscription ()
         msgBuf = PacketBuffer::NewWithAvailableSize(request.kBaseMessageSubscribeId_PayloadLen);
         VerifyOrExit(NULL != msgBuf, err = WEAVE_ERROR_NO_MEMORY);
 
-        err = ReplaceExchangeContext ();
+        err = ReplaceExchangeContext();
         SuccessOrExit(err);
 
         writer.Init(msgBuf);
         request.Init(&writer);
-        err = request.SubscriptionID(mSubscriptionId)
-                     .EndOfRequest()
-                     .GetError();
+        err = request.SubscriptionID(mSubscriptionId).EndOfRequest().GetError();
         SuccessOrExit(err);
 
         err = writer.Finalize();
         SuccessOrExit(err);
 
         // NOTE: State could be changed if there is a sync error callback from message layer
-        err = mEC->SendMessage(nl::Weave::Profiles::kWeaveProfile_WDM, kMsgType_SubscribeCancelRequest,
-            msgBuf, nl::Weave::ExchangeContext::kSendFlag_ExpectResponse);
+        err    = mEC->SendMessage(nl::Weave::Profiles::kWeaveProfile_WDM, kMsgType_SubscribeCancelRequest, msgBuf,
+                               nl::Weave::ExchangeContext::kSendFlag_ExpectResponse);
         msgBuf = NULL;
         SuccessOrExit(err);
 
@@ -782,11 +782,11 @@ WEAVE_ERROR SubscriptionClient::EndSubscription()
 
 void SubscriptionClient::AbortSubscription(void)
 {
-    WEAVE_ERROR err = WEAVE_NO_ERROR;
+    WEAVE_ERROR err          = WEAVE_NO_ERROR;
     const bool nullReference = (0 == mRefCount);
 
-    WeaveLogDetail(DataManagement, "Client[%u] [%5.5s] %s Ref(%d)",
-        SubscriptionEngine::GetInstance()->GetClientId(this), GetStateStr(), __func__, mRefCount);
+    WeaveLogDetail(DataManagement, "Client[%u] [%5.5s] %s Ref(%d)", SubscriptionEngine::GetInstance()->GetClientId(this),
+                   GetStateStr(), __func__, mRefCount);
 
     if (!nullReference)
     {
@@ -809,11 +809,10 @@ void SubscriptionClient::AbortSubscription(void)
     else
     {
         // This is an intermediate state for external calls during the abort process
-        uint64_t peerNodeId = mBinding->GetPeerNodeId();
-        uint64_t subscriptionId = mSubscriptionId;
-        bool deliverSubTerminatedToCatalog =
-            ((NULL != mDataSinkCatalog) &&
-             (mCurrentState >= kState_NotifyDataSinkOnAbort_Begin) && (mCurrentState <= kState_NotifyDataSinkOnAbort_End));
+        uint64_t peerNodeId                = mBinding->GetPeerNodeId();
+        uint64_t subscriptionId            = mSubscriptionId;
+        bool deliverSubTerminatedToCatalog = ((NULL != mDataSinkCatalog) && (mCurrentState >= kState_NotifyDataSinkOnAbort_Begin) &&
+                                              (mCurrentState <= kState_NotifyDataSinkOnAbort_End));
 
         MoveToState(kState_Aborting);
 
@@ -830,7 +829,7 @@ void SubscriptionClient::AbortSubscription(void)
 
         // Note that ref count is not touched at here, as _Abort doesn't change the ownership
         FlushExistingExchangeContext(true);
-        (void)RefreshTimer();
+        (void) RefreshTimer();
 
         Reset();
 
@@ -859,13 +858,13 @@ exit:
 }
 
 void SubscriptionClient::HandleSubscriptionTerminated(bool aWillRetry, WEAVE_ERROR aReason,
-        StatusReporting::StatusReport *aStatusReportPtr)
+                                                      StatusReporting::StatusReport * aStatusReportPtr)
 {
-    void * const pAppState = mAppState;
+    void * const pAppState     = mAppState;
     EventCallback callbackFunc = mEventCallback;
 
-    WeaveLogDetail(DataManagement, "Client[%u] [%5.5s] %s Ref(%d)",
-        SubscriptionEngine::GetInstance()->GetClientId(this), GetStateStr(), __func__, mRefCount);
+    WeaveLogDetail(DataManagement, "Client[%u] [%5.5s] %s Ref(%d)", SubscriptionEngine::GetInstance()->GetClientId(this),
+                   GetStateStr(), __func__, mRefCount);
 
     _AddRef();
 
@@ -893,14 +892,14 @@ void SubscriptionClient::HandleSubscriptionTerminated(bool aWillRetry, WEAVE_ERR
         inParam.Clear();
         outParam.Clear();
 
-        inParam.mSubscriptionTerminated.mReason = aReason;
-        inParam.mSubscriptionTerminated.mClient = this;
-        inParam.mSubscriptionTerminated.mWillRetry = aWillRetry;
+        inParam.mSubscriptionTerminated.mReason            = aReason;
+        inParam.mSubscriptionTerminated.mClient            = this;
+        inParam.mSubscriptionTerminated.mWillRetry         = aWillRetry;
         inParam.mSubscriptionTerminated.mIsStatusCodeValid = (aStatusReportPtr != NULL);
         if (aStatusReportPtr != NULL)
         {
-            inParam.mSubscriptionTerminated.mStatusProfileId = aStatusReportPtr->mProfileId;
-            inParam.mSubscriptionTerminated.mStatusCode = aStatusReportPtr->mStatusCode;
+            inParam.mSubscriptionTerminated.mStatusProfileId   = aStatusReportPtr->mProfileId;
+            inParam.mSubscriptionTerminated.mStatusCode        = aStatusReportPtr->mStatusCode;
             inParam.mSubscriptionTerminated.mAdditionalInfoPtr = &(aStatusReportPtr->mAdditionalInfo);
         }
 
@@ -909,7 +908,7 @@ void SubscriptionClient::HandleSubscriptionTerminated(bool aWillRetry, WEAVE_ERR
     else
     {
         WeaveLogDetail(DataManagement, "Client[%u] [%5.5s] %s Ref(%d) app layer callback skipped",
-            SubscriptionEngine::GetInstance()->GetClientId(this), GetStateStr(), __func__, mRefCount);
+                       SubscriptionEngine::GetInstance()->GetClientId(this), GetStateStr(), __func__, mRefCount);
     }
 
     // only set this timer if the app cb hasn't changed our state.
@@ -923,8 +922,8 @@ void SubscriptionClient::HandleSubscriptionTerminated(bool aWillRetry, WEAVE_ERR
 
 void SubscriptionClient::SetRetryTimer(WEAVE_ERROR aReason)
 {
-    WEAVE_ERROR err = WEAVE_NO_ERROR;
-    ClientState entryState = mCurrentState;
+    WEAVE_ERROR err                   = WEAVE_NO_ERROR;
+    ClientState entryState            = mCurrentState;
     ResubscribePolicyCallback entryCb = mResubscribePolicyCallback;
 
     // this check serves to see whether we already have a timer set
@@ -939,17 +938,17 @@ void SubscriptionClient::SetRetryTimer(WEAVE_ERROR aReason)
 
         ResubscribeParam param;
         param.mNumRetries = mRetryCounter;
-        param.mReason = aReason;
+        param.mReason     = aReason;
 
         mResubscribePolicyCallback(mAppState, param, timeoutMsec);
         VerifyOrExit(mCurrentState != kState_Aborted, /* exit without error */);
 
-        err = SubscriptionEngine::GetInstance()->GetExchangeManager()->MessageLayer->
-                SystemLayer->StartTimer(timeoutMsec, OnTimerCallback, this);
+        err = SubscriptionEngine::GetInstance()->GetExchangeManager()->MessageLayer->SystemLayer->StartTimer(timeoutMsec,
+                                                                                                             OnTimerCallback, this);
         SuccessOrExit(err);
 
         WeaveLogDetail(DataManagement, "Client[%u] [%5.5s] %s Ref(%d) timeout: %u",
-            SubscriptionEngine::GetInstance()->GetClientId(this), GetStateStr(), __func__, mRefCount, timeoutMsec);
+                       SubscriptionEngine::GetInstance()->GetClientId(this), GetStateStr(), __func__, mRefCount, timeoutMsec);
     }
 
 exit:
@@ -963,13 +962,12 @@ exit:
     {
         _Release();
     }
-
 }
 
-void SubscriptionClient::Free ()
+void SubscriptionClient::Free()
 {
-    WeaveLogDetail(DataManagement, "Client[%u] [%5.5s] %s Ref(%d)",
-        SubscriptionEngine::GetInstance()->GetClientId(this), GetStateStr(), __func__, mRefCount);
+    WeaveLogDetail(DataManagement, "Client[%u] [%5.5s] %s Ref(%d)", SubscriptionEngine::GetInstance()->GetClientId(this),
+                   GetStateStr(), __func__, mRefCount);
 
     WeaveLogIfFalse(kState_Free != mCurrentState);
     WeaveLogIfFalse(mRefCount > 0);
@@ -984,57 +982,54 @@ void SubscriptionClient::Free ()
     _Release();
 }
 
-void SubscriptionClient::BindingEventCallback(void * const aAppState,
-                                              const Binding::EventType aEvent,
-                                              const Binding::InEventParam & aInParam,
-                                              Binding::OutEventParam & aOutParam)
+void SubscriptionClient::BindingEventCallback(void * const aAppState, const Binding::EventType aEvent,
+                                              const Binding::InEventParam & aInParam, Binding::OutEventParam & aOutParam)
 {
-    SubscriptionClient * const pClient = reinterpret_cast<SubscriptionClient*>(aAppState);
+    SubscriptionClient * const pClient = reinterpret_cast<SubscriptionClient *>(aAppState);
 
     pClient->_AddRef();
 
     switch (aEvent)
     {
-        case Binding::kEvent_BindingReady:
-            // Binding is ready. We can send the subscription req now.
-            pClient->_InitiateSubscription();
-            break;
+    case Binding::kEvent_BindingReady:
+        // Binding is ready. We can send the subscription req now.
+        pClient->_InitiateSubscription();
+        break;
 
-        case Binding::kEvent_BindingFailed:
-            pClient->SetRetryTimer(aInParam.BindingFailed.Reason);
-            break;
+    case Binding::kEvent_BindingFailed:
+        pClient->SetRetryTimer(aInParam.BindingFailed.Reason);
+        break;
 
-        case Binding::kEvent_PrepareFailed:
-            // need to prepare again.
-            pClient->SetRetryTimer(aInParam.PrepareFailed.Reason);
-            break;
+    case Binding::kEvent_PrepareFailed:
+        // need to prepare again.
+        pClient->SetRetryTimer(aInParam.PrepareFailed.Reason);
+        break;
 
-        default:
-            Binding::DefaultEventHandler(aAppState, aEvent, aInParam, aOutParam);
+    default:
+        Binding::DefaultEventHandler(aAppState, aEvent, aInParam, aOutParam);
     }
 
     pClient->_Release();
 }
 
-void SubscriptionClient::OnTimerCallback(System::Layer* aSystemLayer, void *aAppState, System::Error)
+void SubscriptionClient::OnTimerCallback(System::Layer * aSystemLayer, void * aAppState, System::Error)
 {
-    SubscriptionClient * const pClient = reinterpret_cast<SubscriptionClient*>(aAppState);
+    SubscriptionClient * const pClient = reinterpret_cast<SubscriptionClient *>(aAppState);
 
     pClient->TimerEventHandler();
 }
 
-WEAVE_ERROR SubscriptionClient::RefreshTimer (void)
+WEAVE_ERROR SubscriptionClient::RefreshTimer(void)
 {
-    WEAVE_ERROR err = WEAVE_NO_ERROR;
-    bool isTimerNeeded = false;
+    WEAVE_ERROR err      = WEAVE_NO_ERROR;
+    bool isTimerNeeded   = false;
     uint32_t timeoutMsec = 0;
 
-    WeaveLogDetail(DataManagement, "Client[%u] [%5.5s] %s Ref(%d)",
-        SubscriptionEngine::GetInstance()->GetClientId(this), GetStateStr(), __func__, mRefCount);
+    WeaveLogDetail(DataManagement, "Client[%u] [%5.5s] %s Ref(%d)", SubscriptionEngine::GetInstance()->GetClientId(this),
+                   GetStateStr(), __func__, mRefCount);
 
     // Cancel timer first
-    SubscriptionEngine::GetInstance()->GetExchangeManager()->MessageLayer->
-            SystemLayer->CancelTimer(OnTimerCallback, this);
+    SubscriptionEngine::GetInstance()->GetExchangeManager()->MessageLayer->SystemLayer->CancelTimer(OnTimerCallback, this);
 
     // Arm timer according to current state
     switch (mCurrentState)
@@ -1044,11 +1039,12 @@ WEAVE_ERROR SubscriptionClient::RefreshTimer (void)
         if (kNoTimeOut != mInactivityTimeoutDuringSubscribingMsec)
         {
             // Note that loss of range is not expected, as ExchangeManager::Timeout is indeed uint32_t
-            timeoutMsec = mInactivityTimeoutDuringSubscribingMsec;
+            timeoutMsec   = mInactivityTimeoutDuringSubscribingMsec;
             isTimerNeeded = true;
 
-            WeaveLogDetail(DataManagement, "Client[%u] [%5.5s] %s Ref(%d) Set inactivity time limit during subscribing to %" PRIu32 " msec",
-                SubscriptionEngine::GetInstance()->GetClientId(this), GetStateStr(), __func__, mRefCount, timeoutMsec);
+            WeaveLogDetail(DataManagement,
+                           "Client[%u] [%5.5s] %s Ref(%d) Set inactivity time limit during subscribing to %" PRIu32 " msec",
+                           SubscriptionEngine::GetInstance()->GetClientId(this), GetStateStr(), __func__, mRefCount, timeoutMsec);
         }
         break;
     case kState_SubscriptionEstablished_Idle:
@@ -1058,7 +1054,7 @@ WEAVE_ERROR SubscriptionClient::RefreshTimer (void)
             {
                 // Calculate margin to reserve for WRM activity, so we send out SubscribeConfirm earlier
                 // Note that wrap around could happen, if the system is configured with excessive delays and number of retries
-                const nl::Weave::WRMPConfig& defaultWRMPConfig = mBinding->GetDefaultWRMPConfig();
+                const nl::Weave::WRMPConfig & defaultWRMPConfig = mBinding->GetDefaultWRMPConfig();
                 const uint32_t marginMsec = (defaultWRMPConfig.mMaxRetrans + 1) * defaultWRMPConfig.mInitialRetransTimeout;
 
                 // If the margin is smaller than the desired liveness timeout, set a timer for the difference.
@@ -1070,8 +1066,9 @@ WEAVE_ERROR SubscriptionClient::RefreshTimer (void)
                 else
                 {
                     // This is a system configuration problem
-                    WeaveLogError(DataManagement, "Client[%u] Liveness period (%" PRIu32 " msec) <= margin reserved for WRM (%" PRIu32 " msec)",
-                                    SubscriptionEngine::GetInstance()->GetClientId(this), mLivenessTimeoutMsec, marginMsec);
+                    WeaveLogError(DataManagement,
+                                  "Client[%u] Liveness period (%" PRIu32 " msec) <= margin reserved for WRM (%" PRIu32 " msec)",
+                                  SubscriptionEngine::GetInstance()->GetClientId(this), mLivenessTimeoutMsec, marginMsec);
 
                     ExitNow(err = WEAVE_ERROR_TIMEOUT);
                 }
@@ -1083,7 +1080,7 @@ WEAVE_ERROR SubscriptionClient::RefreshTimer (void)
             isTimerNeeded = true;
 
             WeaveLogDetail(DataManagement, "Client[%u] [%5.5s] %s Ref(%d) Set timer for liveness confirmation to %" PRIu32 " msec",
-                SubscriptionEngine::GetInstance()->GetClientId(this), GetStateStr(), __func__, mRefCount, timeoutMsec);
+                           SubscriptionEngine::GetInstance()->GetClientId(this), GetStateStr(), __func__, mRefCount, timeoutMsec);
         }
         break;
     case kState_SubscriptionEstablished_Confirming:
@@ -1098,8 +1095,8 @@ WEAVE_ERROR SubscriptionClient::RefreshTimer (void)
 
     if (isTimerNeeded)
     {
-        err = SubscriptionEngine::GetInstance()->GetExchangeManager()->MessageLayer->
-                SystemLayer->StartTimer(timeoutMsec, OnTimerCallback, this);
+        err = SubscriptionEngine::GetInstance()->GetExchangeManager()->MessageLayer->SystemLayer->StartTimer(timeoutMsec,
+                                                                                                             OnTimerCallback, this);
 
         VerifyOrExit(WEAVE_SYSTEM_NO_ERROR == err, /* no-op */);
     }
@@ -1110,15 +1107,13 @@ exit:
     return err;
 }
 
-void SubscriptionClient::TimerEventHandler (void)
+void SubscriptionClient::TimerEventHandler(void)
 {
-    WEAVE_ERROR     err                         = WEAVE_NO_ERROR;
-    PacketBuffer*   msgBuf                      = NULL;
-    bool            skipTimerCheck              = false;
+    WEAVE_ERROR err       = WEAVE_NO_ERROR;
+    PacketBuffer * msgBuf = NULL;
+    bool skipTimerCheck   = false;
 
-    if ((0 == mRefCount) ||
-        (mCurrentState < kState_TimerTick_Begin) ||
-        (mCurrentState > kState_TimerTick_End))
+    if ((0 == mRefCount) || (mCurrentState < kState_TimerTick_Begin) || (mCurrentState > kState_TimerTick_End))
     {
         skipTimerCheck = true;
         ExitNow();
@@ -1132,7 +1127,7 @@ void SubscriptionClient::TimerEventHandler (void)
     case kState_Subscribing:
     case kState_Subscribing_IdAssigned:
         WeaveLogDetail(DataManagement, "Client[%u] [%5.5s] %s Ref(%d) Timeout for subscribing phase, abort",
-            SubscriptionEngine::GetInstance()->GetClientId(this), GetStateStr(), __func__, mRefCount);
+                       SubscriptionEngine::GetInstance()->GetClientId(this), GetStateStr(), __func__, mRefCount);
 
         ExitNow(err = WEAVE_ERROR_TIMEOUT);
         break;
@@ -1141,7 +1136,7 @@ void SubscriptionClient::TimerEventHandler (void)
         if (mIsInitiator)
         {
             WeaveLogDetail(DataManagement, "Client[%u] [%5.5s] %s Ref(%d) Confirming liveness",
-                SubscriptionEngine::GetInstance()->GetClientId(this), GetStateStr(), __func__, mRefCount);
+                           SubscriptionEngine::GetInstance()->GetClientId(this), GetStateStr(), __func__, mRefCount);
 
             // timeout for liveness check
             nl::Weave::TLV::TLVWriter writer;
@@ -1149,22 +1144,20 @@ void SubscriptionClient::TimerEventHandler (void)
             msgBuf = PacketBuffer::NewWithAvailableSize(request.kBaseMessageSubscribeId_PayloadLen);
             VerifyOrExit(NULL != msgBuf, err = WEAVE_ERROR_NO_MEMORY);
 
-            err = ReplaceExchangeContext ();
+            err = ReplaceExchangeContext();
             SuccessOrExit(err);
 
             writer.Init(msgBuf);
             request.Init(&writer);
-            err = request.SubscriptionID(mSubscriptionId)
-                         .EndOfRequest()
-                         .GetError();
+            err = request.SubscriptionID(mSubscriptionId).EndOfRequest().GetError();
             SuccessOrExit(err);
 
             err = writer.Finalize();
             SuccessOrExit(err);
 
             // NOTE: State could be changed if there is a send error callback from message layer
-            err = mEC->SendMessage(nl::Weave::Profiles::kWeaveProfile_WDM, kMsgType_SubscribeConfirmRequest,
-                msgBuf, nl::Weave::ExchangeContext::kSendFlag_ExpectResponse);
+            err    = mEC->SendMessage(nl::Weave::Profiles::kWeaveProfile_WDM, kMsgType_SubscribeConfirmRequest, msgBuf,
+                                   nl::Weave::ExchangeContext::kSendFlag_ExpectResponse);
             msgBuf = NULL;
             SuccessOrExit(err);
 
@@ -1182,7 +1175,7 @@ void SubscriptionClient::TimerEventHandler (void)
         {
             // We are not the initiator, so we cannot send out the subscribe confirm
             WeaveLogDetail(DataManagement, "Client[%u] [%5.5s] %s Ref(%d) Timeout",
-                SubscriptionEngine::GetInstance()->GetClientId(this), GetStateStr(), __func__, mRefCount);
+                           SubscriptionEngine::GetInstance()->GetClientId(this), GetStateStr(), __func__, mRefCount);
 
             // abort the subscription as we've timed out
             ExitNow(err = WEAVE_ERROR_TIMEOUT);
@@ -1197,10 +1190,9 @@ void SubscriptionClient::TimerEventHandler (void)
         _InitiateSubscription();
         break;
 
-
     default:
         WeaveLogDetail(DataManagement, "Client[%u] [%5.5s] %s Ref(%d) Timer event fired at wrong state, ignore",
-            SubscriptionEngine::GetInstance()->GetClientId(this), GetStateStr(), __func__, mRefCount);
+                       SubscriptionEngine::GetInstance()->GetClientId(this), GetStateStr(), __func__, mRefCount);
         break;
     }
 
@@ -1224,7 +1216,7 @@ exit:
     }
 }
 
-WEAVE_ERROR SubscriptionClient::ProcessDataList(nl::Weave::TLV::TLVReader &aReader)
+WEAVE_ERROR SubscriptionClient::ProcessDataList(nl::Weave::TLV::TLVReader & aReader)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
     // TODO: We currently don't support changes that span multiple notifies, nor changes
@@ -1246,11 +1238,11 @@ WEAVE_ERROR SubscriptionClient::ProcessDataList(nl::Weave::TLV::TLVReader &aRead
             SuccessOrExit(err);
 
             isPartialChange = false;
-            err = element.GetPartialChangeFlag(&isPartialChange);
+            err             = element.GetPartialChangeFlag(&isPartialChange);
             VerifyOrExit(err == WEAVE_NO_ERROR || err == WEAVE_END_OF_TLV, );
         }
 
-        TraitDataSink *DataSink;
+        TraitDataSink * DataSink;
         TraitDataHandle handle;
         PropertyPathHandle pathHandle;
         SchemaVersionRange versionRange;
@@ -1263,12 +1255,13 @@ WEAVE_ERROR SubscriptionClient::ProcessDataList(nl::Weave::TLV::TLVReader &aRead
 
         err = DataSink->GetSchemaEngine()->MapPathToHandle(pathReader, pathHandle);
 #if TDM_DISABLE_STRICT_SCHEMA_COMPLIANCE
-        // if we're not in strict compliance mode, we can ignore data elements that refer to paths we can't map due to mismatching schema.
-        // The eventual call to StoreDataElement will correctly deal with the presence of a null property path handle that
+        // if we're not in strict compliance mode, we can ignore data elements that refer to paths we can't map due to mismatching
+        // schema. The eventual call to StoreDataElement will correctly deal with the presence of a null property path handle that
         // has been returned by the above call. It's necessary to call into StoreDataElement with this null handle to ensure
-        // the requisite OnEvent calls are made to the application despite the presence of an unknown tag. It's also necessary to ensure
-        // that we update the internal version tracked by the sink.
-        if (err == WEAVE_ERROR_TLV_TAG_NOT_FOUND) {
+        // the requisite OnEvent calls are made to the application despite the presence of an unknown tag. It's also necessary to
+        // ensure that we update the internal version tracked by the sink.
+        if (err == WEAVE_ERROR_TLV_TAG_NOT_FOUND)
+        {
             WeaveLogDetail(DataManagement, "Ignoring un-mappable path!");
             err = WEAVE_NO_ERROR;
         }
@@ -1276,23 +1269,27 @@ WEAVE_ERROR SubscriptionClient::ProcessDataList(nl::Weave::TLV::TLVReader &aRead
         SuccessOrExit(err);
 
         pathReader = aReader;
-        flags = 0;
+        flags      = 0;
 
 #if WDM_ENABLE_PROTOCOL_CHECKS
         // If we previously had a partial change, the current handle should match the previous one.
         // If they don't, we have a partial change violation.
-        if (mPrevIsPartialChange && (mPrevTraitDataHandle != handle)) {
-            WeaveLogError(DataManagement, "Encountered partial change flag violation (%u, %x, %x)", mPrevIsPartialChange, mPrevTraitDataHandle, handle);
+        if (mPrevIsPartialChange && (mPrevTraitDataHandle != handle))
+        {
+            WeaveLogError(DataManagement, "Encountered partial change flag violation (%u, %x, %x)", mPrevIsPartialChange,
+                          mPrevTraitDataHandle, handle);
             err = WEAVE_ERROR_INVALID_DATA_LIST;
             goto exit;
         }
 #endif
 
-        if (!mPrevIsPartialChange) {
+        if (!mPrevIsPartialChange)
+        {
             flags = TraitDataSink::kFirstElementInChange;
         }
 
-        if (!isPartialChange) {
+        if (!isPartialChange)
+        {
             flags |= TraitDataSink::kLastElementInChange;
         }
 
@@ -1316,24 +1313,24 @@ exit:
     return err;
 }
 
-void SubscriptionClient::NotificationRequestHandler (nl::Weave::ExchangeContext *aEC, const nl::Inet::IPPacketInfo *aPktInfo,
-        const nl::Weave::WeaveMessageInfo *aMsgInfo, PacketBuffer *aPayload)
+void SubscriptionClient::NotificationRequestHandler(nl::Weave::ExchangeContext * aEC, const nl::Inet::IPPacketInfo * aPktInfo,
+                                                    const nl::Weave::WeaveMessageInfo * aMsgInfo, PacketBuffer * aPayload)
 {
-    WEAVE_ERROR                 err                     = WEAVE_NO_ERROR;
-    InEventParam                inParam;
-    OutEventParam               outParam;
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
+    InEventParam inParam;
+    OutEventParam outParam;
     NotificationRequest::Parser notify;
-    const ClientState           StateWhenEntered        = mCurrentState;
-    nl::Weave::TLV::TLVReader   reader;
-    bool                        isDataListPresent       = false;
+    const ClientState StateWhenEntered = mCurrentState;
+    nl::Weave::TLV::TLVReader reader;
+    bool isDataListPresent = false;
 #if WEAVE_CONFIG_SERIALIZATION_ENABLE_DESERIALIZATION
-    bool                        isEventListPresent      = false;
+    bool isEventListPresent = false;
 #endif
-    uint8_t                     statusReportLen         = 6;
-    PacketBuffer*               msgBuf                  = PacketBuffer::NewWithAvailableSize(statusReportLen);
+    uint8_t statusReportLen = 6;
+    PacketBuffer * msgBuf   = PacketBuffer::NewWithAvailableSize(statusReportLen);
 
-    WeaveLogDetail(DataManagement, "Client[%u] [%5.5s] %s Ref(%d)",
-        SubscriptionEngine::GetInstance()->GetClientId(this), GetStateStr(), __func__, mRefCount);
+    WeaveLogDetail(DataManagement, "Client[%u] [%5.5s] %s Ref(%d)", SubscriptionEngine::GetInstance()->GetClientId(this),
+                   GetStateStr(), __func__, mRefCount);
 
     // Make sure we're not freed by accident
     _AddRef();
@@ -1379,9 +1376,9 @@ void SubscriptionClient::NotificationRequestHandler (nl::Weave::ExchangeContext 
         ExitNow();
     }
 
-    inParam.mNotificationRequest.mEC = aEC;
+    inParam.mNotificationRequest.mEC      = aEC;
     inParam.mNotificationRequest.mMessage = aPayload;
-    inParam.mNotificationRequest.mClient = this;
+    inParam.mNotificationRequest.mClient  = this;
 
     // NOTE: state could be changed in the callback to app layer
     mEventCallback(mAppState, kEvent_OnNotificationRequest, inParam, outParam);
@@ -1415,7 +1412,7 @@ void SubscriptionClient::NotificationRequestHandler (nl::Weave::ExchangeContext 
         else if (WEAVE_END_OF_TLV == err)
         {
             isDataListPresent = false;
-            err = WEAVE_NO_ERROR;
+            err               = WEAVE_NO_ERROR;
         }
         SuccessOrExit(err);
 
@@ -1441,7 +1438,7 @@ void SubscriptionClient::NotificationRequestHandler (nl::Weave::ExchangeContext 
         else if (WEAVE_END_OF_TLV == err)
         {
             isEventListPresent = false;
-            err = WEAVE_NO_ERROR;
+            err                = WEAVE_NO_ERROR;
         }
         SuccessOrExit(err);
 
@@ -1476,10 +1473,8 @@ void SubscriptionClient::NotificationRequestHandler (nl::Weave::ExchangeContext 
         nl::Weave::Encoding::LittleEndian::Write32(p, nl::Weave::Profiles::kWeaveProfile_Common);
         nl::Weave::Encoding::LittleEndian::Write16(p, nl::Weave::Profiles::Common::kStatus_Success);
 
-        err = aEC->SendMessage(nl::Weave::Profiles::kWeaveProfile_Common,
-            nl::Weave::Profiles::Common::kMsgType_StatusReport,
-            msgBuf,
-            aEC->HasPeerRequestedAck() ? nl::Weave::ExchangeContext::kSendFlag_RequestAck : 0);
+        err    = aEC->SendMessage(nl::Weave::Profiles::kWeaveProfile_Common, nl::Weave::Profiles::Common::kMsgType_StatusReport,
+                               msgBuf, aEC->HasPeerRequestedAck() ? nl::Weave::ExchangeContext::kSendFlag_RequestAck : 0);
         msgBuf = NULL;
         SuccessOrExit(err);
     }
@@ -1493,7 +1488,8 @@ exit:
         msgBuf = NULL;
     }
 
-    if (NULL != aPayload) {
+    if (NULL != aPayload)
+    {
         PacketBuffer::Free(aPayload);
         aPayload = NULL;
     }
@@ -1515,19 +1511,19 @@ exit:
 }
 
 #if WDM_ENABLE_SUBSCRIPTION_CANCEL
-void SubscriptionClient::CancelRequestHandler (nl::Weave::ExchangeContext *aEC, const nl::Inet::IPPacketInfo *aPktInfo,
-    const nl::Weave::WeaveMessageInfo *aMsgInfo, PacketBuffer *aPayload)
+void SubscriptionClient::CancelRequestHandler(nl::Weave::ExchangeContext * aEC, const nl::Inet::IPPacketInfo * aPktInfo,
+                                              const nl::Weave::WeaveMessageInfo * aMsgInfo, PacketBuffer * aPayload)
 {
-    WEAVE_ERROR err = WEAVE_NO_ERROR;
+    WEAVE_ERROR err         = WEAVE_NO_ERROR;
     uint8_t statusReportLen = 6;
-    PacketBuffer *msgBuf = PacketBuffer::NewWithAvailableSize(statusReportLen);
+    PacketBuffer * msgBuf   = PacketBuffer::NewWithAvailableSize(statusReportLen);
     uint8_t * p;
-    bool canceled = true;
+    bool canceled          = true;
     uint32_t statusProfile = nl::Weave::Profiles::kWeaveProfile_Common;
-    uint16_t statusCode = nl::Weave::Profiles::Common::kStatus_Success;
+    uint16_t statusCode    = nl::Weave::Profiles::Common::kStatus_Success;
 
-    WeaveLogDetail(DataManagement, "Client[%u] [%5.5s] %s Ref(%d)",
-        SubscriptionEngine::GetInstance()->GetClientId(this), GetStateStr(), __func__, mRefCount);
+    WeaveLogDetail(DataManagement, "Client[%u] [%5.5s] %s Ref(%d)", SubscriptionEngine::GetInstance()->GetClientId(this),
+                   GetStateStr(), __func__, mRefCount);
 
     // Make sure we're not freed by accident
     _AddRef();
@@ -1541,9 +1537,9 @@ void SubscriptionClient::CancelRequestHandler (nl::Weave::ExchangeContext *aEC, 
     if (!mBinding->IsAuthenticMessageFromPeer(aMsgInfo))
     {
         WeaveLogDetail(DataManagement, "Rejecting SubscribeCancelRequest from unauthorized source");
-        canceled = false;
+        canceled      = false;
         statusProfile = nl::Weave::Profiles::kWeaveProfile_WDM;
-        statusCode = kStatus_InvalidSubscriptionID;
+        statusCode    = kStatus_InvalidSubscriptionID;
     }
 
     p = msgBuf->Start();
@@ -1551,10 +1547,8 @@ void SubscriptionClient::CancelRequestHandler (nl::Weave::ExchangeContext *aEC, 
     nl::Weave::Encoding::LittleEndian::Write16(p, statusCode);
     msgBuf->SetDataLength(statusReportLen);
 
-    err = aEC->SendMessage(nl::Weave::Profiles::kWeaveProfile_Common,
-        nl::Weave::Profiles::Common::kMsgType_StatusReport,
-        msgBuf,
-        aEC->HasPeerRequestedAck() ? nl::Weave::ExchangeContext::kSendFlag_RequestAck : 0);
+    err    = aEC->SendMessage(nl::Weave::Profiles::kWeaveProfile_Common, nl::Weave::Profiles::Common::kMsgType_StatusReport, msgBuf,
+                           aEC->HasPeerRequestedAck() ? nl::Weave::ExchangeContext::kSendFlag_RequestAck : 0);
     msgBuf = NULL;
     SuccessOrExit(err);
 
@@ -1577,16 +1571,16 @@ exit:
 }
 #endif // WDM_ENABLE_SUBSCRIPTION_CANCEL
 
-void SubscriptionClient::OnSendError (ExchangeContext *aEC, WEAVE_ERROR aErrorCode, void *aMsgSpecificContext)
+void SubscriptionClient::OnSendError(ExchangeContext * aEC, WEAVE_ERROR aErrorCode, void * aMsgSpecificContext)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
 
     IgnoreUnusedVariable(aMsgSpecificContext);
     SubscriptionClient * const pClient = reinterpret_cast<SubscriptionClient *>(aEC->AppState);
-    bool subscribeRequestFailed = false;
+    bool subscribeRequestFailed        = false;
 
-    WeaveLogDetail(DataManagement, "Client[%u] [%5.5s] %s Ref(%d)",
-        SubscriptionEngine::GetInstance()->GetClientId(pClient), pClient->GetStateStr(), __func__, pClient->mRefCount);
+    WeaveLogDetail(DataManagement, "Client[%u] [%5.5s] %s Ref(%d)", SubscriptionEngine::GetInstance()->GetClientId(pClient),
+                   pClient->GetStateStr(), __func__, pClient->mRefCount);
 
     // Make sure we're not freed by accident
     pClient->_AddRef();
@@ -1636,21 +1630,23 @@ exit:
     pClient->_Release();
 }
 
-void SubscriptionClient::OnResponseTimeout (nl::Weave::ExchangeContext *aEC)
+void SubscriptionClient::OnResponseTimeout(nl::Weave::ExchangeContext * aEC)
 {
     SubscriptionClient * const pClient = reinterpret_cast<SubscriptionClient *>(aEC->AppState);
 
     IgnoreUnusedVariable(pClient);
 
-    WeaveLogDetail(DataManagement, "Client[%u] [%5.5s] %s Ref(%d)",
-        SubscriptionEngine::GetInstance()->GetClientId(pClient), pClient->GetStateStr(), __func__, pClient->mRefCount);
+    WeaveLogDetail(DataManagement, "Client[%u] [%5.5s] %s Ref(%d)", SubscriptionEngine::GetInstance()->GetClientId(pClient),
+                   pClient->GetStateStr(), __func__, pClient->mRefCount);
 
     OnSendError(aEC, WEAVE_ERROR_TIMEOUT, NULL);
 }
 
-void SubscriptionClient::OnMessageReceivedFromLocallyInitiatedExchange (nl::Weave::ExchangeContext *aEC, const nl::Inet::IPPacketInfo *aPktInfo,
-    const nl::Weave::WeaveMessageInfo *aMsgInfo, uint32_t aProfileId,
-    uint8_t aMsgType, PacketBuffer *aPayload)
+void SubscriptionClient::OnMessageReceivedFromLocallyInitiatedExchange(nl::Weave::ExchangeContext * aEC,
+                                                                       const nl::Inet::IPPacketInfo * aPktInfo,
+                                                                       const nl::Weave::WeaveMessageInfo * aMsgInfo,
+                                                                       uint32_t aProfileId, uint8_t aMsgType,
+                                                                       PacketBuffer * aPayload)
 {
     // Notification Requests during initial setup
     // Subscribe response
@@ -1658,24 +1654,25 @@ void SubscriptionClient::OnMessageReceivedFromLocallyInitiatedExchange (nl::Weav
     // Status Report for Subscribe Cancel request
     // Status Report for Subscribe Confirm request
 
-    WEAVE_ERROR err = WEAVE_NO_ERROR;
+    WEAVE_ERROR err              = WEAVE_NO_ERROR;
     SubscriptionClient * pClient = reinterpret_cast<SubscriptionClient *>(aEC->AppState);
 
     InEventParam inParam;
     OutEventParam outParam;
     bool retainExchangeContext = false;
-    bool isStatusReportValid = false;
+    bool isStatusReportValid   = false;
     nl::Weave::Profiles::StatusReporting::StatusReport status;
 
-    WeaveLogDetail(DataManagement, "Client[%u] [%5.5s] %s Ref(%d)",
-        SubscriptionEngine::GetInstance()->GetClientId(pClient), pClient->GetStateStr(), __func__, pClient->mRefCount);
+    WeaveLogDetail(DataManagement, "Client[%u] [%5.5s] %s Ref(%d)", SubscriptionEngine::GetInstance()->GetClientId(pClient),
+                   pClient->GetStateStr(), __func__, pClient->mRefCount);
 
     // Make sure we're not freed by accident
     pClient->_AddRef();
 
     WeaveLogIfFalse(aEC == pClient->mEC);
 
-    if ((nl::Weave::Profiles::kWeaveProfile_Common == aProfileId) && (nl::Weave::Profiles::Common::kMsgType_StatusReport == aMsgType))
+    if ((nl::Weave::Profiles::kWeaveProfile_Common == aProfileId) &&
+        (nl::Weave::Profiles::Common::kMsgType_StatusReport == aMsgType))
     {
         // Note that payload is not freed in this call to parse
         err = nl::Weave::Profiles::StatusReporting::StatusReport::parse(aPayload, status);
@@ -1769,7 +1766,7 @@ void SubscriptionClient::OnMessageReceivedFromLocallyInitiatedExchange (nl::Weav
             pClient->mRetryCounter = 0;
 
             inParam.mSubscriptionEstablished.mSubscriptionId = pClient->mSubscriptionId;
-            inParam.mSubscriptionEstablished.mClient = pClient;
+            inParam.mSubscriptionEstablished.mClient         = pClient;
 
             // it's allowed to cancel or even abandon this subscription right inside this callback
             pClient->mEventCallback(pClient->mAppState, kEvent_OnSubscriptionEstablished, inParam, outParam);
@@ -1792,7 +1789,7 @@ void SubscriptionClient::OnMessageReceivedFromLocallyInitiatedExchange (nl::Weav
             pClient->MoveToState(kState_SubscriptionEstablished_Idle);
 
             WeaveLogDetail(DataManagement, "Client[%u] [%5.5s] liveness confirmed",
-                SubscriptionEngine::GetInstance()->GetClientId(pClient), pClient->GetStateStr());
+                           SubscriptionEngine::GetInstance()->GetClientId(pClient), pClient->GetStateStr());
 
             err = pClient->RefreshTimer();
             SuccessOrExit(err);
@@ -1846,9 +1843,9 @@ exit:
     pClient->_Release();
 }
 
-}; // WeaveMakeManagedNamespaceIdentifier(DataManagement, kWeaveManagedNamespaceDesignation_Current)
-}; // Profiles
-}; // Weave
-}; // nl
+}; // namespace WeaveMakeManagedNamespaceIdentifier(DataManagement, kWeaveManagedNamespaceDesignation_Current)
+}; // namespace Profiles
+}; // namespace Weave
+}; // namespace nl
 
 #endif // WEAVE_CONFIG_ENABLE_RELIABLE_MESSAGING

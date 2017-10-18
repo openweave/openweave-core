@@ -46,19 +46,19 @@ namespace Platform {
 namespace BlueZ {
 
 // Driven by BlueZ IO, calling into BleLayer:
-void WoBLEz_NewConnection(void *user_data);
-void WoBLEz_WriteReceived(void *user_data, const uint8_t *value, size_t len);
-void WoBLEz_ConnectionClosed(void *user_data);
-void WoBLEz_SubscriptionChange(void *user_data);
-void WoBLEz_IndicationConfirmation(void *user_data);
-bool WoBLEz_TimerCb(void *user_data);
+void WoBLEz_NewConnection(void * user_data);
+void WoBLEz_WriteReceived(void * user_data, const uint8_t * value, size_t len);
+void WoBLEz_ConnectionClosed(void * user_data);
+void WoBLEz_SubscriptionChange(void * user_data);
+void WoBLEz_IndicationConfirmation(void * user_data);
+bool WoBLEz_TimerCb(void * user_data);
 
 // Called by BlePlatformDelegate:
-bool WoBLEz_SendIndication(void *user_data, uint8_t *buffer, size_t len);
+bool WoBLEz_SendIndication(void * user_data, uint8_t * buffer, size_t len);
 
-} /* namespace Bluez */
+} // namespace BlueZ
 } /* namespace Platform */
 } /* namespace Ble */
 } /* namespace nl */
 
-#endif  /* WOBLEZ_H_ */
+#endif /* WOBLEZ_H_ */

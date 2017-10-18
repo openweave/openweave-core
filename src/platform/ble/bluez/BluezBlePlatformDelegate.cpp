@@ -25,7 +25,6 @@
  *      respond to GATT read requests, and close BLE connections.
  */
 
-
 #include "BluezBlePlatformDelegate.h"
 #include "BluezHelperCode.h"
 
@@ -36,29 +35,27 @@ namespace Ble {
 namespace Platform {
 namespace BlueZ {
 
-BluezBlePlatformDelegate :: BluezBlePlatformDelegate(BleLayer *ble) :
-        Ble(ble),
-        SendIndicationCb(NULL),
-        GetMTUCb(NULL)
-{
-};
+BluezBlePlatformDelegate ::BluezBlePlatformDelegate(BleLayer * ble) : Ble(ble), SendIndicationCb(NULL), GetMTUCb(NULL) { };
 
 uint16_t BluezBlePlatformDelegate::GetMTU(BLE_CONNECTION_OBJECT connObj) const
 {
     uint16_t mtu = 0;
-    if (GetMTUCb != NULL) {
-        mtu = GetMTUCb((void *)connObj);
+    if (GetMTUCb != NULL)
+    {
+        mtu = GetMTUCb((void *) connObj);
     }
     return mtu;
 }
 
-bool BluezBlePlatformDelegate::SubscribeCharacteristic(BLE_CONNECTION_OBJECT connObj, const nl::Ble::WeaveBleUUID *svcId, const nl::Ble::WeaveBleUUID *charId)
+bool BluezBlePlatformDelegate::SubscribeCharacteristic(BLE_CONNECTION_OBJECT connObj, const nl::Ble::WeaveBleUUID * svcId,
+                                                       const nl::Ble::WeaveBleUUID * charId)
 {
     WeaveLogError(Ble, "SubscribeCharacteristic: Not implemented");
     return true;
 }
 
-bool BluezBlePlatformDelegate::UnsubscribeCharacteristic(BLE_CONNECTION_OBJECT connObj, const nl::Ble::WeaveBleUUID *svcId, const nl::Ble::WeaveBleUUID *charId)
+bool BluezBlePlatformDelegate::UnsubscribeCharacteristic(BLE_CONNECTION_OBJECT connObj, const nl::Ble::WeaveBleUUID * svcId,
+                                                         const nl::Ble::WeaveBleUUID * charId)
 {
     WeaveLogError(Ble, "UnsubscribeCharacteristic: Not implemented");
     return true;
@@ -70,14 +67,15 @@ bool BluezBlePlatformDelegate::CloseConnection(BLE_CONNECTION_OBJECT connObj)
     return true;
 }
 
-bool BluezBlePlatformDelegate::SendIndication(BLE_CONNECTION_OBJECT connObj, const nl::Ble::WeaveBleUUID *svcId, const nl::Ble::WeaveBleUUID *charId, nl::Inet::InetBuffer *pBuf)
+bool BluezBlePlatformDelegate::SendIndication(BLE_CONNECTION_OBJECT connObj, const nl::Ble::WeaveBleUUID * svcId,
+                                              const nl::Ble::WeaveBleUUID * charId, nl::Inet::InetBuffer * pBuf)
 {
     bool rc = true;
     WeaveLogDetail(Ble, "Start of SendIndication");
 
     if (SendIndicationCb)
     {
-        rc = SendIndicationCb((void *)connObj, pBuf->Start(), pBuf->DataLength());
+        rc = SendIndicationCb((void *) connObj, pBuf->Start(), pBuf->DataLength());
     }
 
     if (NULL != pBuf)
@@ -88,19 +86,22 @@ bool BluezBlePlatformDelegate::SendIndication(BLE_CONNECTION_OBJECT connObj, con
     return rc;
 }
 
-bool BluezBlePlatformDelegate::SendWriteRequest(BLE_CONNECTION_OBJECT connObj, const nl::Ble::WeaveBleUUID *svcId, const nl::Ble::WeaveBleUUID *charId, nl::Inet::InetBuffer *pBuf)
+bool BluezBlePlatformDelegate::SendWriteRequest(BLE_CONNECTION_OBJECT connObj, const nl::Ble::WeaveBleUUID * svcId,
+                                                const nl::Ble::WeaveBleUUID * charId, nl::Inet::InetBuffer * pBuf)
 {
     WeaveLogError(Ble, "SendWriteRequest: Not implemented");
     return true;
 }
 
-bool BluezBlePlatformDelegate::SendReadRequest(BLE_CONNECTION_OBJECT connObj, const nl::Ble::WeaveBleUUID *svcId, const nl::Ble::WeaveBleUUID *charId, nl::Inet::InetBuffer *pBuf)
+bool BluezBlePlatformDelegate::SendReadRequest(BLE_CONNECTION_OBJECT connObj, const nl::Ble::WeaveBleUUID * svcId,
+                                               const nl::Ble::WeaveBleUUID * charId, nl::Inet::InetBuffer * pBuf)
 {
     WeaveLogError(Ble, "SendReadRequest: Not implemented");
     return true;
 }
 
-bool BluezBlePlatformDelegate::SendReadResponse(BLE_CONNECTION_OBJECT connObj, BLE_READ_REQUEST_CONTEXT requestContext, const nl::Ble::WeaveBleUUID *svcId, const nl::Ble::WeaveBleUUID *charId)
+bool BluezBlePlatformDelegate::SendReadResponse(BLE_CONNECTION_OBJECT connObj, BLE_READ_REQUEST_CONTEXT requestContext,
+                                                const nl::Ble::WeaveBleUUID * svcId, const nl::Ble::WeaveBleUUID * charId)
 {
     WeaveLogError(Ble, "SendReadResponse: Not implemented");
     return true;
@@ -116,7 +117,7 @@ void BluezBlePlatformDelegate::SetGetMTUCallback(GetMTUCallback cb)
     GetMTUCb = cb;
 }
 
-} /* namespace Bluez */
+} // namespace BlueZ
 } /* namespace Platform */
 } /* namespace Ble */
 } /* namespace nl */

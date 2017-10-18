@@ -47,10 +47,10 @@ using namespace nl::Weave::TLV;
 
 Command::Command(void)
 {
-    (void)Init(NULL);
+    (void) Init(NULL);
 }
 
-WEAVE_ERROR Command::Init(nl::Weave::ExchangeContext *aEC)
+WEAVE_ERROR Command::Init(nl::Weave::ExchangeContext * aEC)
 {
     mEC = aEC;
     return WEAVE_NO_ERROR;
@@ -58,10 +58,8 @@ WEAVE_ERROR Command::Init(nl::Weave::ExchangeContext *aEC)
 
 void Command::Close(void)
 {
-    WeaveLogDetail(DataManagement, "Command[%d] [%04" PRIX16 "] %s",
-            SubscriptionEngine::GetInstance()->GetCommandObjId(this),
-            (NULL != mEC) ? mEC->ExchangeId : 0xFFFF,
-            __func__);
+    WeaveLogDetail(DataManagement, "Command[%d] [%04" PRIX16 "] %s", SubscriptionEngine::GetInstance()->GetCommandObjId(this),
+                   (NULL != mEC) ? mEC->ExchangeId : 0xFFFF, __func__);
 
     WeaveLogIfFalse(NULL != mEC);
 
@@ -79,17 +77,13 @@ WEAVE_ERROR Command::SendError(uint32_t aProfileId, uint16_t aStatusCode, WEAVE_
     WEAVE_ERROR err = WEAVE_NO_ERROR;
 
     WeaveLogDetail(DataManagement, "Command[%d] [%04" PRIX16 "] %s profile: %" PRIu32 ", code: %" PRIu16 ", err %s",
-            SubscriptionEngine::GetInstance()->GetCommandObjId(this),
-            (NULL != mEC) ? mEC->ExchangeId : 0xFFFF,
-            __func__, aProfileId, aStatusCode, nl::ErrorStr(aWeaveError));
+                   SubscriptionEngine::GetInstance()->GetCommandObjId(this), (NULL != mEC) ? mEC->ExchangeId : 0xFFFF, __func__,
+                   aProfileId, aStatusCode, nl::ErrorStr(aWeaveError));
 
     VerifyOrExit(NULL != mEC, err = WEAVE_ERROR_INCORRECT_STATE);
 
-    err = nl::Weave::WeaveServerBase::SendStatusReport(mEC,
-            aProfileId,
-            aStatusCode,
-            aWeaveError,
-            nl::Weave::ExchangeContext::kSendFlag_RequestAck);
+    err = nl::Weave::WeaveServerBase::SendStatusReport(mEC, aProfileId, aStatusCode, aWeaveError,
+                                                       nl::Weave::ExchangeContext::kSendFlag_RequestAck);
 
 exit:
     WeaveLogFunctError(err);
@@ -103,19 +97,17 @@ WEAVE_ERROR Command::SendInProgress(void)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
 
-    WeaveLogDetail(DataManagement, "Command[%d] [%04" PRIX16 "] %s",
-            SubscriptionEngine::GetInstance()->GetCommandObjId(this),
-            (NULL != mEC) ? mEC->ExchangeId : 0xFFFF,
-            __func__);
+    WeaveLogDetail(DataManagement, "Command[%d] [%04" PRIX16 "] %s", SubscriptionEngine::GetInstance()->GetCommandObjId(this),
+                   (NULL != mEC) ? mEC->ExchangeId : 0xFFFF, __func__);
 
     VerifyOrExit(NULL != mEC, err = WEAVE_ERROR_INCORRECT_STATE);
 
     {
-        PacketBuffer *msgBuf = PacketBuffer::NewWithAvailableSize(0);
+        PacketBuffer * msgBuf = PacketBuffer::NewWithAvailableSize(0);
         VerifyOrExit(NULL != msgBuf, err = WEAVE_ERROR_NO_MEMORY);
 
-        err = mEC->SendMessage(nl::Weave::Profiles::kWeaveProfile_WDM, kMsgType_InProgress,
-                msgBuf, nl::Weave::ExchangeContext::kSendFlag_RequestAck);
+        err    = mEC->SendMessage(nl::Weave::Profiles::kWeaveProfile_WDM, kMsgType_InProgress, msgBuf,
+                               nl::Weave::ExchangeContext::kSendFlag_RequestAck);
         msgBuf = NULL;
     }
 
@@ -138,10 +130,10 @@ exit:
  *
  * @return WEAVE_ERROR   the appropriate WEAVE_ERROR encountered while processing this call.
  */
-WEAVE_ERROR Command::SendResponse(uint32_t traitInstanceVersion, nl::Weave::System::PacketBuffer *respBuf)
+WEAVE_ERROR Command::SendResponse(uint32_t traitInstanceVersion, nl::Weave::System::PacketBuffer * respBuf)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
-    const uint8_t *appRespData;
+    const uint8_t * appRespData;
     uint16_t appRespDataLen;
     nl::Weave::TLV::TLVWriter respWriter;
     TLVType containerType;
@@ -152,16 +144,13 @@ WEAVE_ERROR Command::SendResponse(uint32_t traitInstanceVersion, nl::Weave::Syst
         // The maximum number of bytes between the beginning of a WDM Command Response message
         // and the point within the message at which the application response data begins.
 
-        kMaxCommandResponseHeaderSize =
-            1 +          // Anonymous Structure
-            1 + 1 + 4 +  // Version field (1 control byte + 1 context tag + 4 value bytes)
-            1 + 1,       // App Response Data Structure (1 control byte + 1 context tag)
+        kMaxCommandResponseHeaderSize = 1 + // Anonymous Structure
+            1 + 1 + 4 +                     // Version field (1 control byte + 1 context tag + 4 value bytes)
+            1 + 1,                          // App Response Data Structure (1 control byte + 1 context tag)
     };
 
-    WeaveLogDetail(DataManagement, "Command[%d] [%04" PRIX16 "] %s",
-            SubscriptionEngine::GetInstance()->GetCommandObjId(this),
-            (NULL != mEC) ? mEC->ExchangeId : 0xFFFF,
-            __func__);
+    WeaveLogDetail(DataManagement, "Command[%d] [%04" PRIX16 "] %s", SubscriptionEngine::GetInstance()->GetCommandObjId(this),
+                   (NULL != mEC) ? mEC->ExchangeId : 0xFFFF, __func__);
 
     VerifyOrExit(NULL != mEC, err = WEAVE_ERROR_INCORRECT_STATE);
 
@@ -177,7 +166,7 @@ WEAVE_ERROR Command::SendResponse(uint32_t traitInstanceVersion, nl::Weave::Syst
     VerifyOrExit(res, err = WEAVE_ERROR_BUFFER_TOO_SMALL);
 
     // Store the pointer to the application data that is to be inserted into the buffer later.
-    appRespData = respBuf->Start();
+    appRespData    = respBuf->Start();
     appRespDataLen = respBuf->DataLength();
 
     // If the application supplied data to be sent with the response perform some sanity checks
@@ -219,8 +208,8 @@ WEAVE_ERROR Command::SendResponse(uint32_t traitInstanceVersion, nl::Weave::Syst
         // Copy the application response data into a new TLV structure field contained with the
         // response structure.  NOTE: The TLV writer will take care of moving the response data
         // to the correct location within the buffer.
-        err = respWriter.PutPreEncodedContainer(ContextTag(CustomCommandResponse::kCsTag_Response), kTLVType_Structure,
-                                                appRespData, appRespDataLen);
+        err = respWriter.PutPreEncodedContainer(ContextTag(CustomCommandResponse::kCsTag_Response), kTLVType_Structure, appRespData,
+                                                appRespDataLen);
         SuccessOrExit(err);
     }
 
@@ -233,8 +222,8 @@ WEAVE_ERROR Command::SendResponse(uint32_t traitInstanceVersion, nl::Weave::Syst
     SuccessOrExit(err);
 
     // Call exchange context to send response
-    err = mEC->SendMessage(nl::Weave::Profiles::kWeaveProfile_WDM, kMsgType_CustomCommandResponse,
-                           respBuf, nl::Weave::ExchangeContext::kSendFlag_RequestAck);
+    err = mEC->SendMessage(nl::Weave::Profiles::kWeaveProfile_WDM, kMsgType_CustomCommandResponse, respBuf,
+                           nl::Weave::ExchangeContext::kSendFlag_RequestAck);
 
     // Don't free the buffer on exit.
     respBuf = NULL;
@@ -258,10 +247,8 @@ WEAVE_ERROR Command::ValidateAuthenticator(nl::Weave::System::PacketBuffer * aRe
 
     IgnoreUnusedVariable(aRequestBuffer);
 
-    WeaveLogDetail(DataManagement, "Command[%d] [%04" PRIX16 "] %s",
-            SubscriptionEngine::GetInstance()->GetCommandObjId(this),
-            (NULL != mEC) ? mEC->ExchangeId : 0xFFFF,
-            __func__);
+    WeaveLogDetail(DataManagement, "Command[%d] [%04" PRIX16 "] %s", SubscriptionEngine::GetInstance()->GetCommandObjId(this),
+                   (NULL != mEC) ? mEC->ExchangeId : 0xFFFF, __func__);
 
     VerifyOrExit(NULL != mEC, err = WEAVE_ERROR_INCORRECT_STATE);
 
@@ -271,9 +258,9 @@ exit:
     return err;
 }
 
-}; // WeaveMakeManagedNamespaceIdentifier(DataManagement, kWeaveManagedNamespaceDesignation_Current)
-}; // Profiles
-}; // Weave
-}; // nl
+}; // namespace WeaveMakeManagedNamespaceIdentifier(DataManagement, kWeaveManagedNamespaceDesignation_Current)
+}; // namespace Profiles
+}; // namespace Weave
+}; // namespace nl
 
 #endif // WEAVE_CONFIG_ENABLE_RELIABLE_MESSAGING && WDM_PUBLISHER_ENABLE_CUSTOM_COMMANDS

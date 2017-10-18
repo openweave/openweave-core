@@ -42,24 +42,20 @@ namespace WeaveMakeManagedNamespaceIdentifier(DataManagement, kWeaveManagedNames
 class SubscriptionHandler
 {
 public:
-
     typedef uint8_t HandlerId;
 
     enum
     {
         // Note the WDM spec says 0x7FFFFFFF, but Weave implementation can only hold timeout of much shorter
         // 32-bit in milliseconds, which is about 1200 hours
-        kMaxTimeoutSec                          = 3600000,
+        kMaxTimeoutSec = 3600000,
 
-        kNoTimeout                              = 0,
+        kNoTimeout = 0,
     };
 
     struct TraitInstanceInfo
     {
-        void Init(void)
-        {
-            this->ClearDirty();
-        }
+        void Init(void) { this->ClearDirty(); }
         bool IsDirty(void) { return mDirty; }
         void SetDirty(void) { mDirty = true; }
         void ClearDirty(void) { mDirty = false; }
@@ -71,15 +67,15 @@ public:
 
     enum EventID
     {
-        kEvent_OnSubscribeRequestParsed         = 0,
+        kEvent_OnSubscribeRequestParsed = 0,
 
         // Last chance to adjust EC, mEC is valid and can be tuned for timeout settings
         // Don't change anything on the handler and don't close the EC
-        kEvent_OnExchangeStart                  = 1,
+        kEvent_OnExchangeStart = 1,
 
-        kEvent_OnSubscriptionEstablished        = 2,
+        kEvent_OnSubscriptionEstablished = 2,
 
-        kEvent_OnSubscriptionTerminated         = 3,
+        kEvent_OnSubscriptionTerminated = 3,
     };
 
     union InEventParam
@@ -88,14 +84,15 @@ public:
 
         struct
         {
-            TraitInstanceInfo* mTraitInstanceList;
+            TraitInstanceInfo * mTraitInstanceList;
             uint16_t mNumTraitInstances;
 
             bool mSubscribeToAllEvents;
 
             nl::Weave::ExchangeContext * mEC;
-            const nl::Inet::IPPacketInfo *mPktInfo;           //< A pointer to the packet information of the request
-            const nl::Weave::WeaveMessageInfo *mMsgInfo;      //< A pointer to a WeaveMessageInfo structure containing information about the Subscribe Request message.
+            const nl::Inet::IPPacketInfo * mPktInfo; //< A pointer to the packet information of the request
+            const nl::Weave::WeaveMessageInfo *
+                mMsgInfo; //< A pointer to a WeaveMessageInfo structure containing information about the Subscribe Request message.
 
             uint32_t mTimeoutSecMin;
             uint32_t mTimeoutSecMax;
@@ -126,7 +123,7 @@ public:
 
             uint32_t mStatusProfileId;
             uint16_t mStatusCode;
-            ReferencedTLVData *mAdditionalInfoPtr;
+            ReferencedTLVData * mAdditionalInfoPtr;
         } mSubscriptionTerminated;
     };
 
@@ -135,7 +132,7 @@ public:
         void Clear(void) { memset(this, 0, sizeof(*this)); }
     };
 
-    typedef void (*EventCallback) (void * const aAppState, EventID aEvent, const InEventParam & aInParam, OutEventParam & aOutParam);
+    typedef void (*EventCallback)(void * const aAppState, EventID aEvent, const InEventParam & aInParam, OutEventParam & aOutParam);
 
     static void DefaultEventHandler(EventID aEvent, const InEventParam & aInParam, OutEventParam & aOutParam);
 
@@ -143,44 +140,50 @@ public:
 
     Binding * GetBinding(void) const;
 
-    WEAVE_ERROR GetSubscriptionId (uint64_t * const apSubscriptionId);
+    WEAVE_ERROR GetSubscriptionId(uint64_t * const apSubscriptionId);
 
     WEAVE_ERROR AcceptSubscribeRequest(const uint32_t aLivenessTimeoutSec = kNoTimeout);
 
     /**
-     * @brief This function initiates a graceful shutdown of the subscription and clean-up of the handler object. This is an asynchronous call and will notify a client of the impending shutdown
-     * through a SubscribeCancel/StatusReport message where relevant.
+     * @brief This function initiates a graceful shutdown of the subscription and clean-up of the handler object. This is an
+     * asynchronous call and will notify a client of the impending shutdown through a SubscribeCancel/StatusReport message where
+     * relevant.
      *
-     * Notably, this relinquishes the application's involvement in this subscription. After this call, the application will not be notified
-     * of any further activity on this object. Additionally, the application is not allowed to interact with this object thereafter through any of its methods.
+     * Notably, this relinquishes the application's involvement in this subscription. After this call, the application will not be
+     * notified of any further activity on this object. Additionally, the application is not allowed to interact with this object
+     * thereafter through any of its methods.
      *
      * @param aReasonProfileId[in]      ProfileId of the StatusCode that indicates the reason behind the termination
      * @param aReasonStatusCode[in]     StatusCode that indicates the reason behind the termination
      *
-     * @retval Returns a Weave error code for informational purposes only. On any error, the object will be terminated synchronously (i.e aborted).
+     * @retval Returns a Weave error code for informational purposes only. On any error, the object will be terminated synchronously
+     * (i.e aborted).
      *
      */
-    WEAVE_ERROR EndSubscription(const uint32_t aReasonProfileId = nl::Weave::Profiles::kWeaveProfile_Common,
-        const uint16_t aReasonStatusCode = nl::Weave::Profiles::Common::kStatus_BadRequest);
+    WEAVE_ERROR EndSubscription(const uint32_t aReasonProfileId  = nl::Weave::Profiles::kWeaveProfile_Common,
+                                const uint16_t aReasonStatusCode = nl::Weave::Profiles::Common::kStatus_BadRequest);
 
     /**
-     * @brief This function terminates a subscription immediately - this is a synchronous call. No attempt is made to notify the client of the termination, and the underlying exchange
-     * context if present is aborted immediately. After this call, the application will not be notified of any further activity on this object.
-     * Additionally, the application is not allowed to interact with this object thereafter through any of its methods.
+     * @brief This function terminates a subscription immediately - this is a synchronous call. No attempt is made to notify the
+     * client of the termination, and the underlying exchange context if present is aborted immediately. After this call, the
+     * application will not be notified of any further activity on this object. Additionally, the application is not allowed to
+     * interact with this object thereafter through any of its methods.
      */
     void AbortSubscription(void);
 
-    bool IsEstablishedIdle () { return (mCurrentState == kState_SubscriptionEstablished_Idle); }
-    bool IsActive(void) { return (mCurrentState >= kState_Subscribing_Evaluating && mCurrentState <= kState_SubscriptionEstablished_Notifying); }
-    bool IsAborted () { return (mCurrentState == kState_Aborted); }
-    bool IsFree () { return (mCurrentState == kState_Free); }
+    bool IsEstablishedIdle() { return (mCurrentState == kState_SubscriptionEstablished_Idle); }
+    bool IsActive(void)
+    {
+        return (mCurrentState >= kState_Subscribing_Evaluating && mCurrentState <= kState_SubscriptionEstablished_Notifying);
+    }
+    bool IsAborted() { return (mCurrentState == kState_Aborted); }
+    bool IsFree() { return (mCurrentState == kState_Free); }
 
-    uint32_t GetMaxNotificationSize(void) const { return mMaxNotificationSize == 0 ? UINT16_MAX : mMaxNotificationSize ; }
+    uint32_t GetMaxNotificationSize(void) const { return mMaxNotificationSize == 0 ? UINT16_MAX : mMaxNotificationSize; }
 
     void SetMaxNotificationSize(const uint32_t aMaxPayload);
 
 private:
-
     friend class SubscriptionEngine;
     friend class NotificationEngine;
     friend class TestSubscriptionHandler;
@@ -196,27 +199,36 @@ private:
 
     enum HandlerState
     {
-        kState_Free                                      = 0,
-        kState_Subscribing_Evaluating                    = 1,
-        kState_Subscribing                               = 2,
-        kState_Subscribing_Notifying                     = 3,
-        kState_Subscribing_Responding                    = 4,
-        kState_SubscriptionEstablished_Idle              = 5,
-        kState_SubscriptionEstablished_Notifying         = 6,
-        kState_Canceling                                 = 7,
+        kState_Free                              = 0,
+        kState_Subscribing_Evaluating            = 1,
+        kState_Subscribing                       = 2,
+        kState_Subscribing_Notifying             = 3,
+        kState_Subscribing_Responding            = 4,
+        kState_SubscriptionEstablished_Idle      = 5,
+        kState_SubscriptionEstablished_Notifying = 6,
+        kState_Canceling                         = 7,
 
-        kState_SubscriptionInfoValid_Begin               = kState_Subscribing,
-        kState_SubscriptionInfoValid_End                 = kState_Canceling,
+        kState_SubscriptionInfoValid_Begin = kState_Subscribing,
+        kState_SubscriptionInfoValid_End   = kState_Canceling,
 
-        kState_Aborting                                  = 9,
-        kState_Aborted                                   = 10,
+        kState_Aborting = 9,
+        kState_Aborted  = 10,
     };
 
     HandlerState mCurrentState;
 
-    bool IsNotifiable(void) { return (mCurrentState == kState_Subscribing || mCurrentState == kState_SubscriptionEstablished_Idle); }
-    bool IsSubscribing(void) { return (mCurrentState >= kState_Subscribing_Evaluating && mCurrentState <= kState_Subscribing_Responding); }
-    bool IsNotifying(void) { return (mCurrentState == kState_Subscribing_Notifying || mCurrentState == kState_SubscriptionEstablished_Notifying); }
+    bool IsNotifiable(void)
+    {
+        return (mCurrentState == kState_Subscribing || mCurrentState == kState_SubscriptionEstablished_Idle);
+    }
+    bool IsSubscribing(void)
+    {
+        return (mCurrentState >= kState_Subscribing_Evaluating && mCurrentState <= kState_Subscribing_Responding);
+    }
+    bool IsNotifying(void)
+    {
+        return (mCurrentState == kState_Subscribing_Notifying || mCurrentState == kState_SubscriptionEstablished_Notifying);
+    }
 
     // initialize once at boot up
     void * mAppState;
@@ -231,15 +243,16 @@ private:
     uint64_t mSubscriptionId;
     Binding * mBinding;
 
-    TraitInstanceInfo *mTraitInstanceList;
+    TraitInstanceInfo * mTraitInstanceList;
     uint16_t mNumTraitInstances;
     uint16_t mMaxNotificationSize;
     uint32_t mCurProcessingTraitInstanceIdx;
 
-    TraitInstanceInfo *GetTraitInstanceInfoList(void) { return mTraitInstanceList; }
+    TraitInstanceInfo * GetTraitInstanceInfoList(void) { return mTraitInstanceList; }
     uint32_t GetNumTraitInstances(void) { return mNumTraitInstances; }
 
-    void OnNotifyProcessingComplete(const bool aPossibleLossOfEvent, const LastVendedEvent aLastVendedEventList[], const size_t aLastVendedEventListSize);
+    void OnNotifyProcessingComplete(const bool aPossibleLossOfEvent, const LastVendedEvent aLastVendedEventList[],
+                                    const size_t aLastVendedEventListSize);
 
     bool mSubscribeToAllEvents;
     // TODO: WEAV-1426 in this incarnation, we do not account for event aggregation.
@@ -258,63 +271,57 @@ private:
     // Do nothing
     SubscriptionHandler(void);
 
-    void _AddRef (void);
-    void _Release (void);
-    void HandleSubscriptionTerminated(WEAVE_ERROR aReason,
-                                      nl::Weave::Profiles::StatusReporting::StatusReport *aStatusReportPtr);
+    void _AddRef(void);
+    void _Release(void);
+    void HandleSubscriptionTerminated(WEAVE_ERROR aReason, nl::Weave::Profiles::StatusReporting::StatusReport * aStatusReportPtr);
     void MoveToState(const HandlerState aTargetState);
     const char * GetStateStr() const;
 
-    WEAVE_ERROR ReplaceExchangeContext (void);
+    WEAVE_ERROR ReplaceExchangeContext(void);
     void InitExchangeContext(void);
-    void FlushExistingExchangeContext (const bool aAbortNow = false);
+    void FlushExistingExchangeContext(const bool aAbortNow = false);
 
-    void InitWithIncomingRequest (Binding * const aBinding, const uint64_t aRandomNumber,
-            nl::Weave::ExchangeContext * aEC, const nl::Inet::IPPacketInfo *aPktInfo,
-            const nl::Weave::WeaveMessageInfo *aMsgInfo, PacketBuffer * aPayload);
+    void InitWithIncomingRequest(Binding * const aBinding, const uint64_t aRandomNumber, nl::Weave::ExchangeContext * aEC,
+                                 const nl::Inet::IPPacketInfo * aPktInfo, const nl::Weave::WeaveMessageInfo * aMsgInfo,
+                                 PacketBuffer * aPayload);
 
     WEAVE_ERROR SendNotificationRequest(PacketBuffer * aMsgBuf);
-    WEAVE_ERROR SendSubscribeResponse(const bool aPossibleLossOfEvent, const LastVendedEvent aLastVendedEventList[], const size_t aLastVendedEventListSize);
+    WEAVE_ERROR SendSubscribeResponse(const bool aPossibleLossOfEvent, const LastVendedEvent aLastVendedEventList[],
+                                      const size_t aLastVendedEventListSize);
 
-    void TimerEventHandler (void);
-    WEAVE_ERROR RefreshTimer (void);
+    void TimerEventHandler(void);
+    WEAVE_ERROR RefreshTimer(void);
 
-    bool CheckEventUpToDate(LoggingManagement &logger);
+    bool CheckEventUpToDate(LoggingManagement & logger);
     ImportanceType FindNextImportanceForTransfer(void);
-    WEAVE_ERROR SetEventLogEndpoint(LoggingManagement &logger);
-
+    WEAVE_ERROR SetEventLogEndpoint(LoggingManagement & logger);
 
 #if WDM_ENABLE_SUBSCRIPTION_CANCEL
-    WEAVE_ERROR Cancel (void);
-    void CancelRequestHandler (nl::Weave::ExchangeContext *aEC, const nl::Inet::IPPacketInfo *aPktInfo,
-            const nl::Weave::WeaveMessageInfo *aMsgInfo, PacketBuffer *aPayload);
+    WEAVE_ERROR Cancel(void);
+    void CancelRequestHandler(nl::Weave::ExchangeContext * aEC, const nl::Inet::IPPacketInfo * aPktInfo,
+                              const nl::Weave::WeaveMessageInfo * aMsgInfo, PacketBuffer * aPayload);
 #endif // WDM_ENABLE_SUBSCRIPTION_CANCEL
 
     void InitAsFree(void);
 
-    inline WEAVE_ERROR ParsePathVersionEventLists(
-            SubscribeRequest::Parser & aRequest,
-            uint32_t & aRejectReasonProfileId,
-            uint16_t & aRejectReasonStatusCode);
+    inline WEAVE_ERROR ParsePathVersionEventLists(SubscribeRequest::Parser & aRequest, uint32_t & aRejectReasonProfileId,
+                                                  uint16_t & aRejectReasonStatusCode);
 
-    inline WEAVE_ERROR ParseSubscriptionId(
-            SubscribeRequest::Parser & aRequest,
-            uint32_t & aRejectReasonProfileId,
-            uint16_t & aRejectReasonStatusCode,
-            const uint64_t aRandomNumber);
+    inline WEAVE_ERROR ParseSubscriptionId(SubscribeRequest::Parser & aRequest, uint32_t & aRejectReasonProfileId,
+                                           uint16_t & aRejectReasonStatusCode, const uint64_t aRandomNumber);
 
-    static void OnTimerCallback(System::Layer* aSystemLayer, void *aAppState, System::Error aErrorCode);
+    static void OnTimerCallback(System::Layer * aSystemLayer, void * aAppState, System::Error aErrorCode);
     static void OnAckReceived(ExchangeContext * aEC, void * aMsgSpecificContext);
-    static void OnSendError (ExchangeContext *aEC, WEAVE_ERROR aErrorCode, void *aMsgSpecificContext);
-    static void OnResponseTimeout (nl::Weave::ExchangeContext *aEC);
-    static void OnMessageReceivedFromLocallyHeldExchange (nl::Weave::ExchangeContext *aEC, const nl::Inet::IPPacketInfo *aPktInfo,
-        const nl::Weave::WeaveMessageInfo *aMsgInfo, uint32_t aProfileId,
-        uint8_t aMsgType, PacketBuffer *aPayload);
+    static void OnSendError(ExchangeContext * aEC, WEAVE_ERROR aErrorCode, void * aMsgSpecificContext);
+    static void OnResponseTimeout(nl::Weave::ExchangeContext * aEC);
+    static void OnMessageReceivedFromLocallyHeldExchange(nl::Weave::ExchangeContext * aEC, const nl::Inet::IPPacketInfo * aPktInfo,
+                                                         const nl::Weave::WeaveMessageInfo * aMsgInfo, uint32_t aProfileId,
+                                                         uint8_t aMsgType, PacketBuffer * aPayload);
 };
 
-}; // WeaveMakeManagedNamespaceIdentifier(DataManagement, kWeaveManagedNamespaceDesignation_Current)
-}; // Profiles
-}; // Weave
-}; // nl
+}; // namespace WeaveMakeManagedNamespaceIdentifier(DataManagement, kWeaveManagedNamespaceDesignation_Current)
+}; // namespace Profiles
+}; // namespace Weave
+}; // namespace nl
 
 #endif // _WEAVE_DATA_MANAGEMENT_SUBSCRIPTION_HANDLER_CURRENT_H

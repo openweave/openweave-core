@@ -26,7 +26,7 @@
  *  The file defines the API for configuring and controlling the
  *  logging subsystem as well as the API for emitting the individual
  *  log entries.
-*/
+ */
 #ifndef _WEAVE_DATA_MANAGEMENT_EVENT_LOGGING_CURRENT_H
 #define _WEAVE_DATA_MANAGEMENT_EVENT_LOGGING_CURRENT_H
 
@@ -38,8 +38,6 @@ namespace nl {
 namespace Weave {
 namespace Profiles {
 namespace WeaveMakeManagedNamespaceIdentifier(DataManagement, kWeaveManagedNamespaceDesignation_Current) {
-
-
 
 /**
  * @brief
@@ -77,7 +75,7 @@ namespace WeaveMakeManagedNamespaceIdentifier(DataManagement, kWeaveManagedNames
  * @return event_id_t      The event ID if the event was written to the
  *                         log, 0 otherwise.
  */
-event_id_t LogEvent(const EventSchema &inSchema, nl::Weave::TLV::TLVReader &inData);
+event_id_t LogEvent(const EventSchema & inSchema, nl::Weave::TLV::TLVReader & inData);
 
 /**
  * @brief
@@ -121,7 +119,7 @@ event_id_t LogEvent(const EventSchema &inSchema, nl::Weave::TLV::TLVReader &inDa
  * @return event_id_t      The event ID if the event was written to the
  *                         log, 0 otherwise.
  */
-event_id_t LogEvent(const EventSchema &inSchema, nl::Weave::TLV::TLVReader &inData, const EventOptions *inOptions);
+event_id_t LogEvent(const EventSchema & inSchema, nl::Weave::TLV::TLVReader & inData, const EventOptions * inOptions);
 
 /**
  * @brief
@@ -162,7 +160,7 @@ event_id_t LogEvent(const EventSchema &inSchema, nl::Weave::TLV::TLVReader &inDa
  * @return event_id_t      The event ID if the event was written to the
  *                         log, 0 otherwise.
  */
-event_id_t LogEvent(const EventSchema &inSchema, EventWriterFunct inEventWriter, void *inAppData);
+event_id_t LogEvent(const EventSchema & inSchema, EventWriterFunct inEventWriter, void * inAppData);
 
 /**
  * @brief
@@ -209,8 +207,7 @@ event_id_t LogEvent(const EventSchema &inSchema, EventWriterFunct inEventWriter,
  * @return event_id_t      The event ID if the event was written to the
  *                         log, 0 otherwise.
  */
-event_id_t LogEvent(const EventSchema &inSchema, EventWriterFunct inEventWriter, void *inAppData, const EventOptions *inOptions);
-
+event_id_t LogEvent(const EventSchema & inSchema, EventWriterFunct inEventWriter, void * inAppData, const EventOptions * inOptions);
 
 /**
  * @brief
@@ -256,10 +253,10 @@ event_id_t LogFreeform(ImportanceType inImportance, const char * inFormat, ...);
  * @retval other          Other errors that may be returned from the ioWriter.
  *
  */
-WEAVE_ERROR PlainTextWriter(::nl::Weave::TLV::TLVWriter & ioWriter, uint8_t inDataTag, void *appData);
+WEAVE_ERROR PlainTextWriter(::nl::Weave::TLV::TLVWriter & ioWriter, uint8_t inDataTag, void * appData);
 
-} // WeaveMakeManagedNamespaceIdentifier(DataManagement, kWeaveManagedNamespaceDesignation_Current)
-} // Profiles
-} // Weave
-} //nl
+} // namespace WeaveMakeManagedNamespaceIdentifier(DataManagement, kWeaveManagedNamespaceDesignation_Current)
+} // namespace Profiles
+} // namespace Weave
+} // namespace nl
 #endif // _WEAVE_DATA_MANAGEMENT_EVENT_LOGGING_CURRENT_H

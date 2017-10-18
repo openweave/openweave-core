@@ -41,34 +41,30 @@
 #undef NL_BTP_PROTOCOL_ENGINE_DEBUG_LOGGING_ENABLED
 
 #ifdef NL_BTP_PROTOCOL_ENGINE_DEBUG_LOGGING_ENABLED
-#define WeaveLogDebugBtpEngine(MOD, MSG, ...) WeaveLogError(MOD, MSG, ## __VA_ARGS__)
+#define WeaveLogDebugBtpEngine(MOD, MSG, ...) WeaveLogError(MOD, MSG, ##__VA_ARGS__)
 #else
 #define WeaveLogDebugBtpEngine(MOD, MSG, ...)
 #endif
 
 #define NL_BLE_TRANSFER_PROTOCOL_HEADER_FLAGS_SIZE 1 // Size in bytes of enocded BTP fragment header flag bits
 #define NL_BLE_TRANSFER_PROTOCOL_SEQUENCE_NUM_SIZE 1 // Size in bytes of encoded BTP sequence number
-#define NL_BLE_TRANSFER_PROTOCOL_ACK_SIZE 1 // Size in bytes of encoded BTP fragment acknowledgement number
-#define NL_BLE_TRANSFER_PROTOCOL_MSG_LEN_SIZE 2 // Size in byte of encoded BTP total fragmented message length
+#define NL_BLE_TRANSFER_PROTOCOL_ACK_SIZE 1          // Size in bytes of encoded BTP fragment acknowledgement number
+#define NL_BLE_TRANSFER_PROTOCOL_MSG_LEN_SIZE 2      // Size in byte of encoded BTP total fragmented message length
 
-#define NL_BLE_TRANSFER_PROTOCOL_MAX_HEADER_SIZE (NL_BLE_TRANSFER_PROTOCOL_HEADER_FLAGS_SIZE + \
-                                                  NL_BLE_TRANSFER_PROTOCOL_ACK_SIZE + \
-                                                  NL_BLE_TRANSFER_PROTOCOL_SEQUENCE_NUM_SIZE + \
-                                                  NL_BLE_TRANSFER_PROTOCOL_MSG_LEN_SIZE)
+#define NL_BLE_TRANSFER_PROTOCOL_MAX_HEADER_SIZE                                                                                   \
+    (NL_BLE_TRANSFER_PROTOCOL_HEADER_FLAGS_SIZE + NL_BLE_TRANSFER_PROTOCOL_ACK_SIZE + NL_BLE_TRANSFER_PROTOCOL_SEQUENCE_NUM_SIZE + \
+     NL_BLE_TRANSFER_PROTOCOL_MSG_LEN_SIZE)
 
-#define NL_BLE_TRANSFER_PROTOCOL_MID_FRAGMENT_MAX_HEADER_SIZE (NL_BLE_TRANSFER_PROTOCOL_HEADER_FLAGS_SIZE + \
-                                                               NL_BLE_TRANSFER_PROTOCOL_ACK_SIZE + \
-                                                               NL_BLE_TRANSFER_PROTOCOL_SEQUENCE_NUM_SIZE)
+#define NL_BLE_TRANSFER_PROTOCOL_MID_FRAGMENT_MAX_HEADER_SIZE                                                                      \
+    (NL_BLE_TRANSFER_PROTOCOL_HEADER_FLAGS_SIZE + NL_BLE_TRANSFER_PROTOCOL_ACK_SIZE + NL_BLE_TRANSFER_PROTOCOL_SEQUENCE_NUM_SIZE)
 
-#define NL_BLE_TRANSFER_PROTOCOL_STANDALONE_ACK_HEADER_SIZE (NL_BLE_TRANSFER_PROTOCOL_HEADER_FLAGS_SIZE + \
-                                                             NL_BLE_TRANSFER_PROTOCOL_ACK_SIZE + \
-                                                             NL_BLE_TRANSFER_PROTOCOL_SEQUENCE_NUM_SIZE)
-
+#define NL_BLE_TRANSFER_PROTOCOL_STANDALONE_ACK_HEADER_SIZE                                                                        \
+    (NL_BLE_TRANSFER_PROTOCOL_HEADER_FLAGS_SIZE + NL_BLE_TRANSFER_PROTOCOL_ACK_SIZE + NL_BLE_TRANSFER_PROTOCOL_SEQUENCE_NUM_SIZE)
 
 namespace nl {
 namespace Ble {
 
-static inline void IncSeqNum(SequenceNumber_t &a_seq_num)
+static inline void IncSeqNum(SequenceNumber_t & a_seq_num)
 {
     a_seq_num = 0xff & ((a_seq_num) + 1);
 }
@@ -80,10 +76,10 @@ static inline bool DidReceiveData(uint8_t rx_flags)
             GetFlag(rx_flags, WoBle::kHeaderFlag_EndMessage) == true);
 }
 
-static void PrintBufDebug(PacketBuffer *buf)
+static void PrintBufDebug(PacketBuffer * buf)
 {
 #ifdef NL_BTP_PROTOCOL_ENGINE_DEBUG_LOGGING_ENABLED
-    uint8_t *b = buf->Start();
+    uint8_t * b = buf->Start();
 
     for (int i = 0; i < buf->DataLength(); i++)
     {
@@ -92,29 +88,29 @@ static void PrintBufDebug(PacketBuffer *buf)
 #endif
 }
 
-const uint16_t WoBle::sDefaultFragmentSize  =  20; // 23-byte minimum ATT_MTU - 3 bytes for ATT operation header
-const uint16_t WoBle::sMaxFragmentSize      = 128; // Size of write and indication characteristics
+const uint16_t WoBle::sDefaultFragmentSize = 20;  // 23-byte minimum ATT_MTU - 3 bytes for ATT operation header
+const uint16_t WoBle::sMaxFragmentSize     = 128; // Size of write and indication characteristics
 
-BLE_ERROR WoBle::Init(void *an_app_state, bool expect_first_ack)
+BLE_ERROR WoBle::Init(void * an_app_state, bool expect_first_ack)
 {
-    mAppState = an_app_state;
-    mRxState = kState_Idle;
-    mRxBuf = NULL;
+    mAppState              = an_app_state;
+    mRxState               = kState_Idle;
+    mRxBuf                 = NULL;
     mRxNewestUnackedSeqNum = 0;
     mRxOldestUnackedSeqNum = 0;
-    mRxFragmentSize = sDefaultFragmentSize;
-    mTxState = kState_Idle;
-    mTxBuf = NULL;
-    mTxFragmentSize = sDefaultFragmentSize;
-    mRxCharCount = 0;
-    mRxPacketCount = 0;
-    mTxCharCount = 0;
-    mTxPacketCount = 0;
+    mRxFragmentSize        = sDefaultFragmentSize;
+    mTxState               = kState_Idle;
+    mTxBuf                 = NULL;
+    mTxFragmentSize        = sDefaultFragmentSize;
+    mRxCharCount           = 0;
+    mRxPacketCount         = 0;
+    mTxCharCount           = 0;
+    mTxPacketCount         = 0;
     mTxNewestUnackedSeqNum = 0;
     mTxOldestUnackedSeqNum = 0;
 #if WEAVE_ENABLE_WOBLE_TEST
-	mTxPacketType = kType_Data;		// Default WoBle Data packet
-	mRxPacketType = kType_Data;		// Default WoBle Data packet
+    mTxPacketType = kType_Data; // Default WoBle Data packet
+    mRxPacketType = kType_Data; // Default WoBle Data packet
 #endif
 
     if (expect_first_ack == true)
@@ -140,7 +136,7 @@ SequenceNumber_t WoBle::GetAndIncrementNextTxSeqNum()
     // If not already expecting ack...
     if (mExpectingAck == false)
     {
-        mExpectingAck = true;
+        mExpectingAck          = true;
         mTxOldestUnackedSeqNum = mTxNextSeqNum;
     }
 
@@ -170,7 +166,8 @@ bool WoBle::HasUnackedData() const
 
 bool WoBle::IsValidAck(SequenceNumber_t ack_num) const
 {
-    WeaveLogDebugBtpEngine(Ble, "entered IsValidAck, ack = %u, oldest = %u, newest = %u", ack_num, mTxOldestUnackedSeqNum, mTxNewestUnackedSeqNum);
+    WeaveLogDebugBtpEngine(Ble, "entered IsValidAck, ack = %u, oldest = %u, newest = %u", ack_num, mTxOldestUnackedSeqNum,
+                           mTxNewestUnackedSeqNum);
 
     // Return false if not awaiting any ack.
     if (mExpectingAck == false)
@@ -220,10 +217,10 @@ exit:
 
 // Calling convention:
 //   EncodeStandAloneAck may only be called if data arg is commited for immediate, synchronous subsequent transmission.
-BLE_ERROR WoBle::EncodeStandAloneAck(PacketBuffer *data)
+BLE_ERROR WoBle::EncodeStandAloneAck(PacketBuffer * data)
 {
     BLE_ERROR err = BLE_NO_ERROR;
-    uint8_t *characteristic;
+    uint8_t * characteristic;
 
     // Ensure enough headroom exists for the lower BLE layers.
     VerifyOrExit(data->EnsureReservedSize(WEAVE_CONFIG_BLE_PKT_RESERVED_SIZE) == true, err = BLE_ERROR_NO_MEMORY);
@@ -262,12 +259,12 @@ exit:
 //   function returns.
 //
 //   Upper layer must immediately clean up and reinitialize protocol engine if returned err != BLE_NO_ERROR.
-BLE_ERROR WoBle::HandleCharacteristicReceived(PacketBuffer *data, SequenceNumber_t &receivedAck, bool &didReceiveAck)
+BLE_ERROR WoBle::HandleCharacteristicReceived(PacketBuffer * data, SequenceNumber_t & receivedAck, bool & didReceiveAck)
 {
-    BLE_ERROR err = BLE_NO_ERROR;
-    uint8_t rx_flags = 0;
-    uint8_t cursor = 0;
-    uint8_t *characteristic = data->Start();
+    BLE_ERROR err            = BLE_NO_ERROR;
+    uint8_t rx_flags         = 0;
+    uint8_t cursor           = 0;
+    uint8_t * characteristic = data->Start();
 
     VerifyOrExit(data != NULL, err = BLE_ERROR_BAD_ARGS);
 
@@ -277,9 +274,9 @@ BLE_ERROR WoBle::HandleCharacteristicReceived(PacketBuffer *data, SequenceNumber
     rx_flags = characteristic[cursor++];
 #if WEAVE_ENABLE_WOBLE_TEST
     if (GetFlag(rx_flags, kHeaderFlag_CommandMessage) == true)
-		SetRxPacketType(kType_Control);
-	else
-		SetRxPacketType(kType_Data);
+        SetRxPacketType(kType_Control);
+    else
+        SetRxPacketType(kType_Data);
 #endif
 
     didReceiveAck = GetFlag(rx_flags, kHeaderFlag_FragmentAck);
@@ -347,7 +344,7 @@ BLE_ERROR WoBle::HandleCharacteristicReceived(PacketBuffer *data, SequenceNumber
 
         // Verify ContinueMessage or EndMessage header flag set.
         VerifyOrExit((rx_flags & kHeaderFlag_ContinueMessage) || (rx_flags & kHeaderFlag_EndMessage),
-                err = BLE_ERROR_INVALID_BTP_HEADER_FLAGS);
+                     err = BLE_ERROR_INVALID_BTP_HEADER_FLAGS);
 
         // Add received fragment to reassembled message buffer.
         data->SetStart(&(characteristic[cursor]));
@@ -356,7 +353,7 @@ BLE_ERROR WoBle::HandleCharacteristicReceived(PacketBuffer *data, SequenceNumber
         data = NULL;
 
         // For now, limit WoBle message size to max length of 1 pbuf, as we do for Weave messages sent via IP.
-           // TODO add support for WoBle messages longer than 1 pbuf
+        // TODO add support for WoBle messages longer than 1 pbuf
         VerifyOrExit(mRxBuf->Next() == NULL, err = BLE_ERROR_RECEIVED_MESSAGE_TOO_BIG);
     }
     else
@@ -417,7 +414,7 @@ exit:
     return err;
 }
 
-PacketBuffer *WoBle::RxPacket()
+PacketBuffer * WoBle::RxPacket()
 {
     return mRxBuf;
 }
@@ -427,7 +424,7 @@ bool WoBle::ClearRxPacket()
     if (mRxState == kState_Complete)
     {
         mRxState = kState_Idle;
-        mRxBuf = NULL;
+        mRxBuf   = NULL;
         // do not reset mRxNextSeqNum
         return true;
     }
@@ -438,9 +435,9 @@ bool WoBle::ClearRxPacket()
 // Calling convention:
 //   May only be called if data arg is commited for immediate, synchronous subsequent transmission.
 //   Returns false on error. Caller must free data arg on error.
-bool WoBle::HandleCharacteristicSend(PacketBuffer *data, bool send_ack)
+bool WoBle::HandleCharacteristicSend(PacketBuffer * data, bool send_ack)
 {
-    uint8_t *characteristic;
+    uint8_t * characteristic;
     mTxCharCount++;
 
     if (send_ack && !HasUnackedData())
@@ -456,16 +453,16 @@ bool WoBle::HandleCharacteristicSend(PacketBuffer *data, bool send_ack)
             return false;
         }
 
-        mTxBuf = data;
-        mTxState = kState_InProgress;
+        mTxBuf    = data;
+        mTxState  = kState_InProgress;
         mTxLength = mTxBuf->DataLength();
 
         WeaveLogDebugBtpEngine(Ble, ">>> WoBle preparing to send whole message:");
         PrintBufDebug(data);
 
         // Determine fragment header size.
-        uint8_t header_size = (send_ack == true) ? NL_BLE_TRANSFER_PROTOCOL_MAX_HEADER_SIZE :
-                          (NL_BLE_TRANSFER_PROTOCOL_MAX_HEADER_SIZE - NL_BLE_TRANSFER_PROTOCOL_ACK_SIZE);
+        uint8_t header_size = (send_ack == true) ? NL_BLE_TRANSFER_PROTOCOL_MAX_HEADER_SIZE
+                                                 : (NL_BLE_TRANSFER_PROTOCOL_MAX_HEADER_SIZE - NL_BLE_TRANSFER_PROTOCOL_ACK_SIZE);
 
         // Ensure enough headroom exists for the BTP header, and any headroom needed by the lower BLE layers.
         if (!mTxBuf->EnsureReservedSize(header_size + WEAVE_CONFIG_BLE_PKT_RESERVED_SIZE))
@@ -473,7 +470,7 @@ bool WoBle::HandleCharacteristicSend(PacketBuffer *data, bool send_ack)
             // handle error
             WeaveLogError(Ble, "HandleCharacteristicSend: not enough headroom");
             mTxState = kState_Error;
-            mTxBuf = NULL; // Avoid double-free after assignment above, as caller frees data on error.
+            mTxBuf   = NULL; // Avoid double-free after assignment above, as caller frees data on error.
 
             return false;
         }
@@ -495,7 +492,7 @@ bool WoBle::HandleCharacteristicSend(PacketBuffer *data, bool send_ack)
         {
             SetFlag(characteristic[0], kHeaderFlag_FragmentAck, true);
             characteristic[cursor++] = GetAndRecordRxAckSeqNum();
-            WeaveLogDebugBtpEngine(Ble, "===> encoded piggybacked ack, ack_num = %u", characteristic[cursor-1]);
+            WeaveLogDebugBtpEngine(Ble, "===> encoded piggybacked ack, ack_num = %u", characteristic[cursor - 1]);
         }
 
         characteristic[cursor++] = GetAndIncrementNextTxSeqNum();
@@ -531,8 +528,9 @@ bool WoBle::HandleCharacteristicSend(PacketBuffer *data, bool send_ack)
         characteristic += mTxFragmentSize;
 
         // prepend header
-        characteristic -= (send_ack == true) ? NL_BLE_TRANSFER_PROTOCOL_MID_FRAGMENT_MAX_HEADER_SIZE :
-                      (NL_BLE_TRANSFER_PROTOCOL_MID_FRAGMENT_MAX_HEADER_SIZE - NL_BLE_TRANSFER_PROTOCOL_ACK_SIZE);
+        characteristic -= (send_ack == true)
+            ? NL_BLE_TRANSFER_PROTOCOL_MID_FRAGMENT_MAX_HEADER_SIZE
+            : (NL_BLE_TRANSFER_PROTOCOL_MID_FRAGMENT_MAX_HEADER_SIZE - NL_BLE_TRANSFER_PROTOCOL_ACK_SIZE);
         mTxBuf->SetStart(characteristic);
         uint8_t cursor = 1; // first position past header flags byte
 
@@ -547,7 +545,7 @@ bool WoBle::HandleCharacteristicSend(PacketBuffer *data, bool send_ack)
         {
             SetFlag(characteristic[0], kHeaderFlag_FragmentAck, true);
             characteristic[cursor++] = GetAndRecordRxAckSeqNum();
-            WeaveLogDebugBtpEngine(Ble, "===> encoded piggybacked ack, ack_num = %u", characteristic[cursor-1]);
+            WeaveLogDebugBtpEngine(Ble, "===> encoded piggybacked ack, ack_num = %u", characteristic[cursor - 1]);
         }
 
         characteristic[cursor++] = GetAndIncrementNextTxSeqNum();
@@ -578,7 +576,7 @@ bool WoBle::HandleCharacteristicSend(PacketBuffer *data, bool send_ack)
     return true;
 }
 
-PacketBuffer *WoBle::TxPacket()
+PacketBuffer * WoBle::TxPacket()
 {
     return mTxBuf;
 }
@@ -588,7 +586,7 @@ bool WoBle::ClearTxPacket()
     if (mTxState == kState_Complete)
     {
         mTxState = kState_Idle;
-        mTxBuf = NULL;
+        mTxBuf   = NULL;
         // do not reset mTxNextSeqNum
         return true;
     }
@@ -598,31 +596,31 @@ bool WoBle::ClearTxPacket()
 
 void WoBle::LogState() const
 {
-  WeaveLogError(Ble, "mAppState: %p", mAppState);
+    WeaveLogError(Ble, "mAppState: %p", mAppState);
 
-  WeaveLogError(Ble, "mRxFragmentSize: %d", mRxFragmentSize);
-  WeaveLogError(Ble, "mRxState: %d", mRxState);
-  WeaveLogError(Ble, "mRxBuf: %p", mRxBuf);
-  WeaveLogError(Ble, "mRxNextSeqNum: %d", mRxNextSeqNum);
-  WeaveLogError(Ble, "mRxNewestUnackedSeqNum: %d", mRxNewestUnackedSeqNum);
-  WeaveLogError(Ble, "mRxOldestUnackedSeqNum: %d", mRxOldestUnackedSeqNum);
-  WeaveLogError(Ble, "mRxCharCount: %d", mRxCharCount);
-  WeaveLogError(Ble, "mRxPacketCount: %d", mRxPacketCount);
+    WeaveLogError(Ble, "mRxFragmentSize: %d", mRxFragmentSize);
+    WeaveLogError(Ble, "mRxState: %d", mRxState);
+    WeaveLogError(Ble, "mRxBuf: %p", mRxBuf);
+    WeaveLogError(Ble, "mRxNextSeqNum: %d", mRxNextSeqNum);
+    WeaveLogError(Ble, "mRxNewestUnackedSeqNum: %d", mRxNewestUnackedSeqNum);
+    WeaveLogError(Ble, "mRxOldestUnackedSeqNum: %d", mRxOldestUnackedSeqNum);
+    WeaveLogError(Ble, "mRxCharCount: %d", mRxCharCount);
+    WeaveLogError(Ble, "mRxPacketCount: %d", mRxPacketCount);
 
-  WeaveLogError(Ble, "mTxFragmentSize: %d", mTxFragmentSize);
-  WeaveLogError(Ble, "mTxState: %d", mTxState);
-  WeaveLogError(Ble, "mTxBuf: %p", mTxBuf);
-  WeaveLogError(Ble, "mTxNextSeqNum: %d", mTxNextSeqNum);
-  WeaveLogError(Ble, "mTxNewestUnackedSeqNum: %d", mTxNewestUnackedSeqNum);
-  WeaveLogError(Ble, "mTxOldestUnackedSeqNum: %d", mTxOldestUnackedSeqNum);
-  WeaveLogError(Ble, "mTxCharCount: %d", mTxCharCount);
-  WeaveLogError(Ble, "mTxPacketCount: %d", mTxPacketCount);
+    WeaveLogError(Ble, "mTxFragmentSize: %d", mTxFragmentSize);
+    WeaveLogError(Ble, "mTxState: %d", mTxState);
+    WeaveLogError(Ble, "mTxBuf: %p", mTxBuf);
+    WeaveLogError(Ble, "mTxNextSeqNum: %d", mTxNextSeqNum);
+    WeaveLogError(Ble, "mTxNewestUnackedSeqNum: %d", mTxNewestUnackedSeqNum);
+    WeaveLogError(Ble, "mTxOldestUnackedSeqNum: %d", mTxOldestUnackedSeqNum);
+    WeaveLogError(Ble, "mTxCharCount: %d", mTxCharCount);
+    WeaveLogError(Ble, "mTxPacketCount: %d", mTxPacketCount);
 }
 
 void WoBle::LogStateDebug() const
 {
 #ifdef NL_BTP_PROTOCOL_ENGINE_DEBUG_LOGGING_ENABLED
-	LogState();
+    LogState();
 #endif
 }
 
@@ -630,10 +628,9 @@ void WoBle::LogStateDebug() const
 // Unit Testing
 //
 
-
 bool WoBle::UnitTest1()
 {
-    PacketBuffer *first_packet;
+    PacketBuffer * first_packet;
     SequenceNumber_t rcvd_ack;
     bool did_rcv_ack;
     bool rc = true;
@@ -648,7 +645,7 @@ bool WoBle::UnitTest1()
     }
 
     first_packet->SetDataLength(5, NULL);
-    uint8_t *data = first_packet->Start();
+    uint8_t * data = first_packet->Start();
 
     if (data == NULL)
     {
@@ -676,8 +673,8 @@ bool WoBle::UnitTest1()
 
 bool WoBle::UnitTest2()
 {
-    PacketBuffer *first_packet;
-    PacketBuffer *second_packet;
+    PacketBuffer * first_packet;
+    PacketBuffer * second_packet;
     SequenceNumber_t rcvd_ack;
     bool did_rcv_ack;
     bool rc = true;
@@ -685,7 +682,7 @@ bool WoBle::UnitTest2()
     Init(NULL, false);
     first_packet = PacketBuffer::New(10);
     first_packet->SetDataLength(5, NULL);
-    uint8_t *data = first_packet->Start();
+    uint8_t * data = first_packet->Start();
 
     if (data == NULL)
     {
@@ -744,145 +741,154 @@ bool WoBle::UnitTest2()
 
 bool WoBle::UnitTest3()
 {
-  PacketBuffer *first_packet;
-  PacketBuffer *second_packet;
-  PacketBuffer *last_packet;
-  SequenceNumber_t rcvd_ack;
-  bool did_rcv_ack;
-  bool rc = true;
+    PacketBuffer * first_packet;
+    PacketBuffer * second_packet;
+    PacketBuffer * last_packet;
+    SequenceNumber_t rcvd_ack;
+    bool did_rcv_ack;
+    bool rc = true;
 
-  Init(NULL, false);
-  first_packet = PacketBuffer::New(10);
-  first_packet->SetDataLength(5, NULL);
-  uint8_t *data = first_packet->Start();
-  if (data == NULL) {
+    Init(NULL, false);
+    first_packet = PacketBuffer::New(10);
+    first_packet->SetDataLength(5, NULL);
+    uint8_t * data = first_packet->Start();
+    if (data == NULL)
+    {
+        PacketBuffer::Free(first_packet);
+        return false;
+    }
+    data[0] = kHeaderFlag_StartMessage;
+    data[1] = 1;
+    data[2] = 3;
+    data[3] = 0;
+    data[4] = 0xfd; // payload
+
+    if (!HandleCharacteristicReceived(first_packet, rcvd_ack, did_rcv_ack))
+    {
+        PacketBuffer::Free(first_packet);
+        return false;
+    }
+    if (mRxState != kState_InProgress)
+    {
+        PacketBuffer::Free(first_packet);
+        rc = false;
+    }
+
+    second_packet = PacketBuffer::New(3);
+    second_packet->SetDataLength(3, NULL);
+    data = second_packet->Start();
+    if (data == NULL)
+    {
+        PacketBuffer::Free(first_packet);
+        PacketBuffer::Free(second_packet);
+        return false;
+    }
+    data[0] = kHeaderFlag_ContinueMessage;
+    data[1] = 2;
+    data[4] = 0xfe; // payload
+
+    if (!HandleCharacteristicReceived(second_packet, rcvd_ack, did_rcv_ack))
+    {
+        PacketBuffer::Free(first_packet);
+        PacketBuffer::Free(second_packet);
+        return false;
+    }
+
+    if (mRxState != kState_InProgress)
+    {
+        PacketBuffer::Free(first_packet);
+        PacketBuffer::Free(second_packet);
+        return false;
+    }
+
+    last_packet = PacketBuffer::New(3);
+    last_packet->SetDataLength(3, NULL);
+    data = last_packet->Start();
+    if (data == NULL)
+    {
+        PacketBuffer::Free(first_packet);
+        PacketBuffer::Free(last_packet);
+        return false;
+    }
+    data[0] = kHeaderFlag_EndMessage;
+    data[1] = 3;
+    data[4] = 0xff; // payload
+
+    if (!HandleCharacteristicReceived(last_packet, rcvd_ack, did_rcv_ack))
+    {
+        rc = false;
+    }
+
+    if (mRxState != kState_Complete)
+    {
+        rc = false;
+    }
+
+    Init(NULL, false);
     PacketBuffer::Free(first_packet);
-    return false;
-  }
-  data[0] = kHeaderFlag_StartMessage;
-  data[1] = 1;
-  data[2] = 3;
-  data[3] = 0;
-  data[4] = 0xfd; // payload
-
-  if (!HandleCharacteristicReceived(first_packet, rcvd_ack, did_rcv_ack)) {
-    PacketBuffer::Free(first_packet);
-    return false;
-  }
-  if (mRxState != kState_InProgress) {
-    PacketBuffer::Free(first_packet);
-    rc = false;
-  }
-
-  second_packet = PacketBuffer::New(3);
-  second_packet->SetDataLength(3, NULL);
-  data = second_packet->Start();
-  if (data == NULL) {
-    PacketBuffer::Free(first_packet);
-    PacketBuffer::Free(second_packet);
-    return false;
-  }
-  data[0] = kHeaderFlag_ContinueMessage;
-  data[1] = 2;
-  data[4] = 0xfe; // payload
-
-  if (!HandleCharacteristicReceived(second_packet, rcvd_ack, did_rcv_ack)) {
-    PacketBuffer::Free(first_packet);
-    PacketBuffer::Free(second_packet);
-    return false;
-  }
-
-  if (mRxState != kState_InProgress) {
-    PacketBuffer::Free(first_packet);
-    PacketBuffer::Free(second_packet);
-    return false;
-  }
-
-  last_packet = PacketBuffer::New(3);
-  last_packet->SetDataLength(3, NULL);
-  data = last_packet->Start();
-  if (data == NULL) {
-    PacketBuffer::Free(first_packet);
-    PacketBuffer::Free(last_packet);
-    return false;
-  }
-  data[0] = kHeaderFlag_EndMessage;
-  data[1] = 3;
-  data[4] = 0xff; // payload
-
-  if (!HandleCharacteristicReceived(last_packet, rcvd_ack, did_rcv_ack)) {
-    rc = false;
-  }
-
-  if (mRxState != kState_Complete) {
-    rc = false;
-  }
-
-  Init(NULL, false);
-  PacketBuffer::Free(first_packet);
-  return rc;
+    return rc;
 }
 
 bool WoBle::UnitTest4()
 {
-  PacketBuffer *first_packet;
-  bool rc = true;
+    PacketBuffer * first_packet;
+    bool rc = true;
 
-  Init(NULL, false);
-  first_packet = PacketBuffer::New(10);
-  first_packet->SetDataLength(1, NULL);
-  uint8_t *data = first_packet->Start();
-  if (data == NULL) {
+    Init(NULL, false);
+    first_packet = PacketBuffer::New(10);
+    first_packet->SetDataLength(1, NULL);
+    uint8_t * data = first_packet->Start();
+    if (data == NULL)
+    {
+        PacketBuffer::Free(first_packet);
+        return false;
+    }
+    data[0] = 0xff; // payload
+
+    if ((!HandleCharacteristicSend(first_packet, false)) || (first_packet->DataLength() != 5) || (mTxState != kState_Complete))
+    {
+        PacketBuffer::Free(first_packet);
+        return false;
+    }
+
+    Init(NULL, false);
     PacketBuffer::Free(first_packet);
-    return false;
-  }
-  data[0] = 0xff; // payload
-
-  if ((!HandleCharacteristicSend(first_packet, false)) ||
-      (first_packet->DataLength() != 5) ||
-      (mTxState != kState_Complete)) {
-    PacketBuffer::Free(first_packet);
-    return false;
-  }
-
-  Init(NULL, false);
-  PacketBuffer::Free(first_packet);
-  return rc;
+    return rc;
 }
 
 bool WoBle::UnitTest5()
 {
-  PacketBuffer *first_packet;
+    PacketBuffer * first_packet;
 
-  Init(NULL, false);
-  first_packet = PacketBuffer::New(140);
-  first_packet->SetDataLength(140, NULL);
-  uint8_t *data = first_packet->Start();
-  if (data == NULL) {
+    Init(NULL, false);
+    first_packet = PacketBuffer::New(140);
+    first_packet->SetDataLength(140, NULL);
+    uint8_t * data = first_packet->Start();
+    if (data == NULL)
+    {
+        PacketBuffer::Free(first_packet);
+        return false;
+    }
+    for (int i = 0; i < 140; i++)
+    {
+        data[i] = i; // payload
+    }
+
+    if (!HandleCharacteristicSend(first_packet, false) || (first_packet->DataLength() != 128) || (mTxState != kState_InProgress))
+    {
+        PacketBuffer::Free(first_packet);
+        return false;
+    }
+
+    if ((!HandleCharacteristicSend(NULL, false)) || (mTxState != kState_Complete) || (first_packet->DataLength() != 18))
+    {
+        PacketBuffer::Free(first_packet);
+        return false;
+    }
+
+    Init(NULL, false);
     PacketBuffer::Free(first_packet);
-    return false;
-  }
-  for (int i = 0; i < 140; i++) {
-    data[i] = i; // payload
-  }
-
-  if (!HandleCharacteristicSend(first_packet, false) ||
-      (first_packet->DataLength() != 128) ||
-      (mTxState != kState_InProgress)) {
-    PacketBuffer::Free(first_packet);
-    return false;
-  }
-
-  if ((!HandleCharacteristicSend(NULL, false)) ||
-      (mTxState != kState_Complete) ||
-      (first_packet->DataLength() != 18)) {
-    PacketBuffer::Free(first_packet);
-    return false;
-  }
-
-  Init(NULL, false);
-  PacketBuffer::Free(first_packet);
-  return true;
+    return true;
 }
 
 // Send 300-byte payload.
@@ -891,62 +897,62 @@ bool WoBle::UnitTest5()
 // Third packet: 2 byte header + 50 byte payload
 bool WoBle::UnitTest6()
 {
-  PacketBuffer *first_packet;
-  bool rc = true;
+    PacketBuffer * first_packet;
+    bool rc = true;
 
-  Init(NULL, false);
-  first_packet = PacketBuffer::New(300);
-  first_packet->SetDataLength(300, NULL);
-  uint8_t *data = first_packet->Start();
-  if (data == NULL) {
+    Init(NULL, false);
+    first_packet = PacketBuffer::New(300);
+    first_packet->SetDataLength(300, NULL);
+    uint8_t * data = first_packet->Start();
+    if (data == NULL)
+    {
+        PacketBuffer::Free(first_packet);
+        return false;
+    }
+    for (int i = 0; i < 300; i++)
+    {
+        data[i] = i; // payload
+    }
+
+    if (!HandleCharacteristicSend(first_packet, false) || (first_packet->DataLength() != 128) || (mTxState != kState_InProgress))
+    {
+        PacketBuffer::Free(first_packet);
+        return false;
+    }
+
+    if (!HandleCharacteristicSend(NULL, false) || (mTxState != kState_InProgress) || (first_packet->DataLength() != 128))
+    {
+        PacketBuffer::Free(first_packet);
+        return false;
+    }
+
+    if (!HandleCharacteristicSend(NULL, false) || (mTxState != kState_Complete) || (first_packet->DataLength() != 52))
+    {
+        PacketBuffer::Free(first_packet);
+        return false;
+    }
+
+    Init(NULL, false);
     PacketBuffer::Free(first_packet);
-    return false;
-  }
-  for (int i = 0; i < 300; i++) {
-    data[i] = i; // payload
-  }
-
-  if (!HandleCharacteristicSend(first_packet, false) ||
-      (first_packet->DataLength() != 128) ||
-      (mTxState != kState_InProgress)) {
-    PacketBuffer::Free(first_packet);
-    return false;
-  }
-
-  if (!HandleCharacteristicSend(NULL, false) ||
-      (mTxState != kState_InProgress) ||
-      (first_packet->DataLength() != 128)) {
-    PacketBuffer::Free(first_packet);
-    return false;
-  }
-
-  if (!HandleCharacteristicSend(NULL, false) ||
-      (mTxState != kState_Complete) ||
-      (first_packet->DataLength() != 52)) {
-    PacketBuffer::Free(first_packet);
-    return false;
-  }
-
-  Init(NULL, false);
-  PacketBuffer::Free(first_packet);
-  return rc;
+    return rc;
 }
 
 bool WoBle::UnitTest()
 {
-  bool rc;
+    bool rc;
 
-  rc = UnitTest1();
-  rc = rc && UnitTest2();
-  rc = rc && UnitTest3();
-  rc = rc && UnitTest4();
-  rc = rc && UnitTest5();
-  rc = rc && UnitTest6();
-  if (!rc) {
-    WeaveDie();
-  }
+    rc = UnitTest1();
+    rc = rc && UnitTest2();
+    rc = rc && UnitTest3();
+    rc = rc && UnitTest4();
+    rc = rc && UnitTest5();
+    rc = rc && UnitTest6();
+    if (!rc)
+    {
+        WeaveDie();
+    }
 
-  return rc;
+    return rc;
 }
 
 } /* namespace Ble */

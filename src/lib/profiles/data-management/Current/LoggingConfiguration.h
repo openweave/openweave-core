@@ -40,7 +40,6 @@ namespace WeaveMakeManagedNamespaceIdentifier(DataManagement, kWeaveManagedNames
 class LoggingConfiguration
 {
 public:
-
     LoggingConfiguration(void);
 
     ImportanceType GetProfileImportance(uint32_t profileId) const;
@@ -52,24 +51,22 @@ public:
     nl::Inet::IPAddress GetDestNodeIPAddress() const;
 
 public:
-
     static LoggingConfiguration & GetInstance(void);
 
-    ImportanceType       mGlobalImportance;
-    timestamp_t          mImportanceExpiration;
-    duration_t           mMinimumLogUploadInterval;
-    duration_t           mMaximumLogUploadInterval;
-    char *               mLoggingDestination; // should be changeable at runtime; need to drive the semantics of change.
-    uint64_t             mDestNodeId;
-    nl::Inet::IPAddress  mDestNodeIPAddress;
-    uint32_t             mUploadThreshold;
-    uint32_t             mLoggingVolume;
-
+    ImportanceType mGlobalImportance;
+    timestamp_t mImportanceExpiration;
+    duration_t mMinimumLogUploadInterval;
+    duration_t mMaximumLogUploadInterval;
+    char * mLoggingDestination; // should be changeable at runtime; need to drive the semantics of change.
+    uint64_t mDestNodeId;
+    nl::Inet::IPAddress mDestNodeIPAddress;
+    uint32_t mUploadThreshold;
+    uint32_t mLoggingVolume;
 };
 
-} // WeaveMakeManagedNamespaceIdentifier(DataManagement, kWeaveManagedNamespaceDesignation_Current)
-} // Profiles
-} // Weave
-} // nl
+} // namespace WeaveMakeManagedNamespaceIdentifier(DataManagement, kWeaveManagedNamespaceDesignation_Current)
+} // namespace Profiles
+} // namespace Weave
+} // namespace nl
 
 #endif // _WEAVE_DATA_MANAGEMENT_EVENT_LOGGING_CONFIGURATION_CURRENT_H

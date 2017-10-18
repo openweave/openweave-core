@@ -43,10 +43,12 @@ public:
     // Following APIs must be implemented by platform:
 
     // Subscribe to updates and indications on the specfied characteristic
-    virtual bool SubscribeCharacteristic(BLE_CONNECTION_OBJECT connObj, const WeaveBleUUID *svcId, const WeaveBleUUID *charId) = 0;
+    virtual bool SubscribeCharacteristic(BLE_CONNECTION_OBJECT connObj, const WeaveBleUUID * svcId,
+                                         const WeaveBleUUID * charId) = 0;
 
     // Unsubscribe from updates and indications on the specified characteristic
-    virtual bool UnsubscribeCharacteristic(BLE_CONNECTION_OBJECT connObj, const WeaveBleUUID *svcId, const WeaveBleUUID *charId) = 0;
+    virtual bool UnsubscribeCharacteristic(BLE_CONNECTION_OBJECT connObj, const WeaveBleUUID * svcId,
+                                           const WeaveBleUUID * charId) = 0;
 
     // Close the underlying BLE connection.
     virtual bool CloseConnection(BLE_CONNECTION_OBJECT connObj) = 0;
@@ -73,16 +75,20 @@ public:
     //   If a Send* function returns false, it must release its reference to pBuf prior to return.
 
     // Send GATT characteristic indication request
-    virtual bool SendIndication(BLE_CONNECTION_OBJECT connObj, const WeaveBleUUID *svcId, const WeaveBleUUID *charId, PacketBuffer *pBuf) = 0;
+    virtual bool SendIndication(BLE_CONNECTION_OBJECT connObj, const WeaveBleUUID * svcId, const WeaveBleUUID * charId,
+                                PacketBuffer * pBuf) = 0;
 
     // Send GATT characteristic write request
-    virtual bool SendWriteRequest(BLE_CONNECTION_OBJECT connObj, const WeaveBleUUID *svcId, const WeaveBleUUID *charId, PacketBuffer *pBuf) = 0;
+    virtual bool SendWriteRequest(BLE_CONNECTION_OBJECT connObj, const WeaveBleUUID * svcId, const WeaveBleUUID * charId,
+                                  PacketBuffer * pBuf) = 0;
 
     // Send GATT characteristic read request
-    virtual bool SendReadRequest(BLE_CONNECTION_OBJECT connObj, const WeaveBleUUID *svcId, const WeaveBleUUID *charId, PacketBuffer *pBuf) = 0;
+    virtual bool SendReadRequest(BLE_CONNECTION_OBJECT connObj, const WeaveBleUUID * svcId, const WeaveBleUUID * charId,
+                                 PacketBuffer * pBuf) = 0;
 
     // Send response to remote host's GATT chacteristic read response
-    virtual bool SendReadResponse(BLE_CONNECTION_OBJECT connObj, BLE_READ_REQUEST_CONTEXT requestContext, const WeaveBleUUID *svcId, const WeaveBleUUID *charId) = 0;
+    virtual bool SendReadResponse(BLE_CONNECTION_OBJECT connObj, BLE_READ_REQUEST_CONTEXT requestContext,
+                                  const WeaveBleUUID * svcId, const WeaveBleUUID * charId) = 0;
 };
 
 } /* namespace Ble */

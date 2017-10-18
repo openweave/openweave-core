@@ -103,7 +103,7 @@ BLE_ERROR BLEEndPoint::StartConnect()
 {
     BLE_ERROR err = BLE_NO_ERROR;
     BleTransportCapabilitiesRequestMessage req;
-    PacketBuffer *buf = NULL;
+    PacketBuffer * buf = NULL;
     int i;
     int numVersions;
 
@@ -303,9 +303,9 @@ bool BLEEndPoint::IsUnsubscribePending() const
 void BLEEndPoint::Abort()
 {
     // No more callbacks after this point, since application explicitly called Abort().
-    OnConnectComplete = NULL;
+    OnConnectComplete  = NULL;
     OnConnectionClosed = NULL;
-    OnMessageReceived = NULL;
+    OnMessageReceived  = NULL;
 #if WEAVE_ENABLE_WOBLE_TEST
     OnCommandReceived = NULL;
 #endif
@@ -316,9 +316,9 @@ void BLEEndPoint::Abort()
 void BLEEndPoint::Close()
 {
     // No more callbacks after this point, since application explicitly called Close().
-    OnConnectComplete = NULL;
+    OnConnectComplete  = NULL;
     OnConnectionClosed = NULL;
-    OnMessageReceived = NULL;
+    OnMessageReceived  = NULL;
 #if WEAVE_ENABLE_WOBLE_TEST
     OnCommandReceived = NULL;
 #endif
@@ -409,7 +409,8 @@ void BLEEndPoint::FinalizeClose(uint8_t oldState, uint8_t flags, BLE_ERROR err)
             // Indicate close of WeaveConnection to peripheral via GATT unsubscribe. Keep end point allocated until
             // unsubscribe completes or times out, so platform doesn't close underlying BLE connection before
             // we're really sure the unsubscribe request has been sent.
-            if (mBle->mPlatformDelegate->UnsubscribeCharacteristic(mConnObj, &WEAVE_BLE_SVC_ID, &mBle->WEAVE_BLE_CHAR_2_ID) == false)
+            if (mBle->mPlatformDelegate->UnsubscribeCharacteristic(mConnObj, &WEAVE_BLE_SVC_ID, &mBle->WEAVE_BLE_CHAR_2_ID) ==
+                false)
             {
                 WeaveLogError(Ble, "WoBle unsub failed");
 
@@ -456,7 +457,7 @@ void BLEEndPoint::DoCloseCallback(uint8_t state, uint8_t flags, BLE_ERROR err)
     }
 
     // Callback fires once per end point lifetime.
-    OnConnectComplete = NULL;
+    OnConnectComplete  = NULL;
     OnConnectionClosed = NULL;
 }
 
@@ -506,8 +507,8 @@ void BLEEndPoint::Free()
 #endif
 
     // Clear callbacks.
-    OnConnectComplete = NULL;
-    OnMessageReceived = NULL;
+    OnConnectComplete  = NULL;
+    OnMessageReceived  = NULL;
     OnConnectionClosed = NULL;
 
     // Clear handle to underlying BLE connection.
@@ -519,7 +520,7 @@ void BLEEndPoint::Free()
 
 void BLEEndPoint::FreeWoBle()
 {
-    PacketBuffer *buf;
+    PacketBuffer * buf;
 
     // Free transmit disassembly buffer
     buf = mWoBle.TxPacket();
@@ -532,7 +533,7 @@ void BLEEndPoint::FreeWoBle()
     PacketBuffer::Free(buf);
 }
 
-BLE_ERROR BLEEndPoint::Init(BleLayer *bleLayer, BLE_CONNECTION_OBJECT connObj, BleRole role, bool autoClose)
+BLE_ERROR BLEEndPoint::Init(BleLayer * bleLayer, BLE_CONNECTION_OBJECT connObj, BleRole role, bool autoClose)
 {
     BLE_ERROR err = BLE_NO_ERROR;
     bool expectInitialAck;
@@ -563,7 +564,7 @@ BLE_ERROR BLEEndPoint::Init(BleLayer *bleLayer, BLE_CONNECTION_OBJECT connObj, B
     }
 
 #if WEAVE_ENABLE_WOBLE_TEST
-    err = (BLE_ERROR)mTxQueueMutex.Init(mTxQueueMutex);
+    err = (BLE_ERROR) mTxQueueMutex.Init(mTxQueueMutex);
     if (err != BLE_NO_ERROR)
     {
         WeaveLogError(Ble, "%s: Mutex init failed", __FUNCTION__);
@@ -578,20 +579,20 @@ BLE_ERROR BLEEndPoint::Init(BleLayer *bleLayer, BLE_CONNECTION_OBJECT connObj, B
 #endif
 
     // BleLayerObject initialization:
-    mBle = bleLayer;
+    mBle      = bleLayer;
     mRefCount = 1;
 
     // BLEEndPoint data members:
-    mConnObj = connObj;
-    mRole = role;
-    mConnStateFlags = 0;
+    mConnObj         = connObj;
+    mRole            = role;
+    mConnStateFlags  = 0;
     mTimerStateFlags = 0;
     SetFlag(mConnStateFlags, kConnState_AutoClose, autoClose);
-    mLocalReceiveWindowSize = 0;
+    mLocalReceiveWindowSize  = 0;
     mRemoteReceiveWindowSize = 0;
-    mReceiveWindowMaxSize = 0;
-    mSendQueue = NULL;
-    mAckToSend = NULL;
+    mReceiveWindowMaxSize    = 0;
+    mSendQueue               = NULL;
+    mAckToSend               = NULL;
 
     WeaveLogDebugBleEndPoint(Ble, "initialized local rx window, size = %u", mLocalReceiveWindowSize);
 
@@ -602,7 +603,7 @@ exit:
     return err;
 }
 
-BLE_ERROR BLEEndPoint::SendCharacteristic(PacketBuffer *buf)
+BLE_ERROR BLEEndPoint::SendCharacteristic(PacketBuffer * buf)
 {
     BLE_ERROR err = BLE_NO_ERROR;
 
@@ -641,7 +642,7 @@ BLE_ERROR BLEEndPoint::SendCharacteristic(PacketBuffer *buf)
  *  kType_Data(0)       - data packet
  *  kType_Control(1)    - control packet
  */
-void BLEEndPoint::QueueTx(PacketBuffer *data, PacketType_t type)
+void BLEEndPoint::QueueTx(PacketBuffer * data, PacketType_t type)
 {
 #if WEAVE_ENABLE_WOBLE_TEST
     WeaveLogDebugBleEndPoint(Ble, "%s: data->%p, type %d, len %d", __FUNCTION__, data, type, data->DataLength());
@@ -653,21 +654,18 @@ void BLEEndPoint::QueueTx(PacketBuffer *data, PacketType_t type)
     if (mSendQueue == NULL)
     {
         mSendQueue = data;
-        WeaveLogDebugBleEndPoint(Ble, "%s: Set data as new mSendQueue %p, type %d",
-                __FUNCTION__, mSendQueue, type);
+        WeaveLogDebugBleEndPoint(Ble, "%s: Set data as new mSendQueue %p, type %d", __FUNCTION__, mSendQueue, type);
     }
     else
     {
         mSendQueue->AddToEnd(data);
-        WeaveLogDebugBleEndPoint(Ble, "%s: Append data to mSendQueue %p, type %d",
-                __FUNCTION__, mSendQueue, type);
+        WeaveLogDebugBleEndPoint(Ble, "%s: Append data to mSendQueue %p, type %d", __FUNCTION__, mSendQueue, type);
     }
 
     QueueTxUnlock();
 }
 
-
-BLE_ERROR BLEEndPoint::Send(PacketBuffer *data)
+BLE_ERROR BLEEndPoint::Send(PacketBuffer * data)
 {
     WeaveLogDebugBleEndPoint(Ble, "entered Send");
 
@@ -713,7 +711,7 @@ exit:
     return err;
 }
 
-bool BLEEndPoint::PrepareNextFragment(PacketBuffer *data, bool &sentAck)
+bool BLEEndPoint::PrepareNextFragment(PacketBuffer * data, bool & sentAck)
 {
     // If we have a pending fragment acknowledgement to send, piggyback it on the fragment we're about to transmit.
     if (GetFlag(mTimerStateFlags, kTimerState_SendAckTimerRunning) == true)
@@ -751,8 +749,8 @@ BLE_ERROR BLEEndPoint::SendNextMessage()
     }
 #endif
 
-    PacketBuffer *data = mSendQueue;
-    mSendQueue = mSendQueue->DetachTail();
+    PacketBuffer * data = mSendQueue;
+    mSendQueue          = mSendQueue->DetachTail();
     QueueTxUnlock();
 
 #if WEAVE_ENABLE_WOBLE_TEST
@@ -825,7 +823,7 @@ BLE_ERROR BLEEndPoint::HandleHandshakeConfirmationReceived()
 {
     WeaveLogDebugBleEndPoint(Ble, "entered HandleHandshakeConfirmationReceived");
 
-    BLE_ERROR err = BLE_NO_ERROR;
+    BLE_ERROR err      = BLE_NO_ERROR;
     uint8_t closeFlags = kBleCloseFlag_AbortTransmission;
 
     // Free capabilities request/response payload.
@@ -837,8 +835,9 @@ BLE_ERROR BLEEndPoint::HandleHandshakeConfirmationReceived()
     {
         // Subscribe to characteristic which peripheral will use to send indications. Prompts peripheral to send
         // BLE transport capabilities indication.
-        VerifyOrExit(mBle->mPlatformDelegate->SubscribeCharacteristic(mConnObj, &WEAVE_BLE_SVC_ID,
-                &mBle->WEAVE_BLE_CHAR_2_ID) == true, err = BLE_ERROR_GATT_SUBSCRIBE_FAILED);
+        VerifyOrExit(mBle->mPlatformDelegate->SubscribeCharacteristic(mConnObj, &WEAVE_BLE_SVC_ID, &mBle->WEAVE_BLE_CHAR_2_ID) ==
+                         true,
+                     err = BLE_ERROR_GATT_SUBSCRIBE_FAILED);
 
         // We just sent a GATT subscribe request, so make sure to attempt unsubscribe on close.
         SetFlag(mConnStateFlags, kConnState_DidBeginSubscribe, true);
@@ -902,7 +901,7 @@ BLE_ERROR BLEEndPoint::HandleFragmentConfirmationReceived()
     // Ensure we're in correct state to receive confirmation of non-handshake GATT send.
     VerifyOrExit(IsConnected(mState), err = BLE_ERROR_INCORRECT_STATE);
 
-    //TODO PacketBuffer high water mark optimization: if ack pending, but fragmenter state == complete, free fragmenter's
+    // TODO PacketBuffer high water mark optimization: if ack pending, but fragmenter state == complete, free fragmenter's
     // tx buf before sending ack.
 
     if (GetFlag(mConnStateFlags, kConnState_StandAloneAckInFlight) == true)
@@ -1016,8 +1015,7 @@ BLE_ERROR BLEEndPoint::DriveSending()
     // receiver's window is completely empty, OR another GATT operation is in flight, awaiting confirmation...
     if ((mRemoteReceiveWindowSize <= BTP_WINDOW_NO_ACK_SEND_THRESHOLD &&
          GetFlag(mTimerStateFlags, kTimerState_SendAckTimerRunning) == false && mAckToSend == NULL) ||
-        (mRemoteReceiveWindowSize == 0) ||
-        (GetFlag(mConnStateFlags, kConnState_GattOperationInFlight) == true))
+        (mRemoteReceiveWindowSize == 0) || (GetFlag(mConnStateFlags, kConnState_GattOperationInFlight) == true))
     {
 #ifdef NL_BLE_END_POINT_DEBUG_LOGGING_ENABLED
         if (mRemoteReceiveWindowSize <= BTP_WINDOW_NO_ACK_SEND_THRESHOLD &&
@@ -1071,10 +1069,10 @@ BLE_ERROR BLEEndPoint::DriveSending()
     else if (mWoBle.TxState() == WoBle::kState_Complete)
     {
         // Clear fragmenter's pointer to sent message buffer and reset its Tx state.
-        PacketBuffer *sentBuf = mWoBle.TxPacket();
+        PacketBuffer * sentBuf = mWoBle.TxPacket();
 #if WEAVE_ENABLE_WOBLE_TEST
         mWoBleTest.DoTxTiming(sentBuf, WOBLE_TX_DONE);
-#endif  // WEAVE_ENABLE_WOBLE_TEST
+#endif // WEAVE_ENABLE_WOBLE_TEST
         mWoBle.ClearTxPacket();
 
         // Free sent buffer.
@@ -1102,12 +1100,12 @@ exit:
     return err;
 }
 
-BLE_ERROR BLEEndPoint::HandleCapabilitiesRequestReceived(PacketBuffer *data)
+BLE_ERROR BLEEndPoint::HandleCapabilitiesRequestReceived(PacketBuffer * data)
 {
     BLE_ERROR err = BLE_NO_ERROR;
     BleTransportCapabilitiesRequestMessage req;
     BleTransportCapabilitiesResponseMessage resp;
-    PacketBuffer *responseBuf = NULL;
+    PacketBuffer * responseBuf = NULL;
     uint16_t mtu;
 
     VerifyOrExit(data != NULL, err = BLE_ERROR_BAD_ARGS);
@@ -1134,19 +1132,19 @@ BLE_ERROR BLEEndPoint::HandleCapabilitiesRequestReceived(PacketBuffer *data)
     // Select fragment size for connection based on ATT MTU.
     if (mtu > 0) // If one or both device knows connection's MTU...
     {
-        resp.mFragmentSize = nl::Weave::min(static_cast<uint16_t>(mtu - 3), WoBle::sMaxFragmentSize); // Reserve 3 bytes of MTU for ATT header.
+        resp.mFragmentSize =
+            nl::Weave::min(static_cast<uint16_t>(mtu - 3), WoBle::sMaxFragmentSize); // Reserve 3 bytes of MTU for ATT header.
     }
     else // Else, if neither device knows MTU...
     {
-        WeaveLogProgress(Ble, "cannot determine ATT MTU; selecting default fragment size = %u",
-                WoBle::sDefaultFragmentSize);
+        WeaveLogProgress(Ble, "cannot determine ATT MTU; selecting default fragment size = %u", WoBle::sDefaultFragmentSize);
         resp.mFragmentSize = WoBle::sDefaultFragmentSize;
     }
 
     // Select local and remote max receive window size based on local resources available for both incoming writes AND
     // GATT confirmations.
     mRemoteReceiveWindowSize = mLocalReceiveWindowSize = mReceiveWindowMaxSize =
-            nl::Weave::min(req.mWindowSize, static_cast<uint8_t>(BLE_MAX_RECEIVE_WINDOW_SIZE));
+        nl::Weave::min(req.mWindowSize, static_cast<uint8_t>(BLE_MAX_RECEIVE_WINDOW_SIZE));
     resp.mWindowSize = mReceiveWindowMaxSize;
 
     WeaveLogProgress(Ble, "local and remote recv window sizes = %u", resp.mWindowSize);
@@ -1160,8 +1158,7 @@ BLE_ERROR BLEEndPoint::HandleCapabilitiesRequestReceived(PacketBuffer *data)
         // If BLE transport protocol versions incompatible, prepare to close connection after subscription has been
         // received and capabilities response has been sent.
         WeaveLogError(Ble, "incompatible BTP versions; peripheral expected between %d and %d",
-                      NL_BLE_TRANSPORT_PROTOCOL_MIN_SUPPORTED_VERSION,
-                      NL_BLE_TRANSPORT_PROTOCOL_MAX_SUPPORTED_VERSION);
+                      NL_BLE_TRANSPORT_PROTOCOL_MIN_SUPPORTED_VERSION, NL_BLE_TRANSPORT_PROTOCOL_MAX_SUPPORTED_VERSION);
         mState = kState_Aborting;
     }
     else if ((resp.mSelectedProtocolVersion == kBleTransportProtocolVersion_V1) ||
@@ -1176,9 +1173,7 @@ BLE_ERROR BLEEndPoint::HandleCapabilitiesRequestReceived(PacketBuffer *data)
         // This is the peripheral, so set Rx fragment size, and leave Tx at default
         mWoBle.SetRxFragmentSize(resp.mFragmentSize);
     }
-    WeaveLogProgress(Ble, "using BTP fragment sizes rx %d / tx %d.",
-                     mWoBle.GetRxFragmentSize(), mWoBle.GetTxFragmentSize());
-
+    WeaveLogProgress(Ble, "using BTP fragment sizes rx %d / tx %d.", mWoBle.GetRxFragmentSize(), mWoBle.GetTxFragmentSize());
 
     err = resp.Encode(responseBuf);
     SuccessOrExit(err);
@@ -1205,7 +1200,7 @@ exit:
     return err;
 }
 
-BLE_ERROR BLEEndPoint::HandleCapabilitiesResponseReceived(PacketBuffer *data)
+BLE_ERROR BLEEndPoint::HandleCapabilitiesResponseReceived(PacketBuffer * data)
 {
     BLE_ERROR err = BLE_NO_ERROR;
     BleTransportCapabilitiesResponseMessage resp;
@@ -1218,10 +1213,8 @@ BLE_ERROR BLEEndPoint::HandleCapabilitiesResponseReceived(PacketBuffer *data)
 
     VerifyOrExit(resp.mFragmentSize > 0, err = BLE_ERROR_INVALID_FRAGMENT_SIZE);
 
-    WeaveLogProgress(Ble, "peripheral chose BTP version %d; central expected between %d and %d",
-                     resp.mSelectedProtocolVersion,
-                     NL_BLE_TRANSPORT_PROTOCOL_MIN_SUPPORTED_VERSION,
-                     NL_BLE_TRANSPORT_PROTOCOL_MAX_SUPPORTED_VERSION);
+    WeaveLogProgress(Ble, "peripheral chose BTP version %d; central expected between %d and %d", resp.mSelectedProtocolVersion,
+                     NL_BLE_TRANSPORT_PROTOCOL_MIN_SUPPORTED_VERSION, NL_BLE_TRANSPORT_PROTOCOL_MAX_SUPPORTED_VERSION);
 
     if ((resp.mSelectedProtocolVersion < NL_BLE_TRANSPORT_PROTOCOL_MIN_SUPPORTED_VERSION) ||
         (resp.mSelectedProtocolVersion > NL_BLE_TRANSPORT_PROTOCOL_MAX_SUPPORTED_VERSION))
@@ -1244,8 +1237,7 @@ BLE_ERROR BLEEndPoint::HandleCapabilitiesResponseReceived(PacketBuffer *data)
         // This is the central, so set Tx fragement size, and leave Rx at default.
         mWoBle.SetTxFragmentSize(resp.mFragmentSize);
     }
-    WeaveLogProgress(Ble, "using BTP fragment sizes rx %d / tx %d.",
-                     mWoBle.GetRxFragmentSize(), mWoBle.GetTxFragmentSize());
+    WeaveLogProgress(Ble, "using BTP fragment sizes rx %d / tx %d.", mWoBle.GetRxFragmentSize(), mWoBle.GetTxFragmentSize());
 
     // Select local and remote max receive window size based on local resources available for both incoming indications
     // AND GATT confirmations.
@@ -1278,8 +1270,8 @@ exit:
 }
 
 // Returns number of open slots in remote receive window given the input values.
-SequenceNumber_t BLEEndPoint::AdjustRemoteReceiveWindow(SequenceNumber_t lastReceivedAck,
-        SequenceNumber_t maxRemoteWindowSize, SequenceNumber_t newestUnackedSentSeqNum)
+SequenceNumber_t BLEEndPoint::AdjustRemoteReceiveWindow(SequenceNumber_t lastReceivedAck, SequenceNumber_t maxRemoteWindowSize,
+                                                        SequenceNumber_t newestUnackedSentSeqNum)
 {
     // Assumption: SequenceNumber_t is uint8_t.
     // Assumption: Maximum possible sequence number value is UINT8_MAX.
@@ -1304,13 +1296,13 @@ SequenceNumber_t BLEEndPoint::AdjustRemoteReceiveWindow(SequenceNumber_t lastRec
     }
 }
 
-BLE_ERROR BLEEndPoint::Receive(PacketBuffer *data)
+BLE_ERROR BLEEndPoint::Receive(PacketBuffer * data)
 {
     WeaveLogDebugBleEndPoint(Ble, "+++++++++++++++++++++ entered receive");
-    BLE_ERROR err = BLE_NO_ERROR;
+    BLE_ERROR err                = BLE_NO_ERROR;
     SequenceNumber_t receivedAck = 0;
-    uint8_t closeFlags = kBleCloseFlag_AbortTransmission;
-    bool didReceiveAck = false;
+    uint8_t closeFlags           = kBleCloseFlag_AbortTransmission;
+    bool didReceiveAck           = false;
 
 #if WEAVE_ENABLE_WOBLE_TEST
     if (mWoBle.IsCommandPacket(data) == true)
@@ -1319,7 +1311,7 @@ BLE_ERROR BLEEndPoint::Receive(PacketBuffer *data)
     }
     else
 #endif
-    {   // This is a special handling on the first Woble data packet, the CapabilitiesRequest.
+    { // This is a special handling on the first Woble data packet, the CapabilitiesRequest.
         // Suppress error logging if peer's send overlaps with our unsubscribe on final close.
         if (IsUnsubscribePending() == true)
         {
@@ -1336,7 +1328,7 @@ BLE_ERROR BLEEndPoint::Receive(PacketBuffer *data)
                 VerifyOrExit(mState == kState_Connecting, err = BLE_ERROR_INCORRECT_STATE);
                 SetFlag(mConnStateFlags, kConnState_CapabilitiesMsgReceived, true);
 
-                err = HandleCapabilitiesResponseReceived(data);
+                err  = HandleCapabilitiesResponseReceived(data);
                 data = NULL;
                 SuccessOrExit(err);
             }
@@ -1346,7 +1338,7 @@ BLE_ERROR BLEEndPoint::Receive(PacketBuffer *data)
                 VerifyOrExit(mState == kState_Ready, err = BLE_ERROR_INCORRECT_STATE);
                 SetFlag(mConnStateFlags, kConnState_CapabilitiesMsgReceived, true);
 
-                err = HandleCapabilitiesRequestReceived(data);
+                err  = HandleCapabilitiesRequestReceived(data);
                 data = NULL;
 
                 if (err != BLE_NO_ERROR)
@@ -1362,7 +1354,7 @@ BLE_ERROR BLEEndPoint::Receive(PacketBuffer *data)
             // If received data was handshake packet, don't feed it to message reassembler.
             ExitNow();
         }
-    }   // End handling the CapabilitiesRequest
+    } // End handling the CapabilitiesRequest
 
     WeaveLogDebugBleEndPoint(Ble, "prepared to rx post-handshake btp packet");
 
@@ -1380,7 +1372,7 @@ BLE_ERROR BLEEndPoint::Receive(PacketBuffer *data)
     mWoBle.LogStateDebug();
 
     // Pass received packet into BTP protocol engine.
-    err = mWoBle.HandleCharacteristicReceived(data, receivedAck, didReceiveAck);
+    err  = mWoBle.HandleCharacteristicReceived(data, receivedAck, didReceiveAck);
     data = NULL; // Buffer consumed by protocol engine; either freed or added to message reassembly area.
 
     WeaveLogDebugBleEndPoint(Ble, "woble rx'd characteristic, state after:");
@@ -1418,12 +1410,13 @@ BLE_ERROR BLEEndPoint::Receive(PacketBuffer *data)
         }
 
         WeaveLogDebugBleEndPoint(Ble, "about to adjust remote rx window; got ack num = %u, newest unacked sent seq num = %u, \
-                old window size = %u, max window size = %u", receivedAck, mWoBle.GetNewestUnackedSentSequenceNumber(),
-                mRemoteReceiveWindowSize, mReceiveWindowMaxSize);
+                old window size = %u, max window size = %u",
+                                 receivedAck, mWoBle.GetNewestUnackedSentSequenceNumber(), mRemoteReceiveWindowSize,
+                                 mReceiveWindowMaxSize);
 
         // Open remote device's receive window according to sequence number it just acknowledged.
-        mRemoteReceiveWindowSize = AdjustRemoteReceiveWindow(receivedAck, mReceiveWindowMaxSize,
-                mWoBle.GetNewestUnackedSentSequenceNumber());
+        mRemoteReceiveWindowSize =
+            AdjustRemoteReceiveWindow(receivedAck, mReceiveWindowMaxSize, mWoBle.GetNewestUnackedSentSequenceNumber());
 
         WeaveLogDebugBleEndPoint(Ble, "adjusted remote rx window, new size = %u", mRemoteReceiveWindowSize);
 
@@ -1468,7 +1461,7 @@ BLE_ERROR BLEEndPoint::Receive(PacketBuffer *data)
     if (mWoBle.RxState() == WoBle::kState_Complete)
     {
         // Take ownership of message PacketBuffer
-        PacketBuffer *full_packet = mWoBle.RxPacket();
+        PacketBuffer * full_packet = mWoBle.RxPacket();
         mWoBle.ClearRxPacket();
 
         WeaveLogDebugBleEndPoint(Ble, "reassembled whole msg, len = %d", full_packet->DataLength());
@@ -1477,16 +1470,16 @@ BLE_ERROR BLEEndPoint::Receive(PacketBuffer *data)
         // If we have a control message received callback, and end point is not closing...
         if (mWoBle.RxPacketType() == kType_Control && OnCommandReceived && mState != kState_Closing)
         {
-            WeaveLogDebugBleEndPoint(Ble, "%s: calling OnCommandReceived, seq# %u, len = %u, type %u",
-                    __FUNCTION__, receivedAck, full_packet->DataLength(), mWoBle.RxPacketType());
+            WeaveLogDebugBleEndPoint(Ble, "%s: calling OnCommandReceived, seq# %u, len = %u, type %u", __FUNCTION__, receivedAck,
+                                     full_packet->DataLength(), mWoBle.RxPacketType());
             // Pass received control message up the stack.
             mWoBle.SetRxPacketSeq(receivedAck);
             OnCommandReceived(this, full_packet);
         }
         else
 #endif
-        // If we have a message received callback, and end point is not closing...
-        if (OnMessageReceived && mState != kState_Closing)
+            // If we have a message received callback, and end point is not closing...
+            if (OnMessageReceived && mState != kState_Closing)
         {
             // Pass received message up the stack.
             OnMessageReceived(this, full_packet);
@@ -1512,7 +1505,7 @@ exit:
     return err;
 }
 
-bool BLEEndPoint::SendWrite(PacketBuffer *buf)
+bool BLEEndPoint::SendWrite(PacketBuffer * buf)
 {
     // Add reference to message fragment for duration of platform's GATT write attempt. Weave retains partial
     // ownership of message fragment's PacketBuffer, since this is the same buffer as that of the whole message, just
@@ -1525,7 +1518,7 @@ bool BLEEndPoint::SendWrite(PacketBuffer *buf)
     return mBle->mPlatformDelegate->SendWriteRequest(mConnObj, &WEAVE_BLE_SVC_ID, &mBle->WEAVE_BLE_CHAR_1_ID, buf);
 }
 
-bool BLEEndPoint::SendIndication(PacketBuffer *buf)
+bool BLEEndPoint::SendIndication(PacketBuffer * buf)
 {
     // Add reference to message fragment for duration of platform's GATT indication attempt. Weave retains partial
     // ownership of message fragment's PacketBuffer, since this is the same buffer as that of the whole message, just
@@ -1664,9 +1657,9 @@ void BLEEndPoint::StopUnsubscribeTimer()
     SetFlag(mTimerStateFlags, kTimerState_UnsubscribeTimerRunning, false);
 }
 
-void BLEEndPoint::HandleConnectTimeout(Weave::System::Layer *systemLayer, void *appState, Weave::System::Error err)
+void BLEEndPoint::HandleConnectTimeout(Weave::System::Layer * systemLayer, void * appState, Weave::System::Error err)
 {
-    BLEEndPoint *ep = static_cast<BLEEndPoint *>(appState);
+    BLEEndPoint * ep = static_cast<BLEEndPoint *>(appState);
 
     // Check for event-based timer race condition.
     if (GetFlag(ep->mTimerStateFlags, kTimerState_ConnectTimerRunning) == true)
@@ -1677,9 +1670,9 @@ void BLEEndPoint::HandleConnectTimeout(Weave::System::Layer *systemLayer, void *
     }
 }
 
-void BLEEndPoint::HandleReceiveConnectionTimeout(Weave::System::Layer *systemLayer, void *appState, Weave::System::Error err)
+void BLEEndPoint::HandleReceiveConnectionTimeout(Weave::System::Layer * systemLayer, void * appState, Weave::System::Error err)
 {
-    BLEEndPoint *ep = static_cast<BLEEndPoint *>(appState);
+    BLEEndPoint * ep = static_cast<BLEEndPoint *>(appState);
 
     // Check for event-based timer race condition.
     if (GetFlag(ep->mTimerStateFlags, kTimerState_ReceiveConnectionTimerRunning) == true)
@@ -1690,9 +1683,9 @@ void BLEEndPoint::HandleReceiveConnectionTimeout(Weave::System::Layer *systemLay
     }
 }
 
-void BLEEndPoint::HandleAckReceivedTimeout(Weave::System::Layer *systemLayer, void *appState, Weave::System::Error err)
+void BLEEndPoint::HandleAckReceivedTimeout(Weave::System::Layer * systemLayer, void * appState, Weave::System::Error err)
 {
-    BLEEndPoint *ep = static_cast<BLEEndPoint *>(appState);
+    BLEEndPoint * ep = static_cast<BLEEndPoint *>(appState);
 
     // Check for event-based timer race condition.
     if (GetFlag(ep->mTimerStateFlags, kTimerState_AckReceivedTimerRunning) == true)
@@ -1704,9 +1697,9 @@ void BLEEndPoint::HandleAckReceivedTimeout(Weave::System::Layer *systemLayer, vo
     }
 }
 
-void BLEEndPoint::HandleSendAckTimeout(Weave::System::Layer *systemLayer, void *appState, Weave::System::Error err)
+void BLEEndPoint::HandleSendAckTimeout(Weave::System::Layer * systemLayer, void * appState, Weave::System::Error err)
 {
-    BLEEndPoint *ep = static_cast<BLEEndPoint *>(appState);
+    BLEEndPoint * ep = static_cast<BLEEndPoint *>(appState);
 
     // Check for event-based timer race condition.
     if (GetFlag(ep->mTimerStateFlags, kTimerState_SendAckTimerRunning) == true)
@@ -1726,9 +1719,9 @@ void BLEEndPoint::HandleSendAckTimeout(Weave::System::Layer *systemLayer, void *
     }
 }
 
-void BLEEndPoint::HandleUnsubscribeTimeout(Weave::System::Layer *systemLayer, void *appState, Weave::System::Error err)
+void BLEEndPoint::HandleUnsubscribeTimeout(Weave::System::Layer * systemLayer, void * appState, Weave::System::Error err)
 {
-    BLEEndPoint *ep = static_cast<BLEEndPoint *>(appState);
+    BLEEndPoint * ep = static_cast<BLEEndPoint *>(appState);
 
     // Check for event-based timer race condition.
     if (GetFlag(ep->mTimerStateFlags, kTimerState_UnsubscribeTimerRunning) == true)

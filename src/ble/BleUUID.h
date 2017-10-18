@@ -30,13 +30,12 @@ namespace Ble {
 typedef struct
 {
     uint8_t bytes[16];
-}
-WeaveBleUUID;
+} WeaveBleUUID;
 
 // UUID of Nest Weave BLE service. Exposed for use in scan filter.
 extern const WeaveBleUUID WEAVE_BLE_SVC_ID;
 
-bool UUIDsMatch(const WeaveBleUUID *idOne, const WeaveBleUUID *idTwo);
+bool UUIDsMatch(const WeaveBleUUID * idOne, const WeaveBleUUID * idTwo);
 
 } /* namespace Ble */
 } /* namespace nl */

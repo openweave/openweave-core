@@ -41,25 +41,23 @@ namespace Profiles {
 namespace WeaveMakeManagedNamespaceIdentifier(DataManagement, kWeaveManagedNamespaceDesignation_Current) {
 
 // Do nothing
-ViewClient::ViewClient ()
-{
-}
+ViewClient::ViewClient() { }
 
 // AddRef to Binding
 // store pointers to binding and app state
 // null out EC
-WEAVE_ERROR ViewClient::Init (Binding * const apBinding, void * const apAppState, EventCallback const aEventCallback)
+WEAVE_ERROR ViewClient::Init(Binding * const apBinding, void * const apAppState, EventCallback const aEventCallback)
 {
     // initialize all pointers to NULL
-    (void)Cancel ();
+    (void) Cancel();
 
     // add reference to the binding
     apBinding->AddRef();
 
     // make a copy of the pointers
-    mBinding = apBinding;
-    mAppState = apAppState;
-    mEventCallback = aEventCallback;
+    mBinding             = apBinding;
+    mAppState            = apAppState;
+    mEventCallback       = aEventCallback;
     mPrevIsPartialChange = false;
 #if WDM_ENABLE_PROTOCOL_CHECKS
     mPrevTraitDataHandle = -1;
@@ -70,15 +68,16 @@ WEAVE_ERROR ViewClient::Init (Binding * const apBinding, void * const apAppState
     return WEAVE_NO_ERROR;
 }
 
-WEAVE_ERROR ViewClient::SendRequest (TraitCatalogBase<TraitDataSink>* apCatalog, const TraitPath aPathList[], const size_t aPathListSize)
+WEAVE_ERROR ViewClient::SendRequest(TraitCatalogBase<TraitDataSink> * apCatalog, const TraitPath aPathList[],
+                                    const size_t aPathListSize)
 {
-    WEAVE_ERROR err = WEAVE_NO_ERROR;
-    PacketBuffer *MsgBuf = NULL;
+    WEAVE_ERROR err       = WEAVE_NO_ERROR;
+    PacketBuffer * MsgBuf = NULL;
     SchemaVersionRange requestedSchemaVersionRange;
 
     VerifyOrExit(kMode_Initialized == mCurrentMode, err = WEAVE_ERROR_INCORRECT_STATE);
 
-    mCurrentMode = kMode_DataSink;
+    mCurrentMode     = kMode_DataSink;
     mDataSinkCatalog = apCatalog;
 
     MsgBuf = PacketBuffer::New();
@@ -140,12 +139,12 @@ WEAVE_ERROR ViewClient::SendRequest (TraitCatalogBase<TraitDataSink>* apCatalog,
         ExitNow();
     }
 
-    mEC->AppState = this;
+    mEC->AppState          = this;
     mEC->OnMessageReceived = OnMessageReceived;
     mEC->OnResponseTimeout = OnResponseTimeout;
-    mEC->OnSendError = OnSendError;
+    mEC->OnSendError       = OnSendError;
 
-    err = mEC->SendMessage(nl::Weave::Profiles::kWeaveProfile_WDM, kMsgType_ViewRequest, MsgBuf);
+    err    = mEC->SendMessage(nl::Weave::Profiles::kWeaveProfile_WDM, kMsgType_ViewRequest, MsgBuf);
     MsgBuf = NULL;
     SuccessOrExit(err);
 
@@ -160,21 +159,21 @@ exit:
 
     if (WEAVE_NO_ERROR != err)
     {
-        Cancel ();
+        Cancel();
     }
 
     return err;
 }
 
 // acquire EC from binding, kick off send message
-WEAVE_ERROR ViewClient::SendRequest (AppendToPathList const aAppendToPathList, HandleDataElement const aHandleDataElement)
+WEAVE_ERROR ViewClient::SendRequest(AppendToPathList const aAppendToPathList, HandleDataElement const aHandleDataElement)
 {
-    WEAVE_ERROR err = WEAVE_NO_ERROR;
-    PacketBuffer *MsgBuf = NULL;
+    WEAVE_ERROR err       = WEAVE_NO_ERROR;
+    PacketBuffer * MsgBuf = NULL;
 
     VerifyOrExit(kMode_Initialized == mCurrentMode, err = WEAVE_ERROR_INCORRECT_STATE);
 
-    mCurrentMode = kMode_WithoutDataSink;
+    mCurrentMode       = kMode_WithoutDataSink;
     mHandleDataElement = aHandleDataElement;
 
     MsgBuf = PacketBuffer::New();
@@ -207,10 +206,10 @@ WEAVE_ERROR ViewClient::SendRequest (AppendToPathList const aAppendToPathList, H
 
     {
         const uint8_t * const begin = MsgBuf->Start();
-        const uint8_t * const end = MsgBuf->Start() + MsgBuf->DataLength();
-        for (const uint8_t *pch = begin; pch < end; ++pch)
+        const uint8_t * const end   = MsgBuf->Start() + MsgBuf->DataLength();
+        for (const uint8_t * pch = begin; pch < end; ++pch)
         {
-            //WeaveLogDetail(DataManagement, "0x%02X", *pch);
+            // WeaveLogDetail(DataManagement, "0x%02X", *pch);
         }
     }
 
@@ -223,12 +222,12 @@ WEAVE_ERROR ViewClient::SendRequest (AppendToPathList const aAppendToPathList, H
         ExitNow();
     }
 
-    mEC->AppState = this;
+    mEC->AppState          = this;
     mEC->OnMessageReceived = OnMessageReceived;
     mEC->OnResponseTimeout = OnResponseTimeout;
-    mEC->OnSendError = OnSendError;
+    mEC->OnSendError       = OnSendError;
 
-    err = mEC->SendMessage(nl::Weave::Profiles::kWeaveProfile_WDM, kMsgType_ViewRequest, MsgBuf);
+    err    = mEC->SendMessage(nl::Weave::Profiles::kWeaveProfile_WDM, kMsgType_ViewRequest, MsgBuf);
     MsgBuf = NULL;
     SuccessOrExit(err);
 
@@ -243,14 +242,14 @@ exit:
 
     if (WEAVE_NO_ERROR != err)
     {
-        Cancel ();
+        Cancel();
     }
 
     return err;
 }
 
 // release binding, close EC, null out all pointers
-WEAVE_ERROR ViewClient::Cancel ()
+WEAVE_ERROR ViewClient::Cancel()
 {
     if (kMode_Canceled != mCurrentMode)
     {
@@ -273,22 +272,22 @@ WEAVE_ERROR ViewClient::Cancel ()
 
         // We still need these two variables when we're canceling all data sinks
         mCurrentMode = kMode_Canceled;
-        mAppState = NULL;
+        mAppState    = NULL;
     }
 
     return WEAVE_NO_ERROR;
 }
 
-void ViewClient::OnSendError (ExchangeContext *aEC, WEAVE_ERROR aErrorCode, void *aMsgSpecificContext)
+void ViewClient::OnSendError(ExchangeContext * aEC, WEAVE_ERROR aErrorCode, void * aMsgSpecificContext)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
 
     ViewClient * const pViewClient = reinterpret_cast<ViewClient *>(aEC->AppState);
-    void * const pAppState = pViewClient->mAppState;
-    EventCallback CallbackFunc = pViewClient->mEventCallback;
+    void * const pAppState         = pViewClient->mAppState;
+    EventCallback CallbackFunc     = pViewClient->mEventCallback;
 
     VerifyOrExit((kMode_DataSink == pViewClient->mCurrentMode) || (kMode_WithoutDataSink == pViewClient->mCurrentMode),
-        err = WEAVE_ERROR_INCORRECT_STATE);
+                 err = WEAVE_ERROR_INCORRECT_STATE);
 
     pViewClient->Cancel();
 
@@ -300,16 +299,16 @@ exit:
     WeaveLogFunctError(err);
 }
 
-void ViewClient::OnResponseTimeout (nl::Weave::ExchangeContext *aEC)
+void ViewClient::OnResponseTimeout(nl::Weave::ExchangeContext * aEC)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
 
-    ViewClient * pViewClient = reinterpret_cast<ViewClient *>(aEC->AppState);
-    void * const pAppState = pViewClient->mAppState;
+    ViewClient * pViewClient   = reinterpret_cast<ViewClient *>(aEC->AppState);
+    void * const pAppState     = pViewClient->mAppState;
     EventCallback CallbackFunc = pViewClient->mEventCallback;
 
     VerifyOrExit((kMode_DataSink == pViewClient->mCurrentMode) || (kMode_WithoutDataSink == pViewClient->mCurrentMode),
-        err = WEAVE_ERROR_INCORRECT_STATE);
+                 err = WEAVE_ERROR_INCORRECT_STATE);
 
     pViewClient->Cancel();
 
@@ -321,22 +320,23 @@ exit:
     WeaveLogFunctError(err);
 }
 
-void ViewClient::OnMessageReceived (nl::Weave::ExchangeContext *aEC, const nl::Inet::IPPacketInfo *aPktInfo,
-    const nl::Weave::WeaveMessageInfo *aMsgInfo, uint32_t aProfileId,
-    uint8_t aMsgType, PacketBuffer *aPayload)
+void ViewClient::OnMessageReceived(nl::Weave::ExchangeContext * aEC, const nl::Inet::IPPacketInfo * aPktInfo,
+                                   const nl::Weave::WeaveMessageInfo * aMsgInfo, uint32_t aProfileId, uint8_t aMsgType,
+                                   PacketBuffer * aPayload)
 {
-    WEAVE_ERROR err = WEAVE_NO_ERROR;
-    ViewClient * pViewClient = reinterpret_cast<ViewClient *>(aEC->AppState);
-    void * const pAppState = pViewClient->mAppState;
+    WEAVE_ERROR err            = WEAVE_NO_ERROR;
+    ViewClient * pViewClient   = reinterpret_cast<ViewClient *>(aEC->AppState);
+    void * const pAppState     = pViewClient->mAppState;
     EventCallback CallbackFunc = pViewClient->mEventCallback;
     EventParam Param;
 
     VerifyOrExit((kMode_DataSink == pViewClient->mCurrentMode) || (kMode_WithoutDataSink == pViewClient->mCurrentMode),
-            err = WEAVE_ERROR_INCORRECT_STATE);
+                 err = WEAVE_ERROR_INCORRECT_STATE);
 
     VerifyOrExit(aEC == pViewClient->mEC, err = WEAVE_ERROR_INCORRECT_STATE);
 
-    if ((nl::Weave::Profiles::kWeaveProfile_Common == aProfileId) && (nl::Weave::Profiles::Common::kMsgType_StatusReport == aMsgType))
+    if ((nl::Weave::Profiles::kWeaveProfile_Common == aProfileId) &&
+        (nl::Weave::Profiles::Common::kMsgType_StatusReport == aMsgType))
     {
         pViewClient->Cancel();
 
@@ -345,7 +345,7 @@ void ViewClient::OnMessageReceived (nl::Weave::ExchangeContext *aEC, const nl::I
     }
     else if ((nl::Weave::Profiles::kWeaveProfile_WDM == aProfileId) && (kMsgType_ViewResponse == aMsgType))
     {
-        Param.mViewResponseReceivedEventParam.mEC = aEC;
+        Param.mViewResponseReceivedEventParam.mEC      = aEC;
         Param.mViewResponseReceivedEventParam.mMessage = aPayload;
         CallbackFunc(pAppState, kEvent_ViewResponseReceived, WEAVE_NO_ERROR, Param);
 
@@ -397,7 +397,7 @@ void ViewClient::OnMessageReceived (nl::Weave::ExchangeContext *aEC, const nl::I
                     SuccessOrExit(err);
 
                     isPartialChange = false;
-                    err = element.GetPartialChangeFlag(&isPartialChange);
+                    err             = element.GetPartialChangeFlag(&isPartialChange);
                     VerifyOrExit(err == WEAVE_NO_ERROR || err == WEAVE_END_OF_TLV, );
                 }
 
@@ -424,13 +424,14 @@ void ViewClient::OnMessageReceived (nl::Weave::ExchangeContext *aEC, const nl::I
 
                 err = DataSink->GetSchemaEngine()->MapPathToHandle(pathReader, pathHandle);
 #if TDM_DISABLE_STRICT_SCHEMA_COMPLIANCE
-                // if we're not in strict compliance mode, we can ignore data elements that refer to paths we can't map due to mismatching schema.
-                // The eventual call to StoreDataElement will correctly deal with the presence of a null property path handle that
-                // has been returned by the above call. It's necessary to call into StoreDataElement with this null handle to ensure
-                // the requisite OnEvent calls are made to the application despite the presence of an unknown tag. It's also necessary to ensure
-                // that we update the internal version tracked by the sink.
+                // if we're not in strict compliance mode, we can ignore data elements that refer to paths we can't map due to
+                // mismatching schema. The eventual call to StoreDataElement will correctly deal with the presence of a null
+                // property path handle that has been returned by the above call. It's necessary to call into StoreDataElement with
+                // this null handle to ensure the requisite OnEvent calls are made to the application despite the presence of an
+                // unknown tag. It's also necessary to ensure that we update the internal version tracked by the sink.
                 VerifyOrExit(err == WEAVE_NO_ERROR || err == WEAVE_ERROR_TLV_TAG_NOT_FOUND, /* no-op */);
-                if (err == WEAVE_ERROR_TLV_TAG_NOT_FOUND) {
+                if (err == WEAVE_ERROR_TLV_TAG_NOT_FOUND)
+                {
                     WeaveLogDetail(DataManagement, "Ignoring un-mappable path!");
                     err = WEAVE_NO_ERROR;
                 }
@@ -439,25 +440,29 @@ void ViewClient::OnMessageReceived (nl::Weave::ExchangeContext *aEC, const nl::I
 #endif
 
                 pathReader = reader;
-                flags = 0;
+                flags      = 0;
 
 #if WDM_ENABLE_PROTOCOL_CHECKS
                 bool prevHandleMatches = (pViewClient->mPrevTraitDataHandle == handle);
 
                 // Previous and current trait data handles can only match if we were previously encountered a partial change.
                 // Otherwise, it shouldn't. If there is a violation here, it should be flagged.
-                if (prevHandleMatches != pViewClient->mPrevIsPartialChange) {
-                    WeaveLogError(DataManagement, "Encountered partial change flag violation (%u, %08x, %08x)", pViewClient->mPrevIsPartialChange, pViewClient->mPrevTraitDataHandle, handle);
+                if (prevHandleMatches != pViewClient->mPrevIsPartialChange)
+                {
+                    WeaveLogError(DataManagement, "Encountered partial change flag violation (%u, %08x, %08x)",
+                                  pViewClient->mPrevIsPartialChange, pViewClient->mPrevTraitDataHandle, handle);
                     err = WEAVE_ERROR_INVALID_DATA_LIST;
                     goto exit;
                 }
 #endif
 
-                if (!pViewClient->mPrevIsPartialChange) {
+                if (!pViewClient->mPrevIsPartialChange)
+                {
                     flags = TraitDataSink::kFirstElementInChange;
                 }
 
-                if (!isPartialChange) {
+                if (!isPartialChange)
+                {
                     flags |= TraitDataSink::kLastElementInChange;
                 }
 
@@ -468,15 +473,17 @@ void ViewClient::OnMessageReceived (nl::Weave::ExchangeContext *aEC, const nl::I
 
 #if WDM_ENABLE_PROTOCOL_CHECKS
                 // it's important to clear out mPrevTraitDataHandle if this isn't a partial change so that an ensuing notify
-                // that has the first data element pointing to the same trait data instance doesn't trip up the (if prevHandleMatches != mPrevIsPartialChange) logic above.
-                if (!isPartialChange) {
+                // that has the first data element pointing to the same trait data instance doesn't trip up the (if
+                // prevHandleMatches != mPrevIsPartialChange) logic above.
+                if (!isPartialChange)
+                {
                     pViewClient->mPrevTraitDataHandle = -1;
                 }
-                else {
+                else
+                {
                     pViewClient->mPrevTraitDataHandle = handle;
                 }
 #endif
-
             }
             else if (kMode_WithoutDataSink == pViewClient->mCurrentMode)
             {
@@ -526,9 +533,9 @@ exit:
     }
 }
 
-}; // WeaveMakeManagedNamespaceIdentifier(DataManagement, kWeaveManagedNamespaceDesignation_Current)
-}; // Profiles
-}; // Weave
-}; // nl
+}; // namespace WeaveMakeManagedNamespaceIdentifier(DataManagement, kWeaveManagedNamespaceDesignation_Current)
+}; // namespace Profiles
+}; // namespace Weave
+}; // namespace nl
 
 #endif // WEAVE_CONFIG_ENABLE_RELIABLE_MESSAGING

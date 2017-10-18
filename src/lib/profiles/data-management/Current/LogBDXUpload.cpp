@@ -33,21 +33,21 @@ namespace WeaveMakeManagedNamespaceIdentifier(DataManagement, kWeaveManagedNames
 
 static char sLogFileName[] = "topazlog";
 
-WEAVE_ERROR BdxSendAcceptHandler(nl::Weave::Profiles::BulkDataTransfer::BDXTransfer *aXfer,
-                                 nl::Weave::Profiles::BulkDataTransfer::SendAccept *aSendAcceptMsg)
+WEAVE_ERROR BdxSendAcceptHandler(nl::Weave::Profiles::BulkDataTransfer::BDXTransfer * aXfer,
+                                 nl::Weave::Profiles::BulkDataTransfer::SendAccept * aSendAcceptMsg)
 {
     WEAVE_ERROR error = WEAVE_NO_ERROR;
-    WeaveLogDetail(BDX, "SendInit Accepted: %hd maxBlockSize, transfer mode is %hd", aSendAcceptMsg->mMaxBlockSize, aXfer->mTransferMode);
+    WeaveLogDetail(BDX, "SendInit Accepted: %hd maxBlockSize, transfer mode is %hd", aSendAcceptMsg->mMaxBlockSize,
+                   aXfer->mTransferMode);
     return error;
 }
 
-
-void BdxRejectHandler(nl::Weave::Profiles::BulkDataTransfer::BDXTransfer *aXfer,
-                      nl::Weave::Profiles::StatusReporting::StatusReport *aReport)
+void BdxRejectHandler(nl::Weave::Profiles::BulkDataTransfer::BDXTransfer * aXfer,
+                      nl::Weave::Profiles::StatusReporting::StatusReport * aReport)
 {
     WeaveLogProgress(BDX, "BDX Init message rejected: %d", aReport->mStatusCode);
 
-    LogBDXUpload *uploader;
+    LogBDXUpload * uploader;
 
     aXfer->Shutdown();
 
@@ -56,12 +56,10 @@ void BdxRejectHandler(nl::Weave::Profiles::BulkDataTransfer::BDXTransfer *aXfer,
     uploader->Abort();
 }
 
-void BdxGetBlockHandler(nl::Weave::Profiles::BulkDataTransfer::BDXTransfer *aXfer,
-                        uint64_t *aLength,
-                        uint8_t **aDataBlock,
-                        bool *aIsLastBlock)
+void BdxGetBlockHandler(nl::Weave::Profiles::BulkDataTransfer::BDXTransfer * aXfer, uint64_t * aLength, uint8_t ** aDataBlock,
+                        bool * aIsLastBlock)
 {
-    LogBDXUpload *uploader;
+    LogBDXUpload * uploader;
 
     VerifyOrExit(aXfer != NULL && aLength != NULL && aDataBlock != NULL && aIsLastBlock != NULL,
                  WeaveLogProgress(BDX, "BDXGetBlockHandler called with invalid args"));
@@ -87,10 +85,8 @@ void LogBDXUpload::ThrottleIfNeeded(void)
     mFirstXfer = false;
 }
 
-void LogBDXUpload::BlockHandler(nl::Weave::Profiles::BulkDataTransfer::BDXTransfer *aXfer,
-                                uint64_t *aLength,
-                                uint8_t **aDataBlock,
-                                bool *aIsLastBlock)
+void LogBDXUpload::BlockHandler(nl::Weave::Profiles::BulkDataTransfer::BDXTransfer * aXfer, uint64_t * aLength,
+                                uint8_t ** aDataBlock, bool * aIsLastBlock)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
     TLVWriter writer;
@@ -101,9 +97,10 @@ void LogBDXUpload::BlockHandler(nl::Weave::Profiles::BulkDataTransfer::BDXTransf
     // If successful, these values will be reset below.  If the
     // function fails, these will be the return values.
     *aIsLastBlock = true;
-    *aLength = 0;
+    *aLength      = 0;
 
-    do {
+    do
+    {
         if (fullBlock)
         {
             ThrottleIfNeeded();
@@ -119,8 +116,8 @@ void LogBDXUpload::BlockHandler(nl::Weave::Profiles::BulkDataTransfer::BDXTransf
                 // reached the end of all importances.  We're at the
                 // end of the current transfer.  Signal end of
                 // transmission.
-                err = WEAVE_NO_ERROR;
-                *aIsLastBlock = true;
+                err                = WEAVE_NO_ERROR;
+                *aIsLastBlock      = true;
                 mCurrentImportance = kImportanceType_First;
                 break;
             }
@@ -129,12 +126,12 @@ void LogBDXUpload::BlockHandler(nl::Weave::Profiles::BulkDataTransfer::BDXTransf
                 // Other importance levels are available.  Save the
                 // state of this importance, and move to the next one,
                 // restoring the last event appropriately
-                err = WEAVE_NO_ERROR;
+                err                                                               = WEAVE_NO_ERROR;
                 mLastScheduledEventId[mCurrentImportance - kImportanceType_First] = mCurrentEventID;
                 mCurrentImportance = static_cast<ImportanceType>(static_cast<uint32_t>(mCurrentImportance) + 1);
-                mCurrentEventID = mLastScheduledEventId[mCurrentImportance - kImportanceType_First];
-                mFirstXfer = true;
-                fullBlock = false;
+                mCurrentEventID    = mLastScheduledEventId[mCurrentImportance - kImportanceType_First];
+                mFirstXfer         = true;
+                fullBlock          = false;
                 continue;
             }
         }
@@ -144,7 +141,7 @@ void LogBDXUpload::BlockHandler(nl::Weave::Profiles::BulkDataTransfer::BDXTransf
         // that there will be more events to transfer.
         if ((err == WEAVE_ERROR_BUFFER_TOO_SMALL) || (err == WEAVE_ERROR_NO_MEMORY))
         {
-            err = WEAVE_NO_ERROR;
+            err           = WEAVE_NO_ERROR;
             *aIsLastBlock = false;
             break;
         }
@@ -159,9 +156,10 @@ exit:
     return;
 }
 
-void BdxXferErrorHandler(nl::Weave::Profiles::BulkDataTransfer::BDXTransfer *aXfer, nl::Weave::Profiles::StatusReporting::StatusReport *aXferError)
+void BdxXferErrorHandler(nl::Weave::Profiles::BulkDataTransfer::BDXTransfer * aXfer,
+                         nl::Weave::Profiles::StatusReporting::StatusReport * aXferError)
 {
-    LogBDXUpload *uploader;
+    LogBDXUpload * uploader;
 
     WeaveLogProgress(BDX, "Transfer error: %d", aXferError->mStatusCode);
 
@@ -172,9 +170,9 @@ void BdxXferErrorHandler(nl::Weave::Profiles::BulkDataTransfer::BDXTransfer *aXf
     uploader->Abort();
 }
 
-void BdxXferDoneHandler(nl::Weave::Profiles::BulkDataTransfer::BDXTransfer *aXfer)
+void BdxXferDoneHandler(nl::Weave::Profiles::BulkDataTransfer::BDXTransfer * aXfer)
 {
-    LogBDXUpload *uploader;
+    LogBDXUpload * uploader;
     WeaveLogDetail(BDX, "Transfer complete!");
 
     aXfer->Shutdown();
@@ -184,9 +182,9 @@ void BdxXferDoneHandler(nl::Weave::Profiles::BulkDataTransfer::BDXTransfer *aXfe
     uploader->Done();
 }
 
-void BdxErrorHandler(nl::Weave::Profiles::BulkDataTransfer::BDXTransfer *aXfer, WEAVE_ERROR aErrorCode)
+void BdxErrorHandler(nl::Weave::Profiles::BulkDataTransfer::BDXTransfer * aXfer, WEAVE_ERROR aErrorCode)
 {
-    LogBDXUpload *uploader;
+    LogBDXUpload * uploader;
     WeaveLogProgress(BDX, "BDX error: %s", ErrorStr(aErrorCode));
     // We currently don't try to handle errors at all
     aXfer->Shutdown();
@@ -196,20 +194,18 @@ void BdxErrorHandler(nl::Weave::Profiles::BulkDataTransfer::BDXTransfer *aXfer, 
     uploader->Abort();
 }
 
-LogBDXUpload::LogBDXUpload()
-{
-}
+LogBDXUpload::LogBDXUpload() { }
 
-WEAVE_ERROR LogBDXUpload::Init(LoggingManagement *inLogger)
+WEAVE_ERROR LogBDXUpload::Init(LoggingManagement * inLogger)
 {
     WEAVE_ERROR err;
-    mState = UploaderUninitialized;
+    mState             = UploaderUninitialized;
     mCurrentImportance = kImportanceType_First;
-    mCurrentEventID = 0;
+    mCurrentEventID    = 0;
     memset(mLastScheduledEventId, 0, sizeof(mLastScheduledEventId));
     memset(mLastTransmittedEventId, 0, sizeof(mLastTransmittedEventId));
     mLogger = inLogger;
-    err = mBdxNode.Init(mLogger->mExchangeMgr);
+    err     = mBdxNode.Init(mLogger->mExchangeMgr);
     SuccessOrExit(err);
 
     mState = UploaderInitialized;
@@ -217,24 +213,23 @@ exit:
     return err;
 }
 
-WEAVE_ERROR LogBDXUpload::StartUpload(nl::Weave::Binding *aBinding)
+WEAVE_ERROR LogBDXUpload::StartUpload(nl::Weave::Binding * aBinding)
 {
-    nl::Weave::Profiles::BulkDataTransfer::BDXTransfer *xfer;
+    nl::Weave::Profiles::BulkDataTransfer::BDXTransfer * xfer;
     ReferencedString logFileName;
     WEAVE_ERROR err;
 
     logFileName.init(static_cast<uint16_t>(strlen(sLogFileName)), sLogFileName);
-    nl::Weave::Profiles::BulkDataTransfer::BDXHandlers handlers =
-        {
-            BdxSendAcceptHandler, // SendAcceptHandler
-            NULL,                 // ReceiveAcceptHandler
-            BdxRejectHandler,     // RejectHandler
-            BdxGetBlockHandler,   // GetBlockHandler
-            NULL,                 // PutBlockHandler
-            BdxXferErrorHandler,  // XferErrorHandler
-            BdxXferDoneHandler,   // XferDoneHandler
-            BdxErrorHandler       // ErrorHandler
-        };
+    nl::Weave::Profiles::BulkDataTransfer::BDXHandlers handlers = {
+        BdxSendAcceptHandler, // SendAcceptHandler
+        NULL,                 // ReceiveAcceptHandler
+        BdxRejectHandler,     // RejectHandler
+        BdxGetBlockHandler,   // GetBlockHandler
+        NULL,                 // PutBlockHandler
+        BdxXferErrorHandler,  // XferErrorHandler
+        BdxXferDoneHandler,   // XferDoneHandler
+        BdxErrorHandler       // ErrorHandler
+    };
 
     VerifyOrExit(mState == UploaderInitialized, err = WEAVE_ERROR_INCORRECT_STATE);
     VerifyOrExit(aBinding != NULL, err = WEAVE_ERROR_INVALID_ARGUMENT);
@@ -242,18 +237,18 @@ WEAVE_ERROR LogBDXUpload::StartUpload(nl::Weave::Binding *aBinding)
     // restore the point from which we need to resume
     memcpy(mLastScheduledEventId, mLastTransmittedEventId, sizeof(mLastScheduledEventId));
     mCurrentImportance = kImportanceType_First;
-    mCurrentEventID = mLastScheduledEventId[mCurrentImportance - kImportanceType_First];
-    mFirstXfer = true;
+    mCurrentEventID    = mLastScheduledEventId[mCurrentImportance - kImportanceType_First];
+    mFirstXfer         = true;
 
     // create a transfer object
     xfer = NULL;
-    err = mBdxNode.NewTransfer(aBinding, handlers, logFileName, this, xfer);
+    err  = mBdxNode.NewTransfer(aBinding, handlers, logFileName, this, xfer);
     SuccessOrExit(err);
 
-    mState = UploaderInProgress;
+    mState              = UploaderInProgress;
     xfer->mMaxBlockSize = 1024;
-    xfer->mStartOffset = 0;
-    xfer->mLength = 0;
+    xfer->mStartOffset  = 0;
+    xfer->mLength       = 0;
 
     // start transfer
     err = mBdxNode.InitBdxSend(*xfer, true, false, false, NULL);
@@ -285,10 +280,10 @@ void LogBDXUpload::Abort(void)
 
 void LogBDXUpload::Done(void)
 {
-    //Upload was successful.  Transfer last scheduled event IDs to the
-    //last transmitted event IDS
+    // Upload was successful.  Transfer last scheduled event IDs to the
+    // last transmitted event IDS
     memcpy(mLastTransmittedEventId, mLastScheduledEventId, sizeof(mLastTransmittedEventId));
-    mState = UploaderInitialized;
+    mState          = UploaderInitialized;
     mUploadPosition = mLogger->GetBytesWritten();
     if (mThrottled)
     {
@@ -309,7 +304,7 @@ uint32_t LogBDXUpload::GetUploadPosition(void)
     return mUploadPosition;
 }
 
-} // WeaveMakeManagedNamespaceIdentifier(DataManagement, kWeaveManagedNamespaceDesignation_Current)
-} // Profiles
-} // Weave
-} // nl
+} // namespace WeaveMakeManagedNamespaceIdentifier(DataManagement, kWeaveManagedNamespaceDesignation_Current)
+} // namespace Profiles
+} // namespace Weave
+} // namespace nl

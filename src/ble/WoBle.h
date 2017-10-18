@@ -55,9 +55,9 @@ class BLEEndPoint;
 // Public data members:
 typedef enum
 {
-    kType_Data      = 0,                      // Default 0 for data
-    kType_Control   = 1,
-} PacketType_t;                               // WoBle packet types
+    kType_Data    = 0, // Default 0 for data
+    kType_Control = 1,
+} PacketType_t; // WoBle packet types
 
 class WoBle
 {
@@ -73,7 +73,7 @@ public:
         kState_InProgress = 1,
         kState_Complete   = 2,
         kState_Error      = 3
-    } State_t;                                    // [READ-ONLY] Current state
+    } State_t; // [READ-ONLY] Current state
 
     enum
     {
@@ -82,7 +82,7 @@ public:
         kHeaderFlag_EndMessage      = 0x04,
         kHeaderFlag_FragmentAck     = 0x08,
 #if WEAVE_ENABLE_WOBLE_TEST
-        kHeaderFlag_CommandMessage  = 0x10,
+        kHeaderFlag_CommandMessage = 0x10,
 #endif
     }; // Masks for BTP fragment header flag bits.
 
@@ -121,26 +121,26 @@ public:
     inline SequenceNumber_t SetRxPacketSeq(SequenceNumber_t seq) { return (mRxPacketSeq = seq); };
     inline SequenceNumber_t TxPacketSeq() { return mTxPacketSeq; };
     inline SequenceNumber_t RxPacketSeq() { return mRxPacketSeq; };
-    inline bool IsCommandPacket(PacketBuffer *p) { return GetFlag(*(p->Start()), kHeaderFlag_CommandMessage); }
-    inline void PushPacketTag(PacketBuffer *p, PacketType_t type)   \
-            {                                                       \
-                p->SetStart(p->Start() - sizeof(type));             \
-                memcpy(p->Start(), &type, sizeof(type));            \
-            };
-    inline PacketType_t PopPacketTag(PacketBuffer *p)               \
-            {                                                       \
-                PacketType_t type;                                  \
-                memcpy(&type, p->Start(), sizeof(type));            \
-                p->SetStart(p->Start() + sizeof(type));             \
-                return type;                                        \
-            };
+    inline bool IsCommandPacket(PacketBuffer * p) { return GetFlag(*(p->Start()), kHeaderFlag_CommandMessage); }
+    inline void PushPacketTag(PacketBuffer * p, PacketType_t type)
+    {
+        p->SetStart(p->Start() - sizeof(type));
+        memcpy(p->Start(), &type, sizeof(type));
+    };
+    inline PacketType_t PopPacketTag(PacketBuffer * p)
+    {
+        PacketType_t type;
+        memcpy(&type, p->Start(), sizeof(type));
+        p->SetStart(p->Start() + sizeof(type));
+        return type;
+    };
 #endif // WEAVE_ENABLE_WOBLE_TEST
 
     bool HasUnackedData(void) const;
 
-    BLE_ERROR HandleCharacteristicReceived(PacketBuffer *data, SequenceNumber_t &receivedAck, bool &didReceiveAck);
-    bool HandleCharacteristicSend(PacketBuffer *data, bool send_ack);
-    BLE_ERROR EncodeStandAloneAck(PacketBuffer *data);
+    BLE_ERROR HandleCharacteristicReceived(PacketBuffer * data, SequenceNumber_t & receivedAck, bool & didReceiveAck);
+    bool HandleCharacteristicSend(PacketBuffer * data, bool send_ack);
+    BLE_ERROR EncodeStandAloneAck(PacketBuffer * data);
 
     PacketBuffer * RxPacket(void);
     PacketBuffer * TxPacket(void);
@@ -169,8 +169,8 @@ private:
 #endif
     State_t mRxState;
     uint16_t mRxLength;
-    void *mAppState;
-    PacketBuffer *mRxBuf;
+    void * mAppState;
+    PacketBuffer * mRxBuf;
     SequenceNumber_t mRxNextSeqNum;
     SequenceNumber_t mRxNewestUnackedSeqNum;
     SequenceNumber_t mRxOldestUnackedSeqNum;
@@ -178,7 +178,7 @@ private:
 
     State_t mTxState;
     uint16_t mTxLength;
-    PacketBuffer *mTxBuf;
+    PacketBuffer * mTxBuf;
     SequenceNumber_t mTxNextSeqNum;
     SequenceNumber_t mTxNewestUnackedSeqNum;
     SequenceNumber_t mTxOldestUnackedSeqNum;

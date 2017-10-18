@@ -56,7 +56,7 @@ namespace WeaveMakeManagedNamespaceIdentifier(DataManagement, kWeaveManagedNames
 typedef enum ImportanceType
 {
     kImportanceType_Invalid = 0,
-    kImportanceType_First = 1,
+    kImportanceType_First   = 1,
     /**
      * Production Critical importance denotes events whose loss would
      * directly impact customer-facing features. Applications may use
@@ -105,9 +105,9 @@ typedef enum ImportanceType
  */
 struct EventSchema
 {
-    uint32_t mProfileId;         //!< ID of profile
-    uint32_t mStructureType;     //!< Type of structure
-    ImportanceType mImportance;  //!< Importance
+    uint32_t mProfileId;        //!< ID of profile
+    uint32_t mStructureType;    //!< Type of structure
+    ImportanceType mImportance; //!< Importance
     SchemaVersion mDataSchemaVersion;
     SchemaVersion mMinCompatibleDataSchemaVersion;
 };
@@ -140,7 +140,8 @@ typedef uint64_t utc_timestamp_t;
  */
 struct DetailedRootSection
 {
-    uint64_t ResourceID; //< the ID of the resource that the generated event pertains to.  When the event resource is equal to the event source, it may be omitted.
+    uint64_t ResourceID; //< the ID of the resource that the generated event pertains to.  When the event resource is equal to the
+                         //event source, it may be omitted.
     uint64_t TraitInstanceID; //< Trait instance of the subject of this event.
 };
 
@@ -176,7 +177,7 @@ union Timestamp
      */
     Timestamp(timestamp_t aSystem) : systemTimestamp(aSystem) { };
 
-    timestamp_t systemTimestamp; //< System timestamp.
+    timestamp_t systemTimestamp;  //< System timestamp.
     utc_timestamp_t utcTimestamp; //< UTC timestamp.
 };
 
@@ -196,16 +197,21 @@ struct EventOptions
 
     Timestamp timestamp; //< A union holding either system or UTC timestamp.
 
-    DetailedRootSection *eventSource; //< A pointer to the detailed resolution of the trait instance.  When NULL, the event source is assumed to come from the resource equal to the local node ID, and from the default instance of the trait.
+    DetailedRootSection * eventSource; //< A pointer to the detailed resolution of the trait instance.  When NULL, the event source
+                                       //is assumed to come from the resource equal to the local node ID, and from the default
+                                       //instance of the trait.
 
     // Facilities for event grouping
-    event_id_t relatedEventID; //<The Event ID from the same Event Source that this event is related to.  When the event is not related to any other events, Related Event ID is shall be equal to Event ID, and may be omitted.  A value of 0 implies the absence of any related event.
-    ImportanceType relatedImportance;  //< EventImportance of the Related Event ID.  When this event and the related event are of the same importance, the field may be omitted.  A value of kImportanceType_Invalid implies the absence of any related event.
+    event_id_t relatedEventID; //<The Event ID from the same Event Source that this event is related to.  When the event is not
+                               //related to any other events, Related Event ID is shall be equal to Event ID, and may be omitted.  A
+                               //value of 0 implies the absence of any related event.
+    ImportanceType relatedImportance; //< EventImportance of the Related Event ID.  When this event and the related event are of the
+                                      //same importance, the field may be omitted.  A value of kImportanceType_Invalid implies the
+                                      //absence of any related event.
 
     TimestampType timestampType; // An enum indicating if the timestamp is valid and its type.
 
     bool urgent; //< A flag denoting that the event is time sensitive.  When set, it causes the event log to be flushed.
-
 };
 
 /**
@@ -215,18 +221,18 @@ struct EventOptions
 
 struct EventLoadOutContext
 {
-    EventLoadOutContext(nl::Weave::TLV::TLVWriter &inWriter, ImportanceType inImportance, uint32_t inStartingEventID);
+    EventLoadOutContext(nl::Weave::TLV::TLVWriter & inWriter, ImportanceType inImportance, uint32_t inStartingEventID);
 
     nl::Weave::TLV::TLVWriter & mWriter;
-    ImportanceType              mImportance;
-    uint32_t                    mStartingEventID;
-    uint32_t                    mCurrentTime;
-    uint32_t                    mCurrentEventID;
+    ImportanceType mImportance;
+    uint32_t mStartingEventID;
+    uint32_t mCurrentTime;
+    uint32_t mCurrentEventID;
 #if WEAVE_CONFIG_EVENT_LOGGING_UTC_TIMESTAMPS
-    uint64_t                    mCurrentUTCTime;
-    bool                        mFirstUtc;
+    uint64_t mCurrentUTCTime;
+    bool mFirstUtc;
 #endif
-    bool                        mFirst;
+    bool mFirst;
 };
 
 /**
@@ -265,8 +271,7 @@ struct EventLoadOutContext
  *
  */
 
-typedef WEAVE_ERROR (*EventWriterFunct)(nl::Weave::TLV::TLVWriter& ioWriter, uint8_t inDataTag, void* appData);
-
+typedef WEAVE_ERROR (*EventWriterFunct)(nl::Weave::TLV::TLVWriter & ioWriter, uint8_t inDataTag, void * appData);
 
 /**
  *  @brief
@@ -295,9 +300,9 @@ typedef WEAVE_ERROR (*EventWriterFunct)(nl::Weave::TLV::TLVWriter& ioWriter, uin
  *  @return WEAVE_NO_ERROR                  On success.
  *  @return WEAVE_END_OF_TLV                On success.
  */
-typedef WEAVE_ERROR (*FetchExternalEventsFunct)(EventLoadOutContext *aContext);
+typedef WEAVE_ERROR (*FetchExternalEventsFunct)(EventLoadOutContext * aContext);
 
-//forward declaration
+// forward declaration
 
 struct ExternalEvents;
 /**
@@ -316,7 +321,8 @@ struct ExternalEvents;
  * @param[in] inRecipientNodeID          Weave node ID of the recipient
  *
  */
-typedef void (* NotifyExternalEventsDeliveredFunct)(ExternalEvents *inEv, event_id_t inLastDeliveredEventID, uint64_t inRecipientNodeID);
+typedef void (*NotifyExternalEventsDeliveredFunct)(ExternalEvents * inEv, event_id_t inLastDeliveredEventID,
+                                                   uint64_t inRecipientNodeID);
 
 /**
  *  @brief
@@ -326,18 +332,18 @@ struct ExternalEvents
 {
     ExternalEvents(void) : mFirstEventID(1), mLastEventID(0), mFetchEventsFunct(NULL), mNotifyEventsDeliveredFunct(NULL) { };
 
-    event_id_t mFirstEventID;  //< The first event ID stored externally.
+    event_id_t mFirstEventID; //< The first event ID stored externally.
     event_id_t mLastEventID;  //< The last event ID stored externally.
 
-    FetchExternalEventsFunct mFetchEventsFunct;  //< The callback to use to fetch the above IDs.
+    FetchExternalEventsFunct mFetchEventsFunct; //< The callback to use to fetch the above IDs.
     NotifyExternalEventsDeliveredFunct mNotifyEventsDeliveredFunct;
 };
 
 // internal API
-typedef WEAVE_ERROR (*LoggingBufferHandler) (void *inAppState, PacketBuffer *inBuffer);
+typedef WEAVE_ERROR (*LoggingBufferHandler)(void * inAppState, PacketBuffer * inBuffer);
 
-} // ns WeaveMakeManagedNamespaceIdentifier(DataManagement, kWeaveManagedNamespaceDesignation_Current)
-} // ns Profiles
-} // ns Weave
-} // ns nl
+} // namespace WeaveMakeManagedNamespaceIdentifier(DataManagement, kWeaveManagedNamespaceDesignation_Current)
+} // namespace Profiles
+} // namespace Weave
+} // namespace nl
 #endif //_WEAVE_DATA_MANAGEMENT_EVENT_LOGGING_TYPES_CURRENT_H

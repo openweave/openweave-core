@@ -36,8 +36,14 @@
 #if HAVE_NEW
 #include <new>
 #else
-inline void * operator new     (size_t, void * p) throw() { return p; }
-inline void * operator new[]   (size_t, void * p) throw() { return p; }
+inline void * operator new(size_t, void * p) throw()
+{
+    return p;
+}
+inline void * operator new[](size_t, void * p) throw()
+{
+    return p;
+}
 #endif // HAVE_NEW
 
 using namespace nl::Weave::TLV;
@@ -60,21 +66,22 @@ LoggingManagement & LoggingManagement::GetInstance(void)
 
 struct ReclaimEventCtx
 {
-    CircularEventBuffer *mEventBuffer;
+    CircularEventBuffer * mEventBuffer;
     size_t mSpaceNeededForEvent;
 };
 
-WEAVE_ERROR LoggingManagement::AlwaysFail(nl::Weave::TLV::WeaveCircularTLVBuffer &inBuffer, void * inAppData, nl::Weave::TLV::TLVReader & inReader)
+WEAVE_ERROR LoggingManagement::AlwaysFail(nl::Weave::TLV::WeaveCircularTLVBuffer & inBuffer, void * inAppData,
+                                          nl::Weave::TLV::TLVReader & inReader)
 {
     return WEAVE_ERROR_NO_MEMORY;
 }
 
-WEAVE_ERROR LoggingManagement::CopyToNextBuffer(CircularEventBuffer *inEventBuffer)
+WEAVE_ERROR LoggingManagement::CopyToNextBuffer(CircularEventBuffer * inEventBuffer)
 {
     CircularTLVWriter writer;
     CircularTLVReader reader;
-    WeaveCircularTLVBuffer checkpoint = inEventBuffer->mNext->mBuffer;
-    WeaveCircularTLVBuffer *nextBuffer = &(inEventBuffer->mNext->mBuffer);
+    WeaveCircularTLVBuffer checkpoint   = inEventBuffer->mNext->mBuffer;
+    WeaveCircularTLVBuffer * nextBuffer = &(inEventBuffer->mNext->mBuffer);
     WEAVE_ERROR err;
 
     // Set up the next buffer s.t. it fails if needs to evict an element
@@ -104,10 +111,10 @@ exit:
 
 WEAVE_ERROR LoggingManagement::EnsureSpace(size_t inRequiredSpace)
 {
-    WEAVE_ERROR err = WEAVE_NO_ERROR;
-    size_t requiredSpace = inRequiredSpace;
-    CircularEventBuffer *eventBuffer = mEventBuffer;
-    WeaveCircularTLVBuffer *circularBuffer;
+    WEAVE_ERROR err                   = WEAVE_NO_ERROR;
+    size_t requiredSpace              = inRequiredSpace;
+    CircularEventBuffer * eventBuffer = mEventBuffer;
+    WeaveCircularTLVBuffer * circularBuffer;
     ReclaimEventCtx ctx;
 
     // check whether we actually need to do anything, exit if we don't
@@ -121,12 +128,12 @@ WEAVE_ERROR LoggingManagement::EnsureSpace(size_t inRequiredSpace)
 
         if (requiredSpace > circularBuffer->AvailableDataLength())
         {
-            ctx.mEventBuffer = eventBuffer;
+            ctx.mEventBuffer         = eventBuffer;
             ctx.mSpaceNeededForEvent = 0;
 
             circularBuffer->mProcessEvictedElement = EvictEvent;
-            circularBuffer->mAppData = &ctx;
-            err = circularBuffer->EvictHead();
+            circularBuffer->mAppData               = &ctx;
+            err                                    = circularBuffer->EvictHead();
 
             // one of two things happened: either the element was evicted,
             // or we figured out how much space we need to evict it into
@@ -148,7 +155,7 @@ WEAVE_ERROR LoggingManagement::EnsureSpace(size_t inRequiredSpace)
 
                     // success; evict head unconditionally
                     circularBuffer->mProcessEvictedElement = NULL;
-                    err = circularBuffer->EvictHead();
+                    err                                    = circularBuffer->EvictHead();
                     // if unconditional eviction failed, this
                     // means that we have no way of further
                     // clearing the buffer.  fail out and let the
@@ -161,8 +168,8 @@ WEAVE_ERROR LoggingManagement::EnsureSpace(size_t inRequiredSpace)
                 // current required space in mAppData, we note the
                 // space requirements for the event in the current
                 // buffer and make that space in the next buffer.
-                circularBuffer->mAppData = reinterpret_cast<void*>(requiredSpace);
-                eventBuffer = eventBuffer->mNext;
+                circularBuffer->mAppData = reinterpret_cast<void *>(requiredSpace);
+                eventBuffer              = eventBuffer->mNext;
 
                 // Sanity check: Die here on null event buffer.  If
                 // eventBuffer->mNext were null, then the `EvictBuffer`
@@ -177,20 +184,19 @@ WEAVE_ERROR LoggingManagement::EnsureSpace(size_t inRequiredSpace)
         {
             if (eventBuffer == mEventBuffer)
                 break;
-            eventBuffer = eventBuffer->mPrev;
+            eventBuffer   = eventBuffer->mPrev;
             requiredSpace = reinterpret_cast<size_t>(eventBuffer->mBuffer.mAppData);
-            err = WEAVE_NO_ERROR;
+            err           = WEAVE_NO_ERROR;
         }
     }
 
     // On exit, configure the top-level s.t. it will always fail to evict an element
     mEventBuffer->mBuffer.mProcessEvictedElement = AlwaysFail;
-    mEventBuffer->mBuffer.mAppData = NULL;
+    mEventBuffer->mBuffer.mAppData               = NULL;
 
 exit:
     return err;
 }
-
 
 /**
  * @brief Helper function for writing event header and data according to event
@@ -211,14 +217,11 @@ exit:
  *                          relevant to this event.
  *
  */
-WEAVE_ERROR LoggingManagement::BlitEvent(EventLoadOutContext *aContext,
-                                         const EventSchema &inSchema,
-                                         EventWriterFunct inEventWriter,
-                                         void *inAppData,
-                                         const EventOptions *inOptions)
+WEAVE_ERROR LoggingManagement::BlitEvent(EventLoadOutContext * aContext, const EventSchema & inSchema,
+                                         EventWriterFunct inEventWriter, void * inAppData, const EventOptions * inOptions)
 {
 
-    WEAVE_ERROR err = WEAVE_NO_ERROR;
+    WEAVE_ERROR err      = WEAVE_NO_ERROR;
     TLVWriter checkpoint = aContext->mWriter;
     TLVType containerType;
 
@@ -226,8 +229,7 @@ WEAVE_ERROR LoggingManagement::BlitEvent(EventLoadOutContext *aContext,
                  /* no-op: don't write event, but advance current event ID */);
 
     VerifyOrExit(inOptions != NULL, err = WEAVE_ERROR_INVALID_ARGUMENT);
-    VerifyOrExit(inOptions->timestampType != kTimestampType_Invalid,
-                 err = WEAVE_ERROR_INVALID_ARGUMENT);
+    VerifyOrExit(inOptions->timestampType != kTimestampType_Invalid, err = WEAVE_ERROR_INVALID_ARGUMENT);
 
     err = aContext->mWriter.StartContainer(AnonymousTag, kTLVType_Structure, containerType);
     SuccessOrExit(err);
@@ -261,15 +263,13 @@ WEAVE_ERROR LoggingManagement::BlitEvent(EventLoadOutContext *aContext,
 #if WEAVE_CONFIG_EVENT_LOGGING_UTC_TIMESTAMPS
         if (inOptions->timestampType == kTimestampType_UTC)
         {
-            err = aContext->mWriter.Put(ContextTag(kTag_EventUTCTimestamp),
-                               inOptions->timestamp.utcTimestamp);
+            err = aContext->mWriter.Put(ContextTag(kTag_EventUTCTimestamp), inOptions->timestamp.utcTimestamp);
             SuccessOrExit(err);
         }
         else
 #endif // WEAVE_CONFIG_EVENT_LOGGING_UTC_TIMESTAMPS
         {
-            err = aContext->mWriter.Put(ContextTag(kTag_EventSystemTimestamp),
-                               inOptions->timestamp.systemTimestamp);
+            err = aContext->mWriter.Put(ContextTag(kTag_EventSystemTimestamp), inOptions->timestamp.systemTimestamp);
             SuccessOrExit(err);
         }
     }
@@ -280,20 +280,21 @@ WEAVE_ERROR LoggingManagement::BlitEvent(EventLoadOutContext *aContext,
         if (inOptions->timestampType == kTimestampType_UTC)
         {
             int64_t deltatime = inOptions->timestamp.utcTimestamp - aContext->mCurrentUTCTime;
-            err = aContext->mWriter.Put(ContextTag(kTag_EventDeltaUTCTime), deltatime);
+            err               = aContext->mWriter.Put(ContextTag(kTag_EventDeltaUTCTime), deltatime);
             SuccessOrExit(err);
         }
         else
 #endif // WEAVE_CONFIG_EVENT_LOGGING_UTC_TIMESTAMPS
         {
             int32_t deltatime = inOptions->timestamp.systemTimestamp - aContext->mCurrentTime;
-            err = aContext->mWriter.Put(ContextTag(kTag_EventDeltaSystemTime), deltatime);
+            err               = aContext->mWriter.Put(ContextTag(kTag_EventDeltaSystemTime), deltatime);
             SuccessOrExit(err);
         }
     }
 
     // Event Trait Profile ID
-    if (inSchema.mMinCompatibleDataSchemaVersion != 1 || inSchema.mDataSchemaVersion != 1) {
+    if (inSchema.mMinCompatibleDataSchemaVersion != 1 || inSchema.mDataSchemaVersion != 1)
+    {
         TLV::TLVType type;
 
         err = aContext->mWriter.StartContainer(ContextTag(kTag_EventTraitProfileID), kTLVType_Array, type);
@@ -302,12 +303,14 @@ WEAVE_ERROR LoggingManagement::BlitEvent(EventLoadOutContext *aContext,
         err = aContext->mWriter.Put(TLV::AnonymousTag, inSchema.mProfileId);
         SuccessOrExit(err);
 
-        if (inSchema.mDataSchemaVersion != 1) {
+        if (inSchema.mDataSchemaVersion != 1)
+        {
             err = aContext->mWriter.Put(TLV::AnonymousTag, inSchema.mDataSchemaVersion);
             SuccessOrExit(err);
         }
 
-        if (inSchema.mMinCompatibleDataSchemaVersion != 1) {
+        if (inSchema.mMinCompatibleDataSchemaVersion != 1)
+        {
             err = aContext->mWriter.Put(TLV::AnonymousTag, inSchema.mMinCompatibleDataSchemaVersion);
             SuccessOrExit(err);
         }
@@ -315,7 +318,8 @@ WEAVE_ERROR LoggingManagement::BlitEvent(EventLoadOutContext *aContext,
         err = aContext->mWriter.EndContainer(type);
         SuccessOrExit(err);
     }
-    else {
+    else
+    {
         err = aContext->mWriter.Put(ContextTag(kTag_EventTraitProfileID), inSchema.mProfileId);
         SuccessOrExit(err);
     }
@@ -327,13 +331,11 @@ WEAVE_ERROR LoggingManagement::BlitEvent(EventLoadOutContext *aContext,
         {
             if (inOptions->eventSource->ResourceID != mExchangeMgr->FabricState->LocalNodeId)
             {
-                err = aContext->mWriter.Put(ContextTag(kTag_EventResourceID),
-                                 inOptions->eventSource->ResourceID);
+                err = aContext->mWriter.Put(ContextTag(kTag_EventResourceID), inOptions->eventSource->ResourceID);
                 SuccessOrExit(err);
             }
 
-            err = aContext->mWriter.Put(ContextTag(kTag_EventTraitInstanceID),
-                             inOptions->eventSource->TraitInstanceID);
+            err = aContext->mWriter.Put(ContextTag(kTag_EventTraitInstanceID), inOptions->eventSource->TraitInstanceID);
             SuccessOrExit(err);
         }
     }
@@ -394,12 +396,13 @@ exit:
  *
  * @param inBuffers[in]     The buffers to use for actual event logging.
  */
-void LoggingManagement::CreateLoggingManagement(nl::Weave::WeaveExchangeManager *inMgr,
-                                                size_t inNumBuffers, size_t *inBufferLengths, void **inBuffers,
-                                                nl::Weave::Platform::PersistedStorage::Key *inCounterKeys,
-                                                const uint32_t *inCounterEpochs, nl::Weave::PersistedCounter **inCounterStorage)
+void LoggingManagement::CreateLoggingManagement(nl::Weave::WeaveExchangeManager * inMgr, size_t inNumBuffers,
+                                                size_t * inBufferLengths, void ** inBuffers,
+                                                nl::Weave::Platform::PersistedStorage::Key * inCounterKeys,
+                                                const uint32_t * inCounterEpochs, nl::Weave::PersistedCounter ** inCounterStorage)
 {
-    new (&sInstance)LoggingManagement(inMgr, inNumBuffers, inBufferLengths, inBuffers, inCounterKeys, inCounterEpochs, inCounterStorage);
+    new (&sInstance)
+        LoggingManagement(inMgr, inNumBuffers, inBufferLengths, inBuffers, inCounterKeys, inCounterEpochs, inCounterStorage);
 }
 
 /**
@@ -414,14 +417,14 @@ void LoggingManagement::CreateLoggingManagement(nl::Weave::WeaveExchangeManager 
  *
  * @param inBuffers[in]     The buffers to use for actual event logging.
  *
- * @param nWeaveCounter[in] The array of counter pointers must contain the initialized counters, and has to contain inNumBuffers of counters.
+ * @param nWeaveCounter[in] The array of counter pointers must contain the initialized counters, and has to contain inNumBuffers of
+ * counters.
  */
-void LoggingManagement::CreateLoggingManagement(nl::Weave::WeaveExchangeManager *inMgr,
-                                                size_t inNumBuffers, size_t *inBufferLengths, void **inBuffers,
-                                                nl::Weave::MonotonicallyIncreasingCounter **nWeaveCounter
-                                                )
+void LoggingManagement::CreateLoggingManagement(nl::Weave::WeaveExchangeManager * inMgr, size_t inNumBuffers,
+                                                size_t * inBufferLengths, void ** inBuffers,
+                                                nl::Weave::MonotonicallyIncreasingCounter ** nWeaveCounter)
 {
-    new (&sInstance)LoggingManagement(inMgr, inNumBuffers, inBufferLengths, inBuffers, nWeaveCounter);
+    new (&sInstance) LoggingManagement(inMgr, inNumBuffers, inBufferLengths, inBuffers, nWeaveCounter);
 }
 
 /**
@@ -430,7 +433,7 @@ void LoggingManagement::CreateLoggingManagement(nl::Weave::WeaveExchangeManager 
 void LoggingManagement::DestroyLoggingManagement(void)
 {
     Platform::CriticalSectionEnter();
-    sInstance.mState = kLoggingManagementState_Shutdown;
+    sInstance.mState       = kLoggingManagementState_Shutdown;
     sInstance.mEventBuffer = NULL;
     Platform::CriticalSectionExit();
 }
@@ -441,7 +444,7 @@ void LoggingManagement::DestroyLoggingManagement(void)
  *
  * @param inMgr[in]         WeaveExchangeManager to be used with this logging subsystem
  */
-WEAVE_ERROR LoggingManagement::SetExchangeManager(nl::Weave::WeaveExchangeManager *inMgr)
+WEAVE_ERROR LoggingManagement::SetExchangeManager(nl::Weave::WeaveExchangeManager * inMgr)
 {
     mExchangeMgr = inMgr;
     return WEAVE_NO_ERROR;
@@ -464,37 +467,29 @@ WEAVE_ERROR LoggingManagement::SetExchangeManager(nl::Weave::WeaveExchangeManage
  *
  * @return LoggingManagement
  */
-LoggingManagement::LoggingManagement(WeaveExchangeManager *inMgr,
-                                     size_t inNumBuffers,
-                                     size_t *inBufferLengths,
-                                     void **inBuffers,
-                                     nl::Weave::Platform::PersistedStorage::Key *inCounterKeys,
-                                     const uint32_t *inCounterEpochs,
-                                     nl::Weave::PersistedCounter **inCounterStorage)
+LoggingManagement::LoggingManagement(WeaveExchangeManager * inMgr, size_t inNumBuffers, size_t * inBufferLengths, void ** inBuffers,
+                                     nl::Weave::Platform::PersistedStorage::Key * inCounterKeys, const uint32_t * inCounterEpochs,
+                                     nl::Weave::PersistedCounter ** inCounterStorage)
 {
-    CircularEventBuffer *current = NULL;
-    CircularEventBuffer *prev = NULL;
-    CircularEventBuffer *next = NULL;
+    CircularEventBuffer * current = NULL;
+    CircularEventBuffer * prev    = NULL;
+    CircularEventBuffer * next    = NULL;
     size_t i;
 
-    mThrottled = 0;
+    mThrottled   = 0;
     mExchangeMgr = inMgr;
 
     for (i = 0; i < inNumBuffers; i++)
     {
-        next = ((i+1) < inNumBuffers) ?
-            static_cast<CircularEventBuffer *>(inBuffers[i+1]) :
-            NULL;
+        next = ((i + 1) < inNumBuffers) ? static_cast<CircularEventBuffer *>(inBuffers[i + 1]) : NULL;
 
-        new (inBuffers[i]) CircularEventBuffer (static_cast<uint8_t*>(inBuffers[i]) + sizeof(CircularEventBuffer),
-                                                inBufferLengths[i] - sizeof(CircularEventBuffer),
-                                                prev,
-                                                next);
+        new (inBuffers[i]) CircularEventBuffer(static_cast<uint8_t *>(inBuffers[i]) + sizeof(CircularEventBuffer),
+                                               inBufferLengths[i] - sizeof(CircularEventBuffer), prev, next);
 
-        current = prev = static_cast<CircularEventBuffer *>(inBuffers[i]);
+        current = prev                          = static_cast<CircularEventBuffer *>(inBuffers[i]);
         current->mBuffer.mProcessEvictedElement = AlwaysFail;
-        current->mBuffer.mAppData = NULL;
-        current->mImportance = static_cast<ImportanceType> (inNumBuffers - i);
+        current->mBuffer.mAppData               = NULL;
+        current->mImportance                    = static_cast<ImportanceType>(inNumBuffers - i);
 
         if ((inCounterStorage != NULL) && (inCounterStorage[i] != NULL))
         {
@@ -516,16 +511,16 @@ LoggingManagement::LoggingManagement(WeaveExchangeManager *inMgr,
 
         current->mFirstEventID = current->mEventIdCounter->GetValue();
     }
-    mEventBuffer = static_cast<CircularEventBuffer *> (inBuffers[0]);
+    mEventBuffer = static_cast<CircularEventBuffer *>(inBuffers[0]);
 
-    mState = kLoggingManagementState_Idle;
-    mBDXUploader = NULL;
-    mBytesWritten = 0;
-    mUploadRequested = false;
+    mState               = kLoggingManagementState_Idle;
+    mBDXUploader         = NULL;
+    mBytesWritten        = 0;
+    mUploadRequested     = false;
     mMaxImportanceBuffer = static_cast<ImportanceType>(inNumBuffers);
 }
 
-        /**
+/**
  * @brief
  *   LoggingManagement constructor
  *
@@ -540,48 +535,42 @@ LoggingManagement::LoggingManagement(WeaveExchangeManager *inMgr,
  *
  * @paran inBuffers[in]     The buffers to use for actual event logging.
  *
- * @param nWeaveCounter[in] The array of counter pointers must contain the initialized counters, and has to contain inNumBuffers of counters.
+ * @param nWeaveCounter[in] The array of counter pointers must contain the initialized counters, and has to contain inNumBuffers of
+ * counters.
  * @return LoggingManagement
  */
-LoggingManagement::LoggingManagement(WeaveExchangeManager *inMgr,
-                                     size_t inNumBuffers,
-                                     size_t *inBufferLengths,
-                                     void **inBuffers,
-                                     nl::Weave::MonotonicallyIncreasingCounter **nWeaveCounter)
+LoggingManagement::LoggingManagement(WeaveExchangeManager * inMgr, size_t inNumBuffers, size_t * inBufferLengths, void ** inBuffers,
+                                     nl::Weave::MonotonicallyIncreasingCounter ** nWeaveCounter)
 {
-    CircularEventBuffer *current = NULL;
-    CircularEventBuffer *prev = NULL;
-    CircularEventBuffer *next = NULL;
+    CircularEventBuffer * current = NULL;
+    CircularEventBuffer * prev    = NULL;
+    CircularEventBuffer * next    = NULL;
     size_t i;
 
-    mThrottled = 0;
+    mThrottled   = 0;
     mExchangeMgr = inMgr;
 
     for (i = 0; i < inNumBuffers; i++)
     {
-        next = ((i+1) < inNumBuffers) ?
-               static_cast<CircularEventBuffer *>(inBuffers[i+1]) :
-               NULL;
+        next = ((i + 1) < inNumBuffers) ? static_cast<CircularEventBuffer *>(inBuffers[i + 1]) : NULL;
 
-        new (inBuffers[i]) CircularEventBuffer (static_cast<uint8_t*>(inBuffers[i]) + sizeof(CircularEventBuffer),
-                                                inBufferLengths[i] - sizeof(CircularEventBuffer),
-                                                prev,
-                                                next);
+        new (inBuffers[i]) CircularEventBuffer(static_cast<uint8_t *>(inBuffers[i]) + sizeof(CircularEventBuffer),
+                                               inBufferLengths[i] - sizeof(CircularEventBuffer), prev, next);
 
-        current = prev = static_cast<CircularEventBuffer *>(inBuffers[i]);
+        current = prev                          = static_cast<CircularEventBuffer *>(inBuffers[i]);
         current->mBuffer.mProcessEvictedElement = AlwaysFail;
-        current->mBuffer.mAppData = NULL;
-        current->mImportance = static_cast<ImportanceType> (inNumBuffers - i);
-        current->mEventIdCounter = nWeaveCounter[i];
-        current->mFirstEventID = current->mEventIdCounter->GetValue();
+        current->mBuffer.mAppData               = NULL;
+        current->mImportance                    = static_cast<ImportanceType>(inNumBuffers - i);
+        current->mEventIdCounter                = nWeaveCounter[i];
+        current->mFirstEventID                  = current->mEventIdCounter->GetValue();
     }
 
-    mEventBuffer = static_cast<CircularEventBuffer *> (inBuffers[0]);
+    mEventBuffer = static_cast<CircularEventBuffer *>(inBuffers[0]);
 
-    mState = kLoggingManagementState_Idle;
-    mBDXUploader = NULL;
-    mBytesWritten = 0;
-    mUploadRequested = false;
+    mState               = kLoggingManagementState_Idle;
+    mBDXUploader         = NULL;
+    mBytesWritten        = 0;
+    mUploadRequested     = false;
     mMaxImportanceBuffer = static_cast<ImportanceType>(inNumBuffers);
 }
 /**
@@ -591,17 +580,10 @@ LoggingManagement::LoggingManagement(WeaveExchangeManager *inMgr,
 
  * @return LoggingManagement
  */
-LoggingManagement::LoggingManagement(void):
-    mEventBuffer(NULL),
-    mExchangeMgr(NULL),
-    mState(kLoggingManagementState_Idle),
-    mBDXUploader(NULL),
-    mBytesWritten(0),
-    mThrottled(0),
-    mMaxImportanceBuffer(kImportanceType_Invalid),
-    mUploadRequested(false)
-{
-}
+LoggingManagement::LoggingManagement(void) :
+    mEventBuffer(NULL), mExchangeMgr(NULL), mState(kLoggingManagementState_Idle), mBDXUploader(NULL), mBytesWritten(0),
+    mThrottled(0), mMaxImportanceBuffer(kImportanceType_Invalid), mUploadRequested(false)
+{ }
 
 /**
  * @brief
@@ -619,7 +601,7 @@ LoggingManagement::LoggingManagement(void):
  */
 ImportanceType LoggingManagement::GetCurrentImportance(uint32_t profileId)
 {
-    const LoggingConfiguration &config = LoggingConfiguration::GetInstance();
+    const LoggingConfiguration & config = LoggingConfiguration::GetInstance();
     ImportanceType retval;
 
     if (mThrottled != 0)
@@ -648,10 +630,9 @@ ImportanceType LoggingManagement::GetCurrentImportance(uint32_t profileId)
  */
 ImportanceType LoggingManagement::GetMaxImportance(void)
 {
-    const LoggingConfiguration &config = LoggingConfiguration::GetInstance();
+    const LoggingConfiguration & config = LoggingConfiguration::GetInstance();
     return (config.mGlobalImportance < mMaxImportanceBuffer ? config.mGlobalImportance : mMaxImportanceBuffer);
 }
-
 
 /**
  * @brief
@@ -665,10 +646,10 @@ ImportanceType LoggingManagement::GetMaxImportance(void)
 event_id_t CircularEventBuffer::VendEventID(void)
 {
     event_id_t retval = 0;
-    WEAVE_ERROR err = WEAVE_NO_ERROR;
+    WEAVE_ERROR err   = WEAVE_NO_ERROR;
 
     // Assign event ID to the buffer's counter's value.
-    retval = mEventIdCounter->GetValue();
+    retval       = mEventIdCounter->GetValue();
     mLastEventID = static_cast<event_id_t>(retval);
 
     // Now advance the counter.
@@ -707,9 +688,9 @@ event_id_t LoggingManagement::GetFirstEventID(ImportanceType inImportance)
     return GetImportanceBuffer(inImportance)->mFirstEventID;
 }
 
-CircularEventBuffer *LoggingManagement::GetImportanceBuffer(ImportanceType inImportance) const
+CircularEventBuffer * LoggingManagement::GetImportanceBuffer(ImportanceType inImportance) const
 {
-    CircularEventBuffer *buf = mEventBuffer;
+    CircularEventBuffer * buf = mEventBuffer;
     while (!buf->IsFinalDestinationForImportance(inImportance))
     {
         buf = buf->mNext;
@@ -756,10 +737,8 @@ CircularEventBuffer *LoggingManagement::GetImportanceBuffer(ImportanceType inImp
  *
  * @return WEAVE_NO_ERROR               On success.
  */
-WEAVE_ERROR LoggingManagement::RegisterEventCallbackForImportance(ImportanceType inImportance,
-        FetchExternalEventsFunct inCallback,
-        size_t inNumEvents,
-        ExternalEvents **aExternalEventsPtr)
+WEAVE_ERROR LoggingManagement::RegisterEventCallbackForImportance(ImportanceType inImportance, FetchExternalEventsFunct inCallback,
+                                                                  size_t inNumEvents, ExternalEvents ** aExternalEventsPtr)
 {
     return GetImportanceBuffer(inImportance)->RegisterExternalEventsCallback(inCallback, NULL, inNumEvents, aExternalEventsPtr);
 }
@@ -811,14 +790,13 @@ WEAVE_ERROR LoggingManagement::RegisterEventCallbackForImportance(ImportanceType
  * @return WEAVE_NO_ERROR               On success.
  */
 WEAVE_ERROR LoggingManagement::RegisterEventCallbackForImportance(ImportanceType inImportance,
-        FetchExternalEventsFunct inFetchCallback,
-        NotifyExternalEventsDeliveredFunct inNotifyCallback,
-        size_t inNumEvents,
-        ExternalEvents **aExternalEventsPtr)
+                                                                  FetchExternalEventsFunct inFetchCallback,
+                                                                  NotifyExternalEventsDeliveredFunct inNotifyCallback,
+                                                                  size_t inNumEvents, ExternalEvents ** aExternalEventsPtr)
 {
-    return GetImportanceBuffer(inImportance)->RegisterExternalEventsCallback(inFetchCallback, inNotifyCallback, inNumEvents, aExternalEventsPtr);
+    return GetImportanceBuffer(inImportance)
+        ->RegisterExternalEventsCallback(inFetchCallback, inNotifyCallback, inNumEvents, aExternalEventsPtr);
 }
-
 
 /**
  * @brief
@@ -839,18 +817,17 @@ WEAVE_ERROR LoggingManagement::RegisterEventCallbackForImportance(ImportanceType
  * @param inImportance          Importance level
  * @param inPtr                 Pointer to ExternalEvents struct to unregister.
  */
-void LoggingManagement::UnregisterEventCallbackForImportance(ImportanceType inImportance,
-        ExternalEvents *inPtr)
+void LoggingManagement::UnregisterEventCallbackForImportance(ImportanceType inImportance, ExternalEvents * inPtr)
 {
     GetImportanceBuffer(inImportance)->UnregisterExternalEventsCallback(inPtr);
 }
 
 // Internal API used in copying an event out of the event buffers
 
-WEAVE_ERROR LoggingManagement::CopyAndAdjustDeltaTime(const TLVReader &aReader, size_t aDepth, void *aContext)
+WEAVE_ERROR LoggingManagement::CopyAndAdjustDeltaTime(const TLVReader & aReader, size_t aDepth, void * aContext)
 {
     WEAVE_ERROR err;
-    CopyAndAdjustDeltaTimeContext *ctx = static_cast<CopyAndAdjustDeltaTimeContext *>(aContext);
+    CopyAndAdjustDeltaTimeContext * ctx = static_cast<CopyAndAdjustDeltaTimeContext *>(aContext);
     TLVReader reader(aReader);
 
     if (aReader.GetTag() == nl::Weave::TLV::ContextTag(kTag_EventDeltaSystemTime))
@@ -869,7 +846,7 @@ WEAVE_ERROR LoggingManagement::CopyAndAdjustDeltaTime(const TLVReader &aReader, 
     {
         if (ctx->mContext->mFirstUtc)
         {
-            err = ctx->mWriter->Put(ContextTag(kTag_EventUTCTimestamp), ctx->mContext->mCurrentUTCTime);
+            err                      = ctx->mWriter->Put(ContextTag(kTag_EventUTCTimestamp), ctx->mContext->mCurrentUTCTime);
             ctx->mContext->mFirstUtc = false;
         }
         else
@@ -941,7 +918,8 @@ WEAVE_ERROR LoggingManagement::CopyAndAdjustDeltaTime(const TLVReader &aReader, 
  * @return event_id_t      The event ID if the event was written to the
  *                         log, 0 otherwise.
  */
-event_id_t LoggingManagement::LogEvent(const EventSchema &inSchema, EventWriterFunct inEventWriter, void *inAppData, const EventOptions *inOptions)
+event_id_t LoggingManagement::LogEvent(const EventSchema & inSchema, EventWriterFunct inEventWriter, void * inAppData,
+                                       const EventOptions * inOptions)
 {
     event_id_t event_id = 0;
 
@@ -957,23 +935,23 @@ exit:
     return event_id;
 }
 
-
 // Note: the function below must be called with the critical section
 // locked, and only when the logger is not shutting down
 
-inline event_id_t LoggingManagement::LogEventPrivate(const EventSchema &inSchema, EventWriterFunct inEventWriter, void *inAppData, const EventOptions *inOptions)
+inline event_id_t LoggingManagement::LogEventPrivate(const EventSchema & inSchema, EventWriterFunct inEventWriter, void * inAppData,
+                                                     const EventOptions * inOptions)
 {
     event_id_t event_id = 0;
     CircularTLVWriter writer;
-    WEAVE_ERROR err = WEAVE_NO_ERROR;
+    WEAVE_ERROR err    = WEAVE_NO_ERROR;
     size_t requestSize = WEAVE_CONFIG_EVENT_SIZE_RESERVE;
     bool didWriteEvent = false;
 #if WEAVE_CONFIG_EVENT_LOGGING_UTC_TIMESTAMPS
     int32_t ev_opts_deltatime = 0;
 #endif // WEAVE_CONFIG_EVENT_LOGGING_UTC_TIMESTAMPS
     WeaveCircularTLVBuffer checkpoint = mEventBuffer->mBuffer;
-    EventLoadOutContext ctxt = EventLoadOutContext(writer,
-         inSchema.mImportance, GetImportanceBuffer(inSchema.mImportance)->mLastEventID);
+    EventLoadOutContext ctxt =
+        EventLoadOutContext(writer, inSchema.mImportance, GetImportanceBuffer(inSchema.mImportance)->mLastEventID);
     EventOptions opts = EventOptions(static_cast<timestamp_t>(System::Timer::GetCurrentEpoch()));
 
     // check whether the entry is to be logged or discarded silently
@@ -994,13 +972,12 @@ inline event_id_t LoggingManagement::LogEventPrivate(const EventSchema &inSchema
         GetImportanceBuffer(inSchema.mImportance)->AddEvent(opts.timestamp.systemTimestamp);
     }
 
-
 #if WEAVE_CONFIG_EVENT_LOGGING_UTC_TIMESTAMPS
     // UTC timestamp; encoded as a delta time
     if ((inOptions != NULL) && (inOptions->timestampType == kTimestampType_UTC))
     {
         opts.timestamp.utcTimestamp = inOptions->timestamp.utcTimestamp;
-        opts.timestampType = kTimestampType_UTC;
+        opts.timestampType          = kTimestampType_UTC;
     }
     else
     {
@@ -1010,12 +987,11 @@ inline event_id_t LoggingManagement::LogEventPrivate(const EventSchema &inSchema
         if ((err == WEAVE_NO_ERROR) && (utc_tmp != 0))
         {
             opts.timestamp.utcTimestamp = static_cast<utc_timestamp_t>(static_cast<int64_t>(utc_tmp) + ev_opts_deltatime);
-            opts.timestampType = kTimestampType_UTC;
+            opts.timestampType          = kTimestampType_UTC;
         }
     }
 
-    if ((opts.timestampType == kTimestampType_UTC) &&
-            (GetImportanceBuffer(inSchema.mImportance)->mFirstEventUTCTimestamp == 0))
+    if ((opts.timestampType == kTimestampType_UTC) && (GetImportanceBuffer(inSchema.mImportance)->mFirstEventUTCTimestamp == 0))
     {
         GetImportanceBuffer(inSchema.mImportance)->AddEventUTC(opts.timestamp.utcTimestamp);
     }
@@ -1023,14 +999,14 @@ inline event_id_t LoggingManagement::LogEventPrivate(const EventSchema &inSchema
 
     if (inOptions != NULL)
     {
-        opts.eventSource = inOptions->eventSource;
-        opts.relatedEventID = inOptions->relatedEventID;
+        opts.eventSource       = inOptions->eventSource;
+        opts.relatedEventID    = inOptions->relatedEventID;
         opts.relatedImportance = inOptions->relatedImportance;
     }
 
-    ctxt.mFirst = false;
+    ctxt.mFirst          = false;
     ctxt.mCurrentEventID = GetImportanceBuffer(inSchema.mImportance)->mLastEventID;
-    ctxt.mCurrentTime = GetImportanceBuffer(inSchema.mImportance)->mLastEventTimestamp;
+    ctxt.mCurrentTime    = GetImportanceBuffer(inSchema.mImportance)->mLastEventTimestamp;
 #if WEAVE_CONFIG_EVENT_LOGGING_UTC_TIMESTAMPS
     ctxt.mCurrentUTCTime = GetImportanceBuffer(inSchema.mImportance)->mLastEventUTCTimestamp;
 #endif // WEAVE_CONFIG_EVENT_LOGGING_UTC_TIMESTAMPS
@@ -1083,7 +1059,9 @@ exit:
             GetImportanceBuffer(inSchema.mImportance)->AddEventUTC(opts.timestamp.utcTimestamp);
 
 #if WEAVE_CONFIG_EVENT_LOGGING_VERBOSE_DEBUG_LOGS
-            WeaveLogDetail(EventLogging, "LogEvent event id: %u importance: %u profile id: 0x%x structure id: 0x%x utc timestamp: 0x%" PRIx64 , event_id, inSchema.mImportance, inSchema.mProfileId, inSchema.mStructureType, opts.timestamp.utcTimestamp);
+            WeaveLogDetail(
+                EventLogging, "LogEvent event id: %u importance: %u profile id: 0x%x structure id: 0x%x utc timestamp: 0x%" PRIx64,
+                event_id, inSchema.mImportance, inSchema.mProfileId, inSchema.mStructureType, opts.timestamp.utcTimestamp);
 #endif // WEAVE_CONFIG_EVENT_LOGGING_VERBOSE_DEBUG_LOGS
         }
         else
@@ -1092,7 +1070,9 @@ exit:
             GetImportanceBuffer(inSchema.mImportance)->AddEvent(opts.timestamp.systemTimestamp);
 
 #if WEAVE_CONFIG_EVENT_LOGGING_VERBOSE_DEBUG_LOGS
-            WeaveLogDetail(EventLogging, "LogEvent event id: %u importance: %u profile id: 0x%x structure id: 0x%x sys timestamp: 0x%" PRIx32 , event_id, inSchema.mImportance, inSchema.mProfileId, inSchema.mStructureType, opts.timestamp.systemTimestamp);
+            WeaveLogDetail(
+                EventLogging, "LogEvent event id: %u importance: %u profile id: 0x%x structure id: 0x%x sys timestamp: 0x%" PRIx32,
+                event_id, inSchema.mImportance, inSchema.mProfileId, inSchema.mStructureType, opts.timestamp.systemTimestamp);
 #endif // WEAVE_CONFIG_EVENT_LOGGING_VERBOSE_DEBUG_LOGS
         }
 
@@ -1130,13 +1110,13 @@ void LoggingManagement::UnthrottleLogger(void)
 }
 
 // internal API, used to copy events to external buffers
-WEAVE_ERROR LoggingManagement::CopyEvent(const TLVReader & aReader, TLVWriter & aWriter, EventLoadOutContext *aContext)
+WEAVE_ERROR LoggingManagement::CopyEvent(const TLVReader & aReader, TLVWriter & aWriter, EventLoadOutContext * aContext)
 {
     TLVReader reader;
     TLVType containerType;
     CopyAndAdjustDeltaTimeContext context(&aWriter, aContext);
     const bool recurse = false;
-    WEAVE_ERROR err = WEAVE_NO_ERROR;
+    WEAVE_ERROR err    = WEAVE_NO_ERROR;
 
     reader.Init(aReader);
     err = reader.EnterContainer(containerType);
@@ -1175,15 +1155,15 @@ exit:
  * @retval #WEAVE_ERROR_BUFFER_TOO_SMALL Function could not write a
  *                          portion of the event to the TLVWriter.
  */
-WEAVE_ERROR LoggingManagement::CopyEventsSince(const TLVReader & aReader, size_t aDepth, void *aContext)
+WEAVE_ERROR LoggingManagement::CopyEventsSince(const TLVReader & aReader, size_t aDepth, void * aContext)
 {
-    WEAVE_ERROR err = WEAVE_NO_ERROR;
+    WEAVE_ERROR err    = WEAVE_NO_ERROR;
     const bool recurse = false;
     TLVReader innerReader;
     TLVType tlvType;
     EventEnvelopeContext event;
-    EventLoadOutContext *loadOutContext = static_cast<EventLoadOutContext *>(aContext);
-    nl::Weave::TLV::TLVWriter   checkpoint;
+    EventLoadOutContext * loadOutContext = static_cast<EventLoadOutContext *>(aContext);
+    nl::Weave::TLV::TLVWriter checkpoint;
 
 #if WEAVE_CONFIG_EVENT_LOGGING_NUM_EXTERNAL_CALLBACKS
     // TODO: CopyEventsSince using the LoggingManagement singleton is less than
@@ -1199,7 +1179,9 @@ WEAVE_ERROR LoggingManagement::CopyEventsSince(const TLVReader & aReader, size_t
         else
         {
             // skip over
-            loadOutContext->mCurrentEventID = LoggingManagement::GetInstance().GetEndOfExternalEventRange(loadOutContext->mImportance, loadOutContext->mCurrentEventID) + 1;
+            loadOutContext->mCurrentEventID = LoggingManagement::GetInstance().GetEndOfExternalEventRange(
+                                                  loadOutContext->mImportance, loadOutContext->mCurrentEventID) +
+                1;
         }
     }
     SuccessOrExit(err);
@@ -1231,11 +1213,10 @@ WEAVE_ERROR LoggingManagement::CopyEventsSince(const TLVReader & aReader, size_t
             // successful copy.  In all other cases, roll back the
             // writer state back to the checkpoint, i.e., the state
             // before we began the copy operation.
-            VerifyOrExit((err == WEAVE_NO_ERROR) || (err == WEAVE_END_OF_TLV),
-                loadOutContext->mWriter = checkpoint);
+            VerifyOrExit((err == WEAVE_NO_ERROR) || (err == WEAVE_END_OF_TLV), loadOutContext->mWriter = checkpoint);
 
             loadOutContext->mCurrentTime = 0;
-            loadOutContext->mFirst = false;
+            loadOutContext->mFirst       = false;
         }
 
         loadOutContext->mCurrentEventID++;
@@ -1266,7 +1247,7 @@ inline bool LoggingManagement::IsEventExternal(ImportanceType inImportance, even
  */
 inline event_id_t LoggingManagement::GetEndOfExternalEventRange(ImportanceType inImportance, event_id_t inEventID) const
 {
-    ExternalEvents *ev = GetImportanceBuffer(inImportance)->GetExternalEventsFromEventID(inEventID);
+    ExternalEvents * ev = GetImportanceBuffer(inImportance)->GetExternalEventsFromEventID(inEventID);
     return ev->mLastEventID;
 }
 #endif // WEAVE_CONFIG_EVENT_LOGGING_NUM_EXTERNAL_CALLBACKS
@@ -1303,13 +1284,13 @@ inline event_id_t LoggingManagement::GetEndOfExternalEventRange(ImportanceType i
  *                         available.
  *
  */
-WEAVE_ERROR LoggingManagement::FetchEventsSince(TLVWriter &ioWriter, ImportanceType inImportance, event_id_t &ioEventID)
+WEAVE_ERROR LoggingManagement::FetchEventsSince(TLVWriter & ioWriter, ImportanceType inImportance, event_id_t & ioEventID)
 {
-    WEAVE_ERROR err = WEAVE_NO_ERROR;
+    WEAVE_ERROR err    = WEAVE_NO_ERROR;
     const bool recurse = false;
     TLVReader reader;
     EventLoadOutContext aContext(ioWriter, inImportance, ioEventID);
-    CircularEventBuffer *buf = mEventBuffer;
+    CircularEventBuffer * buf = mEventBuffer;
 
     Platform::CriticalSectionEnter();
 
@@ -1323,13 +1304,13 @@ WEAVE_ERROR LoggingManagement::FetchEventsSince(TLVWriter &ioWriter, ImportanceT
     aContext.mCurrentUTCTime = buf->mFirstEventUTCTimestamp;
 #endif // WEAVE_CONFIG_EVENT_LOGGING_UTC_TIMESTAMPS
     aContext.mCurrentEventID = buf->mFirstEventID;
-    err = GetEventReader(reader, inImportance);
+    err                      = GetEventReader(reader, inImportance);
     SuccessOrExit(err);
 
 #if WEAVE_CONFIG_EVENT_LOGGING_NUM_EXTERNAL_CALLBACKS
     if (IsEventExternal(inImportance, ioEventID))
     {
-        ExternalEvents *ev = buf->GetExternalEventsFromEventID(ioEventID);
+        ExternalEvents * ev      = buf->GetExternalEventsFromEventID(ioEventID);
         aContext.mCurrentEventID = ev->mFirstEventID;
 
         if (ev->mFetchEventsFunct)
@@ -1339,13 +1320,13 @@ WEAVE_ERROR LoggingManagement::FetchEventsSince(TLVWriter &ioWriter, ImportanceT
         else
         {
             aContext.mCurrentEventID = ev->mLastEventID + 1;
-            err = WEAVE_END_OF_TLV;
+            err                      = WEAVE_END_OF_TLV;
         }
     }
     else
 #endif // WEAVE_CONFIG_EVENT_LOGGING_NUM_EXTERNAL_CALLBACKS
     {
-        err =  nl::Weave::TLV::Utilities::Iterate(reader, CopyEventsSince, &aContext, recurse);
+        err = nl::Weave::TLV::Utilities::Iterate(reader, CopyEventsSince, &aContext, recurse);
     }
 
 exit:
@@ -1374,14 +1355,13 @@ exit:
  *
  * @retval #WEAVE_NO_ERROR Unconditionally.
  */
-WEAVE_ERROR LoggingManagement::GetEventReader(TLVReader &ioReader, ImportanceType inImportance)
+WEAVE_ERROR LoggingManagement::GetEventReader(TLVReader & ioReader, ImportanceType inImportance)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
-    CircularEventBuffer *buffer;
+    CircularEventBuffer * buffer;
     CircularEventReader reader;
-    for (buffer = mEventBuffer;
-         buffer != NULL && !buffer->IsFinalDestinationForImportance(inImportance);
-         buffer= buffer->mNext);
+    for (buffer = mEventBuffer; buffer != NULL && !buffer->IsFinalDestinationForImportance(inImportance); buffer = buffer->mNext)
+        ;
     VerifyOrExit(buffer != NULL, err = WEAVE_ERROR_INVALID_ARGUMENT);
 
     reader.Init(buffer);
@@ -1391,10 +1371,10 @@ exit:
     return err;
 }
 
-//internal API
-WEAVE_ERROR LoggingManagement::FetchEventParameters(const TLVReader & aReader, size_t aDepth, void *aContext)
+// internal API
+WEAVE_ERROR LoggingManagement::FetchEventParameters(const TLVReader & aReader, size_t aDepth, void * aContext)
 {
-    WEAVE_ERROR err = WEAVE_NO_ERROR;
+    WEAVE_ERROR err                 = WEAVE_NO_ERROR;
     EventEnvelopeContext * envelope = static_cast<EventEnvelopeContext *>(aContext);
     TLVReader reader;
     uint16_t extImportance; // Note: the type here matches the type case in LoggingManagement::LogEvent, importance section
@@ -1408,7 +1388,7 @@ WEAVE_ERROR LoggingManagement::FetchEventParameters(const TLVReader & aReader, s
         SuccessOrExit(err);
         envelope->mImportance = static_cast<ImportanceType>(extImportance);
 
-        envelope->mNumFieldsToRead --;
+        envelope->mNumFieldsToRead--;
     }
 
     if (reader.GetTag() == nl::Weave::TLV::ContextTag(kTag_EventDeltaSystemTime))
@@ -1416,7 +1396,7 @@ WEAVE_ERROR LoggingManagement::FetchEventParameters(const TLVReader & aReader, s
         err = reader.Get(envelope->mDeltaTime);
         SuccessOrExit(err);
 
-        envelope->mNumFieldsToRead --;
+        envelope->mNumFieldsToRead--;
     }
 
 #if WEAVE_CONFIG_EVENT_LOGGING_UTC_TIMESTAMPS
@@ -1425,7 +1405,7 @@ WEAVE_ERROR LoggingManagement::FetchEventParameters(const TLVReader & aReader, s
         err = reader.Get(envelope->mDeltaUtc);
         SuccessOrExit(err);
 
-        envelope->mNumFieldsToRead --;
+        envelope->mNumFieldsToRead--;
     }
 #endif // WEAVE_CONFIG_EVENT_LOGGING_UTC_TIMESTAMPS
 
@@ -1435,10 +1415,10 @@ exit:
 
 // internal API: determine importance of an event, and the space the event requires
 
-WEAVE_ERROR LoggingManagement::EvictEvent(WeaveCircularTLVBuffer &inBuffer, void * inAppData, TLVReader & inReader)
+WEAVE_ERROR LoggingManagement::EvictEvent(WeaveCircularTLVBuffer & inBuffer, void * inAppData, TLVReader & inReader)
 {
-    ReclaimEventCtx *ctx = static_cast<ReclaimEventCtx *>(inAppData);
-    CircularEventBuffer *eventBuffer = ctx->mEventBuffer;
+    ReclaimEventCtx * ctx             = static_cast<ReclaimEventCtx *>(inAppData);
+    CircularEventBuffer * eventBuffer = ctx->mEventBuffer;
     TLVType containerType;
     EventEnvelopeContext context;
     const bool recurse = false;
@@ -1475,7 +1455,7 @@ WEAVE_ERROR LoggingManagement::EvictEvent(WeaveCircularTLVBuffer &inBuffer, void
     {
         // event is not getting dropped. Note how much space it requires, and return.
         ctx->mSpaceNeededForEvent = inReader.GetLengthRead();
-        err = WEAVE_END_OF_TLV;
+        err                       = WEAVE_END_OF_TLV;
     }
 
 exit:
@@ -1486,19 +1466,19 @@ exit:
 // figure out whether trigger still applies, if it does, then kick off
 // the upload.  If it does not, perform the appropriate backoff.
 
-void LoggingManagement::LoggingFlushHandler(System::Layer *systemLayer, void *appState, INET_ERROR err)
+void LoggingManagement::LoggingFlushHandler(System::Layer * systemLayer, void * appState, INET_ERROR err)
 {
-    LoggingManagement *logger = static_cast<LoggingManagement *>(appState);
+    LoggingManagement * logger = static_cast<LoggingManagement *>(appState);
     logger->FlushHandler(systemLayer, err);
 }
 
 // FlushHandler is only called by the Weave thread. As such, guard variables
 // do not need to be atomically set or checked.
-void LoggingManagement::FlushHandler(System::Layer *inSystemLayer, INET_ERROR inErr)
+void LoggingManagement::FlushHandler(System::Layer * inSystemLayer, INET_ERROR inErr)
 {
 #if WEAVE_CONFIG_EVENT_LOGGING_BDX_OFFLOAD
-    const LoggingConfiguration &config = LoggingConfiguration::GetInstance();
-#endif //WEAVE_CONFIG_EVENT_LOGGING_BDX_OFFLOAD
+    const LoggingConfiguration & config = LoggingConfiguration::GetInstance();
+#endif // WEAVE_CONFIG_EVENT_LOGGING_BDX_OFFLOAD
 
     switch (mState)
     {
@@ -1513,7 +1493,7 @@ void LoggingManagement::FlushHandler(System::Layer *inSystemLayer, INET_ERROR in
         {
             WEAVE_ERROR err;
             mState = kLoggingManagementState_InProgress;
-            err = mBDXUploader->StartUpload(config.GetDestNodeId(), config.GetDestNodeIPAddress());
+            err    = mBDXUploader->StartUpload(config.GetDestNodeId(), config.GetDestNodeIPAddress());
             if (err != WEAVE_NO_ERROR)
                 WeaveLogError(EventLogging, "Failed to start BDX (err: %d)", err);
         }
@@ -1524,7 +1504,7 @@ void LoggingManagement::FlushHandler(System::Layer *inSystemLayer, INET_ERROR in
                 mExchangeMgr->MessageLayer->SystemLayer->StartTimer(config.mMaximumLogUploadInterval, LoggingFlushHandler, this);
             }
         }
-#endif //WEAVE_CONFIG_EVENT_LOGGING_BDX_OFFLOAD
+#endif // WEAVE_CONFIG_EVENT_LOGGING_BDX_OFFLOAD
 
 #if WEAVE_CONFIG_EVENT_LOGGING_WDM_OFFLOAD
         if (mExchangeMgr != NULL)
@@ -1532,14 +1512,14 @@ void LoggingManagement::FlushHandler(System::Layer *inSystemLayer, INET_ERROR in
             nl::Weave::Profiles::DataManagement::SubscriptionEngine::GetInstance()->GetNotificationEngine()->Run();
             mUploadRequested = false;
         }
-#endif //WEAVE_CONFIG_EVENT_LOGGING_WDM_OFFLOAD
+#endif // WEAVE_CONFIG_EVENT_LOGGING_WDM_OFFLOAD
 
         break;
     }
     case kLoggingManagementState_Holdoff:
     {
 #if WEAVE_CONFIG_EVENT_LOGGING_BDX_OFFLOAD
-        mState = kLoggingManagementState_Idle;
+        mState           = kLoggingManagementState_Idle;
         mUploadRequested = false;
         ScheduleFlushIfNeeded(false);
         if (mUploadRequested == false)
@@ -1549,7 +1529,7 @@ void LoggingManagement::FlushHandler(System::Layer *inSystemLayer, INET_ERROR in
                 mExchangeMgr->MessageLayer->SystemLayer->StartTimer(config.mMaximumLogUploadInterval, LoggingFlushHandler, this);
             }
         }
-#endif //WEAVE_CONFIG_EVENT_LOGGING_BDX_OFFLOAD
+#endif // WEAVE_CONFIG_EVENT_LOGGING_BDX_OFFLOAD
         break;
     }
 
@@ -1559,14 +1539,13 @@ void LoggingManagement::FlushHandler(System::Layer *inSystemLayer, INET_ERROR in
         // should never end in these states in this function
         break;
     }
-
     }
 }
 
 void LoggingManagement::SignalUploadDone(void)
 {
 #if WEAVE_CONFIG_EVENT_LOGGING_BDX_OFFLOAD
-    const LoggingConfiguration &config = LoggingConfiguration::GetInstance();
+    const LoggingConfiguration & config = LoggingConfiguration::GetInstance();
     if (mState == kLoggingManagementState_InProgress)
     {
         mState = kLoggingManagementState_Holdoff;
@@ -1575,7 +1554,7 @@ void LoggingManagement::SignalUploadDone(void)
             mExchangeMgr->MessageLayer->SystemLayer->StartTimer(config.mMinimumLogUploadInterval, LoggingFlushHandler, this);
         }
     }
-#endif //WEAVE_CONFIG_EVENT_LOGGING_BDX_OFFLOAD
+#endif // WEAVE_CONFIG_EVENT_LOGGING_BDX_OFFLOAD
 }
 
 /**
@@ -1630,15 +1609,13 @@ WEAVE_ERROR LoggingManagement::ScheduleFlushIfNeeded(bool inRequestFlush)
 
     if (inRequestFlush && __sync_bool_compare_and_swap(&mUploadRequested, false, true))
     {
-        if ((mExchangeMgr != NULL) &&
-            (mExchangeMgr->MessageLayer != NULL) &&
-            (mExchangeMgr->MessageLayer->SystemLayer != NULL))
+        if ((mExchangeMgr != NULL) && (mExchangeMgr->MessageLayer != NULL) && (mExchangeMgr->MessageLayer->SystemLayer != NULL))
         {
             mExchangeMgr->MessageLayer->SystemLayer->ScheduleWork(LoggingFlushHandler, this);
         }
         else
         {
-            err = WEAVE_ERROR_INCORRECT_STATE;
+            err              = WEAVE_ERROR_INCORRECT_STATE;
             mUploadRequested = false;
         }
     }
@@ -1649,7 +1626,7 @@ WEAVE_ERROR LoggingManagement::ScheduleFlushIfNeeded(bool inRequestFlush)
 #if WEAVE_CONFIG_EVENT_LOGGING_BDX_OFFLOAD
 bool LoggingManagement::CheckShouldRunBDX(void)
 {
-    const LoggingConfiguration &config = LoggingConfiguration::GetInstance();
+    const LoggingConfiguration & config = LoggingConfiguration::GetInstance();
     return ((mBDXUploader != NULL) && ((mBytesWritten - mBDXUploader->GetUploadPosition()) > config.mUploadThreshold));
 }
 #endif // WEAVE_CONFIG_EVENT_LOGGING_BDX_OFFLOAD
@@ -1670,9 +1647,9 @@ bool LoggingManagement::CheckShouldRunBDX(void)
  */
 bool LoggingManagement::CheckShouldRunWDM(void)
 {
-    WEAVE_ERROR err = WEAVE_NO_ERROR;
+    WEAVE_ERROR err              = WEAVE_NO_ERROR;
     size_t minimalBytesOffloaded = mBytesWritten;
-    bool ret = false;
+    bool ret                     = false;
 
     // Get the minimal log position (in bytes) across all subscribers
     err = nl::Weave::Profiles::DataManagement::SubscriptionEngine::GetInstance()->GetMinEventLogPosition(minimalBytesOffloaded);
@@ -1687,10 +1664,11 @@ exit:
 
 #endif // WEAVE_CONFIG_EVENT_LOGGING_WDM_OFFLOAD
 
-WEAVE_ERROR LoggingManagement::SetLoggingEndpoint(event_id_t *inEventEndpoints, size_t inNumImportanceLevels, size_t &outBytesOffloaded)
+WEAVE_ERROR LoggingManagement::SetLoggingEndpoint(event_id_t * inEventEndpoints, size_t inNumImportanceLevels,
+                                                  size_t & outBytesOffloaded)
 {
-    WEAVE_ERROR err = WEAVE_NO_ERROR;
-    CircularEventBuffer *eventBuffer = mEventBuffer;
+    WEAVE_ERROR err                   = WEAVE_NO_ERROR;
+    CircularEventBuffer * eventBuffer = mEventBuffer;
 
     Platform::CriticalSectionEnter();
 
@@ -1698,8 +1676,8 @@ WEAVE_ERROR LoggingManagement::SetLoggingEndpoint(event_id_t *inEventEndpoints, 
 
     while (eventBuffer != NULL && inNumImportanceLevels > 0)
     {
-      if ((eventBuffer->mImportance >= kImportanceType_First) &&
-          ((static_cast<size_t>(eventBuffer->mImportance - kImportanceType_First)) < inNumImportanceLevels))
+        if ((eventBuffer->mImportance >= kImportanceType_First) &&
+            ((static_cast<size_t>(eventBuffer->mImportance - kImportanceType_First)) < inNumImportanceLevels))
         {
             inEventEndpoints[eventBuffer->mImportance - kImportanceType_First] = eventBuffer->mLastEventID;
         }
@@ -1722,13 +1700,14 @@ uint32_t LoggingManagement::GetBytesWritten(void) const
     return mBytesWritten;
 }
 
-void LoggingManagement::NotifyEventsDelivered(ImportanceType inImportance, event_id_t inLastDeliveredEventID, uint64_t inRecipientNodeID) const
+void LoggingManagement::NotifyEventsDelivered(ImportanceType inImportance, event_id_t inLastDeliveredEventID,
+                                              uint64_t inRecipientNodeID) const
 {
 #if WEAVE_CONFIG_EVENT_LOGGING_NUM_EXTERNAL_CALLBACKS
 
     for (size_t i = 0; i < WEAVE_CONFIG_EVENT_LOGGING_NUM_EXTERNAL_CALLBACKS; i++)
     {
-        ExternalEvents *externalEvents = &(GetImportanceBuffer(inImportance)->mExternalEventsList[i]);
+        ExternalEvents * externalEvents = &(GetImportanceBuffer(inImportance)->mExternalEventsList[i]);
         if ((externalEvents->mFetchEventsFunct != NULL) && (externalEvents->mNotifyEventsDeliveredFunct != NULL))
         {
             if (inLastDeliveredEventID >= externalEvents->mFirstEventID)
@@ -1746,7 +1725,7 @@ void LoggingManagement::NotifyEventsDelivered(ImportanceType inImportance, event
 #endif
 }
 
-void LoggingManagement::SetBDXUploader(LogBDXUpload *inUploader)
+void LoggingManagement::SetBDXUploader(LogBDXUpload * inUploader)
 {
     if (mBDXUploader == NULL)
     {
@@ -1774,19 +1753,13 @@ void LoggingManagement::SetBDXUploader(LogBDXUpload *inUploader)
  *
  * @return CircularEventBuffer
  */
-CircularEventBuffer::CircularEventBuffer(uint8_t *inBuffer, size_t inBufferLength, CircularEventBuffer *inPrev, CircularEventBuffer *inNext) :
+CircularEventBuffer::CircularEventBuffer(uint8_t * inBuffer, size_t inBufferLength, CircularEventBuffer * inPrev,
+                                         CircularEventBuffer * inNext) :
     mBuffer(inBuffer, inBufferLength),
-    mPrev(inPrev),
-    mNext(inNext),
-    mImportance(kImportanceType_First),
-    mFirstEventID(1),
-    mLastEventID(0),
-    mFirstEventTimestamp(0),
+    mPrev(inPrev), mNext(inNext), mImportance(kImportanceType_First), mFirstEventID(1), mLastEventID(0), mFirstEventTimestamp(0),
     mLastEventTimestamp(0),
 #if WEAVE_CONFIG_EVENT_LOGGING_UTC_TIMESTAMPS
-    mFirstEventUTCTimestamp(0),
-    mLastEventUTCTimestamp(0),
-    mUTCInitialized(false),
+    mFirstEventUTCTimestamp(0), mLastEventUTCTimestamp(0), mUTCInitialized(false),
 #endif // WEAVE_CONFIG_EVENT_LOGGING_UTC_TIMESTAMPS
     mEventIdCounter(NULL)
 {
@@ -1828,11 +1801,10 @@ void CircularEventBuffer::AddEvent(timestamp_t inEventTimestamp)
     if (mFirstEventTimestamp == 0)
     {
         mFirstEventTimestamp = inEventTimestamp;
-        mLastEventTimestamp = inEventTimestamp;
+        mLastEventTimestamp  = inEventTimestamp;
     }
     mLastEventTimestamp = inEventTimestamp;
 }
-
 
 #if WEAVE_CONFIG_EVENT_LOGGING_UTC_TIMESTAMPS
 /**
@@ -1848,7 +1820,7 @@ void CircularEventBuffer::AddEventUTC(utc_timestamp_t inEventTimestamp)
     if (mUTCInitialized == false)
     {
         mFirstEventUTCTimestamp = inEventTimestamp;
-        mUTCInitialized = true;
+        mUTCInitialized         = true;
     }
     mLastEventUTCTimestamp = inEventTimestamp;
 }
@@ -1857,10 +1829,10 @@ void CircularEventBuffer::AddEventUTC(utc_timestamp_t inEventTimestamp)
 void CircularEventBuffer::RemoveEvent(void)
 {
 #if WEAVE_CONFIG_EVENT_LOGGING_NUM_EXTERNAL_CALLBACKS
-    ExternalEvents *ev;
+    ExternalEvents * ev;
     while ((ev = GetExternalEventsFromEventID(mFirstEventID)) != NULL)
     {
-        mFirstEventID = ev->mLastEventID + 1;
+        mFirstEventID         = ev->mLastEventID + 1;
         ev->mFetchEventsFunct = NULL;
     }
 #endif // WEAVE_CONFIG_EVENT_LOGGING_NUM_EXTERNAL_CALLBACKS
@@ -1880,15 +1852,13 @@ void CircularEventBuffer::RemoveEvent(void)
  * @return WEAVE_ERROR_NO_MEMORY If all callbacks are in use.
  * @return WEAVE_NO_ERROR Otherwise
  */
-WEAVE_ERROR CircularEventBuffer::RegisterExternalEventsCallback(
-        FetchExternalEventsFunct aFetchCallback,
-        NotifyExternalEventsDeliveredFunct aNotifyCallback,
-        size_t aNumEvents,
-        ExternalEvents **aExternalEventsPtr)
+WEAVE_ERROR CircularEventBuffer::RegisterExternalEventsCallback(FetchExternalEventsFunct aFetchCallback,
+                                                                NotifyExternalEventsDeliveredFunct aNotifyCallback,
+                                                                size_t aNumEvents, ExternalEvents ** aExternalEventsPtr)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
 #if WEAVE_CONFIG_EVENT_LOGGING_NUM_EXTERNAL_CALLBACKS
-    ExternalEvents *ev;
+    ExternalEvents * ev;
 
     Platform::CriticalSectionEnter();
 
@@ -1906,8 +1876,8 @@ WEAVE_ERROR CircularEventBuffer::RegisterExternalEventsCallback(
         IgnoreUnusedVariable(tmp_id);
     }
 
-    ev->mLastEventID = mLastEventID;
-    ev->mFetchEventsFunct = aFetchCallback;
+    ev->mLastEventID                = mLastEventID;
+    ev->mFetchEventsFunct           = aFetchCallback;
     ev->mNotifyEventsDeliveredFunct = aNotifyCallback;
     if (aExternalEventsPtr != NULL)
     {
@@ -1916,7 +1886,7 @@ WEAVE_ERROR CircularEventBuffer::RegisterExternalEventsCallback(
 
 exit:
     Platform::CriticalSectionExit();
-#else // WEAVE_CONFIG_EVENT_LOGGING_NUM_EXTERNAL_CALLBACKS
+#else  // WEAVE_CONFIG_EVENT_LOGGING_NUM_EXTERNAL_CALLBACKS
     err = WEAVE_ERROR_NOT_IMPLEMENTED;
 #endif // WEAVE_CONFIG_EVENT_LOGGING_NUM_EXTERNAL_CALLBACKS
 
@@ -1934,15 +1904,14 @@ exit:
  *
  * @param inPtr   Pointer to ExternalEvents struct to unregister.
  */
-void CircularEventBuffer::UnregisterExternalEventsCallback(
-        ExternalEvents *inPtr)
+void CircularEventBuffer::UnregisterExternalEventsCallback(ExternalEvents * inPtr)
 {
 #if WEAVE_CONFIG_EVENT_LOGGING_NUM_EXTERNAL_CALLBACKS
     Platform::CriticalSectionEnter();
 
     if (inPtr != NULL)
     {
-        inPtr->mFetchEventsFunct = NULL;
+        inPtr->mFetchEventsFunct           = NULL;
         inPtr->mNotifyEventsDeliveredFunct = NULL;
     }
 
@@ -1957,19 +1926,16 @@ void CircularEventBuffer::UnregisterExternalEventsCallback(
  *
  * @retval NULL if aEventID is not externally stored.
  */
-ExternalEvents *CircularEventBuffer::GetExternalEventsFromEventID(
-        event_id_t aEventID)
+ExternalEvents * CircularEventBuffer::GetExternalEventsFromEventID(event_id_t aEventID)
 {
     uint8_t idx;
-    ExternalEvents *ev = NULL;
+    ExternalEvents * ev = NULL;
 
     for (idx = 0; idx < WEAVE_CONFIG_EVENT_LOGGING_NUM_EXTERNAL_CALLBACKS; idx++)
     {
         ev = &mExternalEventsList[idx];
 
-        if ((aEventID >= ev->mFirstEventID) &&
-            (aEventID <= ev->mLastEventID) &&
-            (mFirstEventID <= ev->mFirstEventID))
+        if ((aEventID >= ev->mFirstEventID) && (aEventID <= ev->mLastEventID) && (mFirstEventID <= ev->mFirstEventID))
         {
             break;
         }
@@ -1988,17 +1954,16 @@ ExternalEvents *CircularEventBuffer::GetExternalEventsFromEventID(
  *
  * @retval NULL if all callbacks are in use.
  */
-ExternalEvents *CircularEventBuffer::GetNextAvailableExternalEvents(void)
+ExternalEvents * CircularEventBuffer::GetNextAvailableExternalEvents(void)
 {
     uint8_t idx;
-    ExternalEvents *ev = NULL;
+    ExternalEvents * ev = NULL;
 
     for (idx = 0; idx < WEAVE_CONFIG_EVENT_LOGGING_NUM_EXTERNAL_CALLBACKS; idx++)
     {
         ev = &mExternalEventsList[idx];
 
-        if ((ev->mFetchEventsFunct == NULL) &&
-            (ev->mLastEventID <= mFirstEventID))
+        if ((ev->mFetchEventsFunct == NULL) && (ev->mLastEventID <= mFirstEventID))
         {
             break;
         }
@@ -2020,13 +1985,13 @@ ExternalEvents *CircularEventBuffer::GetNextAvailableExternalEvents(void)
  * @param[in] inBuf A pointer to a fully initialized CircularEventBuffer
  *
  */
-void CircularEventReader::Init(CircularEventBuffer *inBuf)
+void CircularEventReader::Init(CircularEventBuffer * inBuf)
 {
     CircularTLVReader reader;
-    CircularEventBuffer *prev;
+    CircularEventBuffer * prev;
     reader.Init(&inBuf->mBuffer);
     TLVReader::Init(reader);
-    mBufHandle =  (uintptr_t)inBuf;
+    mBufHandle    = (uintptr_t) inBuf;
     GetNextBuffer = CircularEventBuffer::GetNextBufferFunct;
     for (prev = inBuf->mPrev; prev != NULL; prev = prev->mPrev)
     {
@@ -2035,10 +2000,11 @@ void CircularEventReader::Init(CircularEventBuffer *inBuf)
     }
 }
 
-WEAVE_ERROR CircularEventBuffer::GetNextBufferFunct(TLVReader& ioReader, uintptr_t &inBufHandle, const uint8_t *&outBufStart, uint32_t &outBufLen)
+WEAVE_ERROR CircularEventBuffer::GetNextBufferFunct(TLVReader & ioReader, uintptr_t & inBufHandle, const uint8_t *& outBufStart,
+                                                    uint32_t & outBufLen)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
-    CircularEventBuffer *buf;
+    CircularEventBuffer * buf;
 
     VerifyOrExit(inBufHandle != 0, err = WEAVE_ERROR_INVALID_ARGUMENT);
 
@@ -2051,18 +2017,16 @@ WEAVE_ERROR CircularEventBuffer::GetNextBufferFunct(TLVReader& ioReader, uintptr
     {
         inBufHandle = (uintptr_t) buf->mPrev;
         outBufStart = NULL;
-        err  = GetNextBufferFunct(ioReader, inBufHandle, outBufStart, outBufLen);
+        err         = GetNextBufferFunct(ioReader, inBufHandle, outBufStart, outBufLen);
     }
 
 exit:
     return err;
 }
 
-CopyAndAdjustDeltaTimeContext::CopyAndAdjustDeltaTimeContext(TLVWriter *inWriter, EventLoadOutContext *inContext) :
-    mWriter(inWriter),
-    mContext(inContext)
-{
-}
+CopyAndAdjustDeltaTimeContext::CopyAndAdjustDeltaTimeContext(TLVWriter * inWriter, EventLoadOutContext * inContext) :
+    mWriter(inWriter), mContext(inContext)
+{ }
 
 EventEnvelopeContext::EventEnvelopeContext(void) :
     mNumFieldsToRead(2), // read out importance and either system or utc delta time. events do not store both deltas.
@@ -2071,10 +2035,9 @@ EventEnvelopeContext::EventEnvelopeContext(void) :
     mDeltaUtc(0),
 #endif // WEAVE_CONFIG_EVENT_LOGGING_UTC_TIMESTAMPS
     mImportance(kImportanceType_First)
-{
-}
+{ }
 
-} // WeaveMakeManagedNamespaceIdentifier(DataManagement, kWeaveManagedNamespaceDesignation_Current)
-} // Profiles
-} // Weave
-} // nl
+} // namespace WeaveMakeManagedNamespaceIdentifier(DataManagement, kWeaveManagedNamespaceDesignation_Current)
+} // namespace Profiles
+} // namespace Weave
+} // namespace nl

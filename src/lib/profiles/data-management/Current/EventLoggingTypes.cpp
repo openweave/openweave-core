@@ -33,110 +33,60 @@ namespace Profiles {
 namespace WeaveMakeManagedNamespaceIdentifier(DataManagement, kWeaveManagedNamespaceDesignation_Current) {
 
 EventOptions::EventOptions(void) :
-    timestamp(),
-    eventSource(NULL),
-    relatedEventID(0),
-    relatedImportance(kImportanceType_Invalid),
-    timestampType(kTimestampType_Invalid),
-    urgent(false)
-{
-}
+    timestamp(), eventSource(NULL), relatedEventID(0), relatedImportance(kImportanceType_Invalid),
+    timestampType(kTimestampType_Invalid), urgent(false)
+{ }
 
 EventOptions::EventOptions(bool aUrgent) :
-    timestamp(),
-    eventSource(NULL),
-    relatedEventID(0),
-    relatedImportance(kImportanceType_Invalid),
-    timestampType(kTimestampType_Invalid),
-    urgent(aUrgent)
-{
-}
+    timestamp(), eventSource(NULL), relatedEventID(0), relatedImportance(kImportanceType_Invalid),
+    timestampType(kTimestampType_Invalid), urgent(aUrgent)
+{ }
 
 EventOptions::EventOptions(timestamp_t aSystemTimestamp) :
-    timestamp(aSystemTimestamp),
-    eventSource(NULL),
-    relatedEventID(0),
-    relatedImportance(kImportanceType_Invalid),
-    timestampType(kTimestampType_System),
-    urgent(false)
-{
-}
+    timestamp(aSystemTimestamp), eventSource(NULL), relatedEventID(0), relatedImportance(kImportanceType_Invalid),
+    timestampType(kTimestampType_System), urgent(false)
+{ }
 
 EventOptions::EventOptions(utc_timestamp_t aUtcTimestamp) :
-    timestamp(aUtcTimestamp),
-    eventSource(NULL),
-    relatedEventID(0),
-    relatedImportance(kImportanceType_Invalid),
-    timestampType(kTimestampType_UTC),
-    urgent(false)
-{
-}
+    timestamp(aUtcTimestamp), eventSource(NULL), relatedEventID(0), relatedImportance(kImportanceType_Invalid),
+    timestampType(kTimestampType_UTC), urgent(false)
+{ }
 
 EventOptions::EventOptions(timestamp_t aSystemTimestamp, bool aUrgent) :
-    timestamp(aSystemTimestamp),
-    eventSource(NULL),
-    relatedEventID(0),
-    relatedImportance(kImportanceType_Invalid),
-    timestampType(kTimestampType_System),
-    urgent(aUrgent)
-{
-}
+    timestamp(aSystemTimestamp), eventSource(NULL), relatedEventID(0), relatedImportance(kImportanceType_Invalid),
+    timestampType(kTimestampType_System), urgent(aUrgent)
+{ }
 
 EventOptions::EventOptions(utc_timestamp_t aUtcTimestamp, bool aUrgent) :
-    timestamp(aUtcTimestamp),
-    eventSource(NULL),
-    relatedEventID(0),
-    relatedImportance(kImportanceType_Invalid),
-    timestampType(kTimestampType_UTC),
-    urgent(aUrgent)
-{
-}
+    timestamp(aUtcTimestamp), eventSource(NULL), relatedEventID(0), relatedImportance(kImportanceType_Invalid),
+    timestampType(kTimestampType_UTC), urgent(aUrgent)
+{ }
 
-EventOptions::EventOptions(timestamp_t aSystemTimestamp,
-                           DetailedRootSection *aEventSource,
-                           event_id_t aRelatedEventID,
-                           ImportanceType aRelatedImportance,
-                           bool aUrgent) :
+EventOptions::EventOptions(timestamp_t aSystemTimestamp, DetailedRootSection * aEventSource, event_id_t aRelatedEventID,
+                           ImportanceType aRelatedImportance, bool aUrgent) :
     timestamp(aSystemTimestamp),
-    eventSource(aEventSource),
-    relatedEventID(aRelatedEventID),
-    relatedImportance(aRelatedImportance),
-    timestampType(kTimestampType_System),
-    urgent(aUrgent)
-{
-}
+    eventSource(aEventSource), relatedEventID(aRelatedEventID), relatedImportance(aRelatedImportance),
+    timestampType(kTimestampType_System), urgent(aUrgent)
+{ }
 
-EventOptions::EventOptions(utc_timestamp_t aUtcTimestamp,
-                           DetailedRootSection *aEventSource,
-                           event_id_t aRelatedEventID,
-                           ImportanceType aRelatedImportance,
-                           bool aUrgent) :
+EventOptions::EventOptions(utc_timestamp_t aUtcTimestamp, DetailedRootSection * aEventSource, event_id_t aRelatedEventID,
+                           ImportanceType aRelatedImportance, bool aUrgent) :
     timestamp(aUtcTimestamp),
-    eventSource(aEventSource),
-    relatedEventID(aRelatedEventID),
-    relatedImportance(aRelatedImportance),
-    timestampType(kTimestampType_UTC),
-    urgent(aUrgent)
-{
-}
+    eventSource(aEventSource), relatedEventID(aRelatedEventID), relatedImportance(aRelatedImportance),
+    timestampType(kTimestampType_UTC), urgent(aUrgent)
+{ }
 
-EventLoadOutContext::EventLoadOutContext(nl::Weave::TLV::TLVWriter &inWriter,
-                                         ImportanceType inImportance,
+EventLoadOutContext::EventLoadOutContext(nl::Weave::TLV::TLVWriter & inWriter, ImportanceType inImportance,
                                          uint32_t inStartingEventID) :
     mWriter(inWriter),
-    mImportance(inImportance),
-    mStartingEventID(inStartingEventID),
-    mCurrentTime(0),
-    mCurrentEventID(0),
+    mImportance(inImportance), mStartingEventID(inStartingEventID), mCurrentTime(0), mCurrentEventID(0),
 #if WEAVE_CONFIG_EVENT_LOGGING_UTC_TIMESTAMPS
-    mCurrentUTCTime(0),
-    mFirstUtc(true),
+    mCurrentUTCTime(0), mFirstUtc(true),
 #endif // WEAVE_CONFIG_EVENT_LOGGING_UTC_TIMESTAMPS
     mFirst(true)
-{
-}
+{ }
 
-} // ns WeaveMakeManagedNamespaceIdentifier(DataManagement, kWeaveManagedNamespaceDesignation_Current)
-} // ns Profiles
-} // ns Weave
-} // ns nl
+} // namespace WeaveMakeManagedNamespaceIdentifier(DataManagement, kWeaveManagedNamespaceDesignation_Current)
+} // namespace Profiles
+} // namespace Weave
+} // namespace nl

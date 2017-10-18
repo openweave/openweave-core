@@ -43,17 +43,17 @@ namespace WeaveMakeManagedNamespaceIdentifier(DataManagement, kWeaveManagedNames
  */
 enum
 {
-    kMsgType_ViewRequest                = 0x20,
-    kMsgType_ViewResponse               = 0x21,
-    kMsgType_UpdateRequest              = 0x22,
-    kMsgType_InProgress                 = 0x23,
-    kMsgType_SubscribeRequest           = 0x24,
-    kMsgType_SubscribeResponse          = 0x25,
-    kMsgType_SubscribeCancelRequest     = 0x26,
-    kMsgType_SubscribeConfirmRequest    = 0x27,
-    kMsgType_NotificationRequest        = 0x28,
-    kMsgType_CustomCommandRequest       = 0x29,
-    kMsgType_CustomCommandResponse      = 0x2A,
+    kMsgType_ViewRequest             = 0x20,
+    kMsgType_ViewResponse            = 0x21,
+    kMsgType_UpdateRequest           = 0x22,
+    kMsgType_InProgress              = 0x23,
+    kMsgType_SubscribeRequest        = 0x24,
+    kMsgType_SubscribeResponse       = 0x25,
+    kMsgType_SubscribeCancelRequest  = 0x26,
+    kMsgType_SubscribeConfirmRequest = 0x27,
+    kMsgType_NotificationRequest     = 0x28,
+    kMsgType_CustomCommandRequest    = 0x29,
+    kMsgType_CustomCommandResponse   = 0x2A,
 };
 
 /**
@@ -63,26 +63,38 @@ enum
  */
 enum
 {
-    kStatus_InvalidValueInNotification      = 0x20,
-    kStatus_InvalidPath                     = 0x21,
-    kStatus_ExpiryTimeNotSupported          = 0x22,
-    kStatus_NotTimeSyncedYet                = 0x23,
-    kStatus_RequestExpiredInTime            = 0x24,
-    kStatus_VersionMismatch                 = 0x25,
-    kStatus_GeneralProtocolError            = 0x26,
-    kStatus_SecurityError                   = 0x27,
-    kStatus_InvalidSubscriptionID           = 0x28,
-    kStatus_GeneralSchemaViolation          = 0x29,
-    kStatus_UnpairedDeviceRejected          = 0x2A,
-    kStatus_IncompatibleDataSchemaVersion   = 0x2B,
+    kStatus_InvalidValueInNotification    = 0x20,
+    kStatus_InvalidPath                   = 0x21,
+    kStatus_ExpiryTimeNotSupported        = 0x22,
+    kStatus_NotTimeSyncedYet              = 0x23,
+    kStatus_RequestExpiredInTime          = 0x24,
+    kStatus_VersionMismatch               = 0x25,
+    kStatus_GeneralProtocolError          = 0x26,
+    kStatus_SecurityError                 = 0x27,
+    kStatus_InvalidSubscriptionID         = 0x28,
+    kStatus_GeneralSchemaViolation        = 0x29,
+    kStatus_UnpairedDeviceRejected        = 0x2A,
+    kStatus_IncompatibleDataSchemaVersion = 0x2B,
 };
 
 typedef uint16_t SchemaVersion;
 
-struct SchemaVersionRange {
-    SchemaVersionRange() { mMinVersion = 1; mMaxVersion = 1; }
-    SchemaVersionRange(SchemaVersion aMaxVersion, SchemaVersion aMinVersion) { mMaxVersion = aMaxVersion; mMinVersion = aMinVersion; }
-    bool operator == (const SchemaVersionRange &rhs) const { return ((rhs.mMinVersion == mMinVersion) && (rhs.mMaxVersion == mMaxVersion)); }
+struct SchemaVersionRange
+{
+    SchemaVersionRange()
+    {
+        mMinVersion = 1;
+        mMaxVersion = 1;
+    }
+    SchemaVersionRange(SchemaVersion aMaxVersion, SchemaVersion aMinVersion)
+    {
+        mMaxVersion = aMaxVersion;
+        mMinVersion = aMinVersion;
+    }
+    bool operator ==(const SchemaVersionRange & rhs) const
+    {
+        return ((rhs.mMinVersion == mMinVersion) && (rhs.mMaxVersion == mMaxVersion));
+    }
     bool IsValid() const { return mMinVersion <= mMaxVersion; }
 
     SchemaVersion mMinVersion;
@@ -113,10 +125,10 @@ protected:
 
     ParserBase(void);
 
-    template<typename T>
+    template <typename T>
     WEAVE_ERROR GetUnsignedInteger(const uint8_t aContextTag, T * const apLValue) const;
 
-    template<typename T>
+    template <typename T>
     WEAVE_ERROR GetSimpleValue(const uint8_t aContextTag, const nl::Weave::TLV::TLVType aTLVType, T * const apLValue) const;
 };
 
@@ -129,7 +141,6 @@ protected:
 class ListParserBase : public ParserBase
 {
 protected:
-
     ListParserBase(void);
 
 public:
@@ -176,11 +187,9 @@ protected:
 class ListBuilderBase : public BuilderBase
 {
 protected:
-
     ListBuilderBase(void);
 
 public:
-
     WEAVE_ERROR Init(nl::Weave::TLV::TLVWriter * const apWriter, const uint8_t aContextTagToUse);
 };
 
@@ -189,20 +198,19 @@ public:
  *    WDM Path definition
  *
  */
-namespace Path
+namespace Path {
+enum
 {
-    enum
-    {
-        kCsTag_InstanceLocator          = 1,
+    kCsTag_InstanceLocator = 1,
 
-        kCsTag_ResourceID               = 1,
-        kCsTag_TraitProfileID           = 2,
-        kCsTag_TraitInstanceID          = 3,
-    };
-
-    class Parser;
-    class Builder;
+    kCsTag_ResourceID      = 1,
+    kCsTag_TraitProfileID  = 2,
+    kCsTag_TraitInstanceID = 3,
 };
+
+class Parser;
+class Builder;
+}; // namespace Path
 
 /**
  *  @class Parser
@@ -213,7 +221,6 @@ namespace Path
 class Path::Parser : public ParserBase
 {
 public:
-
     // aReader has to be on the element of Path container
     WEAVE_ERROR Init(const nl::Weave::TLV::TLVReader & aReader);
 
@@ -250,10 +257,9 @@ public:
     WEAVE_ERROR GetTags(nl::Weave::TLV::TLVReader * const apReader) const;
 };
 
-class Path::Builder: public BuilderBase
+class Path::Builder : public BuilderBase
 {
 public:
-
     WEAVE_ERROR Init(nl::Weave::TLV::TLVWriter * const apWriter);
 
     WEAVE_ERROR Init(nl::Weave::TLV::TLVWriter * const apWriter, const uint8_t aContextTagToUse);
@@ -261,7 +267,7 @@ public:
     Path::Builder & ResourceID(const uint64_t aResourceID);
     Path::Builder & InstanceID(const uint64_t aInstanceID);
     Path::Builder & ProfileID(const uint32_t aProfileID);
-    Path::Builder & ProfileID(const uint32_t aProfileID, const SchemaVersionRange &aSchemaVersionRange);
+    Path::Builder & ProfileID(const uint32_t aProfileID, const SchemaVersionRange & aSchemaVersionRange);
 
     Path::Builder & TagSection(void);
     Path::Builder & AdditionalTag(const uint64_t aTagInApiForm);
@@ -279,22 +285,21 @@ private:
  *    WDM Data Element definition
  *
  */
-namespace DataElement
+namespace DataElement {
+enum
 {
-    enum
-    {
-        kCsTag_Path                     = 1,
-        kCsTag_Version                  = 2,
-        kCsTag_IsPartialChange          = 3,
+    kCsTag_Path            = 1,
+    kCsTag_Version         = 2,
+    kCsTag_IsPartialChange = 3,
 
-        /* 4-8 are reserved */
-        kCsTag_DeletedDictionaryKeys    = 9,
-        kCsTag_Data                     = 10,
-    };
-
-    class Parser;
-    class Builder;
+    /* 4-8 are reserved */
+    kCsTag_DeletedDictionaryKeys = 9,
+    kCsTag_Data                  = 10,
 };
+
+class Parser;
+class Builder;
+}; // namespace DataElement
 
 /**
  *  @brief
@@ -303,7 +308,6 @@ namespace DataElement
 class DataElement::Parser : public ParserBase
 {
 public:
-
     // aReader has to be on the element of DataElement
     WEAVE_ERROR Init(const nl::Weave::TLV::TLVReader & aReader);
 
@@ -346,23 +350,22 @@ public:
 
     // Default is false if there is no such element
     // WEAVE_ERROR_WRONG_TLV_TYPE if there is such element but it's not a boolean
-    WEAVE_ERROR GetPartialChangeFlag (bool * const apPartialChangeFlag) const;
+    WEAVE_ERROR GetPartialChangeFlag(bool * const apPartialChangeFlag) const;
 
-    WEAVE_ERROR GetReaderOnPath (nl::Weave::TLV::TLVReader * const apReader) const;
+    WEAVE_ERROR GetReaderOnPath(nl::Weave::TLV::TLVReader * const apReader) const;
 
 protected:
     // A recursively callable function to parse a data element and pretty-print it.
-    WEAVE_ERROR ParseData(nl::Weave::TLV::TLVReader &aReader, int aDepth) const;
+    WEAVE_ERROR ParseData(nl::Weave::TLV::TLVReader & aReader, int aDepth) const;
 };
 
 /**
  *  @brief
  *    WDM Data Element encoder definition
  */
-class DataElement::Builder: public BuilderBase
+class DataElement::Builder : public BuilderBase
 {
 public:
-
     // DataElement is only used in a Data List, which requires every path to be anonymous
     WEAVE_ERROR Init(nl::Weave::TLV::TLVWriter * const apWriter);
 
@@ -371,7 +374,7 @@ public:
     DataElement::Builder & Version(const uint64_t aVersion);
 
     // Nothing would be written if aIsPartialChange == false, as that's the default value
-    DataElement::Builder & PartialChange (const bool aIsPartialChange);
+    DataElement::Builder & PartialChange(const bool aIsPartialChange);
 
     DataElement::Builder & EndOfDataElement(void);
 
@@ -383,16 +386,14 @@ private:
  *  @brief
  *    WDM Path List definition
  */
-namespace PathList
-{
-    class Parser;
-    class Builder;
-};
+namespace PathList {
+class Parser;
+class Builder;
+}; // namespace PathList
 
 class PathList::Parser : public ListParserBase
 {
 public:
-
     // Roughly verify the schema is right, including
     // 1) at least one element is there
     // 2) all elements are anonymous and of Path type
@@ -400,10 +401,9 @@ public:
     WEAVE_ERROR CheckSchemaValidity(void) const;
 };
 
-class PathList::Builder: public ListBuilderBase
+class PathList::Builder : public ListBuilderBase
 {
 public:
-
     // Re-initialize the shared PathBuilder with anonymous tag
     Path::Builder & CreatePathBuilder(void);
 
@@ -414,16 +414,14 @@ private:
     Path::Builder mPathBuilder;
 };
 
-namespace DataList
-{
-    class Parser;
-    class Builder;
-};
+namespace DataList {
+class Parser;
+class Builder;
+}; // namespace DataList
 
 class DataList::Parser : public ListParserBase
 {
 public:
-
     // Roughly verify the schema is right, including
     // 1) at least one element is there
     // 2) all elements are anonymous and of Structure type
@@ -431,10 +429,9 @@ public:
     WEAVE_ERROR CheckSchemaValidity(void) const;
 };
 
-class DataList::Builder: public ListBuilderBase
+class DataList::Builder : public ListBuilderBase
 {
 public:
-
     // Re-initialize the shared PathBuilder with anonymous tag
     DataElement::Builder & CreateDataElementBuilder(void);
 
@@ -445,38 +442,37 @@ private:
     DataElement::Builder mDataElementBuilder;
 };
 
-namespace Event
+namespace Event {
+enum
 {
-    enum
-    {
-        kCsTag_Source                   = 1,
-        kCsTag_Importance               = 2,
-        kCsTag_Id                       = 3,
+    kCsTag_Source     = 1,
+    kCsTag_Importance = 2,
+    kCsTag_Id         = 3,
 
-        /* 4-9 are reserved */
+    /* 4-9 are reserved */
 
-        kCsTag_RelatedImportance        = 10,
-        kCsTag_RelatedId                = 11,
-        kCsTag_UTCTimestamp             = 12,
-        kCsTag_SystemTimestamp          = 13,
-        kCsTag_ResourceId               = 14,
-        kCsTag_TraitProfileId           = 15,
-        kCsTag_TraitInstanceId          = 16,
-        kCsTag_Type                     = 17,
+    kCsTag_RelatedImportance = 10,
+    kCsTag_RelatedId         = 11,
+    kCsTag_UTCTimestamp      = 12,
+    kCsTag_SystemTimestamp   = 13,
+    kCsTag_ResourceId        = 14,
+    kCsTag_TraitProfileId    = 15,
+    kCsTag_TraitInstanceId   = 16,
+    kCsTag_Type              = 17,
 
-        /* 18-29 are reserved */
+    /* 18-29 are reserved */
 
-        kCsTag_DeltaUTCTime             = 30,
-        kCsTag_DeltaSystemTime          = 31,
+    kCsTag_DeltaUTCTime    = 30,
+    kCsTag_DeltaSystemTime = 31,
 
-        /* 32-49 are reserved */
+    /* 32-49 are reserved */
 
-        kCsTag_Data                     = 50,
-    };
-
-    class Parser;
-    class Builder;
+    kCsTag_Data = 50,
 };
+
+class Parser;
+class Builder;
+}; // namespace Event
 
 class Event::Parser : protected DataElement::Parser
 {
@@ -506,10 +502,9 @@ public:
     WEAVE_ERROR GetReaderOnEvent(nl::Weave::TLV::TLVReader * const apReader) const;
 };
 
-class Event::Builder: public BuilderBase
+class Event::Builder : public BuilderBase
 {
 public:
-
     WEAVE_ERROR Init(nl::Weave::TLV::TLVWriter * const apWriter);
 
     Event::Builder SourceId(const uint64_t aSourceId);
@@ -533,16 +528,14 @@ public:
     Event::Builder & EndOfEvent(void);
 };
 
-namespace EventList
-{
-    class Parser;
-    class Builder;
-};
+namespace EventList {
+class Parser;
+class Builder;
+}; // namespace EventList
 
 class EventList::Parser : public ListParserBase
 {
 public:
-
     // Roughly verify the schema is right, including
     // 1) at least one element is there
     // 2) all elements are anonymous and of Structure type
@@ -550,10 +543,9 @@ public:
     WEAVE_ERROR CheckSchemaValidity(void) const;
 };
 
-class EventList::Builder: public ListBuilderBase
+class EventList::Builder : public ListBuilderBase
 {
 public:
-
     // Re-initialize the shared EventBuilder with anonymous tag
     Event::Builder & CreateEventBuilder(void);
 
@@ -564,16 +556,14 @@ private:
     Event::Builder mEventBuilder;
 };
 
-namespace VersionList
-{
-    class Parser;
-    class Builder;
-};
+namespace VersionList {
+class Parser;
+class Builder;
+}; // namespace VersionList
 
 class VersionList::Parser : public ListParserBase
 {
 public:
-
     // verify the schema is right, including
     // 1) all elements are anonymous
     // 2) all elements are either null or unsigned integer
@@ -587,10 +577,9 @@ public:
     WEAVE_ERROR GetVersion(uint64_t * const apVersion);
 };
 
-class VersionList::Builder: public ListBuilderBase
+class VersionList::Builder : public ListBuilderBase
 {
 public:
-
     VersionList::Builder & AddVersion(const uint64_t aVersion);
     VersionList::Builder & AddNull(void);
 
@@ -598,37 +587,33 @@ public:
     VersionList::Builder & EndOfVersionList(void);
 };
 
-namespace ViewRequest
+namespace ViewRequest {
+enum
 {
-    enum
-    {
-        kCsTag_PathList                 = 1,
-    };
+    kCsTag_PathList = 1,
+};
 };
 
-namespace ViewResponse
+namespace ViewResponse {
+enum
 {
-    enum
-    {
-        kCsTag_DataList                 = 2,
-    };
+    kCsTag_DataList = 2,
+};
 };
 
-namespace BaseMessageWithSubscribeId
+namespace BaseMessageWithSubscribeId {
+enum
 {
-    enum
-    {
-        kCsTag_SubscriptionId           = 1,
-    };
-
-    class Parser;
-    class Builder;
+    kCsTag_SubscriptionId = 1,
 };
+
+class Parser;
+class Builder;
+}; // namespace BaseMessageWithSubscribeId
 
 class BaseMessageWithSubscribeId::Parser : public ParserBase
 {
 public:
-
     // aReader has to be on the element of anonymous container
     WEAVE_ERROR Init(const nl::Weave::TLV::TLVReader & aReader);
 
@@ -637,12 +622,12 @@ public:
     WEAVE_ERROR GetSubscriptionID(uint64_t * const apSubscriptionID) const;
 };
 
-class BaseMessageWithSubscribeId::Builder: public BuilderBase
+class BaseMessageWithSubscribeId::Builder : public BuilderBase
 {
 public:
     enum
     {
-        kBaseMessageSubscribeId_PayloadLen = 12, //StartContainer (1) + kCsTag_SubscriptionId TLV (10) + EndContainer (1)
+        kBaseMessageSubscribeId_PayloadLen = 12, // StartContainer (1) + kCsTag_SubscriptionId TLV (10) + EndContainer (1)
     };
 
     // Path is mostly used in a Path List, which requires every path to be anonymous
@@ -653,26 +638,24 @@ protected:
     void EndOfMessage(void);
 };
 
-
-namespace SubscribeRequest
+namespace SubscribeRequest {
+enum
 {
-    enum
-    {
-        kCsTag_SubscriptionId           = 1,
-        kCsTag_SubscribeTimeOutMin      = 2,
-        kCsTag_SubscribeTimeOutMax      = 3,
-        kCsTag_SubscribeToAllEvents     = 4,
-        kCsTag_LastObservedEventIdList  = 5,
+    kCsTag_SubscriptionId          = 1,
+    kCsTag_SubscribeTimeOutMin     = 2,
+    kCsTag_SubscribeTimeOutMax     = 3,
+    kCsTag_SubscribeToAllEvents    = 4,
+    kCsTag_LastObservedEventIdList = 5,
 
-        /* 5-19 are reserved */
+    /* 5-19 are reserved */
 
-        kCsTag_PathList                 = 20,
-        kCsTag_VersionList              = 21,
-    };
-
-    class Parser;
-    class Builder;
+    kCsTag_PathList    = 20,
+    kCsTag_VersionList = 21,
 };
+
+class Parser;
+class Builder;
+}; // namespace SubscribeRequest
 
 /**
  *  @brief
@@ -683,9 +666,8 @@ namespace SubscribeRequest
 class SubscribeRequest::Parser : public BaseMessageWithSubscribeId::Parser
 {
 public:
-
     // aReader has to be on the element of anonymous container
-    //WEAVE_ERROR Init(const nl::Weave::TLV::TLVReader & aReader);
+    // WEAVE_ERROR Init(const nl::Weave::TLV::TLVReader & aReader);
 
     // Roughly verify the schema is right, including
     // 1) all mandatory tags are present
@@ -696,7 +678,7 @@ public:
 
     // WEAVE_END_OF_TLV if there is no such element
     // WEAVE_ERROR_WRONG_TLV_TYPE if there is such element but it's not any of the defined unsigned integer types
-    //WEAVE_ERROR GetSubscriptionID(uint64_t * const apSubscriptionID) const;
+    // WEAVE_ERROR GetSubscriptionID(uint64_t * const apSubscriptionID) const;
 
     // WEAVE_END_OF_TLV if there is no such element
     // WEAVE_ERROR_WRONG_TLV_TYPE if there is such element but it's not one of the right types
@@ -723,10 +705,9 @@ public:
 };
 
 // Note that in theory this class can be derived from SubscribeCancelRequest, but we are anticipating the tags to be changed
-class SubscribeRequest::Builder: public BaseMessageWithSubscribeId::Builder
+class SubscribeRequest::Builder : public BaseMessageWithSubscribeId::Builder
 {
 public:
-
     SubscribeRequest::Builder & SubscriptionID(const uint64_t aSubscriptionID);
     SubscribeRequest::Builder & SubscribeTimeoutMin(const uint32_t aSubscribeTimeoutMin);
     SubscribeRequest::Builder & SubscribeTimeoutMax(const uint32_t aSubscribeTimeoutMax);
@@ -746,22 +727,21 @@ private:
     VersionList::Builder mVersionListBuilder;
 };
 
-namespace SubscribeResponse
+namespace SubscribeResponse {
+enum
 {
-    enum
-    {
-        kCsTag_SubscriptionId           = 1,
-        kCsTag_SubscribeTimeOut         = 2,
+    kCsTag_SubscriptionId   = 1,
+    kCsTag_SubscribeTimeOut = 2,
 
-        /* 3-9 are reserved */
+    /* 3-9 are reserved */
 
-        kCsTag_PossibleLossOfEvents     = 10,
-        kCsTag_LastVendedEventIdList    = 11,
-    };
-
-    class Parser;
-    class Builder;
+    kCsTag_PossibleLossOfEvents  = 10,
+    kCsTag_LastVendedEventIdList = 11,
 };
+
+class Parser;
+class Builder;
+}; // namespace SubscribeResponse
 
 /**
  *  @brief
@@ -772,7 +752,6 @@ namespace SubscribeResponse
 class SubscribeResponse::Parser : public BaseMessageWithSubscribeId::Parser
 {
 public:
-
     // Roughly verify the schema is right, including
     // 1) all mandatory tags are present
     // 2) no unknown tags
@@ -782,7 +761,7 @@ public:
 
     // WEAVE_END_OF_TLV if there is no such element
     // WEAVE_ERROR_WRONG_TLV_TYPE if there is such element but it's not any of the defined unsigned integer types
-    //WEAVE_ERROR GetSubscriptionID(uint64_t * const apSubscriptionID) const;
+    // WEAVE_ERROR GetSubscriptionID(uint64_t * const apSubscriptionID) const;
 
     // WEAVE_END_OF_TLV if there is no such element
     // WEAVE_ERROR_WRONG_TLV_TYPE if there is such element but it's not one of the right types
@@ -797,12 +776,11 @@ public:
 };
 
 // Note that in theory this class can be derived from SubscribeCancelRequest, but we are anticipating the tags to be changed
-class SubscribeResponse::Builder: public BaseMessageWithSubscribeId::Builder
+class SubscribeResponse::Builder : public BaseMessageWithSubscribeId::Builder
 {
 public:
-
     // Path is mostly used in a Path List, which requires every path to be anonymous
-    //WEAVE_ERROR Init(nl::Weave::TLV::TLVWriter * const apWriter);
+    // WEAVE_ERROR Init(nl::Weave::TLV::TLVWriter * const apWriter);
 
     SubscribeResponse::Builder & SubscriptionID(const uint64_t aSubscriptionID);
     SubscribeResponse::Builder & SubscribeTimeout(const uint32_t aSubscribeTimeout);
@@ -817,23 +795,21 @@ private:
     EventList::Builder mEventListBuilder;
 };
 
-namespace SubscribeCancelRequest
+namespace SubscribeCancelRequest {
+enum
 {
-    enum
-    {
-        kCsTag_SubscriptionId           = 1,
-    };
-
-    class Parser;
-    class Builder;
+    kCsTag_SubscriptionId = 1,
 };
+
+class Parser;
+class Builder;
+}; // namespace SubscribeCancelRequest
 
 class SubscribeCancelRequest::Parser : public BaseMessageWithSubscribeId::Parser
 {
 public:
-
     // aReader has to be on the element of anonymous container
-    //WEAVE_ERROR Init(const nl::Weave::TLV::TLVReader & aReader);
+    // WEAVE_ERROR Init(const nl::Weave::TLV::TLVReader & aReader);
 
     // Roughly verify the schema is right, including
     // 1) all mandatory tags are present
@@ -843,30 +819,28 @@ public:
 
     // WEAVE_END_OF_TLV if there is no such element
     // WEAVE_ERROR_WRONG_TLV_TYPE if there is such element but it's not any of the defined unsigned integer types
-    //WEAVE_ERROR GetSubscriptionID(uint64_t * const apSubscriptionID) const;
+    // WEAVE_ERROR GetSubscriptionID(uint64_t * const apSubscriptionID) const;
 };
 
-class SubscribeCancelRequest::Builder: public BaseMessageWithSubscribeId::Builder
+class SubscribeCancelRequest::Builder : public BaseMessageWithSubscribeId::Builder
 {
 public:
-
     // Path is mostly used in a Path List, which requires every path to be anonymous
-    //WEAVE_ERROR Init(nl::Weave::TLV::TLVWriter * const apWriter);
+    // WEAVE_ERROR Init(nl::Weave::TLV::TLVWriter * const apWriter);
 
     SubscribeCancelRequest::Builder & SubscriptionID(const uint64_t aSubscriptionID);
     SubscribeCancelRequest::Builder & EndOfRequest(void);
 };
 
-namespace SubscribeConfirmRequest
+namespace SubscribeConfirmRequest {
+enum
 {
-    enum
-    {
-        kCsTag_SubscriptionId           = 1,
-    };
-
-    class Parser;
-    class Builder;
+    kCsTag_SubscriptionId = 1,
 };
+
+class Parser;
+class Builder;
+}; // namespace SubscribeConfirmRequest
 
 class SubscribeConfirmRequest::Parser : public SubscribeCancelRequest::Parser
 {
@@ -880,56 +854,50 @@ public:
     SubscribeConfirmRequest::Builder & EndOfRequest(void);
 };
 
-namespace RejectionRecord
+namespace RejectionRecord {
+enum
 {
-    enum
-    {
-        kCsTag_Path                     = 1,
-        kCsTag_Version                  = 2,
-        kCsTag_Reason                   = 3,
-    };
-
-    class Parser;
-    class Builder;
+    kCsTag_Path    = 1,
+    kCsTag_Version = 2,
+    kCsTag_Reason  = 3,
 };
+
+class Parser;
+class Builder;
+}; // namespace RejectionRecord
 
 class RejectionRecord::Parser : public ParserBase
 {
 public:
-
     // aReader has to be on the element of Event
     WEAVE_ERROR Init(const nl::Weave::TLV::TLVReader & aReader);
 
     // Roughly verify the schema is right
     WEAVE_ERROR CheckSchemaValidity(void) const;
-
 };
 
-class RejectionRecord::Builder: public BuilderBase
+class RejectionRecord::Builder : public BuilderBase
 {
 public:
-
     WEAVE_ERROR Init(nl::Weave::TLV::TLVWriter * const apWriter);
 
     // Mark the end of this array and recover the type for outer container
     DataList::Builder & EndOfRecord(void);
 };
 
-namespace RejectionRecordList
+namespace RejectionRecordList {
+enum
 {
-    enum
-    {
-        kCsTag_RejectionRecordList      = 1,
-    };
-
-    class Parser;
-    class Builder;
+    kCsTag_RejectionRecordList = 1,
 };
+
+class Parser;
+class Builder;
+}; // namespace RejectionRecordList
 
 class RejectionRecordList::Parser : public ListParserBase
 {
 public:
-
     // Roughly verify the schema is right, including
     // 1) at least one element is there
     // 2) all elements are anonymous and of Structure type
@@ -940,10 +908,9 @@ private:
     RejectionRecord::Parser mRejectionRecordParser;
 };
 
-class RejectionRecordList::Builder: public ListBuilderBase
+class RejectionRecordList::Builder : public ListBuilderBase
 {
 public:
-
     // Re-initialize the shared RejectionRecord::Builder with anonymous tag
     RejectionRecord::Builder & CreateRejectionRecord(void);
 
@@ -954,32 +921,30 @@ private:
     RejectionRecord::Builder mRejectionRecordBuilder;
 };
 
-namespace NotificationRequest
+namespace NotificationRequest {
+enum
 {
-    enum
-    {
-        kCsTag_SubscriptionId           = 1,
+    kCsTag_SubscriptionId = 1,
 
-        /* 2-9 are reserved */
+    /* 2-9 are reserved */
 
-        kCsTag_DataList                 = 10,
+    kCsTag_DataList = 10,
 
-        /* 11-19 are reserved */
+    /* 11-19 are reserved */
 
-        kCsTag_PossibleLossOfEvent      = 20,
-        kCsTag_UTCTimestamp             = 21,
-        kCsTag_SystemTimestamp          = 22,
-        kCsTag_EventList                = 23,
-    };
-
-    class Parser;
-    class Builder;
+    kCsTag_PossibleLossOfEvent = 20,
+    kCsTag_UTCTimestamp        = 21,
+    kCsTag_SystemTimestamp     = 22,
+    kCsTag_EventList           = 23,
 };
+
+class Parser;
+class Builder;
+}; // namespace NotificationRequest
 
 class NotificationRequest::Parser : public BaseMessageWithSubscribeId::Parser
 {
 public:
-
     // Roughly verify the schema is right, including
     // 1) all mandatory tags are present
     // 2) no unknown tags
@@ -1011,23 +976,22 @@ public:
  *    WDM Custom Command Request definition
  *
  */
-namespace CustomCommandRequest
+namespace CustomCommandRequest {
+/// @brief Context-Specific tags used in this message
+enum
 {
-    /// @brief Context-Specific tags used in this message
-    enum
-    {
-        kCsTag_Path                     = 1,
-        kCsTag_CommandType              = 2,
-        kCsTag_ExpiryTime               = 3,
-        kCsTag_MustBeVersion            = 4,
+    kCsTag_Path          = 1,
+    kCsTag_CommandType   = 2,
+    kCsTag_ExpiryTime    = 3,
+    kCsTag_MustBeVersion = 4,
 
-        /* 5-19 are reserved */
-        kCsTag_Argument                 = 20,
-    };
-
-    class Parser;
-    class Builder;
+    /* 5-19 are reserved */
+    kCsTag_Argument = 20,
 };
+
+class Parser;
+class Builder;
+}; // namespace CustomCommandRequest
 
 /**
  *  @brief
@@ -1036,7 +1000,6 @@ namespace CustomCommandRequest
 class CustomCommandRequest::Parser : protected DataElement::Parser
 {
 public:
-
     /**
      *  @brief Initialize the parser object with TLVReader
      *
@@ -1133,10 +1096,9 @@ public:
  *
  *  The argument, and the authenticator elements are not directly supported, as they do not have a fixed schema.
  */
-class CustomCommandRequest::Builder: public BuilderBase
+class CustomCommandRequest::Builder : public BuilderBase
 {
 public:
-
     /**
      *  @brief Initialize a CustomCommandRequest::Builder for writing into a TLV stream
      *
@@ -1196,18 +1158,17 @@ private:
  *    WDM Custom Command Response definition
  *
  */
-namespace CustomCommandResponse
+namespace CustomCommandResponse {
+/// @brief Context-Specific tags used in this message
+enum
 {
-    /// @brief Context-Specific tags used in this message
-    enum
-    {
-        kCsTag_Version                  = 1,
-        kCsTag_Response                 = 2,
-    };
-
-    class Parser;
-    class Builder;
+    kCsTag_Version  = 1,
+    kCsTag_Response = 2,
 };
+
+class Parser;
+class Builder;
+}; // namespace CustomCommandResponse
 
 /**
  *  @brief
@@ -1216,7 +1177,6 @@ namespace CustomCommandResponse
 class CustomCommandResponse::Parser : protected DataElement::Parser
 {
 public:
-
     /**
      *  @brief Initialize the parser object with TLVReader
      *
@@ -1267,10 +1227,9 @@ public:
  *
  *  The response TLV element is not directly supported, as it does not have a fixed schema.
  */
-class CustomCommandResponse::Builder: public BuilderBase
+class CustomCommandResponse::Builder : public BuilderBase
 {
 public:
-
     /**
      *  @brief Initialize a CustomCommandResponse::Builder for writing into a TLV stream
      *
@@ -1297,9 +1256,9 @@ public:
     CustomCommandResponse::Builder & EndOfResponse(void);
 };
 
-}; // WeaveMakeManagedNamespaceIdentifier(DataManagement, kWeaveManagedNamespaceDesignation_Current)
-}; // Profiles
-}; // Weave
-}; // nl
+}; // namespace WeaveMakeManagedNamespaceIdentifier(DataManagement, kWeaveManagedNamespaceDesignation_Current)
+}; // namespace Profiles
+}; // namespace Weave
+}; // namespace nl
 
 #endif // _WEAVE_DATA_MANAGEMENT_MESSAGE_DEF_CURRENT_H

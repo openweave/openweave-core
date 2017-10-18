@@ -98,12 +98,9 @@ namespace Ble {
 class BleEndPointPool
 {
 public:
-    int Size() const
-    {
-        return BLE_LAYER_NUM_BLE_ENDPOINTS;
-    }
+    int Size() const { return BLE_LAYER_NUM_BLE_ENDPOINTS; }
 
-    BLEEndPoint *Get(int i) const
+    BLEEndPoint * Get(int i) const
     {
         typedef union
         {
@@ -115,7 +112,7 @@ public:
 
         if (i < BLE_LAYER_NUM_BLE_ENDPOINTS)
         {
-            return (BLEEndPoint *)(sEndPointPool + (sizeof(PoolElement) * i));
+            return (BLEEndPoint *) (sEndPointPool + (sizeof(PoolElement) * i));
         }
         else
         {
@@ -123,7 +120,7 @@ public:
         }
     }
 
-    BLEEndPoint *Find(BLE_CONNECTION_OBJECT c)
+    BLEEndPoint * Find(BLE_CONNECTION_OBJECT c)
     {
         if (c == BLE_CONNECTION_UNINITIALIZED)
         {
@@ -132,7 +129,7 @@ public:
 
         for (int i = 0; i < BLE_LAYER_NUM_BLE_ENDPOINTS; i++)
         {
-            BLEEndPoint *elem = Get(i);
+            BLEEndPoint * elem = Get(i);
             if (elem->mBle != NULL && elem->mConnObj == c)
             {
                 return elem;
@@ -142,11 +139,11 @@ public:
         return NULL;
     }
 
-    BLEEndPoint *GetFree() const
+    BLEEndPoint * GetFree() const
     {
         for (int i = 0; i < BLE_LAYER_NUM_BLE_ENDPOINTS; i++)
         {
-            BLEEndPoint *elem = Get(i);
+            BLEEndPoint * elem = Get(i);
             if (elem->mBle == NULL)
             {
                 return elem;
@@ -162,49 +159,13 @@ static BleEndPointPool sBLEEndPointPool;
 
 // UUIDs used internally by BleLayer:
 
-const WeaveBleUUID BleLayer::WEAVE_BLE_CHAR_1_ID = {
-    {
-        // 18EE2EF5-263D-4559-959F-4F9C429F9D11
-        0x18,
-        0xEE,
-        0x2E,
-        0xF5,
-        0x26,
-        0x3D,
-        0x45,
-        0x59,
-        0x95,
-        0x9F,
-        0x4F,
-        0x9C,
-        0x42,
-        0x9F,
-        0x9D,
-        0x11
-    }
-};
+const WeaveBleUUID BleLayer::WEAVE_BLE_CHAR_1_ID = { { // 18EE2EF5-263D-4559-959F-4F9C429F9D11
+                                                       0x18, 0xEE, 0x2E, 0xF5, 0x26, 0x3D, 0x45, 0x59, 0x95, 0x9F, 0x4F, 0x9C, 0x42,
+                                                       0x9F, 0x9D, 0x11 } };
 
-const WeaveBleUUID BleLayer::WEAVE_BLE_CHAR_2_ID = {
-    {
-        // 18EE2EF5-263D-4559-959F-4F9C429F9D12
-        0x18,
-        0xEE,
-        0x2E,
-        0xF5,
-        0x26,
-        0x3D,
-        0x45,
-        0x59,
-        0x95,
-        0x9F,
-        0x4F,
-        0x9C,
-        0x42,
-        0x9F,
-        0x9D,
-        0x12
-    }
-};
+const WeaveBleUUID BleLayer::WEAVE_BLE_CHAR_2_ID = { { // 18EE2EF5-263D-4559-959F-4F9C429F9D12
+                                                       0x18, 0xEE, 0x2E, 0xF5, 0x26, 0x3D, 0x45, 0x59, 0x95, 0x9F, 0x4F, 0x9C, 0x42,
+                                                       0x9F, 0x9D, 0x12 } };
 
 void BleLayerObject::Release()
 {
@@ -230,7 +191,7 @@ void BleTransportCapabilitiesRequestMessage::SetSupportedProtocolVersion(uint8_t
     }
     else
     {
-        mask = 0xF0;
+        mask    = 0xF0;
         version = version << 4;
     }
 
@@ -240,9 +201,9 @@ void BleTransportCapabilitiesRequestMessage::SetSupportedProtocolVersion(uint8_t
     mSupportedProtocolVersions[(index / 2)] |= version;
 }
 
-BLE_ERROR BleTransportCapabilitiesRequestMessage::Encode(PacketBuffer *msgBuf) const
+BLE_ERROR BleTransportCapabilitiesRequestMessage::Encode(PacketBuffer * msgBuf) const
 {
-    uint8_t *p = msgBuf->Start();
+    uint8_t * p   = msgBuf->Start();
     BLE_ERROR err = BLE_NO_ERROR;
 
     // Verify we can write the fixed-length request without running into the end of the buffer.
@@ -265,10 +226,10 @@ exit:
     return err;
 }
 
-BLE_ERROR BleTransportCapabilitiesRequestMessage::Decode(const PacketBuffer &msgBuf, BleTransportCapabilitiesRequestMessage& msg)
+BLE_ERROR BleTransportCapabilitiesRequestMessage::Decode(const PacketBuffer & msgBuf, BleTransportCapabilitiesRequestMessage & msg)
 {
-    const uint8_t *p = msgBuf.Start();
-    BLE_ERROR err = BLE_NO_ERROR;
+    const uint8_t * p = msgBuf.Start();
+    BLE_ERROR err     = BLE_NO_ERROR;
 
     // Verify we can read the fixed-length request without running into the end of the buffer.
     VerifyOrExit(msgBuf.DataLength() >= CAPABILITIES_REQUEST_LEN, err = BLE_ERROR_MESSAGE_INCOMPLETE);
@@ -281,7 +242,7 @@ BLE_ERROR BleTransportCapabilitiesRequestMessage::Decode(const PacketBuffer &msg
         msg.mSupportedProtocolVersions[i] = nl::Weave::Encoding::Read8(p);
     }
 
-    msg.mMtu = nl::Weave::Encoding::LittleEndian::Read16(p);
+    msg.mMtu        = nl::Weave::Encoding::LittleEndian::Read16(p);
     msg.mWindowSize = nl::Weave::Encoding::Read8(p);
 
 exit:
@@ -290,9 +251,9 @@ exit:
 
 // BleTransportCapabilitiesResponseMessage implementation:
 
-BLE_ERROR BleTransportCapabilitiesResponseMessage::Encode(PacketBuffer *msgBuf) const
+BLE_ERROR BleTransportCapabilitiesResponseMessage::Encode(PacketBuffer * msgBuf) const
 {
-    uint8_t *p = msgBuf->Start();
+    uint8_t * p   = msgBuf->Start();
     BLE_ERROR err = BLE_NO_ERROR;
 
     // Verify we can write the fixed-length request without running into the end of the buffer.
@@ -311,10 +272,11 @@ exit:
     return err;
 }
 
-BLE_ERROR BleTransportCapabilitiesResponseMessage::Decode(const PacketBuffer &msgBuf, BleTransportCapabilitiesResponseMessage& msg)
+BLE_ERROR BleTransportCapabilitiesResponseMessage::Decode(const PacketBuffer & msgBuf,
+                                                          BleTransportCapabilitiesResponseMessage & msg)
 {
-    const uint8_t *p = msgBuf.Start();
-    BLE_ERROR err = BLE_NO_ERROR;
+    const uint8_t * p = msgBuf.Start();
+    BLE_ERROR err     = BLE_NO_ERROR;
 
     // Verify we can read the fixed-length response without running into the end of the buffer.
     VerifyOrExit(msgBuf.DataLength() >= CAPABILITIES_RESPONSE_LEN, err = BLE_ERROR_MESSAGE_INCOMPLETE);
@@ -323,8 +285,8 @@ BLE_ERROR BleTransportCapabilitiesResponseMessage::Decode(const PacketBuffer &ms
     VerifyOrExit(CAPABILITIES_MSG_CHECK_BYTE_2 == nl::Weave::Encoding::Read8(p), err = BLE_ERROR_INVALID_MESSAGE);
 
     msg.mSelectedProtocolVersion = nl::Weave::Encoding::Read8(p);
-    msg.mFragmentSize = nl::Weave::Encoding::LittleEndian::Read16(p);
-    msg.mWindowSize = nl::Weave::Encoding::Read8(p);
+    msg.mFragmentSize            = nl::Weave::Encoding::LittleEndian::Read16(p);
+    msg.mWindowSize              = nl::Weave::Encoding::Read8(p);
 
 exit:
     return err;
@@ -337,8 +299,8 @@ BleLayer::BleLayer()
     mState = kState_NotInitialized;
 }
 
-BLE_ERROR BleLayer::Init(BlePlatformDelegate *platformDelegate, BleApplicationDelegate *appDelegate,
-    Weave::System::Layer *systemLayer)
+BLE_ERROR BleLayer::Init(BlePlatformDelegate * platformDelegate, BleApplicationDelegate * appDelegate,
+                         Weave::System::Layer * systemLayer)
 {
     BLE_ERROR err = BLE_NO_ERROR;
 
@@ -351,9 +313,9 @@ BLE_ERROR BleLayer::Init(BlePlatformDelegate *platformDelegate, BleApplicationDe
         return BLE_ERROR_INCORRECT_STATE;
     }
 
-    mPlatformDelegate = platformDelegate;
+    mPlatformDelegate    = platformDelegate;
     mApplicationDelegate = appDelegate;
-    mSystemLayer = systemLayer;
+    mSystemLayer         = systemLayer;
 
     memset(&sBLEEndPointPool, 0, sizeof(sBLEEndPointPool));
 
@@ -374,7 +336,7 @@ BLE_ERROR BleLayer::Shutdown()
     // Close and free all BLE end points.
     for (int i = 0; i < BLE_LAYER_NUM_BLE_ENDPOINTS; i++)
     {
-        BLEEndPoint *elem = sBLEEndPointPool.Get(i);
+        BLEEndPoint * elem = sBLEEndPointPool.Get(i);
 
         // If end point was initialized, and has not since been freed...
         if (elem->mBle != NULL)
@@ -398,8 +360,7 @@ BLE_ERROR BleLayer::Shutdown()
     return BLE_NO_ERROR;
 }
 
-BLE_ERROR BleLayer::NewBleEndPoint(BLEEndPoint **retEndPoint,
-    BLE_CONNECTION_OBJECT connObj, BleRole role, bool autoClose)
+BLE_ERROR BleLayer::NewBleEndPoint(BLEEndPoint ** retEndPoint, BLE_CONNECTION_OBJECT connObj, BleRole role, bool autoClose)
 {
     *retEndPoint = NULL;
 
@@ -416,7 +377,7 @@ BLE_ERROR BleLayer::NewBleEndPoint(BLEEndPoint **retEndPoint,
     *retEndPoint = sBLEEndPointPool.GetFree();
     if (*retEndPoint == NULL)
     {
-		WeaveLogError(Ble, "%s endpoint pool FULL", "Ble");
+        WeaveLogError(Ble, "%s endpoint pool FULL", "Ble");
         return BLE_ERROR_NO_ENDPOINTS;
     }
 
@@ -430,10 +391,10 @@ BLE_ERROR BleLayer::NewBleEndPoint(BLEEndPoint **retEndPoint,
 }
 
 // Handle remote central's initiation of Weave over BLE protocol handshake.
-BLE_ERROR BleLayer::HandleBleTransportConnectionInitiated(BLE_CONNECTION_OBJECT connObj, PacketBuffer *pBuf)
+BLE_ERROR BleLayer::HandleBleTransportConnectionInitiated(BLE_CONNECTION_OBJECT connObj, PacketBuffer * pBuf)
 {
-    BLE_ERROR err = BLE_NO_ERROR;
-    BLEEndPoint *newEndPoint = NULL;
+    BLE_ERROR err             = BLE_NO_ERROR;
+    BLEEndPoint * newEndPoint = NULL;
 
     // Only BLE peripherals can receive GATT writes, so specify this role in our creation of the BLEEndPoint.
     // Set autoClose = false. Peripherals only notify the application when an end point releases a BLE connection.
@@ -442,7 +403,7 @@ BLE_ERROR BleLayer::HandleBleTransportConnectionInitiated(BLE_CONNECTION_OBJECT 
 
     newEndPoint->mAppState = mAppState;
 
-    err = newEndPoint->Receive(pBuf);
+    err  = newEndPoint->Receive(pBuf);
     pBuf = NULL;
     SuccessOrExit(err); // If we fail here, end point will have already released connection and freed itself.
 
@@ -467,7 +428,8 @@ exit:
     return err;
 }
 
-bool BleLayer::HandleWriteReceived(BLE_CONNECTION_OBJECT connObj, const WeaveBleUUID *svcId, const WeaveBleUUID *charId, PacketBuffer *pBuf)
+bool BleLayer::HandleWriteReceived(BLE_CONNECTION_OBJECT connObj, const WeaveBleUUID * svcId, const WeaveBleUUID * charId,
+                                   PacketBuffer * pBuf)
 {
     if (!UUIDsMatch(&WEAVE_BLE_SVC_ID, svcId))
     {
@@ -483,12 +445,12 @@ bool BleLayer::HandleWriteReceived(BLE_CONNECTION_OBJECT connObj, const WeaveBle
         }
 
         // Find matching connection end point.
-        BLEEndPoint *endPoint = sBLEEndPointPool.Find(connObj);
+        BLEEndPoint * endPoint = sBLEEndPointPool.Find(connObj);
 
         if (endPoint != NULL)
         {
             BLE_ERROR status = endPoint->Receive(pBuf);
-            pBuf = NULL;
+            pBuf             = NULL;
             if (status != BLE_NO_ERROR)
             {
                 WeaveLogError(Ble, "BLEEndPoint rcv failed, err = %d", status);
@@ -497,7 +459,7 @@ bool BleLayer::HandleWriteReceived(BLE_CONNECTION_OBJECT connObj, const WeaveBle
         else
         {
             BLE_ERROR status = HandleBleTransportConnectionInitiated(connObj, pBuf);
-            pBuf = NULL;
+            pBuf             = NULL;
             if (status != BLE_NO_ERROR)
             {
                 WeaveLogError(Ble, "failed handle new Weave BLE connection, status = %d", status);
@@ -518,7 +480,8 @@ exit:
     return true;
 }
 
-bool BleLayer::HandleIndicationReceived(BLE_CONNECTION_OBJECT connObj, const WeaveBleUUID *svcId, const WeaveBleUUID *charId, PacketBuffer *pBuf)
+bool BleLayer::HandleIndicationReceived(BLE_CONNECTION_OBJECT connObj, const WeaveBleUUID * svcId, const WeaveBleUUID * charId,
+                                        PacketBuffer * pBuf)
 {
     if (!UUIDsMatch(&WEAVE_BLE_SVC_ID, svcId))
     {
@@ -534,12 +497,12 @@ bool BleLayer::HandleIndicationReceived(BLE_CONNECTION_OBJECT connObj, const Wea
         }
 
         // find matching connection end point.
-        BLEEndPoint *endPoint = sBLEEndPointPool.Find(connObj);
+        BLEEndPoint * endPoint = sBLEEndPointPool.Find(connObj);
 
         if (endPoint != NULL)
         {
             BLE_ERROR status = endPoint->Receive(pBuf);
-            pBuf = NULL;
+            pBuf             = NULL;
             if (status != BLE_NO_ERROR)
             {
                 WeaveLogError(Ble, "BLEEndPoint rcv failed, err = %d", status);
@@ -564,7 +527,7 @@ exit:
     return true;
 }
 
-bool BleLayer::HandleWriteConfirmation(BLE_CONNECTION_OBJECT connObj, const WeaveBleUUID *svcId, const WeaveBleUUID *charId)
+bool BleLayer::HandleWriteConfirmation(BLE_CONNECTION_OBJECT connObj, const WeaveBleUUID * svcId, const WeaveBleUUID * charId)
 {
     if (!UUIDsMatch(&WEAVE_BLE_SVC_ID, svcId))
     {
@@ -583,7 +546,7 @@ bool BleLayer::HandleWriteConfirmation(BLE_CONNECTION_OBJECT connObj, const Weav
     return true;
 }
 
-bool BleLayer::HandleIndicationConfirmation(BLE_CONNECTION_OBJECT connObj, const WeaveBleUUID *svcId, const WeaveBleUUID *charId)
+bool BleLayer::HandleIndicationConfirmation(BLE_CONNECTION_OBJECT connObj, const WeaveBleUUID * svcId, const WeaveBleUUID * charId)
 {
     if (!UUIDsMatch(&WEAVE_BLE_SVC_ID, svcId))
     {
@@ -605,7 +568,7 @@ bool BleLayer::HandleIndicationConfirmation(BLE_CONNECTION_OBJECT connObj, const
 void BleLayer::HandleAckReceived(BLE_CONNECTION_OBJECT connObj)
 {
     // find matching connection end point.
-    BLEEndPoint *endPoint = sBLEEndPointPool.Find(connObj);
+    BLEEndPoint * endPoint = sBLEEndPointPool.Find(connObj);
 
     if (endPoint != NULL)
     {
@@ -622,7 +585,7 @@ void BleLayer::HandleAckReceived(BLE_CONNECTION_OBJECT connObj)
     }
 }
 
-bool BleLayer::HandleSubscribeReceived(BLE_CONNECTION_OBJECT connObj, const WeaveBleUUID *svcId, const WeaveBleUUID *charId)
+bool BleLayer::HandleSubscribeReceived(BLE_CONNECTION_OBJECT connObj, const WeaveBleUUID * svcId, const WeaveBleUUID * charId)
 {
     if (!UUIDsMatch(&WEAVE_BLE_SVC_ID, svcId))
     {
@@ -632,7 +595,7 @@ bool BleLayer::HandleSubscribeReceived(BLE_CONNECTION_OBJECT connObj, const Weav
     if (UUIDsMatch(&WEAVE_BLE_CHAR_2_ID, charId))
     {
         // Find end point already associated with BLE connection, if any.
-        BLEEndPoint *endPoint = sBLEEndPointPool.Find(connObj);
+        BLEEndPoint * endPoint = sBLEEndPointPool.Find(connObj);
 
         if (endPoint != NULL)
         {
@@ -647,7 +610,7 @@ bool BleLayer::HandleSubscribeReceived(BLE_CONNECTION_OBJECT connObj, const Weav
     return true;
 }
 
-bool BleLayer::HandleSubscribeComplete(BLE_CONNECTION_OBJECT connObj, const WeaveBleUUID *svcId, const WeaveBleUUID *charId)
+bool BleLayer::HandleSubscribeComplete(BLE_CONNECTION_OBJECT connObj, const WeaveBleUUID * svcId, const WeaveBleUUID * charId)
 {
     if (!UUIDsMatch(&WEAVE_BLE_SVC_ID, svcId))
     {
@@ -656,7 +619,7 @@ bool BleLayer::HandleSubscribeComplete(BLE_CONNECTION_OBJECT connObj, const Weav
 
     if (UUIDsMatch(&WEAVE_BLE_CHAR_2_ID, charId))
     {
-        BLEEndPoint *endPoint = sBLEEndPointPool.Find(connObj);
+        BLEEndPoint * endPoint = sBLEEndPointPool.Find(connObj);
 
         if (endPoint != NULL)
         {
@@ -671,7 +634,7 @@ bool BleLayer::HandleSubscribeComplete(BLE_CONNECTION_OBJECT connObj, const Weav
     return true;
 }
 
-bool BleLayer::HandleUnsubscribeReceived(BLE_CONNECTION_OBJECT connObj, const WeaveBleUUID *svcId, const WeaveBleUUID *charId)
+bool BleLayer::HandleUnsubscribeReceived(BLE_CONNECTION_OBJECT connObj, const WeaveBleUUID * svcId, const WeaveBleUUID * charId)
 {
     if (!UUIDsMatch(&WEAVE_BLE_SVC_ID, svcId))
     {
@@ -681,7 +644,7 @@ bool BleLayer::HandleUnsubscribeReceived(BLE_CONNECTION_OBJECT connObj, const We
     if (UUIDsMatch(&WEAVE_BLE_CHAR_2_ID, charId))
     {
         // Find end point already associated with BLE connection, if any.
-        BLEEndPoint *endPoint = sBLEEndPointPool.Find(connObj);
+        BLEEndPoint * endPoint = sBLEEndPointPool.Find(connObj);
 
         if (endPoint != NULL)
         {
@@ -696,7 +659,7 @@ bool BleLayer::HandleUnsubscribeReceived(BLE_CONNECTION_OBJECT connObj, const We
     return true;
 }
 
-bool BleLayer::HandleUnsubscribeComplete(BLE_CONNECTION_OBJECT connObj, const WeaveBleUUID *svcId, const WeaveBleUUID *charId)
+bool BleLayer::HandleUnsubscribeComplete(BLE_CONNECTION_OBJECT connObj, const WeaveBleUUID * svcId, const WeaveBleUUID * charId)
 {
     if (!UUIDsMatch(&WEAVE_BLE_SVC_ID, svcId))
     {
@@ -706,7 +669,7 @@ bool BleLayer::HandleUnsubscribeComplete(BLE_CONNECTION_OBJECT connObj, const We
     if (UUIDsMatch(&WEAVE_BLE_CHAR_2_ID, charId))
     {
         // Find end point already associated with BLE connection, if any.
-        BLEEndPoint *endPoint = sBLEEndPointPool.Find(connObj);
+        BLEEndPoint * endPoint = sBLEEndPointPool.Find(connObj);
 
         if (endPoint != NULL)
         {
@@ -724,7 +687,7 @@ bool BleLayer::HandleUnsubscribeComplete(BLE_CONNECTION_OBJECT connObj, const We
 void BleLayer::HandleConnectionError(BLE_CONNECTION_OBJECT connObj, BLE_ERROR err)
 {
     // BLE connection has failed somehow, we must find and abort matching connection end point.
-    BLEEndPoint *endPoint = sBLEEndPointPool.Find(connObj);
+    BLEEndPoint * endPoint = sBLEEndPointPool.Find(connObj);
 
     if (endPoint != NULL)
     {
@@ -741,7 +704,7 @@ void BleLayer::HandleConnectionError(BLE_CONNECTION_OBJECT connObj, BLE_ERROR er
     }
 }
 
-BleTransportProtocolVersion BleLayer::GetHighestSupportedProtocolVersion(const BleTransportCapabilitiesRequestMessage &reqMsg)
+BleTransportProtocolVersion BleLayer::GetHighestSupportedProtocolVersion(const BleTransportCapabilitiesRequestMessage & reqMsg)
 {
     BleTransportProtocolVersion retVersion = kBleTransportProtocolVersion_None;
 
@@ -752,11 +715,10 @@ BleTransportProtocolVersion BleLayer::GetHighestSupportedProtocolVersion(const B
         shift_width ^= 4;
 
         uint8_t version = reqMsg.mSupportedProtocolVersions[(i / 2)];
-        version = (version >> shift_width) & 0x0F; // Grab just the nibble we want.
+        version         = (version >> shift_width) & 0x0F; // Grab just the nibble we want.
 
         if ((version >= NL_BLE_TRANSPORT_PROTOCOL_MIN_SUPPORTED_VERSION) &&
-            (version <= NL_BLE_TRANSPORT_PROTOCOL_MAX_SUPPORTED_VERSION) &&
-            (version > retVersion))
+            (version <= NL_BLE_TRANSPORT_PROTOCOL_MAX_SUPPORTED_VERSION) && (version > retVersion))
         {
             retVersion = static_cast<BleTransportProtocolVersion>(version);
         }

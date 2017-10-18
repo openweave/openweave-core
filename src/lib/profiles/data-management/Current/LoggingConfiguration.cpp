@@ -24,17 +24,12 @@ namespace Profiles {
 namespace WeaveMakeManagedNamespaceIdentifier(DataManagement, kWeaveManagedNamespaceDesignation_Current) {
 
 LoggingConfiguration::LoggingConfiguration(void) :
-    mGlobalImportance(WEAVE_CONFIG_EVENT_LOGGING_DEFAULT_IMPORTANCE),
-    mImportanceExpiration(0),
-    mMinimumLogUploadInterval(WEAVE_CONFIG_EVENT_LOGGING_MINIMUM_UPLOAD_SECONDS*1000),
-    mMaximumLogUploadInterval(WEAVE_CONFIG_EVENT_LOGGING_MAXIMUM_UPLOAD_SECONDS*1000),
-    mLoggingDestination(NULL),
-    mDestNodeId(kAnyNodeId),
-    mDestNodeIPAddress(nl::Inet::IPAddress::Any),
+    mGlobalImportance(WEAVE_CONFIG_EVENT_LOGGING_DEFAULT_IMPORTANCE), mImportanceExpiration(0),
+    mMinimumLogUploadInterval(WEAVE_CONFIG_EVENT_LOGGING_MINIMUM_UPLOAD_SECONDS * 1000),
+    mMaximumLogUploadInterval(WEAVE_CONFIG_EVENT_LOGGING_MAXIMUM_UPLOAD_SECONDS * 1000), mLoggingDestination(NULL),
+    mDestNodeId(kAnyNodeId), mDestNodeIPAddress(nl::Inet::IPAddress::Any),
     mUploadThreshold(WEAVE_CONFIG_EVENT_LOGGING_XFER_THRESHOLD)
-{
-
-}
+{ }
 
 bool LoggingConfiguration::SupportsPerProfileImportance(void) const
 {
@@ -63,8 +58,7 @@ nl::Inet::IPAddress LoggingConfiguration::GetDestNodeIPAddress() const
     return mDestNodeIPAddress;
 }
 
-
-} // WeaveMakeManagedNamespaceIdentifier(DataManagement, kWeaveManagedNamespaceDesignation_Current)
-} // Profiles
-} // Weave
-} // nl
+} // namespace WeaveMakeManagedNamespaceIdentifier(DataManagement, kWeaveManagedNamespaceDesignation_Current)
+} // namespace Profiles
+} // namespace Weave
+} // namespace nl

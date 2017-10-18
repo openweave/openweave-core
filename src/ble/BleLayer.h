@@ -72,9 +72,10 @@ namespace Ble {
 
 using ::nl::Weave::System::PacketBuffer;
 
-#define NUM_SUPPORTED_PROTOCOL_VERSIONS 8 /**< Number of unsigned 4-bit representations of supported transport protocol
-                                           * versions encapsulated in a BleTransportCapabilitiesRequest. Defined by
-                                           * Weave over BLE protocol specification. */
+#define NUM_SUPPORTED_PROTOCOL_VERSIONS                                                                                            \
+    8 /**< Number of unsigned 4-bit representations of supported transport protocol                                                \
+       * versions encapsulated in a BleTransportCapabilitiesRequest. Defined by                                                    \
+       * Weave over BLE protocol specification. */
 
 /// Version(s) of the Nest BLE Transport Protocol that this stack supports.
 #define NL_BLE_TRANSPORT_PROTOCOL_MIN_SUPPORTED_VERSION kBleTransportProtocolVersion_V2
@@ -94,10 +95,10 @@ typedef enum
 /// Enum defining versions of Weave over BLE transport protocol.
 typedef enum
 {
-    kBleTransportProtocolVersion_None           = 0,
-    kBleTransportProtocolVersion_V1             = 1, // Prototype WoBLe version without ACKs or flow-control.
-    kBleTransportProtocolVersion_V2             = 2, // First WoBLE version with ACKs and flow-control.
-    kBleTransportProtocolVersion_V3             = 3  // First WoBLE version with asymetric fragement sizes.
+    kBleTransportProtocolVersion_None = 0,
+    kBleTransportProtocolVersion_V1   = 1, // Prototype WoBLe version without ACKs or flow-control.
+    kBleTransportProtocolVersion_V2   = 2, // First WoBLE version with ACKs and flow-control.
+    kBleTransportProtocolVersion_V3   = 3  // First WoBLE version with asymetric fragement sizes.
 } BleTransportProtocolVersion;
 
 class BleLayerObject
@@ -106,8 +107,8 @@ class BleLayerObject
 
 public:
     // Public data members:
-    BleLayer *mBle;                              ///< [READ-ONLY] Pointer to the BleLayer object that owns this object.
-    void *mAppState;                             ///< Generic pointer to app-specific data associated with the object.
+    BleLayer * mBle;  ///< [READ-ONLY] Pointer to the BleLayer object that owns this object.
+    void * mAppState; ///< Generic pointer to app-specific data associated with the object.
 
 protected:
     uint32_t mRefCount;
@@ -127,49 +128,49 @@ public:
      */
     uint8_t mSupportedProtocolVersions[(NUM_SUPPORTED_PROTOCOL_VERSIONS / 2) + (NUM_SUPPORTED_PROTOCOL_VERSIONS % 2)];
 
-    uint16_t mMtu;                         /**< The MTU that has been negotiated for this BLE connection. Specified in
-                                            *   the BleTransportCapabilitiesRequestMessage because the remote node may be unable
-                                            *   to glean this info from its own BLE hardware/software stack, such as on
-                                            *   older Android platforms.
-                                            *
-                                            *   A value of 0 means that the central could not determine the negotiated
-                                            *   BLE connection MTU. */
+    uint16_t mMtu; /**< The MTU that has been negotiated for this BLE connection. Specified in
+                    *   the BleTransportCapabilitiesRequestMessage because the remote node may be unable
+                    *   to glean this info from its own BLE hardware/software stack, such as on
+                    *   older Android platforms.
+                    *
+                    *   A value of 0 means that the central could not determine the negotiated
+                    *   BLE connection MTU. */
 
-    uint8_t mWindowSize;                   /**< The initial and maximum receive window size offered by the central,
-                                            *   defined in terms of GATT indication payloads. */
+    uint8_t mWindowSize; /**< The initial and maximum receive window size offered by the central,
+                          *   defined in terms of GATT indication payloads. */
 
     /** Set supported version value at given index in SupportedProtcolVersions. uint8_t version argument is truncated
      * to 4 least-significant bits. Index shall be 0 through number of SupportedProtocolVersions elements - 1. */
     void SetSupportedProtocolVersion(uint8_t index, uint8_t version);
 
     /// Must be able to reserve 20 byte data length in msgBuf.
-    BLE_ERROR Encode(PacketBuffer *msgBuf) const;
+    BLE_ERROR Encode(PacketBuffer * msgBuf) const;
 
-    static BLE_ERROR Decode(const PacketBuffer &msgBuf, BleTransportCapabilitiesRequestMessage& msg);
+    static BLE_ERROR Decode(const PacketBuffer & msgBuf, BleTransportCapabilitiesRequestMessage & msg);
 };
 
 class BleTransportCapabilitiesResponseMessage
 {
 public:
-    uint8_t mSelectedProtocolVersion;      /**< The lower 4 bits specify the BLE transport protocol version that the BLE
-                                            * peripheral has selected for this connection. */
+    uint8_t mSelectedProtocolVersion; /**< The lower 4 bits specify the BLE transport protocol version that the BLE
+                                       * peripheral has selected for this connection. */
 
-                                       /**< A value of kBleTransportProtocolVersion_None means that no supported protocol
-                                        *   version was found in the central's capabilities request. The central should
-                                        *   unsubscribe after such a response has been sent to free up the peripheral for
-                                        *   connections from devices with supported protocol versions. */
+    /**< A value of kBleTransportProtocolVersion_None means that no supported protocol
+     *   version was found in the central's capabilities request. The central should
+     *   unsubscribe after such a response has been sent to free up the peripheral for
+     *   connections from devices with supported protocol versions. */
 
-    uint16_t mFragmentSize;            /**< BLE transport fragment size selected by peripheral in response to MTU value in
-                                        *   BleTransportCapabilitiesRequestMessage and its local observation of the BLE
-                                        *   connection MTU. */
+    uint16_t mFragmentSize; /**< BLE transport fragment size selected by peripheral in response to MTU value in
+                             *   BleTransportCapabilitiesRequestMessage and its local observation of the BLE
+                             *   connection MTU. */
 
-    uint8_t mWindowSize;               /**< The initial and maximum receive window size offered by the peripheral,
-                                        *   defined in terms of GATT write payloads. */
+    uint8_t mWindowSize; /**< The initial and maximum receive window size offered by the peripheral,
+                          *   defined in terms of GATT write payloads. */
 
     /// Must be able to reserve 20 byte data length in msgBuf.
-    BLE_ERROR Encode(PacketBuffer *msgBuf) const;
+    BLE_ERROR Encode(PacketBuffer * msgBuf) const;
 
-    static BLE_ERROR Decode(const PacketBuffer &msgBuf, BleTransportCapabilitiesResponseMessage& msg);
+    static BLE_ERROR Decode(const PacketBuffer & msgBuf, BleTransportCapabilitiesResponseMessage & msg);
 };
 
 /**
@@ -215,26 +216,27 @@ public:
     {
         kState_NotInitialized = 0,
         kState_Initialized    = 1
-    } mState;                                    ///< [READ-ONLY] Current state
+    } mState; ///< [READ-ONLY] Current state
 
-    void *mAppState;
+    void * mAppState;
 
-    typedef void (*BleConnectionReceivedFunct)(BLEEndPoint *newEndPoint);
+    typedef void (*BleConnectionReceivedFunct)(BLEEndPoint * newEndPoint);
     BleConnectionReceivedFunct OnWeaveBleConnectReceived;
 
 public:
     // Public functions:
     BleLayer(void);
 
-    BLE_ERROR Init(BlePlatformDelegate *platformDelegate, BleApplicationDelegate *appDelegate, Weave::System::Layer *systemLayer);
+    BLE_ERROR Init(BlePlatformDelegate * platformDelegate, BleApplicationDelegate * appDelegate,
+                   Weave::System::Layer * systemLayer);
 
 #if BLE_CONFIG_PROVIDE_OBSOLESCENT_INTERFACES
-    BLE_ERROR Init(BlePlatformDelegate *platformDelegate, BleApplicationDelegate *appDelegate, Inet::InetLayer *inetLayer);
+    BLE_ERROR Init(BlePlatformDelegate * platformDelegate, BleApplicationDelegate * appDelegate, Inet::InetLayer * inetLayer);
 #endif // BLE_CONFIG_PROVIDE_OBSOLESCENT_INTERFACES
 
     BLE_ERROR Shutdown(void);
 
-    BLE_ERROR NewBleEndPoint(BLEEndPoint **retEndPoint, BLE_CONNECTION_OBJECT connObj, BleRole role, bool autoClose);
+    BLE_ERROR NewBleEndPoint(BLEEndPoint ** retEndPoint, BLE_CONNECTION_OBJECT connObj, BleRole role, bool autoClose);
 
     /**< Platform interface functions:
 
@@ -258,33 +260,36 @@ public:
      *     in a WeaveConnection object. If Weave accepts a BLE connection, the platform MUST
      *     notify Weave if the subscription is canceled or the underlying BLE connection is
      *     closed, or the associated WeaveConnection will never be closed or freed. */
-    bool HandleSubscribeReceived(BLE_CONNECTION_OBJECT connObj, const WeaveBleUUID *svcId, const WeaveBleUUID *charId);
+    bool HandleSubscribeReceived(BLE_CONNECTION_OBJECT connObj, const WeaveBleUUID * svcId, const WeaveBleUUID * charId);
 
     /// Call when a GATT subscribe request succeeds.
-    bool HandleSubscribeComplete(BLE_CONNECTION_OBJECT connObj, const WeaveBleUUID *svcId, const WeaveBleUUID *charId);
+    bool HandleSubscribeComplete(BLE_CONNECTION_OBJECT connObj, const WeaveBleUUID * svcId, const WeaveBleUUID * charId);
 
     /**< Platform must call this function when a GATT unsubscribe is requested on any Weave
      *   service charateristic, that is, when an existing GATT subscription on a Weave service
      *   characteristic is canceled. */
-    bool HandleUnsubscribeReceived(BLE_CONNECTION_OBJECT connObj, const WeaveBleUUID *svcId, const WeaveBleUUID *charId);
+    bool HandleUnsubscribeReceived(BLE_CONNECTION_OBJECT connObj, const WeaveBleUUID * svcId, const WeaveBleUUID * charId);
 
     /// Call when a GATT unsubscribe request succeeds.
-    bool HandleUnsubscribeComplete(BLE_CONNECTION_OBJECT connObj, const WeaveBleUUID *svcId, const WeaveBleUUID *charId);
+    bool HandleUnsubscribeComplete(BLE_CONNECTION_OBJECT connObj, const WeaveBleUUID * svcId, const WeaveBleUUID * charId);
 
     /// Call when a GATT write request is received.
-    bool HandleWriteReceived(BLE_CONNECTION_OBJECT connObj, const WeaveBleUUID *svcId, const WeaveBleUUID *charId, PacketBuffer *pBuf);
+    bool HandleWriteReceived(BLE_CONNECTION_OBJECT connObj, const WeaveBleUUID * svcId, const WeaveBleUUID * charId,
+                             PacketBuffer * pBuf);
 
     /// Call when a GATT indication is received.
-    bool HandleIndicationReceived(BLE_CONNECTION_OBJECT connObj, const WeaveBleUUID *svcId, const WeaveBleUUID *charId, PacketBuffer *pBuf);
+    bool HandleIndicationReceived(BLE_CONNECTION_OBJECT connObj, const WeaveBleUUID * svcId, const WeaveBleUUID * charId,
+                                  PacketBuffer * pBuf);
 
     /// Call when an outstanding GATT write request receives a positive receipt confirmation.
-    bool HandleWriteConfirmation(BLE_CONNECTION_OBJECT connObj, const WeaveBleUUID *svcId, const WeaveBleUUID *charId);
+    bool HandleWriteConfirmation(BLE_CONNECTION_OBJECT connObj, const WeaveBleUUID * svcId, const WeaveBleUUID * charId);
 
     /// Call when an oustanding GATT indication receives a positive receipt confirmation.
-    bool HandleIndicationConfirmation(BLE_CONNECTION_OBJECT connObj, const WeaveBleUUID *svcId, const WeaveBleUUID *charId);
+    bool HandleIndicationConfirmation(BLE_CONNECTION_OBJECT connObj, const WeaveBleUUID * svcId, const WeaveBleUUID * charId);
 
     /// Call when a GATT read request is received.
-    bool HandleReadReceived(BLE_CONNECTION_OBJECT connObj, BLE_READ_REQUEST_CONTEXT requestContext, const WeaveBleUUID *svcId, const WeaveBleUUID *charId);
+    bool HandleReadReceived(BLE_CONNECTION_OBJECT connObj, BLE_READ_REQUEST_CONTEXT requestContext, const WeaveBleUUID * svcId,
+                            const WeaveBleUUID * charId);
 
     /**< Platform must call this function when any previous operation undertaken by the BleLayer via BleAdapter
      *   fails, such as a characteristic write request or subscribe attempt, or when a BLE connection is closed.
@@ -298,7 +303,7 @@ public:
     void HandleConnectionError(BLE_CONNECTION_OBJECT connObj, BLE_ERROR err);
 
 #if WEAVE_ENABLE_WOBLE_TEST
-    BLEEndPoint *mTestBleEndPoint;
+    BLEEndPoint * mTestBleEndPoint;
 #endif
 
 private:
@@ -309,23 +314,23 @@ private:
     // UUID of Weave service characteristic used for peripheral indications.
     static const WeaveBleUUID WEAVE_BLE_CHAR_2_ID;
 
-    BlePlatformDelegate *mPlatformDelegate;
-    BleApplicationDelegate *mApplicationDelegate;
-    Weave::System::Layer *mSystemLayer;
+    BlePlatformDelegate * mPlatformDelegate;
+    BleApplicationDelegate * mApplicationDelegate;
+    Weave::System::Layer * mSystemLayer;
 
 private:
     // Private functions:
-    void HandleDataReceived(BLE_CONNECTION_OBJECT connObj, PacketBuffer *pBuf);
+    void HandleDataReceived(BLE_CONNECTION_OBJECT connObj, PacketBuffer * pBuf);
     void HandleAckReceived(BLE_CONNECTION_OBJECT connObj);
     void DriveSending(void);
-    BLE_ERROR HandleBleTransportConnectionInitiated(BLE_CONNECTION_OBJECT connObj, PacketBuffer *pBuf);
+    BLE_ERROR HandleBleTransportConnectionInitiated(BLE_CONNECTION_OBJECT connObj, PacketBuffer * pBuf);
 
-    static BleTransportProtocolVersion GetHighestSupportedProtocolVersion(const BleTransportCapabilitiesRequestMessage &reqMsg);
+    static BleTransportProtocolVersion GetHighestSupportedProtocolVersion(const BleTransportCapabilitiesRequestMessage & reqMsg);
 };
 
 #if BLE_CONFIG_PROVIDE_OBSOLESCENT_INTERFACES
-inline BLE_ERROR BleLayer::Init(BlePlatformDelegate* aPlatformDelegate, BleApplicationDelegate* aAppDelegate,
-    Inet::InetLayer* aInetLayer)
+inline BLE_ERROR BleLayer::Init(BlePlatformDelegate * aPlatformDelegate, BleApplicationDelegate * aAppDelegate,
+                                Inet::InetLayer * aInetLayer)
 {
     return Init(aPlatformDelegate, aAppDelegate, aInetLayer->SystemLayer());
 }

@@ -25,25 +25,16 @@ namespace WeaveMakeManagedNamespaceIdentifier(DataManagement, kWeaveManagedNames
 
 #if WEAVE_CONFIG_SERIALIZATION_ENABLE_DESERIALIZATION
 
-static WEAVE_ERROR
-ReadAndCheckPresence(nl::Weave::TLV::TLVReader &inReader,
-                     uint64_t &inOutReceivedMask,
-                     const uint64_t &inReceivedFieldFlag,
-                     uint64_t &inOutValue);
+static WEAVE_ERROR ReadAndCheckPresence(nl::Weave::TLV::TLVReader & inReader, uint64_t & inOutReceivedMask,
+                                        const uint64_t & inReceivedFieldFlag, uint64_t & inOutValue);
 
-EventProcessor::EventProcessor(uint64_t inLocalNodeId) :
-    mLocalNodeId(inLocalNodeId),
-    mLargestEventId()
-{
-}
+EventProcessor::EventProcessor(uint64_t inLocalNodeId) : mLocalNodeId(inLocalNodeId), mLargestEventId() { }
 
-EventProcessor::~EventProcessor(void)
-{
-}
+EventProcessor::~EventProcessor(void) { }
 
 WEAVE_ERROR
-EventProcessor::ProcessEvents(nl::Weave::TLV::TLVReader &inReader,
-                              nl::Weave::Profiles::DataManagement::SubscriptionClient &inClient)
+EventProcessor::ProcessEvents(nl::Weave::TLV::TLVReader & inReader,
+                              nl::Weave::Profiles::DataManagement::SubscriptionClient & inClient)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
 
@@ -58,8 +49,8 @@ exit:
 }
 
 WEAVE_ERROR
-EventProcessor::ParseEventList(nl::Weave::TLV::TLVReader &inReader,
-                               nl::Weave::Profiles::DataManagement::SubscriptionClient &inClient)
+EventProcessor::ParseEventList(nl::Weave::TLV::TLVReader & inReader,
+                               nl::Weave::Profiles::DataManagement::SubscriptionClient & inClient)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
     StreamParsingContext parsingContext(inClient.GetBinding()->GetPeerNodeId());
@@ -93,9 +84,8 @@ exit:
 }
 
 WEAVE_ERROR
-EventProcessor::ParseEvent(nl::Weave::TLV::TLVReader &inReader,
-                           nl::Weave::Profiles::DataManagement::SubscriptionClient &inClient,
-                           StreamParsingContext &inOutParsingContext)
+EventProcessor::ParseEvent(nl::Weave::TLV::TLVReader & inReader, nl::Weave::Profiles::DataManagement::SubscriptionClient & inClient,
+                           StreamParsingContext & inOutParsingContext)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
     EventHeader eventHeader;
@@ -111,229 +101,206 @@ EventProcessor::ParseEvent(nl::Weave::TLV::TLVReader &inReader,
 
         switch (tag)
         {
-            case Event::kCsTag_Source:
+        case Event::kCsTag_Source:
+        {
+            err = ReadAndCheckPresence(inReader, receivedMask, ReceivedEventHeaderFieldPresenceMask_Source, eventHeader.mSource);
+            SuccessOrExit(err);
+            break;
+        }
+
+        case Event::kCsTag_Importance:
+        {
+            uint64_t v = 0;
+
+            err = ReadAndCheckPresence(inReader, receivedMask, ReceivedEventHeaderFieldPresenceMask_Importance, v);
+            SuccessOrExit(err);
+
+            eventHeader.mImportance = (ImportanceType) v;
+            break;
+        }
+
+        case Event::kCsTag_Id:
+        {
+            err = ReadAndCheckPresence(inReader, receivedMask, ReceivedEventHeaderFieldPresenceMask_Id, eventHeader.mId);
+            SuccessOrExit(err);
+            break;
+        }
+
+        case Event::kCsTag_RelatedImportance:
+        {
+            uint64_t v = 0;
+
+            err = ReadAndCheckPresence(inReader, receivedMask, ReceivedEventHeaderFieldPresenceMask_RelatedImportance, v);
+            SuccessOrExit(err);
+
+            eventHeader.mRelatedImportance = (ImportanceType) v;
+            break;
+        }
+
+        case Event::kCsTag_RelatedId:
+        {
+            err = ReadAndCheckPresence(inReader, receivedMask, ReceivedEventHeaderFieldPresenceMask_RelatedId,
+                                       eventHeader.mRelatedId);
+            SuccessOrExit(err);
+            break;
+        }
+
+        case Event::kCsTag_UTCTimestamp:
+        {
+            err = ReadAndCheckPresence(inReader, receivedMask, ReceivedEventHeaderFieldPresenceMask_UTCTimestamp,
+                                       eventHeader.mUTCTimestamp);
+            SuccessOrExit(err);
+            break;
+        }
+
+        case Event::kCsTag_SystemTimestamp:
+        {
+            err = ReadAndCheckPresence(inReader, receivedMask, ReceivedEventHeaderFieldPresenceMask_SystemTimestamp,
+                                       eventHeader.mSystemTimestamp);
+            SuccessOrExit(err);
+            break;
+        }
+
+        case Event::kCsTag_ResourceId:
+        {
+            // Mandatory field.
+            VerifyOrExit(nl::Weave::TLV::kTLVType_UnsignedInteger == inReader.GetType(), err = WEAVE_ERROR_WRONG_TLV_TYPE);
+
+            err = inReader.Get(eventHeader.mResourceId);
+            SuccessOrExit(err);
+            break;
+        }
+
+        case Event::kCsTag_TraitProfileId:
+        {
+            nl::Weave::TLV::TLVType outerContainerType;
+
+            // Mandatory field.
+            VerifyOrExit(nl::Weave::TLV::kTLVType_UnsignedInteger == inReader.GetType() ||
+                             nl::Weave::TLV::kTLVType_Array == inReader.GetType(),
+                         err = WEAVE_ERROR_WRONG_TLV_TYPE);
+
+            if (inReader.GetType() == nl::Weave::TLV::kTLVType_Array)
             {
-                err = ReadAndCheckPresence(inReader,
-                                           receivedMask,
-                                           ReceivedEventHeaderFieldPresenceMask_Source,
-                                           eventHeader.mSource);
-                SuccessOrExit(err);
-                break;
-            }
-
-            case Event::kCsTag_Importance:
-            {
-                uint64_t v = 0;
-
-                err = ReadAndCheckPresence(inReader,
-                                           receivedMask,
-                                           ReceivedEventHeaderFieldPresenceMask_Importance,
-                                           v);
-                SuccessOrExit(err);
-
-                eventHeader.mImportance = (ImportanceType)v;
-                break;
-            }
-
-            case Event::kCsTag_Id:
-            {
-                err = ReadAndCheckPresence(inReader,
-                                           receivedMask,
-                                           ReceivedEventHeaderFieldPresenceMask_Id,
-                                           eventHeader.mId);
-                SuccessOrExit(err);
-                break;
-            }
-
-            case Event::kCsTag_RelatedImportance:
-            {
-                uint64_t v = 0;
-
-                err = ReadAndCheckPresence(inReader,
-                                           receivedMask,
-                                           ReceivedEventHeaderFieldPresenceMask_RelatedImportance,
-                                           v);
-                SuccessOrExit(err);
-
-                eventHeader.mRelatedImportance = (ImportanceType)v;
-                break;
-            }
-
-            case Event::kCsTag_RelatedId:
-            {
-                err = ReadAndCheckPresence(inReader,
-                                           receivedMask,
-                                           ReceivedEventHeaderFieldPresenceMask_RelatedId,
-                                           eventHeader.mRelatedId);
-                SuccessOrExit(err);
-                break;
-            }
-
-            case Event::kCsTag_UTCTimestamp:
-            {
-                err = ReadAndCheckPresence(inReader,
-                                           receivedMask,
-                                           ReceivedEventHeaderFieldPresenceMask_UTCTimestamp,
-                                           eventHeader.mUTCTimestamp);
-                SuccessOrExit(err);
-                break;
-            }
-
-            case Event::kCsTag_SystemTimestamp:
-            {
-                err = ReadAndCheckPresence(inReader,
-                                           receivedMask,
-                                           ReceivedEventHeaderFieldPresenceMask_SystemTimestamp,
-                                           eventHeader.mSystemTimestamp);
-                SuccessOrExit(err);
-                break;
-            }
-
-            case Event::kCsTag_ResourceId:
-            {
-                // Mandatory field.
-                VerifyOrExit(nl::Weave::TLV::kTLVType_UnsignedInteger == inReader.GetType(), err = WEAVE_ERROR_WRONG_TLV_TYPE);
-
-                err = inReader.Get(eventHeader.mResourceId);
-                SuccessOrExit(err);
-                break;
-            }
-
-            case Event::kCsTag_TraitProfileId:
-            {
-                nl::Weave::TLV::TLVType outerContainerType;
-
-                // Mandatory field.
-                VerifyOrExit(nl::Weave::TLV::kTLVType_UnsignedInteger == inReader.GetType() || nl::Weave::TLV::kTLVType_Array == inReader.GetType(), err = WEAVE_ERROR_WRONG_TLV_TYPE);
-
-                if (inReader.GetType() == nl::Weave::TLV::kTLVType_Array) {
-                    err = inReader.EnterContainer(outerContainerType);
-                    SuccessOrExit(err);
-
-                    err = inReader.Next();
-                    SuccessOrExit(err);
-
-                    VerifyOrExit(inReader.GetType() == nl::Weave::TLV::kTLVType_UnsignedInteger, err = WEAVE_ERROR_WRONG_TLV_TYPE);
-
-                    err = inReader.Get(eventHeader.mTraitProfileId);
-                    SuccessOrExit(err);
-
-                    err = inReader.Next();
-                    VerifyOrExit(err == WEAVE_NO_ERROR || err == WEAVE_END_OF_TLV, );
-
-                    // MaxVersion is only encoded if it isn't 1.
-                    if (err == WEAVE_NO_ERROR) {
-                        VerifyOrExit(inReader.GetType() == nl::Weave::TLV::kTLVType_UnsignedInteger, err = WEAVE_ERROR_WRONG_TLV_TYPE);
-
-                        err = inReader.Get(eventHeader.mDataSchemaVersionRange.mMaxVersion);
-                        SuccessOrExit(err);
-                    }
-
-                    // Similarly, MinVersion is only encoded if it isn't 1.
-                    err = inReader.Next();
-                    VerifyOrExit(err == WEAVE_NO_ERROR || err == WEAVE_END_OF_TLV, );
-
-                    if (err == WEAVE_NO_ERROR) {
-                        VerifyOrExit(inReader.GetType() == nl::Weave::TLV::kTLVType_UnsignedInteger, err = WEAVE_ERROR_WRONG_TLV_TYPE);
-
-                        err = inReader.Get(eventHeader.mDataSchemaVersionRange.mMinVersion);
-                        SuccessOrExit(err);
-                    }
-
-                    err = inReader.Next();
-                    VerifyOrExit(err == WEAVE_END_OF_TLV, err = WEAVE_ERROR_WDM_MALFORMED_DATA_ELEMENT);
-
-                    err = inReader.ExitContainer(outerContainerType);
-                    SuccessOrExit(err);
-                }
-                else {
-                    VerifyOrExit(inReader.GetType() == nl::Weave::TLV::kTLVType_UnsignedInteger, err = WEAVE_ERROR_WRONG_TLV_TYPE);
-
-                    err = inReader.Get(eventHeader.mTraitProfileId);
-                }
-
-                break;
-            }
-
-            case Event::kCsTag_TraitInstanceId:
-            {
-                err = ReadAndCheckPresence(inReader,
-                                           receivedMask,
-                                           ReceivedEventHeaderFieldPresenceMask_TraitInstanceId,
-                                           eventHeader.mTraitInstanceId);
-                SuccessOrExit(err);
-                break;
-            }
-
-            case Event::kCsTag_Type:
-            {
-                err = ReadAndCheckPresence(inReader,
-                                           receivedMask,
-                                           ReceivedEventHeaderFieldPresenceMask_Type,
-                                           eventHeader.mType);
-                SuccessOrExit(err);
-                break;
-            }
-
-            case Event::kCsTag_DeltaUTCTime:
-            {
-                uint64_t v = 0;
-                err = ReadAndCheckPresence(inReader,
-                                           receivedMask,
-                                           ReceivedEventHeaderFieldPresenceMask_DeltaUTCTime,
-                                           v);
-                SuccessOrExit(err);
-                eventHeader.mDeltaUTCTime = (int64_t)v;
-                break;
-            }
-
-            case Event::kCsTag_DeltaSystemTime:
-            {
-                uint64_t v = 0;
-                err = ReadAndCheckPresence(inReader,
-                                           receivedMask,
-                                           ReceivedEventHeaderFieldPresenceMask_DeltaSystemTime,
-                                           v);
-                SuccessOrExit(err);
-                eventHeader.mDeltaSystemTime = (int64_t)v;
-                break;
-            }
-
-            case Event::kCsTag_Data:
-            {
-                bool isEventNew;
-
-                // check if this tag has appeared before
-                VerifyOrExit((receivedMask & ReceivedEventHeaderFieldPresenceMask_Data) == 0, err = WEAVE_ERROR_INVALID_TLV_TAG);
-                receivedMask |= ReceivedEventHeaderFieldPresenceMask_Data;
-
-                // Mandatory field.  Make sure we're sending up a
-                // fully-qualified header to the app.
-                err = UpdateContextQualifyHeader(eventHeader, inOutParsingContext, receivedMask);
+                err = inReader.EnterContainer(outerContainerType);
                 SuccessOrExit(err);
 
-                // Potentially this could be moved to outside the while(inReader.Next())?
-                // but so could the call to ProcessEvent (this would enable data-less events).
-                // For now leaving both together makes up for it in readability.
-                err = ProcessHeader(eventHeader, isEventNew);
+                err = inReader.Next();
                 SuccessOrExit(err);
 
-                if (isEventNew)
+                VerifyOrExit(inReader.GetType() == nl::Weave::TLV::kTLVType_UnsignedInteger, err = WEAVE_ERROR_WRONG_TLV_TYPE);
+
+                err = inReader.Get(eventHeader.mTraitProfileId);
+                SuccessOrExit(err);
+
+                err = inReader.Next();
+                VerifyOrExit(err == WEAVE_NO_ERROR || err == WEAVE_END_OF_TLV, );
+
+                // MaxVersion is only encoded if it isn't 1.
+                if (err == WEAVE_NO_ERROR)
                 {
-                    err = ProcessEvent(inReader, inClient, eventHeader);
+                    VerifyOrExit(inReader.GetType() == nl::Weave::TLV::kTLVType_UnsignedInteger, err = WEAVE_ERROR_WRONG_TLV_TYPE);
+
+                    err = inReader.Get(eventHeader.mDataSchemaVersionRange.mMaxVersion);
                     SuccessOrExit(err);
                 }
 
-                break;
+                // Similarly, MinVersion is only encoded if it isn't 1.
+                err = inReader.Next();
+                VerifyOrExit(err == WEAVE_NO_ERROR || err == WEAVE_END_OF_TLV, );
+
+                if (err == WEAVE_NO_ERROR)
+                {
+                    VerifyOrExit(inReader.GetType() == nl::Weave::TLV::kTLVType_UnsignedInteger, err = WEAVE_ERROR_WRONG_TLV_TYPE);
+
+                    err = inReader.Get(eventHeader.mDataSchemaVersionRange.mMinVersion);
+                    SuccessOrExit(err);
+                }
+
+                err = inReader.Next();
+                VerifyOrExit(err == WEAVE_END_OF_TLV, err = WEAVE_ERROR_WDM_MALFORMED_DATA_ELEMENT);
+
+                err = inReader.ExitContainer(outerContainerType);
+                SuccessOrExit(err);
+            }
+            else
+            {
+                VerifyOrExit(inReader.GetType() == nl::Weave::TLV::kTLVType_UnsignedInteger, err = WEAVE_ERROR_WRONG_TLV_TYPE);
+
+                err = inReader.Get(eventHeader.mTraitProfileId);
             }
 
-            default:
+            break;
+        }
+
+        case Event::kCsTag_TraitInstanceId:
+        {
+            err = ReadAndCheckPresence(inReader, receivedMask, ReceivedEventHeaderFieldPresenceMask_TraitInstanceId,
+                                       eventHeader.mTraitInstanceId);
+            SuccessOrExit(err);
+            break;
+        }
+
+        case Event::kCsTag_Type:
+        {
+            err = ReadAndCheckPresence(inReader, receivedMask, ReceivedEventHeaderFieldPresenceMask_Type, eventHeader.mType);
+            SuccessOrExit(err);
+            break;
+        }
+
+        case Event::kCsTag_DeltaUTCTime:
+        {
+            uint64_t v = 0;
+            err        = ReadAndCheckPresence(inReader, receivedMask, ReceivedEventHeaderFieldPresenceMask_DeltaUTCTime, v);
+            SuccessOrExit(err);
+            eventHeader.mDeltaUTCTime = (int64_t) v;
+            break;
+        }
+
+        case Event::kCsTag_DeltaSystemTime:
+        {
+            uint64_t v = 0;
+            err        = ReadAndCheckPresence(inReader, receivedMask, ReceivedEventHeaderFieldPresenceMask_DeltaSystemTime, v);
+            SuccessOrExit(err);
+            eventHeader.mDeltaSystemTime = (int64_t) v;
+            break;
+        }
+
+        case Event::kCsTag_Data:
+        {
+            bool isEventNew;
+
+            // check if this tag has appeared before
+            VerifyOrExit((receivedMask & ReceivedEventHeaderFieldPresenceMask_Data) == 0, err = WEAVE_ERROR_INVALID_TLV_TAG);
+            receivedMask |= ReceivedEventHeaderFieldPresenceMask_Data;
+
+            // Mandatory field.  Make sure we're sending up a
+            // fully-qualified header to the app.
+            err = UpdateContextQualifyHeader(eventHeader, inOutParsingContext, receivedMask);
+            SuccessOrExit(err);
+
+            // Potentially this could be moved to outside the while(inReader.Next())?
+            // but so could the call to ProcessEvent (this would enable data-less events).
+            // For now leaving both together makes up for it in readability.
+            err = ProcessHeader(eventHeader, isEventNew);
+            SuccessOrExit(err);
+
+            if (isEventNew)
             {
-                // Unknown.  If a newly-added field is not optional,
-                // it needs to be handled in a case above.
-                WeaveLogError(EventLogging, "EventProcessor encountered unknown tag 0x%" PRIx32 " (%d)", tag, tag);
-                break;
+                err = ProcessEvent(inReader, inClient, eventHeader);
+                SuccessOrExit(err);
             }
+
+            break;
+        }
+
+        default:
+        {
+            // Unknown.  If a newly-added field is not optional,
+            // it needs to be handled in a case above.
+            WeaveLogError(EventLogging, "EventProcessor encountered unknown tag 0x%" PRIx32 " (%d)", tag, tag);
+            break;
+        }
         }
     }
 
@@ -348,29 +315,20 @@ exit:
 }
 
 WEAVE_ERROR
-EventProcessor::MapReceivedMaskToPublishedMask(const uint64_t &inReceivedMask,
-                                               uint64_t &inOutPublishedMask)
+EventProcessor::MapReceivedMaskToPublishedMask(const uint64_t & inReceivedMask, uint64_t & inOutPublishedMask)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
 
-    const uint8_t numFields = 6;
-    const uint64_t headerFields[numFields] =
-    {
-        EventHeaderFieldPresenceMask_RelatedImportance,
-        EventHeaderFieldPresenceMask_RelatedId,
-        EventHeaderFieldPresenceMask_UTCTimestamp,
-        EventHeaderFieldPresenceMask_SystemTimestamp,
-        EventHeaderFieldPresenceMask_DeltaUTCTime,
-        EventHeaderFieldPresenceMask_DeltaSystemTime
+    const uint8_t numFields                = 6;
+    const uint64_t headerFields[numFields] = {
+        EventHeaderFieldPresenceMask_RelatedImportance, EventHeaderFieldPresenceMask_RelatedId,
+        EventHeaderFieldPresenceMask_UTCTimestamp,      EventHeaderFieldPresenceMask_SystemTimestamp,
+        EventHeaderFieldPresenceMask_DeltaUTCTime,      EventHeaderFieldPresenceMask_DeltaSystemTime
     };
-    const uint64_t receivedHeaderFields[numFields] =
-    {
-        ReceivedEventHeaderFieldPresenceMask_RelatedImportance,
-        ReceivedEventHeaderFieldPresenceMask_RelatedId,
-        ReceivedEventHeaderFieldPresenceMask_UTCTimestamp,
-        ReceivedEventHeaderFieldPresenceMask_SystemTimestamp,
-        ReceivedEventHeaderFieldPresenceMask_DeltaUTCTime,
-        ReceivedEventHeaderFieldPresenceMask_DeltaSystemTime
+    const uint64_t receivedHeaderFields[numFields] = {
+        ReceivedEventHeaderFieldPresenceMask_RelatedImportance, ReceivedEventHeaderFieldPresenceMask_RelatedId,
+        ReceivedEventHeaderFieldPresenceMask_UTCTimestamp,      ReceivedEventHeaderFieldPresenceMask_SystemTimestamp,
+        ReceivedEventHeaderFieldPresenceMask_DeltaUTCTime,      ReceivedEventHeaderFieldPresenceMask_DeltaSystemTime
     };
 
     inOutPublishedMask = 0;
@@ -387,8 +345,7 @@ EventProcessor::MapReceivedMaskToPublishedMask(const uint64_t &inReceivedMask,
 }
 
 WEAVE_ERROR
-EventProcessor::UpdateContextQualifyHeader(EventHeader &inOutEventHeader,
-                                           StreamParsingContext &inOutContext,
+EventProcessor::UpdateContextQualifyHeader(EventHeader & inOutEventHeader, StreamParsingContext & inOutContext,
                                            uint64_t inReceivedMask)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
@@ -476,7 +433,7 @@ exit:
 }
 
 WEAVE_ERROR
-EventProcessor::ProcessHeader(const EventHeader &inEventHeader, bool &outIsNewEvent)
+EventProcessor::ProcessHeader(const EventHeader & inEventHeader, bool & outIsNewEvent)
 {
     bool isEventNew; // Set by all branches.
 
@@ -488,28 +445,29 @@ EventProcessor::ProcessHeader(const EventHeader &inEventHeader, bool &outIsNewEv
         {
             if (inEventHeader.mId > (mLargestEventId[inEventHeader.mImportance] + 1))
             {
-                WeaveLogDetail(DataManagement, "EventProcessor found gap for importance: %u (0x%" PRIx32 " -> 0x%" PRIx64 ") NodeId=0x%" PRIx64,
-                    inEventHeader.mImportance,
-                    mLargestEventId[inEventHeader.mImportance],
-                    inEventHeader.mId,
-                    inEventHeader.mSource);
+                WeaveLogDetail(DataManagement,
+                               "EventProcessor found gap for importance: %u (0x%" PRIx32 " -> 0x%" PRIx64 ") NodeId=0x%" PRIx64,
+                               inEventHeader.mImportance, mLargestEventId[inEventHeader.mImportance], inEventHeader.mId,
+                               inEventHeader.mSource);
                 GapDetected(inEventHeader);
             }
 
             mLargestEventId[inEventHeader.mImportance] = inEventHeader.mId;
-            isEventNew = true;
+            isEventNew                                 = true;
         }
         else
         {
-            WeaveLogDetail(DataManagement, "EventProcessor dropping event %u:0x%" PRIx64 , inEventHeader.mImportance, inEventHeader.mId);
+            WeaveLogDetail(DataManagement, "EventProcessor dropping event %u:0x%" PRIx64, inEventHeader.mImportance,
+                           inEventHeader.mId);
             isEventNew = false;
         }
     }
     else
     {
-        WeaveLogDetail(DataManagement, "EventProcessor stream for importance: %u initialized with id: 0x%" PRIx64 , inEventHeader.mImportance, inEventHeader.mId);
+        WeaveLogDetail(DataManagement, "EventProcessor stream for importance: %u initialized with id: 0x%" PRIx64,
+                       inEventHeader.mImportance, inEventHeader.mId);
         mLargestEventId[inEventHeader.mImportance] = inEventHeader.mId;
-        isEventNew = true;
+        isEventNew                                 = true;
     }
 
     outIsNewEvent = isEventNew;
@@ -518,10 +476,8 @@ EventProcessor::ProcessHeader(const EventHeader &inEventHeader, bool &outIsNewEv
 }
 
 WEAVE_ERROR
-ReadAndCheckPresence(nl::Weave::TLV::TLVReader &inReader,
-                     uint64_t &inOutReceivedMask,
-                     const uint64_t &inReceivedFieldFlag,
-                     uint64_t &inOutValue)
+ReadAndCheckPresence(nl::Weave::TLV::TLVReader & inReader, uint64_t & inOutReceivedMask, const uint64_t & inReceivedFieldFlag,
+                     uint64_t & inOutValue)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
 
@@ -530,7 +486,7 @@ ReadAndCheckPresence(nl::Weave::TLV::TLVReader &inReader,
 
     // The only two types we should see here.
     VerifyOrExit((inReader.GetType() == nl::Weave::TLV::kTLVType_UnsignedInteger) ||
-                 (inReader.GetType() == nl::Weave::TLV::kTLVType_SignedInteger),
+                     (inReader.GetType() == nl::Weave::TLV::kTLVType_SignedInteger),
                  err = WEAVE_ERROR_WRONG_TLV_TYPE);
 
     err = inReader.Get(inOutValue);
@@ -544,7 +500,7 @@ exit:
 
 #endif // WEAVE_CONFIG_SERIALIZATION_ENABLE_DESERIALIZATION
 
-} // WeaveMakeManagedNamespaceIdentifier(DataManagement, kWeaveManagedNamespaceDesignation_Current)
-} // Profiles
-} // Weave
-} // nl
+} // namespace WeaveMakeManagedNamespaceIdentifier(DataManagement, kWeaveManagedNamespaceDesignation_Current)
+} // namespace Profiles
+} // namespace Weave
+} // namespace nl

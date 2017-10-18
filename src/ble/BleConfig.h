@@ -89,7 +89,7 @@
  *    This defines the type of BLE_CONNECTION_OBJECT parameters passed between
  *    BLE platform code and the BleLayer subsystem.
  *
- *    This type must support operator== such that BLE_CONNECTION_OBJECT instances
+ *    This type must support operator == such that BLE_CONNECTION_OBJECT instances
  *    which refer to the same BLE connection are considered equivalent.
  *
  *    Most platforms should be able to retain this type's default definition as

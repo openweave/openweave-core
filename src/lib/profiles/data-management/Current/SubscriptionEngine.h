@@ -49,7 +49,7 @@ namespace WeaveMakeManagedNamespaceIdentifier(DataManagement, kWeaveManagedNames
 class IWeavePublisherLock
 {
 public:
-    virtual WEAVE_ERROR Lock(void) = 0;
+    virtual WEAVE_ERROR Lock(void)   = 0;
     virtual WEAVE_ERROR Unlock(void) = 0;
 };
 
@@ -62,7 +62,6 @@ public:
 class SubscriptionEngine
 {
 public:
-
     /**
      * @brief Retrieve the singleton Subscription Engine. Note this function should be implemented by the
      *  adoption layer.
@@ -79,8 +78,9 @@ public:
     enum EventID
     {
 #if WDM_ENABLE_SUBSCRIPTION_PUBLISHER
-        kEvent_OnIncomingSubscribeRequest       = 0, //< Called when an incoming subscribe request has arrived, before any parsing is done.
-#endif // #if WDM_ENABLE_SUBSCRIPTION_PUBLISHER
+        kEvent_OnIncomingSubscribeRequest =
+            0, //< Called when an incoming subscribe request has arrived, before any parsing is done.
+#endif         // #if WDM_ENABLE_SUBSCRIPTION_PUBLISHER
     };
 
     /**
@@ -95,11 +95,11 @@ public:
          */
         struct
         {
-            nl::Weave::ExchangeContext * mEC;           //< A pointer to the exchange context object this request comes from
-            PacketBuffer *mPayload;                     //< A pointer to the packet buffer containing the request
-            const nl::Inet::IPPacketInfo *mPktInfo;     //< A pointer to the packet information of the request
-            const nl::Weave::WeaveMessageInfo *mMsgInfo;//< A pointer to the message information for the request
-            Binding * mBinding;                         //< A pointer to the Binding object created based on the exchange context object
+            nl::Weave::ExchangeContext * mEC;             //< A pointer to the exchange context object this request comes from
+            PacketBuffer * mPayload;                      //< A pointer to the packet buffer containing the request
+            const nl::Inet::IPPacketInfo * mPktInfo;      //< A pointer to the packet information of the request
+            const nl::Weave::WeaveMessageInfo * mMsgInfo; //< A pointer to the message information for the request
+            Binding * mBinding; //< A pointer to the Binding object created based on the exchange context object
         } mIncomingSubscribeRequest;
 #endif // #if WDM_ENABLE_SUBSCRIPTION_PUBLISHER
     };
@@ -116,13 +116,14 @@ public:
          */
         struct
         {
-            bool mAutoClosePriorSubscription;   //< Set to true if subscription engine must close existing subscription with the same peer node id
-            bool mRejectRequest;                //< Set to true if subscription engine must reject this request with the reason and status code
-            uint32_t * mpReasonProfileId;       //< A pointer to the profile ID of reason for rejection
-            uint16_t * mpReasonStatusCode;      //< A pointer to the status code of reason for rejection
+            bool mAutoClosePriorSubscription; //< Set to true if subscription engine must close existing subscription with the same
+                                              //peer node id
+            bool mRejectRequest; //< Set to true if subscription engine must reject this request with the reason and status code
+            uint32_t * mpReasonProfileId;  //< A pointer to the profile ID of reason for rejection
+            uint16_t * mpReasonStatusCode; //< A pointer to the status code of reason for rejection
 
-            void * mHandlerAppState;            //< A pointer to application layer supplied state object
-            SubscriptionHandler::EventCallback mHandlerEventCallback;	//< A function pointer for event call back
+            void * mHandlerAppState;                                  //< A pointer to application layer supplied state object
+            SubscriptionHandler::EventCallback mHandlerEventCallback; //< A function pointer for event call back
         } mIncomingSubscribeRequest;
 #endif // #if WDM_ENABLE_SUBSCRIPTION_PUBLISHER
     };
@@ -135,7 +136,7 @@ public:
      * @param[in]  aInParam     A const reference to the input parameter for this event
      * @param[out] aOutParam    A reference to the output parameter for this event
      */
-    typedef void (*EventCallback) (void * const aAppState, EventID aEvent, const InEventParam & aInParam, OutEventParam & aOutParam);
+    typedef void (*EventCallback)(void * const aAppState, EventID aEvent, const InEventParam & aInParam, OutEventParam & aOutParam);
 
     /**
      * @brief Set the event back function and pointer to associated state object for #SubscribeEngine specific call backs
@@ -170,12 +171,13 @@ public:
      *
      * @retval #WEAVE_NO_ERROR      unconditionally
      */
-    WEAVE_ERROR GetMinEventLogPosition(size_t &outLogPosition) const;
+    WEAVE_ERROR GetMinEventLogPosition(size_t & outLogPosition) const;
 
 #if WDM_ENABLE_SUBSCRIPTION_CLIENT
     enum
     {
-        kMaxNumSubscriptionClients      = (WDM_MAX_NUM_SUBSCRIPTION_CLIENTS),   //< Max number of subscription clients this engine can accommodate
+        kMaxNumSubscriptionClients =
+            (WDM_MAX_NUM_SUBSCRIPTION_CLIENTS), //< Max number of subscription clients this engine can accommodate
     };
 
     /**
@@ -186,18 +188,17 @@ public:
      * @param[in]  apAppState       A pointer to application layer supplied state object
      * @param[in]  aEventCallback   A function pointer for event call back
      * @param[in]  apCatalog        A pointer to data sink catalog object
-     * @param[in]  aTimeoutMsecBeforeSubscribeResponse    Max number of milliseconds before subscribe response must be received after subscribe request is sent
+     * @param[in]  aTimeoutMsecBeforeSubscribeResponse    Max number of milliseconds before subscribe response must be received
+     * after subscribe request is sent
      */
-    WEAVE_ERROR NewClient (SubscriptionClient ** const appClient,
-        Binding * const apBinding,
-        void * const apAppState,
-        SubscriptionClient::EventCallback const aEventCallback,
-        const TraitCatalogBase<TraitDataSink>* const apCatalog,
-        const uint32_t aInactivityTimeoutDuringSubscribingMsec);
+    WEAVE_ERROR NewClient(SubscriptionClient ** const appClient, Binding * const apBinding, void * const apAppState,
+                          SubscriptionClient::EventCallback const aEventCallback,
+                          const TraitCatalogBase<TraitDataSink> * const apCatalog,
+                          const uint32_t aInactivityTimeoutDuringSubscribingMsec);
 
-    WEAVE_ERROR NewSubscriptionHandler (SubscriptionHandler ** const subHandler);
+    WEAVE_ERROR NewSubscriptionHandler(SubscriptionHandler ** const subHandler);
 
-    uint16_t GetClientId (const SubscriptionClient * const apClient) const;
+    uint16_t GetClientId(const SubscriptionClient * const apClient) const;
 
     SubscriptionClient * FindClient(const uint64_t aPeerNodeId, const uint64_t aSubscriptionId);
 
@@ -206,7 +207,7 @@ public:
 #endif // WDM_ENABLE_SUBSCRIPTION_CLIENT
 
 #if WDM_ENABLE_SUBSCRIPTION_PUBLISHER
-    WEAVE_ERROR EnablePublisher(IWeavePublisherLock *aLock, TraitCatalogBase<TraitDataSource>* const aPublisherCatalog);
+    WEAVE_ERROR EnablePublisher(IWeavePublisherLock * aLock, TraitCatalogBase<TraitDataSource> * const aPublisherCatalog);
 
     // The lock methods here guard access to a couple of data structures:
     //      - mPublisherCatalog
@@ -219,26 +220,27 @@ public:
     WEAVE_ERROR Lock(void);
     WEAVE_ERROR Unlock(void);
 
-    NotificationEngine *GetNotificationEngine(void) { return &mNotificationEngine; }
+    NotificationEngine * GetNotificationEngine(void) { return &mNotificationEngine; }
 
     // After this call returns, it's free to tear down the current publisher catalog
-    void DisablePublisher (void);
+    void DisablePublisher(void);
 
     SubscriptionHandler * FindHandler(const uint64_t aPeerNodeId, const uint64_t aSubscriptionId);
 
     bool UpdateHandlerLiveness(const uint64_t aPeerNodeId, const uint64_t aSubscriptionId, const bool aKill = false);
 
-    uint16_t GetHandlerId (const SubscriptionHandler * const apHandler) const;
+    uint16_t GetHandlerId(const SubscriptionHandler * const apHandler) const;
 
-    uint16_t GetCommandObjId (const Command * const apHandle) const;
+    uint16_t GetCommandObjId(const Command * const apHandle) const;
 
 #endif // WDM_ENABLE_SUBSCRIPTION_PUBLISHER
 
     SubscriptionEngine(void);
 
-    WEAVE_ERROR Init (nl::Weave::WeaveExchangeManager * const apExchangeMgr, void * const aAppState = NULL, const EventCallback aEventCallback = NULL);
+    WEAVE_ERROR Init(nl::Weave::WeaveExchangeManager * const apExchangeMgr, void * const aAppState = NULL,
+                     const EventCallback aEventCallback = NULL);
 
-    nl::Weave::WeaveExchangeManager * GetExchangeManager (void) const { return mExchangeMgr; };
+    nl::Weave::WeaveExchangeManager * GetExchangeManager(void) const { return mExchangeMgr; };
 
 private:
     friend class SubscriptionHandler;
@@ -247,26 +249,24 @@ private:
     friend class TestTdm;
     friend class TestWdm;
 
-    nl::Weave::WeaveExchangeManager *mExchangeMgr;
+    nl::Weave::WeaveExchangeManager * mExchangeMgr;
     void * mAppState;
     EventCallback mEventCallback;
 
-    static WEAVE_ERROR SendStatusReport (nl::Weave::ExchangeContext *aEC,
-        uint32_t aProfileId,
-        uint16_t aStatusCode);
+    static WEAVE_ERROR SendStatusReport(nl::Weave::ExchangeContext * aEC, uint32_t aProfileId, uint16_t aStatusCode);
 
-    static void UnsolicitedMessageHandler (nl::Weave::ExchangeContext *aEC, const nl::Inet::IPPacketInfo *aPktInfo,
-        const nl::Weave::WeaveMessageInfo *aMsgInfo, uint32_t aProfileId,
-        uint8_t aMsgType, PacketBuffer *aPayload);
+    static void UnsolicitedMessageHandler(nl::Weave::ExchangeContext * aEC, const nl::Inet::IPPacketInfo * aPktInfo,
+                                          const nl::Weave::WeaveMessageInfo * aMsgInfo, uint32_t aProfileId, uint8_t aMsgType,
+                                          PacketBuffer * aPayload);
 
-    static void OnUnknownMsgType (nl::Weave::ExchangeContext *aEC, const nl::Inet::IPPacketInfo *aPktInfo,
-        const nl::Weave::WeaveMessageInfo *aMsgInfo, uint32_t aProfileId,
-        uint8_t aMsgType, PacketBuffer *aPayload);
+    static void OnUnknownMsgType(nl::Weave::ExchangeContext * aEC, const nl::Inet::IPPacketInfo * aPktInfo,
+                                 const nl::Weave::WeaveMessageInfo * aMsgInfo, uint32_t aProfileId, uint8_t aMsgType,
+                                 PacketBuffer * aPayload);
 
 #if WDM_ENABLE_SUBSCRIPTION_CANCEL
-    static void OnCancelRequest (nl::Weave::ExchangeContext *aEC, const nl::Inet::IPPacketInfo *aPktInfo,
-        const nl::Weave::WeaveMessageInfo *aMsgInfo, uint32_t aProfileId,
-        uint8_t aMsgType, PacketBuffer *aPayload);
+    static void OnCancelRequest(nl::Weave::ExchangeContext * aEC, const nl::Inet::IPPacketInfo * aPktInfo,
+                                const nl::Weave::WeaveMessageInfo * aMsgInfo, uint32_t aProfileId, uint8_t aMsgType,
+                                PacketBuffer * aPayload);
 #endif // WDM_ENABLE_SUBSCRIPTION_CANCEL
 
 #if WDM_ENABLE_SUBSCRIPTION_CLIENT
@@ -274,9 +274,9 @@ private:
 
     SubscriptionClient mClients[kMaxNumSubscriptionClients];
 
-    static void OnNotificationRequest (nl::Weave::ExchangeContext *aEC, const nl::Inet::IPPacketInfo *aPktInfo,
-        const nl::Weave::WeaveMessageInfo *aMsgInfo, uint32_t aProfileId,
-        uint8_t aMsgType, PacketBuffer *aPayload);
+    static void OnNotificationRequest(nl::Weave::ExchangeContext * aEC, const nl::Inet::IPPacketInfo * aPktInfo,
+                                      const nl::Weave::WeaveMessageInfo * aMsgInfo, uint32_t aProfileId, uint8_t aMsgType,
+                                      PacketBuffer * aPayload);
 
 #endif // WDM_ENABLE_SUBSCRIPTION_CLIENT
 
@@ -289,21 +289,21 @@ private:
 
     enum
     {
-        kMaxNumSubscriptionHandlers                 = (WDM_MAX_NUM_SUBSCRIPTION_HANDLERS),
-        kMaxNumPathGroups                           = (WDM_PUBLISHER_MAX_NUM_PATH_GROUPS),
-        kMaxNumPropertyPathHandles                  = (WDM_PUBLISHER_MAX_NUM_PROPERTY_PATH_HANDLES),
-        kMaxNumCommandObjs                          = (WDM_MAX_NUM_COMMAND_OBJECTS),        //< Max number of command objects this engine can accommodate
+        kMaxNumSubscriptionHandlers = (WDM_MAX_NUM_SUBSCRIPTION_HANDLERS),
+        kMaxNumPathGroups           = (WDM_PUBLISHER_MAX_NUM_PATH_GROUPS),
+        kMaxNumPropertyPathHandles  = (WDM_PUBLISHER_MAX_NUM_PROPERTY_PATH_HANDLES),
+        kMaxNumCommandObjs          = (WDM_MAX_NUM_COMMAND_OBJECTS), //< Max number of command objects this engine can accommodate
     };
 
     Command mCommandObjs[kMaxNumCommandObjs];
 
     // Lock
-    IWeavePublisherLock *mLock;
+    IWeavePublisherLock * mLock;
 
     // ******************* begin protected by lock **************************
     bool mIsPublisherEnabled;
     SubscriptionHandler mHandlers[kMaxNumSubscriptionHandlers];
-    TraitCatalogBase<TraitDataSource>* mPublisherCatalog;
+    TraitCatalogBase<TraitDataSource> * mPublisherCatalog;
     NotificationEngine mNotificationEngine;
 
     // used for fairness
@@ -313,31 +313,31 @@ private:
     SubscriptionHandler::TraitInstanceInfo mTraitInfoPool[kMaxNumPathGroups];
 
     uint16_t mNumOfPropertyPathHandlesAllocated;
-    //PropertyPathHandle mPropertyPathHandlePool[kMaxNumPropertyPathHandles];
+    // PropertyPathHandle mPropertyPathHandlePool[kMaxNumPropertyPathHandles];
     // ******************* end protected by lock   **************************
 
     void ReclaimTraitInfo(SubscriptionHandler * const aHandlerToBeReclaimed);
 
-    static void OnSubscribeRequest (nl::Weave::ExchangeContext *aEC, const nl::Inet::IPPacketInfo *aPktInfo,
-        const nl::Weave::WeaveMessageInfo *aMsgInfo, uint32_t aProfileId,
-        uint8_t aMsgType, PacketBuffer *aPayload);
+    static void OnSubscribeRequest(nl::Weave::ExchangeContext * aEC, const nl::Inet::IPPacketInfo * aPktInfo,
+                                   const nl::Weave::WeaveMessageInfo * aMsgInfo, uint32_t aProfileId, uint8_t aMsgType,
+                                   PacketBuffer * aPayload);
 
-    static void OnSubscribeConfirmRequest (nl::Weave::ExchangeContext *aEC, const nl::Inet::IPPacketInfo *aPktInfo,
-            const nl::Weave::WeaveMessageInfo *aMsgInfo, uint32_t aProfileId,
-            uint8_t aMsgType, PacketBuffer *aPayload);
+    static void OnSubscribeConfirmRequest(nl::Weave::ExchangeContext * aEC, const nl::Inet::IPPacketInfo * aPktInfo,
+                                          const nl::Weave::WeaveMessageInfo * aMsgInfo, uint32_t aProfileId, uint8_t aMsgType,
+                                          PacketBuffer * aPayload);
 
 #if WDM_PUBLISHER_ENABLE_CUSTOM_COMMANDS
-    static void OnCustomCommandRequest (nl::Weave::ExchangeContext *aEC, const nl::Inet::IPPacketInfo *aPktInfo,
-        const nl::Weave::WeaveMessageInfo *aMsgInfo, uint32_t aProfileId,
-        uint8_t aMsgType, PacketBuffer *aPayload);
+    static void OnCustomCommandRequest(nl::Weave::ExchangeContext * aEC, const nl::Inet::IPPacketInfo * aPktInfo,
+                                       const nl::Weave::WeaveMessageInfo * aMsgInfo, uint32_t aProfileId, uint8_t aMsgType,
+                                       PacketBuffer * aPayload);
 #endif // WDM_PUBLISHER_ENABLE_CUSTOM_COMMANDS
 
 #endif // WDM_ENABLE_SUBSCRIPTION_PUBLISHER
 };
 
-}; // WeaveMakeManagedNamespaceIdentifier(DataManagement, kWeaveManagedNamespaceDesignation_Current)
-}; // Profiles
-}; // Weave
-}; // nl
+}; // namespace WeaveMakeManagedNamespaceIdentifier(DataManagement, kWeaveManagedNamespaceDesignation_Current)
+}; // namespace Profiles
+}; // namespace Weave
+}; // namespace nl
 
 #endif // _WEAVE_DATA_MANAGEMENT_SUBSCRIPTION_ENGINE_CURRENT_H

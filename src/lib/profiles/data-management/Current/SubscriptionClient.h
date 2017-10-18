@@ -42,11 +42,11 @@ class SubscriptionClient
 public:
     enum
     {
-        kNoTimeOut                              = 0,
+        kNoTimeOut = 0,
 
         // Note the WDM spec says 0x7FFFFFFF, but Weave implementation can only hold timeout of much shorter
         // 32-bit in milliseconds, which is about 1200 hours
-        kMaxTimeoutSec                          = 3600000,
+        kMaxTimeoutSec = 3600000,
     };
 
     enum EventID
@@ -71,26 +71,26 @@ public:
         // WEAVE_ERROR_INVALID_STATE if messages are received in an unexpected state
         // WEAVE_ERROR_STATUS_REPORT_RECEIVED if a status report is received
         // WEAVE_ERROR_INVALID_ARGUMENT if subscribe request fields are invalid
-        kEvent_OnSubscriptionTerminated         = 1,
+        kEvent_OnSubscriptionTerminated = 1,
 
         // Last chance to adjust EC, mEC is valid and can be tuned for timeout settings
         // Don't touch anything else, and don't close the EC
-        kEvent_OnExchangeStart                  = 2,
+        kEvent_OnExchangeStart = 2,
 
         // Sent as the client is creating the subscribe request
-        kEvent_OnSubscribeRequestPrepareNeeded  = 3,
+        kEvent_OnSubscribeRequestPrepareNeeded = 3,
 
         // cancel, abort, and free are allowed
-        kEvent_OnSubscriptionEstablished        = 4,
+        kEvent_OnSubscriptionEstablished = 4,
 
         // cancel, abort, and free are allowed
-        kEvent_OnNotificationRequest            = 5,
+        kEvent_OnNotificationRequest = 5,
 
         // cancel, abort, and free are allowed
-        kEvent_OnNotificationProcessed          = 6,
+        kEvent_OnNotificationProcessed = 6,
 
         // An event stream has been received
-        kEvent_OnEventStreamReceived            = 7,
+        kEvent_OnEventStreamReceived = 7,
     };
 
     struct LastObservedEvent
@@ -112,7 +112,7 @@ public:
             bool mIsStatusCodeValid;
             uint32_t mStatusProfileId;
             uint16_t mStatusCode;
-            ReferencedTLVData *mAdditionalInfoPtr;
+            ReferencedTLVData * mAdditionalInfoPtr;
             bool mWillRetry;
 
             SubscriptionClient * mClient;
@@ -153,7 +153,7 @@ public:
 
         struct
         {
-            nl::Weave::TLV::TLVReader *mReader;
+            nl::Weave::TLV::TLVReader * mReader;
             SubscriptionClient * mClient;
         } mEventStreamReceived;
     };
@@ -164,53 +164,54 @@ public:
 
         struct
         {
-            TraitPath *mPathList;                       //< Pointer to a list of trait paths
-            VersionedTraitPath *mVersionedPathList;     //< Pointer to a list of versioned trait paths. If both this and mPathList are non-NULL, the versioned path list is selected
-            size_t mPathListSize;   //< Number of trait paths in mPathList
-            LastObservedEvent *mLastObservedEventList;  //< A list of the last known events received by the subscriber
-            size_t mLastObservedEventListSize;  //< Number of observed events in mLastObservedEventList
-            uint32_t mTimeoutSecMin;    //< Field specifying lower bound of liveness timeout
-            uint32_t mTimeoutSecMax;    //< Field specifying upper bound of liveness timeout
-            uint64_t mSubscriptionId;   //< The subscription ID to use for a mutual subscription
-            bool mNeedAllEvents;    //< Indicates whether the subscriber is interested in events
+            TraitPath * mPathList;                   //< Pointer to a list of trait paths
+            VersionedTraitPath * mVersionedPathList; //< Pointer to a list of versioned trait paths. If both this and mPathList are
+                                                     //non-NULL, the versioned path list is selected
+            size_t mPathListSize;                    //< Number of trait paths in mPathList
+            LastObservedEvent * mLastObservedEventList; //< A list of the last known events received by the subscriber
+            size_t mLastObservedEventListSize;          //< Number of observed events in mLastObservedEventList
+            uint32_t mTimeoutSecMin;                    //< Field specifying lower bound of liveness timeout
+            uint32_t mTimeoutSecMax;                    //< Field specifying upper bound of liveness timeout
+            uint64_t mSubscriptionId;                   //< The subscription ID to use for a mutual subscription
+            bool mNeedAllEvents;                        //< Indicates whether the subscriber is interested in events
         } mSubscribeRequestPrepareNeeded;
     };
 
     struct ResubscribeParam
     {
-        WEAVE_ERROR mReason;    //< Error received on most recent failure
-        uint32_t mNumRetries;   //< Number of retries, reset on a successful subscription
+        WEAVE_ERROR mReason;  //< Error received on most recent failure
+        uint32_t mNumRetries; //< Number of retries, reset on a successful subscription
     };
 
-/**
- * @brief Callback to pass subscription events to application.
- *
- * @param aAppState[in]     App state pointer set during initialization of
- *                          the SubscriptionClient.
- *
- * @param aEvent[in]        Indicates which event is happening
- *
- * @param aInParam[in]      Struct with additional details about the event
- *
- * @param aOutParam[out]    Information passed back by the application
- */
-    typedef void (*EventCallback) (void * const aAppState, EventID aEvent, const InEventParam & aInParam, OutEventParam & aOutParam);
+    /**
+     * @brief Callback to pass subscription events to application.
+     *
+     * @param aAppState[in]     App state pointer set during initialization of
+     *                          the SubscriptionClient.
+     *
+     * @param aEvent[in]        Indicates which event is happening
+     *
+     * @param aInParam[in]      Struct with additional details about the event
+     *
+     * @param aOutParam[out]    Information passed back by the application
+     */
+    typedef void (*EventCallback)(void * const aAppState, EventID aEvent, const InEventParam & aInParam, OutEventParam & aOutParam);
 
     static void DefaultEventHandler(EventID aEvent, const InEventParam & aInParam, OutEventParam & aOutParam);
 
-/**
- * @brief Callback to fetch the interval of time to wait before the next
- * resubscribe. Applications are allowed to abort/free in this function
- * if they've decided to give up on resubscribing.
- *
- * @param aAppState[in]         App state pointer set during initialization of
- *                              the SubscriptionClient.
- *
- * @param aInParam[in]          Struct with additional details about the retry
- *
- * @param aOutIntervalMsec[out] Time in milliseconds to wait before next retry
- */
-    typedef void (*ResubscribePolicyCallback) (void * const aAppState, ResubscribeParam & aInParam, uint32_t & aOutIntervalMsec);
+    /**
+     * @brief Callback to fetch the interval of time to wait before the next
+     * resubscribe. Applications are allowed to abort/free in this function
+     * if they've decided to give up on resubscribing.
+     *
+     * @param aAppState[in]         App state pointer set during initialization of
+     *                              the SubscriptionClient.
+     *
+     * @param aInParam[in]          Struct with additional details about the retry
+     *
+     * @param aOutIntervalMsec[out] Time in milliseconds to wait before next retry
+     */
+    typedef void (*ResubscribePolicyCallback)(void * const aAppState, ResubscribeParam & aInParam, uint32_t & aOutIntervalMsec);
 
     static void DefaultResubscribePolicyCallback(void * const aAppState, ResubscribeParam & aInParam, uint32_t & aOutIntervalMsec);
 
@@ -224,20 +225,20 @@ public:
     WEAVE_ERROR EndSubscription(void);
     void AbortSubscription(void);
 
-    void Free (void);
+    void Free(void);
 
-    WEAVE_ERROR GetSubscriptionId (uint64_t * const apSubscriptionId);
+    WEAVE_ERROR GetSubscriptionId(uint64_t * const apSubscriptionId);
 
-    uint32_t GetLivenessTimeoutMsec (void) const { return mLivenessTimeoutMsec; };
+    uint32_t GetLivenessTimeoutMsec(void) const { return mLivenessTimeoutMsec; };
     void SetLivenessTimeoutMsec(uint32_t val) { mLivenessTimeoutMsec = val; }
 
     void EnableResubscribe(ResubscribePolicyCallback aCallback);
     void DisableResubscribe(void);
     void ResetResubscribe(void);
 
-    bool IsEstablishedIdle () { return (mCurrentState == kState_SubscriptionEstablished_Idle); }
-    bool IsAborted () { return (mCurrentState == kState_Aborted); }
-    bool IsFree () { return (mCurrentState == kState_Free); }
+    bool IsEstablishedIdle() { return (mCurrentState == kState_SubscriptionEstablished_Idle); }
+    bool IsAborted() { return (mCurrentState == kState_Aborted); }
+    bool IsFree() { return (mCurrentState == kState_Free); }
 
     bool IsRetryEnabled() { return (mResubscribePolicyCallback != NULL); }
 
@@ -248,24 +249,24 @@ private:
 
     enum ClientState
     {
-        kState_Free                                      = 0,
-        kState_Initialized                               = 1,
+        kState_Free        = 0,
+        kState_Initialized = 1,
 
-        kState_Subscribing                               = 2,
-        kState_Subscribing_IdAssigned                    = 3,
-        kState_SubscriptionEstablished_Idle              = 4,
-        kState_SubscriptionEstablished_Confirming        = 5,
-        kState_Canceling                                 = 6,
+        kState_Subscribing                        = 2,
+        kState_Subscribing_IdAssigned             = 3,
+        kState_SubscriptionEstablished_Idle       = 4,
+        kState_SubscriptionEstablished_Confirming = 5,
+        kState_Canceling                          = 6,
 
-        kState_Resubscribe_Holdoff                       = 7,
+        kState_Resubscribe_Holdoff = 7,
 
-        kState_NotifyDataSinkOnAbort_Begin               = kState_Subscribing,
-        kState_NotifyDataSinkOnAbort_End                 = kState_Canceling,
-        kState_TimerTick_Begin                           = kState_Subscribing,
-        kState_TimerTick_End                             = kState_Resubscribe_Holdoff,
+        kState_NotifyDataSinkOnAbort_Begin = kState_Subscribing,
+        kState_NotifyDataSinkOnAbort_End   = kState_Canceling,
+        kState_TimerTick_Begin             = kState_Subscribing,
+        kState_TimerTick_End               = kState_Resubscribe_Holdoff,
 
-        kState_Aborting                                  = 8,
-        kState_Aborted                                   = 9,
+        kState_Aborting = 8,
+        kState_Aborted  = 9,
     };
 
     ClientState mCurrentState;
@@ -288,7 +289,7 @@ private:
 
     ResubscribePolicyCallback mResubscribePolicyCallback;
 
-    const TraitCatalogBase<TraitDataSink>* mDataSinkCatalog;
+    const TraitCatalogBase<TraitDataSink> * mDataSinkCatalog;
 
     ExchangeContext::Timeout mInactivityTimeoutDuringSubscribingMsec;
     uint32_t mLivenessTimeoutMsec;
@@ -298,7 +299,7 @@ private:
     uint32_t mRetryCounter;
 
     // Do nothing
-    SubscriptionClient (void);
+    SubscriptionClient(void);
 
     void InitAsFree(void);
     void Reset(void);
@@ -306,58 +307,56 @@ private:
     // AddRef to Binding
     // store pointers to binding and delegate
     // null out EC
-    WEAVE_ERROR Init (Binding * const apBinding,
-        void * const apAppState,
-        EventCallback const aEventCallback,
-        const TraitCatalogBase<TraitDataSink>* const apCatalog,
-        const uint32_t aInactivityTimeoutDuringSubscribingMsec);
+    WEAVE_ERROR Init(Binding * const apBinding, void * const apAppState, EventCallback const aEventCallback,
+                     const TraitCatalogBase<TraitDataSink> * const apCatalog,
+                     const uint32_t aInactivityTimeoutDuringSubscribingMsec);
 
     void _InitiateSubscription(void);
     WEAVE_ERROR SendSubscribeRequest(void);
 
-    WEAVE_ERROR ProcessDataList(nl::Weave::TLV::TLVReader &aReader);
+    WEAVE_ERROR ProcessDataList(nl::Weave::TLV::TLVReader & aReader);
 
-    void _AddRef (void);
-    void _Release (void);
+    void _AddRef(void);
+    void _Release(void);
 
     void HandleSubscriptionTerminated(bool aWillRetry, WEAVE_ERROR aReason,
-                                      nl::Weave::Profiles::StatusReporting::StatusReport *aStatusReportPtr);
+                                      nl::Weave::Profiles::StatusReporting::StatusReport * aStatusReportPtr);
 
-    WEAVE_ERROR ReplaceExchangeContext (void);
+    WEAVE_ERROR ReplaceExchangeContext(void);
 
-    void FlushExistingExchangeContext (const bool aAbortNow = false);
+    void FlushExistingExchangeContext(const bool aAbortNow = false);
 
-    void NotificationRequestHandler (nl::Weave::ExchangeContext *aEC, const nl::Inet::IPPacketInfo *aPktInfo,
-        const nl::Weave::WeaveMessageInfo *aMsgInfo, PacketBuffer *aPayload);
+    void NotificationRequestHandler(nl::Weave::ExchangeContext * aEC, const nl::Inet::IPPacketInfo * aPktInfo,
+                                    const nl::Weave::WeaveMessageInfo * aMsgInfo, PacketBuffer * aPayload);
 
 #if WDM_ENABLE_SUBSCRIPTION_CANCEL
-    void CancelRequestHandler (nl::Weave::ExchangeContext *aEC, const nl::Inet::IPPacketInfo *aPktInfo,
-        const nl::Weave::WeaveMessageInfo *aMsgInfo, PacketBuffer *aPayload);
+    void CancelRequestHandler(nl::Weave::ExchangeContext * aEC, const nl::Inet::IPPacketInfo * aPktInfo,
+                              const nl::Weave::WeaveMessageInfo * aMsgInfo, PacketBuffer * aPayload);
 #endif // WDM_ENABLE_SUBSCRIPTION_CANCEL
 
-    void TimerEventHandler (void);
-    WEAVE_ERROR RefreshTimer (void);
+    void TimerEventHandler(void);
+    WEAVE_ERROR RefreshTimer(void);
 
-    void SetRetryTimer (WEAVE_ERROR aReason);
+    void SetRetryTimer(WEAVE_ERROR aReason);
 
     void MoveToState(const ClientState aTargetState);
     const char * GetStateStr(void) const;
 
     static void BindingEventCallback(void * const apAppState, const Binding::EventType aEvent,
-                                     const Binding::InEventParam & aInParam,
-                                     Binding::OutEventParam & aOutParam);
-    static void OnTimerCallback(System::Layer* aSystemLayer, void *aAppState, System::Error aErrorCode);
-    static void DataSinkOperation_NoMoreData (void * const apOpState, TraitDataSink * const apDataSink);
-    static void OnSendError (ExchangeContext *aEC, WEAVE_ERROR aErrorCode, void *aMsgSpecificContext);
-    static void OnResponseTimeout (nl::Weave::ExchangeContext *aEC);
-    static void OnMessageReceivedFromLocallyInitiatedExchange (nl::Weave::ExchangeContext *aEC, const nl::Inet::IPPacketInfo *aPktInfo,
-        const nl::Weave::WeaveMessageInfo *aMsgInfo, uint32_t aProfileId,
-        uint8_t aMsgType, PacketBuffer *aPayload);
+                                     const Binding::InEventParam & aInParam, Binding::OutEventParam & aOutParam);
+    static void OnTimerCallback(System::Layer * aSystemLayer, void * aAppState, System::Error aErrorCode);
+    static void DataSinkOperation_NoMoreData(void * const apOpState, TraitDataSink * const apDataSink);
+    static void OnSendError(ExchangeContext * aEC, WEAVE_ERROR aErrorCode, void * aMsgSpecificContext);
+    static void OnResponseTimeout(nl::Weave::ExchangeContext * aEC);
+    static void OnMessageReceivedFromLocallyInitiatedExchange(nl::Weave::ExchangeContext * aEC,
+                                                              const nl::Inet::IPPacketInfo * aPktInfo,
+                                                              const nl::Weave::WeaveMessageInfo * aMsgInfo, uint32_t aProfileId,
+                                                              uint8_t aMsgType, PacketBuffer * aPayload);
 };
 
-}; // WeaveMakeManagedNamespaceIdentifier(DataManagement, kWeaveManagedNamespaceDesignation_Current)
-}; // Profiles
-}; // Weave
-}; // nl
+}; // namespace WeaveMakeManagedNamespaceIdentifier(DataManagement, kWeaveManagedNamespaceDesignation_Current)
+}; // namespace Profiles
+}; // namespace Weave
+}; // namespace nl
 
 #endif // _WEAVE_DATA_MANAGEMENT_SUBSCRIPTION_CLIENT_CURRENT_H
