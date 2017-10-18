@@ -76,7 +76,7 @@ static HelpOptions gHelpOptions(
     "\n"
     "  <tlv-file>\n"
     "\n"
-    "       A file containing an encoded Weave TLV element. The certificate\n"
+    "       A file containing an encoded Weave TLV element. The element\n"
     "       must be in raw TLV format or base-64 with -b option.\n"
     "\n"
 );
@@ -198,6 +198,7 @@ bool HandleOption(const char *progName, OptionSet *optSet, int id, const char *n
     case 'b':
         gUseBase64Decoding = true;
         break;
+
     default:
         PrintArgError("%s: INTERNAL ERROR: Unhandled option: %s\n", progName, name);
         return false;
