@@ -32,12 +32,10 @@ import sys
 
 from happy.Utils import *
 import happy.HappyNodeList
-import wrappers.WeaveStateLoad as WeaveStateLoad
-import wrappers.WeaveStateUnload as WeaveStateUnload
-import WeaveServiceDir as WeaveServiceDir
-import WeaveUtilities as WeaveUtilities
-
-import WeaveUtilities as WeaveUtilities
+import WeaveStateLoad
+import WeaveStateUnload
+import WeaveServiceDir
+import WeaveUtilities
 
 gFaultopts = WeaveUtilities.FaultInjectionOptions(nodes=["client", "service"])
 gOptions = { "fault-injection": False }

@@ -30,7 +30,7 @@ import sys
 import set_test_path
 
 from happy.Utils import *
-import wrappers.WeaveSecurityPing as WeaveSecurityPing
+import WeaveSecurityPing
 
 if __name__ == "__main__":
 	options = WeaveSecurityPing.option()

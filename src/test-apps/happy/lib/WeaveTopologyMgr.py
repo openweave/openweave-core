@@ -22,10 +22,10 @@
 #       Implements WeaveTopologyMgr class that provides API to create weave topology
 #
 
-import WeaveFabricAdd as WeaveFabricAdd
-import WeaveFabricDelete as WeaveFabricDelete
-import WeaveNetworkGateway as WeaveNetworkGateway
-import WeaveNodeConfigure as WeaveNodeConfigure
+import WeaveFabricAdd
+import WeaveFabricDelete
+import WeaveNetworkGateway
+import WeaveNodeConfigure
 
 
 class WeaveTopologyMgr(object):

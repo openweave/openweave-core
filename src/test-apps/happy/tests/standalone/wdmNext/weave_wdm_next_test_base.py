@@ -31,9 +31,9 @@ import set_test_path
 
 from happy.Utils import *
 import happy.HappyNodeList
-import wrappers.WeaveStateLoad as WeaveStateLoad
-import wrappers.WeaveStateUnload as WeaveStateUnload
-import WeaveWdmNext as WeaveWdmNext
+import WeaveStateLoad
+import WeaveStateUnload
+import WeaveWdmNext
 import plugins.testrail.TestrailResultOutput
 
 test_option_quiet = True

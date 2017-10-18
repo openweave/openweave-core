@@ -33,9 +33,9 @@ import set_test_path
 
 from happy.Utils import *
 
-import wrappers.WeavePairing as WeavePairing
-import wrappers.WeaveTunnelStart as WeaveTunnelStart
-import wrappers.WeaveTunnelStop as WeaveTunnelStop
+import WeavePairing
+import WeaveTunnelStart
+import WeaveTunnelStop
 import plugins.testrail.TestrailResultOutput
 
 from topologies.dynamic.thread_wifi_ap_internet_configurable_topology import thread_wifi_ap_internet_configurable_topology

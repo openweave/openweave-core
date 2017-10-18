@@ -30,7 +30,7 @@ import sys
 import set_test_path
 
 from happy.Utils import *
-import wrappers.WeavePairing as WeavePairing
+import WeavePairing
 
 if __name__ == "__main__":
     options = WeavePairing.option()

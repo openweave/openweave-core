@@ -30,7 +30,7 @@ import sys
 import set_test_path
 
 from happy.Utils import *
-import wrappers.WeaveHeartbeat as WeaveHeartbeat
+import WeaveHeartbeat
 
 if __name__ == "__main__":
 	options = WeaveHeartbeat.option()

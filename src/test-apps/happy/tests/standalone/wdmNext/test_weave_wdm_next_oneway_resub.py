@@ -30,7 +30,7 @@ import getopt
 import sys
 import unittest
 import set_test_path
-import WeaveUtilities as WeaveUtilities
+import WeaveUtilities
 
 
 from weave_wdm_next_test_base import weave_wdm_next_test_base

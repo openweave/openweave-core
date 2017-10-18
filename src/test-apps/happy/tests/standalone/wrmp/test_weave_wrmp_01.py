@@ -32,10 +32,10 @@ import set_test_path
 
 from happy.Utils import *
 import happy.HappyNodeList
-import wrappers.WeaveStateLoad as WeaveStateLoad
-import wrappers.WeaveStateUnload as WeaveStateUnload
-import WeaveWRMP as WeaveWRMP
-import WeaveUtilities as WeaveUtilities
+import WeaveStateLoad
+import WeaveStateUnload
+import WeaveWRMP
+import WeaveUtilities
 
 
 class test_weave_wrmp(unittest.TestCase):

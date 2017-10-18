@@ -30,7 +30,7 @@ import sys
 import set_test_path
 
 from happy.Utils import *
-import wrappers.WeaveWRMP as WeaveWRMP
+import WeaveWRMP
 
 if __name__ == "__main__":
 	options = WeaveWRMP.option()

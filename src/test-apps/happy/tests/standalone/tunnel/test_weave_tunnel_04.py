@@ -30,12 +30,12 @@ import time
 
 from happy.Utils import *
 import happy.HappyNodeList
-import WeavePing as WeavePing
-import wrappers.WeaveStateLoad as WeaveStateLoad
-import wrappers.WeaveStateUnload as WeaveStateUnload
-import WeaveTunnelStart as WeaveTunnelStart
-import WeaveTunnelStop as WeaveTunnelStop
-import WeaveUtilities as WeaveUtilities
+import WeavePing
+import WeaveStateLoad
+import WeaveStateUnload
+import WeaveTunnelStart
+import WeaveTunnelStop
+import WeaveUtilities
 
 class test_weave_tunnel_04(unittest.TestCase):
     def setUp(self):

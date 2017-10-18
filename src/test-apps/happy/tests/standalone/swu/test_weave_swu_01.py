@@ -33,12 +33,12 @@ import shutil
 import string
 
 from happy.Utils import *
-import wrappers.WeaveStateLoad as WeaveStateLoad
-import wrappers.WeaveStateUnload as WeaveStateUnload
-import WeaveSWU as WeaveSWU
-import WeaveTunnelStart as WeaveTunnelStart
-import WeaveTunnelStop as WeaveTunnelStop
-import WeaveUtilities as WeaveUtilities
+import WeaveStateLoad
+import WeaveStateUnload
+import WeaveSWU
+import WeaveTunnelStart
+import WeaveTunnelStop
+import WeaveUtilities
 
 class test_weave_swu_01(unittest.TestCase):
     def setUp(self):

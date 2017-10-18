@@ -32,12 +32,12 @@ import string
 
 from happy.Utils import *
 import happy.HappyNodeList
-import wrappers.WeaveStateLoad as WeaveStateLoad
-import wrappers.WeaveStateUnload as WeaveStateUnload
-import WeaveWDMv0 as WeaveWDMv0
-import WeaveTunnelStart as WeaveTunnelStart
-import WeaveTunnelStop as WeaveTunnelStop
-import WeaveUtilities as WeaveUtilities
+import WeaveStateLoad
+import WeaveStateUnload
+import WeaveWDMv0
+import WeaveTunnelStart
+import WeaveTunnelStop
+import WeaveUtilities
 
 class test_weave_wdmv0_01(unittest.TestCase):
     def setUp(self):

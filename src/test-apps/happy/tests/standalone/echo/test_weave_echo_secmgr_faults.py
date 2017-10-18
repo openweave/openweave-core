@@ -32,10 +32,10 @@ import set_test_path
 
 from happy.Utils import *
 import happy.HappyNodeList
-import wrappers.WeaveStateLoad as WeaveStateLoad
-import wrappers.WeaveStateUnload as WeaveStateUnload
-import WeaveSecurityPing as WeaveSecurityPing
-import WeaveUtilities as WeaveUtilities
+import WeaveStateLoad
+import WeaveStateUnload
+import WeaveSecurityPing
+import WeaveUtilities
 
 gFaultopts = WeaveUtilities.FaultInjectionOptions()
 gOptions = { 'wrmp': False, 'pase': False, 'group_key': False }

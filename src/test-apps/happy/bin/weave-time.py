@@ -30,7 +30,7 @@ import sys
 import set_test_path
 
 from happy.Utils import *
-import wrappers.WeaveTime as WeaveTime
+import WeaveTime
 
 if __name__ == "__main__":
 	options = WeaveTime.option()

@@ -32,9 +32,9 @@ from happy.Utils import *
 
 import happy.HappyStateLoad
 
-import WeaveFabricAdd as WeaveFabricAdd
-import WeaveNodeConfigure as WeaveNodeConfigure
-import WeaveNetworkGateway as WeaveNetworkGateway
+import WeaveFabricAdd
+import WeaveNodeConfigure
+import WeaveNetworkGateway
 from Weave import Weave
 from WeaveState import WeaveState
 

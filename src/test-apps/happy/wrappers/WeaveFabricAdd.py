@@ -33,7 +33,7 @@ from happy.HappyNode import HappyNode
 import happy.HappyNetworkAddress
 
 from Weave import Weave
-import WeaveFabricDelete as WeaveFabricDelete
+import WeaveFabricDelete
 
 options = {}
 options["quiet"] = False

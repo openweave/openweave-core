@@ -30,7 +30,7 @@ import sys
 import set_test_path
 
 from happy.Utils import *
-import wrappers.WeaveDeviceDescription as WeaveDeviceDescription
+import WeaveDeviceDescription
 
 if __name__ == "__main__":
     options = WeaveDeviceDescription.option()

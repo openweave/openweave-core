@@ -30,10 +30,10 @@ import set_test_path
 
 from happy.Utils import *
 import happy.HappyNodeList
-import wrappers.WeaveStateLoad as WeaveStateLoad
-import wrappers.WeaveStateUnload as WeaveStateUnload
-import WeaveInet as WeaveInet
-import WeaveUtilities as WeaveUtilities
+import WeaveStateLoad
+import WeaveStateUnload
+import WeaveInet
+import WeaveUtilities
 
 count = 2
 length = 500

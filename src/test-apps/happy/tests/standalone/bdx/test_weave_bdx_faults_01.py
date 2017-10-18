@@ -36,10 +36,10 @@ import sys
 
 from happy.Utils import *
 import happy.HappyNodeList
-import wrappers.WeaveStateLoad as WeaveStateLoad
-import wrappers.WeaveStateUnload as WeaveStateUnload
-import WeaveBDX as WeaveBDX
-import WeaveUtilities as WeaveUtilities
+import WeaveStateLoad
+import WeaveStateUnload
+import WeaveBDX
+import WeaveUtilities
 
 gFaultopts = WeaveUtilities.FaultInjectionOptions()
 gOptions = {"direction": None, "versions": None}

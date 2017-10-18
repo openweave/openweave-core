@@ -31,6 +31,7 @@ from copy import copy
 import shlex
 import base64
 import json
+import set_test_path
 import WeaveDeviceMgr
 
 # Dummy Access Token

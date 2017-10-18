@@ -30,10 +30,10 @@ import set_test_path
 
 from happy.Utils import *
 import happy.HappyNodeList
-import wrappers.WeaveStateLoad as WeaveStateLoad
-import wrappers.WeaveStateUnload as WeaveStateUnload
-import WeaveConnectionTunnel as WeaveConnectionTunnel
-import WeaveUtilities as WeaveUtilities
+import WeaveStateLoad
+import WeaveStateUnload
+import WeaveConnectionTunnel
+import WeaveUtilities
 
 
 class test_weave_connection_tunnel_01(unittest.TestCase):

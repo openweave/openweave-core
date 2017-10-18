@@ -28,7 +28,7 @@ import getopt
 import sys
 import set_test_path
 
-import wrappers.WeaveNetworkGateway as WeaveNetworkGateway
+import WeaveNetworkGateway
 from happy.Utils import *
 
 if __name__ == "__main__":

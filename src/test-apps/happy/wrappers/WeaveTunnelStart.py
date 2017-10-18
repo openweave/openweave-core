@@ -36,9 +36,9 @@ from happy.HappyNode import HappyNode
 import happy.HappyNodeRoute
 import happy.HappyNetworkAddress
 
-import WeaveTunnelStop as WeaveTunnelStop
+import WeaveTunnelStop
 from WeaveTest import WeaveTest
-import WeaveUtilities as WeaveUtilities
+import WeaveUtilities
 
 
 options = {"border_gateway": None,

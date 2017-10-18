@@ -30,7 +30,7 @@ import sys
 import set_test_path
 
 from happy.Utils import *
-import wrappers.WeaveRegisterService as WeaveRegisterService
+import WeaveRegisterService
 
 if __name__ == "__main__":
     options = WeaveRegisterService.option()

@@ -33,9 +33,9 @@ from happy.Utils import *
 import happy.HappyStateUnload
 
 from WeaveState import WeaveState
-import WeaveFabricDelete as WeaveFabricDelete
-import WeaveNetworkGateway as WeaveNetworkGateway
-import WeaveNodeConfigure as WeaveNodeConfigure
+import WeaveFabricDelete
+import WeaveNetworkGateway
+import WeaveNodeConfigure
 
 options = {}
 options["quiet"] = False

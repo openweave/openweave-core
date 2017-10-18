@@ -31,7 +31,7 @@ import sys
 import unittest
 import set_test_path
 import re
-import WeaveUtilities as WeaveUtilities
+import WeaveUtilities
 from happy.Utils import *
 
 

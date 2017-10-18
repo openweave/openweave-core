@@ -36,7 +36,7 @@ import happy.HappyNodeAddress as HappyNodeAddress
 
 from Weave import Weave
 from WeaveState import WeaveState
-import WeaveCerts as WeaveCerts
+import WeaveCerts
 
 options = {}
 options['quiet'] = True

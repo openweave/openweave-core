@@ -27,7 +27,7 @@
 import unittest
 import set_test_path
 from weave_wdm_next_test_base import weave_wdm_next_test_base
-import WeaveUtilities as WeaveUtilities
+import WeaveUtilities
 
 
 class test_weave_wdm_next_mutual_subscribe_32(weave_wdm_next_test_base):

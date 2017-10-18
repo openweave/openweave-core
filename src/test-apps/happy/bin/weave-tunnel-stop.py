@@ -29,7 +29,7 @@ import getopt
 import sys
 import set_test_path
 
-import wrappers.WeaveTunnelStop as WeaveTunnelStop
+import WeaveTunnelStop
 from happy.Utils import *
 
 if __name__ == "__main__":

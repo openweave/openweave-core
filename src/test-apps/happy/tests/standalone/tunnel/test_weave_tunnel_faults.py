@@ -37,12 +37,12 @@ import sys
 
 from happy.Utils import *
 import happy.HappyNodeList
-import wrappers.WeaveStateLoad as WeaveStateLoad
-import wrappers.WeaveStateUnload as WeaveStateUnload
-import WeavePing as WeavePing
-import WeaveTunnelStart as WeaveTunnelStart
-import WeaveTunnelStop as WeaveTunnelStop
-import WeaveUtilities as WeaveUtilities
+import WeaveStateLoad
+import WeaveStateUnload
+import WeavePing
+import WeaveTunnelStart
+import WeaveTunnelStop
+import WeaveUtilities
 from WeaveTest import WeaveTest
 import plugins.plaid.Plaid as Plaid
 

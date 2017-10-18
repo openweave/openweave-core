@@ -29,7 +29,7 @@ import sys
 import set_test_path
 
 from happy.Utils import *
-import wrappers.WeaveKeyExport as WeaveKeyExport
+import WeaveKeyExport
 
 if __name__ == "__main__":
         options = WeaveKeyExport.option()

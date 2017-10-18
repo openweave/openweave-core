@@ -36,10 +36,10 @@ import set_test_path
 
 from happy.Utils import *
 import happy.HappyNodeList
-import wrappers.WeaveStateLoad as WeaveStateLoad
-import wrappers.WeaveStateUnload as WeaveStateUnload
-import WeaveTime as WeaveTime
-import WeaveUtilities as WeaveUtilities
+import WeaveStateLoad
+import WeaveStateUnload
+import WeaveTime
+import WeaveUtilities
 import plugins.plaid.Plaid as Plaid
 
 gFaultOpts = WeaveUtilities.FaultInjectionOptions()

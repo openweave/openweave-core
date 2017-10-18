@@ -32,7 +32,7 @@ from happy.HappyNode import HappyNode
 from happy.HappyNetwork import HappyNetwork
 
 from WeaveTest import WeaveTest
-import WeaveUtilities as WeaveUtilities
+import WeaveUtilities
 import plugins.plaid.Plaid as Plaid
 
 

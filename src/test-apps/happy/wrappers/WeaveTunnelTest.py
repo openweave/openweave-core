@@ -36,7 +36,7 @@ from happy.HappyNode import HappyNode
 import happy.HappyNodeRoute
 import happy.HappyNetworkAddress
 
-import WeaveTunnelStop as WeaveTunnelStop
+import WeaveTunnelStop
 from WeaveTest import WeaveTest
 
 

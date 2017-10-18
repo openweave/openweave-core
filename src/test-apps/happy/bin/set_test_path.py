@@ -31,11 +31,17 @@ import sys
 # to the above test scripts.
 #
 
-wrapper_home = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "..", "..", "happy"))
+# look for the 'happy' folder in the file path
+
+path = os.path.abspath(__file__)
+path_parts = path.split('/')
+happy_idx = path_parts.index('happy')
+wrapper_home = '/'.join(str(x) for x in path_parts[0:happy_idx+1])
 
 wrapper_dirs = [ ".",
                  wrapper_home,
                  wrapper_home + "/wrappers",
+                 wrapper_home + "/lib",
                  wrapper_home + "/bin" ]
 
 for wrapper_dir in wrapper_dirs:

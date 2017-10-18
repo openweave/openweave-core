@@ -31,7 +31,7 @@ import getopt
 import os
 from happy.Utils import *
 import happy.HappyTopologyMgr
-import wrappers.WeaveTopologyMgr
+import lib.WeaveTopologyMgr
 import sys
 import uuid
 
@@ -80,7 +80,7 @@ class thread_wifi_ap_internet_configurable_topology(object):
         self.dns = dns
         self.cellular = cellular
         self.topology = happy.HappyTopologyMgr.HappyTopologyMgr()
-        self.weave_topology = wrappers.WeaveTopologyMgr.WeaveTopologyMgr()
+        self.weave_topology = lib.WeaveTopologyMgr.WeaveTopologyMgr()
         self.mobile = mobile
         self.initial_device_index = initial_device_index
 

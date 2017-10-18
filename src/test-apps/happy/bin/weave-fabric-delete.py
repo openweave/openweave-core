@@ -28,7 +28,7 @@ import getopt
 import sys
 import set_test_path
 
-import wrappers.WeaveFabricDelete as WeaveFabricDelete
+import WeaveFabricDelete
 from happy.Utils import *
 
 if __name__ == "__main__":

@@ -29,10 +29,10 @@ import set_test_path
 
 from happy.Utils import *
 import happy.HappyNodeList
-import wrappers.WeaveStateLoad as WeaveStateLoad
-import wrappers.WeaveStateUnload as WeaveStateUnload
-import WeaveKeyExport as WeaveKeyExport
-import WeaveUtilities as WeaveUtilities
+import WeaveStateLoad
+import WeaveStateUnload
+import WeaveKeyExport
+import WeaveUtilities
 
 class test_weave_key_export_01(unittest.TestCase):
     def setUp(self):
