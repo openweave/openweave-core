@@ -33,6 +33,7 @@
 #include <sys/types.h>
 
 #include <Weave/Core/WeaveTLVDebug.hpp>
+#include <Weave/Support/Base64.h>
 
 #include "weave-tool.h"
 
@@ -41,7 +42,29 @@ using namespace nl::Weave::TLV;
 #define CMD_NAME "weave print-tlv"
 
 static bool HandleNonOptionArgs(const char *progName, int argc, char *argv[]);
+static bool HandleOption(const char *progName, OptionSet *optSet, int id, const char *name, const char *arg);
 static void _DumpWriter(const char *aFormat, ...);
+
+static OptionDef gCmdOptionDefs[] =
+{
+    { "base64", kNoArgument, 'b' },
+    { NULL }
+};
+
+static const char *const gCmdOptionHelp =
+    "   -b, --base64\n"
+    "\n"
+    "       The file containing the TLV should be parsed as base64.\n"
+    "\n"
+    ;
+
+static OptionSet gCmdOptions =
+{
+    HandleOption,
+    gCmdOptionDefs,
+    "COMMAND OPTIONS",
+    gCmdOptionHelp
+};
 
 static HelpOptions gHelpOptions(
     CMD_NAME,
@@ -53,25 +76,30 @@ static HelpOptions gHelpOptions(
     "\n"
     "  <tlv-file>\n"
     "\n"
-    "       A file containing an encoded Weave TLV element.\n"
+    "       A file containing an encoded Weave TLV element. The certificate\n"
+    "       must be in raw TLV format or base-64 with -b option.\n"
     "\n"
 );
 
 static OptionSet *gCmdOptionSets[] =
 {
+    &gCmdOptions,
     &gHelpOptions,
     NULL
 };
 
 static const char *gFileName = NULL;
+static bool gUseBase64Decoding = false;
 
 bool Cmd_PrintTLV(int argc, char *argv[])
 {
     bool res = true;
     uint8_t *map = NULL;
+    uint8_t *raw = NULL;
     int fd;
     struct stat st;
     TLVReader reader;
+    uint32_t len;
 
     if (argc == 1)
     {
@@ -104,10 +132,27 @@ bool Cmd_PrintTLV(int argc, char *argv[])
         ExitNow(res = false);
     }
 
-    reader.Init(map, st.st_size);
+    if (gUseBase64Decoding)
+    {
+        raw = (uint8_t *)malloc(st.st_size);
+        len = nl::Base64Decode((const char *)map, st.st_size, raw);
+    }
+    else
+    {
+        len = st.st_size;
+        raw = map;
+    }
+
+    printf("TLV length is %d bytes\n", len);
+    reader.Init(raw, len);
     nl::Weave::TLV::Debug::Dump(reader, _DumpWriter);
 
 exit:
+    if (raw != NULL && raw != map)
+    {
+        free(raw);
+    }
+
     if (map != NULL)
     {
         munmap(map, st.st_size);
@@ -144,4 +189,19 @@ static void _DumpWriter(const char *aFormat, ...)
     vprintf(aFormat, args);
 
     va_end(args);
+}
+
+bool HandleOption(const char *progName, OptionSet *optSet, int id, const char *name, const char *arg)
+{
+    switch (id)
+    {
+    case 'b':
+        gUseBase64Decoding = true;
+        break;
+    default:
+        PrintArgError("%s: INTERNAL ERROR: Unhandled option: %s\n", progName, name);
+        return false;
+    }
+
+    return true;
 }

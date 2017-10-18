@@ -26,6 +26,7 @@
 #define __STDC_LIMIT_MACROS
 #endif
 #include <stdint.h>
+#include <ctype.h>
 
 #include "Base64.h"
 
@@ -196,7 +197,7 @@ uint16_t Base64Decode(const char *in, uint16_t inLen, uint8_t *out, Base64CharTo
 {
     uint8_t *outStart = out;
 
-    while (inLen > 0)
+    while (inLen > 0 && isalnum(*in))
     {
         if (inLen == 1)
             goto fail;
