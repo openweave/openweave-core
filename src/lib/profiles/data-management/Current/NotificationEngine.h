@@ -42,45 +42,48 @@ namespace WeaveMakeManagedNamespaceIdentifier(DataManagement, kWeaveManagedNames
  *
  *  @brief The notification engine is responsible for generating notifies to subscriber. It is able to find the intersection between
  *         the path interest set of each subscriber with what has changed in the publisher data store and generate tailored notifies
- * for each subscriber.
+ *         for each subscriber.
  *
  *         To achieve this, the engine tracks data-changes (i.e data dirtiness) at a couple of different levels:
- *              - Per subscriber, per trait instance dirtiness: Every subscriber tracks trait-changes at a per-instance granularity.
- *                Anytime a data source makes known that a property handle within has changed, the NE will iterate over every
- * subscriber that has subscribed to that trait instance and mark the fact that that instance is now dirty.
  *
- *              - Granular per trait instance, per property handle dirtiness: If selected through compile-time options by the user,
- * the engine will mark dirtiness down to the property handle. This allows it to generate compact notifies that convey as succinctly
- * as possible the data that has changed. This will be described in more detail in the solvers section.
+ *         - Per subscriber, per trait instance dirtiness: Every subscriber tracks trait-changes at a per-instance granularity.
+ *           Anytime a data source makes known that a property handle within has changed, the NE will iterate over every subscriber
+ *           that has subscribed to that trait instance and mark the fact that that instance is now dirty.
+ *
+ *         - Granular per trait instance, per property handle dirtiness: If selected through compile-time options by the user, the
+ *           engine will mark dirtiness down to the property handle. This allows it to generate compact notifies that convey as
+ *           succinctly as possible the data that has changed. This will be described in more detail in the solvers section.
  *
  *         At its core, it iterates over every subscription, then every dirty instance within that subscription and tries to gather
- * and pack as much relevant data as possible into a notify message before sending that to the subscriber. It continues to do so
- * until it has no more work to do. This could be due to a couple of reasons:
- *              - Notifies are in flight to the subscriber(s)
- *              - We have exceeded the maximum number of notifies that can be flight across all subscribers.
- *              - We have no more space in the packet to stuff in more data.
- *              - We have no more dirty data to process for a particular set of subscriptions.
+ *         and pack as much relevant data as possible into a notify message before sending that to the subscriber. It continues to
+ *         do so until it has no more work to do. This could be due to a couple of reasons:
+ *
+ *         - Notifies are in flight to the subscriber(s)
+ *         - We have exceeded the maximum number of notifies that can be flight across all subscribers.
+ *         - We have no more space in the packet to stuff in more data.
+ *         - We have no more dirty data to process for a particular set of subscriptions.
  *
  *         Once it surmises there is no more work to be done, it returns. If all work for a subscription has been completed, it will
- * invoke a method in the SubscriptionHandler to finish processing that subscription (which might involve sending out subscription
- * responses).
+ *         invoke a method in the SubscriptionHandler to finish processing that subscription (which might involve sending out
+ *         subscription responses).
  *
  *         During subscription establishment, the NE works slightly differently than at other times - it will retrieve *all* the
- * data for a particular trait. There-after, it will only retrieve new, changed data.
+ *         data for a particular trait. There-after, it will only retrieve new, changed data.
  *
  *         Some notable features:
- *              - Subscription fairness: The engine round-robins over all subscriptions and will always resume its work loop at the
- * last subscription it was trying to process to ensure all subscriptions are handled with equal priority.
  *
- *              - Trait instance fairness: Within a subscription, the engine also rounds robins over all trait instances and will
- * resume its work loop at the last trait instance that was being processed *for that subscription*. This ensures trait instances
- * that have a high rate of change don't starve out others.
+ *         - Subscription fairness: The engine round-robins over all subscriptions and will always resume its work loop at the last
+ *           subscription it was trying to process to ensure all subscriptions are handled with equal priority.
  *
- *              - Inter-trait chunking across multiple notifies: The engine supports splitting trait data over multiple notifies. It
- * will however only do this split at the trait instance granularity. It cannot chunk up data within a trait.
+ *         - Trait instance fairness: Within a subscription, the engine also rounds robins over all trait instances and will resume
+ *           its work loop at the last trait instance that was being processed *for that subscription*. This ensures trait instances
+ *           that have a high rate of change don't starve out others.
  *
- *              - Graceful degradation due to resource shortages: If it runs out space in the dirty stores, the engine will degrade
- * gracefully by generating sub-optimal notify messages that have more data in them while still being protocol correct.
+ *         - Inter-trait chunking across multiple notifies: The engine supports splitting trait data over multiple notifies. It will
+ *           however only do this split at the trait instance granularity. It cannot chunk up data within a trait.
+ *
+ *         - Graceful degradation due to resource shortages: If it runs out space in the dirty stores, the engine will degrade
+ *           gracefully by generating sub-optimal notify messages that have more data in them while still being protocol correct.
  *
  */
 class NotificationEngine
@@ -123,8 +126,8 @@ public:
      *  @class NotifyRequestBuilder
      *
      *  @brief This provides a helper class to compose notifies and abstract away the construction and structure of the message from
-     * its consumers. This is a more compact version of a similar class provided in MessageDef.cpp that aims to be sensitive to the
-     * flash and ram needs of the device.
+     *         its consumers. This is a more compact version of a similar class provided in MessageDef.cpp that aims to be sensitive
+     *         to the flash and ram needs of the device.
      */
     class NotifyRequestBuilder
     {
@@ -193,11 +196,9 @@ public:
         WEAVE_ERROR EndEventList();
 
         /**
-         * Given a trait path, write out the data element associated
-         * with that path. The caller can also optionally pass in a
-         * handle set allows for leveraging the merge operation with a
-         * narrower set of immediate child nodes of the parent
-         * property path handle.
+         * Given a trait path, write out the data element associated with that path. The caller can also optionally pass in a handle
+         * set allows for leveraging the merge operation with a narrower set of immediate child nodes of the parent property path
+         * handle.
          *
          * @retval #WEAVE_NO_ERROR On success.
          * @retval other           Unable to retrieve and write the data element.
@@ -228,18 +229,12 @@ public:
         TLV::TLVWriter * GetWriter(void) { return mWriter; }
 
         /**
-         * The main state transition function. The function takes the
-         * desired state (i.e., the phase of the notify request builder
-         * that we would like to reach), and transitions the request
-         * into that state. If the desired state is the same as the
-         * current state, the function does nothing. Otherwise, an
-         * PacketBuffer is allocated (if needed); the function first
-         * transitions the request into the toplevel notify request
-         * (either opening the notify request TLV structure, or
-         * closing the current TLV data container as needed), and then
-         * transitions the Notify request either by opening the
-         * appropriate TLV data container or by closing the
-         * overarching Notify request.
+         * The main state transition function. The function takes the desired state (i.e., the phase of the notify request builder
+         * that we would like to reach), and transitions the request into that state. If the desired state is the same as the
+         * current state, the function does nothing. Otherwise, an PacketBuffer is allocated (if needed); the function first
+         * transitions the request into the toplevel notify request (either opening the notify request TLV structure, or closing the
+         * current TLV data container as needed), and then transitions the Notify request either by opening the appropriate TLV data
+         * container or by closing the overarching Notify request.
          *
          * @param aDesiredState  The desired state the request should transition into
          *
@@ -279,9 +274,10 @@ public:
      *  @class BasicGraphSolver
      *
      *  @brief This is a coarse, basic solver that will retrieve the entire contents of a trait instance from root. The solver
-     * trades of computational complexity and reduced storage requirements with inefficiency in the data transmitted over the wire.
-     * This is rarely useful for most applications given the sheer in-efficiency of data transmitted over the wire, especially for
-     * traits with lots of key/value pairs. It is however useful for bring-up or for debugging issues with the other solvers.
+     *         trades of computational complexity and reduced storage requirements with inefficiency in the data transmitted over
+     *         the wire.  This is rarely useful for most applications given the sheer in-efficiency of data transmitted over the
+     *         wire, especially for traits with lots of key/value pairs. It is however useful for bring-up or for debugging issues
+     *         with the other solvers.
      *
      *         Constraints: It only supports subscriptions to root and nothing deeper.
      */
@@ -299,15 +295,15 @@ public:
      *  @class IntermediateGraphSolver
      *
      *  @brief This solver is able to generate compact notifies that try to only contain the modified bits of data. This leverages a
-     * finitely sized, global dirty store that houses granular dirty information per property handle per trait instance. When a
-     * notify is to be generated, the solver attempts to find the LCA (lowest-common-ancestor) of all the dirty nodes in the tree
-     * and generates a data-element against that path. In addition, it exploits the merge semantics of WDM to only include child
-     * trees of that LCA that contain dirty elements. This is pretty efficient given the reasonably flat, shallow structure of our
-     * IDLs.
+     *         finitely sized, global dirty store that houses granular dirty information per property handle per trait
+     *         instance. When a notify is to be generated, the solver attempts to find the LCA (lowest-common-ancestor) of all the
+     *         dirty nodes in the tree and generates a data-element against that path. In addition, it exploits the merge semantics
+     *         of WDM to only include child trees of that LCA that contain dirty elements. This is pretty efficient given the
+     *         reasonably flat, shallow structure of our IDLs.
      *
      *         If it is unable to store anymore dirty items in the granular store, it will degrade to marking the entire trait
-     * instance as dirty. In addition, if it runs out of space in the merge handle set, it will degrade to including all child trees
-     * of the LCA'ed node.
+     *         instance as dirty. In addition, if it runs out of space in the merge handle set, it will degrade to including all
+     *         child trees of the LCA'ed node.
      *
      */
     class IntermediateGraphSolver

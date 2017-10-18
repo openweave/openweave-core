@@ -72,11 +72,14 @@ namespace Ble {
 
 using ::nl::Weave::System::PacketBuffer;
 
-#define NUM_SUPPORTED_PROTOCOL_VERSIONS                                                                                            \
-    8 /**< Number of unsigned 4-bit representations of supported transport protocol                                                \
-       * versions encapsulated in a BleTransportCapabilitiesRequest. Defined by                                                    \
-       * Weave over BLE protocol specification. */
-
+/**
+ *  @def NUM_SUPPORTED_PROTOCOL_VERSIONS
+ *
+ *  Number of unsigned 4-bit representations of supported transport protocol
+ *  versions encapsulated in a BleTransportCapabilitiesRequest. Defined by Weave
+ *  over BLE protocol specification.
+ */
+#define NUM_SUPPORTED_PROTOCOL_VERSIONS     8
 /// Version(s) of the Nest BLE Transport Protocol that this stack supports.
 #define NL_BLE_TRANSPORT_PROTOCOL_MIN_SUPPORTED_VERSION kBleTransportProtocolVersion_V2
 #define NL_BLE_TRANSPORT_PROTOCOL_MAX_SUPPORTED_VERSION kBleTransportProtocolVersion_V3
@@ -121,26 +124,37 @@ class BleTransportCapabilitiesRequestMessage
 {
 public:
     /**
-     * An array of size NUM_SUPPORTED_PROTOCOL_VERSIONS listing versions of the BLE transport protocol that this
-     * node supports. Each protocol version is specified as a 4-bit unsigned integer. A zero-value
-     * represents unused array elements. Counting up from the zero-index, the first zero-value specifies the end of
-     * the list of supported protocol versions.
+     * An array of size NUM_SUPPORTED_PROTOCOL_VERSIONS listing versions of the
+     * BLE transport protocol that this node supports. Each protocol version is
+     * specified as a 4-bit unsigned integer. A zero-value represents unused
+     * array elements. Counting up from the zero-index, the first zero-value
+     * specifies the end of the list of supported protocol versions.
      */
     uint8_t mSupportedProtocolVersions[(NUM_SUPPORTED_PROTOCOL_VERSIONS / 2) + (NUM_SUPPORTED_PROTOCOL_VERSIONS % 2)];
 
-    uint16_t mMtu; /**< The MTU that has been negotiated for this BLE connection. Specified in
-                    *   the BleTransportCapabilitiesRequestMessage because the remote node may be unable
-                    *   to glean this info from its own BLE hardware/software stack, such as on
-                    *   older Android platforms.
-                    *
-                    *   A value of 0 means that the central could not determine the negotiated
-                    *   BLE connection MTU. */
+    /**
+     *  The MTU that has been negotiated for this BLE connection. Specified in
+     *  the BleTransportCapabilitiesRequestMessage because the remote node may
+     *  be unable to glean this info from its own BLE hardware/software stack,
+     *  such as on older Android platforms.
+     *
+     *  A value of 0 means that the central could not determine the negotiated
+     *  BLE connection MTU.
+     */
+    uint16_t mMtu;
 
-    uint8_t mWindowSize; /**< The initial and maximum receive window size offered by the central,
-                          *   defined in terms of GATT indication payloads. */
+    /**
+     *  The initial and maximum receive window size offered by the central,
+     *  defined in terms of GATT indication payloads.
+     */
+    uint8_t mWindowSize;
 
-    /** Set supported version value at given index in SupportedProtcolVersions. uint8_t version argument is truncated
-     * to 4 least-significant bits. Index shall be 0 through number of SupportedProtocolVersions elements - 1. */
+    /**
+     *  Set supported version value at given index in
+     *  SupportedProtocolVersions. uint8_t version argument is truncated to 4
+     *  least-significant bits. Index shall be 0 through number of
+     *  SupportedProtocolVersions elements - 1.
+     */
     void SetSupportedProtocolVersion(uint8_t index, uint8_t version);
 
     /// Must be able to reserve 20 byte data length in msgBuf.
@@ -152,20 +166,30 @@ public:
 class BleTransportCapabilitiesResponseMessage
 {
 public:
-    uint8_t mSelectedProtocolVersion; /**< The lower 4 bits specify the BLE transport protocol version that the BLE
-                                       * peripheral has selected for this connection. */
+    /**
+     *  The lower 4 bits specify the BLE transport protocol version that the BLE
+     *  peripheral has selected for this connection.
+     *
+     *  A value of kBleTransportProtocolVersion_None means that no supported
+     *  protocol version was found in the central's capabilities request. The
+     *  central should unsubscribe after such a response has been sent to free
+     *  up the peripheral for connections from devices with supported protocol
+     *  versions.
+     */
+    uint8_t mSelectedProtocolVersion;
 
-    /**< A value of kBleTransportProtocolVersion_None means that no supported protocol
-     *   version was found in the central's capabilities request. The central should
-     *   unsubscribe after such a response has been sent to free up the peripheral for
-     *   connections from devices with supported protocol versions. */
+    /**
+     *  BLE transport fragment size selected by peripheral in response to MTU
+     *  value in BleTransportCapabilitiesRequestMessage and its local
+     *  observation of the BLE connection MTU.
+     */
+    uint16_t mFragmentSize;
 
-    uint16_t mFragmentSize; /**< BLE transport fragment size selected by peripheral in response to MTU value in
-                             *   BleTransportCapabilitiesRequestMessage and its local observation of the BLE
-                             *   connection MTU. */
-
-    uint8_t mWindowSize; /**< The initial and maximum receive window size offered by the peripheral,
-                          *   defined in terms of GATT write payloads. */
+    /**
+     *  The initial and maximum receive window size offered by the peripheral,
+     *  defined in terms of GATT write payloads.
+     */
+    uint8_t mWindowSize;
 
     /// Must be able to reserve 20 byte data length in msgBuf.
     BLE_ERROR Encode(PacketBuffer * msgBuf) const;

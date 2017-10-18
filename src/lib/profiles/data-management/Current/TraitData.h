@@ -40,21 +40,22 @@ namespace Weave {
 namespace Profiles {
 namespace WeaveMakeManagedNamespaceIdentifier(DataManagement, kWeaveManagedNamespaceDesignation_Current) {
 
-/*
+/**
  * A PropertyPathHandle is a unique 32-bit numerical hash of a WDM path relative to the root of a trait instance. It has two parts
  * to it:
+ *
  *  - A lower 16-bit number that maps to the static portion of the schema.
  *  - Where the lower 16-bits refer to a path within a dictionary element, an upper 16-bit number is present that represents the
- * dictionary key associated with that element. If the lower 16-bits refer to a non dictionary element, then the upper 16-bits
- * should be 0.
+ *    dictionary key associated with that element. If the lower 16-bits refer to a non dictionary element, then the upper 16-bits
+ *    should be 0.
  *
  * Some characteristics:
  *  - Every trait has its own property path handle space.
  *  - Every unique WDM sub-path path will have a similarly unique PropertyPathHandle.
  *  - PropertyPathHandles are auto-generated (done by hand for now) by a trait compiler from IDL and is represented as an enumerant
- * list in the corresponding trait's header file.
+ *    list in the corresponding trait's header file.
  *  - With this construct, application logic never has to deal with WDM paths directly. Rather, their interactions with WDM are
- * conducted exclusively through these handles.
+ *    conducted exclusively through these handles.
  *  - There are two reserved values for path handles that have specific meaning:
  *      - 0 indicates a 'NULL' handle
  *      - 1 indicates a handle that points to the root of the trait instance.
@@ -97,16 +98,16 @@ inline bool IsNullPropertyPathHandle(PropertyPathHandle aHandle)
     return (aHandle == kNullPropertyPathHandle);
 }
 
-/*
+/**
  *  @class TraitSchemaEngine
  *
  *  @brief The schema engine takes schema information associated with a particular trait and provides facilities to parse and
- * translate that into a form usable by the WDM machinery. This includes converting from PathHandles to WDM paths (and vice versa),
- * methods to interpret/query the schema itself and methods to help read/write out data to/from TLV given a handle.
+ *         translate that into a form usable by the WDM machinery. This includes converting from PathHandles to WDM paths (and vice
+ *         versa), methods to interpret/query the schema itself and methods to help read/write out data to/from TLV given a handle.
  *
  *         The schema itself is stored in tabular form, sufficiently described to allow for generic parsing/composition of WDM
- * paths/data for any given trait. These tables are what will be the eventual output of 'code-gen' (The term itself being somewhat
- * misleading given the absence of any generated code :P)
+ *         paths/data for any given trait. These tables are what will be the eventual output of 'code-gen' (The term itself being
+ *         somewhat misleading given the absence of any generated code :P)
  */
 class TraitSchemaEngine
 {
@@ -634,9 +635,9 @@ public:
 
     WEAVE_ERROR ReadData(PropertyPathHandle aHandle, uint64_t aTagToWrite, TLV::TLVWriter & aWriter);
 
-    /* Interactions with the underlying data has to always be done within a locked context. This applies to both the app logic (e.g
-     * a publisher when modifying its source data) as well as to the core WDM logic (when trying to access that published data).
-     * This is required of both publishers and clients.
+    /* Interactions with the underlying data has to always be done within a locked context. This applies to both the app logic
+     * (e.g., a publisher when modifying its source data) as well as to the core WDM logic (when trying to access that published
+     * data).  This is required of both publishers and clients.
      */
     WEAVE_ERROR Lock(void);
     WEAVE_ERROR Unlock(void);

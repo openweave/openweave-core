@@ -441,13 +441,13 @@ WEAVE_ERROR NotificationEngine::IntermediateGraphSolver::RetrieveTraitInstanceDa
         //
         // It also deals with deletions as well. Deletions are treated somewhat similarly to modifications/additions from the algo
         // perspective with some minor adjustments:
-        //      1 Deletions are only applicable so long as all deletions apply to the same dictionary. Once we have deletions that
-        //      span multiple dictionaries, we cannot express a deletion anymore and the
-        //        deletion is treated like a modify/add from the algorithm perspective for the purposes of computing the LCA and
-        //        adding entries to the merge handle set.
-        //      2 Deletions can co-exist with modifications/additions to the same dictionary. If there are mods/adds present in
-        //      other parts of the tree/other dictionaries, the deletion reverts to the same
-        //        treatment as mentioned in 1)
+        //
+        //      1. Deletions are only applicable so long as all deletions apply to the same dictionary. Once we have deletions that
+        //         span multiple dictionaries, we cannot express a deletion anymore and the deletion is treated like a modify/add
+        //         from the algorithm perspective for the purposes of computing the LCA and adding entries to the merge handle set.
+        //
+        //      2. Deletions can co-exist with modifications/additions to the same dictionary. If there are mods/adds present in
+        //      other parts of the tree/other dictionaries, the deletion reverts to the same treatment as mentioned in 1)
         //
         // Key Variables:
         //      currentCommonHandle = The current LCA of all handles evaluated thus far.
@@ -479,12 +479,12 @@ WEAVE_ERROR NotificationEngine::IntermediateGraphSolver::RetrieveTraitInstanceDa
                            candidateHandleIsDelete ? 'D' : 'M');
 
             //
-            // Evaluate the next LCA ** Given our current common ancestor handle and our candidate handle, we compute the next LCA.
-            // The next common
-            //                          handle will be stored in 'nextCommonHandle' while the two lagging branches will be
-            //                          represented through laggingHandles[0] and laggingHandles[1]. [0] will correspond to the
-            //                          lagging branch for the current common handle while [1] will correspond to that for the
-            //                          candidate handle.
+            // Evaluate the next LCA
+            //
+            // Given our current common ancestor handle and our candidate handle, we compute the next LCA.  The next common handle
+            // will be stored in 'nextCommonHandle' while the two lagging branches will be represented through laggingHandles[0] and
+            // laggingHandles[1]. [0] will correspond to the lagging branch for the current common handle while [1] will correspond
+            // to that for the candidate handle.
             //
             if (currentCommonHandle == kNullPropertyPathHandle)
             {

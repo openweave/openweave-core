@@ -37,9 +37,8 @@ namespace WeaveMakeManagedNamespaceIdentifier(DataManagement, kWeaveManagedNames
 /**
  *  @class Command
  *
- *  @note This class is designed to hide a certain detail in command handling.
- *    Decision has been made to hide the details of ExchangeContext and authenticator validation,
- *    while leaving the handling of PacketBuffers to the application layer.
+ *  @note This class is designed to hide a certain detail in command handling.  Decision has been made to hide the details of
+ *    ExchangeContext and authenticator validation, while leaving the handling of PacketBuffers to the application layer.
  *
  *    The utility of this wrapper around command handling is indeed limited, mainly due to the complexity/flexibility involved
  *    in security validation and data serialization/de-serialization.
@@ -49,17 +48,20 @@ namespace WeaveMakeManagedNamespaceIdentifier(DataManagement, kWeaveManagedNames
  *    To adjust the retransmission timing for the In-Progress, Status Report, and also Response message,
  *    the application layer would have to somehow deal with the ExchangeContext object. The best practise
  *    is still TBD, but the application layer has these three choices:
+ *
  *    1) Acquire the Exchange Context through #GetExchangeContext and directly evaluate/adjust it.
  *    2) Pre-allocate and configure a Binding during boot up, before any command arrives, and configure it properly
  *    3) Create a temporary Binding using this function BindingPool::NewResponderBindingFromExchangeContext
+ *
  *    In both (2) and (3), the application layer can enforce security/timing setting through
- * Binding::ConfigureExistingExchangeContext. The Binding is never used to generate new exchange contexts for custom commands, so it
- * doesn't have to be stored within this handle.
+ *    Binding::ConfigureExistingExchangeContext. The Binding is never used to generate new exchange contexts for custom commands, so
+ *    it doesn't have to be stored within this handle.
  *
  *    The request packet buffer is also not stored within this handle, for there is no obvious use of it. This is especially
  *    true if the application layer can handle this command and send out response directly.
+ *
  *    Application layer would receive the packet buffer from the same callback it receives this command handle. If it decides to
- * handle this command in an async manner, it would have to store both the command handle and the packet buffer.
+ *    handle this command in an async manner, it would have to store both the command handle and the packet buffer.
  *
  */
 class NL_DLL_EXPORT Command
