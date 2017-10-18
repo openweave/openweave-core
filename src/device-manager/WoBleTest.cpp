@@ -84,7 +84,7 @@ BLE_ERROR HandleCommandTest(void *ble, BLE_CONNECTION_OBJECT connObj, uint32_t p
         payloadSize = COMMAND_TESTDATA_HDR_LEN;
     // Actual payload includes the test data header
     endPoint->mWoBleTest.mCommandTestRequest.PayloadSize = payloadSize - COMMAND_TESTDATA_HDR_LEN;
-    if (reverse == true)
+    if (reverse)
     {
         err = endPoint->mWoBleTest.DoCommandTestRequest(endPoint);
     }
@@ -107,7 +107,7 @@ BLE_ERROR HandleCommandTestResult(void *ble, BLE_CONNECTION_OBJECT connObj, bool
         return BLE_ERROR_BAD_ARGS;
     }
     
-    if (local == false)
+    if (!local)
         err = ep->mWoBleTest.DoCommandTestResult(kBleCommandTestResult_Request, 0);
     else
         WoBleTest::LogBleTestResult(&ep->mWoBleTest.mCommandTestResult);
@@ -412,7 +412,7 @@ exit:
 // This is the WoBle TxTiming Handler
 void WoBleTest::DoTxTiming(PacketBuffer *data, int stage)
 {
-    if (mCommandUnderTest == WOBLE_TEST_NONE && mCommandTxTiming == false)
+    if (mCommandUnderTest == WOBLE_TEST_NONE && !mCommandTxTiming)
             return;     // TxTiming is not enabled
 
     WeaveLogDebugBleEndPoint(Ble, "%s: stage %d, mode %u:%u, data->%p, type %u, len %u",
@@ -454,7 +454,7 @@ void WoBleTest::DoTxTiming(PacketBuffer *data, int stage)
                 mCommandTestResult.PayloadBytes += mCommandTestResult.PayloadLast;
 
                 // Check if we're done with this packet
-                if (mCommandTestRequest.NeedAck == true)
+                if (mCommandTestRequest.NeedAck)
                     mTimeStats.mTxAckStartMs = mTimeStats.mTxStartMs;
                 mTimeStats.mTxStartMs = 0;
 
@@ -582,7 +582,7 @@ void WoBleTest::DoTestDataSend(Weave::System::Layer *systemLayer, void *appState
 
     if (ep->mSendQueue == NULL) // Allow Tx test data only when Tx queue is empty
     {
-        if (ep->mWoBleTest.mCommand.CommandTest_Start == true)
+        if (ep->mWoBleTest.mCommand.CommandTest_Start)
         {
             type = kDataType_START;
             ep->mWoBleTest.mCommand.CommandTest_Start = false;
@@ -1112,7 +1112,7 @@ exit:
 
 void WoBleTest::StopTestTimer()
 {
-    if (GetFlag(mEp->mTimerStateFlags, BLEEndPoint::kTimerState_UnderTestTimerRunnung) == true)
+    if (GetFlag(mEp->mTimerStateFlags, BLEEndPoint::kTimerState_UnderTestTimerRunnung))
     {
         // Cancel any existing test timer.
         mEp->mBle->mSystemLayer->CancelTimer(HandleTestClose, mEp);
@@ -1125,7 +1125,7 @@ void WoBleTest::HandleTestClose(Weave::System::Layer *systemLayer, void *appStat
     BLEEndPoint *ep = static_cast<BLEEndPoint *>(appState);
 
     // Check for event-based timer race condition.
-    if (GetFlag(ep->mTimerStateFlags, BLEEndPoint::kTimerState_UnderTestTimerRunnung) == true)
+    if (GetFlag(ep->mTimerStateFlags, BLEEndPoint::kTimerState_UnderTestTimerRunnung))
     {
         WeaveLogError(Ble, "Test closed, ble ep %p", ep);
         SetFlag(ep->mTimerStateFlags, BLEEndPoint::kTimerState_UnderTestTimerRunnung, false);

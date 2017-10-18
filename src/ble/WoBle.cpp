@@ -71,9 +71,9 @@ static inline void IncSeqNum(SequenceNumber_t & a_seq_num)
 
 static inline bool DidReceiveData(uint8_t rx_flags)
 {
-    return (GetFlag(rx_flags, WoBle::kHeaderFlag_StartMessage) == true ||
-            GetFlag(rx_flags, WoBle::kHeaderFlag_ContinueMessage) == true ||
-            GetFlag(rx_flags, WoBle::kHeaderFlag_EndMessage) == true);
+    return (GetFlag(rx_flags, WoBle::kHeaderFlag_StartMessage) ||
+            GetFlag(rx_flags, WoBle::kHeaderFlag_ContinueMessage) ||
+            GetFlag(rx_flags, WoBle::kHeaderFlag_EndMessage));
 }
 
 static void PrintBufDebug(PacketBuffer * buf)
@@ -113,7 +113,7 @@ BLE_ERROR WoBle::Init(void * an_app_state, bool expect_first_ack)
     mRxPacketType = kType_Data; // Default WoBle Data packet
 #endif
 
-    if (expect_first_ack == true)
+    if (expect_first_ack)
     {
         mTxNextSeqNum = 1;
         mExpectingAck = true;
@@ -134,7 +134,7 @@ SequenceNumber_t WoBle::GetAndIncrementNextTxSeqNum()
     SequenceNumber_t ret = mTxNextSeqNum;
 
     // If not already expecting ack...
-    if (mExpectingAck == false)
+    if (!mExpectingAck)
     {
         mExpectingAck          = true;
         mTxOldestUnackedSeqNum = mTxNextSeqNum;
@@ -170,7 +170,7 @@ bool WoBle::IsValidAck(SequenceNumber_t ack_num) const
                            mTxNewestUnackedSeqNum);
 
     // Return false if not awaiting any ack.
-    if (mExpectingAck == false)
+    if (!mExpectingAck)
     {
         WeaveLogDebugBtpEngine(Ble, "unexpected ack is invalid");
         return false;
@@ -195,7 +195,7 @@ BLE_ERROR WoBle::HandleAckReceived(SequenceNumber_t ack_num)
     WeaveLogDebugBtpEngine(Ble, "entered HandleAckReceived, ack_num = %u", ack_num);
 
     // Ensure ack_num falls within range of ack values we're expecting.
-    VerifyOrExit(IsValidAck(ack_num) == true, err = BLE_ERROR_INVALID_ACK);
+    VerifyOrExit(IsValidAck(ack_num), err = BLE_ERROR_INVALID_ACK);
 
     if (mTxNewestUnackedSeqNum == ack_num) // If ack is for newest outstanding unacknowledged fragment...
     {
@@ -223,7 +223,7 @@ BLE_ERROR WoBle::EncodeStandAloneAck(PacketBuffer * data)
     uint8_t * characteristic;
 
     // Ensure enough headroom exists for the lower BLE layers.
-    VerifyOrExit(data->EnsureReservedSize(WEAVE_CONFIG_BLE_PKT_RESERVED_SIZE) == true, err = BLE_ERROR_NO_MEMORY);
+    VerifyOrExit(data->EnsureReservedSize(WEAVE_CONFIG_BLE_PKT_RESERVED_SIZE), err = BLE_ERROR_NO_MEMORY);
 
     // Ensure enough space for standalone ack payload.
     VerifyOrExit(data->MaxDataLength() >= NL_BLE_TRANSFER_PROTOCOL_STANDALONE_ACK_HEADER_SIZE, err = BLE_ERROR_NO_MEMORY);
@@ -273,7 +273,7 @@ BLE_ERROR WoBle::HandleCharacteristicReceived(PacketBuffer * data, SequenceNumbe
     // Get header flags, always in first byte.
     rx_flags = characteristic[cursor++];
 #if WEAVE_ENABLE_WOBLE_TEST
-    if (GetFlag(rx_flags, kHeaderFlag_CommandMessage) == true)
+    if (GetFlag(rx_flags, kHeaderFlag_CommandMessage))
         SetRxPacketType(kType_Control);
     else
         SetRxPacketType(kType_Data);
@@ -282,7 +282,7 @@ BLE_ERROR WoBle::HandleCharacteristicReceived(PacketBuffer * data, SequenceNumbe
     didReceiveAck = GetFlag(rx_flags, kHeaderFlag_FragmentAck);
 
     // Get ack number, if any.
-    if (didReceiveAck == true)
+    if (didReceiveAck)
     {
         receivedAck = characteristic[cursor++];
 
@@ -300,7 +300,7 @@ BLE_ERROR WoBle::HandleCharacteristicReceived(PacketBuffer * data, SequenceNumbe
     IncSeqNum(mRxNextSeqNum);
 
     // If fragment was stand-alone ack, we're done here; no payload for message reassembler.
-    if (DidReceiveData(rx_flags) == false)
+    if (!DidReceiveData(rx_flags))
     {
         // Free stand-alone ack buffer.
         PacketBuffer::Free(data);
@@ -387,7 +387,7 @@ exit:
 
         // Dump protocol engine state, plus header flags and received data length.
         WeaveLogError(Ble, "HandleCharacteristicReceived failed, err = %d, rx_flags = %u", err, rx_flags);
-        if (didReceiveAck == true)
+        if (didReceiveAck)
         {
             WeaveLogError(Ble, "With rx'd ack = %u", receivedAck);
         }
@@ -461,8 +461,8 @@ bool WoBle::HandleCharacteristicSend(PacketBuffer * data, bool send_ack)
         PrintBufDebug(data);
 
         // Determine fragment header size.
-        uint8_t header_size = (send_ack == true) ? NL_BLE_TRANSFER_PROTOCOL_MAX_HEADER_SIZE
-                                                 : (NL_BLE_TRANSFER_PROTOCOL_MAX_HEADER_SIZE - NL_BLE_TRANSFER_PROTOCOL_ACK_SIZE);
+        uint8_t header_size = send_ack ? NL_BLE_TRANSFER_PROTOCOL_MAX_HEADER_SIZE
+                                       : (NL_BLE_TRANSFER_PROTOCOL_MAX_HEADER_SIZE - NL_BLE_TRANSFER_PROTOCOL_ACK_SIZE);
 
         // Ensure enough headroom exists for the BTP header, and any headroom needed by the lower BLE layers.
         if (!mTxBuf->EnsureReservedSize(header_size + WEAVE_CONFIG_BLE_PKT_RESERVED_SIZE))
@@ -488,7 +488,7 @@ bool WoBle::HandleCharacteristicSend(PacketBuffer * data, bool send_ack)
             SetFlag(characteristic[0], kHeaderFlag_CommandMessage, true);
 #endif
 
-        if (send_ack == true)
+        if (send_ack)
         {
             SetFlag(characteristic[0], kHeaderFlag_FragmentAck, true);
             characteristic[cursor++] = GetAndRecordRxAckSeqNum();
@@ -528,7 +528,7 @@ bool WoBle::HandleCharacteristicSend(PacketBuffer * data, bool send_ack)
         characteristic += mTxFragmentSize;
 
         // prepend header
-        characteristic -= (send_ack == true)
+        characteristic -= send_ack
             ? NL_BLE_TRANSFER_PROTOCOL_MID_FRAGMENT_MAX_HEADER_SIZE
             : (NL_BLE_TRANSFER_PROTOCOL_MID_FRAGMENT_MAX_HEADER_SIZE - NL_BLE_TRANSFER_PROTOCOL_ACK_SIZE);
         mTxBuf->SetStart(characteristic);
@@ -541,7 +541,7 @@ bool WoBle::HandleCharacteristicSend(PacketBuffer * data, bool send_ack)
             SetFlag(characteristic[0], kHeaderFlag_CommandMessage, true);
 #endif
 
-        if (send_ack == true)
+        if (send_ack)
         {
             SetFlag(characteristic[0], kHeaderFlag_FragmentAck, true);
             characteristic[cursor++] = GetAndRecordRxAckSeqNum();

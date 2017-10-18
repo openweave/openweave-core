@@ -916,9 +916,9 @@ WEAVE_ERROR WeaveDeviceManager::DoRemotePassiveRendezvous(IPAddress rendezvousDe
 #endif // WEAVE_DETAIL_LOGGING
 
     // Ensure DM is in the correct state to perform a Remote Passive Rendezvous.
-    if (mOpState != kOpState_Idle || mConMonitorEnabled == true)
+    if (mOpState != kOpState_Idle || mConMonitorEnabled)
     {
-        if (mConMonitorEnabled == true)
+        if (mConMonitorEnabled)
         {
             WeaveLogError(DeviceManager, "Must disable ConnectionMonitor before RPR");
         }
@@ -970,7 +970,7 @@ WEAVE_ERROR WeaveDeviceManager::DoRemotePassiveRendezvous(IPAddress rendezvousDe
     mOpState = kOpState_RemotePassiveRendezvousRequest;
 
     // Start client-side timer for rendezvous with remote host.
-    if (mRemotePassiveRendezvousTimerIsRunning == false) // In retry case, don't restart timer
+    if (!mRemotePassiveRendezvousTimerIsRunning) // In retry case, don't restart timer
     {
         err = StartRemotePassiveRendezvousTimer();
         SuccessOrExit(err);
@@ -2662,7 +2662,7 @@ WEAVE_ERROR WeaveDeviceManager::SetAutoReconnect(bool autoReconnect)
 {
     WEAVE_ERROR ret = WEAVE_NO_ERROR;
 
-    VerifyOrExit(mConnectedToRemoteDevice == false, ret = WEAVE_ERROR_INCORRECT_STATE);
+    VerifyOrExit(!mConnectedToRemoteDevice, ret = WEAVE_ERROR_INCORRECT_STATE);
 
     mAutoReconnect = autoReconnect;
 
@@ -3389,7 +3389,7 @@ WEAVE_ERROR WeaveDeviceManager::SetUnsecuredConnectionHandler()
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
 
-    if (mIsUnsecuredConnectionListenerSet == false)
+    if (!mIsUnsecuredConnectionListenerSet)
     {
         err = mMessageLayer->SetUnsecuredConnectionListener(HandleConnectionReceived,
             HandleUnsecuredConnectionCallbackRemoved, true, this);
@@ -3406,7 +3406,7 @@ WEAVE_ERROR WeaveDeviceManager::ClearUnsecuredConnectionHandler()
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
 
-    if (mIsUnsecuredConnectionListenerSet == true)
+    if (mIsUnsecuredConnectionListenerSet)
     {
         err = mMessageLayer->ClearUnsecuredConnectionListener(HandleConnectionReceived,
             HandleUnsecuredConnectionCallbackRemoved);

@@ -154,13 +154,13 @@ void WoBLEz_SubscriptionChange(void * data)
     if (enabled)
     {
         success = gBluezBlePlatformDelegate->Ble->HandleSubscribeReceived(data, &(nl::Ble::WEAVE_BLE_SVC_ID), &WEAVE_BLE_CHAR_2_ID);
-        VerifyOrExit(success == true, msg = "HandleSubscribeReceived failed");
+        VerifyOrExit(success, msg = "HandleSubscribeReceived failed");
     }
     else
     {
         success =
             gBluezBlePlatformDelegate->Ble->HandleUnsubscribeReceived(data, &(nl::Ble::WEAVE_BLE_SVC_ID), &WEAVE_BLE_CHAR_2_ID);
-        VerifyOrExit(success == true, msg = "HandleUnsubscribeReceived failed");
+        VerifyOrExit(success, msg = "HandleUnsubscribeReceived failed");
     }
 
 exit:

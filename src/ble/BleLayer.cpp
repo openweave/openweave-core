@@ -350,7 +350,7 @@ BLE_ERROR BleLayer::Shutdown()
 
             // If end point was closed, but is still waiting for GATT unsubscribe to complete, free it anyway.
             // This cancels the unsubscribe timer (plus all the end point's other timers).
-            if (elem->IsUnsubscribePending() == true)
+            if (elem->IsUnsubscribePending())
             {
                 elem->Free();
             }
@@ -691,7 +691,7 @@ void BleLayer::HandleConnectionError(BLE_CONNECTION_OBJECT connObj, BLE_ERROR er
 
     if (endPoint != NULL)
     {
-        if (err == BLE_ERROR_GATT_UNSUBSCRIBE_FAILED && endPoint->IsUnsubscribePending() == true)
+        if (err == BLE_ERROR_GATT_UNSUBSCRIBE_FAILED && endPoint->IsUnsubscribePending())
         {
             // If end point was already closed and just waiting for unsubscribe to complete, free it. Call to Free()
             // stops unsubscribe timer.
