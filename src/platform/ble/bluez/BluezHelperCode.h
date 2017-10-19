@@ -58,6 +58,7 @@ extern "C" {
 #include <Weave/Core/WeaveStats.h>
 #include "Weave/Support/logging/WeaveLogging.h"
 #include "BluezBlePlatformDelegate.h"
+#include "WoBluezLayer.h"
 
 using namespace nl::Inet;
 using namespace nl::Weave;
@@ -83,29 +84,11 @@ using namespace nl::Weave::Profiles;
 /*MAC OS uses MTU size 104, which is smallest among Android, MAC OS & IOS */
 #define HCI_MAX_MTU (104)
 #define BUFF_SIZE (1024)
-#define WEAVE_SRV_DATA_BLOCK_TYPE (1)
-#define WEAVE_SRV_DATA_MAJ_VER (0x00)
-#define WEAVE_SRV_DATA_MIN_VER (0x02)
-#define WEAVE_SRV_DATA_PAIRING_STATUS_NOT_PAIRED (0)
-#define WEAVE_SRV_DATA_PAIRING_STATUS_PAIRED (1)
 
 namespace nl {
 namespace Ble {
 namespace Platform {
 namespace BlueZ {
-
-/* Weave Service Data*/
-struct WeaveServiceData
-{
-    uint8_t mWeaveDataBlockLen;
-    uint8_t mWeaveDataBlockType;
-    uint8_t mWeaveSrvDataMajor;
-    uint8_t mWeaveSrvDataMinor;
-    uint16_t mWeaveVendorId;
-    uint16_t mWeaveProductId;
-    uint64_t mWeaveDeviceId;
-    uint8_t mWeavePairingStatus;
-} __attribute__((packed));
 
 struct Adapter
 {
@@ -151,33 +134,8 @@ struct BluezServerEndpoint
     uint16_t mtu;
 };
 
-struct BluezPeripheralArgs
-{
-    char * bleName;
-    char * bleAddress;
-    WeaveServiceData * weaveServiceData;
-    BluezBlePlatformDelegate * bluezBlePlatformDelegate;
-};
-
 extern BluezServerEndpoint * gBluezServerEndpoint;
 extern BluezBlePlatformDelegate * gBluezBlePlatformDelegate;
-/**
- * ClearWoBluezStatus to original setting.
- *
- */
-void ClearWoBluezStatus(void);
-
-/**
- * Exit BluezIO thread
- *
- */
-void ExitBluezIOThread(void);
-
-/**
- * Run WoBle over Bluez thread
- *
- */
-bool RunBluezIOThread(BluezPeripheralArgs * arg);
 
 } // namespace BlueZ
 } /* namespace Platform */

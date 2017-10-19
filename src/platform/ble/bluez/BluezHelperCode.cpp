@@ -727,7 +727,6 @@ static DBusMessage * CharacteristicCreatePipe(Characteristic * characteristic, D
     int fdToClose, fdToUse, ioSelection;
     struct io * io;
     const char * msg = NULL;
-    bool index;
     DBusMessage * CharacteristicCreatePipeReply = NULL;
 
     VerifyOrExit(characteristic != NULL, msg = "characteristic is NULL in CharacteristicAcquireWrite");

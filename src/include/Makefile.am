@@ -230,7 +230,7 @@ if CONFIG_NETWORK_LAYER_BLE
 if CONFIG_BLE_PLATFORM_BLUEZ
 platform_ble_bluez_public_header_sources += \
 $(platform_ble_bluez_public_source_dirstem)/BluezBlePlatformDelegate.h \
-$(platform_ble_bluez_public_source_dirstem)/BluezHelperCode.h \
+$(platform_ble_bluez_public_source_dirstem)/WoBluezLayer.h \
 $(NULL)
 endif # CONFIG_BLE_PLATFORM_BLUEZ
 endif # CONFIG_NETWORK_LAYER_BLE

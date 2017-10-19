@@ -64,7 +64,7 @@
 #if CONFIG_BLE_PLATFORM_BLUEZ
 #include <BleLayer/BleApplicationDelegate.h>
 #include <PlatformLayer/Ble/Bluez/BluezBlePlatformDelegate.h>
-#include <PlatformLayer/Ble/Bluez/BluezHelperCode.h>
+#include <PlatformLayer/Ble/Bluez/WoBluezLayer.h>
 #endif // CONFIG_BLE_PLATFORM_BLUEZ
 
 
