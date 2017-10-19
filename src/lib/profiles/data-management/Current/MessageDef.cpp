@@ -1519,7 +1519,7 @@ WEAVE_ERROR Event::Parser::CheckSchemaValidity(void) const
 
     TagPresence tagPresence = { 0 };
 
-    PRETTY_PRINT("\t {");
+    PRETTY_PRINT("\t{");
 
     // make a copy of the reader
     reader.Init(mReader);
