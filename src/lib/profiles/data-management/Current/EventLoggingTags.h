@@ -102,10 +102,12 @@ enum
 
     // The next three values form the event key
 
-    kTag_EventSource     = 1, //< NodeID of the device that generated the event.
-    kTag_EventImportance = 2, //< Importance of the event.
-    kTag_EventID = 3, //< Sequence number of event, expressed as a 64-bit unsigned quantity.  Must be sequential, jumps in the
-                      //sequence indicate event gaps.
+    kTag_EventSource             = 1, //< NodeID of the device that generated the event.
+
+    kTag_EventImportance         = 2, //< Importance of the event.
+
+    kTag_EventID                 = 3, //< Sequence number of event, expressed as a 64-bit unsigned quantity.  Must be sequential,
+                                      //  jumps in the sequence indicate event gaps.
 
     // The next two values form a key to the related event, our mechanism for event grouping.
 
@@ -117,29 +119,34 @@ enum
     // relationships are easier when the key and the reference are the
     // same.
 
-    kTag_RelatedEventImportance =
-        10, //< Optional.  Importance of the related event. If omitted, the value is equal to the value of kTag_EventImportance.
-    kTag_RelatedEventID = 11, //< Optional.  ID of an Event that this event is related to.  If omitted, the value is equal to the
-                              //value of kTag_EventID.
+    kTag_RelatedEventImportance  = 10, //< Optional.  Importance of the related event. If omitted, the value is equal to the value
+                                       //  of kTag_EventImportance.
 
-    kTag_EventUTCTimestamp    = 12, //< Optional. UTC Timestamp of the event in milliseconds.
-    kTag_EventSystemTimestamp = 13, //< Optional. System Timestamp of the event in milliseconds.
+    kTag_RelatedEventID          = 11, //< Optional.  ID of an Event that this event is related to.  If omitted, the value is equal
+                                       //  to the value of kTag_EventID.
+
+    kTag_EventUTCTimestamp       = 12, //< Optional. UTC Timestamp of the event in milliseconds.
+
+    kTag_EventSystemTimestamp    = 13, //< Optional. System Timestamp of the event in milliseconds.
 
     // The next three values are analogous to the values within WDM RootSection.
 
-    kTag_EventResourceID = 14,      //< Optional. The value is the ID of the resource that the event pertains to.  When omitted, the
-                                    //value is the same as the value of the kTag_EventSource
-    kTag_EventTraitProfileID  = 15, //< Mandatory. 32-bit unsigned integer that is equal to the ProfileID of the trait.
-    kTag_EventTraitInstanceID = 16, //< Optional, the instance of the trait that generated the event.
-    kTag_EventType = 17, //< Mandatory.  16-bit unsigned integer that is equal to the wdl.event.id for this type of event.
+    kTag_EventResourceID         = 14, //< Optional. The value is the ID of the resource that the event pertains to.  When omitted,
+                                       //  the value is the same as the value of the kTag_EventSource
+
+    kTag_EventTraitProfileID     = 15, //< Mandatory. 32-bit unsigned integer that is equal to the ProfileID of the trait.
+
+    kTag_EventTraitInstanceID    = 16, //< Optional, the instance of the trait that generated the event.
+
+    kTag_EventType               = 17, //< Mandatory.  16-bit unsigned integer that is equal to the wdl.event.id for this type of event.
 
     // Weave Event internal tags. Only relevant to entities that need to
     // parse out the internal Weave event representation
-    kTag_EventDeltaUTCTime = 30, //< WDM internal tag, time difference from the previous event in the encoding
+    kTag_EventDeltaUTCTime       = 30, //< WDM internal tag, time difference from the previous event in the encoding
 
-    kTag_EventDeltaSystemTime = 31, //< WDM internal tag, time difference from the previous event in the encoding
+    kTag_EventDeltaSystemTime    = 31, //< WDM internal tag, time difference from the previous event in the encoding
 
-    kTag_EventData = 50, //< Optional.  Event data itself.  If empty, it defaults to an empty structure.
+    kTag_EventData               = 50, //< Optional.  Event data itself.  If empty, it defaults to an empty structure.
 
 };
 
