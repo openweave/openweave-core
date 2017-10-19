@@ -433,7 +433,8 @@ bool BleLayer::HandleWriteReceived(BLE_CONNECTION_OBJECT connObj, const WeaveBle
 {
     if (!UUIDsMatch(&WEAVE_BLE_SVC_ID, svcId))
     {
-        return false;
+        WeaveLogError(Ble, "ble write rcvd on unknown svc id");
+        ExitNow();
     }
 
     if (UUIDsMatch(&WEAVE_BLE_CHAR_1_ID, charId))
