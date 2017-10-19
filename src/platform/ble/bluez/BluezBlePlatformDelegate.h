@@ -87,9 +87,9 @@ public:
 };
 
 } // namespace BlueZ
-} /* namespace Platform */
-} /* namespace Ble */
-} /* namespace nl */
+} // namespace Platform
+} // namespace Ble
+} // namespace nl
 
 #endif /* CONFIG_BLE_PLATFORM_BLUEZ */
 

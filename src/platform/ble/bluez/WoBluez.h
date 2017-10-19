@@ -57,8 +57,8 @@ bool WoBLEz_TimerCb(void * user_data);
 bool WoBLEz_SendIndication(void * user_data, uint8_t * buffer, size_t len);
 
 } // namespace BlueZ
-} /* namespace Platform */
-} /* namespace Ble */
-} /* namespace nl */
+} // namespace Platform
+} // namespace Ble
+} // namespace nl
 
 #endif /* WOBLEZ_H_ */

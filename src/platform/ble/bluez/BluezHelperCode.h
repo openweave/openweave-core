@@ -138,8 +138,8 @@ extern BluezServerEndpoint * gBluezServerEndpoint;
 extern BluezBlePlatformDelegate * gBluezBlePlatformDelegate;
 
 } // namespace BlueZ
-} /* namespace Platform */
-} /* namespace Ble */
-} /* namespace nl */
+} // namespace Platform
+} // namespace Ble
+} // namespace nl
 
 #endif /* BLUEZHELPERCODE_H_ */

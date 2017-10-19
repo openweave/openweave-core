@@ -23,11 +23,11 @@
 #ifndef WOBLUEZLAYER_H_
 #define WOBLUEZLAYER_H_
 
-#define WEAVE_SRV_DATA_BLOCK_TYPE                    (1)
-#define WEAVE_SRV_DATA_MAJ_VER                       (0x00)
-#define WEAVE_SRV_DATA_MIN_VER                       (0x02)
-#define WEAVE_SRV_DATA_PAIRING_STATUS_NOT_PAIRED     (0)
-#define WEAVE_SRV_DATA_PAIRING_STATUS_PAIRED         (1)
+#define WEAVE_SRV_DATA_BLOCK_TYPE (1)
+#define WEAVE_SRV_DATA_MAJ_VER (0x00)
+#define WEAVE_SRV_DATA_MIN_VER (0x02)
+#define WEAVE_SRV_DATA_PAIRING_STATUS_NOT_PAIRED (0)
+#define WEAVE_SRV_DATA_PAIRING_STATUS_PAIRED (1)
 
 namespace nl {
 namespace Ble {
@@ -35,23 +35,24 @@ namespace Platform {
 namespace BlueZ {
 
 /* Weave Service Data*/
-struct WeaveServiceData {
-    uint8_t  mWeaveDataBlockLen;
-    uint8_t  mWeaveDataBlockType;
-    uint8_t  mWeaveSrvDataMajor;
-    uint8_t  mWeaveSrvDataMinor;
+struct WeaveServiceData
+{
+    uint8_t mWeaveDataBlockLen;
+    uint8_t mWeaveDataBlockType;
+    uint8_t mWeaveSrvDataMajor;
+    uint8_t mWeaveSrvDataMinor;
     uint16_t mWeaveVendorId;
     uint16_t mWeaveProductId;
     uint64_t mWeaveDeviceId;
-    uint8_t  mWeavePairingStatus;
-}__attribute__ ((packed));
+    uint8_t mWeavePairingStatus;
+} __attribute__((packed));
 
 struct BluezPeripheralArgs
 {
-    char *bleName;
-    char *bleAddress;
-    WeaveServiceData *weaveServiceData;
-    BluezBlePlatformDelegate *bluezBlePlatformDelegate;
+    char * bleName;
+    char * bleAddress;
+    WeaveServiceData * weaveServiceData;
+    BluezBlePlatformDelegate * bluezBlePlatformDelegate;
 };
 
 /**
@@ -72,11 +73,11 @@ void ExitBluezIOThread(void);
  * @return Returns 'true' if WoBluez library is able to successfully register
  * weave gatt server along with advertiser, else 'false'
  */
-bool RunBluezIOThread(BluezPeripheralArgs *arg);
+bool RunBluezIOThread(BluezPeripheralArgs * arg);
 
-} /* namespace Bluez */
-} /* namespace Platform */
-} /* namespace Ble */
-} /* namespace nl */
+} // namespace BlueZ
+} // namespace Platform
+} // namespace Ble
+} // namespace nl
 
-#endif  /* WOBLUEZLAYER_H_ */
+#endif /* WOBLUEZLAYER_H_ */

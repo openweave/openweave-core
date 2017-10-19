@@ -726,7 +726,7 @@ static DBusMessage * CharacteristicCreatePipe(Characteristic * characteristic, D
     int characteristicPipefd[2];
     int fdToClose, fdToUse, ioSelection;
     struct io * io;
-    const char * msg = NULL;
+    const char * msg                            = NULL;
     DBusMessage * CharacteristicCreatePipeReply = NULL;
 
     VerifyOrExit(characteristic != NULL, msg = "characteristic is NULL in CharacteristicAcquireWrite");
@@ -1101,7 +1101,8 @@ static const GDBusMethodTable weaveCharacteristicMethods[] = {
     { "AcquireWrite", CharacteristicAcquireWrite, G_DBUS_METHOD_FLAG_ASYNC, 0, GDBUS_ARGS( { "options", "a {sv}" }), NULL },
     { "AcquireNotify", CharacteristicAcquireNotify, G_DBUS_METHOD_FLAG_ASYNC, 0, GDBUS_ARGS( { "options", "a {sv}" }), NULL },
 #endif // BLE_CONFIG_BLUEZ_MTU_FEATURE
-    { "WriteValue", CharacteristicWrite, G_DBUS_METHOD_FLAG_ASYNC, 0, GDBUS_ARGS( { "value", "ay" }, { "options", "a {sv}" }), NULL },
+    { "WriteValue", CharacteristicWrite, G_DBUS_METHOD_FLAG_ASYNC, 0, GDBUS_ARGS( { "value", "ay" }, { "options", "a {sv}" }),
+      NULL },
     { "StartNotify", CharacteristicStartNotify, G_DBUS_METHOD_FLAG_ASYNC, 0, NULL, NULL },
     { "StopNotify", CharacteristicStopNotify, G_DBUS_METHOD_FLAG_ASYNC, 0, NULL, NULL },
     { "Confirm", CharacteristicIndicationConf, G_DBUS_METHOD_FLAG_ASYNC, 0, NULL, NULL },
