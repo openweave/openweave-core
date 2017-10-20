@@ -295,6 +295,10 @@ WEAVE_ERROR MockTimeSyncClient::Shutdown(void)
     // this function doesn't have error result
     mClient.GetExchangeMgr()->MessageLayer->SystemLayer->CancelTimer(HandleSyncTimer, &mClient);
 
+#if WEAVE_CONFIG_TIME_CLIENT_CONNECTION_FOR_SERVICE
+    CloseConnectionToService();
+#endif
+
     return mClient.Shutdown();
 }
 
@@ -309,7 +313,9 @@ void MockTimeSyncClient::HandleConnectionComplete(nl::Weave::WeaveConnection *co
 void MockTimeSyncClient::HandleConnectionClosed(nl::Weave::WeaveConnection *con, WEAVE_ERROR conErr)
 {
     MockTimeSyncClient * const mockClient = reinterpret_cast<MockTimeSyncClient *>(con->AppState);
-    WeaveLogProgress(TimeService, "Connection to service closed");
+    WeaveLogProgress(TimeService, "Connection to service closed unexpectedly");
+    mockClient->mClient.Abort();
+    mockClient->mConnectionToService->Close();
     mockClient->mConnectionToService = NULL;
 }
 
@@ -343,6 +349,8 @@ void MockTimeSyncClient::SetupConnectionToService(void)
 
     mConnectionToService->OnConnectionClosed = HandleConnectionClosed;
     mConnectionToService->OnConnectionComplete = HandleConnectionComplete;
+
+    WeaveLogProgress(TimeService, "App opening connection to service");
 
 exit:
     WeaveLogFunctError(err);

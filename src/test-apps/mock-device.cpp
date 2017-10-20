@@ -692,17 +692,6 @@ int main(int argc, char *argv[])
     err = MockTPServer.Init(&ExchangeMgr);
     FAIL_ERROR(err, "MockTPServer.Init failed");
 
-#if WEAVE_CONFIG_TIME
-    err = MockTimeNode.Init(&ExchangeMgr, TimeSyncServerNodeId, TimeSyncServerNodeAddr);
-    FAIL_ERROR(err, "init_mock_time_sync failed");
-
-    if (ShouldEnableSimpleTimeSyncClient)
-    {
-        err = simpleTimeSyncClient.Init(&ExchangeMgr, TimeSyncServerNodeId, TimeSyncServerSubnetId);
-        FAIL_ERROR(err, "init_mock_simple_time_sync failed");
-    }
-#endif // WEAVE_CONFIG_TIME
-
 
     InitializeEventLogging(&ExchangeMgr);
 
@@ -809,6 +798,21 @@ int main(int argc, char *argv[])
     nl::Weave::Stats::UpdateSnapshot(before);
 #endif
 
+#if WEAVE_CONFIG_TIME
+    // MockTimeNode is inited after taking the snapshot of Stats and shutdown
+    // before the leak check because while it runs it allocs resources that are
+    // freed only by its Shutdown method. Those resources would be counted as
+    // leaked by ProcessStats.
+    err = MockTimeNode.Init(&ExchangeMgr, TimeSyncServerNodeId, TimeSyncServerNodeAddr);
+    FAIL_ERROR(err, "init_mock_time_sync failed");
+
+    if (ShouldEnableSimpleTimeSyncClient)
+    {
+        err = simpleTimeSyncClient.Init(&ExchangeMgr, TimeSyncServerNodeId, TimeSyncServerSubnetId);
+        FAIL_ERROR(err, "init_mock_simple_time_sync failed");
+    }
+#endif // WEAVE_CONFIG_TIME
+
     printf("Listening for requests...\n");
 
 #if CONFIG_BLE_PLATFORM_BLUEZ
@@ -863,6 +867,10 @@ int main(int argc, char *argv[])
 
     }
 
+#if WEAVE_CONFIG_TIME
+    MockTimeNode.Shutdown();
+#endif // WEAVE_CONFIG_TIME
+
 #if WEAVE_CONFIG_TEST
     ProcessStats(before, after, printStats, NULL);
     PrintFaultInjectionCounters();
@@ -880,10 +888,6 @@ int main(int argc, char *argv[])
     MockTPServer.Shutdown();
     MockSPServer.Shutdown();
     MockDMPublisher.Finalize();
-
-#if WEAVE_CONFIG_TIME
-    MockTimeNode.Shutdown();
-#endif // WEAVE_CONFIG_TIME
 
 #if WEAVE_CONFIG_ENABLE_TUNNELING
     if (tunnelingDeviceRole)

@@ -32,6 +32,7 @@ from happy.Utils import *
 from happy.HappyNode import HappyNode
 from happy.HappyNetwork import HappyNetwork
 from WeaveTest import WeaveTest
+import WeaveUtilities as WeaveUtilities
 
 
 options = {
@@ -212,15 +213,36 @@ class WeaveTime(HappyNode, HappyNetwork, WeaveTest):
             self.skip_coordinator_end = True
 
 
-    def __process_results(self, output):
+    def __process_results(self, logs):
         pass_test = False
+        found_leaks = []
+        parser_errors = []
 
-        for line in output.split("\n"):
+        for line in logs["client_output"].split("\n"):
             if gsync_succeeded_str in line:
                 pass_test = True
                 break
 
+        client_parser_error, client_leak_detected = WeaveUtilities.scan_for_leaks_and_parser_errors(logs["client_output"])
+        if client_parser_error:
+            parser_errors.append("client")
+        if client_leak_detected:
+            found_leaks.append("client")
+
+        if not self.skip_service_end:
+            server_parser_error, server_leak_detected = WeaveUtilities.scan_for_leaks_and_parser_errors(logs["server_output"])
+            if server_parser_error:
+                parser_errors.append("server")
+            if server_leak_detected:
+                found_leaks.append("server")
+
         if not self.skip_coordinator_end:
+            coordinator_parser_error, coordinator_leak_detected = WeaveUtilities.scan_for_leaks_and_parser_errors(logs["coordinator_output"])
+            if coordinator_parser_error:
+                parser_errors.append("coordinator")
+            if coordinator_leak_detected:
+                found_leaks.append("coordinator")
+
             print "weave-time test among server %s (%s), client %s (%s), coordinator %s (%s) with %s mode: " % \
                         (self.server_node_id, self.server_ip,
                          self.client_node_id, self.client_ip,
@@ -231,12 +253,16 @@ class WeaveTime(HappyNode, HappyNetwork, WeaveTest):
                          self.client_node_id, self.client_ip, self.mode)
 
         if self.quiet == False:
+            if parser_errors:
+                print hred("Parser errors on " + str(parser_errors))
+            if found_leaks:
+                print hred("Found leaks on " + str(found_leaks))
             if pass_test:
                 print hgreen("Time sync succeeded")
             else:
                 print hred("Time sync failed")
 
-        return (pass_test, output)
+        return pass_test and not parser_errors and not found_leaks
 
 
     def __start_client_side(self, block_until_sync_succeeds=False):
@@ -373,49 +399,49 @@ class WeaveTime(HappyNode, HappyNetwork, WeaveTest):
         if not self.skip_service_end:
             self.__stop_server_side()
 
-        client_output_value, client_output_data = \
+        client_output_value, client_output_log = \
             self.get_test_output(self.client_node_id, self.client_process_tag, True)
-        client_strace_data = ""
+        client_strace_log = ""
         client_strace_value = 0
         if self.strace:
-            client_strace_value, client_strace_data = \
+            client_strace_value, client_strace_log = \
                 self.get_test_strace(self.client_node_id, self.client_process_tag, True)
 
-        coordinator_strace_data = ""
+        coordinator_strace_log = None
         coordinator_strace_value = 0
         if self.skip_coordinator_end:
-            coordinator_output_data = ""
+            coordinator_output_log = None
             coordinator_output_value = 0
         else:
-            coordinator_output_value, coordinator_output_data = \
+            coordinator_output_value, coordinator_output_log = \
                 self.get_test_output(self.coordinator_node_id, self.coordinator_process_tag, True)
             if self.strace:
-                coordinator_strace_value, coordinator_strace_data = \
+                coordinator_strace_value, coordinator_strace_log = \
                     self.get_test_strace(self.coordinator_node_id, self.coordinator_process_tag, True)
 
-        server_strace_data = ""
+        server_strace_log = None 
         server_strace_value = 0
         if self.skip_service_end:
-            server_output_data = ""
+            server_output_log = None 
             server_output_value = 0
         else:
-            server_output_value, server_output_data = \
+            server_output_value, server_output_log = \
                     self.get_test_output(self.server_node_id, self.server_process_tag, True)
             if self.strace:
-                server_strace_value, server_strace_data = \
+                server_strace_value, server_strace_log = \
                         self.get_test_strace(self.server_node_id, self.server_process_tag, True)
 
-        avg, results = self.__process_results(client_output_data)
-
         data = {}
-        data["client_output"] = client_output_data
-        data["client_strace"] = client_strace_data
-        data["coordinator_output"] = coordinator_output_data
-        data["coordinator_strace"] = coordinator_strace_data
-        data["server_output"] = server_output_data
-        data["server_strace"] = server_strace_data
+        data["client_output"] = client_output_log
+        data["client_strace"] = client_strace_log
+        data["coordinator_output"] = coordinator_output_log
+        data["coordinator_strace"] = coordinator_strace_log
+        data["server_output"] = server_output_log
+        data["server_strace"] = server_strace_log
+
+        passed = self.__process_results(data)
 
         self.logger.debug("[localhost] WeaveTime: Done.")
 
-        return ReturnMsg(avg, data)
+        return ReturnMsg(passed, data)
 

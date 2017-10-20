@@ -137,6 +137,8 @@ WEAVE_ERROR TimeSyncNode::_ShutdownClient()
         ExitNow(err = WEAVE_ERROR_INCORRECT_STATE);
     }
 
+    DisableAutoSync();
+
     (void)Abort();
 
     // unregister message handler
