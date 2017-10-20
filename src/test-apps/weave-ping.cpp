@@ -407,7 +407,7 @@ int main(int argc, char *argv[])
                     // The harness gives enough time to the listening node for the
                     // idle session timer to expire twice and remove idle keys; the harness
                     // needs the node to log something regularly to measure the
-                    // time elapsed by parsing the timestamps, since the tests can 
+                    // time elapsed by parsing the timestamps, since the tests can
                     // be run at faster than real time.
                     // TODO (WEAV-2199) mark this log line as special
                     WeaveLogProgress(Echo, "Listening...");
