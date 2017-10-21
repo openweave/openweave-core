@@ -207,7 +207,7 @@ class WeaveTunnelStart(HappyNode, HappyNetwork, WeaveTest):
 
 
     def __start_tunnel_at_service(self):
-        cmd = self.getWeaveTunnelServicePath()
+        cmd = self.getWeaveTunnelTestServerPath()
         if not cmd:
             return
 
@@ -220,6 +220,9 @@ class WeaveTunnelStart(HappyNode, HappyNetwork, WeaveTest):
         if self.service_faults:
             cmd += " --faults " + self.service_faults
             cmd += " --iterations " + str(self.iterations)
+
+        if self.gateway_faults or self.service_faults:
+            cmd += " --extra-cleanup-time 10000"
 
         cmd += " --debug-resource-usage"
         cmd += " --print-fault-counters"
@@ -307,6 +310,9 @@ class WeaveTunnelStart(HappyNode, HappyNetwork, WeaveTest):
         if self.gateway_faults:
             cmd += " --faults " + self.gateway_faults
             cmd += " --iterations " + str(self.iterations)
+
+        if self.gateway_faults or self.service_faults:
+            cmd += " --extra-cleanup-time 10000"
 
         cmd = self.runAsRoot(cmd)
         self.start_weave_process(self.border_gateway, cmd, self.gateway_process_tag, strace=self.strace, sync_on_output=self.sync_on_gateway_output, env=self.plaid_gateway_env)

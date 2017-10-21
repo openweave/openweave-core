@@ -24,7 +24,10 @@
  *      a border gateway and may perform routing functions
  *      between different border gateways or respond to ping6
  *      over the tunnel.
- *
+ *      Beyond the Tunneling profile, the server also understands
+ *      private test profiles (@see TestWeaveTunnel.h).
+ *      The tunnel client implemented in @see TestWeaveTunnelBR.cpp
+ *      uses the private profiles to test various scenarios.
  */
 
 #define __STDC_FORMAT_MACROS
@@ -41,8 +44,8 @@
 #include <Weave/Support/logging/WeaveLogging.h>
 #include <Weave/Profiles/ProfileCommon.h>
 #include <Weave/Core/WeaveTLV.h>
-#include "mock-tunnel-service.h"
 #include "TestWeaveTunnel.h"
+#include "TestWeaveTunnelServer.h"
 
 #if WEAVE_CONFIG_ENABLE_TUNNELING
 
@@ -72,7 +75,6 @@ WeaveEchoServer gEchoServer;
 
 uint32_t gCurrTestNum = 0;
 bool gReconnectSent = false;
-WeaveConnection *gConn = NULL;
 
 static HelpOptions gHelpOptions(
     TOOL_NAME,
@@ -184,23 +186,28 @@ WeaveTunnelServer::WeaveTunnelServer()
 void WeaveTunnelServer::HandleConnectionReceived(WeaveMessageLayer *msgLayer, WeaveConnection *con)
 {
     char ipAddrStr[64];
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
 
-    gConn = con;
-
-    gConn->PeerAddr.ToString(ipAddrStr, sizeof(ipAddrStr));
+    con->PeerAddr.ToString(ipAddrStr, sizeof(ipAddrStr));
 
     WeaveLogDetail(WeaveTunnel, "Connection received from node (%s)\n", ipAddrStr);
 
-    gConn->OnConnectionClosed = HandleConnectionClosed;
+    con->OnConnectionClosed = HandleConnectionClosed;
+    con->AppState = &gTunServer;
 
-    if (gCurrTestNum == kTestNum_TestTunnelConnectionDownReconnect ||
+    err = gTunServer.mConTable.AddConnection(con);
+
+    if (err != WEAVE_NO_ERROR ||
+        gCurrTestNum == kTestNum_TestTunnelConnectionDownReconnect ||
         gCurrTestNum == kTestNum_TestTunnelResetReconnectBackoffImmediately ||
         gCurrTestNum == kTestNum_TestTunnelResetReconnectBackoffRandomized)
     {
         WeaveLogDetail(WeaveTunnel, "Closing Connection for test %d with node (%s)\n",
                        gCurrTestNum, ipAddrStr);
-        gConn->Close();
-        gConn = NULL;
+
+        gTunServer.mConTable.RemoveConnection(con);
+        con->Close();
+        con = NULL;
     }
 }
 
@@ -268,29 +275,19 @@ WEAVE_ERROR WeaveTunnelServer::Shutdown (void)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
 
-    //Close connection to the Service
-    for (int i = 0; i < SERVICE_ROUTE_TABLE_SIZE; i++)
-    {
-        if (vRouteDB.RouteTable[i].outgoingCon[0] != NULL)
-        {
-            if (vRouteDB.RouteTable[i].outgoingCon[0]->Close() != WEAVE_NO_ERROR)
-            {
-                vRouteDB.RouteTable[i].outgoingCon[0]->Abort();
-            }
-            vRouteDB.RouteTable[i].outgoingCon[0] = NULL;
-        }
+    CloseConnections();
 
-        if (vRouteDB.RouteTable[i].outgoingCon[1] != NULL)
-        {
-            if (vRouteDB.RouteTable[i].outgoingCon[1]->Close() != WEAVE_NO_ERROR)
-            {
-                vRouteDB.RouteTable[i].outgoingCon[1]->Abort();
-            }
-            vRouteDB.RouteTable[i].outgoingCon[1] = NULL;
-        }
-    }
-
-    memset(vRouteDB.RouteTable, 0, sizeof(vRouteDB.RouteTable));
+    ExchangeMgr->UnregisterUnsolicitedMessageHandler(kWeaveProfile_Tunneling,
+                                                   kMsgType_TunnelOpenV2);
+    ExchangeMgr->UnregisterUnsolicitedMessageHandler(kWeaveProfile_Tunneling,
+                                                   kMsgType_TunnelRouteUpdate);
+    ExchangeMgr->UnregisterUnsolicitedMessageHandler(kWeaveProfile_Tunneling,
+                                                   kMsgType_TunnelClose);
+    ExchangeMgr->UnregisterUnsolicitedMessageHandler(kWeaveProfile_Tunneling,
+                                                   kMsgType_TunnelLiveness);
+    ExchangeMgr->UnregisterUnsolicitedMessageHandler(kWeaveProfile_TunnelTest_Start);
+    ExchangeMgr->UnregisterUnsolicitedMessageHandler(kWeaveProfile_TunnelTest_End);
+    ExchangeMgr->UnregisterUnsolicitedMessageHandler(kWeaveProfile_TunnelTest_RequestTunnelConnDrop);
 
     //Tear down the tun endpoint setup
     err = TeardownServiceTunEndPoint();
@@ -486,9 +483,6 @@ void WeaveTunnelServer::StoreGatewayInfoForPriority(WeaveConnection *conn, uint8
     //Set the PeerNodeId in connection object
     vRouteDB.RouteTable[rtIndex].outgoingCon[priorityIndex]->PeerNodeId = msgInfo->SourceNodeId;
     vRouteDB.RouteTable[rtIndex].outgoingCon[priorityIndex]->PeerAddr = pktInfo->SrcAddress;
-
-    //Set the AppState in the connection object for data path
-    vRouteDB.RouteTable[rtIndex].outgoingCon[priorityIndex]->AppState = this;
 }
 
 /**
@@ -593,6 +587,24 @@ exit:
 
 }
 
+void WeaveTunnelServer::CloseConnections(void)
+{
+    WeaveConnection *con;
+
+    printf("closing connections\n");
+
+    for (int i = 0; i < CONNECTION_TABLE_SIZE; i++)
+    {
+        con = mConTable.mTable[i].mConnection;
+        if (con)
+        {
+            vRouteDB.RemoveRouteEntryByConnection(con);
+            con->Close();
+            mConTable.mTable[i].mConnection = NULL;
+        }
+    }
+}
+
 void WeaveTunnelServer::HandleTunnelControlMsg (ExchangeContext *ec, const IPPacketInfo *pktInfo,
                                                 const WeaveMessageInfo *msgInfo, uint32_t profileId,
                                                 uint8_t msgType, PacketBuffer *payload)
@@ -610,6 +622,7 @@ void WeaveTunnelServer::HandleTunnelControlMsg (ExchangeContext *ec, const IPPac
     uint16_t livenessTimeout;
     bool isRoutingRestricted = false;
     ExchangeContext *exchangeCtx = NULL;
+    WeaveConnection *con = ec->Con;
 
     VerifyOrExit(tunServer, err = WEAVE_ERROR_INVALID_ARGUMENT);
 
@@ -621,12 +634,8 @@ void WeaveTunnelServer::HandleTunnelControlMsg (ExchangeContext *ec, const IPPac
         WeaveLogDetail(WeaveTunnel, "Received message for starting test %d\n", gCurrTestNum);
         if (gCurrTestNum == kTestNum_TestTunnelConnectionDownReconnect)
         {
-            if (gConn)
-            {
-                WeaveLogDetail(WeaveTunnel, "TestTunnelConnectionDownReconnect: the connection was already open\n");
-                gConn->Close();
-                gConn = NULL;
-            }
+            WeaveLogDetail(WeaveTunnel, "TestTunnelConnectionDownReconnect: closing connections if any is already open\n");
+            gTunServer.CloseConnections();
         }
     }
     else if (profileId == kWeaveProfile_TunnelTest_End)
@@ -639,14 +648,8 @@ void WeaveTunnelServer::HandleTunnelControlMsg (ExchangeContext *ec, const IPPac
         if (gCurrTestNum == kTestNum_TestQueueingOfTunneledPackets)
         {
             // Drop the connection
+            gTunServer.CloseConnections();
 
-            gConn->Close();
-
-            //Remove route table entry
-
-            tunServer->vRouteDB.RemoveRouteEntryByConnection(gConn);
-
-            gConn = NULL;
         }
     }
     else if (profileId == kWeaveProfile_Tunneling)
@@ -868,44 +871,11 @@ void WeaveTunnelServer::HandleConnectionClosed (WeaveConnection *con, WEAVE_ERRO
     {
         //Remove route table entry
         tServer->vRouteDB.RemoveRouteEntryByConnection(con);
+
+        tServer->mConTable.RemoveConnection(con);
     }
 
     con->Close();
-    if (gConn == con)
-    {
-        gConn = NULL;
-    }
-
-}
-
-void WeaveTunnelServer::HandleConnectionComplete (WeaveConnection *con, WEAVE_ERROR conErr)
-{
-    char ipAddrStr[64];
-    WeaveTunnelServer *tServer = static_cast<WeaveTunnelServer *>(con->AppState);
-
-    con->PeerAddr.ToString(ipAddrStr, sizeof(ipAddrStr));
-
-    SuccessOrExit(conErr);
-
-    WeaveLogDetail(WeaveTunnel, "Connection established with node %" PRIx64 " (%s)\n",
-                     con->PeerNodeId, ipAddrStr);
-
-
-    con->OnConnectionClosed = HandleConnectionClosed;
-
-exit:
-
-    if (conErr != WEAVE_NO_ERROR)
-    {
-        WeaveLogError(WeaveTunnel, "Connection FAILED with node (%s): %ld\n",
-                      ipAddrStr, (long)conErr);
-        //Remove route table entry
-        tServer->vRouteDB.RemoveRouteEntryByConnection(con);
-
-        con->Close();
-    }
-
-    return;
 }
 
 /* Create a new Tunnel endpoint */
@@ -1163,6 +1133,50 @@ void WeaveTunnelServer::HandleSecureSessionError (WeaveSecurityManager *sm, Weav
                ipAddrStr, ErrorStr(localErr));
 }
 
+ConnectionTable::ConnectionTable(void)
+{
+    memset(&mTable, 0, sizeof(mTable));
+}
+
+WEAVE_ERROR ConnectionTable::AddConnection(WeaveConnection *aCon)
+{
+    size_t i;
+    size_t freeEntry = CONNECTION_TABLE_SIZE;
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
+
+    for (i = 0; i < CONNECTION_TABLE_SIZE; i++)
+    {
+        // If the entry exists already, exit and return success
+        VerifyOrExit(mTable[i].mConnection != aCon, /* no-op */);
+
+        if (freeEntry == CONNECTION_TABLE_SIZE &&
+                mTable[i].mConnection == NULL)
+        {
+            freeEntry = i;
+        }
+    }
+
+    VerifyOrExit(freeEntry < CONNECTION_TABLE_SIZE, err = WEAVE_ERROR_NO_MEMORY);
+
+    mTable[freeEntry].mConnection = aCon;
+
+exit:
+    return err;
+}
+
+void ConnectionTable::RemoveConnection(WeaveConnection *aCon)
+{
+    size_t i;
+
+    for (i = 0; i < CONNECTION_TABLE_SIZE; i++)
+    {
+        if (mTable[i].mConnection == aCon)
+        {
+            memset(&(mTable[i]), 0, sizeof(mTable[i]));
+            break;
+        }
+    }
+}
 #endif //WEAVE_CONFIG_ENABLE_TUNNELING
 
 int main(int argc, char *argv[])
@@ -1170,10 +1184,14 @@ int main(int argc, char *argv[])
 
 #if WEAVE_CONFIG_ENABLE_TUNNELING
     WEAVE_ERROR err;
+    nl::Weave::System::Stats::Snapshot before;
+    nl::Weave::System::Stats::Snapshot after;
+    const bool printStats = true;
 
     gWeaveNodeOptions.LocalNodeId = DEFAULT_TFE_NODE_ID;
 
-    SetSIGUSR1Handler();
+    SetupFaultInjectionContext(argc, argv);
+    SetSignalHandler(DoneOnHandleSIGUSR1);
 
     if (!ParseArgsFromEnvVar(TOOL_NAME, TOOL_OPTIONS_ENV_VAR_NAME, gToolOptionSets, NULL, true) ||
         !ParseArgs(TOOL_NAME, argc, argv, gToolOptionSets))
@@ -1203,6 +1221,8 @@ int main(int argc, char *argv[])
     WeaveLogDetail(WeaveTunnel, "Subnet Number: %X\n", FabricState.DefaultSubnet);
     WeaveLogDetail(WeaveTunnel, "Node Id: %" PRIX64 "\n", FabricState.LocalNodeId);
 
+    nl::Weave::Stats::UpdateSnapshot(before);
+
     err = gTunServer.Init(&ExchangeMgr);
     FAIL_ERROR(err, "TunnelServer.Init failed");
 
@@ -1217,6 +1237,9 @@ int main(int argc, char *argv[])
     }
 
     gTunServer.Shutdown();
+
+    ProcessStats(before, after, printStats, NULL);
+    PrintFaultInjectionCounters();
 
     ShutdownWeaveStack();
     ShutdownNetwork();

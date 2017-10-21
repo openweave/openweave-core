@@ -27,8 +27,8 @@
  *
  */
 
-#ifndef WEAVE_TUNNEL_SERVICE_H_
-#define WEAVE_TUNNEL_SERVICE_H_
+#ifndef TEST_WEAVE_TUNNEL_SERVER_H_
+#define TEST_WEAVE_TUNNEL_SERVER_H_
 
 #include <Weave/Support/NLDLLUtil.h>
 #include <Weave/Core/WeaveCore.h>
@@ -50,12 +50,34 @@
 #if WEAVE_CONFIG_ENABLE_TUNNELING
 
 #define SERVICE_ROUTE_TABLE_SIZE  (64)
+#define CONNECTION_TABLE_SIZE  (16)
 
 using namespace ::nl::Inet;
 using namespace ::nl::Weave;
 using namespace nl::Weave::Profiles::WeaveTunnel;
 
 class WeaveTunnelServer;
+
+/**
+ * Table used by the service to store connection pointers.
+ */
+class ConnectionTable
+{
+
+public:
+
+    ConnectionTable(void);
+
+    WEAVE_ERROR AddConnection(WeaveConnection *aCon);
+    void RemoveConnection(WeaveConnection *aCon);
+
+    class ConnectionEntry
+    {
+        public:
+            WeaveConnection *mConnection;
+    };
+    ConnectionEntry  mTable[CONNECTION_TABLE_SIZE];
+};
 
 //Virtual Route Table used by the Service to route IPv6 packets between various
 //border gateways and mobile devices.
@@ -168,7 +190,6 @@ private:
                                        const WeaveMessageInfo *msgInfo, uint32_t profileId,
                                        uint8_t msgType, PacketBuffer *payload);
 
-    static void HandleConnectionComplete(WeaveConnection *con, WEAVE_ERROR conErr);
     static void HandleConnectionClosed(WeaveConnection *con, WEAVE_ERROR conErr);
 
 
@@ -189,6 +210,8 @@ private:
 
     WeaveConnection * GetOutgoingConn(uint8_t index);
 
+    void CloseConnections(void);
+
     WEAVE_ERROR SendStatusReport(ExchangeContext *ec, uint32_t profileId, uint32_t tunStatusCode);
 
     WEAVE_ERROR CreateTunnelTLVDataForRestrictedRouting(ReferencedTLVData & tunTLVData);
@@ -198,7 +221,9 @@ private:
     InetLayer *mInet;                       // [READ ONLY] Associated InetLayer object
 
     VirtualRouteTable vRouteDB;
+
+    ConnectionTable mConTable;
 };
 
 #endif // WEAVE_CONFIG_ENABLE_TUNNELING
-#endif // WEAVE_TUNNEL_SERVICE_H
+#endif // TEST_WEAVE_TUNNEL_SERVER_H_

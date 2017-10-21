@@ -80,7 +80,7 @@ class test_weave_tunnel_faults(unittest.TestCase):
         # test not consistent with an execution at realtime speed.
         # The number below is determined by looking at the logs of a real-time run.
         plaid_opts = Plaid.default_options()
-        plaid_opts["max_time_at_high_speed_secs"] = 90
+        plaid_opts["max_time_at_high_speed_secs"] = 10
         plaid_opts['num_clients'] = 3
         plaid_opts['strace'] = self.show_strace
         self.plaid = Plaid.Plaid(plaid_opts)
@@ -108,6 +108,7 @@ class test_weave_tunnel_faults(unittest.TestCase):
 
         if self.use_plaid:
             self.__start_plaid_server()
+
 
         test_tag = "_HAPPY_SEQUENCE"
 

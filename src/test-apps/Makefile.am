@@ -66,9 +66,9 @@ noinst_HEADERS                                 = \
     TestProfile.h                                \
     TestWRMP.h                                   \
     TestWeaveTunnel.h                            \
+    TestWeaveTunnelServer.h                      \
     ToolCommon.h                                 \
     TestWeaveCertData.h                          \
-    mock-tunnel-service.h                        \
     nlweavebdxclient.h                           \
     nlweavebdxclient-development.h               \
     nlweavebdxserver-development.h               \
@@ -435,7 +435,6 @@ network_test_programs                          = \
     TestWdmNext                                  \
     TestDNSResolution                            \
     mock-device                                  \
-    mock-tunnel-service                          \
     mock-weave-bg                                \
     wdmtest                                      \
     weave-bdx-client-development                 \
@@ -1341,10 +1340,6 @@ mock_device_LDADD                       +=  @GLIB_LIBS@ @DBUS_LIBS@ -ldl -lrt
 endif
 
 mock_device_LDFLAGS                      = $(AM_CPPFLAGS)
-
-mock_tunnel_service_SOURCES              = mock-tunnel-service.cpp
-mock_tunnel_service_LDFLAGS              = $(AM_CPPFLAGS)
-mock_tunnel_service_LDADD                = libWeaveTestCommon.a $(COMMON_LDADD) $(TEST_PLATFORM_LDADD)
 
 mock_weave_bg_SOURCES                    = mock-weave-bg.cpp
 mock_weave_bg_LDFLAGS                    = $(AM_CPPFLAGS)

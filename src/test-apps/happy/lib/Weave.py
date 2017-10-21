@@ -172,11 +172,6 @@ class Weave(WeaveState):
         cmd_path = self.__get_cmd_path("weave-swu-client")
         return cmd_path
 
-    def getWeaveTunnelServicePath(self):
-        self.__check_weave_path()
-        cmd_path = self.__get_cmd_path("mock-tunnel-service")
-        return cmd_path
-
     def getWeaveTunnelBorderGatewayPath(self):
         self.__check_weave_path()
         cmd_path = self.__get_cmd_path("mock-weave-bg")

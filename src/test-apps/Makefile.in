@@ -697,7 +697,6 @@ am__installdirs = "$(DESTDIR)$(libexecdir)"
 @WEAVE_BUILD_TESTS_TRUE@	TestWdmNext$(EXEEXT) \
 @WEAVE_BUILD_TESTS_TRUE@	TestDNSResolution$(EXEEXT) \
 @WEAVE_BUILD_TESTS_TRUE@	mock-device$(EXEEXT) \
-@WEAVE_BUILD_TESTS_TRUE@	mock-tunnel-service$(EXEEXT) \
 @WEAVE_BUILD_TESTS_TRUE@	mock-weave-bg$(EXEEXT) \
 @WEAVE_BUILD_TESTS_TRUE@	wdmtest$(EXEEXT) \
 @WEAVE_BUILD_TESTS_TRUE@	weave-bdx-client-development$(EXEEXT) \
@@ -1424,18 +1423,6 @@ mock_device_OBJECTS = $(am_mock_device_OBJECTS)
 mock_device_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) \
 	$(LIBTOOLFLAGS) --mode=link $(CXXLD) $(AM_CXXFLAGS) \
 	$(CXXFLAGS) $(mock_device_LDFLAGS) $(LDFLAGS) -o $@
-am__mock_tunnel_service_SOURCES_DIST = mock-tunnel-service.cpp
-@WEAVE_BUILD_TESTS_TRUE@am_mock_tunnel_service_OBJECTS =  \
-@WEAVE_BUILD_TESTS_TRUE@	mock-tunnel-service.$(OBJEXT)
-mock_tunnel_service_OBJECTS = $(am_mock_tunnel_service_OBJECTS)
-@WEAVE_BUILD_TESTS_TRUE@mock_tunnel_service_DEPENDENCIES =  \
-@WEAVE_BUILD_TESTS_TRUE@	libWeaveTestCommon.a \
-@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_6) \
-@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_7)
-mock_tunnel_service_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
-	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CXXLD) \
-	$(AM_CXXFLAGS) $(CXXFLAGS) $(mock_tunnel_service_LDFLAGS) \
-	$(LDFLAGS) -o $@
 am__mock_weave_bg_SOURCES_DIST = mock-weave-bg.cpp
 @WEAVE_BUILD_TESTS_TRUE@am_mock_weave_bg_OBJECTS =  \
 @WEAVE_BUILD_TESTS_TRUE@	mock-weave-bg.$(OBJEXT)
@@ -1710,8 +1697,8 @@ SOURCES = $(libMockBleApplicationDelegate_a_SOURCES) \
 	$(TestWeaveProvBundle_SOURCES) $(TestWeaveSignature_SOURCES) \
 	$(TestWeaveTunnelBR_SOURCES) $(TestWeaveTunnelServer_SOURCES) \
 	$(infratest_SOURCES) $(mock_device_SOURCES) \
-	$(mock_tunnel_service_SOURCES) $(mock_weave_bg_SOURCES) \
-	$(wdmtest_SOURCES) $(weave_bdx_client_development_SOURCES) \
+	$(mock_weave_bg_SOURCES) $(wdmtest_SOURCES) \
+	$(weave_bdx_client_development_SOURCES) \
 	$(weave_bdx_client_v0_SOURCES) \
 	$(weave_bdx_server_development_SOURCES) \
 	$(weave_bdx_server_v0_SOURCES) \
@@ -1779,7 +1766,6 @@ DIST_SOURCES = $(am__libMockBleApplicationDelegate_a_SOURCES_DIST) \
 	$(am__TestWeaveTunnelBR_SOURCES_DIST) \
 	$(am__TestWeaveTunnelServer_SOURCES_DIST) \
 	$(am__infratest_SOURCES_DIST) $(am__mock_device_SOURCES_DIST) \
-	$(am__mock_tunnel_service_SOURCES_DIST) \
 	$(am__mock_weave_bg_SOURCES_DIST) $(am__wdmtest_SOURCES_DIST) \
 	$(am__weave_bdx_client_development_SOURCES_DIST) \
 	$(am__weave_bdx_client_v0_SOURCES_DIST) \
@@ -1813,8 +1799,8 @@ am__noinst_HEADERS_DIST = CASEOptions.h KeyExportOptions.h \
 	TestGroupKeyStore.h TestDRBG.h \
 	TestPersistedStorageImplementation.h \
 	TestEventLoggingSchemaExamples.h TestProfile.h TestWRMP.h \
-	TestWeaveTunnel.h ToolCommon.h TestWeaveCertData.h \
-	mock-tunnel-service.h nlweavebdxclient.h \
+	TestWeaveTunnel.h TestWeaveTunnelServer.h ToolCommon.h \
+	TestWeaveCertData.h nlweavebdxclient.h \
 	nlweavebdxclient-development.h nlweavebdxserver-development.h \
 	nlweaveswuclient.h weave-bdx-common-development.h \
 	MockIAServer.h MockBleApplicationDelegate.h \
@@ -2606,8 +2592,8 @@ noinst_HEADERS = CASEOptions.h KeyExportOptions.h ToolCommonOptions.h \
 	TestGroupKeyStore.h TestDRBG.h \
 	TestPersistedStorageImplementation.h \
 	TestEventLoggingSchemaExamples.h TestProfile.h TestWRMP.h \
-	TestWeaveTunnel.h ToolCommon.h TestWeaveCertData.h \
-	mock-tunnel-service.h nlweavebdxclient.h \
+	TestWeaveTunnel.h TestWeaveTunnelServer.h ToolCommon.h \
+	TestWeaveCertData.h nlweavebdxclient.h \
 	nlweavebdxclient-development.h nlweavebdxserver-development.h \
 	nlweaveswuclient.h weave-bdx-common-development.h \
 	MockIAServer.h $(NULL) $(am__append_1)
@@ -2826,7 +2812,6 @@ EXTRA_DIST = \
 @WEAVE_BUILD_TESTS_TRUE@    TestWdmNext                                  \
 @WEAVE_BUILD_TESTS_TRUE@    TestDNSResolution                            \
 @WEAVE_BUILD_TESTS_TRUE@    mock-device                                  \
-@WEAVE_BUILD_TESTS_TRUE@    mock-tunnel-service                          \
 @WEAVE_BUILD_TESTS_TRUE@    mock-weave-bg                                \
 @WEAVE_BUILD_TESTS_TRUE@    wdmtest                                      \
 @WEAVE_BUILD_TESTS_TRUE@    weave-bdx-client-development                 \
@@ -3114,9 +3099,6 @@ EXTRA_DIST = \
 @WEAVE_BUILD_TESTS_TRUE@	$(COMMON_LDADD) $(TEST_PLATFORM_LDADD) \
 @WEAVE_BUILD_TESTS_TRUE@	$(am__append_38)
 @WEAVE_BUILD_TESTS_TRUE@mock_device_LDFLAGS = $(AM_CPPFLAGS)
-@WEAVE_BUILD_TESTS_TRUE@mock_tunnel_service_SOURCES = mock-tunnel-service.cpp
-@WEAVE_BUILD_TESTS_TRUE@mock_tunnel_service_LDFLAGS = $(AM_CPPFLAGS)
-@WEAVE_BUILD_TESTS_TRUE@mock_tunnel_service_LDADD = libWeaveTestCommon.a $(COMMON_LDADD) $(TEST_PLATFORM_LDADD)
 @WEAVE_BUILD_TESTS_TRUE@mock_weave_bg_SOURCES = mock-weave-bg.cpp
 @WEAVE_BUILD_TESTS_TRUE@mock_weave_bg_LDFLAGS = $(AM_CPPFLAGS)
 @WEAVE_BUILD_TESTS_TRUE@mock_weave_bg_LDADD = libWeaveTestCommon.a $(COMMON_LDADD) $(TEST_PLATFORM_LDADD)
@@ -3719,10 +3701,6 @@ mock-device$(EXEEXT): $(mock_device_OBJECTS) $(mock_device_DEPENDENCIES) $(EXTRA
 	@rm -f mock-device$(EXEEXT)
 	$(AM_V_CXXLD)$(mock_device_LINK) $(mock_device_OBJECTS) $(mock_device_LDADD) $(LIBS)
 
-mock-tunnel-service$(EXEEXT): $(mock_tunnel_service_OBJECTS) $(mock_tunnel_service_DEPENDENCIES) $(EXTRA_mock_tunnel_service_DEPENDENCIES) 
-	@rm -f mock-tunnel-service$(EXEEXT)
-	$(AM_V_CXXLD)$(mock_tunnel_service_LINK) $(mock_tunnel_service_OBJECTS) $(mock_tunnel_service_LDADD) $(LIBS)
-
 mock-weave-bg$(EXEEXT): $(mock_weave_bg_OBJECTS) $(mock_weave_bg_DEPENDENCIES) $(EXTRA_mock_weave_bg_DEPENDENCIES) 
 	@rm -f mock-weave-bg$(EXEEXT)
 	$(AM_V_CXXLD)$(mock_weave_bg_LINK) $(mock_weave_bg_OBJECTS) $(mock_weave_bg_LDADD) $(LIBS)
@@ -3892,7 +3870,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ToolCommon.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ToolCommonOptions.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/infratest.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mock-tunnel-service.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mock-weave-bg.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mock_device-MockDCLPServer.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mock_device-MockDCServer.Po@am__quote@
@@ -7609,11 +7586,11 @@ distclean-generic:
 maintainer-clean-generic:
 	@echo "This command is intended for maintainers to use"
 	@echo "it deletes files that may require special tools to rebuild."
-@WEAVE_BUILD_TESTS_FALSE@install-exec-local:
-@WEAVE_BUILD_TESTS_FALSE@uninstall-local:
 @WEAVE_BUILD_COVERAGE_FALSE@clean-local:
 @WEAVE_BUILD_COVERAGE_REPORTS_FALSE@clean-local:
 @WEAVE_BUILD_TESTS_FALSE@clean-local:
+@WEAVE_BUILD_TESTS_FALSE@uninstall-local:
+@WEAVE_BUILD_TESTS_FALSE@install-exec-local:
 clean: clean-am
 
 clean-am: clean-checkPROGRAMS clean-generic clean-libexecPROGRAMS \
