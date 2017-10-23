@@ -277,7 +277,7 @@ static const GDBusMethodTable weaveAdvertisingMethods[] = {
 static const GDBusPropertyTable weaveAdvertisingProperties[] = { { "Type", "s", WeaveAdvertisingGetType },
                                                                  { "ServiceUUIDs", "as", GetWeaveUUIDs, NULL, NULL },
                                                                  { "LocalName", "s", WeaveGetName, NULL, WeaveNameCheck },
-                                                                 { "ServiceData", "a {sv}", GetWeaveServiceData, NULL,
+                                                                 { "ServiceData", "a{sv}", GetWeaveServiceData, NULL,
                                                                    WeaveServiceDataCheck },
                                                                  { } };
 
@@ -1095,13 +1095,13 @@ static const GDBusPropertyTable WeaveCharacteristicProperties[] = {
 };
 
 static const GDBusMethodTable weaveCharacteristicMethods[] = {
-    { "ReadValue", CharacteristicRead, G_DBUS_METHOD_FLAG_ASYNC, 0, GDBUS_ARGS( { "options", "a {sv}" }),
+    { "ReadValue", CharacteristicRead, G_DBUS_METHOD_FLAG_ASYNC, 0, GDBUS_ARGS( { "options", "a{sv}" }),
       GDBUS_ARGS( { "value", "ay" }) },
 #if BLE_CONFIG_BLUEZ_MTU_FEATURE
-    { "AcquireWrite", CharacteristicAcquireWrite, G_DBUS_METHOD_FLAG_ASYNC, 0, GDBUS_ARGS( { "options", "a {sv}" }), NULL },
-    { "AcquireNotify", CharacteristicAcquireNotify, G_DBUS_METHOD_FLAG_ASYNC, 0, GDBUS_ARGS( { "options", "a {sv}" }), NULL },
+    { "AcquireWrite", CharacteristicAcquireWrite, G_DBUS_METHOD_FLAG_ASYNC, 0, GDBUS_ARGS( { "options", "a{sv}" }), NULL },
+    { "AcquireNotify", CharacteristicAcquireNotify, G_DBUS_METHOD_FLAG_ASYNC, 0, GDBUS_ARGS( { "options", "a{sv}" }), NULL },
 #endif // BLE_CONFIG_BLUEZ_MTU_FEATURE
-    { "WriteValue", CharacteristicWrite, G_DBUS_METHOD_FLAG_ASYNC, 0, GDBUS_ARGS( { "value", "ay" }, { "options", "a {sv}" }),
+    { "WriteValue", CharacteristicWrite, G_DBUS_METHOD_FLAG_ASYNC, 0, GDBUS_ARGS( { "value", "ay" }, { "options", "a{sv}" }),
       NULL },
     { "StartNotify", CharacteristicStartNotify, G_DBUS_METHOD_FLAG_ASYNC, 0, NULL, NULL },
     { "StopNotify", CharacteristicStopNotify, G_DBUS_METHOD_FLAG_ASYNC, 0, NULL, NULL },
