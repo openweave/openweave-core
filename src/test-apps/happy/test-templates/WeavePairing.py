@@ -255,7 +255,7 @@ class WeavePairing(HappyNode, HappyNetwork, WeaveTest):
         self.start_weave_process(self.server_node_id, cmd, self.server_process_tag, sync_on_output = self.ready_to_service_events_str)
 
     def __start_mobile_side(self, device_info, mobile_process_tag):
-        cmd = "/usr/bin/env python " + os.path.dirname(os.path.realpath(__file__)) + "/WeaveDeviceManager.py"
+        cmd = "/usr/bin/env python " + os.path.dirname(os.path.realpath(__file__)) + "/../lib/WeaveDeviceManager.py"
         if not cmd:
             return
 

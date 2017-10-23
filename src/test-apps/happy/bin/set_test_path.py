@@ -40,7 +40,7 @@ wrapper_home = '/'.join(str(x) for x in path_parts[0:happy_idx+1])
 
 wrapper_dirs = [ ".",
                  wrapper_home,
-                 wrapper_home + "/wrappers",
+                 wrapper_home + "/test-templates",
                  wrapper_home + "/lib",
                  wrapper_home + "/bin" ]
 
