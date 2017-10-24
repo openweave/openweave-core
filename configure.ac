@@ -841,7 +841,7 @@ if test "${with_happy}" != "no"; then
     fi
 fi
 if test "${with_happy}" = "yes"; then
-    HAPPY_MINIMUM_VERSION="1.1.35"
+    HAPPY_MINIMUM_VERSION="1.1.36"
     happy_version=`PYTHONPATH=${happy_path}:${PYTHONPATH} python -c 'import happy; print happy.__version__ if "__version__" in dir(happy) else "0.0.0"'`
     AX_COMPARE_VERSION([${HAPPY_MINIMUM_VERSION}],[gt],[${happy_version}],[AC_MSG_ERROR(["The Nest Labs network functional test framework (Happy) is installed with version ${happy_version}; however, Weave test apps require at least version ${HAPPY_MINIMUM_VERSION}."])],[])
 fi
