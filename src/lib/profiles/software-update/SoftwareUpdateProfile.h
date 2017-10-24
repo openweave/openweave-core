@@ -261,7 +261,7 @@ namespace SoftwareUpdate {
   /*
    * an auxiliary class that represents a product specification, which
    * for our purposes will consist of:
-   * - a 16-bit vendor identifer
+   * - a 16-bit vendor identifier
    * - a 16-bit product identifier
    * - a 16-bit porduct revision number
    */

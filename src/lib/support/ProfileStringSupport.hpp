@@ -64,11 +64,11 @@ typedef const char * (*MessageNameFunct)(uint32_t inProfileId, uint8_t inMsgType
  *  @brief
  *    Typedef for a callback function that returns a human-readable
  *    NULL-terminated C string describing the profile with the
- *    specified profile identifer.
+ *    specified profile identifier.
  *
  *  This callback, when registered, is invoked when a human-readable
  *  NULL-terminated C string is needed to describe the profile with
- *  the specified profile identifer.
+ *  the specified profile identifier.
  *
  *  @param[in]  inProfileId  The profile identifier for which a human-readable
  *                           descriptive string is sought.
