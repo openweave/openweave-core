@@ -29,6 +29,7 @@
 
 import getopt
 import os
+import set_test_path
 from happy.Utils import *
 import happy.HappyTopologyMgr
 import lib.WeaveTopologyMgr
