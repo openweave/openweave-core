@@ -364,6 +364,9 @@ class CoreBluetoothManager(WeaveBleBase):
         return None
 
     def Usage(self, cmd):
+        if cmd == None:
+            return
+
         line = "USAGE: "
 
         if cmd == "scan":
@@ -373,34 +376,36 @@ class CoreBluetoothManager(WeaveBleBase):
 
         self.logger.info(line)
 
-    def ParseInputLine(self, line, cmd):
-        if cmd == "scan" or cmd == "scan-connect":
-            args = shlex.split(line)
+    def ParseInputLine(self, line, cmd=None):
+        args = shlex.split(line)
+        optParser = OptionParser(usage=optparse.SUPPRESS_USAGE)
 
-            optParser = OptionParser(usage=optparse.SUPPRESS_USAGE)
+        if cmd == "scan" or cmd == "scan-connect":
             optParser.add_option("-t", "--timeout", action="store", dest="timeout", type="float", default=10.0)
             optParser.add_option("-q", "--quiet", action="store_true", dest="quiet")
-            try:
-                (options, remainingArgs) = optParser.parse_args(args)
-            except SystemExit:
-                self.Usage(cmd)
-                return None
 
-            if len(remainingArgs) > 1:
-                self.Usage(cmd)
-                return None
+        try:
+            (options, remainingArgs) = optParser.parse_args(args)
+        except SystemExit:
+            self.Usage(cmd)
+            return None
 
-            name = None
+        if cmd == None:
+            return remainingArgs
 
-            if len(remainingArgs):
-                name = str(remainingArgs[0])
-            elif cmd == "scan-connect":
-                self.Usage(cmd)
-                return None
+        if len(remainingArgs) > 1:
+            self.Usage(cmd)
+            return None
 
-            return (options.timeout, options.quiet, name)
+        name = None
 
-        return None
+        if len(remainingArgs):
+            name = str(remainingArgs[0])
+        elif cmd == "scan-connect":
+            self.Usage(cmd)
+            return None
+
+        return (options.timeout, options.quiet, name)
 
     def scan(self, line):
         """ API to initiatae BLE scanning for -t user_timeout seconds."""
@@ -562,7 +567,7 @@ class CoreBluetoothManager(WeaveBleBase):
             self.logger.debug("current logging level is debug")
         else:
             self.logger.setLevel(logging.INFO)
-            self.logger.debug("current logging level is info")
+            self.logger.info("current logging level is info")
         return True
 
     def CloseBle(self, connObj):
