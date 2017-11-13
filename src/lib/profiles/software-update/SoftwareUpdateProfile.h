@@ -321,7 +321,7 @@ namespace SoftwareUpdate {
    * | <integrity specification> (optional) | <update scheme> (optional) |
    * | <update options> (optional) |
    *
-   * where all the the fields following the status report field are optional and
+   * where all the fields following the status report field are optional and
    * have values of significance only if the status report denotes success.
    *
    * the format of the (optional) update options field is as follows:

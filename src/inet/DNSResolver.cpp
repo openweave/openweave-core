@@ -210,7 +210,7 @@ INET_ERROR DNSResolver::Cancel()
 
     // NOTE: LwIP does not support canceling DNS requests that are in progress.  As a consequence,
     // we can't release the DNSResolver object until LwIP calls us back (because LwIP retains a
-    // pointer to the the DNSResolver object while the request is active).  However, now that the
+    // pointer to the DNSResolver object while the request is active).  However, now that the
     // application has called Cancel() we have to make sure to NOT call their OnComplete function
     // when the request completes.
     //

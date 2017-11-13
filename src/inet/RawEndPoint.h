@@ -231,7 +231,7 @@ public:
      *  memory pool.
      *
      *  On LwIP systems, an event handler is dispatched to release the object
-     *  within the context of the the LwIP thread. This method must not be
+     *  within the context of the LwIP thread. This method must not be
      *  called with the LwIP stack lock already acquired.
      */
     void Free(void);

@@ -79,7 +79,7 @@ enum
 
 /*
  * this is a special method that looks up the requested failure mode
- * based on the the scheme outlined above where failures are called
+ * based on the scheme outlined above where failures are called
  * for by invoking instances of a "bogus" profile on view requests.
  */
 

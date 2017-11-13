@@ -285,7 +285,7 @@ static bool ShouldPerformAction(ActionType inAction, FlagsType inNecessarySystem
  *    This module makes requests to perform actions via platform specific API's.
  *    The API's are required to report the kPlatformResultSuccess|kPlatformResultFailure|kPlatformResultInProgress
  *    result of that action request.  This function records that result and returns
- *    true if the the result is in-progress and further actions should be delayed.
+ *    true if the result is in-progress and further actions should be delayed.
  *
  *  @param[in] inResult         The platform API result.
  *

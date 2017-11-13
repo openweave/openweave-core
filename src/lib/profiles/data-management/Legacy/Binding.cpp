@@ -293,7 +293,7 @@ WEAVE_ERROR Binding::Init(const uint64_t &aPeerNodeId, uint8_t aTransport)
  *  use (and complete) the binding.
  *
  *  @param [in]     aServiceEpt     A reference to the 64-bit
- *                                  identifier for the the Weave
+ *                                  identifier for the Weave
  *                                  Service endpoint of interest.
  *
  *  @param [in]     aServiceMgr     A pointer to the service manager
@@ -781,7 +781,7 @@ void Binding::IncompleteIndication(StatusReport &aReport)
  *  @brief
  *    Produce an ExchangeContext object from a Binding.
  *
- *  @param [in]     aExchangeMgr        A pointer to the the exchange
+ *  @param [in]     aExchangeMgr        A pointer to the exchange
  *                                      manager from which to request
  *                                      a context.
  *

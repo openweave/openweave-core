@@ -65,7 +65,7 @@ def MakeULAGlobalId(macAddr, timeStamp=datetime.utcnow()):
         # Convert the time stamp to a TimeDelta since the NTP epoch.
         timeStamp = timeStamp - datetime(1900, 1, 1)
 
-        # Convert the the TimeDelta to integral and fractional seconds in 64-bit NTP format.
+        # Convert the TimeDelta to integral and fractional seconds in 64-bit NTP format.
         timeStampSecs = timeStamp.days * 86400 + timeStamp.seconds
         timeStampFractSecs = int(timeStamp.microseconds * (2**32) // 1000000)
 

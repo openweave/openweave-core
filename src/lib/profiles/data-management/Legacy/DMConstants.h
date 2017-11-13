@@ -335,7 +335,7 @@ namespace WeaveMakeManagedNamespaceIdentifier(DataManagement, kWeaveManagedNames
 
         /**
          *  This status code means the requested mode of
-         *  subscription is not supported by the the receiving device.
+         *  subscription is not supported by the receiving device.
          */
         kStatus_UnsupportedSubscriptionMode           = 0x0018,
     };
