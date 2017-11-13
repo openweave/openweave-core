@@ -3718,7 +3718,7 @@ void WeaveDeviceManager::HandleSessionError(WeaveSecurityManager *sm, WeaveConne
     }
 
     // If the device returned a Common:Busy response, it likely means it's in a state where it can't perform
-    // the crypto operations necessary to initiate a new session (e.g. because its busy establishing a secure
+    // the crypto operations necessary to initiate a new session (e.g. because it's busy establishing a secure
     // session with the service).  In this situation, we wait a little bit and retry the operation, but
     // only for a limited number of times.
     if (localErr == WEAVE_ERROR_STATUS_REPORT_RECEIVED && statusReport != NULL &&

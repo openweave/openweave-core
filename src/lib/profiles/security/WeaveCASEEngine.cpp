@@ -830,7 +830,7 @@ WEAVE_ERROR WeaveCASEEngine::DecodeCertificateInfo(BeginSessionMessageBase& msg,
         // Skip the TrustAnchors element if present.  This represents information an initiator provides to the
         // responder about what certificates it trusts, allowing the responder to select an appropriate entity
         // certificate to respond with. This code assumes that the local node only has a single entity certificate,
-        // and thus its that or nothing.
+        // and thus it's that or nothing.
         if (err == WEAVE_NO_ERROR && reader.GetTag() == ContextTag(kTag_CASECertificateInfo_TrustAnchors))
         {
             err = reader.Next();

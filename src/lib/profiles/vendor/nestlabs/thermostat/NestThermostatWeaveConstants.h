@@ -59,7 +59,7 @@ typedef enum
     kStatus_InFieldJoining_CannotCreateFabric =                       18,     // Failed to create new fabric
     kStatus_InFieldJoining_NetworkReset =                             19,     // Network was reset on the device
     kStatus_InFieldJoining_JoiningInProgress =                        20,     // Device already in-field joining
-    kStatus_InFieldJoining_FailureToMakePanJoinable =                 21,     // Assisting device failed to make it's PAN joinable
+    kStatus_InFieldJoining_FailureToMakePanJoinable =                 21,     // Assisting device failed to make its PAN joinable
     kStatus_InFieldJoining_WeaveConnectionTimeoutStillActive =        22,     // Timeout used to keep us awake while connected to another device still active
     kStatus_InFieldJoining_HeatLinkNotJoined =                        23,     // HeatLink not joined to head unit
     kStatus_InFieldJoining_HeatLinkNotInContact =                     24,     // HeatLink not in contact with head unit

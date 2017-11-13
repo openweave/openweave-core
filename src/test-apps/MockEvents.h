@@ -135,7 +135,7 @@ enum BoltState
 enum BoltActuatorState
 {
     BOLT_ACTUATOR_STATE_UNSPECIFIED          = 0,
-    BOLT_ACTUATOR_STATE_OK                   = 1, /**< Actuator is not moving and is in a fully settled position.  If its not settled use BOLT_ACTUATOR_STATE_MOVING */
+    BOLT_ACTUATOR_STATE_OK                   = 1, /**< Actuator is not moving and is in a fully settled position. If it's not settled use BOLT_ACTUATOR_STATE_MOVING. */
     BOLT_ACTUATOR_STATE_LOCKING              = 2, /**< Actuator is attempting to lock */
     BOLT_ACTUATOR_STATE_UNLOCKING            = 3, /**< Actuator is attempting to unlock */
     BOLT_ACTUATOR_STATE_MOVING               = 4, /**< Actuator is moving though it’s not necessarily clear the intended direction. This is typically used when the user is physically manipulating the bolt */

@@ -383,7 +383,7 @@
 
 /**
  * This controls whether publisher support for dictionaries is compiled in to TDM. If this is not enabled, you will not be able to support publishing dictionaries
- * on devices. This is enabled by default, so its important that platforms don't desire this disable it to get significant flash savings.
+ * on devices. This is enabled by default, so it's important that platforms don't desire this disable it to get significant flash savings.
  */
 #ifndef TDM_ENABLE_PUBLISHER_DICTIONARY_SUPPORT
 #define TDM_ENABLE_PUBLISHER_DICTIONARY_SUPPORT 1
@@ -466,7 +466,7 @@
  *
  *  @brief
  *    Enables aggressive checking of inbound data
- *    to ensure its compliant against the latest WDM protocol specification
+ *    to ensure it's compliant against the latest WDM protocol specification
  *
  */
 #ifndef WDM_ENABLE_PROTOCOL_CHECKS

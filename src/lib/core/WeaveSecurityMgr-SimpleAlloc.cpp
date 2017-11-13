@@ -490,7 +490,7 @@ void MemoryFree(void *p)
                     {
                         // Mark memory block as unallocated
                         sMemBlocksAllocated &= ~blockIndex;
-                        // Release network buffer if all it's memory blocks are unallocated
+                        // Release network buffer if all its memory blocks are unallocated
                         if (sNetworkBuffersUsed && !(sMemBlocksAllocated & sBufferAllocationMask[blockBufferIndex]))
                         {
                             PacketBuffer::Free((PacketBuffer *)sMemBufs[blockBufferIndex]);

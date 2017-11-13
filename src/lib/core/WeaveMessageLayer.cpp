@@ -1686,7 +1686,7 @@ void WeaveMessageLayer::HandleIncomingTcpConnection(TCPEndPoint *listeningEP, TC
     // Set the default idle timeout.
     con->SetIdleTimeout(msgLayer->IncomingConIdleTimeout);
 
-    // If the exchange manager has been initialized, call it's callback.
+    // If the exchange manager has been initialized, call its callback.
     if (msgLayer->ExchangeMgr != NULL)
         msgLayer->ExchangeMgr->HandleConnectionReceived(con);
 

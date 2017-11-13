@@ -91,7 +91,7 @@ WEAVE_ERROR WeaveHeartbeatSender::Init(WeaveExchangeManager *exchangeMgr, Bindin
     // Set the protocol callback on the binding object.  NOTE: This should only happen once the
     // app has explicitly started the subscription process by calling either InitiateSubscription() or
     // InitiateCounterSubscription().  Otherwise the client object might receive callbacks from
-    // the binding before its ready.
+    // the binding before it's ready.
     mBinding->SetProtocolLayerCallback(BindingEventCallback, this);
 
 #if DEBUG

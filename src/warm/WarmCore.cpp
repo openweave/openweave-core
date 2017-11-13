@@ -652,9 +652,9 @@ void CellularInterfaceStateChange(InterfaceState inState)
  *
  *  @param[in] inActivate       The desired State true == activate, false == deactivate.
  *
- *  @param[in] inGlobalId       A reference to the Weave Global ID if its necessary to calculate an address.
+ *  @param[in] inGlobalId       A reference to the Weave Global ID if it's necessary to calculate an address.
  *
- *  @param[in] inInterfaceId    A reference to the device's interface ID if its necessary to calculate an address.
+ *  @param[in] inInterfaceId    A reference to the device's interface ID if it's necessary to calculate an address.
  *
  *  @return Forwards the result from Platform::HostAddress().
  *
@@ -718,9 +718,9 @@ static void MakePrefix(const uint64_t &inGlobalID, Inet::IPPrefix &outPrefix)
  *
  *  @param[in] inActivate       The desired State true == activate, false == deactivate.
  *
- *  @param[in] inGlobalId       A reference to the Weave Global ID if its necessary to calculate an address.
+ *  @param[in] inGlobalId       A reference to the Weave Global ID if it's necessary to calculate an address.
  *
- *  @param[in] inInterfaceId    A reference to the device's interface ID if its necessary to calculate an address.
+ *  @param[in] inInterfaceId    A reference to the device's interface ID if it's necessary to calculate an address.
  *
  *  @return Forwards the result from Platform::HostAddress().
  *
@@ -739,9 +739,9 @@ static PlatformResult ThreadHostAddressAction(ActionType inAction, bool inActiva
  *
  *  @param[in] inActivate       The desired State true == activate, false == deactivate.
  *
- *  @param[in] inGlobalId       A reference to the Weave Global ID if its necessary to calculate an address.
+ *  @param[in] inGlobalId       A reference to the Weave Global ID if it's necessary to calculate an address.
  *
- *  @param[in] inInterfaceId    A reference to the device's interface ID if its necessary to calculate an address.
+ *  @param[in] inInterfaceId    A reference to the device's interface ID if it's necessary to calculate an address.
  *
  *  @return Forwards the result from Platform::ThreadAddress().
  *
@@ -760,9 +760,9 @@ static PlatformResult ThreadThreadAddressAction(ActionType inAction, bool inActi
  *
  *  @param[in] inActivate       The desired State true == activate, false == deactivate.
  *
- *  @param[in] inGlobalId       A reference to the Weave Global ID if its necessary to calculate an address.
+ *  @param[in] inGlobalId       A reference to the Weave Global ID if it's necessary to calculate an address.
  *
- *  @param[in] inInterfaceId    A reference to the device's interface ID if its necessary to calculate an address.
+ *  @param[in] inInterfaceId    A reference to the device's interface ID if it's necessary to calculate an address.
  *
  *  @return Forwards the result from Platform::HostRoute().
  *
@@ -809,9 +809,9 @@ void ThreadInterfaceStateChange(InterfaceState inState)
  *
  *  @param[in] inActivate       The desired State true == activate, false == deactivate.
  *
- *  @param[in] inGlobalId       A reference to the Weave Global ID if its necessary to calculate an address.
+ *  @param[in] inGlobalId       A reference to the Weave Global ID if it's necessary to calculate an address.
  *
- *  @param[in] inInterfaceId    A reference to the device's interface ID if its necessary to calculate an address.
+ *  @param[in] inInterfaceId    A reference to the device's interface ID if it's necessary to calculate an address.
  *
  *  @return Forwards the result from Platform::HostAddress().
  *
@@ -830,9 +830,9 @@ static PlatformResult LegacyHostAddressAction(ActionType inAction, bool inActiva
  *
  *  @param[in] inActivate       The desired State true == activate, false == deactivate.
  *
- *  @param[in] inGlobalId       A reference to the Weave Global ID if its necessary to calculate an address.
+ *  @param[in] inGlobalId       A reference to the Weave Global ID if it's necessary to calculate an address.
  *
- *  @param[in] inInterfaceId    A reference to the device's interface ID if its necessary to calculate an address.
+ *  @param[in] inInterfaceId    A reference to the device's interface ID if it's necessary to calculate an address.
  *
  *  @return Forwards the result from Platform::ThreadAddress().
  *
@@ -855,9 +855,9 @@ static PlatformResult LegacyThreadAddressAction(ActionType inAction, bool inActi
  *
  *  @param[in] inActivate       The desired State true == activate, false == deactivate.
  *
- *  @param[in] inGlobalId       A reference to the Weave Global ID if its necessary to calculate an address.
+ *  @param[in] inGlobalId       A reference to the Weave Global ID if it's necessary to calculate an address.
  *
- *  @param[in] inInterfaceId    A reference to the device's interface ID if its necessary to calculate an address.
+ *  @param[in] inInterfaceId    A reference to the device's interface ID if it's necessary to calculate an address.
  *
  *  @return Forwards the result from Platform::ThreadAdvertisement().
  *
@@ -899,9 +899,9 @@ void ThreadRoutingStateChange(InterfaceState inState)
  *
  *  @param[in] inActivate       The desired State true == activate, false == deactivate.
  *
- *  @param[in] inGlobalId       A reference to the Weave Global ID if its necessary to calculate an address.
+ *  @param[in] inGlobalId       A reference to the Weave Global ID if it's necessary to calculate an address.
  *
- *  @param[in] inInterfaceId    A reference to the device's interface ID if its necessary to calculate an address.
+ *  @param[in] inInterfaceId    A reference to the device's interface ID if it's necessary to calculate an address.
  *
  *  @return Forwards the result from Platform::HostAddress().
  *
@@ -929,9 +929,9 @@ static PlatformResult TunnelHostAddressAction(ActionType inAction, bool inActiva
  *
  *  @param[in] inActivate       The desired State true == activate, false == deactivate.
  *
- *  @param[in] inGlobalId       A reference to the Weave Global ID if its necessary to calculate an address.
+ *  @param[in] inGlobalId       A reference to the Weave Global ID if it's necessary to calculate an address.
  *
- *  @param[in] inInterfaceId    A reference to the device's interface ID if its necessary to calculate an address.
+ *  @param[in] inInterfaceId    A reference to the device's interface ID if it's necessary to calculate an address.
  *
  *  @return Forwards the result from Platform::HostRoute().
  *
@@ -1204,9 +1204,9 @@ static RoutePriority MapAvailabilityToPriority(Profiles::WeaveTunnel::Platform::
  *
  *  @param[in] inActivate       The desired State true == activate, false == deactivate.
  *
- *  @param[in] inGlobalId       A reference to the Weave Global ID if its necessary to calculate an address.
+ *  @param[in] inGlobalId       A reference to the Weave Global ID if it's necessary to calculate an address.
  *
- *  @param[in] inInterfaceId    A reference to the device's interface ID if its necessary to calculate an address.
+ *  @param[in] inInterfaceId    A reference to the device's interface ID if it's necessary to calculate an address.
  *
  *  @return Forwards the result from Platform::ThreadRoute().
  *
@@ -1227,9 +1227,9 @@ static PlatformResult ThreadThreadRouteAction(ActionType inAction, bool inActiva
  *
  *  @param[in] inActivate       The desired State true == activate, false == deactivate.
  *
- *  @param[in] inGlobalId       A reference to the Weave Global ID if its necessary to calculate an address.
+ *  @param[in] inGlobalId       A reference to the Weave Global ID if it's necessary to calculate an address.
  *
- *  @param[in] inInterfaceId    A reference to the device's interface ID if its necessary to calculate an address.
+ *  @param[in] inInterfaceId    A reference to the device's interface ID if it's necessary to calculate an address.
  *
  *  @return Forwards the result from Platform::ThreadRoutePriority().
  *

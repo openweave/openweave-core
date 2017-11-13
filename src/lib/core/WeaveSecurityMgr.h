@@ -141,7 +141,7 @@ extern void MemoryFree(void *p);
  * cryptographic operation is about to start.
  *
  * @note If application wants to receive these alerts and adjust platform settings
- *       accordingly then it should provide it's own implementation of these functions
+ *       accordingly then it should provide its own implementation of these functions
  *       and enable (1) #WEAVE_CONFIG_SECURITY_MGR_TIME_ALERTS_PLATFORM option.
  *
  */
@@ -152,7 +152,7 @@ extern void OnTimeConsumingCryptoStart(void);
  * cryptographic operation has just finished.
  *
  * @note If application wants to receive these alerts and adjust platform settings
- *       accordingly then it should provide it's own implementation of these functions
+ *       accordingly then it should provide its own implementation of these functions
  *       and enable (1) #WEAVE_CONFIG_SECURITY_MGR_TIME_ALERTS_PLATFORM option.
  *
  */

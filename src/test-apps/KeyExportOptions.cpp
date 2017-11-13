@@ -443,7 +443,7 @@ WEAVE_ERROR KeyExportOptions::HandleCertValidationResult(bool isInitiator, Weave
     if (isInitiator)
     {
 #if WEAVE_CONFIG_ENABLE_KEY_EXPORT_INITIATOR
-        // Verify that it is device certificate and it's subject matches the responder node id.
+        // Verify that it is device certificate and its subject matches the responder node id.
         VerifyOrExit(peerCert->SubjectDN.AttrOID == ASN1::kOID_AttributeType_WeaveDeviceId &&
                      peerCert->SubjectDN.AttrValue.WeaveId == msgInfo->SourceNodeId, err = WEAVE_ERROR_UNAUTHORIZED_KEY_EXPORT_RESPONSE);
 

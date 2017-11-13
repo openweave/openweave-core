@@ -677,7 +677,7 @@ static WEAVE_ERROR ConvertCertificate(ASN1Reader& reader, TLVWriter& writer)
         } ASN1_EXIT_SEQUENCE;
 
         // signatureAlgorithm AlgorithmIdentifier
-        // Skip signatureAlgorithm since its the same as the "signature" field in TBSCertificate.
+        // Skip signatureAlgorithm since it's the same as the "signature" field in TBSCertificate.
         ASN1_PARSE_ANY;
 
         // signatureValue BIT STRING
