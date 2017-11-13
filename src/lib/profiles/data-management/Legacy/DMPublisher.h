@@ -130,7 +130,7 @@ namespace WeaveMakeManagedNamespaceIdentifier(DataManagement, kWeaveManagedNames
          * the publisher requires to maintain a map of topics onto
          * clients wishing to receive the data of interest. even
          * though it is, in principal, not part of the published
-         * interface it needs to be pubic so that the various handlers
+         * interface it needs to be public so that the various handlers
          * can get at it.
          */
 
