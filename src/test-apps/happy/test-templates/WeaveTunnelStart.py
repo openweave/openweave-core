@@ -314,6 +314,9 @@ class WeaveTunnelStart(HappyNode, HappyNetwork, WeaveTest):
         if self.gateway_faults or self.service_faults:
             cmd += " --extra-cleanup-time 10000"
 
+        if self.jitter_distribution_curve is not None:
+            self.jitter(self.jitter_distribution_curve)
+
         cmd = self.runAsRoot(cmd)
         self.start_weave_process(self.border_gateway, cmd, self.gateway_process_tag, strace=self.strace, sync_on_output=self.sync_on_gateway_output, env=self.plaid_gateway_env)
 
