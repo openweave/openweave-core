@@ -1324,8 +1324,21 @@ bool RunBluezIOThread(BluezPeripheralArgs * arg)
     gBluezServerEndpoint->adapterAddr      = g_strdup(arg->bleAddress);
     gBluezServerEndpoint->advertisingUUID  = g_strdup(UUID_WEAVE_SHORT);
     gBluezServerEndpoint->advertisingType  = g_strdup(advertisingType);
-    gBluezServerEndpoint->weaveServiceData = (WeaveServiceData *) g_memdup(arg->weaveServiceData, sizeof(WeaveServiceData));
+
+    gBluezServerEndpoint->weaveServiceData = g_new0(WeaveServiceData, 1);
     VerifyOrExit(gBluezServerEndpoint->weaveServiceData != NULL, err = WEAVE_ERROR_NO_MEMORY);
+    /**
+     * Data arranged in "Length Type Value" pairs inside Weave service data.
+     * Length should include size of value + size of Type field, which is 1 byte
+     */
+    gBluezServerEndpoint->weaveServiceData->dataBlock0Len = sizeof(WeaveIdInfo) + 1;
+    gBluezServerEndpoint->weaveServiceData->dataBlock0Type = WEAVE_SRV_DATA_BLOCK_TYPE_WEAVE_ID_INFO;
+    gBluezServerEndpoint->weaveServiceData->weaveIdInfo.major = WEAVE_ID_INFO_MAJ_VER;
+    gBluezServerEndpoint->weaveServiceData->weaveIdInfo.minor = WEAVE_ID_INFO_MIN_VER;
+    gBluezServerEndpoint->weaveServiceData->weaveIdInfo.vendorId = arg->vendorId;
+    gBluezServerEndpoint->weaveServiceData->weaveIdInfo.productId = arg->productId;
+    gBluezServerEndpoint->weaveServiceData->weaveIdInfo.deviceId = arg->deviceId;
+    gBluezServerEndpoint->weaveServiceData->weaveIdInfo.pairingStatus = arg->pairingStatus;
 
     gBluezServerEndpoint->mtu = HCI_MAX_MTU;
     gBluezMainLoop            = g_main_loop_new(NULL, FALSE);

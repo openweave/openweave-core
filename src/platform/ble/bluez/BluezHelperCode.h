@@ -80,6 +80,9 @@ using namespace nl::Weave::Profiles;
 #define ADVERTISING_INTERFACE "org.bluez.LEAdvertisement1"
 #define FLAGS_WEAVE_C1 "write"
 #define FLAGS_WEAVE_C2 "read,indicate"
+#define WEAVE_SRV_DATA_BLOCK_TYPE_WEAVE_ID_INFO (1)
+#define WEAVE_ID_INFO_MAJ_VER (0x00)
+#define WEAVE_ID_INFO_MIN_VER (0x02)
 
 /*MAC OS uses MTU size 104, which is smallest among Android, MAC OS & IOS */
 #define HCI_MAX_MTU (104)
@@ -89,6 +92,25 @@ namespace nl {
 namespace Ble {
 namespace Platform {
 namespace BlueZ {
+
+/* Weave Identification Information */
+struct WeaveIdInfo
+{
+    uint8_t major;
+    uint8_t minor;
+    uint16_t vendorId;
+    uint16_t productId;
+    uint64_t deviceId;
+    uint8_t pairingStatus;
+} __attribute__((packed));
+
+/* Weave Service Data*/
+struct WeaveServiceData
+{
+    uint8_t dataBlock0Len;
+    uint8_t dataBlock0Type;
+    WeaveIdInfo weaveIdInfo;
+} __attribute__((packed));
 
 struct Adapter
 {

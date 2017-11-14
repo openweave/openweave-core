@@ -23,37 +23,23 @@
 #ifndef WOBLUEZLAYER_H_
 #define WOBLUEZLAYER_H_
 
-#define WEAVE_SRV_DATA_BLOCK_TYPE (1)
-#define WEAVE_SRV_DATA_BLOCK_SIZE (16)
-#define WEAVE_SRV_DATA_MAJ_VER (0x00)
-#define WEAVE_SRV_DATA_MIN_VER (0x02)
-#define WEAVE_SRV_DATA_PAIRING_STATUS_NOT_PAIRED (0)
-#define WEAVE_SRV_DATA_PAIRING_STATUS_PAIRED (1)
-#define WEAVE_SRV_DATA_PAIRING_STATUS_UNKNOWN (2)
+#define WEAVE_ID_INFO_PAIRING_STATUS_NOT_PAIRED (0)
+#define WEAVE_ID_INFO_PAIRING_STATUS_PAIRED (1)
+#define WEAVE_ID_INFO_PAIRING_STATUS_UNKNOWN (2)
 
 namespace nl {
 namespace Ble {
 namespace Platform {
 namespace BlueZ {
 
-/* Weave Service Data*/
-struct WeaveServiceData
-{
-    uint8_t mWeaveDataBlockLen;
-    uint8_t mWeaveDataBlockType;
-    uint8_t mWeaveSrvDataMajor;
-    uint8_t mWeaveSrvDataMinor;
-    uint16_t mWeaveVendorId;
-    uint16_t mWeaveProductId;
-    uint64_t mWeaveDeviceId;
-    uint8_t mWeavePairingStatus;
-} __attribute__((packed));
-
 struct BluezPeripheralArgs
 {
     char * bleName;
     char * bleAddress;
-    WeaveServiceData * weaveServiceData;
+    uint16_t vendorId;
+    uint16_t productId;
+    uint64_t deviceId;
+    uint8_t pairingStatus;
     BluezBlePlatformDelegate * bluezBlePlatformDelegate;
 };
 
