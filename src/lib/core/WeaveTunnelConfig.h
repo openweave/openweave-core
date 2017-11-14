@@ -439,6 +439,18 @@
 #define WEAVE_CONFIG_TUNNELING_ONLINE_CHECK_BACKUP_SLOW_FREQ_SECS   (90)
 #endif // WEAVE_CONFIG_TUNNELING_ONLINE_CHECK_BACKUP_SLOW_FREQ_SECS
 
+/**
+ *  @def WEAVE_CONFIG_TUNNEL_INTERFACE_MTU
+ *
+ *  @brief
+ *    The maximum transmission unit for the Tunnel interface
+ *    on a border gateway.
+ *
+ */
+#ifndef WEAVE_CONFIG_TUNNEL_INTERFACE_MTU
+#define WEAVE_CONFIG_TUNNEL_INTERFACE_MTU                           (1536)
+#endif // WEAVE_CONFIG_TUNNEL_INTERFACE_MTU
+
 // clang-format on
 
 #endif /* WEAVE_TUNNEL_CONFIG_H_ */

@@ -81,8 +81,6 @@
 #define NL_SOCK_CLOEXEC 0
 #endif
 
-#define NL_WEAVE_TUN_MTU 1536
-
 namespace nl {
 namespace Inet {
 

@@ -311,7 +311,7 @@ INET_ERROR TunEndPoint::InterfaceUp (void)
     }
 
     //Set the MTU
-    ifr.ifr_mtu = NL_WEAVE_TUN_MTU;
+    ifr.ifr_mtu = WEAVE_CONFIG_TUNNEL_INTERFACE_MTU;
     if (ioctl(sockfd, SIOCSIFMTU, &ifr) < 0)
     {
         ExitNow(err = Weave::System::MapErrorPOSIX(errno));
@@ -641,7 +641,7 @@ err_t TunEndPoint::TunInterfaceNetifInit (struct netif *netif)
 #endif // LWIP_VERSION_MAJOR <= 1
     netif->linkoutput = NULL;
 
-    netif->mtu = NL_WEAVE_TUN_MTU;
+    netif->mtu = WEAVE_CONFIG_TUNNEL_INTERFACE_MTU;
 
     netif->hwaddr_len = 6;
     memset(netif->hwaddr, 0, NETIF_MAX_HWADDR_LEN);
