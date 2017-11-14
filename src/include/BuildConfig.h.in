@@ -3,11 +3,11 @@
 /* Define to 1 if you want to enable WoBle over bluez. */
 #undef CONFIG_BLE_PLATFORM_BLUEZ
 
-/* Define to 1 if you want to use Weave with a a system that supports
+/* Define to 1 if you want to use Weave with a system that supports
    callback-based vcbprintf */
 #undef CONFIG_HAVE_VCBPRINTF
 
-/* Define to 1 if you want to use Weave with a a system that supports
+/* Define to 1 if you want to use Weave with a system that supports
    callback-based vcbprintf */
 #undef CONFIG_HAVE_VSNPRINTF_EX
 

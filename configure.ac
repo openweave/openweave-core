@@ -1666,11 +1666,11 @@ esac
 
 AC_SUBST(CONFIG_HAVE_VCBPRINTF)
 AM_CONDITIONAL([CONFIG_HAVE_VCBPRINTF], [test "${CONFIG_HAVE_VCBPRINTF}" = "1"])
-AC_DEFINE_UNQUOTED([CONFIG_HAVE_VCBPRINTF],[${CONFIG_HAVE_VCBPRINTF}],[Define to 1 if you want to use Weave with a a system that supports callback-based vcbprintf])
+AC_DEFINE_UNQUOTED([CONFIG_HAVE_VCBPRINTF],[${CONFIG_HAVE_VCBPRINTF}],[Define to 1 if you want to use Weave with a system that supports callback-based vcbprintf])
 
 AC_SUBST(CONFIG_HAVE_VSNPRINTF_EX)
 AM_CONDITIONAL([CONFIG_HAVE_VSNPRINTF_EX], [test "${CONFIG_HAVE_VSNPRINTF_EX}" = "1"])
-AC_DEFINE_UNQUOTED([CONFIG_HAVE_VSNPRINTF_EX],[${CONFIG_HAVE_VSNPRINTF_EX}],[Define to 1 if you want to use Weave with a a system that supports callback-based vcbprintf])
+AC_DEFINE_UNQUOTED([CONFIG_HAVE_VSNPRINTF_EX],[${CONFIG_HAVE_VSNPRINTF_EX}],[Define to 1 if you want to use Weave with a system that supports callback-based vcbprintf])
 
 #
 # The user may specify project-specific configuration for the Weave
