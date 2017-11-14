@@ -300,7 +300,7 @@ typedef NS_ENUM(NSInteger, NLServiceDirectoryStatus) {
 //
 typedef NS_ENUM(NSInteger, NLServiceProvisioningStatus)
 {
-    kNLStatusCode_TooManyServices                   = 1,                    // There are too many service's registered on the device.
+    kNLStatusCode_TooManyServices                   = 1,                    // There are too many services registered on the device.
     kNLStatusCode_ServiceAlreadyRegistered          = 2,                    // The specified service is already registered on the device.
     kNLStatusCode_InvalidServiceConfig              = 3,                    // The specified service configuration is invalid.
     kNLStatusCode_NoSuchService                     = 4,                    // The specified id does not match a service registered on the device.

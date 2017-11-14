@@ -54,7 +54,7 @@ using nl::Inet::IPAddress;
 //
 enum
 {
-    kStatusCode_TooManyServices                 = 1,    // There are too many service's registered on the device.
+    kStatusCode_TooManyServices                 = 1,    // There are too many services registered on the device.
     kStatusCode_ServiceAlreadyRegistered        = 2,    // The specified service is already registered on the device.
     kStatusCode_InvalidServiceConfig            = 3,    // The specified service configuration is invalid.
     kStatusCode_NoSuchService                   = 4,    // The specified id does not match a service registered on the device.
