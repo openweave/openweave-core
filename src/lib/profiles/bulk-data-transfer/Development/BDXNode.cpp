@@ -451,7 +451,7 @@ bool BdxNode::CanBdxTransferRun(void)
  * @brief
  *  Returns true if this BdxNode has already been initialized.
  *
- * @return true if this object has been initalized
+ * @return true if this object has been initialized
  */
 bool BdxNode::IsInitialized(void)
 {
