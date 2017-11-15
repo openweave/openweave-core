@@ -1279,7 +1279,7 @@
  *    Enable various features that make it easier to debug secure Weave communication.
  *
  *  @note
- *    WARNING: This option makes it possible to circumvent basic weave security functionality,
+ *    WARNING: This option makes it possible to circumvent basic Weave security functionality,
  *    including message encryption. Because of this it SHOULD NEVER BE ENABLED IN PRODUCTION BUILDS.
  */
 #ifndef WEAVE_CONFIG_SECURITY_TEST_MODE

@@ -24,7 +24,7 @@
  *
  *  This file defines enumerations of message types, status codes, tags
  *  and other miscellaneous values required for the operation of the
- *  weave Data Management (WDM) profile.
+ *  Weave Data Management (WDM) profile.
  *
  *  See the document "Nest Weave-Data Management Protocol" document for
  *  a complete(ish) description.

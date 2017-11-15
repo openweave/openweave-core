@@ -19,7 +19,7 @@
 
 ##
 #    @file
-#       A Happy command line utility that deletes weave node.
+#       A Happy command line utility that deletes a Weave node.
 #
 #       The command is executed by instantiating and running WeaveFabricDelete class.
 #

@@ -36,7 +36,7 @@ namespace Stats {
 static WeaveMessageLayer *sMessageLayer;
 
 /**
- * Registers weave objects with the stats infra.
+ * Registers Weave objects with the stats infra.
  *
  * Collecting some of the statistics requires access to a specific Weave
  * object instance owned by the application.

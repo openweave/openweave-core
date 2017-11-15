@@ -59,7 +59,7 @@ void ExitBluezIOThread(void);
  * Run WoBle over Bluez thread
  *
  * @return Returns 'true' if WoBluez library is able to successfully register
- * weave gatt server along with advertiser, else 'false'
+ * Weave gatt server along with advertiser, else 'false'
  */
 bool RunBluezIOThread(BluezPeripheralArgs * arg);
 

@@ -209,7 +209,7 @@ typedef void (*XferDoneHandler)(BDXTransfer *aXfer);
 
 /**
  * @brief
- *  This handler is called any time a weave error is encountered that cannot
+ *  This handler is called any time a Weave error is encountered that cannot
  *  directly be returned via error codes to user-application-defined control flow.
  *
  *  That is, if an error occurs within another handler whose signature has return

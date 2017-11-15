@@ -709,7 +709,7 @@ exit:
  *
  * @param[in]   anEc        Exchange context that detected a closed connection
  *                          We can find the associated BDXTransfer from this
- * @param[in]   aCon        The weave connection, unused in the actual function
+ * @param[in]   aCon        The Weave connection, unused in the actual function
  * @param[in]   aConErr     Error associated with the connection closing
  */
 void HandleConnectionClosed(ExchangeContext *anEc, WeaveConnection *aCon, WEAVE_ERROR aConErr)

@@ -82,16 +82,16 @@ class WeaveTunnelStart(HappyNode, HappyNetwork, WeaveTest):
 
     Example:
     $ weave-tunnel-start node01 node02
-        Start weave tunnel between border-gateway node01 and service node02.
+        Start Weave tunnel between border-gateway node01 and service node02.
 
     $ weave-tunnel-start node01 184.72.129.8
-        Start weave tunnel between border-gateway node01 and a node with an IP address 184.72.129.8.
+        Start Weave tunnel between border-gateway node01 and a node with an IP address 184.72.129.8.
 
     $ weave-tunnel-start --border_gateway node01 --service_dir --service_dir_server  "frontdoor.integration.nestlabs.com" --case --case_cert_path path --case_key_path path
-        Start weave tunnel with case encryption between border-gateway node01 and a node with the service loopup directory frontdoor.integration.nestlabs.com.
+        Start Weave tunnel with case encryption between border-gateway node01 and a node with the service loopup directory frontdoor.integration.nestlabs.com.
 
     $ weave-tunnel-start --border_gateway node01 --service 184.72.129.8 -P wlan0 -B cellular0
-        Start weave tunnel between border-gateway node01 and a node with an IP address 184.72.129.8, the primary tunnel go through wlan0, the backup tunnel
+        Start Weave tunnel between border-gateway node01 and a node with an IP address 184.72.129.8, the primary tunnel go through wlan0, the backup tunnel
         go through cellular0
 
     return:

@@ -651,7 +651,7 @@ public:
      * otherwise the application layer can choose to call Sync family of functions
      * to directly kick off sync operation not restricted by the normal
      * not-available-in-call-back rule. however, it must be noted that
-     * this special callback is still on top of callback stack of weave exchange
+     * this special callback is still on top of callback stack of Weave exchange
      * layer.
      *
      * @param[in] aApp                A pointer to app layer data, set in Init.

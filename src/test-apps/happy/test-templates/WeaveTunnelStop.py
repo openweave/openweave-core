@@ -60,10 +60,10 @@ class WeaveTunnelStop(HappyNode, HappyNetwork, WeaveTest):
 
     Example:
     $ weave-tunnel-stop node01 node02
-        Stops weave tunnel between border-gateway node01 and service node02.
+        Stops Weave tunnel between border-gateway node01 and service node02.
 
     $ weave-tunnel-stop
-        Attempts to guess border gateway and service and then stop weave tunnel between them.
+        Attempts to guess border gateway and service and then stop Weave tunnel between them.
 
 
     return:

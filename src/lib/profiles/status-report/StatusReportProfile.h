@@ -51,7 +51,7 @@ namespace Profiles {
 namespace StatusReporting {
 
     /*
-     * in-memory, a status report, at its most basic, is a weave profile
+     * in-memory, a status report, at its most basic, is a Weave profile
      * ID and status code pair. then there's the option of chaining on
      * more status information as TLV.
      */

@@ -19,8 +19,8 @@
 
 ##
 #    @file
-#       Implements WeaveCerts class which is used to manage weave certs
-#       and private keys for test weave devices and service endpoints.
+#       Implements WeaveCerts class which is used to manage Weave certs
+#       and private keys for test Weave devices and service endpoints.
 #
 
 import os

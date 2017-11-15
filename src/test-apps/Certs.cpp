@@ -18,7 +18,7 @@
 
 /**
  *    @file
- *      Test weave certificates and private keys
+ *      Test Weave certificates and private keys
  *
  */
 

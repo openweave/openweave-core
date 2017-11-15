@@ -60,10 +60,10 @@ class WeaveTunnelTest(HappyNode, HappyNetwork, WeaveTest):
 
     Example:
     $ weave-tunnel-test node01 node02
-        Start weave tunnel test between border-gateway node01 and service node02.
+        Start Weave tunnel test between border-gateway node01 and service node02.
 
     $ weave-tunnel-test node01 184.72.129.8
-        Start weave tunnel between border-gateway node01 and a node with an IP address 184.72.129.8.
+        Start Weave tunnel between border-gateway node01 and a node with an IP address 184.72.129.8.
 
 
     return:
