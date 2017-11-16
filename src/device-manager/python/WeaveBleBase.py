@@ -17,11 +17,13 @@
 
 #
 #    @file
-#      This file is Weave BLE abstract Base class file
+#      This file is Weave BLE Base class file
 #
 
 import abc
-
+import shlex
+import optparse
+from optparse import OptionParser, Option, OptionValueError
 
 class WeaveBleBase(object):
     __metaclass__ = abc.ABCMeta
@@ -87,3 +89,47 @@ class WeaveBleBase(object):
         """ helper function to drive runloop until an expected event is received or
             the timeout expires."""
         return
+
+    def Usage(self, cmd):
+        if cmd == None:
+            return
+
+        line = "USAGE: "
+
+        if cmd == "scan":
+            line += "ble-scan [-t <timeout>] [<name>|<identifier>] [-q <quiet>]"
+        elif cmd == "scan-connect":
+            line += "ble-scan-connect [-t <timeout>] <name> [-q <quiet>]"
+
+        self.logger.info(line)
+
+    def ParseInputLine(self, line, cmd=None):
+        args = shlex.split(line)
+        optParser = OptionParser(usage=optparse.SUPPRESS_USAGE)
+
+        if cmd == "scan" or cmd == "scan-connect":
+            optParser.add_option("-t", "--timeout", action="store", dest="timeout", type="float", default=10.0)
+            optParser.add_option("-q", "--quiet", action="store_true", dest="quiet")
+
+        try:
+            (options, remainingArgs) = optParser.parse_args(args)
+        except SystemExit:
+            self.Usage(cmd)
+            return None
+
+        if cmd == None:
+            return remainingArgs
+
+        if len(remainingArgs) > 1:
+            self.Usage(cmd)
+            return None
+
+        name = None
+
+        if len(remainingArgs):
+            name = str(remainingArgs[0])
+        elif cmd == "scan-connect":
+            self.Usage(cmd)
+            return None
+
+        return (options.timeout, options.quiet, name)

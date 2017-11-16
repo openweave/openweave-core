@@ -29,16 +29,12 @@ import logging
 import os
 import pprint
 import subprocess
-import shlex
 import sys
 import threading
 import time
 import traceback
 import uuid
 import Queue
-
-import optparse
-from optparse import OptionParser, Option, OptionValueError
 
 
 from ctypes import *
@@ -834,19 +830,6 @@ class BluezManager(WeaveBleBase):
         if self.orig_input_hook:
             self.orig_input_hook()
 
-    def Usage(self, cmd):
-        if cmd == None:
-            return
-
-        line = "USAGE: "
-
-        if cmd == "scan":
-            line += "ble-scan [-t <timeout>] [<name>|<identifier>] [-q quiet]"
-        elif cmd == "scan-connect":
-            line += "ble-scan-connect [-t <timeout>] <name> [-q quiet]"
-
-        self.logger.info(line)
-
     def scan_connect(self, line):
         """ API to perform both scan and connect operations in one call."""
         args = self.ParseInputLine(line, "scan-connect")
@@ -862,36 +845,6 @@ class BluezManager(WeaveBleBase):
         else:
             self.logger.info("Failed to scan device named: " + args[2] + ". Connection skipped.")
             return False
-
-    def ParseInputLine(self, line, cmd=None):
-        args = shlex.split(line)
-        optParser = OptionParser(usage=optparse.SUPPRESS_USAGE)
-
-        if cmd == "scan" or cmd == "scan-connect":
-            optParser.add_option("-t", "--timeout", action="store", dest="timeout", type="float", default=bleScanDefaultTimeoutSec)
-            optParser.add_option("-q", "--quiet", action="store_true", dest="quiet")
-        try:
-            (options, remainingArgs) = optParser.parse_args(args)
-        except SystemExit:
-            self.Usage(cmd)
-            return None
-
-        if cmd == None:
-            return remainingArgs
-
-        if len(remainingArgs) > 1:
-            self.Usage(cmd)
-            return None
-
-        name = None
-
-        if len(remainingArgs):
-            name = str(remainingArgs[0])
-        elif cmd == "scan-connect":
-            self.Usage(cmd)
-            return None
-
-        return (options.timeout, options.quiet, name)
 
     def dump_scan_result(self, device):
         self.logger.info("{0:<10}{1}".format("Name =", device.Name))

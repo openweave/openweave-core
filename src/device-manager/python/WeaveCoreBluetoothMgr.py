@@ -32,9 +32,6 @@ import time
 import binascii
 from ctypes import *
 import readline
-import shlex
-import optparse
-from optparse import OptionParser, Option, OptionValueError
 
 from Foundation import *
 import objc
@@ -362,50 +359,6 @@ class CoreBluetoothManager(WeaveBleBase):
                 return cast( pointer(eventStruct), c_void_p).value
 
         return None
-
-    def Usage(self, cmd):
-        if cmd == None:
-            return
-
-        line = "USAGE: "
-
-        if cmd == "scan":
-            line += "ble-scan [-t <timeout>] [<name>|<identifier>] [-q <quiet>]"
-        elif cmd == "scan-connect":
-            line += "ble-scan-connect [-t <timeout>] <name> [-q <quiet>]"
-
-        self.logger.info(line)
-
-    def ParseInputLine(self, line, cmd=None):
-        args = shlex.split(line)
-        optParser = OptionParser(usage=optparse.SUPPRESS_USAGE)
-
-        if cmd == "scan" or cmd == "scan-connect":
-            optParser.add_option("-t", "--timeout", action="store", dest="timeout", type="float", default=10.0)
-            optParser.add_option("-q", "--quiet", action="store_true", dest="quiet")
-
-        try:
-            (options, remainingArgs) = optParser.parse_args(args)
-        except SystemExit:
-            self.Usage(cmd)
-            return None
-
-        if cmd == None:
-            return remainingArgs
-
-        if len(remainingArgs) > 1:
-            self.Usage(cmd)
-            return None
-
-        name = None
-
-        if len(remainingArgs):
-            name = str(remainingArgs[0])
-        elif cmd == "scan-connect":
-            self.Usage(cmd)
-            return None
-
-        return (options.timeout, options.quiet, name)
 
     def scan(self, line):
         """ API to initiatae BLE scanning for -t user_timeout seconds."""
