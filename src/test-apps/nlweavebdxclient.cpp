@@ -69,7 +69,7 @@ WEAVE_ERROR BulkDataTransferClient::Init(WeaveExchangeManager *exchangeMgr, cons
     {
         DestFile = open(DestFileName, O_RDWR | O_CREAT, S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP);
         if (DestFile < 0)
-            return INET_MapOSError(errno);
+            return System::MapErrorPOSIX(errno);
     }
 
     return WEAVE_NO_ERROR;

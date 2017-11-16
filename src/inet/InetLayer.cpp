@@ -169,7 +169,7 @@ INET_ERROR InetLayer::InitQueueLimiter(void)
 {
     if (sem_init(&mDroppableEvents, 0, INET_CONFIG_MAX_DROPPABLE_EVENTS) != 0)
     {
-        return INET_MapOSError(errno);
+        return Weave::System::MapErrorPOSIX(errno);
     }
     return INET_NO_ERROR;
 }

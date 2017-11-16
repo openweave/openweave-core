@@ -30,9 +30,7 @@
 
 #include <Weave/Support/NLDLLUtil.h>
 
-#if INET_CONFIG_PROVIDE_OBSOLESCENT_INTERFACES
 #include <SystemLayer/SystemFaultInjection.h>
-#endif // INET_CONFIG_PROVIDE_OBSOLESCENT_INTERFACES
 
 namespace nl {
 namespace Inet {

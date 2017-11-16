@@ -246,7 +246,7 @@ jint JNI_OnLoad(JavaVM *jvm, void *reserved)
     pthread_mutexattr_init(&stackLockAttrs);
     pthread_mutexattr_settype(&stackLockAttrs, PTHREAD_MUTEX_RECURSIVE);
     pthreadErr = pthread_mutex_init(&sStackLock, &stackLockAttrs);
-    VerifyOrExit(pthreadErr == 0, err = INET_MapOSError(pthreadErr));
+    VerifyOrExit(pthreadErr == 0, err = System::MapErrorPOSIX(pthreadErr));
 
     // Initialize the underlying platform secure random source.
     err = nl::Weave::Platform::Security::InitSecureRandomDataSource(NULL, 64, NULL, 0);
@@ -307,7 +307,7 @@ jint JNI_OnLoad(JavaVM *jvm, void *reserved)
     // Create and start the IO thread.
     sShutdown = false;
     pthreadErr = pthread_create(&sIOThread, NULL, IOThreadMain, NULL);
-    VerifyOrExit(pthreadErr == 0, err = INET_MapOSError(pthreadErr));
+    VerifyOrExit(pthreadErr == 0, err = System::MapErrorPOSIX(pthreadErr));
 
 exit:
     if (err != WEAVE_NO_ERROR)

@@ -36,7 +36,6 @@
 #include <Weave/Support/crypto/HashAlgos.h>
 #include <Weave/Core/WeaveError.h>
 #include <Weave/Core/WeaveCore.h>
-#include <InetLayer/InetBuffer.h>
 
 /**
  *   @namespace nl::Weave::Profiles::Security::KeyExport
@@ -52,7 +51,6 @@ namespace Profiles {
 namespace Security {
 namespace KeyExport {
 
-using nl::Inet::InetBuffer;
 using nl::Weave::WeaveEncryptionKey;
 using nl::Weave::Profiles::Security::AppKeys::WeaveGroupKey;
 using nl::Weave::Profiles::Security::AppKeys::GroupKeyStoreBase;

@@ -91,7 +91,7 @@ WEAVE_ERROR BulkDataTransferClient::SendFile(const char *DestFileName, WeaveConn
 
     mDestFile = fopen(DestFileName, "r");
     if (!mDestFile)
-        return INET_MapOSError(errno);
+        return System::MapErrorPOSIX(errno);
 
     return SendSendInitRequest(aCon);
 }
@@ -102,7 +102,7 @@ WEAVE_ERROR BulkDataTransferClient::SendFile(const char *DestFileName, uint64_t 
 
     mDestFile = fopen(DestFileName, "r");
     if (!mDestFile)
-        return INET_MapOSError(errno);
+        return System::MapErrorPOSIX(errno);
 
     return SendSendInitRequest(nodeId, nodeAddr);
 }
@@ -113,7 +113,7 @@ WEAVE_ERROR BulkDataTransferClient::ReceiveFile(const char *DestFileName, WeaveC
 
     mDestFile = fopen(DestFileName, "w");
     if (!mDestFile)
-        return INET_MapOSError(errno);
+        return System::MapErrorPOSIX(errno);
 
     return SendSendInitRequest(aCon);
 }
@@ -124,7 +124,7 @@ WEAVE_ERROR BulkDataTransferClient::ReceiveFile(const char *DestFileName, uint64
 
     mDestFile = fopen(DestFileName, "w");
     if (!mDestFile)
-        return INET_MapOSError(errno);
+        return System::MapErrorPOSIX(errno);
 
     return SendSendInitRequest(nodeId, nodeAddr);
 }

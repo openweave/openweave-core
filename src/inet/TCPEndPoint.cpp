@@ -2335,7 +2335,7 @@ INET_ERROR TCPEndPoint::CheckConnectionProgress(bool &isProgressing)
 
    if (ioctl(mSocket, TIOCOUTQ, &currPendingBytes) < 0)
    {
-       ExitNow(err = INET_MapOSError(errno));
+       ExitNow(err = Weave::System::MapErrorPOSIX(errno));
    }
 
    if ((currPendingBytes != 0) &&

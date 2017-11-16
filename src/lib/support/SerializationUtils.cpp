@@ -49,13 +49,14 @@ using namespace nl::Weave::TLV;
 // supported.
 //
 
+#if WEAVE_CONFIG_SERIALIZATION_ENABLE_DESERIALIZATION
 #if WEAVE_CONFIG_SERIALIZATION_USE_MALLOC
 #if HAVE_MALLOC && HAVE_FREE && HAVE_REALLOC
 static MemoryManagement sDefaultMemoryManagement = { malloc, free, realloc };
 #else // HAVE_MALLOC && HAVE_FREE && HAVE_REALLOC
 #error "Implementations of malloc, free, and realloc must be present in order to use stdlib memory management."
 #endif // HAVE_MALLOC && HAVE_FREE && HAVE_REALLOC
-#else // WEAVE_CONFIG_SERIALIZATION_USE_MALLOC
+#else // !WEAVE_CONFIG_SERIALIZATION_USE_MALLOC
 static void *unsupported_malloc(size_t size)
 {
     WeaveLogError(Support, "malloc() not supported");
@@ -74,7 +75,20 @@ static void *unsupported_realloc(void *ptr, size_t size)
 }
 
 static MemoryManagement sDefaultMemoryManagement = { unsupported_malloc, unsupported_free, unsupported_realloc };
-#endif // WEAVE_CONFIG_SERIALIZATION_USE_MALLOC
+#endif // !WEAVE_CONFIG_SERIALIZATION_USE_MALLOC
+
+static WEAVE_ERROR ReadArrayData(TLVReader &aReader,
+                                 void *aStructureData,
+                                 const FieldDescriptor * aFieldPtr,
+                                 SerializationContext *aContext = NULL);
+
+static WEAVE_ERROR CheckForEndOfTLV(TLVReader &aReader, bool &aEndOfTLV);
+
+static WEAVE_ERROR DeallocateDeserializedArray(void *aArrayData,
+                                               const SchemaFieldDescriptor *aFieldDescriptors,
+                                               SerializationContext *aContext = NULL);
+
+#endif // WEAVE_CONFIG_SERIALIZATION_ENABLE_DESERIALIZATION
 
 static WEAVE_ERROR WriteArrayData(TLVWriter &aWriter,
                                   void *aStructureData,
@@ -86,23 +100,12 @@ static WEAVE_ERROR WriteDataForType(TLVWriter &aWriter,
                                     SerializedFieldType aType,
                                     bool aInArray);
 
-static WEAVE_ERROR ReadArrayData(TLVReader &aReader,
-                                 void *aStructureData,
-                                 const FieldDescriptor * aFieldPtr,
-                                 SerializationContext *aContext = NULL);
-
 static WEAVE_ERROR ReadDataForType(TLVReader &aReader,
                                    void *aStructureData,
                                    const FieldDescriptor *&aFieldPtr,
                                    SerializedFieldType aType,
                                    bool aInArray,
                                    SerializationContext *aContext = NULL);
-
-static WEAVE_ERROR CheckForEndOfTLV(TLVReader &aReader, bool &aEndOfTLV);
-
-static WEAVE_ERROR DeallocateDeserializedArray(void *aArrayData,
-                                               const SchemaFieldDescriptor *aFieldDescriptors,
-                                               SerializationContext *aContext = NULL);
 
 #if WEAVE_CONFIG_SERIALIZATION_DEBUG_LOGGING
 static int32_t sIndentationLevel = 0;
@@ -497,6 +500,7 @@ exit:
     return err;
 }
 
+#if WEAVE_CONFIG_SERIALIZATION_ENABLE_DESERIALIZATION
 /**
  * @brief
  *   A reader function that reads an array structure.
@@ -514,7 +518,6 @@ exit:
  */
 WEAVE_ERROR ReadArrayData(TLVReader &aReader, void *aStructureData, const FieldDescriptor * aFieldPtr, SerializationContext *aContext)
 {
-#if WEAVE_CONFIG_SERIALIZATION_ENABLE_DESERIALIZATION
     WEAVE_ERROR err = WEAVE_NO_ERROR;
     const bool readingOutArray = true;
     SerializedFieldType type;
@@ -603,9 +606,6 @@ exit:
     }
 
     return err;
-#else // WEAVE_CONFIG_SERIALIZATION_ENABLE_DESERIALIZATION
-    return WEAVE_ERROR_NOT_IMPLEMENTED;
-#endif // WEAVE_CONFIG_SERIALIZATION_ENABLE_DESERIALIZATION
 }
 
 /**
@@ -648,6 +648,7 @@ static WEAVE_ERROR CheckForEndOfTLV(TLVReader &aReader, bool &aEndOfTLV)
 exit:
     return err;
 }
+#endif // WEAVE_CONFIG_SERIALIZATION_ENABLE_DESERIALIZATION
 
 /**
  * @brief
@@ -1258,11 +1259,11 @@ WEAVE_ERROR TLVReaderToDeserializedDataHelper(nl::Weave::TLV::TLVReader &aReader
 #endif // WEAVE_CONFIG_SERIALIZATION_ENABLE_DESERIALIZATION
 }
 
+#if WEAVE_CONFIG_SERIALIZATION_ENABLE_DESERIALIZATION
 WEAVE_ERROR DeallocateDeserializedArray(void *aArrayData,
                                         const SchemaFieldDescriptor *aFieldDescriptors,
                                         SerializationContext *aContext/* = NULL*/)
 {
-#if WEAVE_CONFIG_SERIALIZATION_ENABLE_DESERIALIZATION
     WEAVE_ERROR err = WEAVE_NO_ERROR;
     MemoryManagement *memMgmt = NULL;
     ArrayLengthAndBuffer *array = NULL;
@@ -1304,10 +1305,8 @@ WEAVE_ERROR DeallocateDeserializedArray(void *aArrayData,
 
 exit:
     return err;
-#else // WEAVE_CONFIG_SERIALIZATION_ENABLE_DESERIALIZATION
-    return WEAVE_ERROR_NOT_IMPLEMENTED;
-#endif // WEAVE_CONFIG_SERIALIZATION_ENABLE_DESERIALIZATION
 }
+#endif // WEAVE_CONFIG_SERIALIZATION_ENABLE_DESERIALIZATION
 
 WEAVE_ERROR DeallocateDeserializedStructure(void *aStructureData,
                                             const SchemaFieldDescriptor *aFieldDescriptors,
