@@ -386,10 +386,7 @@ WEAVE_ERROR SubscriptionClient::SendSubscribeRequest(void)
     uint8_t msgType       = kMsgType_SubscribeRequest;
     InEventParam inSubscribeParam;
     OutEventParam outSubscribeParam;
-#if WEAVE_DETAIL_LOGGING
-    SubscribeRequest::Parser requestParser;
-    nl::Weave::TLV::TLVReader reader;
-#endif
+
     WeaveLogDetail(DataManagement, "Client[%u] [%5.5s] %s Ref(%d)", SubscriptionEngine::GetInstance()->GetClientId(this),
                    GetStateStr(), __func__, mRefCount);
 
@@ -561,21 +558,6 @@ WEAVE_ERROR SubscriptionClient::SendSubscribeRequest(void)
 
     err = ReplaceExchangeContext();
     SuccessOrExit(err);
-
-#if WEAVE_DETAIL_LOGGING
-    //Pretty print contents of subscribe request sent
-
-    reader.Init(msgBuf);
-
-    err = reader.Next();
-    SuccessOrExit(err);
-
-    err = requestParser.Init(reader);
-    SuccessOrExit(err);
-
-    err = requestParser.CheckSchemaValidity();
-    SuccessOrExit(err);
-#endif
 
     // NOTE: State could be changed in sync error callback by message layer
     WEAVE_FAULT_INJECT(FaultInjection::kFault_WDM_SendUnsupportedReqMsgType, msgType += 50);
