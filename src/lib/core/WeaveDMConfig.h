@@ -429,6 +429,19 @@
 #endif // WDM_PUBLISHER_ENABLE_CUSTOM_COMMANDS
 
 /**
+ *  @def WDM_ENABLE_UPDATE
+ *
+ *  @brief
+ *    Enable (1) or disable (0) update support
+ *    in Weave Data Management Next profile. This feature is
+ *    optional and could be disabled.
+ *
+ */
+#ifndef WDM_ENABLE_UPDATE
+#define WDM_ENABLE_UPDATE 1
+#endif
+
+/**
  *  @def WDM_ENABLE_SUBSCRIPTION_PUBLISHER
  *
  *  @brief

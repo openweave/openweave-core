@@ -3611,6 +3611,210 @@ CustomCommandResponse::Builder & CustomCommandResponse::Builder::EndOfResponse(v
     return *this;
 }
 
+WEAVE_ERROR UpdateRequest::Parser::Init(const nl::Weave::TLV::TLVReader & aReader)
+{
+
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
+
+    VerifyOrExit(nl::Weave::TLV::AnonymousTag == aReader.GetTag(), err = WEAVE_ERROR_INVALID_TLV_TAG);
+
+    err = DataElement::Parser::Init(aReader);
+    SuccessOrExit(err);
+
+    mReader.ImplicitProfileId = kWeaveProfile_DictionaryKey;
+
+exit:
+    WeaveLogFunctError(err);
+    return err;
+}
+
+#if WEAVE_CONFIG_DATA_MANAGEMENT_ENABLE_SCHEMA_CHECK
+WEAVE_ERROR UpdateRequest::Parser::CheckSchemaValidity(void) const
+{
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
+    nl::Weave::TLV::TLVReader reader;
+    DataList::Parser dataList;
+
+    struct TagPresence
+    {
+        bool ExpiryTime;
+        bool Argument;
+        bool DataList;
+        bool Authenticator;
+    };
+
+    TagPresence tagPresence = { 0 };
+
+    PRETTY_PRINT("{");
+
+    // make a copy of the reader
+    reader.Init(mReader);
+
+    while (WEAVE_NO_ERROR == (err = reader.Next()))
+    {
+        // Authenticators carry profile tags
+        const uint64_t tag = reader.GetTag();
+
+        if (nl::Weave::TLV::IsContextTag(tag))
+        {
+            switch (nl::Weave::TLV::TagNumFromTag(tag))
+            {
+            case kCsTag_ExpiryTime:
+                // check if this tag has appeared before
+                VerifyOrExit(tagPresence.ExpiryTime == false, err = WEAVE_ERROR_INVALID_TLV_TAG);
+                tagPresence.ExpiryTime = true;
+
+                VerifyOrExit(nl::Weave::TLV::kTLVType_SignedInteger == reader.GetType(), err = WEAVE_ERROR_WRONG_TLV_TYPE);
+
+#if WEAVE_DETAIL_LOGGING
+                {
+                    int64_t value;
+                    err = reader.Get(value);
+                    SuccessOrExit(err);
+
+                    PRETTY_PRINT("\tExpiry Time = 0x%" PRIx64 ",", static_cast<uint64_t>(value));
+                }
+#endif // WEAVE_DETAIL_LOGGING
+
+                break;
+
+            case kCsTag_Argument:
+                // check if this tag has appeared before
+                VerifyOrExit(tagPresence.Argument == false, err = WEAVE_ERROR_INVALID_TLV_TAG);
+                tagPresence.Argument = true;
+
+                VerifyOrExit(nl::Weave::TLV::kTLVType_Structure == reader.GetType(), err = WEAVE_ERROR_WRONG_TLV_TYPE);
+
+#if WEAVE_DETAIL_LOGGING
+                {
+                    PRETTY_PRINT("\t(Argument)");
+
+                    err = ParseData(reader, 0);
+                    SuccessOrExit(err);
+                }
+#endif // WEAVE_DETAIL_LOGGING
+
+                break;
+
+            case kCsTag_DataList:
+                // check if this tag has appeared before
+                VerifyOrExit(tagPresence.Argument == false, err = WEAVE_ERROR_INVALID_TLV_TAG);
+                tagPresence.Argument = true;
+
+                VerifyOrExit(nl::Weave::TLV::kTLVType_Array == reader.GetType(), err = WEAVE_ERROR_WRONG_TLV_TYPE);
+
+#if WEAVE_DETAIL_LOGGING
+                {
+                    dataList.Init(reader);
+
+                    PRETTY_PRINT_INCDEPTH();
+
+                    err = dataList.CheckSchemaValidity();
+                    SuccessOrExit(err);
+
+                    PRETTY_PRINT_DECDEPTH();
+                }
+#endif // WEAVE_DETAIL_LOGGING
+
+                break;
+            default:
+                WeaveLogDetail(DataManagement, "UNKONWN, IGNORE");
+            }
+        }
+        else if (nl::Weave::TLV::IsProfileTag(tag))
+        {
+            // we cannot use the normal case statement, for ProfileTag is a function instead of a macro
+            if (tag ==
+                nl::Weave::TLV::ProfileTag(nl::Weave::Profiles::kWeaveProfile_Security,
+                                           nl::Weave::Profiles::Security::kTag_WeaveSignature))
+            {
+                // certificate signature
+
+                VerifyOrExit(tagPresence.Authenticator == false, err = WEAVE_ERROR_INVALID_TLV_TAG);
+                tagPresence.Authenticator = true;
+
+#if WEAVE_DETAIL_LOGGING
+                {
+                    PRETTY_PRINT("\t(Authenticator-Certificate)");
+
+                    err = ParseData(reader, 0);
+                    SuccessOrExit(err);
+                }
+#endif // WEAVE_DETAIL_LOGGING
+            }
+            // we cannot use the normal case statement, for ProfileTag is a function instead of a macro
+            // 10 is a place holder for the new group key feature in security profile
+            else if (tag ==
+                     nl::Weave::TLV::ProfileTag(nl::Weave::Profiles::kWeaveProfile_Security,
+                                                nl::Weave::Profiles::Security::kTag_GroupKeySignature))
+            {
+                // group key signature
+
+                VerifyOrExit(tagPresence.Authenticator == false, err = WEAVE_ERROR_INVALID_TLV_TAG);
+                tagPresence.Authenticator = true;
+
+#if WEAVE_DETAIL_LOGGING
+                {
+                    PRETTY_PRINT("\t(Authenticator-Group Key)");
+
+                    err = ParseData(reader, 0);
+                    SuccessOrExit(err);
+                }
+#endif // WEAVE_DETAIL_LOGGING
+            }
+        }
+        else
+        {
+            // a custom command can only contain, at top level, context-specific tags or profile tags
+            ExitNow(err = WEAVE_ERROR_INVALID_TLV_TAG);
+        }
+    }
+
+    PRETTY_PRINT("}");
+    PRETTY_PRINT("");
+
+    // almost all fields in an Event are optional
+    if (WEAVE_END_OF_TLV == err)
+    {
+        err = WEAVE_NO_ERROR;
+    }
+
+exit:
+    WeaveLogFunctError(err);
+
+    return err;
+}
+#endif // WEAVE_CONFIG_DATA_MANAGEMENT_ENABLE_SCHEMA_CHECK
+
+WEAVE_ERROR UpdateRequest::Parser::GetExpiryTimeMicroSecond(int64_t * const apExpiryTimeMicroSecond) const
+{
+    return GetSimpleValue(kCsTag_ExpiryTime, nl::Weave::TLV::kTLVType_SignedInteger, apExpiryTimeMicroSecond);
+}
+
+WEAVE_ERROR UpdateRequest::Parser::GetReaderOnArgument(nl::Weave::TLV::TLVReader * const apReader) const
+{
+    return GetReaderOnTag(nl::Weave::TLV::ContextTag(kCsTag_Argument), apReader);
+}
+
+// Get a TLVReader for the Paths. Next() must be called before accessing them.
+WEAVE_ERROR UpdateRequest::Parser::GetDataList (DataList::Parser * const apDataList) const
+{
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
+    nl::Weave::TLV::TLVReader reader;
+
+    err = LookForElementWithTag(mReader, nl::Weave::TLV::ProfileTag(nl::Weave::Profiles::kWeaveProfile_WDM, kCsTag_DataList), &reader);
+    SuccessOrExit(err);
+
+    VerifyOrExit(nl::Weave::TLV::kTLVType_Array == reader.GetType(), err = WEAVE_ERROR_WRONG_TLV_TYPE);
+
+    apDataList->Init(reader);
+
+exit:
+    WeaveLogIfFalse((WEAVE_NO_ERROR == err) || (WEAVE_END_OF_TLV == err));
+
+    return err;
+}
+
 }; // namespace WeaveMakeManagedNamespaceIdentifier(DataManagement, kWeaveManagedNamespaceDesignation_Current)
 }; // namespace Profiles
 }; // namespace Weave

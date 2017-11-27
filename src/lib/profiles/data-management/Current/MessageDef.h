@@ -77,6 +77,8 @@ enum
     kStatus_IncompatibleDataSchemaVersion = 0x2B,
 };
 
+typedef uint16_t DataVersion;
+
 typedef uint16_t SchemaVersion;
 
 struct SchemaVersionRange
@@ -939,7 +941,6 @@ enum
 };
 
 class Parser;
-class Builder;
 }; // namespace NotificationRequest
 
 class NotificationRequest::Parser : public BaseMessageWithSubscribeId::Parser
@@ -1254,6 +1255,79 @@ public:
      *  @return A reference to *this
      */
     CustomCommandResponse::Builder & EndOfResponse(void);
+};
+
+/**
+ *  @brief
+ *    WDM Update Request Request definition
+ *
+ */
+namespace UpdateRequest {
+/// @brief Context-Specific tags used in this message
+    enum
+    {
+        kCsTag_ExpiryTime    = 1,
+        /* 2-9 are reserved */
+        kCsTag_Argument = 10,
+        /* 11-19 are reserved */
+        kCsTag_DataList   = 20,
+    };
+
+    class Parser;
+}; // namespace UpdateRequest
+
+/**
+ *  @brief
+ *    WDM Update Request parser definition
+ */
+class UpdateRequest::Parser : protected DataElement::Parser
+{
+public:
+    /**
+     *  @brief Initialize the parser object with TLVReader
+     *
+     *  @param [in] aReader A pointer to a TLVReader, which should point to the beginning of this request
+     *
+     *  @retval #WEAVE_NO_ERROR on success
+     */
+    WEAVE_ERROR Init(const nl::Weave::TLV::TLVReader & aReader);
+
+    /**
+     *  @brief Roughly verify the message is correctly formed
+     *
+     *  @note The main use of this function is to print out what we're
+     *    receiving during protocol development and debugging.
+     *    The encoding rule has changed in WDM Next so this
+     *    check is only "roughly" conformant now.
+     *
+     *  @retval #WEAVE_NO_ERROR on success
+     */
+    WEAVE_ERROR CheckSchemaValidity(void) const;
+
+    /**
+     *  @brief Get the expiry time for this request
+     *
+     *  @param [out] apExpiryTimeMicroSecond    A pointer to some variable to receive
+     *                                          the expiry time on success
+     *
+     *  @retval #WEAVE_NO_ERROR on success
+     *  @retval #WEAVE_END_OF_TLV if there is no such element
+     *  @retval #WEAVE_ERROR_WRONG_TLV_TYPE if there is such element but it's not a signed integer
+     */
+    WEAVE_ERROR GetExpiryTimeMicroSecond(int64_t * const apExpiryTimeMicroSecond) const;
+
+    /**
+     *  @brief Initialize a TLVReader to point to the beginning of the argument component in this request
+     *
+     *  @param [out] apReader   A pointer to TLVReader, which will be initialized at the argument TLV element
+     *                          on success
+     *
+     *  @retval #WEAVE_NO_ERROR on success
+     */
+    WEAVE_ERROR GetReaderOnArgument(nl::Weave::TLV::TLVReader * const apReader) const;
+
+    // Get a TLVReader for the Paths. Next() must be called before accessing them.
+    WEAVE_ERROR GetDataList (DataList::Parser * const apDataList) const;
 };
 
 }; // namespace WeaveMakeManagedNamespaceIdentifier(DataManagement, kWeaveManagedNamespaceDesignation_Current)

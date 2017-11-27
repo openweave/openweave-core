@@ -68,7 +68,7 @@
 #include <Weave/Profiles/data-management/NotificationEngine.h>
 #include <Weave/Profiles/data-management/SubscriptionClient.h>
 #include <Weave/Profiles/data-management/ViewClient.h>
-
+#include <Weave/Profiles/data-management/UpdateClient.h>
 #include <Weave/Profiles/data-management/EventLogging.h>
 #include <Weave/Profiles/data-management/LoggingManagement.h>
 #include <Weave/Profiles/data-management/EventLoggingTypes.h>

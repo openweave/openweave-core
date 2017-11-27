@@ -56,6 +56,8 @@ noinst_HEADERS                                 = \
     MockTokenPairingServer.h                     \
     MockWdmViewServer.h                          \
     MockWdmViewClient.h                          \
+    MockWdmUpdateServer.h                        \
+    MockWdmUpdateClient.h                        \
     MockWdmTestVerifier.h                        \
     MockWdmSubscriptionInitiator.h               \
     MockWdmSubscriptionResponder.h               \
@@ -579,6 +581,7 @@ check_SCRIPTS                                 +=             \
     happy/tests/service/wdmNext/test_weave_wdm_next_service_mutual_subscribe_24.py                              \
     happy/tests/service/wdmNext/test_weave_wdm_next_service_mutual_subscribe_25.py                              \
     happy/tests/service/wdmNext/test_weave_wdm_next_service_mutual_subscribe_application_key_01.py              \
+	happy/tests/service/wdmNext/test_weave_wdm_next_service_update_01.py              							\
     $(NULL)
 endif # WEAVE_RUN_HAPPY_WDM
 
@@ -941,6 +944,7 @@ check_SCRIPTS                                 +=                \
     happy/tests/standalone/wdmNext/test_weave_wdm_next_application_key_02.py      \
     happy/tests/standalone/wdmNext/test_weave_wdm_next_oneway_resub.py            \
     happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_resub.py            \
+    happy/tests/standalone/wdmNext/test_weave_wdm_next_update_01.py     		  \
     $(NULL)
 
 endif # WEAVE_RUN_HAPPY_WDM
@@ -1261,6 +1265,8 @@ TestWdmNext_SOURCES                      = TestWdmNext.cpp						\
                                            schema/weave/trait/telemetry/NetworkWiFiTelemetryTrait.cpp	\
                                            MockWdmViewServer.cpp					\
                                            MockWdmViewClient.cpp					\
+                                           MockWdmUpdateServer.cpp					\
+                                           MockWdmUpdateClient.cpp					\
                                            MockWdmSubscriptionInitiator.cpp				\
                                            MockWdmTestVerifier.cpp	        			\
                                            MockWdmSubscriptionResponder.cpp				\
@@ -1301,6 +1307,8 @@ mock_device_SOURCES                      = mock-device.cpp                      
                                            schema/weave/trait/telemetry/NetworkWiFiTelemetryTrait.cpp \
                                            MockWdmViewServer.cpp                                    \
                                            MockWdmViewClient.cpp                                    \
+                                           MockWdmUpdateServer.cpp                                    \
+                                           MockWdmUpdateClient.cpp                                    \
                                            MockWdmSubscriptionInitiator.cpp                         \
                                            MockWdmTestVerifier.cpp	                            \
                                            MockWdmSubscriptionResponder.cpp                         \

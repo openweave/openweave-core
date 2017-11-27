@@ -59,6 +59,11 @@
 #include "TestProfile.h"
 #include "MockDMPublisher.h"
 #include "MockTokenPairingServer.h"
+#include "MockWdmUpdateClient.h"
+#include "MockWdmUpdateServer.h"
+#include "MockWdmViewClient.h"
+#include "MockWdmViewServer.h"
+
 #include "MockWdmSubscriptionInitiator.h"
 #include "MockWdmSubscriptionResponder.h"
 #include "MockLoggingManager.h"
@@ -238,12 +243,15 @@ enum
     kToolOpt_WdmEnableRetry,
     kToolOpt_SuppressAccessControl,
 
+    kToolOpt_WdmSimpleUpdateClient,
+    kToolOpt_WdmSimpleUpdateServer,
 // only for weave over bluez peripheral
 #if CONFIG_BLE_PLATFORM_BLUEZ
     kToolOpt_EnableWeaveBluezPeripheral,
     kToolOpt_WeaveBluezPeripheralName,
-    kToolOpt_WeaveBluezPeripheralAddress
+    kToolOpt_WeaveBluezPeripheralAddress,
 #endif
+
 };
 
 static OptionDef gToolOptionDefs[] =
@@ -268,7 +276,6 @@ static OptionDef gToolOptionDefs[] =
     { "delay",                      kArgumentRequired,  'r' },
     { "delay-time",                 kArgumentRequired,  't' },
     { "preconfig",                  kNoArgument,        'c' },
-    { "case",                       kNoArgument,        'C' },
     { "suppress-ac",                kNoArgument,        kToolOpt_SuppressAccessControl },
     { "connect-to",                 kArgumentRequired,  kToolOpt_ConnectTo },
     { "connect-to-interval",        kArgumentRequired,  kToolOpt_ConnectToInterval },
@@ -302,6 +309,8 @@ static OptionDef gToolOptionDefs[] =
     { "wdm-subnet",                 kArgumentRequired,  kToolOpt_WdmUseSubnetId },
     //{ "wdm-simple-view-client",     kNoArgument,        kToolOpt_WdmSimpleViewClient },
     //{ "wdm-simple-view-server",     kNoArgument,        kToolOpt_WdmSimpleViewServer },
+    { "wdm-simple-update-client",   kNoArgument,        kToolOpt_WdmSimpleUpdateClient },
+    { "wdm-simple-update-server",   kNoArgument,        kToolOpt_WdmSimpleUpdateServer },
     { "wdm-one-way-sub-client",     kNoArgument,        kToolOpt_WdmSubscriptionClient },
     { "wdm-one-way-sub-publisher",  kNoArgument,        kToolOpt_WdmSubscriptionPublisher },
     { "wdm-init-mutual-sub",        kNoArgument,        kToolOpt_WdmInitMutualSubscription },
@@ -430,6 +439,12 @@ static const char *const gToolOptionHelp =
     "\n"
     "  --wdm-simple-view-server\n"
     "       Initiate a simple WDM Next view server\n"
+    "\n"
+    "  --wdm-simple-update-client\n"
+    "       Initiate a simple WDM Next update client\n"
+    "\n"
+    "  --wdm-simple-update-server\n"
+    "       Initiate a simple WDM Next update server\n"
     "\n"
     "  --wdm-one-way-sub-client\n"
     "       Initiate a subscription to some WDM Next publisher\n"
@@ -699,7 +714,7 @@ int main(int argc, char *argv[])
     {
     case 0:
         break;
-#if WEAVE_CONFIG_TEST_WDM_SIMPLE_VIEW_CLIENT
+/*
     case kToolOpt_WdmSimpleViewClient:
         if (WdmPublisherNodeId != kAnyNodeId)
         {
@@ -720,7 +735,28 @@ int main(int argc, char *argv[])
         err = MockWdmViewServer::GetInstance()->Init(&ExchangeMgr, TestCaseId);
         FAIL_ERROR(err, "MockWdmViewServer.Init failed");
         break;
-#endif // WEAVE_CONFIG_TEST_WDM_SIMPLE_VIEW_CLIENT
+*/
+    case kToolOpt_WdmSimpleUpdateClient:
+        if (WdmPublisherNodeId != kAnyNodeId)
+        {
+            err = MockWdmUpdateClient::GetInstance()->Init(&ExchangeMgr, TestCaseId, gWeaveSecurityMode.SecurityMode, KeyId);
+            FAIL_ERROR(err, "MockWdmUpdateClient.Init failed");
+            err = MockWdmUpdateClient::GetInstance()->StartTesting(WdmPublisherNodeId, WdmUseSubnetId);
+            FAIL_ERROR(err, "MockWdmUpdateClient.StartTesting failed");
+
+            MockWdmUpdateClient::GetInstance()-> onCompleteTest = HandleWdmCompleteTest;
+        }
+        else
+        {
+            err = WEAVE_ERROR_INVALID_ARGUMENT;
+            FAIL_ERROR(err, "Simple Update Client requires node ID to some publisher");
+        }
+        break;
+    case kToolOpt_WdmSimpleUpdateServer:
+        err = MockWdmUpdateServer::GetInstance()->Init(&ExchangeMgr, TestCaseId);
+        FAIL_ERROR(err, "MockWdmUpdateServer.Init failed");
+        break;
+
     case kToolOpt_WdmInitMutualSubscription:
     case kToolOpt_WdmSubscriptionClient:
 
@@ -1036,7 +1072,7 @@ bool HandleOption(const char *progName, OptionSet *optSet, int id, const char *n
             return false;
         }
         break;
-#if WEAVE_CONFIG_TEST_WDM_SIMPLE_VIEW_CLIENT
+    /*
     case kToolOpt_WdmSimpleViewClient:
         if (0 != WdmRoleInTest)
         {
@@ -1053,7 +1089,23 @@ bool HandleOption(const char *progName, OptionSet *optSet, int id, const char *n
         }
         WdmRoleInTest = kToolOpt_WdmSimpleViewServer;
         break;
-#endif // WEAVE_CONFIG_TEST_WDM_SIMPLE_VIEW_CLIENT
+    */
+    case kToolOpt_WdmSimpleUpdateClient:
+        if (0 != WdmRoleInTest)
+        {
+            PrintArgError("%s: Mock device can only play one role in WDM tests (%s)\n", progName, arg);
+            return false;
+        }
+        WdmRoleInTest = kToolOpt_WdmSimpleUpdateClient;
+        break;
+    case kToolOpt_WdmSimpleUpdateServer:
+        if (0 != WdmRoleInTest)
+        {
+            PrintArgError("%s: Mock device can only play one role in WDM tests (%s)\n", progName, arg);
+            return false;
+        }
+        WdmRoleInTest = kToolOpt_WdmSimpleUpdateServer;
+        break;
     case kToolOpt_WdmSubscriptionClient:
         if (0 != WdmRoleInTest)
         {

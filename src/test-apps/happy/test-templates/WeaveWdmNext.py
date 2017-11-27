@@ -53,7 +53,6 @@ options = { "clients": None,
             "save_server_perf": False,
             "server_event_generator": None,
             "server_inter_event_period": None,
-            "test_server_iterations": 1,
             "wdm_client_liveness_check_period": None,
             "wdm_server_liveness_check_period": None,
             "case": False,
@@ -63,7 +62,19 @@ options = { "clients": None,
             "case_key_path": None,
             "group_enc": False,
             "group_enc_key_id": None,
-            "use_persistent_storage": True
+            "use_persistent_storage": True,
+            "total_client_count": None,
+            "total_server_count": None,
+            "final_client_status": None,
+            "final_server_status": None,
+            "timer_client_period": None,
+            "timer_server_period": None,
+            "test_client_iterations": None,
+            "test_server_iterations": None,
+            "test_client_delay": None,
+            "test_server_delay": None,
+            "enable_client_flip": None,
+            "enable_server_flip": None,
           }
 
 
@@ -164,16 +175,6 @@ class WeaveWdmNext(HappyNode, HappyNetwork, WeaveTest):
         HappyNode.__init__(self)
         HappyNetwork.__init__(self)
         WeaveTest.__init__(self)
-
-        remove_keys = ["test_server_case", "total_server_count", "final_server_status", "timer_server_period",
-                       "enable_server_stop", "test_server_iterations", "test_server_delay", "enable_server_flip",
-                       "save_server_perf", "server_event_generator", "server_inter_event_period",
-                       "wdm_server_liveness_check_period"]
-
-        if opts['server'] == 'service':
-            for i in remove_keys:
-                if i in opts:
-                    del opts[i]
 
         self.__dict__.update(opts)
 
@@ -317,112 +318,13 @@ class WeaveWdmNext(HappyNode, HappyNetwork, WeaveTest):
         elif self.wdm_option == "mutual_subscribe":
             self.wdm_client_option = " --wdm-init-mutual-sub"
             self.wdm_server_option = " --wdm-resp-mutual-sub"
+        elif self.wdm_option == "update":
+            self.wdm_client_option = " --wdm-simple-update-client"
+            self.wdm_server_option = " --wdm-simple-update-server"
         else:
             emsg = "NOT SUPPORTED WDM OPTION"
             self.logger.error("[localhost] WeaveWdmNext: %s" % emsg)
             sys.exit(1)
-
-        if self.test_client_case not in [1, 2, 3, 4, 5]:
-            emsg = "TestWdmNext only support test case 1, 2, 3, 4 and 5 in in client side"
-            self.logger.error("[localhost] WeaveWdmNext: %s" % emsg)
-            sys.exit(1)
-
-        if not (isinstance(self.total_client_count, int) and self.total_client_count >= -1):
-            emsg = "The number of notifications should not less than -1 in client side"
-            self.logger.error("[localhost] WeaveWdmNext: %s" % emsg)
-            sys.exit(1)
-
-        if self.final_client_status not in [0, 1, 2, 3, 4]:
-            emsg = "TestWdmNext only support final status, 0(client cancel), 1(publisher cancel), 2(client abort)," \
-                   " 3(Publisher abort), 4(Idle) in client side"
-            self.logger.error("[localhost] WeaveWdmNext: %s" % emsg)
-            sys.exit(1)
-
-        if not (isinstance(self.timer_client_period, int) and self.timer_client_period >= 0):
-            emsg = "The period of notification timer should not less than 0 in client side"
-            self.logger.error("[localhost] WeaveWdmNext: %s" % emsg)
-            sys.exit(1)
-
-        if not isinstance(self.enable_client_stop, bool):
-            emsg = "TestWdmNext needs to specify if stopping test finally in client side"
-            self.logger.error("[localhost] WeaveWdmNext: %s" % emsg)
-            sys.exit(1)
-
-        if not (isinstance(self.test_client_iterations, int) and self.test_client_iterations >= 1):
-            emsg = "TestWdmNext needs at least one iteration in client side"
-            self.logger.error("[localhost] WeaveWdmNext: %s" % emsg)
-            sys.exit(1)
-
-        if not (isinstance(self.test_client_delay, int) and self.test_client_delay >= 0):
-            emsg = "The test delay between iterations should not less than 0 in client side"
-            self.logger.error("[localhost] WeaveWdmNext: %s" % emsg)
-            sys.exit(1)
-
-        if not isinstance(self.save_client_perf, bool):
-            emsg = "TestWdmNext needs to save per date in file finally in server side"
-            self.logger.error("[localhost] WeaveWdmNext: %s" % emsg)
-            sys.exit(1)
-
-        if self.enable_client_flip not in [0, 1]:
-            emsg = "TestWdmNext only support flip 0 and 1 in server side"
-            self.logger.error("[localhost] WeaveWdmNext: %s" % emsg)
-            sys.exit(1)
-        if self.server != "service":
-            if self.test_server_case not in [1, 2, 3, 4, 5]:
-                emsg = "TestWdmNext only support test case 1, 2, 3, 4 and 5 in server side"
-                self.logger.error("[localhost] WeaveWdmNext: %s" % emsg)
-                sys.exit(1)
-
-            if not (isinstance(self.total_server_count, int) and self.total_server_count >= -1):
-                emsg = "The number of notifications should not less than -1 in server side"
-                self.logger.error("[localhost] WeaveWdmNext: %s" % emsg)
-                sys.exit(1)
-
-            if self.final_server_status not in [0, 1, 2, 3, 4]:
-                emsg = "TestWdmNext only support final status, 0(client cancel), 1(publisher cancel), 2(client abort)," \
-                       " 3(Publisher abort), 4(Idle) in server side"
-                self.logger.error("[localhost] WeaveWdmNext: %s" % emsg)
-                sys.exit(1)
-
-            if not (isinstance(self.timer_server_period, int) and self.timer_server_period >= 0):
-                emsg = "The period of notification timer should not less than 0 in server side"
-                self.logger.error("[localhost] WeaveWdmNext: %s" % emsg)
-                sys.exit(1)
-
-            if not isinstance(self.enable_server_stop, bool):
-                emsg = "TestWdmNext needs to specify if stopping test finally in server side"
-                self.logger.error("[localhost] WeaveWdmNext: %s" % emsg)
-                sys.exit(1)
-
-            if not (isinstance(self.test_server_iterations, int) and self.test_server_iterations >= 1):
-                emsg = "TestWdmNext needs at least one iteration in server side"
-                self.logger.error("[localhost] WeaveWdmNext: %s" % emsg)
-                sys.exit(1)
-
-            if not (isinstance(self.test_server_delay, int) and self.test_server_delay >= 0):
-                emsg = "The test delay between iterations should not less than 0 in server side"
-                self.logger.error("[localhost] WeaveWdmNext: %s" % emsg)
-                sys.exit(1)
-
-            if not isinstance(self.save_server_perf, bool):
-                emsg = "TestWdmNext needs to save per date in file finally in server side"
-                self.logger.error("[localhost] WeaveWdmNext: %s" % emsg)
-                sys.exit(1)
-
-            if self.enable_server_flip not in [0, 1]:
-                emsg = "TestWdmNext only support flip 0 and 1 in server side"
-                self.logger.error("[localhost] WeaveWdmNext: %s" % emsg)
-                sys.exit(1)
-
-            if self.server_event_generator is not None and self.server_event_generator not in ["Debug", "Livenesss", "Security"]:
-                emsg = "TestWdmNext only support Debug, Liveness, and Security event"
-                self.logger.error("[localhost] WeaveWdmNext: %s" % emsg)
-                sys.exit(1)
-
-            if self.server_inter_event_period is not None and int(self.server_inter_event_period) < 0:
-                emsg = "TestWdmNext event generation's period shoud be larger than 0"
-                self.logger.error("[localhost] WeaveWdmNext: %s" % emsg)
-                sys.exit(1)
 
     def __process_results(self, client_output, server_output, client_info):
         kevents = re.findall(r"WEAVE:.+kEvent_\w+", client_output)
@@ -453,6 +355,12 @@ class WeaveWdmNext(HappyNode, HappyNetwork, WeaveTest):
                 smoke_check = False
         elif self.wdm_option == "mutual_subscribe":
             if any("Publisher->kEvent_OnSubscriptionEstablished" in s for s in kevents) \
+                    and "Closing endpoints" in client_output:
+                smoke_check = True
+            else:
+                smoke_check = False
+        elif self.wdm_option == "update":
+            if any("kEvent_StatusReportReceived" in s for s in kevents) \
                     and "Closing endpoints" in client_output:
                 smoke_check = True
             else:
@@ -537,13 +445,27 @@ class WeaveWdmNext(HappyNode, HappyNetwork, WeaveTest):
         if self.wdm_server_liveness_check_period is not None:
             cmd += " --wdm-liveness-check-period " + str(self.wdm_server_liveness_check_period)
 
-        cmd += " --test-case " + str(self.test_server_case)
-        cmd += " --total-count " + str(self.total_server_count)
-        cmd += " --final-status " + str(self.final_server_status)
-        cmd += " --timer-period " + str(self.timer_server_period)
-        cmd += " --test-iterations " + str(self.test_server_iterations)
-        cmd += " --test-delay " + str(self.test_server_delay)
-        cmd += " --enable-flip " + str(self.enable_server_flip)
+        if self.test_server_case is not None:
+            cmd += " --test-case " + str(self.test_server_case)
+
+        if self.total_server_count is not None:
+            cmd += " --total-count " + str(self.total_server_count)
+
+        if self.final_server_status is not None:
+            cmd += " --final-status " + str(self.final_server_status)
+
+        if self.timer_server_period is not None:
+            cmd += " --timer-period " + str(self.timer_server_period)
+
+        if self.test_server_iterations is not None:
+            cmd += " --test-iterations " + str(self.test_server_iterations)
+
+        if self.test_server_delay is not None:
+            cmd += " --test-delay " + str(self.test_server_delay)
+
+        if self.enable_server_flip is not None:
+            cmd += " --enable-flip " + str(self.enable_server_flip)
+
         if self.server_faults != None:
             cmd += " --faults " + self.server_faults
 
@@ -582,15 +504,29 @@ class WeaveWdmNext(HappyNode, HappyNetwork, WeaveTest):
         if self.wdm_client_liveness_check_period is not None:
             cmd += " --wdm-liveness-check-period " + str(self.wdm_client_liveness_check_period)
 
-        cmd += " --enable-dictionary-test " if self.enable_client_dictionary_test else ""
+        if self.enable_client_dictionary_test is not None:
+            cmd += " --enable-dictionary-test "
 
-        cmd += " --test-case " + str(self.test_client_case)
-        cmd += " --total-count " + str(self.total_client_count)
-        cmd += " --final-status " + str(self.final_client_status)
-        cmd += " --timer-period " + str(self.timer_client_period)
-        cmd += " --test-iterations " + str(self.test_client_iterations)
-        cmd += " --test-delay " + str(self.test_client_delay)
-        cmd += " --enable-flip " + str(self.enable_client_flip)
+        if self.test_client_case is not None:
+            cmd += " --test-case " + str(self.test_client_case)
+
+        if self.total_client_count is not None:
+            cmd += " --total-count " + str(self.total_client_count)
+
+        if self.final_client_status is not None:
+            cmd += " --final-status " + str(self.final_client_status)
+
+        if self.timer_client_period is not None:
+            cmd += " --timer-period " + str(self.timer_client_period)
+
+        if self.test_client_iterations is not None:
+            cmd += " --test-iterations " + str(self.test_client_iterations)
+
+        if self.test_client_delay is not None:
+            cmd += " --test-delay " + str(self.test_client_delay)
+
+        if self.enable_client_flip is not None:
+            cmd += " --enable-flip " + str(self.enable_client_flip)
 
         if self.__dict__.get("client_clear_state_between_iterations", False):
             cmd += " --clear-state-between-iterations"
@@ -628,6 +564,7 @@ class WeaveWdmNext(HappyNode, HappyNetwork, WeaveTest):
             cmd += " --enable-mock-event-timestamp-initial-counter"
 
         custom_env = {}
+
         if self.use_plaid:
             custom_env = self.plaid.getPlaidClientLibEnv(client_info["client_node_id"])
 

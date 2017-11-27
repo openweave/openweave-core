@@ -38,7 +38,7 @@ import plugins.testrail.TestrailResultOutput
 from topologies.dynamic.thread_wifi_ap_internet_configurable_topology import thread_wifi_ap_internet_configurable_topology
 
 TEST_OPTION_QUIET = True
-DEFAULT_FABRIC_SEED = "00000"
+DEFAULT_FABRIC_SEED = "00001"
 TESTRAIL_SECTION_NAME = 'WDM-Next test suite between Mock-Client and Real-Service'
 TESTRAIL_SUFFIX = "_TESTRAIL.json"
 

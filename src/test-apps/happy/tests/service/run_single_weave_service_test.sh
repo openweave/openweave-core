@@ -22,14 +22,15 @@
 #    @file
 #       Sample code for manually running happy WdmNext tests
 #
-#Enable case and make tests hit frontdoor
-#generate case certificate
-#python weave-provisioning-tool.py  export-key-files --db 'simulator-weave-provisioning-db.sqlite'  --outdir /tmp/ --start 18B430AA00070100  --end 18B430AA0007010A
-#export CASE=1
-#export USE_SERVICE_DIR=1
+# Enable case and make tests hit frontdoor
+# generate case certificate
+# python device-mfg/weave-provisioning-tool/weave-provisioning-tool.py  export-key-files --db 'weave-certificates/simulator-weave-provisioning-db.sqlite'  --outdir /tmp/ --start 18B430AA00000010  --end 18B430AA0000001A
+
+export CASE=1
+export USE_SERVICE_DIR=1
 export weave_service_address='frontdoor.integration.nestlabs.com'
 #export weave_service_address='tunnel01.weave01.iad02.integration.nestlabs.com'
 export happy_dns='8.8.8.8 172.16.255.1 172.16.255.153 172.16.255.53'
 #python wdmNext/test_weave_wdm_next_service_mutual_subscribe_01.py
-python tunnel/test_weave_tunnel_01.py
+python wdmNext/test_weave_wdm_next_service_update_01.py
 #python echo/test_weave_echo_02.py
