@@ -24,9 +24,11 @@
 #ifndef WEAVE_FAULT_INJECTION_H_
 #define WEAVE_FAULT_INJECTION_H_
 
-#include <nlfaultinjection.hpp>
-
 #include <Weave/Core/WeaveConfig.h>
+
+#if WEAVE_CONFIG_TEST
+
+#include <nlfaultinjection.hpp>
 
 #include <Weave/Support/NLDLLUtil.h>
 
@@ -87,8 +89,6 @@ NL_DLL_EXPORT void FuzzExchangeHeader(uint8_t *p, int32_t arg);
 } // namespace FaultInjection
 } // namespace Weave
 } // namespace nl
-
-#if WEAVE_CONFIG_TEST
 
 /**
  * Execute the statements included if the Weave fault is

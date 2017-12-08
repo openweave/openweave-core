@@ -42,7 +42,6 @@ nl_WeaveSupport_sources                                                         
     @top_builddir@/src/lib/support/StatusReportStr.cpp                                      \
     @top_builddir@/src/lib/support/TimeUtils.cpp                                            \
     @top_builddir@/src/lib/support/WeaveCounter.cpp                                         \
-    @top_builddir@/src/lib/support/WeaveFaultInjection.cpp                                  \
     @top_builddir@/src/lib/support/WeaveNames.cpp                                           \
     @top_builddir@/src/lib/support/nlargparser.cpp                                          \
     @top_builddir@/src/lib/support/crypto/AESBlockCipher-OpenSSL.cpp                        \
@@ -76,3 +75,7 @@ nl_WeaveSupport_sources                                                         
     @top_builddir@/src/lib/support/pairing-code/KryptonitePairingCodeUtils.cpp              \
     $(NULL)
 endif # WEAVE_WITH_VERHOEFF
+
+if WEAVE_WITH_NLFAULTINJECTION
+nl_WeaveSupport_sources += @top_builddir@/src/lib/support/WeaveFaultInjection.cpp
+endif # WEAVE_WITH_NLFAULTINJECTION

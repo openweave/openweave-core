@@ -25,6 +25,8 @@
 #include <nlassert.h>
 #include <SystemLayer/SystemFaultInjection.h>
 
+#if WEAVE_SYSTEM_CONFIG_TEST
+
 #include "SystemLayerPrivate.h"
 
 namespace nl {
@@ -116,3 +118,5 @@ void SetAsyncEventCallbacks(int32_t (*aGetNumEventsAvailable)(void), void (*aInj
 } // namespace System
 } // namespace Weave
 } // namespace nl
+
+#endif // WEAVE_SYSTEM_CONFIG_TEST

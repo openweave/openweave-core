@@ -288,17 +288,19 @@ DIST_COMMON = $(srcdir)/../system/SystemLayer.am \
 	$(srcdir)/Makefile.in $(srcdir)/Makefile.am \
 	$(top_srcdir)/third_party/nlbuild-autotools/repo/autoconf/mkinstalldirs \
 	$(top_srcdir)/third_party/nlbuild-autotools/repo/autoconf/depcomp
-@INET_WANT_ENDPOINT_DNS_TRUE@am__append_1 = @top_builddir@/src/inet/DNSResolver.cpp
-@INET_WANT_ENDPOINT_RAW_TRUE@am__append_2 = @top_builddir@/src/inet/RawEndPoint.cpp
-@INET_WANT_ENDPOINT_TCP_TRUE@am__append_3 = @top_builddir@/src/inet/TCPEndPoint.cpp
-@INET_WANT_ENDPOINT_UDP_TRUE@am__append_4 = @top_builddir@/src/inet/UDPEndPoint.cpp
-@INET_WANT_ENDPOINT_TUN_TRUE@am__append_5 = @top_builddir@/src/inet/TunEndPoint.cpp
-@INET_CONFIG_ENABLE_ASYNC_DNS_SOCKETS_TRUE@@WEAVE_SYSTEM_CONFIG_USE_SOCKETS_TRUE@am__append_6 = @top_builddir@/src/inet/AsyncDNSResolverSockets.cpp
-@WEAVE_ENABLE_WOBLE_TEST_TRUE@am__append_7 = \
+@WEAVE_WITH_NLFAULTINJECTION_TRUE@am__append_1 = @top_builddir@/src/system/SystemFaultInjection.cpp
+@INET_WANT_ENDPOINT_DNS_TRUE@am__append_2 = @top_builddir@/src/inet/DNSResolver.cpp
+@INET_WANT_ENDPOINT_RAW_TRUE@am__append_3 = @top_builddir@/src/inet/RawEndPoint.cpp
+@INET_WANT_ENDPOINT_TCP_TRUE@am__append_4 = @top_builddir@/src/inet/TCPEndPoint.cpp
+@INET_WANT_ENDPOINT_UDP_TRUE@am__append_5 = @top_builddir@/src/inet/UDPEndPoint.cpp
+@INET_WANT_ENDPOINT_TUN_TRUE@am__append_6 = @top_builddir@/src/inet/TunEndPoint.cpp
+@INET_CONFIG_ENABLE_ASYNC_DNS_SOCKETS_TRUE@@WEAVE_SYSTEM_CONFIG_USE_SOCKETS_TRUE@am__append_7 = @top_builddir@/src/inet/AsyncDNSResolverSockets.cpp
+@WEAVE_WITH_NLFAULTINJECTION_TRUE@am__append_8 = @top_builddir@/src/inet/InetFaultInjection.cpp
+@WEAVE_ENABLE_WOBLE_TEST_TRUE@am__append_9 = \
 @WEAVE_ENABLE_WOBLE_TEST_TRUE@    @top_builddir@/src/device-manager/WoBleTest.cpp         \
 @WEAVE_ENABLE_WOBLE_TEST_TRUE@    $(NULL)
 
-@WEAVE_WITH_VERHOEFF_TRUE@am__append_8 = \
+@WEAVE_WITH_VERHOEFF_TRUE@am__append_10 = \
 @WEAVE_WITH_VERHOEFF_TRUE@    @top_builddir@/src/lib/support/verhoeff/Verhoeff.cpp                                    \
 @WEAVE_WITH_VERHOEFF_TRUE@    @top_builddir@/src/lib/support/verhoeff/Verhoeff10.cpp                                  \
 @WEAVE_WITH_VERHOEFF_TRUE@    @top_builddir@/src/lib/support/verhoeff/Verhoeff16.cpp                                  \
@@ -309,16 +311,17 @@ DIST_COMMON = $(srcdir)/../system/SystemLayer.am \
 @WEAVE_WITH_VERHOEFF_TRUE@    @top_builddir@/src/lib/support/pairing-code/KryptonitePairingCodeUtils.cpp              \
 @WEAVE_WITH_VERHOEFF_TRUE@    $(NULL)
 
-@CONFIG_HAVE_HEAP_TRUE@am__append_9 = \
+@WEAVE_WITH_NLFAULTINJECTION_TRUE@am__append_11 = @top_builddir@/src/lib/support/WeaveFaultInjection.cpp
+@CONFIG_HAVE_HEAP_TRUE@am__append_12 = \
 @CONFIG_HAVE_HEAP_TRUE@    @top_builddir@/src/lib/profiles/network-provisioning/NetworkInfo.cpp                \
 @CONFIG_HAVE_HEAP_TRUE@    $(NULL)
 
-@WEAVE_ENABLE_WOBLE_TEST_TRUE@am__append_10 = \
+@WEAVE_ENABLE_WOBLE_TEST_TRUE@am__append_13 = \
 @WEAVE_ENABLE_WOBLE_TEST_TRUE@    -I$(top_srcdir)/src/device-manager \
 @WEAVE_ENABLE_WOBLE_TEST_TRUE@    $(NULL)
 
-@CONFIG_NETWORK_LAYER_BLE_TRUE@am__append_11 = $(nl_BleLayer_sources)
-@WEAVE_BUILD_WARM_TRUE@am__append_12 = $(nl_Warm_sources)
+@CONFIG_NETWORK_LAYER_BLE_TRUE@am__append_14 = $(nl_BleLayer_sources)
+@WEAVE_BUILD_WARM_TRUE@am__append_15 = $(nl_Warm_sources)
 subdir = src/lib
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/build/autoconf/m4/nl_check_project_config_includes.m4 \
@@ -378,13 +381,13 @@ libWeave_a_DEPENDENCIES = $(shell find \
 	$(Dash)name "*.o")
 am__libWeave_a_SOURCES_DIST =  \
 	@top_builddir@/src/system/SystemError.cpp \
-	@top_builddir@/src/system/SystemFaultInjection.cpp \
 	@top_builddir@/src/system/SystemLayer.cpp \
 	@top_builddir@/src/system/SystemMutex.cpp \
 	@top_builddir@/src/system/SystemObject.cpp \
 	@top_builddir@/src/system/SystemTimer.cpp \
 	@top_builddir@/src/system/SystemPacketBuffer.cpp \
 	@top_builddir@/src/system/SystemStats.cpp \
+	@top_builddir@/src/system/SystemFaultInjection.cpp \
 	@top_builddir@/src/inet/EndPointBasis.cpp \
 	@top_builddir@/src/inet/IPAddress-StringFuncts.cpp \
 	@top_builddir@/src/inet/IPAddress.cpp \
@@ -394,13 +397,13 @@ am__libWeave_a_SOURCES_DIST =  \
 	@top_builddir@/src/inet/InetLayerBasis.cpp \
 	@top_builddir@/src/inet/InetTimer.cpp \
 	@top_builddir@/src/inet/InetUtils.cpp \
-	@top_builddir@/src/inet/InetFaultInjection.cpp \
 	@top_builddir@/src/inet/DNSResolver.cpp \
 	@top_builddir@/src/inet/RawEndPoint.cpp \
 	@top_builddir@/src/inet/TCPEndPoint.cpp \
 	@top_builddir@/src/inet/UDPEndPoint.cpp \
 	@top_builddir@/src/inet/TunEndPoint.cpp \
 	@top_builddir@/src/inet/AsyncDNSResolverSockets.cpp \
+	@top_builddir@/src/inet/InetFaultInjection.cpp \
 	@top_builddir@/src/ble/BleLayer.cpp \
 	@top_builddir@/src/ble/BLEEndPoint.cpp \
 	@top_builddir@/src/ble/WoBle.cpp \
@@ -444,7 +447,6 @@ am__libWeave_a_SOURCES_DIST =  \
 	@top_builddir@/src/lib/support/StatusReportStr.cpp \
 	@top_builddir@/src/lib/support/TimeUtils.cpp \
 	@top_builddir@/src/lib/support/WeaveCounter.cpp \
-	@top_builddir@/src/lib/support/WeaveFaultInjection.cpp \
 	@top_builddir@/src/lib/support/WeaveNames.cpp \
 	@top_builddir@/src/lib/support/nlargparser.cpp \
 	@top_builddir@/src/lib/support/crypto/AESBlockCipher-OpenSSL.cpp \
@@ -472,6 +474,7 @@ am__libWeave_a_SOURCES_DIST =  \
 	@top_builddir@/src/lib/support/pairing-code/PairingCodeUtils.cpp \
 	@top_builddir@/src/lib/support/pairing-code/NevisPairingCodeUtils.cpp \
 	@top_builddir@/src/lib/support/pairing-code/KryptonitePairingCodeUtils.cpp \
+	@top_builddir@/src/lib/support/WeaveFaultInjection.cpp \
 	@top_builddir@/src/lib/profiles/bulk-data-transfer/BulkDataTransfer.cpp \
 	@top_builddir@/src/lib/profiles/bulk-data-transfer/Development/BDXMessages.cpp \
 	@top_builddir@/src/lib/profiles/bulk-data-transfer/Development/BDXNode.cpp \
@@ -552,22 +555,24 @@ am__libWeave_a_SOURCES_DIST =  \
 	@top_builddir@/src/lib/profiles/network-provisioning/NetworkInfo.cpp \
 	@top_builddir@/src/warm/WarmCore.cpp
 am__dirstamp = $(am__leading_dot)dirstamp
-am__objects_1 =  \
+@WEAVE_WITH_NLFAULTINJECTION_TRUE@am__objects_1 = @top_builddir@/src/system/libWeave_a-SystemFaultInjection.$(OBJEXT)
+am__objects_2 =  \
 	@top_builddir@/src/system/libWeave_a-SystemError.$(OBJEXT) \
-	@top_builddir@/src/system/libWeave_a-SystemFaultInjection.$(OBJEXT) \
 	@top_builddir@/src/system/libWeave_a-SystemLayer.$(OBJEXT) \
 	@top_builddir@/src/system/libWeave_a-SystemMutex.$(OBJEXT) \
 	@top_builddir@/src/system/libWeave_a-SystemObject.$(OBJEXT) \
 	@top_builddir@/src/system/libWeave_a-SystemTimer.$(OBJEXT) \
 	@top_builddir@/src/system/libWeave_a-SystemPacketBuffer.$(OBJEXT) \
-	@top_builddir@/src/system/libWeave_a-SystemStats.$(OBJEXT)
-@INET_WANT_ENDPOINT_DNS_TRUE@am__objects_2 = @top_builddir@/src/inet/libWeave_a-DNSResolver.$(OBJEXT)
-@INET_WANT_ENDPOINT_RAW_TRUE@am__objects_3 = @top_builddir@/src/inet/libWeave_a-RawEndPoint.$(OBJEXT)
-@INET_WANT_ENDPOINT_TCP_TRUE@am__objects_4 = @top_builddir@/src/inet/libWeave_a-TCPEndPoint.$(OBJEXT)
-@INET_WANT_ENDPOINT_UDP_TRUE@am__objects_5 = @top_builddir@/src/inet/libWeave_a-UDPEndPoint.$(OBJEXT)
-@INET_WANT_ENDPOINT_TUN_TRUE@am__objects_6 = @top_builddir@/src/inet/libWeave_a-TunEndPoint.$(OBJEXT)
-@INET_CONFIG_ENABLE_ASYNC_DNS_SOCKETS_TRUE@@WEAVE_SYSTEM_CONFIG_USE_SOCKETS_TRUE@am__objects_7 = @top_builddir@/src/inet/libWeave_a-AsyncDNSResolverSockets.$(OBJEXT)
-am__objects_8 =  \
+	@top_builddir@/src/system/libWeave_a-SystemStats.$(OBJEXT) \
+	$(am__objects_1)
+@INET_WANT_ENDPOINT_DNS_TRUE@am__objects_3 = @top_builddir@/src/inet/libWeave_a-DNSResolver.$(OBJEXT)
+@INET_WANT_ENDPOINT_RAW_TRUE@am__objects_4 = @top_builddir@/src/inet/libWeave_a-RawEndPoint.$(OBJEXT)
+@INET_WANT_ENDPOINT_TCP_TRUE@am__objects_5 = @top_builddir@/src/inet/libWeave_a-TCPEndPoint.$(OBJEXT)
+@INET_WANT_ENDPOINT_UDP_TRUE@am__objects_6 = @top_builddir@/src/inet/libWeave_a-UDPEndPoint.$(OBJEXT)
+@INET_WANT_ENDPOINT_TUN_TRUE@am__objects_7 = @top_builddir@/src/inet/libWeave_a-TunEndPoint.$(OBJEXT)
+@INET_CONFIG_ENABLE_ASYNC_DNS_SOCKETS_TRUE@@WEAVE_SYSTEM_CONFIG_USE_SOCKETS_TRUE@am__objects_8 = @top_builddir@/src/inet/libWeave_a-AsyncDNSResolverSockets.$(OBJEXT)
+@WEAVE_WITH_NLFAULTINJECTION_TRUE@am__objects_9 = @top_builddir@/src/inet/libWeave_a-InetFaultInjection.$(OBJEXT)
+am__objects_10 =  \
 	@top_builddir@/src/inet/libWeave_a-EndPointBasis.$(OBJEXT) \
 	@top_builddir@/src/inet/libWeave_a-IPAddress-StringFuncts.$(OBJEXT) \
 	@top_builddir@/src/inet/libWeave_a-IPAddress.$(OBJEXT) \
@@ -577,17 +582,17 @@ am__objects_8 =  \
 	@top_builddir@/src/inet/libWeave_a-InetLayerBasis.$(OBJEXT) \
 	@top_builddir@/src/inet/libWeave_a-InetTimer.$(OBJEXT) \
 	@top_builddir@/src/inet/libWeave_a-InetUtils.$(OBJEXT) \
-	@top_builddir@/src/inet/libWeave_a-InetFaultInjection.$(OBJEXT) \
-	$(am__objects_2) $(am__objects_3) $(am__objects_4) \
-	$(am__objects_5) $(am__objects_6) $(am__objects_7)
-@WEAVE_ENABLE_WOBLE_TEST_TRUE@am__objects_9 = @top_builddir@/src/device-manager/libWeave_a-WoBleTest.$(OBJEXT)
-am__objects_10 = @top_builddir@/src/ble/libWeave_a-BleLayer.$(OBJEXT) \
+	$(am__objects_3) $(am__objects_4) $(am__objects_5) \
+	$(am__objects_6) $(am__objects_7) $(am__objects_8) \
+	$(am__objects_9)
+@WEAVE_ENABLE_WOBLE_TEST_TRUE@am__objects_11 = @top_builddir@/src/device-manager/libWeave_a-WoBleTest.$(OBJEXT)
+am__objects_12 = @top_builddir@/src/ble/libWeave_a-BleLayer.$(OBJEXT) \
 	@top_builddir@/src/ble/libWeave_a-BLEEndPoint.$(OBJEXT) \
 	@top_builddir@/src/ble/libWeave_a-WoBle.$(OBJEXT) \
 	@top_builddir@/src/ble/libWeave_a-BleUUID.$(OBJEXT) \
-	$(am__objects_9)
-@CONFIG_NETWORK_LAYER_BLE_TRUE@am__objects_11 = $(am__objects_10)
-am__objects_12 = @top_builddir@/src/lib/core/libWeave_a-ExchangeContext.$(OBJEXT) \
+	$(am__objects_11)
+@CONFIG_NETWORK_LAYER_BLE_TRUE@am__objects_13 = $(am__objects_12)
+am__objects_14 = @top_builddir@/src/lib/core/libWeave_a-ExchangeContext.$(OBJEXT) \
 	@top_builddir@/src/lib/core/libWeave_a-HostPortList.$(OBJEXT) \
 	@top_builddir@/src/lib/core/libWeave_a-WeaveBinding.$(OBJEXT) \
 	@top_builddir@/src/lib/core/libWeave_a-WeaveConnection.$(OBJEXT) \
@@ -608,7 +613,7 @@ am__objects_12 = @top_builddir@/src/lib/core/libWeave_a-ExchangeContext.$(OBJEXT
 	@top_builddir@/src/lib/core/libWeave_a-WeaveTLVUpdater.$(OBJEXT) \
 	@top_builddir@/src/lib/core/libWeave_a-WeaveCircularTLVBuffer.$(OBJEXT) \
 	@top_builddir@/src/lib/core/libWeave_a-WeaveStats.$(OBJEXT)
-@WEAVE_WITH_VERHOEFF_TRUE@am__objects_13 = @top_builddir@/src/lib/support/verhoeff/libWeave_a-Verhoeff.$(OBJEXT) \
+@WEAVE_WITH_VERHOEFF_TRUE@am__objects_15 = @top_builddir@/src/lib/support/verhoeff/libWeave_a-Verhoeff.$(OBJEXT) \
 @WEAVE_WITH_VERHOEFF_TRUE@	@top_builddir@/src/lib/support/verhoeff/libWeave_a-Verhoeff10.$(OBJEXT) \
 @WEAVE_WITH_VERHOEFF_TRUE@	@top_builddir@/src/lib/support/verhoeff/libWeave_a-Verhoeff16.$(OBJEXT) \
 @WEAVE_WITH_VERHOEFF_TRUE@	@top_builddir@/src/lib/support/verhoeff/libWeave_a-Verhoeff32.$(OBJEXT) \
@@ -616,7 +621,8 @@ am__objects_12 = @top_builddir@/src/lib/core/libWeave_a-ExchangeContext.$(OBJEXT
 @WEAVE_WITH_VERHOEFF_TRUE@	@top_builddir@/src/lib/support/pairing-code/libWeave_a-PairingCodeUtils.$(OBJEXT) \
 @WEAVE_WITH_VERHOEFF_TRUE@	@top_builddir@/src/lib/support/pairing-code/libWeave_a-NevisPairingCodeUtils.$(OBJEXT) \
 @WEAVE_WITH_VERHOEFF_TRUE@	@top_builddir@/src/lib/support/pairing-code/libWeave_a-KryptonitePairingCodeUtils.$(OBJEXT)
-am__objects_14 =  \
+@WEAVE_WITH_NLFAULTINJECTION_TRUE@am__objects_16 = @top_builddir@/src/lib/support/libWeave_a-WeaveFaultInjection.$(OBJEXT)
+am__objects_17 =  \
 	@top_builddir@/src/lib/support/libWeave_a-ASN1OID.$(OBJEXT) \
 	@top_builddir@/src/lib/support/libWeave_a-ASN1Reader.$(OBJEXT) \
 	@top_builddir@/src/lib/support/libWeave_a-ASN1Writer.$(OBJEXT) \
@@ -634,7 +640,6 @@ am__objects_14 =  \
 	@top_builddir@/src/lib/support/libWeave_a-StatusReportStr.$(OBJEXT) \
 	@top_builddir@/src/lib/support/libWeave_a-TimeUtils.$(OBJEXT) \
 	@top_builddir@/src/lib/support/libWeave_a-WeaveCounter.$(OBJEXT) \
-	@top_builddir@/src/lib/support/libWeave_a-WeaveFaultInjection.$(OBJEXT) \
 	@top_builddir@/src/lib/support/libWeave_a-WeaveNames.$(OBJEXT) \
 	@top_builddir@/src/lib/support/libWeave_a-nlargparser.$(OBJEXT) \
 	@top_builddir@/src/lib/support/crypto/libWeave_a-AESBlockCipher-OpenSSL.$(OBJEXT) \
@@ -654,9 +659,9 @@ am__objects_14 =  \
 	@top_builddir@/src/lib/support/crypto/libWeave_a-WeaveRNG-NestDRBG.$(OBJEXT) \
 	@top_builddir@/src/lib/support/logging/libWeave_a-WeaveLogging.$(OBJEXT) \
 	@top_builddir@/src/lib/support/logging/libWeave_a-DecodedIPPacket.$(OBJEXT) \
-	$(am__objects_13)
-@CONFIG_HAVE_HEAP_TRUE@am__objects_15 = @top_builddir@/src/lib/profiles/network-provisioning/libWeave_a-NetworkInfo.$(OBJEXT)
-am__objects_16 = @top_builddir@/src/lib/profiles/bulk-data-transfer/libWeave_a-BulkDataTransfer.$(OBJEXT) \
+	$(am__objects_15) $(am__objects_16)
+@CONFIG_HAVE_HEAP_TRUE@am__objects_18 = @top_builddir@/src/lib/profiles/network-provisioning/libWeave_a-NetworkInfo.$(OBJEXT)
+am__objects_19 = @top_builddir@/src/lib/profiles/bulk-data-transfer/libWeave_a-BulkDataTransfer.$(OBJEXT) \
 	@top_builddir@/src/lib/profiles/bulk-data-transfer/Development/libWeave_a-BDXMessages.$(OBJEXT) \
 	@top_builddir@/src/lib/profiles/bulk-data-transfer/Development/libWeave_a-BDXNode.$(OBJEXT) \
 	@top_builddir@/src/lib/profiles/bulk-data-transfer/Development/libWeave_a-BDXProtocol.$(OBJEXT) \
@@ -733,13 +738,13 @@ am__objects_16 = @top_builddir@/src/lib/profiles/bulk-data-transfer/libWeave_a-B
 	@top_builddir@/src/lib/profiles/weave-tunneling/libWeave_a-WeaveTunnelCommon.$(OBJEXT) \
 	@top_builddir@/src/lib/profiles/weave-tunneling/libWeave_a-WeaveTunnelConnectionMgr.$(OBJEXT) \
 	@top_builddir@/src/lib/profiles/weave-tunneling/libWeave_a-WeaveTunnelControl.$(OBJEXT) \
-	$(am__objects_15)
-am__objects_17 =  \
+	$(am__objects_18)
+am__objects_20 =  \
 	@top_builddir@/src/warm/libWeave_a-WarmCore.$(OBJEXT)
-@WEAVE_BUILD_WARM_TRUE@am__objects_18 = $(am__objects_17)
-am_libWeave_a_OBJECTS = $(am__objects_1) $(am__objects_8) \
-	$(am__objects_11) $(am__objects_12) $(am__objects_14) \
-	$(am__objects_16) $(am__objects_18)
+@WEAVE_BUILD_WARM_TRUE@am__objects_21 = $(am__objects_20)
+am_libWeave_a_OBJECTS = $(am__objects_2) $(am__objects_10) \
+	$(am__objects_13) $(am__objects_14) $(am__objects_17) \
+	$(am__objects_19) $(am__objects_21)
 libWeave_a_OBJECTS = $(am_libWeave_a_OBJECTS)
 AM_V_P = $(am__v_P_@AM_V@)
 am__v_P_ = $(am__v_P_@AM_DEFAULT_V@)
@@ -1047,17 +1052,14 @@ target_vendor = @target_vendor@
 top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
-nl_SystemLayer_sources = \
-    @top_builddir@/src/system/SystemError.cpp           \
-    @top_builddir@/src/system/SystemFaultInjection.cpp  \
-    @top_builddir@/src/system/SystemLayer.cpp           \
-    @top_builddir@/src/system/SystemMutex.cpp           \
-    @top_builddir@/src/system/SystemObject.cpp          \
-    @top_builddir@/src/system/SystemTimer.cpp           \
-    @top_builddir@/src/system/SystemPacketBuffer.cpp    \
-    @top_builddir@/src/system/SystemStats.cpp           \
-    $(NULL)
-
+nl_SystemLayer_sources = @top_builddir@/src/system/SystemError.cpp \
+	@top_builddir@/src/system/SystemLayer.cpp \
+	@top_builddir@/src/system/SystemMutex.cpp \
+	@top_builddir@/src/system/SystemObject.cpp \
+	@top_builddir@/src/system/SystemTimer.cpp \
+	@top_builddir@/src/system/SystemPacketBuffer.cpp \
+	@top_builddir@/src/system/SystemStats.cpp $(NULL) \
+	$(am__append_1)
 nl_InetLayer_sources = @top_builddir@/src/inet/EndPointBasis.cpp \
 	@top_builddir@/src/inet/IPAddress-StringFuncts.cpp \
 	@top_builddir@/src/inet/IPAddress.cpp \
@@ -1066,10 +1068,9 @@ nl_InetLayer_sources = @top_builddir@/src/inet/EndPointBasis.cpp \
 	@top_builddir@/src/inet/InetLayer.cpp \
 	@top_builddir@/src/inet/InetLayerBasis.cpp \
 	@top_builddir@/src/inet/InetTimer.cpp \
-	@top_builddir@/src/inet/InetUtils.cpp \
-	@top_builddir@/src/inet/InetFaultInjection.cpp $(NULL) \
-	$(am__append_1) $(am__append_2) $(am__append_3) \
-	$(am__append_4) $(am__append_5) $(am__append_6)
+	@top_builddir@/src/inet/InetUtils.cpp $(NULL) $(am__append_2) \
+	$(am__append_3) $(am__append_4) $(am__append_5) \
+	$(am__append_6) $(am__append_7) $(am__append_8)
 
 # Some Android platforms (bionic) don't have the
 # getifaddrs(3)/freeifaddrs(3) interfaces. This Android library
@@ -1085,7 +1086,7 @@ nl_InetLayer_sources = @top_builddir@/src/inet/EndPointBasis.cpp \
 nl_BleLayer_sources = @top_builddir@/src/ble/BleLayer.cpp \
 	@top_builddir@/src/ble/BLEEndPoint.cpp \
 	@top_builddir@/src/ble/WoBle.cpp \
-	@top_builddir@/src/ble/BleUUID.cpp $(NULL) $(am__append_7)
+	@top_builddir@/src/ble/BleUUID.cpp $(NULL) $(am__append_9)
 nl_WeaveCore_sources = \
     @top_builddir@/src/lib/core/ExchangeContext.cpp         \
     @top_builddir@/src/lib/core/HostPortList.cpp            \
@@ -1127,7 +1128,6 @@ nl_WeaveSupport_sources = @top_builddir@/src/lib/support/ASN1OID.cpp \
 	@top_builddir@/src/lib/support/StatusReportStr.cpp \
 	@top_builddir@/src/lib/support/TimeUtils.cpp \
 	@top_builddir@/src/lib/support/WeaveCounter.cpp \
-	@top_builddir@/src/lib/support/WeaveFaultInjection.cpp \
 	@top_builddir@/src/lib/support/WeaveNames.cpp \
 	@top_builddir@/src/lib/support/nlargparser.cpp \
 	@top_builddir@/src/lib/support/crypto/AESBlockCipher-OpenSSL.cpp \
@@ -1147,7 +1147,7 @@ nl_WeaveSupport_sources = @top_builddir@/src/lib/support/ASN1OID.cpp \
 	@top_builddir@/src/lib/support/crypto/WeaveRNG-NestDRBG.cpp \
 	@top_builddir@/src/lib/support/logging/WeaveLogging.cpp \
 	@top_builddir@/src/lib/support/logging/DecodedIPPacket.cpp \
-	$(NULL) $(am__append_8)
+	$(NULL) $(am__append_10) $(am__append_11)
 nl_WeaveProfiles_sources = @top_builddir@/src/lib/profiles/bulk-data-transfer/BulkDataTransfer.cpp \
 	@top_builddir@/src/lib/profiles/bulk-data-transfer/Development/BDXMessages.cpp \
 	@top_builddir@/src/lib/profiles/bulk-data-transfer/Development/BDXNode.cpp \
@@ -1225,7 +1225,7 @@ nl_WeaveProfiles_sources = @top_builddir@/src/lib/profiles/bulk-data-transfer/Bu
 	@top_builddir@/src/lib/profiles/weave-tunneling/WeaveTunnelCommon.cpp \
 	@top_builddir@/src/lib/profiles/weave-tunneling/WeaveTunnelConnectionMgr.cpp \
 	@top_builddir@/src/lib/profiles/weave-tunneling/WeaveTunnelControl.cpp \
-	$(NULL) $(am__append_9)
+	$(NULL) $(am__append_12)
 nl_Warm_sources = \
     @top_builddir@/src/warm/WarmCore.cpp                     \
     $(NULL)
@@ -1236,11 +1236,11 @@ lib_LIBRARIES = libWeave.a
 libWeave_a_CPPFLAGS = -I$(top_srcdir)/src/include \
 	-I$(top_srcdir)/third_party/openssl-jpake/openssl/include \
 	$(nl_SystemLayer_CPPFLAGS) $(nl_InetLayer_CPPFLAGS) \
-	$(LWIP_CPPFLAGS) $(SOCKETS_CPPFLAGS) $(NULL) $(am__append_10)
+	$(LWIP_CPPFLAGS) $(SOCKETS_CPPFLAGS) $(NULL) $(am__append_13)
 libWeave_a_SOURCES = $(nl_SystemLayer_sources) $(nl_InetLayer_sources) \
-	$(am__append_11) $(nl_WeaveCore_sources) \
+	$(am__append_14) $(nl_WeaveCore_sources) \
 	$(nl_WeaveSupport_sources) $(nl_WeaveProfiles_sources) \
-	$(am__append_12)
+	$(am__append_15)
 
 # If and ONLY if Weave has been configured to use the interal OpenSSL, then 
 # include the OpenSSL objects in with libWeave.a.  Effectively, the internal
@@ -1355,9 +1355,6 @@ clean-libLIBRARIES:
 @top_builddir@/src/system/libWeave_a-SystemError.$(OBJEXT):  \
 	@top_builddir@/src/system/$(am__dirstamp) \
 	@top_builddir@/src/system/$(DEPDIR)/$(am__dirstamp)
-@top_builddir@/src/system/libWeave_a-SystemFaultInjection.$(OBJEXT):  \
-	@top_builddir@/src/system/$(am__dirstamp) \
-	@top_builddir@/src/system/$(DEPDIR)/$(am__dirstamp)
 @top_builddir@/src/system/libWeave_a-SystemLayer.$(OBJEXT):  \
 	@top_builddir@/src/system/$(am__dirstamp) \
 	@top_builddir@/src/system/$(DEPDIR)/$(am__dirstamp)
@@ -1374,6 +1371,9 @@ clean-libLIBRARIES:
 	@top_builddir@/src/system/$(am__dirstamp) \
 	@top_builddir@/src/system/$(DEPDIR)/$(am__dirstamp)
 @top_builddir@/src/system/libWeave_a-SystemStats.$(OBJEXT):  \
+	@top_builddir@/src/system/$(am__dirstamp) \
+	@top_builddir@/src/system/$(DEPDIR)/$(am__dirstamp)
+@top_builddir@/src/system/libWeave_a-SystemFaultInjection.$(OBJEXT):  \
 	@top_builddir@/src/system/$(am__dirstamp) \
 	@top_builddir@/src/system/$(DEPDIR)/$(am__dirstamp)
 @top_builddir@/src/inet/$(am__dirstamp):
@@ -1409,9 +1409,6 @@ clean-libLIBRARIES:
 @top_builddir@/src/inet/libWeave_a-InetUtils.$(OBJEXT):  \
 	@top_builddir@/src/inet/$(am__dirstamp) \
 	@top_builddir@/src/inet/$(DEPDIR)/$(am__dirstamp)
-@top_builddir@/src/inet/libWeave_a-InetFaultInjection.$(OBJEXT):  \
-	@top_builddir@/src/inet/$(am__dirstamp) \
-	@top_builddir@/src/inet/$(DEPDIR)/$(am__dirstamp)
 @top_builddir@/src/inet/libWeave_a-DNSResolver.$(OBJEXT):  \
 	@top_builddir@/src/inet/$(am__dirstamp) \
 	@top_builddir@/src/inet/$(DEPDIR)/$(am__dirstamp)
@@ -1428,6 +1425,9 @@ clean-libLIBRARIES:
 	@top_builddir@/src/inet/$(am__dirstamp) \
 	@top_builddir@/src/inet/$(DEPDIR)/$(am__dirstamp)
 @top_builddir@/src/inet/libWeave_a-AsyncDNSResolverSockets.$(OBJEXT):  \
+	@top_builddir@/src/inet/$(am__dirstamp) \
+	@top_builddir@/src/inet/$(DEPDIR)/$(am__dirstamp)
+@top_builddir@/src/inet/libWeave_a-InetFaultInjection.$(OBJEXT):  \
 	@top_builddir@/src/inet/$(am__dirstamp) \
 	@top_builddir@/src/inet/$(DEPDIR)/$(am__dirstamp)
 @top_builddir@/src/ble/$(am__dirstamp):
@@ -1583,9 +1583,6 @@ clean-libLIBRARIES:
 @top_builddir@/src/lib/support/libWeave_a-WeaveCounter.$(OBJEXT):  \
 	@top_builddir@/src/lib/support/$(am__dirstamp) \
 	@top_builddir@/src/lib/support/$(DEPDIR)/$(am__dirstamp)
-@top_builddir@/src/lib/support/libWeave_a-WeaveFaultInjection.$(OBJEXT):  \
-	@top_builddir@/src/lib/support/$(am__dirstamp) \
-	@top_builddir@/src/lib/support/$(DEPDIR)/$(am__dirstamp)
 @top_builddir@/src/lib/support/libWeave_a-WeaveNames.$(OBJEXT):  \
 	@top_builddir@/src/lib/support/$(am__dirstamp) \
 	@top_builddir@/src/lib/support/$(DEPDIR)/$(am__dirstamp)
@@ -1691,6 +1688,9 @@ clean-libLIBRARIES:
 @top_builddir@/src/lib/support/pairing-code/libWeave_a-KryptonitePairingCodeUtils.$(OBJEXT):  \
 	@top_builddir@/src/lib/support/pairing-code/$(am__dirstamp) \
 	@top_builddir@/src/lib/support/pairing-code/$(DEPDIR)/$(am__dirstamp)
+@top_builddir@/src/lib/support/libWeave_a-WeaveFaultInjection.$(OBJEXT):  \
+	@top_builddir@/src/lib/support/$(am__dirstamp) \
+	@top_builddir@/src/lib/support/$(DEPDIR)/$(am__dirstamp)
 @top_builddir@/src/lib/profiles/bulk-data-transfer/$(am__dirstamp):
 	@$(MKDIR_P) @top_builddir@/src/lib/profiles/bulk-data-transfer
 	@: > @top_builddir@/src/lib/profiles/bulk-data-transfer/$(am__dirstamp)
@@ -2274,20 +2274,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libWeave_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o @top_builddir@/src/system/libWeave_a-SystemError.obj `if test -f '@top_builddir@/src/system/SystemError.cpp'; then $(CYGPATH_W) '@top_builddir@/src/system/SystemError.cpp'; else $(CYGPATH_W) '$(srcdir)/@top_builddir@/src/system/SystemError.cpp'; fi`
 
-@top_builddir@/src/system/libWeave_a-SystemFaultInjection.o: @top_builddir@/src/system/SystemFaultInjection.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libWeave_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT @top_builddir@/src/system/libWeave_a-SystemFaultInjection.o -MD -MP -MF @top_builddir@/src/system/$(DEPDIR)/libWeave_a-SystemFaultInjection.Tpo -c -o @top_builddir@/src/system/libWeave_a-SystemFaultInjection.o `test -f '@top_builddir@/src/system/SystemFaultInjection.cpp' || echo '$(srcdir)/'`@top_builddir@/src/system/SystemFaultInjection.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) @top_builddir@/src/system/$(DEPDIR)/libWeave_a-SystemFaultInjection.Tpo @top_builddir@/src/system/$(DEPDIR)/libWeave_a-SystemFaultInjection.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='@top_builddir@/src/system/SystemFaultInjection.cpp' object='@top_builddir@/src/system/libWeave_a-SystemFaultInjection.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libWeave_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o @top_builddir@/src/system/libWeave_a-SystemFaultInjection.o `test -f '@top_builddir@/src/system/SystemFaultInjection.cpp' || echo '$(srcdir)/'`@top_builddir@/src/system/SystemFaultInjection.cpp
-
-@top_builddir@/src/system/libWeave_a-SystemFaultInjection.obj: @top_builddir@/src/system/SystemFaultInjection.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libWeave_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT @top_builddir@/src/system/libWeave_a-SystemFaultInjection.obj -MD -MP -MF @top_builddir@/src/system/$(DEPDIR)/libWeave_a-SystemFaultInjection.Tpo -c -o @top_builddir@/src/system/libWeave_a-SystemFaultInjection.obj `if test -f '@top_builddir@/src/system/SystemFaultInjection.cpp'; then $(CYGPATH_W) '@top_builddir@/src/system/SystemFaultInjection.cpp'; else $(CYGPATH_W) '$(srcdir)/@top_builddir@/src/system/SystemFaultInjection.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) @top_builddir@/src/system/$(DEPDIR)/libWeave_a-SystemFaultInjection.Tpo @top_builddir@/src/system/$(DEPDIR)/libWeave_a-SystemFaultInjection.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='@top_builddir@/src/system/SystemFaultInjection.cpp' object='@top_builddir@/src/system/libWeave_a-SystemFaultInjection.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libWeave_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o @top_builddir@/src/system/libWeave_a-SystemFaultInjection.obj `if test -f '@top_builddir@/src/system/SystemFaultInjection.cpp'; then $(CYGPATH_W) '@top_builddir@/src/system/SystemFaultInjection.cpp'; else $(CYGPATH_W) '$(srcdir)/@top_builddir@/src/system/SystemFaultInjection.cpp'; fi`
-
 @top_builddir@/src/system/libWeave_a-SystemLayer.o: @top_builddir@/src/system/SystemLayer.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libWeave_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT @top_builddir@/src/system/libWeave_a-SystemLayer.o -MD -MP -MF @top_builddir@/src/system/$(DEPDIR)/libWeave_a-SystemLayer.Tpo -c -o @top_builddir@/src/system/libWeave_a-SystemLayer.o `test -f '@top_builddir@/src/system/SystemLayer.cpp' || echo '$(srcdir)/'`@top_builddir@/src/system/SystemLayer.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) @top_builddir@/src/system/$(DEPDIR)/libWeave_a-SystemLayer.Tpo @top_builddir@/src/system/$(DEPDIR)/libWeave_a-SystemLayer.Po
@@ -2371,6 +2357,20 @@ distclean-compile:
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='@top_builddir@/src/system/SystemStats.cpp' object='@top_builddir@/src/system/libWeave_a-SystemStats.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libWeave_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o @top_builddir@/src/system/libWeave_a-SystemStats.obj `if test -f '@top_builddir@/src/system/SystemStats.cpp'; then $(CYGPATH_W) '@top_builddir@/src/system/SystemStats.cpp'; else $(CYGPATH_W) '$(srcdir)/@top_builddir@/src/system/SystemStats.cpp'; fi`
+
+@top_builddir@/src/system/libWeave_a-SystemFaultInjection.o: @top_builddir@/src/system/SystemFaultInjection.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libWeave_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT @top_builddir@/src/system/libWeave_a-SystemFaultInjection.o -MD -MP -MF @top_builddir@/src/system/$(DEPDIR)/libWeave_a-SystemFaultInjection.Tpo -c -o @top_builddir@/src/system/libWeave_a-SystemFaultInjection.o `test -f '@top_builddir@/src/system/SystemFaultInjection.cpp' || echo '$(srcdir)/'`@top_builddir@/src/system/SystemFaultInjection.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) @top_builddir@/src/system/$(DEPDIR)/libWeave_a-SystemFaultInjection.Tpo @top_builddir@/src/system/$(DEPDIR)/libWeave_a-SystemFaultInjection.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='@top_builddir@/src/system/SystemFaultInjection.cpp' object='@top_builddir@/src/system/libWeave_a-SystemFaultInjection.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libWeave_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o @top_builddir@/src/system/libWeave_a-SystemFaultInjection.o `test -f '@top_builddir@/src/system/SystemFaultInjection.cpp' || echo '$(srcdir)/'`@top_builddir@/src/system/SystemFaultInjection.cpp
+
+@top_builddir@/src/system/libWeave_a-SystemFaultInjection.obj: @top_builddir@/src/system/SystemFaultInjection.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libWeave_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT @top_builddir@/src/system/libWeave_a-SystemFaultInjection.obj -MD -MP -MF @top_builddir@/src/system/$(DEPDIR)/libWeave_a-SystemFaultInjection.Tpo -c -o @top_builddir@/src/system/libWeave_a-SystemFaultInjection.obj `if test -f '@top_builddir@/src/system/SystemFaultInjection.cpp'; then $(CYGPATH_W) '@top_builddir@/src/system/SystemFaultInjection.cpp'; else $(CYGPATH_W) '$(srcdir)/@top_builddir@/src/system/SystemFaultInjection.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) @top_builddir@/src/system/$(DEPDIR)/libWeave_a-SystemFaultInjection.Tpo @top_builddir@/src/system/$(DEPDIR)/libWeave_a-SystemFaultInjection.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='@top_builddir@/src/system/SystemFaultInjection.cpp' object='@top_builddir@/src/system/libWeave_a-SystemFaultInjection.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libWeave_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o @top_builddir@/src/system/libWeave_a-SystemFaultInjection.obj `if test -f '@top_builddir@/src/system/SystemFaultInjection.cpp'; then $(CYGPATH_W) '@top_builddir@/src/system/SystemFaultInjection.cpp'; else $(CYGPATH_W) '$(srcdir)/@top_builddir@/src/system/SystemFaultInjection.cpp'; fi`
 
 @top_builddir@/src/inet/libWeave_a-EndPointBasis.o: @top_builddir@/src/inet/EndPointBasis.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libWeave_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT @top_builddir@/src/inet/libWeave_a-EndPointBasis.o -MD -MP -MF @top_builddir@/src/inet/$(DEPDIR)/libWeave_a-EndPointBasis.Tpo -c -o @top_builddir@/src/inet/libWeave_a-EndPointBasis.o `test -f '@top_builddir@/src/inet/EndPointBasis.cpp' || echo '$(srcdir)/'`@top_builddir@/src/inet/EndPointBasis.cpp
@@ -2498,20 +2498,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libWeave_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o @top_builddir@/src/inet/libWeave_a-InetUtils.obj `if test -f '@top_builddir@/src/inet/InetUtils.cpp'; then $(CYGPATH_W) '@top_builddir@/src/inet/InetUtils.cpp'; else $(CYGPATH_W) '$(srcdir)/@top_builddir@/src/inet/InetUtils.cpp'; fi`
 
-@top_builddir@/src/inet/libWeave_a-InetFaultInjection.o: @top_builddir@/src/inet/InetFaultInjection.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libWeave_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT @top_builddir@/src/inet/libWeave_a-InetFaultInjection.o -MD -MP -MF @top_builddir@/src/inet/$(DEPDIR)/libWeave_a-InetFaultInjection.Tpo -c -o @top_builddir@/src/inet/libWeave_a-InetFaultInjection.o `test -f '@top_builddir@/src/inet/InetFaultInjection.cpp' || echo '$(srcdir)/'`@top_builddir@/src/inet/InetFaultInjection.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) @top_builddir@/src/inet/$(DEPDIR)/libWeave_a-InetFaultInjection.Tpo @top_builddir@/src/inet/$(DEPDIR)/libWeave_a-InetFaultInjection.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='@top_builddir@/src/inet/InetFaultInjection.cpp' object='@top_builddir@/src/inet/libWeave_a-InetFaultInjection.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libWeave_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o @top_builddir@/src/inet/libWeave_a-InetFaultInjection.o `test -f '@top_builddir@/src/inet/InetFaultInjection.cpp' || echo '$(srcdir)/'`@top_builddir@/src/inet/InetFaultInjection.cpp
-
-@top_builddir@/src/inet/libWeave_a-InetFaultInjection.obj: @top_builddir@/src/inet/InetFaultInjection.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libWeave_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT @top_builddir@/src/inet/libWeave_a-InetFaultInjection.obj -MD -MP -MF @top_builddir@/src/inet/$(DEPDIR)/libWeave_a-InetFaultInjection.Tpo -c -o @top_builddir@/src/inet/libWeave_a-InetFaultInjection.obj `if test -f '@top_builddir@/src/inet/InetFaultInjection.cpp'; then $(CYGPATH_W) '@top_builddir@/src/inet/InetFaultInjection.cpp'; else $(CYGPATH_W) '$(srcdir)/@top_builddir@/src/inet/InetFaultInjection.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) @top_builddir@/src/inet/$(DEPDIR)/libWeave_a-InetFaultInjection.Tpo @top_builddir@/src/inet/$(DEPDIR)/libWeave_a-InetFaultInjection.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='@top_builddir@/src/inet/InetFaultInjection.cpp' object='@top_builddir@/src/inet/libWeave_a-InetFaultInjection.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libWeave_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o @top_builddir@/src/inet/libWeave_a-InetFaultInjection.obj `if test -f '@top_builddir@/src/inet/InetFaultInjection.cpp'; then $(CYGPATH_W) '@top_builddir@/src/inet/InetFaultInjection.cpp'; else $(CYGPATH_W) '$(srcdir)/@top_builddir@/src/inet/InetFaultInjection.cpp'; fi`
-
 @top_builddir@/src/inet/libWeave_a-DNSResolver.o: @top_builddir@/src/inet/DNSResolver.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libWeave_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT @top_builddir@/src/inet/libWeave_a-DNSResolver.o -MD -MP -MF @top_builddir@/src/inet/$(DEPDIR)/libWeave_a-DNSResolver.Tpo -c -o @top_builddir@/src/inet/libWeave_a-DNSResolver.o `test -f '@top_builddir@/src/inet/DNSResolver.cpp' || echo '$(srcdir)/'`@top_builddir@/src/inet/DNSResolver.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) @top_builddir@/src/inet/$(DEPDIR)/libWeave_a-DNSResolver.Tpo @top_builddir@/src/inet/$(DEPDIR)/libWeave_a-DNSResolver.Po
@@ -2595,6 +2581,20 @@ distclean-compile:
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='@top_builddir@/src/inet/AsyncDNSResolverSockets.cpp' object='@top_builddir@/src/inet/libWeave_a-AsyncDNSResolverSockets.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libWeave_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o @top_builddir@/src/inet/libWeave_a-AsyncDNSResolverSockets.obj `if test -f '@top_builddir@/src/inet/AsyncDNSResolverSockets.cpp'; then $(CYGPATH_W) '@top_builddir@/src/inet/AsyncDNSResolverSockets.cpp'; else $(CYGPATH_W) '$(srcdir)/@top_builddir@/src/inet/AsyncDNSResolverSockets.cpp'; fi`
+
+@top_builddir@/src/inet/libWeave_a-InetFaultInjection.o: @top_builddir@/src/inet/InetFaultInjection.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libWeave_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT @top_builddir@/src/inet/libWeave_a-InetFaultInjection.o -MD -MP -MF @top_builddir@/src/inet/$(DEPDIR)/libWeave_a-InetFaultInjection.Tpo -c -o @top_builddir@/src/inet/libWeave_a-InetFaultInjection.o `test -f '@top_builddir@/src/inet/InetFaultInjection.cpp' || echo '$(srcdir)/'`@top_builddir@/src/inet/InetFaultInjection.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) @top_builddir@/src/inet/$(DEPDIR)/libWeave_a-InetFaultInjection.Tpo @top_builddir@/src/inet/$(DEPDIR)/libWeave_a-InetFaultInjection.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='@top_builddir@/src/inet/InetFaultInjection.cpp' object='@top_builddir@/src/inet/libWeave_a-InetFaultInjection.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libWeave_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o @top_builddir@/src/inet/libWeave_a-InetFaultInjection.o `test -f '@top_builddir@/src/inet/InetFaultInjection.cpp' || echo '$(srcdir)/'`@top_builddir@/src/inet/InetFaultInjection.cpp
+
+@top_builddir@/src/inet/libWeave_a-InetFaultInjection.obj: @top_builddir@/src/inet/InetFaultInjection.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libWeave_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT @top_builddir@/src/inet/libWeave_a-InetFaultInjection.obj -MD -MP -MF @top_builddir@/src/inet/$(DEPDIR)/libWeave_a-InetFaultInjection.Tpo -c -o @top_builddir@/src/inet/libWeave_a-InetFaultInjection.obj `if test -f '@top_builddir@/src/inet/InetFaultInjection.cpp'; then $(CYGPATH_W) '@top_builddir@/src/inet/InetFaultInjection.cpp'; else $(CYGPATH_W) '$(srcdir)/@top_builddir@/src/inet/InetFaultInjection.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) @top_builddir@/src/inet/$(DEPDIR)/libWeave_a-InetFaultInjection.Tpo @top_builddir@/src/inet/$(DEPDIR)/libWeave_a-InetFaultInjection.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='@top_builddir@/src/inet/InetFaultInjection.cpp' object='@top_builddir@/src/inet/libWeave_a-InetFaultInjection.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libWeave_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o @top_builddir@/src/inet/libWeave_a-InetFaultInjection.obj `if test -f '@top_builddir@/src/inet/InetFaultInjection.cpp'; then $(CYGPATH_W) '@top_builddir@/src/inet/InetFaultInjection.cpp'; else $(CYGPATH_W) '$(srcdir)/@top_builddir@/src/inet/InetFaultInjection.cpp'; fi`
 
 @top_builddir@/src/ble/libWeave_a-BleLayer.o: @top_builddir@/src/ble/BleLayer.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libWeave_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT @top_builddir@/src/ble/libWeave_a-BleLayer.o -MD -MP -MF @top_builddir@/src/ble/$(DEPDIR)/libWeave_a-BleLayer.Tpo -c -o @top_builddir@/src/ble/libWeave_a-BleLayer.o `test -f '@top_builddir@/src/ble/BleLayer.cpp' || echo '$(srcdir)/'`@top_builddir@/src/ble/BleLayer.cpp
@@ -3198,20 +3198,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libWeave_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o @top_builddir@/src/lib/support/libWeave_a-WeaveCounter.obj `if test -f '@top_builddir@/src/lib/support/WeaveCounter.cpp'; then $(CYGPATH_W) '@top_builddir@/src/lib/support/WeaveCounter.cpp'; else $(CYGPATH_W) '$(srcdir)/@top_builddir@/src/lib/support/WeaveCounter.cpp'; fi`
 
-@top_builddir@/src/lib/support/libWeave_a-WeaveFaultInjection.o: @top_builddir@/src/lib/support/WeaveFaultInjection.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libWeave_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT @top_builddir@/src/lib/support/libWeave_a-WeaveFaultInjection.o -MD -MP -MF @top_builddir@/src/lib/support/$(DEPDIR)/libWeave_a-WeaveFaultInjection.Tpo -c -o @top_builddir@/src/lib/support/libWeave_a-WeaveFaultInjection.o `test -f '@top_builddir@/src/lib/support/WeaveFaultInjection.cpp' || echo '$(srcdir)/'`@top_builddir@/src/lib/support/WeaveFaultInjection.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) @top_builddir@/src/lib/support/$(DEPDIR)/libWeave_a-WeaveFaultInjection.Tpo @top_builddir@/src/lib/support/$(DEPDIR)/libWeave_a-WeaveFaultInjection.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='@top_builddir@/src/lib/support/WeaveFaultInjection.cpp' object='@top_builddir@/src/lib/support/libWeave_a-WeaveFaultInjection.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libWeave_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o @top_builddir@/src/lib/support/libWeave_a-WeaveFaultInjection.o `test -f '@top_builddir@/src/lib/support/WeaveFaultInjection.cpp' || echo '$(srcdir)/'`@top_builddir@/src/lib/support/WeaveFaultInjection.cpp
-
-@top_builddir@/src/lib/support/libWeave_a-WeaveFaultInjection.obj: @top_builddir@/src/lib/support/WeaveFaultInjection.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libWeave_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT @top_builddir@/src/lib/support/libWeave_a-WeaveFaultInjection.obj -MD -MP -MF @top_builddir@/src/lib/support/$(DEPDIR)/libWeave_a-WeaveFaultInjection.Tpo -c -o @top_builddir@/src/lib/support/libWeave_a-WeaveFaultInjection.obj `if test -f '@top_builddir@/src/lib/support/WeaveFaultInjection.cpp'; then $(CYGPATH_W) '@top_builddir@/src/lib/support/WeaveFaultInjection.cpp'; else $(CYGPATH_W) '$(srcdir)/@top_builddir@/src/lib/support/WeaveFaultInjection.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) @top_builddir@/src/lib/support/$(DEPDIR)/libWeave_a-WeaveFaultInjection.Tpo @top_builddir@/src/lib/support/$(DEPDIR)/libWeave_a-WeaveFaultInjection.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='@top_builddir@/src/lib/support/WeaveFaultInjection.cpp' object='@top_builddir@/src/lib/support/libWeave_a-WeaveFaultInjection.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libWeave_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o @top_builddir@/src/lib/support/libWeave_a-WeaveFaultInjection.obj `if test -f '@top_builddir@/src/lib/support/WeaveFaultInjection.cpp'; then $(CYGPATH_W) '@top_builddir@/src/lib/support/WeaveFaultInjection.cpp'; else $(CYGPATH_W) '$(srcdir)/@top_builddir@/src/lib/support/WeaveFaultInjection.cpp'; fi`
-
 @top_builddir@/src/lib/support/libWeave_a-WeaveNames.o: @top_builddir@/src/lib/support/WeaveNames.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libWeave_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT @top_builddir@/src/lib/support/libWeave_a-WeaveNames.o -MD -MP -MF @top_builddir@/src/lib/support/$(DEPDIR)/libWeave_a-WeaveNames.Tpo -c -o @top_builddir@/src/lib/support/libWeave_a-WeaveNames.o `test -f '@top_builddir@/src/lib/support/WeaveNames.cpp' || echo '$(srcdir)/'`@top_builddir@/src/lib/support/WeaveNames.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) @top_builddir@/src/lib/support/$(DEPDIR)/libWeave_a-WeaveNames.Tpo @top_builddir@/src/lib/support/$(DEPDIR)/libWeave_a-WeaveNames.Po
@@ -3589,6 +3575,20 @@ distclean-compile:
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='@top_builddir@/src/lib/support/pairing-code/KryptonitePairingCodeUtils.cpp' object='@top_builddir@/src/lib/support/pairing-code/libWeave_a-KryptonitePairingCodeUtils.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libWeave_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o @top_builddir@/src/lib/support/pairing-code/libWeave_a-KryptonitePairingCodeUtils.obj `if test -f '@top_builddir@/src/lib/support/pairing-code/KryptonitePairingCodeUtils.cpp'; then $(CYGPATH_W) '@top_builddir@/src/lib/support/pairing-code/KryptonitePairingCodeUtils.cpp'; else $(CYGPATH_W) '$(srcdir)/@top_builddir@/src/lib/support/pairing-code/KryptonitePairingCodeUtils.cpp'; fi`
+
+@top_builddir@/src/lib/support/libWeave_a-WeaveFaultInjection.o: @top_builddir@/src/lib/support/WeaveFaultInjection.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libWeave_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT @top_builddir@/src/lib/support/libWeave_a-WeaveFaultInjection.o -MD -MP -MF @top_builddir@/src/lib/support/$(DEPDIR)/libWeave_a-WeaveFaultInjection.Tpo -c -o @top_builddir@/src/lib/support/libWeave_a-WeaveFaultInjection.o `test -f '@top_builddir@/src/lib/support/WeaveFaultInjection.cpp' || echo '$(srcdir)/'`@top_builddir@/src/lib/support/WeaveFaultInjection.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) @top_builddir@/src/lib/support/$(DEPDIR)/libWeave_a-WeaveFaultInjection.Tpo @top_builddir@/src/lib/support/$(DEPDIR)/libWeave_a-WeaveFaultInjection.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='@top_builddir@/src/lib/support/WeaveFaultInjection.cpp' object='@top_builddir@/src/lib/support/libWeave_a-WeaveFaultInjection.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libWeave_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o @top_builddir@/src/lib/support/libWeave_a-WeaveFaultInjection.o `test -f '@top_builddir@/src/lib/support/WeaveFaultInjection.cpp' || echo '$(srcdir)/'`@top_builddir@/src/lib/support/WeaveFaultInjection.cpp
+
+@top_builddir@/src/lib/support/libWeave_a-WeaveFaultInjection.obj: @top_builddir@/src/lib/support/WeaveFaultInjection.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libWeave_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT @top_builddir@/src/lib/support/libWeave_a-WeaveFaultInjection.obj -MD -MP -MF @top_builddir@/src/lib/support/$(DEPDIR)/libWeave_a-WeaveFaultInjection.Tpo -c -o @top_builddir@/src/lib/support/libWeave_a-WeaveFaultInjection.obj `if test -f '@top_builddir@/src/lib/support/WeaveFaultInjection.cpp'; then $(CYGPATH_W) '@top_builddir@/src/lib/support/WeaveFaultInjection.cpp'; else $(CYGPATH_W) '$(srcdir)/@top_builddir@/src/lib/support/WeaveFaultInjection.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) @top_builddir@/src/lib/support/$(DEPDIR)/libWeave_a-WeaveFaultInjection.Tpo @top_builddir@/src/lib/support/$(DEPDIR)/libWeave_a-WeaveFaultInjection.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='@top_builddir@/src/lib/support/WeaveFaultInjection.cpp' object='@top_builddir@/src/lib/support/libWeave_a-WeaveFaultInjection.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libWeave_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o @top_builddir@/src/lib/support/libWeave_a-WeaveFaultInjection.obj `if test -f '@top_builddir@/src/lib/support/WeaveFaultInjection.cpp'; then $(CYGPATH_W) '@top_builddir@/src/lib/support/WeaveFaultInjection.cpp'; else $(CYGPATH_W) '$(srcdir)/@top_builddir@/src/lib/support/WeaveFaultInjection.cpp'; fi`
 
 @top_builddir@/src/lib/profiles/bulk-data-transfer/libWeave_a-BulkDataTransfer.o: @top_builddir@/src/lib/profiles/bulk-data-transfer/BulkDataTransfer.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libWeave_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT @top_builddir@/src/lib/profiles/bulk-data-transfer/libWeave_a-BulkDataTransfer.o -MD -MP -MF @top_builddir@/src/lib/profiles/bulk-data-transfer/$(DEPDIR)/libWeave_a-BulkDataTransfer.Tpo -c -o @top_builddir@/src/lib/profiles/bulk-data-transfer/libWeave_a-BulkDataTransfer.o `test -f '@top_builddir@/src/lib/profiles/bulk-data-transfer/BulkDataTransfer.cpp' || echo '$(srcdir)/'`@top_builddir@/src/lib/profiles/bulk-data-transfer/BulkDataTransfer.cpp

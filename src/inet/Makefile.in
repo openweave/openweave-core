@@ -138,6 +138,7 @@ DIST_COMMON = $(srcdir)/InetLayer.am $(srcdir)/Makefile.in \
 @INET_WANT_ENDPOINT_UDP_TRUE@am__append_4 = @top_builddir@/src/inet/UDPEndPoint.cpp
 @INET_WANT_ENDPOINT_TUN_TRUE@am__append_5 = @top_builddir@/src/inet/TunEndPoint.cpp
 @INET_CONFIG_ENABLE_ASYNC_DNS_SOCKETS_TRUE@@WEAVE_SYSTEM_CONFIG_USE_SOCKETS_TRUE@am__append_6 = @top_builddir@/src/inet/AsyncDNSResolverSockets.cpp
+@WEAVE_WITH_NLFAULTINJECTION_TRUE@am__append_7 = @top_builddir@/src/inet/InetFaultInjection.cpp
 subdir = src/inet
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/build/autoconf/m4/nl_check_project_config_includes.m4 \
@@ -197,13 +198,13 @@ am__libInetLayer_a_SOURCES_DIST =  \
 	@top_builddir@/src/inet/InetLayerBasis.cpp \
 	@top_builddir@/src/inet/InetTimer.cpp \
 	@top_builddir@/src/inet/InetUtils.cpp \
-	@top_builddir@/src/inet/InetFaultInjection.cpp \
 	@top_builddir@/src/inet/DNSResolver.cpp \
 	@top_builddir@/src/inet/RawEndPoint.cpp \
 	@top_builddir@/src/inet/TCPEndPoint.cpp \
 	@top_builddir@/src/inet/UDPEndPoint.cpp \
 	@top_builddir@/src/inet/TunEndPoint.cpp \
-	@top_builddir@/src/inet/AsyncDNSResolverSockets.cpp
+	@top_builddir@/src/inet/AsyncDNSResolverSockets.cpp \
+	@top_builddir@/src/inet/InetFaultInjection.cpp
 am__dirstamp = $(am__leading_dot)dirstamp
 @INET_WANT_ENDPOINT_DNS_TRUE@am__objects_1 = @top_builddir@/src/inet/libInetLayer_a-DNSResolver.$(OBJEXT)
 @INET_WANT_ENDPOINT_RAW_TRUE@am__objects_2 = @top_builddir@/src/inet/libInetLayer_a-RawEndPoint.$(OBJEXT)
@@ -211,7 +212,8 @@ am__dirstamp = $(am__leading_dot)dirstamp
 @INET_WANT_ENDPOINT_UDP_TRUE@am__objects_4 = @top_builddir@/src/inet/libInetLayer_a-UDPEndPoint.$(OBJEXT)
 @INET_WANT_ENDPOINT_TUN_TRUE@am__objects_5 = @top_builddir@/src/inet/libInetLayer_a-TunEndPoint.$(OBJEXT)
 @INET_CONFIG_ENABLE_ASYNC_DNS_SOCKETS_TRUE@@WEAVE_SYSTEM_CONFIG_USE_SOCKETS_TRUE@am__objects_6 = @top_builddir@/src/inet/libInetLayer_a-AsyncDNSResolverSockets.$(OBJEXT)
-am__objects_7 = @top_builddir@/src/inet/libInetLayer_a-EndPointBasis.$(OBJEXT) \
+@WEAVE_WITH_NLFAULTINJECTION_TRUE@am__objects_7 = @top_builddir@/src/inet/libInetLayer_a-InetFaultInjection.$(OBJEXT)
+am__objects_8 = @top_builddir@/src/inet/libInetLayer_a-EndPointBasis.$(OBJEXT) \
 	@top_builddir@/src/inet/libInetLayer_a-IPAddress-StringFuncts.$(OBJEXT) \
 	@top_builddir@/src/inet/libInetLayer_a-IPAddress.$(OBJEXT) \
 	@top_builddir@/src/inet/libInetLayer_a-IPPrefix.$(OBJEXT) \
@@ -220,10 +222,10 @@ am__objects_7 = @top_builddir@/src/inet/libInetLayer_a-EndPointBasis.$(OBJEXT) \
 	@top_builddir@/src/inet/libInetLayer_a-InetLayerBasis.$(OBJEXT) \
 	@top_builddir@/src/inet/libInetLayer_a-InetTimer.$(OBJEXT) \
 	@top_builddir@/src/inet/libInetLayer_a-InetUtils.$(OBJEXT) \
-	@top_builddir@/src/inet/libInetLayer_a-InetFaultInjection.$(OBJEXT) \
 	$(am__objects_1) $(am__objects_2) $(am__objects_3) \
-	$(am__objects_4) $(am__objects_5) $(am__objects_6)
-am_libInetLayer_a_OBJECTS = $(am__objects_7)
+	$(am__objects_4) $(am__objects_5) $(am__objects_6) \
+	$(am__objects_7)
+am_libInetLayer_a_OBJECTS = $(am__objects_8)
 libInetLayer_a_OBJECTS = $(am_libInetLayer_a_OBJECTS)
 AM_V_P = $(am__v_P_@AM_V@)
 am__v_P_ = $(am__v_P_@AM_DEFAULT_V@)
@@ -539,10 +541,9 @@ nl_InetLayer_sources = @top_builddir@/src/inet/EndPointBasis.cpp \
 	@top_builddir@/src/inet/InetLayer.cpp \
 	@top_builddir@/src/inet/InetLayerBasis.cpp \
 	@top_builddir@/src/inet/InetTimer.cpp \
-	@top_builddir@/src/inet/InetUtils.cpp \
-	@top_builddir@/src/inet/InetFaultInjection.cpp $(NULL) \
-	$(am__append_1) $(am__append_2) $(am__append_3) \
-	$(am__append_4) $(am__append_5) $(am__append_6)
+	@top_builddir@/src/inet/InetUtils.cpp $(NULL) $(am__append_1) \
+	$(am__append_2) $(am__append_3) $(am__append_4) \
+	$(am__append_5) $(am__append_6) $(am__append_7)
 
 # Some Android platforms (bionic) don't have the
 # getifaddrs(3)/freeifaddrs(3) interfaces. This Android library
@@ -663,9 +664,6 @@ clean-libLIBRARIES:
 @top_builddir@/src/inet/libInetLayer_a-InetUtils.$(OBJEXT):  \
 	@top_builddir@/src/inet/$(am__dirstamp) \
 	@top_builddir@/src/inet/$(DEPDIR)/$(am__dirstamp)
-@top_builddir@/src/inet/libInetLayer_a-InetFaultInjection.$(OBJEXT):  \
-	@top_builddir@/src/inet/$(am__dirstamp) \
-	@top_builddir@/src/inet/$(DEPDIR)/$(am__dirstamp)
 @top_builddir@/src/inet/libInetLayer_a-DNSResolver.$(OBJEXT):  \
 	@top_builddir@/src/inet/$(am__dirstamp) \
 	@top_builddir@/src/inet/$(DEPDIR)/$(am__dirstamp)
@@ -682,6 +680,9 @@ clean-libLIBRARIES:
 	@top_builddir@/src/inet/$(am__dirstamp) \
 	@top_builddir@/src/inet/$(DEPDIR)/$(am__dirstamp)
 @top_builddir@/src/inet/libInetLayer_a-AsyncDNSResolverSockets.$(OBJEXT):  \
+	@top_builddir@/src/inet/$(am__dirstamp) \
+	@top_builddir@/src/inet/$(DEPDIR)/$(am__dirstamp)
+@top_builddir@/src/inet/libInetLayer_a-InetFaultInjection.$(OBJEXT):  \
 	@top_builddir@/src/inet/$(am__dirstamp) \
 	@top_builddir@/src/inet/$(DEPDIR)/$(am__dirstamp)
 
@@ -864,20 +865,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libInetLayer_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o @top_builddir@/src/inet/libInetLayer_a-InetUtils.obj `if test -f '@top_builddir@/src/inet/InetUtils.cpp'; then $(CYGPATH_W) '@top_builddir@/src/inet/InetUtils.cpp'; else $(CYGPATH_W) '$(srcdir)/@top_builddir@/src/inet/InetUtils.cpp'; fi`
 
-@top_builddir@/src/inet/libInetLayer_a-InetFaultInjection.o: @top_builddir@/src/inet/InetFaultInjection.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libInetLayer_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT @top_builddir@/src/inet/libInetLayer_a-InetFaultInjection.o -MD -MP -MF @top_builddir@/src/inet/$(DEPDIR)/libInetLayer_a-InetFaultInjection.Tpo -c -o @top_builddir@/src/inet/libInetLayer_a-InetFaultInjection.o `test -f '@top_builddir@/src/inet/InetFaultInjection.cpp' || echo '$(srcdir)/'`@top_builddir@/src/inet/InetFaultInjection.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) @top_builddir@/src/inet/$(DEPDIR)/libInetLayer_a-InetFaultInjection.Tpo @top_builddir@/src/inet/$(DEPDIR)/libInetLayer_a-InetFaultInjection.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='@top_builddir@/src/inet/InetFaultInjection.cpp' object='@top_builddir@/src/inet/libInetLayer_a-InetFaultInjection.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libInetLayer_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o @top_builddir@/src/inet/libInetLayer_a-InetFaultInjection.o `test -f '@top_builddir@/src/inet/InetFaultInjection.cpp' || echo '$(srcdir)/'`@top_builddir@/src/inet/InetFaultInjection.cpp
-
-@top_builddir@/src/inet/libInetLayer_a-InetFaultInjection.obj: @top_builddir@/src/inet/InetFaultInjection.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libInetLayer_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT @top_builddir@/src/inet/libInetLayer_a-InetFaultInjection.obj -MD -MP -MF @top_builddir@/src/inet/$(DEPDIR)/libInetLayer_a-InetFaultInjection.Tpo -c -o @top_builddir@/src/inet/libInetLayer_a-InetFaultInjection.obj `if test -f '@top_builddir@/src/inet/InetFaultInjection.cpp'; then $(CYGPATH_W) '@top_builddir@/src/inet/InetFaultInjection.cpp'; else $(CYGPATH_W) '$(srcdir)/@top_builddir@/src/inet/InetFaultInjection.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) @top_builddir@/src/inet/$(DEPDIR)/libInetLayer_a-InetFaultInjection.Tpo @top_builddir@/src/inet/$(DEPDIR)/libInetLayer_a-InetFaultInjection.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='@top_builddir@/src/inet/InetFaultInjection.cpp' object='@top_builddir@/src/inet/libInetLayer_a-InetFaultInjection.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libInetLayer_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o @top_builddir@/src/inet/libInetLayer_a-InetFaultInjection.obj `if test -f '@top_builddir@/src/inet/InetFaultInjection.cpp'; then $(CYGPATH_W) '@top_builddir@/src/inet/InetFaultInjection.cpp'; else $(CYGPATH_W) '$(srcdir)/@top_builddir@/src/inet/InetFaultInjection.cpp'; fi`
-
 @top_builddir@/src/inet/libInetLayer_a-DNSResolver.o: @top_builddir@/src/inet/DNSResolver.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libInetLayer_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT @top_builddir@/src/inet/libInetLayer_a-DNSResolver.o -MD -MP -MF @top_builddir@/src/inet/$(DEPDIR)/libInetLayer_a-DNSResolver.Tpo -c -o @top_builddir@/src/inet/libInetLayer_a-DNSResolver.o `test -f '@top_builddir@/src/inet/DNSResolver.cpp' || echo '$(srcdir)/'`@top_builddir@/src/inet/DNSResolver.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) @top_builddir@/src/inet/$(DEPDIR)/libInetLayer_a-DNSResolver.Tpo @top_builddir@/src/inet/$(DEPDIR)/libInetLayer_a-DNSResolver.Po
@@ -961,6 +948,20 @@ distclean-compile:
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='@top_builddir@/src/inet/AsyncDNSResolverSockets.cpp' object='@top_builddir@/src/inet/libInetLayer_a-AsyncDNSResolverSockets.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libInetLayer_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o @top_builddir@/src/inet/libInetLayer_a-AsyncDNSResolverSockets.obj `if test -f '@top_builddir@/src/inet/AsyncDNSResolverSockets.cpp'; then $(CYGPATH_W) '@top_builddir@/src/inet/AsyncDNSResolverSockets.cpp'; else $(CYGPATH_W) '$(srcdir)/@top_builddir@/src/inet/AsyncDNSResolverSockets.cpp'; fi`
+
+@top_builddir@/src/inet/libInetLayer_a-InetFaultInjection.o: @top_builddir@/src/inet/InetFaultInjection.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libInetLayer_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT @top_builddir@/src/inet/libInetLayer_a-InetFaultInjection.o -MD -MP -MF @top_builddir@/src/inet/$(DEPDIR)/libInetLayer_a-InetFaultInjection.Tpo -c -o @top_builddir@/src/inet/libInetLayer_a-InetFaultInjection.o `test -f '@top_builddir@/src/inet/InetFaultInjection.cpp' || echo '$(srcdir)/'`@top_builddir@/src/inet/InetFaultInjection.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) @top_builddir@/src/inet/$(DEPDIR)/libInetLayer_a-InetFaultInjection.Tpo @top_builddir@/src/inet/$(DEPDIR)/libInetLayer_a-InetFaultInjection.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='@top_builddir@/src/inet/InetFaultInjection.cpp' object='@top_builddir@/src/inet/libInetLayer_a-InetFaultInjection.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libInetLayer_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o @top_builddir@/src/inet/libInetLayer_a-InetFaultInjection.o `test -f '@top_builddir@/src/inet/InetFaultInjection.cpp' || echo '$(srcdir)/'`@top_builddir@/src/inet/InetFaultInjection.cpp
+
+@top_builddir@/src/inet/libInetLayer_a-InetFaultInjection.obj: @top_builddir@/src/inet/InetFaultInjection.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libInetLayer_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT @top_builddir@/src/inet/libInetLayer_a-InetFaultInjection.obj -MD -MP -MF @top_builddir@/src/inet/$(DEPDIR)/libInetLayer_a-InetFaultInjection.Tpo -c -o @top_builddir@/src/inet/libInetLayer_a-InetFaultInjection.obj `if test -f '@top_builddir@/src/inet/InetFaultInjection.cpp'; then $(CYGPATH_W) '@top_builddir@/src/inet/InetFaultInjection.cpp'; else $(CYGPATH_W) '$(srcdir)/@top_builddir@/src/inet/InetFaultInjection.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) @top_builddir@/src/inet/$(DEPDIR)/libInetLayer_a-InetFaultInjection.Tpo @top_builddir@/src/inet/$(DEPDIR)/libInetLayer_a-InetFaultInjection.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='@top_builddir@/src/inet/InetFaultInjection.cpp' object='@top_builddir@/src/inet/libInetLayer_a-InetFaultInjection.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libInetLayer_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o @top_builddir@/src/inet/libInetLayer_a-InetFaultInjection.obj `if test -f '@top_builddir@/src/inet/InetFaultInjection.cpp'; then $(CYGPATH_W) '@top_builddir@/src/inet/InetFaultInjection.cpp'; else $(CYGPATH_W) '$(srcdir)/@top_builddir@/src/inet/InetFaultInjection.cpp'; fi`
 
 mostlyclean-libtool:
 	-rm -f *.lo

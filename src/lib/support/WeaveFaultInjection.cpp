@@ -26,6 +26,7 @@
 
 #include <Weave/Support/WeaveFaultInjection.h>
 
+#if WEAVE_CONFIG_TEST
 
 namespace nl {
 namespace Weave {
@@ -119,3 +120,5 @@ NL_DLL_EXPORT void FuzzExchangeHeader(uint8_t *p, int32_t arg)
 } // namespace FaultInjection
 } // namespace Weave
 } // namespace nl
+
+#endif // WEAVE_CONFIG_TEST

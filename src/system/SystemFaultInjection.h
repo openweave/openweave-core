@@ -24,9 +24,11 @@
 #ifndef SYSTEMFAULTINJECTION_H
 #define SYSTEMFAULTINJECTION_H
 
-#include <nlfaultinjection.hpp>
-
 #include <SystemLayer/SystemConfig.h>
+
+#if WEAVE_SYSTEM_CONFIG_TEST
+
+#include <nlfaultinjection.hpp>
 
 #include <Weave/Support/NLDLLUtil.h>
 
@@ -93,8 +95,6 @@ NL_DLL_EXPORT void InjectAsyncEvent(void);
 } // namespace Weave
 } // namespace nl
 
-#if WEAVE_SYSTEM_CONFIG_TEST
-
 /**
  * Execute the statements included if the System fault is
  * to be injected.
@@ -123,12 +123,12 @@ NL_DLL_EXPORT void InjectAsyncEvent(void);
     } while (0)
 
 
-#else // !WEAVE_SYSTEM_CONFIG_TEST
+#else // WEAVE_SYSTEM_CONFIG_TEST
 
 #define WEAVE_SYSTEM_FAULT_INJECT(aFaultId, aStatement)
 
 #define WEAVE_SYSTEM_FAULT_INJECT_ASYNC_EVENT()
 
-#endif // !WEAVE_SYSTEM_CONFIG_TEST
+#endif // WEAVE_SYSTEM_CONFIG_TEST
 
 #endif // SYSTEMFAULTINJECTION_H

@@ -24,6 +24,8 @@
 #include <nlassert.h>
 #include "InetFaultInjection.h"
 
+#if INET_CONFIG_TEST
+
 
 namespace nl {
 namespace Inet {
@@ -57,3 +59,5 @@ nl::FaultInjection::Manager &GetManager(void)
 } // namespace FaultInjection
 } // namespace Inet
 } // namespace nl
+
+#endif // INET_CONFIG_TEST

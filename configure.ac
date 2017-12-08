@@ -1710,7 +1710,6 @@ NL_CHECK_PROJECT_CONFIG_INCLUDES(weave-project-includes, WeaveProjectConfig.h, W
 #
 #   * nlassert
 #   * nlio
-#   * nlfaultinjection
 #
 # The following are optional, depending on configuration:
 #
@@ -1718,6 +1717,7 @@ NL_CHECK_PROJECT_CONFIG_INCLUDES(weave-project-includes, WeaveProjectConfig.h, W
 #   * lwip
 #   * nlunittest
 #   * openssl
+#   * nlfaultinjection
 #
 # Most of these are supplied "in package"; however, they may be also
 # supplied out of package.
@@ -1997,7 +1997,7 @@ AM_CONDITIONAL([WEAVE_WITH_NLASSERT_INTERNAL], [test "${nl_with_nlassert}" = "in
 # Nlfaultinjection
 #
 
-NL_WITH_REQUIRED_INTERNAL_PACKAGE(
+NL_WITH_OPTIONAL_INTERNAL_PACKAGE(
     [Nlfaultinjection],
     [NLFAULTINJECTION],
     [nlfaultinjection],
@@ -2025,7 +2025,20 @@ NL_WITH_REQUIRED_INTERNAL_PACKAGE(
     ]
 )
 
+AM_CONDITIONAL([WEAVE_WITH_NLFAULTINJECTION], [test "${nl_with_nlfaultinjection}" != "no"])
 AM_CONDITIONAL([WEAVE_WITH_NLFAULTINJECTION_INTERNAL], [test "${nl_with_nlfaultinjection}" = "internal"])
+
+if test "${nl_with_nlfaultinjection}" = "no"; then
+    AC_DEFINE([WEAVE_WITH_NLFAULTINJECTION], [0], [Define to 1 to build Weave with nlFaultInjection features])
+else
+    AC_DEFINE([WEAVE_WITH_NLFAULTINJECTION], [1], [Define to 1 to build Weave with nlFaultInjection features])
+fi
+
+if test "${nl_cv_build_tests}" = "yes"; then
+    if test "${nl_with_nlfaultinjection}" = "no"; then
+        AC_MSG_ERROR(Weave tests require nlfaultinjection.)
+    fi
+fi
 
 
 #

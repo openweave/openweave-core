@@ -24,9 +24,11 @@
 #ifndef INET_FAULT_INJECTION_H_
 #define INET_FAULT_INJECTION_H_
 
-#include <nlfaultinjection.hpp>
-
 #include <InetLayer/InetConfig.h>
+
+#if INET_CONFIG_TEST
+
+#include <nlfaultinjection.hpp>
 
 #include <Weave/Support/NLDLLUtil.h>
 
@@ -57,8 +59,6 @@ NL_DLL_EXPORT nl::FaultInjection::Manager &GetManager(void);
 } // namespace Inet
 } // namespace nl
 
-#if INET_CONFIG_TEST
-
 /**
  * Execute the statements included if the Inet fault is
  * to be injected.
@@ -69,11 +69,11 @@ NL_DLL_EXPORT nl::FaultInjection::Manager &GetManager(void);
 #define INET_FAULT_INJECT( aFaultID, aStatement ) \
         nlFAULT_INJECT(nl::Inet::FaultInjection::GetManager(), aFaultID, aStatement)
 
-#else
+#else // INET_CONFIG_TEST
 
 #define INET_FAULT_INJECT( aFaultID, aStatement )
 
-#endif
+#endif // INET_CONFIG_TEST
 
 
 #endif // INET_FAULT_INJECTION_H_

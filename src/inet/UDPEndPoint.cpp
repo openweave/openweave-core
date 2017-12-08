@@ -36,6 +36,7 @@
 #include <InetLayer/UDPEndPoint.h>
 #include <InetLayer/InetLayer.h>
 #include <InetLayer/InetFaultInjection.h>
+#include <SystemLayer/SystemFaultInjection.h>
 
 #include <Weave/Support/CodeUtils.h>
 #include <Weave/Support/logging/WeaveLogging.h>

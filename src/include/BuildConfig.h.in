@@ -427,6 +427,9 @@
 /* Define to 1 if you want to use Weave with a Unix-based system */
 #undef WEAVE_TARGET_STYLE_UNIX
 
+/* Define to 1 to build Weave with nlFaultInjection features */
+#undef WEAVE_WITH_NLFAULTINJECTION
+
 /* Define to 1 to build Weave with OpenSSL features */
 #undef WEAVE_WITH_OPENSSL
 

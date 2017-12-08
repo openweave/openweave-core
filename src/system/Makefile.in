@@ -127,6 +127,7 @@ DIST_COMMON = $(srcdir)/SystemLayer.am $(srcdir)/Makefile.in \
 	$(srcdir)/Makefile.am \
 	$(top_srcdir)/third_party/nlbuild-autotools/repo/autoconf/mkinstalldirs \
 	$(top_srcdir)/third_party/nlbuild-autotools/repo/autoconf/depcomp
+@WEAVE_WITH_NLFAULTINJECTION_TRUE@am__append_1 = @top_builddir@/src/system/SystemFaultInjection.cpp
 subdir = src/system
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/build/autoconf/m4/nl_check_project_config_includes.m4 \
@@ -176,16 +177,26 @@ am__v_AR_0 = @echo "  AR      " $@;
 am__v_AR_1 = 
 libSystemLayer_a_AR = $(AR) $(ARFLAGS)
 libSystemLayer_a_LIBADD =
+am__libSystemLayer_a_SOURCES_DIST =  \
+	@top_builddir@/src/system/SystemError.cpp \
+	@top_builddir@/src/system/SystemLayer.cpp \
+	@top_builddir@/src/system/SystemMutex.cpp \
+	@top_builddir@/src/system/SystemObject.cpp \
+	@top_builddir@/src/system/SystemTimer.cpp \
+	@top_builddir@/src/system/SystemPacketBuffer.cpp \
+	@top_builddir@/src/system/SystemStats.cpp \
+	@top_builddir@/src/system/SystemFaultInjection.cpp
 am__dirstamp = $(am__leading_dot)dirstamp
-am__objects_1 = @top_builddir@/src/system/libSystemLayer_a-SystemError.$(OBJEXT) \
-	@top_builddir@/src/system/libSystemLayer_a-SystemFaultInjection.$(OBJEXT) \
+@WEAVE_WITH_NLFAULTINJECTION_TRUE@am__objects_1 = @top_builddir@/src/system/libSystemLayer_a-SystemFaultInjection.$(OBJEXT)
+am__objects_2 = @top_builddir@/src/system/libSystemLayer_a-SystemError.$(OBJEXT) \
 	@top_builddir@/src/system/libSystemLayer_a-SystemLayer.$(OBJEXT) \
 	@top_builddir@/src/system/libSystemLayer_a-SystemMutex.$(OBJEXT) \
 	@top_builddir@/src/system/libSystemLayer_a-SystemObject.$(OBJEXT) \
 	@top_builddir@/src/system/libSystemLayer_a-SystemTimer.$(OBJEXT) \
 	@top_builddir@/src/system/libSystemLayer_a-SystemPacketBuffer.$(OBJEXT) \
-	@top_builddir@/src/system/libSystemLayer_a-SystemStats.$(OBJEXT)
-am_libSystemLayer_a_OBJECTS = $(am__objects_1)
+	@top_builddir@/src/system/libSystemLayer_a-SystemStats.$(OBJEXT) \
+	$(am__objects_1)
+am_libSystemLayer_a_OBJECTS = $(am__objects_2)
 libSystemLayer_a_OBJECTS = $(am_libSystemLayer_a_OBJECTS)
 AM_V_P = $(am__v_P_@AM_V@)
 am__v_P_ = $(am__v_P_@AM_DEFAULT_V@)
@@ -227,7 +238,7 @@ am__v_CXXLD_ = $(am__v_CXXLD_@AM_DEFAULT_V@)
 am__v_CXXLD_0 = @echo "  CXXLD   " $@;
 am__v_CXXLD_1 = 
 SOURCES = $(libSystemLayer_a_SOURCES)
-DIST_SOURCES = $(libSystemLayer_a_SOURCES)
+DIST_SOURCES = $(am__libSystemLayer_a_SOURCES_DIST)
 am__can_run_installinfo = \
   case $$AM_UPDATE_INFO_DIR in \
     n|no|NO) false;; \
@@ -493,17 +504,14 @@ target_vendor = @target_vendor@
 top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
-nl_SystemLayer_sources = \
-    @top_builddir@/src/system/SystemError.cpp           \
-    @top_builddir@/src/system/SystemFaultInjection.cpp  \
-    @top_builddir@/src/system/SystemLayer.cpp           \
-    @top_builddir@/src/system/SystemMutex.cpp           \
-    @top_builddir@/src/system/SystemObject.cpp          \
-    @top_builddir@/src/system/SystemTimer.cpp           \
-    @top_builddir@/src/system/SystemPacketBuffer.cpp    \
-    @top_builddir@/src/system/SystemStats.cpp           \
-    $(NULL)
-
+nl_SystemLayer_sources = @top_builddir@/src/system/SystemError.cpp \
+	@top_builddir@/src/system/SystemLayer.cpp \
+	@top_builddir@/src/system/SystemMutex.cpp \
+	@top_builddir@/src/system/SystemObject.cpp \
+	@top_builddir@/src/system/SystemTimer.cpp \
+	@top_builddir@/src/system/SystemPacketBuffer.cpp \
+	@top_builddir@/src/system/SystemStats.cpp $(NULL) \
+	$(am__append_1)
 lib_LIBRARIES = libSystemLayer.a
 libSystemLayer_a_CPPFLAGS = \
     -I$(top_srcdir)/src/include     \
@@ -588,9 +596,6 @@ clean-libLIBRARIES:
 @top_builddir@/src/system/libSystemLayer_a-SystemError.$(OBJEXT):  \
 	@top_builddir@/src/system/$(am__dirstamp) \
 	@top_builddir@/src/system/$(DEPDIR)/$(am__dirstamp)
-@top_builddir@/src/system/libSystemLayer_a-SystemFaultInjection.$(OBJEXT):  \
-	@top_builddir@/src/system/$(am__dirstamp) \
-	@top_builddir@/src/system/$(DEPDIR)/$(am__dirstamp)
 @top_builddir@/src/system/libSystemLayer_a-SystemLayer.$(OBJEXT):  \
 	@top_builddir@/src/system/$(am__dirstamp) \
 	@top_builddir@/src/system/$(DEPDIR)/$(am__dirstamp)
@@ -607,6 +612,9 @@ clean-libLIBRARIES:
 	@top_builddir@/src/system/$(am__dirstamp) \
 	@top_builddir@/src/system/$(DEPDIR)/$(am__dirstamp)
 @top_builddir@/src/system/libSystemLayer_a-SystemStats.$(OBJEXT):  \
+	@top_builddir@/src/system/$(am__dirstamp) \
+	@top_builddir@/src/system/$(DEPDIR)/$(am__dirstamp)
+@top_builddir@/src/system/libSystemLayer_a-SystemFaultInjection.$(OBJEXT):  \
 	@top_builddir@/src/system/$(am__dirstamp) \
 	@top_builddir@/src/system/$(DEPDIR)/$(am__dirstamp)
 
@@ -668,20 +676,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='@top_builddir@/src/system/SystemError.cpp' object='@top_builddir@/src/system/libSystemLayer_a-SystemError.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libSystemLayer_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o @top_builddir@/src/system/libSystemLayer_a-SystemError.obj `if test -f '@top_builddir@/src/system/SystemError.cpp'; then $(CYGPATH_W) '@top_builddir@/src/system/SystemError.cpp'; else $(CYGPATH_W) '$(srcdir)/@top_builddir@/src/system/SystemError.cpp'; fi`
-
-@top_builddir@/src/system/libSystemLayer_a-SystemFaultInjection.o: @top_builddir@/src/system/SystemFaultInjection.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libSystemLayer_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT @top_builddir@/src/system/libSystemLayer_a-SystemFaultInjection.o -MD -MP -MF @top_builddir@/src/system/$(DEPDIR)/libSystemLayer_a-SystemFaultInjection.Tpo -c -o @top_builddir@/src/system/libSystemLayer_a-SystemFaultInjection.o `test -f '@top_builddir@/src/system/SystemFaultInjection.cpp' || echo '$(srcdir)/'`@top_builddir@/src/system/SystemFaultInjection.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) @top_builddir@/src/system/$(DEPDIR)/libSystemLayer_a-SystemFaultInjection.Tpo @top_builddir@/src/system/$(DEPDIR)/libSystemLayer_a-SystemFaultInjection.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='@top_builddir@/src/system/SystemFaultInjection.cpp' object='@top_builddir@/src/system/libSystemLayer_a-SystemFaultInjection.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libSystemLayer_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o @top_builddir@/src/system/libSystemLayer_a-SystemFaultInjection.o `test -f '@top_builddir@/src/system/SystemFaultInjection.cpp' || echo '$(srcdir)/'`@top_builddir@/src/system/SystemFaultInjection.cpp
-
-@top_builddir@/src/system/libSystemLayer_a-SystemFaultInjection.obj: @top_builddir@/src/system/SystemFaultInjection.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libSystemLayer_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT @top_builddir@/src/system/libSystemLayer_a-SystemFaultInjection.obj -MD -MP -MF @top_builddir@/src/system/$(DEPDIR)/libSystemLayer_a-SystemFaultInjection.Tpo -c -o @top_builddir@/src/system/libSystemLayer_a-SystemFaultInjection.obj `if test -f '@top_builddir@/src/system/SystemFaultInjection.cpp'; then $(CYGPATH_W) '@top_builddir@/src/system/SystemFaultInjection.cpp'; else $(CYGPATH_W) '$(srcdir)/@top_builddir@/src/system/SystemFaultInjection.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) @top_builddir@/src/system/$(DEPDIR)/libSystemLayer_a-SystemFaultInjection.Tpo @top_builddir@/src/system/$(DEPDIR)/libSystemLayer_a-SystemFaultInjection.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='@top_builddir@/src/system/SystemFaultInjection.cpp' object='@top_builddir@/src/system/libSystemLayer_a-SystemFaultInjection.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libSystemLayer_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o @top_builddir@/src/system/libSystemLayer_a-SystemFaultInjection.obj `if test -f '@top_builddir@/src/system/SystemFaultInjection.cpp'; then $(CYGPATH_W) '@top_builddir@/src/system/SystemFaultInjection.cpp'; else $(CYGPATH_W) '$(srcdir)/@top_builddir@/src/system/SystemFaultInjection.cpp'; fi`
 
 @top_builddir@/src/system/libSystemLayer_a-SystemLayer.o: @top_builddir@/src/system/SystemLayer.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libSystemLayer_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT @top_builddir@/src/system/libSystemLayer_a-SystemLayer.o -MD -MP -MF @top_builddir@/src/system/$(DEPDIR)/libSystemLayer_a-SystemLayer.Tpo -c -o @top_builddir@/src/system/libSystemLayer_a-SystemLayer.o `test -f '@top_builddir@/src/system/SystemLayer.cpp' || echo '$(srcdir)/'`@top_builddir@/src/system/SystemLayer.cpp
@@ -766,6 +760,20 @@ distclean-compile:
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='@top_builddir@/src/system/SystemStats.cpp' object='@top_builddir@/src/system/libSystemLayer_a-SystemStats.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libSystemLayer_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o @top_builddir@/src/system/libSystemLayer_a-SystemStats.obj `if test -f '@top_builddir@/src/system/SystemStats.cpp'; then $(CYGPATH_W) '@top_builddir@/src/system/SystemStats.cpp'; else $(CYGPATH_W) '$(srcdir)/@top_builddir@/src/system/SystemStats.cpp'; fi`
+
+@top_builddir@/src/system/libSystemLayer_a-SystemFaultInjection.o: @top_builddir@/src/system/SystemFaultInjection.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libSystemLayer_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT @top_builddir@/src/system/libSystemLayer_a-SystemFaultInjection.o -MD -MP -MF @top_builddir@/src/system/$(DEPDIR)/libSystemLayer_a-SystemFaultInjection.Tpo -c -o @top_builddir@/src/system/libSystemLayer_a-SystemFaultInjection.o `test -f '@top_builddir@/src/system/SystemFaultInjection.cpp' || echo '$(srcdir)/'`@top_builddir@/src/system/SystemFaultInjection.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) @top_builddir@/src/system/$(DEPDIR)/libSystemLayer_a-SystemFaultInjection.Tpo @top_builddir@/src/system/$(DEPDIR)/libSystemLayer_a-SystemFaultInjection.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='@top_builddir@/src/system/SystemFaultInjection.cpp' object='@top_builddir@/src/system/libSystemLayer_a-SystemFaultInjection.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libSystemLayer_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o @top_builddir@/src/system/libSystemLayer_a-SystemFaultInjection.o `test -f '@top_builddir@/src/system/SystemFaultInjection.cpp' || echo '$(srcdir)/'`@top_builddir@/src/system/SystemFaultInjection.cpp
+
+@top_builddir@/src/system/libSystemLayer_a-SystemFaultInjection.obj: @top_builddir@/src/system/SystemFaultInjection.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libSystemLayer_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT @top_builddir@/src/system/libSystemLayer_a-SystemFaultInjection.obj -MD -MP -MF @top_builddir@/src/system/$(DEPDIR)/libSystemLayer_a-SystemFaultInjection.Tpo -c -o @top_builddir@/src/system/libSystemLayer_a-SystemFaultInjection.obj `if test -f '@top_builddir@/src/system/SystemFaultInjection.cpp'; then $(CYGPATH_W) '@top_builddir@/src/system/SystemFaultInjection.cpp'; else $(CYGPATH_W) '$(srcdir)/@top_builddir@/src/system/SystemFaultInjection.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) @top_builddir@/src/system/$(DEPDIR)/libSystemLayer_a-SystemFaultInjection.Tpo @top_builddir@/src/system/$(DEPDIR)/libSystemLayer_a-SystemFaultInjection.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='@top_builddir@/src/system/SystemFaultInjection.cpp' object='@top_builddir@/src/system/libSystemLayer_a-SystemFaultInjection.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libSystemLayer_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o @top_builddir@/src/system/libSystemLayer_a-SystemFaultInjection.obj `if test -f '@top_builddir@/src/system/SystemFaultInjection.cpp'; then $(CYGPATH_W) '@top_builddir@/src/system/SystemFaultInjection.cpp'; else $(CYGPATH_W) '$(srcdir)/@top_builddir@/src/system/SystemFaultInjection.cpp'; fi`
 
 mostlyclean-libtool:
 	-rm -f *.lo

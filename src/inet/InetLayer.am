@@ -34,7 +34,6 @@ nl_InetLayer_sources                                       = \
     @top_builddir@/src/inet/InetLayerBasis.cpp               \
     @top_builddir@/src/inet/InetTimer.cpp                    \
     @top_builddir@/src/inet/InetUtils.cpp                    \
-    @top_builddir@/src/inet/InetFaultInjection.cpp           \
     $(NULL)
 
 if INET_WANT_ENDPOINT_DNS
@@ -62,6 +61,10 @@ if INET_CONFIG_ENABLE_ASYNC_DNS_SOCKETS
 nl_InetLayer_sources += @top_builddir@/src/inet/AsyncDNSResolverSockets.cpp
 endif # INET_CONFIG_ENABLE_ASYNC_DNS_SOCKETS
 endif # WEAVE_SYSTEM_CONFIG_USE_SOCKETS
+
+if WEAVE_WITH_NLFAULTINJECTION
+nl_InetLayer_sources += @top_builddir@/src/inet/InetFaultInjection.cpp
+endif # WEAVE_WITH_NLFAULTINJECTION
 
 if WEAVE_WITH_ANDROID
 # Some Android platforms (bionic) don't have the

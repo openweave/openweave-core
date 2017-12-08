@@ -23,7 +23,6 @@
 
 nl_SystemLayer_sources                                = \
     @top_builddir@/src/system/SystemError.cpp           \
-    @top_builddir@/src/system/SystemFaultInjection.cpp  \
     @top_builddir@/src/system/SystemLayer.cpp           \
     @top_builddir@/src/system/SystemMutex.cpp           \
     @top_builddir@/src/system/SystemObject.cpp          \
@@ -31,3 +30,7 @@ nl_SystemLayer_sources                                = \
     @top_builddir@/src/system/SystemPacketBuffer.cpp    \
     @top_builddir@/src/system/SystemStats.cpp           \
     $(NULL)
+
+if WEAVE_WITH_NLFAULTINJECTION
+nl_SystemLayer_sources += @top_builddir@/src/system/SystemFaultInjection.cpp
+endif # WEAVE_WITH_NLFAULTINJECTION
