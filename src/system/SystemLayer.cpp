@@ -388,7 +388,7 @@ void Layer::PrepareSelect(int& aSetSize, fd_set* aReadSet, fd_set* aWriteSet, fd
     FD_SET(this->mWakePipeIn, aReadSet);
 
     const Timer::Epoch kCurrentEpoch = Timer::GetCurrentEpoch();
-    Timer::Epoch lAwakenEpoch = kCurrentEpoch + aSleepTime.tv_sec * 1000 + aSleepTime.tv_usec / 1000;
+    Timer::Epoch lAwakenEpoch = kCurrentEpoch + static_cast<Timer::Epoch>(aSleepTime.tv_sec) * 1000 + aSleepTime.tv_usec / 1000;
 
     for (size_t i = 0; i < Timer::sPool.Size(); i++)
     {
@@ -407,9 +407,9 @@ void Layer::PrepareSelect(int& aSetSize, fd_set* aReadSet, fd_set* aWriteSet, fd
         }
     }
 
-    const uint64_t kSleepTime = (lAwakenEpoch - kCurrentEpoch) * kTimerFactor_micro_per_milli;
-    aSleepTime.tv_sec = kSleepTime / 1000000;
-    aSleepTime.tv_usec = kSleepTime % 1000000;
+    const Timer::Epoch kSleepTime = lAwakenEpoch - kCurrentEpoch;
+    aSleepTime.tv_sec = kSleepTime / 1000;
+    aSleepTime.tv_usec = (kSleepTime % 1000) * 1000;
 }
 
 /**
