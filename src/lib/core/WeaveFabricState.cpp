@@ -470,7 +470,7 @@ WEAVE_ERROR WeaveFabricState::AddSharedSessionEndNode(uint64_t endNodeId, uint64
     WEAVE_ERROR err = WEAVE_NO_ERROR;
     WeaveSessionKey *sessionKey;
 
-    err = FindSessionKey(keyId, endNodeId, false, sessionKey);
+    err = FindSessionKey(keyId, terminatingNodeId, false, sessionKey);
     SuccessOrExit(err);
 
     err = AddSharedSessionEndNode(sessionKey, endNodeId);
