@@ -632,6 +632,14 @@ WEAVE_ERROR WeaveServiceManager::replaceOrAddCacheEntry(uint16_t port,
     // + hostLen(hostname string size) + 2(port Id)
     uint16_t overrideEntryTotalLen = 1 + 8 + 1 + 1 + hostLen + 2;
 
+    // Return if the cache state is not in the kServiceMgrState_Resolved state.
+    // This is to avoid having to add an entry into the cache when it has been
+    // reset thereby clearing the cache state and, avoid interfering with the
+    // FSM if a query to the service-directory is in progress.
+
+    VerifyOrExit(mCacheState == kServiceMgrState_Resolved,
+                 err = WEAVE_NO_ERROR);
+
     // Perform lookup of the Service endpoint to replace an existing entry.
 
     err = lookup(serviceEndpointId, &ctrlByte, &entry);
