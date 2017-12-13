@@ -970,7 +970,7 @@ void ParseDestAddress()
 
     WEAVE_ERROR err;
     const char *addr;
-    uint16_t addrLen;
+    uint16_t addrLen = 0;
     const char *intfName;
     uint16_t intfNameLen;
 
@@ -981,7 +981,7 @@ void ParseDestAddress()
         exit(EXIT_FAILURE);
     }
 
-    if (!IPAddress::FromString(addr, DestIPAddr))
+    if (!IPAddress::FromString(addr, addrLen, DestIPAddr))
     {
         printf("Invalid destination address: %s\n", DestAddr);
         exit(EXIT_FAILURE);
