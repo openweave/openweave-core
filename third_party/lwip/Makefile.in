@@ -388,14 +388,7 @@ EXTRA_DIST = \
     repo/lwip/README                        \
     repo/lwip/UPGRADING                     \
     repo/lwip/doc                           \
-    repo/lwip/src/FILES                     \
-    repo/lwip/src/core/ipv6/README          \
-    repo/lwip/src/core/snmp                 \
-    repo/lwip/src/include                   \
-    repo/lwip/src/netif/FILES               \
-    repo/lwip/src/netif/ethernetif.c        \
-    repo/lwip/src/netif/ppp                 \
-    repo/lwip/src/netif/slipif.c            \
+    repo/lwip/src                           \
     repo/lwip/test                          \
     $(NULL)
 
