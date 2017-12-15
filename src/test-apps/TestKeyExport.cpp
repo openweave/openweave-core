@@ -39,9 +39,9 @@
 #include <Weave/Support/NestCerts.h>
 #include <Weave/Support/ASN1.h>
 
-#if INET_LWIP
+#if WEAVE_SYSTEM_CONFIG_USE_LWIP
 #include "lwip/tcpip.h"
-#endif // INET_LWIP
+#endif // WEAVE_SYSTEM_CONFIG_USE_LWIP
 
 using namespace nl::Inet;
 using namespace nl::Weave::TLV;
@@ -785,9 +785,9 @@ int main(int argc, char *argv[])
         &sTests[0]
     };
 
-#if INET_LWIP
+#if WEAVE_SYSTEM_CONFIG_USE_LWIP
     tcpip_init(NULL, NULL);
-#endif // INET_LWIP
+#endif // WEAVE_SYSTEM_CONFIG_USE_LWIP
 
     err = nl::Weave::Platform::Security::InitSecureRandomDataSource(NULL, 64, NULL, 0);
     FAIL_ERROR(err, "InitSecureRandomDataSource() failed");

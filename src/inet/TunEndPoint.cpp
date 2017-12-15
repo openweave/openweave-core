@@ -554,7 +554,7 @@ err_t TunEndPoint::LwIPPostToInetEventQ (struct netif *netif, struct pbuf *p)
     Weave::System::Layer&   lSystemLayer    = ep->SystemLayer();
     PacketBuffer*           buf             = PacketBuffer::NewWithAvailableSize(p->tot_len);
 
-    // Starting off with a reserved size of the default INET_CONFIG_HEADER_RESERVE_SIZE
+    // Starting off with a reserved size of the default WEAVE_SYSTEM_CONFIG_HEADER_RESERVE_SIZE
     // which allows for adding the Weave header and the underlying transport and IP headers
     // encapsulating this tunneled packet.
 

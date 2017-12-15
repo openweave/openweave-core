@@ -185,19 +185,19 @@ protected:
     static WEAVE_ERROR FailGetNextBuffer(TLVReader& reader, uintptr_t& bufHandle, const uint8_t *& bufStart,
             uint32_t& bufLen);
 
-#if INET_CONFIG_PROVIDE_OBSOLESCENT_INTERFACES
+#if WEAVE_CONFIG_PROVIDE_OBSOLESCENT_INTERFACES
     static WEAVE_ERROR GetNextInetBuffer(TLVReader& reader, uintptr_t& bufHandle, const uint8_t *& bufStart,
             uint32_t& bufLen);
-#endif // INET_CONFIG_PROVIDE_OBSOLESCENT_INTERFACES
+#endif // WEAVE_CONFIG_PROVIDE_OBSOLESCENT_INTERFACES
 };
 
-#if INET_CONFIG_PROVIDE_OBSOLESCENT_INTERFACES
+#if WEAVE_CONFIG_PROVIDE_OBSOLESCENT_INTERFACES
 inline WEAVE_ERROR TLVReader::GetNextInetBuffer(TLVReader& reader, uintptr_t& bufHandle, const uint8_t *& bufStart,
     uint32_t& bufLen)
 {
     return GetNextPacketBuffer(reader, bufHandle, bufStart, bufLen);
 }
-#endif // INET_CONFIG_PROVIDE_OBSOLESCENT_INTERFACES
+#endif // WEAVE_CONFIG_PROVIDE_OBSOLESCENT_INTERFACES
 
 /**
  * Provides a memory efficient encoder for writing data in Weave TLV format.
@@ -281,10 +281,10 @@ public:
     static WEAVE_ERROR GetNewPacketBuffer(TLVWriter& writer, uintptr_t& bufHandle, uint8_t *& bufStart, uint32_t& bufLen);
     static WEAVE_ERROR FinalizePacketBuffer(TLVWriter& writer, uintptr_t bufHandle, uint8_t *bufStart, uint32_t dataLen);
 
-#if INET_CONFIG_PROVIDE_OBSOLESCENT_INTERFACES
+#if WEAVE_CONFIG_PROVIDE_OBSOLESCENT_INTERFACES
     static WEAVE_ERROR GetNewInetBuffer(TLVWriter& writer, uintptr_t& bufHandle, uint8_t *& bufStart, uint32_t& bufLen);
     static WEAVE_ERROR FinalizeInetBuffer(TLVWriter& writer, uintptr_t bufHandle, uint8_t *bufStart, uint32_t dataLen);
-#endif // INET_CONFIG_PROVIDE_OBSOLESCENT_INTERFACES
+#endif // WEAVE_CONFIG_PROVIDE_OBSOLESCENT_INTERFACES
 
 protected:
     uintptr_t mBufHandle;
@@ -331,7 +331,7 @@ protected:
     WEAVE_ERROR WriteData(const uint8_t *p, uint32_t len);
 };
 
-#if INET_CONFIG_PROVIDE_OBSOLESCENT_INTERFACES
+#if WEAVE_CONFIG_PROVIDE_OBSOLESCENT_INTERFACES
 inline WEAVE_ERROR TLVWriter::GetNewInetBuffer(TLVWriter& writer, uintptr_t& bufHandle, uint8_t *& bufStart, uint32_t& bufLen)
 {
     return GetNewPacketBuffer(writer, bufHandle, bufStart, bufLen);
@@ -341,7 +341,7 @@ inline WEAVE_ERROR TLVWriter::FinalizeInetBuffer(TLVWriter& writer, uintptr_t bu
 {
     return FinalizePacketBuffer(writer, bufHandle, bufStart, dataLen);
 }
-#endif // INET_CONFIG_PROVIDE_OBSOLESCENT_INTERFACES
+#endif // WEAVE_CONFIG_PROVIDE_OBSOLESCENT_INTERFACES
 
 /**
  * Provides a unified Reader/Writer interface for editing/adding/deleting elements in TLV encoding.
