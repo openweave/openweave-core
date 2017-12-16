@@ -863,6 +863,10 @@ void TestATraitDataSource::HandleCommandOperationTimeout(nl::Weave::System::Laye
 
     VerifyOrExit (NULL != datasource->mActiveCommand, err = WEAVE_ERROR_INCORRECT_STATE);
 
+    // If Command was OneWay, exit and close Command.
+
+    VerifyOrExit(!datasource->mActiveCommand->IsOneWay(), err = WEAVE_NO_ERROR);
+
     // send back response for command type 2
     {
 
@@ -1008,6 +1012,15 @@ void TestATraitDataSource::OnCustomCommand(nl::Weave::Profiles::DataManagement::
         PacketBuffer::Free(aPayload);
         aPayload = NULL;
 
+        // If Command was OneWay, close Command and exit.
+
+        if (aCommand->IsOneWay())
+        {
+            aCommand->Close();
+            aCommand = NULL;
+            ExitNow(err = WEAVE_NO_ERROR);
+        }
+
         // Generate a success response right here
         {
 
@@ -1071,6 +1084,13 @@ void TestATraitDataSource::OnCustomCommand(nl::Weave::Profiles::DataManagement::
         // Doing this before allocating buffer for response might help reduce the max number of packet buffer needed
         PacketBuffer::Free(aPayload);
         aPayload = NULL;
+
+        if (aCommand->IsOneWay())
+        {
+            aCommand->Close();
+            aCommand = NULL;
+            ExitNow(err = WEAVE_NO_ERROR);
+        }
 
         // send back response later
         // note this is just an example of some operation which would take 2 seconds to complete

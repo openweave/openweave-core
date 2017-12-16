@@ -657,10 +657,17 @@ public:
     void DeleteKey(PropertyPathHandle aPropertyHandle);
 #endif
 
+    // This API has been deprecated.
     virtual void OnCustomCommand(Command * aCommand, const nl::Weave::WeaveMessageInfo * aMsgInfo,
                                  nl::Weave::PacketBuffer * aPayload, const uint64_t & aCommandType, const bool aIsExpiryTimeValid,
                                  const int64_t & aExpiryTimeMicroSecond, const bool aIsMustBeVersionValid,
                                  const uint64_t & aMustBeVersion, nl::Weave::TLV::TLVReader & aArgumentReader);
+
+    // API with all meta information housed within the Command
+    // object.
+    virtual void OnCustomCommand(Command * aCommand, const nl::Weave::WeaveMessageInfo * aMsgInfo,
+                                 nl::Weave::PacketBuffer * aPayload,
+                                 nl::Weave::TLV::TLVReader & aArgumentReader);
 
     /*
      * Invoked either by the base class or by an external agent (like the subscription engine) to signal the occurrence of an event

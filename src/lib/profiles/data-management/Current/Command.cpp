@@ -31,6 +31,7 @@
 #include <Weave/Profiles/common/CommonProfile.h>
 #include <Weave/Profiles/data-management/Current/WdmManagedNamespace.h>
 #include <Weave/Profiles/data-management/DataManagement.h>
+#include <Weave/Support/FlagUtils.hpp>
 
 #include <Weave/Support/crypto/WeaveCrypto.h>
 
@@ -53,9 +54,140 @@ Command::Command(void)
 WEAVE_ERROR Command::Init(nl::Weave::ExchangeContext * aEC)
 {
     mEC = aEC;
+    mFlags = 0;
+    commandType = 0;
+    mustBeVersion = 0;
+    initiationTimeMicroSecond = 0;
+    actionTimeMicroSecond = 0;
+    expiryTimeMicroSecond = 0;
+
     return WEAVE_NO_ERROR;
 }
 
+/**
+ *  Determine whether the version in the command is valid.
+ *
+ *  @return Returns 'true' if the version is valid, else 'false'.
+ *
+ */
+bool Command::IsMustBeVersionValid(void) const
+{
+    return GetFlag(mFlags, kCommandFlag_MustBeVersionValid);
+}
+
+/**
+ *  Determine whether the initiation time in the command is valid.
+ *
+ *  @return Returns 'true' if the initiation time is valid, else 'false'.
+ *
+ */
+bool Command::IsInitiationTimeValid(void) const
+{
+    return GetFlag(mFlags, kCommandFlag_InitiationTimeValid);
+}
+
+/**
+ *  Determine whether the action time in the command is valid.
+ *
+ *  @return Returns 'true' if the action time is valid, else 'false'.
+ *
+ */
+bool Command::IsActionTimeValid(void) const
+{
+    return GetFlag(mFlags, kCommandFlag_ActionTimeValid);
+}
+
+/**
+ *  Determine whether the expiry time in the command is valid.
+ *
+ *  @return Returns 'true' if the expiry time is valid, else 'false'.
+ *
+ */
+bool Command::IsExpiryTimeValid(void) const
+{
+    return GetFlag(mFlags, kCommandFlag_ExpiryTimeValid);
+}
+
+/**
+ *  Determine whether the command is one-way.
+ *
+ *  @return Returns 'true' if the command is one-way, else 'false'.
+ *
+ */
+bool Command::IsOneWay(void) const
+{
+    return GetFlag(mFlags, kCommandFlag_IsOneWay);
+}
+
+/**
+ *  Set the kCommandFlag_MustBeVersionValid flag bit.
+ *
+ *  @param[in]  inMustBeVersionValid  A Boolean indicating whether (true) or not
+ *                                    (false) the version field in the Command is
+ *                                    valid.
+ *
+ */
+void Command::SetMustBeVersionValid(bool inMustBeVersionValid)
+{
+    SetFlag(mFlags, kCommandFlag_MustBeVersionValid, inMustBeVersionValid);
+}
+
+/**
+ *  Set the kCommandFlag_InitiationTimeValid flag bit.
+ *
+ *  @param[in]  inInitiationTimeValid  A Boolean indicating whether (true) or not
+ *                                     (false) the initiation time field in the
+ *                                     Command is valid.
+ *
+ */
+void Command::SetInitiationTimeValid(bool inInitiationTimeValid)
+{
+    SetFlag(mFlags, kCommandFlag_InitiationTimeValid, inInitiationTimeValid);
+}
+
+/**
+ *  Set the kCommandFlag_ActionTimeValid flag bit.
+ *
+ *  @param[in]  inActionTimeValid  A Boolean indicating whether (true) or not
+ *                                 (false) the action time field in the
+ *                                 Command is valid.
+ *
+ */
+void Command::SetActionTimeValid(bool inActionTimeValid)
+{
+    SetFlag(mFlags, kCommandFlag_ActionTimeValid, inActionTimeValid);
+}
+
+/**
+ *  Set the kCommandFlag_ExpiryTimeValid flag bit.
+ *
+ *  @param[in]  inExpiryTimeValid  A Boolean indicating whether (true) or not
+ *                                 (false) the expiry time field in the
+ *                                 Command is valid.
+ *
+ */
+void Command::SetExpiryTimeValid(bool inExpiryTimeValid)
+{
+    SetFlag(mFlags, kCommandFlag_ExpiryTimeValid, inExpiryTimeValid);
+}
+
+/**
+ *  Set the kCommandFlag_IsOneWay flag bit.
+ *
+ *  @param[in]  inIsOneWay         A Boolean indicating whether (true) or not
+ *                                 (false) the Command is one-way.
+ *
+ */
+void Command::SetIsOneWay(bool inIsOneWay)
+{
+    SetFlag(mFlags, kCommandFlag_IsOneWay, inIsOneWay);
+}
+
+/**
+ *  @brief Send no message but free all resources associated, including closing the exchange context
+ *
+ *  @return  #WEAVE_NO_ERROR if the message has been pushed into message layer
+ */
 void Command::Close(void)
 {
     WeaveLogDetail(DataManagement, "Command[%d] [%04" PRIX16 "] %s", SubscriptionEngine::GetInstance()->GetCommandObjId(this),
@@ -72,6 +204,21 @@ void Command::Close(void)
     SYSTEM_STATS_DECREMENT(nl::Weave::System::Stats::kWDMNext_NumCommands);
 }
 
+/**
+ *  @brief Send a Status Report message to indicate the command has failed
+ *
+ *  @param[in]    aProfileId        The profile for the specified status code.
+ *
+ *  @param[in]    aStatusCode       The status code to send.
+ *
+ *  @param[in]    aWeaveError       The Weave error associated with the status
+ *                                  code.
+ *
+ *  @note Application layer doesn’t have the choice to append custom data into this message.
+ *    #Close is implicitly called at the end of this function in all conditions.
+ *
+ *  @return  #WEAVE_NO_ERROR if the message has been pushed into message layer
+ */
 WEAVE_ERROR Command::SendError(uint32_t aProfileId, uint16_t aStatusCode, WEAVE_ERROR aWeaveError)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
@@ -81,6 +228,10 @@ WEAVE_ERROR Command::SendError(uint32_t aProfileId, uint16_t aStatusCode, WEAVE_
                    aProfileId, aStatusCode, nl::ErrorStr(aWeaveError));
 
     VerifyOrExit(NULL != mEC, err = WEAVE_ERROR_INCORRECT_STATE);
+
+    // Drop the response if the Command was OneWay.
+
+    VerifyOrExit(!IsOneWay(), err = WEAVE_NO_ERROR);
 
     err = nl::Weave::WeaveServerBase::SendStatusReport(mEC, aProfileId, aStatusCode, aWeaveError,
                                                        nl::Weave::ExchangeContext::kSendFlag_RequestAck);
@@ -93,12 +244,26 @@ exit:
     return err;
 }
 
+/**
+ *  @brief Send an In-Progress message to indicate the command is not yet completed yet
+ *
+ *  @note The exact timing and meaning for this message is defined by each particular trait.
+ *    #Close is implicitly called at the end of this function in all conditions.
+ *
+ *  @return  #WEAVE_NO_ERROR if the message is successfully pushed into message layer
+ */
 WEAVE_ERROR Command::SendInProgress(void)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
 
-    WeaveLogDetail(DataManagement, "Command[%d] [%04" PRIX16 "] %s", SubscriptionEngine::GetInstance()->GetCommandObjId(this),
-                   (NULL != mEC) ? mEC->ExchangeId : 0xFFFF, __func__);
+    // Drop the Send if the Command was OneWay.
+
+    if (IsOneWay())
+    {
+        Close();
+
+        ExitNow(err = WEAVE_NO_ERROR);
+    }
 
     VerifyOrExit(NULL != mEC, err = WEAVE_ERROR_INCORRECT_STATE);
 
@@ -112,6 +277,10 @@ WEAVE_ERROR Command::SendInProgress(void)
     }
 
 exit:
+    WeaveLogDetail(DataManagement, "Command[%d] [%04" PRIX16 "] %s %s", SubscriptionEngine::GetInstance()->GetCommandObjId(this),
+                   (NULL != mEC) ? mEC->ExchangeId : 0xFFFF,
+                   IsOneWay() ? "OneWay: Dropping Response to Sender in": "", __func__);
+
     WeaveLogFunctError(err);
 
     return err;
@@ -149,8 +318,9 @@ WEAVE_ERROR Command::SendResponse(uint32_t traitInstanceVersion, nl::Weave::Syst
             1 + 1,                          // App Response Data Structure (1 control byte + 1 context tag)
     };
 
-    WeaveLogDetail(DataManagement, "Command[%d] [%04" PRIX16 "] %s", SubscriptionEngine::GetInstance()->GetCommandObjId(this),
-                   (NULL != mEC) ? mEC->ExchangeId : 0xFFFF, __func__);
+    // Drop the response if the Command was OneWay.
+
+    VerifyOrExit(!IsOneWay(), err = WEAVE_NO_ERROR);
 
     VerifyOrExit(NULL != mEC, err = WEAVE_ERROR_INCORRECT_STATE);
 
@@ -229,6 +399,10 @@ WEAVE_ERROR Command::SendResponse(uint32_t traitInstanceVersion, nl::Weave::Syst
     respBuf = NULL;
 
 exit:
+    WeaveLogDetail(DataManagement, "Command[%d] [%04" PRIX16 "] %s %s", SubscriptionEngine::GetInstance()->GetCommandObjId(this),
+                   (NULL != mEC) ? mEC->ExchangeId : 0xFFFF,
+                   IsOneWay() ? "OneWay: Dropping Response to Sender in": "", __func__);
+
     WeaveLogFunctError(err);
 
     Close();
@@ -241,6 +415,14 @@ exit:
     return err;
 }
 
+/**
+ *  @brief Validate the authenticator that came with the command against specified condition
+ *
+ *  @note We haven’t flushed out all the fields that have to go in here yet.
+ *    This function has to be called BEFORE the request buffer is freed.
+ *
+ *  @return  #WEAVE_NO_ERROR if the command is valid
+ */
 WEAVE_ERROR Command::ValidateAuthenticator(nl::Weave::System::PacketBuffer * aRequestBuffer)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;

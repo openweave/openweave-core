@@ -54,6 +54,7 @@ enum
     kMsgType_NotificationRequest     = 0x28,
     kMsgType_CustomCommandRequest    = 0x29,
     kMsgType_CustomCommandResponse   = 0x2A,
+    kMsgType_OneWayCommand           = 0x2B,
 };
 
 /**
@@ -974,17 +975,20 @@ public:
 
 /**
  *  @brief
- *    WDM Custom Command Request definition
+ *    WDM Custom Command definition
  *
  */
-namespace CustomCommandRequest {
+namespace CustomCommand {
+
 /// @brief Context-Specific tags used in this message
 enum
 {
-    kCsTag_Path          = 1,
-    kCsTag_CommandType   = 2,
-    kCsTag_ExpiryTime    = 3,
-    kCsTag_MustBeVersion = 4,
+    kCsTag_Path            = 1,
+    kCsTag_CommandType     = 2,
+    kCsTag_ExpiryTime      = 3,
+    kCsTag_MustBeVersion   = 4,
+    kCsTag_InitiationTime  = 5,
+    kCsTag_ActionTime      = 6,
 
     /* 5-19 are reserved */
     kCsTag_Argument = 20,
@@ -992,13 +996,13 @@ enum
 
 class Parser;
 class Builder;
-}; // namespace CustomCommandRequest
+}; // namespace CustomCommand
 
 /**
  *  @brief
  *    WDM Custom Command Request parser definition
  */
-class CustomCommandRequest::Parser : protected DataElement::Parser
+class CustomCommand::Parser : protected DataElement::Parser
 {
 public:
     /**
@@ -1023,7 +1027,7 @@ public:
     WEAVE_ERROR CheckSchemaValidity(void) const;
 
     /**
-     *  @brief Initialize a Path::Parser with the path component in this request
+     *  @brief Initialize a Path::Parser with the path component in this command
      *
      *  @param [out] apPath A pointer to a Path::Parser, which will be
      *                      initialized with embedded path component on success
@@ -1035,7 +1039,7 @@ public:
     WEAVE_ERROR GetPath(Path::Parser * const apPath) const;
 
     /**
-     *  @brief Get the command type id for this request
+     *  @brief Get the command type id for this command
      *
      *  @param [out] apCommandType  A pointer to some variable to receive
      *                              the command type id on success
@@ -1047,7 +1051,31 @@ public:
     WEAVE_ERROR GetCommandType(uint64_t * const apCommandType) const;
 
     /**
-     *  @brief Get the expiry time for this request
+     *  @brief Get the initiation time for this command
+     *
+     *  @param [out] apInitiationTimeMicroSecond      A pointer to some variable to receive
+     *                                                the Command initiation time on success
+     *
+     *  @retval #WEAVE_NO_ERROR on success
+     *  @retval #WEAVE_END_OF_TLV if there is no such element
+     *  @retval #WEAVE_ERROR_WRONG_TLV_TYPE if there is such element but it's not a signed integer
+     */
+    WEAVE_ERROR GetInitiationTimeMicroSecond(int64_t * const apInitiationTimeMicroSecond) const;
+
+    /**
+     *  @brief Get the scheduled action time for this command
+     *
+     *  @param [out] apActionTimeMicroSecond    A pointer to some variable to receive
+     *                                          the Command action time on success
+     *
+     *  @retval #WEAVE_NO_ERROR on success
+     *  @retval #WEAVE_END_OF_TLV if there is no such element
+     *  @retval #WEAVE_ERROR_WRONG_TLV_TYPE if there is such element but it's not a signed integer
+     */
+    WEAVE_ERROR GetActionTimeMicroSecond(int64_t * const apActionTimeMicroSecond) const;
+
+    /**
+     *  @brief Get the expiry time for this command
      *
      *  @param [out] apExpiryTimeMicroSecond    A pointer to some variable to receive
      *                                          the expiry time on success
@@ -1059,7 +1087,7 @@ public:
     WEAVE_ERROR GetExpiryTimeMicroSecond(int64_t * const apExpiryTimeMicroSecond) const;
 
     /**
-     *  @brief Get the must-be version for this request
+     *  @brief Get the must-be version for this command
      *
      *  @param [out] apMustBeVersion    A pointer to some variable to receive
      *                                  the must-be version on success
@@ -1071,7 +1099,7 @@ public:
     WEAVE_ERROR GetMustBeVersion(uint64_t * const apMustBeVersion) const;
 
     /**
-     *  @brief Initialize a TLVReader to point to the beginning of the argument component in this request
+     *  @brief Initialize a TLVReader to point to the beginning of the argument component in this command
      *
      *  @param [out] apReader   A pointer to TLVReader, which will be initialized at the argument TLV element
      *                          on success
@@ -1081,7 +1109,7 @@ public:
     WEAVE_ERROR GetReaderOnArgument(nl::Weave::TLV::TLVReader * const apReader) const;
 
     /**
-     *  @brief Initialize a TLVReader to point to the beginning of the path component in this request
+     *  @brief Initialize a TLVReader to point to the beginning of the path component in this command
      *
      *  @param [out] apReader   A pointer to TLVReader, which will be initialized at the argument TLV element
      *                          on success
@@ -1093,15 +1121,15 @@ public:
 
 /**
  *  @brief
- *    WDM Custom Command Request encoder definition
+ *    WDM Custom Command encoder definition
  *
  *  The argument, and the authenticator elements are not directly supported, as they do not have a fixed schema.
  */
-class CustomCommandRequest::Builder : public BuilderBase
+class CustomCommand::Builder : public BuilderBase
 {
 public:
     /**
-     *  @brief Initialize a CustomCommandRequest::Builder for writing into a TLV stream
+     *  @brief Initialize a CustomCommand::Builder for writing into a TLV stream
      *
      *  @param [in] apWriter    A pointer to TLVWriter
      *
@@ -1119,36 +1147,54 @@ public:
     /**
      *  @brief Inject command type id into the TLV stream
      *
-     *  @param [in] aCommandType    Command type ID for this request
+     *  @param [in] aCommandType    Command type ID for this command
      *
      *  @return A reference to *this
      */
-    CustomCommandRequest::Builder & CommandType(const uint64_t aCommandType);
+    CustomCommand::Builder & CommandType(const uint64_t aCommandType);
+
+    /**
+     *  @brief Inject init time into the TLV stream
+     *
+     *  @param [in] aInitiationTimeMicroSecond  Init time for this command, in microseconds since UNIX epoch
+     *
+     *  @return A reference to *this
+     */
+    CustomCommand::Builder & InitiationTimeMicroSecond(const int64_t aInitiationTimeMicroSecond);
+
+    /**
+     *  @brief Inject action time into the TLV stream
+     *
+     *  @param [in] aActionTimeMicroSecond  Action time for this command, in microseconds since UNIX epoch
+     *
+     *  @return A reference to *this
+     */
+    CustomCommand::Builder & ActionTimeMicroSecond(const int64_t aActionTimeMicroSecond);
 
     /**
      *  @brief Inject expiry time into the TLV stream
      *
-     *  @param [in] aExpiryTimeMicroSecond  Expiry time for this request, in microseconds since UNIX epoch
+     *  @param [in] aExpiryTimeMicroSecond  Expiry time for this command, in microseconds since UNIX epoch
      *
      *  @return A reference to *this
      */
-    CustomCommandRequest::Builder & ExpiryTimeMicroSecond(const int64_t aExpiryTimeMicroSecond);
+    CustomCommand::Builder & ExpiryTimeMicroSecond(const int64_t aExpiryTimeMicroSecond);
 
     /**
      *  @brief Inject must-be version into the TLV stream
      *
-     *  @param [in] aMustBeVersion  Trait instance in the path must be at this version for this request to be accepted
+     *  @param [in] aMustBeVersion  Trait instance in the path must be at this version for this command to be accepted
      *
      *  @return A reference to *this
      */
-    CustomCommandRequest::Builder & MustBeVersion(const uint64_t aMustBeVersion);
+    CustomCommand::Builder & MustBeVersion(const uint64_t aMustBeVersion);
 
     /**
-     *  @brief Mark the end of this request
+     *  @brief Mark the end of this command
      *
      *  @return A reference to *this
      */
-    CustomCommandRequest::Builder & EndOfRequest(void);
+    CustomCommand::Builder & EndOfCustomCommand(void);
 
 private:
     Path::Builder mPathBuilder;

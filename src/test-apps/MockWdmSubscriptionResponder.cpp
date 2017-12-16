@@ -1175,7 +1175,7 @@ void MockWdmSubscriptionResponderImpl::Command_Send(void)
 
     {
         nl::Weave::TLV::TLVWriter writer;
-        CustomCommandRequest::Builder request;
+        CustomCommand::Builder request;
         nl::Weave::Profiles::Time::timesync_t nowMicroSecs, deadline;
 
         writer.Init(msgBuf);
@@ -1216,7 +1216,7 @@ void MockWdmSubscriptionResponderImpl::Command_Send(void)
             uint32_t dummyUInt = 7;
             bool dummyBool = false;
             nl::Weave::TLV::TLVType dummyType = nl::Weave::TLV::kTLVType_NotSpecified;
-            err = writer.StartContainer(nl::Weave::TLV::ContextTag(CustomCommandRequest::kCsTag_Argument), nl::Weave::TLV::kTLVType_Structure, dummyType);
+            err = writer.StartContainer(nl::Weave::TLV::ContextTag(CustomCommand::kCsTag_Argument), nl::Weave::TLV::kTLVType_Structure, dummyType);
             SuccessOrExit(err);
 
             err = writer.Put(nl::Weave::TLV::ContextTag(1), dummyUInt);
@@ -1269,7 +1269,7 @@ void MockWdmSubscriptionResponderImpl::Command_Send(void)
                 }
         }
 
-        request.EndOfRequest();
+        request.EndOfCustomCommand();
         SuccessOrExit(err = request.GetError());
 
         err = writer.Finalize();

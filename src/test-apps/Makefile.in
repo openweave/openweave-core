@@ -697,6 +697,8 @@ am__installdirs = "$(DESTDIR)$(libexecdir)"
 @WEAVE_BUILD_TESTS_TRUE@	TestWeaveTunnelBR$(EXEEXT) \
 @WEAVE_BUILD_TESTS_TRUE@	TestWeaveTunnelServer$(EXEEXT) \
 @WEAVE_BUILD_TESTS_TRUE@	TestWdmNext$(EXEEXT) \
+@WEAVE_BUILD_TESTS_TRUE@	TestWdmOneWayCommandSender$(EXEEXT) \
+@WEAVE_BUILD_TESTS_TRUE@	TestWdmOneWayCommandReceiver$(EXEEXT) \
 @WEAVE_BUILD_TESTS_TRUE@	TestDNSResolution$(EXEEXT) \
 @WEAVE_BUILD_TESTS_TRUE@	mock-device$(EXEEXT) \
 @WEAVE_BUILD_TESTS_TRUE@	mock-weave-bg$(EXEEXT) \
@@ -1255,6 +1257,52 @@ TestWdmNext_OBJECTS = $(am_TestWdmNext_OBJECTS)
 TestWdmNext_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) \
 	$(LIBTOOLFLAGS) --mode=link $(CXXLD) $(AM_CXXFLAGS) \
 	$(CXXFLAGS) $(TestWdmNext_LDFLAGS) $(LDFLAGS) -o $@
+am__TestWdmOneWayCommandReceiver_SOURCES_DIST =  \
+	TestWdmOneWayCommandReceiver.cpp MockSourceTraits.cpp \
+	MockLoggingManager.cpp MockEvents.cpp \
+	schema/nest/test/trait/TestATrait.cpp \
+	schema/nest/test/trait/TestBTrait.cpp \
+	schema/nest/test/trait/TestETrait.cpp \
+	schema/nest/test/trait/TestCommon.cpp \
+	schema/weave/trait/locale/LocaleSettingsTrait.cpp \
+	schema/weave/trait/locale/LocaleCapabilitiesTrait.cpp \
+	schema/weave/trait/security/BoltLockSettingsTrait.cpp \
+	schema/weave/trait/telemetry/NetworkWiFiTelemetryTrait.cpp
+@WEAVE_BUILD_TESTS_TRUE@am_TestWdmOneWayCommandReceiver_OBJECTS = TestWdmOneWayCommandReceiver-TestWdmOneWayCommandReceiver.$(OBJEXT) \
+@WEAVE_BUILD_TESTS_TRUE@	TestWdmOneWayCommandReceiver-MockSourceTraits.$(OBJEXT) \
+@WEAVE_BUILD_TESTS_TRUE@	TestWdmOneWayCommandReceiver-MockLoggingManager.$(OBJEXT) \
+@WEAVE_BUILD_TESTS_TRUE@	TestWdmOneWayCommandReceiver-MockEvents.$(OBJEXT) \
+@WEAVE_BUILD_TESTS_TRUE@	schema/nest/test/trait/TestWdmOneWayCommandReceiver-TestATrait.$(OBJEXT) \
+@WEAVE_BUILD_TESTS_TRUE@	schema/nest/test/trait/TestWdmOneWayCommandReceiver-TestBTrait.$(OBJEXT) \
+@WEAVE_BUILD_TESTS_TRUE@	schema/nest/test/trait/TestWdmOneWayCommandReceiver-TestETrait.$(OBJEXT) \
+@WEAVE_BUILD_TESTS_TRUE@	schema/nest/test/trait/TestWdmOneWayCommandReceiver-TestCommon.$(OBJEXT) \
+@WEAVE_BUILD_TESTS_TRUE@	schema/weave/trait/locale/TestWdmOneWayCommandReceiver-LocaleSettingsTrait.$(OBJEXT) \
+@WEAVE_BUILD_TESTS_TRUE@	schema/weave/trait/locale/TestWdmOneWayCommandReceiver-LocaleCapabilitiesTrait.$(OBJEXT) \
+@WEAVE_BUILD_TESTS_TRUE@	schema/weave/trait/security/TestWdmOneWayCommandReceiver-BoltLockSettingsTrait.$(OBJEXT) \
+@WEAVE_BUILD_TESTS_TRUE@	schema/weave/trait/telemetry/TestWdmOneWayCommandReceiver-NetworkWiFiTelemetryTrait.$(OBJEXT)
+TestWdmOneWayCommandReceiver_OBJECTS =  \
+	$(am_TestWdmOneWayCommandReceiver_OBJECTS)
+@WEAVE_BUILD_TESTS_TRUE@TestWdmOneWayCommandReceiver_DEPENDENCIES =  \
+@WEAVE_BUILD_TESTS_TRUE@	libWeaveTestCommon.a \
+@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_6) \
+@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_7)
+TestWdmOneWayCommandReceiver_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
+	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CXXLD) \
+	$(AM_CXXFLAGS) $(CXXFLAGS) \
+	$(TestWdmOneWayCommandReceiver_LDFLAGS) $(LDFLAGS) -o $@
+am__TestWdmOneWayCommandSender_SOURCES_DIST =  \
+	TestWdmOneWayCommandSender.cpp
+@WEAVE_BUILD_TESTS_TRUE@am_TestWdmOneWayCommandSender_OBJECTS = TestWdmOneWayCommandSender-TestWdmOneWayCommandSender.$(OBJEXT)
+TestWdmOneWayCommandSender_OBJECTS =  \
+	$(am_TestWdmOneWayCommandSender_OBJECTS)
+@WEAVE_BUILD_TESTS_TRUE@TestWdmOneWayCommandSender_DEPENDENCIES =  \
+@WEAVE_BUILD_TESTS_TRUE@	libWeaveTestCommon.a \
+@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_6) \
+@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_7)
+TestWdmOneWayCommandSender_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
+	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CXXLD) \
+	$(AM_CXXFLAGS) $(CXXFLAGS) \
+	$(TestWdmOneWayCommandSender_LDFLAGS) $(LDFLAGS) -o $@
 am__TestWeaveCert_SOURCES_DIST = TestWeaveCert.cpp \
 	TestWeaveCertData.cpp
 @WEAVE_BUILD_TESTS_TRUE@am_TestWeaveCert_OBJECTS =  \
@@ -1681,8 +1729,9 @@ SOURCES = $(libMockBleApplicationDelegate_a_SOURCES) \
 	$(TestThermostatStatus_SOURCES) $(TestTimeUtils_SOURCES) \
 	$(TestTimeZone_SOURCES) $(TestWDM_SOURCES) $(TestWRMP_SOURCES) \
 	$(TestWarm_SOURCES) $(TestWdmNext_SOURCES) \
-	$(TestWeaveCert_SOURCES) $(TestWeaveEncoding_SOURCES) \
-	$(TestWeaveFabricState_SOURCES) \
+	$(TestWdmOneWayCommandReceiver_SOURCES) \
+	$(TestWdmOneWayCommandSender_SOURCES) $(TestWeaveCert_SOURCES) \
+	$(TestWeaveEncoding_SOURCES) $(TestWeaveFabricState_SOURCES) \
 	$(TestWeaveMessageLayer_SOURCES) \
 	$(TestWeaveProvBundle_SOURCES) $(TestWeaveSignature_SOURCES) \
 	$(TestWeaveTunnelBR_SOURCES) $(TestWeaveTunnelServer_SOURCES) \
@@ -1747,6 +1796,8 @@ DIST_SOURCES = $(am__libMockBleApplicationDelegate_a_SOURCES_DIST) \
 	$(am__TestTimeZone_SOURCES_DIST) $(am__TestWDM_SOURCES_DIST) \
 	$(am__TestWRMP_SOURCES_DIST) $(am__TestWarm_SOURCES_DIST) \
 	$(am__TestWdmNext_SOURCES_DIST) \
+	$(am__TestWdmOneWayCommandReceiver_SOURCES_DIST) \
+	$(am__TestWdmOneWayCommandSender_SOURCES_DIST) \
 	$(am__TestWeaveCert_SOURCES_DIST) \
 	$(am__TestWeaveEncoding_SOURCES_DIST) \
 	$(am__TestWeaveFabricState_SOURCES_DIST) \
@@ -1787,7 +1838,7 @@ am__noinst_HEADERS_DIST = CASEOptions.h KeyExportOptions.h \
 	MockWdmViewServer.h MockWdmViewClient.h MockWdmUpdateServer.h \
 	MockWdmUpdateClient.h MockWdmTestVerifier.h \
 	MockWdmSubscriptionInitiator.h MockWdmSubscriptionResponder.h \
-	TestGroupKeyStore.h TestDRBG.h \
+	TestWdmOneWayCommand.h TestGroupKeyStore.h TestDRBG.h \
 	TestPersistedStorageImplementation.h \
 	TestEventLoggingSchemaExamples.h TestProfile.h TestWRMP.h \
 	TestWeaveTunnel.h TestWeaveTunnelServer.h ToolCommon.h \
@@ -2583,7 +2634,7 @@ noinst_HEADERS = CASEOptions.h KeyExportOptions.h ToolCommonOptions.h \
 	MockWdmViewServer.h MockWdmViewClient.h MockWdmUpdateServer.h \
 	MockWdmUpdateClient.h MockWdmTestVerifier.h \
 	MockWdmSubscriptionInitiator.h MockWdmSubscriptionResponder.h \
-	TestGroupKeyStore.h TestDRBG.h \
+	TestWdmOneWayCommand.h TestGroupKeyStore.h TestDRBG.h \
 	TestPersistedStorageImplementation.h \
 	TestEventLoggingSchemaExamples.h TestProfile.h TestWRMP.h \
 	TestWeaveTunnel.h TestWeaveTunnelServer.h ToolCommon.h \
@@ -2804,6 +2855,8 @@ EXTRA_DIST = \
 @WEAVE_BUILD_TESTS_TRUE@    TestWeaveTunnelBR                            \
 @WEAVE_BUILD_TESTS_TRUE@    TestWeaveTunnelServer                        \
 @WEAVE_BUILD_TESTS_TRUE@    TestWdmNext                                  \
+@WEAVE_BUILD_TESTS_TRUE@    TestWdmOneWayCommandSender                   \
+@WEAVE_BUILD_TESTS_TRUE@    TestWdmOneWayCommandReceiver                 \
 @WEAVE_BUILD_TESTS_TRUE@    TestDNSResolution                            \
 @WEAVE_BUILD_TESTS_TRUE@    mock-device                                  \
 @WEAVE_BUILD_TESTS_TRUE@    mock-weave-bg                                \
@@ -3034,6 +3087,26 @@ EXTRA_DIST = \
 @WEAVE_BUILD_TESTS_TRUE@TestWdmNext_CPPFLAGS = $(AM_CPPFLAGS) -I$(top_srcdir)/src/test-apps/schema
 @WEAVE_BUILD_TESTS_TRUE@TestWdmNext_LDFLAGS = $(AM_CPPFLAGS)
 @WEAVE_BUILD_TESTS_TRUE@TestWdmNext_LDADD = libWeaveTestCommon.a $(COMMON_LDADD) $(TEST_PLATFORM_LDADD)
+@WEAVE_BUILD_TESTS_TRUE@TestWdmOneWayCommandSender_SOURCES = TestWdmOneWayCommandSender.cpp
+@WEAVE_BUILD_TESTS_TRUE@TestWdmOneWayCommandSender_CPPFLAGS = $(AM_CPPFLAGS) -I$(top_srcdir)/src/test-apps/schema
+@WEAVE_BUILD_TESTS_TRUE@TestWdmOneWayCommandSender_LDFLAGS = $(AM_CPPFLAGS)
+@WEAVE_BUILD_TESTS_TRUE@TestWdmOneWayCommandSender_LDADD = libWeaveTestCommon.a $(COMMON_LDADD) $(TEST_PLATFORM_LDADD)
+@WEAVE_BUILD_TESTS_TRUE@TestWdmOneWayCommandReceiver_SOURCES = TestWdmOneWayCommandReceiver.cpp				\
+@WEAVE_BUILD_TESTS_TRUE@                                           MockSourceTraits.cpp						\
+@WEAVE_BUILD_TESTS_TRUE@                                           MockLoggingManager.cpp					\
+@WEAVE_BUILD_TESTS_TRUE@                                           MockEvents.cpp						\
+@WEAVE_BUILD_TESTS_TRUE@                                           schema/nest/test/trait/TestATrait.cpp			\
+@WEAVE_BUILD_TESTS_TRUE@                                           schema/nest/test/trait/TestBTrait.cpp			\
+@WEAVE_BUILD_TESTS_TRUE@                                           schema/nest/test/trait/TestETrait.cpp			\
+@WEAVE_BUILD_TESTS_TRUE@                                           schema/nest/test/trait/TestCommon.cpp                        \
+@WEAVE_BUILD_TESTS_TRUE@                                           schema/weave/trait/locale/LocaleSettingsTrait.cpp		\
+@WEAVE_BUILD_TESTS_TRUE@                                           schema/weave/trait/locale/LocaleCapabilitiesTrait.cpp	\
+@WEAVE_BUILD_TESTS_TRUE@                                           schema/weave/trait/security/BoltLockSettingsTrait.cpp	\
+@WEAVE_BUILD_TESTS_TRUE@                                           schema/weave/trait/telemetry/NetworkWiFiTelemetryTrait.cpp
+
+@WEAVE_BUILD_TESTS_TRUE@TestWdmOneWayCommandReceiver_CPPFLAGS = $(AM_CPPFLAGS) -I$(top_srcdir)/src/test-apps/schema
+@WEAVE_BUILD_TESTS_TRUE@TestWdmOneWayCommandReceiver_LDFLAGS = $(AM_CPPFLAGS)
+@WEAVE_BUILD_TESTS_TRUE@TestWdmOneWayCommandReceiver_LDADD = libWeaveTestCommon.a $(COMMON_LDADD) $(TEST_PLATFORM_LDADD)
 @WEAVE_BUILD_TESTS_TRUE@infratest_SOURCES = infratest.cpp
 @WEAVE_BUILD_TESTS_TRUE@infratest_LDADD = $(COMMON_LDADD) $(TEST_PLATFORM_LDADD)
 @WEAVE_BUILD_TESTS_TRUE@mock_device_SOURCES = mock-device.cpp                                          \
@@ -3598,6 +3671,38 @@ schema/weave/trait/telemetry/TestWdmNext-NetworkWiFiTelemetryTrait.$(OBJEXT):  \
 TestWdmNext$(EXEEXT): $(TestWdmNext_OBJECTS) $(TestWdmNext_DEPENDENCIES) $(EXTRA_TestWdmNext_DEPENDENCIES) 
 	@rm -f TestWdmNext$(EXEEXT)
 	$(AM_V_CXXLD)$(TestWdmNext_LINK) $(TestWdmNext_OBJECTS) $(TestWdmNext_LDADD) $(LIBS)
+schema/nest/test/trait/TestWdmOneWayCommandReceiver-TestATrait.$(OBJEXT):  \
+	schema/nest/test/trait/$(am__dirstamp) \
+	schema/nest/test/trait/$(DEPDIR)/$(am__dirstamp)
+schema/nest/test/trait/TestWdmOneWayCommandReceiver-TestBTrait.$(OBJEXT):  \
+	schema/nest/test/trait/$(am__dirstamp) \
+	schema/nest/test/trait/$(DEPDIR)/$(am__dirstamp)
+schema/nest/test/trait/TestWdmOneWayCommandReceiver-TestETrait.$(OBJEXT):  \
+	schema/nest/test/trait/$(am__dirstamp) \
+	schema/nest/test/trait/$(DEPDIR)/$(am__dirstamp)
+schema/nest/test/trait/TestWdmOneWayCommandReceiver-TestCommon.$(OBJEXT):  \
+	schema/nest/test/trait/$(am__dirstamp) \
+	schema/nest/test/trait/$(DEPDIR)/$(am__dirstamp)
+schema/weave/trait/locale/TestWdmOneWayCommandReceiver-LocaleSettingsTrait.$(OBJEXT):  \
+	schema/weave/trait/locale/$(am__dirstamp) \
+	schema/weave/trait/locale/$(DEPDIR)/$(am__dirstamp)
+schema/weave/trait/locale/TestWdmOneWayCommandReceiver-LocaleCapabilitiesTrait.$(OBJEXT):  \
+	schema/weave/trait/locale/$(am__dirstamp) \
+	schema/weave/trait/locale/$(DEPDIR)/$(am__dirstamp)
+schema/weave/trait/security/TestWdmOneWayCommandReceiver-BoltLockSettingsTrait.$(OBJEXT):  \
+	schema/weave/trait/security/$(am__dirstamp) \
+	schema/weave/trait/security/$(DEPDIR)/$(am__dirstamp)
+schema/weave/trait/telemetry/TestWdmOneWayCommandReceiver-NetworkWiFiTelemetryTrait.$(OBJEXT):  \
+	schema/weave/trait/telemetry/$(am__dirstamp) \
+	schema/weave/trait/telemetry/$(DEPDIR)/$(am__dirstamp)
+
+TestWdmOneWayCommandReceiver$(EXEEXT): $(TestWdmOneWayCommandReceiver_OBJECTS) $(TestWdmOneWayCommandReceiver_DEPENDENCIES) $(EXTRA_TestWdmOneWayCommandReceiver_DEPENDENCIES) 
+	@rm -f TestWdmOneWayCommandReceiver$(EXEEXT)
+	$(AM_V_CXXLD)$(TestWdmOneWayCommandReceiver_LINK) $(TestWdmOneWayCommandReceiver_OBJECTS) $(TestWdmOneWayCommandReceiver_LDADD) $(LIBS)
+
+TestWdmOneWayCommandSender$(EXEEXT): $(TestWdmOneWayCommandSender_OBJECTS) $(TestWdmOneWayCommandSender_DEPENDENCIES) $(EXTRA_TestWdmOneWayCommandSender_DEPENDENCIES) 
+	@rm -f TestWdmOneWayCommandSender$(EXEEXT)
+	$(AM_V_CXXLD)$(TestWdmOneWayCommandSender_LINK) $(TestWdmOneWayCommandSender_OBJECTS) $(TestWdmOneWayCommandSender_LDADD) $(LIBS)
 
 TestWeaveCert$(EXEEXT): $(TestWeaveCert_OBJECTS) $(TestWeaveCert_DEPENDENCIES) $(EXTRA_TestWeaveCert_DEPENDENCIES) 
 	@rm -f TestWeaveCert$(EXEEXT)
@@ -3822,6 +3927,11 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/TestWdmNext-TestProfile.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/TestWdmNext-TestWdmNext.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/TestWdmNext-WdmNextPerfUtility.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/TestWdmOneWayCommandReceiver-MockEvents.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/TestWdmOneWayCommandReceiver-MockLoggingManager.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/TestWdmOneWayCommandReceiver-MockSourceTraits.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/TestWdmOneWayCommandReceiver-TestWdmOneWayCommandReceiver.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/TestWdmOneWayCommandSender-TestWdmOneWayCommandSender.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/TestWeaveCert.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/TestWeaveCertData.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/TestWeaveEncoding.Po@am__quote@
@@ -3897,18 +4007,26 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@schema/nest/test/trait/$(DEPDIR)/TestWdmNext-TestBTrait.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@schema/nest/test/trait/$(DEPDIR)/TestWdmNext-TestCommon.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@schema/nest/test/trait/$(DEPDIR)/TestWdmNext-TestETrait.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@schema/nest/test/trait/$(DEPDIR)/TestWdmOneWayCommandReceiver-TestATrait.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@schema/nest/test/trait/$(DEPDIR)/TestWdmOneWayCommandReceiver-TestBTrait.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@schema/nest/test/trait/$(DEPDIR)/TestWdmOneWayCommandReceiver-TestCommon.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@schema/nest/test/trait/$(DEPDIR)/TestWdmOneWayCommandReceiver-TestETrait.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@schema/nest/test/trait/$(DEPDIR)/mock_device-TestATrait.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@schema/nest/test/trait/$(DEPDIR)/mock_device-TestBTrait.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@schema/nest/test/trait/$(DEPDIR)/mock_device-TestCommon.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@schema/nest/test/trait/$(DEPDIR)/mock_device-TestETrait.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@schema/weave/trait/locale/$(DEPDIR)/TestWdmNext-LocaleCapabilitiesTrait.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@schema/weave/trait/locale/$(DEPDIR)/TestWdmNext-LocaleSettingsTrait.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@schema/weave/trait/locale/$(DEPDIR)/TestWdmOneWayCommandReceiver-LocaleCapabilitiesTrait.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@schema/weave/trait/locale/$(DEPDIR)/TestWdmOneWayCommandReceiver-LocaleSettingsTrait.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@schema/weave/trait/locale/$(DEPDIR)/mock_device-LocaleCapabilitiesTrait.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@schema/weave/trait/locale/$(DEPDIR)/mock_device-LocaleSettingsTrait.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@schema/weave/trait/security/$(DEPDIR)/TestWdmNext-BoltLockSettingsTrait.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@schema/weave/trait/security/$(DEPDIR)/TestWdmOneWayCommandReceiver-BoltLockSettingsTrait.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@schema/weave/trait/security/$(DEPDIR)/mock_device-BoltLockSettingsTrait.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@schema/weave/trait/telemetry/$(DEPDIR)/GenerateEventLog-NetworkWiFiTelemetryTrait.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@schema/weave/trait/telemetry/$(DEPDIR)/TestWdmNext-NetworkWiFiTelemetryTrait.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@schema/weave/trait/telemetry/$(DEPDIR)/TestWdmOneWayCommandReceiver-NetworkWiFiTelemetryTrait.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@schema/weave/trait/telemetry/$(DEPDIR)/mock_device-NetworkWiFiTelemetryTrait.Po@am__quote@
 
 .cpp.o:
@@ -4550,6 +4668,188 @@ TestWdmNext-TestProfile.obj: TestProfile.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='TestProfile.cpp' object='TestWdmNext-TestProfile.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(TestWdmNext_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o TestWdmNext-TestProfile.obj `if test -f 'TestProfile.cpp'; then $(CYGPATH_W) 'TestProfile.cpp'; else $(CYGPATH_W) '$(srcdir)/TestProfile.cpp'; fi`
+
+TestWdmOneWayCommandReceiver-TestWdmOneWayCommandReceiver.o: TestWdmOneWayCommandReceiver.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(TestWdmOneWayCommandReceiver_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT TestWdmOneWayCommandReceiver-TestWdmOneWayCommandReceiver.o -MD -MP -MF $(DEPDIR)/TestWdmOneWayCommandReceiver-TestWdmOneWayCommandReceiver.Tpo -c -o TestWdmOneWayCommandReceiver-TestWdmOneWayCommandReceiver.o `test -f 'TestWdmOneWayCommandReceiver.cpp' || echo '$(srcdir)/'`TestWdmOneWayCommandReceiver.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/TestWdmOneWayCommandReceiver-TestWdmOneWayCommandReceiver.Tpo $(DEPDIR)/TestWdmOneWayCommandReceiver-TestWdmOneWayCommandReceiver.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='TestWdmOneWayCommandReceiver.cpp' object='TestWdmOneWayCommandReceiver-TestWdmOneWayCommandReceiver.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(TestWdmOneWayCommandReceiver_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o TestWdmOneWayCommandReceiver-TestWdmOneWayCommandReceiver.o `test -f 'TestWdmOneWayCommandReceiver.cpp' || echo '$(srcdir)/'`TestWdmOneWayCommandReceiver.cpp
+
+TestWdmOneWayCommandReceiver-TestWdmOneWayCommandReceiver.obj: TestWdmOneWayCommandReceiver.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(TestWdmOneWayCommandReceiver_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT TestWdmOneWayCommandReceiver-TestWdmOneWayCommandReceiver.obj -MD -MP -MF $(DEPDIR)/TestWdmOneWayCommandReceiver-TestWdmOneWayCommandReceiver.Tpo -c -o TestWdmOneWayCommandReceiver-TestWdmOneWayCommandReceiver.obj `if test -f 'TestWdmOneWayCommandReceiver.cpp'; then $(CYGPATH_W) 'TestWdmOneWayCommandReceiver.cpp'; else $(CYGPATH_W) '$(srcdir)/TestWdmOneWayCommandReceiver.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/TestWdmOneWayCommandReceiver-TestWdmOneWayCommandReceiver.Tpo $(DEPDIR)/TestWdmOneWayCommandReceiver-TestWdmOneWayCommandReceiver.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='TestWdmOneWayCommandReceiver.cpp' object='TestWdmOneWayCommandReceiver-TestWdmOneWayCommandReceiver.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(TestWdmOneWayCommandReceiver_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o TestWdmOneWayCommandReceiver-TestWdmOneWayCommandReceiver.obj `if test -f 'TestWdmOneWayCommandReceiver.cpp'; then $(CYGPATH_W) 'TestWdmOneWayCommandReceiver.cpp'; else $(CYGPATH_W) '$(srcdir)/TestWdmOneWayCommandReceiver.cpp'; fi`
+
+TestWdmOneWayCommandReceiver-MockSourceTraits.o: MockSourceTraits.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(TestWdmOneWayCommandReceiver_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT TestWdmOneWayCommandReceiver-MockSourceTraits.o -MD -MP -MF $(DEPDIR)/TestWdmOneWayCommandReceiver-MockSourceTraits.Tpo -c -o TestWdmOneWayCommandReceiver-MockSourceTraits.o `test -f 'MockSourceTraits.cpp' || echo '$(srcdir)/'`MockSourceTraits.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/TestWdmOneWayCommandReceiver-MockSourceTraits.Tpo $(DEPDIR)/TestWdmOneWayCommandReceiver-MockSourceTraits.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='MockSourceTraits.cpp' object='TestWdmOneWayCommandReceiver-MockSourceTraits.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(TestWdmOneWayCommandReceiver_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o TestWdmOneWayCommandReceiver-MockSourceTraits.o `test -f 'MockSourceTraits.cpp' || echo '$(srcdir)/'`MockSourceTraits.cpp
+
+TestWdmOneWayCommandReceiver-MockSourceTraits.obj: MockSourceTraits.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(TestWdmOneWayCommandReceiver_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT TestWdmOneWayCommandReceiver-MockSourceTraits.obj -MD -MP -MF $(DEPDIR)/TestWdmOneWayCommandReceiver-MockSourceTraits.Tpo -c -o TestWdmOneWayCommandReceiver-MockSourceTraits.obj `if test -f 'MockSourceTraits.cpp'; then $(CYGPATH_W) 'MockSourceTraits.cpp'; else $(CYGPATH_W) '$(srcdir)/MockSourceTraits.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/TestWdmOneWayCommandReceiver-MockSourceTraits.Tpo $(DEPDIR)/TestWdmOneWayCommandReceiver-MockSourceTraits.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='MockSourceTraits.cpp' object='TestWdmOneWayCommandReceiver-MockSourceTraits.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(TestWdmOneWayCommandReceiver_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o TestWdmOneWayCommandReceiver-MockSourceTraits.obj `if test -f 'MockSourceTraits.cpp'; then $(CYGPATH_W) 'MockSourceTraits.cpp'; else $(CYGPATH_W) '$(srcdir)/MockSourceTraits.cpp'; fi`
+
+TestWdmOneWayCommandReceiver-MockLoggingManager.o: MockLoggingManager.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(TestWdmOneWayCommandReceiver_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT TestWdmOneWayCommandReceiver-MockLoggingManager.o -MD -MP -MF $(DEPDIR)/TestWdmOneWayCommandReceiver-MockLoggingManager.Tpo -c -o TestWdmOneWayCommandReceiver-MockLoggingManager.o `test -f 'MockLoggingManager.cpp' || echo '$(srcdir)/'`MockLoggingManager.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/TestWdmOneWayCommandReceiver-MockLoggingManager.Tpo $(DEPDIR)/TestWdmOneWayCommandReceiver-MockLoggingManager.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='MockLoggingManager.cpp' object='TestWdmOneWayCommandReceiver-MockLoggingManager.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(TestWdmOneWayCommandReceiver_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o TestWdmOneWayCommandReceiver-MockLoggingManager.o `test -f 'MockLoggingManager.cpp' || echo '$(srcdir)/'`MockLoggingManager.cpp
+
+TestWdmOneWayCommandReceiver-MockLoggingManager.obj: MockLoggingManager.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(TestWdmOneWayCommandReceiver_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT TestWdmOneWayCommandReceiver-MockLoggingManager.obj -MD -MP -MF $(DEPDIR)/TestWdmOneWayCommandReceiver-MockLoggingManager.Tpo -c -o TestWdmOneWayCommandReceiver-MockLoggingManager.obj `if test -f 'MockLoggingManager.cpp'; then $(CYGPATH_W) 'MockLoggingManager.cpp'; else $(CYGPATH_W) '$(srcdir)/MockLoggingManager.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/TestWdmOneWayCommandReceiver-MockLoggingManager.Tpo $(DEPDIR)/TestWdmOneWayCommandReceiver-MockLoggingManager.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='MockLoggingManager.cpp' object='TestWdmOneWayCommandReceiver-MockLoggingManager.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(TestWdmOneWayCommandReceiver_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o TestWdmOneWayCommandReceiver-MockLoggingManager.obj `if test -f 'MockLoggingManager.cpp'; then $(CYGPATH_W) 'MockLoggingManager.cpp'; else $(CYGPATH_W) '$(srcdir)/MockLoggingManager.cpp'; fi`
+
+TestWdmOneWayCommandReceiver-MockEvents.o: MockEvents.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(TestWdmOneWayCommandReceiver_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT TestWdmOneWayCommandReceiver-MockEvents.o -MD -MP -MF $(DEPDIR)/TestWdmOneWayCommandReceiver-MockEvents.Tpo -c -o TestWdmOneWayCommandReceiver-MockEvents.o `test -f 'MockEvents.cpp' || echo '$(srcdir)/'`MockEvents.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/TestWdmOneWayCommandReceiver-MockEvents.Tpo $(DEPDIR)/TestWdmOneWayCommandReceiver-MockEvents.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='MockEvents.cpp' object='TestWdmOneWayCommandReceiver-MockEvents.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(TestWdmOneWayCommandReceiver_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o TestWdmOneWayCommandReceiver-MockEvents.o `test -f 'MockEvents.cpp' || echo '$(srcdir)/'`MockEvents.cpp
+
+TestWdmOneWayCommandReceiver-MockEvents.obj: MockEvents.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(TestWdmOneWayCommandReceiver_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT TestWdmOneWayCommandReceiver-MockEvents.obj -MD -MP -MF $(DEPDIR)/TestWdmOneWayCommandReceiver-MockEvents.Tpo -c -o TestWdmOneWayCommandReceiver-MockEvents.obj `if test -f 'MockEvents.cpp'; then $(CYGPATH_W) 'MockEvents.cpp'; else $(CYGPATH_W) '$(srcdir)/MockEvents.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/TestWdmOneWayCommandReceiver-MockEvents.Tpo $(DEPDIR)/TestWdmOneWayCommandReceiver-MockEvents.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='MockEvents.cpp' object='TestWdmOneWayCommandReceiver-MockEvents.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(TestWdmOneWayCommandReceiver_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o TestWdmOneWayCommandReceiver-MockEvents.obj `if test -f 'MockEvents.cpp'; then $(CYGPATH_W) 'MockEvents.cpp'; else $(CYGPATH_W) '$(srcdir)/MockEvents.cpp'; fi`
+
+schema/nest/test/trait/TestWdmOneWayCommandReceiver-TestATrait.o: schema/nest/test/trait/TestATrait.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(TestWdmOneWayCommandReceiver_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT schema/nest/test/trait/TestWdmOneWayCommandReceiver-TestATrait.o -MD -MP -MF schema/nest/test/trait/$(DEPDIR)/TestWdmOneWayCommandReceiver-TestATrait.Tpo -c -o schema/nest/test/trait/TestWdmOneWayCommandReceiver-TestATrait.o `test -f 'schema/nest/test/trait/TestATrait.cpp' || echo '$(srcdir)/'`schema/nest/test/trait/TestATrait.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) schema/nest/test/trait/$(DEPDIR)/TestWdmOneWayCommandReceiver-TestATrait.Tpo schema/nest/test/trait/$(DEPDIR)/TestWdmOneWayCommandReceiver-TestATrait.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='schema/nest/test/trait/TestATrait.cpp' object='schema/nest/test/trait/TestWdmOneWayCommandReceiver-TestATrait.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(TestWdmOneWayCommandReceiver_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o schema/nest/test/trait/TestWdmOneWayCommandReceiver-TestATrait.o `test -f 'schema/nest/test/trait/TestATrait.cpp' || echo '$(srcdir)/'`schema/nest/test/trait/TestATrait.cpp
+
+schema/nest/test/trait/TestWdmOneWayCommandReceiver-TestATrait.obj: schema/nest/test/trait/TestATrait.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(TestWdmOneWayCommandReceiver_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT schema/nest/test/trait/TestWdmOneWayCommandReceiver-TestATrait.obj -MD -MP -MF schema/nest/test/trait/$(DEPDIR)/TestWdmOneWayCommandReceiver-TestATrait.Tpo -c -o schema/nest/test/trait/TestWdmOneWayCommandReceiver-TestATrait.obj `if test -f 'schema/nest/test/trait/TestATrait.cpp'; then $(CYGPATH_W) 'schema/nest/test/trait/TestATrait.cpp'; else $(CYGPATH_W) '$(srcdir)/schema/nest/test/trait/TestATrait.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) schema/nest/test/trait/$(DEPDIR)/TestWdmOneWayCommandReceiver-TestATrait.Tpo schema/nest/test/trait/$(DEPDIR)/TestWdmOneWayCommandReceiver-TestATrait.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='schema/nest/test/trait/TestATrait.cpp' object='schema/nest/test/trait/TestWdmOneWayCommandReceiver-TestATrait.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(TestWdmOneWayCommandReceiver_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o schema/nest/test/trait/TestWdmOneWayCommandReceiver-TestATrait.obj `if test -f 'schema/nest/test/trait/TestATrait.cpp'; then $(CYGPATH_W) 'schema/nest/test/trait/TestATrait.cpp'; else $(CYGPATH_W) '$(srcdir)/schema/nest/test/trait/TestATrait.cpp'; fi`
+
+schema/nest/test/trait/TestWdmOneWayCommandReceiver-TestBTrait.o: schema/nest/test/trait/TestBTrait.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(TestWdmOneWayCommandReceiver_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT schema/nest/test/trait/TestWdmOneWayCommandReceiver-TestBTrait.o -MD -MP -MF schema/nest/test/trait/$(DEPDIR)/TestWdmOneWayCommandReceiver-TestBTrait.Tpo -c -o schema/nest/test/trait/TestWdmOneWayCommandReceiver-TestBTrait.o `test -f 'schema/nest/test/trait/TestBTrait.cpp' || echo '$(srcdir)/'`schema/nest/test/trait/TestBTrait.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) schema/nest/test/trait/$(DEPDIR)/TestWdmOneWayCommandReceiver-TestBTrait.Tpo schema/nest/test/trait/$(DEPDIR)/TestWdmOneWayCommandReceiver-TestBTrait.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='schema/nest/test/trait/TestBTrait.cpp' object='schema/nest/test/trait/TestWdmOneWayCommandReceiver-TestBTrait.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(TestWdmOneWayCommandReceiver_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o schema/nest/test/trait/TestWdmOneWayCommandReceiver-TestBTrait.o `test -f 'schema/nest/test/trait/TestBTrait.cpp' || echo '$(srcdir)/'`schema/nest/test/trait/TestBTrait.cpp
+
+schema/nest/test/trait/TestWdmOneWayCommandReceiver-TestBTrait.obj: schema/nest/test/trait/TestBTrait.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(TestWdmOneWayCommandReceiver_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT schema/nest/test/trait/TestWdmOneWayCommandReceiver-TestBTrait.obj -MD -MP -MF schema/nest/test/trait/$(DEPDIR)/TestWdmOneWayCommandReceiver-TestBTrait.Tpo -c -o schema/nest/test/trait/TestWdmOneWayCommandReceiver-TestBTrait.obj `if test -f 'schema/nest/test/trait/TestBTrait.cpp'; then $(CYGPATH_W) 'schema/nest/test/trait/TestBTrait.cpp'; else $(CYGPATH_W) '$(srcdir)/schema/nest/test/trait/TestBTrait.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) schema/nest/test/trait/$(DEPDIR)/TestWdmOneWayCommandReceiver-TestBTrait.Tpo schema/nest/test/trait/$(DEPDIR)/TestWdmOneWayCommandReceiver-TestBTrait.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='schema/nest/test/trait/TestBTrait.cpp' object='schema/nest/test/trait/TestWdmOneWayCommandReceiver-TestBTrait.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(TestWdmOneWayCommandReceiver_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o schema/nest/test/trait/TestWdmOneWayCommandReceiver-TestBTrait.obj `if test -f 'schema/nest/test/trait/TestBTrait.cpp'; then $(CYGPATH_W) 'schema/nest/test/trait/TestBTrait.cpp'; else $(CYGPATH_W) '$(srcdir)/schema/nest/test/trait/TestBTrait.cpp'; fi`
+
+schema/nest/test/trait/TestWdmOneWayCommandReceiver-TestETrait.o: schema/nest/test/trait/TestETrait.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(TestWdmOneWayCommandReceiver_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT schema/nest/test/trait/TestWdmOneWayCommandReceiver-TestETrait.o -MD -MP -MF schema/nest/test/trait/$(DEPDIR)/TestWdmOneWayCommandReceiver-TestETrait.Tpo -c -o schema/nest/test/trait/TestWdmOneWayCommandReceiver-TestETrait.o `test -f 'schema/nest/test/trait/TestETrait.cpp' || echo '$(srcdir)/'`schema/nest/test/trait/TestETrait.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) schema/nest/test/trait/$(DEPDIR)/TestWdmOneWayCommandReceiver-TestETrait.Tpo schema/nest/test/trait/$(DEPDIR)/TestWdmOneWayCommandReceiver-TestETrait.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='schema/nest/test/trait/TestETrait.cpp' object='schema/nest/test/trait/TestWdmOneWayCommandReceiver-TestETrait.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(TestWdmOneWayCommandReceiver_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o schema/nest/test/trait/TestWdmOneWayCommandReceiver-TestETrait.o `test -f 'schema/nest/test/trait/TestETrait.cpp' || echo '$(srcdir)/'`schema/nest/test/trait/TestETrait.cpp
+
+schema/nest/test/trait/TestWdmOneWayCommandReceiver-TestETrait.obj: schema/nest/test/trait/TestETrait.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(TestWdmOneWayCommandReceiver_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT schema/nest/test/trait/TestWdmOneWayCommandReceiver-TestETrait.obj -MD -MP -MF schema/nest/test/trait/$(DEPDIR)/TestWdmOneWayCommandReceiver-TestETrait.Tpo -c -o schema/nest/test/trait/TestWdmOneWayCommandReceiver-TestETrait.obj `if test -f 'schema/nest/test/trait/TestETrait.cpp'; then $(CYGPATH_W) 'schema/nest/test/trait/TestETrait.cpp'; else $(CYGPATH_W) '$(srcdir)/schema/nest/test/trait/TestETrait.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) schema/nest/test/trait/$(DEPDIR)/TestWdmOneWayCommandReceiver-TestETrait.Tpo schema/nest/test/trait/$(DEPDIR)/TestWdmOneWayCommandReceiver-TestETrait.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='schema/nest/test/trait/TestETrait.cpp' object='schema/nest/test/trait/TestWdmOneWayCommandReceiver-TestETrait.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(TestWdmOneWayCommandReceiver_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o schema/nest/test/trait/TestWdmOneWayCommandReceiver-TestETrait.obj `if test -f 'schema/nest/test/trait/TestETrait.cpp'; then $(CYGPATH_W) 'schema/nest/test/trait/TestETrait.cpp'; else $(CYGPATH_W) '$(srcdir)/schema/nest/test/trait/TestETrait.cpp'; fi`
+
+schema/nest/test/trait/TestWdmOneWayCommandReceiver-TestCommon.o: schema/nest/test/trait/TestCommon.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(TestWdmOneWayCommandReceiver_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT schema/nest/test/trait/TestWdmOneWayCommandReceiver-TestCommon.o -MD -MP -MF schema/nest/test/trait/$(DEPDIR)/TestWdmOneWayCommandReceiver-TestCommon.Tpo -c -o schema/nest/test/trait/TestWdmOneWayCommandReceiver-TestCommon.o `test -f 'schema/nest/test/trait/TestCommon.cpp' || echo '$(srcdir)/'`schema/nest/test/trait/TestCommon.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) schema/nest/test/trait/$(DEPDIR)/TestWdmOneWayCommandReceiver-TestCommon.Tpo schema/nest/test/trait/$(DEPDIR)/TestWdmOneWayCommandReceiver-TestCommon.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='schema/nest/test/trait/TestCommon.cpp' object='schema/nest/test/trait/TestWdmOneWayCommandReceiver-TestCommon.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(TestWdmOneWayCommandReceiver_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o schema/nest/test/trait/TestWdmOneWayCommandReceiver-TestCommon.o `test -f 'schema/nest/test/trait/TestCommon.cpp' || echo '$(srcdir)/'`schema/nest/test/trait/TestCommon.cpp
+
+schema/nest/test/trait/TestWdmOneWayCommandReceiver-TestCommon.obj: schema/nest/test/trait/TestCommon.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(TestWdmOneWayCommandReceiver_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT schema/nest/test/trait/TestWdmOneWayCommandReceiver-TestCommon.obj -MD -MP -MF schema/nest/test/trait/$(DEPDIR)/TestWdmOneWayCommandReceiver-TestCommon.Tpo -c -o schema/nest/test/trait/TestWdmOneWayCommandReceiver-TestCommon.obj `if test -f 'schema/nest/test/trait/TestCommon.cpp'; then $(CYGPATH_W) 'schema/nest/test/trait/TestCommon.cpp'; else $(CYGPATH_W) '$(srcdir)/schema/nest/test/trait/TestCommon.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) schema/nest/test/trait/$(DEPDIR)/TestWdmOneWayCommandReceiver-TestCommon.Tpo schema/nest/test/trait/$(DEPDIR)/TestWdmOneWayCommandReceiver-TestCommon.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='schema/nest/test/trait/TestCommon.cpp' object='schema/nest/test/trait/TestWdmOneWayCommandReceiver-TestCommon.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(TestWdmOneWayCommandReceiver_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o schema/nest/test/trait/TestWdmOneWayCommandReceiver-TestCommon.obj `if test -f 'schema/nest/test/trait/TestCommon.cpp'; then $(CYGPATH_W) 'schema/nest/test/trait/TestCommon.cpp'; else $(CYGPATH_W) '$(srcdir)/schema/nest/test/trait/TestCommon.cpp'; fi`
+
+schema/weave/trait/locale/TestWdmOneWayCommandReceiver-LocaleSettingsTrait.o: schema/weave/trait/locale/LocaleSettingsTrait.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(TestWdmOneWayCommandReceiver_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT schema/weave/trait/locale/TestWdmOneWayCommandReceiver-LocaleSettingsTrait.o -MD -MP -MF schema/weave/trait/locale/$(DEPDIR)/TestWdmOneWayCommandReceiver-LocaleSettingsTrait.Tpo -c -o schema/weave/trait/locale/TestWdmOneWayCommandReceiver-LocaleSettingsTrait.o `test -f 'schema/weave/trait/locale/LocaleSettingsTrait.cpp' || echo '$(srcdir)/'`schema/weave/trait/locale/LocaleSettingsTrait.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) schema/weave/trait/locale/$(DEPDIR)/TestWdmOneWayCommandReceiver-LocaleSettingsTrait.Tpo schema/weave/trait/locale/$(DEPDIR)/TestWdmOneWayCommandReceiver-LocaleSettingsTrait.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='schema/weave/trait/locale/LocaleSettingsTrait.cpp' object='schema/weave/trait/locale/TestWdmOneWayCommandReceiver-LocaleSettingsTrait.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(TestWdmOneWayCommandReceiver_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o schema/weave/trait/locale/TestWdmOneWayCommandReceiver-LocaleSettingsTrait.o `test -f 'schema/weave/trait/locale/LocaleSettingsTrait.cpp' || echo '$(srcdir)/'`schema/weave/trait/locale/LocaleSettingsTrait.cpp
+
+schema/weave/trait/locale/TestWdmOneWayCommandReceiver-LocaleSettingsTrait.obj: schema/weave/trait/locale/LocaleSettingsTrait.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(TestWdmOneWayCommandReceiver_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT schema/weave/trait/locale/TestWdmOneWayCommandReceiver-LocaleSettingsTrait.obj -MD -MP -MF schema/weave/trait/locale/$(DEPDIR)/TestWdmOneWayCommandReceiver-LocaleSettingsTrait.Tpo -c -o schema/weave/trait/locale/TestWdmOneWayCommandReceiver-LocaleSettingsTrait.obj `if test -f 'schema/weave/trait/locale/LocaleSettingsTrait.cpp'; then $(CYGPATH_W) 'schema/weave/trait/locale/LocaleSettingsTrait.cpp'; else $(CYGPATH_W) '$(srcdir)/schema/weave/trait/locale/LocaleSettingsTrait.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) schema/weave/trait/locale/$(DEPDIR)/TestWdmOneWayCommandReceiver-LocaleSettingsTrait.Tpo schema/weave/trait/locale/$(DEPDIR)/TestWdmOneWayCommandReceiver-LocaleSettingsTrait.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='schema/weave/trait/locale/LocaleSettingsTrait.cpp' object='schema/weave/trait/locale/TestWdmOneWayCommandReceiver-LocaleSettingsTrait.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(TestWdmOneWayCommandReceiver_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o schema/weave/trait/locale/TestWdmOneWayCommandReceiver-LocaleSettingsTrait.obj `if test -f 'schema/weave/trait/locale/LocaleSettingsTrait.cpp'; then $(CYGPATH_W) 'schema/weave/trait/locale/LocaleSettingsTrait.cpp'; else $(CYGPATH_W) '$(srcdir)/schema/weave/trait/locale/LocaleSettingsTrait.cpp'; fi`
+
+schema/weave/trait/locale/TestWdmOneWayCommandReceiver-LocaleCapabilitiesTrait.o: schema/weave/trait/locale/LocaleCapabilitiesTrait.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(TestWdmOneWayCommandReceiver_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT schema/weave/trait/locale/TestWdmOneWayCommandReceiver-LocaleCapabilitiesTrait.o -MD -MP -MF schema/weave/trait/locale/$(DEPDIR)/TestWdmOneWayCommandReceiver-LocaleCapabilitiesTrait.Tpo -c -o schema/weave/trait/locale/TestWdmOneWayCommandReceiver-LocaleCapabilitiesTrait.o `test -f 'schema/weave/trait/locale/LocaleCapabilitiesTrait.cpp' || echo '$(srcdir)/'`schema/weave/trait/locale/LocaleCapabilitiesTrait.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) schema/weave/trait/locale/$(DEPDIR)/TestWdmOneWayCommandReceiver-LocaleCapabilitiesTrait.Tpo schema/weave/trait/locale/$(DEPDIR)/TestWdmOneWayCommandReceiver-LocaleCapabilitiesTrait.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='schema/weave/trait/locale/LocaleCapabilitiesTrait.cpp' object='schema/weave/trait/locale/TestWdmOneWayCommandReceiver-LocaleCapabilitiesTrait.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(TestWdmOneWayCommandReceiver_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o schema/weave/trait/locale/TestWdmOneWayCommandReceiver-LocaleCapabilitiesTrait.o `test -f 'schema/weave/trait/locale/LocaleCapabilitiesTrait.cpp' || echo '$(srcdir)/'`schema/weave/trait/locale/LocaleCapabilitiesTrait.cpp
+
+schema/weave/trait/locale/TestWdmOneWayCommandReceiver-LocaleCapabilitiesTrait.obj: schema/weave/trait/locale/LocaleCapabilitiesTrait.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(TestWdmOneWayCommandReceiver_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT schema/weave/trait/locale/TestWdmOneWayCommandReceiver-LocaleCapabilitiesTrait.obj -MD -MP -MF schema/weave/trait/locale/$(DEPDIR)/TestWdmOneWayCommandReceiver-LocaleCapabilitiesTrait.Tpo -c -o schema/weave/trait/locale/TestWdmOneWayCommandReceiver-LocaleCapabilitiesTrait.obj `if test -f 'schema/weave/trait/locale/LocaleCapabilitiesTrait.cpp'; then $(CYGPATH_W) 'schema/weave/trait/locale/LocaleCapabilitiesTrait.cpp'; else $(CYGPATH_W) '$(srcdir)/schema/weave/trait/locale/LocaleCapabilitiesTrait.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) schema/weave/trait/locale/$(DEPDIR)/TestWdmOneWayCommandReceiver-LocaleCapabilitiesTrait.Tpo schema/weave/trait/locale/$(DEPDIR)/TestWdmOneWayCommandReceiver-LocaleCapabilitiesTrait.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='schema/weave/trait/locale/LocaleCapabilitiesTrait.cpp' object='schema/weave/trait/locale/TestWdmOneWayCommandReceiver-LocaleCapabilitiesTrait.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(TestWdmOneWayCommandReceiver_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o schema/weave/trait/locale/TestWdmOneWayCommandReceiver-LocaleCapabilitiesTrait.obj `if test -f 'schema/weave/trait/locale/LocaleCapabilitiesTrait.cpp'; then $(CYGPATH_W) 'schema/weave/trait/locale/LocaleCapabilitiesTrait.cpp'; else $(CYGPATH_W) '$(srcdir)/schema/weave/trait/locale/LocaleCapabilitiesTrait.cpp'; fi`
+
+schema/weave/trait/security/TestWdmOneWayCommandReceiver-BoltLockSettingsTrait.o: schema/weave/trait/security/BoltLockSettingsTrait.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(TestWdmOneWayCommandReceiver_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT schema/weave/trait/security/TestWdmOneWayCommandReceiver-BoltLockSettingsTrait.o -MD -MP -MF schema/weave/trait/security/$(DEPDIR)/TestWdmOneWayCommandReceiver-BoltLockSettingsTrait.Tpo -c -o schema/weave/trait/security/TestWdmOneWayCommandReceiver-BoltLockSettingsTrait.o `test -f 'schema/weave/trait/security/BoltLockSettingsTrait.cpp' || echo '$(srcdir)/'`schema/weave/trait/security/BoltLockSettingsTrait.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) schema/weave/trait/security/$(DEPDIR)/TestWdmOneWayCommandReceiver-BoltLockSettingsTrait.Tpo schema/weave/trait/security/$(DEPDIR)/TestWdmOneWayCommandReceiver-BoltLockSettingsTrait.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='schema/weave/trait/security/BoltLockSettingsTrait.cpp' object='schema/weave/trait/security/TestWdmOneWayCommandReceiver-BoltLockSettingsTrait.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(TestWdmOneWayCommandReceiver_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o schema/weave/trait/security/TestWdmOneWayCommandReceiver-BoltLockSettingsTrait.o `test -f 'schema/weave/trait/security/BoltLockSettingsTrait.cpp' || echo '$(srcdir)/'`schema/weave/trait/security/BoltLockSettingsTrait.cpp
+
+schema/weave/trait/security/TestWdmOneWayCommandReceiver-BoltLockSettingsTrait.obj: schema/weave/trait/security/BoltLockSettingsTrait.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(TestWdmOneWayCommandReceiver_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT schema/weave/trait/security/TestWdmOneWayCommandReceiver-BoltLockSettingsTrait.obj -MD -MP -MF schema/weave/trait/security/$(DEPDIR)/TestWdmOneWayCommandReceiver-BoltLockSettingsTrait.Tpo -c -o schema/weave/trait/security/TestWdmOneWayCommandReceiver-BoltLockSettingsTrait.obj `if test -f 'schema/weave/trait/security/BoltLockSettingsTrait.cpp'; then $(CYGPATH_W) 'schema/weave/trait/security/BoltLockSettingsTrait.cpp'; else $(CYGPATH_W) '$(srcdir)/schema/weave/trait/security/BoltLockSettingsTrait.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) schema/weave/trait/security/$(DEPDIR)/TestWdmOneWayCommandReceiver-BoltLockSettingsTrait.Tpo schema/weave/trait/security/$(DEPDIR)/TestWdmOneWayCommandReceiver-BoltLockSettingsTrait.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='schema/weave/trait/security/BoltLockSettingsTrait.cpp' object='schema/weave/trait/security/TestWdmOneWayCommandReceiver-BoltLockSettingsTrait.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(TestWdmOneWayCommandReceiver_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o schema/weave/trait/security/TestWdmOneWayCommandReceiver-BoltLockSettingsTrait.obj `if test -f 'schema/weave/trait/security/BoltLockSettingsTrait.cpp'; then $(CYGPATH_W) 'schema/weave/trait/security/BoltLockSettingsTrait.cpp'; else $(CYGPATH_W) '$(srcdir)/schema/weave/trait/security/BoltLockSettingsTrait.cpp'; fi`
+
+schema/weave/trait/telemetry/TestWdmOneWayCommandReceiver-NetworkWiFiTelemetryTrait.o: schema/weave/trait/telemetry/NetworkWiFiTelemetryTrait.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(TestWdmOneWayCommandReceiver_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT schema/weave/trait/telemetry/TestWdmOneWayCommandReceiver-NetworkWiFiTelemetryTrait.o -MD -MP -MF schema/weave/trait/telemetry/$(DEPDIR)/TestWdmOneWayCommandReceiver-NetworkWiFiTelemetryTrait.Tpo -c -o schema/weave/trait/telemetry/TestWdmOneWayCommandReceiver-NetworkWiFiTelemetryTrait.o `test -f 'schema/weave/trait/telemetry/NetworkWiFiTelemetryTrait.cpp' || echo '$(srcdir)/'`schema/weave/trait/telemetry/NetworkWiFiTelemetryTrait.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) schema/weave/trait/telemetry/$(DEPDIR)/TestWdmOneWayCommandReceiver-NetworkWiFiTelemetryTrait.Tpo schema/weave/trait/telemetry/$(DEPDIR)/TestWdmOneWayCommandReceiver-NetworkWiFiTelemetryTrait.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='schema/weave/trait/telemetry/NetworkWiFiTelemetryTrait.cpp' object='schema/weave/trait/telemetry/TestWdmOneWayCommandReceiver-NetworkWiFiTelemetryTrait.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(TestWdmOneWayCommandReceiver_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o schema/weave/trait/telemetry/TestWdmOneWayCommandReceiver-NetworkWiFiTelemetryTrait.o `test -f 'schema/weave/trait/telemetry/NetworkWiFiTelemetryTrait.cpp' || echo '$(srcdir)/'`schema/weave/trait/telemetry/NetworkWiFiTelemetryTrait.cpp
+
+schema/weave/trait/telemetry/TestWdmOneWayCommandReceiver-NetworkWiFiTelemetryTrait.obj: schema/weave/trait/telemetry/NetworkWiFiTelemetryTrait.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(TestWdmOneWayCommandReceiver_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT schema/weave/trait/telemetry/TestWdmOneWayCommandReceiver-NetworkWiFiTelemetryTrait.obj -MD -MP -MF schema/weave/trait/telemetry/$(DEPDIR)/TestWdmOneWayCommandReceiver-NetworkWiFiTelemetryTrait.Tpo -c -o schema/weave/trait/telemetry/TestWdmOneWayCommandReceiver-NetworkWiFiTelemetryTrait.obj `if test -f 'schema/weave/trait/telemetry/NetworkWiFiTelemetryTrait.cpp'; then $(CYGPATH_W) 'schema/weave/trait/telemetry/NetworkWiFiTelemetryTrait.cpp'; else $(CYGPATH_W) '$(srcdir)/schema/weave/trait/telemetry/NetworkWiFiTelemetryTrait.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) schema/weave/trait/telemetry/$(DEPDIR)/TestWdmOneWayCommandReceiver-NetworkWiFiTelemetryTrait.Tpo schema/weave/trait/telemetry/$(DEPDIR)/TestWdmOneWayCommandReceiver-NetworkWiFiTelemetryTrait.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='schema/weave/trait/telemetry/NetworkWiFiTelemetryTrait.cpp' object='schema/weave/trait/telemetry/TestWdmOneWayCommandReceiver-NetworkWiFiTelemetryTrait.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(TestWdmOneWayCommandReceiver_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o schema/weave/trait/telemetry/TestWdmOneWayCommandReceiver-NetworkWiFiTelemetryTrait.obj `if test -f 'schema/weave/trait/telemetry/NetworkWiFiTelemetryTrait.cpp'; then $(CYGPATH_W) 'schema/weave/trait/telemetry/NetworkWiFiTelemetryTrait.cpp'; else $(CYGPATH_W) '$(srcdir)/schema/weave/trait/telemetry/NetworkWiFiTelemetryTrait.cpp'; fi`
+
+TestWdmOneWayCommandSender-TestWdmOneWayCommandSender.o: TestWdmOneWayCommandSender.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(TestWdmOneWayCommandSender_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT TestWdmOneWayCommandSender-TestWdmOneWayCommandSender.o -MD -MP -MF $(DEPDIR)/TestWdmOneWayCommandSender-TestWdmOneWayCommandSender.Tpo -c -o TestWdmOneWayCommandSender-TestWdmOneWayCommandSender.o `test -f 'TestWdmOneWayCommandSender.cpp' || echo '$(srcdir)/'`TestWdmOneWayCommandSender.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/TestWdmOneWayCommandSender-TestWdmOneWayCommandSender.Tpo $(DEPDIR)/TestWdmOneWayCommandSender-TestWdmOneWayCommandSender.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='TestWdmOneWayCommandSender.cpp' object='TestWdmOneWayCommandSender-TestWdmOneWayCommandSender.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(TestWdmOneWayCommandSender_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o TestWdmOneWayCommandSender-TestWdmOneWayCommandSender.o `test -f 'TestWdmOneWayCommandSender.cpp' || echo '$(srcdir)/'`TestWdmOneWayCommandSender.cpp
+
+TestWdmOneWayCommandSender-TestWdmOneWayCommandSender.obj: TestWdmOneWayCommandSender.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(TestWdmOneWayCommandSender_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT TestWdmOneWayCommandSender-TestWdmOneWayCommandSender.obj -MD -MP -MF $(DEPDIR)/TestWdmOneWayCommandSender-TestWdmOneWayCommandSender.Tpo -c -o TestWdmOneWayCommandSender-TestWdmOneWayCommandSender.obj `if test -f 'TestWdmOneWayCommandSender.cpp'; then $(CYGPATH_W) 'TestWdmOneWayCommandSender.cpp'; else $(CYGPATH_W) '$(srcdir)/TestWdmOneWayCommandSender.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/TestWdmOneWayCommandSender-TestWdmOneWayCommandSender.Tpo $(DEPDIR)/TestWdmOneWayCommandSender-TestWdmOneWayCommandSender.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='TestWdmOneWayCommandSender.cpp' object='TestWdmOneWayCommandSender-TestWdmOneWayCommandSender.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(TestWdmOneWayCommandSender_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o TestWdmOneWayCommandSender-TestWdmOneWayCommandSender.obj `if test -f 'TestWdmOneWayCommandSender.cpp'; then $(CYGPATH_W) 'TestWdmOneWayCommandSender.cpp'; else $(CYGPATH_W) '$(srcdir)/TestWdmOneWayCommandSender.cpp'; fi`
 
 mock_device-mock-device.o: mock-device.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mock_device_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT mock_device-mock-device.o -MD -MP -MF $(DEPDIR)/mock_device-mock-device.Tpo -c -o mock_device-mock-device.o `test -f 'mock-device.cpp' || echo '$(srcdir)/'`mock-device.cpp
@@ -7487,11 +7787,11 @@ distclean-generic:
 maintainer-clean-generic:
 	@echo "This command is intended for maintainers to use"
 	@echo "it deletes files that may require special tools to rebuild."
+@WEAVE_BUILD_TESTS_FALSE@uninstall-local:
+@WEAVE_BUILD_TESTS_FALSE@install-exec-local:
 @WEAVE_BUILD_COVERAGE_FALSE@clean-local:
 @WEAVE_BUILD_COVERAGE_REPORTS_FALSE@clean-local:
 @WEAVE_BUILD_TESTS_FALSE@clean-local:
-@WEAVE_BUILD_TESTS_FALSE@uninstall-local:
-@WEAVE_BUILD_TESTS_FALSE@install-exec-local:
 clean: clean-am
 
 clean-am: clean-checkPROGRAMS clean-generic clean-libexecPROGRAMS \

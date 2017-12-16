@@ -68,65 +68,65 @@ class NL_DLL_EXPORT Command
 {
 public:
     /**
+     *  @brief
+     *    The Command flag bits.
+     */
+    typedef enum CommandFlags
+    {
+        kCommandFlag_MustBeVersionValid   = 0x0001,  /**< Set when the version field is valid */
+        kCommandFlag_InitiationTimeValid  = 0x0002,  /**< Set when the init time is valid */
+        kCommandFlag_ActionTimeValid      = 0x0004,  /**< Set when the action time is valid */
+        kCommandFlag_ExpiryTimeValid      = 0x0008,  /**< Set when the expiry time is valid */
+        kCommandFlag_IsOneWay             = 0x0010,  /**< Set when the command is one-way */
+    } CommandFlags;
+
+    uint64_t commandType;
+    uint64_t mustBeVersion;
+    int64_t initiationTimeMicroSecond;
+    int64_t actionTimeMicroSecond;
+    int64_t expiryTimeMicroSecond;
+
+    bool IsMustBeVersionValid(void) const;
+    bool IsInitiationTimeValid(void) const;
+    bool IsActionTimeValid(void) const;
+    bool IsExpiryTimeValid(void) const;
+    bool IsOneWay(void) const;
+
+    /**
      *  @brief Retrieve the exchange context object used by this incoming command
      *
      *  @return  A pointer to the exchange context object used by this incoming command
      */
     nl::Weave::ExchangeContext * GetExchangeContext(void) const { return mEC; };
 
-    /**
-     *  @brief Validate the authenticator that came with the command against specified condition
-     *
-     *  @note We haven’t flushed out all the fields that have to go in here yet.
-     *    This function has to be called BEFORE the request buffer is freed.
-     *
-     *  @return  #WEAVE_NO_ERROR if the command is valid
-     */
     WEAVE_ERROR ValidateAuthenticator(nl::Weave::System::PacketBuffer * aRequestBuffer);
 
-    /**
-     *  @brief Send an In-Progress message to indicate the command is not yet completed yet
-     *
-     *  @note The exact timing and meaning for this message is defined by each particular trait.
-     *    #Close is implicitly called at the end of this function in all conditions.
-     *
-     *  @return  #WEAVE_NO_ERROR if the message is successfully pushed into message layer
-     */
     WEAVE_ERROR SendInProgress(void);
 
-    /**
-     *  @brief Send a response message to indicate the command has been completed
-     *
-     *  @return  #WEAVE_NO_ERROR if the message has been pushed into message layer
-     */
     WEAVE_ERROR SendResponse(uint32_t traitInstanceVersion, nl::Weave::System::PacketBuffer * apPayload);
 
-    /**
-     *  @brief Send a Status Report message to indicate the command has failed
-     *
-     *  @note Application layer doesn’t have the choice to append custom data into this message.
-     *    #Close is implicitly called at the end of this function in all conditions.
-     *
-     *  @return  #WEAVE_NO_ERROR if the message has been pushed into message layer
-     */
     WEAVE_ERROR SendError(uint32_t aProfileId, uint16_t aStatusCode, WEAVE_ERROR aWeaveError);
 
-    /**
-     *  @brief Send no message but free all resources associated, including closing the exchange context
-     *
-     *  @return  #WEAVE_NO_ERROR if the message has been pushed into message layer
-     */
     void Close(void);
 
 private:
     friend class SubscriptionEngine;
 
     nl::Weave::ExchangeContext * mEC;
+
+    uint16_t mFlags;                      // Internal Command flags
+
     // nl::Weave::System::PacketBuffer * mRequestBuffer;
 
     Command();
 
     WEAVE_ERROR Init(nl::Weave::ExchangeContext * aEC);
+
+    void SetMustBeVersionValid(bool inVersionValid);
+    void SetInitiationTimeValid(bool inInitiationTimeValid);
+    void SetActionTimeValid(bool inActionTimeValid);
+    void SetExpiryTimeValid(bool inExpiryTimeValid);
+    void SetIsOneWay(bool inIsOneWay);
 
     bool IsFree(void) { return (NULL == mEC); };
 };

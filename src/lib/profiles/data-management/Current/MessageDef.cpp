@@ -3156,7 +3156,7 @@ WEAVE_ERROR NotificationRequest::Parser::GetEventList(EventList::Parser * const 
     return apEventList->InitIfPresent(mReader, kCsTag_EventList);
 }
 
-WEAVE_ERROR CustomCommandRequest::Parser::Init(const nl::Weave::TLV::TLVReader & aReader)
+WEAVE_ERROR CustomCommand::Parser::Init(const nl::Weave::TLV::TLVReader & aReader)
 {
 
     WEAVE_ERROR err = WEAVE_NO_ERROR;
@@ -3175,7 +3175,7 @@ exit:
 }
 
 #if WEAVE_CONFIG_DATA_MANAGEMENT_ENABLE_SCHEMA_CHECK
-WEAVE_ERROR CustomCommandRequest::Parser::CheckSchemaValidity(void) const
+WEAVE_ERROR CustomCommand::Parser::CheckSchemaValidity(void) const
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
     nl::Weave::TLV::TLVReader reader;
@@ -3184,6 +3184,8 @@ WEAVE_ERROR CustomCommandRequest::Parser::CheckSchemaValidity(void) const
     {
         bool Path;
         bool CommandType;
+        bool InitiationTime;
+        bool ActionTime;
         bool ExpiryTime;
         bool MustBeVersion;
         bool Argument;
@@ -3206,7 +3208,7 @@ WEAVE_ERROR CustomCommandRequest::Parser::CheckSchemaValidity(void) const
         {
             switch (nl::Weave::TLV::TagNumFromTag(tag))
             {
-            case CustomCommandRequest::kCsTag_Path:
+            case CustomCommand::kCsTag_Path:
                 // check if this tag has appeared before
                 VerifyOrExit(tagPresence.Path == false, err = WEAVE_ERROR_INVALID_TLV_TAG);
                 tagPresence.Path = true;
@@ -3239,6 +3241,44 @@ WEAVE_ERROR CustomCommandRequest::Parser::CheckSchemaValidity(void) const
                     SuccessOrExit(err);
 
                     PRETTY_PRINT("\tCommand Type = 0x%" PRIx64 ",", value);
+                }
+#endif // WEAVE_DETAIL_LOGGING
+
+                break;
+
+            case kCsTag_InitiationTime:
+                // check if this tag has appeared before
+                VerifyOrExit(tagPresence.InitiationTime == false, err = WEAVE_ERROR_INVALID_TLV_TAG);
+                tagPresence.InitiationTime = true;
+
+                VerifyOrExit(nl::Weave::TLV::kTLVType_SignedInteger == reader.GetType(), err = WEAVE_ERROR_WRONG_TLV_TYPE);
+
+#if WEAVE_DETAIL_LOGGING
+                {
+                    int64_t value;
+                    err = reader.Get(value);
+                    SuccessOrExit(err);
+
+                    PRETTY_PRINT("\tInit Time = 0x%" PRIx64 ",", static_cast<uint64_t>(value));
+                }
+#endif // WEAVE_DETAIL_LOGGING
+
+                break;
+
+            case kCsTag_ActionTime:
+                // check if this tag has appeared before
+                VerifyOrExit(tagPresence.ActionTime == false, err = WEAVE_ERROR_INVALID_TLV_TAG);
+                tagPresence.ActionTime = true;
+
+                VerifyOrExit(nl::Weave::TLV::kTLVType_SignedInteger == reader.GetType(), err = WEAVE_ERROR_WRONG_TLV_TYPE);
+
+#if WEAVE_DETAIL_LOGGING
+                {
+                    int64_t value;
+                    err = reader.Get(value);
+                    SuccessOrExit(err);
+
+                    PRETTY_PRINT("\tAction Time = 0x%" PRIx64 ",", static_cast<uint64_t>(value));
                 }
 #endif // WEAVE_DETAIL_LOGGING
 
@@ -3369,44 +3409,54 @@ exit:
 }
 #endif // WEAVE_CONFIG_DATA_MANAGEMENT_ENABLE_SCHEMA_CHECK
 
-WEAVE_ERROR CustomCommandRequest::Parser::GetMustBeVersion(uint64_t * const apMustBeVersion) const
+WEAVE_ERROR CustomCommand::Parser::GetMustBeVersion(uint64_t * const apMustBeVersion) const
 {
     return GetUnsignedInteger(kCsTag_MustBeVersion, apMustBeVersion);
 }
 
-WEAVE_ERROR CustomCommandRequest::Parser::GetExpiryTimeMicroSecond(int64_t * const apExpiryTimeMicroSecond) const
+WEAVE_ERROR CustomCommand::Parser::GetInitiationTimeMicroSecond(int64_t * const apInitiationTimeMicroSecond) const
+{
+    return GetSimpleValue(kCsTag_InitiationTime, nl::Weave::TLV::kTLVType_SignedInteger, apInitiationTimeMicroSecond);
+}
+
+WEAVE_ERROR CustomCommand::Parser::GetActionTimeMicroSecond(int64_t * const apActionTimeMicroSecond) const
+{
+    return GetSimpleValue(kCsTag_ActionTime, nl::Weave::TLV::kTLVType_SignedInteger, apActionTimeMicroSecond);
+}
+
+WEAVE_ERROR CustomCommand::Parser::GetExpiryTimeMicroSecond(int64_t * const apExpiryTimeMicroSecond) const
 {
     return GetSimpleValue(kCsTag_ExpiryTime, nl::Weave::TLV::kTLVType_SignedInteger, apExpiryTimeMicroSecond);
 }
 
-WEAVE_ERROR CustomCommandRequest::Parser::GetCommandType(uint64_t * const apCommandType) const
+WEAVE_ERROR CustomCommand::Parser::GetCommandType(uint64_t * const apCommandType) const
 {
     return GetUnsignedInteger(kCsTag_CommandType, apCommandType);
 }
 
-WEAVE_ERROR CustomCommandRequest::Parser::GetPath(Path::Parser * const apPath) const
+WEAVE_ERROR CustomCommand::Parser::GetPath(Path::Parser * const apPath) const
 {
-    // CustomCommandRequest::kCsTag_Path is defined to be 1, which happens to be
+    // CustomCommand::kCsTag_Path is defined to be 1, which happens to be
     // the same as DataElement::kCsTag_Path
     return DataElement::Parser::GetPath(apPath);
 }
 
-WEAVE_ERROR CustomCommandRequest::Parser::GetReaderOnArgument(nl::Weave::TLV::TLVReader * const apReader) const
+WEAVE_ERROR CustomCommand::Parser::GetReaderOnArgument(nl::Weave::TLV::TLVReader * const apReader) const
 {
     return GetReaderOnTag(nl::Weave::TLV::ContextTag(kCsTag_Argument), apReader);
 }
 
-WEAVE_ERROR CustomCommandRequest::Parser::GetReaderOnPath(nl::Weave::TLV::TLVReader * const apReader) const
+WEAVE_ERROR CustomCommand::Parser::GetReaderOnPath(nl::Weave::TLV::TLVReader * const apReader) const
 {
     return GetReaderOnTag(nl::Weave::TLV::ContextTag(kCsTag_Path), apReader);
 }
 
-WEAVE_ERROR CustomCommandRequest::Builder::Init(nl::Weave::TLV::TLVWriter * const apWriter)
+WEAVE_ERROR CustomCommand::Builder::Init(nl::Weave::TLV::TLVWriter * const apWriter)
 {
     return InitAnonymousStructure(apWriter);
 }
 
-Path::Builder & CustomCommandRequest::Builder::CreatePathBuilder()
+Path::Builder & CustomCommand::Builder::CreatePathBuilder()
 {
     // skip if error has already been set
     SuccessOrExit(mError);
@@ -3420,7 +3470,7 @@ exit:
     return mPathBuilder;
 }
 
-CustomCommandRequest::Builder & CustomCommandRequest::Builder::CommandType(const uint64_t aCommandType)
+CustomCommand::Builder & CustomCommand::Builder::CommandType(const uint64_t aCommandType)
 {
     // skip if error has already been set
     SuccessOrExit(mError);
@@ -3433,7 +3483,33 @@ exit:
     return *this;
 }
 
-CustomCommandRequest::Builder & CustomCommandRequest::Builder::ExpiryTimeMicroSecond(const int64_t aExpiryTimeMicroSecond)
+CustomCommand::Builder & CustomCommand::Builder::InitiationTimeMicroSecond(const int64_t aInitiationTimeMicroSecond)
+{
+    // skip if error has already been set
+    SuccessOrExit(mError);
+
+    mError = mpWriter->Put(nl::Weave::TLV::ContextTag(kCsTag_InitiationTime), aInitiationTimeMicroSecond);
+    WeaveLogFunctError(mError);
+
+exit:
+
+    return *this;
+}
+
+CustomCommand::Builder & CustomCommand::Builder::ActionTimeMicroSecond(const int64_t aActionTimeMicroSecond)
+{
+    // skip if error has already been set
+    SuccessOrExit(mError);
+
+    mError = mpWriter->Put(nl::Weave::TLV::ContextTag(kCsTag_ActionTime), aActionTimeMicroSecond);
+    WeaveLogFunctError(mError);
+
+exit:
+
+    return *this;
+}
+
+CustomCommand::Builder & CustomCommand::Builder::ExpiryTimeMicroSecond(const int64_t aExpiryTimeMicroSecond)
 {
     // skip if error has already been set
     SuccessOrExit(mError);
@@ -3451,7 +3527,7 @@ exit:
     return *this;
 }
 
-CustomCommandRequest::Builder & CustomCommandRequest::Builder::MustBeVersion(const uint64_t aMustBeVersion)
+CustomCommand::Builder & CustomCommand::Builder::MustBeVersion(const uint64_t aMustBeVersion)
 {
     // skip if error has already been set
     SuccessOrExit(mError);
@@ -3469,7 +3545,7 @@ exit:
     return *this;
 }
 
-CustomCommandRequest::Builder & CustomCommandRequest::Builder::EndOfRequest(void)
+CustomCommand::Builder & CustomCommand::Builder::EndOfCustomCommand(void)
 {
     EndOfContainer();
 

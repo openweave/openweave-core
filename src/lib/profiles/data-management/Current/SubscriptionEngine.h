@@ -327,9 +327,10 @@ private:
                                           PacketBuffer * aPayload);
 
 #if WDM_PUBLISHER_ENABLE_CUSTOM_COMMANDS
-    static void OnCustomCommandRequest(nl::Weave::ExchangeContext * aEC, const nl::Inet::IPPacketInfo * aPktInfo,
-                                       const nl::Weave::WeaveMessageInfo * aMsgInfo, uint32_t aProfileId, uint8_t aMsgType,
-                                       PacketBuffer * aPayload);
+    static void OnCustomCommand(nl::Weave::ExchangeContext * aEC, const nl::Inet::IPPacketInfo * aPktInfo,
+                                const nl::Weave::WeaveMessageInfo * aMsgInfo, uint32_t aProfileId, uint8_t aMsgType,
+                                PacketBuffer * aPayload);
+
 #endif // WDM_PUBLISHER_ENABLE_CUSTOM_COMMANDS
 
 #endif // WDM_ENABLE_SUBSCRIPTION_PUBLISHER

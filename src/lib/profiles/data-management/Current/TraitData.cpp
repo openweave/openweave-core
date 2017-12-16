@@ -899,7 +899,7 @@ TraitDataSource::TraitDataSource(const TraitSchemaEngine * aEngine)
 }
 
 /**
- *  @brief Handler for custom command request
+ *  @brief Handler for custom command
  *
  *  This is a virtual method. If not overridden, the default behavior is to return a status report
  *  with status code Common::kStatus_UnsupportedMessage
@@ -911,13 +911,30 @@ void TraitDataSource::OnCustomCommand(Command * aCommand, const nl::Weave::Weave
                                       const bool aIsMustBeVersionValid, const uint64_t & aMustBeVersion,
                                       nl::Weave::TLV::TLVReader & aArgumentReader)
 {
-    WEAVE_ERROR err = WEAVE_NO_ERROR;
-
     IgnoreUnusedVariable(aCommandType);
     IgnoreUnusedVariable(aIsExpiryTimeValid);
     IgnoreUnusedVariable(aExpiryTimeMicroSecond);
     IgnoreUnusedVariable(aIsMustBeVersionValid);
     IgnoreUnusedVariable(aMustBeVersion);
+
+    return OnCustomCommand(aCommand, aMsgInfo, aPayload, aArgumentReader);
+}
+
+/**
+ *  @brief Handler for custom command
+ *
+ *  This is a virtual method. If not overridden, the default behavior is to return a status report
+ *  with status code Common::kStatus_UnsupportedMessage
+ *
+ *  @note All meta information for the Command are included in the Command
+ *  object.
+ */
+void TraitDataSource::OnCustomCommand(Command * aCommand, const nl::Weave::WeaveMessageInfo * aMsgInfo,
+                                      nl::Weave::PacketBuffer * aPayload,
+                                      nl::Weave::TLV::TLVReader & aArgumentReader)
+{
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
+
     IgnoreUnusedVariable(aArgumentReader);
 
     PacketBuffer::Free(aPayload);

@@ -61,6 +61,7 @@ noinst_HEADERS                                 = \
     MockWdmTestVerifier.h                        \
     MockWdmSubscriptionInitiator.h               \
     MockWdmSubscriptionResponder.h               \
+    TestWdmOneWayCommand.h                       \
     TestGroupKeyStore.h                          \
     TestDRBG.h                                   \
     TestPersistedStorageImplementation.h         \
@@ -435,6 +436,8 @@ network_test_programs                          = \
     TestWeaveTunnelBR                            \
     TestWeaveTunnelServer                        \
     TestWdmNext                                  \
+    TestWdmOneWayCommandSender                   \
+    TestWdmOneWayCommandReceiver                 \
     TestDNSResolution                            \
     mock-device                                  \
     mock-weave-bg                                \
@@ -1276,6 +1279,29 @@ TestWdmNext_SOURCES                      = TestWdmNext.cpp						\
 TestWdmNext_CPPFLAGS                     = $(AM_CPPFLAGS) -I$(top_srcdir)/src/test-apps/schema
 TestWdmNext_LDFLAGS                      = $(AM_CPPFLAGS)
 TestWdmNext_LDADD                        = libWeaveTestCommon.a $(COMMON_LDADD) $(TEST_PLATFORM_LDADD)
+
+TestWdmOneWayCommandSender_SOURCES       = TestWdmOneWayCommandSender.cpp
+
+TestWdmOneWayCommandSender_CPPFLAGS      = $(AM_CPPFLAGS) -I$(top_srcdir)/src/test-apps/schema
+TestWdmOneWayCommandSender_LDFLAGS       = $(AM_CPPFLAGS)
+TestWdmOneWayCommandSender_LDADD         = libWeaveTestCommon.a $(COMMON_LDADD) $(TEST_PLATFORM_LDADD)
+
+TestWdmOneWayCommandReceiver_SOURCES     = TestWdmOneWayCommandReceiver.cpp				\
+                                           MockSourceTraits.cpp						\
+                                           MockLoggingManager.cpp					\
+                                           MockEvents.cpp						\
+                                           schema/nest/test/trait/TestATrait.cpp			\
+                                           schema/nest/test/trait/TestBTrait.cpp			\
+                                           schema/nest/test/trait/TestETrait.cpp			\
+                                           schema/nest/test/trait/TestCommon.cpp                        \
+                                           schema/weave/trait/locale/LocaleSettingsTrait.cpp		\
+                                           schema/weave/trait/locale/LocaleCapabilitiesTrait.cpp	\
+                                           schema/weave/trait/security/BoltLockSettingsTrait.cpp	\
+                                           schema/weave/trait/telemetry/NetworkWiFiTelemetryTrait.cpp
+
+TestWdmOneWayCommandReceiver_CPPFLAGS    = $(AM_CPPFLAGS) -I$(top_srcdir)/src/test-apps/schema
+TestWdmOneWayCommandReceiver_LDFLAGS     = $(AM_CPPFLAGS)
+TestWdmOneWayCommandReceiver_LDADD       = libWeaveTestCommon.a $(COMMON_LDADD) $(TEST_PLATFORM_LDADD)
 
 infratest_SOURCES                        = infratest.cpp
 infratest_LDADD                          = $(COMMON_LDADD) $(TEST_PLATFORM_LDADD)
