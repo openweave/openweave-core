@@ -313,6 +313,10 @@ WEAVE_ERROR ECDHComputeSharedSecret(OID curveOID, const EncodedECPublicKey& enco
     VerifyOrExit(encodedPubKey.ECPointLen >= 2 * curveLen + 1, err = WEAVE_ERROR_INVALID_ARGUMENT);
     VerifyOrExit(*encodedPubKey.ECPoint == kX963EncodedPointFormat_Uncompressed, err = WEAVE_ERROR_INVALID_ARGUMENT);
 
+    // Verify the public key provided by the peer is a valid EC point on a curve.
+    res = uECC_valid_public_key(encodedPubKey.ECPoint + 1, curve);
+    VerifyOrExit(res != 0, err = WEAVE_ERROR_INVALID_ARGUMENT);
+
     err = DecodeECPrivateKey(encodedPrivKey, privKey, curveLen);
     SuccessOrExit(err);
 

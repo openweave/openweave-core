@@ -447,86 +447,52 @@ err:
 }
 
 /*-
- * Elliptic Curve Point Validity Check based on p. 25
- * http://cs.ucsb.edu/~koc/ccs130h/notes/ecdsa-cert.pdf
+ * Elliptic Curve Point Validity Check.
  */
-static int EC_POINT_is_legal(const EC_POINT *point, const ECJPAKE_CTX *ctx)
+static int EC_POINT_is_legal(const EC_POINT *point, const EC_GROUP *group)
 {
-    BIGNUM *point_x = NULL;
-    BIGNUM *point_y = NULL;
-    BIGNUM *p = NULL;
-    BIGNUM *order = NULL;
-    EC_POINT *tmp_point = NULL;
-    int res = 0;
+    EC_KEY *eckey = NULL;
+    int legal = 0;
 
-    /* 1. Verify that point is not at Infinity */
-    if (EC_POINT_is_at_infinity(ctx->group, point))
-        goto illegal_point;
+    if (point == NULL || group == NULL)
+    {
+        ECJPAKEerr(ECJPAKE_F_EC_POINT_IS_LEGAL, ERR_R_PASSED_NULL_PARAMETER);
+        goto err;
+    }
+    if ((eckey = EC_KEY_new()) == NULL)
+    {
+        ECJPAKEerr(ECJPAKE_F_EC_POINT_IS_LEGAL, ERR_R_MALLOC_FAILURE);
+        goto err;
+    }
+    if (!EC_KEY_set_group(eckey, group))
+    {
+        ECJPAKEerr(ECJPAKE_F_EC_POINT_IS_LEGAL, ERR_R_MALLOC_FAILURE);
+        goto err;
+    }
+    if (!EC_KEY_set_public_key(eckey, point))
+    {
+        ECJPAKEerr(ECJPAKE_F_EC_POINT_IS_LEGAL, ERR_R_MALLOC_FAILURE);
+        goto err;
+    }
+    if (!EC_KEY_check_key(eckey))
+    {
+        ECJPAKEerr(ECJPAKE_F_EC_POINT_IS_LEGAL, ECJPAKE_R_G_IS_NOT_LEGAL);
+        goto err;
+    }
 
-    /* 2. Verify that point.X and point.Y are in the prime field */
-    point_x = BN_new();
-    if (point_x == NULL)
-        goto err;
-    point_y = BN_new();
-    if (point_y == NULL)
-        goto err;
-    p = BN_new();
-    if (p == NULL)
-        goto err;
-    if (!EC_POINT_get_affine_coordinates_GFp(ctx->group, point, point_x,
-                                             point_y, ctx->ctx))
-        goto err;
-    if (!EC_GROUP_get_curve_GFp(ctx->group, p, NULL, NULL, ctx->ctx))
-        goto err;
-    if (BN_is_negative(point_x) || BN_is_negative(point_y) ||
-        BN_cmp(point_x, p) >= 0 || BN_cmp(point_y, p) >= 0)
-        goto illegal_point;
-
-    /* 3. Check point lies on the curve */
-    if (!EC_POINT_is_on_curve(ctx->group, point, ctx->ctx))
-        goto illegal_point;
-
-    /* 4. Check that point*n is at Infinity */
-    order = BN_new();
-    if (order == NULL)
-        goto err;
-    tmp_point = EC_POINT_new(ctx->group);
-    if (tmp_point == NULL)
-        goto err;
-    if (!EC_GROUP_get_order(ctx->group, order, ctx->ctx))
-        goto err;
-    if (!EC_POINT_mul(ctx->group, tmp_point, NULL, point, order, ctx->ctx))
-        goto err;
-    if (!EC_POINT_is_at_infinity(ctx->group, tmp_point))
-        goto illegal_point;
-
-    res = 1;
-    goto clean;
+    legal = 1;
 
 err:
-    ECJPAKEerr(ECJPAKE_F_EC_POINT_IS_LEGAL, ERR_R_MALLOC_FAILURE);
-    goto clean;
-illegal_point:
-    ECJPAKEerr(ECJPAKE_F_EC_POINT_IS_LEGAL, ECJPAKE_R_G_IS_NOT_LEGAL);
-clean:
-    if (tmp_point != NULL)
-        EC_POINT_free(tmp_point);
-    if (order != NULL)
-        BN_free(order);
-    if (p != NULL)
-        BN_free(p);
-    if (point_y != NULL)
-        BN_free(point_y);
-    if (point_x != NULL)
-        BN_free(point_x);
-    return res;
+    EC_KEY_free(eckey);
+
+    return legal;
 }
 
 int ECJPAKE_STEP1_process(ECJPAKE_CTX *ctx, const ECJPAKE_STEP1 *received)
 {
 
     /* check Gxc is a legal point on Elliptic Curve */
-    if (!EC_POINT_is_legal(received->p1.Gx, ctx))
+    if (!EC_POINT_is_legal(received->p1.Gx, ctx->group))
     {
         ECJPAKEerr(ECJPAKE_F_ECJPAKE_STEP1_PROCESS,
                    ECJPAKE_R_G_TO_THE_X3_IS_NOT_LEGAL);
@@ -534,7 +500,7 @@ int ECJPAKE_STEP1_process(ECJPAKE_CTX *ctx, const ECJPAKE_STEP1 *received)
     }
 
     /* check Gxd is a legal point on Elliptic Curve */
-    if (!EC_POINT_is_legal(received->p2.Gx, ctx))
+    if (!EC_POINT_is_legal(received->p2.Gx, ctx->group))
     {
         ECJPAKEerr(ECJPAKE_F_ECJPAKE_STEP1_PROCESS,
                    ECJPAKE_R_G_TO_THE_X4_IS_NOT_LEGAL);

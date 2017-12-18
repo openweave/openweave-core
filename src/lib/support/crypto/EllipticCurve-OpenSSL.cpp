@@ -364,16 +364,31 @@ NL_DLL_EXPORT WEAVE_ERROR ECDHComputeSharedSecret(OID curveOID, const EC_GROUP *
                                     uint8_t *sharedSecretBuf, uint16_t sharedSecretBufSize, uint16_t& sharedSecretLen)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
+    EC_KEY *ecKey = NULL;
     EC_POINT *sharedSecretPoint = NULL;
     BIGNUM *sharedSecretX = NULL;
     BIGNUM *sharedSecretY = NULL;
     int sharedSecretXLen;
+    int res;
 
     // Determine the output size of the shared key in bytes.  This is equal to the size
     // of the curve prime.
     sharedSecretLen = GetCurveSize(curveOID, ecGroup);
     VerifyOrExit(sharedSecretLen != 0, err = WEAVE_ERROR_UNSUPPORTED_ELLIPTIC_CURVE);
     VerifyOrExit(sharedSecretLen <= sharedSecretBufSize, err = WEAVE_ERROR_BUFFER_TOO_SMALL);
+
+    // Verify the public key provided by the peer is a valid EC point on a curve.
+    ecKey = EC_KEY_new();
+    VerifyOrExit(ecKey != NULL, err = WEAVE_ERROR_NO_MEMORY);
+
+    res = EC_KEY_set_group(ecKey, ecGroup);
+    VerifyOrExit(res, err = WEAVE_ERROR_NO_MEMORY);
+
+    res = EC_KEY_set_public_key(ecKey, pubKeyPoint);
+    VerifyOrExit(res, err = WEAVE_ERROR_NO_MEMORY);
+
+    res = EC_KEY_check_key(ecKey);
+    VerifyOrExit(res, err = WEAVE_ERROR_INVALID_ARGUMENT);
 
     // Create a EC_POINT object to hold the shared key point.
     sharedSecretPoint = EC_POINT_new(ecGroup);
@@ -389,7 +404,7 @@ NL_DLL_EXPORT WEAVE_ERROR ECDHComputeSharedSecret(OID curveOID, const EC_GROUP *
     VerifyOrExit(sharedSecretX != NULL, err = WEAVE_ERROR_NO_MEMORY); // TODO: translate OpenSSL error
 
     sharedSecretY = BN_new();
-    VerifyOrExit(sharedSecretX != NULL, err = WEAVE_ERROR_NO_MEMORY); // TODO: translate OpenSSL error
+    VerifyOrExit(sharedSecretY != NULL, err = WEAVE_ERROR_NO_MEMORY); // TODO: translate OpenSSL error
 
     if (!EC_POINT_get_affine_coordinates_GFp(ecGroup, sharedSecretPoint, sharedSecretX, sharedSecretY, NULL))
         ExitNow(err = WEAVE_ERROR_INVALID_ARGUMENT); // TODO: translate OpenSSL error
@@ -408,6 +423,7 @@ exit:
     BN_clear_free(sharedSecretX);
     BN_clear_free(sharedSecretY);
     EC_POINT_clear_free(sharedSecretPoint);
+    EC_KEY_free(ecKey);
 
     return err;
 }
@@ -519,7 +535,7 @@ WEAVE_ERROR DecodeX962ECPoint(const uint8_t *encodedPoint, uint16_t encodedPoint
     VerifyOrExit(x != NULL, err = WEAVE_ERROR_NO_MEMORY);
 
     y = BN_bin2bn(encodedPoint + 1 + fieldSize, fieldSize, NULL);
-    VerifyOrExit(x != NULL, err = WEAVE_ERROR_NO_MEMORY);
+    VerifyOrExit(y != NULL, err = WEAVE_ERROR_NO_MEMORY);
 
 exit:
     if (err != WEAVE_NO_ERROR)
