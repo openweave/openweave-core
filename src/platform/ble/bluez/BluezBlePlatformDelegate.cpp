@@ -27,6 +27,7 @@
 
 #include "BluezBlePlatformDelegate.h"
 #include "BluezHelperCode.h"
+#include <Weave/Support/CodeUtils.h>
 
 #if CONFIG_BLE_PLATFORM_BLUEZ
 
@@ -35,7 +36,7 @@ namespace Ble {
 namespace Platform {
 namespace BlueZ {
 
-BluezBlePlatformDelegate ::BluezBlePlatformDelegate(BleLayer * ble) : Ble(ble), SendIndicationCb(NULL), GetMTUCb(NULL) { };
+BluezBlePlatformDelegate::BluezBlePlatformDelegate(BleLayer * ble) : Ble(ble), SendIndicationCb(NULL), GetMTUCb(NULL) { };
 
 uint16_t BluezBlePlatformDelegate::GetMTU(BLE_CONNECTION_OBJECT connObj) const
 {
@@ -75,12 +76,7 @@ bool BluezBlePlatformDelegate::SendIndication(BLE_CONNECTION_OBJECT connObj, con
 
     if (SendIndicationCb)
     {
-        rc = SendIndicationCb((void *) connObj, pBuf->Start(), pBuf->DataLength());
-    }
-
-    if (NULL != pBuf)
-    {
-        nl::Inet::InetBuffer::Free(pBuf);
+        rc = SendIndicationCb((void *) connObj, pBuf);
     }
 
     return rc;
@@ -115,6 +111,84 @@ void BluezBlePlatformDelegate::SetSendIndicationCallback(SendIndicationCallback 
 void BluezBlePlatformDelegate::SetGetMTUCallback(GetMTUCallback cb)
 {
     GetMTUCb = cb;
+}
+
+nl::Weave::System::Error BluezBlePlatformDelegate::SendToWeaveThread(InEventParam * aParams)
+{
+    aParams->Ble = Ble;
+
+    return Ble->ScheduleWork(HandleBleDelegate, aParams);
+}
+
+void BluezBlePlatformDelegate::HandleBleDelegate(nl::Weave::System::Layer * aLayer, void * aAppState,
+                                                 nl::Weave::System::Error aError)
+{
+    InEventParam * args = static_cast<InEventParam *>(aAppState);
+
+    VerifyOrExit(args != NULL, );
+
+    switch (args->EventType)
+    {
+
+    case InEventParam::EventTypeEnum::kEvent_IndicationConfirmation:
+        if (!args->Ble->HandleIndicationConfirmation(args->ConnectionObject, args->IndicationConfirmation.SvcId,
+                                                     args->IndicationConfirmation.CharId))
+        {
+            WeaveLogError(Ble, "HandleIndicationConfirmation failed");
+        }
+        break;
+
+    case InEventParam::EventTypeEnum::kEvent_SubscribeReceived:
+        if (!args->Ble->HandleSubscribeReceived(args->ConnectionObject, args->SubscriptionChange.SvcId,
+                                                args->SubscriptionChange.CharId))
+        {
+            WeaveLogError(Ble, "HandleSubscribeReceived failed");
+        }
+        break;
+
+    case InEventParam::EventTypeEnum::kEvent_UnsubscribeReceived:
+        if (!args->Ble->HandleUnsubscribeReceived(args->ConnectionObject, args->SubscriptionChange.SvcId,
+                                                  args->SubscriptionChange.CharId))
+        {
+            WeaveLogError(Ble, "HandleUnsubscribeReceived failed");
+        }
+        break;
+
+    case InEventParam::EventTypeEnum::kEvent_ConnectionError:
+        args->Ble->HandleConnectionError(args->ConnectionObject, args->ConnectionError.mErr);
+        break;
+
+    case InEventParam::EventTypeEnum::kEvent_WriteReceived:
+        if (!args->Ble->HandleWriteReceived(args->ConnectionObject, args->WriteReceived.SvcId, args->WriteReceived.CharId,
+                                            args->WriteReceived.MsgBuf))
+        {
+            WeaveLogError(Ble, "HandleWriteReceived failed");
+        }
+        args->WriteReceived.MsgBuf = NULL;
+        break;
+
+    default:
+        WeaveLogError(Ble, "Unknown or unimplemented event: %d", args->EventType);
+        break;
+    }
+
+exit:
+    args->PlatformDelegate->ReleaseEventParams(args);
+}
+
+nl::Weave::System::Error BluezBlePlatformDelegate::NewEventParams(InEventParam ** aParam)
+{
+    *aParam = new InEventParam();
+    (*aParam)->PlatformDelegate = this;
+    return WEAVE_SYSTEM_NO_ERROR;
+}
+
+void BluezBlePlatformDelegate::ReleaseEventParams(InEventParam * aParam)
+{
+    if (aParam != NULL)
+    {
+        delete aParam;
+    }
 }
 
 } // namespace BlueZ

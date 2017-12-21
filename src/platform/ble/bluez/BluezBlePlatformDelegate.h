@@ -44,11 +44,56 @@ namespace Ble {
 namespace Platform {
 namespace BlueZ {
 
-typedef bool (*SendIndicationCallback)(void * connObj, uint8_t * buffer, size_t len);
+typedef bool (*SendIndicationCallback)(void * data, nl::Inet::InetBuffer * msgBuf);
 
 typedef uint16_t (*GetMTUCallback)(void * connObj);
 
 using namespace nl::Ble;
+
+class BluezBlePlatformDelegate;
+
+struct InEventParam
+{
+    enum EventTypeEnum
+    {
+        kEvent_IndicationConfirmation,
+        kEvent_SubscribeReceived,
+        kEvent_UnsubscribeReceived,
+        kEvent_ConnectionError,
+        kEvent_WriteReceived
+    };
+
+    EventTypeEnum EventType;
+    void * ConnectionObject;
+    BleLayer * Ble;
+    BluezBlePlatformDelegate *PlatformDelegate;
+    union
+    {
+        struct
+        {
+            const WeaveBleUUID * SvcId;
+            const WeaveBleUUID * CharId;
+        } IndicationConfirmation;
+
+        struct
+        {
+            const WeaveBleUUID * SvcId;
+            const WeaveBleUUID * CharId;
+        } SubscriptionChange;
+
+        struct
+        {
+            BLE_ERROR mErr;
+        } ConnectionError;
+
+        struct
+        {
+            const WeaveBleUUID * SvcId;
+            const WeaveBleUUID * CharId;
+            nl::Inet::InetBuffer * MsgBuf;
+        } WriteReceived;
+    };
+};
 
 class BluezBlePlatformDelegate : public nl::Ble::BlePlatformDelegate
 {
@@ -84,6 +129,14 @@ public:
     void SetSendIndicationCallback(SendIndicationCallback cb);
 
     void SetGetMTUCallback(GetMTUCallback cb);
+
+    nl::Weave::System::Error SendToWeaveThread(InEventParam * aParams);
+
+    nl::Weave::System::Error NewEventParams(InEventParam ** aParam);
+
+    void ReleaseEventParams(InEventParam * aParam);
+
+    static void HandleBleDelegate(nl::Weave::System::Layer * aLayer, void * aAppState, nl::Weave::System::Error aError);
 };
 
 } // namespace BlueZ

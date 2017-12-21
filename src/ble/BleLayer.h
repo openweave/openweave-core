@@ -262,6 +262,11 @@ public:
 
     BLE_ERROR NewBleEndPoint(BLEEndPoint ** retEndPoint, BLE_CONNECTION_OBJECT connObj, BleRole role, bool autoClose);
 
+    nl::Weave::System::Error ScheduleWork(nl::Weave::System::Layer::TimerCompleteFunct aComplete, void* aAppState)
+    {
+        return mSystemLayer->ScheduleWork(aComplete, aAppState);
+    }
+
     /**< Platform interface functions:
 
      *   Calling conventions:

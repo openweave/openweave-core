@@ -58,25 +58,45 @@ void WoBLEz_NewConnection(void * data)
 
 void WoBLEz_WriteReceived(void * data, const uint8_t * value, size_t len)
 {
-    WEAVE_ERROR err = WEAVE_NO_ERROR;
-
     // Peripheral behaviour
-    nl::Inet::InetBuffer * msgBuf = NULL;
-    msgBuf                        = nl::Inet::InetBuffer::New();
+    WEAVE_ERROR err                 = WEAVE_NO_ERROR;
+    nl::Inet::InetBuffer * msgBuf   = NULL;
+    nl::Weave::System::Error syserr = WEAVE_SYSTEM_NO_ERROR;
+    InEventParam * params           = NULL;
+
+    msgBuf = nl::Inet::InetBuffer::New();
+
     VerifyOrExit(msgBuf != NULL, err = WEAVE_ERROR_NO_MEMORY);
     VerifyOrExit(msgBuf->AvailableDataLength() >= len, err = WEAVE_ERROR_BUFFER_TOO_SMALL);
+
+    syserr = gBluezBlePlatformDelegate->NewEventParams(&params);
+    SuccessOrExit(syserr);
 
     memcpy(msgBuf->Start(), value, len);
     msgBuf->SetDataLength(len);
 
-    if (!gBluezBlePlatformDelegate->Ble->HandleWriteReceived(data, &(nl::Ble::WEAVE_BLE_SVC_ID), &WEAVE_BLE_CHAR_1_ID, msgBuf))
-    {
-        WeaveLogError(Ble, "WoBLEz_WriteReceived failed at HandleWriteReceived ");
-    }
+    params->EventType            = InEventParam::EventTypeEnum::kEvent_WriteReceived;
+    params->ConnectionObject     = data;
+    params->WriteReceived.SvcId  = &(nl::Ble::WEAVE_BLE_SVC_ID);
+    params->WriteReceived.CharId = &(WEAVE_BLE_CHAR_1_ID);
+    params->WriteReceived.MsgBuf = msgBuf;
 
+    syserr = gBluezBlePlatformDelegate->SendToWeaveThread(params);
+    SuccessOrExit(syserr);
+
+    params = NULL;
     msgBuf = NULL;
 
 exit:
+    if (syserr != WEAVE_SYSTEM_NO_ERROR)
+    {
+        WeaveLogError(Ble, "WoBLEz_WriteReceived syserr: %d", syserr);
+    }
+
+    if (params != NULL)
+    {
+        gBluezBlePlatformDelegate->ReleaseEventParams(params);
+    }
 
     if (err != WEAVE_NO_ERROR)
     {
@@ -89,17 +109,15 @@ exit:
     }
 }
 
-bool WoBLEz_SendIndication(void * data, uint8_t * buffer, size_t len)
+int WoBLEz_SendIndication(void * aClosure)
 {
-    const char * msg = NULL;
+    BluezServerEndpoint * endpoint = gBluezServerEndpoint;
+    nl::Inet::InetBuffer * msgBuf  = static_cast<nl::Inet::InetBuffer *>(aClosure);
+    uint8_t * buffer               = msgBuf->Start();
+    size_t len                     = msgBuf->DataLength();
 #if BLE_CONFIG_BLUEZ_MTU_FEATURE
     struct iovec ioData;
 #endif // BLE_CONFIG_BLUEZ_MTU_FEATURE
-    bool success                   = false;
-    BluezServerEndpoint * endpoint = static_cast<BluezServerEndpoint *>(data);
-    VerifyOrExit(endpoint != NULL, msg = "endpoint is NULL in WoBLEz_SendIndication");
-    VerifyOrExit(endpoint == gBluezServerEndpoint, msg = "Unexpected endpoint in WoBLEz_SendIndication");
-    VerifyOrExit(endpoint->weaveC2 != NULL, msg = "weaveC2 is NULL in WoBLEz_SendIndication");
 
     g_free(endpoint->weaveC2->value);
     endpoint->weaveC2->valueLen = len;
@@ -113,17 +131,29 @@ bool WoBLEz_SendIndication(void * data, uint8_t * buffer, size_t len)
 
         if (io_send(endpoint->weaveC2->indicatePipeIO, &ioData, 1) < 0)
         {
-            msg = "weave C1 fails to write into pipe";
-        }
-        else
-        {
-            success = true;
+            WeaveLogError(Ble, "weave C2 fails to write into pipe");
         }
     }
 #else  // BLE_CONFIG_BLUEZ_MTU_FEATURE,
     g_dbus_emit_property_changed(endpoint->weaveC2->dbusConn, endpoint->weaveC2->path, CHARACTERISTIC_INTERFACE, "Value");
-    success = true;
 #endif // BLE_CONFIG_BLUEZ_MTU_FEATURE
+
+    nl::Inet::InetBuffer::Free(msgBuf);
+
+    return G_SOURCE_REMOVE;
+}
+
+bool WoBLEz_ScheduleSendIndication(void * data, nl::Inet::InetBuffer * msgBuf)
+{
+    const char * msg               = NULL;
+    bool success                   = false;
+    BluezServerEndpoint * endpoint = static_cast<BluezServerEndpoint *>(data);
+
+    VerifyOrExit(endpoint != NULL, msg = "endpoint is NULL in WoBLEz_SendIndication");
+    VerifyOrExit(endpoint == gBluezServerEndpoint, msg = "Unexpected endpoint in WoBLEz_SendIndication");
+    VerifyOrExit(endpoint->weaveC2 != NULL, msg = "weaveC2 is NULL in WoBLEz_SendIndication");
+
+    success = RunOnBluezIOThread(WoBLEz_SendIndication, msgBuf);
 
 exit:
 
@@ -132,40 +162,81 @@ exit:
         WeaveLogError(Ble, msg);
     }
 
+    if (!success && msgBuf != NULL)
+    {
+        nl::Inet::InetBuffer::Free(msgBuf);
+    }
+
     return success;
 }
 
 void WoBLEz_ConnectionClosed(void * data)
 {
+    InEventParam * params        = NULL;
+    nl::Weave::System::Error err = WEAVE_SYSTEM_NO_ERROR;
+
     WeaveLogProgress(Ble, "WoBLEz_ConnectionClosed: %p", data);
-    gBluezBlePlatformDelegate->Ble->HandleConnectionError(data, BLE_ERROR_REMOTE_DEVICE_DISCONNECTED);
+
+    err = gBluezBlePlatformDelegate->NewEventParams(&params);
+    SuccessOrExit(err);
+
+    params->EventType            = InEventParam::EventTypeEnum::kEvent_ConnectionError;
+    params->ConnectionObject     = data;
+    params->ConnectionError.mErr = BLE_ERROR_REMOTE_DEVICE_DISCONNECTED;
+
+    err = gBluezBlePlatformDelegate->SendToWeaveThread(params);
+    SuccessOrExit(err);
+
+    params = NULL;
+
+exit:
+    if (err != WEAVE_SYSTEM_NO_ERROR)
+    {
+        WeaveLogError(Ble, "WoBLEz_ConnectionClosed err: %d", err);
+    }
+
+    if (params != NULL)
+    {
+        gBluezBlePlatformDelegate->ReleaseEventParams(params);
+    }
 }
 
 void WoBLEz_SubscriptionChange(void * data)
 {
-    const char * msg = NULL;
-    bool enabled;
-    bool success                   = false;
+    InEventParam * params          = NULL;
+    nl::Weave::System::Error err   = WEAVE_SYSTEM_NO_ERROR;
     BluezServerEndpoint * endpoint = static_cast<BluezServerEndpoint *>(data);
+    const char * msg               = NULL;
+
     VerifyOrExit(endpoint != NULL, msg = "endpoint is NULL in WoBLEz_SubscriptionChange");
     VerifyOrExit(endpoint == gBluezServerEndpoint, msg = "Unexpected endpoint in WoBLEz_SubscriptionChange");
     VerifyOrExit(endpoint->weaveC2 != NULL, msg = "weaveC2 is NULL in WoBLEz_SubscriptionChange");
 
-    enabled = endpoint->weaveC2->isNotifying;
+    err = gBluezBlePlatformDelegate->NewEventParams(&params);
+    SuccessOrExit(err);
 
-    if (enabled)
-    {
-        success = gBluezBlePlatformDelegate->Ble->HandleSubscribeReceived(data, &(nl::Ble::WEAVE_BLE_SVC_ID), &WEAVE_BLE_CHAR_2_ID);
-        VerifyOrExit(success, msg = "HandleSubscribeReceived failed");
-    }
-    else
-    {
-        success =
-            gBluezBlePlatformDelegate->Ble->HandleUnsubscribeReceived(data, &(nl::Ble::WEAVE_BLE_SVC_ID), &WEAVE_BLE_CHAR_2_ID);
-        VerifyOrExit(success, msg = "HandleUnsubscribeReceived failed");
-    }
+    params->EventType = endpoint->weaveC2->isNotifying ? InEventParam::EventTypeEnum::kEvent_SubscribeReceived
+                                                       : InEventParam::EventTypeEnum::kEvent_UnsubscribeReceived;
+    params->ConnectionObject          = data;
+    params->SubscriptionChange.SvcId  = &(nl::Ble::WEAVE_BLE_SVC_ID);
+    params->SubscriptionChange.CharId = &(WEAVE_BLE_CHAR_2_ID);
+
+    err = gBluezBlePlatformDelegate->SendToWeaveThread(params);
+    SuccessOrExit(err);
+
+    params = NULL;
 
 exit:
+
+    if (err != WEAVE_SYSTEM_NO_ERROR)
+    {
+        WeaveLogError(Ble, "WoBLEz_ConnectionClosed err: %d", err);
+    }
+
+    if (params != NULL)
+    {
+        gBluezBlePlatformDelegate->ReleaseEventParams(params);
+    }
 
     if (NULL != msg)
     {
@@ -175,10 +246,31 @@ exit:
 
 void WoBLEz_IndicationConfirmation(void * data)
 {
+    InEventParam * params        = NULL;
+    nl::Weave::System::Error err = WEAVE_SYSTEM_NO_ERROR;
 
-    if (!gBluezBlePlatformDelegate->Ble->HandleIndicationConfirmation(data, &(nl::Ble::WEAVE_BLE_SVC_ID), &WEAVE_BLE_CHAR_2_ID))
+    err = gBluezBlePlatformDelegate->NewEventParams(&params);
+    SuccessOrExit(err);
+
+    params->EventType                     = InEventParam::EventTypeEnum::kEvent_IndicationConfirmation;
+    params->ConnectionObject              = data;
+    params->IndicationConfirmation.SvcId  = &(nl::Ble::WEAVE_BLE_SVC_ID);
+    params->IndicationConfirmation.CharId = &(WEAVE_BLE_CHAR_2_ID);
+
+    err = gBluezBlePlatformDelegate->SendToWeaveThread(params);
+    SuccessOrExit(err);
+
+    params = NULL;
+
+exit:
+    if (err != WEAVE_SYSTEM_NO_ERROR)
     {
-        WeaveLogError(Ble, "HandleIndicationConfirmation failed");
+        WeaveLogError(Ble, "WoBLEz_IndicationConfirmation err: %d", err);
+    }
+
+    if (params != NULL)
+    {
+        gBluezBlePlatformDelegate->ReleaseEventParams(params);
     }
 }
 

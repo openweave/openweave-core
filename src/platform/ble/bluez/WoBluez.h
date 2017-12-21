@@ -54,7 +54,7 @@ void WoBLEz_IndicationConfirmation(void * user_data);
 bool WoBLEz_TimerCb(void * user_data);
 
 // Called by BlePlatformDelegate:
-bool WoBLEz_SendIndication(void * user_data, uint8_t * buffer, size_t len);
+bool WoBLEz_ScheduleSendIndication(void * user_data, nl::Inet::InetBuffer * msgBuf);
 
 } // namespace BlueZ
 } // namespace Platform

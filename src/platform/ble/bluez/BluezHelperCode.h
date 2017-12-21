@@ -159,6 +159,8 @@ struct BluezServerEndpoint
 extern BluezServerEndpoint * gBluezServerEndpoint;
 extern BluezBlePlatformDelegate * gBluezBlePlatformDelegate;
 
+bool RunOnBluezIOThread(int (*aCallback)(void *), void * aClosure);
+
 } // namespace BlueZ
 } // namespace Platform
 } // namespace Ble

@@ -1101,8 +1101,7 @@ static const GDBusMethodTable weaveCharacteristicMethods[] = {
     { "AcquireWrite", CharacteristicAcquireWrite, G_DBUS_METHOD_FLAG_ASYNC, 0, GDBUS_ARGS( { "options", "a{sv}" }), NULL },
     { "AcquireNotify", CharacteristicAcquireNotify, G_DBUS_METHOD_FLAG_ASYNC, 0, GDBUS_ARGS( { "options", "a{sv}" }), NULL },
 #endif // BLE_CONFIG_BLUEZ_MTU_FEATURE
-    { "WriteValue", CharacteristicWrite, G_DBUS_METHOD_FLAG_ASYNC, 0, GDBUS_ARGS( { "value", "ay" }, { "options", "a{sv}" }),
-      NULL },
+    { "WriteValue", CharacteristicWrite, G_DBUS_METHOD_FLAG_ASYNC, 0, GDBUS_ARGS( { "value", "ay" }, { "options", "a{sv}" }), NULL },
     { "StartNotify", CharacteristicStartNotify, G_DBUS_METHOD_FLAG_ASYNC, 0, NULL, NULL },
     { "StopNotify", CharacteristicStopNotify, G_DBUS_METHOD_FLAG_ASYNC, 0, NULL, NULL },
     { "Confirm", CharacteristicIndicationConf, G_DBUS_METHOD_FLAG_ASYNC, 0, NULL, NULL },
@@ -1303,6 +1302,27 @@ void ExitBluezIOThread(void)
     g_main_loop_quit(gBluezMainLoop);
 }
 
+bool RunOnBluezIOThread(int (*aCallback)(void *), void * aClosure)
+{
+    GMainContext * context = NULL;
+    const char * msg       = NULL;
+
+    VerifyOrExit(gBluezMainLoop != NULL, msg = "RunOnBluezIOThread: BlueZ mainloop is NULL");
+
+    context = g_main_loop_get_context(gBluezMainLoop);
+
+    VerifyOrExit(gBluezMainLoop != NULL, msg = "RunOnBluezIOThread: main context is NULL");
+
+    g_main_context_invoke(context, aCallback, aClosure);
+
+exit:
+    if (msg != NULL)
+    {
+        WeaveLogError(Ble, msg);
+    }
+    return msg == NULL;
+}
+
 bool RunBluezIOThread(BluezPeripheralArgs * arg)
 {
     GDBusClient * weaveClient    = NULL;
@@ -1315,15 +1335,15 @@ bool RunBluezIOThread(BluezPeripheralArgs * arg)
     gBluezBlePlatformDelegate = arg->bluezBlePlatformDelegate;
     VerifyOrExit(gBluezBlePlatformDelegate != NULL, err = WEAVE_ERROR_NO_MEMORY);
 
-    gBluezBlePlatformDelegate->SetSendIndicationCallback(WoBLEz_SendIndication);
+    gBluezBlePlatformDelegate->SetSendIndicationCallback(WoBLEz_ScheduleSendIndication);
     gBluezBlePlatformDelegate->SetGetMTUCallback(GetMTUWeaveCb);
     gBluezServerEndpoint = (BluezServerEndpoint *) g_new0(BluezServerEndpoint, 1);
     VerifyOrExit(gBluezServerEndpoint != NULL, err = WEAVE_ERROR_NO_MEMORY);
 
-    gBluezServerEndpoint->adapterName      = g_strdup(arg->bleName);
-    gBluezServerEndpoint->adapterAddr      = g_strdup(arg->bleAddress);
-    gBluezServerEndpoint->advertisingUUID  = g_strdup(UUID_WEAVE_SHORT);
-    gBluezServerEndpoint->advertisingType  = g_strdup(advertisingType);
+    gBluezServerEndpoint->adapterName     = g_strdup(arg->bleName);
+    gBluezServerEndpoint->adapterAddr     = g_strdup(arg->bleAddress);
+    gBluezServerEndpoint->advertisingUUID = g_strdup(UUID_WEAVE_SHORT);
+    gBluezServerEndpoint->advertisingType = g_strdup(advertisingType);
 
     gBluezServerEndpoint->weaveServiceData = g_new0(WeaveServiceData, 1);
     VerifyOrExit(gBluezServerEndpoint->weaveServiceData != NULL, err = WEAVE_ERROR_NO_MEMORY);
@@ -1331,13 +1351,13 @@ bool RunBluezIOThread(BluezPeripheralArgs * arg)
      * Data arranged in "Length Type Value" pairs inside Weave service data.
      * Length should include size of value + size of Type field, which is 1 byte
      */
-    gBluezServerEndpoint->weaveServiceData->dataBlock0Len = sizeof(WeaveIdInfo) + 1;
-    gBluezServerEndpoint->weaveServiceData->dataBlock0Type = WEAVE_SRV_DATA_BLOCK_TYPE_WEAVE_ID_INFO;
-    gBluezServerEndpoint->weaveServiceData->weaveIdInfo.major = WEAVE_ID_INFO_MAJ_VER;
-    gBluezServerEndpoint->weaveServiceData->weaveIdInfo.minor = WEAVE_ID_INFO_MIN_VER;
-    gBluezServerEndpoint->weaveServiceData->weaveIdInfo.vendorId = arg->vendorId;
-    gBluezServerEndpoint->weaveServiceData->weaveIdInfo.productId = arg->productId;
-    gBluezServerEndpoint->weaveServiceData->weaveIdInfo.deviceId = arg->deviceId;
+    gBluezServerEndpoint->weaveServiceData->dataBlock0Len             = sizeof(WeaveIdInfo) + 1;
+    gBluezServerEndpoint->weaveServiceData->dataBlock0Type            = WEAVE_SRV_DATA_BLOCK_TYPE_WEAVE_ID_INFO;
+    gBluezServerEndpoint->weaveServiceData->weaveIdInfo.major         = WEAVE_ID_INFO_MAJ_VER;
+    gBluezServerEndpoint->weaveServiceData->weaveIdInfo.minor         = WEAVE_ID_INFO_MIN_VER;
+    gBluezServerEndpoint->weaveServiceData->weaveIdInfo.vendorId      = arg->vendorId;
+    gBluezServerEndpoint->weaveServiceData->weaveIdInfo.productId     = arg->productId;
+    gBluezServerEndpoint->weaveServiceData->weaveIdInfo.deviceId      = arg->deviceId;
     gBluezServerEndpoint->weaveServiceData->weaveIdInfo.pairingStatus = arg->pairingStatus;
 
     gBluezServerEndpoint->mtu = HCI_MAX_MTU;
