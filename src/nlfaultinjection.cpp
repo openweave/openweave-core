@@ -706,14 +706,40 @@ static bool ParseUInt(const char *str, uint32_t *num)
  *                                  The format is
  *                                  "<module>_<fault>_{f<numTimesToFail>[_s<numTimesToSkip>],p<randomFailurePercentage>}[_a<integer>]..."
  *
- * @param[in]   inTable             An array of GetManagerFn callbacks
+ * @param[in]   inArray             An array of GetManagerFn callbacks
  *                                  to be used to parse the string.
  *
- * @param[in]   inTableSize         Size of inTable
+ * @param[in]   inArraySize         Num of elements in inArray
  *
  * @return      true  if the string can be parsed completely; false otherwise
  */
-bool ParseFaultInjectionStr(char *aFaultInjectionStr, GetManagerFn *inTable, size_t inTableSize)
+bool ParseFaultInjectionStr(char *aFaultInjectionStr, const GetManagerFn *inArray, size_t inArraySize)
+{
+    ManagerTable table = { inArray, inArraySize };
+    size_t numTables = 1;
+
+    return ParseFaultInjectionStr(aFaultInjectionStr, &table, numTables);
+}
+
+/**
+ * Parse a fault-injection configuration string and apply the configuration.
+ *
+ * @param[in]   aFaultInjectionStr  The configuration string. An example of a valid string that
+ *                                  enables two faults is "system_buffer_f5_s1:inet_send_p33"
+ *                                  An example of a configuration string that
+ *                                  also passes three integer arguments to the fault point is
+ *                                  "system_buffer_f5_s1_a10_a7_a-4"
+ *                                  The format is
+ *                                  "<module>_<fault>_{f<numTimesToFail>[_s<numTimesToSkip>],p<randomFailurePercentage>}[_a<integer>]..."
+ *
+ * @param[in]   inTables            An array of ManagerTable structures
+ *                                  to be used to parse the string.
+ *
+ * @param[in]   inNumTables         Size of inTables
+ *
+ * @return      true  if the string can be parsed completely; false otherwise
+ */
+bool ParseFaultInjectionStr(char *aFaultInjectionStr, const ManagerTable *inTables, size_t inNumTables)
 {
     char *tok1 = NULL;
     char *savePtr1 = NULL;
@@ -748,13 +774,16 @@ bool ParseFaultInjectionStr(char *aFaultInjectionStr, GetManagerFn *inTable, siz
         nlEXPECT(tok2 != NULL, exit);
 
 		// this is the module
-		for (i = 0; i < inTableSize; i++)
-		{
-            nl::FaultInjection::Manager &tmpMgr = inTable[i]();
-			if (!strcmp(tok2, tmpMgr.GetName()))
-			{
-				mgr = &tmpMgr;
-                break;
+		for (i = 0; i < inNumTables; i++)
+        {
+            for (j = 0; j < inTables[i].mNumItems; j++)
+            {
+                nl::FaultInjection::Manager &tmpMgr = inTables[i].mArray[j]();
+                if (!strcmp(tok2, tmpMgr.GetName()))
+                {
+                    mgr = &tmpMgr;
+                    break;
+                }
             }
         }
         nlEXPECT(mgr != NULL, exit);

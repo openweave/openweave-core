@@ -271,7 +271,18 @@ typedef struct _GlobalContext {
 
 void SetGlobalContext(GlobalContext *inGlobalContext);
 
-bool ParseFaultInjectionStr(char *inStr, GetManagerFn *inTable, size_t inTableSize);
+bool ParseFaultInjectionStr(char *inStr, const GetManagerFn *inArray, size_t inArraySize);
+
+/**
+ * A structure to store an array of GetManagerFn arrays, used by ParseFaultInjectionStr.
+ * The main purpose of this is to pass a collection of static tables owned of GetManagerFn owned
+ * by separate modules to ParseFaultInjectionStr.
+ */
+typedef struct _ManagerTable {
+    const GetManagerFn *mArray;               /**< A pointer to an array of GetManagerFn */
+    size_t mNumItems;                         /**< The length of mArray */
+} ManagerTable;
+bool ParseFaultInjectionStr(char *inStr, const ManagerTable *inTables, size_t inNumTables);
 
 } // namespace FaultInjection
 
