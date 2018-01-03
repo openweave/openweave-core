@@ -33,7 +33,13 @@
 #include <stddef.h>
 #include <stdint.h>
 
+#if WEAVE_SYSTEM_CONFIG_USE_LWIP
+#include <lwip/netif.h>
+#endif // WEAVE_SYSTEM_CONFIG_USE_LWIP
+
+#if WEAVE_SYSTEM_CONFIG_USE_SOCKETS
 struct ifaddrs;
+#endif // WEAVE_SYSTEM_CONFIG_USE_SOCKETS
 
 namespace nl {
 namespace Inet {
@@ -67,7 +73,7 @@ namespace Inet {
 
 #if WEAVE_SYSTEM_CONFIG_USE_LWIP
 
-typedef struct netif  *InterfaceId;
+typedef struct netif *InterfaceId;
 
 #define INET_NULL_INTERFACEID NULL
 

@@ -89,7 +89,7 @@ ip_addr_t IPAddress::ToLwIPAddr(void) const
         break;
 
     default:
-        ret = ip_addr_any_type;
+        ret = *IP_ADDR_ANY;
         break;
     }
 
