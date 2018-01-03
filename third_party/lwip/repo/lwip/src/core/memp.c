@@ -660,6 +660,12 @@ memp_pbuf_index(memp_t type, const void *mem)
   }
   return ~0;
 }
+
+u16_t
+memp_num_pbufs(memp_t type)
+{
+  return memp_pools[type]->num;
+}
 #endif /* MEMP_SEPARATE_POOLS */
 
 #endif /* MEMP_MEM_MALLOC */
