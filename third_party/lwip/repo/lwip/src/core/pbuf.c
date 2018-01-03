@@ -117,7 +117,9 @@ void eth_rx_irq()
 #include "lwip/memp.h"
 #include "lwip/pbuf.h"
 #include "lwip/sys.h"
+#if LWIP_PERF || LWIP_PBUF_CALLOUTS
 #include "arch/perf.h"
+#endif
 #if LWIP_TCP && TCP_QUEUE_OOSEQ
 #include "lwip/priv/tcp_priv.h"
 #endif
