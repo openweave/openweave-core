@@ -163,6 +163,13 @@ INET_ERROR UDPEndPoint::Bind(IPAddressType addrType, IPAddress addr, uint16_t po
             if (res == INET_NO_ERROR)
                 setsockopt(mSocket, IPPROTO_IPV6, IPV6_MULTICAST_IF, &intfId, sizeof(intfId));
 #endif // defined(IPV6_MULTICAST_IF)
+
+            // Instruct the kernel that any messages to multicast destinations should be
+            // set with the configured hop limit value.
+#ifdef IPV6_MULTICAST_HOPS
+            int hops = INET_CONFIG_IP_MULTICAST_HOP_LIMIT;
+            setsockopt(mSocket, IPPROTO_IPV6, IPV6_MULTICAST_HOPS, &hops, sizeof(hops));
+#endif // defined(IPV6_MULTICAST_HOPS)
         }
 #if INET_CONFIG_ENABLE_IPV4
         else if (addrType == kIPAddressType_IPv4)
@@ -184,6 +191,13 @@ INET_ERROR UDPEndPoint::Bind(IPAddressType addrType, IPAddress addr, uint16_t po
             if (res == INET_NO_ERROR)
                 setsockopt(mSocket, IPPROTO_IP, IP_MULTICAST_IF, &sa, sizeof(sa));
 #endif // defined(IP_MULTICAST_IF)
+
+            // Instruct the kernel that any messages to multicast destinations should be
+            // set with the configured hop limit value.
+#ifdef IP_MULTICAST_TTL
+            int ttl = INET_CONFIG_IP_MULTICAST_HOP_LIMIT;
+            setsockopt(mSocket, IPPROTO_IP, IP_MULTICAST_TTL, &ttl, sizeof(ttl));
+#endif // defined(IP_MULTICAST_TTL)
 
             // Allow socket transmitting broadcast packets.
             if (res == INET_NO_ERROR)

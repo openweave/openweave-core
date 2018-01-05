@@ -668,6 +668,24 @@
 #define INET_CONFIG_DEFAULT_TCP_USER_TIMEOUT_MSEC          (5 * 60 * 1000)
 #endif // INET_CONFIG_DEFAULT_TCP_USER_TIMEOUT_MSEC
 
+/**
+ *  @def INET_CONFIG_IP_MULTICAST_HOP_LIMIT
+ *
+ *  @brief
+ *    The default value of the Hop Limit field in
+ *    the IP multicast packet.
+ *
+ *
+ *  @details
+ *    This value specifies the hop limit that could be set in the
+ *    outgoing IP packet to override any default settings(made by
+ *    the kernel) for the hop limit field in the IP header.
+ *    On Linux platforms, the hoplimit field is set to 1 for
+ *    multicast packets.
+ */
+#ifndef INET_CONFIG_IP_MULTICAST_HOP_LIMIT
+#define INET_CONFIG_IP_MULTICAST_HOP_LIMIT                 (64)
+#endif // INET_CONFIG_IP_MULTICAST_HOP_LIMIT
 // clang-format on
 
 #endif /* INETCONFIG_H */
