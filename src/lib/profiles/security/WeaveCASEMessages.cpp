@@ -59,7 +59,7 @@ WEAVE_ERROR BeginSessionRequestMessage::EncodeHead(PacketBuffer *msgBuf)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
     uint8_t *p = msgBuf->Start();
-    uint8_t bufSize = msgBuf->MaxDataLength();
+    uint16_t bufSize = msgBuf->MaxDataLength();
 
     VerifyOrExit(AlternateConfigCount < kMaxAlternateProtocolConfigs, err = WEAVE_ERROR_INVALID_ARGUMENT);
     VerifyOrExit(AlternateCurveCount < kMaxAlternateCurveIds, err = WEAVE_ERROR_INVALID_ARGUMENT);
@@ -189,7 +189,7 @@ WEAVE_ERROR BeginSessionResponseMessage::EncodeHead(PacketBuffer *msgBuf)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
     uint8_t *p = msgBuf->Start();
-    uint8_t bufSize = msgBuf->MaxDataLength();
+    uint16_t bufSize = msgBuf->MaxDataLength();
     uint8_t controlHeader = 0;
 
     // Verify we have enough room to do our job.
@@ -303,7 +303,7 @@ WEAVE_ERROR ReconfigureMessage::Encode(PacketBuffer *msgBuf)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
     uint8_t *p = msgBuf->Start();
-    uint8_t bufSize = msgBuf->MaxDataLength();
+    uint16_t bufSize = msgBuf->MaxDataLength();
 
     // Verify we have enough room to do our job.
     VerifyOrExit(bufSize >= 8, err = WEAVE_ERROR_BUFFER_TOO_SMALL);
