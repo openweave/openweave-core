@@ -349,7 +349,7 @@ class WeaveState(State):
         print
 
         weave_nodes = self.getWeaveNodeRecord()
-        node_format = "%-10s%10s%20s%16s"
+        node_format = "%-10s%15s%20s%16s"
         print node_format % ("NODES", "Name", "Weave Node Id", "Pairing Code")
 
         for node in sorted(weave_nodes.keys()):
@@ -358,7 +358,7 @@ class WeaveState(State):
         print
 
         fabric_record = self.getFabricRecord()
-        fabric_format = "%-10s%10s%24s"
+        fabric_format = "%-10s%15s%24s"
         print fabric_format % ("FABRIC", "Fabric Id", "Global Prefix")
         print fabric_format % ("", fabric_record.get('id', ""), fabric_record.get('global_prefix', ""))
         print
