@@ -714,16 +714,12 @@ am__GenerateEventLog_SOURCES_DIST = GenerateEventLog.cpp \
 	MockEvents.cpp \
 	schema/weave/trait/telemetry/NetworkWiFiTelemetryTrait.cpp \
 	schema/nest/test/trait/TestETrait.cpp \
-	schema/nest/test/trait/CommonStructEStructSchema.cpp \
-	schema/nest/test/trait/StructEStructSchema.cpp \
-	schema/nest/test/trait/NullableEStructSchema.cpp
+	schema/nest/test/trait/TestCommon.cpp
 @WEAVE_BUILD_TESTS_TRUE@am_GenerateEventLog_OBJECTS = GenerateEventLog-GenerateEventLog.$(OBJEXT) \
 @WEAVE_BUILD_TESTS_TRUE@	GenerateEventLog-MockEvents.$(OBJEXT) \
 @WEAVE_BUILD_TESTS_TRUE@	schema/weave/trait/telemetry/GenerateEventLog-NetworkWiFiTelemetryTrait.$(OBJEXT) \
 @WEAVE_BUILD_TESTS_TRUE@	schema/nest/test/trait/GenerateEventLog-TestETrait.$(OBJEXT) \
-@WEAVE_BUILD_TESTS_TRUE@	schema/nest/test/trait/GenerateEventLog-CommonStructEStructSchema.$(OBJEXT) \
-@WEAVE_BUILD_TESTS_TRUE@	schema/nest/test/trait/GenerateEventLog-StructEStructSchema.$(OBJEXT) \
-@WEAVE_BUILD_TESTS_TRUE@	schema/nest/test/trait/GenerateEventLog-NullableEStructSchema.$(OBJEXT)
+@WEAVE_BUILD_TESTS_TRUE@	schema/nest/test/trait/GenerateEventLog-TestCommon.$(OBJEXT)
 GenerateEventLog_OBJECTS = $(am_GenerateEventLog_OBJECTS)
 @WEAVE_BUILD_TESTS_TRUE@am__DEPENDENCIES_1 =  \
 @WEAVE_BUILD_TESTS_TRUE@	$(top_builddir)/src/lib/libWeave.a
@@ -874,14 +870,10 @@ TestErrorStr_OBJECTS = $(am_TestErrorStr_OBJECTS)
 @WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_7)
 am__TestEventLogging_SOURCES_DIST =  \
 	schema/nest/test/trait/TestETrait.cpp \
-	schema/nest/test/trait/CommonStructEStructSchema.cpp \
-	schema/nest/test/trait/StructEStructSchema.cpp \
-	schema/nest/test/trait/NullableEStructSchema.cpp \
-	MockExternalEvents.cpp TestEventLogging.cpp
+	schema/nest/test/trait/TestCommon.cpp MockExternalEvents.cpp \
+	TestEventLogging.cpp
 @WEAVE_BUILD_TESTS_TRUE@am_TestEventLogging_OBJECTS = schema/nest/test/trait/TestEventLogging-TestETrait.$(OBJEXT) \
-@WEAVE_BUILD_TESTS_TRUE@	schema/nest/test/trait/TestEventLogging-CommonStructEStructSchema.$(OBJEXT) \
-@WEAVE_BUILD_TESTS_TRUE@	schema/nest/test/trait/TestEventLogging-StructEStructSchema.$(OBJEXT) \
-@WEAVE_BUILD_TESTS_TRUE@	schema/nest/test/trait/TestEventLogging-NullableEStructSchema.$(OBJEXT) \
+@WEAVE_BUILD_TESTS_TRUE@	schema/nest/test/trait/TestEventLogging-TestCommon.$(OBJEXT) \
 @WEAVE_BUILD_TESTS_TRUE@	TestEventLogging-MockExternalEvents.$(OBJEXT) \
 @WEAVE_BUILD_TESTS_TRUE@	TestEventLogging-TestEventLogging.$(OBJEXT)
 TestEventLogging_OBJECTS = $(am_TestEventLogging_OBJECTS)
@@ -1137,18 +1129,16 @@ am__TestTDM_SOURCES_DIST = TestTDM.cpp \
 	schema/nest/test/trait/TestHTrait.cpp \
 	schema/nest/test/trait/TestCTrait.cpp \
 	schema/nest/test/trait/TestBTrait.cpp \
-	schema/nest/test/trait/StructCStructSchema.cpp \
 	schema/nest/test/trait/TestMismatchedCTrait.cpp \
-	schema/nest/test/trait/StructMismatchedCStructSchema.cpp \
+	schema/nest/test/trait/TestCommon.cpp \
 	MockMismatchedSchemaSinkAndSource.cpp \
 	TestPersistedStorageImplementation.cpp MockTestBTrait.cpp
 @HAVE_CXX11_TRUE@@WEAVE_BUILD_TESTS_TRUE@am_TestTDM_OBJECTS = TestTDM-TestTDM.$(OBJEXT) \
 @HAVE_CXX11_TRUE@@WEAVE_BUILD_TESTS_TRUE@	schema/nest/test/trait/TestTDM-TestHTrait.$(OBJEXT) \
 @HAVE_CXX11_TRUE@@WEAVE_BUILD_TESTS_TRUE@	schema/nest/test/trait/TestTDM-TestCTrait.$(OBJEXT) \
 @HAVE_CXX11_TRUE@@WEAVE_BUILD_TESTS_TRUE@	schema/nest/test/trait/TestTDM-TestBTrait.$(OBJEXT) \
-@HAVE_CXX11_TRUE@@WEAVE_BUILD_TESTS_TRUE@	schema/nest/test/trait/TestTDM-StructCStructSchema.$(OBJEXT) \
 @HAVE_CXX11_TRUE@@WEAVE_BUILD_TESTS_TRUE@	schema/nest/test/trait/TestTDM-TestMismatchedCTrait.$(OBJEXT) \
-@HAVE_CXX11_TRUE@@WEAVE_BUILD_TESTS_TRUE@	schema/nest/test/trait/TestTDM-StructMismatchedCStructSchema.$(OBJEXT) \
+@HAVE_CXX11_TRUE@@WEAVE_BUILD_TESTS_TRUE@	schema/nest/test/trait/TestTDM-TestCommon.$(OBJEXT) \
 @HAVE_CXX11_TRUE@@WEAVE_BUILD_TESTS_TRUE@	TestTDM-MockMismatchedSchemaSinkAndSource.$(OBJEXT) \
 @HAVE_CXX11_TRUE@@WEAVE_BUILD_TESTS_TRUE@	TestTDM-TestPersistedStorageImplementation.$(OBJEXT) \
 @HAVE_CXX11_TRUE@@WEAVE_BUILD_TESTS_TRUE@	TestTDM-MockTestBTrait.$(OBJEXT)
@@ -1222,9 +1212,7 @@ am__TestWdmNext_SOURCES_DIST = TestWdmNext.cpp MockSinkTraits.cpp \
 	schema/nest/test/trait/TestATrait.cpp \
 	schema/nest/test/trait/TestBTrait.cpp \
 	schema/nest/test/trait/TestETrait.cpp \
-	schema/nest/test/trait/CommonStructEStructSchema.cpp \
-	schema/nest/test/trait/StructEStructSchema.cpp \
-	schema/nest/test/trait/NullableEStructSchema.cpp \
+	schema/nest/test/trait/TestCommon.cpp \
 	schema/weave/trait/locale/LocaleSettingsTrait.cpp \
 	schema/weave/trait/locale/LocaleCapabilitiesTrait.cpp \
 	schema/weave/trait/security/BoltLockSettingsTrait.cpp \
@@ -1242,9 +1230,7 @@ am__TestWdmNext_SOURCES_DIST = TestWdmNext.cpp MockSinkTraits.cpp \
 @WEAVE_BUILD_TESTS_TRUE@	schema/nest/test/trait/TestWdmNext-TestATrait.$(OBJEXT) \
 @WEAVE_BUILD_TESTS_TRUE@	schema/nest/test/trait/TestWdmNext-TestBTrait.$(OBJEXT) \
 @WEAVE_BUILD_TESTS_TRUE@	schema/nest/test/trait/TestWdmNext-TestETrait.$(OBJEXT) \
-@WEAVE_BUILD_TESTS_TRUE@	schema/nest/test/trait/TestWdmNext-CommonStructEStructSchema.$(OBJEXT) \
-@WEAVE_BUILD_TESTS_TRUE@	schema/nest/test/trait/TestWdmNext-StructEStructSchema.$(OBJEXT) \
-@WEAVE_BUILD_TESTS_TRUE@	schema/nest/test/trait/TestWdmNext-NullableEStructSchema.$(OBJEXT) \
+@WEAVE_BUILD_TESTS_TRUE@	schema/nest/test/trait/TestWdmNext-TestCommon.$(OBJEXT) \
 @WEAVE_BUILD_TESTS_TRUE@	schema/weave/trait/locale/TestWdmNext-LocaleSettingsTrait.$(OBJEXT) \
 @WEAVE_BUILD_TESTS_TRUE@	schema/weave/trait/locale/TestWdmNext-LocaleCapabilitiesTrait.$(OBJEXT) \
 @WEAVE_BUILD_TESTS_TRUE@	schema/weave/trait/security/TestWdmNext-BoltLockSettingsTrait.$(OBJEXT) \
@@ -1367,9 +1353,7 @@ am__mock_device_SOURCES_DIST = mock-device.cpp MockDCLPServer.cpp \
 	schema/nest/test/trait/TestATrait.cpp \
 	schema/nest/test/trait/TestBTrait.cpp \
 	schema/nest/test/trait/TestETrait.cpp \
-	schema/nest/test/trait/CommonStructEStructSchema.cpp \
-	schema/nest/test/trait/StructEStructSchema.cpp \
-	schema/nest/test/trait/NullableEStructSchema.cpp \
+	schema/nest/test/trait/TestCommon.cpp \
 	schema/weave/trait/locale/LocaleSettingsTrait.cpp \
 	schema/weave/trait/locale/LocaleCapabilitiesTrait.cpp \
 	schema/weave/trait/security/BoltLockSettingsTrait.cpp \
@@ -1399,9 +1383,7 @@ am__mock_device_SOURCES_DIST = mock-device.cpp MockDCLPServer.cpp \
 @WEAVE_BUILD_TESTS_TRUE@	schema/nest/test/trait/mock_device-TestATrait.$(OBJEXT) \
 @WEAVE_BUILD_TESTS_TRUE@	schema/nest/test/trait/mock_device-TestBTrait.$(OBJEXT) \
 @WEAVE_BUILD_TESTS_TRUE@	schema/nest/test/trait/mock_device-TestETrait.$(OBJEXT) \
-@WEAVE_BUILD_TESTS_TRUE@	schema/nest/test/trait/mock_device-CommonStructEStructSchema.$(OBJEXT) \
-@WEAVE_BUILD_TESTS_TRUE@	schema/nest/test/trait/mock_device-StructEStructSchema.$(OBJEXT) \
-@WEAVE_BUILD_TESTS_TRUE@	schema/nest/test/trait/mock_device-NullableEStructSchema.$(OBJEXT) \
+@WEAVE_BUILD_TESTS_TRUE@	schema/nest/test/trait/mock_device-TestCommon.$(OBJEXT) \
 @WEAVE_BUILD_TESTS_TRUE@	schema/weave/trait/locale/mock_device-LocaleSettingsTrait.$(OBJEXT) \
 @WEAVE_BUILD_TESTS_TRUE@	schema/weave/trait/locale/mock_device-LocaleCapabilitiesTrait.$(OBJEXT) \
 @WEAVE_BUILD_TESTS_TRUE@	schema/weave/trait/security/mock_device-BoltLockSettingsTrait.$(OBJEXT) \
@@ -2858,10 +2840,8 @@ EXTRA_DIST = \
 # Source, compiler, and linker options for test programs.
 @WEAVE_BUILD_TESTS_TRUE@GenerateEventLog_SOURCES = GenerateEventLog.cpp MockEvents.cpp \
 @WEAVE_BUILD_TESTS_TRUE@                                           schema/weave/trait/telemetry/NetworkWiFiTelemetryTrait.cpp \
-@WEAVE_BUILD_TESTS_TRUE@                                           schema/nest/test/trait/TestETrait.cpp			\
-@WEAVE_BUILD_TESTS_TRUE@                                           schema/nest/test/trait/CommonStructEStructSchema.cpp \
-@WEAVE_BUILD_TESTS_TRUE@                                           schema/nest/test/trait/StructEStructSchema.cpp \
-@WEAVE_BUILD_TESTS_TRUE@                                           schema/nest/test/trait/NullableEStructSchema.cpp
+@WEAVE_BUILD_TESTS_TRUE@                                           schema/nest/test/trait/TestETrait.cpp \
+@WEAVE_BUILD_TESTS_TRUE@                                           schema/nest/test/trait/TestCommon.cpp
 
 @WEAVE_BUILD_TESTS_TRUE@GenerateEventLog_LDFLAGS = $(AM_CPPFLAGS)
 @WEAVE_BUILD_TESTS_TRUE@GenerateEventLog_CPPFLAGS = $(AM_CPPFLAGS) -I$(top_srcdir)/src/test-apps/schema
@@ -2899,9 +2879,7 @@ EXTRA_DIST = \
 @WEAVE_BUILD_TESTS_TRUE@TestECMath_SOURCES = TestECMath.cpp TestECMathParams.cpp
 @WEAVE_BUILD_TESTS_TRUE@TestECMath_LDADD = $(COMMON_LDADD) $(TEST_PLATFORM_LDADD)
 @WEAVE_BUILD_TESTS_TRUE@TestEventLogging_SOURCES = schema/nest/test/trait/TestETrait.cpp \
-@WEAVE_BUILD_TESTS_TRUE@                                           schema/nest/test/trait/CommonStructEStructSchema.cpp \
-@WEAVE_BUILD_TESTS_TRUE@                                           schema/nest/test/trait/StructEStructSchema.cpp \
-@WEAVE_BUILD_TESTS_TRUE@                                           schema/nest/test/trait/NullableEStructSchema.cpp \
+@WEAVE_BUILD_TESTS_TRUE@                                           schema/nest/test/trait/TestCommon.cpp \
 @WEAVE_BUILD_TESTS_TRUE@                                           MockExternalEvents.cpp \
 @WEAVE_BUILD_TESTS_TRUE@                                           TestEventLogging.cpp
 
@@ -2912,9 +2890,8 @@ EXTRA_DIST = \
 @HAVE_CXX11_TRUE@@WEAVE_BUILD_TESTS_TRUE@                                           schema/nest/test/trait/TestHTrait.cpp \
 @HAVE_CXX11_TRUE@@WEAVE_BUILD_TESTS_TRUE@                                           schema/nest/test/trait/TestCTrait.cpp \
 @HAVE_CXX11_TRUE@@WEAVE_BUILD_TESTS_TRUE@                                           schema/nest/test/trait/TestBTrait.cpp \
-@HAVE_CXX11_TRUE@@WEAVE_BUILD_TESTS_TRUE@                                           schema/nest/test/trait/StructCStructSchema.cpp \
 @HAVE_CXX11_TRUE@@WEAVE_BUILD_TESTS_TRUE@                                           schema/nest/test/trait/TestMismatchedCTrait.cpp \
-@HAVE_CXX11_TRUE@@WEAVE_BUILD_TESTS_TRUE@                                           schema/nest/test/trait/StructMismatchedCStructSchema.cpp \
+@HAVE_CXX11_TRUE@@WEAVE_BUILD_TESTS_TRUE@                                           schema/nest/test/trait/TestCommon.cpp \
 @HAVE_CXX11_TRUE@@WEAVE_BUILD_TESTS_TRUE@                                           MockMismatchedSchemaSinkAndSource.cpp \
 @HAVE_CXX11_TRUE@@WEAVE_BUILD_TESTS_TRUE@                                           TestPersistedStorageImplementation.cpp \
 @HAVE_CXX11_TRUE@@WEAVE_BUILD_TESTS_TRUE@                                           MockTestBTrait.cpp
@@ -3027,9 +3004,7 @@ EXTRA_DIST = \
 @WEAVE_BUILD_TESTS_TRUE@                                           schema/nest/test/trait/TestATrait.cpp			\
 @WEAVE_BUILD_TESTS_TRUE@                                           schema/nest/test/trait/TestBTrait.cpp			\
 @WEAVE_BUILD_TESTS_TRUE@                                           schema/nest/test/trait/TestETrait.cpp			\
-@WEAVE_BUILD_TESTS_TRUE@                                           schema/nest/test/trait/CommonStructEStructSchema.cpp \
-@WEAVE_BUILD_TESTS_TRUE@                                           schema/nest/test/trait/StructEStructSchema.cpp \
-@WEAVE_BUILD_TESTS_TRUE@                                           schema/nest/test/trait/NullableEStructSchema.cpp \
+@WEAVE_BUILD_TESTS_TRUE@                                           schema/nest/test/trait/TestCommon.cpp \
 @WEAVE_BUILD_TESTS_TRUE@                                           schema/weave/trait/locale/LocaleSettingsTrait.cpp		\
 @WEAVE_BUILD_TESTS_TRUE@                                           schema/weave/trait/locale/LocaleCapabilitiesTrait.cpp	\
 @WEAVE_BUILD_TESTS_TRUE@                                           schema/weave/trait/security/BoltLockSettingsTrait.cpp	\
@@ -3067,9 +3042,7 @@ EXTRA_DIST = \
 @WEAVE_BUILD_TESTS_TRUE@                                           schema/nest/test/trait/TestATrait.cpp                    \
 @WEAVE_BUILD_TESTS_TRUE@                                           schema/nest/test/trait/TestBTrait.cpp                    \
 @WEAVE_BUILD_TESTS_TRUE@                                           schema/nest/test/trait/TestETrait.cpp                    \
-@WEAVE_BUILD_TESTS_TRUE@                                           schema/nest/test/trait/CommonStructEStructSchema.cpp \
-@WEAVE_BUILD_TESTS_TRUE@                                           schema/nest/test/trait/StructEStructSchema.cpp \
-@WEAVE_BUILD_TESTS_TRUE@                                           schema/nest/test/trait/NullableEStructSchema.cpp \
+@WEAVE_BUILD_TESTS_TRUE@                                           schema/nest/test/trait/TestCommon.cpp \
 @WEAVE_BUILD_TESTS_TRUE@                                           schema/weave/trait/locale/LocaleSettingsTrait.cpp        \
 @WEAVE_BUILD_TESTS_TRUE@                                           schema/weave/trait/locale/LocaleCapabilitiesTrait.cpp    \
 @WEAVE_BUILD_TESTS_TRUE@                                           schema/weave/trait/security/BoltLockSettingsTrait.cpp    \
@@ -3345,13 +3318,7 @@ schema/nest/test/trait/$(DEPDIR)/$(am__dirstamp):
 schema/nest/test/trait/GenerateEventLog-TestETrait.$(OBJEXT):  \
 	schema/nest/test/trait/$(am__dirstamp) \
 	schema/nest/test/trait/$(DEPDIR)/$(am__dirstamp)
-schema/nest/test/trait/GenerateEventLog-CommonStructEStructSchema.$(OBJEXT):  \
-	schema/nest/test/trait/$(am__dirstamp) \
-	schema/nest/test/trait/$(DEPDIR)/$(am__dirstamp)
-schema/nest/test/trait/GenerateEventLog-StructEStructSchema.$(OBJEXT):  \
-	schema/nest/test/trait/$(am__dirstamp) \
-	schema/nest/test/trait/$(DEPDIR)/$(am__dirstamp)
-schema/nest/test/trait/GenerateEventLog-NullableEStructSchema.$(OBJEXT):  \
+schema/nest/test/trait/GenerateEventLog-TestCommon.$(OBJEXT):  \
 	schema/nest/test/trait/$(am__dirstamp) \
 	schema/nest/test/trait/$(DEPDIR)/$(am__dirstamp)
 
@@ -3421,13 +3388,7 @@ TestErrorStr$(EXEEXT): $(TestErrorStr_OBJECTS) $(TestErrorStr_DEPENDENCIES) $(EX
 schema/nest/test/trait/TestEventLogging-TestETrait.$(OBJEXT):  \
 	schema/nest/test/trait/$(am__dirstamp) \
 	schema/nest/test/trait/$(DEPDIR)/$(am__dirstamp)
-schema/nest/test/trait/TestEventLogging-CommonStructEStructSchema.$(OBJEXT):  \
-	schema/nest/test/trait/$(am__dirstamp) \
-	schema/nest/test/trait/$(DEPDIR)/$(am__dirstamp)
-schema/nest/test/trait/TestEventLogging-StructEStructSchema.$(OBJEXT):  \
-	schema/nest/test/trait/$(am__dirstamp) \
-	schema/nest/test/trait/$(DEPDIR)/$(am__dirstamp)
-schema/nest/test/trait/TestEventLogging-NullableEStructSchema.$(OBJEXT):  \
+schema/nest/test/trait/TestEventLogging-TestCommon.$(OBJEXT):  \
 	schema/nest/test/trait/$(am__dirstamp) \
 	schema/nest/test/trait/$(DEPDIR)/$(am__dirstamp)
 
@@ -3543,13 +3504,10 @@ schema/nest/test/trait/TestTDM-TestCTrait.$(OBJEXT):  \
 schema/nest/test/trait/TestTDM-TestBTrait.$(OBJEXT):  \
 	schema/nest/test/trait/$(am__dirstamp) \
 	schema/nest/test/trait/$(DEPDIR)/$(am__dirstamp)
-schema/nest/test/trait/TestTDM-StructCStructSchema.$(OBJEXT):  \
-	schema/nest/test/trait/$(am__dirstamp) \
-	schema/nest/test/trait/$(DEPDIR)/$(am__dirstamp)
 schema/nest/test/trait/TestTDM-TestMismatchedCTrait.$(OBJEXT):  \
 	schema/nest/test/trait/$(am__dirstamp) \
 	schema/nest/test/trait/$(DEPDIR)/$(am__dirstamp)
-schema/nest/test/trait/TestTDM-StructMismatchedCStructSchema.$(OBJEXT):  \
+schema/nest/test/trait/TestTDM-TestCommon.$(OBJEXT):  \
 	schema/nest/test/trait/$(am__dirstamp) \
 	schema/nest/test/trait/$(DEPDIR)/$(am__dirstamp)
 
@@ -3593,13 +3551,7 @@ schema/nest/test/trait/TestWdmNext-TestBTrait.$(OBJEXT):  \
 schema/nest/test/trait/TestWdmNext-TestETrait.$(OBJEXT):  \
 	schema/nest/test/trait/$(am__dirstamp) \
 	schema/nest/test/trait/$(DEPDIR)/$(am__dirstamp)
-schema/nest/test/trait/TestWdmNext-CommonStructEStructSchema.$(OBJEXT):  \
-	schema/nest/test/trait/$(am__dirstamp) \
-	schema/nest/test/trait/$(DEPDIR)/$(am__dirstamp)
-schema/nest/test/trait/TestWdmNext-StructEStructSchema.$(OBJEXT):  \
-	schema/nest/test/trait/$(am__dirstamp) \
-	schema/nest/test/trait/$(DEPDIR)/$(am__dirstamp)
-schema/nest/test/trait/TestWdmNext-NullableEStructSchema.$(OBJEXT):  \
+schema/nest/test/trait/TestWdmNext-TestCommon.$(OBJEXT):  \
 	schema/nest/test/trait/$(am__dirstamp) \
 	schema/nest/test/trait/$(DEPDIR)/$(am__dirstamp)
 schema/weave/trait/locale/$(am__dirstamp):
@@ -3675,13 +3627,7 @@ schema/nest/test/trait/mock_device-TestBTrait.$(OBJEXT):  \
 schema/nest/test/trait/mock_device-TestETrait.$(OBJEXT):  \
 	schema/nest/test/trait/$(am__dirstamp) \
 	schema/nest/test/trait/$(DEPDIR)/$(am__dirstamp)
-schema/nest/test/trait/mock_device-CommonStructEStructSchema.$(OBJEXT):  \
-	schema/nest/test/trait/$(am__dirstamp) \
-	schema/nest/test/trait/$(DEPDIR)/$(am__dirstamp)
-schema/nest/test/trait/mock_device-StructEStructSchema.$(OBJEXT):  \
-	schema/nest/test/trait/$(am__dirstamp) \
-	schema/nest/test/trait/$(DEPDIR)/$(am__dirstamp)
-schema/nest/test/trait/mock_device-NullableEStructSchema.$(OBJEXT):  \
+schema/nest/test/trait/mock_device-TestCommon.$(OBJEXT):  \
 	schema/nest/test/trait/$(am__dirstamp) \
 	schema/nest/test/trait/$(DEPDIR)/$(am__dirstamp)
 schema/weave/trait/locale/mock_device-LocaleSettingsTrait.$(OBJEXT):  \
@@ -3918,31 +3864,22 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@crypto-tests/$(DEPDIR)/WeaveCryptoHKDFTests.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@crypto-tests/$(DEPDIR)/WeaveCryptoHMACTests.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@crypto-tests/$(DEPDIR)/WeaveCryptoSHATests.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@schema/nest/test/trait/$(DEPDIR)/GenerateEventLog-CommonStructEStructSchema.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@schema/nest/test/trait/$(DEPDIR)/GenerateEventLog-NullableEStructSchema.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@schema/nest/test/trait/$(DEPDIR)/GenerateEventLog-StructEStructSchema.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@schema/nest/test/trait/$(DEPDIR)/GenerateEventLog-TestCommon.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@schema/nest/test/trait/$(DEPDIR)/GenerateEventLog-TestETrait.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@schema/nest/test/trait/$(DEPDIR)/TestEventLogging-CommonStructEStructSchema.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@schema/nest/test/trait/$(DEPDIR)/TestEventLogging-NullableEStructSchema.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@schema/nest/test/trait/$(DEPDIR)/TestEventLogging-StructEStructSchema.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@schema/nest/test/trait/$(DEPDIR)/TestEventLogging-TestCommon.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@schema/nest/test/trait/$(DEPDIR)/TestEventLogging-TestETrait.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@schema/nest/test/trait/$(DEPDIR)/TestTDM-StructCStructSchema.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@schema/nest/test/trait/$(DEPDIR)/TestTDM-StructMismatchedCStructSchema.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@schema/nest/test/trait/$(DEPDIR)/TestTDM-TestBTrait.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@schema/nest/test/trait/$(DEPDIR)/TestTDM-TestCTrait.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@schema/nest/test/trait/$(DEPDIR)/TestTDM-TestCommon.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@schema/nest/test/trait/$(DEPDIR)/TestTDM-TestHTrait.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@schema/nest/test/trait/$(DEPDIR)/TestTDM-TestMismatchedCTrait.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@schema/nest/test/trait/$(DEPDIR)/TestWdmNext-CommonStructEStructSchema.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@schema/nest/test/trait/$(DEPDIR)/TestWdmNext-NullableEStructSchema.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@schema/nest/test/trait/$(DEPDIR)/TestWdmNext-StructEStructSchema.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@schema/nest/test/trait/$(DEPDIR)/TestWdmNext-TestATrait.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@schema/nest/test/trait/$(DEPDIR)/TestWdmNext-TestBTrait.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@schema/nest/test/trait/$(DEPDIR)/TestWdmNext-TestCommon.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@schema/nest/test/trait/$(DEPDIR)/TestWdmNext-TestETrait.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@schema/nest/test/trait/$(DEPDIR)/mock_device-CommonStructEStructSchema.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@schema/nest/test/trait/$(DEPDIR)/mock_device-NullableEStructSchema.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@schema/nest/test/trait/$(DEPDIR)/mock_device-StructEStructSchema.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@schema/nest/test/trait/$(DEPDIR)/mock_device-TestATrait.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@schema/nest/test/trait/$(DEPDIR)/mock_device-TestBTrait.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@schema/nest/test/trait/$(DEPDIR)/mock_device-TestCommon.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@schema/nest/test/trait/$(DEPDIR)/mock_device-TestETrait.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@schema/weave/trait/locale/$(DEPDIR)/TestWdmNext-LocaleCapabilitiesTrait.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@schema/weave/trait/locale/$(DEPDIR)/TestWdmNext-LocaleSettingsTrait.Po@am__quote@
@@ -4034,47 +3971,19 @@ schema/nest/test/trait/GenerateEventLog-TestETrait.obj: schema/nest/test/trait/T
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(GenerateEventLog_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o schema/nest/test/trait/GenerateEventLog-TestETrait.obj `if test -f 'schema/nest/test/trait/TestETrait.cpp'; then $(CYGPATH_W) 'schema/nest/test/trait/TestETrait.cpp'; else $(CYGPATH_W) '$(srcdir)/schema/nest/test/trait/TestETrait.cpp'; fi`
 
-schema/nest/test/trait/GenerateEventLog-CommonStructEStructSchema.o: schema/nest/test/trait/CommonStructEStructSchema.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(GenerateEventLog_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT schema/nest/test/trait/GenerateEventLog-CommonStructEStructSchema.o -MD -MP -MF schema/nest/test/trait/$(DEPDIR)/GenerateEventLog-CommonStructEStructSchema.Tpo -c -o schema/nest/test/trait/GenerateEventLog-CommonStructEStructSchema.o `test -f 'schema/nest/test/trait/CommonStructEStructSchema.cpp' || echo '$(srcdir)/'`schema/nest/test/trait/CommonStructEStructSchema.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) schema/nest/test/trait/$(DEPDIR)/GenerateEventLog-CommonStructEStructSchema.Tpo schema/nest/test/trait/$(DEPDIR)/GenerateEventLog-CommonStructEStructSchema.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='schema/nest/test/trait/CommonStructEStructSchema.cpp' object='schema/nest/test/trait/GenerateEventLog-CommonStructEStructSchema.o' libtool=no @AMDEPBACKSLASH@
+schema/nest/test/trait/GenerateEventLog-TestCommon.o: schema/nest/test/trait/TestCommon.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(GenerateEventLog_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT schema/nest/test/trait/GenerateEventLog-TestCommon.o -MD -MP -MF schema/nest/test/trait/$(DEPDIR)/GenerateEventLog-TestCommon.Tpo -c -o schema/nest/test/trait/GenerateEventLog-TestCommon.o `test -f 'schema/nest/test/trait/TestCommon.cpp' || echo '$(srcdir)/'`schema/nest/test/trait/TestCommon.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) schema/nest/test/trait/$(DEPDIR)/GenerateEventLog-TestCommon.Tpo schema/nest/test/trait/$(DEPDIR)/GenerateEventLog-TestCommon.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='schema/nest/test/trait/TestCommon.cpp' object='schema/nest/test/trait/GenerateEventLog-TestCommon.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(GenerateEventLog_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o schema/nest/test/trait/GenerateEventLog-CommonStructEStructSchema.o `test -f 'schema/nest/test/trait/CommonStructEStructSchema.cpp' || echo '$(srcdir)/'`schema/nest/test/trait/CommonStructEStructSchema.cpp
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(GenerateEventLog_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o schema/nest/test/trait/GenerateEventLog-TestCommon.o `test -f 'schema/nest/test/trait/TestCommon.cpp' || echo '$(srcdir)/'`schema/nest/test/trait/TestCommon.cpp
 
-schema/nest/test/trait/GenerateEventLog-CommonStructEStructSchema.obj: schema/nest/test/trait/CommonStructEStructSchema.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(GenerateEventLog_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT schema/nest/test/trait/GenerateEventLog-CommonStructEStructSchema.obj -MD -MP -MF schema/nest/test/trait/$(DEPDIR)/GenerateEventLog-CommonStructEStructSchema.Tpo -c -o schema/nest/test/trait/GenerateEventLog-CommonStructEStructSchema.obj `if test -f 'schema/nest/test/trait/CommonStructEStructSchema.cpp'; then $(CYGPATH_W) 'schema/nest/test/trait/CommonStructEStructSchema.cpp'; else $(CYGPATH_W) '$(srcdir)/schema/nest/test/trait/CommonStructEStructSchema.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) schema/nest/test/trait/$(DEPDIR)/GenerateEventLog-CommonStructEStructSchema.Tpo schema/nest/test/trait/$(DEPDIR)/GenerateEventLog-CommonStructEStructSchema.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='schema/nest/test/trait/CommonStructEStructSchema.cpp' object='schema/nest/test/trait/GenerateEventLog-CommonStructEStructSchema.obj' libtool=no @AMDEPBACKSLASH@
+schema/nest/test/trait/GenerateEventLog-TestCommon.obj: schema/nest/test/trait/TestCommon.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(GenerateEventLog_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT schema/nest/test/trait/GenerateEventLog-TestCommon.obj -MD -MP -MF schema/nest/test/trait/$(DEPDIR)/GenerateEventLog-TestCommon.Tpo -c -o schema/nest/test/trait/GenerateEventLog-TestCommon.obj `if test -f 'schema/nest/test/trait/TestCommon.cpp'; then $(CYGPATH_W) 'schema/nest/test/trait/TestCommon.cpp'; else $(CYGPATH_W) '$(srcdir)/schema/nest/test/trait/TestCommon.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) schema/nest/test/trait/$(DEPDIR)/GenerateEventLog-TestCommon.Tpo schema/nest/test/trait/$(DEPDIR)/GenerateEventLog-TestCommon.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='schema/nest/test/trait/TestCommon.cpp' object='schema/nest/test/trait/GenerateEventLog-TestCommon.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(GenerateEventLog_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o schema/nest/test/trait/GenerateEventLog-CommonStructEStructSchema.obj `if test -f 'schema/nest/test/trait/CommonStructEStructSchema.cpp'; then $(CYGPATH_W) 'schema/nest/test/trait/CommonStructEStructSchema.cpp'; else $(CYGPATH_W) '$(srcdir)/schema/nest/test/trait/CommonStructEStructSchema.cpp'; fi`
-
-schema/nest/test/trait/GenerateEventLog-StructEStructSchema.o: schema/nest/test/trait/StructEStructSchema.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(GenerateEventLog_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT schema/nest/test/trait/GenerateEventLog-StructEStructSchema.o -MD -MP -MF schema/nest/test/trait/$(DEPDIR)/GenerateEventLog-StructEStructSchema.Tpo -c -o schema/nest/test/trait/GenerateEventLog-StructEStructSchema.o `test -f 'schema/nest/test/trait/StructEStructSchema.cpp' || echo '$(srcdir)/'`schema/nest/test/trait/StructEStructSchema.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) schema/nest/test/trait/$(DEPDIR)/GenerateEventLog-StructEStructSchema.Tpo schema/nest/test/trait/$(DEPDIR)/GenerateEventLog-StructEStructSchema.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='schema/nest/test/trait/StructEStructSchema.cpp' object='schema/nest/test/trait/GenerateEventLog-StructEStructSchema.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(GenerateEventLog_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o schema/nest/test/trait/GenerateEventLog-StructEStructSchema.o `test -f 'schema/nest/test/trait/StructEStructSchema.cpp' || echo '$(srcdir)/'`schema/nest/test/trait/StructEStructSchema.cpp
-
-schema/nest/test/trait/GenerateEventLog-StructEStructSchema.obj: schema/nest/test/trait/StructEStructSchema.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(GenerateEventLog_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT schema/nest/test/trait/GenerateEventLog-StructEStructSchema.obj -MD -MP -MF schema/nest/test/trait/$(DEPDIR)/GenerateEventLog-StructEStructSchema.Tpo -c -o schema/nest/test/trait/GenerateEventLog-StructEStructSchema.obj `if test -f 'schema/nest/test/trait/StructEStructSchema.cpp'; then $(CYGPATH_W) 'schema/nest/test/trait/StructEStructSchema.cpp'; else $(CYGPATH_W) '$(srcdir)/schema/nest/test/trait/StructEStructSchema.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) schema/nest/test/trait/$(DEPDIR)/GenerateEventLog-StructEStructSchema.Tpo schema/nest/test/trait/$(DEPDIR)/GenerateEventLog-StructEStructSchema.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='schema/nest/test/trait/StructEStructSchema.cpp' object='schema/nest/test/trait/GenerateEventLog-StructEStructSchema.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(GenerateEventLog_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o schema/nest/test/trait/GenerateEventLog-StructEStructSchema.obj `if test -f 'schema/nest/test/trait/StructEStructSchema.cpp'; then $(CYGPATH_W) 'schema/nest/test/trait/StructEStructSchema.cpp'; else $(CYGPATH_W) '$(srcdir)/schema/nest/test/trait/StructEStructSchema.cpp'; fi`
-
-schema/nest/test/trait/GenerateEventLog-NullableEStructSchema.o: schema/nest/test/trait/NullableEStructSchema.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(GenerateEventLog_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT schema/nest/test/trait/GenerateEventLog-NullableEStructSchema.o -MD -MP -MF schema/nest/test/trait/$(DEPDIR)/GenerateEventLog-NullableEStructSchema.Tpo -c -o schema/nest/test/trait/GenerateEventLog-NullableEStructSchema.o `test -f 'schema/nest/test/trait/NullableEStructSchema.cpp' || echo '$(srcdir)/'`schema/nest/test/trait/NullableEStructSchema.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) schema/nest/test/trait/$(DEPDIR)/GenerateEventLog-NullableEStructSchema.Tpo schema/nest/test/trait/$(DEPDIR)/GenerateEventLog-NullableEStructSchema.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='schema/nest/test/trait/NullableEStructSchema.cpp' object='schema/nest/test/trait/GenerateEventLog-NullableEStructSchema.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(GenerateEventLog_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o schema/nest/test/trait/GenerateEventLog-NullableEStructSchema.o `test -f 'schema/nest/test/trait/NullableEStructSchema.cpp' || echo '$(srcdir)/'`schema/nest/test/trait/NullableEStructSchema.cpp
-
-schema/nest/test/trait/GenerateEventLog-NullableEStructSchema.obj: schema/nest/test/trait/NullableEStructSchema.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(GenerateEventLog_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT schema/nest/test/trait/GenerateEventLog-NullableEStructSchema.obj -MD -MP -MF schema/nest/test/trait/$(DEPDIR)/GenerateEventLog-NullableEStructSchema.Tpo -c -o schema/nest/test/trait/GenerateEventLog-NullableEStructSchema.obj `if test -f 'schema/nest/test/trait/NullableEStructSchema.cpp'; then $(CYGPATH_W) 'schema/nest/test/trait/NullableEStructSchema.cpp'; else $(CYGPATH_W) '$(srcdir)/schema/nest/test/trait/NullableEStructSchema.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) schema/nest/test/trait/$(DEPDIR)/GenerateEventLog-NullableEStructSchema.Tpo schema/nest/test/trait/$(DEPDIR)/GenerateEventLog-NullableEStructSchema.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='schema/nest/test/trait/NullableEStructSchema.cpp' object='schema/nest/test/trait/GenerateEventLog-NullableEStructSchema.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(GenerateEventLog_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o schema/nest/test/trait/GenerateEventLog-NullableEStructSchema.obj `if test -f 'schema/nest/test/trait/NullableEStructSchema.cpp'; then $(CYGPATH_W) 'schema/nest/test/trait/NullableEStructSchema.cpp'; else $(CYGPATH_W) '$(srcdir)/schema/nest/test/trait/NullableEStructSchema.cpp'; fi`
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(GenerateEventLog_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o schema/nest/test/trait/GenerateEventLog-TestCommon.obj `if test -f 'schema/nest/test/trait/TestCommon.cpp'; then $(CYGPATH_W) 'schema/nest/test/trait/TestCommon.cpp'; else $(CYGPATH_W) '$(srcdir)/schema/nest/test/trait/TestCommon.cpp'; fi`
 
 TestCrypto-TestCrypto.o: TestCrypto.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(TestCrypto_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT TestCrypto-TestCrypto.o -MD -MP -MF $(DEPDIR)/TestCrypto-TestCrypto.Tpo -c -o TestCrypto-TestCrypto.o `test -f 'TestCrypto.cpp' || echo '$(srcdir)/'`TestCrypto.cpp
@@ -4104,47 +4013,19 @@ schema/nest/test/trait/TestEventLogging-TestETrait.obj: schema/nest/test/trait/T
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(TestEventLogging_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o schema/nest/test/trait/TestEventLogging-TestETrait.obj `if test -f 'schema/nest/test/trait/TestETrait.cpp'; then $(CYGPATH_W) 'schema/nest/test/trait/TestETrait.cpp'; else $(CYGPATH_W) '$(srcdir)/schema/nest/test/trait/TestETrait.cpp'; fi`
 
-schema/nest/test/trait/TestEventLogging-CommonStructEStructSchema.o: schema/nest/test/trait/CommonStructEStructSchema.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(TestEventLogging_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT schema/nest/test/trait/TestEventLogging-CommonStructEStructSchema.o -MD -MP -MF schema/nest/test/trait/$(DEPDIR)/TestEventLogging-CommonStructEStructSchema.Tpo -c -o schema/nest/test/trait/TestEventLogging-CommonStructEStructSchema.o `test -f 'schema/nest/test/trait/CommonStructEStructSchema.cpp' || echo '$(srcdir)/'`schema/nest/test/trait/CommonStructEStructSchema.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) schema/nest/test/trait/$(DEPDIR)/TestEventLogging-CommonStructEStructSchema.Tpo schema/nest/test/trait/$(DEPDIR)/TestEventLogging-CommonStructEStructSchema.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='schema/nest/test/trait/CommonStructEStructSchema.cpp' object='schema/nest/test/trait/TestEventLogging-CommonStructEStructSchema.o' libtool=no @AMDEPBACKSLASH@
+schema/nest/test/trait/TestEventLogging-TestCommon.o: schema/nest/test/trait/TestCommon.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(TestEventLogging_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT schema/nest/test/trait/TestEventLogging-TestCommon.o -MD -MP -MF schema/nest/test/trait/$(DEPDIR)/TestEventLogging-TestCommon.Tpo -c -o schema/nest/test/trait/TestEventLogging-TestCommon.o `test -f 'schema/nest/test/trait/TestCommon.cpp' || echo '$(srcdir)/'`schema/nest/test/trait/TestCommon.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) schema/nest/test/trait/$(DEPDIR)/TestEventLogging-TestCommon.Tpo schema/nest/test/trait/$(DEPDIR)/TestEventLogging-TestCommon.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='schema/nest/test/trait/TestCommon.cpp' object='schema/nest/test/trait/TestEventLogging-TestCommon.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(TestEventLogging_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o schema/nest/test/trait/TestEventLogging-CommonStructEStructSchema.o `test -f 'schema/nest/test/trait/CommonStructEStructSchema.cpp' || echo '$(srcdir)/'`schema/nest/test/trait/CommonStructEStructSchema.cpp
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(TestEventLogging_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o schema/nest/test/trait/TestEventLogging-TestCommon.o `test -f 'schema/nest/test/trait/TestCommon.cpp' || echo '$(srcdir)/'`schema/nest/test/trait/TestCommon.cpp
 
-schema/nest/test/trait/TestEventLogging-CommonStructEStructSchema.obj: schema/nest/test/trait/CommonStructEStructSchema.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(TestEventLogging_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT schema/nest/test/trait/TestEventLogging-CommonStructEStructSchema.obj -MD -MP -MF schema/nest/test/trait/$(DEPDIR)/TestEventLogging-CommonStructEStructSchema.Tpo -c -o schema/nest/test/trait/TestEventLogging-CommonStructEStructSchema.obj `if test -f 'schema/nest/test/trait/CommonStructEStructSchema.cpp'; then $(CYGPATH_W) 'schema/nest/test/trait/CommonStructEStructSchema.cpp'; else $(CYGPATH_W) '$(srcdir)/schema/nest/test/trait/CommonStructEStructSchema.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) schema/nest/test/trait/$(DEPDIR)/TestEventLogging-CommonStructEStructSchema.Tpo schema/nest/test/trait/$(DEPDIR)/TestEventLogging-CommonStructEStructSchema.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='schema/nest/test/trait/CommonStructEStructSchema.cpp' object='schema/nest/test/trait/TestEventLogging-CommonStructEStructSchema.obj' libtool=no @AMDEPBACKSLASH@
+schema/nest/test/trait/TestEventLogging-TestCommon.obj: schema/nest/test/trait/TestCommon.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(TestEventLogging_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT schema/nest/test/trait/TestEventLogging-TestCommon.obj -MD -MP -MF schema/nest/test/trait/$(DEPDIR)/TestEventLogging-TestCommon.Tpo -c -o schema/nest/test/trait/TestEventLogging-TestCommon.obj `if test -f 'schema/nest/test/trait/TestCommon.cpp'; then $(CYGPATH_W) 'schema/nest/test/trait/TestCommon.cpp'; else $(CYGPATH_W) '$(srcdir)/schema/nest/test/trait/TestCommon.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) schema/nest/test/trait/$(DEPDIR)/TestEventLogging-TestCommon.Tpo schema/nest/test/trait/$(DEPDIR)/TestEventLogging-TestCommon.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='schema/nest/test/trait/TestCommon.cpp' object='schema/nest/test/trait/TestEventLogging-TestCommon.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(TestEventLogging_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o schema/nest/test/trait/TestEventLogging-CommonStructEStructSchema.obj `if test -f 'schema/nest/test/trait/CommonStructEStructSchema.cpp'; then $(CYGPATH_W) 'schema/nest/test/trait/CommonStructEStructSchema.cpp'; else $(CYGPATH_W) '$(srcdir)/schema/nest/test/trait/CommonStructEStructSchema.cpp'; fi`
-
-schema/nest/test/trait/TestEventLogging-StructEStructSchema.o: schema/nest/test/trait/StructEStructSchema.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(TestEventLogging_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT schema/nest/test/trait/TestEventLogging-StructEStructSchema.o -MD -MP -MF schema/nest/test/trait/$(DEPDIR)/TestEventLogging-StructEStructSchema.Tpo -c -o schema/nest/test/trait/TestEventLogging-StructEStructSchema.o `test -f 'schema/nest/test/trait/StructEStructSchema.cpp' || echo '$(srcdir)/'`schema/nest/test/trait/StructEStructSchema.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) schema/nest/test/trait/$(DEPDIR)/TestEventLogging-StructEStructSchema.Tpo schema/nest/test/trait/$(DEPDIR)/TestEventLogging-StructEStructSchema.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='schema/nest/test/trait/StructEStructSchema.cpp' object='schema/nest/test/trait/TestEventLogging-StructEStructSchema.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(TestEventLogging_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o schema/nest/test/trait/TestEventLogging-StructEStructSchema.o `test -f 'schema/nest/test/trait/StructEStructSchema.cpp' || echo '$(srcdir)/'`schema/nest/test/trait/StructEStructSchema.cpp
-
-schema/nest/test/trait/TestEventLogging-StructEStructSchema.obj: schema/nest/test/trait/StructEStructSchema.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(TestEventLogging_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT schema/nest/test/trait/TestEventLogging-StructEStructSchema.obj -MD -MP -MF schema/nest/test/trait/$(DEPDIR)/TestEventLogging-StructEStructSchema.Tpo -c -o schema/nest/test/trait/TestEventLogging-StructEStructSchema.obj `if test -f 'schema/nest/test/trait/StructEStructSchema.cpp'; then $(CYGPATH_W) 'schema/nest/test/trait/StructEStructSchema.cpp'; else $(CYGPATH_W) '$(srcdir)/schema/nest/test/trait/StructEStructSchema.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) schema/nest/test/trait/$(DEPDIR)/TestEventLogging-StructEStructSchema.Tpo schema/nest/test/trait/$(DEPDIR)/TestEventLogging-StructEStructSchema.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='schema/nest/test/trait/StructEStructSchema.cpp' object='schema/nest/test/trait/TestEventLogging-StructEStructSchema.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(TestEventLogging_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o schema/nest/test/trait/TestEventLogging-StructEStructSchema.obj `if test -f 'schema/nest/test/trait/StructEStructSchema.cpp'; then $(CYGPATH_W) 'schema/nest/test/trait/StructEStructSchema.cpp'; else $(CYGPATH_W) '$(srcdir)/schema/nest/test/trait/StructEStructSchema.cpp'; fi`
-
-schema/nest/test/trait/TestEventLogging-NullableEStructSchema.o: schema/nest/test/trait/NullableEStructSchema.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(TestEventLogging_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT schema/nest/test/trait/TestEventLogging-NullableEStructSchema.o -MD -MP -MF schema/nest/test/trait/$(DEPDIR)/TestEventLogging-NullableEStructSchema.Tpo -c -o schema/nest/test/trait/TestEventLogging-NullableEStructSchema.o `test -f 'schema/nest/test/trait/NullableEStructSchema.cpp' || echo '$(srcdir)/'`schema/nest/test/trait/NullableEStructSchema.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) schema/nest/test/trait/$(DEPDIR)/TestEventLogging-NullableEStructSchema.Tpo schema/nest/test/trait/$(DEPDIR)/TestEventLogging-NullableEStructSchema.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='schema/nest/test/trait/NullableEStructSchema.cpp' object='schema/nest/test/trait/TestEventLogging-NullableEStructSchema.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(TestEventLogging_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o schema/nest/test/trait/TestEventLogging-NullableEStructSchema.o `test -f 'schema/nest/test/trait/NullableEStructSchema.cpp' || echo '$(srcdir)/'`schema/nest/test/trait/NullableEStructSchema.cpp
-
-schema/nest/test/trait/TestEventLogging-NullableEStructSchema.obj: schema/nest/test/trait/NullableEStructSchema.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(TestEventLogging_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT schema/nest/test/trait/TestEventLogging-NullableEStructSchema.obj -MD -MP -MF schema/nest/test/trait/$(DEPDIR)/TestEventLogging-NullableEStructSchema.Tpo -c -o schema/nest/test/trait/TestEventLogging-NullableEStructSchema.obj `if test -f 'schema/nest/test/trait/NullableEStructSchema.cpp'; then $(CYGPATH_W) 'schema/nest/test/trait/NullableEStructSchema.cpp'; else $(CYGPATH_W) '$(srcdir)/schema/nest/test/trait/NullableEStructSchema.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) schema/nest/test/trait/$(DEPDIR)/TestEventLogging-NullableEStructSchema.Tpo schema/nest/test/trait/$(DEPDIR)/TestEventLogging-NullableEStructSchema.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='schema/nest/test/trait/NullableEStructSchema.cpp' object='schema/nest/test/trait/TestEventLogging-NullableEStructSchema.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(TestEventLogging_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o schema/nest/test/trait/TestEventLogging-NullableEStructSchema.obj `if test -f 'schema/nest/test/trait/NullableEStructSchema.cpp'; then $(CYGPATH_W) 'schema/nest/test/trait/NullableEStructSchema.cpp'; else $(CYGPATH_W) '$(srcdir)/schema/nest/test/trait/NullableEStructSchema.cpp'; fi`
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(TestEventLogging_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o schema/nest/test/trait/TestEventLogging-TestCommon.obj `if test -f 'schema/nest/test/trait/TestCommon.cpp'; then $(CYGPATH_W) 'schema/nest/test/trait/TestCommon.cpp'; else $(CYGPATH_W) '$(srcdir)/schema/nest/test/trait/TestCommon.cpp'; fi`
 
 TestEventLogging-MockExternalEvents.o: MockExternalEvents.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(TestEventLogging_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT TestEventLogging-MockExternalEvents.o -MD -MP -MF $(DEPDIR)/TestEventLogging-MockExternalEvents.Tpo -c -o TestEventLogging-MockExternalEvents.o `test -f 'MockExternalEvents.cpp' || echo '$(srcdir)/'`MockExternalEvents.cpp
@@ -4258,20 +4139,6 @@ schema/nest/test/trait/TestTDM-TestBTrait.obj: schema/nest/test/trait/TestBTrait
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(TestTDM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o schema/nest/test/trait/TestTDM-TestBTrait.obj `if test -f 'schema/nest/test/trait/TestBTrait.cpp'; then $(CYGPATH_W) 'schema/nest/test/trait/TestBTrait.cpp'; else $(CYGPATH_W) '$(srcdir)/schema/nest/test/trait/TestBTrait.cpp'; fi`
 
-schema/nest/test/trait/TestTDM-StructCStructSchema.o: schema/nest/test/trait/StructCStructSchema.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(TestTDM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT schema/nest/test/trait/TestTDM-StructCStructSchema.o -MD -MP -MF schema/nest/test/trait/$(DEPDIR)/TestTDM-StructCStructSchema.Tpo -c -o schema/nest/test/trait/TestTDM-StructCStructSchema.o `test -f 'schema/nest/test/trait/StructCStructSchema.cpp' || echo '$(srcdir)/'`schema/nest/test/trait/StructCStructSchema.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) schema/nest/test/trait/$(DEPDIR)/TestTDM-StructCStructSchema.Tpo schema/nest/test/trait/$(DEPDIR)/TestTDM-StructCStructSchema.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='schema/nest/test/trait/StructCStructSchema.cpp' object='schema/nest/test/trait/TestTDM-StructCStructSchema.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(TestTDM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o schema/nest/test/trait/TestTDM-StructCStructSchema.o `test -f 'schema/nest/test/trait/StructCStructSchema.cpp' || echo '$(srcdir)/'`schema/nest/test/trait/StructCStructSchema.cpp
-
-schema/nest/test/trait/TestTDM-StructCStructSchema.obj: schema/nest/test/trait/StructCStructSchema.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(TestTDM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT schema/nest/test/trait/TestTDM-StructCStructSchema.obj -MD -MP -MF schema/nest/test/trait/$(DEPDIR)/TestTDM-StructCStructSchema.Tpo -c -o schema/nest/test/trait/TestTDM-StructCStructSchema.obj `if test -f 'schema/nest/test/trait/StructCStructSchema.cpp'; then $(CYGPATH_W) 'schema/nest/test/trait/StructCStructSchema.cpp'; else $(CYGPATH_W) '$(srcdir)/schema/nest/test/trait/StructCStructSchema.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) schema/nest/test/trait/$(DEPDIR)/TestTDM-StructCStructSchema.Tpo schema/nest/test/trait/$(DEPDIR)/TestTDM-StructCStructSchema.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='schema/nest/test/trait/StructCStructSchema.cpp' object='schema/nest/test/trait/TestTDM-StructCStructSchema.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(TestTDM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o schema/nest/test/trait/TestTDM-StructCStructSchema.obj `if test -f 'schema/nest/test/trait/StructCStructSchema.cpp'; then $(CYGPATH_W) 'schema/nest/test/trait/StructCStructSchema.cpp'; else $(CYGPATH_W) '$(srcdir)/schema/nest/test/trait/StructCStructSchema.cpp'; fi`
-
 schema/nest/test/trait/TestTDM-TestMismatchedCTrait.o: schema/nest/test/trait/TestMismatchedCTrait.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(TestTDM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT schema/nest/test/trait/TestTDM-TestMismatchedCTrait.o -MD -MP -MF schema/nest/test/trait/$(DEPDIR)/TestTDM-TestMismatchedCTrait.Tpo -c -o schema/nest/test/trait/TestTDM-TestMismatchedCTrait.o `test -f 'schema/nest/test/trait/TestMismatchedCTrait.cpp' || echo '$(srcdir)/'`schema/nest/test/trait/TestMismatchedCTrait.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) schema/nest/test/trait/$(DEPDIR)/TestTDM-TestMismatchedCTrait.Tpo schema/nest/test/trait/$(DEPDIR)/TestTDM-TestMismatchedCTrait.Po
@@ -4286,19 +4153,19 @@ schema/nest/test/trait/TestTDM-TestMismatchedCTrait.obj: schema/nest/test/trait/
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(TestTDM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o schema/nest/test/trait/TestTDM-TestMismatchedCTrait.obj `if test -f 'schema/nest/test/trait/TestMismatchedCTrait.cpp'; then $(CYGPATH_W) 'schema/nest/test/trait/TestMismatchedCTrait.cpp'; else $(CYGPATH_W) '$(srcdir)/schema/nest/test/trait/TestMismatchedCTrait.cpp'; fi`
 
-schema/nest/test/trait/TestTDM-StructMismatchedCStructSchema.o: schema/nest/test/trait/StructMismatchedCStructSchema.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(TestTDM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT schema/nest/test/trait/TestTDM-StructMismatchedCStructSchema.o -MD -MP -MF schema/nest/test/trait/$(DEPDIR)/TestTDM-StructMismatchedCStructSchema.Tpo -c -o schema/nest/test/trait/TestTDM-StructMismatchedCStructSchema.o `test -f 'schema/nest/test/trait/StructMismatchedCStructSchema.cpp' || echo '$(srcdir)/'`schema/nest/test/trait/StructMismatchedCStructSchema.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) schema/nest/test/trait/$(DEPDIR)/TestTDM-StructMismatchedCStructSchema.Tpo schema/nest/test/trait/$(DEPDIR)/TestTDM-StructMismatchedCStructSchema.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='schema/nest/test/trait/StructMismatchedCStructSchema.cpp' object='schema/nest/test/trait/TestTDM-StructMismatchedCStructSchema.o' libtool=no @AMDEPBACKSLASH@
+schema/nest/test/trait/TestTDM-TestCommon.o: schema/nest/test/trait/TestCommon.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(TestTDM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT schema/nest/test/trait/TestTDM-TestCommon.o -MD -MP -MF schema/nest/test/trait/$(DEPDIR)/TestTDM-TestCommon.Tpo -c -o schema/nest/test/trait/TestTDM-TestCommon.o `test -f 'schema/nest/test/trait/TestCommon.cpp' || echo '$(srcdir)/'`schema/nest/test/trait/TestCommon.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) schema/nest/test/trait/$(DEPDIR)/TestTDM-TestCommon.Tpo schema/nest/test/trait/$(DEPDIR)/TestTDM-TestCommon.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='schema/nest/test/trait/TestCommon.cpp' object='schema/nest/test/trait/TestTDM-TestCommon.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(TestTDM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o schema/nest/test/trait/TestTDM-StructMismatchedCStructSchema.o `test -f 'schema/nest/test/trait/StructMismatchedCStructSchema.cpp' || echo '$(srcdir)/'`schema/nest/test/trait/StructMismatchedCStructSchema.cpp
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(TestTDM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o schema/nest/test/trait/TestTDM-TestCommon.o `test -f 'schema/nest/test/trait/TestCommon.cpp' || echo '$(srcdir)/'`schema/nest/test/trait/TestCommon.cpp
 
-schema/nest/test/trait/TestTDM-StructMismatchedCStructSchema.obj: schema/nest/test/trait/StructMismatchedCStructSchema.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(TestTDM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT schema/nest/test/trait/TestTDM-StructMismatchedCStructSchema.obj -MD -MP -MF schema/nest/test/trait/$(DEPDIR)/TestTDM-StructMismatchedCStructSchema.Tpo -c -o schema/nest/test/trait/TestTDM-StructMismatchedCStructSchema.obj `if test -f 'schema/nest/test/trait/StructMismatchedCStructSchema.cpp'; then $(CYGPATH_W) 'schema/nest/test/trait/StructMismatchedCStructSchema.cpp'; else $(CYGPATH_W) '$(srcdir)/schema/nest/test/trait/StructMismatchedCStructSchema.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) schema/nest/test/trait/$(DEPDIR)/TestTDM-StructMismatchedCStructSchema.Tpo schema/nest/test/trait/$(DEPDIR)/TestTDM-StructMismatchedCStructSchema.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='schema/nest/test/trait/StructMismatchedCStructSchema.cpp' object='schema/nest/test/trait/TestTDM-StructMismatchedCStructSchema.obj' libtool=no @AMDEPBACKSLASH@
+schema/nest/test/trait/TestTDM-TestCommon.obj: schema/nest/test/trait/TestCommon.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(TestTDM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT schema/nest/test/trait/TestTDM-TestCommon.obj -MD -MP -MF schema/nest/test/trait/$(DEPDIR)/TestTDM-TestCommon.Tpo -c -o schema/nest/test/trait/TestTDM-TestCommon.obj `if test -f 'schema/nest/test/trait/TestCommon.cpp'; then $(CYGPATH_W) 'schema/nest/test/trait/TestCommon.cpp'; else $(CYGPATH_W) '$(srcdir)/schema/nest/test/trait/TestCommon.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) schema/nest/test/trait/$(DEPDIR)/TestTDM-TestCommon.Tpo schema/nest/test/trait/$(DEPDIR)/TestTDM-TestCommon.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='schema/nest/test/trait/TestCommon.cpp' object='schema/nest/test/trait/TestTDM-TestCommon.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(TestTDM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o schema/nest/test/trait/TestTDM-StructMismatchedCStructSchema.obj `if test -f 'schema/nest/test/trait/StructMismatchedCStructSchema.cpp'; then $(CYGPATH_W) 'schema/nest/test/trait/StructMismatchedCStructSchema.cpp'; else $(CYGPATH_W) '$(srcdir)/schema/nest/test/trait/StructMismatchedCStructSchema.cpp'; fi`
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(TestTDM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o schema/nest/test/trait/TestTDM-TestCommon.obj `if test -f 'schema/nest/test/trait/TestCommon.cpp'; then $(CYGPATH_W) 'schema/nest/test/trait/TestCommon.cpp'; else $(CYGPATH_W) '$(srcdir)/schema/nest/test/trait/TestCommon.cpp'; fi`
 
 TestTDM-MockMismatchedSchemaSinkAndSource.o: MockMismatchedSchemaSinkAndSource.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(TestTDM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT TestTDM-MockMismatchedSchemaSinkAndSource.o -MD -MP -MF $(DEPDIR)/TestTDM-MockMismatchedSchemaSinkAndSource.Tpo -c -o TestTDM-MockMismatchedSchemaSinkAndSource.o `test -f 'MockMismatchedSchemaSinkAndSource.cpp' || echo '$(srcdir)/'`MockMismatchedSchemaSinkAndSource.cpp
@@ -4468,47 +4335,19 @@ schema/nest/test/trait/TestWdmNext-TestETrait.obj: schema/nest/test/trait/TestET
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(TestWdmNext_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o schema/nest/test/trait/TestWdmNext-TestETrait.obj `if test -f 'schema/nest/test/trait/TestETrait.cpp'; then $(CYGPATH_W) 'schema/nest/test/trait/TestETrait.cpp'; else $(CYGPATH_W) '$(srcdir)/schema/nest/test/trait/TestETrait.cpp'; fi`
 
-schema/nest/test/trait/TestWdmNext-CommonStructEStructSchema.o: schema/nest/test/trait/CommonStructEStructSchema.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(TestWdmNext_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT schema/nest/test/trait/TestWdmNext-CommonStructEStructSchema.o -MD -MP -MF schema/nest/test/trait/$(DEPDIR)/TestWdmNext-CommonStructEStructSchema.Tpo -c -o schema/nest/test/trait/TestWdmNext-CommonStructEStructSchema.o `test -f 'schema/nest/test/trait/CommonStructEStructSchema.cpp' || echo '$(srcdir)/'`schema/nest/test/trait/CommonStructEStructSchema.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) schema/nest/test/trait/$(DEPDIR)/TestWdmNext-CommonStructEStructSchema.Tpo schema/nest/test/trait/$(DEPDIR)/TestWdmNext-CommonStructEStructSchema.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='schema/nest/test/trait/CommonStructEStructSchema.cpp' object='schema/nest/test/trait/TestWdmNext-CommonStructEStructSchema.o' libtool=no @AMDEPBACKSLASH@
+schema/nest/test/trait/TestWdmNext-TestCommon.o: schema/nest/test/trait/TestCommon.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(TestWdmNext_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT schema/nest/test/trait/TestWdmNext-TestCommon.o -MD -MP -MF schema/nest/test/trait/$(DEPDIR)/TestWdmNext-TestCommon.Tpo -c -o schema/nest/test/trait/TestWdmNext-TestCommon.o `test -f 'schema/nest/test/trait/TestCommon.cpp' || echo '$(srcdir)/'`schema/nest/test/trait/TestCommon.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) schema/nest/test/trait/$(DEPDIR)/TestWdmNext-TestCommon.Tpo schema/nest/test/trait/$(DEPDIR)/TestWdmNext-TestCommon.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='schema/nest/test/trait/TestCommon.cpp' object='schema/nest/test/trait/TestWdmNext-TestCommon.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(TestWdmNext_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o schema/nest/test/trait/TestWdmNext-CommonStructEStructSchema.o `test -f 'schema/nest/test/trait/CommonStructEStructSchema.cpp' || echo '$(srcdir)/'`schema/nest/test/trait/CommonStructEStructSchema.cpp
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(TestWdmNext_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o schema/nest/test/trait/TestWdmNext-TestCommon.o `test -f 'schema/nest/test/trait/TestCommon.cpp' || echo '$(srcdir)/'`schema/nest/test/trait/TestCommon.cpp
 
-schema/nest/test/trait/TestWdmNext-CommonStructEStructSchema.obj: schema/nest/test/trait/CommonStructEStructSchema.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(TestWdmNext_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT schema/nest/test/trait/TestWdmNext-CommonStructEStructSchema.obj -MD -MP -MF schema/nest/test/trait/$(DEPDIR)/TestWdmNext-CommonStructEStructSchema.Tpo -c -o schema/nest/test/trait/TestWdmNext-CommonStructEStructSchema.obj `if test -f 'schema/nest/test/trait/CommonStructEStructSchema.cpp'; then $(CYGPATH_W) 'schema/nest/test/trait/CommonStructEStructSchema.cpp'; else $(CYGPATH_W) '$(srcdir)/schema/nest/test/trait/CommonStructEStructSchema.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) schema/nest/test/trait/$(DEPDIR)/TestWdmNext-CommonStructEStructSchema.Tpo schema/nest/test/trait/$(DEPDIR)/TestWdmNext-CommonStructEStructSchema.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='schema/nest/test/trait/CommonStructEStructSchema.cpp' object='schema/nest/test/trait/TestWdmNext-CommonStructEStructSchema.obj' libtool=no @AMDEPBACKSLASH@
+schema/nest/test/trait/TestWdmNext-TestCommon.obj: schema/nest/test/trait/TestCommon.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(TestWdmNext_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT schema/nest/test/trait/TestWdmNext-TestCommon.obj -MD -MP -MF schema/nest/test/trait/$(DEPDIR)/TestWdmNext-TestCommon.Tpo -c -o schema/nest/test/trait/TestWdmNext-TestCommon.obj `if test -f 'schema/nest/test/trait/TestCommon.cpp'; then $(CYGPATH_W) 'schema/nest/test/trait/TestCommon.cpp'; else $(CYGPATH_W) '$(srcdir)/schema/nest/test/trait/TestCommon.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) schema/nest/test/trait/$(DEPDIR)/TestWdmNext-TestCommon.Tpo schema/nest/test/trait/$(DEPDIR)/TestWdmNext-TestCommon.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='schema/nest/test/trait/TestCommon.cpp' object='schema/nest/test/trait/TestWdmNext-TestCommon.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(TestWdmNext_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o schema/nest/test/trait/TestWdmNext-CommonStructEStructSchema.obj `if test -f 'schema/nest/test/trait/CommonStructEStructSchema.cpp'; then $(CYGPATH_W) 'schema/nest/test/trait/CommonStructEStructSchema.cpp'; else $(CYGPATH_W) '$(srcdir)/schema/nest/test/trait/CommonStructEStructSchema.cpp'; fi`
-
-schema/nest/test/trait/TestWdmNext-StructEStructSchema.o: schema/nest/test/trait/StructEStructSchema.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(TestWdmNext_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT schema/nest/test/trait/TestWdmNext-StructEStructSchema.o -MD -MP -MF schema/nest/test/trait/$(DEPDIR)/TestWdmNext-StructEStructSchema.Tpo -c -o schema/nest/test/trait/TestWdmNext-StructEStructSchema.o `test -f 'schema/nest/test/trait/StructEStructSchema.cpp' || echo '$(srcdir)/'`schema/nest/test/trait/StructEStructSchema.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) schema/nest/test/trait/$(DEPDIR)/TestWdmNext-StructEStructSchema.Tpo schema/nest/test/trait/$(DEPDIR)/TestWdmNext-StructEStructSchema.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='schema/nest/test/trait/StructEStructSchema.cpp' object='schema/nest/test/trait/TestWdmNext-StructEStructSchema.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(TestWdmNext_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o schema/nest/test/trait/TestWdmNext-StructEStructSchema.o `test -f 'schema/nest/test/trait/StructEStructSchema.cpp' || echo '$(srcdir)/'`schema/nest/test/trait/StructEStructSchema.cpp
-
-schema/nest/test/trait/TestWdmNext-StructEStructSchema.obj: schema/nest/test/trait/StructEStructSchema.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(TestWdmNext_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT schema/nest/test/trait/TestWdmNext-StructEStructSchema.obj -MD -MP -MF schema/nest/test/trait/$(DEPDIR)/TestWdmNext-StructEStructSchema.Tpo -c -o schema/nest/test/trait/TestWdmNext-StructEStructSchema.obj `if test -f 'schema/nest/test/trait/StructEStructSchema.cpp'; then $(CYGPATH_W) 'schema/nest/test/trait/StructEStructSchema.cpp'; else $(CYGPATH_W) '$(srcdir)/schema/nest/test/trait/StructEStructSchema.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) schema/nest/test/trait/$(DEPDIR)/TestWdmNext-StructEStructSchema.Tpo schema/nest/test/trait/$(DEPDIR)/TestWdmNext-StructEStructSchema.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='schema/nest/test/trait/StructEStructSchema.cpp' object='schema/nest/test/trait/TestWdmNext-StructEStructSchema.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(TestWdmNext_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o schema/nest/test/trait/TestWdmNext-StructEStructSchema.obj `if test -f 'schema/nest/test/trait/StructEStructSchema.cpp'; then $(CYGPATH_W) 'schema/nest/test/trait/StructEStructSchema.cpp'; else $(CYGPATH_W) '$(srcdir)/schema/nest/test/trait/StructEStructSchema.cpp'; fi`
-
-schema/nest/test/trait/TestWdmNext-NullableEStructSchema.o: schema/nest/test/trait/NullableEStructSchema.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(TestWdmNext_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT schema/nest/test/trait/TestWdmNext-NullableEStructSchema.o -MD -MP -MF schema/nest/test/trait/$(DEPDIR)/TestWdmNext-NullableEStructSchema.Tpo -c -o schema/nest/test/trait/TestWdmNext-NullableEStructSchema.o `test -f 'schema/nest/test/trait/NullableEStructSchema.cpp' || echo '$(srcdir)/'`schema/nest/test/trait/NullableEStructSchema.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) schema/nest/test/trait/$(DEPDIR)/TestWdmNext-NullableEStructSchema.Tpo schema/nest/test/trait/$(DEPDIR)/TestWdmNext-NullableEStructSchema.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='schema/nest/test/trait/NullableEStructSchema.cpp' object='schema/nest/test/trait/TestWdmNext-NullableEStructSchema.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(TestWdmNext_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o schema/nest/test/trait/TestWdmNext-NullableEStructSchema.o `test -f 'schema/nest/test/trait/NullableEStructSchema.cpp' || echo '$(srcdir)/'`schema/nest/test/trait/NullableEStructSchema.cpp
-
-schema/nest/test/trait/TestWdmNext-NullableEStructSchema.obj: schema/nest/test/trait/NullableEStructSchema.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(TestWdmNext_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT schema/nest/test/trait/TestWdmNext-NullableEStructSchema.obj -MD -MP -MF schema/nest/test/trait/$(DEPDIR)/TestWdmNext-NullableEStructSchema.Tpo -c -o schema/nest/test/trait/TestWdmNext-NullableEStructSchema.obj `if test -f 'schema/nest/test/trait/NullableEStructSchema.cpp'; then $(CYGPATH_W) 'schema/nest/test/trait/NullableEStructSchema.cpp'; else $(CYGPATH_W) '$(srcdir)/schema/nest/test/trait/NullableEStructSchema.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) schema/nest/test/trait/$(DEPDIR)/TestWdmNext-NullableEStructSchema.Tpo schema/nest/test/trait/$(DEPDIR)/TestWdmNext-NullableEStructSchema.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='schema/nest/test/trait/NullableEStructSchema.cpp' object='schema/nest/test/trait/TestWdmNext-NullableEStructSchema.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(TestWdmNext_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o schema/nest/test/trait/TestWdmNext-NullableEStructSchema.obj `if test -f 'schema/nest/test/trait/NullableEStructSchema.cpp'; then $(CYGPATH_W) 'schema/nest/test/trait/NullableEStructSchema.cpp'; else $(CYGPATH_W) '$(srcdir)/schema/nest/test/trait/NullableEStructSchema.cpp'; fi`
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(TestWdmNext_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o schema/nest/test/trait/TestWdmNext-TestCommon.obj `if test -f 'schema/nest/test/trait/TestCommon.cpp'; then $(CYGPATH_W) 'schema/nest/test/trait/TestCommon.cpp'; else $(CYGPATH_W) '$(srcdir)/schema/nest/test/trait/TestCommon.cpp'; fi`
 
 schema/weave/trait/locale/TestWdmNext-LocaleSettingsTrait.o: schema/weave/trait/locale/LocaleSettingsTrait.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(TestWdmNext_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT schema/weave/trait/locale/TestWdmNext-LocaleSettingsTrait.o -MD -MP -MF schema/weave/trait/locale/$(DEPDIR)/TestWdmNext-LocaleSettingsTrait.Tpo -c -o schema/weave/trait/locale/TestWdmNext-LocaleSettingsTrait.o `test -f 'schema/weave/trait/locale/LocaleSettingsTrait.cpp' || echo '$(srcdir)/'`schema/weave/trait/locale/LocaleSettingsTrait.cpp
@@ -4944,47 +4783,19 @@ schema/nest/test/trait/mock_device-TestETrait.obj: schema/nest/test/trait/TestET
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mock_device_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o schema/nest/test/trait/mock_device-TestETrait.obj `if test -f 'schema/nest/test/trait/TestETrait.cpp'; then $(CYGPATH_W) 'schema/nest/test/trait/TestETrait.cpp'; else $(CYGPATH_W) '$(srcdir)/schema/nest/test/trait/TestETrait.cpp'; fi`
 
-schema/nest/test/trait/mock_device-CommonStructEStructSchema.o: schema/nest/test/trait/CommonStructEStructSchema.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mock_device_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT schema/nest/test/trait/mock_device-CommonStructEStructSchema.o -MD -MP -MF schema/nest/test/trait/$(DEPDIR)/mock_device-CommonStructEStructSchema.Tpo -c -o schema/nest/test/trait/mock_device-CommonStructEStructSchema.o `test -f 'schema/nest/test/trait/CommonStructEStructSchema.cpp' || echo '$(srcdir)/'`schema/nest/test/trait/CommonStructEStructSchema.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) schema/nest/test/trait/$(DEPDIR)/mock_device-CommonStructEStructSchema.Tpo schema/nest/test/trait/$(DEPDIR)/mock_device-CommonStructEStructSchema.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='schema/nest/test/trait/CommonStructEStructSchema.cpp' object='schema/nest/test/trait/mock_device-CommonStructEStructSchema.o' libtool=no @AMDEPBACKSLASH@
+schema/nest/test/trait/mock_device-TestCommon.o: schema/nest/test/trait/TestCommon.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mock_device_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT schema/nest/test/trait/mock_device-TestCommon.o -MD -MP -MF schema/nest/test/trait/$(DEPDIR)/mock_device-TestCommon.Tpo -c -o schema/nest/test/trait/mock_device-TestCommon.o `test -f 'schema/nest/test/trait/TestCommon.cpp' || echo '$(srcdir)/'`schema/nest/test/trait/TestCommon.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) schema/nest/test/trait/$(DEPDIR)/mock_device-TestCommon.Tpo schema/nest/test/trait/$(DEPDIR)/mock_device-TestCommon.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='schema/nest/test/trait/TestCommon.cpp' object='schema/nest/test/trait/mock_device-TestCommon.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mock_device_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o schema/nest/test/trait/mock_device-CommonStructEStructSchema.o `test -f 'schema/nest/test/trait/CommonStructEStructSchema.cpp' || echo '$(srcdir)/'`schema/nest/test/trait/CommonStructEStructSchema.cpp
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mock_device_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o schema/nest/test/trait/mock_device-TestCommon.o `test -f 'schema/nest/test/trait/TestCommon.cpp' || echo '$(srcdir)/'`schema/nest/test/trait/TestCommon.cpp
 
-schema/nest/test/trait/mock_device-CommonStructEStructSchema.obj: schema/nest/test/trait/CommonStructEStructSchema.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mock_device_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT schema/nest/test/trait/mock_device-CommonStructEStructSchema.obj -MD -MP -MF schema/nest/test/trait/$(DEPDIR)/mock_device-CommonStructEStructSchema.Tpo -c -o schema/nest/test/trait/mock_device-CommonStructEStructSchema.obj `if test -f 'schema/nest/test/trait/CommonStructEStructSchema.cpp'; then $(CYGPATH_W) 'schema/nest/test/trait/CommonStructEStructSchema.cpp'; else $(CYGPATH_W) '$(srcdir)/schema/nest/test/trait/CommonStructEStructSchema.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) schema/nest/test/trait/$(DEPDIR)/mock_device-CommonStructEStructSchema.Tpo schema/nest/test/trait/$(DEPDIR)/mock_device-CommonStructEStructSchema.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='schema/nest/test/trait/CommonStructEStructSchema.cpp' object='schema/nest/test/trait/mock_device-CommonStructEStructSchema.obj' libtool=no @AMDEPBACKSLASH@
+schema/nest/test/trait/mock_device-TestCommon.obj: schema/nest/test/trait/TestCommon.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mock_device_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT schema/nest/test/trait/mock_device-TestCommon.obj -MD -MP -MF schema/nest/test/trait/$(DEPDIR)/mock_device-TestCommon.Tpo -c -o schema/nest/test/trait/mock_device-TestCommon.obj `if test -f 'schema/nest/test/trait/TestCommon.cpp'; then $(CYGPATH_W) 'schema/nest/test/trait/TestCommon.cpp'; else $(CYGPATH_W) '$(srcdir)/schema/nest/test/trait/TestCommon.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) schema/nest/test/trait/$(DEPDIR)/mock_device-TestCommon.Tpo schema/nest/test/trait/$(DEPDIR)/mock_device-TestCommon.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='schema/nest/test/trait/TestCommon.cpp' object='schema/nest/test/trait/mock_device-TestCommon.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mock_device_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o schema/nest/test/trait/mock_device-CommonStructEStructSchema.obj `if test -f 'schema/nest/test/trait/CommonStructEStructSchema.cpp'; then $(CYGPATH_W) 'schema/nest/test/trait/CommonStructEStructSchema.cpp'; else $(CYGPATH_W) '$(srcdir)/schema/nest/test/trait/CommonStructEStructSchema.cpp'; fi`
-
-schema/nest/test/trait/mock_device-StructEStructSchema.o: schema/nest/test/trait/StructEStructSchema.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mock_device_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT schema/nest/test/trait/mock_device-StructEStructSchema.o -MD -MP -MF schema/nest/test/trait/$(DEPDIR)/mock_device-StructEStructSchema.Tpo -c -o schema/nest/test/trait/mock_device-StructEStructSchema.o `test -f 'schema/nest/test/trait/StructEStructSchema.cpp' || echo '$(srcdir)/'`schema/nest/test/trait/StructEStructSchema.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) schema/nest/test/trait/$(DEPDIR)/mock_device-StructEStructSchema.Tpo schema/nest/test/trait/$(DEPDIR)/mock_device-StructEStructSchema.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='schema/nest/test/trait/StructEStructSchema.cpp' object='schema/nest/test/trait/mock_device-StructEStructSchema.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mock_device_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o schema/nest/test/trait/mock_device-StructEStructSchema.o `test -f 'schema/nest/test/trait/StructEStructSchema.cpp' || echo '$(srcdir)/'`schema/nest/test/trait/StructEStructSchema.cpp
-
-schema/nest/test/trait/mock_device-StructEStructSchema.obj: schema/nest/test/trait/StructEStructSchema.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mock_device_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT schema/nest/test/trait/mock_device-StructEStructSchema.obj -MD -MP -MF schema/nest/test/trait/$(DEPDIR)/mock_device-StructEStructSchema.Tpo -c -o schema/nest/test/trait/mock_device-StructEStructSchema.obj `if test -f 'schema/nest/test/trait/StructEStructSchema.cpp'; then $(CYGPATH_W) 'schema/nest/test/trait/StructEStructSchema.cpp'; else $(CYGPATH_W) '$(srcdir)/schema/nest/test/trait/StructEStructSchema.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) schema/nest/test/trait/$(DEPDIR)/mock_device-StructEStructSchema.Tpo schema/nest/test/trait/$(DEPDIR)/mock_device-StructEStructSchema.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='schema/nest/test/trait/StructEStructSchema.cpp' object='schema/nest/test/trait/mock_device-StructEStructSchema.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mock_device_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o schema/nest/test/trait/mock_device-StructEStructSchema.obj `if test -f 'schema/nest/test/trait/StructEStructSchema.cpp'; then $(CYGPATH_W) 'schema/nest/test/trait/StructEStructSchema.cpp'; else $(CYGPATH_W) '$(srcdir)/schema/nest/test/trait/StructEStructSchema.cpp'; fi`
-
-schema/nest/test/trait/mock_device-NullableEStructSchema.o: schema/nest/test/trait/NullableEStructSchema.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mock_device_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT schema/nest/test/trait/mock_device-NullableEStructSchema.o -MD -MP -MF schema/nest/test/trait/$(DEPDIR)/mock_device-NullableEStructSchema.Tpo -c -o schema/nest/test/trait/mock_device-NullableEStructSchema.o `test -f 'schema/nest/test/trait/NullableEStructSchema.cpp' || echo '$(srcdir)/'`schema/nest/test/trait/NullableEStructSchema.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) schema/nest/test/trait/$(DEPDIR)/mock_device-NullableEStructSchema.Tpo schema/nest/test/trait/$(DEPDIR)/mock_device-NullableEStructSchema.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='schema/nest/test/trait/NullableEStructSchema.cpp' object='schema/nest/test/trait/mock_device-NullableEStructSchema.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mock_device_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o schema/nest/test/trait/mock_device-NullableEStructSchema.o `test -f 'schema/nest/test/trait/NullableEStructSchema.cpp' || echo '$(srcdir)/'`schema/nest/test/trait/NullableEStructSchema.cpp
-
-schema/nest/test/trait/mock_device-NullableEStructSchema.obj: schema/nest/test/trait/NullableEStructSchema.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mock_device_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT schema/nest/test/trait/mock_device-NullableEStructSchema.obj -MD -MP -MF schema/nest/test/trait/$(DEPDIR)/mock_device-NullableEStructSchema.Tpo -c -o schema/nest/test/trait/mock_device-NullableEStructSchema.obj `if test -f 'schema/nest/test/trait/NullableEStructSchema.cpp'; then $(CYGPATH_W) 'schema/nest/test/trait/NullableEStructSchema.cpp'; else $(CYGPATH_W) '$(srcdir)/schema/nest/test/trait/NullableEStructSchema.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) schema/nest/test/trait/$(DEPDIR)/mock_device-NullableEStructSchema.Tpo schema/nest/test/trait/$(DEPDIR)/mock_device-NullableEStructSchema.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='schema/nest/test/trait/NullableEStructSchema.cpp' object='schema/nest/test/trait/mock_device-NullableEStructSchema.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mock_device_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o schema/nest/test/trait/mock_device-NullableEStructSchema.obj `if test -f 'schema/nest/test/trait/NullableEStructSchema.cpp'; then $(CYGPATH_W) 'schema/nest/test/trait/NullableEStructSchema.cpp'; else $(CYGPATH_W) '$(srcdir)/schema/nest/test/trait/NullableEStructSchema.cpp'; fi`
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mock_device_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o schema/nest/test/trait/mock_device-TestCommon.obj `if test -f 'schema/nest/test/trait/TestCommon.cpp'; then $(CYGPATH_W) 'schema/nest/test/trait/TestCommon.cpp'; else $(CYGPATH_W) '$(srcdir)/schema/nest/test/trait/TestCommon.cpp'; fi`
 
 schema/weave/trait/locale/mock_device-LocaleSettingsTrait.o: schema/weave/trait/locale/LocaleSettingsTrait.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mock_device_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT schema/weave/trait/locale/mock_device-LocaleSettingsTrait.o -MD -MP -MF schema/weave/trait/locale/$(DEPDIR)/mock_device-LocaleSettingsTrait.Tpo -c -o schema/weave/trait/locale/mock_device-LocaleSettingsTrait.o `test -f 'schema/weave/trait/locale/LocaleSettingsTrait.cpp' || echo '$(srcdir)/'`schema/weave/trait/locale/LocaleSettingsTrait.cpp
@@ -7586,11 +7397,11 @@ distclean-generic:
 maintainer-clean-generic:
 	@echo "This command is intended for maintainers to use"
 	@echo "it deletes files that may require special tools to rebuild."
-@WEAVE_BUILD_TESTS_FALSE@install-exec-local:
-@WEAVE_BUILD_TESTS_FALSE@uninstall-local:
 @WEAVE_BUILD_COVERAGE_FALSE@clean-local:
 @WEAVE_BUILD_COVERAGE_REPORTS_FALSE@clean-local:
 @WEAVE_BUILD_TESTS_FALSE@clean-local:
+@WEAVE_BUILD_TESTS_FALSE@install-exec-local:
+@WEAVE_BUILD_TESTS_FALSE@uninstall-local:
 clean: clean-am
 
 clean-am: clean-checkPROGRAMS clean-generic clean-libexecPROGRAMS \

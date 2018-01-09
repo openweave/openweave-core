@@ -271,7 +271,7 @@ TestATraitDataSource::TestATraitDataSource()
     mVersion = 100;
     mTestCounter = 0;
     taa = TestATrait::ENUM_A_VALUE_1;
-    tab = TestCommonTrait::COMMON_ENUM_A_VALUE_1;
+    tab = TestCommon::COMMON_ENUM_A_VALUE_1;
     tac = 3;
     tad.saA = 4;
     tad.saB = true;
@@ -1115,7 +1115,7 @@ TestBTraitDataSource::TestBTraitDataSource()
 {
     mVersion = 200;
     taa = TestATrait::ENUM_A_VALUE_1;
-    tab = TestCommonTrait::COMMON_ENUM_A_VALUE_1;
+    tab = TestCommon::COMMON_ENUM_A_VALUE_1;
     tac = 3;
     tad_saa = 4;
     tad_sab = true;
@@ -1309,7 +1309,7 @@ TestBLargeTraitDataSource::TestBLargeTraitDataSource()
 {
     mVersion = 200;
     taa = TestATrait::ENUM_A_VALUE_1;
-    tab = TestCommonTrait::COMMON_ENUM_A_VALUE_1;
+    tab = TestCommon::COMMON_ENUM_A_VALUE_1;
     tac = 3;
     tad_saa = 4;
     tad_sab = true;

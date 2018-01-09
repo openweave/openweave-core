@@ -50,7 +50,7 @@
 
 #include "schema/weave/trait/telemetry/NetworkWiFiTelemetryTrait.h"
 #include <schema/weave/common/DayOfWeekEnum.h>
-#include <schema/nest/test/trait/TestCommonTrait.h>
+#include <schema/nest/test/trait/TestCommon.h>
 
 using namespace nl::Weave::TLV;
 using namespace nl::Weave::Profiles::DataManagement;
@@ -741,8 +741,8 @@ void TestTraitEventGenerator::Generate(void)
             mEvent.teD = ENUM_E_VALUE_1;
             mEvent.teE.seA = 200;
             mEvent.teE.seB = true;
-            mEvent.teE.seC = TestCommonTrait::COMMON_ENUM_E_VALUE_2;
-            mEvent.teF = TestCommonTrait::COMMON_ENUM_E_VALUE_1;
+            mEvent.teE.seC = TestCommon::COMMON_ENUM_E_VALUE_2;
+            mEvent.teF = TestCommon::COMMON_ENUM_E_VALUE_1;
             mEvent.teG.seA = 200;
             mEvent.teG.seB = true;
             mEvent.teJ = -900;

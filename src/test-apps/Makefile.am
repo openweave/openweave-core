@@ -1034,10 +1034,9 @@ bin_LINKS                                      = \
 
 GenerateEventLog_SOURCES                 = GenerateEventLog.cpp MockEvents.cpp \
                                            schema/weave/trait/telemetry/NetworkWiFiTelemetryTrait.cpp \
-                                           schema/nest/test/trait/TestETrait.cpp			\
-                                           schema/nest/test/trait/CommonStructEStructSchema.cpp \
-                                           schema/nest/test/trait/StructEStructSchema.cpp \
-                                           schema/nest/test/trait/NullableEStructSchema.cpp
+                                           schema/nest/test/trait/TestETrait.cpp \
+                                           schema/nest/test/trait/TestCommon.cpp
+
 GenerateEventLog_LDFLAGS                 = $(AM_CPPFLAGS)
 GenerateEventLog_CPPFLAGS                = $(AM_CPPFLAGS) -I$(top_srcdir)/src/test-apps/schema
 GenerateEventLog_LDADD                   = libWeaveTestCommon.a $(COMMON_LDADD) $(TEST_PLATFORM_LDADD)
@@ -1087,9 +1086,7 @@ TestECMath_SOURCES                       = TestECMath.cpp TestECMathParams.cpp
 TestECMath_LDADD                         = $(COMMON_LDADD) $(TEST_PLATFORM_LDADD)
 
 TestEventLogging_SOURCES                 = schema/nest/test/trait/TestETrait.cpp \
-                                           schema/nest/test/trait/CommonStructEStructSchema.cpp \
-                                           schema/nest/test/trait/StructEStructSchema.cpp \
-                                           schema/nest/test/trait/NullableEStructSchema.cpp \
+                                           schema/nest/test/trait/TestCommon.cpp \
                                            MockExternalEvents.cpp \
                                            TestEventLogging.cpp
 TestEventLogging_CPPFLAGS	         = $(AM_CPPFLAGS) -I$(top_srcdir)/src/test-apps/schema
@@ -1101,9 +1098,8 @@ TestTDM_SOURCES                          = TestTDM.cpp \
                                            schema/nest/test/trait/TestHTrait.cpp \
                                            schema/nest/test/trait/TestCTrait.cpp \
                                            schema/nest/test/trait/TestBTrait.cpp \
-                                           schema/nest/test/trait/StructCStructSchema.cpp \
                                            schema/nest/test/trait/TestMismatchedCTrait.cpp \
-                                           schema/nest/test/trait/StructMismatchedCStructSchema.cpp \
+                                           schema/nest/test/trait/TestCommon.cpp \
                                            MockMismatchedSchemaSinkAndSource.cpp \
                                            TestPersistedStorageImplementation.cpp \
                                            MockTestBTrait.cpp
@@ -1258,9 +1254,7 @@ TestWdmNext_SOURCES                      = TestWdmNext.cpp						\
                                            schema/nest/test/trait/TestATrait.cpp			\
                                            schema/nest/test/trait/TestBTrait.cpp			\
                                            schema/nest/test/trait/TestETrait.cpp			\
-                                           schema/nest/test/trait/CommonStructEStructSchema.cpp \
-                                           schema/nest/test/trait/StructEStructSchema.cpp \
-                                           schema/nest/test/trait/NullableEStructSchema.cpp \
+                                           schema/nest/test/trait/TestCommon.cpp \
                                            schema/weave/trait/locale/LocaleSettingsTrait.cpp		\
                                            schema/weave/trait/locale/LocaleCapabilitiesTrait.cpp	\
                                            schema/weave/trait/security/BoltLockSettingsTrait.cpp	\
@@ -1300,9 +1294,7 @@ mock_device_SOURCES                      = mock-device.cpp                      
                                            schema/nest/test/trait/TestATrait.cpp                    \
                                            schema/nest/test/trait/TestBTrait.cpp                    \
                                            schema/nest/test/trait/TestETrait.cpp                    \
-                                           schema/nest/test/trait/CommonStructEStructSchema.cpp \
-                                           schema/nest/test/trait/StructEStructSchema.cpp \
-                                           schema/nest/test/trait/NullableEStructSchema.cpp \
+                                           schema/nest/test/trait/TestCommon.cpp \
                                            schema/weave/trait/locale/LocaleSettingsTrait.cpp        \
                                            schema/weave/trait/locale/LocaleCapabilitiesTrait.cpp    \
                                            schema/weave/trait/security/BoltLockSettingsTrait.cpp    \

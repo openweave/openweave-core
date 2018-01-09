@@ -39,9 +39,6 @@
 #include <Weave/Profiles/data-management/DataManagement.h>
 
 #include <nest/test/trait/TestHTrait.h>
-#include <nest/test/trait/StructHStructSchema.h>
-#include <nest/test/trait/StructDictionaryStructSchema.h>
-
 #include <nest/test/trait/TestCTrait.h>
 #include <nest/test/trait/TestMismatchedCTrait.h>
 
@@ -402,8 +399,8 @@ private:
 
 public:
     std::map <PropertyPathHandle, uint32_t> mValues;
-    std::map <uint16_t, StructDictionary> mDictlValues;
-    std::map <uint16_t, StructDictionary> mDictSaValues;
+    std::map <uint16_t, TestHTrait::StructDictionary> mDictlValues;
+    std::map <uint16_t, TestHTrait::StructDictionary> mDictSaValues;
 
     uint32_t mBackingValue;
 };
@@ -430,8 +427,8 @@ void TestTdmSource::Reset()
 
 WEAVE_ERROR TestTdmSource::GetNextDictionaryItemKey(PropertyPathHandle aDictionaryHandle, uintptr_t &aContext, PropertyDictionaryKey &aKey)
 {
-    static std::map<uint16_t, StructDictionary>::iterator it;
-    std::map <uint16_t, StructDictionary> *mapPtr = (aDictionaryHandle == TestHTrait::kPropertyHandle_L) ? &mDictlValues : &mDictSaValues;
+    static std::map<uint16_t, TestHTrait::StructDictionary>::iterator it;
+    std::map <uint16_t, TestHTrait::StructDictionary> *mapPtr = (aDictionaryHandle == TestHTrait::kPropertyHandle_L) ? &mDictlValues : &mDictSaValues;
 
     if (aContext == 0) {
         it = mapPtr->begin();
@@ -462,7 +459,7 @@ WEAVE_ERROR TestTdmSource::GetLeafData(PropertyPathHandle aLeafHandle, uint64_t 
 
         if (dictionaryHandle == TestHTrait::kPropertyHandle_L) {
             if (mDictlValues.find(key) != mDictlValues.end()) {
-                StructDictionary item = mDictlValues[key];
+                TestHTrait::StructDictionary item = mDictlValues[key];
                 uint32_t val;
 
                 switch (GetPropertySchemaHandle(aLeafHandle)) {
@@ -498,7 +495,7 @@ WEAVE_ERROR TestTdmSource::GetLeafData(PropertyPathHandle aLeafHandle, uint64_t 
 
         if (dictionaryHandle == TestHTrait::kPropertyHandle_K_Sa) {
             if (mDictSaValues.find(key) != mDictSaValues.end()) {
-                StructDictionary item = mDictSaValues[key];
+                TestHTrait::StructDictionary item = mDictSaValues[key];
                 uint32_t val;
 
                 switch (GetPropertySchemaHandle(aLeafHandle)) {

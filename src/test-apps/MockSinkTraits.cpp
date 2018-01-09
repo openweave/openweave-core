@@ -332,7 +332,7 @@ TestATraitDataSink::TestATraitDataSink()
     : MockTraitDataSink(&TestATrait::TraitSchema)
 {
     taa = TestATrait::ENUM_A_VALUE_1;
-    tab = TestCommonTrait::COMMON_ENUM_A_VALUE_1;
+    tab = TestCommon::COMMON_ENUM_A_VALUE_1;
     tac = 0;
     tad.saA = 0;
     tad.saB = false;
@@ -1027,7 +1027,7 @@ TestBTraitDataSink::TestBTraitDataSink()
     : MockTraitDataSink(&TestBTrait::TraitSchema)
 {
     taa = TestATrait::ENUM_A_VALUE_1;
-    tab = TestCommonTrait::COMMON_ENUM_A_VALUE_1;
+    tab = TestCommon::COMMON_ENUM_A_VALUE_1;
     tac = 0;
     tad_saa = 0;
     tad_sab = false;

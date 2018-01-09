@@ -28,10 +28,7 @@
 
 #include <nest/test/trait/TestBTrait.h>
 #include <nest/test/trait/TestATrait.h>
-#include <nest/test/trait/TestCommonTrait.h>
-#include <nest/test/trait/StructAStructSchema.h>
-#include <nest/test/trait/StructBStructSchema.h>
-#include <nest/test/trait/StructEAStructSchema.h>
+#include <nest/test/trait/TestCommon.h>
 
 class TestBTraitDataSource : public nl::Weave::Profiles::DataManagement::TraitDataSource
 {
@@ -48,7 +45,7 @@ private:
     WEAVE_ERROR GetNextDictionaryItemKey(nl::Weave::Profiles::DataManagement::PropertyPathHandle aDictionaryHandle, uintptr_t &aContext, nl::Weave::Profiles::DataManagement::PropertyDictionaryKey &aKey) __OVERRIDE;
 
     Schema::Nest::Test::Trait::TestATrait::EnumA taa;
-    Schema::Nest::Test::Trait::TestCommonTrait::CommonEnumA tab;
+    Schema::Nest::Test::Trait::TestCommon::CommonEnumA tab;
     uint32_t tac;
     Schema::Nest::Test::Trait::TestATrait::StructA tad;
     uint32_t tad_saa;
@@ -134,4 +131,3 @@ private:
     bool set_path[Schema::Nest::Test::Trait::TestBTrait::kPropertyHandle_TaJ_Value_SaB];
     bool nullified_path[Schema::Nest::Test::Trait::TestBTrait::kPropertyHandle_TaJ_Value_SaB];
 };
-

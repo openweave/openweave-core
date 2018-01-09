@@ -37,8 +37,7 @@
 #include <weave/trait/locale/LocaleCapabilitiesTrait.h>
 #include <nest/test/trait/TestATrait.h>
 #include <nest/test/trait/TestBTrait.h>
-#include <nest/test/trait/TestCommonTrait.h>
-#include <nest/test/trait/StructAStructSchema.h>
+#include <nest/test/trait/TestCommon.h>
 
 #include <map>
 

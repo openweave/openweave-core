@@ -67,7 +67,7 @@
 #include <Weave/Support/PersistedCounter.h>
 
 #include "schema/nest/test/trait/TestETrait.h"
-#include "schema/nest/test/trait/TestCommonTrait.h"
+#include "schema/nest/test/trait/TestCommon.h"
 
 #include "TestPlatformTime.h"
 
@@ -1655,7 +1655,7 @@ static void CheckComplexEventDeserialization(nlTestSuite *inSuite, void *inConte
     numbaz[2] = 5;
     numbaz[3] = 7;
     numbaz[4] = 10;
-    Schema::Nest::Test::Trait::TestCommonTrait::CommonStructE strukchaz[3];
+    Schema::Nest::Test::Trait::TestCommon::CommonStructE strukchaz[3];
     strukchaz[0].seA = 1111111;
     strukchaz[0].seB = true;
     strukchaz[1].seA = 2222222;

@@ -34,8 +34,7 @@
 #include <weave/trait/locale/LocaleCapabilitiesTrait.h>
 #include <nest/test/trait/TestATrait.h>
 #include <nest/test/trait/TestBTrait.h>
-#include <nest/test/trait/TestCommonTrait.h>
-#include <nest/test/trait/StructAStructSchema.h>
+#include <nest/test/trait/TestCommon.h>
 #include "TestGroupKeyStore.h"
 #include <map>
 
@@ -181,7 +180,7 @@ private:
     WEAVE_ERROR GetNextDictionaryItemKey(nl::Weave::Profiles::DataManagement::PropertyPathHandle aDictionaryHandle, uintptr_t &aContext, nl::Weave::Profiles::DataManagement::PropertyDictionaryKey &aKey) __OVERRIDE;
 
     Schema::Nest::Test::Trait::TestATrait::EnumA taa;
-    Schema::Nest::Test::Trait::TestCommonTrait::CommonEnumA tab;
+    Schema::Nest::Test::Trait::TestCommon::CommonEnumA tab;
     uint32_t tac;
     uint32_t tad_saa;
     bool tad_sab;
@@ -207,7 +206,7 @@ private:
     WEAVE_ERROR GetNextDictionaryItemKey(nl::Weave::Profiles::DataManagement::PropertyPathHandle aDictionaryHandle, uintptr_t &aContext, nl::Weave::Profiles::DataManagement::PropertyDictionaryKey &aKey) __OVERRIDE;
 
     Schema::Nest::Test::Trait::TestATrait::EnumA taa;
-    Schema::Nest::Test::Trait::TestCommonTrait::CommonEnumA tab;
+    Schema::Nest::Test::Trait::TestCommon::CommonEnumA tab;
     uint32_t tac;
     uint32_t tad_saa;
     bool tad_sab;

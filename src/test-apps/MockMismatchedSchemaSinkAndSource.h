@@ -31,9 +31,6 @@
 #include "schema/nest/test/trait/TestCTrait.h"
 #include "schema/nest/test/trait/TestMismatchedCTrait.h"
 
-#include "schema/nest/test/trait/StructMismatchedCStructSchema.h"
-#include "schema/nest/test/trait/StructCStructSchema.h"
-
 using namespace ::nl::Weave::TLV;
 using namespace ::nl::Weave::Profiles::DataManagement;
 using namespace Schema::Nest::Test::Trait;
@@ -51,9 +48,9 @@ private:
 
     bool tc_a;
     TestCTrait::EnumC tc_b;
-    TestMismatchedCTrait::StructMismatchedC tc_c;
+    TestMismatchedCTrait::StructC tc_c;
     uint32_t tc_d;
-    TestMismatchedCTrait::StructMismatchedC tc_e;
+    TestMismatchedCTrait::StructC tc_e;
 };
 
 class TestCTraitDataSink : public TraitDataSink
@@ -69,7 +66,7 @@ public:
 
 private:
 
-    bool mPathHandleSet[TestCTrait::kPropertyHandle_TcC_ScB];
+    bool mPathHandleSet[TestMismatchedCTrait::kPropertyHandle_TcC_ScB];
 };
 
 // This data sink matches the schema of TestMismatchedCTrait and the
