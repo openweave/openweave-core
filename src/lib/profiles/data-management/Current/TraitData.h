@@ -132,11 +132,20 @@ public:
                                                //for each schema handle.
         uint32_t mNumSchemaHandleEntries;      //< The number of schema handles in this trait.
         uint32_t mTreeDepth;                   //< The max depth of this schema.
+#if (TDM_EXTENSION_SUPPORT) || (TDM_VERSIONING_SUPPORT)
+        PropertyPathHandle mMaxParentPathHandle;//< Max handle supported by the parent schema
+#endif
         uint8_t * mIsDictionaryBitfield;       //< A bitfield indicating whether each schema handle is a dictionary or not.
         uint8_t * mIsOptionalBitfield;         //< A bitfield indicating whether each schema handle is optional or not.
         uint8_t * mIsImplementedBitfield;      //< A bitfield indicating whether each optional schema handle is implemented or not.
         uint8_t * mIsNullableBitfield;         //< A bitfield indicating whether each schema handle is nullable or not.
         uint8_t * mIsEphemeralBitfield;        //< A bitfield indicating whether each schema handle is ephemeral or not.
+#if (TDM_EXTENSION_SUPPORT)
+        Schema *mParentSchema;                 //< A pointer to the parent schema
+#endif
+#if (TDM_VERSIONING_SUPPORT)
+        const SchemaVersionRange *mVersionRange;     //< Range of versions supported by this trait
+#endif
     };
 
     /* While traits can have deep nested structures (which can include dictionaries), application logic is only expected to provide

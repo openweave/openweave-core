@@ -664,10 +664,18 @@ uint32_t TraitSchemaEngine::GetProfileId(void) const
 
 bool TraitSchemaEngine::GetVersionIntersection(SchemaVersionRange & aVersion, SchemaVersionRange & aIntersection) const
 {
-    uint16_t currentVersion = 1;
+    SchemaVersion minCurrentVersion = 1;
+    SchemaVersion maxCurrentVersion = 1;
+#if (TDM_VERSIONING_SUPPORT)
+    if (mSchema.mVersionRange != NULL)
+    {
+        minCurrentVersion = mSchema.mVersionRange->mMinVersion;
+        maxCurrentVersion = mSchema.mVersionRange->mMaxVersion;
+    }
+#endif // TDM_VERSIONING_SUPPORT
 
-    aIntersection.mMinVersion = max(aVersion.mMinVersion, currentVersion);
-    aIntersection.mMaxVersion = min(aVersion.mMaxVersion, currentVersion);
+    aIntersection.mMinVersion = max(aVersion.mMinVersion, minCurrentVersion);
+    aIntersection.mMaxVersion = min(aVersion.mMaxVersion, maxCurrentVersion);
 
     if (aIntersection.mMinVersion <= aIntersection.mMaxVersion)
     {
@@ -681,19 +689,34 @@ bool TraitSchemaEngine::GetVersionIntersection(SchemaVersionRange & aVersion, Sc
 
 SchemaVersion TraitSchemaEngine::GetHighestForwardVersion(SchemaVersion aVersion) const
 {
-    if (aVersion > 1)
+    SchemaVersion currentVersion = 1;
+#if (TDM_VERSIONING_SUPPORT)
+    if (mSchema.mVersionRange != NULL)
+    {
+        currentVersion = mSchema.mVersionRange->mMaxVersion;
+    }
+#endif // TDM_VERSIONING_SUPPORT
+    if (aVersion > currentVersion)
     {
         return 0;
     }
     else
     {
-        return 1;
+        return currentVersion;
     }
 }
 
 SchemaVersion TraitSchemaEngine::GetLowestCompatibleVersion(SchemaVersion aVersion) const
 {
-    return 1;
+    SchemaVersion currentVersion = 1;
+#if (TDM_VERSIONING_SUPPORT)
+    if (mSchema.mVersionRange != NULL)
+    {
+        currentVersion = mSchema.mVersionRange->mMinVersion;
+    }
+#endif // TDM_VERSIONING_SUPPORT
+    // TODO: current assumption is that the trait is fully backwars compatible
+    return currentVersion;
 }
 
 TraitDataSink::OnChangeRejection TraitDataSink::sChangeRejectionCb = NULL;
