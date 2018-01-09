@@ -38,21 +38,22 @@
 
 // We want and assume the default managed namespace is Current and that is, explicitly, the managed namespace this code desires.
 #include <Weave/Profiles/data-management/DataManagement.h>
-
 #include <nest/test/trait/TestETrait.h>
-
+#include <SystemLayer/SystemTimer.h>
 #include <MockLoggingManager.h>
-
+#include <Weave/Profiles/data-management/EventLoggingTypes.h>
 // Several event definitions, hand generated at this time
 
 #define PHOENIX_RESOURCE_STRINGS
-
 #ifdef PHOENIX_RESOURCE_STRINGS
-typedef char * user_id_t;
+typedef uint8_t * user_id_t;
 #define USER_ID_INITIAL NULL
+static uint8_t kTestUserId[1]     = {1};
 #else
 typedef uint64_t user_id_t;
 #define USER_ID_INITIAL 0
+static const user_id_t kTestUserId    = 0x0123456789ULL;
+
 #endif
 
 
@@ -132,48 +133,122 @@ enum BoltState
     BOLT_STATE_EXTENDED                      = 2  /**< Bolt is AT LEAST partially extended. */
 };
 
-enum BoltActuatorState
-{
-    BOLT_ACTUATOR_STATE_UNSPECIFIED          = 0,
-    BOLT_ACTUATOR_STATE_OK                   = 1, /**< Actuator is not moving and is in a fully settled position. If it's not settled use BOLT_ACTUATOR_STATE_MOVING. */
-    BOLT_ACTUATOR_STATE_LOCKING              = 2, /**< Actuator is attempting to lock */
-    BOLT_ACTUATOR_STATE_UNLOCKING            = 3, /**< Actuator is attempting to unlock */
-    BOLT_ACTUATOR_STATE_MOVING               = 4, /**< Actuator is moving though it’s not necessarily clear the intended direction. This is typically used when the user is physically manipulating the bolt */
-    BOLT_ACTUATOR_STATE_JAMMED               = 5  /**< Actuator is jammed and cannot move */
+enum BoltLockActorMethod {
+    BOLT_LOCK_ACTOR_METHOD_UNSPECIFIED = 0,
+
+    /**
+      * Change produced by an unspecified entity that doesn't fall into one of the defined categories below
+      *  - Who may not be present
+      *  - Expected to be correlated with an event
+      */
+    BOLT_LOCK_ACTOR_METHOD_OTHER = 1,
+
+    /// On-device actor methods
+    /**
+      * Change produced by the physical interaction on the lock but with no PIN entered (Typically for locking or unlocking with the thumb turn)
+      *  - Who MUST NOT be present
+      */
+    BOLT_LOCK_ACTOR_METHOD_PHYSICAL = 2,
+
+    /**
+      * Change produced by the physical keypad by typing in a PIN
+      *  - Who MUST be present
+      *  - Expected to be correlated with an event that represents "keypad pin entered successfully" (see PinCodeInputTrait for an example event)
+      */
+    BOLT_LOCK_ACTOR_METHOD_KEYPAD_PIN = 3,
+
+    /**
+      * Change produced by the device internally. For instance, if the device has a mechanisim to automatically lock
+      * after a period of time.
+      * - Who may not be present.
+    */
+    BOLT_LOCK_ACTOR_METHOD_LOCAL_IMPLICIT = 4,
+
+    /// App actor methods
+    /**
+      * Change produced by a user using the app
+      *  - Who may not be present
+      */
+    BOLT_LOCK_ACTOR_METHOD_REMOTE_USER_EXPLICIT = 5,
+
+    /**
+      * Change produced by a user with implicit intent
+      * ex. Toggling structure mode with the app mode switcher
+      *  - Who may not be present
+      *  - Expected to be correlated with a structure mode change event?
+      */
+    BOLT_LOCK_ACTOR_METHOD_REMOTE_USER_IMPLICIT = 6,
+
+    /**
+      * Change produced by a user that does not fit in one of the
+      * other app remote categories
+      */
+    BOLT_LOCK_ACTOR_METHOD_REMOTE_USER_OTHER = 7,
+
+    /// Other actor methods
+    /**
+      * Change produced by a remote service with no user intent (ex: Goose)
+      *  - Who may not be present
+      *  - Expected to be correlated with an event (???)
+      */
+    BOLT_LOCK_ACTOR_METHOD_REMOTE_DELEGATE = 8,
+
+    /**
+      * Lock will (???) on its own before a critically low battery shutdown
+      */
+    BOLT_LOCK_ACTOR_METHOD_LOW_POWER_SHUTDOWN = 9,
 };
 
-enum BoltLockedState
-{
-    BOLT_LOCKED_STATE_UNSPECIFIED            = 0,
-    BOLT_LOCKED_STATE_UNLOCKED               = 1, /**< The lock as a whole is not locked to the best knowledge of the implementor, i.e. the door that this lock is attached to can be opened */
-    BOLT_LOCKED_STATE_LOCKED                 = 2, /**< The lock as a whole is locked to the best knowledge of the implementor, i.e. the door that this lock is attached to cannot be opened */
-    BOLT_LOCKED_STATE_UNKNOWN                = 3  /**< The implementor is not able to determine whether the door is locked or unlocked, i.e. "Locked" sensing is based on a history of readings and that history is now gone or lost.*/
+enum BoltActuatorState {
+    BOLT_ACTUATOR_STATE_UNSPECIFIED = 0,
+    BOLT_ACTUATOR_STATE_OK = 1,         /// Actuator is not moving and is in a fully settled position.  If its not settled use BOLT_ACTUATOR_STATE_MOVING
+    BOLT_ACTUATOR_STATE_LOCKING = 2,    /// Actuator is attempting to lock
+    BOLT_ACTUATOR_STATE_UNLOCKING = 3,  /// Actuator is attempting to unlock
+    /** Actuator is moving though it’s not necessarily clear the intended direction
+     * This is typically used when the user is physically manipulating the bolt
+     */
+    BOLT_ACTUATOR_STATE_MOVING = 4,
+    BOLT_ACTUATOR_STATE_JAMMED_LOCKING = 5,     /// Actuator jammed while the device was locking and cannot move.
+    BOLT_ACTUATOR_STATE_JAMMED_UNLOCKING = 6,   /// Actuator jammed while the device was unlocking and cannot move.
+    BOLT_ACTUATOR_STATE_JAMMED_OTHER = 7,       /// Actuator jammed and cannot move. The direction the lock was moving was not provided.
 };
 
-enum BoltBlame
+enum BoltLockedState {
+    BOLT_LOCKED_STATE_UNSPECIFIED = 0,
+    /** The lock as a whole is not locked to the best knowledge of the implementor.
+     * i.e. the door that this lock is attached to can be opened
+     */
+
+    BOLT_LOCKED_STATE_UNLOCKED = 1,
+    /** The lock as a whole is locked to the best knowledge of the implementor.
+     *  i.e. the door that this lock is attached to cannot be opened
+     */
+
+    BOLT_LOCKED_STATE_LOCKED = 2,
+    /** The implementor is not able to determine whether the door is locked or unlocked.
+     *  i.e. "Locked" sensing is based on a history of readings and that history is now gone or lost
+     */
+    BOLT_LOCKED_STATE_UNKNOWN = 3,
+};
+
+struct BoltLockActorStruct
 {
-    BOLT_BLAME_UNSPECIFIED                   = 0,
-    BOLT_BLAME_INSIDE_MANUAL                 = 1,
-    BOLT_BLAME_OUTSIDE_MANUAL                = 2,
-    BOLT_BLAME_AUTOLOCK                      = 3,
-    BOLT_BLAME_OTHER                         = 10,
-    BOLT_BLAME_OUTSIDE_KEYPAD_PIN            = 11,
-    BOLT_BLAME_OUTSIDE_AUTH_TOKEN            = 12,
-    BOLT_BLAME_REMOTE_USER                   = 13,
-    BOLT_BLAME_REMOTE_DELEGATE               = 14
+    BoltLockActorStruct();
+    int16_t method;
+    user_id_t user_id;
 };
 
 struct BoltActuatorEventStruct
 {
     BoltActuatorEventStruct();
-    user_id_t user_id;
     int16_t state;
     int16_t actuatorState;
     int16_t lockedState;
-    int16_t blame;
+    BoltLockActorStruct bolt_lock_actor;
+    uint64_t locked_state_last_changed_at;
 };
 
-nl::Weave::Profiles::DataManagement::event_id_t LogBoltStateChange(BoltState inState, BoltActuatorState inActuatorState, BoltLockedState inLockedState, BoltBlame inBlame, user_id_t inUserID, nl::Weave::Profiles::DataManagement::event_id_t inEventID);
+nl::Weave::Profiles::DataManagement::event_id_t LogBoltStateChange(BoltState inState, BoltActuatorState inActuatorState, BoltLockedState inLockedState, BoltLockActorStruct inBolt_lock_actor, nl::Weave::Profiles::DataManagement::utc_timestamp_t inLocked_state_last_changed_at, nl::Weave::Profiles::DataManagement::event_id_t inEventID);
 
 /************************************************************************/
 

@@ -61,29 +61,19 @@ using namespace Schema::Weave::Common;
 
 static const uint64_t kTestNodeId     = 0x18B4300001408362ULL;
 static const uint64_t kTestNodeId1    = 0x18B43000002DCF71ULL;
-static char kTestUserId[]     = "USER_0123456789ABCDEF";
 
 // ResourceID helper
 
 // tags for ResourceID structure
 #ifdef PHOENIX_RESOURCE_STRINGS
 
-const uint64_t kResourceIDTag                     = ContextTag(1);
-
 WEAVE_ERROR WriteResourceID(nl::Weave::TLV::TLVWriter & writer, const uint64_t & tag, user_id_t resourceId)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
-    nl::Weave::TLV::TLVType container;
 
-    VerifyOrExit(resourceId != NULL, err = WEAVE_NO_ERROR);
+    VerifyOrExit(resourceId != NULL, err = WEAVE_ERROR_INVALID_ARGUMENT);
 
-    err = writer.StartContainer(tag, nl::Weave::TLV::kTLVType_Structure, container);
-    SuccessOrExit(err);
-
-    err = writer.PutString(kResourceIDTag, resourceId);
-    SuccessOrExit(err);
-
-    err = writer.EndContainer(container);
+    err = writer.PutBytes(tag, resourceId, sizeof(resourceId));
     SuccessOrExit(err);
 
 exit:
@@ -296,28 +286,38 @@ event_id_t LogKeypadEnable(bool inEnable, user_id_t inUserID)
 
 // Bolt lock trait.
 
-const uint32_t kBoltLockTraitID              = 0x00000e02;
-const uint32_t kBoltActuatorStateChangeEvent = 1;
+const uint32_t kBoltLockTraitID                     = 0x00000e02;
+const uint32_t kBoltActuatorStateChangeEvent        = 1;
 
-const uint64_t kBoltState                    = nl::Weave::TLV::ContextTag(1);
-const uint64_t kActuatorState                = nl::Weave::TLV::ContextTag(2);
-const uint64_t kLockedState                  = nl::Weave::TLV::ContextTag(3);
-const uint64_t kBlame                        = nl::Weave::TLV::ContextTag(4);
-const uint64_t kWhoDunnit                    = nl::Weave::TLV::ContextTag(5);
+const uint64_t kBoltState                           = nl::Weave::TLV::ContextTag(1);
+const uint64_t kActuatorState                       = nl::Weave::TLV::ContextTag(2);
+const uint64_t kLockedState                         = nl::Weave::TLV::ContextTag(3);
+const uint64_t kbolt_lock_actor                     = nl::Weave::TLV::ContextTag(4);
+const uint64_t klocked_state_last_changed_at        = nl::Weave::TLV::ContextTag(5);
+
+const uint64_t kbolt_lock_actor_method                     = nl::Weave::TLV::ContextTag(1);
+const uint64_t kbolt_lock_actor_user_id                     = nl::Weave::TLV::ContextTag(2);
 
 BoltActuatorEventStruct::BoltActuatorEventStruct() :
-    user_id(USER_ID_INITIAL),
+    locked_state_last_changed_at(0),
     state(0),
     actuatorState(0),
     lockedState(0),
-    blame(0)
+    bolt_lock_actor()
 {
 }
+
+BoltLockActorStruct::BoltLockActorStruct() :
+        user_id(USER_ID_INITIAL),
+        method(0)
+{
+}
+
 
 static WEAVE_ERROR WriteBoltActuatorStateChangeEvent(nl::Weave::TLV::TLVWriter & writer, uint8_t inDataTag, void * anAppState)
 {
     WEAVE_ERROR err =  WEAVE_NO_ERROR;
-    nl::Weave::TLV::TLVType userDisabled;
+    nl::Weave::TLV::TLVType userDisabled, lockActor;
     BoltActuatorEventStruct * context = static_cast<BoltActuatorEventStruct *>(anAppState);
 
     VerifyOrExit(context != NULL, err = WEAVE_ERROR_INVALID_ARGUMENT);
@@ -333,10 +333,19 @@ static WEAVE_ERROR WriteBoltActuatorStateChangeEvent(nl::Weave::TLV::TLVWriter &
     err = writer.Put(kLockedState, context->lockedState);
     SuccessOrExit(err);
 
-    err = writer.Put(kBlame, context->blame);
+    err = writer.StartContainer(kbolt_lock_actor, nl::Weave::TLV::kTLVType_Structure, lockActor);
     SuccessOrExit(err);
 
-    err = WriteResourceID(writer, kWhoDunnit, context->user_id);
+    err = writer.Put(kbolt_lock_actor_method, context->bolt_lock_actor.method);
+    SuccessOrExit(err);
+
+    err = WriteResourceID(writer, kbolt_lock_actor_user_id, context->bolt_lock_actor.user_id);
+    SuccessOrExit(err);
+
+    err = writer.EndContainer(lockActor);
+    SuccessOrExit(err);
+
+    err = writer.Put(klocked_state_last_changed_at, context->locked_state_last_changed_at);
     SuccessOrExit(err);
 
     err = writer.EndContainer(userDisabled);
@@ -349,7 +358,7 @@ exit:
     return err;
 }
 
-event_id_t LogBoltStateChange(BoltState inState, BoltActuatorState inActuatorState, BoltLockedState inLockedState, BoltBlame inBlame, user_id_t inUserID, event_id_t inEventID)
+event_id_t LogBoltStateChange(BoltState inState, BoltActuatorState inActuatorState, BoltLockedState inLockedState, BoltLockActorStruct inBolt_lock_actor, utc_timestamp_t inLocked_state_last_changed_at, event_id_t inEventID)
 {
     nl::Weave::Profiles::DataManagement::EventOptions options;
     BoltActuatorEventStruct eventStruct;
@@ -364,8 +373,8 @@ event_id_t LogBoltStateChange(BoltState inState, BoltActuatorState inActuatorSta
     eventStruct.state = static_cast<int16_t>(inState);
     eventStruct.actuatorState = static_cast<int16_t>(inActuatorState);
     eventStruct.lockedState = static_cast<int16_t>(inLockedState);
-    eventStruct.blame = static_cast<int16_t>(inBlame);
-    eventStruct.user_id = inUserID;
+    eventStruct.bolt_lock_actor = static_cast<BoltLockActorStruct>(inBolt_lock_actor);
+    eventStruct.locked_state_last_changed_at = static_cast<uint64_t>(inLocked_state_last_changed_at);
 
     if (inEventID != 0)
     {
@@ -590,6 +599,11 @@ void SecurityEventGenerator::Generate(void)
     // the bolt unlocks.  The door opens, and closes soon
     // thereafter. The user disables the pincode. Subsequently someone
     // else attempts to activate the keypad.
+
+    uint64_t            now         = 0;
+    now = System::Timer::GetCurrentEpoch();
+    BoltLockActorStruct inBolt_lock_actor;
+
     switch (mState)
     {
     case 0:
@@ -610,11 +624,17 @@ void SecurityEventGenerator::Generate(void)
 
     case 4:
         // valid credential, trigger the BoltStateChange
-        LogBoltStateChange(BOLT_STATE_EXTENDED, BOLT_ACTUATOR_STATE_UNLOCKING, BOLT_LOCKED_STATE_LOCKED, BOLT_BLAME_OUTSIDE_KEYPAD_PIN, kTestUserId, mRelatedEvent);
+        inBolt_lock_actor.method = BOLT_LOCK_ACTOR_METHOD_KEYPAD_PIN;
+        inBolt_lock_actor.user_id = kTestUserId;
+
+        LogBoltStateChange(BOLT_STATE_EXTENDED, BOLT_ACTUATOR_STATE_UNLOCKING, BOLT_LOCKED_STATE_LOCKED, inBolt_lock_actor, now, mRelatedEvent);
         break;
 
     case 5:
-        LogBoltStateChange(BOLT_STATE_RETRACTED, BOLT_ACTUATOR_STATE_OK, BOLT_LOCKED_STATE_UNLOCKED, BOLT_BLAME_OUTSIDE_KEYPAD_PIN, kTestUserId, mRelatedEvent);
+        inBolt_lock_actor.method = BOLT_LOCK_ACTOR_METHOD_KEYPAD_PIN;
+        inBolt_lock_actor.user_id = kTestUserId;
+
+        LogBoltStateChange(BOLT_STATE_RETRACTED, BOLT_ACTUATOR_STATE_OK, BOLT_LOCKED_STATE_UNLOCKED, inBolt_lock_actor, now, mRelatedEvent);
 
         nl::Weave::Profiles::DataManagement::LogFreeform(nl::Weave::Profiles::DataManagement::Debug, "Successful unlock");
         break;
@@ -629,12 +649,16 @@ void SecurityEventGenerator::Generate(void)
 
     case 8:
         // lets lock the door manually (no known user ID)
+        inBolt_lock_actor.method = BOLT_LOCK_ACTOR_METHOD_PHYSICAL;
+        inBolt_lock_actor.user_id = 0UL;
         nl::Weave::Profiles::DataManagement::LogFreeform(nl::Weave::Profiles::DataManagement::Debug, "Manual locking from inside");
-        LogBoltStateChange(BOLT_STATE_RETRACTED, BOLT_ACTUATOR_STATE_LOCKING, BOLT_LOCKED_STATE_UNLOCKED, BOLT_BLAME_INSIDE_MANUAL, 0ULL, 0);
+        LogBoltStateChange(BOLT_STATE_RETRACTED, BOLT_ACTUATOR_STATE_LOCKING, BOLT_LOCKED_STATE_UNLOCKED, inBolt_lock_actor, now, 0);
         break;
 
     case 9:
-        LogBoltStateChange(BOLT_STATE_EXTENDED, BOLT_ACTUATOR_STATE_OK, BOLT_LOCKED_STATE_LOCKED, BOLT_BLAME_INSIDE_MANUAL, 0ULL, 0);
+        inBolt_lock_actor.method = BOLT_LOCK_ACTOR_METHOD_PHYSICAL;
+        inBolt_lock_actor.user_id = 0UL;
+        LogBoltStateChange(BOLT_STATE_EXTENDED, BOLT_ACTUATOR_STATE_OK, BOLT_LOCKED_STATE_LOCKED, inBolt_lock_actor, now, 0);
         break;
 
     case 10:
