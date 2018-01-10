@@ -26,7 +26,7 @@ namespace TestMismatchedCTrait {
 extern const nl::Weave::Profiles::DataManagement::TraitSchemaEngine TraitSchema;
 
 enum {
-      kWeaveProfileId = (0x235aU << 16) | 0xfef3U
+      kWeaveProfileId = (0x235aU << 16) | 0xfe03U
 };
 
 //
@@ -133,4 +133,3 @@ enum EnumC {
 } // namespace Nest
 } // namespace Schema
 #endif // _NEST_TEST_TRAIT__TEST_MISMATCHED_C_TRAIT_H_
-
