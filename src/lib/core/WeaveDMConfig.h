@@ -389,10 +389,22 @@
 #define TDM_ENABLE_PUBLISHER_DICTIONARY_SUPPORT 1
 #endif
 
+/**
+ * @def TDM_EXTENSION_SUPPORT
+ *
+ * @brief Enable (1) or disable (0) support for sharing of the schema
+ *   tables between traits where one trait extends another trait.
+ */
 #ifndef TDM_EXTENSION_SUPPORT
 #define TDM_EXTENSION_SUPPORT 0
 #endif
 
+/**
+ * @def TDM_VERSIONING_SUPPORT
+ *
+ * @brief Enable (1) or disable (0) support for embedding trait
+ * schema version information in the generated schema tables.
+ */
 #ifndef TDM_VERSIONING_SUPPORT
 #define TDM_VERSIONING_SUPPORT 1
 #endif
