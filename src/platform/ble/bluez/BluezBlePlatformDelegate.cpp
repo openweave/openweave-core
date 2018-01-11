@@ -173,13 +173,17 @@ void BluezBlePlatformDelegate::HandleBleDelegate(nl::Weave::System::Layer * aLay
     }
 
 exit:
-    args->PlatformDelegate->ReleaseEventParams(args);
+    if (args != NULL)
+    {
+        args->PlatformDelegate->ReleaseEventParams(args);
+    }
 }
 
 nl::Weave::System::Error BluezBlePlatformDelegate::NewEventParams(InEventParam ** aParam)
 {
     *aParam = new InEventParam();
     (*aParam)->PlatformDelegate = this;
+
     return WEAVE_SYSTEM_NO_ERROR;
 }
 
