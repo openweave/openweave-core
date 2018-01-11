@@ -265,6 +265,7 @@ private:
     WRMPConfig mDefaultWRMPConfig;
 #endif
     uint8_t mHostNameLen;
+    uint32_t mUDPMTU;
 
     // Security-specific configuration
     uint8_t mEncType;
@@ -330,6 +331,7 @@ public:
     Configuration& Transport_TCP(void);
     Configuration& Transport_UDP(void);
     Configuration& Transport_UDP_WRM(void);
+    Configuration& Transport_UDP_MTU(uint32_t aMTU);
     Configuration& Transport_DefaultWRMPConfig(const WRMPConfig& aWRMPConfig);
     Configuration& Transport_ExistingConnection(WeaveConnection *apConnection);
 

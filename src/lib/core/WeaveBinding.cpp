@@ -411,6 +411,7 @@ void Binding::ResetConfig()
 #if WEAVE_CONFIG_ENABLE_RELIABLE_MESSAGING
     mDefaultWRMPConfig = gDefaultWRMPConfig;
 #endif
+    mUDPMTU = WEAVE_CONFIG_DEFAULT_UDP_MTU_SIZE;
 
     mSecurityOption = kSecurityOption_NotSpecified;
     mKeyId = WeaveKeyId::kNone;
@@ -1112,7 +1113,7 @@ uint32_t Binding::GetMaxWeavePayloadSize(const System::PacketBuffer *msgBuf)
     // TODO: Eventually, we may configure a custom UDP MTU size on the binding
     //       instead of using the default value directly.
     bool isUDP = (mTransportOption == kTransport_UDP || mTransportOption == kTransport_UDP_WRM);
-    return WeaveMessageLayer::GetMaxWeavePayloadSize(msgBuf, isUDP, WEAVE_CONFIG_DEFAULT_UDP_MTU_SIZE);
+    return WeaveMessageLayer::GetMaxWeavePayloadSize(msgBuf, isUDP, mUDPMTU);
 }
 
 /**
@@ -1381,6 +1382,19 @@ Binding::Configuration& Binding::Configuration::Transport_UDP_WRM()
 #else // WEAVE_CONFIG_ENABLE_RELIABLE_MESSAGING
     mError = WEAVE_ERROR_NOT_IMPLEMENTED;
 #endif // WEAVE_CONFIG_ENABLE_RELIABLE_MESSAGING
+    return *this;
+}
+
+/**
+ * Set the UDP MTU used to calculate the max Weave payload size.
+ *
+ * @param[in] aMTU                      The UDP MTU used to calculate the max Weave payload size.
+ *
+ * @return                              A reference to the binding object.
+ */
+Binding::Configuration& Binding::Configuration::Transport_UDP_MTU(uint32_t aMTU)
+{
+    mBinding.mUDPMTU = aMTU;
     return *this;
 }
 
