@@ -261,11 +261,11 @@ private:
     const char *mHostName;
     WeaveConnection *mCon;
     uint32_t mDefaultResponseTimeoutMsec;
+    uint32_t mUDPPathMTU;
 #if WEAVE_CONFIG_ENABLE_RELIABLE_MESSAGING
     WRMPConfig mDefaultWRMPConfig;
 #endif
     uint8_t mHostNameLen;
-    uint32_t mUDPMTU;
 
     // Security-specific configuration
     uint8_t mEncType;
@@ -331,7 +331,7 @@ public:
     Configuration& Transport_TCP(void);
     Configuration& Transport_UDP(void);
     Configuration& Transport_UDP_WRM(void);
-    Configuration& Transport_UDP_MTU(uint32_t aMTU);
+    Configuration& Transport_UDP_PathMTU(uint32_t aPathMTU);
     Configuration& Transport_DefaultWRMPConfig(const WRMPConfig& aWRMPConfig);
     Configuration& Transport_ExistingConnection(WeaveConnection *apConnection);
 
