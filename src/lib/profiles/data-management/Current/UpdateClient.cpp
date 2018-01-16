@@ -305,9 +305,9 @@ WEAVE_ERROR UpdateClient::StartElement(const uint32_t &aProfileID,
     {
         pathBuilder.TagSection();
 
-        while (aPathLength != 0)
+        for (size_t pathIndex = 0; pathIndex < aPathLength;  pathIndex++)
         {
-            pathBuilder.AdditionalTag(*aPathArray++);
+            pathBuilder.AdditionalTag(aPathArray[pathIndex]);
         }
     }
 
