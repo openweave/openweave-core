@@ -926,7 +926,7 @@ static void CheckAddRef(nlTestSuite *inSuite, void *inContext)
  *  Description: For every buffer-configuration from inContext, create a
  *               buffer's instance using NewWithAvailableSize() method. Then, verify that
  *               when the size of the reserved space passed to NewWithAvailableSize() is
- *               greater than #WEAVE_SYSTEM_PACKETBUFFER_ALLOCSIZE_MAX, the method
+ *               greater than #WEAVE_SYSTEM_CONFIG_PACKETBUFFER_CAPACITY_MAX, the method
  *               returns NULL. Otherwise, check for correctness of initializing
  *               the new buffer's internal state. Finally, free the buffer.
  */
@@ -941,7 +941,7 @@ static void CheckNewWithAvailableSizeAndFree(nlTestSuite *inSuite, void *inConte
 
         buffer = PacketBuffer::NewWithAvailableSize(theContext->reserved_size, 0);
 
-        if (theContext->reserved_size > WEAVE_SYSTEM_PACKETBUFFER_ALLOCSIZE_MAX)
+        if (theContext->reserved_size > WEAVE_SYSTEM_CONFIG_PACKETBUFFER_CAPACITY_MAX)
         {
             NL_TEST_ASSERT(inSuite, buffer == NULL);
             theContext++;

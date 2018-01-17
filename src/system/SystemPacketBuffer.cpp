@@ -441,7 +441,7 @@ PacketBuffer* PacketBuffer::NewWithAvailableSize(uint16_t aReservedSize, size_t 
 
     WEAVE_SYSTEM_FAULT_INJECT(FaultInjection::kFault_PacketBufferNew, return NULL);
 
-    if (lAllocSize > WEAVE_SYSTEM_PACKETBUFFER_ALLOCSIZE_MAX)
+    if (lAllocSize > WEAVE_SYSTEM_CONFIG_PACKETBUFFER_CAPACITY_MAX)
     {
         WeaveLogError(WeaveSystemLayer, "PacketBuffer: allocation too large.");
         return NULL;
@@ -518,8 +518,8 @@ PacketBuffer* PacketBuffer::NewWithAvailableSize(size_t aAvailableSize)
  * Allocates a single PacketBuffer of maximum total size with a specific header reserve size.
  *
  *  The parameter passed in is the size reserved prior to the payload to accomodate packet headers from different stack layers,
- *  __not__ the overall size of the buffer to allocate. The size of the buffer #WEAVE_SYSTEM_PACKETBUFFER_ALLOCSIZE_MAX and not,
- * specified in the call.
+ *  __not__ the overall size of the buffer to allocate. The size of the buffer #WEAVE_SYSTEM_CONFIG_PACKETBUFFER_CAPACITY_MAX
+ *  and not, specified in the call.
  *
  * - `PacketBuffer::New(0)` : when called in this fashion, the buffer will be returned without any header reserved, consequently
  *      the entire payload is usable by the caller. This pattern is particularly useful at the lower layers of networking stacks,
@@ -535,13 +535,13 @@ PacketBuffer* PacketBuffer::New(uint16_t aReservedSize)
     const size_t lReservedSize = static_cast<size_t>(aReservedSize);
 
     const size_t lAvailableSize =
-        lReservedSize < WEAVE_SYSTEM_PACKETBUFFER_ALLOCSIZE_MAX ? WEAVE_SYSTEM_PACKETBUFFER_ALLOCSIZE_MAX - lReservedSize : 0;
+        lReservedSize < WEAVE_SYSTEM_CONFIG_PACKETBUFFER_CAPACITY_MAX ? WEAVE_SYSTEM_CONFIG_PACKETBUFFER_CAPACITY_MAX - lReservedSize : 0;
 
     return PacketBuffer::NewWithAvailableSize(aReservedSize, lAvailableSize);
 }
 
 /**
- * Allocates a single PacketBuffer of default max size (#WEAVE_SYSTEM_PACKETBUFFER_ALLOCSIZE_MAX) with default reserved size
+ * Allocates a single PacketBuffer of default max size (#WEAVE_SYSTEM_CONFIG_PACKETBUFFER_CAPACITY_MAX) with default reserved size
  * (#WEAVE_SYSTEM_CONFIG_HEADER_RESERVE_SIZE) in the payload.
  *
  * The reserved size (#WEAVE_SYSTEM_CONFIG_HEADER_RESERVE_SIZE) is large enough to hold transport layer headers as well as headers required by

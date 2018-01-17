@@ -262,6 +262,48 @@
 #define WEAVE_SYSTEM_CONFIG_PACKETBUFFER_MAXALLOC 15
 #endif /* WEAVE_SYSTEM_CONFIG_PACKETBUFFER_MAXALLOC */
 
+/**
+ *  @def WEAVE_SYSTEM_CONFIG_PACKETBUFFER_CAPACITY_MAX
+ *
+ *  @brief
+ *      The maximum size an application can use with \c PacketBuffer. This is not the raw memory size consumed by
+ *      a \c PacketBuffer object.
+ *
+ *  @note
+ *      Only socket platforms can override the default value. On LwIP-based platforms, the size is derived from the PBUF size
+ *      and overriding the value will result in a compile-time error.
+ *
+ *      This value should be set large enough to accomodate the usage of PacketBuffer in the system. In particular, for the use
+ *      in Weave, the value should be set to accomodate the desired path MTU (i.e. the largest IP packet that can be sent over
+ *      the network interface) plus any protocol overhead.
+ *
+ *      For example, sending an IP packet over the tunnel requires additional overheads that depend on platform's network
+ *      interface. On socket platforms, the tunnel protocol overhead is 47 bytes; on LwIP platforms the overhead is 101 bytes,
+ *      plus any "sub-Ethernet" data structure space (e.g. the linked list pointers used by some interfaces to queue packets).
+ *
+ *      The overheads are calculated as follows:
+ *
+ *          (variable) -- "Sub-Ethernet" data structures (LwIP-only)
+ *          14 -- Ethernet Header (LwIP-only)
+ *          20 -- IPv4 Header (LwIP-only)
+ *          20 -- TCP Header (LwIP-only)
+ *          2  -- Weave Message Length
+ *          24 -- Weave Header
+ *          1  -- Tunnel Header
+ *          20 -- Crypto Trailer
+ *
+ *      The size of PacketBuffer structure does not need to be included in this value.
+ */
+#if WEAVE_SYSTEM_CONFIG_USE_LWIP
+#ifdef WEAVE_SYSTEM_CONFIG_PACKETBUFFER_CAPACITY_MAX
+#error "WEAVE_SYSTEM_CONFIG_PACKETBUFFER_CAPACITY_MAX cannot be defined on an LwIP-based platform."
+#endif /* WEAVE_SYSTEM_CONFIG_PACKETBUFFER_CAPACITY_MAX */
+#else /* !WEAVE_SYSTEM_CONFIG_USE_LWIP */
+#ifndef WEAVE_SYSTEM_CONFIG_PACKETBUFFER_CAPACITY_MAX
+#define WEAVE_SYSTEM_CONFIG_PACKETBUFFER_CAPACITY_MAX 1583
+#endif /* WEAVE_SYSTEM_CONFIG_PACKETBUFFER_CAPACITY_MAX */
+#endif /* !WEAVE_SYSTEM_CONFIG_USE_LWIP */
+
 #if WEAVE_SYSTEM_CONFIG_USE_LWIP
 
 /**

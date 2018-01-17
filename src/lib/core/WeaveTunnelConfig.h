@@ -446,6 +446,11 @@
  *    The maximum transmission unit for the Tunnel interface
  *    on a border gateway.
  *
+ *  @note
+ *    Setting a non-default value may also require updating
+ *    WEAVE_SYSTEM_CONFIG_PACKETBUFFER_CAPACITY_MAX for socket
+ *    platforms and PBUF size for LwIP platforms.
+ *
  */
 #ifndef WEAVE_CONFIG_TUNNEL_INTERFACE_MTU
 #define WEAVE_CONFIG_TUNNEL_INTERFACE_MTU                           (1536)

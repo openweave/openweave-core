@@ -148,28 +148,11 @@ private:
 // Sizing definitions
 
 /**
- * @def WEAVE_SYSTEM_PACKETBUFFER_SIZE
- *
- *  The size of the individual packet buffer.  On LwIP-based platforms, it defaults to the buffer size provided via PBUF_POOL
- *  (PBUF_POOL_BUFSIZE). On socket platforms, it is sized large enough to accomodate the Ethernet frame size along with the headers
- *  required by the PacketBuffer structure.
- *
- *  This also needs to accomodate the largest UDP packet that pops out of the tun-tap interface and gets encapsulated in Weave headers before being sent
- *  to the service (see SUN-6926)
- *
- *  TODO: Formula to derive that relative to the tunnel MTU will be provided.
- *
- */
-#if WEAVE_SYSTEM_CONFIG_USE_LWIP
-#define WEAVE_SYSTEM_PACKETBUFFER_SIZE LWIP_MEM_ALIGN_SIZE(PBUF_POOL_BUFSIZE)
-#else // WEAVE_SYSTEM_CONFIG_USE_LWIP
-#define WEAVE_SYSTEM_PACKETBUFFER_SIZE 1700
-#endif // WEAVE_SYSTEM_CONFIG_USE_LWIP
-
-/**
  * @def WEAVE_SYSTEM_PACKETBUFFER_HEADER_SIZE
  *
  *  The effective size of the packet buffer structure.
+ *
+ *  TODO: This is an implementation details that does not need to be public and should be moved to the source file.
  */
 
 #if WEAVE_SYSTEM_CONFIG_USE_LWIP
@@ -178,12 +161,29 @@ private:
 #define WEAVE_SYSTEM_PACKETBUFFER_HEADER_SIZE WEAVE_SYSTEM_ALIGN_SIZE(sizeof(::nl::Weave::System::PacketBuffer), 4)
 #endif // WEAVE_SYSTEM_CONFIG_USE_LWIP
 
+
 /**
- * @def WEAVE_SYSTEM_PACKETBUFFER_ALLOCSIZE_MAX
+ * @def WEAVE_SYSTEM_CONFIG_PACKETBUFFER_CAPACITY_MAX
  *
- *  The maximum size payload that can be allocated with a \c PacketBuffer object.
+ *  See SystemConfig.h for full description. This is defined in here specifically for LwIP platform to preserve backwards
+ *  compatibility.
+ *
+ *  TODO: This is an implementation details that does not need to be public and should be moved to the source file.
+ *
  */
-#define WEAVE_SYSTEM_PACKETBUFFER_ALLOCSIZE_MAX (WEAVE_SYSTEM_PACKETBUFFER_SIZE - WEAVE_SYSTEM_PACKETBUFFER_HEADER_SIZE)
+#if WEAVE_SYSTEM_CONFIG_USE_LWIP
+#define WEAVE_SYSTEM_CONFIG_PACKETBUFFER_CAPACITY_MAX (LWIP_MEM_ALIGN_SIZE(PBUF_POOL_BUFSIZE) - WEAVE_SYSTEM_PACKETBUFFER_HEADER_SIZE)
+#endif // WEAVE_SYSTEM_CONFIG_USE_LWIP
+
+/**
+ * @def WEAVE_SYSTEM_PACKETBUFFER_SIZE
+ *
+ *  The memory footprint of a PacketBuffer object, computed from max capacity size and the size of the packet buffer structure.
+ *
+ *  TODO: This is an implementation details that does not need to be public and should be moved to the source file.
+ */
+
+#define WEAVE_SYSTEM_PACKETBUFFER_SIZE (WEAVE_SYSTEM_CONFIG_PACKETBUFFER_CAPACITY_MAX + WEAVE_SYSTEM_PACKETBUFFER_HEADER_SIZE)
 
 namespace nl {
 namespace Weave {
