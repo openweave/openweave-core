@@ -1179,6 +1179,10 @@ netif_get_ip6_addr_match(struct netif *netif, const ip6_addr_t *ip6addr)
  * @param netif the netif to create the address on
  * @param from_mac_48bit if != 0, assume hwadr is a 48-bit MAC address (std conversion)
  *                       if == 0, use hwaddr directly as interface ID
+ *
+ * @note
+ *  Nest has changed this interface so that if from_mac_48bit == 0, then it means the
+ *  hwaddr is an EUI64 that is to be subject to the standard conversion.
  */
 void
 netif_create_ip6_linklocal_address(struct netif *netif, u8_t from_mac_48bit)
@@ -1205,13 +1209,7 @@ netif_create_ip6_linklocal_address(struct netif *netif, u8_t from_mac_48bit)
     ip_2_ip6(&netif->ip6_addr[0])->addr[2] = 0;
     ip_2_ip6(&netif->ip6_addr[0])->addr[3] = 0;
 
-    addr_index = 3;
-    for (i = 0; (i < 8) && (i < netif->hwaddr_len); i++) {
-      if (i == 4) {
-        addr_index--;
-      }
-      ip_2_ip6(&netif->ip6_addr[0])->addr[addr_index] |= ((u32_t)(netif->hwaddr[netif->hwaddr_len - i - 1])) << (8 * (i & 0x03));
-    }
+    memcpy((void*)&ip_2_ip6(&netif->ip6_addr[0])->addr[2], netif->hwaddr, netif->hwaddr_len);
     ip_2_ip6(&netif->ip6_addr[0])->addr[2] ^= PP_HTONL(0x02000000ul);
   }
 
