@@ -1231,7 +1231,6 @@ am__TestWdmNext_SOURCES_DIST = TestWdmNext.cpp MockSinkTraits.cpp \
 	schema/weave/trait/security/BoltLockSettingsTrait.cpp \
 	schema/weave/trait/telemetry/NetworkWiFiTelemetryTrait.cpp \
 	MockWdmViewServer.cpp MockWdmViewClient.cpp \
-	MockWdmUpdateServer.cpp MockWdmUpdateClient.cpp \
 	MockWdmSubscriptionInitiator.cpp MockWdmTestVerifier.cpp \
 	MockWdmSubscriptionResponder.cpp WdmNextPerfUtility.cpp
 @WEAVE_BUILD_TESTS_TRUE@am_TestWdmNext_OBJECTS =  \
@@ -1250,8 +1249,6 @@ am__TestWdmNext_SOURCES_DIST = TestWdmNext.cpp MockSinkTraits.cpp \
 @WEAVE_BUILD_TESTS_TRUE@	schema/weave/trait/telemetry/TestWdmNext-NetworkWiFiTelemetryTrait.$(OBJEXT) \
 @WEAVE_BUILD_TESTS_TRUE@	TestWdmNext-MockWdmViewServer.$(OBJEXT) \
 @WEAVE_BUILD_TESTS_TRUE@	TestWdmNext-MockWdmViewClient.$(OBJEXT) \
-@WEAVE_BUILD_TESTS_TRUE@	TestWdmNext-MockWdmUpdateServer.$(OBJEXT) \
-@WEAVE_BUILD_TESTS_TRUE@	TestWdmNext-MockWdmUpdateClient.$(OBJEXT) \
 @WEAVE_BUILD_TESTS_TRUE@	TestWdmNext-MockWdmSubscriptionInitiator.$(OBJEXT) \
 @WEAVE_BUILD_TESTS_TRUE@	TestWdmNext-MockWdmTestVerifier.$(OBJEXT) \
 @WEAVE_BUILD_TESTS_TRUE@	TestWdmNext-MockWdmSubscriptionResponder.$(OBJEXT) \
@@ -1418,7 +1415,6 @@ am__mock_device_SOURCES_DIST = mock-device.cpp MockDCLPServer.cpp \
 	schema/weave/trait/security/BoltLockSettingsTrait.cpp \
 	schema/weave/trait/telemetry/NetworkWiFiTelemetryTrait.cpp \
 	MockWdmViewServer.cpp MockWdmViewClient.cpp \
-	MockWdmUpdateServer.cpp MockWdmUpdateClient.cpp \
 	MockWdmSubscriptionInitiator.cpp MockWdmTestVerifier.cpp \
 	MockWdmSubscriptionResponder.cpp MockLoggingManager.cpp \
 	MockEvents.cpp MockDMPublisher.cpp TestProfile.cpp
@@ -1451,8 +1447,6 @@ am__mock_device_SOURCES_DIST = mock-device.cpp MockDCLPServer.cpp \
 @WEAVE_BUILD_TESTS_TRUE@	schema/weave/trait/telemetry/mock_device-NetworkWiFiTelemetryTrait.$(OBJEXT) \
 @WEAVE_BUILD_TESTS_TRUE@	mock_device-MockWdmViewServer.$(OBJEXT) \
 @WEAVE_BUILD_TESTS_TRUE@	mock_device-MockWdmViewClient.$(OBJEXT) \
-@WEAVE_BUILD_TESTS_TRUE@	mock_device-MockWdmUpdateServer.$(OBJEXT) \
-@WEAVE_BUILD_TESTS_TRUE@	mock_device-MockWdmUpdateClient.$(OBJEXT) \
 @WEAVE_BUILD_TESTS_TRUE@	mock_device-MockWdmSubscriptionInitiator.$(OBJEXT) \
 @WEAVE_BUILD_TESTS_TRUE@	mock_device-MockWdmTestVerifier.$(OBJEXT) \
 @WEAVE_BUILD_TESTS_TRUE@	mock_device-MockWdmSubscriptionResponder.$(OBJEXT) \
@@ -1842,8 +1836,7 @@ am__noinst_HEADERS_DIST = CASEOptions.h KeyExportOptions.h \
 	MockSinkTraits.h MockSPServer.h MockSDServer.h MockSWUServer.h \
 	MockTimeSyncUtil.h MockTimeSyncServer.h MockTimeSyncClient.h \
 	MockTimeSyncCoordinator.h MockTokenPairingServer.h \
-	MockWdmViewServer.h MockWdmViewClient.h MockWdmUpdateServer.h \
-	MockWdmUpdateClient.h MockWdmTestVerifier.h \
+	MockWdmViewServer.h MockWdmViewClient.h MockWdmTestVerifier.h \
 	MockWdmSubscriptionInitiator.h MockWdmSubscriptionResponder.h \
 	TestWdmOneWayCommand.h TestGroupKeyStore.h TestDRBG.h \
 	TestPersistedStorageImplementation.h \
@@ -2638,8 +2631,7 @@ noinst_HEADERS = CASEOptions.h KeyExportOptions.h ToolCommonOptions.h \
 	MockSinkTraits.h MockSPServer.h MockSDServer.h MockSWUServer.h \
 	MockTimeSyncUtil.h MockTimeSyncServer.h MockTimeSyncClient.h \
 	MockTimeSyncCoordinator.h MockTokenPairingServer.h \
-	MockWdmViewServer.h MockWdmViewClient.h MockWdmUpdateServer.h \
-	MockWdmUpdateClient.h MockWdmTestVerifier.h \
+	MockWdmViewServer.h MockWdmViewClient.h MockWdmTestVerifier.h \
 	MockWdmSubscriptionInitiator.h MockWdmSubscriptionResponder.h \
 	TestWdmOneWayCommand.h TestGroupKeyStore.h TestDRBG.h \
 	TestPersistedStorageImplementation.h \
@@ -3071,8 +3063,6 @@ EXTRA_DIST = \
 @WEAVE_BUILD_TESTS_TRUE@                                           schema/weave/trait/telemetry/NetworkWiFiTelemetryTrait.cpp	\
 @WEAVE_BUILD_TESTS_TRUE@                                           MockWdmViewServer.cpp					\
 @WEAVE_BUILD_TESTS_TRUE@                                           MockWdmViewClient.cpp					\
-@WEAVE_BUILD_TESTS_TRUE@                                           MockWdmUpdateServer.cpp					\
-@WEAVE_BUILD_TESTS_TRUE@                                           MockWdmUpdateClient.cpp					\
 @WEAVE_BUILD_TESTS_TRUE@                                           MockWdmSubscriptionInitiator.cpp				\
 @WEAVE_BUILD_TESTS_TRUE@                                           MockWdmTestVerifier.cpp	        			\
 @WEAVE_BUILD_TESTS_TRUE@                                           MockWdmSubscriptionResponder.cpp				\
@@ -3125,8 +3115,6 @@ EXTRA_DIST = \
 @WEAVE_BUILD_TESTS_TRUE@	schema/weave/trait/telemetry/NetworkWiFiTelemetryTrait.cpp \
 @WEAVE_BUILD_TESTS_TRUE@	MockWdmViewServer.cpp \
 @WEAVE_BUILD_TESTS_TRUE@	MockWdmViewClient.cpp \
-@WEAVE_BUILD_TESTS_TRUE@	MockWdmUpdateServer.cpp \
-@WEAVE_BUILD_TESTS_TRUE@	MockWdmUpdateClient.cpp \
 @WEAVE_BUILD_TESTS_TRUE@	MockWdmSubscriptionInitiator.cpp \
 @WEAVE_BUILD_TESTS_TRUE@	MockWdmTestVerifier.cpp \
 @WEAVE_BUILD_TESTS_TRUE@	MockWdmSubscriptionResponder.cpp \
@@ -3907,8 +3895,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/TestWdmNext-MockWdmSubscriptionInitiator.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/TestWdmNext-MockWdmSubscriptionResponder.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/TestWdmNext-MockWdmTestVerifier.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/TestWdmNext-MockWdmUpdateClient.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/TestWdmNext-MockWdmUpdateServer.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/TestWdmNext-MockWdmViewClient.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/TestWdmNext-MockWdmViewServer.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/TestWdmNext-TestWdmNext.Po@am__quote@
@@ -3952,8 +3938,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mock_device-MockWdmSubscriptionInitiator.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mock_device-MockWdmSubscriptionResponder.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mock_device-MockWdmTestVerifier.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mock_device-MockWdmUpdateClient.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mock_device-MockWdmUpdateServer.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mock_device-MockWdmViewClient.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mock_device-MockWdmViewServer.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mock_device-TestProfile.Po@am__quote@
@@ -4557,34 +4541,6 @@ TestWdmNext-MockWdmViewClient.obj: MockWdmViewClient.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(TestWdmNext_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o TestWdmNext-MockWdmViewClient.obj `if test -f 'MockWdmViewClient.cpp'; then $(CYGPATH_W) 'MockWdmViewClient.cpp'; else $(CYGPATH_W) '$(srcdir)/MockWdmViewClient.cpp'; fi`
 
-TestWdmNext-MockWdmUpdateServer.o: MockWdmUpdateServer.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(TestWdmNext_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT TestWdmNext-MockWdmUpdateServer.o -MD -MP -MF $(DEPDIR)/TestWdmNext-MockWdmUpdateServer.Tpo -c -o TestWdmNext-MockWdmUpdateServer.o `test -f 'MockWdmUpdateServer.cpp' || echo '$(srcdir)/'`MockWdmUpdateServer.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/TestWdmNext-MockWdmUpdateServer.Tpo $(DEPDIR)/TestWdmNext-MockWdmUpdateServer.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='MockWdmUpdateServer.cpp' object='TestWdmNext-MockWdmUpdateServer.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(TestWdmNext_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o TestWdmNext-MockWdmUpdateServer.o `test -f 'MockWdmUpdateServer.cpp' || echo '$(srcdir)/'`MockWdmUpdateServer.cpp
-
-TestWdmNext-MockWdmUpdateServer.obj: MockWdmUpdateServer.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(TestWdmNext_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT TestWdmNext-MockWdmUpdateServer.obj -MD -MP -MF $(DEPDIR)/TestWdmNext-MockWdmUpdateServer.Tpo -c -o TestWdmNext-MockWdmUpdateServer.obj `if test -f 'MockWdmUpdateServer.cpp'; then $(CYGPATH_W) 'MockWdmUpdateServer.cpp'; else $(CYGPATH_W) '$(srcdir)/MockWdmUpdateServer.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/TestWdmNext-MockWdmUpdateServer.Tpo $(DEPDIR)/TestWdmNext-MockWdmUpdateServer.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='MockWdmUpdateServer.cpp' object='TestWdmNext-MockWdmUpdateServer.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(TestWdmNext_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o TestWdmNext-MockWdmUpdateServer.obj `if test -f 'MockWdmUpdateServer.cpp'; then $(CYGPATH_W) 'MockWdmUpdateServer.cpp'; else $(CYGPATH_W) '$(srcdir)/MockWdmUpdateServer.cpp'; fi`
-
-TestWdmNext-MockWdmUpdateClient.o: MockWdmUpdateClient.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(TestWdmNext_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT TestWdmNext-MockWdmUpdateClient.o -MD -MP -MF $(DEPDIR)/TestWdmNext-MockWdmUpdateClient.Tpo -c -o TestWdmNext-MockWdmUpdateClient.o `test -f 'MockWdmUpdateClient.cpp' || echo '$(srcdir)/'`MockWdmUpdateClient.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/TestWdmNext-MockWdmUpdateClient.Tpo $(DEPDIR)/TestWdmNext-MockWdmUpdateClient.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='MockWdmUpdateClient.cpp' object='TestWdmNext-MockWdmUpdateClient.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(TestWdmNext_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o TestWdmNext-MockWdmUpdateClient.o `test -f 'MockWdmUpdateClient.cpp' || echo '$(srcdir)/'`MockWdmUpdateClient.cpp
-
-TestWdmNext-MockWdmUpdateClient.obj: MockWdmUpdateClient.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(TestWdmNext_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT TestWdmNext-MockWdmUpdateClient.obj -MD -MP -MF $(DEPDIR)/TestWdmNext-MockWdmUpdateClient.Tpo -c -o TestWdmNext-MockWdmUpdateClient.obj `if test -f 'MockWdmUpdateClient.cpp'; then $(CYGPATH_W) 'MockWdmUpdateClient.cpp'; else $(CYGPATH_W) '$(srcdir)/MockWdmUpdateClient.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/TestWdmNext-MockWdmUpdateClient.Tpo $(DEPDIR)/TestWdmNext-MockWdmUpdateClient.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='MockWdmUpdateClient.cpp' object='TestWdmNext-MockWdmUpdateClient.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(TestWdmNext_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o TestWdmNext-MockWdmUpdateClient.obj `if test -f 'MockWdmUpdateClient.cpp'; then $(CYGPATH_W) 'MockWdmUpdateClient.cpp'; else $(CYGPATH_W) '$(srcdir)/MockWdmUpdateClient.cpp'; fi`
-
 TestWdmNext-MockWdmSubscriptionInitiator.o: MockWdmSubscriptionInitiator.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(TestWdmNext_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT TestWdmNext-MockWdmSubscriptionInitiator.o -MD -MP -MF $(DEPDIR)/TestWdmNext-MockWdmSubscriptionInitiator.Tpo -c -o TestWdmNext-MockWdmSubscriptionInitiator.o `test -f 'MockWdmSubscriptionInitiator.cpp' || echo '$(srcdir)/'`MockWdmSubscriptionInitiator.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/TestWdmNext-MockWdmSubscriptionInitiator.Tpo $(DEPDIR)/TestWdmNext-MockWdmSubscriptionInitiator.Po
@@ -5186,34 +5142,6 @@ mock_device-MockWdmViewClient.obj: MockWdmViewClient.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='MockWdmViewClient.cpp' object='mock_device-MockWdmViewClient.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mock_device_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o mock_device-MockWdmViewClient.obj `if test -f 'MockWdmViewClient.cpp'; then $(CYGPATH_W) 'MockWdmViewClient.cpp'; else $(CYGPATH_W) '$(srcdir)/MockWdmViewClient.cpp'; fi`
-
-mock_device-MockWdmUpdateServer.o: MockWdmUpdateServer.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mock_device_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT mock_device-MockWdmUpdateServer.o -MD -MP -MF $(DEPDIR)/mock_device-MockWdmUpdateServer.Tpo -c -o mock_device-MockWdmUpdateServer.o `test -f 'MockWdmUpdateServer.cpp' || echo '$(srcdir)/'`MockWdmUpdateServer.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/mock_device-MockWdmUpdateServer.Tpo $(DEPDIR)/mock_device-MockWdmUpdateServer.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='MockWdmUpdateServer.cpp' object='mock_device-MockWdmUpdateServer.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mock_device_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o mock_device-MockWdmUpdateServer.o `test -f 'MockWdmUpdateServer.cpp' || echo '$(srcdir)/'`MockWdmUpdateServer.cpp
-
-mock_device-MockWdmUpdateServer.obj: MockWdmUpdateServer.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mock_device_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT mock_device-MockWdmUpdateServer.obj -MD -MP -MF $(DEPDIR)/mock_device-MockWdmUpdateServer.Tpo -c -o mock_device-MockWdmUpdateServer.obj `if test -f 'MockWdmUpdateServer.cpp'; then $(CYGPATH_W) 'MockWdmUpdateServer.cpp'; else $(CYGPATH_W) '$(srcdir)/MockWdmUpdateServer.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/mock_device-MockWdmUpdateServer.Tpo $(DEPDIR)/mock_device-MockWdmUpdateServer.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='MockWdmUpdateServer.cpp' object='mock_device-MockWdmUpdateServer.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mock_device_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o mock_device-MockWdmUpdateServer.obj `if test -f 'MockWdmUpdateServer.cpp'; then $(CYGPATH_W) 'MockWdmUpdateServer.cpp'; else $(CYGPATH_W) '$(srcdir)/MockWdmUpdateServer.cpp'; fi`
-
-mock_device-MockWdmUpdateClient.o: MockWdmUpdateClient.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mock_device_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT mock_device-MockWdmUpdateClient.o -MD -MP -MF $(DEPDIR)/mock_device-MockWdmUpdateClient.Tpo -c -o mock_device-MockWdmUpdateClient.o `test -f 'MockWdmUpdateClient.cpp' || echo '$(srcdir)/'`MockWdmUpdateClient.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/mock_device-MockWdmUpdateClient.Tpo $(DEPDIR)/mock_device-MockWdmUpdateClient.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='MockWdmUpdateClient.cpp' object='mock_device-MockWdmUpdateClient.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mock_device_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o mock_device-MockWdmUpdateClient.o `test -f 'MockWdmUpdateClient.cpp' || echo '$(srcdir)/'`MockWdmUpdateClient.cpp
-
-mock_device-MockWdmUpdateClient.obj: MockWdmUpdateClient.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mock_device_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT mock_device-MockWdmUpdateClient.obj -MD -MP -MF $(DEPDIR)/mock_device-MockWdmUpdateClient.Tpo -c -o mock_device-MockWdmUpdateClient.obj `if test -f 'MockWdmUpdateClient.cpp'; then $(CYGPATH_W) 'MockWdmUpdateClient.cpp'; else $(CYGPATH_W) '$(srcdir)/MockWdmUpdateClient.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/mock_device-MockWdmUpdateClient.Tpo $(DEPDIR)/mock_device-MockWdmUpdateClient.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='MockWdmUpdateClient.cpp' object='mock_device-MockWdmUpdateClient.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mock_device_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o mock_device-MockWdmUpdateClient.obj `if test -f 'MockWdmUpdateClient.cpp'; then $(CYGPATH_W) 'MockWdmUpdateClient.cpp'; else $(CYGPATH_W) '$(srcdir)/MockWdmUpdateClient.cpp'; fi`
 
 mock_device-MockWdmSubscriptionInitiator.o: MockWdmSubscriptionInitiator.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mock_device_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT mock_device-MockWdmSubscriptionInitiator.o -MD -MP -MF $(DEPDIR)/mock_device-MockWdmSubscriptionInitiator.Tpo -c -o mock_device-MockWdmSubscriptionInitiator.o `test -f 'MockWdmSubscriptionInitiator.cpp' || echo '$(srcdir)/'`MockWdmSubscriptionInitiator.cpp
@@ -7759,11 +7687,11 @@ distclean-generic:
 maintainer-clean-generic:
 	@echo "This command is intended for maintainers to use"
 	@echo "it deletes files that may require special tools to rebuild."
-@WEAVE_BUILD_TESTS_FALSE@install-exec-local:
 @WEAVE_BUILD_TESTS_FALSE@uninstall-local:
 @WEAVE_BUILD_COVERAGE_FALSE@clean-local:
 @WEAVE_BUILD_COVERAGE_REPORTS_FALSE@clean-local:
 @WEAVE_BUILD_TESTS_FALSE@clean-local:
+@WEAVE_BUILD_TESTS_FALSE@install-exec-local:
 clean: clean-am
 
 clean-am: clean-checkPROGRAMS clean-generic clean-libexecPROGRAMS \

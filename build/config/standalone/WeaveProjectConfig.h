@@ -49,4 +49,6 @@
 // Increase session idle timeout in stand-alone builds for the convenience of developers.
 #define WEAVE_CONFIG_DEFAULT_SECURITY_SESSION_IDLE_TIMEOUT           120000
 
+#define WEAVE_CONFIG_ENABLE_WDM_UPDATE 1
+
 #endif /* WEAVEPROJECTCONFIG_H */

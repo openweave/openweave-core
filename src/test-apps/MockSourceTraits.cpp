@@ -316,10 +316,11 @@ TestATraitDataSource::TestATraitDataSource()
 void TestATraitDataSource::Mutate()
 {
     Lock();
-
+    uint8_t kNumTestCases;
     if (mTraitTestSet == 0)
     {
-        static const uint8_t kNumTestCases = 8;
+        kNumTestCases = 8;
+
         if ((mTestCounter % kNumTestCases) == 6) {
             // enums
             SetDirty(TestATrait::kPropertyHandle_TaD_SaA);
@@ -409,7 +410,7 @@ void TestATraitDataSource::Mutate()
             SetNullifiedPath(TestATrait::kPropertyHandle_TaN, false);
         }
     }
-    else
+    else if (mTraitTestSet == 1)
     {
         printf("Flipping %u\n", mTestCounter % 14);
 
@@ -539,6 +540,120 @@ void TestATraitDataSource::Mutate()
             }
 
             SetDirty(TestATrait::kPropertyHandle_Root);
+        }
+    }
+    else
+    {
+        kNumTestCases = 8;
+        if ((mTestCounter % kNumTestCases) == 0) {
+            //sink 3 leaf properties changes, source 3 leaf properties changes
+            SetDirty(TestATrait::kPropertyHandle_TaP);
+            SetDirty(TestATrait::kPropertyHandle_TaC);
+            SetDirty(TestATrait::kPropertyHandle_TaR);
+
+            tap++;
+            tac++;
+            tar++;
+        }
+        else if ((mTestCounter % kNumTestCases) == 1) {
+            //sink 3 leaf properties changes, source 4 leaf properties changes
+            SetDirty(TestATrait::kPropertyHandle_TaP);
+            SetDirty(TestATrait::kPropertyHandle_TaC);
+            SetDirty(TestATrait::kPropertyHandle_TaR);
+            SetDirty(TestATrait::kPropertyHandle_TaS);
+
+            tap++;
+            tac++;
+            tar++;
+            tas++;
+        }
+        else if ((mTestCounter % kNumTestCases) == 2) {
+            //sink 3 leaf properties changes, source 2 leaf properties changes
+            SetDirty(TestATrait::kPropertyHandle_TaP);
+            SetDirty(TestATrait::kPropertyHandle_TaC);
+
+            tap++;
+            tac++;
+        }
+        else if ((mTestCounter % kNumTestCases) == 3) {
+            // mock sink, one independent leaf and one leaf in one structure property changes
+            // mock source, one independent leaf and one leaf in one structure property changes
+            //SetDirty(TestATrait::kPropertyHandle_TaD_SaA);
+            SetDirty(TestATrait::kPropertyHandle_TaD_SaB);
+
+            SetDirty(TestATrait::kPropertyHandle_TaA);
+            if (taa == TestATrait::ENUM_A_VALUE_1) {
+                taa = TestATrait::ENUM_A_VALUE_2;
+            }
+            else {
+                taa = TestATrait::ENUM_A_VALUE_1;
+            }
+
+            // tad.saA++;
+            tad.saB = !tad.saB;
+        }
+        else if ((mTestCounter % kNumTestCases) == 4) {
+            // sink, one independent leaf, one leaf in one structure property changes, mark this structure dirty, merge
+            // source, one independent leaf and two leaf in one structure property changes
+            SetDirty(TestATrait::kPropertyHandle_TaD_SaA);
+            SetDirty(TestATrait::kPropertyHandle_TaA);
+            SetDirty(TestATrait::kPropertyHandle_TaD);
+
+            if (taa == TestATrait::ENUM_A_VALUE_1) {
+                taa = TestATrait::ENUM_A_VALUE_2;
+            }
+            else {
+                taa = TestATrait::ENUM_A_VALUE_1;
+            }
+
+            tad.saB = !tad.saB;
+        }
+        else if ((mTestCounter % kNumTestCases) == 5) {
+            SetDirty(TestATrait::kPropertyHandle_TaI);
+
+            for (uint16_t i = 0; i < 10; i++) {
+                tai_map[i] = { (uint32_t)i + 1 };
+            }
+        }
+        else if ((mTestCounter % kNumTestCases) == 6) {
+            SetDirty(TestATrait::kPropertyHandle_TaI);
+
+            for (uint16_t i = 0; i < 10; i++) {
+                tai_map[i] = { (uint32_t)i + 1 };
+            }
+
+            SetDirty(TestATrait::kPropertyHandle_TaD_SaA);
+            SetDirty(TestATrait::kPropertyHandle_TaA);
+            SetDirty(TestATrait::kPropertyHandle_TaD);
+
+            if (taa == TestATrait::ENUM_A_VALUE_1) {
+                taa = TestATrait::ENUM_A_VALUE_2;
+            }
+            else {
+                taa = TestATrait::ENUM_A_VALUE_1;
+            }
+
+            tad.saB = !tad.saB;
+        }
+        else if ((mTestCounter % kNumTestCases) == 7) {
+            // sink, all merge with root handle, cut dictionary
+            SetDirty(TestATrait::kPropertyHandle_Root);
+            SetDirty(TestATrait::kPropertyHandle_TaD_SaA);
+            SetDirty(TestATrait::kPropertyHandle_TaA);
+            SetDirty(TestATrait::kPropertyHandle_TaD);
+            SetDirty(TestATrait::kPropertyHandle_TaI);
+
+            for (uint16_t i = 0; i < 10; i++) {
+                tai_map[i] = { (uint32_t)i + 1 };
+            }
+            if (taa == TestATrait::ENUM_A_VALUE_1) {
+                taa = TestATrait::ENUM_A_VALUE_2;
+            }
+            else {
+                taa = TestATrait::ENUM_A_VALUE_1;
+            }
+
+            tad.saB = !tad.saB;
         }
     }
 

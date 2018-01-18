@@ -305,6 +305,18 @@
 #endif // WDM_PUBLISHER_MAX_NUM_PATH_GROUPS
 
 /**
+ *  @def WDM_CLIENT_MAX_NUM_PATH_GROUPS
+ *
+ *  @brief
+ *    Sum number of paths, group by trait instance for each subscription,
+ *    in all active subscriptions, on a client in Weave Data Management Next profile.
+ *
+ */
+#ifndef WDM_CLIENT_MAX_NUM_PATH_GROUPS
+#define WDM_CLIENT_MAX_NUM_PATH_GROUPS 8
+#endif // WDM_CLIENT_MAX_NUM_PATH_GROUPS
+
+/**
  *  @def WDM_PUBLISHER_MAX_NUM_PROPERTY_PATH_HANDLES
  *
  *  @brief
@@ -375,6 +387,18 @@
 #endif
 
 /**
+ *  @def WDM_UPDATE_MAX_ITEMS_IN_TRAIT_DIRTY_PATH_STORE
+ *
+ *  @brief
+ *    Determines the maximum number of dirty items that can be stored in the granular trait data
+ *    dirty stores. This is a function of the peak # of handles across all trait instances that can be made dirty
+ *    within any given evaluation cycle.
+ */
+#ifndef WDM_UPDATE_MAX_ITEMS_IN_TRAIT_DIRTY_PATH_STORE
+#define WDM_UPDATE_MAX_ITEMS_IN_TRAIT_DIRTY_PATH_STORE  10
+#endif
+
+/**
  *  @def WDM_PUBLISHER_MAX_NOTIFIES_IN_FLIGHT
  *
  *  @brief
@@ -386,7 +410,6 @@
 #ifndef WDM_PUBLISHER_MAX_NOTIFIES_IN_FLIGHT
 #define WDM_PUBLISHER_MAX_NOTIFIES_IN_FLIGHT 4
 #endif
-
 
 /**
  * The auto-generated schema tables key off this define to enable/disable certain fields in the tables. Enable this for now, but remove this define
@@ -445,7 +468,7 @@
 #endif // WDM_PUBLISHER_ENABLE_CUSTOM_COMMANDS
 
 /**
- *  @def WDM_ENABLE_UPDATE
+ *  @def WEAVE_CONFIG_ENABLE_WDM_UPDATE
  *
  *  @brief
  *    Enable (1) or disable (0) update support
@@ -453,8 +476,8 @@
  *    optional and could be disabled.
  *
  */
-#ifndef WDM_ENABLE_UPDATE
-#define WDM_ENABLE_UPDATE 1
+#ifndef WEAVE_CONFIG_ENABLE_WDM_UPDATE
+#define WEAVE_CONFIG_ENABLE_WDM_UPDATE 0
 #endif
 
 /**
@@ -498,6 +521,18 @@
 #endif /* WDM_MAX_NOTIFICATION_SIZE */
 
 /**
+ * @def WDM_MAX_UPDATE_SIZE
+ *
+ * @brief
+ *   Specify the maximum size (in bytes) of a WDM update
+ *   payload. Note that the WDM update payload is also limited
+ *   by the size of `nl::Weave::System::PacketBuffer`
+ */
+#ifndef WDM_MAX_UPDATE_SIZE
+#define WDM_MAX_UPDATE_SIZE 2048
+#endif /* WDM_MAX_UPDATE_SIZE */
+
+/**
  *  @def TDM_DISABLE_STRICT_SCHEMA_COMPLIANCE
  *
  *  @brief
@@ -520,6 +555,17 @@
  */
 #ifndef WDM_ENABLE_PROTOCOL_CHECKS
 #define WDM_ENABLE_PROTOCOL_CHECKS 1
+#endif
+
+/**
+ *  @def WDM_ENABLE_REAL_UPDATE_RESPONSE
+ *
+ *  @brief
+ *    Enables WDM update logic for update response with version list
+ *    and status list
+ */
+#ifndef WDM_ENABLE_REAL_UPDATE_RESPONSE
+#define WDM_ENABLE_REAL_UPDATE_RESPONSE 0
 #endif
 
 /**

@@ -525,6 +525,8 @@ NL_DLL_EXPORT const char *ErrorStr(int32_t err)
     case WEAVE_ERROR_INCOMPATIBLE_SCHEMA_VERSION                : return WeaveFormatError(err, "Incompatible data schema version");
     case WEAVE_ERROR_TUNNEL_ROUTING_RESTRICTED                  : return WeaveFormatError(err, "Restricted Routing: Border Routing disabled");
     case WEAVE_ERROR_TUNNEL_RESET_RECONNECT_ALREADY_ARMED       : return WeaveFormatError(err, "The Reset reconnect timer is already armed");
+    case WEAVE_ERROR_MISMATCH_UPDATE_REQUIRED_VERSION           : return WeaveFormatError(err, "Update Required Version mismatch");
+    case WEAVE_ERROR_WDM_MALFORMED_STATUS_ELEMENT               : return WeaveFormatError(err, "Status Element in wdm update is malformed");
 
     // ----- ASN1 Errors -----
     case ASN1_END                                               : return ASN1FormatError(err, "End of input");

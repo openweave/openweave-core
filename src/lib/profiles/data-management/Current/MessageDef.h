@@ -55,6 +55,8 @@ enum
     kMsgType_CustomCommandRequest    = 0x29,
     kMsgType_CustomCommandResponse   = 0x2A,
     kMsgType_OneWayCommand           = 0x2B,
+    kMsgType_PartialUpdateRequest    = 0x2C,
+    kMsgType_UpdateContinue          = 0x2D,
 };
 
 /**
@@ -288,6 +290,47 @@ private:
     bool mInTagSection;
 
     WEAVE_ERROR _Init(nl::Weave::TLV::TLVWriter * const apWriter, const uint64_t aTagInApiForm);
+};
+
+/**
+ *  @brief
+ *    WDM Status Element definition
+ *
+ */
+namespace StatusElement {
+    enum
+    {
+        kCsTag_ProfileID         = 1,
+        kCsTag_Status          = 2,
+    };
+
+    class Parser;
+}; // namespace DataElement
+
+/**
+ *  @brief
+ *    WDM Status Element parser definition
+ */
+class StatusElement::Parser : public ParserBase
+{
+public:
+    // aReader has to be on the element of DataElement
+    WEAVE_ERROR Init(const nl::Weave::TLV::TLVReader & aReader);
+
+    // Roughly verify the schema is right, including
+    // 1) all mandatory tags are present
+    // 2) all elements have expected data type
+    // 3) any tag can only appear once
+    // At the top level of the structure, unknown tags are ignored for foward compatibility
+    WEAVE_ERROR CheckSchemaValidity(void) const;
+
+    // WEAVE_END_OF_TLV if there is no such element
+    // WEAVE_ERROR_WRONG_TLV_TYPE if there is such element but it's not any of the defined unsigned integer types
+    WEAVE_ERROR GetProfileID(uint32_t * apProfileID) const;
+
+    // WEAVE_END_OF_TLV if there is no such element
+    // WEAVE_ERROR_WRONG_TLV_TYPE if there is such element but it's not any of the defined unsigned integer types
+    WEAVE_ERROR GetStatus(uint16_t * apStatus) const;
 };
 
 /**
@@ -595,6 +638,18 @@ public:
 
     // Mark the end of this array and recover the type for outer container
     VersionList::Builder & EndOfVersionList(void);
+};
+
+namespace StatusList {
+    class Parser;
+}; // namespace StatusList
+
+class StatusList::Parser : public ListParserBase
+{
+public:
+    WEAVE_ERROR CheckSchemaValidity(void) const;
+    WEAVE_ERROR GetVersion(uint64_t * const apVersion);
+    WEAVE_ERROR GetStatusAndProfileID(uint32_t * const apProfileID, uint16_t * const apStatusCode);
 };
 
 namespace ViewRequest {
@@ -1381,6 +1436,37 @@ public:
 
     // Get a TLVReader for the Paths. Next() must be called before accessing them.
     WEAVE_ERROR GetDataList (DataList::Parser * const apDataList) const;
+};
+
+namespace UpdateResponse {
+    enum {
+        kCsTag_VersionList = 1,
+        kCsTag_StatusList = 2,
+    };
+
+    class Parser;
+};
+
+class UpdateResponse::Parser : public ParserBase
+{
+public:
+    // aReader has to be on the element of anonymous container
+    WEAVE_ERROR Init(const nl::Weave::TLV::TLVReader & aReader);
+
+    // Roughly verify the schema is right, including
+    // 1) all mandatory tags are present
+    // 2) no unknown tags
+    // 3) all elements have expected data type
+    // 4) any tag can only appear once
+    WEAVE_ERROR CheckSchemaValidity(void) const;
+
+    // Get a TLVReader for the Status. Next() must be called before accessing them.
+    WEAVE_ERROR GetStatusList(StatusList::Parser * const apStatusList) const;
+
+    // Get a TLVReader at the Versions. Next() must be called before accessing it.
+    // WEAVE_END_OF_TLV if there is no such element
+    // WEAVE_ERROR_WRONG_TLV_TYPE if there is such element but it's not one of the right types
+    WEAVE_ERROR GetVersionList(VersionList::Parser * const apVersionList) const;
 };
 
 }; // namespace WeaveMakeManagedNamespaceIdentifier(DataManagement, kWeaveManagedNamespaceDesignation_Current)

@@ -56,8 +56,6 @@ noinst_HEADERS                                 = \
     MockTokenPairingServer.h                     \
     MockWdmViewServer.h                          \
     MockWdmViewClient.h                          \
-    MockWdmUpdateServer.h                        \
-    MockWdmUpdateClient.h                        \
     MockWdmTestVerifier.h                        \
     MockWdmSubscriptionInitiator.h               \
     MockWdmSubscriptionResponder.h               \
@@ -1274,8 +1272,6 @@ TestWdmNext_SOURCES                      = TestWdmNext.cpp						\
                                            schema/weave/trait/telemetry/NetworkWiFiTelemetryTrait.cpp	\
                                            MockWdmViewServer.cpp					\
                                            MockWdmViewClient.cpp					\
-                                           MockWdmUpdateServer.cpp					\
-                                           MockWdmUpdateClient.cpp					\
                                            MockWdmSubscriptionInitiator.cpp				\
                                            MockWdmTestVerifier.cpp	        			\
                                            MockWdmSubscriptionResponder.cpp				\
@@ -1337,8 +1333,6 @@ mock_device_SOURCES                      = mock-device.cpp                      
                                            schema/weave/trait/telemetry/NetworkWiFiTelemetryTrait.cpp \
                                            MockWdmViewServer.cpp                                    \
                                            MockWdmViewClient.cpp                                    \
-                                           MockWdmUpdateServer.cpp                                    \
-                                           MockWdmUpdateClient.cpp                                    \
                                            MockWdmSubscriptionInitiator.cpp                         \
                                            MockWdmTestVerifier.cpp	                            \
                                            MockWdmSubscriptionResponder.cpp                         \

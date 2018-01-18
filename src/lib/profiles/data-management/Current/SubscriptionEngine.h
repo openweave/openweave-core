@@ -194,7 +194,7 @@ public:
     WEAVE_ERROR NewClient(SubscriptionClient ** const appClient, Binding * const apBinding, void * const apAppState,
                           SubscriptionClient::EventCallback const aEventCallback,
                           const TraitCatalogBase<TraitDataSink> * const apCatalog,
-                          const uint32_t aInactivityTimeoutDuringSubscribingMsec);
+                          const uint32_t aInactivityTimeoutDuringSubscribingMsec, IWeaveClientLock * aLock=NULL);
 
     WEAVE_ERROR NewSubscriptionHandler(SubscriptionHandler ** const subHandler);
 

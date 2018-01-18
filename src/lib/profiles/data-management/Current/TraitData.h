@@ -40,6 +40,10 @@ namespace Weave {
 namespace Profiles {
 namespace WeaveMakeManagedNamespaceIdentifier(DataManagement, kWeaveManagedNamespaceDesignation_Current) {
 
+class SubscriptionClient;
+struct TraitPath;
+class TraitSchemaEngine;
+class UpdateDirtyPathFilter;
 /**
  * A PropertyPathHandle is a unique 32-bit numerical hash of a WDM path relative to the root of a trait instance. It has two parts
  * to it:
@@ -64,6 +68,8 @@ namespace WeaveMakeManagedNamespaceIdentifier(DataManagement, kWeaveManagedNames
 typedef uint32_t PropertyPathHandle;
 typedef uint16_t PropertySchemaHandle;
 typedef uint16_t PropertyDictionaryKey;
+typedef uint16_t TraitDataHandle;
+
 
 /* Reserved property path handles that have special meaning */
 enum
@@ -97,6 +103,52 @@ inline bool IsNullPropertyPathHandle(PropertyPathHandle aHandle)
 {
     return (aHandle == kNullPropertyPathHandle);
 }
+
+class IPathFilter
+{
+public:
+    virtual bool FilterPath(PropertyPathHandle aPathhandle, const TraitSchemaEngine * apEngine) = 0;
+};
+
+/**
+ *  @class UpdateDirtyPathFilter
+ *
+ *  @brief  Utility class to filter path when handling notification.
+ */
+class UpdateDirtyPathFilter : public IPathFilter
+{
+public:
+    UpdateDirtyPathFilter(SubscriptionClient *apSubClient, TraitDataHandle traitDataHandle, bool & aFilterPendingUpdate, bool & aFilterDispatchedUpdate);
+    virtual bool FilterPath (PropertyPathHandle aPathhandle, const TraitSchemaEngine * apEngine);
+
+private:
+    SubscriptionClient *mpSubClient;
+    TraitDataHandle mTraitDataHandle;
+    bool mFilterPendingUpdate;
+    bool mFilterDispatchedUpdate;
+};
+
+class IDirtyPathCut
+{
+public:
+    virtual WEAVE_ERROR CutPath(PropertyPathHandle aPathhandle, const TraitSchemaEngine * apEngine) = 0;
+};
+
+/**
+ *  @class UpdateDictionaryDirtyPathCut
+ *
+ *  @brief  Utility class to put the dictionary back to pending queue when process the property path that has dictionary child.
+ */
+class UpdateDictionaryDirtyPathCut : public IDirtyPathCut
+{
+public:
+    UpdateDictionaryDirtyPathCut(TraitDataHandle aTraitDataHandle, SubscriptionClient *pSubClient);
+    virtual WEAVE_ERROR CutPath (PropertyPathHandle aPathhandle, const TraitSchemaEngine * apEngine);
+
+private:
+    SubscriptionClient *mpSubClient;
+    TraitDataHandle mTraitDataHandle;
+};
 
 /**
  *  @class TraitSchemaEngine
@@ -153,7 +205,7 @@ public:
      * at most one parent for any given node) where branches indicate the presence of a nested structure, then this analogy fits in
      * quite nicely.
      */
-    class IDataSinkDelegate
+    class ISetDataDelegate
     {
     public:
         enum DataSinkEventType
@@ -208,7 +260,7 @@ public:
         virtual void OnDataSinkEvent(DataSinkEventType aType, PropertyPathHandle aHandle) = 0;
     };
 
-    class IDataSourceDelegate
+    class IGetDataDelegate
     {
     public:
         /**
@@ -296,7 +348,7 @@ public:
      * @retval #WEAVE_NO_ERROR On success.
      * @retval other           Encountered errors parsing/processing the data.
      */
-    WEAVE_ERROR StoreData(PropertyPathHandle aHandle, nl::Weave::TLV::TLVReader & aReader, IDataSinkDelegate * aDelegate) const;
+    WEAVE_ERROR StoreData(PropertyPathHandle aHandle, nl::Weave::TLV::TLVReader & aReader, ISetDataDelegate * aDelegate, IPathFilter * aPathFilter) const;
 
     /**
      * Given a path handle and a writer position on the corresponding data element, retrieve leaf data from the source and write it
@@ -306,8 +358,10 @@ public:
      * @retval other           Encountered errors writing out the data.
      */
     WEAVE_ERROR RetrieveData(PropertyPathHandle aHandle, uint64_t aTagToWrite, nl::Weave::TLV::TLVWriter & aWriter,
-                             IDataSourceDelegate * aDelegate) const;
+                             IGetDataDelegate * aDelegate, IDirtyPathCut * apDirtyPathCut=NULL) const;
 
+    WEAVE_ERROR RetrieveUpdatableDictionaryData(PropertyPathHandle aHandle, uint64_t aTagToWrite, nl::Weave::TLV::TLVWriter & aWriter,
+                                                IGetDataDelegate * aDelegate, PropertyPathHandle & aPivotPropertyPathHandle) const;
     /**********
      *
      * Schema Query Functions
@@ -390,6 +444,7 @@ public:
                                                 PropertyPathHandle * aHandle1BranchChild,
                                                 PropertyPathHandle * aHandle2BranchChild) const;
 
+    WEAVE_ERROR GetRelativePathTags(PropertyPathHandle candidateHandle, uint32_t &tagIndex, uint64_t *tags) const;
     /**
      * Returns true if the passed in profileId matches that stored in the schema.
      *
@@ -467,7 +522,7 @@ public:
  *         It takes in a pointer to a schema that it then uses to help decipher incoming TLV data from a publisher and invoke the
  *         relevant data setter calls to pass the data up to subclasses.
  */
-class TraitDataSink : private TraitSchemaEngine::IDataSinkDelegate
+class TraitDataSink : private TraitSchemaEngine::ISetDataDelegate
 {
 public:
     TraitDataSink(const TraitSchemaEngine * aEngine);
@@ -493,7 +548,7 @@ public:
      * @retval other           Encountered errors writing out the data.
      */
     WEAVE_ERROR StoreDataElement(PropertyPathHandle aHandle, TLV::TLVReader & aReader, uint8_t aFlags, OnChangeRejection aFunc,
-                                 void * aContext);
+                                 void * aContext, TraitDataHandle aDatahandle=0);
 
     /**
      * Retrieves the current version of the data that resides in this sink.
@@ -606,7 +661,25 @@ public:
      */
     virtual WEAVE_ERROR OnEvent(uint16_t aType, void * aInEventParam) { return WEAVE_NO_ERROR; }
 
-protected: // IDataSinkDelegate
+#if WEAVE_CONFIG_ENABLE_WDM_UPDATE
+    virtual bool IsUpdatableDataSink(void)  { return false; }
+
+    virtual uint64_t GetUpdateRequiredVersion(void) { return 0; }
+
+    virtual void ClearUpdateRequiredVersion(void) {  }
+
+    virtual WEAVE_ERROR SetUpdateRequiredVersion(uint64_t aUpdateRequiredVersion) { return WEAVE_NO_ERROR; };
+
+    virtual WEAVE_ERROR SetSubScriptionClient(SubscriptionClient * apSubClient) { return WEAVE_NO_ERROR; };
+
+#endif // WEAVE_CONFIG_ENABLE_WDM_UPDATE
+
+    virtual SubscriptionClient * GetSubscriptionClient() { return NULL; }
+
+    /* Subclass can invoke this to clear out their version */
+    void ClearVersion(void) { mHasValidVersion = false; }
+
+protected: // ISetDataDelegate
     virtual WEAVE_ERROR SetLeafData(PropertyPathHandle aLeafHandle, nl::Weave::TLV::TLVReader & aReader) __OVERRIDE = 0;
 
     /*
@@ -622,23 +695,60 @@ protected: // IDataSinkDelegate
     /* Subclass can invoke this if they desire to reject a particular data change */
     void RejectChange(uint16_t aRejectionStatusCode);
 
-    /* Subclass can invoke this to clear out their version */
-    void ClearVersion(void) { mHasValidVersion = false; }
-
     const TraitSchemaEngine * mSchemaEngine;
 
 private:
-    void OnDataSinkEvent(DataSinkEventType aType, PropertyPathHandle aHandle) __OVERRIDE;
 
+    void OnDataSinkEvent(DataSinkEventType aType, PropertyPathHandle aHandle) __OVERRIDE;
     uint64_t mVersion;
     bool mHasValidVersion;
     static OnChangeRejection sChangeRejectionCb;
     static void * sChangeRejectionContext;
 };
 
+#if    WEAVE_CONFIG_ENABLE_WDM_UPDATE
+/*
+ * @class  TraitUpdatableDataSink
+ *
+ * @brief  Base abstract class that represents a particular instance of a trait on a specific external resource (client).
+ * Application developers are expected to subclass this to make a concrete sink that ingests data received from publishers
+ * and generate local sink changes to publisher.
+ *
+ */
+class TraitUpdatableDataSink : public TraitDataSink, protected TraitSchemaEngine::IGetDataDelegate
+{
+public:
+    TraitUpdatableDataSink(const TraitSchemaEngine * aEngine):TraitDataSink(aEngine) {  };
+    WEAVE_ERROR ReadData(TraitDataHandle aTraitDataHandle, PropertyPathHandle aHandle, uint64_t aTagToWrite, TLV::TLVWriter & aWriter, PropertyPathHandle & aPivotPropertyPathHandle);
+
+    virtual WEAVE_ERROR GetData(PropertyPathHandle aHandle, uint64_t aTagToWrite, nl::Weave::TLV::TLVWriter & aWriter,
+                                bool & aIsNull, bool & aIsPresent) __OVERRIDE;
+
+    void SetUpdated(SubscriptionClient * apSubClient, PropertyPathHandle aPropertyHandle, bool aIsConditional=false);
+
+    WEAVE_ERROR Lock(SubscriptionClient * apSubClient);
+    WEAVE_ERROR Unlock(SubscriptionClient * apSubClient);
+
+    virtual bool IsUpdatableDataSink(void) { return true; }
+
+    virtual WEAVE_ERROR SetSubScriptionClient(SubscriptionClient * apSubClient) { mpSubClient = apSubClient; return WEAVE_NO_ERROR; }
+
+    virtual SubscriptionClient * GetSubscriptionClient() { return mpSubClient; }
+private:
+    friend class SubscriptionClient;
+
+    virtual uint64_t GetUpdateRequiredVersion(void) { return mUpdateRequiredVersion; }
+    virtual void ClearUpdateRequiredVersion(void) { mUpdateRequiredVersion = 0; }
+    virtual WEAVE_ERROR SetUpdateRequiredVersion (uint64_t aUpdateRequiredVersion);
+
+    uint64_t mUpdateRequiredVersion;
+    SubscriptionClient * mpSubClient;
+};
+#endif    // WEAVE_CONFIG_ENABLE_WDM_UPDATE
+
 class Command;
 
-class TraitDataSource : private TraitSchemaEngine::IDataSourceDelegate
+class TraitDataSource : private TraitSchemaEngine::IGetDataDelegate
 {
 public:
     TraitDataSource(const TraitSchemaEngine * aEngine);
@@ -689,7 +799,7 @@ public:
     bool mRootIsDirty;
 #endif
 
-protected: // IDataSourceDelegate
+protected: // IGetDataDelegate
     /*
      * Defaults to calling GetLeafData if aHandle is a leaf. DataSources
      * can optionally implement this if they need to support nullable,
@@ -724,7 +834,6 @@ private:
     // Tracks whether SetDirty was called within a Lock/Unlock 'session'
     bool mSetDirtyCalled;
 };
-
 }; // namespace WeaveMakeManagedNamespaceIdentifier(DataManagement, kWeaveManagedNamespaceDesignation_Current)
 }; // namespace Profiles
 }; // namespace Weave

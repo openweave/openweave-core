@@ -29,6 +29,7 @@
 #include <Weave/Core/WeaveCore.h>
 
 #include <Weave/Profiles/data-management/TraitCatalog.h>
+#include <Weave/Profiles/data-management/UpdateClient.h>
 #include <Weave/Profiles/data-management/EventLogging.h>
 #include <Weave/Profiles/status-report/StatusReportProfile.h>
 
@@ -36,6 +37,24 @@ namespace nl {
 namespace Weave {
 namespace Profiles {
 namespace WeaveMakeManagedNamespaceIdentifier(DataManagement, kWeaveManagedNamespaceDesignation_Current) {
+
+typedef uint32_t PropertyPathHandle;
+typedef uint16_t PropertySchemaHandle;
+typedef uint16_t PropertyDictionaryKey;
+typedef uint16_t TraitDataHandle;
+
+/**
+ * @class IWeaveClientLock
+ *
+ * @brief Interface that is to be implemented by app to serialize access to key WDM data structures.
+ *        This should be backed by a recursive lock implementation.
+ */
+class IWeaveClientLock
+{
+public:
+    virtual WEAVE_ERROR Lock(void)   = 0;
+    virtual WEAVE_ERROR Unlock(void) = 0;
+};
 
 class SubscriptionClient
 {
@@ -94,6 +113,11 @@ public:
 
         // An event indicating subscription activity
         kEvent_OnSubscriptionActivity = 8,
+
+#if WEAVE_CONFIG_ENABLE_WDM_UPDATE
+        // An event indicating update complete
+        kEvent_OnUpdateComplete       = 9,
+#endif // WEAVE_CONFIG_ENABLE_WDM_UPDATE
     };
 
     struct LastObservedEvent
@@ -165,6 +189,17 @@ public:
             SubscriptionClient * mClient;
         } mSubscriptionActivity;
 
+#if WEAVE_CONFIG_ENABLE_WDM_UPDATE
+        struct
+        {
+            WEAVE_ERROR mReason;
+            uint32_t mStatusProfileId;
+            uint16_t mStatusCode;
+            TraitDataHandle    mTraitDataHandle;
+            PropertyPathHandle mPropertyPathHandle;
+            SubscriptionClient * mClient;
+        } mUpdateComplete;
+#endif // WEAVE_CONFIG_ENABLE_WDM_UPDATE
     };
 
     union OutEventParam
@@ -246,11 +281,21 @@ public:
     void ResetResubscribe(void);
 
     bool IsInProgressOrEstablished() { return (mCurrentState >= kState_InProgressOrEstablished_Begin && mCurrentState <= kState_InProgressOrEstablished_End); }
+
+    bool IsRetryEnabled() { return (mResubscribePolicyCallback != NULL); }
+
     bool IsEstablishedIdle() { return (mCurrentState == kState_SubscriptionEstablished_Idle); }
     bool IsAborted() { return (mCurrentState == kState_Aborted); }
     bool IsFree() { return (mCurrentState == kState_Free); }
+    bool IsAborting() { return (mCurrentState == kState_Aborting); }
 
-    bool IsRetryEnabled() { return (mResubscribePolicyCallback != NULL); }
+#if WEAVE_CONFIG_ENABLE_WDM_UPDATE
+    WEAVE_ERROR Lock(void);
+    WEAVE_ERROR Unlock(void);
+
+    WEAVE_ERROR FlushUpdate();
+    WEAVE_ERROR SetUpdated(TraitUpdatableDataSink * aDataSink, PropertyPathHandle aPropertyHandle, bool aIsConditional);
+#endif // WEAVE_CONFIG_ENABLE_WDM_UPDATE
 
     void IndicateActivity(void);
 
@@ -258,6 +303,10 @@ private:
     friend class SubscriptionEngine;
     friend class TestTdm;
     friend class TestWdm;
+    friend class TraitDataSink;
+    friend class TraitSchemaEngine;
+    friend class UpdateDirtyPathFilter;
+    friend class UpdateDictionaryDirtyPathCut;
 
     enum ClientState
     {
@@ -286,6 +335,10 @@ private:
     };
 
     ClientState mCurrentState;
+
+    // Lock
+    IWeaveClientLock * mLock;
+
     bool mIsInitiator;
     bool mPrevIsPartialChange;
 #if WDM_ENABLE_PROTOCOL_CHECKS
@@ -305,7 +358,7 @@ private:
 
     ResubscribePolicyCallback mResubscribePolicyCallback;
 
-    const TraitCatalogBase<TraitDataSink> * mDataSinkCatalog;
+    TraitCatalogBase<TraitDataSink> * mDataSinkCatalog;
 
     ExchangeContext::Timeout mInactivityTimeoutDuringSubscribingMsec;
     uint32_t mLivenessTimeoutMsec;
@@ -325,7 +378,7 @@ private:
     // null out EC
     WEAVE_ERROR Init(Binding * const apBinding, void * const apAppState, EventCallback const aEventCallback,
                      const TraitCatalogBase<TraitDataSink> * const apCatalog,
-                     const uint32_t aInactivityTimeoutDuringSubscribingMsec);
+                     const uint32_t aInactivityTimeoutDuringSubscribingMsec, IWeaveClientLock * aLock=NULL);
 
     void _InitiateSubscription(void);
     WEAVE_ERROR SendSubscribeRequest(void);
@@ -356,6 +409,7 @@ private:
     void SetRetryTimer(WEAVE_ERROR aReason);
 
     void MoveToState(const ClientState aTargetState);
+
     const char * GetStateStr(void) const;
 
     static void BindingEventCallback(void * const apAppState, const Binding::EventType aEvent,
@@ -368,6 +422,108 @@ private:
                                                               const nl::Inet::IPPacketInfo * aPktInfo,
                                                               const nl::Weave::WeaveMessageInfo * aMsgInfo, uint32_t aProfileId,
                                                               uint8_t aMsgType, PacketBuffer * aPayload);
+
+#if WEAVE_CONFIG_ENABLE_WDM_UPDATE
+    uint32_t GetMaxUpdateSize(void) const { return mMaxUpdateSize == 0 ? UINT16_MAX : mMaxUpdateSize; }
+
+    void SetMaxUpdateSize(const uint32_t aMaxPayload);
+
+    static WEAVE_ERROR AddElementFunc(UpdateClient * apClient, void *apCallState, TLV::TLVWriter & aOuterWriter);
+    void OnUpdateResponseTimeout(WEAVE_ERROR aReason);
+    WEAVE_ERROR PurgePendingUpdate();
+    WEAVE_ERROR OnUpdateConfirm(WEAVE_ERROR aReason, nl::Weave::Profiles::StatusReporting::StatusReport * apStatus);
+    WEAVE_ERROR SendSingleUpdateRequest();
+    WEAVE_ERROR BuildSingleUpdateRequestDataList(bool & aIsPartialUpdate, bool & aUpdateWriteInProgress);
+    bool MergeDupInPendingUpdateStore(const TraitSchemaEngine * apSchemaEngine, size_t & candidateIndex);
+
+    bool IsInclusiveDispatchedUpdateStore(TraitDataHandle aTraitDataHandle, PropertyPathHandle aPropertyPathHandle, const TraitSchemaEngine * const apSchemaEngine);
+    bool IsInclusivePendingUpdateStore(TraitDataHandle aTraitDataHandle, PropertyPathHandle aPropertyPathHandle, const TraitSchemaEngine * const apSchemaEngine);
+    bool IsPresentDispatchedUpdateStore(TraitDataHandle aTraitDataHandle, PropertyPathHandle aPropertyPathHandle);
+    bool IsPresentPendingUpdateStore(TraitDataHandle aTraitDataHandle, PropertyPathHandle aPropertyPathHandle);
+
+    WEAVE_ERROR ClearPendingUpdateStore(void);
+    WEAVE_ERROR ClearDispatchedUpdateStore(void);
+    WEAVE_ERROR RemoveItemPendingUpdateStore(TraitDataHandle aDataHandle);
+    WEAVE_ERROR RemoveItemDispatchedUpdateStore(TraitDataHandle aDataHandle);
+    WEAVE_ERROR AddItemPendingUpdateStore(TraitPath aItem, const TraitSchemaEngine * const apSchemaEngine);
+    WEAVE_ERROR ClearDirty(void);
+
+    bool IsEmptyPendingUpdateStore(void);
+    bool IsEmptyDispatchedUpdateStore(void);
+    bool IsTraitPresentInPendingUpdateStore(TraitDataHandle aTraitDataHandle);
+
+    bool IsFlushInProgress();
+    WEAVE_ERROR SetFlushInProgress();
+    WEAVE_ERROR ClearFlushInProgress();
+
+    bool IsUpdateInFlight();
+    WEAVE_ERROR SetUpdateInFlight();
+    WEAVE_ERROR ClearUpdateInFlight();
+
+    void UpdateCompleteEventCbHelper(size_t &index, uint32_t &aStatusProfileId, uint16_t &aStatusCode, WEAVE_ERROR aReason);
+    static void UpdateEventCallback (void * const aAppState, UpdateClient::EventType aEvent, const UpdateClient::InEventParam & aInParam, UpdateClient::OutEventParam & aOutParam);
+    WEAVE_ERROR FormAndSendUpdate();
+
+    void CancelUpdateClient(void);
+    void ShutdownUpdateClient(void);
+
+    static void InitUpdatableSinkTrait(void * aDataSink, TraitDataHandle aDataHandle, void * aContext);
+
+    struct PathStore
+    {
+    public:
+        PathStore();
+        bool AddItem(TraitPath aItem);
+        void RemoveItem(TraitDataHandle aDataHandle);
+        void RemoveItemAt(uint32_t aIndex);
+        void GetItemAt(uint32_t aIndex, TraitPath &aTraitPath);
+        bool IsInclusive(TraitPath aItem, const TraitSchemaEngine * const apSchemaEngine);
+        bool IsPresent(TraitPath aItem);
+        bool IsTraitPresent(TraitDataHandle aDataHandle);
+        bool IsEmpty();
+        bool IsFull();
+        uint32_t GetNumItems();
+        uint32_t GetPathStoreSize();
+        void Clear();
+        TraitPath mPathStore[WDM_UPDATE_MAX_ITEMS_IN_TRAIT_DIRTY_PATH_STORE];
+        bool mValidFlags[WDM_UPDATE_MAX_ITEMS_IN_TRAIT_DIRTY_PATH_STORE];
+        uint32_t mNumItems;
+    };
+
+    struct TraitInstanceInfo
+    {
+        void Init(void) { this->ClearDirty(); }
+        bool IsDirty(void) { return mDirty; }
+        void SetDirty(void) { mDirty = true; }
+        void ClearDirty(void) { mDirty = false; }
+
+        TraitDataHandle mTraitDataHandle;
+        uint16_t mRequestedVersion;
+        bool mDirty;
+        PropertyPathHandle mNextDictionaryElementPathHandle;
+        PropertyPathHandle mCandidatePropertyPathHandle;
+        PropertyPathHandle mPropertyPathHandle;
+    };
+
+    struct AddElementCallState
+    {
+        SubscriptionClient * mpSubClient;
+        TraitInstanceInfo * mpTraitInstanceInfo;
+    };
+
+    TraitInstanceInfo * GetTraitInstanceInfoList(void) { return mClientTraitInfoPool; }
+    uint32_t GetNumTraitInstances(void) { return mNumTraitInstances; }
+
+    TraitInstanceInfo mClientTraitInfoPool[WDM_CLIENT_MAX_NUM_PATH_GROUPS];
+    uint16_t mNumTraitInstances;
+    uint32_t mCurProcessingTraitInstanceIdx;
+    uint16_t mMaxUpdateSize;
+    bool mUpdateInFlight;
+    bool mFlushInProgress;
+    PathStore mPendingUpdateStore;
+    PathStore mDispatchedUpdateStore;
+    UpdateClient mUpdateClient;
+#endif // WEAVE_CONFIG_ENABLE_WDM_UPDATE
 };
 
 }; // namespace WeaveMakeManagedNamespaceIdentifier(DataManagement, kWeaveManagedNamespaceDesignation_Current)

@@ -41,8 +41,8 @@ public:
 private:
     WEAVE_ERROR SetLeafData(nl::Weave::Profiles::DataManagement::PropertyPathHandle aLeafHandle, nl::Weave::TLV::TLVReader &aReader);
     WEAVE_ERROR GetData(nl::Weave::Profiles::DataManagement::PropertyPathHandle aHandle, uint64_t aTagToWrite, nl::Weave::TLV::TLVWriter &aWriter, bool &aIsNull, bool &aIsPresent) __OVERRIDE;
-    WEAVE_ERROR GetLeafData(nl::Weave::Profiles::DataManagement::PropertyPathHandle aLeafHandle, uint64_t aTagToWrite, nl::Weave::TLV::TLVWriter &aWriter) __OVERRIDE;
     WEAVE_ERROR GetNextDictionaryItemKey(nl::Weave::Profiles::DataManagement::PropertyPathHandle aDictionaryHandle, uintptr_t &aContext, nl::Weave::Profiles::DataManagement::PropertyDictionaryKey &aKey) __OVERRIDE;
+    WEAVE_ERROR GetLeafData(nl::Weave::Profiles::DataManagement::PropertyPathHandle aLeafHandle, uint64_t aTagToWrite, nl::Weave::TLV::TLVWriter &aWriter) __OVERRIDE;
 
     Schema::Nest::Test::Trait::TestATrait::EnumA taa;
     Schema::Nest::Test::Trait::TestCommon::CommonEnumA tab;
@@ -102,7 +102,6 @@ public:
 private:
     WEAVE_ERROR SetLeafData(nl::Weave::Profiles::DataManagement::PropertyPathHandle aLeafHandle, nl::Weave::TLV::TLVReader &aReader) __OVERRIDE;
     WEAVE_ERROR SetData(nl::Weave::Profiles::DataManagement::PropertyPathHandle aHandle, nl::Weave::TLV::TLVReader &aReader, bool aIsNull) __OVERRIDE;
-
     void SetDataCalled(nl::Weave::Profiles::DataManagement::PropertyPathHandle aHandle);
     void SetPathHandleNull(nl::Weave::Profiles::DataManagement::PropertyPathHandle aHandle, bool aIsNull);
 

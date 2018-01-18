@@ -45,7 +45,6 @@ namespace WeaveMakeManagedNamespaceIdentifier(DataManagement, kWeaveManagedNames
 class UpdateClient
 {
 public:
-
     struct InEventParam;
     struct OutEventParam;
 
@@ -61,6 +60,7 @@ public:
     enum EventType
     {
         kEvent_UpdateComplete = 1,
+        kEvent_UpdateContinue = 2,
     };
 
     enum UpdateClientState
@@ -86,7 +86,7 @@ public:
 
     WEAVE_ERROR Shutdown(void);
 
-    WEAVE_ERROR StartUpdate(PacketBuffer * aBuf, utc_timestamp_t aExpiryTimeMicroSecond, AddArgumentCallback aAddArgumentCallback);
+    WEAVE_ERROR StartUpdate(utc_timestamp_t aExpiryTimeMicroSecond, AddArgumentCallback aAddArgumentCallback, uint32_t maxUpdateSize);
 
     WEAVE_ERROR CancelUpdate(void);
 
@@ -113,21 +113,26 @@ public:
 
     WEAVE_ERROR CancelElement(TLV::TLVWriter & aOuterWriter);
 
-    WEAVE_ERROR SendUpdate(void);
+    WEAVE_ERROR SendUpdate(bool aIsPartialUpdate);
 
-    void * mAppState;
+    WEAVE_ERROR Checkpoint(TLV::TLVWriter &aWriter);
+
+    WEAVE_ERROR Rollback(TLV::TLVWriter &aWriter);
+
+    void * mpAppState;
 
 private:
 
+    Binding * mpBinding;
+    EventCallback mEventCallback;
+    nl::Weave::ExchangeContext * mEC;
     TLV::TLVWriter mWriter;
     UpdateClientState mState;
-    PacketBuffer * mBuf;
-    Binding * mBinding;
-    EventCallback mEventCallback;
+    PacketBuffer * mpBuf;
     utc_timestamp_t mExpiryTimeMicroSecond;
     AddArgumentCallback mAddArgumentCallback;
 
-    nl::Weave::ExchangeContext * mEC;
+    nl::Weave::TLV::TLVType mDataListContainerType, mDataElementContainerType, mDataContainerType;
 
     static void OnSendError(ExchangeContext * aEC, WEAVE_ERROR aErrorCode, void * aMsgSpecificContext);
     static void OnResponseTimeout(nl::Weave::ExchangeContext * aEC);
@@ -143,8 +148,6 @@ private:
     const char * GetStateStr(void) const;
 
     void ClearState(void);
-
-    WEAVE_ERROR Checkpoint(TLV::TLVWriter &aWriter);
 
     WEAVE_ERROR StartDataList(void);
 
@@ -164,13 +167,14 @@ private:
 
 struct UpdateClient::InEventParam
 {
+
+    UpdateClient *Source;
     union
     {
         struct
         {
             WEAVE_ERROR Reason;
-            PacketBuffer * mMessage;
-            UpdateClient * mpClient;
+            StatusReporting::StatusReport * StatusReportPtr;
         } UpdateComplete;
     };
 

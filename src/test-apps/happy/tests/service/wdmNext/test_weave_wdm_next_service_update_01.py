@@ -32,15 +32,19 @@ class test_weave_wdm_next_service_update_01(weave_wdm_next_test_service_base):
     def test_weave_wdm_next_service_update_01(self):
         wdm_next_args = {}
 
-        wdm_next_args['wdm_option'] = "update"
-        wdm_next_args['total_client_count'] = 0
-        wdm_next_args['test_client_iterations'] = 1
+        wdm_next_args['wdm_option'] = "mutual_subscribe"
+        wdm_next_args['final_client_status'] = 0
+        wdm_next_args['enable_client_flip'] = 1
+        wdm_next_args['test_client_iterations'] = 2
+        wdm_next_args['test_client_delay'] = 15000
+        wdm_next_args['client_clear_state_between_iterations'] = False
+        wdm_next_args['test_client_case'] = 12
+        wdm_next_args['total_client_count'] = 7
 
-        wdm_next_args['client_log_check'] = []
+        wdm_next_args['client_log_check'] = [('Update: Good Iteration', wdm_next_args['test_client_iterations'] * (wdm_next_args['total_client_count'] - 1) * 3)]
 
         wdm_next_args['test_tag'] = self.__class__.__name__
-        wdm_next_args['test_case_name'] = ['Wdm-NestService-O01: Client send update request to publisher, and receive status report']
-
+        wdm_next_args['test_case_name'] = ['Wdm-NestService-O01: Client creates mutual subscription, send update request to publisher, and receive status report']
         print 'test file: ' + self.__class__.__name__
         print "weave-wdm-next test O01"
         super(test_weave_wdm_next_service_update_01, self).weave_wdm_next_test_service_base(wdm_next_args)
@@ -48,4 +52,3 @@ class test_weave_wdm_next_service_update_01(weave_wdm_next_test_service_base):
 
 if __name__ == "__main__":
     unittest.main()
-

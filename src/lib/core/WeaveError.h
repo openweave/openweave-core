@@ -1635,6 +1635,23 @@ typedef WEAVE_CONFIG_ERROR_TYPE WEAVE_ERROR;
  *  @}
  */
 
+/**
+ *  @def WEAVE_ERROR_MISMATCH_UPDATE_REQUIRED_VERSION
+ *
+ *  @brief
+ *    Encountered a mismatch between wdm update required version and current version
+ */
+#define WEAVE_ERROR_MISMATCH_UPDATE_REQUIRED_VERSION                 _WEAVE_ERROR(170)
+
+/**
+ * @def WEAVE_ERROR_WDM_MALFORMED_STATUS_ELEMENT
+ *
+ * @brief
+ *   The WDM STATUSElement is malformed: it either does not contain
+ *   the required profile id and status code.
+ */
+#define WEAVE_ERROR_WDM_MALFORMED_STATUS_ELEMENT                    _WEAVE_ERROR(171)
+
 // !!!!! IMPORTANT !!!!!  If you add new Weave errors, please update the translation
 // of error codes to strings in support/ErrorStr.cpp, and add them to unittest
 // in test-apps/TestErrorStr.cpp

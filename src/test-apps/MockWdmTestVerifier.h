@@ -25,6 +25,6 @@
 #include <Weave/Profiles/data-management/DataManagement.h>
 
 uint16_t DumpPublisherTraitChecksum(nl::Weave::Profiles::DataManagement::TraitDataSource *inTraitDataSource);
-uint16_t DumpClientTraitChecksum(const nl::Weave::Profiles::DataManagement::TraitSchemaEngine *inSchemaEngine, nl::Weave::Profiles::DataManagement::TraitSchemaEngine::IDataSourceDelegate *);
+uint16_t DumpClientTraitChecksum(const nl::Weave::Profiles::DataManagement::TraitSchemaEngine *inSchemaEngine, nl::Weave::Profiles::DataManagement::TraitSchemaEngine::IGetDataDelegate *);
 
 #endif //MOCK_WDM_TRAIT_VERIFIER_H

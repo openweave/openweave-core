@@ -29,6 +29,7 @@
 #       - one mobile phone
 #       - border_gateway has cellular backup connection
 #      run_parallel_topology.sh create M N 0x00000 cellular mobile
+#      sh run_parallel_topology.sh create 1 1 0x00001 --cellular --mobile
 #
 
 if [ -z "$EUI64_PREFIX" ]; then

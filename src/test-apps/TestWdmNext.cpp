@@ -51,8 +51,6 @@
 
 #include "MockWdmSubscriptionInitiator.h"
 #include "MockWdmSubscriptionResponder.h"
-#include "MockWdmUpdateClient.h"
-#include "MockWdmUpdateServer.h"
 #include "MockWdmViewClient.h"
 #include "MockWdmViewServer.h"
 #include "WdmNextPerfUtility.h"
@@ -118,8 +116,6 @@ enum
     kToolOpt_TimeBetweenLivenessCheckSec,
     kToolOpt_WdmEnableRetry,
     kToolopt_EnableMockTimestampInitialCounter,
-    kToolOpt_WdmSimpleUpdateClient,
-    kToolOpt_WdmSimpleUpdateServer,
 };
 
 static OptionDef gToolOptionDefs[] =
@@ -141,8 +137,6 @@ static OptionDef gToolOptionDefs[] =
     { "wdm-subnet",                                     kArgumentRequired,  kToolOpt_WdmUseSubnetId },
     //{ "wdm-simple-view-client",                       kNoArgument,        kToolOpt_WdmSimpleViewClient },
     //{ "wdm-simple-view-server",                       kNoArgument,        kToolOpt_WdmSimpleViewServer },
-    { "wdm-simple-update-client",                       kNoArgument,        kToolOpt_WdmSimpleUpdateClient },
-    { "wdm-simple-update-server",                       kNoArgument,        kToolOpt_WdmSimpleUpdateServer },
     { "wdm-one-way-sub-client",                         kNoArgument,        kToolOpt_WdmSubscriptionClient },
     { "wdm-one-way-sub-publisher",                      kNoArgument,        kToolOpt_WdmSubscriptionPublisher },
     { "wdm-init-mutual-sub",                            kNoArgument,        kToolOpt_WdmInitMutualSubscription },
@@ -167,12 +161,6 @@ static const char *const gToolOptionHelp =
     "\n"
     "  --wdm-simple-view-server\n"
     "       Initiate a simple WDM Next view server\n"
-    "\n"
-    "  --wdm-simple-update-client\n"
-    "       Initiate a simple WDM Next update client\n"
-    "\n"
-    "  --wdm-simple-update-server\n"
-    "       Initiate a simple WDM Next update server\n"
     "\n"
     "  --wdm-one-way-sub-client\n"
     "       Initiate a subscription to some WDM Next publisher\n"
@@ -368,27 +356,6 @@ int main(int argc, char *argv[])
                 break;
 
 #endif // ENABLE_VIEW_TEST
-
-        case kToolOpt_WdmSimpleUpdateClient:
-            if (WdmPublisherNodeId != kAnyNodeId)
-            {
-                err = MockWdmUpdateClient::GetInstance()->Init(&ExchangeMgr, TestCaseId, gWeaveSecurityMode.SecurityMode, KeyId);
-                FAIL_ERROR(err, "MockWdmUpdateClient.Init failed");
-                err = MockWdmUpdateClient::GetInstance()->StartTesting(WdmPublisherNodeId, WdmUseSubnetId);
-                FAIL_ERROR(err, "MockWdmUpdateClient.StartTesting failed");
-
-                MockWdmUpdateClient::GetInstance()-> onCompleteTest = HandleWdmCompleteTest;
-            }
-            else
-            {
-                err = WEAVE_ERROR_INVALID_ARGUMENT;
-                FAIL_ERROR(err, "Simple Update Client requires node ID to some publisher");
-            }
-            break;
-        case kToolOpt_WdmSimpleUpdateServer:
-            err = MockWdmUpdateServer::GetInstance()->Init(&ExchangeMgr, TestCaseId);
-            FAIL_ERROR(err, "MockWdmUpdateServer.Init failed");
-            break;
 
         case kToolOpt_WdmInitMutualSubscription:
         case kToolOpt_WdmSubscriptionClient:
@@ -613,23 +580,6 @@ bool HandleOption(const char *progName, OptionSet *optSet, int id, const char *n
     case kToolOpt_ClearDataSinkStateBetweenTests:
         gClearDataSinkState = true;
         break;
-
-        case kToolOpt_WdmSimpleUpdateClient:
-            if (0 != WdmRoleInTest)
-            {
-                PrintArgError("%s: Mock device can only play one role in WDM tests (%s)\n", progName, arg);
-                return false;
-            }
-            WdmRoleInTest = kToolOpt_WdmSimpleUpdateClient;
-            break;
-        case kToolOpt_WdmSimpleUpdateServer:
-            if (0 != WdmRoleInTest)
-            {
-                PrintArgError("%s: Mock device can only play one role in WDM tests (%s)\n", progName, arg);
-                return false;
-            }
-            WdmRoleInTest = kToolOpt_WdmSimpleUpdateServer;
-            break;
 
     case kToolOpt_WdmSubscriptionClient:
         if (0 != WdmRoleInTest)

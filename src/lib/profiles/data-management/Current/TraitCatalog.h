@@ -117,6 +117,12 @@ public:
     virtual WEAVE_ERROR DispatchEvent(uint16_t aEvent, void * aContext) const = 0;
 
     virtual void Iterate(IteratorCallback aCallback, void * aContext) = 0;
+
+#if    WEAVE_CONFIG_ENABLE_WDM_UPDATE
+    virtual WEAVE_ERROR GetInstanceId(TraitDataHandle aHandle, uint64_t &aInstanceId) const = 0;
+
+    virtual WEAVE_ERROR GetResourceId(TraitDataHandle aHandle, uint64_t &aResourceId) const = 0;
+#endif // WEAVE_CONFIG_ENABLE_WDM_UPDATE
 };
 
 /**
@@ -203,6 +209,11 @@ public: // TraitCatalogBase
     WEAVE_ERROR Locate(T * aTraitInstance, TraitDataHandle & aHandle) const;
     WEAVE_ERROR DispatchEvent(uint16_t aEvent, void * aContext) const;
     void Iterate(IteratorCallback aCallback, void * aContext);
+
+#if    WEAVE_CONFIG_ENABLE_WDM_UPDATE
+    WEAVE_ERROR GetInstanceId(TraitDataHandle aHandle, uint64_t &aInstanceId) const;
+    WEAVE_ERROR GetResourceId(TraitDataHandle aHandle, uint64_t &aResourceId) const;
+#endif // WEAVE_CONFIG_ENABLE_WDM_UPDATE
 
 private:
     CatalogItem * mCatalogStore;
@@ -450,6 +461,29 @@ WEAVE_ERROR SingleResourceTraitCatalog<T>::DispatchEvent(uint16_t aEvent, void *
 
     return err;
 }
+
+#if WEAVE_CONFIG_ENABLE_WDM_UPDATE
+template <typename T>
+WEAVE_ERROR SingleResourceTraitCatalog<T>::GetInstanceId(TraitDataHandle aHandle, uint64_t &aInstanceId) const
+{
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
+    VerifyOrExit(aHandle < mNumCurCatalogItems, err = WEAVE_ERROR_INVALID_ARGUMENT);
+    aInstanceId = mCatalogStore[aHandle].mInstanceId;
+
+    exit:
+    return err;
+}
+
+template <typename T>
+WEAVE_ERROR SingleResourceTraitCatalog<T>::GetResourceId(TraitDataHandle aHandle, uint64_t &aResourceId) const
+{
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
+    aResourceId = mResourceId.mNodeId;
+
+exit:
+    return err;
+}
+#endif // WEAVE_CONFIG_ENABLE_WDM_UPDATE
 
 }; // namespace WeaveMakeManagedNamespaceIdentifier(DataManagement, kWeaveManagedNamespaceDesignation_Current)
 }; // namespace Profiles

@@ -815,6 +815,130 @@ exit:
     return *this;
 }
 
+// aReader has to be on the element of StatusElement
+WEAVE_ERROR StatusElement::Parser::Init(const nl::Weave::TLV::TLVReader & aReader)
+{
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
+
+    // make a copy of the reader here
+    mReader.Init(aReader);
+
+    VerifyOrExit(nl::Weave::TLV::kTLVType_Structure == mReader.GetType(), err = WEAVE_ERROR_WRONG_TLV_TYPE);
+
+    // This is just a dummy, as we're not going to exit this container ever
+    nl::Weave::TLV::TLVType OuterContainerType;
+    err = mReader.EnterContainer(OuterContainerType);
+
+exit:
+
+    WeaveLogFunctError(err);
+    return err;
+}
+
+// WEAVE_END_OF_TLV if there is no such element
+// WEAVE_ERROR_WRONG_TLV_TYPE if there is such element but it's not a Path
+WEAVE_ERROR StatusElement::Parser::GetProfileID(uint32_t * const apProfileID) const
+{
+    return GetUnsignedInteger(kCsTag_ProfileID, apProfileID);
+}
+
+// WEAVE_END_OF_TLV if there is no such element
+// WEAVE_ERROR_WRONG_TLV_TYPE if there is such element but it's not any of the defined unsigned integer types
+WEAVE_ERROR StatusElement::Parser::GetStatus(uint16_t * const apStatus) const
+{
+    return GetUnsignedInteger(kCsTag_Status, apStatus);
+}
+
+#if WEAVE_CONFIG_DATA_MANAGEMENT_ENABLE_SCHEMA_CHECK
+// Roughly verify the schema is right, including
+// 1) all mandatory tags are present
+// 2) all elements have expected data type
+// 3) any tag can only appear once
+// At the top level of the structure, unknown tags are ignored for foward compatibility
+WEAVE_ERROR StatusElement::Parser::CheckSchemaValidity(void) const
+{
+    WEAVE_ERROR err          = WEAVE_NO_ERROR;
+    uint16_t TagPresenceMask = 0;
+    nl::Weave::TLV::TLVReader reader;
+    uint32_t tagNum = 0;
+
+    PRETTY_PRINT("\t {");
+
+    // make a copy of the reader
+    reader.Init(mReader);
+
+    while (WEAVE_NO_ERROR == (err = reader.Next()))
+    {
+        VerifyOrExit(nl::Weave::TLV::IsContextTag(reader.GetTag()), err = WEAVE_ERROR_INVALID_TLV_TAG);
+
+        tagNum = nl::Weave::TLV::TagNumFromTag(reader.GetTag());
+
+        switch (tagNum)
+        {
+        case kCsTag_ProfileID:
+            // check if this tag has appeared before
+            VerifyOrExit(!(TagPresenceMask & (1 << kCsTag_ProfileID)), err = WEAVE_ERROR_INVALID_TLV_TAG);
+            TagPresenceMask |= (1 << kCsTag_ProfileID);
+            VerifyOrExit(nl::Weave::TLV::kTLVType_UnsignedInteger == reader.GetType(), err = WEAVE_ERROR_WRONG_TLV_TYPE);
+
+#if WEAVE_DETAIL_LOGGING
+            {
+                uint32_t profileID;
+                err = reader.Get(profileID);
+                SuccessOrExit(err);
+
+                PRETTY_PRINT("\t\tDataElementVersion = 0x%" PRIx32 ",", profileID);
+            }
+#endif // WEAVE_DETAIL_LOGGING
+            break;
+        case kCsTag_Status:
+            // check if this tag has appeared before
+            VerifyOrExit(!(TagPresenceMask & (1 << kCsTag_Status)), err = WEAVE_ERROR_INVALID_TLV_TAG);
+            TagPresenceMask |= (1 << kCsTag_Status);
+            VerifyOrExit(nl::Weave::TLV::kTLVType_UnsignedInteger == reader.GetType(), err = WEAVE_ERROR_WRONG_TLV_TYPE);
+
+#if WEAVE_DETAIL_LOGGING
+            {
+                uint16_t status;
+                err = reader.Get(status);
+                SuccessOrExit(err);
+
+                PRETTY_PRINT("\t\tDataElementVersion = 0x%" PRIx16 ",", status);
+            }
+#endif // WEAVE_DETAIL_LOGGING
+            break;
+
+        default:
+            PRETTY_PRINT("\t\tUnknown tag num %" PRIu32, tagNum);
+            break;
+        }
+    }
+
+    PRETTY_PRINT("\t},");
+
+    // if we have exhausted this container
+    if (WEAVE_END_OF_TLV == err)
+    {
+        // check for required fields:
+        const uint16_t RequiredFields = (1 << kCsTag_Status) & (1 << kCsTag_ProfileID);
+
+        if ((TagPresenceMask & RequiredFields) == RequiredFields)
+        {
+            err = WEAVE_NO_ERROR;
+        }
+        else
+        {
+            err = WEAVE_ERROR_WDM_MALFORMED_STATUS_ELEMENT;
+        }
+    }
+
+exit:
+    WeaveLogFunctError(err);
+
+    return err;
+}
+#endif // WEAVE_CONFIG_DATA_MANAGEMENT_ENABLE_SCHEMA_CHECK
+
 // aReader has to be on the element of DataElement
 WEAVE_ERROR DataElement::Parser::Init(const nl::Weave::TLV::TLVReader & aReader)
 {
@@ -2256,6 +2380,72 @@ WEAVE_ERROR VersionList::Parser::CheckSchemaValidity(void) const
     if (WEAVE_END_OF_TLV == err)
     {
         err = WEAVE_NO_ERROR;
+    }
+
+exit:
+    WeaveLogFunctError(err);
+
+    return err;
+}
+
+WEAVE_ERROR StatusList::Parser::GetStatusAndProfileID(uint32_t * const apProfileID, uint16_t * const apStatusCode)
+{
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
+    StatusElement::Parser statusElement;
+    err = statusElement.Init(mReader);
+    SuccessOrExit(err);
+
+    statusElement.GetStatus(apStatusCode);
+    SuccessOrExit(err);
+
+    statusElement.GetProfileID(apProfileID);
+    SuccessOrExit(err);
+
+exit:
+    return err;
+}
+// Roughly verify the schema is right, including
+// 1) at least one element is there
+// 2) all elements are anonymous and of Structure type
+// 3) every Data Element is also valid in schema
+WEAVE_ERROR StatusList::Parser::CheckSchemaValidity(void) const
+{
+    WEAVE_ERROR err       = WEAVE_NO_ERROR;
+    size_t NumStatusElement = 0;
+    nl::Weave::TLV::TLVReader reader;
+
+    PRETTY_PRINT("StatusList =");
+    PRETTY_PRINT("[");
+
+    // make a copy of the reader
+    reader.Init(mReader);
+
+    while (WEAVE_NO_ERROR == (err = reader.Next()))
+    {
+        VerifyOrExit(nl::Weave::TLV::AnonymousTag == reader.GetTag(), err = WEAVE_ERROR_INVALID_TLV_TAG);
+        VerifyOrExit(nl::Weave::TLV::kTLVType_Array == reader.GetType(), err = WEAVE_ERROR_WRONG_TLV_TYPE);
+
+        {
+            StatusElement::Parser status;
+            err = status.Init(reader);
+            SuccessOrExit(err);
+            err = status.CheckSchemaValidity();
+            SuccessOrExit(err);
+        }
+
+        ++NumStatusElement;
+    }
+
+    PRETTY_PRINT("],");
+
+    // if we have exhausted this container
+    if (WEAVE_END_OF_TLV == err)
+    {
+        // if we have at least one data element
+        if (NumStatusElement > 0)
+        {
+            err = WEAVE_NO_ERROR;
+        }
     }
 
 exit:
@@ -3889,6 +4079,40 @@ exit:
     WeaveLogIfFalse((WEAVE_NO_ERROR == err) || (WEAVE_END_OF_TLV == err));
 
     return err;
+}
+
+// aReader has to be on the element of anonymous container
+WEAVE_ERROR UpdateResponse::Parser::Init(const nl::Weave::TLV::TLVReader & aReader)
+{
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
+
+    // make a copy of the reader here
+    mReader.Init(aReader);
+
+    VerifyOrExit(nl::Weave::TLV::AnonymousTag == mReader.GetTag(), err = WEAVE_ERROR_INVALID_TLV_TAG);
+    VerifyOrExit(nl::Weave::TLV::kTLVType_Structure == mReader.GetType(), err = WEAVE_ERROR_WRONG_TLV_TYPE);
+
+    // This is just a dummy, as we're not going to exit this container ever
+    nl::Weave::TLV::TLVType OuterContainerType;
+    err = mReader.EnterContainer(OuterContainerType);
+
+exit:
+    WeaveLogFunctError(err);
+    return err;
+}
+
+// Get a TLVReader for the Status. Next() must be called before accessing them.
+WEAVE_ERROR UpdateResponse::Parser::GetStatusList(StatusList::Parser * const apStatusList) const
+{
+    return apStatusList->InitIfPresent(mReader, kCsTag_StatusList);
+}
+
+// Get a TLVReader at the Versions. Next() must be called before accessing it.
+// WEAVE_END_OF_TLV if there is no such element
+// WEAVE_ERROR_WRONG_TLV_TYPE if there is such element but it's not one of the right types
+WEAVE_ERROR UpdateResponse::Parser::GetVersionList(VersionList::Parser * const apVersionList) const
+{
+    return apVersionList->InitIfPresent(mReader, kCsTag_VersionList);
 }
 
 }; // namespace WeaveMakeManagedNamespaceIdentifier(DataManagement, kWeaveManagedNamespaceDesignation_Current)

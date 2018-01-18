@@ -545,6 +545,7 @@ exit:
     return err;
 }
 
+
 //
 // This is a very special sink that tracks all the replaces, deletions and modifications that are sent to it through the
 // OnEvent and SetLeafData calls. This then allows for programmatic validation of the specific set of data that is expected for a set of modifications
@@ -561,7 +562,7 @@ public:
 private:
     WEAVE_ERROR OnEvent(uint16_t aType, void *aInParam);
     WEAVE_ERROR SetLeafData(PropertyPathHandle aLeafHandle, nl::Weave::TLV::TLVReader &aReader);
-
+    WEAVE_ERROR GetLeafData(PropertyPathHandle aLeafHandle, uint64_t aTagToWrite, TLVWriter &aWriter);
     std::map <PropertyPathHandle, uint32_t> mModifiedHandles;
     std::set <PropertyPathHandle> mDeletedHandles;
     std::set <PropertyPathHandle> mReplacedDictionaries;

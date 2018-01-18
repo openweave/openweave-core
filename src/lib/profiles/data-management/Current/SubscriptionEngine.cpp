@@ -230,25 +230,34 @@ uint16_t SubscriptionEngine::GetClientId(const SubscriptionClient * const apClie
 WEAVE_ERROR SubscriptionEngine::NewClient(SubscriptionClient ** const appClient, Binding * const apBinding, void * const apAppState,
                                           SubscriptionClient::EventCallback const aEventCallback,
                                           const TraitCatalogBase<TraitDataSink> * const apCatalog,
-                                          const uint32_t aInactivityTimeoutDuringSubscribingMsec)
+                                          const uint32_t aInactivityTimeoutDuringSubscribingMsec,
+                                          IWeaveClientLock * aLock)
 {
     WEAVE_ERROR err = WEAVE_ERROR_NO_MEMORY;
+
+#if WEAVE_CONFIG_ENABLE_WDM_UPDATE
+    uint32_t maxSize        = WDM_MAX_UPDATE_SIZE;
+#endif // WEAVE_CONFIG_ENABLE_WDM_UPDATE
 
     WEAVE_FAULT_INJECT(FaultInjection::kFault_WDM_SubscriptionClientNew, ExitNow());
 
     *appClient = NULL;
+
     for (size_t i = 0; i < kMaxNumSubscriptionClients; ++i)
     {
         if (SubscriptionClient::kState_Free == mClients[i].mCurrentState)
         {
             *appClient = &mClients[i];
-            err = (*appClient)->Init(apBinding, apAppState, aEventCallback, apCatalog, aInactivityTimeoutDuringSubscribingMsec);
+            err = (*appClient)->Init(apBinding, apAppState, aEventCallback, apCatalog, aInactivityTimeoutDuringSubscribingMsec, aLock);
 
             if (WEAVE_NO_ERROR != err)
             {
                 *appClient = NULL;
                 ExitNow();
             }
+#if WEAVE_CONFIG_ENABLE_WDM_UPDATE
+            mClients[i].SetMaxUpdateSize(maxSize);
+#endif // WEAVE_CONFIG_ENABLE_WDM_UPDATE
             SYSTEM_STATS_INCREMENT(nl::Weave::System::Stats::kWDM_NumSubscriptionClients);
             break;
         }

@@ -33,7 +33,7 @@ namespace Locale {
 namespace LocaleSettingsTrait {
     TraitSchemaEngine::PropertyInfo gSchemaMap[] = {
         /*  ParentHandle                ContextTag */
-        { kRootPropertyPathHandle,         1 }
+        { kPropertyHandle_Root,         1 }
     };
 
     TraitSchemaEngine TraitSchema = {

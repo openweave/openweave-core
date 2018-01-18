@@ -127,7 +127,7 @@ exit:
     return checksum;
 }
 
-uint16_t DumpClientTraitChecksum(const TraitSchemaEngine *inSchemaEngine, TraitSchemaEngine::IDataSourceDelegate *inTraitDataSource)
+uint16_t DumpClientTraitChecksum(const TraitSchemaEngine *inSchemaEngine, TraitSchemaEngine::IGetDataDelegate *inTraitDataSource)
 {
     WEAVE_ERROR err;
     uint8_t buffer[2048] = { 0 };

@@ -41,6 +41,7 @@ namespace LocaleSettingsTrait {
     };
 
     enum {
+                 kPropertyHandle_Root = 1,
         /*
          * Root = 
          * {

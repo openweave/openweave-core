@@ -35,7 +35,7 @@
 #include <Weave/Support/FibonacciUtils.h>
 #include <SystemLayer/SystemStats.h>
 
-#if WEAVE_CONFIG_ENABLE_RELIABLE_MESSAGING && WDM_ENABLE_UPDATE
+#if WEAVE_CONFIG_ENABLE_RELIABLE_MESSAGING && WEAVE_CONFIG_ENABLE_WDM_UPDATE
 
 namespace nl {
 namespace Weave {
@@ -60,10 +60,10 @@ WEAVE_ERROR UpdateClient::Init(Binding * const apBinding, void * const apAppStat
     apBinding->AddRef();
 
     // make a copy of the pointers
-    mBinding             = apBinding;
-    mAppState            = apAppState;
+    mpBinding             = apBinding;
+    mpAppState           = apAppState;
     mEventCallback       = aEventCallback;
-
+    mEC                  = NULL;
     MoveToState(kState_Initialized);
 
 exit:
@@ -94,22 +94,21 @@ exit:
  * @retval #WEAVE_NO_ERROR On success.
  * @retval other           Was unable to initialize the update.
  */
-WEAVE_ERROR UpdateClient::StartUpdate(PacketBuffer * aBuf, utc_timestamp_t aExpiryTimeMicroSecond, AddArgumentCallback aAddArgumentCallback)
+WEAVE_ERROR UpdateClient::StartUpdate(utc_timestamp_t aExpiryTimeMicroSecond, AddArgumentCallback aAddArgumentCallback, uint32_t maxUpdateSize)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
-
+    uint32_t maxBufPayloadSize, maxPayloadSize;
     VerifyOrExit(mState == kState_Initialized, err = WEAVE_ERROR_INCORRECT_STATE);
 
-    if (aBuf == NULL)
-    {
-        WeaveLogDetail(DataManagement, "<UC:Run> Init InetBuf");
-        PacketBuffer * buf = PacketBuffer::New();
-        VerifyOrExit(buf != NULL, err = WEAVE_ERROR_NO_MEMORY);
-        aBuf = buf;
-    }
+    WeaveLogDetail(DataManagement, "<UC:Run> Init PacketBuf");
 
-    mWriter.Init(aBuf);
-    mBuf    = aBuf;
+    mpBuf = PacketBuffer::New();
+    VerifyOrExit(mpBuf != NULL, err = WEAVE_ERROR_NO_MEMORY);
+
+    maxBufPayloadSize   = mpBinding->GetMaxWeavePayloadSize(mpBuf);
+    maxPayloadSize      = maxBufPayloadSize < maxUpdateSize ? maxBufPayloadSize : maxUpdateSize;
+
+    mWriter.Init(mpBuf, maxPayloadSize);
 
     mAddArgumentCallback = aAddArgumentCallback;
 
@@ -156,7 +155,7 @@ WEAVE_ERROR UpdateClient::StartUpdateRequest(utc_timestamp_t aExpiryTimeMicroSec
 
     if (mAddArgumentCallback != NULL)
     {
-        mAddArgumentCallback(this, mAppState, mWriter);
+        mAddArgumentCallback(this, mpAppState, mWriter);
     }
 
 exit:
@@ -207,12 +206,11 @@ exit:
  */
 WEAVE_ERROR UpdateClient::StartDataList()
 {
-    nl::Weave::TLV::TLVType dummyType;
     WEAVE_ERROR err = WEAVE_NO_ERROR;
 
     VerifyOrExit(mState == kState_Initialized, err = WEAVE_ERROR_INCORRECT_STATE);
 
-    err = mWriter.StartContainer(nl::Weave::TLV::ContextTag(UpdateRequest::kCsTag_DataList), nl::Weave::TLV::kTLVType_Array, dummyType);
+    err = mWriter.StartContainer(nl::Weave::TLV::ContextTag(UpdateRequest::kCsTag_DataList), nl::Weave::TLV::kTLVType_Array, mDataListContainerType);
     SuccessOrExit(err);
 
     MoveToState(kState_BuildDataList);
@@ -240,7 +238,7 @@ WEAVE_ERROR UpdateClient::EndDataList()
 
     VerifyOrExit(mState == kState_BuildDataList, err = WEAVE_ERROR_INCORRECT_STATE);
 
-    err = mWriter.EndContainer(nl::Weave::TLV::kTLVType_Structure);
+    err = mWriter.EndContainer(mDataListContainerType);
     SuccessOrExit(err);
 
 exit:
@@ -277,19 +275,15 @@ WEAVE_ERROR UpdateClient::StartElement(const uint32_t &aProfileID,
 				    const size_t aPathLength,
 				    TLV::TLVWriter &aOuterWriter)
 {
-    nl::Weave::TLV::TLVType dummyContainerType, outerContainerType;
     WEAVE_ERROR err = WEAVE_NO_ERROR;
     Path::Builder pathBuilder;
     VerifyOrExit(kState_BuildDataList == mState, err = WEAVE_ERROR_INCORRECT_STATE);
     Checkpoint(aOuterWriter);
 
-    outerContainerType = nl::Weave::TLV::kTLVType_NotSpecified;
-    err = aOuterWriter.StartContainer(nl::Weave::TLV::AnonymousTag, nl::Weave::TLV::kTLVType_Structure, outerContainerType);
+    err = aOuterWriter.StartContainer(nl::Weave::TLV::AnonymousTag, nl::Weave::TLV::kTLVType_Structure, mDataElementContainerType);
     SuccessOrExit(err);
-
     err = pathBuilder.Init(&aOuterWriter, nl::Weave::TLV::ContextTag(DataElement::kCsTag_Path));
     SuccessOrExit(err);
-
     if (aSchemaVersionRange == NULL)
         pathBuilder.ProfileID(aProfileID);
     else
@@ -314,7 +308,6 @@ WEAVE_ERROR UpdateClient::StartElement(const uint32_t &aProfileID,
     pathBuilder.EndOfPath();
 
     err = pathBuilder.GetError();
-
     SuccessOrExit(err);
 
     if (aRequiredDataVersion != 0x0)
@@ -323,9 +316,8 @@ WEAVE_ERROR UpdateClient::StartElement(const uint32_t &aProfileID,
         SuccessOrExit(err);
     }
 
-    err = aOuterWriter.StartContainer(nl::Weave::TLV::ContextTag(DataElement::kCsTag_Data), nl::Weave::TLV::kTLVType_Structure, dummyContainerType);
+    err = aOuterWriter.StartContainer(nl::Weave::TLV::ContextTag(DataElement::kCsTag_Data), nl::Weave::TLV::kTLVType_Structure, mDataContainerType);
     SuccessOrExit(err);
-
     MoveToState(kState_BuildDataElement);
 
 exit:
@@ -368,7 +360,6 @@ WEAVE_ERROR UpdateClient::AddElement(const uint32_t &aProfileID,
                     )
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
-
     TLV::TLVWriter outerWriter;
 
     err = StartElement(aProfileID, aInstanceID, aResourceID, aRequiredDataVersion, aSchemaVersionRange, aPathArray, aPathLength, outerWriter);
@@ -384,8 +375,8 @@ exit:
 
     if (err != WEAVE_NO_ERROR)
     {
-        WeaveLogDetail(DataManagement, "<UC:Run> Fail in AddElement");
-        err = CancelElement(outerWriter);
+        WeaveLogDetail(DataManagement, "<UC:Run> Fail in AddElement %d", err);
+        CancelElement(outerWriter);
     }
 
     return err;
@@ -403,10 +394,10 @@ WEAVE_ERROR UpdateClient::FinalizeElement(TLV::TLVWriter &aOuterWriter)
     WEAVE_ERROR err = WEAVE_NO_ERROR;
     VerifyOrExit(kState_BuildDataElement == mState, err = WEAVE_ERROR_INCORRECT_STATE);
     mWriter = aOuterWriter;
-    err = mWriter.EndContainer(nl::Weave::TLV::kTLVType_Structure);
+    err = mWriter.EndContainer(mDataContainerType);
     SuccessOrExit(err);
 
-    err = mWriter.EndContainer(nl::Weave::TLV::kTLVType_Structure);
+    err = mWriter.EndContainer(mDataElementContainerType);
     SuccessOrExit(err);
 
     MoveToState(kState_BuildDataList);
@@ -464,6 +455,20 @@ WEAVE_ERROR UpdateClient::Checkpoint(TLV::TLVWriter &aWriter)
 }
 
 /**
+ * Restore a TLVWriter into the request state
+ *
+ * @param aWriter[out] A writer to restore the state of the TLV writer into.
+ *
+ * @retval #WEAVE_NO_ERROR On success.
+ */
+WEAVE_ERROR UpdateClient::Rollback(TLV::TLVWriter &aWriter)
+{
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
+    mWriter    = aWriter;
+    return err;
+}
+
+/**
  * Rollback the update client state into the checkpointed TLVWriter
  *
  * @param[in] aOuterWriter A writer to that captured the state at some point in the past
@@ -479,7 +484,7 @@ WEAVE_ERROR UpdateClient::CancelElement(TLV::TLVWriter &aOuterWriter)
 
 exit:
 
-    if (err != WEAVE_NO_ERROR)
+    if (err == WEAVE_NO_ERROR)
     {
         MoveToState(kState_BuildDataList);
     }
@@ -497,11 +502,11 @@ exit:
  * @retval #WEAVE_NO_ERROR On success.
  * @retval other           Unable to send update
  */
-WEAVE_ERROR UpdateClient::SendUpdate()
+WEAVE_ERROR UpdateClient::SendUpdate(bool aIsPartialUpdate)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
 
-    VerifyOrExit(NULL != mBuf, err = WEAVE_ERROR_NO_MEMORY);
+    VerifyOrExit(NULL != mpBuf, err = WEAVE_ERROR_NO_MEMORY);
 
     VerifyOrExit(kState_BuildDataList == mState, err = WEAVE_ERROR_INCORRECT_STATE);
 
@@ -513,15 +518,25 @@ WEAVE_ERROR UpdateClient::SendUpdate()
 
     FlushExistingExchangeContext();
 
-    err = mBinding->NewExchangeContext(mEC);
+    err = mpBinding->NewExchangeContext(mEC);
 
     mEC->AppState = this;
     mEC->OnMessageReceived = OnMessageReceived;
     mEC->OnResponseTimeout = OnResponseTimeout;
     mEC->OnSendError = OnSendError;
 
-    err = mEC->SendMessage(nl::Weave::Profiles::kWeaveProfile_WDM, kMsgType_UpdateRequest, mBuf, nl::Weave::ExchangeContext::kSendFlag_ExpectResponse);
-    mBuf = NULL;
+    if (aIsPartialUpdate)
+    {
+        WeaveLogDetail(DataManagement, "<UC:Run> Partial update");
+        err = mEC->SendMessage(nl::Weave::Profiles::kWeaveProfile_WDM, kMsgType_PartialUpdateRequest, mpBuf,
+                           nl::Weave::ExchangeContext::kSendFlag_ExpectResponse);
+    }
+    else
+    {
+        err = mEC->SendMessage(nl::Weave::Profiles::kWeaveProfile_WDM, kMsgType_UpdateRequest, mpBuf,
+                               nl::Weave::ExchangeContext::kSendFlag_ExpectResponse);
+    }
+    mpBuf = NULL;
     SuccessOrExit(err);
 
     MoveToState(kState_AwaitingResponse);
@@ -534,10 +549,10 @@ exit:
         CancelUpdate();
     }
 
-    if (NULL != mBuf)
+    if (NULL != mpBuf)
     {
-        PacketBuffer::Free(mBuf);
-        mBuf = NULL;
+        PacketBuffer::Free(mpBuf);
+        mpBuf = NULL;
     }
 
      WeaveLogFunctError(err);
@@ -555,13 +570,14 @@ WEAVE_ERROR UpdateClient::CancelUpdate(void)
 {
     if (kState_Uninitialized != mState && kState_Initialized != mState)
     {
-        if (NULL != mBuf)
+        if (NULL != mpBuf)
         {
-            PacketBuffer::Free(mBuf);
-            mBuf = NULL;
+            PacketBuffer::Free(mpBuf);
+            mpBuf = NULL;
         }
 
         mAddArgumentCallback = NULL;
+        FlushExistingExchangeContext();
         MoveToState(kState_Initialized);
     }
 
@@ -579,17 +595,15 @@ WEAVE_ERROR UpdateClient::Shutdown(void)
     {
         CancelUpdate();
 
-        if (NULL != mBinding)
+        if (NULL != mpBinding)
         {
-            mBinding->Release();
-            mBinding = NULL;
+            mpBinding->Release();
+            mpBinding = NULL;
         }
 
-        FlushExistingExchangeContext();
-
         mEventCallback = NULL;
+        mpAppState      = NULL;
         MoveToState(kState_Uninitialized);
-        mAppState    = NULL;
     }
 
     return WEAVE_NO_ERROR;
@@ -604,7 +618,7 @@ void UpdateClient::OnSendError(ExchangeContext * aEC, WEAVE_ERROR aErrorCode, vo
     outParam.Clear();
 
     UpdateClient * const pUpdateClient = reinterpret_cast<UpdateClient *>(aEC->AppState);
-    void * const pAppState         = pUpdateClient->mAppState;
+    void * const pAppState         = pUpdateClient->mpAppState;
     EventCallback CallbackFunc     = pUpdateClient->mEventCallback;
 
     VerifyOrExit(kState_AwaitingResponse == pUpdateClient->mState, err = WEAVE_ERROR_INCORRECT_STATE);
@@ -612,7 +626,7 @@ void UpdateClient::OnSendError(ExchangeContext * aEC, WEAVE_ERROR aErrorCode, vo
     pUpdateClient->CancelUpdate();
 
     inParam.UpdateComplete.Reason = aErrorCode;
-    inParam.UpdateComplete.mpClient = pUpdateClient;
+    inParam.Source                = pUpdateClient;
     CallbackFunc(pAppState, kEvent_UpdateComplete, inParam, outParam);
 
 exit:
@@ -635,7 +649,7 @@ void UpdateClient::OnResponseTimeout(nl::Weave::ExchangeContext * aEC)
     outParam.Clear();
 
     UpdateClient * pUpdateClient   = reinterpret_cast<UpdateClient *>(aEC->AppState);
-    void * const pAppState     = pUpdateClient->mAppState;
+    void * const pAppState     = pUpdateClient->mpAppState;
     EventCallback CallbackFunc = pUpdateClient->mEventCallback;
 
     VerifyOrExit(kState_AwaitingResponse == pUpdateClient->mState, err = WEAVE_ERROR_INCORRECT_STATE);
@@ -643,7 +657,7 @@ void UpdateClient::OnResponseTimeout(nl::Weave::ExchangeContext * aEC)
     pUpdateClient->CancelUpdate();
 
     inParam.UpdateComplete.Reason = WEAVE_ERROR_TIMEOUT;
-    inParam.UpdateComplete.mpClient = pUpdateClient;
+    inParam.Source = pUpdateClient;
     CallbackFunc(pAppState, kEvent_UpdateComplete, inParam, outParam);
 
 exit:
@@ -662,8 +676,9 @@ void UpdateClient::OnMessageReceived(nl::Weave::ExchangeContext * aEC, const nl:
                                    PacketBuffer * aPayload)
 {
     WEAVE_ERROR err            = WEAVE_NO_ERROR;
+    nl::Weave::Profiles::StatusReporting::StatusReport status;
     UpdateClient * pUpdateClient   = reinterpret_cast<UpdateClient *>(aEC->AppState);
-    void * const pAppState     = pUpdateClient->mAppState;
+    void * const pAppState     = pUpdateClient->mpAppState;
     EventCallback CallbackFunc = pUpdateClient->mEventCallback;
     InEventParam inParam;
     OutEventParam outParam;
@@ -671,31 +686,38 @@ void UpdateClient::OnMessageReceived(nl::Weave::ExchangeContext * aEC, const nl:
     outParam.Clear();
 
     VerifyOrExit(kState_AwaitingResponse == pUpdateClient->mState, err = WEAVE_ERROR_INCORRECT_STATE);
-    VerifyOrExit(aEC == pUpdateClient->mEC, err = WEAVE_ERROR_INCORRECT_STATE);
+    VerifyOrExit(aEC == pUpdateClient->mEC, err = WEAVE_NO_ERROR);
 
     err = pUpdateClient->CancelUpdate();
+    SuccessOrExit(err);
 
-    inParam.UpdateComplete.mMessage = aPayload;
-    inParam.UpdateComplete.mpClient = pUpdateClient;
+    err = nl::Weave::Profiles::StatusReporting::StatusReport::parse(aPayload, status);
+    SuccessOrExit(err);
 
     if ((nl::Weave::Profiles::kWeaveProfile_Common == aProfileId) &&
         (nl::Weave::Profiles::Common::kMsgType_StatusReport == aMsgType))
     {
+        inParam.Source= pUpdateClient;
         inParam.UpdateComplete.Reason = WEAVE_NO_ERROR;
+        inParam.UpdateComplete.StatusReportPtr = &status;
+        CallbackFunc(pAppState, kEvent_UpdateComplete, inParam, outParam);
 
+    }
+    else if ((nl::Weave::Profiles::kWeaveProfile_WDM == aProfileId) && (kMsgType_UpdateContinue == aMsgType))
+    {
+        CallbackFunc(pAppState, kEvent_UpdateContinue, inParam, outParam);
     }
     else
     {
-        inParam.UpdateComplete.Reason= WEAVE_ERROR_INVALID_MESSAGE_TYPE;
+        inParam.UpdateComplete.Reason = WEAVE_ERROR_INVALID_MESSAGE_TYPE;
+        CallbackFunc(pAppState, kEvent_UpdateComplete, inParam, outParam);
     }
-
-    CallbackFunc(pAppState, kEvent_UpdateComplete, inParam, outParam);
 
 exit:
 
     if (err != WEAVE_NO_ERROR)
     {
-        WeaveLogDetail(DataManagement, "<UC:Run> Fail in OnMessageReceived");
+        WeaveLogDetail(DataManagement, "<UC:Run> Fail in OnMessageReceived %d", err);
         err = pUpdateClient->CancelUpdate();
     }
 
@@ -744,7 +766,7 @@ const char * UpdateClient::GetStateStr() const
 void UpdateClient::MoveToState(const UpdateClientState aTargetState)
 {
     mState = aTargetState;
-    WeaveLogDetail(DataManagement, "Client moving to [%5.5s]", GetStateStr());
+    WeaveLogDetail(DataManagement, "UC moving to [%10.10s]", GetStateStr());
 }
 
 void UpdateClient::ClearState(void)
@@ -757,4 +779,4 @@ void UpdateClient::ClearState(void)
 }; // namespace Weave
 }; // namespace nl
 
-#endif // WEAVE_CONFIG_ENABLE_RELIABLE_MESSAGING && WDM_ENABLE_UPDATE
+#endif // WEAVE_CONFIG_ENABLE_RELIABLE_MESSAGING && WEAVE_CONFIG_ENABLE_WDM_UPDATE

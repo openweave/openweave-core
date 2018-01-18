@@ -102,6 +102,22 @@ public:
 
 static WdmInitiatorState gInitiatorState;
 
+static void TLVPrettyPrinter(const char *aFormat, ...)
+{
+    va_list args;
+
+    va_start(args, aFormat);
+
+    // There is no proper Weave logging routine for us to use here
+    vprintf(aFormat, args);
+
+    va_end(args);
+}
+
+static WEAVE_ERROR DebugPrettyPrint(nl::Weave::TLV::TLVReader & aReader)
+{
+    return nl::Weave::TLV::Debug::Dump(aReader, TLVPrettyPrinter);
+}
 
 class MockWdmSubscriptionInitiatorImpl: public MockWdmSubscriptionInitiator
 {
@@ -140,7 +156,7 @@ private:
     // publisher side
     SingleResourceSourceTraitCatalog mSourceCatalog;
     SingleResourceSourceTraitCatalog::CatalogItem mSourceCatalogStore[4];
-    nl::Weave::Profiles::DataManagement_Current::TraitSchemaEngine::IDataSourceDelegate* mSinkAddressList[6];
+    nl::Weave::Profiles::DataManagement_Current::TraitSchemaEngine::IGetDataDelegate* mSinkAddressList[9];
 
     // source traits
     LocaleCapabilitiesTraitDataSource mLocaleCapabilitiesDataSource;
@@ -160,14 +176,22 @@ private:
 
     // client side
     SingleResourceSinkTraitCatalog mSinkCatalog;
-    SingleResourceSinkTraitCatalog::CatalogItem mSinkCatalogStore[6];
+    SingleResourceSinkTraitCatalog::CatalogItem mSinkCatalogStore[9];
 
     // sink traits
-    LocaleSettingsTraitDataSink mLocaleSettingsTraitDataSink;
+#if WEAVE_CONFIG_ENABLE_WDM_UPDATE
+    LocaleSettingsTraitUpdatableDataSink mLocaleSettingsTraitUpdatableDataSink;
+    TestATraitUpdatableDataSink mTestATraitUpdatableDataSink0;
+    TestATraitUpdatableDataSink mTestATraitUpdatableDataSink1;
+    TestBTraitUpdatableDataSink mTestBTraitUpdatableDataSink;
+#endif // WEAVE_CONFIG_ENABLE_WDM_UPDATE
+
     BoltLockSettingTraitDataSink mBoltLockSettingsTraitDataSink;
     TestATraitDataSink mTestATraitDataSink0;
+    LocaleSettingsTraitDataSink mLocaleSettingsTraitDataSink;
     TestATraitDataSink mTestATraitDataSink1;
     TestBTraitDataSink mTestBTraitDataSink;
+
     TestApplicationKeysTraitDataSink mApplicationKeysTraitDataSink;
 
     enum
@@ -223,7 +247,15 @@ private:
 
         kTestCase_ForwardCompatibleVersionedRequest = 7,
 
-        kTestCase_IncompatibleVersionedRequest = 8
+        kTestCase_IncompatibleVersionedRequest = 8,
+
+        kTestCase_IncompatibleVersionedCommandRequest = 9,
+
+        kTestCase_TestUpdatableTrait1 = 10,
+
+        kTestCase_TestUpdatableTrait2 = 11,
+
+        kTestCase_TestUpdatableTrait3 = 12,
     };
 
     enum
@@ -358,10 +390,25 @@ const bool aEnableRetry)
 
     mEnableRetry = aEnableRetry;
 
-    mSinkCatalog.Add(0, &mTestATraitDataSink0, mTraitHandleSet[kTestATraitSink0Index]);
-    mSinkCatalog.Add(1, &mTestATraitDataSink1, mTraitHandleSet[kTestATraitSink1Index]);
-    mSinkCatalog.Add(0, &mTestBTraitDataSink, mTraitHandleSet[kTestBTraitSinkIndex]);
-    mSinkCatalog.Add(0, &mLocaleSettingsTraitDataSink, mTraitHandleSet[kLocaleSettingsSinkIndex]);
+    switch (mTestCaseId)
+    {
+    case kTestCase_TestUpdatableTrait1:
+    case kTestCase_TestUpdatableTrait2:
+    case kTestCase_TestUpdatableTrait3:
+#if WEAVE_CONFIG_ENABLE_WDM_UPDATE
+        mSinkCatalog.Add(0, &mTestATraitUpdatableDataSink0, mTraitHandleSet[kTestATraitSink0Index]);
+        mSinkCatalog.Add(1, &mTestATraitUpdatableDataSink1, mTraitHandleSet[kTestATraitSink1Index]);
+        mSinkCatalog.Add(0, &mLocaleSettingsTraitUpdatableDataSink, mTraitHandleSet[kLocaleSettingsSinkIndex]);
+        mSinkCatalog.Add(0, &mTestBTraitUpdatableDataSink, mTraitHandleSet[kTestBTraitSinkIndex]);
+#endif // WEAVE_CONFIG_ENABLE_WDM_UPDATE
+        break;
+    default:
+        mSinkCatalog.Add(0, &mTestATraitDataSink0, mTraitHandleSet[kTestATraitSink0Index]);
+        mSinkCatalog.Add(1, &mTestATraitDataSink1, mTraitHandleSet[kTestATraitSink1Index]);
+        mSinkCatalog.Add(0, &mTestBTraitDataSink, mTraitHandleSet[kTestBTraitSinkIndex]);
+        mSinkCatalog.Add(0, &mLocaleSettingsTraitDataSink, mTraitHandleSet[kLocaleSettingsSinkIndex]);
+    }
+
     mSinkCatalog.Add(0, &mBoltLockSettingsTraitDataSink, mTraitHandleSet[kBoltLockSettingTraitSinkIndex]);
     mApplicationKeysTraitDataSink.SetGroupKeyStore(new (&sTestGroupKeyStore) TestGroupKeyStore());
     mSinkCatalog.Add(0, &mApplicationKeysTraitDataSink, mTraitHandleSet[kApplicationKeysTraitSinkIndex]);
@@ -412,6 +459,15 @@ const bool aEnableRetry)
         WeaveLogDetail(DataManagement, "kTestCase_IncompatibleVersionedRequest");
         break;
 
+    case kTestCase_TestUpdatableTrait1:
+        WeaveLogDetail(DataManagement, "kTestCase_TestUpdatableTrait1");
+        break;
+    case kTestCase_TestUpdatableTrait2:
+        WeaveLogDetail(DataManagement, "kTestCase_TestUpdatableTrait2");
+        break;
+    case kTestCase_TestUpdatableTrait3:
+        WeaveLogDetail(DataManagement, "kTestCase_TestUpdatableTrait3");
+        break;
     default:
         mTestCaseId = kTestCase_TestTrait;
         WeaveLogDetail(DataManagement, "kTestCase_TestTrait");
@@ -502,6 +558,9 @@ WEAVE_ERROR MockWdmSubscriptionInitiatorImpl::StartTesting(const uint64_t aPubli
         break;
 
     case kTestCase_TestTrait:
+    case kTestCase_TestUpdatableTrait1:
+    case kTestCase_TestUpdatableTrait2:
+    case kTestCase_TestUpdatableTrait3:
         mTraitPaths[0].mTraitDataHandle = mTraitHandleSet[kLocaleSettingsSinkIndex];
         mTraitPaths[0].mPropertyPathHandle = kRootPropertyPathHandle;
 
@@ -734,7 +793,7 @@ void MockWdmSubscriptionInitiatorImpl::DumpClientTraitChecksum(int inTraitDataSi
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
     TraitDataSink *dataSink;
-    TraitSchemaEngine::IDataSourceDelegate *dataSource;
+    TraitSchemaEngine::IGetDataDelegate *dataSource;
 
     dataSource = mSinkAddressList[inTraitDataSinkIndex];
     err = mSinkCatalog.Locate(mTraitHandleSet[inTraitDataSinkIndex], &dataSink);
@@ -759,6 +818,10 @@ void MockWdmSubscriptionInitiatorImpl::DumpClientTraits(void)
             DumpClientTraitChecksum(kTestATraitSink1Index);
             DumpClientTraitChecksum(kTestBTraitSinkIndex);
             DumpClientTraitChecksum(kLocaleSettingsSinkIndex);
+            break;
+        case kTestCase_TestUpdatableTrait1:
+        case kTestCase_TestUpdatableTrait2:
+        case kTestCase_TestUpdatableTrait3:
             break;
         case kTestCase_TestOversizeTrait1:
             DumpClientTraitChecksum(kTestATraitSink0Index);
@@ -948,6 +1011,10 @@ void MockWdmSubscriptionInitiatorImpl::ClientEventCallback (void * const aAppSta
             initiator->AddNewVersion(initiator->kTestBTraitSinkIndex);
             initiator->AddNewVersion(initiator->kLocaleSettingsSinkIndex);
             break;
+        case kTestCase_TestUpdatableTrait1:
+        case kTestCase_TestUpdatableTrait2:
+        case kTestCase_TestUpdatableTrait3:
+            break;
         case kTestCase_TestOversizeTrait1:
             initiator->AddNewVersion(initiator->kTestATraitSink0Index);
             initiator->AddNewVersion(initiator->kTestATraitSink1Index);
@@ -1012,6 +1079,19 @@ void MockWdmSubscriptionInitiatorImpl::ClientEventCallback (void * const aAppSta
             initiator->onCompleteTest();
         }
         break;
+#if WEAVE_CONFIG_ENABLE_WDM_UPDATE
+    case SubscriptionClient::kEvent_OnUpdateComplete:
+        if ((aInParam.mUpdateComplete.mReason == WEAVE_NO_ERROR) && (nl::Weave::Profiles::Common::kStatus_Success == aInParam.mUpdateComplete.mStatusCode))
+        {
+            WeaveLogDetail(DataManagement, "Update: Good Iteration");
+        }
+        else
+        {
+            WeaveLogDetail(DataManagement, "Update: Bad Iteration");
+        }
+        break;
+#endif // WEAVE_CONFIG_ENABLE_WDM_UPDATE
+
     default:
         SubscriptionClient::DefaultEventHandler(aEvent, aInParam, aOutParam);
         break;
@@ -1251,6 +1331,25 @@ void MockWdmSubscriptionInitiatorImpl::HandleDataFlipTimeout(nl::Weave::System::
             initiator->mTestBTraitDataSource.Mutate();
             SubscriptionEngine::GetInstance()->GetNotificationEngine()->Run();
             break;
+
+#if WEAVE_CONFIG_ENABLE_WDM_UPDATE
+        case kTestCase_TestUpdatableTrait1:
+            initiator->mTestATraitUpdatableDataSink0.Mutate(initiator->mSubscriptionClient);
+            initiator->mSubscriptionClient->FlushUpdate();
+            break;
+        case kTestCase_TestUpdatableTrait2:
+            initiator->mTestATraitUpdatableDataSink0.Mutate(initiator->mSubscriptionClient);
+            initiator->mLocaleSettingsTraitUpdatableDataSink.Mutate(initiator->mSubscriptionClient);
+            initiator->mSubscriptionClient->FlushUpdate();
+            break;
+        case kTestCase_TestUpdatableTrait3:
+            initiator->mTestATraitUpdatableDataSink0.Mutate(initiator->mSubscriptionClient);
+            initiator->mLocaleSettingsTraitUpdatableDataSink.Mutate(initiator->mSubscriptionClient);
+            initiator->mTestBTraitUpdatableDataSink.Mutate(initiator->mSubscriptionClient);
+            initiator->mSubscriptionClient->FlushUpdate();
+            break;
+#endif // WEAVE_CONFIG_ENABLE_WDM_UPDATE
+
         case kTestCase_TestOversizeTrait1:
         case kTestCase_TestOversizeTrait2:
             initiator->mTestATraitDataSource0.Mutate();
@@ -1271,6 +1370,7 @@ void MockWdmSubscriptionInitiatorImpl::HandleDataFlipTimeout(nl::Weave::System::
     else
     {
         WeaveLogDetail(DataManagement, "Completed cycle %d per %d", gInitiatorState.mDataflipCount, gNumDataChangeBeforeCancellation);
+
         if (gInitiatorState.mDataflipCount == gNumDataChangeBeforeCancellation)
         {
             gInitiatorState.mDataflipCount = 1;
@@ -1299,7 +1399,6 @@ void MockWdmSubscriptionInitiatorImpl::HandleDataFlipTimeout(nl::Weave::System::
             ++gInitiatorState.mDataflipCount;
             aSystemLayer->StartTimer(gTimeBetweenDataChangeMsec, HandleDataFlipTimeout, initiator);
         }
-
     }
 
 }

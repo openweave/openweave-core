@@ -78,6 +78,24 @@ static bool gClearDataSink = false;
 static bool gCleanStatus = true;
 static nl::Weave::WRMPConfig gWRMPConfig = { kWRMPInitialRetransTimeoutMsec, kWRMPActiveRetransTimeoutMsec, kWRMPAckTimeoutMsec, kWRMPMaxRetrans };
 
+
+static void TLVPrettyPrinter(const char *aFormat, ...)
+{
+    va_list args;
+
+    va_start(args, aFormat);
+
+    // There is no proper Weave logging routine for us to use here
+    vprintf(aFormat, args);
+
+    va_end(args);
+}
+
+static WEAVE_ERROR DebugPrettyPrint(nl::Weave::TLV::TLVReader & aReader)
+{
+    return nl::Weave::TLV::Debug::Dump(aReader, TLVPrettyPrinter);
+}
+
 nl::Weave::Profiles::DataManagement::SubscriptionEngine * nl::Weave::Profiles::DataManagement::SubscriptionEngine::GetInstance()
 {
     static nl::Weave::Profiles::DataManagement::SubscriptionEngine gWdmSubscriptionEngine;
@@ -121,6 +139,7 @@ public:
         const char * const aTimeBetweenLivenessCheckSec);
     void PrintVersionsLog();
     virtual void ClearDataSinkState(void);
+
 private:
     nl::Weave::WeaveExchangeManager *mExchangeMgr;
     static void ClearDataSinkIterator(void *aTraitInstance, TraitDataHandle aHandle, void *aContext);
@@ -152,10 +171,9 @@ private:
     TestATraitDataSink mTestADataSink1;
     TestBTraitDataSink mTestBDataSink;
     LocaleCapabilitiesTraitDataSink mLocaleCapabilitiesDataSink;
-
     SingleResourceSinkTraitCatalog mSinkCatalog;
-    SingleResourceSinkTraitCatalog::CatalogItem mSinkCatalogStore[4];
-    nl::Weave::Profiles::DataManagement_Current::TraitSchemaEngine::IDataSourceDelegate* mSinkAddressList[4];
+    SingleResourceSinkTraitCatalog::CatalogItem mSinkCatalogStore[5];
+    nl::Weave::Profiles::DataManagement_Current::TraitSchemaEngine::IGetDataDelegate* mSinkAddressList[4];
 
     enum
     {
@@ -163,6 +181,7 @@ private:
         kTestADataSink1Index,
         kTestBDataSinkIndex,
         kLocaleCapabilitiesTraitSinkIndex,
+        kLocaleSettingsTraitSinkIndex,
 
         kTestATraitSource0Index,
         kTestATraitSource1Index,
@@ -213,7 +232,13 @@ private:
 
         kTestCase_IncompatibleVersionedRequest = 8,
 
-        kTestCase_IncompatibleVersionedCommandRequest = 9
+        kTestCase_IncompatibleVersionedCommandRequest = 9,
+
+        kTestCase_TestUpdatableTrait1 = 10,
+
+        kTestCase_TestUpdatableTrait2 = 11,
+
+        kTestCase_TestUpdatableTrait3 = 12,
     };
 
     enum
@@ -269,6 +294,9 @@ private:
         const nl::Weave::WeaveMessageInfo *aMsgInfo, uint32_t aProfileId,
         uint8_t aMsgType, PacketBuffer *aPayload);
     static void HandleCustomCommandTimeout(nl::Weave::System::Layer* aSystemLayer, void *aAppState, ::nl::Weave::System::Error aErr);
+    static void IncomingUpdateRequest(nl::Weave::ExchangeContext *ec, const nl::Weave::IPPacketInfo *pktInfo,
+    const nl::Weave::WeaveMessageInfo *msgInfo, uint32_t profileId,
+            uint8_t msgType, PacketBuffer *payload);
 };
 
 static MockWdmSubscriptionResponderImpl gWdmSubscriptionResponder;
@@ -409,6 +437,21 @@ const char * const aTimeBetweenLivenessCheckSec)
         WeaveLogDetail(DataManagement, "kTestCase_IncompatibleVersionedCommandRequest");
         break;
 
+    case kTestCase_TestUpdatableTrait1:
+        WeaveLogDetail(DataManagement, "kTestCase_TestUpdatableTrait1");
+        mTestADataSource0.mTraitTestSet = 2;
+        break;
+
+    case kTestCase_TestUpdatableTrait2:
+        WeaveLogDetail(DataManagement, "kTestCase_TestUpdatableTrait2");
+        mTestADataSource0.mTraitTestSet = 2;
+        break;
+
+    case kTestCase_TestUpdatableTrait3:
+        WeaveLogDetail(DataManagement, "kTestCase_TestUpdatableTrait3");
+        mTestADataSource0.mTraitTestSet = 3;
+        break;
+
     default:
         WeaveLogDetail(DataManagement, "kTestCase_TestTrait");
         break;
@@ -439,6 +482,8 @@ const char * const aTimeBetweenLivenessCheckSec)
     mSinkAddressList[kTestBDataSinkIndex] = &mTestBDataSink;
     mSinkAddressList[kLocaleCapabilitiesTraitSinkIndex] = &mLocaleCapabilitiesDataSink;
 
+    err = mExchangeMgr->RegisterUnsolicitedMessageHandler(nl::Weave::Profiles::kWeaveProfile_WDM, kMsgType_UpdateRequest, IncomingUpdateRequest, this);
+    SuccessOrExit(err);
     Command_End();
 
 exit:
@@ -461,7 +506,7 @@ void MockWdmSubscriptionResponderImpl::DumpClientTraitChecksum(int inTraitDataSi
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
     TraitDataSink *dataSink;
-    TraitSchemaEngine::IDataSourceDelegate *dataSource;
+    TraitSchemaEngine::IGetDataDelegate *dataSource;
 
     dataSource = mSinkAddressList[inTraitDataSinkIndex];
     err = mSinkCatalog.Locate(mTraitHandleSet[inTraitDataSinkIndex], &dataSink);
@@ -492,6 +537,10 @@ void MockWdmSubscriptionResponderImpl::DumpClientTraits(void)
             DumpClientTraitChecksum(kTestADataSink0Index);
             DumpClientTraitChecksum(kTestADataSink1Index);
             break;
+        case kTestCase_TestUpdatableTrait1:
+        case kTestCase_TestUpdatableTrait2:
+        case kTestCase_TestUpdatableTrait3:
+            break;
     }
 }
 
@@ -521,6 +570,10 @@ void MockWdmSubscriptionResponderImpl::DumpPublisherTraits(void)
             DumpPublisherTraitChecksum(kLocaleSettingsTraitSourceIndex);
             DumpPublisherTraitChecksum(kTestATraitSource0Index);
             DumpPublisherTraitChecksum(kTestATraitSource1Index);
+            break;
+        case kTestCase_TestUpdatableTrait1:
+        case kTestCase_TestUpdatableTrait2:
+        case kTestCase_TestUpdatableTrait3:
             break;
     }
 }
@@ -628,6 +681,9 @@ void MockWdmSubscriptionResponderImpl::PublisherEventCallback (void * const aApp
                 switch (responder->mTestCaseId)
                 {
                 case kTestCase_TestTrait:
+                case kTestCase_TestUpdatableTrait1:
+                case kTestCase_TestUpdatableTrait2:
+                case kTestCase_TestUpdatableTrait3:
                     responder->mNumPaths = 3;
                     responder->mTraitPaths[0].mTraitDataHandle = responder->mTraitHandleSet[kTestADataSink0Index];
                     responder->mTraitPaths[0].mPropertyPathHandle = kRootPropertyPathHandle;
@@ -638,7 +694,6 @@ void MockWdmSubscriptionResponderImpl::PublisherEventCallback (void * const aApp
                     responder->mTraitPaths[2].mTraitDataHandle = responder->mTraitHandleSet[kTestBDataSinkIndex];
                     responder->mTraitPaths[2].mPropertyPathHandle = kRootPropertyPathHandle;
                     break;
-
                 case kTestCase_IntegrationTrait:
                     responder->mNumPaths = 1;
                     responder->mTraitPaths[0].mTraitDataHandle = responder->mTraitHandleSet[kLocaleCapabilitiesTraitSinkIndex];
@@ -1023,6 +1078,101 @@ void MockWdmSubscriptionResponderImpl::HandleCustomCommandTimeout(nl::Weave::Sys
     pResponder->Command_End(true);
 }
 
+void MockWdmSubscriptionResponderImpl::IncomingUpdateRequest(nl::Weave::ExchangeContext *ec, const nl::Weave::IPPacketInfo *pktInfo,
+    const nl::Weave::WeaveMessageInfo *msgInfo, uint32_t profileId,
+            uint8_t msgType, PacketBuffer *payload)
+{
+    static uint32_t num_update_iterations = 0;
+    static bool notification_first_ordering = false;
+    uint32_t num_update_tests = 7;
+    WEAVE_ERROR     err     = WEAVE_NO_ERROR;
+    WeaveLogDetail(DataManagement, "Incoming Update Request");
+    MockWdmSubscriptionResponderImpl * pResponder = reinterpret_cast<MockWdmSubscriptionResponderImpl *>(ec->AppState);
+
+    if (num_update_iterations == 0)
+    {
+        notification_first_ordering = ! notification_first_ordering;
+    }
+
+    if (notification_first_ordering)
+    {
+        WeaveLogDetail(DataManagement, "notification first");
+        switch (pResponder->mTestCaseId)
+        {
+        case kTestCase_TestUpdatableTrait1:
+            pResponder->mTestADataSource0.Mutate();
+            SubscriptionEngine::GetInstance()->GetNotificationEngine()->Run();
+            break;
+        case kTestCase_TestUpdatableTrait2:
+            pResponder->mTestADataSource0.Mutate();
+            pResponder->mLocaleSettingsDataSource.Mutate();
+            SubscriptionEngine::GetInstance()->GetNotificationEngine()->Run();
+            break;
+        case kTestCase_TestUpdatableTrait3:
+            pResponder->mTestADataSource0.Mutate();
+            pResponder->mTestBDataSource.Mutate();
+            pResponder->mLocaleSettingsDataSource.Mutate();
+            SubscriptionEngine::GetInstance()->GetNotificationEngine()->Run();
+        default:
+            break;
+        }
+
+    }
+    else
+    {
+        WeaveLogDetail(DataManagement, "update response first");
+    }
+
+    num_update_iterations = num_update_iterations % num_update_tests;
+    nl::Weave::TLV::TLVReader reader;
+    uint8_t statusReportLen = 6;
+    uint8_t * p;
+    reader.Init(payload);
+    DebugPrettyPrint(reader);
+
+    PacketBuffer * msgBuf   = PacketBuffer::NewWithAvailableSize(statusReportLen);
+    VerifyOrExit(NULL != msgBuf, err = WEAVE_ERROR_NO_MEMORY);
+
+    p = msgBuf->Start();
+    nl::Weave::Encoding::LittleEndian::Write32(p, nl::Weave::Profiles::kWeaveProfile_Common);
+    nl::Weave::Encoding::LittleEndian::Write16(p, nl::Weave::Profiles::Common::kStatus_Success);
+    msgBuf->SetDataLength(statusReportLen);
+
+    err = ec->SendMessage(nl::Weave::Profiles::kWeaveProfile_Common, nl::Weave::Profiles::Common::kMsgType_StatusReport, msgBuf, nl::Weave::ExchangeContext::kSendFlag_RequestAck);
+    msgBuf = NULL;
+    SuccessOrExit(err);
+
+    if (!notification_first_ordering)
+    {
+        pResponder->mTestADataSource0.Mutate();
+        pResponder->mLocaleSettingsDataSource.Mutate();
+        SubscriptionEngine::GetInstance()->GetNotificationEngine()->Run();
+    }
+
+    num_update_iterations ++;
+    num_update_iterations = num_update_iterations % num_update_tests;
+
+exit:
+    WeaveLogFunctError(err);
+
+    if (NULL != payload)
+    {
+        PacketBuffer::Free(payload);
+        payload = NULL;
+    }
+
+    if (NULL != msgBuf)
+    {
+        PacketBuffer::Free(msgBuf);
+        msgBuf = NULL;
+    }
+
+    if (NULL != ec)
+    {
+        ec->Close();
+    }
+}
+
 void MockWdmSubscriptionResponderImpl::OnMessageReceivedForCustomCommand (nl::Weave::ExchangeContext *aEC, const nl::Inet::IPPacketInfo *aPktInfo,
         const nl::Weave::WeaveMessageInfo *aMsgInfo, uint32_t aProfileId,
         uint8_t aMsgType, PacketBuffer *aPayload)
@@ -1336,7 +1486,10 @@ void MockWdmSubscriptionResponderImpl::HandleDataFlipTimeout(nl::Weave::System::
             responder->Command_Send();
             SubscriptionEngine::GetInstance()->GetNotificationEngine()->Run();
             break;
-
+        case kTestCase_TestUpdatableTrait1:
+        case kTestCase_TestUpdatableTrait2:
+        case kTestCase_TestUpdatableTrait3:
+            break;
         case kTestCase_IncompatibleVersionedCommandRequest:
             responder->Command_Send();
             SubscriptionEngine::GetInstance()->GetNotificationEngine()->Run();

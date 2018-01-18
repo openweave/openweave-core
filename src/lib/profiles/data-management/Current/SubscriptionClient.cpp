@@ -68,11 +68,20 @@ void SubscriptionClient::Reset(void)
     mEventCallback                          = NULL;
     mResubscribePolicyCallback              = NULL;
     mDataSinkCatalog                        = NULL;
+    mLock                                   = NULL;
     mInactivityTimeoutDuringSubscribingMsec = kNoTimeOut;
     mLivenessTimeoutMsec                    = kNoTimeOut;
     mSubscriptionId                         = 0;
     mIsInitiator                            = false;
     mRetryCounter                           = 0;
+
+#if WEAVE_CONFIG_ENABLE_WDM_UPDATE
+    mUpdateInFlight                         = false;
+    mFlushInProgress                        = false;
+    mNumTraitInstances                      = 0;
+    mMaxUpdateSize                          = 0;
+    mCurProcessingTraitInstanceIdx          = 0;
+#endif // WEAVE_CONFIG_ENABLE_WDM_UPDATE
 
 #if WDM_ENABLE_PROTOCOL_CHECKS
     mPrevTraitDataHandle = -1;
@@ -86,8 +95,9 @@ void SubscriptionClient::Reset(void)
 // null out EC
 WEAVE_ERROR SubscriptionClient::Init(Binding * const apBinding, void * const apAppState, EventCallback const aEventCallback,
                                      const TraitCatalogBase<TraitDataSink> * const apCatalog,
-                                     const uint32_t aInactivityTimeoutDuringSubscribingMsec)
+                                     const uint32_t aInactivityTimeoutDuringSubscribingMsec, IWeaveClientLock * aLock)
 {
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
     WeaveLogIfFalse(0 == mRefCount);
 
     // add reference to the binding
@@ -97,14 +107,44 @@ WEAVE_ERROR SubscriptionClient::Init(Binding * const apBinding, void * const apA
     mBinding                                = apBinding;
     mAppState                               = apAppState;
     mEventCallback                          = aEventCallback;
-    mDataSinkCatalog                        = apCatalog;
+
+    if (NULL == apCatalog)
+    {
+        mDataSinkCatalog = NULL;
+    }
+    else
+    {
+        mDataSinkCatalog = const_cast <TraitCatalogBase<TraitDataSink>*>(apCatalog);
+    }
+
     mInactivityTimeoutDuringSubscribingMsec = aInactivityTimeoutDuringSubscribingMsec;
 
+    mLock                                   = aLock;
+
+#if WEAVE_CONFIG_ENABLE_WDM_UPDATE
+    mUpdateInFlight                         = false;
+    mFlushInProgress                        = false;
+    mNumTraitInstances                      = 0;
+    mMaxUpdateSize                          = 0;
+    mCurProcessingTraitInstanceIdx          = 0;
+
+#endif // WEAVE_CONFIG_ENABLE_WDM_UPDATE
     MoveToState(kState_Initialized);
 
     _AddRef();
 
-    return WEAVE_NO_ERROR;
+#if WEAVE_CONFIG_ENABLE_WDM_UPDATE
+    err = mUpdateClient.Init(mBinding, this, UpdateEventCallback);
+    SuccessOrExit(err);
+
+    if (NULL != mDataSinkCatalog)
+    {
+        mDataSinkCatalog->Iterate(InitUpdatableSinkTrait, this);
+    }
+
+exit:
+#endif // WEAVE_CONFIG_ENABLE_WDM_UPDATE
+    return err;
 }
 
 #if WEAVE_DETAIL_LOGGING
@@ -428,6 +468,14 @@ WEAVE_ERROR SubscriptionClient::SendSubscribeRequest(void)
     {
         nl::Weave::TLV::TLVWriter writer;
         SubscribeRequest::Builder request;
+
+#if WEAVE_CONFIG_ENABLE_WDM_UPDATE
+        SchemaVersionRange computedVersionIntersection;
+        SchemaVersion computedForwardRequestedVersion;
+        TraitInstanceInfo * traitInstance = NULL;
+        mNumTraitInstances = 0;
+#endif // WEAVE_CONFIG_ENABLE_WDM_UPDATE
+
         writer.Init(msgBuf);
 
         err = request.Init(&writer);
@@ -485,6 +533,46 @@ WEAVE_ERROR SubscriptionClient::SendSubscribeRequest(void)
                 err = mDataSinkCatalog->HandleToAddress(versionedTraitPath.mTraitDataHandle, writer,
                                                         versionedTraitPath.mRequestedVersionRange);
                 SuccessOrExit(err);
+
+#if WEAVE_CONFIG_ENABLE_WDM_UPDATE
+                if (mNumTraitInstances < WDM_CLIENT_MAX_NUM_PATH_GROUPS)
+                {
+                    traitInstance = mClientTraitInfoPool + mNumTraitInstances;
+                    ++mNumTraitInstances;
+                    traitInstance->Init();
+                }
+                else
+                {
+                    // we run out of trait instances, abort
+                    // Note it might help the client understanding what's going on with an error status like
+                    // "out of memory" or "internal error", but it's pretty common that a server doesn't disclose
+                    // too much internal status to clients
+                    SuccessOrExit(err = WEAVE_ERROR_NO_MEMORY);
+                }
+
+                traitInstance->mTraitDataHandle  = versionedTraitPath.mTraitDataHandle;
+
+                if (pDataSink->GetSchemaEngine()->GetVersionIntersection(versionedTraitPath.mRequestedVersionRange, computedVersionIntersection))
+                {
+                    computedForwardRequestedVersion =
+                        pDataSink->GetSchemaEngine()->GetHighestForwardVersion(computedVersionIntersection.mMaxVersion);
+                }
+                else
+                {
+                    WeaveLogDetail(DataManagement, "Mismatch in requested version on handle %u (requested: %u, %u)", versionedTraitPath.mTraitDataHandle,
+                                   versionedTraitPath.mRequestedVersionRange.mMaxVersion, versionedTraitPath.mRequestedVersionRange.mMinVersion);
+                    continue;
+                }
+
+                traitInstance->mRequestedVersion = computedForwardRequestedVersion;
+                traitInstance->mPropertyPathHandle = versionedTraitPath.mPropertyPathHandle;
+
+                if (IsTraitPresentInPendingUpdateStore(traitInstance->mTraitDataHandle))
+                {
+                    traitInstance->SetDirty();
+                }
+
+#endif // WEAVE_CONFIG_ENABLE_WDM_UPDATE
 
                 // Append zero or more TLV tags based on the Path Handle
                 err = pDataSink->GetSchemaEngine()->MapHandleToPath(versionedTraitPath.mPropertyPathHandle, writer);
@@ -837,6 +925,9 @@ void SubscriptionClient::AbortSubscription(void)
         mBinding->Release();
         mBinding = NULL;
 
+#if WEAVE_CONFIG_ENABLE_WDM_UPDATE
+        ShutdownUpdateClient();
+#endif // WEAVE_CONFIG_ENABLE_WDM_UPDATE
         // Note that ref count is not touched at here, as _Abort doesn't change the ownership
         FlushExistingExchangeContext(true);
         (void) RefreshTimer();
@@ -892,6 +983,10 @@ void SubscriptionClient::HandleSubscriptionTerminated(bool aWillRetry, WEAVE_ERR
         // context should be considered an error.
         const bool abortExchangeContext = true;
         FlushExistingExchangeContext(abortExchangeContext);
+
+#if WEAVE_CONFIG_ENABLE_WDM_UPDATE
+        CancelUpdateClient();
+#endif // WEAVE_CONFIG_ENABLE_WDM_UPDATE
     }
 
     if (NULL != callbackFunc)
@@ -1233,6 +1328,14 @@ WEAVE_ERROR SubscriptionClient::ProcessDataList(nl::Weave::TLV::TLVReader & aRea
     // that get aborted and restarted within the same notify. See WEAV-1586 for more details.
     bool isPartialChange = false;
     uint8_t flags;
+#if WEAVE_CONFIG_ENABLE_WDM_UPDATE
+    bool isLocked = false;
+
+    err = Lock();
+    SuccessOrExit(err);
+
+    isLocked = true;
+#endif // WEAVE_CONFIG_ENABLE_WDM_UPDATE
 
     while (WEAVE_NO_ERROR == (err = aReader.Next()))
     {
@@ -1303,7 +1406,7 @@ WEAVE_ERROR SubscriptionClient::ProcessDataList(nl::Weave::TLV::TLVReader & aRea
             flags |= TraitDataSink::kLastElementInChange;
         }
 
-        err = DataSink->StoreDataElement(pathHandle, pathReader, flags, NULL, NULL);
+        err = DataSink->StoreDataElement(pathHandle, pathReader, flags, NULL, NULL, handle);
         SuccessOrExit(err);
 
         mPrevIsPartialChange = isPartialChange;
@@ -1319,7 +1422,20 @@ WEAVE_ERROR SubscriptionClient::ProcessDataList(nl::Weave::TLV::TLVReader & aRea
         err = WEAVE_NO_ERROR;
     }
 
+#if WEAVE_CONFIG_ENABLE_WDM_UPDATE
+    if (IsUpdateInFlight())
+    {
+        PurgePendingUpdate();
+    }
+#endif // WEAVE_CONFIG_ENABLE_WDM_UPDATE
+
 exit:
+#if WEAVE_CONFIG_ENABLE_WDM_UPDATE
+    if (isLocked)
+    {
+        Unlock();
+    }
+#endif // WEAVE_CONFIG_ENABLE_WDM_UPDATE
     return err;
 }
 
@@ -1673,12 +1789,19 @@ void SubscriptionClient::OnMessageReceivedFromLocallyInitiatedExchange(nl::Weave
 
     WEAVE_ERROR err              = WEAVE_NO_ERROR;
     SubscriptionClient * pClient = reinterpret_cast<SubscriptionClient *>(aEC->AppState);
-
     InEventParam inParam;
     OutEventParam outParam;
     bool retainExchangeContext = false;
     bool isStatusReportValid   = false;
     nl::Weave::Profiles::StatusReporting::StatusReport status;
+
+#if WEAVE_CONFIG_ENABLE_WDM_UPDATE
+    bool isLocked = false;
+    err = pClient->Lock();
+    SuccessOrExit(err);
+
+    isLocked = true;
+#endif // WEAVE_CONFIG_ENABLE_WDM_UPDATE
 
     WeaveLogDetail(DataManagement, "Client[%u] [%5.5s] %s Ref(%d)", SubscriptionEngine::GetInstance()->GetClientId(pClient),
                    pClient->GetStateStr(), __func__, pClient->mRefCount);
@@ -1792,6 +1915,23 @@ void SubscriptionClient::OnMessageReceivedFromLocallyInitiatedExchange(nl::Weave
             // it's allowed to cancel or even abandon this subscription right inside this callback
             pClient->mEventCallback(pClient->mAppState, kEvent_OnSubscriptionEstablished, inParam, outParam);
             // since the state could have been changed, we must not assume anything
+
+#if WEAVE_CONFIG_ENABLE_WDM_UPDATE
+
+            if (pClient->IsFlushInProgress())
+            {
+                if (pClient->IsEmptyPendingUpdateStore())
+                {
+                    pClient->ClearFlushInProgress();
+                }
+                else
+                {
+                    pClient->FormAndSendUpdate();
+                }
+            }
+
+#endif // WEAVE_CONFIG_ENABLE_WDM_UPDATE
+
             ExitNow();
         }
         else
@@ -1846,6 +1986,13 @@ void SubscriptionClient::OnMessageReceivedFromLocallyInitiatedExchange(nl::Weave
     }
 
 exit:
+
+#if WEAVE_CONFIG_ENABLE_WDM_UPDATE
+    if (isLocked)
+    {
+        pClient->Unlock();
+    }
+#endif // WEAVE_CONFIG_ENABLE_WDM_UPDATE
     WeaveLogFunctError(err);
 
     if (NULL != aPayload)
@@ -1868,6 +2015,1110 @@ exit:
     pClient->_Release();
 }
 
+#if WEAVE_CONFIG_ENABLE_WDM_UPDATE
+void SubscriptionClient::SetMaxUpdateSize(const uint32_t aMaxSize)
+{
+    if (aMaxSize > UINT16_MAX)
+        mMaxUpdateSize = 0;
+    else
+        mMaxUpdateSize = aMaxSize;
+}
+
+SubscriptionClient::PathStore::PathStore()
+{
+    mNumItems = 0;
+
+    for (size_t i = 0; i < WDM_UPDATE_MAX_ITEMS_IN_TRAIT_DIRTY_PATH_STORE; i++)
+    {
+        mPathStore[i].mPropertyPathHandle = kNullPropertyPathHandle;
+        mPathStore[i].mTraitDataHandle    = UINT16_MAX;
+        mValidFlags[i]                = false;
+    }
+}
+
+bool SubscriptionClient::PathStore::IsEmpty()
+{
+    return mNumItems == 0;
+}
+
+bool SubscriptionClient::PathStore::IsFull()
+{
+    return mNumItems >= WDM_UPDATE_MAX_ITEMS_IN_TRAIT_DIRTY_PATH_STORE;
+}
+
+uint32_t SubscriptionClient::PathStore::GetNumItems()
+{
+    return mNumItems;
+}
+
+uint32_t SubscriptionClient::PathStore::GetPathStoreSize()
+{
+    return WDM_UPDATE_MAX_ITEMS_IN_TRAIT_DIRTY_PATH_STORE;
+}
+
+bool SubscriptionClient::PathStore::AddItem(TraitPath aItem)
+{
+    if (mNumItems >= WDM_UPDATE_MAX_ITEMS_IN_TRAIT_DIRTY_PATH_STORE)
+    {
+        return false;
+    }
+
+    for (size_t i = 0; i < WDM_UPDATE_MAX_ITEMS_IN_TRAIT_DIRTY_PATH_STORE; i++)
+    {
+        if (!mValidFlags[i])
+        {
+            mPathStore[i]      = aItem;
+            mValidFlags[i] = true;
+            mNumItems++;
+            return true;
+        }
+    }
+
+    return false;
+
+    // Shouldn't get here since that would imply that mNumItems and mValidFlags are out of sync
+    // which should never happen unless someone mucked with the flags themselves. Continuing past
+    // this point runs the risk of unpredictable behavior and so, it's better to just assert
+    // at this point.
+    VerifyOrDie(0);
+}
+
+void SubscriptionClient::PathStore::RemoveItem(TraitDataHandle aDataHandle)
+{
+    if (mNumItems)
+    {
+        for (size_t i = 0; i < WDM_UPDATE_MAX_ITEMS_IN_TRAIT_DIRTY_PATH_STORE; i++)
+        {
+            if (mValidFlags[i] && (mPathStore[i].mTraitDataHandle == aDataHandle))
+            {
+                mValidFlags[i] = false;
+                mNumItems--;
+            }
+        }
+    }
+}
+
+bool SubscriptionClient::PathStore::IsTraitPresent(TraitDataHandle aDataHandle)
+{
+    bool found = false;
+
+    if (mNumItems)
+    {
+        for (size_t i = 0; i < WDM_UPDATE_MAX_ITEMS_IN_TRAIT_DIRTY_PATH_STORE; i++)
+        {
+            if (mValidFlags[i] && (mPathStore[i].mTraitDataHandle == aDataHandle))
+            {
+                found = true;
+                break;
+            }
+        }
+    }
+
+    return found;
+}
+
+void SubscriptionClient::PathStore::RemoveItemAt(uint32_t aIndex)
+{
+    if (mNumItems)
+    {
+        mValidFlags[aIndex] = false;
+        mNumItems--;
+    }
+}
+
+void SubscriptionClient::PathStore::GetItemAt(uint32_t aIndex, TraitPath &aTraitPath)
+{
+    aTraitPath = mPathStore[aIndex];
+}
+
+bool SubscriptionClient::PathStore::IsPresent(TraitPath aItem)
+{
+    for (size_t i = 0; i < WDM_UPDATE_MAX_ITEMS_IN_TRAIT_DIRTY_PATH_STORE; i++)
+    {
+        if (mValidFlags[i] && (mPathStore[i] == aItem))
+        {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+bool SubscriptionClient::PathStore::IsInclusive(TraitPath aItem, const TraitSchemaEngine * const apSchemaEngine)
+{
+    bool found = false;
+    TraitDataHandle curDataHandle = aItem.mTraitDataHandle;
+
+    for (size_t i = 0; i < WDM_UPDATE_MAX_ITEMS_IN_TRAIT_DIRTY_PATH_STORE; i++)
+    {
+        PropertyPathHandle curProperty = aItem.mPropertyPathHandle;
+        // WeaveLogDetail(DataManagement, "IsInclusive datahandle %u: %s, store %u, cur %u", i, mValidFlags[i] ? "true" : "false", mPathStore[i].mTraitDataHandle, curDataHandle);
+        // WeaveLogDetail(DataManagement, "IsInclusive property %u: %s, store %u, cur %u", i, mValidFlags[i] ? "true" : "false", mPathStore[i].mPropertyPathHandle, curProperty);
+        if (mValidFlags[i] && (mPathStore[i].mTraitDataHandle == curDataHandle))
+        {
+            while (curProperty != kRootPropertyPathHandle)
+            {
+                if (mPathStore[i].mPropertyPathHandle == curProperty)
+                {
+                    found = true;
+                    break;
+                }
+                else
+                {
+                    curProperty = apSchemaEngine->GetParent(curProperty);
+                }
+            }
+
+            if (found)
+                break;
+
+            if (mPathStore[i].mPropertyPathHandle == curProperty)
+            {
+                found = true;
+                break;
+            }
+        }
+    }
+
+    return found;
+}
+
+WEAVE_ERROR SubscriptionClient::ClearDispatchedUpdateStore(void)
+{
+    mDispatchedUpdateStore.Clear();
+    return WEAVE_NO_ERROR;
+}
+
+WEAVE_ERROR SubscriptionClient::ClearPendingUpdateStore(void)
+{
+    mPendingUpdateStore.Clear();
+    return WEAVE_NO_ERROR;
+}
+
+bool SubscriptionClient::IsEmptyPendingUpdateStore(void)
+{
+    return mPendingUpdateStore.IsEmpty();
+}
+
+bool SubscriptionClient::IsEmptyDispatchedUpdateStore(void)
+{
+    return mDispatchedUpdateStore.IsEmpty();
+}
+
+WEAVE_ERROR SubscriptionClient::RemoveItemPendingUpdateStore(TraitDataHandle aDataHandle)
+{
+    mPendingUpdateStore.RemoveItem(aDataHandle);
+    return WEAVE_NO_ERROR;
+}
+
+WEAVE_ERROR SubscriptionClient::AddItemPendingUpdateStore(TraitPath aItem, const TraitSchemaEngine * const apSchemaEngine)
+{
+    bool isAddSuccess = false;
+    TraitInstanceInfo * traitInstance;
+    traitInstance = GetTraitInstanceInfoList();
+    uint32_t numPendingHandles;
+    numPendingHandles = mPendingUpdateStore.GetPathStoreSize();
+
+    isAddSuccess = mPendingUpdateStore.AddItem(aItem);
+
+    if (isAddSuccess)
+    {
+        for (size_t i=0; i < numPendingHandles; i++)
+        {
+            if (mPendingUpdateStore.mValidFlags[i] && (mPendingUpdateStore.mPathStore[i].mTraitDataHandle == aItem.mTraitDataHandle))
+            {
+                if (mPendingUpdateStore.mPathStore[i].mPropertyPathHandle == kRootPropertyPathHandle)
+                {
+                    WeaveLogDetail(DataManagement, "exist root dirty, merge all to root!");
+                    RemoveItemPendingUpdateStore(mPendingUpdateStore.mPathStore[i].mTraitDataHandle);
+                    mPendingUpdateStore.AddItem(TraitPath(aItem.mTraitDataHandle, kRootPropertyPathHandle));
+                    break;
+                }
+                else
+                {
+                    MergeDupInPendingUpdateStore(apSchemaEngine, i);
+                }
+            }
+        }
+
+        for (size_t j = 0; j < mNumTraitInstances; j++)
+        {
+            if (traitInstance[j].mTraitDataHandle == aItem.mTraitDataHandle)
+            {
+                WeaveLogDetail(DataManagement, "Set T%u dirty", j);
+                traitInstance[j].SetDirty();
+            }
+        }
+    }
+    else
+    {
+        WeaveLogDetail(DataManagement, "UpdatePendingStore is full, skip t%u, p%u", aItem.mTraitDataHandle, aItem.mPropertyPathHandle);
+    }
+
+    return WEAVE_NO_ERROR;
+}
+
+WEAVE_ERROR SubscriptionClient::RemoveItemDispatchedUpdateStore(TraitDataHandle aDataHandle)
+{
+    mDispatchedUpdateStore.RemoveItem(aDataHandle);
+    return WEAVE_NO_ERROR;
+}
+
+void SubscriptionClient::PathStore::Clear()
+{
+    mNumItems = 0;
+    memset(mValidFlags, 0, sizeof(mValidFlags));
+}
+
+WEAVE_ERROR SubscriptionClient::ClearDirty()
+{
+    mPendingUpdateStore.Clear();
+    mDispatchedUpdateStore.Clear();
+
+    return WEAVE_NO_ERROR;
+}
+
+bool SubscriptionClient::IsInclusiveDispatchedUpdateStore(TraitDataHandle aTraitDataHandle, PropertyPathHandle aPropertyPathHandle, const TraitSchemaEngine * const apSchemaEngine)
+{
+    return mDispatchedUpdateStore.IsInclusive(TraitPath(aTraitDataHandle, aPropertyPathHandle), apSchemaEngine);
+}
+
+bool SubscriptionClient::IsInclusivePendingUpdateStore(TraitDataHandle aTraitDataHandle, PropertyPathHandle aPropertyPathHandle, const TraitSchemaEngine * const apSchemaEngine)
+{
+    return mPendingUpdateStore.IsInclusive(TraitPath(aTraitDataHandle, aPropertyPathHandle), apSchemaEngine);
+}
+
+bool SubscriptionClient::IsPresentDispatchedUpdateStore(TraitDataHandle aTraitDataHandle, PropertyPathHandle aPropertyPathHandle)
+{
+    return mDispatchedUpdateStore.IsPresent(TraitPath(aTraitDataHandle, aPropertyPathHandle));
+}
+
+bool SubscriptionClient::IsPresentPendingUpdateStore(TraitDataHandle aTraitDataHandle, PropertyPathHandle aPropertyPathHandle)
+{
+    return mPendingUpdateStore.IsPresent(TraitPath(aTraitDataHandle, aPropertyPathHandle));
+}
+
+bool SubscriptionClient::IsTraitPresentInPendingUpdateStore(TraitDataHandle aTraitDataHandle)
+{
+    return mPendingUpdateStore.IsTraitPresent(aTraitDataHandle);
+}
+
+WEAVE_ERROR SubscriptionClient::Lock()
+{
+    if (mLock)
+    {
+        return mLock->Lock();
+    }
+
+    return WEAVE_NO_ERROR;
+}
+
+WEAVE_ERROR SubscriptionClient::Unlock()
+{
+    if (mLock)
+    {
+        return mLock->Unlock();
+    }
+
+    return WEAVE_NO_ERROR;
+}
+
+bool SubscriptionClient::IsFlushInProgress()
+{
+    return mFlushInProgress;
+}
+
+WEAVE_ERROR SubscriptionClient::SetFlushInProgress()
+{
+    mFlushInProgress = true;
+    return WEAVE_NO_ERROR;
+}
+
+WEAVE_ERROR SubscriptionClient::ClearFlushInProgress()
+{
+    mFlushInProgress = false;
+    return WEAVE_NO_ERROR;
+}
+
+bool SubscriptionClient::IsUpdateInFlight()
+{
+    return mUpdateInFlight;
+}
+
+WEAVE_ERROR SubscriptionClient::SetUpdateInFlight()
+{
+    mUpdateInFlight = true;
+    return WEAVE_NO_ERROR;
+}
+
+WEAVE_ERROR SubscriptionClient::ClearUpdateInFlight()
+{
+    mUpdateInFlight = false;
+    return WEAVE_NO_ERROR;
+}
+
+//Check if candidate property path in i is part of the other property path in the same trait in PendingUpdateStore, , if yes, eliminate it.
+bool SubscriptionClient::MergeDupInPendingUpdateStore(const TraitSchemaEngine * apSchemaEngine, size_t & candidateIndex)
+{
+    TraitPath candidateTraitPath = mPendingUpdateStore.mPathStore[candidateIndex];
+    PropertyPathHandle parentPathHandle = candidateTraitPath.mPropertyPathHandle;
+    uint32_t numPendingHandles = mPendingUpdateStore.GetPathStoreSize();
+    bool remove = false;
+
+    while (parentPathHandle != kRootPropertyPathHandle)
+    {
+        for (size_t j = 0; j < numPendingHandles; j++)
+        {
+            if ((candidateIndex != j) && mPendingUpdateStore.mValidFlags[j] && (mPendingUpdateStore.mPathStore[j].mTraitDataHandle == candidateTraitPath.mTraitDataHandle))
+            {
+                if (parentPathHandle == mPendingUpdateStore.mPathStore[j].mPropertyPathHandle)
+                {
+                    WeaveLogDetail(DataManagement, "<UE:Run> T %u merge property %u with %u", candidateTraitPath.mTraitDataHandle, candidateTraitPath.mPropertyPathHandle, mPendingUpdateStore.mPathStore[j].mPropertyPathHandle);
+                    mPendingUpdateStore.RemoveItemAt(candidateIndex);
+                    remove = false;
+                    break;
+                }
+            }
+        }
+
+        if (!mPendingUpdateStore.mValidFlags[candidateIndex])
+        {
+            break;
+        }
+
+        parentPathHandle = apSchemaEngine->GetParent(parentPathHandle);
+    }
+
+    return remove;
+}
+
+void SubscriptionClient::UpdateCompleteEventCbHelper(size_t &index, uint32_t &aStatusProfileId, uint16_t &aStatusCode, WEAVE_ERROR aReason)
+{
+    TraitPath traitPath;
+    InEventParam inParam;
+    OutEventParam outParam;
+
+    mDispatchedUpdateStore.GetItemAt(index, traitPath);
+
+    inParam.Clear();
+    outParam.Clear();
+    inParam.mUpdateComplete.mClient = this;
+    inParam.mUpdateComplete.mStatusProfileId = aStatusProfileId;
+    inParam.mUpdateComplete.mStatusCode = aStatusCode;
+    inParam.mUpdateComplete.mReason = aReason;
+    inParam.mUpdateComplete.mTraitDataHandle = traitPath.mTraitDataHandle;
+    inParam.mUpdateComplete.mPropertyPathHandle = traitPath.mPropertyPathHandle;
+
+    mEventCallback(mAppState, kEvent_OnUpdateComplete, inParam, outParam);
+}
+
+WEAVE_ERROR SubscriptionClient::OnUpdateConfirm(WEAVE_ERROR aReason, nl::Weave::Profiles::StatusReporting::StatusReport * apStatus)
+{
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
+    bool isLocked = false;
+    TraitPath traitPath;
+    TraitDataSink * dataSink = NULL;
+    TraitUpdatableDataSink * updatableDataSink = NULL;
+    UpdateResponse::Parser response;
+    StatusList::Parser statusList;
+    VersionList::Parser versionList;
+    ReferencedTLVData additionalInfo;
+    uint32_t numDispatchedHandles;
+
+    err = Lock();
+    SuccessOrExit(err);
+
+    isLocked = true;
+
+    numDispatchedHandles = mDispatchedUpdateStore.GetPathStoreSize();
+    additionalInfo = apStatus->mAdditionalInfo;
+    ClearUpdateInFlight();
+
+    WeaveLogDetail(DataManagement, "Received Status Report 0x%" PRIX32 " : 0x%" PRIX16, apStatus->mProfileId, apStatus->mStatusCode);
+    WeaveLogDetail(DataManagement, "Received Status Report additional info %u", additionalInfo.theLength);
+
+#if WDM_ENABLE_REAL_UPDATE_RESPONSE
+    bool IsVersionListPresent         = false;
+    bool IsStatusListPresent          = false;
+    bool needResubscribe = false;
+    nl::Weave::TLV::TLVReader reader;
+
+    if (additionalInfo.theLength != 0)
+    {
+        reader.Init(additionalInfo.theData, additionalInfo.theLength);
+
+        err = reader.Next();
+        SuccessOrExit(err);
+
+        err = response.Init(reader);
+        SuccessOrExit(err);
+
+        err = response.GetVersionList(&versionList);
+        switch (err)
+        {
+        case WEAVE_NO_ERROR:
+            IsVersionListPresent = true;
+            break;
+        case WEAVE_END_OF_TLV:
+            err = WEAVE_NO_ERROR;
+            break;
+        default:
+            ExitNow();
+        }
+
+        err = response.GetStatusList(&statusList);
+        switch (err)
+        {
+        case WEAVE_NO_ERROR:
+            IsStatusListPresent = true;
+            break;
+        case WEAVE_END_OF_TLV:
+            err = WEAVE_NO_ERROR;
+            break;
+        default:
+            ExitNow();
+        }
+
+        VerifyOrExit(IsStatusListPresent && IsVersionListPresent, WeaveLogDetail(DataManagement, "<OnUpdateConfirm> version/status list is empty"));
+
+        for (size_t j = 0; j < numDispatchedHandles; j++)
+        {
+            if (mDispatchedUpdateStore.mValidFlags[j])
+            {
+                err = versionList.Next();
+                SuccessOrExit(err);
+
+                err = statusList.Next();
+                SuccessOrExit(err);
+
+                uint64_t existingVersion;
+                err = versionList.GetVersion(&existingVersion);
+                SuccessOrExit(err);
+
+                uint32_t profileID;
+                uint16_t statusCode;
+
+                err = statusList.GetStatusAndProfileID(&profileID, &statusCode);
+                SuccessOrExit(err);
+
+                mDispatchedUpdateStore.GetItemAt(j, traitPath);
+                err = mDataSinkCatalog->Locate(traitPath.mTraitDataHandle, &dataSink);
+                SuccessOrExit(err);
+                VerifyOrExit(dataSink->IsUpdatableDataSink() == true, err = WEAVE_ERROR_INCORRECT_STATE);
+                updatableDataSink = static_cast<TraitUpdatableDataSink *>(dataSink);
+
+                if (profileID == nl::Weave::Profiles::kWeaveProfile_Common && statusCode == nl::Weave::Profiles::Common::kStatus_Success)
+                {
+                    UpdateCompleteEventCbHelper(j, profileID, statusCode, aReason);
+
+                    mDispatchedUpdateStore.RemoveItemAt(j);
+
+                    if (mPendingUpdateStore.IsPresent(traitPath))
+                    {
+                        updatableDataSink->SetUpdateRequiredVersion(existingVersion);
+                    }
+                }
+                else
+                {
+                    bool found = false;
+
+                    if (mDispatchedUpdateStore.IsPresent(traitPath))
+                    {
+                        found = true;
+                        mDispatchedUpdateStore.RemoveItem(traitPath.mTraitDataHandle);
+                    }
+
+                    if (mPendingUpdateStore.IsPresent(traitPath))
+                    {
+                        found = true;
+                        mPendingUpdateStore.RemoveItem(traitPath.mTraitDataHandle);
+                    }
+
+                    if (found)
+                    {
+                        UpdateCompleteEventCbHelper(j, profileID, statusCode, WEAVE_ERROR_STATUS_REPORT_RECEIVED);
+                    }
+                    updatableDataSink->ClearVersion();
+
+                    needResubscribe = true;
+                }
+            }
+        }
+
+        if (needResubscribe && IsEstablishedIdle())
+        {
+            HandleSubscriptionTerminated(IsRetryEnabled(), err, NULL);
+        }
+    }
+
+#else //WDM_ENABLE_REAL_UPDATE_RESPONSE
+    {
+        size_t k = 0;
+        for (k = 0; k < numDispatchedHandles; k++)
+        {
+            if (mDispatchedUpdateStore.mValidFlags[k])
+            {
+                mDispatchedUpdateStore.GetItemAt(k, traitPath);
+
+                err = mDataSinkCatalog->Locate(traitPath.mTraitDataHandle, &dataSink);
+                SuccessOrExit(err);
+                VerifyOrExit(dataSink->IsUpdatableDataSink() == true, WeaveLogDetail(DataManagement, "<OnUpdateConfirm> not updatable sink!"));
+                updatableDataSink = static_cast<TraitUpdatableDataSink *>(dataSink);
+                break;
+            }
+        }
+
+        if (!apStatus->success())
+        {
+            WeaveLogDetail(DataManagement, "<OnUpdateConfirm> update failure");
+            updatableDataSink->ClearVersion();
+            RemoveItemDispatchedUpdateStore(traitPath.mTraitDataHandle);
+            RemoveItemPendingUpdateStore(traitPath.mTraitDataHandle);
+            UpdateCompleteEventCbHelper(k, apStatus->mProfileId, apStatus->mStatusCode, WEAVE_ERROR_STATUS_REPORT_RECEIVED);
+
+            if (IsEstablishedIdle())
+            {
+               HandleSubscriptionTerminated(IsRetryEnabled(), err, NULL);
+            }
+        }
+        else
+        {
+            WeaveLogDetail(DataManagement, "<OnUpdateConfirm> update success");
+            RemoveItemDispatchedUpdateStore(traitPath.mTraitDataHandle);
+            UpdateCompleteEventCbHelper(k, apStatus->mProfileId, apStatus->mStatusCode, aReason);
+        }
+    }
+#endif //WDM_ENABLE_REAL_UPDATE_RESPONSE
+
+    PurgePendingUpdate();
+    ClearFlushInProgress();
+    FormAndSendUpdate();
+
+exit:
+    if (isLocked)
+    {
+        Unlock();
+    }
+
+    return err;
+}
+
+void SubscriptionClient::OnUpdateResponseTimeout(WEAVE_ERROR aError)
+{
+    uint32_t numDispatchedHandles                                                                    = 0;
+    TraitPath traitPath;
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
+    bool isLocked = false;
+
+    err = Lock();
+    SuccessOrExit(err);
+
+    isLocked = true;
+
+    ClearUpdateInFlight();
+
+    numDispatchedHandles = mDispatchedUpdateStore.GetPathStoreSize();
+
+    //Move paths from DispatchedUpdates to PendingUpdates for all TIs.
+    for (size_t i = 0; i < numDispatchedHandles; i++)
+    {
+        if (mDispatchedUpdateStore.mValidFlags[i])
+        {
+            mDispatchedUpdateStore.GetItemAt(i, traitPath);
+
+            if (!mPendingUpdateStore.IsPresent(traitPath))
+            {
+                mPendingUpdateStore.AddItem(traitPath);
+            }
+
+            mDispatchedUpdateStore.RemoveItemAt(i);
+
+        }
+    }
+
+    PurgePendingUpdate();
+
+    if (!IsEmptyPendingUpdateStore() && IsEstablishedIdle())
+    {
+        HandleSubscriptionTerminated(IsRetryEnabled(), aError, NULL);
+    }
+
+exit:
+
+    if (isLocked)
+    {
+        Unlock();
+    }
+}
+
+void SubscriptionClient::UpdateEventCallback (void * const aAppState, UpdateClient::EventType aEvent, const UpdateClient::InEventParam & aInParam, UpdateClient::OutEventParam & aOutParam)
+{
+    SubscriptionClient * const pSubClient = reinterpret_cast<SubscriptionClient *>(aAppState);
+
+    VerifyOrExit(!(pSubClient->IsAborting() ||pSubClient->IsAborted()), WeaveLogDetail(DataManagement, "<UpdateEventCallback> subscription has been aborted"));
+
+    switch (aEvent)
+    {
+    case UpdateClient::kEvent_UpdateComplete:
+        WeaveLogDetail(DataManagement, "UpdateComplete event: %d", aEvent);
+
+        if (aInParam.UpdateComplete.Reason == WEAVE_NO_ERROR)
+        {
+            pSubClient->OnUpdateConfirm(aInParam.UpdateComplete.Reason, aInParam.UpdateComplete.StatusReportPtr);
+        }
+        else
+        {
+            pSubClient->OnUpdateResponseTimeout(aInParam.UpdateComplete.Reason);
+        }
+
+        break;
+    case UpdateClient::kEvent_UpdateContinue:
+        WeaveLogDetail(DataManagement, "UpdateContinue event: %d", aEvent);
+        pSubClient->FormAndSendUpdate();
+        break;
+    default:
+        WeaveLogDetail(DataManagement, "Unknown UpdateClient event: %d", aEvent);
+        break;
+    }
+
+exit:
+    return;
+}
+
+WEAVE_ERROR SubscriptionClient::SetUpdated(TraitUpdatableDataSink * aDataSink, PropertyPathHandle aPropertyHandle, bool aIsConditional)
+{
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
+    TraitDataHandle dataHandle;
+    bool isLocked                  = false;
+
+    VerifyOrExit(aDataSink->IsVersionValid(), WeaveLogDetail(DataManagement, "Reject mutation with error"));
+
+    err = Lock();
+    SuccessOrExit(err);
+
+    isLocked = true;
+
+    const TraitSchemaEngine * schemaEngine;
+    schemaEngine = aDataSink->GetSchemaEngine();
+
+    err = mDataSinkCatalog->Locate(aDataSink, dataHandle);
+    SuccessOrExit(err);
+
+    // If we have exceeded the num items in the store, we need to mark the whole trait instance as dirty and remove all
+    // existing references to this trait instance in the dirty store.
+
+    VerifyOrExit(!mPendingUpdateStore.IsFull(), WeaveLogDetail(DataManagement, "<SetUpdated> No more space in granular store!"));
+
+    if ((!mPendingUpdateStore.IsTraitPresent(dataHandle)) && (!mDispatchedUpdateStore.IsTraitPresent(dataHandle)))
+    {
+        uint64_t requiredDataVersion = aDataSink->GetVersion();
+        err = aDataSink->SetUpdateRequiredVersion(requiredDataVersion);
+        WeaveLogDetail(DataManagement, "<SetUpdated> Set update required version to %u", requiredDataVersion);
+        SuccessOrExit(err);
+    }
+
+    AddItemPendingUpdateStore(TraitPath(dataHandle, aPropertyHandle), schemaEngine);
+
+exit:
+
+    if (isLocked)
+    {
+        Unlock();
+    }
+
+    return err;
+}
+
+WEAVE_ERROR SubscriptionClient::PurgePendingUpdate()
+{
+    WEAVE_ERROR err                  = WEAVE_NO_ERROR;
+    TraitDataSink * dataSink;
+    TraitUpdatableDataSink * updatableDataSink;
+    TraitInstanceInfo * traitInfo;
+    bool isLocked = false;
+    bool needResubscribe = false;
+    uint32_t numTraitInstances = GetNumTraitInstances();
+    // Lock before attempting to modify any of the shared data structures.
+    err = Lock();
+    SuccessOrExit(err);
+
+    isLocked = true;
+
+    for (size_t i = 0; i < numTraitInstances; i++)
+    {
+        traitInfo = mClientTraitInfoPool + i;
+
+        if (traitInfo->IsDirty() && (IsTraitPresentInPendingUpdateStore(traitInfo->mTraitDataHandle)))
+        {
+            err = mDataSinkCatalog->Locate(traitInfo->mTraitDataHandle, &dataSink);
+            updatableDataSink = static_cast<TraitUpdatableDataSink *>(dataSink);
+
+            WeaveLogDetail(DataManagement, "<PurgeUpdate> current version %u", updatableDataSink->GetVersion());
+            WeaveLogDetail(DataManagement, "<PurgeUpdate> required version %u", updatableDataSink->GetUpdateRequiredVersion());
+
+            if (updatableDataSink->IsVersionValid() && updatableDataSink->GetUpdateRequiredVersion() < updatableDataSink->GetVersion())
+            {
+                InEventParam inParam;
+                OutEventParam outParam;
+                inParam.Clear();
+                outParam.Clear();
+                inParam.mUpdateComplete.mClient = this;
+                inParam.mUpdateComplete.mReason = WEAVE_ERROR_MISMATCH_UPDATE_REQUIRED_VERSION;
+                mEventCallback(mAppState, kEvent_OnUpdateComplete, inParam, outParam);
+
+                RemoveItemPendingUpdateStore(traitInfo->mTraitDataHandle);
+                updatableDataSink->ClearUpdateRequiredVersion();
+                updatableDataSink->ClearVersion();
+                needResubscribe = true;
+
+            }
+        }
+    }
+
+    if (needResubscribe && IsEstablishedIdle())
+    {
+        WeaveLogDetail(DataManagement, "<PurgeUpdate> version mismatch, abort");
+        HandleSubscriptionTerminated(IsRetryEnabled(), WEAVE_ERROR_MISMATCH_UPDATE_REQUIRED_VERSION, NULL);
+    }
+
+    if (IsEmptyPendingUpdateStore())
+    {
+        ClearFlushInProgress();
+    }
+
+exit:
+
+    if (isLocked)
+    {
+        Unlock();
+    }
+
+    return err;
+}
+
+void SubscriptionClient::CancelUpdateClient(void)
+{
+    mUpdateInFlight                   = false;
+    mUpdateClient.CancelUpdate();
+}
+
+void SubscriptionClient::ShutdownUpdateClient(void)
+{
+    mNumTraitInstances                 = 0;
+    mCurProcessingTraitInstanceIdx     = 0;
+    mMaxUpdateSize                     = 0;
+    mUpdateInFlight                    = false;
+    mFlushInProgress                   = false;
+
+    mUpdateClient.Shutdown();
+}
+
+WEAVE_ERROR SubscriptionClient::AddElementFunc(UpdateClient * apClient, void * apCallState, TLV::TLVWriter & aOuterWriter)
+{
+    WEAVE_ERROR err;
+    const TraitSchemaEngine * schemaEngine;
+    TraitDataSink * dataSink;
+    TraitUpdatableDataSink * updatableDataSink;
+
+    AddElementCallState * addElementCallState = static_cast<AddElementCallState *>(apCallState);
+    SubscriptionClient * pSubClient = addElementCallState->mpSubClient;
+    TraitInstanceInfo * pTraitInstanceInfo = addElementCallState->mpTraitInstanceInfo;
+
+    err = pSubClient->mDataSinkCatalog->Locate(pTraitInstanceInfo->mTraitDataHandle, &dataSink);
+    SuccessOrExit(err);
+
+    VerifyOrExit(dataSink->IsUpdatableDataSink() == true, WeaveLogDetail(DataManagement, "<AddElementFunc> not updatable sink."));
+    updatableDataSink = static_cast<TraitUpdatableDataSink *> (dataSink);
+
+    schemaEngine = dataSink->GetSchemaEngine();
+
+    WeaveLogDetail(DataManagement, "<AddElementFunc> add property path handle in 0x%08x", pTraitInstanceInfo->mCandidatePropertyPathHandle);
+
+    if (pTraitInstanceInfo->mCandidatePropertyPathHandle != kRootPropertyPathHandle)
+    {
+        err = updatableDataSink->ReadData(pTraitInstanceInfo->mTraitDataHandle, pTraitInstanceInfo->mCandidatePropertyPathHandle, schemaEngine->GetTag(pTraitInstanceInfo->mCandidatePropertyPathHandle), aOuterWriter, pTraitInstanceInfo->mNextDictionaryElementPathHandle);
+    }
+    else
+    {
+        err = updatableDataSink->ReadData(pTraitInstanceInfo->mTraitDataHandle, pTraitInstanceInfo->mCandidatePropertyPathHandle, nl::Weave::TLV::ContextTag(DataElement::kCsTag_Data), aOuterWriter, pTraitInstanceInfo->mNextDictionaryElementPathHandle);
+    }
+    SuccessOrExit(err);
+
+exit:
+    return err;
+}
+
+WEAVE_ERROR SubscriptionClient::BuildSingleUpdateRequestDataList(bool & aIsPartialUpdate, bool & aUpdateWriteInReady)
+{
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
+    uint64_t resourceId;
+    uint64_t instanceId;
+    SchemaVersionRange versionRange;
+    const TraitSchemaEngine * schemaEngine;
+    TraitInstanceInfo * traitInfo;
+    TraitDataSink * dataSink                    = NULL;
+    TraitUpdatableDataSink * updatableDataSink  = NULL;
+
+    size_t   numTraitInstanceHandled            = 0;
+    uint32_t numDirtyPendingHandles             = mPendingUpdateStore.GetNumItems();
+    uint32_t numPendingHandles                  = mPendingUpdateStore.GetPathStoreSize();
+
+    WeaveLogDetail(DataManagement, "CurDirtyItems in Pending = %u/%u", numDirtyPendingHandles, numPendingHandles);
+
+    while (numTraitInstanceHandled < mNumTraitInstances)
+    {
+        traitInfo = mClientTraitInfoPool + mCurProcessingTraitInstanceIdx;
+
+        if ((traitInfo->IsDirty()) || (traitInfo->mNextDictionaryElementPathHandle != kNullPropertyPathHandle))
+        {
+            WeaveLogDetail(DataManagement, "T%u is dirty", mCurProcessingTraitInstanceIdx);
+
+            err = mDataSinkCatalog->Locate(traitInfo->mTraitDataHandle, &dataSink);
+            SuccessOrExit(err);
+
+            VerifyOrExit(dataSink->IsUpdatableDataSink() == true, WeaveLogDetail(DataManagement, "not updatable sink."));
+            updatableDataSink = static_cast<TraitUpdatableDataSink *> (dataSink);
+            schemaEngine = updatableDataSink->GetSchemaEngine();
+
+            err = mDataSinkCatalog->GetResourceId(traitInfo->mTraitDataHandle, resourceId);
+            SuccessOrExit(err);
+
+            err = mDataSinkCatalog->GetInstanceId(traitInfo->mTraitDataHandle, instanceId);
+            SuccessOrExit(err);
+
+            versionRange.mMaxVersion = traitInfo->mRequestedVersion;
+            versionRange.mMinVersion = schemaEngine->GetLowestCompatibleVersion(versionRange.mMaxVersion);
+
+            if (traitInfo->mNextDictionaryElementPathHandle != kNullPropertyPathHandle)
+            {
+                PropertyPathHandle pivotParentPathHandle = traitInfo->mNextDictionaryElementPathHandle;
+
+                if (IsInclusivePendingUpdateStore(traitInfo->mTraitDataHandle, pivotParentPathHandle, schemaEngine))
+                {
+                    traitInfo->mNextDictionaryElementPathHandle = kNullPropertyPathHandle;
+                }
+                else
+                {
+                    traitInfo->mCandidatePropertyPathHandle = pivotParentPathHandle;
+                }
+            }
+
+            for (size_t i=0; i < numPendingHandles; i++)
+            {
+                if ((mPendingUpdateStore.mValidFlags[i] && (mPendingUpdateStore.mPathStore[i].mTraitDataHandle == traitInfo->mTraitDataHandle)) || (traitInfo->mNextDictionaryElementPathHandle != kNullPropertyPathHandle))
+                {
+                    TraitPath dirtyPath;
+                    uint32_t tagIndex = 0;
+                    uint64_t tags[schemaEngine->mSchema.mTreeDepth];
+
+                    if (traitInfo->mNextDictionaryElementPathHandle != kNullPropertyPathHandle)
+                    {
+                        WeaveLogDetail(DataManagement, "process partial dictionary");
+                        dirtyPath.mTraitDataHandle = traitInfo->mTraitDataHandle;
+                        dirtyPath.mPropertyPathHandle = traitInfo->mCandidatePropertyPathHandle;
+
+                    }
+                    else
+                    {
+                        dirtyPath.mTraitDataHandle = mPendingUpdateStore.mPathStore[i].mTraitDataHandle;
+                        dirtyPath.mPropertyPathHandle = mPendingUpdateStore.mPathStore[i].mPropertyPathHandle;
+                        mPendingUpdateStore.RemoveItemAt(i);
+                        traitInfo->mCandidatePropertyPathHandle = dirtyPath.mPropertyPathHandle;
+                    }
+
+                    schemaEngine->GetRelativePathTags(traitInfo->mCandidatePropertyPathHandle, tagIndex, tags);
+
+                    AddElementCallState addElementCallState;
+                    addElementCallState.mpSubClient = this;
+                    addElementCallState.mpTraitInstanceInfo = traitInfo;
+
+                    err = mUpdateClient.AddElement(schemaEngine->GetProfileId(), resourceId, instanceId, updatableDataSink->GetUpdateRequiredVersion(), &versionRange, tags, tagIndex, AddElementFunc, &addElementCallState);
+                    if (err == WEAVE_NO_ERROR)
+                    {
+                        mDispatchedUpdateStore.AddItem(dirtyPath);
+                        aUpdateWriteInReady = true;
+                    }
+                    if ((err == WEAVE_ERROR_BUFFER_TOO_SMALL) || (err == WEAVE_ERROR_NO_MEMORY))
+                    {
+                        aUpdateWriteInReady = false;
+                        WeaveLogDetail(DataManagement, "first illegal oversized trait property is too big to fit in the packet");
+
+                        InEventParam inParam;
+                        OutEventParam outParam;
+                        inParam.Clear();
+                        outParam.Clear();
+                        inParam.mUpdateComplete.mClient = this;
+                        inParam.mUpdateComplete.mReason = WEAVE_ERROR_INCORRECT_STATE;
+                        mEventCallback(mAppState, kEvent_OnUpdateComplete, inParam, outParam);
+
+                        RemoveItemDispatchedUpdateStore(traitInfo->mTraitDataHandle);
+                        RemoveItemPendingUpdateStore(traitInfo->mTraitDataHandle);
+
+                        updatableDataSink->ClearUpdateRequiredVersion();
+                        updatableDataSink->ClearVersion();
+
+                        if (IsEstablishedIdle())
+                        {
+                            HandleSubscriptionTerminated(IsRetryEnabled(), WEAVE_ERROR_MISMATCH_UPDATE_REQUIRED_VERSION, NULL);
+                        }
+                    }
+                    SuccessOrExit(err);
+                }
+
+                if (traitInfo->mNextDictionaryElementPathHandle != kNullPropertyPathHandle)
+                {
+                    aIsPartialUpdate = true;
+                    break;
+                }
+            } //date element loop for the trait
+        }
+
+        if ((!IsTraitPresentInPendingUpdateStore(traitInfo->mTraitDataHandle)) && (traitInfo->mNextDictionaryElementPathHandle == kNullPropertyPathHandle))
+        {
+            traitInfo->ClearDirty();
+            numTraitInstanceHandled ++;
+            mCurProcessingTraitInstanceIdx ++;
+            mCurProcessingTraitInstanceIdx %= mNumTraitInstances;
+
+            if (aUpdateWriteInReady)
+            {
+                break;
+            }
+        }
+
+        if (aIsPartialUpdate)
+        {
+            break;
+        }
+
+        if (IsTraitPresentInPendingUpdateStore(traitInfo->mTraitDataHandle))
+        {
+            aUpdateWriteInReady = false;
+        }
+    }
+
+exit:
+    return err;
+}
+
+WEAVE_ERROR SubscriptionClient::SendSingleUpdateRequest()
+{
+    WEAVE_ERROR err   = WEAVE_NO_ERROR;
+    bool isPartialUpdate = false;
+    bool updateWriteInReady = false;
+    uint32_t maxUpdateSize;
+
+    maxUpdateSize       = GetMaxUpdateSize();
+
+    err = mUpdateClient.StartUpdate(0, NULL, maxUpdateSize);
+    SuccessOrExit(err);
+
+    err = BuildSingleUpdateRequestDataList(isPartialUpdate, updateWriteInReady);
+    SuccessOrExit(err);
+
+    if (updateWriteInReady)
+    {
+        WeaveLogDetail(DataManagement, "Sending update");
+        err = mUpdateClient.SendUpdate(isPartialUpdate);
+        SuccessOrExit(err);
+    }
+    else
+    {
+        err = mUpdateClient.CancelUpdate();
+        SuccessOrExit(err);
+    }
+
+exit:
+
+    if (err != WEAVE_NO_ERROR)
+    {
+        err = mUpdateClient.CancelUpdate();
+        SuccessOrExit(err);
+    }
+
+    WeaveLogFunctError(err);
+    return err;
+}
+
+WEAVE_ERROR SubscriptionClient::FormAndSendUpdate()
+{
+    WEAVE_ERROR err                  = WEAVE_NO_ERROR;
+    bool isLocked                    = false;
+    // Lock before attempting to modify any of the shared data structures.
+    err = Lock();
+    SuccessOrExit(err);
+
+    isLocked = true;
+
+    VerifyOrExit(!IsEmptyPendingUpdateStore(), WeaveLogDetail(DataManagement, "updating queue is empty, skip!"));
+    VerifyOrExit(IsEstablishedIdle(), WeaveLogDetail(DataManagement, "client is not active"));
+    VerifyOrExit(!IsUpdateInFlight(), WeaveLogDetail(DataManagement, "updating is ongoing"));
+
+    WeaveLogDetail(DataManagement, "Eval Subscription: (state = %s, num-traits = %u)!",
+    GetStateStr(), mNumTraitInstances);
+    // This is needed because some error could trigger abort on subscription, which leads to destroy of the handler
+
+    err = SendSingleUpdateRequest();
+    SuccessOrExit(err);
+
+    WeaveLogDetail(DataManagement, "Done update processing!");
+    SetUpdateInFlight();
+
+exit:
+
+    if (err != WEAVE_NO_ERROR)
+    {
+        ClearUpdateInFlight();
+    }
+
+    if (isLocked)
+    {
+        Unlock();
+    }
+    return err;
+}
+
+WEAVE_ERROR SubscriptionClient::FlushUpdate()
+{
+    WEAVE_ERROR err                  = WEAVE_NO_ERROR;
+    bool isLocked                    = false;
+    // Lock before attempting to modify any of the shared data structures.
+    err = Lock();
+    SuccessOrExit(err);
+
+    VerifyOrExit(!IsFlushInProgress(), WeaveLogDetail(DataManagement, "updating has been triggered, skip!"));
+    VerifyOrExit(!IsEmptyPendingUpdateStore(), WeaveLogDetail(DataManagement, "updating queue is empty, skip!"));
+
+    err = SetFlushInProgress();
+    SuccessOrExit(err);
+
+    err = FormAndSendUpdate();
+    SuccessOrExit(err);
+
+exit:
+
+    if (isLocked)
+    {
+        Unlock();
+    }
+    return err;
+}
+
+void SubscriptionClient::InitUpdatableSinkTrait(void * aDataSink, TraitDataHandle aDataHandle, void * aContext)
+{
+    TraitUpdatableDataSink * updatableDataSink = NULL;
+    SubscriptionClient * subClient = NULL;
+    TraitDataSink * dataSink = static_cast<TraitDataSink *>(aDataSink);
+    VerifyOrExit(dataSink->IsUpdatableDataSink() == true, );
+    updatableDataSink = static_cast<TraitUpdatableDataSink *>(dataSink);
+
+    subClient = static_cast<SubscriptionClient *>(aContext);
+    updatableDataSink->SetSubScriptionClient(subClient);
+
+exit:
+    return;
+}
+#endif // WEAVE_CONFIG_ENABLE_WDM_UPDATE
 }; // namespace WeaveMakeManagedNamespaceIdentifier(DataManagement, kWeaveManagedNamespaceDesignation_Current)
 }; // namespace Profiles
 }; // namespace Weave
