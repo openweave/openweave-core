@@ -262,21 +262,27 @@ class CoreBluetoothManager(WeaveBleBase):
 
     def peripheral_didDiscoverServices_(self, peripheral, services):
         """Called by CoreBluetooth via runloop when peripheral services are discovered."""
-        self.service = self.peripheral.services()[0]
-        self.characteristics[self.service.UUID()] = []
+        # in debugging, we found connect being called twice. This
+        # would trigger discovering the services twice, and
+        # consequently, discovering characteristics twice.  We use the
+        # self.service as a flag to indicate whether the
+        # characteristics need to be invalidated immediately.
+        if (self.service == self.peripheral.services()[0]):
+            self.logger.debug("didDiscoverServices already happened")
+        else:
+            self.service = self.peripheral.services()[0]
+            self.characteristics[self.service.UUID()] = []
         # NOTE: currently limiting discovery to only the pair of Weave characteristics.
         self.peripheral.discoverCharacteristics_forService_([weave_rx, weave_tx], self.service)
 
     def peripheral_didDiscoverCharacteristicsForService_error_(self, peripheral, service, error):
         """Called by CoreBluetooth via runloop when a characteristic for a service is discovered."""
+        self.logger.debug("didDiscoverCharacteristicsForService:error "+str(repr(peripheral)) + " "+ str(repr(service)))
         self.logger.debug(repr(service))
         self.logger.debug(repr(error))
 
         if not error:
-            self.characteristics[service.UUID()] = []
-
-            for characteristic in self.service.characteristics():
-                self.characteristics[service.UUID()].append(characteristic)
+            self.characteristics[service.UUID()] = [char for char in self.service.characteristics()]
 
             self.connect_state = True
 
