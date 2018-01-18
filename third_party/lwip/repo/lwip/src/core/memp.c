@@ -75,11 +75,6 @@
 #include "lwip/ip6_frag.h"
 #include "lwip/mld6.h"
 
-#if defined(BUILD_FEATURE_NL_PROFILE)
-#include <string.h>
-#include <nlplatform/nlprofile.h>
-#endif
-
 #define LWIP_MEMPOOL(name,num,size,desc) LWIP_MEMPOOL_DECLARE(name,num,size,desc)
 #include "lwip/priv/memp_std.h"
 
@@ -506,15 +501,15 @@ memp_malloc_fn(memp_t type, const char* file, const int line)
 
   SYS_ARCH_UNPROTECT(old_level);
 
-#if LWIP_PERF && (MEMP_DEBUG | LWIP_DBG_TRACE)
+#if (MEMP_DEBUG | LWIP_DBG_TRACE)
   if (!memp) {
     LWIP_DEBUGF(MEMP_DEBUG | LWIP_DBG_TRACE, ("mm: out-of-mem in %s\n", memp_desc[type]));
-    if (MEMP_IS_PBUF_POOL(type)) {
+    if (LWIP_PERF && MEMP_IS_PBUF_POOL(type)) {
       sys_profile_interval_set_pbuf_highwatermark(memp_sizes[type] + 1, MEMP_PBUF_POOL_HIGHWATERMARK(type));
     }
   }
   else {
-    if (MEMP_IS_PBUF_POOL(type)) {
+    if (LWIP_PERF && MEMP_IS_PBUF_POOL(type)) {
       LWIP_DEBUGF(MEMP_DEBUG | LWIP_DBG_TRACE, ("mm:p++ = %d (%08x) (%s)\n", *num_used_pool_ptr, memp, memp_desc[type]));
       sys_profile_interval_set_pbuf_highwatermark((u32_t)(*num_used_pool_ptr), MEMP_PBUF_POOL_HIGHWATERMARK(type));
     }
@@ -642,8 +637,8 @@ memp_free(memp_t type, void *mem)
 
   SYS_ARCH_UNPROTECT(old_level);
 
-#if LWIP_PERF && (MEMP_DEBUG | LWIP_DBG_TRACE)
-  if (MEMP_IS_PBUF_POOL(type)) {
+#if (MEMP_DEBUG | LWIP_DBG_TRACE)
+  if (LWIP_PERF && MEMP_IS_PBUF_POOL(type)) {
     LWIP_DEBUGF(MEMP_DEBUG | LWIP_DBG_TRACE, ("mf:p-- = %d (%08x) (%s)\n", *num_used_pool_ptr, mem, memp_desc[type]));
     sys_profile_interval_set_pbuf_highwatermark((u32_t)(*num_used_pool_ptr), MEMP_PBUF_POOL_HIGHWATERMARK(type));
   }
