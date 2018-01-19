@@ -236,6 +236,8 @@ WEAVE_ERROR SingleResourceTraitCatalog<T>::Add(uint64_t aInstanceId, T * aItem, 
     mCatalogStore[mNumCurCatalogItems].mItem       = aItem;
     aHandle                                        = mNumCurCatalogItems++;
 
+    WeaveLogDetail(DataManagement, "Adding trait version (%u, %u)", mCatalogStore[aHandle].mItem->GetSchemaEngine()->GetMinVersion(), mCatalogStore[aHandle].mItem->GetSchemaEngine()->GetMaxVersion());
+
     return WEAVE_NO_ERROR;
 }
 
@@ -250,6 +252,7 @@ WEAVE_ERROR SingleResourceTraitCatalog<T>::AddAt(uint64_t aInstanceId, T * aItem
     mCatalogStore[aHandle].mInstanceId = aInstanceId;
     mCatalogStore[aHandle].mItem       = aItem;
     mNumCurCatalogItems++;
+    WeaveLogDetail(DataManagement, "Adding trait version (%u, %u)", mCatalogStore[aHandle].mItem->GetSchemaEngine()->GetMinVersion(), mCatalogStore[aHandle].mItem->GetSchemaEngine()->GetMaxVersion());
 
     return WEAVE_NO_ERROR;
 }

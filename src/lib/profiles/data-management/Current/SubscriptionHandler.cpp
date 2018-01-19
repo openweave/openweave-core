@@ -304,8 +304,8 @@ inline WEAVE_ERROR SubscriptionHandler::ParsePathVersionEventLists(SubscribeRequ
         }
         else
         {
-            WeaveLogDetail(DataManagement, "Mismatch in requested version on handle %u (requested: %u, %u)", traitDataHandle,
-                           requestedSchemaVersionRange.mMaxVersion, requestedSchemaVersionRange.mMinVersion);
+            WeaveLogDetail(DataManagement, "Mismatch in requested version on handle %u (requested: %u, %u, provided: %u %u)", traitDataHandle,
+                           requestedSchemaVersionRange.mMaxVersion, requestedSchemaVersionRange.mMinVersion, dataSource->GetSchemaEngine()->GetLowestCompatibleVersion(1), dataSource->GetSchemaEngine()->GetHighestForwardVersion(1));
             continue;
         }
 

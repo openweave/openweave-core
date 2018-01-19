@@ -719,6 +719,30 @@ SchemaVersion TraitSchemaEngine::GetLowestCompatibleVersion(SchemaVersion aVersi
     return currentVersion;
 }
 
+SchemaVersion TraitSchemaEngine::GetMinVersion() const
+{
+    SchemaVersion currentVersion = 1;
+#if (TDM_VERSIONING_SUPPORT)
+    if (mSchema.mVersionRange != NULL)
+    {
+        currentVersion = mSchema.mVersionRange->mMinVersion;
+    }
+#endif // TDM_VERSIONING_SUPPORT
+    return currentVersion;
+}
+
+SchemaVersion TraitSchemaEngine::GetMaxVersion() const
+{
+    SchemaVersion currentVersion = 1;
+#if (TDM_VERSIONING_SUPPORT)
+    if (mSchema.mVersionRange != NULL)
+    {
+        currentVersion = mSchema.mVersionRange->mMaxVersion;
+    }
+#endif // TDM_VERSIONING_SUPPORT
+    return currentVersion;
+}
+
 TraitDataSink::OnChangeRejection TraitDataSink::sChangeRejectionCb = NULL;
 void * TraitDataSink::sChangeRejectionContext                      = NULL;
 
