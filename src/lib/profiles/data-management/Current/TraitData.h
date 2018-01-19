@@ -144,7 +144,7 @@ public:
         Schema *mParentSchema;                 //< A pointer to the parent schema
 #endif
 #if (TDM_VERSIONING_SUPPORT)
-        const SchemaVersionRange *mVersionRange;     //< Range of versions supported by this trait
+        const ConstSchemaVersionRange *mVersionRange;     //< Range of versions supported by this trait
 #endif
     };
 
@@ -446,6 +446,9 @@ public:
      * Given a provided data schema version, this will return the minimum compatible schema version
      */
     SchemaVersion GetLowestCompatibleVersion(SchemaVersion aVersion) const;
+
+    SchemaVersion GetMinVersion() const;
+    SchemaVersion GetMaxVersion() const;
 
 private:
     PropertyPathHandle _GetChildHandle(PropertyPathHandle aParentHandle, uint8_t aContextTag) const;

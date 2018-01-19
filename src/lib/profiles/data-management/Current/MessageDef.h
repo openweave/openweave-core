@@ -82,6 +82,12 @@ typedef uint16_t DataVersion;
 
 typedef uint16_t SchemaVersion;
 
+struct ConstSchemaVersionRange
+{
+    SchemaVersion mMinVersion;
+    SchemaVersion mMaxVersion;
+};
+
 struct SchemaVersionRange
 {
     SchemaVersionRange()
