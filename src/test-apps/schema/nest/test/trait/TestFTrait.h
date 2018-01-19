@@ -45,6 +45,10 @@ enum {
     //
     kPropertyHandle_TfPA = 2,
 
+    //
+    // Enum for last handle
+    //
+    kLastSchemaHandle = 2,
 };
 
 //

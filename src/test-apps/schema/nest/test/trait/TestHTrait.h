@@ -155,6 +155,10 @@ enum {
     //
     kPropertyHandle_L_Value_Dc = 24,
 
+    //
+    // Enum for last handle
+    //
+    kLastSchemaHandle = 24,
 };
 
 //

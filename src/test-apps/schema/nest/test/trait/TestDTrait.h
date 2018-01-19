@@ -16,6 +16,7 @@
 #include <Weave/Support/SerializationUtils.h>
 
 #include <nest/test/trait/TestCTrait.h>
+#include <nest/test/trait/TestCommonVersioned.h>
 
 
 namespace Schema {
@@ -71,6 +72,7 @@ enum {
     //
     kPropertyHandle_TcD = 7,
 
+
     //
     //  td_d                                string                               string            NO              NO
     //
@@ -86,6 +88,10 @@ enum {
     //
     kPropertyHandle_TdF = 10,
 
+    //
+    // Enum for last handle
+    //
+    kLastSchemaHandle = 10,
 };
 
 } // namespace TestDTrait
@@ -94,4 +100,3 @@ enum {
 } // namespace Nest
 } // namespace Schema
 #endif // _NEST_TEST_TRAIT__TEST_D_TRAIT_H_
-

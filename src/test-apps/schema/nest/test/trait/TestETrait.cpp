@@ -28,6 +28,11 @@ const TraitSchemaEngine::PropertyInfo PropertyMap[] = {
 };
 
 //
+// Supported version
+//
+const ConstSchemaVersionRange traitVersion = { .mMinVersion = 1, .mMaxVersion = 2 };
+
+//
 // Schema
 //
 
@@ -49,7 +54,7 @@ const TraitSchemaEngine TraitSchema = {
         NULL,
 #endif
 #if (TDM_VERSIONING_SUPPORT)
-        NULL,
+        &traitVersion,
 #endif
     }
 };
@@ -142,6 +147,10 @@ const nl::FieldDescriptor TestEEventFieldDescriptors[] =
         NULL, offsetof(TestEEvent, teS), SET_TYPE_AND_FLAGS(nl::SerializedFieldTypeUInt32, 1), 21
     },
 
+    {
+        NULL, offsetof(TestEEvent, teT), SET_TYPE_AND_FLAGS(nl::SerializedFieldTypeUInt32, 0), 22
+    },
+
 };
 
 const nl::SchemaFieldDescriptor TestEEvent::FieldSchema =
@@ -155,7 +164,7 @@ const nl::Weave::Profiles::DataManagement::EventSchema TestEEvent::Schema =
     .mProfileId = kWeaveProfileId,
     .mStructureType = 0x1,
     .mImportance = nl::Weave::Profiles::DataManagement::Production,
-    .mDataSchemaVersion = 1,
+    .mDataSchemaVersion = 2,
     .mMinCompatibleDataSchemaVersion = 1,
 };
 
@@ -214,7 +223,7 @@ const nl::Weave::Profiles::DataManagement::EventSchema TestENullableEvent::Schem
     .mProfileId = kWeaveProfileId,
     .mStructureType = 0x2,
     .mImportance = nl::Weave::Profiles::DataManagement::Production,
-    .mDataSchemaVersion = 1,
+    .mDataSchemaVersion = 2,
     .mMinCompatibleDataSchemaVersion = 1,
 };
 

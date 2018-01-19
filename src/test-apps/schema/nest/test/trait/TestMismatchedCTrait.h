@@ -95,6 +95,10 @@ enum {
     //
     kPropertyHandle_TcE_ScC = 12,
 
+    //
+    // Enum for last handle
+    //
+    kLastSchemaHandle = 12,
 };
 
 //

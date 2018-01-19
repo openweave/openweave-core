@@ -36,7 +36,7 @@ const TraitSchemaEngine::PropertyInfo PropertyMap[] = {
 //
 // Supported version
 //
-const SchemaVersionRange traitVersion(2, 1);
+const ConstSchemaVersionRange traitVersion = { .mMinVersion = 1, .mMaxVersion = 2 };
 
 //
 // Schema

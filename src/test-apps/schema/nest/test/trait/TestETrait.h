@@ -155,6 +155,7 @@ struct TestEEvent
 #if WEAVE_CONFIG_SERIALIZATION_ENABLE_DESERIALIZATION
     bool IsTeSPresent(void);
 #endif
+    uint32_t teT;
     uint8_t __nullified_fields__[5/8 + 1];
 
     static const nl::SchemaFieldDescriptor FieldSchema;
@@ -503,6 +504,7 @@ enum EnumE {
     ENUM_E_VALUE_1 = 1,
     ENUM_E_VALUE_2 = 2,
     ENUM_E_VALUE_3 = 3,
+    ENUM_E_VALUE_4 = 4,
 };
 
 

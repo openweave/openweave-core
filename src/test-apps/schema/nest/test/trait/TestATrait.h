@@ -186,6 +186,10 @@ enum {
     //
     kPropertyHandle_TaJ_Value_SaB = 30,
 
+    //
+    // Enum for last handle
+    //
+    kLastSchemaHandle = 30,
 };
 
 //
