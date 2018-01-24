@@ -1,6 +1,6 @@
 /*
  *
- *    Copyright 2016-2017 The nlfaultinjection Authors.
+ *    Copyright 2016-2018 The nlfaultinjection Authors.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -39,6 +39,8 @@ typedef struct _Record Record;
 typedef struct _Callback Callback;
 
 typedef uint32_t Identifier;
+
+typedef const char *Name;
 
 enum {
     kMaxFaultArgs = 8 /**< The max number of arguments that can be stored in a fault */
@@ -82,21 +84,22 @@ struct _Callback
  */
 struct _Record
 {
-    uint32_t  mNumCallsToSkip;    /**< The number of times this fault should not trigger before it
+    uint16_t  mNumCallsToSkip;    /**< The number of times this fault should not trigger before it
                                        starts failing */
-    uint32_t  mNumCallsToFail;    /**< The number of times this fault should fail, before disabling
+    uint16_t  mNumCallsToFail;    /**< The number of times this fault should fail, before disabling
                                        itself */
     uint8_t   mPercentage;        /**< A number between 0 and 100 that indicates the percentage of
                                        times the fault should be triggered */
     uint8_t   mReboot;            /**< This fault should reboot the system */
 
+    uint8_t   mLengthOfArguments; /**< The length of the array pointed to by mArguments */
+
+    uint8_t   mNumArguments;      /**< The number of items currently stored in the array pointed to by mArguments */
+
     Callback *mCallbackList;      /**< A list of callbacks */
 
     uint32_t  mNumTimesChecked;   /**< The number of times the fault location was executed */
 
-    uint16_t  mLengthOfArguments; /**< The length of the array pointed to by mArguments */
-
-    uint16_t  mNumArguments;      /**< The number of items currently stored in the array pointed to by mArguments */
 
     int32_t  *mArguments;         /**< A pointer to an array of integers to store extra arguments; this array is meant to
                                        be populated by either of the following:
@@ -120,7 +123,7 @@ public:
     static const bool kMutexDoNotTake = false;
     static const bool kMutexTake = true;
 
-    int32_t Init(size_t inNumFaults, Record *inFaultArray, const char *inName, const char **inFaultNames);
+    int32_t Init(size_t inNumFaults, Record *inFaultArray, Name inManagerName, const Name *inFaultNames);
 
     int32_t FailRandomlyAtFault(Identifier inId, uint8_t inPercentage = 10);
 
@@ -162,7 +165,7 @@ public:
      *
      * @return  The Manager's name, as a pointer to a const null-terminated string.
      */
-    const char *GetName(void) const
+    Name GetName(void) const
     {
         return mName;
     }
@@ -173,7 +176,7 @@ public:
      * @return  A pointer to a const char pointer. The array length
      *          is the number of faults defined by the Manager; see GetNumFaults.
      */
-    const char **GetFaultNames(void) const
+    const Name *GetFaultNames(void) const
     {
         return mFaultNames;
     }
@@ -226,8 +229,8 @@ private:
 
     size_t  mNumFaults;
     Record *mFaultRecords;
-    const char *mName;
-    const char **mFaultNames;
+    Name mName;
+    const Name *mFaultNames;
     LockCbFn mLock;
     LockCbFn mUnlock;
     void *mLockContext;

@@ -93,7 +93,7 @@ static Manager &GetTestFIMgr(void)
         memset(&sFaultAArguments, 0, sizeof(sFaultAArguments));
         sFaultRecordArray[kTestFaultInjectionID_A].mArguments = sFaultAArguments;
         sFaultRecordArray[kTestFaultInjectionID_A].mLengthOfArguments =
-            static_cast<uint16_t>(sizeof(sFaultAArguments)/sizeof(sFaultAArguments[0]));
+            static_cast<uint8_t>(sizeof(sFaultAArguments)/sizeof(sFaultAArguments[0]));
     }
     return sTestFaultInMgr;
 }

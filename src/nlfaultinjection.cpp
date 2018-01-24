@@ -1,6 +1,6 @@
 /*
  *
- *    Copyright 2016-2017 The nlfaultinjection Authors.
+ *    Copyright 2016-2018 The nlfaultinjection Authors.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -111,7 +111,7 @@ static const Callback *sEndOfCustomCallbacks = &sRandomCb;
  * @param[in]   inNumFaults     The size of inFaultArray, equal to the number of fault IDs.
  * @param[in]   inFaultArray    A pointer to an array of Record, in which this object
  *                              will store the configuration of each fault.
- * @param[in]   inName          A pointer to a C string containing the name of the Manager.
+ * @param[in]   inManagerName   A pointer to a C string containing the name of the Manager.
  * @param[in]   inFaultNames    A pointer to an array of inNumFaults C strings that describe
  *                              each fault ID.
  *
@@ -120,15 +120,15 @@ static const Callback *sEndOfCustomCallbacks = &sRandomCb;
  */
 int32_t Manager::Init(size_t inNumFaults,
                       Record *inFaultArray,
-                      const char *inName,
-                      const char **inFaultNames)
+                      Name inManagerName,
+                      const Name *inFaultNames)
 {
     int32_t err = 0;
     Identifier i;
 
-    nlEXPECT_ACTION((inNumFaults > 0 && inFaultArray && inName && inFaultNames), exit, err = -EINVAL);
+    nlEXPECT_ACTION((inNumFaults > 0 && inFaultArray && inManagerName && inFaultNames), exit, err = -EINVAL);
 
-    mName = inName;
+    mName = inManagerName;
     mNumFaults = inNumFaults;
     mFaultRecords = inFaultArray;
     mFaultNames = inFaultNames;
@@ -197,15 +197,15 @@ int32_t Manager::FailAtFault(Identifier inId,
 {
     int32_t err = 0;
 
-    nlEXPECT_ACTION(inId < mNumFaults, exit, err = -EINVAL);
+    nlEXPECT_ACTION(inId < mNumFaults && inNumCallsToSkip <= UINT16_MAX && inNumCallsToFail <= UINT16_MAX, exit, err = -EINVAL);
 
     if (inTakeMutex)
     {
         Lock();
     }
 
-    mFaultRecords[inId].mNumCallsToSkip = inNumCallsToSkip;
-    mFaultRecords[inId].mNumCallsToFail = inNumCallsToFail;
+    mFaultRecords[inId].mNumCallsToSkip = static_cast<uint16_t>(inNumCallsToSkip);
+    mFaultRecords[inId].mNumCallsToFail = static_cast<uint16_t>(inNumCallsToFail);
     mFaultRecords[inId].mPercentage = 0;
 
     if (inTakeMutex)
@@ -277,7 +277,8 @@ int32_t Manager::StoreArgsAtFault(Identifier inId, uint16_t inNumArgs, int32_t *
 
     nlEXPECT_ACTION(inId < mNumFaults &&
                     mFaultRecords[inId].mArguments != NULL &&
-                    mFaultRecords[inId].mLengthOfArguments >= inNumArgs,
+                    mFaultRecords[inId].mLengthOfArguments >= inNumArgs &&
+                    inNumArgs <= UINT8_MAX,
                     exit,
                     err = -EINVAL);
 
@@ -288,7 +289,7 @@ int32_t Manager::StoreArgsAtFault(Identifier inId, uint16_t inNumArgs, int32_t *
         mFaultRecords[inId].mArguments[i] = inArgs[i];
     }
 
-    mFaultRecords[inId].mNumArguments = inNumArgs;
+    mFaultRecords[inId].mNumArguments = static_cast<uint8_t>(inNumArgs);
 
     Unlock();
 
@@ -766,7 +767,7 @@ bool ParseFaultInjectionStr(char *aFaultInjectionStr, const ManagerTable *inTabl
         bool gotPercentage = false;
         bool gotReboot = false;
         bool gotArguments = false;
-        const char **faultNames = NULL;
+        const Name *faultNames = NULL;
 
         outerString = NULL;
 
