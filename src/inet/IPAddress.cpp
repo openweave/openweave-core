@@ -1,6 +1,6 @@
 /*
  *
- *    Copyright (c) 2013-2017 Nest Labs, Inc.
+ *    Copyright (c) 2013-2018 Nest Labs, Inc.
  *    All rights reserved.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
@@ -35,9 +35,7 @@
 #include <Weave/Core/WeaveEncoding.h>
 #include <InetLayer/InetLayer.h>
 
-#if WEAVE_SYSTEM_CONFIG_USE_SOCKETS
-#include <arpa/inet.h>
-#endif // WEAVE_SYSTEM_CONFIG_USE_SOCKETS
+#include "arpa-inet-compatibility.h"
 
 namespace nl {
 namespace Inet {

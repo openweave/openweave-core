@@ -37,6 +37,8 @@
 #include <Weave/Core/WeaveEncoding.h>
 #include <Weave/Support/CodeUtils.h>
 
+#include "arpa-inet-compatibility.h"
+
 namespace nl {
 namespace Inet {
 

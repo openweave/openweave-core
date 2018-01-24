@@ -59,6 +59,8 @@
 #include <netinet/tcp.h>
 #endif // WEAVE_SYSTEM_CONFIG_USE_SOCKETS
 
+#include "arpa-inet-compatibility.h"
+
 // SOCK_CLOEXEC not defined on all platforms, e.g. iOS/MacOS:
 #ifdef SOCK_CLOEXEC
 #define SOCK_FLAGS SOCK_CLOEXEC
