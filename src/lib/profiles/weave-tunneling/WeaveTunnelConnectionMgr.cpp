@@ -1050,12 +1050,12 @@ void WeaveTunnelConnectionMgr::HandleOnlineCheckResult(bool isOnline)
  * millisecond resolution) over an increasing window, following a fibonacci
  * sequence upto WEAVE_CONFIG_TUNNELING_RECONNECT_MAX_FIBONACCI_INDEX.
  *
- * @param appState[in]          App state pointer set during initialization of
+ * @param[in] appState          App state pointer set during initialization of
  *                              the SubscriptionClient.
- * @param reconnectParam[in]    Structure with parameters that influence the calculation of the
+ * @param[in] reconnectParam    Structure with parameters that influence the calculation of the
  *                              reconnection delay.
  *
- * @param delayMsec[out]        Time in milliseconds to wait before next
+ * @param[out] delayMsec        Time in milliseconds to wait before next
  *                              reconnect attempt.
  */
 

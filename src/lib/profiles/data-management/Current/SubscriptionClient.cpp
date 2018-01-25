@@ -169,7 +169,7 @@ void SubscriptionClient::MoveToState(const ClientState aTargetState)
  * @brief Enable automatic resubscribes. Attach a callback to specify
  * the next retry time on failure.
  *
- * @param aCallback[in]     Optional callback to fetch the amount of time to
+ * @param[in] aCallback     Optional callback to fetch the amount of time to
  *                          wait before retrying after a failure. If NULL use
  *                          a default policy.
  */

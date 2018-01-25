@@ -256,14 +256,14 @@ exit:
 /**
  * Construct everything for data element except actual data
  *
- * @param aProfileID[in] ProfileID for data element
- * @param aInstanceID[in] InstanceID for data element. When set to 0, it will be omitted from the request and default to the first instance of the trait on the publisher.
- * @param aResourceID[in] ResourceID for data element. When set to 0, it will be omitted from the request and default to the resource ID of the publisher.
- * @param aRequiredDataVersion[in] Required version for data element.  When set to non-zero, the update will only be applied if the publisher's DataVersion for the trait matches aRequiredDataVersion.  When set to 0, the update shall be applied unconditionally.
- * @param aSchemaVersionRange[in] SchemaVersionRange for data element, optional
- * @param aPathArray[in] pathArray for data element, optional
- * @param aPathLength[in] pathLength for data element, optional
- * @param aOuterWriter[in] OuterWriter for data element
+ * @param[in] aProfileID ProfileID for data element
+ * @param[in] aInstanceID InstanceID for data element. When set to 0, it will be omitted from the request and default to the first instance of the trait on the publisher.
+ * @param[in] aResourceID ResourceID for data element. When set to 0, it will be omitted from the request and default to the resource ID of the publisher.
+ * @param[in] aRequiredDataVersion Required version for data element.  When set to non-zero, the update will only be applied if the publisher's DataVersion for the trait matches aRequiredDataVersion.  When set to 0, the update shall be applied unconditionally.
+ * @param[in] aSchemaVersionRange SchemaVersionRange for data element, optional
+ * @param[in] aPathArray pathArray for data element, optional
+ * @param[in] aPathLength pathLength for data element, optional
+ * @param[in] aOuterWriter OuterWriter for data element
  *
  * @retval #WEAVE_NO_ERROR On success.
  * @retval other           Unable to construct data element.
@@ -342,15 +342,15 @@ exit:
 /**
  * Construct everything for data element
  *
- * @param aProfileID[in] ProfileID for data element
- * @param aInstanceID[in] InstanceID for data element. When set to 0, it will be omitted from the request and default to the first instance of the trait on the publisher.
- * @param aResourceID[in] ResourceID for data element. When set to 0, it will be omitted from the request and default to the resource ID of the publisher.
- * @param aRequiredDataVersion[in] Data version for data element.  When set to non-zero, the update will only be applied if the publisher's DataVersion for the trait matches aRequiredDataVersion.  When set to 0, the update shall be applied unconditionally.
- * @param aSchemaVersionRange[in] SchemaVersionRange for data element, optional
- * @param aPathArray[in] pathArray for data element, optional
- * @param aPathLength[in] pathLength for data element, optional
- * @param aAddElementCallback[in] AddElementCallback is used to write actual data in data element in callback
- * @param aCallstate[in] it is used to pass call context
+ * @param[in] aProfileID ProfileID for data element
+ * @param[in] aInstanceID InstanceID for data element. When set to 0, it will be omitted from the request and default to the first instance of the trait on the publisher.
+ * @param[in] aResourceID ResourceID for data element. When set to 0, it will be omitted from the request and default to the resource ID of the publisher.
+ * @param[in] aRequiredDataVersion Data version for data element.  When set to non-zero, the update will only be applied if the publisher's DataVersion for the trait matches aRequiredDataVersion.  When set to 0, the update shall be applied unconditionally.
+ * @param[in] aSchemaVersionRange SchemaVersionRange for data element, optional
+ * @param[in] aPathArray pathArray for data element, optional
+ * @param[in] aPathLength pathLength for data element, optional
+ * @param[in] aAddElementCallback AddElementCallback is used to write actual data in data element in callback
+ * @param[in] aCallstate it is used to pass call context
  *
  * @retval #WEAVE_NO_ERROR On success.
  * @retval other           Unable to construct data element.
@@ -452,7 +452,7 @@ void UpdateClient::FlushExistingExchangeContext(const bool aAbortNow)
 /**
  * Checkpoint the request state into a TLVWriter
  *
- * @param aWriter[out] A writer to checkpoint the state of the TLV writer into.
+ * @param[out] aWriter A writer to checkpoint the state of the TLV writer into.
  *
  * @retval #WEAVE_NO_ERROR On success.
  */
@@ -466,7 +466,7 @@ WEAVE_ERROR UpdateClient::Checkpoint(TLV::TLVWriter &aWriter)
 /**
  * Rollback the update client state into the checkpointed TLVWriter
  *
- * @param aOuterWriter[in] A writer to that captured the state at some point in the past
+ * @param[in] aOuterWriter A writer to that captured the state at some point in the past
  *
  * @retval #WEAVE_NO_ERROR On success.
  */

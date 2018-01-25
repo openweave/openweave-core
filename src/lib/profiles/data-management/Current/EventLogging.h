@@ -218,11 +218,11 @@ event_id_t LogEvent(const EventSchema & inSchema, EventWriterFunct inEventWriter
  * ID will be that of a Nest Debug event, and the event type will be
  * `kNestDebug_StringLogEntryEvent`.
  *
- * @param inImportance[in]  Importance of the log entry; if the importance
+ * @param[in] inImportance  Importance of the log entry; if the importance
  *                          falls below the current importance, the event is
  *                          not actually logged
  *
- * @param inFormat[in]      `printf`-compliant format string, followed by
+ * @param[in] inFormat      `printf`-compliant format string, followed by
  *                          arguments to be formatted
  *
  * @return event_id_t      The event ID if the event was written to the
@@ -238,13 +238,13 @@ event_id_t LogFreeform(ImportanceType inImportance, const char * inFormat, ...);
  *   event. The debug event is a structure with a logregion and a
  *   freeform text.
  *
- * @param ioWriter[inout] The writer to use for writing out the event
+ * @param[inout] ioWriter The writer to use for writing out the event
  *
- * @param inProfileID[in] The profile ID of the event
+ * @param[in] inProfileID The profile ID of the event
  *
- * @param inEventType[in] The Event type to be written out
+ * @param[in] inEventType The Event type to be written out
  *
- * @param appData[in]     A pointer to the DebugLogContext, a structure
+ * @param[in] appData     A pointer to the DebugLogContext, a structure
  *                        that holds a string format, arguments, and a
  *                        log region
  *

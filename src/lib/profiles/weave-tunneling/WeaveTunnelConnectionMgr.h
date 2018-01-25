@@ -183,12 +183,12 @@ class NL_DLL_EXPORT WeaveTunnelConnectionMgr
  * @brief Callback to fetch the interval of time to wait before the next
  * tunnel reconnect.
  *
- * @param appState[in]          App state pointer set during initialization of
+ * @param[in] appState          App state pointer set during initialization of
  *                              the SubscriptionClient.
- * @param reconnectParam[in]    Structure with parameters that influence the calculation of the
+ * @param[in] reconnectParam    Structure with parameters that influence the calculation of the
  *                              reconnection delay.
  *
- * @param delayMsec[out]        Time in milliseconds to wait before next
+ * @param[out] delayMsec        Time in milliseconds to wait before next
  *                              reconnect attempt.
  */
     typedef void (*ConnectPolicyCallback) (void * const appState,

@@ -186,14 +186,14 @@ public:
     /**
      * @brief Callback to pass subscription events to application.
      *
-     * @param aAppState[in]     App state pointer set during initialization of
+     * @param[in] aAppState     App state pointer set during initialization of
      *                          the SubscriptionClient.
      *
-     * @param aEvent[in]        Indicates which event is happening
+     * @param[in] aEvent        Indicates which event is happening
      *
-     * @param aInParam[in]      Struct with additional details about the event
+     * @param[in] aInParam      Struct with additional details about the event
      *
-     * @param aOutParam[out]    Information passed back by the application
+     * @param[out] aOutParam    Information passed back by the application
      */
     typedef void (*EventCallback)(void * const aAppState, EventID aEvent, const InEventParam & aInParam, OutEventParam & aOutParam);
 
@@ -204,12 +204,12 @@ public:
      * resubscribe. Applications are allowed to abort/free in this function
      * if they've decided to give up on resubscribing.
      *
-     * @param aAppState[in]         App state pointer set during initialization of
+     * @param[in] aAppState         App state pointer set during initialization of
      *                              the SubscriptionClient.
      *
-     * @param aInParam[in]          Struct with additional details about the retry
+     * @param[in] aInParam          Struct with additional details about the retry
      *
-     * @param aOutIntervalMsec[out] Time in milliseconds to wait before next retry
+     * @param[out] aOutIntervalMsec Time in milliseconds to wait before next retry
      */
     typedef void (*ResubscribePolicyCallback)(void * const aAppState, ResubscribeParam & aInParam, uint32_t & aOutIntervalMsec);
 

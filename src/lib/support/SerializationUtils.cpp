@@ -169,11 +169,11 @@ exit:
  * @brief
  *   A writer function that writes an array structure.
  *
- * @param aWriter[in]           The writer to use for writing out the structure
+ * @param[in] aWriter           The writer to use for writing out the structure
  *
- * @param aStructureData[in]    A pointer to the c-structure data to write based on the FieldDescriptor
+ * @param[in] aStructureData    A pointer to the c-structure data to write based on the FieldDescriptor
  *
- * @param aFieldPtr[in]         FieldDescriptor to describe the array c struct + TLV
+ * @param[in] aFieldPtr         FieldDescriptor to describe the array c struct + TLV
  *
  * @retval #WEAVE_NO_ERROR On success.
  *
@@ -222,18 +222,18 @@ exit:
  *   A writer function to check whether data is nullable/nullified before
  *   writing to the TLV.
  *
- * @param aWriter[in]           The writer to use for writing out the structure
+ * @param[in] aWriter           The writer to use for writing out the structure
  *
- * @param aStructureData[in]    A pointer to the c-structure data to read
+ * @param[in] aStructureData    A pointer to the c-structure data to read
  *
- * @param aFieldPtr[inout]      FieldDescriptor to describe the fields and
+ * @param[inout] aFieldPtr      FieldDescriptor to describe the fields and
  *                              TLV tag.  The function will increment
  *                              the pointer s.t. it will point to the
  *                              next element in the FieldDescriptor array
  *
- * @param aType[in]             The SerializedFieldType of the field
+ * @param[in] aType             The SerializedFieldType of the field
  *
- * @param aIsNullified[in]      The TLV tag will be nullified if this is true.
+ * @param[in] aIsNullified      The TLV tag will be nullified if this is true.
  *
  * @retval #WEAVE_NO_ERROR On success.
  *
@@ -266,18 +266,18 @@ exit:
  * @brief
  *   A writer function write a specific entry into the TLV based on structure data.
  *
- * @param aWriter[in]           The writer to use for writing out the structure
+ * @param[in] aWriter           The writer to use for writing out the structure
  *
- * @param aStructureData[in]    A pointer to the c-structure data to write
+ * @param[in] aStructureData    A pointer to the c-structure data to write
  *
- * @param aFieldPtr[inout]      FieldDescriptor to describe the fields and
+ * @param[inout] aFieldPtr      FieldDescriptor to describe the fields and
  *                              TLV tag.  The function will increment
  *                              the pointer s.t. it will point to the
  *                              next element in the FieldDescritor array
  *
- * @param aType[in]             The SerializedFieldType of the field
+ * @param[in] aType             The SerializedFieldType of the field
  *
- * @param aInArray[in]          True if we're writing an array (use anonymous tag)
+ * @param[in] aInArray          True if we're writing an array (use anonymous tag)
  *
  * @retval #WEAVE_NO_ERROR On success.
  *
@@ -505,11 +505,11 @@ exit:
  * @brief
  *   A reader function that reads an array structure.
  *
- * @param aReader[in]           The reader to use for reading in the structure
+ * @param[in] aReader           The reader to use for reading in the structure
  *
- * @param aStructureData[in]    A pointer to the c-structure data to read based on the FieldDescriptor
+ * @param[in] aStructureData    A pointer to the c-structure data to read based on the FieldDescriptor
  *
- * @param aFieldPtr[in]         FieldDescriptor to describe the array c struct + TLV
+ * @param[in] aFieldPtr         FieldDescriptor to describe the array c struct + TLV
  *
  * @retval #WEAVE_NO_ERROR On success.
  *
@@ -612,9 +612,9 @@ exit:
  * @brief
  *   A reader function to see whether the next element in a TLVReader is the end of TLV.
  *
- * @param aReader[in]           The reader
+ * @param[in] aReader           The reader
  *
- * @param aEndOfTLV[inout]      A bool set to true if the next element in the reader is
+ * @param[inout] aEndOfTLV      A bool set to true if the next element in the reader is
  *                              the end of TLV, false otherwise
  *
  * @retval #WEAVE_NO_ERROR On success.
@@ -655,18 +655,18 @@ exit:
  *   A reader function to check whether data is nullable/nullified before
  *   reading from the TLV.
  *
- * @param aReader[in]           The reader to use for reading in the structure
+ * @param[in] aReader           The reader to use for reading in the structure
  *
- * @param aStructureData[in]    A pointer to the c-structure data to read
+ * @param[in] aStructureData    A pointer to the c-structure data to read
  *
- * @param aFieldPtr[inout]      FieldDescriptor to describe the fields and
+ * @param[inout] aFieldPtr      FieldDescriptor to describe the fields and
  *                              TLV tag.  The function will increment
  *                              the pointer s.t. it will point to the
  *                              next element in the FieldDescriptor array
  *
- * @param aType[in]             The SerializedFieldType of the field
+ * @param[in] aType             The SerializedFieldType of the field
  *
- * @param aIsNullified[out]     Set to indicate that a field is nullified.
+ * @param[out] aIsNullified     Set to indicate that a field is nullified.
  *
  * @retval #WEAVE_NO_ERROR On success.
  *
@@ -697,18 +697,18 @@ WEAVE_ERROR ReadNullableDataForType(TLVReader &aReader, void *aStructureData, co
  * @brief
  *   A reader function to read a specific entry from the TLV based on structure data.
  *
- * @param aReader[in]           The reader to use for reading in the structure
+ * @param[in] aReader           The reader to use for reading in the structure
  *
- * @param aStructureData[in]    A pointer to the c-structure data to read
+ * @param[in] aStructureData    A pointer to the c-structure data to read
  *
- * @param aFieldPtr[inout]      FieldDescriptor to describe the fields and
+ * @param[inout] aFieldPtr      FieldDescriptor to describe the fields and
  *                              TLV tag.  The function will increment
  *                              the pointer s.t. it will point to the
  *                              next element in the FieldDescritor array
  *
- * @param aType[in]             The SerializedFieldType of the field
+ * @param[in] aType             The SerializedFieldType of the field
  *
- * @param aInArray[in]          True if we're reading an array (use anonymous tag)
+ * @param[in] aInArray          True if we're reading an array (use anonymous tag)
  *
  * @retval #WEAVE_NO_ERROR On success.
  *
@@ -976,11 +976,11 @@ exit:
  * does not exist for events with no nullable fields, however by construction
  * of setters and getters, no out of bounds accesses should occur.
  *
- * @param aStructureData[in]    A pointer to the c-struct
+ * @param[in] aStructureData    A pointer to the c-struct
  *
- * @param aFieldDescriptors[in] SchemaFieldDescriptors to describe the c struct
+ * @param[in] aFieldDescriptors SchemaFieldDescriptors to describe the c struct
  *
- * @param aNullifiedFields[out] A pointer to __nullified_fields__ member of
+ * @param[out] aNullifiedFields A pointer to __nullified_fields__ member of
  *                              the c struct
  *
  * @retval #WEAVE_NO_ERROR               On success.
@@ -1011,11 +1011,11 @@ exit:
  *   A writer function to convert a data structure into a TLV structure. Uses
  *   a SchemaFieldDescriptor to interpret the data structure and write to the TLV.
  *
- * @param aWriter[in]           The writer to use for writing out the structure
+ * @param[in] aWriter           The writer to use for writing out the structure
  *
- * @param aStructureData[in]    A pointer to the c-structure data to write based on the SchemaFieldDescriptor
+ * @param[in] aStructureData    A pointer to the c-structure data to write based on the SchemaFieldDescriptor
  *
- * @param aFieldDescriptors[in] SchemaFieldDescriptors to describe the c struct + TLV
+ * @param[in] aFieldDescriptors SchemaFieldDescriptors to describe the c struct + TLV
  *
  * @retval #WEAVE_NO_ERROR On success.
  *
@@ -1061,9 +1061,9 @@ exit:
  *   A wrapper writer function that surrounds the SerializedDataToTLVWriter with a container.
  *   Also splits up an StructureSchemaPointerPair into structure data and descriptors to pass through.
  *
- * @param aWriter[in]           The writer to use for writing out the structure
+ * @param[in] aWriter           The writer to use for writing out the structure
  *
- * @param aAppData[in]          StructureSchemaPointerPair that contains a pointer to
+ * @param[in] aAppData          StructureSchemaPointerPair that contains a pointer to
  *                              structure data and field descriptors. void* due to prototype
  *
  * @retval #WEAVE_NO_ERROR On success.
@@ -1096,12 +1096,12 @@ WEAVE_ERROR SerializedDataToTLVWriterHelper(TLVWriter &aWriter, uint8_t aDataTag
  *   It must be robust both to encoutering unknown fields and to not
  *   encountering an expected field.
  *
- * @param aReader[in]           The reader to use for reading in the data
+ * @param[in] aReader           The reader to use for reading in the data
  *
- * @param aStructureData[in]        A pointer to the destination c-structure data into which we'll read
+ * @param[in] aStructureData        A pointer to the destination c-structure data into which we'll read
  *                              based on the SchemaFieldDescriptor
  *
- * @param aFieldDescriptors[in] SchemaFieldDescriptors to describe the c struct + TLV
+ * @param[in] aFieldDescriptors SchemaFieldDescriptors to describe the c struct + TLV
  *
  * @retval #WEAVE_NO_ERROR On success.
  *
@@ -1214,13 +1214,13 @@ exit:
  *   A wrapper reader function that surrounds the TLVReaderToDeserializedData with a container.
  *   Also splits up an StructureSchemaPointerPair into structure data and descriptors to pass through.
  *
- * @param aReader[in]           The reader to use for writing out the structure
+ * @param[in] aReader           The reader to use for writing out the structure
  *
- * @param aProfileId[in]        Unused for the moment
+ * @param[in] aProfileId        Unused for the moment
  *
- * @param aStructureType[in]    Unused for the moment
+ * @param[in] aStructureType    Unused for the moment
  *
- * @param aAppData[in]          StructureSchemaPointerPair that contains a pointer to
+ * @param[in] aAppData          StructureSchemaPointerPair that contains a pointer to
  *                              structure data and field descriptors. void* due to prototype
  *
  * @retval #WEAVE_NO_ERROR On success.

@@ -202,18 +202,18 @@ exit:
  * @brief Helper function for writing event header and data according to event
  *   logging protocol.
  *
- * @param aContext[inout]   EventLoadOutContext, initialized with stateful
+ * @param[inout] aContext   EventLoadOutContext, initialized with stateful
  *                          information for the buffer. State is updated
  *                          and preserved by BlitEvent using this context.
  *
- * @param inSchema[in]      Schema defining importance, profile ID, and
+ * @param[in] inSchema      Schema defining importance, profile ID, and
  *                          structure type of this event.
  *
- * @param inEventWriter[in] The callback to invoke to serialize the event data.
+ * @param[in] inEventWriter The callback to invoke to serialize the event data.
  *
- * @param inAppData[in]     Application context for the callback.
+ * @param[in] inAppData     Application context for the callback.
  *
- * @param inOptions[in]     EventOptions describing timestamp and other tags
+ * @param[in] inOptions     EventOptions describing timestamp and other tags
  *                          relevant to this event.
  *
  */
@@ -388,13 +388,13 @@ exit:
  * @brief Create and initialize the logging management buffers. Must
  *   be called prior to the logging being used.
  *
- * @param inMgr[in]         WeaveExchangeManager to be used with this logging subsystem
+ * @param[in] inMgr         WeaveExchangeManager to be used with this logging subsystem
  *
- * @param inNumBuffers[in]  Number of buffers to use for event storage
+ * @param[in] inNumBuffers  Number of buffers to use for event storage
  *
- * @param inBufferLengths[in] Description of inBufferLengths
+ * @param[in] inBufferLengths Description of inBufferLengths
  *
- * @param inBuffers[in]     The buffers to use for actual event logging.
+ * @param[in] inBuffers     The buffers to use for actual event logging.
  */
 void LoggingManagement::CreateLoggingManagement(nl::Weave::WeaveExchangeManager * inMgr, size_t inNumBuffers,
                                                 size_t * inBufferLengths, void ** inBuffers,
@@ -409,15 +409,15 @@ void LoggingManagement::CreateLoggingManagement(nl::Weave::WeaveExchangeManager 
  * @brief Create and initialize the logging management buffers. Must
  *   be called prior to the logging being used.
  *
- * @param inMgr[in]         WeaveExchangeManager to be used with this logging subsystem.
+ * @param[in] inMgr         WeaveExchangeManager to be used with this logging subsystem.
  *
- * @param inNumBuffers[in]  Number of buffers to use for event storage.
+ * @param[in] inNumBuffers  Number of buffers to use for event storage.
  *
- * @param inBufferLengths[in] Description of inBufferLengths.
+ * @param[in] inBufferLengths Description of inBufferLengths.
  *
- * @param inBuffers[in]     The buffers to use for actual event logging.
+ * @param[in] inBuffers     The buffers to use for actual event logging.
  *
- * @param nWeaveCounter[in] The array of counter pointers must contain the initialized counters, and has to contain inNumBuffers of
+ * @param[in] nWeaveCounter The array of counter pointers must contain the initialized counters, and has to contain inNumBuffers of
  * counters.
  */
 void LoggingManagement::CreateLoggingManagement(nl::Weave::WeaveExchangeManager * inMgr, size_t inNumBuffers,
@@ -442,7 +442,7 @@ void LoggingManagement::DestroyLoggingManagement(void)
  * @brief Set the WeaveExchangeManager to be used with this logging subsystem.  On some
  *   platforms, this may need to happen separately from CreateLoggingManagement() above.
  *
- * @param inMgr[in]         WeaveExchangeManager to be used with this logging subsystem
+ * @param[in] inMgr         WeaveExchangeManager to be used with this logging subsystem
  */
 WEAVE_ERROR LoggingManagement::SetExchangeManager(nl::Weave::WeaveExchangeManager * inMgr)
 {
@@ -457,11 +457,11 @@ WEAVE_ERROR LoggingManagement::SetExchangeManager(nl::Weave::WeaveExchangeManage
  * For prioritization to work correctly, inBuffers must be incrementally
  * increasing in priority.
  *
- * @param inMgr[in]         WeaveExchangeManager to be used with this logging subsystem
+ * @param[in] inMgr         WeaveExchangeManager to be used with this logging subsystem
  *
- * @param inNumBuffers[in]  Number of buffers to use for event storage
+ * @param[in] inNumBuffers  Number of buffers to use for event storage
  *
- * @param inBufferLengths[in] Description of inBufferLengths
+ * @param[in] inBufferLengths Description of inBufferLengths
  *
  * @paran inBuffers[in]     The buffers to use for actual event logging.
  *
@@ -527,15 +527,15 @@ LoggingManagement::LoggingManagement(WeaveExchangeManager * inMgr, size_t inNumB
  * For prioritization to work correctly, inBuffers must be incrementally
  * increasing in priority.
  *
- * @param inMgr[in]         WeaveExchangeManager to be used with this logging subsystem.
+ * @param[in] inMgr         WeaveExchangeManager to be used with this logging subsystem.
  *
- * @param inNumBuffers[in]  Number of buffers to use for event storage.
+ * @param[in] inNumBuffers  Number of buffers to use for event storage.
  *
- * @param inBufferLengths[in] Description of inBufferLengths.
+ * @param[in] inBufferLengths Description of inBufferLengths.
  *
  * @paran inBuffers[in]     The buffers to use for actual event logging.
  *
- * @param nWeaveCounter[in] The array of counter pointers must contain the initialized counters, and has to contain inNumBuffers of
+ * @param[in] nWeaveCounter The array of counter pointers must contain the initialized counters, and has to contain inNumBuffers of
  * counters.
  * @return LoggingManagement
  */
@@ -1262,11 +1262,11 @@ inline event_id_t LoggingManagement::GetEndOfExternalEventRange(ImportanceType i
  * it runs out of space in the ::TLVWriter or in the log. The function
  * will terminate the event writing on event boundary.
  *
- * @param ioWriter[in]     The writer to use for event storage
+ * @param[in] ioWriter     The writer to use for event storage
  *
- * @param inImportance[in] The importance of events to be fetched
+ * @param[in] inImportance The importance of events to be fetched
  *
- * @param ioEventID[inout] On input, the ID of the event immediately
+ * @param[inout] ioEventID On input, the ID of the event immediately
  *                         prior to the one we're fetching.  On
  *                         completion, the ID of the last event
  *                         fetched.
@@ -1340,11 +1340,11 @@ exit:
  * @brief
  *   A helper method useful for examining the in-memory log buffers
  *
- * @param ioReader[inout] A reference to the reader that will be
+ * @param[inout] ioReader A reference to the reader that will be
  *                        initialized with the backing storage from
  *                        the event log
  *
- * @param inImportance[in] The starting importance for the reader.
+ * @param[in] inImportance The starting importance for the reader.
  *                         Note that in this case the starting
  *                         importance is somewhat counter intuitive:
  *                         more important events share the buffers
@@ -1741,14 +1741,14 @@ void LoggingManagement::SetBDXUploader(LogBDXUpload * inUploader)
  * @brief
  *   A constructor for the CircularEventBuffer (internal API).
  *
- * @param inBuffer[in]       The actual storage to use for event storage.
+ * @param[in] inBuffer       The actual storage to use for event storage.
  *
- * @param inBufferLength[in] The length of the #inBuffer in bytes.
+ * @param[in] inBufferLength The length of the #inBuffer in bytes.
  *
- * @param inPrev[in]         The pointer to CircularEventBuffer storing
+ * @param[in] inPrev         The pointer to CircularEventBuffer storing
  *                           events of lesser priority.
  *
- * @param inNext[in]         The pointer to CircularEventBuffer storing
+ * @param[in] inNext         The pointer to CircularEventBuffer storing
  *                           events of greater priority.
  *
  * @return CircularEventBuffer

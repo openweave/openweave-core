@@ -47,9 +47,9 @@ using namespace nl::Weave::Encoding;
  * @brief
  *   WeaveCircularTLVBuffer constructor
  *
- * @param inBuffer[in]       A pointer to the backing store for the queue
+ * @param[in] inBuffer       A pointer to the backing store for the queue
  *
- * @param inBufferLength[in] Length of the backing store
+ * @param[in] inBufferLength Length of the backing store
  */
 WeaveCircularTLVBuffer::WeaveCircularTLVBuffer(uint8_t *inBuffer, size_t inBufferLength)
 {
@@ -135,11 +135,11 @@ exit:
  *   function evicts an element from the circular buffer, and adjusts
  *   the head of this buffer queue
  *
- * @param ioWriter[inout]  TLVWriter calling this function
+ * @param[inout] ioWriter  TLVWriter calling this function
  *
- * @param outBufStart[out] The pointer to the new buffer
+ * @param[out] outBufStart The pointer to the new buffer
  *
- * @param outBufLen[out]   The available length for writing
+ * @param[out] outBufLen   The available length for writing
  *
  * @retval #WEAVE_NO_ERROR On success.
  *
@@ -183,10 +183,10 @@ exit:
  *
  * @param ioWriter[in,out] TLVWriter calling this function
  *
- * @param inbufStart[in] pointer to the start of data (from `TLVWriter`
+ * @param[in] inbufStart pointer to the start of data (from `TLVWriter`
  *                       perspective)
  *
- * @param inBufLen[in]   length of data in the buffer pointed to by
+ * @param[in] inBufLen   length of data in the buffer pointed to by
  *                       `inbufStart`
  *
  * @retval #WEAVE_NO_ERROR Unconditionally.
@@ -221,13 +221,13 @@ WEAVE_ERROR WeaveCircularTLVBuffer::FinalizeBuffer(TLVWriter& ioWriter, uint8_t 
  *  TLVReader constraints.  The reader will read at most `mQueueSize`
  *  bytes from the buffer.
  *
- * @param ioReader[in]        TLVReader calling this function.
+ * @param[in] ioReader        TLVReader calling this function.
  *
- * @param outBufStart[inout]  The reference to the data buffer.  On
+ * @param[inout] outBufStart  The reference to the data buffer.  On
  *                            return, it is set to a value within this
  *                            buffer.
  *
- * @param outBufLen[out]      On return, set to the number of continuous
+ * @param[out] outBufLen      On return, set to the number of continuous
  *                            bytes that could be read out of the buffer.
  *
  * @retval #WEAVE_NO_ERROR    Succeeds unconditionally.
@@ -283,13 +283,13 @@ WEAVE_ERROR WeaveCircularTLVBuffer::GetNextBuffer(TLVReader& ioReader, const uin
  * @brief
  *   A trampoline to fetch more space for the TLVWriter.
  *
- * @param ioWriter[inout] TLVWriter calling this function
+ * @param[inout] ioWriter TLVWriter calling this function
  *
- * @param inBufHandle[inout] A handle to the `CircularTLVWriter` object
+ * @param[inout] inBufHandle A handle to the `CircularTLVWriter` object
  *
- * @param outBufStart[out] The pointer to the new buffer
+ * @param[out] outBufStart The pointer to the new buffer
  *
- * @param outBufLen[out]   The available length for writing
+ * @param[out] outBufLen   The available length for writing
  *
  * @retval #WEAVE_NO_ERROR On success.
  *
@@ -316,14 +316,14 @@ exit:
  * @brief
  *   A trampoline to `WeaveCircularTLVBuffer::FinalizeBuffer`
  *
- * @param ioWriter[inout] TLVWriter calling this function
+ * @param[inout] ioWriter TLVWriter calling this function
  *
- * @param inBufHandle[inout] A handle to the `CircularTLVWriter` object
+ * @param[inout] inBufHandle A handle to the `CircularTLVWriter` object
  *
- * @param inbufStart[in] pointer to the start of data (from `TLVWriter`
+ * @param[in] inbufStart pointer to the start of data (from `TLVWriter`
  *                       perspective)
  *
- * @param inBufLen[in]   length of data in the buffer pointed to by
+ * @param[in] inBufLen   length of data in the buffer pointed to by
  *                       `inbufStart`
  *
  * @retval #WEAVE_NO_ERROR Unconditionally.
@@ -348,15 +348,15 @@ exit:
  * @brief
  *   A trampoline to `WeaveCircularTLVBuffer::FinalizeBuffer`
  *
- * @param ioWriter[inout] TLVReader calling this function
+ * @param[inout] ioWriter TLVReader calling this function
  *
- * @param inBufHandle[inout] A handle to the `CircularTLVWriter` object
+ * @param[inout] inBufHandle A handle to the `CircularTLVWriter` object
  *
- * @param outBufStart[inout]  The reference to the data buffer.  On
+ * @param[inout] outBufStart  The reference to the data buffer.  On
  *                            return, it is set to a value within this
  *                            buffer.
  *
- * @param outBufLen[out]      On return, set to the number of continuous
+ * @param[out] outBufLen      On return, set to the number of continuous
  *                            bytes that could be read out of the buffer.
  *
  * @retval #WEAVE_NO_ERROR    Succeeds unconditionally.

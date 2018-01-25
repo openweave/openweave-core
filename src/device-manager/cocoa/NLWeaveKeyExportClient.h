@@ -48,11 +48,11 @@ typedef NS_ENUM (NSInteger, NLWeaveKeyExportClientErrorDomainCode){
 /**
  * Generate a key export request given an access token.
  *
- * @param keyId[in]             The Weave key id of the key to be exported.
- * @param responderNodeId[in]   The Weave node id of the device to which the request will be forwarded; or
+ * @param[in] keyId             The Weave key id of the key to be exported.
+ * @param[in] responderNodeId   The Weave node id of the device to which the request will be forwarded; or
  *                              0 if the particular device id is unknown.
- * @param accessToken[in]       A buffer containing a Weave access token, in Weave TLV format.
- * @param errorOut[out]         Output error parameter, set in the event an error occurs and errOut is not null.
+ * @param[in] accessToken       A buffer containing a Weave access token, in Weave TLV format.
+ * @param[out] errorOut         Output error parameter, set in the event an error occurs and errOut is not null.
  * @return                      Binary buffer containing the generated key export request. Set to nil if error occurs.
  */
 - (nullable NSData *) generateKeyExportRequest: (UInt32) keyId
@@ -63,14 +63,14 @@ typedef NS_ENUM (NSInteger, NLWeaveKeyExportClientErrorDomainCode){
 /**
  * Generate a key export request given a client certificate and private key.
  *
- * @param keyId[in]             The Weave key id of the key to be exported.
- * @param responderNodeId[in]   The Weave node id of the device to which the request will be forwarded; or
+ * @param[in] keyId             The Weave key id of the key to be exported.
+ * @param[in] responderNodeId   The Weave node id of the device to which the request will be forwarded; or
  *                              0 if the particular device id is unknown.
- * @param clientCert[in]        A buffer containing a Weave certificate identifying the client making the request.
+ * @param[in] clientCert        A buffer containing a Weave certificate identifying the client making the request.
  *                              The certificate is expected to be encoded in Weave TLV format.
- * @param clientKey[in]         A buffer containing the private key associated with the client certificate.
+ * @param[in] clientKey         A buffer containing the private key associated with the client certificate.
  *                              The private key is expected to be encoded in Weave TLV format.
- * @param errorOut[out]         Output error parameter, set in the event an error occurs and errOut is not null.
+ * @param[out] errorOut         Output error parameter, set in the event an error occurs and errOut is not null.
  * @return                      Binary buffer containing the generated key export request. Set to nil if error occurs.
  */
 - (nullable NSData *) generateKeyExportRequest: (UInt32) keyId
@@ -82,10 +82,10 @@ typedef NS_ENUM (NSInteger, NLWeaveKeyExportClientErrorDomainCode){
 /**
  * Process the response to a previously-generated key export request.
  *
- * @param responderNodeId[in]   The Weave node id of the device to which the request was forwarded; or
+ * @param[in] responderNodeId   The Weave node id of the device to which the request was forwarded; or
  *                              0 if the particular device id is unknown.
- * @param exportResp[in]        A buffer containing a Weave key export response, as returned by the device.
- * @param errorOut[out]         Output error parameter, set in the event an error occurs and errOut is not null.
+ * @param[in] exportResp        A buffer containing a Weave key export response, as returned by the device.
+ * @param[out] errorOut         Output error parameter, set in the event an error occurs and errOut is not null.
  * @return                      Binary buffer containing exported key.  Set to nil if error occurs.
  */
 - (nullable NSData *) processKeyExportResponse: (UInt64) responderNodeId
@@ -95,9 +95,9 @@ typedef NS_ENUM (NSInteger, NLWeaveKeyExportClientErrorDomainCode){
 /**
  * Process a reconfigure message received in response to a previously-generated key export request.
  *
- * @param reconfig[in]          A buffer containing a Weave key export reconfigure message, as returned
+ * @param[in] reconfig          A buffer containing a Weave key export reconfigure message, as returned
  *                              by the device.
- * @param errorOut[out]         Output error parameter, set in the event an error occurs and errOut is not null.
+ * @param[out] errorOut         Output error parameter, set in the event an error occurs and errOut is not null.
  * @return                      True on success, False on failure.
  */
 - (BOOL) processKeyExportReconfigure: (NSData *) reconfig

@@ -31,9 +31,9 @@ namespace WeaveMakeManagedNamespaceIdentifier(DataManagement, kWeaveManagedNames
  * @brief
  *   A helper function that translates an already serialized eventdata element into the event buffer.
  *
- * @param ioWriter[inout] The writer to use for writing out the event
+ * @param[inout] ioWriter The writer to use for writing out the event
  *
- * @param appData[in]     A pointer to the TLVReader that holds serialized event data.
+ * @param[in] appData     A pointer to the TLVReader that holds serialized event data.
  *
  * @retval #WEAVE_NO_ERROR On success.
  *
@@ -92,9 +92,9 @@ struct DebugLogContext
  *   event. The debug event is a structure with a logregion and a
  *   freeform text.
  *
- * @param ioWriter[inout] The writer to use for writing out the event
+ * @param[inout] ioWriter The writer to use for writing out the event
  *
- * @param appData[in]     A pointer to the DebugLogContext, a structure
+ * @param[in] appData     A pointer to the DebugLogContext, a structure
  *                        that holds a string format, arguments, and a
  *                        log region
  *

@@ -153,8 +153,8 @@ public:
      * notified of any further activity on this object. Additionally, the application is not allowed to interact with this object
      * thereafter through any of its methods.
      *
-     * @param aReasonProfileId[in]      ProfileId of the StatusCode that indicates the reason behind the termination
-     * @param aReasonStatusCode[in]     StatusCode that indicates the reason behind the termination
+     * @param[in] aReasonProfileId      ProfileId of the StatusCode that indicates the reason behind the termination
+     * @param[in] aReasonStatusCode     StatusCode that indicates the reason behind the termination
      *
      * @retval Returns a Weave error code for informational purposes only. On any error, the object will be terminated synchronously
      * (i.e aborted).

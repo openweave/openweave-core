@@ -211,7 +211,7 @@ public:
         /**
          * Checkpoint the request state into a TLVWriter
          *
-         * @param aWriter[out] A writer to checkpoint the state of the TLV writer into.
+         * @param[out] aWriter A writer to checkpoint the state of the TLV writer into.
          *
          * @retval #WEAVE_NO_ERROR On success.
          */
@@ -220,7 +220,7 @@ public:
         /**
          * Rollback the request state into the checkpointed TLVWriter
          *
-         * @param aWriter[in] A writer to that captured the state at some point in the past
+         * @param[in] aWriter A writer to that captured the state at some point in the past
          *
          * @retval #WEAVE_NO_ERROR On success.
          */
