@@ -113,13 +113,13 @@
  *    namespace as it transitions from Development and, potentially,
  *    to Legacy:
  *
- *    ```
+ *   @code
  *      .-------------.      .- - - .      .- - - - -.      .--------.
  *      | Development | -.->   Next   -.->   Current   ---> | Legacy |
  *      '-------------'  |   '- - - '  |   ' - - - - '      '--------'
  *                       |             |
  *                       '-------------'
- *    ```
+ *   @endcode
  *
  *    If it is employed, the managed namespace lifecycle begins with the
  *    Development designation.
@@ -170,7 +170,7 @@
  *  currently exists under the following, unmanaged, namespace
  *  hierarchy:
  *
- *    ```
+ *  @code
  *    namespace nl {
  *    namespace Weave {
  *    namespace Profiles {
@@ -182,7 +182,7 @@
  *    }; // namespace Profiles
  *    }; // namespace Weave
  *    }; // namespace nl
- *    ```
+ *  @endcode
  *
  *  and the following public headers:
  *
@@ -194,9 +194,9 @@
  *  where Mercury.hpp is the module "umbrella" header. Most
  *  integrators simply include the module "umbrella" header as shown:
  *
- *    ```
+ *  @code
  *    #include <Weave/Profiles/Mercury/Mercury.hpp>
- *    ```
+ *  @endcode
  *
  *  However, developent of Mercury has now reached a point in which
  *  there is a need to develop a next-generation of the APIs and,
@@ -211,11 +211,11 @@
  *  API and functionality for existing deployed integrations, the
  *  first task is to move the current code:
  *
- *    ```
+ *  @code
  *    % cd src/lib/profiles/mercury
  *    % mkdir Current
  *    % mv Mercury.hpp Bar.hpp Foo.hpp Foobar.hpp *.cpp Current/
- *    ```
+ *  @endcode
  *
  *  Note, in addition to moving the files, the header include guards
  *  for the moved files should also be renamed, potentially decorating
@@ -229,7 +229,7 @@
  *  preferrable to repeating and duplicating this content in each
  *  header file when there are multiple header files.
  *
- *    ```
+ *  @code
  *    % cat << EOF > Current/MercuryManagedNamespace.hpp
  *    #ifndef _WEAVE_MERCURY_MANAGEDNAMESPACE_CURRENT_HPP
  *    #define _WEAVE_MERCURY_MANAGEDNAMESPACE_CURRENT_HPP
@@ -258,19 +258,19 @@
  *
  *    #endif // _WEAVE_MERCURY_MANAGEDNAMESPACE_CURRENT_HPP
  *    EOF
- *    ```
+ *  @endcode
  *
  *  Next, include this header prior to other module-specific include
  *  directives in the existing headers. For example:
  *
- *    ```
+ *   @code
  *
  *    #include <Weave/Profiles/Mercury/Current/MercuryManagedNamespace.hpp>
  *
  *    #include <Weave/Profiles/Mercury/Bar.hpp>
  *
  *
- *    ```
+ *   @endcode
  *
  *  @subsubsection mns-using-develop-create-compatibility-headers Create Compatibility Headers
  *
@@ -282,9 +282,9 @@
  *  To address this, compatibility wrapper headers with names matching
  *  those just moved must be created.
  *
- *    ```
+ *  @code
  *    % touch Mercury.hpp Bar.hpp Foo.hpp Foobar.hpp
- *    ```
+ *  @endcode
  *
  *  If only a Current-designated managed namespace is being created
  *  without creating a Development- or Next-designated managed
@@ -292,14 +292,14 @@
  *  consist of a header include guard and an include directive
  *  specifying the newly-moved header of the same name:
  *
- *    ```
+ *  @code
  *    #ifndef _WEAVE_MERCURY_BAR_HPP
  *    #define _WEAVE_MERCURY_BAR_HPP
  *
  *    #include <Weave/Profiles/Mercury/Current/Bar.hpp>
  *
  *    #endif // _WEAVE_MERCURY_BAR_HPP
- *    ```
+ *  @endcode
  *
  *  However, if a Development- or Next-designated managed namespace is
  *  being created as well to accomodate new, incompatible development,
@@ -310,7 +310,7 @@
  *  preferrable to repeating and duplicating this content in each
  *  header file when there are multiple header files..
  *
- *    ```
+ *  @code
  *    % cat << EOF > MercuryManagedNamespace.hpp
  *    #ifndef _WEAVE_MERCURY_MANAGEDNAMESPACE_HPP
  *    #define _WEAVE_MERCURY_MANAGEDNAMESPACE_HPP
@@ -329,7 +329,7 @@
  *
  *    #endif // _WEAVE_MERCURY_MANAGEDNAMESPACE_HPP
  *    EOF
- *    ```
+ *  @endcode
  *
  *  Note that this defaults, as desired, the managed namespace
  *  designation to 'Current' if no configuration has been defined.
@@ -337,7 +337,7 @@
  *  With this header in place, the compatibility wrapper headers can
  *  now be edited to contain:
  *
- *    ```
+ *  @code
  *    #include <Weave/Profiles/Mercury/MercuryManagedNamespace.hpp>
  *
  *    #if WEAVE_CONFIG_MERCURY_NAMESPACE == kWeaveManagedNamespace_Development
@@ -345,7 +345,7 @@
  *    #else
  *    #include <Weave/Profiles/Mercury/Current/Bar.hpp>
  *    #endif // WEAVE_CONFIG_MERCURY_NAMESPACE == kWeaveManagedNamespace_Development
- *    ```
+ *  @endcode
  *
  *  or whatever is appropriate for the namespace management use case
  *  at hand.
@@ -356,7 +356,7 @@
  *  building out new functionality and APIs alongside the existing
  *  ones.
  *
- *    ```
+ *  @code
  *    % mkdir Development
  *    % touch Development/Mercury.hpp Development/Bar.hpp Development/Foo.hpp Development/Foobar.hpp
  *    % cat << EOF > Development/MercuryManagedNamespace.hpp
@@ -387,7 +387,7 @@
  *
  *    #endif // _WEAVE_MERCURY_MANAGEDNAMESPACE_DEVELOPMENT_HPP
  *    EOF
- *    ```
+ *  @endcode
  *
  *  Of course, if a module is far simpler than the example presented
  *  here and does not have many classes, source, files, or headers,
@@ -429,9 +429,9 @@
  *  Unless the use case at hand motivates including a namespace
  *  managed module within Weave explicitly, for example:
  *
- *    ```
+ *  @code
  *    #include <Weave/Profiles/Mercury/Legacy/Mercury.hpp>
- *    ```
+ *  @endcode
  *
  *  it is best to reference Weave module public headers by their
  *  unmanaged, default paths
@@ -446,23 +446,23 @@
  *  in the C/C++ preprocessor. This may be done on the command line,
  *  in the source code, or in a configuration or prefix header:
  *
- *    ```
+ *  @code
  *    #define WEAVE_CONFIG_MERCURY_NAMESPACE kWeaveManagedNamespace_Current
- *    ```
+ *  @endcode
  *
  *  and use the unmanaged / unqualified include path:
  *
- *    ```
+ *  @code
  *    #include <Weave/Profiles/Mercury/Mercury.hpp>
- *    ```
+ *  @endcode
  *
  *  When, and if, the managed namespace designation changes for the
  *  targeted APIs, for example from Current to Legacy, simply retarget
  *  by adjusting the preprocessor definition:
  *
- *    ```
+ *  @code
  *    #define WEAVE_CONFIG_MERCURY_NAMESPACE kWeaveManagedNamespace_Legacy
- *    ```
+ *  @endcode
  *
  */
 
