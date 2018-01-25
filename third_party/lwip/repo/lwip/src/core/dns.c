@@ -225,7 +225,8 @@ typedef enum {
   DNS_STATE_UNUSED           = 0,
   DNS_STATE_NEW              = 1,
   DNS_STATE_ASKING           = 2,
-  DNS_STATE_DONE             = 3
+  DNS_STATE_UNANSWERED       = 3,
+  DNS_STATE_DONE             = 4
 } dns_state_enum_t;
 
 /** DNS table entry */
@@ -1120,6 +1121,7 @@ dns_check_entry(u8_t i)
       }
       break;
     case DNS_STATE_ASKING:
+      LWIP_ASSERT("timer already zero", entry->tmr > 0);
       if (--entry->tmr == 0) {
         if (++entry->retries == DNS_MAX_RETRIES) {
           if ((entry->server_idx + 1 < DNS_MAX_SERVERS) && !ip_addr_isany_val(dns_servers[entry->server_idx + 1])
@@ -1136,7 +1138,7 @@ dns_check_entry(u8_t i)
             /* call specified callback function if provided */
             dns_call_found(i, NULL);
             /* flush this entry */
-            entry->state = DNS_STATE_UNUSED;
+            entry->state = DNS_STATE_UNANSWERED;
             break;
           }
         } else {
@@ -1160,6 +1162,7 @@ dns_check_entry(u8_t i)
         entry->state = DNS_STATE_UNUSED;
       }
       break;
+    case DNS_STATE_UNANSWERED:
     case DNS_STATE_UNUSED:
       /* nothing to do */
       break;
@@ -1182,6 +1185,32 @@ dns_check_entries(void)
   }
 }
 
+/**
+ * Determines whether a DNS entry can be recycled
+ *
+ * @param entry An entry object to check
+ * @return a boolean representing whether the entry can be recycled.
+ *        (0 == DNS entry CANNOT be recycled, 1/nonzero == DNS entry CAN be recycled)
+ */
+static u8_t
+dns_can_recycle_entry(const struct dns_table_entry *pEntry)
+{
+  u8_t result;
+
+  switch(pEntry->state) {
+    case DNS_STATE_DONE:
+    case DNS_STATE_UNANSWERED:
+      result = 1;
+      break;
+      
+    default:
+      result = 0;
+      break;
+  }
+
+  return result;
+}
+
 #if LWIP_TEST_CODE
 u8_t
 dns_expire_asking_entries(void)
@@ -1194,7 +1223,7 @@ dns_expire_asking_entries(void)
     if (entry->state == DNS_STATE_ASKING) {
       num_matched_entries++;
       entry->tmr = 1;
-      entry->retries = (DNS_MAX_RETRIES -1);
+      entry->retries = (DNS_MAX_RETRIES - 1);
       entry->server_idx = DNS_MAX_SERVERS;
     }
   }
@@ -1209,7 +1238,7 @@ dns_flush_cache(void)
   u8_t num_matched_entries = 0;
   for (j = 0; j < DNS_TABLE_SIZE; ++j) {
     entry = &dns_table[j];
-    if (entry->state == DNS_STATE_DONE) {
+    if (dns_can_recycle_entry(entry)) {
       memset(entry, 0, sizeof(struct dns_table_entry));
       num_matched_entries++;
     }
@@ -1316,12 +1345,20 @@ dns_recv(void *arg, struct udp_pcb *pcb, struct pbuf *p, const ip_addr_t *addr, 
 
   /* copy dns payload inside static buffer for processing */
   if (pbuf_copy_partial(p, &hdr, SIZEOF_DNS_HDR, 0) == SIZEOF_DNS_HDR) {
+    int was_unanswered = 0;
     int found = 0;
 
     /* Match the ID in the DNS header with the name table. */
     txid = lwip_htons(hdr.id);
     for (i = 0; i < DNS_TABLE_SIZE; i++) {
       struct dns_table_entry *entry = &dns_table[i];
+      if(entry->state == DNS_STATE_UNANSWERED) {
+        LWIP_DEBUGF(DNS_DEBUG, ("dns_recv: late answer, putting in cache\n"));
+        entry->state = DNS_STATE_ASKING;
+        entry->txid = txid;
+        entry->tmr = 1;
+        was_unanswered = 1;
+      }
       if ((entry->state == DNS_STATE_ASKING) &&
           (entry->txid == txid)) {
 
@@ -1335,11 +1372,13 @@ dns_recv(void *arg, struct udp_pcb *pcb, struct pbuf *p, const ip_addr_t *addr, 
         /* Check for error. If so, call callback to inform. */
         if (((hdr.flags1 & DNS_FLAG1_RESPONSE) == 0) || (entry->err != 0) || (nquestions != 1)) {
           LWIP_DEBUGF(DNS_DEBUG, ("dns_recv: \"%s\": error in flags\n", entry->name));
-          /* call callback to indicate error, clean up memory and return */
-          if (dns_retry_pending(entry)) {
-            entry->state = DNS_STATE_ASKING;
-          } else {
-            dns_call_found(i, NULL);
+          if (!was_unanswered) {
+            /* call callback to indicate error, clean up memory and return */
+            if (dns_retry_pending(entry)) {
+              entry->state = DNS_STATE_ASKING;
+            } else {
+              dns_call_found(i, NULL);
+            }
           }
           goto memerr;
         }
@@ -1351,10 +1390,12 @@ dns_recv(void *arg, struct udp_pcb *pcb, struct pbuf *p, const ip_addr_t *addr, 
           /* Check whether response comes from the same network address to which the
              question was sent. (RFC 5452) */
           if (!ip_addr_cmp(addr, &dns_servers[entry->server_idx])) {
-            if (dns_retry_pending(entry)) {
-              entry->state = DNS_STATE_ASKING;
-            } else {
-              dns_call_found(i, NULL);
+            if (!was_unanswered) {
+              if (dns_retry_pending(entry)) {
+                entry->state = DNS_STATE_ASKING;
+              } else {
+                dns_call_found(i, NULL);
+              }
             }
             goto memerr; /* ignore this packet */
           }
@@ -1471,10 +1512,12 @@ dns_recv(void *arg, struct udp_pcb *pcb, struct pbuf *p, const ip_addr_t *addr, 
         }
         /* call callback to indicate error, clean up memory and return */
         pbuf_free(p);
-        if ((entry->numipaddrs == 0) && dns_retry_pending(entry)) {
-          entry->state = DNS_STATE_ASKING;
-        } else {
-          dns_call_found(i, NULL);
+        if (!was_unanswered) {
+          if ((entry->numipaddrs == 0) && dns_retry_pending(entry)) {
+            entry->state = DNS_STATE_ASKING;
+          } else {
+            dns_call_found(i, NULL);
+          }
         }
         /* invalidate entry if the minimal TTL is zero */
         if (entry->ttl == 0) {
@@ -1559,7 +1602,7 @@ dns_enqueue(const char *name, size_t hostnamelen, LWIP_DNS_FOUND_CALLBACK_TYPE f
       break;
     }
     /* check if this is the oldest completed entry */
-    if (entry->state == DNS_STATE_DONE) {
+    if (dns_can_recycle_entry(entry)) {
       u8_t age = (dns_seqno >= entry->seqno)
         ? (dns_seqno - entry->seqno)
         : (dns_seqno + (UINT8_MAX - entry->seqno));
@@ -1572,7 +1615,7 @@ dns_enqueue(const char *name, size_t hostnamelen, LWIP_DNS_FOUND_CALLBACK_TYPE f
 
   /* if we don't have found an unused entry, use the oldest completed one */
   if (i == DNS_TABLE_SIZE) {
-    if ((lseqi >= DNS_TABLE_SIZE) || (dns_table[lseqi].state != DNS_STATE_DONE)) {
+    if ((lseqi >= DNS_TABLE_SIZE) || !dns_can_recycle_entry(&dns_table[lseqi])) {
       /* no entry can be used now, table is full */
       LWIP_DEBUGF(DNS_DEBUG, ("dns_enqueue: \"%s\": DNS entries table is full\n", name));
       return ERR_MEM;
