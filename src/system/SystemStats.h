@@ -31,7 +31,8 @@
 #include <stdint.h>
 
 // Include configuration headers
-#include <SystemLayer/SystemConfig.h>
+#include <Weave/Core/WeaveConfig.h>
+#include <Weave/Core/WeaveWRMPConfig.h>
 
 // Include dependent headers
 #include <Weave/Support/NLDLLUtil.h>
@@ -45,31 +46,56 @@ enum
 {
     kSystemLayer_NumPacketBufs,
     kSystemLayer_NumTimers,
+#if INET_CONFIG_NUM_RAW_ENDPOINTS
     kInetLayer_NumRawEps,
+#endif // INET_CONFIG_NUM_RAW_ENDPOINTS
+#if INET_CONFIG_NUM_TCP_ENDPOINTS
     kInetLayer_NumTCPEps,
+#endif // INET_CONFIG_NUM_TCP_ENDPOINTS
+#if INET_CONFIG_NUM_UDP_ENDPOINTS
     kInetLayer_NumUDPEps,
+#endif // INET_CONFIG_NUM_UDP_ENDPOINTS
+#if INET_CONFIG_NUM_TUN_ENDPOINTS
     kInetLayer_NumTunEps,
+#endif // INET_CONFIG_NUM_TUN_ENDPOINTS
+#if INET_CONFIG_NUM_DNS_RESOLVERS
     kInetLayer_NumDNSResolvers,
+#endif // INET_CONFIG_NUM_DNS_RESOLVERS
     kExchangeMgr_NumContexts,
     kExchangeMgr_NumUMHandlers,
     kMessageLayer_NumConnections,
+#if WEAVE_CONFIG_ENABLE_SERVICE_DIRECTORY
     kServiceMgr_NumRequests,
+#endif // WEAVE_CONFIG_ENABLE_SERVICE_DIRECTORY
     kWDMClient_NumViews,
+#if WEAVE_CONFIG_WDM_ALLOW_CLIENT_SUBSCRIPTION
     kWDMClient_NumSubscribes,
-    kWDMClient_NumUpdates,
     kWDMClient_NumCancels,
+#endif // WEAVE_CONFIG_WDM_ALLOW_CLIENT_SUBSCRIPTION
+    kWDMClient_NumUpdates,
     kWDMClient_NumBindings,
     kWDMClient_NumTransactions,
+#if WEAVE_CONFIG_ENABLE_RELIABLE_MESSAGING
     kWDMNext_NumBindings,
+#endif // WEAVE_CONFIG_ENABLE_RELIABLE_MESSAGING
+#if WDM_ENABLE_SUBSCRIPTION_PUBLISHER
     kWDMNext_NumTraits,
+#endif // WDM_ENABLE_SUBSCRIPTION_PUBLISHER
+#if WDM_ENABLE_SUBSCRIPTION_CLIENT
     kWDMNext_NumSubscriptionClients,
+#endif // WDM_ENABLE_SUBSCRIPTION_CLIENT
+#if WDM_ENABLE_SUBSCRIPTION_PUBLISHER
     kWDMNext_NumSubscriptionHandlers,
+#endif // WDM_ENABLE_SUBSCRIPTION_PUBLISHER
+#if WDM_PUBLISHER_ENABLE_CUSTOM_COMMANDS
     kWDMNext_NumCommands,
+#endif // WDM_PUBLISHER_ENABLE_CUSTOM_COMMANDS
 
     kNumEntries
 };
 
-typedef int32_t count_t;
+typedef int8_t count_t;
+#define PRI_WEAVE_SYS_STATS_COUNT PRId8
 
 extern count_t ResourcesInUse[kNumEntries];
 extern count_t HighWatermarks[kNumEntries];
@@ -86,7 +112,9 @@ bool Difference(Snapshot &result, Snapshot &after, Snapshot &before);
 void UpdateSnapshot(Snapshot &aSnapshot);
 count_t *GetResourcesInUse(void);
 count_t *GetHighWatermarks(void);
-const char **GetStrings(void);
+
+typedef const char *Label;
+const Label *GetStrings(void);
 
 } // namespace Stats
 } // namespace System

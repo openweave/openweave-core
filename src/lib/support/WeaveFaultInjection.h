@@ -47,18 +47,24 @@ typedef enum
 {
     kFault_AllocExchangeContext,                /**< Fail the allocation of an ExchangeContext */
     kFault_DropIncomingUDPMsg,                  /**< Drop an incoming UDP message without any processing */
+#if WEAVE_CONFIG_MAX_BINDINGS
     kFault_AllocBinding,                        /**< Fail the allocation of a Binding */
+#endif // WEAVE_CONFIG_MAX_BINDINGS
     kFault_SendAlarm,                           /**< Fail to send an alarm message */
     kFault_HandleAlarm,                         /**< Fail to handle an alarm message */
     kFault_FuzzExchangeHeaderTx,                /**< Fuzz a Weave Exchange Header after it has been encoded into the packet buffer;
                                                      when the fault is enabled, it expects an integer argument, which is an index into
                                                      a table of modifications that can be applied to the header. @see FuzzExchangeHeader */
+#if WEAVE_CONFIG_ENABLE_RELIABLE_MESSAGING
     kFault_WRMDoubleTx,                         /**< Force WRMP to transmit the outgoing message twice */
     kFault_WRMSendError,                        /**< Fail a transmission in WRMP as if the max number of retransmission has been exceeded */
+#endif // WEAVE_CONFIG_ENABLE_RELIABLE_MESSAGING
     kFault_BDXBadBlockCounter,                  /**< Corrupt the BDX Block Counter in the BDX BlockSend or BlockEOF message about to be sent */
     kFault_BDXAllocTransfer,                    /**< Fail the allocation of a BDXTransfer object */
+#if WEAVE_CONFIG_ENABLE_SERVICE_DIRECTORY
     kFault_ServiceManager_ConnectRequestNew,    /**< Fail the allocation of a WeaveServiceManager::ConnectRequest */
     kFault_ServiceManager_Lookup,               /**< Fail the lookup of an endpoint id */
+#endif // WEAVE_CONFIG_ENABLE_SERVICE_DIRECTORY
     kFault_WDM_TraitInstanceNew,                /**< Fail the allocation of a WDM TraitInstanceInfo object */
     kFault_WDM_SubscriptionHandlerNew,          /**< Fail the allocation of a WDM SubscriptionHandler object */
     kFault_WDM_SubscriptionClientNew,           /**< Fail the allocation of a WDM SubscriptionClient object */
@@ -69,10 +75,14 @@ typedef enum
                                                      an argument to the fault */
     kFault_WDM_SendCommandExpired,              /**< Force the ExpiryTime of a WDM command to be in the past */
     kFault_WDM_SendCommandBadVersion,           /**< Alter the version of a WDM command being transmitted */
+#if WEAVE_CONFIG_ENABLE_CASE_INITIATOR || WEAVE_CONFIG_ENABLE_CASE_RESPONDER
     kFault_CASEKeyConfirm,                      /**< Trigger a WEAVE_ERROR_KEY_CONFIRMATION_FAILED error in WeaveCASEEngine */
+#endif // WEAVE_CONFIG_ENABLE_CASE_INITIATOR || WEAVE_CONFIG_ENABLE_CASE_RESPONDER
     kFault_SecMgrBusy,                          /**< Trigger a WEAVE_ERROR_SECURITY_MANAGER_BUSY when starting an authentication session */
+#if WEAVE_CONFIG_ENABLE_TUNNELING
     kFault_TunnelQueueFull,                     /**< Trigger a WEAVE_ERROR_TUNNEL_SERVICE_QUEUE_FULL when enqueueing a packet in the Tunnel queue */
     kFault_TunnelPacketDropByPolicy,            /**< Trigger an explicit drop of the packet as if done by an application policy */
+#endif // WEAVE_CONFIG_ENABLE_TUNNELING
     kFault_NumItems,
 } Id;
 

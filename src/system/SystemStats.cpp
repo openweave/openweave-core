@@ -38,36 +38,60 @@ namespace Weave {
 namespace System {
 namespace Stats {
 
-static const char *sStatsStrings[nl::Weave::System::Stats::kNumEntries] =
+static const Label sStatsStrings[nl::Weave::System::Stats::kNumEntries] =
 {
     "SystemLayer_NumPacketBufs",
     "SystemLayer_NumTimersInUse",
+#if INET_CONFIG_NUM_RAW_ENDPOINTS
     "InetLayer_NumRawEpsInUse",
+#endif
+#if INET_CONFIG_NUM_TCP_ENDPOINTS
     "InetLayer_NumTCPEpsInUse",
+#endif
+#if INET_CONFIG_NUM_UDP_ENDPOINTS
     "InetLayer_NumUDPEpsInUse",
+#endif
+#if INET_CONFIG_NUM_TUN_ENDPOINTS
     "InetLayer_NumTunEpsInUse",
+#endif
+#if INET_CONFIG_NUM_DNS_RESOLVERS
     "InetLayer_NumDNSResolversInUse",
+#endif
     "ExchangeMgr_NumContextsInUse",
     "ExchangeMgr_NumUMHandlersInUse",
     "MessageLayer_NumConnectionsInUse",
+#if WEAVE_CONFIG_ENABLE_SERVICE_DIRECTORY
     "ServiceMgr_NumRequestsInUse",
+#endif
     "WDMClient_NumViewInUse",
+#if WEAVE_CONFIG_WDM_ALLOW_CLIENT_SUBSCRIPTION
     "WDMClient_NumSubscribeInUse",
-    "WDMClient_NumUpdateInUse",
     "WDMClient_NumCancelInUse",
+#endif // WEAVE_CONFIG_WDM_ALLOW_CLIENT_SUBSCRIPTION
+    "WDMClient_NumUpdateInUse",
     "WDMClient_NumBindingsInUse",
     "WDMClient_NumTransactions",
+#if WEAVE_CONFIG_ENABLE_RELIABLE_MESSAGING
     "kWDMNext_NumBindings",
+#endif
+#if WDM_ENABLE_SUBSCRIPTION_PUBLISHER
     "kWDMNext_NumTraits",
+#endif
+#if WDM_ENABLE_SUBSCRIPTION_CLIENT
     "kWDMNext_NumSubscriptionClients",
+#endif
+#if WDM_ENABLE_SUBSCRIPTION_PUBLISHER
     "kWDMNext_NumSubscriptionHandlers",
+#endif
+#if WDM_PUBLISHER_ENABLE_CUSTOM_COMMANDS
     "kWDMNext_NumCommands",
+#endif
 };
 
 count_t sResourcesInUse[kNumEntries];
 count_t sHighWatermarks[kNumEntries];
 
-const char **GetStrings(void)
+const Label *GetStrings(void)
 {
     return sStatsStrings;
 }

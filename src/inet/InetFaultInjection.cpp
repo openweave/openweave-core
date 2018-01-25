@@ -33,8 +33,8 @@ namespace FaultInjection {
 
 static nl::FaultInjection::Record sFaultRecordArray[kFault_NumItems];
 static class nl::FaultInjection::Manager sInetFaultInMgr;
-static const char *sManagerName = "Inet";
-static const char *sFaultNames[] = {
+static const nl::FaultInjection::Name sManagerName = "Inet";
+static const nl::FaultInjection::Name sFaultNames[] = {
     "DNSResolverNew",
     "Send",
     "SendNonCritical",

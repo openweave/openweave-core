@@ -36,20 +36,26 @@ static nl::FaultInjection::Record sFaultRecordArray[kFault_NumItems];
 static int32_t sFault_WDMNotificationSize_Arguments[1];
 static int32_t sFault_FuzzExchangeHeader_Arguments[1];
 static class nl::FaultInjection::Manager sWeaveFaultInMgr;
-static const char *sManagerName = "Weave";
-static const char *sFaultNames[] = {
+static const nl::FaultInjection::Name sManagerName = "Weave";
+static const nl::FaultInjection::Name sFaultNames[] = {
     "AllocExchangeContext",
     "DropIncomingUDPMsg",
+#if WEAVE_CONFIG_MAX_BINDINGS
     "AllocBinding",
+#endif // WEAVE_CONFIG_MAX_BINDINGS
     "SendAlarm",
     "HandleAlarm",
     "FuzzExchangeHeaderTx",
+#if WEAVE_CONFIG_ENABLE_RELIABLE_MESSAGING
     "WRMDoubleTx",
     "WRMSendError",
+#endif // WEAVE_CONFIG_ENABLE_RELIABLE_MESSAGING
     "BDXBadBlockCounter",
     "BDXAllocTransfer",
+#if WEAVE_CONFIG_ENABLE_SERVICE_DIRECTORY
     "SMConnectRequestNew",
     "SMLookup",
+#endif // WEAVE_CONFIG_ENABLE_SERVICE_DIRECTORY
     "WDMTraitInstanceNew",
     "WDMSubscriptionHandlerNew",
     "WDMSubscriptionClientNew",
@@ -58,10 +64,14 @@ static const char *sFaultNames[] = {
     "WDMNotificationSize",
     "WDMSendCommandExpired",
     "WDMSendCommandBadVersion",
+#if WEAVE_CONFIG_ENABLE_CASE_INITIATOR || WEAVE_CONFIG_ENABLE_CASE_RESPONDER
     "CASEKeyConfirm",
+#endif // WEAVE_CONFIG_ENABLE_CASE_INITIATOR || WEAVE_CONFIG_ENABLE_CASE_RESPONDER
     "SecMgrBusy",
+#if WEAVE_CONFIG_ENABLE_TUNNELING
     "TunnelQueueFull",
     "TunnelPacketDropByPolicy",
+#endif // WEAVE_CONFIG_ENABLE_TUNNELING
 };
 
 
@@ -79,12 +89,12 @@ nl::FaultInjection::Manager &GetManager(void)
         memset(&sFault_WDMNotificationSize_Arguments, 0, sizeof(sFault_WDMNotificationSize_Arguments));
         sFaultRecordArray[kFault_WDM_NotificationSize].mArguments = sFault_WDMNotificationSize_Arguments;
         sFaultRecordArray[kFault_WDM_NotificationSize].mLengthOfArguments =
-            static_cast<uint16_t>(sizeof(sFault_WDMNotificationSize_Arguments)/sizeof(sFault_WDMNotificationSize_Arguments[0]));
+            static_cast<uint8_t>(sizeof(sFault_WDMNotificationSize_Arguments)/sizeof(sFault_WDMNotificationSize_Arguments[0]));
 
         memset(&sFault_FuzzExchangeHeader_Arguments, 0, sizeof(sFault_FuzzExchangeHeader_Arguments));
         sFaultRecordArray[kFault_FuzzExchangeHeaderTx].mArguments = sFault_FuzzExchangeHeader_Arguments;
         sFaultRecordArray[kFault_FuzzExchangeHeaderTx].mLengthOfArguments =
-            static_cast<uint16_t>(sizeof(sFault_FuzzExchangeHeader_Arguments)/sizeof(sFault_FuzzExchangeHeader_Arguments[0]));
+            static_cast<uint8_t>(sizeof(sFault_FuzzExchangeHeader_Arguments)/sizeof(sFault_FuzzExchangeHeader_Arguments[0]));
 
     }
     return sWeaveFaultInMgr;

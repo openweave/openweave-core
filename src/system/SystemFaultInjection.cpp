@@ -36,12 +36,13 @@ namespace FaultInjection {
 
 using ::nl::FaultInjection::Record;
 using ::nl::FaultInjection::Manager;
+using ::nl::FaultInjection::Name;
 
 static Record sFaultRecordArray[kFault_NumberOfFaultIdentifiers];
 static Manager sManager;
 static int32_t sFault_AsyncEvent_Arguments[1];
-static const char *sManagerName = "WeaveSys";
-static const char *sFaultNames[] = {
+static const Name sManagerName = "WeaveSys";
+static const Name sFaultNames[] = {
     "PacketBufferNew",
     "TimeoutImmediate",
     "AsyncEvent",
