@@ -16,7 +16,7 @@
  *    limitations under the License.
  */
 
-/**                                                                           .
+/**
  *    @file
  *      This header file defines the <tt>nl::Inet::UDPEndPoint</tt>
  *      class, where the Nest Inet Layer encapsulates methods for
@@ -39,7 +39,7 @@ namespace Inet {
 class InetLayer;
 class IPPacketInfo;
 
-/**                                                                           .
+/**
  * @brief   Objects of this class represent UDP transport endpoints.
  *
  * @details
@@ -142,7 +142,7 @@ public:
      * @param[in]   msg         the packet buffer containing the UDP message
      * @param[in]   sendFlags   optional transmit option flags
      *
-     * @retval  INET_NO_ERROR       success: \msg is queued for transmit.
+     * @retval  INET_NO_ERROR       success: \c msg is queued for transmit.
      * @retval  INET_ERROR_NOT_IMPLEMENTED  system implementation not complete.
      *
      * @retval  INET_ERROR_WRONG_ADDRESS_TYPE

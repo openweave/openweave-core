@@ -16,7 +16,7 @@
  *    limitations under the License.
  */
 
-/**                                                                           .
+/**
  *    @file
  *      This header file defines the <tt>nl::Inet::TCPEndPoint</tt>
  *      class, where the Nest Inet Layer encapsulates methods for
@@ -38,7 +38,7 @@ namespace Inet {
 
 class InetLayer;
 
-/**                                                                           .
+/**
  * @brief   Objects of this class represent TCP transport endpoints.
  *
  * @details

@@ -16,7 +16,7 @@
  *    limitations under the License.
  */
 
-/**                                                                           .
+/**
  * @file
  *  This header file defines the <tt>nl::Inet::TunEndPoint</tt> class, where
  *  the Nest Inet Layer encapsulates its foundational logic for the Weave
@@ -87,7 +87,7 @@ namespace Inet {
 class InetLayer;
 class IPPacketInfo;
 
-/**                                                                           .
+/**
  * @brief   Objects of this class represent tunnel interfaces.
  *
  * @details

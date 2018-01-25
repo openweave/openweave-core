@@ -16,7 +16,7 @@
  *    limitations under the License.
  */
 
-/**                                                                           .
+/**
  *    @file
  *      This header file defines the <tt>nl::Inet::RawEndPoint</tt>
  *      class, where the Nest Inet Layer encapsulates methods for
@@ -37,7 +37,7 @@ namespace Inet {
 class InetLayer;
 class SenderInfo;
 
-/**                                                                           .
+/**
  * @brief   Objects of this class represent raw IP protocol endpoints.
  *
  * @details
