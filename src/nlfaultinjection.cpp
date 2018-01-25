@@ -21,8 +21,13 @@
  *      Implementation of the fault-injection utilities.
  */
 
+#ifndef __STDC_LIMIT_MACROS
+#define __STDC_LIMIT_MACROS
+#endif
+#include <stdint.h>
 #include <string.h>
 #include <stdlib.h>
+
 #include <nlassert.h>
 
 #include <nlfaultinjection.hpp>
