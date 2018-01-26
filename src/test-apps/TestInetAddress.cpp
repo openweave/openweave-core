@@ -1,6 +1,6 @@
 /*
  *
- *    Copyright (c) 2015-2017 Nest Labs, Inc.
+ *    Copyright (c) 2015-2018 Nest Labs, Inc.
  *    All rights reserved.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
@@ -29,6 +29,11 @@
 #if WEAVE_SYSTEM_CONFIG_USE_LWIP
 #include "lwip/init.h"
 #include "lwip/ip_addr.h"
+
+#if LWIP_DONT_PROVIDE_BYTEORDER_FUNCTIONS
+#define htonl(x)    lwip_htonl(x)
+#endif
+
 #else
 #include <sys/socket.h>
 #include <netinet/in.h>
@@ -461,7 +466,7 @@ static void CheckToIPv4(nlTestSuite *inSuite, void *inContext)
 #if WEAVE_SYSTEM_CONFIG_USE_LWIP
         ip4_addr_t ip_addr_1, ip_addr_2;
 
-        ip_addr_1.addr = lwip_htonl(theContext->addr[3]);
+        ip_addr_1.addr = htonl(theContext->addr[3]);
 #else
         struct in_addr ip_addr_1, ip_addr_2;
 
@@ -487,18 +492,20 @@ static void CheckFromIPv4(nlTestSuite *inSuite, void *inContext)
         IPAddress test_addr_1, test_addr_2;
 
         SetupIPAddress(test_addr_1, theContext);
+        ClearIPAddress(test_addr_2);
+
         // Convert to IPv4 (test_addr_1);
         test_addr_1.Addr[0] = 0;
         test_addr_1.Addr[1] = 0;
-        test_addr_1.Addr[2] = htonl(0xffff);
-        ClearIPAddress(test_addr_2);
 
 #if WEAVE_SYSTEM_CONFIG_USE_LWIP
         ip4_addr_t ip_addr;
-        ip_addr.addr = lwip_htonl(theContext->addr[3]);
+        ip_addr.addr = htonl(theContext->addr[3]);
+        test_addr_1.Addr[2] = lwip_htonl(0xffff);
 #else
         struct in_addr ip_addr;
         ip_addr.s_addr = htonl(theContext->addr[3]);
+        test_addr_1.Addr[2] = htonl(0xffff);
 #endif
         test_addr_2 = IPAddress::FromIPv4(ip_addr);
 

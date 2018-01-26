@@ -1,6 +1,6 @@
 /*
  *
- *    Copyright (c) 2014-2017 Nest Labs, Inc.
+ *    Copyright (c) 2014-2018 Nest Labs, Inc.
  *    All rights reserved.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
@@ -485,5 +485,13 @@ extern unsigned char gLwIP_DebugFlags;
 #define LWIP_TCP_KEEPALIVE              1
 #endif
 
+
+/** LWIP_DONT_PROVIDE_BYTEORDER_FUNCTIONS:
+ * Ensure compatibilty with platforms where LwIP is configured not to define the host/network byte-order conversion
+ * functions normally provided in <arpa/inet.h> on POSIX systems.
+ */
+#ifndef LWIP_DONT_PROVIDE_BYTEORDER_FUNCTIONS
+#define LWIP_DONT_PROVIDE_BYTEORDER_FUNCTIONS   1
+#endif
 
 #endif /* __LWIPOPTS_H__ */
