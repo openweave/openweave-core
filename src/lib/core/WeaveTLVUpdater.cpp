@@ -44,7 +44,7 @@ using namespace nl::Weave::Encoding;
  * to parse the TLV data and modify/delete existing elements or add new elements
  * to the encoding.
  *
- * @param[in]   data    A pointer to a buffer containing the TLV data to be edited.
+ * @param[in]   buf     A pointer to a buffer containing the TLV data to be edited.
  * @param[in]   dataLen The length of the TLV data in the buffer.
  * @param[in]   maxLen  The total length of the buffer.
  *

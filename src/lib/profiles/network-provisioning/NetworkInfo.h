@@ -189,8 +189,6 @@ public:
      *
      * @param[in] encodeFlags Flags controlling whether the credentials of the NetworkInfo should be serialized.
      *
-     * @param[out] encodedElementCount The number of elements actually serialized.
-     *
      * @retval #WEAVE_NO_ERROR  On success.
      *
      * @retval Other           Errors returned from the `Encode()` function.
@@ -211,7 +209,7 @@ public:
      *
      * @param[in] encodeFlags Flags controlling whether the credentials of the NetworkInfo should be serialized.
      *
-     * @param[out] encodedElementCount The number of elements actually serialized.
+     * @param[out] encodedElemCount The number of elements actually serialized.
      *
      * @retval #WEAVE_NO_ERROR  On success.
      *

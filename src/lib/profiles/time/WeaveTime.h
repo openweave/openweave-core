@@ -163,7 +163,7 @@ public:
      *
      * @param[out]    aOutputBuf A pointer to the output data buffer
      *
-     * @param[in/out] aDataSize  A pointer to number of bytes available in aOutputBuf at calling and will be changed
+     * @param[inout] aDataSize  A pointer to number of bytes available in aOutputBuf at calling and will be changed
      *                           to indicate number of bytes used after the function returns.
      *
      * @return WEAVE_NO_ERROR on success
@@ -1162,14 +1162,14 @@ public:
 
     /**
      *  @brief
-     *  Callback after both time sync attempts have been completed. If #aErrorCode is WEAVE_NO_ERROR,
-     *  at least one attempt has succeeded. Otherwise both failed at #aErrorCode indicates the latest failure.
+     *  Callback after both time sync attempts have been completed. If aErrorCode is WEAVE_NO_ERROR,
+     *  at least one attempt has succeeded. Otherwise both failed at aErrorCode indicates the latest failure.
      *
      *  @param[in] aApp                 A pointer to app layer data, set in Init.
      *
      *  @param[in] aErrorCode           #WEAVE_NO_ERROR if at least one time sync operation is successful
      *
-     *  @param[in] aCorrectedSystemTime Only valid if #aErrorCode is #WEAVE_NO_ERROR
+     *  @param[in] aCorrectedSystemTime Only valid if aErrorCode is #WEAVE_NO_ERROR
      */
     typedef void (*SyncCompletionHandler)(void * const aApp, const WEAVE_ERROR aErrorCode, const timesync_t aCorrectedSystemTime);
 
@@ -1177,7 +1177,7 @@ public:
      *  @brief
      *  Sync using the given Binding and makes a callback using the pointer provided.
      *  If there is a time sync operation going on, it would be aborted implicitly without callback being made.
-     *  Not available in callback #OnSyncCompleted, but allowed in #OnTimeChangeNotificationReceived .
+     *  Not available in callback OnSyncCompleted, but allowed in OnTimeChangeNotificationReceived .
      *  On error, Abort would be called implicitly before returning from this function.
      *
      *  @param[in]  aBinding            Binding to be used in contacting the time server

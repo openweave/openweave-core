@@ -1119,7 +1119,7 @@ uint32_t Binding::GetMaxWeavePayloadSize(const System::PacketBuffer *msgBuf)
 /**
  * Allocate a new Exchange Context for communicating with the peer that is the target of the binding.
  *
- * @param[out] ec                       A reference to a pointer that will receive the newly allocated
+ * @param[out] appExchangeContext       A reference to a pointer that will receive the newly allocated
  *                                      Exchange Context object.  The pointer will be set to NULL in
  *                                      the event that the method fails.
  *

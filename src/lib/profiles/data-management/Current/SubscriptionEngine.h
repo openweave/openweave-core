@@ -129,7 +129,7 @@ public:
     };
 
     /**
-     * @brief Set the event back function and pointer to associated state object for #SubscribeEngine specific call backs
+     * @brief Set the event back function and pointer to associated state object for SubscriptionEngine specific call backs
      *
      * @param[in]  aAppState    A pointer to application layer supplied state object
      * @param[in]  aEvent       A function pointer for event call back
@@ -139,7 +139,7 @@ public:
     typedef void (*EventCallback)(void * const aAppState, EventID aEvent, const InEventParam & aInParam, OutEventParam & aOutParam);
 
     /**
-     * @brief Set the event back function and pointer to associated state object for #SubscribeEngine specific call backs
+     * @brief Set the event back function and pointer to associated state object for SubscriptionEngine specific call backs
      *
      * @param[in]  aAppState  		A pointer to application layer supplied state object
      * @param[in]  aEventCallback  	A function pointer for event call back

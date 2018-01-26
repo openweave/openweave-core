@@ -46,10 +46,10 @@ namespace TLV {
  *
  * @brief
  *    WeaveCircularTLVBuffer provides circular storage for the
- *    TLVWriter and TLVReader.  TLVWriter is able to write an
- *    unbounded number of TLV entries to the `WeaveCircularTLVBuffer`
+ *    nl::Weave::TLV::TLVWriter and nl::Weave::TLVTLVReader.  nl::Weave::TLV::TLVWriter is able to write an
+ *    unbounded number of TLV entries to the WeaveCircularTLVBuffer
  *    as long as each individual TLV entry fits entirely within the
- *    provided storage.  The `TLVReader` will read at most the size of
+ *    provided storage.  The nl::Weave::TLV::TLVReader will read at most the size of
  *    the buffer, but will accommodate the wraparound within the
  *    buffer.
  *
@@ -79,11 +79,11 @@ public:
      *  @typedef WEAVE_ERROR (*ProcessEvictedElementFunct)(WeaveCircularTLVBuffer &inBuffer, void * inAppData, TLVReader &inReader)
      *
      *  A function that is called to process a TLV element prior to it
-     *  being evicted from the #WeaveCircularTLVBuffer
+     *  being evicted from the nl::Weave::TLV::WeaveCircularTLVBuffer
      *
      *  Functions of this type are used to process a TLV element about
      *  to be evicted from the buffer.  The function will be given a
-     *  #TLVReader positioned on the element about to be deleted, as
+     *  nl::Weave::TLV::TLVReader positioned on the element about to be deleted, as
      *  well as void * context where the user may have provided
      *  additional environment for the callback.  If the function
      *  processed the element successfully, it must return

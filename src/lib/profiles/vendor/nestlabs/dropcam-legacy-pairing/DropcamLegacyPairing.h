@@ -115,7 +115,7 @@ public:
      /**
      * Retrieve camera's EUI-48 WiFi MAC address.
      *
-     * @param[in]   hashString  Reference to buffer for the returned MAC address, represented as NULL-terminated string of
+     * @param[in]   macAddress  Reference to buffer for the returned MAC address, represented as NULL-terminated string of
      *                          hex values without separators.
      *
      * @retval #WEAVE_NO_ERROR  On success.

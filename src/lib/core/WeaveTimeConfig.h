@@ -241,7 +241,7 @@
  *    Disabled: 0, Enabled: 1. If enabled, the client would use
  *    UDP multicast to automatically discover available time servers
  *    and coordinators in the fabric. If disabled, contact information
- *    must be fed to the client through #SyncWithNodes
+ *    must be fed to the client through nl::Weave::Profiles::Time::TimeSyncNode::SyncWithNodes
  *
  */
 #ifndef WEAVE_CONFIG_TIME_CLIENT_FABRIC_LOCAL_DISCOVERY
@@ -254,7 +254,7 @@
  *  @brief
  *    Disabled: 0, Enabled: 1. If enabled, the client provides an API
  *    to go through a Weave connection for time sync. If disabled,
- *    contact to cloud service must be fed to the client through #SyncWithNodes,
+ *    contact to cloud service must be fed to the client through nl::Weave::Profiles::Time::TimeSyncNode::SyncWithNodes
  *    and the transport would be UDP.
  *
  */

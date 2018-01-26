@@ -70,9 +70,9 @@ namespace WeaveMakeManagedNamespaceIdentifier(DataManagement, kWeaveManagedNames
          *    A client-side subscription.
          *
          *  A subscription on the client side just maps a pair:
-         *
+         *  @code
          *    [<topic id>, <publisher id>]
-         *
+         *  @endcode
          *  onto a client data manager object. both topic ID and
          *  publisher ID may be supplied as wild cards. A subscription
          *  may be requested under a known topic ID as well in which

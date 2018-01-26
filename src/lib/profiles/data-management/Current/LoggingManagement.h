@@ -42,7 +42,7 @@ namespace WeaveMakeManagedNamespaceIdentifier(DataManagement, kWeaveManagedNames
 
 /**
  * @brief
- *   Internal event buffer, built around the #WeaveCircularTLVBuffer
+ *   Internal event buffer, built around the nl::Weave::TLV::WeaveCircularTLVBuffer
  */
 struct CircularEventBuffer
 {
@@ -192,7 +192,7 @@ public:
     event_id_t LogEvent(const EventSchema & inSchema, EventWriterFunct inEventWriter, void * inAppData,
                         const EventOptions * inOptions);
 
-    WEAVE_ERROR GetEventReader(nl::Weave::TLV::TLVReader & reader, ImportanceType inImportance);
+    WEAVE_ERROR GetEventReader(nl::Weave::TLV::TLVReader & ioReader, ImportanceType inImportance);
 
     WEAVE_ERROR FetchEventsSince(nl::Weave::TLV::TLVWriter & ioWriter, ImportanceType inImportance, event_id_t & ioEventID);
 

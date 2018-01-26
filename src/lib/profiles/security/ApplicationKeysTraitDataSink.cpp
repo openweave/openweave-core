@@ -66,6 +66,8 @@ void ApplicationKeysTraitDataSink::SetGroupKeyStore(GroupKeyStoreBase *groupKeyS
  *
  * @param[in] aType            Event type.
  *
+ * @param[in] aInEventParam    Event parameters.
+ *
  * @retval    #WEAVE_NO_ERROR.
  *
  */

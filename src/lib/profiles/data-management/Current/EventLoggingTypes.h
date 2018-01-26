@@ -113,22 +113,26 @@ struct EventSchema
 };
 
 /**
- * @typedef Type used to describe the timestamp in milliseconds.
+ * @typedef timestamp_t
+ * Type used to describe the timestamp in milliseconds.
  */
 typedef uint32_t timestamp_t;
 
 /**
- * @typedef Type used to describe the duration, in milliseconds.
+ * @typedef duration_t
+ * Type used to describe the duration, in milliseconds.
  */
 typedef uint32_t duration_t;
 
 /**
- * @typedef The type of event ID.
+ * @typedef event_id_t
+ * The type of event ID.
  */
 typedef uint32_t event_id_t;
 
 /**
- * @typedef Type used to describe the UTC timestamp in milliseconds.
+ * @typedef utc_timestamp_t
+ * Type used to describe the UTC timestamp in milliseconds.
  */
 typedef uint64_t utc_timestamp_t;
 
@@ -243,7 +247,7 @@ struct EventLoadOutContext
  *  element for the event logging subsystem. The functions of this
  *  type are called after the event subsystem has generated all
  *  required event metadata. The function is called with a
- *  ::TLVWriter object into which it will emit a single TLV element
+ *  nl::Weave::TLV::TLVWriter object into which it will emit a single TLV element
  *  tagged #kTag_EventData; the value of that element MUST be a
  *  structure containing the event data. The event data itself must
  *  be structured using context tags.
@@ -251,7 +255,7 @@ struct EventLoadOutContext
  *  @sa PlainTextWriter
  *  @sa EventWriterTLVCopy
  *
- *  @param[inout] ioWriter A reference to the ::TLVWriter object to be
+ *  @param[inout] ioWriter A reference to the nl::Weave::TLV::TLVWriter object to be
  *                         used for event data serialization.
  *
  *  @param[in]    inDataTag A context tag for the TLV we're writing out.

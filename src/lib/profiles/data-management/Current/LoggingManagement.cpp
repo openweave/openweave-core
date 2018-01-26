@@ -465,6 +465,12 @@ WEAVE_ERROR LoggingManagement::SetExchangeManager(nl::Weave::WeaveExchangeManage
  *
  * @param[in] inBuffers     The buffers to use for actual event logging.
  *
+ * @param[in] inCounterKeys Keys naming persisted counters
+ *
+ * @param[in] inCounterEpochs An array of epochs for each of the persisted counters
+ *
+ * @param[in] inCounterStorage Application-provided storage for the persistent counters
+ *
  * @return LoggingManagement
  */
 LoggingManagement::LoggingManagement(WeaveExchangeManager * inMgr, size_t inNumBuffers, size_t * inBufferLengths, void ** inBuffers,
@@ -533,7 +539,7 @@ LoggingManagement::LoggingManagement(WeaveExchangeManager * inMgr, size_t inNumB
  *
  * @param[in] inBufferLengths Description of inBufferLengths.
  *
- * @paran inBuffers[in]     The buffers to use for actual event logging.
+ * @param[in] inBuffers     The buffers to use for actual event logging.
  *
  * @param[in] nWeaveCounter The array of counter pointers must contain the initialized counters, and has to contain inNumBuffers of
  * counters.
@@ -638,8 +644,6 @@ ImportanceType LoggingManagement::GetMaxImportance(void)
  * @brief
  *   Allocate a new event ID based on the event importance, and advance the counter
  *   if we have one.
- *
- * @param inImportance Event importance
  *
  * @return event_id_t Event ID for this importance.
  */
@@ -879,7 +883,7 @@ WEAVE_ERROR LoggingManagement::CopyAndAdjustDeltaTime(const TLVReader & aReader,
  *
  * The function logs an event represented as an ::EventWriterFunct and
  * an app-specific `appData` context.  The function writes the event
- * metadata and calls the `inEventWriter` with an ::TLVWriter
+ * metadata and calls the `inEventWriter` with an nl::Weave::TLV::TLVWriter
  * reference and `inAppData` context so that the user code can emit
  * the event data directly into the event log.  This form of event
  * logging minimizes memory consumption, as event data is serialized
@@ -1256,10 +1260,10 @@ inline event_id_t LoggingManagement::GetEndOfExternalEventRange(ImportanceType i
  * @brief
  *   A function to retrieve events of specified importance since a specified event ID.
  *
- * Given a ::TLVWriter, an importance type, and an event ID, the
+ * Given a nl::Weave::TLV::TLVWriter, an importance type, and an event ID, the
  * function will fetch events of specified importance since the
  * specified event.  The function will continue fetching events until
- * it runs out of space in the ::TLVWriter or in the log. The function
+ * it runs out of space in the nl::Weave::TLV::TLVWriter or in the log. The function
  * will terminate the event writing on event boundary.
  *
  * @param[in] ioWriter     The writer to use for event storage
@@ -1844,9 +1848,10 @@ void CircularEventBuffer::RemoveEvent(void)
  *   This function registers a set of event IDs and a function
  *   callback for externally stored events.
  *
- * @param aFetchCallback  The function callback for unloading events.
- * @param aNotifyCallback The function callback to notify about offload
- * @param aNumEvents      Number of events to register.
+ * @param[in] aFetchCallback  The function callback for unloading events.
+ * @param[in] aNotifyCallback The function callback to notify about offload
+ * @param[in] aNumEvents      Number of events to register.
+ * @param[out] aExternalEventsPtr When non-NULL, on successful return it will contain the pointer to the ExternalEvents object
  *
  * @return WEAVE_ERROR_INVALID_ARGUMENT Null function callback or no events to register.
  * @return WEAVE_ERROR_NO_MEMORY If all callbacks are in use.

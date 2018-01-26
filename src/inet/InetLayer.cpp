@@ -113,7 +113,7 @@ void InetLayer::UpdateSnapshot(nl::Weave::System::Stats::Snapshot &aSnapshot)
  *  This is the InetLayer default constructor.
  *
  *  It performs some basic data member initialization; however, since
- *  InetLayer follows an explicit initializer design pattern, the ::Init
+ *  InetLayer follows an explicit initializer design pattern, the InetLayer::Init
  *  method must be called successfully prior to using the object.
  *
  */

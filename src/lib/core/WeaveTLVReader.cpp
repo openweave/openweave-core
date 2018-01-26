@@ -165,7 +165,7 @@ void TLVReader::Init(const uint8_t *data, uint32_t dataLen)
  * Parsing begins at the buffer's start position (buf->DataStart()) and continues until the
  * end of the data in the buffer (as denoted by buf->Datalen()), or maxLen bytes have been parsed.
  *
- * @param[in]   data    A pointer to an PacketBuffer containing the TLV data to be parsed.
+ * @param[in]   buf     A pointer to an PacketBuffer containing the TLV data to be parsed.
  * @param[in]   maxLen  The maximum of bytes to parse.  Defaults to the amount of data
  *                      in the input buffer.
  */
@@ -193,7 +193,7 @@ void TLVReader::Init(PacketBuffer *buf, uint32_t maxLen)
  * by their Next() pointers. Parsing continues until all data in the buffer chain has been consumed
  * (as denoted by buf->Datalen()), or maxLen bytes have been parsed.
  *
- * @param[in]   data    A pointer to an PacketBuffer containing the TLV data to be parsed.
+ * @param[in]   buf    A pointer to an PacketBuffer containing the TLV data to be parsed.
  * @param[in]   maxLen  The maximum of bytes to parse.  Defaults to the total amount of data
  *                      in the input buffer chain.
  * @param[in]   allowDiscontiguousBuffers
@@ -1120,7 +1120,7 @@ WEAVE_ERROR TLVReader::Next()
  * the supplied arguments.
  *
  * @param[in] expectedType              The expected data type for the next element.
- * @param[in] exceptedTag               The expected tag for the next element.
+ * @param[in] expectedTag               The expected tag for the next element.
  *
  * @retval #WEAVE_NO_ERROR              If the reader was successfully positioned on a new element.
  * @retval #WEAVE_END_OF_TLV            If no further elements are available.

@@ -275,7 +275,7 @@ namespace Profiles {
     /**
      * Pack a ReferencedTLVData object directly into an inet buffer.
      *
-     * @param [in] PacketBuffer *buff, the buffer to fill.
+     * @param [in] buff the buffer to fill.
      *
      * @return a WEAVE_ERROR reflecting the success of the underlying
      * pack call.

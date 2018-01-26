@@ -181,9 +181,9 @@ exit:
  *   completion of output from the TLVWriter.  This function affects
  *   the position of the queue tail.
  *
- * @param ioWriter[in,out] TLVWriter calling this function
+ * @param[inout] ioWriter TLVWriter calling this function
  *
- * @param[in] inbufStart pointer to the start of data (from `TLVWriter`
+ * @param[in] inBufStart pointer to the start of data (from `TLVWriter`
  *                       perspective)
  *
  * @param[in] inBufLen   length of data in the buffer pointed to by
@@ -314,13 +314,13 @@ exit:
 
 /**
  * @brief
- *   A trampoline to `WeaveCircularTLVBuffer::FinalizeBuffer`
+ *   A trampoline to WeaveCircularTLVBuffer::FinalizeBuffer
  *
  * @param[inout] ioWriter TLVWriter calling this function
  *
  * @param[inout] inBufHandle A handle to the `CircularTLVWriter` object
  *
- * @param[in] inbufStart pointer to the start of data (from `TLVWriter`
+ * @param[in] inBufStart pointer to the start of data (from `TLVWriter`
  *                       perspective)
  *
  * @param[in] inBufLen   length of data in the buffer pointed to by
@@ -346,9 +346,9 @@ exit:
 
 /**
  * @brief
- *   A trampoline to `WeaveCircularTLVBuffer::FinalizeBuffer`
+ *   A trampoline to WeaveCircularTLVBuffer::GetNextBuffer
  *
- * @param[inout] ioWriter TLVReader calling this function
+ * @param[inout] ioReader TLVReader calling this function
  *
  * @param[inout] inBufHandle A handle to the `CircularTLVWriter` object
  *

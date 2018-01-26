@@ -672,7 +672,7 @@ void Binding::CompleteConfirm(StatusReport &aReport)
  *    Handle confirmation of a bind request.
  */
 
-void Binding::CompleteConfirm()
+void Binding::CompleteConfirm(void)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
 

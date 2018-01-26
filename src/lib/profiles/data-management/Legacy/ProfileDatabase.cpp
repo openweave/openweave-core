@@ -1124,7 +1124,7 @@ exit:
  *    should be pointing at the profile descriptor, the one immediately
  *    after entering the path container.
  *
- *  @param [in]     aPathReader     A reference to a TLV reader
+ *  @param [in]     aDescReader     A reference to a TLV reader
  *                                  positioned at a WDM path - i.e. a
  *                                  TLV path that has, as its first
  *                                  element, a profile description.

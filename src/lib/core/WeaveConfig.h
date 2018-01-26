@@ -1812,7 +1812,7 @@
  *  this default macro definition after careful thought towards its
  *  implication in the logic flow in that platform.
  *
- *  @param[in]    err    The #WEAVE_ERROR being checked for criticality.
+ *  @param[in]    CODE    The #WEAVE_ERROR being checked for criticality.
  *
  *  @return    true if the error is non-critical; false otherwise.
  *

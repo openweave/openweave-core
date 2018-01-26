@@ -43,9 +43,9 @@ namespace WeaveMakeManagedNamespaceIdentifier(DataManagement, kWeaveManagedNames
  * @brief
  *   Log an event from a pre-serialized form.
  *
- * The function logs an event represented as a ::TLVReader.  This
+ * The function logs an event represented as a nl::Weave::TLV::TLVReader.  This
  * implies that the event data representation is already serialized in
- * the storage underlying the ::TLVReader.  The ::TLVReader is expected to
+ * the storage underlying the nl::Weave::TLV::TLVReader.  The nl::Weave::TLV::TLVReader is expected to
  * contain at least a single data element, that element must be a
  * structure. The first element read out of the reader is treated as
  * event data and stored in the event log.  The event data MUST
@@ -81,9 +81,9 @@ event_id_t LogEvent(const EventSchema & inSchema, nl::Weave::TLV::TLVReader & in
  * @brief
  *   Log an event from a pre-serialized form, with additional options.
  *
- * The function logs an event represented as a ::TLVReader.  This
+ * The function logs an event represented as a nl::Weave::TLV::TLVReader.  This
  * implies that the event data representation is already serialized in
- * the storage underlying the ::TLVReader.  The ::TLVReader is expected to
+ * the storage underlying the nl::Weave::TLV::TLVReader.  The nl::Weave::TLV::TLVReader is expected to
  * contain at least a single data element, that element must be a
  * structure. The first element read out of the reader is treated as
  * event data and stored in the event log.  The event data MUST
@@ -127,7 +127,7 @@ event_id_t LogEvent(const EventSchema & inSchema, nl::Weave::TLV::TLVReader & in
  *
  * The function logs an event represented as an ::EventWriterFunct and
  * an app-specific `appData` context.  The function writes the event
- * metadata and calls the `inEventWriter` with an ::TLVWriter
+ * metadata and calls the `inEventWriter` with an nl::Weave::TLV::TLVWriter
  * reference and `inAppData` context so that the user code can emit
  * the event data directly into the event log.  This form of event
  * logging minimizes memory consumption, as event data is serialized
@@ -168,7 +168,7 @@ event_id_t LogEvent(const EventSchema & inSchema, EventWriterFunct inEventWriter
  *
  * The function logs an event represented as an ::EventWriterFunct and
  * an app-specific `appData` context.  The function writes the event
- * metadata and calls the `inEventWriter` with an ::TLVWriter
+ * metadata and calls the `inEventWriter` with an nl::Weave::TLV::TLVWriter
  * reference and `inAppData` context so that the user code can emit
  * the event data directly into the event log.  This form of event
  * logging minimizes memory consumption, as event data is serialized

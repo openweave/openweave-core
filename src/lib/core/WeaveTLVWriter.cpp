@@ -837,7 +837,7 @@ void TLVWriter::WeaveTLVWriterPutcharCB(uint8_t c, void *appState)
  *                Follows the same syntax and rules as the format
  *                string for `printf` family of functions.
  *
- * @param[in] ... A list of arguments to be formatted in the output value
+ * @param[in] ap A list of arguments to be formatted in the output value
  *                according to fmt.
  *
  * @retval #WEAVE_NO_ERROR  If the method succeeded.

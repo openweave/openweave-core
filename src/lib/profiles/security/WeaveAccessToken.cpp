@@ -56,7 +56,7 @@ using namespace nl::Weave::Crypto;
  * @param accessTokenLen                    The length of the encoded access token.
  * @param certSet                           The certificate set into which the access token certificates should
  *                                          be loaded.
- * @param devodeFlags                       The certificate decode flags that should be used when loading
+ * @param decodeFlags                       The certificate decode flags that should be used when loading
  *                                          the certificates.
  * @param accessTokenCert                   A reference to a pointer that will be set to the Weave certificate
  *                                          data structure for the access token certificate. NOTE: This

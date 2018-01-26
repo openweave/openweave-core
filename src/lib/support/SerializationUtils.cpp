@@ -1067,6 +1067,8 @@ exit:
  *
  * @param[in] aWriter           The writer to use for writing out the structure
  *
+ * @param[in] aDataTag          Tag to write
+ *
  * @param[in] aAppData          StructureSchemaPointerPair that contains a pointer to
  *                              structure data and field descriptors. void* due to prototype
  *

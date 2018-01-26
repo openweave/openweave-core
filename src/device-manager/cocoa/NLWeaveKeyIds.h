@@ -131,10 +131,10 @@ extern NSUInteger const NLWeaveKeyIds_ServiceRootKey;
 + (UInt16) makeSessionKeyId: (UInt16) sessionKeyNumber;
 
 /**
- *  Construct fabric key ID given fabric key number.
+ *  Construct general key ID given general key number.
  *
- *  @param[in]   fabricKeyNumber       Fabric key number.
- *  @return      fabric key ID.
+ *  @param[in]   generalKeyNumber       General key number.
+ *  @return      general key ID.
  *
  */
 + (UInt16) makeGeneralKeyId: (UInt16) generalKeyNumber;
@@ -196,7 +196,7 @@ extern NSUInteger const NLWeaveKeyIds_ServiceRootKey;
 /**
  *  Construct application group root key ID given root key number.
  *
- *  @param[in]   rootKeyNumber         Root key number.
+ *  @param[in]   epochKeyNumber         Root key number.
  *  @return      root key ID.
  *
  */
@@ -214,7 +214,7 @@ extern NSUInteger const NLWeaveKeyIds_ServiceRootKey;
 /**
  *  Construct application group master key ID given application group local number.
  *
- *  @param[in]   appGroupLocalNumber   Application group local number.
+ *  @param[in]   appGroupMasterKeyLocalId   Application group local number.
  *  @return      application group master key ID.
  *
  */

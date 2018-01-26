@@ -201,7 +201,7 @@ void DMClient::IncompleteIndication(Binding *aBinding, StatusReport &aReport)
  *                                      list indicating the requested
  *                                      data.
  *
- *  @param [in]     aTxnId,             An identifier for the WDM
+ *  @param [in]     aTxnId              An identifier for the WDM
  *                                      transaction set up to manage
  *                                      this view operation.
  *

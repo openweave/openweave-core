@@ -46,7 +46,7 @@ namespace SoftwareUpdate {
     /**
      * Called by WeaveImageAnnounceServer when image announcement is received.
      *
-     * @param ExchangeContext ec: context in which Image Announce was received.
+     * @param[in] ec context in which Image Announce was received.
      *        Probably still open on sender side, but this is not guaranteed.
      *        Must be closed by delegate.
      */
