@@ -29,7 +29,9 @@
 #ifndef __STDC_LIMIT_MACROS
 #define __STDC_LIMIT_MACROS
 #endif
+#ifndef __STDC_FORMAT_MACROS
 #define __STDC_FORMAT_MACROS
+#endif
 
 #include <inttypes.h>
 #include <stdint.h>
@@ -1418,12 +1420,12 @@ void BluezBleApplicationDelegate::NotifyWeaveConnectionClosed(BLE_CONNECTION_OBJ
 void PrintStatsCounters(nl::Weave::System::Stats::count_t *counters, const char *aPrefix)
 {
     size_t i;
-    const char **strings = nl::Weave::System::Stats::GetStrings();
+    const nl::Weave::System::Stats::Label *strings = nl::Weave::System::Stats::GetStrings();
     const char *prefix = aPrefix ? aPrefix : "";
 
     for (i = 0; i < nl::Weave::System::Stats::kNumEntries; i++)
     {
-        printf("%s%s:\t\t%d\n", prefix, strings[i], counters[i]);
+        printf("%s%s:\t\t%" PRI_WEAVE_SYS_STATS_COUNT "\n", prefix, strings[i], counters[i]);
     }
 }
 
