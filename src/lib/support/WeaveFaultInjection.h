@@ -25,6 +25,12 @@
 #define WEAVE_FAULT_INJECTION_H_
 
 #include <Weave/Core/WeaveConfig.h>
+#include <Weave/Core/WeaveWRMPConfig.h>
+#include <Weave/Core/WeaveBDXConfig.h>
+#include <Weave/Core/WeaveEventLoggingConfig.h>
+#include <Weave/Core/WeaveTimeConfig.h>
+#include <Weave/Core/WeaveTunnelConfig.h>
+#include <Weave/Core/WeaveWRMPConfig.h>
 
 #if WEAVE_CONFIG_TEST
 
