@@ -697,6 +697,7 @@ bool SetCertSerialNumber(X509 *cert)
     bool res = true;
     uint8_t rnd[8];
     const uint8_t *rndPtr = rnd;
+    long rndLen = sizeof(rnd);
     ASN1_INTEGER *snInt = X509_get_serialNumber(cert);
 
     // Generate a random value to be used as the serial number.
@@ -706,8 +707,16 @@ bool SetCertSerialNumber(X509 *cert)
     // Avoid negative numbers.
     rnd[0] = rnd[0] & 0x7F;
 
+    // Trim extraneous leading zeros.  This ensures that older versions of OpenSSL encode the
+    // integer in the fewest number of bytes, as required by ASN.1 encoding rules (X.209/ISO-8825).
+    while (rndLen > 1 && rndPtr[0] == 0 && (rndPtr[1] & 0x80) == 0)
+    {
+        rndPtr++;
+        rndLen--;
+    }
+
     // Store the serial number as an ASN1 integer value within the certificate.
-    if (c2i_ASN1_INTEGER(&snInt, &rndPtr, sizeof(rnd)) == NULL)
+    if (c2i_ASN1_INTEGER(&snInt, &rndPtr, rndLen) == NULL)
         ReportOpenSSLErrorAndExit("c2i_ASN1_INTEGER", res = false);
 
 exit:
