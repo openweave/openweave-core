@@ -31,9 +31,9 @@ namespace Weave {
 namespace Crypto {
 
 /**
- * Compares the first #len bytes of memory area #buf1 and memory area #buf2.
+ * Compares the first `len` bytes of memory area `buf1` and memory area `buf2`.
  *
- * The time taken by this function is independent of the data in memory areas #buf1 and #buf2.
+ * The time taken by this function is independent of the data in memory areas `buf1` and `buf2`.
  *
  * @param[in]  buf1   Pointer to a memory block.
  *
@@ -41,7 +41,7 @@ namespace Crypto {
  *
  * @param[in]  len    Size of memory area to compare in bytes.
  *
- * @retval  true      if first #len bytes of memory area #buf1 and #buf2 are equal.
+ * @retval  true      if first \c len bytes of memory area \c buf1 and \c buf2 are equal.
  * @retval  false     otherwise.
  *
  */
@@ -54,9 +54,9 @@ bool ConstantTimeCompare(const uint8_t *buf1, const uint8_t *buf2, uint16_t len)
 }
 
 /**
- * Clears the first #len bytes of memory area #buf.
+ * Clears the first `len` bytes of memory area `buf`.
  *
- * In this implementation first #len bytes of memory area #buf are filled with zeros.
+ * In this implementation first `len` bytes of memory area `buf` are filled with zeros.
  *
  * @param[in]  buf     Pointer to a memory buffer holding secret data that should be cleared.
  *

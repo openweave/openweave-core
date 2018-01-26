@@ -1132,30 +1132,30 @@ uint32_t Binding::GetMaxWeavePayloadSize(const System::PacketBuffer *msgBuf)
  * @retval other                        Other errors related to configuring the exchange context based
  *                                      on the configuration of the binding.
  */
-WEAVE_ERROR Binding::NewExchangeContext(nl::Weave::ExchangeContext *& ec)
+WEAVE_ERROR Binding::NewExchangeContext(nl::Weave::ExchangeContext *& appExchangeContext)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
 
-    ec = NULL;
+    appExchangeContext = NULL;
 
     // Fail if the binding is not in the Ready state.
     VerifyOrExit(kState_Ready == mState, err = WEAVE_ERROR_INCORRECT_STATE);
 
     // Attempt to allocate a new exchange context.
-    ec = mExchangeManager->NewContext(mPeerNodeId, mPeerAddress, mPeerPort, mInterfaceId, NULL);
-    VerifyOrExit(NULL != ec, err = WEAVE_ERROR_NO_MEMORY);
+    appExchangeContext = mExchangeManager->NewContext(mPeerNodeId, mPeerAddress, mPeerPort, mInterfaceId, NULL);
+    VerifyOrExit(NULL != appExchangeContext, err = WEAVE_ERROR_NO_MEMORY);
 
 #if WEAVE_CONFIG_ENABLE_RELIABLE_MESSAGING
 
     // Set the default WRMP configuration in the new exchange.
-    ec->mWRMPConfig = mDefaultWRMPConfig;
+    appExchangeContext->mWRMPConfig = mDefaultWRMPConfig;
 
     // If Weave reliable messaging was expressly requested as a transport...
     if (mTransportOption == kTransport_UDP_WRM)
     {
         // Enable the auto-request ACK feature in the exchange so that all outgoing messages
         // include a request for acknowledgment.
-        ec->SetAutoRequestAck(true);
+        appExchangeContext->SetAutoRequestAck(true);
     }
 
 #endif // WEAVE_CONFIG_ENABLE_RELIABLE_MESSAGING
@@ -1167,8 +1167,8 @@ WEAVE_ERROR Binding::NewExchangeContext(nl::Weave::ExchangeContext *& ec)
         mCon->AddRef();
 
         // Configure the exchange context to use the connection and release it when it's done.
-        ec->Con = mCon;
-        ec->SetShouldAutoReleaseConnection(true);
+        appExchangeContext->Con = mCon;
+        appExchangeContext->SetShouldAutoReleaseConnection(true);
     }
 
     // If message encryption is enabled...
@@ -1182,24 +1182,24 @@ WEAVE_ERROR Binding::NewExchangeContext(nl::Weave::ExchangeContext *& ec)
         SuccessOrExit(err);
 
         // Configure the exchange context with the selected key id and encryption type.
-        ec->KeyId = keyId;
-        ec->EncryptionType = mEncType;
+        appExchangeContext->KeyId = keyId;
+        appExchangeContext->EncryptionType = mEncType;
 
         // Add a reservation for the key.
         mExchangeManager->MessageLayer->SecurityMgr->ReserveKey(mPeerNodeId, keyId);
 
         // Arrange for the exchange context to automatically release the key when it is freed.
-        ec->SetAutoReleaseKey(true);
+        appExchangeContext->SetAutoReleaseKey(true);
     }
 
-    err = AdjustResponseTimeout(ec);
+    err = AdjustResponseTimeout(appExchangeContext);
     SuccessOrExit(err);
 
 exit:
-    if (err != WEAVE_NO_ERROR && ec != NULL)
+    if (err != WEAVE_NO_ERROR && appExchangeContext != NULL)
     {
-        ec->Close();
-        ec = NULL;
+        appExchangeContext->Close();
+        appExchangeContext = NULL;
     }
     WeaveLogFunctError(err);
     return err;

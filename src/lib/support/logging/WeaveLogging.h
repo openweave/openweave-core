@@ -428,7 +428,7 @@ do                                                                              
  *  }
  *  @endcode
  *
- *  @param[in]  aStatus     A scalar status to be evaluated against WEAVE_NO_ERROR.
+ *  @param[in]  aErr     A scalar status to be evaluated against WEAVE_NO_ERROR.
  *
  *  @sa #WEAVE_CONFIG_ENABLE_FUNCT_ERROR_LOGGING
  *

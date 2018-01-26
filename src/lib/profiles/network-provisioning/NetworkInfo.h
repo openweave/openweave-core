@@ -148,7 +148,7 @@ public:
      *                   an anonymous tag for this object when this object is a part of array of elements or a profile
      *                   tag for kTag_NetworkInformation when emitted as a standalone element.
      *
-     * @param[in] flags  Flags controlling whether the credentials of the NetworkInfo should be serialized.
+     * @param[in] encodeFlags  Flags controlling whether the credentials of the NetworkInfo should be serialized.
      *
      * @returns #WEAVE_NO_ERROR On success, WEAVE_ERROR_INVALID_TLV_ELEMENT on any element not conforming to the
      *                   network provisioning profile, any of the TLV reader errors on incorrect decoding of elements.
@@ -183,7 +183,7 @@ public:
      *
      * @param[in] writer      Appropriately positioned TLVWriter
      *
-     * @param[in] arrayLen    Number of elements in the `elemArray`.
+     * @param[in] elemCount    Number of elements in the `elemArray`.
      *
      * @param[in] elemArray   The array of NetworkInfo objects to be serialized.
      *

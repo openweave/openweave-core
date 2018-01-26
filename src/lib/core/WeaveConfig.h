@@ -1243,7 +1243,7 @@
  *  @def WEAVE_TRAILER_RESERVE_SIZE
  *
  *  @brief
- *    <TBD>
+ *    TODO
  *
  */
 #ifndef WEAVE_TRAILER_RESERVE_SIZE
@@ -1796,7 +1796,7 @@
 #endif // WEAVE_CONFIG_ENABLE_SECURITY_DEBUG_FUNCS
 
 /**
- *  @def WEAVE_CONFIG_IsPlatformErrorNonCritical(err)
+ *  @def WEAVE_CONFIG_IsPlatformErrorNonCritical(CODE)
  *
  *  This macro checks if a platform generated error is critical and
  *  needs to be reported to the application/caller. The criticality

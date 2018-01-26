@@ -919,7 +919,7 @@ WEAVE_ERROR ReferencedTLVData::parse(MessageIterator &i, ReferencedTLVData &aTar
  * Note that this only really makes sense in the case of two objects
  * that have actual data in them backed by a buffer or string.
  *
- * @param [in] const ReferencedTLVData &another, an object to check against
+ * @param [in]  ReferencedTLVData &another, an object to check against
  *
  * @return true if they're equal, false otherwise
  */

@@ -183,8 +183,6 @@ class NL_DLL_EXPORT WeaveKeyExport
 {
 public:
     /**
-     *  @enum State
-     *
      *  The current state of the WeaveKeyExport object.
      */
     enum

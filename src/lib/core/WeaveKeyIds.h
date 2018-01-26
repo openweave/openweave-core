@@ -247,10 +247,10 @@ public:
     }
 
     /**
-     *  Construct fabric key ID given fabric key number.
+     *  Construct general key ID given general key number.
      *
-     *  @param[in]   fabricKeyNumber       Fabric key number.
-     *  @return      fabric key ID.
+     *  @param[in]   generalKeyNumber       General key number.
+     *  @return      general key ID.
      *
      */
     static uint16_t MakeGeneralKeyId(uint16_t generalKeyNumber)

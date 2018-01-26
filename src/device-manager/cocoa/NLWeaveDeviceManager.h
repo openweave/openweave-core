@@ -79,7 +79,7 @@ typedef void (^WDMFailureBlock)(id owner, NSError *error);
                                 failure:(WDMFailureBlock)failureBlock;
 
 /**
-    \defgroup PassiveRendezvous
+    \defgroup PassiveRendezvous Passive Rendezvous
 
     Passive Rendezvous differs from Active in that the connection establishment phase is initiated before the
     identify phase by the provisionee. In addition, the provisioner rejects and drops initiated connections
@@ -116,7 +116,7 @@ typedef void (^WDMFailureBlock)(id owner, NSError *error);
 */
 
 /**
-    \defgroup RemotePassiveRendezvous
+    \defgroup RemotePassiveRendezvous Remote Passive Rendezvous
 
     Remote Passive Rendezvous differs from Passive Rendezvous in that an assisting device acts as a relay
     for the provisionee, relaying messages between the provisionee and provisioner.
@@ -183,17 +183,12 @@ typedef void (^WDMFailureBlock)(id owner, NSError *error);
 
 - (BOOL)isValidPairingCode:(NSString *)pairingCode;
 
-/**
-    \defgroup NetworkProvisioning
-    @{
- */
-
 - (void)getCameraAuthData:(NSString *)nonce
          completion:(WDMCompletionBlock)completionBlock
             failure:(WDMFailureBlock)failureBlock;
 
 /**
-    \defgroup NetworkProvisioning
+    \defgroup NetworkProvisioning Network Provisioning
     @{
  */
 
@@ -242,7 +237,7 @@ typedef void (^WDMFailureBlock)(id owner, NSError *error);
  */
 
 /**
-    \defgroup FabricProvisioning
+    \defgroup FabricProvisioning Fabric Provisioning
     @{
  */
 
@@ -259,7 +254,7 @@ typedef void (^WDMFailureBlock)(id owner, NSError *error);
  */
 
 /**
-    \defgroup ServiceProvisioning
+    \defgroup ServiceProvisioning Service Provisioning
     @{
  */
 
@@ -282,7 +277,7 @@ typedef void (^WDMFailureBlock)(id owner, NSError *error);
  */
 
 /**
-    \defgroup DeviceControl
+    \defgroup DeviceControl Device Control
     @{
  */
 
@@ -314,7 +309,7 @@ typedef void (^WDMFailureBlock)(id owner, NSError *error);
  */
 
 /**
-    \defgroup TokenPairing
+    \defgroup TokenPairing Token Pairing
     @{
  */
 

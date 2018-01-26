@@ -668,6 +668,8 @@ exit:
  *
  * @param[out] aIsNullified     Set to indicate that a field is nullified.
  *
+ * @param[in] aContext          Serialization context containing any state required for the operation.
+ *
  * @retval #WEAVE_NO_ERROR On success.
  *
  * @retval other          TLV errors while writing.
@@ -709,6 +711,8 @@ WEAVE_ERROR ReadNullableDataForType(TLVReader &aReader, void *aStructureData, co
  * @param[in] aType             The SerializedFieldType of the field
  *
  * @param[in] aInArray          True if we're reading an array (use anonymous tag)
+ *
+ * @param[in] aContext          Serialization context containing any state required for the operation.
  *
  * @retval #WEAVE_NO_ERROR On success.
  *
@@ -1103,6 +1107,8 @@ WEAVE_ERROR SerializedDataToTLVWriterHelper(TLVWriter &aWriter, uint8_t aDataTag
  *
  * @param[in] aFieldDescriptors SchemaFieldDescriptors to describe the c struct + TLV
  *
+ * @param[in] aContext          Serialization context containing any state required for the operation.
+ *
  * @retval #WEAVE_NO_ERROR On success.
  *
  * @retval other          Other errors that may be returned from the aReader.
@@ -1222,6 +1228,8 @@ exit:
  *
  * @param[in] aAppData          StructureSchemaPointerPair that contains a pointer to
  *                              structure data and field descriptors. void* due to prototype
+ *
+ * @param[in] aContext          Serialization context containing any state required for the operation.
  *
  * @retval #WEAVE_NO_ERROR On success.
  *

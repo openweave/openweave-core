@@ -778,7 +778,7 @@ inline uint64_t WeaveFabricIdToIPv6GlobalId(uint64_t fabricId) { return (fabricI
  *  As a convenience to testing, node identifiers less than 65536 are considered 'local',
  *  and have their universal/local bit is set to zero.  This simplifies the string
  *  representation of the corresponding IPv6 addresses. For example a ULA for node identifier
- *  10 would be FD00:0:1:1::A.
+ *  \c 10 would be \c FD00:0:1:1::A.
  *
  *  @note
  *    When trying to determine if an interface identifier matches a particular node identifier,

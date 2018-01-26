@@ -306,10 +306,9 @@ namespace Profiles {
      * Parse a ReferencedTLVData object out of an inet buffer
      * (assuming it just contains TLV).
      *
-     * @param [in] PacketBuffer *buff, the buffer to read from.
+     * @param [in] buff the buffer to read from.
      *
-     * @param [out] ReferencedTLVData &aTarget, a ReferencedTLVData
-     * object to "fill" with the result.
+     * @param [out] aTarget a ReferencedTLVData object to "fill" with the result.
      *
      * @return a WEAVE_ERROR reflecting the success of the underlying
      * parse call.

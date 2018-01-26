@@ -158,7 +158,7 @@
 #endif // WEAVE_CONFIG_TUNNEL_MAX_KEEPALIVE_PROBES
 
 /**
- *  @def WEAVE_CONFIG_PRIMARY_TUNNEL_MAX_TIMEOUT
+ *  @def WEAVE_CONFIG_PRIMARY_TUNNEL_MAX_TIMEOUT_SECS
  *
  *  @brief
  *    This defines the default value for the maximum timeout
@@ -385,7 +385,7 @@
 #endif // WEAVE_CONFIG_TUNNELING_MIN_WAIT_TIME_INTERVAL_PERCENT
 
 /**
- *  @def WEAVE_CONFIG_TUNNELING_RESET_RECONNECT_TIMEOUT
+ *  @def WEAVE_CONFIG_TUNNELING_RESET_RECONNECT_TIMEOUT_SECS
  *
  *  @brief
  *    The maximum time to wait when the current reconnect timeout

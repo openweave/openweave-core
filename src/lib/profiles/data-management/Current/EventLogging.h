@@ -240,9 +240,7 @@ event_id_t LogFreeform(ImportanceType inImportance, const char * inFormat, ...);
  *
  * @param[inout] ioWriter The writer to use for writing out the event
  *
- * @param[in] inProfileID The profile ID of the event
- *
- * @param[in] inEventType The Event type to be written out
+ * @param[in] inDataTag   The tag to emit
  *
  * @param[in] appData     A pointer to the DebugLogContext, a structure
  *                        that holds a string format, arguments, and a

@@ -38,7 +38,8 @@ typedef NS_ENUM (NSInteger, NLHKDFErrorDomainCode){
 };
 
 /**
- * @class Wrapper for C++ implementation of key derivation functionality
+ * @class NLHKDF
+ * Wrapper for C++ implementation of key derivation functionality
  */
 @interface NLHKDF : NSObject
 

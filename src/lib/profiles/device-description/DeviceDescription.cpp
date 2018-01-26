@@ -383,7 +383,7 @@ void WeaveDeviceDescriptor::Clear()
  * Encodes the provided device descriptor as text written to the supplied buffer.
  *
  * @param[in]   desc            A reference to the Weave Device Descriptor to encode.
- * @param[out   buf             A pointer to a buffer where the encoded text will be written.
+ * @param[out]  buf             A pointer to a buffer where the encoded text will be written.
  * @param[in]   bufLen          The length of the supplied buffer.
  * @param[out]  outEncodedLen   A reference to the length variable that will be overwritten
  *                              with the number of characters written to the buffer.
@@ -1091,7 +1091,6 @@ WEAVE_ERROR IdentifyResponseMessage::Encode(PacketBuffer *msgBuf)
  *
  * @param[in]       msgBuf          A pointer to the Inet buffer to decode the Identify Request
  *                                  message from.
- * @param[in]       msgDestNodeId   The destination node ID of the message being decoded.
  * @param[out]      msg             A reference to the IdentifyRequestMessage to populate.
  *
  * @retval #WEAVE_ERROR_WRONG_TLV_TYPE          If this is not Device Description TLV.

@@ -40,7 +40,8 @@ typedef NS_ENUM (NSInteger, NLWeaveKeyExportClientErrorDomainCode){
 
 
 /**
- * @class Wrapper for C++ implementation of key export functionality to
+ * @class NLWeaveKeyExportClient
+ * Wrapper for C++ implementation of key export functionality to
  * support pin encryption.
  */
 @interface NLWeaveKeyExportClient : NSObject

@@ -44,7 +44,8 @@ extern NSUInteger const NLWeaveKeyIds_ClientRootKey;
 extern NSUInteger const NLWeaveKeyIds_ServiceRootKey;
 
 /**
- * @class Wrapper for C++ implementation of WeaveKeyId functionality
+ * @class NLWeaveKeyIds
+ * Wrapper for C++ implementation of WeaveKeyId functionality
  */
 @interface NLWeaveKeyIds : NSObject
 

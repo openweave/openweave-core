@@ -25,7 +25,7 @@
 #define WEAVEEVENTLOGGINGCONFIG_H
 
 /**
- * @def WEAVE_CONFIG_EVENT_RESERVE_SIZE
+ * @def WEAVE_CONFIG_EVENT_SIZE_RESERVE
  *
  * @brief
  *   Initial size to reserve for event. The logging subsystem ensures

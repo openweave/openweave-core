@@ -285,11 +285,11 @@ WEAVE_ERROR WeaveMessageLayer::SendUDPTunneledMessage(const IPAddress &destAddr,
  *
  *  @param[in]    destPort      The destination port.
  *
- *  @param[in]    sendIntfId    The interface on which to send the Weave message.
+ *  @param[in]    sendIntId     The interface on which to send the Weave message.
  *
  *  @param[in]    msgInfo       A pointer to a WeaveMessageInfo object.
  *
- *  @param[in]    msgBuf        A pointer to the PacketBuffer object that would hold the Weave message.
+ *  @param[in]    payload       A pointer to the PacketBuffer object that would hold the Weave message.
  *
  *  @retval  #WEAVE_NO_ERROR                           on successful encoding of the Weave message.
  *  @retval  #WEAVE_ERROR_UNSUPPORTED_MESSAGE_VERSION  if the Weave Message version is not supported.
@@ -392,7 +392,7 @@ WEAVE_ERROR WeaveMessageLayer::SendMessage(const IPAddress &destAddr, WeaveMessa
  *    -If the destination address is a fabric address for the local fabric, and the caller
  *     didn't specify the destination node id, extract it from the destination address.
  *
- *  @param[in]    destAddr      The destination IP Address.
+ *  @param[in]    aDestAddr      The destination IP Address.
  *
  *  @param[in]    destPort      The destination port.
  *
@@ -688,7 +688,7 @@ WEAVE_ERROR WeaveMessageLayer::ResendMessage(const IPAddress &destAddr, uint16_t
  *    -If the destination address is a fabric address for the local fabric, and the caller
  *     didn't specify the destination node id, extract it from the destination address.
  *
- *  @param[in]    destAddr      The destination IP Address.
+ *  @param[in]    aDestAddr      The destination IP Address.
  *
  *  @param[in]    destPort      The destination port.
  *
@@ -727,8 +727,6 @@ exit:
  *
  *  @param[out]  aOutInUse  Reference to size_t, in which the number of
  *                         connections in use is stored.
- *  @param[out]  aOutTotal  Reference to size_t, in which the size of
- *                         pool is stored.
  *
  */
 void WeaveMessageLayer::GetConnectionPoolStats(nl::Weave::System::Stats::count_t &aOutInUse) const

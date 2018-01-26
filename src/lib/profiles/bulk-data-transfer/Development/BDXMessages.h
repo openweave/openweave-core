@@ -332,7 +332,7 @@ class BlockAck : public BlockQuery { };
 class BlockEOFAck : public BlockQuery { };
 
 /**
- * @class Transfer Error
+ * @class TransferError
  *
  * @brief
  *   The Error message is used to report an error and abort an exchange

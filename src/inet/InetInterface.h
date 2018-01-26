@@ -16,7 +16,7 @@
  *    limitations under the License.
  */
 
-/**                                                                           .
+/**
  * @file
  *  This file defines the <tt>nl::Inet::InterfaceId</tt> type alias and related
  *  classes for iterating on the list of system network interfaces and the list

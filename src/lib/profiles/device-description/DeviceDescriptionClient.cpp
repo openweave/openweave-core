@@ -98,7 +98,6 @@ WEAVE_ERROR DeviceDescriptionClient::Shutdown()
  *
  * @param[in] msg   A reference to the IdentifyRequest message to send.
  *
- * @retval
  */
 WEAVE_ERROR DeviceDescriptionClient::SendIdentifyRequest(const IdentifyRequestMessage& msg)
 {

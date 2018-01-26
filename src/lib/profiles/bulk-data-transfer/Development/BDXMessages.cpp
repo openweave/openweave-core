@@ -154,6 +154,7 @@ WEAVE_ERROR SendInit::init(uint8_t aVersion, bool aSenderDrive, bool aReceiverDr
  *                              it has indefinite length
  * @param[in]   aFileDesignator A string that identifies the data to be transferred
  * @param[in]   aMetaDataWriteCallback (optional) A function to write out additional data in TLV format
+ * @param[in]   aMetaDataAppState An optional context to be passed into the aMetaDataWriteCallback
  *
  * @return #WEAVE_NO_ERROR if successful
  */

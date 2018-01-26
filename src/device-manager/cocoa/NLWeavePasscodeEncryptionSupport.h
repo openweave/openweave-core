@@ -67,7 +67,8 @@ extern UInt32 const NLWeavePasscodeAuthenticationKeyLen;
 extern UInt32 const NLWeavePasscodeFingerprintKeyLen;
 
 /**
- * @class wrapper for C++ implementation of pincode encryption/decryption functionality.
+ * @class NLWeavePasscodeEncryptionSupport
+ * Wrapper for C++ implementation of pincode encryption/decryption functionality.
  */
 @interface NLWeavePasscodeEncryptionSupport : NSObject
 /** Encrypt a passcode using the Nest Passcode Encryption scheme.

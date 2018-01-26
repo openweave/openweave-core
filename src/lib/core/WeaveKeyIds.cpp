@@ -170,7 +170,7 @@ uint32_t WeaveKeyId::ConvertToStaticAppKeyId(uint32_t keyId)
  *  Update application group key ID with new epoch key number.
  *
  *  @param[in]   keyId                 Application key ID.
- *  @param[in]   epochkeyId            Epoch key ID, which will be used in construction
+ *  @param[in]   epochKeyId            Epoch key ID, which will be used in construction
  *                                     of the updated application key ID.
  *  @return      application key ID.
  *

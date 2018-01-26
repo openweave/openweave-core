@@ -16,7 +16,7 @@
  *    limitations under the License.
  */
 
-/**                                                                           .
+/**
  *    @file
  *      This file defines the concrete class
  *      <tt>nl::Inet::IPPrefix</tt>, which comprise two member fields:

@@ -16,7 +16,7 @@
  *    limitations under the License.
  */
 
-/**                                                                           .
+/**
  *    @file
  *      This file defines the class <tt>nl::Inet::IPAddress</tt> and
  *      related enumerated constants. The Nest Inet Layer uses objects
@@ -104,7 +104,7 @@ public:
     /**
      * @brief   Opaque word array to contain IP addresses (independent of protocol version)
      *
-     * @detail
+     * @details
      *  IPv6 address use all 128-bits split into four 32-bit network byte
      *  ordered unsigned integers. IPv4 addresses are V4COMPAT, i.e. the
      *  first three words are zero, and the fourth word contains the IPv4

@@ -217,14 +217,14 @@ exit:
 /**
  *  Connect to a Weave node using a node identifier and/or a string host name.  If supplied, peerAddr can
  *  be any of:
- *
+ *  @code
  *    <host-name>
  *    <host-name>:<port>
  *    <ip-4-addr>
  *    <ip-4-addr>:<port>
  *    <ip-6-addr>
  *    [<ip-6-addr>]:<port>
- *
+ *  @endcode
  *  @note
  *    If <port> is not supplied, defaultPort is used.  If defaultPort is 0, the default #WEAVE_PORT is used.
  *    If peerAddr is null, the node's fabric IP address will be derived from the peerNodeId field.  If peerNodeId

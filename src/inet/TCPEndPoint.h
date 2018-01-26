@@ -137,7 +137,7 @@ public:
      * @param[in]   port        the destination TCP port
      * @param[in]   intf        an optional network interface indicator
      *
-     * @retval  INET_NO_ERROR       success: \msg is queued for transmit.
+     * @retval  INET_NO_ERROR       success: \c msg is queued for transmit.
      * @retval  INET_ERROR_NOT_IMPLEMENTED  system implementation not complete.
      *
      * @retval  INET_ERROR_WRONG_ADDRESS_TYPE

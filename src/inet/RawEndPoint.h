@@ -160,7 +160,7 @@ public:
      * @param[in]   addr    the destination address
      * @param[in]   msg     the packet buffer containing the ICMP message
      *
-     * @retval  INET_NO_ERROR       success: \msg is queued for transmit.
+     * @retval  INET_NO_ERROR       success: \c msg is queued for transmit.
      *
      * @retval  INET_ERROR_WRONG_ADDRESS_TYPE
      *      the destination address and the bound interface address do not

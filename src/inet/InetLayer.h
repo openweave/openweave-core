@@ -190,8 +190,6 @@ class NL_DLL_EXPORT InetLayer
 
   public:
     /**
-     *  @enum State
-     *
      *  The current state of the InetLayer object.
      *
      */

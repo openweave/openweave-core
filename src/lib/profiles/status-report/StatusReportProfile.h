@@ -26,8 +26,9 @@
  *      in response to a request or command.
  *
  *      The format of a status report is:
- *
+ *      @code
  *        | <profile ID> | <status code> | <additional status info> |
+ *      @endcode
  *
  */
 

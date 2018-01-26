@@ -463,7 +463,7 @@ WEAVE_ERROR LoggingManagement::SetExchangeManager(nl::Weave::WeaveExchangeManage
  *
  * @param[in] inBufferLengths Description of inBufferLengths
  *
- * @paran inBuffers[in]     The buffers to use for actual event logging.
+ * @param[in] inBuffers     The buffers to use for actual event logging.
  *
  * @return LoggingManagement
  */
@@ -1743,7 +1743,7 @@ void LoggingManagement::SetBDXUploader(LogBDXUpload * inUploader)
  *
  * @param[in] inBuffer       The actual storage to use for event storage.
  *
- * @param[in] inBufferLength The length of the #inBuffer in bytes.
+ * @param[in] inBufferLength The length of the \c inBuffer in bytes.
  *
  * @param[in] inPrev         The pointer to CircularEventBuffer storing
  *                           events of lesser priority.

@@ -41,7 +41,7 @@ namespace WeaveMakeManagedNamespaceIdentifier(DataManagement, kWeaveManagedNames
  * @brief
  *   The importance of the log entry.
  *
- * @detail
+ * @details
  * Importance is used as a way to filter events before they are
  * actually emitted into the log. After the event is in the log, we
  * make no further provisions to expunge it from the log.

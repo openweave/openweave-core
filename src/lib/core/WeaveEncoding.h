@@ -64,7 +64,7 @@ namespace Encoding {
  * This unconditionally performs a byte order swap by value of the
  * specified 16-bit value.
  *
- * @param[in]  inValue  The 16-bit value to be byte order swapped.
+ * @param[in]  v  The 16-bit value to be byte order swapped.
  *
  * @return The input value, byte order swapped.
  */
@@ -74,7 +74,7 @@ inline uint16_t Swap16(uint16_t v)              { return nl::ByteOrder::Swap16(v
  * This unconditionally performs a byte order swap by value of the
  * specified 32-bit value.
  *
- * @param[in]  inValue  The 32-bit value to be byte order swapped.
+ * @param[in]  v  The 32-bit value to be byte order swapped.
  *
  * @return The input value, byte order swapped.
  */
@@ -84,7 +84,7 @@ inline uint32_t Swap32(uint32_t v)              { return nl::ByteOrder::Swap32(v
  * This unconditionally performs a byte order swap by value of the
  * specified 64-bit value.
  *
- * @param[in]  inValue  The 64-bit value to be byte order swapped.
+ * @param[in]  v  The 64-bit value to be byte order swapped.
  *
  * @return The input value, byte order swapped.
  */
@@ -185,7 +185,7 @@ namespace LittleEndian {
  * Consequently, on little endian target systems, this is a no-op and
  * on big endian target systems, this performs a reordering.
  *
- * @param[in]  inValue  The 16-bit value to be byte order swapped.
+ * @param[in]  v  The 16-bit value to be byte order swapped.
  *
  * @return The input value, if necessary, byte order swapped.
  */
@@ -200,7 +200,7 @@ inline uint16_t HostSwap16(uint16_t v)          { return nl::ByteOrder::Swap16Li
  * Consequently, on little endian target systems, this is a no-op and
  * on big endian target systems, this performs a reordering.
  *
- * @param[in]  inValue  The 32-bit value to be byte order swapped.
+ * @param[in]  v  The 32-bit value to be byte order swapped.
  *
  * @return The input value, if necessary, byte order swapped.
  */
@@ -215,7 +215,7 @@ inline uint32_t HostSwap32(uint32_t v)          { return nl::ByteOrder::Swap32Li
  * Consequently, on little endian target systems, this is a no-op and
  * on big endian target systems, this performs a reordering.
  *
- * @param[in]  inValue  The 64-bit value to be byte order swapped.
+ * @param[in]  v  The 64-bit value to be byte order swapped.
  *
  * @return The input value, if necessary, byte order swapped.
  */
@@ -499,7 +499,7 @@ namespace BigEndian {
  * Consequently, on bit endian target systems, this is a no-op and
  * on big endian target systems, this performs a reordering.
  *
- * @param[in]  inValue  The 16-bit value to be byte order swapped.
+ * @param[in]  v  The 16-bit value to be byte order swapped.
  *
  * @return The input value, if necessary, byte order swapped.
  */
@@ -514,7 +514,7 @@ inline uint16_t HostSwap16(uint16_t v)          { return nl::ByteOrder::Swap16Bi
  * Consequently, on bit endian target systems, this is a no-op and
  * on big endian target systems, this performs a reordering.
  *
- * @param[in]  inValue  The 32-bit value to be byte order swapped.
+ * @param[in]  v  The 32-bit value to be byte order swapped.
  *
  * @return The input value, if necessary, byte order swapped.
  */
@@ -529,7 +529,7 @@ inline uint32_t HostSwap32(uint32_t v)          { return nl::ByteOrder::Swap32Bi
  * Consequently, on bit endian target systems, this is a no-op and
  * on big endian target systems, this performs a reordering.
  *
- * @param[in]  inValue  The 64-bit value to be byte order swapped.
+ * @param[in]  v  The 64-bit value to be byte order swapped.
  *
  * @return The input value, if necessary, byte order swapped.
  */
