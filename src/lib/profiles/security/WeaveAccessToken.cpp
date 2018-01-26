@@ -87,7 +87,7 @@ WEAVE_ERROR LoadAccessTokenCerts(const uint8_t *accessToken, uint32_t accessToke
  *                                          Access Token.
  * @param certSet                           The certificate set into which the access token certificates should
  *                                          be loaded.
- * @param devodeFlags                       The certificate decode flags that should be used when loading
+ * @param decodeFlags                       The certificate decode flags that should be used when loading
  *                                          the certificates.
  * @param accessTokenCert                   A reference to a pointer that will be set to the Weave certificate
  *                                          data structure for the access token certificate. NOTE: This value
@@ -212,14 +212,9 @@ exit:
  *   access token certificate, and the RelatedCertificates field (if present) is set to the corresponding
  *   field within the access token.
  *
- * @param accessToken                       A pointer to a buffer containing an encoded Weave Access Token.
- * @param accessTokenLen                    The length of the encoded access token.
- * @param certInfoBuf                       A pointer to a buffer into which the CASE certificate info
- *                                          structure should be encoded.
- * @param certInfoBufSize                   The size of the buffer pointed to by certInfoBuf.
- * @param certInfoLen                       A reference to an integer will be set to the length of the
- *                                          encoded certificate info structure. NOTE: This value is only
- *                                          set when the function returns successfully.
+ * @param[inout] reader  A reference to the TLVReader positioned on the Weave Access Token.
+ *
+ * @param[inout] writer  A reference to the TLVWriter to be used to record the output CASE certificate.
  *
  * @retval #WEAVE_NO_ERROR                  If the access CASE certificate info structure was successfully
  *                                          encoded.
@@ -289,6 +284,28 @@ exit:
     return err;
 }
 
+/**
+ * @brief
+ *   Reads a Weave Access Token and extracts the private key from the access token certificate.
+ *
+ * @details
+ *   This function decodes a given Weave Access Token and extracts the private key from the
+ *   access token certificate.
+ *
+ * @param accessToken                       A pointer to a buffer containing an encoded Weave Access Token.
+ * @param accessTokenLen                    The length of the encoded access token.
+ * @param privKeyBuf                        A pointer to a buffer into which the private key
+ *                                          structure should be encoded.
+ * @param privKeyBufSize                    The size of the buffer pointed to by privKeyBuf.
+ * @param privKeyLen                         A reference to an integer will be set to the length of the
+ *                                          private key. NOTE: This value is only
+ *                                          set when the function returns successfully.
+ *
+ * @retval #WEAVE_NO_ERROR                  If the private key was successfully extracted.
+ * @retval tlv-errors                       Weave errors related to reading or writing TLV.
+ * @retval cert-errors                      Weave errors related to decoding Weave certificates.
+ * @retval platform-errors                  Other platform-specific errors.
+ */
 WEAVE_ERROR ExtractPrivateKeyFromAccessToken(const uint8_t *accessToken, uint32_t accessTokenLen, uint8_t *privKeyBuf, uint16_t privKeyBufSize, uint16_t& privKeyLen)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
@@ -311,6 +328,23 @@ exit:
     return err;
 }
 
+/**
+ * @brief
+ *   Reads a Weave Access Token and extracts the private key from the access token certificate.
+ *
+ * @details
+ *   This function decodes a given Weave Access Token and extracts the private key from the
+ *   access token certificate.
+ *
+ * @param[inout] reader  A reference to the TLVReader positioned on the Weave Access Token.
+ *
+ * @param[inout] writer  A reference to the TLVWriter to be used to record the private key.
+ *
+ * @retval #WEAVE_NO_ERROR                  If the private key was successfully extracted.
+ * @retval tlv-errors                       Weave errors related to reading or writing TLV.
+ * @retval cert-errors                      Weave errors related to decoding Weave certificates.
+ * @retval platform-errors                  Other platform-specific errors.
+ */
 WEAVE_ERROR ExtractPrivateKeyFromAccessToken(TLVReader& reader, TLVWriter& writer)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;

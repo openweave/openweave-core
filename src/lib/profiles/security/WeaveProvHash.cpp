@@ -45,7 +45,7 @@ using namespace nl::Weave::Platform::Security;
  *                                      in base-64 format.
  * @param[in]      weavePrivKeyLen      The length of the private key value pointed at by weavePrivKey.
  * @param[in]      pairingCode          A pointer to a buffer containing the device pairing code.
- * @param[in]      weavePairingCodeLen  The length of the pairing code value pointed at by pairingCode.
+ * @param[in]      pairingCodeLen       The length of the pairing code value pointed at by pairingCode.
  * @param[in,out]  hashBuf              A pointer to a buffer that will receive the verification hash
  *                                      value, in base-64 format.  The output string will be null
  *                                      terminated.  This buffer should be at least as big as

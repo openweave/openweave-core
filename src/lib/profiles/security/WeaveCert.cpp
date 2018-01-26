@@ -730,7 +730,7 @@ bool CertificateKeyId::IsEqual(const CertificateKeyId& other) const
  * @param time
  *   The calendar date/time to be converted.
  *
- * @param packetTime
+ * @param packedTime
  *   A reference to an integer that will receive packed date/time.
  *
  * @retval  #WEAVE_NO_ERROR                     If the input time was successfully converted.

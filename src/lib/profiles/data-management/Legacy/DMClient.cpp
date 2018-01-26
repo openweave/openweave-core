@@ -1088,9 +1088,11 @@ exit:
  *    This method doesn't generate network traffic, but just release resources allocated for
  *    the specified transaction(s)
  *
- *  @param [in]     aTxnId              The number of the transaction
- *                                      to be canceled. If kTransactionIdNotSpecified is provided,
- *                                      all transactions would be canceled.
+ *  @param[in] aTxnId              The number of the transaction
+ *                                 to be canceled. If kTransactionIdNotSpecified is provided,
+ *                                 all transactions would be canceled.
+ *  @param[in] aError              The #WEAVE_ERROR to report when
+ *                                 canceling the transaction.
  *
  *  @return #WEAVE_NO_ERROR on success or a #WEAVE_ERROR reflecting
  *  a failure to cancel the transaction.

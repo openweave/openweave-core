@@ -44,6 +44,22 @@ struct ifaddrs;
 namespace nl {
 namespace Inet {
 
+#if WEAVE_SYSTEM_CONFIG_USE_LWIP
+
+typedef struct netif *InterfaceId;
+
+#define INET_NULL_INTERFACEID NULL
+
+#endif // WEAVE_SYSTEM_CONFIG_USE_LWIP
+
+#if WEAVE_SYSTEM_CONFIG_USE_SOCKETS
+
+typedef unsigned InterfaceId;
+
+#define INET_NULL_INTERFACEID 0
+
+#endif // WEAVE_SYSTEM_CONFIG_USE_SOCKETS
+
 /**
  * @typedef     InterfaceId
  *
@@ -70,22 +86,6 @@ namespace Inet {
  *  or to specify that any applicable network interface is acceptable. Usage
  *  varies depending on context.
  */
-
-#if WEAVE_SYSTEM_CONFIG_USE_LWIP
-
-typedef struct netif *InterfaceId;
-
-#define INET_NULL_INTERFACEID NULL
-
-#endif // WEAVE_SYSTEM_CONFIG_USE_LWIP
-
-#if WEAVE_SYSTEM_CONFIG_USE_SOCKETS
-
-typedef unsigned InterfaceId;
-
-#define INET_NULL_INTERFACEID 0
-
-#endif // WEAVE_SYSTEM_CONFIG_USE_SOCKETS
 
 /**
  * @brief   Test \c ID for inequivalence with \c INET_NULL_INTERFACEID

@@ -589,7 +589,7 @@ void WeaveHeartbeatSender::HandleSendError(ExchangeContext *ec, WEAVE_ERROR err,
  *
  * Set the current subscription state.
  *
- * @param[in] subscriptionId    An 8-bit subscription state value to be conveyed with the heartbeat message.
+ * @param[in] val    An 8-bit subscription state value to be conveyed with the heartbeat message.
  */
 
 /**

@@ -320,7 +320,7 @@ public:
 
     /**
      * Specifies that only the device with the specified Weave Node ID should respond.
-     * A value of #kAnyNodeId specifies any device.
+     * A value of kAnyNodeId specifies any device.
      *
      * @note The value of the TargetDeviceId field is carried a Weave IdentifyRequest
      *  in the Destination node ID field of the Weave message header, and thus

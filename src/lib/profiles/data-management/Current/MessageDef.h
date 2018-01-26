@@ -122,6 +122,7 @@ public:
     /**
      *  @brief Initialize a TLVReader to point to the beginning of any tagged element in this request
      *
+     *  @param [in]  aTagToFind Tag to find in the request
      *  @param [out] apReader   A pointer to TLVReader, which will be initialized at the specified TLV element
      *                          on success
      *

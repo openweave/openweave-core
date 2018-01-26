@@ -51,7 +51,7 @@
 /**
  * @brief   Adaptation for LwIP ip4_addr_t type.
  *
- * @detail
+ * @details
  *  Before LwIP 2.0.0, the \c ip_addr_t type alias referred to a structure comprising
  *  an IPv4 address. At LwIP 2.0.0 and thereafter, this type alias is renamed \c ip4_addr_t
  *  and \c ip_addr_t is replaced with an alias to a union of both. Here, the \c ip4_addr_t
