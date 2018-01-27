@@ -201,7 +201,7 @@ void Command::Close(void)
         mEC = NULL;
     }
 
-    SYSTEM_STATS_DECREMENT(nl::Weave::System::Stats::kWDMNext_NumCommands);
+    SYSTEM_STATS_DECREMENT(nl::Weave::System::Stats::kWDM_NumCommands);
 }
 
 /**

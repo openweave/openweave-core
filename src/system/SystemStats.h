@@ -63,32 +63,32 @@ enum
 #endif // INET_CONFIG_NUM_DNS_RESOLVERS
     kExchangeMgr_NumContexts,
     kExchangeMgr_NumUMHandlers,
+#if WEAVE_CONFIG_ENABLE_RELIABLE_MESSAGING
+    kExchangeMgr_NumBindings,
+#endif // WEAVE_CONFIG_ENABLE_RELIABLE_MESSAGING
     kMessageLayer_NumConnections,
 #if WEAVE_CONFIG_ENABLE_SERVICE_DIRECTORY
     kServiceMgr_NumRequests,
 #endif // WEAVE_CONFIG_ENABLE_SERVICE_DIRECTORY
-    kWDMClient_NumViews,
+    kWDMLegacy_NumViews,
 #if WEAVE_CONFIG_WDM_ALLOW_CLIENT_SUBSCRIPTION
-    kWDMClient_NumSubscribes,
-    kWDMClient_NumCancels,
+    kWDMLegacy_NumSubscribes,
+    kWDMLegacy_NumCancels,
 #endif // WEAVE_CONFIG_WDM_ALLOW_CLIENT_SUBSCRIPTION
-    kWDMClient_NumUpdates,
-    kWDMClient_NumBindings,
-    kWDMClient_NumTransactions,
-#if WEAVE_CONFIG_ENABLE_RELIABLE_MESSAGING
-    kWDMNext_NumBindings,
-#endif // WEAVE_CONFIG_ENABLE_RELIABLE_MESSAGING
+    kWDMLegacy_NumUpdates,
+    kWDMLegacy_NumBindings,
+    kWDMLegacy_NumTransactions,
 #if WDM_ENABLE_SUBSCRIPTION_PUBLISHER
-    kWDMNext_NumTraits,
+    kWDM_NumTraits,
 #endif // WDM_ENABLE_SUBSCRIPTION_PUBLISHER
 #if WDM_ENABLE_SUBSCRIPTION_CLIENT
-    kWDMNext_NumSubscriptionClients,
+    kWDM_NumSubscriptionClients,
 #endif // WDM_ENABLE_SUBSCRIPTION_CLIENT
 #if WDM_ENABLE_SUBSCRIPTION_PUBLISHER
-    kWDMNext_NumSubscriptionHandlers,
+    kWDM_NumSubscriptionHandlers,
 #endif // WDM_ENABLE_SUBSCRIPTION_PUBLISHER
 #if WDM_PUBLISHER_ENABLE_CUSTOM_COMMANDS
-    kWDMNext_NumCommands,
+    kWDM_NumCommands,
 #endif // WDM_PUBLISHER_ENABLE_CUSTOM_COMMANDS
 
     kNumEntries

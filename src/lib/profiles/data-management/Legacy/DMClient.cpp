@@ -100,21 +100,21 @@ void DMClient::Clear(void)
 
     for (i = 0; i<kViewPoolSize; i++)
         mViewPool[i].Free();
-    SYSTEM_STATS_RESET(nl::Weave::System::Stats::kWDMClient_NumViews);
+    SYSTEM_STATS_RESET(nl::Weave::System::Stats::kWDMLegacy_NumViews);
 
     for (i = 0; i<kUpdatePoolSize; i++)
         mUpdatePool[i].Free();
-    SYSTEM_STATS_RESET(nl::Weave::System::Stats::kWDMClient_NumUpdates);
+    SYSTEM_STATS_RESET(nl::Weave::System::Stats::kWDMLegacy_NumUpdates);
 
 #if WEAVE_CONFIG_WDM_ALLOW_CLIENT_SUBSCRIPTION
 
     for (i = 0; i<kSubscribePoolSize; i++)
         mSubscribePool[i].Free();
-    SYSTEM_STATS_RESET(nl::Weave::System::Stats::kWDMClient_NumSubscribes);
+    SYSTEM_STATS_RESET(nl::Weave::System::Stats::kWDMLegacy_NumSubscribes);
 
     for (i = 0; i<kCancelSubscriptionPoolSize; i++)
         mCancelSubscriptionPool[i].Free();
-    SYSTEM_STATS_RESET(nl::Weave::System::Stats::kWDMClient_NumCancels);
+    SYSTEM_STATS_RESET(nl::Weave::System::Stats::kWDMLegacy_NumCancels);
 
 #endif // WEAVE_CONFIG_WDM_ALLOW_CLIENT_SUBSCRIPTION
 }
@@ -1187,7 +1187,7 @@ void DMClient::View::Free(void)
 
     mPathList.free();
 
-    SYSTEM_STATS_DECREMENT(nl::Weave::System::Stats::kWDMClient_NumViews);
+    SYSTEM_STATS_DECREMENT(nl::Weave::System::Stats::kWDMLegacy_NumViews);
 }
 
 WEAVE_ERROR DMClient::View::SendRequest(PacketBuffer *aBuffer, uint16_t aSendFlags)
@@ -1268,7 +1268,7 @@ DMClient::View *DMClient::NewView(void)
         if (mViewPool[i].IsFree())
         {
             result = &mViewPool[i];
-            SYSTEM_STATS_INCREMENT(nl::Weave::System::Stats::kWDMClient_NumViews);
+            SYSTEM_STATS_INCREMENT(nl::Weave::System::Stats::kWDMLegacy_NumViews);
 
             break;
         }
@@ -1316,7 +1316,7 @@ void DMClient::Subscribe::Free(void)
     mTopicId = kTopicIdNotSpecified;
     mPathList.free();
 
-    SYSTEM_STATS_DECREMENT(nl::Weave::System::Stats::kWDMClient_NumSubscribes);
+    SYSTEM_STATS_DECREMENT(nl::Weave::System::Stats::kWDMLegacy_NumSubscribes);
 }
 
 WEAVE_ERROR DMClient::Subscribe::SendRequest(PacketBuffer *aBuffer, uint16_t aSendFlags)
@@ -1435,7 +1435,7 @@ DMClient::Subscribe *DMClient::NewSubscribe(void)
         if (mSubscribePool[i].IsFree())
         {
             result = &mSubscribePool[i];
-            SYSTEM_STATS_INCREMENT(nl::Weave::System::Stats::kWDMClient_NumSubscribes);
+            SYSTEM_STATS_INCREMENT(nl::Weave::System::Stats::kWDMLegacy_NumSubscribes);
 
             break;
         }
@@ -1466,7 +1466,7 @@ void DMClient::CancelSubscription::Free(void)
 
     mTopicId = kTopicIdNotSpecified;
 
-    SYSTEM_STATS_DECREMENT(nl::Weave::System::Stats::kWDMClient_NumCancels);
+    SYSTEM_STATS_DECREMENT(nl::Weave::System::Stats::kWDMLegacy_NumCancels);
 }
 
 WEAVE_ERROR DMClient::CancelSubscription::SendRequest(PacketBuffer *aBuffer, uint16_t aSendFlags)
@@ -1515,7 +1515,7 @@ DMClient::CancelSubscription *DMClient::NewCancelSubscription(void)
         if (mCancelSubscriptionPool[i].IsFree())
         {
             result = &mCancelSubscriptionPool[i];
-            SYSTEM_STATS_INCREMENT(nl::Weave::System::Stats::kWDMClient_NumCancels);
+            SYSTEM_STATS_INCREMENT(nl::Weave::System::Stats::kWDMLegacy_NumCancels);
 
             break;
         }
@@ -1544,7 +1544,7 @@ void DMClient::Update::Free(void)
 
     mDataList.free();
 
-    SYSTEM_STATS_DECREMENT(nl::Weave::System::Stats::kWDMClient_NumUpdates);
+    SYSTEM_STATS_DECREMENT(nl::Weave::System::Stats::kWDMLegacy_NumUpdates);
 }
 
 WEAVE_ERROR DMClient::Update::SendRequest(PacketBuffer *aBuffer, uint16_t aSendFlags)
@@ -1604,7 +1604,7 @@ DMClient::Update *DMClient::NewUpdate(void)
         if (mUpdatePool[i].IsFree())
         {
             result = &mUpdatePool[i];
-            SYSTEM_STATS_INCREMENT(nl::Weave::System::Stats::kWDMClient_NumUpdates);
+            SYSTEM_STATS_INCREMENT(nl::Weave::System::Stats::kWDMLegacy_NumUpdates);
 
             break;
         }

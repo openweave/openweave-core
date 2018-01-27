@@ -1770,7 +1770,7 @@ Binding * WeaveExchangeManager::AllocBinding(void)
         {
             pResult = &BindingPool[i];
             ++mBindingsInUse;
-            SYSTEM_STATS_INCREMENT(nl::Weave::System::Stats::kWDMNext_NumBindings);
+            SYSTEM_STATS_INCREMENT(nl::Weave::System::Stats::kExchangeMgr_NumBindings);
             break;
         }
     }
@@ -1789,7 +1789,7 @@ void WeaveExchangeManager::FreeBinding(Binding * binding)
 {
     binding->mState = Binding::kState_NotAllocated;
     --mBindingsInUse;
-    SYSTEM_STATS_DECREMENT(nl::Weave::System::Stats::kWDMNext_NumBindings);
+    SYSTEM_STATS_DECREMENT(nl::Weave::System::Stats::kExchangeMgr_NumBindings);
 }
 
 /**

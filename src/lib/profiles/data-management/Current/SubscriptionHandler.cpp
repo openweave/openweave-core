@@ -339,7 +339,7 @@ inline WEAVE_ERROR SubscriptionHandler::ParsePathVersionEventLists(SubscribeRequ
                     SubscriptionEngine::GetInstance()->mTraitInfoPool + SubscriptionEngine::GetInstance()->mNumTraitInfosInPool;
                 ++mNumTraitInstances;
                 ++(SubscriptionEngine::GetInstance()->mNumTraitInfosInPool);
-                SYSTEM_STATS_INCREMENT(nl::Weave::System::Stats::kWDMNext_NumTraits);
+                SYSTEM_STATS_INCREMENT(nl::Weave::System::Stats::kWDM_NumTraits);
 
                 traitInstance->Init();
             }
@@ -1056,7 +1056,7 @@ void SubscriptionHandler::_Release()
 
     if (0 == mRefCount)
     {
-        SYSTEM_STATS_DECREMENT(nl::Weave::System::Stats::kWDMNext_NumSubscriptionHandlers);
+        SYSTEM_STATS_DECREMENT(nl::Weave::System::Stats::kWDM_NumSubscriptionHandlers);
         AbortSubscription();
     }
 }

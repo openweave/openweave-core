@@ -59,32 +59,32 @@ static const Label sStatsStrings[nl::Weave::System::Stats::kNumEntries] =
 #endif
     "ExchangeMgr_NumContextsInUse",
     "ExchangeMgr_NumUMHandlersInUse",
+#if WEAVE_CONFIG_ENABLE_RELIABLE_MESSAGING
+    "ExchangeMgr_NumBindings",
+#endif
     "MessageLayer_NumConnectionsInUse",
 #if WEAVE_CONFIG_ENABLE_SERVICE_DIRECTORY
     "ServiceMgr_NumRequestsInUse",
 #endif
-    "WDMClient_NumViewInUse",
+    "WDMLegacy_NumViewInUse",
 #if WEAVE_CONFIG_WDM_ALLOW_CLIENT_SUBSCRIPTION
-    "WDMClient_NumSubscribeInUse",
-    "WDMClient_NumCancelInUse",
+    "WDMLegacy_NumSubscribeInUse",
+    "WDMLegacy_NumCancelInUse",
 #endif // WEAVE_CONFIG_WDM_ALLOW_CLIENT_SUBSCRIPTION
-    "WDMClient_NumUpdateInUse",
-    "WDMClient_NumBindingsInUse",
-    "WDMClient_NumTransactions",
-#if WEAVE_CONFIG_ENABLE_RELIABLE_MESSAGING
-    "kWDMNext_NumBindings",
-#endif
+    "WDMLegacy_NumUpdateInUse",
+    "WDMLegacy_NumBindingsInUse",
+    "WDMLegacy_NumTransactions",
 #if WDM_ENABLE_SUBSCRIPTION_PUBLISHER
-    "kWDMNext_NumTraits",
+    "kWDM_NumTraits",
 #endif
 #if WDM_ENABLE_SUBSCRIPTION_CLIENT
-    "kWDMNext_NumSubscriptionClients",
+    "kWDM_NumSubscriptionClients",
 #endif
 #if WDM_ENABLE_SUBSCRIPTION_PUBLISHER
-    "kWDMNext_NumSubscriptionHandlers",
+    "kWDM_NumSubscriptionHandlers",
 #endif
 #if WDM_PUBLISHER_ENABLE_CUSTOM_COMMANDS
-    "kWDMNext_NumCommands",
+    "kWDM_NumCommands",
 #endif
 };
 

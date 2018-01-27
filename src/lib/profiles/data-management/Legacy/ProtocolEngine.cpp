@@ -711,7 +711,7 @@ Binding *ProtocolEngine::NewBinding(void)
         {
             retVal = &b;
 
-            SYSTEM_STATS_INCREMENT(nl::Weave::System::Stats::kWDMClient_NumBindings);
+            SYSTEM_STATS_INCREMENT(nl::Weave::System::Stats::kWDMLegacy_NumBindings);
 
             break;
         }
@@ -725,7 +725,7 @@ void ProtocolEngine::ClearBindingTable(void)
     for (int i = 0; i < kBindingTableSize; i++)
         mBindingTable[i].Free();
 
-    SYSTEM_STATS_RESET(nl::Weave::System::Stats::kWDMClient_NumBindings);
+    SYSTEM_STATS_RESET(nl::Weave::System::Stats::kWDMLegacy_NumBindings);
 }
 
 void ProtocolEngine::FinalizeBindingTable(void)
@@ -737,7 +737,7 @@ void ProtocolEngine::FinalizeBindingTable(void)
         binding.Finalize();
     }
 
-    SYSTEM_STATS_RESET(nl::Weave::System::Stats::kWDMClient_NumBindings);
+    SYSTEM_STATS_RESET(nl::Weave::System::Stats::kWDMLegacy_NumBindings);
 }
 
 WEAVE_ERROR ProtocolEngine::StartTransaction(DMTransaction *aTransaction, Binding *aBinding)
@@ -799,7 +799,7 @@ WEAVE_ERROR ProtocolEngine::EnqueueTransaction(DMTransaction *aTxn, Binding *aBi
 
             entry.Init(aTxn, aBinding);
 
-            SYSTEM_STATS_INCREMENT(nl::Weave::System::Stats::kWDMClient_NumTransactions);
+            SYSTEM_STATS_INCREMENT(nl::Weave::System::Stats::kWDMLegacy_NumTransactions);
 
             break;
         }
@@ -859,7 +859,7 @@ void ProtocolEngine::ClearTransactionTable(void)
 
         mTransactionTable[i].Free();
 
-    SYSTEM_STATS_RESET(nl::Weave::System::Stats::kWDMClient_NumTransactions);
+    SYSTEM_STATS_RESET(nl::Weave::System::Stats::kWDMLegacy_NumTransactions);
 }
 
 void ProtocolEngine::FinalizeTransactionTable(void)

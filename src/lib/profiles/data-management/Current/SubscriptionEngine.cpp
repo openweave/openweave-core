@@ -249,7 +249,7 @@ WEAVE_ERROR SubscriptionEngine::NewClient(SubscriptionClient ** const appClient,
                 *appClient = NULL;
                 ExitNow();
             }
-            SYSTEM_STATS_INCREMENT(nl::Weave::System::Stats::kWDMNext_NumSubscriptionClients);
+            SYSTEM_STATS_INCREMENT(nl::Weave::System::Stats::kWDM_NumSubscriptionClients);
             break;
         }
     }
@@ -613,7 +613,7 @@ void SubscriptionEngine::ReclaimTraitInfo(SubscriptionHandler * const aHandlerTo
 
     // Shrink the traitInfosInPool by the number of trait instances in this subscription.
     mNumTraitInfosInPool -= numTraitInstances;
-    SYSTEM_STATS_DECREMENT_BY_N(nl::Weave::System::Stats::kWDMNext_NumTraits, numTraitInstances);
+    SYSTEM_STATS_DECREMENT_BY_N(nl::Weave::System::Stats::kWDM_NumTraits, numTraitInstances);
 
     if (numTraitInstances == numTraitInstancesToBeAffected)
     {
@@ -717,7 +717,7 @@ WEAVE_ERROR SubscriptionEngine::NewSubscriptionHandler(SubscriptionHandler ** su
             *subHandler = &mHandlers[i];
             err         = WEAVE_NO_ERROR;
 
-            SYSTEM_STATS_INCREMENT(nl::Weave::System::Stats::kWDMNext_NumSubscriptionHandlers);
+            SYSTEM_STATS_INCREMENT(nl::Weave::System::Stats::kWDM_NumSubscriptionHandlers);
 
             break;
         }
@@ -967,7 +967,7 @@ void SubscriptionEngine::OnCustomCommand(nl::Weave::ExchangeContext * aEC, const
     {
         if (pEngine->mCommandObjs[i].IsFree())
         {
-            SYSTEM_STATS_INCREMENT(nl::Weave::System::Stats::kWDMNext_NumCommands);
+            SYSTEM_STATS_INCREMENT(nl::Weave::System::Stats::kWDM_NumCommands);
             command = &(pEngine->mCommandObjs[i]);
             command->Init(aEC);
             aEC = NULL;

@@ -500,7 +500,7 @@ void Binding::Free(void)
 
     mState = kState_Incomplete;
 
-    SYSTEM_STATS_DECREMENT(nl::Weave::System::Stats::kWDMClient_NumBindings);
+    SYSTEM_STATS_DECREMENT(nl::Weave::System::Stats::kWDMLegacy_NumBindings);
 }
 
 /**

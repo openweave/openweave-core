@@ -625,7 +625,7 @@ void SubscriptionClient::_Release()
     {
         AbortSubscription();
 
-        SYSTEM_STATS_DECREMENT(nl::Weave::System::Stats::kWDMNext_NumSubscriptionClients);
+        SYSTEM_STATS_DECREMENT(nl::Weave::System::Stats::kWDM_NumSubscriptionClients);
     }
 }
 

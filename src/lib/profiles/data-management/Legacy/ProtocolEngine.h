@@ -316,7 +316,7 @@ namespace WeaveMakeManagedNamespaceIdentifier(DataManagement, kWeaveManagedNames
                 mTransaction = NULL;
                 mBinding = NULL;
 
-                SYSTEM_STATS_DECREMENT(nl::Weave::System::Stats::kWDMClient_NumTransactions);
+                SYSTEM_STATS_DECREMENT(nl::Weave::System::Stats::kWDMLegacy_NumTransactions);
             };
 
             inline bool IsFree(void)
