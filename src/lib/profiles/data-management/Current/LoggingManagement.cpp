@@ -395,6 +395,11 @@ exit:
  * @param[in] inBufferLengths Description of inBufferLengths
  *
  * @param[in] inBuffers     The buffers to use for actual event logging.
+ * @param[in] inCounterKeys Keys naming persisted counters
+ *
+ * @param[in] inCounterEpochs An array of epochs for each of the persisted counters
+ *
+ * @param[in] inCounterStorage Application-provided storage for the persistent counters
  */
 void LoggingManagement::CreateLoggingManagement(nl::Weave::WeaveExchangeManager * inMgr, size_t inNumBuffers,
                                                 size_t * inBufferLengths, void ** inBuffers,
@@ -419,6 +424,7 @@ void LoggingManagement::CreateLoggingManagement(nl::Weave::WeaveExchangeManager 
  *
  * @param[in] nWeaveCounter The array of counter pointers must contain the initialized counters, and has to contain inNumBuffers of
  * counters.
+ *
  */
 void LoggingManagement::CreateLoggingManagement(nl::Weave::WeaveExchangeManager * inMgr, size_t inNumBuffers,
                                                 size_t * inBufferLengths, void ** inBuffers,

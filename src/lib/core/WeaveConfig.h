@@ -1630,7 +1630,7 @@
  *
  *  @brief
  *    If asserted (1), enable logging of all messages in the
- *    @ref kLogCategory_Error category.
+ *    nl::Weave::Logging::LogCategory::kLogCategory_Error category.
  *
  */
 #ifndef WEAVE_ERROR_LOGGING
@@ -1642,7 +1642,7 @@
  *
  *  @brief
  *    If asserted (1), enable logging of all messages in the
- *    @ref kLogCategory_Progress category.
+ *    nl::Weave::Logging::LogCategory::kLogCategory_Progress category.
  *
  */
 #ifndef WEAVE_PROGRESS_LOGGING
@@ -1654,7 +1654,7 @@
  *
  *  @brief
  *    If asserted (1), enable logging of all messages in the
- *    @ref kLogCategory_Detail category.
+ *    nl::Weave::Logging::kLogCategory_Detail category.
  *
  */
 #ifndef WEAVE_DETAIL_LOGGING
@@ -1666,7 +1666,7 @@
  *
  *  @brief
  *    If asserted (1), enable logging of all messages in the
- *    @ref kLogCategory_Retain category.
+ *    nl::Weave::Logging::LogCategory::kLogCategory_Retain category.
  *    If not defined by the application, by default WEAVE_RETAIN_LOGGING is
  *    remapped to WEAVE_PROGRESS_LOGGING
  *

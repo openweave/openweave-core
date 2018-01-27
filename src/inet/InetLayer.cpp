@@ -1310,6 +1310,8 @@ INET_ERROR InetLayer::HandlePlatformTimer(void)
  *
  *  @param[in]     exceptfds  A pointer to the set of file descriptors with errors.
  *
+ * @param[in]      sleepTimeTV A pointer to a structure specifying how long the select should sleep
+ *
  */
 void InetLayer::PrepareSelect(int& nfds, fd_set *readfds, fd_set *writefds, fd_set *exceptfds,
         struct timeval& sleepTimeTV)

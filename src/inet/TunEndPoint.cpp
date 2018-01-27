@@ -74,8 +74,6 @@ void TunEndPoint::Init(InetLayer *inetLayer)
  *  of the tunnel interface.  On POSIX, the method has no arguments and the
  *  name of the tunnel device is implied.
  *
- * @param[in] intfName        A user-defined string for the interface name(for sockets).
- *
  * @return INET_NO_ERROR on success, else a corresponding INET mapped OS error.
  */
 #if WEAVE_SYSTEM_CONFIG_USE_LWIP

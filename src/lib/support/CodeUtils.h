@@ -55,13 +55,13 @@
  *  @def NL_ASSERT_LOG(aPrefix, aName, aCondition, aLabel, aFile, aLine, aMessage)
  *
  *  @brief
- *    This implements a Weave-specific override for #NL_ASSERT_LOG
+ *    This implements a Weave-specific override for \c NL_ASSERT_LOG
  *    from nlassert.h.
  *
  *  @param[in]  aPrefix     A pointer to a NULL-terminated C string printed
  *                          at the beginning of the logged assertion
  *                          message. Typically this is and should be
- *                          #NL_ASSERT_PREFIX_STRING.
+ *                          \c NL_ASSERT_PREFIX_STRING.
  *  @param[in]  aName       A pointer to a NULL-terminated C string printed
  *                          following @a aPrefix that indicates what
  *                          module, program, application or subsystem

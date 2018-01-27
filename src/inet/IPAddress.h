@@ -353,7 +353,7 @@ public:
      */
 
     /**
-     * @fn      static IPAddress FromIPv4(...& addr)
+     * @fn      static IPAddress FromIPv4(const struct in_addr & addr)
      *
      * @brief   Inject the IPv4 address from a platform data structure.
      *
@@ -366,9 +366,12 @@ public:
      *
      * @return  The constructed IP address.
      */
+    /**
+     * @overload static IPAddress FromIPv4(const ip4_addr_t &addr)
+     */
 
     /**
-     * @fn      static IPAddress FromIPv6(...& addr)
+     * @fn      static IPAddress FromIPv6(const struct in6_addr& addr)
      *
      * @brief   Inject the IPv6 address from a platform data structure.
      *
@@ -380,6 +383,9 @@ public:
      *  (on POSIX) or <tt>const ip6_addr_t&</tt> (on LwIP).
      *
      * @return  The constructed IP address.
+     */
+    /**
+     * @overload     static IPAddress FromIPv6(const ip6_addr_t &addr)
      */
 
 #if WEAVE_SYSTEM_CONFIG_USE_LWIP

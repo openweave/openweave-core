@@ -199,7 +199,7 @@
 #endif // WEAVE_CONFIG_BACKUP_TUNNEL_MAX_TIMEOUT_SECS
 
 /**
- *  @def WEAVE_CONFIG_PRIMARY_TUNNEL_LIVENESS_INTERVAL
+ *  @def WEAVE_CONFIG_PRIMARY_TUNNEL_LIVENESS_INTERVAL_SECS
  *
  *  @brief
  *    This defines the default interval that the primary

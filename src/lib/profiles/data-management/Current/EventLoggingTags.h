@@ -175,7 +175,7 @@ enum
 
 /**
  * @brief
- *  Tags for the #kNestDebug_StringLogEntryEvent
+ *  Tags for the kNestDebug_StringLogEntryEvent
  */
 enum
 {
@@ -185,7 +185,7 @@ enum
 
 /**
  * @brief
- *  Tags for the #kNestDebug_TokenizedLogEntryEvent
+ *  Tags for the kNestDebug_TokenizedLogEntryEvent
  */
 enum
 {

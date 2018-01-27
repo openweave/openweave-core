@@ -88,7 +88,7 @@
  *    InetLayer subsystem.
  *
  *  @note
- *    By default, this parameter is a copy of #WEAVE_SYSTEM_CONFIG_ERROR_TYPE.
+ *    By default, this parameter is a copy of WEAVE_SYSTEM_CONFIG_ERROR_TYPE.
  *
  */
 #ifndef INET_CONFIG_ERROR_TYPE
@@ -102,7 +102,7 @@
  *    This defines the InetLayer error code for no error or success.
  *
  *  @note
- *    By default, this parameter is a copy of #WEAVE_SYSTEM_CONFIG_NO_ERROR.
+ *    By default, this parameter is a copy of WEAVE_SYSTEM_CONFIG_NO_ERROR.
  *
  */
 #ifndef INET_CONFIG_NO_ERROR
@@ -385,7 +385,7 @@
  *    mapping such event types into a platform- or system-specific range.
  *
  *  @note
- *    By default, this definition is a copy of #_WEAVE_SYSTEM_CONFIG_LWIP_EVENT.
+ *    By default, this definition is a copy of _WEAVE_SYSTEM_CONFIG_LWIP_EVENT.
  *
  */
 #ifndef _INET_CONFIG_EVENT
@@ -405,7 +405,7 @@
  *      Use LwIP.
  *
  *  @note
- *      By default, this parameter is a copy of #WEAVE_SYSTEM_CONFIG_USE_LWIP.
+ *      By default, this parameter is a copy of WEAVE_SYSTEM_CONFIG_USE_LWIP.
  */
 #ifndef INET_LWIP
 #define INET_LWIP                                           WEAVE_SYSTEM_CONFIG_USE_LWIP
@@ -418,7 +418,7 @@
  *      Use BSD sockets.
  *
  *  @note
- *      By default, this parameter is a copy of #WEAVE_SYSTEM_CONFIG_USE_SOCKETS.
+ *      By default, this parameter is a copy of WEAVE_SYSTEM_CONFIG_USE_SOCKETS.
  */
 #ifndef INET_SOCKETS
 #define INET_SOCKETS                                        WEAVE_SYSTEM_CONFIG_USE_SOCKETS
@@ -435,7 +435,7 @@
  *    host, this value should be left at its default.
  *
  *  @note
- *    By default, this parameter is a copy of #WEAVE_SYSTEM_CONFIG_POSIX_LOCKING.
+ *    By default, this parameter is a copy of WEAVE_SYSTEM_CONFIG_POSIX_LOCKING.
  *
  */
 #ifndef INET_CONFIG_POSIX_LOCKING
@@ -455,7 +455,7 @@
  *    threads and BSD sockets, this should also be deasserted (0).
  *
  *  @note
- *    By default, this parameter is a copy of #WEAVE_SYSTEM_CONFIG_FREERTOS_LOCKING.
+ *    By default, this parameter is a copy of WEAVE_SYSTEM_CONFIG_FREERTOS_LOCKING.
  *
  */
 #ifndef INET_CONFIG_FREERTOS_LOCKING
@@ -483,7 +483,7 @@
  *     an integral type.
  *
  *  @note
- *     By default, this parameter is a copy of #WEAVE_SYSTEM_CONFIG_LWIP_EVENT_TYPE.
+ *     By default, this parameter is a copy of WEAVE_SYSTEM_CONFIG_LWIP_EVENT_TYPE.
  *
  */
 #ifndef INET_CONFIG_EVENT_TYPE
@@ -501,7 +501,7 @@
  *     const pointer or reference are appropriate.
  *
  *  @note
- *     By default, this parameter is a copy of #WEAVE_SYSTEM_CONFIG_LWIP_EVENT_OBJECT_TYPE.
+ *     By default, this parameter is a copy of WEAVE_SYSTEM_CONFIG_LWIP_EVENT_OBJECT_TYPE.
  *
  */
 #ifndef INET_CONFIG_EVENT_OBJECT_TYPE
@@ -533,7 +533,7 @@
  *    This is the total number of available timers.
  *
  *  @note
- *    By default, this parameter is a copy of #WEAVE_SYSTEM_CONFIG_NUM_TIMERS.
+ *    By default, this parameter is a copy of WEAVE_SYSTEM_CONFIG_NUM_TIMERS.
  *
  */
 #ifndef INET_CONFIG_NUM_TIMERS
@@ -549,7 +549,7 @@
  *  message text.
  *
  * @note
- *    By default, this parameter is a copy of #WEAVE_SYSTEM_CONFIG_HEADER_RESERVE_SIZE.
+ *    By default, this parameter is a copy of WEAVE_SYSTEM_CONFIG_HEADER_RESERVE_SIZE.
  *
  */
 #ifndef INET_CONFIG_HEADER_RESERVE_SIZE

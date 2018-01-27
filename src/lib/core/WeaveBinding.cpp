@@ -93,7 +93,7 @@ namespace Weave {
  */
 
 /**
- * @fn const nl::Weave::WRMPConfig& Binding::GetDefaultWRMPConfig(void) const
+ * @fn const WRMPConfig& Binding::GetDefaultWRMPConfig(void) const
  *
  * Get the default WRMP configuration to be used when communicating with the peer.
  *
@@ -102,7 +102,7 @@ namespace Weave {
  */
 
 /**
- * @fn void Binding::SetDefaultWRMPConfig(const nl::Weave::WRMPConfig& aWRMPConfig)
+ * @fn void Binding::SetDefaultWRMPConfig(const WRMPConfig& aWRMPConfig)
  *
  * Set the default WRMP configuration to be used when communicating with the peer.
  *

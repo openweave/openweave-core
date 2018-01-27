@@ -205,7 +205,7 @@ exit:
 /**
  * Schedule sending Weave Heartbeat messages.
  *
- * @retval #WEAVE_SYSTEM_ERROR_NO_MEMORY    if StartTimer() failed
+ * @retval WEAVE_SYSTEM_ERROR_NO_MEMORY    if StartTimer() failed
  * @retval #WEAVE_NO_ERROR                  on success
  *
  */

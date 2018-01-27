@@ -323,12 +323,12 @@ void UDPEndPoint::Free()
 #endif // !WEAVE_SYSTEM_CONFIG_USE_LWIP
 }
 
-INET_ERROR UDPEndPoint::SendTo(IPAddress addr, uint16_t port, PacketBuffer *msg, uint16_t sendFlags)
+INET_ERROR UDPEndPoint::SendTo(IPAddress addr, uint16_t port, Weave::System::PacketBuffer *msg, uint16_t sendFlags)
 {
     return SendTo(addr, port, INET_NULL_INTERFACEID, msg, sendFlags);
 }
 
-INET_ERROR UDPEndPoint::SendTo(IPAddress addr, uint16_t port, InterfaceId intfId, PacketBuffer *msg, uint16_t sendFlags)
+INET_ERROR UDPEndPoint::SendTo(IPAddress addr, uint16_t port, InterfaceId intfId, Weave::System::PacketBuffer *msg, uint16_t sendFlags)
 {
     INET_ERROR res = INET_NO_ERROR;
 

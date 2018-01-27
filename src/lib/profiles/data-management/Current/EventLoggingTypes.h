@@ -248,7 +248,7 @@ struct EventLoadOutContext
  *  type are called after the event subsystem has generated all
  *  required event metadata. The function is called with a
  *  nl::Weave::TLV::TLVWriter object into which it will emit a single TLV element
- *  tagged #kTag_EventData; the value of that element MUST be a
+ *  tagged kTag_EventData; the value of that element MUST be a
  *  structure containing the event data. The event data itself must
  *  be structured using context tags.
  *
@@ -284,7 +284,7 @@ typedef WEAVE_ERROR (*EventWriterFunct)(nl::Weave::TLV::TLVWriter & ioWriter, ui
  *  Similar to FetchEventsSince, this fetch function returns all events from
  *  EventLoadOutContext.mStartingEventID through ExternalEvents.mLastEventID.
  *
- *  The context pointer is of type #FetchExternalEventsContext. This includes
+ *  The context pointer is of type FetchExternalEventsContext. This includes
  *  the EventLoadOutContext, with some helper variables for the format of the TLV.
  *  It also includes a pointer to the ExternalEvents struct created on registration
  *  of the callback. This specifies the event ID range for the callback.

@@ -226,7 +226,7 @@ exit:
  *    [<ip-6-addr>]:<port>
  *  @endcode
  *  @note
- *    If\c <port> is not supplied, defaultPort is used.  If defaultPort is 0, the default #WEAVE_PORT is used.
+ *    If `<port>` is not supplied, defaultPort is used.  If defaultPort is 0, the default #WEAVE_PORT is used.
  *    If peerAddr is null, the node's fabric IP address will be derived from the peerNodeId field.  If peerNodeId
  *    is kNodeIdNotSpecified (0), the node's identifier will be derived (if possible) from the peer's IP address.
  *
@@ -268,7 +268,7 @@ WEAVE_ERROR WeaveConnection::Connect(uint64_t peerNodeId, WeaveAuthMode authMode
  *    [<ip-6-addr>]:<port>
  *  @endcode
  *  @note
- *    If <port> is not supplied, defaultPort is used.  If defaultPort is 0, the default Weave port is used.
+ *    If `<port>` is not supplied, defaultPort is used.  If defaultPort is 0, the default Weave port is used.
  *    If peerAddr is null, the node's fabric IP address will be derived from the peerNodeId field.  If peerNodeId
  *    is kNodeIdNotSpecified (0), the node's identifier will be derived (if possible) from the peer's IP address.
  *
