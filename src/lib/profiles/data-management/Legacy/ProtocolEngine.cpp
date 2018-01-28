@@ -54,6 +54,11 @@ using nl::Weave::ExchangeContext;
 using nl::Weave::ExchangeMgr;
 using nl::Weave::WeaveMessageInfo;
 
+namespace nl {
+namespace Weave {
+namespace Profiles {
+namespace WeaveMakeManagedNamespaceIdentifier(DataManagement, kWeaveManagedNamespaceDesignation_Legacy) {
+
 static void TxnResponseHandler(ExchangeContext *anExchangeCtx,
                                const IPPacketInfo *anAddrInfo,
                                const WeaveMessageInfo *aMsgInfo,
@@ -73,7 +78,7 @@ static void TxnTimeoutHandler(ExchangeContext *anExchangeCtx)
     txn->OnResponseTimeout(anExchangeCtx->PeerNodeId);
 }
 
-WEAVE_ERROR DataManagement::SendStatusReport(ExchangeContext *aExchangeCtx, StatusReport &aStatus)
+WEAVE_ERROR SendStatusReport(ExchangeContext *aExchangeCtx, StatusReport &aStatus)
 {
     WEAVE_ERROR err;
     PacketBuffer *buf = PacketBuffer::New();
@@ -912,3 +917,7 @@ void ProtocolEngine::TransactionTableEntry::Fail(const uint64_t &aPeerId, Status
         txn->OnStatusReceived(aPeerId, aReport);
     }
 }
+} // namespace WeaveMakeManagedNamespaceIdentifier(DataManagement, kWeaveManagedNamespaceDesignation_Legacy)
+} // namespace Profiles
+} // namespace Weave
+} // namespace nl

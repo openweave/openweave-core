@@ -288,7 +288,7 @@ namespace Profiles {
         return pack(i);
     };
 
-    WEAVE_ERROR pack(MessageIterator&);
+    WEAVE_ERROR pack(MessageIterator&i);
 
     /**
      * Return the data length assuming that the object has been packed

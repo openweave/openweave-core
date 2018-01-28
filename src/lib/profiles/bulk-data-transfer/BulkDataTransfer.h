@@ -142,8 +142,13 @@ namespace WeaveMakeManagedNamespaceIdentifier(BDX, kWeaveManagedNamespaceDesigna
     // constructor
     SendInit();
     // initializer
-    WEAVE_ERROR init(bool, bool, bool, uint16_t, uint64_t, uint64_t, ReferencedString&, ReferencedTLVData*);
-    WEAVE_ERROR init(bool, bool, bool, uint16_t, uint32_t, uint32_t, ReferencedString&, ReferencedTLVData*);
+    WEAVE_ERROR init(bool aSenderDrive, bool aReceiverDrive, bool asynchMode,
+                     uint16_t aMaxBlockSize, uint64_t aStartOffset, uint64_t aLength,
+                     ReferencedString& aFileDesignator, ReferencedTLVData* aMetaData=NULL);
+    WEAVE_ERROR init(bool aSenderDrive, bool aReceiverDrive, bool asynchMode,
+                     uint16_t aMaxBlockSize, uint32_t aStartOffset, uint32_t aLength,
+                     ReferencedString &aFileDesignator, ReferencedTLVData *aMetaData=NULL);
+
     // packing and parsing
     WEAVE_ERROR pack(PacketBuffer*);
     uint16_t packedLength();

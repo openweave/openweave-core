@@ -32,7 +32,11 @@
 using namespace ::nl::Weave;
 using namespace ::nl::Weave::Profiles;
 using namespace ::nl::Weave::Profiles::StatusReporting;
-using namespace ::nl::Weave::Profiles::WeaveMakeManagedNamespaceIdentifier(BDX, kWeaveManagedNamespaceDesignation_Current);
+
+namespace nl {
+namespace Weave {
+namespace Profiles {
+namespace WeaveMakeManagedNamespaceIdentifier(BDX, kWeaveManagedNamespaceDesignation_Current) {
 /*
  * -- definitions for SendInit and its supporting classes --
  *
@@ -1286,3 +1290,8 @@ void WeaveBdxClient::DispatchErrorHandler(WEAVE_ERROR anErrorCode)
     theErrorHandler(theAppState, anErrorCode);
   }
 }
+
+} // namespace WeaveMakeManagedNamespaceIdentifier(BDX, kWeaveManagedNamespaceDesignation_Current)
+} // namespace Profiles
+} // namespace Weave
+} // namespace nl

@@ -31,7 +31,11 @@ using namespace ::nl::Weave;
 using namespace ::nl::Weave::TLV;
 using namespace ::nl::Weave::Profiles;
 using namespace ::nl::Weave::Profiles::Common;
-using namespace ::nl::Weave::Profiles::StatusReporting;
+
+namespace nl {
+namespace Weave {
+namespace Profiles {
+namespace StatusReporting {
 
 StatusReport::StatusReport(void)
 {
@@ -47,7 +51,7 @@ StatusReport::~StatusReport(void)
     mError = WEAVE_NO_ERROR;
 }
 
-WEAVE_ERROR StatusReport::init(uint32_t aProfileId, uint16_t aCode, ReferencedTLVData *aInfo)
+WEAVE_ERROR StatusReport::init(uint32_t aProfileId, uint16_t aCode, ReferencedTLVData *aInfo=NULL)
 {
     mProfileId = aProfileId;
     mStatusCode = aCode;
@@ -194,3 +198,7 @@ WEAVE_ERROR StatusReport::AddErrorCode(nl::Weave::TLV::TLVWriter &aWriter, WEAVE
 {
     return aWriter.Put(CommonTag(kTag_SystemErrorCode), aError);
 }
+} // namespace StatusReporting
+} // namespace Profiles
+} // namespace Weave
+} // nl
