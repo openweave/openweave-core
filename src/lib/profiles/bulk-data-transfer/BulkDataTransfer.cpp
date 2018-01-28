@@ -73,7 +73,7 @@ SendInit::SendInit()
  */
 WEAVE_ERROR SendInit::init(bool aSenderDrive, bool aReceiverDrive, bool asynchMode,
                            uint16_t aMaxBlockSize, uint64_t aStartOffset, uint64_t aLength,
-                           ReferencedString &aFileDesignator, ReferencedTLVData *aMetaData=NULL)
+                           ReferencedString &aFileDesignator, ReferencedTLVData *aMetaData)
 {
   wideRange=true;
   senderDriveSupported=aSenderDrive;
@@ -97,7 +97,7 @@ WEAVE_ERROR SendInit::init(bool aSenderDrive, bool aReceiverDrive, bool asynchMo
  */
 WEAVE_ERROR SendInit::init(bool aSenderDrive, bool aReceiverDrive, bool asynchMode,
 			   uint16_t aMaxBlockSize, uint32_t aStartOffset, uint32_t aLength,
-			   ReferencedString &aFileDesignator, ReferencedTLVData *aMetaData=NULL)
+			   ReferencedString &aFileDesignator, ReferencedTLVData *aMetaData)
 {
   init(aSenderDrive, aReceiverDrive, asynchMode, aMaxBlockSize,
        (uint64_t)aStartOffset, (uint64_t)aLength, aFileDesignator, aMetaData);

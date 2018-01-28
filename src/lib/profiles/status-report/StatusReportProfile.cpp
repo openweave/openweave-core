@@ -51,7 +51,7 @@ StatusReport::~StatusReport(void)
     mError = WEAVE_NO_ERROR;
 }
 
-WEAVE_ERROR StatusReport::init(uint32_t aProfileId, uint16_t aCode, ReferencedTLVData *aInfo=NULL)
+WEAVE_ERROR StatusReport::init(uint32_t aProfileId, uint16_t aCode, ReferencedTLVData *aInfo)
 {
     mProfileId = aProfileId;
     mStatusCode = aCode;
