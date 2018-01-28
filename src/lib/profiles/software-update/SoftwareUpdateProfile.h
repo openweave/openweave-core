@@ -268,7 +268,7 @@ namespace SoftwareUpdate {
   class NL_DLL_EXPORT ProductSpec {
   public:
     // constructors
-    ProductSpec(uint16_t, uint16_t, uint16_t);
+    ProductSpec(uint16_t aVendor, uint16_t aProduct,  uint16_t aRevision);
     ProductSpec();
     // comparison
     bool operator == (const ProductSpec&) const;

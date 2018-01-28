@@ -264,21 +264,11 @@ WEAVE_ERROR SerializedDataToTLVWriterHelper(nl::Weave::TLV::TLVWriter &aWriter,
                                             uint8_t aDataTag,
                                             void *aAppData);
 
-/**
- * @brief
- *   When this function returns, aStructureData may contain dynamically-allocated memory
- *   for which the caller is responsible for de-allocating when finished with it.
- */
 WEAVE_ERROR TLVReaderToDeserializedData(nl::Weave::TLV::TLVReader &aReader,
                                         void *aStructureData,
                                         const SchemaFieldDescriptor *aFieldDescriptors,
                                         SerializationContext *aContext = NULL);
 
-/**
- * @brief
- *   When this function returns, aStructureData may contain dynamically-allocated memory
- *   for which the caller is responsible for de-allocating when finished with it.
- */
 WEAVE_ERROR TLVReaderToDeserializedDataHelper(nl::Weave::TLV::TLVReader &aReader,
                                               uint8_t aDataTag,
                                               void *aAppData,

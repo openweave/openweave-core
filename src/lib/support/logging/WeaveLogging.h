@@ -370,7 +370,7 @@ extern uint8_t gLogFilter;
  *
  *  @param[in]  aCondition     A Boolean expression to be evaluated.
  *
- *  @sa #WEAVE_CONFIG_ENABLE_TRACE_ON_CHECK_FAILURE
+ *  @sa WEAVE_CONFIG_ENABLE_TRACE_ON_CHECK_FAILURE
  *
  */
 

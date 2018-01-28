@@ -686,6 +686,8 @@ void Binding::CompleteConfirm(void)
 }
 
 /**
+ * @fn void Binding::UncompleteRequest(WEAVE_ERROR aErr)
+ *
  *  @brief
  *    Cause a binding to be incomplete.
  *
@@ -731,6 +733,8 @@ void Binding::UncompleteRequest(WEAVE_ERROR aErr)
 }
 
 /**
+ * @fn void Binding::UncompleteRequest(void)
+ *
  *  @brief
  *    Cause a binding to be incomplete.
  *
@@ -740,10 +744,10 @@ void Binding::UncompleteRequest(WEAVE_ERROR aErr)
  *  should be cleaned up as well. Applications may consider invoking
  *  UncompleteRequest() as part of the cleanup on error.
  *
- *  @sa UncompleteRequest(WEAVE_ERROR)
+ *  @sa UncompleteRequest(WEAVE_ERROR )
  */
 
-void Binding::UncompleteRequest()
+void Binding::UncompleteRequest(void)
 {
     UncompleteRequest(WEAVE_NO_ERROR);
 }

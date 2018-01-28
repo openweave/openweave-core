@@ -190,10 +190,8 @@ namespace Profiles {
     // constructor
     ReferencedString(void);
     // initializers
-    WEAVE_ERROR init(uint16_t, char*, System::PacketBuffer*);
-    WEAVE_ERROR init(uint16_t, char*);
-    WEAVE_ERROR init(uint8_t, char*, System::PacketBuffer*);
-    WEAVE_ERROR init(uint8_t, char*);
+    WEAVE_ERROR init(uint16_t aLength, char* aString, System::PacketBuffer* aBuffer);
+    WEAVE_ERROR init(uint16_t aLength, char* aString);
     // pack and parse
     WEAVE_ERROR pack(MessageIterator&);
     static WEAVE_ERROR parse(MessageIterator&, ReferencedString&);
@@ -239,10 +237,10 @@ namespace Profiles {
 
     // initializers
 
-    WEAVE_ERROR init(System::PacketBuffer*);
-    WEAVE_ERROR init(MessageIterator&);
-    WEAVE_ERROR init(uint16_t, uint16_t, uint8_t*);
-    WEAVE_ERROR init(TLVWriteCallback, void*);
+    WEAVE_ERROR init(System::PacketBuffer* aBuffer);
+    WEAVE_ERROR init(MessageIterator&i);
+    WEAVE_ERROR init(uint16_t aLength, uint16_t aMaxLength, uint8_t*aByteString);
+    WEAVE_ERROR init(TLVWriteCallback aWriteCallback, void*anAppState);
 
     /*
      * ReferencedTLVData needs to override the free() and isFree()
@@ -273,7 +271,9 @@ namespace Profiles {
     // packing and parsing
 
     /**
-     * Pack a ReferencedTLVData object directly into an inet buffer.
+     * @fn WEAVE_ERROR ReferencedTLVData::pack(System::PacketBuffer *buff)
+     *
+     * @brief Pack a ReferencedTLVData object directly into a PacketBuffer
      *
      * @param [in] buff the buffer to fill.
      *
@@ -303,6 +303,10 @@ namespace Profiles {
     };
 
     /**
+     * @fn WEAVE_ERROR parse(System::PacketBuffer *buff, ReferencedTLVData &aTarget)
+     *
+     * @brief Parse a ReferencedTLVData object from a supplied PacketBuffer
+     *
      * Parse a ReferencedTLVData object out of an inet buffer
      * (assuming it just contains TLV).
      *
@@ -321,7 +325,7 @@ namespace Profiles {
         return parse(i, aTarget);
     };
 
-    static WEAVE_ERROR parse(MessageIterator&, ReferencedTLVData&);
+    static WEAVE_ERROR parse(MessageIterator&i, ReferencedTLVData&aTarget);
 
     // comparison
 

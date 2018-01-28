@@ -63,7 +63,7 @@ namespace StatusReporting {
         StatusReport(void);
         ~StatusReport(void);
 
-        WEAVE_ERROR init(uint32_t aProfileId, uint16_t aCode, ReferencedTLVData *aInfo=NULL);
+        WEAVE_ERROR init(uint32_t aProfileId, uint16_t aCode, ReferencedTLVData *aInfo = NULL);
 
         /*
          * this version of the intializer is provided as a convenience in

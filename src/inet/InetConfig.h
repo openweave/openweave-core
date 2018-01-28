@@ -519,7 +519,7 @@
  *    allocation using malloc.
  *
  * @note
- *    By default, this parameter is a copy of #WEAVE_SYSTEM_CONFIG_PACKETBUFFER_MAXALLOC.
+ *    By default, this parameter is a copy of WEAVE_SYSTEM_CONFIG_PACKETBUFFER_MAXALLOC.
  *
  */
 #ifndef INET_CONFIG_NUM_BUFS

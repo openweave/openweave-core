@@ -464,24 +464,21 @@ ReferencedString::ReferencedString(void) :
     isShort = false;
 }
 
-/*
- * for initializing these things, we have a couple of choices. the intention is
- * that, when you parse one of these things, there's a message buffer available
- * and that's where the string data should be. BUT, if you're making one of these
- * in order to send it then it's silly and wasteful to require that we set aside
- * a message buffer and stuff a string into it in order to do this. so, there are
- * two initializers. the first one is the one we use if there's actually a message
- * buffer.
- * parameters:
- * - uint16_t aLength, a length for the referenced string
- * - char *aString, a pointer to the string data (in the buffer)
- * - PacketBuffer *aBuffer, a messsage buffer in which the string resides
- * return:
- * - WEAVE_NO_ERROR if AOK
- * - WEAVE_ERROR_INVALID_STRING_LENGTH if... uhhh the string length is invalid
+/**
+ * @fn WEAVE_ERROR ReferencedString::init(uint16_t aLength, char *aString, System::PacketBuffer *aBuffer)
+ * @brief  Initialize a ReferencedString
+ *
+ * Initialize the  ReferencedString with a string and a PacketBuffer backing a that string.
+ *
+ * @param[in] aLength a length for the referenced string
+ * @param[in] aString a pointer to the string data (in the buffer)
+ * @param[in] aBuffer a messsage buffer in which the string resides
+ *
+ * @retval #WEAVE_NO_ERROR on success
+ * @retval #WEAVE_ERROR_INVALID_STRING_LENGTH when the supplied string is too long
  */
 
-WEAVE_ERROR ReferencedString::init(uint16_t aLength, char *aString, PacketBuffer *aBuffer)
+WEAVE_ERROR ReferencedString::init(uint16_t aLength, char *aString, System::PacketBuffer *aBuffer)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
 
@@ -501,18 +498,20 @@ WEAVE_ERROR ReferencedString::init(uint16_t aLength, char *aString, PacketBuffer
 }
 
 /*
- * this initializer is the one we use if there's no message buffer because we're
- * creating one of these to send. the string data here can really come from
- * anywhere.
- * NOTE!!! if the string passed in here is stack-allocated, any outgoing message
+ * @fn WEAVE_ERROR ReferencedString::init(uint16_t aLength, char *aString)
+ * @brief Initialize a ReferencedString
+ *
+ * This initializer should be used if there's no message buffer because we're
+ * creating this object with an intention of immediately sending it.
+ *
+ * @note If the string passed in here is stack-allocated, any outgoing message
  * created in this way must be sent before the stack context in which it was
  * created is exited.
- * parameters:
- * - uint16_t aLength, a length for the referenced string
- * - char *aString, a pointer to the string data
- * return:
- * - WEAVE_NO_ERROR if AOK
- * - WEAVE_ERROR_INVALID_STRING_LENGTH if... uhhh the string length is invalid
+ *
+ * @param[in] aLength a length for the referenced string
+ * @param[in] aString a pointer to the string data
+ *
+ * @retval #WEAVE_NO_ERROR Unconditionally
  */
 
 WEAVE_ERROR ReferencedString::init(uint16_t aLength, char *aString)
@@ -523,51 +522,6 @@ WEAVE_ERROR ReferencedString::init(uint16_t aLength, char *aString)
     Release();
 
     isShort = false;
-
-    return WEAVE_NO_ERROR;
-}
-
-/*
- * and now we have the same thing for a single-byte length.
- * parameters:
- * - uint8_t aLength, a length for the referenced string
- * - char *aString, a pointer to the string data (in the buffer)
- * - PacketBuffer *aBuffer, a messsage buffer in which the string resides
- * return:
- * - WEAVE_NO_ERROR if AOK
- * - WEAVE_ERROR_INVALID_STRING_LENGTH if... uhhh the string length is invalid
- */
-
-WEAVE_ERROR ReferencedString::init(uint8_t aLength, char *aString, PacketBuffer *aBuffer)
-{
-    if (aLength > (aBuffer->AvailableDataLength() - aBuffer->DataLength())) return WEAVE_ERROR_INVALID_STRING_LENGTH;
-
-    Retain(aBuffer);
-
-    theLength = (uint16_t)aLength;
-    theString = aString;
-    isShort = true;
-
-    return WEAVE_NO_ERROR;
-}
-
-/*
- * parameters:
- * - uint8_t aLength, a length for the referenced string
- * - char *aString, a pointer to the string data
- * return:
- * - WEAVE_NO_ERROR if AOK
- * - WEAVE_ERROR_INVALID_STRING_LENGTH if... uhhh the string length is invalid
- */
-
-WEAVE_ERROR ReferencedString::init(uint8_t aLength, char *aString)
-{
-    theLength = (uint16_t)aLength;
-    theString = aString;
-
-    Release();
-
-    isShort = true;
 
     return WEAVE_NO_ERROR;
 }
@@ -688,15 +642,19 @@ ReferencedTLVData::ReferencedTLVData(void) :
 }
 
 /**
+ * @fn WEAVE_ERROR ReferencedTLVData::init(System::PacketBuffer *aBuffer)
+ *
+ * @brief Initialize the ReferencedTLVData object given a PacketBuffer
+ *
  * Initialize a ReferencedTLVData object given a buffer full of
  * TLV. This assumes that the buffer ONLY contains TLV.
  *
- * @param [in] PacketBuffer *aBuffer, a message buffer in which the TLV resides.
+ * @param [in] aBuffer a message buffer in which the TLV resides.
  *
- * @return WEAVE_NO_ERROR
+ * @retval #WEAVE_NO_ERROR unconditionally
  */
 
-WEAVE_ERROR ReferencedTLVData::init(PacketBuffer *aBuffer)
+WEAVE_ERROR ReferencedTLVData::init(System::PacketBuffer *aBuffer)
 {
     Retain(aBuffer);
 
@@ -711,14 +669,17 @@ WEAVE_ERROR ReferencedTLVData::init(PacketBuffer *aBuffer)
 }
 
 /**
+ * @fn WEAVE_ERROR ReferencedTLVData::init(MessageIterator &i)
+ *
+ * @brief Initialize a ReferencedTLVData object given a MessageIterator.
+ *
  * Initialize a ReferencedTLVData object given a MessageIterator. In
- * this case, the TV is that last portion of the buffer and we pass in
+ * this case, the TLV is that last portion of the buffer and we pass in
  * a message iterator that's pointing to it.
  *
- * @param [in] MessageIterator &i , A message iterator pointing to TLV
- * to be extracted.
+ * @param [in] i A message iterator pointing to TLV to be extracted.
  *
- * @return: WEAVE_NO_ERROR
+ * @retval #WEAVE_NO_ERROR unconditionally
 */
 
 WEAVE_ERROR ReferencedTLVData::init(MessageIterator &i)
@@ -738,20 +699,23 @@ WEAVE_ERROR ReferencedTLVData::init(MessageIterator &i)
 }
 
 /**
+ * @fn WEAVE_ERROR ReferencedTLVData::init(uint16_t aLength, uint16_t aMaxLength, uint8_t *aByteString)
+ *
+ * @brief Initialize a ReferencedTLVObject given a byte string.
+ *
  * Initialize ReferencedTLVData object with a byte string containing
- * TLV. This initializer is the one we use if there's no inet buffer
+ * TLV. This initializer is the one we use if there's no PacketrBuffer
  * because we're creating one of these to pack and send.
  *
- * NOTE!!! if the string passed in here is stack-allocated, any
+ * @note if the string passed in here is stack-allocated, any
  * outgoing message created in this way must be sent before the stack
  * context in which it was created is exited.
  *
- * - uint16_t aLength, a length for the TLV data
- * - uint16_t aMaxLength, the total length of the buffer
- * - uint8_t *aByteString, a pointer to the string data
- * return:
- * - WEAVE_NO_ERROR if AOK
- * - WEAVE_ERROR_INVALID_STRING_LENGTH if... uhhh the string length is invalid
+ * @param[in] aLength a length for the TLV data
+ * @param[in] aMaxLength the total length of the buffer
+ * @param[in] aByteString a pointer to the string data
+ *
+ * @retval #WEAVE_NO_ERROR uncoditionally
  */
 
 WEAVE_ERROR ReferencedTLVData::init(uint16_t aLength, uint16_t aMaxLength, uint8_t *aByteString)
@@ -769,22 +733,27 @@ WEAVE_ERROR ReferencedTLVData::init(uint16_t aLength, uint16_t aMaxLength, uint8
 }
 
 /**
+ * @fn WEAVE_ERROR ReferencedTLVData::init(TLVWriteCallback aWriteCallback, void *anAppState)
+ *
+ * @brief Initialize a RefererencedTLVData object given a callback funtion.
+ *
  * Initialize a ReferencedTLVData object. Instead of explicitly
  * supplying the data, this version provides function, the write
  * callback, and a reference object, which will be passed to it, along
  * with a TLVWriter object, when the referenced data is supposed to be
  * packed and sent. The signature of that callback is:
  *
+ * @code
  *   typedef void (*TLVWriteCallback)(TLV::TLVWriter &aWriter, void *aAppState);
- *
- * @param [in] TLVWriteCallback aWriteCallback, the function to be
+ * @endcode
+ * @param [in] aWriteCallback the function to be
  * called when it's time to write some TLV.
  *
- * @param [in] void *anAppState, an application state object to be
+ * @param [in] anAppState an application state object to be
  * passed to the callback along with the writer.
  *
- * @return WEAVE_NO_ERROR if all went well, otherwise
- * WEAVE_ERROR_INVALID_ARGUMENT if thw write callback is not supplied.
+ * @retval #WEAVE_NO_ERROR on success
+ * @retval #WEAVE_ERROR_INVALID_ARGUMENT if the write callback is not supplied.
  */
 
 WEAVE_ERROR ReferencedTLVData::init(TLVWriteCallback aWriteCallback, void *anAppState)
@@ -844,9 +813,11 @@ bool ReferencedTLVData::isFree(void)
 }
 
 /**
- * Pack a ReferenceDTLVData object using a TLVWriter.
+ * @fn WEAVE_ERROR ReferencedTLVData::pack(MessageIterator &i)
  *
- * @param [in] MessageIterator &i, an iterator over the message being packed.
+ * @brief Pack a ReferencedTLVData object using a TLVWriter.
+ *
+ * @param [in] i an iterator over the message being packed.
  *
  * @return a WEAVE_ERROR - WEAVE_NO_ERROR if all goes well, otherwise
  * an error reflecting an inability of the writer to write the
@@ -876,6 +847,10 @@ WEAVE_ERROR ReferencedTLVData::pack(MessageIterator &i)
 }
 
 /**
+ * @fn WEAVE_ERROR ReferencedTLVData::parse(MessageIterator &i, ReferencedTLVData &aTarget)
+ *
+ * @brief Parse a ReferencedTLVData object from a supplied MessageIterator
+ *
  * Parse a ReferenceTLVData object from a MessageIterator object
  * assumed to be pointing at the TLV portion of a message.
  *
@@ -883,13 +858,13 @@ WEAVE_ERROR ReferencedTLVData::pack(MessageIterator &i)
  * the buffer and not manipulated at all. This method mainly just sets
  * up the ReferencedTLVData structure for later use.
  *
- * @param [in] MessageIterator &i, an iterator over the message being
+ * @param [in] i an iterator over the message being
  * parsed.
  *
- * @param [out] ReferencedTLVData &aTarget, a place to put the result
+ * @param [out] aTarget a place to put the result
  * of parsing.
  *
- * @return WEAVE_NO_ERROR.
+ * @retval #WEAVE_NO_ERROR unconditionally
  */
 
 WEAVE_ERROR ReferencedTLVData::parse(MessageIterator &i, ReferencedTLVData &aTarget)

@@ -1218,20 +1218,27 @@ exit:
 }
 
 /**
+ *
  * @brief
- *   A wrapper reader function that surrounds the TLVReaderToDeserializedData with a container.
- *   Also splits up an StructureSchemaPointerPair into structure data and descriptors to pass through.
+ *   A helper function that deserializes a single TLV data element
  *
- * @param[in] aReader           The reader to use for writing out the structure
+ * The function splits StructureSchemaPointerPair into structure data
+ * and descriptors to pass through to ReadDataForType.
  *
- * @param[in] aProfileId        Unused for the moment
+ * @note When this function returns, aStructureData may contain
+ *   dynamically-allocated memory for which the caller is responsible
+ *   for de-allocating when finished with it.
  *
- * @param[in] aStructureType    Unused for the moment
+ * @param[in] aReader           The reader containing data to be deserialized
  *
- * @param[in] aAppData          StructureSchemaPointerPair that contains a pointer to
- *                              structure data and field descriptors. void* due to prototype
+ * @param[in] aDataTag          Unused for the moment
  *
- * @param[in] aContext          Serialization context containing any state required for the operation.
+ * @param[in] aAppData          StructureSchemaPointerPair that contains a
+ *                              pointer to structure data and field
+ *                              descriptors. void* due to prototype
+ *
+ * @param[in] aContext          Serialization context containing any state
+ *                              required for the operation.
  *
  * @retval #WEAVE_NO_ERROR On success.
  *
