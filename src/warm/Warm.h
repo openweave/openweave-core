@@ -394,7 +394,7 @@ WEAVE_ERROR Init(WeaveFabricState &inFabricState);
  *    InvokeActions() appropriately. It might be appropriate for RequestInvokeActions to post
  *    an event to the task which would call InvokeActions() for example.  Conversely, if the system
  *    is single threaded, then RequestInvokeActions could be implemented to call InvokeActions()
- *    directly.  See this documentation \ref warmpage1 for more information.
+ *    directly.
  *
  *  @return none.
  *

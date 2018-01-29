@@ -245,8 +245,8 @@ Error Layer::NewTimer(Timer*& aTimerPtr)
 *   @param[in]  aComplete     A pointer to the function called when timer expires.
 *   @param[in]  aAppState     A pointer to the application state object used when timer expires.
 *
-*   @return #WEAVE_SYSTEM_NO_ERROR On success.
-*   @return #WEAVE_SYSTEM_ERROR_NO_MEMORY If a timer cannot be allocated.
+*   @return WEAVE_SYSTEM_NO_ERROR On success.
+*   @return WEAVE_SYSTEM_ERROR_NO_MEMORY If a timer cannot be allocated.
 *   @return Other Value indicating timer failed to start.
 *
 */
@@ -340,13 +340,13 @@ void Layer::CancelAllMatchingInetTimers(nl::Inet::InetLayer& aInetLayer, void* a
  * @param[in] aAppState A pointer to an application state object to be
  *                      passed to the callback function as argument.
  *
- * @retval #WEAVE_SYSTEM_ERROR_UNEXPECTED_STATE If the SystemLayer has
+ * @retval WEAVE_SYSTEM_ERROR_UNEXPECTED_STATE If the SystemLayer has
  *                      not been initialized.
  *
- * @retval #WEAVE_SYSTEM_ERROR_NO_MEMORY If the SystemLayer cannot
+ * @retval WEAVE_SYSTEM_ERROR_NO_MEMORY If the SystemLayer cannot
  *                      allocate a new timer.
  *
- * @retval #WEAVE_SYSTEM_NO_ERROR On success.
+ * @retval WEAVE_SYSTEM_NO_ERROR On success.
  */
 Error Layer::ScheduleWork(TimerCompleteFunct aComplete, void* aAppState)
 {
@@ -548,8 +548,8 @@ Error Layer::HandleSystemLayerEvent(Object& aTarget, EventType aEventType, uintp
  *
  *  @param[in]  aDelegate   An uninitialied LwIP event handler delegate structure
  *
- *  @retval     #WEAVE_SYSTEM_NO_ERROR          On success.
- *  @retval     #WEAVE_SYSTEM_ERROR_BAD_ARGS    If the function pointer contained in #aDelegate is NULL
+ *  @retval     WEAVE_SYSTEM_NO_ERROR          On success.
+ *  @retval     WEAVE_SYSTEM_ERROR_BAD_ARGS    If the function pointer contained in aDelegate is NULL
  */
 Error Layer::AddEventHandlerDelegate(LwIPEventHandlerDelegate& aDelegate)
 {
@@ -570,9 +570,9 @@ exit:
  *  @param[in]      aEventType  The type of event to post.
  *  @param[inout]   aArgument   The argument associated with the event to post.
  *
- *  @retval    #WEAVE_SYSTEM_NO_ERROR                   On success.
- *  @retval    #WEAVE_SYSTEM_ERROR_UNEXPECTED_STATE     If the state of the Layer object is incorrect.
- *  @retval    #WEAVE_SYSTEM_ERROR_NO_MEMORY            If the event queue is already full.
+ *  @retval    WEAVE_SYSTEM_NO_ERROR                   On success.
+ *  @retval    WEAVE_SYSTEM_ERROR_UNEXPECTED_STATE     If the state of the Layer object is incorrect.
+ *  @retval    WEAVE_SYSTEM_ERROR_NO_MEMORY            If the event queue is already full.
  *  @retval    other Platform-specific errors generated indicating the reason for failure.
  */
 Error Layer::PostEvent(Object& aTarget, EventType aEventType, uintptr_t aArgument)
@@ -617,11 +617,11 @@ Error Layer::DispatchEvents()
  * This dispatches the specified event for handling by this instance.
  *
  *  The unmarshalling of the type and arguments from the event is handled by a platform-specific hook which should then call back
- *  to ::HandleEvent for the actual dispatch.
+ *  to Layer::HandleEvent for the actual dispatch.
  *
  *  @param[in]  aEvent  The platform-specific event object to dispatch for handling.
  *
- * @return #WEAVE_SYSTEM_NO_ERROR on success; otherwise, a specific error indicating the reason for intialization failure.
+ * @return WEAVE_SYSTEM_NO_ERROR on success; otherwise, a specific error indicating the reason for intialization failure.
  */
 Error Layer::DispatchEvent(Event aEvent)
 {
@@ -642,9 +642,9 @@ Error Layer::DispatchEvent(Event aEvent)
  *  @param[in]      aEventType  The event / message type to handle.
  *  @param[in]      aArgument   The argument associated with the event / message.
  *
- *  @retval   #WEAVE_SYSTEM_NO_ERROR                On success.
- *  @retval   #WEAVE_SYSTEM_ERROR_UNEXPECTED_STATE  If the state of the InetLayer object is incorrect.
- *  @retval   #WEAVE_SYSTEM_ERROR_UNEXPECTED_EVENT  If the event type is unrecognized.
+ *  @retval   WEAVE_SYSTEM_NO_ERROR                On success.
+ *  @retval   WEAVE_SYSTEM_ERROR_UNEXPECTED_STATE  If the state of the InetLayer object is incorrect.
+ *  @retval   WEAVE_SYSTEM_ERROR_UNEXPECTED_EVENT  If the event type is unrecognized.
  */
 Error Layer::HandleEvent(Object& aTarget, EventType aEventType, uintptr_t aArgument)
 {

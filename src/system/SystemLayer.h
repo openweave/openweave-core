@@ -128,10 +128,10 @@ private:
  *  @brief
  *      This provides access to timers according to the configured event handling model.
  *
- *      For #WEAVE_SYSTEM_CONFIG_USE_SOCKETS, event readiness notification is handled via traditional poll/select implementation on
+ *      For \c WEAVE_SYSTEM_CONFIG_USE_SOCKETS, event readiness notification is handled via traditional poll/select implementation on
  *      the platform adaptation.
  *
- *      For #WEAVE_SYSTEM_CONFIG_USE_LWIP, event readiness notification is handle via events / messages and platform- and
+ *      For \c WEAVE_SYSTEM_CONFIG_USE_LWIP, event readiness notification is handle via events / messages and platform- and
  *      system-specific hooks for the event/message system.
  */
 class NL_DLL_EXPORT Layer

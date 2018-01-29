@@ -231,8 +231,8 @@ bool Timer::IsEarlierEpoch(const Timer::Epoch &inFirst, const Timer::Epoch &inSe
  *  This method registers an one-shot timer with the underlying timer mechanism provided by the platform.
  *
  *  @param[in]  aDelayMilliseconds  The number of milliseconds before this timer fires
- *  @param[in]  onComplete          A pointer to the callback function when this timer fires
- *  @param[in]  appState            An arbitrary pointer to be passed into onComplete when this timer fires
+ *  @param[in]  aOnComplete          A pointer to the callback function when this timer fires
+ *  @param[in]  aAppState            An arbitrary pointer to be passed into onComplete when this timer fires
  *
  *  @retval #WEAVE_SYSTEM_NO_ERROR Unconditionally.
  *

@@ -304,7 +304,7 @@ void PacketBuffer::CompactHead()
  *  Advance the data start position in the current buffer by the specified amount, in bytes, up to the length of data in the
  *  buffer. Decrease the length and total length by the amount consumed.
  *
- *  @param[in] consumeLen - number of bytes to consume from the current buffer.
+ *  @param[in] aConsumeLen - number of bytes to consume from the current buffer.
  */
 void PacketBuffer::ConsumeHead(uint16_t aConsumeLength)
 {
@@ -380,7 +380,7 @@ bool PacketBuffer::EnsureReservedSize(uint16_t aReservedSize)
  *
  *  Moving the payload in the buffer forward if necessary.
  *
- *  @param[in] alignBytes - specifies number of bytes alignment for the payload start pointer.
+ *  @param[in] aAlignBytes - specifies number of bytes alignment for the payload start pointer.
  *
  *  @return \c true if alignment is successful, \c false if there's not enough room in the buffer.
  */
@@ -609,11 +609,11 @@ void PacketBuffer::Free(PacketBuffer* aPacket)
 
 /**
  * Free the first buffer in a chain, returning a pointer to the remaining buffers.
- *
+ `*
  *  @note When the buffer chain is referenced by multiple callers, `FreeHead()` will detach the head, but will not forcibly
  *  deallocate the head buffer.
  *
- *  @param[in] buf - buffer chain.
+ *  @param[in] aPacket - buffer chain.
  *
  *  @return packet buffer chain consisting of the tail of the input buffer (may be \c NULL).
  */

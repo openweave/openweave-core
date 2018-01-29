@@ -72,7 +72,7 @@
  *    This defines a mapping function for BleLayer errors that allows
  *    mapping such errors into a platform- or system-specific
  *    range. This function may be configured via
- *    #_BLE_CONFIG_ERROR(e).
+ *    #_BLE_CONFIG_ERROR.
  *
  *  @param[in]  e  The BleLayer error to map.
  *
@@ -82,7 +82,9 @@
 #define _BLE_ERROR(e)                  _BLE_CONFIG_ERROR(e)
 
 /**
- *  @typedef The basic type for all BleLayer errors.
+ *  @typedef BLE_ERROR
+ *
+ *  The basic type for all BleLayer errors.
  *
  *  This is defined to a platform- or system-specific type.
  *

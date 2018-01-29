@@ -49,7 +49,7 @@
 #define WEAVE_SYSTEM_NO_ERROR WEAVE_SYSTEM_CONFIG_NO_ERROR
 
 /**
- *  @def WEAVE_SYSTEM_ERROR_MIN
+ *  @def WEAVE_SYSTEM_CONFIG_ERROR_MIN
  *
  *  @brief
  *      This macro expands to a constant expression representing the minimum code number for error conditions in the Weave System
@@ -60,7 +60,7 @@
 #endif // WEAVE_SYSTEM_CONFIG_ERROR_MIN
 
 /**
- *  @def WEAVE_SYSTEM_ERROR_MAX
+ *  @def WEAVE_SYSTEM_CONFIG_ERROR_MAX
  *
  *  @brief
  *      This macro expands to a constant expression representing the maximum code number for error conditions in the Weave System

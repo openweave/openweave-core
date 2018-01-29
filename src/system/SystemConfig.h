@@ -317,7 +317,7 @@
 #endif /* WEAVE_SYSTEM_CONFIG_LWIP_EVENT_TYPE */
 
 /**
- *  @def WEAVE_SYSTEM_CONFIG_CONFIG_LWIP_EVENT_UNRESERVED_CODE
+ *  @def WEAVE_SYSTEM_CONFIG_LWIP_EVENT_UNRESERVED_CODE
  *
  *  @brief
  *      This defines the first number in the default event code space not reserved for use by the Weave System Layer.

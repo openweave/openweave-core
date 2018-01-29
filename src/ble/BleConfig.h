@@ -217,7 +217,7 @@
 #endif // BLE_CONFIG_ERROR_MAX
 
 /**
- *  @def BLE_CONFIG_ERROR
+ *  @def _BLE_CONFIG_ERROR
  *
  *  @brief
  *    This defines a mapping function for BleLayer errors that allows

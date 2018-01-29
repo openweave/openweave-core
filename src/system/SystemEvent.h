@@ -35,7 +35,8 @@ namespace Weave {
 namespace System {
 
 /**
- *  @typedef The basic type for all InetLayer events.
+ *  @typedef EventType
+ *  The basic type for all InetLayer events.
  *
  *  This is defined to a platform- or system-specific type.
  *
@@ -43,7 +44,8 @@ namespace System {
 typedef WEAVE_SYSTEM_CONFIG_LWIP_EVENT_TYPE EventType;
 
 /**
- *  @typedef The basic object for all InetLayer events.
+ *  @typedef Event
+ *  The basic object for all InetLayer events.
  *
  *  This is defined to a platform- or system-specific type.
  *

@@ -151,7 +151,7 @@
 #endif
 
 /**
- *  @def WARM_CONFIG_SUPPORT_LEGACY6LoWPAN_NETWORK
+ *  @def WARM_CONFIG_SUPPORT_LEGACY6LOWPAN_NETWORK
  *
  *  @brief
  *    Device supports legacy 15.4 network communication.
