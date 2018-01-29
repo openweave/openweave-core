@@ -192,6 +192,8 @@ namespace Profiles {
     // initializers
     WEAVE_ERROR init(uint16_t aLength, char* aString, System::PacketBuffer* aBuffer);
     WEAVE_ERROR init(uint16_t aLength, char* aString);
+    WEAVE_ERROR init(uint8_t aLength, char* aString, System::PacketBuffer* aBuffer);
+    WEAVE_ERROR init(uint8_t aLength, char* aString);
     // pack and parse
     WEAVE_ERROR pack(MessageIterator&);
     static WEAVE_ERROR parse(MessageIterator&, ReferencedString&);

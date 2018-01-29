@@ -497,7 +497,7 @@ WEAVE_ERROR ReferencedString::init(uint16_t aLength, char *aString, System::Pack
     return err;
 }
 
-/*
+/**
  * @fn WEAVE_ERROR ReferencedString::init(uint16_t aLength, char *aString)
  * @brief Initialize a ReferencedString
  *
@@ -522,6 +522,40 @@ WEAVE_ERROR ReferencedString::init(uint16_t aLength, char *aString)
     Release();
 
     isShort = false;
+
+    return WEAVE_NO_ERROR;
+}
+
+/**
+ * @fn WEAVE_ERROR ReferencedString::init(uint8_t aLength, char *aString, System::PacketBuffer *aBuffer)
+ * @overload
+ */
+WEAVE_ERROR ReferencedString::init(uint8_t aLength, char *aString, System::PacketBuffer *aBuffer)
+{
+    if (aLength > (aBuffer->AvailableDataLength() - aBuffer->DataLength())) return WEAVE_ERROR_INVALID_STRING_LENGTH;
+
+    Retain(aBuffer);
+
+    theLength = (uint16_t)aLength;
+    theString = aString;
+    isShort = true;
+
+    return WEAVE_NO_ERROR;
+}
+
+/**
+ * @fn WEAVE_ERROR ReferencedString::init(uint8_t aLength, char *aString)
+ * @overload
+ */
+
+WEAVE_ERROR ReferencedString::init(uint8_t aLength, char *aString)
+{
+    theLength = (uint16_t) aLength;
+    theString = aString;
+
+    Release();
+
+    isShort = true;
 
     return WEAVE_NO_ERROR;
 }

@@ -67,7 +67,7 @@
  *                          module, program, application or subsystem
  *                          the assertion occurred in Typically this
  *                          is and should be
- *                          NL_ASSERT_COMPONENT_STRING.
+ *                          \c NL_ASSERT_COMPONENT_STRING.
  *  @param[in]  aCondition  A pointer to a NULL-terminated C string indicating
  *                          the expression that evaluated to false in
  *                          the assertion. Typically this is a
