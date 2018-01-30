@@ -63,9 +63,7 @@ enum
 #endif // INET_CONFIG_NUM_DNS_RESOLVERS
     kExchangeMgr_NumContexts,
     kExchangeMgr_NumUMHandlers,
-#if WEAVE_CONFIG_ENABLE_RELIABLE_MESSAGING
     kExchangeMgr_NumBindings,
-#endif // WEAVE_CONFIG_ENABLE_RELIABLE_MESSAGING
     kMessageLayer_NumConnections,
 #if WEAVE_CONFIG_ENABLE_SERVICE_DIRECTORY
     kServiceMgr_NumRequests,

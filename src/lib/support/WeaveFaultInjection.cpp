@@ -40,9 +40,7 @@ static const nl::FaultInjection::Name sManagerName = "Weave";
 static const nl::FaultInjection::Name sFaultNames[] = {
     "AllocExchangeContext",
     "DropIncomingUDPMsg",
-#if WEAVE_CONFIG_MAX_BINDINGS
     "AllocBinding",
-#endif // WEAVE_CONFIG_MAX_BINDINGS
     "SendAlarm",
     "HandleAlarm",
     "FuzzExchangeHeaderTx",
@@ -64,9 +62,7 @@ static const nl::FaultInjection::Name sFaultNames[] = {
     "WDMNotificationSize",
     "WDMSendCommandExpired",
     "WDMSendCommandBadVersion",
-#if WEAVE_CONFIG_ENABLE_CASE_INITIATOR || WEAVE_CONFIG_ENABLE_CASE_RESPONDER
     "CASEKeyConfirm",
-#endif // WEAVE_CONFIG_ENABLE_CASE_INITIATOR || WEAVE_CONFIG_ENABLE_CASE_RESPONDER
     "SecMgrBusy",
 #if WEAVE_CONFIG_ENABLE_TUNNELING
     "TunnelQueueFull",

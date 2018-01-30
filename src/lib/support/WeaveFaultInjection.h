@@ -53,9 +53,7 @@ typedef enum
 {
     kFault_AllocExchangeContext,                /**< Fail the allocation of an ExchangeContext */
     kFault_DropIncomingUDPMsg,                  /**< Drop an incoming UDP message without any processing */
-#if WEAVE_CONFIG_MAX_BINDINGS
     kFault_AllocBinding,                        /**< Fail the allocation of a Binding */
-#endif // WEAVE_CONFIG_MAX_BINDINGS
     kFault_SendAlarm,                           /**< Fail to send an alarm message */
     kFault_HandleAlarm,                         /**< Fail to handle an alarm message */
     kFault_FuzzExchangeHeaderTx,                /**< Fuzz a Weave Exchange Header after it has been encoded into the packet buffer;
@@ -81,9 +79,7 @@ typedef enum
                                                      an argument to the fault */
     kFault_WDM_SendCommandExpired,              /**< Force the ExpiryTime of a WDM command to be in the past */
     kFault_WDM_SendCommandBadVersion,           /**< Alter the version of a WDM command being transmitted */
-#if WEAVE_CONFIG_ENABLE_CASE_INITIATOR || WEAVE_CONFIG_ENABLE_CASE_RESPONDER
     kFault_CASEKeyConfirm,                      /**< Trigger a WEAVE_ERROR_KEY_CONFIRMATION_FAILED error in WeaveCASEEngine */
-#endif // WEAVE_CONFIG_ENABLE_CASE_INITIATOR || WEAVE_CONFIG_ENABLE_CASE_RESPONDER
     kFault_SecMgrBusy,                          /**< Trigger a WEAVE_ERROR_SECURITY_MANAGER_BUSY when starting an authentication session */
 #if WEAVE_CONFIG_ENABLE_TUNNELING
     kFault_TunnelQueueFull,                     /**< Trigger a WEAVE_ERROR_TUNNEL_SERVICE_QUEUE_FULL when enqueueing a packet in the Tunnel queue */

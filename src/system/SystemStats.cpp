@@ -59,9 +59,7 @@ static const Label sStatsStrings[nl::Weave::System::Stats::kNumEntries] =
 #endif
     "ExchangeMgr_NumContextsInUse",
     "ExchangeMgr_NumUMHandlersInUse",
-#if WEAVE_CONFIG_ENABLE_RELIABLE_MESSAGING
     "ExchangeMgr_NumBindings",
-#endif
     "MessageLayer_NumConnectionsInUse",
 #if WEAVE_CONFIG_ENABLE_SERVICE_DIRECTORY
     "ServiceMgr_NumRequestsInUse",
