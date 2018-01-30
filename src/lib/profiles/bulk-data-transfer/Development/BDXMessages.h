@@ -256,7 +256,7 @@ class ReceiveReject : public StatusReport { };
  *
  * @brief
  *   The BlockQuery message is used to request that a block of data
- *   be transfered from sender to receiver.
+ *   be transferred from sender to receiver.
  */
 class NL_DLL_EXPORT BlockQuery
 {
@@ -344,7 +344,7 @@ class TransferError : public StatusReport { };
  *
  * @brief
  *   The BlockQueryV1 message is used to request that a block of data
- *   be transfered from sender to receiver. It includes a 4 byte block counter.
+ *   be transferred from sender to receiver. It includes a 4 byte block counter.
  */
 class NL_DLL_EXPORT BlockQueryV1
 {

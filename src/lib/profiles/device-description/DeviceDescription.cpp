@@ -684,7 +684,7 @@ WEAVE_ERROR WeaveDeviceDescriptor::Decode(const uint8_t *data, uint32_t dataLen,
  *
  * @retval #WEAVE_ERROR_UNSUPPORTED_DEVICE_DESCRIPTOR_VERSION If the encoded data version is
  *                                                  unsupported.
- * @retval #WEAVE_ERROR_INVALID_DEVICE_DESCRIPTOR   If the encoded data is not formated correctly.
+ * @retval #WEAVE_ERROR_INVALID_DEVICE_DESCRIPTOR   If the encoded data is not formatted correctly.
  * @retval #WEAVE_ERROR_INCORRECT_STATE             If an inconsistent state is encountered by the
  *                                                  decoder.
  * @retval #WEAVE_ERROR_BUFFER_TOO_SMALL            If the end of the buffer is reached during

@@ -599,7 +599,7 @@ exit:
  * This is a syntactic wrapper around a platform-specific hook that effects an event loop, waiting on a queue that services this
  * instance, pulling events off of that queue, and then dispatching them for handling.
  *
- *  @return #WEAVE_SYSTEM_NO_ERROR on success; otherwise, a specific error indicating the reason for intialization failure.
+ *  @return #WEAVE_SYSTEM_NO_ERROR on success; otherwise, a specific error indicating the reason for initialization failure.
  */
 Error Layer::DispatchEvents()
 {
@@ -621,7 +621,7 @@ Error Layer::DispatchEvents()
  *
  *  @param[in]  aEvent  The platform-specific event object to dispatch for handling.
  *
- * @return WEAVE_SYSTEM_NO_ERROR on success; otherwise, a specific error indicating the reason for intialization failure.
+ * @return WEAVE_SYSTEM_NO_ERROR on success; otherwise, a specific error indicating the reason for initialization failure.
  */
 Error Layer::DispatchEvent(Event aEvent)
 {
@@ -757,7 +757,7 @@ namespace Layer {
  *
  *  @param[inout]  aContext  Platform-specific context data passed to the layer initialization method, ::Init.
  *
- *  @return #WEAVE_SYSTEM_NO_ERROR on success; otherwise, a specific error indicating the reason for intialization failure.
+ *  @return #WEAVE_SYSTEM_NO_ERROR on success; otherwise, a specific error indicating the reason for initialization failure.
  *      Returning non-successful status will abort initialization.
  */
 NL_DLL_EXPORT Error WillInit(Layer& aLayer, void* aContext)
@@ -851,7 +851,7 @@ using nl::Weave::System::LwIPEvent;
  *
  *  @param[inout]  anArg     The argument associated with the event to post.
  *
- *  @return #WEAVE_SYSTEM_NO_ERROR on success; otherwise, a specific error indicating the reason for intialization failure.
+ *  @return #WEAVE_SYSTEM_NO_ERROR on success; otherwise, a specific error indicating the reason for initialization failure.
  */
 NL_DLL_EXPORT Error PostEvent(Layer& aLayer, void* aContext, Object& aTarget, EventType aType, uintptr_t aArgument)
 {

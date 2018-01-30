@@ -792,7 +792,7 @@ cleanup:
  * - RejectHandler aRejectHandler, a hander for the case where the transfer is
  * rejected
  * - GetBlockHandler aBlockHandler, a handler that is supposed to get "the next"
- * block to be transfered
+ * block to be transferred
  * - XferErrorHandler anErrorHandler, a handler for fatal errors that occur in the
  * middle of the transfer
  * - XferDoneHandler aDoneHandler, a handler for when we're done transferring

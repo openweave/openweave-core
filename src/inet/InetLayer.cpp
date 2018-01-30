@@ -226,7 +226,7 @@ void InetLayer::DroppableEventDequeued(void)
  *                                               of resource for this
  *                                               request for a new timer.
  *  @retval   other Platform-specific errors indicating the reason for
- *            intialization failure.
+ *            initialization failure.
  *  @retval   #INET_NO_ERROR                     On success.
  *
  */
@@ -237,9 +237,9 @@ INET_ERROR InetLayer::Init(Weave::System::Layer& aSystemLayer, void *aContext)
     if (State != kState_NotInitialized)
         return INET_ERROR_INCORRECT_STATE;
 
-    // Platform-specific intialization may elect to set this data
+    // Platform-specific initialization may elect to set this data
     // member. Ensure it is set to a sane default value before
-    // invoking platform-specific intialization.
+    // invoking platform-specific initialization.
 
     mPlatformData = NULL;
 
@@ -1228,7 +1228,7 @@ exit:
  *  them for handling.
  *
  *  @return #INET_NO_ERROR on success; otherwise, a specific error
- *          indicating the reason for intialization failure.
+ *          indicating the reason for initialization failure.
  *
  */
 INET_ERROR InetLayer::DispatchEvents(void)
@@ -1535,7 +1535,7 @@ namespace InetLayer {
  *                          the layer initialization method, ::Init.
  *
  * @return #INET_NO_ERROR on success; otherwise, a specific error indicating
- *         the reason for intialization failure. Returning non-successful
+ *         the reason for initialization failure. Returning non-successful
  *         status will abort initialization.
  *
  */
@@ -1647,7 +1647,7 @@ NL_DLL_EXPORT void DidShutdown(Inet::InetLayer *aLayer, void *aContext, INET_ERR
  *  @param[inout]  anArg     The argument associated with the event to post.
  *
  *  @return #INET_NO_ERROR on success; otherwise, a specific error indicating
- *          the reason for intialization failure.
+ *          the reason for initialization failure.
  *
  */
 INET_ERROR PostEvent(Inet::InetLayer* aInetLayer, void* aContext, InetLayerBasis* aTarget, InetEventType aEventType,

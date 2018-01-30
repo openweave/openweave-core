@@ -239,7 +239,7 @@ namespace WeaveMakeManagedNamespaceIdentifier(BDX, kWeaveManagedNamespaceDesigna
   class ReceiveReject : public StatusReport { };
   /*
    * the BlockQuery message is used to request that a block of data
-   * be transfered from sender to receiver.
+   * be transferred from sender to receiver.
    */
   class NL_DLL_EXPORT BlockQuery {
   public:

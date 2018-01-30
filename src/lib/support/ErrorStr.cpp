@@ -109,7 +109,7 @@ namespace nl {
  *  @var static char sErrorStr[ERROR_STR_SIZE]
  *
  *  @brief
- *    Static buffer to store the formated error string
+ *    Static buffer to store the formatted error string
  *
  */
 static char sErrorStr[ERROR_STR_SIZE];
