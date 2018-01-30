@@ -312,16 +312,25 @@ DIST_COMMON = $(srcdir)/../system/SystemLayer.am \
 @WEAVE_WITH_VERHOEFF_TRUE@    $(NULL)
 
 @WEAVE_WITH_NLFAULTINJECTION_TRUE@am__append_11 = @top_builddir@/src/lib/support/WeaveFaultInjection.cpp
-@CONFIG_HAVE_HEAP_TRUE@am__append_12 = \
+@WEAVE_BUILD_LEGACY_WDM_TRUE@am__append_12 = \
+@WEAVE_BUILD_LEGACY_WDM_TRUE@    @top_builddir@/src/lib/profiles/data-management/Legacy/Binding.cpp                  \
+@WEAVE_BUILD_LEGACY_WDM_TRUE@    @top_builddir@/src/lib/profiles/data-management/Legacy/ClientNotifier.cpp           \
+@WEAVE_BUILD_LEGACY_WDM_TRUE@    @top_builddir@/src/lib/profiles/data-management/Legacy/DMClient.cpp                 \
+@WEAVE_BUILD_LEGACY_WDM_TRUE@    @top_builddir@/src/lib/profiles/data-management/Legacy/DMPublisher.cpp              \
+@WEAVE_BUILD_LEGACY_WDM_TRUE@    @top_builddir@/src/lib/profiles/data-management/Legacy/ProfileDatabase.cpp          \
+@WEAVE_BUILD_LEGACY_WDM_TRUE@    @top_builddir@/src/lib/profiles/data-management/Legacy/ProtocolEngine.cpp           \
+@WEAVE_BUILD_LEGACY_WDM_TRUE@    $(NULL)
+
+@CONFIG_HAVE_HEAP_TRUE@am__append_13 = \
 @CONFIG_HAVE_HEAP_TRUE@    @top_builddir@/src/lib/profiles/network-provisioning/NetworkInfo.cpp                \
 @CONFIG_HAVE_HEAP_TRUE@    $(NULL)
 
-@WEAVE_ENABLE_WOBLE_TEST_TRUE@am__append_13 = \
+@WEAVE_ENABLE_WOBLE_TEST_TRUE@am__append_14 = \
 @WEAVE_ENABLE_WOBLE_TEST_TRUE@    -I$(top_srcdir)/src/device-manager \
 @WEAVE_ENABLE_WOBLE_TEST_TRUE@    $(NULL)
 
-@CONFIG_NETWORK_LAYER_BLE_TRUE@am__append_14 = $(nl_BleLayer_sources)
-@WEAVE_BUILD_WARM_TRUE@am__append_15 = $(nl_Warm_sources)
+@CONFIG_NETWORK_LAYER_BLE_TRUE@am__append_15 = $(nl_BleLayer_sources)
+@WEAVE_BUILD_WARM_TRUE@am__append_16 = $(nl_Warm_sources)
 subdir = src/lib
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/build/autoconf/m4/nl_check_project_config_includes.m4 \
@@ -482,12 +491,6 @@ am__libWeave_a_SOURCES_DIST =  \
 	@top_builddir@/src/lib/profiles/bulk-data-transfer/Development/BDXTransferState.cpp \
 	@top_builddir@/src/lib/profiles/common/RetainedPacketBuffer.cpp \
 	@top_builddir@/src/lib/profiles/common/WeaveMessage.cpp \
-	@top_builddir@/src/lib/profiles/data-management/Legacy/Binding.cpp \
-	@top_builddir@/src/lib/profiles/data-management/Legacy/ClientNotifier.cpp \
-	@top_builddir@/src/lib/profiles/data-management/Legacy/DMClient.cpp \
-	@top_builddir@/src/lib/profiles/data-management/Legacy/DMPublisher.cpp \
-	@top_builddir@/src/lib/profiles/data-management/Legacy/ProfileDatabase.cpp \
-	@top_builddir@/src/lib/profiles/data-management/Legacy/ProtocolEngine.cpp \
 	@top_builddir@/src/lib/profiles/data-management/Current/MessageDef.cpp \
 	@top_builddir@/src/lib/profiles/data-management/Current/NotificationEngine.cpp \
 	@top_builddir@/src/lib/profiles/data-management/Current/SubscriptionClient.cpp \
@@ -553,6 +556,12 @@ am__libWeave_a_SOURCES_DIST =  \
 	@top_builddir@/src/lib/profiles/weave-tunneling/WeaveTunnelCommon.cpp \
 	@top_builddir@/src/lib/profiles/weave-tunneling/WeaveTunnelConnectionMgr.cpp \
 	@top_builddir@/src/lib/profiles/weave-tunneling/WeaveTunnelControl.cpp \
+	@top_builddir@/src/lib/profiles/data-management/Legacy/Binding.cpp \
+	@top_builddir@/src/lib/profiles/data-management/Legacy/ClientNotifier.cpp \
+	@top_builddir@/src/lib/profiles/data-management/Legacy/DMClient.cpp \
+	@top_builddir@/src/lib/profiles/data-management/Legacy/DMPublisher.cpp \
+	@top_builddir@/src/lib/profiles/data-management/Legacy/ProfileDatabase.cpp \
+	@top_builddir@/src/lib/profiles/data-management/Legacy/ProtocolEngine.cpp \
 	@top_builddir@/src/lib/profiles/network-provisioning/NetworkInfo.cpp \
 	@top_builddir@/src/warm/WarmCore.cpp
 am__dirstamp = $(am__leading_dot)dirstamp
@@ -661,20 +670,20 @@ am__objects_17 =  \
 	@top_builddir@/src/lib/support/logging/libWeave_a-WeaveLogging.$(OBJEXT) \
 	@top_builddir@/src/lib/support/logging/libWeave_a-DecodedIPPacket.$(OBJEXT) \
 	$(am__objects_15) $(am__objects_16)
-@CONFIG_HAVE_HEAP_TRUE@am__objects_18 = @top_builddir@/src/lib/profiles/network-provisioning/libWeave_a-NetworkInfo.$(OBJEXT)
-am__objects_19 = @top_builddir@/src/lib/profiles/bulk-data-transfer/libWeave_a-BulkDataTransfer.$(OBJEXT) \
+@WEAVE_BUILD_LEGACY_WDM_TRUE@am__objects_18 = @top_builddir@/src/lib/profiles/data-management/Legacy/libWeave_a-Binding.$(OBJEXT) \
+@WEAVE_BUILD_LEGACY_WDM_TRUE@	@top_builddir@/src/lib/profiles/data-management/Legacy/libWeave_a-ClientNotifier.$(OBJEXT) \
+@WEAVE_BUILD_LEGACY_WDM_TRUE@	@top_builddir@/src/lib/profiles/data-management/Legacy/libWeave_a-DMClient.$(OBJEXT) \
+@WEAVE_BUILD_LEGACY_WDM_TRUE@	@top_builddir@/src/lib/profiles/data-management/Legacy/libWeave_a-DMPublisher.$(OBJEXT) \
+@WEAVE_BUILD_LEGACY_WDM_TRUE@	@top_builddir@/src/lib/profiles/data-management/Legacy/libWeave_a-ProfileDatabase.$(OBJEXT) \
+@WEAVE_BUILD_LEGACY_WDM_TRUE@	@top_builddir@/src/lib/profiles/data-management/Legacy/libWeave_a-ProtocolEngine.$(OBJEXT)
+@CONFIG_HAVE_HEAP_TRUE@am__objects_19 = @top_builddir@/src/lib/profiles/network-provisioning/libWeave_a-NetworkInfo.$(OBJEXT)
+am__objects_20 = @top_builddir@/src/lib/profiles/bulk-data-transfer/libWeave_a-BulkDataTransfer.$(OBJEXT) \
 	@top_builddir@/src/lib/profiles/bulk-data-transfer/Development/libWeave_a-BDXMessages.$(OBJEXT) \
 	@top_builddir@/src/lib/profiles/bulk-data-transfer/Development/libWeave_a-BDXNode.$(OBJEXT) \
 	@top_builddir@/src/lib/profiles/bulk-data-transfer/Development/libWeave_a-BDXProtocol.$(OBJEXT) \
 	@top_builddir@/src/lib/profiles/bulk-data-transfer/Development/libWeave_a-BDXTransferState.$(OBJEXT) \
 	@top_builddir@/src/lib/profiles/common/libWeave_a-RetainedPacketBuffer.$(OBJEXT) \
 	@top_builddir@/src/lib/profiles/common/libWeave_a-WeaveMessage.$(OBJEXT) \
-	@top_builddir@/src/lib/profiles/data-management/Legacy/libWeave_a-Binding.$(OBJEXT) \
-	@top_builddir@/src/lib/profiles/data-management/Legacy/libWeave_a-ClientNotifier.$(OBJEXT) \
-	@top_builddir@/src/lib/profiles/data-management/Legacy/libWeave_a-DMClient.$(OBJEXT) \
-	@top_builddir@/src/lib/profiles/data-management/Legacy/libWeave_a-DMPublisher.$(OBJEXT) \
-	@top_builddir@/src/lib/profiles/data-management/Legacy/libWeave_a-ProfileDatabase.$(OBJEXT) \
-	@top_builddir@/src/lib/profiles/data-management/Legacy/libWeave_a-ProtocolEngine.$(OBJEXT) \
 	@top_builddir@/src/lib/profiles/data-management/Current/libWeave_a-MessageDef.$(OBJEXT) \
 	@top_builddir@/src/lib/profiles/data-management/Current/libWeave_a-NotificationEngine.$(OBJEXT) \
 	@top_builddir@/src/lib/profiles/data-management/Current/libWeave_a-SubscriptionClient.$(OBJEXT) \
@@ -740,13 +749,13 @@ am__objects_19 = @top_builddir@/src/lib/profiles/bulk-data-transfer/libWeave_a-B
 	@top_builddir@/src/lib/profiles/weave-tunneling/libWeave_a-WeaveTunnelCommon.$(OBJEXT) \
 	@top_builddir@/src/lib/profiles/weave-tunneling/libWeave_a-WeaveTunnelConnectionMgr.$(OBJEXT) \
 	@top_builddir@/src/lib/profiles/weave-tunneling/libWeave_a-WeaveTunnelControl.$(OBJEXT) \
-	$(am__objects_18)
-am__objects_20 =  \
+	$(am__objects_18) $(am__objects_19)
+am__objects_21 =  \
 	@top_builddir@/src/warm/libWeave_a-WarmCore.$(OBJEXT)
-@WEAVE_BUILD_WARM_TRUE@am__objects_21 = $(am__objects_20)
+@WEAVE_BUILD_WARM_TRUE@am__objects_22 = $(am__objects_21)
 am_libWeave_a_OBJECTS = $(am__objects_2) $(am__objects_10) \
 	$(am__objects_13) $(am__objects_14) $(am__objects_17) \
-	$(am__objects_19) $(am__objects_21)
+	$(am__objects_20) $(am__objects_22)
 libWeave_a_OBJECTS = $(am_libWeave_a_OBJECTS)
 AM_V_P = $(am__v_P_@AM_V@)
 am__v_P_ = $(am__v_P_@AM_DEFAULT_V@)
@@ -1157,12 +1166,6 @@ nl_WeaveProfiles_sources = @top_builddir@/src/lib/profiles/bulk-data-transfer/Bu
 	@top_builddir@/src/lib/profiles/bulk-data-transfer/Development/BDXTransferState.cpp \
 	@top_builddir@/src/lib/profiles/common/RetainedPacketBuffer.cpp \
 	@top_builddir@/src/lib/profiles/common/WeaveMessage.cpp \
-	@top_builddir@/src/lib/profiles/data-management/Legacy/Binding.cpp \
-	@top_builddir@/src/lib/profiles/data-management/Legacy/ClientNotifier.cpp \
-	@top_builddir@/src/lib/profiles/data-management/Legacy/DMClient.cpp \
-	@top_builddir@/src/lib/profiles/data-management/Legacy/DMPublisher.cpp \
-	@top_builddir@/src/lib/profiles/data-management/Legacy/ProfileDatabase.cpp \
-	@top_builddir@/src/lib/profiles/data-management/Legacy/ProtocolEngine.cpp \
 	@top_builddir@/src/lib/profiles/data-management/Current/MessageDef.cpp \
 	@top_builddir@/src/lib/profiles/data-management/Current/NotificationEngine.cpp \
 	@top_builddir@/src/lib/profiles/data-management/Current/SubscriptionClient.cpp \
@@ -1228,7 +1231,7 @@ nl_WeaveProfiles_sources = @top_builddir@/src/lib/profiles/bulk-data-transfer/Bu
 	@top_builddir@/src/lib/profiles/weave-tunneling/WeaveTunnelCommon.cpp \
 	@top_builddir@/src/lib/profiles/weave-tunneling/WeaveTunnelConnectionMgr.cpp \
 	@top_builddir@/src/lib/profiles/weave-tunneling/WeaveTunnelControl.cpp \
-	$(NULL) $(am__append_12)
+	$(NULL) $(am__append_12) $(am__append_13)
 nl_Warm_sources = \
     @top_builddir@/src/warm/WarmCore.cpp                     \
     $(NULL)
@@ -1239,11 +1242,11 @@ lib_LIBRARIES = libWeave.a
 libWeave_a_CPPFLAGS = -I$(top_srcdir)/src/include \
 	-I$(top_srcdir)/third_party/openssl-jpake/openssl/include \
 	$(nl_SystemLayer_CPPFLAGS) $(nl_InetLayer_CPPFLAGS) \
-	$(LWIP_CPPFLAGS) $(SOCKETS_CPPFLAGS) $(NULL) $(am__append_13)
+	$(LWIP_CPPFLAGS) $(SOCKETS_CPPFLAGS) $(NULL) $(am__append_14)
 libWeave_a_SOURCES = $(nl_SystemLayer_sources) $(nl_InetLayer_sources) \
-	$(am__append_14) $(nl_WeaveCore_sources) \
+	$(am__append_15) $(nl_WeaveCore_sources) \
 	$(nl_WeaveSupport_sources) $(nl_WeaveProfiles_sources) \
-	$(am__append_15)
+	$(am__append_16)
 
 # If and ONLY if Weave has been configured to use the interal OpenSSL, then 
 # include the OpenSSL objects in with libWeave.a.  Effectively, the internal
@@ -1728,24 +1731,6 @@ clean-libLIBRARIES:
 @top_builddir@/src/lib/profiles/common/libWeave_a-WeaveMessage.$(OBJEXT):  \
 	@top_builddir@/src/lib/profiles/common/$(am__dirstamp) \
 	@top_builddir@/src/lib/profiles/common/$(DEPDIR)/$(am__dirstamp)
-@top_builddir@/src/lib/profiles/data-management/Legacy/$(am__dirstamp):
-	@$(MKDIR_P) @top_builddir@/src/lib/profiles/data-management/Legacy
-	@: > @top_builddir@/src/lib/profiles/data-management/Legacy/$(am__dirstamp)
-@top_builddir@/src/lib/profiles/data-management/Legacy/$(DEPDIR)/$(am__dirstamp):
-	@$(MKDIR_P) @top_builddir@/src/lib/profiles/data-management/Legacy/$(DEPDIR)
-	@: > @top_builddir@/src/lib/profiles/data-management/Legacy/$(DEPDIR)/$(am__dirstamp)
-@top_builddir@/src/lib/profiles/data-management/Legacy/libWeave_a-Binding.$(OBJEXT): @top_builddir@/src/lib/profiles/data-management/Legacy/$(am__dirstamp) \
-	@top_builddir@/src/lib/profiles/data-management/Legacy/$(DEPDIR)/$(am__dirstamp)
-@top_builddir@/src/lib/profiles/data-management/Legacy/libWeave_a-ClientNotifier.$(OBJEXT): @top_builddir@/src/lib/profiles/data-management/Legacy/$(am__dirstamp) \
-	@top_builddir@/src/lib/profiles/data-management/Legacy/$(DEPDIR)/$(am__dirstamp)
-@top_builddir@/src/lib/profiles/data-management/Legacy/libWeave_a-DMClient.$(OBJEXT): @top_builddir@/src/lib/profiles/data-management/Legacy/$(am__dirstamp) \
-	@top_builddir@/src/lib/profiles/data-management/Legacy/$(DEPDIR)/$(am__dirstamp)
-@top_builddir@/src/lib/profiles/data-management/Legacy/libWeave_a-DMPublisher.$(OBJEXT): @top_builddir@/src/lib/profiles/data-management/Legacy/$(am__dirstamp) \
-	@top_builddir@/src/lib/profiles/data-management/Legacy/$(DEPDIR)/$(am__dirstamp)
-@top_builddir@/src/lib/profiles/data-management/Legacy/libWeave_a-ProfileDatabase.$(OBJEXT): @top_builddir@/src/lib/profiles/data-management/Legacy/$(am__dirstamp) \
-	@top_builddir@/src/lib/profiles/data-management/Legacy/$(DEPDIR)/$(am__dirstamp)
-@top_builddir@/src/lib/profiles/data-management/Legacy/libWeave_a-ProtocolEngine.$(OBJEXT): @top_builddir@/src/lib/profiles/data-management/Legacy/$(am__dirstamp) \
-	@top_builddir@/src/lib/profiles/data-management/Legacy/$(DEPDIR)/$(am__dirstamp)
 @top_builddir@/src/lib/profiles/data-management/Current/$(am__dirstamp):
 	@$(MKDIR_P) @top_builddir@/src/lib/profiles/data-management/Current
 	@: > @top_builddir@/src/lib/profiles/data-management/Current/$(am__dirstamp)
@@ -2011,6 +1996,24 @@ clean-libLIBRARIES:
 	@top_builddir@/src/lib/profiles/weave-tunneling/$(DEPDIR)/$(am__dirstamp)
 @top_builddir@/src/lib/profiles/weave-tunneling/libWeave_a-WeaveTunnelControl.$(OBJEXT): @top_builddir@/src/lib/profiles/weave-tunneling/$(am__dirstamp) \
 	@top_builddir@/src/lib/profiles/weave-tunneling/$(DEPDIR)/$(am__dirstamp)
+@top_builddir@/src/lib/profiles/data-management/Legacy/$(am__dirstamp):
+	@$(MKDIR_P) @top_builddir@/src/lib/profiles/data-management/Legacy
+	@: > @top_builddir@/src/lib/profiles/data-management/Legacy/$(am__dirstamp)
+@top_builddir@/src/lib/profiles/data-management/Legacy/$(DEPDIR)/$(am__dirstamp):
+	@$(MKDIR_P) @top_builddir@/src/lib/profiles/data-management/Legacy/$(DEPDIR)
+	@: > @top_builddir@/src/lib/profiles/data-management/Legacy/$(DEPDIR)/$(am__dirstamp)
+@top_builddir@/src/lib/profiles/data-management/Legacy/libWeave_a-Binding.$(OBJEXT): @top_builddir@/src/lib/profiles/data-management/Legacy/$(am__dirstamp) \
+	@top_builddir@/src/lib/profiles/data-management/Legacy/$(DEPDIR)/$(am__dirstamp)
+@top_builddir@/src/lib/profiles/data-management/Legacy/libWeave_a-ClientNotifier.$(OBJEXT): @top_builddir@/src/lib/profiles/data-management/Legacy/$(am__dirstamp) \
+	@top_builddir@/src/lib/profiles/data-management/Legacy/$(DEPDIR)/$(am__dirstamp)
+@top_builddir@/src/lib/profiles/data-management/Legacy/libWeave_a-DMClient.$(OBJEXT): @top_builddir@/src/lib/profiles/data-management/Legacy/$(am__dirstamp) \
+	@top_builddir@/src/lib/profiles/data-management/Legacy/$(DEPDIR)/$(am__dirstamp)
+@top_builddir@/src/lib/profiles/data-management/Legacy/libWeave_a-DMPublisher.$(OBJEXT): @top_builddir@/src/lib/profiles/data-management/Legacy/$(am__dirstamp) \
+	@top_builddir@/src/lib/profiles/data-management/Legacy/$(DEPDIR)/$(am__dirstamp)
+@top_builddir@/src/lib/profiles/data-management/Legacy/libWeave_a-ProfileDatabase.$(OBJEXT): @top_builddir@/src/lib/profiles/data-management/Legacy/$(am__dirstamp) \
+	@top_builddir@/src/lib/profiles/data-management/Legacy/$(DEPDIR)/$(am__dirstamp)
+@top_builddir@/src/lib/profiles/data-management/Legacy/libWeave_a-ProtocolEngine.$(OBJEXT): @top_builddir@/src/lib/profiles/data-management/Legacy/$(am__dirstamp) \
+	@top_builddir@/src/lib/profiles/data-management/Legacy/$(DEPDIR)/$(am__dirstamp)
 @top_builddir@/src/lib/profiles/network-provisioning/libWeave_a-NetworkInfo.$(OBJEXT): @top_builddir@/src/lib/profiles/network-provisioning/$(am__dirstamp) \
 	@top_builddir@/src/lib/profiles/network-provisioning/$(DEPDIR)/$(am__dirstamp)
 @top_builddir@/src/warm/$(am__dirstamp):
@@ -3694,90 +3697,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libWeave_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o @top_builddir@/src/lib/profiles/common/libWeave_a-WeaveMessage.obj `if test -f '@top_builddir@/src/lib/profiles/common/WeaveMessage.cpp'; then $(CYGPATH_W) '@top_builddir@/src/lib/profiles/common/WeaveMessage.cpp'; else $(CYGPATH_W) '$(srcdir)/@top_builddir@/src/lib/profiles/common/WeaveMessage.cpp'; fi`
 
-@top_builddir@/src/lib/profiles/data-management/Legacy/libWeave_a-Binding.o: @top_builddir@/src/lib/profiles/data-management/Legacy/Binding.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libWeave_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT @top_builddir@/src/lib/profiles/data-management/Legacy/libWeave_a-Binding.o -MD -MP -MF @top_builddir@/src/lib/profiles/data-management/Legacy/$(DEPDIR)/libWeave_a-Binding.Tpo -c -o @top_builddir@/src/lib/profiles/data-management/Legacy/libWeave_a-Binding.o `test -f '@top_builddir@/src/lib/profiles/data-management/Legacy/Binding.cpp' || echo '$(srcdir)/'`@top_builddir@/src/lib/profiles/data-management/Legacy/Binding.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) @top_builddir@/src/lib/profiles/data-management/Legacy/$(DEPDIR)/libWeave_a-Binding.Tpo @top_builddir@/src/lib/profiles/data-management/Legacy/$(DEPDIR)/libWeave_a-Binding.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='@top_builddir@/src/lib/profiles/data-management/Legacy/Binding.cpp' object='@top_builddir@/src/lib/profiles/data-management/Legacy/libWeave_a-Binding.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libWeave_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o @top_builddir@/src/lib/profiles/data-management/Legacy/libWeave_a-Binding.o `test -f '@top_builddir@/src/lib/profiles/data-management/Legacy/Binding.cpp' || echo '$(srcdir)/'`@top_builddir@/src/lib/profiles/data-management/Legacy/Binding.cpp
-
-@top_builddir@/src/lib/profiles/data-management/Legacy/libWeave_a-Binding.obj: @top_builddir@/src/lib/profiles/data-management/Legacy/Binding.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libWeave_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT @top_builddir@/src/lib/profiles/data-management/Legacy/libWeave_a-Binding.obj -MD -MP -MF @top_builddir@/src/lib/profiles/data-management/Legacy/$(DEPDIR)/libWeave_a-Binding.Tpo -c -o @top_builddir@/src/lib/profiles/data-management/Legacy/libWeave_a-Binding.obj `if test -f '@top_builddir@/src/lib/profiles/data-management/Legacy/Binding.cpp'; then $(CYGPATH_W) '@top_builddir@/src/lib/profiles/data-management/Legacy/Binding.cpp'; else $(CYGPATH_W) '$(srcdir)/@top_builddir@/src/lib/profiles/data-management/Legacy/Binding.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) @top_builddir@/src/lib/profiles/data-management/Legacy/$(DEPDIR)/libWeave_a-Binding.Tpo @top_builddir@/src/lib/profiles/data-management/Legacy/$(DEPDIR)/libWeave_a-Binding.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='@top_builddir@/src/lib/profiles/data-management/Legacy/Binding.cpp' object='@top_builddir@/src/lib/profiles/data-management/Legacy/libWeave_a-Binding.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libWeave_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o @top_builddir@/src/lib/profiles/data-management/Legacy/libWeave_a-Binding.obj `if test -f '@top_builddir@/src/lib/profiles/data-management/Legacy/Binding.cpp'; then $(CYGPATH_W) '@top_builddir@/src/lib/profiles/data-management/Legacy/Binding.cpp'; else $(CYGPATH_W) '$(srcdir)/@top_builddir@/src/lib/profiles/data-management/Legacy/Binding.cpp'; fi`
-
-@top_builddir@/src/lib/profiles/data-management/Legacy/libWeave_a-ClientNotifier.o: @top_builddir@/src/lib/profiles/data-management/Legacy/ClientNotifier.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libWeave_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT @top_builddir@/src/lib/profiles/data-management/Legacy/libWeave_a-ClientNotifier.o -MD -MP -MF @top_builddir@/src/lib/profiles/data-management/Legacy/$(DEPDIR)/libWeave_a-ClientNotifier.Tpo -c -o @top_builddir@/src/lib/profiles/data-management/Legacy/libWeave_a-ClientNotifier.o `test -f '@top_builddir@/src/lib/profiles/data-management/Legacy/ClientNotifier.cpp' || echo '$(srcdir)/'`@top_builddir@/src/lib/profiles/data-management/Legacy/ClientNotifier.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) @top_builddir@/src/lib/profiles/data-management/Legacy/$(DEPDIR)/libWeave_a-ClientNotifier.Tpo @top_builddir@/src/lib/profiles/data-management/Legacy/$(DEPDIR)/libWeave_a-ClientNotifier.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='@top_builddir@/src/lib/profiles/data-management/Legacy/ClientNotifier.cpp' object='@top_builddir@/src/lib/profiles/data-management/Legacy/libWeave_a-ClientNotifier.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libWeave_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o @top_builddir@/src/lib/profiles/data-management/Legacy/libWeave_a-ClientNotifier.o `test -f '@top_builddir@/src/lib/profiles/data-management/Legacy/ClientNotifier.cpp' || echo '$(srcdir)/'`@top_builddir@/src/lib/profiles/data-management/Legacy/ClientNotifier.cpp
-
-@top_builddir@/src/lib/profiles/data-management/Legacy/libWeave_a-ClientNotifier.obj: @top_builddir@/src/lib/profiles/data-management/Legacy/ClientNotifier.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libWeave_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT @top_builddir@/src/lib/profiles/data-management/Legacy/libWeave_a-ClientNotifier.obj -MD -MP -MF @top_builddir@/src/lib/profiles/data-management/Legacy/$(DEPDIR)/libWeave_a-ClientNotifier.Tpo -c -o @top_builddir@/src/lib/profiles/data-management/Legacy/libWeave_a-ClientNotifier.obj `if test -f '@top_builddir@/src/lib/profiles/data-management/Legacy/ClientNotifier.cpp'; then $(CYGPATH_W) '@top_builddir@/src/lib/profiles/data-management/Legacy/ClientNotifier.cpp'; else $(CYGPATH_W) '$(srcdir)/@top_builddir@/src/lib/profiles/data-management/Legacy/ClientNotifier.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) @top_builddir@/src/lib/profiles/data-management/Legacy/$(DEPDIR)/libWeave_a-ClientNotifier.Tpo @top_builddir@/src/lib/profiles/data-management/Legacy/$(DEPDIR)/libWeave_a-ClientNotifier.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='@top_builddir@/src/lib/profiles/data-management/Legacy/ClientNotifier.cpp' object='@top_builddir@/src/lib/profiles/data-management/Legacy/libWeave_a-ClientNotifier.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libWeave_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o @top_builddir@/src/lib/profiles/data-management/Legacy/libWeave_a-ClientNotifier.obj `if test -f '@top_builddir@/src/lib/profiles/data-management/Legacy/ClientNotifier.cpp'; then $(CYGPATH_W) '@top_builddir@/src/lib/profiles/data-management/Legacy/ClientNotifier.cpp'; else $(CYGPATH_W) '$(srcdir)/@top_builddir@/src/lib/profiles/data-management/Legacy/ClientNotifier.cpp'; fi`
-
-@top_builddir@/src/lib/profiles/data-management/Legacy/libWeave_a-DMClient.o: @top_builddir@/src/lib/profiles/data-management/Legacy/DMClient.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libWeave_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT @top_builddir@/src/lib/profiles/data-management/Legacy/libWeave_a-DMClient.o -MD -MP -MF @top_builddir@/src/lib/profiles/data-management/Legacy/$(DEPDIR)/libWeave_a-DMClient.Tpo -c -o @top_builddir@/src/lib/profiles/data-management/Legacy/libWeave_a-DMClient.o `test -f '@top_builddir@/src/lib/profiles/data-management/Legacy/DMClient.cpp' || echo '$(srcdir)/'`@top_builddir@/src/lib/profiles/data-management/Legacy/DMClient.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) @top_builddir@/src/lib/profiles/data-management/Legacy/$(DEPDIR)/libWeave_a-DMClient.Tpo @top_builddir@/src/lib/profiles/data-management/Legacy/$(DEPDIR)/libWeave_a-DMClient.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='@top_builddir@/src/lib/profiles/data-management/Legacy/DMClient.cpp' object='@top_builddir@/src/lib/profiles/data-management/Legacy/libWeave_a-DMClient.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libWeave_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o @top_builddir@/src/lib/profiles/data-management/Legacy/libWeave_a-DMClient.o `test -f '@top_builddir@/src/lib/profiles/data-management/Legacy/DMClient.cpp' || echo '$(srcdir)/'`@top_builddir@/src/lib/profiles/data-management/Legacy/DMClient.cpp
-
-@top_builddir@/src/lib/profiles/data-management/Legacy/libWeave_a-DMClient.obj: @top_builddir@/src/lib/profiles/data-management/Legacy/DMClient.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libWeave_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT @top_builddir@/src/lib/profiles/data-management/Legacy/libWeave_a-DMClient.obj -MD -MP -MF @top_builddir@/src/lib/profiles/data-management/Legacy/$(DEPDIR)/libWeave_a-DMClient.Tpo -c -o @top_builddir@/src/lib/profiles/data-management/Legacy/libWeave_a-DMClient.obj `if test -f '@top_builddir@/src/lib/profiles/data-management/Legacy/DMClient.cpp'; then $(CYGPATH_W) '@top_builddir@/src/lib/profiles/data-management/Legacy/DMClient.cpp'; else $(CYGPATH_W) '$(srcdir)/@top_builddir@/src/lib/profiles/data-management/Legacy/DMClient.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) @top_builddir@/src/lib/profiles/data-management/Legacy/$(DEPDIR)/libWeave_a-DMClient.Tpo @top_builddir@/src/lib/profiles/data-management/Legacy/$(DEPDIR)/libWeave_a-DMClient.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='@top_builddir@/src/lib/profiles/data-management/Legacy/DMClient.cpp' object='@top_builddir@/src/lib/profiles/data-management/Legacy/libWeave_a-DMClient.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libWeave_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o @top_builddir@/src/lib/profiles/data-management/Legacy/libWeave_a-DMClient.obj `if test -f '@top_builddir@/src/lib/profiles/data-management/Legacy/DMClient.cpp'; then $(CYGPATH_W) '@top_builddir@/src/lib/profiles/data-management/Legacy/DMClient.cpp'; else $(CYGPATH_W) '$(srcdir)/@top_builddir@/src/lib/profiles/data-management/Legacy/DMClient.cpp'; fi`
-
-@top_builddir@/src/lib/profiles/data-management/Legacy/libWeave_a-DMPublisher.o: @top_builddir@/src/lib/profiles/data-management/Legacy/DMPublisher.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libWeave_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT @top_builddir@/src/lib/profiles/data-management/Legacy/libWeave_a-DMPublisher.o -MD -MP -MF @top_builddir@/src/lib/profiles/data-management/Legacy/$(DEPDIR)/libWeave_a-DMPublisher.Tpo -c -o @top_builddir@/src/lib/profiles/data-management/Legacy/libWeave_a-DMPublisher.o `test -f '@top_builddir@/src/lib/profiles/data-management/Legacy/DMPublisher.cpp' || echo '$(srcdir)/'`@top_builddir@/src/lib/profiles/data-management/Legacy/DMPublisher.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) @top_builddir@/src/lib/profiles/data-management/Legacy/$(DEPDIR)/libWeave_a-DMPublisher.Tpo @top_builddir@/src/lib/profiles/data-management/Legacy/$(DEPDIR)/libWeave_a-DMPublisher.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='@top_builddir@/src/lib/profiles/data-management/Legacy/DMPublisher.cpp' object='@top_builddir@/src/lib/profiles/data-management/Legacy/libWeave_a-DMPublisher.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libWeave_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o @top_builddir@/src/lib/profiles/data-management/Legacy/libWeave_a-DMPublisher.o `test -f '@top_builddir@/src/lib/profiles/data-management/Legacy/DMPublisher.cpp' || echo '$(srcdir)/'`@top_builddir@/src/lib/profiles/data-management/Legacy/DMPublisher.cpp
-
-@top_builddir@/src/lib/profiles/data-management/Legacy/libWeave_a-DMPublisher.obj: @top_builddir@/src/lib/profiles/data-management/Legacy/DMPublisher.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libWeave_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT @top_builddir@/src/lib/profiles/data-management/Legacy/libWeave_a-DMPublisher.obj -MD -MP -MF @top_builddir@/src/lib/profiles/data-management/Legacy/$(DEPDIR)/libWeave_a-DMPublisher.Tpo -c -o @top_builddir@/src/lib/profiles/data-management/Legacy/libWeave_a-DMPublisher.obj `if test -f '@top_builddir@/src/lib/profiles/data-management/Legacy/DMPublisher.cpp'; then $(CYGPATH_W) '@top_builddir@/src/lib/profiles/data-management/Legacy/DMPublisher.cpp'; else $(CYGPATH_W) '$(srcdir)/@top_builddir@/src/lib/profiles/data-management/Legacy/DMPublisher.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) @top_builddir@/src/lib/profiles/data-management/Legacy/$(DEPDIR)/libWeave_a-DMPublisher.Tpo @top_builddir@/src/lib/profiles/data-management/Legacy/$(DEPDIR)/libWeave_a-DMPublisher.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='@top_builddir@/src/lib/profiles/data-management/Legacy/DMPublisher.cpp' object='@top_builddir@/src/lib/profiles/data-management/Legacy/libWeave_a-DMPublisher.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libWeave_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o @top_builddir@/src/lib/profiles/data-management/Legacy/libWeave_a-DMPublisher.obj `if test -f '@top_builddir@/src/lib/profiles/data-management/Legacy/DMPublisher.cpp'; then $(CYGPATH_W) '@top_builddir@/src/lib/profiles/data-management/Legacy/DMPublisher.cpp'; else $(CYGPATH_W) '$(srcdir)/@top_builddir@/src/lib/profiles/data-management/Legacy/DMPublisher.cpp'; fi`
-
-@top_builddir@/src/lib/profiles/data-management/Legacy/libWeave_a-ProfileDatabase.o: @top_builddir@/src/lib/profiles/data-management/Legacy/ProfileDatabase.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libWeave_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT @top_builddir@/src/lib/profiles/data-management/Legacy/libWeave_a-ProfileDatabase.o -MD -MP -MF @top_builddir@/src/lib/profiles/data-management/Legacy/$(DEPDIR)/libWeave_a-ProfileDatabase.Tpo -c -o @top_builddir@/src/lib/profiles/data-management/Legacy/libWeave_a-ProfileDatabase.o `test -f '@top_builddir@/src/lib/profiles/data-management/Legacy/ProfileDatabase.cpp' || echo '$(srcdir)/'`@top_builddir@/src/lib/profiles/data-management/Legacy/ProfileDatabase.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) @top_builddir@/src/lib/profiles/data-management/Legacy/$(DEPDIR)/libWeave_a-ProfileDatabase.Tpo @top_builddir@/src/lib/profiles/data-management/Legacy/$(DEPDIR)/libWeave_a-ProfileDatabase.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='@top_builddir@/src/lib/profiles/data-management/Legacy/ProfileDatabase.cpp' object='@top_builddir@/src/lib/profiles/data-management/Legacy/libWeave_a-ProfileDatabase.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libWeave_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o @top_builddir@/src/lib/profiles/data-management/Legacy/libWeave_a-ProfileDatabase.o `test -f '@top_builddir@/src/lib/profiles/data-management/Legacy/ProfileDatabase.cpp' || echo '$(srcdir)/'`@top_builddir@/src/lib/profiles/data-management/Legacy/ProfileDatabase.cpp
-
-@top_builddir@/src/lib/profiles/data-management/Legacy/libWeave_a-ProfileDatabase.obj: @top_builddir@/src/lib/profiles/data-management/Legacy/ProfileDatabase.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libWeave_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT @top_builddir@/src/lib/profiles/data-management/Legacy/libWeave_a-ProfileDatabase.obj -MD -MP -MF @top_builddir@/src/lib/profiles/data-management/Legacy/$(DEPDIR)/libWeave_a-ProfileDatabase.Tpo -c -o @top_builddir@/src/lib/profiles/data-management/Legacy/libWeave_a-ProfileDatabase.obj `if test -f '@top_builddir@/src/lib/profiles/data-management/Legacy/ProfileDatabase.cpp'; then $(CYGPATH_W) '@top_builddir@/src/lib/profiles/data-management/Legacy/ProfileDatabase.cpp'; else $(CYGPATH_W) '$(srcdir)/@top_builddir@/src/lib/profiles/data-management/Legacy/ProfileDatabase.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) @top_builddir@/src/lib/profiles/data-management/Legacy/$(DEPDIR)/libWeave_a-ProfileDatabase.Tpo @top_builddir@/src/lib/profiles/data-management/Legacy/$(DEPDIR)/libWeave_a-ProfileDatabase.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='@top_builddir@/src/lib/profiles/data-management/Legacy/ProfileDatabase.cpp' object='@top_builddir@/src/lib/profiles/data-management/Legacy/libWeave_a-ProfileDatabase.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libWeave_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o @top_builddir@/src/lib/profiles/data-management/Legacy/libWeave_a-ProfileDatabase.obj `if test -f '@top_builddir@/src/lib/profiles/data-management/Legacy/ProfileDatabase.cpp'; then $(CYGPATH_W) '@top_builddir@/src/lib/profiles/data-management/Legacy/ProfileDatabase.cpp'; else $(CYGPATH_W) '$(srcdir)/@top_builddir@/src/lib/profiles/data-management/Legacy/ProfileDatabase.cpp'; fi`
-
-@top_builddir@/src/lib/profiles/data-management/Legacy/libWeave_a-ProtocolEngine.o: @top_builddir@/src/lib/profiles/data-management/Legacy/ProtocolEngine.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libWeave_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT @top_builddir@/src/lib/profiles/data-management/Legacy/libWeave_a-ProtocolEngine.o -MD -MP -MF @top_builddir@/src/lib/profiles/data-management/Legacy/$(DEPDIR)/libWeave_a-ProtocolEngine.Tpo -c -o @top_builddir@/src/lib/profiles/data-management/Legacy/libWeave_a-ProtocolEngine.o `test -f '@top_builddir@/src/lib/profiles/data-management/Legacy/ProtocolEngine.cpp' || echo '$(srcdir)/'`@top_builddir@/src/lib/profiles/data-management/Legacy/ProtocolEngine.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) @top_builddir@/src/lib/profiles/data-management/Legacy/$(DEPDIR)/libWeave_a-ProtocolEngine.Tpo @top_builddir@/src/lib/profiles/data-management/Legacy/$(DEPDIR)/libWeave_a-ProtocolEngine.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='@top_builddir@/src/lib/profiles/data-management/Legacy/ProtocolEngine.cpp' object='@top_builddir@/src/lib/profiles/data-management/Legacy/libWeave_a-ProtocolEngine.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libWeave_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o @top_builddir@/src/lib/profiles/data-management/Legacy/libWeave_a-ProtocolEngine.o `test -f '@top_builddir@/src/lib/profiles/data-management/Legacy/ProtocolEngine.cpp' || echo '$(srcdir)/'`@top_builddir@/src/lib/profiles/data-management/Legacy/ProtocolEngine.cpp
-
-@top_builddir@/src/lib/profiles/data-management/Legacy/libWeave_a-ProtocolEngine.obj: @top_builddir@/src/lib/profiles/data-management/Legacy/ProtocolEngine.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libWeave_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT @top_builddir@/src/lib/profiles/data-management/Legacy/libWeave_a-ProtocolEngine.obj -MD -MP -MF @top_builddir@/src/lib/profiles/data-management/Legacy/$(DEPDIR)/libWeave_a-ProtocolEngine.Tpo -c -o @top_builddir@/src/lib/profiles/data-management/Legacy/libWeave_a-ProtocolEngine.obj `if test -f '@top_builddir@/src/lib/profiles/data-management/Legacy/ProtocolEngine.cpp'; then $(CYGPATH_W) '@top_builddir@/src/lib/profiles/data-management/Legacy/ProtocolEngine.cpp'; else $(CYGPATH_W) '$(srcdir)/@top_builddir@/src/lib/profiles/data-management/Legacy/ProtocolEngine.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) @top_builddir@/src/lib/profiles/data-management/Legacy/$(DEPDIR)/libWeave_a-ProtocolEngine.Tpo @top_builddir@/src/lib/profiles/data-management/Legacy/$(DEPDIR)/libWeave_a-ProtocolEngine.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='@top_builddir@/src/lib/profiles/data-management/Legacy/ProtocolEngine.cpp' object='@top_builddir@/src/lib/profiles/data-management/Legacy/libWeave_a-ProtocolEngine.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libWeave_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o @top_builddir@/src/lib/profiles/data-management/Legacy/libWeave_a-ProtocolEngine.obj `if test -f '@top_builddir@/src/lib/profiles/data-management/Legacy/ProtocolEngine.cpp'; then $(CYGPATH_W) '@top_builddir@/src/lib/profiles/data-management/Legacy/ProtocolEngine.cpp'; else $(CYGPATH_W) '$(srcdir)/@top_builddir@/src/lib/profiles/data-management/Legacy/ProtocolEngine.cpp'; fi`
-
 @top_builddir@/src/lib/profiles/data-management/Current/libWeave_a-MessageDef.o: @top_builddir@/src/lib/profiles/data-management/Current/MessageDef.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libWeave_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT @top_builddir@/src/lib/profiles/data-management/Current/libWeave_a-MessageDef.o -MD -MP -MF @top_builddir@/src/lib/profiles/data-management/Current/$(DEPDIR)/libWeave_a-MessageDef.Tpo -c -o @top_builddir@/src/lib/profiles/data-management/Current/libWeave_a-MessageDef.o `test -f '@top_builddir@/src/lib/profiles/data-management/Current/MessageDef.cpp' || echo '$(srcdir)/'`@top_builddir@/src/lib/profiles/data-management/Current/MessageDef.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) @top_builddir@/src/lib/profiles/data-management/Current/$(DEPDIR)/libWeave_a-MessageDef.Tpo @top_builddir@/src/lib/profiles/data-management/Current/$(DEPDIR)/libWeave_a-MessageDef.Po
@@ -4687,6 +4606,90 @@ distclean-compile:
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='@top_builddir@/src/lib/profiles/weave-tunneling/WeaveTunnelControl.cpp' object='@top_builddir@/src/lib/profiles/weave-tunneling/libWeave_a-WeaveTunnelControl.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libWeave_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o @top_builddir@/src/lib/profiles/weave-tunneling/libWeave_a-WeaveTunnelControl.obj `if test -f '@top_builddir@/src/lib/profiles/weave-tunneling/WeaveTunnelControl.cpp'; then $(CYGPATH_W) '@top_builddir@/src/lib/profiles/weave-tunneling/WeaveTunnelControl.cpp'; else $(CYGPATH_W) '$(srcdir)/@top_builddir@/src/lib/profiles/weave-tunneling/WeaveTunnelControl.cpp'; fi`
+
+@top_builddir@/src/lib/profiles/data-management/Legacy/libWeave_a-Binding.o: @top_builddir@/src/lib/profiles/data-management/Legacy/Binding.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libWeave_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT @top_builddir@/src/lib/profiles/data-management/Legacy/libWeave_a-Binding.o -MD -MP -MF @top_builddir@/src/lib/profiles/data-management/Legacy/$(DEPDIR)/libWeave_a-Binding.Tpo -c -o @top_builddir@/src/lib/profiles/data-management/Legacy/libWeave_a-Binding.o `test -f '@top_builddir@/src/lib/profiles/data-management/Legacy/Binding.cpp' || echo '$(srcdir)/'`@top_builddir@/src/lib/profiles/data-management/Legacy/Binding.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) @top_builddir@/src/lib/profiles/data-management/Legacy/$(DEPDIR)/libWeave_a-Binding.Tpo @top_builddir@/src/lib/profiles/data-management/Legacy/$(DEPDIR)/libWeave_a-Binding.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='@top_builddir@/src/lib/profiles/data-management/Legacy/Binding.cpp' object='@top_builddir@/src/lib/profiles/data-management/Legacy/libWeave_a-Binding.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libWeave_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o @top_builddir@/src/lib/profiles/data-management/Legacy/libWeave_a-Binding.o `test -f '@top_builddir@/src/lib/profiles/data-management/Legacy/Binding.cpp' || echo '$(srcdir)/'`@top_builddir@/src/lib/profiles/data-management/Legacy/Binding.cpp
+
+@top_builddir@/src/lib/profiles/data-management/Legacy/libWeave_a-Binding.obj: @top_builddir@/src/lib/profiles/data-management/Legacy/Binding.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libWeave_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT @top_builddir@/src/lib/profiles/data-management/Legacy/libWeave_a-Binding.obj -MD -MP -MF @top_builddir@/src/lib/profiles/data-management/Legacy/$(DEPDIR)/libWeave_a-Binding.Tpo -c -o @top_builddir@/src/lib/profiles/data-management/Legacy/libWeave_a-Binding.obj `if test -f '@top_builddir@/src/lib/profiles/data-management/Legacy/Binding.cpp'; then $(CYGPATH_W) '@top_builddir@/src/lib/profiles/data-management/Legacy/Binding.cpp'; else $(CYGPATH_W) '$(srcdir)/@top_builddir@/src/lib/profiles/data-management/Legacy/Binding.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) @top_builddir@/src/lib/profiles/data-management/Legacy/$(DEPDIR)/libWeave_a-Binding.Tpo @top_builddir@/src/lib/profiles/data-management/Legacy/$(DEPDIR)/libWeave_a-Binding.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='@top_builddir@/src/lib/profiles/data-management/Legacy/Binding.cpp' object='@top_builddir@/src/lib/profiles/data-management/Legacy/libWeave_a-Binding.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libWeave_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o @top_builddir@/src/lib/profiles/data-management/Legacy/libWeave_a-Binding.obj `if test -f '@top_builddir@/src/lib/profiles/data-management/Legacy/Binding.cpp'; then $(CYGPATH_W) '@top_builddir@/src/lib/profiles/data-management/Legacy/Binding.cpp'; else $(CYGPATH_W) '$(srcdir)/@top_builddir@/src/lib/profiles/data-management/Legacy/Binding.cpp'; fi`
+
+@top_builddir@/src/lib/profiles/data-management/Legacy/libWeave_a-ClientNotifier.o: @top_builddir@/src/lib/profiles/data-management/Legacy/ClientNotifier.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libWeave_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT @top_builddir@/src/lib/profiles/data-management/Legacy/libWeave_a-ClientNotifier.o -MD -MP -MF @top_builddir@/src/lib/profiles/data-management/Legacy/$(DEPDIR)/libWeave_a-ClientNotifier.Tpo -c -o @top_builddir@/src/lib/profiles/data-management/Legacy/libWeave_a-ClientNotifier.o `test -f '@top_builddir@/src/lib/profiles/data-management/Legacy/ClientNotifier.cpp' || echo '$(srcdir)/'`@top_builddir@/src/lib/profiles/data-management/Legacy/ClientNotifier.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) @top_builddir@/src/lib/profiles/data-management/Legacy/$(DEPDIR)/libWeave_a-ClientNotifier.Tpo @top_builddir@/src/lib/profiles/data-management/Legacy/$(DEPDIR)/libWeave_a-ClientNotifier.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='@top_builddir@/src/lib/profiles/data-management/Legacy/ClientNotifier.cpp' object='@top_builddir@/src/lib/profiles/data-management/Legacy/libWeave_a-ClientNotifier.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libWeave_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o @top_builddir@/src/lib/profiles/data-management/Legacy/libWeave_a-ClientNotifier.o `test -f '@top_builddir@/src/lib/profiles/data-management/Legacy/ClientNotifier.cpp' || echo '$(srcdir)/'`@top_builddir@/src/lib/profiles/data-management/Legacy/ClientNotifier.cpp
+
+@top_builddir@/src/lib/profiles/data-management/Legacy/libWeave_a-ClientNotifier.obj: @top_builddir@/src/lib/profiles/data-management/Legacy/ClientNotifier.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libWeave_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT @top_builddir@/src/lib/profiles/data-management/Legacy/libWeave_a-ClientNotifier.obj -MD -MP -MF @top_builddir@/src/lib/profiles/data-management/Legacy/$(DEPDIR)/libWeave_a-ClientNotifier.Tpo -c -o @top_builddir@/src/lib/profiles/data-management/Legacy/libWeave_a-ClientNotifier.obj `if test -f '@top_builddir@/src/lib/profiles/data-management/Legacy/ClientNotifier.cpp'; then $(CYGPATH_W) '@top_builddir@/src/lib/profiles/data-management/Legacy/ClientNotifier.cpp'; else $(CYGPATH_W) '$(srcdir)/@top_builddir@/src/lib/profiles/data-management/Legacy/ClientNotifier.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) @top_builddir@/src/lib/profiles/data-management/Legacy/$(DEPDIR)/libWeave_a-ClientNotifier.Tpo @top_builddir@/src/lib/profiles/data-management/Legacy/$(DEPDIR)/libWeave_a-ClientNotifier.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='@top_builddir@/src/lib/profiles/data-management/Legacy/ClientNotifier.cpp' object='@top_builddir@/src/lib/profiles/data-management/Legacy/libWeave_a-ClientNotifier.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libWeave_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o @top_builddir@/src/lib/profiles/data-management/Legacy/libWeave_a-ClientNotifier.obj `if test -f '@top_builddir@/src/lib/profiles/data-management/Legacy/ClientNotifier.cpp'; then $(CYGPATH_W) '@top_builddir@/src/lib/profiles/data-management/Legacy/ClientNotifier.cpp'; else $(CYGPATH_W) '$(srcdir)/@top_builddir@/src/lib/profiles/data-management/Legacy/ClientNotifier.cpp'; fi`
+
+@top_builddir@/src/lib/profiles/data-management/Legacy/libWeave_a-DMClient.o: @top_builddir@/src/lib/profiles/data-management/Legacy/DMClient.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libWeave_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT @top_builddir@/src/lib/profiles/data-management/Legacy/libWeave_a-DMClient.o -MD -MP -MF @top_builddir@/src/lib/profiles/data-management/Legacy/$(DEPDIR)/libWeave_a-DMClient.Tpo -c -o @top_builddir@/src/lib/profiles/data-management/Legacy/libWeave_a-DMClient.o `test -f '@top_builddir@/src/lib/profiles/data-management/Legacy/DMClient.cpp' || echo '$(srcdir)/'`@top_builddir@/src/lib/profiles/data-management/Legacy/DMClient.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) @top_builddir@/src/lib/profiles/data-management/Legacy/$(DEPDIR)/libWeave_a-DMClient.Tpo @top_builddir@/src/lib/profiles/data-management/Legacy/$(DEPDIR)/libWeave_a-DMClient.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='@top_builddir@/src/lib/profiles/data-management/Legacy/DMClient.cpp' object='@top_builddir@/src/lib/profiles/data-management/Legacy/libWeave_a-DMClient.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libWeave_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o @top_builddir@/src/lib/profiles/data-management/Legacy/libWeave_a-DMClient.o `test -f '@top_builddir@/src/lib/profiles/data-management/Legacy/DMClient.cpp' || echo '$(srcdir)/'`@top_builddir@/src/lib/profiles/data-management/Legacy/DMClient.cpp
+
+@top_builddir@/src/lib/profiles/data-management/Legacy/libWeave_a-DMClient.obj: @top_builddir@/src/lib/profiles/data-management/Legacy/DMClient.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libWeave_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT @top_builddir@/src/lib/profiles/data-management/Legacy/libWeave_a-DMClient.obj -MD -MP -MF @top_builddir@/src/lib/profiles/data-management/Legacy/$(DEPDIR)/libWeave_a-DMClient.Tpo -c -o @top_builddir@/src/lib/profiles/data-management/Legacy/libWeave_a-DMClient.obj `if test -f '@top_builddir@/src/lib/profiles/data-management/Legacy/DMClient.cpp'; then $(CYGPATH_W) '@top_builddir@/src/lib/profiles/data-management/Legacy/DMClient.cpp'; else $(CYGPATH_W) '$(srcdir)/@top_builddir@/src/lib/profiles/data-management/Legacy/DMClient.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) @top_builddir@/src/lib/profiles/data-management/Legacy/$(DEPDIR)/libWeave_a-DMClient.Tpo @top_builddir@/src/lib/profiles/data-management/Legacy/$(DEPDIR)/libWeave_a-DMClient.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='@top_builddir@/src/lib/profiles/data-management/Legacy/DMClient.cpp' object='@top_builddir@/src/lib/profiles/data-management/Legacy/libWeave_a-DMClient.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libWeave_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o @top_builddir@/src/lib/profiles/data-management/Legacy/libWeave_a-DMClient.obj `if test -f '@top_builddir@/src/lib/profiles/data-management/Legacy/DMClient.cpp'; then $(CYGPATH_W) '@top_builddir@/src/lib/profiles/data-management/Legacy/DMClient.cpp'; else $(CYGPATH_W) '$(srcdir)/@top_builddir@/src/lib/profiles/data-management/Legacy/DMClient.cpp'; fi`
+
+@top_builddir@/src/lib/profiles/data-management/Legacy/libWeave_a-DMPublisher.o: @top_builddir@/src/lib/profiles/data-management/Legacy/DMPublisher.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libWeave_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT @top_builddir@/src/lib/profiles/data-management/Legacy/libWeave_a-DMPublisher.o -MD -MP -MF @top_builddir@/src/lib/profiles/data-management/Legacy/$(DEPDIR)/libWeave_a-DMPublisher.Tpo -c -o @top_builddir@/src/lib/profiles/data-management/Legacy/libWeave_a-DMPublisher.o `test -f '@top_builddir@/src/lib/profiles/data-management/Legacy/DMPublisher.cpp' || echo '$(srcdir)/'`@top_builddir@/src/lib/profiles/data-management/Legacy/DMPublisher.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) @top_builddir@/src/lib/profiles/data-management/Legacy/$(DEPDIR)/libWeave_a-DMPublisher.Tpo @top_builddir@/src/lib/profiles/data-management/Legacy/$(DEPDIR)/libWeave_a-DMPublisher.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='@top_builddir@/src/lib/profiles/data-management/Legacy/DMPublisher.cpp' object='@top_builddir@/src/lib/profiles/data-management/Legacy/libWeave_a-DMPublisher.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libWeave_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o @top_builddir@/src/lib/profiles/data-management/Legacy/libWeave_a-DMPublisher.o `test -f '@top_builddir@/src/lib/profiles/data-management/Legacy/DMPublisher.cpp' || echo '$(srcdir)/'`@top_builddir@/src/lib/profiles/data-management/Legacy/DMPublisher.cpp
+
+@top_builddir@/src/lib/profiles/data-management/Legacy/libWeave_a-DMPublisher.obj: @top_builddir@/src/lib/profiles/data-management/Legacy/DMPublisher.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libWeave_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT @top_builddir@/src/lib/profiles/data-management/Legacy/libWeave_a-DMPublisher.obj -MD -MP -MF @top_builddir@/src/lib/profiles/data-management/Legacy/$(DEPDIR)/libWeave_a-DMPublisher.Tpo -c -o @top_builddir@/src/lib/profiles/data-management/Legacy/libWeave_a-DMPublisher.obj `if test -f '@top_builddir@/src/lib/profiles/data-management/Legacy/DMPublisher.cpp'; then $(CYGPATH_W) '@top_builddir@/src/lib/profiles/data-management/Legacy/DMPublisher.cpp'; else $(CYGPATH_W) '$(srcdir)/@top_builddir@/src/lib/profiles/data-management/Legacy/DMPublisher.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) @top_builddir@/src/lib/profiles/data-management/Legacy/$(DEPDIR)/libWeave_a-DMPublisher.Tpo @top_builddir@/src/lib/profiles/data-management/Legacy/$(DEPDIR)/libWeave_a-DMPublisher.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='@top_builddir@/src/lib/profiles/data-management/Legacy/DMPublisher.cpp' object='@top_builddir@/src/lib/profiles/data-management/Legacy/libWeave_a-DMPublisher.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libWeave_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o @top_builddir@/src/lib/profiles/data-management/Legacy/libWeave_a-DMPublisher.obj `if test -f '@top_builddir@/src/lib/profiles/data-management/Legacy/DMPublisher.cpp'; then $(CYGPATH_W) '@top_builddir@/src/lib/profiles/data-management/Legacy/DMPublisher.cpp'; else $(CYGPATH_W) '$(srcdir)/@top_builddir@/src/lib/profiles/data-management/Legacy/DMPublisher.cpp'; fi`
+
+@top_builddir@/src/lib/profiles/data-management/Legacy/libWeave_a-ProfileDatabase.o: @top_builddir@/src/lib/profiles/data-management/Legacy/ProfileDatabase.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libWeave_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT @top_builddir@/src/lib/profiles/data-management/Legacy/libWeave_a-ProfileDatabase.o -MD -MP -MF @top_builddir@/src/lib/profiles/data-management/Legacy/$(DEPDIR)/libWeave_a-ProfileDatabase.Tpo -c -o @top_builddir@/src/lib/profiles/data-management/Legacy/libWeave_a-ProfileDatabase.o `test -f '@top_builddir@/src/lib/profiles/data-management/Legacy/ProfileDatabase.cpp' || echo '$(srcdir)/'`@top_builddir@/src/lib/profiles/data-management/Legacy/ProfileDatabase.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) @top_builddir@/src/lib/profiles/data-management/Legacy/$(DEPDIR)/libWeave_a-ProfileDatabase.Tpo @top_builddir@/src/lib/profiles/data-management/Legacy/$(DEPDIR)/libWeave_a-ProfileDatabase.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='@top_builddir@/src/lib/profiles/data-management/Legacy/ProfileDatabase.cpp' object='@top_builddir@/src/lib/profiles/data-management/Legacy/libWeave_a-ProfileDatabase.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libWeave_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o @top_builddir@/src/lib/profiles/data-management/Legacy/libWeave_a-ProfileDatabase.o `test -f '@top_builddir@/src/lib/profiles/data-management/Legacy/ProfileDatabase.cpp' || echo '$(srcdir)/'`@top_builddir@/src/lib/profiles/data-management/Legacy/ProfileDatabase.cpp
+
+@top_builddir@/src/lib/profiles/data-management/Legacy/libWeave_a-ProfileDatabase.obj: @top_builddir@/src/lib/profiles/data-management/Legacy/ProfileDatabase.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libWeave_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT @top_builddir@/src/lib/profiles/data-management/Legacy/libWeave_a-ProfileDatabase.obj -MD -MP -MF @top_builddir@/src/lib/profiles/data-management/Legacy/$(DEPDIR)/libWeave_a-ProfileDatabase.Tpo -c -o @top_builddir@/src/lib/profiles/data-management/Legacy/libWeave_a-ProfileDatabase.obj `if test -f '@top_builddir@/src/lib/profiles/data-management/Legacy/ProfileDatabase.cpp'; then $(CYGPATH_W) '@top_builddir@/src/lib/profiles/data-management/Legacy/ProfileDatabase.cpp'; else $(CYGPATH_W) '$(srcdir)/@top_builddir@/src/lib/profiles/data-management/Legacy/ProfileDatabase.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) @top_builddir@/src/lib/profiles/data-management/Legacy/$(DEPDIR)/libWeave_a-ProfileDatabase.Tpo @top_builddir@/src/lib/profiles/data-management/Legacy/$(DEPDIR)/libWeave_a-ProfileDatabase.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='@top_builddir@/src/lib/profiles/data-management/Legacy/ProfileDatabase.cpp' object='@top_builddir@/src/lib/profiles/data-management/Legacy/libWeave_a-ProfileDatabase.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libWeave_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o @top_builddir@/src/lib/profiles/data-management/Legacy/libWeave_a-ProfileDatabase.obj `if test -f '@top_builddir@/src/lib/profiles/data-management/Legacy/ProfileDatabase.cpp'; then $(CYGPATH_W) '@top_builddir@/src/lib/profiles/data-management/Legacy/ProfileDatabase.cpp'; else $(CYGPATH_W) '$(srcdir)/@top_builddir@/src/lib/profiles/data-management/Legacy/ProfileDatabase.cpp'; fi`
+
+@top_builddir@/src/lib/profiles/data-management/Legacy/libWeave_a-ProtocolEngine.o: @top_builddir@/src/lib/profiles/data-management/Legacy/ProtocolEngine.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libWeave_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT @top_builddir@/src/lib/profiles/data-management/Legacy/libWeave_a-ProtocolEngine.o -MD -MP -MF @top_builddir@/src/lib/profiles/data-management/Legacy/$(DEPDIR)/libWeave_a-ProtocolEngine.Tpo -c -o @top_builddir@/src/lib/profiles/data-management/Legacy/libWeave_a-ProtocolEngine.o `test -f '@top_builddir@/src/lib/profiles/data-management/Legacy/ProtocolEngine.cpp' || echo '$(srcdir)/'`@top_builddir@/src/lib/profiles/data-management/Legacy/ProtocolEngine.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) @top_builddir@/src/lib/profiles/data-management/Legacy/$(DEPDIR)/libWeave_a-ProtocolEngine.Tpo @top_builddir@/src/lib/profiles/data-management/Legacy/$(DEPDIR)/libWeave_a-ProtocolEngine.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='@top_builddir@/src/lib/profiles/data-management/Legacy/ProtocolEngine.cpp' object='@top_builddir@/src/lib/profiles/data-management/Legacy/libWeave_a-ProtocolEngine.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libWeave_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o @top_builddir@/src/lib/profiles/data-management/Legacy/libWeave_a-ProtocolEngine.o `test -f '@top_builddir@/src/lib/profiles/data-management/Legacy/ProtocolEngine.cpp' || echo '$(srcdir)/'`@top_builddir@/src/lib/profiles/data-management/Legacy/ProtocolEngine.cpp
+
+@top_builddir@/src/lib/profiles/data-management/Legacy/libWeave_a-ProtocolEngine.obj: @top_builddir@/src/lib/profiles/data-management/Legacy/ProtocolEngine.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libWeave_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT @top_builddir@/src/lib/profiles/data-management/Legacy/libWeave_a-ProtocolEngine.obj -MD -MP -MF @top_builddir@/src/lib/profiles/data-management/Legacy/$(DEPDIR)/libWeave_a-ProtocolEngine.Tpo -c -o @top_builddir@/src/lib/profiles/data-management/Legacy/libWeave_a-ProtocolEngine.obj `if test -f '@top_builddir@/src/lib/profiles/data-management/Legacy/ProtocolEngine.cpp'; then $(CYGPATH_W) '@top_builddir@/src/lib/profiles/data-management/Legacy/ProtocolEngine.cpp'; else $(CYGPATH_W) '$(srcdir)/@top_builddir@/src/lib/profiles/data-management/Legacy/ProtocolEngine.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) @top_builddir@/src/lib/profiles/data-management/Legacy/$(DEPDIR)/libWeave_a-ProtocolEngine.Tpo @top_builddir@/src/lib/profiles/data-management/Legacy/$(DEPDIR)/libWeave_a-ProtocolEngine.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='@top_builddir@/src/lib/profiles/data-management/Legacy/ProtocolEngine.cpp' object='@top_builddir@/src/lib/profiles/data-management/Legacy/libWeave_a-ProtocolEngine.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libWeave_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o @top_builddir@/src/lib/profiles/data-management/Legacy/libWeave_a-ProtocolEngine.obj `if test -f '@top_builddir@/src/lib/profiles/data-management/Legacy/ProtocolEngine.cpp'; then $(CYGPATH_W) '@top_builddir@/src/lib/profiles/data-management/Legacy/ProtocolEngine.cpp'; else $(CYGPATH_W) '$(srcdir)/@top_builddir@/src/lib/profiles/data-management/Legacy/ProtocolEngine.cpp'; fi`
 
 @top_builddir@/src/lib/profiles/network-provisioning/libWeave_a-NetworkInfo.o: @top_builddir@/src/lib/profiles/network-provisioning/NetworkInfo.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libWeave_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT @top_builddir@/src/lib/profiles/network-provisioning/libWeave_a-NetworkInfo.o -MD -MP -MF @top_builddir@/src/lib/profiles/network-provisioning/$(DEPDIR)/libWeave_a-NetworkInfo.Tpo -c -o @top_builddir@/src/lib/profiles/network-provisioning/libWeave_a-NetworkInfo.o `test -f '@top_builddir@/src/lib/profiles/network-provisioning/NetworkInfo.cpp' || echo '$(srcdir)/'`@top_builddir@/src/lib/profiles/network-provisioning/NetworkInfo.cpp

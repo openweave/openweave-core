@@ -31,9 +31,15 @@
 #include <inttypes.h>
 #include <unistd.h>
 
+#include <Weave/Core/WeaveDMConfig.h>
+#if WEAVE_CONFIG_LEGACY_WDM
 // Note that the choice of namespace alias must be made up front for each and every compile unit
 // This is because many include paths could set the default alias to unintended target.
 #include <Weave/Profiles/data-management/Legacy/WdmManagedNamespace.h>
+#include <Weave/Profiles/data-management/ProfileDatabase.h>
+#include "TestProfile.h"
+#include "MockDMPublisher.h"
+#endif // WEAVE_CONFIG_LEGACY_WDM
 
 #include "ToolCommon.h"
 #include <Weave/WeaveVersion.h>
@@ -45,7 +51,6 @@
 #include <Weave/Profiles/device-description/DeviceDescription.h>
 #include <Weave/Profiles/device-control/DeviceControl.h>
 #include <Weave/Profiles/service-directory/ServiceDirectory.h>
-#include <Weave/Profiles/data-management/ProfileDatabase.h>
 #include <Weave/Profiles/heartbeat/WeaveHeartbeat.h>
 #include <Weave/Support/crypto/WeaveCrypto.h>
 #include "MockDCLPServer.h"
@@ -56,8 +61,6 @@
 #include "MockDDServer.h"
 #include "MockDCServer.h"
 #include "MockOpActions.h"
-#include "TestProfile.h"
-#include "MockDMPublisher.h"
 #include "MockTokenPairingServer.h"
 #include "MockWdmUpdateClient.h"
 #include "MockWdmUpdateServer.h"
@@ -181,7 +184,9 @@ MockSingleSourceTimeSyncClient simpleTimeSyncClient;
 bool ShouldEnableSimpleTimeSyncClient = false;
 #endif // WEAVE_CONFIG_TIME
 
+#if WEAVE_CONFIG_LEGACY_WDM
 MockDMPublisher MockDMPublisher;
+#endif
 
 MockOpActions OpActions;
 
@@ -818,6 +823,7 @@ int main(int argc, char *argv[])
         FAIL_ERROR(err, "SystemLayer.StartTimer failed");
     }
 
+#if WEAVE_CONFIG_LEGACY_WDM
     // always set up a mock DM publisher
 
     err = MockDMPublisher.Init(&ExchangeMgr, kDefaultDMResponseTimeout);
@@ -828,6 +834,7 @@ int main(int argc, char *argv[])
         printf("Starting Event Generator\n");
         MockEventGenerator::GetInstance()->Init(&ExchangeMgr, gEventGenerator, TimeBetweenEvents, true);
     }
+#endif // WEAVE_CONFIG_LEGACY_WDM
 
 #if WEAVE_CONFIG_TEST
     nl::Weave::Stats::UpdateSnapshot(before);
@@ -888,11 +895,13 @@ int main(int argc, char *argv[])
 
         ServiceNetwork(sleepTime);
 
+#if WEAVE_CONFIG_LEGACY_WDM
 #if WEAVE_CONFIG_WDM_ALLOW_PUBLISHER_SUBSCRIPTION
 
         MockDMPublisher.Republish();
 
 #endif //WEAVE_CONFIG_WDM_ALLOW_PUBLISHER_SUBSCRIPTION
+#endif // WEAVE_CONFIG_LEGACY_WDM
 
     }
 
@@ -916,7 +925,9 @@ int main(int argc, char *argv[])
     MockPairingEPServer.Shutdown();
     MockTPServer.Shutdown();
     MockSPServer.Shutdown();
+#if WEAVE_CONFIG_LEGACY_WDM
     MockDMPublisher.Finalize();
+#endif
 
 #if WEAVE_CONFIG_ENABLE_TUNNELING
     if (tunnelingDeviceRole)

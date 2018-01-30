@@ -33,6 +33,7 @@
 // Include configuration headers
 #include <Weave/Core/WeaveConfig.h>
 #include <Weave/Core/WeaveWRMPConfig.h>
+#include <Weave/Core/WeaveDMConfig.h>
 
 // Include dependent headers
 #include <Weave/Support/NLDLLUtil.h>
@@ -48,26 +49,40 @@ enum
     kSystemLayer_NumTimers,
 #if INET_CONFIG_NUM_RAW_ENDPOINTS
     kInetLayer_NumRawEps,
-#endif // INET_CONFIG_NUM_RAW_ENDPOINTS
+#endif
 #if INET_CONFIG_NUM_TCP_ENDPOINTS
     kInetLayer_NumTCPEps,
-#endif // INET_CONFIG_NUM_TCP_ENDPOINTS
+#endif
 #if INET_CONFIG_NUM_UDP_ENDPOINTS
     kInetLayer_NumUDPEps,
-#endif // INET_CONFIG_NUM_UDP_ENDPOINTS
+#endif
 #if INET_CONFIG_NUM_TUN_ENDPOINTS
     kInetLayer_NumTunEps,
-#endif // INET_CONFIG_NUM_TUN_ENDPOINTS
+#endif
 #if INET_CONFIG_NUM_DNS_RESOLVERS
     kInetLayer_NumDNSResolvers,
-#endif // INET_CONFIG_NUM_DNS_RESOLVERS
+#endif
     kExchangeMgr_NumContexts,
     kExchangeMgr_NumUMHandlers,
     kExchangeMgr_NumBindings,
     kMessageLayer_NumConnections,
 #if WEAVE_CONFIG_ENABLE_SERVICE_DIRECTORY
     kServiceMgr_NumRequests,
-#endif // WEAVE_CONFIG_ENABLE_SERVICE_DIRECTORY
+#endif
+#if WDM_ENABLE_SUBSCRIPTION_PUBLISHER
+    kWDM_NumTraits,
+#endif
+#if WDM_ENABLE_SUBSCRIPTION_CLIENT
+    kWDM_NumSubscriptionClients,
+#endif
+#if WDM_ENABLE_SUBSCRIPTION_PUBLISHER
+    kWDM_NumSubscriptionHandlers,
+#endif
+#if WDM_PUBLISHER_ENABLE_CUSTOM_COMMANDS
+    kWDM_NumCommands,
+#endif
+
+#if WEAVE_CONFIG_LEGACY_WDM
     kWDMLegacy_NumViews,
 #if WEAVE_CONFIG_WDM_ALLOW_CLIENT_SUBSCRIPTION
     kWDMLegacy_NumSubscribes,
@@ -76,18 +91,8 @@ enum
     kWDMLegacy_NumUpdates,
     kWDMLegacy_NumBindings,
     kWDMLegacy_NumTransactions,
-#if WDM_ENABLE_SUBSCRIPTION_PUBLISHER
-    kWDM_NumTraits,
-#endif // WDM_ENABLE_SUBSCRIPTION_PUBLISHER
-#if WDM_ENABLE_SUBSCRIPTION_CLIENT
-    kWDM_NumSubscriptionClients,
-#endif // WDM_ENABLE_SUBSCRIPTION_CLIENT
-#if WDM_ENABLE_SUBSCRIPTION_PUBLISHER
-    kWDM_NumSubscriptionHandlers,
-#endif // WDM_ENABLE_SUBSCRIPTION_PUBLISHER
-#if WDM_PUBLISHER_ENABLE_CUSTOM_COMMANDS
-    kWDM_NumCommands,
-#endif // WDM_PUBLISHER_ENABLE_CUSTOM_COMMANDS
+#endif // WEAVE_CONFIG_LEGACY_WDM
+
 
     kNumEntries
 };

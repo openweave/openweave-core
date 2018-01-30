@@ -32,12 +32,6 @@ nl_WeaveProfiles_sources                                                        
     @top_builddir@/src/lib/profiles/bulk-data-transfer/Development/BDXTransferState.cpp \
     @top_builddir@/src/lib/profiles/common/RetainedPacketBuffer.cpp                     \
     @top_builddir@/src/lib/profiles/common/WeaveMessage.cpp                             \
-    @top_builddir@/src/lib/profiles/data-management/Legacy/Binding.cpp                  \
-    @top_builddir@/src/lib/profiles/data-management/Legacy/ClientNotifier.cpp           \
-    @top_builddir@/src/lib/profiles/data-management/Legacy/DMClient.cpp                 \
-    @top_builddir@/src/lib/profiles/data-management/Legacy/DMPublisher.cpp              \
-    @top_builddir@/src/lib/profiles/data-management/Legacy/ProfileDatabase.cpp          \
-    @top_builddir@/src/lib/profiles/data-management/Legacy/ProtocolEngine.cpp           \
     @top_builddir@/src/lib/profiles/data-management/Current/MessageDef.cpp              \
     @top_builddir@/src/lib/profiles/data-management/Current/NotificationEngine.cpp      \
     @top_builddir@/src/lib/profiles/data-management/Current/SubscriptionClient.cpp      \
@@ -104,6 +98,17 @@ nl_WeaveProfiles_sources                                                        
     @top_builddir@/src/lib/profiles/weave-tunneling/WeaveTunnelConnectionMgr.cpp        \
     @top_builddir@/src/lib/profiles/weave-tunneling/WeaveTunnelControl.cpp              \
     $(NULL)
+
+if WEAVE_BUILD_LEGACY_WDM
+nl_WeaveProfiles_sources += \
+    @top_builddir@/src/lib/profiles/data-management/Legacy/Binding.cpp                  \
+    @top_builddir@/src/lib/profiles/data-management/Legacy/ClientNotifier.cpp           \
+    @top_builddir@/src/lib/profiles/data-management/Legacy/DMClient.cpp                 \
+    @top_builddir@/src/lib/profiles/data-management/Legacy/DMPublisher.cpp              \
+    @top_builddir@/src/lib/profiles/data-management/Legacy/ProfileDatabase.cpp          \
+    @top_builddir@/src/lib/profiles/data-management/Legacy/ProtocolEngine.cpp           \
+    $(NULL)
+endif
 
 if CONFIG_HAVE_HEAP
 nl_WeaveProfiles_sources += \

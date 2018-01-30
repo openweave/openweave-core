@@ -425,7 +425,6 @@ endif
 
 network_test_programs                          = \
     TestBinding                                  \
-    TestDataManagement                           \
     TestEventLogging                             \
     TestInetLayer                                \
     TestPersistedCounter                         \
@@ -441,7 +440,6 @@ network_test_programs                          = \
     TestDNSResolution                            \
     mock-device                                  \
     mock-weave-bg                                \
-    wdmtest                                      \
     weave-bdx-client-development                 \
     weave-bdx-client-v0                          \
     weave-bdx-server-development                 \
@@ -453,6 +451,14 @@ network_test_programs                          = \
     weave-swu-server                             \
     wsuptest                                     \
     $(NULL)
+
+if WEAVE_BUILD_LEGACY_WDM
+network_test_programs += \
+    TestDataManagement                           \
+    wdmtest                                      \
+	$(NULL)
+endif
+
 
 # Test applications that should be built but not installed and should
 # always be built to ensure overall "build sanity".
@@ -1273,8 +1279,7 @@ TestWdmNext_SOURCES                      = TestWdmNext.cpp						\
                                            MockWdmSubscriptionInitiator.cpp				\
                                            MockWdmTestVerifier.cpp	        			\
                                            MockWdmSubscriptionResponder.cpp				\
-                                           WdmNextPerfUtility.cpp					\
-                                           TestProfile.cpp
+                                           WdmNextPerfUtility.cpp
 
 TestWdmNext_CPPFLAGS                     = $(AM_CPPFLAGS) -I$(top_srcdir)/src/test-apps/schema
 TestWdmNext_LDFLAGS                      = $(AM_CPPFLAGS)
@@ -1310,7 +1315,6 @@ mock_device_SOURCES                      = mock-device.cpp                      
                                            MockDCLPServer.cpp                                       \
                                            MockDCServer.cpp                                         \
                                            MockDDServer.cpp                                         \
-                                           MockDMPublisher.cpp                                      \
                                            MockFPServer.cpp                                         \
                                            MockNPServer.cpp                                         \
                                            MockOpActions.cpp                                        \
@@ -1339,8 +1343,13 @@ mock_device_SOURCES                      = mock-device.cpp                      
                                            MockWdmTestVerifier.cpp	                            \
                                            MockWdmSubscriptionResponder.cpp                         \
                                            MockLoggingManager.cpp                                   \
-                                           MockEvents.cpp                                           \
+                                           MockEvents.cpp
+
+if WEAVE_BUILD_LEGACY_WDM
+mock_device_SOURCES                      += \
+                                           MockDMPublisher.cpp                                      \
                                            TestProfile.cpp
+endif
 
 TestErrorStr_SOURCES                     = TestErrorStr.cpp
 TestErrorStr_LDADD                       = $(COMMON_LDADD) $(TEST_PLATFORM_LDADD)

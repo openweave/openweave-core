@@ -1133,6 +1133,39 @@ if test "${build_tunnel_failover}" = yes; then
 fi
 
 #
+# Legacy WDM profile support
+#
+
+AC_MSG_CHECKING([whether to build the legacy WDM profile])
+AC_ARG_ENABLE(legacy-wdm,
+    [AS_HELP_STRING([--disable-legacy-wdm],[Disable building of the legacy WDM profile @<:@default=no@:>@.])],
+    [
+        case "${enableval}" in 
+
+        no|yes)
+            build_legacy_wdm=${enableval}
+            ;;
+
+        *)
+            AC_MSG_ERROR([Invalid value ${enableval} for --enable-legacy-wdm])
+            ;;
+
+        esac
+    ],
+    [build_legacy_wdm=yes])
+AC_MSG_RESULT(${build_legacy_wdm})
+if test "${build_legacy_wdm}" = yes; then
+    LEGACY_WDM=1
+else
+    if test "${build_device_manager}" = "yes"; then
+        AC_MSG_ERROR([The Legacy Weave Data Management profile must be enabled to build the Weave Device Manager])
+    fi
+    LEGACY_WDM=0
+fi
+AM_CONDITIONAL([WEAVE_BUILD_LEGACY_WDM], [test "${LEGACY_WDM}" = 1])
+AC_DEFINE_UNQUOTED([WEAVE_CONFIG_LEGACY_WDM],[${LEGACY_WDM}],[Define to 1 to use the legacy WDM profile.])
+
+#
 # Documentation
 #
 
@@ -2415,6 +2448,7 @@ AC_MSG_NOTICE([
   Build Device Manager                             : ${build_device_manager}
   Build WARM                                       : ${build_warm}
   Tunnel Failover support                          : ${build_tunnel_failover}
+  Build legacy WDM profile                         : ${build_legacy_wdm}
   Prefix                                           : ${prefix}
   Shadow directory program                         : ${LNDIR}
   Cocoa support                                    : ${enable_cocoa}

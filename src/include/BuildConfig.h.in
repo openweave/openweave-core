@@ -381,6 +381,9 @@
 /* Version number of package */
 #undef VERSION
 
+/* Define to 1 to use the legacy WDM profile. */
+#undef WEAVE_CONFIG_LEGACY_WDM
+
 /* Define to 1 for enabling Weave Tunnel failover */
 #undef WEAVE_CONFIG_TUNNEL_FAILOVER_SUPPORTED
 

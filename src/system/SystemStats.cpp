@@ -64,14 +64,7 @@ static const Label sStatsStrings[nl::Weave::System::Stats::kNumEntries] =
 #if WEAVE_CONFIG_ENABLE_SERVICE_DIRECTORY
     "ServiceMgr_NumRequestsInUse",
 #endif
-    "WDMLegacy_NumViewInUse",
-#if WEAVE_CONFIG_WDM_ALLOW_CLIENT_SUBSCRIPTION
-    "WDMLegacy_NumSubscribeInUse",
-    "WDMLegacy_NumCancelInUse",
-#endif // WEAVE_CONFIG_WDM_ALLOW_CLIENT_SUBSCRIPTION
-    "WDMLegacy_NumUpdateInUse",
-    "WDMLegacy_NumBindingsInUse",
-    "WDMLegacy_NumTransactions",
+
 #if WDM_ENABLE_SUBSCRIPTION_PUBLISHER
     "kWDM_NumTraits",
 #endif
@@ -84,6 +77,18 @@ static const Label sStatsStrings[nl::Weave::System::Stats::kNumEntries] =
 #if WDM_PUBLISHER_ENABLE_CUSTOM_COMMANDS
     "kWDM_NumCommands",
 #endif
+
+#if WEAVE_CONFIG_LEGACY_WDM
+    "WDMLegacy_NumViewInUse",
+#if WEAVE_CONFIG_WDM_ALLOW_CLIENT_SUBSCRIPTION
+    "WDMLegacy_NumSubscribeInUse",
+    "WDMLegacy_NumCancelInUse",
+#endif // WEAVE_CONFIG_WDM_ALLOW_CLIENT_SUBSCRIPTION
+    "WDMLegacy_NumUpdateInUse",
+    "WDMLegacy_NumBindingsInUse",
+    "WDMLegacy_NumTransactions",
+#endif // WEAVE_CONFIG_LEGACY_WDM
+
 };
 
 count_t sResourcesInUse[kNumEntries];

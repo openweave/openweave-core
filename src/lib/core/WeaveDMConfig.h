@@ -28,6 +28,22 @@
 #ifndef _WEAVE_DATA_MANAGEMENT_CONFIG_H
 #define _WEAVE_DATA_MANAGEMENT_CONFIG_H
 
+#include <BuildConfig.h>
+
+/**
+ *  @def WEAVE_CONFIG_LEGACY_WDM
+ *
+ *  @brief
+ *    Enable or disable the legacy versions of WDM
+ *
+ *  This configuration option is controlled by the
+ *  configure script. See --disable-legacy-wdm
+ */
+
+#ifndef WEAVE_CONFIG_LEGACY_WDM
+#define WEAVE_CONFIG_LEGACY_WDM    1
+#endif
+
 /**
  *  @def WEAVE_CONFIG_WDM_ALLOW_CLIENT_LEGACY_MESSAGE_TYPES
  *

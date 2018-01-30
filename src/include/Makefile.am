@@ -716,7 +716,6 @@ $(nl_public_WeaveProfiles_bulk_data_transfer_development_header_sources) \
 $(nl_public_WeaveProfiles_bulk_data_transfer_header_sources) \
 $(nl_public_WeaveProfiles_common_header_sources) \
 $(nl_public_WeaveProfiles_data_management_header_sources) \
-$(nl_public_WeaveProfiles_data_management_legacy_header_sources) \
 $(nl_public_WeaveProfiles_data_management_current_header_sources) \
 $(nl_public_WeaveProfiles_device_control_header_sources) \
 $(nl_public_WeaveProfiles_device_description_header_sources) \
@@ -737,6 +736,12 @@ $(nl_public_WeaveProfiles_nestlabs_device_description_header_sources) \
 $(nl_public_WeaveProfiles_nestlabs_thermostat_header_sources) \
 $(nl_public_WeaveProfiles_nestlabs_dropcam_legacy_pairing_sources) \
 $(NULL)
+
+if WEAVE_BUILD_LEGACY_WDM
+nl_public_WeaveProfiles_header_sources += \
+$(nl_public_WeaveProfiles_data_management_legacy_header_sources) \
+$(NULL)
+endif
 
 nl_public_WeaveProfiles_header_paths = $(subst $(nl_public_WeaveProfiles_source_dirstem)/,,$(nl_public_WeaveProfiles_header_sources))
 

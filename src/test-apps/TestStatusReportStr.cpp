@@ -41,8 +41,10 @@
 #include <Weave/Profiles/bulk-data-transfer/BulkDataTransfer.h>
 #include <Weave/Profiles/service-directory/ServiceDirectory.h>
 
+#if WEAVE_CONFIG_LEGACY_WDM
 // Specify Legacy to enable definition in legacy code
 #include <Weave/Profiles/data-management/Legacy/DMConstants.h>
+#endif // WEAVE_CONFIG_LEGACY_WDM
 
 #include <Weave/Profiles/device-control/DeviceControl.h>
 #include <Weave/Profiles/fabric-provisioning/FabricProvisioning.h>
@@ -99,6 +101,7 @@ static struct Profile_Status sContext[] = {
             Common::kStatus_Continue,
         }
     },
+#if WEAVE_CONFIG_LEGACY_WDM
     {
         kWeaveProfile_WDM,
         "[ WDM(%08" PRIX32 "):%" PRIu16 " ]",
@@ -112,6 +115,7 @@ static struct Profile_Status sContext[] = {
             DataManagement_Legacy::kStatus_InvalidVersion,
         }
     },
+#endif
     {
         kWeaveProfile_DeviceControl,
         "[ DeviceControl(%08" PRIX32 "):%" PRIu16 " ]",

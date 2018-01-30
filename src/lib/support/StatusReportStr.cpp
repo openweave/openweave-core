@@ -41,9 +41,11 @@
 #endif
 #include <Weave/Profiles/service-directory/ServiceDirectory.h>
 
+#if WEAVE_CONFIG_LEGACY_WDM
 // Specify Legacy to enable definition in legacy code
 #define WEAVE_CONFIG_DATA_MANAGEMENT_NAMESPACE kWeaveManagedNamespace_Legacy
 #include <Weave/Profiles/data-management/Legacy/DMConstants.h>
+#endif
 
 #include <Weave/Profiles/device-control/DeviceControl.h>
 #include <Weave/Profiles/fabric-provisioning/FabricProvisioning.h>
@@ -141,12 +143,14 @@ NL_DLL_EXPORT const char *StatusReportStr(uint32_t profileId, uint16_t statusCod
     case kWeaveProfile_WDM:
         switch (statusCode)
 	    {
+#if WEAVE_CONFIG_LEGACY_WDM
         case DataManagement_Legacy::kStatus_CancelSuccess                                : fmt = "[ WDM(%08" PRIX32 "):%" PRIu16 " ] Subscription canceled"; break;
         case DataManagement_Legacy::kStatus_InvalidPath                                  : fmt = "[ WDM(%08" PRIX32 "):%" PRIu16 " ] Invalid path"; break;
         case DataManagement_Legacy::kStatus_UnknownTopic                                 : fmt = "[ WDM(%08" PRIX32 "):%" PRIu16 " ] Unknown topic"; break;
         case DataManagement_Legacy::kStatus_IllegalReadRequest                           : fmt = "[ WDM(%08" PRIX32 "):%" PRIu16 " ] Illegal read request"; break;
         case DataManagement_Legacy::kStatus_IllegalWriteRequest                          : fmt = "[ WDM(%08" PRIX32 "):%" PRIu16 " ] Illegal write request"; break;
         case DataManagement_Legacy::kStatus_InvalidVersion                               : fmt = "[ WDM(%08" PRIX32 "):%" PRIu16 " ] Invalid version"; break;
+#endif
         default                                                                          : fmt = "[ WDM(%08" PRIX32 "):%" PRIu16 " ]"; break;
         }
 	break;
