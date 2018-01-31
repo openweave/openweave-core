@@ -626,11 +626,18 @@ WEAVE_ERROR WeaveServiceManager::replaceOrAddCacheEntry(uint16_t port,
     uint8_t *entry = NULL;
     uint16_t entryLength = 0;
     uint8_t bottomPortionLen = 0;
+    bool newEntryAdded = false;
 
     // Byte length for the overriding entry that needs to be inserted at the beginning of directory.
     // 1(host/port list length byte) + 8(Service Endpoint Id) + 1(hostId type byte) + 1(string len)
     // + hostLen(hostname string size) + 2(port Id)
     uint16_t overrideEntryTotalLen = 1 + 8 + 1 + 1 + hostLen + 2;
+
+    // Inject a fault to return an error while replacing a directory entry.
+
+    WEAVE_FAULT_INJECT(nl::Weave::FaultInjection::kFault_ServiceDirectoryReplaceError,
+                       ExitNow(err = WEAVE_ERROR_INCORRECT_STATE);
+                       );
 
     // Return if the cache state is not in the kServiceMgrState_Resolved state.
     // This is to avoid having to add an entry into the cache when it has been
@@ -638,7 +645,7 @@ WEAVE_ERROR WeaveServiceManager::replaceOrAddCacheEntry(uint16_t port,
     // FSM if a query to the service-directory is in progress.
 
     VerifyOrExit(mCacheState == kServiceMgrState_Resolved,
-                 err = WEAVE_NO_ERROR);
+                 err = WEAVE_ERROR_INCORRECT_STATE);
 
     // Perform lookup of the Service endpoint to replace an existing entry.
 
@@ -649,6 +656,10 @@ WEAVE_ERROR WeaveServiceManager::replaceOrAddCacheEntry(uint16_t port,
 
         err = calculateEntryLength(entry, ctrlByte, &entryLength);
         SuccessOrExit(err);
+
+        entryLength += 9; // Add the entry ctrl byte(1) and the endpoint id(8) bytes
+                          // to the entryLength.
+        entry -= 9; // Retract the entry start to the beginning of its control byte.
 
         // Add a check for the length incorporating the new entry.
 
@@ -662,6 +673,14 @@ WEAVE_ERROR WeaveServiceManager::replaceOrAddCacheEntry(uint16_t port,
         // Reduce the overall size by this entry length.
 
         mDirAndSuffTableSize -= entryLength;
+    }
+    else
+    {
+        WeaveLogProgress(ServiceDirectory, "%s : Lookup failed, adding entry at the top", __func__);
+
+        newEntryAdded = true;
+
+        err = WEAVE_NO_ERROR;
     }
 
     // Make space for the new entry by moving the directory down the cache by the appropriate length.
@@ -700,11 +719,20 @@ WEAVE_ERROR WeaveServiceManager::replaceOrAddCacheEntry(uint16_t port,
 
     Write16(p, port);
 
-    // Update the directory length by this new entry and write it in the directory control byte.
+    if (newEntryAdded)
+    {
+        // Update the directory length by this new entry.
 
-    mDirectory.length++;
+        mDirectory.length++;
+    }
+
+    // Update the directory and suffix table size
+
+    mDirAndSuffTableSize += overrideEntryTotalLen;
 
 exit:
+    WeaveLogProgress(ServiceDirectory, "%s : %s", __func__, nl::ErrorStr(err));
+
     return err;
 }
 

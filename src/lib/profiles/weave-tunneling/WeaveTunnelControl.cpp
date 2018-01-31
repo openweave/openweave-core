@@ -1021,6 +1021,7 @@ void WeaveTunnelControl::HandleTunnelReconnect(ExchangeContext *ec, const IPPack
     char hostName[255]; // Per spec, max DNS name length is 253.
     uint8_t hostLen = sizeof(hostName);
     uint16_t payloadLen = 0;
+    ReconnectParam reconnParam;
 
     VerifyOrExit(ec->Con != NULL, err = WEAVE_ERROR_INVALID_ARGUMENT);
 
@@ -1066,7 +1067,14 @@ void WeaveTunnelControl::HandleTunnelReconnect(ExchangeContext *ec, const IPPack
 
             err = tunControl->mTunnelAgent->mServiceMgr->replaceOrAddCacheEntry(hostPort, hostName, hostLen,
                                                                                 kServiceEndpoint_WeaveTunneling);
-            SuccessOrExit(err);
+            if (err != WEAVE_NO_ERROR)
+            {
+                tunControl->mTunnelAgent->mServiceMgr->clearCache();
+
+                err = WEAVE_NO_ERROR;
+
+                ExitNow();
+            }
         }
     }
     else
@@ -1083,9 +1091,9 @@ void WeaveTunnelControl::HandleTunnelReconnect(ExchangeContext *ec, const IPPack
         }
     }
 
-    // Close the tunnel connection
+exit:
 
-    connMgr->StopServiceTunnelConn(WEAVE_NO_ERROR);
+    tunControl->FreeBufferAndCloseExchange(payload, ec);
 
     // Reset the failed connection attempts counter as this is a fresh reconnect.
 
@@ -1093,14 +1101,11 @@ void WeaveTunnelControl::HandleTunnelReconnect(ExchangeContext *ec, const IPPack
 
     connMgr->mTunReconnectFibonacciIndex = 0;
 
-    // Try reconnecting to the Service.
+    reconnParam.PopulateReconnectParam(WEAVE_NO_ERROR);
 
-    connMgr->ScheduleConnect(CONNECT_NO_DELAY);
+    connMgr->StopAndReconnectTunnelConn(reconnParam);
 
     tunControl->mTunnelAgent->WeaveTunnelServiceReconnectRequested(connMgr, hostName, hostPort);
-exit:
-
-    tunControl->FreeBufferAndCloseExchange(payload, ec);
 
     return;
 }

@@ -61,9 +61,6 @@ using namespace nl::Weave::TLV;
 
 static WEAVE_ERROR SendTunnelReconnectMessage(ExchangeContext *ec, const uint16_t port = WEAVE_PORT,
                                               const char *tunnelHostname = NULL, uint16_t hostLen = 0);
-static void HandleReconnectResponse(ExchangeContext *ec, const IPPacketInfo *pktInfo,
-                                    const WeaveMessageInfo *msgInfo, uint32_t profileId,
-                                    uint8_t msgType, PacketBuffer *payload);
 static WEAVE_ERROR VerifyAndParseStatusResponse(uint32_t profileId,
                                                 uint8_t msgType, PacketBuffer *payload,
                                                 StatusReport &outReport);
@@ -541,12 +538,13 @@ exit:
     return err;
 }
 
-void HandleReconnectResponse(ExchangeContext *ec, const IPPacketInfo *pktInfo,
-                             const WeaveMessageInfo *msgInfo, uint32_t profileId,
-                             uint8_t msgType, PacketBuffer *payload)
+void WeaveTunnelServer::HandleReconnectResponse(ExchangeContext *ec, const IPPacketInfo *pktInfo,
+                                                const WeaveMessageInfo *msgInfo, uint32_t profileId,
+                                                uint8_t msgType, PacketBuffer *payload)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
     StatusReport report;
+    WeaveTunnelServer *tunServer = static_cast<WeaveTunnelServer *>(ec->AppState);
 
     err = VerifyAndParseStatusResponse(profileId, msgType, payload, report);
     SuccessOrExit(err);
@@ -570,6 +568,9 @@ exit:
     {
         PacketBuffer::Free(payload);
     }
+
+    // Drop the connection
+    tunServer->CloseConnections();
 
     // Discard the exchange context.
     if (ec)
@@ -766,6 +767,7 @@ void WeaveTunnelServer::HandleTunnelControlMsg (ExchangeContext *ec, const IPPac
                     SuccessOrExit(err);
 
                     gReconnectSent = true;
+
                 }
 
                 break;

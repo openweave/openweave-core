@@ -68,6 +68,7 @@ typedef enum
 #if WEAVE_CONFIG_ENABLE_SERVICE_DIRECTORY
     kFault_ServiceManager_ConnectRequestNew,    /**< Fail the allocation of a WeaveServiceManager::ConnectRequest */
     kFault_ServiceManager_Lookup,               /**< Fail the lookup of an endpoint id */
+    kFault_ServiceDirectoryReplaceError,        /**< Fail the replacement of a ServiceDirectory entry */
 #endif // WEAVE_CONFIG_ENABLE_SERVICE_DIRECTORY
     kFault_WDM_TraitInstanceNew,                /**< Fail the allocation of a WDM TraitInstanceInfo object */
     kFault_WDM_SubscriptionHandlerNew,          /**< Fail the allocation of a WDM SubscriptionHandler object */

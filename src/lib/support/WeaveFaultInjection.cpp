@@ -53,6 +53,7 @@ static const nl::FaultInjection::Name sFaultNames[] = {
 #if WEAVE_CONFIG_ENABLE_SERVICE_DIRECTORY
     "SMConnectRequestNew",
     "SMLookup",
+    "SMCacheReplaceEntryError",
 #endif // WEAVE_CONFIG_ENABLE_SERVICE_DIRECTORY
     "WDMTraitInstanceNew",
     "WDMSubscriptionHandlerNew",

@@ -204,6 +204,10 @@ private:
     static void HandleSecureSessionError(WeaveSecurityManager *sm, WeaveConnection *con, void *reqState,
                                          WEAVE_ERROR localErr, uint64_t peerNodeId, StatusReport *statusReport);
 
+    static void HandleReconnectResponse(ExchangeContext *ec, const IPPacketInfo *pktInfo,
+                                    const WeaveMessageInfo *msgInfo, uint32_t profileId,
+                                    uint8_t msgType, PacketBuffer *payload);
+
     void StoreGatewayInfoForPriority(WeaveConnection *conn, uint8_t rtIndex, uint8_t priorityIndex,
                                      uint8_t priorityVal, const IPPacketInfo *pktInfo,
                                      const WeaveMessageInfo *msgInfo);
