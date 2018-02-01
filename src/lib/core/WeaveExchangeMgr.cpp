@@ -1754,7 +1754,7 @@ void WeaveExchangeManager::InitBindingPool(void)
 /**
  *  Allocate a new Binding
  *
- *  @retval  A pointer to the newly allocated Binding, or NULL if the pool has been exhausted
+ *  @return  A pointer to the newly allocated Binding, or NULL if the pool has been exhausted
  *
  */
 Binding * WeaveExchangeManager::AllocBinding(void)
@@ -1798,7 +1798,7 @@ void WeaveExchangeManager::FreeBinding(Binding * binding)
  *  @param[in]  eventCallback   A function pointer to be used for event callback
  *  @param[in]  appState        A pointer to some context which would be carried in event callback later
  *
- *  @retval  A pointer to the newly allocated Binding, or NULL if the pool has been exhausted
+ *  @return  A pointer to the newly allocated Binding, or NULL if the pool has been exhausted
  *
  */
 Binding * WeaveExchangeManager::NewBinding(Binding::EventCallback eventCallback, void *appState)
@@ -1816,7 +1816,7 @@ Binding * WeaveExchangeManager::NewBinding(Binding::EventCallback eventCallback,
  *
  *  @param[in]  binding         A pointer to a Binding object
  *
- *  @retval                     An unsigned integer identifying the binding
+ *  @return                     An unsigned integer identifying the binding
  *
  */
 uint16_t WeaveExchangeManager::GetBindingLogId(const Binding * const binding) const

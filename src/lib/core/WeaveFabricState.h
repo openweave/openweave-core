@@ -291,9 +291,9 @@ enum
 };
 
 /**
- *  @class WeaveMsgEncryptionKey
+ * @class WeaveMsgEncryptionKey
  *
- *  @brief
+ * @brief
  *    Contains information about Weave message encryption key.
  *
  */
@@ -305,7 +305,12 @@ public:
     WeaveEncryptionKey EncKey;                          /**< The secret key material. */
 };
 
-// WeaveSessionState -- Conveys the communication state needed to send/receive messages with another node.
+/**
+ * @class WeaveSessionState
+ *
+ * @brief
+ *   Conveys the communication state needed to send/receive messages with another node.
+ */
 class WeaveSessionState
 {
 public:
@@ -336,28 +341,33 @@ private:
     ReceiveFlagsType *RcvFlags;
 };
 
-// WeaveSessionKey -- Contains information about a Weave session key.
+/**
+ * @class WeaveSessionKey
+ *
+ * @brief
+ *   Contains information about a Weave session key.
+ */
 class WeaveSessionKey
 {
 public:
     enum FlagsEnum
     {
-        kFlag_IsLocallyInitiated     = 0x01,            // The session was initiated by the local node.
-        kFlag_IsSharedSession        = 0x02,            // The session is a shared session.
-        kFlag_IsRemoveOnIdle         = 0x04,            // The session should be removed when idle (only applies to sessions
-                                                        // that are not bound to a connection).
-        kFlag_RecentlyActive         = 0x08,            // The session was recently active.
+        kFlag_IsLocallyInitiated     = 0x01,            /**< The session was initiated by the local node. */
+        kFlag_IsSharedSession        = 0x02,            /**< The session is a shared session. */
+        kFlag_IsRemoveOnIdle         = 0x04,            /**< The session should be removed when idle (only applies to sessions
+                                                             that are not bound to a connection). */
+        kFlag_RecentlyActive         = 0x08,            /**< The session was recently active. */
     };
 
-    uint64_t NodeId;                                    // The id of the node with which the session key is shared.
-    MonotonicallyIncreasingCounter NextMsgId;           // The next message id to be used under the session key.
-    uint32_t MaxRcvdMsgId;                              // The maximum message id received under the session key.
-    WeaveConnection *BoundCon;                          // The connection to which the key is bound.
-    WeaveSessionState::ReceiveFlagsType RcvFlags;       // Flags tracking messages received under the key.
-    WeaveAuthMode AuthMode;                             // The means by which the peer node was authenticated during session establishment.
-    WeaveMsgEncryptionKey MsgEncKey;                    // The Weave message encryption key.
-    uint8_t ReserveCount;                               // Number of times the session key has been reserved.
-    uint8_t Flags;                                      // Various flags associated with the session.
+    uint64_t NodeId;                                    /**< The id of the node with which the session key is shared. */
+    MonotonicallyIncreasingCounter NextMsgId;           /**< The next message id to be used under the session key. */
+    uint32_t MaxRcvdMsgId;                              /**< The maximum message id received under the session key. */
+    WeaveConnection *BoundCon;                          /**< The connection to which the key is bound. */
+    WeaveSessionState::ReceiveFlagsType RcvFlags;       /**< Flags tracking messages received under the key. */
+    WeaveAuthMode AuthMode;                             /**< The means by which the peer node was authenticated during session establishment. */
+    WeaveMsgEncryptionKey MsgEncKey;                    /**< The Weave message encryption key. */
+    uint8_t ReserveCount;                               /**< Number of times the session key has been reserved. */
+    uint8_t Flags;                                      /**< Various flags associated with the session. */
 
     void Init(void);
     void Clear(void);
@@ -375,7 +385,12 @@ public:
     void ClearRecentlyActive()          { ClearFlag(Flags, kFlag_RecentlyActive); }
 };
 
-// Key cache for Weave message encryption keys.
+/**
+ * @class WeaveMsgEncryptionKeyCache
+ *
+ * @brief
+ *   Key cache for Weave message encryption keys.
+ */
 class WeaveMsgEncryptionKeyCache
 {
 public:
@@ -409,11 +424,19 @@ enum
     kWeaveMsgEncAppKeyDiversifierSize         = sizeof(kWeaveMsgEncAppKeyDiversifier) + sizeof(uint8_t)
 };
 
-// Forward declaration of WeaveFabricState
+/**
+ * @class WeaveFabricState
+ *
+ * @brief
+ *   Forward declaration of WeaveFabricState
+ */
 class WeaveFabricState;
 
 /**
- *  This abstract delegate class communicates fabric state changes.
+ * @class FabricStateDelegate
+ *
+ * @brief
+ *   This abstract delegate class communicates fabric state changes.
  */
 class FabricStateDelegate
 {
@@ -424,7 +447,6 @@ public:
      * @param[in] fabricState: A pointer to WeaveFabricState that was changed.
      * @param[in] newFabricId: The new fabric ID of the WeaveFabricState.
      *
-     * @retval None.
      */
     virtual void DidJoinFabric(WeaveFabricState *fabricState, uint64_t newFabricId) = 0;
 
@@ -435,7 +457,6 @@ public:
      * @param[in] fabricState: A pointer to the WeaveFabricState that was changed.
      * @param[in] oldFabricId: The old fabric ID that was cleared.
      *
-     * @retval None.
      */
     virtual void DidLeaveFabric(WeaveFabricState *fabricState, uint64_t oldFabricId) = 0;
 };
@@ -552,7 +573,6 @@ public:
      *
      * @param[in] aDelegate                     The delegate object. It can be NULL if no
      *                                          delegate is required.
-     * @retval None.
      */
     void SetDelegate(FabricStateDelegate *aDelegate);
 

@@ -974,7 +974,7 @@ NL_DLL_EXPORT Error DispatchEvent(Layer& aLayer, void* aContext, Event aEvent)
  *  @param[inout]  aContext             Platform-specific context data passed to the layer initialization method, ::Init.
  *  @param[in]     aMilliseconds        The number of milliseconds to set for the timer.
  *
- *  @retval   #WEAVE_SYSTEM_NO_ERROR    Always succeeds unless overriden.
+ *  @retval   #WEAVE_SYSTEM_NO_ERROR    Always succeeds unless overridden.
  */
 NL_DLL_EXPORT Error StartTimer(Layer& aLayer, void* aContext, uint32_t aMilliseconds)
 {

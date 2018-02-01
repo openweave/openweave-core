@@ -227,8 +227,9 @@ public:
     virtual WEAVE_ERROR WillStartRemotePassiveRendezvous(void) = 0;
 
     /**
-     * Prepare to stop Remote Passive Rendezvous
-     * (see WillStartRemotePassiveRendezvous(void)).
+     * Prepare to stop Remote Passive Rendezvous.
+     * 
+     * @sa WillStartRemotePassiveRendezvous(void)
      */
     // TODO: More detail regarding usage required.
     virtual void WillCloseRemotePassiveRendezvous(void) = 0;

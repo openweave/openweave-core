@@ -470,10 +470,10 @@ bool SendInit::operator == (const SendInit &another) const
             mMetaData == another.mMetaData);
 }
 
-/*
- * -- definitions for SendAccept and its supporting classes --
- *
- * the no-arg constructor with defaults for the send accept message
+// -- definitions for SendAccept and its supporting classes --
+
+/**
+ * The no-arg constructor with defaults for the send accept message.
  */
 SendAccept::SendAccept()
     : mVersion(0)
@@ -482,14 +482,6 @@ SendAccept::SendAccept()
 {
 }
 
-/*
- * parameters:
- * - uint8_t aTransferMode, a transfer mode value. must be at MOST one of the
- * flag values for this field.
- * - uiunt16_t aMaxBlockSize, the maximum allowable block sixe for this exchange
- * - ReferencedTLVData *aMetaData, optional metadata
- * return: error/status
- */
 
 /**
  * @brief
@@ -611,12 +603,12 @@ bool SendAccept::operator == (const SendAccept &another) const
             mMetaData == another.mMetaData);
 }
 
-/*
- * -- definitions for ReceiveInit and its supporting classes --
- *
- * the no-arg constructor with defaults for the ReceiveInit message.
- * note that the defaults here are set up for sleepy 802.15.4 devices.
- * in another context they should be changed on initialization.
+// -- definitions for ReceiveInit and its supporting classes --
+
+/**
+ * The no-arg constructor with defaults for the ReceiveInit message.
+ * Note that the defaults here are set up for sleepy 802.15.4 devices.
+ * In another context they should be changed on initialization.
  */
 ReceiveInit::ReceiveInit()
 {
@@ -632,10 +624,10 @@ ReceiveInit::ReceiveInit()
     mLength = 0;
 }
 
-/*
- * -- definitions for ReceiveAccept and its supporting classes --
- *
- * the no-arg constructor with defaults for the send accept message
+// -- definitions for ReceiveAccept and its supporting classes --
+
+/**
+ * The no-arg constructor with defaults for the send accept message.
  */
 ReceiveAccept::ReceiveAccept()
     : mDefiniteLength(true)
@@ -838,10 +830,10 @@ bool ReceiveAccept::operator == (const ReceiveAccept &another) const
             mMetaData == another.mMetaData);
 }
 
-/*
- * -- definitions for BlockQuery and its supporting classes --
- *
- * the no-arg constructor with defaults for the block query message
+// -- definitions for BlockQuery and its supporting classes --
+
+/**
+ * The no-arg constructor with defaults for the block query message.
  */
 BlockQuery::BlockQuery()
     : mBlockCounter(0)
@@ -924,10 +916,10 @@ bool BlockQuery::operator == (const BlockQuery &another) const
     return mBlockCounter == another.mBlockCounter;
 }
 
-/*
- * -- definitions for BlockSend and its supporting classes --
- *
- * the no-arg constructor with defaults for the block send message
+// -- definitions for BlockSend and its supporting classes --
+
+/**
+ * The no-arg constructor with defaults for the block send message.
  */
 BlockSend::BlockSend()
     : mBlockCounter(0)
@@ -1027,10 +1019,10 @@ bool BlockSend::operator == (const BlockSend &another) const
 }
 
 
-/*
- * -- definitions for BlockQueryV1 and its supporting classes --
- *
- * the no-arg constructor with defaults for the block query message
+// -- definitions for BlockQueryV1 and its supporting classes --
+
+/**
+ * The no-arg constructor with defaults for the block query message.
  */
 BlockQueryV1::BlockQueryV1()
     : mBlockCounter(0)
@@ -1117,10 +1109,10 @@ bool BlockQueryV1::operator == (const BlockQueryV1 &another) const
     return mBlockCounter == another.mBlockCounter;
 }
 
-/*
- * -- definitions for BlockSendV1 and its supporting classes --
- *
- * the no-arg constructor with defaults for the block send message
+// -- definitions for BlockSendV1 and its supporting classes --
+
+/**
+ * The no-arg constructor with defaults for the block send message.
  */
 BlockSendV1::BlockSendV1()
     : mBlockCounter(0)

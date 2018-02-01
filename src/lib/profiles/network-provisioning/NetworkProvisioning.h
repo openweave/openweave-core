@@ -111,39 +111,31 @@ enum
  */
 enum
 {
-    /**
-     * Top-level Data Elements (profile-specific).
-     */
-    kTag_Networks                               = 1,	/**< An array of NetworkConfiguration structures. [ array ] */
-    kTag_EnabledNetworks                        = 2,	/**< An array of NetworkIds identifying the networks currently enabled on the device. [ array ] */
-    kTag_RendezvousMode                         = 3,	/**< A bit field indicating the currently active rendezvous mode. [ uint ] */
+    // Top-level Data Elements (profile-specific).
+    kTag_Networks                               = 1,	/**< [ array ] An array of NetworkConfiguration structures. */
+    kTag_EnabledNetworks                        = 2,	/**< [ array ] An array of NetworkIds identifying the networks currently enabled on the device. */
+    kTag_RendezvousMode                         = 3,	/**< [ uint ] A bit field indicating the currently active rendezvous mode. */
 
-    /**
-     * General-Purpose Data Elements (profile-specific).
-     */
-    kTag_NetworkInformation                     = 32,	/**< A structure containing information for a network. [ struct ] */
-    kTag_NetworkId                              = 33,	/**< An integer uniquely identifying a provisioned network. [ uint, 32-bit max ] */
-    kTag_NetworkType                            = 34,	/**< An unsigned integer value identifying the type of a network. [ uint, 8-bit max ] */
-    kTag_WirelessSignalStrength                 = 35,   /**< An signed integer value giving the signal strength of a wireless network in dBm. [ int, 16-bit max ] */
+    // General-Purpose Data Elements (profile-specific).
+    kTag_NetworkInformation                     = 32,	/**< [ struct ] A structure containing information for a network. */
+    kTag_NetworkId                              = 33,	/**< [ uint, 32-bit max ] An integer uniquely identifying a provisioned network. */
+    kTag_NetworkType                            = 34,	/**< [ uint, 8-bit max ] An unsigned integer value identifying the type of a network. */
+    kTag_WirelessSignalStrength                 = 35,   /**< [ int, 16-bit max ] An signed integer value giving the signal strength of a wireless network in dBm. */
 
-    /**
-     * WiFi Data Elements (Profile-specific).
-     */
-    kTag_WiFiSSID                               = 64,	/**< A string containing a WiFi SSID. [ UTF-8 string ] */
-    kTag_WiFiMode                               = 65,	/**< An integer identify the mode of operation of the WiFi network. [ uint, 8-bit max ] */
-    kTag_WiFiRole                               = 66,	/**< An integer identify the role the device plays in the WiFi network. [ uint, 8-bit max ] */
-    kTag_WiFiSecurityType                       = 67,	/**< An integer value identifying the type of security used by a WiFi network. [ uint, 8-bit max ] */
-    kTag_WiFiPreSharedKey                       = 68,	/**< A byte string containing the WiFi password/pre-shared key. */
+    // WiFi Data Elements (Profile-specific).
+    kTag_WiFiSSID                               = 64,	/**< [ UTF-8 string ] A string containing a WiFi SSID. */
+    kTag_WiFiMode                               = 65,	/**< [ uint, 8-bit max ] An integer identify the mode of operation of the WiFi network. */
+    kTag_WiFiRole                               = 66,	/**< [ uint, 8-bit max ] An integer identify the role the device plays in the WiFi network. */
+    kTag_WiFiSecurityType                       = 67,	/**< [ uint, 8-bit max ] An integer value identifying the type of security used by a WiFi network. */
+    kTag_WiFiPreSharedKey                       = 68,	/**< [ byte string ] A byte string containing the WiFi password/pre-shared key. */
 
-    /**
-     * Thread Data Elements (profile-specific).
-     */
-    kTag_ThreadExtendedPANId                    = 80,   /**< The Thread extended PAN ID. [ byte string ] */
-    kTag_ThreadNetworkName                      = 81,   /**< A UTF-8 string containing the name of the Thread network. [ UTF-8 string ] */
-    kTag_ThreadNetworkKey                       = 82,   /**< The Thread master network key. [ bytes string ] */
-    kTag_ThreadMeshPrefix                       = 83,   /**< Thread mesh IPv6 /64 prefix (optional). [ bytes string, exactly 8 bytes ] */
-    kTag_ThreadChannel                          = 84,   /**< Thread channel number (optional). [ uint, 8-bit max ] */
-    kTag_ThreadPANId                            = 85    /**< Thread PAN ID (optional). [ uint, 16-bit max ] */
+    // Thread Data Elements (profile-specific).
+    kTag_ThreadExtendedPANId                    = 80,   /**< [ byte string ] The Thread extended PAN ID. */
+    kTag_ThreadNetworkName                      = 81,   /**< [ UTF-8 string ] A UTF-8 string containing the name of the Thread network. */
+    kTag_ThreadNetworkKey                       = 82,   /**< [ bytes string ] The Thread master network key. */
+    kTag_ThreadMeshPrefix                       = 83,   /**< [ bytes string, exactly 8 bytes ] Thread mesh IPv6 /64 prefix (optional). */
+    kTag_ThreadChannel                          = 84,   /**< [ uint, 8-bit max ] Thread channel number (optional). */
+    kTag_ThreadPANId                            = 85    /**< [ uint, 16-bit max ] Thread PAN ID (optional). */
 };
 
 /**
@@ -240,7 +232,7 @@ public:
      *
      * @param[in] networkType   The technology (for example, WiFi or Thread) to scan.  @sa #NetworkType for valid types.
      *
-     * @retval #WEAVE_NO_ERROR   On success.
+     * @retval #WEAVE_NO_ERROR  On success.
      * @retval other            Other Weave or platform-specific error codes indicating that an error
      *                          occurred preventing the device from performing a network scan.
      */

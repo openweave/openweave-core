@@ -741,11 +741,9 @@ CircularEventBuffer * LoggingManagement::GetImportanceBuffer(ImportanceType inIm
  *
  * @param aExternalEventsPtr    Pointer to ExternalEvents struct.
  *
- * @return WEAVE_ERROR_NO_MEMORY        If no more callback slots are available.
- *
- * @return WEAVE_ERROR_INVALID_ARGUMENT Null function callback or no events to register.
- *
- * @return WEAVE_NO_ERROR               On success.
+ * @retval WEAVE_ERROR_NO_MEMORY        If no more callback slots are available.
+ * @retval WEAVE_ERROR_INVALID_ARGUMENT Null function callback or no events to register.
+ * @retval WEAVE_NO_ERROR               On success.
  */
 WEAVE_ERROR LoggingManagement::RegisterEventCallbackForImportance(ImportanceType inImportance, FetchExternalEventsFunct inCallback,
                                                                   size_t inNumEvents, ExternalEvents ** aExternalEventsPtr)
@@ -793,11 +791,9 @@ WEAVE_ERROR LoggingManagement::RegisterEventCallbackForImportance(ImportanceType
  *
  * @param aExternalEventsPtr    Pointer to ExternalEvents struct.
  *
- * @return WEAVE_ERROR_NO_MEMORY        If no more callback slots are available.
- *
- * @return WEAVE_ERROR_INVALID_ARGUMENT Null function callback or no events to register.
- *
- * @return WEAVE_NO_ERROR               On success.
+ * @retval WEAVE_ERROR_NO_MEMORY        If no more callback slots are available.
+ * @retval WEAVE_ERROR_INVALID_ARGUMENT Null function callback or no events to register.
+ * @retval WEAVE_NO_ERROR               On success.
  */
 WEAVE_ERROR LoggingManagement::RegisterEventCallbackForImportance(ImportanceType inImportance,
                                                                   FetchExternalEventsFunct inFetchCallback,
@@ -1157,13 +1153,11 @@ exit:
  * event.  If event cannot be written as a whole, the TLVWriter will
  * be rolled back to event boundary.
  *
- * @retval #WEAVE_END_OF_TLV function reached the end of the event
- *
- * @retval #WEAVE_ERROR_NO_MEMORY Function could not write a portion of
- *                          the event to the TLVWriter.
- *
+ * @retval #WEAVE_END_OF_TLV             Function reached the end of the event
+ * @retval #WEAVE_ERROR_NO_MEMORY        Function could not write a portion of
+ *                                       the event to the TLVWriter.
  * @retval #WEAVE_ERROR_BUFFER_TOO_SMALL Function could not write a
- *                          portion of the event to the TLVWriter.
+ *                                       portion of the event to the TLVWriter.
  */
 WEAVE_ERROR LoggingManagement::CopyEventsSince(const TLVReader & aReader, size_t aDepth, void * aContext)
 {
@@ -1241,8 +1235,8 @@ exit:
  * @brief
  *   IsEventExternal checks whether inEventID is stored by the platform.
  *
- * @retval True if the event is stored externally.
- * @retval False otherwise.
+ * @retval true   The event is stored externally.
+ * @retval false  The event is not stored externally.
  */
 inline bool LoggingManagement::IsEventExternal(ImportanceType inImportance, event_id_t inEventID) const
 {
@@ -1253,7 +1247,7 @@ inline bool LoggingManagement::IsEventExternal(ImportanceType inImportance, even
  * @brief
  *   For an event ID known to be stored externally, return the last event ID in that set.
  *
- * @retval The last event ID of a group of event IDs.
+ * @return The last event ID of a group of event IDs.
  */
 inline event_id_t LoggingManagement::GetEndOfExternalEventRange(ImportanceType inImportance, event_id_t inEventID) const
 {
@@ -1281,17 +1275,17 @@ inline event_id_t LoggingManagement::GetEndOfExternalEventRange(ImportanceType i
  *                         completion, the ID of the last event
  *                         fetched.
  *
- * @retval #WEAVE_END_OF_TLV The function has reached the end of the
- *                         available log entries at the specified
- *                         importance level
+ * @retval #WEAVE_END_OF_TLV             The function has reached the end of the
+ *                                       available log entries at the specified
+ *                                       importance level
  *
- * @retval #WEAVE_ERROR_NO_MEMORY The function ran out of space in the
- *                         ioWriter, more events in the log are
- *                         available.
+ * @retval #WEAVE_ERROR_NO_MEMORY        The function ran out of space in the
+ *                                       ioWriter, more events in the log are
+ *                                       available.
  *
- * @retval #WEAVE_ERROR_BUFFER_TOO_SMALL The function ran out of space
- *                         in the ioWriter, more events in the log are
- *                         available.
+ * @retval #WEAVE_ERROR_BUFFER_TOO_SMALL The function ran out of space in the
+ *                                       ioWriter, more events in the log are
+ *                                       available.
  *
  */
 WEAVE_ERROR LoggingManagement::FetchEventsSince(TLVWriter & ioWriter, ImportanceType inImportance, event_id_t & ioEventID)
@@ -1363,7 +1357,7 @@ exit:
  *                         reader will traverse the least data when
  *                         the Debug importance is passed in.
  *
- * @retval #WEAVE_NO_ERROR Unconditionally.
+ * @return                 #WEAVE_NO_ERROR Unconditionally.
  */
 WEAVE_ERROR LoggingManagement::GetEventReader(TLVReader & ioReader, ImportanceType inImportance)
 {
@@ -1603,8 +1597,7 @@ void LoggingManagement::SignalUploadDone(void)
  *                       buffer management policy.
  *
  * @retval #WEAVE_ERROR_INCORRECT_STATE LoggingManagement module was not initialized fully.
- *
- * @retval #WEAVE_NO_ERROR On success.
+ * @retval #WEAVE_NO_ERROR              On success.
  */
 WEAVE_ERROR LoggingManagement::ScheduleFlushIfNeeded(bool inRequestFlush)
 {
@@ -1652,8 +1645,8 @@ bool LoggingManagement::CheckShouldRunBDX(void)
  * Notification was sent, the function will indicate it is time to
  * trigger the NotificationEngine.
  *
- * @returns true  events should be offloaded
- * @returns false otherwise
+ * @retval true   Events should be offloaded
+ * @retval false  Otherwise
  */
 bool LoggingManagement::CheckShouldRunWDM(void)
 {
@@ -1789,9 +1782,9 @@ CircularEventBuffer::CircularEventBuffer(uint8_t * inBuffer, size_t inBufferLeng
  *
  * @param[in]   inImportance   Importance of the event.
  *
- * @returns True if the event will be dropped from this buffer as
- * a result of queue overflow.  False if the event will be instead
- * bumped to the next queue.
+ * @retval true  The event will be dropped from this buffer as
+ *               a result of queue overflow.
+ * @retval false The event will be bumped to the next queue.
  */
 bool CircularEventBuffer::IsFinalDestinationForImportance(ImportanceType inImportance) const
 {
@@ -1859,9 +1852,9 @@ void CircularEventBuffer::RemoveEvent(void)
  * @param[in] aNumEvents      Number of events to register.
  * @param[out] aExternalEventsPtr When non-NULL, on successful return it will contain the pointer to the ExternalEvents object
  *
- * @return WEAVE_ERROR_INVALID_ARGUMENT Null function callback or no events to register.
- * @return WEAVE_ERROR_NO_MEMORY If all callbacks are in use.
- * @return WEAVE_NO_ERROR Otherwise
+ * @return WEAVE_ERROR_INVALID_ARGUMENT  Null function callback or no events to register.
+ * @return WEAVE_ERROR_NO_MEMORY         If all callbacks are in use.
+ * @return WEAVE_NO_ERROR                Otherwise.
  */
 WEAVE_ERROR CircularEventBuffer::RegisterExternalEventsCallback(FetchExternalEventsFunct aFetchCallback,
                                                                 NotifyExternalEventsDeliveredFunct aNotifyCallback,
@@ -1935,7 +1928,7 @@ void CircularEventBuffer::UnregisterExternalEventsCallback(ExternalEvents * inPt
  * @brief
  *   A function to get a pointer to the ExternalEvent storing aEventID.
  *
- * @retval NULL if aEventID is not externally stored.
+ * @return NULL if aEventID is not externally stored.
  */
 ExternalEvents * CircularEventBuffer::GetExternalEventsFromEventID(event_id_t aEventID)
 {
@@ -1963,7 +1956,7 @@ ExternalEvents * CircularEventBuffer::GetExternalEventsFromEventID(event_id_t aE
  * A NULL pointer assigned to an ExternalEvents.mFetchEventsFunct is an
  * indication that the callback slot is unused.
  *
- * @retval NULL if all callbacks are in use.
+ * @return NULL if all callbacks are in use.
  */
 ExternalEvents * CircularEventBuffer::GetNextAvailableExternalEvents(void)
 {

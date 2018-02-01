@@ -41,8 +41,9 @@ namespace Weave {
 namespace Profiles {
 namespace Common {
 
-// Common Profile Message Types
-//
+/*
+ * Common Profile Message Types
+ */
 enum
 {
     kMsgType_StatusReport             = 1,
@@ -53,47 +54,54 @@ enum
     kMsgType_WRMP_Throttle_Flow       = 4
 };
 
-// Common Profile Status Codes
-
+/*
+ * Common Profile Status Codes
+ */
 enum
 {
-    kStatus_Success                   = 0,       // The operation completed without error.
-    kStatus_Canceled                  = 1,       // The operation was canceled.
-    kStatus_BadRequest                = 0x0010,  // The request was unrecognized or malformed.
-    kStatus_UnsupportedMessage        = 0x0011,  // An unrecognized or unsupported message was received.
-    kStatus_UnexpectedMessage         = 0x0012,  // A message was received at an unexpected time or in an unexpected context.
-    kStatus_AuthenticationRequired    = 0x0013,  // The request can only be made by an authenticated party.
-    kStatus_AccessDenied              = 0x0014,  // The request can only be made by a party with sufficient access.
-    kStatus_OutOfMemory               = 0x0017,  // The sender is low on memory resources and cannot perform the requested operation at the current time.
-    kStatus_NotAvailable              = 0x0018,  // The requested operation cannot be performed given the current state of the sender.
-    kStatus_InternalServerProblem     = 0x0020,  // Request could not be completeted because of problems on the server.
-    kStatus_Relocated                 = 0x0030,  // Request was made to the wrong endpoint. Client should query its
-                                                 // directory server for an updated endpoint list and try again.
-    kStatus_Busy                      = 0x0040,  // The sender is busy and cannot perform the requested operation at the current time.
-    kStatus_Timeout                   = 0x0041,  // The operation or protocol interaction failed to complete in the allotted time.
-    kStatus_InternalError             = 0x0050,  // An internal failure prevented an operation from completing.
-    kStatus_Continue                  = 0x0090,  // Context-specific signal to proceed.
+    kStatus_Success                   = 0,       /**< The operation completed without error. */
+    kStatus_Canceled                  = 1,       /**< The operation was canceled. */
+    kStatus_BadRequest                = 0x0010,  /**< The request was unrecognized or malformed. */
+    kStatus_UnsupportedMessage        = 0x0011,  /**< An unrecognized or unsupported message was received. */
+    kStatus_UnexpectedMessage         = 0x0012,  /**< A message was received at an unexpected time or in an unexpected context. */
+    kStatus_AuthenticationRequired    = 0x0013,  /**< The request can only be made by an authenticated party. */
+    kStatus_AccessDenied              = 0x0014,  /**< The request can only be made by a party with sufficient access. */
+    kStatus_OutOfMemory               = 0x0017,  /**< The sender is low on memory resources and cannot perform the requested operation at the current time. */
+    kStatus_NotAvailable              = 0x0018,  /**< The requested operation cannot be performed given the current state of the sender. */
+    kStatus_InternalServerProblem     = 0x0020,  /**< Request could not be completeted because of problems on the server. */
+    kStatus_Relocated                 = 0x0030,  /**< Request was made to the wrong endpoint. Client should query its
+                                                      directory server for an updated endpoint list and try again. */
+    kStatus_Busy                      = 0x0040,  /**< The sender is busy and cannot perform the requested operation at the current time. */
+    kStatus_Timeout                   = 0x0041,  /**< The operation or protocol interaction failed to complete in the allotted time. */
+    kStatus_InternalError             = 0x0050,  /**< An internal failure prevented an operation from completing. */
+    kStatus_Continue                  = 0x0090,  /**< Context-specific signal to proceed. */
 };
 
-// Common profile MIME file type
 
+/*
+ * Common Profile MIME file type
+ */
 enum
 {
-    kMIMEType_AppOctetStream          = 0x0000,  // The most general unrestricted set of bytes, same as "unspecified."
-    kMIMEType_TextPlain               = 0x0001,  // Plain text, uncompressed.
-    kMIMEType_AppGzip                 = 0x0002,  // gzip-compressed data.
+    kMIMEType_AppOctetStream          = 0x0000,  /**< The most general unrestricted set of bytes, same as "unspecified." */
+    kMIMEType_TextPlain               = 0x0001,  /**< Plain text, uncompressed. */
+    kMIMEType_AppGzip                 = 0x0002,  /**< gzip-compressed data. */
 };
 
-// Common Profile Data Tags
-//
-//                                      Value       Tag Category      Element Type      Constraints  Description
-//                                      ------------------------------------------------------------------------
-
+/*
+ * Common Profile Data Tags
+ */
 enum
 {
-    kTag_SystemErrorCode              = 0x0001,  // Profile-specific  Unsigned Integer  -            System-specific error
-    kTag_SchemaVersion                = 0x0002,  // Profile-specific  Unsigned Integer  0-255        Schema revision
-    kTag_MIMEType                     = 0x0004,  // Profile-agnostic  Unsigned Integer  -            MIME type
+    kTag_SystemErrorCode              = 0x0001,  /**< [uint] System-specific error.
+						      Tag Category: Profile-specific.
+						      Constraints: none */
+    kTag_SchemaVersion                = 0x0002,  /**< [uint] Schema revision.
+						      Tag Category: Profile-specific.
+						      Constraints: 0-255 */
+    kTag_MIMEType                     = 0x0004,  /**< [uint] MIME type.
+						      Tag Category: Profile-agnostic.
+						      Constraints: none */
 };
 
 } // namespace Common

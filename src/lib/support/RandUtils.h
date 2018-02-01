@@ -35,7 +35,7 @@ namespace Weave {
 /**
  *  This function generates 64-bit unsigned random number.
  *
- * @retval  64-bit unsigned random integer.
+ * @return  64-bit unsigned random integer.
  *
  */
 extern uint64_t GetRandU64(void);
@@ -43,7 +43,7 @@ extern uint64_t GetRandU64(void);
 /**
  *  This function generates 32-bit unsigned random number.
  *
- * @retval  32-bit unsigned random integer.
+ * @return  32-bit unsigned random integer.
  *
  */
 extern uint32_t GetRandU32(void);
@@ -51,7 +51,7 @@ extern uint32_t GetRandU32(void);
 /**
  *  This function generates 16-bit unsigned random number.
  *
- * @retval  16-bit unsigned random integer.
+ * @return  16-bit unsigned random integer.
  *
  */
 extern uint16_t GetRandU16(void);
@@ -59,7 +59,7 @@ extern uint16_t GetRandU16(void);
 /**
  *  This function generates 8-bit unsigned random number.
  *
- * @retval  8-bit unsigned random integer.
+ * @return  8-bit unsigned random integer.
  *
  */
 extern uint8_t GetRandU8(void);

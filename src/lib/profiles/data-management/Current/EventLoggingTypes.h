@@ -144,9 +144,10 @@ typedef uint64_t utc_timestamp_t;
  */
 struct DetailedRootSection
 {
-    uint64_t ResourceID; //< the ID of the resource that the generated event pertains to.  When the event resource is equal to the
-                         //event source, it may be omitted.
-    uint64_t TraitInstanceID; //< Trait instance of the subject of this event.
+    uint64_t ResourceID;      /**< The ID of the resource that the generated event pertains to.
+                                   When the event resource is equal to the
+                                   event source, it may be omitted. */
+    uint64_t TraitInstanceID; /**< Trait instance of the subject of this event. */
 };
 
 /**
@@ -199,23 +200,23 @@ struct EventOptions
     EventOptions(utc_timestamp_t, DetailedRootSection *, event_id_t, ImportanceType, bool);
     EventOptions(timestamp_t, DetailedRootSection *, event_id_t, ImportanceType, bool);
 
-    Timestamp timestamp; //< A union holding either system or UTC timestamp.
+    Timestamp timestamp;               /**< A union holding either system or UTC timestamp. */
 
-    DetailedRootSection * eventSource; //< A pointer to the detailed resolution of the trait instance.  When NULL, the event source
-                                       //is assumed to come from the resource equal to the local node ID, and from the default
-                                       //instance of the trait.
+    DetailedRootSection * eventSource; /**< A pointer to the detailed resolution of the trait instance.  When NULL, the event source
+                                            is assumed to come from the resource equal to the local node ID, and from the default
+                                            instance of the trait. */
 
     // Facilities for event grouping
-    event_id_t relatedEventID; //<The Event ID from the same Event Source that this event is related to.  When the event is not
-                               //related to any other events, Related Event ID is shall be equal to Event ID, and may be omitted.  A
-                               //value of 0 implies the absence of any related event.
-    ImportanceType relatedImportance; //< EventImportance of the Related Event ID.  When this event and the related event are of the
-                                      //same importance, the field may be omitted.  A value of kImportanceType_Invalid implies the
-                                      //absence of any related event.
+    event_id_t relatedEventID;         /**< The Event ID from the same Event Source that this event is related to.  When the event is not
+                                            related to any other events, Related Event ID is shall be equal to Event ID, and may be omitted.  A
+                                            value of 0 implies the absence of any related event. */
+    ImportanceType relatedImportance;  /**< EventImportance of the Related Event ID.  When this event and the related event are of the
+                                            same importance, the field may be omitted.  A value of kImportanceType_Invalid implies the
+                                            absence of any related event. */
 
-    TimestampType timestampType; // An enum indicating if the timestamp is valid and its type.
+    TimestampType timestampType;       /**< An enum indicating if the timestamp is valid and its type. */
 
-    bool urgent; //< A flag denoting that the event is time sensitive.  When set, it causes the event log to be flushed.
+    bool urgent;                       /**< A flag denoting that the event is time sensitive.  When set, it causes the event log to be flushed. */
 };
 
 /**
@@ -299,10 +300,10 @@ typedef WEAVE_ERROR (*EventWriterFunct)(nl::Weave::TLV::TLVWriter & ioWriter, ui
  *  out of space in the buffer will trigger a sent message, followed by another
  *  call to the callback with whichever event ID remains.
  *
- *  @return WEAVE_ERROR_NO_MEMORY           If no space to write events.
- *  @return WEAVE_ERROR_BUFFER_TOO_SMALL    If no space to write events.
- *  @return WEAVE_NO_ERROR                  On success.
- *  @return WEAVE_END_OF_TLV                On success.
+ *  @retval WEAVE_ERROR_NO_MEMORY           If no space to write events.
+ *  @retval WEAVE_ERROR_BUFFER_TOO_SMALL    If no space to write events.
+ *  @retval WEAVE_NO_ERROR                  On success.
+ *  @retval WEAVE_END_OF_TLV                On success.
  */
 typedef WEAVE_ERROR (*FetchExternalEventsFunct)(EventLoadOutContext * aContext);
 
@@ -336,10 +337,10 @@ struct ExternalEvents
 {
     ExternalEvents(void) : mFirstEventID(1), mLastEventID(0), mFetchEventsFunct(NULL), mNotifyEventsDeliveredFunct(NULL) { };
 
-    event_id_t mFirstEventID; //< The first event ID stored externally.
-    event_id_t mLastEventID;  //< The last event ID stored externally.
+    event_id_t mFirstEventID; /**< The first event ID stored externally. */
+    event_id_t mLastEventID;  /**< The last event ID stored externally. */
 
-    FetchExternalEventsFunct mFetchEventsFunct; //< The callback to use to fetch the above IDs.
+    FetchExternalEventsFunct mFetchEventsFunct; /**< The callback to use to fetch the above IDs. */
     NotifyExternalEventsDeliveredFunct mNotifyEventsDeliveredFunct;
 };
 

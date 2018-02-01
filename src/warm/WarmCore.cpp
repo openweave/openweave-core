@@ -35,42 +35,42 @@ namespace Warm {
 // Internal Types
 
 typedef enum {
-        kInitStateNotInitialized = 0,   // This must be 0 so that mInitState's initial value will be kInitStateNotInitialized.
+        kInitStateNotInitialized = 0,   /**< This must be 0 so that mInitState's initial value will be kInitStateNotInitialized. */
         kInitStateInitialized
 } InitState;
 
 typedef enum {
-    kPlatformActionExecutionContinue                      = false,  // continue action execution
-    kPlatformActionExecutionSuspendForAsynchOpCompletion  = true    // suspend action execution for asynchronous operation to complete.
+    kPlatformActionExecutionContinue                      = false,  /**< continue action execution. */
+    kPlatformActionExecutionSuspendForAsynchOpCompletion  = true    /**< suspend action execution for asynchronous operation to complete. */
 } PlatformActionExecution;
 
 typedef enum {
-    kSystemFeatureTypeIsFabricMember           = (1 << 0),    // The System's Weave module            IS | IS NOT     a member of a fabric.
-    kSystemFeatureTypeWiFiConnected            = (1 << 1),    // The System's WiFi Interface          IS | IS NOT     connected.
-    kSystemFeatureTypeThreadConnected          = (1 << 2),    // The System's Thread Interface        IS | IS NOT     connected.
-    kSystemFeatureTypeThreadRoutingEnabled     = (1 << 3),    // The System's Thread Routing Feature  IS | IS NOT     enabled.
-    kSystemFeatureTypeBorderRoutingEnabled     = (1 << 4),    // The System's Border Routing Feature  IS | IS NOT     enabled.
-    kSystemFeatureTypeTunnelInterfaceEnabled   = (1 << 5),    // The System's Tunnel Interface        IS | IS NOT     enabled.
-    kSystemFeatureTypeTunnelState              = (1 << 6),    // The System's Tunnel Service          IS | IS NOT     established.
-    kSystemFeatureTypeCellularConnected        = (1 << 7),    // The System's Cellular Interface      IS | IS NOT     connected.
+    kSystemFeatureTypeIsFabricMember           = (1 << 0),    /**< The System's Weave module            IS | IS NOT     a member of a fabric. */
+    kSystemFeatureTypeWiFiConnected            = (1 << 1),    /**< The System's WiFi Interface          IS | IS NOT     connected. */
+    kSystemFeatureTypeThreadConnected          = (1 << 2),    /**< The System's Thread Interface        IS | IS NOT     connected. */
+    kSystemFeatureTypeThreadRoutingEnabled     = (1 << 3),    /**< The System's Thread Routing Feature  IS | IS NOT     enabled. */
+    kSystemFeatureTypeBorderRoutingEnabled     = (1 << 4),    /**< The System's Border Routing Feature  IS | IS NOT     enabled. */
+    kSystemFeatureTypeTunnelInterfaceEnabled   = (1 << 5),    /**< The System's Tunnel Interface        IS | IS NOT     enabled. */
+    kSystemFeatureTypeTunnelState              = (1 << 6),    /**< The System's Tunnel Service          IS | IS NOT     established. */
+    kSystemFeatureTypeCellularConnected        = (1 << 7),    /**< The System's Cellular Interface      IS | IS NOT     connected. */
 
-    kSystemFeatureTypeMax                      = (1 << 16) // DO NOT EXCEED; reserved to mark the max available bits.
+    kSystemFeatureTypeMax                      = (1 << 16)    /**< DO NOT EXCEED; reserved to mark the max available bits. */
 } SystemFeatureType;
 
 typedef enum {
-    kActionTypeWiFiHostAddress              = (1 << 0),   // Add | Remove the IP address for the WiFi Interface on the host's IP stack.
-    kActionTypeThreadHostAddress            = (1 << 1),   // Add | Remove the IP address for the Thread Interface on the host's IP stack.
-    kActionTypeThreadThreadAddress          = (1 << 2),   // Add | Remove the IP address for the Thread Interface on the Thread Module's IP stack.
-    kActionTypeLegacy6LoWPANHostAddress     = (1 << 3),   // Add | Remove the IP address for the Legacy 6LowPAN Interface on the host's IP stack.
-    kActionTypeLegacy6LoWPANThreadAddress   = (1 << 4),   // Add | Remove the IP address for the Legacy 6LowPAN Interface on the Thread Module's IP stack.
-    kActionTypeHostRouteThread              = (1 << 5),   // Add | Remove the IP route for the Thread Interface on the host's IP stack.
-    kActionTypeThreadAdvertisement          = (1 << 6),   // Start | Stop the route advertisement by the Thread Module.
-    kActionTypeThreadRoute                  = (1 << 7),   // Add | Remove the IP route on the Thread Module for Border Route support.
-    kActionTypeTunnelHostAddress            = (1 << 8),   // Add | Remove the IP address for the Tunnel Interface on the host's IP stack.
-    kActionTypeTunnelHostRoute              = (1 << 9),   // Add | Remove the IP route for the Tunnel Interface on the host's IP stack.
-    kActionTypeThreadRoutePriority          = (1 << 10),  // Change the Route Priority of the Thread Route on the Thread Module.
+    kActionTypeWiFiHostAddress              = (1 << 0),   /**< Add | Remove the IP address for the WiFi Interface on the host's IP stack. */
+    kActionTypeThreadHostAddress            = (1 << 1),   /**< Add | Remove the IP address for the Thread Interface on the host's IP stack. */
+    kActionTypeThreadThreadAddress          = (1 << 2),   /**< Add | Remove the IP address for the Thread Interface on the Thread Module's IP stack. */
+    kActionTypeLegacy6LoWPANHostAddress     = (1 << 3),   /**< Add | Remove the IP address for the Legacy 6LowPAN Interface on the host's IP stack. */
+    kActionTypeLegacy6LoWPANThreadAddress   = (1 << 4),   /**< Add | Remove the IP address for the Legacy 6LowPAN Interface on the Thread Module's IP stack. */
+    kActionTypeHostRouteThread              = (1 << 5),   /**< Add | Remove the IP route for the Thread Interface on the host's IP stack. */
+    kActionTypeThreadAdvertisement          = (1 << 6),   /**< Start | Stop the route advertisement by the Thread Module. */
+    kActionTypeThreadRoute                  = (1 << 7),   /**< Add | Remove the IP route on the Thread Module for Border Route support. */
+    kActionTypeTunnelHostAddress            = (1 << 8),   /**< Add | Remove the IP address for the Tunnel Interface on the host's IP stack. */
+    kActionTypeTunnelHostRoute              = (1 << 9),   /**< Add | Remove the IP route for the Tunnel Interface on the host's IP stack. */
+    kActionTypeThreadRoutePriority          = (1 << 10),  /**< Change the Route Priority of the Thread Route on the Thread Module. */
 
-    kActionTypeMax                          = (1 << 16) // DO NOT EXCEED; reserved to mark the max available bits.
+    kActionTypeMax                          = (1 << 16)   /**< DO NOT EXCEED; reserved to mark the max available bits. */
 } ActionType;
 
 typedef uint16_t FlagsType;
@@ -79,26 +79,26 @@ typedef PlatformResult (* ActionFunction)(ActionType inAction, bool inActivate, 
 
 typedef struct
 {
-    FlagsType           mNecessaryActiveSystemFeatures; // Stores the System Features that that are pre-requisites for taking the affirmative form of the Action.
-    ActionType          mActionType;                    // The type of Action to which this Entry pertains.
-    ActionFunction      mAction;                        // A function to execute the Action.
+    FlagsType           mNecessaryActiveSystemFeatures; /**< Stores the System Features that that are pre-requisites for taking the affirmative form of the Action. */
+    ActionType          mActionType;                    /**< The type of Action to which this Entry pertains. */
+    ActionFunction      mAction;                        /**< A function to execute the Action. */
 } ActionEntry;
 
 typedef struct {
-    InitState                                               mInitState;                    // Tracks State of the Module initialization.
-    const WeaveFabricState                                  *mFabricState;                 // Stores a fabric State.
-    uint64_t                                                mFabricId;                     // Stores the fabric id which was last joined
-    FlagsType                                               mSystemFeatureStateFlags;      // Tracks changes for System Feature State.
-    FlagsType                                               mActionStateFlags;             // Tracks State of Actions.
+    InitState                                               mInitState;                    /**< Tracks State of the Module initialization. */
+    const WeaveFabricState                                  *mFabricState;                 /**< Stores a fabric State. */
+    uint64_t                                                mFabricId;                     /**< Stores the fabric id which was last joined */
+    FlagsType                                               mSystemFeatureStateFlags;      /**< Tracks changes for System Feature State. */
+    FlagsType                                               mActionStateFlags;             /**< Tracks State of Actions. */
 #if WARM_CONFIG_SUPPORT_WEAVE_TUNNEL
-    Profiles::WeaveTunnel::Platform::TunnelAvailabilityMode mTunnelRequestedAvailability;  // Stores the desired Tunnel availability.
-    Profiles::WeaveTunnel::Platform::TunnelAvailabilityMode mTunnelCurrentAvailability;    // Stores the configured Tunnel availability.
+    Profiles::WeaveTunnel::Platform::TunnelAvailabilityMode mTunnelRequestedAvailability;  /**< Stores the desired Tunnel availability. */
+    Profiles::WeaveTunnel::Platform::TunnelAvailabilityMode mTunnelCurrentAvailability;    /**< Stores the configured Tunnel availability. */
 #endif
 
     // the following members are used to support platform API's that return kPlatformResultInProgress
-    volatile bool                                           mActionInProgress;             // Tracks whether or not an Action is in progress.
-    ActionType                                              mInProgressAction;             // Stores the type of Action that is in progress.
-    bool                                                    mInProgressActionState;        // Stores the desired State of the Action when the Action completes.
+    volatile bool                                           mActionInProgress;             /**< Tracks whether or not an Action is in progress. */
+    ActionType                                              mInProgressAction;             /**< Stores the type of Action that is in progress. */
+    bool                                                    mInProgressActionState;        /**< Stores the desired State of the Action when the Action completes. */
 } ModuleState;
 
 // Prototypes
@@ -160,10 +160,7 @@ static bool GetCurrentActionState(ActionType inAction)
  *    the set of possible actions.
  *
  *  @param[in] inAction    The action type to change.
- *
  *  @param[in] inValue     The new State value to adopt.
- *
- *  @return none.
  *
  */
 static void SetCurrentActionState(ActionType inAction, bool inValue)
@@ -205,7 +202,6 @@ static inline bool GetSystemFeatureState(SystemFeatureType inSystemFeature)
  *    the set of possible System Features.
  *
  *  @param[in] inSystemFeature    The SystemFeature to set.
- *
  *  @param[in] inValue            The new State value to adopt.
  *
  *  @return true if the System Feature was changed, false otherwise.
@@ -242,9 +238,7 @@ static bool SetSystemFeatureState(SystemFeatureType inSystemFeature, bool inValu
  *
  *
  *  @param[in] inAction                         The action to be queried.
- *
  *  @param[in] inNecessarySystemFeatureState    The State flags necessary for the action to be active.
- *
  *  @param[out] outActivate                     The desired state of the action.
  *
  *  @return true if the action is not currently in the desired state, false otherwise.
@@ -288,9 +282,7 @@ static bool ShouldPerformAction(ActionType inAction, FlagsType inNecessarySystem
  *    true if the result is in-progress and further actions should be delayed.
  *
  *  @param[in] inResult         The platform API result.
- *
  *  @param[in] inAction         The action that the platform API attempted.
- *
  *  @param[in] inActionState    The new State of the action if the result was success.
  *
  *  @return true the platform API is asynchronously processing the request, false otherwise.
@@ -340,10 +332,7 @@ static PlatformActionExecution RecordPlatformResult(PlatformResult inResult, Act
  *    operations.
  *
  *  @param[in] inSystemFeatureType    The State that changed corresponding to the API called.
- *
  *  @param[in] inState                The new value for the state.
- *
- *  @return none.
  *
  */
 static void SystemFeatureStateChangeHandler(SystemFeatureType inSystemFeatureType, bool inState)
@@ -385,8 +374,6 @@ static void SystemFeatureStateChangeHandler(SystemFeatureType inSystemFeatureTyp
  *
  *  @param[in] inState    kInterfaceStateUp if the system is a member of a Weave fabric, kInterfaceStateDown otherwise.
  *
- *  @return none.
- *
  */
 static void FabricStateChange(InterfaceState inState)
 {
@@ -396,10 +383,9 @@ static void FabricStateChange(InterfaceState inState)
 /**
  *  This method is invoked by WeaveFabricState when joining/creating a new fabric.
  *
- *  @param[in] fabricState   The WeaveFabricState which is changed
- *  @param[in] newFabricId   The new fabric id
+ *  @param[in] fabricState   The WeaveFabricState which is changed.
+ *  @param[in] newFabricId   The new fabric id.
  *
- *  @return none.
  */
 void WarmFabricStateDelegate::DidJoinFabric(WeaveFabricState *fabricState, uint64_t newFabricId)
 {
@@ -409,10 +395,9 @@ void WarmFabricStateDelegate::DidJoinFabric(WeaveFabricState *fabricState, uint6
 /**
  *  This method is invoked by WeaveFabricState when leaving/clearing a fabric.
  *
- *  @param[in] fabricState   The WeaveFabricState which is changed
- *  @param[in] oldFabricId   The old/previous fabric id
+ *  @param[in] fabricState   The WeaveFabricState which is changed.
+ *  @param[in] oldFabricId   The old/previous fabric id.
  *
- *  @return none.
  */
 void WarmFabricStateDelegate::DidLeaveFabric(WeaveFabricState *fabricState, uint64_t oldFabricId)
 {
@@ -425,9 +410,9 @@ void WarmFabricStateDelegate::DidLeaveFabric(WeaveFabricState *fabricState, uint
  *  @note
  *    It must be called prior to any other API calls.
  *
- *  @return WEAVE_NO_ERROR              - On successful initialization.
- *          WEAVE_ERROR_INCORRECT_STATE - When Init is called more than once.
- *          error code otherwise.
+ *  @retval WEAVE_NO_ERROR               On successful initialization.
+ *  @retval WEAVE_ERROR_INCORRECT_STATE  When Init is called more than once.
+ *  @retval other                        Error code otherwise.
  *
  */
 WEAVE_ERROR Init(WeaveFabricState &inFabricState)
@@ -473,13 +458,12 @@ exit:
  *    prior to initialization will result in an error.
  *
  *  @param[in] inInterfaceType    The type of interface for which a ULA is desired.
- *
  *  @param[out] outAddress        An address object used to hold the resulting ULA.
  *
- *  @return WEAVE_NO_ERROR               - On success.
- *          WEAVE_ERROR_INCORRECT_STATE  - If this API is called while WARM is
- *                                         not a member of a Fabric.
- *          WEAVE_ERROR_INVALID_ARGUMENT - If this API is called with an invalid Interface Type.
+ *  @retval WEAVE_NO_ERROR                On success.
+ *  @retval WEAVE_ERROR_INCORRECT_STATE   If this API is called while WARM is
+ *                                        not a member of a Fabric.
+ *  @retval WEAVE_ERROR_INVALID_ARGUMENT  If this API is called with an invalid Interface Type.
  *
  */
 WEAVE_ERROR GetULA(InterfaceType inInterfaceType, Inet::IPAddress &outAddress)
@@ -537,9 +521,9 @@ exit:
  *
  *  @param[out] outFabricState        A pointer reference to a fabricState object.
  *
- *  @return WEAVE_NO_ERROR               - On success.
- *          WEAVE_ERROR_INCORRECT_STATE  - If this API is called before WARM
- *                                         has been initialized.
+ *  @retval WEAVE_NO_ERROR                On success.
+ *  @retval WEAVE_ERROR_INCORRECT_STATE   If this API is called before WARM
+ *                                        has been initialized.
  *
  */
 WEAVE_ERROR GetFabricState(const WeaveFabricState *&outFabricState)
@@ -575,8 +559,6 @@ exit:
  *    is single threaded, then RequestInvokeActions could be implemented to call InvokeActions()
  *    directly.
  *
- *  @return none.
- *
  */
 void InvokeActions(void)
 {
@@ -601,8 +583,6 @@ void InvokeActions(void)
  *    calls ReportActionComplete to announce the completion of the operation.
  *
  *  @param[in]  inResult    The result of the pending action. must be one of: {kPlatformResultSuccess | kPlatformResultFailure}
- *
- *  @return none.
  *
  */
 void ReportActionComplete(PlatformResult inResult)
@@ -633,8 +613,6 @@ exit:
  *
  *  @param[in] inState    kInterfaceStateUp if the Cellular interface is up, kInterfaceStateDown otherwise.
  *
- *  @return none.
- *
  */
 void CellularInterfaceStateChange(InterfaceState inState)
 {
@@ -649,11 +627,8 @@ void CellularInterfaceStateChange(InterfaceState inState)
  *  One of the Action methods. Sets the Host Address for the WiFi Interface.
  *
  *  @param[in] inAction         The action type.
- *
  *  @param[in] inActivate       The desired State true == activate, false == deactivate.
- *
  *  @param[in] inGlobalId       A reference to the Weave Global ID if it's necessary to calculate an address.
- *
  *  @param[in] inInterfaceId    A reference to the device's interface ID if it's necessary to calculate an address.
  *
  *  @return Forwards the result from Platform::HostAddress().
@@ -675,8 +650,6 @@ static PlatformResult WiFiHostAddressAction(ActionType inAction, bool inActivate
  *
  *  @param[in] inState    kInterfaceStateUp if the WiFi interface is up, kInterfaceStateDown otherwise.
  *
- *  @return none.
- *
  */
 void WiFiInterfaceStateChange(InterfaceState inState)
 {
@@ -689,10 +662,7 @@ void WiFiInterfaceStateChange(InterfaceState inState)
  *  A utility to construct a 48 bit prefix from a globalID.
  *
  *  @param[in] inGlobalID       A reference to the Weave Global ID.
- *
  *  @param[out] outPrefix       The Prefix to initialize.
- *
- *  @return none
  *
  */
 #if WARM_CONFIG_SUPPORT_THREAD_ROUTING || \
@@ -715,11 +685,8 @@ static void MakePrefix(const uint64_t &inGlobalID, Inet::IPPrefix &outPrefix)
  *  One of the Action methods. Sets the Host Address for the Thread Interface.
  *
  *  @param[in] inAction         The action type.
- *
  *  @param[in] inActivate       The desired State true == activate, false == deactivate.
- *
  *  @param[in] inGlobalId       A reference to the Weave Global ID if it's necessary to calculate an address.
- *
  *  @param[in] inInterfaceId    A reference to the device's interface ID if it's necessary to calculate an address.
  *
  *  @return Forwards the result from Platform::HostAddress().
@@ -736,11 +703,8 @@ static PlatformResult ThreadHostAddressAction(ActionType inAction, bool inActiva
  *  One of the Action methods. Sets the Thread Address for the Thread Interface.
  *
  *  @param[in] inAction         The action type.
- *
  *  @param[in] inActivate       The desired State true == activate, false == deactivate.
- *
  *  @param[in] inGlobalId       A reference to the Weave Global ID if it's necessary to calculate an address.
- *
  *  @param[in] inInterfaceId    A reference to the device's interface ID if it's necessary to calculate an address.
  *
  *  @return Forwards the result from Platform::ThreadAddress().
@@ -757,11 +721,8 @@ static PlatformResult ThreadThreadAddressAction(ActionType inAction, bool inActi
  *  One of the Action methods. Sets the Host Route for the Thread Interface.
  *
  *  @param[in] inAction         The action type.
- *
  *  @param[in] inActivate       The desired State true == activate, false == deactivate.
- *
  *  @param[in] inGlobalId       A reference to the Weave Global ID if it's necessary to calculate an address.
- *
  *  @param[in] inInterfaceId    A reference to the device's interface ID if it's necessary to calculate an address.
  *
  *  @return Forwards the result from Platform::HostRoute().
@@ -790,8 +751,6 @@ static PlatformResult ThreadHostRouteAction(ActionType inAction, bool inActivate
  *
  *  @param[in] inState    kInterfaceStateUp if the Thread interface is up, kInterfaceStateDown otherwise.
  *
- *  @return none.
- *
  */
 void ThreadInterfaceStateChange(InterfaceState inState)
 {
@@ -806,11 +765,8 @@ void ThreadInterfaceStateChange(InterfaceState inState)
  *  One of the Action methods. Sets the Host Address for the Legacy Interface.
  *
  *  @param[in] inAction         The action type.
- *
  *  @param[in] inActivate       The desired State true == activate, false == deactivate.
- *
  *  @param[in] inGlobalId       A reference to the Weave Global ID if it's necessary to calculate an address.
- *
  *  @param[in] inInterfaceId    A reference to the device's interface ID if it's necessary to calculate an address.
  *
  *  @return Forwards the result from Platform::HostAddress().
@@ -827,11 +783,8 @@ static PlatformResult LegacyHostAddressAction(ActionType inAction, bool inActiva
  *  One of the Action methods. Sets the Thread Address for the Legacy 6LoWPAN Interface.
  *
  *  @param[in] inAction         The action type.
- *
  *  @param[in] inActivate       The desired State true == activate, false == deactivate.
- *
  *  @param[in] inGlobalId       A reference to the Weave Global ID if it's necessary to calculate an address.
- *
  *  @param[in] inInterfaceId    A reference to the device's interface ID if it's necessary to calculate an address.
  *
  *  @return Forwards the result from Platform::ThreadAddress().
@@ -852,11 +805,8 @@ static PlatformResult LegacyThreadAddressAction(ActionType inAction, bool inActi
  *  One of the Action methods. Sets the Thread Advertisement State
  *
  *  @param[in] inAction         The action type.
- *
  *  @param[in] inActivate       The desired State true == activate, false == deactivate.
- *
  *  @param[in] inGlobalId       A reference to the Weave Global ID if it's necessary to calculate an address.
- *
  *  @param[in] inInterfaceId    A reference to the device's interface ID if it's necessary to calculate an address.
  *
  *  @return Forwards the result from Platform::ThreadAdvertisement().
@@ -880,8 +830,6 @@ static PlatformResult ThreadAdvertisementAction(ActionType inAction, bool inActi
  *
  *  @param[in] inState    kInterfaceStateUp if the Thread routing feature is up, kInterfaceStateDown otherwise.
  *
- *  @return none.
- *
  */
 void ThreadRoutingStateChange(InterfaceState inState)
 {
@@ -896,11 +844,8 @@ void ThreadRoutingStateChange(InterfaceState inState)
  *  One of the Action methods. Sets the HostAddress for the Tunnel Interface.
  *
  *  @param[in] inAction         The action type.
- *
  *  @param[in] inActivate       The desired State true == activate, false == deactivate.
- *
  *  @param[in] inGlobalId       A reference to the Weave Global ID if it's necessary to calculate an address.
- *
  *  @param[in] inInterfaceId    A reference to the device's interface ID if it's necessary to calculate an address.
  *
  *  @return Forwards the result from Platform::HostAddress().
@@ -926,11 +871,8 @@ static PlatformResult TunnelHostAddressAction(ActionType inAction, bool inActiva
  *  One of the Action methods. Sets the HostRoute for the Tunnel Interface.
  *
  *  @param[in] inAction         The action type.
- *
  *  @param[in] inActivate       The desired State true == activate, false == deactivate.
- *
  *  @param[in] inGlobalId       A reference to the Weave Global ID if it's necessary to calculate an address.
- *
  *  @param[in] inInterfaceId    A reference to the device's interface ID if it's necessary to calculate an address.
  *
  *  @return Forwards the result from Platform::HostRoute().
@@ -955,8 +897,6 @@ static PlatformResult TunnelHostRouteAction(ActionType inAction, bool inActivate
  *
  *  @param[in] inState           kInterfaceStateUp if the Weave Tunnel interface is up, kInterfaceStateDown otherwise.
  *
- *  @return none.
- *
  */
 static void TunnelInterfaceStateChange(InterfaceState inState)
 {
@@ -972,10 +912,7 @@ static void TunnelInterfaceStateChange(InterfaceState inState)
  *    If this call results in a change of State WARM will call RequestInvokeActions.
  *
  *  @param[in] inState           kInterfaceStateUp if the Weave Tunnel Service is established, kInterfaceStateDown otherwise.
- *
  *  @param[in] inAvailability    The availability status to be used later in configuring the tunnel.
- *
- *  @return none.
  *
  */
 static void TunnelServiceStateChange(InterfaceState inState, nl::Weave::Profiles::WeaveTunnel::Platform::TunnelAvailabilityMode inAvailability)
@@ -1001,8 +938,6 @@ static void TunnelServiceStateChange(InterfaceState inState, nl::Weave::Profiles
  *    in a change of State WARM will call RequestInvokeActions
  *
  *  @param[in] inAvailability    The new value for the tunnel availability status.
- *
- *  @return none.
  *
  */
 static void TunnelPriorityStateChange(nl::Weave::Profiles::WeaveTunnel::Platform::TunnelAvailabilityMode inAvailability)
@@ -1039,8 +974,6 @@ namespace Platform {
  *
  *  @param[in] tunIf    The InterfaceId for the tunnel Interface.  Not used in this implementation.
  *
- *  @return none.
- *
  */
 void TunnelInterfaceUp(InterfaceId tunIf)
 {
@@ -1054,8 +987,6 @@ void TunnelInterfaceUp(InterfaceId tunIf)
  *
  *  @param[in] tunIf    The InterfaceId for the tunnel Interface.  Not used in this implementation.
  *
- *  @return none.
- *
  */
 void TunnelInterfaceDown(InterfaceId tunIf)
 {
@@ -1068,10 +999,7 @@ void TunnelInterfaceDown(InterfaceId tunIf)
  *  A TunnelAgent Platform API implementation used by the Tunnel Agent to announce a tunnel interface connection.
  *
  *  @param[in] tunIf    The InterfaceId for the tunnel Interface.  Not used in this implementation.
- *
  *  @param[in] tunMode  The initial tunnel availability mode to be adopted by Warm.
- *
- *  @return none.
  *
  */
 void ServiceTunnelEstablished(InterfaceId tunIf, TunnelAvailabilityMode tunMode)
@@ -1086,8 +1014,6 @@ void ServiceTunnelEstablished(InterfaceId tunIf, TunnelAvailabilityMode tunMode)
  *
  *  @param[in] tunIf    The InterfaceId for the tunnel Interface.  Not used in this implementation.
  *
- *  @return none.
- *
  */
 void ServiceTunnelDisconnected(InterfaceId tunIf)
 {
@@ -1100,10 +1026,7 @@ void ServiceTunnelDisconnected(InterfaceId tunIf)
  *  A TunnelAgent Platform API implementation used by the Tunnel Agent to announce a Tunnel availability change.
  *
  *  @param[in] tunIf    The InterfaceId for the tunnel Interface.  Not used in this implementation.
- *
  *  @param[in] tunMode  The new tunnel availability mode to be adopted by Warm.
- *
- *  @return none.
  *
  */
 void ServiceTunnelModeChange(InterfaceId tunIf, TunnelAvailabilityMode tunMode)
@@ -1117,8 +1040,6 @@ void ServiceTunnelModeChange(InterfaceId tunIf, TunnelAvailabilityMode tunMode)
  *  A TunnelAgent Platform API implementation used by the Tunnel Agent to enable Border Routing
  *  through Warm.
  *
- *  @return none.
- *
  */
 void EnableBorderRouting(void)
 {
@@ -1130,8 +1051,6 @@ void EnableBorderRouting(void)
 /**
  *  A TunnelAgent Platform API implementation used by the Tunnel Agent to disable Border Routing
  *  through Warm.
- *
- *  @return none.
  *
  */
 void DisableBorderRouting(void)
@@ -1161,8 +1080,6 @@ namespace Warm {
  *    If this call results in a change of State WARM will call RequestInvokeActions.
  *
  *  @param[in] inState    kInterfaceStateUp if the Border router feature is up, kInterfaceStateDown otherwise.
- *
- *  @return none.
  *
  */
 void BorderRouterStateChange(InterfaceState inState)
@@ -1201,11 +1118,8 @@ static RoutePriority MapAvailabilityToPriority(Profiles::WeaveTunnel::Platform::
  *  One of the Action methods. Sets the Thread Route for the Thread Stack.
  *
  *  @param[in] inAction         The action type.
- *
  *  @param[in] inActivate       The desired State true == activate, false == deactivate.
- *
  *  @param[in] inGlobalId       A reference to the Weave Global ID if it's necessary to calculate an address.
- *
  *  @param[in] inInterfaceId    A reference to the device's interface ID if it's necessary to calculate an address.
  *
  *  @return Forwards the result from Platform::ThreadRoute().
@@ -1224,11 +1138,8 @@ static PlatformResult ThreadThreadRouteAction(ActionType inAction, bool inActiva
  *  One of the Action methods. Sets the Thread Route Priority based on the Tunnel Availability.
  *
  *  @param[in] inAction         The action type.
- *
  *  @param[in] inActivate       The desired State true == activate, false == deactivate.
- *
  *  @param[in] inGlobalId       A reference to the Weave Global ID if it's necessary to calculate an address.
- *
  *  @param[in] inInterfaceId    A reference to the device's interface ID if it's necessary to calculate an address.
  *
  *  @return Forwards the result from Platform::ThreadRoutePriority().
@@ -1256,8 +1167,6 @@ static PlatformResult ThreadRoutePriorityAction(ActionType inAction, bool inActi
  *    it in the desired State.  The result of the action API call is passed
  *    into RecordPlatformResult() and if that function returns true, the execution
  *    of this function is terminated.
- *
- *  @return none.
  *
  */
 static void TakeActions(void)

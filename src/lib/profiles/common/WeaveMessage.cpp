@@ -33,11 +33,12 @@ using namespace ::nl::Weave::TLV;
 using namespace ::nl::Weave::Profiles;
 using namespace ::nl::Weave::Profiles::Common;
 
-/*
- *-------------------- definitions for the message iterator --------------------
+//-------------------- definitions for the message iterator --------------------
+
+/**
+ * The constructor method.
  *
- * here's the constructor method.
- * parameter: PacketBuffer *aBuffer, a message buffer to iterate over
+ * @param aBuffer  A message buffer to iterate over.
  */
 
 MessageIterator::MessageIterator(PacketBuffer *aBuffer)
@@ -47,11 +48,11 @@ MessageIterator::MessageIterator(PacketBuffer *aBuffer)
     thePoint = aBuffer->Start();
 }
 
-/*
- * parameter: uint8_t &aDestination, a place to put a byte read off the buffer
- * return:
- * - WEAVE_NO_ERROR if it's all OK
- * - WEAVE_ERROR_BUFFER_TOO_SMALL if we're running past the end of the buffer
+/**
+ * @param aDestination  A place to put a byte read off the buffer.
+ *
+ * @retval WEAVE_NO_ERROR               If it's all OK.
+ * @retval WEAVE_ERROR_BUFFER_TOO_SMALL If we're running past the end of the buffer.
  */
 
 WEAVE_ERROR MessageIterator::readByte(uint8_t *aDestination)
@@ -68,11 +69,11 @@ WEAVE_ERROR MessageIterator::readByte(uint8_t *aDestination)
     return err;
 }
 
-/*
- * parameter: uint16_t *aDestination, a place to put a short read off the buffer
- * return:
- * - WEAVE_NO_ERROR if it's all OK
- * - WEAVE_ERROR_BUFFER_TOO_SMALL if we're running past the end of the buffer
+/**
+ * @param aDestination  A place to put a short read off the buffer.
+ *
+ * @retval WEAVE_NO_ERROR               If it's all OK.
+ * @retval WEAVE_ERROR_BUFFER_TOO_SMALL If we're running past the end of the buffer.
  */
 
 WEAVE_ERROR MessageIterator::read16(uint16_t *aDestination)
@@ -89,12 +90,11 @@ WEAVE_ERROR MessageIterator::read16(uint16_t *aDestination)
     return err;
 }
 
-/*
- * parameter: uint32_t *aDestination, a place to put an 32-bit value
- * read off the buffer
- * return:
- * - WEAVE_NO_ERROR if it's all OK
- * - WEAVE_ERROR_BUFFER_TOO_SMALL if we're running past the end of the buffer
+/**
+ * @param aDestination  A place to put a 32-bit value read off the buffer.
+ *
+ * @retval WEAVE_NO_ERROR               If it's all OK.
+ * @retval WEAVE_ERROR_BUFFER_TOO_SMALL If we're running past the end of the buffer.
  */
 
 WEAVE_ERROR MessageIterator::read32(uint32_t *aDestination)
@@ -111,12 +111,11 @@ WEAVE_ERROR MessageIterator::read32(uint32_t *aDestination)
     return err;
 }
 
-/*
- * parameter: uint64_t *aDestination, a place to put an 64-bit value
- * read off the buffer
- * return:
- * - WEAVE_NO_ERROR if it's all OK
- * - WEAVE_ERROR_BUFFER_TOO_SMALL if we're running past the end of the buffer
+/**
+ * @param aDestination  A place to put a 64-bit value read off the buffer.
+ *
+ * @retval WEAVE_NO_ERROR               If it's all OK.
+ * @retval WEAVE_ERROR_BUFFER_TOO_SMALL If we're running past the end of the buffer.
  */
 
 WEAVE_ERROR MessageIterator::read64(uint64_t *aDestination)
@@ -136,13 +135,12 @@ WEAVE_ERROR MessageIterator::read64(uint64_t *aDestination)
     return err;
 }
 
-/*
- * parameters:
- * - uint16_t aLength, the length of the string to be read
- * - char* aString, a place to put the string
- * return:
- * - WEAVE_NO_ERROR if it's all OK
- * - WEAVE_ERROR_BUFFER_TOO_SMALL if we're running past the end of the buffer
+/**
+ * @param aLength  The length of the string to be read.
+ * @param aString  A place to put the string.
+ *
+ * @retval WEAVE_NO_ERROR               If it's all OK.
+ * @retval WEAVE_ERROR_BUFFER_TOO_SMALL If we're running past the end of the buffer.
  */
 
 WEAVE_ERROR MessageIterator::readString(uint16_t aLength, char* aString)
@@ -163,13 +161,12 @@ WEAVE_ERROR MessageIterator::readString(uint16_t aLength, char* aString)
     return err;
 }
 
-/*
- * parameters:
- * - uint16_t aLength, the length of the byte string to be read
- * - uint8_t* aByteString, a place to put the bytes
- * return:
- * - WEAVE_NO_ERROR if it's all OK
- * - WEAVE_ERROR_BUFFER_TOO_SMALL if we're running past the end of the buffer
+/**
+ * @param aLength      The length of the byte string to be read.
+ * @param aByteString  A place to put the bytes.
+ *
+ * @retval WEAVE_NO_ERROR               If it's all OK.
+ * @retval WEAVE_ERROR_BUFFER_TOO_SMALL If we're running past the end of the buffer.
  */
 
 WEAVE_ERROR MessageIterator::readBytes(uint16_t aLength, uint8_t* aByteString)
@@ -190,11 +187,11 @@ WEAVE_ERROR MessageIterator::readBytes(uint16_t aLength, uint8_t* aByteString)
     return err;
 }
 
-/*
- * parameters: - uint8_t aValue, a byte value to write out
- * return:
- * - WEAVE_NO_ERROR if it's all OK
- * - WEAVE_ERROR_BUFFER_TOO_SMALL if we're running past the end of the buffer
+/**
+ * @param aValue  A byte value to write out.
+ *
+ * @retval WEAVE_NO_ERROR               If it's all OK.
+ * @retval WEAVE_ERROR_BUFFER_TOO_SMALL If we're running past the end of the buffer.
  */
 
 WEAVE_ERROR MessageIterator::writeByte(uint8_t aValue)
@@ -212,11 +209,11 @@ WEAVE_ERROR MessageIterator::writeByte(uint8_t aValue)
     return err;
 }
 
-/*
- * parameters: - uint16_t aValue, a short value to write out
- * return:
- * - WEAVE_NO_ERROR if it's all OK
- * - WEAVE_ERROR_BUFFER_TOO_SMALL if we're running past the end of the buffer
+/**
+ * @param aValue  A short value to write out.
+ *
+ * @retval WEAVE_NO_ERROR               If it's all OK.
+ * @retval WEAVE_ERROR_BUFFER_TOO_SMALL If we're running past the end of the buffer.
  */
 
 WEAVE_ERROR MessageIterator::write16(uint16_t aValue)
@@ -234,11 +231,11 @@ WEAVE_ERROR MessageIterator::write16(uint16_t aValue)
     return err;
 }
 
-/*
- * parameters: - uint32_t aValue, a 32-bit value to write out
- * return:
- * - WEAVE_NO_ERROR if it's all OK
- * - WEAVE_ERROR_BUFFER_TOO_SMALL if we're running past the end of the buffer
+/**
+ * @param aValue  A 32-bit value to write out.
+ *
+ * @retval WEAVE_NO_ERROR               If it's all OK.
+ * @retval WEAVE_ERROR_BUFFER_TOO_SMALL If we're running past the end of the buffer.
  */
 
 WEAVE_ERROR MessageIterator::write32(uint32_t aValue)
@@ -256,11 +253,11 @@ WEAVE_ERROR MessageIterator::write32(uint32_t aValue)
     return err;
 }
 
-/*
- * parameters: - uint64_t aValue, a 64-bit value to write out
- * return:
- * - WEAVE_NO_ERROR if it's all OK
- * - WEAVE_ERROR_BUFFER_TOO_SMALL if we're running past the end of the buffer
+/**
+ * @param aValue  A 64-bit value to write out.
+ *
+ * @retval WEAVE_NO_ERROR               If it's all OK.
+ * @retval WEAVE_ERROR_BUFFER_TOO_SMALL If we're running past the end of the buffer.
  */
 
 WEAVE_ERROR MessageIterator::write64(uint64_t aValue)
@@ -279,13 +276,12 @@ WEAVE_ERROR MessageIterator::write64(uint64_t aValue)
     return err;
 }
 
-/*
- * parameters:
- * - uint16_t aLength, the length of the string to write
- * - char *aString, the string itself
- * return:
- * - WEAVE_NO_ERROR if it's all OK
- * - WEAVE_ERROR_BUFFER_TOO_SMALL if we're running past the end of the buffer
+/**
+ * @param aLength  The length of the string to write.
+ * @param aString  The string itself.
+ *
+ * @retval WEAVE_NO_ERROR               If it's all OK.
+ * @retval WEAVE_ERROR_BUFFER_TOO_SMALL If we're running past the end of the buffer.
  */
 
 WEAVE_ERROR MessageIterator::writeString(uint16_t aLength, char *aString)
@@ -307,13 +303,12 @@ WEAVE_ERROR MessageIterator::writeString(uint16_t aLength, char *aString)
     return err;
 }
 
-/*
- * parameters:
- * - uint16_t aLength, the length of the byte string to write
- * - char *aByteString, the byte string  itself
- * return:
- * - WEAVE_NO_ERROR if it's all OK
- * - WEAVE_ERROR_BUFFER_TOO_SMALL if we're running past the end of the buffer
+/**
+ * @param aLength  The length of the byte string to write.
+ * @param aString  The byte string itself.
+ *
+ * @retval WEAVE_NO_ERROR               If it's all OK.
+ * @retval WEAVE_ERROR_BUFFER_TOO_SMALL If we're running past the end of the buffer.
  */
 
 WEAVE_ERROR MessageIterator::writeBytes(uint16_t aLength, uint8_t *aByteString)
@@ -335,8 +330,8 @@ WEAVE_ERROR MessageIterator::writeBytes(uint16_t aLength, uint8_t *aByteString)
     return err;
 }
 
-/*
- * increment a message iterator by 1 if there's room
+/**
+ * Increment a message iterator by 1 if there's room.
  */
 
 MessageIterator& MessageIterator::operator ++(void)
@@ -347,10 +342,11 @@ MessageIterator& MessageIterator::operator ++(void)
     return *this;
 }
 
-/*
- * parameter: uint16_t inc, an increment to apply to the message iterator
- * return: the iterator incremented either by the given increment, if there's
- * room or else slammed right up against the end if there's not.
+/**
+ * @param inc  An increment to apply to the message iterator.
+ *
+ * @return         The iterator incremented by the given value if there's
+ *                 room, or else slammed right up against the end if there's not.
  */
 
 MessageIterator& MessageIterator::operator +(uint16_t inc)
@@ -364,11 +360,11 @@ MessageIterator& MessageIterator::operator +(uint16_t inc)
     return *this;
 }
 
-/*
+/**
+ * @param dec  A decrement to apply to the message iterator.
  *
- * parameter: uint16_t dec, an decrement to apply to the message iterator
- * return: the iterator either decremented by the given value if there's
- * room or else slammed right up against the beginning if there's not.
+ * @return         The iterator decremented by the given value if there's
+ *                 room, or else slammed right up against the beginning if there's not.
  */
 
 MessageIterator& MessageIterator::operator -(uint16_t dec)
@@ -380,8 +376,8 @@ MessageIterator& MessageIterator::operator -(uint16_t dec)
     return *this;
 }
 
-/*
- * parameter: const MessageIterator& another, another message iterator to compare with
+/**
+ * @param aMessageIterator  Another message iterator to compare with.
  */
 
 bool MessageIterator::operator==(const MessageIterator &aMessageIterator)
@@ -389,8 +385,8 @@ bool MessageIterator::operator==(const MessageIterator &aMessageIterator)
     return(thePoint == aMessageIterator.thePoint && mBuffer == aMessageIterator.mBuffer);
 }
 
-/*
- * parameter: const MessageIterator &aMessageIterator, another message iterator to compare with
+/**
+ * @param aMessageIterator  Another message iterator to compare with.
  */
 
 bool MessageIterator::operator!=(const MessageIterator &aMessageIterator)
@@ -398,8 +394,8 @@ bool MessageIterator::operator!=(const MessageIterator &aMessageIterator)
     return !(thePoint == aMessageIterator.thePoint && mBuffer == aMessageIterator.mBuffer);
 }
 
-/*
- * return: what we're looking at in the buffer
+/**
+ * @return  What we're looking at in the buffer.
  */
 
 uint8_t& MessageIterator::operator *(void)
@@ -407,8 +403,8 @@ uint8_t& MessageIterator::operator *(void)
     return *thePoint;
 }
 
-/*
- * set the point to after any data currently in the buffer.
+/**
+ * Set the point to after any data currently in the buffer.
  */
 
 void MessageIterator::append(void)
@@ -416,11 +412,13 @@ void MessageIterator::append(void)
     thePoint = mBuffer->Start() + mBuffer->DataLength();
 }
 
-/*
- * parameter: uint16_t inc, an integer amount that may be read from the
- * buffer.
- * return: true if the buffer's current data length is greater than or equal
- * to the given increment. false otherwise.
+/**
+ * @param inc  An integer amount that may be read from the
+ *             buffer.
+ *
+ * @retval true  The buffer's current data length is greater than or equal
+ *               to the given increment.
+ * @retval false Otherwise.
  */
 
 bool MessageIterator::hasData(uint16_t inc)
@@ -428,12 +426,14 @@ bool MessageIterator::hasData(uint16_t inc)
     return inc <= (mBuffer->DataLength());
 }
 
-/*
- * parameter: uint16_t inc, an integer amount that may be written to the
- * buffer.
- * return: true if the difference between the buffer's current data
- * length and its maximum allowable data length, i.e. its available data
- * length,  is less than or equal to the given increment.
+/**
+ * @param inc  An integer amount that may be written to the
+ *             buffer.
+ *
+ * @retval true  The difference between the buffer's current data
+ *               length and its maximum allowable data length, (its available data
+ *               length), is less than or equal to the given increment.
+ * @retval false Otherwise.
  */
 
 bool MessageIterator::hasRoom(uint16_t inc)
@@ -441,8 +441,8 @@ bool MessageIterator::hasRoom(uint16_t inc)
     return inc <= (mBuffer->AvailableDataLength());
 }
 
-/*
- * adjust the buffer after writing.
+/**
+ * Adjust the buffer after writing.
  */
 
 void MessageIterator::finishWriting(void)
@@ -450,10 +450,10 @@ void MessageIterator::finishWriting(void)
     mBuffer->SetDataLength((uint16_t)(thePoint - mBuffer->Start()));
 }
 
-/*
- *-------------------- definitions for referenced strings --------------------
- *
- * the no-arg constructor for referenced strings.
+// -------------------- definitions for referenced strings --------------------
+
+/**
+ * The no-arg constructor for referenced strings.
  */
 
 ReferencedString::ReferencedString(void) :
@@ -464,18 +464,18 @@ ReferencedString::ReferencedString(void) :
     isShort = false;
 }
 
-/**
+/***
  * @fn WEAVE_ERROR ReferencedString::init(uint16_t aLength, char *aString, System::PacketBuffer *aBuffer)
  * @brief  Initialize a ReferencedString
  *
- * Initialize the  ReferencedString with a string and a PacketBuffer backing a that string.
+ * Initialize the ReferencedString with a string and a PacketBuffer backing a that string.
  *
- * @param[in] aLength a length for the referenced string
- * @param[in] aString a pointer to the string data (in the buffer)
- * @param[in] aBuffer a messsage buffer in which the string resides
+ * @param[in] aLength A length for the referenced string
+ * @param[in] aString A pointer to the string data (in the buffer)
+ * @param[in] aBuffer A messsage buffer in which the string resides
  *
- * @retval #WEAVE_NO_ERROR on success
- * @retval #WEAVE_ERROR_INVALID_STRING_LENGTH when the supplied string is too long
+ * @retval #WEAVE_NO_ERROR On success
+ * @retval #WEAVE_ERROR_INVALID_STRING_LENGTH The supplied string is too long
  */
 
 WEAVE_ERROR ReferencedString::init(uint16_t aLength, char *aString, System::PacketBuffer *aBuffer)
@@ -497,7 +497,7 @@ WEAVE_ERROR ReferencedString::init(uint16_t aLength, char *aString, System::Pack
     return err;
 }
 
-/**
+/***
  * @fn WEAVE_ERROR ReferencedString::init(uint16_t aLength, char *aString)
  * @brief Initialize a ReferencedString
  *
@@ -508,8 +508,8 @@ WEAVE_ERROR ReferencedString::init(uint16_t aLength, char *aString, System::Pack
  * created in this way must be sent before the stack context in which it was
  * created is exited.
  *
- * @param[in] aLength a length for the referenced string
- * @param[in] aString a pointer to the string data
+ * @param[in] aLength A length for the referenced string
+ * @param[in] aString A pointer to the string data
  *
  * @retval #WEAVE_NO_ERROR Unconditionally
  */
@@ -526,7 +526,7 @@ WEAVE_ERROR ReferencedString::init(uint16_t aLength, char *aString)
     return WEAVE_NO_ERROR;
 }
 
-/**
+/***
  * @fn WEAVE_ERROR ReferencedString::init(uint8_t aLength, char *aString, System::PacketBuffer *aBuffer)
  * @overload
  */
@@ -543,7 +543,7 @@ WEAVE_ERROR ReferencedString::init(uint8_t aLength, char *aString, System::Packe
     return WEAVE_NO_ERROR;
 }
 
-/**
+/***
  * @fn WEAVE_ERROR ReferencedString::init(uint8_t aLength, char *aString)
  * @overload
  */
@@ -560,9 +560,9 @@ WEAVE_ERROR ReferencedString::init(uint8_t aLength, char *aString)
     return WEAVE_NO_ERROR;
 }
 
-/*
- * parameter: MessageIterator &i, an iterator over the message being packed.
- * return: error/status
+/**
+ * @param  &i  An iterator over the message being packed.
+ * @return     WEAVE_ERROR
  */
 
 WEAVE_ERROR ReferencedString::pack(MessageIterator &i)
@@ -581,14 +581,13 @@ WEAVE_ERROR ReferencedString::pack(MessageIterator &i)
     return e;
 }
 
-/*
- * parameters:
- * - MessageIterator &i, an iterator over the message being parsed.
- * - ReferencedString &aString, a place to put the result of parsing
- * return:
- * - WEAVE_NO_ERROR if it's all good
- * - WEAVE_ERROR_INVALID_STRING_LENGTH if the string is too long for the buffer
- * (this should never happen).
+/**
+ * @param &i        An iterator over the message being parsed.
+ * @param &aString  A place to put the result of parsing.
+ *
+ * @retval WEAVE_NO_ERROR                    String parsed successfully.
+ * @retval WEAVE_ERROR_INVALID_STRING_LENGTH The string is too long for the buffer
+ *                                           (this should never happen).
  */
 
 WEAVE_ERROR ReferencedString::parse(MessageIterator &i, ReferencedString &aString)
@@ -619,9 +618,11 @@ WEAVE_ERROR ReferencedString::parse(MessageIterator &i, ReferencedString &aStrin
     return err;
 }
 
-/*
- * parameter: ReferencedString &another, a string to check against
- * return: true if they're equal, false otherwise
+/**
+ * @param &aReferencedString  A string to check against.
+ *
+ * @retval true  The strings are equal.
+ * @retval false The strings are not equal.
  */
 
 bool ReferencedString::operator== (const ReferencedString &aReferencedString) const
@@ -644,8 +645,8 @@ exit:
     return result;
 }
 
-/*
- * return: a printable string
+/**
+ * @return  A printable string
  */
 
 char *ReferencedString::printString(void)
@@ -655,7 +656,7 @@ char *ReferencedString::printString(void)
     return theString;
 }
 
-/*
+/**
  *-------------------- definitions for TLV data --------------------
  */
 
@@ -683,9 +684,9 @@ ReferencedTLVData::ReferencedTLVData(void) :
  * Initialize a ReferencedTLVData object given a buffer full of
  * TLV. This assumes that the buffer ONLY contains TLV.
  *
- * @param [in] aBuffer a message buffer in which the TLV resides.
+ * @param [in] aBuffer     A message buffer in which the TLV resides.
  *
- * @retval #WEAVE_NO_ERROR unconditionally
+ * @retval #WEAVE_NO_ERROR Unconditionally
  */
 
 WEAVE_ERROR ReferencedTLVData::init(System::PacketBuffer *aBuffer)
@@ -711,9 +712,9 @@ WEAVE_ERROR ReferencedTLVData::init(System::PacketBuffer *aBuffer)
  * this case, the TLV is that last portion of the buffer and we pass in
  * a message iterator that's pointing to it.
  *
- * @param [in] i A message iterator pointing to TLV to be extracted.
+ * @param [in] i           A message iterator pointing to TLV to be extracted.
  *
- * @retval #WEAVE_NO_ERROR unconditionally
+ * @retval #WEAVE_NO_ERROR Unconditionally
 */
 
 WEAVE_ERROR ReferencedTLVData::init(MessageIterator &i)
@@ -745,11 +746,11 @@ WEAVE_ERROR ReferencedTLVData::init(MessageIterator &i)
  * outgoing message created in this way must be sent before the stack
  * context in which it was created is exited.
  *
- * @param[in] aLength a length for the TLV data
- * @param[in] aMaxLength the total length of the buffer
- * @param[in] aByteString a pointer to the string data
+ * @param[in] aLength      A length for the TLV data
+ * @param[in] aMaxLength   The total length of the buffer
+ * @param[in] aByteString  A pointer to the string data
  *
- * @retval #WEAVE_NO_ERROR uncoditionally
+ * @retval #WEAVE_NO_ERROR Unconditionally
  */
 
 WEAVE_ERROR ReferencedTLVData::init(uint16_t aLength, uint16_t aMaxLength, uint8_t *aByteString)
@@ -769,7 +770,7 @@ WEAVE_ERROR ReferencedTLVData::init(uint16_t aLength, uint16_t aMaxLength, uint8
 /**
  * @fn WEAVE_ERROR ReferencedTLVData::init(TLVWriteCallback aWriteCallback, void *anAppState)
  *
- * @brief Initialize a RefererencedTLVData object given a callback funtion.
+ * @brief Initialize a RefererencedTLVData object given a callback function.
  *
  * Initialize a ReferencedTLVData object. Instead of explicitly
  * supplying the data, this version provides function, the write
@@ -781,13 +782,12 @@ WEAVE_ERROR ReferencedTLVData::init(uint16_t aLength, uint16_t aMaxLength, uint8
  *   typedef void (*TLVWriteCallback)(TLV::TLVWriter &aWriter, void *aAppState);
  * @endcode
  * @param [in] aWriteCallback the function to be
- * called when it's time to write some TLV.
- *
+ *             called when it's time to write some TLV.
  * @param [in] anAppState an application state object to be
- * passed to the callback along with the writer.
+ *             passed to the callback along with the writer.
  *
- * @retval #WEAVE_NO_ERROR on success
- * @retval #WEAVE_ERROR_INVALID_ARGUMENT if the write callback is not supplied.
+ * @retval #WEAVE_NO_ERROR               On success.
+ * @retval #WEAVE_ERROR_INVALID_ARGUMENT If the write callback is not supplied.
  */
 
 WEAVE_ERROR ReferencedTLVData::init(TLVWriteCallback aWriteCallback, void *anAppState)
@@ -814,13 +814,12 @@ WEAVE_ERROR ReferencedTLVData::init(TLVWriteCallback aWriteCallback, void *anApp
 /**
  * Free a ReferencedTLVData object, which is to say, undefine it.
  *
- * @return void
  */
 void ReferencedTLVData::free(void)
 {
     RetainedPacketBuffer::Release();
 
-    /*
+    /**
      * in this case you have to clear out the write callback and app
      * state as well since that may be how the data is getting generated.
      */
@@ -851,7 +850,7 @@ bool ReferencedTLVData::isFree(void)
  *
  * @brief Pack a ReferencedTLVData object using a TLVWriter.
  *
- * @param [in] i an iterator over the message being packed.
+ * @param [in] i An iterator over the message being packed.
  *
  * @return a WEAVE_ERROR - WEAVE_NO_ERROR if all goes well, otherwise
  * an error reflecting an inability of the writer to write the
@@ -892,13 +891,12 @@ WEAVE_ERROR ReferencedTLVData::pack(MessageIterator &i)
  * the buffer and not manipulated at all. This method mainly just sets
  * up the ReferencedTLVData structure for later use.
  *
- * @param [in] i an iterator over the message being
- * parsed.
+ * @param [in] i           An iterator over the message being
+ *                         parsed.
+ * @param [out] aTarget    A place to put the result
+ *                         of parsing.
  *
- * @param [out] aTarget a place to put the result
- * of parsing.
- *
- * @retval #WEAVE_NO_ERROR unconditionally
+ * @retval #WEAVE_NO_ERROR Unconditionally
  */
 
 WEAVE_ERROR ReferencedTLVData::parse(MessageIterator &i, ReferencedTLVData &aTarget)
@@ -928,9 +926,10 @@ WEAVE_ERROR ReferencedTLVData::parse(MessageIterator &i, ReferencedTLVData &aTar
  * Note that this only really makes sense in the case of two objects
  * that have actual data in them backed by a buffer or string.
  *
- * @param [in] another an object to check against
+ * @param [in] Another an object to check against
  *
- * @return true if they're equal, false otherwise
+ * @retval true  The objects are equal.
+ * @retval false The objects strings are not equal.
  */
 
 bool ReferencedTLVData::operator== (const ReferencedTLVData &another) const

@@ -33,7 +33,7 @@ namespace Weave {
  *  This function generates 32-bit Fibonacci number
  *  for a given 32 bit index.
  *
- * @retval  32-bit unsigned fibonacci number.
+ * @return  32-bit unsigned fibonacci number.
  *
  */
 extern uint32_t GetFibonacciForIndex(uint32_t index);

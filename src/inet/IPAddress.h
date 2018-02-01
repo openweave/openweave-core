@@ -119,7 +119,8 @@ public:
      *  Use this method to check if the address belongs to the IPv6 address
      *  family and has the reserved IPv6 unique-local address prefix.
      *
-     * @return \c true if address is IPv6 unique-local, \c false otherwise
+     * @retval true  Address is IPv6 unique-local
+     * @retval false Otherwise
      */
     bool IsIPv6ULA(void) const;
 
@@ -130,7 +131,8 @@ public:
      *  Use this method to check if the address belongs to the IPv6 address
      *  family and has the reserved IPv6 link-local address prefix.
      *
-     * @return \c true if address is IPv6 link-local, \c false otherwise
+     * @retval true  Address is IPv6 link-local
+     * @retval false Otherwise
      */
     bool IsIPv6LinkLocal(void) const;
 
@@ -141,7 +143,8 @@ public:
      *  Use this method to check if the address belongs to the IPv6 address
      *  family and has the reserved IPv6 multicast address prefix.
      *
-     * @return \c true if address is IPv6 multicast, \c false otherwise
+     * @retval true  Address is IPv6 multicast
+     * @retval false Otherwise
      */
     bool IsMulticast(void) const;
 
@@ -153,7 +156,7 @@ public:
      *  identifier identifier (IID), which is the least significant 64 bits of
      *  the address.
      *
-     * @return \c 64-bit interface identifier, or zero if the IP address is not
+     * @return 64-bit interface identifier, or zero if the IP address is not
      *  an IPv6 unique-local address.
      */
     uint64_t InterfaceId(void) const;
@@ -168,7 +171,7 @@ public:
      *  of the address. In other words, the subnet identifier is located in
      *  the 7th and 8th bytes of a 16-byte address.
      *
-     * @return \c 16-bit subnet identifier, or zero if the IP address is not
+     * @return 16-bit subnet identifier, or zero if the IP address is not
      *  an IPv6 unique-local address.
      */
     uint16_t Subnet(void) const;
@@ -184,7 +187,7 @@ public:
      *  the global network identifier is located in the five bytes from the 2nd
      *  2nd through the 6th bytes in the address.
      *
-     * @return \c 40-bit global network identifier, or zero if the IP address
+     * @return 40-bit global network identifier, or zero if the IP address
      *  is not an IPv6 unique-local address.
      */
     uint64_t GlobalId(void) const;
@@ -196,44 +199,46 @@ public:
      *  Use this method to return an value of the enumerated type \c
      *  IPAddressType to indicate the type of the IP address.
      *
-     * @retval  kIPAddressType_IPv4 if the address is IPv4.
-     * @retval  kIPAddressType_IPv6 if the address is IPv6.
-     * @retval  kIPAddressType_Any if the address is the unspecified address.
+     * @retval  kIPAddressType_IPv4 The address is IPv4.
+     * @retval  kIPAddressType_IPv6 The address is IPv6.
+     * @retval  kIPAddressType_Any  The address is the unspecified address.
      */
     IPAddressType Type(void) const;
 
     /**
      * @brief   Compare this IP address with another for equivalence.
      *
-     * @param[in]   other   the address to compare.
+     * @param[in]   other   The address to compare.
      *
-     * @return  \c true if equivalent to \c other, else \c false.
+     * @retval true  If equivalent to \c other
+     * @retval false Otherwise
      */
     bool operator ==(const IPAddress& other) const;
 
     /**
      * @brief   Compare this IP address with another for inequivalence.
      *
-     * @param[in]   other   the address to compare.
+     * @param[in]   other   The address to compare.
      *
-     * @return  \c false if equivalent to \c other, else \c true.
+     * @retval true  If equivalent to \c other
+     * @retval false Otherwise
      */
     bool operator !=(const IPAddress& other) const;
 
     /**
      * @brief   Conventional assignment operator.
      *
-     * @param[in]   other   the address to copy.
+     * @param[in]   other   The address to copy.
      *
-     * @return  a reference to this object.
+     * @return  A reference to this object.
      */
     IPAddress& operator =(const IPAddress& other);
 
     /**
      * @brief   Emit the IP address in conventional text presentation format.
      *
-     * @param[out]  buf         the address of the emitted text.
-     * @param[in]   bufSize     the size of the buffer for the emitted text.
+     * @param[out]  buf         The address of the emitted text.
+     * @param[in]   bufSize     The size of the buffer for the emitted text.
      *
      * @details
      *  Use <tt>ToString(char *buf, uint32_t bufSize) const</tt> to write the
@@ -251,38 +256,40 @@ public:
     /**
      * @brief   Scan the IP address from its conventional presentation text.
      *
-     * @param[in]   str     the address of the emitted text.
-     * @param[out]  output  the object to set to the scanned address.
+     * @param[in]   str     The address of the emitted text.
+     * @param[out]  output  The object to set to the scanned address.
      *
      * @details
      *  Use <tt>FromString(const char *str, IPAddress& output)</tt> to
      *  overwrite an IP address by scanning the conventional text presentation
      *  located at \c str.
      *
-     * @return  \c true if the presentation format is valid, else \c false.
+     * @retval true  The presentation format is valid
+     * @retval false Otherwise
      */
     static bool FromString(const char *str, IPAddress& output);
 
     /**
      * @brief   Scan the IP address from its conventional presentation text.
      *
-     * @param[in]   str     a pointer to the text to be scanned.
-     * @param[in]   strLen  the length of the text to be scanned.
-     * @param[out]  output  the object to set to the scanned address.
+     * @param[in]   str     A pointer to the text to be scanned.
+     * @param[in]   strLen  The length of the text to be scanned.
+     * @param[out]  output  The object to set to the scanned address.
      *
      * @details
      *  Use <tt>FromString(const char *str, size_t strLen, IPAddress& output)</tt> to
      *  overwrite an IP address by scanning the conventional text presentation
      *  located at \c str.
      *
-     * @return  \c true if the presentation format is valid, else \c false.
+     * @retval true  The presentation format is valid
+     * @retval false Otherwise
      */
     static bool FromString(const char *str, size_t strLen, IPAddress& output);
 
     /**
      * @brief   Emit the IP address in standard network representation.
      *
-     * @param[inout]    p   reference to the cursor to use for writing.
+     * @param[inout]    p   Reference to the cursor to use for writing.
      *
      * @details
      *  Use <tt>WriteAddress(uint8_t *&p)</tt> to encode the IP address in
@@ -295,8 +302,8 @@ public:
     /**
      * @brief   Emit the IP address in standard network representation.
      *
-     * @param[inout]    p       reference to the cursor to use for reading.
-     * @param[out]      output  object to receive decoded IP address.
+     * @param[inout]    p       Reference to the cursor to use for reading.
+     * @param[out]      output  Object to receive decoded IP address.
      *
      * @details
      *  Use <tt>ReadAddress(uint8_t *&p, IPAddress &output)</tt> to decode
@@ -312,8 +319,8 @@ public:
      *  Use this method to check if the address belongs to the IPv4 address
      *  family. Note well: the unspecified address is not an IPv4 address.
      *
-     * @retval true if address is IPv4 and not the unspecified address
-     * @retval false if address is IPv6 or the unspecified address
+     * @retval true   The address is IPv4 and not the unspecified address.
+     * @retval false  The address is IPv6 or the unspecified address.
      */
     bool IsIPv4(void) const;
 #endif // INET_CONFIG_ENABLE_IPV4

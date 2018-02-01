@@ -99,8 +99,6 @@ public:
 
     /**
      * Main work-horse function that executes the run-loop.
-     *
-     * @retval void
      */
     void Run(void);
 

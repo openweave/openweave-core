@@ -1742,7 +1742,7 @@ INET_ERROR DispatchEvent(Inet::InetLayer* aInetLayer, void* aContext, InetEvent 
  *  @param[inout]  aContext             Platform-specific context data passed to the layer initialization method, ::Init.
  *  @param[in]     aMilliseconds        The number of milliseconds to set for the timer.
  *
- *  @retval   #INET_NO_ERROR    Always succeeds unless overriden.
+ *  @retval   #INET_NO_ERROR    Always succeeds unless overridden.
  */
 INET_ERROR StartTimer(Inet::InetLayer* aInetLayer, void* aContext, uint32_t aMilliseconds)
 {

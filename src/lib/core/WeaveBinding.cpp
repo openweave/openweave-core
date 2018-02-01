@@ -39,19 +39,19 @@ namespace Weave {
  *
  * Retrieve the current state of the binding.
  *
- * @return                         The binding state.
+ * @return      		    The binding state.
  */
 
 /**
  * @fn bool Binding::IsPreparing() const
  *
- * Returns true if the Binding is currently being prepared.
+ * @return 			    True if the Binding is currently being prepared.
  */
 
 /**
  * @fn bool Binding::IsReady() const
  *
- * Returns true if the Binding is in the Ready state.
+ * @return			    True if the Binding is in the Ready state.
  */
 
 /**
@@ -61,7 +61,7 @@ namespace Weave {
  *
  * Only valid once the binding object has been prepared.
  *
- * @return                          Weave node ID of the peer
+ * @return      		    Weave node ID of the peer
  */
 
 /**
@@ -1105,7 +1105,7 @@ bool Binding::IsAuthenticMessageFromPeer(const nl::Weave::WeaveMessageHeader *ms
  *  @param[in]    msgBuf        A pointer to the PacketBuffer to which the message
  *                              payload will be written.
  *
- *  @return the max Weave payload size.
+ *  @return 			The max Weave payload size.
  */
 uint32_t Binding::GetMaxWeavePayloadSize(const System::PacketBuffer *msgBuf)
 {
@@ -1418,6 +1418,10 @@ Binding::Configuration& Binding::Configuration::Transport_DefaultWRMPConfig(cons
 
 /**
  * Use an existing Weave connection to communicate with the peer.
+ *
+ * @param[in] con		        A pointer to the existing Weave connection.
+ *
+ * @return                              A reference to the binding object.
  */
 Binding::Configuration& Binding::Configuration::Transport_ExistingConnection(WeaveConnection *con)
 {

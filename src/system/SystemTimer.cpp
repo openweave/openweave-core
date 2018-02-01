@@ -119,7 +119,8 @@ ObjectPool<Timer, WEAVE_SYSTEM_CONFIG_NUM_TIMERS> Timer::sPool;
  *  @param[in]  clk_id      The identifier of the particular clock on which to get the time.
  *  @param[out] t           A timespec structure that will be filled in on success.
  *
- *  @retval 0 on success; otherwise, -1 on failure (in which case errno is set appropriately).
+ *  @retval 0               Success
+ *  @retval -1              Failure (in which case errno is set appropriately)
  *
  */
 extern "C" int clock_gettime(clockid_t clk_id, struct timespec* t)

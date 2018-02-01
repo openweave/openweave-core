@@ -681,7 +681,7 @@ WEAVE_ERROR EllipticCurveJPAKE::GenerateStep1(const uint8_t *buf, const uint16_t
     err = FindStepPartDataPointers(&stepPart, buf, bufSize, stepDataLen);
     SuccessOrExit(err);
     /* Generate Random xa */
-    /* xa is temporary stored at Xb and then overriden with Xb value */
+    /* xa is temporary stored at Xb and then overridden with Xb value */
     VerifyOrExit(uECC_generate_random_int(Xb, curve_n, num_n_words),
                      err = WEAVE_ERROR_RANDOM_DATA_UNAVAILABLE);
     /* Generate STEP1 Part 1 */

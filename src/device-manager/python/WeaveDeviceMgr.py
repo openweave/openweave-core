@@ -393,7 +393,7 @@ class _DeviceDescriptorStruct(Structure):
             pairingCompatibilityVersionMinor = self.PairingCompatibilityVersionMinor,
             deviceFeatures = self.DeviceFeatures)
 
-# Library path name.  Can be overriden my module user.
+# Library path name.  Can be overridden my module user.
 currentDirPath = os.path.dirname(os.path.abspath( __file__ ))
 
 dmLibName = os.path.join(currentDirPath, '_WeaveDeviceMgr.so')

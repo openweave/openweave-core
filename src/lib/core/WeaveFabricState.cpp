@@ -118,67 +118,73 @@ void WeaveSessionKey::Clear(void)
 }
 
 /**
- * fn bool WeaveSessionKey::IsAllocated() const
+ * @fn bool WeaveSessionKey::IsAllocated() const
  *
- * Returns true if the WeaveSessionKey object is allocated.
+ * @return	 True if the WeaveSessionKey object is allocated.
  */
 
 /**
- * fn bool WeaveSessionKey::IsKeySet() const
+ * @fn bool WeaveSessionKey::IsKeySet() const
  *
- * Returns true if the encryption key value has been set in a WeaveSessionKey object.
+ * @return	 	True if the encryption key value has been set in a WeaveSessionKey object.
  */
 
 /**
- * fn bool WeaveSessionKey::IsLocallyInitiated() const
+ * @fn bool WeaveSessionKey::IsLocallyInitiated() const
  *
- * Returns true if the session was initiated by the local node.
+ * @return	 	True if the session was initiated by the local node.
  */
 
 /*
- * fn void WeaveSessionKey::SetLocallyInitiated(bool val)
+ * @fn void WeaveSessionKey::SetLocallyInitiated(bool val)
+ *
+ * @param[in] val	The value to set the kFlag_IsLocallyInitiated flag to.
  *
  * Sets a flag indicating whether the session was initiated by the local node.
  */
 
 /*
- * fn bool WeaveSessionKey::IsSharedSession() const
+ * @fn bool WeaveSessionKey::IsSharedSession() const
  *
- * Returns true the session is a shared--i.e. can be used for multiplexed communication with different peer node ids.
+ * @return	 	True the session is a shared--i.e. can be used for multiplexed communication with different peer node ids.
  */
 
 /**
- * fn void WeaveSessionKey::SetSharedSession(bool val)
+ * @fn void WeaveSessionKey::SetSharedSession(bool val)
+ *
+ * @param[in] val	The value to set the kFlag_IsSharedSession flag to.
  *
  * Sets a flag indicating whether the session is a shared session.
  */
 
 /**
- * fn bool WeaveSessionKey::IsRemoveOnIdle() const
+ * @fn bool WeaveSessionKey::IsRemoveOnIdle() const
  *
- * Returns true if the session is flagged for automatic removal when idle for a period of time.
+ * @return	 	True if the session is flagged for automatic removal when idle for a period of time.
  */
 
 /**
- * fn void WeaveSessionKey::SetRemoveOnIdle(bool val)
+ * @fn void WeaveSessionKey::SetRemoveOnIdle(bool val)
+ *
+ * @param[in] val	The value to set the kFlag_IsRemoveOnIdle flag to.
  *
  * Sets a flag indicating whether the session should be automatically removed after a period of idle time.
  */
 
 /**
- * fn bool WeaveSessionKey::IsRecentlyActive() const
+ * @fn bool WeaveSessionKey::IsRecentlyActive() const
  *
- * Returns true if the session has been active in the recent past.
+ * @return	 	True if the session has been active in the recent past.
  */
 
 /**
- * fn void WeaveSessionKey::MarkRecentlyActive()
+ * @fn void WeaveSessionKey::MarkRecentlyActive()
  *
  * Signals the session as having been active in the recent past.
  */
 
 /**
- * fn void WeaveSessionKey::ClearRecentlyActive()
+ * @fn void WeaveSessionKey::ClearRecentlyActive()
  *
  * Signals the session as NOT having been active in the recent past.
  */
@@ -672,8 +678,6 @@ bool WeaveFabricState::IsFabricAddress(const IPAddress &addr) const
  * @param[in] requestorMsgCounter Requestor message counter field from the message counter
  *                                synchronization message.
  *
- * @retval None.
- *
  */
 void WeaveFabricState::OnMsgCounterSyncRespRcvd(uint64_t peerNodeId, uint32_t peerMsgId, uint32_t requestorMsgCounter)
 {
@@ -716,8 +720,6 @@ void WeaveFabricState::StartMsgCounterSyncTimer(void)
  *
  * @param[in] messageId         Identification of the message with which message
  *                              counter synchronization request is sent.
- *
- * @retval None.
  *
  */
 void WeaveFabricState::OnMsgCounterSyncReqSent(uint32_t messageId)
@@ -799,7 +801,7 @@ void WeaveFabricState::OnMsgCounterSyncRespTimeout(System::Layer* aSystemLayer, 
  * @param[in]   rootKeyId       The root key used to derive encryption keys for the specified
  *                              Weave Application Group.
  * @param[in]   useRotatingKey  True if the Weave Application Group uses rotating message keys.
- * @param[ouy]  keyId           The key ID to be used to encrypt messages for the specified
+ * @param[out]  keyId           The key ID to be used to encrypt messages for the specified
  *                              Weave Application Group.
  */
 WEAVE_ERROR WeaveFabricState::GetMsgEncKeyIdForAppGroup(uint32_t appGroupGlobalId, uint32_t rootKeyId, bool useRotatingKey, uint32_t& keyId)

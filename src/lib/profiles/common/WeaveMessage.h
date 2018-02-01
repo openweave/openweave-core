@@ -142,8 +142,8 @@ namespace Profiles {
                                      //<! buffer.
   };
 
-  /*
-   * in order to use message buffers sensibly, we define this iterator,
+  /**
+   * In order to use message buffers sensibly, we define this iterator,
    * which can be used to keep track of boundaries and so on.
    */
   class NL_DLL_EXPORT MessageIterator : public RetainedPacketBuffer
@@ -180,9 +180,9 @@ namespace Profiles {
     // data members
     uint8_t *thePoint;
   };
-  /*
-   * here's how we handle strings in weave. this class has an 8-bit
-   * and a 16-bit variant.
+  /**
+   * Here's how to handle strings in Weave. This class has 8-bit
+   * and 16-bit variants.
    */
   class NL_DLL_EXPORT ReferencedString : public RetainedPacketBuffer
   {
@@ -206,8 +206,8 @@ namespace Profiles {
     char *theString;
     bool isShort;
   };
-  /*
-   * similarly, we need to be able to represent a big old blob
+  /**
+   * Similarly, we need to be able to represent a big old blob
    * of TLV data.
    */
   class NL_DLL_EXPORT ReferencedTLVData : public RetainedPacketBuffer

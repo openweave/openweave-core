@@ -208,8 +208,8 @@ public:
      * @brief
      *   IsValid returns whether the LoggingManagement instance is valid
      *
-     * @retval true if the instance is valid (initialized with the appropriate backing store)
-     * @retval false otherwise
+     * @retval true  The instance is valid (initialized with the appropriate backing store)
+     * @retval false Otherwise
      */
     bool IsValid(void) { return (mEventBuffer != NULL); };
 
