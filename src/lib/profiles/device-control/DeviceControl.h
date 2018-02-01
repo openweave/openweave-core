@@ -228,7 +228,7 @@ public:
 
     /**
      * Prepare to stop Remote Passive Rendezvous.
-     * 
+     *
      * @sa WillStartRemotePassiveRendezvous(void)
      */
     // TODO: More detail regarding usage required.

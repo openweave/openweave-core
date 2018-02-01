@@ -138,23 +138,23 @@ void WeaveSessionKey::Clear(void)
 /*
  * @fn void WeaveSessionKey::SetLocallyInitiated(bool val)
  *
- * @param[in] val	The value to set the kFlag_IsLocallyInitiated flag to.
- *
  * Sets a flag indicating whether the session was initiated by the local node.
+ *
+ * @param[in] val	The value to set the kFlag_IsLocallyInitiated flag to.
  */
 
 /*
  * @fn bool WeaveSessionKey::IsSharedSession() const
  *
- * @return	 	True the session is a shared--i.e. can be used for multiplexed communication with different peer node ids.
+ * @return	 	True if the session is shared--i.e. can be used for multiplexed communication with different peer node ids.
  */
 
 /**
  * @fn void WeaveSessionKey::SetSharedSession(bool val)
  *
- * @param[in] val	The value to set the kFlag_IsSharedSession flag to.
- *
  * Sets a flag indicating whether the session is a shared session.
+ *
+ * @param[in] val	The value to set the kFlag_IsSharedSession flag to.
  */
 
 /**
@@ -166,9 +166,9 @@ void WeaveSessionKey::Clear(void)
 /**
  * @fn void WeaveSessionKey::SetRemoveOnIdle(bool val)
  *
- * @param[in] val	The value to set the kFlag_IsRemoveOnIdle flag to.
- *
  * Sets a flag indicating whether the session should be automatically removed after a period of idle time.
+ *
+ * @param[in] val	The value to set the kFlag_IsRemoveOnIdle flag to.
  */
 
 /**

@@ -41,7 +41,7 @@ namespace Weave {
 namespace Profiles {
 namespace Common {
 
-/*
+/**
  * Common Profile Message Types
  */
 enum
@@ -54,7 +54,7 @@ enum
     kMsgType_WRMP_Throttle_Flow       = 4
 };
 
-/*
+/**
  * Common Profile Status Codes
  */
 enum
@@ -78,7 +78,7 @@ enum
 };
 
 
-/*
+/**
  * Common Profile MIME file type
  */
 enum
@@ -88,20 +88,33 @@ enum
     kMIMEType_AppGzip                 = 0x0002,  /**< gzip-compressed data. */
 };
 
-/*
+/**
+ * @var   kTag_SystemErrorCode
+ * @brief [uint] System-specific error.
+ *
+ * Tag Category: Profile-specific.  Constraints: none
+ *
+ * @var   kTag_SchemaVersion
+ * @brief [uint] Schema revision.
+ *
+ * Tag Category: Profile-specific.  Constraints: 0-255
+ *
+ * @var   kTag_MIMEType
+ * @brief [uint] MIME type.
+ *
+ * Tag Category: Profile-agnostic.  Constraints: none
+ */
+
+/**
  * Common Profile Data Tags
  */
 enum
 {
-    kTag_SystemErrorCode              = 0x0001,  /**< [uint] System-specific error.
-						      Tag Category: Profile-specific.
-						      Constraints: none */
-    kTag_SchemaVersion                = 0x0002,  /**< [uint] Schema revision.
-						      Tag Category: Profile-specific.
-						      Constraints: 0-255 */
-    kTag_MIMEType                     = 0x0004,  /**< [uint] MIME type.
-						      Tag Category: Profile-agnostic.
-						      Constraints: none */
+//                                      Value       Tag Category      Element Type      Constraints  Description
+//                                      ------------------------------------------------------------------------
+    kTag_SystemErrorCode              = 0x0001,  // Profile-specific  Unsigned Integer  -            System-specific error
+    kTag_SchemaVersion                = 0x0002,  // Profile-specific  Unsigned Integer  0-255        Schema revision
+    kTag_MIMEType                     = 0x0004,  // Profile-agnostic  Unsigned Integer  -            MIME type
 };
 
 } // namespace Common
