@@ -33,6 +33,9 @@ namespace WeaveMakeManagedNamespaceIdentifier(DataManagement, kWeaveManagedNames
  *
  * @param[inout] ioWriter The writer to use for writing out the event
  *
+ * @param[in] inDataTag   A context tag for the TLV we're copying out.  Unused here,
+ *                        but required by the typedef for EventWriterFunct.
+ *
  * @param[in] appData     A pointer to the TLVReader that holds serialized event data.
  *
  * @retval #WEAVE_NO_ERROR On success.

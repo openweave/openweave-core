@@ -265,8 +265,6 @@ namespace Platform {
      *
      *  @param[in]  inAddress          The IP address to be added/removed.
      *
-     *  @param[in]  inPrefixLength     The Prefix length of the inAddress.
-     *
      *  @param[in]  inAdd              true to add the address, false to remove the address.
      *
      *  @retval kPlatformResultSuccess     The operation completed successfully.

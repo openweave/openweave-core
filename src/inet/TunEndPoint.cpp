@@ -58,7 +58,6 @@ using namespace nl::Weave::Encoding;
  * @param[in] inetLayer       A pointer to the Inet layer object that
  *                            created the Tunnel EndPoint.
  *
- * @return void
  */
 void TunEndPoint::Init(InetLayer *inetLayer)
 {
@@ -121,7 +120,6 @@ exit:
 /**
  * Close the tunnel pseudo interface device.
  *
- * @return void
  */
 void TunEndPoint::Close (void)
 {
@@ -154,7 +152,6 @@ void TunEndPoint::Close (void)
  * Close the tunnel pseudo interface device and decrement the reference count
  * of the InetLayer object.
  *
- * @return void
  */
 void TunEndPoint::Free()
 {

@@ -71,7 +71,6 @@ public:
  *
  * @param[in] tunStatus       A reference to the Tunnel control StatusReport message.
  *
- * @return void.
  */
     typedef void (*TunnelStatusRcvdFunct)(uint8_t tType, StatusReport &tunStatus);
     TunnelStatusRcvdFunct OnTunStatusRcvd;

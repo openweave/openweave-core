@@ -142,7 +142,7 @@ class WeaveTunnelAgent
 public:
 
 /// States of the Tunnel Agent in relation to its connection(s) to
-/// the Service;
+/// the Service.
     typedef enum AgentState
     {
         kState_NotInitialized                      = 0, ///<Used to indicate that the Tunnel Agent is not initialized.
@@ -400,7 +400,6 @@ public:
  *
  * @param[in] appCtxt       A pointer to an application context object
  *
- * @return void.
  */
     typedef void (*OnServiceTunnelStatusNotifyFunct)(WeaveTunnelConnectionMgr::TunnelConnNotifyReasons reason,
                                                      WEAVE_ERROR err, void *appCtxt);
@@ -423,7 +422,6 @@ public:
  *
  * @param[in] appCtxt       A pointer to an application context object
  *
- * @return void.
  */
     typedef void (*OnServiceTunnelReconnectNotifyFunct)(TunnelType tunType,
                                                         const char *reconnectHost,
@@ -442,9 +440,8 @@ public:
  *
  * @param[in] type        The type of the Tunnel.
  *
- * @param[out] toDrop     indicates whether the packet needs to be dropped based on some application policy.
+ * @param[out] toDrop     Indicates whether the packet needs to be dropped based on some application policy.
  *
- * @return void.
  */
     typedef void (*OnPacketTransitFunct)(const PacketBuffer &pkt,
                                          nl::Weave::Profiles::WeaveTunnel::TunnelPktDirection direction,
@@ -462,7 +459,6 @@ public:
  *
  * @param[in] appCtxt          A pointer to an application context object
  *
- * @return void.
  */
     typedef void (*PlatformNetworkOnlineCheck)(TunnelType tunType, void *appCtxt);
 

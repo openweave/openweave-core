@@ -194,7 +194,7 @@ static void ecHandleConnectionClosed(ExchangeContext *aExchangeCtx,
  *
  *  @param[in] anAddrInfo   A read-only pointer to the IP header of this message.
  *
- *  @param[in] aMsgHeader   A read-only pointer to the Weave header of this message.
+ *  @param[in] aMsgInfo     A read-only pointer to the Weave header of this message.
  *
  *  @param[in] aProfileId   The ID of the Weave profile this message belongs to.
  *  @param[in] aMsgType     The profile-specific type of this message.

@@ -78,7 +78,7 @@ namespace SoftwareUpdate {
    * codes.
    *
    * - kStatus_NoUpdateAvailable: server => client, indicates that an
-   * image query has been recieved and understood and that the server has no
+   * image query has been received and understood and that the server has no
    * update for the client at this time.
    *
    * - kStatus_UpdateFailed: client => server, indicates that an attempt

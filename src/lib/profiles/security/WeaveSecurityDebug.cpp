@@ -22,7 +22,7 @@
  *      information related to Weave security.
  *
  *      @note These function symbols are only available when
- *            #WEAVE_CONFIG_ENABLE_SECURITY_DEBUG_FUNCS has been
+ *            WEAVE_CONFIG_ENABLE_SECURITY_DEBUG_FUNCS has been
  *            asserted.
  *
  */

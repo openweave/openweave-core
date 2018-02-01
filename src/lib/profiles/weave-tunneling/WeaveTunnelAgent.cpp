@@ -440,10 +440,10 @@ WEAVE_ERROR WeaveTunnelAgent::ResetBackupReconnectBackoff(bool reconnectImmediat
  *  @param[in]  maxTimeoutSecs
  *    The maximum timeout for the TCP connection.
  *
- *  @retval  #WEAVE_NO_ERROR                     on successful configuration.
- *  @retval  #WEAVE_ERROR_INCORRECT_STATE        if the WeaveConnection object is not
+ *  @retval  #WEAVE_NO_ERROR                     On successful configuration.
+ *  @retval  #WEAVE_ERROR_INCORRECT_STATE        If the WeaveConnection object is not
  *                                               in the correct state for sending messages.
- *  @retval  other Inet layer errors related to the TCP endpoint.
+ *  @retval  other                               Inet layer errors related to the TCP endpoint.
  *
  */
 
@@ -463,11 +463,12 @@ WEAVE_ERROR WeaveTunnelAgent::ConfigurePrimaryTunnelTimeout(uint16_t maxTimeoutS
  *    the time between last data packet sent and the transmission of the first keepalive
  *    probe.
  *
- *  @retval  #WEAVE_NO_ERROR                     on successful enabling of TCP keepalive probes
+ *  @retval  #WEAVE_NO_ERROR                     On successful enabling of TCP keepalive probes
  *                                               on the connection.
- *  @retval  #WEAVE_ERROR_INCORRECT_STATE        if the WeaveConnection object is not
+ *  @retval  #WEAVE_ERROR_INCORRECT_STATE        If the WeaveConnection object is not
  *                                               in the correct state for sending messages.
- *  @retval  other Inet layer errors related to the TCP endpoint enable keepalive operation.
+ *  @retval  other                               Inet layer errors related to the TCP endpoint 
+ *                                               enable keepalive operation.
  *
  */
 WEAVE_ERROR WeaveTunnelAgent::ConfigureAndEnablePrimaryTunnelTCPKeepAlive(uint16_t keepAliveIntervalSecs,
@@ -624,10 +625,10 @@ void WeaveTunnelAgent::StopBackupTunnel(void)
  *  @param[in]  maxTimeoutSecs
  *    The maximum timeout for the TCP connection.
  *
- *  @retval  #WEAVE_NO_ERROR                     on successful configuration.
- *  @retval  #WEAVE_ERROR_INCORRECT_STATE        if the WeaveConnection object is not
+ *  @retval  #WEAVE_NO_ERROR                     On successful configuration.
+ *  @retval  #WEAVE_ERROR_INCORRECT_STATE        If the WeaveConnection object is not
  *                                               in the correct state for sending messages.
- *  @retval  other Inet layer errors related to the TCP endpoint.
+ *  @retval  other                               Inet layer errors related to the TCP endpoint.
  *
  */
 
@@ -647,11 +648,12 @@ WEAVE_ERROR WeaveTunnelAgent::ConfigureBackupTunnelTimeout(uint16_t maxTimeoutSe
  *    the time between last data packet sent and the transmission of the first keepalive
  *    probe.
  *
- *  @retval  #WEAVE_NO_ERROR                     on successful enabling of TCP keepalive probes
+ *  @retval  #WEAVE_NO_ERROR                     On successful enabling of TCP keepalive probes
  *                                               on the connection.
- *  @retval  #WEAVE_ERROR_INCORRECT_STATE        if the WeaveConnection object is not
+ *  @retval  #WEAVE_ERROR_INCORRECT_STATE        If the WeaveConnection object is not
  *                                               in the correct state for sending messages.
- *  @retval  other Inet layer errors related to the TCP endpoint enable keepalive operation.
+ *  @retval  other                               Inet layer errors related to the TCP endpoint
+ *                                               enable keepalive operation.
  *
  */
 WEAVE_ERROR WeaveTunnelAgent::ConfigureAndEnableBackupTunnelTCPKeepAlive(uint16_t keepAliveIntervalSecs,
@@ -693,7 +695,6 @@ WEAVE_ERROR WeaveTunnelAgent::StartServiceTunnel (void)
  * @param[in] dstIPAddr                    IP address of the destination node.
  *
  * @param[in] authMode                     Weave authentication mode used with peer.
- *
  *
  * @return WEAVE_NO_ERROR
  */
@@ -744,7 +745,6 @@ exit:
 /**
  * Close the Tunnel connection to the Service.
  *
- * @return void
  */
 void WeaveTunnelAgent::StopServiceTunnel(void)
 {
@@ -757,7 +757,6 @@ void WeaveTunnelAgent::StopServiceTunnel(void)
  * @param[in] err WEAVE_NO_ERROR if there is no specific reason for this
  *   StopServiceTunnel request, otherwise the cause of error would be passed down.
  *
- * @return void
  */
 void WeaveTunnelAgent::StopServiceTunnel(WEAVE_ERROR err)
 {
@@ -808,10 +807,8 @@ void WeaveTunnelAgent::SetState(AgentState toState)
  * Parse the destination IP address of an IP packet within a PacketBuffer.
  *
  * @param[in]  inMsg        A constant reference to the PacketBuffer object containing the IPv6 packet.
- *
  * @param[out] outDest      A reference to the IPaddress object holding the destination address.
  *
- * @return void
  */
 void WeaveTunnelAgent::ParseDestinationIPAddress(const PacketBuffer &inMsg, IPAddress &outDest)
 {
@@ -845,7 +842,6 @@ void WeaveTunnelAgent::ParseDestinationIPAddress(const PacketBuffer &inMsg, IPAd
  *
  * @param[in] message                      A pointer to the PacketBuffer object holding the raw IPv6 packet.
  *
- * @return void
  */
 void WeaveTunnelAgent::RecvdFromTunnelEndPoint(TunEndPoint *tunEP, PacketBuffer *msg)
 {
@@ -920,7 +916,6 @@ exit:
  *
  * @param[in] message                      A pointer to the PacketBuffer object holding the tunneled IPv6 packet.
  *
- * @return void
  */
 void WeaveTunnelAgent::RecvdFromShortcutUDPTunnel(WeaveMessageLayer *msgLayer, PacketBuffer *msg)
 {
@@ -932,8 +927,7 @@ void WeaveTunnelAgent::RecvdFromShortcutUDPTunnel(WeaveMessageLayer *msgLayer, P
 }
 
 /**
- * Get the WeaveTunnelAgentState name
- *
+ * Get the WeaveTunnelAgentState name.
  */
 const char *WeaveTunnelAgent::GetAgentStateName(const AgentState state)
 {
@@ -979,7 +973,9 @@ void WeaveTunnelAgent::NetworkOnlineCheckResult(TunnelType tunType, bool isOnlin
 
 }
 
-/* Create a new Tunnel endpoint */
+/**
+ * Create a new Tunnel endpoint
+ */
 WEAVE_ERROR WeaveTunnelAgent::CreateTunEndPoint(void)
 {
     WEAVE_ERROR res = WEAVE_NO_ERROR;
@@ -994,7 +990,9 @@ exit:
     return res;
 }
 
-/* Setup the TunEndPoint interface and configure the link-local address and fabric default route */
+/**
+ * Setup the TunEndPoint interface and configure the link-local address and fabric default route.
+ */
 WEAVE_ERROR WeaveTunnelAgent::SetupTunEndPoint(void)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
@@ -1029,7 +1027,9 @@ exit:
     return err;
 }
 
-/* Tear down TunEndpoint interface and remove the link-local address and fabric default route */
+/**
+ * Tear down TunEndpoint interface and remove the link-local address and fabric default route.
+ */
 WEAVE_ERROR WeaveTunnelAgent::TeardownTunEndPoint(void)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
@@ -1056,7 +1056,9 @@ WEAVE_ERROR WeaveTunnelAgent::TeardownTunEndPoint(void)
     return err;
 }
 
-/* Utility function for populating a message header */
+/**
+ * Utility function for populating a message header.
+ */
 void WeaveTunnelAgent::PopulateTunnelMsgHeader(WeaveMessageInfo *msgInfo,
                                                const WeaveTunnelConnectionMgr *connMgr)
 {
@@ -1080,7 +1082,9 @@ void WeaveTunnelAgent::PopulateTunnelMsgHeader(WeaveMessageInfo *msgInfo,
     msgInfo->SourceNodeId = mExchangeMgr->FabricState->LocalNodeId;
 }
 
-/* Prepare message for tunneling by encapsulating in the tunnel header */
+/**
+ * Prepare message for tunneling by encapsulating in the tunnel header.
+ */
 WEAVE_ERROR WeaveTunnelAgent::AddTunnelHdrToMsg(PacketBuffer *msg)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
@@ -1153,7 +1157,9 @@ exit:
     return err;
 }
 
-/* Prepare message and send to Service via Remote tunnel */
+/**
+ * Prepare message and send to Service via Remote tunnel.
+ */
 WEAVE_ERROR WeaveTunnelAgent::HandleSendingToService(PacketBuffer *msg)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
@@ -1220,7 +1226,9 @@ exit:
     return err;
 }
 
-/* Prepare message and send to Service via Remote tunnel */
+/**
+ * Prepare message and send to Service via Remote tunnel.
+ */
 WEAVE_ERROR WeaveTunnelAgent::DecideAndSendShortcutOrRemoteTunnel(uint64_t peerId, PacketBuffer *msg)
 {
     WEAVE_ERROR err =  WEAVE_NO_ERROR;
@@ -1274,8 +1282,10 @@ WEAVE_ERROR WeaveTunnelAgent::DecideAndSendShortcutOrRemoteTunnel(uint64_t peerI
     return err;
 }
 
-/* handle a message received over tunnel and decode tunnel header and send
- * via appropriate interface */
+/**
+ * Handle a message received over tunnel and decode tunnel header and send
+ * via appropriate interface.
+ */
 WEAVE_ERROR WeaveTunnelAgent::HandleTunneledReceive(PacketBuffer *msg, TunnelType tunType)
 {
     WEAVE_ERROR err =  WEAVE_NO_ERROR;
@@ -1396,7 +1406,9 @@ void WeaveTunnelAgent::UpdateTunnelDownStatistics(const TunnelType tunType, cons
 }
 #endif // WEAVE_CONFIG_TUNNEL_ENABLE_STATISTICS
 
-/* Queue packet for Remote tunnel connection to get established */
+/**
+ * Queue packet for Remote tunnel connection to get established.
+ */
 WEAVE_ERROR WeaveTunnelAgent::EnQueuePacket(PacketBuffer *pkt)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
@@ -1448,7 +1460,9 @@ void WeaveTunnelAgent::DumpQueuedMessages(void)
     }
 }
 
-/* Dequeue a packet for sending via Service tunnel */
+/**
+ * Dequeue a packet for sending via Service tunnel.
+ */
 PacketBuffer *WeaveTunnelAgent::DeQueuePacket(void)
 {
     PacketBuffer *retPkt = NULL;
@@ -1469,8 +1483,10 @@ PacketBuffer *WeaveTunnelAgent::DeQueuePacket(void)
     return retPkt;
 }
 
-/* Flush queued messages that were pending because Service tunnel
- * was not setup */
+/**
+ * Flush queued messages that were pending because Service tunnel
+ * was not setup.
+ */
 void WeaveTunnelAgent::SendQueuedMessages(const WeaveTunnelConnectionMgr *connMgr)
 {
     WeaveMessageInfo  msgInfo;
@@ -1514,7 +1530,9 @@ void WeaveTunnelAgent::SendQueuedMessages(const WeaveTunnelConnectionMgr *connMg
     return;
 }
 
-/* Post processing function after Tunnel has been opened */
+/**
+ * Post processing function after Tunnel has been opened.
+ */
 void WeaveTunnelAgent::WeaveTunnelConnectionUp(const WeaveMessageInfo *msgInfo,
                                                const WeaveTunnelConnectionMgr *connMgr,
                                                const bool isRoutingRestricted)
@@ -1621,7 +1639,9 @@ void WeaveTunnelAgent::WeaveTunnelConnectionUp(const WeaveMessageInfo *msgInfo,
     }
 }
 
-/* Tunnel connection error notifier */
+/**
+ * Tunnel connection error notifier.
+ */
 void WeaveTunnelAgent::WeaveTunnelConnectionErrorNotify(const WeaveTunnelConnectionMgr *connMgr, WEAVE_ERROR conErr)
 {
     if (OnServiceTunStatusNotify)
@@ -1651,7 +1671,9 @@ void WeaveTunnelAgent::WeaveTunnelServiceReconnectRequested(const WeaveTunnelCon
     }
 }
 
-/* Post processing function after Tunnel has been closed */
+/**
+ * Post processing function after Tunnel has been closed.
+ */
 void WeaveTunnelAgent::WeaveTunnelConnectionDown(const WeaveTunnelConnectionMgr *connMgr, WEAVE_ERROR conErr)
 {
     // Update the Weave Tunnel mode and the Agent state upon tunnel closure.

@@ -64,7 +64,7 @@ WeaveTunnelControl::WeaveTunnelControl(void)
  *
  * @param[in] statusRcvd        A pointer to a callback for the StatusRcvd handler.
  *
- * @return WEAVE_NO_ERROR.
+ * @return WEAVE_NO_ERROR
  */
 WEAVE_ERROR WeaveTunnelControl::Init(WeaveTunnelAgent *tunAgent,
                                      TunnelStatusRcvdFunct statusRcvd)
@@ -328,7 +328,6 @@ WEAVE_ERROR WeaveTunnelControl::SendMobileClientAdvertise (void)
  * @param[in] payload          A pointer to the PacketBuffer object holding the
  *                             advertisement message.
  *
- * @return void
  */
 void WeaveTunnelControl::HandleShortcutTunnelAdvertiseMessage (ExchangeContext *ec, const IPPacketInfo *pktInfo,
                                                                const WeaveMessageInfo *msgInfo, uint32_t profileId,
@@ -414,7 +413,6 @@ bool WeaveTunnelControl::IsPeerInShortcutTunnelCache(uint64_t peerId)
  * gateway or Mobile client and also listening to advertisements from shortcut
  * tunnel counterparts.
  *
- * @return void
  */
 void WeaveTunnelControl::EnableShortcutTunneling (void)
 {
@@ -436,7 +434,6 @@ void WeaveTunnelControl::EnableShortcutTunneling (void)
  * Disable shortcut tunneling of sending advertisments from either the Border gateway or Mobile client and
  * also listening to advertisements from shortcut tunnel counterparts.
  *
- * @return void
  */
 void WeaveTunnelControl::DisableShortcutTunneling (void)
 {

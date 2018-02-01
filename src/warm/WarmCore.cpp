@@ -1090,9 +1090,9 @@ void BorderRouterStateChange(InterfaceState inState)
 /**
  *  A static function that returns a mapping from TunnelAvailability to RoutePriority
  *
- *  @param[in] inAction         The action type.
+ *  @param[in] inAvailability         The Weave tunnel availability mode.
  *
- *  @return the priority mapped value
+ *  @return The priority mapped value.
  *
  */
 static RoutePriority MapAvailabilityToPriority(Profiles::WeaveTunnel::Platform::TunnelAvailabilityMode inAvailability)

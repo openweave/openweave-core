@@ -187,7 +187,7 @@ public:
      *
      * A user of the service manager may be informed of problems in trying
      * to execute a connect request in one of two ways. It may receive a
-     * status report from the service or it may recieve an internally
+     * status report from the service or it may receive an internally
      * generated WEAVE_ERROR. In either case, the information comes through
      * this callback.
      *

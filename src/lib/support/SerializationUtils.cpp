@@ -980,20 +980,19 @@ exit:
  * does not exist for events with no nullable fields, however by construction
  * of setters and getters, no out of bounds accesses should occur.
  *
- * @param[in] aStructureData    A pointer to the c-struct
+ * @param[in] aStructureData    A pointer to the c-struct.
  *
- * @param[in] aFieldDescriptors SchemaFieldDescriptors to describe the c struct
+ * @param[in] aSchemaDescriptor SchemaFieldDescriptors to describe the c struct.
  *
  * @param[out] aNullifiedFields A pointer to __nullified_fields__ member of
- *                              the c struct
+ *                              the c struct.
  *
  * @retval #WEAVE_NO_ERROR               On success.
  *
  * @retval #WEAVE_ERROR_INVALID_ARGUMENT If the field descriptor pointer is NULL.
  *
  * @retval #WEAVE_ERROR_INCORRECT_STATE  If the format of the field descriptors
- *                                      doesn't match expectation.
- *
+ *                                       doesn't match expectation.
  *
  */
 static WEAVE_ERROR FindNullifiedFieldsArray(void *aStructureData, const SchemaFieldDescriptor *aSchemaDescriptor, uint8_t *&aNullifiedFields)

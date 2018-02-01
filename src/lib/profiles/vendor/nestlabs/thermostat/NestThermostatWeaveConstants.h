@@ -33,44 +33,45 @@ namespace Nestlabs {
 
 namespace Thermostat {
 
-// Thermostat-specific status codes
-
+/**
+ * Thermostat-specific status codes
+ */
 typedef enum
 {
-    kStatus_InFieldJoining_Unknown =                                  -1,     // Unknown
-    kStatus_InFieldJoining_Null =                                      0,     // In-field joining started by the service
-    kStatus_InFieldJoining_Succeeded =                                 1,     // In-field joining succeeded
-    kStatus_InFieldJoining_CannotLocateAssistingDevice =               2,     // Failure to locate assisting device
-    kStatus_InFieldJoining_CannotConnectAssistingDevice =              3,     // Failure to connect to assisting device
-    kStatus_InFieldJoining_CannotAuthAssistingDevice =                 4,     // Failure to authenticate to assisting device
-    kStatus_InFieldJoining_ConfigExtractionError =                     5,     // Error extracting configuration from assisting device
-    kStatus_InFieldJoining_PANFormError =                              6,     // Failure to form 802.15.4 PAN
-    kStatus_InFieldJoining_PANJoinError =                              7,     // Failure to join 802.15.4 PAN
-    kStatus_InFieldJoining_HVACCycleInProgress =                       8,     // HVAC cycle in progress
-    kStatus_InFieldJoining_HeatLinkJoinInProgress =                    9,     // HeatLink join in progress
-    kStatus_InFieldJoining_HeatLinkUpdateInProgress =                 10,     // HeatLink software update in progress
-    kStatus_InFieldJoining_HeatLinkManualHeatActive =                 11,     // Heatlink manual heat active
-    kStatus_InFieldJoining_IncorrectHeatLinkSoftwareVersion =         12,     // Incorrect HeatLink software version
-    kStatus_InFieldJoining_FailureToFetchAccessToken =                13,     // Failure to fetch access token
-    kStatus_InFieldJoining_DeviceNotWeaveProvisioned =                14,     // Device not Weave provisioned
-    kStatus_InFieldJoining_HeatLinkResetFailed =                      15,     // Failed to factory reset HeatLink
-    kStatus_InFieldJoining_DestroyFabricFailed =                      16,     // Failed to destroy existing fabric
-    kStatus_InFieldJoining_CannotJoinExistingFabric =                 17,     // Failed to join existing fabric
-    kStatus_InFieldJoining_CannotCreateFabric =                       18,     // Failed to create new fabric
-    kStatus_InFieldJoining_NetworkReset =                             19,     // Network was reset on the device
-    kStatus_InFieldJoining_JoiningInProgress =                        20,     // Device already in-field joining
-    kStatus_InFieldJoining_FailureToMakePanJoinable =                 21,     // Assisting device failed to make its PAN joinable
-    kStatus_InFieldJoining_WeaveConnectionTimeoutStillActive =        22,     // Timeout used to keep us awake while connected to another device still active
-    kStatus_InFieldJoining_HeatLinkNotJoined =                        23,     // HeatLink not joined to head unit
-    kStatus_InFieldJoining_HeatLinkNotInContact =                     24,     // HeatLink not in contact with head unit
-    kStatus_InFieldJoining_WiFiTechNotEnabled =                       25,     // WiFi technology is not enabled
-    kStatus_InFieldJoining_15_4_TechNotEnabled =                      26,     // 15.4 technology is not enabled
-    kStatus_InFieldJoining_StandaloneFabricCreationInProgress =       27,     // Standalone fabric creation is in progress
-    kStatus_InFieldJoining_NotConnectedToPower =                      28,     // Backplate not connected to any power
-    kStatus_InFieldJoining_OperationNotPermitted =                    29,     // In-field joining not permitted
-    kStatus_InFieldJoining_ServiceTimedOut =                         100,     // Joining operation timed out (set by service)
-    kStatus_InFieldJoining_DeviceTimedOut =                          101,     // Joining operation timed out (set by device)
-    kStatus_InFieldJoining_InternalError =                           200,     // Internal error during in-field joining
+    kStatus_InFieldJoining_Unknown =                                  -1,     /**< Unknown */
+    kStatus_InFieldJoining_Null =                                      0,     /**< In-field joining started by the service */
+    kStatus_InFieldJoining_Succeeded =                                 1,     /**< In-field joining succeeded */
+    kStatus_InFieldJoining_CannotLocateAssistingDevice =               2,     /**< Failure to locate assisting device */
+    kStatus_InFieldJoining_CannotConnectAssistingDevice =              3,     /**< Failure to connect to assisting device */
+    kStatus_InFieldJoining_CannotAuthAssistingDevice =                 4,     /**< Failure to authenticate to assisting device */
+    kStatus_InFieldJoining_ConfigExtractionError =                     5,     /**< Error extracting configuration from assisting device */
+    kStatus_InFieldJoining_PANFormError =                              6,     /**< Failure to form 802.15.4 PAN */
+    kStatus_InFieldJoining_PANJoinError =                              7,     /**< Failure to join 802.15.4 PAN */
+    kStatus_InFieldJoining_HVACCycleInProgress =                       8,     /**< HVAC cycle in progress */
+    kStatus_InFieldJoining_HeatLinkJoinInProgress =                    9,     /**< HeatLink join in progress */
+    kStatus_InFieldJoining_HeatLinkUpdateInProgress =                 10,     /**< HeatLink software update in progress */
+    kStatus_InFieldJoining_HeatLinkManualHeatActive =                 11,     /**< Heatlink manual heat active */
+    kStatus_InFieldJoining_IncorrectHeatLinkSoftwareVersion =         12,     /**< Incorrect HeatLink software version */
+    kStatus_InFieldJoining_FailureToFetchAccessToken =                13,     /**< Failure to fetch access token */
+    kStatus_InFieldJoining_DeviceNotWeaveProvisioned =                14,     /**< Device not Weave provisioned */
+    kStatus_InFieldJoining_HeatLinkResetFailed =                      15,     /**< Failed to factory reset HeatLink */
+    kStatus_InFieldJoining_DestroyFabricFailed =                      16,     /**< Failed to destroy existing fabric */
+    kStatus_InFieldJoining_CannotJoinExistingFabric =                 17,     /**< Failed to join existing fabric */
+    kStatus_InFieldJoining_CannotCreateFabric =                       18,     /**< Failed to create new fabric */
+    kStatus_InFieldJoining_NetworkReset =                             19,     /**< Network was reset on the device */
+    kStatus_InFieldJoining_JoiningInProgress =                        20,     /**< Device already in-field joining */
+    kStatus_InFieldJoining_FailureToMakePanJoinable =                 21,     /**< Assisting device failed to make its PAN joinable */
+    kStatus_InFieldJoining_WeaveConnectionTimeoutStillActive =        22,     /**< Timeout used to keep us awake while connected to another device still active */
+    kStatus_InFieldJoining_HeatLinkNotJoined =                        23,     /**< HeatLink not joined to head unit */
+    kStatus_InFieldJoining_HeatLinkNotInContact =                     24,     /**< HeatLink not in contact with head unit */
+    kStatus_InFieldJoining_WiFiTechNotEnabled =                       25,     /**< WiFi technology is not enabled */
+    kStatus_InFieldJoining_15_4_TechNotEnabled =                      26,     /**< 15.4 technology is not enabled */
+    kStatus_InFieldJoining_StandaloneFabricCreationInProgress =       27,     /**< Standalone fabric creation is in progress */
+    kStatus_InFieldJoining_NotConnectedToPower =                      28,     /**< Backplate not connected to any power */
+    kStatus_InFieldJoining_OperationNotPermitted =                    29,     /**< In-field joining not permitted */
+    kStatus_InFieldJoining_ServiceTimedOut =                         100,     /**< Joining operation timed out (set by service) */
+    kStatus_InFieldJoining_DeviceTimedOut =                          101,     /**< Joining operation timed out (set by device) */
+    kStatus_InFieldJoining_InternalError =                           200,     /**< Internal error during in-field joining */
 
     kStatus_InFieldJoining_MinComplete = kStatus_InFieldJoining_Succeeded,
     kStatus_InFieldJoining_MaxComplete = kStatus_InFieldJoining_InternalError,
@@ -91,15 +92,19 @@ enum {
     kTag_SystemTestStatusKey    = 0x0002, // Profile-specific  Unsigned Int   See tbl 4     Optional     Any          -
 };
 
-// Thermostat-specific status codes
-enum {
-    kStatus_ServiceUnreachable  = 0x0001, // Cannot contact the Service to retrieve the Legacy Entry Key
-    kStatus_DeviceAlreadyPaired = 0x0002, // The device is already paired to a Nest account
+/**
+ * Thermostat-specific status codes
+ */
+ enum {
+    kStatus_ServiceUnreachable  = 0x0001, /**< Cannot contact the Service to retrieve the Legacy Entry Key */
+    kStatus_DeviceAlreadyPaired = 0x0002, /**< The device is already paired to a Nest account */
 };
 
-// Thermostat-specific system test codes. Do not change these values even if a test gets deprecated.
-// They are used in kTag_SystemTestStartKey Update requests and kTag_SystemTestStatusKey view responses
-typedef enum {
+/**
+ * Thermostat-specific system test codes. Do not change these values even if a test gets deprecated.
+ * They are used in kTag_SystemTestStartKey Update requests and kTag_SystemTestStatusKey view responses.
+ */
+ typedef enum {
     kSystemTestCode_None                   = 0x00,
     kSystemTestCode_Cooling                = 0x01,
     kSystemTestCode_Heating                = 0x02,
@@ -116,10 +121,12 @@ typedef enum {
 } SystemTestCode;
 
 
-// Thermostat-specific system test status codes. Do not change these values even if a test status gets deprecated.
-// They are used in kTag_SystemTestStatusKey view responses.  The lower byte of these values will be used to store
-// specific test codes from the SystemTestCode enum above.
-typedef enum {
+/**
+ * Thermostat-specific system test status codes. Do not change these values even if a test status gets deprecated.
+ * They are used in kTag_SystemTestStatusKey view responses.  The lower byte of these values will be used to store
+ * specific test codes from the SystemTestCode enum.
+ */
+ typedef enum {
     kSystemTestStatusCode_Idle              = 0x0000,
     kSystemTestStatusCode_Running           = 0x0100,
     kSystemTestStatusCode_Timeout           = 0x0200,
@@ -130,9 +137,11 @@ typedef enum {
     kSystemTestStatusCode_WeatherRequired   = 0x0700,
 } SystemTestStatusCode;
 
-// Thermostat-specific system status codes. Do not change these values even if a status gets deprecated.
-// They are used in kTag_SystemStatusKey view responses
-typedef enum {
+/**
+ * Thermostat-specific system status codes. Do not change these values even if a status gets deprecated.
+ * They are used in kTag_SystemStatusKey view responses.
+ */
+ typedef enum {
     kSystemStatusCode_Idle                      = 0x0000,  //No error codes or special conditions
     kSystemStatusCode_NoWeatherInfo             = 0x0001,  //No weather info, system tests not possible
     kSystemStatusCode_MandatoryUpdateUnknown    = 0x0002,  //Still checking if a mandatory update is needed

@@ -52,24 +52,27 @@ namespace Weave {
 namespace Profiles {
 namespace DeviceDescription {
 
+/**
+ * Text Keys for Device Descriptions.
+ */
 enum
 {
-    kTextKey_VendorId                           = 'V',  // [ 1-4 hex digits ] Code identifying product vendor.
-    kTextKey_ProductId                          = 'P',  // [ 1-4 hex digits ] Code identifying product.
-    kTextKey_ProductRevision                    = 'R',  // [ 1-4 hex digits ] Code identifying product revision.
-    kTextKey_ManufacturingDate                  = 'D',  // [ 4 or 6 decimal digits ] Calendar date of manufacture in YYMM or YYMMDD form.
-    kTextKey_SerialNumber                       = 'S',  // [ 1-32 char string ] Device serial number.
-    kTextKey_DeviceId                           = 'E',  // [ 8 hex digits ] Weave Device Id / device unique id.
-    kTextKey_Primary802154MACAddress            = 'L',  // [ 8 hex digits ] MAC address for device's primary 802.15.4 interface.
-    kTextKey_PrimaryWiFiMACAddress              = 'W',  // [ 6 hex digits ] MAC address for device's primary WiFi interface.
-    kTextKey_RendezvousWiFiESSID                = 'I',  // [ 1-32 char string ] ESSID for device's WiFi rendezvous network.
-    kTextKey_PairingCode                        = 'C',  // [ 1-16 char string ] The pairing code for the device.
-    kTextKey_PairingCompatibilityVersionMajor   = 'J',  // [ 1-4 hex digits ] Pairing software compatibility major version.
-    kTextKey_PairingCompatibilityVersionMinor   = 'N',  // [ 1-4 hex digits ] Pairing software compatibility minor version.
+    kTextKey_VendorId                           = 'V',  /**< [ 1-4 hex digits ] Code identifying product vendor. */
+    kTextKey_ProductId                          = 'P',  /**< [ 1-4 hex digits ] Code identifying product. */
+    kTextKey_ProductRevision                    = 'R',  /**< [ 1-4 hex digits ] Code identifying product revision. */
+    kTextKey_ManufacturingDate                  = 'D',  /**< [ 4 or 6 decimal digits ] Calendar date of manufacture in YYMM or YYMMDD form. */
+    kTextKey_SerialNumber                       = 'S',  /**< [ 1-32 char string ] Device serial number. */
+    kTextKey_DeviceId                           = 'E',  /**< [ 8 hex digits ] Weave Device Id / device unique id. */
+    kTextKey_Primary802154MACAddress            = 'L',  /**< [ 8 hex digits ] MAC address for device's primary 802.15.4 interface. */
+    kTextKey_PrimaryWiFiMACAddress              = 'W',  /**< [ 6 hex digits ] MAC address for device's primary WiFi interface. */
+    kTextKey_RendezvousWiFiESSID                = 'I',  /**< [ 1-32 char string ] ESSID for device's WiFi rendezvous network. */
+    kTextKey_PairingCode                        = 'C',  /**< [ 1-16 char string ] The pairing code for the device. */
+    kTextKey_PairingCompatibilityVersionMajor   = 'J',  /**< [ 1-4 hex digits ] Pairing software compatibility major version. */
+    kTextKey_PairingCompatibilityVersionMinor   = 'N',  /**< [ 1-4 hex digits ] Pairing software compatibility minor version. */
 
-    kEncodingVersion                            = '1',
-    kKeySeparator                               = ':',
-    kValueTerminator                            = '$'
+    kEncodingVersion                            = '1',  /**< Encoding version. */
+    kKeySeparator                               = ':',  /**< Key separator. */
+    kValueTerminator                            = '$'   /**< Value terminator. */
 };
 
 
@@ -389,7 +392,7 @@ void WeaveDeviceDescriptor::Clear()
  *                              with the number of characters written to the buffer.
  *
  * @retval #WEAVE_ERROR_BUFFER_TOO_SMALL    If the supplied buffer is too small for the generated
- *                                         text description.
+ *                                          text description.
  * @retval #WEAVE_ERROR_INVALID_ARGUMENT    If a descriptor field is invalid.
  * @retval #WEAVE_NO_ERROR                  On success.
  */
@@ -999,8 +1002,8 @@ WEAVE_ERROR WeaveDeviceDescriptor::DecodeManufacturingDate(uint16_t encodedDate,
  * @param[in]   buf         A pointer to a buffer.
  * @param[in]   len         The length of the buffer.
  *
- * @retval  TRUE    if the buffer contains only zeros.
- * @retval  FALSE   if the buffer contains any non-zero values.
+ * @retval  TRUE    If the buffer contains only zeros.
+ * @retval  FALSE   If the buffer contains any non-zero values.
  */
 bool WeaveDeviceDescriptor::IsZeroBytes(const uint8_t *buf, uint32_t len)
 {
@@ -1129,8 +1132,8 @@ void IdentifyDeviceCriteria::Reset()
  * @param[in]   fabricId        The fabric ID to test.
  * @param[in]   targetFabricId  The fabric ID to test against.
  *
- * @retval TRUE     if the fabric ids match.
- * @retval FALSE    if the fabric ids do not match.
+ * @retval TRUE     If the fabric ids match.
+ * @retval FALSE    If the fabric ids do not match.
  */
 NL_DLL_EXPORT bool MatchTargetFabricId(uint64_t fabricId, uint64_t targetFabricId)
 {
