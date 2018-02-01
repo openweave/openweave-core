@@ -1,6 +1,7 @@
-1.4.3 (2017-06-28)
+1.4.3 (2018-02-01)
 
-	* First public release to Github.
+        * Addressed an issue with NL_{SAVE,RESTORE}_WERROR in which
+          -Werror=<specific> was not handled.
 
 1.4.2 (2017-06-20)
 
