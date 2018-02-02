@@ -74,6 +74,8 @@
 
 #include "WeaveEventLoggingConfig.h"
 
+#include "WeaveWRMPConfig.h"
+
 /**
  *  @def WEAVE_CONFIG_ERROR_TYPE
  *

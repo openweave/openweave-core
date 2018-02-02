@@ -31,7 +31,7 @@
 #include <inttypes.h>
 #include <unistd.h>
 
-#include <Weave/Core/WeaveDMConfig.h>
+#include <Weave/Core/WeaveConfig.h>
 #if WEAVE_CONFIG_LEGACY_WDM
 // Note that the choice of namespace alias must be made up front for each and every compile unit
 // This is because many include paths could set the default alias to unintended target.

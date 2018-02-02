@@ -32,8 +32,6 @@
 
 // Include configuration headers
 #include <Weave/Core/WeaveConfig.h>
-#include <Weave/Core/WeaveWRMPConfig.h>
-#include <Weave/Core/WeaveDMConfig.h>
 
 // Include dependent headers
 #include <Weave/Support/NLDLLUtil.h>
