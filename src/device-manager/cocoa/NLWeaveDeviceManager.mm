@@ -859,7 +859,7 @@ static void onDeviceEnumerationResponse(nl::Weave::DeviceManager::WeaveDeviceMan
     // ignore the pointer to C++ device manager
     (void)deviceMgr;
 
-    VerifyOrExit(deviceAddr.ToString(devAddrCStr, sizeof(devAddrCStr)) > 0, err = WEAVE_ERROR_NO_MEMORY);
+    VerifyOrExit(deviceAddr.ToString(devAddrCStr, sizeof(devAddrCStr)) != NULL, err = WEAVE_ERROR_NO_MEMORY);
 
     // Add "%" separator character, with NULL terminator, per IETF RFCs 4001 and 4007
     VerifyOrExit(snprintf(&(devAddrCStr[strlen(devAddrCStr)]), 2, "%%") > 0, err = nl::Weave::System::MapErrorPOSIX(errno));
