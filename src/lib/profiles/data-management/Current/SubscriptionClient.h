@@ -236,6 +236,7 @@ public:
     void DisableResubscribe(void);
     void ResetResubscribe(void);
 
+    bool IsInProgressOrEstablished() { return (mCurrentState >= kState_InProgressOrEstablished_Begin && mCurrentState <= kState_InProgressOrEstablished_End); }
     bool IsEstablishedIdle() { return (mCurrentState == kState_SubscriptionEstablished_Idle); }
     bool IsAborted() { return (mCurrentState == kState_Aborted); }
     bool IsFree() { return (mCurrentState == kState_Free); }
@@ -264,6 +265,10 @@ private:
         kState_NotifyDataSinkOnAbort_End   = kState_Canceling,
         kState_TimerTick_Begin             = kState_Subscribing,
         kState_TimerTick_End               = kState_Resubscribe_Holdoff,
+
+        // Note that these are the same as the allowed states in NotificationRequestHandler
+        kState_InProgressOrEstablished_Begin       = kState_Subscribing,
+        kState_InProgressOrEstablished_End         = kState_SubscriptionEstablished_Confirming,
 
         kState_Aborting = 8,
         kState_Aborted  = 9,
