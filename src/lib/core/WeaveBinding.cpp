@@ -39,19 +39,19 @@ namespace Weave {
  *
  * Retrieve the current state of the binding.
  *
- * @return      		    The binding state.
+ * @return                          The binding state.
  */
 
 /**
  * @fn bool Binding::IsPreparing() const
  *
- * @return 			    True if the Binding is currently being prepared.
+ * @return                          True if the Binding is currently being prepared.
  */
 
 /**
  * @fn bool Binding::IsReady() const
  *
- * @return			    True if the Binding is in the Ready state.
+ * @return                          True if the Binding is in the Ready state.
  */
 
 /**
@@ -61,7 +61,7 @@ namespace Weave {
  *
  * Only valid once the binding object has been prepared.
  *
- * @return      		    Weave node ID of the peer
+ * @return                          Weave node ID of the peer
  */
 
 /**
