@@ -467,7 +467,7 @@ WEAVE_ERROR WeaveTunnelAgent::ConfigurePrimaryTunnelTimeout(uint16_t maxTimeoutS
  *                                               on the connection.
  *  @retval  #WEAVE_ERROR_INCORRECT_STATE        If the WeaveConnection object is not
  *                                               in the correct state for sending messages.
- *  @retval  other                               Inet layer errors related to the TCP endpoint 
+ *  @retval  other                               Inet layer errors related to the TCP endpoint
  *                                               enable keepalive operation.
  *
  */

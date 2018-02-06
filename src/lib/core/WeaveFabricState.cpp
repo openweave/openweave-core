@@ -120,19 +120,19 @@ void WeaveSessionKey::Clear(void)
 /**
  * @fn bool WeaveSessionKey::IsAllocated() const
  *
- * @return	 True if the WeaveSessionKey object is allocated.
+ * @return True if the WeaveSessionKey object is allocated.
  */
 
 /**
  * @fn bool WeaveSessionKey::IsKeySet() const
  *
- * @return	 	True if the encryption key value has been set in a WeaveSessionKey object.
+ * @return True if the encryption key value has been set in a WeaveSessionKey object.
  */
 
 /**
  * @fn bool WeaveSessionKey::IsLocallyInitiated() const
  *
- * @return	 	True if the session was initiated by the local node.
+ * @return True if the session was initiated by the local node.
  */
 
 /*
@@ -140,13 +140,13 @@ void WeaveSessionKey::Clear(void)
  *
  * Sets a flag indicating whether the session was initiated by the local node.
  *
- * @param[in] val	The value to set the kFlag_IsLocallyInitiated flag to.
+ * @param[in] val The value to set the kFlag_IsLocallyInitiated flag to.
  */
 
 /*
  * @fn bool WeaveSessionKey::IsSharedSession() const
  *
- * @return	 	True if the session is shared--i.e. can be used for multiplexed communication with different peer node ids.
+ * @return True if the session is shared--i.e. can be used for multiplexed communication with different peer node ids.
  */
 
 /**
@@ -154,13 +154,13 @@ void WeaveSessionKey::Clear(void)
  *
  * Sets a flag indicating whether the session is a shared session.
  *
- * @param[in] val	The value to set the kFlag_IsSharedSession flag to.
+ * @param[in] val The value to set the kFlag_IsSharedSession flag to.
  */
 
 /**
  * @fn bool WeaveSessionKey::IsRemoveOnIdle() const
  *
- * @return	 	True if the session is flagged for automatic removal when idle for a period of time.
+ * @return True if the session is flagged for automatic removal when idle for a period of time.
  */
 
 /**
@@ -168,13 +168,13 @@ void WeaveSessionKey::Clear(void)
  *
  * Sets a flag indicating whether the session should be automatically removed after a period of idle time.
  *
- * @param[in] val	The value to set the kFlag_IsRemoveOnIdle flag to.
+ * @param[in] val The value to set the kFlag_IsRemoveOnIdle flag to.
  */
 
 /**
  * @fn bool WeaveSessionKey::IsRecentlyActive() const
  *
- * @return	 	True if the session has been active in the recent past.
+ * @return True if the session has been active in the recent past.
  */
 
 /**
