@@ -478,11 +478,8 @@ memp_malloc_fn(memp_t type, const char* file, const int line)
   int *num_used_pool_ptr = get_num_used_pool_ptr(type);
 #endif
 
-  SYS_ARCH_DECL_PROTECT(old_level);
- 
   LWIP_ERROR("memp_malloc: type < MEMP_MAX", (type < MEMP_MAX), return NULL;);
 
-  SYS_ARCH_PROTECT(old_level);
 #if MEMP_OVERFLOW_CHECK >= 2
   memp_overflow_check_all();
 #endif /* MEMP_OVERFLOW_CHECK >= 2 */
@@ -498,8 +495,6 @@ memp_malloc_fn(memp_t type, const char* file, const int line)
 #else
   memp = do_memp_malloc_pool_fn(memp_pools[type], file, line);
 #endif
-
-  SYS_ARCH_UNPROTECT(old_level);
 
 #if (MEMP_DEBUG | LWIP_DBG_TRACE)
   if (!memp) {
@@ -523,10 +518,6 @@ static void
 do_memp_free_pool(const struct memp_desc* desc, void *mem)
 {
   struct memp *memp;
-#if (MEMP_DEBUG | LWIP_DBG_TRACE)
-  memp_t type;
-#endif /* (MEMP_DEBUG | LWIP_DBG_TRACE) */
-
   SYS_ARCH_DECL_PROTECT(old_level);
 
   LWIP_ASSERT("memp_free: mem properly aligned",
@@ -545,14 +536,6 @@ do_memp_free_pool(const struct memp_desc* desc, void *mem)
 #if MEMP_STATS
   desc->stats->used--;
 #endif
-
-#if (MEMP_DEBUG | LWIP_DBG_TRACE)
-  for (type = 0; type < MEMP_MAX; ++type) {
-    if (MEMP_IS_PBUF_POOL(type) && desc == memp_pools[type]) {
-      --*(get_num_used_pool_ptr(type));
-    }
-  }
-#endif /* (MEMP_DEBUG | LWIP_DBG_TRACE) */
 
 #if MEMP_MEM_MALLOC
   LWIP_UNUSED_ARG(desc);
@@ -610,9 +593,6 @@ memp_free(memp_t type, void *mem)
     return;
   }
 
-  SYS_ARCH_DECL_PROTECT(old_level);
-  SYS_ARCH_PROTECT(old_level);
-
 #if MEMP_OVERFLOW_CHECK >= 2
   memp_overflow_check_all();
 #endif /* MEMP_OVERFLOW_CHECK >= 2 */
@@ -634,8 +614,6 @@ memp_free(memp_t type, void *mem)
     LWIP_HOOK_MEMP_AVAILABLE(type);
   }
 #endif
-
-  SYS_ARCH_UNPROTECT(old_level);
 
 #if (MEMP_DEBUG | LWIP_DBG_TRACE)
   if (LWIP_PERF && MEMP_IS_PBUF_POOL(type)) {

@@ -1313,12 +1313,6 @@ tcp_output_segment(struct tcp_seg *seg, struct tcp_pcb *pcb, struct netif *netif
 #endif /* CHECKSUM_GEN_TCP */
   TCP_STATS_INC(tcp.xmit);
 
-  NETIF_SET_HWADDRHINT(netif, &(pcb->addr_hint));
-  err = ip_output_if(seg->p, &pcb->local_ip, &pcb->remote_ip, pcb->ttl,
-    pcb->tos, IP_PROTO_TCP, netif);
-  NETIF_SET_HWADDRHINT(netif, NULL);
-  return err;
-
 #if TCP_OUTPUT_DEBUG
 #if LWIP_IP_DEBUG_TARGET
   if (debug_target_match(PCB_ISIPV6(pcb), &pcb->local_ip, &pcb->remote_ip))
@@ -1330,8 +1324,11 @@ tcp_output_segment(struct tcp_seg *seg, struct tcp_pcb *pcb, struct netif *netif
 #endif
 #endif
 
-  ip_output(seg->p, &pcb->local_ip, &pcb->remote_ip, pcb->ttl,
-    pcb->tos, IP_PROTO_TCP, (struct ip_pcb *)pcb);
+  netif_apply_pcb(netif, (struct ip_pcb *)pcb);
+  err = ip_output_if(seg->p, &pcb->local_ip, &pcb->remote_ip, pcb->ttl,
+    pcb->tos, IP_PROTO_TCP, netif);
+  netif_apply_pcb(netif, NULL);
+  return err;
 }
 
 /**
