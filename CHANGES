@@ -1,3 +1,8 @@
+1.4.4 (2018-02-06)
+
+        * Addressed an issue where 'mkskeleton' failed while trying to
+          generate "third_party/Makefile.am".
+
 1.4.3 (2018-02-01)
 
         * Addressed an issue with NL_{SAVE,RESTORE}_WERROR in which
