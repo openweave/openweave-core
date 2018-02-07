@@ -451,12 +451,7 @@ PacketBuffer* PacketBuffer::NewWithAvailableSize(uint16_t aReservedSize, size_t 
 
     lPacket = static_cast<PacketBuffer*>(pbuf_alloc(PBUF_RAW, lBlockSize, PBUF_POOL));
 
-#if LWIP_STATS
-    if (lPacket != NULL)
-    {
-        SYSTEM_STATS_SET(nl::Weave::System::Stats::kSystemLayer_NumPacketBufs, MEMP_STATS_GET(used, MEMP_PBUF_POOL));
-    }
-#endif
+    SYSTEM_STATS_UPDATE_LWIP_PBUF_COUNTS();
 
 #else // !WEAVE_SYSTEM_CONFIG_USE_LWIP
 #if WEAVE_SYSTEM_CONFIG_PACKETBUFFER_MAXALLOC
@@ -569,9 +564,7 @@ void PacketBuffer::Free(PacketBuffer* aPacket)
     {
         pbuf_free(aPacket);
 
-#if LWIP_STATS
-        SYSTEM_STATS_SET(nl::Weave::System::Stats::kSystemLayer_NumPacketBufs, MEMP_STATS_GET(used, MEMP_PBUF_POOL));
-#endif
+        SYSTEM_STATS_UPDATE_LWIP_PBUF_COUNTS();
     }
 
 #else // !WEAVE_SYSTEM_CONFIG_USE_LWIP
@@ -640,15 +633,7 @@ PacketBuffer* PacketBuffer::RightSize(PacketBuffer *aPacket)
     lNewPacket =  static_cast<PacketBuffer *>(pbuf_rightsize((struct pbuf *)aPacket, -1));
     if (lNewPacket != aPacket)
     {
-#if LWIP_STATS
-        using namespace nl::Weave::System::Stats;
-
-        const size_t system_index = kSystemLayer_NumPacketBufs;
-        const size_t lwip_index = MEMP_PBUF_POOL;
-
-        GetResourcesInUse()[system_index] = MEMP_STATS_GET(used, lwip_index);
-        GetHighWatermarks()[system_index] = MEMP_STATS_GET(max, lwip_index);
-#endif
+        SYSTEM_STATS_UPDATE_LWIP_PBUF_COUNTS();
 
         WeaveLogProgress(WeaveSystemLayer, "PacketBuffer: RightSize Copied");
     }

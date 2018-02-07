@@ -40,7 +40,13 @@ namespace Stats {
 
 static const Label sStatsStrings[nl::Weave::System::Stats::kNumEntries] =
 {
+#if WEAVE_SYSTEM_CONFIG_USE_LWIP && LWIP_PBUF_FROM_CUSTOM_POOLS
+#define LWIP_PBUF_MEMPOOL(name, num, payload, desc) "SystemLayer_Num" desc,
+#include "lwippools.h"
+#undef LWIP_PBUF_MEMPOOL
+#else
     "SystemLayer_NumPacketBufs",
+#endif
     "SystemLayer_NumTimersInUse",
 #if INET_CONFIG_NUM_RAW_ENDPOINTS
     "InetLayer_NumRawEpsInUse",
@@ -116,16 +122,7 @@ void UpdateSnapshot(Snapshot &aSnapshot)
 
     nl::Weave::System::Timer::GetStatistics(aSnapshot.mResourcesInUse[kSystemLayer_NumTimers]);
 
-#if WEAVE_SYSTEM_CONFIG_PROVIDE_STATISTICS
-    /*
-     * This code has to be compiled out if the feature is not enabled because
-     * by default a product won't have LwIP stats enabled either.
-     */
-#if WEAVE_SYSTEM_CONFIG_USE_LWIP
-    aSnapshot.mResourcesInUse[kSystemLayer_NumPacketBufs] = MEMP_STATS_GET(used, MEMP_PBUF_POOL);
-    aSnapshot.mHighWatermarks[kSystemLayer_NumPacketBufs] = MEMP_STATS_GET(max, MEMP_PBUF_POOL);
-#endif
-#endif
+    SYSTEM_STATS_UPDATE_LWIP_PBUF_COUNTS();
 }
 
 bool Difference(Snapshot &result, Snapshot &after, Snapshot &before)
@@ -146,6 +143,30 @@ bool Difference(Snapshot &result, Snapshot &after, Snapshot &before)
 
     return leak;
 }
+
+#if WEAVE_SYSTEM_CONFIG_USE_LWIP && LWIP_STATS && MEMP_STATS
+void UpdateLwipPbufCounts(void)
+{
+#if LWIP_PBUF_FROM_CUSTOM_POOLS
+    size_t lwip_pool_idx = PBUF_CUSTOM_POOL_IDX_END;
+    size_t system_idx = 0;
+
+    while (lwip_pool_idx <= PBUF_CUSTOM_POOL_IDX_START)
+    {
+        nl::Weave::System::Stats::GetResourcesInUse()[system_idx] = MEMP_STATS_GET(used, lwip_pool_idx);
+        nl::Weave::System::Stats::GetHighWatermarks()[system_idx] = MEMP_STATS_GET(max, lwip_pool_idx);
+        lwip_pool_idx++;
+        system_idx++;
+    }
+
+#else // LWIP_PBUF_FROM_CUSTOM_POOLS
+
+    nl::Weave::System::Stats::GetResourcesInUse()[kSystemLayer_NumPacketBufs] = MEMP_STATS_GET(used, MEMP_PBUF_POOL);
+    nl::Weave::System::Stats::GetHighWatermarks()[kSystemLayer_NumPacketBufs] = MEMP_STATS_GET(max, MEMP_PBUF_POOL);
+
+#endif // LWIP_PBUF_FROM_CUSTOM_POOLS
+}
+#endif // WEAVE_SYSTEM_CONFIG_USE_LWIP && LWIP_STATS && MEMP_STATS
 
 
 } // namespace Stats

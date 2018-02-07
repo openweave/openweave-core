@@ -36,6 +36,12 @@
 // Include dependent headers
 #include <Weave/Support/NLDLLUtil.h>
 
+#if WEAVE_SYSTEM_CONFIG_USE_LWIP
+#include <lwip/opt.h>
+#include <lwip/pbuf.h>
+#include <lwip/mem.h>
+#endif // WEAVE_SYSTEM_CONFIG_USE_LWIP
+
 namespace nl {
 namespace Weave {
 namespace System {
@@ -43,7 +49,13 @@ namespace Stats {
 
 enum
 {
+#if WEAVE_SYSTEM_CONFIG_USE_LWIP && LWIP_PBUF_FROM_CUSTOM_POOLS
+#define LWIP_PBUF_MEMPOOL(name, num, payload, desc) kSystemLayer_Num##name,
+#include "lwippools.h"
+#undef LWIP_PBUF_MEMPOOL
+#else
     kSystemLayer_NumPacketBufs,
+#endif
     kSystemLayer_NumTimers,
 #if INET_CONFIG_NUM_RAW_ENDPOINTS
     kInetLayer_NumRawEps,
@@ -114,6 +126,10 @@ void UpdateSnapshot(Snapshot &aSnapshot);
 count_t *GetResourcesInUse(void);
 count_t *GetHighWatermarks(void);
 
+#if WEAVE_SYSTEM_CONFIG_USE_LWIP && LWIP_STATS && MEMP_STATS
+void UpdateLwipPbufCounts(void);
+#endif
+
 typedef const char *Label;
 const Label *GetStrings(void);
 
@@ -157,6 +173,14 @@ const Label *GetStrings(void);
         nl::Weave::System::Stats::GetResourcesInUse()[entry] = 0; \
     } while (0);
 
+#if WEAVE_SYSTEM_CONFIG_USE_LWIP && LWIP_STATS && MEMP_STATS
+#define SYSTEM_STATS_UPDATE_LWIP_PBUF_COUNTS() \
+    do { \
+        nl::Weave::System::Stats::UpdateLwipPbufCounts(); \
+    } while (0);
+#else // WEAVE_SYSTEM_CONFIG_USE_LWIP && LWIP_STATS && MEMP_STATS
+#define SYSTEM_STATS_UPDATE_LWIP_PBUF_COUNTS()
+#endif // WEAVE_SYSTEM_CONFIG_USE_LWIP && LWIP_STATS && MEMP_STATS
 
 
 #else // WEAVE_SYSTEM_CONFIG_PROVIDE_STATISTICS
@@ -168,6 +192,8 @@ const Label *GetStrings(void);
 #define SYSTEM_STATS_DECREMENT_BY_N(entry, count)
 
 #define SYSTEM_STATS_RESET(entry)
+
+#define SYSTEM_STATS_UPDATE_LWIP_PBUF_COUNTS()
 
 #endif // WEAVE_SYSTEM_CONFIG_PROVIDE_STATISTICS
 
