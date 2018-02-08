@@ -471,6 +471,7 @@ class TraitDataSink : private TraitSchemaEngine::IDataSinkDelegate
 {
 public:
     TraitDataSink(const TraitSchemaEngine * aEngine);
+    virtual ~TraitDataSink() { }
     const TraitSchemaEngine * GetSchemaEngine(void) const { return mSchemaEngine; }
 
     typedef WEAVE_ERROR (*OnChangeRejection)(uint16_t aRejectionStatusCode, uint64_t aVersion, void * aContext);
@@ -641,6 +642,7 @@ class TraitDataSource : private TraitSchemaEngine::IDataSourceDelegate
 {
 public:
     TraitDataSource(const TraitSchemaEngine * aEngine);
+    virtual ~TraitDataSource() { }
     const TraitSchemaEngine * GetSchemaEngine(void) const { return mSchemaEngine; }
 
     uint64_t GetVersion(void) const { return mVersion; }
