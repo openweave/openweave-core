@@ -468,6 +468,9 @@ bool SubscriptionEngine::UpdateClientLiveness(const uint64_t aPeerNodeId, const 
         {
             WeaveLogDetail(DataManagement, "Client[%d] [%5.5s] liveness confirmed", GetClientId(pClient), pClient->GetStateStr());
 
+            // emit a subscription activity event
+            pClient->IndicateActivity();
+
             // ignore incorrect state error, otherwise, let it flow through
             err = pClient->RefreshTimer();
             if (WEAVE_ERROR_INCORRECT_STATE == err)

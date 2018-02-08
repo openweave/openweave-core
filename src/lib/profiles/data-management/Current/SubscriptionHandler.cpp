@@ -549,11 +549,17 @@ WEAVE_ERROR SubscriptionHandler::ParseSubscriptionId(SubscribeRequest::Parser & 
         // Note FindHandler is not to find this particular handler, for we're still in evaluating state
         if (NULL == SubscriptionEngine::GetInstance()->FindHandler(mPeerNodeId, mSubscriptionId))
         {
-            if (NULL != SubscriptionEngine::GetInstance()->FindClient(mPeerNodeId, mSubscriptionId))
+            SubscriptionClient * pClient;
+            pClient = SubscriptionEngine::GetInstance()->FindClient(mPeerNodeId, mSubscriptionId);
+            if (NULL != pClient)
             {
                 // this is the second half of a mutual subscription (and we did find the first half)
                 // continue using id in the request
                 mIsInitiator = true;
+
+                // as a result, this is also an indication of subscription activity on the client
+                // regardless of whether the subscription is accepted or not.
+                pClient->IndicateActivity();
             }
             else
             {

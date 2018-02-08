@@ -223,6 +223,16 @@ void SubscriptionClient::ResetResubscribe(void)
     }
 }
 
+void SubscriptionClient::IndicateActivity(void)
+{
+    // emit an OnSubscriptionActivity event
+    InEventParam inParam;
+    OutEventParam outParam;
+
+    inParam.mSubscriptionActivity.mClient = this;
+    mEventCallback(mAppState, kEvent_OnSubscriptionActivity, inParam, outParam);
+}
+
 WEAVE_ERROR SubscriptionClient::GetSubscriptionId(uint64_t * const apSubscriptionId)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
@@ -1376,6 +1386,13 @@ void SubscriptionClient::NotificationRequestHandler(nl::Weave::ExchangeContext *
         ExitNow();
     }
 
+    // Emit an OnSubscriptionActivity event
+    inParam.Clear();
+    inParam.mSubscriptionActivity.mClient = this;
+    mEventCallback(mAppState, kEvent_OnSubscriptionActivity, inParam, outParam);
+
+    inParam.Clear();
+    outParam.Clear();
     inParam.mNotificationRequest.mEC      = aEC;
     inParam.mNotificationRequest.mMessage = aPayload;
     inParam.mNotificationRequest.mClient  = this;
@@ -1765,6 +1782,10 @@ void SubscriptionClient::OnMessageReceivedFromLocallyInitiatedExchange(nl::Weave
 
             pClient->mRetryCounter = 0;
 
+            inParam.mSubscriptionActivity.mClient = pClient;
+            pClient->mEventCallback(pClient->mAppState, kEvent_OnSubscriptionActivity, inParam, outParam);
+
+            inParam.Clear();
             inParam.mSubscriptionEstablished.mSubscriptionId = pClient->mSubscriptionId;
             inParam.mSubscriptionEstablished.mClient         = pClient;
 
@@ -1790,6 +1811,10 @@ void SubscriptionClient::OnMessageReceivedFromLocallyInitiatedExchange(nl::Weave
 
             WeaveLogDetail(DataManagement, "Client[%u] [%5.5s] liveness confirmed",
                            SubscriptionEngine::GetInstance()->GetClientId(pClient), pClient->GetStateStr());
+
+            // Emit an OnSubscriptionActivity event
+            inParam.mSubscriptionActivity.mClient = pClient;
+            pClient->mEventCallback(pClient->mAppState, kEvent_OnSubscriptionActivity, inParam, outParam);
 
             err = pClient->RefreshTimer();
             SuccessOrExit(err);

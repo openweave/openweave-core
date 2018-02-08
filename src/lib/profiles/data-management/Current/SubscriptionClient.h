@@ -91,6 +91,9 @@ public:
 
         // An event stream has been received
         kEvent_OnEventStreamReceived = 7,
+
+        // An event indicating subscription activity
+        kEvent_OnSubscriptionActivity = 8,
     };
 
     struct LastObservedEvent
@@ -156,6 +159,12 @@ public:
             nl::Weave::TLV::TLVReader * mReader;
             SubscriptionClient * mClient;
         } mEventStreamReceived;
+
+        struct
+        {
+            SubscriptionClient * mClient;
+        } mSubscriptionActivity;
+
     };
 
     union OutEventParam
@@ -242,6 +251,8 @@ public:
     bool IsFree() { return (mCurrentState == kState_Free); }
 
     bool IsRetryEnabled() { return (mResubscribePolicyCallback != NULL); }
+
+    void IndicateActivity(void);
 
 private:
     friend class SubscriptionEngine;
