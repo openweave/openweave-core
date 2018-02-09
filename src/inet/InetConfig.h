@@ -1,6 +1,6 @@
 /*
  *
- *    Copyright (c) 2013-2017 Nest Labs, Inc.
+ *    Copyright (c) 2013-2018 Nest Labs, Inc.
  *    All rights reserved.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
@@ -61,7 +61,7 @@
  *
  */
 #ifndef INET_CONFIG_PROVIDE_OBSOLESCENT_INTERFACES
-#define INET_CONFIG_PROVIDE_OBSOLESCENT_INTERFACES          1
+#define INET_CONFIG_PROVIDE_OBSOLESCENT_INTERFACES          0
 #endif //  INET_CONFIG_PROVIDE_OBSOLESCENT_INTERFACES
 
 #if INET_CONFIG_PROVIDE_OBSOLESCENT_INTERFACES && !WEAVE_SYSTEM_CONFIG_PROVIDE_OBSOLESCENT_INTERFACES

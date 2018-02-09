@@ -1,6 +1,6 @@
 /*
  *
- *    Copyright (c) 2016-2017 Nest Labs, Inc.
+ *    Copyright (c) 2016-2018 Nest Labs, Inc.
  *    All rights reserved.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
@@ -63,7 +63,7 @@
  *    This boolean configuration option is (1) if the obsolescent features of the Weave System Layer are provided.
  */
 #ifndef WEAVE_SYSTEM_CONFIG_PROVIDE_OBSOLESCENT_INTERFACES
-#define WEAVE_SYSTEM_CONFIG_PROVIDE_OBSOLESCENT_INTERFACES 1
+#define WEAVE_SYSTEM_CONFIG_PROVIDE_OBSOLESCENT_INTERFACES 0
 #endif //  WEAVE_SYSTEM_CONFIG_PROVIDE_OBSOLESCENT_INTERFACES
 
 /**
@@ -72,12 +72,9 @@
  *  @brief
  *      Define as 1 to transfer the project configuration variable definitions from InetProjectConfig.h into the corresponding
  *      variables for the Weave System Layer.
- *
- *  @note
- *      At present, the default value for this configuration variable is TRUE, but
  */
 #ifndef WEAVE_SYSTEM_CONFIG_TRANSFER_INETLAYER_PROJECT_CONFIGURATION
-#define WEAVE_SYSTEM_CONFIG_TRANSFER_INETLAYER_PROJECT_CONFIGURATION 1
+#define WEAVE_SYSTEM_CONFIG_TRANSFER_INETLAYER_PROJECT_CONFIGURATION 0
 #endif // WEAVE_SYSTEM_CONFIG_TRANSFER_INETLAYER_PROJECT_CONFIGURATION
 
 #if WEAVE_SYSTEM_CONFIG_TRANSFER_INETLAYER_PROJECT_CONFIGURATION

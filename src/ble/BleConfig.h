@@ -1,6 +1,6 @@
 /*
  *
- *    Copyright (c) 2014-2017 Nest Labs, Inc.
+ *    Copyright (c) 2014-2018 Nest Labs, Inc.
  *    All rights reserved.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
@@ -54,7 +54,7 @@
  *
  */
 #ifndef BLE_CONFIG_PROVIDE_OBSOLESCENT_INTERFACES
-#define BLE_CONFIG_PROVIDE_OBSOLESCENT_INTERFACES          1
+#define BLE_CONFIG_PROVIDE_OBSOLESCENT_INTERFACES          0
 #endif // BLE_CONFIG_PROVIDE_OBSOLESCENT_INTERFACES
 
 #if BLE_CONFIG_PROVIDE_OBSOLESCENT_INTERFACES

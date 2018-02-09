@@ -1,6 +1,6 @@
 /*
  *
- *    Copyright (c) 2017 Nest Labs, Inc.
+ *    Copyright (c) 2017-2018 Nest Labs, Inc.
  *    All rights reserved.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
@@ -52,6 +52,7 @@ using namespace nl::Weave::ASN1;
 
 using nl::Weave::Crypto::EncodedECPublicKey;
 using nl::Weave::Crypto::EncodedECPrivateKey;
+using nl::Weave::System::PacketBuffer;
 
 #define DEBUG_PRINT_ENABLE 0
 
@@ -575,7 +576,7 @@ static void KeyExportProtocol_Test(nlTestSuite *inSuite, void *inContext)
     WEAVE_ERROR err;
     WeaveKeyExport initiatorEng;
     WeaveKeyExport responderEng;
-    InetBuffer *msgBuf = NULL;
+    PacketBuffer *msgBuf = NULL;
     InitiatorKeyExportDelegate initiatorDelegate;
     ResponderKeyExportDelegate responderDelegate;
     TestGroupKeyStore keyStore;
@@ -624,7 +625,7 @@ static void KeyExportProtocol_Test(nlTestSuite *inSuite, void *inContext)
             else
                 initiatorEng.SetAllowedConfigs(KeyExport::kKeyExportSupportedConfig_All);
 
-            msgBuf = InetBuffer::New();
+            msgBuf = PacketBuffer::New();
             NL_TEST_ASSERT(inSuite, msgBuf != NULL);
 
             err = initiatorEng.GenerateKeyExportRequest(msgBuf->Start(), msgBuf->AvailableDataLength(), dataLen, proposedConfig, keyId, signMessages);
@@ -641,8 +642,8 @@ static void KeyExportProtocol_Test(nlTestSuite *inSuite, void *inContext)
                 else
                     initiatorEng.SetAllowedConfigs(KeyExport::kKeyExportSupportedConfig_All);
 
-                InetBuffer::Free(msgBuf);
-                msgBuf = InetBuffer::New();
+                PacketBuffer::Free(msgBuf);
+                msgBuf = PacketBuffer::New();
                 NL_TEST_ASSERT(inSuite, msgBuf != NULL);
 
                 err = initiatorEng.GenerateKeyExportRequest(msgBuf->Start(), msgBuf->AvailableDataLength(), dataLen, proposedConfig, keyId, signMessages);
@@ -676,12 +677,12 @@ static void KeyExportProtocol_Test(nlTestSuite *inSuite, void *inContext)
             else
                 NL_TEST_ASSERT(inSuite, err == WEAVE_NO_ERROR);
 
-            InetBuffer::Free(msgBuf);
+            PacketBuffer::Free(msgBuf);
             msgBuf = NULL;
 
             if (theContext->responseErrorType == kKeyExportResponseError_Reconfigure)
             {
-                msgBuf = InetBuffer::New();
+                msgBuf = PacketBuffer::New();
                 NL_TEST_ASSERT(inSuite, msgBuf != NULL);
 
                 err = responderEng.GenerateKeyExportReconfigure(msgBuf->Start(), msgBuf->AvailableDataLength(), dataLen);
@@ -699,10 +700,10 @@ static void KeyExportProtocol_Test(nlTestSuite *inSuite, void *inContext)
                 err = initiatorEng.ProcessKeyExportReconfigure(msgBuf->Start(), msgBuf->DataLength(), newConfig);
                 NL_TEST_ASSERT(inSuite, err == WEAVE_NO_ERROR);
 
-                InetBuffer::Free(msgBuf);
+                PacketBuffer::Free(msgBuf);
                 msgBuf = NULL;
 
-                msgBuf = InetBuffer::New();
+                msgBuf = PacketBuffer::New();
                 NL_TEST_ASSERT(inSuite, msgBuf != NULL);
 
                 err = initiatorEng.GenerateKeyExportRequest(msgBuf->Start(), msgBuf->AvailableDataLength(), dataLen, newConfig, keyId, signMessages);
@@ -724,7 +725,7 @@ static void KeyExportProtocol_Test(nlTestSuite *inSuite, void *inContext)
                 err = responderEng.ProcessKeyExportRequest(msgBuf->Start(), msgBuf->DataLength(), &pktInfo, &msgInfo);
                 NL_TEST_ASSERT(inSuite, err == WEAVE_NO_ERROR);
 
-                InetBuffer::Free(msgBuf);
+                PacketBuffer::Free(msgBuf);
                 msgBuf = NULL;
             }
             else if (theContext->responseErrorType == kKeyExportResponseError_NoCommonConfig)
@@ -732,7 +733,7 @@ static void KeyExportProtocol_Test(nlTestSuite *inSuite, void *inContext)
                 continue;
             }
 
-            msgBuf = InetBuffer::New();
+            msgBuf = PacketBuffer::New();
             NL_TEST_ASSERT(inSuite, msgBuf != NULL);
 
             err = responderEng.GenerateKeyExportResponse(msgBuf->Start(), msgBuf->AvailableDataLength(), dataLen);
@@ -751,7 +752,7 @@ static void KeyExportProtocol_Test(nlTestSuite *inSuite, void *inContext)
                                                         exportedKey, sizeof(exportedKey), exportedKeyLen, exportedKeyId);
             NL_TEST_ASSERT(inSuite, err == WEAVE_NO_ERROR);
 
-            InetBuffer::Free(msgBuf);
+            PacketBuffer::Free(msgBuf);
             msgBuf = NULL;
         }
 

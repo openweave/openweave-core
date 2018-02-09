@@ -1,6 +1,6 @@
 /*
  *
- *    Copyright (c) 2017 Nest Labs, Inc.
+ *    Copyright (c) 2017-2018 Nest Labs, Inc.
  *    All rights reserved.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
@@ -47,6 +47,7 @@
 #include "ToolCommon.h"
 #include "TestEventLoggingSchemaExamples.h"
 #include <InetLayer/Inet.h>
+#include <SystemLayer/SystemTimer.h>
 #include <Weave/Core/WeaveCore.h>
 #include <Weave/Core/WeaveMessageLayer.h>
 #include <Weave/Core/WeaveEncoding.h>

@@ -1,6 +1,6 @@
 /*
  *
- *    Copyright (c) 2013-2017 Nest Labs, Inc.
+ *    Copyright (c) 2013-2018 Nest Labs, Inc.
  *    All rights reserved.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
@@ -41,6 +41,8 @@
 #define BDX_CLIENT_DEFAULT_MAX_BLOCK_SIZE  100
 
 using namespace ::nl::Weave::Profiles::BulkDataTransfer;
+
+using ::nl::Weave::System::PacketBuffer;
 
 static bool HandleOption(const char *progName, OptionSet *optSet, int id, const char *name, const char *arg);
 static bool HandleNonOptionArgs(const char *progName, int argc, char *argv[]);
@@ -266,7 +268,7 @@ int main(int argc, char *argv[])
 
         if (blockBuf)
         {
-            InetBuffer::Free(blockBuf);
+            PacketBuffer::Free(blockBuf);
             blockBuf = NULL;
         }
 

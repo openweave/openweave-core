@@ -1,6 +1,6 @@
 /*
  *
- *    Copyright (c) 2013-2017 Nest Labs, Inc.
+ *    Copyright (c) 2013-2018 Nest Labs, Inc.
  *    All rights reserved.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
@@ -59,7 +59,7 @@
  *
  */
 #ifndef WEAVE_CONFIG_PROVIDE_OBSOLESCENT_INTERFACES
-#define WEAVE_CONFIG_PROVIDE_OBSOLESCENT_INTERFACES         1
+#define WEAVE_CONFIG_PROVIDE_OBSOLESCENT_INTERFACES         0
 #endif //  WEAVE_CONFIG_PROVIDE_OBSOLESCENT_INTERFACES
 
 // Profile-specific Configuration Headers
