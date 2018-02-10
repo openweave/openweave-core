@@ -55,6 +55,7 @@ options = { "clients": None,
             "server_inter_event_period": None,
             "wdm_client_liveness_check_period": None,
             "wdm_server_liveness_check_period": None,
+            "wdm_subless_notify_dest_node": None,
             "case": False,
             "enable_retry": False,
             "case_cert_path": None,
@@ -321,6 +322,9 @@ class WeaveWdmNext(HappyNode, HappyNetwork, WeaveTest):
         elif self.wdm_option == "update":
             self.wdm_client_option = " --wdm-simple-update-client"
             self.wdm_server_option = " --wdm-simple-update-server"
+        elif self.wdm_option == "subless_notify":
+            self.wdm_client_option = " --wdm-simple-subless-notify-client"
+            self.wdm_server_option = " --wdm-simple-subless-notify-server"
         else:
             emsg = "NOT SUPPORTED WDM OPTION"
             self.logger.error("[localhost] WeaveWdmNext: %s" % emsg)
@@ -356,6 +360,11 @@ class WeaveWdmNext(HappyNode, HappyNetwork, WeaveTest):
         elif self.wdm_option == "mutual_subscribe":
             if any("Publisher->kEvent_OnSubscriptionEstablished" in s for s in kevents) \
                     and "Closing endpoints" in client_output:
+                smoke_check = True
+            else:
+                smoke_check = False
+        elif self.wdm_option == "subless_notify":
+            if any("kEvent_SubscriptionlessNotificationProcessingComplete" in s for s in kevents):
                 smoke_check = True
             else:
                 smoke_check = False
@@ -431,11 +440,18 @@ class WeaveWdmNext(HappyNode, HappyNetwork, WeaveTest):
         self.server_id = self.server_weave_id
         cmd += self.wdm_server_option
 
+        if self.wdm_option == "subless_notify":
+            cmd += " --wdm-subless-notify-dest-node " + self.clients_info[0]["client_weave_id"]
+            cmd += " --wdm-subnet 6"
+
         if self.enable_server_stop is True:
             cmd += " --enable-stop "
 
         if self.save_server_perf is True:
             cmd += " --save-perf"
+
+        if self.wdm_subless_notify_dest_node is not None:
+            cmd += " --wdm-subless-notify-dest-node " + str(self.wdm_subless_notify_dest_node)
 
         if self.wdm_server_liveness_check_period is not None:
             cmd += " --wdm-liveness-check-period " + str(self.wdm_server_liveness_check_period)
@@ -488,7 +504,9 @@ class WeaveWdmNext(HappyNode, HappyNetwork, WeaveTest):
         if not cmd:
             return
         cmd += self.wdm_client_option
-        cmd += " --wdm-publisher " + self.server_weave_id
+
+        if self.wdm_option != "subless_notify":
+            cmd += " --wdm-publisher " + self.server_weave_id
 
         if self.enable_client_stop is True:
             cmd += " --enable-stop "

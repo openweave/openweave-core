@@ -525,6 +525,7 @@ public:
 class TraitDataSink : private TraitSchemaEngine::ISetDataDelegate
 {
 public:
+
     TraitDataSink(const TraitSchemaEngine * aEngine);
     virtual ~TraitDataSink() { }
     const TraitSchemaEngine * GetSchemaEngine(void) const { return mSchemaEngine; }
@@ -559,6 +560,14 @@ public:
      * Returns a boolean value that determines whether the version is valid.
      */
     bool IsVersionValid(void) const { return mHasValidVersion; }
+
+#if WDM_ENABLE_SUBSCRIPTIONLESS_NOTIFICATION
+    /**
+     * Returns a boolean value that indicates if this sink accepts
+     * subscriptionless notifications.
+     */
+    bool AcceptsSubscriptionlessNotifications(void) const { return mAcceptsSubscriptionlessNotifications; }
+#endif // WDM_ENABLE_SUBSCRIPTIONLESS_NOTIFICATION
 
     /**
      * Convenience function for data sinks to handle unknown leaf handles with
@@ -695,15 +704,28 @@ protected: // ISetDataDelegate
     /* Subclass can invoke this if they desire to reject a particular data change */
     void RejectChange(uint16_t aRejectionStatusCode);
 
+#if WDM_ENABLE_SUBSCRIPTIONLESS_NOTIFICATION
+    /**
+     * Returns a boolean value that indicates if this sink accepts
+     * subscriptionless notifications.
+     */
+    void SetAcceptsSubscriptionlessNotifications(const bool aAcceptsSublessNotifies)
+    { mAcceptsSubscriptionlessNotifications = aAcceptsSublessNotifies; }
+#endif // WDM_ENABLE_SUBSCRIPTIONLESS_NOTIFICATION
+
     const TraitSchemaEngine * mSchemaEngine;
 
 private:
 
     void OnDataSinkEvent(DataSinkEventType aType, PropertyPathHandle aHandle) __OVERRIDE;
     uint64_t mVersion;
-    bool mHasValidVersion;
     static OnChangeRejection sChangeRejectionCb;
     static void * sChangeRejectionContext;
+    bool mHasValidVersion;
+#if WDM_ENABLE_SUBSCRIPTIONLESS_NOTIFICATION
+    /* Set to true if sink accepts subscriptionless notifications */
+    bool mAcceptsSubscriptionlessNotifications;
+#endif // WDM_ENABLE_SUBSCRIPTIONLESS_NOTIFICATION
 };
 
 #if    WEAVE_CONFIG_ENABLE_WDM_UPDATE

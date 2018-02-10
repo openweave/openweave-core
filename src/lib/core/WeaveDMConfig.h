@@ -278,6 +278,18 @@
 #endif // WDM_ENABLE_SUBSCRIPTION_CANCEL
 
 /**
+ *  @def WDM_ENABLE_SUBSCRIPTIONLESS_NOTIFICATION
+ *
+ *  @brief
+ *    Enable (1) or disable (0) sending/handling  subscriptionless
+ *    notifications in Weave Data Management Next profile.
+ *
+ */
+#ifndef WDM_ENABLE_SUBSCRIPTIONLESS_NOTIFICATION
+#define WDM_ENABLE_SUBSCRIPTIONLESS_NOTIFICATION 1
+#endif // WDM_ENABLE_SUBSCRIPTIONLESS_NOTIFICATION
+
+/**
  *  @def WDM_PUBLISHER_ENABLE_VIEW
  *
  *  @brief

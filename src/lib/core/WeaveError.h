@@ -1632,16 +1632,12 @@ typedef WEAVE_CONFIG_ERROR_TYPE WEAVE_ERROR;
 #define WEAVE_ERROR_TUNNEL_RESET_RECONNECT_ALREADY_ARMED        _WEAVE_ERROR(169)
 
 /**
- *  @}
- */
-
-/**
  *  @def WEAVE_ERROR_MISMATCH_UPDATE_REQUIRED_VERSION
  *
  *  @brief
  *    Encountered a mismatch between wdm update required version and current version
  */
-#define WEAVE_ERROR_MISMATCH_UPDATE_REQUIRED_VERSION                 _WEAVE_ERROR(170)
+#define WEAVE_ERROR_MISMATCH_UPDATE_REQUIRED_VERSION            _WEAVE_ERROR(170)
 
 /**
  * @def WEAVE_ERROR_WDM_MALFORMED_STATUS_ELEMENT
@@ -1650,7 +1646,27 @@ typedef WEAVE_CONFIG_ERROR_TYPE WEAVE_ERROR;
  *   The WDM STATUSElement is malformed: it either does not contain
  *   the required profile id and status code.
  */
-#define WEAVE_ERROR_WDM_MALFORMED_STATUS_ELEMENT                    _WEAVE_ERROR(171)
+#define WEAVE_ERROR_WDM_MALFORMED_STATUS_ELEMENT                _WEAVE_ERROR(171)
+
+/**
+ * @def WEAVE_ERROR_WDM_SUBSCRIPTIONLESS_NOTIFY_PARTIAL
+ *
+ * @brief
+ *   The WDM Subscriptionless Notify is partial.
+ */
+#define WEAVE_ERROR_WDM_SUBSCRIPTIONLESS_NOTIFY_PARTIAL         _WEAVE_ERROR(172)
+
+/**
+ *  @def WEAVE_ERROR_ACCESS_DENIED
+ *
+ *  @brief
+ *    The Weave message is not granted access for further processing.
+ */
+#define WEAVE_ERROR_ACCESS_DENIED                               _WEAVE_ERROR(173)
+
+/**
+ *  @}
+ */
 
 // !!!!! IMPORTANT !!!!!  If you add new Weave errors, please update the translation
 // of error codes to strings in support/ErrorStr.cpp, and add them to unittest

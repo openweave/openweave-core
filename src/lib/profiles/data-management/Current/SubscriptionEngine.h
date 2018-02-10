@@ -81,6 +81,14 @@ public:
         kEvent_OnIncomingSubscribeRequest =
             0, //< Called when an incoming subscribe request has arrived, before any parsing is done.
 #endif         // #if WDM_ENABLE_SUBSCRIPTION_PUBLISHER
+#if WDM_ENABLE_SUBSCRIPTIONLESS_NOTIFICATION
+        kEvent_OnIncomingSubscriptionlessNotification =
+            1, //< Called when an incoming subscriptionless notification has arrived before updating the data element.
+        kEvent_DataElementAccessControlCheck =
+            2, //< Called when an incoming subscriptionless notification is being processed for access control of each data element.
+        kEvent_SubscriptionlessNotificationProcessingComplete =
+            3, //< Called upon completion of processing of all trait data in the subscriptionless notify.
+#endif         // #if WDM_ENABLE_SUBSCRIPTIONLESS_NOTIFICATION
     };
 
     /**
@@ -89,6 +97,8 @@ public:
      */
     union InEventParam
     {
+        void Clear(void) { memset(this, 0, sizeof(*this)); }
+
 #if WDM_ENABLE_SUBSCRIPTION_PUBLISHER
         /**
          * @brief Incoming parameters for kEvent_OnIncomingSubscribeRequest
@@ -102,6 +112,23 @@ public:
             Binding * mBinding; //< A pointer to the Binding object created based on the exchange context object
         } mIncomingSubscribeRequest;
 #endif // #if WDM_ENABLE_SUBSCRIPTION_PUBLISHER
+
+#if WDM_ENABLE_SUBSCRIPTIONLESS_NOTIFICATION
+        struct
+        {
+            WEAVE_ERROR processingError;                  //< The WEAVE_ERROR encountered in processing the
+                                                          //< subscriptionless notification.
+            const nl::Weave::WeaveMessageInfo * mMsgInfo; //< A pointer to the message information for the request
+        } mIncomingSubscriptionlessNotification;
+
+        struct
+        {
+            const TraitCatalogBase<TraitDataSink> * mCatalog; //< A pointer to the TraitCatalog for the data sinks.
+            const TraitPath *mPath;                           //< A pointer to the TraitPath being accessed by the
+                                                          //< subscriptionless notification.
+            const nl::Weave::WeaveMessageInfo * mMsgInfo; //< A pointer to the message information for the request
+        } mDataElementAccessControlForNotification;
+#endif // WDM_ENABLE_SUBSCRIPTIONLESS_NOTIFICATION
     };
 
     /**
@@ -110,6 +137,7 @@ public:
      */
     union OutEventParam
     {
+        void Clear(void) { memset(this, 0, sizeof(*this)); }
 #if WDM_ENABLE_SUBSCRIPTION_PUBLISHER
         /**
          * @brief Outgoing parameters for kEvent_OnIncomingSubscribeRequest
@@ -126,6 +154,19 @@ public:
             SubscriptionHandler::EventCallback mHandlerEventCallback; //< A function pointer for event call back
         } mIncomingSubscribeRequest;
 #endif // #if WDM_ENABLE_SUBSCRIPTION_PUBLISHER
+
+#if WDM_ENABLE_SUBSCRIPTIONLESS_NOTIFICATION
+        struct
+        {
+            bool mShouldContinueProcessing;      //< Set to true if subscriptionless notification is allowed.
+        } mIncomingSubscriptionlessNotification;
+
+        struct
+        {
+            bool mRejectNotification;      //< Set to true if subscriptionless notification is rejected.
+            WEAVE_ERROR mReason;           //< The reason for the rejection, if any.
+        } mDataElementAccessControlForNotification;
+#endif // WDM_ENABLE_SUBSCRIPTIONLESS_NOTIFICATION
     };
 
     /**
@@ -257,6 +298,11 @@ public:
     WEAVE_ERROR Init(nl::Weave::WeaveExchangeManager * const apExchangeMgr, void * const aAppState = NULL,
                      const EventCallback aEventCallback = NULL);
 
+#if WDM_ENABLE_SUBSCRIPTIONLESS_NOTIFICATION
+    WEAVE_ERROR RegisterForSubscriptionlessNotifications(
+                     const TraitCatalogBase<TraitDataSink> * const apCatalog);
+#endif // WDM_ENABLE_SUBSCRIPTIONLESS_NOTIFICATION
+
     nl::Weave::WeaveExchangeManager * GetExchangeManager(void) const { return mExchangeMgr; };
 
 private:
@@ -269,6 +315,10 @@ private:
     nl::Weave::WeaveExchangeManager * mExchangeMgr;
     void * mAppState;
     EventCallback mEventCallback;
+
+#if WDM_ENABLE_SUBSCRIPTIONLESS_NOTIFICATION
+    const TraitCatalogBase<TraitDataSink> * mSubscriptionlessNotifySinkCatalog;
+#endif // WDM_ENABLE_SUBSCRIPTIONLESS_NOTIFICATION
 
     static WEAVE_ERROR SendStatusReport(nl::Weave::ExchangeContext * aEC, uint32_t aProfileId, uint16_t aStatusCode);
 
@@ -286,6 +336,27 @@ private:
                                 PacketBuffer * aPayload);
 #endif // WDM_ENABLE_SUBSCRIPTION_CANCEL
 
+#if WDM_ENABLE_SUBSCRIPTIONLESS_NOTIFICATION
+    class SubscriptionlessNotifyDataElementAccessControlDelegate : public IDataElementAccessControlDelegate
+    {
+    public:
+         SubscriptionlessNotifyDataElementAccessControlDelegate(const WeaveMessageInfo * aMsgInfo)
+         {
+             mMsgInfo = aMsgInfo;
+         }
+
+         WEAVE_ERROR DataElementAccessCheck(const TraitPath & aTraitPath,
+                                            const TraitCatalogBase<TraitDataSink> & aCatalog);
+
+    private:
+         const WeaveMessageInfo * mMsgInfo;
+    };
+
+    static void OnSubscriptionlessNotification(nl::Weave::ExchangeContext * aEC, const nl::Inet::IPPacketInfo * aPktInfo,
+                                               const nl::Weave::WeaveMessageInfo * aMsgInfo, uint32_t aProfileId, uint8_t aMsgType,
+                                               PacketBuffer * aPayload);
+#endif // WDM_ENABLE_SUBSCRIPTIONLESS_NOTIFICATION
+
 #if WDM_ENABLE_SUBSCRIPTION_CLIENT
     // Client-specific features
 
@@ -297,6 +368,11 @@ private:
 
 #endif // WDM_ENABLE_SUBSCRIPTION_CLIENT
 
+    static WEAVE_ERROR ProcessDataList(nl::Weave::TLV::TLVReader & aReader,
+                                       const TraitCatalogBase<TraitDataSink> * aCatalog,
+                                       bool & aOutIsPartialChange,
+                                       TraitDataHandle & aOutTraitDataHandle,
+                                       IDataElementAccessControlDelegate & acDelegate);
 #if WEAVE_DETAIL_LOGGING
     void LogSubscriptionFreed(void) const;
 #endif // #if WEAVE_DETAIL_LOGGING

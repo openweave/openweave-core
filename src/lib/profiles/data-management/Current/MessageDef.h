@@ -43,20 +43,21 @@ namespace WeaveMakeManagedNamespaceIdentifier(DataManagement, kWeaveManagedNames
  */
 enum
 {
-    kMsgType_ViewRequest             = 0x20,
-    kMsgType_ViewResponse            = 0x21,
-    kMsgType_UpdateRequest           = 0x22,
-    kMsgType_InProgress              = 0x23,
-    kMsgType_SubscribeRequest        = 0x24,
-    kMsgType_SubscribeResponse       = 0x25,
-    kMsgType_SubscribeCancelRequest  = 0x26,
-    kMsgType_SubscribeConfirmRequest = 0x27,
-    kMsgType_NotificationRequest     = 0x28,
-    kMsgType_CustomCommandRequest    = 0x29,
-    kMsgType_CustomCommandResponse   = 0x2A,
-    kMsgType_OneWayCommand           = 0x2B,
-    kMsgType_PartialUpdateRequest    = 0x2C,
-    kMsgType_UpdateContinue          = 0x2D,
+    kMsgType_ViewRequest                   = 0x20,
+    kMsgType_ViewResponse                  = 0x21,
+    kMsgType_UpdateRequest                 = 0x22,
+    kMsgType_InProgress                    = 0x23,
+    kMsgType_SubscribeRequest              = 0x24,
+    kMsgType_SubscribeResponse             = 0x25,
+    kMsgType_SubscribeCancelRequest        = 0x26,
+    kMsgType_SubscribeConfirmRequest       = 0x27,
+    kMsgType_NotificationRequest           = 0x28,
+    kMsgType_CustomCommandRequest          = 0x29,
+    kMsgType_CustomCommandResponse         = 0x2A,
+    kMsgType_OneWayCommand                 = 0x2B,
+    kMsgType_PartialUpdateRequest          = 0x2C,
+    kMsgType_UpdateContinue                = 0x2D,
+    kMsgType_SubscriptionlessNotification  = 0x2E,
 };
 
 /**

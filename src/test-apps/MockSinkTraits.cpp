@@ -367,6 +367,16 @@ TestATraitDataSink::TestATraitDataSink()
     }
 }
 
+TestATraitDataSink::TestATraitDataSink(bool aAcceptsSublessNotifies)
+    : MockTraitDataSink(&TestATrait::TraitSchema)
+{
+    TestATraitDataSink();
+
+#if WDM_ENABLE_SUBSCRIPTIONLESS_NOTIFICATION
+   SetAcceptsSubscriptionlessNotifications(aAcceptsSublessNotifies);
+#endif // WDM_ENABLE_SUBSCRIPTIONLESS_NOTIFICATION
+}
+
 WEAVE_ERROR
 TestATraitDataSink::OnEvent(uint16_t aType, void *aInParam)
 {

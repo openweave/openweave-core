@@ -1030,8 +1030,8 @@ distclean-generic:
 maintainer-clean-generic:
 	@echo "This command is intended for maintainers to use"
 	@echo "it deletes files that may require special tools to rebuild."
-@WEAVE_BUILD_TOOLS_FALSE@uninstall-local:
 @WEAVE_BUILD_TOOLS_FALSE@install-exec-local:
+@WEAVE_BUILD_TOOLS_FALSE@uninstall-local:
 clean: clean-am
 
 clean-am: clean-generic clean-libexecPROGRAMS clean-libtool \

@@ -50,6 +50,20 @@ namespace Weave {
 namespace Profiles {
 namespace WeaveMakeManagedNamespaceIdentifier(DataManagement, kWeaveManagedNamespaceDesignation_Current) {
 
+class AlwaysAcceptDataElementAccessControlDelegate : public IDataElementAccessControlDelegate
+{
+public:
+
+     // TODO : This Access Check function needs to be more sophisticated in
+     // allowing access to subscription-based notifications.
+
+     WEAVE_ERROR DataElementAccessCheck(const TraitPath & aTraitPath,
+                                        const TraitCatalogBase<TraitDataSink> & aCatalog)
+     {
+         return WEAVE_NO_ERROR;
+     }
+};
+
 // Do nothing
 SubscriptionClient::SubscriptionClient() { }
 
@@ -1278,10 +1292,9 @@ exit:
 WEAVE_ERROR SubscriptionClient::ProcessDataList(nl::Weave::TLV::TLVReader & aReader)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
-    // TODO: We currently don't support changes that span multiple notifies, nor changes
-    // that get aborted and restarted within the same notify. See WEAV-1586 for more details.
-    bool isPartialChange = false;
-    uint8_t flags;
+
+    AlwaysAcceptDataElementAccessControlDelegate acDelegate;
+
 #if WEAVE_CONFIG_ENABLE_WDM_UPDATE
     bool isLocked = false;
 
@@ -1291,90 +1304,8 @@ WEAVE_ERROR SubscriptionClient::ProcessDataList(nl::Weave::TLV::TLVReader & aRea
     isLocked = true;
 #endif // WEAVE_CONFIG_ENABLE_WDM_UPDATE
 
-    while (WEAVE_NO_ERROR == (err = aReader.Next()))
-    {
-        nl::Weave::TLV::TLVReader pathReader;
-
-        {
-            DataElement::Parser element;
-
-            err = element.Init(aReader);
-            SuccessOrExit(err);
-
-            err = element.GetReaderOnPath(&pathReader);
-            SuccessOrExit(err);
-
-            isPartialChange = false;
-            err             = element.GetPartialChangeFlag(&isPartialChange);
-            VerifyOrExit(err == WEAVE_NO_ERROR || err == WEAVE_END_OF_TLV, );
-        }
-
-        TraitDataSink * DataSink;
-        TraitDataHandle handle;
-        PropertyPathHandle pathHandle;
-        SchemaVersionRange versionRange;
-
-        err = mDataSinkCatalog->AddressToHandle(pathReader, handle, versionRange);
-        SuccessOrExit(err);
-
-        err = mDataSinkCatalog->Locate(handle, &DataSink);
-        SuccessOrExit(err);
-
-        err = DataSink->GetSchemaEngine()->MapPathToHandle(pathReader, pathHandle);
-#if TDM_DISABLE_STRICT_SCHEMA_COMPLIANCE
-        // if we're not in strict compliance mode, we can ignore data elements that refer to paths we can't map due to mismatching
-        // schema. The eventual call to StoreDataElement will correctly deal with the presence of a null property path handle that
-        // has been returned by the above call. It's necessary to call into StoreDataElement with this null handle to ensure
-        // the requisite OnEvent calls are made to the application despite the presence of an unknown tag. It's also necessary to
-        // ensure that we update the internal version tracked by the sink.
-        if (err == WEAVE_ERROR_TLV_TAG_NOT_FOUND)
-        {
-            WeaveLogDetail(DataManagement, "Ignoring un-mappable path!");
-            err = WEAVE_NO_ERROR;
-        }
-#endif
-        SuccessOrExit(err);
-
-        pathReader = aReader;
-        flags      = 0;
-
-#if WDM_ENABLE_PROTOCOL_CHECKS
-        // If we previously had a partial change, the current handle should match the previous one.
-        // If they don't, we have a partial change violation.
-        if (mPrevIsPartialChange && (mPrevTraitDataHandle != handle))
-        {
-            WeaveLogError(DataManagement, "Encountered partial change flag violation (%u, %x, %x)", mPrevIsPartialChange,
-                          mPrevTraitDataHandle, handle);
-            err = WEAVE_ERROR_INVALID_DATA_LIST;
-            goto exit;
-        }
-#endif
-
-        if (!mPrevIsPartialChange)
-        {
-            flags = TraitDataSink::kFirstElementInChange;
-        }
-
-        if (!isPartialChange)
-        {
-            flags |= TraitDataSink::kLastElementInChange;
-        }
-
-        err = DataSink->StoreDataElement(pathHandle, pathReader, flags, NULL, NULL, handle);
-        SuccessOrExit(err);
-
-        mPrevIsPartialChange = isPartialChange;
-
-#if WDM_ENABLE_PROTOCOL_CHECKS
-        mPrevTraitDataHandle = handle;
-#endif
-    }
-
-    // if we have exhausted this container
-    if (WEAVE_END_OF_TLV == err)
-    {
-        err = WEAVE_NO_ERROR;
-    }
+    err = SubscriptionEngine::ProcessDataList(aReader, mDataSinkCatalog, mPrevIsPartialChange, mPrevTraitDataHandle, acDelegate);
+    SuccessOrExit(err);
 
 #if WEAVE_CONFIG_ENABLE_WDM_UPDATE
     if (IsUpdateInFlight())
@@ -1390,6 +1321,7 @@ exit:
         Unlock();
     }
 #endif // WEAVE_CONFIG_ENABLE_WDM_UPDATE
+
     return err;
 }
 

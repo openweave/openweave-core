@@ -54,6 +54,7 @@
 #include "MockWdmViewClient.h"
 #include "MockWdmViewServer.h"
 #include "WdmNextPerfUtility.h"
+#include "TestWdmSubscriptionlessNotification.h"
 
 using nl::Inet::IPAddress;
 using namespace nl::Weave;
@@ -77,6 +78,7 @@ char * TimeBetweenDataChangeMsec = NULL;
 uint32_t TestIterations = 1;
 int WdmRoleInTest = 0;
 uint32_t TestDelayBetweenIterationMsec = 0;
+uint32_t TestWdmSublessNotifyDelayMsec = 6000;
 bool EnableDataFlip = true;
 bool EnableDictionaryTest = false;
 char *  TimeBetweenLivenessCheckSec = NULL;
@@ -89,6 +91,10 @@ int TimeBetweenEvents = 1000;
 
 uint64_t WdmPublisherNodeId = kAnyNodeId;
 uint16_t WdmUseSubnetId = kWeaveSubnetId_NotSpecified;
+
+#if WDM_ENABLE_SUBSCRIPTIONLESS_NOTIFICATION
+uint64_t WdmSublessNotifyDestNodeId = kAnyNodeId;
+#endif // WDM_ENABLE_SUBSCRIPTIONLESS_NOTIFICATION
 
 enum
 {
@@ -116,6 +122,9 @@ enum
     kToolOpt_TimeBetweenLivenessCheckSec,
     kToolOpt_WdmEnableRetry,
     kToolopt_EnableMockTimestampInitialCounter,
+    kToolOpt_WdmSimpleSublessNotifyClient,
+    kToolOpt_WdmSimpleSublessNotifyServer,
+    kToolOpt_WdmSublessNotifyDestNodeId,
 };
 
 static OptionDef gToolOptionDefs[] =
@@ -134,9 +143,12 @@ static OptionDef gToolOptionDefs[] =
     { "inter-event-period",                             kArgumentRequired,  kToolOpt_TimeBetweenEvents },
 #if WEAVE_CONFIG_ENABLE_RELIABLE_MESSAGING
     { "wdm-publisher",                                  kArgumentRequired,  kToolOpt_WdmPublisherNodeId },
+    { "wdm-subless-notify-dest-node",                   kArgumentRequired,  kToolOpt_WdmSublessNotifyDestNodeId },
     { "wdm-subnet",                                     kArgumentRequired,  kToolOpt_WdmUseSubnetId },
     //{ "wdm-simple-view-client",                       kNoArgument,        kToolOpt_WdmSimpleViewClient },
     //{ "wdm-simple-view-server",                       kNoArgument,        kToolOpt_WdmSimpleViewServer },
+    { "wdm-simple-subless-notify-client",               kNoArgument,        kToolOpt_WdmSimpleSublessNotifyClient },
+    { "wdm-simple-subless-notify-server",               kNoArgument,        kToolOpt_WdmSimpleSublessNotifyServer },
     { "wdm-one-way-sub-client",                         kNoArgument,        kToolOpt_WdmSubscriptionClient },
     { "wdm-one-way-sub-publisher",                      kNoArgument,        kToolOpt_WdmSubscriptionPublisher },
     { "wdm-init-mutual-sub",                            kNoArgument,        kToolOpt_WdmInitMutualSubscription },
@@ -161,6 +173,15 @@ static const char *const gToolOptionHelp =
     "\n"
     "  --wdm-simple-view-server\n"
     "       Initiate a simple WDM Next view server\n"
+    "\n"
+    "  --wdm-simple-subless-notify-client\n"
+    "       Initiate a simple WDM Next Subscriptionless Notify Client\n"
+    "\n"
+    "  --wdm-simple-subless-notify-server\n"
+    "       Initiate a simple WDM Next Subscriptionless Notify Server\n"
+    "\n"
+    "  --wdm-subless-notify-dest-node <dest-node-id>\n"
+    "       The node id of the destination node\n"
     "\n"
     "  --wdm-one-way-sub-client\n"
     "       Initiate a subscription to some WDM Next publisher\n"
@@ -357,6 +378,35 @@ int main(int argc, char *argv[])
 
 #endif // ENABLE_VIEW_TEST
 
+#if WDM_ENABLE_SUBSCRIPTIONLESS_NOTIFICATION
+        case kToolOpt_WdmSimpleSublessNotifyClient:
+                err = TestWdmSubscriptionlessNotificationReceiver::GetInstance()->Init(&ExchangeMgr);
+                FAIL_ERROR(err, "TestWdmSubscriptionlessNotificationReceiver.Init failed");
+
+                TestWdmSubscriptionlessNotificationReceiver::GetInstance()->OnTestComplete = HandleWdmCompleteTest;
+
+                TestWdmSubscriptionlessNotificationReceiver::GetInstance()->OnError = HandleError;
+            break;
+        case kToolOpt_WdmSimpleSublessNotifyServer:
+                time(&begin);
+
+                while (seconds * 1000 < TestWdmSublessNotifyDelayMsec)
+                {
+                    ServiceNetwork(sleepTime);
+                    time(&end);
+                    seconds = difftime(end, begin);
+                }
+                printf("delay %d milliseconds\n", TestWdmSublessNotifyDelayMsec);
+                seconds = 0;
+
+                if (WdmSublessNotifyDestNodeId != kAnyNodeId)
+                {
+                    err = TestWdmSubscriptionlessNotificationSender::GetInstance()->Init(&ExchangeMgr, WdmUseSubnetId,
+                                                                                         WdmSublessNotifyDestNodeId);
+                    FAIL_ERROR(err, "TestWdmSubscriptionlessNotificationSender.Init failed");
+                }
+            break;
+#endif // WDM_ENABLE_SUBSCRIPTIONLESS_NOTIFICATION
         case kToolOpt_WdmInitMutualSubscription:
         case kToolOpt_WdmSubscriptionClient:
 
@@ -438,6 +488,18 @@ int main(int argc, char *argv[])
 
 #endif
 
+#if WDM_ENABLE_SUBSCRIPTIONLESS_NOTIFICATION
+        case kToolOpt_WdmSimpleSublessNotifyClient:
+            break;
+        case kToolOpt_WdmSimpleSublessNotifyServer:
+                if (WdmSublessNotifyDestNodeId != kAnyNodeId)
+                {
+                    err = TestWdmSubscriptionlessNotificationSender::GetInstance()->SendSubscriptionlessNotify();
+                    Done = true;
+                    FAIL_ERROR(err, "TestWdmSubscriptionlessNotificationSender.SendSubscriptionlessNotify failed");
+                }
+            break;
+#endif // WDM_ENABLE_SUBSCRIPTIONLESS_NOTIFICATION
         case kToolOpt_WdmInitMutualSubscription:
         case kToolOpt_WdmSubscriptionClient:
             if (gClearDataSinkState)
@@ -530,6 +592,13 @@ int main(int argc, char *argv[])
     ProcessStats(before, after, printStats, NULL);
     PrintFaultInjectionCounters();
 
+#if WDM_ENABLE_SUBSCRIPTIONLESS_NOTIFICATION
+    if (WdmRoleInTest == kToolOpt_WdmSimpleSublessNotifyServer)
+    {
+        err = TestWdmSubscriptionlessNotificationSender::GetInstance()->Shutdown();
+        FAIL_ERROR(err, "TestWdmSubscriptionlessNotificationSender.Shutdown failed");
+    }
+#endif // WDM_ENABLE_SUBSCRIPTIONLESS_NOTIFICATION
     ShutdownWeaveStack();
     ShutdownNetwork();
     ShutdownSystemLayer();
@@ -576,6 +645,32 @@ bool HandleOption(const char *progName, OptionSet *optSet, int id, const char *n
         break;
 
 #endif
+
+#if WDM_ENABLE_SUBSCRIPTIONLESS_NOTIFICATION
+    case kToolOpt_WdmSimpleSublessNotifyClient:
+        if (0 != WdmRoleInTest)
+        {
+            PrintArgError("%s: Mock WDM device can only play one role in WDM tests (%s)\n", progName, arg);
+            return false;
+        }
+        WdmRoleInTest = kToolOpt_WdmSimpleSublessNotifyClient;
+        break;
+    case kToolOpt_WdmSimpleSublessNotifyServer:
+        if (0 != WdmRoleInTest)
+        {
+            PrintArgError("%s: Mock WDM device can only play one role in WDM tests (%s)\n", progName, arg);
+            return false;
+        }
+        WdmRoleInTest = kToolOpt_WdmSimpleSublessNotifyServer;
+        break;
+    case kToolOpt_WdmSublessNotifyDestNodeId:
+        if (!ParseNodeId(arg, WdmSublessNotifyDestNodeId))
+        {
+            PrintArgError("%s: Invalid value specified for WDM publisher node id: %s\n", progName, arg);
+            return false;
+        }
+        break;
+#endif // WDM_ENABLE_SUBSCRIPTIONLESS_NOTIFICATION
 
     case kToolOpt_ClearDataSinkStateBetweenTests:
         gClearDataSinkState = true;

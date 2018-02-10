@@ -276,7 +276,7 @@ target_triplet = @target@
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_TRUE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@    happy/tests/service/wdmNext/test_weave_wdm_next_service_mutual_subscribe_24.py                              \
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_TRUE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@    happy/tests/service/wdmNext/test_weave_wdm_next_service_mutual_subscribe_25.py                              \
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_TRUE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@    happy/tests/service/wdmNext/test_weave_wdm_next_service_mutual_subscribe_application_key_01.py              \
-@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_TRUE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@	happy/tests/service/wdmNext/test_weave_wdm_next_service_update_01.py              							\
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_TRUE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@    happy/tests/service/wdmNext/test_weave_wdm_next_service_update_01.py                                        \
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_TRUE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@    $(NULL)
 
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_BDX_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_LONG_TESTS_TRUE@am__append_22 = happy/tests/standalone/bdx/test_weave_bdx_faults_download_v0_v0_1_of_4.sh \
@@ -497,7 +497,8 @@ target_triplet = @target@
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@    happy/tests/standalone/wdmNext/test_weave_wdm_next_application_key_02.py      \
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@    happy/tests/standalone/wdmNext/test_weave_wdm_next_oneway_resub.py            \
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@    happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_resub.py            \
-@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@    happy/tests/standalone/wdmNext/test_weave_wdm_next_update_01.py     		  \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@    happy/tests/standalone/wdmNext/test_weave_wdm_next_update_01.py               \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@    happy/tests/standalone/wdmNext/test_weave_wdm_next_subless_notify_01.py       \
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@    $(NULL)
 
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_BDX_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@am__append_30 = \
@@ -1222,6 +1223,8 @@ TestWarm_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) \
 	$(CXXFLAGS) $(TestWarm_LDFLAGS) $(LDFLAGS) -o $@
 am__TestWdmNext_SOURCES_DIST = TestWdmNext.cpp MockSinkTraits.cpp \
 	MockSourceTraits.cpp MockLoggingManager.cpp MockEvents.cpp \
+	TestWdmSubscriptionlessNotificationSender.cpp \
+	TestWdmSubscriptionlessNotificationReceiver.cpp \
 	schema/nest/test/trait/TestATrait.cpp \
 	schema/nest/test/trait/TestBTrait.cpp \
 	schema/nest/test/trait/TestETrait.cpp \
@@ -1239,6 +1242,8 @@ am__TestWdmNext_SOURCES_DIST = TestWdmNext.cpp MockSinkTraits.cpp \
 @WEAVE_BUILD_TESTS_TRUE@	TestWdmNext-MockSourceTraits.$(OBJEXT) \
 @WEAVE_BUILD_TESTS_TRUE@	TestWdmNext-MockLoggingManager.$(OBJEXT) \
 @WEAVE_BUILD_TESTS_TRUE@	TestWdmNext-MockEvents.$(OBJEXT) \
+@WEAVE_BUILD_TESTS_TRUE@	TestWdmNext-TestWdmSubscriptionlessNotificationSender.$(OBJEXT) \
+@WEAVE_BUILD_TESTS_TRUE@	TestWdmNext-TestWdmSubscriptionlessNotificationReceiver.$(OBJEXT) \
 @WEAVE_BUILD_TESTS_TRUE@	schema/nest/test/trait/TestWdmNext-TestATrait.$(OBJEXT) \
 @WEAVE_BUILD_TESTS_TRUE@	schema/nest/test/trait/TestWdmNext-TestBTrait.$(OBJEXT) \
 @WEAVE_BUILD_TESTS_TRUE@	schema/nest/test/trait/TestWdmNext-TestETrait.$(OBJEXT) \
@@ -1838,7 +1843,8 @@ am__noinst_HEADERS_DIST = CASEOptions.h KeyExportOptions.h \
 	MockTimeSyncCoordinator.h MockTokenPairingServer.h \
 	MockWdmViewServer.h MockWdmViewClient.h MockWdmTestVerifier.h \
 	MockWdmSubscriptionInitiator.h MockWdmSubscriptionResponder.h \
-	TestWdmOneWayCommand.h TestGroupKeyStore.h TestDRBG.h \
+	TestWdmOneWayCommand.h TestWdmSubscriptionlessNotification.h \
+	TestGroupKeyStore.h TestDRBG.h \
 	TestPersistedStorageImplementation.h \
 	TestEventLoggingSchemaExamples.h TestProfile.h TestWRMP.h \
 	TestWeaveTunnel.h TestWeaveTunnelServer.h ToolCommon.h \
@@ -2278,7 +2284,8 @@ AM_RECURSIVE_TARGETS = check recheck
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@	happy/tests/standalone/wdmNext/test_weave_wdm_next_application_key_02.py \
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@	happy/tests/standalone/wdmNext/test_weave_wdm_next_oneway_resub.py \
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@	happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_resub.py \
-@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@	happy/tests/standalone/wdmNext/test_weave_wdm_next_update_01.py
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@	happy/tests/standalone/wdmNext/test_weave_wdm_next_update_01.py \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@	happy/tests/standalone/wdmNext/test_weave_wdm_next_subless_notify_01.py
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_BDX_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@am__EXEEXT_24 = happy/tests/standalone/bdx/test_weave_bdx_01.py \
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_BDX_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@	happy/tests/standalone/bdx/test_weave_bdx_02.py \
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_BDX_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@	happy/tests/standalone/bdx/test_weave_bdx_03.py \
@@ -2633,7 +2640,8 @@ noinst_HEADERS = CASEOptions.h KeyExportOptions.h ToolCommonOptions.h \
 	MockTimeSyncCoordinator.h MockTokenPairingServer.h \
 	MockWdmViewServer.h MockWdmViewClient.h MockWdmTestVerifier.h \
 	MockWdmSubscriptionInitiator.h MockWdmSubscriptionResponder.h \
-	TestWdmOneWayCommand.h TestGroupKeyStore.h TestDRBG.h \
+	TestWdmOneWayCommand.h TestWdmSubscriptionlessNotification.h \
+	TestGroupKeyStore.h TestDRBG.h \
 	TestPersistedStorageImplementation.h \
 	TestEventLoggingSchemaExamples.h TestProfile.h TestWRMP.h \
 	TestWeaveTunnel.h TestWeaveTunnelServer.h ToolCommon.h \
@@ -3053,6 +3061,8 @@ EXTRA_DIST = \
 @WEAVE_BUILD_TESTS_TRUE@                                           MockSourceTraits.cpp						\
 @WEAVE_BUILD_TESTS_TRUE@                                           MockLoggingManager.cpp					\
 @WEAVE_BUILD_TESTS_TRUE@                                           MockEvents.cpp                                               \
+@WEAVE_BUILD_TESTS_TRUE@                                           TestWdmSubscriptionlessNotificationSender.cpp		\
+@WEAVE_BUILD_TESTS_TRUE@                                           TestWdmSubscriptionlessNotificationReceiver.cpp		\
 @WEAVE_BUILD_TESTS_TRUE@                                           schema/nest/test/trait/TestATrait.cpp			\
 @WEAVE_BUILD_TESTS_TRUE@                                           schema/nest/test/trait/TestBTrait.cpp			\
 @WEAVE_BUILD_TESTS_TRUE@                                           schema/nest/test/trait/TestETrait.cpp			\
@@ -3898,6 +3908,8 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/TestWdmNext-MockWdmViewClient.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/TestWdmNext-MockWdmViewServer.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/TestWdmNext-TestWdmNext.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/TestWdmNext-TestWdmSubscriptionlessNotificationReceiver.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/TestWdmNext-TestWdmSubscriptionlessNotificationSender.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/TestWdmNext-WdmNextPerfUtility.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/TestWdmOneWayCommandReceiver-MockEvents.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/TestWdmOneWayCommandReceiver-MockLoggingManager.Po@am__quote@
@@ -4400,6 +4412,34 @@ TestWdmNext-MockEvents.obj: MockEvents.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='MockEvents.cpp' object='TestWdmNext-MockEvents.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(TestWdmNext_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o TestWdmNext-MockEvents.obj `if test -f 'MockEvents.cpp'; then $(CYGPATH_W) 'MockEvents.cpp'; else $(CYGPATH_W) '$(srcdir)/MockEvents.cpp'; fi`
+
+TestWdmNext-TestWdmSubscriptionlessNotificationSender.o: TestWdmSubscriptionlessNotificationSender.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(TestWdmNext_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT TestWdmNext-TestWdmSubscriptionlessNotificationSender.o -MD -MP -MF $(DEPDIR)/TestWdmNext-TestWdmSubscriptionlessNotificationSender.Tpo -c -o TestWdmNext-TestWdmSubscriptionlessNotificationSender.o `test -f 'TestWdmSubscriptionlessNotificationSender.cpp' || echo '$(srcdir)/'`TestWdmSubscriptionlessNotificationSender.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/TestWdmNext-TestWdmSubscriptionlessNotificationSender.Tpo $(DEPDIR)/TestWdmNext-TestWdmSubscriptionlessNotificationSender.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='TestWdmSubscriptionlessNotificationSender.cpp' object='TestWdmNext-TestWdmSubscriptionlessNotificationSender.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(TestWdmNext_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o TestWdmNext-TestWdmSubscriptionlessNotificationSender.o `test -f 'TestWdmSubscriptionlessNotificationSender.cpp' || echo '$(srcdir)/'`TestWdmSubscriptionlessNotificationSender.cpp
+
+TestWdmNext-TestWdmSubscriptionlessNotificationSender.obj: TestWdmSubscriptionlessNotificationSender.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(TestWdmNext_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT TestWdmNext-TestWdmSubscriptionlessNotificationSender.obj -MD -MP -MF $(DEPDIR)/TestWdmNext-TestWdmSubscriptionlessNotificationSender.Tpo -c -o TestWdmNext-TestWdmSubscriptionlessNotificationSender.obj `if test -f 'TestWdmSubscriptionlessNotificationSender.cpp'; then $(CYGPATH_W) 'TestWdmSubscriptionlessNotificationSender.cpp'; else $(CYGPATH_W) '$(srcdir)/TestWdmSubscriptionlessNotificationSender.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/TestWdmNext-TestWdmSubscriptionlessNotificationSender.Tpo $(DEPDIR)/TestWdmNext-TestWdmSubscriptionlessNotificationSender.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='TestWdmSubscriptionlessNotificationSender.cpp' object='TestWdmNext-TestWdmSubscriptionlessNotificationSender.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(TestWdmNext_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o TestWdmNext-TestWdmSubscriptionlessNotificationSender.obj `if test -f 'TestWdmSubscriptionlessNotificationSender.cpp'; then $(CYGPATH_W) 'TestWdmSubscriptionlessNotificationSender.cpp'; else $(CYGPATH_W) '$(srcdir)/TestWdmSubscriptionlessNotificationSender.cpp'; fi`
+
+TestWdmNext-TestWdmSubscriptionlessNotificationReceiver.o: TestWdmSubscriptionlessNotificationReceiver.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(TestWdmNext_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT TestWdmNext-TestWdmSubscriptionlessNotificationReceiver.o -MD -MP -MF $(DEPDIR)/TestWdmNext-TestWdmSubscriptionlessNotificationReceiver.Tpo -c -o TestWdmNext-TestWdmSubscriptionlessNotificationReceiver.o `test -f 'TestWdmSubscriptionlessNotificationReceiver.cpp' || echo '$(srcdir)/'`TestWdmSubscriptionlessNotificationReceiver.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/TestWdmNext-TestWdmSubscriptionlessNotificationReceiver.Tpo $(DEPDIR)/TestWdmNext-TestWdmSubscriptionlessNotificationReceiver.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='TestWdmSubscriptionlessNotificationReceiver.cpp' object='TestWdmNext-TestWdmSubscriptionlessNotificationReceiver.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(TestWdmNext_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o TestWdmNext-TestWdmSubscriptionlessNotificationReceiver.o `test -f 'TestWdmSubscriptionlessNotificationReceiver.cpp' || echo '$(srcdir)/'`TestWdmSubscriptionlessNotificationReceiver.cpp
+
+TestWdmNext-TestWdmSubscriptionlessNotificationReceiver.obj: TestWdmSubscriptionlessNotificationReceiver.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(TestWdmNext_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT TestWdmNext-TestWdmSubscriptionlessNotificationReceiver.obj -MD -MP -MF $(DEPDIR)/TestWdmNext-TestWdmSubscriptionlessNotificationReceiver.Tpo -c -o TestWdmNext-TestWdmSubscriptionlessNotificationReceiver.obj `if test -f 'TestWdmSubscriptionlessNotificationReceiver.cpp'; then $(CYGPATH_W) 'TestWdmSubscriptionlessNotificationReceiver.cpp'; else $(CYGPATH_W) '$(srcdir)/TestWdmSubscriptionlessNotificationReceiver.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/TestWdmNext-TestWdmSubscriptionlessNotificationReceiver.Tpo $(DEPDIR)/TestWdmNext-TestWdmSubscriptionlessNotificationReceiver.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='TestWdmSubscriptionlessNotificationReceiver.cpp' object='TestWdmNext-TestWdmSubscriptionlessNotificationReceiver.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(TestWdmNext_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o TestWdmNext-TestWdmSubscriptionlessNotificationReceiver.obj `if test -f 'TestWdmSubscriptionlessNotificationReceiver.cpp'; then $(CYGPATH_W) 'TestWdmSubscriptionlessNotificationReceiver.cpp'; else $(CYGPATH_W) '$(srcdir)/TestWdmSubscriptionlessNotificationReceiver.cpp'; fi`
 
 schema/nest/test/trait/TestWdmNext-TestATrait.o: schema/nest/test/trait/TestATrait.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(TestWdmNext_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT schema/nest/test/trait/TestWdmNext-TestATrait.o -MD -MP -MF schema/nest/test/trait/$(DEPDIR)/TestWdmNext-TestATrait.Tpo -c -o schema/nest/test/trait/TestWdmNext-TestATrait.o `test -f 'schema/nest/test/trait/TestATrait.cpp' || echo '$(srcdir)/'`schema/nest/test/trait/TestATrait.cpp
@@ -7400,6 +7440,13 @@ happy/tests/standalone/wdmNext/test_weave_wdm_next_update_01.py.log: happy/tests
 	--log-file $$b.log --trs-file $$b.trs \
 	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
 	"$$tst" $(AM_TESTS_FD_REDIRECT)
+happy/tests/standalone/wdmNext/test_weave_wdm_next_subless_notify_01.py.log: happy/tests/standalone/wdmNext/test_weave_wdm_next_subless_notify_01.py
+	@p='happy/tests/standalone/wdmNext/test_weave_wdm_next_subless_notify_01.py'; \
+	b='happy/tests/standalone/wdmNext/test_weave_wdm_next_subless_notify_01.py'; \
+	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
+	--log-file $$b.log --trs-file $$b.trs \
+	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
+	"$$tst" $(AM_TESTS_FD_REDIRECT)
 happy/tests/standalone/bdx/test_weave_bdx_01.py.log: happy/tests/standalone/bdx/test_weave_bdx_01.py
 	@p='happy/tests/standalone/bdx/test_weave_bdx_01.py'; \
 	b='happy/tests/standalone/bdx/test_weave_bdx_01.py'; \
@@ -7687,11 +7734,11 @@ distclean-generic:
 maintainer-clean-generic:
 	@echo "This command is intended for maintainers to use"
 	@echo "it deletes files that may require special tools to rebuild."
+@WEAVE_BUILD_TESTS_FALSE@uninstall-local:
 @WEAVE_BUILD_TESTS_FALSE@install-exec-local:
 @WEAVE_BUILD_COVERAGE_FALSE@clean-local:
 @WEAVE_BUILD_COVERAGE_REPORTS_FALSE@clean-local:
 @WEAVE_BUILD_TESTS_FALSE@clean-local:
-@WEAVE_BUILD_TESTS_FALSE@uninstall-local:
 clean: clean-am
 
 clean-am: clean-checkPROGRAMS clean-generic clean-libexecPROGRAMS \

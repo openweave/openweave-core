@@ -480,7 +480,6 @@ WEAVE_ERROR SingleResourceTraitCatalog<T>::GetResourceId(TraitDataHandle aHandle
     WEAVE_ERROR err = WEAVE_NO_ERROR;
     aResourceId = mResourceId.mNodeId;
 
-exit:
     return err;
 }
 #endif // WEAVE_CONFIG_ENABLE_WDM_UPDATE

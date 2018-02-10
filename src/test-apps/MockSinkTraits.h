@@ -247,6 +247,7 @@ class TestATraitDataSink : public MockTraitDataSink, public MockTraitDataSourceD
 {
 public:
     TestATraitDataSink();
+    TestATraitDataSink(bool aAcceptsSublessNotifies);
 
     WEAVE_ERROR OnEvent(uint16_t aType, void *aInParam) __OVERRIDE;
 

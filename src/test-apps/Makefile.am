@@ -60,6 +60,7 @@ noinst_HEADERS                                 = \
     MockWdmSubscriptionInitiator.h               \
     MockWdmSubscriptionResponder.h               \
     TestWdmOneWayCommand.h                       \
+    TestWdmSubscriptionlessNotification.h        \
     TestGroupKeyStore.h                          \
     TestDRBG.h                                   \
     TestPersistedStorageImplementation.h         \
@@ -588,7 +589,7 @@ check_SCRIPTS                                 +=             \
     happy/tests/service/wdmNext/test_weave_wdm_next_service_mutual_subscribe_24.py                              \
     happy/tests/service/wdmNext/test_weave_wdm_next_service_mutual_subscribe_25.py                              \
     happy/tests/service/wdmNext/test_weave_wdm_next_service_mutual_subscribe_application_key_01.py              \
-	happy/tests/service/wdmNext/test_weave_wdm_next_service_update_01.py              							\
+    happy/tests/service/wdmNext/test_weave_wdm_next_service_update_01.py                                        \
     $(NULL)
 endif # WEAVE_RUN_HAPPY_WDM
 
@@ -951,7 +952,8 @@ check_SCRIPTS                                 +=                \
     happy/tests/standalone/wdmNext/test_weave_wdm_next_application_key_02.py      \
     happy/tests/standalone/wdmNext/test_weave_wdm_next_oneway_resub.py            \
     happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_resub.py            \
-    happy/tests/standalone/wdmNext/test_weave_wdm_next_update_01.py     		  \
+    happy/tests/standalone/wdmNext/test_weave_wdm_next_update_01.py               \
+    happy/tests/standalone/wdmNext/test_weave_wdm_next_subless_notify_01.py       \
     $(NULL)
 
 endif # WEAVE_RUN_HAPPY_WDM
@@ -1256,12 +1258,13 @@ TestWeaveTunnelServer_SOURCES            = TestWeaveTunnelServer.cpp
 TestWeaveTunnelServer_LDFLAGS            = $(AM_CPPFLAGS)
 TestWeaveTunnelServer_LDADD              = libWeaveTestCommon.a $(COMMON_LDADD) $(TEST_PLATFORM_LDADD)
 
-
 TestWdmNext_SOURCES                      = TestWdmNext.cpp						\
                                            MockSinkTraits.cpp						\
                                            MockSourceTraits.cpp						\
                                            MockLoggingManager.cpp					\
                                            MockEvents.cpp                                               \
+                                           TestWdmSubscriptionlessNotificationSender.cpp		\
+                                           TestWdmSubscriptionlessNotificationReceiver.cpp		\
                                            schema/nest/test/trait/TestATrait.cpp			\
                                            schema/nest/test/trait/TestBTrait.cpp			\
                                            schema/nest/test/trait/TestETrait.cpp			\
@@ -1303,6 +1306,7 @@ TestWdmOneWayCommandReceiver_SOURCES     = TestWdmOneWayCommandReceiver.cpp				\
 TestWdmOneWayCommandReceiver_CPPFLAGS    = $(AM_CPPFLAGS) -I$(top_srcdir)/src/test-apps/schema
 TestWdmOneWayCommandReceiver_LDFLAGS     = $(AM_CPPFLAGS)
 TestWdmOneWayCommandReceiver_LDADD       = libWeaveTestCommon.a $(COMMON_LDADD) $(TEST_PLATFORM_LDADD)
+
 
 infratest_SOURCES                        = infratest.cpp
 infratest_LDADD                          = $(COMMON_LDADD) $(TEST_PLATFORM_LDADD)

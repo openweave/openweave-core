@@ -527,6 +527,8 @@ NL_DLL_EXPORT const char *ErrorStr(int32_t err)
     case WEAVE_ERROR_TUNNEL_RESET_RECONNECT_ALREADY_ARMED       : return WeaveFormatError(err, "The Reset reconnect timer is already armed");
     case WEAVE_ERROR_MISMATCH_UPDATE_REQUIRED_VERSION           : return WeaveFormatError(err, "Update Required Version mismatch");
     case WEAVE_ERROR_WDM_MALFORMED_STATUS_ELEMENT               : return WeaveFormatError(err, "Status Element in wdm update is malformed");
+    case WEAVE_ERROR_WDM_SUBSCRIPTIONLESS_NOTIFY_PARTIAL        : return WeaveFormatError(err, "The WDM Subscriptionless Notify is partial");
+    case WEAVE_ERROR_ACCESS_DENIED                              : return WeaveFormatError(err, "The Weave message is not granted access");
 
     // ----- ASN1 Errors -----
     case ASN1_END                                               : return ASN1FormatError(err, "End of input");

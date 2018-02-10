@@ -31,6 +31,7 @@
 #include <Weave/Profiles/common/CommonProfile.h>
 #include <Weave/Profiles/data-management/Current/WdmManagedNamespace.h>
 #include <Weave/Profiles/data-management/DataManagement.h>
+#include <Weave/Profiles/data-management/NotificationEngine.h>
 #include <Weave/Profiles/time/WeaveTime.h>
 #include <Weave/Support/crypto/WeaveCrypto.h>
 #include <Weave/Support/WeaveFaultInjection.h>
@@ -345,6 +346,11 @@ void SubscriptionEngine::UnsolicitedMessageHandler(nl::Weave::ExchangeContext * 
         break;
 #endif // WDM_ENABLE_SUBSCRIPTION_CANCEL
 
+#if WDM_ENABLE_SUBSCRIPTIONLESS_NOTIFICATION
+    case kMsgType_SubscriptionlessNotification:
+        func = OnSubscriptionlessNotification;
+        break;
+#endif // WDM_ENABLE_SUBSCRIPTIONLESS_NOTIFICATION
     default:
         break;
     }
@@ -446,6 +452,299 @@ exit:
         aEC = NULL;
     }
 }
+
+WEAVE_ERROR SubscriptionEngine::ProcessDataList(nl::Weave::TLV::TLVReader & aReader,
+                                                const TraitCatalogBase<TraitDataSink> * aCatalog,
+                                                bool & aOutIsPartialChange,
+                                                TraitDataHandle & aOutTraitDataHandle,
+                                                IDataElementAccessControlDelegate & acDelegate)
+{
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
+
+    // TODO: We currently don't support changes that span multiple notifies, nor changes
+    // that get aborted and restarted within the same notify. See WEAV-1586 for more details.
+    bool isPartialChange = false;
+    uint8_t flags;
+
+    VerifyOrExit(aCatalog != NULL, err = WEAVE_ERROR_INVALID_ARGUMENT);
+
+    while (WEAVE_NO_ERROR == (err = aReader.Next()))
+    {
+        nl::Weave::TLV::TLVReader pathReader;
+
+        {
+            DataElement::Parser element;
+
+            err = element.Init(aReader);
+            SuccessOrExit(err);
+
+            err = element.GetReaderOnPath(&pathReader);
+            SuccessOrExit(err);
+
+            isPartialChange = false;
+            err             = element.GetPartialChangeFlag(&isPartialChange);
+            VerifyOrExit(err == WEAVE_NO_ERROR || err == WEAVE_END_OF_TLV, );
+        }
+
+        TraitPath traitPath;
+        TraitDataSink * dataSink;
+        TraitDataHandle handle;
+        PropertyPathHandle pathHandle;
+        SchemaVersionRange versionRange;
+
+        err = aCatalog->AddressToHandle(pathReader, handle, versionRange);
+        SuccessOrExit(err);
+
+        err = aCatalog->Locate(handle, &dataSink);
+        SuccessOrExit(err);
+
+        err = dataSink->GetSchemaEngine()->MapPathToHandle(pathReader, pathHandle);
+#if TDM_DISABLE_STRICT_SCHEMA_COMPLIANCE
+        // if we're not in strict compliance mode, we can ignore data elements that refer to paths we can't map due to mismatching
+        // schema. The eventual call to StoreDataElement will correctly deal with the presence of a null property path handle that
+        // has been returned by the above call. It's necessary to call into StoreDataElement with this null handle to ensure
+        // the requisite OnEvent calls are made to the application despite the presence of an unknown tag. It's also necessary to
+        // ensure that we update the internal version tracked by the sink.
+        if (err == WEAVE_ERROR_TLV_TAG_NOT_FOUND)
+        {
+            WeaveLogDetail(DataManagement, "Ignoring un-mappable path!");
+            err = WEAVE_NO_ERROR;
+        }
+#endif
+        SuccessOrExit(err);
+
+        traitPath.mTraitDataHandle = aOutTraitDataHandle;
+        traitPath.mPropertyPathHandle = pathHandle;
+
+        err = acDelegate.DataElementAccessCheck(traitPath, *aCatalog);
+
+        if (err == WEAVE_ERROR_ACCESS_DENIED)
+        {
+            WeaveLogDetail(DataManagement, "Ignoring path. Subscriptionless notification not accepted by data sink.");
+
+            continue;
+        }
+        SuccessOrExit(err);
+
+        pathReader = aReader;
+        flags      = 0;
+
+#if WDM_ENABLE_PROTOCOL_CHECKS
+        // If we previously had a partial change, the current handle should match the previous one.
+        // If they don't, we have a partial change violation.
+        if (aOutIsPartialChange && (aOutTraitDataHandle != handle))
+        {
+            WeaveLogError(DataManagement, "Encountered partial change flag violation (%u, %x, %x)", aOutIsPartialChange,
+                          aOutTraitDataHandle, handle);
+            err = WEAVE_ERROR_INVALID_DATA_LIST;
+            goto exit;
+        }
+#endif
+
+        if (!aOutIsPartialChange)
+        {
+            flags = TraitDataSink::kFirstElementInChange;
+        }
+
+        if (!isPartialChange)
+        {
+            flags |= TraitDataSink::kLastElementInChange;
+        }
+
+        err = dataSink->StoreDataElement(pathHandle, pathReader, flags, NULL, NULL, handle);
+        SuccessOrExit(err);
+
+        aOutIsPartialChange = isPartialChange;
+
+#if WDM_ENABLE_PROTOCOL_CHECKS
+        aOutTraitDataHandle = handle;
+#endif
+    }
+
+    // if we have exhausted this container
+    if (WEAVE_END_OF_TLV == err)
+    {
+        err = WEAVE_NO_ERROR;
+    }
+
+exit:
+    return err;
+
+}
+
+#if WDM_ENABLE_SUBSCRIPTIONLESS_NOTIFICATION
+WEAVE_ERROR SubscriptionEngine::RegisterForSubscriptionlessNotifications(
+                     const TraitCatalogBase<TraitDataSink> * const apCatalog)
+{
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
+    mSubscriptionlessNotifySinkCatalog = apCatalog;
+
+    return err;
+}
+
+void SubscriptionEngine::OnSubscriptionlessNotification(nl::Weave::ExchangeContext * aEC, const nl::Inet::IPPacketInfo * aPktInfo,
+                                                        const nl::Weave::WeaveMessageInfo * aMsgInfo, uint32_t aProfileId, uint8_t aMsgType,
+                                                        PacketBuffer * aPayload)
+{
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
+    NotificationRequest::Parser notify;
+    nl::Weave::TLV::TLVReader reader;
+    bool isDataListPresent = false;
+    InEventParam inParam;
+    OutEventParam outParam;
+
+    SubscriptionEngine * const pEngine = reinterpret_cast<SubscriptionEngine *>(aEC->AppState);
+
+    // Send an event to the application indicating the receipt of a
+    // subscriptionless notification.
+
+    inParam.Clear();
+    outParam.Clear();
+
+    inParam.mIncomingSubscriptionlessNotification.processingError = err;
+    inParam.mIncomingSubscriptionlessNotification.mMsgInfo = aMsgInfo;
+    outParam.mIncomingSubscriptionlessNotification.mShouldContinueProcessing = true;
+
+    if (pEngine->mEventCallback)
+    {
+        pEngine->mEventCallback(pEngine->mAppState, kEvent_OnIncomingSubscriptionlessNotification, inParam, outParam);
+    }
+
+    if (!outParam.mIncomingSubscriptionlessNotification.mShouldContinueProcessing)
+    {
+        WeaveLogDetail(DataManagement, "Subscriptionless Notification not allowed");
+        ExitNow();
+    }
+
+    reader.Init(aPayload);
+
+    err = reader.Next();
+    SuccessOrExit(err);
+
+    err = notify.Init(reader);
+    SuccessOrExit(err);
+
+#if WEAVE_CONFIG_DATA_MANAGEMENT_ENABLE_SCHEMA_CHECK
+    // simple schema checking
+    err = notify.CheckSchemaValidity();
+    SuccessOrExit(err);
+#endif // WEAVE_CONFIG_DATA_MANAGEMENT_ENABLE_SCHEMA_CHECK
+
+    {
+        DataList::Parser dataList;
+
+        err = notify.GetDataList(&dataList);
+        if (WEAVE_NO_ERROR == err)
+        {
+            isDataListPresent = true;
+        }
+        else if (WEAVE_END_OF_TLV == err)
+        {
+            isDataListPresent = false;
+            err               = WEAVE_NO_ERROR;
+        }
+        SuccessOrExit(err);
+
+        // re-initialize the reader to point to individual date element (reuse to save stack depth).
+        dataList.GetReader(&reader);
+    }
+
+    if (isDataListPresent)
+    {
+        bool isPartialChange = false;
+        TraitDataHandle traitDataHandle;
+        SubscriptionlessNotifyDataElementAccessControlDelegate acDelegate(aMsgInfo);
+        IDataElementAccessControlDelegate & acDelegateRef = acDelegate;
+
+        err = ProcessDataList(reader, pEngine->mSubscriptionlessNotifySinkCatalog,
+                              isPartialChange, traitDataHandle, acDelegateRef);
+        SuccessOrExit(err);
+
+        if (isPartialChange)
+        {
+            // Subscriptionless notification should not contain partial trait
+            // data info.
+            ExitNow(err = WEAVE_ERROR_WDM_SUBSCRIPTIONLESS_NOTIFY_PARTIAL);
+        }
+    }
+
+exit:
+
+    if (NULL != aPayload)
+    {
+        PacketBuffer::Free(aPayload);
+        aPayload = NULL;
+    }
+
+    if (NULL != aEC)
+    {
+        aEC->Abort();
+        aEC = NULL;
+    }
+
+    if (pEngine->mEventCallback)
+    {
+        inParam.Clear();
+        outParam.Clear();
+
+        inParam.mIncomingSubscriptionlessNotification.processingError = err;
+        inParam.mIncomingSubscriptionlessNotification.mMsgInfo = aMsgInfo;
+        // Subscriptionless Notification completion event indication.
+        pEngine->mEventCallback(pEngine->mAppState, kEvent_SubscriptionlessNotificationProcessingComplete, inParam, outParam);
+    }
+}
+
+WEAVE_ERROR SubscriptionEngine::SubscriptionlessNotifyDataElementAccessControlDelegate::DataElementAccessCheck(const TraitPath & aTraitPath, const TraitCatalogBase<TraitDataSink> & aCatalog)
+{
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
+    TraitDataSink *dataSink;
+    InEventParam inParam;
+    OutEventParam outParam;
+    SubscriptionEngine * pEngine = SubscriptionEngine::GetInstance();
+
+    err = aCatalog.Locate(aTraitPath.mTraitDataHandle, &dataSink);
+    SuccessOrExit(err);
+
+    inParam.Clear();
+    outParam.Clear();
+
+    if (dataSink->AcceptsSubscriptionlessNotifications())
+    {
+        outParam.mDataElementAccessControlForNotification.mRejectNotification = false;
+        outParam.mDataElementAccessControlForNotification.mReason = WEAVE_NO_ERROR;
+    }
+    else
+    {
+        outParam.mDataElementAccessControlForNotification.mRejectNotification = true;
+        outParam.mDataElementAccessControlForNotification.mReason = WEAVE_ERROR_ACCESS_DENIED;
+    }
+
+    inParam.mDataElementAccessControlForNotification.mPath = &aTraitPath;
+    inParam.mDataElementAccessControlForNotification.mCatalog = &aCatalog;
+    inParam.mDataElementAccessControlForNotification.mMsgInfo = mMsgInfo;
+
+    if (NULL != pEngine->mEventCallback)
+    {
+        pEngine->mEventCallback(pEngine->mAppState, kEvent_DataElementAccessControlCheck,
+                                inParam, outParam);
+    }
+
+    // If application rejects it then deny access, else set reason to whatever
+    // reason is set by application.
+    if (outParam.mDataElementAccessControlForNotification.mRejectNotification == true)
+    {
+        err = WEAVE_ERROR_ACCESS_DENIED;
+    }
+    else
+    {
+        err = outParam.mDataElementAccessControlForNotification.mReason;
+    }
+
+exit:
+
+   return err;
+}
+#endif // WDM_ENABLE_SUBSCRIPTIONLESS_NOTIFICATION
 
 SubscriptionClient * SubscriptionEngine::FindClient(const uint64_t aPeerNodeId, const uint64_t aSubscriptionId)
 {

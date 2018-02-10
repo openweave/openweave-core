@@ -884,10 +884,23 @@ int TestTdm::BuildAndProcessNotify()
     TLVWriter writer;
     TLVReader reader;
     TLVType dummyType1, dummyType2;
-    WEAVE_ERROR err;
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
     bool neWriteInProgress = false;
+    uint32_t maxNotificationSize = 0;
+    uint32_t maxBufPayloadSize = 0;
+    uint32_t maxPayloadSize = 0;
 
-    notifyRequest.Init(&buf, &writer, mSubHandler);
+    maxNotificationSize = mSubHandler->GetMaxNotificationSize();
+
+    buf = PacketBuffer::New();
+    VerifyOrExit(buf != NULL, err = WEAVE_ERROR_NO_MEMORY);
+
+    maxBufPayloadSize   = mSubHandler->mBinding->GetMaxWeavePayloadSize(buf);
+
+    maxPayloadSize      = maxBufPayloadSize < maxNotificationSize ? maxBufPayloadSize : maxNotificationSize;
+
+    err = notifyRequest.Init(buf, &writer, mSubHandler, maxPayloadSize);
+    SuccessOrExit(err);
 
     err = mNotificationEngine->BuildSingleNotifyRequestDataList(mSubHandler, notifyRequest, isSubscriptionClean, neWriteInProgress);
     SuccessOrExit(err);

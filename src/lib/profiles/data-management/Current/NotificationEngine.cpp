@@ -722,15 +722,21 @@ void NotificationEngine::IntermediateGraphSolver::Store::Clear()
 // NotifyRequestBuilder
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-WEAVE_ERROR NotificationEngine::NotifyRequestBuilder::Init(PacketBuffer ** aBuf, TLV::TLVWriter * aWriter,
-                                                           SubscriptionHandler * aSubHandler)
+WEAVE_ERROR NotificationEngine::NotifyRequestBuilder::Init(PacketBuffer * aBuf, TLV::TLVWriter * aWriter,
+                                                           SubscriptionHandler * aSubHandler,
+                                                           uint32_t aMaxPayloadSize)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
 
-    mWriter = aWriter;
-    mState  = kNotifyRequestBuilder_Idle;
-    mBuf    = aBuf;
-    mSub    = aSubHandler;
+    VerifyOrExit(aBuf != NULL, err = WEAVE_ERROR_INVALID_ARGUMENT);
+
+    mWriter         = aWriter;
+    mState          = kNotifyRequestBuilder_Idle;
+    mBuf            = aBuf;
+    mSub            = aSubHandler;
+    mMaxPayloadSize = aMaxPayloadSize;
+
+exit:
 
     return err;
 }
@@ -740,13 +746,18 @@ WEAVE_ERROR NotificationEngine::NotifyRequestBuilder::StartNotifyRequest()
     TLVType dummyType;
     WEAVE_ERROR err = WEAVE_NO_ERROR;
 
-    VerifyOrExit((mState == kNotifyRequestBuilder_Idle) && (*mBuf != NULL), err = WEAVE_ERROR_INCORRECT_STATE);
+    VerifyOrExit((mState == kNotifyRequestBuilder_Idle) && (mBuf != NULL), err = WEAVE_ERROR_INCORRECT_STATE);
+
+    mWriter->Init(mBuf, mMaxPayloadSize);
 
     err = mWriter->StartContainer(AnonymousTag, kTLVType_Structure, dummyType);
     SuccessOrExit(err);
 
-    err = mWriter->Put(ContextTag(BaseMessageWithSubscribeId::kCsTag_SubscriptionId), mSub->mSubscriptionId);
-    SuccessOrExit(err);
+    if (mSub)
+    {
+        err = mWriter->Put(ContextTag(BaseMessageWithSubscribeId::kCsTag_SubscriptionId), mSub->mSubscriptionId);
+        SuccessOrExit(err);
+    }
 
     mState = kNotifyRequestBuilder_Ready;
 
@@ -939,26 +950,11 @@ exit:
 WEAVE_ERROR NotificationEngine::NotifyRequestBuilder::MoveToState(NotifyRequestBuilderState aDesiredState)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
-    uint32_t maxNotificationSize, maxBufPayloadSize, maxPayloadSize;
 
     // If we're already in the correct builder state, exit without doing anything else
     if (aDesiredState == mState)
     {
         ExitNow();
-    }
-
-    if (*mBuf == NULL)
-    {
-        WeaveLogDetail(DataManagement, "<NE:Run> Init InetBuf");
-        PacketBuffer * buf = PacketBuffer::New();
-        VerifyOrExit(buf != NULL, err = WEAVE_ERROR_NO_MEMORY);
-
-        *mBuf               = buf;
-        maxNotificationSize = mSub->GetMaxNotificationSize();
-        maxBufPayloadSize   = mSub->mBinding->GetMaxWeavePayloadSize(*mBuf);
-        maxPayloadSize      = maxBufPayloadSize < maxNotificationSize ? maxBufPayloadSize : maxNotificationSize;
-        mWriter->Init(*mBuf, maxPayloadSize);
-        mState = kNotifyRequestBuilder_Idle;
     }
 
     // Get to the toplevel of the request
@@ -1512,6 +1508,9 @@ WEAVE_ERROR NotificationEngine::BuildSingleNotifyRequest(SubscriptionHandler * a
     NotifyRequestBuilder notifyRequest;
     bool subClean;
     bool neWriteInProgress = false;
+    uint32_t maxNotificationSize = 0;
+    uint32_t maxBufPayloadSize = 0;
+    uint32_t maxPayloadSize = 0;
 
     aIsSubscriptionClean = true; // assume no work it to be done
 
@@ -1523,9 +1522,18 @@ WEAVE_ERROR NotificationEngine::BuildSingleNotifyRequest(SubscriptionHandler * a
         aSubscriptionHandled = false;
     }
 
-    // Create a notify request.  At this point, no memory allocation takes place.
-    // Note: The notifyRequest will allocate at most one PacketBuffer
-    notifyRequest.Init(&buf, &writer, aSubHandler);
+    maxNotificationSize = aSubHandler->GetMaxNotificationSize();
+
+    buf = PacketBuffer::New();
+    VerifyOrExit(buf != NULL, err = WEAVE_ERROR_NO_MEMORY);
+
+    maxBufPayloadSize   = aSubHandler->mBinding->GetMaxWeavePayloadSize(buf);
+
+    maxPayloadSize      = maxBufPayloadSize < maxNotificationSize ? maxBufPayloadSize : maxNotificationSize;
+
+    // Create a notify request.
+    err = notifyRequest.Init(buf, &writer, aSubHandler, maxPayloadSize);
+    SuccessOrExit(err);
 
     // Fill in the DataList.  Allocation may take place
     subClean = true;
@@ -1585,6 +1593,113 @@ exit:
 
     return err;
 }
+
+#if WDM_ENABLE_SUBSCRIPTIONLESS_NOTIFICATION
+WEAVE_ERROR NotificationEngine::SendSubscriptionlessNotification(Binding * const apBinding,
+                                                                 TraitPath *aPathList,
+                                                                 uint16_t aPathListSize)
+{
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
+    PacketBuffer * msgBuf = NULL;
+    ExchangeContext *ec = NULL;
+    uint32_t maxPayloadSize = 0;
+    uint32_t maxBufPayloadSize = 0;
+
+    VerifyOrExit(apBinding != NULL && aPathList != NULL,
+                 err = WEAVE_ERROR_INVALID_ARGUMENT);
+
+    msgBuf = PacketBuffer::New();
+    VerifyOrExit(msgBuf != NULL, err = WEAVE_ERROR_NO_MEMORY);
+
+    maxBufPayloadSize  = apBinding->GetMaxWeavePayloadSize(msgBuf);
+
+    maxPayloadSize = maxBufPayloadSize < WDM_MAX_NOTIFICATION_SIZE ? maxBufPayloadSize : WDM_MAX_NOTIFICATION_SIZE;
+
+    // Build Notify Request for subscriptionless notification
+
+    err = BuildSubscriptionlessNotification(msgBuf, maxPayloadSize, aPathList, aPathListSize);
+    SuccessOrExit(err);
+
+    err = apBinding->NewExchangeContext(ec);
+    SuccessOrExit(err);
+
+    ec->AppState          = this;
+
+    err = ec->SendMessage(nl::Weave::Profiles::kWeaveProfile_WDM, kMsgType_SubscriptionlessNotification, msgBuf);
+    msgBuf = NULL;
+    SuccessOrExit(err);
+
+    ec->Close();
+    ec = NULL;
+exit:
+
+    if (NULL != msgBuf)
+    {
+        PacketBuffer::Free(msgBuf);
+        msgBuf = NULL;
+    }
+
+    if (NULL != ec)
+    {
+        ec->Abort();
+        ec = NULL;
+    }
+
+    return err;
+}
+
+WEAVE_ERROR NotificationEngine::BuildSubscriptionlessNotification(PacketBuffer *aMsgBuf, uint32_t maxPayloadSize,
+                                                                  TraitPath *aPathList,
+                                                                  uint16_t aPathListSize)
+{
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
+    TLVWriter writer;
+    NotifyRequestBuilder notifyRequest;
+    TraitDataSource *dataSource;
+    TraitPath *currPath;
+    TraitCatalogBase<TraitDataSource> * pubCatalog;
+    SchemaVersion schemaVersion;
+
+    VerifyOrExit(aPathList != NULL, err = WEAVE_ERROR_INVALID_ARGUMENT);
+
+    currPath = aPathList;
+
+    // Get a handle of the publisher catalog
+    pubCatalog = SubscriptionEngine::GetInstance()->mPublisherCatalog;
+
+    // Create a notify request.
+    err = notifyRequest.Init(aMsgBuf, &writer, NULL, maxPayloadSize);
+    SuccessOrExit(err);
+
+    // Ensure we're in the DataList element.
+    err = notifyRequest.MoveToState(kNotifyRequestBuilder_BuildDataList);
+    SuccessOrExit(err);
+
+    // Iterate through the trait path list and populate the notifyrequest with
+    // trait instance data.
+    for (uint16_t i = 0; i < aPathListSize; i++, currPath++)
+    {
+        TraitDataHandle traitHandle = currPath->mTraitDataHandle;
+
+        // Get the max version from the datasource
+        err = pubCatalog->Locate(traitHandle, &dataSource);
+        SuccessOrExit(err);
+
+        schemaVersion = dataSource->GetSchemaEngine()->GetMaxVersion();
+
+        err = notifyRequest.WriteDataElement(traitHandle, kRootPropertyPathHandle, schemaVersion, NULL, 0, NULL, 0);
+        SuccessOrExit(err);
+    }
+
+    err = notifyRequest.MoveToState(kNotifyRequestBuilder_Idle);
+    SuccessOrExit(err);
+
+exit:
+
+    return err;
+}
+
+#endif // WDM_ENABLE_SUBSCRIPTIONLESS_NOTIFICATION
 
 void NotificationEngine::Run()
 {

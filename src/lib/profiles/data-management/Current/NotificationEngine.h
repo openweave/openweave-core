@@ -37,6 +37,18 @@ namespace Weave {
 namespace Profiles {
 namespace WeaveMakeManagedNamespaceIdentifier(DataManagement, kWeaveManagedNamespaceDesignation_Current) {
 
+/**
+ * @class IDataElementAccessControlDelegate
+ *
+ * @brief Interface that is to be implemented by a processor of data
+ * elements in a NotifyRequest
+ */
+class IDataElementAccessControlDelegate
+{
+public:
+    virtual WEAVE_ERROR DataElementAccessCheck(const TraitPath & aTraitPath, const TraitCatalogBase<TraitDataSink> & aCatalog) = 0;
+};
+
 /*
  *  @class NotificationEngine
  *
@@ -112,6 +124,10 @@ public:
 
     WEAVE_ERROR DeleteKey(TraitDataSource * aDataSource, PropertyPathHandle aPropertyHandle);
 
+#if WDM_ENABLE_SUBSCRIPTIONLESS_NOTIFICATION
+    WEAVE_ERROR SendSubscriptionlessNotification(Binding * const apBinding, TraitPath *aPathList, uint16_t aPathListSize);
+#endif // WDM_ENABLE_SUBSCRIPTIONLESS_NOTIFICATION
+
     enum NotifyRequestBuilderState
     {
         kNotifyRequestBuilder_Idle = 0,      //< The request has not been opened or has been closed and finalized
@@ -136,7 +152,8 @@ public:
          * @retval #WEAVE_NO_ERROR On success.
          * @retval other           Was unable to initialize the builder.
          */
-        WEAVE_ERROR Init(PacketBuffer ** aBuf, TLV::TLVWriter * aWriter, SubscriptionHandler * aSubHandler);
+        WEAVE_ERROR Init(PacketBuffer * aBuf, TLV::TLVWriter * aWriter, SubscriptionHandler * aSubHandler,
+                         uint32_t aMaxPayloadSize);
 
         /**
          * Start the construction of the notify.
@@ -247,8 +264,11 @@ public:
     private:
         TLV::TLVWriter * mWriter;
         NotifyRequestBuilderState mState;
-        PacketBuffer ** mBuf;
+        PacketBuffer * mBuf;
         SubscriptionHandler * mSub;
+        uint32_t mMaxNotificationSize;
+        uint32_t mMaxBufPayloadSize;
+        uint32_t mMaxPayloadSize;
     };
 
     /*
@@ -375,6 +395,10 @@ private:
 
     WEAVE_ERROR SendNotifyRequest();
 
+#if WDM_ENABLE_SUBSCRIPTIONLESS_NOTIFICATION
+    WEAVE_ERROR BuildSubscriptionlessNotification(PacketBuffer *msgBuf, uint32_t maxPayloadSize, TraitPath *aPathList,
+                                                  uint16_t aPathListSize);
+#endif // WDM_ENABLE_SUBSCRIPTIONLESS_NOTIFICATION
     uint32_t mCurSubscriptionHandlerIdx;
     uint32_t mCurTraitInstanceIdx;
     uint32_t mNumNotifiesInFlight;
