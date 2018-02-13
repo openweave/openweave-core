@@ -16,6 +16,10 @@
  *    limitations under the License.
  */
 
+#ifndef __STDC_FORMAT_MACROS
+#define __STDC_FORMAT_MACROS
+#endif // __STDC_FORMAT_MACROS
+
 #define WEAVE_CONFIG_ENABLE_FUNCT_ERROR_LOGGING 1
 
 #include <Weave/Support/CodeUtils.h>

@@ -23,6 +23,10 @@
  *
  */
 
+#ifndef __STDC_FORMAT_MACROS
+#define __STDC_FORMAT_MACROS
+#endif // __STDC_FORMAT_MACROS
+
 #include <Weave/Core/WeaveCore.h>
 #include <Weave/Core/WeaveServerBase.h>
 #include <Weave/Profiles/WeaveProfiles.h>

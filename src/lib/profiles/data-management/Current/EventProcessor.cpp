@@ -15,6 +15,11 @@
  *    See the License for the specific language governing permissions and
  *    limitations under the License.
  */
+
+#ifndef __STDC_FORMAT_MACROS
+#define __STDC_FORMAT_MACROS
+#endif // __STDC_FORMAT_MACROS
+
 #include <Weave/Profiles/data-management/Current/WdmManagedNamespace.h>
 #include <Weave/Profiles/data-management/DataManagement.h>
 
