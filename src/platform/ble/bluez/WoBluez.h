@@ -1,6 +1,6 @@
 /*
  *
- *    Copyright (c) 2017 Nest Labs, Inc.
+ *    Copyright (c) 2017-2018 Nest Labs, Inc.
  *    All rights reserved.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
@@ -54,7 +54,7 @@ void WoBLEz_IndicationConfirmation(void * user_data);
 bool WoBLEz_TimerCb(void * user_data);
 
 // Called by BlePlatformDelegate:
-bool WoBLEz_ScheduleSendIndication(void * user_data, nl::Inet::InetBuffer * msgBuf);
+bool WoBLEz_ScheduleSendIndication(void * user_data, nl::Weave::System::PacketBuffer * msgBuf);
 
 } // namespace BlueZ
 } // namespace Platform

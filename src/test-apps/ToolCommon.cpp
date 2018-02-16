@@ -1,6 +1,6 @@
 /*
  *
- *    Copyright (c) 2013-2017 Nest Labs, Inc.
+ *    Copyright (c) 2013-2018 Nest Labs, Inc.
  *    All rights reserved.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
@@ -1040,7 +1040,7 @@ void InitWeaveStack(bool listen, bool initExchangeMgr)
 
 #if CONFIG_BLE_PLATFORM_BLUEZ
     // Initialize the BleLayer object.
-    res = sBle.Init(&sBlePlatformDelegate, &sBleApplicationDelegate, &Inet);
+    res = sBle.Init(&sBlePlatformDelegate, &sBleApplicationDelegate, &SystemLayer);
 
     if (res != WEAVE_NO_ERROR)
     {

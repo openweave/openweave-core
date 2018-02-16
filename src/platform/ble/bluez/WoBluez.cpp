@@ -1,6 +1,6 @@
 /*
  *
- *    Copyright (c) 2017 Nest Labs, Inc.
+ *    Copyright (c) 2017-2018 Nest Labs, Inc.
  *    All rights reserved.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
@@ -59,12 +59,12 @@ void WoBLEz_NewConnection(void * data)
 void WoBLEz_WriteReceived(void * data, const uint8_t * value, size_t len)
 {
     // Peripheral behaviour
-    WEAVE_ERROR err                 = WEAVE_NO_ERROR;
-    nl::Inet::InetBuffer * msgBuf   = NULL;
-    nl::Weave::System::Error syserr = WEAVE_SYSTEM_NO_ERROR;
-    InEventParam * params           = NULL;
+    WEAVE_ERROR err                          = WEAVE_NO_ERROR;
+    nl::Weave::System::PacketBuffer * msgBuf = NULL;
+    nl::Weave::System::Error syserr          = WEAVE_SYSTEM_NO_ERROR;
+    InEventParam * params                    = NULL;
 
-    msgBuf = nl::Inet::InetBuffer::New();
+    msgBuf = nl::Weave::System::PacketBuffer::New();
 
     VerifyOrExit(msgBuf != NULL, err = WEAVE_ERROR_NO_MEMORY);
     VerifyOrExit(msgBuf->AvailableDataLength() >= len, err = WEAVE_ERROR_BUFFER_TOO_SMALL);
@@ -105,16 +105,16 @@ exit:
 
     if (NULL != msgBuf)
     {
-        nl::Inet::InetBuffer::Free(msgBuf);
+        nl::Weave::System::PacketBuffer::Free(msgBuf);
     }
 }
 
 int WoBLEz_SendIndication(void * aClosure)
 {
-    BluezServerEndpoint * endpoint = gBluezServerEndpoint;
-    nl::Inet::InetBuffer * msgBuf  = static_cast<nl::Inet::InetBuffer *>(aClosure);
-    uint8_t * buffer               = msgBuf->Start();
-    size_t len                     = msgBuf->DataLength();
+    BluezServerEndpoint * endpoint            = gBluezServerEndpoint;
+    nl::Weave::System::PacketBuffer * msgBuf  = static_cast<nl::Weave::System::PacketBuffer *>(aClosure);
+    uint8_t * buffer                          = msgBuf->Start();
+    size_t len                                = msgBuf->DataLength();
 #if BLE_CONFIG_BLUEZ_MTU_FEATURE
     struct iovec ioData;
 #endif // BLE_CONFIG_BLUEZ_MTU_FEATURE
@@ -138,12 +138,12 @@ int WoBLEz_SendIndication(void * aClosure)
     g_dbus_emit_property_changed(endpoint->weaveC2->dbusConn, endpoint->weaveC2->path, CHARACTERISTIC_INTERFACE, "Value");
 #endif // BLE_CONFIG_BLUEZ_MTU_FEATURE
 
-    nl::Inet::InetBuffer::Free(msgBuf);
+    nl::Weave::System::PacketBuffer::Free(msgBuf);
 
     return G_SOURCE_REMOVE;
 }
 
-bool WoBLEz_ScheduleSendIndication(void * data, nl::Inet::InetBuffer * msgBuf)
+bool WoBLEz_ScheduleSendIndication(void * data, nl::Weave::System::PacketBuffer * msgBuf)
 {
     const char * msg               = NULL;
     bool success                   = false;
@@ -164,7 +164,7 @@ exit:
 
     if (!success && msgBuf != NULL)
     {
-        nl::Inet::InetBuffer::Free(msgBuf);
+        nl::Weave::System::PacketBuffer::Free(msgBuf);
     }
 
     return success;

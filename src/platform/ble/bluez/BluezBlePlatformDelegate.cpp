@@ -1,6 +1,6 @@
 /*
  *
- *    Copyright (c) 2017 Nest Labs, Inc.
+ *    Copyright (c) 2017-2018 Nest Labs, Inc.
  *    All rights reserved.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
@@ -69,7 +69,7 @@ bool BluezBlePlatformDelegate::CloseConnection(BLE_CONNECTION_OBJECT connObj)
 }
 
 bool BluezBlePlatformDelegate::SendIndication(BLE_CONNECTION_OBJECT connObj, const nl::Ble::WeaveBleUUID * svcId,
-                                              const nl::Ble::WeaveBleUUID * charId, nl::Inet::InetBuffer * pBuf)
+                                              const nl::Ble::WeaveBleUUID * charId, nl::Weave::System::PacketBuffer * pBuf)
 {
     bool rc = true;
     WeaveLogDetail(Ble, "Start of SendIndication");
@@ -83,14 +83,14 @@ bool BluezBlePlatformDelegate::SendIndication(BLE_CONNECTION_OBJECT connObj, con
 }
 
 bool BluezBlePlatformDelegate::SendWriteRequest(BLE_CONNECTION_OBJECT connObj, const nl::Ble::WeaveBleUUID * svcId,
-                                                const nl::Ble::WeaveBleUUID * charId, nl::Inet::InetBuffer * pBuf)
+                                                const nl::Ble::WeaveBleUUID * charId, nl::Weave::System::PacketBuffer * pBuf)
 {
     WeaveLogError(Ble, "SendWriteRequest: Not implemented");
     return true;
 }
 
 bool BluezBlePlatformDelegate::SendReadRequest(BLE_CONNECTION_OBJECT connObj, const nl::Ble::WeaveBleUUID * svcId,
-                                               const nl::Ble::WeaveBleUUID * charId, nl::Inet::InetBuffer * pBuf)
+                                               const nl::Ble::WeaveBleUUID * charId, nl::Weave::System::PacketBuffer * pBuf)
 {
     WeaveLogError(Ble, "SendReadRequest: Not implemented");
     return true;

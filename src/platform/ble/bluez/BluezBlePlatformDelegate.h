@@ -1,6 +1,6 @@
 /*
  *
- *    Copyright (c) 2017 Nest Labs, Inc.
+ *    Copyright (c) 2017-2018 Nest Labs, Inc.
  *    All rights reserved.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
@@ -44,7 +44,7 @@ namespace Ble {
 namespace Platform {
 namespace BlueZ {
 
-typedef bool (*SendIndicationCallback)(void * data, nl::Inet::InetBuffer * msgBuf);
+typedef bool (*SendIndicationCallback)(void * data, nl::Weave::System::PacketBuffer * msgBuf);
 
 typedef uint16_t (*GetMTUCallback)(void * connObj);
 
@@ -90,7 +90,7 @@ struct InEventParam
         {
             const WeaveBleUUID * SvcId;
             const WeaveBleUUID * CharId;
-            nl::Inet::InetBuffer * MsgBuf;
+            nl::Weave::System::PacketBuffer * MsgBuf;
         } WriteReceived;
     };
 };
@@ -115,13 +115,13 @@ public:
     bool CloseConnection(BLE_CONNECTION_OBJECT connObj);
 
     bool SendIndication(BLE_CONNECTION_OBJECT connObj, const nl::Ble::WeaveBleUUID * svcId, const nl::Ble::WeaveBleUUID * charId,
-                        nl::Inet::InetBuffer * pBuf);
+                        nl::Weave::System::PacketBuffer * pBuf);
 
     bool SendWriteRequest(BLE_CONNECTION_OBJECT connObj, const nl::Ble::WeaveBleUUID * svcId, const nl::Ble::WeaveBleUUID * charId,
-                          nl::Inet::InetBuffer * pBuf);
+                          nl::Weave::System::PacketBuffer * pBuf);
 
     bool SendReadRequest(BLE_CONNECTION_OBJECT connObj, const nl::Ble::WeaveBleUUID * svcId, const nl::Ble::WeaveBleUUID * charId,
-                         nl::Inet::InetBuffer * pBuf);
+                         nl::Weave::System::PacketBuffer * pBuf);
 
     bool SendReadResponse(BLE_CONNECTION_OBJECT connObj, BLE_READ_REQUEST_CONTEXT requestContext,
                           const nl::Ble::WeaveBleUUID * svcId, const nl::Ble::WeaveBleUUID * charId);
