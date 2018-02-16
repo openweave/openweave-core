@@ -1800,10 +1800,6 @@ void WeaveTunnelAgent::WeaveTunnelUpNotifyAndSetState(AgentState state,
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
 
-    // Change TunnelAgent state
-
-    SetState(state);
-
     // Perform address and route additions when the Service tunnel connection
     // is established.
 
@@ -1829,13 +1825,28 @@ void WeaveTunnelAgent::WeaveTunnelUpNotifyAndSetState(AgentState state,
         Platform::EnableBorderRouting();
     }
 
-    // Add Platform Tunnel Route.
-    // The call to ServiceTunnelEstablished(..) and EnableBorderRouting() would
-    // enable a chain of events at the Thread level to setup the device as a
-    // fully functional border router.
+    if (mTunAgentState == kState_Initialized_NoTunnel)
+    {
+        // Add Platform Tunnel Route.
+        // The call to ServiceTunnelEstablished(..) and EnableBorderRouting() would
+        // enable a chain of events at the Thread level to setup the device as a
+        // fully functional border router.
 
-    Platform::ServiceTunnelEstablished(mTunEP->GetTunnelInterfaceId(),
-                                       tunMode);
+        Platform::ServiceTunnelEstablished(mTunEP->GetTunnelInterfaceId(),
+                                           tunMode);
+    }
+    else if (mTunAgentState == kState_PrimaryTunModeEstablished  ||
+             mTunAgentState == kState_BkupOnlyTunModeEstablished)
+    {
+        // If the Tunnel was already up, explicitly indicate a mode change in WARM.
+
+        Platform::ServiceTunnelModeChange(mTunEP->GetTunnelInterfaceId(),
+                                          tunMode);
+    }
+
+    // Change TunnelAgent state
+
+    SetState(state);
 
     // Check if queue is non-empty; then send queued packets through established tunnel;
     //

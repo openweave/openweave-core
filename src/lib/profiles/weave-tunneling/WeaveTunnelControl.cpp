@@ -1095,17 +1095,20 @@ exit:
 
     tunControl->FreeBufferAndCloseExchange(payload, ec);
 
-    // Reset the failed connection attempts counter as this is a fresh reconnect.
+    if (connMgr)
+    {
+        // Reset the failed connection attempts counter as this is a fresh reconnect.
 
-    connMgr->mTunFailedConnAttemptsInRow = 0;
+        connMgr->mTunFailedConnAttemptsInRow = 0;
 
-    connMgr->mTunReconnectFibonacciIndex = 0;
+        connMgr->mTunReconnectFibonacciIndex = 0;
 
-    reconnParam.PopulateReconnectParam(WEAVE_NO_ERROR);
+        reconnParam.PopulateReconnectParam(err);
 
-    connMgr->StopAndReconnectTunnelConn(reconnParam);
+        connMgr->StopAndReconnectTunnelConn(reconnParam);
 
-    tunControl->mTunnelAgent->WeaveTunnelServiceReconnectRequested(connMgr, hostName, hostPort);
+        tunControl->mTunnelAgent->WeaveTunnelServiceReconnectRequested(connMgr, hostName, hostPort);
+    }
 
     return;
 }
