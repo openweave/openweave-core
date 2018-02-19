@@ -944,17 +944,29 @@ WEAVE_ERROR WeaveSecurityManager::StartCASESession(WeaveConnection *con, uint64_
         sessionKey = FabricState->FindSharedSession(terminatingNodeId, requestedAuthMode, encType);
         if (sessionKey != NULL)
         {
-            // Add a new end node to the list of end nodes associated with the session.
-            err = FabricState->AddSharedSessionEndNode(sessionKey, peerNodeId);
-            SuccessOrExit(err);
+            // Ensure that the shared session is NOT currently in the process of being established.
+            // This situation can arise when establishing CASE over Weave Reliable Messaging.  After
+            // the initiator has sent a KeyConfirm message it waits for a WRM ACK from the responder.
+            // During this time, the session exists in the session table but is not yet considered
+            // ready for use.  Until the ACK is received, additional requests to establish the same
+            // shared session should be denied with a SECURITY_MANAGER_BUSY error, which will force
+            // the concurrent request to wait until the session is fully established.
+            //
+            // If the located shared session is NOT in the process of being established...
+            if (State != kState_CASEInProgress || mEC->PeerNodeId != terminatingNodeId || mSessionKeyId != sessionKey->MsgEncKey.KeyId)
+            {
+                // Add a new end node to the list of end nodes associated with the session.
+                err = FabricState->AddSharedSessionEndNode(sessionKey, peerNodeId);
+                SuccessOrExit(err);
 
-            // Add a reservation for the session.
-            ReserveSessionKey(sessionKey);
+                // Add a reservation for the session.
+                ReserveSessionKey(sessionKey);
 
-            // Immediately notify the application that the session has been established.
-            onComplete(this, con, reqState, sessionKey->MsgEncKey.KeyId, peerNodeId, encType);
+                // Immediately notify the application that the session has been established.
+                onComplete(this, con, reqState, sessionKey->MsgEncKey.KeyId, peerNodeId, encType);
 
-            ExitNow();
+                ExitNow();
+            }
         }
     }
 
