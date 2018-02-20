@@ -118,14 +118,6 @@ _Static_assert ((PBUF_CUSTOM_POOL_IDX_START > PBUF_CUSTOM_POOL_IDX_END), "PBUF_C
 #define MEMP_PBUF_POOL_HIGHWATERMARK(type) (type)
 #endif
 
-/** This array holds a textual description of each pool. */
-#ifdef LWIP_DEBUG
-static const char *memp_desc[MEMP_MAX] = {
-#define LWIP_MEMPOOL(name,num,size,desc)  (desc),
-#include "lwip/priv/memp_std.h"
-};
-#endif /* LWIP_DEBUG */
-
 #if MEMP_SANITY_CHECK && !MEMP_MEM_MALLOC
 /**
  * Check that memp-lists don't form a circle, using "Floyd's cycle-finding algorithm".
@@ -498,14 +490,14 @@ memp_malloc_fn(memp_t type, const char* file, const int line)
 
 #if (MEMP_DEBUG | LWIP_DBG_TRACE)
   if (!memp) {
-    LWIP_DEBUGF(MEMP_DEBUG | LWIP_DBG_TRACE, ("mm: out-of-mem in %s\n", memp_desc[type]));
+    LWIP_DEBUGF(MEMP_DEBUG | LWIP_DBG_TRACE, ("mm: out-of-mem in %s\n", memp_pools[type]->desc));
     if (LWIP_PERF && MEMP_IS_PBUF_POOL(type)) {
       sys_profile_interval_set_pbuf_highwatermark(memp_sizes[type] + 1, MEMP_PBUF_POOL_HIGHWATERMARK(type));
     }
   }
   else {
     if (LWIP_PERF && MEMP_IS_PBUF_POOL(type)) {
-      LWIP_DEBUGF(MEMP_DEBUG | LWIP_DBG_TRACE, ("mm:p++ = %d (%08x) (%s)\n", *num_used_pool_ptr, memp, memp_desc[type]));
+      LWIP_DEBUGF(MEMP_DEBUG | LWIP_DBG_TRACE, ("mm:p++ = %d (%p) (%s)\n", *num_used_pool_ptr, memp, memp_pools[type]->desc));
       sys_profile_interval_set_pbuf_highwatermark((u32_t)(*num_used_pool_ptr), MEMP_PBUF_POOL_HIGHWATERMARK(type));
     }
   }
@@ -617,7 +609,7 @@ memp_free(memp_t type, void *mem)
 
 #if (MEMP_DEBUG | LWIP_DBG_TRACE)
   if (LWIP_PERF && MEMP_IS_PBUF_POOL(type)) {
-    LWIP_DEBUGF(MEMP_DEBUG | LWIP_DBG_TRACE, ("mf:p-- = %d (%08x) (%s)\n", *num_used_pool_ptr, mem, memp_desc[type]));
+    LWIP_DEBUGF(MEMP_DEBUG | LWIP_DBG_TRACE, ("mf:p-- = %d (%p) (%s)\n", *num_used_pool_ptr, mem, memp_pools[type]->desc));
     sys_profile_interval_set_pbuf_highwatermark((u32_t)(*num_used_pool_ptr), MEMP_PBUF_POOL_HIGHWATERMARK(type));
   }
 #endif
