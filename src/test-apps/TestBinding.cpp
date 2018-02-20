@@ -68,14 +68,16 @@ public:
         defaultCheckDelivered = false;
     }
 
-    void Run();
+    void Start(uint32_t startDelay);
 
 private:
+    void DoStart();
     void PrepareBinding();
     void SendEcho();
     void Complete();
     void Failed(WEAVE_ERROR err, const char *desc);
 
+    static void AsyncDoStart(System::Layer* aLayer, void* aAppState, System::Error aError);
     static void DoOnDemandPrepare(System::Layer* aLayer, void* aAppState, System::Error aError);
     static void BindingEventCallback(void *apAppState, Binding::EventType aEvent, const Binding::InEventParam& aInParam, Binding::OutEventParam& aOutParam);
     static void SendDelayComplete(System::Layer* aLayer, void* aAppState, System::Error aError);
@@ -102,6 +104,7 @@ static uint32_t gTestCount = 1;
 static uint32_t gEchoCount = 5;
 static uint32_t gEchoSendDelay = 100; // in ms
 static uint32_t gEchoResponseTimeout = 5000; // in ms
+static uint32_t gStartDelay = 0; // in ms
 static bool gOnDemandPrepare = false;
 static bool gCloseBindingDuringRequest = false;
 
@@ -114,6 +117,7 @@ enum
     kToolOpt_EchoCount               = 1000,
     kToolOpt_EchoResponseTimeout     = 1001,
     kToolOpt_OnDemandPrepare         = 1002,
+    kToolOpt_StartDelay              = 1003,
 };
 
 static OptionDef gToolOptionDefs[] =
@@ -123,6 +127,7 @@ static OptionDef gToolOptionDefs[] =
     { "echo-count",             kArgumentRequired, kToolOpt_EchoCount           },
     { "resp-timeout",           kArgumentRequired, kToolOpt_EchoResponseTimeout },
     { "on-demand-prepare",      kNoArgument,       kToolOpt_OnDemandPrepare     },
+    { "start-delay",            kArgumentRequired, kToolOpt_StartDelay          },
     { "dest-addr",              kArgumentRequired, 'D'                          },
     { "tcp",                    kNoArgument,       't'                          },
     { "udp",                    kNoArgument,       'u'                          },
@@ -151,6 +156,13 @@ static const char *const gToolOptionHelp =
     "\n"
     "  --on-demand-prepare\n"
     "       Test the \"on demand\" prepare pattern using the Binding::RequestPrepare() method.\n"
+    "\n"
+    "  --start-delay <ms>\n"
+    "       The amount of time to wait between performing test sequences. In sequential mode\n"
+    "       this value governs the time between the end of one test sequence and the start of\n"
+    "       the next. In simultaneous mode, this value governs the time between the initiation\n"
+    "       of individual test sequences, which may overlap in execution thereafter.\n"
+    "       Defaults to 0 ms.\n"
     "\n"
     "  -D, --dest-addr <ip-addr>[:<port>][%<interface>]\n"
     "       Send echo requests to the peer at the specific address, port and interface.\n"
@@ -347,6 +359,13 @@ bool HandleOption(const char *progName, OptionSet *optSet, int id, const char *n
     case kToolOpt_OnDemandPrepare:
         gOnDemandPrepare = true;
         break;
+    case kToolOpt_StartDelay:
+        if (!ParseInt(arg, gStartDelay))
+        {
+            PrintArgError("%s: Invalid value specified for start delay: %s\n", progName, arg);
+            return false;
+        }
+        break;
     case 't':
         gUseTCP = true;
         gUseUDP = false;
@@ -449,19 +468,37 @@ void StartTest()
     {
     case kTestMode_Sequential:
         bindingProc = new BindingTestDriver();
-        bindingProc->Run();
+        bindingProc->Start(0);
         break;
     case kTestMode_Simultaneous:
         for (uint32_t i = 0; i < gTestCount; i++)
         {
             bindingProc = new BindingTestDriver();
-            bindingProc->Run();
+            bindingProc->Start(gStartDelay * i);
         }
         break;
     }
 }
 
-void BindingTestDriver::Run()
+void BindingTestDriver::Start(uint32_t startDelay)
+{
+    if (startDelay == 0)
+    {
+        DoStart();
+    }
+    else
+    {
+        SystemLayer.StartTimer(startDelay, AsyncDoStart, this);
+    }
+}
+
+void BindingTestDriver::AsyncDoStart(System::Layer* aLayer, void* aAppState, System::Error aError)
+{
+    BindingTestDriver *_this = (BindingTestDriver *)aAppState;
+    _this->DoStart();
+}
+
+void BindingTestDriver::DoStart()
 {
     gTestDriversStarted++;
     gTestDriversActive++;
@@ -725,7 +762,7 @@ void BindingTestDriver::Complete()
         if (gTestDriversStarted < gTestCount)
         {
             BindingTestDriver *testDriver = new BindingTestDriver();
-            testDriver->Run();
+            testDriver->Start(gStartDelay);
         }
         else
         {
@@ -733,7 +770,7 @@ void BindingTestDriver::Complete()
         }
         break;
     case kTestMode_Simultaneous:
-        if (gTestDriversActive == 0)
+        if (gTestDriversStarted == gTestCount && gTestDriversActive == 0)
         {
             Done = true;
         }
