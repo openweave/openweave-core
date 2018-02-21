@@ -1352,35 +1352,36 @@ dns_recv(void *arg, struct udp_pcb *pcb, struct pbuf *p, const ip_addr_t *addr, 
     txid = lwip_htons(hdr.id);
     for (i = 0; i < DNS_TABLE_SIZE; i++) {
       struct dns_table_entry *entry = &dns_table[i];
-      if(entry->state == DNS_STATE_UNANSWERED) {
-        LWIP_DEBUGF(DNS_DEBUG, ("dns_recv: late answer, putting in cache\n"));
-        entry->state = DNS_STATE_ASKING;
-        entry->txid = txid;
-        entry->tmr = 1;
-        was_unanswered = 1;
-      }
-      if ((entry->state == DNS_STATE_ASKING) &&
-          (entry->txid == txid)) {
 
-        found = 1;
+      if (entry->txid == txid) {
+        if (entry->state == DNS_STATE_UNANSWERED) {
+          LWIP_DEBUGF(DNS_DEBUG, ("dns_recv: late answer, putting in cache\n"));
+          entry->state = DNS_STATE_ASKING;
+          entry->tmr = 1;
+          was_unanswered = 1;
+        }
 
-        /* We only care about the question(s) and the answers. The authrr
-           and the extrarr are simply discarded. */
-        nquestions = lwip_htons(hdr.numquestions);
-        nanswers   = lwip_htons(hdr.numanswers);
+        if (entry->state == DNS_STATE_ASKING) {
+          found = 1;
 
-        /* Check for error. If so, call callback to inform. */
-        if (((hdr.flags1 & DNS_FLAG1_RESPONSE) == 0) || (entry->err != 0) || (nquestions != 1)) {
-          LWIP_DEBUGF(DNS_DEBUG, ("dns_recv: \"%s\": error in flags\n", entry->name));
-          if (!was_unanswered) {
-            /* call callback to indicate error, clean up memory and return */
-            if (dns_retry_pending(entry)) {
-              entry->state = DNS_STATE_ASKING;
-            } else {
-              dns_call_found(i, NULL);
+          /* We only care about the question(s) and the answers. The authrr
+             and the extrarr are simply discarded. */
+          nquestions = lwip_htons(hdr.numquestions);
+          nanswers   = lwip_htons(hdr.numanswers);
+
+          /* Check for error. If so, call callback to inform. */
+          if (((hdr.flags1 & DNS_FLAG1_RESPONSE) == 0) || (entry->err != 0) || (nquestions != 1)) {
+            LWIP_DEBUGF(DNS_DEBUG, ("dns_recv: \"%s\": error in flags\n", entry->name));
+            if (!was_unanswered) {
+              /* call callback to indicate error, clean up memory and return */
+              if (dns_retry_pending(entry)) {
+                entry->state = DNS_STATE_ASKING;
+              } else {
+                dns_call_found(i, NULL);
+              }
             }
+            goto memerr;
           }
-          goto memerr;
         }
 
 #if LWIP_DNS_SUPPORT_MDNS_QUERIES
