@@ -325,6 +325,16 @@ public:
     void Abort(void);
     void Release(void);
     WEAVE_ERROR StartTimerT(void);
+
+    enum
+    {
+        kGetPeerDescription_MaxLength = nl::Weave::kWeavePeerDescription_MaxLength,
+                                                             /**< Maximum length of string (including NUL character)
+                                                                  returned by GetPeerDescription(). */
+    };
+
+    void GetPeerDescription(char * buf, uint32_t bufSize) const;
+
 private:
     PacketBuffer *msg;                            // If we are re-transmitting, then this is the pointer to the message being retransmitted
     // Trickle-controlled retransmissions:

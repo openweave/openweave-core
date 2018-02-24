@@ -24,6 +24,7 @@
 
 #include <Weave/Support/NLDLLUtil.h>
 
+#include <Weave/Core/WeaveCore.h>
 #include "WeaveMessageLayer.h"
 #include "WeaveFabricState.h"
 #include "WeaveExchangeMgr.h"

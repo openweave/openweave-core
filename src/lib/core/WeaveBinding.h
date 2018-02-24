@@ -190,6 +190,15 @@ public:
     void SetEventCallback(EventCallback aEventCallback);
     WeaveConnection *GetConnection() const;
 
+    enum
+    {
+        kGetPeerDescription_MaxLength = nl::Weave::kWeavePeerDescription_MaxLength,
+                                                             /**< Maximum length of string (including NUL character)
+                                                                  returned by GetPeerDescription(). */
+    };
+
+    void GetPeerDescription(char * buf, uint32_t bufSize) const;
+
     void GetProtocolLayerCallback(EventCallback& callback, void *& state) const;
     void SetProtocolLayerCallback(EventCallback callback, void *state);
 

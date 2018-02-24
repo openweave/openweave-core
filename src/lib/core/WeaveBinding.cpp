@@ -743,12 +743,9 @@ void Binding::HandleBindingReady()
 
 #if WEAVE_DETAIL_LOGGING
     {
-        char ipAddrBuf[64];
-        char intfBuf[64];
-        char transportBuf[20];
+        char peerDesc[kGetPeerDescription_MaxLength];
         const char *transport;
-        mPeerAddress.ToString(ipAddrBuf, sizeof(ipAddrBuf));
-        nl::Inet::GetInterfaceName(mInterfaceId, intfBuf, sizeof(intfBuf));
+        GetPeerDescription(peerDesc, sizeof(peerDesc));
         switch (mTransportOption)
         {
         case kTransport_UDP:
@@ -771,17 +768,13 @@ void Binding::HandleBindingReady()
                 transport = "Unknown";
                 break;
             }
-            snprintf(transportBuf, sizeof(transportBuf), "%s (%04" PRIX16 ")", transport, mCon->LogId());
-            transport = transportBuf;
             break;
         default:
             transport = "Unknown";
             break;
         }
-        WeaveLogDetail(ExchangeManager, "Binding[%" PRIu8 "] (%" PRIu16 "): Ready, peer %016" PRIX64 " @ [%s]:%" PRId16 " (%s) via %s",
-                GetLogId(), mRefCount, mPeerNodeId, ipAddrBuf, mPeerPort,
-                (mInterfaceId != INET_NULL_INTERFACEID) ? intfBuf : "default",
-                transport);
+        WeaveLogDetail(ExchangeManager, "Binding[%" PRIu8 "] (%" PRIu16 "): Ready, peer %s via %s",
+                GetLogId(), mRefCount, peerDesc, transport);
     }
 #endif // WEAVE_DETAIL_LOGGING
 
@@ -1114,6 +1107,22 @@ uint32_t Binding::GetMaxWeavePayloadSize(const System::PacketBuffer *msgBuf)
     //       instead of using the default value directly.
     bool isUDP = (mTransportOption == kTransport_UDP || mTransportOption == kTransport_UDP_WRM);
     return WeaveMessageLayer::GetMaxWeavePayloadSize(msgBuf, isUDP, mUDPPathMTU);
+}
+
+/**
+ * Constructs a string describing the peer node and its associated address / connection information.
+ *
+ * @param[in] buf                       A pointer to a buffer into which the string should be written. The supplied
+ *                                      buffer should be at least as big as kGetPeerDescription_MaxLength. If a
+ *                                      smaller buffer is given the string will be truncated to fit. The output
+ *                                      will include a NUL termination character in all cases.
+ * @param[in] bufSize                   The size of the buffer pointed at by buf.
+ */
+void Binding::GetPeerDescription(char *buf, uint32_t bufSize) const
+{
+    WeaveMessageLayer::GetPeerDescription(buf, bufSize, mPeerNodeId,
+            (mPeerAddress != nl::Inet::IPAddress::Any) ? &mPeerAddress : NULL,
+            mPeerPort, mInterfaceId, mCon);
 }
 
 /**

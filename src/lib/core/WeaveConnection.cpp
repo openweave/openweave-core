@@ -455,6 +455,23 @@ WEAVE_ERROR WeaveConnection::GetPeerAddressInfo(IPPacketInfo& addrInfo)
     return WEAVE_NO_ERROR;
 }
 
+/**
+ * Constructs a string describing the peer node associated with the connection.
+ *
+ * @param[in] buf                       A pointer to a buffer into which the string should be written. The supplied
+ *                                      buffer should be at least as big as kGetPeerDescription_MaxLength. If a
+ *                                      smaller buffer is given the string will be truncated to fit. The output
+ *                                      will include a NUL termination character in all cases.
+ * @param[in] bufSize                   The size of the buffer pointed at by buf.
+ */
+void WeaveConnection::GetPeerDescription(char * buf, size_t bufSize) const
+{
+    WeaveMessageLayer::GetPeerDescription(buf, bufSize, PeerNodeId,
+            (NetworkType == kNetworkType_IP) ? &PeerAddr : NULL,
+            (NetworkType == kNetworkType_IP) ? PeerPort : 0,
+            INET_NULL_INTERFACEID,
+            this);
+}
 
 #if WEAVE_CONFIG_ENABLE_TUNNELING
 /**

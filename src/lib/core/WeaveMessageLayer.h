@@ -53,6 +53,13 @@ class StatusReport;
 }
 }
 
+
+enum
+{
+    kWeavePeerDescription_MaxLength = 100,  /**< Maximum length of string (including NUL character) returned by WeaveMessageLayer::GetPeerDescription(). */
+};
+
+
 /**
  *  @brief
  *    Definitions pertaining to the header of an encoded Weave message.
@@ -250,6 +257,15 @@ public:
 
     WEAVE_ERROR GetPeerAddressInfo(IPPacketInfo& addrInfo);
 
+    enum
+    {
+        kGetPeerDescription_MaxLength = nl::Weave::kWeavePeerDescription_MaxLength,
+                                                        /**< Maximum length of string (including NUL character) returned
+                                                             by GetPeerDescription(). */
+    };
+
+    void GetPeerDescription(char * buf, size_t bufSize) const;
+
     WEAVE_ERROR SendMessage(WeaveMessageInfo *msgInfo, PacketBuffer *msgBuf);
 #if WEAVE_CONFIG_ENABLE_TUNNELING
 /**
@@ -278,7 +294,7 @@ public:
 
     WEAVE_ERROR SetUserTimeout(uint32_t userTimeoutMillis);
     WEAVE_ERROR ResetUserTimeout(void);
-    uint16_t LogId(void) { return static_cast<uint16_t>(reinterpret_cast<intptr_t>(this)); }
+    uint16_t LogId(void) const { return static_cast<uint16_t>(reinterpret_cast<intptr_t>(this)); }
 
     /**
      *  This function is the application callback that is invoked when a connection setup is complete.
@@ -654,6 +670,9 @@ public:
 
     static uint32_t GetMaxWeavePayloadSize(const PacketBuffer *msgBuf, bool isUDP, uint32_t udpMTU);
 
+    static void GetPeerDescription(char *buf, size_t bufSize, uint64_t nodeId, const IPAddress *addr, uint16_t port, InterfaceId interfaceId, const WeaveConnection *con);
+    static void GetPeerDescription(char *buf, size_t bufSize, const WeaveMessageInfo *msgInfo);
+
 private:
     enum
     {
@@ -846,13 +865,24 @@ typedef enum WeaveSubnetId
     kWeaveSubnetId_ThreadMesh                           = 6, /**< The Thread mesh radio interface subnet identifier. */
 } WeaveSubnetId;
 
+#define WEAVE_MAX_NODE_ADDR_STR_LENGTH (nl::Weave::kWeavePeerDescription_MaxLength)
+#define WEAVE_MAX_MESSAGE_SOURCE_STR_LENGTH (nl::Weave::kWeavePeerDescription_MaxLength)
 
+/**
+ * DEPRECATED -- Use WeaveMessageLayer::GetPeerDescription() instead.
+ */
+inline void WeaveNodeAddrToStr(char *buf, uint32_t bufSize, uint64_t nodeId, const IPAddress *addr, uint16_t port, WeaveConnection *con)
+{
+    WeaveMessageLayer::GetPeerDescription(buf, (size_t)bufSize, nodeId, addr, port, INET_NULL_INTERFACEID, con);
+}
 
-#define WEAVE_MAX_NODE_ADDR_STR_LENGTH 80
-#define WEAVE_MAX_MESSAGE_SOURCE_STR_LENGTH WEAVE_MAX_NODE_ADDR_STR_LENGTH
-
-extern void WeaveNodeAddrToStr(char *buf, uint32_t bufSize, uint64_t nodeId, const IPAddress *addr, uint16_t port, WeaveConnection *con);
-extern void WeaveMessageSourceToStr(char *buf, uint32_t bufSize, const WeaveMessageInfo *msgInfo);
+/**
+ * DEPRECATED -- Use WeaveMessageLayer::GetPeerDescription() instead.
+ */
+inline void WeaveMessageSourceToStr(char *buf, uint32_t bufSize, const WeaveMessageInfo *msgInfo)
+{
+    WeaveMessageLayer::GetPeerDescription(buf, (size_t)bufSize, msgInfo);
+}
 
 } // namespace nl
 } // namespace Weave

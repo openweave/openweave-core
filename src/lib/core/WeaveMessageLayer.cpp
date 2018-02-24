@@ -36,6 +36,7 @@
 #include <string.h>
 #include <errno.h>
 
+#include <Weave/Core/WeaveCore.h>
 #include <Weave/Core/WeaveMessageLayer.h>
 #include <Weave/Core/WeaveExchangeMgr.h>
 #include <Weave/Core/WeaveEncoding.h>
@@ -2361,32 +2362,46 @@ uint32_t WeaveMessageLayer::GetMaxWeavePayloadSize(const PacketBuffer *msgBuf, b
 }
 
 /**
- * Constructs a string containing a Weave node id and associated address / connection information.
+ * Constructs a string describing a peer node and its associated address / connection information.
  *
  * The generated string has the following format:
  *
- *     <node-id> ([<ip-address>]:<port>, con <con-id>)
+ *     <node-id> ([<ip-address>]:<port>%<interface>, con <con-id>)
  *
- * @param[in] buf                       A pointer to a buffer into which the string should be written.  The output
- *                                      will include a nul termination character.  The supplied buffer should be at
- *                                      least as big as WEAVE_MAX_NODE_ADDR_STR_LENGTH.  If the buffer is smaller
- *                                      than that size the string will be truncated to fit.
+ * @param[in] buf                       A pointer to a buffer into which the string should be written. The supplied
+ *                                      buffer should be at least as big as kWeavePeerDescription_MaxLength. If a
+ *                                      smaller buffer is given the string will be truncated to fit. The output
+ *                                      will include a NUL termination character in all cases.
  * @param[in] bufSize                   The size of the buffer pointed at by buf.
  * @param[in] nodeId                    The node id to be printed.
- * @param[in] addr                      A pointer to an IP address to be printed; or NULL if no IP address should be printed.
- * @param[in] port                      An IP port number to be printed. No port number will be printed if addr is NULL.
- * @param[in] con                       A pointer to a WeaveConnection object whose logging id should be printed; or NULL
- *                                      if no connection id should be printed.
+ * @param[in] addr                      A pointer to an IP address to be printed; or NULL if no IP address should
+ *                                      be printed.
+ * @param[in] port                      An IP port number to be printed. No port number will be printed if addr
+ *                                      is NULL.
+ * @param[in] interfaceId               An InterfaceId identifying the interface to be printed. The output string
+ *                                      will contain the name of the interface as known to the underlying network
+ *                                      stack. No interface name will be printed if interfaceId is INET_NULL_INTERFACEID
+ *                                      or if addr is NULL.
+ * @param[in] con                       A pointer to a WeaveConnection object whose logging id should be printed;
+ *                                      or NULL if no connection id should be printed.
  */
-void WeaveNodeAddrToStr(char *buf, uint32_t bufSize, uint64_t nodeId, const IPAddress *addr, uint16_t port, WeaveConnection *con)
+void WeaveMessageLayer::GetPeerDescription(char * buf, size_t bufSize, uint64_t nodeId,
+    const IPAddress * addr, uint16_t port, InterfaceId interfaceId, const WeaveConnection * con)
 {
+    enum { kMaxInterfaceNameLength = 20 }; // Arbitrarily capped at 20 characters so long interface
+                                           // names do not blow out the available space.
+
     uint32_t len;
-    bool needSep = false;
+    const char * sep = "";
 
     if (nodeId != kNodeIdNotSpecified)
+    {
         len = snprintf(buf, bufSize, "%" PRIX64 " (", nodeId);
+    }
     else
+    {
         len = snprintf(buf, bufSize, "unknown (");
+    }
     VerifyOrExit(len < bufSize, /* no-op */);
 
     if (addr != NULL)
@@ -2405,38 +2420,65 @@ void WeaveNodeAddrToStr(char *buf, uint32_t bufSize, uint64_t nodeId, const IPAd
         {
             len += snprintf(buf + len, bufSize - len, "]");
         }
-
         VerifyOrExit(len < bufSize, /* no-op */);
 
-        needSep = true;
+        if (interfaceId != INET_NULL_INTERFACEID)
+        {
+            char interfaceName[kMaxInterfaceNameLength+1];
+            Inet::GetInterfaceName(interfaceId, interfaceName, sizeof(interfaceName));
+            interfaceName[kMaxInterfaceNameLength] = 0;
+            len += snprintf(buf + len, bufSize - len, "%%%s", interfaceName);
+            VerifyOrExit(len < bufSize, /* no-op */);
+        }
+
+        sep = ", ";
     }
 
     if (con != NULL)
     {
-        len += snprintf(buf + len, bufSize - len, "%scon %04" PRIX16, (needSep) ? ", " : "", con->LogId());
+        const char *conType;
+        switch (con->NetworkType)
+        {
+        case WeaveConnection::kNetworkType_BLE:
+            conType = "ble ";
+            break;
+        case WeaveConnection::kNetworkType_IP:
+        default:
+            conType = "";
+            break;
+        }
+
+        len += snprintf(buf + len, bufSize - len, "%s%scon %04" PRIX16, sep, conType, con->LogId());
         VerifyOrExit(len < bufSize, /* no-op */);
     }
 
     snprintf(buf + len, bufSize - len, ")");
 
 exit:
+    if (bufSize > 0)
+    {
+        buf[bufSize - 1] = 0;
+    }
     return;
 }
 
 /**
- * Constructs a string describing the source of a received Weave message.
+ * Constructs a string describing a peer node based on the information associated with a message received from the peer.
  *
- * @param[in] buf                       A pointer to a buffer into which the string should be written.  The size
- *                                      of the supplied buffer should be at least as big as WEAVE_MAX_MESSAGE_SOURCE_STR_LENGTH.
+ * @param[in] buf                       A pointer to a buffer into which the string should be written. The supplied
+ *                                      buffer should be at least as big as kWeavePeerDescription_MaxLength. If a
+ *                                      smaller buffer is given the string will be truncated to fit. The output
+ *                                      will include a NUL termination character in all cases.
  * @param[in] bufSize                   The size of the buffer pointed at by buf.
- * @param[in] msgInfo                   A pointer to a WeaveMessageInfo structure containing inforamtion about the message.
+ * @param[in] msgInfo                   A pointer to a WeaveMessageInfo structure containing information about the message.
  *
  */
-void WeaveMessageSourceToStr(char *buf, uint32_t bufSize, const WeaveMessageInfo *msgInfo)
+void WeaveMessageLayer::GetPeerDescription(char * buf, size_t bufSize, const WeaveMessageInfo * msgInfo)
 {
-    WeaveNodeAddrToStr(buf, bufSize, msgInfo->SourceNodeId,
+    GetPeerDescription(buf, bufSize, msgInfo->SourceNodeId,
         (msgInfo->InPacketInfo != NULL) ? &msgInfo->InPacketInfo->SrcAddress : NULL,
         (msgInfo->InPacketInfo != NULL) ? msgInfo->InPacketInfo->SrcPort : 0,
+        (msgInfo->InPacketInfo != NULL) ? msgInfo->InPacketInfo->Interface : INET_NULL_INTERFACEID,
         msgInfo->InCon);
 }
 
