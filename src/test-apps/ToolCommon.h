@@ -56,7 +56,6 @@
 #include <SystemLayer/SystemLayer.h>
 #include <InetLayer/InetLayer.h>
 #include <Weave/Core/WeaveCore.h>
-#include <Weave/Profiles/echo/WeaveEcho.h>
 #include <Weave/Support/CodeUtils.h>
 #include <Weave/Support/ErrorStr.h>
 #include <Weave/Core/WeaveStats.h>

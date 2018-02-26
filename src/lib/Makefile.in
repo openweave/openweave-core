@@ -510,8 +510,10 @@ am__libWeave_a_SOURCES_DIST =  \
 	@top_builddir@/src/lib/profiles/device-description/DeviceDescription.cpp \
 	@top_builddir@/src/lib/profiles/device-description/DeviceDescriptionClient.cpp \
 	@top_builddir@/src/lib/profiles/device-description/DeviceDescriptionServer.cpp \
-	@top_builddir@/src/lib/profiles/echo/WeaveEchoClient.cpp \
-	@top_builddir@/src/lib/profiles/echo/WeaveEchoServer.cpp \
+	@top_builddir@/src/lib/profiles/echo/Current/WeaveEchoClient.cpp \
+	@top_builddir@/src/lib/profiles/echo/Current/WeaveEchoServer.cpp \
+	@top_builddir@/src/lib/profiles/echo/Next/WeaveEchoClient.cpp \
+	@top_builddir@/src/lib/profiles/echo/Next/WeaveEchoServer.cpp \
 	@top_builddir@/src/lib/profiles/fabric-provisioning/FabricProvisioning.cpp \
 	@top_builddir@/src/lib/profiles/heartbeat/WeaveHeartbeatReceiver.cpp \
 	@top_builddir@/src/lib/profiles/heartbeat/WeaveHeartbeatSender.cpp \
@@ -703,8 +705,10 @@ am__objects_20 = @top_builddir@/src/lib/profiles/bulk-data-transfer/libWeave_a-B
 	@top_builddir@/src/lib/profiles/device-description/libWeave_a-DeviceDescription.$(OBJEXT) \
 	@top_builddir@/src/lib/profiles/device-description/libWeave_a-DeviceDescriptionClient.$(OBJEXT) \
 	@top_builddir@/src/lib/profiles/device-description/libWeave_a-DeviceDescriptionServer.$(OBJEXT) \
-	@top_builddir@/src/lib/profiles/echo/libWeave_a-WeaveEchoClient.$(OBJEXT) \
-	@top_builddir@/src/lib/profiles/echo/libWeave_a-WeaveEchoServer.$(OBJEXT) \
+	@top_builddir@/src/lib/profiles/echo/Current/libWeave_a-WeaveEchoClient.$(OBJEXT) \
+	@top_builddir@/src/lib/profiles/echo/Current/libWeave_a-WeaveEchoServer.$(OBJEXT) \
+	@top_builddir@/src/lib/profiles/echo/Next/libWeave_a-WeaveEchoClient.$(OBJEXT) \
+	@top_builddir@/src/lib/profiles/echo/Next/libWeave_a-WeaveEchoServer.$(OBJEXT) \
 	@top_builddir@/src/lib/profiles/fabric-provisioning/libWeave_a-FabricProvisioning.$(OBJEXT) \
 	@top_builddir@/src/lib/profiles/heartbeat/libWeave_a-WeaveHeartbeatReceiver.$(OBJEXT) \
 	@top_builddir@/src/lib/profiles/heartbeat/libWeave_a-WeaveHeartbeatSender.$(OBJEXT) \
@@ -1185,8 +1189,10 @@ nl_WeaveProfiles_sources = @top_builddir@/src/lib/profiles/bulk-data-transfer/Bu
 	@top_builddir@/src/lib/profiles/device-description/DeviceDescription.cpp \
 	@top_builddir@/src/lib/profiles/device-description/DeviceDescriptionClient.cpp \
 	@top_builddir@/src/lib/profiles/device-description/DeviceDescriptionServer.cpp \
-	@top_builddir@/src/lib/profiles/echo/WeaveEchoClient.cpp \
-	@top_builddir@/src/lib/profiles/echo/WeaveEchoServer.cpp \
+	@top_builddir@/src/lib/profiles/echo/Current/WeaveEchoClient.cpp \
+	@top_builddir@/src/lib/profiles/echo/Current/WeaveEchoServer.cpp \
+	@top_builddir@/src/lib/profiles/echo/Next/WeaveEchoClient.cpp \
+	@top_builddir@/src/lib/profiles/echo/Next/WeaveEchoServer.cpp \
 	@top_builddir@/src/lib/profiles/fabric-provisioning/FabricProvisioning.cpp \
 	@top_builddir@/src/lib/profiles/heartbeat/WeaveHeartbeatReceiver.cpp \
 	@top_builddir@/src/lib/profiles/heartbeat/WeaveHeartbeatSender.cpp \
@@ -1787,18 +1793,30 @@ clean-libLIBRARIES:
 	@top_builddir@/src/lib/profiles/device-description/$(DEPDIR)/$(am__dirstamp)
 @top_builddir@/src/lib/profiles/device-description/libWeave_a-DeviceDescriptionServer.$(OBJEXT): @top_builddir@/src/lib/profiles/device-description/$(am__dirstamp) \
 	@top_builddir@/src/lib/profiles/device-description/$(DEPDIR)/$(am__dirstamp)
-@top_builddir@/src/lib/profiles/echo/$(am__dirstamp):
-	@$(MKDIR_P) @top_builddir@/src/lib/profiles/echo
-	@: > @top_builddir@/src/lib/profiles/echo/$(am__dirstamp)
-@top_builddir@/src/lib/profiles/echo/$(DEPDIR)/$(am__dirstamp):
-	@$(MKDIR_P) @top_builddir@/src/lib/profiles/echo/$(DEPDIR)
-	@: > @top_builddir@/src/lib/profiles/echo/$(DEPDIR)/$(am__dirstamp)
-@top_builddir@/src/lib/profiles/echo/libWeave_a-WeaveEchoClient.$(OBJEXT):  \
-	@top_builddir@/src/lib/profiles/echo/$(am__dirstamp) \
-	@top_builddir@/src/lib/profiles/echo/$(DEPDIR)/$(am__dirstamp)
-@top_builddir@/src/lib/profiles/echo/libWeave_a-WeaveEchoServer.$(OBJEXT):  \
-	@top_builddir@/src/lib/profiles/echo/$(am__dirstamp) \
-	@top_builddir@/src/lib/profiles/echo/$(DEPDIR)/$(am__dirstamp)
+@top_builddir@/src/lib/profiles/echo/Current/$(am__dirstamp):
+	@$(MKDIR_P) @top_builddir@/src/lib/profiles/echo/Current
+	@: > @top_builddir@/src/lib/profiles/echo/Current/$(am__dirstamp)
+@top_builddir@/src/lib/profiles/echo/Current/$(DEPDIR)/$(am__dirstamp):
+	@$(MKDIR_P) @top_builddir@/src/lib/profiles/echo/Current/$(DEPDIR)
+	@: > @top_builddir@/src/lib/profiles/echo/Current/$(DEPDIR)/$(am__dirstamp)
+@top_builddir@/src/lib/profiles/echo/Current/libWeave_a-WeaveEchoClient.$(OBJEXT):  \
+	@top_builddir@/src/lib/profiles/echo/Current/$(am__dirstamp) \
+	@top_builddir@/src/lib/profiles/echo/Current/$(DEPDIR)/$(am__dirstamp)
+@top_builddir@/src/lib/profiles/echo/Current/libWeave_a-WeaveEchoServer.$(OBJEXT):  \
+	@top_builddir@/src/lib/profiles/echo/Current/$(am__dirstamp) \
+	@top_builddir@/src/lib/profiles/echo/Current/$(DEPDIR)/$(am__dirstamp)
+@top_builddir@/src/lib/profiles/echo/Next/$(am__dirstamp):
+	@$(MKDIR_P) @top_builddir@/src/lib/profiles/echo/Next
+	@: > @top_builddir@/src/lib/profiles/echo/Next/$(am__dirstamp)
+@top_builddir@/src/lib/profiles/echo/Next/$(DEPDIR)/$(am__dirstamp):
+	@$(MKDIR_P) @top_builddir@/src/lib/profiles/echo/Next/$(DEPDIR)
+	@: > @top_builddir@/src/lib/profiles/echo/Next/$(DEPDIR)/$(am__dirstamp)
+@top_builddir@/src/lib/profiles/echo/Next/libWeave_a-WeaveEchoClient.$(OBJEXT):  \
+	@top_builddir@/src/lib/profiles/echo/Next/$(am__dirstamp) \
+	@top_builddir@/src/lib/profiles/echo/Next/$(DEPDIR)/$(am__dirstamp)
+@top_builddir@/src/lib/profiles/echo/Next/libWeave_a-WeaveEchoServer.$(OBJEXT):  \
+	@top_builddir@/src/lib/profiles/echo/Next/$(am__dirstamp) \
+	@top_builddir@/src/lib/profiles/echo/Next/$(DEPDIR)/$(am__dirstamp)
 @top_builddir@/src/lib/profiles/fabric-provisioning/$(am__dirstamp):
 	@$(MKDIR_P) @top_builddir@/src/lib/profiles/fabric-provisioning
 	@: > @top_builddir@/src/lib/profiles/fabric-provisioning/$(am__dirstamp)
@@ -2044,7 +2062,8 @@ mostlyclean-compile:
 	-rm -f @top_builddir@/src/lib/profiles/data-management/Legacy/*.$(OBJEXT)
 	-rm -f @top_builddir@/src/lib/profiles/device-control/*.$(OBJEXT)
 	-rm -f @top_builddir@/src/lib/profiles/device-description/*.$(OBJEXT)
-	-rm -f @top_builddir@/src/lib/profiles/echo/*.$(OBJEXT)
+	-rm -f @top_builddir@/src/lib/profiles/echo/Current/*.$(OBJEXT)
+	-rm -f @top_builddir@/src/lib/profiles/echo/Next/*.$(OBJEXT)
 	-rm -f @top_builddir@/src/lib/profiles/fabric-provisioning/*.$(OBJEXT)
 	-rm -f @top_builddir@/src/lib/profiles/heartbeat/*.$(OBJEXT)
 	-rm -f @top_builddir@/src/lib/profiles/network-provisioning/*.$(OBJEXT)
@@ -2143,8 +2162,10 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@@top_builddir@/src/lib/profiles/device-description/$(DEPDIR)/libWeave_a-DeviceDescription.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@@top_builddir@/src/lib/profiles/device-description/$(DEPDIR)/libWeave_a-DeviceDescriptionClient.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@@top_builddir@/src/lib/profiles/device-description/$(DEPDIR)/libWeave_a-DeviceDescriptionServer.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@@top_builddir@/src/lib/profiles/echo/$(DEPDIR)/libWeave_a-WeaveEchoClient.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@@top_builddir@/src/lib/profiles/echo/$(DEPDIR)/libWeave_a-WeaveEchoServer.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@@top_builddir@/src/lib/profiles/echo/Current/$(DEPDIR)/libWeave_a-WeaveEchoClient.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@@top_builddir@/src/lib/profiles/echo/Current/$(DEPDIR)/libWeave_a-WeaveEchoServer.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@@top_builddir@/src/lib/profiles/echo/Next/$(DEPDIR)/libWeave_a-WeaveEchoClient.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@@top_builddir@/src/lib/profiles/echo/Next/$(DEPDIR)/libWeave_a-WeaveEchoServer.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@@top_builddir@/src/lib/profiles/fabric-provisioning/$(DEPDIR)/libWeave_a-FabricProvisioning.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@@top_builddir@/src/lib/profiles/heartbeat/$(DEPDIR)/libWeave_a-WeaveHeartbeatReceiver.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@@top_builddir@/src/lib/profiles/heartbeat/$(DEPDIR)/libWeave_a-WeaveHeartbeatSender.Po@am__quote@
@@ -3963,33 +3984,61 @@ distclean-compile:
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libWeave_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o @top_builddir@/src/lib/profiles/device-description/libWeave_a-DeviceDescriptionServer.obj `if test -f '@top_builddir@/src/lib/profiles/device-description/DeviceDescriptionServer.cpp'; then $(CYGPATH_W) '@top_builddir@/src/lib/profiles/device-description/DeviceDescriptionServer.cpp'; else $(CYGPATH_W) '$(srcdir)/@top_builddir@/src/lib/profiles/device-description/DeviceDescriptionServer.cpp'; fi`
 
-@top_builddir@/src/lib/profiles/echo/libWeave_a-WeaveEchoClient.o: @top_builddir@/src/lib/profiles/echo/WeaveEchoClient.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libWeave_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT @top_builddir@/src/lib/profiles/echo/libWeave_a-WeaveEchoClient.o -MD -MP -MF @top_builddir@/src/lib/profiles/echo/$(DEPDIR)/libWeave_a-WeaveEchoClient.Tpo -c -o @top_builddir@/src/lib/profiles/echo/libWeave_a-WeaveEchoClient.o `test -f '@top_builddir@/src/lib/profiles/echo/WeaveEchoClient.cpp' || echo '$(srcdir)/'`@top_builddir@/src/lib/profiles/echo/WeaveEchoClient.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) @top_builddir@/src/lib/profiles/echo/$(DEPDIR)/libWeave_a-WeaveEchoClient.Tpo @top_builddir@/src/lib/profiles/echo/$(DEPDIR)/libWeave_a-WeaveEchoClient.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='@top_builddir@/src/lib/profiles/echo/WeaveEchoClient.cpp' object='@top_builddir@/src/lib/profiles/echo/libWeave_a-WeaveEchoClient.o' libtool=no @AMDEPBACKSLASH@
+@top_builddir@/src/lib/profiles/echo/Current/libWeave_a-WeaveEchoClient.o: @top_builddir@/src/lib/profiles/echo/Current/WeaveEchoClient.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libWeave_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT @top_builddir@/src/lib/profiles/echo/Current/libWeave_a-WeaveEchoClient.o -MD -MP -MF @top_builddir@/src/lib/profiles/echo/Current/$(DEPDIR)/libWeave_a-WeaveEchoClient.Tpo -c -o @top_builddir@/src/lib/profiles/echo/Current/libWeave_a-WeaveEchoClient.o `test -f '@top_builddir@/src/lib/profiles/echo/Current/WeaveEchoClient.cpp' || echo '$(srcdir)/'`@top_builddir@/src/lib/profiles/echo/Current/WeaveEchoClient.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) @top_builddir@/src/lib/profiles/echo/Current/$(DEPDIR)/libWeave_a-WeaveEchoClient.Tpo @top_builddir@/src/lib/profiles/echo/Current/$(DEPDIR)/libWeave_a-WeaveEchoClient.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='@top_builddir@/src/lib/profiles/echo/Current/WeaveEchoClient.cpp' object='@top_builddir@/src/lib/profiles/echo/Current/libWeave_a-WeaveEchoClient.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libWeave_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o @top_builddir@/src/lib/profiles/echo/libWeave_a-WeaveEchoClient.o `test -f '@top_builddir@/src/lib/profiles/echo/WeaveEchoClient.cpp' || echo '$(srcdir)/'`@top_builddir@/src/lib/profiles/echo/WeaveEchoClient.cpp
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libWeave_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o @top_builddir@/src/lib/profiles/echo/Current/libWeave_a-WeaveEchoClient.o `test -f '@top_builddir@/src/lib/profiles/echo/Current/WeaveEchoClient.cpp' || echo '$(srcdir)/'`@top_builddir@/src/lib/profiles/echo/Current/WeaveEchoClient.cpp
 
-@top_builddir@/src/lib/profiles/echo/libWeave_a-WeaveEchoClient.obj: @top_builddir@/src/lib/profiles/echo/WeaveEchoClient.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libWeave_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT @top_builddir@/src/lib/profiles/echo/libWeave_a-WeaveEchoClient.obj -MD -MP -MF @top_builddir@/src/lib/profiles/echo/$(DEPDIR)/libWeave_a-WeaveEchoClient.Tpo -c -o @top_builddir@/src/lib/profiles/echo/libWeave_a-WeaveEchoClient.obj `if test -f '@top_builddir@/src/lib/profiles/echo/WeaveEchoClient.cpp'; then $(CYGPATH_W) '@top_builddir@/src/lib/profiles/echo/WeaveEchoClient.cpp'; else $(CYGPATH_W) '$(srcdir)/@top_builddir@/src/lib/profiles/echo/WeaveEchoClient.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) @top_builddir@/src/lib/profiles/echo/$(DEPDIR)/libWeave_a-WeaveEchoClient.Tpo @top_builddir@/src/lib/profiles/echo/$(DEPDIR)/libWeave_a-WeaveEchoClient.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='@top_builddir@/src/lib/profiles/echo/WeaveEchoClient.cpp' object='@top_builddir@/src/lib/profiles/echo/libWeave_a-WeaveEchoClient.obj' libtool=no @AMDEPBACKSLASH@
+@top_builddir@/src/lib/profiles/echo/Current/libWeave_a-WeaveEchoClient.obj: @top_builddir@/src/lib/profiles/echo/Current/WeaveEchoClient.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libWeave_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT @top_builddir@/src/lib/profiles/echo/Current/libWeave_a-WeaveEchoClient.obj -MD -MP -MF @top_builddir@/src/lib/profiles/echo/Current/$(DEPDIR)/libWeave_a-WeaveEchoClient.Tpo -c -o @top_builddir@/src/lib/profiles/echo/Current/libWeave_a-WeaveEchoClient.obj `if test -f '@top_builddir@/src/lib/profiles/echo/Current/WeaveEchoClient.cpp'; then $(CYGPATH_W) '@top_builddir@/src/lib/profiles/echo/Current/WeaveEchoClient.cpp'; else $(CYGPATH_W) '$(srcdir)/@top_builddir@/src/lib/profiles/echo/Current/WeaveEchoClient.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) @top_builddir@/src/lib/profiles/echo/Current/$(DEPDIR)/libWeave_a-WeaveEchoClient.Tpo @top_builddir@/src/lib/profiles/echo/Current/$(DEPDIR)/libWeave_a-WeaveEchoClient.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='@top_builddir@/src/lib/profiles/echo/Current/WeaveEchoClient.cpp' object='@top_builddir@/src/lib/profiles/echo/Current/libWeave_a-WeaveEchoClient.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libWeave_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o @top_builddir@/src/lib/profiles/echo/libWeave_a-WeaveEchoClient.obj `if test -f '@top_builddir@/src/lib/profiles/echo/WeaveEchoClient.cpp'; then $(CYGPATH_W) '@top_builddir@/src/lib/profiles/echo/WeaveEchoClient.cpp'; else $(CYGPATH_W) '$(srcdir)/@top_builddir@/src/lib/profiles/echo/WeaveEchoClient.cpp'; fi`
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libWeave_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o @top_builddir@/src/lib/profiles/echo/Current/libWeave_a-WeaveEchoClient.obj `if test -f '@top_builddir@/src/lib/profiles/echo/Current/WeaveEchoClient.cpp'; then $(CYGPATH_W) '@top_builddir@/src/lib/profiles/echo/Current/WeaveEchoClient.cpp'; else $(CYGPATH_W) '$(srcdir)/@top_builddir@/src/lib/profiles/echo/Current/WeaveEchoClient.cpp'; fi`
 
-@top_builddir@/src/lib/profiles/echo/libWeave_a-WeaveEchoServer.o: @top_builddir@/src/lib/profiles/echo/WeaveEchoServer.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libWeave_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT @top_builddir@/src/lib/profiles/echo/libWeave_a-WeaveEchoServer.o -MD -MP -MF @top_builddir@/src/lib/profiles/echo/$(DEPDIR)/libWeave_a-WeaveEchoServer.Tpo -c -o @top_builddir@/src/lib/profiles/echo/libWeave_a-WeaveEchoServer.o `test -f '@top_builddir@/src/lib/profiles/echo/WeaveEchoServer.cpp' || echo '$(srcdir)/'`@top_builddir@/src/lib/profiles/echo/WeaveEchoServer.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) @top_builddir@/src/lib/profiles/echo/$(DEPDIR)/libWeave_a-WeaveEchoServer.Tpo @top_builddir@/src/lib/profiles/echo/$(DEPDIR)/libWeave_a-WeaveEchoServer.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='@top_builddir@/src/lib/profiles/echo/WeaveEchoServer.cpp' object='@top_builddir@/src/lib/profiles/echo/libWeave_a-WeaveEchoServer.o' libtool=no @AMDEPBACKSLASH@
+@top_builddir@/src/lib/profiles/echo/Current/libWeave_a-WeaveEchoServer.o: @top_builddir@/src/lib/profiles/echo/Current/WeaveEchoServer.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libWeave_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT @top_builddir@/src/lib/profiles/echo/Current/libWeave_a-WeaveEchoServer.o -MD -MP -MF @top_builddir@/src/lib/profiles/echo/Current/$(DEPDIR)/libWeave_a-WeaveEchoServer.Tpo -c -o @top_builddir@/src/lib/profiles/echo/Current/libWeave_a-WeaveEchoServer.o `test -f '@top_builddir@/src/lib/profiles/echo/Current/WeaveEchoServer.cpp' || echo '$(srcdir)/'`@top_builddir@/src/lib/profiles/echo/Current/WeaveEchoServer.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) @top_builddir@/src/lib/profiles/echo/Current/$(DEPDIR)/libWeave_a-WeaveEchoServer.Tpo @top_builddir@/src/lib/profiles/echo/Current/$(DEPDIR)/libWeave_a-WeaveEchoServer.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='@top_builddir@/src/lib/profiles/echo/Current/WeaveEchoServer.cpp' object='@top_builddir@/src/lib/profiles/echo/Current/libWeave_a-WeaveEchoServer.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libWeave_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o @top_builddir@/src/lib/profiles/echo/libWeave_a-WeaveEchoServer.o `test -f '@top_builddir@/src/lib/profiles/echo/WeaveEchoServer.cpp' || echo '$(srcdir)/'`@top_builddir@/src/lib/profiles/echo/WeaveEchoServer.cpp
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libWeave_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o @top_builddir@/src/lib/profiles/echo/Current/libWeave_a-WeaveEchoServer.o `test -f '@top_builddir@/src/lib/profiles/echo/Current/WeaveEchoServer.cpp' || echo '$(srcdir)/'`@top_builddir@/src/lib/profiles/echo/Current/WeaveEchoServer.cpp
 
-@top_builddir@/src/lib/profiles/echo/libWeave_a-WeaveEchoServer.obj: @top_builddir@/src/lib/profiles/echo/WeaveEchoServer.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libWeave_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT @top_builddir@/src/lib/profiles/echo/libWeave_a-WeaveEchoServer.obj -MD -MP -MF @top_builddir@/src/lib/profiles/echo/$(DEPDIR)/libWeave_a-WeaveEchoServer.Tpo -c -o @top_builddir@/src/lib/profiles/echo/libWeave_a-WeaveEchoServer.obj `if test -f '@top_builddir@/src/lib/profiles/echo/WeaveEchoServer.cpp'; then $(CYGPATH_W) '@top_builddir@/src/lib/profiles/echo/WeaveEchoServer.cpp'; else $(CYGPATH_W) '$(srcdir)/@top_builddir@/src/lib/profiles/echo/WeaveEchoServer.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) @top_builddir@/src/lib/profiles/echo/$(DEPDIR)/libWeave_a-WeaveEchoServer.Tpo @top_builddir@/src/lib/profiles/echo/$(DEPDIR)/libWeave_a-WeaveEchoServer.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='@top_builddir@/src/lib/profiles/echo/WeaveEchoServer.cpp' object='@top_builddir@/src/lib/profiles/echo/libWeave_a-WeaveEchoServer.obj' libtool=no @AMDEPBACKSLASH@
+@top_builddir@/src/lib/profiles/echo/Current/libWeave_a-WeaveEchoServer.obj: @top_builddir@/src/lib/profiles/echo/Current/WeaveEchoServer.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libWeave_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT @top_builddir@/src/lib/profiles/echo/Current/libWeave_a-WeaveEchoServer.obj -MD -MP -MF @top_builddir@/src/lib/profiles/echo/Current/$(DEPDIR)/libWeave_a-WeaveEchoServer.Tpo -c -o @top_builddir@/src/lib/profiles/echo/Current/libWeave_a-WeaveEchoServer.obj `if test -f '@top_builddir@/src/lib/profiles/echo/Current/WeaveEchoServer.cpp'; then $(CYGPATH_W) '@top_builddir@/src/lib/profiles/echo/Current/WeaveEchoServer.cpp'; else $(CYGPATH_W) '$(srcdir)/@top_builddir@/src/lib/profiles/echo/Current/WeaveEchoServer.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) @top_builddir@/src/lib/profiles/echo/Current/$(DEPDIR)/libWeave_a-WeaveEchoServer.Tpo @top_builddir@/src/lib/profiles/echo/Current/$(DEPDIR)/libWeave_a-WeaveEchoServer.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='@top_builddir@/src/lib/profiles/echo/Current/WeaveEchoServer.cpp' object='@top_builddir@/src/lib/profiles/echo/Current/libWeave_a-WeaveEchoServer.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libWeave_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o @top_builddir@/src/lib/profiles/echo/libWeave_a-WeaveEchoServer.obj `if test -f '@top_builddir@/src/lib/profiles/echo/WeaveEchoServer.cpp'; then $(CYGPATH_W) '@top_builddir@/src/lib/profiles/echo/WeaveEchoServer.cpp'; else $(CYGPATH_W) '$(srcdir)/@top_builddir@/src/lib/profiles/echo/WeaveEchoServer.cpp'; fi`
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libWeave_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o @top_builddir@/src/lib/profiles/echo/Current/libWeave_a-WeaveEchoServer.obj `if test -f '@top_builddir@/src/lib/profiles/echo/Current/WeaveEchoServer.cpp'; then $(CYGPATH_W) '@top_builddir@/src/lib/profiles/echo/Current/WeaveEchoServer.cpp'; else $(CYGPATH_W) '$(srcdir)/@top_builddir@/src/lib/profiles/echo/Current/WeaveEchoServer.cpp'; fi`
+
+@top_builddir@/src/lib/profiles/echo/Next/libWeave_a-WeaveEchoClient.o: @top_builddir@/src/lib/profiles/echo/Next/WeaveEchoClient.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libWeave_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT @top_builddir@/src/lib/profiles/echo/Next/libWeave_a-WeaveEchoClient.o -MD -MP -MF @top_builddir@/src/lib/profiles/echo/Next/$(DEPDIR)/libWeave_a-WeaveEchoClient.Tpo -c -o @top_builddir@/src/lib/profiles/echo/Next/libWeave_a-WeaveEchoClient.o `test -f '@top_builddir@/src/lib/profiles/echo/Next/WeaveEchoClient.cpp' || echo '$(srcdir)/'`@top_builddir@/src/lib/profiles/echo/Next/WeaveEchoClient.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) @top_builddir@/src/lib/profiles/echo/Next/$(DEPDIR)/libWeave_a-WeaveEchoClient.Tpo @top_builddir@/src/lib/profiles/echo/Next/$(DEPDIR)/libWeave_a-WeaveEchoClient.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='@top_builddir@/src/lib/profiles/echo/Next/WeaveEchoClient.cpp' object='@top_builddir@/src/lib/profiles/echo/Next/libWeave_a-WeaveEchoClient.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libWeave_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o @top_builddir@/src/lib/profiles/echo/Next/libWeave_a-WeaveEchoClient.o `test -f '@top_builddir@/src/lib/profiles/echo/Next/WeaveEchoClient.cpp' || echo '$(srcdir)/'`@top_builddir@/src/lib/profiles/echo/Next/WeaveEchoClient.cpp
+
+@top_builddir@/src/lib/profiles/echo/Next/libWeave_a-WeaveEchoClient.obj: @top_builddir@/src/lib/profiles/echo/Next/WeaveEchoClient.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libWeave_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT @top_builddir@/src/lib/profiles/echo/Next/libWeave_a-WeaveEchoClient.obj -MD -MP -MF @top_builddir@/src/lib/profiles/echo/Next/$(DEPDIR)/libWeave_a-WeaveEchoClient.Tpo -c -o @top_builddir@/src/lib/profiles/echo/Next/libWeave_a-WeaveEchoClient.obj `if test -f '@top_builddir@/src/lib/profiles/echo/Next/WeaveEchoClient.cpp'; then $(CYGPATH_W) '@top_builddir@/src/lib/profiles/echo/Next/WeaveEchoClient.cpp'; else $(CYGPATH_W) '$(srcdir)/@top_builddir@/src/lib/profiles/echo/Next/WeaveEchoClient.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) @top_builddir@/src/lib/profiles/echo/Next/$(DEPDIR)/libWeave_a-WeaveEchoClient.Tpo @top_builddir@/src/lib/profiles/echo/Next/$(DEPDIR)/libWeave_a-WeaveEchoClient.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='@top_builddir@/src/lib/profiles/echo/Next/WeaveEchoClient.cpp' object='@top_builddir@/src/lib/profiles/echo/Next/libWeave_a-WeaveEchoClient.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libWeave_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o @top_builddir@/src/lib/profiles/echo/Next/libWeave_a-WeaveEchoClient.obj `if test -f '@top_builddir@/src/lib/profiles/echo/Next/WeaveEchoClient.cpp'; then $(CYGPATH_W) '@top_builddir@/src/lib/profiles/echo/Next/WeaveEchoClient.cpp'; else $(CYGPATH_W) '$(srcdir)/@top_builddir@/src/lib/profiles/echo/Next/WeaveEchoClient.cpp'; fi`
+
+@top_builddir@/src/lib/profiles/echo/Next/libWeave_a-WeaveEchoServer.o: @top_builddir@/src/lib/profiles/echo/Next/WeaveEchoServer.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libWeave_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT @top_builddir@/src/lib/profiles/echo/Next/libWeave_a-WeaveEchoServer.o -MD -MP -MF @top_builddir@/src/lib/profiles/echo/Next/$(DEPDIR)/libWeave_a-WeaveEchoServer.Tpo -c -o @top_builddir@/src/lib/profiles/echo/Next/libWeave_a-WeaveEchoServer.o `test -f '@top_builddir@/src/lib/profiles/echo/Next/WeaveEchoServer.cpp' || echo '$(srcdir)/'`@top_builddir@/src/lib/profiles/echo/Next/WeaveEchoServer.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) @top_builddir@/src/lib/profiles/echo/Next/$(DEPDIR)/libWeave_a-WeaveEchoServer.Tpo @top_builddir@/src/lib/profiles/echo/Next/$(DEPDIR)/libWeave_a-WeaveEchoServer.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='@top_builddir@/src/lib/profiles/echo/Next/WeaveEchoServer.cpp' object='@top_builddir@/src/lib/profiles/echo/Next/libWeave_a-WeaveEchoServer.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libWeave_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o @top_builddir@/src/lib/profiles/echo/Next/libWeave_a-WeaveEchoServer.o `test -f '@top_builddir@/src/lib/profiles/echo/Next/WeaveEchoServer.cpp' || echo '$(srcdir)/'`@top_builddir@/src/lib/profiles/echo/Next/WeaveEchoServer.cpp
+
+@top_builddir@/src/lib/profiles/echo/Next/libWeave_a-WeaveEchoServer.obj: @top_builddir@/src/lib/profiles/echo/Next/WeaveEchoServer.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libWeave_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT @top_builddir@/src/lib/profiles/echo/Next/libWeave_a-WeaveEchoServer.obj -MD -MP -MF @top_builddir@/src/lib/profiles/echo/Next/$(DEPDIR)/libWeave_a-WeaveEchoServer.Tpo -c -o @top_builddir@/src/lib/profiles/echo/Next/libWeave_a-WeaveEchoServer.obj `if test -f '@top_builddir@/src/lib/profiles/echo/Next/WeaveEchoServer.cpp'; then $(CYGPATH_W) '@top_builddir@/src/lib/profiles/echo/Next/WeaveEchoServer.cpp'; else $(CYGPATH_W) '$(srcdir)/@top_builddir@/src/lib/profiles/echo/Next/WeaveEchoServer.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) @top_builddir@/src/lib/profiles/echo/Next/$(DEPDIR)/libWeave_a-WeaveEchoServer.Tpo @top_builddir@/src/lib/profiles/echo/Next/$(DEPDIR)/libWeave_a-WeaveEchoServer.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='@top_builddir@/src/lib/profiles/echo/Next/WeaveEchoServer.cpp' object='@top_builddir@/src/lib/profiles/echo/Next/libWeave_a-WeaveEchoServer.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libWeave_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o @top_builddir@/src/lib/profiles/echo/Next/libWeave_a-WeaveEchoServer.obj `if test -f '@top_builddir@/src/lib/profiles/echo/Next/WeaveEchoServer.cpp'; then $(CYGPATH_W) '@top_builddir@/src/lib/profiles/echo/Next/WeaveEchoServer.cpp'; else $(CYGPATH_W) '$(srcdir)/@top_builddir@/src/lib/profiles/echo/Next/WeaveEchoServer.cpp'; fi`
 
 @top_builddir@/src/lib/profiles/fabric-provisioning/libWeave_a-FabricProvisioning.o: @top_builddir@/src/lib/profiles/fabric-provisioning/FabricProvisioning.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libWeave_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT @top_builddir@/src/lib/profiles/fabric-provisioning/libWeave_a-FabricProvisioning.o -MD -MP -MF @top_builddir@/src/lib/profiles/fabric-provisioning/$(DEPDIR)/libWeave_a-FabricProvisioning.Tpo -c -o @top_builddir@/src/lib/profiles/fabric-provisioning/libWeave_a-FabricProvisioning.o `test -f '@top_builddir@/src/lib/profiles/fabric-provisioning/FabricProvisioning.cpp' || echo '$(srcdir)/'`@top_builddir@/src/lib/profiles/fabric-provisioning/FabricProvisioning.cpp
@@ -4862,8 +4911,10 @@ distclean-generic:
 	-rm -f @top_builddir@/src/lib/profiles/device-control/$(am__dirstamp)
 	-rm -f @top_builddir@/src/lib/profiles/device-description/$(DEPDIR)/$(am__dirstamp)
 	-rm -f @top_builddir@/src/lib/profiles/device-description/$(am__dirstamp)
-	-rm -f @top_builddir@/src/lib/profiles/echo/$(DEPDIR)/$(am__dirstamp)
-	-rm -f @top_builddir@/src/lib/profiles/echo/$(am__dirstamp)
+	-rm -f @top_builddir@/src/lib/profiles/echo/Current/$(DEPDIR)/$(am__dirstamp)
+	-rm -f @top_builddir@/src/lib/profiles/echo/Current/$(am__dirstamp)
+	-rm -f @top_builddir@/src/lib/profiles/echo/Next/$(DEPDIR)/$(am__dirstamp)
+	-rm -f @top_builddir@/src/lib/profiles/echo/Next/$(am__dirstamp)
 	-rm -f @top_builddir@/src/lib/profiles/fabric-provisioning/$(DEPDIR)/$(am__dirstamp)
 	-rm -f @top_builddir@/src/lib/profiles/fabric-provisioning/$(am__dirstamp)
 	-rm -f @top_builddir@/src/lib/profiles/heartbeat/$(DEPDIR)/$(am__dirstamp)
@@ -4914,7 +4965,7 @@ clean-am: clean-generic clean-libLIBRARIES clean-libtool \
 	mostlyclean-am
 
 distclean: distclean-am
-	-rm -rf @top_builddir@/src/ble/$(DEPDIR) @top_builddir@/src/device-manager/$(DEPDIR) @top_builddir@/src/inet/$(DEPDIR) @top_builddir@/src/lib/core/$(DEPDIR) @top_builddir@/src/lib/profiles/bulk-data-transfer/$(DEPDIR) @top_builddir@/src/lib/profiles/bulk-data-transfer/Development/$(DEPDIR) @top_builddir@/src/lib/profiles/common/$(DEPDIR) @top_builddir@/src/lib/profiles/data-management/Current/$(DEPDIR) @top_builddir@/src/lib/profiles/data-management/Legacy/$(DEPDIR) @top_builddir@/src/lib/profiles/device-control/$(DEPDIR) @top_builddir@/src/lib/profiles/device-description/$(DEPDIR) @top_builddir@/src/lib/profiles/echo/$(DEPDIR) @top_builddir@/src/lib/profiles/fabric-provisioning/$(DEPDIR) @top_builddir@/src/lib/profiles/heartbeat/$(DEPDIR) @top_builddir@/src/lib/profiles/network-provisioning/$(DEPDIR) @top_builddir@/src/lib/profiles/security/$(DEPDIR) @top_builddir@/src/lib/profiles/service-directory/$(DEPDIR) @top_builddir@/src/lib/profiles/service-provisioning/$(DEPDIR) @top_builddir@/src/lib/profiles/software-update/$(DEPDIR) @top_builddir@/src/lib/profiles/status-report/$(DEPDIR) @top_builddir@/src/lib/profiles/time/$(DEPDIR) @top_builddir@/src/lib/profiles/token-pairing/$(DEPDIR) @top_builddir@/src/lib/profiles/vendor/nestlabs/dropcam-legacy-pairing/$(DEPDIR) @top_builddir@/src/lib/profiles/vendor/nestlabs/thermostat/$(DEPDIR) @top_builddir@/src/lib/profiles/weave-tunneling/$(DEPDIR) @top_builddir@/src/lib/support/$(DEPDIR) @top_builddir@/src/lib/support/crypto/$(DEPDIR) @top_builddir@/src/lib/support/logging/$(DEPDIR) @top_builddir@/src/lib/support/pairing-code/$(DEPDIR) @top_builddir@/src/lib/support/verhoeff/$(DEPDIR) @top_builddir@/src/system/$(DEPDIR) @top_builddir@/src/warm/$(DEPDIR)
+	-rm -rf @top_builddir@/src/ble/$(DEPDIR) @top_builddir@/src/device-manager/$(DEPDIR) @top_builddir@/src/inet/$(DEPDIR) @top_builddir@/src/lib/core/$(DEPDIR) @top_builddir@/src/lib/profiles/bulk-data-transfer/$(DEPDIR) @top_builddir@/src/lib/profiles/bulk-data-transfer/Development/$(DEPDIR) @top_builddir@/src/lib/profiles/common/$(DEPDIR) @top_builddir@/src/lib/profiles/data-management/Current/$(DEPDIR) @top_builddir@/src/lib/profiles/data-management/Legacy/$(DEPDIR) @top_builddir@/src/lib/profiles/device-control/$(DEPDIR) @top_builddir@/src/lib/profiles/device-description/$(DEPDIR) @top_builddir@/src/lib/profiles/echo/Current/$(DEPDIR) @top_builddir@/src/lib/profiles/echo/Next/$(DEPDIR) @top_builddir@/src/lib/profiles/fabric-provisioning/$(DEPDIR) @top_builddir@/src/lib/profiles/heartbeat/$(DEPDIR) @top_builddir@/src/lib/profiles/network-provisioning/$(DEPDIR) @top_builddir@/src/lib/profiles/security/$(DEPDIR) @top_builddir@/src/lib/profiles/service-directory/$(DEPDIR) @top_builddir@/src/lib/profiles/service-provisioning/$(DEPDIR) @top_builddir@/src/lib/profiles/software-update/$(DEPDIR) @top_builddir@/src/lib/profiles/status-report/$(DEPDIR) @top_builddir@/src/lib/profiles/time/$(DEPDIR) @top_builddir@/src/lib/profiles/token-pairing/$(DEPDIR) @top_builddir@/src/lib/profiles/vendor/nestlabs/dropcam-legacy-pairing/$(DEPDIR) @top_builddir@/src/lib/profiles/vendor/nestlabs/thermostat/$(DEPDIR) @top_builddir@/src/lib/profiles/weave-tunneling/$(DEPDIR) @top_builddir@/src/lib/support/$(DEPDIR) @top_builddir@/src/lib/support/crypto/$(DEPDIR) @top_builddir@/src/lib/support/logging/$(DEPDIR) @top_builddir@/src/lib/support/pairing-code/$(DEPDIR) @top_builddir@/src/lib/support/verhoeff/$(DEPDIR) @top_builddir@/src/system/$(DEPDIR) @top_builddir@/src/warm/$(DEPDIR)
 	-rm -f Makefile
 distclean-am: clean-am distclean-compile distclean-generic \
 	distclean-tags
@@ -4960,7 +5011,7 @@ install-ps-am:
 installcheck-am:
 
 maintainer-clean: maintainer-clean-am
-	-rm -rf @top_builddir@/src/ble/$(DEPDIR) @top_builddir@/src/device-manager/$(DEPDIR) @top_builddir@/src/inet/$(DEPDIR) @top_builddir@/src/lib/core/$(DEPDIR) @top_builddir@/src/lib/profiles/bulk-data-transfer/$(DEPDIR) @top_builddir@/src/lib/profiles/bulk-data-transfer/Development/$(DEPDIR) @top_builddir@/src/lib/profiles/common/$(DEPDIR) @top_builddir@/src/lib/profiles/data-management/Current/$(DEPDIR) @top_builddir@/src/lib/profiles/data-management/Legacy/$(DEPDIR) @top_builddir@/src/lib/profiles/device-control/$(DEPDIR) @top_builddir@/src/lib/profiles/device-description/$(DEPDIR) @top_builddir@/src/lib/profiles/echo/$(DEPDIR) @top_builddir@/src/lib/profiles/fabric-provisioning/$(DEPDIR) @top_builddir@/src/lib/profiles/heartbeat/$(DEPDIR) @top_builddir@/src/lib/profiles/network-provisioning/$(DEPDIR) @top_builddir@/src/lib/profiles/security/$(DEPDIR) @top_builddir@/src/lib/profiles/service-directory/$(DEPDIR) @top_builddir@/src/lib/profiles/service-provisioning/$(DEPDIR) @top_builddir@/src/lib/profiles/software-update/$(DEPDIR) @top_builddir@/src/lib/profiles/status-report/$(DEPDIR) @top_builddir@/src/lib/profiles/time/$(DEPDIR) @top_builddir@/src/lib/profiles/token-pairing/$(DEPDIR) @top_builddir@/src/lib/profiles/vendor/nestlabs/dropcam-legacy-pairing/$(DEPDIR) @top_builddir@/src/lib/profiles/vendor/nestlabs/thermostat/$(DEPDIR) @top_builddir@/src/lib/profiles/weave-tunneling/$(DEPDIR) @top_builddir@/src/lib/support/$(DEPDIR) @top_builddir@/src/lib/support/crypto/$(DEPDIR) @top_builddir@/src/lib/support/logging/$(DEPDIR) @top_builddir@/src/lib/support/pairing-code/$(DEPDIR) @top_builddir@/src/lib/support/verhoeff/$(DEPDIR) @top_builddir@/src/system/$(DEPDIR) @top_builddir@/src/warm/$(DEPDIR)
+	-rm -rf @top_builddir@/src/ble/$(DEPDIR) @top_builddir@/src/device-manager/$(DEPDIR) @top_builddir@/src/inet/$(DEPDIR) @top_builddir@/src/lib/core/$(DEPDIR) @top_builddir@/src/lib/profiles/bulk-data-transfer/$(DEPDIR) @top_builddir@/src/lib/profiles/bulk-data-transfer/Development/$(DEPDIR) @top_builddir@/src/lib/profiles/common/$(DEPDIR) @top_builddir@/src/lib/profiles/data-management/Current/$(DEPDIR) @top_builddir@/src/lib/profiles/data-management/Legacy/$(DEPDIR) @top_builddir@/src/lib/profiles/device-control/$(DEPDIR) @top_builddir@/src/lib/profiles/device-description/$(DEPDIR) @top_builddir@/src/lib/profiles/echo/Current/$(DEPDIR) @top_builddir@/src/lib/profiles/echo/Next/$(DEPDIR) @top_builddir@/src/lib/profiles/fabric-provisioning/$(DEPDIR) @top_builddir@/src/lib/profiles/heartbeat/$(DEPDIR) @top_builddir@/src/lib/profiles/network-provisioning/$(DEPDIR) @top_builddir@/src/lib/profiles/security/$(DEPDIR) @top_builddir@/src/lib/profiles/service-directory/$(DEPDIR) @top_builddir@/src/lib/profiles/service-provisioning/$(DEPDIR) @top_builddir@/src/lib/profiles/software-update/$(DEPDIR) @top_builddir@/src/lib/profiles/status-report/$(DEPDIR) @top_builddir@/src/lib/profiles/time/$(DEPDIR) @top_builddir@/src/lib/profiles/token-pairing/$(DEPDIR) @top_builddir@/src/lib/profiles/vendor/nestlabs/dropcam-legacy-pairing/$(DEPDIR) @top_builddir@/src/lib/profiles/vendor/nestlabs/thermostat/$(DEPDIR) @top_builddir@/src/lib/profiles/weave-tunneling/$(DEPDIR) @top_builddir@/src/lib/support/$(DEPDIR) @top_builddir@/src/lib/support/crypto/$(DEPDIR) @top_builddir@/src/lib/support/logging/$(DEPDIR) @top_builddir@/src/lib/support/pairing-code/$(DEPDIR) @top_builddir@/src/lib/support/verhoeff/$(DEPDIR) @top_builddir@/src/system/$(DEPDIR) @top_builddir@/src/warm/$(DEPDIR)
 	-rm -f Makefile
 maintainer-clean-am: distclean-am maintainer-clean-generic
 

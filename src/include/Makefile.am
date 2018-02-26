@@ -623,6 +623,15 @@ nl_public_WeaveProfiles_echo_header_sources = \
 $(nl_public_WeaveProfiles_source_dirstem)/echo/WeaveEcho.h \
 $(NULL)
 
+nl_public_WeaveProfiles_echo_current_header_sources = \
+$(nl_public_WeaveProfiles_source_dirstem)/echo/Current/WeaveEcho.h \
+$(NULL)
+
+nl_public_WeaveProfiles_echo_next_header_sources = \
+$(nl_public_WeaveProfiles_source_dirstem)/echo/Next/WeaveEcho.h \
+$(nl_public_WeaveProfiles_source_dirstem)/echo/Next/WeaveEchoClient.h \
+$(nl_public_WeaveProfiles_source_dirstem)/echo/Next/WeaveEchoServer.h \
+$(NULL)
 
 nl_public_WeaveProfiles_fabric_provisioning_header_sources = \
 $(nl_public_WeaveProfiles_source_dirstem)/fabric-provisioning/FabricProvisioning.h \
@@ -721,6 +730,8 @@ $(nl_public_WeaveProfiles_data_management_current_header_sources) \
 $(nl_public_WeaveProfiles_device_control_header_sources) \
 $(nl_public_WeaveProfiles_device_description_header_sources) \
 $(nl_public_WeaveProfiles_echo_header_sources) \
+$(nl_public_WeaveProfiles_echo_current_header_sources) \
+$(nl_public_WeaveProfiles_echo_next_header_sources) \
 $(nl_public_WeaveProfiles_fabric_provisioning_header_sources) \
 $(nl_public_WeaveProfiles_heartbeat_header_sources) \
 $(nl_public_WeaveProfiles_locale_header_sources) \
@@ -791,6 +802,12 @@ weave_profiles_device_description_HEADERS = $(addprefix ../,$(nl_public_WeavePro
 
 weave_profiles_echodir = $(includedir)/$(nl_public_WeaveProfiles_destination_dirstem)/echo
 weave_profiles_echo_HEADERS = $(addprefix ../,$(nl_public_WeaveProfiles_echo_header_sources))
+
+weave_profiles_echo_currentdir = $(includedir)/$(nl_public_WeaveProfiles_destination_dirstem)/echo/Current
+weave_profiles_echo_current_HEADERS = $(addprefix ../,$(nl_public_WeaveProfiles_echo_current_header_sources))
+
+weave_profiles_echo_nextdir = $(includedir)/$(nl_public_WeaveProfiles_destination_dirstem)/echo/Next
+weave_profiles_echo_next_HEADERS = $(addprefix ../,$(nl_public_WeaveProfiles_echo_next_header_sources))
 
 weave_profiles_fabric_provisioningdir = $(includedir)/$(nl_public_WeaveProfiles_destination_dirstem)/fabric-provisioning
 weave_profiles_fabric_provisioning_HEADERS = $(addprefix ../,$(nl_public_WeaveProfiles_fabric_provisioning_header_sources))

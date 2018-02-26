@@ -34,6 +34,7 @@
 #include <Weave/Core/WeaveBinding.h>
 #include <Weave/Support/WeaveFaultInjection.h>
 #include <Weave/Profiles/common/CommonProfile.h>
+#include <Weave/Profiles/echo/WeaveEcho.h>
 
 #define VerifyOrQuit(TST) \
 do { \

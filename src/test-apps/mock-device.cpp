@@ -44,6 +44,7 @@
 #include "ToolCommon.h"
 #include <Weave/WeaveVersion.h>
 #include <Weave/Core/WeaveTLV.h>
+#include <Weave/Profiles/echo/WeaveEcho.h>
 #include <Weave/Profiles/network-provisioning/NetworkProvisioning.h>
 #include <Weave/Profiles/network-provisioning/NetworkInfo.h>
 #include <Weave/Profiles/service-provisioning/ServiceProvisioning.h>

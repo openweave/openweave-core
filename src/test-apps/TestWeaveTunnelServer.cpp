@@ -43,6 +43,7 @@
 #include <Weave/Support/CodeUtils.h>
 #include <Weave/Support/logging/WeaveLogging.h>
 #include <Weave/Profiles/ProfileCommon.h>
+#include <Weave/Profiles/echo/WeaveEcho.h>
 #include <Weave/Core/WeaveTLV.h>
 #include "TestWeaveTunnel.h"
 #include "TestWeaveTunnelServer.h"

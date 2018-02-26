@@ -146,6 +146,8 @@ DIST_COMMON = $(srcdir)/Makefile.in $(srcdir)/Makefile.am \
 	$(weave_profiles_device_control_HEADERS) \
 	$(weave_profiles_device_description_HEADERS) \
 	$(weave_profiles_echo_HEADERS) \
+	$(weave_profiles_echo_current_HEADERS) \
+	$(weave_profiles_echo_next_HEADERS) \
 	$(weave_profiles_fabric_provisioning_HEADERS) \
 	$(weave_profiles_heartbeat_HEADERS) \
 	$(weave_profiles_locale_HEADERS) \
@@ -248,6 +250,8 @@ am__installdirs = "$(DESTDIR)$(ble_bledir)" \
 	"$(DESTDIR)$(weave_profiles_device_controldir)" \
 	"$(DESTDIR)$(weave_profiles_device_descriptiondir)" \
 	"$(DESTDIR)$(weave_profiles_echodir)" \
+	"$(DESTDIR)$(weave_profiles_echo_currentdir)" \
+	"$(DESTDIR)$(weave_profiles_echo_nextdir)" \
 	"$(DESTDIR)$(weave_profiles_fabric_provisioningdir)" \
 	"$(DESTDIR)$(weave_profiles_heartbeatdir)" \
 	"$(DESTDIR)$(weave_profiles_localedir)" \
@@ -290,6 +294,8 @@ HEADERS = $(dist_ble_ble_HEADERS) $(dist_ble_device_manager_HEADERS) \
 	$(weave_profiles_device_control_HEADERS) \
 	$(weave_profiles_device_description_HEADERS) \
 	$(weave_profiles_echo_HEADERS) \
+	$(weave_profiles_echo_current_HEADERS) \
+	$(weave_profiles_echo_next_HEADERS) \
 	$(weave_profiles_fabric_provisioning_HEADERS) \
 	$(weave_profiles_heartbeat_HEADERS) \
 	$(weave_profiles_locale_HEADERS) \
@@ -1001,6 +1007,16 @@ nl_public_WeaveProfiles_echo_header_sources = \
 $(nl_public_WeaveProfiles_source_dirstem)/echo/WeaveEcho.h \
 $(NULL)
 
+nl_public_WeaveProfiles_echo_current_header_sources = \
+$(nl_public_WeaveProfiles_source_dirstem)/echo/Current/WeaveEcho.h \
+$(NULL)
+
+nl_public_WeaveProfiles_echo_next_header_sources = \
+$(nl_public_WeaveProfiles_source_dirstem)/echo/Next/WeaveEcho.h \
+$(nl_public_WeaveProfiles_source_dirstem)/echo/Next/WeaveEchoClient.h \
+$(nl_public_WeaveProfiles_source_dirstem)/echo/Next/WeaveEchoServer.h \
+$(NULL)
+
 nl_public_WeaveProfiles_fabric_provisioning_header_sources = \
 $(nl_public_WeaveProfiles_source_dirstem)/fabric-provisioning/FabricProvisioning.h \
 $(NULL)
@@ -1097,6 +1113,8 @@ nl_public_WeaveProfiles_header_sources =  \
 	$(nl_public_WeaveProfiles_device_control_header_sources) \
 	$(nl_public_WeaveProfiles_device_description_header_sources) \
 	$(nl_public_WeaveProfiles_echo_header_sources) \
+	$(nl_public_WeaveProfiles_echo_current_header_sources) \
+	$(nl_public_WeaveProfiles_echo_next_header_sources) \
 	$(nl_public_WeaveProfiles_fabric_provisioning_header_sources) \
 	$(nl_public_WeaveProfiles_heartbeat_header_sources) \
 	$(nl_public_WeaveProfiles_locale_header_sources) \
@@ -1138,6 +1156,10 @@ weave_profiles_device_descriptiondir = $(includedir)/$(nl_public_WeaveProfiles_d
 weave_profiles_device_description_HEADERS = $(addprefix ../,$(nl_public_WeaveProfiles_device_description_header_sources))
 weave_profiles_echodir = $(includedir)/$(nl_public_WeaveProfiles_destination_dirstem)/echo
 weave_profiles_echo_HEADERS = $(addprefix ../,$(nl_public_WeaveProfiles_echo_header_sources))
+weave_profiles_echo_currentdir = $(includedir)/$(nl_public_WeaveProfiles_destination_dirstem)/echo/Current
+weave_profiles_echo_current_HEADERS = $(addprefix ../,$(nl_public_WeaveProfiles_echo_current_header_sources))
+weave_profiles_echo_nextdir = $(includedir)/$(nl_public_WeaveProfiles_destination_dirstem)/echo/Next
+weave_profiles_echo_next_HEADERS = $(addprefix ../,$(nl_public_WeaveProfiles_echo_next_header_sources))
 weave_profiles_fabric_provisioningdir = $(includedir)/$(nl_public_WeaveProfiles_destination_dirstem)/fabric-provisioning
 weave_profiles_fabric_provisioning_HEADERS = $(addprefix ../,$(nl_public_WeaveProfiles_fabric_provisioning_header_sources))
 weave_profiles_heartbeatdir = $(includedir)/$(nl_public_WeaveProfiles_destination_dirstem)/heartbeat
@@ -1925,6 +1947,48 @@ uninstall-weave_profiles_echoHEADERS:
 	@list='$(weave_profiles_echo_HEADERS)'; test -n "$(weave_profiles_echodir)" || list=; \
 	files=`for p in $$list; do echo $$p; done | sed -e 's|^.*/||'`; \
 	dir='$(DESTDIR)$(weave_profiles_echodir)'; $(am__uninstall_files_from_dir)
+install-weave_profiles_echo_currentHEADERS: $(weave_profiles_echo_current_HEADERS)
+	@$(NORMAL_INSTALL)
+	@list='$(weave_profiles_echo_current_HEADERS)'; test -n "$(weave_profiles_echo_currentdir)" || list=; \
+	if test -n "$$list"; then \
+	  echo " $(MKDIR_P) '$(DESTDIR)$(weave_profiles_echo_currentdir)'"; \
+	  $(MKDIR_P) "$(DESTDIR)$(weave_profiles_echo_currentdir)" || exit 1; \
+	fi; \
+	for p in $$list; do \
+	  if test -f "$$p"; then d=; else d="$(srcdir)/"; fi; \
+	  echo "$$d$$p"; \
+	done | $(am__base_list) | \
+	while read files; do \
+	  echo " $(INSTALL_HEADER) $$files '$(DESTDIR)$(weave_profiles_echo_currentdir)'"; \
+	  $(INSTALL_HEADER) $$files "$(DESTDIR)$(weave_profiles_echo_currentdir)" || exit $$?; \
+	done
+
+uninstall-weave_profiles_echo_currentHEADERS:
+	@$(NORMAL_UNINSTALL)
+	@list='$(weave_profiles_echo_current_HEADERS)'; test -n "$(weave_profiles_echo_currentdir)" || list=; \
+	files=`for p in $$list; do echo $$p; done | sed -e 's|^.*/||'`; \
+	dir='$(DESTDIR)$(weave_profiles_echo_currentdir)'; $(am__uninstall_files_from_dir)
+install-weave_profiles_echo_nextHEADERS: $(weave_profiles_echo_next_HEADERS)
+	@$(NORMAL_INSTALL)
+	@list='$(weave_profiles_echo_next_HEADERS)'; test -n "$(weave_profiles_echo_nextdir)" || list=; \
+	if test -n "$$list"; then \
+	  echo " $(MKDIR_P) '$(DESTDIR)$(weave_profiles_echo_nextdir)'"; \
+	  $(MKDIR_P) "$(DESTDIR)$(weave_profiles_echo_nextdir)" || exit 1; \
+	fi; \
+	for p in $$list; do \
+	  if test -f "$$p"; then d=; else d="$(srcdir)/"; fi; \
+	  echo "$$d$$p"; \
+	done | $(am__base_list) | \
+	while read files; do \
+	  echo " $(INSTALL_HEADER) $$files '$(DESTDIR)$(weave_profiles_echo_nextdir)'"; \
+	  $(INSTALL_HEADER) $$files "$(DESTDIR)$(weave_profiles_echo_nextdir)" || exit $$?; \
+	done
+
+uninstall-weave_profiles_echo_nextHEADERS:
+	@$(NORMAL_UNINSTALL)
+	@list='$(weave_profiles_echo_next_HEADERS)'; test -n "$(weave_profiles_echo_nextdir)" || list=; \
+	files=`for p in $$list; do echo $$p; done | sed -e 's|^.*/||'`; \
+	dir='$(DESTDIR)$(weave_profiles_echo_nextdir)'; $(am__uninstall_files_from_dir)
 install-weave_profiles_fabric_provisioningHEADERS: $(weave_profiles_fabric_provisioning_HEADERS)
 	@$(NORMAL_INSTALL)
 	@list='$(weave_profiles_fabric_provisioning_HEADERS)'; test -n "$(weave_profiles_fabric_provisioningdir)" || list=; \
@@ -2457,7 +2521,7 @@ check: $(BUILT_SOURCES)
 	$(MAKE) $(AM_MAKEFLAGS) check-am
 all-am: Makefile $(HEADERS) BuildConfig.h
 installdirs:
-	for dir in "$(DESTDIR)$(ble_bledir)" "$(DESTDIR)$(ble_device_managerdir)" "$(DESTDIR)$(inetdir)" "$(DESTDIR)$(micro_eccdir)" "$(DESTDIR)$(mincryptdir)" "$(DESTDIR)$(platform_ble_bluezdir)" "$(DESTDIR)$(systemdir)" "$(DESTDIR)$(warmdir)" "$(DESTDIR)$(weavedir)" "$(DESTDIR)$(weave_coredir)" "$(DESTDIR)$(weave_support_basedir)" "$(DESTDIR)$(weave_support_cryptodir)" "$(DESTDIR)$(weave_support_loggingdir)" "$(DESTDIR)$(weave_support_platformdir)" "$(DESTDIR)$(weave_support_verhoeffdir)" "$(DESTDIR)$(includedir)" "$(DESTDIR)$(weave_profiles_basedir)" "$(DESTDIR)$(weave_profiles_bulk_data_transferdir)" "$(DESTDIR)$(weave_profiles_bulk_data_transfer_currentdir)" "$(DESTDIR)$(weave_profiles_bulk_data_transfer_developmentdir)" "$(DESTDIR)$(weave_profiles_commondir)" "$(DESTDIR)$(weave_profiles_data_managementdir)" "$(DESTDIR)$(weave_profiles_data_management_currentdir)" "$(DESTDIR)$(weave_profiles_data_management_legacydir)" "$(DESTDIR)$(weave_profiles_device_controldir)" "$(DESTDIR)$(weave_profiles_device_descriptiondir)" "$(DESTDIR)$(weave_profiles_echodir)" "$(DESTDIR)$(weave_profiles_fabric_provisioningdir)" "$(DESTDIR)$(weave_profiles_heartbeatdir)" "$(DESTDIR)$(weave_profiles_localedir)" "$(DESTDIR)$(weave_profiles_nestlabs_boilerdir)" "$(DESTDIR)$(weave_profiles_nestlabs_device_descriptiondir)" "$(DESTDIR)$(weave_profiles_nestlabs_domestic_hot_waterdir)" "$(DESTDIR)$(weave_profiles_nestlabs_dropcam_legacy_pairingdir)" "$(DESTDIR)$(weave_profiles_nestlabs_heat_linkdir)" "$(DESTDIR)$(weave_profiles_nestlabs_hvac_equipment_controldir)" "$(DESTDIR)$(weave_profiles_nestlabs_protectdir)" "$(DESTDIR)$(weave_profiles_nestlabs_thermostatdir)" "$(DESTDIR)$(weave_profiles_nestlabs_time_variant_datadir)" "$(DESTDIR)$(weave_profiles_network_provisioningdir)" "$(DESTDIR)$(weave_profiles_securitydir)" "$(DESTDIR)$(weave_profiles_service_directorydir)" "$(DESTDIR)$(weave_profiles_service_provisioningdir)" "$(DESTDIR)$(weave_profiles_software_updatedir)" "$(DESTDIR)$(weave_profiles_status_reportdir)" "$(DESTDIR)$(weave_profiles_timedir)" "$(DESTDIR)$(weave_profiles_token_pairingdir)" "$(DESTDIR)$(weave_profiles_weave_tunnelingdir)"; do \
+	for dir in "$(DESTDIR)$(ble_bledir)" "$(DESTDIR)$(ble_device_managerdir)" "$(DESTDIR)$(inetdir)" "$(DESTDIR)$(micro_eccdir)" "$(DESTDIR)$(mincryptdir)" "$(DESTDIR)$(platform_ble_bluezdir)" "$(DESTDIR)$(systemdir)" "$(DESTDIR)$(warmdir)" "$(DESTDIR)$(weavedir)" "$(DESTDIR)$(weave_coredir)" "$(DESTDIR)$(weave_support_basedir)" "$(DESTDIR)$(weave_support_cryptodir)" "$(DESTDIR)$(weave_support_loggingdir)" "$(DESTDIR)$(weave_support_platformdir)" "$(DESTDIR)$(weave_support_verhoeffdir)" "$(DESTDIR)$(includedir)" "$(DESTDIR)$(weave_profiles_basedir)" "$(DESTDIR)$(weave_profiles_bulk_data_transferdir)" "$(DESTDIR)$(weave_profiles_bulk_data_transfer_currentdir)" "$(DESTDIR)$(weave_profiles_bulk_data_transfer_developmentdir)" "$(DESTDIR)$(weave_profiles_commondir)" "$(DESTDIR)$(weave_profiles_data_managementdir)" "$(DESTDIR)$(weave_profiles_data_management_currentdir)" "$(DESTDIR)$(weave_profiles_data_management_legacydir)" "$(DESTDIR)$(weave_profiles_device_controldir)" "$(DESTDIR)$(weave_profiles_device_descriptiondir)" "$(DESTDIR)$(weave_profiles_echodir)" "$(DESTDIR)$(weave_profiles_echo_currentdir)" "$(DESTDIR)$(weave_profiles_echo_nextdir)" "$(DESTDIR)$(weave_profiles_fabric_provisioningdir)" "$(DESTDIR)$(weave_profiles_heartbeatdir)" "$(DESTDIR)$(weave_profiles_localedir)" "$(DESTDIR)$(weave_profiles_nestlabs_boilerdir)" "$(DESTDIR)$(weave_profiles_nestlabs_device_descriptiondir)" "$(DESTDIR)$(weave_profiles_nestlabs_domestic_hot_waterdir)" "$(DESTDIR)$(weave_profiles_nestlabs_dropcam_legacy_pairingdir)" "$(DESTDIR)$(weave_profiles_nestlabs_heat_linkdir)" "$(DESTDIR)$(weave_profiles_nestlabs_hvac_equipment_controldir)" "$(DESTDIR)$(weave_profiles_nestlabs_protectdir)" "$(DESTDIR)$(weave_profiles_nestlabs_thermostatdir)" "$(DESTDIR)$(weave_profiles_nestlabs_time_variant_datadir)" "$(DESTDIR)$(weave_profiles_network_provisioningdir)" "$(DESTDIR)$(weave_profiles_securitydir)" "$(DESTDIR)$(weave_profiles_service_directorydir)" "$(DESTDIR)$(weave_profiles_service_provisioningdir)" "$(DESTDIR)$(weave_profiles_software_updatedir)" "$(DESTDIR)$(weave_profiles_status_reportdir)" "$(DESTDIR)$(weave_profiles_timedir)" "$(DESTDIR)$(weave_profiles_token_pairingdir)" "$(DESTDIR)$(weave_profiles_weave_tunnelingdir)"; do \
 	  test -z "$$dir" || $(MKDIR_P) "$$dir"; \
 	done
 install: $(BUILT_SOURCES)
@@ -2536,6 +2600,8 @@ install-data-am: install-dist_ble_bleHEADERS \
 	install-weave_profiles_device_controlHEADERS \
 	install-weave_profiles_device_descriptionHEADERS \
 	install-weave_profiles_echoHEADERS \
+	install-weave_profiles_echo_currentHEADERS \
+	install-weave_profiles_echo_nextHEADERS \
 	install-weave_profiles_fabric_provisioningHEADERS \
 	install-weave_profiles_heartbeatHEADERS \
 	install-weave_profiles_localeHEADERS \
@@ -2623,6 +2689,8 @@ uninstall-am: uninstall-dist_ble_bleHEADERS \
 	uninstall-weave_profiles_device_controlHEADERS \
 	uninstall-weave_profiles_device_descriptionHEADERS \
 	uninstall-weave_profiles_echoHEADERS \
+	uninstall-weave_profiles_echo_currentHEADERS \
+	uninstall-weave_profiles_echo_nextHEADERS \
 	uninstall-weave_profiles_fabric_provisioningHEADERS \
 	uninstall-weave_profiles_heartbeatHEADERS \
 	uninstall-weave_profiles_localeHEADERS \
@@ -2679,6 +2747,8 @@ uninstall-am: uninstall-dist_ble_bleHEADERS \
 	install-weave_profiles_device_controlHEADERS \
 	install-weave_profiles_device_descriptionHEADERS \
 	install-weave_profiles_echoHEADERS \
+	install-weave_profiles_echo_currentHEADERS \
+	install-weave_profiles_echo_nextHEADERS \
 	install-weave_profiles_fabric_provisioningHEADERS \
 	install-weave_profiles_heartbeatHEADERS \
 	install-weave_profiles_localeHEADERS \
@@ -2726,6 +2796,8 @@ uninstall-am: uninstall-dist_ble_bleHEADERS \
 	uninstall-weave_profiles_device_controlHEADERS \
 	uninstall-weave_profiles_device_descriptionHEADERS \
 	uninstall-weave_profiles_echoHEADERS \
+	uninstall-weave_profiles_echo_currentHEADERS \
+	uninstall-weave_profiles_echo_nextHEADERS \
 	uninstall-weave_profiles_fabric_provisioningHEADERS \
 	uninstall-weave_profiles_heartbeatHEADERS \
 	uninstall-weave_profiles_localeHEADERS \

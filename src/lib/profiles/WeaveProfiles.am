@@ -51,8 +51,10 @@ nl_WeaveProfiles_sources                                                        
     @top_builddir@/src/lib/profiles/device-description/DeviceDescription.cpp            \
     @top_builddir@/src/lib/profiles/device-description/DeviceDescriptionClient.cpp      \
     @top_builddir@/src/lib/profiles/device-description/DeviceDescriptionServer.cpp      \
-    @top_builddir@/src/lib/profiles/echo/WeaveEchoClient.cpp                            \
-    @top_builddir@/src/lib/profiles/echo/WeaveEchoServer.cpp                            \
+    @top_builddir@/src/lib/profiles/echo/Current/WeaveEchoClient.cpp                    \
+    @top_builddir@/src/lib/profiles/echo/Current/WeaveEchoServer.cpp                    \
+    @top_builddir@/src/lib/profiles/echo/Next/WeaveEchoClient.cpp                       \
+    @top_builddir@/src/lib/profiles/echo/Next/WeaveEchoServer.cpp                       \
     @top_builddir@/src/lib/profiles/fabric-provisioning/FabricProvisioning.cpp          \
     @top_builddir@/src/lib/profiles/heartbeat/WeaveHeartbeatReceiver.cpp                \
     @top_builddir@/src/lib/profiles/heartbeat/WeaveHeartbeatSender.cpp                  \

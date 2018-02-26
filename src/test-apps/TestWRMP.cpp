@@ -36,6 +36,7 @@
 #include <InetLayer/InetLayer.h>
 #include <SystemLayer/SystemTimer.h>
 #include <Weave/Profiles/service-directory/ServiceDirectory.h>
+#include <Weave/Profiles/echo/WeaveEcho.h>
 #include "TestWRMP.h"
 
 #if WEAVE_CONFIG_ENABLE_RELIABLE_MESSAGING

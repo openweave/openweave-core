@@ -42,6 +42,7 @@
 #include "ToolCommon.h"
 #include <Weave/WeaveVersion.h>
 #include <Weave/Core/WeaveSecurityMgr.h>
+#include <Weave/Profiles/echo/WeaveEcho.h>
 #include <Weave/Profiles/security/WeaveSecurity.h>
 #include <Weave/Profiles/service-directory/ServiceDirectory.h>
 #include <Weave/Support/crypto/WeaveCrypto.h>

@@ -41,6 +41,7 @@
 #include "ToolCommon.h"
 #include <SystemLayer/SystemTimer.h>
 #include <Weave/Profiles/ProfileCommon.h>
+#include <Weave/Profiles/echo/WeaveEcho.h>
 #include <Weave/Profiles/weave-tunneling/WeaveTunnelAgent.h>
 #include <SystemLayer/SystemTimer.h>
 
