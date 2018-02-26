@@ -364,6 +364,7 @@ private:
     WEAVE_ERROR HandleMessage(WeaveMessageInfo *msgInfo, const WeaveExchangeHeader *exchHeader, PacketBuffer *msgBuf);
     WEAVE_ERROR HandleMessage(WeaveMessageInfo *msgInfo, const WeaveExchangeHeader *exchHeader, PacketBuffer *msgBuf,
                               ExchangeContext::MessageReceiveFunct umhandler);
+    void HandleConnectionClosed(WEAVE_ERROR conErr);
 
 #if WEAVE_CONFIG_ENABLE_RELIABLE_MESSAGING
     bool WRMPCheckAndRemRetransTable(uint32_t msgId, void **rCtxt);

@@ -1596,6 +1596,27 @@ exit:
     return err;
 }
 
+void ExchangeContext::HandleConnectionClosed(WEAVE_ERROR conErr)
+{
+    // Record that the EC had a connection that is now closed.
+    SetConnectionClosed(true);
+
+    // If configured, automatically release the EC's reference to the WeaveConnection object.
+    if (ShouldAutoReleaseConnection() && Con != NULL)
+    {
+        Con->Release();
+        SetShouldAutoReleaseConnection(false);
+    }
+
+    // Discard the EC's pointer to the connection, preventing further use.
+    WeaveConnection * con = Con;
+    Con = NULL;
+
+    // Call the application's OnConnectionClosed handler, if set.
+    if (OnConnectionClosed != NULL)
+        OnConnectionClosed(this, con, conErr);
+}
+
 /**
  * Constructs a string describing the peer node and its associated address / connection information.
  *

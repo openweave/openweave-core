@@ -493,14 +493,16 @@ void WeaveExchangeManager::HandleConnectionReceived(WeaveConnection *con)
 
 void WeaveExchangeManager::HandleConnectionClosed(WeaveConnection *con, WEAVE_ERROR conErr)
 {
+    for (int i = 0; i < WEAVE_CONFIG_MAX_BINDINGS; i++)
+    {
+        BindingPool[i].OnConnectionClosed(con, conErr);
+    }
+
     ExchangeContext *ec = (ExchangeContext *) ContextPool;
     for (int i = 0; i < WEAVE_CONFIG_MAX_EXCHANGE_CONTEXTS; i++, ec++)
         if (ec->ExchangeMgr != NULL && ec->Con == con)
         {
-            ec->SetConnectionClosed(true);
-            ec->Con = NULL;
-            if (ec->OnConnectionClosed != NULL)
-                ec->OnConnectionClosed(ec, con, conErr);
+            ec->HandleConnectionClosed(conErr);
         }
 
     UnsolicitedMessageHandler *umh = (UnsolicitedMessageHandler *) UMHandlerPool;

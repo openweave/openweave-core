@@ -1,6 +1,6 @@
 /*
  *
- *    Copyright (c) 2016-2017 Nest Labs, Inc.
+ *    Copyright (c) 2016-2018 Nest Labs, Inc.
  *    All rights reserved.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
@@ -47,7 +47,13 @@ namespace Profiles {
 namespace StatusReporting {
 class StatusReport;
 }
+namespace Security {
+namespace TAKE {
+class WeaveTAKEChallengerAuthDelegate;
 }
+}
+}
+
 
 /**
  * @class Binding
@@ -153,6 +159,8 @@ public:
         kEvent_PrepareFailed                        = 3,    //< The prepare action on the binding failed.
         kEvent_BindingFailed                        = 4,    //< The binding failed and can no longer be used to communicate with the peer.
         kEvent_PrepareRequested                     = 5,    //< The application is requested to configure and prepare the binding for use by the network stack.
+        kEvent_PASEParametersRequested              = 6,    //< The application is requested to supply parameters to be used during PASE session establishment.
+        kEvent_TAKEParametersRequested              = 7,    //< The application is requested to supply parameters to be used during TAKE session establishment.
 
         kEvent_DefaultCheck                         = 100,  //< Used to verify correct default event handling in the application.
     };
@@ -178,6 +186,7 @@ public:
     uint16_t GetLogId(void) const;
 
     uint64_t GetPeerNodeId(void) const;
+    void GetPeerIPAddress(nl::Inet::IPAddress & address, uint16_t & port, InterfaceId & interfaceId) const;
     uint32_t GetKeyId(void) const;
     uint8_t GetEncryptionType(void) const;
     uint32_t GetDefaultResponseTimeout() const;
@@ -189,6 +198,7 @@ public:
     EventCallback GetEventCallback() const;
     void SetEventCallback(EventCallback aEventCallback);
     WeaveConnection *GetConnection() const;
+    WeaveExchangeManager *GetExchangeManager() const;
 
     enum
     {
@@ -242,6 +252,8 @@ private:
         kSecurityOption_SpecificKey                 = 2,
         kSecurityOption_CASESession                 = 3,
         kSecurityOption_SharedCASESession           = 4,
+        kSecurityOption_PASESession                 = 5,
+        kSecurityOption_TAKESession                 = 6,
     };
 
     enum Flags
@@ -298,7 +310,7 @@ private:
     void PrepareTransport(void);
     void PrepareSecurity(void);
     void HandleBindingReady(void);
-    void HandleBindingFailed(WEAVE_ERROR err, bool raiseEvent);
+    void HandleBindingFailed(WEAVE_ERROR err, Profiles::StatusReporting::StatusReport *statusReport, bool raiseEvent);
     void OnKeyFailed(uint64_t peerNodeId, uint32_t keyId, WEAVE_ERROR keyErr);
     void OnSecurityManagerAvailable(void);
     void OnConnectionClosed(WeaveConnection *con, WEAVE_ERROR conErr);
@@ -354,6 +366,8 @@ public:
     Configuration& Security_CASESession(void);
     Configuration& Security_SharedCASESession(void);
     Configuration& Security_SharedCASESession(uint64_t aRouterNodeId);
+    Configuration& Security_PASESession(uint8_t aPasswordSource);
+    Configuration& Security_TAKESession();
     Configuration& Security_Key(uint32_t aKeyId);
     Configuration& Security_AppGroupKey(uint32_t aAppGroupGlobalId, uint32_t aRootKeyId, bool aUseRotatingKey);
     Configuration& Security_EncryptionType(uint8_t aEncType);
@@ -388,12 +402,18 @@ struct Binding::InEventParam
         struct
         {
             WEAVE_ERROR Reason;
+            Profiles::StatusReporting::StatusReport *StatusReport;
         } PrepareFailed;
 
         struct
         {
             WEAVE_ERROR Reason;
         } BindingFailed;
+
+        struct
+        {
+            uint8_t PasswordSource;
+        } PASEParametersRequested;
     };
 
     void Clear() { memset(this, 0, sizeof(*this)); }
@@ -411,6 +431,21 @@ struct Binding::OutEventParam
         {
             WEAVE_ERROR PrepareError;
         } PrepareRequested;
+
+        struct
+        {
+            const uint8_t * Password;
+            uint16_t PasswordLength;
+        } PASEParametersRequested;
+
+        struct
+        {
+            bool EncryptAuthPhase;
+            bool EncryptCommPhase;
+            bool TimeLimitedIK;
+            bool SendChallengerId;
+            nl::Weave::Profiles::Security::TAKE::WeaveTAKEChallengerAuthDelegate *AuthDelegate;
+        } TAKEParametersRequested;
     };
 
     void Clear() { memset(this, 0, sizeof(*this)); }
@@ -446,6 +481,13 @@ inline bool Binding::CanBePrepared(void) const
 inline uint64_t Binding::GetPeerNodeId() const
 {
     return mPeerNodeId;
+}
+
+inline void Binding::GetPeerIPAddress(nl::Inet::IPAddress & address, uint16_t & port, InterfaceId & interfaceId) const
+{
+    address = mPeerAddress;
+    port = mPeerPort;
+    interfaceId = mInterfaceId;
 }
 
 inline uint32_t Binding::GetKeyId(void) const
@@ -517,6 +559,11 @@ inline bool Binding::GetFlag(uint8_t flag) const
 inline void Binding::SetFlag(uint8_t flag)
 {
     mFlags |= flag;
+}
+
+inline WeaveExchangeManager *Binding::GetExchangeManager() const
+{
+    return mExchangeManager;
 }
 
 inline Binding::Configuration Binding::BeginConfiguration()

@@ -1,6 +1,6 @@
 /*
  *
- *    Copyright (c) 2016-2017 Nest Labs, Inc.
+ *    Copyright (c) 2016-2018 Nest Labs, Inc.
  *    All rights reserved.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
@@ -64,6 +64,27 @@ namespace Weave {
  * @return                          Weave node ID of the peer
  */
 
+/**
+ * @fn void Binding::GetPeerIPAddress(nl::Inet::IPAddress & address, uint16_t & port, InterfaceId & interfaceId) const
+ *
+ * Retrieve the IP address information for the peer, if available.
+ *
+ * The availability of the peer's IP address information depends on the state and configuration of the binding.
+ * IP address information is only available when using an IP-based transport (TCP, UDP, or UDP with WRMP).  Prior to
+ * the start of preparation, address information is only available if it has been set expressly by the application
+ * during configuration.  During the preparation phase, address information is available when address preparation
+ * completes (e.g. after DNS resolution has completed).  After the Binding is ready, address information remains
+ * available until the Binding is reset.
+ *
+ * @param[out]   address            A reference to an IPAddress object that will receive the peer's IP address.
+ *                                  If the peer's IP address information is unavailable, this value will be set
+ *                                  to IPAddress::Any.
+ * @param[out]   port               A reference to an integer that will receive the peer's port number.
+ *                                  If the peer's IP address information is unavailable, this value is undefined.
+ * @param[out]   interfaceId        A reference to an integer that will receive the id of the network interface
+ *                                  via which the peer can be reached.  If the peer's IP address information is
+ *                                  unavailable, this value is undefined.
+ */
 /**
  * @fn uint32_t Binding::GetKeyId() const
  *
@@ -401,8 +422,10 @@ void Binding::ResetConfig()
     mPeerNodeId = kNodeIdNotSpecified;
 
     mAddressingOption = kAddressing_NotSpecified;
+    mPeerAddress = nl::Inet::IPAddress::Any;
     mPeerPort = WEAVE_PORT;
     mInterfaceId = INET_NULL_INTERFACEID;
+    mHostName = NULL;
 
     mCon = NULL;
 
@@ -502,9 +525,25 @@ WEAVE_ERROR Binding::DoPrepare(WEAVE_ERROR configErr)
     // App must pick a security option
     VerifyOrExit(kSecurityOption_NotSpecified != mSecurityOption, err = WEAVE_ERROR_INVALID_ARGUMENT);
 
-    // Shared session not allowed over connection-oriented transports.
+#if WEAVE_CONFIG_ENABLE_CASE_INITIATOR
+    // Shared CASE session not supported over connection-oriented transports.
     VerifyOrExit(mSecurityOption != kSecurityOption_SharedCASESession || mTransportOption == kTransport_UDP || mTransportOption == kTransport_UDP_WRM,
-                 err = WEAVE_ERROR_INVALID_ARGUMENT);
+                 err = WEAVE_ERROR_NOT_IMPLEMENTED);
+#endif
+
+#if WEAVE_CONFIG_ENABLE_PASE_INITIATOR
+    // PASE sessions not supported over UDP transports.
+    VerifyOrExit(mSecurityOption != kSecurityOption_PASESession ||
+                 (mTransportOption != kTransport_UDP && mTransportOption != kTransport_UDP_WRM),
+                 err = WEAVE_ERROR_NOT_IMPLEMENTED);
+#endif
+
+#if WEAVE_CONFIG_ENABLE_TAKE_INITIATOR
+    // TAKE sessions not supported over UDP transports.
+    VerifyOrExit(mSecurityOption != kSecurityOption_TAKESession ||
+                 (mTransportOption != kTransport_UDP && mTransportOption != kTransport_UDP_WRM),
+                 err = WEAVE_ERROR_NOT_IMPLEMENTED);
+#endif
 
     mState = kState_Preparing;
 
@@ -516,7 +555,7 @@ WEAVE_ERROR Binding::DoPrepare(WEAVE_ERROR configErr)
 exit:
     if (WEAVE_NO_ERROR != err)
     {
-        HandleBindingFailed(err, false);
+        HandleBindingFailed(err, NULL, false);
     }
     WeaveLogFunctError(err);
     return err;
@@ -531,8 +570,20 @@ void Binding::PrepareAddress()
 
     mState = kState_PreparingAddress;
 
+    // If configured to use an existing connection, extract the peer IP addressing information from the
+    // connection if available.  Although this won't be used in contacting the peer (since the connection
+    // already exists) this makes the information available via the Binding API.
+    if ((mTransportOption == kTransport_TCP || mTransportOption == kTransport_ExistingConnection) && mCon != NULL)
+    {
+        if (mCon->NetworkType == WeaveConnection::kNetworkType_IP)
+        {
+            mPeerAddress = mCon->PeerAddr;
+            mPeerPort = mCon->PeerPort;
+        }
+    }
+
     // Default to using a Weave fabric address in the default subnet if an address was not specified.
-    if (kAddressing_NotSpecified == mAddressingOption)
+    else if (kAddressing_NotSpecified == mAddressingOption)
     {
         mPeerAddress = mExchangeManager->FabricState->SelectNodeAddress(mPeerNodeId);
     }
@@ -543,6 +594,7 @@ void Binding::PrepareAddress()
         mPeerAddress = mExchangeManager->FabricState->SelectNodeAddress(mPeerNodeId, mPeerAddress.Subnet());
     }
 
+    // If requested, resolve a supplied host name or string-form IP address...
     else if (kAddressing_HostName == mAddressingOption)
     {
 #if WEAVE_CONFIG_ENABLE_DNS_RESOLVER
@@ -573,7 +625,7 @@ void Binding::PrepareAddress()
 exit:
     if (WEAVE_NO_ERROR != err)
     {
-        HandleBindingFailed(err, false);
+        HandleBindingFailed(err, NULL, false);
     }
 }
 
@@ -602,6 +654,14 @@ void Binding::PrepareTransport()
         mCon->OnConnectionComplete = OnConnectionComplete;
         mCon->AppState = this;
 
+        // Clear the default connection closed handler that is automatically configured on the
+        // connection by the message layer.  Bindings receive a callback directly from the exchange
+        // manager every time a connection closes, which allows them to automatically release their
+        // reference to the connection without using a callback function.  Because of this, leaving
+        // in place the default connection closed handler, with its automatic close feature, the
+        // would result in a double release.  Thus we suppress that here.
+        mCon->OnConnectionClosed = NULL;
+
         mState = kState_PreparingTransport_TCPConnect;
 
         // Initiate a connection to the peer.
@@ -625,7 +685,7 @@ void Binding::PrepareTransport()
 exit:
     if (WEAVE_NO_ERROR != err)
     {
-        HandleBindingFailed(err, true);
+        HandleBindingFailed(err, NULL, true);
     }
 }
 
@@ -647,6 +707,7 @@ void Binding::PrepareSecurity()
 
     switch (mSecurityOption)
     {
+#if WEAVE_CONFIG_ENABLE_CASE_INITIATOR
     case kSecurityOption_CASESession:
     case kSecurityOption_SharedCASESession:
         {
@@ -684,22 +745,73 @@ void Binding::PrepareSecurity()
             // already available.
             err = sm->StartCASESession(mCon, mPeerNodeId, peerAddress, peerPort, mAuthMode, this,
                     OnSecureSessionReady, OnSecureSessionFailed, NULL, terminatingNodeId);
-
-            // If the security manager is currently busy, wait for it to finish.  When this happens,
-            // Binding::OnSecurityManagerAvailable() will be called, which will give the binding an opportunity
-            // to try again.
-            if (err == WEAVE_ERROR_SECURITY_MANAGER_BUSY)
-            {
-                WeaveLogDetail(ExchangeManager, "Binding[%" PRIu8 "] (%" PRIu16 "): Security manager busy; waiting.",
-                        GetLogId(), mRefCount);
-
-                mState = kState_PreparingSecurity_WaitSecurityMgr;
-                err = WEAVE_NO_ERROR;
-            }
-
             SuccessOrExit(err);
         }
         break;
+#endif // WEAVE_CONFIG_ENABLE_CASE_INITIATOR
+
+#if WEAVE_CONFIG_ENABLE_PASE_INITIATOR
+    case kSecurityOption_PASESession:
+        {
+            InEventParam inParam;
+            OutEventParam outParam;
+
+            WeaveLogDetail(ExchangeManager, "Binding[%" PRIu8 "] (%" PRIu16 "): Initiating PASE session",
+                    GetLogId(), mRefCount);
+
+            mState = kState_PreparingSecurity_EstablishSession;
+
+            // Call up to the application to get PASE parameters--essentially, the password.  Note that
+            // the application is free to ignore this event, resulting in this code passing NULL to the
+            // security manager which will then automatically choose the pairing code from the fabric
+            // state object.
+            // The application may NOT alter the state of the Binding during this callback.
+            inParam.Clear();
+            inParam.Source = this;
+            inParam.PASEParametersRequested.PasswordSource = PasswordSourceFromAuthMode(mAuthMode);
+            outParam.Clear();
+            mAppEventCallback(AppState, kEvent_PASEParametersRequested, inParam, outParam);
+
+            // Call the security manager to initiate the PASE session.
+            err = sm->StartPASESession(mCon, mAuthMode, this, OnSecureSessionReady, OnSecureSessionFailed,
+                    outParam.PASEParametersRequested.Password, outParam.PASEParametersRequested.PasswordLength);
+            SuccessOrExit(err);
+        }
+        break;
+#endif // WEAVE_CONFIG_ENABLE_PASE_INITIATOR
+
+#if WEAVE_CONFIG_ENABLE_TAKE_INITIATOR
+    case kSecurityOption_TAKESession:
+        {
+            InEventParam inParam;
+            OutEventParam outParam;
+
+            WeaveLogDetail(ExchangeManager, "Binding[%" PRIu8 "] (%" PRIu16 "): Initiating TAKE session",
+                    GetLogId(), mRefCount);
+
+            mState = kState_PreparingSecurity_EstablishSession;
+
+            // Call up to the application to get TAKE parameters.
+            // NOTE: The application may NOT alter the state of the Binding during this callback.
+            inParam.Clear();
+            inParam.Source = this;
+            outParam.Clear();
+            mAppEventCallback(AppState, kEvent_TAKEParametersRequested, inParam, outParam);
+
+            // Verify the application handled the event.
+            VerifyOrExit(!outParam.DefaultHandlerCalled, err = WEAVE_ERROR_INVALID_TAKE_PARAMETER);
+
+            // Call the security manager to initiate the TAKE session.
+            err = sm->StartTAKESession(mCon, mAuthMode, this, OnSecureSessionReady, OnSecureSessionFailed,
+                    outParam.TAKEParametersRequested.EncryptAuthPhase,
+                    outParam.TAKEParametersRequested.EncryptCommPhase,
+                    outParam.TAKEParametersRequested.TimeLimitedIK,
+                    outParam.TAKEParametersRequested.SendChallengerId,
+                    outParam.TAKEParametersRequested.AuthDelegate);
+            SuccessOrExit(err);
+        }
+        break;
+#endif // WEAVE_CONFIG_ENABLE_TAKE_INITIATOR
 
     case kSecurityOption_SpecificKey:
 
@@ -721,9 +833,22 @@ void Binding::PrepareSecurity()
     }
 
 exit:
+
+    // If the security manager is currently busy, wait for it to finish.  When this happens,
+    // Binding::OnSecurityManagerAvailable() will be called, which will give the binding an opportunity
+    // to try again.
+    if (err == WEAVE_ERROR_SECURITY_MANAGER_BUSY)
+    {
+        WeaveLogDetail(ExchangeManager, "Binding[%" PRIu8 "] (%" PRIu16 "): Security manager busy; waiting.",
+                GetLogId(), mRefCount);
+
+        mState = kState_PreparingSecurity_WaitSecurityMgr;
+        err = WEAVE_NO_ERROR;
+    }
+
     if (WEAVE_NO_ERROR != err)
     {
-        HandleBindingFailed(err, true);
+        HandleBindingFailed(err, NULL, true);
     }
 }
 
@@ -801,7 +926,7 @@ void Binding::HandleBindingReady()
 /**
  * Transition the Binding to the Failed state.
  */
-void Binding::HandleBindingFailed(WEAVE_ERROR err, bool raiseEvents) // TODO: add status report information.
+void Binding::HandleBindingFailed(WEAVE_ERROR err, Profiles::StatusReporting::StatusReport *statusReport, bool raiseEvents)
 {
     InEventParam inParam;
     OutEventParam outParam;
@@ -814,6 +939,7 @@ void Binding::HandleBindingFailed(WEAVE_ERROR err, bool raiseEvents) // TODO: ad
     if (IsPreparing())
     {
         inParam.PrepareFailed.Reason = err;
+        inParam.PrepareFailed.StatusReport = statusReport;
         eventType = kEvent_PrepareFailed;
     }
     else
@@ -822,10 +948,16 @@ void Binding::HandleBindingFailed(WEAVE_ERROR err, bool raiseEvents) // TODO: ad
         eventType = kEvent_BindingFailed;
     }
 
-    WeaveLogDetail(ExchangeManager, "Binding[%" PRIu8 "] (%" PRIu16 "): %s: peer %" PRIX64 ", %s",
+    WeaveLogDetail(ExchangeManager, "Binding[%" PRIu8 "] (%" PRIu16 "): %s FAILED: peer %" PRIX64 ", %s%s",
             GetLogId(), mRefCount,
-            (eventType == kEvent_BindingFailed) ? "Binding FAILED" : "Prepare FAILED",
-            mPeerNodeId, ErrorStr(err));
+            (eventType == kEvent_BindingFailed) ? "Binding" : "Prepare",
+            mPeerNodeId,
+            (err == WEAVE_ERROR_STATUS_REPORT_RECEIVED && statusReport != NULL)
+                ? "Status Report received: "
+                : "",
+            (err == WEAVE_ERROR_STATUS_REPORT_RECEIVED && statusReport != NULL)
+                ? nl::StatusReportStr(statusReport->mProfileId, statusReport->mStatusCode)
+                : ErrorStr(err));
 
     // Reset the binding and enter the Failed state.
     DoReset(kState_Failed);
@@ -872,7 +1004,7 @@ void Binding::OnResolveComplete(void *appState, INET_ERROR err, uint8_t addrCoun
     }
     else
     {
-        _this->HandleBindingFailed(err, true);
+        _this->HandleBindingFailed(err, NULL, true);
     }
 }
 
@@ -917,7 +1049,7 @@ void Binding::OnConnectionComplete(WeaveConnection *con, WEAVE_ERROR conErr)
     {
         WeaveLogDetail(ExchangeManager, "Binding[%" PRIu8 "] (%" PRIu16 "): TCP con failed (%04" PRIX16 "): %s",
                 _this->GetLogId(), _this->mRefCount, con->LogId(), ErrorStr(conErr));
-        _this->HandleBindingFailed(conErr, true);
+        _this->HandleBindingFailed(conErr, NULL, true);
     }
 }
 
@@ -928,6 +1060,9 @@ void Binding::OnConnectionClosed(WeaveConnection *con, WEAVE_ERROR err)
 {
     // NOTE: This method is called whenever a connection is closed anywhere in the system.  Thus
     // this code must filter for events that apply to the current binding only.
+
+    // Ignore the key error if the binding is not in the Ready state or one of the preparing states.
+    VerifyOrExit(IsPreparing() || mState == kState_Ready, /* no-op */);
 
     // Ignore the close if it is associated with a different connection.
     VerifyOrExit(mCon == con, /* no-op */);
@@ -940,11 +1075,13 @@ void Binding::OnConnectionClosed(WeaveConnection *con, WEAVE_ERROR err)
     }
 
     // Transition the binding to a failed state.
-    HandleBindingFailed(err, true);
+    HandleBindingFailed(err, NULL, true);
 
 exit:
     return;
 }
+
+#if WEAVE_CONFIG_ENABLE_CASE_INITIATOR || WEAVE_CONFIG_ENABLE_PASE_INITIATOR || WEAVE_CONFIG_ENABLE_TAKE_INITIATOR
 
 /**
  * Invoked when a security session establishment has completed successfully.
@@ -979,8 +1116,10 @@ void Binding::OnSecureSessionFailed(WeaveSecurityManager *sm, WeaveConnection *c
     VerifyOrDie(_this->mState == kState_PreparingSecurity_EstablishSession);
 
     // Tell the application that the binding has failed.
-    _this->HandleBindingFailed(localErr, true);
+    _this->HandleBindingFailed(localErr, statusReport, true);
 }
+
+#endif // WEAVE_CONFIG_ENABLE_CASE_INITIATOR || WEAVE_CONFIG_ENABLE_PASE_INITIATOR || WEAVE_CONFIG_ENABLE_TAKE_INITIATOR
 
 /**
  * Invoked when a message encryption key has been rejected by a peer (via a KeyError), or a key has
@@ -1002,7 +1141,7 @@ void Binding::OnKeyFailed(uint64_t peerNodeId, uint32_t keyId, WEAVE_ERROR keyEr
     VerifyOrExit(mState != kState_Ready || keyId == mKeyId, /* no-op */);
 
     // Fail the binding.
-    HandleBindingFailed(keyErr, true);
+    HandleBindingFailed(keyErr, NULL, true);
 
 exit:
     return;
@@ -1098,7 +1237,7 @@ bool Binding::IsAuthenticMessageFromPeer(const nl::Weave::WeaveMessageHeader *ms
  *  @param[in]    msgBuf        A pointer to the PacketBuffer to which the message
  *                              payload will be written.
  *
- *  @return 			The max Weave payload size.
+ *  @return                     The max Weave payload size.
  */
 uint32_t Binding::GetMaxWeavePayloadSize(const System::PacketBuffer *msgBuf)
 {
@@ -1420,6 +1559,7 @@ Binding::Configuration& Binding::Configuration::Transport_DefaultWRMPConfig(cons
 #if WEAVE_CONFIG_ENABLE_RELIABLE_MESSAGING
     mBinding.mDefaultWRMPConfig = aWRMPConfig;
 #else // WEAVE_CONFIG_ENABLE_RELIABLE_MESSAGING
+    IgnoreUnusedVariable(aWRMPConfig);
     mError = WEAVE_ERROR_NOT_IMPLEMENTED;
 #endif // WEAVE_CONFIG_ENABLE_RELIABLE_MESSAGING
     return *this;
@@ -1476,9 +1616,13 @@ Binding::Configuration& Binding::Configuration::Security_None()
  */
 Binding::Configuration& Binding::Configuration::Security_CASESession(void)
 {
+#if WEAVE_CONFIG_ENABLE_CASE_INITIATOR
     mBinding.mSecurityOption = kSecurityOption_CASESession;
     mBinding.mKeyId = WeaveKeyId::kNone;
     mBinding.mAuthMode = kWeaveAuthMode_CASE_AnyCert;
+#else
+    mError = WEAVE_ERROR_NOT_IMPLEMENTED;
+#endif
     return *this;
 }
 
@@ -1493,9 +1637,13 @@ Binding::Configuration& Binding::Configuration::Security_CASESession(void)
  */
 Binding::Configuration& Binding::Configuration::Security_SharedCASESession(void)
 {
+#if WEAVE_CONFIG_ENABLE_CASE_INITIATOR
     mBinding.mSecurityOption = kSecurityOption_SharedCASESession;
     mBinding.mKeyId = WeaveKeyId::kNone;
     mBinding.mAuthMode = kWeaveAuthMode_CASE_ServiceEndPoint;
+#else
+    mError = WEAVE_ERROR_NOT_IMPLEMENTED;
+#endif
     return *this;
 }
 
@@ -1513,6 +1661,7 @@ Binding::Configuration& Binding::Configuration::Security_SharedCASESession(void)
  */
 Binding::Configuration& Binding::Configuration::Security_SharedCASESession(uint64_t aRouterNodeId)
 {
+#if WEAVE_CONFIG_ENABLE_CASE_INITIATOR
     // This is also defined in Weave/Profiles/ServiceDirectory.h, but this is in Weave Core
     // TODO: move this elsewhere.
     static const uint64_t kServiceEndpoint_CoreRouter = 0x18B4300200000012ull;
@@ -1524,6 +1673,56 @@ Binding::Configuration& Binding::Configuration::Security_SharedCASESession(uint6
     Security_SharedCASESession();
 
 exit:
+#else
+    IgnoreUnusedVariable(aRouterNodeId);
+    mError = WEAVE_ERROR_NOT_IMPLEMENTED;
+#endif
+    return *this;
+}
+
+/**
+ * When communicating with the peer, send and receive messages encrypted using a PASE session key
+ * established with the peer node.
+ *
+ * If the necessary session is not available, it will be established automatically as part of
+ * preparing the binding.
+ *
+ * @param[in] aPasswordSource   The source for the password to be used during PASE session
+ *                              establishment.
+ *
+ * @return                      A reference to the binding object.
+ */
+Binding::Configuration& Binding::Configuration::Security_PASESession(uint8_t aPasswordSource)
+{
+#if WEAVE_CONFIG_ENABLE_PASE_INITIATOR
+    mBinding.mSecurityOption = kSecurityOption_PASESession;
+    mBinding.mKeyId = WeaveKeyId::kNone;
+    mBinding.mAuthMode = kWeaveAuthModeCategory_PASE | (kWeaveAuthMode_PASE_PasswordSourceMask & aPasswordSource);
+#else
+    IgnoreUnusedVariable(aPasswordSource);
+    mError = WEAVE_ERROR_NOT_IMPLEMENTED;
+#endif
+    return *this;
+}
+
+/**
+ * When communicating with the peer, send and receive messages encrypted using a TAKE session key
+ * established with the peer node.
+ *
+ * If the necessary session is not available, it will be established automatically as part of
+ * preparing the binding.
+ *
+ * @return                      A reference to the binding object.
+ */
+Binding::Configuration& Binding::Configuration::Security_TAKESession()
+{
+#if WEAVE_CONFIG_ENABLE_TAKE_INITIATOR
+    mBinding.mSecurityOption = kSecurityOption_TAKESession;
+    mBinding.mKeyId = WeaveKeyId::kNone;
+    mBinding.mAuthMode = kWeaveAuthMode_TAKE_IdentificationKey;
+#else
+    mError = WEAVE_ERROR_NOT_IMPLEMENTED;
+#endif
     return *this;
 }
 

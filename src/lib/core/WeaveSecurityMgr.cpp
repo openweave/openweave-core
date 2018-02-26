@@ -2061,6 +2061,12 @@ WEAVE_ERROR WeaveSecurityManager::CreateTAKESecureSession(void)
     mEC->KeyId = mSessionKeyId;
     mEC->EncryptionType = mEncType;
 
+    // Add a reservation for the new session key and configure the ExchangeContext to automatically release
+    // the key when the context is freed.  This will ensure the key is not removed until rest of the TAKE
+    // exchange completes.
+    ReserveKey(mEC->PeerNodeId, mEC->KeyId);
+    mEC->SetAutoReleaseKey(true);
+
 exit:
     return err;
 }
