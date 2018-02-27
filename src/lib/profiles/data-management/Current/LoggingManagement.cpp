@@ -1022,6 +1022,11 @@ inline event_id_t LoggingManagement::LogEventPrivate(const EventSchema & inSchem
     {
         // Ensure we have space in the in-memory logging queues
         err = EnsureSpace(requestSize);
+        // If we fail to ensure the initial reserve size, then the
+        // logging subsystem will never be able to make progress.  In
+        // that case, it is best to assert
+        if ((requestSize == WEAVE_CONFIG_EVENT_SIZE_RESERVE) && (err != WEAVE_NO_ERROR))
+            WeaveDie();
         SuccessOrExit(err);
 
         // save a checkpoint for the underlying buffer.  Note that with
@@ -1045,6 +1050,21 @@ inline event_id_t LoggingManagement::LogEventPrivate(const EventSchema & inSchem
         }
 
         didWriteEvent = true;
+    }
+
+    {
+        // Check the number of bytes written.  If the event is loo large
+        // to be evicted from subsequent buffers, drop it now.
+        CircularEventBuffer * buffer = mEventBuffer;
+        do
+        {
+            VerifyOrExit(buffer->mBuffer.GetQueueSize() >= writer.GetLengthWritten(),
+                         err = WEAVE_ERROR_BUFFER_TOO_SMALL);
+            if (buffer->IsFinalDestinationForImportance(inSchema.mImportance))
+                break;
+            else
+                buffer = buffer->mNext;
+        } while (true);
     }
 
     mBytesWritten += writer.GetLengthWritten();
