@@ -1,6 +1,6 @@
 /*
  *
- *    Copyright (c) 2016-2017 Nest Labs, Inc.
+ *    Copyright (c) 2016-2018 Nest Labs, Inc.
  *    All rights reserved.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
@@ -61,6 +61,7 @@ enum WeaveAppGroupGlobalId
      */
     kWeaveAppGroupGlobalId_NestPhysicalAccess    = (kWeaveVendor_NestLabs << 16) | 0x0001,  /**< Nest Physical Access Group. */
     kWeaveAppGroupGlobalId_NestStructureSecurity = (kWeaveVendor_NestLabs << 16) | 0x0002,  /**< Nest Structure Security Group. */
+    kWeaveAppGroupGlobalId_NestHVAC              = (kWeaveVendor_NestLabs << 16) | 0x0003,  /**< Nest HVAC Group. */
 
     /**
      *  @}

@@ -1,6 +1,6 @@
 /*
  *
- *    Copyright (c) 2013-2017 Nest Labs, Inc.
+ *    Copyright (c) 2013-2018 Nest Labs, Inc.
  *    All rights reserved.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
@@ -19,7 +19,7 @@
 package com.nestlabs.weave.security;
 
 /**
- * Defines commonly used Weave Application Group global ids. 
+ * Defines commonly used Weave Application Group global ids.
  */
 public final class ApplicationGroupGlobalId {
 
@@ -30,4 +30,8 @@ public final class ApplicationGroupGlobalId {
     /** The Application Group Global ID for the Nest Structure Security group.
      */
     public static final int kNestStructureSecurityGroup = 0x235A0002;
+
+    /** The Application Group Global ID for the Nest HVAC group.
+     */
+    public static final int kNestHVACGroup = 0x235A0003;
 }
