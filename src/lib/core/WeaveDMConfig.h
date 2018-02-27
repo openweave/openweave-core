@@ -308,8 +308,8 @@
  *  @def WDM_CLIENT_MAX_NUM_PATH_GROUPS
  *
  *  @brief
- *    Sum number of paths, group by trait instance for each subscription,
- *    in all active subscriptions, on a client in Weave Data Management Next profile.
+ *    The number of subscribed trait paths for each subscription,
+ *    on a client in Weave Data Management Next profile.
  *
  */
 #ifndef WDM_CLIENT_MAX_NUM_PATH_GROUPS

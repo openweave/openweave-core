@@ -2424,6 +2424,11 @@ WEAVE_ERROR SubscriptionClient::OnUpdateConfirm(WEAVE_ERROR aReason, nl::Weave::
     VersionList::Parser versionList;
     ReferencedTLVData additionalInfo;
     uint32_t numDispatchedHandles;
+    uint64_t existingVersion;
+    bool IsVersionListPresent         = false;
+    bool IsStatusListPresent          = false;
+    bool needResubscribe = false;
+    nl::Weave::TLV::TLVReader reader;
 
     err = Lock();
     SuccessOrExit(err);
@@ -2438,11 +2443,6 @@ WEAVE_ERROR SubscriptionClient::OnUpdateConfirm(WEAVE_ERROR aReason, nl::Weave::
     WeaveLogDetail(DataManagement, "Received Status Report additional info %u", additionalInfo.theLength);
 
 #if WDM_ENABLE_REAL_UPDATE_RESPONSE
-    bool IsVersionListPresent         = false;
-    bool IsStatusListPresent          = false;
-    bool needResubscribe = false;
-    nl::Weave::TLV::TLVReader reader;
-
     if (additionalInfo.theLength != 0)
     {
         reader.Init(additionalInfo.theData, additionalInfo.theLength);
@@ -2491,7 +2491,6 @@ WEAVE_ERROR SubscriptionClient::OnUpdateConfirm(WEAVE_ERROR aReason, nl::Weave::
                 err = statusList.Next();
                 SuccessOrExit(err);
 
-                uint64_t existingVersion;
                 err = versionList.GetVersion(&existingVersion);
                 SuccessOrExit(err);
 

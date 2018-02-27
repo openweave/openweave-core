@@ -48,15 +48,6 @@ public:
     struct InEventParam;
     struct OutEventParam;
 
-    enum
-    {
-        kNoTimeOut = 0,
-
-        // Note the WDM spec says 0x7FFFFFFF, but Weave implementation can only hold timeout of much shorter
-        // 32-bit in milliseconds, which is about 1200 hours
-        kMaxTimeoutSec = 3600000,
-    };
-
     enum EventType
     {
         kEvent_UpdateComplete = 1,
