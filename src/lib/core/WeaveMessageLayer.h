@@ -22,6 +22,11 @@
  *
  */
 
+// Include WeaveCore.h OUTSIDE of the include guard for WeaveMessageLayer.h.
+// This allows WeaveCore.h to enforce a canonical include order for core
+// header files, making it easier to manage dependencies between these files.
+#include <Weave/Core/WeaveCore.h>
+
 #ifndef WEAVE_MESSAGE_LAYER_H
 #define WEAVE_MESSAGE_LAYER_H
 
@@ -29,7 +34,6 @@
 #include <string.h>
 
 #include <Weave/Support/NLDLLUtil.h>
-#include <Weave/Core/WeaveCore.h>
 #include "HostPortList.h"
 #include <SystemLayer/SystemStats.h>
 

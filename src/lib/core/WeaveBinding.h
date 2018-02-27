@@ -22,6 +22,11 @@
  *
  */
 
+// Include WeaveCore.h OUTSIDE of the include guard for WeaveBinding.h.
+// This allows WeaveCore.h to enforce a canonical include order for core
+// header files, making it easier to manage dependencies between these files.
+#include <Weave/Core/WeaveCore.h>
+
 #ifndef WEAVE_BINDING_H_
 #define WEAVE_BINDING_H_
 
@@ -30,7 +35,6 @@
 #endif // __STDC_FORMAT_MACROS
 
 #include <Weave/Core/WeaveWRMPConfig.h>
-#include <Weave/Core/WeaveCore.h>
 
 namespace nl {
 namespace Weave {

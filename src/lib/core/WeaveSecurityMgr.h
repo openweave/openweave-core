@@ -23,11 +23,15 @@
  *
  */
 
+// Include WeaveCore.h OUTSIDE of the include guard for WeaveSecurityMgr.h.
+// This allows WeaveCore.h to enforce a canonical include order for core
+// header files, making it easier to manage dependencies between these files.
+#include <Weave/Core/WeaveCore.h>
+
 #ifndef WEAVESECURITYMANAGER_H_
 #define WEAVESECURITYMANAGER_H_
 
 #include <Weave/Support/NLDLLUtil.h>
-#include <Weave/Core/WeaveCore.h>
 #include <Weave/Profiles/security/WeaveSecurity.h>
 #include <Weave/Profiles/security/WeavePASE.h>
 #include <Weave/Profiles/security/WeaveCASE.h>

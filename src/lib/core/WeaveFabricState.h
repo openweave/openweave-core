@@ -23,6 +23,11 @@
  *
  */
 
+// Include WeaveCore.h OUTSIDE of the include guard for WeaveFabricState.h.
+// This allows WeaveCore.h to enforce a canonical include order for core
+// header files, making it easier to manage dependencies between these files.
+#include <Weave/Core/WeaveCore.h>
+
 #ifndef WEAVE_FABRIC_STATE_H
 #define WEAVE_FABRIC_STATE_H
 
@@ -40,7 +45,6 @@
 #include <Weave/Support/WeaveCounter.h>
 #include <Weave/Support/PersistedCounter.h>
 #include <Weave/Support/FlagUtils.hpp>
-#include <Weave/Core/WeaveCore.h>
 #include <Weave/Core/WeaveKeyIds.h>
 #include <Weave/Profiles/security/WeaveSecurity.h>
 #include <Weave/Profiles/security/WeaveApplicationKeys.h>

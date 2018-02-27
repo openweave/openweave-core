@@ -22,12 +22,16 @@
  *
  */
 
+// Include WeaveCore.h OUTSIDE of the include guard for WeaveExchangeMgr.h.
+// This allows WeaveCore.h to enforce a canonical include order for core
+// header files, making it easier to manage dependencies between these files.
+#include <Weave/Core/WeaveCore.h>
+
 #ifndef WEAVE_EXCHANGE_MGR_H
 #define WEAVE_EXCHANGE_MGR_H
 
 #include <Weave/Support/NLDLLUtil.h>
 #include <Weave/Core/WeaveWRMPConfig.h>
-#include <Weave/Core/WeaveCore.h>
 
  #define EXCHANGE_CONTEXT_ID(x)     ((x)+1)
 
