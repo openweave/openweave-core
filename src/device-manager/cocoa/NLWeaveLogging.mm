@@ -92,7 +92,7 @@ void Log(uint8_t aModule, uint8_t aCategory, const char *aMsg, ...)
 		// with OS_LOG_DEFAULT which always gets logged in accordance with system's 
 		// standard behavior
 		if (SYSTEM_VERSION_GREATER_THAN_OR_EQUAL_TO(@"10.0")) {
-			os_log(OS_LOG_DEFAULT, formattedMsg);
+			os_log(OS_LOG_DEFAULT, "%s", formattedMsg);
 		} else {
 			NSLog(@"%s", formattedMsg);
 		}
