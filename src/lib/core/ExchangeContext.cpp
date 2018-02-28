@@ -75,7 +75,7 @@ enum {
  */
 bool ExchangeContext::IsInitiator(void) const
 {
-    return GetFlag(mFlags, kFlagInitiator);
+    return GetFlag(mFlags, static_cast<uint16_t>(kFlagInitiator));
 }
 
 /**
@@ -85,7 +85,7 @@ bool ExchangeContext::IsInitiator(void) const
  */
 bool ExchangeContext::IsConnectionClosed(void) const
 {
-    return GetFlag(mFlags, kFlagConnectionClosed);
+    return GetFlag(mFlags, static_cast<uint16_t>(kFlagConnectionClosed));
 }
 
 /**
@@ -96,7 +96,7 @@ bool ExchangeContext::IsConnectionClosed(void) const
  */
 bool ExchangeContext::IsResponseExpected(void) const
 {
-    return GetFlag(mFlags, kFlagResponseExpected);
+    return GetFlag(mFlags, static_cast<uint16_t>(kFlagResponseExpected));
 }
 
 /**
@@ -110,7 +110,7 @@ bool ExchangeContext::IsResponseExpected(void) const
  */
 void ExchangeContext::SetInitiator(bool inInitiator)
 {
-    SetFlag(mFlags, kFlagInitiator, inInitiator);
+    SetFlag(mFlags, static_cast<uint16_t>(kFlagInitiator), inInitiator);
 }
 
 /**
@@ -125,7 +125,7 @@ void ExchangeContext::SetInitiator(bool inInitiator)
  */
 void ExchangeContext::SetConnectionClosed(bool inConnectionClosed)
 {
-    SetFlag(mFlags, kFlagConnectionClosed, inConnectionClosed);
+    SetFlag(mFlags, static_cast<uint16_t>(kFlagConnectionClosed), inConnectionClosed);
 }
 
 #if WEAVE_CONFIG_ENABLE_RELIABLE_MESSAGING
@@ -136,7 +136,7 @@ void ExchangeContext::SetConnectionClosed(bool inConnectionClosed)
  */
 bool ExchangeContext::IsAckPending(void) const
 {
-    return GetFlag(mFlags, kFlagAckPending);
+    return GetFlag(mFlags, static_cast<uint16_t>(kFlagAckPending));
 }
 
 /**
@@ -147,7 +147,7 @@ bool ExchangeContext::IsAckPending(void) const
  */
 bool ExchangeContext::HasPeerRequestedAck(void) const
 {
-    return GetFlag(mFlags, kFlagPeerRequestedAck);
+    return GetFlag(mFlags, static_cast<uint16_t>(kFlagPeerRequestedAck));
 }
 
 /**
@@ -158,7 +158,7 @@ bool ExchangeContext::HasPeerRequestedAck(void) const
  */
 bool ExchangeContext::HasRcvdMsgFromPeer(void) const
 {
-    return GetFlag(mFlags, kFlagMsgRcvdFromPeer);
+    return GetFlag(mFlags, static_cast<uint16_t>(kFlagMsgRcvdFromPeer));
 }
 
 /**
@@ -172,7 +172,7 @@ bool ExchangeContext::HasRcvdMsgFromPeer(void) const
  */
 void ExchangeContext::SetMsgRcvdFromPeer(bool inMsgRcvdFromPeer)
 {
-    SetFlag(mFlags, kFlagMsgRcvdFromPeer, inMsgRcvdFromPeer);
+    SetFlag(mFlags, static_cast<uint16_t>(kFlagMsgRcvdFromPeer), inMsgRcvdFromPeer);
 }
 
 /**
@@ -185,7 +185,7 @@ void ExchangeContext::SetMsgRcvdFromPeer(bool inMsgRcvdFromPeer)
  */
 void ExchangeContext::SetAckPending(bool inAckPending)
 {
-    SetFlag(mFlags, kFlagAckPending, inAckPending);
+    SetFlag(mFlags, static_cast<uint16_t>(kFlagAckPending), inAckPending);
 }
 
 /**
@@ -199,7 +199,7 @@ void ExchangeContext::SetAckPending(bool inAckPending)
  */
 void ExchangeContext::SetPeerRequestedAck(bool inPeerRequestedAck)
 {
-    SetFlag(mFlags, kFlagPeerRequestedAck, inPeerRequestedAck);
+    SetFlag(mFlags, static_cast<uint16_t>(kFlagPeerRequestedAck), inPeerRequestedAck);
 }
 
 /**
@@ -215,7 +215,7 @@ void ExchangeContext::SetPeerRequestedAck(bool inPeerRequestedAck)
  */
 void ExchangeContext::SetDropAck(bool inDropAck)
 {
-    SetFlag(mFlags, kFlagDropAck, inDropAck);
+    SetFlag(mFlags, static_cast<uint16_t>(kFlagDropAck), inDropAck);
 }
 
 /**
@@ -227,7 +227,7 @@ void ExchangeContext::SetDropAck(bool inDropAck)
  */
 bool ExchangeContext::ShouldDropAck(void) const
 {
-    return GetFlag(mFlags, kFlagDropAck);
+    return GetFlag(mFlags, static_cast<uint16_t>(kFlagDropAck));
 }
 
 static inline bool IsWRMPControlMessage(uint32_t profileId, uint8_t msgType)
@@ -248,7 +248,7 @@ static inline bool IsWRMPControlMessage(uint32_t profileId, uint8_t msgType)
  */
 void ExchangeContext::SetResponseExpected(bool inResponseExpected)
 {
-    SetFlag(mFlags, kFlagResponseExpected, inResponseExpected);
+    SetFlag(mFlags, static_cast<uint16_t>(kFlagResponseExpected), inResponseExpected);
 }
 
 /**
@@ -256,7 +256,7 @@ void ExchangeContext::SetResponseExpected(bool inResponseExpected)
  */
 bool ExchangeContext::AutoRequestAck() const
 {
-    return GetFlag(mFlags, kFlagAutoRequestAck);
+    return GetFlag(mFlags, static_cast<uint16_t>(kFlagAutoRequestAck));
 }
 
 /**
@@ -268,7 +268,7 @@ bool ExchangeContext::AutoRequestAck() const
  */
 void ExchangeContext::SetAutoRequestAck(bool autoReqAck)
 {
-    SetFlag(mFlags, kFlagAutoRequestAck, autoReqAck);
+    SetFlag(mFlags, static_cast<uint16_t>(kFlagAutoRequestAck), autoReqAck);
 }
 
 /**
@@ -277,7 +277,7 @@ void ExchangeContext::SetAutoRequestAck(bool autoReqAck)
  */
 bool ExchangeContext::GetAutoReleaseKey() const
 {
-    return GetFlag(mFlags, kFlagAutoReleaseKey);
+    return GetFlag(mFlags, static_cast<uint16_t>(kFlagAutoReleaseKey));
 }
 
 /**
@@ -289,7 +289,7 @@ bool ExchangeContext::GetAutoReleaseKey() const
  */
 void ExchangeContext::SetAutoReleaseKey(bool autoReleaseKey)
 {
-    SetFlag(mFlags, kFlagAutoReleaseKey, autoReleaseKey);
+    SetFlag(mFlags, static_cast<uint16_t>(kFlagAutoReleaseKey), autoReleaseKey);
 }
 
 /**
@@ -298,7 +298,7 @@ void ExchangeContext::SetAutoReleaseKey(bool autoReleaseKey)
  */
 bool ExchangeContext::ShouldAutoReleaseConnection() const
 {
-    return GetFlag(mFlags, kFlagAutoReleaseConnection);
+    return GetFlag(mFlags, static_cast<uint16_t>(kFlagAutoReleaseConnection));
 }
 
 /**
@@ -310,7 +310,7 @@ bool ExchangeContext::ShouldAutoReleaseConnection() const
  */
 void ExchangeContext::SetShouldAutoReleaseConnection(bool autoReleaseCon)
 {
-    SetFlag(mFlags, kFlagAutoReleaseConnection, autoReleaseCon);
+    SetFlag(mFlags, static_cast<uint16_t>(kFlagAutoReleaseConnection), autoReleaseCon);
 }
 
 /**
