@@ -1469,8 +1469,8 @@ if test ${CONFIG_NETWORK_LAYER_INET} = 1; then
 
     if test "${INET_WANT_ENDPOINT_TUN}" = 1; then
         AC_CHECK_HEADERS(linux/if_tun.h,[AC_SUBST(HAVE_LINUX_IF_TUN_H, [1])], [], [])
-        AC_CHECK_HEADERS(linux/route.h, [AC_SUBST(HAVE_LINUX_ROUTE_H, [1])], [], [])
-        AC_CHECK_HEADERS(linux/ipv6_route.h, [AC_SUBST(HAVE_LINUX_IPV6_ROUTE_H, [1])], [], [])
+	    AC_CHECK_TYPE(struct rtentry, , AC_CHECK_HEADERS(linux/route.h, [AC_SUBST(HAVE_LINUX_ROUTE_H, [1])], [], []), [[#include <net/route.h>]])
+	    AC_CHECK_TYPE(struct in6_rtmsg, , AC_CHECK_HEADERS(linux/ipv6_route.h, [AC_SUBST(HAVE_LINUX_IPV6_ROUTE_H, [1])], [], []), [[#include <net/route.h>]])
         # Check whether linux/if_tun.h defines TUNGETIFF.
         AC_MSG_CHECKING([whether linux/if_tun.h declares TUNGETIFF])
         AC_COMPILE_IFELSE([
