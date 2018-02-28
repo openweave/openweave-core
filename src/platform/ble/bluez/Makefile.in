@@ -155,7 +155,8 @@ am__v_AR_1 =
 libWoBluez_a_AR = $(AR) $(ARFLAGS)
 libWoBluez_a_LIBADD =
 am__dirstamp = $(am__leading_dot)dirstamp
-am__objects_1 = @top_builddir@/src/platform/ble/bluez/libWoBluez_a-BluezBlePlatformDelegate.$(OBJEXT) \
+am__objects_1 = @top_builddir@/src/platform/ble/bluez/libWoBluez_a-BluezBleApplicationDelegate.$(OBJEXT) \
+	@top_builddir@/src/platform/ble/bluez/libWoBluez_a-BluezBlePlatformDelegate.$(OBJEXT) \
 	@top_builddir@/src/platform/ble/bluez/libWoBluez_a-BluezHelperCode.$(OBJEXT) \
 	@top_builddir@/src/platform/ble/bluez/libWoBluez_a-WoBluez.$(OBJEXT)
 am_libWoBluez_a_OBJECTS = $(am__objects_1)
@@ -468,6 +469,7 @@ top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 lib_LIBRARIES = libWoBluez.a
 nl_WoBluez_sources = \
+    @top_builddir@/src/platform/ble/bluez/BluezBleApplicationDelegate.cpp        \
     @top_builddir@/src/platform/ble/bluez/BluezBlePlatformDelegate.cpp           \
     @top_builddir@/src/platform/ble/bluez/BluezHelperCode.cpp                    \
     @top_builddir@/src/platform/ble/bluez/WoBluez.cpp                            \
@@ -549,6 +551,9 @@ clean-libLIBRARIES:
 @top_builddir@/src/platform/ble/bluez/$(DEPDIR)/$(am__dirstamp):
 	@$(MKDIR_P) @top_builddir@/src/platform/ble/bluez/$(DEPDIR)
 	@: > @top_builddir@/src/platform/ble/bluez/$(DEPDIR)/$(am__dirstamp)
+@top_builddir@/src/platform/ble/bluez/libWoBluez_a-BluezBleApplicationDelegate.$(OBJEXT):  \
+	@top_builddir@/src/platform/ble/bluez/$(am__dirstamp) \
+	@top_builddir@/src/platform/ble/bluez/$(DEPDIR)/$(am__dirstamp)
 @top_builddir@/src/platform/ble/bluez/libWoBluez_a-BluezBlePlatformDelegate.$(OBJEXT):  \
 	@top_builddir@/src/platform/ble/bluez/$(am__dirstamp) \
 	@top_builddir@/src/platform/ble/bluez/$(DEPDIR)/$(am__dirstamp)
@@ -571,6 +576,7 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
+@AMDEP_TRUE@@am__include@ @am__quote@@top_builddir@/src/platform/ble/bluez/$(DEPDIR)/libWoBluez_a-BluezBleApplicationDelegate.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@@top_builddir@/src/platform/ble/bluez/$(DEPDIR)/libWoBluez_a-BluezBlePlatformDelegate.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@@top_builddir@/src/platform/ble/bluez/$(DEPDIR)/libWoBluez_a-BluezHelperCode.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@@top_builddir@/src/platform/ble/bluez/$(DEPDIR)/libWoBluez_a-WoBluez.Po@am__quote@
@@ -598,6 +604,20 @@ distclean-compile:
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='$<' object='$@' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(LTCXXCOMPILE) -c -o $@ $<
+
+@top_builddir@/src/platform/ble/bluez/libWoBluez_a-BluezBleApplicationDelegate.o: @top_builddir@/src/platform/ble/bluez/BluezBleApplicationDelegate.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libWoBluez_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT @top_builddir@/src/platform/ble/bluez/libWoBluez_a-BluezBleApplicationDelegate.o -MD -MP -MF @top_builddir@/src/platform/ble/bluez/$(DEPDIR)/libWoBluez_a-BluezBleApplicationDelegate.Tpo -c -o @top_builddir@/src/platform/ble/bluez/libWoBluez_a-BluezBleApplicationDelegate.o `test -f '@top_builddir@/src/platform/ble/bluez/BluezBleApplicationDelegate.cpp' || echo '$(srcdir)/'`@top_builddir@/src/platform/ble/bluez/BluezBleApplicationDelegate.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) @top_builddir@/src/platform/ble/bluez/$(DEPDIR)/libWoBluez_a-BluezBleApplicationDelegate.Tpo @top_builddir@/src/platform/ble/bluez/$(DEPDIR)/libWoBluez_a-BluezBleApplicationDelegate.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='@top_builddir@/src/platform/ble/bluez/BluezBleApplicationDelegate.cpp' object='@top_builddir@/src/platform/ble/bluez/libWoBluez_a-BluezBleApplicationDelegate.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libWoBluez_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o @top_builddir@/src/platform/ble/bluez/libWoBluez_a-BluezBleApplicationDelegate.o `test -f '@top_builddir@/src/platform/ble/bluez/BluezBleApplicationDelegate.cpp' || echo '$(srcdir)/'`@top_builddir@/src/platform/ble/bluez/BluezBleApplicationDelegate.cpp
+
+@top_builddir@/src/platform/ble/bluez/libWoBluez_a-BluezBleApplicationDelegate.obj: @top_builddir@/src/platform/ble/bluez/BluezBleApplicationDelegate.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libWoBluez_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT @top_builddir@/src/platform/ble/bluez/libWoBluez_a-BluezBleApplicationDelegate.obj -MD -MP -MF @top_builddir@/src/platform/ble/bluez/$(DEPDIR)/libWoBluez_a-BluezBleApplicationDelegate.Tpo -c -o @top_builddir@/src/platform/ble/bluez/libWoBluez_a-BluezBleApplicationDelegate.obj `if test -f '@top_builddir@/src/platform/ble/bluez/BluezBleApplicationDelegate.cpp'; then $(CYGPATH_W) '@top_builddir@/src/platform/ble/bluez/BluezBleApplicationDelegate.cpp'; else $(CYGPATH_W) '$(srcdir)/@top_builddir@/src/platform/ble/bluez/BluezBleApplicationDelegate.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) @top_builddir@/src/platform/ble/bluez/$(DEPDIR)/libWoBluez_a-BluezBleApplicationDelegate.Tpo @top_builddir@/src/platform/ble/bluez/$(DEPDIR)/libWoBluez_a-BluezBleApplicationDelegate.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='@top_builddir@/src/platform/ble/bluez/BluezBleApplicationDelegate.cpp' object='@top_builddir@/src/platform/ble/bluez/libWoBluez_a-BluezBleApplicationDelegate.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libWoBluez_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o @top_builddir@/src/platform/ble/bluez/libWoBluez_a-BluezBleApplicationDelegate.obj `if test -f '@top_builddir@/src/platform/ble/bluez/BluezBleApplicationDelegate.cpp'; then $(CYGPATH_W) '@top_builddir@/src/platform/ble/bluez/BluezBleApplicationDelegate.cpp'; else $(CYGPATH_W) '$(srcdir)/@top_builddir@/src/platform/ble/bluez/BluezBleApplicationDelegate.cpp'; fi`
 
 @top_builddir@/src/platform/ble/bluez/libWoBluez_a-BluezBlePlatformDelegate.o: @top_builddir@/src/platform/ble/bluez/BluezBlePlatformDelegate.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libWoBluez_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT @top_builddir@/src/platform/ble/bluez/libWoBluez_a-BluezBlePlatformDelegate.o -MD -MP -MF @top_builddir@/src/platform/ble/bluez/$(DEPDIR)/libWoBluez_a-BluezBlePlatformDelegate.Tpo -c -o @top_builddir@/src/platform/ble/bluez/libWoBluez_a-BluezBlePlatformDelegate.o `test -f '@top_builddir@/src/platform/ble/bluez/BluezBlePlatformDelegate.cpp' || echo '$(srcdir)/'`@top_builddir@/src/platform/ble/bluez/BluezBlePlatformDelegate.cpp

@@ -22,7 +22,6 @@
  */
 
 #include "BluezHelperCode.h"
-#include "BluezBlePlatformDelegate.h"
 #include "WoBluez.h"
 
 #if CONFIG_BLE_PLATFORM_BLUEZ
@@ -32,12 +31,12 @@ namespace Ble {
 namespace Platform {
 namespace BlueZ {
 
-BluezServerEndpoint * gBluezServerEndpoint           = NULL;
+BluezServerEndpoint * gBluezServerEndpoint = NULL;
 BluezBlePlatformDelegate * gBluezBlePlatformDelegate = NULL;
+BluezBleApplicationDelegate * gBluezBleApplicationDelegate = NULL;
 static GMainLoop * gBluezMainLoop;
 static DBusConnection * gBluezDbusConn;
 static Adapter * gDefaultAdapter;
-static bool gAdapterFound = false;
 
 static void WeaveRegisterSetup(DBusMessageIter * iter, void * bluezData)
 {
@@ -695,18 +694,25 @@ static bool PipeIODestroy(struct io * io, void * bluezData)
     const char * msg                = NULL;
     bool success                    = false;
     Characteristic * characteristic = static_cast<Characteristic *>(bluezData);
+    VerifyOrExit(characteristic != NULL, msg = "characteristic is NULL in PipeIODestroy");
 
-    VerifyOrExit(bluezData != NULL, msg = "characteristic is NULL in PipeIODestroy");
-
-    if (io == characteristic->indicatePipeIO)
+    if (io != NULL)
     {
-        io_destroy(characteristic->indicatePipeIO);
-        characteristic->indicatePipeIO = NULL;
-    }
-    else
-    {
-        io_destroy(characteristic->writePipeIO);
-        characteristic->writePipeIO = NULL;
+        if (io == characteristic->indicatePipeIO)
+        {
+            io_destroy(characteristic->indicatePipeIO);
+            characteristic->indicatePipeIO = NULL;
+        }
+        else if (io == characteristic->writePipeIO)
+        {
+            io_destroy(characteristic->writePipeIO);
+            characteristic->writePipeIO = NULL;
+        }
+        else
+        {
+            msg = "unknow io in PipeIODestroy";
+            ExitNow();
+        }
     }
 
     success = true;
@@ -715,7 +721,7 @@ exit:
 
     if (NULL != msg)
     {
-        WeaveLogDetail(Ble, msg);
+        WeaveLogError(Ble, msg);
     }
 
     return success;
@@ -1149,62 +1155,126 @@ exit:
     return weaveCharacteristic;
 }
 
-static void WeaveConnectHandler(DBusConnection * connection, void * bluezData)
+static void WeaveClientConnectHandler(DBusConnection * connection, void * bluezData)
 {
-    if (gBluezServerEndpoint != NULL)
-    {
-        WoBLEz_NewConnection(gBluezServerEndpoint);
-    }
+    WeaveLogProgress(Ble, "Weave client connected to bluez daemon via dbus");
 }
 
-static void WeaveDisconnectHandler(DBusConnection * connection, void * bluezData)
+static void WeaveClientDisconnectHandler(DBusConnection * connection, void * bluezData)
 {
-    if (gBluezServerEndpoint != NULL)
+    WeaveLogError(Ble, "Weave client disconnected from bluez daemon(Daemon crash?)");
+    // Recovery from bluez daemon crash not implemented. So, exiting from mainloop.
+    ExitBluezIOThread();
+}
+
+static gboolean CheckDeviceIsChild(GDBusProxy * childProxy, GDBusProxy * parentProxy)
+{
+    DBusMessageIter iter;
+    const char * adapterPath1 = NULL;
+    const char * adapterPath2 = NULL;
+    const char * msg = NULL;
+    bool success = false;
+
+    VerifyOrExit(NULL != parentProxy, msg = "parentProxy is NULL");
+    VerifyOrExit(NULL != childProxy, msg = "childProxy is NULL");
+
+    if (g_dbus_proxy_get_property(childProxy, "Adapter", &iter))
     {
-        WoBLEz_ConnectionClosed(gBluezServerEndpoint);
+        dbus_message_iter_get_basic(&iter, &adapterPath1);
+        adapterPath2 = g_dbus_proxy_get_path(parentProxy);
+
+        if (strcmp(adapterPath1, adapterPath2) == 0)
+        {
+            success = true;
+        }
     }
+
+exit:
+
+    if (msg != NULL)
+    {
+        WeaveLogDetail(Ble, msg);
+    }
+
+    return success;
 }
 
 static void WeaveAdapterAdded(GDBusProxy * proxy)
 {
-    Adapter * adapter;
     DBusMessageIter iter;
-    const char * str;
-    gAdapterFound = false;
+    const char * addr = NULL;
+    bool proxyAdded = false;
 
-    if (g_dbus_proxy_get_property(proxy, "Address", &iter) == FALSE)
-        return;
-
-    dbus_message_iter_get_basic(&iter, &str);
-
-    if (!strcasecmp(str, gBluezServerEndpoint->adapterAddr))
+    if (g_dbus_proxy_get_property(proxy, "Address", &iter))
     {
-        adapter               = static_cast<Adapter *>(g_new0(Adapter, 1));
-        adapter->adapterProxy = proxy;
-        gDefaultAdapter       = adapter;
-        gAdapterFound         = true;
+        dbus_message_iter_get_basic(&iter, &addr);
+        if (!strcasecmp(addr, gBluezServerEndpoint->adapterAddr))
+        {
+            if (gDefaultAdapter)
+            {
+                gDefaultAdapter->adapterProxy = proxy;
+                gDefaultAdapter->advertisingProxy = NULL;
+                gDefaultAdapter->profileProxy = NULL;
+                gDefaultAdapter->deviceProxies.clear();
+                proxyAdded = true;
+            }
+        }
+    }
+
+    if (proxyAdded)
+    {
+        WeaveLogProgress(Ble, "%p(%s) added as default adapter proxy", proxy, addr);
+    }
+    else
+    {
+        WeaveLogDetail(Ble, "Adaptor proxy %p(%s) ignored", proxy, addr);
     }
 }
 
 static void WeaveProfileAdded(GDBusProxy * proxy)
 {
-    if (!gAdapterFound)
-        return;
-
-    gDefaultAdapter->profileProxy = proxy;
+    if (gDefaultAdapter && gDefaultAdapter->adapterProxy)
+    {
+        if (strcmp(g_dbus_proxy_get_path(proxy), g_dbus_proxy_get_path(gDefaultAdapter->adapterProxy)) == 0)
+        {
+            WeaveLogProgress(Ble, "%p added as default profile(Gatt manager) proxy", proxy);
+            gDefaultAdapter->profileProxy = proxy;
+        }
+    }
 }
 
 static void WeaveAdvertisingAdded(GDBusProxy * proxy)
 {
-    if (!gAdapterFound)
-        return;
+    if (gDefaultAdapter && gDefaultAdapter->adapterProxy)
+    {
+        if (strcmp(g_dbus_proxy_get_path(proxy), g_dbus_proxy_get_path(gDefaultAdapter->adapterProxy)) == 0)
+        {
+            WeaveLogProgress(Ble, "%p added as default advertising manager proxy", proxy);
+            gDefaultAdapter->advertisingProxy = proxy;
+        }
+    }
+}
 
-    gDefaultAdapter->advertisingProxy = proxy;
+static void WeaveDeviceAdded(GDBusProxy *proxy)
+{
+    const char * devAddr = NULL;
+    DBusMessageIter iter;
+
+    if (gDefaultAdapter && CheckDeviceIsChild(proxy, gDefaultAdapter->adapterProxy))
+    {
+        if (g_dbus_proxy_get_property(proxy, "Address", &iter))
+        {
+            dbus_message_iter_get_basic(&iter, &devAddr);
+            WeaveLogProgress(Ble, "%p(%s) added to device proxy list", proxy, devAddr);
+        }
+
+        gDefaultAdapter->deviceProxies.push_back(proxy);
+    }
 }
 
 static void WeaveProxyAdded(GDBusProxy * proxy, void * bluezData)
 {
-    const char * interface;
+    const char *interface = NULL;
 
     interface = g_dbus_proxy_get_interface(proxy);
 
@@ -1220,19 +1290,114 @@ static void WeaveProxyAdded(GDBusProxy * proxy, void * bluezData)
     {
         WeaveAdvertisingAdded(proxy);
     }
+    else if (!strcmp(interface, DEVICE_INTERFACE))
+    {
+        WeaveDeviceAdded(proxy);
+    }
 }
 
 static void WeaveProxyDeleted(GDBusProxy * proxy, void * bluezData)
 {
-    const char * interface;
+    const char *interface = NULL;
     interface = g_dbus_proxy_get_interface(proxy);
 
     if (!strcmp(interface, ADAPTER_INTERFACE))
     {
+        WeaveLogProgress(Ble, "Got notification about %p adaptor proxy removal", proxy);
         if (gDefaultAdapter && gDefaultAdapter->adapterProxy == proxy)
         {
-            g_free(gDefaultAdapter);
-            gDefaultAdapter = NULL;
+            gDefaultAdapter->adapterProxy = NULL;
+        }
+    }
+    else if (!strcmp(interface, PROFILE_INTERFACE))
+    {
+        WeaveLogProgress(Ble, "Got notification about %p profile(gatt manager) proxy removal", proxy);
+        if (gDefaultAdapter && gDefaultAdapter->profileProxy == proxy)
+        {
+            gDefaultAdapter->profileProxy = NULL;
+        }
+    }
+    else if (!strcmp(interface, ADVERTISING_MANAGER_INTERFACE))
+    {
+        WeaveLogProgress(Ble, "Got notification about %p advertising manager proxy removal", proxy);
+        if (gDefaultAdapter && gDefaultAdapter->advertisingProxy == proxy)
+        {
+            gDefaultAdapter->advertisingProxy = NULL;
+        }
+    }
+    else if (!strcmp(interface, DEVICE_INTERFACE))
+    {
+        WeaveLogProgress(Ble, "Got notification about %p device proxy removal", proxy);
+        if (gDefaultAdapter && !(gDefaultAdapter->deviceProxies.empty()))
+        {
+            gDefaultAdapter->deviceProxies.remove(proxy);
+        }
+    }
+}
+
+static void WeaveDisconnReply(DBusMessage * dbusMsg, void * bluezData)
+{
+    DBusError error;
+    dbus_error_init(&error);
+    if (TRUE == dbus_set_error_from_message(&error, dbusMsg))
+    {
+        WeaveLogError(Ble, "failed to disconnect with error: %s", error.name);
+        dbus_error_free(&error);
+    }
+}
+
+static void WeaveDeviceDisconnect(GDBusProxy * proxy)
+{
+    dbus_bool_t connected;
+    const char * devAddr = NULL;
+    DBusMessageIter iter;
+    if (g_dbus_proxy_get_property(proxy, "Connected", &iter))
+    {
+        dbus_message_iter_get_basic(&iter, &connected);
+        if (connected)
+        {
+            if (g_dbus_proxy_get_property(proxy, "Address", &iter))
+            {
+                dbus_message_iter_get_basic(&iter, &devAddr);
+                WeaveLogProgress(Ble, "Issuing disconnect to device:%s", devAddr);
+            }
+            g_dbus_proxy_method_call(proxy, "Disconnect", NULL, WeaveDisconnReply, proxy, NULL);
+        }
+    }
+}
+
+static void WeavePropertyChange(GDBusProxy *proxy, const char *name, DBusMessageIter *iter, void *bluezData)
+{
+    const char *interface = NULL;
+    dbus_bool_t connected;
+    const char * devAddr = NULL;
+    DBusMessageIter addrIter;
+
+    interface = g_dbus_proxy_get_interface(proxy);
+    if (!strcmp(interface, DEVICE_INTERFACE)) {
+        if (CheckDeviceIsChild(proxy, gDefaultAdapter->adapterProxy)) {
+            if (strcmp(name, "Connected") == 0)
+            {
+                dbus_message_iter_get_basic(iter, &connected);
+
+                if (g_dbus_proxy_get_property(proxy, "Address", &addrIter))
+                {
+                    dbus_message_iter_get_basic(&addrIter, &devAddr);
+                    WeaveLogProgress(Ble, "%s device %p(%s)", connected?"Connected to":"Disconnected from", proxy, devAddr);
+                }
+
+                if (connected)
+                {
+                    gBluezBleApplicationDelegate->NotifyBleActivity(kBleConnect);
+                    WoBLEz_NewConnection(gBluezServerEndpoint);
+                }
+                else
+                {
+                    WoBLEz_ConnectionClosed(gBluezServerEndpoint);
+                    CloseBleconnection();
+                    gBluezBleApplicationDelegate->NotifyBleActivity(kBleDisconnect);
+                }
+            }
         }
     }
 }
@@ -1270,14 +1435,14 @@ exit:
     }
 }
 
-static void BluezClientReady(GDBusClient * weaveClient, void * bluezData)
+static void WeaveClientReady(GDBusClient * weaveClient, void * bluezData)
 {
     dbus_bool_t powered = TRUE;
     gboolean err =
         g_dbus_proxy_set_property_basic(gDefaultAdapter->adapterProxy, "Powered", DBUS_TYPE_BOOLEAN, &powered, PowerCb, NULL, NULL);
     if (FALSE == err)
     {
-        WeaveLogError(Ble, "Fail to set Power property in BluezClientReady");
+        WeaveLogError(Ble, "Fail to set Power property in WeaveClientReady");
     }
 
     return;
@@ -1290,11 +1455,25 @@ uint16_t GetMTUWeaveCb(BLE_CONNECTION_OBJECT connObj)
     return mtu;
 }
 
-void ClearWoBluezStatus()
+void CloseBleconnection()
 {
+    if (gDefaultAdapter && !(gDefaultAdapter->deviceProxies.empty()))
+    {
+        // Check for connected device & close the connection
+        for (auto iter = gDefaultAdapter->deviceProxies.begin();
+                iter != gDefaultAdapter->deviceProxies.end(); iter++)
+        {
+            WeaveDeviceDisconnect(*iter);
+        }
+    }
+
     gBluezServerEndpoint->weaveC2->isNotifying = false;
     g_dbus_emit_property_changed(gBluezServerEndpoint->weaveC2->dbusConn, gBluezServerEndpoint->weaveC2->path,
                                  CHARACTERISTIC_INTERFACE, "Notifying");
+#if BLE_CONFIG_BLUEZ_MTU_FEATURE
+    PipeIODestroy(gBluezServerEndpoint->weaveC2->indicatePipeIO, gBluezServerEndpoint->weaveC2);
+    PipeIODestroy(gBluezServerEndpoint->weaveC1->writePipeIO, gBluezServerEndpoint->weaveC1);
+#endif //BLE_CONFIG_BLUEZ_MTU_FEATURE
 }
 
 void ExitBluezIOThread(void)
@@ -1308,11 +1487,10 @@ bool RunOnBluezIOThread(int (*aCallback)(void *), void * aClosure)
     const char * msg       = NULL;
 
     VerifyOrExit(gBluezMainLoop != NULL, msg = "RunOnBluezIOThread: BlueZ mainloop is NULL");
+    VerifyOrExit(g_main_loop_is_running(gBluezMainLoop), msg = "RunOnBluezIOThread: mainloop is not running");
 
     context = g_main_loop_get_context(gBluezMainLoop);
-
-    VerifyOrExit(gBluezMainLoop != NULL, msg = "RunOnBluezIOThread: main context is NULL");
-
+    VerifyOrExit(context != NULL, msg = "RunOnBluezIOThread: main context is NULL");
     g_main_context_invoke(context, aCallback, aClosure);
 
 exit:
@@ -1332,11 +1510,19 @@ bool RunBluezIOThread(BluezPeripheralArgs * arg)
     const char * advertisingType = "peripheral";
 
     VerifyOrExit(arg != NULL, err = WEAVE_ERROR_INVALID_ARGUMENT);
+
+    VerifyOrExit(arg->bluezBleApplicationDelegate != NULL, err = WEAVE_ERROR_INVALID_ARGUMENT);
+    gBluezBleApplicationDelegate = arg->bluezBleApplicationDelegate;
+
+    VerifyOrExit(arg->bluezBlePlatformDelegate != NULL, err = WEAVE_ERROR_INVALID_ARGUMENT);
     gBluezBlePlatformDelegate = arg->bluezBlePlatformDelegate;
-    VerifyOrExit(gBluezBlePlatformDelegate != NULL, err = WEAVE_ERROR_NO_MEMORY);
 
     gBluezBlePlatformDelegate->SetSendIndicationCallback(WoBLEz_ScheduleSendIndication);
     gBluezBlePlatformDelegate->SetGetMTUCallback(GetMTUWeaveCb);
+
+    gDefaultAdapter = new Adapter();
+    VerifyOrExit(gDefaultAdapter != NULL, err = WEAVE_ERROR_NO_MEMORY);
+
     gBluezServerEndpoint = (BluezServerEndpoint *) g_new0(BluezServerEndpoint, 1);
     VerifyOrExit(gBluezServerEndpoint != NULL, err = WEAVE_ERROR_NO_MEMORY);
 
@@ -1371,17 +1557,17 @@ bool RunBluezIOThread(BluezPeripheralArgs * arg)
     weaveClient = g_dbus_client_new(gBluezDbusConn, BLUEZ_INTERFACE, BLUEZ_PATH);
     VerifyOrExit(weaveClient != NULL, err = WEAVE_ERROR_NO_MEMORY);
 
-    success = g_dbus_client_set_proxy_handlers(weaveClient, WeaveProxyAdded, WeaveProxyDeleted, NULL, NULL);
+    success = g_dbus_client_set_proxy_handlers(weaveClient, WeaveProxyAdded, WeaveProxyDeleted, WeavePropertyChange, NULL);
     VerifyOrExit(success == TRUE, msg = "Fail to set weave proxy handler in RunBluezIOThread");
 
-    success = g_dbus_client_set_ready_watch(weaveClient, BluezClientReady, NULL);
-    VerifyOrExit(success == TRUE, msg = "Fail to set weave ready watch in RunBluezIOThread");
+    success = g_dbus_client_set_ready_watch(weaveClient, WeaveClientReady, NULL);
+    VerifyOrExit(success == TRUE, msg = "Fail to set ready watch for weave client in RunBluezIOThread");
 
-    success = g_dbus_client_set_connect_watch(weaveClient, WeaveConnectHandler, NULL);
-    VerifyOrExit(success == TRUE, msg = "Fail to set weave connect watch in RunBluezIOThread");
+    success = g_dbus_client_set_connect_watch(weaveClient, WeaveClientConnectHandler, NULL);
+    VerifyOrExit(success == TRUE, msg = "Fail to set connect watch for weave client in RunBluezIOThread");
 
-    success = g_dbus_client_set_disconnect_watch(weaveClient, WeaveDisconnectHandler, NULL);
-    VerifyOrExit(success == TRUE, msg = "Fail to set weave disconnect watch in RunBluezIOThread");
+    success = g_dbus_client_set_disconnect_watch(weaveClient, WeaveClientDisconnectHandler, NULL);
+    VerifyOrExit(success == TRUE, msg = "Fail to set disconnect watch for weave client in RunBluezIOThread");
 
     g_main_loop_run(gBluezMainLoop);
     WeaveLogProgress(Ble, "Exited from Bluez main loop");
@@ -1432,6 +1618,12 @@ exit:
         gBluezServerEndpoint = NULL;
     }
 
+    if (NULL != gDefaultAdapter)
+    {
+        delete gDefaultAdapter;
+        gDefaultAdapter = NULL;
+    }
+
     if (NULL != weaveClient)
     {
         g_dbus_client_unref(weaveClient);
@@ -1440,14 +1632,17 @@ exit:
     if (NULL != gBluezDbusConn)
     {
         dbus_connection_unref(gBluezDbusConn);
+        gBluezDbusConn = NULL;
     }
 
     if (NULL != gBluezMainLoop)
     {
         g_main_loop_unref(gBluezMainLoop);
+        gBluezMainLoop = NULL;
     }
 
     gBluezBlePlatformDelegate = NULL;
+    gBluezBleApplicationDelegate = NULL;
     return success;
 }
 

@@ -835,6 +835,7 @@ int main(int argc, char *argv[])
             printf("BLE Peripheral mac address is %s.\n", BleAddress);
             Bluez_PeripheralArgs.bleName = BleName;
             Bluez_PeripheralArgs.bleAddress = BleAddress;
+            Bluez_PeripheralArgs.bluezBleApplicationDelegate = getBluezApplicationDelegate();
             Bluez_PeripheralArgs.bluezBlePlatformDelegate = getBluezPlatformDelegate();
             int pthreadErr = 0;
             pthreadErr = pthread_create(&sBLEThread, NULL, WeaveBleIOLoop, (void *)&Bluez_PeripheralArgs);

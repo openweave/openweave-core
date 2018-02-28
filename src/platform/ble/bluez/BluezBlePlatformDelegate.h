@@ -32,9 +32,6 @@
 
 #if CONFIG_BLE_PLATFORM_BLUEZ
 
-#include <stdio.h>
-#include <stdlib.h>
-
 #include <BleLayer/BleLayer.h>
 #include <BleLayer/BlePlatformDelegate.h>
 #include <Weave/Support/logging/WeaveLogging.h>

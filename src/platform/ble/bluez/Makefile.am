@@ -26,6 +26,7 @@ include $(abs_top_nlbuild_autotools_dir)/automake/pre.am
 lib_LIBRARIES                       = libWoBluez.a
 
 nl_WoBluez_sources                  = \
+    @top_builddir@/src/platform/ble/bluez/BluezBleApplicationDelegate.cpp        \
     @top_builddir@/src/platform/ble/bluez/BluezBlePlatformDelegate.cpp           \
     @top_builddir@/src/platform/ble/bluez/BluezHelperCode.cpp                    \
     @top_builddir@/src/platform/ble/bluez/WoBluez.cpp                            \

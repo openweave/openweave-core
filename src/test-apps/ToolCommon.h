@@ -158,13 +158,7 @@ extern bool GetTestCAPrivateKey(uint64_t caId, const uint8_t *& key, uint16_t& k
 #if CONFIG_BLE_PLATFORM_BLUEZ
 void *WeaveBleIOLoop(void *arg);
 nl::Ble::Platform::BlueZ::BluezBlePlatformDelegate *getBluezPlatformDelegate();
-
-class BluezBleApplicationDelegate : public nl::Ble::BleApplicationDelegate
-{
-public:
-    BluezBleApplicationDelegate();
-    void NotifyWeaveConnectionClosed(BLE_CONNECTION_OBJECT connObj);
-};
+nl::Ble::Platform::BlueZ::BluezBleApplicationDelegate *getBluezApplicationDelegate();
 #endif // CONFIG_BLE_PLATFORM_BLUEZ
 
 inline static void ServiceNetwork(struct ::timeval aSleepTime)

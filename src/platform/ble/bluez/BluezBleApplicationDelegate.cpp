@@ -17,40 +17,48 @@
  */
 /**
  *    @file
- *      This file defines WoBluez peripheral interfaces that hands the wrapper talking with BleLayer via the
- *      corresponding platform interface function when the application passively receives an incoming BLE connection.
+ *      This file provides the implementation of BluezBleApplicationDelegate class
  *
+ *      BluezBleApplicationDelegate provides the interface for Weave
+ *      to inform the application regarding activity within the WoBluez
+ *      layer
  */
-
-#ifndef WOBLEZ_H_
-#define WOBLEZ_H_
-
-#ifndef __STDC_LIMIT_MACROS
-#define __STDC_LIMIT_MACROS
-#endif
-
 #include <Weave/Support/logging/WeaveLogging.h>
+#include "BluezBleApplicationDelegate.h"
 #include "BluezHelperCode.h"
+
+#if CONFIG_BLE_PLATFORM_BLUEZ
 
 namespace nl {
 namespace Ble {
 namespace Platform {
 namespace BlueZ {
 
-// Driven by BlueZ IO, calling into BleLayer:
-void WoBLEz_NewConnection(void * user_data);
-void WoBLEz_WriteReceived(void * user_data, const uint8_t * value, size_t len);
-void WoBLEz_ConnectionClosed(void * user_data);
-void WoBLEz_SubscriptionChange(void * user_data);
-void WoBLEz_IndicationConfirmation(void * user_data);
-bool WoBLEz_TimerCb(void * user_data);
+static int CloseBleconnectionCB(void *aArg);
 
-// Called by BlePlatformDelegate:
-bool WoBLEz_ScheduleSendIndication(void * user_data, nl::Weave::System::PacketBuffer * msgBuf);
+void BluezBleApplicationDelegate::NotifyWeaveConnectionClosed(BLE_CONNECTION_OBJECT connObj)
+{
+    bool status = true;
+
+    WeaveLogProgress(Ble, "Got notification regarding weave connection closure");
+
+    status = RunOnBluezIOThread(CloseBleconnectionCB, NULL);
+    if (!status)
+    {
+        WeaveLogError(Ble, "Failed to schedule CloseBleconnection() on wobluez thread");
+    }
+};
+
+static int CloseBleconnectionCB(void *aArg)
+{
+    CloseBleconnection();
+
+    return G_SOURCE_REMOVE;
+}
 
 } // namespace BlueZ
 } // namespace Platform
 } // namespace Ble
 } // namespace nl
 
-#endif /* WOBLEZ_H_ */
+#endif /* CONFIG_BLE_PLATFORM_BLUEZ */

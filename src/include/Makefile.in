@@ -112,6 +112,7 @@ target_triplet = @target@
 @INET_WANT_ENDPOINT_TUN_TRUE@am__append_5 = $(nl_public_InetLayer_source_dirstem)/TunEndPoint.h
 @INET_CONFIG_ENABLE_ASYNC_DNS_SOCKETS_TRUE@@INET_WANT_ENDPOINT_DNS_TRUE@@WEAVE_SYSTEM_CONFIG_USE_SOCKETS_TRUE@am__append_6 = $(nl_public_InetLayer_source_dirstem)/AsyncDNSResolverSockets.h
 @CONFIG_BLE_PLATFORM_BLUEZ_TRUE@@CONFIG_NETWORK_LAYER_BLE_TRUE@am__append_7 = \
+@CONFIG_BLE_PLATFORM_BLUEZ_TRUE@@CONFIG_NETWORK_LAYER_BLE_TRUE@$(platform_ble_bluez_public_source_dirstem)/BluezBleApplicationDelegate.h \
 @CONFIG_BLE_PLATFORM_BLUEZ_TRUE@@CONFIG_NETWORK_LAYER_BLE_TRUE@$(platform_ble_bluez_public_source_dirstem)/BluezBlePlatformDelegate.h \
 @CONFIG_BLE_PLATFORM_BLUEZ_TRUE@@CONFIG_NETWORK_LAYER_BLE_TRUE@$(platform_ble_bluez_public_source_dirstem)/WoBluezLayer.h \
 @CONFIG_BLE_PLATFORM_BLUEZ_TRUE@@CONFIG_NETWORK_LAYER_BLE_TRUE@$(NULL)

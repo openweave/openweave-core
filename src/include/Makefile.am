@@ -229,6 +229,7 @@ platform_ble_bluez_public_header_sources =
 if CONFIG_NETWORK_LAYER_BLE
 if CONFIG_BLE_PLATFORM_BLUEZ
 platform_ble_bluez_public_header_sources += \
+$(platform_ble_bluez_public_source_dirstem)/BluezBleApplicationDelegate.h \
 $(platform_ble_bluez_public_source_dirstem)/BluezBlePlatformDelegate.h \
 $(platform_ble_bluez_public_source_dirstem)/WoBluezLayer.h \
 $(NULL)

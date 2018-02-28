@@ -25,19 +25,6 @@
 #ifndef BLUEZHELPERCODE_H_
 #define BLUEZHELPERCODE_H_
 
-#include <stdio.h>
-#include <stdbool.h>
-#include <stdint.h>
-#include <time.h>
-#include <stdlib.h>
-#include <getopt.h>
-#include <unistd.h>
-#include <errno.h>
-#include <signal.h>
-#include <glib.h>
-#include <sys/signalfd.h>
-#include <fcntl.h>
-
 extern "C" {
 // BlueZ headers
 #include "gdbus/gdbus.h"
@@ -47,6 +34,7 @@ extern "C" {
 #endif // BLE_CONFIG_BLUEZ_MTU_FEATURE Todo: Remove this macro when enabling wobluez mtu
 }
 
+#include <list>
 #include <Weave/WeaveVersion.h>
 #include <SystemLayer/SystemLayer.h>
 #include <BleLayer/BleLayer.h>
@@ -57,7 +45,6 @@ extern "C" {
 #include <Weave/Support/ErrorStr.h>
 #include <Weave/Core/WeaveStats.h>
 #include "Weave/Support/logging/WeaveLogging.h"
-#include "BluezBlePlatformDelegate.h"
 #include "WoBluezLayer.h"
 
 using namespace nl::Inet;
@@ -78,6 +65,7 @@ using namespace nl::Weave::Profiles;
 #define SERVICE_INTERFACE "org.bluez.GattService1"
 #define CHARACTERISTIC_INTERFACE "org.bluez.GattCharacteristic1"
 #define ADVERTISING_INTERFACE "org.bluez.LEAdvertisement1"
+#define DEVICE_INTERFACE "org.bluez.Device1"
 #define FLAGS_WEAVE_C1 "write"
 #define FLAGS_WEAVE_C2 "read,indicate"
 #define WEAVE_SRV_DATA_BLOCK_TYPE_WEAVE_ID_INFO (1)
@@ -117,6 +105,7 @@ struct Adapter
     GDBusProxy * adapterProxy;
     GDBusProxy * advertisingProxy;
     GDBusProxy * profileProxy;
+    std::list <GDBusProxy *> deviceProxies;
 };
 
 struct Characteristic
@@ -157,9 +146,8 @@ struct BluezServerEndpoint
 };
 
 extern BluezServerEndpoint * gBluezServerEndpoint;
+extern BluezBleApplicationDelegate * gBluezBleApplicationDelegate;
 extern BluezBlePlatformDelegate * gBluezBlePlatformDelegate;
-
-bool RunOnBluezIOThread(int (*aCallback)(void *), void * aClosure);
 
 } // namespace BlueZ
 } // namespace Platform

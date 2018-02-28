@@ -24,11 +24,7 @@
 
 #include "WoBluez.h"
 #include "BluezHelperCode.h"
-#include "BluezBlePlatformDelegate.h"
 
-#include <getopt.h>
-#include <inttypes.h>
-#include <limits.h>
 #include <InetLayer/InetLayer.h>
 #include <Weave/Core/WeaveCore.h>
 #include <Weave/Profiles/echo/WeaveEcho.h>
@@ -84,6 +80,10 @@ void WoBLEz_WriteReceived(void * data, const uint8_t * value, size_t len)
     syserr = gBluezBlePlatformDelegate->SendToWeaveThread(params);
     SuccessOrExit(syserr);
 
+    if (gBluezBleApplicationDelegate != NULL)
+    {
+        gBluezBleApplicationDelegate->NotifyBleActivity(kWoBlePktRx);
+    }
     params = NULL;
     msgBuf = NULL;
 
@@ -138,6 +138,10 @@ int WoBLEz_SendIndication(void * aClosure)
     g_dbus_emit_property_changed(endpoint->weaveC2->dbusConn, endpoint->weaveC2->path, CHARACTERISTIC_INTERFACE, "Value");
 #endif // BLE_CONFIG_BLUEZ_MTU_FEATURE
 
+    if (gBluezBleApplicationDelegate != NULL)
+    {
+        gBluezBleApplicationDelegate->NotifyBleActivity(kWoBlePktTx);
+    }
     nl::Weave::System::PacketBuffer::Free(msgBuf);
 
     return G_SOURCE_REMOVE;
@@ -175,6 +179,11 @@ void WoBLEz_ConnectionClosed(void * data)
     InEventParam * params        = NULL;
     nl::Weave::System::Error err = WEAVE_SYSTEM_NO_ERROR;
 
+    if (data == NULL)
+    {
+        WeaveLogProgress(Ble, "WoBLEz connection has closed");
+        ExitNow();
+    }
     WeaveLogProgress(Ble, "WoBLEz_ConnectionClosed: %p", data);
 
     err = gBluezBlePlatformDelegate->NewEventParams(&params);

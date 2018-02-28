@@ -73,8 +73,13 @@
 #if CONFIG_BLE_PLATFORM_BLUEZ
 
 static BleLayer sBle;
-static BluezBleApplicationDelegate sBleApplicationDelegate;
+static nl::Ble::Platform::BlueZ::BluezBleApplicationDelegate sBleApplicationDelegate;
 static nl::Ble::Platform::BlueZ::BluezBlePlatformDelegate sBlePlatformDelegate(&sBle);
+
+nl::Ble::Platform::BlueZ::BluezBleApplicationDelegate *getBluezApplicationDelegate()
+{
+    return &sBleApplicationDelegate;
+}
 
 nl::Ble::Platform::BlueZ::BluezBlePlatformDelegate *getBluezPlatformDelegate()
 {
@@ -1405,16 +1410,6 @@ void *WeaveBleIOLoop(void *arg)
 
     return NULL;
 }
-
-BluezBleApplicationDelegate::BluezBleApplicationDelegate()
-{
-}
-
-void BluezBleApplicationDelegate::NotifyWeaveConnectionClosed(BLE_CONNECTION_OBJECT connObj)
-{
-    printf("NotifyWeaveConnectionClosed\n");
-}
-
 #endif /* CONFIG_BLE_PLATFORM_BLUEZ */
 
 void PrintStatsCounters(nl::Weave::System::Stats::count_t *counters, const char *aPrefix)

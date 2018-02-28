@@ -25,9 +25,9 @@
  *      respond to GATT read requests, and close BLE connections.
  */
 
+#include <Weave/Support/CodeUtils.h>
 #include "BluezBlePlatformDelegate.h"
 #include "BluezHelperCode.h"
-#include <Weave/Support/CodeUtils.h>
 
 #if CONFIG_BLE_PLATFORM_BLUEZ
 
