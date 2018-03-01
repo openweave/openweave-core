@@ -160,7 +160,7 @@ libNLWeaveDeviceManager_a_AR = $(AR) $(ARFLAGS)
 libNLWeaveDeviceManager_a_LIBADD =
 am__libNLWeaveDeviceManager_a_SOURCES_DIST = Base64Encoding.mm \
 	NLIdentifyDeviceCriteria.mm NLNetworkInfo.mm \
-	NLProfileStatusError.mm NLServiceInfo.mm \
+	NLPairingCodeUtils.mm NLProfileStatusError.mm NLServiceInfo.mm \
 	NLWeaveDeviceDescriptor.mm NLWeaveDeviceManager.mm \
 	NLWeaveError.mm NLWeaveLogging.mm NLWeaveBleDelegate.mm \
 	NLWeaveStack.mm NLWeaveConstants.mm \
@@ -170,6 +170,7 @@ am__libNLWeaveDeviceManager_a_SOURCES_DIST = Base64Encoding.mm \
 @WEAVE_WITH_COCOA_TRUE@am_libNLWeaveDeviceManager_a_OBJECTS = libNLWeaveDeviceManager_a-Base64Encoding.$(OBJEXT) \
 @WEAVE_WITH_COCOA_TRUE@	libNLWeaveDeviceManager_a-NLIdentifyDeviceCriteria.$(OBJEXT) \
 @WEAVE_WITH_COCOA_TRUE@	libNLWeaveDeviceManager_a-NLNetworkInfo.$(OBJEXT) \
+@WEAVE_WITH_COCOA_TRUE@	libNLWeaveDeviceManager_a-NLPairingCodeUtils.$(OBJEXT) \
 @WEAVE_WITH_COCOA_TRUE@	libNLWeaveDeviceManager_a-NLProfileStatusError.$(OBJEXT) \
 @WEAVE_WITH_COCOA_TRUE@	libNLWeaveDeviceManager_a-NLServiceInfo.$(OBJEXT) \
 @WEAVE_WITH_COCOA_TRUE@	libNLWeaveDeviceManager_a-NLWeaveDeviceDescriptor.$(OBJEXT) \
@@ -235,13 +236,14 @@ am__can_run_installinfo = \
   esac
 am__libNLWeaveDeviceManager_a_HEADERS_DIST = Base64Encoding.h \
 	NLIdentifyDeviceCriteria.h NLLogging.h NLNetworkInfo.h \
-	NLProfileStatusError.h NLServiceInfo.h NLWeaveASN1ErrorCodes.h \
-	NLWeaveDeviceDescriptor.h NLWeaveDeviceManager.h \
-	NLWeaveDeviceManagerTypes.h NLWeaveErrorCodes.h NLWeaveError.h \
-	NLWeaveInetErrorCodes.h NLWeaveBleDelegate.h NLWeaveStack.h \
-	NLWeaveConstants.h NLNevisPairingCodeDecoding.h \
-	NLWeaveKeyIds.h NLHKDF.h NLWeavePasscodeEncryptionSupport.h \
-	NLWeaveKeyExportClient.h NLWeaveKeyExportSupport.h
+	NLPairingCodeUtils.h NLProfileStatusError.h NLServiceInfo.h \
+	NLWeaveASN1ErrorCodes.h NLWeaveDeviceDescriptor.h \
+	NLWeaveDeviceManager.h NLWeaveDeviceManagerTypes.h \
+	NLWeaveErrorCodes.h NLWeaveError.h NLWeaveInetErrorCodes.h \
+	NLWeaveBleDelegate.h NLWeaveStack.h NLWeaveConstants.h \
+	NLNevisPairingCodeDecoding.h NLWeaveKeyIds.h NLHKDF.h \
+	NLWeavePasscodeEncryptionSupport.h NLWeaveKeyExportClient.h \
+	NLWeaveKeyExportSupport.h
 am__noinst_HEADERS_DIST = NLIdentifyDeviceCriteria_Protected.h \
 	NLNetworkInfo_Protected.h NLWeaveDeviceDescriptor_Protected.h \
 	NLWeaveError_Protected.h NLWeaveDeviceManager_Protected.h
@@ -524,6 +526,7 @@ EXTRA_DIST = \
 @WEAVE_WITH_COCOA_TRUE@    NLIdentifyDeviceCriteria.h             \
 @WEAVE_WITH_COCOA_TRUE@    NLLogging.h                            \
 @WEAVE_WITH_COCOA_TRUE@    NLNetworkInfo.h                        \
+@WEAVE_WITH_COCOA_TRUE@    NLPairingCodeUtils.h                   \
 @WEAVE_WITH_COCOA_TRUE@    NLProfileStatusError.h                 \
 @WEAVE_WITH_COCOA_TRUE@    NLServiceInfo.h                        \
 @WEAVE_WITH_COCOA_TRUE@    NLWeaveASN1ErrorCodes.h                \
@@ -556,6 +559,7 @@ EXTRA_DIST = \
 @WEAVE_WITH_COCOA_TRUE@    Base64Encoding.mm                      \
 @WEAVE_WITH_COCOA_TRUE@    NLIdentifyDeviceCriteria.mm            \
 @WEAVE_WITH_COCOA_TRUE@    NLNetworkInfo.mm                       \
+@WEAVE_WITH_COCOA_TRUE@    NLPairingCodeUtils.mm                  \
 @WEAVE_WITH_COCOA_TRUE@    NLProfileStatusError.mm                \
 @WEAVE_WITH_COCOA_TRUE@    NLServiceInfo.mm                       \
 @WEAVE_WITH_COCOA_TRUE@    NLWeaveDeviceDescriptor.mm             \
@@ -655,6 +659,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libNLWeaveDeviceManager_a-NLIdentifyDeviceCriteria.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libNLWeaveDeviceManager_a-NLNetworkInfo.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libNLWeaveDeviceManager_a-NLNevisPairingCodeDecoding.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libNLWeaveDeviceManager_a-NLPairingCodeUtils.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libNLWeaveDeviceManager_a-NLProfileStatusError.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libNLWeaveDeviceManager_a-NLServiceInfo.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libNLWeaveDeviceManager_a-NLWeaveBleDelegate.Po@am__quote@
@@ -734,6 +739,20 @@ libNLWeaveDeviceManager_a-NLNetworkInfo.obj: NLNetworkInfo.mm
 @AMDEP_TRUE@@am__fastdepOBJCXX_FALSE@	$(AM_V_OBJCXX)source='NLNetworkInfo.mm' object='libNLWeaveDeviceManager_a-NLNetworkInfo.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepOBJCXX_FALSE@	DEPDIR=$(DEPDIR) $(OBJCXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepOBJCXX_FALSE@	$(AM_V_OBJCXX@am__nodep@)$(OBJCXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libNLWeaveDeviceManager_a_CPPFLAGS) $(CPPFLAGS) $(AM_OBJCXXFLAGS) $(OBJCXXFLAGS) -c -o libNLWeaveDeviceManager_a-NLNetworkInfo.obj `if test -f 'NLNetworkInfo.mm'; then $(CYGPATH_W) 'NLNetworkInfo.mm'; else $(CYGPATH_W) '$(srcdir)/NLNetworkInfo.mm'; fi`
+
+libNLWeaveDeviceManager_a-NLPairingCodeUtils.o: NLPairingCodeUtils.mm
+@am__fastdepOBJCXX_TRUE@	$(AM_V_OBJCXX)$(OBJCXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libNLWeaveDeviceManager_a_CPPFLAGS) $(CPPFLAGS) $(AM_OBJCXXFLAGS) $(OBJCXXFLAGS) -MT libNLWeaveDeviceManager_a-NLPairingCodeUtils.o -MD -MP -MF $(DEPDIR)/libNLWeaveDeviceManager_a-NLPairingCodeUtils.Tpo -c -o libNLWeaveDeviceManager_a-NLPairingCodeUtils.o `test -f 'NLPairingCodeUtils.mm' || echo '$(srcdir)/'`NLPairingCodeUtils.mm
+@am__fastdepOBJCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libNLWeaveDeviceManager_a-NLPairingCodeUtils.Tpo $(DEPDIR)/libNLWeaveDeviceManager_a-NLPairingCodeUtils.Po
+@AMDEP_TRUE@@am__fastdepOBJCXX_FALSE@	$(AM_V_OBJCXX)source='NLPairingCodeUtils.mm' object='libNLWeaveDeviceManager_a-NLPairingCodeUtils.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepOBJCXX_FALSE@	DEPDIR=$(DEPDIR) $(OBJCXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepOBJCXX_FALSE@	$(AM_V_OBJCXX@am__nodep@)$(OBJCXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libNLWeaveDeviceManager_a_CPPFLAGS) $(CPPFLAGS) $(AM_OBJCXXFLAGS) $(OBJCXXFLAGS) -c -o libNLWeaveDeviceManager_a-NLPairingCodeUtils.o `test -f 'NLPairingCodeUtils.mm' || echo '$(srcdir)/'`NLPairingCodeUtils.mm
+
+libNLWeaveDeviceManager_a-NLPairingCodeUtils.obj: NLPairingCodeUtils.mm
+@am__fastdepOBJCXX_TRUE@	$(AM_V_OBJCXX)$(OBJCXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libNLWeaveDeviceManager_a_CPPFLAGS) $(CPPFLAGS) $(AM_OBJCXXFLAGS) $(OBJCXXFLAGS) -MT libNLWeaveDeviceManager_a-NLPairingCodeUtils.obj -MD -MP -MF $(DEPDIR)/libNLWeaveDeviceManager_a-NLPairingCodeUtils.Tpo -c -o libNLWeaveDeviceManager_a-NLPairingCodeUtils.obj `if test -f 'NLPairingCodeUtils.mm'; then $(CYGPATH_W) 'NLPairingCodeUtils.mm'; else $(CYGPATH_W) '$(srcdir)/NLPairingCodeUtils.mm'; fi`
+@am__fastdepOBJCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libNLWeaveDeviceManager_a-NLPairingCodeUtils.Tpo $(DEPDIR)/libNLWeaveDeviceManager_a-NLPairingCodeUtils.Po
+@AMDEP_TRUE@@am__fastdepOBJCXX_FALSE@	$(AM_V_OBJCXX)source='NLPairingCodeUtils.mm' object='libNLWeaveDeviceManager_a-NLPairingCodeUtils.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepOBJCXX_FALSE@	DEPDIR=$(DEPDIR) $(OBJCXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepOBJCXX_FALSE@	$(AM_V_OBJCXX@am__nodep@)$(OBJCXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libNLWeaveDeviceManager_a_CPPFLAGS) $(CPPFLAGS) $(AM_OBJCXXFLAGS) $(OBJCXXFLAGS) -c -o libNLWeaveDeviceManager_a-NLPairingCodeUtils.obj `if test -f 'NLPairingCodeUtils.mm'; then $(CYGPATH_W) 'NLPairingCodeUtils.mm'; else $(CYGPATH_W) '$(srcdir)/NLPairingCodeUtils.mm'; fi`
 
 libNLWeaveDeviceManager_a-NLProfileStatusError.o: NLProfileStatusError.mm
 @am__fastdepOBJCXX_TRUE@	$(AM_V_OBJCXX)$(OBJCXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libNLWeaveDeviceManager_a_CPPFLAGS) $(CPPFLAGS) $(AM_OBJCXXFLAGS) $(OBJCXXFLAGS) -MT libNLWeaveDeviceManager_a-NLProfileStatusError.o -MD -MP -MF $(DEPDIR)/libNLWeaveDeviceManager_a-NLProfileStatusError.Tpo -c -o libNLWeaveDeviceManager_a-NLProfileStatusError.o `test -f 'NLProfileStatusError.mm' || echo '$(srcdir)/'`NLProfileStatusError.mm

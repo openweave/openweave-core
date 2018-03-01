@@ -44,6 +44,7 @@ libNLWeaveDeviceManager_a_HEADERS        = \
     NLIdentifyDeviceCriteria.h             \
     NLLogging.h                            \
     NLNetworkInfo.h                        \
+    NLPairingCodeUtils.h                   \
     NLProfileStatusError.h                 \
     NLServiceInfo.h                        \
     NLWeaveASN1ErrorCodes.h                \
@@ -76,6 +77,7 @@ libNLWeaveDeviceManager_a_SOURCES        = \
     Base64Encoding.mm                      \
     NLIdentifyDeviceCriteria.mm            \
     NLNetworkInfo.mm                       \
+    NLPairingCodeUtils.mm                  \
     NLProfileStatusError.mm                \
     NLServiceInfo.mm                       \
     NLWeaveDeviceDescriptor.mm             \
