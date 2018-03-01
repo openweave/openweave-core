@@ -268,6 +268,14 @@ exit:
     return err;
 }
 
+WEAVE_ERROR SubscriptionEngine::NewClient(SubscriptionClient ** const appClient, Binding * const apBinding, void * const apAppState,
+                                          SubscriptionClient::EventCallback const aEventCallback,
+                                          const TraitCatalogBase<TraitDataSink> * const apCatalog,
+                                          const uint32_t aInactivityTimeoutDuringSubscribingMsec)
+{
+    return NewClient(appClient, apBinding, apAppState, aEventCallback, apCatalog, aInactivityTimeoutDuringSubscribingMsec, NULL);
+}
+
 /**
  * Reply to a request with a StatuReport message.
  *

@@ -194,7 +194,24 @@ public:
     WEAVE_ERROR NewClient(SubscriptionClient ** const appClient, Binding * const apBinding, void * const apAppState,
                           SubscriptionClient::EventCallback const aEventCallback,
                           const TraitCatalogBase<TraitDataSink> * const apCatalog,
-                          const uint32_t aInactivityTimeoutDuringSubscribingMsec, IWeaveClientLock * aLock=NULL);
+                          const uint32_t aInactivityTimeoutDuringSubscribingMsec);
+
+    /**
+     * @brief This is the default event handler to be called by application layer for any ignored or unrecognized event
+     *
+     * @param[in]  appClient        A pointer to pointer for the new subscription client object
+     * @param[in]  apBinding        A pointer to Binding to be used for this subscription client
+     * @param[in]  apAppState       A pointer to application layer supplied state object
+     * @param[in]  aEventCallback   A function pointer for event call back
+     * @param[in]  apCatalog        A pointer to data sink catalog object
+     * @param[in]  aTimeoutMsecBeforeSubscribeResponse    Max number of milliseconds before subscribe response must be received
+     * @param[in]  aLock            A lock to protect the data used in wdm update
+     * after subscribe request is sent
+     */
+    WEAVE_ERROR NewClient(SubscriptionClient ** const appClient, Binding * const apBinding, void * const apAppState,
+                          SubscriptionClient::EventCallback const aEventCallback,
+                          const TraitCatalogBase<TraitDataSink> * const apCatalog,
+                          const uint32_t aInactivityTimeoutDuringSubscribingMsec, IWeaveClientLock * aLock);
 
     WEAVE_ERROR NewSubscriptionHandler(SubscriptionHandler ** const subHandler);
 

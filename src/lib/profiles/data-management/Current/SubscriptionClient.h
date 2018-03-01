@@ -378,7 +378,7 @@ private:
     // null out EC
     WEAVE_ERROR Init(Binding * const apBinding, void * const apAppState, EventCallback const aEventCallback,
                      const TraitCatalogBase<TraitDataSink> * const apCatalog,
-                     const uint32_t aInactivityTimeoutDuringSubscribingMsec, IWeaveClientLock * aLock=NULL);
+                     const uint32_t aInactivityTimeoutDuringSubscribingMsec, IWeaveClientLock * aLock);
 
     void _InitiateSubscription(void);
     WEAVE_ERROR SendSubscribeRequest(void);
