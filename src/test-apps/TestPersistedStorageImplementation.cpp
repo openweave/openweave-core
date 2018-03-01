@@ -175,7 +175,7 @@ WEAVE_ERROR Write(const char *aKey, uint32_t aValue)
     }
     else
     {
-        char encodedValue[2 * sizeof(uint32_t)];
+        char encodedValue[((sizeof(uint32_t) + 2) / 3) * 4 + 1];
 
         memset(encodedValue, 0, sizeof(encodedValue));
         Base64Encode((uint8_t *)&aValue, sizeof(aValue), encodedValue);
