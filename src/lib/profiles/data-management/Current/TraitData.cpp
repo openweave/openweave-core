@@ -353,8 +353,8 @@ WEAVE_ERROR TraitSchemaEngine::GetRelativePathTags(PropertyPathHandle candidateH
 
 WEAVE_ERROR TraitSchemaEngine::StoreData(PropertyPathHandle aHandle, TLVReader & aReader, ISetDataDelegate * aDelegate, IPathFilter * apPathFilter) const
 {
-    WEAVE_ERROR err = WEAVE_NO_ERROR;
-    TLVType type;
+    WEAVE_ERROR err                 = WEAVE_NO_ERROR;
+    TLVType type                    = kTLVType_NotSpecified;
     PropertyPathHandle curHandle    = aHandle;
     PropertyPathHandle parentHandle = kNullPropertyPathHandle;
     bool dictionaryEventSignalled   = false;

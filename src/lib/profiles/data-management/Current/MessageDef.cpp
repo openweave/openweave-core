@@ -920,7 +920,7 @@ WEAVE_ERROR StatusElement::Parser::CheckSchemaValidity(void) const
     if (WEAVE_END_OF_TLV == err)
     {
         // check for required fields:
-        const uint16_t RequiredFields = (1 << kCsTag_Status) & (1 << kCsTag_ProfileID);
+        const uint16_t RequiredFields = (1 << kCsTag_Status) | (1 << kCsTag_ProfileID);
 
         if ((TagPresenceMask & RequiredFields) == RequiredFields)
         {
