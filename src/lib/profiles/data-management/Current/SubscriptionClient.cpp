@@ -2420,15 +2420,18 @@ WEAVE_ERROR SubscriptionClient::OnUpdateConfirm(WEAVE_ERROR aReason, nl::Weave::
     TraitDataSink * dataSink = NULL;
     TraitUpdatableDataSink * updatableDataSink = NULL;
     UpdateResponse::Parser response;
-    StatusList::Parser statusList;
-    VersionList::Parser versionList;
     ReferencedTLVData additionalInfo;
     uint32_t numDispatchedHandles;
+
+#if WDM_ENABLE_REAL_UPDATE_RESPONSE
+    StatusList::Parser statusList;
+    VersionList::Parser versionList;
     uint64_t existingVersion;
     bool IsVersionListPresent         = false;
     bool IsStatusListPresent          = false;
     bool needResubscribe = false;
     nl::Weave::TLV::TLVReader reader;
+#endif // WDM_ENABLE_REAL_UPDATE_RESPONSE
 
     err = Lock();
     SuccessOrExit(err);
