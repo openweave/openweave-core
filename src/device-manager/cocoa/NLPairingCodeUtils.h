@@ -23,6 +23,7 @@
  */
 
 #import <Foundation/Foundation.h>
+#import "NLWeaveErrorCodes.h"
 
 @interface NLPairingCodeUtils : NSObject
 

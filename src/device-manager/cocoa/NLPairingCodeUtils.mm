@@ -25,6 +25,7 @@
 #import <string.h>
 
 #import "NLPairingCodeUtils.h"
+#include <Weave/Core/WeaveError.h>
 
 #import <Weave/Support/pairing-code/PairingCodeUtils.h>
 
@@ -32,7 +33,7 @@
 
 + (BOOL)isValidPairingCode:(NSString *)pairingCode {
 	const char *pairingCodeCS = [pairingCode UTF8String];
-	return (nl::PairingCode::VerifyPairingCode(pairingCodeCS)) ? YES : NO;
+	return (nl::PairingCode::VerifyPairingCode(pairingCodeCS, strlen(pairingCodeCS))) ? YES : NO;
 }
 
 + (NSString *)normalizePairingCode:(NSString *)pairingCode {
