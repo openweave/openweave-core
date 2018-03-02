@@ -709,7 +709,6 @@ class BluezManager(WeaveBleBase):
         self.orig_input_hook = None
         self.hookFuncPtr = None
         self.connect_state = False
-        self.loop_condition = True
         self.tx = None
         self.rx = None
         self.setInputHook(self.readlineCB)
@@ -771,29 +770,16 @@ class BluezManager(WeaveBleBase):
         except dbus.exceptions.DBusException as ex:
             self.logger.debug(str(ex))
 
-    def stop_thread(self, userData):
-        self.logger.info("stop_thread")
-        self.timeout_happen = True
-        self.loop_condition = False
-        self.Gmainloop.quit()
-        return False
-
     def runLoopUntil(self, target=None, **kwargs):
         if target:
             self.daemon_thread = threading.Thread(target=self.running_thread, args=(target, kwargs))
             self.daemon_thread.daemon = True
             self.daemon_thread.start()
-        self.timeout_happen = False
-        if kwargs and 'timeout' in kwargs:
-            self.source_id = GObject.timeout_add(kwargs['timeout'] * secondsToMilliseconds, self.stop_thread, None)
+
         try:
             self.Gmainloop = GObject.MainLoop()
             self.Gmainloop.run()
-            if kwargs and 'timeout' in kwargs:
-                if not self.timeout_happen:
-                    GObject.source_remove(self.source_id)
         except KeyboardInterrupt:
-            self.loop_condition = False
             self.Gmainloop.quit()
             sys.exit(1)
 
@@ -861,9 +847,9 @@ class BluezManager(WeaveBleBase):
         self.adapter.adapter_bg_scan(True)
         found = False
         identifier = kwargs['identifier']
-        while True:
-            if not self.loop_condition:
-                break
+        timeout = kwargs['timeout'] + time.time()
+
+        while time.time() < timeout:
             self.peripheral_list = self.adapter.find_devices([weave_service, weave_service_short])
             for device in self.peripheral_list:
                 try:
@@ -884,7 +870,6 @@ class BluezManager(WeaveBleBase):
 
             time.sleep(bleIdleDelta)
         self.adapter.adapter_bg_scan(False)
-        self.Gmainloop.quit()
 
     def scan(self, line):
         args = self.ParseInputLine(line, "scan")
@@ -896,7 +881,6 @@ class BluezManager(WeaveBleBase):
             self.ble_adapter_select()
         del self.peripheral_list[:]
         self.scan_quiet= args[1]
-        self.loop_condition = True
         self.runLoopUntil(self.scan_bg_implementation, timeout=args[0], identifier=args[2])
         return True
 
@@ -948,7 +932,6 @@ class BluezManager(WeaveBleBase):
             self.service = None
 
     def connect(self, identifier):
-        self.loop_condition = True
         found = False
         self.logger.info("trying to connect to " + identifier)
         for p in self.peripheral_list:
@@ -973,7 +956,6 @@ class BluezManager(WeaveBleBase):
             return False
 
     def disconnect(self):
-        self.loop_condition = True
         self.runLoopUntil(self.disconnect_bg_implementation)
         for i in range(2):
             n = gc.collect()
