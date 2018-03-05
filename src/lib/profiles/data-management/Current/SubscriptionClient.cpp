@@ -2934,7 +2934,7 @@ WEAVE_ERROR SubscriptionClient::BuildSingleUpdateRequestDataList(bool & aIsParti
                     addElementCallState.mpSubClient = this;
                     addElementCallState.mpTraitInstanceInfo = traitInfo;
 
-                    err = mUpdateClient.AddElement(schemaEngine->GetProfileId(), resourceId, instanceId, updatableDataSink->GetUpdateRequiredVersion(), &versionRange, tags, tagIndex, AddElementFunc, &addElementCallState);
+                    err = mUpdateClient.AddElement(schemaEngine->GetProfileId(), instanceId, resourceId, updatableDataSink->GetUpdateRequiredVersion(), &versionRange, tags, tagIndex, AddElementFunc, &addElementCallState);
                     if (err == WEAVE_NO_ERROR)
                     {
                         mDispatchedUpdateStore.AddItem(dirtyPath);
