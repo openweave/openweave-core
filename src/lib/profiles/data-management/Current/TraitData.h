@@ -724,7 +724,7 @@ public:
     virtual WEAVE_ERROR GetData(PropertyPathHandle aHandle, uint64_t aTagToWrite, nl::Weave::TLV::TLVWriter & aWriter,
                                 bool & aIsNull, bool & aIsPresent) __OVERRIDE;
 
-    void SetUpdated(SubscriptionClient * apSubClient, PropertyPathHandle aPropertyHandle, bool aIsConditional=false);
+    WEAVE_ERROR SetUpdated(SubscriptionClient * apSubClient, PropertyPathHandle aPropertyHandle, bool aIsConditional=false);
 
     WEAVE_ERROR Lock(SubscriptionClient * apSubClient);
     WEAVE_ERROR Unlock(SubscriptionClient * apSubClient);

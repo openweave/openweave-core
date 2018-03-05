@@ -1230,11 +1230,16 @@ exit:
     return err;
 }
 
-void TraitUpdatableDataSink::SetUpdated(SubscriptionClient * apSubClient, PropertyPathHandle aPropertyHandle, bool aIsConditional)
+WEAVE_ERROR TraitUpdatableDataSink::SetUpdated(SubscriptionClient * apSubClient, PropertyPathHandle aPropertyHandle, bool aIsConditional)
 {
-    if (aPropertyHandle != kNullPropertyPathHandle)
-    {
-        apSubClient->SetUpdated(this, aPropertyHandle, aIsConditional);
-    }
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
+
+    VerifyOrExit(aPropertyHandle != kNullPropertyPathHandle, err = WEAVE_ERROR_INVALID_ARGUMENT);
+
+    err = apSubClient->SetUpdated(this, aPropertyHandle, aIsConditional);
+    SuccessOrExit(err);
+
+exit:
+    return err;
 }
 #endif // WEAVE_CONFIG_ENABLE_WDM_UPDATE

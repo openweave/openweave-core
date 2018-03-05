@@ -1299,6 +1299,7 @@ void MockWdmSubscriptionInitiatorImpl::HandlePublisherRelease()
 void MockWdmSubscriptionInitiatorImpl::HandleDataFlipTimeout(nl::Weave::System::Layer* aSystemLayer, void *aAppState,
     nl::Weave::System::Error aErr)
 {
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
     MockWdmSubscriptionInitiatorImpl * const initiator = reinterpret_cast<MockWdmSubscriptionInitiatorImpl *>(aAppState);
 
     IgnoreUnusedVariable(aErr);
@@ -1334,19 +1335,35 @@ void MockWdmSubscriptionInitiatorImpl::HandleDataFlipTimeout(nl::Weave::System::
 
 #if WEAVE_CONFIG_ENABLE_WDM_UPDATE
         case kTestCase_TestUpdatableTrait1:
-            initiator->mTestATraitUpdatableDataSink0.Mutate(initiator->mSubscriptionClient);
-            initiator->mSubscriptionClient->FlushUpdate();
+            err = initiator->mTestATraitUpdatableDataSink0.Mutate(initiator->mSubscriptionClient);
+            SuccessOrExit(err);
+
+            err = initiator->mSubscriptionClient->FlushUpdate();
+            SuccessOrExit(err);
+
             break;
         case kTestCase_TestUpdatableTrait2:
-            initiator->mTestATraitUpdatableDataSink0.Mutate(initiator->mSubscriptionClient);
-            initiator->mLocaleSettingsTraitUpdatableDataSink.Mutate(initiator->mSubscriptionClient);
-            initiator->mSubscriptionClient->FlushUpdate();
+            err = initiator->mTestATraitUpdatableDataSink0.Mutate(initiator->mSubscriptionClient);
+            SuccessOrExit(err);
+
+            err = initiator->mLocaleSettingsTraitUpdatableDataSink.Mutate(initiator->mSubscriptionClient);
+            SuccessOrExit(err);
+
+            err = initiator->mSubscriptionClient->FlushUpdate();
+            SuccessOrExit(err);
             break;
         case kTestCase_TestUpdatableTrait3:
-            initiator->mTestATraitUpdatableDataSink0.Mutate(initiator->mSubscriptionClient);
-            initiator->mLocaleSettingsTraitUpdatableDataSink.Mutate(initiator->mSubscriptionClient);
-            initiator->mTestBTraitUpdatableDataSink.Mutate(initiator->mSubscriptionClient);
-            initiator->mSubscriptionClient->FlushUpdate();
+            err = initiator->mTestATraitUpdatableDataSink0.Mutate(initiator->mSubscriptionClient);
+            SuccessOrExit(err);
+
+            err = initiator->mLocaleSettingsTraitUpdatableDataSink.Mutate(initiator->mSubscriptionClient);
+            SuccessOrExit(err);
+
+            err = initiator->mTestBTraitUpdatableDataSink.Mutate(initiator->mSubscriptionClient);
+            SuccessOrExit(err);
+
+            err = initiator->mSubscriptionClient->FlushUpdate();
+            SuccessOrExit(err);
             break;
 #endif // WEAVE_CONFIG_ENABLE_WDM_UPDATE
 
@@ -1401,6 +1418,8 @@ void MockWdmSubscriptionInitiatorImpl::HandleDataFlipTimeout(nl::Weave::System::
         }
     }
 
+exit:
+    WeaveLogFunctError(err);
 }
 
 void MockWdmSubscriptionInitiatorImpl::MonitorPublisherCurrentState (nl::Weave::System::Layer* aSystemLayer, void *aAppState, INET_ERROR aErr)

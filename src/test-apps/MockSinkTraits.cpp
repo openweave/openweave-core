@@ -1634,21 +1634,36 @@ LocaleSettingsTraitUpdatableDataSink::GetLeafData(PropertyPathHandle aLeafHandle
     return err;
 }
 
-void LocaleSettingsTraitUpdatableDataSink::Mutate(SubscriptionClient * apSubClient)
+WEAVE_ERROR LocaleSettingsTraitUpdatableDataSink::Mutate(SubscriptionClient * apSubClient)
 {
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
     static unsigned int whichLocale = 0;
     static const char * locales[] = { "en-US", "zh-TW", "ja-JP", "pl-PL", "zh-CN" };
+    bool isLocked = false;
 
-    Lock(apSubClient);
+    err = Lock(apSubClient);
+    SuccessOrExit(err);
+
+    isLocked = true;
 
     MOCK_strlcpy(mLocale, locales[whichLocale], sizeof(mLocale));
     whichLocale = (whichLocale + 1) % (sizeof(locales)/sizeof(locales[0]));
-    SetUpdated(apSubClient, LocaleSettingsTrait::kPropertyHandle_active_locale);
-    SetUpdated(apSubClient, LocaleSettingsTrait::kPropertyHandle_Root);
-    WeaveLogDetail(DataManagement, "<set dirty> in 0x%08x", LocaleSettingsTrait::kPropertyHandle_active_locale);
+    err = SetUpdated(apSubClient, LocaleSettingsTrait::kPropertyHandle_active_locale);
+    SuccessOrExit(err);
 
-    Unlock(apSubClient);
+    err = SetUpdated(apSubClient, LocaleSettingsTrait::kPropertyHandle_Root);
+    SuccessOrExit(err);
 
+    WeaveLogDetail(DataManagement, "<set updated> in 0x%08x", LocaleSettingsTrait::kPropertyHandle_active_locale);
+
+exit:
+
+    if (isLocked)
+    {
+        Unlock(apSubClient);
+    }
+
+    return err;
 }
 
 WEAVE_ERROR LocaleSettingsTraitUpdatableDataSink::GetNextDictionaryItemKey(PropertyPathHandle aDictionaryHandle, uintptr_t &aContext, PropertyDictionaryKey &aKey)
@@ -1656,9 +1671,15 @@ WEAVE_ERROR LocaleSettingsTraitUpdatableDataSink::GetNextDictionaryItemKey(Prope
     return WEAVE_END_OF_INPUT;
 }
 
-void TestATraitUpdatableDataSink::Mutate(SubscriptionClient * apSubClient)
+WEAVE_ERROR TestATraitUpdatableDataSink::Mutate(SubscriptionClient * apSubClient)
 {
-    Lock(apSubClient);
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
+    bool isLocked = false;
+
+    err = Lock(apSubClient);
+    SuccessOrExit(err);
+
+    isLocked = true;
 
     if (mTraitTestSet == 0)
     {
@@ -1666,9 +1687,15 @@ void TestATraitUpdatableDataSink::Mutate(SubscriptionClient * apSubClient)
 
         if ((mTestCounter % kNumTestCases) == 0) {
             //mock sink 3 leaf properties changes, source 3 leaf properties changes
-            SetUpdated(apSubClient, TestATrait::kPropertyHandle_TaP);
-            SetUpdated(apSubClient, TestATrait::kPropertyHandle_TaC);
-            SetUpdated(apSubClient, TestATrait::kPropertyHandle_TaR);
+            err = SetUpdated(apSubClient, TestATrait::kPropertyHandle_TaP);
+            SuccessOrExit(err);
+
+            err = SetUpdated(apSubClient, TestATrait::kPropertyHandle_TaC);
+            SuccessOrExit(err);
+
+            err = SetUpdated(apSubClient, TestATrait::kPropertyHandle_TaR);
+            SuccessOrExit(err);
+
 
             tap++;
             tac++;
@@ -1676,9 +1703,9 @@ void TestATraitUpdatableDataSink::Mutate(SubscriptionClient * apSubClient)
         }
         else if ((mTestCounter % kNumTestCases) == 1) {
             //mock sink 3 leaf properties changes, mock source 4 leaf properties changes
-            SetUpdated(apSubClient, TestATrait::kPropertyHandle_TaP);
-            SetUpdated(apSubClient, TestATrait::kPropertyHandle_TaC);
-            SetUpdated(apSubClient, TestATrait::kPropertyHandle_TaR);
+            err = SetUpdated(apSubClient, TestATrait::kPropertyHandle_TaP);
+            err = SetUpdated(apSubClient, TestATrait::kPropertyHandle_TaC);
+            err = SetUpdated(apSubClient, TestATrait::kPropertyHandle_TaR);
 
             tap++;
             tac++;
@@ -1686,9 +1713,14 @@ void TestATraitUpdatableDataSink::Mutate(SubscriptionClient * apSubClient)
         }
         else if ((mTestCounter % kNumTestCases) == 2) {
             //mock sink 3 leaf properties changes, mock source 2 leaf properties changes
-            SetUpdated(apSubClient, TestATrait::kPropertyHandle_TaP);
-            SetUpdated(apSubClient, TestATrait::kPropertyHandle_TaC);
-            SetUpdated(apSubClient, TestATrait::kPropertyHandle_TaR);
+            err = SetUpdated(apSubClient, TestATrait::kPropertyHandle_TaP);
+            SuccessOrExit(err);
+
+            err = SetUpdated(apSubClient, TestATrait::kPropertyHandle_TaC);
+            SuccessOrExit(err);
+
+            err = SetUpdated(apSubClient, TestATrait::kPropertyHandle_TaR);
+            SuccessOrExit(err);
 
             tap++;
             tac++;
@@ -1698,9 +1730,12 @@ void TestATraitUpdatableDataSink::Mutate(SubscriptionClient * apSubClient)
             // mock sink, one independent leaf and one leaf in one structure property changes
             // mock source, one independent leaf and one leaf in one structure property changes
             //SetUpdated(apSubClient, TestATrait::kPropertyHandle_TaD_SaA);
-            SetUpdated(apSubClient, TestATrait::kPropertyHandle_TaD_SaB);
+            err = SetUpdated(apSubClient, TestATrait::kPropertyHandle_TaD_SaB);
+            SuccessOrExit(err);
 
-            SetUpdated(apSubClient, TestATrait::kPropertyHandle_TaA);
+            err = SetUpdated(apSubClient, TestATrait::kPropertyHandle_TaA);
+            SuccessOrExit(err);
+
             if (taa == TestATrait::ENUM_A_VALUE_1) {
                 taa = TestATrait::ENUM_A_VALUE_2;
             }
@@ -1714,9 +1749,14 @@ void TestATraitUpdatableDataSink::Mutate(SubscriptionClient * apSubClient)
         else if ((mTestCounter % kNumTestCases) == 4) {
             // sink, one independent leaf, one leaf in one structure property changes, mark this structure dirty, merge
             // source, one independent leaf and two leaf in one structure property changes
-            SetUpdated(apSubClient, TestATrait::kPropertyHandle_TaD_SaA);
-            SetUpdated(apSubClient, TestATrait::kPropertyHandle_TaA);
-            SetUpdated(apSubClient, TestATrait::kPropertyHandle_TaD);
+            err = SetUpdated(apSubClient, TestATrait::kPropertyHandle_TaD_SaA);
+            SuccessOrExit(err);
+
+            err = SetUpdated(apSubClient, TestATrait::kPropertyHandle_TaA);
+            SuccessOrExit(err);
+
+            err = SetUpdated(apSubClient, TestATrait::kPropertyHandle_TaD);
+            SuccessOrExit(err);
 
             if (taa == TestATrait::ENUM_A_VALUE_1) {
                 taa = TestATrait::ENUM_A_VALUE_2;
@@ -1728,22 +1768,28 @@ void TestATraitUpdatableDataSink::Mutate(SubscriptionClient * apSubClient)
             tad.saB = !tad.saB;
         }
         else if ((mTestCounter % kNumTestCases) == 5) {
-            SetUpdated(apSubClient, TestATrait::kPropertyHandle_TaI);
+            err = SetUpdated(apSubClient, TestATrait::kPropertyHandle_TaI);
+            SuccessOrExit(err);
 
             for (uint16_t i = 0; i < 10; i++) {
                 tai_map[i] = { (uint32_t)i + 1 };
             }
         }
         else if ((mTestCounter % kNumTestCases) == 6) {
-            SetUpdated(apSubClient, TestATrait::kPropertyHandle_TaI);
+            err = SetUpdated(apSubClient, TestATrait::kPropertyHandle_TaI);
 
             for (uint16_t i = 0; i < 10; i++) {
                 tai_map[i] = { (uint32_t)i + 1 };
             }
 
-            SetUpdated(apSubClient, TestATrait::kPropertyHandle_TaD_SaA);
-            SetUpdated(apSubClient, TestATrait::kPropertyHandle_TaA);
-            SetUpdated(apSubClient, TestATrait::kPropertyHandle_TaD);
+            err = SetUpdated(apSubClient, TestATrait::kPropertyHandle_TaD_SaA);
+            SuccessOrExit(err);
+
+            err = SetUpdated(apSubClient, TestATrait::kPropertyHandle_TaA);
+            SuccessOrExit(err);
+
+            err = SetUpdated(apSubClient, TestATrait::kPropertyHandle_TaD);
+            SuccessOrExit(err);
 
             if (taa == TestATrait::ENUM_A_VALUE_1) {
                 taa = TestATrait::ENUM_A_VALUE_2;
@@ -1756,11 +1802,20 @@ void TestATraitUpdatableDataSink::Mutate(SubscriptionClient * apSubClient)
         }
         else if ((mTestCounter % kNumTestCases) == 7) {
             // sink, all merge with root handle, cut dictionary
-            SetUpdated(apSubClient, TestATrait::kPropertyHandle_Root);
-            SetUpdated(apSubClient, TestATrait::kPropertyHandle_TaD_SaA);
-            SetUpdated(apSubClient, TestATrait::kPropertyHandle_TaA);
-            SetUpdated(apSubClient, TestATrait::kPropertyHandle_TaD);
-            SetUpdated(apSubClient, TestATrait::kPropertyHandle_TaI);
+            err = SetUpdated(apSubClient, TestATrait::kPropertyHandle_Root);
+            SuccessOrExit(err);
+
+            err = SetUpdated(apSubClient, TestATrait::kPropertyHandle_TaD_SaA);
+            SuccessOrExit(err);
+
+            err = SetUpdated(apSubClient, TestATrait::kPropertyHandle_TaA);
+            SuccessOrExit(err);
+
+            err = SetUpdated(apSubClient, TestATrait::kPropertyHandle_TaD);
+            SuccessOrExit(err);
+
+            err = SetUpdated(apSubClient, TestATrait::kPropertyHandle_TaI);
+            SuccessOrExit(err);
 
             if (taa == TestATrait::ENUM_A_VALUE_1) {
                 taa = TestATrait::ENUM_A_VALUE_2;
@@ -1775,11 +1830,20 @@ void TestATraitUpdatableDataSink::Mutate(SubscriptionClient * apSubClient)
             // sink, all merge with root handle, cut oversized dictionary
             // real service, which need update fragmentation
             WeaveLogDetail(DataManagement, "It is failing with update fragmentation");
-            SetUpdated(apSubClient, TestATrait::kPropertyHandle_Root);
-            SetUpdated(apSubClient, TestATrait::kPropertyHandle_TaD_SaA);
-            SetUpdated(apSubClient, TestATrait::kPropertyHandle_TaA);
-            SetUpdated(apSubClient, TestATrait::kPropertyHandle_TaD);
-            SetUpdated(apSubClient, TestATrait::kPropertyHandle_TaI);
+            err = SetUpdated(apSubClient, TestATrait::kPropertyHandle_Root);
+            SuccessOrExit(err);
+
+            err = SetUpdated(apSubClient, TestATrait::kPropertyHandle_TaD_SaA);
+            SuccessOrExit(err);
+
+            err = SetUpdated(apSubClient, TestATrait::kPropertyHandle_TaA);
+            SuccessOrExit(err);
+
+            err = SetUpdated(apSubClient, TestATrait::kPropertyHandle_TaD);
+            SuccessOrExit(err);
+
+            err = SetUpdated(apSubClient, TestATrait::kPropertyHandle_TaI);
+            SuccessOrExit(err);
 
             for (uint16_t i = 0; i < 800; i++) {
                 tai_map[i] = { (uint32_t)i + 1 };
@@ -1796,7 +1860,15 @@ void TestATraitUpdatableDataSink::Mutate(SubscriptionClient * apSubClient)
     }
 
     mTestCounter++;
-    Unlock(apSubClient);
+
+exit:
+
+    if (isLocked)
+    {
+        Unlock(apSubClient);
+    }
+
+    return err;
 }
 
 TestATraitUpdatableDataSink::TestATraitUpdatableDataSink()
@@ -2502,13 +2574,22 @@ TestBTraitUpdatableDataSink::TestBTraitUpdatableDataSink()
     }
 }
 
-void TestBTraitUpdatableDataSink::Mutate(SubscriptionClient * apSubClient)
+WEAVE_ERROR TestBTraitUpdatableDataSink::Mutate(SubscriptionClient * apSubClient)
 {
-    Lock(apSubClient);
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
+    bool isLocked = false;
+
+    err = Lock(apSubClient);
+    SuccessOrExit(err);
+
+    isLocked = true;
 
     if ((GetVersion() % 3) == 0) {
-        SetUpdated(apSubClient, TestBTrait::kPropertyHandle_TbB_SbB);
-        SetUpdated(apSubClient, TestBTrait::kPropertyHandle_TaA);
+        err = SetUpdated(apSubClient, TestBTrait::kPropertyHandle_TbB_SbB);
+        SuccessOrExit(err);
+
+        err = SetUpdated(apSubClient, TestBTrait::kPropertyHandle_TaA);
+        SuccessOrExit(err);
 
         if (taa == TestATrait::ENUM_A_VALUE_1) {
             taa = TestATrait::ENUM_A_VALUE_2;
@@ -2520,21 +2601,34 @@ void TestBTraitUpdatableDataSink::Mutate(SubscriptionClient * apSubClient)
         tbb_sbb++;
     }
     else if ((GetVersion() % 3) == 1) {
-        SetUpdated(apSubClient, TestBTrait::kPropertyHandle_TaC);
-        SetUpdated(apSubClient, TestBTrait::kPropertyHandle_TaP);
-        SetUpdated(apSubClient, TestBTrait::kPropertyHandle_TbC_SaB);
+        err = SetUpdated(apSubClient, TestBTrait::kPropertyHandle_TaC);
+        SuccessOrExit(err);
+
+        err = SetUpdated(apSubClient, TestBTrait::kPropertyHandle_TaP);
+        SuccessOrExit(err);
+
+        err = SetUpdated(apSubClient, TestBTrait::kPropertyHandle_TbC_SaB);
+        SuccessOrExit(err);
 
         tap++;
         tac++;
         tbc_sab = !tbc_sab;
     }
     else if ((GetVersion() % 3) == 2) {
-        SetUpdated(apSubClient, TestBTrait::kPropertyHandle_TaP);
+        err = SetUpdated(apSubClient, TestBTrait::kPropertyHandle_TaP);
+        SuccessOrExit(err);
 
         tap++;
     }
 
-    Unlock(apSubClient);
+exit:
+
+    if (isLocked)
+    {
+        Unlock(apSubClient);
+    }
+
+    return err;
 }
 
 void TestBTraitUpdatableDataSink::SetNullifiedPath(PropertyPathHandle aHandle, bool isNull)
