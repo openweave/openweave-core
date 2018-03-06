@@ -1926,7 +1926,7 @@ void SubscriptionClient::OnMessageReceivedFromLocallyInitiatedExchange(nl::Weave
                 }
                 else
                 {
-                    pClient->FormAndSendUpdate();
+                    pClient->FormAndSendUpdate(true);
                 }
             }
 
@@ -2412,7 +2412,7 @@ void SubscriptionClient::UpdateCompleteEventCbHelper(size_t &index, uint32_t &aS
     mEventCallback(mAppState, kEvent_OnUpdateComplete, inParam, outParam);
 }
 
-WEAVE_ERROR SubscriptionClient::OnUpdateConfirm(WEAVE_ERROR aReason, nl::Weave::Profiles::StatusReporting::StatusReport * apStatus)
+void SubscriptionClient::OnUpdateConfirm(WEAVE_ERROR aReason, nl::Weave::Profiles::StatusReporting::StatusReport * apStatus)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
     bool isLocked = false;
@@ -2594,7 +2594,7 @@ WEAVE_ERROR SubscriptionClient::OnUpdateConfirm(WEAVE_ERROR aReason, nl::Weave::
 
     PurgePendingUpdate();
     ClearFlushInProgress();
-    FormAndSendUpdate();
+    FormAndSendUpdate(true);
 
 exit:
     if (isLocked)
@@ -2602,7 +2602,7 @@ exit:
         Unlock();
     }
 
-    return err;
+    WeaveLogFunctError(err);
 }
 
 void SubscriptionClient::OnUpdateResponseTimeout(WEAVE_ERROR aError)
@@ -2676,7 +2676,7 @@ void SubscriptionClient::UpdateEventCallback (void * const aAppState, UpdateClie
         break;
     case UpdateClient::kEvent_UpdateContinue:
         WeaveLogDetail(DataManagement, "UpdateContinue event: %d", aEvent);
-        pSubClient->FormAndSendUpdate();
+        pSubClient->FormAndSendUpdate(true);
         break;
     default:
         WeaveLogDetail(DataManagement, "Unknown UpdateClient event: %d", aEvent);
@@ -2940,17 +2940,21 @@ WEAVE_ERROR SubscriptionClient::BuildSingleUpdateRequestDataList(bool & aIsParti
                         mDispatchedUpdateStore.AddItem(dirtyPath);
                         aUpdateWriteInReady = true;
                     }
-                    if ((err == WEAVE_ERROR_BUFFER_TOO_SMALL) || (err == WEAVE_ERROR_NO_MEMORY))
+                    else
                     {
                         aUpdateWriteInReady = false;
-                        WeaveLogDetail(DataManagement, "first illegal oversized trait property is too big to fit in the packet");
+
+                        if ((err == WEAVE_ERROR_BUFFER_TOO_SMALL) || (err == WEAVE_ERROR_NO_MEMORY))
+                        {
+                            WeaveLogDetail(DataManagement, "illegal oversized trait property is too big to fit in the packet");
+                        }
 
                         InEventParam inParam;
                         OutEventParam outParam;
                         inParam.Clear();
                         outParam.Clear();
                         inParam.mUpdateComplete.mClient = this;
-                        inParam.mUpdateComplete.mReason = WEAVE_ERROR_INCORRECT_STATE;
+                        inParam.mUpdateComplete.mReason = err;
                         mEventCallback(mAppState, kEvent_OnUpdateComplete, inParam, outParam);
 
                         RemoveItemDispatchedUpdateStore(traitInfo->mTraitDataHandle);
@@ -2959,9 +2963,11 @@ WEAVE_ERROR SubscriptionClient::BuildSingleUpdateRequestDataList(bool & aIsParti
                         updatableDataSink->ClearUpdateRequiredVersion();
                         updatableDataSink->ClearVersion();
 
+                        traitInfo->mNextDictionaryElementPathHandle = kNullPropertyPathHandle;
+
                         if (IsEstablishedIdle())
                         {
-                            HandleSubscriptionTerminated(IsRetryEnabled(), WEAVE_ERROR_MISMATCH_UPDATE_REQUIRED_VERSION, NULL);
+                            HandleSubscriptionTerminated(IsRetryEnabled(), err, NULL);
                         }
                     }
                     SuccessOrExit(err);
@@ -3010,7 +3016,7 @@ WEAVE_ERROR SubscriptionClient::SendSingleUpdateRequest()
     bool updateWriteInReady = false;
     uint32_t maxUpdateSize;
 
-    maxUpdateSize       = GetMaxUpdateSize();
+    maxUpdateSize = GetMaxUpdateSize();
 
     err = mUpdateClient.StartUpdate(0, NULL, maxUpdateSize);
     SuccessOrExit(err);
@@ -3023,6 +3029,7 @@ WEAVE_ERROR SubscriptionClient::SendSingleUpdateRequest()
         WeaveLogDetail(DataManagement, "Sending update");
         err = mUpdateClient.SendUpdate(isPartialUpdate);
         SuccessOrExit(err);
+        SetUpdateInFlight();
     }
     else
     {
@@ -3034,25 +3041,26 @@ exit:
 
     if (err != WEAVE_NO_ERROR)
     {
-        err = mUpdateClient.CancelUpdate();
-        SuccessOrExit(err);
+        mUpdateClient.CancelUpdate();
     }
 
     WeaveLogFunctError(err);
     return err;
 }
 
-WEAVE_ERROR SubscriptionClient::FormAndSendUpdate()
+WEAVE_ERROR SubscriptionClient::FormAndSendUpdate(bool aNotifyOnError)
 {
     WEAVE_ERROR err                  = WEAVE_NO_ERROR;
     bool isLocked                    = false;
+    InEventParam inParam;
+    OutEventParam outParam;
+
     // Lock before attempting to modify any of the shared data structures.
     err = Lock();
     SuccessOrExit(err);
 
     isLocked = true;
 
-    VerifyOrExit(!IsEmptyPendingUpdateStore(), WeaveLogDetail(DataManagement, "updating queue is empty, skip!"));
     VerifyOrExit(IsEstablishedIdle(), WeaveLogDetail(DataManagement, "client is not active"));
     VerifyOrExit(!IsUpdateInFlight(), WeaveLogDetail(DataManagement, "updating is ongoing"));
 
@@ -3064,19 +3072,24 @@ WEAVE_ERROR SubscriptionClient::FormAndSendUpdate()
     SuccessOrExit(err);
 
     WeaveLogDetail(DataManagement, "Done update processing!");
-    SetUpdateInFlight();
 
 exit:
-
-    if (err != WEAVE_NO_ERROR)
-    {
-        ClearUpdateInFlight();
-    }
 
     if (isLocked)
     {
         Unlock();
     }
+
+    if (aNotifyOnError && WEAVE_NO_ERROR != err)
+    {
+        inParam.Clear();
+        outParam.Clear();
+        inParam.mUpdateComplete.mClient = this;
+        inParam.mUpdateComplete.mReason = err;
+        mEventCallback(mAppState, kEvent_OnUpdateComplete, inParam, outParam);
+    }
+
+    WeaveLogFunctError(err);
     return err;
 }
 
@@ -3089,20 +3102,25 @@ WEAVE_ERROR SubscriptionClient::FlushUpdate()
     SuccessOrExit(err);
 
     VerifyOrExit(!IsFlushInProgress(), WeaveLogDetail(DataManagement, "updating has been triggered, skip!"));
-    VerifyOrExit(!IsEmptyPendingUpdateStore(), WeaveLogDetail(DataManagement, "updating queue is empty, skip!"));
 
     err = SetFlushInProgress();
     SuccessOrExit(err);
 
-    err = FormAndSendUpdate();
+    err = FormAndSendUpdate(false);
     SuccessOrExit(err);
 
 exit:
+
+    if (err != WEAVE_NO_ERROR)
+    {
+        ClearFlushInProgress();
+    }
 
     if (isLocked)
     {
         Unlock();
     }
+
     return err;
 }
 

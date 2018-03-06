@@ -431,7 +431,7 @@ private:
     static WEAVE_ERROR AddElementFunc(UpdateClient * apClient, void *apCallState, TLV::TLVWriter & aOuterWriter);
     void OnUpdateResponseTimeout(WEAVE_ERROR aReason);
     WEAVE_ERROR PurgePendingUpdate();
-    WEAVE_ERROR OnUpdateConfirm(WEAVE_ERROR aReason, nl::Weave::Profiles::StatusReporting::StatusReport * apStatus);
+    void OnUpdateConfirm(WEAVE_ERROR aReason, nl::Weave::Profiles::StatusReporting::StatusReport * apStatus);
     WEAVE_ERROR SendSingleUpdateRequest();
     WEAVE_ERROR BuildSingleUpdateRequestDataList(bool & aIsPartialUpdate, bool & aUpdateWriteInProgress);
     bool MergeDupInPendingUpdateStore(const TraitSchemaEngine * apSchemaEngine, size_t & candidateIndex);
@@ -462,7 +462,7 @@ private:
 
     void UpdateCompleteEventCbHelper(size_t &index, uint32_t &aStatusProfileId, uint16_t &aStatusCode, WEAVE_ERROR aReason);
     static void UpdateEventCallback (void * const aAppState, UpdateClient::EventType aEvent, const UpdateClient::InEventParam & aInParam, UpdateClient::OutEventParam & aOutParam);
-    WEAVE_ERROR FormAndSendUpdate();
+    WEAVE_ERROR FormAndSendUpdate(bool aNotifyOnError);
 
     void CancelUpdateClient(void);
     void ShutdownUpdateClient(void);
