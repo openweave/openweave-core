@@ -34,14 +34,11 @@
 #include <wordexp.h>
 #include <inttypes.h>
 
-#include <readline/readline.h>
-#include <readline/history.h>
 #include <glib.h>
 
-#include "client/display.h"
 #include "src/shared/util.h"
+#include "src/shared/shell.h"
 #include "gdbus/gdbus.h"
-#include "monitor/uuid.h"
 #include "mesh/mesh-net.h"
 #include "mesh/config-model.h"
 #include "mesh/node.h"
@@ -420,7 +417,7 @@ bool node_parse_composition(struct mesh_node *node, uint8_t *data, uint16_t len)
 
 		m = *data++;
 		v = *data++;
-		len -= 4;
+		len -= 2;
 
 		while (len >= 2 && m--) {
 			mod_id = get_le16(data);
@@ -432,7 +429,7 @@ bool node_parse_composition(struct mesh_node *node, uint8_t *data, uint16_t len)
 			len -= 2;
 		}
 		while (len >= 4 && v--) {
-			mod_id = get_le16(data);
+			mod_id = get_le16(data + 2);
 			vendor_id = get_le16(data);
 			mod_id |= (vendor_id << 16);
 			if (!node_set_model(node, ele->index, mod_id))
@@ -450,7 +447,7 @@ bool node_parse_composition(struct mesh_node *node, uint8_t *data, uint16_t len)
 bool node_set_local_node(struct mesh_node *node)
 {
 	if (local_node) {
-		rl_printf("Local node already registered\n");
+		bt_shell_printf("Local node already registered\n");
 		return false;
 	}
 	net_register_unicast(node->primary, node->num_ele);
@@ -516,7 +513,7 @@ void node_local_data_handler(uint16_t src, uint32_t dst,
 
 	if (!remote) {
 		if (local_node->provisioner) {
-			rl_printf("Remote node unknown (%4.4x)\n", src);
+			bt_shell_printf("Remote node unknown (%4.4x)\n", src);
 			return;
 		}
 
@@ -538,7 +535,7 @@ void node_local_data_handler(uint16_t src, uint32_t dst,
 		iv_seq |= remote->seq_number;
 
 		if (iv_seq_remote >= iv_seq) {
-			rl_printf("Replayed message detected "
+			bt_shell_printf("Replayed message detected "
 					"(%016" PRIx64 " >= %016" PRIx64 ")\n",
 							iv_seq_remote, iv_seq);
 			return;
@@ -694,7 +691,7 @@ bool node_set_model(struct mesh_node *node, uint8_t ele_idx, uint32_t id)
 	l = g_list_find_custom(ele->models, GUINT_TO_POINTER(id),
 				match_model_id);
 	if (l)
-		return false;
+		return true;
 
 	model = g_malloc0(sizeof(struct mesh_model));
 	if (!model)
@@ -760,7 +757,7 @@ bool node_add_binding(struct mesh_node *node, uint8_t ele_idx,
 	GList *l;
 
 	model = get_model(node, ele_idx, model_id);
-	if(!model)
+	if (!model)
 		return false;
 
 	l = g_list_find(model->bindings, GUINT_TO_POINTER(app_idx));
@@ -774,7 +771,25 @@ bool node_add_binding(struct mesh_node *node, uint8_t ele_idx,
 
 	model->bindings = g_list_append(model->bindings,
 					GUINT_TO_POINTER(app_idx));
+	return true;
+}
 
+bool node_add_subscription(struct mesh_node *node, uint8_t ele_idx,
+			   uint32_t model_id, uint16_t addr)
+{
+	struct mesh_model *model;
+	GList *l;
+
+	model = get_model(node, ele_idx, model_id);
+	if (!model)
+		return false;
+
+	l = g_list_find(model->subscriptions, GUINT_TO_POINTER(addr));
+	if (l)
+		return false;
+
+	model->subscriptions = g_list_append(model->subscriptions,
+					     GUINT_TO_POINTER(addr));
 	return true;
 }
 

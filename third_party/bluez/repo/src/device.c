@@ -210,6 +210,7 @@ struct btd_device {
 	GSList		*pending;		/* Pending services */
 	GSList		*watches;		/* List of disconnect_data */
 	bool		temporary;
+	bool		connectable;
 	guint		disconn_timer;
 	guint		discov_timer;
 	struct browse_req *browse;		/* service discover request */
@@ -726,6 +727,22 @@ static gboolean dev_property_get_address(const GDBusPropertyTable *property,
 	return TRUE;
 }
 
+static gboolean property_get_address_type(const GDBusPropertyTable *property,
+					DBusMessageIter *iter, void *user_data)
+{
+	struct btd_device *device = user_data;
+	const char *str;
+
+	if (device->le && device->bdaddr_type == BDADDR_LE_RANDOM)
+		str = "random";
+	else
+		str = "public";
+
+	dbus_message_iter_append_basic(iter, DBUS_TYPE_STRING, &str);
+
+	return TRUE;
+}
+
 static gboolean dev_property_get_name(const GDBusPropertyTable *property,
 					DBusMessageIter *iter, void *data)
 {
@@ -1182,7 +1199,8 @@ static void append_manufacturer_data(void *data, void *user_data)
 	struct bt_ad_manufacturer_data *md = data;
 	DBusMessageIter *dict = user_data;
 
-	dict_append_basic_array(dict, DBUS_TYPE_UINT16, &md->manufacturer_id,
+	g_dbus_dict_append_basic_array(dict,
+				DBUS_TYPE_UINT16, &md->manufacturer_id,
 				DBUS_TYPE_BYTE, &md->data, md->len);
 }
 
@@ -1483,10 +1501,10 @@ static DBusMessage *dev_disconnect(DBusConnection *conn, DBusMessage *msg,
 	struct btd_device *device = user_data;
 
 	/*
-	 * Disable connections through passive scanning until
-	 * Device1.Connect is called
+	 * If device is not trusted disable connections through passive
+	 * scanning until Device1.Connect is called
 	 */
-	if (device->auto_connect) {
+	if (device->auto_connect && !device->trusted) {
 		device->disable_auto_connect = TRUE;
 		device_set_auto_connect(device, FALSE);
 	}
@@ -1732,10 +1750,14 @@ int btd_device_connect_services(struct btd_device *dev, GSList *services)
 	if (!dev->bredr_state.svc_resolved)
 		return -ENOENT;
 
-	for (l = services; l; l = g_slist_next(l)) {
-		struct btd_service *service = l->data;
+	if (services) {
+		for (l = services; l; l = g_slist_next(l)) {
+			struct btd_service *service = l->data;
 
-		dev->pending = g_slist_append(dev->pending, service);
+			dev->pending = g_slist_append(dev->pending, service);
+		}
+	} else {
+		dev->pending = create_pending_list(dev, NULL);
 	}
 
 	return connect_next(dev);
@@ -1841,7 +1863,7 @@ static uint8_t select_conn_bearer(struct btd_device *dev)
 	 * Prefer BR/EDR if time is the same since it might be from an
 	 * advertisement with BR/EDR flag set.
 	 */
-	if (bredr_last <= le_last)
+	if (bredr_last <= le_last && btd_adapter_get_bredr(dev->adapter))
 		return BDADDR_BREDR;
 
 	return dev->bdaddr_type;
@@ -2213,6 +2235,7 @@ static void browse_request_complete(struct browse_req *req, uint8_t type,
 {
 	struct btd_device *dev = req->device;
 	DBusMessage *reply = NULL;
+	DBusMessage *msg;
 
 	if (req->type != type)
 		return;
@@ -2249,19 +2272,31 @@ static void browse_request_complete(struct browse_req *req, uint8_t type,
 		goto done;
 	}
 
-	if (dbus_message_is_method_call(req->msg, DEVICE_INTERFACE, "Connect"))
-		reply = dev_connect(dbus_conn, req->msg, dev);
-	else if (dbus_message_is_method_call(req->msg, DEVICE_INTERFACE,
+	/* if successfully resolved services we need to free browsing request
+	 * before passing message back to connect functions, otherwise
+	 * device->browse is set and "InProgress" error is returned instead
+	 * of actually connecting services
+	 */
+	msg = dbus_message_ref(req->msg);
+	browse_request_free(req);
+	req = NULL;
+
+	if (dbus_message_is_method_call(msg, DEVICE_INTERFACE, "Connect"))
+		reply = dev_connect(dbus_conn, msg, dev);
+	else if (dbus_message_is_method_call(msg, DEVICE_INTERFACE,
 							"ConnectProfile"))
-		reply = connect_profile(dbus_conn, req->msg, dev);
+		reply = connect_profile(dbus_conn, msg, dev);
 	else
-		reply = g_dbus_create_reply(req->msg, DBUS_TYPE_INVALID);
+		reply = g_dbus_create_reply(msg, DBUS_TYPE_INVALID);
+
+	dbus_message_unref(msg);
 
 done:
 	if (reply)
 		g_dbus_send_message(dbus_conn, reply);
 
-	browse_request_free(req);
+	if (req)
+		browse_request_free(req);
 }
 
 static void device_set_svc_refreshed(struct btd_device *device, bool value)
@@ -2301,6 +2336,15 @@ static void device_svc_resolved(struct btd_device *dev, uint8_t browse_type,
 		dev->pending_paired = false;
 	}
 
+	if (!dev->temporary)
+		store_device_info(dev);
+
+	if (bdaddr_type != BDADDR_BREDR && err == 0)
+		store_services(dev);
+
+	if (req)
+		browse_request_complete(req, browse_type, bdaddr_type, err);
+
 	while (dev->svc_callbacks) {
 		struct svc_callback *cb = dev->svc_callbacks->data;
 
@@ -2313,17 +2357,6 @@ static void device_svc_resolved(struct btd_device *dev, uint8_t browse_type,
 							dev->svc_callbacks);
 		g_free(cb);
 	}
-
-	if (!dev->temporary)
-		store_device_info(dev);
-
-	if (bdaddr_type != BDADDR_BREDR && err == 0)
-		store_services(dev);
-
-	if (!req)
-		return;
-
-	browse_request_complete(req, browse_type, bdaddr_type, err);
 }
 
 static struct bonding_req *bonding_request_new(DBusMessage *msg,
@@ -2606,6 +2639,7 @@ static const GDBusMethodTable device_methods[] = {
 
 static const GDBusPropertyTable device_properties[] = {
 	{ "Address", "s", dev_property_get_address },
+	{ "AddressType", "s", property_get_address_type },
 	{ "Name", "s", dev_property_get_name, NULL, dev_property_exists_name },
 	{ "Alias", "s", dev_property_get_alias, dev_property_set_alias },
 	{ "Class", "u", dev_property_get_class, NULL,
@@ -3849,6 +3883,8 @@ void device_update_addr(struct btd_device *device, const bdaddr_t *bdaddr,
 
 	g_dbus_emit_property_changed(dbus_conn, device->path,
 						DEVICE_INTERFACE, "Address");
+	g_dbus_emit_property_changed(dbus_conn, device->path,
+					DEVICE_INTERFACE, "AddressType");
 }
 
 void device_set_bredr_support(struct btd_device *device)
@@ -4050,7 +4086,8 @@ void device_remove(struct btd_device *device, gboolean remove_stored)
 	device->pending = NULL;
 
 	if (btd_device_is_connected(device)) {
-		g_source_remove(device->disconn_timer);
+		if (device->disconn_timer > 0)
+			g_source_remove(device->disconn_timer);
 		disconnect_all(device);
 	}
 
@@ -4168,6 +4205,7 @@ static struct btd_service *probe_service(struct btd_device *device,
 						struct btd_profile *profile,
 						GSList *uuids)
 {
+	GSList *l;
 	struct btd_service *service;
 
 	if (profile->device_probe == NULL)
@@ -4175,6 +4213,10 @@ static struct btd_service *probe_service(struct btd_device *device,
 
 	if (!device_match_profile(device, profile, uuids))
 		return NULL;
+
+	l = find_service_with_profile(device->services, profile);
+	if (l)
+		return l->data;
 
 	service = service_create(device, profile);
 
@@ -5353,6 +5395,18 @@ void device_set_flags(struct btd_device *device, uint8_t flags)
 					DEVICE_INTERFACE, "AdvertisingFlags");
 }
 
+bool device_is_connectable(struct btd_device *device)
+{
+	if (!device)
+		return false;
+
+	if (device->bredr)
+		return true;
+
+	/* Check if either Limited or General discoverable are set */
+	return (device->ad_flags[0] & 0x03);
+}
+
 static gboolean start_discovery(gpointer user_data)
 {
 	struct btd_device *device = user_data;
@@ -5376,7 +5430,7 @@ void device_set_paired(struct btd_device *dev, uint8_t bdaddr_type)
 
 	state->paired = true;
 
-	/* If the other bearer state was alraedy true we don't need to
+	/* If the other bearer state was already true we don't need to
 	 * send any property signals.
 	 */
 	if (dev->bredr_state.paired == dev->le_state.paired)
@@ -6070,6 +6124,39 @@ static sdp_list_t *read_device_records(struct btd_device *device)
 	g_key_file_free(key_file);
 
 	return recs;
+}
+
+void btd_device_set_record(struct btd_device *device, const char *uuid,
+							const char *record)
+{
+	/* This API is only used for BR/EDR */
+	struct bearer_state *state = &device->bredr_state;
+	struct browse_req *req;
+	sdp_list_t *recs = NULL;
+	sdp_record_t *rec;
+
+	if (!record)
+		return;
+
+	req = browse_request_new(device, BROWSE_SDP, NULL);
+	if (!req)
+		return;
+
+	rec = record_from_string(record);
+	recs = sdp_list_append(recs, rec);
+	update_bredr_services(req, recs);
+	sdp_list_free(recs, NULL);
+
+	device->svc_refreshed = true;
+	state->svc_resolved = true;
+
+	device_probe_profiles(device, req->profiles_added);
+
+	/* Propagate services changes */
+	g_dbus_emit_property_changed(dbus_conn, req->device->path,
+						DEVICE_INTERFACE, "UUIDs");
+
+	device_svc_resolved(device, BROWSE_SDP, device->bdaddr_type, 0);
 }
 
 const sdp_record_t *btd_device_get_record(struct btd_device *device,

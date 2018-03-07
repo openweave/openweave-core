@@ -68,14 +68,19 @@
 #define MIN(a, b) ((a) < (b) ? (a) : (b))
 #endif
 
+struct gatt_record {
+	struct btd_gatt_database *database;
+	uint32_t handle;
+	struct gatt_db_attribute *attr;
+};
+
 struct btd_gatt_database {
 	struct btd_adapter *adapter;
 	struct gatt_db *db;
 	unsigned int db_id;
 	GIOChannel *le_io;
 	GIOChannel *l2cap_io;
-	uint32_t gap_handle;
-	uint32_t gatt_handle;
+	struct queue *records;
 	struct queue *device_states;
 	struct queue *ccc_callbacks;
 	struct gatt_db_attribute *svc_chngd;
@@ -144,14 +149,17 @@ struct pending_op {
 	struct btd_device *device;
 	unsigned int id;
 	uint16_t offset;
+	uint8_t link_type;
 	struct gatt_db_attribute *attrib;
 	struct queue *owner_queue;
 	struct iovec data;
 };
 
 struct device_state {
+	struct btd_gatt_database *db;
 	bdaddr_t bdaddr;
 	uint8_t bdaddr_type;
+	unsigned int disc_id;
 	struct queue *ccc_states;
 };
 
@@ -245,12 +253,14 @@ static struct ccc_state *find_ccc_state(struct device_state *dev_state,
 							UINT_TO_PTR(handle));
 }
 
-static struct device_state *device_state_create(bdaddr_t *bdaddr,
+static struct device_state *device_state_create(struct btd_gatt_database *db,
+							bdaddr_t *bdaddr,
 							uint8_t bdaddr_type)
 {
 	struct device_state *dev_state;
 
 	dev_state = new0(struct device_state, 1);
+	dev_state->db = db;
 	dev_state->ccc_states = queue_new();
 	bacpy(&dev_state->bdaddr, bdaddr);
 	dev_state->bdaddr_type = bdaddr_type;
@@ -258,36 +268,120 @@ static struct device_state *device_state_create(bdaddr_t *bdaddr,
 	return dev_state;
 }
 
+static void device_state_free(void *data)
+{
+	struct device_state *state = data;
+
+	queue_destroy(state->ccc_states, free);
+	free(state);
+}
+
+static void clear_ccc_state(void *data, void *user_data)
+{
+	struct ccc_state *ccc = data;
+	struct btd_gatt_database *db = user_data;
+	struct ccc_cb_data *ccc_cb;
+
+	if (!ccc->value[0])
+		return;
+
+	ccc_cb = queue_find(db->ccc_callbacks, ccc_cb_match_handle,
+						UINT_TO_PTR(ccc->handle));
+	if (!ccc_cb)
+		return;
+
+	if (ccc_cb->callback)
+		ccc_cb->callback(NULL, 0, ccc_cb->user_data);
+}
+
+static void att_disconnected(int err, void *user_data)
+{
+	struct device_state *state = user_data;
+	struct btd_device *device;
+
+	DBG("");
+
+	state->disc_id = 0;
+
+	device = btd_adapter_get_device(state->db->adapter, &state->bdaddr,
+					state->bdaddr_type);
+	if (!device)
+		goto remove;
+
+	if (device_is_paired(device, state->bdaddr_type))
+		return;
+
+remove:
+	/* Remove device state if device no longer exists or is not paired */
+	if (queue_remove(state->db->device_states, state)) {
+		queue_foreach(state->ccc_states, clear_ccc_state, state->db);
+		device_state_free(state);
+	}
+}
+
+static bool get_dst_info(struct bt_att *att, bdaddr_t *dst, uint8_t *dst_type)
+{
+	GIOChannel *io = NULL;
+	GError *gerr = NULL;
+
+	io = g_io_channel_unix_new(bt_att_get_fd(att));
+	if (!io)
+		return false;
+
+	bt_io_get(io, &gerr, BT_IO_OPT_DEST_BDADDR, dst,
+						BT_IO_OPT_DEST_TYPE, dst_type,
+						BT_IO_OPT_INVALID);
+	if (gerr) {
+		error("gatt: bt_io_get: %s", gerr->message);
+		g_error_free(gerr);
+		g_io_channel_unref(io);
+		return false;
+	}
+
+	g_io_channel_unref(io);
+	return true;
+}
+
 static struct device_state *get_device_state(struct btd_gatt_database *database,
-							bdaddr_t *bdaddr,
-							uint8_t bdaddr_type)
+						struct bt_att *att)
 {
 	struct device_state *dev_state;
+	bdaddr_t bdaddr;
+	uint8_t bdaddr_type;
+
+	if (!get_dst_info(att, &bdaddr, &bdaddr_type))
+		return NULL;
 
 	/*
 	 * Find and return a device state. If a matching state doesn't exist,
 	 * then create a new one.
 	 */
-	dev_state = find_device_state(database, bdaddr, bdaddr_type);
+	dev_state = find_device_state(database, &bdaddr, bdaddr_type);
 	if (dev_state)
-		return dev_state;
+		goto done;
 
-	dev_state = device_state_create(bdaddr, bdaddr_type);
+	dev_state = device_state_create(database, &bdaddr, bdaddr_type);
 
 	queue_push_tail(database->device_states, dev_state);
+
+done:
+	if (!dev_state->disc_id)
+		dev_state->disc_id = bt_att_register_disconnect(att,
+							att_disconnected,
+							dev_state, NULL);
 
 	return dev_state;
 }
 
 static struct ccc_state *get_ccc_state(struct btd_gatt_database *database,
-							bdaddr_t *bdaddr,
-							uint8_t bdaddr_type,
-							uint16_t handle)
+					struct bt_att *att, uint16_t handle)
 {
 	struct device_state *dev_state;
 	struct ccc_state *ccc;
 
-	dev_state = get_device_state(database, bdaddr, bdaddr_type);
+	dev_state = get_device_state(database, att);
+	if (!dev_state)
+		return NULL;
 
 	ccc = find_ccc_state(dev_state, handle);
 	if (ccc)
@@ -298,14 +392,6 @@ static struct ccc_state *get_ccc_state(struct btd_gatt_database *database,
 	queue_push_tail(dev_state->ccc_states, ccc);
 
 	return ccc;
-}
-
-static void device_state_free(void *data)
-{
-	struct device_state *state = data;
-
-	queue_destroy(state->ccc_states, free);
-	free(state);
 }
 
 static void cancel_pending_read(void *data)
@@ -438,6 +524,14 @@ static void app_free(void *data)
 	free(app);
 }
 
+static void gatt_record_free(void *data)
+{
+	struct gatt_record *rec = data;
+
+	adapter_service_remove(rec->database->adapter, rec->handle);
+	free(rec);
+}
+
 static void gatt_database_free(void *data)
 {
 	struct btd_gatt_database *database = data;
@@ -452,16 +546,10 @@ static void gatt_database_free(void *data)
 		g_io_channel_unref(database->l2cap_io);
 	}
 
-	if (database->gatt_handle)
-		adapter_service_remove(database->adapter,
-							database->gatt_handle);
-
-	if (database->gap_handle)
-		adapter_service_remove(database->adapter, database->gap_handle);
-
 	/* TODO: Persistently store CCC states before freeing them */
 	gatt_db_unregister(database->db, database->db_id);
 
+	queue_destroy(database->records, gatt_record_free);
 	queue_destroy(database->device_states, device_state_free);
 	queue_destroy(database->apps, app_free);
 	queue_destroy(database->profiles, profile_free);
@@ -625,21 +713,42 @@ static sdp_record_t *record_new(uuid_t *uuid, uint16_t start, uint16_t end)
 	return record;
 }
 
-static uint32_t database_add_record(struct btd_gatt_database *database,
-					uint16_t uuid,
-					struct gatt_db_attribute *attr,
-					const char *name)
+static void database_add_record(struct btd_gatt_database *database,
+					struct gatt_db_attribute *attr)
 {
+	struct gatt_record *rec;
 	sdp_record_t *record;
 	uint16_t start, end;
 	uuid_t svc, gap_uuid;
+	bt_uuid_t uuid;
+	const char *name = NULL;
+	char uuidstr[MAX_LEN_UUID_STR];
 
-	sdp_uuid16_create(&svc, uuid);
+	gatt_db_attribute_get_service_uuid(attr, &uuid);
+
+	switch (uuid.type) {
+	case BT_UUID16:
+		name = bt_uuid16_to_str(uuid.value.u16);
+		sdp_uuid16_create(&svc, uuid.value.u16);
+		break;
+	case BT_UUID32:
+		name = bt_uuid32_to_str(uuid.value.u32);
+		sdp_uuid32_create(&svc, uuid.value.u32);
+		break;
+	case BT_UUID128:
+		bt_uuid_to_string(&uuid, uuidstr, sizeof(uuidstr));
+		name = bt_uuidstr_to_str(uuidstr);
+		sdp_uuid128_create(&svc, (void *) &uuid.value.u128);
+		break;
+	case BT_UUID_UNSPEC:
+		return;
+	}
+
 	gatt_db_attribute_get_service_handles(attr, &start, &end);
 
 	record = record_new(&svc, start, end);
 	if (!record)
-		return 0;
+		return;
 
 	if (name != NULL)
 		sdp_set_info_attr(record, name, "BlueZ", NULL);
@@ -651,11 +760,16 @@ static uint32_t database_add_record(struct btd_gatt_database *database,
 				"http://www.bluez.org/");
 	}
 
-	if (adapter_service_add(database->adapter, record) == 0)
-		return record->handle;
+	if (adapter_service_add(database->adapter, record) < 0) {
+		sdp_record_free(record);
+		return;
+	}
 
-	sdp_record_free(record);
-	return 0;
+	rec = new0(struct gatt_record, 1);
+	rec->database = database;
+	rec->handle = record->handle;
+	rec->attr = attr;
+	queue_push_tail(database->records, rec);
 }
 
 static void populate_gap_service(struct btd_gatt_database *database)
@@ -666,8 +780,6 @@ static void populate_gap_service(struct btd_gatt_database *database)
 	/* Add the GAP service */
 	bt_uuid16_create(&uuid, UUID_GAP);
 	service = gatt_db_add_service(database->db, &uuid, true, 5);
-	database->gap_handle = database_add_record(database, UUID_GAP, service,
-						"Generic Access Profile");
 
 	/*
 	 * Device Name characteristic.
@@ -690,29 +802,6 @@ static void populate_gap_service(struct btd_gatt_database *database)
 	gatt_db_service_set_active(service, true);
 }
 
-static bool get_dst_info(struct bt_att *att, bdaddr_t *dst, uint8_t *dst_type)
-{
-	GIOChannel *io = NULL;
-	GError *gerr = NULL;
-
-	io = g_io_channel_unix_new(bt_att_get_fd(att));
-	if (!io)
-		return false;
-
-	bt_io_get(io, &gerr, BT_IO_OPT_DEST_BDADDR, dst,
-						BT_IO_OPT_DEST_TYPE, dst_type,
-						BT_IO_OPT_INVALID);
-	if (gerr) {
-		error("gatt: bt_io_get: %s", gerr->message);
-		g_error_free(gerr);
-		g_io_channel_unref(io);
-		return false;
-	}
-
-	g_io_channel_unref(io);
-	return true;
-}
-
 static void gatt_ccc_read_cb(struct gatt_db_attribute *attrib,
 					unsigned int id, uint16_t offset,
 					uint8_t opcode, struct bt_att *att,
@@ -724,8 +813,6 @@ static void gatt_ccc_read_cb(struct gatt_db_attribute *attrib,
 	uint8_t ecode = 0;
 	const uint8_t *value = NULL;
 	size_t len = 0;
-	bdaddr_t bdaddr;
-	uint8_t bdaddr_type;
 
 	handle = gatt_db_attribute_get_handle(attrib);
 
@@ -736,12 +823,11 @@ static void gatt_ccc_read_cb(struct gatt_db_attribute *attrib,
 		goto done;
 	}
 
-	if (!get_dst_info(att, &bdaddr, &bdaddr_type)) {
+	ccc = get_ccc_state(database, att, handle);
+	if (!ccc) {
 		ecode = BT_ATT_ERROR_UNLIKELY;
 		goto done;
 	}
-
-	ccc = get_ccc_state(database, &bdaddr, bdaddr_type, handle);
 
 	len = 2 - offset;
 	value = len ? &ccc->value[offset] : NULL;
@@ -761,8 +847,6 @@ static void gatt_ccc_write_cb(struct gatt_db_attribute *attrib,
 	struct ccc_cb_data *ccc_cb;
 	uint16_t handle;
 	uint8_t ecode = 0;
-	bdaddr_t bdaddr;
-	uint8_t bdaddr_type;
 
 	handle = gatt_db_attribute_get_handle(attrib);
 
@@ -778,12 +862,11 @@ static void gatt_ccc_write_cb(struct gatt_db_attribute *attrib,
 		goto done;
 	}
 
-	if (!get_dst_info(att, &bdaddr, &bdaddr_type)) {
+	ccc = get_ccc_state(database, att, handle);
+	if (!ccc) {
 		ecode = BT_ATT_ERROR_UNLIKELY;
 		goto done;
 	}
-
-	ccc = get_ccc_state(database, &bdaddr, bdaddr_type, handle);
 
 	ccc_cb = queue_find(database->ccc_callbacks, ccc_cb_match_handle,
 			UINT_TO_PTR(gatt_db_attribute_get_handle(attrib)));
@@ -850,9 +933,6 @@ static void populate_gatt_service(struct btd_gatt_database *database)
 	/* Add the GATT service */
 	bt_uuid16_create(&uuid, UUID_GATT);
 	service = gatt_db_add_service(database->db, &uuid, true, 4);
-	database->gatt_handle = database_add_record(database, UUID_GATT,
-						service,
-						"Generic Attribute Profile");
 
 	bt_uuid16_create(&uuid, GATT_CHARAC_SERVICE_CHANGED);
 	database->svc_chngd = gatt_db_service_add_characteristic(service, &uuid,
@@ -940,8 +1020,11 @@ static void send_notification_to_device(void *data, void *user_data)
 
 remove:
 	/* Remove device state if device no longer exists or is not paired */
-	if (queue_remove(notify->database->device_states, device_state))
+	if (queue_remove(notify->database->device_states, device_state)) {
+		queue_foreach(device_state->ccc_states, clear_ccc_state,
+						notify->database);
 		device_state_free(device_state);
+	}
 }
 
 static void send_notification_to_devices(struct btd_gatt_database *database,
@@ -1000,6 +1083,8 @@ static void gatt_db_service_added(struct gatt_db_attribute *attrib,
 
 	DBG("GATT Service added to local database");
 
+	database_add_record(database, attrib);
+
 	send_service_changed(database, attrib);
 }
 
@@ -1022,12 +1107,25 @@ static void remove_device_ccc(void *data, void *user_data)
 	queue_remove_all(state->ccc_states, ccc_match_service, user_data, free);
 }
 
+static bool match_gatt_record(const void *data, const void *user_data)
+{
+	const struct gatt_record *rec = data;
+	const struct gatt_db_attribute *attr = user_data;
+
+	return (rec->attr == attr);
+}
+
 static void gatt_db_service_removed(struct gatt_db_attribute *attrib,
 								void *user_data)
 {
 	struct btd_gatt_database *database = user_data;
+	struct gatt_record *rec;
 
 	DBG("Local GATT service removed");
+
+	rec = queue_remove_if(database->records, match_gatt_record, attrib);
+	if (rec)
+		gatt_record_free(rec);
 
 	send_service_changed(database, attrib);
 
@@ -1624,7 +1722,8 @@ static void pending_op_free(void *data)
 static struct pending_op *pending_read_new(struct btd_device *device,
 					struct queue *owner_queue,
 					struct gatt_db_attribute *attrib,
-					unsigned int id, uint16_t offset)
+					unsigned int id, uint16_t offset,
+					uint8_t link_type)
 {
 	struct pending_op *op;
 
@@ -1635,6 +1734,7 @@ static struct pending_op *pending_read_new(struct btd_device *device,
 	op->attrib = attrib;
 	op->id = id;
 	op->offset = offset;
+	op->link_type = link_type;
 	queue_push_tail(owner_queue, op);
 
 	return op;
@@ -1644,11 +1744,26 @@ static void append_options(DBusMessageIter *iter, void *user_data)
 {
 	struct pending_op *op = user_data;
 	const char *path = device_get_path(op->device);
+	const char *link;
+
+	switch (op->link_type) {
+	case BT_ATT_LINK_BREDR:
+		link = "BR/EDR";
+		break;
+	case BT_ATT_LINK_LE:
+		link = "LE";
+		break;
+	default:
+		link = NULL;
+		break;
+	}
 
 	dict_append_entry(iter, "device", DBUS_TYPE_OBJECT_PATH, &path);
 	if (op->offset)
 		dict_append_entry(iter, "offset", DBUS_TYPE_UINT16,
 							&op->offset);
+	if (link)
+		dict_append_entry(iter, "link", DBUS_TYPE_STRING, &link);
 }
 
 static void read_setup_cb(DBusMessageIter *iter, void *user_data)
@@ -1673,11 +1788,13 @@ static struct pending_op *send_read(struct btd_device *device,
 					GDBusProxy *proxy,
 					struct queue *owner_queue,
 					unsigned int id,
-					uint16_t offset)
+					uint16_t offset,
+					uint8_t link_type)
 {
 	struct pending_op *op;
 
-	op = pending_read_new(device, owner_queue, attrib, id, offset);
+	op = pending_read_new(device, owner_queue, attrib, id, offset,
+							link_type);
 
 	if (g_dbus_proxy_method_call(proxy, "ReadValue", read_setup_cb,
 				read_reply_cb, op, pending_op_free) == TRUE)
@@ -1757,7 +1874,7 @@ static struct pending_op *pending_write_new(struct btd_device *device,
 					unsigned int id,
 					const uint8_t *value,
 					size_t len,
-					uint16_t offset)
+					uint16_t offset, uint8_t link_type)
 {
 	struct pending_op *op;
 
@@ -1771,6 +1888,7 @@ static struct pending_op *pending_write_new(struct btd_device *device,
 	op->attrib = attrib;
 	op->id = id;
 	op->offset = offset;
+	op->link_type = link_type;
 	queue_push_tail(owner_queue, op);
 
 	return op;
@@ -1782,12 +1900,12 @@ static struct pending_op *send_write(struct btd_device *device,
 					struct queue *owner_queue,
 					unsigned int id,
 					const uint8_t *value, size_t len,
-					uint16_t offset)
+					uint16_t offset, uint8_t link_type)
 {
 	struct pending_op *op;
 
 	op = pending_write_new(device, owner_queue, attrib, id, value, len,
-								offset);
+							offset, link_type);
 
 	if (g_dbus_proxy_method_call(proxy, "WriteValue", write_setup_cb,
 					owner_queue ? write_reply_cb : NULL,
@@ -1830,7 +1948,8 @@ static bool pipe_io_read(struct io *io, void *user_data)
 				gatt_db_attribute_get_handle(chrc->attrib),
 				buf, bytes_read,
 				gatt_db_attribute_get_handle(chrc->ccc),
-				false, NULL);
+				chrc->props & BT_GATT_CHRC_PROP_INDICATE,
+				chrc->proxy);
 
 	return true;
 }
@@ -1892,11 +2011,14 @@ static void acquire_write_reply(DBusMessage *message, void *user_data)
 				op->data.iov_len) < 0)
 		goto retry;
 
+	gatt_db_attribute_write_result(op->attrib, op->id, 0);
+
 	return;
 
 retry:
 	send_write(op->device, op->attrib, chrc->proxy, NULL, op->id,
-				op->data.iov_base, op->data.iov_len, 0);
+				op->data.iov_base, op->data.iov_len, 0,
+				op->link_type);
 }
 
 static void acquire_write_setup(DBusMessageIter *iter, void *user_data)
@@ -1928,11 +2050,13 @@ static struct pending_op *acquire_write(struct external_chrc *chrc,
 					struct btd_device *device,
 					struct gatt_db_attribute *attrib,
 					unsigned int id,
-					const uint8_t *value, size_t len)
+					const uint8_t *value, size_t len,
+					uint8_t link_type)
 {
 	struct pending_op *op;
 
-	op = pending_write_new(device, NULL, attrib, id, value, len, 0);
+	op = pending_write_new(device, NULL, attrib, id, value, len, 0,
+							link_type);
 
 	if (g_dbus_proxy_method_call(chrc->proxy, "AcquireWrite",
 					acquire_write_setup,
@@ -2225,7 +2349,7 @@ static void desc_read_cb(struct gatt_db_attribute *attrib,
 	}
 
 	if (send_read(device, attrib, desc->proxy, desc->pending_reads, id,
-								offset))
+					offset, bt_att_get_link_type(att)))
 		return;
 
 fail:
@@ -2254,7 +2378,7 @@ static void desc_write_cb(struct gatt_db_attribute *attrib,
 	}
 
 	if (send_write(device, attrib, desc->proxy, desc->pending_writes, id,
-							value, len, offset))
+				value, len, offset, bt_att_get_link_type(att)))
 		return;
 
 fail:
@@ -2305,7 +2429,7 @@ static void chrc_read_cb(struct gatt_db_attribute *attrib,
 	}
 
 	if (send_read(device, attrib, chrc->proxy, chrc->pending_reads, id,
-								offset))
+					offset, bt_att_get_link_type(att)))
 		return;
 
 fail:
@@ -2346,7 +2470,8 @@ static void chrc_write_cb(struct gatt_db_attribute *attrib,
 	}
 
 	if (g_dbus_proxy_get_property(chrc->proxy, "WriteAcquired", &iter)) {
-		if (acquire_write(chrc, device, attrib, id, value, len))
+		if (acquire_write(chrc, device, attrib, id, value, len,
+						bt_att_get_link_type(att)))
 			return;
 	}
 
@@ -2356,7 +2481,7 @@ static void chrc_write_cb(struct gatt_db_attribute *attrib,
 		queue = NULL;
 
 	if (send_write(device, attrib, chrc->proxy, queue, id, value, len,
-								offset))
+					offset, bt_att_get_link_type(att)))
 		return;
 
 fail:
@@ -2872,6 +2997,7 @@ struct btd_gatt_database *btd_gatt_database_new(struct btd_adapter *adapter)
 	database = new0(struct btd_gatt_database, 1);
 	database->adapter = btd_adapter_ref(adapter);
 	database->db = gatt_db_new();
+	database->records = queue_new();
 	database->device_states = queue_new();
 	database->apps = queue_new();
 	database->profiles = queue_new();

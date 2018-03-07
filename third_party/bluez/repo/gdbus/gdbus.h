@@ -339,6 +339,10 @@ const char *g_dbus_proxy_get_interface(GDBusProxy *proxy);
 gboolean g_dbus_proxy_get_property(GDBusProxy *proxy, const char *name,
 							DBusMessageIter *iter);
 
+GDBusProxy *g_dbus_proxy_lookup(GList *list, int *index, const char *path,
+						const char *interface);
+char *g_dbus_proxy_path_lookup(GList *list, int *index, const char *path);
+
 gboolean g_dbus_proxy_refresh_property(GDBusProxy *proxy, const char *name);
 
 typedef void (* GDBusResultFunction) (const DBusError *error, void *user_data);
@@ -352,6 +356,15 @@ gboolean g_dbus_proxy_set_property_array(GDBusProxy *proxy,
 				const char *name, int type, const void *value,
 				size_t size, GDBusResultFunction function,
 				void *user_data, GDBusDestroyFunction destroy);
+
+void g_dbus_dict_append_entry(DBusMessageIter *dict,
+					const char *key, int type, void *val);
+void g_dbus_dict_append_basic_array(DBusMessageIter *dict, int key_type,
+					const void *key, int type, void *val,
+					int n_elements);
+void g_dbus_dict_append_array(DBusMessageIter *dict,
+					const char *key, int type, void *val,
+					int n_elements);
 
 typedef void (* GDBusSetupFunction) (DBusMessageIter *iter, void *user_data);
 typedef void (* GDBusReturnFunction) (DBusMessage *message, void *user_data);

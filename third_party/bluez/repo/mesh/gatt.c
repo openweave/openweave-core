@@ -33,15 +33,13 @@
 #include <sys/uio.h>
 #include <wordexp.h>
 
-#include <readline/readline.h>
-#include <readline/history.h>
 #include <glib.h>
 
 #include "src/shared/io.h"
+#include "src/shared/shell.h"
 #include "gdbus/gdbus.h"
 #include "lib/bluetooth.h"
 #include "lib/uuid.h"
-#include "client/display.h"
 #include "mesh/node.h"
 #include "mesh/util.h"
 #include "mesh/gatt.h"
@@ -102,27 +100,6 @@ static void write_data_free(void *user_data)
 
 	g_free(data->gatt_data);
 	free(data);
-}
-
-static void write_setup(DBusMessageIter *iter, void *user_data)
-{
-	struct write_data *data = user_data;
-	struct iovec *iov = &data->iov;
-	DBusMessageIter array, dict;
-
-	dbus_message_iter_open_container(iter, DBUS_TYPE_ARRAY, "y", &array);
-	dbus_message_iter_append_fixed_array(&array, DBUS_TYPE_BYTE,
-						&iov->iov_base, iov->iov_len);
-	dbus_message_iter_close_container(iter, &array);
-
-	dbus_message_iter_open_container(iter, DBUS_TYPE_ARRAY,
-					DBUS_DICT_ENTRY_BEGIN_CHAR_AS_STRING
-					DBUS_TYPE_STRING_AS_STRING
-					DBUS_TYPE_VARIANT_AS_STRING
-					DBUS_DICT_ENTRY_END_CHAR_AS_STRING,
-					&dict);
-
-	dbus_message_iter_close_container(iter, &dict);
 }
 
 uint16_t mesh_gatt_sar(uint8_t **pkt, uint16_t size)
@@ -194,17 +171,26 @@ static bool pipe_write(struct io *io, void *user_data)
 	struct write_data *data = user_data;
 	struct iovec iov[2];
 	uint8_t sar;
-	uint8_t max_len = write_mtu - 4;
+	uint8_t max_len;
 
 	if (data == NULL)
 		return true;
 
+	max_len = write_mtu ? write_mtu - 3 - 1 : GATT_MTU - 3 - 1;
 	print_byte_array("GATT-TX:\t", data->gatt_data, data->gatt_len);
 
 	sar = data->gatt_data[0];
 
 	data->iov.iov_base = data->gatt_data + 1;
 	data->iov.iov_len--;
+
+	sar = data->gatt_data[0] & GATT_TYPE_MASK;
+	data->gatt_len--;
+
+	if (data->gatt_len > max_len) {
+		sar |= GATT_SAR_FIRST;
+		data->iov.iov_len = max_len;
+	}
 
 	iov[0].iov_base = &sar;
 	iov[0].iov_len = sizeof(sar);
@@ -216,7 +202,7 @@ static bool pipe_write(struct io *io, void *user_data)
 
 		err = io_send(io, iov, 2);
 		if (err < 0) {
-			rl_printf("Failed to write: %s\n", strerror(-err));
+			bt_shell_printf("Failed to write: %s\n", strerror(-err));
 			write_data_free(data);
 			return false;
 		}
@@ -247,73 +233,6 @@ static bool pipe_write(struct io *io, void *user_data)
 	}
 }
 
-static void write_reply(DBusMessage *message, void *user_data)
-{
-	struct write_data *data = user_data;
-	struct write_data *tmp;
-	uint8_t *dptr = data->gatt_data;
-	uint8_t max_len = GATT_MTU - 3;
-	uint8_t max_seg = GATT_MTU - 4;
-	DBusError error;
-
-	dbus_error_init(&error);
-
-	if (dbus_set_error_from_message(&error, message) == TRUE) {
-		rl_printf("Failed to write: %s\n", error.name);
-		dbus_error_free(&error);
-		return;
-	}
-
-	if (data == NULL)
-		return;
-
-	switch (data->gatt_data[0] & GATT_SAR_MASK) {
-		case GATT_SAR_FIRST:
-		case GATT_SAR_CONTINUE:
-			tmp = g_new0(struct write_data, 1);
-			if (!data)
-				return;
-
-			*tmp = *data;
-			tmp->gatt_data = g_malloc(data->gatt_len);
-
-			if (!tmp->gatt_data) {
-				g_free(tmp);
-				return;
-			}
-
-			tmp->gatt_data[0] = dptr[0];
-			data = tmp;
-			memcpy(data->gatt_data + 1, dptr + max_len,
-					data->gatt_len - max_seg);
-			data->gatt_len -= max_seg;
-			data->gatt_data[0] &= GATT_TYPE_MASK;
-			data->iov.iov_base = data->gatt_data;
-			if (max_len < data->gatt_len) {
-				data->iov.iov_len = max_len;
-				data->gatt_data[0] |= GATT_SAR_CONTINUE;
-			} else {
-				data->iov.iov_len = data->gatt_len;
-				data->gatt_data[0] |= GATT_SAR_LAST;
-			}
-
-			break;
-
-		default:
-			if(data->cb)
-				data->cb(message, data->user_data);
-			return;
-	}
-
-	if (g_dbus_proxy_method_call(data->proxy, "WriteValue", write_setup,
-				write_reply, data, write_data_free) == FALSE) {
-		rl_printf("Failed to write\n");
-		write_data_free(data);
-		return;
-	}
-
-}
-
 static void write_io_destroy(void)
 {
 	io_destroy(write_io);
@@ -330,7 +249,7 @@ static void notify_io_destroy(void)
 
 static bool pipe_hup(struct io *io, void *user_data)
 {
-	rl_printf("%s closed\n", io == notify_io ? "Notify" : "Write");
+	bt_shell_printf("%s closed\n", io == notify_io ? "Notify" : "Write");
 
 	if (io == notify_io)
 		notify_io_destroy();
@@ -363,23 +282,19 @@ static void acquire_write_reply(DBusMessage *message, void *user_data)
 
 	if (dbus_set_error_from_message(&error, message) == TRUE) {
 		dbus_error_free(&error);
-		if (g_dbus_proxy_method_call(data->proxy, "WriteValue",
-				write_setup, write_reply, data,
-				write_data_free) == FALSE) {
-			rl_printf("Failed to write\n");
-			write_data_free(data);
-		}
+		bt_shell_printf("Failed to write\n");
+		write_data_free(data);
 		return;
 	}
 
 	if ((dbus_message_get_args(message, NULL, DBUS_TYPE_UNIX_FD, &fd,
 					DBUS_TYPE_UINT16, &write_mtu,
 					DBUS_TYPE_INVALID) == false)) {
-		rl_printf("Invalid AcquireWrite response\n");
+		bt_shell_printf("Invalid AcquireWrite response\n");
 		return;
 	}
 
-	rl_printf("AcquireWrite success: fd %d MTU %u\n", fd, write_mtu);
+	bt_shell_printf("AcquireWrite success: fd %d MTU %u\n", fd, write_mtu);
 
 	write_io = pipe_io_new(fd);
 
@@ -404,8 +319,6 @@ bool mesh_gatt_write(GDBusProxy *proxy, uint8_t *buf, uint16_t len,
 			GDBusReturnFunction cb, void *user_data)
 {
 	struct write_data *data;
-	DBusMessageIter iter;
-	uint8_t max_len;
 
 	if (!buf || !len)
 		return false;
@@ -417,17 +330,11 @@ bool mesh_gatt_write(GDBusProxy *proxy, uint8_t *buf, uint16_t len,
 	if (!data)
 		return false;
 
-	max_len = write_mtu ? write_mtu - 3 : GATT_MTU - 3;
-
 	/* TODO: should keep in queue in case we need to cancel write? */
 
 	data->gatt_len = len;
 	data->gatt_data = g_memdup(buf, len);
 	data->gatt_data[0] &= GATT_TYPE_MASK;
-	if (max_len < len) {
-		len = max_len;
-		data->gatt_data[0] |= GATT_SAR_FIRST;
-	}
 	data->iov.iov_base = data->gatt_data;
 	data->iov.iov_len = len;
 	data->proxy = proxy;
@@ -437,27 +344,13 @@ bool mesh_gatt_write(GDBusProxy *proxy, uint8_t *buf, uint16_t len,
 	if (write_io)
 		return pipe_write(write_io, data);
 
-	if (g_dbus_proxy_get_property(proxy, "WriteAcquired", &iter)) {
-		if (g_dbus_proxy_method_call(proxy, "AcquireWrite",
-					acquire_setup, acquire_write_reply,
-					data, NULL) == FALSE) {
-			rl_printf("Failed to AcquireWrite\n");
-			write_data_free(data);
-			return false;
-		}
-	} else {
-		if (g_dbus_proxy_method_call(data->proxy, "WriteValue",
-				write_setup, write_reply, data,
-				write_data_free) == FALSE) {
-			rl_printf("Failed to write\n");
-			write_data_free(data);
-			return false;
-		}
-		print_byte_array("GATT-TX: ", buf, len);
-		rl_printf("Attempting to write %s\n",
-						g_dbus_proxy_get_path(proxy));
+	if (g_dbus_proxy_method_call(proxy, "AcquireWrite",
+				acquire_setup, acquire_write_reply,
+				data, NULL) == FALSE) {
+		bt_shell_printf("Failed to AcquireWrite\n");
+		write_data_free(data);
+		return false;
 	}
-
 	return true;
 }
 
@@ -469,13 +362,13 @@ static void notify_reply(DBusMessage *message, void *user_data)
 	dbus_error_init(&error);
 
 	if (dbus_set_error_from_message(&error, message) == TRUE) {
-		rl_printf("Failed to %s notify: %s\n",
+		bt_shell_printf("Failed to %s notify: %s\n",
 				data->enable ? "start" : "stop", error.name);
 		dbus_error_free(&error);
 		goto done;
 	}
 
-	rl_printf("Notify %s\n", data->enable ? "started" : "stopped");
+	bt_shell_printf("Notify %s\n", data->enable ? "started" : "stopped");
 
 done:
 	if (data->cb)
@@ -535,7 +428,7 @@ static void acquire_notify_reply(DBusMessage *message, void *user_data)
 		dbus_error_free(&error);
 		if (g_dbus_proxy_method_call(data->proxy, "StartNotify", NULL,
 					notify_reply, data, NULL) == FALSE) {
-			rl_printf("Failed to StartNotify\n");
+			bt_shell_printf("Failed to StartNotify\n");
 			g_free(data);
 		}
 		return;
@@ -553,13 +446,13 @@ static void acquire_notify_reply(DBusMessage *message, void *user_data)
 					DBUS_TYPE_INVALID) == false)) {
 		if (g_dbus_proxy_method_call(data->proxy, "StartNotify", NULL,
 					notify_reply, data, NULL) == FALSE) {
-			rl_printf("Failed to StartNotify\n");
+			bt_shell_printf("Failed to StartNotify\n");
 			g_free(data);
 		}
 		return;
 	}
 
-	rl_printf("AcquireNotify success: fd %d MTU %u\n", fd, notify_mtu);
+	bt_shell_printf("AcquireNotify success: fd %d MTU %u\n", fd, notify_mtu);
 
 	if (g_dbus_proxy_get_property(data->proxy, "UUID", &iter) == FALSE)
 		goto done;
@@ -619,7 +512,7 @@ bool mesh_gatt_notify(GDBusProxy *proxy, bool enable, GDBusReturnFunction cb,
 
 	if (g_dbus_proxy_method_call(proxy, method, setup, cb,
 					data, NULL) == FALSE) {
-		rl_printf("Failed to %s\n", method);
+		bt_shell_printf("Failed to %s\n", method);
 		return false;
 	}
 	return true;

@@ -30,19 +30,14 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <stdbool.h>
-#include <signal.h>
-#include <sys/signalfd.h>
 #include <wordexp.h>
 
-#include <readline/readline.h>
-#include <readline/history.h>
 #include <glib.h>
 
+#include "src/shared/shell.h"
 #include "src/shared/util.h"
 #include "gdbus/gdbus.h"
-#include "monitor/uuid.h"
 #include "agent.h"
-#include "display.h"
 #include "gatt.h"
 #include "advertising.h"
 
@@ -54,7 +49,6 @@
 #define PROMPT_ON	COLOR_BLUE "[bluetooth]" COLOR_OFF "# "
 #define PROMPT_OFF	"Waiting to connect to bluetoothd..."
 
-static GMainLoop *main_loop;
 static DBusConnection *dbus_conn;
 
 static GDBusProxy *agent_manager;
@@ -70,14 +64,6 @@ static struct adapter *default_ctrl;
 static GDBusProxy *default_dev;
 static GDBusProxy *default_attr;
 static GList *ctrl_list;
-
-static guint input = 0;
-
-static const char *mode_arguments[] = {
-	"on",
-	"off",
-	NULL
-};
 
 static const char *agent_arguments[] = {
 	"on",
@@ -103,57 +89,21 @@ static void proxy_leak(gpointer data)
 	printf("Leaking proxy %p\n", data);
 }
 
-static gboolean input_handler(GIOChannel *channel, GIOCondition condition,
-							gpointer user_data)
+static void setup_standard_input(void)
 {
-	if (condition & G_IO_IN) {
-		rl_callback_read_char();
-		return TRUE;
-	}
-
-	if (condition & (G_IO_HUP | G_IO_ERR | G_IO_NVAL)) {
-		g_main_loop_quit(main_loop);
-		return FALSE;
-	}
-
-	return TRUE;
-}
-
-static guint setup_standard_input(void)
-{
-	GIOChannel *channel;
-	guint source;
-
-	channel = g_io_channel_unix_new(fileno(stdin));
-
-	source = g_io_add_watch(channel,
-				G_IO_IN | G_IO_HUP | G_IO_ERR | G_IO_NVAL,
-				input_handler, NULL);
-
-	g_io_channel_unref(channel);
-
-	return source;
+	bt_shell_attach(fileno(stdin));
 }
 
 static void connect_handler(DBusConnection *connection, void *user_data)
 {
-	rl_set_prompt(PROMPT_ON);
-	printf("\r");
-	rl_on_new_line();
-	rl_redisplay();
+	bt_shell_set_prompt(PROMPT_ON);
 }
 
 static void disconnect_handler(DBusConnection *connection, void *user_data)
 {
-	if (input > 0) {
-		g_source_remove(input);
-		input = 0;
-	}
+	bt_shell_detach();
 
-	rl_set_prompt(PROMPT_OFF);
-	printf("\r");
-	rl_on_new_line();
-	rl_redisplay();
+	bt_shell_set_prompt(PROMPT_OFF);
 
 	g_list_free_full(ctrl_list, proxy_leak);
 	ctrl_list = NULL;
@@ -176,7 +126,7 @@ static void print_adapter(GDBusProxy *proxy, const char *description)
 	else
 		name = "<unknown>";
 
-	rl_printf("%s%s%sController %s %s %s\n",
+	bt_shell_printf("%s%s%sController %s %s %s\n",
 				description ? "[" : "",
 				description ? : "",
 				description ? "] " : "",
@@ -202,7 +152,7 @@ static void print_device(GDBusProxy *proxy, const char *description)
 	else
 		name = "<unknown>";
 
-	rl_printf("%s%s%sDevice %s %s\n",
+	bt_shell_printf("%s%s%sDevice %s %s\n",
 				description ? "[" : "",
 				description ? : "",
 				description ? "] " : "",
@@ -226,8 +176,8 @@ static void print_fixed_iter(const char *label, const char *name,
 		if (len <= 0)
 			return;
 
-		rl_printf("%s%s:\n", label, name);
-		rl_hexdump((void *)valbool, len * sizeof(*valbool));
+		bt_shell_printf("%s%s:\n", label, name);
+		bt_shell_hexdump((void *)valbool, len * sizeof(*valbool));
 
 		break;
 	case DBUS_TYPE_UINT32:
@@ -236,8 +186,8 @@ static void print_fixed_iter(const char *label, const char *name,
 		if (len <= 0)
 			return;
 
-		rl_printf("%s%s:\n", label, name);
-		rl_hexdump((void *)valu32, len * sizeof(*valu32));
+		bt_shell_printf("%s%s:\n", label, name);
+		bt_shell_hexdump((void *)valu32, len * sizeof(*valu32));
 
 		break;
 	case DBUS_TYPE_UINT16:
@@ -246,8 +196,8 @@ static void print_fixed_iter(const char *label, const char *name,
 		if (len <= 0)
 			return;
 
-		rl_printf("%s%s:\n", label, name);
-		rl_hexdump((void *)valu16, len * sizeof(*valu16));
+		bt_shell_printf("%s%s:\n", label, name);
+		bt_shell_hexdump((void *)valu16, len * sizeof(*valu16));
 
 		break;
 	case DBUS_TYPE_INT16:
@@ -256,8 +206,8 @@ static void print_fixed_iter(const char *label, const char *name,
 		if (len <= 0)
 			return;
 
-		rl_printf("%s%s:\n", label, name);
-		rl_hexdump((void *)vals16, len * sizeof(*vals16));
+		bt_shell_printf("%s%s:\n", label, name);
+		bt_shell_hexdump((void *)vals16, len * sizeof(*vals16));
 
 		break;
 	case DBUS_TYPE_BYTE:
@@ -266,8 +216,8 @@ static void print_fixed_iter(const char *label, const char *name,
 		if (len <= 0)
 			return;
 
-		rl_printf("%s%s:\n", label, name);
-		rl_hexdump((void *)byte, len * sizeof(*byte));
+		bt_shell_printf("%s%s:\n", label, name);
+		bt_shell_hexdump((void *)byte, len * sizeof(*byte));
 
 		break;
 	default:
@@ -288,39 +238,39 @@ static void print_iter(const char *label, const char *name,
 	char *entry;
 
 	if (iter == NULL) {
-		rl_printf("%s%s is nil\n", label, name);
+		bt_shell_printf("%s%s is nil\n", label, name);
 		return;
 	}
 
 	switch (dbus_message_iter_get_arg_type(iter)) {
 	case DBUS_TYPE_INVALID:
-		rl_printf("%s%s is invalid\n", label, name);
+		bt_shell_printf("%s%s is invalid\n", label, name);
 		break;
 	case DBUS_TYPE_STRING:
 	case DBUS_TYPE_OBJECT_PATH:
 		dbus_message_iter_get_basic(iter, &valstr);
-		rl_printf("%s%s: %s\n", label, name, valstr);
+		bt_shell_printf("%s%s: %s\n", label, name, valstr);
 		break;
 	case DBUS_TYPE_BOOLEAN:
 		dbus_message_iter_get_basic(iter, &valbool);
-		rl_printf("%s%s: %s\n", label, name,
+		bt_shell_printf("%s%s: %s\n", label, name,
 					valbool == TRUE ? "yes" : "no");
 		break;
 	case DBUS_TYPE_UINT32:
 		dbus_message_iter_get_basic(iter, &valu32);
-		rl_printf("%s%s: 0x%08x\n", label, name, valu32);
+		bt_shell_printf("%s%s: 0x%08x\n", label, name, valu32);
 		break;
 	case DBUS_TYPE_UINT16:
 		dbus_message_iter_get_basic(iter, &valu16);
-		rl_printf("%s%s: 0x%04x\n", label, name, valu16);
+		bt_shell_printf("%s%s: 0x%04x\n", label, name, valu16);
 		break;
 	case DBUS_TYPE_INT16:
 		dbus_message_iter_get_basic(iter, &vals16);
-		rl_printf("%s%s: %d\n", label, name, vals16);
+		bt_shell_printf("%s%s: %d\n", label, name, vals16);
 		break;
 	case DBUS_TYPE_BYTE:
 		dbus_message_iter_get_basic(iter, &byte);
-		rl_printf("%s%s: 0x%02x\n", label, name, byte);
+		bt_shell_printf("%s%s: 0x%02x\n", label, name, byte);
 		break;
 	case DBUS_TYPE_VARIANT:
 		dbus_message_iter_recurse(iter, &subiter);
@@ -353,7 +303,7 @@ static void print_iter(const char *label, const char *name,
 		g_free(entry);
 		break;
 	default:
-		rl_printf("%s%s has unsupported type\n", label, name);
+		bt_shell_printf("%s%s has unsupported type\n", label, name);
 		break;
 	}
 }
@@ -368,6 +318,32 @@ static void print_property(GDBusProxy *proxy, const char *name)
 	print_iter("\t", name, &iter);
 }
 
+static void print_uuid(const char *uuid)
+{
+	const char *text;
+
+	text = bt_uuidstr_to_str(uuid);
+	if (text) {
+		char str[26];
+		unsigned int n;
+
+		str[sizeof(str) - 1] = '\0';
+
+		n = snprintf(str, sizeof(str), "%s", text);
+		if (n > sizeof(str) - 1) {
+			str[sizeof(str) - 2] = '.';
+			str[sizeof(str) - 3] = '.';
+			if (str[sizeof(str) - 4] == ' ')
+				str[sizeof(str) - 4] = '.';
+
+			n = sizeof(str) - 1;
+		}
+
+		bt_shell_printf("\tUUID: %s%*c(%s)\n", str, 26 - n, ' ', uuid);
+	} else
+		bt_shell_printf("\tUUID: %*c(%s)\n", 26, ' ', uuid);
+}
+
 static void print_uuids(GDBusProxy *proxy)
 {
 	DBusMessageIter iter, value;
@@ -378,31 +354,11 @@ static void print_uuids(GDBusProxy *proxy)
 	dbus_message_iter_recurse(&iter, &value);
 
 	while (dbus_message_iter_get_arg_type(&value) == DBUS_TYPE_STRING) {
-		const char *uuid, *text;
+		const char *uuid;
 
 		dbus_message_iter_get_basic(&value, &uuid);
 
-		text = uuidstr_to_str(uuid);
-		if (text) {
-			char str[26];
-			unsigned int n;
-
-			str[sizeof(str) - 1] = '\0';
-
-			n = snprintf(str, sizeof(str), "%s", text);
-			if (n > sizeof(str) - 1) {
-				str[sizeof(str) - 2] = '.';
-				str[sizeof(str) - 3] = '.';
-				if (str[sizeof(str) - 4] == ' ')
-					str[sizeof(str) - 4] = '.';
-
-				n = sizeof(str) - 1;
-			}
-
-			rl_printf("\tUUID: %s%*c(%s)\n",
-						str, 26 - n, ' ', uuid);
-		} else
-			rl_printf("\tUUID: %*c(%s)\n", 26, ' ', uuid);
+		print_uuid(uuid);
 
 		dbus_message_iter_next(&value);
 	}
@@ -430,9 +386,8 @@ static gboolean device_is_child(GDBusProxy *device, GDBusProxy *master)
 
 static gboolean service_is_child(GDBusProxy *service)
 {
-	GList *l;
 	DBusMessageIter iter;
-	const char *device, *path;
+	const char *device;
 
 	if (g_dbus_proxy_get_property(service, "Device", &iter) == FALSE)
 		return FALSE;
@@ -442,16 +397,8 @@ static gboolean service_is_child(GDBusProxy *service)
 	if (!default_ctrl)
 		return FALSE;
 
-	for (l = default_ctrl->devices; l; l = g_list_next(l)) {
-		struct GDBusProxy *proxy = l->data;
-
-		path = g_dbus_proxy_get_path(proxy);
-
-		if (!strcmp(path, device))
-			return TRUE;
-	}
-
-	return FALSE;
+	return g_dbus_proxy_lookup(default_ctrl->devices, NULL, device,
+					"org.bluez.Device1") != NULL;
 }
 
 static struct adapter *find_parent(GDBusProxy *device)
@@ -493,9 +440,7 @@ static void set_default_device(GDBusProxy *proxy, const char *attribute)
 				attribute ? attribute + strlen(path) : "");
 
 done:
-	rl_set_prompt(desc ? desc : PROMPT_ON);
-	printf("\r");
-	rl_on_new_line();
+	bt_shell_set_prompt(desc ? desc : PROMPT_ON);
 	g_free(desc);
 }
 
@@ -575,7 +520,8 @@ static void proxy_added(GDBusProxy *proxy, void *user_data)
 		if (!agent_manager) {
 			agent_manager = proxy;
 
-			if (auto_register_agent)
+			if (auto_register_agent &&
+					!bt_shell_get_env("NON_INTERACTIVE"))
 				agent_register(dbus_conn, agent_manager,
 							auto_register_agent);
 		}
@@ -678,9 +624,7 @@ static void proxy_removed(GDBusProxy *proxy, void *user_data)
 	} else if (!strcmp(interface, "org.bluez.GattManager1")) {
 		gatt_remove_manager(proxy);
 	} else if (!strcmp(interface, "org.bluez.LEAdvertisingManager1")) {
-		if(!dbus_conn){
-			ad_unregister(dbus_conn, NULL);
-		}
+		ad_unregister(dbus_conn, NULL);
 	}
 }
 
@@ -788,7 +732,7 @@ static void property_changed(GDBusProxy *proxy, const char *name,
 static void message_handler(DBusConnection *connection,
 					DBusMessage *message, void *user_data)
 {
-	rl_printf("[SIGNAL] %s.%s\n", dbus_message_get_interface(message),
+	bt_shell_printf("[SIGNAL] %s.%s\n", dbus_message_get_interface(message),
 					dbus_message_get_member(message));
 }
 
@@ -838,52 +782,44 @@ static GDBusProxy *find_proxy_by_address(GList *source, const char *address)
 static gboolean check_default_ctrl(void)
 {
 	if (!default_ctrl) {
-		rl_printf("No default controller available\n");
+		bt_shell_printf("No default controller available\n");
 		return FALSE;
 	}
 
 	return TRUE;
 }
 
-static gboolean parse_argument(const char *arg, const char **arg_table,
+static gboolean parse_argument(int argc, char *argv[], const char **arg_table,
 					const char *msg, dbus_bool_t *value,
 					const char **option)
 {
 	const char **opt;
 
-	if (!arg || !strlen(arg)) {
-		if (msg)
-			rl_printf("Missing on/off/%s argument\n", msg);
-		else
-			rl_printf("Missing on/off argument\n");
-		return FALSE;
-	}
-
-	if (!strcmp(arg, "on") || !strcmp(arg, "yes")) {
+	if (!strcmp(argv[1], "on") || !strcmp(argv[1], "yes")) {
 		*value = TRUE;
 		if (option)
 			*option = "";
 		return TRUE;
 	}
 
-	if (!strcmp(arg, "off") || !strcmp(arg, "no")) {
+	if (!strcmp(argv[1], "off") || !strcmp(argv[1], "no")) {
 		*value = FALSE;
 		return TRUE;
 	}
 
 	for (opt = arg_table; opt && *opt; opt++) {
-		if (strcmp(arg, *opt) == 0) {
+		if (strcmp(argv[1], *opt) == 0) {
 			*value = TRUE;
 			*option = *opt;
 			return TRUE;
 		}
 	}
 
-	rl_printf("Invalid argument %s\n", arg);
+	bt_shell_printf("Invalid argument %s\n", argv[1]);
 	return FALSE;
 }
 
-static void cmd_list(const char *arg)
+static void cmd_list(int argc, char *argv[])
 {
 	GList *list;
 
@@ -891,34 +827,46 @@ static void cmd_list(const char *arg)
 		struct adapter *adapter = list->data;
 		print_adapter(adapter->proxy, NULL);
 	}
+
+	return bt_shell_noninteractive_quit(EXIT_SUCCESS);
 }
 
-static void cmd_show(const char *arg)
+static void cmd_show(int argc, char *argv[])
 {
 	struct adapter *adapter;
 	GDBusProxy *proxy;
 	DBusMessageIter iter;
 	const char *address;
 
-	if (!arg || !strlen(arg)) {
+	if (argc < 2 || !strlen(argv[1])) {
 		if (check_default_ctrl() == FALSE)
 			return;
 
 		proxy = default_ctrl->proxy;
 	} else {
-		adapter = find_ctrl_by_address(ctrl_list, arg);
+		adapter = find_ctrl_by_address(ctrl_list, argv[1]);
 		if (!adapter) {
-			rl_printf("Controller %s not available\n", arg);
+			bt_shell_printf("Controller %s not available\n",
+								argv[1]);
 			return;
 		}
 		proxy = adapter->proxy;
 	}
 
 	if (g_dbus_proxy_get_property(proxy, "Address", &iter) == FALSE)
-		return;
+		return bt_shell_noninteractive_quit(EXIT_FAILURE);
 
 	dbus_message_iter_get_basic(&iter, &address);
-	rl_printf("Controller %s\n", address);
+
+	if (g_dbus_proxy_get_property(proxy, "AddressType", &iter) == TRUE) {
+		const char *type;
+
+		dbus_message_iter_get_basic(&iter, &type);
+
+		bt_shell_printf("Controller %s (%s)\n", address, type);
+	} else {
+		bt_shell_printf("Controller %s\n", address);
+	}
 
 	print_property(proxy, "Name");
 	print_property(proxy, "Alias");
@@ -929,50 +877,51 @@ static void cmd_show(const char *arg)
 	print_uuids(proxy);
 	print_property(proxy, "Modalias");
 	print_property(proxy, "Discovering");
+
+	return bt_shell_noninteractive_quit(EXIT_SUCCESS);
 }
 
-static void cmd_select(const char *arg)
+static void cmd_select(int argc, char *argv[])
 {
 	struct adapter *adapter;
 
-	if (!arg || !strlen(arg)) {
-		rl_printf("Missing controller address argument\n");
-		return;
-	}
-
-	adapter = find_ctrl_by_address(ctrl_list, arg);
+	adapter = find_ctrl_by_address(ctrl_list, argv[1]);
 	if (!adapter) {
-		rl_printf("Controller %s not available\n", arg);
-		return;
+		bt_shell_printf("Controller %s not available\n", argv[1]);
+		return bt_shell_noninteractive_quit(EXIT_FAILURE);
 	}
 
 	if (default_ctrl && default_ctrl->proxy == adapter->proxy)
-		return;
+		return bt_shell_noninteractive_quit(EXIT_SUCCESS);
 
 	default_ctrl = adapter;
 	print_adapter(adapter->proxy, NULL);
+
+	return bt_shell_noninteractive_quit(EXIT_SUCCESS);
 }
 
-static void cmd_devices(const char *arg)
+static void cmd_devices(int argc, char *argv[])
 {
 	GList *ll;
 
 	if (check_default_ctrl() == FALSE)
-		return;
+		return bt_shell_noninteractive_quit(EXIT_SUCCESS);
 
 	for (ll = g_list_first(default_ctrl->devices);
 			ll; ll = g_list_next(ll)) {
 		GDBusProxy *proxy = ll->data;
 		print_device(proxy, NULL);
 	}
+
+	return bt_shell_noninteractive_quit(EXIT_SUCCESS);
 }
 
-static void cmd_paired_devices(const char *arg)
+static void cmd_paired_devices(int argc, char *argv[])
 {
 	GList *ll;
 
 	if (check_default_ctrl() == FALSE)
-		return;
+		return bt_shell_noninteractive_quit(EXIT_SUCCESS);
 
 	for (ll = g_list_first(default_ctrl->devices);
 			ll; ll = g_list_next(ll)) {
@@ -989,31 +938,31 @@ static void cmd_paired_devices(const char *arg)
 
 		print_device(proxy, NULL);
 	}
+
+	return bt_shell_noninteractive_quit(EXIT_SUCCESS);
 }
 
 static void generic_callback(const DBusError *error, void *user_data)
 {
 	char *str = user_data;
 
-	if (dbus_error_is_set(error))
-		rl_printf("Failed to set %s: %s\n", str, error->name);
-	else
-		rl_printf("Changing %s succeeded\n", str);
+	if (dbus_error_is_set(error)) {
+		bt_shell_printf("Failed to set %s: %s\n", str, error->name);
+		return bt_shell_noninteractive_quit(EXIT_FAILURE);
+	} else {
+		bt_shell_printf("Changing %s succeeded\n", str);
+		return bt_shell_noninteractive_quit(EXIT_SUCCESS);
+	}
 }
 
-static void cmd_system_alias(const char *arg)
+static void cmd_system_alias(int argc, char *argv[])
 {
 	char *name;
-
-	if (!arg || !strlen(arg)) {
-		rl_printf("Missing name argument\n");
-		return;
-	}
 
 	if (check_default_ctrl() == FALSE)
 		return;
 
-	name = g_strdup(arg);
+	name = g_strdup(argv[1]);
 
 	if (g_dbus_proxy_set_property_basic(default_ctrl->proxy, "Alias",
 					DBUS_TYPE_STRING, &name,
@@ -1023,7 +972,7 @@ static void cmd_system_alias(const char *arg)
 	g_free(name);
 }
 
-static void cmd_reset_alias(const char *arg)
+static void cmd_reset_alias(int argc, char *argv[])
 {
 	char *name;
 
@@ -1040,12 +989,12 @@ static void cmd_reset_alias(const char *arg)
 	g_free(name);
 }
 
-static void cmd_power(const char *arg)
+static void cmd_power(int argc, char *argv[])
 {
 	dbus_bool_t powered;
 	char *str;
 
-	if (parse_argument(arg, NULL, NULL, &powered, NULL) == FALSE)
+	if (!parse_argument(argc, argv, NULL, NULL, &powered, NULL))
 		return;
 
 	if (check_default_ctrl() == FALSE)
@@ -1061,12 +1010,12 @@ static void cmd_power(const char *arg)
 	g_free(str);
 }
 
-static void cmd_pairable(const char *arg)
+static void cmd_pairable(int argc, char *argv[])
 {
 	dbus_bool_t pairable;
 	char *str;
 
-	if (parse_argument(arg, NULL, NULL, &pairable, NULL) == FALSE)
+	if (!parse_argument(argc, argv, NULL, NULL, &pairable, NULL))
 		return;
 
 	if (check_default_ctrl() == FALSE)
@@ -1080,14 +1029,16 @@ static void cmd_pairable(const char *arg)
 		return;
 
 	g_free(str);
+
+	return bt_shell_noninteractive_quit(EXIT_FAILURE);
 }
 
-static void cmd_discoverable(const char *arg)
+static void cmd_discoverable(int argc, char *argv[])
 {
 	dbus_bool_t discoverable;
 	char *str;
 
-	if (parse_argument(arg, NULL, NULL, &discoverable, NULL) == FALSE)
+	if (!parse_argument(argc, argv, NULL, NULL, &discoverable, NULL))
 		return;
 
 	if (check_default_ctrl() == FALSE)
@@ -1102,16 +1053,18 @@ static void cmd_discoverable(const char *arg)
 		return;
 
 	g_free(str);
+
+	return bt_shell_noninteractive_quit(EXIT_FAILURE);
 }
 
-static void cmd_agent(const char *arg)
+static void cmd_agent(int argc, char *argv[])
 {
 	dbus_bool_t enable;
 	const char *capability;
 
-	if (parse_argument(arg, agent_arguments, "capability",
-					&enable, &capability) == FALSE)
-		return;
+	if (!parse_argument(argc, argv, agent_arguments, "capability",
+						&enable, &capability))
+		return bt_shell_noninteractive_quit(EXIT_FAILURE);
 
 	if (enable == TRUE) {
 		g_free(auto_register_agent);
@@ -1121,7 +1074,7 @@ static void cmd_agent(const char *arg)
 			agent_register(dbus_conn, agent_manager,
 						auto_register_agent);
 		else
-			rl_printf("Agent registration enabled\n");
+			bt_shell_printf("Agent registration enabled\n");
 	} else {
 		g_free(auto_register_agent);
 		auto_register_agent = NULL;
@@ -1129,11 +1082,13 @@ static void cmd_agent(const char *arg)
 		if (agent_manager)
 			agent_unregister(dbus_conn, agent_manager);
 		else
-			rl_printf("Agent registration disabled\n");
+			bt_shell_printf("Agent registration disabled\n");
 	}
+
+	return bt_shell_noninteractive_quit(EXIT_SUCCESS);
 }
 
-static void cmd_default_agent(const char *arg)
+static void cmd_default_agent(int argc, char *argv[])
 {
 	agent_default(dbus_conn, agent_manager);
 }
@@ -1146,136 +1101,30 @@ static void start_discovery_reply(DBusMessage *message, void *user_data)
 	dbus_error_init(&error);
 
 	if (dbus_set_error_from_message(&error, message) == TRUE) {
-		rl_printf("Failed to %s discovery: %s\n",
+		bt_shell_printf("Failed to %s discovery: %s\n",
 				enable == TRUE ? "start" : "stop", error.name);
 		dbus_error_free(&error);
-		return;
+		return bt_shell_noninteractive_quit(EXIT_FAILURE);
 	}
 
-	rl_printf("Discovery %s\n", enable == TRUE ? "started" : "stopped");
-}
-
-static void cmd_scan(const char *arg)
-{
-	dbus_bool_t enable;
-	const char *method;
-
-	if (parse_argument(arg, NULL, NULL, &enable, NULL) == FALSE)
-		return;
-
-	if (check_default_ctrl() == FALSE)
-		return;
-
-	if (enable == TRUE)
-		method = "StartDiscovery";
-	else
-		method = "StopDiscovery";
-
-	if (g_dbus_proxy_method_call(default_ctrl->proxy, method,
-				NULL, start_discovery_reply,
-				GUINT_TO_POINTER(enable), NULL) == FALSE) {
-		rl_printf("Failed to %s discovery\n",
-					enable == TRUE ? "start" : "stop");
-		return;
-	}
-}
-
-static void append_variant(DBusMessageIter *iter, int type, void *val)
-{
-	DBusMessageIter value;
-	char sig[2] = { type, '\0' };
-
-	dbus_message_iter_open_container(iter, DBUS_TYPE_VARIANT, sig, &value);
-
-	dbus_message_iter_append_basic(&value, type, val);
-
-	dbus_message_iter_close_container(iter, &value);
-}
-
-static void append_array_variant(DBusMessageIter *iter, int type, void *val,
-							int n_elements)
-{
-	DBusMessageIter variant, array;
-	char type_sig[2] = { type, '\0' };
-	char array_sig[3] = { DBUS_TYPE_ARRAY, type, '\0' };
-
-	dbus_message_iter_open_container(iter, DBUS_TYPE_VARIANT,
-						array_sig, &variant);
-
-	dbus_message_iter_open_container(&variant, DBUS_TYPE_ARRAY,
-						type_sig, &array);
-
-	if (dbus_type_is_fixed(type) == TRUE) {
-		dbus_message_iter_append_fixed_array(&array, type, val,
-							n_elements);
-	} else if (type == DBUS_TYPE_STRING || type == DBUS_TYPE_OBJECT_PATH) {
-		const char ***str_array = val;
-		int i;
-
-		for (i = 0; i < n_elements; i++)
-			dbus_message_iter_append_basic(&array, type,
-							&((*str_array)[i]));
-	}
-
-	dbus_message_iter_close_container(&variant, &array);
-
-	dbus_message_iter_close_container(iter, &variant);
-}
-
-static void dict_append_entry(DBusMessageIter *dict, const char *key,
-							int type, void *val)
-{
-	DBusMessageIter entry;
-
-	if (type == DBUS_TYPE_STRING) {
-		const char *str = *((const char **) val);
-
-		if (str == NULL)
-			return;
-	}
-
-	dbus_message_iter_open_container(dict, DBUS_TYPE_DICT_ENTRY,
-							NULL, &entry);
-
-	dbus_message_iter_append_basic(&entry, DBUS_TYPE_STRING, &key);
-
-	append_variant(&entry, type, val);
-
-	dbus_message_iter_close_container(dict, &entry);
-}
-
-static void dict_append_basic_array(DBusMessageIter *dict, int key_type,
-					const void *key, int type, void *val,
-					int n_elements)
-{
-	DBusMessageIter entry;
-
-	dbus_message_iter_open_container(dict, DBUS_TYPE_DICT_ENTRY,
-						NULL, &entry);
-
-	dbus_message_iter_append_basic(&entry, key_type, key);
-
-	append_array_variant(&entry, type, val, n_elements);
-
-	dbus_message_iter_close_container(dict, &entry);
-}
-
-static void dict_append_array(DBusMessageIter *dict, const char *key, int type,
-						void *val, int n_elements)
-{
-	dict_append_basic_array(dict, DBUS_TYPE_STRING, &key, type, val,
-								n_elements);
+	bt_shell_printf("Discovery %s\n", enable ? "started" : "stopped");
+	/* Leave the discovery running even on noninteractive mode */
 }
 
 #define	DISTANCE_VAL_INVALID	0x7FFF
 
-struct set_discovery_filter_args {
+static struct set_discovery_filter_args {
 	char *transport;
 	dbus_uint16_t rssi;
 	dbus_int16_t pathloss;
 	char **uuids;
 	size_t uuids_len;
 	dbus_bool_t duplicate;
+	bool set;
+} filter = {
+	.rssi = DISTANCE_VAL_INVALID,
+	.pathloss = DISTANCE_VAL_INVALID,
+	.set = true,
 };
 
 static void set_discovery_filter_setup(DBusMessageIter *iter, void *user_data)
@@ -1289,22 +1138,25 @@ static void set_discovery_filter_setup(DBusMessageIter *iter, void *user_data)
 				DBUS_TYPE_VARIANT_AS_STRING
 				DBUS_DICT_ENTRY_END_CHAR_AS_STRING, &dict);
 
-	dict_append_array(&dict, "UUIDs", DBUS_TYPE_STRING, &args->uuids,
+	g_dbus_dict_append_array(&dict, "UUIDs", DBUS_TYPE_STRING,
+							&args->uuids,
 							args->uuids_len);
 
 	if (args->pathloss != DISTANCE_VAL_INVALID)
-		dict_append_entry(&dict, "Pathloss", DBUS_TYPE_UINT16,
+		g_dbus_dict_append_entry(&dict, "Pathloss", DBUS_TYPE_UINT16,
 						&args->pathloss);
 
 	if (args->rssi != DISTANCE_VAL_INVALID)
-		dict_append_entry(&dict, "RSSI", DBUS_TYPE_INT16, &args->rssi);
+		g_dbus_dict_append_entry(&dict, "RSSI", DBUS_TYPE_INT16,
+						&args->rssi);
 
 	if (args->transport != NULL)
-		dict_append_entry(&dict, "Transport", DBUS_TYPE_STRING,
+		g_dbus_dict_append_entry(&dict, "Transport", DBUS_TYPE_STRING,
 						&args->transport);
 
 	if (args->duplicate)
-		dict_append_entry(&dict, "DuplicateData", DBUS_TYPE_BOOLEAN,
+		g_dbus_dict_append_entry(&dict, "DuplicateData",
+						DBUS_TYPE_BOOLEAN,
 						&args->duplicate);
 
 	dbus_message_iter_close_container(iter, &dict);
@@ -1317,189 +1169,306 @@ static void set_discovery_filter_reply(DBusMessage *message, void *user_data)
 
 	dbus_error_init(&error);
 	if (dbus_set_error_from_message(&error, message) == TRUE) {
-		rl_printf("SetDiscoveryFilter failed: %s\n", error.name);
+		bt_shell_printf("SetDiscoveryFilter failed: %s\n", error.name);
 		dbus_error_free(&error);
-		return;
+		return bt_shell_noninteractive_quit(EXIT_FAILURE);
 	}
 
-	rl_printf("SetDiscoveryFilter success\n");
+	filter.set = true;
+
+	bt_shell_printf("SetDiscoveryFilter success\n");
+
+	return bt_shell_noninteractive_quit(EXIT_SUCCESS);
 }
 
-static gint filtered_scan_rssi = DISTANCE_VAL_INVALID;
-static gint filtered_scan_pathloss = DISTANCE_VAL_INVALID;
-static char **filtered_scan_uuids;
-static size_t filtered_scan_uuids_len;
-static char *filtered_scan_transport;
-static bool filtered_scan_duplicate_data;
-
-static void cmd_set_scan_filter_commit(void)
+static void set_discovery_filter(void)
 {
-	struct set_discovery_filter_args args;
-
-	args.uuids = NULL;
-	args.pathloss = filtered_scan_pathloss;
-	args.rssi = filtered_scan_rssi;
-	args.transport = filtered_scan_transport;
-	args.uuids = filtered_scan_uuids;
-	args.uuids_len = filtered_scan_uuids_len;
-	args.duplicate = filtered_scan_duplicate_data;
-
-	if (check_default_ctrl() == FALSE)
+	if (check_default_ctrl() == FALSE || filter.set)
 		return;
 
 	if (g_dbus_proxy_method_call(default_ctrl->proxy, "SetDiscoveryFilter",
 		set_discovery_filter_setup, set_discovery_filter_reply,
-		&args, NULL) == FALSE) {
-		rl_printf("Failed to set discovery filter\n");
-		return;
-	}
-}
-
-static void cmd_set_scan_filter_uuids(const char *arg)
-{
-	g_strfreev(filtered_scan_uuids);
-	filtered_scan_uuids = NULL;
-	filtered_scan_uuids_len = 0;
-
-	if (!arg || !strlen(arg))
-		goto commit;
-
-	filtered_scan_uuids = g_strsplit(arg, " ", -1);
-	if (!filtered_scan_uuids) {
-		rl_printf("Failed to parse input\n");
-		return;
+		&filter, NULL) == FALSE) {
+		bt_shell_printf("Failed to set discovery filter\n");
+		return bt_shell_noninteractive_quit(EXIT_FAILURE);
 	}
 
-	filtered_scan_uuids_len = g_strv_length(filtered_scan_uuids);
-
-commit:
-	cmd_set_scan_filter_commit();
+	filter.set = true;
 }
 
-static void cmd_set_scan_filter_rssi(const char *arg)
+static void cmd_scan(int argc, char *argv[])
 {
-	filtered_scan_pathloss = DISTANCE_VAL_INVALID;
+	dbus_bool_t enable;
+	const char *method;
 
-	if (!arg || !strlen(arg))
-		filtered_scan_rssi = DISTANCE_VAL_INVALID;
-	else
-		filtered_scan_rssi = atoi(arg);
-
-	cmd_set_scan_filter_commit();
-}
-
-static void cmd_set_scan_filter_pathloss(const char *arg)
-{
-	filtered_scan_rssi = DISTANCE_VAL_INVALID;
-
-	if (!arg || !strlen(arg))
-		filtered_scan_pathloss = DISTANCE_VAL_INVALID;
-	else
-		filtered_scan_pathloss = atoi(arg);
-
-	cmd_set_scan_filter_commit();
-}
-
-static void cmd_set_scan_filter_transport(const char *arg)
-{
-	g_free(filtered_scan_transport);
-
-	if (!arg || !strlen(arg))
-		filtered_scan_transport = NULL;
-	else
-		filtered_scan_transport = g_strdup(arg);
-
-	cmd_set_scan_filter_commit();
-}
-
-static void cmd_set_scan_filter_duplicate_data(const char *arg)
-{
-	if (!arg || !strlen(arg))
-		filtered_scan_duplicate_data = false;
-	else if (!strcmp(arg, "on"))
-		filtered_scan_duplicate_data = true;
-	else if (!strcmp(arg, "off"))
-		filtered_scan_duplicate_data = false;
-	else {
-		rl_printf("Invalid option: %s\n", arg);
+	if (!parse_argument(argc, argv, NULL, NULL, &enable, NULL))
 		return;
-	}
-
-	cmd_set_scan_filter_commit();
-}
-
-static void clear_discovery_filter_setup(DBusMessageIter *iter, void *user_data)
-{
-	DBusMessageIter dict;
-
-	dbus_message_iter_open_container(iter, DBUS_TYPE_ARRAY,
-				DBUS_DICT_ENTRY_BEGIN_CHAR_AS_STRING
-				DBUS_TYPE_STRING_AS_STRING
-				DBUS_TYPE_VARIANT_AS_STRING
-				DBUS_DICT_ENTRY_END_CHAR_AS_STRING, &dict);
-
-	dbus_message_iter_close_container(iter, &dict);
-}
-
-static void cmd_set_scan_filter_clear(const char *arg)
-{
-	/* set default values for all options */
-	filtered_scan_rssi = DISTANCE_VAL_INVALID;
-	filtered_scan_pathloss = DISTANCE_VAL_INVALID;
-	g_strfreev(filtered_scan_uuids);
-	filtered_scan_uuids = NULL;
-	filtered_scan_uuids_len = 0;
-	g_free(filtered_scan_transport);
-	filtered_scan_transport = NULL;
 
 	if (check_default_ctrl() == FALSE)
 		return;
 
-	if (g_dbus_proxy_method_call(default_ctrl->proxy, "SetDiscoveryFilter",
-		clear_discovery_filter_setup, set_discovery_filter_reply,
-		NULL, NULL) == FALSE) {
-		rl_printf("Failed to clear discovery filter\n");
+	if (enable == TRUE) {
+		set_discovery_filter();
+		method = "StartDiscovery";
+	} else
+		method = "StopDiscovery";
+
+	if (g_dbus_proxy_method_call(default_ctrl->proxy, method,
+				NULL, start_discovery_reply,
+				GUINT_TO_POINTER(enable), NULL) == FALSE) {
+		bt_shell_printf("Failed to %s discovery\n",
+					enable == TRUE ? "start" : "stop");
+		return bt_shell_noninteractive_quit(EXIT_FAILURE);
 	}
 }
 
-static struct GDBusProxy *find_device(const char *arg)
+static void cmd_scan_filter_uuids(int argc, char *argv[])
+{
+	if (argc < 2 || !strlen(argv[1])) {
+		char **uuid;
+
+		for (uuid = filter.uuids; uuid && *uuid; uuid++)
+			print_uuid(*uuid);
+
+		return;
+	}
+
+	g_strfreev(filter.uuids);
+	filter.uuids = NULL;
+	filter.uuids_len = 0;
+
+	if (!strcmp(argv[1], "all"))
+		goto commit;
+
+	filter.uuids = g_strdupv(&argv[1]);
+	if (!filter.uuids) {
+		bt_shell_printf("Failed to parse input\n");
+		return bt_shell_noninteractive_quit(EXIT_FAILURE);
+	}
+
+	filter.uuids_len = g_strv_length(filter.uuids);
+
+commit:
+	filter.set = false;
+}
+
+static void cmd_scan_filter_rssi(int argc, char *argv[])
+{
+	if (argc < 2 || !strlen(argv[1])) {
+		if (filter.rssi != DISTANCE_VAL_INVALID)
+			bt_shell_printf("RSSI: %d\n", filter.rssi);
+		return;
+	}
+
+	filter.pathloss = DISTANCE_VAL_INVALID;
+	filter.rssi = atoi(argv[1]);
+
+	filter.set = false;
+}
+
+static void cmd_scan_filter_pathloss(int argc, char *argv[])
+{
+	if (argc < 2 || !strlen(argv[1])) {
+		if (filter.pathloss != DISTANCE_VAL_INVALID)
+			bt_shell_printf("Pathloss: %d\n",
+						filter.pathloss);
+		return;
+	}
+
+	filter.rssi = DISTANCE_VAL_INVALID;
+	filter.pathloss = atoi(argv[1]);
+
+	filter.set = false;
+}
+
+static void cmd_scan_filter_transport(int argc, char *argv[])
+{
+	if (argc < 2 || !strlen(argv[1])) {
+		if (filter.transport)
+			bt_shell_printf("Transport: %s\n",
+					filter.transport);
+		return;
+	}
+
+	g_free(filter.transport);
+	filter.transport = g_strdup(argv[1]);
+
+	filter.set = false;
+}
+
+static void cmd_scan_filter_duplicate_data(int argc, char *argv[])
+{
+	if (argc < 2 || !strlen(argv[1])) {
+		bt_shell_printf("DuplicateData: %s\n",
+				filter.duplicate ? "on" : "off");
+		return;
+	}
+
+	if (!strcmp(argv[1], "on"))
+		filter.duplicate = true;
+	else if (!strcmp(argv[1], "off"))
+		filter.duplicate = false;
+	else {
+		bt_shell_printf("Invalid option: %s\n", argv[1]);
+		return;
+	}
+
+	filter.set = false;
+}
+
+static void filter_clear_uuids(void)
+{
+	g_strfreev(filter.uuids);
+	filter.uuids = NULL;
+	filter.uuids_len = 0;
+}
+
+static void filter_clear_rssi(void)
+{
+	filter.rssi = DISTANCE_VAL_INVALID;
+}
+
+static void filter_clear_pathloss(void)
+{
+	filter.pathloss = DISTANCE_VAL_INVALID;
+}
+
+static void filter_clear_transport(void)
+{
+	g_free(filter.transport);
+	filter.transport = NULL;
+}
+
+static void filter_clear_duplicate(void)
+{
+	filter.duplicate = false;
+}
+
+struct clear_entry {
+	const char *name;
+	void (*clear) (void);
+};
+
+static const struct clear_entry filter_clear[] = {
+	{ "uuids", filter_clear_uuids },
+	{ "rssi", filter_clear_rssi },
+	{ "pathloss", filter_clear_pathloss },
+	{ "transport", filter_clear_transport },
+	{ "duplicate-data", filter_clear_duplicate },
+	{}
+};
+
+static char *filter_clear_generator(const char *text, int state)
+{
+	static int index, len;
+	const char *arg;
+
+	if (!state) {
+		index = 0;
+		len = strlen(text);
+	}
+
+	while ((arg = filter_clear[index].name)) {
+		index++;
+
+		if (!strncmp(arg, text, len))
+			return strdup(arg);
+	}
+
+	return NULL;
+}
+
+static gboolean data_clear(const struct clear_entry *entry_table,
+							const char *name)
+{
+	const struct clear_entry *entry;
+	bool all = false;
+
+	if (!name || !strlen(name) || !strcmp("all", name))
+		all = true;
+
+	for (entry = entry_table; entry && entry->name; entry++) {
+		if (all || !strcmp(entry->name, name)) {
+			entry->clear();
+			if (!all)
+				goto done;
+		}
+	}
+
+	if (!all) {
+		bt_shell_printf("Invalid argument %s\n", name);
+		return FALSE;
+	}
+
+done:
+	return TRUE;
+}
+
+static void cmd_scan_filter_clear(int argc, char *argv[])
+{
+	bool all = false;
+
+	if (argc < 2 || !strlen(argv[1]))
+		all = true;
+
+	if (!data_clear(filter_clear, all ? "all" : argv[1]))
+		return;
+
+	filter.set = false;
+
+	if (check_default_ctrl() == FALSE)
+		return;
+
+	set_discovery_filter();
+}
+
+static struct GDBusProxy *find_device(int argc, char *argv[])
 {
 	GDBusProxy *proxy;
 
-	if (!arg || !strlen(arg)) {
+	if (argc < 2 || !strlen(argv[1])) {
 		if (default_dev)
 			return default_dev;
-		rl_printf("Missing device address argument\n");
+		bt_shell_printf("Missing device address argument\n");
 		return NULL;
 	}
 
 	if (check_default_ctrl() == FALSE)
 		return NULL;
 
-	proxy = find_proxy_by_address(default_ctrl->devices, arg);
+	proxy = find_proxy_by_address(default_ctrl->devices, argv[1]);
 	if (!proxy) {
-		rl_printf("Device %s not available\n", arg);
+		bt_shell_printf("Device %s not available\n", argv[1]);
 		return NULL;
 	}
 
 	return proxy;
 }
 
-static void cmd_info(const char *arg)
+static void cmd_info(int argc, char *argv[])
 {
 	GDBusProxy *proxy;
 	DBusMessageIter iter;
 	const char *address;
 
-	proxy = find_device(arg);
+	proxy = find_device(argc, argv);
 	if (!proxy)
-		return;
+		return bt_shell_noninteractive_quit(EXIT_FAILURE);
 
 	if (g_dbus_proxy_get_property(proxy, "Address", &iter) == FALSE)
-		return;
+		return bt_shell_noninteractive_quit(EXIT_FAILURE);
 
 	dbus_message_iter_get_basic(&iter, &address);
-	rl_printf("Device %s\n", address);
+
+	if (g_dbus_proxy_get_property(proxy, "AddressType", &iter) == TRUE) {
+		const char *type;
+
+		dbus_message_iter_get_basic(&iter, &type);
+
+		bt_shell_printf("Device %s (%s)\n", address, type);
+	} else {
+		bt_shell_printf("Device %s\n", address);
+	}
 
 	print_property(proxy, "Name");
 	print_property(proxy, "Alias");
@@ -1517,6 +1486,8 @@ static void cmd_info(const char *arg)
 	print_property(proxy, "ServiceData");
 	print_property(proxy, "RSSI");
 	print_property(proxy, "TxPower");
+
+	return bt_shell_noninteractive_quit(EXIT_SUCCESS);
 }
 
 static void pair_reply(DBusMessage *message, void *user_data)
@@ -1526,44 +1497,46 @@ static void pair_reply(DBusMessage *message, void *user_data)
 	dbus_error_init(&error);
 
 	if (dbus_set_error_from_message(&error, message) == TRUE) {
-		rl_printf("Failed to pair: %s\n", error.name);
+		bt_shell_printf("Failed to pair: %s\n", error.name);
 		dbus_error_free(&error);
-		return;
+		return bt_shell_noninteractive_quit(EXIT_FAILURE);
 	}
 
-	rl_printf("Pairing successful\n");
+	bt_shell_printf("Pairing successful\n");
+
+	return bt_shell_noninteractive_quit(EXIT_SUCCESS);
 }
 
-static void cmd_pair(const char *arg)
+static void cmd_pair(int argc, char *argv[])
 {
 	GDBusProxy *proxy;
 
-	proxy = find_device(arg);
+	proxy = find_device(argc, argv);
 	if (!proxy)
-		return;
+		return bt_shell_noninteractive_quit(EXIT_FAILURE);
 
 	if (g_dbus_proxy_method_call(proxy, "Pair", NULL, pair_reply,
 							NULL, NULL) == FALSE) {
-		rl_printf("Failed to pair\n");
-		return;
+		bt_shell_printf("Failed to pair\n");
+		return bt_shell_noninteractive_quit(EXIT_FAILURE);
 	}
 
-	rl_printf("Attempting to pair with %s\n", arg);
+	bt_shell_printf("Attempting to pair with %s\n", argv[1]);
 }
 
-static void cmd_trust(const char *arg)
+static void cmd_trust(int argc, char *argv[])
 {
 	GDBusProxy *proxy;
 	dbus_bool_t trusted;
 	char *str;
 
-	proxy = find_device(arg);
+	proxy = find_device(argc, argv);
 	if (!proxy)
-		return;
+		return bt_shell_noninteractive_quit(EXIT_FAILURE);
 
 	trusted = TRUE;
 
-	str = g_strdup_printf("%s trust", arg);
+	str = g_strdup_printf("%s trust", argv[1]);
 
 	if (g_dbus_proxy_set_property_basic(proxy, "Trusted",
 					DBUS_TYPE_BOOLEAN, &trusted,
@@ -1571,21 +1544,23 @@ static void cmd_trust(const char *arg)
 		return;
 
 	g_free(str);
+
+	return bt_shell_noninteractive_quit(EXIT_FAILURE);
 }
 
-static void cmd_untrust(const char *arg)
+static void cmd_untrust(int argc, char *argv[])
 {
 	GDBusProxy *proxy;
 	dbus_bool_t trusted;
 	char *str;
 
-	proxy = find_device(arg);
+	proxy = find_device(argc, argv);
 	if (!proxy)
-		return;
+		return bt_shell_noninteractive_quit(EXIT_FAILURE);
 
 	trusted = FALSE;
 
-	str = g_strdup_printf("%s untrust", arg);
+	str = g_strdup_printf("%s untrust", argv[1]);
 
 	if (g_dbus_proxy_set_property_basic(proxy, "Trusted",
 					DBUS_TYPE_BOOLEAN, &trusted,
@@ -1593,21 +1568,23 @@ static void cmd_untrust(const char *arg)
 		return;
 
 	g_free(str);
+
+	return bt_shell_noninteractive_quit(EXIT_FAILURE);
 }
 
-static void cmd_block(const char *arg)
+static void cmd_block(int argc, char *argv[])
 {
 	GDBusProxy *proxy;
 	dbus_bool_t blocked;
 	char *str;
 
-	proxy = find_device(arg);
+	proxy = find_device(argc, argv);
 	if (!proxy)
-		return;
+		return bt_shell_noninteractive_quit(EXIT_FAILURE);
 
 	blocked = TRUE;
 
-	str = g_strdup_printf("%s block", arg);
+	str = g_strdup_printf("%s block", argv[1]);
 
 	if (g_dbus_proxy_set_property_basic(proxy, "Blocked",
 					DBUS_TYPE_BOOLEAN, &blocked,
@@ -1615,21 +1592,23 @@ static void cmd_block(const char *arg)
 		return;
 
 	g_free(str);
+
+	return bt_shell_noninteractive_quit(EXIT_FAILURE);
 }
 
-static void cmd_unblock(const char *arg)
+static void cmd_unblock(int argc, char *argv[])
 {
 	GDBusProxy *proxy;
 	dbus_bool_t blocked;
 	char *str;
 
-	proxy = find_device(arg);
+	proxy = find_device(argc, argv);
 	if (!proxy)
-		return;
+		return bt_shell_noninteractive_quit(EXIT_FAILURE);
 
 	blocked = FALSE;
 
-	str = g_strdup_printf("%s unblock", arg);
+	str = g_strdup_printf("%s unblock", argv[1]);
 
 	if (g_dbus_proxy_set_property_basic(proxy, "Blocked",
 					DBUS_TYPE_BOOLEAN, &blocked,
@@ -1637,6 +1616,8 @@ static void cmd_unblock(const char *arg)
 		return;
 
 	g_free(str);
+
+	return bt_shell_noninteractive_quit(EXIT_FAILURE);
 }
 
 static void remove_device_reply(DBusMessage *message, void *user_data)
@@ -1646,12 +1627,13 @@ static void remove_device_reply(DBusMessage *message, void *user_data)
 	dbus_error_init(&error);
 
 	if (dbus_set_error_from_message(&error, message) == TRUE) {
-		rl_printf("Failed to remove device: %s\n", error.name);
+		bt_shell_printf("Failed to remove device: %s\n", error.name);
 		dbus_error_free(&error);
-		return;
+		return bt_shell_noninteractive_quit(EXIT_FAILURE);
 	}
 
-	rl_printf("Device has been removed\n");
+	bt_shell_printf("Device has been removed\n");
+	return bt_shell_noninteractive_quit(EXIT_SUCCESS);
 }
 
 static void remove_device_setup(DBusMessageIter *iter, void *user_data)
@@ -1674,24 +1656,20 @@ static void remove_device(GDBusProxy *proxy)
 						remove_device_setup,
 						remove_device_reply,
 						path, g_free) == FALSE) {
-		rl_printf("Failed to remove device\n");
+		bt_shell_printf("Failed to remove device\n");
 		g_free(path);
+		return bt_shell_noninteractive_quit(EXIT_FAILURE);
 	}
 }
 
-static void cmd_remove(const char *arg)
+static void cmd_remove(int argc, char *argv[])
 {
 	GDBusProxy *proxy;
-
-	if (!arg || !strlen(arg)) {
-		rl_printf("Missing device address argument\n");
-		return;
-	}
 
 	if (check_default_ctrl() == FALSE)
 		return;
 
-	if (strcmp(arg, "*") == 0) {
+	if (strcmp(argv[1], "*") == 0) {
 		GList *list;
 
 		for (list = default_ctrl->devices; list;
@@ -1703,9 +1681,9 @@ static void cmd_remove(const char *arg)
 		return;
 	}
 
-	proxy = find_proxy_by_address(default_ctrl->devices, arg);
+	proxy = find_proxy_by_address(default_ctrl->devices, argv[1]);
 	if (!proxy) {
-		rl_printf("Device %s not available\n", arg);
+		bt_shell_printf("Device %s not available\n", argv[1]);
 		return;
 	}
 
@@ -1720,41 +1698,37 @@ static void connect_reply(DBusMessage *message, void *user_data)
 	dbus_error_init(&error);
 
 	if (dbus_set_error_from_message(&error, message) == TRUE) {
-		rl_printf("Failed to connect: %s\n", error.name);
+		bt_shell_printf("Failed to connect: %s\n", error.name);
 		dbus_error_free(&error);
-		return;
+		return bt_shell_noninteractive_quit(EXIT_FAILURE);
 	}
 
-	rl_printf("Connection successful\n");
+	bt_shell_printf("Connection successful\n");
 
 	set_default_device(proxy, NULL);
+	return bt_shell_noninteractive_quit(EXIT_SUCCESS);
 }
 
-static void cmd_connect(const char *arg)
+static void cmd_connect(int argc, char *argv[])
 {
 	GDBusProxy *proxy;
 
-	if (!arg || !strlen(arg)) {
-		rl_printf("Missing device address argument\n");
-		return;
-	}
-
 	if (check_default_ctrl() == FALSE)
-		return;
+		return bt_shell_noninteractive_quit(EXIT_FAILURE);
 
-	proxy = find_proxy_by_address(default_ctrl->devices, arg);
+	proxy = find_proxy_by_address(default_ctrl->devices, argv[1]);
 	if (!proxy) {
-		rl_printf("Device %s not available\n", arg);
-		return;
+		bt_shell_printf("Device %s not available\n", argv[1]);
+		return bt_shell_noninteractive_quit(EXIT_FAILURE);
 	}
 
 	if (g_dbus_proxy_method_call(proxy, "Connect", NULL, connect_reply,
 							proxy, NULL) == FALSE) {
-		rl_printf("Failed to connect\n");
-		return;
+		bt_shell_printf("Failed to connect\n");
+		return bt_shell_noninteractive_quit(EXIT_FAILURE);
 	}
 
-	rl_printf("Attempting to connect to %s\n", arg);
+	bt_shell_printf("Attempting to connect to %s\n", argv[1]);
 }
 
 static void disconn_reply(DBusMessage *message, void *user_data)
@@ -1765,67 +1739,70 @@ static void disconn_reply(DBusMessage *message, void *user_data)
 	dbus_error_init(&error);
 
 	if (dbus_set_error_from_message(&error, message) == TRUE) {
-		rl_printf("Failed to disconnect: %s\n", error.name);
+		bt_shell_printf("Failed to disconnect: %s\n", error.name);
 		dbus_error_free(&error);
-		return;
+		return bt_shell_noninteractive_quit(EXIT_FAILURE);
 	}
 
-	rl_printf("Successful disconnected\n");
+	bt_shell_printf("Successful disconnected\n");
 
 	if (proxy != default_dev)
 		return;
 
 	set_default_device(NULL, NULL);
+
+	return bt_shell_noninteractive_quit(EXIT_SUCCESS);
 }
 
-static void cmd_disconn(const char *arg)
+static void cmd_disconn(int argc, char *argv[])
 {
 	GDBusProxy *proxy;
 
-	proxy = find_device(arg);
+	proxy = find_device(argc, argv);
 	if (!proxy)
-		return;
+		return bt_shell_noninteractive_quit(EXIT_FAILURE);
 
 	if (g_dbus_proxy_method_call(proxy, "Disconnect", NULL, disconn_reply,
 							proxy, NULL) == FALSE) {
-		rl_printf("Failed to disconnect\n");
-		return;
+		bt_shell_printf("Failed to disconnect\n");
+		return bt_shell_noninteractive_quit(EXIT_FAILURE);
 	}
-	if (strlen(arg) == 0) {
+
+	if (argc < 2 || strlen(argv[1]) == 0) {
 		DBusMessageIter iter;
+		const char *addr;
 
 		if (g_dbus_proxy_get_property(proxy, "Address", &iter) == TRUE)
-			dbus_message_iter_get_basic(&iter, &arg);
-	}
-	rl_printf("Attempting to disconnect from %s\n", arg);
+			dbus_message_iter_get_basic(&iter, &addr);
+
+		bt_shell_printf("Attempting to disconnect from %s\n", addr);
+	} else
+		bt_shell_printf("Attempting to disconnect from %s\n", argv[1]);
 }
 
-static void cmd_list_attributes(const char *arg)
+static void cmd_list_attributes(int argc, char *argv[])
 {
 	GDBusProxy *proxy;
 
-	proxy = find_device(arg);
+	proxy = find_device(argc, argv);
 	if (!proxy)
-		return;
+		return bt_shell_noninteractive_quit(EXIT_FAILURE);
 
 	gatt_list_attributes(g_dbus_proxy_get_path(proxy));
+
+	return bt_shell_noninteractive_quit(EXIT_SUCCESS);
 }
 
-static void cmd_set_alias(const char *arg)
+static void cmd_set_alias(int argc, char *argv[])
 {
 	char *name;
 
-	if (!arg || !strlen(arg)) {
-		rl_printf("Missing name argument\n");
-		return;
-	}
-
 	if (!default_dev) {
-		rl_printf("No device connected\n");
+		bt_shell_printf("No device connected\n");
 		return;
 	}
 
-	name = g_strdup(arg);
+	name = g_strdup(argv[1]);
 
 	if (g_dbus_proxy_set_property_basic(default_dev, "Alias",
 					DBUS_TYPE_STRING, &name,
@@ -1833,76 +1810,77 @@ static void cmd_set_alias(const char *arg)
 		return;
 
 	g_free(name);
+
+	return bt_shell_noninteractive_quit(EXIT_FAILURE);
 }
 
-static void cmd_select_attribute(const char *arg)
+static void cmd_select_attribute(int argc, char *argv[])
 {
 	GDBusProxy *proxy;
-
-	if (!arg || !strlen(arg)) {
-		rl_printf("Missing attribute argument\n");
-		return;
-	}
 
 	if (!default_dev) {
-		rl_printf("No device connected\n");
+		bt_shell_printf("No device connected\n");
 		return;
 	}
 
-	proxy = gatt_select_attribute(default_attr, arg);
-	if (proxy)
+	proxy = gatt_select_attribute(default_attr, argv[1]);
+	if (proxy) {
 		set_default_attribute(proxy);
+		return bt_shell_noninteractive_quit(EXIT_SUCCESS);
+	}
+
+	return bt_shell_noninteractive_quit(EXIT_FAILURE);
 }
 
-static struct GDBusProxy *find_attribute(const char *arg)
+static struct GDBusProxy *find_attribute(int argc, char *argv[])
 {
 	GDBusProxy *proxy;
 
-	if (!arg || !strlen(arg)) {
+	if (argc < 2 || !strlen(argv[1])) {
 		if (default_attr)
 			return default_attr;
-		rl_printf("Missing attribute argument\n");
+		bt_shell_printf("Missing attribute argument\n");
 		return NULL;
 	}
 
-	proxy = gatt_select_attribute(default_attr, arg);
+	proxy = gatt_select_attribute(default_attr, argv[1]);
 	if (!proxy) {
-		rl_printf("Attribute %s not available\n", arg);
+		bt_shell_printf("Attribute %s not available\n", argv[1]);
 		return NULL;
 	}
 
 	return proxy;
 }
 
-static void cmd_attribute_info(const char *arg)
+static void cmd_attribute_info(int argc, char *argv[])
 {
 	GDBusProxy *proxy;
 	DBusMessageIter iter;
 	const char *iface, *uuid, *text;
 
-	proxy = find_attribute(arg);
+	proxy = find_attribute(argc, argv);
 	if (!proxy)
-		return;
+		return bt_shell_noninteractive_quit(EXIT_FAILURE);
 
 	if (g_dbus_proxy_get_property(proxy, "UUID", &iter) == FALSE)
-		return;
+		return bt_shell_noninteractive_quit(EXIT_FAILURE);
 
 	dbus_message_iter_get_basic(&iter, &uuid);
 
-	text = uuidstr_to_str(uuid);
+	text = bt_uuidstr_to_str(uuid);
 	if (!text)
 		text = g_dbus_proxy_get_path(proxy);
 
 	iface = g_dbus_proxy_get_interface(proxy);
 	if (!strcmp(iface, "org.bluez.GattService1")) {
-		rl_printf("Service - %s\n", text);
+		bt_shell_printf("Service - %s\n", text);
 
 		print_property(proxy, "UUID");
 		print_property(proxy, "Primary");
 		print_property(proxy, "Characteristics");
 		print_property(proxy, "Includes");
 	} else if (!strcmp(iface, "org.bluez.GattCharacteristic1")) {
-		rl_printf("Characteristic - %s\n", text);
+		bt_shell_printf("Characteristic - %s\n", text);
 
 		print_property(proxy, "UUID");
 		print_property(proxy, "Service");
@@ -1911,268 +1889,154 @@ static void cmd_attribute_info(const char *arg)
 		print_property(proxy, "Flags");
 		print_property(proxy, "Descriptors");
 	} else if (!strcmp(iface, "org.bluez.GattDescriptor1")) {
-		rl_printf("Descriptor - %s\n", text);
+		bt_shell_printf("Descriptor - %s\n", text);
 
 		print_property(proxy, "UUID");
 		print_property(proxy, "Characteristic");
 		print_property(proxy, "Value");
 	}
+
+	return bt_shell_noninteractive_quit(EXIT_SUCCESS);
 }
 
-static void cmd_read(const char *arg)
+static void cmd_read(int argc, char *argv[])
 {
 	if (!default_attr) {
-		rl_printf("No attribute selected\n");
-		return;
+		bt_shell_printf("No attribute selected\n");
+		return bt_shell_noninteractive_quit(EXIT_FAILURE);
 	}
 
 	gatt_read_attribute(default_attr);
 }
 
-static void cmd_write(const char *arg)
-{
-	if (!arg || !strlen(arg)) {
-		rl_printf("Missing data argument\n");
-		return;
-	}
-
-	if (!default_attr) {
-		rl_printf("No attribute selected\n");
-		return;
-	}
-
-	gatt_write_attribute(default_attr, arg);
-}
-
-static void cmd_acquire_write(const char *arg)
+static void cmd_write(int argc, char *argv[])
 {
 	if (!default_attr) {
-		rl_printf("No attribute selected\n");
-		return;
+		bt_shell_printf("No attribute selected\n");
+		return bt_shell_noninteractive_quit(EXIT_FAILURE);
 	}
 
-	gatt_acquire_write(default_attr, arg);
+	gatt_write_attribute(default_attr, argv[1]);
 }
 
-static void cmd_release_write(const char *arg)
+static void cmd_acquire_write(int argc, char *argv[])
 {
 	if (!default_attr) {
-		rl_printf("No attribute selected\n");
-		return;
+		bt_shell_printf("No attribute selected\n");
+		return bt_shell_noninteractive_quit(EXIT_FAILURE);
 	}
 
-	gatt_release_write(default_attr, arg);
+	gatt_acquire_write(default_attr, argv[1]);
 }
 
-static void cmd_acquire_notify(const char *arg)
+static void cmd_release_write(int argc, char *argv[])
 {
 	if (!default_attr) {
-		rl_printf("No attribute selected\n");
-		return;
+		bt_shell_printf("No attribute selected\n");
+		return bt_shell_noninteractive_quit(EXIT_FAILURE);
 	}
 
-	gatt_acquire_notify(default_attr, arg);
+	gatt_release_write(default_attr, argv[1]);
 }
 
-static void cmd_release_notify(const char *arg)
+static void cmd_acquire_notify(int argc, char *argv[])
 {
 	if (!default_attr) {
-		rl_printf("No attribute selected\n");
-		return;
+		bt_shell_printf("No attribute selected\n");
+		return bt_shell_noninteractive_quit(EXIT_FAILURE);
 	}
 
-	gatt_release_notify(default_attr, arg);
+	gatt_acquire_notify(default_attr, argv[1]);
 }
 
-static void cmd_notify(const char *arg)
+static void cmd_release_notify(int argc, char *argv[])
+{
+	if (!default_attr) {
+		bt_shell_printf("No attribute selected\n");
+		return bt_shell_noninteractive_quit(EXIT_FAILURE);
+	}
+
+	gatt_release_notify(default_attr, argv[1]);
+}
+
+static void cmd_notify(int argc, char *argv[])
 {
 	dbus_bool_t enable;
 
-	if (parse_argument(arg, NULL, NULL, &enable, NULL) == FALSE)
+	if (!parse_argument(argc, argv, NULL, NULL, &enable, NULL))
 		return;
 
 	if (!default_attr) {
-		rl_printf("No attribute selected\n");
-		return;
+		bt_shell_printf("No attribute selected\n");
+		return bt_shell_noninteractive_quit(EXIT_FAILURE);
 	}
 
 	gatt_notify_attribute(default_attr, enable ? true : false);
 }
 
-static void cmd_register_app(const char *arg)
+static void cmd_register_app(int argc, char *argv[])
 {
-	wordexp_t w;
-
 	if (check_default_ctrl() == FALSE)
-		return;
+		return bt_shell_noninteractive_quit(EXIT_FAILURE);
 
-	if (wordexp(arg, &w, WRDE_NOCMD)) {
-		rl_printf("Invalid argument\n");
-		return;
-	}
-
-	gatt_register_app(dbus_conn, default_ctrl->proxy, &w);
-
-	wordfree(&w);
+	gatt_register_app(dbus_conn, default_ctrl->proxy, argc, argv);
 }
 
-static void cmd_unregister_app(const char *arg)
+static void cmd_unregister_app(int argc, char *argv[])
 {
 	if (check_default_ctrl() == FALSE)
-		return;
+		return bt_shell_noninteractive_quit(EXIT_FAILURE);
 
 	gatt_unregister_app(dbus_conn, default_ctrl->proxy);
 }
 
-static void cmd_register_service(const char *arg)
+static void cmd_register_service(int argc, char *argv[])
 {
-	wordexp_t w;
-
 	if (check_default_ctrl() == FALSE)
-		return;
+		return bt_shell_noninteractive_quit(EXIT_FAILURE);
 
-	if (wordexp(arg, &w, WRDE_NOCMD)) {
-		rl_printf("Invalid argument\n");
-		return;
-	}
-
-	if (w.we_wordc == 0) {
-		rl_printf("Missing argument\n");
-		goto done;
-	}
-
-	gatt_register_service(dbus_conn, default_ctrl->proxy, &w);
-
-done:
-	wordfree(&w);
+	gatt_register_service(dbus_conn, default_ctrl->proxy, argc, argv);
 }
 
-static void cmd_unregister_service(const char *arg)
+static void cmd_unregister_service(int argc, char *argv[])
 {
-	wordexp_t w;
-
 	if (check_default_ctrl() == FALSE)
-		return;
+		return bt_shell_noninteractive_quit(EXIT_FAILURE);
 
-	if (wordexp(arg, &w, WRDE_NOCMD)) {
-		rl_printf("Invalid argument\n");
-		return;
-	}
-
-	if (w.we_wordc == 0) {
-		rl_printf("Missing argument\n");
-		goto done;
-	}
-
-	gatt_unregister_service(dbus_conn, default_ctrl->proxy, &w);
-
-done:
-	wordfree(&w);
+	gatt_unregister_service(dbus_conn, default_ctrl->proxy, argc, argv);
 }
 
-static void cmd_register_characteristic(const char *arg)
+static void cmd_register_characteristic(int argc, char *argv[])
 {
-	wordexp_t w;
-
 	if (check_default_ctrl() == FALSE)
-		return;
+		return bt_shell_noninteractive_quit(EXIT_FAILURE);
 
-	if (wordexp(arg, &w, WRDE_NOCMD)) {
-		rl_printf("Invalid argument\n");
-		return;
-	}
-
-	if (w.we_wordc < 2) {
-		rl_printf("Missing arguments\n");
-		goto done;
-	}
-
-	gatt_register_chrc(dbus_conn, default_ctrl->proxy, &w);
-
-done:
-	wordfree(&w);
+	gatt_register_chrc(dbus_conn, default_ctrl->proxy, argc, argv);
 }
 
-static void cmd_unregister_characteristic(const char *arg)
+static void cmd_unregister_characteristic(int argc, char *argv[])
 {
-	wordexp_t w;
-
 	if (check_default_ctrl() == FALSE)
-		return;
+		return bt_shell_noninteractive_quit(EXIT_FAILURE);
 
-	if (wordexp(arg, &w, WRDE_NOCMD)) {
-		rl_printf("Invalid argument\n");
-		return;
-	}
-
-	if (w.we_wordc < 1) {
-		rl_printf("Missing arguments\n");
-		goto done;
-	}
-
-	gatt_unregister_chrc(dbus_conn, default_ctrl->proxy, &w);
-
-done:
-	wordfree(&w);
+	gatt_unregister_chrc(dbus_conn, default_ctrl->proxy, argc, argv);
 }
 
-static void cmd_register_descriptor(const char *arg)
+static void cmd_register_descriptor(int argc, char *argv[])
 {
-	wordexp_t w;
-
 	if (check_default_ctrl() == FALSE)
-		return;
+		return bt_shell_noninteractive_quit(EXIT_FAILURE);
 
-	if (wordexp(arg, &w, WRDE_NOCMD)) {
-		rl_printf("Invalid argument\n");
-		return;
-	}
-
-	if (w.we_wordc < 2) {
-		rl_printf("Missing arguments\n");
-		goto done;
-	}
-
-	gatt_register_desc(dbus_conn, default_ctrl->proxy, &w);
-
-done:
-	wordfree(&w);
+	gatt_register_desc(dbus_conn, default_ctrl->proxy, argc, argv);
 }
 
-static void cmd_unregister_descriptor(const char *arg)
+static void cmd_unregister_descriptor(int argc, char *argv[])
 {
-	wordexp_t w;
-
 	if (check_default_ctrl() == FALSE)
-		return;
+		return bt_shell_noninteractive_quit(EXIT_FAILURE);
 
-	if (wordexp(arg, &w, WRDE_NOCMD)) {
-		rl_printf("Invalid argument\n");
-		return;
-	}
-
-	if (w.we_wordc < 1) {
-		rl_printf("Missing arguments\n");
-		goto done;
-	}
-
-	gatt_unregister_desc(dbus_conn, default_ctrl->proxy, &w);
-
-done:
-	wordfree(&w);
+	gatt_unregister_desc(dbus_conn, default_ctrl->proxy, argc, argv);
 }
-
-static void cmd_version(const char *arg)
-{
-	rl_printf("Version %s\n", VERSION);
-}
-
-static void cmd_quit(const char *arg)
-{
-	g_main_loop_quit(main_loop);
-}
-
-static void cmd_help(const char *arg);
 
 static char *generic_generator(const char *text, int state,
 					GList *source, const char *property)
@@ -2249,7 +2113,7 @@ static char *attribute_generator(const char *text, int state)
 }
 
 static char *argument_generator(const char *text, int state,
-					const char * const *args_list)
+					const char *args_list[])
 {
 	static int index, len;
 	const char *arg;
@@ -2269,28 +2133,23 @@ static char *argument_generator(const char *text, int state,
 	return NULL;
 }
 
-static char *mode_generator(const char *text, int state)
-{
-	return argument_generator(text, state, mode_arguments);
-}
-
 static char *capability_generator(const char *text, int state)
 {
 	return argument_generator(text, state, agent_arguments);
 }
 
-static void cmd_advertise(const char *arg)
+static void cmd_advertise(int argc, char *argv[])
 {
 	dbus_bool_t enable;
 	const char *type;
 
-	if (parse_argument(arg, ad_arguments, "type",
-					&enable, &type) == FALSE)
+	if (!parse_argument(argc, argv, ad_arguments, "type",
+					&enable, &type))
 		return;
 
 	if (!default_ctrl || !default_ctrl->ad_proxy) {
-		rl_printf("LEAdvertisingManager not found\n");
-		return;
+		bt_shell_printf("LEAdvertisingManager not found\n");
+		bt_shell_noninteractive_quit(EXIT_FAILURE);
 	}
 
 	if (enable == TRUE)
@@ -2304,176 +2163,252 @@ static char *ad_generator(const char *text, int state)
 	return argument_generator(text, state, ad_arguments);
 }
 
-static void cmd_set_advertise_uuids(const char *arg)
+static void cmd_advertise_uuids(int argc, char *argv[])
 {
-	ad_advertise_uuids(dbus_conn, arg);
+	ad_advertise_uuids(dbus_conn, argc, argv);
 }
 
-static void cmd_set_advertise_service(const char *arg)
+static void cmd_advertise_service(int argc, char *argv[])
 {
-	ad_advertise_service(dbus_conn, arg);
+	ad_advertise_service(dbus_conn, argc, argv);
 }
 
-static void cmd_set_advertise_manufacturer(const char *arg)
+static void cmd_advertise_manufacturer(int argc, char *argv[])
 {
-	ad_advertise_manufacturer(dbus_conn, arg);
+	ad_advertise_manufacturer(dbus_conn, argc, argv);
 }
 
-static void cmd_set_advertise_tx_power(const char *arg)
+static void cmd_advertise_tx_power(int argc, char *argv[])
 {
 	dbus_bool_t powered;
 
-	if (parse_argument(arg, NULL, NULL, &powered, NULL) == FALSE)
-		return;
-
-	ad_advertise_tx_power(dbus_conn, powered);
-}
-
-static void cmd_set_advertise_name(const char *arg)
-{
-	if (arg == NULL || strlen(arg) == 0) {
-		rl_printf("Missing on/off argument\n");
+	if (argc < 2) {
+		ad_advertise_tx_power(dbus_conn, NULL);
 		return;
 	}
 
-	if (strcmp(arg, "on") == 0 || strcmp(arg, "yes") == 0) {
+	if (!parse_argument(argc, argv, NULL, NULL, &powered, NULL))
+		return;
+
+	ad_advertise_tx_power(dbus_conn, &powered);
+}
+
+static void cmd_advertise_name(int argc, char *argv[])
+{
+	if (argc < 2) {
+		ad_advertise_local_name(dbus_conn, NULL);
+		return;
+	}
+
+	if (strcmp(argv[1], "on") == 0 || strcmp(argv[1], "yes") == 0) {
 		ad_advertise_name(dbus_conn, true);
 		return;
 	}
 
-	if (strcmp(arg, "off") == 0 || strcmp(arg, "no") == 0) {
+	if (strcmp(argv[1], "off") == 0 || strcmp(argv[1], "no") == 0) {
 		ad_advertise_name(dbus_conn, false);
 		return;
 	}
 
-	ad_advertise_local_name(dbus_conn, arg);
+	ad_advertise_local_name(dbus_conn, argv[1]);
 }
 
-static void cmd_set_advertise_appearance(const char *arg)
+static void cmd_advertise_appearance(int argc, char *argv[])
 {
 	long int value;
 	char *endptr = NULL;
 
-	if (arg == NULL || strlen(arg) == 0) {
-		rl_printf("Missing value argument\n");
+	if (argc < 2) {
+		ad_advertise_local_appearance(dbus_conn, NULL);
 		return;
 	}
 
-	if (strcmp(arg, "on") == 0 || strcmp(arg, "yes") == 0) {
+	if (strcmp(argv[1], "on") == 0 || strcmp(argv[1], "yes") == 0) {
 		ad_advertise_appearance(dbus_conn, true);
 		return;
 	}
 
-	if (strcmp(arg, "off") == 0 || strcmp(arg, "no") == 0) {
+	if (strcmp(argv[1], "off") == 0 || strcmp(argv[1], "no") == 0) {
 		ad_advertise_appearance(dbus_conn, false);
 		return;
 	}
 
-	value = strtol(arg, &endptr, 0);
+	value = strtol(argv[1], &endptr, 0);
 	if (!endptr || *endptr != '\0' || value > UINT16_MAX) {
-		rl_printf("Invalid argument\n");
+		bt_shell_printf("Invalid argument\n");
+		return bt_shell_noninteractive_quit(EXIT_FAILURE);
+	}
+
+	ad_advertise_local_appearance(dbus_conn, &value);
+}
+
+static void cmd_advertise_duration(int argc, char *argv[])
+{
+	long int value;
+	char *endptr = NULL;
+
+	if (argc < 2) {
+		ad_advertise_duration(dbus_conn, NULL);
 		return;
 	}
 
-	ad_advertise_local_appearance(dbus_conn, value);
+	value = strtol(argv[1], &endptr, 0);
+	if (!endptr || *endptr != '\0' || value > UINT16_MAX) {
+		bt_shell_printf("Invalid argument\n");
+		return bt_shell_noninteractive_quit(EXIT_FAILURE);
+	}
+
+	ad_advertise_duration(dbus_conn, &value);
 }
 
-static const struct {
-	const char *cmd;
-	const char *arg;
-	void (*func) (const char *arg);
-	const char *desc;
-	char * (*gen) (const char *text, int state);
-	void (*disp) (char **matches, int num_matches, int max_length);
-} cmd_table[] = {
-	{ "list",         NULL,       cmd_list, "List available controllers" },
-	{ "show",         "[ctrl]",   cmd_show, "Controller information",
-							ctrl_generator },
-	{ "select",       "<ctrl>",   cmd_select, "Select default controller",
-							ctrl_generator },
-	{ "devices",      NULL,       cmd_devices, "List available devices" },
-	{ "paired-devices", NULL,     cmd_paired_devices,
-					"List paired devices"},
-	{ "system-alias", "<name>",   cmd_system_alias,
-					"Set controller alias" },
-	{ "reset-alias",  NULL,       cmd_reset_alias,
-					"Reset controller alias" },
-	{ "power",        "<on/off>", cmd_power, "Set controller power",
-							mode_generator },
-	{ "pairable",     "<on/off>", cmd_pairable,
-					"Set controller pairable mode",
-							mode_generator },
-	{ "discoverable", "<on/off>", cmd_discoverable,
-					"Set controller discoverable mode",
-							mode_generator },
-	{ "agent",        "<on/off/capability>", cmd_agent,
-				"Enable/disable agent with given capability",
-							capability_generator},
-	{ "default-agent",NULL,       cmd_default_agent,
-				"Set agent as the default one" },
-	{ "advertise",    "<on/off/type>", cmd_advertise,
-				"Enable/disable advertising with given type",
-							ad_generator},
-	{ "set-advertise-uuids", "[uuid1 uuid2 ...]",
-			cmd_set_advertise_uuids, "Set advertise uuids" },
-	{ "set-advertise-service", "[uuid][data=[xx xx ...]",
-			cmd_set_advertise_service,
-			"Set advertise service data" },
-	{ "set-advertise-manufacturer", "[id][data=[xx xx ...]",
-			cmd_set_advertise_manufacturer,
-			"Set advertise manufacturer data" },
-	{ "set-advertise-tx-power", "<on/off>",
-			cmd_set_advertise_tx_power,
-			"Enable/disable TX power to be advertised",
-							mode_generator },
-	{ "set-advertise-name", "<on/off/name>", cmd_set_advertise_name,
-			"Enable/disable local name to be advertised" },
-	{ "set-advertise-appearance", "<value>", cmd_set_advertise_appearance,
-			"Set custom appearance to be advertised" },
-	{ "set-scan-filter-uuids", "[uuid1 uuid2 ...]",
-			cmd_set_scan_filter_uuids, "Set scan filter uuids" },
-	{ "set-scan-filter-rssi", "[rssi]", cmd_set_scan_filter_rssi,
-				"Set scan filter rssi, and clears pathloss" },
-	{ "set-scan-filter-pathloss", "[pathloss]",
-						cmd_set_scan_filter_pathloss,
-				"Set scan filter pathloss, and clears rssi" },
-	{ "set-scan-filter-transport", "[transport]",
-		cmd_set_scan_filter_transport, "Set scan filter transport" },
-	{ "set-scan-filter-duplicate-data", "[on/off]",
-			cmd_set_scan_filter_duplicate_data,
-				"Set scan filter duplicate data",
-				mode_generator },
-	{ "set-scan-filter-clear", "", cmd_set_scan_filter_clear,
-						"Clears discovery filter." },
-	{ "scan",         "<on/off>", cmd_scan, "Scan for devices",
-							mode_generator },
-	{ "info",         "[dev]",    cmd_info, "Device information",
-							dev_generator },
-	{ "pair",         "[dev]",    cmd_pair, "Pair with device",
-							dev_generator },
-	{ "trust",        "[dev]",    cmd_trust, "Trust device",
-							dev_generator },
-	{ "untrust",      "[dev]",    cmd_untrust, "Untrust device",
-							dev_generator },
-	{ "block",        "[dev]",    cmd_block, "Block device",
-								dev_generator },
-	{ "unblock",      "[dev]",    cmd_unblock, "Unblock device",
-								dev_generator },
-	{ "remove",       "<dev>",    cmd_remove, "Remove device",
-							dev_generator },
-	{ "connect",      "<dev>",    cmd_connect, "Connect device",
-							dev_generator },
-	{ "disconnect",   "[dev]",    cmd_disconn, "Disconnect device",
-							dev_generator },
+static void cmd_advertise_timeout(int argc, char *argv[])
+{
+	long int value;
+	char *endptr = NULL;
+
+	if (argc < 2) {
+		ad_advertise_timeout(dbus_conn, NULL);
+		return;
+	}
+
+	value = strtol(argv[1], &endptr, 0);
+	if (!endptr || *endptr != '\0' || value > UINT16_MAX) {
+		bt_shell_printf("Invalid argument\n");
+		return bt_shell_noninteractive_quit(EXIT_FAILURE);
+	}
+
+	ad_advertise_timeout(dbus_conn, &value);
+}
+
+static void ad_clear_uuids(void)
+{
+	ad_disable_uuids(dbus_conn);
+}
+
+static void ad_clear_service(void)
+{
+	ad_disable_service(dbus_conn);
+}
+
+static void ad_clear_manufacturer(void)
+{
+	ad_disable_manufacturer(dbus_conn);
+}
+
+static void ad_clear_tx_power(void)
+{
+	dbus_bool_t powered = false;
+
+	ad_advertise_tx_power(dbus_conn, &powered);
+}
+
+static void ad_clear_name(void)
+{
+	ad_advertise_name(dbus_conn, false);
+}
+
+static void ad_clear_appearance(void)
+{
+	ad_advertise_appearance(dbus_conn, false);
+}
+
+static void ad_clear_duration(void)
+{
+	long int value = 0;
+
+	ad_advertise_duration(dbus_conn, &value);
+}
+
+static void ad_clear_timeout(void)
+{
+	long int value = 0;
+
+	ad_advertise_timeout(dbus_conn, &value);
+}
+
+static const struct clear_entry ad_clear[] = {
+	{ "uuids",		ad_clear_uuids },
+	{ "service",		ad_clear_service },
+	{ "manufacturer",	ad_clear_manufacturer },
+	{ "tx-power",		ad_clear_tx_power },
+	{ "name",		ad_clear_name },
+	{ "appearance",		ad_clear_appearance },
+	{ "duration",		ad_clear_duration },
+	{ "timeout",		ad_clear_timeout },
+	{}
+};
+
+static void cmd_ad_clear(int argc, char *argv[])
+{
+	bool all = false;
+
+	if (argc < 2 || !strlen(argv[1]))
+		all = true;
+
+	data_clear(ad_clear, all ? "all" : argv[1]);
+}
+
+static const struct bt_shell_menu advertise_menu = {
+	.name = "advertise",
+	.desc = "Advertise Options Submenu",
+	.entries = {
+	{ "uuids", "[uuid1 uuid2 ...]", cmd_advertise_uuids,
+			"Set/Get advertise uuids" },
+	{ "service", "[uuid] [data=xx xx ...]", cmd_advertise_service,
+			"Set/Get advertise service data" },
+	{ "manufacturer", "[id] [data=xx xx ...]",
+			cmd_advertise_manufacturer,
+			"Set/Get advertise manufacturer data" },
+	{ "tx-power", "[on/off]", cmd_advertise_tx_power,
+			"Show/Enable/Disable TX power to be advertised",
+							NULL },
+	{ "name", "[on/off/name]", cmd_advertise_name,
+			"Configure local name to be advertised" },
+	{ "appearance", "[on/off/value]", cmd_advertise_appearance,
+			"Configure custom appearance to be advertised" },
+	{ "duration", "[seconds]", cmd_advertise_duration,
+			"Set/Get advertise duration" },
+	{ "timeout", "[seconds]", cmd_advertise_timeout,
+			"Set/Get advertise timeout" },
+	{ "clear", "[uuids/service/manufacturer/config-name...]", cmd_ad_clear,
+			"Clear advertise config" },
+	{ } },
+};
+
+static const struct bt_shell_menu scan_menu = {
+	.name = "scan",
+	.desc = "Scan Options Submenu",
+	.entries = {
+	{ "uuids", "[all/uuid1 uuid2 ...]", cmd_scan_filter_uuids,
+				"Set/Get UUIDs filter" },
+	{ "rssi", "[rssi]", cmd_scan_filter_rssi,
+				"Set/Get RSSI filter, and clears pathloss" },
+	{ "pathloss", "[pathloss]", cmd_scan_filter_pathloss,
+				"Set/Get Pathloss filter, and clears RSSI" },
+	{ "transport", "[transport]", cmd_scan_filter_transport,
+				"Set/Get transport filter" },
+	{ "duplicate-data", "[on/off]", cmd_scan_filter_duplicate_data,
+				"Set/Get duplicate data filter",
+				NULL },
+	{ "clear", "[uuids/rssi/pathloss/transport/duplicate-data]",
+				cmd_scan_filter_clear,
+				"Clears discovery filter.",
+				filter_clear_generator },
+	{ } },
+};
+
+static const struct bt_shell_menu gatt_menu = {
+	.name = "gatt",
+	.desc = "Generic Attribute Submenu",
+	.entries = {
 	{ "list-attributes", "[dev]", cmd_list_attributes, "List attributes",
 							dev_generator },
-	{ "set-alias",    "<alias>",  cmd_set_alias, "Set device alias" },
 	{ "select-attribute", "<attribute/UUID>",  cmd_select_attribute,
 				"Select attribute", attribute_generator },
 	{ "attribute-info", "[attribute/UUID]",  cmd_attribute_info,
 				"Select attribute", attribute_generator },
 	{ "read",         NULL,       cmd_read, "Read attribute value" },
-	{ "write",        "<data=[xx xx ...]>", cmd_write,
+	{ "write",        "<data=xx xx ...>", cmd_write,
 						"Write attribute value" },
 	{ "acquire-write", NULL, cmd_acquire_write,
 					"Acquire Write file descriptor" },
@@ -2484,7 +2419,7 @@ static const struct {
 	{ "release-notify", NULL, cmd_release_notify,
 					"Release Notify file descriptor" },
 	{ "notify",       "<on/off>", cmd_notify, "Notify attribute value",
-							mode_generator },
+							NULL },
 	{ "register-application", "[UUID ...]", cmd_register_app,
 						"Register profile to connect" },
 	{ "unregister-application", NULL, cmd_unregister_app,
@@ -2505,298 +2440,110 @@ static const struct {
 	{ "unregister-descriptor", "<UUID/object>",
 					cmd_unregister_descriptor,
 					"Unregister application descriptor" },
-	{ "version",      NULL,       cmd_version, "Display version" },
-	{ "quit",         NULL,       cmd_quit, "Quit program" },
-	{ "exit",         NULL,       cmd_quit, "Quit program" },
-	{ "help",         NULL,       cmd_help,
-					"Display help about this program" },
-	{ }
+	{ } },
 };
 
-static char *cmd_generator(const char *text, int state)
-{
-	static int index, len;
-	const char *cmd;
+static const struct bt_shell_menu main_menu = {
+	.name = "main",
+	.entries = {
+	{ "list",         NULL,       cmd_list, "List available controllers" },
+	{ "show",         "[ctrl]",   cmd_show, "Controller information",
+							ctrl_generator },
+	{ "select",       "<ctrl>",   cmd_select, "Select default controller",
+							ctrl_generator },
+	{ "devices",      NULL,       cmd_devices, "List available devices" },
+	{ "paired-devices", NULL,     cmd_paired_devices,
+					"List paired devices"},
+	{ "system-alias", "<name>",   cmd_system_alias,
+					"Set controller alias" },
+	{ "reset-alias",  NULL,       cmd_reset_alias,
+					"Reset controller alias" },
+	{ "power",        "<on/off>", cmd_power, "Set controller power",
+							NULL },
+	{ "pairable",     "<on/off>", cmd_pairable,
+					"Set controller pairable mode",
+							NULL },
+	{ "discoverable", "<on/off>", cmd_discoverable,
+					"Set controller discoverable mode",
+							NULL },
+	{ "agent",        "<on/off/capability>", cmd_agent,
+				"Enable/disable agent with given capability",
+							capability_generator},
+	{ "default-agent",NULL,       cmd_default_agent,
+				"Set agent as the default one" },
+	{ "advertise",    "<on/off/type>", cmd_advertise,
+				"Enable/disable advertising with given type",
+							ad_generator},
+	{ "set-alias",    "<alias>",  cmd_set_alias, "Set device alias" },
+	{ "scan",         "<on/off>", cmd_scan, "Scan for devices", NULL },
+	{ "info",         "[dev]",    cmd_info, "Device information",
+							dev_generator },
+	{ "pair",         "[dev]",    cmd_pair, "Pair with device",
+							dev_generator },
+	{ "trust",        "[dev]",    cmd_trust, "Trust device",
+							dev_generator },
+	{ "untrust",      "[dev]",    cmd_untrust, "Untrust device",
+							dev_generator },
+	{ "block",        "[dev]",    cmd_block, "Block device",
+								dev_generator },
+	{ "unblock",      "[dev]",    cmd_unblock, "Unblock device",
+								dev_generator },
+	{ "remove",       "<dev>",    cmd_remove, "Remove device",
+							dev_generator },
+	{ "connect",      "<dev>",    cmd_connect, "Connect device",
+							dev_generator },
+	{ "disconnect",   "[dev]",    cmd_disconn, "Disconnect device",
+							dev_generator },
+	{ } },
+};
 
-	if (!state) {
-		index = 0;
-		len = strlen(text);
-	}
+static const struct option options[] = {
+	{ "agent",	required_argument, 0, 'a' },
+	{ 0, 0, 0, 0 }
+};
 
-	while ((cmd = cmd_table[index].cmd)) {
-		index++;
+static const char *agent_option;
 
-		if (!strncmp(cmd, text, len))
-			return strdup(cmd);
-	}
+static const char **optargs[] = {
+	&agent_option
+};
 
-	return NULL;
-}
+static const char *help[] = {
+	"Register agent handler: <capability>"
+};
 
-static char **cmd_completion(const char *text, int start, int end)
-{
-	char **matches = NULL;
-
-	if (agent_completion() == TRUE) {
-		rl_attempted_completion_over = 1;
-		return NULL;
-	}
-
-	if (start > 0) {
-		int i;
-		char *input_cmd;
-
-		input_cmd = g_strndup(rl_line_buffer, start -1);
-		for (i = 0; cmd_table[i].cmd; i++) {
-			if (strcmp(cmd_table[i].cmd, input_cmd))
-				continue;
-
-			if (!cmd_table[i].gen)
-				continue;
-
-			rl_completion_display_matches_hook = cmd_table[i].disp;
-			matches = rl_completion_matches(text, cmd_table[i].gen);
-			break;
-		}
-		g_free(input_cmd);
-	} else {
-		rl_completion_display_matches_hook = NULL;
-		matches = rl_completion_matches(text, cmd_generator);
-	}
-
-	if (!matches)
-		rl_attempted_completion_over = 1;
-
-	return matches;
-}
-
-static void rl_handler(char *input)
-{
-	char *cmd, *arg;
-	int i;
-
-	if (!input) {
-		rl_insert_text("quit");
-		rl_redisplay();
-		rl_crlf();
-		g_main_loop_quit(main_loop);
-		return;
-	}
-
-	if (!strlen(input))
-		goto done;
-
-	if (!rl_release_prompt(input))
-		goto done;
-
-	if (history_search(input, -1))
-		add_history(input);
-
-	cmd = strtok_r(input, " ", &arg);
-	if (!cmd)
-		goto done;
-
-	if (arg) {
-		int len = strlen(arg);
-		if (len > 0 && arg[len - 1] == ' ')
-			arg[len - 1] = '\0';
-	}
-
-	for (i = 0; cmd_table[i].cmd; i++) {
-		if (strcmp(cmd, cmd_table[i].cmd))
-			continue;
-
-		if (cmd_table[i].func) {
-			cmd_table[i].func(arg);
-			goto done;
-		}
-	}
-
-	printf("Invalid command\n");
-done:
-	free(input);
-}
-
-static void cmd_help(const char *arg)
-{
-	int i;
-
-	printf("Available commands:\n");
-
-	for (i = 0; cmd_table[i].cmd; i++) {
-		if ((int)strlen(cmd_table[i].arg? : "") <=
-					(int)(25 - strlen(cmd_table[i].cmd)))
-			printf("  %s %-*s %s\n", cmd_table[i].cmd,
-					(int)(25 - strlen(cmd_table[i].cmd)),
-					cmd_table[i].arg ? : "",
-					cmd_table[i].desc ? : "");
-		else
-			printf("  %s %-s\n" "  %s %-25s %s\n",
-					cmd_table[i].cmd,
-					cmd_table[i].arg ? : "",
-					"", "",
-					cmd_table[i].desc ? : "");
-	}
-}
-
-static gboolean signal_handler(GIOChannel *channel, GIOCondition condition,
-							gpointer user_data)
-{
-	static bool terminated = false;
-	struct signalfd_siginfo si;
-	ssize_t result;
-	int fd;
-
-	if (condition & (G_IO_NVAL | G_IO_ERR | G_IO_HUP)) {
-		g_main_loop_quit(main_loop);
-		return FALSE;
-	}
-
-	fd = g_io_channel_unix_get_fd(channel);
-
-	result = read(fd, &si, sizeof(si));
-	if (result != sizeof(si))
-		return FALSE;
-
-	switch (si.ssi_signo) {
-	case SIGINT:
-		if (input) {
-			rl_replace_line("", 0);
-			rl_crlf();
-			rl_on_new_line();
-			rl_redisplay();
-			break;
-		}
-
-		/*
-		 * If input was not yet setup up that means signal was received
-		 * while daemon was not yet running. Since user is not able
-		 * to terminate client by CTRL-D or typing exit treat this as
-		 * exit and fall through.
-		 */
-
-		/* fall through */
-	case SIGTERM:
-		if (!terminated) {
-			rl_replace_line("", 0);
-			rl_crlf();
-			g_main_loop_quit(main_loop);
-		}
-
-		terminated = true;
-		break;
-	}
-
-	return TRUE;
-}
-
-static guint setup_signalfd(void)
-{
-	GIOChannel *channel;
-	guint source;
-	sigset_t mask;
-	int fd;
-
-	sigemptyset(&mask);
-	sigaddset(&mask, SIGINT);
-	sigaddset(&mask, SIGTERM);
-
-	if (sigprocmask(SIG_BLOCK, &mask, NULL) < 0) {
-		perror("Failed to set signal mask");
-		return 0;
-	}
-
-	fd = signalfd(-1, &mask, 0);
-	if (fd < 0) {
-		perror("Failed to create signal descriptor");
-		return 0;
-	}
-
-	channel = g_io_channel_unix_new(fd);
-
-	g_io_channel_set_close_on_unref(channel, TRUE);
-	g_io_channel_set_encoding(channel, NULL, NULL);
-	g_io_channel_set_buffered(channel, FALSE);
-
-	source = g_io_add_watch(channel,
-				G_IO_IN | G_IO_HUP | G_IO_ERR | G_IO_NVAL,
-				signal_handler, NULL);
-
-	g_io_channel_unref(channel);
-
-	return source;
-}
-
-static gboolean option_version = FALSE;
-
-static gboolean parse_agent(const char *key, const char *value,
-					gpointer user_data, GError **error)
-{
-	if (!value)
-		return FALSE;
-
-	g_free(auto_register_agent);
-	auto_register_agent = g_strdup(value);
-
-	return TRUE;
-}
-
-static GOptionEntry options[] = {
-	{ "version", 'v', 0, G_OPTION_ARG_NONE, &option_version,
-				"Show version information and exit" },
-	{ "agent", 'a', 0, G_OPTION_ARG_CALLBACK, parse_agent,
-				"Register agent handler", "CAPABILITY" },
-	{ NULL },
+static const struct bt_shell_opt opt = {
+	.options = options,
+	.optno = sizeof(options) / sizeof(struct option),
+	.optstr = "a:",
+	.optarg = optargs,
+	.help = help,
 };
 
 static void client_ready(GDBusClient *client, void *user_data)
 {
-	if (!input)
-		input = setup_standard_input();
+	setup_standard_input();
 }
 
 int main(int argc, char *argv[])
 {
-	GOptionContext *context;
-	GError *error = NULL;
 	GDBusClient *client;
-	guint signal;
 
-	auto_register_agent = g_strdup("");
+	bt_shell_init(argc, argv, &opt);
+	bt_shell_set_menu(&main_menu);
+	bt_shell_add_submenu(&advertise_menu);
+	bt_shell_add_submenu(&scan_menu);
+	bt_shell_add_submenu(&gatt_menu);
+	bt_shell_set_prompt(PROMPT_OFF);
 
-	context = g_option_context_new(NULL);
-	g_option_context_add_main_entries(context, options, NULL);
+	if (agent_option)
+		auto_register_agent = g_strdup(agent_option);
+	else
+		auto_register_agent = g_strdup("");
 
-	if (g_option_context_parse(context, &argc, &argv, &error) == FALSE) {
-		if (error != NULL) {
-			g_printerr("%s\n", error->message);
-			g_error_free(error);
-		} else
-			g_printerr("An unknown error occurred\n");
-		exit(1);
-	}
-
-	g_option_context_free(context);
-
-	if (option_version == TRUE) {
-		printf("%s\n", VERSION);
-		exit(0);
-	}
-
-	main_loop = g_main_loop_new(NULL, FALSE);
 	dbus_conn = g_dbus_setup_bus(DBUS_BUS_SYSTEM, NULL, NULL);
 	g_dbus_attach_object_manager(dbus_conn);
 
-	setlinebuf(stdout);
-	rl_attempted_completion_function = cmd_completion;
-
-	rl_erase_empty_line = 1;
-	rl_callback_handler_install(NULL, rl_handler);
-
-	rl_set_prompt(PROMPT_OFF);
-	rl_redisplay();
-
-	signal = setup_signalfd();
 	client = g_dbus_client_new(dbus_conn, "org.bluez", "/org/bluez");
 
 	g_dbus_client_set_connect_watch(client, connect_handler, NULL);
@@ -2808,18 +2555,11 @@ int main(int argc, char *argv[])
 
 	g_dbus_client_set_ready_watch(client, client_ready, NULL);
 
-	g_main_loop_run(main_loop);
+	bt_shell_run();
 
 	g_dbus_client_unref(client);
-	g_source_remove(signal);
-	if (input > 0)
-		g_source_remove(input);
-
-	rl_message("");
-	rl_callback_handler_remove();
 
 	dbus_connection_unref(dbus_conn);
-	g_main_loop_unref(main_loop);
 
 	g_list_free_full(ctrl_list, proxy_leak);
 

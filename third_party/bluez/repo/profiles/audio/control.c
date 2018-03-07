@@ -127,7 +127,7 @@ int control_disconnect(struct btd_service *service)
 {
 	struct control *control = btd_service_get_user_data(service);
 
-	if (!control->session)
+	if (!control || !control->session)
 		return -ENOTCONN;
 
 	avctp_disconnect(control->session);
@@ -275,11 +275,15 @@ static void path_unregister(void *data)
 
 	avctp_remove_state_cb(control->avctp_id);
 
-	if (control->target)
+	if (control->target) {
+		btd_service_set_user_data(control->target, NULL);
 		btd_service_unref(control->target);
+	}
 
-	if (control->remote)
+	if (control->remote) {
+		btd_service_set_user_data(control->remote, NULL);
 		btd_service_unref(control->remote);
+	}
 
 	devices = g_slist_remove(devices, control);
 	g_free(control);

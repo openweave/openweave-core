@@ -52,6 +52,10 @@ Methods		void Connect()
 			This method can be also used to cancel a preceding
 			Connect call before a reply to it has been received.
 
+			For non-trusted devices connected over LE bearer calling
+			this method will disable incoming connections until
+			Connect method is called again.
+
 			Possible errors: org.bluez.Error.NotConnected
 
 		void ConnectProfile(string uuid)
@@ -119,6 +123,19 @@ Methods		void Connect()
 Properties	string Address [readonly]
 
 			The Bluetooth device address of the remote device.
+
+		string AddressType [readonly]
+
+			The Bluetooth device Address Type. For dual-mode and
+			BR/EDR only devices this defaults to "public". Single
+			mode LE devices may have either value. If remote device
+			uses privacy than before pairing this represents address
+			type used for connection and Identity Address after
+			pairing.
+
+			Possible values:
+				"public" - Public address
+				"random" - Random address
 
 		string Name [readonly, optional]
 

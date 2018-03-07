@@ -7,8 +7,7 @@ client_bluetoothctl_SOURCES = client/main.c \
 					client/agent.h client/agent.c \
 					client/advertising.h \
 					client/advertising.c \
-					client/gatt.h client/gatt.c \
-					monitor/uuid.h monitor/uuid.c
+					client/gatt.h client/gatt.c
 client_bluetoothctl_LDADD = gdbus/libgdbus-internal.la src/libshared-glib.la \
 				@GLIB_LIBS@ @DBUS_LIBS@ -lreadline
 endif
@@ -29,12 +28,12 @@ mesh_meshctl_SOURCES = mesh/main.c \
 				mesh/prov-db.h mesh/prov-db.c \
 				mesh/config-model.h mesh/config-client.c \
 				mesh/config-server.c \
-				mesh/onoff-model.h mesh/onoff-model.c \
-				client/display.h client/display.c \
-				monitor/uuid.h monitor/uuid.c
+				mesh/onoff-model.h mesh/onoff-model.c
 mesh_meshctl_LDADD = gdbus/libgdbus-internal.la src/libshared-glib.la \
 				lib/libbluetooth-internal.la \
 				@GLIB_LIBS@ @DBUS_LIBS@ -ljson-c -lreadline
+
+EXTRA_DIST += mesh/local_node.json mesh/prov_db.json
 endif
 
 if MONITOR
@@ -57,7 +56,6 @@ monitor_btmon_SOURCES = monitor/main.c monitor/bt.h \
 				monitor/a2dp.h monitor/a2dp.c \
 				monitor/rfcomm.h monitor/rfcomm.c \
 				monitor/bnep.h monitor/bnep.c \
-				monitor/uuid.h monitor/uuid.c \
 				monitor/hwdb.h monitor/hwdb.c \
 				monitor/keys.h monitor/keys.c \
 				monitor/analyze.h monitor/analyze.c \
@@ -189,7 +187,8 @@ noinst_PROGRAMS += tools/bdaddr tools/avinfo tools/avtest \
 			tools/btsnoop tools/btproxy \
 			tools/btiotest tools/bneptest tools/mcaptest \
 			tools/cltest tools/oobtest tools/advtest \
-			tools/seq2bseq tools/nokfw tools/create-image \
+			tools/seq2bseq tools/nokfw tools/rtlfw \
+			tools/create-image \
 			tools/eddystone tools/ibeacon \
 			tools/btgatt-client tools/btgatt-server \
 			tools/test-runner tools/check-selftest \
@@ -252,6 +251,8 @@ tools_advtest_LDADD = lib/libbluetooth-internal.la src/libshared-mainloop.la
 tools_seq2bseq_SOURCES = tools/seq2bseq.c
 
 tools_nokfw_SOURCES = tools/nokfw.c
+
+tools_rtlfw_SOURCES = tools/rtlfw.c
 
 tools_create_image_SOURCES = tools/create-image.c
 
@@ -390,14 +391,13 @@ tools_obex_server_tool_SOURCES = $(gobex_sources) $(btio_sources) \
 						tools/obex-server-tool.c
 tools_obex_server_tool_LDADD = lib/libbluetooth-internal.la @GLIB_LIBS@
 
-tools_bluetooth_player_SOURCES = tools/bluetooth-player.c \
-				client/display.h client/display.c
+tools_bluetooth_player_SOURCES = tools/bluetooth-player.c
 tools_bluetooth_player_LDADD = gdbus/libgdbus-internal.la \
+				src/libshared-glib.la \
 				@GLIB_LIBS@ @DBUS_LIBS@ -lreadline
 
-tools_obexctl_SOURCES = tools/obexctl.c \
-				client/display.h client/display.c
-tools_obexctl_LDADD = gdbus/libgdbus-internal.la \
+tools_obexctl_SOURCES = tools/obexctl.c
+tools_obexctl_LDADD = gdbus/libgdbus-internal.la src/libshared-glib.la \
 				@GLIB_LIBS@ @DBUS_LIBS@ -lreadline
 
 tools_btmgmt_SOURCES = tools/btmgmt.c src/uuid-helper.c client/display.c
@@ -446,3 +446,11 @@ test_scripts += test/sap_client.py test/bluezutils.py \
 		test/pbap-client test/map-client test/example-advertisement \
 		test/example-gatt-server test/example-gatt-client \
 		test/test-gatt-profile
+
+if BTPCLIENT
+noinst_PROGRAMS += tools/btpclient
+
+tools_btpclient_SOURCES = tools/btpclient.c src/shared/btp.c src/shared/btp.h
+tools_btpclient_CFLAGS = $(AM_CFLAGS) @ELL_CFLAGS@
+tools_btpclient_LDADD = @ELL_LIBS@ lib/libbluetooth-internal.la
+endif

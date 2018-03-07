@@ -27,10 +27,14 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <readline/readline.h>
+#include <stdbool.h>
+#include <unistd.h>
+#include <string.h>
 
+#include <glib.h>
+
+#include "src/shared/shell.h"
 #include "gdbus/gdbus.h"
-#include "display.h"
 #include "agent.h"
 
 #define AGENT_PATH "/org/bluez/agent"
@@ -47,7 +51,7 @@ static void agent_release_prompt(void)
 	if (!pending_message)
 		return;
 
-	rl_release_prompt("");
+	bt_shell_release_prompt("");
 }
 
 dbus_bool_t agent_completion(void)
@@ -114,7 +118,7 @@ static void agent_release(DBusConnection *conn)
 static DBusMessage *release_agent(DBusConnection *conn,
 					DBusMessage *msg, void *user_data)
 {
-	rl_printf("Agent released\n");
+	bt_shell_printf("Agent released\n");
 
 	agent_release(conn);
 
@@ -126,12 +130,13 @@ static DBusMessage *request_pincode(DBusConnection *conn,
 {
 	const char *device;
 
-	rl_printf("Request PIN code\n");
+	bt_shell_printf("Request PIN code\n");
 
 	dbus_message_get_args(msg, NULL, DBUS_TYPE_OBJECT_PATH, &device,
 							DBUS_TYPE_INVALID);
 
-	rl_prompt_input("agent", "Enter PIN code:", pincode_response, conn);
+	bt_shell_prompt_input("agent", "Enter PIN code:", pincode_response,
+								conn);
 
 	pending_message = dbus_message_ref(msg);
 
@@ -147,7 +152,7 @@ static DBusMessage *display_pincode(DBusConnection *conn,
 	dbus_message_get_args(msg, NULL, DBUS_TYPE_OBJECT_PATH, &device,
 				DBUS_TYPE_STRING, &pincode, DBUS_TYPE_INVALID);
 
-	rl_printf(AGENT_PROMPT "PIN code: %s\n", pincode);
+	bt_shell_printf(AGENT_PROMPT "PIN code: %s\n", pincode);
 
 	return dbus_message_new_method_return(msg);
 }
@@ -157,13 +162,13 @@ static DBusMessage *request_passkey(DBusConnection *conn,
 {
 	const char *device;
 
-	rl_printf("Request passkey\n");
+	bt_shell_printf("Request passkey\n");
 
 	dbus_message_get_args(msg, NULL, DBUS_TYPE_OBJECT_PATH, &device,
 							DBUS_TYPE_INVALID);
 
-	rl_prompt_input("agent", "Enter passkey (number in 0-999999):",
-			passkey_response, conn);
+	bt_shell_prompt_input("agent", "Enter passkey (number in 0-999999):",
+						passkey_response, conn);
 
 	pending_message = dbus_message_ref(msg);
 
@@ -188,7 +193,7 @@ static DBusMessage *display_passkey(DBusConnection *conn,
 	if (entered > strlen(passkey_full))
 		entered = strlen(passkey_full);
 
-	rl_printf(AGENT_PROMPT "Passkey: "
+	bt_shell_printf(AGENT_PROMPT "Passkey: "
 			COLOR_BOLDGRAY "%.*s" COLOR_BOLDWHITE "%s\n" COLOR_OFF,
 				entered, passkey_full, passkey_full + entered);
 
@@ -202,13 +207,13 @@ static DBusMessage *request_confirmation(DBusConnection *conn,
 	dbus_uint32_t passkey;
 	char *str;
 
-	rl_printf("Request confirmation\n");
+	bt_shell_printf("Request confirmation\n");
 
 	dbus_message_get_args(msg, NULL, DBUS_TYPE_OBJECT_PATH, &device,
 				DBUS_TYPE_UINT32, &passkey, DBUS_TYPE_INVALID);
 
 	str = g_strdup_printf("Confirm passkey %06u (yes/no):", passkey);
-	rl_prompt_input("agent", str, confirm_response, conn);
+	bt_shell_prompt_input("agent", str, confirm_response, conn);
 	g_free(str);
 
 	pending_message = dbus_message_ref(msg);
@@ -221,13 +226,13 @@ static DBusMessage *request_authorization(DBusConnection *conn,
 {
 	const char *device;
 
-	rl_printf("Request authorization\n");
+	bt_shell_printf("Request authorization\n");
 
 	dbus_message_get_args(msg, NULL, DBUS_TYPE_OBJECT_PATH, &device,
 							DBUS_TYPE_INVALID);
 
-	rl_prompt_input("agent", "Accept pairing (yes/no):", confirm_response,
-								conn);
+	bt_shell_prompt_input("agent", "Accept pairing (yes/no):",
+					confirm_response, conn);
 
 	pending_message = dbus_message_ref(msg);
 
@@ -240,13 +245,13 @@ static DBusMessage *authorize_service(DBusConnection *conn,
 	const char *device, *uuid;
 	char *str;
 
-	rl_printf("Authorize service\n");
+	bt_shell_printf("Authorize service\n");
 
 	dbus_message_get_args(msg, NULL, DBUS_TYPE_OBJECT_PATH, &device,
 				DBUS_TYPE_STRING, &uuid, DBUS_TYPE_INVALID);
 
 	str = g_strdup_printf("Authorize service %s (yes/no):", uuid);
-	rl_prompt_input("agent", str, confirm_response, conn);
+	bt_shell_prompt_input("agent", str, confirm_response, conn);
 	g_free(str);
 
 	pending_message = dbus_message_ref(msg);
@@ -257,7 +262,7 @@ static DBusMessage *authorize_service(DBusConnection *conn,
 static DBusMessage *cancel_request(DBusConnection *conn,
 					DBusMessage *msg, void *user_data)
 {
-	rl_printf("Request canceled\n");
+	bt_shell_printf("Request canceled\n");
 
 	agent_release_prompt();
 	dbus_message_unref(pending_message);
@@ -312,14 +317,14 @@ static void register_agent_reply(DBusMessage *message, void *user_data)
 
 	if (dbus_set_error_from_message(&error, message) == FALSE) {
 		agent_registered = TRUE;
-		rl_printf("Agent registered\n");
+		bt_shell_printf("Agent registered\n");
 	} else {
-		rl_printf("Failed to register agent: %s\n", error.name);
+		bt_shell_printf("Failed to register agent: %s\n", error.name);
 		dbus_error_free(&error);
 
 		if (g_dbus_unregister_interface(conn, AGENT_PATH,
 						AGENT_INTERFACE) == FALSE)
-			rl_printf("Failed to unregister agent object\n");
+			bt_shell_printf("Failed to unregister agent object\n");
 	}
 }
 
@@ -328,7 +333,7 @@ void agent_register(DBusConnection *conn, GDBusProxy *manager,
 
 {
 	if (agent_registered == TRUE) {
-		rl_printf("Agent is already registered\n");
+		bt_shell_printf("Agent is already registered\n");
 		return;
 	}
 
@@ -337,7 +342,7 @@ void agent_register(DBusConnection *conn, GDBusProxy *manager,
 	if (g_dbus_register_interface(conn, AGENT_PATH,
 					AGENT_INTERFACE, methods,
 					NULL, NULL, NULL, NULL) == FALSE) {
-		rl_printf("Failed to register agent object\n");
+		bt_shell_printf("Failed to register agent object\n");
 		return;
 	}
 
@@ -345,7 +350,7 @@ void agent_register(DBusConnection *conn, GDBusProxy *manager,
 						register_agent_setup,
 						register_agent_reply,
 						conn, NULL) == FALSE) {
-		rl_printf("Failed to call register agent method\n");
+		bt_shell_printf("Failed to call register agent method\n");
 		return;
 	}
 
@@ -367,10 +372,10 @@ static void unregister_agent_reply(DBusMessage *message, void *user_data)
 	dbus_error_init(&error);
 
 	if (dbus_set_error_from_message(&error, message) == FALSE) {
-		rl_printf("Agent unregistered\n");
+		bt_shell_printf("Agent unregistered\n");
 		agent_release(conn);
 	} else {
-		rl_printf("Failed to unregister agent: %s\n", error.name);
+		bt_shell_printf("Failed to unregister agent: %s\n", error.name);
 		dbus_error_free(&error);
 	}
 }
@@ -378,12 +383,12 @@ static void unregister_agent_reply(DBusMessage *message, void *user_data)
 void agent_unregister(DBusConnection *conn, GDBusProxy *manager)
 {
 	if (agent_registered == FALSE) {
-		rl_printf("No agent is registered\n");
+		bt_shell_printf("No agent is registered\n");
 		return;
 	}
 
 	if (!manager) {
-		rl_printf("Agent unregistered\n");
+		bt_shell_printf("Agent unregistered\n");
 		agent_release(conn);
 		return;
 	}
@@ -392,7 +397,7 @@ void agent_unregister(DBusConnection *conn, GDBusProxy *manager)
 						unregister_agent_setup,
 						unregister_agent_reply,
 						conn, NULL) == FALSE) {
-		rl_printf("Failed to call unregister agent method\n");
+		bt_shell_printf("Failed to call unregister agent method\n");
 		return;
 	}
 }
@@ -411,26 +416,29 @@ static void request_default_reply(DBusMessage *message, void *user_data)
 	dbus_error_init(&error);
 
 	if (dbus_set_error_from_message(&error, message) == TRUE) {
-		rl_printf("Failed to request default agent: %s\n", error.name);
+		bt_shell_printf("Failed to request default agent: %s\n",
+							error.name);
 		dbus_error_free(&error);
-		return;
+		return bt_shell_noninteractive_quit(EXIT_FAILURE);
 	}
 
-	rl_printf("Default agent request successful\n");
+	bt_shell_printf("Default agent request successful\n");
+
+	return bt_shell_noninteractive_quit(EXIT_SUCCESS);
 }
 
 void agent_default(DBusConnection *conn, GDBusProxy *manager)
 {
 	if (agent_registered == FALSE) {
-		rl_printf("No agent is registered\n");
-		return;
+		bt_shell_printf("No agent is registered\n");
+		return bt_shell_noninteractive_quit(EXIT_FAILURE);
 	}
 
 	if (g_dbus_proxy_method_call(manager, "RequestDefaultAgent",
 						request_default_setup,
 						request_default_reply,
 						NULL, NULL) == FALSE) {
-		rl_printf("Failed to call request default agent method\n");
-		return;
+		bt_shell_printf("Failed to call RequestDefaultAgent method\n");
+		return bt_shell_noninteractive_quit(EXIT_FAILURE);
 	}
 }
