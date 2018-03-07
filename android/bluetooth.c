@@ -42,6 +42,7 @@
 #include "src/shared/util.h"
 #include "src/shared/mgmt.h"
 #include "src/shared/queue.h"
+#include "src/shared/ad.h"
 #include "src/eir.h"
 #include "lib/sdp.h"
 #include "lib/sdp_lib.h"
@@ -3265,7 +3266,11 @@ static void load_devices_info(bt_bluetooth_ready cb)
 	load_irks(irks);
 	g_slist_free_full(irks, g_free);
 
-	load_link_keys(keys, cb);
+	if (adapter.supported_settings & MGMT_SETTING_BREDR)
+		load_link_keys(keys, cb);
+	else
+		cb(0, &adapter.bdaddr);
+
 	g_slist_free_full(keys, g_free);
 
 	g_strfreev(devs);
@@ -3330,6 +3335,37 @@ static void clear_auto_connect_list(void)
 		return;
 
 	error("Could not clear auto connect list");
+}
+
+static void read_adv_features_complete(uint8_t status, uint16_t length,
+					const void *param, void *user_data)
+{
+	const struct mgmt_rp_read_adv_features *rp = param;
+	bt_bluetooth_ready cb = user_data;
+	int err;
+
+	if (status) {
+		error("Failed to read advertising features for index %u: %s (0x%02x)",
+				adapter.index, mgmt_errstr(status), status);
+		err = -EIO;
+		goto failed;
+	}
+
+	if (length < sizeof(*rp)) {
+		error("Too small read advertising features response");
+		err = -EIO;
+		goto failed;
+	}
+
+	adapter.max_advert_instance = rp->max_instances;
+	info("Max LE advertising instances: %d", adapter.max_advert_instance);
+
+	load_devices_info(cb);
+
+	return;
+
+failed:
+	cb(err, NULL);
 }
 
 static void read_info_complete(uint8_t status, uint16_t length,
@@ -3403,7 +3439,18 @@ static void read_info_complete(uint8_t status, uint16_t length,
 	if (missing_settings & MGMT_SETTING_BONDABLE)
 		set_mode(MGMT_OP_SET_BONDABLE, 0x01);
 
-	load_devices_info(cb);
+	if (adapter.supported_settings & MGMT_SETTING_LE) {
+		if (mgmt_send(mgmt_if, MGMT_OP_READ_ADV_FEATURES, adapter.index,
+			      0, NULL,
+			      read_adv_features_complete, cb, NULL) == 0) {
+			error("Cannot get LE adv features");
+			err = -EIO;
+			goto failed;
+		}
+	} else {
+		load_devices_info(cb);
+	}
+
 	load_devices_cache();
 
 	return;
@@ -3971,6 +4018,134 @@ bool bt_le_set_advertising(bool advertising, bt_le_set_advertising_done cb,
 	error("Failed to set advertising");
 	free(data);
 	return false;
+}
+
+struct addrm_adv_user_data {
+	bt_le_addrm_advertising_done cb;
+	void *user_data;
+};
+
+static void add_advertising_cb(uint8_t status, uint16_t length,
+			       const void *param, void *user_data)
+{
+	struct addrm_adv_user_data *data = user_data;
+
+	DBG("");
+
+	if (status)
+		error("Failed to add advertising %s (0x%02x))",
+				mgmt_errstr(status), status);
+
+	data->cb(status, data->user_data);
+}
+
+bool bt_le_add_advertising(struct adv_instance *adv,
+			   bt_le_addrm_advertising_done cb, void *user_data)
+{
+	struct mgmt_cp_add_advertising *cp;
+	struct addrm_adv_user_data *cb_data;
+	size_t len;
+	size_t adv_data_len = 0;
+	size_t sr_data_len = 0;
+	uint8_t *dst, *adv_data, *sr_data;
+	bool ok = false;
+
+	/* These accept NULL and return NULL */
+	adv_data = bt_ad_generate(adv->ad, &adv_data_len);
+	sr_data = bt_ad_generate(adv->sr, &sr_data_len);
+
+	len = sizeof(*cp) + adv_data_len + sr_data_len;
+	cp = malloc0(len);
+	if (!cp)
+		goto out;
+
+	cp->instance = adv->instance;
+	cp->timeout = adv->timeout;
+	/* XXX: how should we set duration? (kernel defaults to 2s) */
+
+	switch (adv->type) {
+	case ANDROID_ADVERTISING_EVENT_TYPE_CONNECTABLE:
+		cp->flags |= MGMT_ADV_FLAG_CONNECTABLE;
+		break;
+
+	case ANDROID_ADVERTISING_EVENT_TYPE_SCANNABLE:
+	case ANDROID_ADVERTISING_EVENT_TYPE_NON_CONNECTABLE:
+	default:
+		break;
+	}
+
+	if (adv->include_tx_power)
+		cp->flags |= MGMT_ADV_FLAG_TX_POWER;
+
+	dst = cp->data;
+	if (adv_data) {
+		cp->adv_data_len = adv_data_len;
+		memcpy(dst, adv_data, adv_data_len);
+		dst += adv_data_len;
+	}
+
+	if (sr_data) {
+		cp->scan_rsp_len = sr_data_len;
+		memcpy(dst, sr_data, sr_data_len);
+		dst += sr_data_len;
+	}
+
+	DBG("lens: adv=%u sr=%u total=%zu",
+		cp->adv_data_len, cp->scan_rsp_len, len);
+
+	cb_data = new0(typeof(*cb_data), 1);
+	cb_data->cb = cb;
+	cb_data->user_data = user_data;
+
+	ok = (mgmt_send(mgmt_if, MGMT_OP_ADD_ADVERTISING, adapter.index,
+			len, cp, add_advertising_cb, cb_data, free) > 0);
+
+	if (!ok)
+		free(cb_data);
+
+out:
+	free(adv_data);
+	free(sr_data);
+	free(cp);
+
+	return ok;
+}
+
+static void remove_advertising_cb(uint8_t status, uint16_t length,
+				  const void *param, void *user_data)
+{
+	struct addrm_adv_user_data *data = user_data;
+
+	DBG("");
+
+	if (status)
+		error("Failed to remove advertising %s (0x%02x))",
+						mgmt_errstr(status), status);
+
+	data->cb(status, data->user_data);
+}
+
+bool bt_le_remove_advertising(struct adv_instance *adv,
+			      bt_le_addrm_advertising_done cb, void *user_data)
+{
+	struct mgmt_cp_remove_advertising cp = {
+		.instance = adv->instance,
+	};
+	struct addrm_adv_user_data *cb_data;
+	bool ok;
+
+	cb_data = new0(typeof(*cb_data), 1);
+	cb_data->cb = cb;
+	cb_data->user_data = user_data;
+
+	ok = (mgmt_send(mgmt_if, MGMT_OP_REMOVE_ADVERTISING, adapter.index,
+			sizeof(cp), &cp,
+			remove_advertising_cb, cb_data, free) > 0);
+
+	if (!ok)
+		free(cb_data);
+
+	return ok;
 }
 
 bool bt_le_register(bt_le_device_found cb)

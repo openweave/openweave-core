@@ -26,6 +26,7 @@
 #endif
 
 #include <stdio.h>
+#include <string.h>
 #include <glib.h>
 #include <dbus/dbus.h>
 
@@ -124,6 +125,99 @@ static gboolean modify_match(DBusConnection *conn, const char *member,
 	dbus_message_unref(msg);
 
 	return TRUE;
+}
+
+static void append_variant(DBusMessageIter *iter, int type, const void *val)
+{
+	DBusMessageIter value;
+	char sig[2] = { type, '\0' };
+
+	dbus_message_iter_open_container(iter, DBUS_TYPE_VARIANT, sig, &value);
+
+	dbus_message_iter_append_basic(&value, type, val);
+
+	dbus_message_iter_close_container(iter, &value);
+}
+
+static void append_array_variant(DBusMessageIter *iter, int type, void *val,
+							int n_elements)
+{
+	DBusMessageIter variant, array;
+	char type_sig[2] = { type, '\0' };
+	char array_sig[3] = { DBUS_TYPE_ARRAY, type, '\0' };
+
+	dbus_message_iter_open_container(iter, DBUS_TYPE_VARIANT,
+						array_sig, &variant);
+
+	dbus_message_iter_open_container(&variant, DBUS_TYPE_ARRAY,
+						type_sig, &array);
+
+	if (dbus_type_is_fixed(type) == TRUE) {
+		dbus_message_iter_append_fixed_array(&array, type, val,
+							n_elements);
+	} else if (type == DBUS_TYPE_STRING || type == DBUS_TYPE_OBJECT_PATH) {
+		const char ***str_array = val;
+		int i;
+
+		for (i = 0; i < n_elements; i++)
+			dbus_message_iter_append_basic(&array, type,
+							&((*str_array)[i]));
+	}
+
+	dbus_message_iter_close_container(&variant, &array);
+
+	dbus_message_iter_close_container(iter, &variant);
+}
+
+static void dict_append_basic(DBusMessageIter *dict, int key_type,
+					const void *key, int type, void *val)
+{
+	DBusMessageIter entry;
+
+	if (type == DBUS_TYPE_STRING) {
+		const char *str = *((const char **) val);
+		if (str == NULL)
+			return;
+	}
+
+	dbus_message_iter_open_container(dict, DBUS_TYPE_DICT_ENTRY,
+							NULL, &entry);
+
+	dbus_message_iter_append_basic(&entry, key_type, key);
+
+	append_variant(&entry, type, val);
+
+	dbus_message_iter_close_container(dict, &entry);
+}
+
+void g_dbus_dict_append_entry(DBusMessageIter *dict,
+					const char *key, int type, void *val)
+{
+	dict_append_basic(dict, DBUS_TYPE_STRING, &key, type, val);
+}
+
+void g_dbus_dict_append_basic_array(DBusMessageIter *dict, int key_type,
+					const void *key, int type, void *val,
+					int n_elements)
+{
+	DBusMessageIter entry;
+
+	dbus_message_iter_open_container(dict, DBUS_TYPE_DICT_ENTRY,
+						NULL, &entry);
+
+	dbus_message_iter_append_basic(&entry, key_type, key);
+
+	append_array_variant(&entry, type, val, n_elements);
+
+	dbus_message_iter_close_container(dict, &entry);
+}
+
+void g_dbus_dict_append_array(DBusMessageIter *dict,
+					const char *key, int type, void *val,
+					int n_elements)
+{
+	g_dbus_dict_append_basic_array(dict, DBUS_TYPE_STRING, &key, type, val,
+								n_elements);
 }
 
 static void iter_append_iter(DBusMessageIter *base, DBusMessageIter *iter)
@@ -352,18 +446,45 @@ static void get_all_properties(GDBusProxy *proxy)
 	dbus_message_unref(msg);
 }
 
-static GDBusProxy *proxy_lookup(GList *list, const char *path,
+GDBusProxy *g_dbus_proxy_lookup(GList *list, int *index, const char *path,
 						const char *interface)
 {
 	GList *l;
 
-	for (l = g_list_first(list); l; l = g_list_next(l)) {
-		GDBusProxy *proxy = l->data;
+	if (!interface)
+		return NULL;
 
-		if (g_str_equal(proxy->interface, interface) == TRUE &&
-				g_str_equal(proxy->obj_path, path) == TRUE)
+	for (l = g_list_nth(list, index ? *index : 0); l; l = g_list_next(l)) {
+		GDBusProxy *proxy = l->data;
+		const char *proxy_iface = g_dbus_proxy_get_interface(proxy);
+		const char *proxy_path = g_dbus_proxy_get_path(proxy);
+
+		if (index)
+			(*index)++;
+
+		if (g_str_equal(proxy_iface, interface) == TRUE &&
+			g_str_equal(proxy_path, path) == TRUE)
 			return proxy;
         }
+
+	return NULL;
+}
+
+char *g_dbus_proxy_path_lookup(GList *list, int *index, const char *path)
+{
+	int len = strlen(path);
+	GList *l;
+
+	for (l = g_list_nth(list, index ? *index : 0); l; l = g_list_next(l)) {
+		GDBusProxy *proxy = l->data;
+		const char *proxy_path = g_dbus_proxy_get_path(proxy);
+
+		if (index)
+			(*index)++;
+
+		if (!strncasecmp(proxy_path, path, len))
+			return strdup(proxy_path);
+	}
 
 	return NULL;
 }
@@ -449,6 +570,12 @@ static void proxy_free(gpointer data)
 	if (proxy->client) {
 		GDBusClient *client = proxy->client;
 
+		if (proxy->get_all_call != NULL) {
+			dbus_pending_call_cancel(proxy->get_all_call);
+			dbus_pending_call_unref(proxy->get_all_call);
+			proxy->get_all_call = NULL;
+		}
+
 		if (client->proxy_removed)
 			client->proxy_removed(proxy, client->user_data);
 
@@ -484,6 +611,27 @@ static void proxy_remove(GDBusClient *client, const char *path,
 	}
 }
 
+static void start_service(GDBusProxy *proxy)
+{
+	GDBusClient *client = proxy->client;
+	const char *service_name = client->service_name;
+	dbus_uint32_t flags = 0;
+	DBusMessage *msg;
+
+	msg = dbus_message_new_method_call(DBUS_SERVICE_DBUS, DBUS_PATH_DBUS,
+						DBUS_INTERFACE_DBUS,
+						"StartServiceByName");
+	if (msg == NULL)
+		return;
+
+	dbus_message_append_args(msg, DBUS_TYPE_STRING, &service_name,
+					DBUS_TYPE_UINT32, &flags,
+					DBUS_TYPE_INVALID);
+
+	g_dbus_send_message(client->dbus_conn, msg);
+	return;
+}
+
 GDBusProxy *g_dbus_proxy_new(GDBusClient *client, const char *path,
 							const char *interface)
 {
@@ -492,7 +640,8 @@ GDBusProxy *g_dbus_proxy_new(GDBusClient *client, const char *path,
 	if (client == NULL)
 		return NULL;
 
-	proxy = proxy_lookup(client->proxy_list, path, interface);
+	proxy = g_dbus_proxy_lookup(client->proxy_list, NULL,
+						path, interface);
 	if (proxy)
 		return g_dbus_proxy_ref(proxy);
 
@@ -500,7 +649,13 @@ GDBusProxy *g_dbus_proxy_new(GDBusClient *client, const char *path,
 	if (proxy == NULL)
 		return NULL;
 
-	if (client->connected && !client->get_objects_call)
+	if (!client->connected) {
+		/* Force service to start */
+		start_service(proxy);
+		return g_dbus_proxy_ref(proxy);
+	}
+
+	if (!client->get_objects_call)
 		get_all_properties(proxy);
 
 	return g_dbus_proxy_ref(proxy);
@@ -692,9 +847,8 @@ gboolean g_dbus_proxy_set_property_basic(GDBusProxy *proxy,
 	struct set_property_data *data;
 	GDBusClient *client;
 	DBusMessage *msg;
-	DBusMessageIter iter, variant;
+	DBusMessageIter iter;
 	DBusPendingCall *call;
-	char type_as_str[2];
 
 	if (proxy == NULL || name == NULL || value == NULL)
 		return FALSE;
@@ -721,18 +875,12 @@ gboolean g_dbus_proxy_set_property_basic(GDBusProxy *proxy,
 		return FALSE;
 	}
 
-	type_as_str[0] = (char) type;
-	type_as_str[1] = '\0';
-
 	dbus_message_iter_init_append(msg, &iter);
 	dbus_message_iter_append_basic(&iter, DBUS_TYPE_STRING,
 							&proxy->interface);
 	dbus_message_iter_append_basic(&iter, DBUS_TYPE_STRING, &name);
 
-	dbus_message_iter_open_container(&iter, DBUS_TYPE_VARIANT,
-						type_as_str, &variant);
-	dbus_message_iter_append_basic(&variant, type, value);
-	dbus_message_iter_close_container(&iter, &variant);
+	append_variant(&iter, type, value);
 
 	if (g_dbus_send_message_with_reply(client->dbus_conn, msg,
 							&call, -1) == FALSE) {
@@ -757,10 +905,8 @@ gboolean g_dbus_proxy_set_property_array(GDBusProxy *proxy,
 	struct set_property_data *data;
 	GDBusClient *client;
 	DBusMessage *msg;
-	DBusMessageIter iter, variant, array;
+	DBusMessageIter iter;
 	DBusPendingCall *call;
-	char array_sig[3];
-	char type_sig[2];
 
 	if (!proxy || !name || !value)
 		return FALSE;
@@ -789,37 +935,12 @@ gboolean g_dbus_proxy_set_property_array(GDBusProxy *proxy,
 		return FALSE;
 	}
 
-	array_sig[0] = DBUS_TYPE_ARRAY;
-	array_sig[1] = (char) type;
-	array_sig[2] = '\0';
-
-	type_sig[0] = (char) type;
-	type_sig[1] = '\0';
-
 	dbus_message_iter_init_append(msg, &iter);
 	dbus_message_iter_append_basic(&iter, DBUS_TYPE_STRING,
 							&proxy->interface);
 	dbus_message_iter_append_basic(&iter, DBUS_TYPE_STRING, &name);
 
-	dbus_message_iter_open_container(&iter, DBUS_TYPE_VARIANT,
-							array_sig, &variant);
-
-	dbus_message_iter_open_container(&variant, DBUS_TYPE_ARRAY,
-							type_sig, &array);
-
-	if (dbus_type_is_fixed(type))
-		dbus_message_iter_append_fixed_array(&array, type, &value,
-									size);
-	else if (type == DBUS_TYPE_STRING || type == DBUS_TYPE_OBJECT_PATH) {
-		const char **str = (const char **) value;
-		size_t i;
-
-		for (i = 0; i < size; i++)
-			dbus_message_iter_append_basic(&array, type, &str[i]);
-	}
-
-	dbus_message_iter_close_container(&variant, &array);
-	dbus_message_iter_close_container(&iter, &variant);
+	append_array_variant(&iter, type, &value, size);
 
 	if (g_dbus_send_message_with_reply(client->dbus_conn, msg,
 							&call, -1) == FALSE) {
@@ -959,7 +1080,8 @@ static void parse_properties(GDBusClient *client, const char *path,
 	if (g_str_equal(interface, DBUS_INTERFACE_PROPERTIES) == TRUE)
 		return;
 
-	proxy = proxy_lookup(client->proxy_list, path, interface);
+	proxy = g_dbus_proxy_lookup(client->proxy_list, NULL,
+						path, interface);
 	if (proxy && !proxy->pending) {
 		update_properties(proxy, iter, FALSE);
 		return;

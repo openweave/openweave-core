@@ -39,6 +39,7 @@
 #include <sys/socket.h>
 
 #include "lib/bluetooth.h"
+#include "lib/uuid.h"
 #include "lib/hci.h"
 #include "lib/hci_lib.h"
 
@@ -49,7 +50,6 @@
 #include "ll.h"
 #include "hwdb.h"
 #include "keys.h"
-#include "uuid.h"
 #include "l2cap.h"
 #include "control.h"
 #include "vendor.h"
@@ -1081,90 +1081,10 @@ static void print_dev_class(const uint8_t *dev_class)
 				"  Unknown service class (0x%2.2x)", mask);
 }
 
-static const struct {
-	uint16_t val;
-	bool generic;
-	const char *str;
-} appearance_table[] = {
-	{    0, true,  "Unknown"		},
-	{   64, true,  "Phone"			},
-	{  128, true,  "Computer"		},
-	{  192, true,  "Watch"			},
-	{  193, false, "Sports Watch"		},
-	{  256, true,  "Clock"			},
-	{  320, true,  "Display"		},
-	{  384, true,  "Remote Control"		},
-	{  448, true,  "Eye-glasses"		},
-	{  512, true,  "Tag"			},
-	{  576, true,  "Keyring"		},
-	{  640, true,  "Media Player"		},
-	{  704, true,  "Barcode Scanner"	},
-	{  768, true,  "Thermometer"		},
-	{  769, false, "Thermometer: Ear"	},
-	{  832, true,  "Heart Rate Sensor"	},
-	{  833, false, "Heart Rate Belt"	},
-	{  896, true,  "Blood Pressure"		},
-	{  897, false, "Blood Pressure: Arm"	},
-	{  898, false, "Blood Pressure: Wrist"	},
-	{  960, true,  "Human Interface Device"	},
-	{  961, false, "Keyboard"		},
-	{  962, false, "Mouse"			},
-	{  963, false, "Joystick"		},
-	{  964, false, "Gamepad"		},
-	{  965, false, "Digitizer Tablet"	},
-	{  966, false, "Card Reader"		},
-	{  967, false, "Digital Pen"		},
-	{  968, false, "Barcode Scanner"	},
-	{ 1024, true,  "Glucose Meter"		},
-	{ 1088, true,  "Running Walking Sensor"			},
-	{ 1089, false, "Running Walking Sensor: In-Shoe"	},
-	{ 1090, false, "Running Walking Sensor: On-Shoe"	},
-	{ 1091, false, "Running Walking Sensor: On-Hip"		},
-	{ 1152, true,  "Cycling"				},
-	{ 1153, false, "Cycling: Cycling Computer"		},
-	{ 1154, false, "Cycling: Speed Sensor"			},
-	{ 1155, false, "Cycling: Cadence Sensor"		},
-	{ 1156, false, "Cycling: Power Sensor"			},
-	{ 1157, false, "Cycling: Speed and Cadence Sensor"	},
-	{ 1216, true,  "Undefined"				},
-
-	{ 3136, true,  "Pulse Oximeter"				},
-	{ 3137, false, "Pulse Oximeter: Fingertip"		},
-	{ 3138, false, "Pulse Oximeter: Wrist Worn"		},
-	{ 3200, true,  "Weight Scale"				},
-	{ 3264, true,  "Undefined"				},
-
-	{ 5184, true,  "Outdoor Sports Activity"		},
-	{ 5185, false, "Location Display Device"		},
-	{ 5186, false, "Location and Navigation Display Device"	},
-	{ 5187, false, "Location Pod"				},
-	{ 5188, false, "Location and Navigation Pod"		},
-	{ 5248, true,  "Undefined"				},
-	{ }
-};
-
 static void print_appearance(uint16_t appearance)
 {
-	const char *str = NULL;
-	int i, type = 0;
-
-	for (i = 0; appearance_table[i].str; i++) {
-		if (appearance_table[i].generic) {
-			if (appearance < appearance_table[i].val)
-				break;
-			type = i;
-		}
-
-		if (appearance_table[i].val == appearance) {
-			str = appearance_table[i].str;
-			break;
-		}
-	}
-
-	if (!str)
-		str = appearance_table[type].str;
-
-	print_field("Appearance: %s (0x%4.4x)", str, appearance);
+	print_field("Appearance: %s (0x%4.4x)", bt_appear_to_str(appearance),
+								appearance);
 }
 
 static void print_num_broadcast_retrans(uint8_t num_retrans)
@@ -3200,8 +3120,8 @@ static void print_fec(uint8_t fec)
 #define BT_EIR_TRANSPORT_DISCOVERY	0x26
 #define BT_EIR_LE_SUPPORTED_FEATURES	0x27
 #define BT_EIR_CHANNEL_MAP_UPDATE_IND	0x28
-#define BT_EIR_MESH_DATA		0x29
-#define BT_EIR_MESH_PROV		0x2a
+#define BT_EIR_MESH_PROV		0x29
+#define BT_EIR_MESH_DATA		0x2a
 #define BT_EIR_MESH_BEACON		0x2b
 #define BT_EIR_3D_INFO_DATA		0x3d
 #define BT_EIR_MANUFACTURER_DATA	0xff
@@ -3379,7 +3299,7 @@ static void print_uuid16_list(const char *label, const void *data,
 
 	for (i = 0; i < count; i++) {
 		uint16_t uuid = get_le16(data + (i * 2));
-		print_field("  %s (0x%4.4x)", uuid16_to_str(uuid), uuid);
+		print_field("  %s (0x%4.4x)", bt_uuid16_to_str(uuid), uuid);
 	}
 }
 
@@ -3393,7 +3313,7 @@ static void print_uuid32_list(const char *label, const void *data,
 
 	for (i = 0; i < count; i++) {
 		uint32_t uuid = get_le32(data + (i * 4));
-		print_field("  %s (0x%8.8x)", uuid32_to_str(uuid), uuid);
+		print_field("  %s (0x%8.8x)", bt_uuid32_to_str(uuid), uuid);
 	}
 }
 
@@ -3413,7 +3333,7 @@ static void print_uuid128_list(const char *label, const void *data,
 				get_le32(&uuid[12]), get_le16(&uuid[10]),
 				get_le16(&uuid[8]), get_le16(&uuid[6]),
 				get_le32(&uuid[2]), get_le16(&uuid[0]));
-		print_field("  %s (%s)", uuidstr_to_str(uuidstr), uuidstr);
+		print_field("  %s (%s)", bt_uuidstr_to_str(uuidstr), uuidstr);
 	}
 }
 
@@ -3620,8 +3540,8 @@ static void print_mesh_data(const uint8_t *data, uint8_t len)
 	if (len < 1)
 		return;
 
-	print_field("  IV: %u", data[0] & 0x01);
-	print_field("  NID: 0x%2.2x", data[0] & 0xfe);
+	print_field("  IVI: %u", data[0] >> 7);
+	print_field("  NID: 0x%2.2x", data[0] & 0x7f);
 	packet_hexdump(data + 1, len - 1);
 }
 

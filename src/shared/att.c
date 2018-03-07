@@ -642,6 +642,12 @@ static bool handle_error_rsp(struct bt_att *att, uint8_t *pdu,
 	if (!change_security(att, rsp->ecode))
 		return false;
 
+	/* Remove timeout_id if outstanding */
+	if (op->timeout_id) {
+		timeout_remove(op->timeout_id);
+		op->timeout_id = 0;
+	}
+
 	util_debug(att->debug_callback, att->debug_data,
 						"Retrying operation %p", op);
 
@@ -1202,6 +1208,17 @@ bool bt_att_unregister_disconnect(struct bt_att *att, unsigned int id)
 
 	if (!att || !id)
 		return false;
+
+	/* Check if disconnect is running */
+	if (!att->io) {
+		disconn = queue_find(att->disconn_list, match_disconn_id,
+							UINT_TO_PTR(id));
+		if (!disconn)
+			return false;
+
+		disconn->removed = true;
+		return true;
+	}
 
 	disconn = queue_remove_if(att->disconn_list, match_disconn_id,
 							UINT_TO_PTR(id));

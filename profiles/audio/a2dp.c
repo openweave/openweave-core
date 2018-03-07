@@ -1399,6 +1399,7 @@ struct avdtp *a2dp_avdtp_get(struct btd_device *device)
 {
 	struct a2dp_server *server;
 	struct a2dp_channel *chan;
+	const struct queue_entry *entry;
 
 	server = find_server(servers, device_get_adapter(device));
 	if (server == NULL)
@@ -1414,6 +1415,20 @@ struct avdtp *a2dp_avdtp_get(struct btd_device *device)
 	if (chan->session)
 		return avdtp_ref(chan->session);
 
+	/* Check if there is any SEP available */
+	for (entry = queue_get_entries(server->seps); entry;
+					entry = entry->next) {
+		struct avdtp_local_sep *sep = entry->data;
+
+		if (avdtp_sep_get_state(sep) == AVDTP_STATE_IDLE)
+			goto found;
+	}
+
+	DBG("Unable to find any available SEP");
+
+	return NULL;
+
+found:
 	chan->session = avdtp_new(NULL, device, server->seps);
 	if (!chan->session) {
 		channel_remove(chan);

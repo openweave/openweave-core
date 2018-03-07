@@ -37,11 +37,10 @@
 #include <json-c/json.h>
 #include <sys/stat.h>
 
-#include <readline/readline.h>
 #include <glib.h>
 
 #include "src/shared/util.h"
-#include "client/display.h"
+#include "src/shared/shell.h"
 
 #include "mesh/mesh-net.h"
 #include "mesh/crypto.h"
@@ -83,7 +82,7 @@ static char* prov_file_read(const char *filename)
 
 	sz = read(fd, str, st.st_size);
 	if (sz != st.st_size)
-		rl_printf("Incomplete read: %d vs %d\n", (int)sz,
+		bt_shell_printf("Incomplete read: %d vs %d\n", (int)sz,
 							(int)(st.st_size));
 
 	close(fd);
@@ -104,7 +103,7 @@ static void prov_file_write(json_object *jmain, bool local)
 
 	outfile = fopen(out_filename, "wr");
 	if (!outfile) {
-		rl_printf("Failed to open file %s for writing\n", out_filename);
+		bt_shell_printf("Failed to open file %s for writing\n", out_filename);
 		return;
 	}
 
@@ -372,14 +371,79 @@ static bool parse_bindings(struct mesh_node *node, int ele_idx,
 	return true;
 }
 
-static bool parse_configuration_models(struct mesh_node *node, int ele_idx,
-		json_object *jmodels, uint32_t target_id, json_object **jtarget)
+static json_object* find_configured_model(struct mesh_node *node, int ele_idx,
+				       json_object *jmodels, uint32_t target_id)
 {
 	int model_cnt;
 	int i;
 
-	if (jtarget)
-		*jtarget = NULL;
+	model_cnt = json_object_array_length(jmodels);
+
+	for (i = 0; i < model_cnt; ++i) {
+		json_object *jmodel;
+		json_object *jvalue;
+		char *str;
+		int len;
+		uint32_t model_id;
+
+		jmodel = json_object_array_get_idx(jmodels, i);
+
+		json_object_object_get_ex(jmodel, "modelId", &jvalue);
+		str = (char *)json_object_get_string(jvalue);
+
+		len = strlen(str);
+
+		if (len != 4 && len != 8)
+			return NULL;
+
+		if (sscanf(str, "%08x", &model_id) != 1)
+			return NULL;
+
+		if (len == 4)
+			model_id += 0xffff0000;
+
+		if (model_id == target_id)
+			return jmodel;
+	}
+
+	return NULL;
+}
+
+static bool parse_subscriptions(struct mesh_node *node, int ele_idx,
+				uint32_t model_id, json_object *jsubscriptions)
+
+{
+	int cnt;
+	int i;
+	int addr;
+
+	cnt = json_object_array_length(jsubscriptions);
+
+	for (i = 0; i < cnt; ++i) {
+		char *str;
+		json_object *jsubscription;
+
+		jsubscription = json_object_array_get_idx(jsubscriptions, i);
+		if (!jsubscription)
+			return false;
+
+		str = (char *)json_object_get_string(jsubscription);
+
+		if (sscanf(str, "%04x", &addr) != 1)
+			return false;
+
+		if (!node_add_subscription(node, ele_idx, model_id, addr))
+			return false;
+	}
+
+	return true;
+}
+
+static bool parse_configuration_models(struct mesh_node *node, int ele_idx,
+							json_object *jmodels)
+{
+	int model_cnt;
+	int i;
 
 	model_cnt = json_object_array_length(jmodels);
 
@@ -406,17 +470,16 @@ static bool parse_configuration_models(struct mesh_node *node, int ele_idx,
 		if (len == 4)
 			model_id += 0xffff0000;
 
-		if (jtarget && model_id == target_id) {
-			*jtarget = jmodel;
-			return true;
-		}
-
 		json_object_object_get_ex(jmodel, "bind", &jarray);
+
 		if (jarray && !parse_bindings(node, ele_idx, model_id, jarray))
 			return false;
 
-		json_object_object_get_ex(jmodel, "publish", &jvalue);
+		json_object_object_get_ex(jmodel, "subscribe", &jarray);
+		if (jarray && !parse_subscriptions(node, ele_idx, model_id, jarray))
+			return false;
 
+		json_object_object_get_ex(jmodel, "publish", &jvalue);
 		if (jvalue && !parse_model_pub(node, ele_idx, model_id, jvalue))
 			return false;
 	}
@@ -469,7 +532,7 @@ static bool parse_configuration_elements(struct mesh_node *node,
 		if (!jmodels)
 			continue;
 
-		if(!parse_configuration_models(node, index, jmodels, 0, NULL))
+		if(!parse_configuration_models(node, index, jmodels))
 			return false;
 	}
 	return true;
@@ -577,10 +640,10 @@ void prov_db_print_node_composition(struct mesh_node *node)
 
 done:
 	if (res)
-		rl_printf("\tComposition data for node %4.4x %s\n",
+		bt_shell_printf("\tComposition data for node %4.4x %s\n",
 							primary, comp_str);
 	else
-		rl_printf("\tComposition data for node %4.4x not present\n",
+		bt_shell_printf("\tComposition data for node %4.4x not present\n",
 								primary);
 	g_free(in_str);
 
@@ -624,7 +687,7 @@ bool prov_db_add_node_composition(struct mesh_node *node, uint8_t *data,
 
 	put_uint16(jcomp, "cid", comp->cid);
 	put_uint16(jcomp, "pid", comp->pid);
-	put_uint16(jcomp, "vid", comp->pid);
+	put_uint16(jcomp, "vid", comp->vid);
 	put_uint16(jcomp, "crpl", comp->crpl);
 
 	jfeatures = json_object_new_object();
@@ -676,7 +739,7 @@ bool prov_db_add_node_composition(struct mesh_node *node, uint8_t *data,
 		}
 
 		while (len >= 4 && v--) {
-			mod_id = get_le16(data);
+			mod_id = get_le16(data + 2);
 			vendor_id = get_le16(data);
 			mod_id |= (vendor_id << 16);
 			data += 4;
@@ -1012,8 +1075,8 @@ static json_object *get_jmodel_obj(struct mesh_node *node, uint8_t ele_idx,
 		jmodels = json_object_new_array();
 		json_object_object_add(jelement, "models", jmodels);
 	} else {
-		parse_configuration_models(node, ele_idx, jmodels,
-							model_id, &jmodel);
+		jmodel = find_configured_model(node, ele_idx, jmodels,
+								model_id);
 	}
 
 	if (!jmodel) {
@@ -1041,14 +1104,13 @@ done:
 bool prov_db_add_binding(struct mesh_node *node, uint8_t ele_idx,
 			uint32_t model_id, uint16_t app_idx)
 {
-	json_object *jmain;
+	bool local = (node == node_get_local_node());
+	json_object *jbindings = NULL;
 	json_object *jmodel;
 	json_object *jvalue;
-	json_object *jbindings = NULL;
-	bool local = (node == node_get_local_node());
+	json_object *jmain;
 
 	jmodel = get_jmodel_obj(node, ele_idx, model_id, &jmain);
-
 	if (!jmodel)
 		return false;
 
@@ -1061,6 +1123,34 @@ bool prov_db_add_binding(struct mesh_node *node, uint8_t ele_idx,
 
 	jvalue = json_object_new_int(app_idx);
 	json_object_array_add(jbindings, jvalue);
+
+	prov_file_write(jmain, local);
+
+	json_object_put(jmain);
+
+	return true;
+}
+
+bool prov_db_add_subscription(struct mesh_node *node, uint8_t ele_idx,
+			      uint32_t model_id, uint16_t addr)
+{
+	bool local = (node == node_get_local_node());
+	json_object *jsubscriptions = NULL;
+	json_object *jmodel;
+	json_object *jmain;
+
+	jmodel = get_jmodel_obj(node, ele_idx, model_id, &jmain);
+	if (!jmodel)
+		return false;
+
+	json_object_object_get_ex(jmodel, "subscribe", &jsubscriptions);
+
+	if (!jsubscriptions) {
+		jsubscriptions = json_object_new_array();
+		json_object_object_add(jmodel, "subscribe", jsubscriptions);
+	}
+
+	put_uint16_array_entry(jsubscriptions, addr);
 
 	prov_file_write(jmain, local);
 
@@ -1196,6 +1286,7 @@ static bool parse_node_composition(struct mesh_node *node, json_object *jcomp)
 {
 	json_object *jvalue;
 	json_object *jelements;
+	json_object *jfeatures;
 	json_bool enable;
 	char *str;
 	struct mesh_node_composition comp;
@@ -1215,7 +1306,7 @@ static bool parse_node_composition(struct mesh_node *node, json_object *jcomp)
 
 	str = (char *)json_object_get_string(jvalue);
 
-	if (sscanf(str, "%04hx", &comp.vid) != 1)
+	if (sscanf(str, "%04hx", &comp.pid) != 1)
 		return false;
 
 	json_object_object_get_ex(jcomp, "vid", &jvalue);
@@ -1237,19 +1328,24 @@ static bool parse_node_composition(struct mesh_node *node, json_object *jcomp)
 		return false;
 
 	/* Extract features */
-	json_object_object_get_ex(jcomp, "relay", &jvalue);
+
+	json_object_object_get_ex(jcomp, "features", &jfeatures);
+	if (!jfeatures)
+		return false;
+
+	json_object_object_get_ex(jfeatures, "relay", &jvalue);
 	enable = json_object_get_boolean(jvalue);
 	comp.relay = (enable) ? true : false;
 
-	json_object_object_get_ex(jcomp, "proxy", &jvalue);
+	json_object_object_get_ex(jfeatures, "proxy", &jvalue);
 	enable = json_object_get_boolean(jvalue);
 	comp.proxy = (enable) ? true : false;
 
-	json_object_object_get_ex(jcomp, "friend", &jvalue);
+	json_object_object_get_ex(jfeatures, "friend", &jvalue);
 	enable = json_object_get_boolean(jvalue);
 	comp.friend = (enable) ? true : false;
 
-	json_object_object_get_ex(jcomp, "lowPower", &jvalue);
+	json_object_object_get_ex(jfeatures, "lowPower", &jvalue);
 	enable = json_object_get_boolean(jvalue);
 	comp.lpn = (enable) ? true : false;
 
@@ -1380,7 +1476,7 @@ bool prov_db_show(const char *filename)
 	if (!str)
 		return false;
 
-	rl_printf("%s\n", str);
+	bt_shell_printf("%s\n", str);
 	g_free(str);
 	return true;
 }
@@ -1415,7 +1511,7 @@ static bool read_json_db(const char *filename, bool provisioner, bool local)
 
 		json_object_object_get_ex(jmain, "node", &jnode);
 		if (!jnode) {
-			rl_printf("Cannot find \"node\" object");
+			bt_shell_printf("Cannot find \"node\" object");
 			goto done;
 		} else
 			result = parse_node(jnode, true);
@@ -1451,7 +1547,7 @@ static bool read_json_db(const char *filename, bool provisioner, bool local)
 		goto done;
 
 	len = json_object_array_length(jarray);
-	rl_printf("# netkeys = %d\n", len);
+	bt_shell_printf("# netkeys = %d\n", len);
 
 	for (i = 0; i < len; ++i) {
 		uint32_t idx;
@@ -1489,7 +1585,7 @@ static bool read_json_db(const char *filename, bool provisioner, bool local)
 	json_object_object_get_ex(jmain, "appKeys", &jarray);
 	if (jarray) {
 		len = json_object_array_length(jarray);
-		rl_printf("# appkeys = %d\n", len);
+		bt_shell_printf("# appkeys = %d\n", len);
 
 		for (i = 0; i < len; ++i) {
 			int app_idx;
@@ -1536,7 +1632,7 @@ static bool read_json_db(const char *filename, bool provisioner, bool local)
 		goto done;
 
 	len = json_object_array_length(jarray);
-	rl_printf("# provisioners = %d\n", len);
+	bt_shell_printf("# provisioners = %d\n", len);
 
 	for (i = 0; i < len; ++i) {
 
@@ -1550,7 +1646,7 @@ static bool read_json_db(const char *filename, bool provisioner, bool local)
 		}
 
 		if (!parse_unicast_range(jtemp)) {
-			rl_printf("Doneed to parse unicast range\n");
+			bt_shell_printf("Doneed to parse unicast range\n");
 			goto done;
 		}
 	}
@@ -1563,7 +1659,7 @@ static bool read_json_db(const char *filename, bool provisioner, bool local)
 
 	len = json_object_array_length(jarray);
 
-	rl_printf("# provisioned nodes = %d\n", len);
+	bt_shell_printf("# provisioned nodes = %d\n", len);
 	for (i = 0; i < len; ++i) {
 		json_object *jnode;
 		jnode = json_object_array_get_idx(jarray, i);

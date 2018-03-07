@@ -92,6 +92,9 @@ do {						\
 #define newa(t, n) ((t*) alloca(sizeof(t)*(n)))
 #define malloc0(n) (calloc((n), 1))
 
+char *strdelimit(char *str, char *del, char c);
+int strsuffix(const char *str, const char *suffix);
+
 void *btd_malloc(size_t size);
 
 typedef void (*util_debug_func_t)(const char *str, void *user_data);
@@ -107,6 +110,11 @@ unsigned char util_get_dt(const char *parent, const char *name);
 
 uint8_t util_get_uid(unsigned int *bitmap, uint8_t max);
 void util_clear_uid(unsigned int *bitmap, uint8_t id);
+
+const char *bt_uuid16_to_str(uint16_t uuid);
+const char *bt_uuid32_to_str(uint32_t uuid);
+const char *bt_uuidstr_to_str(const char *uuid);
+const char *bt_appear_to_str(uint16_t appearance);
 
 static inline int8_t get_s8(const void *ptr)
 {

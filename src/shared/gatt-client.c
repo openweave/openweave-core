@@ -141,6 +141,9 @@ static struct request *request_create(struct bt_gatt_client *client)
 {
 	struct request *req;
 
+	if (!client->att)
+		return NULL;
+
 	req = new0(struct request, 1);
 
 	if (client->next_request_id < 1)
@@ -1209,7 +1212,9 @@ static void complete_notify_request(void *data)
 	struct notify_data *notify_data = data;
 
 	notify_data->att_id = 0;
-	notify_data->callback(0, notify_data->user_data);
+
+	if (notify_data->callback)
+		notify_data->callback(0, notify_data->user_data);
 }
 
 static bool notify_data_write_ccc(struct notify_data *notify_data, bool enable,
@@ -1931,7 +1936,14 @@ unsigned int bt_gatt_client_ready_register(struct bt_gatt_client *client,
 bool bt_gatt_client_ready_unregister(struct bt_gatt_client *client,
 						unsigned int id)
 {
-	return queue_remove(client->ready_cbs, UINT_TO_PTR(id));
+	struct ready_cb *ready = UINT_TO_PTR(id);
+
+	if (queue_remove(client->ready_cbs, ready)) {
+		ready_destroy(ready);
+		return true;
+	}
+
+	return false;
 }
 
 bool bt_gatt_client_set_service_changed(struct bt_gatt_client *client,
@@ -3146,6 +3158,10 @@ bool bt_gatt_client_unregister_notify(struct bt_gatt_client *client,
 
 	/* Remove data if it has been queued */
 	queue_remove(notify_data->chrc->reg_notify_queue, notify_data);
+
+	/* Reset callbacks */
+	notify_data->callback = NULL;
+	notify_data->notify = NULL;
 
 	complete_unregister_notify(notify_data);
 	return true;

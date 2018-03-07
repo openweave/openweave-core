@@ -33,13 +33,13 @@
 #include <inttypes.h>
 
 #include "lib/bluetooth.h"
+#include "lib/uuid.h"
 
 #include "src/shared/util.h"
 #include "bt.h"
 #include "packet.h"
 #include "display.h"
 #include "l2cap.h"
-#include "uuid.h"
 #include "keys.h"
 #include "sdp.h"
 #include "bnep.h"
@@ -157,9 +157,9 @@ static bool setup_conn_req(struct bnep_frame *bnep_frame, uint8_t indent)
 	}
 
 	print_field("%*cDst: 0x%x(%s)", indent, ' ', dst_uuid,
-						uuid32_to_str(dst_uuid));
+						bt_uuid32_to_str(dst_uuid));
 	print_field("%*cSrc: 0x%x(%s)", indent, ' ', src_uuid,
-						uuid32_to_str(src_uuid));
+						bt_uuid32_to_str(src_uuid));
 	return true;
 }
 

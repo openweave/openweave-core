@@ -69,6 +69,7 @@ tools/bluemoon
 tools/seq2bseq
 tools/hex2hcd
 tools/nokfw
+tools/rtlfw
 tools/btiotest
 tools/mpris-proxy
 tools/bluetooth-player
@@ -116,6 +117,7 @@ tools/btattach
 tools/btconfig
 tools/btmgmt
 tools/btsnoop
+tools/btpclient
 peripheral/btsensor
 monitor/btmon
 emulator/btvirt

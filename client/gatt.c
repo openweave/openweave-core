@@ -31,18 +31,16 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <sys/uio.h>
-#include <wordexp.h>
 #include <fcntl.h>
+#include <string.h>
 
-#include <readline/readline.h>
-#include <readline/history.h>
 #include <glib.h>
 
+#include "src/shared/util.h"
 #include "src/shared/queue.h"
 #include "src/shared/io.h"
+#include "src/shared/shell.h"
 #include "gdbus/gdbus.h"
-#include "monitor/uuid.h"
-#include "display.h"
 #include "gatt.h"
 
 #define APP_PATH "/org/bluez/app"
@@ -107,9 +105,9 @@ static void print_service(struct service *service, const char *description)
 {
 	const char *text;
 
-	text = uuidstr_to_str(service->uuid);
+	text = bt_uuidstr_to_str(service->uuid);
 	if (!text)
-		rl_printf("%s%s%s%s Service\n\t%s\n\t%s\n",
+		bt_shell_printf("%s%s%s%s Service\n\t%s\n\t%s\n",
 					description ? "[" : "",
 					description ? : "",
 					description ? "] " : "",
@@ -117,7 +115,7 @@ static void print_service(struct service *service, const char *description)
 					"Secondary",
 					service->path, service->uuid);
 	else
-		rl_printf("%s%s%s%s Service\n\t%s\n\t%s\n\t%s\n",
+		bt_shell_printf("%s%s%s%s Service\n\t%s\n\t%s\n\t%s\n",
 					description ? "[" : "",
 					description ? : "",
 					description ? "] " : "",
@@ -174,15 +172,15 @@ static void print_chrc(struct chrc *chrc, const char *description)
 {
 	const char *text;
 
-	text = uuidstr_to_str(chrc->uuid);
+	text = bt_uuidstr_to_str(chrc->uuid);
 	if (!text)
-		rl_printf("%s%s%sCharacteristic\n\t%s\n\t%s\n",
+		bt_shell_printf("%s%s%sCharacteristic\n\t%s\n\t%s\n",
 					description ? "[" : "",
 					description ? : "",
 					description ? "] " : "",
 					chrc->path, chrc->uuid);
 	else
-		rl_printf("%s%s%sCharacteristic\n\t%s\n\t%s\n\t%s\n",
+		bt_shell_printf("%s%s%sCharacteristic\n\t%s\n\t%s\n\t%s\n",
 					description ? "[" : "",
 					description ? : "",
 					description ? "] " : "",
@@ -208,25 +206,16 @@ static void print_characteristic(GDBusProxy *proxy, const char *description)
 
 static gboolean chrc_is_child(GDBusProxy *characteristic)
 {
-	GList *l;
 	DBusMessageIter iter;
-	const char *service, *path;
+	const char *service;
 
 	if (!g_dbus_proxy_get_property(characteristic, "Service", &iter))
 		return FALSE;
 
 	dbus_message_iter_get_basic(&iter, &service);
 
-	for (l = services; l; l = g_list_next(l)) {
-		GDBusProxy *proxy = l->data;
-
-		path = g_dbus_proxy_get_path(proxy);
-
-		if (!strcmp(path, service))
-			return TRUE;
-	}
-
-	return FALSE;
+	return g_dbus_proxy_lookup(services, NULL, service,
+					"org.bluez.GattService1") != NULL;
 }
 
 void gatt_add_characteristic(GDBusProxy *proxy)
@@ -273,15 +262,15 @@ static void print_desc(struct desc *desc, const char *description)
 {
 	const char *text;
 
-	text = uuidstr_to_str(desc->uuid);
+	text = bt_uuidstr_to_str(desc->uuid);
 	if (!text)
-		rl_printf("%s%s%sDescriptor\n\t%s\n\t%s\n",
+		bt_shell_printf("%s%s%sDescriptor\n\t%s\n\t%s\n",
 					description ? "[" : "",
 					description ? : "",
 					description ? "] " : "",
 					desc->path, desc->uuid);
 	else
-		rl_printf("%s%s%sDescriptor\n\t%s\n\t%s\n\t%s\n",
+		bt_shell_printf("%s%s%sDescriptor\n\t%s\n\t%s\n\t%s\n",
 					description ? "[" : "",
 					description ? : "",
 					description ? "] " : "",
@@ -378,35 +367,25 @@ static void list_attributes(const char *path, GList *source)
 void gatt_list_attributes(const char *path)
 {
 	list_attributes(path, services);
-}
-
-static GDBusProxy *select_proxy(const char *path, GList *source)
-{
-	GList *l;
-
-	for (l = source; l; l = g_list_next(l)) {
-		GDBusProxy *proxy = l->data;
-
-		if (strcmp(path, g_dbus_proxy_get_path(proxy)) == 0)
-			return proxy;
-	}
-
-	return NULL;
+	return bt_shell_noninteractive_quit(EXIT_SUCCESS);
 }
 
 static GDBusProxy *select_attribute(const char *path)
 {
 	GDBusProxy *proxy;
 
-	proxy = select_proxy(path, services);
+	proxy = g_dbus_proxy_lookup(services, NULL, path,
+					"org.bluez.GattService1");
 	if (proxy)
 		return proxy;
 
-	proxy = select_proxy(path, characteristics);
+	proxy = g_dbus_proxy_lookup(characteristics, NULL, path,
+					"org.bluez.GattCharacteristic1");
 	if (proxy)
 		return proxy;
 
-	return select_proxy(path, descriptors);
+	return g_dbus_proxy_lookup(descriptors, NULL, path,
+					"org.bluez.GattDescriptor1");
 }
 
 static GDBusProxy *select_proxy_by_uuid(GDBusProxy *parent, const char *uuid,
@@ -467,28 +446,13 @@ GDBusProxy *gatt_select_attribute(GDBusProxy *parent, const char *arg)
 
 static char *attribute_generator(const char *text, int state, GList *source)
 {
-	static int index, len;
-	GList *list;
+	static int index;
 
 	if (!state) {
 		index = 0;
-		len = strlen(text);
 	}
 
-	for (list = g_list_nth(source, index); list;
-						list = g_list_next(list)) {
-		GDBusProxy *proxy = list->data;
-		const char *path;
-
-		index++;
-
-		path = g_dbus_proxy_get_path(proxy);
-
-		if (!strncmp(path, text, len))
-			return strdup(path);
-        }
-
-	return NULL;
+	return g_dbus_proxy_path_lookup(source, &index, text);
 }
 
 char *gatt_attribute_generator(const char *text, int state)
@@ -523,27 +487,29 @@ static void read_reply(DBusMessage *message, void *user_data)
 	dbus_error_init(&error);
 
 	if (dbus_set_error_from_message(&error, message) == TRUE) {
-		rl_printf("Failed to read: %s\n", error.name);
+		bt_shell_printf("Failed to read: %s\n", error.name);
 		dbus_error_free(&error);
-		return;
+		return bt_shell_noninteractive_quit(EXIT_FAILURE);
 	}
 
 	dbus_message_iter_init(message, &iter);
 
 	if (dbus_message_iter_get_arg_type(&iter) != DBUS_TYPE_ARRAY) {
-		rl_printf("Invalid response to read\n");
-		return;
+		bt_shell_printf("Invalid response to read\n");
+		return bt_shell_noninteractive_quit(EXIT_FAILURE);
 	}
 
 	dbus_message_iter_recurse(&iter, &array);
 	dbus_message_iter_get_fixed_array(&array, &value, &len);
 
 	if (len < 0) {
-		rl_printf("Unable to parse value\n");
-		return;
+		bt_shell_printf("Unable to parse value\n");
+		return bt_shell_noninteractive_quit(EXIT_FAILURE);
 	}
 
-	rl_hexdump(value, len);
+	bt_shell_hexdump(value, len);
+
+	return bt_shell_noninteractive_quit(EXIT_SUCCESS);
 }
 
 static void read_setup(DBusMessageIter *iter, void *user_data)
@@ -564,11 +530,11 @@ static void read_attribute(GDBusProxy *proxy)
 {
 	if (g_dbus_proxy_method_call(proxy, "ReadValue", read_setup, read_reply,
 							NULL, NULL) == FALSE) {
-		rl_printf("Failed to read\n");
-		return;
+		bt_shell_printf("Failed to read\n");
+		return bt_shell_noninteractive_quit(EXIT_FAILURE);
 	}
 
-	rl_printf("Attempting to read %s\n", g_dbus_proxy_get_path(proxy));
+	bt_shell_printf("Attempting to read %s\n", g_dbus_proxy_get_path(proxy));
 }
 
 void gatt_read_attribute(GDBusProxy *proxy)
@@ -582,8 +548,9 @@ void gatt_read_attribute(GDBusProxy *proxy)
 		return;
 	}
 
-	rl_printf("Unable to read attribute %s\n",
+	bt_shell_printf("Unable to read attribute %s\n",
 						g_dbus_proxy_get_path(proxy));
+	return bt_shell_noninteractive_quit(EXIT_FAILURE);
 }
 
 static void write_reply(DBusMessage *message, void *user_data)
@@ -593,10 +560,12 @@ static void write_reply(DBusMessage *message, void *user_data)
 	dbus_error_init(&error);
 
 	if (dbus_set_error_from_message(&error, message) == TRUE) {
-		rl_printf("Failed to write: %s\n", error.name);
+		bt_shell_printf("Failed to write: %s\n", error.name);
 		dbus_error_free(&error);
-		return;
+		return bt_shell_noninteractive_quit(EXIT_FAILURE);
 	}
+
+	return bt_shell_noninteractive_quit(EXIT_SUCCESS);
 }
 
 static void write_setup(DBusMessageIter *iter, void *user_data)
@@ -634,14 +603,14 @@ static void write_attribute(GDBusProxy *proxy, char *arg)
 			continue;
 
 		if (i >= G_N_ELEMENTS(value)) {
-			rl_printf("Too much data\n");
-			return;
+			bt_shell_printf("Too much data\n");
+			return bt_shell_noninteractive_quit(EXIT_FAILURE);
 		}
 
 		val = strtol(entry, &endptr, 0);
 		if (!endptr || *endptr != '\0' || val > UINT8_MAX) {
-			rl_printf("Invalid value at index %d\n", i);
-			return;
+			bt_shell_printf("Invalid value at index %d\n", i);
+			return bt_shell_noninteractive_quit(EXIT_FAILURE);
 		}
 
 		value[i] = val;
@@ -652,22 +621,23 @@ static void write_attribute(GDBusProxy *proxy, char *arg)
 
 	/* Write using the fd if it has been acquired and fit the MTU */
 	if (proxy == write_io.proxy && (write_io.io && write_io.mtu >= i)) {
-		rl_printf("Attempting to write fd %d\n",
+		bt_shell_printf("Attempting to write fd %d\n",
 						io_get_fd(write_io.io));
 		if (io_send(write_io.io, &iov, 1) < 0) {
-			rl_printf("Failed to write: %s", strerror(errno));
-			return;
+			bt_shell_printf("Failed to write: %s", strerror(errno));
+			return bt_shell_noninteractive_quit(EXIT_FAILURE);
 		}
 		return;
 	}
 
 	if (g_dbus_proxy_method_call(proxy, "WriteValue", write_setup,
 					write_reply, &iov, NULL) == FALSE) {
-		rl_printf("Failed to write\n");
-		return;
+		bt_shell_printf("Failed to write\n");
+		return bt_shell_noninteractive_quit(EXIT_FAILURE);
 	}
 
-	rl_printf("Attempting to write %s\n", g_dbus_proxy_get_path(proxy));
+	bt_shell_printf("Attempting to write %s\n",
+					g_dbus_proxy_get_path(proxy));
 }
 
 void gatt_write_attribute(GDBusProxy *proxy, const char *arg)
@@ -681,8 +651,10 @@ void gatt_write_attribute(GDBusProxy *proxy, const char *arg)
 		return;
 	}
 
-	rl_printf("Unable to write attribute %s\n",
+	bt_shell_printf("Unable to write attribute %s\n",
 						g_dbus_proxy_get_path(proxy));
+
+	return bt_shell_noninteractive_quit(EXIT_FAILURE);
 }
 
 static bool pipe_read(struct io *io, void *user_data)
@@ -700,13 +672,13 @@ static bool pipe_read(struct io *io, void *user_data)
 		return false;
 
 	if (chrc)
-		rl_printf("[" COLORED_CHG "] Attribute %s written:\n",
+		bt_shell_printf("[" COLORED_CHG "] Attribute %s written:\n",
 							chrc->path);
 	else
-		rl_printf("[" COLORED_CHG "] %s Notification:\n",
+		bt_shell_printf("[" COLORED_CHG "] %s Notification:\n",
 				g_dbus_proxy_get_path(notify_io.proxy));
 
-	rl_hexdump(buf, bytes_read);
+	bt_shell_hexdump(buf, bytes_read);
 
 	return true;
 }
@@ -716,15 +688,21 @@ static bool pipe_hup(struct io *io, void *user_data)
 	struct chrc *chrc = user_data;
 
 	if (chrc) {
-		rl_printf("Attribute %s Write pipe closed\n", chrc->path);
-		if (chrc->write_io) {
+		bt_shell_printf("Attribute %s %s pipe closed\n", chrc->path,
+				io == chrc->write_io ? "Write" : "Notify");
+
+		if (io == chrc->write_io) {
 			io_destroy(chrc->write_io);
 			chrc->write_io = NULL;
+		} else {
+			io_destroy(chrc->notify_io);
+			chrc->notify_io = NULL;
 		}
+
 		return false;
 	}
 
-	rl_printf("%s closed\n", io == notify_io.io ? "Notify" : "Write");
+	bt_shell_printf("%s closed\n", io == notify_io.io ? "Notify" : "Write");
 
 	if (io == notify_io.io)
 		notify_io_destroy();
@@ -757,10 +735,10 @@ static void acquire_write_reply(DBusMessage *message, void *user_data)
 	dbus_error_init(&error);
 
 	if (dbus_set_error_from_message(&error, message) == TRUE) {
-		rl_printf("Failed to acquire write: %s\n", error.name);
+		bt_shell_printf("Failed to acquire write: %s\n", error.name);
 		dbus_error_free(&error);
 		write_io.proxy = NULL;
-		return;
+		return bt_shell_noninteractive_quit(EXIT_FAILURE);
 	}
 
 	if (write_io.io)
@@ -769,13 +747,15 @@ static void acquire_write_reply(DBusMessage *message, void *user_data)
 	if ((dbus_message_get_args(message, NULL, DBUS_TYPE_UNIX_FD, &fd,
 					DBUS_TYPE_UINT16, &write_io.mtu,
 					DBUS_TYPE_INVALID) == false)) {
-		rl_printf("Invalid AcquireWrite response\n");
-		return;
+		bt_shell_printf("Invalid AcquireWrite response\n");
+		return bt_shell_noninteractive_quit(EXIT_FAILURE);
 	}
 
-	rl_printf("AcquireWrite success: fd %d MTU %u\n", fd, write_io.mtu);
+	bt_shell_printf("AcquireWrite success: fd %d MTU %u\n", fd,
+								write_io.mtu);
 
 	write_io.io = pipe_io_new(fd, NULL);
+	return bt_shell_noninteractive_quit(EXIT_SUCCESS);
 }
 
 static void acquire_setup(DBusMessageIter *iter, void *user_data)
@@ -798,15 +778,16 @@ void gatt_acquire_write(GDBusProxy *proxy, const char *arg)
 
 	iface = g_dbus_proxy_get_interface(proxy);
 	if (strcmp(iface, "org.bluez.GattCharacteristic1")) {
-		rl_printf("Unable to acquire write: %s not a characteristic\n",
-						g_dbus_proxy_get_path(proxy));
-		return;
+		bt_shell_printf("Unable to acquire write: %s not a"
+				" characteristic\n",
+				g_dbus_proxy_get_path(proxy));
+		return bt_shell_noninteractive_quit(EXIT_FAILURE);
 	}
 
 	if (g_dbus_proxy_method_call(proxy, "AcquireWrite", acquire_setup,
 				acquire_write_reply, NULL, NULL) == FALSE) {
-		rl_printf("Failed to AcquireWrite\n");
-		return;
+		bt_shell_printf("Failed to AcquireWrite\n");
+		return bt_shell_noninteractive_quit(EXIT_FAILURE);
 	}
 
 	write_io.proxy = proxy;
@@ -815,11 +796,13 @@ void gatt_acquire_write(GDBusProxy *proxy, const char *arg)
 void gatt_release_write(GDBusProxy *proxy, const char *arg)
 {
 	if (proxy != write_io.proxy || !write_io.io) {
-		rl_printf("Write not acquired\n");
-		return;
+		bt_shell_printf("Write not acquired\n");
+		return bt_shell_noninteractive_quit(EXIT_FAILURE);
 	}
 
 	write_io_destroy();
+
+	return bt_shell_noninteractive_quit(EXIT_SUCCESS);
 }
 
 static void acquire_notify_reply(DBusMessage *message, void *user_data)
@@ -830,10 +813,10 @@ static void acquire_notify_reply(DBusMessage *message, void *user_data)
 	dbus_error_init(&error);
 
 	if (dbus_set_error_from_message(&error, message) == TRUE) {
-		rl_printf("Failed to acquire notify: %s\n", error.name);
+		bt_shell_printf("Failed to acquire notify: %s\n", error.name);
 		dbus_error_free(&error);
 		write_io.proxy = NULL;
-		return;
+		return bt_shell_noninteractive_quit(EXIT_FAILURE);
 	}
 
 	if (notify_io.io) {
@@ -846,13 +829,16 @@ static void acquire_notify_reply(DBusMessage *message, void *user_data)
 	if ((dbus_message_get_args(message, NULL, DBUS_TYPE_UNIX_FD, &fd,
 					DBUS_TYPE_UINT16, &notify_io.mtu,
 					DBUS_TYPE_INVALID) == false)) {
-		rl_printf("Invalid AcquireNotify response\n");
-		return;
+		bt_shell_printf("Invalid AcquireNotify response\n");
+		return bt_shell_noninteractive_quit(EXIT_FAILURE);
 	}
 
-	rl_printf("AcquireNotify success: fd %d MTU %u\n", fd, notify_io.mtu);
+	bt_shell_printf("AcquireNotify success: fd %d MTU %u\n", fd,
+								notify_io.mtu);
 
 	notify_io.io = pipe_io_new(fd, NULL);
+
+	return bt_shell_noninteractive_quit(EXIT_SUCCESS);
 }
 
 void gatt_acquire_notify(GDBusProxy *proxy, const char *arg)
@@ -861,15 +847,16 @@ void gatt_acquire_notify(GDBusProxy *proxy, const char *arg)
 
 	iface = g_dbus_proxy_get_interface(proxy);
 	if (strcmp(iface, "org.bluez.GattCharacteristic1")) {
-		rl_printf("Unable to acquire notify: %s not a characteristic\n",
-						g_dbus_proxy_get_path(proxy));
-		return;
+		bt_shell_printf("Unable to acquire notify: %s not a"
+				" characteristic\n",
+				g_dbus_proxy_get_path(proxy));
+		return bt_shell_noninteractive_quit(EXIT_FAILURE);
 	}
 
 	if (g_dbus_proxy_method_call(proxy, "AcquireNotify", acquire_setup,
 				acquire_notify_reply, NULL, NULL) == FALSE) {
-		rl_printf("Failed to AcquireNotify\n");
-		return;
+		bt_shell_printf("Failed to AcquireNotify\n");
+		return bt_shell_noninteractive_quit(EXIT_FAILURE);
 	}
 
 	notify_io.proxy = proxy;
@@ -878,11 +865,13 @@ void gatt_acquire_notify(GDBusProxy *proxy, const char *arg)
 void gatt_release_notify(GDBusProxy *proxy, const char *arg)
 {
 	if (proxy != notify_io.proxy || !notify_io.io) {
-		rl_printf("Notify not acquired\n");
-		return;
+		bt_shell_printf("Notify not acquired\n");
+		return bt_shell_noninteractive_quit(EXIT_FAILURE);
 	}
 
 	notify_io_destroy();
+
+	return bt_shell_noninteractive_quit(EXIT_SUCCESS);
 }
 
 static void notify_reply(DBusMessage *message, void *user_data)
@@ -893,13 +882,15 @@ static void notify_reply(DBusMessage *message, void *user_data)
 	dbus_error_init(&error);
 
 	if (dbus_set_error_from_message(&error, message) == TRUE) {
-		rl_printf("Failed to %s notify: %s\n",
+		bt_shell_printf("Failed to %s notify: %s\n",
 				enable ? "start" : "stop", error.name);
 		dbus_error_free(&error);
-		return;
+		return bt_shell_noninteractive_quit(EXIT_FAILURE);
 	}
 
-	rl_printf("Notify %s\n", enable == TRUE ? "started" : "stopped");
+	bt_shell_printf("Notify %s\n", enable == TRUE ? "started" : "stopped");
+
+	return bt_shell_noninteractive_quit(EXIT_SUCCESS);
 }
 
 static void notify_attribute(GDBusProxy *proxy, bool enable)
@@ -913,9 +904,12 @@ static void notify_attribute(GDBusProxy *proxy, bool enable)
 
 	if (g_dbus_proxy_method_call(proxy, method, NULL, notify_reply,
 				GUINT_TO_POINTER(enable), NULL) == FALSE) {
-		rl_printf("Failed to %s notify\n", enable ? "start" : "stop");
-		return;
+		bt_shell_printf("Failed to %s notify\n",
+				enable ? "start" : "stop");
+		return bt_shell_noninteractive_quit(EXIT_FAILURE);
 	}
+
+	return bt_shell_noninteractive_quit(EXIT_SUCCESS);
 }
 
 void gatt_notify_attribute(GDBusProxy *proxy, bool enable)
@@ -928,8 +922,10 @@ void gatt_notify_attribute(GDBusProxy *proxy, bool enable)
 		return;
 	}
 
-	rl_printf("Unable to notify attribute %s\n",
+	bt_shell_printf("Unable to notify attribute %s\n",
 						g_dbus_proxy_get_path(proxy));
+
+	return bt_shell_noninteractive_quit(EXIT_FAILURE);
 }
 
 static void register_app_setup(DBusMessageIter *iter, void *user_data)
@@ -956,12 +952,15 @@ static void register_app_reply(DBusMessage *message, void *user_data)
 	dbus_error_init(&error);
 
 	if (dbus_set_error_from_message(&error, message) == TRUE) {
-		rl_printf("Failed to register application: %s\n", error.name);
+		bt_shell_printf("Failed to register application: %s\n",
+				error.name);
 		dbus_error_free(&error);
-		return;
+		return bt_shell_noninteractive_quit(EXIT_FAILURE);
 	}
 
-	rl_printf("Application registered\n");
+	bt_shell_printf("Application registered\n");
+
+	return bt_shell_noninteractive_quit(EXIT_SUCCESS);
 }
 
 void gatt_add_manager(GDBusProxy *proxy)
@@ -1019,37 +1018,39 @@ static const GDBusPropertyTable properties[] = {
 	{ }
 };
 
-void gatt_register_app(DBusConnection *conn, GDBusProxy *proxy, wordexp_t *w)
+void gatt_register_app(DBusConnection *conn, GDBusProxy *proxy,
+					int argc, char *argv[])
 {
 	GList *l;
-	unsigned int i;
+	int i;
 
 	l = g_list_find_custom(managers, proxy, match_proxy);
 	if (!l) {
-		rl_printf("Unable to find GattManager proxy\n");
-		return;
+		bt_shell_printf("Unable to find GattManager proxy\n");
+		return bt_shell_noninteractive_quit(EXIT_FAILURE);
 	}
 
-	for (i = 0; i < w->we_wordc; i++)
-		uuids = g_list_append(uuids, g_strdup(w->we_wordv[i]));
+	for (i = 0; i < argc; i++)
+		uuids = g_list_append(uuids, g_strdup(argv[i]));
 
 	if (uuids) {
 		if (g_dbus_register_interface(conn, APP_PATH,
 						PROFILE_INTERFACE, methods,
 						NULL, properties, NULL,
 						NULL) == FALSE) {
-			rl_printf("Failed to register application object\n");
-			return;
+			bt_shell_printf("Failed to register application"
+					" object\n");
+			return bt_shell_noninteractive_quit(EXIT_FAILURE);
 		}
 	}
 
 	if (g_dbus_proxy_method_call(l->data, "RegisterApplication",
 						register_app_setup,
-						register_app_reply, w,
+						register_app_reply, NULL,
 						NULL) == FALSE) {
-		rl_printf("Failed register application\n");
+		bt_shell_printf("Failed register application\n");
 		g_dbus_unregister_interface(conn, APP_PATH, PROFILE_INTERFACE);
-		return;
+		return bt_shell_noninteractive_quit(EXIT_FAILURE);
 	}
 }
 
@@ -1061,20 +1062,23 @@ static void unregister_app_reply(DBusMessage *message, void *user_data)
 	dbus_error_init(&error);
 
 	if (dbus_set_error_from_message(&error, message) == TRUE) {
-		rl_printf("Failed to unregister application: %s\n", error.name);
+		bt_shell_printf("Failed to unregister application: %s\n",
+				error.name);
 		dbus_error_free(&error);
-		return;
+		return bt_shell_noninteractive_quit(EXIT_FAILURE);
 	}
 
-	rl_printf("Application unregistered\n");
+	bt_shell_printf("Application unregistered\n");
 
 	if (!uuids)
-		return;
+		return bt_shell_noninteractive_quit(EXIT_SUCCESS);
 
 	g_list_free_full(uuids, g_free);
 	uuids = NULL;
 
 	g_dbus_unregister_interface(conn, APP_PATH, PROFILE_INTERFACE);
+
+	return bt_shell_noninteractive_quit(EXIT_SUCCESS);
 }
 
 static void unregister_app_setup(DBusMessageIter *iter, void *user_data)
@@ -1090,16 +1094,16 @@ void gatt_unregister_app(DBusConnection *conn, GDBusProxy *proxy)
 
 	l = g_list_find_custom(managers, proxy, match_proxy);
 	if (!l) {
-		rl_printf("Unable to find GattManager proxy\n");
-		return;
+		bt_shell_printf("Unable to find GattManager proxy\n");
+		return bt_shell_noninteractive_quit(EXIT_FAILURE);
 	}
 
 	if (g_dbus_proxy_method_call(l->data, "UnregisterApplication",
 						unregister_app_setup,
 						unregister_app_reply, conn,
 						NULL) == FALSE) {
-		rl_printf("Failed unregister profile\n");
-		return;
+		bt_shell_printf("Failed unregister profile\n");
+		return bt_shell_noninteractive_quit(EXIT_FAILURE);
 	}
 }
 
@@ -1194,7 +1198,7 @@ static void service_set_primary(const char *input, void *user_data)
 	else if (!strcmp(input, "no")) {
 		service->primary = false;
 	} else {
-		rl_printf("Invalid option: %s\n", input);
+		bt_shell_printf("Invalid option: %s\n", input);
 		local_services = g_list_remove(local_services, service);
 		print_service(service, COLORED_DEL);
 		g_dbus_unregister_interface(service->conn, service->path,
@@ -1203,14 +1207,14 @@ static void service_set_primary(const char *input, void *user_data)
 }
 
 void gatt_register_service(DBusConnection *conn, GDBusProxy *proxy,
-								wordexp_t *w)
+						int argc, char *argv[])
 {
 	struct service *service;
 	bool primary = true;
 
 	service = g_new0(struct service, 1);
 	service->conn = conn;
-	service->uuid = g_strdup(w->we_wordv[0]);
+	service->uuid = g_strdup(argv[1]);
 	service->path = g_strdup_printf("%s/service%p", APP_PATH, service);
 	service->primary = primary;
 
@@ -1218,17 +1222,19 @@ void gatt_register_service(DBusConnection *conn, GDBusProxy *proxy,
 					SERVICE_INTERFACE, NULL, NULL,
 					service_properties, service,
 					service_free) == FALSE) {
-		rl_printf("Failed to register service object\n");
+		bt_shell_printf("Failed to register service object\n");
 		service_free(service);
-		return;
+		return bt_shell_noninteractive_quit(EXIT_FAILURE);
 	}
 
 	print_service(service, COLORED_NEW);
 
 	local_services = g_list_append(local_services, service);
 
-	rl_prompt_input(service->path, "Primary (yes/no):", service_set_primary,
+	bt_shell_prompt_input(service->path, "Primary (yes/no):", service_set_primary,
 			service);
+
+	return bt_shell_noninteractive_quit(EXIT_SUCCESS);
 }
 
 static struct service *service_find(const char *pattern)
@@ -1251,14 +1257,14 @@ static struct service *service_find(const char *pattern)
 }
 
 void gatt_unregister_service(DBusConnection *conn, GDBusProxy *proxy,
-								wordexp_t *w)
+						int argc, char *argv[])
 {
 	struct service *service;
 
-	service = service_find(w->we_wordv[0]);
+	service = service_find(argv[1]);
 	if (!service) {
-		rl_printf("Failed to unregister service object\n");
-		return;
+		bt_shell_printf("Failed to unregister service object\n");
+		return bt_shell_noninteractive_quit(EXIT_FAILURE);
 	}
 
 	local_services = g_list_remove(local_services, service);
@@ -1267,6 +1273,8 @@ void gatt_unregister_service(DBusConnection *conn, GDBusProxy *proxy,
 
 	g_dbus_unregister_interface(service->conn, service->path,
 						SERVICE_INTERFACE);
+
+	return bt_shell_noninteractive_quit(EXIT_SUCCESS);
 }
 
 static gboolean chrc_get_uuid(const GDBusPropertyTable *property,
@@ -1455,7 +1463,7 @@ static DBusMessage *chrc_write_value(DBusConnection *conn, DBusMessage *msg,
 					"org.bluez.Error.InvalidArguments",
 					NULL);
 
-	rl_printf("[" COLORED_CHG "] Attribute %s written" , chrc->path);
+	bt_shell_printf("[" COLORED_CHG "] Attribute %s written" , chrc->path);
 
 	g_dbus_emit_property_changed(conn, chrc->path, CHRC_INTERFACE, "Value");
 
@@ -1530,7 +1538,7 @@ static DBusMessage *chrc_create_pipe(struct chrc *chrc, DBusMessage *msg)
 	else
 		chrc->notify_io = io;
 
-	rl_printf("[" COLORED_CHG "] Attribute %s %s pipe acquired\n",
+	bt_shell_printf("[" COLORED_CHG "] Attribute %s %s pipe acquired\n",
 					chrc->path, dir ? "Write" : "Notify");
 
 	return reply;
@@ -1601,7 +1609,7 @@ static DBusMessage *chrc_start_notify(DBusConnection *conn, DBusMessage *msg,
 		return g_dbus_create_reply(msg, DBUS_TYPE_INVALID);
 
 	chrc->notifying = true;
-	rl_printf("[" COLORED_CHG "] Attribute %s notifications enabled",
+	bt_shell_printf("[" COLORED_CHG "] Attribute %s notifications enabled",
 							chrc->path);
 	g_dbus_emit_property_changed(conn, chrc->path, CHRC_INTERFACE,
 							"Notifying");
@@ -1618,7 +1626,7 @@ static DBusMessage *chrc_stop_notify(DBusConnection *conn, DBusMessage *msg,
 		return g_dbus_create_reply(msg, DBUS_TYPE_INVALID);
 
 	chrc->notifying = false;
-	rl_printf("[" COLORED_CHG "] Attribute %s notifications disabled",
+	bt_shell_printf("[" COLORED_CHG "] Attribute %s notifications disabled",
 							chrc->path);
 	g_dbus_emit_property_changed(conn, chrc->path, CHRC_INTERFACE,
 							"Notifying");
@@ -1631,7 +1639,7 @@ static DBusMessage *chrc_confirm(DBusConnection *conn, DBusMessage *msg,
 {
 	struct chrc *chrc = user_data;
 
-	rl_printf("Attribute %s indication confirm received", chrc->path);
+	bt_shell_printf("Attribute %s indication confirm received", chrc->path);
 
 	return dbus_message_new_method_return(msg);
 }
@@ -1667,13 +1675,13 @@ static uint8_t *str2bytearray(char *arg, int *val_len)
 			continue;
 
 		if (i >= G_N_ELEMENTS(value)) {
-			rl_printf("Too much data\n");
+			bt_shell_printf("Too much data\n");
 			return NULL;
 		}
 
 		val = strtol(entry, &endptr, 0);
 		if (!endptr || *endptr != '\0' || val > UINT8_MAX) {
-			rl_printf("Invalid value at index %d\n", i);
+			bt_shell_printf("Invalid value at index %d\n", i);
 			return NULL;
 		}
 
@@ -1694,37 +1702,40 @@ static void chrc_set_value(const char *input, void *user_data)
 	chrc->value = str2bytearray((char *) input, &chrc->value_len);
 }
 
-void gatt_register_chrc(DBusConnection *conn, GDBusProxy *proxy, wordexp_t *w)
+void gatt_register_chrc(DBusConnection *conn, GDBusProxy *proxy,
+					int argc, char *argv[])
 {
 	struct service *service;
 	struct chrc *chrc;
 
 	if (!local_services) {
-		rl_printf("No service registered\n");
-		return;
+		bt_shell_printf("No service registered\n");
+		return bt_shell_noninteractive_quit(EXIT_FAILURE);
 	}
 
 	service = g_list_last(local_services)->data;
 
 	chrc = g_new0(struct chrc, 1);
 	chrc->service = service;
-	chrc->uuid = g_strdup(w->we_wordv[0]);
+	chrc->uuid = g_strdup(argv[1]);
 	chrc->path = g_strdup_printf("%s/chrc%p", service->path, chrc);
-	chrc->flags = g_strsplit(w->we_wordv[1], ",", -1);
+	chrc->flags = g_strsplit(argv[2], ",", -1);
 
 	if (g_dbus_register_interface(conn, chrc->path, CHRC_INTERFACE,
 					chrc_methods, NULL, chrc_properties,
 					chrc, chrc_free) == FALSE) {
-		rl_printf("Failed to register characteristic object\n");
+		bt_shell_printf("Failed to register characteristic object\n");
 		chrc_free(chrc);
-		return;
+		return bt_shell_noninteractive_quit(EXIT_FAILURE);
 	}
 
 	service->chrcs = g_list_append(service->chrcs, chrc);
 
 	print_chrc(chrc, COLORED_NEW);
 
-	rl_prompt_input(chrc->path, "Enter value:", chrc_set_value, chrc);
+	bt_shell_prompt_input(chrc->path, "Enter value:", chrc_set_value, chrc);
+
+	return bt_shell_noninteractive_quit(EXIT_SUCCESS);
 }
 
 static struct chrc *chrc_find(const char *pattern)
@@ -1753,19 +1764,21 @@ static struct chrc *chrc_find(const char *pattern)
 }
 
 void gatt_unregister_chrc(DBusConnection *conn, GDBusProxy *proxy,
-								wordexp_t *w)
+						int argc, char *argv[])
 {
 	struct chrc *chrc;
 
-	chrc = chrc_find(w->we_wordv[0]);
+	chrc = chrc_find(argv[1]);
 	if (!chrc) {
-		rl_printf("Failed to unregister characteristic object\n");
-		return;
+		bt_shell_printf("Failed to unregister characteristic object\n");
+		return bt_shell_noninteractive_quit(EXIT_FAILURE);
 	}
 
 	chrc->service->chrcs = g_list_remove(chrc->service->chrcs, chrc);
 
 	chrc_unregister(chrc);
+
+	return bt_shell_noninteractive_quit(EXIT_SUCCESS);
 }
 
 static DBusMessage *desc_read_value(DBusConnection *conn, DBusMessage *msg,
@@ -1789,7 +1802,7 @@ static DBusMessage *desc_write_value(DBusConnection *conn, DBusMessage *msg,
 					"org.bluez.Error.InvalidArguments",
 					NULL);
 
-	rl_printf("[" COLORED_CHG "] Attribute %s written" , desc->path);
+	bt_shell_printf("[" COLORED_CHG "] Attribute %s written" , desc->path);
 
 	g_dbus_emit_property_changed(conn, desc->path, CHRC_INTERFACE, "Value");
 
@@ -1880,42 +1893,45 @@ static void desc_set_value(const char *input, void *user_data)
 	desc->value = str2bytearray((char *) input, &desc->value_len);
 }
 
-void gatt_register_desc(DBusConnection *conn, GDBusProxy *proxy, wordexp_t *w)
+void gatt_register_desc(DBusConnection *conn, GDBusProxy *proxy,
+						int argc, char *argv[])
 {
 	struct service *service;
 	struct desc *desc;
 
 	if (!local_services) {
-		rl_printf("No service registered\n");
-		return;
+		bt_shell_printf("No service registered\n");
+		return bt_shell_noninteractive_quit(EXIT_FAILURE);
 	}
 
 	service = g_list_last(local_services)->data;
 
 	if (!service->chrcs) {
-		rl_printf("No characteristic registered\n");
-		return;
+		bt_shell_printf("No characteristic registered\n");
+		return bt_shell_noninteractive_quit(EXIT_FAILURE);
 	}
 
 	desc = g_new0(struct desc, 1);
 	desc->chrc = g_list_last(service->chrcs)->data;
-	desc->uuid = g_strdup(w->we_wordv[0]);
+	desc->uuid = g_strdup(argv[1]);
 	desc->path = g_strdup_printf("%s/desc%p", desc->chrc->path, desc);
-	desc->flags = g_strsplit(w->we_wordv[1], ",", -1);
+	desc->flags = g_strsplit(argv[2], ",", -1);
 
 	if (g_dbus_register_interface(conn, desc->path, DESC_INTERFACE,
 					desc_methods, NULL, desc_properties,
 					desc, desc_free) == FALSE) {
-		rl_printf("Failed to register descriptor object\n");
+		bt_shell_printf("Failed to register descriptor object\n");
 		desc_free(desc);
-		return;
+		return bt_shell_noninteractive_quit(EXIT_FAILURE);
 	}
 
 	desc->chrc->descs = g_list_append(desc->chrc->descs, desc);
 
 	print_desc(desc, COLORED_NEW);
 
-	rl_prompt_input(desc->path, "Enter value:", desc_set_value, desc);
+	bt_shell_prompt_input(desc->path, "Enter value:", desc_set_value, desc);
+
+	return bt_shell_noninteractive_quit(EXIT_SUCCESS);
 }
 
 static struct desc *desc_find(const char *pattern)
@@ -1949,17 +1965,19 @@ static struct desc *desc_find(const char *pattern)
 }
 
 void gatt_unregister_desc(DBusConnection *conn, GDBusProxy *proxy,
-								wordexp_t *w)
+						int argc, char *argv[])
 {
 	struct desc *desc;
 
-	desc = desc_find(w->we_wordv[0]);
+	desc = desc_find(argv[1]);
 	if (!desc) {
-		rl_printf("Failed to unregister descriptor object\n");
-		return;
+		bt_shell_printf("Failed to unregister descriptor object\n");
+		return bt_shell_noninteractive_quit(EXIT_FAILURE);
 	}
 
 	desc->chrc->descs = g_list_remove(desc->chrc->descs, desc);
 
 	desc_unregister(desc);
+
+	return bt_shell_noninteractive_quit(EXIT_SUCCESS);
 }
