@@ -917,7 +917,7 @@ class WeaveDeviceManager:
         )
 
     def SetRendezvousMode(self, modeFlags):
-        if networkId < 0 or networkId > pow(2,16):
+        if modeFlags < 0 or modeFlags > pow(2,16):
             raise ValueError("modeFlags must be an unsigned 16-bit integer")
 
         self._CallDevMgrAsync(
