@@ -60,6 +60,7 @@ enum NestWeaveProductId
     kNestWeaveProduct_BlackQuartz                = 0x0012,
     kNestWeaveProduct_Onyx                       = 0x0014,
     kNestWeaveProduct_OnyxBackplate              = 0x0015,
+    kNestWeaveProduct_SDKSampleBorderRouter      = 0xFE05,
 };
 
 }; // namespace DeviceDescription
