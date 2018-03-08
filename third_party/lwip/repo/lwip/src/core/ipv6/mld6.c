@@ -61,6 +61,7 @@
 #include "lwip/netif.h"
 #include "lwip/memp.h"
 #include "lwip/stats.h"
+#include "lwip/timeouts.h"
 
 #include <string.h>
 
@@ -90,6 +91,7 @@ static void mld6_send(struct netif *netif, struct mld_group *group, u8_t type);
 err_t
 mld6_stop(struct netif *netif)
 {
+  err_t err = ERR_OK;
   struct mld_group *group = netif_mld6_data(netif);
 
   netif_set_client_data(netif, LWIP_NETIF_CLIENT_DATA_INDEX_MLD6, NULL);
@@ -99,7 +101,11 @@ mld6_stop(struct netif *netif)
 
     /* disable the group at the MAC level */
     if (netif->mld_mac_filter != NULL) {
-      netif->mld_mac_filter(netif, &(group->group_address), NETIF_DEL_MAC_FILTER);
+      err_t res = netif->mld_mac_filter(netif, &(group->group_address), NETIF_DEL_MAC_FILTER);
+      /* If there was an error, don't overwrite it */
+      if (res != ERR_OK) {
+        err = res;
+      }
     }
 
     /* free group */
@@ -108,7 +114,7 @@ mld6_stop(struct netif *netif)
     /* move to "next" */
     group = next;
   }
-  return ERR_OK;
+  return err;
 }
 
 /**
@@ -150,7 +156,6 @@ mld6_lookfor_group(struct netif *ifp, const ip6_addr_t *addr)
   return NULL;
 }
 
-
 /**
  * create a new group
  *
@@ -163,6 +168,9 @@ static struct mld_group *
 mld6_new_group(struct netif *ifp, const ip6_addr_t *addr)
 {
   struct mld_group *group;
+
+  if (netif_mld6_data(ifp) == NULL)
+      sys_timeout(MLD6_TMR_INTERVAL, mld6_tmr, NULL);
 
   group = (struct mld_group *)memp_malloc(MEMP_MLD6_GROUP);
   if (group != NULL) {
@@ -336,6 +344,7 @@ mld6_joingroup(const ip6_addr_t *srcaddr, const ip6_addr_t *groupaddr)
 err_t
 mld6_joingroup_netif(struct netif *netif, const ip6_addr_t *groupaddr)
 {
+  err_t err = ERR_OK;
   struct mld_group *group;
 
   /* find group or create a new one if not found */
@@ -350,7 +359,11 @@ mld6_joingroup_netif(struct netif *netif, const ip6_addr_t *groupaddr)
 
     /* Activate this address on the MAC layer. */
     if (netif->mld_mac_filter != NULL) {
-      netif->mld_mac_filter(netif, groupaddr, NETIF_ADD_MAC_FILTER);
+      err_t res = netif->mld_mac_filter(netif, groupaddr, NETIF_ADD_MAC_FILTER);
+      /* If there was an error, don't overwrite it */
+      if (res != ERR_OK) {
+        err = res;
+      }
     }
 
     /* Report our membership. */
@@ -361,7 +374,7 @@ mld6_joingroup_netif(struct netif *netif, const ip6_addr_t *groupaddr)
 
   /* Increment group use */
   group->use++;
-  return ERR_OK;
+  return err;
 }
 
 /**
@@ -415,6 +428,8 @@ mld6_leavegroup_netif(struct netif *netif, const ip6_addr_t *groupaddr)
   group = mld6_lookfor_group(netif, groupaddr);
 
   if (group != NULL) {
+    err_t err = ERR_OK;
+
     /* Leave if there is no other use of the group */
     if (group->use <= 1) {
       /* Remove the group from the list */
@@ -428,7 +443,11 @@ mld6_leavegroup_netif(struct netif *netif, const ip6_addr_t *groupaddr)
 
       /* Disable the group at the MAC level */
       if (netif->mld_mac_filter != NULL) {
-        netif->mld_mac_filter(netif, groupaddr, NETIF_DEL_MAC_FILTER);
+        err_t res = netif->mld_mac_filter(netif, groupaddr, NETIF_DEL_MAC_FILTER);
+        /* If there was an error, don't overwrite it */
+        if (res != ERR_OK) {
+          err = res;
+        }
       }
 
       /* free group struct */
@@ -439,7 +458,7 @@ mld6_leavegroup_netif(struct netif *netif, const ip6_addr_t *groupaddr)
     }
 
     /* Left group */
-    return ERR_OK;
+    return err;
   }
 
   /* Group not found */
@@ -453,7 +472,7 @@ mld6_leavegroup_netif(struct netif *netif, const ip6_addr_t *groupaddr)
  *
  * When a delaying member expires, a membership report is sent.
  */
-void
+err_t
 mld6_tmr(void)
 {
   struct netif *netif = netif_list;
@@ -477,6 +496,7 @@ mld6_tmr(void)
     }
     netif = netif->next;
   }
+  return (netif_list != NULL) ? ERR_OK : -1;
 }
 
 /**

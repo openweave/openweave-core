@@ -89,6 +89,10 @@
 #include "lwip/nd6.h"
 #endif
 
+#if LWIP_IPV6_ROUTE_TABLE_SUPPORT
+#include "lwip/ip6_route_table.h"
+#endif /* LWIP_IPV6_ROUTE_TABLE_SUPPORT */
+
 #if LWIP_NETIF_STATUS_CALLBACK
 #define NETIF_STATUS_CALLBACK(n) do{ if (n->status_callback) { (n->status_callback)(n); }}while(0)
 #else
@@ -188,6 +192,15 @@ netif_init(void)
   netif_set_up(&loop_netif);
 
 #endif /* LWIP_HAVE_LOOPIF */
+}
+
+void
+netif_apply_pcb(struct netif *netif, struct ip_pcb *pcb)
+{
+  NETIF_SET_HWADDRHINT(netif, pcb?&(pcb->addr_hint)?NULL);
+#if LWIP_MANAGEMENT_CHANNEL
+  netif->using_management_channel = pcb?!!ip_get_option(pcb,SOF_MANAGEMENT):0;
+#endif
 }
 
 /**
@@ -1199,6 +1212,7 @@ netif_create_ip6_linklocal_address(struct netif *netif, u8_t from_mac_48bit)
       }
       ip_2_ip6(&netif->ip6_addr[0])->addr[addr_index] |= ((u32_t)(netif->hwaddr[netif->hwaddr_len - i - 1])) << (8 * (i & 0x03));
     }
+    ip_2_ip6(&netif->ip6_addr[0])->addr[2] ^= PP_HTONL(0x02000000ul);
   }
 
   /* Set address state. */
@@ -1209,6 +1223,99 @@ netif_create_ip6_linklocal_address(struct netif *netif, u8_t from_mac_48bit)
   /* Consider address valid. */
   netif_ip6_addr_set_state(netif, 0, IP6_ADDR_PREFERRED);
 #endif /* LWIP_IPV6_AUTOCONFIG */
+}
+
+/**
+ * This function allows for the addition of a new IPv6 address to an interface
+ * along with a prefix len to add a route to the routing table.
+ *
+ * @param netif netif to add the address on
+ * @param ip6addr address to add
+ * @prefix_len the prefix length for the route corresponding to the address
+ * @param chosen_idx if != NULL, the chosen IPv6 address index will be stored here
+ */
+err_t
+netif_add_ip6_address_with_route(struct netif *netif, ip6_addr_t *ip6addr, 
+                                 u8_t prefix_len, s8_t *chosen_idx)
+{
+  s8_t retval = ERR_OK;
+#if LWIP_IPV6_ROUTE_TABLE_SUPPORT
+  struct ip6_prefix ip6_pref;
+  
+  if (!ip6_prefix_valid(prefix_len)) {
+    retval = ERR_ARG;
+    goto fail;
+  }
+#else
+  if (prefix_len != 64 && prefix_len != 128) {
+    retval = ERR_ARG;
+    goto fail;
+  }
+#endif
+
+  if ((retval = netif_add_ip6_address(netif, ip6addr, chosen_idx)) !=
+                ERR_OK) {
+    goto fail;
+  }
+
+#if LWIP_IPV6_ROUTE_TABLE_SUPPORT
+  /* Add a route in routing table for the prefix len. Ignore adding route if
+   * prefix_len is zero(default route) or prefix_len is 128(host route) 
+   */
+  if (prefix_len > 0 && prefix_len < IP6_MAX_PREFIX_LEN) {
+    ip6_addr_copy(ip6_pref.addr, *ip6addr);
+    ip6_pref.prefix_len = prefix_len;
+    if ((retval = ip6_add_route_entry(&ip6_pref, netif, NULL, NULL)) != 
+                  ERR_OK) {
+      goto fail;
+    }
+  }
+#endif /* LWIP_IPV6_ROUTE_TABLE_SUPPORT */
+
+fail:
+  return retval;
+}
+
+/**
+ * This function allows for the removal of an IPv6 address from an interface
+ * as well as any routes associated with it.
+ *
+ * @param netif netif on which the address is assigned
+ * @param ip6addr address to remove
+ * @prefix_len the prefix length for the route corresponding to the address
+ */
+err_t
+netif_remove_ip6_address_with_route(struct netif *netif, ip6_addr_t *ip6addr, 
+                                    u8_t prefix_len)
+{
+  s8_t retval = ERR_OK;
+#if LWIP_IPV6_ROUTE_TABLE_SUPPORT
+  struct ip6_prefix ip6_pref;
+  
+  if (!ip6_prefix_valid(prefix_len)) {
+    retval = ERR_ARG;
+    goto fail;
+  }
+#else
+  if (prefix_len != 64 && prefix_len != 128) {
+    retval = ERR_ARG;
+    goto fail;
+  }
+#endif /* LWIP_IPV6_ROUTE_TABLE_SUPPORT */
+
+  if ((retval = netif_remove_ip6_address(netif, ip6addr)) != ERR_OK) {
+      goto fail;
+  }
+
+#if LWIP_IPV6_ROUTE_TABLE_SUPPORT
+  /* Remove the route in routing table for the prefix len */
+  ip6_addr_copy(ip6_pref.addr, *ip6addr);
+  ip6_pref.prefix_len = prefix_len;
+  ip6_remove_route_entry(&ip6_pref);
+#endif /* LWIP_IPV6_ROUTE_TABLE_SUPPORT */
+
+fail:
+  return retval;
 }
 
 /**
@@ -1253,8 +1360,26 @@ netif_add_ip6_address(struct netif *netif, const ip6_addr_t *ip6addr, s8_t *chos
   return ERR_VAL;
 }
 
-/** Dummy IPv6 output function for netifs not supporting IPv6
+/** This function allows for the easy removal of an IPv6 address from an interface.
+ *
+ * @param netif netif on which the address is assigned
+ * @param ip6addr address to remove
  */
+err_t
+netif_remove_ip6_address(struct netif *netif, ip6_addr_t *ip6addr)
+{
+  s8_t i;
+
+  i = netif_get_ip6_addr_match(netif, ip6addr);
+  if (i >= 0) {
+    ip6_addr_set_zero(ip_2_ip6(&netif->ip6_addr[i]));
+    netif_ip6_addr_set_state(netif, i, IP6_ADDR_INVALID);
+    return ERR_OK;
+  }
+
+  return ERR_VAL;
+}
+
 static err_t
 netif_null_output_ip6(struct netif *netif, struct pbuf *p, const ip6_addr_t *ipaddr)
 {

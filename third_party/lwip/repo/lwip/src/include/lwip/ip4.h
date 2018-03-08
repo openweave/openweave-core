@@ -70,7 +70,7 @@ struct netif *ip4_route_src(const ip4_addr_t *dest, const ip4_addr_t *src);
 #endif /* LWIP_IPV4_SRC_ROUTING */
 err_t ip4_input(struct pbuf *p, struct netif *inp);
 err_t ip4_output(struct pbuf *p, const ip4_addr_t *src, const ip4_addr_t *dest,
-       u8_t ttl, u8_t tos, u8_t proto);
+       u8_t ttl, u8_t tos, u8_t proto, struct ip_pcb *pcb);
 err_t ip4_output_if(struct pbuf *p, const ip4_addr_t *src, const ip4_addr_t *dest,
        u8_t ttl, u8_t tos, u8_t proto, struct netif *netif);
 err_t ip4_output_if_src(struct pbuf *p, const ip4_addr_t *src, const ip4_addr_t *dest,

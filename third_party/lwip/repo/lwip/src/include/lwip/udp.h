@@ -85,6 +85,7 @@ struct udp_pcb {
 /* Protocol specific PCB members */
 
   struct udp_pcb *next;
+  struct netif *intf_filter;
 
   u8_t flags;
   /** ports are in host byte order */

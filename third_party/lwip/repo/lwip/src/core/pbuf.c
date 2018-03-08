@@ -127,9 +127,12 @@ void eth_rx_irq()
 #include <string.h>
 
 #define SIZEOF_STRUCT_PBUF        LWIP_MEM_ALIGN_SIZE(sizeof(struct pbuf))
-/* Since the pool is created in memp, PBUF_POOL_BUFSIZE will be automatically
-   aligned there. Therefore, PBUF_POOL_BUFSIZE_ALIGNED can be used here. */
-#define PBUF_POOL_BUFSIZE_ALIGNED LWIP_MEM_ALIGN_SIZE(PBUF_POOL_BUFSIZE)
+
+#if LWIP_PBUF_FROM_CUSTOM_POOLS
+#define GET_ALIGNED_PBUF_POOL_SIZE(x) (LWIP_MEM_ALIGN_SIZE(memp_sizes[x]) - SIZEOF_STRUCT_PBUF)
+#else
+#define GET_ALIGNED_PBUF_POOL_SIZE(x) LWIP_MEM_ALIGN_SIZE(PBUF_POOL_BUFSIZE)
+#endif
 
 #if !LWIP_TCP || !TCP_QUEUE_OOSEQ || !PBUF_POOL_FREE_OOSEQ
 #define PBUF_POOL_IS_EMPTY()
@@ -213,6 +216,68 @@ pbuf_pool_is_empty(void)
 #endif /* !LWIP_TCP || !TCP_QUEUE_OOSEQ || !PBUF_POOL_FREE_OOSEQ */
 
 /**
+ * Decide which pbuf pool to draw from
+ */
+memp_t
+pbuf_get_target_pool(u16_t length, u16_t offset)
+{
+  memp_t target_pool;
+#if LWIP_PBUF_FROM_CUSTOM_POOLS
+  u32_t total_length;
+  target_pool = PBUF_CUSTOM_POOL_IDX_START;
+  total_length = (u32_t)LWIP_MEM_ALIGN(length + offset + SIZEOF_STRUCT_PBUF);
+
+  /* Start at smallest pool, try to find a pbuf pool whose
+   * pbufs will accommodate the requested size.  Stop when we
+   * find a pool or when we reach the largest pool */
+  while (1) {
+    if (total_length <= memp_sizes[target_pool] || target_pool == PBUF_CUSTOM_POOL_IDX_END) {
+        LWIP_DEBUGF(PBUF_DEBUG| LWIP_DBG_TRACE, ("pbuf_get_target_pool: total_len %u memp_sizes %u\n", total_length, memp_sizes[target_pool]));
+        break;
+    }
+    target_pool--;
+  }
+#else
+  target_pool = MEMP_PBUF_POOL;
+#endif
+  return target_pool;
+}
+
+static struct pbuf *
+pbuf_allocate_from_target_pool(memp_t *target_pool)
+{
+  struct pbuf *p;
+#if LWIP_PBUF_FROM_CUSTOM_POOLS
+  while (1) {
+    /* allocate head of pbuf chain into p,
+     * if allocation fails, scan all pbuf pools
+     * for a suitable pool to use instead */
+    p = (struct pbuf *)memp_malloc(*target_pool);
+    LWIP_DEBUGF(PBUF_DEBUG | LWIP_DBG_TRACE, ("pbuf_alloc: allocated pbuf %p (%u)\n", (void *)p, *target_pool));
+
+    /* We have successfully allocated, or we have no more
+     * pools to try if we failed */
+    if (p != NULL) {
+      p->pool = *target_pool;
+#if LWIP_PERF
+      sys_profile_pbuf_allocate(p);
+#endif
+      break;
+    }
+
+    if(*target_pool == PBUF_CUSTOM_POOL_IDX_END) {
+      break;
+    }
+
+    (*target_pool)--;
+  }
+#else
+  p = (struct pbuf *)memp_malloc(*target_pool);
+#endif
+  return p;
+}
+
+/**
  * @ingroup pbuf
  * Allocates a pbuf of the given type (possibly a chain for PBUF_POOL type).
  *
@@ -251,6 +316,8 @@ pbuf_alloc(pbuf_layer layer, u16_t length, pbuf_type type)
   u16_t offset;
   s32_t rem_len; /* remaining length */
   LWIP_DEBUGF(PBUF_DEBUG | LWIP_DBG_TRACE, ("pbuf_alloc(length=%"U16_F")\n", length));
+  u32_t aligned_size;
+  memp_t target_pool;
 
   /* determine header offset */
   switch (layer) {
@@ -281,13 +348,15 @@ pbuf_alloc(pbuf_layer layer, u16_t length, pbuf_type type)
 
   switch (type) {
   case PBUF_POOL:
-    /* allocate head of pbuf chain into p */
-    p = (struct pbuf *)memp_malloc(MEMP_PBUF_POOL);
-    LWIP_DEBUGF(PBUF_DEBUG | LWIP_DBG_TRACE, ("pbuf_alloc: allocated pbuf %p\n", (void *)p));
+    target_pool = pbuf_get_target_pool(length, offset);
+    p = pbuf_allocate_from_target_pool(&target_pool);
+
     if (p == NULL) {
       PBUF_POOL_IS_EMPTY();
       return NULL;
     }
+
+    aligned_size = GET_ALIGNED_PBUF_POOL_SIZE(target_pool);
     p->type = type;
     p->next = NULL;
 
@@ -298,14 +367,16 @@ pbuf_alloc(pbuf_layer layer, u16_t length, pbuf_type type)
     /* the total length of the pbuf chain is the requested size */
     p->tot_len = length;
     /* set the length of the first pbuf in the chain */
-    p->len = LWIP_MIN(length, PBUF_POOL_BUFSIZE_ALIGNED - LWIP_MEM_ALIGN_SIZE(offset));
+    p->len = LWIP_MIN(length, aligned_size - LWIP_MEM_ALIGN_SIZE(offset));
     LWIP_ASSERT("check p->payload + p->len does not overflow pbuf",
                 ((u8_t*)p->payload + p->len <=
-                 (u8_t*)p + SIZEOF_STRUCT_PBUF + PBUF_POOL_BUFSIZE_ALIGNED));
+                 (u8_t*)p + SIZEOF_STRUCT_PBUF + aligned_size));
     LWIP_ASSERT("PBUF_POOL_BUFSIZE must be bigger than MEM_ALIGNMENT",
-      (PBUF_POOL_BUFSIZE_ALIGNED - LWIP_MEM_ALIGN_SIZE(offset)) > 0 );
+      (aligned_size - LWIP_MEM_ALIGN_SIZE(offset)) > 0 );
     /* set reference count (needed here in case we fail) */
     p->ref = 1;
+    /* set flags */
+    p->flags = 0;
 
     /* now allocate the tail of the pbuf chain */
 
@@ -315,7 +386,8 @@ pbuf_alloc(pbuf_layer layer, u16_t length, pbuf_type type)
     rem_len = length - p->len;
     /* any remaining pbufs to be allocated? */
     while (rem_len > 0) {
-      q = (struct pbuf *)memp_malloc(MEMP_PBUF_POOL);
+      target_pool = pbuf_get_target_pool(rem_len, 0);
+      q = pbuf_allocate_from_target_pool(&target_pool);
       if (q == NULL) {
         PBUF_POOL_IS_EMPTY();
         /* free chain so far allocated */
@@ -323,6 +395,7 @@ pbuf_alloc(pbuf_layer layer, u16_t length, pbuf_type type)
         /* bail out unsuccessfully */
         return NULL;
       }
+      aligned_size = GET_ALIGNED_PBUF_POOL_SIZE(target_pool);
       q->type = type;
       q->flags = 0;
       q->next = NULL;
@@ -332,13 +405,13 @@ pbuf_alloc(pbuf_layer layer, u16_t length, pbuf_type type)
       LWIP_ASSERT("rem_len < max_u16_t", rem_len < 0xffff);
       q->tot_len = (u16_t)rem_len;
       /* this pbuf length is pool size, unless smaller sized tail */
-      q->len = LWIP_MIN((u16_t)rem_len, PBUF_POOL_BUFSIZE_ALIGNED);
+      q->len = LWIP_MIN((u16_t)rem_len, aligned_size);
       q->payload = (void *)((u8_t *)q + SIZEOF_STRUCT_PBUF);
       LWIP_ASSERT("pbuf_alloc: pbuf q->payload properly aligned",
               ((mem_ptr_t)q->payload % MEM_ALIGNMENT) == 0);
       LWIP_ASSERT("check p->payload + p->len does not overflow pbuf",
                   ((u8_t*)p->payload + p->len <=
-                   (u8_t*)p + SIZEOF_STRUCT_PBUF + PBUF_POOL_BUFSIZE_ALIGNED));
+                   (u8_t*)p + SIZEOF_STRUCT_PBUF + aligned_size));
       q->ref = 1;
       /* calculate remaining length to be allocated */
       rem_len -= q->len;
@@ -717,6 +790,7 @@ pbuf_free(struct pbuf *p)
   u16_t type;
   struct pbuf *q;
   u8_t count;
+  memp_t target_pool;
 
   if (p == NULL) {
     LWIP_ASSERT("p != NULL", p != NULL);
@@ -745,6 +819,9 @@ pbuf_free(struct pbuf *p)
     SYS_ARCH_PROTECT(old_level);
     /* all pbufs in a chain are referenced at least once */
     LWIP_ASSERT("pbuf_free: p->ref > 0", p->ref > 0);
+#if LWIP_PBUF_CALLOUTS
+    sys_pbuf_free_callout(p);
+#endif /* LWIP_PBUF_CALLOUTS */
     /* decrease reference count (number of pointers to pbuf) */
     ref = --(p->ref);
     SYS_ARCH_UNPROTECT(old_level);
@@ -765,7 +842,19 @@ pbuf_free(struct pbuf *p)
       {
         /* is this a pbuf from the pool? */
         if (type == PBUF_POOL) {
-          memp_free(MEMP_PBUF_POOL, p);
+#if LWIP_PBUF_FROM_CUSTOM_POOLS
+          target_pool = p->pool;
+#if LWIP_PERF
+          // Record free of buffer before actually freeing for 2 reasons:
+          // - Pool pointer still valid
+          // - Prevent buf from being re-allocated before recording free
+          sys_profile_pbuf_free(p);
+#endif
+#else
+          target_pool = MEMP_PBUF_POOL;
+#endif
+
+          memp_free(target_pool, p);
         /* is this a ROM or RAM referencing pbuf? */
         } else if (type == PBUF_ROM || type == PBUF_REF) {
           memp_free(MEMP_PBUF, p);
@@ -1439,4 +1528,67 @@ pbuf_strstr(const struct pbuf* p, const char* substr)
     return 0xFFFF;
   }
   return pbuf_memfind(p, substr, (u16_t)substr_len, 0);
+}
+
+/** Check if the passed pbuf is allocated from the target pool.
+ * If not, check for availability of pbuf in the target or a larger pool
+ * that is smaller than the passed pbuf.
+ * If available, allocate the new pbuf, copy the contents and free the
+ * passed pbuf. If there is a valid offset passed, make the 'payload'
+ * pointer offset bytes from start.
+ *
+ * @param p pbuf to evaluate
+ * @param offset number of bytes to offset the payload pointer. If negative,
+ *               use same offset as in the passed pbuf
+ * @return the new pbuf if allocated, or passed pbuf otherwise
+ */
+struct pbuf *
+pbuf_rightsize(struct pbuf *p, s16_t offset)
+{
+#if LWIP_PBUF_FROM_CUSTOM_POOLS
+    struct pbuf* q = NULL;
+
+    /* Allow right-sizing only if given pbuf is not chained and
+     * its reference count is 1*/
+    if ((p != NULL) && (p->type == PBUF_POOL) &&
+        (p->len == p->tot_len) && (p->ref == 1)) {
+        memp_t target_pool;
+
+        if (offset < 0) {
+            offset = ((u8_t*)p->payload - ((u8_t*)p + SIZEOF_STRUCT_PBUF));
+        }
+        target_pool = pbuf_get_target_pool(p->len, offset);
+        /* check if p is drawn from the target pool */
+        while ((p->pool < target_pool) && (target_pool > PBUF_CUSTOM_POOL_IDX_END)) {
+            /* check if there is room in the target pool */
+            if (memp_is_not_empty(target_pool)) {
+                q = pbuf_allocate_from_target_pool(&target_pool);
+                if (q != NULL) {
+                    q->type = PBUF_POOL;
+                    q->next = NULL;
+                    q->ref = 1;
+                    q->flags = p->flags;
+                    /* make the payload pointer point 'offset' bytes into pbuf data memory */
+                    q->payload = (void *)((u8_t *)q + (SIZEOF_STRUCT_PBUF + offset));
+                    /* copy payload bytes*/
+                    MEMCPY((u8_t*)(q->payload), (u8_t*)(p->payload), p->len);
+                    /* set the len */
+                    q->len = q->tot_len = p->len;
+#if LWIP_PERF
+                    /* record transfer of pbuf */
+                    sys_profile_pbuf_transfer(q, p);
+#endif
+                    /* free the passed pbuf */
+                    pbuf_free(p);
+                    p = NULL;
+                    break;
+                }
+            }
+            target_pool--;
+        }
+    }
+    if (p == NULL)
+        p = q;
+#endif
+    return p;
 }

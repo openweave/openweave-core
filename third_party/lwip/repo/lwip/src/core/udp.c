@@ -243,6 +243,14 @@ udp_input(struct pbuf *p, struct netif *inp)
     LWIP_DEBUGF(UDP_DEBUG, (", %"U16_F") <-- (", pcb->local_port));
     ip_addr_debug_print(UDP_DEBUG, &pcb->remote_ip);
     LWIP_DEBUGF(UDP_DEBUG, (", %"U16_F")\n", pcb->remote_port));
+    
+    if (!(pcb->intf_filter == NULL || pcb->intf_filter == inp))
+      continue;
+
+#if LWIP_MANAGEMENT_CHANNEL
+    if (inp->using_management_channel && !ip_get_option(pcb,SOF_MANAGEMENT))
+      continue;
+#endif
 
     /* compare PCB local addr+port to UDP destination addr+port */
     if ((pcb->local_port == dest) &&
@@ -368,7 +376,7 @@ udp_input(struct pbuf *p, struct netif *inp)
                   pbuf_header_force(p, hdrs_len);
                   p_header_changed = 1;
                 }
-                q = pbuf_alloc(PBUF_RAW, p->tot_len, PBUF_RAM);
+                q = pbuf_alloc(PBUF_RAW, p->tot_len, PBUF_POOL);
                 if (q != NULL) {
                   err_t err = pbuf_copy(q, p);
                   if (err == ERR_OK) {
@@ -836,12 +844,15 @@ udp_sendto_if_src_chksum(struct udp_pcb *pcb, struct pbuf *p, const ip_addr_t *d
   ttl = pcb->ttl;
 #endif /* LWIP_MULTICAST_TX_OPTIONS */
 
-  LWIP_DEBUGF(UDP_DEBUG, ("udp_send: UDP checksum 0x%04"X16_F"\n", udphdr->chksum));
+  LWIP_DEBUGF(UDP_DEBUG, ("udp_send: UDP checksum 0x%04"X16_F"\n", lwip_ntohs(udphdr->chksum)));
   LWIP_DEBUGF(UDP_DEBUG, ("udp_send: ip_output_if (,,,,0x%02"X16_F",)\n", (u16_t)ip_proto));
   /* output to IP */
-  NETIF_SET_HWADDRHINT(netif, &(pcb->addr_hint));
+  netif_apply_pcb(netif, pcb);
   err = ip_output_if_src(q, src_ip, dst_ip, ttl, pcb->tos, ip_proto, netif);
-  NETIF_SET_HWADDRHINT(netif, NULL);
+  netif_apply_pcb(netif, NULL);
+#if LWIP_MANAGEMENT_CHANNEL
+  netif->using_management_channel = 0;
+#endif
 
   /* @todo: must this be increased even if error occurred? */
   MIB2_STATS_INC(mib2.udpoutdatagrams);

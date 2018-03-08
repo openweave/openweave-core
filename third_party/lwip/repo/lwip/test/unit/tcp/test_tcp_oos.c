@@ -271,6 +271,9 @@ START_TEST(test_tcp_recv_ooseq_FIN_OOSEQ)
     EXPECT(pcb->ooseq == NULL);
   }
 
+  /* make sure all pbufs is freed */
+  EXPECT(MEMP_STATS_GET(used, MEMP_PBUF_POOL) == 0);
+
   /* make sure the pcb is freed */
   EXPECT(MEMP_STATS_GET(used, MEMP_TCP_PCB) == 1);
   tcp_abort(pcb);
@@ -447,6 +450,9 @@ START_TEST(test_tcp_recv_ooseq_FIN_INSEQ)
     EXPECT(pcb->ooseq == NULL);
   }
 
+  /* make sure all pbufs is freed */
+  EXPECT(MEMP_STATS_GET(used, MEMP_PBUF_POOL) == 0);
+
   /* make sure the pcb is freed */
   EXPECT(MEMP_STATS_GET(used, MEMP_TCP_PCB) == 1);
   tcp_abort(pcb);
@@ -541,6 +547,9 @@ START_TEST(test_tcp_recv_ooseq_overrun_rxwin)
   test_tcp_input(pinseq, &netif);
   EXPECT(pcb->ooseq == NULL);
 
+  /* make sure all pbufs is freed */
+  EXPECT(MEMP_STATS_GET(used, MEMP_PBUF_POOL) == 0);
+
   /* make sure the pcb is freed */
   EXPECT(MEMP_STATS_GET(used, MEMP_TCP_PCB) == 1);
   tcp_abort(pcb);
@@ -634,10 +643,14 @@ START_TEST(test_tcp_recv_ooseq_overrun_rxwin_edge)
   test_tcp_input(pinseq, &netif);
   EXPECT(pcb->ooseq == NULL);
 
+  /* make sure all pbufs is freed */
+  EXPECT(MEMP_STATS_GET(used, MEMP_PBUF_POOL) == 0);
+
   /* make sure the pcb is freed */
   EXPECT(MEMP_STATS_GET(used, MEMP_TCP_PCB) == 1);
   tcp_abort(pcb);
   EXPECT(MEMP_STATS_GET(used, MEMP_TCP_PCB) == 0);
+
 #endif /* !TCP_OOSEQ_MAX_BYTES && !TCP_OOSEQ_MAX_PBUFS */
   LWIP_UNUSED_ARG(_i);
 }
@@ -714,6 +727,9 @@ START_TEST(test_tcp_recv_ooseq_max_bytes)
   EXPECT_OOSEQ(tcp_oos_count(pcb) == (i-1));
   datalen2 = tcp_oos_tcplen(pcb);
   EXPECT_OOSEQ(datalen2 == ((i-1) * TCP_MSS));
+
+  /* make sure all pbufs is freed */
+  EXPECT(MEMP_STATS_GET(used, MEMP_PBUF_POOL) == 0);
 
   /* make sure the pcb is freed */
   EXPECT(MEMP_STATS_GET(used, MEMP_TCP_PCB) == 1);
@@ -795,6 +811,9 @@ START_TEST(test_tcp_recv_ooseq_max_pbufs)
   EXPECT_OOSEQ(tcp_oos_count(pcb) == (i-1));
   datalen2 = tcp_oos_tcplen(pcb);
   EXPECT_OOSEQ(datalen2 == (i-1));
+
+  /* make sure all pbufs is freed */
+  EXPECT(MEMP_STATS_GET(used, MEMP_PBUF_POOL) == 0);
 
   /* make sure the pcb is freed */
   EXPECT(MEMP_STATS_GET(used, MEMP_TCP_PCB) == 1);
@@ -983,6 +1002,9 @@ static void test_tcp_recv_ooseq_double_FINs(int delay_packet)
 
   /* check that ooseq data has been dumped */
   EXPECT(pcb->ooseq == NULL);
+
+  /* make sure all pbufs is freed */
+  EXPECT(MEMP_STATS_GET(used, MEMP_PBUF_POOL) == 0);
 
   /* make sure the pcb is freed */
   EXPECT(MEMP_STATS_GET(used, MEMP_TCP_PCB) == 1);

@@ -86,7 +86,7 @@ static err_t tcp_process(struct tcp_pcb *pcb);
 static void tcp_receive(struct tcp_pcb *pcb);
 static void tcp_parseopt(struct tcp_pcb *pcb);
 
-static void tcp_listen_input(struct tcp_pcb_listen *pcb);
+static void tcp_listen_input(struct tcp_pcb_listen *pcb, struct netif *inp);
 static void tcp_timewait_input(struct tcp_pcb *pcb);
 
 static int tcp_input_delayed_close(struct tcp_pcb *pcb);
@@ -122,7 +122,14 @@ tcp_input(struct pbuf *p, struct netif *inp)
   tcphdr = (struct tcp_hdr *)p->payload;
 
 #if TCP_INPUT_DEBUG
+#if LWIP_IP_DEBUG_TARGET
+  if (debug_target_match(ip_current_is_v6(), ipX_current_src_addr(), ipX_current_dest_addr()))
+  {
+#endif
   tcp_debug_print(tcphdr);
+#if LWIP_IP_DEBUG_TARGET
+  }
+#endif
 #endif
 
   /* Check that TCP header fits in payload */
@@ -228,6 +235,9 @@ tcp_input(struct pbuf *p, struct netif *inp)
     LWIP_ASSERT("tcp_input: active pcb->state != LISTEN", pcb->state != LISTEN);
     if (pcb->remote_port == tcphdr->src &&
         pcb->local_port == tcphdr->dest &&
+#if LWIP_MANAGEMENT_CHANNEL
+        (!inp->using_management_channel || ip_get_option(pcb,SOF_MANAGEMENT)) &&
+#endif
         ip_addr_cmp(&pcb->remote_ip, ip_current_src_addr()) &&
         ip_addr_cmp(&pcb->local_ip, ip_current_dest_addr())) {
       /* Move this PCB to the front of the list so that subsequent
@@ -254,6 +264,9 @@ tcp_input(struct pbuf *p, struct netif *inp)
       LWIP_ASSERT("tcp_input: TIME-WAIT pcb->state == TIME-WAIT", pcb->state == TIME_WAIT);
       if (pcb->remote_port == tcphdr->src &&
           pcb->local_port == tcphdr->dest &&
+#if LWIP_MANAGEMENT_CHANNEL
+          (!inp->using_management_channel || ip_get_option(pcb,SOF_MANAGEMENT)) &&
+#endif
           ip_addr_cmp(&pcb->remote_ip, ip_current_src_addr()) &&
           ip_addr_cmp(&pcb->local_ip, ip_current_dest_addr())) {
         /* We don't really care enough to move this PCB to the front
@@ -270,6 +283,10 @@ tcp_input(struct pbuf *p, struct netif *inp)
        are LISTENing for incoming connections. */
     prev = NULL;
     for (lpcb = tcp_listen_pcbs.listen_pcbs; lpcb != NULL; lpcb = lpcb->next) {
+#if LWIP_MANAGEMENT_CHANNEL
+      if (inp->using_management_channel && !ip_get_option(lpcb,SOF_MANAGEMENT))
+        continue;
+#endif
       if (lpcb->local_port == tcphdr->dest) {
         if (IP_IS_ANY_TYPE_VAL(lpcb->local_ip)) {
           /* found an ANY TYPE (IPv4/IPv6) match */
@@ -319,18 +336,11 @@ tcp_input(struct pbuf *p, struct netif *inp)
       }
 
       LWIP_DEBUGF(TCP_INPUT_DEBUG, ("tcp_input: packed for LISTENing connection.\n"));
-      tcp_listen_input(lpcb);
+      tcp_listen_input(lpcb, inp);
       pbuf_free(p);
       return;
     }
   }
-
-#if TCP_INPUT_DEBUG
-  LWIP_DEBUGF(TCP_INPUT_DEBUG, ("+-+-+-+-+-+-+-+-+-+-+-+-+-+- tcp_input: flags "));
-  tcp_debug_print_flags(TCPH_FLAGS(tcphdr));
-  LWIP_DEBUGF(TCP_INPUT_DEBUG, ("-+-+-+-+-+-+-+-+-+-+-+-+-+-+\n"));
-#endif /* TCP_INPUT_DEBUG */
-
 
   if (pcb != NULL) {
     /* The incoming segment belongs to a connection. */
@@ -561,7 +571,7 @@ tcp_input_delayed_close(struct tcp_pcb *pcb)
  *       involved is passed as a parameter to this function
  */
 static void
-tcp_listen_input(struct tcp_pcb_listen *pcb)
+tcp_listen_input(struct tcp_pcb_listen *pcb, struct netif *inp)
 {
   struct tcp_pcb *npcb;
   u32_t iss;
@@ -624,6 +634,11 @@ tcp_listen_input(struct tcp_pcb_listen *pcb)
 #endif /* LWIP_CALLBACK_API || TCP_LISTEN_BACKLOG */
     /* inherit socket options */
     npcb->so_options = pcb->so_options & SOF_INHERITED;
+#if LWIP_MANAGEMENT_CHANNEL
+      if( inp->using_management_channel )
+        ip_set_option(npcb, SOF_MANAGEMENT);
+#endif
+
     /* Register the new PCB so that we can begin receiving segments
        for it. */
     TCP_REG_ACTIVE(npcb);

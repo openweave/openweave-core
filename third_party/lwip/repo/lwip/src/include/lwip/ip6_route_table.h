@@ -1,11 +1,11 @@
 /**
  * @file
  *
- * IPv6 layer.
+ * IPv6 static route table.
  */
 
 /*
- * Copyright (c) 2010 Inico Technologies Ltd.
+ * Copyright (c) 2015 Nest Labs, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -30,59 +30,56 @@
  * IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY
  * OF SUCH DAMAGE.
  *
- * This file is part of the lwIP TCP/IP stack.
- *
- * Author: Ivan Delamer <delamer@inicotech.com>
+ * Author: Pradip De <pde@nestlabs.com>
  *
  *
- * Please coordinate changes and requests with Ivan Delamer
- * <delamer@inicotech.com>
+ * Please coordinate changes and requests with Pradip De
+ * <pde@nestlabs.com>
  */
-#ifndef LWIP_HDR_IP6_H
-#define LWIP_HDR_IP6_H
+
+#ifndef __LWIP_IP6_ROUTE_TABLE_H__
+#define __LWIP_IP6_ROUTE_TABLE_H__
 
 #include "lwip/opt.h"
 
 #if LWIP_IPV6  /* don't build if not configured for use in lwipopts.h */
 
+#include "lwip/ip.h"
 #include "lwip/ip6_addr.h"
-#include "lwip/prot/ip6.h"
 #include "lwip/def.h"
-#include "lwip/pbuf.h"
 #include "lwip/netif.h"
-
-#include "lwip/err.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-struct netif *ip6_route(const ip6_addr_t *src, const ip6_addr_t *dest);
-const ip_addr_t *ip6_select_source_address(struct netif *netif, const ip6_addr_t * dest);
-err_t         ip6_input(struct pbuf *p, struct netif *inp);
-err_t         ip6_output(struct pbuf *p, const ip6_addr_t *src, const ip6_addr_t *dest,
-                         u8_t hl, u8_t tc, u8_t nexth, struct ip_pcb *pcb);
-err_t         ip6_output_if(struct pbuf *p, const ip6_addr_t *src, const ip6_addr_t *dest,
-                            u8_t hl, u8_t tc, u8_t nexth, struct netif *netif);
-err_t         ip6_output_if_src(struct pbuf *p, const ip6_addr_t *src, const ip6_addr_t *dest,
-                            u8_t hl, u8_t tc, u8_t nexth, struct netif *netif);
-#if LWIP_NETIF_HWADDRHINT
-err_t         ip6_output_hinted(struct pbuf *p, const ip6_addr_t *src, const ip6_addr_t *dest,
-                                u8_t hl, u8_t tc, u8_t nexth, u8_t *addr_hint);
-#endif /* LWIP_NETIF_HWADDRHINT */
-#if LWIP_IPV6_MLD
-err_t         ip6_options_add_hbh_ra(struct pbuf * p, u8_t nexth, u8_t value);
-#endif /* LWIP_IPV6_MLD */
+#if LWIP_IPV6_ROUTE_TABLE_SUPPORT
 
-#define ip6_netif_get_local_ip(netif, dest) (((netif) != NULL) ? \
-  ip6_select_source_address(netif, dest) : NULL)
+#define IP6_MAX_PREFIX_LEN                  (128)
+#define IP6_PREFIX_ALLOWED_GRANULARITY      (8)
+/* Prefix length cannot be greater than 128 bits and needs to be at a byte boundary */
+#define ip6_prefix_valid(prefix_len)        (((prefix_len) <= IP6_MAX_PREFIX_LEN) &&                 \
+                                             (((prefix_len) % IP6_PREFIX_ALLOWED_GRANULARITY) == 0))
 
-#if IP6_DEBUG
-void ip6_debug_print(struct pbuf *p);
-#else
-#define ip6_debug_print(p)
-#endif /* IP6_DEBUG */
+struct ip6_prefix {
+  ip6_addr_t addr;
+  u8_t prefix_len; /* prefix length in bits at byte boundaries */
+};
 
+struct ip6_route_entry {
+  struct ip6_prefix prefix;
+  struct netif *netif;
+  ip6_addr_t *gateway;
+};
+
+err_t ip6_add_route_entry(struct ip6_prefix *ip6_prefix, struct netif *netif, 
+                         ip6_addr_t *gateway, s8_t *index);
+void ip6_remove_route_entry(struct ip6_prefix *ip6_prefix);
+s8_t ip6_find_route_entry(ip6_addr_t *ip6_dest_addr);
+struct netif *ip6_static_route(ip6_addr_t *src, ip6_addr_t *dest);
+ip6_addr_t *ip6_get_gateway(struct netif *netif, ip6_addr_t *dest);
+struct ip6_route_entry *ip6_get_route_table(void);
+#endif /* LWIP_IPV6_ROUTE_TABLE_SUPPORT */
 
 #ifdef __cplusplus
 }
@@ -90,4 +87,4 @@ void ip6_debug_print(struct pbuf *p);
 
 #endif /* LWIP_IPV6 */
 
-#endif /* LWIP_HDR_IP6_H */
+#endif /* __LWIP_IP6_ROUTE_TABLE_H__ */

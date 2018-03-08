@@ -94,37 +94,76 @@ extern const ip_addr_t dns_mquery_v6group;
 
 /** Callback which is invoked when a hostname is found.
  * A function of this type must be implemented by the application using the DNS resolver.
+ * There is support for two types of callbacks, invoked when a hostname is found.
+ * @note dns_found_callbackX type is used as a catch-all type, that needs to be cast
+ * to either dns_found_callback or dns_found_callback_multi.
+ *
+ * dns_found_callback returns at most a single IP address, even if the DNS server response contained several addresses
+ *   (this callback is used to maintain backward compatibility with dns_gethostbyname)
  * @param name pointer to the name that was looked up.
  * @param ipaddr pointer to an ip_addr_t containing the IP address of the hostname,
  *        or NULL if the name could not be found (or on any other error).
- * @param callback_arg a user-specified callback argument passed to dns_gethostbyname
+ * @param callback_arg a user-specified callback argument passed to dns_gethostbyname.
+ *
+ * dns_found_callback_multi returns up to numipaddrs of all the IP addresses returned by the DSN server
+ *   (this callback is invoked by calling dns_gethostbyname_multi)
+ * @param name pointer to the name that was looked up.
+ * @param ipaddrs pointer to an ip_addr_t array containing the IP addresses of the hostname
+ * @note This pointer is never NULL, instead numipaddrs is set to zero.
+ * @param numipaddrs size of the ipaddrs array.
+ * @param callback_arg a user-specified callback argument passed to dns_gethostbyname_multi.
 */
+
 typedef void (*dns_found_callback)(const char *name, const ip_addr_t *ipaddr, void *callback_arg);
+
+#if DNS_MAX_ADDRS_PER_NAME > 1
+typedef void (*dns_found_callbackX)(void);
+typedef void (*dns_found_callback_multi)(const char *name, const ip_addr_t *ipaddrs, u8_t numipaddrs, void *callback_arg);
+#define LWIP_DNS_FOUND_CALLBACK_TYPE    dns_found_callbackX
+#else // DNS_MAX_ADDRS_PER_NAME <= 1
+#define LWIP_DNS_FOUND_CALLBACK_TYPE    dns_found_callback
+#endif // DNS_MAX_ADDRS_PER_NAME <= 1
 
 void             dns_init(void);
 void             dns_tmr(void);
 void             dns_setserver(u8_t numdns, const ip_addr_t *dnsserver);
 const ip_addr_t* dns_getserver(u8_t numdns);
 err_t            dns_gethostbyname(const char *hostname, ip_addr_t *addr,
-                                   dns_found_callback found, void *callback_arg);
+                                   LWIP_DNS_FOUND_CALLBACK_TYPE found, void *callback_arg);
 err_t            dns_gethostbyname_addrtype(const char *hostname, ip_addr_t *addr,
-                                   dns_found_callback found, void *callback_arg,
+                                   LWIP_DNS_FOUND_CALLBACK_TYPE found, void *callback_arg,
                                    u8_t dns_addrtype);
-
 
 #if DNS_LOCAL_HOSTLIST
 size_t         dns_local_iterate(dns_found_callback iterator_fn, void *iterator_arg);
 err_t          dns_local_lookup(const char *hostname, ip_addr_t *addr, u8_t dns_addrtype);
 #if DNS_LOCAL_HOSTLIST_IS_DYNAMIC
+
+void           dns_init(void);
+void           dns_tmr(void);
+void           dns_setserver(u8_t numdns, ip_addr_t *dnsserver);
+ip_addr_t      dns_getserver(u8_t numdns);
+
+#if DNS_MAX_ADDRS_PER_NAME > 1
+err_t          dns_gethostbyname_multi(const char *hostname, ip_addr_t *ipaddrs, u8_t *numipaddrs,
+                                 dns_found_callback_multi found, void *callback_arg);
+#endif // DNS_MAX_ADDRS_PER_NAME > 1
+
 int            dns_local_removehost(const char *hostname, const ip_addr_t *addr);
 err_t          dns_local_addhost(const char *hostname, const ip_addr_t *addr);
 #endif /* DNS_LOCAL_HOSTLIST_IS_DYNAMIC */
 #endif /* DNS_LOCAL_HOSTLIST */
+
+u8_t           dns_cancel(LWIP_DNS_FOUND_CALLBACK_TYPE found, void *callback_arg);
+
+#if LWIP_TEST_CODE
+u8_t           dns_expire_asking_entries(void);
+u8_t           dns_flush_cache(void);
+#endif // LWIP_TEST_CODE
 
 #ifdef __cplusplus
 }
 #endif
 
 #endif /* LWIP_DNS */
-
 #endif /* LWIP_HDR_DNS_H */

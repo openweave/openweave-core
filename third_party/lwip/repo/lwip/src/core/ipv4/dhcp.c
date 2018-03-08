@@ -1820,8 +1820,12 @@ dhcp_create_msg(struct netif *netif, struct dhcp *dhcp, u8_t message_type)
 #endif
   LWIP_ERROR("dhcp_create_msg: netif != NULL", (netif != NULL), return ERR_ARG;);
   LWIP_ERROR("dhcp_create_msg: dhcp != NULL", (dhcp != NULL), return ERR_VAL;);
-  LWIP_ASSERT("dhcp_create_msg: dhcp->p_out == NULL", dhcp->p_out == NULL);
-  LWIP_ASSERT("dhcp_create_msg: dhcp->msg_out == NULL", dhcp->msg_out == NULL);
+
+  /* free previous dhcp msg, in case it is not freed yet */
+  /* otherwise, memory leaks */
+  if (dhcp->p_out != NULL)
+    dhcp_delete_msg(dhcp);
+
   dhcp->p_out = pbuf_alloc(PBUF_TRANSPORT, sizeof(struct dhcp_msg), PBUF_RAM);
   if (dhcp->p_out == NULL) {
     LWIP_DEBUGF(DHCP_DEBUG | LWIP_DBG_TRACE | LWIP_DBG_LEVEL_SERIOUS,

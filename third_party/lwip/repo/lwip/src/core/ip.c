@@ -63,6 +63,67 @@
 /** Global data for both IPv4 and IPv6 */
 struct ip_globals ip_data;
 
+#if LWIP_IP_DEBUG_TARGET
+
+#define DEBUG_TARGET_MODE_ALLOW_ALL 0
+#define DEBUG_TARGET_MODE_ALLOW_NONE 1
+#define DEBUG_TARGET_MODE_FILTER 2
+
+int debug_target_mode = DEBUG_TARGET_MODE_ALLOW_ALL;
+int debug_target_is_ipv6;
+ipX_addr_t debug_target_ip;
+
+int lwip_set_debug_target(const char *addr)
+{
+  if (addr == 0) {
+    debug_target_mode = DEBUG_TARGET_MODE_ALLOW_ALL;
+  }
+  else if (*addr == 0) {
+    debug_target_mode = DEBUG_TARGET_MODE_ALLOW_NONE;
+  }
+  else {
+    if (ipaddr_aton(addr, ipX_2_ip(&debug_target_ip))) {
+      debug_target_is_ipv6 = 0;
+      debug_target_mode = DEBUG_TARGET_MODE_FILTER;
+    }
+#if LWIP_IPV6
+    else if (ip6addr_aton(addr, ipX_2_ip6(&debug_target_ip))) {
+      debug_target_is_ipv6 = 1;
+      debug_target_mode = DEBUG_TARGET_MODE_FILTER;
+    }
+#endif
+    else {
+      return 0;
+    }
+  }
+  return 1;
+}
+
+int debug_target_match(int is_ipv6, ipX_addr_t *src, ipX_addr_t *dest)
+{
+  if (debug_target_mode == DEBUG_TARGET_MODE_ALLOW_ALL) {
+    return 1;
+  }
+  if (debug_target_mode == DEBUG_TARGET_MODE_ALLOW_NONE) {
+    return 0;
+  }
+  if (is_ipv6 != debug_target_is_ipv6) {
+    return 0;
+  }
+  if (ipX_addr_isany(is_ipv6, &debug_target_ip)) {
+    return 1;
+  }
+  if (ipX_addr_cmp(is_ipv6, &debug_target_ip, src)) {
+    return 1;
+  }
+  if (ipX_addr_cmp(is_ipv6, &debug_target_ip, dest)) {
+    return 1;
+  }
+  return 0;
+}
+
+#endif
+
 #if LWIP_IPV4 && LWIP_IPV6
 
 const ip_addr_t ip_addr_any_type = IPADDR_ANY_TYPE_INIT;

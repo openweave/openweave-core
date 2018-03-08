@@ -170,6 +170,11 @@ struct pbuf {
    * the stack itself, or pbuf->next pointers from a chain.
    */
   u16_t ref;
+
+#if LWIP_PBUF_FROM_CUSTOM_POOLS
+  /** Pool from which pbuf was allocated */
+  u16_t pool;
+#endif
 };
 
 
@@ -226,6 +231,7 @@ struct pbuf *pbuf_alloced_custom(pbuf_layer l, u16_t length, pbuf_type type,
                                  struct pbuf_custom *p, void *payload_mem,
                                  u16_t payload_mem_len);
 #endif /* LWIP_SUPPORT_CUSTOM_PBUF */
+struct pbuf *pbuf_rightsize(struct pbuf *p, s16_t offset);
 void pbuf_realloc(struct pbuf *p, u16_t size);
 u8_t pbuf_header(struct pbuf *p, s16_t header_size);
 u8_t pbuf_header_force(struct pbuf *p, s16_t header_size);

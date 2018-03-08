@@ -77,7 +77,7 @@ struct autoip
 
 void autoip_set_struct(struct netif *netif, struct autoip *autoip);
 /** Remove a struct autoip previously set to the netif using autoip_set_struct() */
-#define autoip_remove_struct(netif) do { (netif)->autoip = NULL; } while (0)
+#define autoip_remove_struct(netif) netif_set_client_data(netif, LWIP_NETIF_CLIENT_DATA_INDEX_AUTOIP, NULL)
 err_t autoip_start(struct netif *netif);
 err_t autoip_stop(struct netif *netif);
 void autoip_arp_reply(struct netif *netif, struct etharp_hdr *hdr);

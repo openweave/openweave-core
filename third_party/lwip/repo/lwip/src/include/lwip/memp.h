@@ -60,6 +60,10 @@ typedef enum {
 
 extern const struct memp_desc* const memp_pools[MEMP_MAX];
 
+#if MEMP_MEM_MALLOC || MEM_USE_POOLS || LWIP_PBUF_FROM_CUSTOM_POOLS
+extern const u16_t memp_sizes[MEMP_MAX];
+#endif /* MEMP_MEM_MALLOC || MEM_USE_POOLS */
+
 /**
  * @ingroup mempool
  * Declare prototype for private memory pool if it is used in multiple files
@@ -147,6 +151,11 @@ void *memp_malloc_fn(memp_t type, const char* file, const int line);
 void *memp_malloc(memp_t type);
 #endif
 void  memp_free(memp_t type, void *mem);
+#if MEMP_SEPARATE_POOLS
+u16_t memp_pbuf_index(memp_t type, const void *mem);
+u16_t memp_num_pbufs(memp_t type);
+#endif
+u8_t memp_is_not_empty (memp_t type);
 
 #ifdef __cplusplus
 }

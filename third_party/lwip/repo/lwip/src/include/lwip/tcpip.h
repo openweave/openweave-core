@@ -64,8 +64,13 @@ extern sys_mutex_t lock_tcpip_core;
 struct pbuf;
 struct netif;
 
+#if LWIP_NETCONN
+struct api_msg;
+#endif /* LWIP_NETCONN */
+
 /** Function prototype for the init_done function passed to tcpip_init */
 typedef void (*tcpip_init_done_fn)(void *arg);
+typedef void (*tcpip_will_finish_fn)(void *arg);
 /** Function prototype for functions passed to tcpip_callback() */
 typedef void (*tcpip_callback_fn)(void *ctx);
 
@@ -73,6 +78,11 @@ typedef void (*tcpip_callback_fn)(void *ctx);
 struct tcpip_callback_msg;
 
 void   tcpip_init(tcpip_init_done_fn tcpip_init_done, void *arg);
+err_t  tcpip_finish(tcpip_will_finish_fn tcpip_will_finish, void *arg);
+
+#if LWIP_NETCONN
+err_t  tcpip_apimsg(struct api_msg *apimsg);
+#endif /* LWIP_NETCONN */
 
 err_t  tcpip_inpkt(struct pbuf *p, struct netif *inp, netif_input_fn input_fn);
 err_t  tcpip_input(struct pbuf *p, struct netif *inp);

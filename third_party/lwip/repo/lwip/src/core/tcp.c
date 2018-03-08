@@ -2077,7 +2077,7 @@ tcp_debug_print(struct tcp_hdr *tcphdr)
 void
 tcp_debug_print_state(enum tcp_state s)
 {
-  LWIP_DEBUGF(TCP_DEBUG, ("State: %s\n", tcp_state_str[s]));
+  LWIP_DEBUGF(TCP_DEBUG, ("TCP State: %s\n", tcp_state_str[s]));
 }
 
 /**
@@ -2112,7 +2112,6 @@ tcp_debug_print_flags(u8_t flags)
   if (flags & TCP_CWR) {
     LWIP_DEBUGF(TCP_DEBUG, ("CWR "));
   }
-  LWIP_DEBUGF(TCP_DEBUG, ("\n"));
 }
 
 /**

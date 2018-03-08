@@ -98,6 +98,10 @@ struct ip_pcb {
 #define SOF_KEEPALIVE     0x08U  /* keep connections alive */
 #define SOF_BROADCAST     0x20U  /* permit to send and to receive broadcast messages (see IP_SOF_BROADCAST option) */
 
+#if LWIP_MANAGEMENT_CHANNEL
+#define SOF_MANAGEMENT    0x40U  /* Indicates this socket is for management channel. */
+#endif
+
 /* These flags are inherited (e.g. from a listen-pcb to a connection-pcb): */
 #define SOF_INHERITED   (SOF_REUSEADDR|SOF_KEEPALIVE)
 
@@ -223,10 +227,10 @@ extern struct ip_globals ip_data;
  * @ingroup ip
  * Output IP packet, netif is selected by source address
  */
-#define ip_output(p, src, dest, ttl, tos, proto) \
+#define ip_output(p, src, dest, ttl, tos, proto, pcb) \
         (IP_IS_V6(dest) ? \
-        ip6_output(p, ip_2_ip6(src), ip_2_ip6(dest), ttl, tos, proto) : \
-        ip4_output(p, ip_2_ip4(src), ip_2_ip4(dest), ttl, tos, proto))
+        ip6_output(p, ip_2_ip6(src), ip_2_ip6(dest), ttl, tos, proto, pcb) : \
+        ip4_output(p, ip_2_ip4(src), ip_2_ip4(dest), ttl, tos, proto, pcb))
 /**
  * @ingroup ip
  * Output IP packet to specified interface
@@ -269,8 +273,8 @@ err_t ip_input(struct pbuf *p, struct netif *inp);
 
 #elif LWIP_IPV4 /* LWIP_IPV4 && LWIP_IPV6 */
 
-#define ip_output(p, src, dest, ttl, tos, proto) \
-        ip4_output(p, src, dest, ttl, tos, proto)
+#define ip_output(p, src, dest, ttl, tos, proto, pcb) \
+        ip4_output(p, src, dest, ttl, tos, proto, pcb)
 #define ip_output_if(p, src, dest, ttl, tos, proto, netif) \
         ip4_output_if(p, src, dest, ttl, tos, proto, netif)
 #define ip_output_if_src(p, src, dest, ttl, tos, proto, netif) \
@@ -287,8 +291,8 @@ err_t ip_input(struct pbuf *p, struct netif *inp);
 
 #elif LWIP_IPV6 /* LWIP_IPV4 && LWIP_IPV6 */
 
-#define ip_output(p, src, dest, ttl, tos, proto) \
-        ip6_output(p, src, dest, ttl, tos, proto)
+#define ip_output(p, src, dest, ttl, tos, proto, pcb) \
+        ip6_output(p, src, dest, ttl, tos, proto, pcb)
 #define ip_output_if(p, src, dest, ttl, tos, proto, netif) \
         ip6_output_if(p, src, dest, ttl, tos, proto, netif)
 #define ip_output_if_src(p, src, dest, ttl, tos, proto, netif) \

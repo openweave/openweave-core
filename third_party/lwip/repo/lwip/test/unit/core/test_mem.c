@@ -6,9 +6,6 @@
 #if !LWIP_STATS || !MEM_STATS
 #error "This tests needs MEM-statistics enabled"
 #endif
-#if LWIP_DNS
-#error "This test needs DNS turned off (as it mallocs on init)"
-#endif
 
 /* Setups/teardown functions */
 
@@ -33,30 +30,39 @@ START_TEST(test_mem_one)
 #define SIZE2   16
   void *p1, *p2;
   mem_size_t s1, s2;
+  mem_size_t used;
   LWIP_UNUSED_ARG(_i);
 
-  fail_unless(lwip_stats.mem.used == 0);
+  used = lwip_stats.mem.used;
+  fail_unless(lwip_stats.mem.used - used == 0);
 
   p1 = mem_malloc(SIZE1);
   fail_unless(p1 != NULL);
-  fail_unless(lwip_stats.mem.used >= SIZE1);
-  s1 = lwip_stats.mem.used;
+  fail_unless(lwip_stats.mem.used - used >= SIZE1);
+  s1 = lwip_stats.mem.used - used;
 
   p2 = mem_malloc(SIZE2);
   fail_unless(p2 != NULL);
-  fail_unless(lwip_stats.mem.used >= SIZE2 + s1);
-  s2 = lwip_stats.mem.used;
+  fail_unless(lwip_stats.mem.used - used >= SIZE2 + s1);
+  s2 = lwip_stats.mem.used - used;
 
   mem_trim(p1, SIZE1_2);
 
   mem_free(p2);
-  fail_unless(lwip_stats.mem.used <= s2 - SIZE2);
+  fail_unless(lwip_stats.mem.used - used <= s2 - SIZE2);
 
   mem_free(p1);
-  fail_unless(lwip_stats.mem.used == 0);
+  fail_unless(lwip_stats.mem.used - used == 0);
 }
 END_TEST
 
+/** malloc_keep_x - Four steps are implemented by this function
+    1) Allocates num blocks of size bytes.
+    2) Free's every freestep block and prevents block x from being freed.
+    3) Free's every remaining block except block x.
+    4) Free's block x.
+  Used by test_mem_random to exercise the heap by freeing blocks in
+  pseudo random order.*/
 static void malloc_keep_x(int x, int num, int size, int freestep)
 {
    int i;
@@ -93,16 +99,17 @@ START_TEST(test_mem_random)
   int x;
   int size;
   int freestep;
+  mem_size_t used;
   LWIP_UNUSED_ARG(_i);
 
-  fail_unless(lwip_stats.mem.used == 0);
+  used = lwip_stats.mem.used;
 
   for (x = 0; x < num; x++) {
      for (size = 1; size < 32; size++) {
         for (freestep = 1; freestep <= 3; freestep++) {
-          fail_unless(lwip_stats.mem.used == 0);
+          fail_unless(lwip_stats.mem.used - used == 0);
           malloc_keep_x(x, num, size, freestep);
-          fail_unless(lwip_stats.mem.used == 0);
+          fail_unless(lwip_stats.mem.used - used == 0);
         }
      }
   }

@@ -75,6 +75,11 @@
 #include "lwip/ip6_frag.h"
 #include "lwip/mld6.h"
 
+#if defined(BUILD_FEATURE_NL_PROFILE)
+#include <string.h>
+#include <nlplatform/nlprofile.h>
+#endif
+
 #define LWIP_MEMPOOL(name,num,size,desc) LWIP_MEMPOOL_DECLARE(name,num,size,desc)
 #include "lwip/priv/memp_std.h"
 
@@ -92,6 +97,39 @@ const struct memp_desc* const memp_pools[MEMP_MAX] = {
 /* MEMP_OVERFLOW_CHECK >= 2 does not work with MEMP_MEM_MALLOC, use 1 instead */
 #define MEMP_OVERFLOW_CHECK 1
 #endif
+
+/** This array holds the element sizes of each pool. */
+#if !MEM_USE_POOLS && !MEMP_MEM_MALLOC && !LWIP_PBUF_FROM_CUSTOM_POOLS
+static
+#endif
+const u16_t memp_sizes[MEMP_MAX] = {
+#define LWIP_MEMPOOL(name,num,size,desc)  LWIP_MEM_ALIGN_SIZE(size),
+#include "lwip/priv/memp_std.h"
+};
+
+#if !MEMP_MEM_MALLOC /* don't build if not configured for use in lwipopts.h */
+
+/** When using variable pbuf pools, pbuf_alloc will start scanning for pbufs at the
+ * highest indexed pbuf pool (PBUF_CUSTOM_POOL_IDX_START), which holds the smallest pbufs.
+ * It will look through the list of pbuf pools for a suitable pool to draw from that has a free
+ * pbuf until it passes MEMP_PBUF_POOL, which holds the largest pbufs.
+ **/
+#if LWIP_PBUF_FROM_CUSTOM_POOLS
+_Static_assert ((PBUF_CUSTOM_POOL_IDX_START > PBUF_CUSTOM_POOL_IDX_END), "PBUF_CUSTOM_POOL_IDX_START must be greater than PBUF_CUSTOM_POOL_IDX_END");
+#define MEMP_IS_PBUF_POOL(type) (type <= PBUF_CUSTOM_POOL_IDX_START && type >= PBUF_CUSTOM_POOL_IDX_END)
+#define MEMP_PBUF_POOL_HIGHWATERMARK(type) (PBUF_CUSTOM_POOL_IDX_START - type)
+#else
+#define MEMP_IS_PBUF_POOL(type) (type == MEMP_PBUF_POOL)
+#define MEMP_PBUF_POOL_HIGHWATERMARK(type) (type)
+#endif
+
+/** This array holds a textual description of each pool. */
+#ifdef LWIP_DEBUG
+static const char *memp_desc[MEMP_MAX] = {
+#define LWIP_MEMPOOL(name,num,size,desc)  (desc),
+#include "lwip/priv/memp_std.h"
+};
+#endif /* LWIP_DEBUG */
 
 #if MEMP_SANITY_CHECK && !MEMP_MEM_MALLOC
 /**
@@ -262,6 +300,14 @@ memp_init_pool(const struct memp_desc *desc)
 }
 
 /**
+ * Check if the pool is not empty
+ */
+u8_t memp_is_not_empty (memp_t type)
+{
+    return (memp_pools[type]->tab != NULL);
+}
+
+/**
  * Initializes lwIP built-in pools.
  * Related functions: memp_malloc, memp_free
  *
@@ -271,6 +317,9 @@ void
 memp_init(void)
 {
   u16_t i;
+#if LWIP_PBUF_FROM_CUSTOM_POOLS
+  u16_t j;
+#endif // LWIP_PBUF_FROM_CUSTOM_POOLS
 
   /* for every pool: */
   for (i = 0; i < LWIP_ARRAYSIZE(memp_pools); i++) {
@@ -280,6 +329,27 @@ memp_init(void)
     lwip_stats.memp[i] = memp_pools[i]->stats;
 #endif
   }
+
+#if MEMP_OVERFLOW_CHECK >= 2
+  /* check everything a first time to see if it worked */
+  memp_overflow_check_all();
+#endif /* MEMP_OVERFLOW_CHECK >= 2 */
+
+#if LWIP_PBUF_FROM_CUSTOM_POOLS
+  /* Verify that custom pools that contain PBUFs are laid out
+   * in decreasing order by size */
+  j = 0;
+  i = PBUF_CUSTOM_POOL_IDX_START;
+  while (1) {
+    LWIP_ASSERT("memp_init: PBUF pool size ordering incorrect",
+                 memp_sizes[i] > j);
+    j = memp_sizes[i];
+    if (i == PBUF_CUSTOM_POOL_IDX_END) {
+      break;
+    }
+    i--;
+  }
+#endif
 
 #if MEMP_OVERFLOW_CHECK >= 2
   /* check everything a first time to see if it worked */
@@ -333,6 +403,7 @@ do_memp_malloc_pool_fn(const struct memp_desc *desc, const char* file, const int
       desc->stats->max = desc->stats->used;
     }
 #endif
+
     SYS_ARCH_UNPROTECT(old_level);
     /* cast through u8_t* to get rid of alignment warnings */
     return ((u8_t*)memp + MEMP_SIZE);
@@ -373,6 +444,26 @@ memp_malloc_pool_fn(const struct memp_desc *desc, const char* file, const int li
 #endif
 }
 
+#if (MEMP_DEBUG | LWIP_DBG_TRACE)
+#if LWIP_PBUF_FROM_CUSTOM_POOLS
+int num_used_pool[PBUF_CUSTOM_POOL_IDX_START - PBUF_CUSTOM_POOL_IDX_END + 1] = {0};
+#else
+int num_used_pool = 0;
+#endif
+
+static int *get_num_used_pool_ptr(memp_t type)
+{
+  if (MEMP_IS_PBUF_POOL(type)) {
+#if LWIP_PBUF_FROM_CUSTOM_POOLS
+    return &num_used_pool[PBUF_CUSTOM_POOL_IDX_START - type]; 
+#else
+    return &num_used_pool;
+#endif
+  }
+  return NULL;
+}
+#endif /* (MEMP_DEBUG | LWIP_DBG_TRACE) */
+
 /**
  * Get an element from a specific pool.
  *
@@ -388,16 +479,46 @@ memp_malloc_fn(memp_t type, const char* file, const int line)
 #endif
 {
   void *memp;
+#if (MEMP_DEBUG | LWIP_DBG_TRACE)
+  int *num_used_pool_ptr = get_num_used_pool_ptr(type);
+#endif
+
+  SYS_ARCH_DECL_PROTECT(old_level);
+ 
   LWIP_ERROR("memp_malloc: type < MEMP_MAX", (type < MEMP_MAX), return NULL;);
 
+  SYS_ARCH_PROTECT(old_level);
 #if MEMP_OVERFLOW_CHECK >= 2
   memp_overflow_check_all();
 #endif /* MEMP_OVERFLOW_CHECK >= 2 */
+
+#if (MEMP_DEBUG | LWIP_DBG_TRACE)
+    if (MEMP_IS_PBUF_POOL(type)) {
+      (*num_used_pool_ptr)++;
+    }
+#endif
 
 #if !MEMP_OVERFLOW_CHECK
   memp = do_memp_malloc_pool(memp_pools[type]);
 #else
   memp = do_memp_malloc_pool_fn(memp_pools[type], file, line);
+#endif
+
+  SYS_ARCH_UNPROTECT(old_level);
+
+#if LWIP_PERF && (MEMP_DEBUG | LWIP_DBG_TRACE)
+  if (!memp) {
+    LWIP_DEBUGF(MEMP_DEBUG | LWIP_DBG_TRACE, ("mm: out-of-mem in %s\n", memp_desc[type]));
+    if (MEMP_IS_PBUF_POOL(type)) {
+      sys_profile_interval_set_pbuf_highwatermark(memp_sizes[type] + 1, MEMP_PBUF_POOL_HIGHWATERMARK(type));
+    }
+  }
+  else {
+    if (MEMP_IS_PBUF_POOL(type)) {
+      LWIP_DEBUGF(MEMP_DEBUG | LWIP_DBG_TRACE, ("mm:p++ = %d (%08x) (%s)\n", *num_used_pool_ptr, memp, memp_desc[type]));
+      sys_profile_interval_set_pbuf_highwatermark((u32_t)(*num_used_pool_ptr), MEMP_PBUF_POOL_HIGHWATERMARK(type));
+    }
+  }
 #endif
 
   return memp;
@@ -407,6 +528,10 @@ static void
 do_memp_free_pool(const struct memp_desc* desc, void *mem)
 {
   struct memp *memp;
+#if (MEMP_DEBUG | LWIP_DBG_TRACE)
+  memp_t type;
+#endif /* (MEMP_DEBUG | LWIP_DBG_TRACE) */
+
   SYS_ARCH_DECL_PROTECT(old_level);
 
   LWIP_ASSERT("memp_free: mem properly aligned",
@@ -425,6 +550,14 @@ do_memp_free_pool(const struct memp_desc* desc, void *mem)
 #if MEMP_STATS
   desc->stats->used--;
 #endif
+
+#if (MEMP_DEBUG | LWIP_DBG_TRACE)
+  for (type = 0; type < MEMP_MAX; ++type) {
+    if (MEMP_IS_PBUF_POOL(type) && desc == memp_pools[type]) {
+      --*(get_num_used_pool_ptr(type));
+    }
+  }
+#endif /* (MEMP_DEBUG | LWIP_DBG_TRACE) */
 
 #if MEMP_MEM_MALLOC
   LWIP_UNUSED_ARG(desc);
@@ -472,11 +605,18 @@ memp_free(memp_t type, void *mem)
   struct memp *old_first;
 #endif
 
+#if (MEMP_DEBUG | LWIP_DBG_TRACE)
+  int *num_used_pool_ptr = get_num_used_pool_ptr(type);
+#endif
+
   LWIP_ERROR("memp_free: type < MEMP_MAX", (type < MEMP_MAX), return;);
 
   if (mem == NULL) {
     return;
   }
+
+  SYS_ARCH_DECL_PROTECT(old_level);
+  SYS_ARCH_PROTECT(old_level);
 
 #if MEMP_OVERFLOW_CHECK >= 2
   memp_overflow_check_all();
@@ -486,6 +626,12 @@ memp_free(memp_t type, void *mem)
   old_first = *memp_pools[type]->tab;
 #endif
 
+#if (MEMP_DEBUG | LWIP_DBG_TRACE)
+  if (MEMP_IS_PBUF_POOL(type)) {
+    (*num_used_pool_ptr)--;
+  }
+#endif
+
   do_memp_free_pool(memp_pools[type], mem);
 
 #ifdef LWIP_HOOK_MEMP_AVAILABLE
@@ -493,4 +639,27 @@ memp_free(memp_t type, void *mem)
     LWIP_HOOK_MEMP_AVAILABLE(type);
   }
 #endif
+
+  SYS_ARCH_UNPROTECT(old_level);
+
+#if LWIP_PERF && (MEMP_DEBUG | LWIP_DBG_TRACE)
+  if (MEMP_IS_PBUF_POOL(type)) {
+    LWIP_DEBUGF(MEMP_DEBUG | LWIP_DBG_TRACE, ("mf:p-- = %d (%08x) (%s)\n", *num_used_pool_ptr, mem, memp_desc[type]));
+    sys_profile_interval_set_pbuf_highwatermark((u32_t)(*num_used_pool_ptr), MEMP_PBUF_POOL_HIGHWATERMARK(type));
+  }
+#endif
 }
+
+#if MEMP_SEPARATE_POOLS
+u16_t
+memp_pbuf_index(memp_t type, const void *mem)
+{
+  if (MEMP_IS_PBUF_POOL(type)) {
+    size_t buf_size = MEMP_SIZE + MEMP_ALIGN_SIZE(memp_sizes[type]);
+    return ((u8_t *)mem - (u8_t *)LWIP_MEM_ALIGN(memp_pools[type]->base)) / buf_size;
+  }
+  return ~0;
+}
+#endif /* MEMP_SEPARATE_POOLS */
+
+#endif /* MEMP_MEM_MALLOC */

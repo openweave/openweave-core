@@ -150,7 +150,20 @@ tcp_timer_needed(void)
   if (!tcpip_tcp_timer_active && (tcp_active_pcbs || tcp_tw_pcbs)) {
     /* enable and start timer */
     tcpip_tcp_timer_active = 1;
+
+#if LWIP_TCPIP_TIMEOUT
+    // When tcp_connect is called from a different thread, it is
+    // possible that the tcp timers do not get started properly.  This
+    // happens when there are no TCP timers active and the SYN packet
+    // is lost (or not responded to).  We gate the different code
+    // paths based on LWIP_TCPIP_CORE_LOCKING, which is a prerequisite
+    // to attempt to call the raw api from multiple threads.
+    // Submitted as LwIP patch 8737
+
+    tcpip_timeout(TCP_TMR_INTERVAL, tcpip_tcp_timer, NULL);
+#else 
     sys_timeout(TCP_TMR_INTERVAL, tcpip_tcp_timer, NULL);
+#endif //LWIP_TCPIP_CORE_LOCKING
   }
 }
 #endif /* LWIP_TCP */

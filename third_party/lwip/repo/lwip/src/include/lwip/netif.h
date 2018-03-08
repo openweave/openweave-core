@@ -303,6 +303,9 @@ struct netif {
   u8_t hwaddr[NETIF_MAX_HWADDR_LEN];
   /** flags (@see @ref netif_flags) */
   u8_t flags;
+#if LWIP_MANAGEMENT_CHANNEL
+  u8_t using_management_channel:1;
+#endif
   /** descriptive abbreviation */
   char name[2];
   /** number of this interface */
@@ -355,6 +358,10 @@ extern struct netif *netif_list;
 extern struct netif *netif_default;
 
 void netif_init(void);
+
+struct ip_pcb;
+
+void netif_apply_pcb(struct netif *netif, struct ip_pcb *pcb);
 
 struct netif *netif_add(struct netif *netif,
 #if LWIP_IPV4
@@ -458,6 +465,11 @@ void netif_ip6_addr_set_state(struct netif* netif, s8_t addr_idx, u8_t state);
 s8_t netif_get_ip6_addr_match(struct netif *netif, const ip6_addr_t *ip6addr);
 void netif_create_ip6_linklocal_address(struct netif *netif, u8_t from_mac_48bit);
 err_t netif_add_ip6_address(struct netif *netif, const ip6_addr_t *ip6addr, s8_t *chosen_idx);
+err_t netif_add_ip6_address_with_route(struct netif *netif, ip6_addr_t *ip6addr, 
+                                       u8_t prefix_len, s8_t *chosen_idx);
+err_t netif_remove_ip6_address(struct netif *netif, ip6_addr_t *ip6addr);
+err_t netif_remove_ip6_address_with_route(struct netif *netif, ip6_addr_t *ip6addr, 
+                                          u8_t prefix_len);
 #define netif_set_ip6_autoconfig_enabled(netif, action) do { if(netif) { (netif)->ip6_autoconfig_enabled = (action); }}while(0)
 #endif /* LWIP_IPV6 */
 

@@ -56,8 +56,11 @@
 #define TCPIP_MSG_VAR_FREE(name)    API_VAR_FREE(MEMP_TCPIP_MSG_API, name)
 
 /* global variables */
+static sys_thread_t tcpip_thread_obj;
 static tcpip_init_done_fn tcpip_init_done;
+static tcpip_will_finish_fn tcpip_will_finish;
 static void *tcpip_init_done_arg;
+static void *tcpip_will_finish_arg;
 static sys_mbox_t mbox;
 
 #if LWIP_TCPIP_CORE_LOCKING
@@ -87,6 +90,7 @@ static void
 tcpip_thread(void *arg)
 {
   struct tcpip_msg *msg;
+  int finish = 0;
   LWIP_UNUSED_ARG(arg);
 
   if (tcpip_init_done != NULL) {
@@ -94,7 +98,7 @@ tcpip_thread(void *arg)
   }
 
   LOCK_TCPIP_CORE();
-  while (1) {                          /* MAIN Loop */
+  while (!finish) {                          /* MAIN Loop */
     UNLOCK_TCPIP_CORE();
     LWIP_TCPIP_THREAD_ALIVE();
     /* wait for a message, timeouts are processed while waiting */
@@ -150,11 +154,21 @@ tcpip_thread(void *arg)
       msg->msg.cb.function(msg->msg.cb.ctx);
       break;
 
+    case TCPIP_MSG_FINISH:
+      LWIP_DEBUGF(TCPIP_DEBUG, ("tcpip_thread: FINISH %p\n", (void*)msg));
+      memp_free(MEMP_TCPIP_MSG_API, msg);
+      finish = 1;
+      break;
+
     default:
       LWIP_DEBUGF(TCPIP_DEBUG, ("tcpip_thread: invalid message: %d\n", msg->type));
       LWIP_ASSERT("tcpip_thread: invalid message", 0);
       break;
     }
+  }
+
+  if (tcpip_will_finish != NULL) {
+    tcpip_will_finish(tcpip_will_finish_arg);
   }
 }
 
@@ -474,7 +488,38 @@ tcpip_init(tcpip_init_done_fn initfunc, void *arg)
   }
 #endif /* LWIP_TCPIP_CORE_LOCKING */
 
-  sys_thread_new(TCPIP_THREAD_NAME, tcpip_thread, NULL, TCPIP_THREAD_STACKSIZE, TCPIP_THREAD_PRIO);
+  tcpip_thread_obj = sys_thread_new(TCPIP_THREAD_NAME, tcpip_thread, NULL, TCPIP_THREAD_STACKSIZE, TCPIP_THREAD_PRIO);
+}
+
+/**
+ * Finalize this module:
+ * - initialize all sub modules
+ * - start the tcpip_thread
+ *
+ * @param finish a function to call while tcpip_thread is still running and ready to exit
+ * @param arg argument to pass to finish
+ */
+err_t
+tcpip_finish(tcpip_will_finish_fn finish, void *arg)
+{
+  tcpip_will_finish = finish;
+  tcpip_will_finish_arg = arg;
+
+  if (sys_mbox_valid(&mbox)) {
+    struct tcpip_msg *msg;
+
+    msg = (struct tcpip_msg *)memp_malloc(MEMP_TCPIP_MSG_API);
+    if (msg == NULL) {
+      return ERR_MEM;
+    }
+
+    msg->type = TCPIP_MSG_FINISH;
+    sys_mbox_post(&mbox, msg);
+
+    return sys_thread_finish(tcpip_thread_obj);
+  }
+
+  return ERR_OK;
 }
 
 /**

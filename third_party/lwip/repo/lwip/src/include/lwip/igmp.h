@@ -88,6 +88,9 @@ struct igmp_group {
 
 /*  Prototypes */
 void   igmp_init(void);
+#ifdef LWIP_DEBUG
+void   igmp_dump_group_list(void);
+#endif
 err_t  igmp_start(struct netif *netif);
 err_t  igmp_stop(struct netif *netif);
 void   igmp_report_groups(struct netif *netif);

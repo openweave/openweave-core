@@ -167,6 +167,19 @@ PACK_STRUCT_END
 #  include "arch/epstruct.h"
 #endif
 
+/** The address field is variable and not fixed in length, use the
+  * appropriate macros when accessing the length field or calculating
+  * the option size.
+  */
+#define __OFFSETOF(t, m)                       ((size_t)(&(((t *)0)->m)))
+#define __ROUND_UP(n, m)                       ((((n) + ((m) - 1)) / (m)) * (m))
+#define ND6_LLADDR_OPTION_LENGTH_SHIFT         3
+#define ND6_LLADDR_OPTION_LENGTH_SIZE          (1 << ND6_LLADDR_OPTION_LENGTH_SHIFT)
+#define ND6_LLADDR_OPTION_LENGTH_MASK          (ND6_LLADDR_OPTION_LENGTH_SIZE - 1)
+#define ND6_LLADDR_OPTION_LENGTH_ENCODE(hwlen) (__ROUND_UP(hwlen, ND6_LLADDR_OPTION_LENGTH_SIZE) >> ND6_LLADDR_OPTION_LENGTH_SHIFT)
+#define ND6_LLADDR_OPTION_LENGTH_DECODE(value) ((value) << ND6_LLADDR_OPTION_LENGTH_SHIFT)
+#define ND6_LLADDR_OPTION_SIZE(hwlen)          (__OFFSETOF(struct lladdr_option, addr) + (hwlen))
+
 /** Prefix information option. */
 #define ND6_OPTION_TYPE_PREFIX_INFO (0x03)
 #define ND6_PREFIX_FLAG_ON_LINK (0x80)

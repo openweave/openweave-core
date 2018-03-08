@@ -963,10 +963,10 @@ tcp_send_empty_ack(struct tcp_pcb *pcb)
         &pcb->local_ip, &pcb->remote_ip);
     }
 #endif
-    NETIF_SET_HWADDRHINT(netif, &(pcb->addr_hint));
+    netif_apply_pcb(netif, (struct ip_pcb *)pcb);
     err = ip_output_if(p, &pcb->local_ip, &pcb->remote_ip,
       pcb->ttl, pcb->tos, IP_PROTO_TCP, netif);
-    NETIF_SET_HWADDRHINT(netif, NULL);
+    netif_apply_pcb(netif, NULL);
   }
   pbuf_free(p);
 
@@ -1318,6 +1318,20 @@ tcp_output_segment(struct tcp_seg *seg, struct tcp_pcb *pcb, struct netif *netif
     pcb->tos, IP_PROTO_TCP, netif);
   NETIF_SET_HWADDRHINT(netif, NULL);
   return err;
+
+#if TCP_OUTPUT_DEBUG
+#if LWIP_IP_DEBUG_TARGET
+  if (debug_target_match(PCB_ISIPV6(pcb), &pcb->local_ip, &pcb->remote_ip))
+  {
+#endif
+  tcp_debug_print(seg->tcphdr);
+#if LWIP_IP_DEBUG_TARGET
+  }
+#endif
+#endif
+
+  ip_output(seg->p, &pcb->local_ip, &pcb->remote_ip, pcb->ttl,
+    pcb->tos, IP_PROTO_TCP, (struct ip_pcb *)pcb);
 }
 
 /**
@@ -1562,9 +1576,9 @@ tcp_keepalive(struct tcp_pcb *pcb)
     TCP_STATS_INC(tcp.xmit);
 
     /* Send output to IP */
-    NETIF_SET_HWADDRHINT(netif, &(pcb->addr_hint));
+    netif_apply_pcb(netif, (struct ip_pcb *)pcb);
     err = ip_output_if(p, &pcb->local_ip, &pcb->remote_ip, pcb->ttl, 0, IP_PROTO_TCP, netif);
-    NETIF_SET_HWADDRHINT(netif, NULL);
+    netif_apply_pcb(netif, NULL);
   }
   pbuf_free(p);
 
@@ -1655,10 +1669,10 @@ tcp_zero_window_probe(struct tcp_pcb *pcb)
     TCP_STATS_INC(tcp.xmit);
 
     /* Send output to IP */
-    NETIF_SET_HWADDRHINT(netif, &(pcb->addr_hint));
+    netif_apply_pcb(netif, (struct ip_pcb *)pcb);
     err = ip_output_if(p, &pcb->local_ip, &pcb->remote_ip, pcb->ttl,
       0, IP_PROTO_TCP, netif);
-    NETIF_SET_HWADDRHINT(netif, NULL);
+    netif_apply_pcb(netif, NULL);
   }
 
   pbuf_free(p);

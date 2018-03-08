@@ -73,6 +73,7 @@ struct raw_pcb {
   IP_PCB;
 
   struct raw_pcb *next;
+  struct netif *intf_filter;
 
   u8_t protocol;
 

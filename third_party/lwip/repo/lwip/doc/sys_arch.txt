@@ -209,6 +209,11 @@ to be implemented as well:
   the "stacksize" parameter. The id of the new thread is returned. Both the id
   and the priority are system dependent.
 
+- err_t sys_thread_finish(sys_thread_t t)
+
+  Terminates an existing thread 't'. Return ERR_OK only if the thread finishes
+  gracefully. Otherwise, error code is returned from tcpip_finish().
+
 When lwIP is used from more than one context (e.g. from multiple threads OR from
 main-loop and from interrupts), the SYS_LIGHTWEIGHT_PROT protection SHOULD be enabled!
 

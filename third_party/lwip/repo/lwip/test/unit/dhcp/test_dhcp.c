@@ -376,7 +376,6 @@ static err_t lwip_tx_func(struct netif *netif, struct pbuf *p)
     case 3:
     case 4:
     case 5:
-    case 6:
       {
         const u8_t arpproto[] = { 0x08, 0x06 };
 
@@ -386,6 +385,7 @@ static err_t lwip_tx_func(struct netif *netif, struct pbuf *p)
         check_pkt(p, 12, arpproto, sizeof(arpproto)); /* eth level proto: ip */
         break;
       }
+    case 6:
     case 7:
       {
         const u8_t fake_arp[6] = { 0x12, 0x34, 0x56, 0x78, 0x9a, 0xab };
@@ -757,7 +757,7 @@ START_TEST(test_dhcp_relayed)
   for (i = 0; i < 25; i++) {
     tick_lwip();
   }
-  fail_unless(txpacket == 5, "txpkt should be 5, is %d", txpacket); /* ARP requests sent */
+  fail_unless(txpacket == 4, "txpkt should be 4, is %d", txpacket); /* ARP requests sent */
 
   /* Interface up */
   fail_unless(netif_is_up(&net_test));
@@ -777,13 +777,13 @@ START_TEST(test_dhcp_relayed)
   }
 
   fail_unless(netif_is_up(&net_test));
-  fail_unless(txpacket == 6, "txpacket = %d", txpacket);
+  fail_unless(txpacket == 5, "txpacket = %d", txpacket);
 
   /* We need to send arp response here.. */
 
   send_pkt(&net_test, arp_resp, sizeof(arp_resp));
 
-  fail_unless(txpacket == 7, "txpacket = %d", txpacket);
+  fail_unless(txpacket == 6, "txpacket = %d", txpacket);
   fail_unless(netif_is_up(&net_test));
 
   xid = htonl(netif_dhcp_data(&net_test)->xid); /* xid updated */
@@ -794,7 +794,7 @@ START_TEST(test_dhcp_relayed)
     tick_lwip();
   }
 
-  fail_unless(txpacket == 7, "txpacket = %d", txpacket);
+  fail_unless(txpacket == 6, "txpacket = %d", txpacket);
 
   netif_remove(&net_test);
 

@@ -652,9 +652,16 @@ ip4_input(struct pbuf *p, struct netif *inp)
 #endif /* IP_OPTIONS_ALLOWED == 0 */
 
   /* send to upper layers */
+#if IP_DEBUG && LWIP_IP_DEBUG_TARGET
+  if (debug_target_match(0, ip_2_ipX(&iphdr->src), ip_2_ipX(&iphdr->dest)))
+  {
+#endif
   LWIP_DEBUGF(IP_DEBUG, ("ip4_input: \n"));
   ip4_debug_print(p);
   LWIP_DEBUGF(IP_DEBUG, ("ip4_input: p->len %"U16_F" p->tot_len %"U16_F"\n", p->len, p->tot_len));
+#if IP_DEBUG && LWIP_IP_DEBUG_TARGET
+  }
+#endif
 
   ip_data.current_netif = netif;
   ip_data.current_input_netif = inp;
@@ -931,8 +938,15 @@ ip4_output_if_opt_src(struct pbuf *p, const ip4_addr_t *src, const ip4_addr_t *d
 
   IP_STATS_INC(ip.xmit);
 
+#if IP_DEBUG && LWIP_IP_DEBUG_TARGET
+  if (debug_target_match(0, ip_2_ipX(src), ip_2_ipX(dest)))
+  {
+#endif
   LWIP_DEBUGF(IP_DEBUG, ("ip4_output_if: %c%c%"U16_F"\n", netif->name[0], netif->name[1], (u16_t)netif->num));
   ip4_debug_print(p);
+#if IP_DEBUG && LWIP_IP_DEBUG_TARGET
+  }
+#endif
 
 #if ENABLE_LOOPBACK
   if (ip4_addr_cmp(dest, netif_ip4_addr(netif))
@@ -958,7 +972,10 @@ ip4_output_if_opt_src(struct pbuf *p, const ip4_addr_t *src, const ip4_addr_t *d
 #endif /* IP_FRAG */
 
   LWIP_DEBUGF(IP_DEBUG, ("ip4_output_if: call netif->output()\n"));
-  return netif->output(netif, p, dest);
+  if (netif->output != NULL) {
+    return netif->output(netif, p, dest);
+  }
+  return ERR_RTE;
 }
 
 /**
@@ -974,14 +991,16 @@ ip4_output_if_opt_src(struct pbuf *p, const ip4_addr_t *src, const ip4_addr_t *d
  * @param ttl the TTL value to be set in the IP header
  * @param tos the TOS value to be set in the IP header
  * @param proto the PROTOCOL to be set in the IP header
+ * @param pcb the management channel
  *
  * @return ERR_RTE if no route is found
  *         see ip_output_if() for more return values
  */
 err_t
 ip4_output(struct pbuf *p, const ip4_addr_t *src, const ip4_addr_t *dest,
-          u8_t ttl, u8_t tos, u8_t proto)
+          u8_t ttl, u8_t tos, u8_t proto, struct ip_pcb *pcb)
 {
+  err_t ret;
   struct netif *netif;
 
   LWIP_IP_CHECK_PBUF_REF_COUNT_FOR_TX(p);
@@ -993,7 +1012,11 @@ ip4_output(struct pbuf *p, const ip4_addr_t *src, const ip4_addr_t *dest,
     return ERR_RTE;
   }
 
-  return ip4_output_if(p, src, dest, ttl, tos, proto, netif);
+  netif_apply_pcb(netif, pcb);
+  ret = ip4_output_if(p, src, dest, ttl, tos, proto, netif);
+  netif_apply_pcb(netif, NULL);
+
+  return ret;
 }
 
 #if LWIP_NETIF_HWADDRHINT

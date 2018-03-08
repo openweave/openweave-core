@@ -75,8 +75,12 @@
 /* Router tables. */
 struct nd6_neighbor_cache_entry neighbor_cache[LWIP_ND6_NUM_NEIGHBORS];
 struct nd6_destination_cache_entry destination_cache[LWIP_ND6_NUM_DESTINATIONS];
+#if LWIP_ND6_LISTEN_RA
 struct nd6_prefix_list_entry prefix_list[LWIP_ND6_NUM_PREFIXES];
+#endif
+#if LWIP_IPV6_ROUTER_SUPPORT
 struct nd6_router_list_entry default_router_list[LWIP_ND6_NUM_ROUTERS];
+#endif /* LWIP_IPV6_ROUTER_SUPPORT */
 
 /* Default values, can be updated by a RA message. */
 u32_t reachable_time = LWIP_ND6_REACHABLE_TIME;
@@ -90,7 +94,9 @@ static u8_t nd6_cached_destination_index;
 static ip6_addr_t multicast_address;
 
 /* Static buffer to parse RA packet options (size of a prefix option, biggest option) */
+#if LWIP_IPV6_ROUTER_SUPPORT && LWIP_ND6_LISTEN_RA
 static u8_t nd6_ra_buffer[sizeof(struct prefix_option)];
+#endif
 
 /* Forward declarations. */
 static s8_t nd6_find_neighbor_cache_entry(const ip6_addr_t *ip6addr);
@@ -99,11 +105,15 @@ static void nd6_free_neighbor_cache_entry(s8_t i);
 static s8_t nd6_find_destination_cache_entry(const ip6_addr_t *ip6addr);
 static s8_t nd6_new_destination_cache_entry(void);
 static s8_t nd6_is_prefix_in_netif(const ip6_addr_t *ip6addr, struct netif *netif);
+#if LWIP_IPV6_ROUTER_SUPPORT
 static s8_t nd6_select_router(const ip6_addr_t *ip6addr, struct netif *netif);
+#endif /* LWIP_IPV6_ROUTER_SUPPORT */
+#if LWIP_ND6_LISTEN_RA
 static s8_t nd6_get_router(const ip6_addr_t *router_addr, struct netif *netif);
 static s8_t nd6_new_router(const ip6_addr_t *router_addr, struct netif *netif);
 static s8_t nd6_get_onlink_prefix(ip6_addr_t *prefix, struct netif *netif);
 static s8_t nd6_new_onlink_prefix(ip6_addr_t *prefix, struct netif *netif);
+#endif /* LWIP_ND6_LISTEN_RA */
 static s8_t nd6_get_next_hop_entry(const ip6_addr_t *ip6addr, struct netif *netif);
 static err_t nd6_queue_packet(s8_t neighbor_index, struct pbuf *q);
 
@@ -164,8 +174,19 @@ nd6_input(struct pbuf *p, struct netif *inp)
        * link-layer changed?
        * part of DAD mechanism? */
 
-      /* Create an aligned copy. */
-      ip6_addr_set(&target_address, &(na_hdr->target_address));
+      /* Check that link-layer address option also fits in packet. */
+      if (p->len < (sizeof(struct na_header) + ND6_LLADDR_OPTION_SIZE(inp->hwaddr_len))) {
+        /* TODO debug message */
+        pbuf_free(p);
+        ND6_STATS_INC(nd6.lenerr);
+        ND6_STATS_INC(nd6.drop);
+        return;
+      }
+
+      lladdr_opt = (struct lladdr_option *)((u8_t*)p->payload + sizeof(struct na_header));
+
+      /* Override ip6_current_dest_addr() so that we have an aligned copy. */
+      ip6_addr_set(ip6_current_dest_addr(), &(na_hdr->target_address));
 
 #if LWIP_IPV6_DUP_DETECT_ATTEMPTS
       /* If the target address matches this netif, it is a DAD response. */
@@ -175,7 +196,13 @@ nd6_input(struct pbuf *p, struct netif *inp)
           /* We are using a duplicate address. */
           netif_ip6_addr_set_state(inp, i, IP6_ADDR_INVALID);
 
-#if LWIP_IPV6_AUTOCONFIG
+#if LWIP_IPV6_MLD
+          /* Leave solicited node multicast group. */
+          ip6_addr_set_solicitednode(&multicast_address, netif_ip6_addr(inp, i)->addr[3]);
+          mld6_leavegroup(netif_ip6_addr(inp, i), &multicast_address);
+#endif /* LWIP_IPV6_MLD */
+
+#if LWIP_ND6_LISTEN_RA && LWIP_IPV6_AUTOCONFIG
           /* Check to see if this address was autoconfigured. */
           if (!ip6_addr_islinklocal(&target_address)) {
             i = nd6_get_onlink_prefix(&target_address, inp);
@@ -185,7 +212,7 @@ nd6_input(struct pbuf *p, struct netif *inp)
               prefix_list[i].flags |= ND6_PREFIX_AUTOCONFIG_ADDRESS_DUPLICATE;
             }
           }
-#endif /* LWIP_IPV6_AUTOCONFIG */
+#endif /* LWIP_ND6_LISTEN_RA && LWIP_IPV6_AUTOCONFIG */
 
           pbuf_free(p);
           return;
@@ -241,7 +268,7 @@ nd6_input(struct pbuf *p, struct netif *inp)
       if ((na_hdr->flags & ND6_FLAG_OVERRIDE) ||
           (neighbor_cache[i].state == ND6_INCOMPLETE)) {
         /* Check that link-layer address option also fits in packet. */
-        if (p->len < (sizeof(struct na_header) + 2)) {
+        if (p->len < (sizeof(struct na_header) + ND6_LLADDR_OPTION_SIZE(inp->hwaddr_len))) {
           /* @todo debug message */
           pbuf_free(p);
           ND6_STATS_INC(nd6.lenerr);
@@ -292,7 +319,8 @@ nd6_input(struct pbuf *p, struct netif *inp)
     ns_hdr = (struct ns_header *)p->payload;
 
     /* Check if there is a link-layer address provided. Only point to it if in this buffer. */
-    if (p->len >= (sizeof(struct ns_header) + 2)) {
+    lladdr_opt = NULL;
+    if (p->len >= (sizeof(struct ns_header) + ND6_LLADDR_OPTION_SIZE(inp->hwaddr_len))) {
       lladdr_opt = (struct lladdr_option *)((u8_t*)p->payload + sizeof(struct ns_header));
       if (p->len < (sizeof(struct ns_header) + (lladdr_opt->length << 3))) {
         lladdr_opt = NULL;
@@ -388,6 +416,7 @@ nd6_input(struct pbuf *p, struct netif *inp)
 
     break; /* ICMP6_TYPE_NS */
   }
+#if LWIP_IPV6_ROUTER_SUPPORT && LWIP_ND6_LISTEN_RA
   case ICMP6_TYPE_RA: /* Router Advertisement. */
   {
     struct ra_header *ra_hdr;
@@ -583,6 +612,7 @@ nd6_input(struct pbuf *p, struct netif *inp)
 
     break; /* ICMP6_TYPE_RA */
   }
+#endif /* LWIP_IPV6_ROUTER_SUPPORT && LWIP_ND6_LISTEN_RA */
   case ICMP6_TYPE_RD: /* Redirect */
   {
     struct redirect_header *redir_hdr;
@@ -600,7 +630,8 @@ nd6_input(struct pbuf *p, struct netif *inp)
 
     redir_hdr = (struct redirect_header *)p->payload;
 
-    if (p->len >= (sizeof(struct redirect_header) + 2)) {
+    lladdr_opt = NULL;
+    if (p->len >= (sizeof(struct redirect_header) + ND6_LLADDR_OPTION_SIZE(inp->hwaddr_len))) {
       lladdr_opt = (struct lladdr_option *)((u8_t*)p->payload + sizeof(struct redirect_header));
       if (p->len < (sizeof(struct redirect_header) + (lladdr_opt->length << 3))) {
         lladdr_opt = NULL;
@@ -780,6 +811,8 @@ nd6_tmr(void)
     destination_cache[i].age++;
   }
 
+#if LWIP_IPV6_ROUTER_SUPPORT
+
   /* Process router entries. */
   for (i = 0; i < LWIP_ND6_NUM_ROUTERS; i++) {
     if (default_router_list[i].neighbor_entry != NULL) {
@@ -796,6 +829,10 @@ nd6_tmr(void)
       }
     }
   }
+
+#endif /* LWIP_IPV6_ROUTER_SUPPORT */
+
+#if LWIP_ND6_LISTEN_RA
 
   /* Process prefix entries. */
   for (i = 0; i < LWIP_ND6_NUM_PREFIXES; i++) {
@@ -858,6 +895,7 @@ nd6_tmr(void)
     }
   }
 
+#endif /* LWIP_ND6_LISTEN_RA */
 
   /* Process our own addresses, if DAD configured. */
   for (netif = netif_list; netif != NULL; netif = netif->next) {
@@ -869,6 +907,23 @@ nd6_tmr(void)
           netif_ip6_addr_set_state(netif, i, IP6_ADDR_PREFERRED);
           /* @todo implement preferred and valid lifetimes. */
         } else if (netif->flags & NETIF_FLAG_UP) {
+#if LWIP_IPV6_MLD
+          // Listening to link-local all-nodes address (ff02::1) is required
+          // for any IPv6 node. Ensure that any interface supporting IPv6 is
+          // subscribed to the link-local all-nodes address.
+          if (netif->mld_mac_filter != NULL) {
+            ip6_addr_t allnodes_linklocal;
+
+            ip6_addr_set_allnodes_linklocal(&allnodes_linklocal);
+            netif->mld_mac_filter(netif, &allnodes_linklocal, NETIF_ADD_MAC_FILTER);
+          }
+
+          if ((netif->ip6_addr_state[i] & 0x07) == 0) {
+            /* Join solicited node multicast group. */
+            ip6_addr_set_solicitednode(&multicast_address, netif_ip6_addr(netif, i)->addr[3]);
+            mld6_joingroup(netif_ip6_addr(netif, i), &multicast_address);
+          }
+#endif /* LWIP_IPV6_MLD */
           /* Send a NS for this address. */
           nd6_send_ns(netif, netif_ip6_addr(netif, i), ND6_SEND_FLAG_MULTICAST_DEST);
           /* tentative: set next state by increasing by one */
@@ -932,8 +987,12 @@ nd6_send_ns(struct netif *netif, const ip6_addr_t *target_addr, u8_t flags)
   }
 
   /* Allocate a packet. */
-  p = pbuf_alloc(PBUF_IP, sizeof(struct ns_header) + (lladdr_opt_len << 3), PBUF_RAM);
-  if (p == NULL) {
+  p = pbuf_alloc(PBUF_IP, sizeof(struct ns_header) + ND6_LLADDR_OPTION_SIZE(netif->hwaddr_len), PBUF_RAM);
+  if ((p == NULL) || (p->len < (sizeof(struct ns_header) + ND6_LLADDR_OPTION_SIZE(netif->hwaddr_len)))) {
+    /* We couldn't allocate a suitable pbuf for the ns. drop it. */
+    if (p != NULL) {
+      pbuf_free(p);
+    }
     ND6_STATS_INC(nd6.memerr);
     return;
   }
@@ -950,7 +1009,7 @@ nd6_send_ns(struct netif *netif, const ip6_addr_t *target_addr, u8_t flags)
   if (lladdr_opt_len != 0) {
     struct lladdr_option *lladdr_opt = (struct lladdr_option *)((u8_t*)p->payload + sizeof(struct ns_header));
     lladdr_opt->type = ND6_OPTION_TYPE_SOURCE_LLADDR;
-    lladdr_opt->length = (u8_t)lladdr_opt_len;
+    lladdr_opt->length = ND6_LLADDR_OPTION_LENGTH_ENCODE(netif->hwaddr_len);
     SMEMCPY(lladdr_opt->addr, netif->hwaddr, netif->hwaddr_len);
   }
 
@@ -989,7 +1048,6 @@ nd6_send_na(struct netif *netif, const ip6_addr_t *target_addr, u8_t flags)
   struct pbuf *p;
   const ip6_addr_t *src_addr;
   const ip6_addr_t *dest_addr;
-  u16_t lladdr_opt_len;
 
   /* Use link-local address as source address. */
   /* src_addr = netif_ip6_addr(netif, 0); */
@@ -997,9 +1055,12 @@ nd6_send_na(struct netif *netif, const ip6_addr_t *target_addr, u8_t flags)
   src_addr = target_addr;
 
   /* Allocate a packet. */
-  lladdr_opt_len = ((netif->hwaddr_len + 2) >> 3) + (((netif->hwaddr_len + 2) & 0x07) ? 1 : 0);
-  p = pbuf_alloc(PBUF_IP, sizeof(struct na_header) + (lladdr_opt_len << 3), PBUF_RAM);
-  if (p == NULL) {
+  p = pbuf_alloc(PBUF_IP, sizeof(struct na_header) + ND6_LLADDR_OPTION_SIZE(netif->hwaddr_len), PBUF_RAM);
+  if ((p == NULL) || (p->len < (sizeof(struct na_header) + ND6_LLADDR_OPTION_SIZE(netif->hwaddr_len)))) {
+    /* We couldn't allocate a suitable pbuf for the ns. drop it. */
+    if (p != NULL) {
+      pbuf_free(p);
+    }
     ND6_STATS_INC(nd6.memerr);
     return;
   }
@@ -1018,7 +1079,7 @@ nd6_send_na(struct netif *netif, const ip6_addr_t *target_addr, u8_t flags)
   ip6_addr_set(&(na_hdr->target_address), target_addr);
 
   lladdr_opt->type = ND6_OPTION_TYPE_TARGET_LLADDR;
-  lladdr_opt->length = (u8_t)lladdr_opt_len;
+  lladdr_opt->length = ((netif->hwaddr_len + 2) >> 3) + (((netif->hwaddr_len + 2) & 0x07) ? 1 : 0);
   SMEMCPY(lladdr_opt->addr, netif->hwaddr, netif->hwaddr_len);
 
   /* Generate the solicited node address for the target address. */
@@ -1094,7 +1155,7 @@ nd6_send_rs(struct netif *netif)
     /* Include our hw address. */
     lladdr_opt = (struct lladdr_option *)((u8_t*)p->payload + sizeof(struct rs_header));
     lladdr_opt->type = ND6_OPTION_TYPE_SOURCE_LLADDR;
-    lladdr_opt->length = (u8_t)lladdr_opt_len;
+    lladdr_opt->length = ((netif->hwaddr_len + 2) >> 3) + (((netif->hwaddr_len + 2) & 0x07) ? 1 : 0);
     SMEMCPY(lladdr_opt->addr, netif->hwaddr, netif->hwaddr_len);
   }
 
@@ -1352,6 +1413,8 @@ static s8_t
 nd6_is_prefix_in_netif(const ip6_addr_t *ip6addr, struct netif *netif)
 {
   s8_t i;
+
+#if LWIP_ND6_LISTEN_RA
   for (i = 0; i < LWIP_ND6_NUM_PREFIXES; i++) {
     if ((prefix_list[i].netif == netif) &&
         (prefix_list[i].invalidation_timer > 0) &&
@@ -1359,6 +1422,8 @@ nd6_is_prefix_in_netif(const ip6_addr_t *ip6addr, struct netif *netif)
       return 1;
     }
   }
+#endif /* LWIP_ND6_LISTEN_RA */
+
   /* Check to see if address prefix matches a (manually?) configured address. */
   for (i = 0; i < LWIP_IPV6_NUM_ADDRESSES; i++) {
     if (ip6_addr_isvalid(netif_ip6_addr_state(netif, i)) &&
@@ -1369,6 +1434,7 @@ nd6_is_prefix_in_netif(const ip6_addr_t *ip6addr, struct netif *netif)
   return 0;
 }
 
+#if LWIP_IPV6_ROUTER_SUPPORT
 /**
  * Select a default router for a destination.
  *
@@ -1428,6 +1494,11 @@ nd6_select_router(const ip6_addr_t *ip6addr, struct netif *netif)
   /* no suitable router found. */
   return -1;
 }
+
+#endif /* LWIP_IPV6_ROUTER_SUPPORT */
+
+
+#if LWIP_ND6_LISTEN_RA
 
 /**
  * Find a router-announced route to the given destination.
@@ -1539,6 +1610,10 @@ nd6_new_router(const ip6_addr_t *router_addr, struct netif *netif)
   return -1;
 }
 
+#endif /* LWIP_ND6_LISTEN_RA */
+
+#if LWIP_ND6_LISTEN_RA
+
 /**
  * Find the cached entry for an on-link prefix.
  *
@@ -1592,6 +1667,8 @@ nd6_new_onlink_prefix(ip6_addr_t *prefix, struct netif *netif)
   /* Entry not available. */
   return -1;
 }
+
+#endif /* LWIP_ND6_LISTEN_RA */
 
 /**
  * Determine the next hop for a destination. Will determine if the
@@ -1654,13 +1731,9 @@ nd6_get_next_hop_entry(const ip6_addr_t *ip6addr, struct netif *netif)
         /* Destination in local link. */
         destination_cache[nd6_cached_destination_index].pmtu = netif->mtu;
         ip6_addr_copy(destination_cache[nd6_cached_destination_index].next_hop_addr, destination_cache[nd6_cached_destination_index].destination_addr);
-#ifdef LWIP_HOOK_ND6_GET_GW
-      } else if ((next_hop_addr = LWIP_HOOK_ND6_GET_GW(netif, ip6addr)) != NULL) {
-        /* Next hop for destination provided by hook function. */
-        destination_cache[nd6_cached_destination_index].pmtu = netif->mtu;
-        ip6_addr_set(&destination_cache[nd6_cached_destination_index].next_hop_addr, next_hop_addr);
-#endif /* LWIP_HOOK_ND6_GET_GW */
-      } else {
+      }
+      else {
+#if LWIP_IPV6_ROUTER_SUPPORT
         /* We need to select a router. */
         i = nd6_select_router(ip6addr, netif);
         if (i < 0) {
@@ -1670,6 +1743,10 @@ nd6_get_next_hop_entry(const ip6_addr_t *ip6addr, struct netif *netif)
         }
         destination_cache[nd6_cached_destination_index].pmtu = netif->mtu; /* Start with netif mtu, correct through ICMPv6 if necessary */
         ip6_addr_copy(destination_cache[nd6_cached_destination_index].next_hop_addr, default_router_list[i].neighbor_entry->next_hop_address);
+#else
+        ip6_addr_set_any(&(destination_cache[nd6_cached_destination_index].destination_addr));
+        return ERR_RTE;
+#endif /* LWIP_IPV6_ROUTER_SUPPORT */
       }
     }
   }
@@ -2044,21 +2121,29 @@ void
 nd6_cleanup_netif(struct netif *netif)
 {
   u8_t i;
+#if LWIP_IPV6_ROUTER_SUPPORT
   s8_t router_index;
+#endif
+#if LWIP_ND6_LISTEN_RA
   for (i = 0; i < LWIP_ND6_NUM_PREFIXES; i++) {
     if (prefix_list[i].netif == netif) {
       prefix_list[i].netif = NULL;
+#if LWIP_IPV6_AUTOCONFIG
       prefix_list[i].flags = 0;
+#endif
     }
   }
+#endif
   for (i = 0; i < LWIP_ND6_NUM_NEIGHBORS; i++) {
     if (neighbor_cache[i].netif == netif) {
+#if LWIP_IPV6_ROUTER_SUPPORT
       for (router_index = 0; router_index < LWIP_ND6_NUM_ROUTERS; router_index++) {
         if (default_router_list[router_index].neighbor_entry == &neighbor_cache[i]) {
           default_router_list[router_index].neighbor_entry = NULL;
           default_router_list[router_index].flags = 0;
         }
       }
+#endif
       neighbor_cache[i].isrouter = 0;
       nd6_free_neighbor_cache_entry(i);
     }

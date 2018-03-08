@@ -3,7 +3,9 @@
 
 /* Common header file for lwIP unit tests using the check framework */
 
+#ifndef NO_CONFIG_H
 #include <config.h>
+#endif
 #include <check.h>
 #include <stdlib.h>
 

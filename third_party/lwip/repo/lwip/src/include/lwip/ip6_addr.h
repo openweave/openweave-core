@@ -133,12 +133,16 @@ typedef struct ip6_addr ip6_addr_t;
 #define ip6_addr_netcmp(addr1, addr2) (((addr1)->addr[0] == (addr2)->addr[0]) && \
                                        ((addr1)->addr[1] == (addr2)->addr[1]))
 
+#define ip6_addr_net48cmp(addr1, addr2) (((addr1)->addr[0] == (addr2)->addr[0]) && \
+                                         (((addr1)->addr[1] & PP_HTONL(0xffff0000UL)) == \
+                                          ((addr2)->addr[1] & PP_HTONL(0xffff0000UL))))
+
 #define ip6_addr_cmp(addr1, addr2) (((addr1)->addr[0] == (addr2)->addr[0]) && \
                                     ((addr1)->addr[1] == (addr2)->addr[1]) && \
                                     ((addr1)->addr[2] == (addr2)->addr[2]) && \
                                     ((addr1)->addr[3] == (addr2)->addr[3]))
 
-#define ip6_get_subnet_id(ip6addr)   (lwip_htonl((ip6addr)->addr[2]) & 0x0000ffffUL)
+#define ip6_get_subnet_id(ip6addr)   (lwip_htonl((ip6addr)->addr[1]) & 0x0000ffffUL)
 
 #define ip6_addr_isany_val(ip6addr) (((ip6addr).addr[0] == 0) && \
                                      ((ip6addr).addr[1] == 0) && \
@@ -190,6 +194,10 @@ typedef struct ip6_addr ip6_addr_t;
     ((ip6addr)->addr[3] == PP_HTONL(0x00000001UL)))
 
 #define ip6_addr_isallnodes_linklocal(ip6addr) (((ip6addr)->addr[0] == PP_HTONL(0xff020000UL)) && \
+    ((ip6addr)->addr[1] == 0UL) && \
+    ((ip6addr)->addr[2] == 0UL) && \
+    ((ip6addr)->addr[3] == PP_HTONL(0x00000001UL)))
+#define ip6_addr_isallnodes_networklocal(ip6addr) (((ip6addr)->addr[0] == PP_HTONL(0xff030000UL)) && \
     ((ip6addr)->addr[1] == 0UL) && \
     ((ip6addr)->addr[2] == 0UL) && \
     ((ip6addr)->addr[3] == PP_HTONL(0x00000001UL)))

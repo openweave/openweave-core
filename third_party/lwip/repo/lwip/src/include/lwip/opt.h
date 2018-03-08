@@ -1011,6 +1011,15 @@
 #define LWIP_DNS                        0
 #endif
 
+/**
+ * LWIP_DNS_RAND_ID==1: Runs on the fix for CVE-2014-4883
+ * Randomizes the id of dns requests.
+ * This should be on for security purposes
+ */
+#ifndef LWIP_DNS_RAND_ID
+#define LWIP_DNS_RAND_ID                1
+#endif
+
 /** DNS maximum number of entries to maintain locally. */
 #if !defined DNS_TABLE_SIZE || defined __DOXYGEN__
 #define DNS_TABLE_SIZE                  4
@@ -1069,6 +1078,16 @@
  *  using a One-Shot Multicast DNS Query */
 #if !defined LWIP_DNS_SUPPORT_MDNS_QUERIES || defined __DOXYGEN__
 #define LWIP_DNS_SUPPORT_MDNS_QUERIES  0
+#endif
+
+/** DNS message max. size. Default value is RFC compliant. */
+#ifndef DNS_MSG_SIZE
+#define DNS_MSG_SIZE                    512
+#endif
+
+/** DNS maximum addresses per host name supported in the name table. */
+#if !defined DNS_MAX_ADDRS_PER_NAME || defined __DOXYGEN__
+#define DNS_MAX_ADDRS_PER_NAME          4
 #endif
 /**
  * @}
@@ -1459,6 +1478,10 @@
 /**
  * @}
  */
+
+#ifndef LWIP_MANAGEMENT_CHANNEL
+#define LWIP_MANAGEMENT_CHANNEL    0
+#endif
 
 /*
    ------------------------------------
@@ -2400,6 +2423,35 @@
 #define LWIP_IPV6_DHCP6                 0
 #endif
 
+/**
+ * LWIP_ND6_LISTEN_RA==1: Enable listening and processing incoming Router Advertisements.
+ */
+#ifndef LWIP_ND6_LISTEN_RA
+#define LWIP_ND6_LISTEN_RA              1
+#endif
+
+/**
+ * LWIP_IPV6_ROUTER_SUPPORT==1: Maintain a list of IPV6 routers dynamically discovered via Router Advertisements.
+ */
+#ifndef LWIP_IPV6_ROUTER_SUPPORT
+#define LWIP_IPV6_ROUTER_SUPPORT        1
+#endif
+
+/**
+ * LWIP_IPV6_ROUTE_TABLE_SUPPORT==1: Enable support for adding static routes and referring to these during forwarding.
+ */
+#ifndef LWIP_IPV6_ROUTE_TABLE_SUPPORT
+#define LWIP_IPV6_ROUTE_TABLE_SUPPORT   0
+#endif
+
+/**
+ * LWIP_IPV6_NUM_ROUTES: Number of IPV6 routes that can be kept in the static route table.
+ */
+#ifndef LWIP_IPV6_NUM_ROUTE_ENTRIES
+#define LWIP_IPV6_NUM_ROUTE_ENTRIES     8
+#endif
+
+
 /*
    ---------------------------------------
    ---------- Hook options ---------------
@@ -2594,6 +2646,20 @@
 /**
  * @}
  */
+
+/**
+* LWIP_HOOK_ETHIP6_GET_GW(netif, dest):
+* - called from ethip6_output() (IPv6)
+* - netif: the netif used for sending
+* - dest: the destination IPv6 address
+* Returns the IPv6 address of the gateway to handle the specified destination
+* IPv6 address. If NULL is returned, the netif's default gateway is used.
+* The returned address MUST be reachable on the specified netif!
+*/
+#if LWIP_IPV6_ROUTE_TABLE_SUPPORT
+#define LWIP_HOOK_ETHIP6_GET_GW(netif, dest)         ip6_get_gateway(netif, dest)
+#endif
+
 
 /*
    ---------------------------------------
@@ -2848,6 +2914,15 @@
 #if !defined IP6_DEBUG || defined __DOXYGEN__
 #define IP6_DEBUG                       LWIP_DBG_OFF
 #endif
+
+/**
+ * LWIP_IP_DEBUG_TARGET: Enable selective output of IP-level debug for
+ * a particular IP address.
+ */
+#ifndef LWIP_IP_DEBUG_TARGET
+#define LWIP_IP_DEBUG_TARGET            0
+#endif
+
 /**
  * @}
  */

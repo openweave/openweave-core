@@ -157,24 +157,38 @@ raw_input(struct pbuf *p, struct netif *inp)
   /* loop through all raw pcbs until the packet is eaten by one */
   /* this allows multiple pcbs to match against the packet by design */
   while ((eaten == 0) && (pcb != NULL)) {
-    if ((pcb->protocol == proto) && raw_input_match(pcb, broadcast)) {
+    if ((pcb->protocol == proto) && raw_input_match(pcb, broadcast) &&
+        (pcb->intf_filter == NULL || pcb->intf_filter == inp) &&
+        (ip_addr_isany(&pcb->local_ip) ||
+         ip_addr_cmp(&(pcb->local_ip), ip_current_dest_addr()))) {
       /* receive callback function available? */
-      if (pcb->recv != NULL) {
+#if IP_SOF_BROADCAST_RECV
+      /* broadcast filter? */
+      if ((ip_get_option(pcb, SOF_BROADCAST) || !ip_addr_isbroadcast(ip_current_dest_addr(), inp))
+#if LWIP_IPV6
+          && !PCB_ISIPV6(pcb)
+#endif /* LWIP_IPV6 */
+          )
+#endif /* IP_SOF_BROADCAST_RECV */
+      {
 #ifndef LWIP_NOASSERT
         void* old_payload = p->payload;
 #endif
-        /* the receive callback function did not eat the packet? */
-        eaten = pcb->recv(pcb->recv_arg, pcb, p, ip_current_src_addr());
-        if (eaten != 0) {
-          /* receive function ate the packet */
-          p = NULL;
-          eaten = 1;
-          if (prev != NULL) {
-          /* move the pcb to the front of raw_pcbs so that is
-             found faster next time */
-            prev->next = pcb->next;
-            pcb->next = raw_pcbs;
-            raw_pcbs = pcb;
+        /* receive callback function available? */
+        if (pcb->recv != NULL) {
+          /* the receive callback function did not eat the packet? */
+          eaten = pcb->recv(pcb->recv_arg, pcb, p, ip_current_src_addr());
+          if (eaten != 0) {
+            /* receive function ate the packet */
+            p = NULL;
+            eaten = 1;
+            if (prev != NULL) {
+            /* move the pcb to the front of raw_pcbs so that is
+               found faster next time */
+              prev->next = pcb->next;
+              pcb->next = raw_pcbs;
+              raw_pcbs = pcb;
+            }
           }
         } else {
           /* sanity-check that the receive callback did not alter the pbuf */
@@ -320,23 +334,26 @@ raw_sendto(struct raw_pcb *pcb, struct pbuf *p, const ip_addr_t *ipaddr)
     }
   }
 
-  if(IP_IS_ANY_TYPE_VAL(pcb->local_ip)) {
-    /* Don't call ip_route() with IP_ANY_TYPE */
-    netif = ip_route(IP46_ADDR_ANY(IP_GET_TYPE(ipaddr)), ipaddr);
-  } else {
-    netif = ip_route(&pcb->local_ip, ipaddr);
-  }
-
-  if (netif == NULL) {
-    LWIP_DEBUGF(RAW_DEBUG | LWIP_DBG_LEVEL_WARNING, ("raw_sendto: No route to "));
-    ip_addr_debug_print(RAW_DEBUG | LWIP_DBG_LEVEL_WARNING, ipaddr);
-    /* free any temporary header pbuf allocated by pbuf_header() */
-    if (q != p) {
-      pbuf_free(q);
+  if (pcb->intf_filter == NULL) {
+    if(IP_IS_ANY_TYPE_VAL(pcb->local_ip)) {
+      /* Don't call ip_route() with IP_ANY_TYPE */
+      netif = ip_route(IP46_ADDR_ANY(IP_GET_TYPE(ipaddr)), ipaddr);
+    } else {
+      netif = ip_route(&pcb->local_ip, ipaddr);
     }
-    return ERR_RTE;
-  }
 
+    if (netif == NULL) {
+      LWIP_DEBUGF(RAW_DEBUG | LWIP_DBG_LEVEL_WARNING, ("raw_sendto: No route to "));
+      ip_addr_debug_print(RAW_DEBUG | LWIP_DBG_LEVEL_WARNING, ipaddr);
+      /* free any temporary header pbuf allocated by pbuf_header() */
+      if (q != p) {
+        pbuf_free(q);
+      }
+      return ERR_RTE;
+    }
+  } else {
+    netif = pcb->intf_filter;
+  }
 #if IP_SOF_BROADCAST
   if (IP_IS_V4(ipaddr))
   {
@@ -372,15 +389,15 @@ raw_sendto(struct raw_pcb *pcb, struct pbuf *p, const ip_addr_t *ipaddr)
   /* If requested, based on the IPV6_CHECKSUM socket option per RFC3542,
      compute the checksum and update the checksum in the payload. */
   if (IP_IS_V6(ipaddr) && pcb->chksum_reqd) {
-    u16_t chksum = ip6_chksum_pseudo(p, pcb->protocol, p->tot_len, ip_2_ip6(src_ip), ip_2_ip6(ipaddr));
-    LWIP_ASSERT("Checksum must fit into first pbuf", p->len >= (pcb->chksum_offset + 2));
-    SMEMCPY(((u8_t *)p->payload) + pcb->chksum_offset, &chksum, sizeof(u16_t));
+    u16_t chksum = ip6_chksum_pseudo(q, pcb->protocol, q->tot_len, ip_2_ip6(src_ip), ip_2_ip6(ipaddr));
+    LWIP_ASSERT("Checksum must fit into first pbuf", q->len >= (pcb->chksum_offset + 2));
+    *(u16_t *)(((u8_t *)p->payload) + (q == p ? header_size : 0) + pcb->chksum_offset) = chksum;
   }
 #endif
 
-  NETIF_SET_HWADDRHINT(netif, &pcb->addr_hint);
+  netif_apply_pcb(netif, (struct ip_pcb *)pcb);
   err = ip_output_if(q, src_ip, ipaddr, pcb->ttl, pcb->tos, pcb->protocol, netif);
-  NETIF_SET_HWADDRHINT(netif, NULL);
+  netif_apply_pcb(netif, NULL);
 
   /* did we chain a header earlier? */
   if (q != p) {
