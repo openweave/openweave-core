@@ -476,12 +476,6 @@ memp_malloc_fn(memp_t type, const char* file, const int line)
   memp_overflow_check_all();
 #endif /* MEMP_OVERFLOW_CHECK >= 2 */
 
-#if (MEMP_DEBUG | LWIP_DBG_TRACE)
-    if (MEMP_IS_PBUF_POOL(type)) {
-      (*num_used_pool_ptr)++;
-    }
-#endif
-
 #if !MEMP_OVERFLOW_CHECK
   memp = do_memp_malloc_pool(memp_pools[type]);
 #else
@@ -496,9 +490,13 @@ memp_malloc_fn(memp_t type, const char* file, const int line)
     }
   }
   else {
-    if (LWIP_PERF && MEMP_IS_PBUF_POOL(type)) {
-      LWIP_DEBUGF(MEMP_DEBUG | LWIP_DBG_TRACE, ("mm:p++ = %d (%p) (%s)\n", *num_used_pool_ptr, memp, memp_pools[type]->desc));
-      sys_profile_interval_set_pbuf_highwatermark((u32_t)(*num_used_pool_ptr), MEMP_PBUF_POOL_HIGHWATERMARK(type));
+    if (MEMP_IS_PBUF_POOL(type)) {
+      (*num_used_pool_ptr)++;
+
+      if (LWIP_PERF) {
+          LWIP_DEBUGF(MEMP_DEBUG | LWIP_DBG_TRACE, ("mm:p++ = %d (%p) (%s)\n", *num_used_pool_ptr, memp, memp_pools[type]->desc));
+          sys_profile_interval_set_pbuf_highwatermark((u32_t)(*num_used_pool_ptr), MEMP_PBUF_POOL_HIGHWATERMARK(type));
+      }
     }
   }
 #endif

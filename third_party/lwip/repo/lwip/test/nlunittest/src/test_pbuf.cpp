@@ -283,7 +283,7 @@ static const nlTest sTests[] = {
     NL_TEST_DEF("Allocate Medium Pool", TestPbufAllocMedium),
     NL_TEST_DEF("Allocate Small Pool", TestPbufAllocSmall),
     NL_TEST_DEF("Allocate Chained Pbuf", TestPbufAllocChain),
-    NL_TEST_DEF("Allocate Chained Overlow Pbuf", TestPbufAllocChainFull),
+    NL_TEST_DEF("Allocate Chained Overflow Pbuf", TestPbufAllocChainFull),
     NL_TEST_DEF("Allocate Overflow Pbuf", TestPbufAllocOverflow),
     NL_TEST_SENTINEL()
 };
