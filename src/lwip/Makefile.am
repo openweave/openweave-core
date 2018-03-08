@@ -101,7 +101,7 @@ liblwip_V2ONLY_PATHS                                                           =
     @top_builddir@/third_party/lwip/repo/lwip/src/netif/ethernet.c               \
     $(NULL)
 
-liblwip_VERSION_PATHS = $(liblwip_V1ONLY_PATHS)
+liblwip_VERSION_PATHS = $(liblwip_V2ONLY_PATHS)
 
 liblwip_a_SOURCES                                                              = \
     $(liblwip_API_PATHS)                                                         \

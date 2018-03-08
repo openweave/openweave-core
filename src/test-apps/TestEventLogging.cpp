@@ -616,6 +616,7 @@ static int TestSetup(void *inContext)
     static WeaveExchangeManager sExchangeMgr;
 
     InitSystemLayer();
+
     if (ctx->bdx)
     {
         InitNetwork();
@@ -632,7 +633,7 @@ static int TestSetup(void *inContext)
 
         WEAVE_ERROR err = WEAVE_NO_ERROR;
 #if WEAVE_SYSTEM_CONFIG_USE_LWIP
-    lwip_init();
+        tcpip_init(NULL, NULL);
 #endif // WEAVE_SYSTEM_CONFIG_USE_LWIP
 
         err = sFabricState.Init();
@@ -657,8 +658,9 @@ static int TestTeardown(void *inContext)
     {
         ShutdownWeaveStack();
         ShutdownNetwork();
-        ShutdownSystemLayer();
     }
+
+    ShutdownSystemLayer();
     return SUCCESS;
 }
 

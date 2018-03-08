@@ -118,16 +118,7 @@
 #define MEMP_NUM_REASSDATA              0
 #endif
 
-#define SUB_ETHERNET_HEADER_SPACE      (8 + 12 + 4 + 2)
-#define ETHERNET_SIZE                  14
-#define PAYLOAD_MTU                    1500
-
-/**
- * PBUF_POOL_BUFSIZE: the size of each pbuf in the pbuf pool. The default is
- * designed to accomodate single full size TCP frame in one pbuf, including
- * TCP_MSS, IP header, and link header.
- */
-#define PBUF_POOL_BUFSIZE              (LWIP_MEM_ALIGN_SIZE(PAYLOAD_MTU + ETHERNET_SIZE + SUB_ETHERNET_HEADER_SPACE) + LWIP_MEM_ALIGN_SIZE(sizeof(struct pbuf)) + 1)
+#define PAYLOAD_MTU                    (1500)
 
 /**
  * TCP_MSS: TCP Maximum segment size. (default is 536, a conservative default,
@@ -138,6 +129,16 @@
  */
 #define TCP_MSS                        (1152)
 
+/**
+ * PBUF_POOL_BUFSIZE: the size of each pbuf in the pbuf pool. The default is
+ * designed to accomodate single full size link-layer frame in one pbuf, including
+ * the link-layer header and any link-layer encapsulation header, and the pbuf
+ * structure itself.
+ */
+
+#define PBUF_POOL_BUFSIZE                                                                 \
+    LWIP_MEM_ALIGN_SIZE(PAYLOAD_MTU + PBUF_LINK_ENCAPSULATION_HLEN + PBUF_LINK_HLEN)    + \
+    LWIP_MEM_ALIGN_SIZE(sizeof(struct pbuf) + 1)
 
 /**
  * TCP_SND_BUF: TCP sender buffer space (bytes).
@@ -383,7 +384,7 @@
 
 #define MEM_DEBUG        LWIP_DBG_OFF
 #define MEMP_DEBUG       LWIP_DBG_OFF
-#define PBUF_DEBUG       LWIP_DBG_OFF
+#define PBUF_DEBUG       LWIP_DBG_ON
 #define API_LIB_DEBUG    LWIP_DBG_ON
 #define API_MSG_DEBUG    LWIP_DBG_ON
 #define TCPIP_DEBUG      LWIP_DBG_ON

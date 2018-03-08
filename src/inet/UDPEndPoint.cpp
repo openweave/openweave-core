@@ -681,7 +681,7 @@ INET_ERROR UDPEndPoint::GetPCB(IPAddressType addrType)
 #if INET_CONFIG_ENABLE_IPV4
         case kIPAddressType_IPv4:
 #endif // INET_CONFIG_ENABLE_IPV4
-            mUDP = udp_new();
+            mUDP = udp_new_ip_type(IPAddress::ToLwIPAddrType(addrType));
             break;
 
         default:

@@ -852,6 +852,7 @@ void InitNetwork()
 
     netif_set_default(&netIF);
     netif_set_up(&netIF);
+    netif_set_link_up(&netIF);
 
     if (gNetworkOptions.LocalIPv6Addr != IPAddress::Any)
     {

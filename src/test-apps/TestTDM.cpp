@@ -2070,7 +2070,7 @@ static void TestTdmStatic_MultiInstance(nlTestSuite *inSuite, void *inContext)
 int main(int argc, char *argv[])
 {
 #if WEAVE_SYSTEM_CONFIG_USE_LWIP
-    lwip_init();
+    tcpip_init(NULL, NULL);
 #endif // WEAVE_SYSTEM_CONFIG_USE_LWIP
 
     nl::Weave::MockPlatform::gTestPlatformTimeFns.GetSystemTimeMs = Private::GetSystemTimeMs;

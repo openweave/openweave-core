@@ -108,7 +108,7 @@ low_level_output(struct netif *netif, struct pbuf *buf)
     if (buf->tot_len > buf->len)
     {
         // Allocate a buffer from the buffer pool. Fail if none available.
-        outBuf = pbuf_alloc(PBUF_RAW, buf->tot_len + SUB_ETHERNET_HEADER_SPACE, PBUF_POOL);
+        outBuf = pbuf_alloc(PBUF_RAW, buf->tot_len + PBUF_LINK_ENCAPSULATION_HLEN, PBUF_POOL);
         if (outBuf == NULL) {
             fprintf(stderr, "TapInterface: Failed to allocate buffer\n");
             retval = ERR_MEM;
@@ -123,7 +123,7 @@ low_level_output(struct netif *netif, struct pbuf *buf)
         }
 
         // Reserve the space needed by WICED for its buffer management.
-        pbuf_header(outBuf, -SUB_ETHERNET_HEADER_SPACE);
+        pbuf_header(outBuf, -PBUF_LINK_ENCAPSULATION_HLEN);
 
         // Copy output data to the new buffer.
         retval = pbuf_copy(outBuf, buf);

@@ -3664,8 +3664,8 @@ static bool HandleOption(const char *progName, OptionSet *optSet, int id, const 
  */
 int main(int argc, char *argv[])
 {
-    #if WEAVE_SYSTEM_CONFIG_USE_LWIP
-        lwip_init();
+#if WEAVE_SYSTEM_CONFIG_USE_LWIP
+    tcpip_init(NULL, NULL);
 #endif // WEAVE_SYSTEM_CONFIG_USE_LWIP
 
     nlTestSuite theSuite = {

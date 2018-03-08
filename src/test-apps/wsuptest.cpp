@@ -93,7 +93,7 @@ int main()
   // further initialization on test data
   // test limits on inititalizers here
 #if WEAVE_SYSTEM_CONFIG_USE_LWIP
-  lwip_init();
+  tcpip_init(NULL, NULL);
 #endif
 
   assert(iTList.init(1, types)==WEAVE_NO_ERROR);
