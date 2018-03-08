@@ -1255,6 +1255,9 @@ NL_WITH_OPTIONAL_INTERNAL_PACKAGE(
       case "${target}" in
 
           *linux*)
+              if test "x${HAVE_CXX11}" == "0"; then
+                AC_MSG_ERROR([BlueZ support requires C++11 compiler])
+              fi
               CONFIG_BLE_PLATFORM_BLUEZ=1
               enable_woble_bluez="yes"
               BLUEZ_CPPFLAGS="-I\${abs_top_srcdir}/third_party/bluez/repo/"
