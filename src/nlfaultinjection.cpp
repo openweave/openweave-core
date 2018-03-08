@@ -1,6 +1,6 @@
 /*
  *
- *    Copyright 2016-2017 The nlfaultinjection Authors.
+ *    Copyright 2016-2018 The nlfaultinjection Authors.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -21,8 +21,13 @@
  *      Implementation of the fault-injection utilities.
  */
 
+#ifndef __STDC_LIMIT_MACROS
+#define __STDC_LIMIT_MACROS
+#endif
+#include <stdint.h>
 #include <string.h>
 #include <stdlib.h>
+
 #include <nlassert.h>
 
 #include <nlfaultinjection.hpp>
@@ -111,7 +116,7 @@ static const Callback *sEndOfCustomCallbacks = &sRandomCb;
  * @param[in]   inNumFaults     The size of inFaultArray, equal to the number of fault IDs.
  * @param[in]   inFaultArray    A pointer to an array of Record, in which this object
  *                              will store the configuration of each fault.
- * @param[in]   inName          A pointer to a C string containing the name of the Manager.
+ * @param[in]   inManagerName   A pointer to a C string containing the name of the Manager.
  * @param[in]   inFaultNames    A pointer to an array of inNumFaults C strings that describe
  *                              each fault ID.
  *
@@ -120,15 +125,15 @@ static const Callback *sEndOfCustomCallbacks = &sRandomCb;
  */
 int32_t Manager::Init(size_t inNumFaults,
                       Record *inFaultArray,
-                      const char *inName,
-                      const char **inFaultNames)
+                      Name inManagerName,
+                      const Name *inFaultNames)
 {
     int32_t err = 0;
     Identifier i;
 
-    nlEXPECT_ACTION((inNumFaults > 0 && inFaultArray && inName && inFaultNames), exit, err = -EINVAL);
+    nlEXPECT_ACTION((inNumFaults > 0 && inFaultArray && inManagerName && inFaultNames), exit, err = -EINVAL);
 
-    mName = inName;
+    mName = inManagerName;
     mNumFaults = inNumFaults;
     mFaultRecords = inFaultArray;
     mFaultNames = inFaultNames;
@@ -197,15 +202,15 @@ int32_t Manager::FailAtFault(Identifier inId,
 {
     int32_t err = 0;
 
-    nlEXPECT_ACTION(inId < mNumFaults, exit, err = -EINVAL);
+    nlEXPECT_ACTION(inId < mNumFaults && inNumCallsToSkip <= UINT16_MAX && inNumCallsToFail <= UINT16_MAX, exit, err = -EINVAL);
 
     if (inTakeMutex)
     {
         Lock();
     }
 
-    mFaultRecords[inId].mNumCallsToSkip = inNumCallsToSkip;
-    mFaultRecords[inId].mNumCallsToFail = inNumCallsToFail;
+    mFaultRecords[inId].mNumCallsToSkip = static_cast<uint16_t>(inNumCallsToSkip);
+    mFaultRecords[inId].mNumCallsToFail = static_cast<uint16_t>(inNumCallsToFail);
     mFaultRecords[inId].mPercentage = 0;
 
     if (inTakeMutex)
@@ -277,7 +282,8 @@ int32_t Manager::StoreArgsAtFault(Identifier inId, uint16_t inNumArgs, int32_t *
 
     nlEXPECT_ACTION(inId < mNumFaults &&
                     mFaultRecords[inId].mArguments != NULL &&
-                    mFaultRecords[inId].mLengthOfArguments >= inNumArgs,
+                    mFaultRecords[inId].mLengthOfArguments >= inNumArgs &&
+                    inNumArgs <= UINT8_MAX,
                     exit,
                     err = -EINVAL);
 
@@ -288,7 +294,7 @@ int32_t Manager::StoreArgsAtFault(Identifier inId, uint16_t inNumArgs, int32_t *
         mFaultRecords[inId].mArguments[i] = inArgs[i];
     }
 
-    mFaultRecords[inId].mNumArguments = inNumArgs;
+    mFaultRecords[inId].mNumArguments = static_cast<uint8_t>(inNumArgs);
 
     Unlock();
 
@@ -706,14 +712,40 @@ static bool ParseUInt(const char *str, uint32_t *num)
  *                                  The format is
  *                                  "<module>_<fault>_{f<numTimesToFail>[_s<numTimesToSkip>],p<randomFailurePercentage>}[_a<integer>]..."
  *
- * @param[in]   inTable             An array of GetManagerFn callbacks
+ * @param[in]   inArray             An array of GetManagerFn callbacks
  *                                  to be used to parse the string.
  *
- * @param[in]   inTableSize         Size of inTable
+ * @param[in]   inArraySize         Num of elements in inArray
  *
  * @return      true  if the string can be parsed completely; false otherwise
  */
-bool ParseFaultInjectionStr(char *aFaultInjectionStr, GetManagerFn *inTable, size_t inTableSize)
+bool ParseFaultInjectionStr(char *aFaultInjectionStr, const GetManagerFn *inArray, size_t inArraySize)
+{
+    ManagerTable table = { inArray, inArraySize };
+    size_t numTables = 1;
+
+    return ParseFaultInjectionStr(aFaultInjectionStr, &table, numTables);
+}
+
+/**
+ * Parse a fault-injection configuration string and apply the configuration.
+ *
+ * @param[in]   aFaultInjectionStr  The configuration string. An example of a valid string that
+ *                                  enables two faults is "system_buffer_f5_s1:inet_send_p33"
+ *                                  An example of a configuration string that
+ *                                  also passes three integer arguments to the fault point is
+ *                                  "system_buffer_f5_s1_a10_a7_a-4"
+ *                                  The format is
+ *                                  "<module>_<fault>_{f<numTimesToFail>[_s<numTimesToSkip>],p<randomFailurePercentage>}[_a<integer>]..."
+ *
+ * @param[in]   inTables            An array of ManagerTable structures
+ *                                  to be used to parse the string.
+ *
+ * @param[in]   inNumTables         Size of inTables
+ *
+ * @return      true  if the string can be parsed completely; false otherwise
+ */
+bool ParseFaultInjectionStr(char *aFaultInjectionStr, const ManagerTable *inTables, size_t inNumTables)
 {
     char *tok1 = NULL;
     char *savePtr1 = NULL;
@@ -740,7 +772,7 @@ bool ParseFaultInjectionStr(char *aFaultInjectionStr, GetManagerFn *inTable, siz
         bool gotPercentage = false;
         bool gotReboot = false;
         bool gotArguments = false;
-        const char **faultNames = NULL;
+        const Name *faultNames = NULL;
 
         outerString = NULL;
 
@@ -748,13 +780,16 @@ bool ParseFaultInjectionStr(char *aFaultInjectionStr, GetManagerFn *inTable, siz
         nlEXPECT(tok2 != NULL, exit);
 
 		// this is the module
-		for (i = 0; i < inTableSize; i++)
-		{
-            nl::FaultInjection::Manager &tmpMgr = inTable[i]();
-			if (!strcmp(tok2, tmpMgr.GetName()))
-			{
-				mgr = &tmpMgr;
-                break;
+		for (i = 0; i < inNumTables; i++)
+        {
+            for (j = 0; j < inTables[i].mNumItems; j++)
+            {
+                nl::FaultInjection::Manager &tmpMgr = inTables[i].mArray[j]();
+                if (!strcmp(tok2, tmpMgr.GetName()))
+                {
+                    mgr = &tmpMgr;
+                    break;
+                }
             }
         }
         nlEXPECT(mgr != NULL, exit);
