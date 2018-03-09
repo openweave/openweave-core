@@ -33,7 +33,7 @@
 
 + (BOOL)isValidPairingCode:(NSString *)pairingCode {
 	const char *pairingCodeCS = [pairingCode UTF8String];
-	return (nl::PairingCode::VerifyPairingCode(pairingCodeCS, strlen(pairingCodeCS))) ? YES : NO;
+	return (nl::PairingCode::VerifyPairingCode(pairingCodeCS, strlen(pairingCodeCS)) == WEAVE_NO_ERROR) ? YES : NO;
 }
 
 + (NSString *)normalizePairingCode:(NSString *)pairingCode {
