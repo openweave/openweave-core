@@ -30,7 +30,7 @@
 #include <Weave/Profiles/data-management/Current/WdmManagedNamespace.h>
 #include <Weave/Core/WeaveCore.h>
 #include <Weave/Profiles/data-management/EventLoggingTags.h>
-#include <Weave/Profiles/data-management/TraitData.h>
+#include <Weave/Profiles/data-management/TraitCatalog.h>
 
 namespace nl {
 namespace Weave {
@@ -144,9 +144,14 @@ typedef uint64_t utc_timestamp_t;
  */
 struct DetailedRootSection
 {
+    /**
+     * Default constructor
+     */
+    DetailedRootSection(void) : ResourceID(ResourceIdentifier::SELF_NODE_ID) { };
+
     uint64_t ResourceID;      /**< The ID of the resource that the generated event pertains to.
-                                   When the event resource is equal to the
-                                   event source, it may be omitted. */
+                                   When the event resource is equal to the event source, set
+                                   this value equal to ResourceIdentifier::SELF_NODE_ID */
     uint64_t TraitInstanceID; /**< Trait instance of the subject of this event. */
 };
 

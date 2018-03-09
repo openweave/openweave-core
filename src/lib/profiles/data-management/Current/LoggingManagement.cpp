@@ -329,7 +329,8 @@ WEAVE_ERROR LoggingManagement::BlitEvent(EventLoadOutContext * aContext, const E
     {
         if (mExchangeMgr != NULL)
         {
-            if (inOptions->eventSource->ResourceID != mExchangeMgr->FabricState->LocalNodeId)
+            if ((inOptions->eventSource->ResourceID != ResourceIdentifier::SELF_NODE_ID) &&
+                (inOptions->eventSource->ResourceID != mExchangeMgr->FabricState->LocalNodeId))
             {
                 err = aContext->mWriter.Put(ContextTag(kTag_EventResourceID), inOptions->eventSource->ResourceID);
                 SuccessOrExit(err);
