@@ -61,6 +61,9 @@ enum NestWeaveProductId
     kNestWeaveProduct_Onyx                       = 0x0014,
     kNestWeaveProduct_OnyxBackplate              = 0x0015,
     kNestWeaveProduct_SDKSampleBorderRouter      = 0xFE05,
+    kNestWeaveProduct_SDKSampleLightActuator     = 0xFE06,
+    kNestWeaveProduct_SDKSampleButtonSensor      = 0xFE07,
+    kNestWeaveProduct_SDKSampleMotionSensor      = 0xFE08,
 };
 
 }; // namespace DeviceDescription
