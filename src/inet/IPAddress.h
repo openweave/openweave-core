@@ -323,6 +323,8 @@ public:
      * @retval false  The address is IPv6 or the unspecified address.
      */
     bool IsIPv4(void) const;
+#else
+    bool IsIPv4(void) const { return false; }
 #endif // INET_CONFIG_ENABLE_IPV4
 
     /**
