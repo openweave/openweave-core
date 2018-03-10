@@ -244,12 +244,18 @@ bool IPAddress::IsIPv4() const
 {
     return Addr[0] == 0 && Addr[1] == 0 && Addr[2] == htonl(0xFFFF);
 }
+
+// Is address the IPv4 broadcast address
+bool IPAddress::IsIPv4Broadcast() const
+{
+    return Addr[0] == 0 && Addr[1] == 0 && Addr[2] == htonl(0xFFFF) && Addr[3] == 0xFFFFFFFF;
+}
 #endif // INET_CONFIG_ENABLE_IPV4
 
 // Is address an IPv6 multicast address?
 bool IPAddress::IsMulticast() const
 {
-return (ntohl(Addr[0]) & 0xFF000000U) == 0xFF000000U;
+    return (ntohl(Addr[0]) & 0xFF000000U) == 0xFF000000U;
 }
 
 // Is address an IPv6 Unique Local Address?

@@ -724,11 +724,13 @@ void WeaveEchoClient::HandleSendTimerExpired(System::Layer * systemLayer, void *
 /**
  * Returns true if the given peer address may result in multiple responses.
  */
-bool WeaveEchoClient::IsMultiResponseAddress(IPAddress & addr)
+bool WeaveEchoClient::IsMultiResponseAddress(const IPAddress & addr)
 {
-    // Return true if the address is an IPv6 multicast address or the IPv4 local network
-    // broadcast address (255.255.255.255).
-    return addr.IsMulticast() || (addr.IsIPv4() && addr.Addr[3] == 0xFFFFFFFF);
+#if INET_CONFIG_ENABLE_IPV4
+   return addr.IsMulticast() ||  addr.IsIPv4Broadcast();
+#else
+   return addr.IsMulticast();
+#endif
 }
 
 

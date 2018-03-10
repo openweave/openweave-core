@@ -1,6 +1,6 @@
 /*
  *
- *    Copyright (c) 2013-2017 Nest Labs, Inc.
+ *    Copyright (c) 2013-2018 Nest Labs, Inc.
  *    All rights reserved.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
@@ -323,8 +323,18 @@ public:
      * @retval false  The address is IPv6 or the unspecified address.
      */
     bool IsIPv4(void) const;
-#else
-    bool IsIPv4(void) const { return false; }
+
+    /**
+     * @brief   Test whether address is IPv4 broadcast.
+     *
+     * @details
+     *  Use this method to check if the address is the special purpose IPv4
+     *  broadcast address.
+     *
+     * @retval true  Address is the IPv4 broadcast
+     * @retval false Otherwise
+     */
+    bool IsIPv4Broadcast(void) const;
 #endif // INET_CONFIG_ENABLE_IPV4
 
     /**

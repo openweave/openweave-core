@@ -230,7 +230,7 @@ private:
     static void HandleConnectionClosed(ExchangeContext *ec, WeaveConnection *con, WEAVE_ERROR conErr);
     static void HandleSendTimerExpired(System::Layer * systemLayer, void * appState, System::Error err);
 
-    static bool IsMultiResponseAddress(IPAddress & addr);
+    static bool IsMultiResponseAddress(const IPAddress & addr);
 
     WeaveEchoClient(const WeaveEchoClient&);   // not defined
 };
