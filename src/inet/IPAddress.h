@@ -38,6 +38,9 @@
 #if WEAVE_SYSTEM_CONFIG_USE_LWIP
 #include <lwip/init.h>
 #include <lwip/ip_addr.h>
+#if INET_CONFIG_ENABLE_IPV4
+#include <lwip/ip4_addr.h>
+#endif // INET_CONFIG_ENABLE_IPV4
 #include <lwip/inet.h>
 #endif // WEAVE_SYSTEM_CONFIG_USE_LWIP
 
@@ -58,9 +61,13 @@
  *  type alias is provided even when the LwIP version is earlier than 2.0.0 so as to prepare
  *  for the import of the new logic.
  */
-#if WEAVE_SYSTEM_CONFIG_USE_LWIP && LWIP_VERSION_MAJOR < 2
+#if WEAVE_SYSTEM_CONFIG_USE_LWIP && INET_CONFIG_ENABLE_IPV4 && LWIP_VERSION_MAJOR < 2 && LWIP_VERSION_MINOR < 5
 typedef ip_addr_t ip4_addr_t;
-#endif // WEAVE_SYSTEM_CONFIG_USE_LWIP && LWIP_VERSION_MAJOR < 2
+#endif // WEAVE_SYSTEM_CONFIG_USE_LWIP && INET_CONFIG_ENABLE_IPV4 && LWIP_VERSION_MAJOR < 2 && LWIP_VERSION_MINOR < 5
+
+#if WEAVE_SYSTEM_CONFIG_USE_LWIP && LWIP_VERSION_MAJOR == 1 && LWIP_VERSION_MINOR >= 5
+typedef u8_t lwip_ip_addr_type;
+#endif // WEAVE_SYSTEM_CONFIG_USE_LWIP && LWIP_VERSION_MAJOR == 1 && LWIP_VERSION_MINOR >= 5
 
 namespace nl {
 namespace Inet {
@@ -409,7 +416,7 @@ public:
 
 #if WEAVE_SYSTEM_CONFIG_USE_LWIP
 
-#if LWIP_VERSION_MAJOR > 1
+#if LWIP_VERSION_MAJOR > 1 || LWIP_VERSION_MINOR >= 5
     /**
      * @fn      ToLwIPAddr() const
      *
@@ -446,7 +453,7 @@ public:
      *  to its underlying LwIP address type code. (LWIP_VERSION_MAJOR > 1 only).
      */
     static lwip_ip_addr_type ToLwIPAddrType(IPAddressType);
-#endif // LWIP_VERSION_MAJOR > 1
+#endif // LWIP_VERSION_MAJOR > 1 || LWIP_VERSION_MINOR >= 5
 
     ip6_addr_t ToIPv6(void) const;
     static IPAddress FromIPv6(const ip6_addr_t &addr);

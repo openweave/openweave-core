@@ -67,7 +67,7 @@ IPAddress & IPAddress::operator=(const IPAddress& other)
 
 #if WEAVE_SYSTEM_CONFIG_USE_LWIP
 
-#if LWIP_VERSION_MAJOR > 1
+#if LWIP_VERSION_MAJOR > 1 || LWIP_VERSION_MINOR >= 5
 ip_addr_t IPAddress::ToLwIPAddr(void) const
 {
     ip_addr_t ret;
@@ -141,7 +141,7 @@ lwip_ip_addr_type IPAddress::ToLwIPAddrType(IPAddressType typ)
 
     return ret;
 }
-#endif // LWIP_VERSION_MAJOR > 1
+#endif // LWIP_VERSION_MAJOR > 1 || LWIP_VERSION_MINOR >= 5
 
 #if INET_CONFIG_ENABLE_IPV4
 ip4_addr_t IPAddress::ToIPv4() const

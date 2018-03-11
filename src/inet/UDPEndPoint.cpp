@@ -94,14 +94,14 @@ INET_ERROR UDPEndPoint::Bind(IPAddressType addrType, IPAddress addr, uint16_t po
     // Bind the PCB to the specified address/port.
     if (res == INET_NO_ERROR)
     {
-#if LWIP_VERSION_MAJOR > 1
+#if LWIP_VERSION_MAJOR > 1 || LWIP_VERSION_MINOR >= 5
         ip_addr_t ipAddr = addr.ToLwIPAddr();
 #if INET_CONFIG_ENABLE_IPV4
         lwip_ip_addr_type lType = IPAddress::ToLwIPAddrType(addrType);
         IP_SET_TYPE_VAL(ipAddr, lType);
 #endif // INET_CONFIG_ENABLE_IPV4
         res = Weave::System::MapErrorLwIP(udp_bind(mUDP, &ipAddr, port));
-#else // LWIP_VERSION_MAJOR <= 1
+#else // LWIP_VERSION_MAJOR <= 1 || LWIP_VERSION_MINOR >= 5
         if (addrType == kIPAddressType_IPv6)
         {
             ip6_addr_t ipv6Addr = addr.ToIPv6();
@@ -116,7 +116,7 @@ INET_ERROR UDPEndPoint::Bind(IPAddressType addrType, IPAddress addr, uint16_t po
 #endif // INET_CONFIG_ENABLE_IPV4
         else
             res = INET_ERROR_WRONG_ADDRESS_TYPE;
-#endif // LWIP_VERSION_MAJOR <= 1
+#endif // LWIP_VERSION_MAJOR <= 1 || LWIP_VERSION_MINOR >= 5
     }
 
     if (res == INET_NO_ERROR)
@@ -243,14 +243,14 @@ INET_ERROR UDPEndPoint::Listen()
     // Lock LwIP stack
     LOCK_TCPIP_CORE();
 
-#if LWIP_VERSION_MAJOR > 1
+#if LWIP_VERSION_MAJOR > 1 || LWIP_VERSION_MINOR >= 5
     udp_recv(mUDP, LwIPReceiveUDPMessage, this);
-#else // LWIP_VERSION_MAJOR <= 1
+#else // LWIP_VERSION_MAJOR <= 1 || LWIP_VERSION_MINOR >= 5
     if (PCB_ISIPV6(mUDP))
         udp_recv_ip6(mUDP, LwIPReceiveUDPMessage, this);
     else
         udp_recv(mUDP, LwIPReceiveUDPMessage, this);
-#endif // LWIP_VERSION_MAJOR <= 1
+#endif // LWIP_VERSION_MAJOR <= 1 || LWIP_VERSION_MINOR >= 5
 
     // Unlock LwIP stack
     UNLOCK_TCPIP_CORE();
@@ -391,13 +391,13 @@ INET_ERROR UDPEndPoint::SendTo(IPAddress addr, uint16_t port, InterfaceId intfId
     {
         err_t lwipErr = ERR_VAL;
 
-#if LWIP_VERSION_MAJOR > 1
+#if LWIP_VERSION_MAJOR > 1 || LWIP_VERSION_MINOR >= 5
         ip_addr_t ipAddr = addr.ToLwIPAddr();
         if (intfId != INET_NULL_INTERFACEID)
             lwipErr = udp_sendto_if(mUDP, (pbuf *)msg, &ipAddr, port, intfId);
         else
             lwipErr = udp_sendto(mUDP, (pbuf *)msg, &ipAddr, port);
-#else // LWIP_VERSION_MAJOR <= 1
+#else // LWIP_VERSION_MAJOR <= 1 || LWIP_VERSION_MINOR >= 5
         if (PCB_ISIPV6(mUDP))
         {
             ip6_addr_t ipv6Addr = addr.ToIPv6();
@@ -416,7 +416,7 @@ INET_ERROR UDPEndPoint::SendTo(IPAddress addr, uint16_t port, InterfaceId intfId
                 lwipErr = udp_sendto(mUDP, (pbuf *)msg, &ipv4Addr, port);
         }
 #endif // INET_CONFIG_ENABLE_IPV4
-#endif // LWIP_VERSION_MAJOR <= 1
+#endif // LWIP_VERSION_MAJOR <= 1 || LWIP_VERSION_MINOR >= 5
 
         if (lwipErr != ERR_OK)
             res = Weave::System::MapErrorLwIP(lwipErr);
@@ -691,7 +691,7 @@ INET_ERROR UDPEndPoint::GetPCB(IPAddressType addrType)
 {
     // IMMPORTANT: This method MUST be called with the LwIP stack LOCKED!
 
-#if LWIP_VERSION_MAJOR > 1
+#if LWIP_VERSION_MAJOR > 1 || LWIP_VERSION_MINOR >= 5
     if (mUDP == NULL)
     {
         switch (addrType)
@@ -733,7 +733,7 @@ INET_ERROR UDPEndPoint::GetPCB(IPAddressType addrType)
             break;
         }
     }
-#else // LWIP_VERSION_MAJOR <= 1
+#else // LWIP_VERSION_MAJOR <= 1 || LWIP_VERSION_MINOR >= 5
     if (mUDP == NULL)
     {
         if (addrType == kIPAddressType_IPv6)
@@ -766,7 +766,7 @@ INET_ERROR UDPEndPoint::GetPCB(IPAddressType addrType)
             return INET_ERROR_WRONG_ADDRESS_TYPE;
         }
     }
-#endif // LWIP_VERSION_MAJOR <= 1
+#endif // LWIP_VERSION_MAJOR <= 1 || LWIP_VERSION_MINOR >= 5
 
     return INET_NO_ERROR;
 }
@@ -792,11 +792,11 @@ IPPacketInfo *UDPEndPoint::GetPacketInfo(PacketBuffer *buf)
     return (IPPacketInfo *)pktInfoStart;
 }
 
-#if LWIP_VERSION_MAJOR > 1
+#if LWIP_VERSION_MAJOR > 1 || LWIP_VERSION_MINOR >= 5
 void UDPEndPoint::LwIPReceiveUDPMessage(void *arg, struct udp_pcb *pcb, struct pbuf *p, const ip_addr_t *addr, u16_t port)
-#else // LWIP_VERSION_MAJOR <= 1
+#else // LWIP_VERSION_MAJOR <= 1 || LWIP_VERSION_MINOR >= 5
 void UDPEndPoint::LwIPReceiveUDPMessage(void *arg, struct udp_pcb *pcb, struct pbuf *p, ip_addr_t *addr, u16_t port)
-#endif // LWIP_VERSION_MAJOR <= 1
+#endif // LWIP_VERSION_MAJOR <= 1 || LWIP_VERSION_MINOR >= 5
 {
     UDPEndPoint*            ep              = static_cast<UDPEndPoint*>(arg);
     PacketBuffer*           buf             = reinterpret_cast<PacketBuffer*>(static_cast<void*>(p));
@@ -805,7 +805,7 @@ void UDPEndPoint::LwIPReceiveUDPMessage(void *arg, struct udp_pcb *pcb, struct p
     IPPacketInfo *pktInfo = GetPacketInfo(buf);
     if (pktInfo != NULL)
     {
-#if LWIP_VERSION_MAJOR > 1
+#if LWIP_VERSION_MAJOR > 1 || LWIP_VERSION_MINOR >= 5
         pktInfo->SrcAddress = IPAddress::FromLwIPAddr(*addr);
         pktInfo->DestAddress = IPAddress::FromLwIPAddr(*ip_current_dest_addr());
 #else // LWIP_VERSION_MAJOR <= 1

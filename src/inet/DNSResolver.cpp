@@ -312,11 +312,11 @@ void DNSResolver::CopyAddresses(uint8_t numAddrs, const ip_addr_t *addrs)
 
     for (uint8_t i = 0; i < numAddrs; i++)
     {
-#if LWIP_VERSION_MAJOR > 1
+#if LWIP_VERSION_MAJOR > 1 || LWIP_VERSION_MINOR >= 5
         AddrArray[i] = IPAddress::FromLwIPAddr(addrs[i]);
-#else // LWIP_VERSION_MAJOR <= 1
+#else
         AddrArray[i] = IPAddress::FromIPv4(addrs[i]);
-#endif // LWIP_VERSION_MAJOR <= 1
+#endif
     }
 
     NumAddrs = numAddrs;

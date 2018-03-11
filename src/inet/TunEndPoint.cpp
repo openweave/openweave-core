@@ -579,7 +579,7 @@ exit:
     return lwipErr;
 }
 
-#if LWIP_VERSION_MAJOR > 1
+#if LWIP_VERSION_MAJOR > 1 || LWIP_VERSION_MINOR >= 5
 #if LWIP_IPV4
 /* Output handler for netif */
 err_t TunEndPoint::LwIPOutputIPv4(struct netif *netif, struct pbuf *p, const ip4_addr_t *addr)
@@ -599,7 +599,7 @@ err_t TunEndPoint::LwIPOutputIPv6(struct netif *netif, struct pbuf *p, const ip6
     return LwIPPostToInetEventQ(netif, p);
 }
 #endif // LWIP_IPV4
-#else // LWIP_VERSION_MAJOR <= 1
+#else // LWIP_VERSION_MAJOR <= 1 || LWIP_VERSION_MINOR < 5
 /* Receive message in LwIP */
 err_t TunEndPoint::LwIPReceiveTunMessage (struct netif *netif, struct pbuf *p, ip4_addr_t *addr)
 {
@@ -616,26 +616,26 @@ err_t TunEndPoint::LwIPReceiveTunV6Message (struct netif *netif, struct pbuf *p,
     return LwIPPostToInetEventQ(netif, p);
 }
 #endif // LWIP_IPV6
-#endif // LWIP_VERSION_MAJOR <= 1
+#endif // LWIP_VERSION_MAJOR <= 1 || LWIP_VERSION_MINOR < 5
 
 /* Initialize the LwIP tunnel netif interface */
 err_t TunEndPoint::TunInterfaceNetifInit (struct netif *netif)
 {
     netif->name[0] = 't';
     netif->name[1] = 'n';
-#if LWIP_VERSION_MAJOR > 1
+#if LWIP_VERSION_MAJOR > 1 || LWIP_VERSION_MINOR >= 5
 #if LWIP_IPV4
     netif->output = LwIPOutputIPv4;
 #endif /* LWIP_IPV6 */
 #if LWIP_IPV6
     netif->output_ip6 = LwIPOutputIPv6;
 #endif /* LWIP_IPV6 */
-#else // LWIP_VERSION_MAJOR <= 1
+#else // LWIP_VERSION_MAJOR <= 1 || LWIP_VERSION_MINOR < 5
     netif->output = LwIPReceiveTunMessage;
 #if LWIP_IPV6
     netif->output_ip6 = LwIPReceiveTunV6Message;
 #endif /* LWIP_IPV6 */
-#endif // LWIP_VERSION_MAJOR <= 1
+#endif // LWIP_VERSION_MAJOR <= 1 || LWIP_VERSION_MINOR < 5
     netif->linkoutput = NULL;
 
     netif->mtu = WEAVE_CONFIG_TUNNEL_INTERFACE_MTU;
@@ -644,10 +644,10 @@ err_t TunEndPoint::TunInterfaceNetifInit (struct netif *netif)
     memset(netif->hwaddr, 0, NETIF_MAX_HWADDR_LEN);
     netif->hwaddr[5] = 1;
 
-#if LWIP_VERSION_MAJOR <= 1
+#if LWIP_VERSION_MAJOR == 1 && LWIP_VERSION_MINOR < 5
     /* device capabilities */
     netif->flags |= NETIF_FLAG_POINTTOPOINT;
-#endif // LWIP_VERSION_MAJOR <= 1
+#endif // LWIP_VERSION_MAJOR <= 1 || LWIP_VERSION_MINOR >= 5
 
     return ERR_OK;
 }

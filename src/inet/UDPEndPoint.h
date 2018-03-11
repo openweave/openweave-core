@@ -276,11 +276,11 @@ private:
     void HandleDataReceived(Weave::System::PacketBuffer *msg);
     INET_ERROR GetPCB(IPAddressType addrType4);
     static IPPacketInfo *GetPacketInfo(Weave::System::PacketBuffer *buf);
-#if LWIP_VERSION_MAJOR > 1
+#if LWIP_VERSION_MAJOR > 1 || LWIP_VERSION_MINOR >= 5
     static void LwIPReceiveUDPMessage(void *arg, struct udp_pcb *pcb, struct pbuf *p, const ip_addr_t *addr, u16_t port);
-#else // LWIP_VERSION_MAJOR <= 1
+#else // LWIP_VERSION_MAJOR <= 1 || LWIP_VERSION_MINOR >= 5
     static void LwIPReceiveUDPMessage(void *arg, struct udp_pcb *pcb, struct pbuf *p, ip_addr_t *addr, u16_t port);
-#endif // LWIP_VERSION_MAJOR <= 1
+#endif // LWIP_VERSION_MAJOR <= 1 || LWIP_VERSION_MINOR >= 5
 #endif // WEAVE_SYSTEM_CONFIG_USE_LWIP
 
 #if WEAVE_SYSTEM_CONFIG_USE_SOCKETS

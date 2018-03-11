@@ -44,7 +44,7 @@ char *IPAddress::ToString(char *buf, uint32_t bufSize) const
 #if INET_CONFIG_ENABLE_IPV4
     if (IsIPv4())
     {
-#if LWIP_VERSION_MAJOR > 1
+#if LWIP_VERSION_MAJOR > 1 || LWIP_VERSION_MINOR >= 5
         ip4_addr_t ip4_addr = ToIPv4();
         ip4addr_ntoa_r(&ip4_addr, buf, (int)bufSize);
 #else // LWIP_VERSION_MAJOR <= 1
@@ -80,7 +80,7 @@ bool IPAddress::FromString(const char *str, IPAddress& output)
     if (strchr(str, ':') == NULL)
     {
 #if WEAVE_SYSTEM_CONFIG_USE_LWIP
-#if LWIP_VERSION_MAJOR > 1
+#if LWIP_VERSION_MAJOR > 1 || LWIP_VERSION_MINOR >= 5
         ip4_addr_t ipv4Addr;
         if (!ip4addr_aton(str, &ipv4Addr))
             return false;

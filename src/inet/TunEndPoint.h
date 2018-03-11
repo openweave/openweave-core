@@ -206,19 +206,19 @@ private:
 
     static IPPacketInfo *GetPacketInfo(Weave::System::PacketBuffer *buf);
     static err_t LwIPPostToInetEventQ(struct netif *netif, struct pbuf *p);
-#if LWIP_VERSION_MAJOR > 1
+#if LWIP_VERSION_MAJOR > 1 || LWIP_VERSION_MINOR >= 5
 #if LWIP_IPV4
     static err_t LwIPOutputIPv4(struct netif *netif, struct pbuf *p, const ip4_addr_t *addr);
 #endif // LWIP_IPV4
 #if LWIP_IPV6
     static err_t LwIPOutputIPv6(struct netif *netif, struct pbuf *p, const ip6_addr_t *addr);
 #endif // LWIP_IPV6
-#else // LWIP_VERSION_MAJOR <= 1
+#else // LWIP_VERSION_MAJOR <= 1 || LWIP_VERSION_MINOR < 5
     static err_t LwIPReceiveTunMessage(struct netif *netif, struct pbuf *p, ip4_addr_t *addr);
 #if LWIP_IPV6
     static err_t LwIPReceiveTunV6Message(struct netif *netif, struct pbuf *p, ip6_addr_t *addr);
 #endif // LWIP_IPV6
-#endif // LWIP_VERSION_MAJOR <= 1
+#endif // LWIP_VERSION_MAJOR <= 1 || LWIP_VERSION_MINOR < 5
     static err_t TunInterfaceNetifInit(struct netif *netif);
 #endif // WEAVE_SYSTEM_CONFIG_USE_LWIP
 

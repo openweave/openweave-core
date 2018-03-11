@@ -117,10 +117,29 @@ INET_ERROR TCPEndPoint::Bind(IPAddressType addrType, IPAddress addr, uint16_t po
             ip_set_option(mTCP, SOF_REUSEADDR);
         }
 
-#if LWIP_VERSION_MAJOR > 1
-        ip_addr_t ipAddr = addr.ToLwIPAddr();
+#if LWIP_VERSION_MAJOR > 1 || LWIP_VERSION_MINOR >= 5
+
+        ip_addr_t ipAddr;
+        if (addr != IPAddress::Any)
+        {
+            ipAddr = addr.ToLwIPAddr();
+        }
+        else if (addrType == kIPAddressType_IPv6)
+        {
+            ipAddr = ip6_addr_any;
+        }
+#if INET_CONFIG_ENABLE_IPV4
+        else if (addrType == kIPAddressType_IPv4)
+        {
+            ipAddr = ip_addr_any;
+        }
+#endif // INET_CONFIG_ENABLE_IPV4
+        else
+            res = INET_ERROR_WRONG_ADDRESS_TYPE;
         res = Weave::System::MapErrorLwIP(tcp_bind(mTCP, &ipAddr, port));
-#else // LWIP_VERSION_MAJOR <= 1
+
+#else // LWIP_VERSION_MAJOR <= 1 || LWIP_VERSION_MINOR >= 5
+
         if (addrType == kIPAddressType_IPv6)
         {
             ip6_addr_t ipv6Addr = addr.ToIPv6();
@@ -135,7 +154,8 @@ INET_ERROR TCPEndPoint::Bind(IPAddressType addrType, IPAddress addr, uint16_t po
 #endif // INET_CONFIG_ENABLE_IPV4
         else
             res = INET_ERROR_WRONG_ADDRESS_TYPE;
-#endif // LWIP_VERSION_MAJOR <= 1
+
+#endif // LWIP_VERSION_MAJOR <= 1 || LWIP_VERSION_MINOR >= 5
     }
 
     // Unlock LwIP stack
@@ -300,10 +320,10 @@ INET_ERROR TCPEndPoint::Connect(IPAddress addr, uint16_t port, InterfaceId intf)
         tcp_arg(mTCP, this);
         tcp_err(mTCP, LwIPHandleError);
 
-#if LWIP_VERSION_MAJOR > 1
+#if LWIP_VERSION_MAJOR > 1 || LWIP_VERSION_MINOR >= 5
         ip_addr_t lwipAddr = addr.ToLwIPAddr();
         res = Weave::System::MapErrorLwIP(tcp_connect(mTCP, &lwipAddr, port, LwIPHandleConnectComplete));
-#else // LWIP_VERSION_MAJOR <= 1
+#else // LWIP_VERSION_MAJOR <= 1 || LWIP_VERSION_MINOR >= 5
         if (addrType == kIPAddressType_IPv6)
         {
             ip6_addr_t lwipAddr = addr.ToIPv6();
@@ -318,7 +338,7 @@ INET_ERROR TCPEndPoint::Connect(IPAddress addr, uint16_t port, InterfaceId intf)
 #endif // INET_CONFIG_ENABLE_IPV4
         else
             res = INET_ERROR_WRONG_ADDRESS_TYPE;
-#endif // LWIP_VERSION_MAJOR <= 1
+#endif // LWIP_VERSION_MAJOR <= 1 || LWIP_VERSION_MINOR >= 5
 
         if (res == INET_NO_ERROR)
         {
@@ -531,15 +551,15 @@ INET_ERROR TCPEndPoint::GetPeerInfo(IPAddress *retAddr, uint16_t *retPort) const
     {
         *retPort = mTCP->remote_port;
 
-#if LWIP_VERSION_MAJOR > 1
+#if LWIP_VERSION_MAJOR > 1 || LWIP_VERSION_MINOR >= 5
         *retAddr = IPAddress::FromLwIPAddr(mTCP->remote_ip);
-#else // LWIP_VERSION_MAJOR <= 1
+#else // LWIP_VERSION_MAJOR <= 1 || LWIP_VERSION_MINOR >= 5
 #if INET_CONFIG_ENABLE_IPV4
         *retAddr = PCB_ISIPV6(mTCP) ? IPAddress::FromIPv6(mTCP->remote_ip.ip6) : IPAddress::FromIPv4(mTCP->remote_ip.ip4);
 #else // !INET_CONFIG_ENABLE_IPV4
         *retAddr = IPAddress::FromIPv6(mTCP->remote_ip.ip6);
 #endif // !INET_CONFIG_ENABLE_IPV4
-#endif // LWIP_VERSION_MAJOR <= 1
+#endif // LWIP_VERSION_MAJOR <= 1 || LWIP_VERSION_MINOR >= 5
     }
     else
         res = INET_ERROR_CONNECTION_ABORTED;
@@ -599,15 +619,15 @@ INET_ERROR TCPEndPoint::GetLocalInfo(IPAddress *retAddr, uint16_t *retPort)
     {
         *retPort = mTCP->local_port;
 
-#if LWIP_VERSION_MAJOR > 1
+#if LWIP_VERSION_MAJOR > 1 || LWIP_VERSION_MINOR >= 5
         *retAddr = IPAddress::FromLwIPAddr(mTCP->local_ip);
-#else // LWIP_VERSION_MAJOR <= 1
+#else // LWIP_VERSION_MAJOR <= 1 || LWIP_VERSION_MINOR >= 5
 #if INET_CONFIG_ENABLE_IPV4
         *retAddr = PCB_ISIPV6(mTCP) ? IPAddress::FromIPv6(mTCP->local_ip.ip6) : IPAddress::FromIPv4(mTCP->local_ip.ip4);
 #else // !INET_CONFIG_ENABLE_IPV4
         *retAddr = IPAddress::FromIPv6(mTCP->local_ip.ip6);
 #endif // !INET_CONFIG_ENABLE_IPV4
-#endif // LWIP_VERSION_MAJOR <= 1
+#endif // LWIP_VERSION_MAJOR <= 1 || LWIP_VERSION_MINOR >= 5
     }
     else
         res = INET_ERROR_CONNECTION_ABORTED;
@@ -1626,7 +1646,7 @@ INET_ERROR TCPEndPoint::GetPCB(IPAddressType addrType)
 {
     // IMMPORTANT: This method MUST be called with the LwIP stack LOCKED!
 
-#if LWIP_VERSION_MAJOR > 1
+#if LWIP_VERSION_MAJOR > 1 || LWIP_VERSION_MINOR >= 5
     if (mTCP == NULL)
     {
         switch (addrType)
@@ -1668,7 +1688,7 @@ INET_ERROR TCPEndPoint::GetPCB(IPAddressType addrType)
             break;
         }
     }
-#else // LWIP_VERSION_MAJOR <= 1
+#else // LWIP_VERSION_MAJOR <= 1 || LWIP_VERSION_MINOR >= 5
     if (mTCP == NULL)
     {
         if (addrType == kIPAddressType_IPv6)
@@ -1692,7 +1712,7 @@ INET_ERROR TCPEndPoint::GetPCB(IPAddressType addrType)
         if (addrType != pcbType)
             return INET_ERROR_WRONG_ADDRESS_TYPE;
     }
-#endif // LWIP_VERSION_MAJOR <= 1
+#endif // LWIP_VERSION_MAJOR <= 1 || LWIP_VERSION_MINOR >= 5
 
     return INET_NO_ERROR;
 }

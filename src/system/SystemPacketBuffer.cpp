@@ -631,7 +631,7 @@ PacketBuffer* PacketBuffer::FreeHead(PacketBuffer* aPacket)
 PacketBuffer* PacketBuffer::RightSize(PacketBuffer *aPacket)
 {
     PacketBuffer *lNewPacket = aPacket;
-#if WEAVE_SYSTEM_CONFIG_USE_LWIP
+#if WEAVE_SYSTEM_CONFIG_USE_LWIP && LWIP_PBUF_FROM_CUSTOM_POOLS
     lNewPacket =  static_cast<PacketBuffer *>(pbuf_rightsize((struct pbuf *)aPacket, -1));
     if (lNewPacket != aPacket)
     {
