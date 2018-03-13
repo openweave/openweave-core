@@ -305,16 +305,16 @@
 #endif // WDM_PUBLISHER_MAX_NUM_PATH_GROUPS
 
 /**
- *  @def WDM_CLIENT_MAX_NUM_PATH_GROUPS
+ *  @def WDM_CLIENT_MAX_NUM_UPDATABLE_TRAITS
  *
  *  @brief
- *    The number of subscribed trait paths for each subscription,
+ *    The number of updatable traits for each subscription,
  *    on a client in Weave Data Management Next profile.
  *
  */
-#ifndef WDM_CLIENT_MAX_NUM_PATH_GROUPS
-#define WDM_CLIENT_MAX_NUM_PATH_GROUPS 8
-#endif // WDM_CLIENT_MAX_NUM_PATH_GROUPS
+#ifndef WDM_CLIENT_MAX_NUM_UPDATABLE_TRAITS
+#define WDM_CLIENT_MAX_NUM_UPDATABLE_TRAITS 8
+#endif // WDM_CLIENT_MAX_NUM_UPDATABLE_TRAITS
 
 /**
  *  @def WDM_PUBLISHER_MAX_NUM_PROPERTY_PATH_HANDLES

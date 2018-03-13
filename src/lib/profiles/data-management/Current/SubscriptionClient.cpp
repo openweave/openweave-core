@@ -78,7 +78,7 @@ void SubscriptionClient::Reset(void)
 #if WEAVE_CONFIG_ENABLE_WDM_UPDATE
     mUpdateInFlight                         = false;
     mFlushInProgress                        = false;
-    mNumTraitInstances                      = 0;
+    mNumUpdatableTraitInstances             = 0;
     mMaxUpdateSize                          = 0;
     mCurProcessingTraitInstanceIdx          = 0;
 #endif // WEAVE_CONFIG_ENABLE_WDM_UPDATE
@@ -124,7 +124,7 @@ WEAVE_ERROR SubscriptionClient::Init(Binding * const apBinding, void * const apA
 #if WEAVE_CONFIG_ENABLE_WDM_UPDATE
     mUpdateInFlight                         = false;
     mFlushInProgress                        = false;
-    mNumTraitInstances                      = 0;
+    mNumUpdatableTraitInstances             = 0;
     mMaxUpdateSize                          = 0;
     mCurProcessingTraitInstanceIdx          = 0;
 
@@ -134,6 +134,7 @@ WEAVE_ERROR SubscriptionClient::Init(Binding * const apBinding, void * const apA
     _AddRef();
 
 #if WEAVE_CONFIG_ENABLE_WDM_UPDATE
+
     err = mUpdateClient.Init(mBinding, this, UpdateEventCallback);
     SuccessOrExit(err);
 
@@ -469,13 +470,6 @@ WEAVE_ERROR SubscriptionClient::SendSubscribeRequest(void)
         nl::Weave::TLV::TLVWriter writer;
         SubscribeRequest::Builder request;
 
-#if WEAVE_CONFIG_ENABLE_WDM_UPDATE
-        SchemaVersionRange computedVersionIntersection;
-        SchemaVersion computedForwardRequestedVersion;
-        TraitInstanceInfo * traitInstance = NULL;
-        mNumTraitInstances = 0;
-#endif // WEAVE_CONFIG_ENABLE_WDM_UPDATE
-
         writer.Init(msgBuf);
 
         err = request.Init(&writer);
@@ -533,46 +527,6 @@ WEAVE_ERROR SubscriptionClient::SendSubscribeRequest(void)
                 err = mDataSinkCatalog->HandleToAddress(versionedTraitPath.mTraitDataHandle, writer,
                                                         versionedTraitPath.mRequestedVersionRange);
                 SuccessOrExit(err);
-
-#if WEAVE_CONFIG_ENABLE_WDM_UPDATE
-                if (mNumTraitInstances < WDM_CLIENT_MAX_NUM_PATH_GROUPS)
-                {
-                    traitInstance = mClientTraitInfoPool + mNumTraitInstances;
-                    ++mNumTraitInstances;
-                    traitInstance->Init();
-                }
-                else
-                {
-                    // we run out of trait instances, abort
-                    // Note it might help the client understanding what's going on with an error status like
-                    // "out of memory" or "internal error", but it's pretty common that a server doesn't disclose
-                    // too much internal status to clients
-                    SuccessOrExit(err = WEAVE_ERROR_NO_MEMORY);
-                }
-
-                traitInstance->mTraitDataHandle  = versionedTraitPath.mTraitDataHandle;
-
-                if (pDataSink->GetSchemaEngine()->GetVersionIntersection(versionedTraitPath.mRequestedVersionRange, computedVersionIntersection))
-                {
-                    computedForwardRequestedVersion =
-                        pDataSink->GetSchemaEngine()->GetHighestForwardVersion(computedVersionIntersection.mMaxVersion);
-                }
-                else
-                {
-                    WeaveLogDetail(DataManagement, "Mismatch in requested version on handle %u (requested: %u, %u)", versionedTraitPath.mTraitDataHandle,
-                                   versionedTraitPath.mRequestedVersionRange.mMaxVersion, versionedTraitPath.mRequestedVersionRange.mMinVersion);
-                    continue;
-                }
-
-                traitInstance->mRequestedVersion = computedForwardRequestedVersion;
-                traitInstance->mPropertyPathHandle = versionedTraitPath.mPropertyPathHandle;
-
-                if (IsTraitPresentInPendingUpdateStore(traitInstance->mTraitDataHandle))
-                {
-                    traitInstance->SetDirty();
-                }
-
-#endif // WEAVE_CONFIG_ENABLE_WDM_UPDATE
 
                 // Append zero or more TLV tags based on the Path Handle
                 err = pDataSink->GetSchemaEngine()->MapHandleToPath(versionedTraitPath.mPropertyPathHandle, writer);
@@ -2229,7 +2183,7 @@ WEAVE_ERROR SubscriptionClient::AddItemPendingUpdateStore(TraitPath aItem, const
             {
                 if (mPendingUpdateStore.mPathStore[i].mPropertyPathHandle == kRootPropertyPathHandle)
                 {
-                    WeaveLogDetail(DataManagement, "exist root dirty, merge all to root!");
+                    WeaveLogDetail(DataManagement, "exist root updated, merge all to root!");
                     RemoveItemPendingUpdateStore(mPendingUpdateStore.mPathStore[i].mTraitDataHandle);
                     mPendingUpdateStore.AddItem(TraitPath(aItem.mTraitDataHandle, kRootPropertyPathHandle));
                     break;
@@ -2241,11 +2195,11 @@ WEAVE_ERROR SubscriptionClient::AddItemPendingUpdateStore(TraitPath aItem, const
             }
         }
 
-        for (size_t j = 0; j < mNumTraitInstances; j++)
+        for (size_t j = 0; j < mNumUpdatableTraitInstances; j++)
         {
             if (traitInstance[j].mTraitDataHandle == aItem.mTraitDataHandle)
             {
-                WeaveLogDetail(DataManagement, "Set T%u dirty", j);
+                WeaveLogDetail(DataManagement, "Set T%u updated", j);
                 traitInstance[j].SetDirty();
             }
         }
@@ -2739,14 +2693,14 @@ WEAVE_ERROR SubscriptionClient::PurgePendingUpdate()
     TraitInstanceInfo * traitInfo;
     bool isLocked = false;
     bool needResubscribe = false;
-    uint32_t numTraitInstances = GetNumTraitInstances();
+    uint32_t numUpdatableTraitInstances = GetNumUpdatableTraitInstances();
     // Lock before attempting to modify any of the shared data structures.
     err = Lock();
     SuccessOrExit(err);
 
     isLocked = true;
 
-    for (size_t i = 0; i < numTraitInstances; i++)
+    for (size_t i = 0; i < numUpdatableTraitInstances; i++)
     {
         traitInfo = mClientTraitInfoPool + i;
 
@@ -2806,7 +2760,7 @@ void SubscriptionClient::CancelUpdateClient(void)
 
 void SubscriptionClient::ShutdownUpdateClient(void)
 {
-    mNumTraitInstances                 = 0;
+    mNumUpdatableTraitInstances        = 0;
     mCurProcessingTraitInstanceIdx     = 0;
     mMaxUpdateSize                     = 0;
     mUpdateInFlight                    = false;
@@ -2855,7 +2809,6 @@ WEAVE_ERROR SubscriptionClient::BuildSingleUpdateRequestDataList(bool & aIsParti
     WEAVE_ERROR err = WEAVE_NO_ERROR;
     uint64_t resourceId;
     uint64_t instanceId;
-    SchemaVersionRange versionRange;
     const TraitSchemaEngine * schemaEngine;
     TraitInstanceInfo * traitInfo;
     TraitDataSink * dataSink                    = NULL;
@@ -2865,9 +2818,9 @@ WEAVE_ERROR SubscriptionClient::BuildSingleUpdateRequestDataList(bool & aIsParti
     uint32_t numDirtyPendingHandles             = mPendingUpdateStore.GetNumItems();
     uint32_t numPendingHandles                  = mPendingUpdateStore.GetPathStoreSize();
 
-    WeaveLogDetail(DataManagement, "CurDirtyItems in Pending = %u/%u", numDirtyPendingHandles, numPendingHandles);
+    WeaveLogDetail(DataManagement, "CurUpdatedItems in Pending = %u/%u", numDirtyPendingHandles, numPendingHandles);
 
-    while (numTraitInstanceHandled < mNumTraitInstances)
+    while (numTraitInstanceHandled < mNumUpdatableTraitInstances)
     {
         traitInfo = mClientTraitInfoPool + mCurProcessingTraitInstanceIdx;
 
@@ -2887,9 +2840,6 @@ WEAVE_ERROR SubscriptionClient::BuildSingleUpdateRequestDataList(bool & aIsParti
 
             err = mDataSinkCatalog->GetInstanceId(traitInfo->mTraitDataHandle, instanceId);
             SuccessOrExit(err);
-
-            versionRange.mMaxVersion = traitInfo->mRequestedVersion;
-            versionRange.mMinVersion = schemaEngine->GetLowestCompatibleVersion(versionRange.mMaxVersion);
 
             if (traitInfo->mNextDictionaryElementPathHandle != kNullPropertyPathHandle)
             {
@@ -2934,7 +2884,7 @@ WEAVE_ERROR SubscriptionClient::BuildSingleUpdateRequestDataList(bool & aIsParti
                     addElementCallState.mpSubClient = this;
                     addElementCallState.mpTraitInstanceInfo = traitInfo;
 
-                    err = mUpdateClient.AddElement(schemaEngine->GetProfileId(), instanceId, resourceId, updatableDataSink->GetUpdateRequiredVersion(), &versionRange, tags, tagIndex, AddElementFunc, &addElementCallState);
+                    err = mUpdateClient.AddElement(schemaEngine->GetProfileId(), instanceId, resourceId, updatableDataSink->GetUpdateRequiredVersion(), NULL, tags, tagIndex, AddElementFunc, &addElementCallState);
                     if (err == WEAVE_NO_ERROR)
                     {
                         mDispatchedUpdateStore.AddItem(dirtyPath);
@@ -2986,7 +2936,7 @@ WEAVE_ERROR SubscriptionClient::BuildSingleUpdateRequestDataList(bool & aIsParti
             traitInfo->ClearDirty();
             numTraitInstanceHandled ++;
             mCurProcessingTraitInstanceIdx ++;
-            mCurProcessingTraitInstanceIdx %= mNumTraitInstances;
+            mCurProcessingTraitInstanceIdx %= mNumUpdatableTraitInstances;
 
             if (aUpdateWriteInReady)
             {
@@ -3064,8 +3014,8 @@ WEAVE_ERROR SubscriptionClient::FormAndSendUpdate(bool aNotifyOnError)
     VerifyOrExit(IsEstablishedIdle(), WeaveLogDetail(DataManagement, "client is not active"));
     VerifyOrExit(!IsUpdateInFlight(), WeaveLogDetail(DataManagement, "updating is ongoing"));
 
-    WeaveLogDetail(DataManagement, "Eval Subscription: (state = %s, num-traits = %u)!",
-    GetStateStr(), mNumTraitInstances);
+    WeaveLogDetail(DataManagement, "Eval Subscription: (state = %s, num-updatableTraits = %u)!",
+    GetStateStr(), mNumUpdatableTraitInstances);
     // This is needed because some error could trigger abort on subscription, which leads to destroy of the handler
 
     err = SendSingleUpdateRequest();
@@ -3126,8 +3076,10 @@ exit:
 
 void SubscriptionClient::InitUpdatableSinkTrait(void * aDataSink, TraitDataHandle aDataHandle, void * aContext)
 {
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
     TraitUpdatableDataSink * updatableDataSink = NULL;
     SubscriptionClient * subClient = NULL;
+    TraitInstanceInfo * traitInstance = NULL;
     TraitDataSink * dataSink = static_cast<TraitDataSink *>(aDataSink);
     VerifyOrExit(dataSink->IsUpdatableDataSink() == true, );
     updatableDataSink = static_cast<TraitUpdatableDataSink *>(dataSink);
@@ -3135,7 +3087,33 @@ void SubscriptionClient::InitUpdatableSinkTrait(void * aDataSink, TraitDataHandl
     subClient = static_cast<SubscriptionClient *>(aContext);
     updatableDataSink->SetSubScriptionClient(subClient);
 
+    if (subClient->mNumUpdatableTraitInstances < WDM_CLIENT_MAX_NUM_UPDATABLE_TRAITS)
+    {
+        traitInstance = subClient->mClientTraitInfoPool + subClient->mNumUpdatableTraitInstances;
+        ++(subClient->mNumUpdatableTraitInstances);
+        traitInstance->Init();
+    }
+    else
+    {
+        SuccessOrExit(err = WEAVE_ERROR_NO_MEMORY);
+    }
+
+    traitInstance->mTraitDataHandle  = aDataHandle;
+
 exit:
+
+    if (WEAVE_NO_ERROR != err)
+    {
+        InEventParam inParam;
+        OutEventParam outParam;
+        inParam.Clear();
+        outParam.Clear();
+        inParam.mUpdateComplete.mClient = subClient;
+        inParam.mUpdateComplete.mReason = err;
+        subClient->mEventCallback(subClient->mAppState, kEvent_OnUpdateComplete, inParam, outParam);
+        WeaveLogDetail(DataManagement, "run out of updatable trait instances");
+    }
+
     return;
 }
 #endif // WEAVE_CONFIG_ENABLE_WDM_UPDATE

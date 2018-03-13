@@ -502,7 +502,6 @@ private:
         bool mDirty;
         PropertyPathHandle mNextDictionaryElementPathHandle;
         PropertyPathHandle mCandidatePropertyPathHandle;
-        PropertyPathHandle mPropertyPathHandle;
     };
 
     struct AddElementCallState
@@ -512,10 +511,10 @@ private:
     };
 
     TraitInstanceInfo * GetTraitInstanceInfoList(void) { return mClientTraitInfoPool; }
-    uint32_t GetNumTraitInstances(void) { return mNumTraitInstances; }
+    uint32_t GetNumUpdatableTraitInstances(void) { return mNumUpdatableTraitInstances; }
 
-    TraitInstanceInfo mClientTraitInfoPool[WDM_CLIENT_MAX_NUM_PATH_GROUPS];
-    uint16_t mNumTraitInstances;
+    TraitInstanceInfo mClientTraitInfoPool[WDM_CLIENT_MAX_NUM_UPDATABLE_TRAITS];
+    uint16_t mNumUpdatableTraitInstances;
     uint32_t mCurProcessingTraitInstanceIdx;
     uint16_t mMaxUpdateSize;
     bool mUpdateInFlight;
