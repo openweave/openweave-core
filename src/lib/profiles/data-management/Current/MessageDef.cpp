@@ -3907,6 +3907,7 @@ WEAVE_ERROR UpdateRequest::Parser::CheckSchemaValidity(void) const
         bool Argument;
         bool DataList;
         bool Authenticator;
+        bool PartialUpdateRequest;
     };
 
     TagPresence tagPresence = { 0 };
@@ -3930,7 +3931,7 @@ WEAVE_ERROR UpdateRequest::Parser::CheckSchemaValidity(void) const
                 VerifyOrExit(tagPresence.ExpiryTime == false, err = WEAVE_ERROR_INVALID_TLV_TAG);
                 tagPresence.ExpiryTime = true;
 
-                VerifyOrExit(nl::Weave::TLV::kTLVType_SignedInteger == reader.GetType(), err = WEAVE_ERROR_WRONG_TLV_TYPE);
+                VerifyOrExit(nl::Weave::TLV::kTLVType_UnsignedInteger == reader.GetType(), err = WEAVE_ERROR_WRONG_TLV_TYPE);
 
 #if WEAVE_DETAIL_LOGGING
                 {
@@ -3939,6 +3940,25 @@ WEAVE_ERROR UpdateRequest::Parser::CheckSchemaValidity(void) const
                     SuccessOrExit(err);
 
                     PRETTY_PRINT("\tExpiry Time = 0x%" PRIx64 ",", static_cast<uint64_t>(value));
+                }
+#endif // WEAVE_DETAIL_LOGGING
+
+                break;
+
+            case kCsTag_NumPartialUpdateRequests:
+                // check if this tag has appeared before
+                VerifyOrExit(tagPresence.PartialUpdateRequest== false, err = WEAVE_ERROR_INVALID_TLV_TAG);
+                tagPresence.PartialUpdateRequest = true;
+
+                VerifyOrExit(nl::Weave::TLV::kTLVType_UnsignedInteger == reader.GetType(), err = WEAVE_ERROR_WRONG_TLV_TYPE);
+
+#if WEAVE_DETAIL_LOGGING
+                {
+                    uint32_t value;
+                    err = reader.Get(value);
+                    SuccessOrExit(err);
+
+                    PRETTY_PRINT("\tNumber of partial update requests = 0x%" PRIx32 ",", static_cast<uint32_t>(value));
                 }
 #endif // WEAVE_DETAIL_LOGGING
 
@@ -4054,12 +4074,17 @@ exit:
 
 WEAVE_ERROR UpdateRequest::Parser::GetExpiryTimeMicroSecond(int64_t * const apExpiryTimeMicroSecond) const
 {
-    return GetSimpleValue(kCsTag_ExpiryTime, nl::Weave::TLV::kTLVType_SignedInteger, apExpiryTimeMicroSecond);
+    return GetSimpleValue(kCsTag_ExpiryTime, nl::Weave::TLV::kTLVType_UnsignedInteger, apExpiryTimeMicroSecond);
 }
 
 WEAVE_ERROR UpdateRequest::Parser::GetReaderOnArgument(nl::Weave::TLV::TLVReader * const apReader) const
 {
     return GetReaderOnTag(nl::Weave::TLV::ContextTag(kCsTag_Argument), apReader);
+}
+
+WEAVE_ERROR UpdateRequest::Parser::GetNumPartialUpdateRequest(nl::Weave::TLV::TLVReader * const apReader, uint32_t * const apNumPartialUpdateRequest) const
+{
+    return GetSimpleValue(kCsTag_NumPartialUpdateRequests, nl::Weave::TLV::kTLVType_UnsignedInteger, apNumPartialUpdateRequest);
 }
 
 // Get a TLVReader for the Paths. Next() must be called before accessing them.

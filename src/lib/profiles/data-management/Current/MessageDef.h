@@ -1374,11 +1374,12 @@ namespace UpdateRequest {
 /// @brief Context-Specific tags used in this message
     enum
     {
-        kCsTag_ExpiryTime    = 1,
+        kCsTag_ExpiryTime                   = 1,
         /* 2-9 are reserved */
-        kCsTag_Argument = 10,
+        kCsTag_Argument                     = 10,
         /* 11-19 are reserved */
-        kCsTag_DataList   = 20,
+        kCsTag_DataList                     = 20,
+        kCsTag_NumPartialUpdateRequests     = 21,
     };
 
     class Parser;
@@ -1420,7 +1421,7 @@ public:
      *
      *  @retval #WEAVE_NO_ERROR on success
      *  @retval #WEAVE_END_OF_TLV if there is no such element
-     *  @retval #WEAVE_ERROR_WRONG_TLV_TYPE if there is such element but it's not a signed integer
+     *  @retval #WEAVE_ERROR_WRONG_TLV_TYPE if there is such element but it's not a unsigned integer
      */
     WEAVE_ERROR GetExpiryTimeMicroSecond(int64_t * const apExpiryTimeMicroSecond) const;
 
@@ -1436,6 +1437,18 @@ public:
 
     // Get a TLVReader for the Paths. Next() must be called before accessing them.
     WEAVE_ERROR GetDataList (DataList::Parser * const apDataList) const;
+
+    /**
+     *  @brief Get the number of partial update request for this request
+     *
+     *  @param [out] apNumPartialUpdateRequest    A pointer to some variable to receive
+     *                                          the number of partial update requests on success
+     *
+     *  @retval #WEAVE_NO_ERROR on success
+     *  @retval #WEAVE_END_OF_TLV if there is no such element
+     *  @retval #WEAVE_ERROR_WRONG_TLV_TYPE if there is such element but it's not a unsigned integer
+     */
+    WEAVE_ERROR GetNumPartialUpdateRequest(nl::Weave::TLV::TLVReader * const apReader, uint32_t * const apNumPartialUpdateRequest) const;
 };
 
 namespace UpdateResponse {

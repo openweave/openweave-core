@@ -64,6 +64,7 @@ WEAVE_ERROR UpdateClient::Init(Binding * const apBinding, void * const apAppStat
     mpAppState           = apAppState;
     mEventCallback       = aEventCallback;
     mEC                  = NULL;
+    mNumPartialUpdateRequest = 0;
     MoveToState(kState_Initialized);
 
 exit:
@@ -82,6 +83,23 @@ WEAVE_ERROR UpdateClient::AddExpiryTime(utc_timestamp_t aExpiryTimeMicroSecond)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
     err = mWriter.Put(nl::Weave::TLV::ContextTag(UpdateRequest::kCsTag_ExpiryTime), aExpiryTimeMicroSecond);
+    SuccessOrExit(err);
+
+exit:
+    return err;
+}
+
+/**
+ *  @brief Add the number of partial update requests into the TLV stream
+ *
+ *
+ *  @retval #WEAVE_NO_ERROR On success.
+ *  @retval other           Was unable to add number of partial update requests into the TLV stream
+ */
+WEAVE_ERROR UpdateClient::AddNumPartialUpdateRequests(void)
+{
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
+    err = mWriter.Put(nl::Weave::TLV::ContextTag(UpdateRequest::kCsTag_NumPartialUpdateRequests), mNumPartialUpdateRequest);
     SuccessOrExit(err);
 
 exit:
@@ -150,13 +168,18 @@ WEAVE_ERROR UpdateClient::StartUpdateRequest(utc_timestamp_t aExpiryTimeMicroSec
 
     if (aExpiryTimeMicroSecond != 0)
     {
-        AddExpiryTime(aExpiryTimeMicroSecond);
+        err = AddExpiryTime(aExpiryTimeMicroSecond);
+        SuccessOrExit(err);
     }
 
     if (mAddArgumentCallback != NULL)
     {
-        mAddArgumentCallback(this, mpAppState, mWriter);
+        err = mAddArgumentCallback(this, mpAppState, mWriter);
+        SuccessOrExit(err);
     }
+
+    err = AddNumPartialUpdateRequests();
+    SuccessOrExit(err);
 
 exit:
 
@@ -516,7 +539,10 @@ WEAVE_ERROR UpdateClient::SendUpdate(bool aIsPartialUpdate)
     err = EndUpdateRequest();
     SuccessOrExit(err);
 
-    FlushExistingExchangeContext();
+    if (mNumPartialUpdateRequest == 0)
+    {
+        FlushExistingExchangeContext();
+    }
 
     err = mpBinding->NewExchangeContext(mEC);
 
@@ -530,14 +556,20 @@ WEAVE_ERROR UpdateClient::SendUpdate(bool aIsPartialUpdate)
         WeaveLogDetail(DataManagement, "<UC:Run> Partial update");
         err = mEC->SendMessage(nl::Weave::Profiles::kWeaveProfile_WDM, kMsgType_PartialUpdateRequest, mpBuf,
                            nl::Weave::ExchangeContext::kSendFlag_ExpectResponse);
+        mpBuf = NULL;
+        SuccessOrExit(err);
+
+        mNumPartialUpdateRequest ++;
     }
     else
     {
         err = mEC->SendMessage(nl::Weave::Profiles::kWeaveProfile_WDM, kMsgType_UpdateRequest, mpBuf,
                                nl::Weave::ExchangeContext::kSendFlag_ExpectResponse);
+        mpBuf = NULL;
+        SuccessOrExit(err);
+
+        mNumPartialUpdateRequest = 0;
     }
-    mpBuf = NULL;
-    SuccessOrExit(err);
 
     MoveToState(kState_AwaitingResponse);
 
@@ -577,6 +609,7 @@ WEAVE_ERROR UpdateClient::CancelUpdate(void)
         }
 
         mAddArgumentCallback = NULL;
+        mNumPartialUpdateRequest = 0;
         FlushExistingExchangeContext();
         MoveToState(kState_Initialized);
     }
