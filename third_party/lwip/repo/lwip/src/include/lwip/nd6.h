@@ -46,7 +46,8 @@
 
 #include "lwip/opt.h"
 
-#if LWIP_IPV6  /* don't build if not configured for use in lwipopts.h */
+/* don't build if not configured for use in lwipopts.h */
+#if LWIP_IPV6 && LWIP_IPV6_ND
 
 #include "lwip/ip6_addr.h"
 #include "lwip/err.h"
@@ -79,6 +80,6 @@ void nd6_adjust_mld_membership(struct netif *netif, s8_t addr_idx, u8_t new_stat
 }
 #endif
 
-#endif /* LWIP_IPV6 */
+#endif /* LWIP_IPV6 && LWIP_IPV6_ND */
 
 #endif /* LWIP_HDR_ND6_H */

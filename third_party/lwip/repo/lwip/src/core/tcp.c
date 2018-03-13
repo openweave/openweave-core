@@ -1929,8 +1929,12 @@ tcp_eff_send_mss_impl(u16_t sendmss, const ip_addr_t *dest
   if (IP_IS_V6(dest))
 #endif /* LWIP_IPV4 */
   {
+#if LWIP_IPV6_ND
     /* First look in destination cache, to see if there is a Path MTU. */
     mtu = nd6_get_destination_mtu(ip_2_ip6(dest), outif);
+#else
+    mtu = (outif != NULL) ? outif->mtu : IP6_MIN_MTU;
+#endif
   }
 #if LWIP_IPV4
   else

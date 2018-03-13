@@ -45,7 +45,8 @@
 
 #include "lwip/opt.h"
 
-#if LWIP_IPV6_MLD && LWIP_IPV6  /* don't build if not configured for use in lwipopts.h */
+ /* don't build if not configured for use in lwipopts.h */
+ #if LWIP_IPV6_MLD && LWIP_IPV6_ND && LWIP_IPV6 
 
 #include "lwip/pbuf.h"
 #include "lwip/netif.h"
@@ -70,11 +71,8 @@ struct mld_group {
   u8_t               use;
 };
 
-#define MLD6_TMR_INTERVAL              100 /* Milliseconds */
-
 err_t  mld6_stop(struct netif *netif);
 void   mld6_report_groups(struct netif *netif);
-err_t  mld6_tmr(void);
 struct mld_group *mld6_lookfor_group(struct netif *ifp, const ip6_addr_t *addr);
 void   mld6_input(struct pbuf *p, struct netif *inp);
 err_t  mld6_joingroup(const ip6_addr_t *srcaddr, const ip6_addr_t *groupaddr);
@@ -94,6 +92,6 @@ err_t  mld6_leavegroup_netif(struct netif *netif, const ip6_addr_t *groupaddr);
 }
 #endif
 
-#endif /* LWIP_IPV6_MLD && LWIP_IPV6 */
+#endif /* LWIP_IPV6_MLD && LWIP_IPV6_ND && LWIP_IPV6 */
 
 #endif /* LWIP_HDR_MLD6_H */

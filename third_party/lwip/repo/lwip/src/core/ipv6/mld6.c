@@ -48,7 +48,8 @@
 
 #include "lwip/opt.h"
 
-#if LWIP_IPV6 && LWIP_IPV6_MLD  /* don't build if not configured for use in lwipopts.h */
+/* don't build if not configured for use in lwipopts.h */
+#if LWIP_IPV6 && LWIP_IPV6_ND && LWIP_IPV6_MLD
 
 #include "lwip/mld6.h"
 #include "lwip/prot/mld6.h"
@@ -70,7 +71,8 @@
  * MLD constants
  */
 #define MLD6_HL                           1
-#define MLD6_JOIN_DELAYING_MEMBER_TMR_MS  (500)
+#define MLD6_TMR_INTERVAL                 100 /* Milliseconds */
+#define MLD6_JOIN_DELAYING_MEMBER_TMR_MS  500 /* Milliseconds */
 
 #define MLD6_GROUP_NON_MEMBER             0
 #define MLD6_GROUP_DELAYING_MEMBER        1
@@ -82,6 +84,8 @@ static err_t mld6_remove_group(struct netif *netif, struct mld_group *group);
 static void mld6_delayed_report(struct mld_group *group, u16_t maxresp);
 static void mld6_send(struct netif *netif, struct mld_group *group, u8_t type);
 
+/* Local variables. */
+static int mld6_tmr_active;
 
 /**
  * Stop MLD processing on interface
@@ -168,9 +172,6 @@ static struct mld_group *
 mld6_new_group(struct netif *ifp, const ip6_addr_t *addr)
 {
   struct mld_group *group;
-
-  if (netif_mld6_data(ifp) == NULL)
-      sys_timeout(MLD6_TMR_INTERVAL, mld6_tmr, NULL);
 
   group = (struct mld_group *)memp_malloc(MEMP_MLD6_GROUP);
   if (group != NULL) {
@@ -467,36 +468,45 @@ mld6_leavegroup_netif(struct netif *netif, const ip6_addr_t *groupaddr)
 
 
 /**
- * Periodic timer for mld processing. Must be called every
- * MLD6_TMR_INTERVAL milliseconds (100).
+ * Periodic timer for mld processing, scheduled while at least one group has a
+ * delayed membership report pending.
  *
  * When a delaying member expires, a membership report is sent.
  */
-err_t
-mld6_tmr(void)
+void
+mld6_tmr(void *none)
 {
+  int again = 0;
   struct netif *netif = netif_list;
+
+#if LWIP_DEBUG_TIMERNAMES
+  LWIP_DEBUGF(TIMERS_DEBUG, ("tcpip: mld6_tmr()\n"));
+#endif
 
   while (netif != NULL) {
     struct mld_group *group = netif_mld6_data(netif);
 
     while (group != NULL) {
-      if (group->timer > 0) {
-        group->timer--;
-        if (group->timer == 0) {
-          /* If the state is MLD6_GROUP_DELAYING_MEMBER then we send a report for this group */
-          if (group->group_state == MLD6_GROUP_DELAYING_MEMBER) {
-            MLD6_STATS_INC(mld6.tx_report);
-            mld6_send(netif, group, ICMP6_TYPE_MLR);
-            group->group_state = MLD6_GROUP_IDLE_MEMBER;
-          }
+      if (group->group_state == MLD6_GROUP_DELAYING_MEMBER) {
+        LWIP_ASSERT("group->timer > 0", group->timer > 0);
+        if (--group->timer > 0) {
+          again = 1;
+        } else {
+          MLD6_STATS_INC(mld6.tx_report);
+          mld6_send(netif, group, ICMP6_TYPE_MLR);
+          group->group_state = MLD6_GROUP_IDLE_MEMBER;
         }
       }
       group = group->next;
     }
     netif = netif->next;
   }
-  return (netif_list != NULL) ? ERR_OK : -1;
+
+  if (again) {
+    sys_timeout(MLD6_TMR_INTERVAL, mld6_tmr, NULL);
+  } else {
+    mld6_tmr_active = 0;
+  }
 }
 
 /**
@@ -525,10 +535,15 @@ mld6_delayed_report(struct mld_group *group, u16_t maxresp)
 
   /* Apply timer value if no report has been scheduled already. */
   if ((group->group_state == MLD6_GROUP_IDLE_MEMBER) ||
-     ((group->group_state == MLD6_GROUP_DELAYING_MEMBER) &&
-      ((group->timer == 0) || (maxresp < group->timer)))) {
-    group->timer = maxresp;
+      ((group->group_state == MLD6_GROUP_DELAYING_MEMBER) &&
+        (group->timer > maxresp))) {
     group->group_state = MLD6_GROUP_DELAYING_MEMBER;
+    group->timer = maxresp;
+
+    if (!mld6_tmr_active) {
+      mld6_tmr_active = 1;
+      sys_timeout(MLD6_TMR_INTERVAL, mld6_tmr, NULL);
+    }
   }
 }
 
@@ -605,4 +620,4 @@ mld6_send(struct netif *netif, struct mld_group *group, u8_t type)
   pbuf_free(p);
 }
 
-#endif /* LWIP_IPV6 */
+#endif /* LWIP_IPV6 && LWIP_IPV6_ND && LWIP_IPV6_MLD */

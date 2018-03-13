@@ -110,7 +110,7 @@ LWIP_MEMPOOL(ND6_QUEUE,      MEMP_NUM_ND6_QUEUE,       sizeof(struct nd6_q_entry
 LWIP_MEMPOOL(IP6_REASSDATA,      MEMP_NUM_REASSDATA,       sizeof(struct ip6_reassdata),   "IP6_REASSDATA")
 #endif /* LWIP_IPV6 && LWIP_IPV6_REASS */
 
-#if LWIP_IPV6 && LWIP_IPV6_MLD
+#if LWIP_IPV6 && LWIP_IPV6_ND && LWIP_IPV6_MLD
 LWIP_MEMPOOL(MLD6_GROUP,     MEMP_NUM_MLD6_GROUP,      sizeof(struct mld_group),     "MLD6_GROUP")
 #endif /* LWIP_IPV6 && LWIP_IPV6_MLD */
 

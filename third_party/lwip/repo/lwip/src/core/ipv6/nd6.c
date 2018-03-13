@@ -43,7 +43,8 @@
 
 #include "lwip/opt.h"
 
-#if LWIP_IPV6  /* don't build if not configured for use in lwipopts.h */
+/* don't build if not configured for use in lwipopts.h */
+#if LWIP_IPV6 && LWIP_IPV6_ND
 
 #include "lwip/nd6.h"
 #include "lwip/priv/nd6_priv.h"
@@ -521,7 +522,7 @@ nd6_input(struct pbuf *p, struct netif *inp)
       {
         struct mtu_option *mtu_opt;
         mtu_opt = (struct mtu_option *)buffer;
-        if (lwip_htonl(mtu_opt->mtu) >= 1280) {
+        if (lwip_htonl(mtu_opt->mtu) >= IP6_MIN_MTU) {
 #if LWIP_ND6_ALLOW_RA_UPDATES
           inp->mtu = (u16_t)lwip_htonl(mtu_opt->mtu);
 #endif /* LWIP_ND6_ALLOW_RA_UPDATES */
@@ -2060,7 +2061,7 @@ nd6_get_destination_mtu(const ip6_addr_t *ip6addr, struct netif *netif)
     return netif->mtu;
   }
 
-  return 1280; /* Minimum MTU */
+  return IP6_MIN_MTU;
 }
 
 
@@ -2184,4 +2185,4 @@ nd6_adjust_mld_membership(struct netif *netif, s8_t addr_idx, u8_t new_state)
 }
 #endif /* LWIP_IPV6_MLD */
 
-#endif /* LWIP_IPV6 */
+#endif /* LWIP_IPV6 && LWIP_IPV6_ND */

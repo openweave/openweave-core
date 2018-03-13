@@ -2023,7 +2023,7 @@
  * ND6_STATS==1: Enable Neighbor discovery for IPv6 stats.
  */
 #if !defined ND6_STATS || defined __DOXYGEN__
-#define ND6_STATS                       (LWIP_IPV6)
+#define ND6_STATS                       (LWIP_IPV6_ND)
 #endif
 
 /**
@@ -2213,13 +2213,6 @@
 #endif
 
 /**
- * LWIP_IPV6_AUTOCONFIG==1: Enable stateless address autoconfiguration as per RFC 4862.
- */
-#if !defined LWIP_IPV6_AUTOCONFIG || defined __DOXYGEN__
-#define LWIP_IPV6_AUTOCONFIG            (LWIP_IPV6)
-#endif
-
-/**
  * LWIP_IPV6_DUP_DETECT_ATTEMPTS=[0..7]: Number of duplicate address detection attempts.
  */
 #if !defined LWIP_IPV6_DUP_DETECT_ATTEMPTS || defined __DOXYGEN__
@@ -2260,17 +2253,41 @@
  */
 
 /**
+ * @defgroup lwip_opts_nd6 Neighbor discovery
+ * @ingroup lwip_opts_ipv6
+ * @{
+ */
+
+/**
+ * LWIP_IPV6_ND==1: Enable neighbor discovery protocol.
+ * If LWIP_IPV6 is enabled but this setting is disabled, then neighbor and
+ * destination caches, duplicate address detection, neighbor unreachability
+ * detection, multicast listener discovery and router discovery are delegated
+ * entirely to the sub-IP layer.
+ */
+#if !defined LWIP_IPV6_ND || defined __DOXYGEN__
+#define LWIP_IPV6_ND                   (LWIP_IPV6)
+#endif
+
+/**
+ * LWIP_IPV6_AUTOCONFIG==1: Enable stateless address autoconfiguration as per RFC 4862.
+ */
+#if !defined LWIP_IPV6_AUTOCONFIG || defined __DOXYGEN__
+#define LWIP_IPV6_AUTOCONFIG            (LWIP_IPV6_ND)
+#endif
+
+/**
  * @defgroup lwip_opts_mld6 Multicast listener discovery
  * @ingroup lwip_opts_ipv6
  * @{
  */
 /**
  * LWIP_IPV6_MLD==1: Enable multicast listener discovery protocol.
- * If LWIP_IPV6 is enabled but this setting is disabled, the MAC layer must
+ * If LWIP_IPV6_ND is enabled but this setting is disabled, the MAC layer must
  * indiscriminately pass all inbound IPv6 multicast traffic to lwIP.
  */
 #if !defined LWIP_IPV6_MLD || defined __DOXYGEN__
-#define LWIP_IPV6_MLD                   (LWIP_IPV6)
+#define LWIP_IPV6_MLD                   (LWIP_IPV6_ND)
 #endif
 
 /**
@@ -2296,7 +2313,7 @@
  * is being resolved.
  */
 #if !defined LWIP_ND6_QUEUEING || defined __DOXYGEN__
-#define LWIP_ND6_QUEUEING               (LWIP_IPV6)
+#define LWIP_ND6_QUEUEING               (LWIP_IPV6_ND)
 #endif
 
 /**

@@ -69,11 +69,6 @@
 /** This array contains all stack-internal cyclic timers. To get the number of
  * timers, use LWIP_ARRAYSIZE() */
 const struct lwip_cyclic_timer lwip_cyclic_timers[] = {
-#if LWIP_TCP
-  /* The TCP timer is a special case: it does not have to run always and
-     is triggered to start from TCP using tcp_timer_needed() */
-  {TCP_TMR_INTERVAL, HANDLER(tcp_tmr)},
-#endif /* LWIP_TCP */
 #if LWIP_IPV4
 #if IP_REASSEMBLY
   {IP_TMR_INTERVAL, HANDLER(ip_reass_tmr)},
@@ -96,13 +91,12 @@ const struct lwip_cyclic_timer lwip_cyclic_timers[] = {
   {DNS_TMR_INTERVAL, HANDLER(dns_tmr)},
 #endif /* LWIP_DNS */
 #if LWIP_IPV6
-  {ND6_TMR_INTERVAL, HANDLER(nd6_tmr)},
 #if LWIP_IPV6_REASS
   {IP6_REASS_TMR_INTERVAL, HANDLER(ip6_reass_tmr)},
 #endif /* LWIP_IPV6_REASS */
-#if LWIP_IPV6_MLD
-  {MLD6_TMR_INTERVAL, HANDLER(mld6_tmr)},
-#endif /* LWIP_IPV6_MLD */
+#if LWIP_IPV6_ND
+  {ND6_TMR_INTERVAL, HANDLER(nd6_tmr)},
+#endif /* LWIP_IPV6_ND */
 #endif /* LWIP_IPV6 */
 };
 

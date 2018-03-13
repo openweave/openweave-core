@@ -704,9 +704,9 @@ netif_set_down(struct netif *netif)
     }
 #endif /* LWIP_IPV4 && LWIP_ARP */
 
-#if LWIP_IPV6
+#if LWIP_IPV6 && LWIP_IPV6_ND
     nd6_cleanup_netif(netif);
-#endif /* LWIP_IPV6 */
+#endif /* LWIP_IPV6 && LWIP_IPV6_ND */
 
     NETIF_STATUS_CALLBACK(netif);
   }
@@ -1217,10 +1217,10 @@ netif_create_ip6_linklocal_address(struct netif *netif, u8_t from_mac_48bit)
 #if LWIP_IPV6_DUP_DETECT_ATTEMPTS
   /* Will perform duplicate address detection (DAD). */
   netif_ip6_addr_set_state(netif, 0, IP6_ADDR_TENTATIVE);
-#else
+#else /* !LWIP_IPV6_DUP_DETECT_ATTEMPTS */
   /* Consider address valid. */
   netif_ip6_addr_set_state(netif, 0, IP6_ADDR_PREFERRED);
-#endif /* LWIP_IPV6_AUTOCONFIG */
+#endif /* !LWIP_IPV6_DUP_DETECT_ATTEMPTS */
 }
 
 /**
