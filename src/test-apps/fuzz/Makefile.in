@@ -34,8 +34,10 @@
 #
 #    Description:
 #      This file is the GNU automake template for the Nest Weave
-#      Java Device Manager library.
+#      test applications
 #
+
+
 
 VPATH = @srcdir@
 am__is_gnu_make = { \
@@ -112,11 +114,22 @@ POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
 target_triplet = @target@
-@WEAVE_LOGGING_STYLE_ANDROID_TRUE@@WEAVE_WITH_ANDROID_TRUE@@WEAVE_WITH_JAVA_TRUE@am__append_1 = \
-@WEAVE_LOGGING_STYLE_ANDROID_TRUE@@WEAVE_WITH_ANDROID_TRUE@@WEAVE_WITH_JAVA_TRUE@    -llog                                            \
-@WEAVE_LOGGING_STYLE_ANDROID_TRUE@@WEAVE_WITH_ANDROID_TRUE@@WEAVE_WITH_JAVA_TRUE@    $(NULL)
-
-subdir = src/wrappers/jni/security-support
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_FUZZING_ENABLED_TRUE@am__append_1 = -g -O1 -fsanitize=fuzzer,address
+@WEAVE_BUILD_TESTS_TRUE@check_PROGRAMS =  \
+@WEAVE_BUILD_TESTS_TRUE@	FuzzPASEInitiatorStep1$(EXEEXT) \
+@WEAVE_BUILD_TESTS_TRUE@	FuzzPASEResponderStep1$(EXEEXT) \
+@WEAVE_BUILD_TESTS_TRUE@	FuzzPASEResponderStep2$(EXEEXT) \
+@WEAVE_BUILD_TESTS_TRUE@	FuzzPASEInitiatorStep2$(EXEEXT) \
+@WEAVE_BUILD_TESTS_TRUE@	FuzzPASEKeyConfirm$(EXEEXT) \
+@WEAVE_BUILD_TESTS_TRUE@	FuzzCertificateConversion$(EXEEXT)
+@WEAVE_BUILD_TESTS_TRUE@noinst_PROGRAMS =  \
+@WEAVE_BUILD_TESTS_TRUE@	FuzzPASEInitiatorStep1$(EXEEXT) \
+@WEAVE_BUILD_TESTS_TRUE@	FuzzPASEResponderStep1$(EXEEXT) \
+@WEAVE_BUILD_TESTS_TRUE@	FuzzPASEResponderStep2$(EXEEXT) \
+@WEAVE_BUILD_TESTS_TRUE@	FuzzPASEInitiatorStep2$(EXEEXT) \
+@WEAVE_BUILD_TESTS_TRUE@	FuzzPASEKeyConfirm$(EXEEXT) \
+@WEAVE_BUILD_TESTS_TRUE@	FuzzCertificateConversion$(EXEEXT)
+subdir = src/test-apps/fuzz
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/third_party/nlbuild-autotools/repo/autoconf/m4/ax_check_compiler.m4 \
 	$(top_srcdir)/third_party/nlbuild-autotools/repo/autoconf/m4/nl_enable_coverage.m4 \
@@ -147,66 +160,111 @@ am__aclocal_m4_deps = $(top_srcdir)/third_party/nlbuild-autotools/repo/autoconf/
 	$(top_srcdir)/configure.ac
 am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 	$(ACLOCAL_M4)
-DIST_COMMON = $(srcdir)/Makefile.am $(am__DIST_COMMON)
+DIST_COMMON = $(srcdir)/Makefile.am $(noinst_HEADERS) \
+	$(am__DIST_COMMON)
 mkinstalldirs = $(SHELL) \
 	$(top_srcdir)/third_party/nlbuild-autotools/repo/third_party/autoconf/mkinstalldirs
 CONFIG_HEADER = $(top_builddir)/src/include/BuildConfig.h
 CONFIG_CLEAN_FILES =
 CONFIG_CLEAN_VPATH_FILES =
-am__vpath_adj_setup = srcdirstrip=`echo "$(srcdir)" | sed 's|.|.|g'`;
-am__vpath_adj = case $$p in \
-    $(srcdir)/*) f=`echo "$$p" | sed "s|^$$srcdirstrip/||"`;; \
-    *) f=$$p;; \
-  esac;
-am__strip_dir = f=`echo $$p | sed -e 's|^.*/||'`;
-am__install_max = 40
-am__nobase_strip_setup = \
-  srcdirstrip=`echo "$(srcdir)" | sed 's/[].[^$$\\*|]/\\\\&/g'`
-am__nobase_strip = \
-  for p in $$list; do echo "$$p"; done | sed -e "s|$$srcdirstrip/||"
-am__nobase_list = $(am__nobase_strip_setup); \
-  for p in $$list; do echo "$$p $$p"; done | \
-  sed "s| $$srcdirstrip/| |;"' / .*\//!s/ .*/ ./; s,\( .*\)/[^/]*$$,\1,' | \
-  $(AWK) 'BEGIN { files["."] = "" } { files[$$2] = files[$$2] " " $$1; \
-    if (++n[$$2] == $(am__install_max)) \
-      { print $$2, files[$$2]; n[$$2] = 0; files[$$2] = "" } } \
-    END { for (dir in files) print dir, files[dir] }'
-am__base_list = \
-  sed '$$!N;$$!N;$$!N;$$!N;$$!N;$$!N;$$!N;s/\n/ /g' | \
-  sed '$$!N;$$!N;$$!N;$$!N;s/\n/ /g'
-am__uninstall_files_from_dir = { \
-  test -z "$$files" \
-    || { test ! -d "$$dir" && test ! -f "$$dir" && test ! -r "$$dir"; } \
-    || { echo " ( cd '$$dir' && rm -f" $$files ")"; \
-         $(am__cd) "$$dir" && rm -f $$files; }; \
-  }
-am__installdirs = "$(DESTDIR)$(libdir)"
-LTLIBRARIES = $(lib_LTLIBRARIES)
-am__DEPENDENCIES_1 =
-am__libWeaveSecuritySupport_la_SOURCES_DIST =  \
-	native/WeaveSecuritySupport.cpp \
-	native/WeaveCertificateSupport.cpp \
-	native/PasscodeEncryptionSupport.cpp \
-	native/WeaveKeyExportClientNative.cpp \
-	native/WeaveKeyExportSupportNative.cpp
-am__dirstamp = $(am__leading_dot)dirstamp
-@WEAVE_WITH_JAVA_TRUE@am_libWeaveSecuritySupport_la_OBJECTS = native/libWeaveSecuritySupport_la-WeaveSecuritySupport.lo \
-@WEAVE_WITH_JAVA_TRUE@	native/libWeaveSecuritySupport_la-WeaveCertificateSupport.lo \
-@WEAVE_WITH_JAVA_TRUE@	native/libWeaveSecuritySupport_la-PasscodeEncryptionSupport.lo \
-@WEAVE_WITH_JAVA_TRUE@	native/libWeaveSecuritySupport_la-WeaveKeyExportClientNative.lo \
-@WEAVE_WITH_JAVA_TRUE@	native/libWeaveSecuritySupport_la-WeaveKeyExportSupportNative.lo
-libWeaveSecuritySupport_la_OBJECTS =  \
-	$(am_libWeaveSecuritySupport_la_OBJECTS)
+LIBRARIES = $(noinst_LIBRARIES)
+ARFLAGS = cru
+AM_V_AR = $(am__v_AR_@AM_V@)
+am__v_AR_ = $(am__v_AR_@AM_DEFAULT_V@)
+am__v_AR_0 = @echo "  AR      " $@;
+am__v_AR_1 = 
+libFuzzUtil_a_AR = $(AR) $(ARFLAGS)
+libFuzzUtil_a_LIBADD =
+am__libFuzzUtil_a_SOURCES_DIST = FuzzUtils.cpp
+@WEAVE_BUILD_TESTS_TRUE@am_libFuzzUtil_a_OBJECTS =  \
+@WEAVE_BUILD_TESTS_TRUE@	FuzzUtils.$(OBJEXT)
+libFuzzUtil_a_OBJECTS = $(am_libFuzzUtil_a_OBJECTS)
+PROGRAMS = $(noinst_PROGRAMS)
+am__FuzzCertificateConversion_SOURCES_DIST =  \
+	FuzzCertificateConversion.cpp
+@WEAVE_BUILD_TESTS_TRUE@am_FuzzCertificateConversion_OBJECTS =  \
+@WEAVE_BUILD_TESTS_TRUE@	FuzzCertificateConversion.$(OBJEXT)
+FuzzCertificateConversion_OBJECTS =  \
+	$(am_FuzzCertificateConversion_OBJECTS)
+@WEAVE_BUILD_TESTS_TRUE@am__DEPENDENCIES_1 = $(top_builddir)/src/test-apps/libWeaveTestCommon.a
+@WEAVE_BUILD_TESTS_TRUE@am__DEPENDENCIES_2 =  \
+@WEAVE_BUILD_TESTS_TRUE@	$(top_builddir)/src/lib/libWeave.a
+am__DEPENDENCIES_3 =
+@WEAVE_BUILD_TESTS_TRUE@am__DEPENDENCIES_4 = $(am__DEPENDENCIES_2) \
+@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_3) \
+@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_3) \
+@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_3) \
+@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_3) \
+@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_3) \
+@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_3)
+@WEAVE_BUILD_TESTS_TRUE@FuzzCertificateConversion_DEPENDENCIES =  \
+@WEAVE_BUILD_TESTS_TRUE@	libFuzzUtil.a \
+@WEAVE_BUILD_TESTS_TRUE@	$(top_builddir)/src/tools/weave/libWeaveTool.a \
+@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_1) \
+@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_4)
 AM_V_lt = $(am__v_lt_@AM_V@)
 am__v_lt_ = $(am__v_lt_@AM_DEFAULT_V@)
 am__v_lt_0 = --silent
 am__v_lt_1 = 
-libWeaveSecuritySupport_la_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
+FuzzCertificateConversion_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
 	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CXXLD) \
 	$(AM_CXXFLAGS) $(CXXFLAGS) \
-	$(libWeaveSecuritySupport_la_LDFLAGS) $(LDFLAGS) -o $@
-@WEAVE_WITH_JAVA_TRUE@am_libWeaveSecuritySupport_la_rpath = -rpath \
-@WEAVE_WITH_JAVA_TRUE@	$(libdir)
+	$(FuzzCertificateConversion_LDFLAGS) $(LDFLAGS) -o $@
+am__FuzzPASEInitiatorStep1_SOURCES_DIST = FuzzPASEInitiatorStep1.cpp
+@WEAVE_BUILD_TESTS_TRUE@am_FuzzPASEInitiatorStep1_OBJECTS =  \
+@WEAVE_BUILD_TESTS_TRUE@	FuzzPASEInitiatorStep1.$(OBJEXT)
+FuzzPASEInitiatorStep1_OBJECTS = $(am_FuzzPASEInitiatorStep1_OBJECTS)
+@WEAVE_BUILD_TESTS_TRUE@FuzzPASEInitiatorStep1_DEPENDENCIES =  \
+@WEAVE_BUILD_TESTS_TRUE@	libFuzzUtil.a $(am__DEPENDENCIES_1) \
+@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_4)
+FuzzPASEInitiatorStep1_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
+	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CXXLD) \
+	$(AM_CXXFLAGS) $(CXXFLAGS) $(FuzzPASEInitiatorStep1_LDFLAGS) \
+	$(LDFLAGS) -o $@
+am__FuzzPASEInitiatorStep2_SOURCES_DIST = FuzzPASEInitiatorStep2.cpp
+@WEAVE_BUILD_TESTS_TRUE@am_FuzzPASEInitiatorStep2_OBJECTS =  \
+@WEAVE_BUILD_TESTS_TRUE@	FuzzPASEInitiatorStep2.$(OBJEXT)
+FuzzPASEInitiatorStep2_OBJECTS = $(am_FuzzPASEInitiatorStep2_OBJECTS)
+@WEAVE_BUILD_TESTS_TRUE@FuzzPASEInitiatorStep2_DEPENDENCIES =  \
+@WEAVE_BUILD_TESTS_TRUE@	libFuzzUtil.a $(am__DEPENDENCIES_1) \
+@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_4)
+FuzzPASEInitiatorStep2_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
+	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CXXLD) \
+	$(AM_CXXFLAGS) $(CXXFLAGS) $(FuzzPASEInitiatorStep2_LDFLAGS) \
+	$(LDFLAGS) -o $@
+am__FuzzPASEKeyConfirm_SOURCES_DIST = FuzzPASEKeyConfirm.cpp
+@WEAVE_BUILD_TESTS_TRUE@am_FuzzPASEKeyConfirm_OBJECTS =  \
+@WEAVE_BUILD_TESTS_TRUE@	FuzzPASEKeyConfirm.$(OBJEXT)
+FuzzPASEKeyConfirm_OBJECTS = $(am_FuzzPASEKeyConfirm_OBJECTS)
+@WEAVE_BUILD_TESTS_TRUE@FuzzPASEKeyConfirm_DEPENDENCIES =  \
+@WEAVE_BUILD_TESTS_TRUE@	libFuzzUtil.a $(am__DEPENDENCIES_1) \
+@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_4)
+FuzzPASEKeyConfirm_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
+	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CXXLD) \
+	$(AM_CXXFLAGS) $(CXXFLAGS) $(FuzzPASEKeyConfirm_LDFLAGS) \
+	$(LDFLAGS) -o $@
+am__FuzzPASEResponderStep1_SOURCES_DIST = FuzzPASEResponderStep1.cpp
+@WEAVE_BUILD_TESTS_TRUE@am_FuzzPASEResponderStep1_OBJECTS =  \
+@WEAVE_BUILD_TESTS_TRUE@	FuzzPASEResponderStep1.$(OBJEXT)
+FuzzPASEResponderStep1_OBJECTS = $(am_FuzzPASEResponderStep1_OBJECTS)
+@WEAVE_BUILD_TESTS_TRUE@FuzzPASEResponderStep1_DEPENDENCIES =  \
+@WEAVE_BUILD_TESTS_TRUE@	libFuzzUtil.a $(am__DEPENDENCIES_1) \
+@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_4)
+FuzzPASEResponderStep1_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
+	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CXXLD) \
+	$(AM_CXXFLAGS) $(CXXFLAGS) $(FuzzPASEResponderStep1_LDFLAGS) \
+	$(LDFLAGS) -o $@
+am__FuzzPASEResponderStep2_SOURCES_DIST = FuzzPASEResponderStep2.cpp
+@WEAVE_BUILD_TESTS_TRUE@am_FuzzPASEResponderStep2_OBJECTS =  \
+@WEAVE_BUILD_TESTS_TRUE@	FuzzPASEResponderStep2.$(OBJEXT)
+FuzzPASEResponderStep2_OBJECTS = $(am_FuzzPASEResponderStep2_OBJECTS)
+@WEAVE_BUILD_TESTS_TRUE@FuzzPASEResponderStep2_DEPENDENCIES =  \
+@WEAVE_BUILD_TESTS_TRUE@	libFuzzUtil.a $(am__DEPENDENCIES_1) \
+@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_4)
+FuzzPASEResponderStep2_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
+	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CXXLD) \
+	$(AM_CXXFLAGS) $(CXXFLAGS) $(FuzzPASEResponderStep2_LDFLAGS) \
+	$(LDFLAGS) -o $@
 AM_V_P = $(am__v_P_@AM_V@)
 am__v_P_ = $(am__v_P_@AM_DEFAULT_V@)
 am__v_P_0 = false
@@ -242,13 +300,26 @@ AM_V_CXXLD = $(am__v_CXXLD_@AM_V@)
 am__v_CXXLD_ = $(am__v_CXXLD_@AM_DEFAULT_V@)
 am__v_CXXLD_0 = @echo "  CXXLD   " $@;
 am__v_CXXLD_1 = 
-SOURCES = $(libWeaveSecuritySupport_la_SOURCES)
-DIST_SOURCES = $(am__libWeaveSecuritySupport_la_SOURCES_DIST)
+SOURCES = $(libFuzzUtil_a_SOURCES) \
+	$(FuzzCertificateConversion_SOURCES) \
+	$(FuzzPASEInitiatorStep1_SOURCES) \
+	$(FuzzPASEInitiatorStep2_SOURCES) \
+	$(FuzzPASEKeyConfirm_SOURCES) \
+	$(FuzzPASEResponderStep1_SOURCES) \
+	$(FuzzPASEResponderStep2_SOURCES)
+DIST_SOURCES = $(am__libFuzzUtil_a_SOURCES_DIST) \
+	$(am__FuzzCertificateConversion_SOURCES_DIST) \
+	$(am__FuzzPASEInitiatorStep1_SOURCES_DIST) \
+	$(am__FuzzPASEInitiatorStep2_SOURCES_DIST) \
+	$(am__FuzzPASEKeyConfirm_SOURCES_DIST) \
+	$(am__FuzzPASEResponderStep1_SOURCES_DIST) \
+	$(am__FuzzPASEResponderStep2_SOURCES_DIST)
 am__can_run_installinfo = \
   case $$AM_UPDATE_INFO_DIR in \
     n|no|NO) false;; \
     *) (install-info --version) >/dev/null 2>&1;; \
   esac
+HEADERS = $(noinst_HEADERS)
 am__tagged_files = $(HEADERS) $(SOURCES) $(TAGS_FILES) $(LISP)
 # Read a list of newline-separated strings from the standard input,
 # and print each of them once, without duplicates.  Input order is
@@ -514,60 +585,96 @@ target_vendor = @target_vendor@
 top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
-@WEAVE_WITH_JAVA_TRUE@JARS = \
-@WEAVE_WITH_JAVA_TRUE@    WeaveSecuritySupport.jar                         \
-@WEAVE_WITH_JAVA_TRUE@    $(NULL)
+LOG_DRIVER = $(abs_srcdir)/weave-parallel-test-engine
 
-@WEAVE_WITH_JAVA_TRUE@WeaveSecuritySupport_jar_JAVA_SRCS = \
-@WEAVE_WITH_JAVA_TRUE@    com/nestlabs/weave/security/WeaveSecuritySupport.java          \
-@WEAVE_WITH_JAVA_TRUE@    com/nestlabs/weave/security/WeaveSecuritySupportException.java \
-@WEAVE_WITH_JAVA_TRUE@    com/nestlabs/weave/security/WeaveCertificateSupport.java       \
-@WEAVE_WITH_JAVA_TRUE@    com/nestlabs/weave/security/WeaveKeyExportClient.java          \
-@WEAVE_WITH_JAVA_TRUE@    com/nestlabs/weave/security/WeaveKeyExportSupport.java         \
-@WEAVE_WITH_JAVA_TRUE@    com/nestlabs/weave/security/PasscodeEncryptionSupport.java     \
-@WEAVE_WITH_JAVA_TRUE@    com/nestlabs/weave/security/ApplicationKeySupport.java         \
-@WEAVE_WITH_JAVA_TRUE@    com/nestlabs/weave/security/WeaveKeyId.java                    \
-@WEAVE_WITH_JAVA_TRUE@    com/nestlabs/weave/security/ApplicationGroupGlobalId.java      \
-@WEAVE_WITH_JAVA_TRUE@    com/nestlabs/weave/security/HKDF.java                          \
-@WEAVE_WITH_JAVA_TRUE@    $(NULL)
+#
+# Local headers to build against and distribute but not to install
+# since they are not part of the Weave SDK public API.
+#
+noinst_HEADERS = \
+    $(NULL)
 
-@WEAVE_WITH_JAVA_TRUE@WeaveSecuritySupport_jar_JFLAGS = -source 6 -target 6
-@WEAVE_WITH_JAVA_TRUE@WeaveSecuritySupport_jar_JAVA_NATIVE_LIB = libWeaveSecuritySupport.la 
-@WEAVE_WITH_JAVA_TRUE@WeaveSecuritySupport_jar_JAVA_STRIP_NATIVE_LIB = true
-@WEAVE_WITH_JAVA_TRUE@WeaveSecuritySupport_jar_MAVEN_PROJECT_FILE = WeaveSecuritySupport.pom
-@WEAVE_WITH_JAVA_TRUE@EXTRA_DIST = \
-@WEAVE_WITH_JAVA_TRUE@    $(srcdir)/src                                    \
-@WEAVE_WITH_JAVA_TRUE@    $(srcdir)/native                                 \
-@WEAVE_WITH_JAVA_TRUE@    $(NULL)
 
-@WEAVE_WITH_JAVA_TRUE@lib_LTLIBRARIES = libWeaveSecuritySupport.la
-@WEAVE_WITH_JAVA_TRUE@libWeaveSecuritySupport_la_SOURCES = \
-@WEAVE_WITH_JAVA_TRUE@    native/WeaveSecuritySupport.cpp                  \
-@WEAVE_WITH_JAVA_TRUE@    native/WeaveCertificateSupport.cpp               \
-@WEAVE_WITH_JAVA_TRUE@    native/PasscodeEncryptionSupport.cpp             \
-@WEAVE_WITH_JAVA_TRUE@    native/WeaveKeyExportClientNative.cpp            \
-@WEAVE_WITH_JAVA_TRUE@    native/WeaveKeyExportSupportNative.cpp           \
-@WEAVE_WITH_JAVA_TRUE@    $(NULL)
+# A non-installed common library that may be used for all test
+# applications in this directory.
+#
+# This will NOT be part of the externally-consumable binary SDK.
+@WEAVE_BUILD_TESTS_TRUE@noinst_LIBRARIES = \
+@WEAVE_BUILD_TESTS_TRUE@    libFuzzUtil.a                                \
+@WEAVE_BUILD_TESTS_TRUE@    $(NULL)
 
-@WEAVE_WITH_JAVA_TRUE@libWeaveSecuritySupport_la_DEPENDENCIES = \
-@WEAVE_WITH_JAVA_TRUE@    $(top_builddir)/src/lib/libWeave.a               \
-@WEAVE_WITH_JAVA_TRUE@    $(top_builddir)/src/wrappers/jni/jni-utils/libJNIUtils.a \
-@WEAVE_WITH_JAVA_TRUE@    $(NULL)
+@WEAVE_BUILD_TESTS_TRUE@MAYBE_FUZZ = $(NULL) $(am__append_1)
 
-@WEAVE_WITH_JAVA_TRUE@libWeaveSecuritySupport_la_CPPFLAGS = \
-@WEAVE_WITH_JAVA_TRUE@    -I$(top_srcdir)/src/wrappers/jni/jni-utils       \
-@WEAVE_WITH_JAVA_TRUE@	$(JNI_CPPFLAGS)                                  \
-@WEAVE_WITH_JAVA_TRUE@	$(NULL)
+# C preprocessor option flags that will apply to all compiled objects in this
+# makefile.
+@WEAVE_BUILD_TESTS_TRUE@AM_CPPFLAGS = \
+@WEAVE_BUILD_TESTS_TRUE@    $(MAYBE_FUZZ)                                \
+@WEAVE_BUILD_TESTS_TRUE@    -I$(top_srcdir)/src/include                  \
+@WEAVE_BUILD_TESTS_TRUE@    -I$(top_srcdir)/src/test-apps                \
+@WEAVE_BUILD_TESTS_TRUE@    -I$(top_srcdir)/tools/weave/                 \
+@WEAVE_BUILD_TESTS_TRUE@    $(LWIP_CPPFLAGS)                             \
+@WEAVE_BUILD_TESTS_TRUE@    $(SOCKETS_CPPFLAGS)                          \
+@WEAVE_BUILD_TESTS_TRUE@    $(PTHREAD_CFLAGS)                            \
+@WEAVE_BUILD_TESTS_TRUE@    $(NULL)
 
-@WEAVE_WITH_JAVA_TRUE@libWeaveSecuritySupport_la_LIBADD = -L$(top_builddir)/src/wrappers/jni/jni-utils \
-@WEAVE_WITH_JAVA_TRUE@	-lJNIUtils -L$(top_builddir)/src/lib \
-@WEAVE_WITH_JAVA_TRUE@	-lWeave $(NULL) $(am__append_1)
-@WEAVE_WITH_JAVA_TRUE@libWeaveSecuritySupport_la_LDFLAGS = \
-@WEAVE_WITH_JAVA_TRUE@    $(AM_LDFLAGS)                                    \
-@WEAVE_WITH_JAVA_TRUE@    -no-undefined                                    \
-@WEAVE_WITH_JAVA_TRUE@    -version-info $(LIBWEAVE_VERSION_INFO)           \
-@WEAVE_WITH_JAVA_TRUE@    $(NULL)
+@WEAVE_BUILD_TESTS_TRUE@libFuzzUtil_a_SOURCES = \
+@WEAVE_BUILD_TESTS_TRUE@    FuzzUtils.cpp                           \
+@WEAVE_BUILD_TESTS_TRUE@    $(NULL)
 
+@WEAVE_BUILD_TESTS_TRUE@TEST_COMMON_LDADD = \
+@WEAVE_BUILD_TESTS_TRUE@    $(top_builddir)/src/test-apps/libWeaveTestCommon.a             \
+@WEAVE_BUILD_TESTS_TRUE@    $(NULL)
+
+@WEAVE_BUILD_TESTS_TRUE@WEAVE_LDADD = \
+@WEAVE_BUILD_TESTS_TRUE@    $(top_builddir)/src/lib/libWeave.a       \
+@WEAVE_BUILD_TESTS_TRUE@    $(NULL)
+
+@WEAVE_BUILD_TESTS_TRUE@COMMON_LDADD = \
+@WEAVE_BUILD_TESTS_TRUE@    $(COMMON_LDFLAGS)                            \
+@WEAVE_BUILD_TESTS_TRUE@    $(WEAVE_LDADD)                               \
+@WEAVE_BUILD_TESTS_TRUE@    $(LWIP_LDFLAGS) $(LWIP_LIBS)                 \
+@WEAVE_BUILD_TESTS_TRUE@    $(SOCKETS_LDFLAGS) $(SOCKETS_LIBS)           \
+@WEAVE_BUILD_TESTS_TRUE@    $(PTHREAD_CFLAGS) $(PTHREAD_LIBS)            \
+@WEAVE_BUILD_TESTS_TRUE@    $(NULL)
+
+
+# The additional environment variables and their values that will be
+# made available to all programs and scripts in TESTS.
+@WEAVE_BUILD_TESTS_TRUE@TESTS_ENVIRONMENT = \
+@WEAVE_BUILD_TESTS_TRUE@    export                                                          \
+@WEAVE_BUILD_TESTS_TRUE@    CMP='$(CMP)'                                                    \
+@WEAVE_BUILD_TESTS_TRUE@    RM='$(RM)'                                                      \
+@WEAVE_BUILD_TESTS_TRUE@    abs_builddir='$(abs_builddir)'                                  \
+@WEAVE_BUILD_TESTS_TRUE@    abs_srcdir='$(abs_srcdir)'                                      \
+@WEAVE_BUILD_TESTS_TRUE@    abs_top_builddir='$(abs_top_builddir)'                          \
+@WEAVE_BUILD_TESTS_TRUE@    abs_top_srcdir='$(abs_top_srcdir)'                              \
+@WEAVE_BUILD_TESTS_TRUE@    builddir='$(builddir)'                                          \
+@WEAVE_BUILD_TESTS_TRUE@    srcdir='$(srcdir)'                                              \
+@WEAVE_BUILD_TESTS_TRUE@    top_builddir='$(top_builddir)'                                  \
+@WEAVE_BUILD_TESTS_TRUE@    top_srcdir='$(top_srcdir)'                                      \
+@WEAVE_BUILD_TESTS_TRUE@    WEAVE_SYSTEM_CONFIG_USE_LWIP='$(WEAVE_SYSTEM_CONFIG_USE_LWIP)'  \
+@WEAVE_BUILD_TESTS_TRUE@    $(NULL)
+
+
+# Source, compiler, and linker options for test programs.
+@WEAVE_BUILD_TESTS_TRUE@FuzzPASEInitiatorStep1_SOURCES = FuzzPASEInitiatorStep1.cpp
+@WEAVE_BUILD_TESTS_TRUE@FuzzPASEInitiatorStep1_LDFLAGS = $(AM_CPPFLAGS)
+@WEAVE_BUILD_TESTS_TRUE@FuzzPASEInitiatorStep1_LDADD = libFuzzUtil.a $(TEST_COMMON_LDADD) $(COMMON_LDADD)
+@WEAVE_BUILD_TESTS_TRUE@FuzzPASEResponderStep1_SOURCES = FuzzPASEResponderStep1.cpp
+@WEAVE_BUILD_TESTS_TRUE@FuzzPASEResponderStep1_LDFLAGS = $(AM_CPPFLAGS)
+@WEAVE_BUILD_TESTS_TRUE@FuzzPASEResponderStep1_LDADD = libFuzzUtil.a $(TEST_COMMON_LDADD) $(COMMON_LDADD) 
+@WEAVE_BUILD_TESTS_TRUE@FuzzPASEResponderStep2_SOURCES = FuzzPASEResponderStep2.cpp
+@WEAVE_BUILD_TESTS_TRUE@FuzzPASEResponderStep2_LDFLAGS = $(AM_CPPFLAGS)
+@WEAVE_BUILD_TESTS_TRUE@FuzzPASEResponderStep2_LDADD = libFuzzUtil.a $(TEST_COMMON_LDADD) $(COMMON_LDADD) 
+@WEAVE_BUILD_TESTS_TRUE@FuzzPASEInitiatorStep2_SOURCES = FuzzPASEInitiatorStep2.cpp
+@WEAVE_BUILD_TESTS_TRUE@FuzzPASEInitiatorStep2_LDFLAGS = $(AM_CPPFLAGS)
+@WEAVE_BUILD_TESTS_TRUE@FuzzPASEInitiatorStep2_LDADD = libFuzzUtil.a $(TEST_COMMON_LDADD) $(COMMON_LDADD) 
+@WEAVE_BUILD_TESTS_TRUE@FuzzPASEKeyConfirm_SOURCES = FuzzPASEKeyConfirm.cpp
+@WEAVE_BUILD_TESTS_TRUE@FuzzPASEKeyConfirm_LDFLAGS = $(AM_CPPFLAGS)
+@WEAVE_BUILD_TESTS_TRUE@FuzzPASEKeyConfirm_LDADD = libFuzzUtil.a $(TEST_COMMON_LDADD) $(COMMON_LDADD) 
+@WEAVE_BUILD_TESTS_TRUE@FuzzCertificateConversion_SOURCES = FuzzCertificateConversion.cpp
+@WEAVE_BUILD_TESTS_TRUE@FuzzCertificateConversion_LDFLAGS = $(AM_CPPFLAGS)
+@WEAVE_BUILD_TESTS_TRUE@FuzzCertificateConversion_LDADD = libFuzzUtil.a $(top_builddir)/src/tools/weave/libWeaveTool.a $(TEST_COMMON_LDADD) $(COMMON_LDADD) 
 all: all-am
 
 .SUFFIXES:
@@ -581,9 +688,9 @@ $(srcdir)/Makefile.in: @MAINTAINER_MODE_TRUE@ $(srcdir)/Makefile.am  $(am__confi
 	      exit 1;; \
 	  esac; \
 	done; \
-	echo ' cd $(top_srcdir) && $(AUTOMAKE) --foreign src/wrappers/jni/security-support/Makefile'; \
+	echo ' cd $(top_srcdir) && $(AUTOMAKE) --foreign src/test-apps/fuzz/Makefile'; \
 	$(am__cd) $(top_srcdir) && \
-	  $(AUTOMAKE) --foreign src/wrappers/jni/security-support/Makefile
+	  $(AUTOMAKE) --foreign src/test-apps/fuzz/Makefile
 Makefile: $(srcdir)/Makefile.in $(top_builddir)/config.status
 	@case '$?' in \
 	  *config.status*) \
@@ -602,73 +709,69 @@ $(ACLOCAL_M4): @MAINTAINER_MODE_TRUE@ $(am__aclocal_m4_deps)
 	cd $(top_builddir) && $(MAKE) $(AM_MAKEFLAGS) am--refresh
 $(am__aclocal_m4_deps):
 
-install-libLTLIBRARIES: $(lib_LTLIBRARIES)
-	@$(NORMAL_INSTALL)
-	@list='$(lib_LTLIBRARIES)'; test -n "$(libdir)" || list=; \
-	list2=; for p in $$list; do \
-	  if test -f $$p; then \
-	    list2="$$list2 $$p"; \
-	  else :; fi; \
-	done; \
-	test -z "$$list2" || { \
-	  echo " $(MKDIR_P) '$(DESTDIR)$(libdir)'"; \
-	  $(MKDIR_P) "$(DESTDIR)$(libdir)" || exit 1; \
-	  echo " $(LIBTOOL) $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=install $(INSTALL) $(INSTALL_STRIP_FLAG) $$list2 '$(DESTDIR)$(libdir)'"; \
-	  $(LIBTOOL) $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=install $(INSTALL) $(INSTALL_STRIP_FLAG) $$list2 "$(DESTDIR)$(libdir)"; \
-	}
+clean-noinstLIBRARIES:
+	-test -z "$(noinst_LIBRARIES)" || rm -f $(noinst_LIBRARIES)
 
-uninstall-libLTLIBRARIES:
-	@$(NORMAL_UNINSTALL)
-	@list='$(lib_LTLIBRARIES)'; test -n "$(libdir)" || list=; \
-	for p in $$list; do \
-	  $(am__strip_dir) \
-	  echo " $(LIBTOOL) $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=uninstall rm -f '$(DESTDIR)$(libdir)/$$f'"; \
-	  $(LIBTOOL) $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=uninstall rm -f "$(DESTDIR)$(libdir)/$$f"; \
-	done
+libFuzzUtil.a: $(libFuzzUtil_a_OBJECTS) $(libFuzzUtil_a_DEPENDENCIES) $(EXTRA_libFuzzUtil_a_DEPENDENCIES) 
+	$(AM_V_at)-rm -f libFuzzUtil.a
+	$(AM_V_AR)$(libFuzzUtil_a_AR) libFuzzUtil.a $(libFuzzUtil_a_OBJECTS) $(libFuzzUtil_a_LIBADD)
+	$(AM_V_at)$(RANLIB) libFuzzUtil.a
 
-clean-libLTLIBRARIES:
-	-test -z "$(lib_LTLIBRARIES)" || rm -f $(lib_LTLIBRARIES)
-	@list='$(lib_LTLIBRARIES)'; \
-	locs=`for p in $$list; do echo $$p; done | \
-	      sed 's|^[^/]*$$|.|; s|/[^/]*$$||; s|$$|/so_locations|' | \
-	      sort -u`; \
-	test -z "$$locs" || { \
-	  echo rm -f $${locs}; \
-	  rm -f $${locs}; \
-	}
-native/$(am__dirstamp):
-	@$(MKDIR_P) native
-	@: > native/$(am__dirstamp)
-native/$(DEPDIR)/$(am__dirstamp):
-	@$(MKDIR_P) native/$(DEPDIR)
-	@: > native/$(DEPDIR)/$(am__dirstamp)
-native/libWeaveSecuritySupport_la-WeaveSecuritySupport.lo:  \
-	native/$(am__dirstamp) native/$(DEPDIR)/$(am__dirstamp)
-native/libWeaveSecuritySupport_la-WeaveCertificateSupport.lo:  \
-	native/$(am__dirstamp) native/$(DEPDIR)/$(am__dirstamp)
-native/libWeaveSecuritySupport_la-PasscodeEncryptionSupport.lo:  \
-	native/$(am__dirstamp) native/$(DEPDIR)/$(am__dirstamp)
-native/libWeaveSecuritySupport_la-WeaveKeyExportClientNative.lo:  \
-	native/$(am__dirstamp) native/$(DEPDIR)/$(am__dirstamp)
-native/libWeaveSecuritySupport_la-WeaveKeyExportSupportNative.lo:  \
-	native/$(am__dirstamp) native/$(DEPDIR)/$(am__dirstamp)
+clean-checkPROGRAMS:
+	@list='$(check_PROGRAMS)'; test -n "$$list" || exit 0; \
+	echo " rm -f" $$list; \
+	rm -f $$list || exit $$?; \
+	test -n "$(EXEEXT)" || exit 0; \
+	list=`for p in $$list; do echo "$$p"; done | sed 's/$(EXEEXT)$$//'`; \
+	echo " rm -f" $$list; \
+	rm -f $$list
 
-libWeaveSecuritySupport.la: $(libWeaveSecuritySupport_la_OBJECTS) $(libWeaveSecuritySupport_la_DEPENDENCIES) $(EXTRA_libWeaveSecuritySupport_la_DEPENDENCIES) 
-	$(AM_V_CXXLD)$(libWeaveSecuritySupport_la_LINK) $(am_libWeaveSecuritySupport_la_rpath) $(libWeaveSecuritySupport_la_OBJECTS) $(libWeaveSecuritySupport_la_LIBADD) $(LIBS)
+clean-noinstPROGRAMS:
+	@list='$(noinst_PROGRAMS)'; test -n "$$list" || exit 0; \
+	echo " rm -f" $$list; \
+	rm -f $$list || exit $$?; \
+	test -n "$(EXEEXT)" || exit 0; \
+	list=`for p in $$list; do echo "$$p"; done | sed 's/$(EXEEXT)$$//'`; \
+	echo " rm -f" $$list; \
+	rm -f $$list
+
+FuzzCertificateConversion$(EXEEXT): $(FuzzCertificateConversion_OBJECTS) $(FuzzCertificateConversion_DEPENDENCIES) $(EXTRA_FuzzCertificateConversion_DEPENDENCIES) 
+	@rm -f FuzzCertificateConversion$(EXEEXT)
+	$(AM_V_CXXLD)$(FuzzCertificateConversion_LINK) $(FuzzCertificateConversion_OBJECTS) $(FuzzCertificateConversion_LDADD) $(LIBS)
+
+FuzzPASEInitiatorStep1$(EXEEXT): $(FuzzPASEInitiatorStep1_OBJECTS) $(FuzzPASEInitiatorStep1_DEPENDENCIES) $(EXTRA_FuzzPASEInitiatorStep1_DEPENDENCIES) 
+	@rm -f FuzzPASEInitiatorStep1$(EXEEXT)
+	$(AM_V_CXXLD)$(FuzzPASEInitiatorStep1_LINK) $(FuzzPASEInitiatorStep1_OBJECTS) $(FuzzPASEInitiatorStep1_LDADD) $(LIBS)
+
+FuzzPASEInitiatorStep2$(EXEEXT): $(FuzzPASEInitiatorStep2_OBJECTS) $(FuzzPASEInitiatorStep2_DEPENDENCIES) $(EXTRA_FuzzPASEInitiatorStep2_DEPENDENCIES) 
+	@rm -f FuzzPASEInitiatorStep2$(EXEEXT)
+	$(AM_V_CXXLD)$(FuzzPASEInitiatorStep2_LINK) $(FuzzPASEInitiatorStep2_OBJECTS) $(FuzzPASEInitiatorStep2_LDADD) $(LIBS)
+
+FuzzPASEKeyConfirm$(EXEEXT): $(FuzzPASEKeyConfirm_OBJECTS) $(FuzzPASEKeyConfirm_DEPENDENCIES) $(EXTRA_FuzzPASEKeyConfirm_DEPENDENCIES) 
+	@rm -f FuzzPASEKeyConfirm$(EXEEXT)
+	$(AM_V_CXXLD)$(FuzzPASEKeyConfirm_LINK) $(FuzzPASEKeyConfirm_OBJECTS) $(FuzzPASEKeyConfirm_LDADD) $(LIBS)
+
+FuzzPASEResponderStep1$(EXEEXT): $(FuzzPASEResponderStep1_OBJECTS) $(FuzzPASEResponderStep1_DEPENDENCIES) $(EXTRA_FuzzPASEResponderStep1_DEPENDENCIES) 
+	@rm -f FuzzPASEResponderStep1$(EXEEXT)
+	$(AM_V_CXXLD)$(FuzzPASEResponderStep1_LINK) $(FuzzPASEResponderStep1_OBJECTS) $(FuzzPASEResponderStep1_LDADD) $(LIBS)
+
+FuzzPASEResponderStep2$(EXEEXT): $(FuzzPASEResponderStep2_OBJECTS) $(FuzzPASEResponderStep2_DEPENDENCIES) $(EXTRA_FuzzPASEResponderStep2_DEPENDENCIES) 
+	@rm -f FuzzPASEResponderStep2$(EXEEXT)
+	$(AM_V_CXXLD)$(FuzzPASEResponderStep2_LINK) $(FuzzPASEResponderStep2_OBJECTS) $(FuzzPASEResponderStep2_LDADD) $(LIBS)
 
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT)
-	-rm -f native/*.$(OBJEXT)
-	-rm -f native/*.lo
 
 distclean-compile:
 	-rm -f *.tab.c
 
-@AMDEP_TRUE@@am__include@ @am__quote@native/$(DEPDIR)/libWeaveSecuritySupport_la-PasscodeEncryptionSupport.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@native/$(DEPDIR)/libWeaveSecuritySupport_la-WeaveCertificateSupport.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@native/$(DEPDIR)/libWeaveSecuritySupport_la-WeaveKeyExportClientNative.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@native/$(DEPDIR)/libWeaveSecuritySupport_la-WeaveKeyExportSupportNative.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@native/$(DEPDIR)/libWeaveSecuritySupport_la-WeaveSecuritySupport.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/FuzzCertificateConversion.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/FuzzPASEInitiatorStep1.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/FuzzPASEInitiatorStep2.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/FuzzPASEKeyConfirm.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/FuzzPASEResponderStep1.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/FuzzPASEResponderStep2.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/FuzzUtils.Po@am__quote@
 
 .cpp.o:
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)depbase=`echo $@ | sed 's|[^/]*$$|$(DEPDIR)/&|;s|\.o$$||'`;\
@@ -694,47 +797,11 @@ distclean-compile:
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(LTCXXCOMPILE) -c -o $@ $<
 
-native/libWeaveSecuritySupport_la-WeaveSecuritySupport.lo: native/WeaveSecuritySupport.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libWeaveSecuritySupport_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT native/libWeaveSecuritySupport_la-WeaveSecuritySupport.lo -MD -MP -MF native/$(DEPDIR)/libWeaveSecuritySupport_la-WeaveSecuritySupport.Tpo -c -o native/libWeaveSecuritySupport_la-WeaveSecuritySupport.lo `test -f 'native/WeaveSecuritySupport.cpp' || echo '$(srcdir)/'`native/WeaveSecuritySupport.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) native/$(DEPDIR)/libWeaveSecuritySupport_la-WeaveSecuritySupport.Tpo native/$(DEPDIR)/libWeaveSecuritySupport_la-WeaveSecuritySupport.Plo
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='native/WeaveSecuritySupport.cpp' object='native/libWeaveSecuritySupport_la-WeaveSecuritySupport.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libWeaveSecuritySupport_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o native/libWeaveSecuritySupport_la-WeaveSecuritySupport.lo `test -f 'native/WeaveSecuritySupport.cpp' || echo '$(srcdir)/'`native/WeaveSecuritySupport.cpp
-
-native/libWeaveSecuritySupport_la-WeaveCertificateSupport.lo: native/WeaveCertificateSupport.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libWeaveSecuritySupport_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT native/libWeaveSecuritySupport_la-WeaveCertificateSupport.lo -MD -MP -MF native/$(DEPDIR)/libWeaveSecuritySupport_la-WeaveCertificateSupport.Tpo -c -o native/libWeaveSecuritySupport_la-WeaveCertificateSupport.lo `test -f 'native/WeaveCertificateSupport.cpp' || echo '$(srcdir)/'`native/WeaveCertificateSupport.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) native/$(DEPDIR)/libWeaveSecuritySupport_la-WeaveCertificateSupport.Tpo native/$(DEPDIR)/libWeaveSecuritySupport_la-WeaveCertificateSupport.Plo
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='native/WeaveCertificateSupport.cpp' object='native/libWeaveSecuritySupport_la-WeaveCertificateSupport.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libWeaveSecuritySupport_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o native/libWeaveSecuritySupport_la-WeaveCertificateSupport.lo `test -f 'native/WeaveCertificateSupport.cpp' || echo '$(srcdir)/'`native/WeaveCertificateSupport.cpp
-
-native/libWeaveSecuritySupport_la-PasscodeEncryptionSupport.lo: native/PasscodeEncryptionSupport.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libWeaveSecuritySupport_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT native/libWeaveSecuritySupport_la-PasscodeEncryptionSupport.lo -MD -MP -MF native/$(DEPDIR)/libWeaveSecuritySupport_la-PasscodeEncryptionSupport.Tpo -c -o native/libWeaveSecuritySupport_la-PasscodeEncryptionSupport.lo `test -f 'native/PasscodeEncryptionSupport.cpp' || echo '$(srcdir)/'`native/PasscodeEncryptionSupport.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) native/$(DEPDIR)/libWeaveSecuritySupport_la-PasscodeEncryptionSupport.Tpo native/$(DEPDIR)/libWeaveSecuritySupport_la-PasscodeEncryptionSupport.Plo
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='native/PasscodeEncryptionSupport.cpp' object='native/libWeaveSecuritySupport_la-PasscodeEncryptionSupport.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libWeaveSecuritySupport_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o native/libWeaveSecuritySupport_la-PasscodeEncryptionSupport.lo `test -f 'native/PasscodeEncryptionSupport.cpp' || echo '$(srcdir)/'`native/PasscodeEncryptionSupport.cpp
-
-native/libWeaveSecuritySupport_la-WeaveKeyExportClientNative.lo: native/WeaveKeyExportClientNative.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libWeaveSecuritySupport_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT native/libWeaveSecuritySupport_la-WeaveKeyExportClientNative.lo -MD -MP -MF native/$(DEPDIR)/libWeaveSecuritySupport_la-WeaveKeyExportClientNative.Tpo -c -o native/libWeaveSecuritySupport_la-WeaveKeyExportClientNative.lo `test -f 'native/WeaveKeyExportClientNative.cpp' || echo '$(srcdir)/'`native/WeaveKeyExportClientNative.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) native/$(DEPDIR)/libWeaveSecuritySupport_la-WeaveKeyExportClientNative.Tpo native/$(DEPDIR)/libWeaveSecuritySupport_la-WeaveKeyExportClientNative.Plo
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='native/WeaveKeyExportClientNative.cpp' object='native/libWeaveSecuritySupport_la-WeaveKeyExportClientNative.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libWeaveSecuritySupport_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o native/libWeaveSecuritySupport_la-WeaveKeyExportClientNative.lo `test -f 'native/WeaveKeyExportClientNative.cpp' || echo '$(srcdir)/'`native/WeaveKeyExportClientNative.cpp
-
-native/libWeaveSecuritySupport_la-WeaveKeyExportSupportNative.lo: native/WeaveKeyExportSupportNative.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libWeaveSecuritySupport_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT native/libWeaveSecuritySupport_la-WeaveKeyExportSupportNative.lo -MD -MP -MF native/$(DEPDIR)/libWeaveSecuritySupport_la-WeaveKeyExportSupportNative.Tpo -c -o native/libWeaveSecuritySupport_la-WeaveKeyExportSupportNative.lo `test -f 'native/WeaveKeyExportSupportNative.cpp' || echo '$(srcdir)/'`native/WeaveKeyExportSupportNative.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) native/$(DEPDIR)/libWeaveSecuritySupport_la-WeaveKeyExportSupportNative.Tpo native/$(DEPDIR)/libWeaveSecuritySupport_la-WeaveKeyExportSupportNative.Plo
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='native/WeaveKeyExportSupportNative.cpp' object='native/libWeaveSecuritySupport_la-WeaveKeyExportSupportNative.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libWeaveSecuritySupport_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o native/libWeaveSecuritySupport_la-WeaveKeyExportSupportNative.lo `test -f 'native/WeaveKeyExportSupportNative.cpp' || echo '$(srcdir)/'`native/WeaveKeyExportSupportNative.cpp
-
 mostlyclean-libtool:
 	-rm -f *.lo
 
 clean-libtool:
 	-rm -rf .libs _libs
-	-rm -rf native/.libs native/_libs
 
 ID: $(am__tagged_files)
 	$(am__define_uniq_tagged_files); mkid -fID $$unique
@@ -819,13 +886,10 @@ distdir: $(DISTFILES)
 	  fi; \
 	done
 check-am: all-am
+	$(MAKE) $(AM_MAKEFLAGS) $(check_PROGRAMS)
 check: check-am
-@WEAVE_WITH_JAVA_FALSE@all-local:
-all-am: Makefile $(LTLIBRARIES) all-local
+all-am: Makefile $(LIBRARIES) $(PROGRAMS) $(HEADERS)
 installdirs:
-	for dir in "$(DESTDIR)$(libdir)"; do \
-	  test -z "$$dir" || $(MKDIR_P) "$$dir"; \
-	done
 install: install-am
 install-exec: install-exec-am
 install-data: install-data-am
@@ -852,22 +916,19 @@ clean-generic:
 distclean-generic:
 	-test -z "$(CONFIG_CLEAN_FILES)" || rm -f $(CONFIG_CLEAN_FILES)
 	-test . = "$(srcdir)" || test -z "$(CONFIG_CLEAN_VPATH_FILES)" || rm -f $(CONFIG_CLEAN_VPATH_FILES)
-	-rm -f native/$(DEPDIR)/$(am__dirstamp)
-	-rm -f native/$(am__dirstamp)
 
 maintainer-clean-generic:
 	@echo "This command is intended for maintainers to use"
 	@echo "it deletes files that may require special tools to rebuild."
-@WEAVE_WITH_JAVA_FALSE@mostlyclean-local:
-@WEAVE_WITH_JAVA_FALSE@install-data-local:
-@WEAVE_WITH_JAVA_FALSE@uninstall-local:
+@WEAVE_BUILD_TESTS_FALSE@install-exec-local:
+@WEAVE_BUILD_TESTS_FALSE@uninstall-local:
 clean: clean-am
 
-clean-am: clean-generic clean-libLTLIBRARIES clean-libtool \
-	mostlyclean-am
+clean-am: clean-checkPROGRAMS clean-generic clean-libtool \
+	clean-noinstLIBRARIES clean-noinstPROGRAMS mostlyclean-am
 
 distclean: distclean-am
-	-rm -rf native/$(DEPDIR)
+	-rm -rf ./$(DEPDIR)
 	-rm -f Makefile
 distclean-am: clean-am distclean-compile distclean-generic \
 	distclean-tags
@@ -884,13 +945,13 @@ info: info-am
 
 info-am:
 
-install-data-am: install-data-local
+install-data-am:
 
 install-dvi: install-dvi-am
 
 install-dvi-am:
 
-install-exec-am: install-libLTLIBRARIES
+install-exec-am: install-exec-local
 
 install-html: install-html-am
 
@@ -913,14 +974,14 @@ install-ps-am:
 installcheck-am:
 
 maintainer-clean: maintainer-clean-am
-	-rm -rf native/$(DEPDIR)
+	-rm -rf ./$(DEPDIR)
 	-rm -f Makefile
 maintainer-clean-am: distclean-am maintainer-clean-generic
 
 mostlyclean: mostlyclean-am
 
 mostlyclean-am: mostlyclean-compile mostlyclean-generic \
-	mostlyclean-libtool mostlyclean-local
+	mostlyclean-libtool
 
 pdf: pdf-am
 
@@ -930,24 +991,24 @@ ps: ps-am
 
 ps-am:
 
-uninstall-am: uninstall-libLTLIBRARIES uninstall-local
+uninstall-am: uninstall-local
 
-.MAKE: install-am install-strip
+.MAKE: check-am install-am install-strip
 
-.PHONY: CTAGS GTAGS TAGS all all-am all-local check check-am clean \
-	clean-generic clean-libLTLIBRARIES clean-libtool cscopelist-am \
-	ctags ctags-am distclean distclean-compile distclean-generic \
+.PHONY: CTAGS GTAGS TAGS all all-am check check-am clean \
+	clean-checkPROGRAMS clean-generic clean-libtool \
+	clean-noinstLIBRARIES clean-noinstPROGRAMS cscopelist-am ctags \
+	ctags-am distclean distclean-compile distclean-generic \
 	distclean-libtool distclean-tags distdir dvi dvi-am html \
 	html-am info info-am install install-am install-data \
-	install-data-am install-data-local install-dvi install-dvi-am \
-	install-exec install-exec-am install-html install-html-am \
-	install-info install-info-am install-libLTLIBRARIES \
-	install-man install-pdf install-pdf-am install-ps \
-	install-ps-am install-strip installcheck installcheck-am \
-	installdirs maintainer-clean maintainer-clean-generic \
-	mostlyclean mostlyclean-compile mostlyclean-generic \
-	mostlyclean-libtool mostlyclean-local pdf pdf-am ps ps-am tags \
-	tags-am uninstall uninstall-am uninstall-libLTLIBRARIES \
+	install-data-am install-dvi install-dvi-am install-exec \
+	install-exec-am install-exec-local install-html \
+	install-html-am install-info install-info-am install-man \
+	install-pdf install-pdf-am install-ps install-ps-am \
+	install-strip installcheck installcheck-am installdirs \
+	maintainer-clean maintainer-clean-generic mostlyclean \
+	mostlyclean-compile mostlyclean-generic mostlyclean-libtool \
+	pdf pdf-am ps ps-am tags tags-am uninstall uninstall-am \
 	uninstall-local
 
 .PRECIOUS: Makefile
@@ -955,12 +1016,32 @@ uninstall-am: uninstall-libLTLIBRARIES uninstall-local
 
 include $(abs_top_nlbuild_autotools_dir)/automake/pre.am
 
-@WEAVE_WITH_JAVA_TRUE@include $(abs_top_srcdir)/build/make/java.mk
+# Targets and commands for installing and uninstalling the bin_LINKS
+# programs as symbolic links which are trampolined through an
+# execution script.
 
-@WEAVE_WITH_JAVA_TRUE@all-local: all-JARS
-@WEAVE_WITH_JAVA_TRUE@install-data-local: install-data-JARS
-@WEAVE_WITH_JAVA_TRUE@uninstall-local: uninstall-JARS
-@WEAVE_WITH_JAVA_TRUE@mostlyclean-local: mostlyclean-local-JARS
+@WEAVE_BUILD_TESTS_TRUE@install-exec-local: install-exec-binLINKS
+
+@WEAVE_BUILD_TESTS_TRUE@uninstall-local: uninstall-exec-binLINKS
+
+@WEAVE_BUILD_TESTS_TRUE@install-exec-binLINKS: $(bin_LINKS)
+@WEAVE_BUILD_TESTS_TRUE@	@$(NORMAL_INSTALL)
+@WEAVE_BUILD_TESTS_TRUE@	@list='$(bin_LINKS)'; test -n "$(bindir)" || list=; \
+@WEAVE_BUILD_TESTS_TRUE@	if test -n "$$list"; then \
+@WEAVE_BUILD_TESTS_TRUE@          echo "  MKDIR    $(DESTDIR)$(bindir)"; \
+@WEAVE_BUILD_TESTS_TRUE@	  $(MKDIR_P) "$(DESTDIR)$(bindir)" || exit 1; \
+@WEAVE_BUILD_TESTS_TRUE@	fi; \
+@WEAVE_BUILD_TESTS_TRUE@	for link in $${list}; do \
+@WEAVE_BUILD_TESTS_TRUE@            echo "  LN       $${link}"; \
+@WEAVE_BUILD_TESTS_TRUE@	    $(LN_S) -f "../`echo ${libexecdir} | sed -e 's,${exec_prefix}/,,g'`/weave-run" "$(DESTDIR)$(bindir)/$${link}"; \
+@WEAVE_BUILD_TESTS_TRUE@        done
+
+@WEAVE_BUILD_TESTS_TRUE@uninstall-exec-binLINKS: $(bin_LINKS)
+@WEAVE_BUILD_TESTS_TRUE@	@$(NORMAL_UNINSTALL)
+@WEAVE_BUILD_TESTS_TRUE@	@list='$(bin_LINKS)'; test -n "$(bindir)" || exit 0; \
+@WEAVE_BUILD_TESTS_TRUE@	files=`for p in $$list; do echo "$$p"; done | \
+@WEAVE_BUILD_TESTS_TRUE@	       sed -e 's,.*/,,;$(transform)'`; \
+@WEAVE_BUILD_TESTS_TRUE@	dir='$(DESTDIR)$(bindir)'; $(am__uninstall_files_from_dir)
 
 include $(abs_top_nlbuild_autotools_dir)/automake/post.am
 

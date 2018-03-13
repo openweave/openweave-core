@@ -68,6 +68,7 @@ noinst_HEADERS                                             = \
     TestDRBG.h                                               \
     TestEventLoggingSchemaExamples.h                         \
     TestGroupKeyStore.h                                      \
+    PASEEngineTest.h                                         \
     TestPersistedStorageImplementation.h                     \
     MockPlatformClocks.h                                     \
     TestProfile.h                                            \
@@ -182,6 +183,7 @@ libWeaveTestCommon_a_SOURCES                   = \
     TestGroupKeyStore.cpp                        \
     ToolCommon.cpp                               \
     ToolCommonOptions.cpp                        \
+    PASEEngineTest.cpp                           \
     MockPlatformClocks.cpp                       \
     TestPersistedStorageImplementation.cpp       \
     $(NULL)

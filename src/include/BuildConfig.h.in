@@ -393,6 +393,9 @@
    */
 #undef WEAVE_ENABLE_WOBLE_TEST
 
+/* Define to 1 if support for fuzzing enabled */
+#undef WEAVE_FUZZING_ENABLED
+
 /* Weave logging style */
 #undef WEAVE_LOGGING_STYLE
 

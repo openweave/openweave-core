@@ -662,8 +662,8 @@ libWeaveTestCommon_a_LIBADD =
 am__libWeaveTestCommon_a_SOURCES_DIST = CASEOptions.cpp \
 	KeyExportOptions.cpp TAKEOptions.cpp DeviceDescOptions.cpp \
 	Certs.cpp TestGroupKeyStore.cpp ToolCommon.cpp \
-	ToolCommonOptions.cpp MockPlatformClocks.cpp \
-	TestPersistedStorageImplementation.cpp
+	ToolCommonOptions.cpp PASEEngineTest.cpp \
+	MockPlatformClocks.cpp TestPersistedStorageImplementation.cpp
 @WEAVE_BUILD_TESTS_TRUE@am_libWeaveTestCommon_a_OBJECTS =  \
 @WEAVE_BUILD_TESTS_TRUE@	CASEOptions.$(OBJEXT) \
 @WEAVE_BUILD_TESTS_TRUE@	KeyExportOptions.$(OBJEXT) \
@@ -673,6 +673,7 @@ am__libWeaveTestCommon_a_SOURCES_DIST = CASEOptions.cpp \
 @WEAVE_BUILD_TESTS_TRUE@	TestGroupKeyStore.$(OBJEXT) \
 @WEAVE_BUILD_TESTS_TRUE@	ToolCommon.$(OBJEXT) \
 @WEAVE_BUILD_TESTS_TRUE@	ToolCommonOptions.$(OBJEXT) \
+@WEAVE_BUILD_TESTS_TRUE@	PASEEngineTest.$(OBJEXT) \
 @WEAVE_BUILD_TESTS_TRUE@	MockPlatformClocks.$(OBJEXT) \
 @WEAVE_BUILD_TESTS_TRUE@	TestPersistedStorageImplementation.$(OBJEXT)
 libWeaveTestCommon_a_OBJECTS = $(am_libWeaveTestCommon_a_OBJECTS)
@@ -1841,11 +1842,12 @@ am__noinst_HEADERS_DIST = CASEOptions.h DMTestClient.h \
 	MockWdmSubscriptionResponder.h MockWdmTestVerifier.h \
 	MockWdmViewClient.h MockWdmViewServer.h TAKEOptions.h \
 	TestDRBG.h TestEventLoggingSchemaExamples.h \
-	TestGroupKeyStore.h TestPersistedStorageImplementation.h \
-	MockPlatformClocks.h TestProfile.h TestWRMP.h \
-	TestWdmOneWayCommand.h TestWdmSubscriptionlessNotification.h \
-	TestWeaveCertData.h TestWeaveTunnel.h TestWeaveTunnelServer.h \
-	ToolCommon.h ToolCommonOptions.h WdmNextPerfUtility.h \
+	TestGroupKeyStore.h PASEEngineTest.h \
+	TestPersistedStorageImplementation.h MockPlatformClocks.h \
+	TestProfile.h TestWRMP.h TestWdmOneWayCommand.h \
+	TestWdmSubscriptionlessNotification.h TestWeaveCertData.h \
+	TestWeaveTunnel.h TestWeaveTunnelServer.h ToolCommon.h \
+	ToolCommonOptions.h WdmNextPerfUtility.h \
 	crypto-tests/WeaveCryptoTests.h nlweavebdxclient-development.h \
 	nlweavebdxclient.h nlweavebdxserver-development.h \
 	nlweaveswuclient.h \
@@ -2674,11 +2676,12 @@ noinst_HEADERS = CASEOptions.h DMTestClient.h DeviceDescOptions.h \
 	MockWdmSubscriptionResponder.h MockWdmTestVerifier.h \
 	MockWdmViewClient.h MockWdmViewServer.h TAKEOptions.h \
 	TestDRBG.h TestEventLoggingSchemaExamples.h \
-	TestGroupKeyStore.h TestPersistedStorageImplementation.h \
-	MockPlatformClocks.h TestProfile.h TestWRMP.h \
-	TestWdmOneWayCommand.h TestWdmSubscriptionlessNotification.h \
-	TestWeaveCertData.h TestWeaveTunnel.h TestWeaveTunnelServer.h \
-	ToolCommon.h ToolCommonOptions.h WdmNextPerfUtility.h \
+	TestGroupKeyStore.h PASEEngineTest.h \
+	TestPersistedStorageImplementation.h MockPlatformClocks.h \
+	TestProfile.h TestWRMP.h TestWdmOneWayCommand.h \
+	TestWdmSubscriptionlessNotification.h TestWeaveCertData.h \
+	TestWeaveTunnel.h TestWeaveTunnelServer.h ToolCommon.h \
+	ToolCommonOptions.h WdmNextPerfUtility.h \
 	crypto-tests/WeaveCryptoTests.h nlweavebdxclient-development.h \
 	nlweavebdxclient.h nlweavebdxserver-development.h \
 	nlweaveswuclient.h \
@@ -2763,6 +2766,7 @@ EXTRA_DIST = \
 @WEAVE_BUILD_TESTS_TRUE@    TestGroupKeyStore.cpp                        \
 @WEAVE_BUILD_TESTS_TRUE@    ToolCommon.cpp                               \
 @WEAVE_BUILD_TESTS_TRUE@    ToolCommonOptions.cpp                        \
+@WEAVE_BUILD_TESTS_TRUE@    PASEEngineTest.cpp                           \
 @WEAVE_BUILD_TESTS_TRUE@    MockPlatformClocks.cpp                       \
 @WEAVE_BUILD_TESTS_TRUE@    TestPersistedStorageImplementation.cpp       \
 @WEAVE_BUILD_TESTS_TRUE@    $(NULL)
@@ -3900,6 +3904,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/MockPlatformClocks.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/MockSDServer.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/MockSWUServer.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/PASEEngineTest.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/TAKEOptions.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/TestASN1.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/TestAppKeys.Po@am__quote@
@@ -7976,11 +7981,11 @@ distclean-generic:
 maintainer-clean-generic:
 	@echo "This command is intended for maintainers to use"
 	@echo "it deletes files that may require special tools to rebuild."
+@WEAVE_BUILD_TESTS_FALSE@uninstall-local:
+@WEAVE_BUILD_TESTS_FALSE@install-exec-local:
 @WEAVE_BUILD_COVERAGE_FALSE@clean-local:
 @WEAVE_BUILD_COVERAGE_REPORTS_FALSE@clean-local:
 @WEAVE_BUILD_TESTS_FALSE@clean-local:
-@WEAVE_BUILD_TESTS_FALSE@uninstall-local:
-@WEAVE_BUILD_TESTS_FALSE@install-exec-local:
 clean: clean-am
 
 clean-am: clean-checkPROGRAMS clean-generic clean-libexecPROGRAMS \

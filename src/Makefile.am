@@ -126,6 +126,7 @@ SUBDIRS                           = \
     test-apps                       \
     tools/weave                     \
     tools/misc                      \
+    test-apps/fuzz                  \
     $(EXAMPLES_SUBDIR)              \
     $(NULL)
 

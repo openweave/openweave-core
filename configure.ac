@@ -1601,6 +1601,30 @@ AC_MSG_RESULT(${enable_verhoeff})
 
 AM_CONDITIONAL([WEAVE_WITH_VERHOEFF], [test "${enable_verhoeff}" = "yes"])
 
+AC_ARG_ENABLE(fuzzing,
+    [AS_HELP_STRING([--enable-fuzzing],[Enable Fuzzing - Requires clang 6.0 or greater @<:@default=no@:>@.])],
+    [
+        case "${enableval}" in 
+
+        no|yes)
+            enable_fuzzing=${enableval}
+            ;;
+
+        *)
+            AC_MSG_ERROR([Invalid value ${enableval} for --enable-fuzzing])
+            ;;
+
+        esac
+    ],
+    [enable_fuzzing=no])
+
+
+AC_MSG_RESULT(${enable_fuzzing})
+AM_CONDITIONAL([WEAVE_FUZZING_ENABLED], [test "${enable_fuzzing}" = "yes"])
+if test "${enable_fuzzing}" = "yes"; then
+    AC_DEFINE(WEAVE_FUZZING_ENABLED, 1, [Define to 1 if support for fuzzing enabled])
+fi
+
 AC_MSG_CHECKING([enhanced printf facilities])
 
 AC_ARG_WITH(enhanced-printf,
@@ -2417,6 +2441,7 @@ src/warm/Makefile
 src/ra-daemon/Makefile
 src/test-apps/Makefile
 src/test-apps/wrapper-tests/jni/Makefile
+src/test-apps/fuzz/Makefile
 src/tools/weave/Makefile
 src/tools/misc/Makefile
 src/examples/Makefile
@@ -2552,5 +2577,5 @@ AC_MSG_NOTICE([
   Symbol Visibility Objective C++ Compile flags    : ${VISIBILITY_OBJCXXFLAGS:--}
   Link flags                                       : ${LDFLAGS:--}
   Link libraries                                   : ${LIBS}
-
+  Fuzzing Enabled                                  : ${enable_fuzzing}
 ])
