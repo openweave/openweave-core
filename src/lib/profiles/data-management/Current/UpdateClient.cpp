@@ -339,8 +339,6 @@ WEAVE_ERROR UpdateClient::StartElement(const uint32_t &aProfileID,
         SuccessOrExit(err);
     }
 
-    err = aOuterWriter.StartContainer(nl::Weave::TLV::ContextTag(DataElement::kCsTag_Data), nl::Weave::TLV::kTLVType_Structure, mDataContainerType);
-    SuccessOrExit(err);
     MoveToState(kState_BuildDataElement);
 
 exit:
@@ -417,8 +415,6 @@ WEAVE_ERROR UpdateClient::FinalizeElement(TLV::TLVWriter &aOuterWriter)
     WEAVE_ERROR err = WEAVE_NO_ERROR;
     VerifyOrExit(kState_BuildDataElement == mState, err = WEAVE_ERROR_INCORRECT_STATE);
     mWriter = aOuterWriter;
-    err = mWriter.EndContainer(mDataContainerType);
-    SuccessOrExit(err);
 
     err = mWriter.EndContainer(mDataElementContainerType);
     SuccessOrExit(err);
@@ -502,7 +498,7 @@ WEAVE_ERROR UpdateClient::CancelElement(TLV::TLVWriter &aOuterWriter)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
     VerifyOrExit(kState_BuildDataElement == mState, err = WEAVE_ERROR_INCORRECT_STATE);
-    err = Checkpoint(aOuterWriter);
+    err = Rollback(aOuterWriter);
     SuccessOrExit(err);
 
 exit:

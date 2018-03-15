@@ -278,11 +278,6 @@ WEAVE_ERROR TraitSchemaEngine::RetrieveUpdatableDictionaryData(PropertyPathHandl
 
     VerifyOrExit(!IsLeaf(aHandle) && (IsDictionary(aHandle)), err=WEAVE_NO_ERROR);
 
-    TLVType type;
-
-    err = aWriter.StartContainer(aTagToWrite, kTLVType_Structure, type);
-    SuccessOrExit(err);
-
 #if TDM_ENABLE_PUBLISHER_DICTIONARY_SUPPORT
     // if it's a dictionary, we need to iterate through the items in the container by asking our delegate.
     while ((err = aDelegate->GetNextDictionaryItemKey(aHandle, context, dictionaryItemKey)) == WEAVE_NO_ERROR)
@@ -313,9 +308,6 @@ WEAVE_ERROR TraitSchemaEngine::RetrieveUpdatableDictionaryData(PropertyPathHandl
     VerifyOrExit(err == WEAVE_END_OF_INPUT, );
     err = WEAVE_NO_ERROR;
 
-    err = aWriter.EndContainer(type);
-    SuccessOrExit(err);
-
 exit:
     return err;
 }
@@ -328,8 +320,7 @@ WEAVE_ERROR TraitSchemaEngine::GetRelativePathTags(PropertyPathHandle candidateH
 
     if (candidateHandle != kRootPropertyPathHandle)
     {
-        curProperty = GetParent(candidateHandle);
-        // curProperty = candidateHandle;
+        curProperty = candidateHandle;
 
         while (curProperty != kRootPropertyPathHandle)
         {

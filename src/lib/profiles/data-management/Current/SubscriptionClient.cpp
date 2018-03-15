@@ -2707,6 +2707,7 @@ WEAVE_ERROR SubscriptionClient::AddElementFunc(UpdateClient * apClient, void * a
     const TraitSchemaEngine * schemaEngine;
     TraitDataSink * dataSink;
     TraitUpdatableDataSink * updatableDataSink;
+    nl::Weave::TLV::TLVType dataContainerType;
 
     AddElementCallState * addElementCallState = static_cast<AddElementCallState *>(apCallState);
     SubscriptionClient * pSubClient = addElementCallState->mpSubClient;
@@ -2722,15 +2723,29 @@ WEAVE_ERROR SubscriptionClient::AddElementFunc(UpdateClient * apClient, void * a
 
     WeaveLogDetail(DataManagement, "<AddElementFunc> add property path handle in 0x%08x", pTraitInstanceInfo->mCandidatePropertyPathHandle);
 
-    if (pTraitInstanceInfo->mCandidatePropertyPathHandle != kRootPropertyPathHandle)
+    if (schemaEngine->IsLeaf(pTraitInstanceInfo->mCandidatePropertyPathHandle))
     {
-        err = updatableDataSink->ReadData(pTraitInstanceInfo->mTraitDataHandle, pTraitInstanceInfo->mCandidatePropertyPathHandle, schemaEngine->GetTag(pTraitInstanceInfo->mCandidatePropertyPathHandle), aOuterWriter, pTraitInstanceInfo->mNextDictionaryElementPathHandle);
+        err = updatableDataSink->ReadData(pTraitInstanceInfo->mTraitDataHandle, pTraitInstanceInfo->mCandidatePropertyPathHandle, nl::Weave::TLV::ContextTag(DataElement::kCsTag_Data), aOuterWriter, pTraitInstanceInfo->mNextDictionaryElementPathHandle);
+        SuccessOrExit(err);
     }
     else
     {
-        err = updatableDataSink->ReadData(pTraitInstanceInfo->mTraitDataHandle, pTraitInstanceInfo->mCandidatePropertyPathHandle, nl::Weave::TLV::ContextTag(DataElement::kCsTag_Data), aOuterWriter, pTraitInstanceInfo->mNextDictionaryElementPathHandle);
+        err = aOuterWriter.StartContainer(nl::Weave::TLV::ContextTag(DataElement::kCsTag_Data), nl::Weave::TLV::kTLVType_Structure, dataContainerType);
+        SuccessOrExit(err);
+
+        if (pTraitInstanceInfo->mCandidatePropertyPathHandle != kRootPropertyPathHandle)
+        {
+            err = updatableDataSink->ReadData(pTraitInstanceInfo->mTraitDataHandle, pTraitInstanceInfo->mCandidatePropertyPathHandle, schemaEngine->GetTag(pTraitInstanceInfo->mCandidatePropertyPathHandle), aOuterWriter, pTraitInstanceInfo->mNextDictionaryElementPathHandle);
+        }
+        else
+        {
+            err = updatableDataSink->ReadData(pTraitInstanceInfo->mTraitDataHandle, pTraitInstanceInfo->mCandidatePropertyPathHandle, nl::Weave::TLV::ContextTag(DataElement::kCsTag_Data), aOuterWriter, pTraitInstanceInfo->mNextDictionaryElementPathHandle);
+        }
+        SuccessOrExit(err);
+
+        err = aOuterWriter.EndContainer(dataContainerType);
+        SuccessOrExit(err);
     }
-    SuccessOrExit(err);
 
 exit:
     return err;

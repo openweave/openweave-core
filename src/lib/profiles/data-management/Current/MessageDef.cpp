@@ -3958,7 +3958,7 @@ WEAVE_ERROR UpdateRequest::Parser::CheckSchemaValidity(void) const
                     err = reader.Get(value);
                     SuccessOrExit(err);
 
-                    PRETTY_PRINT("\tNumber of partial update requests = 0x%" PRIx32 ",", static_cast<uint32_t>(value));
+                    PRETTY_PRINT("\tNumPartialUpdatRequests = 0x%" PRIx32 ",", static_cast<uint32_t>(value));
                 }
 #endif // WEAVE_DETAIL_LOGGING
 

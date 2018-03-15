@@ -124,7 +124,7 @@ private:
     AddArgumentCallback mAddArgumentCallback;
     uint32_t mNumPartialUpdateRequest;
 
-    nl::Weave::TLV::TLVType mDataListContainerType, mDataElementContainerType, mDataContainerType;
+    nl::Weave::TLV::TLVType mDataListContainerType, mDataElementContainerType;
 
     static void OnSendError(ExchangeContext * aEC, WEAVE_ERROR aErrorCode, void * aMsgSpecificContext);
     static void OnResponseTimeout(nl::Weave::ExchangeContext * aEC);

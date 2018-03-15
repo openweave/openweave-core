@@ -1693,7 +1693,7 @@ WEAVE_ERROR TestATraitUpdatableDataSink::Mutate(SubscriptionClient * apSubClient
 
     if (mTraitTestSet == 0)
     {
-        static const uint8_t kNumTestCases = 7;
+        static const uint8_t kNumTestCases = 8;
 
         if ((mTestCounter % kNumTestCases) == 0) {
             //mock sink 3 leaf properties changes, source 3 leaf properties changes
@@ -1714,8 +1714,13 @@ WEAVE_ERROR TestATraitUpdatableDataSink::Mutate(SubscriptionClient * apSubClient
         else if ((mTestCounter % kNumTestCases) == 1) {
             //mock sink 3 leaf properties changes, mock source 4 leaf properties changes
             err = SetUpdated(apSubClient, TestATrait::kPropertyHandle_TaP);
+            SuccessOrExit(err);
+
             err = SetUpdated(apSubClient, TestATrait::kPropertyHandle_TaC);
+            SuccessOrExit(err);
+
             err = SetUpdated(apSubClient, TestATrait::kPropertyHandle_TaR);
+            SuccessOrExit(err);
 
             tap++;
             tac++;
@@ -1786,7 +1791,26 @@ WEAVE_ERROR TestATraitUpdatableDataSink::Mutate(SubscriptionClient * apSubClient
             }
         }
         else if ((mTestCounter % kNumTestCases) == 6) {
+            err = SetUpdated(apSubClient, CreatePropertyPathHandle(TestATrait::kPropertyHandle_TaI_Value, 4));
+            SuccessOrExit(err);
+
+            err = SetUpdated(apSubClient, CreatePropertyPathHandle(TestATrait::kPropertyHandle_TaI_Value, 5));
+            SuccessOrExit(err);
+
+            err = SetUpdated(apSubClient, CreatePropertyPathHandle(TestATrait::kPropertyHandle_TaI_Value, 6));
+            SuccessOrExit(err);
+
+            err = SetUpdated(apSubClient, CreatePropertyPathHandle(TestATrait::kPropertyHandle_TaI_Value, 7));
+            SuccessOrExit(err);
+
+            tai_map[4] = { 4 };
+            tai_map[5] = { 5 };
+            tai_map[6] = { 6 };
+            tai_map[7] = { 7 };
+        }
+        else if ((mTestCounter % kNumTestCases) == 7) {
             err = SetUpdated(apSubClient, TestATrait::kPropertyHandle_TaI);
+            SuccessOrExit(err);
 
             for (uint16_t i = 0; i < 10; i++) {
                 tai_map[i] = { (uint32_t)i + 1 };
@@ -1810,7 +1834,7 @@ WEAVE_ERROR TestATraitUpdatableDataSink::Mutate(SubscriptionClient * apSubClient
 
             tad.saB = !tad.saB;
         }
-        else if ((mTestCounter % kNumTestCases) == 7) {
+        else if ((mTestCounter % kNumTestCases) == 8) {
             // sink, all merge with root handle, cut dictionary
             err = SetUpdated(apSubClient, TestATrait::kPropertyHandle_Root);
             SuccessOrExit(err);
@@ -1836,7 +1860,7 @@ WEAVE_ERROR TestATraitUpdatableDataSink::Mutate(SubscriptionClient * apSubClient
 
             tad.saB = !tad.saB;
         }
-        else if ((mTestCounter % kNumTestCases) == 8) {
+        else if ((mTestCounter % kNumTestCases) == 9) {
             // sink, all merge with root handle, cut oversized dictionary
             // real service, which need update fragmentation
             WeaveLogDetail(DataManagement, "It is failing with update fragmentation");
