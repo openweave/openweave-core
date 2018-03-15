@@ -26,6 +26,9 @@
 #include <string.h>//memcpy
 
 #include <InetLayer/InetLayer.h>
+
+#if INET_CONFIG_ENABLE_RAW_ENDPOINT
+
 #include <Weave/Core/WeaveEncoding.h>
 #include "RADaemon.h"
 
@@ -675,3 +678,5 @@ void RADaemon::DelLinkInfo(InterfaceId link)
 
 } /* namespace Inet */
 } /* namespace nl */
+
+#endif // INET_CONFIG_ENABLE_RAW_ENDPOINT

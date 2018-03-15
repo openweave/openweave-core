@@ -27,6 +27,9 @@
 #define RADAEMON_H_
 
 #include <InetLayer/InetLayer.h>
+
+#if INET_CONFIG_ENABLE_RAW_ENDPOINT
+
 #include <InetLayer/RawEndPoint.h>
 #include <InetLayer/IPPrefix.h>
 #include <Weave/Core/WeaveEncoding.h>
@@ -116,5 +119,7 @@ inline void RADaemon::Init(InetLayer* aInetLayer)
 
 } /* namespace Inet */
 } /* namespace nl */
+
+#endif // INET_CONFIG_ENABLE_RAW_ENDPOINT
 
 #endif /* RADAEMON_H_ */
