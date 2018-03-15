@@ -33,10 +33,11 @@ nl_WeaveProfiles_sources                                                        
     @top_builddir@/src/lib/profiles/common/RetainedPacketBuffer.cpp                     \
     @top_builddir@/src/lib/profiles/common/WeaveMessage.cpp                             \
     @top_builddir@/src/lib/profiles/data-management/Current/MessageDef.cpp              \
+    @top_builddir@/src/lib/profiles/data-management/Current/ResourceIdentifier.cpp      \
     @top_builddir@/src/lib/profiles/data-management/Current/NotificationEngine.cpp      \
     @top_builddir@/src/lib/profiles/data-management/Current/SubscriptionClient.cpp      \
     @top_builddir@/src/lib/profiles/data-management/Current/SubscriptionEngine.cpp      \
-    @top_builddir@/src/lib/profiles/data-management/Current/SubscriptionHandler.cpp	    \
+    @top_builddir@/src/lib/profiles/data-management/Current/SubscriptionHandler.cpp     \
     @top_builddir@/src/lib/profiles/data-management/Current/TraitData.cpp               \
     @top_builddir@/src/lib/profiles/data-management/Current/ViewClient.cpp              \
     @top_builddir@/src/lib/profiles/data-management/Current/Command.cpp                 \

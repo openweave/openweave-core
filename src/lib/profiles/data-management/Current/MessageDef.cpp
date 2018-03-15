@@ -365,15 +365,19 @@ WEAVE_ERROR Path::Parser::CheckSchemaValidity(void) const
             // Resource ID can be of any type, so no checking is done here
 
 #if WEAVE_DETAIL_LOGGING
-            if (nl::Weave::TLV::kTLVType_UnsignedInteger == reader.GetType())
             {
-                uint64_t ResourceID;
-                reader.Get(ResourceID);
-                PRETTY_PRINT_SAMELINE("ResourceId = 0x%" PRIx64 ",", ResourceID);
-            }
-            else
-            {
-                PRETTY_PRINT_SAMELINE("ResourceId = ??,");
+                ResourceIdentifier resourceId;
+                char strResource[ResourceIdentifier::MAX_STRING_LENGTH];
+                err = resourceId.FromTLV(reader);
+                if (err == WEAVE_NO_ERROR)
+                {
+                    resourceId.ToString(strResource, sizeof(strResource));
+                    PRETTY_PRINT_SAMELINE("ResourceId = %s,", strResource);
+                }
+                else
+                {
+                    PRETTY_PRINT_SAMELINE("ResourceId = ??,");
+                }
             }
 
 #endif // WEAVE_DETAIL_LOGGING
@@ -558,13 +562,6 @@ WEAVE_ERROR Path::Parser::GetResourceID(nl::Weave::TLV::TLVReader * const apRead
     return err;
 }
 
-// WEAVE_END_OF_TLV if there is no such element
-// WEAVE_ERROR_WRONG_TLV_TYPE if there is such element but it's not any of the defined unsigned integer types
-WEAVE_ERROR Path::Parser::GetResourceID(uint64_t * const apResourceID) const
-{
-    return GetUnsignedInteger(kCsTag_ResourceID, apResourceID);
-}
-
 // Instance ID could be of any type, so we can only position the reader so the caller has
 // full information of tag, element type, length, and value
 WEAVE_ERROR Path::Parser::GetInstanceID(nl::Weave::TLV::TLVReader * const apReader) const
@@ -691,9 +688,24 @@ Path::Builder & Path::Builder::ResourceID(const uint64_t aResourceID)
     VerifyOrExit(!mInTagSection, mError = WEAVE_ERROR_INCORRECT_STATE);
 
     mError = mpWriter->Put(nl::Weave::TLV::ContextTag(kCsTag_ResourceID), aResourceID);
-    WeaveLogFunctError(mError);
 
 exit:
+    WeaveLogFunctError(mError);
+
+    return *this;
+}
+
+Path::Builder & Path::Builder::ResourceID(const ResourceIdentifier& aResourceID)
+{
+    // skip if error has already been set
+    SuccessOrExit(mError);
+    // we can only add this field when we're already in the tag section of a Path
+    VerifyOrExit(!mInTagSection, mError = WEAVE_ERROR_INCORRECT_STATE);
+    mError = aResourceID.ToTLV(*mpWriter);
+    SuccessOrExit(mError);
+
+exit:
+    WeaveLogFunctError(mError);
 
     return *this;
 }
@@ -1794,15 +1806,23 @@ WEAVE_ERROR Event::Parser::CheckSchemaValidity(void) const
             VerifyOrExit(tagPresence.ResourceId == false, err = WEAVE_ERROR_INVALID_TLV_TAG);
             tagPresence.ResourceId = true;
 
-            VerifyOrExit(nl::Weave::TLV::kTLVType_UnsignedInteger == reader.GetType(), err = WEAVE_ERROR_WRONG_TLV_TYPE);
+            VerifyOrExit(nl::Weave::TLV::kTLVType_UnsignedInteger == reader.GetType() || nl::Weave::TLV::kTLVType_ByteString == reader.GetType(), err = WEAVE_ERROR_WRONG_TLV_TYPE);
 
 #if WEAVE_DETAIL_LOGGING
             {
-                uint64_t value;
-                err = reader.Get(value);
+                ResourceIdentifier resourceId;
+                char strResource[ResourceIdentifier::MAX_STRING_LENGTH];
+                err = resourceId.FromTLV(reader);
+                if (err == WEAVE_NO_ERROR)
+                {
+                    resourceId.ToString(strResource, sizeof(strResource));
+                    PRETTY_PRINT("\t\t%s,", strResource);
+                }
+                else
+                {
+                    PRETTY_PRINT("\t\tResourceId = ??,");
+                }
                 SuccessOrExit(err);
-
-                PRETTY_PRINT("\t\tResourceId = 0x%" PRIx64 ",", value);
             }
 #endif // WEAVE_DETAIL_LOGGING
 

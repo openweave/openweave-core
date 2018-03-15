@@ -519,6 +519,7 @@ am__libWeave_a_SOURCES_DIST =  \
 	@top_builddir@/src/lib/profiles/common/RetainedPacketBuffer.cpp \
 	@top_builddir@/src/lib/profiles/common/WeaveMessage.cpp \
 	@top_builddir@/src/lib/profiles/data-management/Current/MessageDef.cpp \
+	@top_builddir@/src/lib/profiles/data-management/Current/ResourceIdentifier.cpp \
 	@top_builddir@/src/lib/profiles/data-management/Current/NotificationEngine.cpp \
 	@top_builddir@/src/lib/profiles/data-management/Current/SubscriptionClient.cpp \
 	@top_builddir@/src/lib/profiles/data-management/Current/SubscriptionEngine.cpp \
@@ -714,6 +715,7 @@ am__objects_20 = @top_builddir@/src/lib/profiles/bulk-data-transfer/libWeave_a-B
 	@top_builddir@/src/lib/profiles/common/libWeave_a-RetainedPacketBuffer.$(OBJEXT) \
 	@top_builddir@/src/lib/profiles/common/libWeave_a-WeaveMessage.$(OBJEXT) \
 	@top_builddir@/src/lib/profiles/data-management/Current/libWeave_a-MessageDef.$(OBJEXT) \
+	@top_builddir@/src/lib/profiles/data-management/Current/libWeave_a-ResourceIdentifier.$(OBJEXT) \
 	@top_builddir@/src/lib/profiles/data-management/Current/libWeave_a-NotificationEngine.$(OBJEXT) \
 	@top_builddir@/src/lib/profiles/data-management/Current/libWeave_a-SubscriptionClient.$(OBJEXT) \
 	@top_builddir@/src/lib/profiles/data-management/Current/libWeave_a-SubscriptionEngine.$(OBJEXT) \
@@ -1208,6 +1210,7 @@ nl_WeaveProfiles_sources = @top_builddir@/src/lib/profiles/bulk-data-transfer/Bu
 	@top_builddir@/src/lib/profiles/common/RetainedPacketBuffer.cpp \
 	@top_builddir@/src/lib/profiles/common/WeaveMessage.cpp \
 	@top_builddir@/src/lib/profiles/data-management/Current/MessageDef.cpp \
+	@top_builddir@/src/lib/profiles/data-management/Current/ResourceIdentifier.cpp \
 	@top_builddir@/src/lib/profiles/data-management/Current/NotificationEngine.cpp \
 	@top_builddir@/src/lib/profiles/data-management/Current/SubscriptionClient.cpp \
 	@top_builddir@/src/lib/profiles/data-management/Current/SubscriptionEngine.cpp \
@@ -1781,6 +1784,8 @@ clean-libLIBRARIES:
 	@: > @top_builddir@/src/lib/profiles/data-management/Current/$(DEPDIR)/$(am__dirstamp)
 @top_builddir@/src/lib/profiles/data-management/Current/libWeave_a-MessageDef.$(OBJEXT): @top_builddir@/src/lib/profiles/data-management/Current/$(am__dirstamp) \
 	@top_builddir@/src/lib/profiles/data-management/Current/$(DEPDIR)/$(am__dirstamp)
+@top_builddir@/src/lib/profiles/data-management/Current/libWeave_a-ResourceIdentifier.$(OBJEXT): @top_builddir@/src/lib/profiles/data-management/Current/$(am__dirstamp) \
+	@top_builddir@/src/lib/profiles/data-management/Current/$(DEPDIR)/$(am__dirstamp)
 @top_builddir@/src/lib/profiles/data-management/Current/libWeave_a-NotificationEngine.$(OBJEXT): @top_builddir@/src/lib/profiles/data-management/Current/$(am__dirstamp) \
 	@top_builddir@/src/lib/profiles/data-management/Current/$(DEPDIR)/$(am__dirstamp)
 @top_builddir@/src/lib/profiles/data-management/Current/libWeave_a-SubscriptionClient.$(OBJEXT): @top_builddir@/src/lib/profiles/data-management/Current/$(am__dirstamp) \
@@ -2182,6 +2187,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@@top_builddir@/src/lib/profiles/data-management/Current/$(DEPDIR)/libWeave_a-LoggingManagement.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@@top_builddir@/src/lib/profiles/data-management/Current/$(DEPDIR)/libWeave_a-MessageDef.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@@top_builddir@/src/lib/profiles/data-management/Current/$(DEPDIR)/libWeave_a-NotificationEngine.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@@top_builddir@/src/lib/profiles/data-management/Current/$(DEPDIR)/libWeave_a-ResourceIdentifier.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@@top_builddir@/src/lib/profiles/data-management/Current/$(DEPDIR)/libWeave_a-SubscriptionClient.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@@top_builddir@/src/lib/profiles/data-management/Current/$(DEPDIR)/libWeave_a-SubscriptionEngine.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@@top_builddir@/src/lib/profiles/data-management/Current/$(DEPDIR)/libWeave_a-SubscriptionHandler.Po@am__quote@
@@ -3767,6 +3773,20 @@ distclean-compile:
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='@top_builddir@/src/lib/profiles/data-management/Current/MessageDef.cpp' object='@top_builddir@/src/lib/profiles/data-management/Current/libWeave_a-MessageDef.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libWeave_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o @top_builddir@/src/lib/profiles/data-management/Current/libWeave_a-MessageDef.obj `if test -f '@top_builddir@/src/lib/profiles/data-management/Current/MessageDef.cpp'; then $(CYGPATH_W) '@top_builddir@/src/lib/profiles/data-management/Current/MessageDef.cpp'; else $(CYGPATH_W) '$(srcdir)/@top_builddir@/src/lib/profiles/data-management/Current/MessageDef.cpp'; fi`
+
+@top_builddir@/src/lib/profiles/data-management/Current/libWeave_a-ResourceIdentifier.o: @top_builddir@/src/lib/profiles/data-management/Current/ResourceIdentifier.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libWeave_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT @top_builddir@/src/lib/profiles/data-management/Current/libWeave_a-ResourceIdentifier.o -MD -MP -MF @top_builddir@/src/lib/profiles/data-management/Current/$(DEPDIR)/libWeave_a-ResourceIdentifier.Tpo -c -o @top_builddir@/src/lib/profiles/data-management/Current/libWeave_a-ResourceIdentifier.o `test -f '@top_builddir@/src/lib/profiles/data-management/Current/ResourceIdentifier.cpp' || echo '$(srcdir)/'`@top_builddir@/src/lib/profiles/data-management/Current/ResourceIdentifier.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) @top_builddir@/src/lib/profiles/data-management/Current/$(DEPDIR)/libWeave_a-ResourceIdentifier.Tpo @top_builddir@/src/lib/profiles/data-management/Current/$(DEPDIR)/libWeave_a-ResourceIdentifier.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='@top_builddir@/src/lib/profiles/data-management/Current/ResourceIdentifier.cpp' object='@top_builddir@/src/lib/profiles/data-management/Current/libWeave_a-ResourceIdentifier.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libWeave_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o @top_builddir@/src/lib/profiles/data-management/Current/libWeave_a-ResourceIdentifier.o `test -f '@top_builddir@/src/lib/profiles/data-management/Current/ResourceIdentifier.cpp' || echo '$(srcdir)/'`@top_builddir@/src/lib/profiles/data-management/Current/ResourceIdentifier.cpp
+
+@top_builddir@/src/lib/profiles/data-management/Current/libWeave_a-ResourceIdentifier.obj: @top_builddir@/src/lib/profiles/data-management/Current/ResourceIdentifier.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libWeave_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT @top_builddir@/src/lib/profiles/data-management/Current/libWeave_a-ResourceIdentifier.obj -MD -MP -MF @top_builddir@/src/lib/profiles/data-management/Current/$(DEPDIR)/libWeave_a-ResourceIdentifier.Tpo -c -o @top_builddir@/src/lib/profiles/data-management/Current/libWeave_a-ResourceIdentifier.obj `if test -f '@top_builddir@/src/lib/profiles/data-management/Current/ResourceIdentifier.cpp'; then $(CYGPATH_W) '@top_builddir@/src/lib/profiles/data-management/Current/ResourceIdentifier.cpp'; else $(CYGPATH_W) '$(srcdir)/@top_builddir@/src/lib/profiles/data-management/Current/ResourceIdentifier.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) @top_builddir@/src/lib/profiles/data-management/Current/$(DEPDIR)/libWeave_a-ResourceIdentifier.Tpo @top_builddir@/src/lib/profiles/data-management/Current/$(DEPDIR)/libWeave_a-ResourceIdentifier.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='@top_builddir@/src/lib/profiles/data-management/Current/ResourceIdentifier.cpp' object='@top_builddir@/src/lib/profiles/data-management/Current/libWeave_a-ResourceIdentifier.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libWeave_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o @top_builddir@/src/lib/profiles/data-management/Current/libWeave_a-ResourceIdentifier.obj `if test -f '@top_builddir@/src/lib/profiles/data-management/Current/ResourceIdentifier.cpp'; then $(CYGPATH_W) '@top_builddir@/src/lib/profiles/data-management/Current/ResourceIdentifier.cpp'; else $(CYGPATH_W) '$(srcdir)/@top_builddir@/src/lib/profiles/data-management/Current/ResourceIdentifier.cpp'; fi`
 
 @top_builddir@/src/lib/profiles/data-management/Current/libWeave_a-NotificationEngine.o: @top_builddir@/src/lib/profiles/data-management/Current/NotificationEngine.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libWeave_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT @top_builddir@/src/lib/profiles/data-management/Current/libWeave_a-NotificationEngine.o -MD -MP -MF @top_builddir@/src/lib/profiles/data-management/Current/$(DEPDIR)/libWeave_a-NotificationEngine.Tpo -c -o @top_builddir@/src/lib/profiles/data-management/Current/libWeave_a-NotificationEngine.o `test -f '@top_builddir@/src/lib/profiles/data-management/Current/NotificationEngine.cpp' || echo '$(srcdir)/'`@top_builddir@/src/lib/profiles/data-management/Current/NotificationEngine.cpp

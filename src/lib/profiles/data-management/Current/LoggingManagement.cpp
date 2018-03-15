@@ -327,18 +327,11 @@ WEAVE_ERROR LoggingManagement::BlitEvent(EventLoadOutContext * aContext, const E
     // Event resource
     if (inOptions->eventSource != NULL)
     {
-        if (mExchangeMgr != NULL)
-        {
-            if ((inOptions->eventSource->ResourceID != ResourceIdentifier::SELF_NODE_ID) &&
-                (inOptions->eventSource->ResourceID != mExchangeMgr->FabricState->LocalNodeId))
-            {
-                err = aContext->mWriter.Put(ContextTag(kTag_EventResourceID), inOptions->eventSource->ResourceID);
-                SuccessOrExit(err);
-            }
+        err = inOptions->eventSource->ResourceID.ToTLV(aContext->mWriter, ContextTag(kTag_EventResourceID));
+        SuccessOrExit(err);
 
-            err = aContext->mWriter.Put(ContextTag(kTag_EventTraitInstanceID), inOptions->eventSource->TraitInstanceID);
-            SuccessOrExit(err);
-        }
+        err = aContext->mWriter.Put(ContextTag(kTag_EventTraitInstanceID), inOptions->eventSource->TraitInstanceID);
+        SuccessOrExit(err);
     }
 
     // Event Type (aka Event Message ID)

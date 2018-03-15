@@ -592,6 +592,7 @@ $(NULL)
 nl_public_WeaveProfiles_data_management_current_header_sources = \
 $(nl_public_WeaveProfiles_source_dirstem)/data-management/Current/DataManagement.h \
 $(nl_public_WeaveProfiles_source_dirstem)/data-management/Current/MessageDef.h \
+$(nl_public_WeaveProfiles_source_dirstem)/data-management/Current/ResourceIdentifier.h \
 $(nl_public_WeaveProfiles_source_dirstem)/data-management/Current/ViewClient.h \
 $(nl_public_WeaveProfiles_source_dirstem)/data-management/Current/TraitData.h \
 $(nl_public_WeaveProfiles_source_dirstem)/data-management/Current/TraitCatalog.h \
@@ -873,6 +874,35 @@ weave_profiles_nestlabs_hvac_equipment_controldir = $(includedir)/$(nl_public_We
 weave_profiles_nestlabs_hvac_equipment_control_HEADERS = $(addprefix ../,$(nl_public_WeaveProfiles_nestlabs_hvac_equipment_control_header_sources))
 
 #
+# Common defines from Schema, to be used across the ecosystem
+#
+
+nl_public_WeaveCommon_source_dirstem = lib/schema/common
+nl_public_WeaveCommon_destination_dirstem = Weave/Common
+
+nl_public_WeaveCommon_header_sources = \
+$(nl_public_WeaveCommon_source_dirstem)/ResourceTypeEnum.h \
+$(NULL)
+
+nl_public_WeaveCommon_header_paths = $(subst $(nl_public_WeaveCommon_source_dirstem)/,,$(nl_public_WeaveCommon_header_sources))
+
+nl_public_WeaveCommon_header_destinations = $(addprefix $(nl_public_WeaveCommon_destination_dirstem)/,$(nl_public_WeaveCommon_header_paths))
+
+nl_public_WeaveCommon_header_dirs = $(call Deslashify,$(sort $(dir $(nl_public_WeaveCommon_header_destinations))))
+
+$(nl_public_WeaveCommon_header_dirs):
+	$(call create-directory)
+
+$(filter %.h,$(nl_public_WeaveCommon_header_destinations)): $(nl_public_WeaveCommon_destination_dirstem)/%.h: $(abs_srcdir)/../$(nl_public_WeaveCommon_source_dirstem)/%.h | $(nl_public_WeaveCommon_header_dirs)
+	$(call create-link)
+
+$(filter %.hpp,$(nl_public_WeaveCommon_header_destinations)): $(nl_public_WeaveCommon_destination_dirstem)/%.hpp: $(abs_srcdir)/../$(nl_public_WeaveCommon_source_dirstem)/%.hpp | $(nl_public_WeaveCommon_header_dirs)
+	$(call create-link)
+
+weave_commondir = $(includedir)/$(nl_public_WeaveCommon_destination_dirstem)
+dist_weave_common_HEADERS = $(addprefix ../,$(nl_public_WeaveCommon_header_sources))
+
+#
 # Third-party Public Headers
 #
 
@@ -945,6 +975,7 @@ nl_public_headers                                           = \
     $(nl_public_Weave_header_destinations)                    \
     $(nl_public_WeaveSupport_header_destinations)             \
     $(nl_public_WeaveCore_header_destinations)                \
+    $(nl_public_WeaveCommon_header_destinations)                \
     $(nl_public_WeaveProfiles_header_destinations)            \
     $(NULL)
 
@@ -1003,6 +1034,7 @@ nl_public_header_dirs                                    = \
     $(nl_public_SystemLayer_header_dirs)                   \
     $(nl_public_Warm_header_dirs)                          \
     $(nl_public_WeaveCore_header_dirs)                     \
+    $(nl_public_WeaveCommon_header_dirs)                     \
     $(nl_public_WeaveProfiles_header_dirs)                 \
     $(nl_public_WeaveSupport_header_dirs)                  \
     $(nl_public_Weave_header_dirs)                         \

@@ -167,7 +167,8 @@ DIST_COMMON = $(srcdir)/Makefile.am $(dist_ble_ble_HEADERS) \
 	$(dist_micro_ecc_HEADERS) $(dist_mincrypt_HEADERS) \
 	$(dist_platform_ble_bluez_HEADERS) $(dist_system_HEADERS) \
 	$(dist_warm_HEADERS) $(dist_weave_HEADERS) \
-	$(dist_weave_core_HEADERS) $(dist_weave_support_base_HEADERS) \
+	$(dist_weave_common_HEADERS) $(dist_weave_core_HEADERS) \
+	$(dist_weave_support_base_HEADERS) \
 	$(dist_weave_support_crypto_HEADERS) \
 	$(dist_weave_support_logging_HEADERS) \
 	$(dist_weave_support_platform_HEADERS) \
@@ -262,7 +263,7 @@ am__installdirs = "$(DESTDIR)$(ble_bledir)" \
 	"$(DESTDIR)$(micro_eccdir)" "$(DESTDIR)$(mincryptdir)" \
 	"$(DESTDIR)$(platform_ble_bluezdir)" "$(DESTDIR)$(systemdir)" \
 	"$(DESTDIR)$(warmdir)" "$(DESTDIR)$(weavedir)" \
-	"$(DESTDIR)$(weave_coredir)" \
+	"$(DESTDIR)$(weave_commondir)" "$(DESTDIR)$(weave_coredir)" \
 	"$(DESTDIR)$(weave_support_basedir)" \
 	"$(DESTDIR)$(weave_support_cryptodir)" \
 	"$(DESTDIR)$(weave_support_loggingdir)" \
@@ -307,8 +308,8 @@ HEADERS = $(dist_ble_ble_HEADERS) $(dist_ble_device_manager_HEADERS) \
 	$(dist_inet_HEADERS) $(dist_micro_ecc_HEADERS) \
 	$(dist_mincrypt_HEADERS) $(dist_platform_ble_bluez_HEADERS) \
 	$(dist_system_HEADERS) $(dist_warm_HEADERS) \
-	$(dist_weave_HEADERS) $(dist_weave_core_HEADERS) \
-	$(dist_weave_support_base_HEADERS) \
+	$(dist_weave_HEADERS) $(dist_weave_common_HEADERS) \
+	$(dist_weave_core_HEADERS) $(dist_weave_support_base_HEADERS) \
 	$(dist_weave_support_crypto_HEADERS) \
 	$(dist_weave_support_logging_HEADERS) \
 	$(dist_weave_support_platform_HEADERS) \
@@ -1010,6 +1011,7 @@ $(NULL)
 nl_public_WeaveProfiles_data_management_current_header_sources = \
 $(nl_public_WeaveProfiles_source_dirstem)/data-management/Current/DataManagement.h \
 $(nl_public_WeaveProfiles_source_dirstem)/data-management/Current/MessageDef.h \
+$(nl_public_WeaveProfiles_source_dirstem)/data-management/Current/ResourceIdentifier.h \
 $(nl_public_WeaveProfiles_source_dirstem)/data-management/Current/ViewClient.h \
 $(nl_public_WeaveProfiles_source_dirstem)/data-management/Current/TraitData.h \
 $(nl_public_WeaveProfiles_source_dirstem)/data-management/Current/TraitCatalog.h \
@@ -1238,6 +1240,21 @@ weave_profiles_nestlabs_hvac_equipment_controldir = $(includedir)/$(nl_public_We
 weave_profiles_nestlabs_hvac_equipment_control_HEADERS = $(addprefix ../,$(nl_public_WeaveProfiles_nestlabs_hvac_equipment_control_header_sources))
 
 #
+# Common defines from Schema, to be used across the ecosystem
+#
+nl_public_WeaveCommon_source_dirstem = lib/schema/common
+nl_public_WeaveCommon_destination_dirstem = Weave/Common
+nl_public_WeaveCommon_header_sources = \
+$(nl_public_WeaveCommon_source_dirstem)/ResourceTypeEnum.h \
+$(NULL)
+
+nl_public_WeaveCommon_header_paths = $(subst $(nl_public_WeaveCommon_source_dirstem)/,,$(nl_public_WeaveCommon_header_sources))
+nl_public_WeaveCommon_header_destinations = $(addprefix $(nl_public_WeaveCommon_destination_dirstem)/,$(nl_public_WeaveCommon_header_paths))
+nl_public_WeaveCommon_header_dirs = $(call Deslashify,$(sort $(dir $(nl_public_WeaveCommon_header_destinations))))
+weave_commondir = $(includedir)/$(nl_public_WeaveCommon_destination_dirstem)
+dist_weave_common_HEADERS = $(addprefix ../,$(nl_public_WeaveCommon_header_sources))
+
+#
 # Third-party Public Headers
 #
 
@@ -1287,6 +1304,7 @@ nl_public_headers = \
     $(nl_public_Weave_header_destinations)                    \
     $(nl_public_WeaveSupport_header_destinations)             \
     $(nl_public_WeaveCore_header_destinations)                \
+    $(nl_public_WeaveCommon_header_destinations)                \
     $(nl_public_WeaveProfiles_header_destinations)            \
     $(NULL)
 
@@ -1345,6 +1363,7 @@ nl_public_header_dirs = \
     $(nl_public_SystemLayer_header_dirs)                   \
     $(nl_public_Warm_header_dirs)                          \
     $(nl_public_WeaveCore_header_dirs)                     \
+    $(nl_public_WeaveCommon_header_dirs)                     \
     $(nl_public_WeaveProfiles_header_dirs)                 \
     $(nl_public_WeaveSupport_header_dirs)                  \
     $(nl_public_Weave_header_dirs)                         \
@@ -1602,6 +1621,27 @@ uninstall-dist_weaveHEADERS:
 	@list='$(dist_weave_HEADERS)'; test -n "$(weavedir)" || list=; \
 	files=`for p in $$list; do echo $$p; done | sed -e 's|^.*/||'`; \
 	dir='$(DESTDIR)$(weavedir)'; $(am__uninstall_files_from_dir)
+install-dist_weave_commonHEADERS: $(dist_weave_common_HEADERS)
+	@$(NORMAL_INSTALL)
+	@list='$(dist_weave_common_HEADERS)'; test -n "$(weave_commondir)" || list=; \
+	if test -n "$$list"; then \
+	  echo " $(MKDIR_P) '$(DESTDIR)$(weave_commondir)'"; \
+	  $(MKDIR_P) "$(DESTDIR)$(weave_commondir)" || exit 1; \
+	fi; \
+	for p in $$list; do \
+	  if test -f "$$p"; then d=; else d="$(srcdir)/"; fi; \
+	  echo "$$d$$p"; \
+	done | $(am__base_list) | \
+	while read files; do \
+	  echo " $(INSTALL_HEADER) $$files '$(DESTDIR)$(weave_commondir)'"; \
+	  $(INSTALL_HEADER) $$files "$(DESTDIR)$(weave_commondir)" || exit $$?; \
+	done
+
+uninstall-dist_weave_commonHEADERS:
+	@$(NORMAL_UNINSTALL)
+	@list='$(dist_weave_common_HEADERS)'; test -n "$(weave_commondir)" || list=; \
+	files=`for p in $$list; do echo $$p; done | sed -e 's|^.*/||'`; \
+	dir='$(DESTDIR)$(weave_commondir)'; $(am__uninstall_files_from_dir)
 install-dist_weave_coreHEADERS: $(dist_weave_core_HEADERS)
 	@$(NORMAL_INSTALL)
 	@list='$(dist_weave_core_HEADERS)'; test -n "$(weave_coredir)" || list=; \
@@ -2554,7 +2594,7 @@ check: $(BUILT_SOURCES)
 	$(MAKE) $(AM_MAKEFLAGS) check-am
 all-am: Makefile $(HEADERS) BuildConfig.h
 installdirs:
-	for dir in "$(DESTDIR)$(ble_bledir)" "$(DESTDIR)$(ble_device_managerdir)" "$(DESTDIR)$(inetdir)" "$(DESTDIR)$(micro_eccdir)" "$(DESTDIR)$(mincryptdir)" "$(DESTDIR)$(platform_ble_bluezdir)" "$(DESTDIR)$(systemdir)" "$(DESTDIR)$(warmdir)" "$(DESTDIR)$(weavedir)" "$(DESTDIR)$(weave_coredir)" "$(DESTDIR)$(weave_support_basedir)" "$(DESTDIR)$(weave_support_cryptodir)" "$(DESTDIR)$(weave_support_loggingdir)" "$(DESTDIR)$(weave_support_platformdir)" "$(DESTDIR)$(weave_support_verhoeffdir)" "$(DESTDIR)$(includedir)" "$(DESTDIR)$(weave_profiles_basedir)" "$(DESTDIR)$(weave_profiles_bulk_data_transferdir)" "$(DESTDIR)$(weave_profiles_bulk_data_transfer_currentdir)" "$(DESTDIR)$(weave_profiles_bulk_data_transfer_developmentdir)" "$(DESTDIR)$(weave_profiles_commondir)" "$(DESTDIR)$(weave_profiles_data_managementdir)" "$(DESTDIR)$(weave_profiles_data_management_currentdir)" "$(DESTDIR)$(weave_profiles_data_management_legacydir)" "$(DESTDIR)$(weave_profiles_device_controldir)" "$(DESTDIR)$(weave_profiles_device_descriptiondir)" "$(DESTDIR)$(weave_profiles_echodir)" "$(DESTDIR)$(weave_profiles_echo_currentdir)" "$(DESTDIR)$(weave_profiles_echo_nextdir)" "$(DESTDIR)$(weave_profiles_fabric_provisioningdir)" "$(DESTDIR)$(weave_profiles_heartbeatdir)" "$(DESTDIR)$(weave_profiles_localedir)" "$(DESTDIR)$(weave_profiles_nestlabs_boilerdir)" "$(DESTDIR)$(weave_profiles_nestlabs_device_descriptiondir)" "$(DESTDIR)$(weave_profiles_nestlabs_domestic_hot_waterdir)" "$(DESTDIR)$(weave_profiles_nestlabs_dropcam_legacy_pairingdir)" "$(DESTDIR)$(weave_profiles_nestlabs_heat_linkdir)" "$(DESTDIR)$(weave_profiles_nestlabs_hvac_equipment_controldir)" "$(DESTDIR)$(weave_profiles_nestlabs_protectdir)" "$(DESTDIR)$(weave_profiles_nestlabs_thermostatdir)" "$(DESTDIR)$(weave_profiles_nestlabs_time_variant_datadir)" "$(DESTDIR)$(weave_profiles_network_provisioningdir)" "$(DESTDIR)$(weave_profiles_securitydir)" "$(DESTDIR)$(weave_profiles_service_directorydir)" "$(DESTDIR)$(weave_profiles_service_provisioningdir)" "$(DESTDIR)$(weave_profiles_software_updatedir)" "$(DESTDIR)$(weave_profiles_status_reportdir)" "$(DESTDIR)$(weave_profiles_timedir)" "$(DESTDIR)$(weave_profiles_token_pairingdir)" "$(DESTDIR)$(weave_profiles_weave_tunnelingdir)"; do \
+	for dir in "$(DESTDIR)$(ble_bledir)" "$(DESTDIR)$(ble_device_managerdir)" "$(DESTDIR)$(inetdir)" "$(DESTDIR)$(micro_eccdir)" "$(DESTDIR)$(mincryptdir)" "$(DESTDIR)$(platform_ble_bluezdir)" "$(DESTDIR)$(systemdir)" "$(DESTDIR)$(warmdir)" "$(DESTDIR)$(weavedir)" "$(DESTDIR)$(weave_commondir)" "$(DESTDIR)$(weave_coredir)" "$(DESTDIR)$(weave_support_basedir)" "$(DESTDIR)$(weave_support_cryptodir)" "$(DESTDIR)$(weave_support_loggingdir)" "$(DESTDIR)$(weave_support_platformdir)" "$(DESTDIR)$(weave_support_verhoeffdir)" "$(DESTDIR)$(includedir)" "$(DESTDIR)$(weave_profiles_basedir)" "$(DESTDIR)$(weave_profiles_bulk_data_transferdir)" "$(DESTDIR)$(weave_profiles_bulk_data_transfer_currentdir)" "$(DESTDIR)$(weave_profiles_bulk_data_transfer_developmentdir)" "$(DESTDIR)$(weave_profiles_commondir)" "$(DESTDIR)$(weave_profiles_data_managementdir)" "$(DESTDIR)$(weave_profiles_data_management_currentdir)" "$(DESTDIR)$(weave_profiles_data_management_legacydir)" "$(DESTDIR)$(weave_profiles_device_controldir)" "$(DESTDIR)$(weave_profiles_device_descriptiondir)" "$(DESTDIR)$(weave_profiles_echodir)" "$(DESTDIR)$(weave_profiles_echo_currentdir)" "$(DESTDIR)$(weave_profiles_echo_nextdir)" "$(DESTDIR)$(weave_profiles_fabric_provisioningdir)" "$(DESTDIR)$(weave_profiles_heartbeatdir)" "$(DESTDIR)$(weave_profiles_localedir)" "$(DESTDIR)$(weave_profiles_nestlabs_boilerdir)" "$(DESTDIR)$(weave_profiles_nestlabs_device_descriptiondir)" "$(DESTDIR)$(weave_profiles_nestlabs_domestic_hot_waterdir)" "$(DESTDIR)$(weave_profiles_nestlabs_dropcam_legacy_pairingdir)" "$(DESTDIR)$(weave_profiles_nestlabs_heat_linkdir)" "$(DESTDIR)$(weave_profiles_nestlabs_hvac_equipment_controldir)" "$(DESTDIR)$(weave_profiles_nestlabs_protectdir)" "$(DESTDIR)$(weave_profiles_nestlabs_thermostatdir)" "$(DESTDIR)$(weave_profiles_nestlabs_time_variant_datadir)" "$(DESTDIR)$(weave_profiles_network_provisioningdir)" "$(DESTDIR)$(weave_profiles_securitydir)" "$(DESTDIR)$(weave_profiles_service_directorydir)" "$(DESTDIR)$(weave_profiles_service_provisioningdir)" "$(DESTDIR)$(weave_profiles_software_updatedir)" "$(DESTDIR)$(weave_profiles_status_reportdir)" "$(DESTDIR)$(weave_profiles_timedir)" "$(DESTDIR)$(weave_profiles_token_pairingdir)" "$(DESTDIR)$(weave_profiles_weave_tunnelingdir)"; do \
 	  test -z "$$dir" || $(MKDIR_P) "$$dir"; \
 	done
 install: $(BUILT_SOURCES)
@@ -2616,7 +2656,8 @@ install-data-am: install-dist_ble_bleHEADERS \
 	install-dist_mincryptHEADERS \
 	install-dist_platform_ble_bluezHEADERS \
 	install-dist_systemHEADERS install-dist_warmHEADERS \
-	install-dist_weaveHEADERS install-dist_weave_coreHEADERS \
+	install-dist_weaveHEADERS install-dist_weave_commonHEADERS \
+	install-dist_weave_coreHEADERS \
 	install-dist_weave_support_baseHEADERS \
 	install-dist_weave_support_cryptoHEADERS \
 	install-dist_weave_support_loggingHEADERS \
@@ -2705,7 +2746,8 @@ uninstall-am: uninstall-dist_ble_bleHEADERS \
 	uninstall-dist_mincryptHEADERS \
 	uninstall-dist_platform_ble_bluezHEADERS \
 	uninstall-dist_systemHEADERS uninstall-dist_warmHEADERS \
-	uninstall-dist_weaveHEADERS uninstall-dist_weave_coreHEADERS \
+	uninstall-dist_weaveHEADERS uninstall-dist_weave_commonHEADERS \
+	uninstall-dist_weave_coreHEADERS \
 	uninstall-dist_weave_support_baseHEADERS \
 	uninstall-dist_weave_support_cryptoHEADERS \
 	uninstall-dist_weave_support_loggingHEADERS \
@@ -2759,7 +2801,8 @@ uninstall-am: uninstall-dist_ble_bleHEADERS \
 	install-dist_mincryptHEADERS \
 	install-dist_platform_ble_bluezHEADERS \
 	install-dist_systemHEADERS install-dist_warmHEADERS \
-	install-dist_weaveHEADERS install-dist_weave_coreHEADERS \
+	install-dist_weaveHEADERS install-dist_weave_commonHEADERS \
+	install-dist_weave_coreHEADERS \
 	install-dist_weave_support_baseHEADERS \
 	install-dist_weave_support_cryptoHEADERS \
 	install-dist_weave_support_loggingHEADERS \
@@ -2812,7 +2855,8 @@ uninstall-am: uninstall-dist_ble_bleHEADERS \
 	uninstall-dist_mincryptHEADERS \
 	uninstall-dist_platform_ble_bluezHEADERS \
 	uninstall-dist_systemHEADERS uninstall-dist_warmHEADERS \
-	uninstall-dist_weaveHEADERS uninstall-dist_weave_coreHEADERS \
+	uninstall-dist_weaveHEADERS uninstall-dist_weave_commonHEADERS \
+	uninstall-dist_weave_coreHEADERS \
 	uninstall-dist_weave_support_baseHEADERS \
 	uninstall-dist_weave_support_cryptoHEADERS \
 	uninstall-dist_weave_support_loggingHEADERS \
@@ -2936,6 +2980,15 @@ $(filter %.h,$(nl_public_WeaveProfiles_header_destinations)): $(nl_public_WeaveP
 	$(call create-link)
 
 $(filter %.hpp,$(nl_public_WeaveProfiles_header_destinations)): $(nl_public_WeaveProfiles_destination_dirstem)/%.hpp: $(abs_srcdir)/../$(nl_public_WeaveProfiles_source_dirstem)/%.hpp | $(nl_public_WeaveProfiles_header_dirs)
+	$(call create-link)
+
+$(nl_public_WeaveCommon_header_dirs):
+	$(call create-directory)
+
+$(filter %.h,$(nl_public_WeaveCommon_header_destinations)): $(nl_public_WeaveCommon_destination_dirstem)/%.h: $(abs_srcdir)/../$(nl_public_WeaveCommon_source_dirstem)/%.h | $(nl_public_WeaveCommon_header_dirs)
+	$(call create-link)
+
+$(filter %.hpp,$(nl_public_WeaveCommon_header_destinations)): $(nl_public_WeaveCommon_destination_dirstem)/%.hpp: $(abs_srcdir)/../$(nl_public_WeaveCommon_source_dirstem)/%.hpp | $(nl_public_WeaveCommon_header_dirs)
 	$(call create-link)
 
 $(tps_public_micro_ecc_header_dirs):

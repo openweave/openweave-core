@@ -121,44 +121,8 @@ public:
 #if    WEAVE_CONFIG_ENABLE_WDM_UPDATE
     virtual WEAVE_ERROR GetInstanceId(TraitDataHandle aHandle, uint64_t &aInstanceId) const = 0;
 
-    virtual WEAVE_ERROR GetResourceId(TraitDataHandle aHandle, uint64_t &aResourceId) const = 0;
+    virtual WEAVE_ERROR GetResourceId(TraitDataHandle aHandle, ResourceIdentifier &aResourceId) const = 0;
 #endif // WEAVE_CONFIG_ENABLE_WDM_UPDATE
-};
-
-/**
- * This structure provides a way to represent the identity of a resource
- * either by way of the NodeId of the device, or a UUID.
- */
-struct ResourceIdentifier
-{
-    ResourceIdentifier(uint64_t aNodeId)
-    {
-        mSelector = kNodeId;
-        mNodeId   = aNodeId;
-    }
-
-    ResourceIdentifier(uint8_t * aUUID)
-    {
-        mSelector = kUUID;
-        memcpy(mUUID, aUUID, 6);
-    }
-
-    /* Defines a special value for NodeId that refers to 'self'. In certain WDM interactions, having a value of
-     * self for resource allows for compressing out that information as it is redundant to the source node id of
-     * the device expressed in the Weave message itself
-     */
-    static const uint64_t SELF_NODE_ID = 0;
-
-    enum
-    {
-        kNodeId,
-        kUUID
-    } mSelector;
-    union
-    {
-        uint64_t mNodeId;
-        uint8_t mUUID[16];
-    };
 };
 
 /*
@@ -212,7 +176,7 @@ public: // TraitCatalogBase
 
 #if    WEAVE_CONFIG_ENABLE_WDM_UPDATE
     WEAVE_ERROR GetInstanceId(TraitDataHandle aHandle, uint64_t &aInstanceId) const;
-    WEAVE_ERROR GetResourceId(TraitDataHandle aHandle, uint64_t &aResourceId) const;
+    WEAVE_ERROR GetResourceId(TraitDataHandle aHandle, ResourceIdentifier &aResourceId) const;
 #endif // WEAVE_CONFIG_ENABLE_WDM_UPDATE
 
 private:
@@ -290,6 +254,7 @@ WEAVE_ERROR SingleResourceTraitCatalog<T>::AddressToHandle(TLV::TLVReader & aRea
     uint32_t profileId  = 0;
     uint64_t instanceId = 0;
     Path::Parser path;
+    nl::Weave::TLV::TLVReader reader;
 
     err = path.Init(aReader);
     SuccessOrExit(err);
@@ -303,14 +268,21 @@ WEAVE_ERROR SingleResourceTraitCatalog<T>::AddressToHandle(TLV::TLVReader & aRea
         ExitNow();
     }
 
-    if (ResourceIdentifier::kNodeId == mResourceId.mSelector)
+    err = path.GetResourceID(&reader);
+    if (err == WEAVE_NO_ERROR)
     {
-        uint64_t resourceId;
-        err = path.GetResourceID(&resourceId);
-        if ((WEAVE_NO_ERROR != err) && (WEAVE_END_OF_TLV != err))
-        {
-            ExitNow();
-        }
+        ResourceIdentifier resourceId;
+        err = resourceId.FromTLV(reader);
+        SuccessOrExit(err);
+        VerifyOrExit(resourceId == mResourceId, err = WEAVE_ERROR_UNKNOWN_RESOURCE_ID);
+    }
+    else if (err == WEAVE_END_OF_TLV)
+    {
+        // no-op, element not found
+    }
+    else
+    {
+        ExitNow();
     }
 
     path.GetTags(&aReader);
@@ -395,16 +367,8 @@ WEAVE_ERROR SingleResourceTraitCatalog<T>::HandleToAddress(TraitDataHandle aHand
         SuccessOrExit(err);
     }
 
-    if (mResourceId.mSelector == ResourceIdentifier::kNodeId && mResourceId.mNodeId != ResourceIdentifier::SELF_NODE_ID)
-    {
-        err = aWriter.Put(TLV::ContextTag(Path::kCsTag_ResourceID), mResourceId.mNodeId);
-        SuccessOrExit(err);
-    }
-    else if (mResourceId.mSelector == ResourceIdentifier::kUUID)
-    {
-        err = aWriter.PutBytes(TLV::ContextTag(Path::kCsTag_ResourceID), mResourceId.mUUID, sizeof(mResourceId.mUUID));
-        SuccessOrExit(err);
-    }
+    err = mResourceId.ToTLV(aWriter);
+    SuccessOrExit(err);
 
     err = aWriter.EndContainer(type);
     SuccessOrExit(err);
@@ -475,10 +439,10 @@ WEAVE_ERROR SingleResourceTraitCatalog<T>::GetInstanceId(TraitDataHandle aHandle
 }
 
 template <typename T>
-WEAVE_ERROR SingleResourceTraitCatalog<T>::GetResourceId(TraitDataHandle aHandle, uint64_t &aResourceId) const
+WEAVE_ERROR SingleResourceTraitCatalog<T>::GetResourceId(TraitDataHandle aHandle, ResourceIdentifier &aResourceId) const
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
-    aResourceId = mResourceId.mNodeId;
+    aResourceId = mResourceId;
 
     return err;
 }

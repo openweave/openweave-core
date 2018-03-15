@@ -149,7 +149,7 @@ struct DetailedRootSection
      */
     DetailedRootSection(void) : ResourceID(ResourceIdentifier::SELF_NODE_ID) { };
 
-    uint64_t ResourceID;      /**< The ID of the resource that the generated event pertains to.
+    ResourceIdentifier ResourceID;      /**< The ID of the resource that the generated event pertains to.
                                    When the event resource is equal to the event source, set
                                    this value equal to ResourceIdentifier::SELF_NODE_ID */
     uint64_t TraitInstanceID; /**< Trait instance of the subject of this event. */

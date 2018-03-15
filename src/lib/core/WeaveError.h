@@ -1665,6 +1665,15 @@ typedef WEAVE_CONFIG_ERROR_TYPE WEAVE_ERROR;
 #define WEAVE_ERROR_ACCESS_DENIED                               _WEAVE_ERROR(173)
 
 /**
+ *  @def WEAVE_ERROR_UNKNOWN_RESOURCE_ID
+ *
+ *  @brief
+ *    Unknown resource ID
+ *
+ */
+#define WEAVE_ERROR_UNKNOWN_RESOURCE_ID                          _WEAVE_ERROR(174)
+
+/**
  *  @}
  */
 

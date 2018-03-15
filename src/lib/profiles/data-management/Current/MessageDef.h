@@ -28,6 +28,7 @@
 
 #include <Weave/Profiles/data-management/Current/WdmManagedNamespace.h>
 #include <Weave/Core/WeaveTLV.h>
+#include <Weave/Profiles/data-management/Current/ResourceIdentifier.h>
 
 namespace nl {
 namespace Weave {
@@ -249,10 +250,6 @@ public:
     // WEAVE_END_OF_TLV if there is no such element
     WEAVE_ERROR GetResourceID(nl::Weave::TLV::TLVReader * const apReader) const;
 
-    // WEAVE_END_OF_TLV if there is no such element
-    // WEAVE_ERROR_WRONG_TLV_TYPE if there is such element but it's not any of the defined unsigned integer types
-    WEAVE_ERROR GetResourceID(uint64_t * const apResourceID) const;
-
     // Instance ID could be of any type, so we can only position the reader so the caller has
     // full information of tag, element type, length, and value
     WEAVE_ERROR GetInstanceID(nl::Weave::TLV::TLVReader * const apReader) const;
@@ -264,7 +261,7 @@ public:
     // Profile ID can only be uint32_t and not any other type
     // WEAVE_END_OF_TLV if there is no such element
     // WEAVE_ERROR_WRONG_TLV_TYPE if there is such element but it's not any of the defined unsigned integer types
-    WEAVE_ERROR GetProfileID(uint32_t * const apResourceID, SchemaVersionRange * const apSchemaVersionRange);
+    WEAVE_ERROR GetProfileID(uint32_t * const apProfileID, SchemaVersionRange * const apSchemaVersionRange);
 
     // Get a TLVReader at the additional tags section. Next() must be called before accessing it.
     WEAVE_ERROR GetTags(nl::Weave::TLV::TLVReader * const apReader) const;
@@ -278,6 +275,7 @@ public:
     WEAVE_ERROR Init(nl::Weave::TLV::TLVWriter * const apWriter, const uint8_t aContextTagToUse);
 
     Path::Builder & ResourceID(const uint64_t aResourceID);
+    Path::Builder & ResourceID(const ResourceIdentifier& aResourceID);
     Path::Builder & InstanceID(const uint64_t aInstanceID);
     Path::Builder & ProfileID(const uint32_t aProfileID);
     Path::Builder & ProfileID(const uint32_t aProfileID, const SchemaVersionRange & aSchemaVersionRange);

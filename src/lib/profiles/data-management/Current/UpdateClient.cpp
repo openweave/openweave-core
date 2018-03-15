@@ -291,7 +291,7 @@ exit:
  */
 WEAVE_ERROR UpdateClient::StartElement(const uint32_t &aProfileID,
                     const uint64_t &aInstanceID,
-                    const uint64_t &aResourceID,
+                    const ResourceIdentifier &aResourceID,
                     const DataVersion &aRequiredDataVersion,
                     const SchemaVersionRange * aSchemaVersionRange,
                     const uint64_t *aPathArray,
@@ -312,7 +312,7 @@ WEAVE_ERROR UpdateClient::StartElement(const uint32_t &aProfileID,
     else
         pathBuilder.ProfileID(aProfileID, *aSchemaVersionRange);
 
-    if (aResourceID != 0x0)
+    if (aResourceID != ResourceIdentifier::SELF_NODE_ID)
        pathBuilder.ResourceID(aResourceID);
 
     if (aInstanceID != 0x0)
@@ -376,7 +376,7 @@ exit:
  */
 WEAVE_ERROR UpdateClient::AddElement(const uint32_t &aProfileID,
                     const uint64_t &aInstanceID,
-                    const uint64_t &aResourceID,
+                    const ResourceIdentifier &aResourceID,
                     const DataVersion &aRequiredDataVersion,
                     const SchemaVersionRange * aSchemaVersionRange,
                     const uint64_t *aPathArray,

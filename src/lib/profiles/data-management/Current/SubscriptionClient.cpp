@@ -2781,7 +2781,7 @@ exit:
 WEAVE_ERROR SubscriptionClient::BuildSingleUpdateRequestDataList(bool & aIsPartialUpdate, bool & aUpdateWriteInReady)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
-    uint64_t resourceId;
+    ResourceIdentifier resourceId;
     uint64_t instanceId;
     const TraitSchemaEngine * schemaEngine;
     TraitInstanceInfo * traitInfo;

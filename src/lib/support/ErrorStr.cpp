@@ -529,6 +529,7 @@ NL_DLL_EXPORT const char *ErrorStr(int32_t err)
     case WEAVE_ERROR_WDM_MALFORMED_STATUS_ELEMENT               : return WeaveFormatError(err, "Status Element in wdm update is malformed");
     case WEAVE_ERROR_WDM_SUBSCRIPTIONLESS_NOTIFY_PARTIAL        : return WeaveFormatError(err, "The WDM Subscriptionless Notify is partial");
     case WEAVE_ERROR_ACCESS_DENIED                              : return WeaveFormatError(err, "The Weave message is not granted access");
+    case WEAVE_ERROR_UNKNOWN_RESOURCE_ID                        : return WeaveFormatError(err, "Unknown resource ID");
 
     // ----- ASN1 Errors -----
     case ASN1_END                                               : return ASN1FormatError(err, "End of input");

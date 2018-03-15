@@ -83,7 +83,7 @@ public:
 
     WEAVE_ERROR AddElement(const uint32_t & aProfileID,
                            const uint64_t & aInstanceID,
-                           const uint64_t & aResourceID,
+                           const ResourceIdentifier & aResourceID,
                            const DataVersion & aRequiredDataVersion,
                            const SchemaVersionRange * aSchemaVersionRange,
                            const uint64_t *aPathArray,
@@ -93,7 +93,7 @@ public:
 
     WEAVE_ERROR StartElement(const uint32_t & aProfileID,
                              const uint64_t & aInstanceID,
-                             const uint64_t & aResourceID,
+                             const ResourceIdentifier & aResourceID,
                              const DataVersion & aRequiredDataVersion,
                              const SchemaVersionRange * aSchemaVersionRange,
                              const uint64_t *aPathArray,
