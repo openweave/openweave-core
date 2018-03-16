@@ -2999,6 +2999,7 @@ WEAVE_ERROR SubscriptionClient::FlushUpdate()
     SuccessOrExit(err);
 
     VerifyOrExit(!IsFlushInProgress(), WeaveLogDetail(DataManagement, "updating has been triggered, skip!"));
+    VerifyOrExit(!IsEmptyPendingUpdateStore(), WeaveLogDetail(DataManagement, "updating queue is empty, skip!"));
 
     err = SetFlushInProgress();
     SuccessOrExit(err);
