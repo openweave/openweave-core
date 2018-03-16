@@ -1335,7 +1335,7 @@ void MockWdmSubscriptionInitiatorImpl::HandleDataFlipTimeout(nl::Weave::System::
 
 #if WEAVE_CONFIG_ENABLE_WDM_UPDATE
         case kTestCase_TestUpdatableTrait1:
-            err = initiator->mTestATraitUpdatableDataSink0.Mutate(initiator->mSubscriptionClient);
+            err = initiator->mTestATraitUpdatableDataSink0.Mutate(initiator->mSubscriptionClient, true);
             SuccessOrExit(err);
 
             err = initiator->mSubscriptionClient->FlushUpdate();
@@ -1343,23 +1343,23 @@ void MockWdmSubscriptionInitiatorImpl::HandleDataFlipTimeout(nl::Weave::System::
 
             break;
         case kTestCase_TestUpdatableTrait2:
-            err = initiator->mTestATraitUpdatableDataSink0.Mutate(initiator->mSubscriptionClient);
-            SuccessOrExit(err);
-
-            err = initiator->mLocaleSettingsTraitUpdatableDataSink.Mutate(initiator->mSubscriptionClient);
+            err = initiator->mTestATraitUpdatableDataSink0.Mutate(initiator->mSubscriptionClient, false);
             SuccessOrExit(err);
 
             err = initiator->mSubscriptionClient->FlushUpdate();
             SuccessOrExit(err);
             break;
         case kTestCase_TestUpdatableTrait3:
-            err = initiator->mTestATraitUpdatableDataSink0.Mutate(initiator->mSubscriptionClient);
+            err = initiator->mTestATraitUpdatableDataSink0.Mutate(initiator->mSubscriptionClient, true);
             SuccessOrExit(err);
 
-            err = initiator->mLocaleSettingsTraitUpdatableDataSink.Mutate(initiator->mSubscriptionClient);
+            err = initiator->mTestATraitUpdatableDataSink1.Mutate(initiator->mSubscriptionClient, false);
             SuccessOrExit(err);
 
-            err = initiator->mTestBTraitUpdatableDataSink.Mutate(initiator->mSubscriptionClient);
+            err = initiator->mLocaleSettingsTraitUpdatableDataSink.Mutate(initiator->mSubscriptionClient, true);
+            SuccessOrExit(err);
+
+            err = initiator->mTestBTraitUpdatableDataSink.Mutate(initiator->mSubscriptionClient, true);
             SuccessOrExit(err);
 
             err = initiator->mSubscriptionClient->FlushUpdate();

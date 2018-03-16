@@ -2401,7 +2401,7 @@ void SubscriptionClient::OnUpdateConfirm(WEAVE_ERROR aReason, nl::Weave::Profile
 
                     mDispatchedUpdateStore.RemoveItemAt(j);
 
-                    if (mPendingUpdateStore.IsPresent(traitPath))
+                    if (updatableDataSink->IsConditionalUpdate && mPendingUpdateStore.IsPresent(traitPath))
                     {
                         updatableDataSink->SetUpdateRequiredVersion(existingVersion);
                     }
@@ -2520,7 +2520,6 @@ void SubscriptionClient::OnUpdateResponseTimeout(WEAVE_ERROR aError)
             }
 
             mDispatchedUpdateStore.RemoveItemAt(i);
-
         }
     }
 
@@ -2578,13 +2577,19 @@ WEAVE_ERROR SubscriptionClient::SetUpdated(TraitUpdatableDataSink * aDataSink, P
     WEAVE_ERROR err = WEAVE_NO_ERROR;
     TraitDataHandle dataHandle;
     bool isLocked                  = false;
-
-    VerifyOrExit(aDataSink->IsVersionValid(), WeaveLogDetail(DataManagement, "Reject mutation with error"));
-
     err = Lock();
     SuccessOrExit(err);
 
     isLocked = true;
+
+    if (aIsConditional)
+    {
+        if (!aDataSink->IsVersionValid())
+        {
+            WeaveLogDetail(DataManagement, "Reject mutation with error");
+            ExitNow();
+        }
+    }
 
     const TraitSchemaEngine * schemaEngine;
     schemaEngine = aDataSink->GetSchemaEngine();
@@ -2597,7 +2602,7 @@ WEAVE_ERROR SubscriptionClient::SetUpdated(TraitUpdatableDataSink * aDataSink, P
 
     VerifyOrExit(!mPendingUpdateStore.IsFull(), WeaveLogDetail(DataManagement, "<SetUpdated> No more space in granular store!"));
 
-    if ((!mPendingUpdateStore.IsTraitPresent(dataHandle)) && (!mDispatchedUpdateStore.IsTraitPresent(dataHandle)))
+    if (aIsConditional && (!mPendingUpdateStore.IsTraitPresent(dataHandle)) && (!mDispatchedUpdateStore.IsTraitPresent(dataHandle)))
     {
         uint64_t requiredDataVersion = aDataSink->GetVersion();
         err = aDataSink->SetUpdateRequiredVersion(requiredDataVersion);
@@ -2606,6 +2611,15 @@ WEAVE_ERROR SubscriptionClient::SetUpdated(TraitUpdatableDataSink * aDataSink, P
     }
 
     AddItemPendingUpdateStore(TraitPath(dataHandle, aPropertyHandle), schemaEngine);
+
+    if (aIsConditional)
+    {
+        aDataSink->SetConditionalUpdate();
+    }
+    else
+    {
+        aDataSink->ClearConditionalUpdate();
+    }
 
 exit:
 
@@ -2641,24 +2655,27 @@ WEAVE_ERROR SubscriptionClient::PurgePendingUpdate()
             err = mDataSinkCatalog->Locate(traitInfo->mTraitDataHandle, &dataSink);
             updatableDataSink = static_cast<TraitUpdatableDataSink *>(dataSink);
 
-            WeaveLogDetail(DataManagement, "<PurgeUpdate> current version %u", updatableDataSink->GetVersion());
-            WeaveLogDetail(DataManagement, "<PurgeUpdate> required version %u", updatableDataSink->GetUpdateRequiredVersion());
-
-            if (updatableDataSink->IsVersionValid() && updatableDataSink->GetUpdateRequiredVersion() < updatableDataSink->GetVersion())
+            if (updatableDataSink->IsConditionalUpdate())
             {
-                InEventParam inParam;
-                OutEventParam outParam;
-                inParam.Clear();
-                outParam.Clear();
-                inParam.mUpdateComplete.mClient = this;
-                inParam.mUpdateComplete.mReason = WEAVE_ERROR_MISMATCH_UPDATE_REQUIRED_VERSION;
-                mEventCallback(mAppState, kEvent_OnUpdateComplete, inParam, outParam);
+                WeaveLogDetail(DataManagement, "<PurgeUpdate> current version %u", updatableDataSink->GetVersion());
+                WeaveLogDetail(DataManagement, "<PurgeUpdate> required version %u", updatableDataSink->GetUpdateRequiredVersion());
 
-                RemoveItemPendingUpdateStore(traitInfo->mTraitDataHandle);
-                updatableDataSink->ClearUpdateRequiredVersion();
-                updatableDataSink->ClearVersion();
-                needResubscribe = true;
+                if (updatableDataSink->IsVersionValid() && updatableDataSink->GetUpdateRequiredVersion() < updatableDataSink->GetVersion())
+                {
+                    InEventParam inParam;
+                    OutEventParam outParam;
+                    inParam.Clear();
+                    outParam.Clear();
+                    inParam.mUpdateComplete.mClient = this;
+                    inParam.mUpdateComplete.mReason = WEAVE_ERROR_MISMATCH_UPDATE_REQUIRED_VERSION;
+                    mEventCallback(mAppState, kEvent_OnUpdateComplete, inParam, outParam);
 
+                    RemoveItemPendingUpdateStore(traitInfo->mTraitDataHandle);
+                    updatableDataSink->ClearUpdateRequiredVersion();
+                    updatableDataSink->ClearVersion();
+                    needResubscribe = true;
+
+                }
             }
         }
     }
@@ -3034,6 +3051,7 @@ void SubscriptionClient::InitUpdatableSinkTrait(void * aDataSink, TraitDataHandl
 
     subClient = static_cast<SubscriptionClient *>(aContext);
     updatableDataSink->SetSubScriptionClient(subClient);
+    updatableDataSink->ClearUpdateRequiredVersion();
 
     if (subClient->mNumUpdatableTraitInstances < WDM_CLIENT_MAX_NUM_UPDATABLE_TRAITS)
     {

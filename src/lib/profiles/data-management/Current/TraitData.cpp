@@ -929,22 +929,30 @@ WEAVE_ERROR TraitDataSink::StoreDataElement(PropertyPathHandle aHandle, TLVReade
 #if WEAVE_CONFIG_ENABLE_WDM_UPDATE
             if (IsUpdatableDataSink())
             {
-                if (IsVersionValid() || versionInDE > mVersion) {
-                    if (GetUpdateRequiredVersion() == 0) {
-                        filterPendingUpdate = false;
-                        filterDispatchedUpdate = false;
-                    } else if (versionInDE <= GetUpdateRequiredVersion()) {
-                        filterPendingUpdate = true;
-                        filterDispatchedUpdate = true;
-                    } else {
-                        if (GetSubscriptionClient()->IsUpdateInFlight()) {
-                            filterPendingUpdate = true;
-                            filterDispatchedUpdate = false;
-                        } else {
+                if (IsConditionalUpdate())
+                {
+                    if (IsVersionValid() || versionInDE > mVersion) {
+                        if (GetUpdateRequiredVersion() == 0) {
                             filterPendingUpdate = false;
                             filterDispatchedUpdate = false;
+                        } else if (versionInDE <= GetUpdateRequiredVersion()) {
+                            filterPendingUpdate = true;
+                            filterDispatchedUpdate = true;
+                        } else {
+                            if (GetSubscriptionClient()->IsUpdateInFlight()) {
+                                filterPendingUpdate = true;
+                                filterDispatchedUpdate = false;
+                            } else {
+                                filterPendingUpdate = false;
+                                filterDispatchedUpdate = false;
+                            }
                         }
                     }
+                }
+                else
+                {
+                    filterPendingUpdate = true;
+                    filterDispatchedUpdate = false;
                 }
             }
 #endif // WEAVE_CONFIG_ENABLE_WDM_UPDATE

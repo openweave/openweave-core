@@ -679,6 +679,10 @@ public:
 
     virtual WEAVE_ERROR SetUpdateRequiredVersion(uint64_t aUpdateRequiredVersion) { return WEAVE_NO_ERROR; };
 
+    virtual bool IsConditionalUpdate(void) { return false; }
+    virtual void SetConditionalUpdate(void) {  }
+    virtual void ClearConditionalUpdate(void) {  }
+
     virtual WEAVE_ERROR SetSubScriptionClient(SubscriptionClient * apSubClient) { return WEAVE_NO_ERROR; };
 
 #endif // WEAVE_CONFIG_ENABLE_WDM_UPDATE
@@ -763,7 +767,12 @@ private:
     virtual void ClearUpdateRequiredVersion(void) { mUpdateRequiredVersion = 0; }
     virtual WEAVE_ERROR SetUpdateRequiredVersion (uint64_t aUpdateRequiredVersion);
 
+    virtual bool IsConditionalUpdate(void) { return mConditionalUpdate; }
+    virtual void SetConditionalUpdate(void) { mConditionalUpdate = true; }
+    virtual void ClearConditionalUpdate(void) { mConditionalUpdate = false; }
+
     uint64_t mUpdateRequiredVersion;
+    bool mConditionalUpdate;
     SubscriptionClient * mpSubClient;
 };
 #endif    // WEAVE_CONFIG_ENABLE_WDM_UPDATE

@@ -335,8 +335,13 @@ WEAVE_ERROR UpdateClient::StartElement(const uint32_t &aProfileID,
 
     if (aRequiredDataVersion != 0x0)
     {
+        WeaveLogDetail(DataManagement, "<UC:Run> conditional update");
         err = aOuterWriter.Put(nl::Weave::TLV::ContextTag(DataElement::kCsTag_Version), aRequiredDataVersion);
         SuccessOrExit(err);
+    }
+    else
+    {
+        WeaveLogDetail(DataManagement, "<UC:Run> unconditional update");
     }
 
     MoveToState(kState_BuildDataElement);
@@ -524,6 +529,8 @@ exit:
 WEAVE_ERROR UpdateClient::SendUpdate(bool aIsPartialUpdate)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
+    nl::Weave::TLV::TLVReader reader;
+    UpdateRequest::Parser parser;
 
     VerifyOrExit(NULL != mpBuf, err = WEAVE_ERROR_NO_MEMORY);
 
@@ -546,6 +553,12 @@ WEAVE_ERROR UpdateClient::SendUpdate(bool aIsPartialUpdate)
     mEC->OnMessageReceived = OnMessageReceived;
     mEC->OnResponseTimeout = OnResponseTimeout;
     mEC->OnSendError = OnSendError;
+
+    // this would be used in development stage, finally need to be removed.
+    reader.Init(mpBuf);
+    reader.Next();
+    parser.Init(reader);
+    parser.CheckSchemaValidity();
 
     if (aIsPartialUpdate)
     {

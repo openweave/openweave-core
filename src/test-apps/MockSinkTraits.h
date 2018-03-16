@@ -63,7 +63,7 @@ class LocaleSettingsTraitUpdatableDataSink : public MockTraitUpdatableDataSink
 {
 public:
     LocaleSettingsTraitUpdatableDataSink();
-    WEAVE_ERROR Mutate(SubscriptionClient * apSubClient);
+    WEAVE_ERROR Mutate(SubscriptionClient * apSubClient, bool aIsConditional);
 
 private:
     WEAVE_ERROR SetLeafData(nl::Weave::Profiles::DataManagement::PropertyPathHandle aLeafHandle, nl::Weave::TLV::TLVReader &aReader) __OVERRIDE;
@@ -84,7 +84,7 @@ public:
 
     WEAVE_ERROR OnEvent(uint16_t aType, void *aInParam) __OVERRIDE;
 
-    WEAVE_ERROR Mutate(SubscriptionClient * apSubClient);
+    WEAVE_ERROR Mutate(SubscriptionClient * apSubClient, bool aIsConditional);
     uint32_t mTraitTestSet = 0;
 
 private:
@@ -148,7 +148,7 @@ class TestBTraitUpdatableDataSink : public MockTraitUpdatableDataSink
 {
 public:
     TestBTraitUpdatableDataSink();
-    WEAVE_ERROR Mutate(SubscriptionClient * apSubClient);
+    WEAVE_ERROR Mutate(SubscriptionClient * apSubClient, bool aIsConditional);
 
 private:
     void SetNullifiedPath(nl::Weave::Profiles::DataManagement::PropertyPathHandle aHandle, bool isNull);
