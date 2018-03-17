@@ -894,6 +894,8 @@ void SubscriptionClient::AbortSubscription(void)
         mBinding = NULL;
 
 #if WEAVE_CONFIG_ENABLE_WDM_UPDATE
+        ClearPendingUpdateStore();
+        ClearDispatchedUpdateStore();
         ShutdownUpdateClient();
 #endif // WEAVE_CONFIG_ENABLE_WDM_UPDATE
         // Note that ref count is not touched at here, as _Abort doesn't change the ownership
