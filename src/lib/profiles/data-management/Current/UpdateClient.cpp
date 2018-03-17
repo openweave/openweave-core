@@ -529,8 +529,11 @@ exit:
 WEAVE_ERROR UpdateClient::SendUpdate(bool aIsPartialUpdate)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
+
+#if WEAVE_CONFIG_DATA_MANAGEMENT_ENABLE_SCHEMA_CHECK
     nl::Weave::TLV::TLVReader reader;
     UpdateRequest::Parser parser;
+#endif //WEAVE_CONFIG_DATA_MANAGEMENT_ENABLE_SCHEMA_CHECK
 
     VerifyOrExit(NULL != mpBuf, err = WEAVE_ERROR_NO_MEMORY);
 
@@ -554,11 +557,12 @@ WEAVE_ERROR UpdateClient::SendUpdate(bool aIsPartialUpdate)
     mEC->OnResponseTimeout = OnResponseTimeout;
     mEC->OnSendError = OnSendError;
 
-    // this would be used in development stage, finally need to be removed.
+#if WEAVE_CONFIG_DATA_MANAGEMENT_ENABLE_SCHEMA_CHECK
     reader.Init(mpBuf);
     reader.Next();
     parser.Init(reader);
     parser.CheckSchemaValidity();
+#endif //WEAVE_CONFIG_DATA_MANAGEMENT_ENABLE_SCHEMA_CHECK
 
     if (aIsPartialUpdate)
     {

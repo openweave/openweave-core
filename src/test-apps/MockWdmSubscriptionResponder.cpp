@@ -1086,8 +1086,17 @@ void MockWdmSubscriptionResponderImpl::IncomingUpdateRequest(nl::Weave::Exchange
     static bool notification_first_ordering = false;
     uint32_t num_update_tests = 7;
     WEAVE_ERROR     err     = WEAVE_NO_ERROR;
+    nl::Weave::TLV::TLVReader reader;
+    UpdateRequest::Parser parser;
+    uint8_t statusReportLen = 6;
+    uint8_t * p;
     WeaveLogDetail(DataManagement, "Incoming Update Request");
     MockWdmSubscriptionResponderImpl * pResponder = reinterpret_cast<MockWdmSubscriptionResponderImpl *>(ec->AppState);
+
+    reader.Init(payload);
+    reader.Next();
+    parser.Init(reader);
+    parser.CheckSchemaValidity();
 
     if (num_update_iterations == 0)
     {
@@ -1124,9 +1133,9 @@ void MockWdmSubscriptionResponderImpl::IncomingUpdateRequest(nl::Weave::Exchange
     }
 
     num_update_iterations = num_update_iterations % num_update_tests;
-    nl::Weave::TLV::TLVReader reader;
-    uint8_t statusReportLen = 6;
-    uint8_t * p;
+
+    WeaveLogDetail(DataManagement, "dump status report");
+
     reader.Init(payload);
     DebugPrettyPrint(reader);
 

@@ -2401,9 +2401,16 @@ void SubscriptionClient::OnUpdateConfirm(WEAVE_ERROR aReason, nl::Weave::Profile
 
                     mDispatchedUpdateStore.RemoveItemAt(j);
 
-                    if (updatableDataSink->IsConditionalUpdate && mPendingUpdateStore.IsPresent(traitPath))
+                    if (updatableDataSink->IsConditionalUpdate)
                     {
-                        updatableDataSink->SetUpdateRequiredVersion(existingVersion);
+                        if (mPendingUpdateStore.IsPresent(traitPath))
+                        {
+                            updatableDataSink->SetUpdateRequiredVersion(existingVersion);
+                        }
+                        else
+                        {
+                            updatableDataSink->SetUpdateRequiredVersion(0);
+                        }
                     }
                 }
                 else
@@ -2587,6 +2594,7 @@ WEAVE_ERROR SubscriptionClient::SetUpdated(TraitUpdatableDataSink * aDataSink, P
         if (!aDataSink->IsVersionValid())
         {
             WeaveLogDetail(DataManagement, "Reject mutation with error");
+            err = WEAVE_ERROR_INCORRECT_STATE;
             ExitNow();
         }
     }

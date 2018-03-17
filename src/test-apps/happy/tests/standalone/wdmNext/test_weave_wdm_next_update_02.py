@@ -21,7 +21,7 @@
 #
 #    @file
 #       Calls Weave WDM Update between nodes.
-#       O01: Update: Client send unconditional update request to publisher, and receive status report
+#       O02: Update: Client send unconditional update request to publisher, and receive status report
 #
 
 import unittest
@@ -30,7 +30,7 @@ from weave_wdm_next_test_base import weave_wdm_next_test_base
 import WeaveUtilities
 
 
-class test_weave_wdm_next_update_01(weave_wdm_next_test_base):
+class test_weave_wdm_next_update_02(weave_wdm_next_test_base):
 
     def test_weave_wdm_next_mutual_subscribe_01(self):
         wdm_next_args = {}
@@ -56,10 +56,10 @@ class test_weave_wdm_next_update_01(weave_wdm_next_test_base):
         wdm_next_args['client_log_check'] = [('Update: Good Iteration', wdm_next_args['test_client_iterations'] * wdm_next_args['total_client_count'])]
         wdm_next_args['server_log_check'] = []
         wdm_next_args['test_tag'] = self.__class__.__name__[19:].upper()
-        wdm_next_args['test_case_name'] = ['O01: Update: Client creates mutual subscription, send unconditional update request to publisher, and receive status report']
+        wdm_next_args['test_case_name'] = ['O02: Update: Client creates mutual subscription, send unconditional update request to publisher, and receive status report']
         print 'test file: ' + self.__class__.__name__
-        print "weave-wdm-next update test O01"
-        super(test_weave_wdm_next_update_01, self).weave_wdm_next_test_base(wdm_next_args)
+        print "weave-wdm-next update test O02"
+        super(test_weave_wdm_next_update_02, self).weave_wdm_next_test_base(wdm_next_args)
 
 
 if __name__ == "__main__":

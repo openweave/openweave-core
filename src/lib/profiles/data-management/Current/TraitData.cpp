@@ -929,30 +929,36 @@ WEAVE_ERROR TraitDataSink::StoreDataElement(PropertyPathHandle aHandle, TLVReade
 #if WEAVE_CONFIG_ENABLE_WDM_UPDATE
             if (IsUpdatableDataSink())
             {
-                if (IsConditionalUpdate())
+                SubscriptionClient * subClient = GetSubscriptionClient();
+
+                if (IsVersionValid() || versionInDE > mVersion)
                 {
-                    if (IsVersionValid() || versionInDE > mVersion) {
-                        if (GetUpdateRequiredVersion() == 0) {
-                            filterPendingUpdate = false;
-                            filterDispatchedUpdate = false;
-                        } else if (versionInDE <= GetUpdateRequiredVersion()) {
-                            filterPendingUpdate = true;
-                            filterDispatchedUpdate = true;
-                        } else {
-                            if (GetSubscriptionClient()->IsUpdateInFlight()) {
+                    if ((NULL != subClient) && !subClient->IsEmptyPendingUpdateStore() || !subClient->IsEmptyDispatchedUpdateStore())
+                    {
+                        filterPendingUpdate = false;
+                        filterDispatchedUpdate = false;
+                    }
+                    else
+                    {
+                        if (IsConditionalUpdate())
+                        {
+                            if (GetSubscriptionClient()->IsUpdateInFlight())
+                            {
                                 filterPendingUpdate = true;
                                 filterDispatchedUpdate = false;
-                            } else {
+                            }
+                            else
+                            {
                                 filterPendingUpdate = false;
                                 filterDispatchedUpdate = false;
                             }
                         }
+                        else
+                        {
+                            filterPendingUpdate = true;
+                            filterDispatchedUpdate = false;
+                        }
                     }
-                }
-                else
-                {
-                    filterPendingUpdate = true;
-                    filterDispatchedUpdate = false;
                 }
             }
 #endif // WEAVE_CONFIG_ENABLE_WDM_UPDATE

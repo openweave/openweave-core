@@ -1693,7 +1693,7 @@ WEAVE_ERROR TestATraitUpdatableDataSink::Mutate(SubscriptionClient * apSubClient
 
     if (mTraitTestSet == 0)
     {
-        static const uint8_t kNumTestCases = 9;
+        static const uint8_t kNumTestCases = 8;
 
         if ((mTestCounter % kNumTestCases) == 0) {
             //mock sink 3 leaf properties changes, source 3 leaf properties changes
@@ -1816,13 +1816,7 @@ WEAVE_ERROR TestATraitUpdatableDataSink::Mutate(SubscriptionClient * apSubClient
                 tai_map[i] = { (uint32_t)i + 1 };
             }
 
-            err = SetUpdated(apSubClient, TestATrait::kPropertyHandle_TaD_SaA, aIsConditional);
-            SuccessOrExit(err);
-
             err = SetUpdated(apSubClient, TestATrait::kPropertyHandle_TaA, aIsConditional);
-            SuccessOrExit(err);
-
-            err = SetUpdated(apSubClient, TestATrait::kPropertyHandle_TaD, aIsConditional);
             SuccessOrExit(err);
 
             if (taa == TestATrait::ENUM_A_VALUE_1) {
@@ -1831,36 +1825,8 @@ WEAVE_ERROR TestATraitUpdatableDataSink::Mutate(SubscriptionClient * apSubClient
             else {
                 taa = TestATrait::ENUM_A_VALUE_1;
             }
-
-            tad.saB = !tad.saB;
         }
         else if ((mTestCounter % kNumTestCases) == 8) {
-            // sink, all merge with root handle, cut dictionary
-            err = SetUpdated(apSubClient, TestATrait::kPropertyHandle_Root, aIsConditional);
-            SuccessOrExit(err);
-
-            err = SetUpdated(apSubClient, TestATrait::kPropertyHandle_TaD_SaA, aIsConditional);
-            SuccessOrExit(err);
-
-            err = SetUpdated(apSubClient, TestATrait::kPropertyHandle_TaA, aIsConditional);
-            SuccessOrExit(err);
-
-            err = SetUpdated(apSubClient, TestATrait::kPropertyHandle_TaD, aIsConditional);
-            SuccessOrExit(err);
-
-            err = SetUpdated(apSubClient, TestATrait::kPropertyHandle_TaI, aIsConditional);
-            SuccessOrExit(err);
-
-            if (taa == TestATrait::ENUM_A_VALUE_1) {
-                taa = TestATrait::ENUM_A_VALUE_2;
-            }
-            else {
-                taa = TestATrait::ENUM_A_VALUE_1;
-            }
-
-            tad.saB = !tad.saB;
-        }
-        else if ((mTestCounter % kNumTestCases) == 9) {
             // sink, all merge with root handle, cut oversized dictionary
             // real service, which need update fragmentation
             WeaveLogDetail(DataManagement, "It is failing with update fragmentation");
