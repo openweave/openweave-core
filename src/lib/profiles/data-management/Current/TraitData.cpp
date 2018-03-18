@@ -930,10 +930,16 @@ WEAVE_ERROR TraitDataSink::StoreDataElement(PropertyPathHandle aHandle, TLVReade
             if (IsUpdatableDataSink())
             {
                 SubscriptionClient * subClient = GetSubscriptionClient();
-
-                if (IsVersionValid() || versionInDE > mVersion)
+                if (NULL == subClient)
                 {
-                    if ((NULL != subClient) && !subClient->IsEmptyPendingUpdateStore() || !subClient->IsEmptyDispatchedUpdateStore())
+                    WeaveLogDetail(DataManagement, "subClient is not set in UpdatableDataSink");
+                    err = WEAVE_ERROR_INCORRECT_STATE;
+                    SuccessOrExit(err);
+                }
+
+                if (IsVersionValid() || versionInDE >= mVersion)
+                {
+                    if (!subClient->IsEmptyPendingUpdateStore() || !subClient->IsEmptyDispatchedUpdateStore())
                     {
                         filterPendingUpdate = false;
                         filterDispatchedUpdate = false;
@@ -942,15 +948,23 @@ WEAVE_ERROR TraitDataSink::StoreDataElement(PropertyPathHandle aHandle, TLVReade
                     {
                         if (IsConditionalUpdate())
                         {
-                            if (GetSubscriptionClient()->IsUpdateInFlight())
+                            if (versionInDE == GetUpdateRequiredVersion())
                             {
                                 filterPendingUpdate = true;
-                                filterDispatchedUpdate = false;
+                                filterDispatchedUpdate = true;
                             }
                             else
                             {
-                                filterPendingUpdate = false;
-                                filterDispatchedUpdate = false;
+                                if (GetSubscriptionClient()->IsUpdateInFlight())
+                                {
+                                    filterPendingUpdate = true;
+                                    filterDispatchedUpdate = false;
+                                }
+                                else
+                                {
+                                    filterPendingUpdate = false;
+                                    filterDispatchedUpdate = false;
+                                }
                             }
                         }
                         else
