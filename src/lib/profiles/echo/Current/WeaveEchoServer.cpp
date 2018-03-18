@@ -78,6 +78,12 @@ void WeaveEchoServer::HandleEchoRequest(ExchangeContext *ec, const IPPacketInfo 
     if (echoApp->OnEchoRequestReceived != NULL)
         echoApp->OnEchoRequestReceived(ec->PeerNodeId, ec->PeerAddr, payload);
 
+    // Since we are re-using the inbound EchoRequest buffer to send the EchoResponse, if necessary,
+    // adjust the position of the payload within the buffer to ensure there is enough room for the
+    // outgoing network headers.  This is necessary because in some network stack configurations,
+    // the incoming header size may be smaller than the outgoing size.
+    payload->EnsureReservedSize(WEAVE_SYSTEM_CONFIG_HEADER_RESERVE_SIZE);
+
     // Send an Echo Response back to the sender.
     ec->SendMessage(kWeaveProfile_Echo, kEchoMessageType_EchoResponse, payload);
 

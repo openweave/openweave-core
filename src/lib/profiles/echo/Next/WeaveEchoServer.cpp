@@ -240,6 +240,12 @@ void WeaveEchoServer::SendEchoResponse(System::Layer * systemLayer, void * appSt
     // Exit immediately if the server object has been shutdown.
     VerifyOrExit(server->ExchangeMgr != NULL, err = WEAVE_ERROR_INCORRECT_STATE);
 
+    // Since we may be re-using the inbound EchoRequest buffer to send the EchoResponse, if necessary,
+    // adjust the position of the payload within the buffer to ensure there is enough room for the
+    // outgoing network headers.  This is necessary because in some network stack configurations, the
+    // incoming header size may be smaller than the outgoing size.
+    payload->EnsureReservedSize(WEAVE_SYSTEM_CONFIG_HEADER_RESERVE_SIZE);
+
     // Send an Echo Response message back to the sender containing the given payload.
     err = ec->SendMessage(kWeaveProfile_Echo, kEchoMessageType_EchoResponse, payload);
     payload = NULL;
