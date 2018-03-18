@@ -73,7 +73,9 @@
  *      This defines the base or minimum Weave System Layer error number range, when passing through errors from an underlying LWIP
  *      stack.
  */
+#ifndef WEAVE_SYSTEM_LWIP_ERROR_MIN
 #define WEAVE_SYSTEM_LWIP_ERROR_MIN 3000
+#endif // WEAVE_SYSTEM_LWIP_ERROR_MIN
 
 /**
  *  @def WEAVE_SYSTEM_LWIP_ERROR_MAX
@@ -82,7 +84,9 @@
  *      This defines the base or maximum Weave System Layer error number range, when passing through errors from an underlying LWIP
  *      layer.
  */
+#ifndef WEAVE_SYSTEM_LWIP_ERROR_MAX
 #define WEAVE_SYSTEM_LWIP_ERROR_MAX 3999
+#endif // WEAVE_SYSTEM_LWIP_ERROR_MAX
 
 #endif // !WEAVE_SYSTEM_CONFIG_PLATFORM_PROVIDES_LWIP_ERROR_FUNCTIONS
 #endif // WEAVE_SYSTEM_CONFIG_USE_LWIP
