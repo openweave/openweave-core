@@ -939,7 +939,7 @@ WEAVE_ERROR TraitDataSink::StoreDataElement(PropertyPathHandle aHandle, TLVReade
 
                 if (IsVersionValid() || versionInDE >= mVersion)
                 {
-                    if (!subClient->IsEmptyPendingUpdateStore() || !subClient->IsEmptyDispatchedUpdateStore())
+                    if (subClient->IsEmptyPendingUpdateStore() && subClient->IsEmptyDispatchedUpdateStore())
                     {
                         filterPendingUpdate = false;
                         filterDispatchedUpdate = false;
