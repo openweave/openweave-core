@@ -109,10 +109,12 @@ bool InitWeaveStack()
         return false;
     }
 
-    if (!InitWeaveServers())
-    {
-        return false;
-    }
+    // Initialize Weave servers.
+    return (InitEchoServer() &&
+            InitDeviceDescriptionServer() &&
+            InitDeviceControlServer() &&
+            InitFabricProvisioningServer() &&
+            InitServiceProvisioningServer());
 
     return true;
 }

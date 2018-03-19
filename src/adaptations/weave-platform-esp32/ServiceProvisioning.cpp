@@ -13,10 +13,14 @@ using namespace ::nl::Weave;
 using namespace ::nl::Weave::Profiles;
 using namespace ::nl::Weave::Profiles::ServiceProvisioning;
 
-class ServiceProvisioningDelegate
-        : public ::nl::Weave::Profiles::ServiceProvisioning::ServiceProvisioningDelegate
+class ServiceProvisioningServer
+        : public ::nl::Weave::Profiles::ServiceProvisioning::ServiceProvisioningServer,
+          public ::nl::Weave::Profiles::ServiceProvisioning::ServiceProvisioningDelegate
 {
 public:
+    typedef ::nl::Weave::Profiles::ServiceProvisioning::ServiceProvisioningServer ServerBaseClass;
+
+    WEAVE_ERROR Init(WeaveExchangeManager *exchangeMgr);
     virtual WEAVE_ERROR HandleRegisterServicePairAccount(RegisterServicePairAccountMessage& msg);
     virtual WEAVE_ERROR HandleUpdateService(UpdateServiceMessage& msg);
     virtual WEAVE_ERROR HandleUnregisterService(uint64_t serviceId);
@@ -25,7 +29,6 @@ public:
 };
 
 static ServiceProvisioningServer gServiceProvisioningServer;
-static ServiceProvisioningDelegate gServiceProvisioningDelegate;
 
 bool InitServiceProvisioningServer()
 {
@@ -35,10 +38,6 @@ bool InitServiceProvisioningServer()
 
     err = gServiceProvisioningServer.Init(&ExchangeMgr);
     SuccessOrExit(err);
-
-    new (&gServiceProvisioningDelegate) ServiceProvisioningDelegate();
-
-    gServiceProvisioningServer.SetDelegate(&gServiceProvisioningDelegate);
 
 exit:
     if (err == WEAVE_NO_ERROR)
@@ -52,7 +51,22 @@ exit:
     return (err == WEAVE_NO_ERROR);
 }
 
-WEAVE_ERROR ServiceProvisioningDelegate::HandleRegisterServicePairAccount(RegisterServicePairAccountMessage& msg)
+WEAVE_ERROR ServiceProvisioningServer::Init(WeaveExchangeManager *exchangeMgr)
+{
+    WEAVE_ERROR err;
+
+    // Call init on the server base class.
+    err = ServerBaseClass::Init(exchangeMgr);
+    SuccessOrExit(err);
+
+    // Set the pointer to the delegate object.
+    SetDelegate(this);
+
+exit:
+    return err;
+}
+
+WEAVE_ERROR ServiceProvisioningServer::HandleRegisterServicePairAccount(RegisterServicePairAccountMessage& msg)
 {
     WEAVE_ERROR err;
     uint64_t curServiceId;
@@ -90,7 +104,7 @@ exit:
     return err;
 }
 
-WEAVE_ERROR ServiceProvisioningDelegate::HandleUpdateService(UpdateServiceMessage& msg)
+WEAVE_ERROR ServiceProvisioningServer::HandleUpdateService(UpdateServiceMessage& msg)
 {
     WEAVE_ERROR err;
     uint64_t curServiceId;
@@ -126,7 +140,7 @@ exit:
     return err;
 }
 
-WEAVE_ERROR ServiceProvisioningDelegate::HandleUnregisterService(uint64_t serviceId)
+WEAVE_ERROR ServiceProvisioningServer::HandleUnregisterService(uint64_t serviceId)
 {
     WEAVE_ERROR err;
     uint64_t curServiceId;
@@ -155,12 +169,12 @@ exit:
     return err;
 }
 
-void ServiceProvisioningDelegate::HandlePairDeviceToAccountResult(WEAVE_ERROR localErr, uint32_t serverStatusProfileId, uint16_t serverStatusCode)
+void ServiceProvisioningServer::HandlePairDeviceToAccountResult(WEAVE_ERROR localErr, uint32_t serverStatusProfileId, uint16_t serverStatusCode)
 {
     // TODO: implement this
 }
 
-bool ServiceProvisioningDelegate::IsPairedToAccount() const
+bool ServiceProvisioningServer::IsPairedToAccount() const
 {
     return ConfigMgr.IsServiceProvisioned();
 }

@@ -32,9 +32,13 @@ extern const uint8_t gTestDevicePrivateKey[];
 extern const uint16_t gTestDevicePrivateKeyLength;
 
 extern bool InitWeaveEventQueue();
-extern bool InitWeaveServers();
 extern bool InitCASEAuthDelegate();
+extern bool InitWeaveServers();
+extern bool InitEchoServer();
+extern bool InitDeviceDescriptionServer();
+extern bool InitDeviceControlServer();
 extern bool InitFabricProvisioningServer();
+extern bool InitServiceProvisioningServer();
 extern int GetEntropy_ESP32(uint8_t *buf, size_t bufSize);
 
 } // namespace Internal

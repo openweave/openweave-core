@@ -11,10 +11,14 @@ using namespace ::nl;
 using namespace ::nl::Weave;
 using namespace ::nl::Weave::Profiles::FabricProvisioning;
 
-class FabricProvisioningDelegate
-        : public ::nl::Weave::Profiles::FabricProvisioning::FabricProvisioningDelegate
+class FabricProvisioningServer
+        : public ::nl::Weave::Profiles::FabricProvisioning::FabricProvisioningServer,
+          public ::nl::Weave::Profiles::FabricProvisioning::FabricProvisioningDelegate
 {
 public:
+    typedef ::nl::Weave::Profiles::FabricProvisioning::FabricProvisioningServer ServerBaseClass;
+
+    WEAVE_ERROR Init(WeaveExchangeManager *exchangeMgr);
     virtual WEAVE_ERROR HandleCreateFabric(void);
     virtual WEAVE_ERROR HandleJoinExistingFabric(void);
     virtual WEAVE_ERROR HandleLeaveFabric(void);
@@ -23,7 +27,6 @@ public:
 };
 
 static FabricProvisioningServer gFabricProvisioningServer;
-static FabricProvisioningDelegate gFabricProvisioningDelegate;
 
 bool InitFabricProvisioningServer()
 {
@@ -33,10 +36,6 @@ bool InitFabricProvisioningServer()
 
     err = gFabricProvisioningServer.Init(&ExchangeMgr);
     SuccessOrExit(err);
-
-    new (&gFabricProvisioningDelegate) FabricProvisioningDelegate();
-
-    gFabricProvisioningServer.SetDelegate(&gFabricProvisioningDelegate);
 
 exit:
     if (err == WEAVE_NO_ERROR)
@@ -50,39 +49,54 @@ exit:
     return (err == WEAVE_NO_ERROR);
 }
 
-WEAVE_ERROR FabricProvisioningDelegate::HandleCreateFabric(void)
+WEAVE_ERROR FabricProvisioningServer::Init(WeaveExchangeManager *exchangeMgr)
 {
     WEAVE_ERROR err;
 
-    err = ConfigMgr.StoreFabricId(FabricState.FabricId);
+    // Call init on the server base class.
+    err = ServerBaseClass::Init(exchangeMgr);
     SuccessOrExit(err);
 
-    ESP_LOGI(TAG, "Weave fabric created; fabric id %016" PRIX64, FabricState.FabricId);
+    // Set the pointer to the delegate object.
+    SetDelegate(this);
 
-    err = gFabricProvisioningServer.SendSuccessResponse();
+exit:
+    return err;
+}
+
+WEAVE_ERROR FabricProvisioningServer::HandleCreateFabric(void)
+{
+    WEAVE_ERROR err;
+
+    err = ConfigMgr.StoreFabricId(::WeavePlatform::FabricState.FabricId);
+    SuccessOrExit(err);
+
+    ESP_LOGI(TAG, "Weave fabric created; fabric id %016" PRIX64, ::WeavePlatform::FabricState.FabricId);
+
+    err = SendSuccessResponse();
     SuccessOrExit(err);
 
 exit:
     return err;
 }
 
-WEAVE_ERROR FabricProvisioningDelegate::HandleJoinExistingFabric(void)
+WEAVE_ERROR FabricProvisioningServer::HandleJoinExistingFabric(void)
 {
     WEAVE_ERROR err;
 
-    err = ConfigMgr.StoreFabricId(FabricState.FabricId);
+    err = ConfigMgr.StoreFabricId(::WeavePlatform::FabricState.FabricId);
     SuccessOrExit(err);
 
-    ESP_LOGI(TAG, "Join existing Weave fabric; fabric id %016" PRIX64, FabricState.FabricId);
+    ESP_LOGI(TAG, "Join existing Weave fabric; fabric id %016" PRIX64, ::WeavePlatform::FabricState.FabricId);
 
-    err = gFabricProvisioningServer.SendSuccessResponse();
+    err = SendSuccessResponse();
     SuccessOrExit(err);
 
 exit:
     return err;
 }
 
-WEAVE_ERROR FabricProvisioningDelegate::HandleLeaveFabric(void)
+WEAVE_ERROR FabricProvisioningServer::HandleLeaveFabric(void)
 {
     WEAVE_ERROR err;
 
@@ -91,20 +105,20 @@ WEAVE_ERROR FabricProvisioningDelegate::HandleLeaveFabric(void)
 
     ESP_LOGI(TAG, "Leave Weave fabric");
 
-    err = gFabricProvisioningServer.SendSuccessResponse();
+    err = SendSuccessResponse();
     SuccessOrExit(err);
 
 exit:
     return err;
 }
 
-WEAVE_ERROR FabricProvisioningDelegate::HandleGetFabricConfig(void)
+WEAVE_ERROR FabricProvisioningServer::HandleGetFabricConfig(void)
 {
     // Nothing to do
     return WEAVE_NO_ERROR;
 }
 
-bool FabricProvisioningDelegate::IsPairedToAccount() const
+bool FabricProvisioningServer::IsPairedToAccount() const
 {
     return ConfigMgr.IsServiceProvisioned();
 }
