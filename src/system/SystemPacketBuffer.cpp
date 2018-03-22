@@ -68,10 +68,12 @@ static BufferPoolElement sBufferPool[WEAVE_SYSTEM_CONFIG_PACKETBUFFER_MAXALLOC];
 
 PacketBuffer* PacketBuffer::sFreeList = PacketBuffer::BuildFreeList();
 
+#if !WEAVE_SYSTEM_CONFIG_NO_LOCKING
 static Mutex sBufferPoolMutex;
 
 #define LOCK_BUF_POOL()     do { sBufferPoolMutex.Lock(); } while (0)
 #define UNLOCK_BUF_POOL()   do { sBufferPoolMutex.Unlock(); } while (0)
+#endif // !WEAVE_SYSTEM_CONFIG_NO_LOCKING
 
 #endif // WEAVE_SYSTEM_CONFIG_PACKETBUFFER_MAXALLOC
 

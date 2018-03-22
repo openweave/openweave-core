@@ -135,7 +135,35 @@ Weave::System::LwIPEventHandlerDelegate InetLayer::sInetEventHandlerDelegate;
 #endif // WEAVE_SYSTEM_CONFIG_USE_LWIP
 
 #if INET_CONFIG_MAX_DROPPABLE_EVENTS && WEAVE_SYSTEM_CONFIG_USE_LWIP
-#if WEAVE_SYSTEM_CONFIG_FREERTOS_LOCKING
+
+#if WEAVE_SYSTEM_CONFIG_NO_LOCKING
+
+INET_ERROR InetLayer::InitQueueLimiter(void)
+{
+    mDroppableEvents = 0;
+    return INET_NO_ERROR;
+}
+
+bool InetLayer::CanEnqueueDroppableEvent(void)
+{
+    if (__sync_add_and_fetch(&mDroppableEvents, 1) <= INET_CONFIG_MAX_DROPPABLE_EVENTS)
+    {
+        return true;
+    }
+    else
+    {
+        __sync_add_and_fetch(&mDroppableEvents, -1);
+        return false;
+    }
+}
+
+void InetLayer::DroppableEventDequeued(void)
+{
+    __sync_add_and_fetch(&mDroppableEvents, -1);
+}
+
+#elif WEAVE_SYSTEM_CONFIG_FREERTOS_LOCKING
+
 INET_ERROR InetLayer::InitQueueLimiter(void)
 {
     const unsigned portBASE_TYPE maximum = INET_CONFIG_MAX_DROPPABLE_EVENTS;

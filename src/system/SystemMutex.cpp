@@ -28,6 +28,8 @@
 // Include common private header
 #include "SystemLayerPrivate.h"
 
+#if !WEAVE_SYSTEM_CONFIG_NO_LOCKING
+
 // Include system headers
 #include <errno.h>
 
@@ -107,3 +109,5 @@ NL_DLL_EXPORT void Mutex::Lock(void)
 } // namespace System
 } // namespace Weave
 } // namespace nl
+
+#endif // !WEAVE_SYSTEM_CONFIG_NO_LOCKING

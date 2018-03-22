@@ -96,19 +96,17 @@
 #endif // WEAVE_SYSTEM_CONFIG_USE_SOCKETS
 
 #if INET_CONFIG_MAX_DROPPABLE_EVENTS
+
 #if WEAVE_SYSTEM_CONFIG_POSIX_LOCKING
 #include <pthread.h>
 #include <semaphore.h>
-#define nlInetSemaphoreType sem_t
 #endif // WEAVE_SYSTEM_CONFIG_POSIX_LOCKING
 
 #if WEAVE_SYSTEM_CONFIG_FREERTOS_LOCKING
 #include <FreeRTOS.h>
 #include <semphr.h>
-#define nlInetSemaphoreType xSemaphoreHandle
 #endif // WEAVE_SYSTEM_CONFIG_FREERTOS_LOCKING
 
-#define nlInetDeclareSemaphore(name) nlInetSemaphoreType name
 #endif // INET_CONFIG_MAX_DROPPABLE_EVENTS
 
 namespace nl {
@@ -329,7 +327,14 @@ class NL_DLL_EXPORT InetLayer
     bool              CanEnqueueDroppableEvent(void);
     void              DroppableEventDequeued(void);
 
-    nlInetDeclareSemaphore(mDroppableEvents);
+#if WEAVE_SYSTEM_CONFIG_NO_LOCKING
+    volatile int32_t mDroppableEvents;
+#elif WEAVE_SYSTEM_CONFIG_POSIX_LOCKING
+    sem_t mDroppableEvents;
+#elif WEAVE_SYSTEM_CONFIG_FREERTOS_LOCKING
+    xSemaphoreHandle mDroppableEvents;
+#endif // WEAVE_SYSTEM_CONFIG_FREERTOS_LOCKING
+
 #else // !INET_CONFIG_MAX_DROPPABLE_EVENTS
 
     inline static bool IsDroppableEvent(Weave::System::EventType aType)      { return false; }

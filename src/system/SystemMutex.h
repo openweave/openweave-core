@@ -33,6 +33,8 @@
 
 #include <Weave/Support/NLDLLUtil.h>
 
+#if !WEAVE_SYSTEM_CONFIG_NO_LOCKING
+
 #if WEAVE_SYSTEM_CONFIG_POSIX_LOCKING
 #include <pthread.h>
 #endif // WEAVE_SYSTEM_CONFIG_POSIX_LOCKING
@@ -112,5 +114,7 @@ inline void Mutex::Unlock(void)
 } // namespace System
 } // namespace Weave
 } // namespace nl
+
+#endif // !WEAVE_SYSTEM_CONFIG_NO_LOCKING
 
 #endif // defined(SYSTEMMUTEX_H)
