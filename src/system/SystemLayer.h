@@ -175,6 +175,13 @@ public:
     Error HandlePlatformTimer(void);
 #endif // WEAVE_SYSTEM_CONFIG_USE_LWIP
 
+    static uint64_t GetClock_Monotonic(void);
+    static uint64_t GetClock_MonotonicMS(void);
+    static uint64_t GetClock_MonotonicHiRes(void);
+    static Error GetClock_RealTime(uint64_t & curTime);
+    static Error GetClock_RealTimeMS(uint64_t & curTimeMS);
+    static Error SetClock_RealTime(uint64_t newCurTime);
+
 private:
     LayerState mLayerState;
     void* mContext;

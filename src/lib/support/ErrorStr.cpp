@@ -290,6 +290,8 @@ NL_DLL_EXPORT const char *ErrorStr(int32_t err)
     case WEAVE_SYSTEM_ERROR_UNEXPECTED_STATE                    : return SystemLayerFormatError(err, "Unexpected state");
     case WEAVE_SYSTEM_ERROR_UNEXPECTED_EVENT                    : return SystemLayerFormatError(err, "Unexpected event");
     case WEAVE_SYSTEM_ERROR_NO_MEMORY                           : return SystemLayerFormatError(err, "No memory");
+    case WEAVE_SYSTEM_ERROR_REAL_TIME_NOT_SYNCED                : return SystemLayerFormatError(err, "Real time not synchronized");
+    case WEAVE_SYSTEM_ERROR_ACCESS_DENIED                       : return SystemLayerFormatError(err, "Access denied");
 
     // ----- InetLayer Errors -----
     case INET_ERROR_WRONG_ADDRESS_TYPE                          : return InetFormatError(err, "Wrong address type");
@@ -515,8 +517,6 @@ NL_DLL_EXPORT const char *ErrorStr(int32_t err)
     case WEAVE_ERROR_TOO_MANY_SHARED_SESSION_END_NODES          : return WeaveFormatError(err, "Too many shared session end nodes");
     case WEAVE_ERROR_WDM_MALFORMED_DATA_ELEMENT                 : return WeaveFormatError(err, "Malformed WDM DataElement");
     case WEAVE_ERROR_WRONG_CERT_TYPE                            : return WeaveFormatError(err, "Wrong certificate type");
-    case WEAVE_ERROR_TIME_NOT_SYNCED_YET                        : return WeaveFormatError(err, "Time not synced yet");
-    case WEAVE_ERROR_UNSUPPORTED_CLOCK                          : return WeaveFormatError(err, "Unsupported clock");
     case WEAVE_ERROR_DEFAULT_EVENT_HANDLER_NOT_CALLED           : return WeaveFormatError(err, "Default event handler not called");
     case WEAVE_ERROR_PERSISTED_STORAGE_FAIL                     : return WeaveFormatError(err, "Persisted storage failed");
     case WEAVE_ERROR_PERSISTED_STORAGE_VALUE_NOT_FOUND          : return WeaveFormatError(err, "Value not found in the persisted storage");

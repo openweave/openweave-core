@@ -1939,25 +1939,21 @@ void WeaveTunnelAgent::NotifyTunnelLiveness(TunnelType tunType, WEAVE_ERROR err)
  * Get system time or monotonic time in milliseconds if system time is not available.
  *
  * @note
- *   If GetSystemTimeMs(..) fails we resort to use monotonic time. Fetching
+ *   If GetClock_RealTimeMS(..) fails we resort to using monotonic time. Fetching
  *   monotonic time in linux based systems uses an unspecified starting point
  *   that may not match with any expected epoch, e.g., system boottime.
  */
 uint64_t WeaveTunnelAgent::GetTimeMsec(void)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
-    uint64_t time = 0;
+    uint64_t now;
 
-    err = nl::Weave::Platform::Time::GetSystemTimeMs((Profiles::Time::timesync_t *)&time);
-
-    if ((time == 0) || (err != WEAVE_NO_ERROR))
+    err = System::Layer::GetClock_RealTimeMS(now);
+    if (err != WEAVE_SYSTEM_NO_ERROR || now == 0)
     {
-        err = nl::Weave::Platform::Time::GetMonotonicRawTime((Profiles::Time::timesync_t *)&time);
-
-        time = static_cast<uint64_t>(nl::Weave::Platform::DivideBy1000(time));
+        now = System::Layer::GetClock_MonotonicMS();
     }
-
-    return time;
+    return now;
 }
 
 #endif // WEAVE_CONFIG_ENABLE_TUNNELING

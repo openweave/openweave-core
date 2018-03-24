@@ -32,25 +32,6 @@
 // Include local headers
 #include <string.h>
 
-#if WEAVE_SYSTEM_CONFIG_USE_LWIP
-#include <lwip/sys.h>
-#endif // WEAVE_SYSTEM_CONFIG_USE_LWIP
-
-#if WEAVE_SYSTEM_CONFIG_USE_SOCKETS
-#if !(HAVE_CLOCK_GETTIME) && HAVE_GETTIMEOFDAY
-
-#include <errno.h>
-#include <sys/time.h>
-
-#if !(HAVE_CLOCKID_T)
-typedef int clockid_t;
-#endif
-
-extern "C" int clock_gettime(clockid_t clk_id, struct timespec* t);
-
-#endif // !(HAVE_CLOCK_GETTIME) && HAVE_GETTIMEOFDAY
-#endif // WEAVE_SYSTEM_CONFIG_USE_SOCKETS
-
 #include <SystemLayer/SystemError.h>
 #include <SystemLayer/SystemLayer.h>
 #include <SystemLayer/SystemFaultInjection.h>
@@ -97,113 +78,17 @@ namespace System {
 
 ObjectPool<Timer, WEAVE_SYSTEM_CONFIG_NUM_TIMERS> Timer::sPool;
 
-#if WEAVE_SYSTEM_CONFIG_USE_SOCKETS
-
-#if HAVE_DECL_CLOCK_BOOTTIME
-// CLOCK_BOOTTIME is a Linux-specific option to clock_gettime for a clock which compensates for system sleep
-#define NL_SYSTEM_TIMER_CLOCK_ID CLOCK_BOOTTIME
-#elif HAVE_DECL_CLOCK_MONOTONIC
-// CLOCK_MONOTONIC is defined in POSIX and hence is the default choice
-#define NL_SYSTEM_TIMER_CLOCK_ID CLOCK_MONOTONIC
-#else
-// in case there is no POSIX-compliant clock_gettime, we're most likely going to use the emulation
-// implementation provided in this file, which only provides emulation for 1 clock
-#define NL_SYSTEM_TIMER_CLOCK_ID 0
-#endif // HAVE_DECL_CLOCK_BOOTTIME
-
-#if !(HAVE_CLOCK_GETTIME) && HAVE_GETTIMEOFDAY
-
-/**
- *  This implements a version of the of the POSIX clock_gettime method based on gettimeofday
- *
- *  @param[in]  clk_id      The identifier of the particular clock on which to get the time.
- *  @param[out] t           A timespec structure that will be filled in on success.
- *
- *  @retval 0               Success
- *  @retval -1              Failure (in which case errno is set appropriately)
- *
- */
-extern "C" int clock_gettime(clockid_t clk_id, struct timespec* t)
-{
-    struct timeval now;
-    int            retval = 0;
-
-    if (clk_id != NL_SYSTEM_TIMER_CLOCK_ID)
-    {
-        errno = EINVAL;
-        retval = -1;
-    }
-    else
-    {
-        retval = gettimeofday(&now, NULL);
-
-        if (retval == 0)
-        {
-            t->tv_sec  = now.tv_sec;
-            t->tv_nsec = now.tv_usec * 1000;
-        }
-    }
-
-    return retval;
-}
-#endif // !(HAVE_CLOCK_GETTIME) && HAVE_GETTIMEOFDAY
-
 /**
  *  This method returns the current epoch, corrected by system sleep with the system timescale, in milliseconds.
  *
+ *  DEPRECATED -- Please use System::Layer::GetClock_MonotonicMS() instead.
+ *
  *  @return A timestamp in milliseconds.
  */
-Timer::Epoch Timer::GetCurrentEpoch()
+Timer::Epoch Timer::GetCurrentEpoch(void)
 {
-    struct timespec tv;
-    clock_gettime(NL_SYSTEM_TIMER_CLOCK_ID, &tv);
-
-    return (static_cast<Timer::Epoch>(tv.tv_sec) * kTimerFactor_milli_per_unit) +
-        (static_cast<Timer::Epoch>(tv.tv_nsec) / kTimerFactor_nano_per_milli);
+    return Platform::Layer::GetClock_MonotonicMS();
 }
-#endif // WEAVE_SYSTEM_CONFIG_USE_SOCKETS
-
-#if WEAVE_SYSTEM_CONFIG_USE_LWIP && !WEAVE_SYSTEM_CONFIG_USE_SOCKETS
-Timer::Epoch Timer::GetCurrentEpoch()
-{
-    static volatile Timer::Epoch overflow = 0;
-    static volatile u32_t lastSample = 0;
-    static volatile uint8_t lock = 0;
-    static const Timer::Epoch kOverflowIncrement = static_cast<Timer::Epoch>(0x100000000);
-
-    Timer::Epoch overflowSample;
-    u32_t sample;
-
-    // Tracking timer wrap assumes that this function gets called with
-    // a period that is less than 1/2 the timer range.
-    if (__sync_bool_compare_and_swap(&lock, 0, 1))
-    {
-        sample = sys_now();
-
-        if (lastSample > sample)
-        {
-            overflow += kOverflowIncrement;
-        }
-
-        lastSample = sample;
-        overflowSample = overflow;
-
-        __sync_bool_compare_and_swap(&lock, 1, 0);
-    }
-    else
-    {
-        // a lower priority task is in the block above. Depending where that
-        // lower task is blocked can spell trouble in a timer wrap condition.
-        // the question here is what this task should use as an overflow value.
-        // To fix this race requires a platform api that can be used to
-        // protect critical sections.
-        overflowSample = overflow;
-        sample = sys_now();
-    }
-
-    return static_cast<Timer::Epoch>(overflowSample | static_cast<Timer::Epoch>(sample));
-}
-#endif // WEAVE_SYSTEM_CONFIG_USE_LWIP && !WEAVE_SYSTEM_CONFIG_USE_SOCKETS
 
 /**
  *  Compares two Timer::Epoch values and returns true if the first value is earlier than the second value.

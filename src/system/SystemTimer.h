@@ -32,6 +32,7 @@
 // Include dependent headers
 #include <Weave/Support/NLDLLUtil.h>
 
+#include <SystemLayer/SystemClock.h>
 #include <SystemLayer/SystemError.h>
 #include <SystemLayer/SystemObject.h>
 #include <SystemLayer/SystemStats.h>
@@ -53,15 +54,6 @@ namespace Weave {
 namespace System {
 
 class Layer;
-
-enum {
-    kTimerFactor_nano_per_micro     = 1000,         /** Number of nanoseconds in a microsecond. */
-    kTimerFactor_micro_per_milli    = 1000,         /** Number of microseconds in a millisecond. */
-    kTimerFactor_milli_per_unit     = 1000,         /** Number of milliseconds in a second. */
-
-    kTimerFactor_nano_per_milli     = 1000000,      /** Number of nanoseconds in a millisecond. */
-    kTimerFactor_micro_per_unit     = 1000000       /** Number of microseconds in a second. */
-};
 
 /**
  * @class Timer
@@ -127,6 +119,7 @@ private:
     Timer(const Timer&);
     Timer& operator =(const Timer&);
 };
+
 
 inline void Timer::GetStatistics(nl::Weave::System::Stats::count_t& aNumInUse)
 {

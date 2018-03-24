@@ -60,6 +60,7 @@
 #include "KeyExportOptions.h"
 #include "TAKEOptions.h"
 #include "DeviceDescOptions.h"
+#include "MockPlatformClocks.h"
 
 #if WEAVE_SYSTEM_CONFIG_USE_LWIP
 #include <lwip/netif.h>
@@ -161,6 +162,10 @@ void InitToolCommon()
     srand(randSeed);
 
     UseStdoutLineBuffering();
+
+    // Force the linker to link the mock versions of the platform time functions.  This overrides the default
+    // platform implementations supplied in the Weave library.
+    MockPlatform::gMockPlatformClocks.GetClock_Monotonic();
 }
 
 static void ExitOnSIGUSR1Handler(int signum)

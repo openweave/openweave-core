@@ -981,12 +981,11 @@ inline event_id_t LoggingManagement::LogEventPrivate(const EventSchema & inSchem
     }
     else
     {
-        // temporary until time APIs return unsigned values
-        Profiles::Time::timesync_t utc_tmp;
-        err = nl::Weave::Platform::Time::GetSystemTimeMs(&utc_tmp);
+        uint64_t utc_tmp;
+        err = System::Layer::GetClock_RealTimeMS(utc_tmp);
         if ((err == WEAVE_NO_ERROR) && (utc_tmp != 0))
         {
-            opts.timestamp.utcTimestamp = static_cast<utc_timestamp_t>(static_cast<int64_t>(utc_tmp) + ev_opts_deltatime);
+            opts.timestamp.utcTimestamp = static_cast<utc_timestamp_t>(utc_tmp + ev_opts_deltatime);
             opts.timestampType          = kTimestampType_UTC;
         }
     }

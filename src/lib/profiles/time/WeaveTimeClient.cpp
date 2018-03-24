@@ -417,8 +417,7 @@ WEAVE_ERROR TimeSyncNode::SetupUnicastCommContext(Contact * const aContact)
         mActiveContact = aContact;
 
         // acquire unadjusted timestamp
-        err = Platform::Time::GetMonotonicRawTime(&mUnadjTimestampLastSent_usec);
-        SuccessOrExit(err);
+        mUnadjTimestampLastSent_usec = GetClock_MonotonicHiRes();
     }
 
 exit:
@@ -627,12 +626,11 @@ void TimeSyncNode::RegisterCommError(Contact * const aContact)
 #if WEAVE_CONFIG_TIME_CLIENT_FABRIC_LOCAL_DISCOVERY
     if (mIsAutoSyncEnabled)
     {
-        timesync_t boottime_usec;
+        timesync_t monotime_usec;
 
-        err = Platform::Time::GetSleepCompensatedMonotonicTime(&boottime_usec);
-        SuccessOrExit(err);
+        monotime_usec = GetClock_Monotonic();
 
-        if ((mBootTimeForNextAutoDiscovery_usec - boottime_usec) > timesync_t(mShortestDiscoveryPeriod_msec) * 1000)
+        if ((mBootTimeForNextAutoDiscovery_usec - monotime_usec) > timesync_t(mShortestDiscoveryPeriod_msec) * 1000)
         {
             // schedule discovery to happen at urgent rate
             err = GetExchangeMgr()->MessageLayer->SystemLayer->StartTimer(mShortestDiscoveryPeriod_msec, HandleAutoDiscoveryTimeout,
@@ -640,7 +638,7 @@ void TimeSyncNode::RegisterCommError(Contact * const aContact)
             SuccessOrExit(err);
 
             // calculate timestamp for the next discovery
-            mBootTimeForNextAutoDiscovery_usec = boottime_usec + timesync_t(mShortestDiscoveryPeriod_msec) * 1000;
+            mBootTimeForNextAutoDiscovery_usec = monotime_usec + timesync_t(mShortestDiscoveryPeriod_msec) * 1000;
 
             WEAVE_TIME_PROGRESS_LOG(TimeService, "Communication error changed schedule for auto discovery");
         }
@@ -942,8 +940,7 @@ void TimeSyncNode::EnterState_Discover(void)
     mActiveContact = NULL;
 
     // acquire unadjusted timestamp
-    err = Platform::Time::GetMonotonicRawTime(&mUnadjTimestampLastSent_usec);
-    SuccessOrExit(err);
+    mUnadjTimestampLastSent_usec = GetClock_MonotonicHiRes();
 
     request.Init(mLastLikelihoodSent, (kTimeSyncRole_Coordinator == mRole) ? true : false);
 
@@ -1160,8 +1157,7 @@ void TimeSyncNode::UpdateUnicastSyncResponse(const TimeSyncResponse & aResponse)
     int32_t rtt_usec;
 
     // acquire unadjusted timestamp
-    err = Platform::Time::GetMonotonicRawTime(&timestamp_now_usec);
-    SuccessOrExit(err);
+    timestamp_now_usec = GetClock_MonotonicHiRes();
 
     {
         const timesync_t rtt64_usec = timestamp_now_usec - mUnadjTimestampLastSent_usec;
@@ -1337,7 +1333,7 @@ WEAVE_ERROR TimeSyncNode::CallbackForSyncCompletion(const bool aIsSuccessful, bo
                 WeaveLogDetail(TimeService, "Applying update");
 
                 // acquire unadjusted timestamp
-                err = Platform::Time::SetSystemTime(aSystemTimestamp_usec + aDiffTime_usec);
+                err = SetClock_RealTime(aSystemTimestamp_usec + aDiffTime_usec);
                 SuccessOrExit(err);
             }
             else
@@ -1375,16 +1371,15 @@ void TimeSyncNode::EndServiceSyncAndTryCalculateTimeFix(void)
     }
 
     // acquire unadjusted timestamp
-    err = Platform::Time::GetMonotonicRawTime(&unadjTimestamp_usec);
-    SuccessOrExit(err);
+    unadjTimestamp_usec = GetClock_MonotonicHiRes();
 
-    // acquire System Time
-    err = Platform::Time::GetSystemTime(&systemTimestamp_usec);
+    // acquire Real Time
+    err = GetClock_RealTime(systemTimestamp_usec);
     if (WEAVE_NO_ERROR != err)
     {
         WeaveLogFunctError(err);
 
-        WeaveLogDetail(TimeService, "System time not available, skip");
+        WeaveLogDetail(TimeService, "Real time not available, skip");
 
         err = WEAVE_NO_ERROR;
         ExitNow();
@@ -1479,8 +1474,7 @@ void TimeSyncNode::EndLocalSyncAndTryCalculateTimeFix(void)
     }
 
     // acquire unadjusted timestamp
-    err = Platform::Time::GetMonotonicRawTime(&unadjTimestamp_usec);
-    SuccessOrExit(err);
+    unadjTimestamp_usec = GetClock_MonotonicHiRes();
 
     for (int i = 0; i < WEAVE_CONFIG_TIME_CLIENT_MAX_NUM_CONTACTS; ++i)
     {
@@ -1535,13 +1529,13 @@ void TimeSyncNode::EndLocalSyncAndTryCalculateTimeFix(void)
         numAdvisor, numCoordinator, numServer,
         numUnreliableResponses);
 
-    // acquire System Time
-    err = Platform::Time::GetSystemTime(&systemTimestamp_usec);
+    // acquire Real Time
+    err = GetClock_RealTime(systemTimestamp_usec);
     if (WEAVE_NO_ERROR != err)
     {
         WeaveLogFunctError(err);
 
-        WeaveLogDetail(TimeService, "System time not available, skip");
+        WeaveLogDetail(TimeService, "Real time not available, skip");
 
         err = WEAVE_NO_ERROR;
         ExitNow();
@@ -2202,8 +2196,7 @@ WEAVE_ERROR TimeSyncNode::EnableAutoSync(const int32_t aSyncPeriod_msec
 
     // calculate the timestamp for the next discovery
     // this is needed for handling of communication errors
-    err = Platform::Time::GetSleepCompensatedMonotonicTime(&mBootTimeForNextAutoDiscovery_usec);
-    SuccessOrExit(err);
+    mBootTimeForNextAutoDiscovery_usec = GetClock_Monotonic();
 #endif // WEAVE_CONFIG_TIME_CLIENT_FABRIC_LOCAL_DISCOVERY
 
     // schedule sync to happen at nominal rate
@@ -2291,8 +2284,7 @@ void TimeSyncNode::HandleAutoDiscoveryTimeout(System::Layer* aSystemLayer, void*
 
         // calculate the timestamp for the next discovery
         // this is needed for handling of communication errors
-        err = Platform::Time::GetSleepCompensatedMonotonicTime(&(client->mBootTimeForNextAutoDiscovery_usec));
-        SuccessOrExit(err);
+        client->mBootTimeForNextAutoDiscovery_usec = GetClock_Monotonic();
         (client->mBootTimeForNextAutoDiscovery_usec) += timesync_t(client->mNominalDiscoveryPeriod_msec) * 1000;
 
         err = client->Sync(true);
@@ -2431,7 +2423,7 @@ WEAVE_ERROR SingleSourceTimeSyncClient::SendSyncRequest(void)
     mExchangeContext->AppState = this;
 
     // acquire unadjusted timestamp
-    err = Platform::Time::GetMonotonicRawTime(&mUnadjTimestampLastSent_usec);
+    mUnadjTimestampLastSent_usec = (timesync_t)System::Layer::GetClock_MonotonicHiRes();
 
     // send out the request
     err = mExchangeContext->SendMessage(kWeaveProfile_Time, kTimeMessageType_TimeSyncRequest, msgBuf,
@@ -2485,7 +2477,6 @@ void SingleSourceTimeSyncClient::RegisterSyncResultIfNewOrBetter(const timesync_
 
 void SingleSourceTimeSyncClient::FinalProcessing()
 {
-    WEAVE_ERROR err = WEAVE_NO_ERROR;
     timesync_t now_usec;
 
     // If we have a valid flight time, we have some valid result (from either of the attempts).
@@ -2497,8 +2488,7 @@ void SingleSourceTimeSyncClient::FinalProcessing()
     {
         timesync_t correctedSystemTime_usec;
 
-        err = Platform::Time::GetMonotonicRawTime(&now_usec);
-        SuccessOrExit(err);
+        now_usec = (timesync_t)System::Layer::GetClock_MonotonicHiRes();
 
         WeaveLogDetail(TimeService, "Now (monotonic raw): %" PRId64 " usec", now_usec);
 
@@ -2520,15 +2510,6 @@ void SingleSourceTimeSyncClient::FinalProcessing()
     {
         // inform the app layer that we do not have any valid result to report
         _AbortWithCallback(WEAVE_ERROR_INVALID_TIME);
-    }
-
-exit:
-    WeaveLogFunctError(err);
-
-    if (WEAVE_NO_ERROR != err)
-    {
-        // inform the app layer that we just completed with error
-        _AbortWithCallback(err);
     }
 }
 
@@ -2556,8 +2537,7 @@ void SingleSourceTimeSyncClient::OnSyncResponse(uint32_t aProfileId, uint8_t aMs
     int32_t sumFlightTime32_usec;
     int32_t averageFlightTime_usec;
 
-    err = Platform::Time::GetMonotonicRawTime(&now_usec);
-    SuccessOrExit(err);
+    now_usec = (timesync_t)System::Layer::GetClock_MonotonicHiRes();
 
     VerifyOrExit((kWeaveProfile_Time == aProfileId)
             && (kTimeMessageType_TimeSyncResponse == aMsgType),

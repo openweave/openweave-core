@@ -29,6 +29,7 @@
 #include "SystemLayerPrivate.h"
 
 // Include local headers
+#include <SystemLayer/SystemClock.h>
 #include <SystemLayer/SystemTimer.h>
 
 // Include additional Weave headers
@@ -364,6 +365,181 @@ Error Layer::ScheduleWork(TimerCompleteFunct aComplete, void* aAppState)
 
 exit:
     return lReturn;
+}
+
+/**
+ * @brief
+ *   Returns a monotonic system time in units of microseconds.
+ *
+ * This function returns an elapsed time in microseconds since an arbitrary, platform-defined
+ * epoch.  The value returned is guaranteed to be ever-increasing (i.e. never wrapping) between
+ * reboots of the system.  Additionally, the underlying time source is guaranteed to tick
+ * continuously during any system sleep modes that do not entail a restart upon wake.
+ *
+ * Although some platforms may choose to return a value that measures the time since boot for the
+ * system, applications must *not* rely on this.  Additionally, the epoch for GetClock_Monotonic()
+ * is *not* required to be the same as that for any of the other GetClock... functions.  Therefore
+ * relative time calculations can only be performed on values returned by the same function.
+ *
+ * This function is guaranteed to be thread-safe on any platform that employs threading.
+ *
+ * @returns             Elapsed time in microseconds since an arbitrary, platform-defined epoch.
+ */
+uint64_t Layer::GetClock_Monotonic(void)
+{
+    // Current implementation is a simple pass-through to the platform.
+    return Platform::Layer::GetClock_Monotonic();
+}
+
+/**
+ * @brief
+ *   Returns a monotonic system time in units of milliseconds.
+ *
+ * This function returns an elapsed time in milliseconds since an arbitrary, platform-defined
+ * epoch.  The value returned is guaranteed to be ever-increasing (i.e. never wrapping) between
+ * reboots of the system.  Additionally, the underlying time source is guaranteed to tick
+ * continuously during any system sleep modes that do not entail a restart upon wake.
+ *
+ * Although some platforms may choose to return a value that measures the time since boot for the
+ * system, applications must *not* rely on this.  Additionally, the epoch for GetClock_Monotonic()
+ * is *not* required to be the same as that for any of the other GetClock... functions.  Therefore
+ * relative time calculations can only be performed on values returned by the same function.
+ *
+ * This function is guaranteed to be thread-safe on any platform that employs threading.
+ *
+ * @returns             Elapsed time in milliseconds since an arbitrary, platform-defined epoch.
+ */
+uint64_t Layer::GetClock_MonotonicMS(void)
+{
+    // Current implementation is a simple pass-through to the platform.
+    return Platform::Layer::GetClock_MonotonicMS();
+}
+
+/**
+ * @brief
+ *   Returns a (potentially) high-resolution monotonic system time in units of microseconds.
+ *
+ * This function returns an elapsed time in microseconds since an arbitrary, platform-defined
+ * epoch.  The value returned is guaranteed to be ever-increasing (i.e. never wrapping) between
+ * reboots of the system.  However, the underlying timer is *not* required to tick continuously
+ * during system deep-sleep states.
+ *
+ * Some platforms may implement GetClock_MonotonicHiRes() using a high-resolution timer capable
+ * of greater precision than GetClock_Monotonic(), and that is not subject to gradual clock
+ * adjustments (slewing).  Systems without such a timer may simply return the same value as
+ * GetClock_Monotonic().
+ *
+ * The epoch for time returned by GetClock_MonotonicHiRes() is not required to be the same that
+ * for any of the other GetClock... functions, including GetClock_Monotonic().
+ *
+ * This function is guaranteed to be thread-safe on any platform that employs threading.
+ *
+ * @returns             Elapsed time in microseconds since an arbitrary, platform-defined epoch.
+ */
+uint64_t Layer::GetClock_MonotonicHiRes(void)
+{
+    // Current implementation is a simple pass-through to the platform.
+    return Platform::Layer::GetClock_MonotonicHiRes();
+}
+
+/**
+ * @brief
+ *   Returns the current real (civil) time in microsecond Unix time format.
+ *
+ * This method returns the local platform's notion of current real time, expressed as a Unix time
+ * value scaled to microseconds.  The underlying clock is guaranteed to tick at a rate of least at
+ * whole seconds (values of 1,000,000), but on some platforms may tick faster.
+ *
+ * If the underlying platform is capable of tracking real time, but the system is currently
+ * unsynchronized, GetClock_RealTime() will return the error WEAVE_SYSTEM_ERROR_REAL_TIME_NOT_SYNCED.
+ *
+ * On platforms that are incapable of tracking real time, the GetClock_RealTime() method may be absent,
+ * resulting a link error for any application that references it.  Alternatively, such platforms may
+ * supply an implementation of GetClock_RealTime() that always returns the error WEAVE_SYSTEM_ERROR_NOT_SUPPORTED.
+ *
+ * This function is guaranteed to be thread-safe on any platform that employs threading.
+ *
+ * @param[out] curTime                  The current time, expressed as Unix time scaled to microseconds.
+ *
+ * @retval #WEAVE_SYSTEM_NO_ERROR       If the method succeeded.
+ * @retval #WEAVE_SYSTEM_ERROR_REAL_TIME_NOT_SYNCED
+ *                                      If the platform is capable of tracking real time, but is
+ *                                      is currently unsynchronized.
+ * @retval #WEAVE_SYSTEM_ERROR_NOT_SUPPORTED
+ *                                      If the platform is incapable of tracking real time.
+ */
+Error Layer::GetClock_RealTime(uint64_t & curTime)
+{
+    // Current implementation is a simple pass-through to the platform.
+    return Platform::Layer::GetClock_RealTime(curTime);
+}
+
+/**
+ * @brief
+ *   Returns the current real (civil) time in millisecond Unix time format.
+ *
+ * This method returns the local platform's notion of current real time, expressed as a Unix time
+ * value scaled to milliseconds.  The underlying clock is guaranteed to tick at a rate of least at
+ * whole seconds (values of 1,000,000), but on some platforms may tick faster.
+ *
+ * If the underlying platform is capable of tracking real time, but the system is currently
+ * unsynchronized, GetClock_RealTimeMS() will return the error WEAVE_SYSTEM_ERROR_REAL_TIME_NOT_SYNCED.
+ *
+ * On platforms that are incapable of tracking real time, the GetClock_RealTimeMS() method may be absent,
+ * resulting a link error for any application that references it.  Alternatively, such platforms may
+ * supply an implementation of GetClock_RealTimeMS() that always returns the error WEAVE_SYSTEM_ERROR_NOT_SUPPORTED.
+ *
+ * This function is guaranteed to be thread-safe on any platform that employs threading.
+ *
+ * @param[out] curTime                  The current time, expressed as Unix time scaled to milliseconds.
+ *
+ * @retval #WEAVE_SYSTEM_NO_ERROR       If the method succeeded.
+ * @retval #WEAVE_SYSTEM_ERROR_REAL_TIME_NOT_SYNCED
+ *                                      If the platform is capable of tracking real time, but is
+ *                                      is currently unsynchronized.
+ * @retval #WEAVE_SYSTEM_ERROR_NOT_SUPPORTED
+ *                                      If the platform is incapable of tracking real time.
+ */
+Error Layer::GetClock_RealTimeMS(uint64_t & curTimeMS)
+{
+    // Current implementation is a simple pass-through to the platform.
+    return Platform::Layer::GetClock_RealTimeMS(curTimeMS);
+}
+
+/**
+ * @brief
+ *   Sets the platform's notion of current real (civil) time.
+ *
+ * Applications can call this function to set the local platform's notion of current real time.  The
+ * new current time is expressed as a Unix time value scaled to microseconds.
+ *
+ * Once set, underlying platform clock is guaranteed to track real time with a granularity of at least
+ * whole seconds.
+ *
+ * Some platforms may restrict which applications or processes can set real time.  If the caller is
+ * not permitted to change real time, the SetClock_RealTime() function will return the error
+ * WEAVE_SYSTEM_ERROR_ACCESS_DENIED.
+ *
+ * On platforms that are incapable of tracking real time, or do not offer the ability to set real time,
+ * the SetClock_RealTime() function may be absent, resulting a link error for any application that
+ * references it.  Alternatively, such platforms may supply an implementation of SetClock_RealTime()
+ * that always returns the error WEAVE_SYSTEM_ERROR_NOT_SUPPORTED.
+ *
+ * This function is guaranteed to be thread-safe on any platform that employs threading.
+ *
+ * @param[in] newCurTime                The new current time, expressed as Unix time scaled to microseconds.
+ *
+ * @retval #WEAVE_SYSTEM_NO_ERROR       If the method succeeded.
+ * @retval #WEAVE_SYSTEM_ERROR_NOT_SUPPORTED
+ *                                      If the platform is incapable of tracking real time.
+ * @retval #WEAVE_SYSTEM_ERROR_ACCESS_DENIED
+ *                                      If the calling application does not have the privilege to set the
+ *                                      current time.
+ */
+Error Layer::SetClock_RealTime(uint64_t newCurTime)
+{
+    // Current implementation is a simple pass-through to the platform.
+    return Platform::Layer::SetClock_RealTime(newCurTime);
 }
 
 #if WEAVE_SYSTEM_CONFIG_USE_SOCKETS

@@ -70,41 +70,41 @@
 #include "schema/nest/test/trait/TestETrait.h"
 #include "schema/nest/test/trait/TestCommon.h"
 
-#include "TestPlatformTime.h"
+#include "MockPlatformClocks.h"
 
 using namespace nl::Weave::TLV;
 using namespace nl::Weave::Profiles::DataManagement;
 
 namespace Private {
 
-static bool sSystemTimeValid = true;
+static bool sRealTimeClockValid = true;
 
-static WEAVE_ERROR SetSystemTime(const nl::Weave::Profiles::Time::timesync_t timestamp_usec)
+System::Error SetClock_RealTime(uint64_t newCurTime)
 {
-    if (timestamp_usec != 0)
+    if (newCurTime != 0)
     {
-        sSystemTimeValid = true;
+        sRealTimeClockValid = true;
     }
     else
     {
-        sSystemTimeValid = false;
+        sRealTimeClockValid = false;
     }
 
-    return WEAVE_NO_ERROR;
+    return WEAVE_SYSTEM_NO_ERROR;
 }
 
-static WEAVE_ERROR GetSystemTimeMs(nl::Weave::Profiles::Time::timesync_t *p_timestamp_msec)
+static System::Error GetClock_RealTime(uint64_t & curTime)
 {
-    if (sSystemTimeValid)
+    if (sRealTimeClockValid)
     {
-        *p_timestamp_msec = static_cast<nl::Weave::Profiles::Time::timesync_t>(nl::Weave::System::Timer::GetCurrentEpoch());
+        curTime = ::nl::Weave::System::Platform::Layer::GetClock_Monotonic();
+        return WEAVE_SYSTEM_NO_ERROR;
     }
     else
     {
-        *p_timestamp_msec = 0;
+        curTime = 0;
+        return WEAVE_SYSTEM_ERROR_REAL_TIME_NOT_SYNCED;
     }
-
-    return WEAVE_NO_ERROR;
 }
 
 } // namespace Private
@@ -1136,7 +1136,7 @@ static void CheckEvict(nlTestSuite *inSuite, void *inContext)
     timestamp_t now;
     InitializeEventLogging(context);
 
-    now = static_cast<timestamp_t>(System::Timer::GetCurrentEpoch());
+    now = System::Layer::GetClock_MonotonicMS();
     eid_prev = FastLogFreeform(
         nl::Weave::Profiles::DataManagement::Production,
         now,
@@ -1218,9 +1218,9 @@ static void CheckFetchTimestamps(nlTestSuite *inSuite, void *inContext)
     utc_timestamp_t test_start;
     InitializeEventLogging(context);
 
-    test_start = static_cast<utc_timestamp_t>(System::Timer::GetCurrentEpoch());
+    test_start = static_cast<utc_timestamp_t>(System::Layer::GetClock_MonotonicMS());
     now = static_cast<timestamp_t>(test_start);
-    nl::Weave::Platform::Time::SetSystemTime(0);
+    System::Layer::SetClock_RealTime(0);
 
     eid_prev = FastLogFreeform(
         nl::Weave::Profiles::DataManagement::Production,
@@ -1235,7 +1235,7 @@ static void CheckFetchTimestamps(nlTestSuite *inSuite, void *inContext)
     // Sample production events, spaced 10 milliseconds apart
         if (counter == k_num_events/2)
         {
-            nl::Weave::Platform::Time::SetSystemTime((test_start)*1000);
+            System::Layer::SetClock_RealTime((test_start)*1000);
         }
 
         eid = FastLogFreeform(
@@ -2398,7 +2398,7 @@ static void CheckWDMOffloadTrigger(nlTestSuite *inSuite, void *inContext)
     // Each event is about 40 bytes; write 40 of those to ensure we
     // override the default WDM event byte threshold
 
-    now = static_cast<timestamp_t>(System::Timer::GetCurrentEpoch());
+    now = System::Layer::GetClock_MonotonicMS();
     eid_prev = FastLogFreeform(
         nl::Weave::Profiles::DataManagement::Production,
         now,
@@ -2767,7 +2767,7 @@ static void CheckSubscriptionHandlerHelper(nlTestSuite *inSuite, TestLoggingCont
 
     event_id_t eid_init_prod, eid_prev_prod, eid_init_info, eid_prev_info, eid;
 
-    now = static_cast<timestamp_t>(System::Timer::GetCurrentEpoch());
+    now = System::Layer::GetClock_MonotonicMS();
     eid_init_prod = FastLogFreeform(
         nl::Weave::Profiles::DataManagement::Production,
         now,
@@ -3175,7 +3175,7 @@ static void RegressionWatchdogBug_EventRemoval(nlTestSuite *inSuite, void *inCon
         "Freeform entry");
     NL_TEST_ASSERT(inSuite, eid == 22);
 
-    now = static_cast<timestamp_t>(System::Timer::GetCurrentEpoch());
+    now = System::Layer::GetClock_MonotonicMS();
     for (size_t counter=0; counter < 100; counter++)
     {
         eid = FastLogFreeform(
@@ -3236,7 +3236,7 @@ static void RegressionWatchdogBug_ExternalEventState(nlTestSuite *inSuite, void 
 
     ClearMockExternalEvents(2);
 
-    now = static_cast<timestamp_t>(System::Timer::GetCurrentEpoch());
+    now = System::Layer::GetClock_MonotonicMS();
     for (size_t counter=0; counter < 100; counter++)
     {
         eid = FastLogFreeform(
@@ -3322,7 +3322,7 @@ static void CheckShutdownLogic(nlTestSuite *inSuite, void *inContext)
     InitializeEventLogging(context);
     DestroyEventLogging(context);
 
-    now = static_cast<timestamp_t>(System::Timer::GetCurrentEpoch());
+    now = System::Layer::GetClock_MonotonicMS();
 
     eid = FastLogFreeform(
         nl::Weave::Profiles::DataManagement::Production,
@@ -3384,8 +3384,8 @@ static const nlTest sTests[] = {
 
 int main(int argc, char *argv[])
 {
-    nl::Weave::MockPlatform::gTestPlatformTimeFns.GetSystemTimeMs = Private::GetSystemTimeMs;
-    nl::Weave::MockPlatform::gTestPlatformTimeFns.SetSystemTime = Private::SetSystemTime;
+    MockPlatform::gMockPlatformClocks.GetClock_RealTime = Private::GetClock_RealTime;
+    MockPlatform::gMockPlatformClocks.SetClock_RealTime = Private::SetClock_RealTime;
 
     if (!ParseArgsFromEnvVar(TOOL_NAME, TOOL_OPTIONS_ENV_VAR_NAME, gToolOptionSets, NULL, true) ||
         !ParseArgs(TOOL_NAME, argc, argv, gToolOptionSets))

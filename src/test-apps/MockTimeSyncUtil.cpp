@@ -50,7 +50,7 @@
 #include <Weave/Support/CodeUtils.h>
 #include <Weave/Support/logging/WeaveLogging.h>
 
-#include "TestPlatformTime.h"
+#include "MockPlatformClocks.h"
 
 #include "MockTimeSyncUtil.h"
 #include "MockTimeSyncServer.h"
@@ -128,13 +128,8 @@ WEAVE_ERROR MockTimeSync::Init(nl::Weave::WeaveExchangeManager * const exchangeM
         ExitNow(err = WEAVE_ERROR_INCORRECT_STATE);
     }
 
-    // seed the random number generation with microseconds, for we almost always test with multiple mock-devices
-    // all started in short time period. the common practice of time(NULL) would give the same reading for all of them.
-    (void) nl::Weave::Platform::Time::GetSleepCompensatedMonotonicTime(&nl::Weave::MockPlatform::gTestOffsetToSystemTime_usec);
-    srand(nl::Weave::MockPlatform::gTestOffsetToSystemTime_usec % UINT32_MAX);
     // modify this if you want a fixed for adjustable initial offset
-    nl::Weave::MockPlatform::gTestOffsetToSystemTime_usec = (rand() % 10000000) - 5000000;
-    printf("Mock System Time Offset initialized to: %f sec\n", nl::Weave::MockPlatform::gTestOffsetToSystemTime_usec * 1e-6);
+    MockPlatform::gMockPlatformClocks.SetRandomRealTimeOffset();
 
 exit:
     WeaveLogFunctError(err);

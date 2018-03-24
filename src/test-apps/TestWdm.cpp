@@ -41,7 +41,7 @@
 #include <Weave/Profiles/data-management/Current/WdmManagedNamespace.h>
 #include <Weave/Profiles/data-management/DataManagement.h>
 
-#include "TestPlatformTime.h"
+#include "MockPlatformClocks.h"
 
 #if WEAVE_SYSTEM_CONFIG_USE_LWIP
 #include <lwip/init.h>
@@ -50,23 +50,6 @@
 using namespace nl;
 using namespace nl::Weave::TLV;
 using namespace nl::Weave::Profiles::DataManagement;
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// System/Platform definitions
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-namespace Private {
-
-static WEAVE_ERROR SetSystemTime(const nl::Weave::Profiles::Time::timesync_t timestamp_usec)
-{
-	return WEAVE_NO_ERROR;
-}
-
-static WEAVE_ERROR GetSystemTimeMs(nl::Weave::Profiles::Time::timesync_t *p_timestamp_msec)
-{
-	return WEAVE_NO_ERROR;
-}
-
-} // namespace Private
 
 
 namespace nl {

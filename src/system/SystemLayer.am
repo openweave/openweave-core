@@ -22,6 +22,7 @@
 #
 
 nl_SystemLayer_sources                                = \
+    @top_builddir@/src/system/SystemClock.cpp           \
     @top_builddir@/src/system/SystemError.cpp           \
     @top_builddir@/src/system/SystemLayer.cpp           \
     @top_builddir@/src/system/SystemMutex.cpp           \

@@ -131,19 +131,8 @@ public:
     virtual WEAVE_ERROR EnumerateGroupKeys(uint32_t keyType, uint32_t *keyIds, uint8_t keyIdsArraySize, uint8_t & keyCount) = 0;
     virtual WEAVE_ERROR Clear(void) = 0;
 
-    /**
-     * Get current platform UTC time in seconds.
-     *
-     * @param[out]   utcTime             A reference to the time value.
-     *
-     * @retval #WEAVE_NO_ERROR           On success.
-     * @retval #WEAVE_ERROR_UNSUPPORTED_CLOCK
-     *                                   If platform does not support time functions.
-     * @retval #WEAVE_ERROR_TIME_NOT_SYNCED_YET
-     *                                   If platform does not have an accurate time yet.
-     * @retval other                     Other Weave or platform error codes.
-     */
-    virtual WEAVE_ERROR GetCurrentUTCTime(uint32_t& utcTime) = 0;
+    // Get the current time.
+    virtual WEAVE_ERROR GetCurrentUTCTime(uint32_t& utcTime);
 
     // Get current application key Id.
     WEAVE_ERROR GetCurrentAppKeyId(uint32_t keyId, uint32_t& curKeyId);

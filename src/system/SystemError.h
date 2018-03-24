@@ -95,7 +95,7 @@
  *  @def WEAVE_SYSTEM_ERROR_NOT_IMPLEMENTED
  *
  *  @brief
- *      A request for memory could not be fulfilled.
+ *      A requested function has not been implemented.
  */
 #define WEAVE_SYSTEM_ERROR_NOT_IMPLEMENTED _WEAVE_SYSTEM_ERROR(0)
 
@@ -138,6 +138,22 @@
  *      A request for memory could not be fulfilled.
  */
 #define WEAVE_SYSTEM_ERROR_NO_MEMORY _WEAVE_SYSTEM_ERROR(5)
+
+/**
+ *  @def WEAVE_SYSTEM_ERROR_REAL_TIME_NOT_SYNCED
+ *
+ *  @brief
+ *      The system's real time clock is not synchronized to an accurate time source.
+ */
+#define WEAVE_SYSTEM_ERROR_REAL_TIME_NOT_SYNCED _WEAVE_SYSTEM_ERROR(6)
+
+/**
+ *  @def WEAVE_SYSTEM_ERROR_ACCESS_DENIED
+ *
+ *  @brief
+ *      The requestor is not privileged to perform the requested operation.
+ */
+#define WEAVE_SYSTEM_ERROR_ACCESS_DENIED _WEAVE_SYSTEM_ERROR(7)
 
 #endif // _WEAVE_SYSTEM_CONFIG_ERROR
 

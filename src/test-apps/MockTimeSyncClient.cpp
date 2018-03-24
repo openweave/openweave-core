@@ -22,6 +22,7 @@
 
 #define WEAVE_CONFIG_ENABLE_FUNCT_ERROR_LOGGING 1
 
+#include <ToolCommon.h>
 #include <Weave/Support/CodeUtils.h>
 #include <Weave/Support/logging/WeaveLogging.h>
 
@@ -31,7 +32,6 @@
 #if WEAVE_CONFIG_TIME
 #if WEAVE_CONFIG_TIME_ENABLE_CLIENT
 
-using namespace nl::Weave::Platform::Time;
 using namespace nl::Weave::Profiles::Time;
 using namespace nl::Inet;
 using nl::Weave::Binding;
@@ -149,7 +149,7 @@ void MockSingleSourceTimeSyncClient::HandleSyncCompleted(void * const aApp, cons
         WeaveLogProgress(TimeService, "++++   Corrected time: %" PRId64 " usec", aCorrectedSystemTime);
         WeaveLogProgress(TimeService, "++++++++++++++++++++++++++++++++++++++++++++");
 
-        (void)nl::Weave::Platform::Time::SetSystemTime(aCorrectedSystemTime);
+        (void)System::Layer::SetClock_RealTime((uint64_t)aCorrectedSystemTime);
     }
     else
     {
@@ -497,7 +497,7 @@ void MockTimeSyncClient::OnResponseReadyForCalculation(void * const aApp,
     WeaveLogProgress(TimeService, "++++           Capacity: %3d            ++++", aSize);
     WeaveLogProgress(TimeService, "++++++++++++++++++++++++++++++++++++++++++++");
 
-    (void)GetMonotonicRawTime(&unadjTimestamp_usec);
+    unadjTimestamp_usec = (timesync_t)System::Layer::GetClock_MonotonicHiRes();
 
     for (int i = 0; i < aSize; ++i)
     {

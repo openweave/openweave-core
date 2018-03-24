@@ -1420,19 +1420,19 @@ void SubscriptionEngine::OnCustomCommand(nl::Weave::ExchangeContext * aEC, const
 #if WDM_ENFORCE_EXPIRY_TIME
         if (command->IsExpiryTimeValid())
         {
-            nl::Weave::Profiles::Time::timesync_t now_usec;
-            err = nl::Weave::Platform::Time::GetSystemTime(&now_usec);
-            if (WEAVE_ERROR_UNSUPPORTED_CLOCK == err)
+            uint64_t now_usec;
+            err = System::Layer::GetClock_RealTime(now_usec);
+            if (WEAVE_SYSTEM_ERROR_NOT_SUPPORTED == err)
             {
                 statusReportCode = nl::Weave::Profiles::DataManagement::kStatus_ExpiryTimeNotSupported;
                 ExitNow();
             }
-            else if (WEAVE_ERROR_TIME_NOT_SYNCED_YET == err)
+            else if (WEAVE_SYSTEM_ERROR_REAL_TIME_NOT_SYNCED == err)
             {
                 statusReportCode = nl::Weave::Profiles::DataManagement::kStatus_NotTimeSyncedYet;
                 ExitNow();
             }
-            else if (now_usec >= command->expiryTimeMicroSecond)
+            else if (now_usec >= (uint64_t)command->expiryTimeMicroSecond)
             {
                 statusReportCode = nl::Weave::Profiles::DataManagement::kStatus_RequestExpiredInTime;
                 ExitNow();

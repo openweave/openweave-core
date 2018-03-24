@@ -260,6 +260,7 @@ nl_public_SystemLayer_destination_dirstem = SystemLayer
 
 nl_public_SystemLayer_header_sources                              = \
     $(nl_public_SystemLayer_source_dirstem)/SystemAlignSize.h       \
+    $(nl_public_SystemLayer_source_dirstem)/SystemClock.h           \
     $(nl_public_SystemLayer_source_dirstem)/SystemConfig.h          \
     $(nl_public_SystemLayer_source_dirstem)/SystemError.h           \
     $(nl_public_SystemLayer_source_dirstem)/SystemEvent.h           \

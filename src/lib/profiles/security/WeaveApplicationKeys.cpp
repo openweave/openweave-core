@@ -34,6 +34,7 @@
 #include <Weave/Support/crypto/WeaveCrypto.h>
 #include <Weave/Support/crypto/HKDF.h>
 #include <Weave/Support/CodeUtils.h>
+#include <Weave/Support/MathUtils.h>
 
 namespace nl {
 namespace Weave {
@@ -132,6 +133,29 @@ void GroupKeyStoreBase::OnEpochKeysChange(void)
 }
 
 /**
+ * Get current platform UTC time in seconds.
+ *
+ * @param[out]   utcTime             A reference to the time value.
+ *
+ * @retval #WEAVE_NO_ERROR           On success.
+ * @retval #WEAVE_SYSTEM_ERROR_NOT_SUPPORTED
+ *                                   If platform does not support a real time clock.
+ * @retval #WEAVE_SYSTEM_ERROR_REAL_TIME_NOT_SYNCED
+ *                                   If the system's real time clock is not synchronized to
+ *                                   an accurate time source.
+ * @retval other                     Other Weave or platform error codes.
+ */
+WEAVE_ERROR GroupKeyStoreBase::GetCurrentUTCTime(uint32_t& utcTime)
+{
+    WEAVE_ERROR err;
+    uint64_t utcTimeMS;
+
+    err = System::Layer::GetClock_RealTimeMS(utcTimeMS);
+    utcTime = ::nl::Weave::Platform::DivideBy1000(utcTimeMS);
+    return err;
+}
+
+/**
  * Returns current key ID.
  * Finds current epoch key based on the current system time and the start time parameter
  * of each epoch key. If system doesn't have valid, accurate time then last-used epoch key
@@ -183,7 +207,7 @@ WEAVE_ERROR GroupKeyStoreBase::GetCurrentAppKeyId(uint32_t keyId, uint32_t& curK
     // If platform doesn't support time functions or doesn't have an accurate time yet then assume that current
     // time is zero so the protocol below selects "oldest" epoch key (epoch key with smallest StartTime value).
     err = GetCurrentUTCTime(curUTCTime);
-    if (err == WEAVE_ERROR_UNSUPPORTED_CLOCK || err == WEAVE_ERROR_TIME_NOT_SYNCED_YET)
+    if (err == WEAVE_SYSTEM_ERROR_NOT_SUPPORTED || err == WEAVE_SYSTEM_ERROR_REAL_TIME_NOT_SYNCED)
     {
         curUTCTime = 0;
         err = WEAVE_NO_ERROR;

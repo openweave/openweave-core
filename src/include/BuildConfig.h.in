@@ -34,6 +34,9 @@
 /* Define to 1 if you have the `clock_gettime' function. */
 #undef HAVE_CLOCK_GETTIME
 
+/* Define to 1 if you have the `clock_settime' function. */
+#undef HAVE_CLOCK_SETTIME
+
 /* Define to 1 if you have the <ctype.h> header file. */
 #undef HAVE_CTYPE_H
 
@@ -216,6 +219,9 @@
 
 /* Define to 1 if you have the `realloc' function. */
 #undef HAVE_REALLOC
+
+/* Define to 1 if you have the `settimeofday' function. */
+#undef HAVE_SETTIMEOFDAY
 
 /* Define to 1 if you have the `snprintf' function. */
 #undef HAVE_SNPRINTF

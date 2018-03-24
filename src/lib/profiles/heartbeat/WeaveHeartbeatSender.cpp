@@ -279,18 +279,17 @@ uint64_t WeaveHeartbeatSender::GetHeartbeatBase()
 }
 
 /**
- * Get UTC time or time since boot in ms if UTC time not available
+ * Get UTC time or monotonic time in ms if UTC time not available
  */
 uint64_t WeaveHeartbeatSender::GetPlatformTimeMs(void)
 {
     WEAVE_ERROR err;
     uint64_t now_ms;
 
-    err = Platform::Time::GetSystemTimeMs((Profiles::Time::timesync_t *)&now_ms);
-
-    if (err || (!now_ms))
+    err = System::Layer::GetClock_RealTimeMS(now_ms);
+    if (err != WEAVE_SYSTEM_NO_ERROR || now_ms == 0)
     {
-        now_ms = static_cast<uint64_t>(System::Timer::GetCurrentEpoch());
+        now_ms = System::Layer::GetClock_MonotonicMS();
     }
     return now_ms;
 }

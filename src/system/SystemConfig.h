@@ -494,4 +494,72 @@ struct LwIPEvent;
 #endif /* !WEAVE_SYSTEM_CONFIG_USE_LWIP */
 #endif /* WEAVE_SYSTEM_CONFIG_HEADER_RESERVE_SIZE */
 
+/**
+ *  @def WEAVE_SYSTEM_CONFIG_PLATFORM_PROVIDES_TIME
+ *
+ *  @brief
+ *      Use platform-supplied functions for System Layer clock functions.
+ *
+ *  Determines whether (1) or not (0) the underlying platform provides implementations for
+ *  the System Layer GetClock/SetClock functions.
+ */
+#ifndef WEAVE_SYSTEM_CONFIG_PLATFORM_PROVIDES_TIME
+#define WEAVE_SYSTEM_CONFIG_PLATFORM_PROVIDES_TIME 0
+#endif // WEAVE_SYSTEM_CONFIG_PLATFORM_PROVIDES_TIME
+
+/**
+ *  @def WEAVE_SYSTEM_CONFIG_USE_POSIX_TIME_FUNCTS
+ *
+ *  @brief
+ *      Use the POSIX time functions for System Layer clock functions.
+ *
+ *  Use the POSIX time functions (clock_gettime, gettimeofday, etc.) to implement the
+ *  System Layer GetClock/SetClock functions.
+ *
+ *  Defaults to enabled if the system is using sockets.
+ *
+ *  This configuration is overridden if WEAVE_SYSTEM_CONFIG_PLATFORM_PROVIDES_TIME is set.
+ */
+#ifndef WEAVE_SYSTEM_CONFIG_USE_POSIX_TIME_FUNCTS
+#if WEAVE_SYSTEM_CONFIG_USE_SOCKETS
+#define WEAVE_SYSTEM_CONFIG_USE_POSIX_TIME_FUNCTS 1
+#else // WEAVE_SYSTEM_CONFIG_USE_SOCKETS
+#define WEAVE_SYSTEM_CONFIG_USE_POSIX_TIME_FUNCTS 0
+#endif // WEAVE_SYSTEM_CONFIG_USE_SOCKETS
+#endif // WEAVE_SYSTEM_CONFIG_USE_POSIX_TIME_FUNCTS
+
+/**
+ *  @def WEAVE_SYSTEM_CONFIG_USE_LWIP_MONOTONIC_TIME
+ *
+ *  @brief
+ *      Use LwIP time function for System Layer monotonic clock functions.
+ *
+ *  Use the LwIP sys_now() function to implement the System Layer GetClock_Monotonic... functions.
+ *
+ *  Defaults to enabled if the system is using LwIP and not sockets.
+ *
+ *  This configuration is overridden if WEAVE_SYSTEM_CONFIG_PLATFORM_PROVIDES_TIME is set.
+ */
+#ifndef WEAVE_SYSTEM_CONFIG_USE_LWIP_MONOTONIC_TIME
+#if WEAVE_SYSTEM_CONFIG_USE_LWIP && !WEAVE_SYSTEM_CONFIG_USE_SOCKETS
+#define WEAVE_SYSTEM_CONFIG_USE_LWIP_MONOTONIC_TIME 1
+#else
+#define WEAVE_SYSTEM_CONFIG_USE_LWIP_MONOTONIC_TIME 0
+#endif
+#endif // WEAVE_SYSTEM_CONFIG_USE_LWIP_MONOTONIC_TIME
+
+/**
+ *  @def WEAVE_SYSTEM_CONFIG_VALID_REAL_TIME_THRESHOLD
+ *
+ *  @brief
+ *      The earliest time at which the real time clock is considered to be valid.
+ *
+ *  The value is given in Unix time scaled to seconds.
+ *
+ *  The default value corresponds to 2000/01/01 00:00:00
+ */
+#ifndef WEAVE_SYSTEM_CONFIG_VALID_REAL_TIME_THRESHOLD
+#define WEAVE_SYSTEM_CONFIG_VALID_REAL_TIME_THRESHOLD 946684800
+#endif // WEAVE_SYSTEM_CONFIG_VALID_REAL_TIME_THRESHOLD
+
 #endif // defined(SYSTEMCONFIG_H)

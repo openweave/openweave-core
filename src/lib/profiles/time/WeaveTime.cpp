@@ -294,4 +294,27 @@ void _TimeSyncNodeBase::Init(WeaveFabricState * const aFabricState,
     ExchangeMgr = aExchangeMgr;
 }
 
+timesync_t _TimeSyncNodeBase::GetClock_Monotonic(void)
+{
+    return (timesync_t)System::Layer::GetClock_Monotonic();
+}
+
+timesync_t _TimeSyncNodeBase::GetClock_MonotonicHiRes(void)
+{
+    return (timesync_t)System::Layer::GetClock_MonotonicHiRes();
+}
+
+WEAVE_ERROR _TimeSyncNodeBase::GetClock_RealTime(timesync_t & curTime)
+{
+    uint64_t curTimeUnsigned;
+    System::Error err = System::Layer::GetClock_RealTime(curTimeUnsigned);
+    curTime = (timesync_t)curTimeUnsigned;
+    return err;
+}
+
+WEAVE_ERROR _TimeSyncNodeBase::SetClock_RealTime(timesync_t newCurTime)
+{
+    return System::Layer::SetClock_RealTime((uint64_t)newCurTime);
+}
+
 #endif // WEAVE_CONFIG_TIME

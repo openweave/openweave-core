@@ -1542,25 +1542,6 @@ typedef WEAVE_CONFIG_ERROR_TYPE WEAVE_ERROR;
 #define WEAVE_ERROR_WRONG_CERT_TYPE                             _WEAVE_ERROR(159)
 
 /**
- *  @def WEAVE_ERROR_TIME_NOT_SYNCED_YET
- *
- *  @brief
- *    The platform does not have an accurate notion of time for the
- *    clock specified, yet.
- *
- */
-#define WEAVE_ERROR_TIME_NOT_SYNCED_YET                         _WEAVE_ERROR(160)
-
-/**
- *  @def WEAVE_ERROR_UNSUPPORTED_CLOCK
- *
- *  @brief
- *    The platform does not support the GetTime* API invoked
- *
- */
-#define WEAVE_ERROR_UNSUPPORTED_CLOCK                           _WEAVE_ERROR(161)
-
-/**
  * @def WEAVE_ERROR_DEFAULT_EVENT_HANDLER_NOT_CALLED
  *
  * @brief

@@ -68,7 +68,7 @@ noinst_HEADERS                                             = \
     TestEventLoggingSchemaExamples.h                         \
     TestGroupKeyStore.h                                      \
     TestPersistedStorageImplementation.h                     \
-    TestPlatformTime.h                                       \
+    MockPlatformClocks.h                                     \
     TestProfile.h                                            \
     TestWRMP.h                                               \
     TestWdmOneWayCommand.h                                   \
@@ -152,7 +152,6 @@ if WEAVE_BUILD_TESTS
 noinst_LIBRARIES                               = \
     libWeaveCryptoTests.a                        \
     libWeaveTestCommon.a                         \
-    libWeaveTestPlatform.a                       \
     libWeaveTestGroupKeyStore.a                  \
     $(NULL)
 
@@ -182,10 +181,7 @@ libWeaveTestCommon_a_SOURCES                   = \
     TestGroupKeyStore.cpp                        \
     ToolCommon.cpp                               \
     ToolCommonOptions.cpp                        \
-    $(NULL)
-
-libWeaveTestPlatform_a_SOURCES                 = \
-    TestPlatformTime.cpp                         \
+    MockPlatformClocks.cpp                       \
     TestPersistedStorageImplementation.cpp       \
     $(NULL)
 
@@ -236,10 +232,6 @@ endif #CONFIG_BLE_PLATFORM_BLUEZ
 noinst_LIBRARIES                              += \
     libMockBlePlatformDelegate.a                 \
     libMockBleApplicationDelegate.a              \
-    $(NULL)
-
-TEST_PLATFORM_LDADD                            = \
-    libWeaveTestPlatform.a                       \
     $(NULL)
 
 libMockBlePlatformDelegate_a_SOURCES           = \
@@ -1078,51 +1070,51 @@ GenerateEventLog_SOURCES                 = GenerateEventLog.cpp MockEvents.cpp \
 
 GenerateEventLog_LDFLAGS                 = $(AM_CPPFLAGS)
 GenerateEventLog_CPPFLAGS                = $(AM_CPPFLAGS) -I$(top_srcdir)/src/test-apps/schema
-GenerateEventLog_LDADD                   = libWeaveTestCommon.a $(COMMON_LDADD) $(TEST_PLATFORM_LDADD)
+GenerateEventLog_LDADD                   = libWeaveTestCommon.a $(COMMON_LDADD)
 
 TestASN1_SOURCES                         = TestASN1.cpp
-TestASN1_LDADD                           = $(COMMON_LDADD) $(TEST_PLATFORM_LDADD)
+TestASN1_LDADD                           = $(COMMON_LDADD)
 
 TestAppKeys_SOURCES                      = TestAppKeys.cpp
-TestAppKeys_LDADD                        = libWeaveTestCommon.a $(COMMON_LDADD) $(TEST_PLATFORM_LDADD)
+TestAppKeys_LDADD                        = libWeaveTestCommon.a $(COMMON_LDADD)
 
 TestArgParser_SOURCES                    = TestArgParser.cpp
 TestArgParser_LDADD                      = libWeaveTestCommon.a $(COMMON_LDADD)
 
 TestBinding_SOURCES                      = TestBinding.cpp
 TestBinding_LDFLAGS                      = $(AM_CPPFLAGS)
-TestBinding_LDADD                        = libWeaveTestCommon.a $(COMMON_LDADD) $(TEST_PLATFORM_LDADD)
+TestBinding_LDADD                        = libWeaveTestCommon.a $(COMMON_LDADD)
 
 TestCASE_SOURCES                         = TestCASE.cpp
 TestCASE_LDFLAGS                         = $(AM_CPPFLAGS)
-TestCASE_LDADD                           = libWeaveTestCommon.a $(COMMON_LDADD) $(TEST_PLATFORM_LDADD)
+TestCASE_LDADD                           = libWeaveTestCommon.a $(COMMON_LDADD)
 
 TestCodeUtils_SOURCES                    = TestCodeUtils.cpp
 TestCodeUtils_LDADD                      =
 
 TestCrypto_SOURCES                       = TestCrypto.cpp
 TestCrypto_CPPFLAGS                      = $(AM_CPPFLAGS) -I$(top_srcdir)/src/test-apps/crypto-tests
-TestCrypto_LDADD                         = libWeaveCryptoTests.a $(COMMON_LDADD) $(TEST_PLATFORM_LDADD)
+TestCrypto_LDADD                         = libWeaveCryptoTests.a $(COMMON_LDADD)
 
 TestDRBG_SOURCES                         = TestDRBG.cpp
-TestDRBG_LDADD                           = $(COMMON_LDADD) $(TEST_PLATFORM_LDADD)
+TestDRBG_LDADD                           = $(COMMON_LDADD)
 
 TestDataManagement_SOURCES               = TestDataManagement.cpp \
                                            TestProfile.cpp
 TestDataManagement_LDFLAGS               = $(AM_CPPFLAGS)
-TestDataManagement_LDADD                 = libWeaveTestCommon.a $(COMMON_LDADD) $(TEST_PLATFORM_LDADD)
+TestDataManagement_LDADD                 = libWeaveTestCommon.a $(COMMON_LDADD)
 
 TestDeviceDescriptor_SOURCES             = TestDeviceDescriptor.cpp
-TestDeviceDescriptor_LDADD               = $(COMMON_LDADD) $(TEST_PLATFORM_LDADD)
+TestDeviceDescriptor_LDADD               = $(COMMON_LDADD)
 
 TestECDH_SOURCES                         = TestECDH.cpp
-TestECDH_LDADD                           = $(COMMON_LDADD) $(TEST_PLATFORM_LDADD)
+TestECDH_LDADD                           = $(COMMON_LDADD)
 
 TestECDSA_SOURCES                        = TestECDSA.cpp
-TestECDSA_LDADD                          = $(COMMON_LDADD) $(TEST_PLATFORM_LDADD)
+TestECDSA_LDADD                          = $(COMMON_LDADD)
 
 TestECMath_SOURCES                       = TestECMath.cpp TestECMathParams.cpp
-TestECMath_LDADD                         = $(COMMON_LDADD) $(TEST_PLATFORM_LDADD)
+TestECMath_LDADD                         = $(COMMON_LDADD)
 
 TestEventLogging_SOURCES                 = schema/nest/test/trait/TestETrait.cpp \
                                            schema/nest/test/trait/TestCommon.cpp \
@@ -1130,7 +1122,7 @@ TestEventLogging_SOURCES                 = schema/nest/test/trait/TestETrait.cpp
                                            TestEventLogging.cpp
 TestEventLogging_CPPFLAGS	         = $(AM_CPPFLAGS) -I$(top_srcdir)/src/test-apps/schema
 TestEventLogging_LDFLAGS                 = $(AM_CPPFLAGS)
-TestEventLogging_LDADD                   = libWeaveTestCommon.a $(COMMON_LDADD) $(TEST_PLATFORM_LDADD)
+TestEventLogging_LDADD                   = libWeaveTestCommon.a $(COMMON_LDADD)
 
 if HAVE_CXX11
 TestTDM_SOURCES                          = TestTDM.cpp \
@@ -1145,144 +1137,144 @@ TestTDM_SOURCES                          = TestTDM.cpp \
 
 TestTDM_CPPFLAGS                         = $(AM_CPPFLAGS) -I$(top_srcdir)/src/test-apps/schema
 TestTDM_LDFLAGS                          = $(AM_CPPFLAGS)
-TestTDM_LDADD                            = libWeaveTestCommon.a $(COMMON_LDADD) $(TEST_PLATFORM_LDADD)
+TestTDM_LDADD                            = libWeaveTestCommon.a $(COMMON_LDADD)
 endif
 
 TestWDM_SOURCES                          = TestWdm.cpp
 TestWDM_CPPFLAGS                         = $(AM_CPPFLAGS)
 TestWDM_LDFLAGS                          = $(AM_CPPFLAGS)
-TestWDM_LDADD                            = libWeaveTestCommon.a $(COMMON_LDADD) $(TEST_PLATFORM_LDADD)
+TestWDM_LDADD                            = libWeaveTestCommon.a $(COMMON_LDADD)
 
 TestFabricStateDelegate_SOURCES          = TestFabricStateDelegate.cpp TestPersistedStorageImplementation.cpp
 TestFabricStateDelegate_LDFLAGS          = $(AM_CPPFLAGS)
-TestFabricStateDelegate_LDADD            = libWeaveTestCommon.a $(COMMON_LDADD) $(TEST_PLATFORM_LDADD)
+TestFabricStateDelegate_LDADD            = libWeaveTestCommon.a $(COMMON_LDADD)
 
 TestInetEndPoint_SOURCES                 = TestInetEndPoint.cpp
 TestInetEndPoint_LDFLAGS                 = $(AM_CPPFLAGS)
-TestInetEndPoint_LDADD                   = libWeaveTestCommon.a $(COMMON_LDADD) $(TEST_PLATFORM_LDADD)
+TestInetEndPoint_LDADD                   = libWeaveTestCommon.a $(COMMON_LDADD)
 
 TestInetBuffer_SOURCES                   = TestInetBuffer.cpp
-TestInetBuffer_LDADD                     = libWeaveTestCommon.a $(COMMON_LDADD) $(TEST_PLATFORM_LDADD)
+TestInetBuffer_LDADD                     = libWeaveTestCommon.a $(COMMON_LDADD)
 
 TestInetTimer_SOURCES                    = TestInetTimer.cpp
 TestInetTimer_LDFLAGS                    = $(AM_CPPFLAGS)
-TestInetTimer_LDADD                      = libWeaveTestCommon.a $(COMMON_LDADD) $(TEST_PLATFORM_LDADD)
+TestInetTimer_LDADD                      = libWeaveTestCommon.a $(COMMON_LDADD)
 
 TestInetLayer_SOURCES                    = TestInetLayer.cpp
 TestInetLayer_LDFLAGS                    = $(AM_CPPFLAGS)
-TestInetLayer_LDADD                      = libWeaveTestCommon.a $(COMMON_LDADD) $(TEST_PLATFORM_LDADD)
+TestInetLayer_LDADD                      = libWeaveTestCommon.a $(COMMON_LDADD)
 
 TestInetAddress_SOURCES                  = TestInetAddress.cpp
-TestInetAddress_LDADD                    = libWeaveTestCommon.a $(COMMON_LDADD) $(TEST_PLATFORM_LDADD)
+TestInetAddress_LDADD                    = libWeaveTestCommon.a $(COMMON_LDADD)
 
 TestKeyExport_SOURCES                    = TestKeyExport.cpp
 TestKeyExport_LDFLAGS                    = $(AM_CPPFLAGS)
-TestKeyExport_LDADD                      = libWeaveTestCommon.a $(COMMON_LDADD) $(TEST_PLATFORM_LDADD)
+TestKeyExport_LDADD                      = libWeaveTestCommon.a $(COMMON_LDADD)
 
 TestKeyIds_SOURCES                       = TestKeyIds.cpp
 TestKeyIds_LDFLAGS                       = $(AM_CPPFLAGS)
-TestKeyIds_LDADD                         = libWeaveTestCommon.a $(COMMON_LDADD) $(TEST_PLATFORM_LDADD)
+TestKeyIds_LDADD                         = libWeaveTestCommon.a $(COMMON_LDADD)
 
 TestMsgEnc_SOURCES                       = TestMsgEnc.cpp
 TestMsgEnc_LDFLAGS                       = $(AM_CPPFLAGS)
-TestMsgEnc_LDADD                         = libWeaveTestCommon.a $(COMMON_LDADD) $(TEST_PLATFORM_LDADD)
+TestMsgEnc_LDADD                         = libWeaveTestCommon.a $(COMMON_LDADD)
 
 TestNetworkInfo_SOURCES                  = TestNetworkInfo.cpp
 TestNetworkInfo_LDFLAGS                  = $(AM_CPPFLAGS)
-TestNetworkInfo_LDADD                    = libWeaveTestCommon.a $(COMMON_LDADD) $(TEST_PLATFORM_LDADD)
+TestNetworkInfo_LDADD                    = libWeaveTestCommon.a $(COMMON_LDADD)
 
 TestPASE_SOURCES                         = TestPASE.cpp
 TestPASE_LDFLAGS                         = $(AM_CPPFLAGS)
-TestPASE_LDADD                           = libWeaveTestCommon.a $(COMMON_LDADD) $(TEST_PLATFORM_LDADD)
+TestPASE_LDADD                           = libWeaveTestCommon.a $(COMMON_LDADD)
 
 TestPacketBuffer_SOURCES                 = TestPacketBuffer.cpp
-TestPacketBuffer_LDADD                   = libWeaveTestCommon.a $(COMMON_LDADD) $(TEST_PLATFORM_LDADD)
+TestPacketBuffer_LDADD                   = libWeaveTestCommon.a $(COMMON_LDADD)
 
 TestPasscodeEnc_SOURCES                  = TestPasscodeEnc.cpp
-TestPasscodeEnc_LDADD                    = libWeaveTestCommon.a $(COMMON_LDADD) $(TEST_PLATFORM_LDADD)
+TestPasscodeEnc_LDADD                    = libWeaveTestCommon.a $(COMMON_LDADD)
 
 TestPersistedCounter_SOURCES             = TestPersistedCounter.cpp TestPersistedStorageImplementation.cpp
-TestPersistedCounter_LDADD               = libWeaveTestCommon.a $(COMMON_LDADD) $(TEST_PLATFORM_LDADD)
+TestPersistedCounter_LDADD               = libWeaveTestCommon.a $(COMMON_LDADD)
 
 TestPersistedStorage_SOURCES             = TestPersistedStorage.cpp TestPersistedStorageImplementation.cpp
-TestPersistedStorage_LDADD               = libWeaveTestCommon.a $(COMMON_LDADD) $(TEST_PLATFORM_LDADD)
+TestPersistedStorage_LDADD               = libWeaveTestCommon.a $(COMMON_LDADD)
 
 TestProfileStringSupport_SOURCES         = TestProfileStringSupport.cpp
-TestProfileStringSupport_LDADD           = $(COMMON_LDADD) $(TEST_PLATFORM_LDADD)
+TestProfileStringSupport_LDADD           = $(COMMON_LDADD)
 
 TestProvHash_SOURCES                     = TestProvHash.cpp
-TestProvHash_LDADD                       = $(COMMON_LDADD) $(TEST_PLATFORM_LDADD)
+TestProvHash_LDADD                       = $(COMMON_LDADD)
 
 TestRADaemon_SOURCES                     = TestRADaemon.cpp
 TestRADaemon_CPPFLAGS                    = $(AM_CPPFLAGS) -I$(top_srcdir)/src/ra-daemon
-TestRADaemon_LDADD                       = libWeaveTestCommon.a -L$(top_builddir)/src/ra-daemon -lRADaemon $(COMMON_LDADD) $(TEST_PLATFORM_LDADD)
+TestRADaemon_LDADD                       = libWeaveTestCommon.a -L$(top_builddir)/src/ra-daemon -lRADaemon $(COMMON_LDADD)
 
 TestRetainedPacketBuffer_SOURCES         = TestRetainedPacketBuffer.cpp
 TestRetainedPacketBuffer_LDADD           = libWeaveTestCommon.a $(COMMON_LDADD)
 
 TestSerialNumUtils_SOURCES               = TestSerialNumUtils.cpp
-TestSerialNumUtils_LDADD                 = $(COMMON_LDADD) $(TEST_PLATFORM_LDADD)
+TestSerialNumUtils_LDADD                 = $(COMMON_LDADD)
 
 TestSystemObject_SOURCES                 = TestSystemObject.cpp
 TestSystemObject_CPPFLAGS                = $(AM_CPPFLAGS) $(PTHREAD_CFLAGS)
 TestSystemObject_LDFLAGS                 = $(PTHREAD_CFLAGS)
-TestSystemObject_LDADD                   = libWeaveTestCommon.a $(PTHREAD_LIBS) $(COMMON_LDADD) $(TEST_PLATFORM_LDADD)
+TestSystemObject_LDADD                   = libWeaveTestCommon.a $(PTHREAD_LIBS) $(COMMON_LDADD)
 
 TestSystemTimer_SOURCES                  = TestSystemTimer.cpp
-TestSystemTimer_LDADD                    = libWeaveTestCommon.a $(COMMON_LDADD) $(TEST_PLATFORM_LDADD)
+TestSystemTimer_LDADD                    = libWeaveTestCommon.a $(COMMON_LDADD)
 
 TestTAKE_SOURCES                         = TestTAKE.cpp
 TestTAKE_LDFLAGS                         = $(AM_CPPFLAGS)
-TestTAKE_LDADD                           = libWeaveTestCommon.a $(COMMON_LDADD) $(TEST_PLATFORM_LDADD)
+TestTAKE_LDADD                           = libWeaveTestCommon.a $(COMMON_LDADD)
 
 TestTLV_SOURCES                          = TestTLV.cpp
-TestTLV_LDADD                            = libWeaveTestCommon.a $(COMMON_LDADD) $(TEST_PLATFORM_LDADD)
+TestTLV_LDADD                            = libWeaveTestCommon.a $(COMMON_LDADD)
 
 TestTimeUtils_SOURCES                    = TestTimeUtils.cpp
-TestTimeUtils_LDADD                      = $(COMMON_LDADD) $(TEST_PLATFORM_LDADD)
+TestTimeUtils_LDADD                      = $(COMMON_LDADD)
 
 TestTimeZone_SOURCES                     = TestTimeZone.cpp
-TestTimeZone_LDADD                       = $(COMMON_LDADD) $(TEST_PLATFORM_LDADD)
+TestTimeZone_LDADD                       = $(COMMON_LDADD)
 
 TestWRMP_SOURCES                         = TestWRMP.cpp
 TestWRMP_LDFLAGS                         = $(AM_CPPFLAGS)
-TestWRMP_LDADD                           = libWeaveTestCommon.a $(COMMON_LDADD) $(TEST_PLATFORM_LDADD)
+TestWRMP_LDADD                           = libWeaveTestCommon.a $(COMMON_LDADD)
 
 if WEAVE_BUILD_WARM
 TestWarm_SOURCES                         = TestWarm.cpp TestPersistedStorageImplementation.cpp
 TestWarm_LDFLAGS                         = $(AM_CPPFLAGS)
-TestWarm_LDADD                           = libWeaveTestGroupKeyStore.a $(COMMON_LDADD) $(TEST_PLATFORM_LDADD)
+TestWarm_LDADD                           = libWeaveTestGroupKeyStore.a $(COMMON_LDADD)
 endif
 
 TestWeaveCert_SOURCES                    = TestWeaveCert.cpp TestWeaveCertData.cpp
-TestWeaveCert_LDADD                      = libWeaveTestCommon.a $(COMMON_LDADD) $(TEST_PLATFORM_LDADD)
+TestWeaveCert_LDADD                      = libWeaveTestCommon.a $(COMMON_LDADD)
 
 TestWeaveEncoding_SOURCES                = TestWeaveEncoding.cpp
 TestWeaveEncoding_LDADD                  =
 
 TestWeaveFabricState_SOURCES             = TestWeaveFabricState.cpp TestPersistedStorageImplementation.cpp
 TestWeaveFabricState_LDFLAGS             = $(AM_CPPFLAGS)
-TestWeaveFabricState_LDADD               = libWeaveTestCommon.a $(COMMON_LDADD) $(TEST_PLATFORM_LDADD)
+TestWeaveFabricState_LDADD               = libWeaveTestCommon.a $(COMMON_LDADD)
 
 TestWeaveMessageLayer_SOURCES            = TestWeaveMessageLayer.cpp
 TestWeaveMessageLayer_LDFLAGS            = $(AM_CPPFLAGS)
-TestWeaveMessageLayer_LDADD              = libWeaveTestCommon.a $(COMMON_LDADD) $(TEST_PLATFORM_LDADD)
+TestWeaveMessageLayer_LDADD              = libWeaveTestCommon.a $(COMMON_LDADD)
 
 TestWeaveProvBundle_SOURCES              = TestWeaveProvBundle.cpp
 TestWeaveProvBundle_LDFLAGS              = $(AM_CPPFLAGS)
-TestWeaveProvBundle_LDADD                = $(COMMON_LDADD) $(TEST_PLATFORM_LDADD)
+TestWeaveProvBundle_LDADD                = $(COMMON_LDADD)
 
 TestWeaveSignature_SOURCES               = TestWeaveSignature.cpp
 TestWeaveSignature_LDFLAGS               = $(AM_CPPFLAGS)
-TestWeaveSignature_LDADD                 = $(COMMON_LDADD) $(TEST_PLATFORM_LDADD)
+TestWeaveSignature_LDADD                 = $(COMMON_LDADD)
 
 TestWeaveTunnelBR_SOURCES                = TestWeaveTunnelBR.cpp
 TestWeaveTunnelBR_LDFLAGS                = $(AM_CPPFLAGS)
-TestWeaveTunnelBR_LDADD                  = libWeaveTestCommon.a $(COMMON_LDADD) $(TEST_PLATFORM_LDADD)
+TestWeaveTunnelBR_LDADD                  = libWeaveTestCommon.a $(COMMON_LDADD)
 
 TestWeaveTunnelServer_SOURCES            = TestWeaveTunnelServer.cpp
 TestWeaveTunnelServer_LDFLAGS            = $(AM_CPPFLAGS)
-TestWeaveTunnelServer_LDADD              = libWeaveTestCommon.a $(COMMON_LDADD) $(TEST_PLATFORM_LDADD)
+TestWeaveTunnelServer_LDADD              = libWeaveTestCommon.a $(COMMON_LDADD)
 
 TestWdmNext_SOURCES                      = TestWdmNext.cpp						\
                                            MockSinkTraits.cpp						\
@@ -1308,13 +1300,13 @@ TestWdmNext_SOURCES                      = TestWdmNext.cpp						\
 
 TestWdmNext_CPPFLAGS                     = $(AM_CPPFLAGS) -I$(top_srcdir)/src/test-apps/schema
 TestWdmNext_LDFLAGS                      = $(AM_CPPFLAGS)
-TestWdmNext_LDADD                        = libWeaveTestCommon.a $(COMMON_LDADD) $(TEST_PLATFORM_LDADD)
+TestWdmNext_LDADD                        = libWeaveTestCommon.a $(COMMON_LDADD)
 
 TestWdmOneWayCommandSender_SOURCES       = TestWdmOneWayCommandSender.cpp
 
 TestWdmOneWayCommandSender_CPPFLAGS      = $(AM_CPPFLAGS) -I$(top_srcdir)/src/test-apps/schema
 TestWdmOneWayCommandSender_LDFLAGS       = $(AM_CPPFLAGS)
-TestWdmOneWayCommandSender_LDADD         = libWeaveTestCommon.a $(COMMON_LDADD) $(TEST_PLATFORM_LDADD)
+TestWdmOneWayCommandSender_LDADD         = libWeaveTestCommon.a $(COMMON_LDADD)
 
 TestWdmOneWayCommandReceiver_SOURCES     = TestWdmOneWayCommandReceiver.cpp				\
                                            MockSourceTraits.cpp						\
@@ -1331,11 +1323,11 @@ TestWdmOneWayCommandReceiver_SOURCES     = TestWdmOneWayCommandReceiver.cpp				\
 
 TestWdmOneWayCommandReceiver_CPPFLAGS    = $(AM_CPPFLAGS) -I$(top_srcdir)/src/test-apps/schema
 TestWdmOneWayCommandReceiver_LDFLAGS     = $(AM_CPPFLAGS)
-TestWdmOneWayCommandReceiver_LDADD       = libWeaveTestCommon.a $(COMMON_LDADD) $(TEST_PLATFORM_LDADD)
+TestWdmOneWayCommandReceiver_LDADD       = libWeaveTestCommon.a $(COMMON_LDADD)
 
 
 infratest_SOURCES                        = infratest.cpp
-infratest_LDADD                          = $(COMMON_LDADD) $(TEST_PLATFORM_LDADD)
+infratest_LDADD                          = $(COMMON_LDADD)
 
 mock_device_SOURCES                      = mock-device.cpp                                          \
                                            MockDCLPServer.cpp                                       \
@@ -1376,26 +1368,26 @@ mock_device_SOURCES                      += \
 endif
 
 TestErrorStr_SOURCES                     = TestErrorStr.cpp
-TestErrorStr_LDADD                       = $(COMMON_LDADD) $(TEST_PLATFORM_LDADD)
+TestErrorStr_LDADD                       = $(COMMON_LDADD)
 
 TestStatusReportStr_SOURCES              = TestStatusReportStr.cpp
-TestStatusReportStr_LDADD                = $(COMMON_LDADD) $(TEST_PLATFORM_LDADD)
+TestStatusReportStr_LDADD                = $(COMMON_LDADD)
 
 TestThermostatStatus_SOURCES             = TestThermostatStatus.cpp
-TestThermostatStatus_LDADD               = $(COMMON_LDADD) $(TEST_PLATFORM_LDADD)
+TestThermostatStatus_LDADD               = $(COMMON_LDADD)
 
 TestPairingCodeUtils_SOURCES             = TestPairingCodeUtils.cpp
-TestPairingCodeUtils_LDADD               = $(COMMON_LDADD) $(TEST_PLATFORM_LDADD)
+TestPairingCodeUtils_LDADD               = $(COMMON_LDADD)
 
 TestResourceIdentifier_SOURCES           = TestResourceIdentifier.cpp
 TestResourceIdentifier_LDADD             = $(COMMON_LDADD) $(TEST_PLATFORM_LDADD)
 
 TestDNSResolution_SOURCES                = TestDNSResolution.cpp
 TestDNSResolution_LDFLAGS                = $(AM_CPPFLAGS)
-TestDNSResolution_LDADD                  = libWeaveTestCommon.a $(COMMON_LDADD) $(TEST_PLATFORM_LDADD)
+TestDNSResolution_LDADD                  = libWeaveTestCommon.a $(COMMON_LDADD)
 
 mock_device_CPPFLAGS                     = $(AM_CPPFLAGS) -I$(top_srcdir)/src/test-apps/schema
-mock_device_LDADD                        = libWeaveTestCommon.a $(COMMON_LDADD) $(TEST_PLATFORM_LDADD)
+mock_device_LDADD                        = libWeaveTestCommon.a $(COMMON_LDADD)
 
 if CONFIG_BLE_PLATFORM_BLUEZ
 mock_device_LDADD                       +=  @GLIB_LIBS@ @DBUS_LIBS@ -ldl -lrt
@@ -1405,22 +1397,22 @@ mock_device_LDFLAGS                      = $(AM_CPPFLAGS)
 
 mock_weave_bg_SOURCES                    = mock-weave-bg.cpp
 mock_weave_bg_LDFLAGS                    = $(AM_CPPFLAGS)
-mock_weave_bg_LDADD                      = libWeaveTestCommon.a $(COMMON_LDADD) $(TEST_PLATFORM_LDADD)
+mock_weave_bg_LDADD                      = libWeaveTestCommon.a $(COMMON_LDADD)
 
 wdmtest_SOURCES                          = wdmtest.cpp
 wdmtest_LDFLAGS                          = $(AM_CPPFLAGS)
-wdmtest_LDADD                            = libWeaveTestCommon.a $(COMMON_LDADD) $(TEST_PLATFORM_LDADD)
+wdmtest_LDADD                            = libWeaveTestCommon.a $(COMMON_LDADD)
 
 weave_bdx_client_development_SOURCES     = weave-bdx-client-development.cpp  \
                                            weave-bdx-common-development.cpp
 weave_bdx_client_development_LDFLAGS     = $(AM_CPPFLAGS)
-weave_bdx_client_development_LDADD       = libWeaveTestCommon.a $(COMMON_LDADD) $(TEST_PLATFORM_LDADD)
+weave_bdx_client_development_LDADD       = libWeaveTestCommon.a $(COMMON_LDADD)
 
 weave_bdx_server_development_SOURCES     = weave-bdx-server-development.cpp  \
                                            weave-bdx-common-development.cpp
 weave_bdx_server_development_LDFLAGS     = $(AM_CPPFLAGS)
 
-weave_bdx_server_development_LDADD       = libWeaveTestCommon.a $(COMMON_LDADD) $(TEST_PLATFORM_LDADD)
+weave_bdx_server_development_LDADD       = libWeaveTestCommon.a $(COMMON_LDADD)
 
 if WEAVE_WITH_CURL
 weave_bdx_client_development_LDADD      += $(CURL_LIBS)
@@ -1429,55 +1421,55 @@ endif # WEAVE_WITH_CURL
 
 weave_bdx_client_v0_SOURCES              = weave-bdx-client-v0.cpp
 weave_bdx_client_v0_LDFLAGS              = ${AM_CPPFLAGS}
-weave_bdx_client_v0_LDADD                = libWeaveTestCommon.a $(COMMON_LDADD) $(TEST_PLATFORM_LDADD)
+weave_bdx_client_v0_LDADD                = libWeaveTestCommon.a $(COMMON_LDADD)
 
 weave_bdx_server_v0_SOURCES              = weave-bdx-server-v0.cpp              \
                                            nlweavebdxserver.cpp
 weave_bdx_server_v0_LDFLAGS              = ${AM_CPPFLAGS}
-weave_bdx_server_v0_LDADD                = libWeaveTestCommon.a $(COMMON_LDADD) $(TEST_PLATFORM_LDADD)
+weave_bdx_server_v0_LDADD                = libWeaveTestCommon.a $(COMMON_LDADD)
 
 weave_connection_tunnel_SOURCES          = weave-connection-tunnel.cpp
 weave_connection_tunnel_LDFLAGS          = ${AM_CPPFLAGS}
-weave_connection_tunnel_LDADD            = libWeaveTestCommon.a $(COMMON_LDADD) $(TEST_PLATFORM_LDADD)
+weave_connection_tunnel_LDADD            = libWeaveTestCommon.a $(COMMON_LDADD)
 
 weave_dd_client_SOURCES                  = weave-dd-client.cpp
 weave_dd_client_LDFLAGS                  = ${AM_CPPFLAGS}
-weave_dd_client_LDADD                    = libWeaveTestCommon.a $(COMMON_LDADD) $(TEST_PLATFORM_LDADD)
+weave_dd_client_LDADD                    = libWeaveTestCommon.a $(COMMON_LDADD)
 
 weave_device_descriptor_SOURCES          = weave-device-descriptor.cpp
 weave_device_descriptor_LDFLAGS          = ${AM_CPPFLAGS}
-weave_device_descriptor_LDADD            = libWeaveTestCommon.a $(COMMON_LDADD) $(TEST_PLATFORM_LDADD)
+weave_device_descriptor_LDADD            = libWeaveTestCommon.a $(COMMON_LDADD)
 
 weave_heartbeat_SOURCES                  = weave-heartbeat.cpp
 weave_heartbeat_LDFLAGS                  = ${AM_CPPFLAGS}
-weave_heartbeat_LDADD                    = libWeaveTestCommon.a  $(COMMON_LDADD) $(TEST_PLATFORM_LDADD)
+weave_heartbeat_LDADD                    = libWeaveTestCommon.a  $(COMMON_LDADD)
 
 weave_key_export_SOURCES                 = weave-key-export.cpp
 weave_key_export_LDFLAGS                 = ${AM_CPPFLAGS}
-weave_key_export_LDADD                   = libWeaveTestCommon.a $(COMMON_LDADD) $(TEST_PLATFORM_LDADD)
+weave_key_export_LDADD                   = libWeaveTestCommon.a $(COMMON_LDADD)
 
 weave_ping_SOURCES                       = weave-ping.cpp
 weave_ping_LDFLAGS                       = ${AM_CPPFLAGS}
-weave_ping_LDADD                         = libWeaveTestCommon.a $(COMMON_LDADD) $(TEST_PLATFORM_LDADD)
+weave_ping_LDADD                         = libWeaveTestCommon.a $(COMMON_LDADD)
 
 weave_service_dir_SOURCES                = weave-service-dir.cpp \
                                            MockSDServer.cpp
 weave_service_dir_LDFLAGS                = ${AM_CPPFLAGS}
-weave_service_dir_LDADD                  = libWeaveTestCommon.a $(COMMON_LDADD) $(TEST_PLATFORM_LDADD)
+weave_service_dir_LDADD                  = libWeaveTestCommon.a $(COMMON_LDADD)
 
 weave_swu_client_SOURCES                 = weave-swu-client.cpp  \
                                            nlweaveswuclient.cpp  \
                                            MockIAServer.cpp
 weave_swu_client_LDFLAGS                 = ${AM_CPPFLAGS}
-weave_swu_client_LDADD                   = libWeaveTestCommon.a $(COMMON_LDADD) $(TEST_PLATFORM_LDADD)
+weave_swu_client_LDADD                   = libWeaveTestCommon.a $(COMMON_LDADD)
 
 weave_swu_server_SOURCES                 = weave-swu-server.cpp  \
                                            MockSWUServer.cpp
 weave_swu_server_LDFLAGS                 = ${AM_CPPFLAGS}
-weave_swu_server_LDADD                   = libWeaveTestCommon.a $(COMMON_LDADD) $(TEST_PLATFORM_LDADD)
+weave_swu_server_LDADD                   = libWeaveTestCommon.a $(COMMON_LDADD)
 
 wsuptest_SOURCES                         = wsuptest.cpp
-wsuptest_LDADD                           = $(COMMON_LDADD) $(TEST_PLATFORM_LDADD)
+wsuptest_LDADD                           = $(COMMON_LDADD)
 
 if WEAVE_BUILD_COVERAGE
 CLEANFILES                               = $(wildcard *.gcda *.gcno)

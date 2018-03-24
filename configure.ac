@@ -2237,15 +2237,12 @@ if test "${ac_no_link}" != "yes"; then
     AC_CHECK_FUNCS([strchr strcmp strlen])
     AC_CHECK_FUNCS([snprintf])
 
-
     # Some versions of Android are missing getifaddrs and
     # freeifaddrs. Check to see if the target system is such a version.
 
     AC_CHECK_FUNCS([getifaddrs freeifaddrs])
 
-    # Both test and production code may use clock_gettime and
-    # gettimeofday, check to see if they exist.
-    #
+    # Check for clock_gettime, gettimeofday, settimeofday and localtime.
     # In some target environments, clock_gettime exists in librt.
 
     AC_SEARCH_LIBS([clock_gettime], [rt])
@@ -2253,10 +2250,30 @@ if test "${ac_no_link}" != "yes"; then
     AC_CHECK_HEADERS([time.h sys/time.h])
     AC_CHECK_TYPES([clockid_t], [], [], [[#include <time.h>]])
 
+    # Check for clock_settime.  This function exists on iOS, however the compiler prevents
+    # reference to it via the use of an "unavailable" attribute.  Unfortunately, this goes
+    # unnoticed by autoconf's AC_CHECK_FUNCS macro, hence the need for custom detection code.
+
+    AC_SEARCH_LIBS([clock_settime], [rt])
+    AC_MSG_CHECKING([clock_settime])
+    AC_LINK_IFELSE(
+        [AC_LANG_SOURCE([[
+            #include <stdlib.h>
+            #include <time.h>
+            int main(int argc, char *argv[])
+            {
+                clock_settime(CLOCK_REALTIME, NULL);
+                return 0;
+            }
+        ]])],
+        [AC_DEFINE([HAVE_CLOCK_SETTIME], [1]) AC_MSG_RESULT([yes])],
+        [AC_MSG_RESULT([no])]
+    ) 
+
     # Note that different platforms have different APIs for monotonic timer with sleep time compensation.
     # CLOCK_BOOTTIME is available in later versions of linux and Android
-    AC_CHECK_DECLS([CLOCK_MONOTONIC, CLOCK_BOOTTIME], [], [], [[#include <time.h>]])
 
+    AC_CHECK_DECLS([CLOCK_MONOTONIC, CLOCK_BOOTTIME], [], [], [[#include <time.h>]])
 fi
 
 AC_SUBST(CONFIG_HAVE_HEAP)

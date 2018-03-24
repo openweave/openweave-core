@@ -46,7 +46,7 @@
 
 #include "MockTestBTrait.h"
 
-#include "TestPlatformTime.h"
+#include "MockPlatformClocks.h"
 
 #include <new>
 #include <map>
@@ -71,14 +71,15 @@ using namespace nl::Weave::Profiles::DataManagement;
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 namespace Private {
 
-static WEAVE_ERROR SetSystemTime(const nl::Weave::Profiles::Time::timesync_t timestamp_usec)
+System::Error SetClock_RealTime(uint64_t newCurTime)
 {
-	return WEAVE_NO_ERROR;
+    return WEAVE_SYSTEM_NO_ERROR;
 }
 
-static WEAVE_ERROR GetSystemTimeMs(nl::Weave::Profiles::Time::timesync_t *p_timestamp_msec)
+static System::Error GetClock_RealTime(uint64_t & curTime)
 {
-	return WEAVE_NO_ERROR;
+    curTime = 0x42; // arbitrary non-zero value.
+    return WEAVE_SYSTEM_NO_ERROR;
 }
 
 } // namespace Private
@@ -2129,8 +2130,8 @@ int main(int argc, char *argv[])
     tcpip_init(NULL, NULL);
 #endif // WEAVE_SYSTEM_CONFIG_USE_LWIP
 
-    nl::Weave::MockPlatform::gTestPlatformTimeFns.GetSystemTimeMs = Private::GetSystemTimeMs;
-    nl::Weave::MockPlatform::gTestPlatformTimeFns.SetSystemTime = Private::SetSystemTime;
+    MockPlatform::gMockPlatformClocks.GetClock_RealTime = Private::GetClock_RealTime;
+    MockPlatform::gMockPlatformClocks.SetClock_RealTime = Private::SetClock_RealTime;
 
     nlTestSuite theSuite = {
         "weave-tdm",

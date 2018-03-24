@@ -152,7 +152,7 @@ WEAVE_ERROR TestWdmOneWayCommandSender::SendOneWayCommand(void)
     {
         nl::Weave::TLV::TLVWriter writer;
         CustomCommand::Builder onewayCommand;
-        nl::Weave::Profiles::Time::timesync_t nowMicroSecs, deadline;
+        uint64_t nowMicroSecs, deadline;
 
         writer.Init(msgBuf);
         err = onewayCommand.Init(&writer);
@@ -168,7 +168,9 @@ WEAVE_ERROR TestWdmOneWayCommandSender::SendOneWayCommand(void)
         // Test Command Type
         onewayCommand.CommandType(commandType);
 
-        nl::Weave::Platform::Time::GetSystemTime(&nowMicroSecs);
+        err = System::Layer::GetClock_RealTime(nowMicroSecs);
+        SuccessOrExit(err);
+
         deadline = nowMicroSecs + kCommandTimeoutMicroSecs;
 
         onewayCommand.InitiationTimeMicroSecond(nowMicroSecs);

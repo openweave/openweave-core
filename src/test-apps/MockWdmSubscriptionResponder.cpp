@@ -50,7 +50,7 @@
 #include "MockSourceTraits.h"
 #include "MockWdmTestVerifier.h"
 
-#include "TestPlatformTime.h"
+#include "MockPlatformClocks.h"
 
 using nl::Weave::System::PacketBuffer;
 
@@ -1335,7 +1335,7 @@ void MockWdmSubscriptionResponderImpl::Command_Send(void)
     {
         nl::Weave::TLV::TLVWriter writer;
         CustomCommand::Builder request;
-        nl::Weave::Profiles::Time::timesync_t nowMicroSecs, deadline;
+        uint64_t nowMicroSecs, deadline;
 
         writer.Init(msgBuf);
         err = request.Init(&writer);
@@ -1364,9 +1364,11 @@ void MockWdmSubscriptionResponderImpl::Command_Send(void)
         // SubscriptionRequest::Builder would internally turn to NOP after error is logged
         SuccessOrExit(err = request.GetError());
 
-        nl::Weave::Platform::Time::GetSystemTime(&nowMicroSecs);
+        err = System::Layer::GetClock_RealTime(nowMicroSecs);
+        SuccessOrExit(err);
+
         deadline = nowMicroSecs + kCommandTimeoutMicroSecs;
-        request.ExpiryTimeMicroSecond(deadline);
+        request.ExpiryTimeMicroSecond((int64_t)deadline);
 
         SuccessOrExit(err = request.GetError());
 

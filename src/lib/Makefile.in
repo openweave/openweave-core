@@ -416,6 +416,7 @@ libWeave_a_DEPENDENCIES = $(shell find \
 	$(top_builddir)/third_party/openssl-jpake $(Dash)type f \
 	$(Dash)name "*.o")
 am__libWeave_a_SOURCES_DIST =  \
+	@top_builddir@/src/system/SystemClock.cpp \
 	@top_builddir@/src/system/SystemError.cpp \
 	@top_builddir@/src/system/SystemLayer.cpp \
 	@top_builddir@/src/system/SystemMutex.cpp \
@@ -597,6 +598,7 @@ am__libWeave_a_SOURCES_DIST =  \
 am__dirstamp = $(am__leading_dot)dirstamp
 @WEAVE_WITH_NLFAULTINJECTION_TRUE@am__objects_1 = @top_builddir@/src/system/libWeave_a-SystemFaultInjection.$(OBJEXT)
 am__objects_2 =  \
+	@top_builddir@/src/system/libWeave_a-SystemClock.$(OBJEXT) \
 	@top_builddir@/src/system/libWeave_a-SystemError.$(OBJEXT) \
 	@top_builddir@/src/system/libWeave_a-SystemLayer.$(OBJEXT) \
 	@top_builddir@/src/system/libWeave_a-SystemMutex.$(OBJEXT) \
@@ -1106,7 +1108,8 @@ target_vendor = @target_vendor@
 top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
-nl_SystemLayer_sources = @top_builddir@/src/system/SystemError.cpp \
+nl_SystemLayer_sources = @top_builddir@/src/system/SystemClock.cpp \
+	@top_builddir@/src/system/SystemError.cpp \
 	@top_builddir@/src/system/SystemLayer.cpp \
 	@top_builddir@/src/system/SystemMutex.cpp \
 	@top_builddir@/src/system/SystemObject.cpp \
@@ -1403,6 +1406,9 @@ clean-libLIBRARIES:
 @top_builddir@/src/system/$(DEPDIR)/$(am__dirstamp):
 	@$(MKDIR_P) @top_builddir@/src/system/$(DEPDIR)
 	@: > @top_builddir@/src/system/$(DEPDIR)/$(am__dirstamp)
+@top_builddir@/src/system/libWeave_a-SystemClock.$(OBJEXT):  \
+	@top_builddir@/src/system/$(am__dirstamp) \
+	@top_builddir@/src/system/$(DEPDIR)/$(am__dirstamp)
 @top_builddir@/src/system/libWeave_a-SystemError.$(OBJEXT):  \
 	@top_builddir@/src/system/$(am__dirstamp) \
 	@top_builddir@/src/system/$(DEPDIR)/$(am__dirstamp)
@@ -2298,6 +2304,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@@top_builddir@/src/lib/support/verhoeff/$(DEPDIR)/libWeave_a-Verhoeff16.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@@top_builddir@/src/lib/support/verhoeff/$(DEPDIR)/libWeave_a-Verhoeff32.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@@top_builddir@/src/lib/support/verhoeff/$(DEPDIR)/libWeave_a-Verhoeff36.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@@top_builddir@/src/system/$(DEPDIR)/libWeave_a-SystemClock.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@@top_builddir@/src/system/$(DEPDIR)/libWeave_a-SystemError.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@@top_builddir@/src/system/$(DEPDIR)/libWeave_a-SystemFaultInjection.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@@top_builddir@/src/system/$(DEPDIR)/libWeave_a-SystemLayer.Po@am__quote@
@@ -2331,6 +2338,20 @@ distclean-compile:
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='$<' object='$@' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(LTCXXCOMPILE) -c -o $@ $<
+
+@top_builddir@/src/system/libWeave_a-SystemClock.o: @top_builddir@/src/system/SystemClock.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libWeave_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT @top_builddir@/src/system/libWeave_a-SystemClock.o -MD -MP -MF @top_builddir@/src/system/$(DEPDIR)/libWeave_a-SystemClock.Tpo -c -o @top_builddir@/src/system/libWeave_a-SystemClock.o `test -f '@top_builddir@/src/system/SystemClock.cpp' || echo '$(srcdir)/'`@top_builddir@/src/system/SystemClock.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) @top_builddir@/src/system/$(DEPDIR)/libWeave_a-SystemClock.Tpo @top_builddir@/src/system/$(DEPDIR)/libWeave_a-SystemClock.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='@top_builddir@/src/system/SystemClock.cpp' object='@top_builddir@/src/system/libWeave_a-SystemClock.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libWeave_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o @top_builddir@/src/system/libWeave_a-SystemClock.o `test -f '@top_builddir@/src/system/SystemClock.cpp' || echo '$(srcdir)/'`@top_builddir@/src/system/SystemClock.cpp
+
+@top_builddir@/src/system/libWeave_a-SystemClock.obj: @top_builddir@/src/system/SystemClock.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libWeave_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT @top_builddir@/src/system/libWeave_a-SystemClock.obj -MD -MP -MF @top_builddir@/src/system/$(DEPDIR)/libWeave_a-SystemClock.Tpo -c -o @top_builddir@/src/system/libWeave_a-SystemClock.obj `if test -f '@top_builddir@/src/system/SystemClock.cpp'; then $(CYGPATH_W) '@top_builddir@/src/system/SystemClock.cpp'; else $(CYGPATH_W) '$(srcdir)/@top_builddir@/src/system/SystemClock.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) @top_builddir@/src/system/$(DEPDIR)/libWeave_a-SystemClock.Tpo @top_builddir@/src/system/$(DEPDIR)/libWeave_a-SystemClock.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='@top_builddir@/src/system/SystemClock.cpp' object='@top_builddir@/src/system/libWeave_a-SystemClock.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libWeave_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o @top_builddir@/src/system/libWeave_a-SystemClock.obj `if test -f '@top_builddir@/src/system/SystemClock.cpp'; then $(CYGPATH_W) '@top_builddir@/src/system/SystemClock.cpp'; else $(CYGPATH_W) '$(srcdir)/@top_builddir@/src/system/SystemClock.cpp'; fi`
 
 @top_builddir@/src/system/libWeave_a-SystemError.o: @top_builddir@/src/system/SystemError.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libWeave_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT @top_builddir@/src/system/libWeave_a-SystemError.o -MD -MP -MF @top_builddir@/src/system/$(DEPDIR)/libWeave_a-SystemError.Tpo -c -o @top_builddir@/src/system/libWeave_a-SystemError.o `test -f '@top_builddir@/src/system/SystemError.cpp' || echo '$(srcdir)/'`@top_builddir@/src/system/SystemError.cpp

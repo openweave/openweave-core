@@ -454,11 +454,8 @@ void TimeSyncNode::HandleSyncRequest(ExchangeContext *ec, const IPPacketInfo *pk
         uint16_t timeSinceLastSyncWithServer_min = TimeSyncResponse::kTimeSinceLastSyncWithServer_Invalid;
         timesync_t timeSinceLastLocaSync_usec;
 
-        // obtain unadjusted timestamp (note zero-initializer is skipped to save code space)
-        // note it has to be boot time as we need compensation for sleep time
-        timesync_t unadjTimestamp_usec;
-        err = Platform::Time::GetSleepCompensatedMonotonicTime(&unadjTimestamp_usec);
-        SuccessOrExit(err);
+        // note it has to be monotonic time as we need compensation for sleep time
+        timesync_t unadjTimestamp_usec = GetClock_Monotonic();
 
         timeSinceLastLocaSync_usec = unadjTimestamp_usec - server->mTimestampLastLocalSync_usec;
         if ((TIMESYNC_INVALID == server->mTimestampLastLocalSync_usec) ||
@@ -506,9 +503,9 @@ void TimeSyncNode::HandleSyncRequest(ExchangeContext *ec, const IPPacketInfo *pk
             }
         }
 
-        // obtain system time (note zero-initializer is skipped to save code space)
+        // obtain real time (note zero-initializer is skipped to save code space)
         timesync_t systemTimestamp_usec;
-        err = Platform::Time::GetSystemTime(&systemTimestamp_usec);
+        err = GetClock_RealTime(systemTimestamp_usec);
         SuccessOrExit(err);
 
         // create sync response based on system time
@@ -558,12 +555,12 @@ TimeSyncNode::ServerState TimeSyncNode::GetServerState(void) const
 
 void TimeSyncNode::RegisterCorrectionFromServerOrNtp(void)
 {
-    (void) Platform::Time::GetSleepCompensatedMonotonicTime(&mTimestampLastCorrectionFromServerOrNtp_usec);
+    mTimestampLastCorrectionFromServerOrNtp_usec = GetClock_Monotonic();
 }
 
 void TimeSyncNode::RegisterLocalSyncOperation(const uint8_t aNumContributor)
 {
-    (void) Platform::Time::GetSleepCompensatedMonotonicTime(&mTimestampLastLocalSync_usec);
+    mTimestampLastLocalSync_usec = GetClock_Monotonic();
     mNumContributorInLastLocalSync = aNumContributor;
 }
 

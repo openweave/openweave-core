@@ -560,7 +560,7 @@ WEAVE_ERROR TestGroupKeyStore::GetCurrentUTCTime(uint32_t& utcTime)
 {
     if (sCurrentUTCTime == 0x0)
     {
-        return WEAVE_ERROR_TIME_NOT_SYNCED_YET;
+        return WEAVE_SYSTEM_ERROR_REAL_TIME_NOT_SYNCED;
     }
     else
     {

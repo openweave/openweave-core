@@ -356,9 +356,14 @@ public:
         return ExchangeMgr;
     }
 
-private:
+protected:
     WeaveFabricState * FabricState;
     WeaveExchangeManager *ExchangeMgr;
+
+    static timesync_t GetClock_Monotonic(void);
+    static timesync_t GetClock_MonotonicHiRes(void);
+    static WEAVE_ERROR GetClock_RealTime(timesync_t & curTime);
+    static WEAVE_ERROR SetClock_RealTime(timesync_t newCurTime);
 };
 
 /// This is in the public because the TimeSyncNode::FilterTimeCorrectionContributor callback gives
@@ -1104,7 +1109,6 @@ protected:
     static void HandleAutoSyncTimeout(System::Layer* aSystemLayer, void* aAppState, System::Error aError);
 
 #endif // WEAVE_CONFIG_TIME_ENABLE_CLIENT
-
 };
 
 class NL_DLL_EXPORT SingleSourceTimeSyncClient
@@ -1251,72 +1255,8 @@ protected:
 };
 
 } // namespace Time
-
 } // namespace Profiles
-
-/// Platform-provided time routines.
-namespace  Platform
-{
-
-namespace  Time
-{
-/**
- * get CLOCK_MONOTONIC_RAW, CLOCK_MONOTONIC, or equivalent clock reading.
- * This clock is used to timestamp events that happen with short time in between them.
- * Higher resolution is expected but doesn't have to be compensated for sleep time.
- * Note that it is okay if it comes with sleep time compensation, but higher resolution is the key.
- * Without better alternatives, this can be implemented by GetSleepCompensatedMonotonicTime.
- *
- * @param[out] p_timestamp_usec A pointer to the clock reading
- *
- * @return WEAVE_NO_ERROR on success
- */
- NL_DLL_EXPORT WEAVE_ERROR GetMonotonicRawTime(Profiles::Time::timesync_t * const p_timestamp_usec);
-
-/**
- * get CLOCK_REALTIME or equivalent clock reading.
- *
- * @param[out] p_timestamp_usec A pointer to the clock reading
- *
- * @return WEAVE_NO_ERROR on success
- */
-NL_DLL_EXPORT WEAVE_ERROR GetSystemTime(Profiles::Time::timesync_t * const p_timestamp_usec);
-
-/**
- * get CLOCK_REALTIME or equivalent clock reading in ms.
- *
- * @param[out] p_timestamp_msec A pointer to the clock reading
- *
- * @return WEAVE_NO_ERROR on success
- */
-NL_DLL_EXPORT WEAVE_ERROR GetSystemTimeMs(Profiles::Time::timesync_t * const p_timestamp_msec);
-
-/**
- * set CLOCK_REALTIME or equivalent clock.
- *
- * @param[in] timestamp_usec intended new value for CLOCK_REALTIME
- *
- * @return WEAVE_NO_ERROR on success
- */
-NL_DLL_EXPORT WEAVE_ERROR SetSystemTime(const Profiles::Time::timesync_t timestamp_usec);
-
-/**
- * get CLOCK_BOOTTIME or equivalent clock reading.
- * This clock is used to timestamp events that happen long time apart.
- * Highest resolution is not the concern but it must be compensated for sleep time.
- *
- * @param[out] p_timestamp_usec A pointer to the clock reading
- *
- * @return WEAVE_NO_ERROR on success
- */
-NL_DLL_EXPORT WEAVE_ERROR GetSleepCompensatedMonotonicTime(Profiles::Time::timesync_t * const p_timestamp_usec);
-
-} // namespace Time
-
-} // namespace Platform
-
 } // namespace Weave
-
 } // namespace nl
 
 #endif // WEAVE_TIME_H_
