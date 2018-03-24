@@ -97,8 +97,9 @@ WEAVE_ERROR ConfigurationManager::Init()
     err = nvs_get_u64(handle, gNVSKeyName_DeviceId, &FabricState.LocalNodeId);
     if (err == ESP_ERR_NVS_NOT_FOUND)
     {
+        // TODO: make this a DEBUG-only feature
         ESP_LOGI(TAG, "Device id not found in nvs; using default");
-        FabricState.LocalNodeId = gTestDeviceId; // TODO: make this a DEBUG-only feature
+        FabricState.LocalNodeId = gTestDeviceId;
         err = WEAVE_NO_ERROR;
     }
     SuccessOrExit(err);
@@ -176,12 +177,6 @@ WEAVE_ERROR ConfigurationManager::GetManufacturingDate(uint16_t& year, uint8_t& 
     err = GetNVS(gNVSNamespace_Weave, gNVSKeyName_ManufacturingDate, dateStr, sizeof(dateStr), dateLen);
     SuccessOrExit(err);
 
-    if (dateLen == 0)
-    {
-        year = month = dayOfMonth = 0;
-        ExitNow(err = WEAVE_NO_ERROR);
-    }
-
     VerifyOrExit(dateLen == sizeof(dateStr), err = WEAVE_ERROR_INVALID_ARGUMENT);
 
     year = strtoul(dateStr, &parseEnd, 10);
@@ -201,7 +196,7 @@ WEAVE_ERROR ConfigurationManager::GetFirmwareRevision(char * buf, size_t bufSize
 {
     // TODO: get from build config
     outLen = 0;
-    return WEAVE_NO_ERROR;
+    return WEAVE_PLATFORM_ERROR_CONFIG_NOT_FOUND;
 }
 
 WEAVE_ERROR ConfigurationManager::GetFirmwareBuildTime(uint16_t & year, uint8_t & month, uint8_t & dayOfMonth,
@@ -247,16 +242,18 @@ WEAVE_ERROR ConfigurationManager::GetDeviceCertificate(uint8_t * buf, size_t buf
     WEAVE_ERROR err;
 
     err = GetNVS(gNVSNamespace_Weave, gNVSKeyName_DeviceCert, buf, bufSize, certLen);
-    SuccessOrExit(err);
 
     // TODO: make this a debug-only feature
-    if (certLen == 0)
+    if (err == WEAVE_PLATFORM_ERROR_CONFIG_NOT_FOUND)
     {
         certLen = gTestDeviceCertLength;
         VerifyOrExit(gTestDeviceCertLength <= bufSize, err = WEAVE_ERROR_BUFFER_TOO_SMALL);
         ESP_LOGI(TAG, "Device certificate not found in nvs; using default");
         memcpy(buf, gTestDeviceCert, gTestDeviceCertLength);
+        err = WEAVE_NO_ERROR;
     }
+
+    SuccessOrExit(err);
 
 exit:
     return err;
@@ -277,16 +274,18 @@ WEAVE_ERROR ConfigurationManager::GetDevicePrivateKey(uint8_t * buf, size_t bufS
     WEAVE_ERROR err;
 
     err = GetNVS(gNVSNamespace_Weave, gNVSKeyName_DevicePrivateKey, buf, bufSize, keyLen);
-    SuccessOrExit(err);
 
     // TODO: make this a debug-only feature
-    if (keyLen == 0)
+    if (err == WEAVE_PLATFORM_ERROR_CONFIG_NOT_FOUND)
     {
         keyLen = gTestDevicePrivateKeyLength;
         VerifyOrExit(gTestDevicePrivateKeyLength <= bufSize, err = WEAVE_ERROR_BUFFER_TOO_SMALL);
         ESP_LOGI(TAG, "Device private key not found in nvs; using default");
         memcpy(buf, gTestDevicePrivateKey, gTestDevicePrivateKeyLength);
+        err = WEAVE_NO_ERROR;
     }
+
+    SuccessOrExit(err);
 
 exit:
     return err;
@@ -454,7 +453,7 @@ WEAVE_ERROR ConfigurationManager::StoreServiceConfig(const uint8_t * serviceConf
 WEAVE_ERROR ConfigurationManager::GetPersistedCounter(const char * key, uint32_t & value)
 {
     WEAVE_ERROR err = GetNVS(gNVSNamespace_WeaveCounters, key, value);
-    if (err == ESP_ERR_NVS_NOT_FOUND)
+    if (err == WEAVE_PLATFORM_ERROR_CONFIG_NOT_FOUND)
     {
         err = WEAVE_ERROR_PERSISTED_STORAGE_VALUE_NOT_FOUND;
     }
@@ -487,14 +486,26 @@ WEAVE_ERROR ConfigurationManager::GetDeviceDescriptor(WeaveDeviceDescriptor & de
     SuccessOrExit(err);
 
     err = GetManufacturingDate(deviceDesc.ManufacturingDate.Year, deviceDesc.ManufacturingDate.Month, deviceDesc.ManufacturingDate.Day);
+    if (err == WEAVE_PLATFORM_ERROR_CONFIG_NOT_FOUND)
+    {
+        err = WEAVE_NO_ERROR;
+    }
     SuccessOrExit(err);
 
     // TODO: return PrimaryWiFiMACAddress
 
     err = GetSerialNumber(deviceDesc.SerialNumber, sizeof(deviceDesc.SerialNumber), outLen);
+    if (err == WEAVE_PLATFORM_ERROR_CONFIG_NOT_FOUND)
+    {
+        err = WEAVE_NO_ERROR;
+    }
     SuccessOrExit(err);
 
     err = GetFirmwareRevision(deviceDesc.SoftwareVersion, sizeof(deviceDesc.SoftwareVersion), outLen);
+    if (err == WEAVE_PLATFORM_ERROR_CONFIG_NOT_FOUND)
+    {
+        err = WEAVE_NO_ERROR;
+    }
     SuccessOrExit(err);
 
 exit:
@@ -533,12 +544,16 @@ WEAVE_ERROR GroupKeyStore::RetrieveGroupKey(uint32_t keyId, WeaveGroupKey & key)
     WEAVE_ERROR err;
     size_t keyLen;
 
+    // TODO: add support for other group key types
+
     VerifyOrExit(keyId == WeaveKeyId::kFabricSecret, err = WEAVE_ERROR_KEY_NOT_FOUND);
 
     err = GetNVS(gNVSNamespace_WeaveGroupKeys, gNVSKeyName_FabricSecret, key.Key, sizeof(key.Key), keyLen);
+    if (err == WEAVE_PLATFORM_ERROR_CONFIG_NOT_FOUND)
+    {
+        err = WEAVE_ERROR_KEY_NOT_FOUND;
+    }
     SuccessOrExit(err);
-
-    VerifyOrExit(keyLen != 0, err = WEAVE_ERROR_KEY_NOT_FOUND);
 
     key.KeyId = keyId;
     key.KeyLen = keyLen;
@@ -550,6 +565,8 @@ exit:
 WEAVE_ERROR GroupKeyStore::StoreGroupKey(const WeaveGroupKey & key)
 {
     WEAVE_ERROR err;
+
+    // TODO: add support for other group key types
 
     VerifyOrExit(key.KeyId == WeaveKeyId::kFabricSecret, err = WEAVE_ERROR_INVALID_KEY_ID);
 
@@ -564,6 +581,8 @@ WEAVE_ERROR GroupKeyStore::DeleteGroupKey(uint32_t keyId)
 {
     WEAVE_ERROR err;
 
+    // TODO: add support for other group key types
+
     VerifyOrExit(keyId == WeaveKeyId::kFabricSecret, err = WEAVE_ERROR_KEY_NOT_FOUND);
 
     err = ClearNVSKey(gNVSNamespace_WeaveGroupKeys, gNVSKeyName_FabricSecret);
@@ -575,7 +594,18 @@ exit:
 
 WEAVE_ERROR GroupKeyStore::DeleteGroupKeysOfAType(uint32_t keyType)
 {
-    return WEAVE_NO_ERROR;
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
+
+    // TODO: add support for other group key types
+
+    if (WeaveKeyId::IsGeneralKey(keyType))
+    {
+        err = ClearNVSKey(gNVSNamespace_WeaveGroupKeys, gNVSKeyName_FabricSecret);
+        SuccessOrExit(err);
+    }
+
+exit:
+    return err;
 }
 
 WEAVE_ERROR GroupKeyStore::EnumerateGroupKeys(uint32_t keyType, uint32_t * keyIds,
@@ -604,6 +634,8 @@ WEAVE_ERROR GroupKeyStore::EnumerateGroupKeys(uint32_t keyType, uint32_t * keyId
         }
     }
 
+    // TODO: add support for other group key types
+
 exit:
     return err;
 }
@@ -624,7 +656,7 @@ WEAVE_ERROR GroupKeyStore::RetrieveLastUsedEpochKeyId(void)
     WEAVE_ERROR err;
 
     err = GetNVS(gNVSNamespace_WeaveGroupKeys, gNVSKeyName_LastUsedEpochKeyId, LastUsedEpochKeyId);
-    if (err == ESP_ERR_NVS_NOT_FOUND)
+    if (err == WEAVE_PLATFORM_ERROR_CONFIG_NOT_FOUND)
     {
         LastUsedEpochKeyId = WeaveKeyId::kNone;
         err = WEAVE_NO_ERROR;
@@ -652,11 +684,11 @@ WEAVE_ERROR GetNVS(const char * ns, const char * name, uint8_t * buf, size_t buf
     if (err == ESP_ERR_NVS_NOT_FOUND)
     {
         outLen = 0;
-        ExitNow(err = WEAVE_NO_ERROR);
+        err = WEAVE_PLATFORM_ERROR_CONFIG_NOT_FOUND;
     }
-    if (err == ESP_ERR_NVS_INVALID_LENGTH)
+    else if (err == ESP_ERR_NVS_INVALID_LENGTH)
     {
-        ExitNow(err = WEAVE_ERROR_BUFFER_TOO_SMALL);
+        err = WEAVE_ERROR_BUFFER_TOO_SMALL;
     }
     SuccessOrExit(err);
 
@@ -684,7 +716,11 @@ WEAVE_ERROR GetNVS(const char * ns, const char * name, char * buf, size_t bufSiz
     if (err == ESP_ERR_NVS_NOT_FOUND)
     {
         outLen = 0;
-        ExitNow(err = WEAVE_NO_ERROR);
+        err = WEAVE_PLATFORM_ERROR_CONFIG_NOT_FOUND;
+    }
+    else if (err == ESP_ERR_NVS_INVALID_LENGTH)
+    {
+        err = WEAVE_ERROR_BUFFER_TOO_SMALL;
     }
     SuccessOrExit(err);
 
@@ -710,6 +746,10 @@ WEAVE_ERROR GetNVS(const char * ns, const char * name, uint32_t & val)
     needClose = true;
 
     err = nvs_get_u32(handle, name, &val);
+    if (err == ESP_ERR_NVS_NOT_FOUND)
+    {
+        err = WEAVE_PLATFORM_ERROR_CONFIG_NOT_FOUND;
+    }
     SuccessOrExit(err);
 
 exit:
@@ -731,6 +771,10 @@ WEAVE_ERROR GetNVS(const char * ns, const char * name, uint64_t & val)
     needClose = true;
 
     err = nvs_get_u64(handle, name, &val);
+    if (err == ESP_ERR_NVS_NOT_FOUND)
+    {
+        err = WEAVE_PLATFORM_ERROR_CONFIG_NOT_FOUND;
+    }
     SuccessOrExit(err);
 
 exit:
@@ -747,28 +791,25 @@ WEAVE_ERROR StoreNVS(const char * ns, const char * name, const uint8_t * data, s
     nvs_handle handle;
     bool needClose = false;
 
-    err = nvs_open(ns, NVS_READWRITE, &handle);
-    SuccessOrExit(err);
-    needClose = true;
-
-    if (dataLen != 0)
+    if (data != NULL)
     {
+        err = nvs_open(ns, NVS_READWRITE, &handle);
+        SuccessOrExit(err);
+        needClose = true;
+
         err = nvs_set_blob(handle, name, data, dataLen);
         SuccessOrExit(err);
-    }
-    else
-    {
-        err = nvs_erase_key(handle, gNVSKeyName_ServiceConfig);
-        if (err == ESP_ERR_NVS_NOT_FOUND)
-        {
-            ExitNow(err = WEAVE_NO_ERROR);
-        }
+
+        // Commit the value to the persistent store.
+        err = nvs_commit(handle);
         SuccessOrExit(err);
     }
 
-    // Commit the value to the persistent store.
-    err = nvs_commit(handle);
-    SuccessOrExit(err);
+    else
+    {
+        err = ClearNVSKey(ns, name);
+        SuccessOrExit(err);
+    }
 
 exit:
     if (needClose)
@@ -785,28 +826,25 @@ WEAVE_ERROR StoreNVS(const char * ns, const char * name, const char * data)
     nvs_handle handle;
     bool needClose = false;
 
-    err = nvs_open(ns, NVS_READWRITE, &handle);
-    SuccessOrExit(err);
-    needClose = true;
-
     if (data != NULL)
     {
+        err = nvs_open(ns, NVS_READWRITE, &handle);
+        SuccessOrExit(err);
+        needClose = true;
+
         err = nvs_set_str(handle, name, data);
         SuccessOrExit(err);
-    }
-    else
-    {
-        err = nvs_erase_key(handle, name);
-        if (err == ESP_ERR_NVS_NOT_FOUND)
-        {
-            ExitNow(err = WEAVE_NO_ERROR);
-        }
+
+        // Commit the value to the persistent store.
+        err = nvs_commit(handle);
         SuccessOrExit(err);
     }
 
-    // Commit the value to the persistent store.
-    err = nvs_commit(handle);
-    SuccessOrExit(err);
+    else
+    {
+        err = ClearNVSKey(ns, name);
+        SuccessOrExit(err);
+    }
 
 exit:
     if (needClose)
@@ -880,6 +918,10 @@ WEAVE_ERROR ClearNVSKey(const char * ns, const char * name)
     needClose = true;
 
     err = nvs_erase_key(handle, name);
+    if (err == ESP_ERR_NVS_NOT_FOUND)
+    {
+        ExitNow(err = WEAVE_NO_ERROR);
+    }
     SuccessOrExit(err);
 
     // Commit the value to the persistent store.

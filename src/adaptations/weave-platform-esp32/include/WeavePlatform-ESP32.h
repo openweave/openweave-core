@@ -2,6 +2,7 @@
 #define WEAVE_PLATFORM_ESP32_H__
 
 #include <Weave/Core/WeaveCore.h>
+#include <WeavePlatformError.h>
 
 namespace WeavePlatform {
 
