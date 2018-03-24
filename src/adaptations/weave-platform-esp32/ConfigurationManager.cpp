@@ -176,6 +176,12 @@ WEAVE_ERROR ConfigurationManager::GetManufacturingDate(uint16_t& year, uint8_t& 
     err = GetNVS(gNVSNamespace_Weave, gNVSKeyName_ManufacturingDate, dateStr, sizeof(dateStr), dateLen);
     SuccessOrExit(err);
 
+    if (dateLen == 0)
+    {
+        year = month = dayOfMonth = 0;
+        ExitNow(err = WEAVE_NO_ERROR);
+    }
+
     VerifyOrExit(dateLen == sizeof(dateStr), err = WEAVE_ERROR_INVALID_ARGUMENT);
 
     year = strtoul(dateStr, &parseEnd, 10);
