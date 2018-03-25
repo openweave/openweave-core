@@ -10,6 +10,7 @@ nl::Weave::WeaveMessageLayer MessageLayer;
 nl::Weave::WeaveExchangeManager ExchangeMgr;
 nl::Weave::WeaveSecurityManager SecurityMgr;
 ConfigurationManager ConfigMgr;
+ConnectivityManager ConnectivityMgr;
 
 namespace Internal {
 

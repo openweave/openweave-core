@@ -21,9 +21,17 @@ bool InitWeaveStack()
     }
     ESP_LOGI(TAG, "Secure random data source initialized");
 
-    // Initliaze the master Weave event queue.
+    // Initialize the master Weave event queue.
     if (!InitWeaveEventQueue())
     {
+        return false;
+    }
+
+    // Initialize the Configuration Manager object.
+    err = ConfigMgr.Init();
+    if (err != WEAVE_NO_ERROR)
+    {
+        ESP_LOGE(TAG, "Configuration Manager initialization failed: %s", ErrorStr(err));
         return false;
     }
 
@@ -34,7 +42,6 @@ bool InitWeaveStack()
         ESP_LOGE(TAG, "SystemLayer initialization failed: %s", ErrorStr(err));
         return false;
     }
-    ESP_LOGI(TAG, "SystemLayer initialized");
 
     // Initialize the Weave Inet layer.
     err = InetLayer.Init(SystemLayer, NULL);
@@ -43,15 +50,14 @@ bool InitWeaveStack()
         ESP_LOGE(TAG, "InetLayer initialization failed: %s", ErrorStr(err));
         return false;
     }
-    ESP_LOGI(TAG, "InetLayer initialized");
 
     // Initialize the Weave fabric state object.
     err = FabricState.Init();
-    if (err != WEAVE_NO_ERROR) {
+    if (err != WEAVE_NO_ERROR)
+    {
         ESP_LOGE(TAG, "FabricState initialization failed: %s", ErrorStr(err));
         return false;
     }
-    ESP_LOGI(TAG, "FabricState initialized");
 
     FabricState.DefaultSubnet = kWeaveSubnetId_PrimaryWiFi;
 
@@ -72,7 +78,6 @@ bool InitWeaveStack()
         ESP_LOGE(TAG, "MessageLayer initialization failed: %s", ErrorStr(err));
         return false;
     }
-    ESP_LOGI(TAG, "MessageLayer initialized");
 
     // Initialize the Weave exchange manager.
     err = ExchangeMgr.Init(&MessageLayer);
@@ -80,7 +85,6 @@ bool InitWeaveStack()
         ESP_LOGE(TAG, "ExchangeMgr initialization failed: %s", ErrorStr(err));
         return false;
     }
-    ESP_LOGI(TAG, "ExchangeMgr initialized");
 
     // Initialize the Weave security manager.
     err = SecurityMgr.Init(ExchangeMgr, SystemLayer);
@@ -88,11 +92,11 @@ bool InitWeaveStack()
         ESP_LOGE(TAG, "SecurityMgr initialization failed: %s", ErrorStr(err));
         return false;
     }
-    ESP_LOGI(TAG, "SecurityMgr initialized");
 
     SecurityMgr.IdleSessionTimeout = 30000;
     SecurityMgr.SessionEstablishTimeout = 15000;
 
+    // Initialize the CASE auth delegate object.
     if (!InitCASEAuthDelegate())
     {
         return false;
@@ -102,21 +106,35 @@ bool InitWeaveStack()
     SecurityMgr.CASEUseKnownECDHKey = true;
 #endif
 
-    err = ConfigMgr.Init();
+    // Perform dynamic configuration of the Weave stack.
+    err = ConfigMgr.ConfigureWeaveStack();
     if (err != WEAVE_NO_ERROR)
     {
-        ESP_LOGE(TAG, "DeviceState initialization failed: %s", ErrorStr(err));
+        ESP_LOGE(TAG, "FabricState initialization failed: %s", ErrorStr(err));
         return false;
     }
 
-    // Initialize Weave servers.
-    return (InitEchoServer() &&
-            InitDeviceDescriptionServer() &&
-            InitDeviceControlServer() &&
-            InitFabricProvisioningServer() &&
-            InitServiceProvisioningServer());
+    // Initialize the Connectivity Manager object.
+    err = ConnectivityMgr.Init();
+    if (err != WEAVE_NO_ERROR)
+    {
+        ESP_LOGE(TAG, "Connectivity Manager initialization failed: %s", ErrorStr(err));
+        return false;
+    }
 
-    return true;
+    // Initialize the Weave server objects.
+    bool serverInitSuccessful = (InitEchoServer() &&
+                                 InitDeviceDescriptionServer() &&
+                                 InitDeviceControlServer() &&
+                                 InitFabricProvisioningServer() &&
+                                 InitServiceProvisioningServer());
+
+    if (serverInitSuccessful)
+    {
+        ESP_LOGI(TAG, "Weave stack initialized");
+    }
+
+    return serverInitSuccessful;
 }
 
 } // namespace WeavePlatform

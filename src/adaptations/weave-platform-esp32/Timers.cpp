@@ -1,5 +1,6 @@
 #include <WeavePlatform-ESP32-Internal.h>
 
+#include <esp_timer.h>
 
 namespace WeavePlatform {
 namespace Internal {
@@ -18,6 +19,11 @@ namespace Platform {
 namespace Layer {
 
 using namespace WeavePlatform::Internal;
+
+uint64_t GetSystemTimeMS(void)
+{
+    return (uint64_t)::esp_timer_get_time()/1000;
+}
 
 System::Error StartTimer(System::Layer & aLayer, void * aContext, uint32_t aMilliseconds)
 {

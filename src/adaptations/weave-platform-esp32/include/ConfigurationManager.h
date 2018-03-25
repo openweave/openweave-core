@@ -1,7 +1,5 @@
-#ifndef DEVICE_STATE_H__
-#define DEVICE_STATE_H__
-
-#include <WeavePlatform-ESP32.h>
+#ifndef CONFIGURATION_MANAGER_H
+#define CONFIGURATION_MANAGER_H
 
 #include <Weave/Profiles/device-description/DeviceDescription.h>
 
@@ -9,13 +7,13 @@ namespace WeavePlatform {
 
 class ConfigurationManager
 {
+    friend bool InitWeaveStack();
+
 public:
     enum
     {
         kMaxPairingCodeLength = 15
     };
-
-    WEAVE_ERROR Init();
 
     WEAVE_ERROR GetVendorId(uint16_t & vendorId);
     WEAVE_ERROR GetProductId(uint16_t & productId);
@@ -55,8 +53,11 @@ public:
 
 private:
     char mPairingCode[kMaxPairingCodeLength + 1];
+
+    WEAVE_ERROR Init();
+    WEAVE_ERROR ConfigureWeaveStack();
 };
 
 } // namespace WeavePlatform
 
-#endif // DEVICE_STATE_H__
+#endif // CONFIGURATION_MANAGER_H

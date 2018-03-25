@@ -43,16 +43,17 @@
 
 #define WEAVE_SYSTEM_CONFIG_PLATFORM_PROVIDES_EVENT_FUNCTIONS 1
 
+#define WEAVE_SYSTEM_CONFIG_PLATFORM_PROVIDES_TIME 1
 
+namespace WeavePlatform {
+namespace Internal {
 
+struct WeavePlatformEvent;
 
-struct WeaveEvent
-{
-    int Type;
-    void * Target;
-    uintptr_t Argument;
-};
+} // namespace Internal
+} // namespace WeavePlatform
 
-#define WEAVE_SYSTEM_CONFIG_LWIP_EVENT_OBJECT_TYPE WeaveEvent
+#define WEAVE_SYSTEM_CONFIG_LWIP_EVENT_TYPE int
+#define WEAVE_SYSTEM_CONFIG_LWIP_EVENT_OBJECT_TYPE const struct ::WeavePlatform::Internal::WeavePlatformEvent *
 
 #endif // SYSTEMPROJECTCONFIG_H

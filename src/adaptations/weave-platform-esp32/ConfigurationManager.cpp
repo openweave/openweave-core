@@ -78,8 +78,8 @@ WEAVE_ERROR ConfigurationManager::Init()
     WEAVE_ERROR err;
     nvs_handle handle;
     bool needClose = false;
-    size_t pairingCodeLen;
 
+    // Force initialization of weave NVS namespace if it doesn't already exist.
     err = nvs_open(gNVSNamespace_Weave, NVS_READONLY, &handle);
     if (err == ESP_ERR_NVS_NOT_FOUND)
     {
@@ -90,6 +90,28 @@ WEAVE_ERROR ConfigurationManager::Init()
         err = nvs_commit(handle);
         SuccessOrExit(err);
     }
+    SuccessOrExit(err);
+    needClose = true;
+
+    // Force initialization of the global GroupKeyStore object.
+    new ((void *)&gGroupKeyStore) GroupKeyStore();
+
+exit:
+    if (needClose)
+    {
+        nvs_close(handle);
+    }
+    return err;
+}
+
+WEAVE_ERROR ConfigurationManager::ConfigureWeaveStack()
+{
+    WEAVE_ERROR err;
+    nvs_handle handle;
+    bool needClose = false;
+    size_t pairingCodeLen;
+
+    err = nvs_open(gNVSNamespace_Weave, NVS_READONLY, &handle);
     SuccessOrExit(err);
     needClose = true;
 
@@ -119,16 +141,14 @@ WEAVE_ERROR ConfigurationManager::Init()
     err = nvs_get_str(handle, gNVSKeyName_PairingCode, mPairingCode, &pairingCodeLen);
     if (err == ESP_ERR_NVS_NOT_FOUND || pairingCodeLen == 0)
     {
+        // TODO: make this a DEBUG-only feature
         ESP_LOGI(TAG, "Pairing code not found in nvs; using default");
-        strcpy(mPairingCode, gTestPairingCode); // TODO: make this a DEBUG-only feature
+        strcpy(mPairingCode, gTestPairingCode);
         ExitNow(err = WEAVE_NO_ERROR);
     }
     SuccessOrExit(err);
 
     FabricState.PairingCode = mPairingCode;
-
-    // Force initialization of the global GroupKeyStore object.
-    new ((void *)&gGroupKeyStore) GroupKeyStore();
 
     // Configure the FabricState object with a reference to the GroupKeyStore object.
     FabricState.GroupKeyStore = &gGroupKeyStore;

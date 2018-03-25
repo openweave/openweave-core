@@ -2,6 +2,8 @@
 #define WEAVE_PLATFORM_ESP32_INTERNAL_H__
 
 #include <ConfigurationManager.h>
+#include <ConnectivityManager.h>
+
 #include "freertos/FreeRTOS.h"
 #include "freertos/event_groups.h"
 #include "freertos/queue.h"
@@ -13,6 +15,7 @@
 #include "arch/sys_arch.h"
 
 #include "esp_system.h"
+#include "esp_event.h"
 #include "esp_log.h"
 
 #include <WeavePlatform-ESP32.h>
@@ -21,6 +24,27 @@ using namespace ::nl::Weave;
 
 namespace WeavePlatform {
 namespace Internal {
+
+struct WeavePlatformEvent
+{
+    enum
+    {
+        kType_WeaveSystemEvent          = 0,
+        kType_ESPSystemEvent            = 1,
+    };
+
+    union
+    {
+        struct
+        {
+            nl::Weave::System::EventType Type;
+            nl::Weave::System::Object * Target;
+            uintptr_t Argument;
+        } WeaveSystemEvent;
+        system_event_t ESPSystemEvent;
+    };
+    uint8_t Type;
+};
 
 extern const char * const TAG;
 

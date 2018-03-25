@@ -1,18 +1,22 @@
 #include <WeavePlatform-ESP32-Internal.h>
 
+#include <SystemLayer/SystemEvent.h>
+
 namespace WeavePlatform {
 namespace Internal {
+
+static QueueHandle_t gWeaveEventQueue;
 
 extern bool gWeaveTimerActive;
 extern TimeOut_t gNextTimerBaseTime;
 extern TickType_t gNextTimerDurationTicks;
 
-static QueueHandle_t gWeaveEventQueue;
-
 bool InitWeaveEventQueue()
 {
-    gWeaveEventQueue = xQueueCreate(100, sizeof(WeaveEvent));
-    if (gWeaveEventQueue == NULL) {
+    // TODO: make queue size configurable
+    gWeaveEventQueue = xQueueCreate(100, sizeof(WeavePlatformEvent));
+    if (gWeaveEventQueue == NULL)
+    {
         ESP_LOGE(TAG, "Failed to allocate Weave event queue");
         return false;
     }
@@ -20,7 +24,48 @@ bool InitWeaveEventQueue()
     return true;
 }
 
+void DispatchEvent(const WeavePlatformEvent * event)
+{
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
+
+    // If the event is a Weave System or Inet Layer event, dispatch it to the SystemLayer event handler.
+    if (event->Type == WeavePlatformEvent::kType_WeaveSystemEvent)
+    {
+        err = SystemLayer.HandleEvent(*event->WeaveSystemEvent.Target, event->WeaveSystemEvent.Type, event->WeaveSystemEvent.Argument);
+        if (err != WEAVE_SYSTEM_NO_ERROR)
+        {
+            ESP_LOGE(TAG, "Error handling Weave System Layer event (type %d): %s", event->Type, nl::ErrorStr(err));
+        }
+    }
+
+    else if (event->Type == WeavePlatformEvent::kType_ESPSystemEvent)
+    {
+        ConnectivityMgr.OnPlatformEvent(event);
+    }
+}
+
 } // namespace Internal
+
+using namespace ::WeavePlatform::Internal;
+
+esp_err_t HandleESPSystemEvent(void * ctx, system_event_t * espEvent)
+{
+    if (gWeaveEventQueue != NULL)
+    {
+        WeavePlatformEvent event;
+
+        event.Type = WeavePlatformEvent::kType_ESPSystemEvent;
+        event.ESPSystemEvent = *espEvent;
+
+        if (!xQueueSend(gWeaveEventQueue, &event, 1))
+        {
+            ESP_LOGE(TAG, "Failed to post event to Weave Platform event queue");
+        }
+    }
+
+    return ESP_OK;
+}
+
 } // namespace WeavePlatform
 
 namespace nl {
@@ -32,17 +77,18 @@ namespace Layer {
 using namespace ::WeavePlatform;
 using namespace ::WeavePlatform::Internal;
 
-System::Error PostEvent(Layer & aLayer, void * aContext, Object & aTarget, EventType aType, uintptr_t aArgument)
+System::Error PostEvent(System::Layer & aLayer, void * aContext, System::Object & aTarget, System::EventType aType, uintptr_t aArgument)
 {
     Error err = WEAVE_SYSTEM_NO_ERROR;
-    WeaveEvent event;
+    WeavePlatformEvent event;
 
-    event.Type = aType;
-    event.Target = &aTarget;
-    event.Argument = aArgument;
+    event.Type = WeavePlatformEvent::kType_WeaveSystemEvent;
+    event.WeaveSystemEvent.Type = aType;
+    event.WeaveSystemEvent.Target = &aTarget;
+    event.WeaveSystemEvent.Argument = aArgument;
 
     if (!xQueueSend(gWeaveEventQueue, &event, 1)) {
-        ESP_LOGE(TAG, "Failed to post event to Weave event queue");
+        ESP_LOGE(TAG, "Failed to post event to Weave Platform event queue");
         err = WEAVE_ERROR_NO_MEMORY;
     }
 
@@ -52,7 +98,7 @@ System::Error PostEvent(Layer & aLayer, void * aContext, Object & aTarget, Event
 System::Error DispatchEvents(Layer & aLayer, void * aContext)
 {
     Error err;
-    WeaveEvent event;
+    WeavePlatformEvent event;
 
     while (true)
     {
@@ -104,7 +150,8 @@ System::Error DispatchEvents(Layer & aLayer, void * aContext)
         // If an event was received, dispatch it.  Continue receiving events from the queue and
         // dispatching them until the queue is empty.
         while (eventReceived == pdTRUE) {
-            DispatchEvent(aLayer, aContext, event);
+
+            DispatchEvent(&event);
 
             eventReceived = xQueueReceive(gWeaveEventQueue, &event, 0);
         }
@@ -113,16 +160,10 @@ System::Error DispatchEvents(Layer & aLayer, void * aContext)
     return WEAVE_SYSTEM_NO_ERROR;
 }
 
-System::Error DispatchEvent(Layer & aLayer, void * aContext, Event aEvent)
+System::Error DispatchEvent(System::Layer & aLayer, void * aContext, const WeavePlatformEvent * aEvent)
 {
-    Error err;
-
-    err = SystemLayer.HandleEvent(*(System::Object *)aEvent.Target, aEvent.Type, aEvent.Argument);
-    if (err != WEAVE_SYSTEM_NO_ERROR) {
-        ESP_LOGE(TAG, "Error handling Weave event: %s", ErrorStr(err));
-    }
-
-    return err;
+    DispatchEvent(aEvent);
+    return WEAVE_NO_ERROR;
 }
 
 
