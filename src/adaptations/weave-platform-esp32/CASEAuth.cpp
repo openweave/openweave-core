@@ -169,10 +169,11 @@ WEAVE_ERROR CASEAuthDelegate::BeginCertValidation(bool isInitiator, WeaveCertifi
     // for the length of the service configuration data.  If service configuration data is present (length != 0),
     // then the device has been service provisioned.
     err = ConfigMgr.GetServiceConfigLength(serviceConfigLen);
-    SuccessOrExit(err);
+    if (err != WEAVE_PLATFORM_ERROR_CONFIG_NOT_FOUND)
+        SuccessOrExit(err);
 
     // If the device has been service provisioned...
-    if (serviceConfigLen != 0)
+    if (err != WEAVE_PLATFORM_ERROR_CONFIG_NOT_FOUND)
     {
         // Allocate a buffer to hold the service config data.
         mServiceConfigBuf = (uint8_t *)MemoryAlloc(serviceConfigLen);
