@@ -17,55 +17,50 @@ class ConnectivityManager
     friend void Internal::DispatchEvent(const struct Internal::WeavePlatformEvent * event);
 
 public:
-    bool GetWiFiStationEnabled(void) const;
-    void SetWiFiStationEnabled(bool val);
-
-    uint32_t GetWiFiStationReconnectIntervalMS(void) const;
-    void SetWiFiStationReconnectIntervalMS(uint32_t val) const;
-
-    bool IsStationProvisioned(void) const;
-    void ClearStationProvision(void);
-
-private:
-    enum StationState
+    enum WiFiStationMode
     {
-        kStationState_Disconnected,
-        kStationState_Connecting,
-        kStationState_Connected,
-        kStationState_Disconnecting,
-        kStationState_ReconnectWait,
+        kWiFiStationMode_Disabled           = 0,
+        kWiFiStationMode_Enabled            = 1,
+
+        kWiFiStationMode_NotSupported       = -1,
     };
 
-    StationState mStationState;
-    uint32_t mStationReconnectIntervalMS;
-    bool mStationEnabled;
-    bool mStationProvisioned;
+    WiFiStationMode GetWifiStationMode(void) const;
+    WEAVE_ERROR SetWifiStationMode(WiFiStationMode val);
+    bool IsWiFiStationEnabled(void) const;
+
+    uint32_t GetWiFiStationReconnectIntervalMS(void) const;
+    WEAVE_ERROR SetWiFiStationReconnectIntervalMS(uint32_t val) const;
+
+    bool IsWiFiStationProvisioned(void) const;
+    void ClearWiFiStationProvision(void);
+
+private:
+    enum WiFiStationState
+    {
+        kWiFiStationState_Disabled,
+        kWiFiStationState_NotConnected,
+        kWiFiStationState_Connected,
+    };
+
+    uint64_t mLastStationConnectTime;
+    WiFiStationState mWiFiStationState;
+    uint32_t mWiFiStationReconnectIntervalMS;
 
     WEAVE_ERROR Init();
 
     void OnPlatformEvent(const struct ::WeavePlatform::Internal::WeavePlatformEvent * event);
-    void AdvanceStationState(StationState newState);
+    void DriveStationState();
     void OnStationConnected(void);
     void OnStationDisconnected(void);
-    void RefreshStationProvisionedState(void);
 
-    static void HandleStationReconnectTimer(nl::Weave::System::Layer * aLayer, void * aAppState, nl::Weave::System::Error aError);
-    static void AdvanceStationState(nl::Weave::System::Layer * aLayer, void * aAppState, nl::Weave::System::Error aError);
+    static void DoDriveStationState(nl::Weave::System::Layer * aLayer, void * aAppState, nl::Weave::System::Error aError);
+
 };
-
-inline bool ConnectivityManager::GetWiFiStationEnabled(void) const
-{
-    return mStationEnabled;
-}
 
 inline uint32_t ConnectivityManager::GetWiFiStationReconnectIntervalMS(void) const
 {
-    return mStationReconnectIntervalMS;
-}
-
-inline bool ConnectivityManager::IsStationProvisioned(void) const
-{
-    return mStationProvisioned;
+    return mWiFiStationReconnectIntervalMS;
 }
 
 } // namespace WeavePlatform
