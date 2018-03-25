@@ -17,11 +17,18 @@ WEAVE_ERROR ConnectivityManager::Init()
 {
     WEAVE_ERROR err;
 
-    mWiFiStationState = kWiFiStationState_Disabled;
-    mWiFiStationReconnectIntervalMS = 5000; // TODO: make configurable
     mLastStationConnectTime = 0;
+    mLastAPDemandTime = 0;
+    mWiFiStationState = kWiFiStationState_Disabled;
+    mWiFiAPMode = kWiFiAPMode_Disabled;
+    mWiFiAPState = kWiFiAPState_Stopped;
+    mWiFiStationReconnectIntervalMS = 5000; // TODO: make configurable
+    mWiFiAPTimeoutMS = 30000; // TODO: make configurable
 
-    err = SystemLayer.ScheduleWork(DoDriveStationState, NULL);
+    err = SystemLayer.ScheduleWork(DriveStationState, NULL);
+    SuccessOrExit(err);
+
+    err = SystemLayer.ScheduleWork(DriveAPState, NULL);
     SuccessOrExit(err);
 
 exit:
@@ -58,6 +65,27 @@ void ConnectivityManager::OnPlatformEvent(const struct WeavePlatformEvent * even
         case SYSTEM_EVENT_STA_STOP:
             ESP_LOGI(TAG, "SYSTEM_EVENT_STA_STOP");
             DriveStationState();
+            break;
+        case SYSTEM_EVENT_AP_START:
+            ESP_LOGI(TAG, "SYSTEM_EVENT_AP_START");
+            if (mWiFiAPState == kWiFiAPState_Starting)
+            {
+                mWiFiAPState = kWiFiAPState_Started;
+            }
+            DriveAPState();
+            break;
+        case SYSTEM_EVENT_AP_STOP:
+            ESP_LOGI(TAG, "SYSTEM_EVENT_AP_STOP");
+            if (mWiFiAPState == kWiFiAPState_Stopping)
+            {
+                mWiFiAPState = kWiFiAPState_Stopped;
+            }
+            DriveAPState();
+            break;
+        case SYSTEM_EVENT_AP_STACONNECTED:
+            ESP_LOGI(TAG, "SYSTEM_EVENT_AP_STACONNECTED");
+            MaintainOnDemandWiFiAP();
+            break;
         default:
             break;
         }
@@ -148,9 +176,9 @@ void ConnectivityManager::DriveStationState()
             {
                 uint32_t timeToNextConnect = (uint32_t)((mLastStationConnectTime + mWiFiStationReconnectIntervalMS) - now);
 
-                ESP_LOGI(TAG, "Waiting %" PRId32 " ms for WiFi station reconnect", timeToNextConnect);
+                ESP_LOGI(TAG, "Next WiFi station reconnect in %" PRIu32 " ms", timeToNextConnect);
 
-                err = SystemLayer.StartTimer(timeToNextConnect, DoDriveStationState, NULL);
+                err = SystemLayer.StartTimer(timeToNextConnect, DriveStationState, NULL);
                 SuccessOrExit(err);
             }
         }
@@ -175,11 +203,106 @@ void ConnectivityManager::DriveStationState()
 exit:
     if (err != WEAVE_NO_ERROR)
     {
-        SetWifiStationMode(kWiFiStationMode_Disabled);
+        SetWiFiStationMode(kWiFiStationMode_Disabled);
     }
 }
 
-ConnectivityManager::WiFiStationMode ConnectivityManager::GetWifiStationMode(void) const
+void ConnectivityManager::DriveAPState()
+{
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
+    WiFiAPState targetState;
+    uint32_t apTimeout = 0;
+
+    if (mWiFiAPMode == kWiFiAPMode_Disabled)
+    {
+        targetState = kWiFiAPState_Stopped;
+    }
+
+    else if (mWiFiAPMode == kWiFiAPMode_Enabled)
+    {
+        targetState = kWiFiAPState_Started;
+    }
+
+    else if (mWiFiAPMode == kWiFiAPMode_OnDemand_NoStationProvision && !IsWiFiStationProvisioned())
+    {
+        targetState = kWiFiAPState_Started;
+    }
+
+    else if (mWiFiAPMode == kWiFiAPMode_OnDemand ||
+             mWiFiAPMode == kWiFiAPMode_OnDemand_NoStationProvision)
+    {
+        uint64_t now = SystemLayer.GetSystemTimeMS();
+
+        if (mLastAPDemandTime != 0 && now < (mLastAPDemandTime + mWiFiAPTimeoutMS))
+        {
+            targetState = kWiFiAPState_Started;
+            apTimeout = (uint32_t)((mLastAPDemandTime + mWiFiAPTimeoutMS) - now);
+        }
+        else
+        {
+            targetState = kWiFiAPState_Stopped;
+        }
+    }
+    else
+    {
+        targetState = kWiFiAPState_Stopped;
+    }
+
+    if (mWiFiAPState != targetState)
+    {
+        if (targetState == kWiFiAPState_Started)
+        {
+            wifi_config_t wifiConfig;
+
+            err = ChangeESPWiFiMode(ESP_IF_WIFI_AP, true);
+            SuccessOrExit(err);
+
+            memset(&wifiConfig, 0, sizeof(wifiConfig));
+            strcpy((char *)wifiConfig.ap.ssid, "ESP-TEST");
+            wifiConfig.ap.channel = 1;
+            wifiConfig.ap.authmode = WIFI_AUTH_OPEN;
+            wifiConfig.ap.max_connection = 4;
+            wifiConfig.ap.beacon_interval = 100;
+            err = esp_wifi_set_config(ESP_IF_WIFI_AP, &wifiConfig);
+            if (err != ESP_OK)
+            {
+                ESP_LOGE(TAG, "esp_wifi_set_config(ESP_IF_WIFI_AP) failed: %s", nl::ErrorStr(err));
+            }
+            SuccessOrExit(err);
+
+            if (mWiFiAPState == kWiFiAPState_Stopped)
+            {
+                mWiFiAPState = kWiFiAPState_Starting;
+            }
+        }
+        else
+        {
+            err = ChangeESPWiFiMode(ESP_IF_WIFI_AP, false);
+            SuccessOrExit(err);
+
+            if (mWiFiAPState == kWiFiAPState_Started)
+            {
+                mWiFiAPState = kWiFiAPState_Stopping;
+            }
+        }
+    }
+
+    if (apTimeout != 0)
+    {
+        ESP_LOGI(TAG, "Next WiFi AP timeout in %" PRIu32 " ms", apTimeout);
+
+        err = SystemLayer.StartTimer(apTimeout, DriveAPState, NULL);
+        SuccessOrExit(err);
+    }
+
+exit:
+    if (err != WEAVE_NO_ERROR)
+    {
+        SetWiFiAPMode(kWiFiAPMode_Disabled);
+    }
+}
+
+ConnectivityManager::WiFiStationMode ConnectivityManager::GetWiFiStationMode(void) const
 {
     bool autoConnect;
     return (esp_wifi_get_auto_connect(&autoConnect) == ESP_OK && autoConnect)
@@ -188,10 +311,10 @@ ConnectivityManager::WiFiStationMode ConnectivityManager::GetWifiStationMode(voi
 
 bool ConnectivityManager::IsWiFiStationEnabled(void) const
 {
-    return GetWifiStationMode() == kWiFiStationMode_Enabled;
+    return GetWiFiStationMode() == kWiFiStationMode_Enabled;
 }
 
-WEAVE_ERROR ConnectivityManager::SetWifiStationMode(WiFiStationMode val)
+WEAVE_ERROR ConnectivityManager::SetWiFiStationMode(WiFiStationMode val)
 {
     esp_err_t err;
     bool autoConnect;
@@ -209,7 +332,7 @@ WEAVE_ERROR ConnectivityManager::SetWifiStationMode(WiFiStationMode val)
 
         ESP_LOGI(TAG, "WiFi station interface %s", (autoConnect) ? "enabled" : "disabled");
 
-        SystemLayer.ScheduleWork(DoDriveStationState, NULL);
+        SystemLayer.ScheduleWork(DriveStationState, NULL);
     }
 
 exit:
@@ -229,7 +352,63 @@ void ConnectivityManager::ClearWiFiStationProvision(void)
     memset(&stationConfig, 0, sizeof(stationConfig));
     esp_wifi_set_config(ESP_IF_WIFI_STA, &stationConfig);
 
-    SystemLayer.ScheduleWork(DoDriveStationState, NULL);
+    SystemLayer.ScheduleWork(DriveStationState, NULL);
+}
+
+WEAVE_ERROR ConnectivityManager::SetWiFiAPMode(WiFiAPMode val)
+{
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
+
+    VerifyOrExit(val == kWiFiAPMode_Disabled ||
+                 val == kWiFiAPMode_Enabled ||
+                 val == kWiFiAPMode_OnDemand ||
+                 val == kWiFiAPMode_OnDemand_NoStationProvision,
+                 err = WEAVE_ERROR_INVALID_ARGUMENT);
+
+    mWiFiAPMode = val;
+
+    SystemLayer.ScheduleWork(DriveAPState, NULL);
+
+exit:
+    return err;
+}
+
+void ConnectivityManager::DemandStartWiFiAP(void)
+{
+    if (mWiFiAPMode == kWiFiAPMode_OnDemand ||
+        mWiFiAPMode == kWiFiAPMode_OnDemand_NoStationProvision)
+    {
+        mLastAPDemandTime = SystemLayer.GetSystemTimeMS();
+        SystemLayer.ScheduleWork(DriveAPState, NULL);
+    }
+}
+
+void ConnectivityManager::StopOnDemandWiFiAP(void)
+{
+    if (mWiFiAPMode == kWiFiAPMode_OnDemand ||
+        mWiFiAPMode == kWiFiAPMode_OnDemand_NoStationProvision)
+    {
+        mLastAPDemandTime = 0;
+        SystemLayer.ScheduleWork(DriveAPState, NULL);
+    }
+}
+
+void ConnectivityManager::MaintainOnDemandWiFiAP(void)
+{
+    if (mWiFiAPMode == kWiFiAPMode_OnDemand ||
+        mWiFiAPMode == kWiFiAPMode_OnDemand_NoStationProvision)
+    {
+        if (mWiFiAPState == kWiFiAPState_Started || mWiFiAPState == kWiFiAPState_Starting)
+        {
+            mLastAPDemandTime = SystemLayer.GetSystemTimeMS();
+        }
+    }
+}
+
+void ConnectivityManager::SetWiFiAPTimeoutMS(uint32_t val)
+{
+    mWiFiAPTimeoutMS = val;
+    SystemLayer.ScheduleWork(DriveAPState, NULL);
 }
 
 void ConnectivityManager::OnStationConnected()
@@ -245,9 +424,14 @@ void ConnectivityManager::OnStationDisconnected()
     // TODO: alert other subsystems of disconnected state
 }
 
-void ConnectivityManager::DoDriveStationState(nl::Weave::System::Layer * aLayer, void * aAppState, nl::Weave::System::Error aError)
+void ConnectivityManager::DriveStationState(nl::Weave::System::Layer * aLayer, void * aAppState, nl::Weave::System::Error aError)
 {
     ConnectivityMgr.DriveStationState();
+}
+
+void ConnectivityManager::DriveAPState(nl::Weave::System::Layer * aLayer, void * aAppState, nl::Weave::System::Error aError)
+{
+    ConnectivityMgr.DriveAPState();
 }
 
 namespace Internal {
