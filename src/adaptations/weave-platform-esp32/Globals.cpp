@@ -18,8 +18,6 @@ const char * const TAG = "weave-platform";
 
 const uint64_t gTestDeviceId = 0x18B4300000000001ULL;
 
-const char * gTestPairingCode = "TEST";
-
 const uint8_t gTestDeviceCert[] =
 {
     /*

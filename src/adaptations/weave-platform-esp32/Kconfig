@@ -1,0 +1,42 @@
+menu "Weave Platform Configuration"
+
+config DEVICE_VENDOR_ID
+    int "Device Vendor Id"
+    range 0 65535
+    default 9050
+    help
+        Device vendor id.  Defaults to Nest Labs. 
+
+config DEVICE_PRODUCT_ID
+    int "Device Product Id"
+    range 0 65535
+    default 4242
+    help
+        Device product id. 
+
+config DEVICE_PRODUCT_REVISION
+    int "Device Product Revision"
+    range 0 65535
+    default 1
+    help
+        Device product revision. 
+
+config DEFAULT_WIFI_SSID
+    string "Default WiFi SSID"
+    default ""
+    help
+        WiFi SSID to connect to if the device boots without a WiFi station provision.
+
+config DEFAULT_WIFI_PASSWORD
+    string "Default WiFi Password"
+    default ""
+    help
+        Password for default WiFi provision.
+
+config DEFAULT_PAIRING_CODE
+    string "Default Device Pairing Code"
+    default "TEST"
+    help
+        Device pairing code to use if none found in nv storage.
+
+endmenu

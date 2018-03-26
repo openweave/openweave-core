@@ -25,9 +25,51 @@ WEAVE_ERROR ConnectivityManager::Init()
     mWiFiStationReconnectIntervalMS = 5000; // TODO: make configurable
     mWiFiAPTimeoutMS = 30000; // TODO: make configurable
 
-    err = SystemLayer.ScheduleWork(DriveStationState, NULL);
+    // If the code has been compiled with a default WiFi station provision and no provision is currently configured...
+    if (CONFIG_DEFAULT_WIFI_SSID[0] != 0 && !IsWiFiStationProvisioned())
+    {
+        ESP_LOGI(TAG, "Setting default WiFi station configuration (SSID %s)", CONFIG_DEFAULT_WIFI_SSID);
+
+        // Switch to station mode temporarily so that the configuration can be changed.
+        err = esp_wifi_set_mode(WIFI_MODE_STA);
+        if (err != ESP_OK)
+        {
+            ESP_LOGE(TAG, "esp_wifi_set_mode() failed: %s", nl::ErrorStr(err));
+        }
+
+        // Set a default station configuration.
+        wifi_config_t wifiConfig;
+        memset(&wifiConfig, 0, sizeof(wifiConfig));
+        memcpy(wifiConfig.sta.ssid, CONFIG_DEFAULT_WIFI_SSID, strlen(CONFIG_DEFAULT_WIFI_SSID) + 1);
+        memcpy(wifiConfig.sta.password, CONFIG_DEFAULT_WIFI_PASSWORD, strlen(CONFIG_DEFAULT_WIFI_PASSWORD) + 1);
+        wifiConfig.sta.scan_method = WIFI_ALL_CHANNEL_SCAN;
+        wifiConfig.sta.sort_method = WIFI_CONNECT_AP_BY_SIGNAL;
+        err = esp_wifi_set_config(ESP_IF_WIFI_STA, &wifiConfig);
+        if (err != ESP_OK)
+        {
+            ESP_LOGE(TAG, "esp_wifi_set_config() failed: %s", nl::ErrorStr(err));
+        }
+        err = WEAVE_NO_ERROR;
+
+        // Enable WiFi station mode.
+        err = esp_wifi_set_auto_connect(true);
+        if (err != ESP_OK)
+        {
+            ESP_LOGE(TAG, "esp_wifi_set_auto_connect() failed: %s", nl::ErrorStr(err));
+        }
+    }
+
+    // Disable both AP and STA mode.  The AP and station state machines will re-enable these as needed.
+    err = esp_wifi_set_mode(WIFI_MODE_NULL);
+    if (err != ESP_OK)
+    {
+        ESP_LOGE(TAG, "esp_wifi_set_mode() failed: %s", nl::ErrorStr(err));
+    }
     SuccessOrExit(err);
 
+    // Queue work items to bootstrap the AP and station state machines once the Weave event loop is running.
+    err = SystemLayer.ScheduleWork(DriveStationState, NULL);
+    SuccessOrExit(err);
     err = SystemLayer.ScheduleWork(DriveAPState, NULL);
     SuccessOrExit(err);
 
@@ -50,6 +92,14 @@ void ConnectivityManager::OnPlatformEvent(const struct WeavePlatformEvent * even
             ESP_LOGI(TAG, "SYSTEM_EVENT_STA_CONNECTED");
             DriveStationState();
             break;
+        case SYSTEM_EVENT_STA_DISCONNECTED:
+            ESP_LOGI(TAG, "SYSTEM_EVENT_STA_DISCONNECTED");
+            DriveStationState();
+            break;
+        case SYSTEM_EVENT_STA_STOP:
+            ESP_LOGI(TAG, "SYSTEM_EVENT_STA_STOP");
+            DriveStationState();
+            break;
         case SYSTEM_EVENT_STA_GOT_IP:
             ESP_LOGI(TAG, "SYSTEM_EVENT_STA_GOT_IP");
             err = MessageLayer.RefreshEndpoints();
@@ -58,13 +108,21 @@ void ConnectivityManager::OnPlatformEvent(const struct WeavePlatformEvent * even
                 ESP_LOGE(TAG, "Error returned by MessageLayer.RefreshEndpoints(): %s", nl::ErrorStr(err));
             }
             break;
-        case SYSTEM_EVENT_STA_DISCONNECTED:
-            ESP_LOGI(TAG, "SYSTEM_EVENT_STA_DISCONNECTED");
-            DriveStationState();
+        case SYSTEM_EVENT_STA_LOST_IP:
+            ESP_LOGI(TAG, "SYSTEM_EVENT_STA_LOST_IP");
+            err = MessageLayer.RefreshEndpoints();
+            if (err != WEAVE_NO_ERROR)
+            {
+                ESP_LOGE(TAG, "Error returned by MessageLayer.RefreshEndpoints(): %s", nl::ErrorStr(err));
+            }
             break;
-        case SYSTEM_EVENT_STA_STOP:
-            ESP_LOGI(TAG, "SYSTEM_EVENT_STA_STOP");
-            DriveStationState();
+        case SYSTEM_EVENT_GOT_IP6:
+            ESP_LOGI(TAG, "SYSTEM_EVENT_GOT_IP6");
+            err = MessageLayer.RefreshEndpoints();
+            if (err != WEAVE_NO_ERROR)
+            {
+                ESP_LOGE(TAG, "Error returned by MessageLayer.RefreshEndpoints(): %s", nl::ErrorStr(err));
+            }
             break;
         case SYSTEM_EVENT_AP_START:
             ESP_LOGI(TAG, "SYSTEM_EVENT_AP_START");

@@ -49,7 +49,6 @@ struct WeavePlatformEvent
 extern const char * const TAG;
 
 extern const uint64_t gTestDeviceId;
-extern const char * gTestPairingCode;
 extern const uint8_t gTestDeviceCert[];
 extern const uint16_t gTestDeviceCertLength;
 extern const uint8_t gTestDevicePrivateKey[];

@@ -120,7 +120,7 @@ WEAVE_ERROR ConfigurationManager::ConfigureWeaveStack()
     if (err == ESP_ERR_NVS_NOT_FOUND)
     {
         // TODO: make this a DEBUG-only feature
-        ESP_LOGI(TAG, "Device id not found in nvs; using default");
+        ESP_LOGI(TAG, "Device id not found in nvs; using default: %" PRIX64, gTestDeviceId);
         FabricState.LocalNodeId = gTestDeviceId;
         err = WEAVE_NO_ERROR;
     }
@@ -142,8 +142,8 @@ WEAVE_ERROR ConfigurationManager::ConfigureWeaveStack()
     if (err == ESP_ERR_NVS_NOT_FOUND || pairingCodeLen == 0)
     {
         // TODO: make this a DEBUG-only feature
-        ESP_LOGI(TAG, "Pairing code not found in nvs; using default");
-        strcpy(mPairingCode, gTestPairingCode);
+        ESP_LOGI(TAG, "Pairing code not found in nvs; using default: %s", CONFIG_DEFAULT_PAIRING_CODE);
+        strcpy(mPairingCode, CONFIG_DEFAULT_PAIRING_CODE);
         err = WEAVE_NO_ERROR;
     }
     SuccessOrExit(err);
@@ -163,22 +163,19 @@ exit:
 
 WEAVE_ERROR ConfigurationManager::GetVendorId(uint16_t& vendorId)
 {
-    // TODO: get from build config
-    vendorId = kWeaveVendor_NestLabs;
+    vendorId = (uint16_t)CONFIG_DEVICE_VENDOR_ID;
     return WEAVE_NO_ERROR;
 }
 
 WEAVE_ERROR ConfigurationManager::GetProductId(uint16_t& productId)
 {
-    // TODO: get from build config
-    productId = 4242;
+    productId = (uint16_t)CONFIG_DEVICE_PRODUCT_ID;
     return WEAVE_NO_ERROR;
 }
 
 WEAVE_ERROR ConfigurationManager::GetProductRevision(uint16_t& productRev)
 {
-    // TODO: get from build config
-    productRev = 1;
+    productRev = (uint16_t)CONFIG_DEVICE_PRODUCT_REVISION;
     return WEAVE_NO_ERROR;
 }
 
