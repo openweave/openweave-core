@@ -91,7 +91,7 @@ AC_DEFUN([NL_ENABLE_COVERAGE],
 
                 else
                     NL_COVERAGE_CPPFLAGS="--coverage"
-                    NL_COVERAGE_LDFLAGS="-lgcov"            
+                    NL_COVERAGE_LIBS="-lgcov"
 
                 fi
             fi
