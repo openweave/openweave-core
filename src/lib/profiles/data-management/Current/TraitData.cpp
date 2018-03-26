@@ -871,7 +871,7 @@ WEAVE_ERROR TraitDataSink::StoreDataElement(PropertyPathHandle aHandle, TLVReade
     err = parser.GetVersion(&versionInDE);
     SuccessOrExit(err);
 
-    if (!mHasValidVersion || (mHasValidVersion && (versionInDE > mVersion)))
+    if (!mHasValidVersion || (mHasValidVersion && (versionInDE != mVersion)))
     {
         if (mHasValidVersion)
         {
