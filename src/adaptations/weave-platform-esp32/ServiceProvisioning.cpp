@@ -71,23 +71,24 @@ WEAVE_ERROR ServiceProvisioningServer::HandleRegisterServicePairAccount(Register
     WEAVE_ERROR err;
     uint64_t curServiceId;
 
-    // Check if a service is already provisioned.
+    // Check if a service is already provisioned. If so respond with "Too Many Services".
     err = ConfigMgr.GetServiceId(curServiceId);
-    SuccessOrExit(err);
-
-    // If so respond with an appropriate error.
-    if (curServiceId != 0)
+    if (err == WEAVE_NO_ERROR)
     {
-        // Send
-        gServiceProvisioningServer.SendStatusReport(kWeaveProfile_ServiceProvisioning,
+        err = gServiceProvisioningServer.SendStatusReport(kWeaveProfile_ServiceProvisioning,
                 (curServiceId == msg.ServiceId) ? kStatusCode_ServiceAlreadyRegistered : kStatusCode_TooManyServices);
         ExitNow();
     }
+    if (err == WEAVE_PLATFORM_ERROR_CONFIG_NOT_FOUND)
+    {
+        err = WEAVE_NO_ERROR;
+    }
+    SuccessOrExit(err);
 
     // Validate the service config. We don't want to get any further along before making sure the data is good.
     if (!ServiceProvisioningServer::IsValidServiceConfig(msg.ServiceConfig, msg.ServiceConfigLen))
     {
-        gServiceProvisioningServer.SendStatusReport(kWeaveProfile_ServiceProvisioning, kStatusCode_InvalidServiceConfig);
+        err = gServiceProvisioningServer.SendStatusReport(kWeaveProfile_ServiceProvisioning, kStatusCode_InvalidServiceConfig);
         ExitNow();
     }
 
@@ -96,7 +97,7 @@ WEAVE_ERROR ServiceProvisioningServer::HandleRegisterServicePairAccount(Register
     err = ConfigMgr.StoreServiceProvisioningData(msg.ServiceId, msg.ServiceConfig, msg.ServiceConfigLen, msg.AccountId, msg.AccountIdLen);
     SuccessOrExit(err);
 
-    // Send a success StatusReport back to the requestor.
+    // Send "Success" back to the requestor.
     err = gServiceProvisioningServer.SendSuccessResponse();
     SuccessOrExit(err);
 
@@ -109,22 +110,19 @@ WEAVE_ERROR ServiceProvisioningServer::HandleUpdateService(UpdateServiceMessage&
     WEAVE_ERROR err;
     uint64_t curServiceId;
 
-    // Check if a service is already provisioned.
+    // Verify that the service id matches the existing service.  If not respond with "No Such Service".
     err = ConfigMgr.GetServiceId(curServiceId);
-    SuccessOrExit(err);
-
-    // Verify that the service id matches the existing service.
-    //
-    if (curServiceId != msg.ServiceId)
+    if (err == WEAVE_PLATFORM_ERROR_CONFIG_NOT_FOUND || curServiceId != msg.ServiceId)
     {
-        gServiceProvisioningServer.SendStatusReport(kWeaveProfile_ServiceProvisioning, kStatusCode_NoSuchService);
+        err = gServiceProvisioningServer.SendStatusReport(kWeaveProfile_ServiceProvisioning, kStatusCode_NoSuchService);
         ExitNow();
     }
+    SuccessOrExit(err);
 
     // Validate the service config. We don't want to get any further along before making sure the data is good.
     if (!ServiceProvisioningServer::IsValidServiceConfig(msg.ServiceConfig, msg.ServiceConfigLen))
     {
-        gServiceProvisioningServer.SendStatusReport(kWeaveProfile_ServiceProvisioning, kStatusCode_InvalidServiceConfig);
+        err = gServiceProvisioningServer.SendStatusReport(kWeaveProfile_ServiceProvisioning, kStatusCode_InvalidServiceConfig);
         ExitNow();
     }
 
@@ -132,7 +130,7 @@ WEAVE_ERROR ServiceProvisioningServer::HandleUpdateService(UpdateServiceMessage&
     err = ConfigMgr.StoreServiceConfig(msg.ServiceConfig, msg.ServiceConfigLen);
     SuccessOrExit(err);
 
-    // Send a success StatusReport back to the requestor.
+    // Send "Success" back to the requestor.
     err = gServiceProvisioningServer.SendSuccessResponse();
     SuccessOrExit(err);
 
@@ -145,23 +143,20 @@ WEAVE_ERROR ServiceProvisioningServer::HandleUnregisterService(uint64_t serviceI
     WEAVE_ERROR err;
     uint64_t curServiceId;
 
-    // Check if a service is already provisioned.
+    // Verify that the service id matches the existing service.  If not respond with "No Such Service".
     err = ConfigMgr.GetServiceId(curServiceId);
-    SuccessOrExit(err);
-
-    // Verify that the service id matches the existing service.
-    //
-    if (curServiceId != serviceId)
+    if (err == WEAVE_PLATFORM_ERROR_CONFIG_NOT_FOUND || curServiceId != serviceId)
     {
-        gServiceProvisioningServer.SendStatusReport(kWeaveProfile_ServiceProvisioning, kStatusCode_NoSuchService);
+        err = gServiceProvisioningServer.SendStatusReport(kWeaveProfile_ServiceProvisioning, kStatusCode_NoSuchService);
         ExitNow();
     }
+    SuccessOrExit(err);
 
     // Clear the persisted service.
     err = ConfigMgr.ClearServiceProvisioningData();
     SuccessOrExit(err);
 
-    // Send a success StatusReport back to the requestor.
+    // Send "Success" back to the requestor.
     err = gServiceProvisioningServer.SendSuccessResponse();
     SuccessOrExit(err);
 

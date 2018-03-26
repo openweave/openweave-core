@@ -144,7 +144,7 @@ WEAVE_ERROR ConfigurationManager::ConfigureWeaveStack()
         // TODO: make this a DEBUG-only feature
         ESP_LOGI(TAG, "Pairing code not found in nvs; using default");
         strcpy(mPairingCode, gTestPairingCode);
-        ExitNow(err = WEAVE_NO_ERROR);
+        err = WEAVE_NO_ERROR;
     }
     SuccessOrExit(err);
 
