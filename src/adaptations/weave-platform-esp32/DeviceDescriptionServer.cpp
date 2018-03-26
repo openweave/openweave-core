@@ -1,46 +1,31 @@
-#include <WeavePlatform-ESP32-Internal.h>
-
-#include <Weave/Profiles/fabric-provisioning/FabricProvisioning.h>
-
-#include <new>
-
-namespace WeavePlatform {
-namespace Internal {
+#include <internal/WeavePlatformInternal.h>
+#include <internal/DeviceDescriptionServer.h>
 
 using namespace ::nl;
 using namespace ::nl::Weave;
 using namespace ::nl::Weave::Profiles::DeviceDescription;
 
-static void HandleIdentifyRequest(void *appState, uint64_t nodeId, const IPAddress& nodeAddr,
-        const IdentifyRequestMessage& reqMsg, bool& sendResp, IdentifyResponseMessage& respMsg);
+namespace WeavePlatform {
+namespace Internal {
 
-static DeviceDescriptionServer gDeviceDescriptionServer;
+DeviceDescriptionServer DeviceDescriptionSrv;
 
-bool InitDeviceDescriptionServer()
+WEAVE_ERROR DeviceDescriptionServer::Init()
 {
     WEAVE_ERROR err;
 
-    new (&gDeviceDescriptionServer) DeviceDescriptionServer();
-
-    err = gDeviceDescriptionServer.Init(&ExchangeMgr);
+    // Call init on the server base class.
+    err = ServerBaseClass::Init(&::WeavePlatform::ExchangeMgr);
     SuccessOrExit(err);
 
     // Set the pointer to the HandleIdentifyRequest function.
-    gDeviceDescriptionServer.OnIdentifyRequestReceived = HandleIdentifyRequest;
+    OnIdentifyRequestReceived = HandleIdentifyRequest;
 
 exit:
-    if (err == WEAVE_NO_ERROR)
-    {
-        ESP_LOGI(TAG, "Weave Device Description server initialized");
-    }
-    else
-    {
-        ESP_LOGE(TAG, "Weave Device Description server initialization failed: %s", ErrorStr(err));
-    }
-    return (err == WEAVE_NO_ERROR);
+    return err;
 }
 
-void HandleIdentifyRequest(void *appState, uint64_t nodeId, const IPAddress& nodeAddr,
+void DeviceDescriptionServer::HandleIdentifyRequest(void *appState, uint64_t nodeId, const IPAddress& nodeAddr,
         const IdentifyRequestMessage& reqMsg, bool& sendResp, IdentifyResponseMessage& respMsg)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
@@ -71,7 +56,7 @@ void HandleIdentifyRequest(void *appState, uint64_t nodeId, const IPAddress& nod
     {
         uint16_t vendorId;
 
-        err = ConfigMgr.GetVendorId(vendorId);
+        err = ConfigurationMgr.GetVendorId(vendorId);
         SuccessOrExit(err);
 
         if (reqMsg.TargetVendorId != vendorId)
@@ -84,7 +69,7 @@ void HandleIdentifyRequest(void *appState, uint64_t nodeId, const IPAddress& nod
     {
         uint16_t productId;
 
-        err = ConfigMgr.GetProductId(productId);
+        err = ConfigurationMgr.GetProductId(productId);
         SuccessOrExit(err);
 
         if (reqMsg.TargetProductId != productId)
@@ -102,7 +87,7 @@ exit:
 
     if (err == WEAVE_NO_ERROR && sendResp)
     {
-        err = ConfigMgr.GetDeviceDescriptor(respMsg.DeviceDesc);
+        err = ConfigurationMgr.GetDeviceDescriptor(respMsg.DeviceDesc);
     }
 
     if (err != WEAVE_NO_ERROR)

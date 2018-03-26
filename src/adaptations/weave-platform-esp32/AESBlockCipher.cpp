@@ -1,3 +1,5 @@
+#include <internal/WeavePlatformInternal.h>
+
 #include <string.h>
 
 #include <Weave/Support/crypto/WeaveCrypto.h>

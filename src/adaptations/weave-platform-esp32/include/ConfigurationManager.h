@@ -7,7 +7,7 @@ namespace WeavePlatform {
 
 class ConfigurationManager
 {
-    friend bool InitWeaveStack();
+    friend class PlatformManager;
 
 public:
     enum

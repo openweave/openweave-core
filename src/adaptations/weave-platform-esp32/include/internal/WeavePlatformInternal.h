@@ -1,9 +1,7 @@
-#ifndef WEAVE_PLATFORM_ESP32_INTERNAL_H__
-#define WEAVE_PLATFORM_ESP32_INTERNAL_H__
+#ifndef WEAVE_PLATFORM_INTERNAL_H
+#define WEAVE_PLATFORM_INTERNAL_H
 
-#include <ConfigurationManager.h>
-#include <ConnectivityManager.h>
-
+#include <WeavePlatform.h>
 #include "freertos/FreeRTOS.h"
 #include "freertos/event_groups.h"
 #include "freertos/queue.h"
@@ -18,7 +16,6 @@
 #include "esp_event.h"
 #include "esp_log.h"
 
-#include <WeavePlatform-ESP32.h>
 
 using namespace ::nl::Weave;
 
@@ -48,23 +45,7 @@ struct WeavePlatformEvent
 
 extern const char * const TAG;
 
-extern const uint64_t gTestDeviceId;
-extern const uint8_t gTestDeviceCert[];
-extern const uint16_t gTestDeviceCertLength;
-extern const uint8_t gTestDevicePrivateKey[];
-extern const uint16_t gTestDevicePrivateKeyLength;
-
-extern bool InitWeaveEventQueue();
-extern bool InitCASEAuthDelegate();
-extern bool InitWeaveServers();
-extern bool InitEchoServer();
-extern bool InitDeviceDescriptionServer();
-extern bool InitDeviceControlServer();
-extern bool InitFabricProvisioningServer();
-extern bool InitServiceProvisioningServer();
-extern int GetEntropy_ESP32(uint8_t *buf, size_t bufSize);
-
 } // namespace Internal
 } // namespace WeavePlatform
 
-#endif // WEAVE_PLATFORM_ESP32_INTERNAL_H__
+#endif // WEAVE_PLATFORM_ESP32_INTERNAL_H

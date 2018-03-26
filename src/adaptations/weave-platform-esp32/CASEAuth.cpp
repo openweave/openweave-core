@@ -1,5 +1,4 @@
-#include <WeavePlatform-ESP32-Internal.h>
-
+#include <internal/WeavePlatformInternal.h>
 #include <Weave/Core/WeaveTLV.h>
 #include <Weave/Support/NestCerts.h>
 #include <Weave/Support/ASN1.h>
@@ -8,7 +7,6 @@
 #include <Weave/Profiles/security/WeaveCert.h>
 #include <Weave/Profiles/security/WeaveCASE.h>
 #include <Weave/Profiles/service-provisioning/ServiceProvisioning.h>
-
 #include <new>
 
 using namespace ::nl::Weave;
@@ -16,17 +14,15 @@ using namespace ::nl::Weave::TLV;
 using namespace ::nl::Weave::Profiles;
 using namespace ::nl::Weave::Profiles::Security;
 
+using namespace ::WeavePlatform;
+using namespace ::WeavePlatform::Internal;
+
 namespace WeavePlatform {
-namespace Internal {
+
+namespace {
 
 using ::nl::Weave::Platform::Security::MemoryAlloc;
 using ::nl::Weave::Platform::Security::MemoryFree;
-
-static WEAVE_ERROR AddCertToContainer(TLVWriter& writer, uint64_t tag, const uint8_t *cert, uint16_t certLen);
-static WEAVE_ERROR MakeCertInfo(uint8_t *buf, uint16_t bufSize, uint16_t& certInfoLen,
-        const uint8_t *entityCert, uint16_t entityCertLen,
-        const uint8_t *intermediateCert, uint16_t intermediateCertLen);
-static WEAVE_ERROR LoadCertsFromServiceConfig(const uint8_t *serviceConfig, uint16_t serviceConfigLen, WeaveCertificateSet& certSet);
 
 class CASEAuthDelegate : public WeaveCASEAuthDelegate
 {
@@ -55,14 +51,28 @@ private:
     uint8_t *mServiceConfigBuf;
 };
 
-static CASEAuthDelegate gCASEAuthDelegate;
+CASEAuthDelegate gCASEAuthDelegate;
 
-bool InitCASEAuthDelegate()
+WEAVE_ERROR AddCertToContainer(TLVWriter& writer, uint64_t tag, const uint8_t *cert, uint16_t certLen);
+WEAVE_ERROR MakeCertInfo(uint8_t *buf, uint16_t bufSize, uint16_t& certInfoLen,
+        const uint8_t *entityCert, uint16_t entityCertLen,
+        const uint8_t *intermediateCert, uint16_t intermediateCertLen);
+WEAVE_ERROR LoadCertsFromServiceConfig(const uint8_t *serviceConfig, uint16_t serviceConfigLen, WeaveCertificateSet& certSet);
+
+} // unnamed namespace
+
+namespace Internal {
+
+WEAVE_ERROR InitCASEAuthDelegate()
 {
     new (&gCASEAuthDelegate) CASEAuthDelegate();
     SecurityMgr.SetCASEAuthDelegate(&gCASEAuthDelegate);
-    return true;
+    return WEAVE_NO_ERROR;
 }
+
+} // namespace Internal
+
+namespace {
 
 WEAVE_ERROR CASEAuthDelegate::GetNodeCertInfo(bool isInitiator, uint8_t *buf, uint16_t bufSize, uint16_t& certInfoLen)
 {
@@ -71,7 +81,7 @@ WEAVE_ERROR CASEAuthDelegate::GetNodeCertInfo(bool isInitiator, uint8_t *buf, ui
     size_t certLen;
 
     // Determine the length of the certificate.
-    err = ConfigMgr.GetDeviceCertificateLength(certLen);
+    err = ConfigurationMgr.GetDeviceCertificateLength(certLen);
     SuccessOrExit(err);
 
     // Fail if no certificate has been configured.
@@ -82,7 +92,7 @@ WEAVE_ERROR CASEAuthDelegate::GetNodeCertInfo(bool isInitiator, uint8_t *buf, ui
     VerifyOrExit(certBuf != NULL, err = WEAVE_ERROR_NO_MEMORY);
 
     // Read the certificate
-    err = ConfigMgr.GetDeviceCertificate(certBuf, certLen, certLen);
+    err = ConfigurationMgr.GetDeviceCertificate(certBuf, certLen, certLen);
     SuccessOrExit(err);
 
     // Encode a CASECertificateInformation TLV structure containing the device certificate.
@@ -103,7 +113,7 @@ WEAVE_ERROR CASEAuthDelegate::GetNodePrivateKey(bool isInitiator, const uint8_t 
     size_t privKeyLen;
 
     // Determine the length of the private key.
-    err = ConfigMgr.GetDevicePrivateKeyLength(privKeyLen);
+    err = ConfigurationMgr.GetDevicePrivateKeyLength(privKeyLen);
     SuccessOrExit(err);
 
     // Fail if no private key has been configured.
@@ -114,7 +124,7 @@ WEAVE_ERROR CASEAuthDelegate::GetNodePrivateKey(bool isInitiator, const uint8_t 
     VerifyOrExit(mPrivKeyBuf != NULL, err = WEAVE_ERROR_NO_MEMORY);
 
     // Read the private key.
-    err = ConfigMgr.GetDevicePrivateKey(mPrivKeyBuf, privKeyLen, privKeyLen);
+    err = ConfigurationMgr.GetDevicePrivateKey(mPrivKeyBuf, privKeyLen, privKeyLen);
     SuccessOrExit(err);
 
     weavePrivKey = mPrivKeyBuf;
@@ -144,7 +154,7 @@ WEAVE_ERROR CASEAuthDelegate::GetNodePayload(bool isInitiator, uint8_t *buf, uin
     WEAVE_ERROR err;
     size_t deviceDescLen;
 
-    err = ConfigMgr.GetDeviceDescriptorTLV(buf, (size_t)bufSize, deviceDescLen);
+    err = ConfigurationMgr.GetDeviceDescriptorTLV(buf, (size_t)bufSize, deviceDescLen);
     SuccessOrExit(err);
 
     payloadLen = deviceDescLen;
@@ -168,7 +178,7 @@ WEAVE_ERROR CASEAuthDelegate::BeginCertValidation(bool isInitiator, WeaveCertifi
     // Determine if the device has been provisioned for talking to a service by querying the device state manager
     // for the length of the service configuration data.  If service configuration data is present (length != 0),
     // then the device has been service provisioned.
-    err = ConfigMgr.GetServiceConfigLength(serviceConfigLen);
+    err = ConfigurationMgr.GetServiceConfigLength(serviceConfigLen);
     if (err != WEAVE_PLATFORM_ERROR_CONFIG_NOT_FOUND)
         SuccessOrExit(err);
 
@@ -180,7 +190,7 @@ WEAVE_ERROR CASEAuthDelegate::BeginCertValidation(bool isInitiator, WeaveCertifi
         VerifyOrExit(mServiceConfigBuf != NULL, err = WEAVE_ERROR_NO_MEMORY);
 
         // Read the service config data.
-        err = ConfigMgr.GetServiceConfig(mServiceConfigBuf, serviceConfigLen, serviceConfigLen);
+        err = ConfigurationMgr.GetServiceConfig(mServiceConfigBuf, serviceConfigLen, serviceConfigLen);
         SuccessOrExit(err);
 
         // Load the list of trusted root certificate from the service config.
@@ -226,7 +236,7 @@ WEAVE_ERROR CASEAuthDelegate::BeginCertValidation(bool isInitiator, WeaveCertifi
 
     // Set the effective time for certificate validation to the firmware build time.
     // TODO: use real time if available.
-    err = ConfigMgr.GetFirmwareBuildTime(validTime.Year, validTime.Month, validTime.Day,
+    err = ConfigurationMgr.GetFirmwareBuildTime(validTime.Year, validTime.Month, validTime.Day,
             validTime.Hour, validTime.Minute, validTime.Second);
     SuccessOrExit(err);
     err = PackCertTime(validTime, validContext.EffectiveTime);
@@ -407,5 +417,5 @@ exit:
     return err;
 }
 
-} // namespace Internal
+} // unnamed namespace
 } // namespace WeavePlatform

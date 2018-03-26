@@ -1,5 +1,4 @@
-#include <WeavePlatform-ESP32-Internal.h>
-
+#include <internal/WeavePlatformInternal.h>
 #include <Weave/Support/logging/WeaveLogging.h>
 
 namespace nl {

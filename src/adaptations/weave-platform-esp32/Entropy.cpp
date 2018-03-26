@@ -1,7 +1,5 @@
-#include <WeavePlatform-ESP32-Internal.h>
-
+#include <internal/WeavePlatformInternal.h>
 #include <Weave/Support/crypto/WeaveRNG.h>
-
 
 namespace WeavePlatform {
 namespace Internal {

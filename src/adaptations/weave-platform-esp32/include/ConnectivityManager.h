@@ -13,8 +13,7 @@ extern void DispatchEvent(const WeavePlatformEvent * event);
 
 class ConnectivityManager
 {
-    friend bool InitWeaveStack();
-    friend void Internal::DispatchEvent(const struct Internal::WeavePlatformEvent * event);
+    friend class PlatformManager;
 
 public:
     enum WiFiStationMode

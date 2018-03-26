@@ -1,17 +1,19 @@
-#include <WeavePlatform-ESP32-Internal.h>
-
+#include <internal/WeavePlatformInternal.h>
+#include <ConnectivityManager.h>
 #include "esp_wifi.h"
+
+using namespace ::nl;
+using namespace ::nl::Weave;
+using namespace ::WeavePlatform::Internal;
 
 namespace WeavePlatform {
 
-namespace Internal {
+namespace {
 
-static WEAVE_ERROR ChangeESPWiFiMode(esp_interface_t intf, bool enabled);
+extern const char *ESPWiFiModeToStr(wifi_mode_t wifiMode);
+extern WEAVE_ERROR ChangeESPWiFiMode(esp_interface_t intf, bool enabled);
 
 } // namespace Internal
-
-using namespace Internal;
-using namespace nl::Weave;
 
 WEAVE_ERROR ConnectivityManager::Init()
 {
@@ -492,7 +494,7 @@ void ConnectivityManager::DriveAPState(nl::Weave::System::Layer * aLayer, void *
     ConnectivityMgr.DriveAPState();
 }
 
-namespace Internal {
+namespace {
 
 const char *ESPWiFiModeToStr(wifi_mode_t wifiMode)
 {
@@ -558,6 +560,6 @@ exit:
     return err;
 }
 
-} // namespace Internal
+} // unnamed namespace
 
 } // namespace WeavePlatform
