@@ -44,7 +44,7 @@ TestBTraitDataSource::TestBTraitDataSource(void)
 
 void TestBTraitDataSource::Reset(void)
 {
-    mVersion = 200;
+    SetVersion(200);
     taa = TestATrait::ENUM_A_VALUE_1;
     tab = TestCommon::COMMON_ENUM_A_VALUE_1;
     tac = 3;

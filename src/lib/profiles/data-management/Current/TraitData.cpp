@@ -852,8 +852,8 @@ void * TraitDataSink::sChangeRejectionContext                      = NULL;
 TraitDataSink::TraitDataSink(const TraitSchemaEngine * aEngine)
 {
     mSchemaEngine    = aEngine;
-    mVersion         = 0;
     mHasValidVersion = false;
+    SetVersion(0);
 }
 
 WEAVE_ERROR TraitDataSink::StoreDataElement(PropertyPathHandle aHandle, TLVReader & aReader, uint8_t aFlags,
@@ -989,7 +989,7 @@ WEAVE_ERROR TraitDataSink::StoreDataElement(PropertyPathHandle aHandle, TLVReade
             if (aFlags & kLastElementInChange)
             {
                 mHasValidVersion = true;
-                mVersion         = versionInDE;
+                SetVersion(versionInDE);
 
                 OnEvent(kEventChangeEnd, NULL);
             }
@@ -1068,7 +1068,7 @@ WEAVE_ERROR TraitDataSink::SetData(PropertyPathHandle aHandle, TLVReader & aRead
 
 TraitDataSource::TraitDataSource(const TraitSchemaEngine * aEngine)
 {
-    mVersion        = 0;
+    SetVersion(0);
     mManagedVersion = true;
     mSetDirtyCalled = false;
     mSchemaEngine   = aEngine;

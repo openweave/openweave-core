@@ -40,7 +40,7 @@ class TestMismatchedCTraitDataSource : public TraitDataSource
 public:
     TestMismatchedCTraitDataSource(void);
     void SetValue(PropertyPathHandle aLeafHandle, uint32_t aValue);
-    void Reset(void) { mVersion = 0; };
+    void Reset(void) { SetVersion(0); };
 
 private:
     WEAVE_ERROR SetLeafData(PropertyPathHandle aLeafHandle, TLVReader &aReader);

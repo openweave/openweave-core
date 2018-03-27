@@ -75,7 +75,7 @@ static size_t MOCK_strlcpy(char * dst, const char * src, size_t size)
 LocaleSettingsTraitDataSource::LocaleSettingsTraitDataSource()
     : TraitDataSource(&LocaleSettingsTrait::TraitSchema)
 {
-    mVersion = 300;
+    SetVersion(300);
     memset(mLocale, 0, sizeof(mLocale));
 }
 
@@ -127,7 +127,7 @@ exit:
 LocaleCapabilitiesTraitDataSource::LocaleCapabilitiesTraitDataSource()
     : TraitDataSource(&LocaleCapabilitiesTrait::TraitSchema)
 {
-    mVersion = 400;
+    SetVersion(400);
 
     mNumLocales = 3;
     mLocales[0] = "pl-PL";
@@ -205,7 +205,7 @@ exit:
 BoltLockSettingTraitDataSource::BoltLockSettingTraitDataSource()
     : TraitDataSource(&BoltLockSettingTrait::TraitSchema)
 {
-    mVersion = 500;
+    SetVersion(500);
 
     mAutoRelockOn = false;
     mAutoRelockDuration = 2;
@@ -268,7 +268,7 @@ TestATraitDataSource::TestATraitDataSource()
       mActiveCommand(NULL)
 {
     uint8_t *tmp;
-    mVersion = 100;
+    SetVersion(100);
     mTestCounter = 0;
     taa = TestATrait::ENUM_A_VALUE_1;
     tab = TestCommon::COMMON_ENUM_A_VALUE_1;
@@ -1248,7 +1248,7 @@ exit:
 TestBTraitDataSource::TestBTraitDataSource()
     : TraitDataSource(&TestBTrait::TraitSchema)
 {
-    mVersion = 200;
+    SetVersion(200);
     taa = TestATrait::ENUM_A_VALUE_1;
     tab = TestCommon::COMMON_ENUM_A_VALUE_1;
     tac = 3;
@@ -1442,7 +1442,7 @@ WEAVE_ERROR TestBTraitDataSource::GetNextDictionaryItemKey(PropertyPathHandle aD
 TestBLargeTraitDataSource::TestBLargeTraitDataSource()
         : TraitDataSource(&TestBTrait::TraitSchema)
 {
-    mVersion = 200;
+    SetVersion(200);
     taa = TestATrait::ENUM_A_VALUE_1;
     tab = TestCommon::COMMON_ENUM_A_VALUE_1;
     tac = 3;
@@ -1636,7 +1636,7 @@ WEAVE_ERROR TestBLargeTraitDataSource::GetNextDictionaryItemKey(PropertyPathHand
 ApplicationKeysTraitDataSource::ApplicationKeysTraitDataSource(void)
     : TraitDataSource(&ApplicationKeysTrait::TraitSchema)
 {
-    mVersion = kInitialTraitVersionNumber;
+    SetVersion(kInitialTraitVersionNumber);
 
     ClearEpochKeys();
     ClearGroupMasterKeys();

@@ -717,12 +717,15 @@ protected: // ISetDataDelegate
     { mAcceptsSubscriptionlessNotifications = aAcceptsSublessNotifies; }
 #endif // WDM_ENABLE_SUBSCRIPTIONLESS_NOTIFICATION
 
+    // Set current version of the data in this sink.
+    void SetVersion(uint64_t version) { mVersion = version; }
+
     const TraitSchemaEngine * mSchemaEngine;
 
 private:
-
-    void OnDataSinkEvent(DataSinkEventType aType, PropertyPathHandle aHandle) __OVERRIDE;
+    // Current version of the data in this sink.
     uint64_t mVersion;
+    void OnDataSinkEvent(DataSinkEventType aType, PropertyPathHandle aHandle) __OVERRIDE;
     static OnChangeRejection sChangeRejectionCb;
     static void * sChangeRejectionContext;
     bool mHasValidVersion;
@@ -853,8 +856,10 @@ protected: // IGetDataDelegate
     }
 #endif
 
+    // Set current version of the data in this source.
+    void SetVersion(uint64_t version) { mVersion = version; }
+    // Increment current version of the data in this source.
     void IncrementVersion(void) { mVersion++; }
-    uint64_t mVersion;
 
     // Controls whether mVersion is incremented automatically or not.
     bool mManagedVersion;
@@ -862,6 +867,8 @@ protected: // IGetDataDelegate
     const TraitSchemaEngine * mSchemaEngine;
 
 private:
+    // Current version of the data in this source.
+    uint64_t mVersion;
     // Tracks whether SetDirty was called within a Lock/Unlock 'session'
     bool mSetDirtyCalled;
 };
