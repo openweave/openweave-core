@@ -1713,6 +1713,8 @@ AC_DEFINE_UNQUOTED([CONFIG_HAVE_VSNPRINTF_EX],[${CONFIG_HAVE_VSNPRINTF_EX}],[Def
 # SystemLayer, BleLayer, InetLayer, and Core sub-components.
 #
 
+AC_LANG_PUSH([C++])
+
 # SystemLayer
 
 NL_CHECK_PROJECT_CONFIG_INCLUDES(weave-system-project-includes, SystemProjectConfig.h, Weave SystemLayer, ${ac_abs_confdir}/build/config/standalone)
@@ -1738,6 +1740,8 @@ fi
 # Core
 
 NL_CHECK_PROJECT_CONFIG_INCLUDES(weave-project-includes, WeaveProjectConfig.h, Weave Core, ${ac_abs_confdir}/build/config/standalone)
+
+AC_LANG_POP([C++])
 
 #
 # Checks for libraries and packages.
