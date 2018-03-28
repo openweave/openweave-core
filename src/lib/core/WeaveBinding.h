@@ -222,6 +222,10 @@ public:
 
     static void DefaultEventHandler(void *apAppState, EventType aEvent, const InEventParam& aInParam, OutEventParam& aOutParam);
 
+    WEAVE_ERROR AllocateRightSizedBuffer(PacketBuffer *& buf,
+                                         const uint32_t desiredSize,
+                                         const uint32_t minSize,
+                                         uint32_t & outMaxPayloadSize);
 private:
 
     friend class WeaveExchangeManager;
@@ -314,6 +318,8 @@ private:
     void OnKeyFailed(uint64_t peerNodeId, uint32_t keyId, WEAVE_ERROR keyErr);
     void OnSecurityManagerAvailable(void);
     void OnConnectionClosed(WeaveConnection *con, WEAVE_ERROR conErr);
+    uint32_t GetWeaveTrailerSize(void);
+    uint32_t GetWeaveHeaderSize(void);
 
     static void OnSecureSessionReady(WeaveSecurityManager *sm, WeaveConnection *con, void *reqState,
             uint16_t keyId, uint64_t peerNodeId, uint8_t encType);

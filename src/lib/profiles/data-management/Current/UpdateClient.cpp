@@ -115,16 +115,14 @@ exit:
 WEAVE_ERROR UpdateClient::StartUpdate(utc_timestamp_t aExpiryTimeMicroSecond, AddArgumentCallback aAddArgumentCallback, uint32_t maxUpdateSize)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
-    uint32_t maxBufPayloadSize, maxPayloadSize;
+    uint32_t maxPayloadSize;
+
     VerifyOrExit(mState == kState_Initialized, err = WEAVE_ERROR_INCORRECT_STATE);
 
     WeaveLogDetail(DataManagement, "<UC:Run> Init PacketBuf");
 
-    mpBuf = PacketBuffer::New();
-    VerifyOrExit(mpBuf != NULL, err = WEAVE_ERROR_NO_MEMORY);
-
-    maxBufPayloadSize   = mpBinding->GetMaxWeavePayloadSize(mpBuf);
-    maxPayloadSize      = maxBufPayloadSize < maxUpdateSize ? maxBufPayloadSize : maxUpdateSize;
+    err = mpBinding->AllocateRightSizedBuffer(mpBuf, maxUpdateSize, WDM_MIN_UPDATE_SIZE, maxPayloadSize);
+    SuccessOrExit(err);
 
     mWriter.Init(mpBuf, maxPayloadSize);
 

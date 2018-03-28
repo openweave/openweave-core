@@ -156,6 +156,7 @@ static void TestTdmDictionary_DirtyStoreOverflowAndItemDeletion(nlTestSuite *inS
 static void TestTdmDictionary_DeleteEntryTwice(nlTestSuite *inSuite, void *inContext);
 
 static void TestTdmStatic_MultiInstance(nlTestSuite *inSuite, void *inContext);
+static void CheckAllocateRightSizedBufferForNotifications(nlTestSuite *inSuite, void *inContext);
 
 // Test Suite
 
@@ -212,6 +213,11 @@ static const nlTest sTests[] = {
     NL_TEST_DEF("Test Tdm (Dictionary Deletion): Test delete same dictionary entry twice", TestTdmDictionary_DeleteEntryTwice),
 
     NL_TEST_DEF("Test Tdm (Multi Instance): Multi Instance", TestTdmStatic_MultiInstance),
+
+    // Tests the allocation of buffer for building and sending Notifies and
+    // Updates.
+    NL_TEST_DEF("Test Allocate Right Sized Buffer", CheckAllocateRightSizedBufferForNotifications),
+
 
     NL_TEST_SENTINEL()
 };
@@ -714,6 +720,7 @@ public:
 
     void TestTdmStatic_MultiInstance(nlTestSuite *inSuite);
 
+    void CheckAllocateRightSizedBufferForNotifications(nlTestSuite *inSuite);
 
 private:
     SubscriptionHandler *mSubHandler;
@@ -740,6 +747,8 @@ private:
     Binding *mClientBinding;
 
     uint32_t mTestCase;
+
+    WEAVE_ERROR AllocateBuffer(uint32_t desiredSize, uint32_t minSize);
 };
 
 TestTdm::TestTdm()
@@ -887,17 +896,12 @@ int TestTdm::BuildAndProcessNotify()
     WEAVE_ERROR err = WEAVE_NO_ERROR;
     bool neWriteInProgress = false;
     uint32_t maxNotificationSize = 0;
-    uint32_t maxBufPayloadSize = 0;
     uint32_t maxPayloadSize = 0;
 
     maxNotificationSize = mSubHandler->GetMaxNotificationSize();
 
-    buf = PacketBuffer::New();
-    VerifyOrExit(buf != NULL, err = WEAVE_ERROR_NO_MEMORY);
-
-    maxBufPayloadSize   = mSubHandler->mBinding->GetMaxWeavePayloadSize(buf);
-
-    maxPayloadSize      = maxBufPayloadSize < maxNotificationSize ? maxBufPayloadSize : maxNotificationSize;
+    err = mSubHandler->mBinding->AllocateRightSizedBuffer(buf, maxNotificationSize, WDM_MIN_NOTIFICATION_SIZE, maxPayloadSize);
+    SuccessOrExit(err);
 
     err = notifyRequest.Init(buf, &writer, mSubHandler, maxPayloadSize);
     SuccessOrExit(err);
@@ -1875,6 +1879,42 @@ exit:
     NL_TEST_ASSERT(inSuite, testPass);
 }
 
+WEAVE_ERROR TestTdm::AllocateBuffer(uint32_t desiredSize, uint32_t minSize)
+{
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
+    uint32_t maxPayloadSize = 0;
+    PacketBuffer *buf = NULL;
+
+
+    err = mSubHandler->mBinding->AllocateRightSizedBuffer(buf, desiredSize, minSize, maxPayloadSize);
+    SuccessOrExit(err);
+
+exit:
+
+    if (buf)
+    {
+        PacketBuffer::Free(buf);
+    }
+
+    return err;
+}
+
+void TestTdm::CheckAllocateRightSizedBufferForNotifications(nlTestSuite *inSuite)
+{
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
+    uint32_t maxNotificationSize = 0;
+    uint32_t fakeMax = UINT16_MAX;
+    maxNotificationSize = mSubHandler->GetMaxNotificationSize();
+
+    err = AllocateBuffer(WDM_MAX_NOTIFICATION_SIZE, WDM_MIN_NOTIFICATION_SIZE);
+
+    NL_TEST_ASSERT(inSuite, err == WEAVE_NO_ERROR);
+
+    err = AllocateBuffer(fakeMax, fakeMax);
+
+    NL_TEST_ASSERT(inSuite, err != WEAVE_NO_ERROR);
+}
+
 } // WeaveMakeManagedNamespaceIdentifier(DataManagement, kWeaveManagedNamespaceDesignation_Current)
 }
 }
@@ -2073,6 +2113,11 @@ static void TestTdmDictionary_DeleteEntryTwice(nlTestSuite *inSuite, void *inCon
 static void TestTdmStatic_MultiInstance(nlTestSuite *inSuite, void *inContext)
 {
     gTestTdm->TestTdmStatic_MultiInstance(inSuite);
+}
+
+static void CheckAllocateRightSizedBufferForNotifications(nlTestSuite *inSuite, void *inContext)
+{
+    gTestTdm->CheckAllocateRightSizedBufferForNotifications(inSuite);
 }
 
 /**

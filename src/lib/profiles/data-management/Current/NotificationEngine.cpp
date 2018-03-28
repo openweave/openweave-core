@@ -1515,7 +1515,6 @@ WEAVE_ERROR NotificationEngine::BuildSingleNotifyRequest(SubscriptionHandler * a
     bool subClean;
     bool neWriteInProgress = false;
     uint32_t maxNotificationSize = 0;
-    uint32_t maxBufPayloadSize = 0;
     uint32_t maxPayloadSize = 0;
 
     aIsSubscriptionClean = true; // assume no work it to be done
@@ -1530,12 +1529,8 @@ WEAVE_ERROR NotificationEngine::BuildSingleNotifyRequest(SubscriptionHandler * a
 
     maxNotificationSize = aSubHandler->GetMaxNotificationSize();
 
-    buf = PacketBuffer::New();
-    VerifyOrExit(buf != NULL, err = WEAVE_ERROR_NO_MEMORY);
-
-    maxBufPayloadSize   = aSubHandler->mBinding->GetMaxWeavePayloadSize(buf);
-
-    maxPayloadSize      = maxBufPayloadSize < maxNotificationSize ? maxBufPayloadSize : maxNotificationSize;
+    err = aSubHandler->mBinding->AllocateRightSizedBuffer(buf, maxNotificationSize, WDM_MIN_NOTIFICATION_SIZE, maxPayloadSize);
+    SuccessOrExit(err);
 
     // Create a notify request.
     err = notifyRequest.Init(buf, &writer, aSubHandler, maxPayloadSize);
@@ -1609,17 +1604,12 @@ WEAVE_ERROR NotificationEngine::SendSubscriptionlessNotification(Binding * const
     PacketBuffer * msgBuf = NULL;
     ExchangeContext *ec = NULL;
     uint32_t maxPayloadSize = 0;
-    uint32_t maxBufPayloadSize = 0;
 
     VerifyOrExit(apBinding != NULL && aPathList != NULL,
                  err = WEAVE_ERROR_INVALID_ARGUMENT);
 
-    msgBuf = PacketBuffer::New();
-    VerifyOrExit(msgBuf != NULL, err = WEAVE_ERROR_NO_MEMORY);
-
-    maxBufPayloadSize  = apBinding->GetMaxWeavePayloadSize(msgBuf);
-
-    maxPayloadSize = maxBufPayloadSize < WDM_MAX_NOTIFICATION_SIZE ? maxBufPayloadSize : WDM_MAX_NOTIFICATION_SIZE;
+    err = apBinding->AllocateRightSizedBuffer(msgBuf, WDM_MAX_NOTIFICATION_SIZE, WDM_MIN_NOTIFICATION_SIZE, maxPayloadSize);
+    SuccessOrExit(err);
 
     // Build Notify Request for subscriptionless notification
 

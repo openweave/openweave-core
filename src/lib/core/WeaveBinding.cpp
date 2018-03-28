@@ -1353,6 +1353,67 @@ exit:
     return err;
 }
 
+/* Utility function to allocate an appropriately sized buffer.
+ *
+ * This function takes in a supplied desired size of the payload and a
+ * minimum size that the caller is willing to tolerate from the system.
+ *
+ * The system would accept these parameters and output a maximum
+ * payload size in the buffer it managed to allocate.
+ * It would try to honor the desired size based on system
+ * resources and constraints, but return an appropriate error if
+ * the minimum size cannot be met.
+ *
+ */
+WEAVE_ERROR Binding::AllocateRightSizedBuffer(PacketBuffer *& buf,
+                                              const uint32_t desiredSize,
+                                              const uint32_t minSize,
+                                              uint32_t & outMaxPayloadSize)
+{
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
+    uint32_t bufferAllocSize;
+    uint32_t maxWeavePayloadSize;
+    uint32_t weaveTrailerSize = GetWeaveTrailerSize();
+    uint32_t weaveHeaderSize = GetWeaveHeaderSize();
+
+    bufferAllocSize = nl::Weave::min(desiredSize,
+                                     static_cast<uint32_t>(WEAVE_SYSTEM_CONFIG_PACKETBUFFER_CAPACITY_MAX -
+                                      weaveHeaderSize -
+                                      weaveTrailerSize));
+
+    // Add the Weave Trailer size as NewWithAvailableSize() includes that in
+    // availableSize.
+    bufferAllocSize += weaveTrailerSize;
+
+    buf = PacketBuffer::NewWithAvailableSize(weaveHeaderSize, bufferAllocSize);
+    VerifyOrExit(buf != NULL, err = WEAVE_ERROR_NO_MEMORY);
+
+    maxWeavePayloadSize = GetMaxWeavePayloadSize(buf);
+
+    outMaxPayloadSize = nl::Weave::min(maxWeavePayloadSize, bufferAllocSize);
+
+    if (outMaxPayloadSize < minSize)
+    {
+        err = WEAVE_ERROR_BUFFER_TOO_SMALL;
+
+        PacketBuffer::Free(buf);
+        buf = NULL;
+    }
+
+exit:
+    return err;
+}
+
+uint32_t Binding::GetWeaveHeaderSize(void)
+{
+    return WEAVE_SYSTEM_CONFIG_HEADER_RESERVE_SIZE;
+}
+
+uint32_t Binding::GetWeaveTrailerSize(void)
+{
+    return WEAVE_TRAILER_RESERVE_SIZE;
+}
+
 /**
  * Construct a new binding configuration object.
  *

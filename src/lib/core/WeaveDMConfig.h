@@ -533,6 +533,17 @@
 #endif /* WDM_MAX_NOTIFICATION_SIZE */
 
 /**
+ * @def WDM_MIN_NOTIFICATION_SIZE
+ *
+ * @brief
+ *   Specify the minimum size (in bytes) of a WDM notification
+ *   payload.
+ */
+#ifndef WDM_MIN_NOTIFICATION_SIZE
+#define WDM_MIN_NOTIFICATION_SIZE 1024
+#endif /* WDM_MIN_NOTIFICATION_SIZE */
+
+/**
  * @def WDM_MAX_UPDATE_SIZE
  *
  * @brief
@@ -543,6 +554,17 @@
 #ifndef WDM_MAX_UPDATE_SIZE
 #define WDM_MAX_UPDATE_SIZE 2048
 #endif /* WDM_MAX_UPDATE_SIZE */
+
+/**
+ * @def WDM_MIN_UPDATE_SIZE
+ *
+ * @brief
+ *   Specify the minimum size (in bytes) of a WDM update
+ *   payload.
+ */
+#ifndef WDM_MIN_UPDATE_SIZE
+#define WDM_MIN_UPDATE_SIZE 1024
+#endif /* WDM_MIN_UPDATE_SIZE */
 
 /**
  *  @def TDM_DISABLE_STRICT_SCHEMA_COMPLIANCE

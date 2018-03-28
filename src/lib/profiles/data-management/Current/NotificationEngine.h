@@ -370,6 +370,7 @@ public:
 
 private:
     friend class SubscriptionHandler;
+    friend class UpdateClient;
     friend class TestTdm;
     friend class TestWdm;
 

@@ -357,17 +357,12 @@ int TestWdm::BuildAndProcessNotify()
     WEAVE_ERROR err = WEAVE_NO_ERROR;
     bool neWriteInProgress = false;
     uint32_t maxNotificationSize = 0;
-    uint32_t maxBufPayloadSize = 0;
     uint32_t maxPayloadSize = 0;
 
     maxNotificationSize = mSubHandler->GetMaxNotificationSize();
 
-    buf = PacketBuffer::New();
-    VerifyOrExit(buf != NULL, err = WEAVE_ERROR_NO_MEMORY);
-
-    maxBufPayloadSize   = mSubHandler->mBinding->GetMaxWeavePayloadSize(buf);
-
-    maxPayloadSize      = maxBufPayloadSize < maxNotificationSize ? maxBufPayloadSize : maxNotificationSize;
+    err = mSubHandler->mBinding->AllocateRightSizedBuffer(buf, maxNotificationSize, WDM_MIN_NOTIFICATION_SIZE, maxPayloadSize);
+    SuccessOrExit(err);
 
     err = notifyRequest.Init(buf, &writer, mSubHandler, maxPayloadSize);
     SuccessOrExit(err);
