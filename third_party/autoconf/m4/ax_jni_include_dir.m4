@@ -44,7 +44,7 @@
 #   and this notice are preserved. This file is offered as-is, without any
 #   warranty.
 
-#serial 10
+#serial 11
 
 AU_ALIAS([AC_JNI_INCLUDE_DIR], [AX_JNI_INCLUDE_DIR])
 AC_DEFUN([AX_JNI_INCLUDE_DIR],[
@@ -66,8 +66,13 @@ else
 fi
 
 case "$host_os" in
-        darwin*)        _JTOPDIR=`echo "$_JTOPDIR" | sed -e 's:/[[^/]]*$::'`
-                        _JINC="$_JTOPDIR/Headers";;
+        darwin*)        # Apple JDK is at /System location and has headers symlinked elsewhere
+                        case "$_JTOPDIR" in
+                        /System/Library/Frameworks/JavaVM.framework/*)
+				_JTOPDIR=`echo "$_JTOPDIR" | sed -e 's:/[[^/]]*$::'`
+				_JINC="$_JTOPDIR/Headers";;
+			*)      _JINC="$_JTOPDIR/include";;
+                        esac;;
         *)              _JINC="$_JTOPDIR/include";;
 esac
 _AS_ECHO_LOG([_JTOPDIR=$_JTOPDIR])
@@ -76,14 +81,10 @@ _AS_ECHO_LOG([_JINC=$_JINC])
 # On Mac OS X 10.6.4, jni.h is a symlink:
 # /System/Library/Frameworks/JavaVM.framework/Versions/Current/Headers/jni.h
 # -> ../../CurrentJDK/Headers/jni.h.
-#
-# Override AC_CHECK_FILE with our own AX_CHECK_FILE to fix
-# cross-compilation issues.
-
-AX_CHECK_FILE([$_JINC/jni.h],
+AC_CHECK_FILE([$_JINC/jni.h],
 	[JNI_INCLUDE_DIRS="$JNI_INCLUDE_DIRS $_JINC"],
 	[_JTOPDIR=`echo "$_JTOPDIR" | sed -e 's:/[[^/]]*$::'`
-	 AX_CHECK_FILE([$_JTOPDIR/include/jni.h],
+	 AC_CHECK_FILE([$_JTOPDIR/include/jni.h],
 		[JNI_INCLUDE_DIRS="$JNI_INCLUDE_DIRS $_JTOPDIR/include"],
                 AC_MSG_ERROR([cannot find JDK header files]))
 	])
@@ -92,6 +93,7 @@ AX_CHECK_FILE([$_JINC/jni.h],
 case "$host_os" in
 bsdi*)          _JNI_INC_SUBDIRS="bsdos";;
 freebsd*)       _JNI_INC_SUBDIRS="freebsd";;
+darwin*)        _JNI_INC_SUBDIRS="darwin";;
 linux*)         _JNI_INC_SUBDIRS="linux genunix";;
 osf*)           _JNI_INC_SUBDIRS="alpha";;
 solaris*)       _JNI_INC_SUBDIRS="solaris";;
