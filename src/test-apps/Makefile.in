@@ -193,6 +193,7 @@ target_triplet = @target@
 @WEAVE_BUILD_TESTS_TRUE@	TestStatusReportStr$(EXEEXT) \
 @WEAVE_BUILD_TESTS_TRUE@	TestThermostatStatus$(EXEEXT) \
 @WEAVE_BUILD_TESTS_TRUE@	TestPairingCodeUtils$(EXEEXT) \
+@WEAVE_BUILD_TESTS_TRUE@	TestResourceIdentifier$(EXEEXT) \
 @WEAVE_BUILD_TESTS_TRUE@	$(am__EXEEXT_1) TestTDM$(EXEEXT) \
 @WEAVE_BUILD_TESTS_TRUE@	$(am__EXEEXT_2) $(am__EXEEXT_3)
 @HAVE_CXX11_TRUE@@WEAVE_BUILD_TESTS_TRUE@am__append_7 = \
@@ -724,6 +725,7 @@ am__installdirs = "$(DESTDIR)$(libexecdir)"
 @WEAVE_BUILD_TESTS_TRUE@	TestStatusReportStr$(EXEEXT) \
 @WEAVE_BUILD_TESTS_TRUE@	TestThermostatStatus$(EXEEXT) \
 @WEAVE_BUILD_TESTS_TRUE@	TestPairingCodeUtils$(EXEEXT) \
+@WEAVE_BUILD_TESTS_TRUE@	TestResourceIdentifier$(EXEEXT) \
 @WEAVE_BUILD_TESTS_TRUE@	$(am__EXEEXT_5) $(am__EXEEXT_2)
 @WEAVE_BUILD_LEGACY_WDM_TRUE@@WEAVE_BUILD_TESTS_TRUE@am__EXEEXT_7 = TestDataManagement$(EXEEXT) \
 @WEAVE_BUILD_LEGACY_WDM_TRUE@@WEAVE_BUILD_TESTS_TRUE@	wdmtest$(EXEEXT)
@@ -1115,6 +1117,13 @@ am__TestRADaemon_SOURCES_DIST = TestRADaemon.cpp
 TestRADaemon_OBJECTS = $(am_TestRADaemon_OBJECTS)
 @WEAVE_BUILD_TESTS_TRUE@TestRADaemon_DEPENDENCIES =  \
 @WEAVE_BUILD_TESTS_TRUE@	libWeaveTestCommon.a \
+@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_6) \
+@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_7)
+am__TestResourceIdentifier_SOURCES_DIST = TestResourceIdentifier.cpp
+@WEAVE_BUILD_TESTS_TRUE@am_TestResourceIdentifier_OBJECTS =  \
+@WEAVE_BUILD_TESTS_TRUE@	TestResourceIdentifier.$(OBJEXT)
+TestResourceIdentifier_OBJECTS = $(am_TestResourceIdentifier_OBJECTS)
+@WEAVE_BUILD_TESTS_TRUE@TestResourceIdentifier_DEPENDENCIES =  \
 @WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_6) \
 @WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_7)
 am__TestRetainedPacketBuffer_SOURCES_DIST =  \
@@ -1758,7 +1767,8 @@ SOURCES = $(libMockBleApplicationDelegate_a_SOURCES) \
 	$(TestPersistedCounter_SOURCES) \
 	$(TestPersistedStorage_SOURCES) \
 	$(TestProfileStringSupport_SOURCES) $(TestProvHash_SOURCES) \
-	$(TestRADaemon_SOURCES) $(TestRetainedPacketBuffer_SOURCES) \
+	$(TestRADaemon_SOURCES) $(TestResourceIdentifier_SOURCES) \
+	$(TestRetainedPacketBuffer_SOURCES) \
 	$(TestSerialNumUtils_SOURCES) $(TestStatusReportStr_SOURCES) \
 	$(TestSystemObject_SOURCES) $(TestSystemTimer_SOURCES) \
 	$(TestTAKE_SOURCES) $(TestTDM_SOURCES) $(TestTLV_SOURCES) \
@@ -1820,6 +1830,7 @@ DIST_SOURCES = $(am__libMockBleApplicationDelegate_a_SOURCES_DIST) \
 	$(am__TestProfileStringSupport_SOURCES_DIST) \
 	$(am__TestProvHash_SOURCES_DIST) \
 	$(am__TestRADaemon_SOURCES_DIST) \
+	$(am__TestResourceIdentifier_SOURCES_DIST) \
 	$(am__TestRetainedPacketBuffer_SOURCES_DIST) \
 	$(am__TestSerialNumUtils_SOURCES_DIST) \
 	$(am__TestStatusReportStr_SOURCES_DIST) \
@@ -2877,7 +2888,8 @@ EXTRA_DIST = \
 @WEAVE_BUILD_TESTS_TRUE@	infratest TestErrorStr \
 @WEAVE_BUILD_TESTS_TRUE@	TestStatusReportStr \
 @WEAVE_BUILD_TESTS_TRUE@	TestThermostatStatus \
-@WEAVE_BUILD_TESTS_TRUE@	TestPairingCodeUtils $(NULL) \
+@WEAVE_BUILD_TESTS_TRUE@	TestPairingCodeUtils \
+@WEAVE_BUILD_TESTS_TRUE@	TestResourceIdentifier $(NULL) \
 @WEAVE_BUILD_TESTS_TRUE@	$(am__append_10) $(am__append_11)
 
 # Test applications that should be built but not installed that
@@ -3174,6 +3186,8 @@ EXTRA_DIST = \
 @WEAVE_BUILD_TESTS_TRUE@TestThermostatStatus_LDADD = $(COMMON_LDADD) $(TEST_PLATFORM_LDADD)
 @WEAVE_BUILD_TESTS_TRUE@TestPairingCodeUtils_SOURCES = TestPairingCodeUtils.cpp
 @WEAVE_BUILD_TESTS_TRUE@TestPairingCodeUtils_LDADD = $(COMMON_LDADD) $(TEST_PLATFORM_LDADD)
+@WEAVE_BUILD_TESTS_TRUE@TestResourceIdentifier_SOURCES = TestResourceIdentifier.cpp
+@WEAVE_BUILD_TESTS_TRUE@TestResourceIdentifier_LDADD = $(COMMON_LDADD) $(TEST_PLATFORM_LDADD)
 @WEAVE_BUILD_TESTS_TRUE@TestDNSResolution_SOURCES = TestDNSResolution.cpp
 @WEAVE_BUILD_TESTS_TRUE@TestDNSResolution_LDFLAGS = $(AM_CPPFLAGS)
 @WEAVE_BUILD_TESTS_TRUE@TestDNSResolution_LDADD = libWeaveTestCommon.a $(COMMON_LDADD) $(TEST_PLATFORM_LDADD)
@@ -3581,6 +3595,10 @@ TestRADaemon$(EXEEXT): $(TestRADaemon_OBJECTS) $(TestRADaemon_DEPENDENCIES) $(EX
 	@rm -f TestRADaemon$(EXEEXT)
 	$(AM_V_CXXLD)$(CXXLINK) $(TestRADaemon_OBJECTS) $(TestRADaemon_LDADD) $(LIBS)
 
+TestResourceIdentifier$(EXEEXT): $(TestResourceIdentifier_OBJECTS) $(TestResourceIdentifier_DEPENDENCIES) $(EXTRA_TestResourceIdentifier_DEPENDENCIES) 
+	@rm -f TestResourceIdentifier$(EXEEXT)
+	$(AM_V_CXXLD)$(CXXLINK) $(TestResourceIdentifier_OBJECTS) $(TestResourceIdentifier_LDADD) $(LIBS)
+
 TestRetainedPacketBuffer$(EXEEXT): $(TestRetainedPacketBuffer_OBJECTS) $(TestRetainedPacketBuffer_DEPENDENCIES) $(EXTRA_TestRetainedPacketBuffer_DEPENDENCIES) 
 	@rm -f TestRetainedPacketBuffer$(EXEEXT)
 	$(AM_V_CXXLD)$(CXXLINK) $(TestRetainedPacketBuffer_OBJECTS) $(TestRetainedPacketBuffer_LDADD) $(LIBS)
@@ -3916,6 +3934,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/TestProfileStringSupport.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/TestProvHash.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/TestRADaemon-TestRADaemon.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/TestResourceIdentifier.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/TestRetainedPacketBuffer.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/TestSerialNumUtils.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/TestStatusReportStr.Po@am__quote@
@@ -5840,6 +5859,13 @@ TestThermostatStatus.log: TestThermostatStatus$(EXEEXT)
 TestPairingCodeUtils.log: TestPairingCodeUtils$(EXEEXT)
 	@p='TestPairingCodeUtils$(EXEEXT)'; \
 	b='TestPairingCodeUtils'; \
+	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
+	--log-file $$b.log --trs-file $$b.trs \
+	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
+	"$$tst" $(AM_TESTS_FD_REDIRECT)
+TestResourceIdentifier.log: TestResourceIdentifier$(EXEEXT)
+	@p='TestResourceIdentifier$(EXEEXT)'; \
+	b='TestResourceIdentifier'; \
 	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
 	--log-file $$b.log --trs-file $$b.trs \
 	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \

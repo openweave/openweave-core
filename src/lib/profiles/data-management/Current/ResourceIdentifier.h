@@ -103,7 +103,7 @@ public:
      * @param [in] aResourceId   The ID of the resource to be named represented as an array of bytes
      * @param [in] aResourceIdLen The length of the ID in bytes
      */
-    ResourceIdentifier(uint16_t aResourceType, uint8_t * aResourceId, size_t aResourceIdLen) : ResourceType(aResourceType)
+    ResourceIdentifier(uint16_t aResourceType, const uint8_t * aResourceId, size_t aResourceIdLen) : ResourceType(aResourceType)
     {
         memset(ResourceIdBytes, 0, sizeof(ResourceIdBytes));
 
@@ -206,7 +206,7 @@ public:
      * @param [in] inBufferLen The length (in bytes) of the string to be parsed
      *
      */
-    WEAVE_ERROR FromString(char * inBuffer, size_t inBufferLen);
+    WEAVE_ERROR FromString(const char * inBuffer, size_t inBufferLen);
 
     /**
      * @brief
@@ -225,7 +225,7 @@ public:
      * @param [in] aSelfNodeId The 64-bit ID denoting what device ID should be mapped onto a SELF_NODE_ID
      *
      */
-    WEAVE_ERROR FromString(char * inBuffer, size_t inBufferLen, const uint64_t & aSelfNodeId);
+    WEAVE_ERROR FromString(const char * inBuffer, size_t inBufferLen, const uint64_t & aSelfNodeId);
 
     /**
      * @brief

@@ -149,9 +149,6 @@ const char * ResourceIdentifier::ResourceTypeAsString(uint16_t aResourceType)
     case Schema::Weave::Common::RESOURCE_TYPE_USER:
         retval = "USER";
         break;
-    case Schema::Weave::Common::RESOURCE_TYPE_GUEST:
-        retval = "GUEST";
-        break;
     case Schema::Weave::Common::RESOURCE_TYPE_ACCOUNT:
         retval = "ACCOUNT";
         break;
@@ -169,6 +166,9 @@ const char * ResourceIdentifier::ResourceTypeAsString(uint16_t aResourceType)
         break;
     case Schema::Weave::Common::RESOURCE_TYPE_STRUCTURE:
         retval = "STRUCTURE";
+        break;
+    case Schema::Weave::Common::RESOURCE_TYPE_GUEST:
+        retval = "GUEST";
         break;
     default:
         retval = NULL;
@@ -197,7 +197,7 @@ WEAVE_ERROR ResourceIdentifier::ToString(char * outBuffer, size_t outBufferLen)
     }
     else if (resourceTypeString != NULL)
     {
-        snprintf(outBuffer, outBufferLen, "%s_%" PRIX64, resourceTypeString, ResourceId);
+        snprintf(outBuffer, outBufferLen, "%s_%016" PRIX64, resourceTypeString, ResourceId);
     }
     else
     {
@@ -206,21 +206,21 @@ WEAVE_ERROR ResourceIdentifier::ToString(char * outBuffer, size_t outBufferLen)
     return WEAVE_NO_ERROR;
 }
 
-WEAVE_ERROR ResourceIdentifier::FromString(char * inBuffer, size_t bufferLen)
+WEAVE_ERROR ResourceIdentifier::FromString(const char * inBuffer, size_t bufferLen)
 {
     return FromString(inBuffer, bufferLen, kNodeIdNotSpecified);
 }
 
-WEAVE_ERROR ResourceIdentifier::FromString(char * inBuffer, size_t bufferLen, const uint64_t & aSelfNodeId)
+WEAVE_ERROR ResourceIdentifier::FromString(const char * inBuffer, size_t bufferLen, const uint64_t & aSelfNodeId)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
     uint16_t resourceType;
     const char * resourceName;
     char * endPtr;
     uint32_t r_lower, r_upper;
-    char tmp;
+    char uintbuffer[9];
 
-    for (resourceType = Schema::Weave::Common::RESOURCE_TYPE_DEVICE; resourceType <= Schema::Weave::Common::RESOURCE_TYPE_STRUCTURE;
+    for (resourceType = Schema::Weave::Common::RESOURCE_TYPE_DEVICE; resourceType <= Schema::Weave::Common::RESOURCE_TYPE_GUEST;
          resourceType++)
     {
         resourceName = ResourceTypeAsString(resourceType);
@@ -239,14 +239,15 @@ WEAVE_ERROR ResourceIdentifier::FromString(char * inBuffer, size_t bufferLen, co
         }
     }
 
-    VerifyOrExit(resourceType <= Schema::Weave::Common::RESOURCE_TYPE_STRUCTURE, err = WEAVE_ERROR_INVALID_ARGUMENT);
+    VerifyOrExit(resourceType <= Schema::Weave::Common::RESOURCE_TYPE_GUEST, err = WEAVE_ERROR_INVALID_ARGUMENT);
 
-    tmp         = inBuffer[8];
-    inBuffer[8] = 0;
-    r_upper     = strtoul(inBuffer, &endPtr, 16);
+    memcpy(uintbuffer, inBuffer, 8);
+    uintbuffer[8] = '\0';
+    r_upper     = strtoul(uintbuffer, &endPtr, 16);
     VerifyOrExit(strlen(endPtr) == 0, err = WEAVE_ERROR_INVALID_ARGUMENT);
 
-    inBuffer[8] = tmp;
+    memcpy(uintbuffer, inBuffer + 8, 8);
+    uintbuffer[8] = '\0';
     r_lower     = strtoul(inBuffer + 8, &endPtr, 16);
     VerifyOrExit(strlen(endPtr) == 0, err = WEAVE_ERROR_INVALID_ARGUMENT);
 

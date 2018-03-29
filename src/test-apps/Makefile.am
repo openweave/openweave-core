@@ -310,6 +310,7 @@ check_PROGRAMS                                 = \
     TestStatusReportStr                          \
     TestThermostatStatus                         \
     TestPairingCodeUtils                         \
+    TestResourceIdentifier                       \
     $(NULL)
 
 if HAVE_CXX11
@@ -401,6 +402,7 @@ local_test_programs                            = \
     TestStatusReportStr                          \
     TestThermostatStatus                         \
     TestPairingCodeUtils                         \
+    TestResourceIdentifier                       \
     $(NULL)
 
 if HAVE_CXX11
@@ -1360,6 +1362,9 @@ TestThermostatStatus_LDADD               = $(COMMON_LDADD) $(TEST_PLATFORM_LDADD
 
 TestPairingCodeUtils_SOURCES             = TestPairingCodeUtils.cpp
 TestPairingCodeUtils_LDADD               = $(COMMON_LDADD) $(TEST_PLATFORM_LDADD)
+
+TestResourceIdentifier_SOURCES           = TestResourceIdentifier.cpp
+TestResourceIdentifier_LDADD             = $(COMMON_LDADD) $(TEST_PLATFORM_LDADD)
 
 TestDNSResolution_SOURCES                = TestDNSResolution.cpp
 TestDNSResolution_LDFLAGS                = $(AM_CPPFLAGS)
