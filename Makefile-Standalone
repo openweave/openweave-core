@@ -61,7 +61,7 @@ ResultPath                      = output
 TopResultDir                    = $(ResultPath)
 AbsTopResultDir                 = $(CURDIR)/$(TopResultDir)
 
-TargetTuple                     = $(shell ${AbsTopSourceDir}/third_party/nlbuild-autotools/repo/autoconf/config.guess | sed -e 's/[[:digit:].]*$$//g')
+TargetTuple                     = $(shell ${AbsTopSourceDir}/third_party/nlbuild-autotools/repo/third_party/autoconf/config.guess | sed -e 's/[[:digit:].]*$$//g')
 
 ProjectConfigDir               ?= $(AbsTopSourceDir)/build/config/standalone
 
