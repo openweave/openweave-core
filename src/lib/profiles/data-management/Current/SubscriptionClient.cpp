@@ -2752,21 +2752,34 @@ WEAVE_ERROR SubscriptionClient::AddElementFunc(UpdateClient * apClient, void * a
 
     if (schemaEngine->IsLeaf(pTraitInstanceInfo->mCandidatePropertyPathHandle))
     {
-        err = updatableDataSink->ReadData(pTraitInstanceInfo->mTraitDataHandle, pTraitInstanceInfo->mCandidatePropertyPathHandle, nl::Weave::TLV::ContextTag(DataElement::kCsTag_Data), aOuterWriter, pTraitInstanceInfo->mNextDictionaryElementPathHandle);
+        err = updatableDataSink->ReadData(pTraitInstanceInfo->mTraitDataHandle,
+                                          pTraitInstanceInfo->mCandidatePropertyPathHandle,
+                                          nl::Weave::TLV::ContextTag(DataElement::kCsTag_Data),
+                                          aOuterWriter,
+                                          pTraitInstanceInfo->mNextDictionaryElementPathHandle);
         SuccessOrExit(err);
     }
     else
     {
-        err = aOuterWriter.StartContainer(nl::Weave::TLV::ContextTag(DataElement::kCsTag_Data), nl::Weave::TLV::kTLVType_Structure, dataContainerType);
+        err = aOuterWriter.StartContainer(nl::Weave::TLV::ContextTag(DataElement::kCsTag_Data),
+                                          nl::Weave::TLV::kTLVType_Structure, dataContainerType);
         SuccessOrExit(err);
 
         if (pTraitInstanceInfo->mCandidatePropertyPathHandle != kRootPropertyPathHandle)
         {
-            err = updatableDataSink->ReadData(pTraitInstanceInfo->mTraitDataHandle, pTraitInstanceInfo->mCandidatePropertyPathHandle, schemaEngine->GetTag(pTraitInstanceInfo->mCandidatePropertyPathHandle), aOuterWriter, pTraitInstanceInfo->mNextDictionaryElementPathHandle);
+            err = updatableDataSink->ReadData(pTraitInstanceInfo->mTraitDataHandle,
+                                              pTraitInstanceInfo->mCandidatePropertyPathHandle,
+                                              schemaEngine->GetTag(pTraitInstanceInfo->mCandidatePropertyPathHandle),
+                                              aOuterWriter,
+                                              pTraitInstanceInfo->mNextDictionaryElementPathHandle);
         }
         else
         {
-            err = updatableDataSink->ReadData(pTraitInstanceInfo->mTraitDataHandle, pTraitInstanceInfo->mCandidatePropertyPathHandle, nl::Weave::TLV::ContextTag(DataElement::kCsTag_Data), aOuterWriter, pTraitInstanceInfo->mNextDictionaryElementPathHandle);
+            err = updatableDataSink->ReadData(pTraitInstanceInfo->mTraitDataHandle,
+                                              pTraitInstanceInfo->mCandidatePropertyPathHandle,
+                                              nl::Weave::TLV::ContextTag(DataElement::kCsTag_Data),
+                                              aOuterWriter,
+                                              pTraitInstanceInfo->mNextDictionaryElementPathHandle);
         }
         SuccessOrExit(err);
 
@@ -2902,8 +2915,8 @@ WEAVE_ERROR SubscriptionClient::BuildSingleUpdateRequestDataList(bool & aIsParti
                     aIsPartialUpdate = true;
                     break;
                 }
-            } //date element loop for the trait
-        }
+            } //data element loop for the trait
+        } // if trait is dirty or mNextDictionaryElement...
 
         if ((!IsTraitPresentInPendingUpdateStore(traitInfo->mTraitDataHandle)) && (traitInfo->mNextDictionaryElementPathHandle == kNullPropertyPathHandle))
         {
@@ -2927,7 +2940,7 @@ WEAVE_ERROR SubscriptionClient::BuildSingleUpdateRequestDataList(bool & aIsParti
         {
             aUpdateWriteInReady = false;
         }
-    }
+    } // while (numTraitInstanceHandled < mNumUpdatableTraitInstances)
 
 exit:
     return err;

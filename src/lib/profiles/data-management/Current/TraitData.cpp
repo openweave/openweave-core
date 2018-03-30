@@ -74,6 +74,8 @@ UpdateDictionaryDirtyPathCut::UpdateDictionaryDirtyPathCut(TraitDataHandle aTrai
 
 WEAVE_ERROR UpdateDictionaryDirtyPathCut::CutPath (PropertyPathHandle aPathhandle, const TraitSchemaEngine * apEngine)
 {
+    // TODO: rename this struct, and pass apEngine to the constructor.
+    // Probably just replace the struct with a function; I don't see the point of it really.
 #if WEAVE_CONFIG_ENABLE_WDM_UPDATE
     mpSubClient->AddItemPendingUpdateStore(TraitPath(mTraitDataHandle, aPathhandle), apEngine);
     WeaveLogDetail(DataManagement, "Cut dictionary %u, %u", mTraitDataHandle, aPathhandle);
@@ -221,6 +223,8 @@ WEAVE_ERROR TraitSchemaEngine::RetrieveData(PropertyPathHandle aHandle, uint64_t
         {
             if (NULL == updateDirtyPathCut)
             {
+
+                // TODO: this looks like RetrieveUpdatableDictionaryData; must avoid the duplication
                 PropertyDictionaryKey dictionaryItemKey;
                 uintptr_t context = 0;
 
@@ -232,7 +236,7 @@ WEAVE_ERROR TraitSchemaEngine::RetrieveData(PropertyPathHandle aHandle, uint64_t
 
                     VerifyOrExit(itemHandle != kNullPropertyPathHandle, err = WEAVE_ERROR_WDM_SCHEMA_MISMATCH);
 
-                    err = RetrieveData(CreatePropertyPathHandle(itemHandle, dictionaryItemKey), tag, aWriter, aDelegate, updateDirtyPathCut);
+                    err = RetrieveData(CreatePropertyPathHandle(itemHandle, dictionaryItemKey), tag, aWriter, aDelegate);
                     SuccessOrExit(err);
                 }
 
@@ -241,6 +245,10 @@ WEAVE_ERROR TraitSchemaEngine::RetrieveData(PropertyPathHandle aHandle, uint64_t
             }
             else
             {
+                // Looks like we come down to a dictionary during a recursion started by TraitUpdatableDataSink::ReadData,
+                // because updateDirtyPathCut is not NULL. So now the path handle to the dictionary is put back
+                // on the pending list and the recursion skips it.
+                // Why?
                 updateDirtyPathCut->CutPath(aHandle, this);
             }
         }
@@ -253,50 +261,55 @@ WEAVE_ERROR TraitSchemaEngine::RetrieveData(PropertyPathHandle aHandle, uint64_t
             for (childProperty = GetFirstChild(aHandle); !IsNullPropertyPathHandle(childProperty);
                  childProperty = GetNextChild(aHandle, childProperty))
             {
-                const PropertyInfo * handleMap = GetMap(childProperty);
+                const PropertyInfo * childInfo = GetMap(childProperty);
 
-                err = RetrieveData(childProperty, ContextTag(handleMap->mContextTag), aWriter, aDelegate, updateDirtyPathCut);
+                err = RetrieveData(childProperty, ContextTag(childInfo->mContextTag), aWriter, aDelegate, updateDirtyPathCut);
                 SuccessOrExit(err);
             }
         }
 
         err = aWriter.EndContainer(type);
         SuccessOrExit(err);
-    }
+    } // if (!IsLeaf(aHandle))
 
 exit:
     return err;
 }
 
 #if WEAVE_CONFIG_ENABLE_WDM_UPDATE
-WEAVE_ERROR TraitSchemaEngine::RetrieveUpdatableDictionaryData(PropertyPathHandle aHandle, uint64_t aTagToWrite, TLVWriter & aWriter,
-                                                               IGetDataDelegate * aDelegate, PropertyPathHandle & aPivotPropertyPathHandle) const
+WEAVE_ERROR TraitSchemaEngine::RetrieveUpdatableDictionaryData(PropertyPathHandle aHandle,
+                                                               uint64_t aTagToWrite,
+                                                               TLVWriter & aWriter,
+                                                               IGetDataDelegate * aDelegate,
+                                                               PropertyPathHandle & aPropertyPathHandleOfDictItemToStartFrom) const
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
     PropertyDictionaryKey dictionaryItemKey;
     uintptr_t context = 0;
+    PropertySchemaHandle dictionaryItemSchemaHandle = GetPropertySchemaHandle(GetFirstChild(aHandle));
 
-    VerifyOrExit(!IsLeaf(aHandle) && (IsDictionary(aHandle)), err=WEAVE_NO_ERROR);
+    VerifyOrExit(IsDictionary(aHandle), err = WEAVE_ERROR_WDM_SCHEMA_MISMATCH);
 
 #if TDM_ENABLE_PUBLISHER_DICTIONARY_SUPPORT
     // if it's a dictionary, we need to iterate through the items in the container by asking our delegate.
     while ((err = aDelegate->GetNextDictionaryItemKey(aHandle, context, dictionaryItemKey)) == WEAVE_NO_ERROR)
     {
         uint64_t tag                    = ProfileTag(kWeaveProfile_DictionaryKey, dictionaryItemKey);
-        PropertySchemaHandle itemHandle = GetFirstChild(aHandle);
 
-        VerifyOrExit(itemHandle != kNullPropertyPathHandle, err = WEAVE_ERROR_WDM_SCHEMA_MISMATCH);
+        PropertyPathHandle dictionaryItemPathHandle = CreatePropertyPathHandle(dictionaryItemSchemaHandle, dictionaryItemKey);
 
-        PropertyPathHandle candidate = CreatePropertyPathHandle(itemHandle, dictionaryItemKey);
-        if (!(aPivotPropertyPathHandle != kNullPropertyPathHandle && aPivotPropertyPathHandle != candidate))
+        if (IsNullPropertyPathHandle(aPropertyPathHandleOfDictItemToStartFrom) ||
+                aPropertyPathHandleOfDictItemToStartFrom == dictionaryItemPathHandle)
         {
             TLVWriter backupWriter = aWriter;
-            aPivotPropertyPathHandle = kNullPropertyPathHandle;
-            err = RetrieveData(candidate, tag, aWriter, aDelegate);
+
+            aPropertyPathHandleOfDictItemToStartFrom = kNullPropertyPathHandle;
+
+            err = RetrieveData(dictionaryItemPathHandle, tag, aWriter, aDelegate);
             if ((err == WEAVE_ERROR_BUFFER_TOO_SMALL) || (err == WEAVE_ERROR_NO_MEMORY))
             {
                 aWriter = backupWriter;
-                aPivotPropertyPathHandle = candidate;
+                aPropertyPathHandleOfDictItemToStartFrom = dictionaryItemPathHandle;
                 err = WEAVE_NO_ERROR;
                 break;
             }
@@ -1225,7 +1238,7 @@ WEAVE_ERROR TraitUpdatableDataSink::SetUpdateRequiredVersion(uint64_t aUpdateReq
     return WEAVE_NO_ERROR;
 }
 
-WEAVE_ERROR TraitUpdatableDataSink::ReadData(TraitDataHandle aTraitDataHandle, PropertyPathHandle aHandle, uint64_t aTagToWrite, TLVWriter & aWriter, PropertyPathHandle & aPivotPropertyPathHandle)
+WEAVE_ERROR TraitUpdatableDataSink::ReadData(TraitDataHandle aTraitDataHandle, PropertyPathHandle aHandle, uint64_t aTagToWrite, TLVWriter & aWriter, PropertyPathHandle & aPropertyPathHandleOfDictItemToStartFrom)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
 
@@ -1234,13 +1247,14 @@ WEAVE_ERROR TraitUpdatableDataSink::ReadData(TraitDataHandle aTraitDataHandle, P
         WeaveLogDetail(DataManagement, "process dictionary in update");
         err = mSchemaEngine->RetrieveUpdatableDictionaryData(aHandle, aTagToWrite, aWriter,
                                                              static_cast<TraitSchemaEngine::IGetDataDelegate*>(this),
-                                                             aPivotPropertyPathHandle);
+                                                             aPropertyPathHandleOfDictItemToStartFrom);
     }
     else
     {
         UpdateDictionaryDirtyPathCut updateDirtyPathCut(aTraitDataHandle, GetSubscriptionClient());
         err = mSchemaEngine->RetrieveData(aHandle, aTagToWrite, aWriter,
-                                                   static_cast<TraitSchemaEngine::IGetDataDelegate *>(this), &updateDirtyPathCut);
+                                          static_cast<TraitSchemaEngine::IGetDataDelegate *>(this),
+                                          &updateDirtyPathCut);
     }
     SuccessOrExit(err);
 
