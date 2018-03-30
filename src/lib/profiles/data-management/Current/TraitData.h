@@ -361,7 +361,7 @@ public:
                              IGetDataDelegate * aDelegate, IDirtyPathCut * apDirtyPathCut=NULL) const;
 
     WEAVE_ERROR RetrieveUpdatableDictionaryData(PropertyPathHandle aHandle, uint64_t aTagToWrite, nl::Weave::TLV::TLVWriter & aWriter,
-                                                IGetDataDelegate * aDelegate, PropertyPathHandle & aPivotPropertyPathHandle) const;
+                                                IGetDataDelegate * aDelegate, PropertyPathHandle & aPropertyPathHandleOfDictItemToStartFrom) const;
     /**********
      *
      * Schema Query Functions
@@ -748,7 +748,7 @@ class TraitUpdatableDataSink : public TraitDataSink, protected TraitSchemaEngine
 {
 public:
     TraitUpdatableDataSink(const TraitSchemaEngine * aEngine):TraitDataSink(aEngine) {  };
-    WEAVE_ERROR ReadData(TraitDataHandle aTraitDataHandle, PropertyPathHandle aHandle, uint64_t aTagToWrite, TLV::TLVWriter & aWriter, PropertyPathHandle & aPivotPropertyPathHandle);
+    WEAVE_ERROR ReadData(TraitDataHandle aTraitDataHandle, PropertyPathHandle aHandle, uint64_t aTagToWrite, TLV::TLVWriter & aWriter, PropertyPathHandle & aPropertyPathHandleOfDictItemToStartFrom);
 
     virtual WEAVE_ERROR GetData(PropertyPathHandle aHandle, uint64_t aTagToWrite, nl::Weave::TLV::TLVWriter & aWriter,
                                 bool & aIsNull, bool & aIsPresent) __OVERRIDE;
