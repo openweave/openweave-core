@@ -437,9 +437,8 @@ private:
     bool MergeDupInPendingUpdateStore(const TraitSchemaEngine * apSchemaEngine, size_t & candidateIndex);
 
     bool IsInclusiveDispatchedUpdateStore(TraitDataHandle aTraitDataHandle, PropertyPathHandle aPropertyPathHandle, const TraitSchemaEngine * const apSchemaEngine);
-    bool IsInclusivePendingUpdateStore(TraitDataHandle aTraitDataHandle, PropertyPathHandle aPropertyPathHandle, const TraitSchemaEngine * const apSchemaEngine);
+    bool IsPropertyPending(TraitDataHandle aTraitDataHandle, PropertyPathHandle aPropertyPathHandle, const TraitSchemaEngine * const apSchemaEngine);
     bool IsPresentDispatchedUpdateStore(TraitDataHandle aTraitDataHandle, PropertyPathHandle aPropertyPathHandle);
-    bool IsPresentPendingUpdateStore(TraitDataHandle aTraitDataHandle, PropertyPathHandle aPropertyPathHandle);
 
     WEAVE_ERROR ClearPendingUpdateStore(void);
     WEAVE_ERROR ClearDispatchedUpdateStore(void);

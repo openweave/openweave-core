@@ -60,7 +60,7 @@ bool UpdateDirtyPathFilter::FilterPath (PropertyPathHandle pathhandle, const Tra
         filterConfirmDispatchedUpdate = mpSubClient->IsInclusiveDispatchedUpdateStore(mTraitDataHandle, pathhandle, aEngine);
 
     if (mFilterPendingUpdate && (NULL != mpSubClient))
-        filterConfirmPendingUpdate = mpSubClient->IsInclusivePendingUpdateStore(mTraitDataHandle, pathhandle, aEngine);
+        filterConfirmPendingUpdate = mpSubClient->IsPropertyPending(mTraitDataHandle, pathhandle, aEngine);
 #endif // WEAVE_CONFIG_ENABLE_WDM_UPDATE
 
     return (filterConfirmPendingUpdate || filterConfirmDispatchedUpdate);
@@ -1238,7 +1238,11 @@ WEAVE_ERROR TraitUpdatableDataSink::SetUpdateRequiredVersion(uint64_t aUpdateReq
     return WEAVE_NO_ERROR;
 }
 
-WEAVE_ERROR TraitUpdatableDataSink::ReadData(TraitDataHandle aTraitDataHandle, PropertyPathHandle aHandle, uint64_t aTagToWrite, TLVWriter & aWriter, PropertyPathHandle & aPropertyPathHandleOfDictItemToStartFrom)
+WEAVE_ERROR TraitUpdatableDataSink::ReadData(TraitDataHandle aTraitDataHandle,
+                                             PropertyPathHandle aHandle,
+                                             uint64_t aTagToWrite,
+                                             TLVWriter & aWriter,
+                                             PropertyPathHandle & aPropertyPathHandleOfDictItemToStartFrom)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
 

@@ -2171,7 +2171,7 @@ bool SubscriptionClient::IsInclusiveDispatchedUpdateStore(TraitDataHandle aTrait
     return mDispatchedUpdateStore.IsInclusive(TraitPath(aTraitDataHandle, aPropertyPathHandle), apSchemaEngine);
 }
 
-bool SubscriptionClient::IsInclusivePendingUpdateStore(TraitDataHandle aTraitDataHandle, PropertyPathHandle aPropertyPathHandle, const TraitSchemaEngine * const apSchemaEngine)
+bool SubscriptionClient::IsPropertyPending(TraitDataHandle aTraitDataHandle, PropertyPathHandle aPropertyPathHandle, const TraitSchemaEngine * const apSchemaEngine)
 {
     return mPendingUpdateStore.IsInclusive(TraitPath(aTraitDataHandle, aPropertyPathHandle), apSchemaEngine);
 }
@@ -2179,11 +2179,6 @@ bool SubscriptionClient::IsInclusivePendingUpdateStore(TraitDataHandle aTraitDat
 bool SubscriptionClient::IsPresentDispatchedUpdateStore(TraitDataHandle aTraitDataHandle, PropertyPathHandle aPropertyPathHandle)
 {
     return mDispatchedUpdateStore.IsPresent(TraitPath(aTraitDataHandle, aPropertyPathHandle));
-}
-
-bool SubscriptionClient::IsPresentPendingUpdateStore(TraitDataHandle aTraitDataHandle, PropertyPathHandle aPropertyPathHandle)
-{
-    return mPendingUpdateStore.IsPresent(TraitPath(aTraitDataHandle, aPropertyPathHandle));
 }
 
 bool SubscriptionClient::IsTraitPresentInPendingUpdateStore(TraitDataHandle aTraitDataHandle)
@@ -2803,9 +2798,9 @@ WEAVE_ERROR SubscriptionClient::BuildSingleUpdateRequestDataList(bool & aIsParti
 
     size_t   numTraitInstanceHandled            = 0;
     uint32_t numDirtyPendingHandles             = mPendingUpdateStore.GetNumItems();
-    uint32_t numPendingHandles                  = mPendingUpdateStore.GetPathStoreSize();
+    uint32_t pendingPathStoreSize               = mPendingUpdateStore.GetPathStoreSize();
 
-    WeaveLogDetail(DataManagement, "CurUpdatedItems in Pending = %u/%u", numDirtyPendingHandles, numPendingHandles);
+    WeaveLogDetail(DataManagement, "CurUpdatedItems in Pending = %u/%u", numDirtyPendingHandles, pendingPathStoreSize);
 
     while (numTraitInstanceHandled < mNumUpdatableTraitInstances)
     {
@@ -2830,21 +2825,23 @@ WEAVE_ERROR SubscriptionClient::BuildSingleUpdateRequestDataList(bool & aIsParti
 
             if (traitInfo->mNextDictionaryElementPathHandle != kNullPropertyPathHandle)
             {
-                PropertyPathHandle pivotParentPathHandle = traitInfo->mNextDictionaryElementPathHandle;
+                PropertyPathHandle nextDictionaryElementToEncode = traitInfo->mNextDictionaryElementPathHandle;
 
-                if (IsInclusivePendingUpdateStore(traitInfo->mTraitDataHandle, pivotParentPathHandle, schemaEngine))
+                if (IsPropertyPending(traitInfo->mTraitDataHandle, nextDictionaryElementToEncode, schemaEngine))
                 {
                     traitInfo->mNextDictionaryElementPathHandle = kNullPropertyPathHandle;
                 }
                 else
                 {
-                    traitInfo->mCandidatePropertyPathHandle = pivotParentPathHandle;
+                    traitInfo->mCandidatePropertyPathHandle = nextDictionaryElementToEncode;
                 }
             }
 
-            for (size_t i=0; i < numPendingHandles; i++)
+            for (size_t i=0; i < pendingPathStoreSize; i++)
             {
-                if ((mPendingUpdateStore.mValidFlags[i] && (mPendingUpdateStore.mPathStore[i].mTraitDataHandle == traitInfo->mTraitDataHandle)) || (traitInfo->mNextDictionaryElementPathHandle != kNullPropertyPathHandle))
+                if ((mPendingUpdateStore.mValidFlags[i] &&
+                            (mPendingUpdateStore.mPathStore[i].mTraitDataHandle == traitInfo->mTraitDataHandle))
+                        || (traitInfo->mNextDictionaryElementPathHandle != kNullPropertyPathHandle))
                 {
                     TraitPath dirtyPath;
                     uint32_t tagIndex = 0;
@@ -2852,6 +2849,9 @@ WEAVE_ERROR SubscriptionClient::BuildSingleUpdateRequestDataList(bool & aIsParti
 
                     if (traitInfo->mNextDictionaryElementPathHandle != kNullPropertyPathHandle)
                     {
+                        // GIUSEPPE: processing this case (continuing a dictionary) in the for loop over
+                        // the pending path store seems wrong.
+                        // There is no coverage for this case yet.
                         WeaveLogDetail(DataManagement, "process partial dictionary");
                         dirtyPath.mTraitDataHandle = traitInfo->mTraitDataHandle;
                         dirtyPath.mPropertyPathHandle = traitInfo->mCandidatePropertyPathHandle;
@@ -2871,7 +2871,12 @@ WEAVE_ERROR SubscriptionClient::BuildSingleUpdateRequestDataList(bool & aIsParti
                     addElementCallState.mpSubClient = this;
                     addElementCallState.mpTraitInstanceInfo = traitInfo;
 
-                    err = mUpdateClient.AddElement(schemaEngine->GetProfileId(), instanceId, resourceId, updatableDataSink->GetUpdateRequiredVersion(), NULL, tags, tagIndex, AddElementFunc, &addElementCallState);
+                    err = mUpdateClient.AddElement(schemaEngine->GetProfileId(),
+                                                   instanceId,
+                                                   resourceId,
+                                                   updatableDataSink->GetUpdateRequiredVersion(),
+                                                   NULL, tags, tagIndex,
+                                                   AddElementFunc, &addElementCallState);
                     if (err == WEAVE_NO_ERROR)
                     {
                         mDispatchedUpdateStore.AddItem(dirtyPath);
@@ -2879,6 +2884,8 @@ WEAVE_ERROR SubscriptionClient::BuildSingleUpdateRequestDataList(bool & aIsParti
                     }
                     else
                     {
+                        // GIUSEPPE: there is no coverage for this yet
+
                         aUpdateWriteInReady = false;
 
                         if ((err == WEAVE_ERROR_BUFFER_TOO_SMALL) || (err == WEAVE_ERROR_NO_MEMORY))
@@ -2908,14 +2915,14 @@ WEAVE_ERROR SubscriptionClient::BuildSingleUpdateRequestDataList(bool & aIsParti
                         }
                     }
                     SuccessOrExit(err);
-                }
+                } // if the current pending store entry matches the current trait, or there is a dictionary in process
 
                 if (traitInfo->mNextDictionaryElementPathHandle != kNullPropertyPathHandle)
                 {
                     aIsPartialUpdate = true;
                     break;
                 }
-            } //data element loop for the trait
+            } // for loop over the pending store
         } // if trait is dirty or mNextDictionaryElement...
 
         if ((!IsTraitPresentInPendingUpdateStore(traitInfo->mTraitDataHandle)) && (traitInfo->mNextDictionaryElementPathHandle == kNullPropertyPathHandle))
