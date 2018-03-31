@@ -15,12 +15,19 @@ public:
 
     WEAVE_ERROR Init();
 
+    uint8_t GetCurrentOp() const;
+
     virtual bool IsPairedToAccount() const;
 
     void OnPlatformEvent(const struct ::WeavePlatform::Internal::WeavePlatformEvent * event);
 };
 
 extern NetworkProvisioningServer NetworkProvisioningSvr;
+
+inline uint8_t NetworkProvisioningServer::GetCurrentOp() const
+{
+    return mCurOpType;
+}
 
 } // namespace Internal
 } // namespace WeavePlatform

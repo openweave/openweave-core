@@ -90,7 +90,8 @@ WEAVE_ERROR NetworkInfo::Encode(nl::Weave::TLV::TLVWriter & writer) const
     SuccessOrExit(err);
 
 exit:
-    return err;}
+    return err;
+}
 
 WEAVE_ERROR NetworkInfo::Decode(nl::Weave::TLV::TLVReader & reader)
 {

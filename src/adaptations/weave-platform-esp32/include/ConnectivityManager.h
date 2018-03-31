@@ -81,6 +81,8 @@ private:
         virtual WEAVE_ERROR HandleTestConnectivity(uint32_t networkId);
         virtual WEAVE_ERROR HandleSetRendezvousMode(uint16_t rendezvousMode);
 
+        void HandleScanDone();
+
     private:
         WEAVE_ERROR ValidateWiFiStationProvision(const ::WeavePlatform::Internal::NetworkInfo & netInfo,
                         uint32_t & statusProfileId, uint16_t & statusCode);
@@ -110,6 +112,7 @@ private:
     WiFiAPState mWiFiAPState;
     uint32_t mWiFiStationReconnectIntervalMS;
     uint32_t mWiFiAPTimeoutMS;
+    bool mScanInProgress;
 
     void DriveStationState();
     void DriveAPState();

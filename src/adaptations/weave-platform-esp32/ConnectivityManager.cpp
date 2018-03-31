@@ -9,6 +9,7 @@
 
 using namespace ::nl;
 using namespace ::nl::Weave;
+using namespace ::nl::Weave::TLV;
 using namespace ::nl::Weave::Profiles::Common;
 using namespace ::nl::Weave::Profiles::NetworkProvisioning;
 using namespace ::WeavePlatform::Internal;
@@ -27,6 +28,8 @@ enum
 
 extern const char *ESPWiFiModeToStr(wifi_mode_t wifiMode);
 extern WEAVE_ERROR ChangeESPWiFiMode(esp_interface_t intf, bool enabled);
+extern WiFiSecurityType ESPWiFiAuthModeToWeaveWiFiSecurityType(wifi_auth_mode_t authMode);
+extern int OrderESPScanResultsByRSSI(const void * _res1, const void * _res2);
 
 } // namespace Internal
 
@@ -160,6 +163,7 @@ WEAVE_ERROR ConnectivityManager::Init()
     mWiFiAPState = kWiFiAPState_Stopped;
     mWiFiStationReconnectIntervalMS = 5000; // TODO: make configurable
     mWiFiAPTimeoutMS = 30000; // TODO: make configurable
+    mScanInProgress = false;
 
     // If there is no persistent station provision...
     if (!IsWiFiStationProvisioned())
@@ -300,6 +304,10 @@ void ConnectivityManager::OnPlatformEvent(const struct WeavePlatformEvent * even
         case SYSTEM_EVENT_AP_STACONNECTED:
             ESP_LOGI(TAG, "SYSTEM_EVENT_AP_STACONNECTED");
             MaintainOnDemandWiFiAP();
+            break;
+        case SYSTEM_EVENT_SCAN_DONE:
+            ESP_LOGI(TAG, "SYSTEM_EVENT_SCAN_DONE");
+            mNetProvDelegate.HandleScanDone();
             break;
         default:
             break;
@@ -546,7 +554,39 @@ void ConnectivityManager::DriveAPState(nl::Weave::System::Layer * aLayer, void *
 
 WEAVE_ERROR ConnectivityManager::NetworkProvisioningDelegate::HandleScanNetworks(uint8_t networkType)
 {
-    return WEAVE_ERROR_NOT_IMPLEMENTED;
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
+    wifi_scan_config_t scanConfig;
+
+    // Verify the expected network type.
+    if (networkType != kNetworkType_WiFi)
+    {
+        err = NetworkProvisioningSvr.SendStatusReport(kWeaveProfile_NetworkProvisioning, kStatusCode_UnsupportedNetworkType);
+        ExitNow();
+    }
+
+    // TODO: block scanning if the station is in the process of connecting, to avoid interfering
+    // with the connect scan.  It may be important to *delay* scanning, rather than failing with
+    // Busy, in the case where the device is constantly scanning for an AP which has gone away
+    // while the user is trying to scan in preparation for reconfiguring the device to talk to
+    // a different AP.
+
+    // TODO: arrange to delay station connect attempts while the system is scanning.
+
+    // Arrange to perform an active scan using the default dwell times, that returns hidden networks.
+    memset(&scanConfig, 0, sizeof(scanConfig));
+    scanConfig.show_hidden = 1;
+    scanConfig.scan_type = WIFI_SCAN_TYPE_ACTIVE;
+
+    // Initiate an async scan.
+    err = esp_wifi_scan_start(&scanConfig, false);
+    SuccessOrExit(err);
+
+    // TODO: arm timer in case we never get the event.
+
+    ConnectivityMgr.mScanInProgress = true;
+
+exit:
+    return err;
 }
 
 WEAVE_ERROR ConnectivityManager::NetworkProvisioningDelegate::HandleAddNetwork(PacketBuffer * networkInfoTLV)
@@ -741,6 +781,8 @@ WEAVE_ERROR ConnectivityManager::NetworkProvisioningDelegate::HandleGetNetworks(
         netInfo.WiFiKeyLen = min(strlen((char *)stationConfig.sta.password), sizeof(netInfo.WiFiKey));
         memcpy(netInfo.WiFiKey, stationConfig.sta.password, netInfo.WiFiKeyLen);
 
+        // TODO: include password is requested.
+
         err = NetworkInfo::EncodeArray(writer, &netInfo, 1);
         SuccessOrExit(err);
     }
@@ -869,6 +911,107 @@ WEAVE_ERROR ConnectivityManager::NetworkProvisioningDelegate::HandleSetRendezvou
 exit:
     return err;
 }
+
+void ConnectivityManager::NetworkProvisioningDelegate::HandleScanDone()
+{
+    WEAVE_ERROR err;
+    enum { kMaxScanResults = 32 }; // TODO: make this configurable
+    wifi_ap_record_t * scanResults = NULL;
+    uint16_t scanResultCount = kMaxScanResults;
+    uint16_t encodedResultCount;
+    PacketBuffer * respBuf = NULL;
+
+    // If we receive a SCAN DONE event for a scan that we didn't initiate, ignore it.
+    VerifyOrExit(ConnectivityMgr.mScanInProgress, err = WEAVE_ERROR_INCORRECT_STATE);
+
+    ConnectivityMgr.mScanInProgress = false;
+
+    // Determine the number of scan results found.
+    err = esp_wifi_scan_get_ap_num(&scanResultCount);
+    SuccessOrExit(err);
+
+    // Only return up to kMaxScanResults.
+    scanResultCount = min(scanResultCount, (uint16_t)kMaxScanResults);
+
+    // Allocate a buffer to hold the scan results array.
+    scanResults = (wifi_ap_record_t *)malloc(scanResultCount * sizeof(wifi_ap_record_t));
+    VerifyOrExit(scanResults != NULL, err = WEAVE_ERROR_NO_MEMORY);
+
+    // Collect the scan results from the ESP WiFi driver.  Note that this also *frees*
+    // the internal copy of the results.
+    err = esp_wifi_scan_get_ap_records(&scanResultCount, scanResults);
+    SuccessOrExit(err);
+
+    // If the ScanNetworks request is still outstanding...
+    if (NetworkProvisioningSvr.GetCurrentOp() == kMsgType_ScanNetworks)
+    {
+        nl::Weave::TLV::TLVWriter writer;
+        TLVType outerContainerType;
+
+        // Sort results by rssi.
+        qsort(scanResults, scanResultCount, sizeof(*scanResults), OrderESPScanResultsByRSSI);
+
+        // Allocate a packet buffer to hold the encoded scan results.
+        respBuf = PacketBuffer::New(WEAVE_SYSTEM_CONFIG_HEADER_RESERVE_SIZE + 32);
+        if (respBuf == NULL)
+            printf("PacketBuffer::New() failed\n");
+        VerifyOrExit(respBuf != NULL, err = WEAVE_ERROR_NO_MEMORY);
+
+        // Encode the list of scan results into the response buffer.  If the encoded size of all
+        // the results exceeds the size of the buffer, encode only what will fit.
+        writer.Init(respBuf, respBuf->AvailableDataLength() - 32);
+        err = writer.StartContainer(AnonymousTag, kTLVType_Array, outerContainerType);
+        printf("HandleScanDone() %d error = %d\n", __LINE__, err);
+        SuccessOrExit(err);
+        for (encodedResultCount = 0; encodedResultCount < scanResultCount; encodedResultCount++)
+        {
+            NetworkInfo netInfo;
+            const wifi_ap_record_t & scanResult = scanResults[encodedResultCount];
+
+            netInfo.Reset();
+            memcpy(netInfo.WiFiSSID, scanResult.ssid, min(strlen((char *)scanResult.ssid) + 1, (size_t)NetworkInfo::kMaxWiFiSSIDLength));
+            netInfo.WiFiSSID[NetworkInfo::kMaxWiFiSSIDLength] = 0;
+            netInfo.WiFiMode = kWiFiMode_Managed;
+            netInfo.WiFiRole = kWiFiRole_Station;
+            netInfo.WiFiSecurityType = ESPWiFiAuthModeToWeaveWiFiSecurityType(scanResult.authmode);
+            netInfo.WirelessSignalStrength = scanResult.rssi;
+
+            {
+                nl::Weave::TLV::TLVWriter savePoint = writer;
+                err = netInfo.Encode(writer);
+                if (err == WEAVE_ERROR_BUFFER_TOO_SMALL)
+                {
+                    writer = savePoint;
+                    break;
+                }
+            }
+            printf("HandleScanDone() %d error = %d\n", __LINE__, err);
+            SuccessOrExit(err);
+        }
+        err = writer.EndContainer(outerContainerType);
+        printf("HandleScanDone() %d error = %d\n", __LINE__, err);
+        SuccessOrExit(err);
+        err = writer.Finalize();
+        printf("HandleScanDone() %d error = %d\n", __LINE__, err);
+        SuccessOrExit(err);
+
+        // Send the scan results to the requestor.  Note that this method takes ownership of the
+        // buffer, success or fail.
+        err = NetworkProvisioningSvr.SendNetworkScanComplete(encodedResultCount, respBuf);
+        printf("HandleScanDone() %d error = %d\n", __LINE__, err);
+        respBuf = NULL;
+        SuccessOrExit(err);
+    }
+
+exit:
+    PacketBuffer::Free(respBuf);
+    if (err != WEAVE_NO_ERROR && NetworkProvisioningSvr.GetCurrentOp() == kMsgType_ScanNetworks)
+    {
+        printf("HandleScanDone() %d error = %d\n", __LINE__, err);
+        NetworkProvisioningSvr.SendStatusReport(kWeaveProfile_Common, kStatus_InternalError, err);
+    }
+}
+
 
 // ==================== ConnectivityManager::NetworkProvisioningDelegate Private Methods ====================
 
@@ -1089,6 +1232,43 @@ WEAVE_ERROR ChangeESPWiFiMode(esp_interface_t intf, bool enabled)
 
 exit:
     return err;
+}
+
+WiFiSecurityType ESPWiFiAuthModeToWeaveWiFiSecurityType(wifi_auth_mode_t authMode)
+{
+    switch (authMode)
+    {
+    case WIFI_AUTH_OPEN:
+        return kWiFiSecurityType_None;
+    case WIFI_AUTH_WEP:
+        return kWiFiSecurityType_WEP;
+    case WIFI_AUTH_WPA_PSK:
+        return kWiFiSecurityType_WPAPersonal;
+    case WIFI_AUTH_WPA2_PSK:
+        return kWiFiSecurityType_WPA2Personal;
+    case WIFI_AUTH_WPA_WPA2_PSK:
+        return kWiFiSecurityType_WPA2MixedPersonal;
+    case WIFI_AUTH_WPA2_ENTERPRISE:
+        return kWiFiSecurityType_WPA2Enterprise;
+    default:
+        return kWiFiSecurityType_NotSpecified;
+    }
+}
+
+int OrderESPScanResultsByRSSI(const void * _res1, const void * _res2)
+{
+    const wifi_ap_record_t * res1 = (const wifi_ap_record_t *) _res1;
+    const wifi_ap_record_t * res2 = (const wifi_ap_record_t *) _res2;
+
+    if (res1->rssi > res2->rssi)
+    {
+        return -1;
+    }
+    if (res1->rssi < res2->rssi)
+    {
+        return 1;
+    }
+    return 0;
 }
 
 } // unnamed namespace
