@@ -2,6 +2,7 @@
 #include <PlatformManager.h>
 #include <internal/DeviceControlServer.h>
 #include <internal/DeviceDescriptionServer.h>
+#include <internal/NetworkProvisioningServer.h>
 #include <internal/FabricProvisioningServer.h>
 #include <internal/ServiceProvisioningServer.h>
 #include <internal/EchoServer.h>
@@ -181,6 +182,15 @@ WEAVE_ERROR PlatformManager::InitWeaveStack()
     }
     SuccessOrExit(err);
 
+    // Initialize the Network Provisioning server.
+    new (&NetworkProvisioningSvr) NetworkProvisioningServer();
+    err = NetworkProvisioningSvr.Init();
+    if (err != WEAVE_NO_ERROR)
+    {
+        ESP_LOGE(TAG, "Weave Network Provisionining server initialization failed: %s", ErrorStr(err));
+    }
+    SuccessOrExit(err);
+
     // Initialize the Fabric Provisioning server.
     new (&FabricProvisioningSvr) FabricProvisioningServer();
     err = FabricProvisioningSvr.Init();
@@ -277,18 +287,11 @@ void PlatformManager::RunEventLoop()
 
 esp_err_t PlatformManager::HandleESPSystemEvent(void * ctx, system_event_t * espEvent)
 {
-    if (gWeaveEventQueue != NULL)
-    {
-        WeavePlatformEvent event;
+    WeavePlatformEvent event;
+    event.Type = WeavePlatformEvent::kEventType_ESPSystemEvent;
+    event.ESPSystemEvent = *espEvent;
 
-        event.Type = WeavePlatformEvent::kType_ESPSystemEvent;
-        event.ESPSystemEvent = *espEvent;
-
-        if (!xQueueSend(gWeaveEventQueue, &event, 1))
-        {
-            ESP_LOGE(TAG, "Failed to post ESP system event to Weave Platform event queue");
-        }
-    }
+    PlatformMgr.PostEvent(&event);
 
     return ESP_OK;
 }
@@ -309,23 +312,41 @@ WEAVE_ERROR PlatformManager::InitWeaveEventQueue()
     return WEAVE_NO_ERROR;
 }
 
+void PlatformManager::PostEvent(const Internal::WeavePlatformEvent * event)
+{
+    if (gWeaveEventQueue != NULL)
+    {
+        if (!xQueueSend(gWeaveEventQueue, event, 1))
+        {
+            ESP_LOGE(TAG, "Failed to post event to Weave Platform event queue");
+        }
+    }
+}
+
 void PlatformManager::DispatchEvent(const WeavePlatformEvent * event)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
 
-    // If the event is a Weave System or Inet Layer event, dispatch it to the SystemLayer event handler.
-    if (event->Type == WeavePlatformEvent::kType_WeaveSystemEvent)
+    // If the event is a Weave System or Inet Layer event, deliver it to the SystemLayer event handler.
+    if (event->Type == WeavePlatformEvent::kEventType_WeaveSystemLayerEvent)
     {
-        err = SystemLayer.HandleEvent(*event->WeaveSystemEvent.Target, event->WeaveSystemEvent.Type, event->WeaveSystemEvent.Argument);
+        err = SystemLayer.HandleEvent(*event->WeaveSystemLayerEvent.Target, event->WeaveSystemLayerEvent.Type, event->WeaveSystemLayerEvent.Argument);
         if (err != WEAVE_SYSTEM_NO_ERROR)
         {
             ESP_LOGE(TAG, "Error handling Weave System Layer event (type %d): %s", event->Type, nl::ErrorStr(err));
         }
     }
 
-    else if (event->Type == WeavePlatformEvent::kType_ESPSystemEvent)
+    // Otherwise deliver it to all the Weave Platform components, each of which will decide
+    // whether and how they want to react it.
+    else
     {
         ConnectivityMgr.OnPlatformEvent(event);
+        DeviceControlSvr.OnPlatformEvent(event);
+        DeviceDescriptionSvr.OnPlatformEvent(event);
+        NetworkProvisioningSvr.OnPlatformEvent(event);
+        FabricProvisioningSvr.OnPlatformEvent(event);
+        ServiceProvisioningSvr.OnPlatformEvent(event);
     }
 }
 
@@ -395,10 +416,10 @@ System::Error PostEvent(System::Layer & aLayer, void * aContext, System::Object 
     Error err = WEAVE_SYSTEM_NO_ERROR;
     WeavePlatformEvent event;
 
-    event.Type = WeavePlatformEvent::kType_WeaveSystemEvent;
-    event.WeaveSystemEvent.Type = aType;
-    event.WeaveSystemEvent.Target = &aTarget;
-    event.WeaveSystemEvent.Argument = aArgument;
+    event.Type = WeavePlatformEvent::kEventType_WeaveSystemLayerEvent;
+    event.WeaveSystemLayerEvent.Type = aType;
+    event.WeaveSystemLayerEvent.Target = &aTarget;
+    event.WeaveSystemLayerEvent.Argument = aArgument;
 
     if (!xQueueSend(gWeaveEventQueue, &event, 1)) {
         ESP_LOGE(TAG, "Failed to post event to Weave Platform event queue");

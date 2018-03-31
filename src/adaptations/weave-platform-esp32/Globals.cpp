@@ -1,5 +1,6 @@
 #include <internal/DeviceControlServer.h>
 #include <internal/DeviceDescriptionServer.h>
+#include <internal/NetworkProvisioningServer.h>
 #include <internal/FabricProvisioningServer.h>
 #include <internal/ServiceProvisioningServer.h>
 #include <internal/EchoServer.h>
@@ -21,6 +22,7 @@ namespace Internal {
 
 DeviceControlServer DeviceControlSvr;
 DeviceDescriptionServer DeviceDescriptionSvr;
+NetworkProvisioningServer NetworkProvisioningSvr;
 FabricProvisioningServer FabricProvisioningSvr;
 ServiceProvisioningServer ServiceProvisioningSvr;
 EchoServer EchoSvr;

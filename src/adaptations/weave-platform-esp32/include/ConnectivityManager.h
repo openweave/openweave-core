@@ -1,21 +1,20 @@
 #ifndef CONNECTIVITY_MANAGER_H
 #define CONNECTIVITY_MANAGER_H
 
+#include <Weave/Profiles/network-provisioning/NetworkProvisioning.h>
+
 namespace WeavePlatform {
 
 namespace Internal {
-
 struct WeavePlatformEvent;
-
-extern void DispatchEvent(const WeavePlatformEvent * event);
-
+class NetworkInfo;
+class NetworkProvisioningServer;
 } // namespace Internal
 
 class ConnectivityManager
 {
-    friend class PlatformManager;
-
 public:
+
     enum WiFiStationMode
     {
         kWiFiStationMode_Disabled                   = 0,
@@ -43,6 +42,7 @@ public:
 
     bool IsWiFiStationProvisioned(void) const;
     void ClearWiFiStationProvision(void);
+    uint32_t GetWiFiStationNetworkId(void) const;
 
     WiFiAPMode GetWiFiAPMode(void) const;
     WEAVE_ERROR SetWiFiAPMode(WiFiAPMode val);
@@ -55,6 +55,38 @@ public:
     void SetWiFiAPTimeoutMS(uint32_t val);
 
 private:
+
+    // NOTE: These members are for internal use by the following friend classes.
+
+    friend class ::WeavePlatform::PlatformManager;
+    friend class ::WeavePlatform::Internal::NetworkProvisioningServer;
+
+    WEAVE_ERROR Init();
+    ::nl::Weave::Profiles::NetworkProvisioning::NetworkProvisioningDelegate * GetNetworkProvisioningDelegate();
+    void OnPlatformEvent(const struct ::WeavePlatform::Internal::WeavePlatformEvent * event);
+
+private:
+
+    class NetworkProvisioningDelegate
+            : public ::nl::Weave::Profiles::NetworkProvisioning::NetworkProvisioningDelegate
+    {
+    public:
+        virtual WEAVE_ERROR HandleScanNetworks(uint8_t networkType);
+        virtual WEAVE_ERROR HandleAddNetwork(::nl::Weave::System::PacketBuffer *networkInfoTLV);
+        virtual WEAVE_ERROR HandleUpdateNetwork(::nl::Weave::System::PacketBuffer *networkInfoTLV);
+        virtual WEAVE_ERROR HandleRemoveNetwork(uint32_t networkId);
+        virtual WEAVE_ERROR HandleGetNetworks(uint8_t flags);
+        virtual WEAVE_ERROR HandleEnableNetwork(uint32_t networkId);
+        virtual WEAVE_ERROR HandleDisableNetwork(uint32_t networkId);
+        virtual WEAVE_ERROR HandleTestConnectivity(uint32_t networkId);
+        virtual WEAVE_ERROR HandleSetRendezvousMode(uint16_t rendezvousMode);
+
+    private:
+        WEAVE_ERROR ValidateWiFiStationProvision(const ::WeavePlatform::Internal::NetworkInfo & netInfo,
+                        uint32_t & statusProfileId, uint16_t & statusCode);
+        WEAVE_ERROR SetESPStationConfig(const ::WeavePlatform::Internal::NetworkInfo & netInfo);
+    };
+
     enum WiFiStationState
     {
         kWiFiStationState_Disabled,
@@ -70,6 +102,7 @@ private:
         kWiFiAPState_Stopping,
     };
 
+    NetworkProvisioningDelegate mNetProvDelegate;
     uint64_t mLastStationConnectTime;
     uint64_t mLastAPDemandTime;
     WiFiStationState mWiFiStationState;
@@ -78,16 +111,13 @@ private:
     uint32_t mWiFiStationReconnectIntervalMS;
     uint32_t mWiFiAPTimeoutMS;
 
-    WEAVE_ERROR Init();
-
-    void OnPlatformEvent(const struct ::WeavePlatform::Internal::WeavePlatformEvent * event);
     void DriveStationState();
     void DriveAPState();
     void OnStationConnected(void);
     void OnStationDisconnected(void);
 
-    static void DriveStationState(nl::Weave::System::Layer * aLayer, void * aAppState, nl::Weave::System::Error aError);
-    static void DriveAPState(nl::Weave::System::Layer * aLayer, void * aAppState, nl::Weave::System::Error aError);
+    static void DriveStationState(::nl::Weave::System::Layer * aLayer, void * aAppState, ::nl::Weave::System::Error aError);
+    static void DriveAPState(::nl::Weave::System::Layer * aLayer, void * aAppState, ::nl::Weave::System::Error aError);
 };
 
 inline uint32_t ConnectivityManager::GetWiFiStationReconnectIntervalMS(void) const

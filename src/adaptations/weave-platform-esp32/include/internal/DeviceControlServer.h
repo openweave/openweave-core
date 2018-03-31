@@ -28,6 +28,8 @@ public:
     virtual WEAVE_ERROR OnSystemTestStarted(uint32_t profileId, uint32_t testId);
     virtual WEAVE_ERROR OnSystemTestStopped(void);
     virtual bool IsPairedToAccount() const;
+
+    void OnPlatformEvent(const struct ::WeavePlatform::Internal::WeavePlatformEvent * event);
 };
 
 extern DeviceControlServer DeviceControlSvr;

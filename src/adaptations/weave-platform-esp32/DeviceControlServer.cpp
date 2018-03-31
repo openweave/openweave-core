@@ -107,6 +107,11 @@ bool DeviceControlServer::IsPairedToAccount() const
     return ConfigurationMgr.IsServiceProvisioned();
 }
 
+void DeviceControlServer::OnPlatformEvent(const struct ::WeavePlatform::Internal::WeavePlatformEvent * event)
+{
+    // Nothing to do so far.
+}
+
 } // namespace Internal
 } // namespace WeavePlatform
 

@@ -5,12 +5,15 @@
 
 namespace WeavePlatform {
 
+class ConnectivityManager;
+
 namespace Internal {
 struct WeavePlatformEvent;
 } // namespace Internal
 
 class PlatformManager
 {
+    friend class ConnectivityManager;
     friend nl::Weave::System::Error nl::Weave::System::Platform::Layer::DispatchEvent(nl::Weave::System::Layer & aLayer, void * aContext, const ::WeavePlatform::Internal::WeavePlatformEvent * aEvent);
 
 public:
@@ -23,6 +26,7 @@ public:
 
 private:
     WEAVE_ERROR InitWeaveEventQueue();
+    void PostEvent(const Internal::WeavePlatformEvent * event);
     void DispatchEvent(const Internal::WeavePlatformEvent * event);
 };
 

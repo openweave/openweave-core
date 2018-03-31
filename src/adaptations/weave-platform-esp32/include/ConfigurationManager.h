@@ -56,6 +56,7 @@ private:
 
     WEAVE_ERROR Init();
     WEAVE_ERROR ConfigureWeaveStack();
+    void OnPlatformEvent(const struct ::WeavePlatform::Internal::WeavePlatformEvent * event);
 };
 
 } // namespace WeavePlatform

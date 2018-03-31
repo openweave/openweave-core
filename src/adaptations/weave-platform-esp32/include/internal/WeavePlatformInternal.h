@@ -2,6 +2,7 @@
 #define WEAVE_PLATFORM_INTERNAL_H
 
 #include <WeavePlatform.h>
+
 #include "freertos/FreeRTOS.h"
 #include "freertos/event_groups.h"
 #include "freertos/queue.h"
@@ -26,8 +27,8 @@ struct WeavePlatformEvent
 {
     enum
     {
-        kType_WeaveSystemEvent          = 0,
-        kType_ESPSystemEvent            = 1,
+        kEventType_WeaveSystemLayerEvent                = 0,
+        kEventType_ESPSystemEvent                       = 1,
     };
 
     union
@@ -37,7 +38,7 @@ struct WeavePlatformEvent
             nl::Weave::System::EventType Type;
             nl::Weave::System::Object * Target;
             uintptr_t Argument;
-        } WeaveSystemEvent;
+        } WeaveSystemLayerEvent;
         system_event_t ESPSystemEvent;
     };
     uint8_t Type;
