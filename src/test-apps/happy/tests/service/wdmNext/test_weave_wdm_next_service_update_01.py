@@ -38,7 +38,7 @@ class test_weave_wdm_next_service_update_01(weave_wdm_next_test_service_base):
         wdm_next_args['test_client_iterations'] = 2
         wdm_next_args['test_client_delay'] = 15000
         wdm_next_args['client_clear_state_between_iterations'] = False
-        wdm_next_args['test_client_case'] = 12
+        wdm_next_args['test_client_case'] = 12 # kTestCase_TestUpdatableTrait_ThreeTraitsMixed
         wdm_next_args['total_client_count'] = 8
 
         wdm_next_args['client_log_check'] = [('Update: Good Iteration', wdm_next_args['test_client_iterations'] * (wdm_next_args['total_client_count'] - 1) * 4)]

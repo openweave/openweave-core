@@ -251,11 +251,11 @@ private:
 
         kTestCase_IncompatibleVersionedCommandRequest = 9,
 
-        kTestCase_TestUpdatableTrait1 = 10,
+        kTestCase_TestUpdatableTrait_OneTraitConditional = 10,
 
-        kTestCase_TestUpdatableTrait2 = 11,
+        kTestCase_TestUpdatableTrait_OneTraitUnconditional = 11,
 
-        kTestCase_TestUpdatableTrait3 = 12,
+        kTestCase_TestUpdatableTrait_ThreeTraitsMixed = 12,
     };
 
     enum
@@ -392,9 +392,9 @@ const bool aEnableRetry)
 
     switch (mTestCaseId)
     {
-    case kTestCase_TestUpdatableTrait1:
-    case kTestCase_TestUpdatableTrait2:
-    case kTestCase_TestUpdatableTrait3:
+    case kTestCase_TestUpdatableTrait_OneTraitConditional:
+    case kTestCase_TestUpdatableTrait_OneTraitUnconditional:
+    case kTestCase_TestUpdatableTrait_ThreeTraitsMixed:
 #if WEAVE_CONFIG_ENABLE_WDM_UPDATE
         mSinkCatalog.Add(0, &mTestATraitUpdatableDataSink0, mTraitHandleSet[kTestATraitSink0Index]);
         mSinkCatalog.Add(1, &mTestATraitUpdatableDataSink1, mTraitHandleSet[kTestATraitSink1Index]);
@@ -459,14 +459,14 @@ const bool aEnableRetry)
         WeaveLogDetail(DataManagement, "kTestCase_IncompatibleVersionedRequest");
         break;
 
-    case kTestCase_TestUpdatableTrait1:
-        WeaveLogDetail(DataManagement, "kTestCase_TestUpdatableTrait1");
+    case kTestCase_TestUpdatableTrait_OneTraitConditional:
+        WeaveLogDetail(DataManagement, "kTestCase_TestUpdatableTrait_OneTraitConditional");
         break;
-    case kTestCase_TestUpdatableTrait2:
-        WeaveLogDetail(DataManagement, "kTestCase_TestUpdatableTrait2");
+    case kTestCase_TestUpdatableTrait_OneTraitUnconditional:
+        WeaveLogDetail(DataManagement, "kTestCase_TestUpdatableTrait_OneTraitUnconditional");
         break;
-    case kTestCase_TestUpdatableTrait3:
-        WeaveLogDetail(DataManagement, "kTestCase_TestUpdatableTrait3");
+    case kTestCase_TestUpdatableTrait_ThreeTraitsMixed:
+        WeaveLogDetail(DataManagement, "kTestCase_TestUpdatableTrait_ThreeTraitsMixed");
         break;
     default:
         mTestCaseId = kTestCase_TestTrait;
@@ -558,9 +558,9 @@ WEAVE_ERROR MockWdmSubscriptionInitiatorImpl::StartTesting(const uint64_t aPubli
         break;
 
     case kTestCase_TestTrait:
-    case kTestCase_TestUpdatableTrait1:
-    case kTestCase_TestUpdatableTrait2:
-    case kTestCase_TestUpdatableTrait3:
+    case kTestCase_TestUpdatableTrait_OneTraitConditional:
+    case kTestCase_TestUpdatableTrait_OneTraitUnconditional:
+    case kTestCase_TestUpdatableTrait_ThreeTraitsMixed:
         mTraitPaths[0].mTraitDataHandle = mTraitHandleSet[kLocaleSettingsSinkIndex];
         mTraitPaths[0].mPropertyPathHandle = kRootPropertyPathHandle;
 
@@ -819,9 +819,9 @@ void MockWdmSubscriptionInitiatorImpl::DumpClientTraits(void)
             DumpClientTraitChecksum(kTestBTraitSinkIndex);
             DumpClientTraitChecksum(kLocaleSettingsSinkIndex);
             break;
-        case kTestCase_TestUpdatableTrait1:
-        case kTestCase_TestUpdatableTrait2:
-        case kTestCase_TestUpdatableTrait3:
+        case kTestCase_TestUpdatableTrait_OneTraitConditional:
+        case kTestCase_TestUpdatableTrait_OneTraitUnconditional:
+        case kTestCase_TestUpdatableTrait_ThreeTraitsMixed:
             break;
         case kTestCase_TestOversizeTrait1:
             DumpClientTraitChecksum(kTestATraitSink0Index);
@@ -1011,9 +1011,9 @@ void MockWdmSubscriptionInitiatorImpl::ClientEventCallback (void * const aAppSta
             initiator->AddNewVersion(initiator->kTestBTraitSinkIndex);
             initiator->AddNewVersion(initiator->kLocaleSettingsSinkIndex);
             break;
-        case kTestCase_TestUpdatableTrait1:
-        case kTestCase_TestUpdatableTrait2:
-        case kTestCase_TestUpdatableTrait3:
+        case kTestCase_TestUpdatableTrait_OneTraitConditional:
+        case kTestCase_TestUpdatableTrait_OneTraitUnconditional:
+        case kTestCase_TestUpdatableTrait_ThreeTraitsMixed:
             break;
         case kTestCase_TestOversizeTrait1:
             initiator->AddNewVersion(initiator->kTestATraitSink0Index);
@@ -1334,7 +1334,7 @@ void MockWdmSubscriptionInitiatorImpl::HandleDataFlipTimeout(nl::Weave::System::
             break;
 
 #if WEAVE_CONFIG_ENABLE_WDM_UPDATE
-        case kTestCase_TestUpdatableTrait1:
+        case kTestCase_TestUpdatableTrait_OneTraitConditional:
             err = initiator->mTestATraitUpdatableDataSink0.Mutate(initiator->mSubscriptionClient, true);
             SuccessOrExit(err);
 
@@ -1342,14 +1342,14 @@ void MockWdmSubscriptionInitiatorImpl::HandleDataFlipTimeout(nl::Weave::System::
             SuccessOrExit(err);
 
             break;
-        case kTestCase_TestUpdatableTrait2:
+        case kTestCase_TestUpdatableTrait_OneTraitUnconditional:
             err = initiator->mTestATraitUpdatableDataSink0.Mutate(initiator->mSubscriptionClient, false);
             SuccessOrExit(err);
 
             err = initiator->mSubscriptionClient->FlushUpdate();
             SuccessOrExit(err);
             break;
-        case kTestCase_TestUpdatableTrait3:
+        case kTestCase_TestUpdatableTrait_ThreeTraitsMixed:
             err = initiator->mTestATraitUpdatableDataSink0.Mutate(initiator->mSubscriptionClient, true);
             SuccessOrExit(err);
 
