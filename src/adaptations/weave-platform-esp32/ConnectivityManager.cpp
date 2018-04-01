@@ -153,9 +153,9 @@ void ConnectivityManager::MaintainOnDemandWiFiAP(void)
     }
 }
 
-void ConnectivityManager::SetWiFiAPTimeoutMS(uint32_t val)
+void ConnectivityManager::SetWiFiAPIdleTimeoutMS(uint32_t val)
 {
-    mWiFiAPTimeoutMS = val;
+    mWiFiAPIdleTimeoutMS = val;
     SystemLayer.ScheduleWork(DriveAPState, NULL);
 }
 
@@ -171,8 +171,8 @@ WEAVE_ERROR ConnectivityManager::Init()
     mWiFiStationState = kWiFiStationState_Disabled;
     mWiFiAPMode = kWiFiAPMode_Disabled;
     mWiFiAPState = kWiFiAPState_NotActive;
-    mWiFiStationReconnectIntervalMS = 5000; // TODO: make configurable
-    mWiFiAPTimeoutMS = 30000; // TODO: make configurable
+    mWiFiStationReconnectIntervalMS = WEAVE_PLATFORM_CONFIG_WIFI_STATION_RECONNECT_INTERVAL;
+    mWiFiAPIdleTimeoutMS = WEAVE_PLATFORM_CONFIG_WIFI_AP_IDLE_TIMEOUT;
     mScanInProgress = false;
 
     // If there is no persistent station provision...
@@ -499,10 +499,10 @@ void ConnectivityManager::DriveAPState()
     {
         uint64_t now = SystemLayer.GetSystemTimeMS();
 
-        if (mLastAPDemandTime != 0 && now < (mLastAPDemandTime + mWiFiAPTimeoutMS))
+        if (mLastAPDemandTime != 0 && now < (mLastAPDemandTime + mWiFiAPIdleTimeoutMS))
         {
             targetState = kWiFiAPState_Active;
-            apTimeout = (uint32_t)((mLastAPDemandTime + mWiFiAPTimeoutMS) - now);
+            apTimeout = (uint32_t)((mLastAPDemandTime + mWiFiAPIdleTimeoutMS) - now);
         }
         else
         {
@@ -562,11 +562,13 @@ WEAVE_ERROR ConnectivityManager::ConfigureWiFiAP()
     wifi_config_t wifiConfig;
 
     memset(&wifiConfig, 0, sizeof(wifiConfig));
-    strcpy((char *)wifiConfig.ap.ssid, "ESP-TEST"); // TODO: derive from node id / MAC address
-    wifiConfig.ap.channel = 1;
+    err = ConfigurationMgr.GetWiFiAPSSID((char *)wifiConfig.ap.ssid, sizeof(wifiConfig.ap.ssid));
+    SuccessOrExit(err);
+    wifiConfig.ap.channel = WEAVE_PLATFORM_CONFIG_WIFI_AP_CHANNEL;
     wifiConfig.ap.authmode = WIFI_AUTH_OPEN;
-    wifiConfig.ap.max_connection = 4;
-    wifiConfig.ap.beacon_interval = 100;
+    wifiConfig.ap.max_connection = WEAVE_PLATFORM_CONFIG_WIFI_AP_MAX_STATIONS;
+    wifiConfig.ap.beacon_interval = WEAVE_PLATFORM_CONFIG_WIFI_AP_BEACON_INTERVAL;
+    ESP_LOGI(TAG, "Configuring WiFi AP: SSID %s, channel %u", wifiConfig.ap.ssid, wifiConfig.ap.channel);
     err = esp_wifi_set_config(ESP_IF_WIFI_AP, &wifiConfig);
     if (err != ESP_OK)
     {
@@ -1086,9 +1088,10 @@ void ConnectivityManager::NetworkProvisioningDelegate::StartPendingScan()
     err = esp_wifi_scan_start(&scanConfig, false);
     SuccessOrExit(err);
 
+#if WEAVE_PLATFORM_CONFIG_WIFI_SCAN_COMPLETION_TIMEOUT
     // Arm timer in case we never get the scan done event.
-    // TODO: make this timeout configurable.
-    SystemLayer.StartTimer(20000, HandleScanTimeOut, NULL);
+    SystemLayer.StartTimer(WEAVE_PLATFORM_CONFIG_WIFI_SCAN_COMPLETION_TIMEOUT, HandleScanTimeOut, NULL);
+#endif // WEAVE_PLATFORM_CONFIG_WIFI_SCAN_COMPLETION_TIMEOUT
 
     ConnectivityMgr.mScanInProgress = true;
 
@@ -1103,9 +1106,8 @@ exit:
 void ConnectivityManager::NetworkProvisioningDelegate::HandleScanDone()
 {
     WEAVE_ERROR err;
-    enum { kMaxScanResults = 10 }; // TODO: make this configurable
     wifi_ap_record_t * scanResults = NULL;
-    uint16_t scanResultCount = kMaxScanResults;
+    uint16_t scanResultCount;
     uint16_t encodedResultCount;
     PacketBuffer * respBuf = NULL;
 
@@ -1114,15 +1116,17 @@ void ConnectivityManager::NetworkProvisioningDelegate::HandleScanDone()
 
     ConnectivityMgr.mScanInProgress = false;
 
+#if WEAVE_PLATFORM_CONFIG_WIFI_SCAN_COMPLETION_TIMEOUT
     // Cancel the scan timeout timer.
     SystemLayer.CancelTimer(HandleScanTimeOut, NULL);
+#endif // WEAVE_PLATFORM_CONFIG_WIFI_SCAN_COMPLETION_TIMEOUT
 
     // Determine the number of scan results found.
     err = esp_wifi_scan_get_ap_num(&scanResultCount);
     SuccessOrExit(err);
 
-    // Only return up to kMaxScanResults.
-    scanResultCount = min(scanResultCount, (uint16_t)kMaxScanResults);
+    // Only return up to WEAVE_PLATFORM_CONFIG_MAX_SCAN_NETWORKS_RESULTS.
+    scanResultCount = min(scanResultCount, (uint16_t)WEAVE_PLATFORM_CONFIG_MAX_SCAN_NETWORKS_RESULTS);
 
     // Allocate a buffer to hold the scan results array.
     scanResults = (wifi_ap_record_t *)malloc(scanResultCount * sizeof(wifi_ap_record_t));
@@ -1422,6 +1426,8 @@ bool ConnectivityManager::NetworkProvisioningDelegate::RejectIfApplicationContro
     return isAppControlled;
 }
 
+#if WEAVE_PLATFORM_CONFIG_WIFI_SCAN_COMPLETION_TIMEOUT
+
 void ConnectivityManager::NetworkProvisioningDelegate::HandleScanTimeOut(::nl::Weave::System::Layer * aLayer, void * aAppState, ::nl::Weave::System::Error aError)
 {
     ESP_LOGE(TAG, "WiFi scan timed out");
@@ -1438,6 +1444,8 @@ void ConnectivityManager::NetworkProvisioningDelegate::HandleScanTimeOut(::nl::W
     // attempt was deferred because the scan was in progress.
     SystemLayer.ScheduleWork(ConnectivityMgr.DriveStationState, NULL);
 }
+
+#endif // WEAVE_PLATFORM_CONFIG_WIFI_SCAN_COMPLETION_TIMEOUT
 
 // ==================== Local Utility Functions ====================
 

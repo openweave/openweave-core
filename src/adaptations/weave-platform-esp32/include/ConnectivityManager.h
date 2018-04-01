@@ -53,8 +53,8 @@ public:
     void StopOnDemandWiFiAP(void);
     void MaintainOnDemandWiFiAP(void);
 
-    uint32_t GetWiFiAPTimeoutMS(void) const;
-    void SetWiFiAPTimeoutMS(uint32_t val);
+    uint32_t GetWiFiAPIdleTimeoutMS(void) const;
+    void SetWiFiAPIdleTimeoutMS(uint32_t val);
 
 private:
 
@@ -123,7 +123,7 @@ private:
     WiFiAPMode mWiFiAPMode;
     WiFiAPState mWiFiAPState;
     uint32_t mWiFiStationReconnectIntervalMS;
-    uint32_t mWiFiAPTimeoutMS;
+    uint32_t mWiFiAPIdleTimeoutMS;
     bool mScanInProgress;
 
     void DriveStationState();
@@ -162,9 +162,9 @@ inline ConnectivityManager::WiFiAPMode ConnectivityManager::GetWiFiAPMode(void) 
     return mWiFiAPMode;
 }
 
-inline uint32_t ConnectivityManager::GetWiFiAPTimeoutMS(void) const
+inline uint32_t ConnectivityManager::GetWiFiAPIdleTimeoutMS(void) const
 {
-    return mWiFiAPTimeoutMS;
+    return mWiFiAPIdleTimeoutMS;
 }
 
 

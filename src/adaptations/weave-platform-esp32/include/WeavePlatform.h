@@ -3,6 +3,7 @@
 
 #include <Weave/Core/WeaveCore.h>
 
+#include <WeavePlatformConfig.h>
 #include <PlatformManager.h>
 #include <ConfigurationManager.h>
 #include <ConnectivityManager.h>

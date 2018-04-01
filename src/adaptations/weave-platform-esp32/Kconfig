@@ -1,42 +1,157 @@
-menu "Weave Platform Configuration"
+menu "Weave Platform"
+
+menu "General Options"
+
+config MAX_EVENT_QUEUE_SIZE
+    int "Max Event Queue Size"
+    range 0 65535
+    default 100
+    help
+        The maximum number of events that can be held in the Weave Platform event queue.
+
+endmenu
+
+menu "Device Identification Options"
 
 config DEVICE_VENDOR_ID
     int "Device Vendor Id"
     range 0 65535
     default 9050
     help
-        Device vendor id.  Defaults to Nest Labs. 
+        The device vendor id. This a Nest-assigned id for the organization responsible for producing the device.  
+        Defaults to Nest Labs (0x235A). 
 
 config DEVICE_PRODUCT_ID
     int "Device Product Id"
     range 0 65535
-    default 4242
+    default 65279
     help
-        Device product id. 
+        The device product id.  This is a unique id assigned by the device vendor to identify the product or device type.
+        Defaults to a Nest-assigned id designating a non-production or test "product".
 
 config DEVICE_PRODUCT_REVISION
     int "Device Product Revision"
     range 0 65535
     default 1
     help
-        Device product revision. 
+        The device product revision.  This number is assigned to device or product by the device vendor.  The number is
+        scoped to the device product id, and typically corresponds to a revision of the physical device, a change to its
+        packaging, and/or a change to its marketing presentation.  This value is generally *not* incremented for device
+        software revisions.
+
+config DEVICE_FIRMWARE_REVISION
+    string "Device Firmware Revision"
+    default ""
+    help
+        A string identifying the firmware revision running on the device.  
+
+endmenu
+
+menu "WiFi Station Options"
 
 config DEFAULT_WIFI_SSID
     string "Default WiFi SSID"
     default ""
     help
-        WiFi SSID to connect to if the device boots without a WiFi station provision.
+        The SSID of network to connect to if no WiFi station configuration exists in NV storage
+        at the time the device boots.  
+
+        This option is for testing only and should be disabled in production releases.
 
 config DEFAULT_WIFI_PASSWORD
     string "Default WiFi Password"
     default ""
     help
-        Password for default WiFi provision.
+        The password for the default WiFi network.  
 
-config DEFAULT_PAIRING_CODE
-    string "Default Device Pairing Code"
+        This option is for testing only and should be disabled in production releases.
+
+config WIFI_STATION_RECONNECT_INTERVAL
+    int "WiFi Station Interface Reconnect Interval (ms)"
+    range 0 65535
+    default 5000
+    help
+        The interval at which the Weave platform will attempt to reconnect to the configured WiFi network (in milliseconds).
+
+config MAX_SCAN_NETWORKS_RESULTS
+    int "Max ScanNetworks Results"
+    range 0 65535
+    default 10
+    help
+        The maximum number of networks to return as a result of a Weave NetworkProvisioning:ScanNetworks request.
+
+config WIFI_SCAN_COMPLETION_TIMEOUT
+    int "WiFi Scan Completion Timeout (ms)"
+    range 0 65535
+    default 10000
+    help
+        The amount of time (in milliseconds) after which the Weave platform will timeout a WiFi scan
+        operation that hasn't completed.  A value of 0 will disable the timeout logic.
+
+endmenu
+
+menu "WiFi AP Options"
+
+config WIFI_AP_SSID_PREFIX
+    string "WiFi AP SSID Prefix"
+    default "WEAVE-ESP32-"
+    help
+        A prefix string used in forming the WiFi soft-AP SSID.  The remainder of the SSID
+        consists of the final two bytes of the device's primary WiFi MAC address in hex.
+
+config WIFI_AP_CHANNEL
+    int "WiFi AP Channel"
+    range 1 14
+    default 1
+    help
+        The WiFi channel number to be used by the soft-AP.
+
+config WIFI_AP_MAX_STATIONS
+    int "WiFi AP Max Allowed Stations"
+    range 1 10
+    default 4
+    help
+        The maximum number of stations allowed to connect to the soft-AP.
+
+config WIFI_AP_BEACON_INTERVAL
+    int "WiFi AP Beacon Interval (ms)"
+    range 100 60000 
+    default 100
+    help
+        The beacon interval (in milliseconds) for the WiFi soft-AP.
+
+config WIFI_AP_IDLE_TIMEOUT
+    int "WiFi AP Idle Timeout (ms)"
+    range 0 65535
+    default 30000
+    help
+        The amount of time (in milliseconds) after which the Weave platform will deactivate the soft-AP
+        if it has been idle.
+
+endmenu
+
+menu "Testing Options"
+
+config ENABLE_TEST_DEVICE_IDENTITY
+    int "Use Test Device Identity"
+    range 0 10
+    default 1
+    help
+        Enables the use of a hard-coded Weave device id and credentials if no device id is
+        found in Weave NV storage.  The value specifies which of 10 identities, numbered 1
+        through 10, is to be used.  A value of 0 disables use of a test identity.
+        
+        This option is for testing only and should not be enabled in production releases.
+
+config USE_TEST_PAIRING_CODE
+    string "Use Test Pairing Code"
     default "TEST"
     help
-        Device pairing code to use if none found in nv storage.
+        Specifies a hard-coded device pairing code to use if none found in Weave NV storage.
+        Setting the value to an empty string disables the feature.
+        
+        This option is for testing only and should not be enabled in production releases.
+
+endmenu
 
 endmenu

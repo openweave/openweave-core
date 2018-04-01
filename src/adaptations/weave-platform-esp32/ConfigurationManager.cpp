@@ -2,6 +2,7 @@
 #include <ConfigurationManager.h>
 #include <Weave/Core/WeaveKeyIds.h>
 #include <Weave/Profiles/security/WeaveApplicationKeys.h>
+#include "esp_wifi.h"
 #include "nvs_flash.h"
 #include "nvs.h"
 #include <new>
@@ -55,12 +56,6 @@ const char gNVSKeyName_AppMasterKeyIndex[]   = "amk-index";
 const char gNVSKeyName_AppMasterKeyPrefix[]  = "amk-";
 const char gNVSKeyName_LastUsedEpochKeyId[]  = "last-ek-id";
 
-extern const uint64_t gTestDeviceId;
-extern const uint8_t gTestDeviceCert[];
-extern const uint16_t gTestDeviceCertLength;
-extern const uint8_t gTestDevicePrivateKey[];
-extern const uint16_t gTestDevicePrivateKeyLength;
-
 WEAVE_ERROR GetNVS(const char * ns, const char * name, uint8_t * buf, size_t bufSize, size_t & outLen);
 WEAVE_ERROR GetNVS(const char * ns, const char * name, char * buf, size_t bufSize, size_t & outLen);
 WEAVE_ERROR GetNVS(const char * ns, const char * name, uint32_t & val);
@@ -81,19 +76,19 @@ WEAVE_ERROR EnsureNamespace(const char * ns);
 
 WEAVE_ERROR ConfigurationManager::GetVendorId(uint16_t& vendorId)
 {
-    vendorId = (uint16_t)CONFIG_DEVICE_VENDOR_ID;
+    vendorId = (uint16_t)WEAVE_PLATFORM_CONFIG_DEVICE_VENDOR_ID;
     return WEAVE_NO_ERROR;
 }
 
 WEAVE_ERROR ConfigurationManager::GetProductId(uint16_t& productId)
 {
-    productId = (uint16_t)CONFIG_DEVICE_PRODUCT_ID;
+    productId = (uint16_t)WEAVE_PLATFORM_CONFIG_DEVICE_PRODUCT_ID;
     return WEAVE_NO_ERROR;
 }
 
 WEAVE_ERROR ConfigurationManager::GetProductRevision(uint16_t& productRev)
 {
-    productRev = (uint16_t)CONFIG_DEVICE_PRODUCT_REVISION;
+    productRev = (uint16_t)WEAVE_PLATFORM_CONFIG_DEVICE_PRODUCT_REVISION;
     return WEAVE_NO_ERROR;
 }
 
@@ -129,9 +124,19 @@ exit:
 
 WEAVE_ERROR ConfigurationManager::GetFirmwareRevision(char * buf, size_t bufSize, size_t & outLen)
 {
-    // TODO: get from build config
-    outLen = 0;
-    return WEAVE_PLATFORM_ERROR_CONFIG_NOT_FOUND;
+#ifdef WEAVE_PLATFORM_CONFIG_DEVICE_FIRMWARE_REVISION
+    if (WEAVE_PLATFORM_CONFIG_DEVICE_FIRMWARE_REVISION[0] != 0)
+    {
+        outLen = min(bufSize, sizeof(WEAVE_PLATFORM_CONFIG_DEVICE_FIRMWARE_REVISION) - 1);
+        memcpy(buf, WEAVE_PLATFORM_CONFIG_DEVICE_FIRMWARE_REVISION, outLen);
+        return WEAVE_NO_ERROR;
+    }
+    else
+#endif // WEAVE_PLATFORM_CONFIG_DEVICE_FIRMWARE_REVISION
+    {
+        outLen = 0;
+        return WEAVE_PLATFORM_ERROR_CONFIG_NOT_FOUND;
+    }
 }
 
 WEAVE_ERROR ConfigurationManager::GetFirmwareBuildTime(uint16_t & year, uint8_t & month, uint8_t & dayOfMonth,
@@ -178,15 +183,18 @@ WEAVE_ERROR ConfigurationManager::GetDeviceCertificate(uint8_t * buf, size_t buf
 
     err = GetNVS(gNVSNamespace_Weave, gNVSKeyName_DeviceCert, buf, bufSize, certLen);
 
-    // TODO: make this a debug-only feature
+#if WEAVE_PLATFORM_CONFIG_ENABLE_TEST_DEVICE_IDENTITY
+
     if (err == WEAVE_PLATFORM_ERROR_CONFIG_NOT_FOUND)
     {
-        certLen = gTestDeviceCertLength;
-        VerifyOrExit(gTestDeviceCertLength <= bufSize, err = WEAVE_ERROR_BUFFER_TOO_SMALL);
+        certLen = TestDeviceCertLength;
+        VerifyOrExit(TestDeviceCertLength <= bufSize, err = WEAVE_ERROR_BUFFER_TOO_SMALL);
         ESP_LOGI(TAG, "Device certificate not found in nvs; using default");
-        memcpy(buf, gTestDeviceCert, gTestDeviceCertLength);
+        memcpy(buf, TestDeviceCert, TestDeviceCertLength);
         err = WEAVE_NO_ERROR;
     }
+
+#endif // WEAVE_PLATFORM_CONFIG_ENABLE_TEST_DEVICE_IDENTITY
 
     SuccessOrExit(err);
 
@@ -210,15 +218,18 @@ WEAVE_ERROR ConfigurationManager::GetDevicePrivateKey(uint8_t * buf, size_t bufS
 
     err = GetNVS(gNVSNamespace_Weave, gNVSKeyName_DevicePrivateKey, buf, bufSize, keyLen);
 
-    // TODO: make this a debug-only feature
+#if WEAVE_PLATFORM_CONFIG_ENABLE_TEST_DEVICE_IDENTITY
+
     if (err == WEAVE_PLATFORM_ERROR_CONFIG_NOT_FOUND)
     {
-        keyLen = gTestDevicePrivateKeyLength;
-        VerifyOrExit(gTestDevicePrivateKeyLength <= bufSize, err = WEAVE_ERROR_BUFFER_TOO_SMALL);
+        keyLen = TestDevicePrivateKeyLength;
+        VerifyOrExit(TestDevicePrivateKeyLength <= bufSize, err = WEAVE_ERROR_BUFFER_TOO_SMALL);
         ESP_LOGI(TAG, "Device private key not found in nvs; using default");
-        memcpy(buf, gTestDevicePrivateKey, gTestDevicePrivateKeyLength);
+        memcpy(buf, TestDevicePrivateKey, TestDevicePrivateKeyLength);
         err = WEAVE_NO_ERROR;
     }
+
+#endif // WEAVE_PLATFORM_CONFIG_ENABLE_TEST_DEVICE_IDENTITY
 
     SuccessOrExit(err);
 
@@ -427,7 +438,11 @@ WEAVE_ERROR ConfigurationManager::GetDeviceDescriptor(WeaveDeviceDescriptor & de
     }
     SuccessOrExit(err);
 
-    // TODO: return PrimaryWiFiMACAddress
+    err = esp_wifi_get_mac(ESP_IF_WIFI_STA, deviceDesc.PrimaryWiFiMACAddress);
+    SuccessOrExit(err);
+
+    err = GetWiFiAPSSID(deviceDesc.RendezvousWiFiESSID, sizeof(deviceDesc.RendezvousWiFiESSID));
+    SuccessOrExit(err);
 
     err = GetSerialNumber(deviceDesc.SerialNumber, sizeof(deviceDesc.SerialNumber), outLen);
     if (err == WEAVE_PLATFORM_ERROR_CONFIG_NOT_FOUND)
@@ -457,6 +472,21 @@ WEAVE_ERROR ConfigurationManager::GetDeviceDescriptorTLV(uint8_t * buf, size_t b
 
     err = WeaveDeviceDescriptor::EncodeTLV(deviceDesc, buf, (uint32_t)bufSize, encodedLen);
     SuccessOrExit(err);
+
+exit:
+    return err;
+}
+
+WEAVE_ERROR ConfigurationManager::GetWiFiAPSSID(char * buf, size_t bufSize)
+{
+    WEAVE_ERROR err;
+    uint8_t mac[6];
+
+    err = esp_wifi_get_mac(ESP_IF_WIFI_STA, mac);
+    SuccessOrExit(err);
+
+    snprintf(buf, bufSize, "%s%02X%02X", WEAVE_PLATFORM_CONFIG_WIFI_AP_SSID_PREFIX, mac[4], mac[5]);
+    buf[bufSize - 1] = 0;
 
 exit:
     return err;
@@ -506,13 +536,14 @@ WEAVE_ERROR ConfigurationManager::ConfigureWeaveStack()
 
     // Read the device id from NVS.
     err = nvs_get_u64(handle, gNVSKeyName_DeviceId, &FabricState.LocalNodeId);
+#if WEAVE_PLATFORM_CONFIG_ENABLE_TEST_DEVICE_IDENTITY
     if (err == ESP_ERR_NVS_NOT_FOUND)
     {
-        // TODO: make this a DEBUG-only feature
-        ESP_LOGI(TAG, "Device id not found in nvs; using default: %" PRIX64, gTestDeviceId);
-        FabricState.LocalNodeId = gTestDeviceId;
+        ESP_LOGI(TAG, "Device id not found in nvs; using hard-coded default: %" PRIX64, TestDeviceId);
+        FabricState.LocalNodeId = TestDeviceId;
         err = WEAVE_NO_ERROR;
     }
+#endif // WEAVE_PLATFORM_CONFIG_ENABLE_TEST_DEVICE_IDENTITY
     SuccessOrExit(err);
 
     // Read the fabric id from NVS.  If not present, then the device is not currently a
@@ -528,13 +559,15 @@ WEAVE_ERROR ConfigurationManager::ConfigureWeaveStack()
     // Read the pairing code from NVS.
     pairingCodeLen = sizeof(mPairingCode);
     err = nvs_get_str(handle, gNVSKeyName_PairingCode, mPairingCode, &pairingCodeLen);
-    if (err == ESP_ERR_NVS_NOT_FOUND || pairingCodeLen == 0)
+#ifdef CONFIG_USE_TEST_PAIRING_CODE
+    if (CONFIG_USE_TEST_PAIRING_CODE[0] != 0 && err == ESP_ERR_NVS_NOT_FOUND)
     {
-        // TODO: make this a DEBUG-only feature
-        ESP_LOGI(TAG, "Pairing code not found in nvs; using default: %s", CONFIG_DEFAULT_PAIRING_CODE);
-        strcpy(mPairingCode, CONFIG_DEFAULT_PAIRING_CODE);
+        ESP_LOGI(TAG, "Pairing code not found in nvs; using hard-coded default: %s", CONFIG_USE_TEST_PAIRING_CODE);
+        memcpy(mPairingCode, CONFIG_USE_TEST_PAIRING_CODE, min(sizeof(mPairingCode) - 1, sizeof(CONFIG_USE_TEST_PAIRING_CODE)));
+        mPairingCode[sizeof(mPairingCode) - 1] = 0;
         err = WEAVE_NO_ERROR;
     }
+#endif // CONFIG_USE_TEST_PAIRING_CODE
     SuccessOrExit(err);
 
     FabricState.PairingCode = mPairingCode;
@@ -1036,67 +1069,6 @@ exit:
     }
     return err;
 }
-
-// ==================== Test Device Credentials ====================
-
-const uint64_t gTestDeviceId = 0x18B4300000000001ULL;
-
-const uint8_t gTestDeviceCert[] =
-{
-    /*
-    -----BEGIN CERTIFICATE-----
-    MIIBhzCCAT6gAwIBAgIIEEjK8u1PmzAwCQYHKoZIzj0EATAiMSAwHgYKKwYBBAGC
-    wysBAwwQMThCNDMwRUVFRTAwMDAwMjAeFw0xMzEwMjIwMDQ3MDBaFw0yMzEwMjAw
-    MDQ3MDBaMCIxIDAeBgorBgEEAYLDKwEBDBAxOEI0MzAwMDAwMDAwMDAxME4wEAYH
-    KoZIzj0CAQYFK4EEACEDOgAE72edUwyZ/51yQrH5tmAgjiWfNXLwo+eD5lYUk/lo
-    RWWLJDFeh4xkNSWHGQOZzUWhJPp2CxKeOX6jajBoMAwGA1UdEwEB/wQCMAAwDgYD
-    VR0PAQH/BAQDAgWgMCAGA1UdJQEB/wQWMBQGCCsGAQUFBwMCBggrBgEFBQcDATAR
-    BgNVHQ4ECgQITv9HUeTGY5swEwYDVR0jBAwwCoAIRONAOKnUtacwCQYHKoZIzj0E
-    AQM4ADA1Ahhdt1KwlRMRcfFbZAOAjBi+oSDxhrpFbBQCGQDFDc8mAoARjFE6vZWV
-    dpR3yUb/7cCgPb0=
-    -----END CERTIFICATE-----
-    */
-
-    0xd5, 0x00, 0x00, 0x04, 0x00, 0x01, 0x00, 0x30, 0x01, 0x08, 0x10, 0x48, 0xca, 0xf2, 0xed, 0x4f,
-    0x9b, 0x30, 0x24, 0x02, 0x04, 0x57, 0x03, 0x00, 0x27, 0x13, 0x02, 0x00, 0x00, 0xee, 0xee, 0x30,
-    0xb4, 0x18, 0x18, 0x26, 0x04, 0x04, 0x23, 0x73, 0x1a, 0x26, 0x05, 0x04, 0xcc, 0x98, 0x2d, 0x57,
-    0x06, 0x00, 0x27, 0x11, 0x01, 0x00, 0x00, 0x00, 0x00, 0x30, 0xb4, 0x18, 0x18, 0x24, 0x07, 0x02,
-    0x24, 0x08, 0x25, 0x30, 0x0a, 0x39, 0x04, 0xef, 0x67, 0x9d, 0x53, 0x0c, 0x99, 0xff, 0x9d, 0x72,
-    0x42, 0xb1, 0xf9, 0xb6, 0x60, 0x20, 0x8e, 0x25, 0x9f, 0x35, 0x72, 0xf0, 0xa3, 0xe7, 0x83, 0xe6,
-    0x56, 0x14, 0x93, 0xf9, 0x68, 0x45, 0x65, 0x8b, 0x24, 0x31, 0x5e, 0x87, 0x8c, 0x64, 0x35, 0x25,
-    0x87, 0x19, 0x03, 0x99, 0xcd, 0x45, 0xa1, 0x24, 0xfa, 0x76, 0x0b, 0x12, 0x9e, 0x39, 0x7e, 0x35,
-    0x83, 0x29, 0x01, 0x18, 0x35, 0x82, 0x29, 0x01, 0x24, 0x02, 0x05, 0x18, 0x35, 0x84, 0x29, 0x01,
-    0x36, 0x02, 0x04, 0x02, 0x04, 0x01, 0x18, 0x18, 0x35, 0x81, 0x30, 0x02, 0x08, 0x4e, 0xff, 0x47,
-    0x51, 0xe4, 0xc6, 0x63, 0x9b, 0x18, 0x35, 0x80, 0x30, 0x02, 0x08, 0x44, 0xe3, 0x40, 0x38, 0xa9,
-    0xd4, 0xb5, 0xa7, 0x18, 0x35, 0x0c, 0x30, 0x01, 0x18, 0x5d, 0xb7, 0x52, 0xb0, 0x95, 0x13, 0x11,
-    0x71, 0xf1, 0x5b, 0x64, 0x03, 0x80, 0x8c, 0x18, 0xbe, 0xa1, 0x20, 0xf1, 0x86, 0xba, 0x45, 0x6c,
-    0x14, 0x30, 0x02, 0x19, 0x00, 0xc5, 0x0d, 0xcf, 0x26, 0x02, 0x80, 0x11, 0x8c, 0x51, 0x3a, 0xbd,
-    0x95, 0x95, 0x76, 0x94, 0x77, 0xc9, 0x46, 0xff, 0xed, 0xc0, 0xa0, 0x3d, 0xbd, 0x18, 0x18
-};
-
-const uint16_t gTestDeviceCertLength = sizeof(gTestDeviceCert);
-
-const uint8_t gTestDevicePrivateKey[] =
-{
-
-    /*
-    -----BEGIN EC PRIVATE KEY-----
-    MGgCAQEEHKmH22bJe2mLomgimLLt70dguW98M6EsKajVuO6gBwYFK4EEACGhPAM6
-    AATvZ51TDJn/nXJCsfm2YCCOJZ81cvCj54PmVhST+WhFZYskMV6HjGQ1JYcZA5nN
-    RaEk+nYLEp45fg==
-    -----END EC PRIVATE KEY-----
-    */
-
-    0xd5, 0x00, 0x00, 0x04, 0x00, 0x02, 0x00, 0x24, 0x01, 0x25, 0x30, 0x02, 0x1c, 0xa9, 0x87, 0xdb,
-    0x66, 0xc9, 0x7b, 0x69, 0x8b, 0xa2, 0x68, 0x22, 0x98, 0xb2, 0xed, 0xef, 0x47, 0x60, 0xb9, 0x6f,
-    0x7c, 0x33, 0xa1, 0x2c, 0x29, 0xa8, 0xd5, 0xb8, 0xee, 0x30, 0x03, 0x39, 0x04, 0xef, 0x67, 0x9d,
-    0x53, 0x0c, 0x99, 0xff, 0x9d, 0x72, 0x42, 0xb1, 0xf9, 0xb6, 0x60, 0x20, 0x8e, 0x25, 0x9f, 0x35,
-    0x72, 0xf0, 0xa3, 0xe7, 0x83, 0xe6, 0x56, 0x14, 0x93, 0xf9, 0x68, 0x45, 0x65, 0x8b, 0x24, 0x31,
-    0x5e, 0x87, 0x8c, 0x64, 0x35, 0x25, 0x87, 0x19, 0x03, 0x99, 0xcd, 0x45, 0xa1, 0x24, 0xfa, 0x76,
-    0x0b, 0x12, 0x9e, 0x39, 0x7e, 0x18
-};
-
-const uint16_t gTestDevicePrivateKeyLength = sizeof(gTestDevicePrivateKey);
 
 } // unnamed namespace
 } // namespace WeavePlatform

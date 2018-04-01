@@ -136,9 +136,6 @@ WEAVE_ERROR PlatformManager::InitWeaveStack()
     }
     SuccessOrExit(err);
 
-    SecurityMgr.IdleSessionTimeout = 30000; // TODO: make configurable
-    SecurityMgr.SessionEstablishTimeout = 15000; // TODO: make configurable
-
     // Initialize the CASE auth delegate object.
     err = InitCASEAuthDelegate();
     SuccessOrExit(err);
@@ -301,8 +298,7 @@ esp_err_t PlatformManager::HandleESPSystemEvent(void * ctx, system_event_t * esp
 
 WEAVE_ERROR PlatformManager::InitWeaveEventQueue()
 {
-    // TODO: make queue size configurable
-    gWeaveEventQueue = xQueueCreate(100, sizeof(WeavePlatformEvent));
+    gWeaveEventQueue = xQueueCreate(WEAVE_PLATFORM_CONFIG_MAX_EVENT_QUEUE_SIZE, sizeof(WeavePlatformEvent));
     if (gWeaveEventQueue == NULL)
     {
         ESP_LOGE(TAG, "Failed to allocate Weave event queue");

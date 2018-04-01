@@ -7,7 +7,6 @@ namespace WeavePlatform {
 
 class ConfigurationManager
 {
-    friend class PlatformManager;
 
 public:
     enum
@@ -49,14 +48,23 @@ public:
     WEAVE_ERROR GetDeviceDescriptor(nl::Weave::Profiles::DeviceDescription::WeaveDeviceDescriptor& deviceDesc);
     WEAVE_ERROR GetDeviceDescriptorTLV(uint8_t *buf, size_t bufSize, size_t & encodedLen);
 
+    WEAVE_ERROR GetWiFiAPSSID(char * buf, size_t bufSize);
+
     bool IsServiceProvisioned();
 
 private:
-    char mPairingCode[kMaxPairingCodeLength + 1];
+
+    // NOTE: These members are for internal use by the following friend classes.
+
+    friend class PlatformManager;
 
     WEAVE_ERROR Init();
     WEAVE_ERROR ConfigureWeaveStack();
     void OnPlatformEvent(const struct ::WeavePlatform::Internal::WeavePlatformEvent * event);
+
+private:
+
+    char mPairingCode[kMaxPairingCodeLength + 1];
 };
 
 } // namespace WeavePlatform
