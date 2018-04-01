@@ -41,6 +41,7 @@ public:
     void Reset();
     WEAVE_ERROR Decode(::nl::Weave::TLV::TLVReader & reader);
     WEAVE_ERROR Encode(::nl::Weave::TLV::TLVWriter & writer) const;
+    WEAVE_ERROR MergeTo(NetworkInfo & dest);
     static WEAVE_ERROR EncodeArray(nl::Weave::TLV::TLVWriter & writer, const NetworkInfo * elems, size_t count);
 };
 

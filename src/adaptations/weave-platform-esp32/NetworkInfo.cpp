@@ -196,6 +196,47 @@ exit:
     return err;
 }
 
+WEAVE_ERROR NetworkInfo::MergeTo(NetworkInfo & dest)
+{
+    if (NetworkType != kNetworkType_NotSpecified)
+    {
+        dest.NetworkType = NetworkType;
+    }
+    if (NetworkIdPresent)
+    {
+        dest.NetworkId = NetworkId;
+        dest.NetworkIdPresent = true;
+    }
+    if (WiFiSSID[0] != 0)
+    {
+        memcpy(dest.WiFiSSID, WiFiSSID, sizeof(WiFiSSID));
+    }
+    if (WiFiMode != kWiFiMode_NotSpecified)
+    {
+        dest.WiFiMode = WiFiMode;
+    }
+    if (WiFiRole != kWiFiRole_NotSpecified)
+    {
+        dest.WiFiRole = WiFiRole;
+    }
+    if (WiFiSecurityType != kWiFiSecurityType_NotSpecified)
+    {
+        dest.WiFiSecurityType = WiFiSecurityType;
+    }
+    if (WiFiKeyLen != 0)
+    {
+        memcpy(dest.WiFiKey, WiFiKey, WiFiKeyLen);
+        dest.WiFiKeyLen = WiFiKeyLen;
+    }
+    if (WirelessSignalStrength != INT16_MIN)
+    {
+        dest.WirelessSignalStrength = WirelessSignalStrength;
+    }
+
+    return WEAVE_NO_ERROR;
+}
+
+
 WEAVE_ERROR NetworkInfo::EncodeArray(nl::Weave::TLV::TLVWriter & writer, const NetworkInfo * elems, size_t count)
 {
     WEAVE_ERROR err;

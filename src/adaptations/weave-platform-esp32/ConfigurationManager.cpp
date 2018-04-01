@@ -72,6 +72,7 @@ WEAVE_ERROR StoreNVS(const char * ns, const char * name, uint64_t val);
 WEAVE_ERROR ClearNVSKey(const char * ns, const char * name);
 WEAVE_ERROR ClearNVSNamespace(const char * ns);
 WEAVE_ERROR GetNVSBlobLength(const char * ns, const char * name, size_t & outLen);
+WEAVE_ERROR EnsureNamespace(const char * ns);
 
 } // unnamed namespace
 
@@ -476,31 +477,19 @@ bool ConfigurationManager::IsServiceProvisioned()
 WEAVE_ERROR ConfigurationManager::Init()
 {
     WEAVE_ERROR err;
-    nvs_handle handle;
-    bool needClose = false;
 
-    // Force initialization of weave NVS namespace if it doesn't already exist.
-    err = nvs_open(gNVSNamespace_Weave, NVS_READONLY, &handle);
-    if (err == ESP_ERR_NVS_NOT_FOUND)
-    {
-        err = nvs_open(gNVSNamespace_Weave, NVS_READWRITE, &handle);
-        SuccessOrExit(err);
-        needClose = true;
-
-        err = nvs_commit(handle);
-        SuccessOrExit(err);
-    }
+    // Force initialization of weave NVS namespaces if they doesn't already exist.
+    err = EnsureNamespace(gNVSNamespace_Weave);
     SuccessOrExit(err);
-    needClose = true;
+    err = EnsureNamespace(gNVSNamespace_WeaveCounters);
+    SuccessOrExit(err);
+    err = EnsureNamespace(gNVSNamespace_WeaveGroupKeys);
+    SuccessOrExit(err);
 
     // Force initialization of the global GroupKeyStore object.
     new ((void *)&gGroupKeyStore) GroupKeyStore();
 
 exit:
-    if (needClose)
-    {
-        nvs_close(handle);
-    }
     return err;
 }
 
@@ -695,7 +684,6 @@ WEAVE_ERROR GroupKeyStore::StoreLastUsedEpochKeyId(void)
 {
     return StoreNVS(gNVSNamespace_WeaveGroupKeys, gNVSKeyName_LastUsedEpochKeyId, LastUsedEpochKeyId);
 }
-
 
 // ==================== Utility Functions for accessing ESP NVS ====================
 
@@ -1022,6 +1010,34 @@ exit:
     return err;
 }
 
+WEAVE_ERROR EnsureNamespace(const char * ns)
+{
+    WEAVE_ERROR err;
+    nvs_handle handle;
+    bool needClose = false;
+
+    err = nvs_open(ns, NVS_READONLY, &handle);
+    if (err == ESP_ERR_NVS_NOT_FOUND)
+    {
+        err = nvs_open(ns, NVS_READWRITE, &handle);
+        SuccessOrExit(err);
+        needClose = true;
+
+        err = nvs_commit(handle);
+        SuccessOrExit(err);
+    }
+    SuccessOrExit(err);
+    needClose = true;
+
+exit:
+    if (needClose)
+    {
+        nvs_close(handle);
+    }
+    return err;
+}
+
+// ==================== Test Device Credentials ====================
 
 const uint64_t gTestDeviceId = 0x18B4300000000001ULL;
 
@@ -1084,7 +1100,6 @@ const uint16_t gTestDevicePrivateKeyLength = sizeof(gTestDevicePrivateKey);
 
 } // unnamed namespace
 } // namespace WeavePlatform
-
 
 namespace nl {
 namespace Weave {

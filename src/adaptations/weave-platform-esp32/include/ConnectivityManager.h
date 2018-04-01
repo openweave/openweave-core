@@ -83,13 +83,16 @@ private:
         virtual WEAVE_ERROR HandleTestConnectivity(uint32_t networkId);
         virtual WEAVE_ERROR HandleSetRendezvousMode(uint16_t rendezvousMode);
 
+        void StartPendingScan();
         void HandleScanDone();
 
     private:
+        WEAVE_ERROR GetWiFiStationProvision(::WeavePlatform::Internal::NetworkInfo & netInfo, bool includeCredentials);
         WEAVE_ERROR ValidateWiFiStationProvision(const ::WeavePlatform::Internal::NetworkInfo & netInfo,
                         uint32_t & statusProfileId, uint16_t & statusCode);
         WEAVE_ERROR SetESPStationConfig(const ::WeavePlatform::Internal::NetworkInfo & netInfo);
         bool RejectIfApplicationControlled(bool station);
+        static void HandleScanTimeOut(::nl::Weave::System::Layer * aLayer, void * aAppState, ::nl::Weave::System::Error aError);
     };
 
     enum WiFiStationState

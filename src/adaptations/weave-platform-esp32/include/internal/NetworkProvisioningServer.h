@@ -15,7 +15,7 @@ public:
 
     WEAVE_ERROR Init();
 
-    uint8_t GetCurrentOp() const;
+    int16_t GetCurrentOp() const;
 
     virtual bool IsPairedToAccount() const;
 
@@ -24,9 +24,9 @@ public:
 
 extern NetworkProvisioningServer NetworkProvisioningSvr;
 
-inline uint8_t NetworkProvisioningServer::GetCurrentOp() const
+inline int16_t NetworkProvisioningServer::GetCurrentOp() const
 {
-    return mCurOpType;
+    return (mCurOp != NULL) ? mCurOpType : -1;
 }
 
 } // namespace Internal
