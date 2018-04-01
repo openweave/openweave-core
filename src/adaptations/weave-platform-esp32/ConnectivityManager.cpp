@@ -36,38 +36,43 @@ extern int OrderESPScanResultsByRSSI(const void * _res1, const void * _res2);
 
 // ==================== ConnectivityManager Public Methods ====================
 
-ConnectivityManager::WiFiStationMode ConnectivityManager::GetWiFiStationMode(void) const
+ConnectivityManager::WiFiStationMode ConnectivityManager::GetWiFiStationMode(void)
 {
-    bool autoConnect;
-    return (esp_wifi_get_auto_connect(&autoConnect) == ESP_OK && autoConnect)
+    if (mWiFiStationMode != kWiFiStationMode_ApplicationControlled)
+    {
+        bool autoConnect;
+        mWiFiStationMode = (esp_wifi_get_auto_connect(&autoConnect) == ESP_OK && autoConnect)
             ? kWiFiStationMode_Enabled : kWiFiStationMode_Disabled;
+    }
+    return mWiFiStationMode;
 }
 
-bool ConnectivityManager::IsWiFiStationEnabled(void) const
+bool ConnectivityManager::IsWiFiStationEnabled(void)
 {
     return GetWiFiStationMode() == kWiFiStationMode_Enabled;
 }
 
 WEAVE_ERROR ConnectivityManager::SetWiFiStationMode(WiFiStationMode val)
 {
-    esp_err_t err;
-    bool autoConnect;
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
 
-    VerifyOrExit(val == kWiFiStationMode_Enabled || val == kWiFiStationMode_Disabled, err = WEAVE_ERROR_INVALID_ARGUMENT);
+    VerifyOrExit(val != kWiFiStationMode_NotSupported, err = WEAVE_ERROR_INVALID_ARGUMENT);
 
-    err = esp_wifi_get_auto_connect(&autoConnect);
-    SuccessOrExit(err);
-
-    if (autoConnect != (val == kWiFiStationMode_Enabled))
+    if (val != kWiFiStationMode_ApplicationControlled)
     {
-        autoConnect = (val == kWiFiStationMode_Enabled);
-        err = esp_wifi_set_auto_connect(val);
+        bool autoConnect = (val == kWiFiStationMode_Enabled);
+        err = esp_wifi_set_auto_connect(autoConnect);
         SuccessOrExit(err);
-
-        ESP_LOGI(TAG, "WiFi station interface %s", (autoConnect) ? "enabled" : "disabled");
 
         SystemLayer.ScheduleWork(DriveStationState, NULL);
     }
+
+    if (mWiFiStationMode != val)
+    {
+        ESP_LOGI(TAG, "Changing WiFi station mode: %s -> %s", WiFiStationModeToStr(mWiFiStationMode), WiFiStationModeToStr(val));
+    }
+
+    mWiFiStationMode = val;
 
 exit:
     return err;
@@ -81,12 +86,15 @@ bool ConnectivityManager::IsWiFiStationProvisioned(void) const
 
 void ConnectivityManager::ClearWiFiStationProvision(void)
 {
-    wifi_config_t stationConfig;
+    if (mWiFiStationMode != kWiFiStationMode_ApplicationControlled)
+    {
+        wifi_config_t stationConfig;
 
-    memset(&stationConfig, 0, sizeof(stationConfig));
-    esp_wifi_set_config(ESP_IF_WIFI_STA, &stationConfig);
+        memset(&stationConfig, 0, sizeof(stationConfig));
+        esp_wifi_set_config(ESP_IF_WIFI_STA, &stationConfig);
 
-    SystemLayer.ScheduleWork(DriveStationState, NULL);
+        SystemLayer.ScheduleWork(DriveStationState, NULL);
+    }
 }
 
 uint32_t ConnectivityManager::GetWiFiStationNetworkId(void) const
@@ -98,11 +106,12 @@ WEAVE_ERROR ConnectivityManager::SetWiFiAPMode(WiFiAPMode val)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
 
-    VerifyOrExit(val == kWiFiAPMode_Disabled ||
-                 val == kWiFiAPMode_Enabled ||
-                 val == kWiFiAPMode_OnDemand ||
-                 val == kWiFiAPMode_OnDemand_NoStationProvision,
-                 err = WEAVE_ERROR_INVALID_ARGUMENT);
+    VerifyOrExit(val != kWiFiAPMode_NotSupported, err = WEAVE_ERROR_INVALID_ARGUMENT);
+
+    if (mWiFiAPMode != val)
+    {
+        ESP_LOGI(TAG, "Changing WiFi AP mode: %s -> %s", WiFiAPModeToStr(mWiFiAPMode), WiFiAPModeToStr(val));
+    }
 
     mWiFiAPMode = val;
 
@@ -137,7 +146,7 @@ void ConnectivityManager::MaintainOnDemandWiFiAP(void)
     if (mWiFiAPMode == kWiFiAPMode_OnDemand ||
         mWiFiAPMode == kWiFiAPMode_OnDemand_NoStationProvision)
     {
-        if (mWiFiAPState == kWiFiAPState_Started || mWiFiAPState == kWiFiAPState_Starting)
+        if (mWiFiAPState == kWiFiAPState_Activating || mWiFiAPState == kWiFiAPState_Active)
         {
             mLastAPDemandTime = SystemLayer.GetSystemTimeMS();
         }
@@ -156,11 +165,12 @@ WEAVE_ERROR ConnectivityManager::Init()
 {
     WEAVE_ERROR err;
 
-    mLastStationConnectTime = 0;
+    mLastStationConnectFailTime = 0;
     mLastAPDemandTime = 0;
+    mWiFiStationMode = kWiFiStationMode_Disabled;
     mWiFiStationState = kWiFiStationState_Disabled;
     mWiFiAPMode = kWiFiAPMode_Disabled;
-    mWiFiAPState = kWiFiAPState_Stopped;
+    mWiFiAPState = kWiFiAPState_NotActive;
     mWiFiStationReconnectIntervalMS = 5000; // TODO: make configurable
     mWiFiAPTimeoutMS = 30000; // TODO: make configurable
     mScanInProgress = false;
@@ -200,6 +210,8 @@ WEAVE_ERROR ConnectivityManager::Init()
             {
                 ESP_LOGE(TAG, "esp_wifi_set_auto_connect() failed: %s", nl::ErrorStr(err));
             }
+
+            mWiFiStationMode = kWiFiStationMode_Enabled;
         }
 
         // Otherwise, ensure WiFi station mode is disabled.
@@ -251,10 +263,18 @@ void ConnectivityManager::OnPlatformEvent(const struct WeavePlatformEvent * even
             break;
         case SYSTEM_EVENT_STA_CONNECTED:
             ESP_LOGI(TAG, "SYSTEM_EVENT_STA_CONNECTED");
+            if (mWiFiStationState == kWiFiStationState_Connecting)
+            {
+                ChangeWiFiStationState(kWiFiStationState_Connecting_Succeeded);
+            }
             DriveStationState();
             break;
         case SYSTEM_EVENT_STA_DISCONNECTED:
             ESP_LOGI(TAG, "SYSTEM_EVENT_STA_DISCONNECTED");
+            if (mWiFiStationState == kWiFiStationState_Connecting)
+            {
+                ChangeWiFiStationState(kWiFiStationState_Connecting_Failed);
+            }
             DriveStationState();
             break;
         case SYSTEM_EVENT_STA_STOP:
@@ -287,18 +307,12 @@ void ConnectivityManager::OnPlatformEvent(const struct WeavePlatformEvent * even
             break;
         case SYSTEM_EVENT_AP_START:
             ESP_LOGI(TAG, "SYSTEM_EVENT_AP_START");
-            if (mWiFiAPState == kWiFiAPState_Starting)
-            {
-                mWiFiAPState = kWiFiAPState_Started;
-            }
+            ChangeWiFiAPState(kWiFiAPState_Active);
             DriveAPState();
             break;
         case SYSTEM_EVENT_AP_STOP:
             ESP_LOGI(TAG, "SYSTEM_EVENT_AP_STOP");
-            if (mWiFiAPState == kWiFiAPState_Stopping)
-            {
-                mWiFiAPState = kWiFiAPState_Stopped;
-            }
+            ChangeWiFiAPState(kWiFiAPState_NotActive);
             DriveAPState();
             break;
         case SYSTEM_EVENT_AP_STACONNECTED:
@@ -320,73 +334,106 @@ void ConnectivityManager::OnPlatformEvent(const struct WeavePlatformEvent * even
 void ConnectivityManager::DriveStationState()
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
-    WiFiStationState curState;
+    bool espSTAModeEnabled, stationConnected;
 
-    // Determine the current state of the WiFi station interface.
+    // Refresh the cached station mode.
+    GetWiFiStationMode();
+
+    // Determine if STA mode is enabled in the ESP wifi layer.  If so, determine whether the station is
+    // currently connected to an AP.
     {
         wifi_mode_t wifiMode;
-        if (esp_wifi_get_mode(&wifiMode) == ESP_OK && (wifiMode == WIFI_MODE_STA || wifiMode == WIFI_MODE_APSTA))
-        {
-            wifi_ap_record_t apInfo;
-            // Determine if the station is currently connected to an AP.
-            if (esp_wifi_sta_get_ap_info(&apInfo) == ESP_OK)
-            {
-                curState = kWiFiStationState_Connected;
-            }
-            else
-            {
-                curState = kWiFiStationState_NotConnected;
-            }
-        }
-        else
-        {
-            curState = kWiFiStationState_Disabled;
-        }
+        wifi_ap_record_t apInfo;
+        espSTAModeEnabled = (esp_wifi_get_mode(&wifiMode) == ESP_OK && (wifiMode == WIFI_MODE_STA || wifiMode == WIFI_MODE_APSTA));
+        stationConnected = (espSTAModeEnabled && esp_wifi_sta_get_ap_info(&apInfo) == ESP_OK);
     }
 
-    // If the station state has changed...
-    if (curState != mWiFiStationState)
+    // If STA mode is not enabled at the ESP wifi layer, enable it now, unless the WiFi station mode
+    // is currently under application control.  Either way, wait until STA mode is enabled before
+    // proceeding.
+    if (!espSTAModeEnabled)
     {
-        // Handle a transition to the Connected state.
-        if (curState == kWiFiStationState_Connected)
+        if (mWiFiStationMode != kWiFiStationMode_ApplicationControlled)
         {
+            ChangeWiFiStationState(kWiFiStationState_Enabling);
+            err = ChangeESPWiFiMode(ESP_IF_WIFI_STA, true);
+            SuccessOrExit(err);
+        }
+        ExitNow();
+    }
+
+    // Advance the station state to NotConnected if it was previously Disabled or Enabling.
+    if (mWiFiStationState == kWiFiStationState_Disabled ||
+        mWiFiStationState == kWiFiStationState_Enabling)
+    {
+        ChangeWiFiStationState(kWiFiStationState_NotConnected);
+    }
+
+    // If the station interface is currently connected to an AP...
+    if (stationConnected)
+    {
+        // Advance the station state to Connected if it was previously NotConnected or
+        // a previously initiated connect attempt succeeded.
+        if (mWiFiStationState == kWiFiStationState_NotConnected ||
+            mWiFiStationState == kWiFiStationState_Connecting_Succeeded)
+        {
+            ChangeWiFiStationState(kWiFiStationState_Connected);
             ESP_LOGI(TAG, "WiFi station interface connected");
+            mLastStationConnectFailTime = 0;
             OnStationConnected();
         }
 
-        // Handle a transition FROM the Connected state to Disconnected or Disabled.
-        else if (mWiFiStationState == kWiFiStationState_Connected)
+        // If the WiFi station interface is no longer enabled, or no longer provisioned,
+        // disconnect the station from the AP, unless the WiFi station mode is currently
+        // under application control.
+        if (mWiFiStationMode != kWiFiStationMode_ApplicationControlled &&
+            (mWiFiStationMode != kWiFiStationMode_Enabled || !IsWiFiStationProvisioned()))
         {
-            ESP_LOGI(TAG, "WiFi station interface disconnected");
-            mLastStationConnectTime = 0;
-            OnStationDisconnected();
+            ESP_LOGI(TAG, "Disconnecting WiFi station interface");
+            err = esp_wifi_disconnect();
+            if (err != ESP_OK)
+            {
+                ESP_LOGE(TAG, "esp_wifi_disconnect() failed: %s", nl::ErrorStr(err));
+            }
+            SuccessOrExit(err);
+
+            ChangeWiFiStationState(kWiFiStationState_Disconnecting);
+        }
+    }
+
+    // Otherwise the station interface is NOT connected to an AP, so...
+    else
+    {
+        uint64_t now = SystemLayer.GetSystemTimeMS();
+
+        // Advance the station state to NotConnected if it was previously Connected or Disconnecting,
+        // or if a previous initiated connect attempt failed.
+        if (mWiFiStationState == kWiFiStationState_Connected ||
+            mWiFiStationState == kWiFiStationState_Disconnecting ||
+            mWiFiStationState == kWiFiStationState_Connecting_Failed)
+        {
+            WiFiStationState prevState = mWiFiStationState;
+            ChangeWiFiStationState(kWiFiStationState_NotConnected);
+            if (prevState != kWiFiStationState_Connecting_Failed)
+            {
+                ESP_LOGI(TAG, "WiFi station interface disconnected");
+                mLastStationConnectFailTime = 0;
+                OnStationDisconnected();
+            }
+            else
+            {
+                mLastStationConnectFailTime = now;
+            }
         }
 
-        mWiFiStationState = curState;
-    }
-
-    // If ESP station mode is currently disabled, enable it.
-    if (mWiFiStationState == kWiFiStationState_Disabled)
-    {
-        err = ChangeESPWiFiMode(ESP_IF_WIFI_STA, true);
-        SuccessOrExit(err);
-    }
-
-    // Otherwise ESP station mode is currently enables, so...
-    // if station mode is enabled at the Weave level and a station provision exists...
-    else if (IsWiFiStationEnabled() && IsWiFiStationProvisioned())
-    {
-        // If the station is not presently connected to an AP...
-        if (mWiFiStationState == kWiFiStationState_NotConnected)
+        // If the WiFi station interface is now enabled and provisioned (and by implication,
+        // not presently under application control) ...
+        if (mWiFiStationMode == kWiFiStationMode_Enabled && IsWiFiStationProvisioned())
         {
-            uint64_t now = SystemLayer.GetSystemTimeMS();
-
             // Initiate a connection to the AP if we haven't done so before, or if enough
             // time has passed since the last attempt.
-            if (mLastStationConnectTime == 0 || now >= mLastStationConnectTime + mWiFiStationReconnectIntervalMS)
+            if (mLastStationConnectFailTime == 0 || now >= mLastStationConnectFailTime + mWiFiStationReconnectIntervalMS)
             {
-                mLastStationConnectTime = now;
-
                 ESP_LOGI(TAG, "Attempting to connect WiFi station interface");
                 err = esp_wifi_connect();
                 if (err != ESP_OK)
@@ -394,12 +441,14 @@ void ConnectivityManager::DriveStationState()
                     ESP_LOGE(TAG, "esp_wifi_connect() failed: %s", nl::ErrorStr(err));
                 }
                 SuccessOrExit(err);
+
+                ChangeWiFiStationState(kWiFiStationState_Connecting);
             }
 
             // Otherwise arrange another connection attempt at a suitable point in the future.
             else
             {
-                uint32_t timeToNextConnect = (uint32_t)((mLastStationConnectTime + mWiFiStationReconnectIntervalMS) - now);
+                uint32_t timeToNextConnect = (uint32_t)((mLastStationConnectFailTime + mWiFiStationReconnectIntervalMS) - now);
 
                 ESP_LOGI(TAG, "Next WiFi station reconnect in %" PRIu32 " ms", timeToNextConnect);
 
@@ -409,24 +458,8 @@ void ConnectivityManager::DriveStationState()
         }
     }
 
-    // Otherwise station mode is DISABLED at the Weave level or no station provision exists, so...
-    else
-    {
-        // If the station is currently connected to an AP, disconnect now.
-        if (mWiFiStationState == kWiFiStationState_Connected)
-        {
-            ESP_LOGI(TAG, "Disconnecting WiFi station interface");
-            err = esp_wifi_disconnect();
-            if (err != ESP_OK)
-            {
-                ESP_LOGE(TAG, "esp_wifi_disconnect() failed: %s", nl::ErrorStr(err));
-            }
-            SuccessOrExit(err);
-        }
-    }
-
 exit:
-    if (err != WEAVE_NO_ERROR)
+    if (err != WEAVE_NO_ERROR && mWiFiStationMode != kWiFiStationMode_ApplicationControlled)
     {
         SetWiFiStationMode(kWiFiStationMode_Disabled);
     }
@@ -440,17 +473,18 @@ void ConnectivityManager::DriveAPState()
 
     if (mWiFiAPMode == kWiFiAPMode_Disabled)
     {
-        targetState = kWiFiAPState_Stopped;
+        targetState = kWiFiAPState_NotActive;
     }
 
     else if (mWiFiAPMode == kWiFiAPMode_Enabled)
     {
-        targetState = kWiFiAPState_Started;
+        targetState = kWiFiAPState_Active;
     }
 
-    else if (mWiFiAPMode == kWiFiAPMode_OnDemand_NoStationProvision && !IsWiFiStationProvisioned())
+    else if (mWiFiAPMode == kWiFiAPMode_OnDemand_NoStationProvision &&
+             (!IsWiFiStationProvisioned() || GetWiFiStationMode() == kWiFiStationMode_Disabled))
     {
-        targetState = kWiFiAPState_Started;
+        targetState = kWiFiAPState_Active;
     }
 
     else if (mWiFiAPMode == kWiFiAPMode_OnDemand ||
@@ -460,54 +494,42 @@ void ConnectivityManager::DriveAPState()
 
         if (mLastAPDemandTime != 0 && now < (mLastAPDemandTime + mWiFiAPTimeoutMS))
         {
-            targetState = kWiFiAPState_Started;
+            targetState = kWiFiAPState_Active;
             apTimeout = (uint32_t)((mLastAPDemandTime + mWiFiAPTimeoutMS) - now);
         }
         else
         {
-            targetState = kWiFiAPState_Stopped;
+            targetState = kWiFiAPState_NotActive;
         }
     }
     else
     {
-        targetState = kWiFiAPState_Stopped;
+        targetState = kWiFiAPState_NotActive;
     }
 
-    if (mWiFiAPState != targetState)
+    if (mWiFiAPState != targetState && mWiFiAPMode != kWiFiAPMode_ApplicationControlled)
     {
-        if (targetState == kWiFiAPState_Started)
+        if (targetState == kWiFiAPState_Active)
         {
-            wifi_config_t wifiConfig;
-
-            err = ChangeESPWiFiMode(ESP_IF_WIFI_AP, true);
-            SuccessOrExit(err);
-
-            memset(&wifiConfig, 0, sizeof(wifiConfig));
-            strcpy((char *)wifiConfig.ap.ssid, "ESP-TEST");
-            wifiConfig.ap.channel = 1;
-            wifiConfig.ap.authmode = WIFI_AUTH_OPEN;
-            wifiConfig.ap.max_connection = 4;
-            wifiConfig.ap.beacon_interval = 100;
-            err = esp_wifi_set_config(ESP_IF_WIFI_AP, &wifiConfig);
-            if (err != ESP_OK)
+            if (mWiFiAPState != kWiFiAPState_Activating)
             {
-                ESP_LOGE(TAG, "esp_wifi_set_config(ESP_IF_WIFI_AP) failed: %s", nl::ErrorStr(err));
-            }
-            SuccessOrExit(err);
+                err = ChangeESPWiFiMode(ESP_IF_WIFI_AP, true);
+                SuccessOrExit(err);
 
-            if (mWiFiAPState == kWiFiAPState_Stopped)
-            {
-                mWiFiAPState = kWiFiAPState_Starting;
+                err = ConfigureWiFiAP();
+                SuccessOrExit(err);
+
+                ChangeWiFiAPState(kWiFiAPState_Activating);
             }
         }
         else
         {
-            err = ChangeESPWiFiMode(ESP_IF_WIFI_AP, false);
-            SuccessOrExit(err);
-
-            if (mWiFiAPState == kWiFiAPState_Started)
+            if (mWiFiAPState != kWiFiAPState_Deactivating)
             {
-                mWiFiAPState = kWiFiAPState_Stopping;
+                err = ChangeESPWiFiMode(ESP_IF_WIFI_AP, false);
+                SuccessOrExit(err);
+
+                ChangeWiFiAPState(kWiFiAPState_Deactivating);
             }
         }
     }
@@ -527,6 +549,28 @@ exit:
     }
 }
 
+WEAVE_ERROR ConnectivityManager::ConfigureWiFiAP()
+{
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
+    wifi_config_t wifiConfig;
+
+    memset(&wifiConfig, 0, sizeof(wifiConfig));
+    strcpy((char *)wifiConfig.ap.ssid, "ESP-TEST"); // TODO: derive from node id / MAC address
+    wifiConfig.ap.channel = 1;
+    wifiConfig.ap.authmode = WIFI_AUTH_OPEN;
+    wifiConfig.ap.max_connection = 4;
+    wifiConfig.ap.beacon_interval = 100;
+    err = esp_wifi_set_config(ESP_IF_WIFI_AP, &wifiConfig);
+    if (err != ESP_OK)
+    {
+        ESP_LOGE(TAG, "esp_wifi_set_config(ESP_IF_WIFI_AP) failed: %s", nl::ErrorStr(err));
+    }
+    SuccessOrExit(err);
+
+exit:
+    return err;
+}
+
 void ConnectivityManager::OnStationConnected()
 {
     // TODO: alert other subsystems of connected state
@@ -538,6 +582,104 @@ void ConnectivityManager::OnStationConnected()
 void ConnectivityManager::OnStationDisconnected()
 {
     // TODO: alert other subsystems of disconnected state
+}
+
+void ConnectivityManager::ChangeWiFiStationState(WiFiStationState newState)
+{
+    if (mWiFiStationState != newState)
+    {
+        ESP_LOGI(TAG, "Changing WiFi station state: %s -> %s", WiFiStationStateToStr(mWiFiStationState), WiFiStationStateToStr(newState));
+    }
+    mWiFiStationState = newState;
+}
+
+void ConnectivityManager::ChangeWiFiAPState(WiFiAPState newState)
+{
+    if (mWiFiAPState != newState)
+    {
+        ESP_LOGI(TAG, "Changing WiFi AP state: %s -> %s", WiFiAPStateToStr(mWiFiAPState), WiFiAPStateToStr(newState));
+    }
+    mWiFiAPState = newState;
+}
+
+const char * ConnectivityManager::WiFiStationModeToStr(WiFiStationMode mode)
+{
+    switch (mode)
+    {
+    case kWiFiStationMode_NotSupported:
+        return "NotSupported";
+    case kWiFiStationMode_ApplicationControlled:
+        return "AppControlled";
+    case kWiFiStationMode_Enabled:
+        return "Enabled";
+    case kWiFiStationMode_Disabled:
+        return "Disabled";
+    default:
+        return "(unknown)";
+    }
+}
+
+const char * ConnectivityManager::WiFiStationStateToStr(WiFiStationState state)
+{
+    switch (state)
+    {
+    case kWiFiStationState_Disabled:
+        return "Disabled";
+    case kWiFiStationState_Enabling:
+        return "Enabling";
+    case kWiFiStationState_NotConnected:
+        return "NotConnected";
+    case kWiFiStationState_Connecting:
+        return "Connecting";
+    case kWiFiStationState_Connecting_Succeeded:
+        return "Connecting_Succeeded";
+    case kWiFiStationState_Connecting_Failed:
+        return "Connecting_Failed";
+    case kWiFiStationState_Connected:
+        return "Connected";
+    case kWiFiStationState_Disconnecting:
+        return "Disconnecting";
+    default:
+        return "(unknown)";
+    }
+}
+
+const char * ConnectivityManager::WiFiAPModeToStr(WiFiAPMode mode)
+{
+    switch (mode)
+    {
+    case kWiFiAPMode_NotSupported:
+        return "NotSupported";
+    case kWiFiAPMode_ApplicationControlled:
+        return "AppControlled";
+    case kWiFiAPMode_Disabled:
+        return "Disabled";
+    case kWiFiAPMode_Enabled:
+        return "Enabled";
+    case kWiFiAPMode_OnDemand:
+        return "OnDemand";
+    case kWiFiAPMode_OnDemand_NoStationProvision:
+        return "OnDemand_NoStationProvision";
+    default:
+        return "(unknown)";
+    }
+}
+
+const char * ConnectivityManager::WiFiAPStateToStr(WiFiAPState state)
+{
+    switch (state)
+    {
+    case kWiFiAPState_NotActive:
+        return "NotActive";
+    case kWiFiAPState_Activating:
+        return "Activating";
+    case kWiFiAPState_Active:
+        return "Active";
+    case kWiFiAPState_Deactivating:
+        return "Deactivating";
+    default:
+        return "(unknown)";
+    }
 }
 
 void ConnectivityManager::DriveStationState(nl::Weave::System::Layer * aLayer, void * aAppState, nl::Weave::System::Error aError)
@@ -556,6 +698,12 @@ WEAVE_ERROR ConnectivityManager::NetworkProvisioningDelegate::HandleScanNetworks
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
     wifi_scan_config_t scanConfig;
+
+    // Reject the request if the application is currently in control of the WiFi station.
+    if (RejectIfApplicationControlled(true))
+    {
+        ExitNow();
+    }
 
     // Verify the expected network type.
     if (networkType != kNetworkType_WiFi)
@@ -606,6 +754,12 @@ WEAVE_ERROR ConnectivityManager::NetworkProvisioningDelegate::HandleAddNetwork(P
     PacketBuffer::Free(networkInfoTLV);
     networkInfoTLV = NULL;
 
+    // Reject the request if the application is currently in control of the WiFi station.
+    if (RejectIfApplicationControlled(true))
+    {
+        ExitNow();
+    }
+
     // Delegate to the ConnectivityManager to check the validity of the new WiFi station provision.
     // If the new provision is not acceptable, respond to the requestor with an appropriate
     // StatusReport.
@@ -652,6 +806,12 @@ WEAVE_ERROR ConnectivityManager::NetworkProvisioningDelegate::HandleUpdateNetwor
     // Discard the request buffer.
     PacketBuffer::Free(networkInfoTLV);
     networkInfoTLV = NULL;
+
+    // Reject the request if the application is currently in control of the WiFi station.
+    if (RejectIfApplicationControlled(true))
+    {
+        ExitNow();
+    }
 
     // If the network id field isn't present, immediately reply with an error.
     if (!netInfo.NetworkIdPresent)
@@ -704,6 +864,12 @@ WEAVE_ERROR ConnectivityManager::NetworkProvisioningDelegate::HandleRemoveNetwor
     WEAVE_ERROR err = WEAVE_NO_ERROR;
     wifi_config_t stationConfig;
 
+    // Reject the request if the application is currently in control of the WiFi station.
+    if (RejectIfApplicationControlled(true))
+    {
+        ExitNow();
+    }
+
     // Verify that the specified network exists.
     if (!ConnectivityMgr.IsWiFiStationProvisioned() || networkId != kWiFiStationNetworkId)
     {
@@ -735,6 +901,12 @@ WEAVE_ERROR ConnectivityManager::NetworkProvisioningDelegate::HandleGetNetworks(
     PacketBuffer * respBuf = NULL;
     TLVWriter writer;
 
+    // Reject the request if the application is currently in control of the WiFi station.
+    if (RejectIfApplicationControlled(true))
+    {
+        ExitNow();
+    }
+
     respBuf = PacketBuffer::New();
     VerifyOrExit(respBuf != NULL, err = WEAVE_ERROR_NO_MEMORY);
 
@@ -752,7 +924,6 @@ WEAVE_ERROR ConnectivityManager::NetworkProvisioningDelegate::HandleGetNetworks(
         memcpy(netInfo.WiFiSSID, stationConfig.sta.ssid, min(strlen((char *)stationConfig.sta.ssid) + 1, sizeof(netInfo.WiFiSSID)));
         netInfo.WiFiMode = kWiFiMode_Managed;
         netInfo.WiFiRole = kWiFiRole_Station;
-        printf("stationConfig.sta.threshold.authmode = %d\n", (int)stationConfig.sta.threshold.authmode);
         // TODO: this is broken
         switch (stationConfig.sta.threshold.authmode)
         {
@@ -778,10 +949,11 @@ WEAVE_ERROR ConnectivityManager::NetworkProvisioningDelegate::HandleGetNetworks(
             netInfo.WiFiSecurityType = kWiFiSecurityType_NotSpecified;
             break;
         }
-        netInfo.WiFiKeyLen = min(strlen((char *)stationConfig.sta.password), sizeof(netInfo.WiFiKey));
-        memcpy(netInfo.WiFiKey, stationConfig.sta.password, netInfo.WiFiKeyLen);
-
-        // TODO: include password is requested.
+        if ((flags & kGetNetwork_IncludeCredentials) != 0)
+        {
+            netInfo.WiFiKeyLen = min(strlen((char *)stationConfig.sta.password), sizeof(netInfo.WiFiKey));
+            memcpy(netInfo.WiFiKey, stationConfig.sta.password, netInfo.WiFiKeyLen);
+        }
 
         err = NetworkInfo::EncodeArray(writer, &netInfo, 1);
         SuccessOrExit(err);
@@ -808,6 +980,12 @@ WEAVE_ERROR ConnectivityManager::NetworkProvisioningDelegate::HandleEnableNetwor
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
 
+    // Reject the request if the application is currently in control of the WiFi station.
+    if (RejectIfApplicationControlled(true))
+    {
+        ExitNow();
+    }
+
     // Verify that the specified network exists.
     if (!ConnectivityMgr.IsWiFiStationProvisioned() || networkId != kWiFiStationNetworkId)
     {
@@ -833,6 +1011,12 @@ exit:
 WEAVE_ERROR ConnectivityManager::NetworkProvisioningDelegate::HandleDisableNetwork(uint32_t networkId)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
+
+    // Reject the request if the application is currently in control of the WiFi station.
+    if (RejectIfApplicationControlled(true))
+    {
+        ExitNow();
+    }
 
     // Verify that the specified network exists.
     if (!ConnectivityMgr.IsWiFiStationProvisioned() || networkId != kWiFiStationNetworkId)
@@ -876,6 +1060,12 @@ WEAVE_ERROR ConnectivityManager::NetworkProvisioningDelegate::HandleSetRendezvou
     if ((rendezvousMode & kRendezvousMode_EnableThreadRendezvous) != 0)
     {
         err = NetworkProvisioningSvr.SendStatusReport(kWeaveProfile_NetworkProvisioning, kStatusCode_UnsupportedNetworkType);
+        ExitNow();
+    }
+
+    // Reject the request if the application is currently in control of the WiFi AP.
+    if (RejectIfApplicationControlled(false))
+    {
         ExitNow();
     }
 
@@ -953,15 +1143,12 @@ void ConnectivityManager::NetworkProvisioningDelegate::HandleScanDone()
 
         // Allocate a packet buffer to hold the encoded scan results.
         respBuf = PacketBuffer::New(WEAVE_SYSTEM_CONFIG_HEADER_RESERVE_SIZE + 32);
-        if (respBuf == NULL)
-            printf("PacketBuffer::New() failed\n");
         VerifyOrExit(respBuf != NULL, err = WEAVE_ERROR_NO_MEMORY);
 
         // Encode the list of scan results into the response buffer.  If the encoded size of all
         // the results exceeds the size of the buffer, encode only what will fit.
         writer.Init(respBuf, respBuf->AvailableDataLength() - 32);
         err = writer.StartContainer(AnonymousTag, kTLVType_Array, outerContainerType);
-        printf("HandleScanDone() %d error = %d\n", __LINE__, err);
         SuccessOrExit(err);
         for (encodedResultCount = 0; encodedResultCount < scanResultCount; encodedResultCount++)
         {
@@ -985,20 +1172,16 @@ void ConnectivityManager::NetworkProvisioningDelegate::HandleScanDone()
                     break;
                 }
             }
-            printf("HandleScanDone() %d error = %d\n", __LINE__, err);
             SuccessOrExit(err);
         }
         err = writer.EndContainer(outerContainerType);
-        printf("HandleScanDone() %d error = %d\n", __LINE__, err);
         SuccessOrExit(err);
         err = writer.Finalize();
-        printf("HandleScanDone() %d error = %d\n", __LINE__, err);
         SuccessOrExit(err);
 
         // Send the scan results to the requestor.  Note that this method takes ownership of the
         // buffer, success or fail.
         err = NetworkProvisioningSvr.SendNetworkScanComplete(encodedResultCount, respBuf);
-        printf("HandleScanDone() %d error = %d\n", __LINE__, err);
         respBuf = NULL;
         SuccessOrExit(err);
     }
@@ -1007,7 +1190,6 @@ exit:
     PacketBuffer::Free(respBuf);
     if (err != WEAVE_NO_ERROR && NetworkProvisioningSvr.GetCurrentOp() == kMsgType_ScanNetworks)
     {
-        printf("HandleScanDone() %d error = %d\n", __LINE__, err);
         NetworkProvisioningSvr.SendStatusReport(kWeaveProfile_Common, kStatus_InternalError, err);
     }
 }
@@ -1142,7 +1324,6 @@ WEAVE_ERROR ConnectivityManager::NetworkProvisioningDelegate::SetESPStationConfi
         }
     }
     wifiConfig.sta.sort_method = WIFI_CONNECT_AP_BY_SIGNAL;
-    printf("wifiConfig.sta.threshold.authmode = %d\n", (int)wifiConfig.sta.threshold.authmode);
 
     // Configure the ESP WiFi interface.
     err = esp_wifi_set_config(ESP_IF_WIFI_STA, &wifiConfig);
@@ -1152,7 +1333,7 @@ WEAVE_ERROR ConnectivityManager::NetworkProvisioningDelegate::SetESPStationConfi
     }
     SuccessOrExit(err);
 
-    ESP_LOGI(TAG, "WiFi station provision set (SSID: %s)", CONFIG_DEFAULT_WIFI_SSID);
+    ESP_LOGI(TAG, "WiFi station provision set (SSID: %s)", netInfo.WiFiSSID);
 
 exit:
     if (restoreMode)
@@ -1165,6 +1346,22 @@ exit:
     }
     return err;
 }
+
+bool ConnectivityManager::NetworkProvisioningDelegate::RejectIfApplicationControlled(bool station)
+{
+    bool isAppControlled = (station)
+        ? ConnectivityMgr.IsWiFiStationApplicationControlled()
+        : ConnectivityMgr.IsWiFiAPApplicationControlled();
+
+    // Reject the request if the application is currently in control of the WiFi station.
+    if (isAppControlled)
+    {
+        NetworkProvisioningSvr.SendStatusReport(kWeaveProfile_Common, kStatus_NotAvailable);
+    }
+
+    return isAppControlled;
+}
+
 
 // ==================== Local Utility Functions ====================
 

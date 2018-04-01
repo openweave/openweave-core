@@ -17,25 +17,26 @@ public:
 
     enum WiFiStationMode
     {
-        kWiFiStationMode_Disabled                   = 0,
-        kWiFiStationMode_Enabled                    = 1,
-
         kWiFiStationMode_NotSupported               = -1,
+        kWiFiStationMode_ApplicationControlled      = 0,
+        kWiFiStationMode_Disabled                   = 1,
+        kWiFiStationMode_Enabled                    = 2,
     };
 
     enum WiFiAPMode
     {
-        kWiFiAPMode_Disabled                        = 0,
-        kWiFiAPMode_Enabled                         = 1,
-        kWiFiAPMode_OnDemand                        = 2,
-        kWiFiAPMode_OnDemand_NoStationProvision     = 3,
-
         kWiFiAPMode_NotSupported                    = -1,
+        kWiFiAPMode_ApplicationControlled           = 0,
+        kWiFiAPMode_Disabled                        = 1,
+        kWiFiAPMode_Enabled                         = 2,
+        kWiFiAPMode_OnDemand                        = 3,
+        kWiFiAPMode_OnDemand_NoStationProvision     = 4,
     };
 
-    WiFiStationMode GetWiFiStationMode(void) const;
+    WiFiStationMode GetWiFiStationMode(void);
     WEAVE_ERROR SetWiFiStationMode(WiFiStationMode val);
-    bool IsWiFiStationEnabled(void) const;
+    bool IsWiFiStationEnabled(void);
+    bool IsWiFiStationApplicationControlled(void) const;
 
     uint32_t GetWiFiStationReconnectIntervalMS(void) const;
     WEAVE_ERROR SetWiFiStationReconnectIntervalMS(uint32_t val) const;
@@ -46,6 +47,7 @@ public:
 
     WiFiAPMode GetWiFiAPMode(void) const;
     WEAVE_ERROR SetWiFiAPMode(WiFiAPMode val);
+    bool IsWiFiAPApplicationControlled(void) const;
 
     void DemandStartWiFiAP(void);
     void StopOnDemandWiFiAP(void);
@@ -87,26 +89,33 @@ private:
         WEAVE_ERROR ValidateWiFiStationProvision(const ::WeavePlatform::Internal::NetworkInfo & netInfo,
                         uint32_t & statusProfileId, uint16_t & statusCode);
         WEAVE_ERROR SetESPStationConfig(const ::WeavePlatform::Internal::NetworkInfo & netInfo);
+        bool RejectIfApplicationControlled(bool station);
     };
 
     enum WiFiStationState
     {
         kWiFiStationState_Disabled,
+        kWiFiStationState_Enabling,
         kWiFiStationState_NotConnected,
+        kWiFiStationState_Connecting,
+        kWiFiStationState_Connecting_Succeeded,
+        kWiFiStationState_Connecting_Failed,
         kWiFiStationState_Connected,
+        kWiFiStationState_Disconnecting,
     };
 
     enum WiFiAPState
     {
-        kWiFiAPState_Stopped,
-        kWiFiAPState_Starting,
-        kWiFiAPState_Started,
-        kWiFiAPState_Stopping,
+        kWiFiAPState_NotActive,
+        kWiFiAPState_Activating,
+        kWiFiAPState_Active,
+        kWiFiAPState_Deactivating,
     };
 
     NetworkProvisioningDelegate mNetProvDelegate;
-    uint64_t mLastStationConnectTime;
+    uint64_t mLastStationConnectFailTime;
     uint64_t mLastAPDemandTime;
+    WiFiStationMode mWiFiStationMode;
     WiFiStationState mWiFiStationState;
     WiFiAPMode mWiFiAPMode;
     WiFiAPState mWiFiAPState;
@@ -116,12 +125,29 @@ private:
 
     void DriveStationState();
     void DriveAPState();
+    WEAVE_ERROR ConfigureWiFiAP();
     void OnStationConnected(void);
     void OnStationDisconnected(void);
+    void ChangeWiFiStationState(WiFiStationState newState);
+    void ChangeWiFiAPState(WiFiAPState newState);
 
+    static const char * WiFiStationModeToStr(WiFiStationMode mode);
+    static const char * WiFiStationStateToStr(WiFiStationState state);
+    static const char * WiFiAPModeToStr(WiFiAPMode mode);
+    static const char * WiFiAPStateToStr(WiFiAPState state);
     static void DriveStationState(::nl::Weave::System::Layer * aLayer, void * aAppState, ::nl::Weave::System::Error aError);
     static void DriveAPState(::nl::Weave::System::Layer * aLayer, void * aAppState, ::nl::Weave::System::Error aError);
 };
+
+inline bool ConnectivityManager::IsWiFiStationApplicationControlled(void) const
+{
+    return mWiFiStationMode == kWiFiStationMode_ApplicationControlled;
+}
+
+inline bool ConnectivityManager::IsWiFiAPApplicationControlled(void) const
+{
+    return mWiFiAPMode == kWiFiAPMode_ApplicationControlled;
+}
 
 inline uint32_t ConnectivityManager::GetWiFiStationReconnectIntervalMS(void) const
 {
