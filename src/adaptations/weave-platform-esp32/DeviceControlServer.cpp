@@ -29,25 +29,40 @@ exit:
 
 bool DeviceControlServer::ShouldCloseConBeforeResetConfig(uint16_t resetFlags)
 {
-    return false;
+    // Force connection closed on reset to factory defaults.
+    return (resetFlags & kResetConfigFlag_FactoryDefaults) != 0;
 }
 
 WEAVE_ERROR DeviceControlServer::OnResetConfig(uint16_t resetFlags)
 {
-    // TODO: implement this
+    if ((resetFlags & kResetConfigFlag_FactoryDefaults) != 0)
+    {
+        ConfigurationMgr.InitiateFactoryReset();
+    }
+
     return WEAVE_NO_ERROR;
 }
 
 WEAVE_ERROR DeviceControlServer::OnFailSafeArmed(void)
 {
-    // TODO: implement this
-    return WEAVE_NO_ERROR;
+    WEAVE_ERROR err;
+
+    err = ConfigurationMgr.SetFailSafeArmed();
+    SuccessOrExit(err);
+
+exit:
+    return err;
 }
 
 WEAVE_ERROR DeviceControlServer::OnFailSafeDisarmed(void)
 {
-    // TODO: implement this
-    return WEAVE_NO_ERROR;
+    WEAVE_ERROR err;
+
+    err = ConfigurationMgr.ClearFailSafeArmed();
+    SuccessOrExit(err);
+
+exit:
+    return err;
 }
 
 void DeviceControlServer::OnConnectionMonitorTimeout(uint64_t peerNodeId, IPAddress peerAddr)
@@ -77,7 +92,15 @@ void DeviceControlServer::WillCloseRemotePassiveRendezvous(void)
 
 bool DeviceControlServer::IsResetAllowed(uint16_t resetFlags)
 {
-    return true;
+    // Only reset to factory defaults supported.
+    if ((resetFlags & kResetConfigFlag_FactoryDefaults) == 0)
+    {
+        return false;
+    }
+
+    // Defer to the Configuration Manager to determine if the system is in a
+    // state where factory reset is allowed.
+    return ConfigurationMgr.CanFactoryReset();
 }
 
 WEAVE_ERROR DeviceControlServer::OnSystemTestStarted(uint32_t profileId, uint32_t testId)

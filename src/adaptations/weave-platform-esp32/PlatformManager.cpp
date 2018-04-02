@@ -144,11 +144,11 @@ WEAVE_ERROR PlatformManager::InitWeaveStack()
     SecurityMgr.CASEUseKnownECDHKey = true;
 #endif
 
-    // Perform dynamic configuration of the Weave stack based on store settings.
+    // Perform dynamic configuration of the Weave stack based on stored settings.
     err = ConfigurationMgr.ConfigureWeaveStack();
     if (err != WEAVE_NO_ERROR)
     {
-        ESP_LOGE(TAG, "FabricState initialization failed: %s", ErrorStr(err));
+        ESP_LOGE(TAG, "ConfigureWeaveStack failed: %s", ErrorStr(err));
     }
     SuccessOrExit(err);
 
@@ -308,6 +308,16 @@ WEAVE_ERROR PlatformManager::InitWeaveEventQueue()
     return WEAVE_NO_ERROR;
 }
 
+void PlatformManager::ScheduleWork(AsyncWorkFunct workFunct, intptr_t arg)
+{
+    WeavePlatformEvent event;
+    event.Type = WeavePlatformEvent::kEventType_CallWorkFunct;
+    event.CallWorkFunct.WorkFunct = workFunct;
+    event.CallWorkFunct.Arg = arg;
+
+    PostEvent(&event);
+}
+
 void PlatformManager::PostEvent(const Internal::WeavePlatformEvent * event)
 {
     if (gWeaveEventQueue != NULL)
@@ -333,7 +343,13 @@ void PlatformManager::DispatchEvent(const WeavePlatformEvent * event)
         }
     }
 
-    // Otherwise deliver it to all the Weave Platform components, each of which will decide
+    // If the event is a "call work function" event, call the specified function.
+    else if (event->Type == WeavePlatformEvent::kEventType_CallWorkFunct)
+    {
+        event->CallWorkFunct.WorkFunct(event->CallWorkFunct.Arg);
+    }
+
+    // Otherwise deliver the event to all the Weave Platform components, each of which will decide
     // whether and how they want to react it.
     else
     {

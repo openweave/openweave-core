@@ -35,26 +35,30 @@ protected:
 
 GroupKeyStore gGroupKeyStore;
 
-const char gNVSNamespace_Weave[]             = "weave";
-const char gNVSNamespace_WeaveCounters[]     = "weave-counters";
-const char gNVSNamespace_WeaveGroupKeys[]    = "weave-grp-keys";
+const char kNVSNamespace_WeaveFactory[]      = "weave-factory";
+const char kNVSNamespace_WeaveConfig[]       = "weave-config";
+const char kNVSNamespace_WeaveCounters[]     = "weave-counters";
 
-const char gNVSKeyName_DeviceId[]            = "device-id";
-const char gNVSKeyName_SerialNum[]           = "serial-num";
-const char gNVSKeyName_ManufacturingDate[]   = "mfg-date";
-const char gNVSKeyName_PairingCode[]         = "pairing-code";
-const char gNVSKeyName_FabricId[]            = "fabric-id";
-const char gNVSKeyName_DeviceCert[]          = "device-cert";
-const char gNVSKeyName_DevicePrivateKey[]    = "device-key";
-const char gNVSKeyName_ServiceConfig[]       = "service-config";
-const char gNVSKeyName_PairedAccountId[]     = "account-id";
-const char gNVSKeyName_ServiceId[]           = "service-id";
-const char gNVSKeyName_FabricSecret[]        = "fabric-secret";
-const char gNVSKeyName_ServiceRootKey[]      = "srk";
-const char gNVSKeyName_EpochKeyPrefix[]      = "ek-";
-const char gNVSKeyName_AppMasterKeyIndex[]   = "amk-index";
-const char gNVSKeyName_AppMasterKeyPrefix[]  = "amk-";
-const char gNVSKeyName_LastUsedEpochKeyId[]  = "last-ek-id";
+// weave-factory keys
+const char kNVSKeyName_SerialNum[]           = "serial-num";
+const char kNVSKeyName_ManufacturingDate[]   = "mfg-date";
+const char kNVSKeyName_PairingCode[]         = "pairing-code";
+const char kNVSKeyName_DeviceId[]            = "device-id";
+const char kNVSKeyName_DeviceCert[]          = "device-cert";
+const char kNVSKeyName_DevicePrivateKey[]    = "device-key";
+
+// weave-config keys
+const char kNVSKeyName_FabricId[]            = "fabric-id";
+const char kNVSKeyName_ServiceConfig[]       = "service-config";
+const char kNVSKeyName_PairedAccountId[]     = "account-id";
+const char kNVSKeyName_ServiceId[]           = "service-id";
+const char kNVSKeyName_FabricSecret[]        = "fabric-secret";
+const char kNVSKeyName_ServiceRootKey[]      = "srk";
+const char kNVSKeyName_EpochKeyPrefix[]      = "ek-";
+const char kNVSKeyName_AppMasterKeyIndex[]   = "amk-index";
+const char kNVSKeyName_AppMasterKeyPrefix[]  = "amk-";
+const char kNVSKeyName_LastUsedEpochKeyId[]  = "last-ek-id";
+const char kNVSKeyName_FailSafeArmed[]       = "fail-safe-armed";
 
 WEAVE_ERROR GetNVS(const char * ns, const char * name, uint8_t * buf, size_t bufSize, size_t & outLen);
 WEAVE_ERROR GetNVS(const char * ns, const char * name, char * buf, size_t bufSize, size_t & outLen);
@@ -68,6 +72,7 @@ WEAVE_ERROR ClearNVSKey(const char * ns, const char * name);
 WEAVE_ERROR ClearNVSNamespace(const char * ns);
 WEAVE_ERROR GetNVSBlobLength(const char * ns, const char * name, size_t & outLen);
 WEAVE_ERROR EnsureNamespace(const char * ns);
+WEAVE_ERROR EraseNamespace(const char * ns);
 
 } // unnamed namespace
 
@@ -94,7 +99,7 @@ WEAVE_ERROR ConfigurationManager::GetProductRevision(uint16_t& productRev)
 
 WEAVE_ERROR ConfigurationManager::GetSerialNumber(char * buf, size_t bufSize, size_t & serialNumLen)
 {
-    return GetNVS(gNVSNamespace_Weave, gNVSKeyName_SerialNum, buf, bufSize, serialNumLen);
+    return GetNVS(kNVSNamespace_WeaveFactory, kNVSKeyName_SerialNum, buf, bufSize, serialNumLen);
 }
 
 WEAVE_ERROR ConfigurationManager::GetManufacturingDate(uint16_t& year, uint8_t& month, uint8_t& dayOfMonth)
@@ -104,7 +109,7 @@ WEAVE_ERROR ConfigurationManager::GetManufacturingDate(uint16_t& year, uint8_t& 
     size_t dateLen;
     char *parseEnd;
 
-    err = GetNVS(gNVSNamespace_Weave, gNVSKeyName_ManufacturingDate, dateStr, sizeof(dateStr), dateLen);
+    err = GetNVS(kNVSNamespace_WeaveFactory, kNVSKeyName_ManufacturingDate, dateStr, sizeof(dateStr), dateLen);
     SuccessOrExit(err);
 
     VerifyOrExit(dateLen == sizeof(dateStr), err = WEAVE_ERROR_INVALID_ARGUMENT);
@@ -181,7 +186,7 @@ WEAVE_ERROR ConfigurationManager::GetDeviceCertificate(uint8_t * buf, size_t buf
 {
     WEAVE_ERROR err;
 
-    err = GetNVS(gNVSNamespace_Weave, gNVSKeyName_DeviceCert, buf, bufSize, certLen);
+    err = GetNVS(kNVSNamespace_WeaveFactory, kNVSKeyName_DeviceCert, buf, bufSize, certLen);
 
 #if WEAVE_PLATFORM_CONFIG_ENABLE_TEST_DEVICE_IDENTITY
 
@@ -216,7 +221,7 @@ WEAVE_ERROR ConfigurationManager::GetDevicePrivateKey(uint8_t * buf, size_t bufS
 {
     WEAVE_ERROR err;
 
-    err = GetNVS(gNVSNamespace_Weave, gNVSKeyName_DevicePrivateKey, buf, bufSize, keyLen);
+    err = GetNVS(kNVSNamespace_WeaveFactory, kNVSKeyName_DevicePrivateKey, buf, bufSize, keyLen);
 
 #if WEAVE_PLATFORM_CONFIG_ENABLE_TEST_DEVICE_IDENTITY
 
@@ -249,7 +254,7 @@ WEAVE_ERROR ConfigurationManager::GetDevicePrivateKeyLength(size_t & keyLen)
 
 WEAVE_ERROR ConfigurationManager::GetServiceConfig(uint8_t * buf, size_t bufSize, size_t & serviceConfigLen)
 {
-    return GetNVS(gNVSNamespace_Weave, gNVSKeyName_ServiceConfig, buf, bufSize, serviceConfigLen);
+    return GetNVS(kNVSNamespace_WeaveConfig, kNVSKeyName_ServiceConfig, buf, bufSize, serviceConfigLen);
 }
 
 WEAVE_ERROR ConfigurationManager::GetServiceConfigLength(size_t & serviceConfigLen)
@@ -264,51 +269,51 @@ WEAVE_ERROR ConfigurationManager::GetServiceConfigLength(size_t & serviceConfigL
 
 WEAVE_ERROR ConfigurationManager::GetServiceId(uint64_t & serviceId)
 {
-    return GetNVS(gNVSNamespace_Weave, gNVSKeyName_ServiceId, serviceId);
+    return GetNVS(kNVSNamespace_WeaveConfig, kNVSKeyName_ServiceId, serviceId);
 }
 
 WEAVE_ERROR ConfigurationManager::GetPairedAccountId(char * buf, size_t bufSize, size_t accountIdLen)
 {
-    return GetNVS(gNVSNamespace_Weave, gNVSKeyName_PairedAccountId, buf, bufSize, accountIdLen);
+    return GetNVS(kNVSNamespace_WeaveConfig, kNVSKeyName_PairedAccountId, buf, bufSize, accountIdLen);
 }
 
 WEAVE_ERROR ConfigurationManager::StoreDeviceId(uint64_t deviceId)
 {
     return (deviceId != kNodeIdNotSpecified)
-           ? StoreNVS(gNVSNamespace_Weave, gNVSKeyName_DeviceId, deviceId)
-           : ClearNVSKey(gNVSNamespace_Weave, gNVSKeyName_DeviceId);
+           ? StoreNVS(kNVSNamespace_WeaveConfig, kNVSKeyName_DeviceId, deviceId)
+           : ClearNVSKey(kNVSNamespace_WeaveConfig, kNVSKeyName_DeviceId);
 }
 
 WEAVE_ERROR ConfigurationManager::StoreSerialNumber(const char * serialNum)
 {
-    return StoreNVS(gNVSNamespace_Weave, gNVSKeyName_SerialNum, serialNum);
+    return StoreNVS(kNVSNamespace_WeaveFactory, kNVSKeyName_SerialNum, serialNum);
 }
 
 WEAVE_ERROR ConfigurationManager::StoreManufacturingDate(const char * mfgDate)
 {
-    return StoreNVS(gNVSNamespace_Weave, gNVSKeyName_ManufacturingDate, mfgDate);
+    return StoreNVS(kNVSNamespace_WeaveFactory, kNVSKeyName_ManufacturingDate, mfgDate);
 }
 
 WEAVE_ERROR ConfigurationManager::StoreFabricId(uint64_t fabricId)
 {
     return (fabricId != kFabricIdNotSpecified)
-           ? StoreNVS(gNVSNamespace_Weave, gNVSKeyName_FabricId, fabricId)
-           : ClearNVSKey(gNVSNamespace_Weave, gNVSKeyName_FabricId);
+           ? StoreNVS(kNVSNamespace_WeaveConfig, kNVSKeyName_FabricId, fabricId)
+           : ClearNVSKey(kNVSNamespace_WeaveConfig, kNVSKeyName_FabricId);
 }
 
 WEAVE_ERROR ConfigurationManager::StoreDeviceCertificate(const uint8_t * cert, size_t certLen)
 {
-    return StoreNVS(gNVSNamespace_Weave, gNVSKeyName_DeviceCert, cert, certLen);
+    return StoreNVS(kNVSNamespace_WeaveFactory, kNVSKeyName_DeviceCert, cert, certLen);
 }
 
 WEAVE_ERROR ConfigurationManager::StoreDevicePrivateKey(const uint8_t * key, size_t keyLen)
 {
-    return StoreNVS(gNVSNamespace_Weave, gNVSKeyName_DevicePrivateKey, key, keyLen);
+    return StoreNVS(kNVSNamespace_WeaveFactory, kNVSKeyName_DevicePrivateKey, key, keyLen);
 }
 
 WEAVE_ERROR ConfigurationManager::StorePairingCode(const char * pairingCode)
 {
-    return StoreNVS(gNVSNamespace_Weave, gNVSKeyName_PairingCode, pairingCode);
+    return StoreNVS(kNVSNamespace_WeaveFactory, kNVSKeyName_PairingCode, pairingCode);
 }
 
 WEAVE_ERROR ConfigurationManager::StoreServiceProvisioningData(uint64_t serviceId,
@@ -320,19 +325,19 @@ WEAVE_ERROR ConfigurationManager::StoreServiceProvisioningData(uint64_t serviceI
     bool needClose = false;
     char *accountIdCopy = NULL;
 
-    err = nvs_open(gNVSNamespace_Weave, NVS_READWRITE, &handle);
+    err = nvs_open(kNVSNamespace_WeaveConfig, NVS_READWRITE, &handle);
     SuccessOrExit(err);
     needClose = true;
 
-    err = nvs_set_u64(handle, gNVSKeyName_ServiceId, serviceId);
+    err = nvs_set_u64(handle, kNVSKeyName_ServiceId, serviceId);
     SuccessOrExit(err);
 
-    err = nvs_set_blob(handle, gNVSKeyName_ServiceConfig, serviceConfig, serviceConfigLen);
+    err = nvs_set_blob(handle, kNVSKeyName_ServiceConfig, serviceConfig, serviceConfigLen);
     SuccessOrExit(err);
 
     accountIdCopy = strndup(accountId, accountIdLen);
     VerifyOrExit(accountIdCopy != NULL, err = WEAVE_ERROR_NO_MEMORY);
-    err = nvs_set_str(handle, gNVSKeyName_PairedAccountId, accountIdCopy);
+    err = nvs_set_str(handle, kNVSKeyName_PairedAccountId, accountIdCopy);
     free(accountIdCopy);
     SuccessOrExit(err);
 
@@ -354,25 +359,25 @@ WEAVE_ERROR ConfigurationManager::ClearServiceProvisioningData()
     nvs_handle handle;
     bool needClose = false;
 
-    err = nvs_open(gNVSNamespace_Weave, NVS_READWRITE, &handle);
+    err = nvs_open(kNVSNamespace_WeaveConfig, NVS_READWRITE, &handle);
     SuccessOrExit(err);
     needClose = true;
 
-    err = nvs_erase_key(handle, gNVSKeyName_ServiceId);
+    err = nvs_erase_key(handle, kNVSKeyName_ServiceId);
     if (err == ESP_ERR_NVS_NOT_FOUND)
     {
         err = WEAVE_NO_ERROR;
     }
     SuccessOrExit(err);
 
-    err = nvs_erase_key(handle, gNVSKeyName_ServiceConfig);
+    err = nvs_erase_key(handle, kNVSKeyName_ServiceConfig);
     if (err == ESP_ERR_NVS_NOT_FOUND)
     {
         err = WEAVE_NO_ERROR;
     }
     SuccessOrExit(err);
 
-    err = nvs_erase_key(handle, gNVSKeyName_PairedAccountId);
+    err = nvs_erase_key(handle, kNVSKeyName_PairedAccountId);
     if (err == ESP_ERR_NVS_NOT_FOUND)
     {
         err = WEAVE_NO_ERROR;
@@ -393,12 +398,12 @@ exit:
 
 WEAVE_ERROR ConfigurationManager::StoreServiceConfig(const uint8_t * serviceConfig, size_t serviceConfigLen)
 {
-    return StoreNVS(gNVSNamespace_Weave, gNVSKeyName_ServiceConfig, serviceConfig, serviceConfigLen);
+    return StoreNVS(kNVSNamespace_WeaveConfig, kNVSKeyName_ServiceConfig, serviceConfig, serviceConfigLen);
 }
 
 WEAVE_ERROR ConfigurationManager::GetPersistedCounter(const char * key, uint32_t & value)
 {
-    WEAVE_ERROR err = GetNVS(gNVSNamespace_WeaveCounters, key, value);
+    WEAVE_ERROR err = GetNVS(kNVSNamespace_WeaveCounters, key, value);
     if (err == WEAVE_PLATFORM_ERROR_CONFIG_NOT_FOUND)
     {
         err = WEAVE_ERROR_PERSISTED_STORAGE_VALUE_NOT_FOUND;
@@ -408,7 +413,7 @@ WEAVE_ERROR ConfigurationManager::GetPersistedCounter(const char * key, uint32_t
 
 WEAVE_ERROR ConfigurationManager::StorePersistedCounter(const char * key, uint32_t value)
 {
-    return StoreNVS(gNVSNamespace_WeaveCounters, key, value);
+    return StoreNVS(kNVSNamespace_WeaveCounters, key, value);
 }
 
 WEAVE_ERROR ConfigurationManager::GetDeviceDescriptor(WeaveDeviceDescriptor & deviceDesc)
@@ -501,23 +506,37 @@ bool ConfigurationManager::IsServiceProvisioned()
     return (err == WEAVE_NO_ERROR && serviceId != 0);
 }
 
+void ConfigurationManager::InitiateFactoryReset()
+{
+    PlatformMgr.ScheduleWork(DoFactoryReset);
+}
 
 // ==================== Configuration Manager Private Methods ====================
 
 WEAVE_ERROR ConfigurationManager::Init()
 {
     WEAVE_ERROR err;
+    uint32_t failSafeArmed;
 
     // Force initialization of weave NVS namespaces if they doesn't already exist.
-    err = EnsureNamespace(gNVSNamespace_Weave);
+    err = EnsureNamespace(kNVSNamespace_WeaveFactory);
     SuccessOrExit(err);
-    err = EnsureNamespace(gNVSNamespace_WeaveCounters);
+    err = EnsureNamespace(kNVSNamespace_WeaveConfig);
     SuccessOrExit(err);
-    err = EnsureNamespace(gNVSNamespace_WeaveGroupKeys);
+    err = EnsureNamespace(kNVSNamespace_WeaveCounters);
     SuccessOrExit(err);
 
-    // Force initialization of the global GroupKeyStore object.
+    // Initialize the global GroupKeyStore object.
     new ((void *)&gGroupKeyStore) GroupKeyStore();
+
+    // If the fail-safe was armed when the device last shutdown, initiate a factory reset.
+    if (GetNVS(kNVSNamespace_WeaveConfig, kNVSKeyName_FailSafeArmed, failSafeArmed) == WEAVE_NO_ERROR &&
+        failSafeArmed != 0)
+    {
+        ESP_LOGI(TAG, "Detected fail-safe armed on reboot; initiating factory reset");
+        InitiateFactoryReset();
+    }
+    err = WEAVE_NO_ERROR;
 
 exit:
     return err;
@@ -530,12 +549,12 @@ WEAVE_ERROR ConfigurationManager::ConfigureWeaveStack()
     bool needClose = false;
     size_t pairingCodeLen;
 
-    err = nvs_open(gNVSNamespace_Weave, NVS_READONLY, &handle);
+    err = nvs_open(kNVSNamespace_WeaveFactory, NVS_READONLY, &handle);
     SuccessOrExit(err);
     needClose = true;
 
     // Read the device id from NVS.
-    err = nvs_get_u64(handle, gNVSKeyName_DeviceId, &FabricState.LocalNodeId);
+    err = nvs_get_u64(handle, kNVSKeyName_DeviceId, &FabricState.LocalNodeId);
 #if WEAVE_PLATFORM_CONFIG_ENABLE_TEST_DEVICE_IDENTITY
     if (err == ESP_ERR_NVS_NOT_FOUND)
     {
@@ -548,7 +567,7 @@ WEAVE_ERROR ConfigurationManager::ConfigureWeaveStack()
 
     // Read the fabric id from NVS.  If not present, then the device is not currently a
     // member of a Weave fabric.
-    err = nvs_get_u64(handle, gNVSKeyName_FabricId, &FabricState.FabricId);
+    err = nvs_get_u64(handle, kNVSKeyName_FabricId, &FabricState.FabricId);
     if (err == ESP_ERR_NVS_NOT_FOUND)
     {
         FabricState.FabricId = kFabricIdNotSpecified;
@@ -558,7 +577,7 @@ WEAVE_ERROR ConfigurationManager::ConfigureWeaveStack()
 
     // Read the pairing code from NVS.
     pairingCodeLen = sizeof(mPairingCode);
-    err = nvs_get_str(handle, gNVSKeyName_PairingCode, mPairingCode, &pairingCodeLen);
+    err = nvs_get_str(handle, kNVSKeyName_PairingCode, mPairingCode, &pairingCodeLen);
 #ifdef CONFIG_USE_TEST_PAIRING_CODE
     if (CONFIG_USE_TEST_PAIRING_CODE[0] != 0 && err == ESP_ERR_NVS_NOT_FOUND)
     {
@@ -583,6 +602,46 @@ exit:
     return err;
 }
 
+bool ConfigurationManager::CanFactoryReset()
+{
+    // TODO: query the application to determine if factory reset is allowed.
+    return true;
+}
+
+WEAVE_ERROR ConfigurationManager::SetFailSafeArmed()
+{
+    return StoreNVS(kNVSNamespace_WeaveConfig, kNVSKeyName_FailSafeArmed, (uint32_t)1);
+}
+
+WEAVE_ERROR ConfigurationManager::ClearFailSafeArmed()
+{
+    return ClearNVSKey(kNVSNamespace_WeaveConfig, kNVSKeyName_FailSafeArmed);
+}
+
+void ConfigurationManager::DoFactoryReset(intptr_t arg)
+{
+    WEAVE_ERROR err;
+
+    ESP_LOGI(TAG, "Performing factory reset");
+
+    // Erase all values in the weave-config NVS namespace.
+    err = EraseNamespace(kNVSNamespace_WeaveConfig);
+    if (err != WEAVE_NO_ERROR)
+    {
+        ESP_LOGE(TAG, "EraseNamespace(WeaveConfig) failed: %s", nl::ErrorStr(err));
+    }
+
+    // Restore WiFi persistent settings to default values.
+    err = esp_wifi_restore();
+    if (err != ESP_OK)
+    {
+        ESP_LOGE(TAG, "esp_wifi_restore() failed: %s", nl::ErrorStr(err));
+    }
+
+    // Restart the system.
+    ESP_LOGI(TAG, "System restarting");
+    esp_restart();
+}
 
 namespace {
 
@@ -597,7 +656,7 @@ WEAVE_ERROR GroupKeyStore::RetrieveGroupKey(uint32_t keyId, WeaveGroupKey & key)
 
     VerifyOrExit(keyId == WeaveKeyId::kFabricSecret, err = WEAVE_ERROR_KEY_NOT_FOUND);
 
-    err = GetNVS(gNVSNamespace_WeaveGroupKeys, gNVSKeyName_FabricSecret, key.Key, sizeof(key.Key), keyLen);
+    err = GetNVS(kNVSNamespace_WeaveConfig, kNVSKeyName_FabricSecret, key.Key, sizeof(key.Key), keyLen);
     if (err == WEAVE_PLATFORM_ERROR_CONFIG_NOT_FOUND)
     {
         err = WEAVE_ERROR_KEY_NOT_FOUND;
@@ -619,7 +678,7 @@ WEAVE_ERROR GroupKeyStore::StoreGroupKey(const WeaveGroupKey & key)
 
     VerifyOrExit(key.KeyId == WeaveKeyId::kFabricSecret, err = WEAVE_ERROR_INVALID_KEY_ID);
 
-    err = StoreNVS(gNVSNamespace_WeaveGroupKeys, gNVSKeyName_FabricSecret, key.Key, key.KeyLen);
+    err = StoreNVS(kNVSNamespace_WeaveConfig, kNVSKeyName_FabricSecret, key.Key, key.KeyLen);
     SuccessOrExit(err);
 
 exit:
@@ -634,7 +693,7 @@ WEAVE_ERROR GroupKeyStore::DeleteGroupKey(uint32_t keyId)
 
     VerifyOrExit(keyId == WeaveKeyId::kFabricSecret, err = WEAVE_ERROR_KEY_NOT_FOUND);
 
-    err = ClearNVSKey(gNVSNamespace_WeaveGroupKeys, gNVSKeyName_FabricSecret);
+    err = ClearNVSKey(kNVSNamespace_WeaveConfig, kNVSKeyName_FabricSecret);
     SuccessOrExit(err);
 
 exit:
@@ -649,7 +708,7 @@ WEAVE_ERROR GroupKeyStore::DeleteGroupKeysOfAType(uint32_t keyType)
 
     if (WeaveKeyId::IsGeneralKey(keyType))
     {
-        err = ClearNVSKey(gNVSNamespace_WeaveGroupKeys, gNVSKeyName_FabricSecret);
+        err = ClearNVSKey(kNVSNamespace_WeaveConfig, kNVSKeyName_FabricSecret);
         SuccessOrExit(err);
     }
 
@@ -673,7 +732,7 @@ WEAVE_ERROR GroupKeyStore::EnumerateGroupKeys(uint32_t keyType, uint32_t * keyId
 
     if (WeaveKeyId::IsGeneralKey(keyType))
     {
-        err = GetNVSBlobLength(gNVSNamespace_WeaveGroupKeys, gNVSKeyName_FabricSecret, keyLen);
+        err = GetNVSBlobLength(kNVSNamespace_WeaveConfig, kNVSKeyName_FabricSecret, keyLen);
         SuccessOrExit(err);
 
         if (keyLen != 0)
@@ -691,7 +750,7 @@ exit:
 
 WEAVE_ERROR GroupKeyStore::Clear(void)
 {
-    return ClearNVSNamespace(gNVSNamespace_WeaveGroupKeys);
+    return ClearNVSNamespace(kNVSNamespace_WeaveConfig);
 }
 
 WEAVE_ERROR GroupKeyStore::GetCurrentUTCTime(uint32_t & utcTime)
@@ -704,7 +763,7 @@ WEAVE_ERROR GroupKeyStore::RetrieveLastUsedEpochKeyId(void)
 {
     WEAVE_ERROR err;
 
-    err = GetNVS(gNVSNamespace_WeaveGroupKeys, gNVSKeyName_LastUsedEpochKeyId, LastUsedEpochKeyId);
+    err = GetNVS(kNVSNamespace_WeaveConfig, kNVSKeyName_LastUsedEpochKeyId, LastUsedEpochKeyId);
     if (err == WEAVE_PLATFORM_ERROR_CONFIG_NOT_FOUND)
     {
         LastUsedEpochKeyId = WeaveKeyId::kNone;
@@ -715,7 +774,7 @@ WEAVE_ERROR GroupKeyStore::RetrieveLastUsedEpochKeyId(void)
 
 WEAVE_ERROR GroupKeyStore::StoreLastUsedEpochKeyId(void)
 {
-    return StoreNVS(gNVSNamespace_WeaveGroupKeys, gNVSKeyName_LastUsedEpochKeyId, LastUsedEpochKeyId);
+    return StoreNVS(kNVSNamespace_WeaveConfig, kNVSKeyName_LastUsedEpochKeyId, LastUsedEpochKeyId);
 }
 
 // ==================== Utility Functions for accessing ESP NVS ====================
@@ -854,6 +913,8 @@ WEAVE_ERROR StoreNVS(const char * ns, const char * name, const uint8_t * data, s
         // Commit the value to the persistent store.
         err = nvs_commit(handle);
         SuccessOrExit(err);
+
+        ESP_LOGI(TAG, "StoreNVS: %s/%s = (blob length %" PRId32 ")", ns, name, dataLen);
     }
 
     else
@@ -889,6 +950,8 @@ WEAVE_ERROR StoreNVS(const char * ns, const char * name, const char * data)
         // Commit the value to the persistent store.
         err = nvs_commit(handle);
         SuccessOrExit(err);
+
+        ESP_LOGI(TAG, "StoreNVS: %s/%s = \"%s\"", ns, name, data);
     }
 
     else
@@ -923,6 +986,8 @@ WEAVE_ERROR StoreNVS(const char * ns, const char * name, uint32_t val)
     err = nvs_commit(handle);
     SuccessOrExit(err);
 
+    ESP_LOGI(TAG, "StoreNVS: %s/%s = %" PRIu32, ns, name, val);
+
 exit:
     if (needClose)
     {
@@ -948,6 +1013,8 @@ WEAVE_ERROR StoreNVS(const char * ns, const char * name, uint64_t val)
     // Commit the value to the persistent store.
     err = nvs_commit(handle);
     SuccessOrExit(err);
+
+    ESP_LOGI(TAG, "StoreNVS: %s/%s = %" PRIu64, ns, name, val);
 
 exit:
     if (needClose)
@@ -978,6 +1045,8 @@ WEAVE_ERROR ClearNVSKey(const char * ns, const char * name)
     // Commit the value to the persistent store.
     err = nvs_commit(handle);
     SuccessOrExit(err);
+
+    ESP_LOGI(TAG, "ClearNVSKey: %s/%s", ns, name);
 
 exit:
     if (needClose)
@@ -1061,6 +1130,30 @@ WEAVE_ERROR EnsureNamespace(const char * ns)
     }
     SuccessOrExit(err);
     needClose = true;
+
+exit:
+    if (needClose)
+    {
+        nvs_close(handle);
+    }
+    return err;
+}
+
+WEAVE_ERROR EraseNamespace(const char * ns)
+{
+    WEAVE_ERROR err;
+    nvs_handle handle;
+    bool needClose = false;
+
+    err = nvs_open(ns, NVS_READWRITE, &handle);
+    SuccessOrExit(err);
+    needClose = true;
+
+    err = nvs_erase_all(handle);
+    SuccessOrExit(err);
+
+    err = nvs_commit(handle);
+    SuccessOrExit(err);
 
 exit:
     if (needClose)

@@ -5,6 +5,11 @@
 
 namespace WeavePlatform {
 
+namespace Internal
+{
+class DeviceControlServer;
+}
+
 class ConfigurationManager
 {
 
@@ -52,19 +57,26 @@ public:
 
     bool IsServiceProvisioned();
 
+    void InitiateFactoryReset();
+
 private:
 
     // NOTE: These members are for internal use by the following friend classes.
 
-    friend class PlatformManager;
+    friend class ::WeavePlatform::PlatformManager;
+    friend class ::WeavePlatform::Internal::DeviceControlServer;
 
     WEAVE_ERROR Init();
     WEAVE_ERROR ConfigureWeaveStack();
-    void OnPlatformEvent(const struct ::WeavePlatform::Internal::WeavePlatformEvent * event);
+    bool CanFactoryReset();
+    WEAVE_ERROR SetFailSafeArmed();
+    WEAVE_ERROR ClearFailSafeArmed();
 
 private:
 
     char mPairingCode[kMaxPairingCodeLength + 1];
+
+    static void DoFactoryReset(intptr_t arg);
 };
 
 } // namespace WeavePlatform

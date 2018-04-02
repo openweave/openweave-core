@@ -29,6 +29,7 @@ struct WeavePlatformEvent
     {
         kEventType_WeaveSystemLayerEvent                = 0,
         kEventType_ESPSystemEvent                       = 1,
+        kEventType_CallWorkFunct                        = 2,
     };
 
     union
@@ -40,6 +41,11 @@ struct WeavePlatformEvent
             uintptr_t Argument;
         } WeaveSystemLayerEvent;
         system_event_t ESPSystemEvent;
+        struct
+        {
+            PlatformManager::AsyncWorkFunct WorkFunct;
+            intptr_t Arg;
+        } CallWorkFunct;
     };
     uint8_t Type;
 };
