@@ -888,12 +888,12 @@ WEAVE_ERROR TraitDataSink::StoreDataElement(PropertyPathHandle aHandle, TLVReade
     {
         if (mHasValidVersion)
         {
-            WeaveLogDetail(DataManagement, "<StoreDataElement> [Trait %08x] version: %u -> %u", mSchemaEngine->GetProfileId(), mVersion,
+            WeaveLogDetail(DataManagement, "<StoreDataElement> [Trait %08x] version: 0x%" PRIx64 " -> 0x%" PRIx64 "", mSchemaEngine->GetProfileId(), mVersion,
                            versionInDE);
         }
         else
         {
-            WeaveLogDetail(DataManagement, "<StoreDataElement> [Trait %08x] version: n/a -> %u", mSchemaEngine->GetProfileId(), mVersion);
+            WeaveLogDetail(DataManagement, "<StoreDataElement> [Trait %08x] version: n/a -> 0x%" PRIx64 "", mSchemaEngine->GetProfileId(), versionInDE);
         }
 
         err = parser.CheckPresence(&dataPresent, &deletePresent);
@@ -1015,7 +1015,7 @@ WEAVE_ERROR TraitDataSink::StoreDataElement(PropertyPathHandle aHandle, TLVReade
     }
     else
     {
-        WeaveLogDetail(DataManagement, "<StoreData> [Trait %08x] version: %u (no-change)",
+        WeaveLogDetail(DataManagement, "<StoreData> [Trait %08x] version: 0x%" PRIx64 " (no-change)",
                        mSchemaEngine->GetProfileId(), mVersion);
     }
 

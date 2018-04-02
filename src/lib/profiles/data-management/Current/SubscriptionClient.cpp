@@ -2611,7 +2611,7 @@ WEAVE_ERROR SubscriptionClient::SetUpdated(TraitUpdatableDataSink * aDataSink, P
     {
         uint64_t requiredDataVersion = aDataSink->GetVersion();
         err = aDataSink->SetUpdateRequiredVersion(requiredDataVersion);
-        WeaveLogDetail(DataManagement, "<SetUpdated> Set update required version to %u", requiredDataVersion);
+        WeaveLogDetail(DataManagement, "<SetUpdated> Set update required version to 0x%" PRIx64 "", requiredDataVersion);
         SuccessOrExit(err);
     }
 
@@ -2743,7 +2743,7 @@ WEAVE_ERROR SubscriptionClient::AddElementFunc(UpdateClient * apClient, void * a
 
     schemaEngine = dataSink->GetSchemaEngine();
 
-    WeaveLogDetail(DataManagement, "<AddElementFunc> add property path handle in 0x%08x", pTraitInstanceInfo->mCandidatePropertyPathHandle);
+    WeaveLogDetail(DataManagement, "<AddElementFunc> with property path handle 0x%08x", pTraitInstanceInfo->mCandidatePropertyPathHandle);
 
     if (schemaEngine->IsLeaf(pTraitInstanceInfo->mCandidatePropertyPathHandle))
     {
