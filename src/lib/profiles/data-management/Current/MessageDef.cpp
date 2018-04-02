@@ -899,7 +899,7 @@ WEAVE_ERROR StatusElement::Parser::CheckSchemaValidity(void) const
                 err = reader.Get(profileID);
                 SuccessOrExit(err);
 
-                PRETTY_PRINT("\t\tDataElementVersion = 0x%" PRIx32 ",", profileID);
+                PRETTY_PRINT("\t\tProfileID = 0x%" PRIx32 ",", profileID);
             }
 #endif // WEAVE_DETAIL_LOGGING
             break;
@@ -915,7 +915,7 @@ WEAVE_ERROR StatusElement::Parser::CheckSchemaValidity(void) const
                 err = reader.Get(status);
                 SuccessOrExit(err);
 
-                PRETTY_PRINT("\t\tDataElementVersion = 0x%" PRIx16 ",", status);
+                PRETTY_PRINT("\t\tStatus = 0x%" PRIx16 ",", status);
             }
 #endif // WEAVE_DETAIL_LOGGING
             break;
