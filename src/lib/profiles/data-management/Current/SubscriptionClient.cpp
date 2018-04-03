@@ -2770,6 +2770,10 @@ WEAVE_ERROR SubscriptionClient::AddElementFunc(UpdateClient * apClient, void * a
         }
         else
         {
+
+            // mCandidatePropertyPathHandle is root; a container with tag kCsTag_Data has been opened already; this call
+            // will cause another container to be opened with tag kCsTag_Data.
+            // That looks wrong to me; I checked the logs and NotifyRequest DataElements don't do that.
             err = updatableDataSink->ReadData(pTraitInstanceInfo->mTraitDataHandle,
                                               pTraitInstanceInfo->mCandidatePropertyPathHandle,
                                               nl::Weave::TLV::ContextTag(DataElement::kCsTag_Data),
@@ -2932,6 +2936,7 @@ WEAVE_ERROR SubscriptionClient::BuildSingleUpdateRequestDataList(bool & aIsParti
             mCurProcessingTraitInstanceIdx ++;
             mCurProcessingTraitInstanceIdx %= mNumUpdatableTraitInstances;
 
+            // Comment this out if you want to send more than one DataElement per request.
             if (aUpdateWriteInReady)
             {
                 break;

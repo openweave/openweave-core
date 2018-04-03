@@ -1827,6 +1827,8 @@ WEAVE_ERROR TestATraitUpdatableDataSink::Mutate(SubscriptionClient * apSubClient
             }
         }
         else if ((mTestCounter % kNumTestCases) == 8) {
+            // This test is disabled! Initialize kNumTestCases to 9 instead of 8 to execute it.
+
             // sink, all merge with root handle, cut oversized dictionary
             // real service, which need update fragmentation
             WeaveLogDetail(DataManagement, "It is failing with update fragmentation");

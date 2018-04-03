@@ -452,12 +452,13 @@ WEAVE_ERROR NotificationEngine::IntermediateGraphSolver::RetrieveTraitInstanceDa
         // Key Variables:
         //      currentCommonHandle = The current LCA of all handles evaluated thus far.
         //      candidateHandle = The next handle picked out from either the dirty or delete stores that will be evaluated against
-        //      the current common handle to compute the next common handle nextCommonHandle = The next computed LCA of the current
-        //      handle and the candidate handle laggingHandles = immediate children of the newly computed LCA that encompass the two
-        //      candidates passed into the LCA computation function respectively. If the either of the two input handles
-        //                       passed in match the newly computed LCA, the lagging handle will be set to kNullPropertyPathHandle
+        //                   the current common handle to compute the next common handle
+        //      nextCommonHandle = The next computed LCA of the current handle and the candidate handle
+        //      laggingHandles = immediate children of the newly computed LCA that encompass the two
+        //                   candidates passed into the LCA computation function respectively. If either of the two input handles
+        //                   passed in match the newly computed LCA, the lagging handle will be set to kNullPropertyPathHandle
         //      mergeHandleSet = set of handles that will be merged in relative to the currentCommonHandle. If empty, all children
-        //      under the commonHandle will be included.
+        //                   under the commonHandle will be included.
         //
         while ((candidateHandle = GetNextCandidateHandle(changeStoreCursor, aTraitDataHandle, candidateHandleIsDelete)) !=
                kNullPropertyPathHandle)
@@ -536,7 +537,7 @@ WEAVE_ERROR NotificationEngine::IntermediateGraphSolver::RetrieveTraitInstanceDa
 #if TDM_ENABLE_PUBLISHER_DICTIONARY_SUPPORT
             if (candidateHandleIsDelete)
             {
-                // The deleteHandleSet only makes sense makes sense as long the next common handle is the parent of the delete set.
+                // The deleteHandleSet only makes sense as long as the next common handle is the parent of the delete set.
                 // If not, we start treating it as a add/modify.
                 if (nextCommonHandle == schemaEngine->GetParent(candidateHandle))
                 {
