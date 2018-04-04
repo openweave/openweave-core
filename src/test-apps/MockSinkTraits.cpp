@@ -1695,6 +1695,8 @@ WEAVE_ERROR TestATraitUpdatableDataSink::Mutate(SubscriptionClient * apSubClient
     {
         static const uint8_t kNumTestCases = 8;
 
+        WeaveLogDetail(DataManagement, "TestATraitUpdatableDataSink::mTestCounter: %" PRIu32 "", mTestCounter);
+
         if ((mTestCounter % kNumTestCases) == 0) {
             //mock sink 3 leaf properties changes, source 3 leaf properties changes
             err = SetUpdated(apSubClient, TestATrait::kPropertyHandle_TaP, aIsConditional);
