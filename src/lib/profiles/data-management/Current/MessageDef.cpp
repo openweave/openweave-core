@@ -874,7 +874,7 @@ WEAVE_ERROR StatusElement::Parser::CheckSchemaValidity(void) const
     nl::Weave::TLV::TLVReader reader;
     uint32_t tagNum = 0;
 
-    PRETTY_PRINT("\t {");
+    PRETTY_PRINT("\t{");
 
     // make a copy of the reader
     reader.Init(mReader);
@@ -1000,7 +1000,7 @@ DataElement::Parser::ParseData(nl::Weave::TLV::TLVReader & aReader, int aDepth) 
     switch (aReader.GetType())
     {
     case nl::Weave::TLV::kTLVType_Structure:
-        PRETTY_PRINT("\t\t {");
+        PRETTY_PRINT("\t\t{");
         break;
 
     case nl::Weave::TLV::kTLVType_Array:
@@ -1152,7 +1152,7 @@ WEAVE_ERROR DataElement::Parser::CheckSchemaValidity(void) const
     nl::Weave::TLV::TLVReader reader;
     uint32_t tagNum = 0;
 
-    PRETTY_PRINT("\t {");
+    PRETTY_PRINT("\t{");
 
     // make a copy of the reader
     reader.Init(mReader);

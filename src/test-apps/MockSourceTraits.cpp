@@ -299,6 +299,9 @@ void TestATraitDataSource::Mutate()
 {
     Lock();
     uint8_t kNumTestCases;
+
+    WeaveLogDetail(DataManagement, "mTraitTestSet: %" PRIu32 ", mTestCounter: %" PRIu32 "", mTraitTestSet, mTestCounter);
+
     if (mTraitTestSet == 0)
     {
         kNumTestCases = 8;
@@ -526,6 +529,8 @@ void TestATraitDataSource::Mutate()
     }
     else
     {
+        // This is the behavior for WDM update tests
+
         kNumTestCases = 8;
         if ((mTestCounter % kNumTestCases) == 0) {
             //sink 3 leaf properties changes, source 3 leaf properties changes
@@ -635,6 +640,14 @@ void TestATraitDataSource::Mutate()
                 taa = TestATrait::ENUM_A_VALUE_1;
             }
 
+            tad.saB = !tad.saB;
+        }
+        else if ((mTestCounter % kNumTestCases) == 8) {
+            WeaveLogDetail(DataManagement, "Update member ta_d, which is a StructA");
+
+            SetDirty(TestATrait::kPropertyHandle_TaD);
+
+            tad.saA = mTestCounter;
             tad.saB = !tad.saB;
         }
     }

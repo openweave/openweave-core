@@ -2726,10 +2726,8 @@ void SubscriptionClient::ShutdownUpdateClient(void)
 WEAVE_ERROR SubscriptionClient::AddElementFunc(UpdateClient * apClient, void * apCallState, TLV::TLVWriter & aOuterWriter)
 {
     WEAVE_ERROR err;
-    const TraitSchemaEngine * schemaEngine;
     TraitDataSink * dataSink;
     TraitUpdatableDataSink * updatableDataSink;
-    nl::Weave::TLV::TLVType dataContainerType;
 
     AddElementCallState * addElementCallState = static_cast<AddElementCallState *>(apCallState);
     SubscriptionClient * pSubClient = addElementCallState->mpSubClient;
@@ -2741,50 +2739,15 @@ WEAVE_ERROR SubscriptionClient::AddElementFunc(UpdateClient * apClient, void * a
     VerifyOrExit(dataSink->IsUpdatableDataSink() == true, WeaveLogDetail(DataManagement, "<AddElementFunc> not updatable sink."));
     updatableDataSink = static_cast<TraitUpdatableDataSink *> (dataSink);
 
-    schemaEngine = dataSink->GetSchemaEngine();
+    WeaveLogDetail(DataManagement, "<AddElementFunc> with property path handle 0x%08x", 
+            pTraitInstanceInfo->mCandidatePropertyPathHandle);
 
-    WeaveLogDetail(DataManagement, "<AddElementFunc> with property path handle 0x%08x", pTraitInstanceInfo->mCandidatePropertyPathHandle);
-
-    if (schemaEngine->IsLeaf(pTraitInstanceInfo->mCandidatePropertyPathHandle))
-    {
-        err = updatableDataSink->ReadData(pTraitInstanceInfo->mTraitDataHandle,
-                                          pTraitInstanceInfo->mCandidatePropertyPathHandle,
-                                          nl::Weave::TLV::ContextTag(DataElement::kCsTag_Data),
-                                          aOuterWriter,
-                                          pTraitInstanceInfo->mNextDictionaryElementPathHandle);
-        SuccessOrExit(err);
-    }
-    else
-    {
-        err = aOuterWriter.StartContainer(nl::Weave::TLV::ContextTag(DataElement::kCsTag_Data),
-                                          nl::Weave::TLV::kTLVType_Structure, dataContainerType);
-        SuccessOrExit(err);
-
-        if (pTraitInstanceInfo->mCandidatePropertyPathHandle != kRootPropertyPathHandle)
-        {
-            err = updatableDataSink->ReadData(pTraitInstanceInfo->mTraitDataHandle,
-                                              pTraitInstanceInfo->mCandidatePropertyPathHandle,
-                                              schemaEngine->GetTag(pTraitInstanceInfo->mCandidatePropertyPathHandle),
-                                              aOuterWriter,
-                                              pTraitInstanceInfo->mNextDictionaryElementPathHandle);
-        }
-        else
-        {
-
-            // mCandidatePropertyPathHandle is root; a container with tag kCsTag_Data has been opened already; this call
-            // will cause another container to be opened with tag kCsTag_Data.
-            // That looks wrong to me; I checked the logs and NotifyRequest DataElements don't do that.
-            err = updatableDataSink->ReadData(pTraitInstanceInfo->mTraitDataHandle,
-                                              pTraitInstanceInfo->mCandidatePropertyPathHandle,
-                                              nl::Weave::TLV::ContextTag(DataElement::kCsTag_Data),
-                                              aOuterWriter,
-                                              pTraitInstanceInfo->mNextDictionaryElementPathHandle);
-        }
-        SuccessOrExit(err);
-
-        err = aOuterWriter.EndContainer(dataContainerType);
-        SuccessOrExit(err);
-    }
+    err = updatableDataSink->ReadData(pTraitInstanceInfo->mTraitDataHandle,
+            pTraitInstanceInfo->mCandidatePropertyPathHandle,
+            nl::Weave::TLV::ContextTag(DataElement::kCsTag_Data),
+            aOuterWriter,
+            pTraitInstanceInfo->mNextDictionaryElementPathHandle);
+    SuccessOrExit(err);
 
 exit:
     return err;

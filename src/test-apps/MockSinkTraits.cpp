@@ -1693,12 +1693,12 @@ WEAVE_ERROR TestATraitUpdatableDataSink::Mutate(SubscriptionClient * apSubClient
 
     if (mTraitTestSet == 0)
     {
-        static const uint8_t kNumTestCases = 8;
+        static const uint8_t kNumTestCases = 9;
 
         WeaveLogDetail(DataManagement, "TestATraitUpdatableDataSink::mTestCounter: %" PRIu32 "", mTestCounter);
 
         if ((mTestCounter % kNumTestCases) == 0) {
-            //mock sink 3 leaf properties changes, source 3 leaf properties changes
+            WeaveLogDetail(DataManagement, "mock sink 3 leaf properties changes, source 3 leaf properties changes");
             err = SetUpdated(apSubClient, TestATrait::kPropertyHandle_TaP, aIsConditional);
             SuccessOrExit(err);
 
@@ -1829,7 +1829,17 @@ WEAVE_ERROR TestATraitUpdatableDataSink::Mutate(SubscriptionClient * apSubClient
             }
         }
         else if ((mTestCounter % kNumTestCases) == 8) {
-            // This test is disabled! Initialize kNumTestCases to 9 instead of 8 to execute it.
+            WeaveLogDetail(DataManagement, "Update member ta_d, which is a StructA");
+
+            err = SetUpdated(apSubClient, TestATrait::kPropertyHandle_TaD, aIsConditional);
+            SuccessOrExit(err);
+
+            tad.saA = mTestCounter;
+            tad.saB = !tad.saB;
+        }
+        else if ((mTestCounter % kNumTestCases) == 9) {
+            // This test is disabled! Initialize kNumTestCases to 10 instead of 9 to execute it.
+            // And add something to the mock source trait in TestATraitDataSource::Mutate
 
             // sink, all merge with root handle, cut oversized dictionary
             // real service, which need update fragmentation

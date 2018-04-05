@@ -284,13 +284,19 @@ WEAVE_ERROR TraitSchemaEngine::RetrieveUpdatableDictionaryData(PropertyPathHandl
                                                                PropertyPathHandle & aPropertyPathHandleOfDictItemToStartFrom) const
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
+
+#if TDM_ENABLE_PUBLISHER_DICTIONARY_SUPPORT
+    nl::Weave::TLV::TLVType dataContainerType;
     PropertyDictionaryKey dictionaryItemKey;
     uintptr_t context = 0;
     PropertySchemaHandle dictionaryItemSchemaHandle = GetPropertySchemaHandle(GetFirstChild(aHandle));
 
     VerifyOrExit(IsDictionary(aHandle), err = WEAVE_ERROR_WDM_SCHEMA_MISMATCH);
 
-#if TDM_ENABLE_PUBLISHER_DICTIONARY_SUPPORT
+    err = aWriter.StartContainer(nl::Weave::TLV::ContextTag(DataElement::kCsTag_Data),
+            nl::Weave::TLV::kTLVType_Structure, dataContainerType);
+    SuccessOrExit(err);
+
     // if it's a dictionary, we need to iterate through the items in the container by asking our delegate.
     while ((err = aDelegate->GetNextDictionaryItemKey(aHandle, context, dictionaryItemKey)) == WEAVE_NO_ERROR)
     {
@@ -316,12 +322,18 @@ WEAVE_ERROR TraitSchemaEngine::RetrieveUpdatableDictionaryData(PropertyPathHandl
             SuccessOrExit(err);
         }
     }
-#endif // TDM_ENABLE_PUBLISHER_DICTIONARY_SUPPORT
 
-    VerifyOrExit(err == WEAVE_END_OF_INPUT, );
-    err = WEAVE_NO_ERROR;
+    if (err == WEAVE_END_OF_INPUT)
+    {
+        err = WEAVE_NO_ERROR;
+    }
+    SuccessOrExit(err);
+
+    err = aWriter.EndContainer(dataContainerType);
+    SuccessOrExit(err);
 
 exit:
+#endif // TDM_ENABLE_PUBLISHER_DICTIONARY_SUPPORT
     return err;
 }
 
