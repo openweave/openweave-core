@@ -2099,7 +2099,8 @@ WEAVE_ERROR SubscriptionClient::RemoveItemPendingUpdateStore(TraitDataHandle aDa
     return WEAVE_NO_ERROR;
 }
 
-WEAVE_ERROR SubscriptionClient::AddItemPendingUpdateStore(TraitPath aItem, const TraitSchemaEngine * const apSchemaEngine)
+WEAVE_ERROR SubscriptionClient::AddItemPendingUpdateStore(TraitPath aItem, const TraitSchemaEngine * const apSchemaEngine,
+                                                          bool aForceMerge)
 {
     bool isAddSuccess = false;
     TraitInstanceInfo * traitInstance;
@@ -2135,6 +2136,10 @@ WEAVE_ERROR SubscriptionClient::AddItemPendingUpdateStore(TraitPath aItem, const
             {
                 WeaveLogDetail(DataManagement, "Set T%u updated", j);
                 traitInstance[j].SetDirty();
+                if (aForceMerge)
+                {
+                    traitInstance[j].SetForceMerge();
+                }
             }
         }
     }
@@ -2729,7 +2734,7 @@ WEAVE_ERROR SubscriptionClient::AddElementFunc(UpdateClient * apClient, void * a
     TraitDataSink * dataSink;
     TraitUpdatableDataSink * updatableDataSink;
     const TraitSchemaEngine * schemaEngine;
-    bool isDictionary = false;
+    bool isDictionaryReplace = false;
     nl::Weave::TLV::TLVType dataContainerType;
     uint64_t tag = nl::Weave::TLV::ContextTag(DataElement::kCsTag_Data);
 
@@ -2744,17 +2749,20 @@ WEAVE_ERROR SubscriptionClient::AddElementFunc(UpdateClient * apClient, void * a
     updatableDataSink = static_cast<TraitUpdatableDataSink *> (dataSink);
     schemaEngine = updatableDataSink->GetSchemaEngine();
 
-    WeaveLogDetail(DataManagement, "<AddElementFunc> with property path handle 0x%08x", 
+    WeaveLogDetail(DataManagement, "<AddElementFunc> with property path handle 0x%08x",
             pTraitInstanceInfo->mCandidatePropertyPathHandle);
 
-    isDictionary = schemaEngine->IsDictionary(pTraitInstanceInfo->mCandidatePropertyPathHandle);
+    if (schemaEngine->IsDictionary(pTraitInstanceInfo->mCandidatePropertyPathHandle) &&
+        !pTraitInstanceInfo->IsForceMerge())
+    {
+        isDictionaryReplace = true;
+    }
 
-    if (isDictionary)
+    if (isDictionaryReplace)
     {
         // If the element is a whole dictionary, use the "replace" scheme.
         // The path of the DataElement points to the parent of the dictionary.
-        // The data has to be a structure with one element, which is the dictionary
-        // itself.
+        // The data has to be a structure with one element, which is the dictionary itself.
         WeaveLogDetail(DataManagement, "<AddElementFunc> replace dictionary");
         err = aOuterWriter.StartContainer(tag, nl::Weave::TLV::kTLVType_Structure, dataContainerType);
         SuccessOrExit(err);
@@ -2769,7 +2777,14 @@ WEAVE_ERROR SubscriptionClient::AddElementFunc(UpdateClient * apClient, void * a
             pTraitInstanceInfo->mNextDictionaryElementPathHandle);
     SuccessOrExit(err);
 
-    if (isDictionary)
+    if (! IsNullPropertyPathHandle(pTraitInstanceInfo->mNextDictionaryElementPathHandle))
+    {
+        // A dictionary didn't fit in the payload; and so we need to resume
+        // the encoding in a new DataElement, with a "merge" scheme.
+        pTraitInstanceInfo->SetForceMerge();
+    }
+
+    if (isDictionaryReplace)
     {
         err = aOuterWriter.EndContainer(dataContainerType);
         SuccessOrExit(err);
@@ -2861,7 +2876,8 @@ WEAVE_ERROR SubscriptionClient::BuildSingleUpdateRequestDataList(bool & aIsParti
                     err = schemaEngine->GetRelativePathTags(traitInfo->mCandidatePropertyPathHandle, tags, ArraySize(tags), numTags);
                     SuccessOrExit(err);
 
-                    if (schemaEngine->IsDictionary(traitInfo->mCandidatePropertyPathHandle))
+                    if (schemaEngine->IsDictionary(traitInfo->mCandidatePropertyPathHandle) &&
+                            ! traitInfo->IsForceMerge())
                     {
                         // If the property being updated is a dictionary, we need to use the "replace"
                         // scheme explicitly so that the whole property is replaced on the responder.
@@ -2922,6 +2938,8 @@ WEAVE_ERROR SubscriptionClient::BuildSingleUpdateRequestDataList(bool & aIsParti
 
                 if (traitInfo->mNextDictionaryElementPathHandle != kNullPropertyPathHandle)
                 {
+                    // A dictionary didn't fit in the payload; exit and send the current payload as a
+                    // partial update.
                     aIsPartialUpdate = true;
                     break;
                 }

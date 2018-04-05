@@ -1693,7 +1693,7 @@ WEAVE_ERROR TestATraitUpdatableDataSink::Mutate(SubscriptionClient * apSubClient
 
     if (mTraitTestSet == 0)
     {
-        static const uint8_t kNumTestCases = 9;
+        static const uint8_t kNumTestCases = 10;
 
         WeaveLogDetail(DataManagement, "TestATraitUpdatableDataSink::mTestCounter: %" PRIu32 "", mTestCounter);
 
@@ -1838,7 +1838,38 @@ WEAVE_ERROR TestATraitUpdatableDataSink::Mutate(SubscriptionClient * apSubClient
             tad.saB = !tad.saB;
         }
         else if ((mTestCounter % kNumTestCases) == 9) {
-            // This test is disabled! Initialize kNumTestCases to 10 instead of 9 to execute it.
+            WeaveLogDetail(DataManagement, "all merge with root handle, cut dictionary");
+
+            err = SetUpdated(apSubClient, TestATrait::kPropertyHandle_Root, aIsConditional);
+            SuccessOrExit(err);
+
+            err = SetUpdated(apSubClient, TestATrait::kPropertyHandle_TaD_SaA, aIsConditional);
+            SuccessOrExit(err);
+
+            err = SetUpdated(apSubClient, TestATrait::kPropertyHandle_TaA, aIsConditional);
+            SuccessOrExit(err);
+
+            err = SetUpdated(apSubClient, TestATrait::kPropertyHandle_TaD, aIsConditional);
+            SuccessOrExit(err);
+
+            err = SetUpdated(apSubClient, TestATrait::kPropertyHandle_TaI, aIsConditional);
+            SuccessOrExit(err);
+
+            tai_map.clear();
+            for (uint16_t i = 0; i < 3; i++) {
+                tai_map[i] = { ((uint32_t)i + 1)*10 + 7 };
+            }
+            if (taa == TestATrait::ENUM_A_VALUE_1) {
+                taa = TestATrait::ENUM_A_VALUE_2;
+            }
+            else {
+                taa = TestATrait::ENUM_A_VALUE_1;
+            }
+
+            tad.saB = !tad.saB;
+        }
+        else if ((mTestCounter % kNumTestCases) == 10) {
+            // This test is disabled! Initialize kNumTestCases to 11 instead of 10 to execute it.
             // And add something to the mock source trait in TestATraitDataSource::Mutate
 
             // sink, all merge with root handle, cut oversized dictionary

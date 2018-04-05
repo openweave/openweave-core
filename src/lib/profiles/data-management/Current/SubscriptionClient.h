@@ -444,7 +444,7 @@ private:
     WEAVE_ERROR ClearDispatchedUpdateStore(void);
     WEAVE_ERROR RemoveItemPendingUpdateStore(TraitDataHandle aDataHandle);
     WEAVE_ERROR RemoveItemDispatchedUpdateStore(TraitDataHandle aDataHandle);
-    WEAVE_ERROR AddItemPendingUpdateStore(TraitPath aItem, const TraitSchemaEngine * const apSchemaEngine);
+    WEAVE_ERROR AddItemPendingUpdateStore(TraitPath aItem, const TraitSchemaEngine * const apSchemaEngine, bool aForceMerge = false);
     WEAVE_ERROR ClearDirty(void);
 
     bool IsEmptyPendingUpdateStore(void);
@@ -491,16 +491,20 @@ private:
 
     struct TraitInstanceInfo
     {
-        void Init(void) { this->ClearDirty(); }
+        void Init(void) { this->ClearDirty(); this->ClearForceMerge(); }
         bool IsDirty(void) { return mDirty; }
         void SetDirty(void) { mDirty = true; }
         void ClearDirty(void) { mDirty = false; }
+        bool IsForceMerge(void) { return mForceMerge; }
+        void SetForceMerge(void) { mForceMerge = true; }
+        void ClearForceMerge(void) { mForceMerge = false; }
 
         TraitDataHandle mTraitDataHandle;
         uint16_t mRequestedVersion;
         bool mDirty;
         PropertyPathHandle mNextDictionaryElementPathHandle;
         PropertyPathHandle mCandidatePropertyPathHandle;
+        bool mForceMerge;
     };
 
     struct AddElementCallState

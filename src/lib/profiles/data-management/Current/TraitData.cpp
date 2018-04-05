@@ -77,7 +77,7 @@ WEAVE_ERROR UpdateDictionaryDirtyPathCut::CutPath (PropertyPathHandle aPathhandl
     // TODO: rename this struct, and pass apEngine to the constructor.
     // Probably just replace the struct with a function; I don't see the point of it really.
 #if WEAVE_CONFIG_ENABLE_WDM_UPDATE
-    mpSubClient->AddItemPendingUpdateStore(TraitPath(mTraitDataHandle, aPathhandle), apEngine);
+    mpSubClient->AddItemPendingUpdateStore(TraitPath(mTraitDataHandle, aPathhandle), apEngine, true);
     WeaveLogDetail(DataManagement, "Cut dictionary %u, %u", mTraitDataHandle, aPathhandle);
 #endif // WEAVE_CONFIG_ENABLE_WDM_UPDATE
 
@@ -246,9 +246,16 @@ WEAVE_ERROR TraitSchemaEngine::RetrieveData(PropertyPathHandle aHandle, uint64_t
             else
             {
                 // Looks like we come down to a dictionary during a recursion started by TraitUpdatableDataSink::ReadData,
-                // because updateDirtyPathCut is not NULL. So now the path handle to the dictionary is put back
-                // on the pending list and the recursion skips it.
-                // Why?
+                // because updateDirtyPathCut is not NULL.
+                // The dictionary is supposed to be replaced completely.
+                // The way this is implemented is:
+                // - an empty dictionary is encoded here;
+                // - the handle of the dictionary is put back in the queue.
+                // The empty dictionary is encoded here because if the dictionary is not a child of the
+                // current DataElement's path, it cannot be omitted.
+                // The dictionary will be encoded in a new DataElement as a "replace".
+                // The reason for that is that if the dictionary is too large to fit in the payload,
+                // it's easier to split it in more than one data element outside of a recursion.
                 updateDirtyPathCut->CutPath(aHandle, this);
             }
         }
@@ -293,7 +300,7 @@ WEAVE_ERROR TraitSchemaEngine::RetrieveUpdatableDictionaryData(PropertyPathHandl
 
     VerifyOrExit(IsDictionary(aHandle), err = WEAVE_ERROR_WDM_SCHEMA_MISMATCH);
 
-    err = aWriter.StartContainer(nl::Weave::TLV::ContextTag(DataElement::kCsTag_Data),
+    err = aWriter.StartContainer(aTagToWrite,
             nl::Weave::TLV::kTLVType_Structure, dataContainerType);
     SuccessOrExit(err);
 
