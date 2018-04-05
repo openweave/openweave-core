@@ -170,6 +170,9 @@ const char * ResourceIdentifier::ResourceTypeAsString(uint16_t aResourceType)
     case Schema::Weave::Common::RESOURCE_TYPE_GUEST:
         retval = "GUEST";
         break;
+    case Schema::Weave::Common::RESOURCE_TYPE_SERVICE:
+        retval = "SERVICE";
+        break;
     default:
         retval = NULL;
     }
@@ -220,7 +223,7 @@ WEAVE_ERROR ResourceIdentifier::FromString(const char * inBuffer, size_t bufferL
     uint32_t r_lower, r_upper;
     char uintbuffer[9];
 
-    for (resourceType = Schema::Weave::Common::RESOURCE_TYPE_DEVICE; resourceType <= Schema::Weave::Common::RESOURCE_TYPE_GUEST;
+    for (resourceType = Schema::Weave::Common::RESOURCE_TYPE_DEVICE; resourceType <= Schema::Weave::Common::RESOURCE_TYPE_SERVICE;
          resourceType++)
     {
         resourceName = ResourceTypeAsString(resourceType);
@@ -239,7 +242,7 @@ WEAVE_ERROR ResourceIdentifier::FromString(const char * inBuffer, size_t bufferL
         }
     }
 
-    VerifyOrExit(resourceType <= Schema::Weave::Common::RESOURCE_TYPE_GUEST, err = WEAVE_ERROR_INVALID_ARGUMENT);
+    VerifyOrExit(resourceType <= Schema::Weave::Common::RESOURCE_TYPE_SERVICE, err = WEAVE_ERROR_INVALID_ARGUMENT);
 
     memcpy(uintbuffer, inBuffer, 8);
     uintbuffer[8] = '\0';

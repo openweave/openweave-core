@@ -25,9 +25,8 @@ enum ResourceType {
     RESOURCE_TYPE_ANNOTATION = 7,
     RESOURCE_TYPE_STRUCTURE = 8,
     RESOURCE_TYPE_GUEST = 9,
+    RESOURCE_TYPE_SERVICE = 10,
 };
-
-
 
 } // namespace Common
 } // namespace Weave
