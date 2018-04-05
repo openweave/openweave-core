@@ -143,6 +143,7 @@ const char * ResourceIdentifier::ResourceTypeAsString(uint16_t aResourceType)
     {
     case RESOURCE_TYPE_RESERVED:
         retval = "RESERVED";
+        break;
     case Schema::Weave::Common::RESOURCE_TYPE_DEVICE:
         retval = "DEVICE";
         break;
