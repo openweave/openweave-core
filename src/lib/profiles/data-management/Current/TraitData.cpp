@@ -337,15 +337,21 @@ exit:
     return err;
 }
 
-WEAVE_ERROR TraitSchemaEngine::GetRelativePathTags(PropertyPathHandle candidateHandle, uint32_t &tagIndex, uint64_t *tags) const
+WEAVE_ERROR TraitSchemaEngine::GetRelativePathTags(const PropertyPathHandle aCandidateHandle,
+                                                   uint64_t *aTags,
+                                                   const uint32_t aTagsSize,
+                                                   uint32_t &aNumTags) const
 {
     PropertyPathHandle pathWalkStore[mSchema.mTreeDepth];
     uint32_t pathWalkDepth         = 0;
     PropertyPathHandle curProperty;
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
 
-    if (candidateHandle != kRootPropertyPathHandle)
+    aNumTags = 0;
+
+    if (aCandidateHandle != kRootPropertyPathHandle)
     {
-        curProperty = candidateHandle;
+        curProperty = aCandidateHandle;
 
         while (curProperty != kRootPropertyPathHandle)
         {
@@ -353,17 +359,20 @@ WEAVE_ERROR TraitSchemaEngine::GetRelativePathTags(PropertyPathHandle candidateH
             curProperty                    = GetParent(curProperty);
         }
 
+        VerifyOrExit(aTagsSize >= pathWalkDepth, err = WEAVE_ERROR_NO_MEMORY);
+
         // Write it into TLV by reverse walking over the encountered handles starting from root.
         while (pathWalkDepth)
         {
             PropertyPathHandle curHandle = pathWalkStore[pathWalkDepth - 1];
-            tags[tagIndex] = GetTag(curHandle);
+            aTags[aNumTags] = GetTag(curHandle);
             pathWalkDepth--;
-            tagIndex++;
+            aNumTags++;
         }
     }
 
-    return WEAVE_NO_ERROR;
+exit:
+    return err;
 }
 #endif // WEAVE_CONFIG_ENABLE_WDM_UPDATE
 

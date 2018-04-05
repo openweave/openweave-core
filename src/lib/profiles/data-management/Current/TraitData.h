@@ -444,7 +444,18 @@ public:
                                                 PropertyPathHandle * aHandle1BranchChild,
                                                 PropertyPathHandle * aHandle2BranchChild) const;
 
-    WEAVE_ERROR GetRelativePathTags(PropertyPathHandle candidateHandle, uint32_t &tagIndex, uint64_t *tags) const;
+    /**
+     * Converts a PropertyPathHandle to an array of context tags.
+     *
+     * @param[in]  aCandidateHandle  The PropertyPathHandle to be converted.
+     * @param[in]  aTags             Pointer to the output array.
+     * @param[in]  aTagsSize         Size of the aTags array, in number of elements.
+     * @param[out] aNumTags          The number of tags written to aTags
+     *
+     * @return     WEAVE_NO_ERROR in case of success; WEAVE_ERROR_NO_MEMORY if aTags is too small
+     *             to store the full path.
+     */
+    WEAVE_ERROR GetRelativePathTags(const PropertyPathHandle aCandidateHandle, uint64_t *aTags, const uint32_t aTagsSize, uint32_t &aNumTags) const;
     /**
      * Returns true if the passed in profileId matches that stored in the schema.
      *

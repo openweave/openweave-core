@@ -380,8 +380,7 @@ WEAVE_ERROR UpdateClient::AddElement(const uint32_t &aProfileID,
                     const uint64_t *aPathArray,
 				    const size_t aPathLength,
                     AddElementCallback aAddElementCallback,
-                    void * aCallState
-                    )
+                    void * aCallState)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
     TLV::TLVWriter outerWriter;

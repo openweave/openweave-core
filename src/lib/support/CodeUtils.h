@@ -357,6 +357,23 @@ inline void WeaveDie(void)
 #define VerifyOrDieWithMsg(aCondition, aModule, aMessage, ...)         \
     nlABORT_ACTION(aCondition, WeaveLogDetail(aModule, aMessage, ## __VA_ARGS__))
 
+/**
+ * @def ArraySize(aArray)
+ *
+ * @brief
+ *   Returns the size of an array in number of elements.
+ *
+ * Example Usage:
+ *
+ * @code
+ * int numbers[10];
+ * SortNumbers(numbers, ArraySize(numbers));
+ * @endcode
+ *
+ * @return      The size of an array in number of elements.
+ */
+#define ArraySize(a) (sizeof(a)/sizeof((a)[0]))
+
 #if defined(__cplusplus) && (__cplusplus >= 201103L)
 
 #ifndef __FINAL

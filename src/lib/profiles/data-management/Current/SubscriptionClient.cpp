@@ -2728,6 +2728,10 @@ WEAVE_ERROR SubscriptionClient::AddElementFunc(UpdateClient * apClient, void * a
     WEAVE_ERROR err;
     TraitDataSink * dataSink;
     TraitUpdatableDataSink * updatableDataSink;
+    const TraitSchemaEngine * schemaEngine;
+    bool isDictionary = false;
+    nl::Weave::TLV::TLVType dataContainerType;
+    uint64_t tag = nl::Weave::TLV::ContextTag(DataElement::kCsTag_Data);
 
     AddElementCallState * addElementCallState = static_cast<AddElementCallState *>(apCallState);
     SubscriptionClient * pSubClient = addElementCallState->mpSubClient;
@@ -2738,16 +2742,38 @@ WEAVE_ERROR SubscriptionClient::AddElementFunc(UpdateClient * apClient, void * a
 
     VerifyOrExit(dataSink->IsUpdatableDataSink() == true, WeaveLogDetail(DataManagement, "<AddElementFunc> not updatable sink."));
     updatableDataSink = static_cast<TraitUpdatableDataSink *> (dataSink);
+    schemaEngine = updatableDataSink->GetSchemaEngine();
 
     WeaveLogDetail(DataManagement, "<AddElementFunc> with property path handle 0x%08x", 
             pTraitInstanceInfo->mCandidatePropertyPathHandle);
 
+    isDictionary = schemaEngine->IsDictionary(pTraitInstanceInfo->mCandidatePropertyPathHandle);
+
+    if (isDictionary)
+    {
+        // If the element is a whole dictionary, use the "replace" scheme.
+        // The path of the DataElement points to the parent of the dictionary.
+        // The data has to be a structure with one element, which is the dictionary
+        // itself.
+        WeaveLogDetail(DataManagement, "<AddElementFunc> replace dictionary");
+        err = aOuterWriter.StartContainer(tag, nl::Weave::TLV::kTLVType_Structure, dataContainerType);
+        SuccessOrExit(err);
+
+        tag = schemaEngine->GetTag(pTraitInstanceInfo->mCandidatePropertyPathHandle);
+    }
+
     err = updatableDataSink->ReadData(pTraitInstanceInfo->mTraitDataHandle,
             pTraitInstanceInfo->mCandidatePropertyPathHandle,
-            nl::Weave::TLV::ContextTag(DataElement::kCsTag_Data),
+            tag,
             aOuterWriter,
             pTraitInstanceInfo->mNextDictionaryElementPathHandle);
     SuccessOrExit(err);
+
+    if (isDictionary)
+    {
+        err = aOuterWriter.EndContainer(dataContainerType);
+        SuccessOrExit(err);
+    }
 
 exit:
     return err;
@@ -2811,7 +2837,7 @@ WEAVE_ERROR SubscriptionClient::BuildSingleUpdateRequestDataList(bool & aIsParti
                         || (traitInfo->mNextDictionaryElementPathHandle != kNullPropertyPathHandle))
                 {
                     TraitPath dirtyPath;
-                    uint32_t tagIndex = 0;
+                    uint32_t numTags = 0;
                     uint64_t tags[schemaEngine->mSchema.mTreeDepth];
 
                     if (traitInfo->mNextDictionaryElementPathHandle != kNullPropertyPathHandle)
@@ -2832,7 +2858,17 @@ WEAVE_ERROR SubscriptionClient::BuildSingleUpdateRequestDataList(bool & aIsParti
                         traitInfo->mCandidatePropertyPathHandle = dirtyPath.mPropertyPathHandle;
                     }
 
-                    schemaEngine->GetRelativePathTags(traitInfo->mCandidatePropertyPathHandle, tagIndex, tags);
+                    err = schemaEngine->GetRelativePathTags(traitInfo->mCandidatePropertyPathHandle, tags, ArraySize(tags), numTags);
+                    SuccessOrExit(err);
+
+                    if (schemaEngine->IsDictionary(traitInfo->mCandidatePropertyPathHandle))
+                    {
+                        // If the property being updated is a dictionary, we need to use the "replace"
+                        // scheme explicitly so that the whole property is replaced on the responder.
+                        // So, the path has to point to the parent of the dictionary.
+                        VerifyOrExit(numTags > 0, err = WEAVE_ERROR_WDM_SCHEMA_MISMATCH);
+                        numTags--;
+                    }
 
                     AddElementCallState addElementCallState;
                     addElementCallState.mpSubClient = this;
@@ -2842,7 +2878,7 @@ WEAVE_ERROR SubscriptionClient::BuildSingleUpdateRequestDataList(bool & aIsParti
                                                    instanceId,
                                                    resourceId,
                                                    updatableDataSink->GetUpdateRequiredVersion(),
-                                                   NULL, tags, tagIndex,
+                                                   NULL, tags, numTags,
                                                    AddElementFunc, &addElementCallState);
                     if (err == WEAVE_NO_ERROR)
                     {
