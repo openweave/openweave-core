@@ -27,10 +27,26 @@ public:
     virtual WEAVE_ERROR EnumerateGroupKeys(uint32_t keyType, uint32_t * keyIds, uint8_t keyIdsArraySize, uint8_t & keyCount);
     virtual WEAVE_ERROR Clear(void);
     virtual WEAVE_ERROR GetCurrentUTCTime(uint32_t& utcTime);
-
-protected:
     virtual WEAVE_ERROR RetrieveLastUsedEpochKeyId(void);
     virtual WEAVE_ERROR StoreLastUsedEpochKeyId(void);
+
+private:
+
+    // NOTE: These members are for internal use by the following friend classes.
+
+    friend class ::WeavePlatform::ConfigurationManager;
+
+    WEAVE_ERROR Init();
+
+private:
+    uint32_t mKeyIndex[WEAVE_PLATFORM_CONFIG_MAX_GROUP_KEYS];
+    uint8_t mNumKeys;
+
+    WEAVE_ERROR AddKeyToIndex(uint32_t keyId, bool & indexUpdated);
+    WEAVE_ERROR WriteKeyIndex(nvs_handle handle);
+    WEAVE_ERROR DeleteKeyOrKeys(uint32_t targetKeyId, uint32_t targetKeyType);
+
+    static WEAVE_ERROR FormKeyName(uint32_t keyId, char * buf, size_t bufSize);
 };
 
 GroupKeyStore gGroupKeyStore;
@@ -53,12 +69,12 @@ const char kNVSKeyName_ServiceConfig[]       = "service-config";
 const char kNVSKeyName_PairedAccountId[]     = "account-id";
 const char kNVSKeyName_ServiceId[]           = "service-id";
 const char kNVSKeyName_FabricSecret[]        = "fabric-secret";
-const char kNVSKeyName_ServiceRootKey[]      = "srk";
-const char kNVSKeyName_EpochKeyPrefix[]      = "ek-";
-const char kNVSKeyName_AppMasterKeyIndex[]   = "amk-index";
-const char kNVSKeyName_AppMasterKeyPrefix[]  = "amk-";
+const char kNVSKeyName_GroupKeyIndex[]       = "group-key-index";
+const char kNVSKeyName_GroupKeyPrefix[]      = "gk-";
 const char kNVSKeyName_LastUsedEpochKeyId[]  = "last-ek-id";
 const char kNVSKeyName_FailSafeArmed[]       = "fail-safe-armed";
+
+const size_t kMaxGroupKeyNameLength = max(sizeof(kNVSKeyName_FabricSecret), sizeof(kNVSKeyName_GroupKeyPrefix) + 8);
 
 WEAVE_ERROR GetNVS(const char * ns, const char * name, uint8_t * buf, size_t bufSize, size_t & outLen);
 WEAVE_ERROR GetNVS(const char * ns, const char * name, char * buf, size_t bufSize, size_t & outLen);
@@ -70,9 +86,7 @@ WEAVE_ERROR StoreNVS(const char * ns, const char * name, uint32_t val);
 WEAVE_ERROR StoreNVS(const char * ns, const char * name, uint64_t val);
 WEAVE_ERROR ClearNVSKey(const char * ns, const char * name);
 WEAVE_ERROR ClearNVSNamespace(const char * ns);
-WEAVE_ERROR GetNVSBlobLength(const char * ns, const char * name, size_t & outLen);
 WEAVE_ERROR EnsureNamespace(const char * ns);
-WEAVE_ERROR EraseNamespace(const char * ns);
 
 } // unnamed namespace
 
@@ -528,6 +542,8 @@ WEAVE_ERROR ConfigurationManager::Init()
 
     // Initialize the global GroupKeyStore object.
     new ((void *)&gGroupKeyStore) GroupKeyStore();
+    err = gGroupKeyStore.Init();
+    SuccessOrExit(err);
 
     // If the fail-safe was armed when the device last shutdown, initiate a factory reset.
     if (GetNVS(kNVSNamespace_WeaveConfig, kNVSKeyName_FailSafeArmed, failSafeArmed) == WEAVE_NO_ERROR &&
@@ -625,10 +641,10 @@ void ConfigurationManager::DoFactoryReset(intptr_t arg)
     ESP_LOGI(TAG, "Performing factory reset");
 
     // Erase all values in the weave-config NVS namespace.
-    err = EraseNamespace(kNVSNamespace_WeaveConfig);
+    err = ClearNVSNamespace(kNVSNamespace_WeaveConfig);
     if (err != WEAVE_NO_ERROR)
     {
-        ESP_LOGE(TAG, "EraseNamespace(WeaveConfig) failed: %s", nl::ErrorStr(err));
+        ESP_LOGE(TAG, "ClearNVSNamespace(WeaveConfig) failed: %s", nl::ErrorStr(err));
     }
 
     // Restore WiFi persistent settings to default values.
@@ -651,17 +667,23 @@ WEAVE_ERROR GroupKeyStore::RetrieveGroupKey(uint32_t keyId, WeaveGroupKey & key)
 {
     WEAVE_ERROR err;
     size_t keyLen;
+    char keyName[kMaxGroupKeyNameLength + 1];
 
-    // TODO: add support for other group key types
+    err = FormKeyName(keyId, keyName, sizeof(keyName));
+    SuccessOrExit(err);
 
-    VerifyOrExit(keyId == WeaveKeyId::kFabricSecret, err = WEAVE_ERROR_KEY_NOT_FOUND);
-
-    err = GetNVS(kNVSNamespace_WeaveConfig, kNVSKeyName_FabricSecret, key.Key, sizeof(key.Key), keyLen);
+    err = GetNVS(kNVSNamespace_WeaveConfig, keyName, key.Key, sizeof(key.Key), keyLen);
     if (err == WEAVE_PLATFORM_ERROR_CONFIG_NOT_FOUND)
     {
         err = WEAVE_ERROR_KEY_NOT_FOUND;
     }
     SuccessOrExit(err);
+
+    if (keyId != WeaveKeyId::kFabricSecret)
+    {
+    	memcpy(&key.StartTime, key.Key + kWeaveAppGroupKeySize, sizeof(uint32_t));
+    	keyLen -= sizeof(uint32_t);
+    }
 
     key.KeyId = keyId;
     key.KeyLen = keyLen;
@@ -673,84 +695,102 @@ exit:
 WEAVE_ERROR GroupKeyStore::StoreGroupKey(const WeaveGroupKey & key)
 {
     WEAVE_ERROR err;
+    nvs_handle handle;
+    char keyName[kMaxGroupKeyNameLength + 1];
+    uint8_t keyData[WeaveGroupKey::MaxKeySize];
+    bool needClose = false;
+    bool indexUpdated = false;
 
-    // TODO: add support for other group key types
+    err = FormKeyName(key.KeyId, keyName, sizeof(keyName));
+    SuccessOrExit(err);
 
-    VerifyOrExit(key.KeyId == WeaveKeyId::kFabricSecret, err = WEAVE_ERROR_INVALID_KEY_ID);
+    err = AddKeyToIndex(key.KeyId, indexUpdated);
+    SuccessOrExit(err);
 
-    err = StoreNVS(kNVSNamespace_WeaveConfig, kNVSKeyName_FabricSecret, key.Key, key.KeyLen);
+    err = nvs_open(kNVSNamespace_WeaveConfig, NVS_READWRITE, &handle);
+    SuccessOrExit(err);
+    needClose = true;
+
+    memcpy(keyData, key.Key, WeaveGroupKey::MaxKeySize);
+    if (key.KeyId != WeaveKeyId::kFabricSecret)
+    {
+        memcpy(keyData + kWeaveAppGroupKeySize, (const void *)&key.StartTime, sizeof(uint32_t));
+    }
+
+    if (LOG_LOCAL_LEVEL >= ESP_LOG_INFO)
+    {
+        if (WeaveKeyId::IsAppEpochKey(key.KeyId))
+        {
+            ESP_LOGI(TAG, "GroupKeyStore: storing epoch key %s/%s (key len %" PRId8 ", start time %" PRIu32 ")",
+                    kNVSNamespace_WeaveConfig, keyName, key.KeyLen, key.StartTime);
+        }
+        else if (WeaveKeyId::IsAppGroupMasterKey(key.KeyId))
+        {
+            ESP_LOGI(TAG, "GroupKeyStore: storing app master key %s/%s (key len %" PRId8 ", global id 0x%" PRIX32 ")",
+                    kNVSNamespace_WeaveConfig, keyName, key.KeyLen, key.GlobalId);
+        }
+        else
+        {
+            const char * keyType = (WeaveKeyId::IsAppRootKey(key.KeyId)) ? "root": "general";
+            ESP_LOGI(TAG, "GroupKeyStore: storing %s key %s/%s (key len %" PRId8 ")", keyType, kNVSNamespace_WeaveConfig, keyName, key.KeyLen);
+        }
+    }
+
+    err = nvs_set_blob(handle, keyName, keyData, WeaveGroupKey::MaxKeySize);
+    SuccessOrExit(err);
+
+    if (indexUpdated)
+    {
+        err = WriteKeyIndex(handle);
+        SuccessOrExit(err);
+    }
+
+    // Commit the value to the persistent store.
+    err = nvs_commit(handle);
     SuccessOrExit(err);
 
 exit:
+	if (needClose)
+	{
+		nvs_close(handle);
+	}
+	if (err != WEAVE_NO_ERROR && indexUpdated)
+	{
+	    mNumKeys--;
+	}
+	ClearSecretData(keyData, sizeof(keyData));
     return err;
 }
 
 WEAVE_ERROR GroupKeyStore::DeleteGroupKey(uint32_t keyId)
 {
-    WEAVE_ERROR err;
-
-    // TODO: add support for other group key types
-
-    VerifyOrExit(keyId == WeaveKeyId::kFabricSecret, err = WEAVE_ERROR_KEY_NOT_FOUND);
-
-    err = ClearNVSKey(kNVSNamespace_WeaveConfig, kNVSKeyName_FabricSecret);
-    SuccessOrExit(err);
-
-exit:
-    return err;
+    return DeleteKeyOrKeys(keyId, WeaveKeyId::kType_None);
 }
 
 WEAVE_ERROR GroupKeyStore::DeleteGroupKeysOfAType(uint32_t keyType)
 {
-    WEAVE_ERROR err = WEAVE_NO_ERROR;
-
-    // TODO: add support for other group key types
-
-    if (WeaveKeyId::IsGeneralKey(keyType))
-    {
-        err = ClearNVSKey(kNVSNamespace_WeaveConfig, kNVSKeyName_FabricSecret);
-        SuccessOrExit(err);
-    }
-
-exit:
-    return err;
+    return DeleteKeyOrKeys(WeaveKeyId::kNone, keyType);
 }
 
 WEAVE_ERROR GroupKeyStore::EnumerateGroupKeys(uint32_t keyType, uint32_t * keyIds,
         uint8_t keyIdsArraySize, uint8_t & keyCount)
 {
-    WEAVE_ERROR err = WEAVE_NO_ERROR;
-    size_t keyLen;
-
-    // Verify the supported key type is specified.
-    VerifyOrExit(WeaveKeyId::IsGeneralKey(keyType) ||
-                 WeaveKeyId::IsAppRootKey(keyType) ||
-                 WeaveKeyId::IsAppEpochKey(keyType) ||
-                 WeaveKeyId::IsAppGroupMasterKey(keyType), err = WEAVE_ERROR_INVALID_KEY_ID);
-
     keyCount = 0;
 
-    if (WeaveKeyId::IsGeneralKey(keyType))
+    for (uint8_t i = 0; i < mNumKeys && keyCount < keyIdsArraySize; i++)
     {
-        err = GetNVSBlobLength(kNVSNamespace_WeaveConfig, kNVSKeyName_FabricSecret, keyLen);
-        SuccessOrExit(err);
-
-        if (keyLen != 0)
+        if (keyType == WeaveKeyId::kType_None || WeaveKeyId::GetType(mKeyIndex[i]) == keyType)
         {
-            VerifyOrExit(keyCount < keyIdsArraySize, err = WEAVE_ERROR_BUFFER_TOO_SMALL);
-            keyIds[keyCount++] = WeaveKeyId::kFabricSecret;
+            keyIds[keyCount++] = mKeyIndex[i];
         }
     }
 
-    // TODO: add support for other group key types
-
-exit:
-    return err;
+    return WEAVE_NO_ERROR;
 }
 
 WEAVE_ERROR GroupKeyStore::Clear(void)
 {
-    return ClearNVSNamespace(kNVSNamespace_WeaveConfig);
+    return DeleteKeyOrKeys(WeaveKeyId::kNone, WeaveKeyId::kType_None);
 }
 
 WEAVE_ERROR GroupKeyStore::GetCurrentUTCTime(uint32_t & utcTime)
@@ -776,6 +816,155 @@ WEAVE_ERROR GroupKeyStore::StoreLastUsedEpochKeyId(void)
 {
     return StoreNVS(kNVSNamespace_WeaveConfig, kNVSKeyName_LastUsedEpochKeyId, LastUsedEpochKeyId);
 }
+
+WEAVE_ERROR GroupKeyStore::Init()
+{
+    WEAVE_ERROR err;
+    size_t indexSizeBytes;
+
+    err = GetNVS(kNVSNamespace_WeaveConfig, kNVSKeyName_GroupKeyIndex, (uint8_t *)mKeyIndex, sizeof(mKeyIndex), indexSizeBytes);
+    if (err == WEAVE_PLATFORM_ERROR_CONFIG_NOT_FOUND)
+    {
+        err = WEAVE_NO_ERROR;
+        indexSizeBytes = 0;
+    }
+    SuccessOrExit(err);
+
+    mNumKeys = indexSizeBytes / sizeof(uint32_t);
+
+exit:
+    return err;
+}
+
+WEAVE_ERROR GroupKeyStore::AddKeyToIndex(uint32_t keyId, bool & indexUpdated)
+{
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
+
+    indexUpdated = false;
+
+    for (uint8_t i = 0; i < mNumKeys; i++)
+    {
+        if (mKeyIndex[i] == keyId)
+        {
+            ExitNow(err = WEAVE_NO_ERROR);
+        }
+    }
+
+    VerifyOrExit(mNumKeys < WEAVE_PLATFORM_CONFIG_MAX_GROUP_KEYS, err = WEAVE_ERROR_TOO_MANY_KEYS);
+
+    mKeyIndex[mNumKeys++] = keyId;
+    indexUpdated = true;
+
+exit:
+    return err;
+}
+
+WEAVE_ERROR GroupKeyStore::WriteKeyIndex(nvs_handle handle)
+{
+    ESP_LOGI(TAG, "GroupKeyStore: writing key index %s/%s (num keys %" PRIu8 ")", kNVSNamespace_WeaveConfig, kNVSKeyName_GroupKeyIndex, mNumKeys);
+    return nvs_set_blob(handle, kNVSKeyName_GroupKeyIndex, mKeyIndex, mNumKeys * sizeof(uint32_t));
+}
+
+WEAVE_ERROR GroupKeyStore::DeleteKeyOrKeys(uint32_t targetKeyId, uint32_t targetKeyType)
+{
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
+    nvs_handle handle;
+    char keyName[kMaxGroupKeyNameLength + 1];
+    bool needClose = false;
+
+    for (uint8_t i = 0; i < mNumKeys; )
+    {
+        uint32_t curKeyId = mKeyIndex[i];
+
+        if ((targetKeyId == WeaveKeyId::kNone && targetKeyType == WeaveKeyId::kType_None) ||
+            curKeyId == targetKeyId ||
+            WeaveKeyId::GetType(curKeyId) == targetKeyType)
+        {
+            if (!needClose)
+            {
+                err = nvs_open(kNVSNamespace_WeaveConfig, NVS_READWRITE, &handle);
+                SuccessOrExit(err);
+                needClose = true;
+            }
+
+            err = FormKeyName(curKeyId, keyName, sizeof(keyName));
+            SuccessOrExit(err);
+
+            err = nvs_erase_key(handle, keyName);
+            if (err == ESP_OK && LOG_LOCAL_LEVEL >= ESP_LOG_INFO)
+            {
+                const char * keyType;
+                if (WeaveKeyId::IsAppRootKey(curKeyId))
+                {
+                    keyType = "root";
+                }
+                else if (WeaveKeyId::IsAppGroupMasterKey(curKeyId))
+                {
+                    keyType = "app master";
+                }
+                else if (WeaveKeyId::IsAppEpochKey(curKeyId))
+                {
+                    keyType = "epoch";
+                }
+                else
+                {
+                    keyType = "general";
+                }
+                ESP_LOGI(TAG, "GroupKeyStore: erasing %s key %s/%s", keyType, kNVSNamespace_WeaveConfig, keyName);
+            }
+            else if (err == ESP_ERR_NVS_NOT_FOUND)
+            {
+                err = WEAVE_NO_ERROR;
+            }
+            SuccessOrExit(err);
+
+            mNumKeys--;
+
+            memmove(&mKeyIndex[i], &mKeyIndex[i+1], (mNumKeys - i) * sizeof(uint32_t));
+        }
+        else
+        {
+            i++;
+        }
+    }
+
+    if (needClose)
+    {
+        err = WriteKeyIndex(handle);
+        SuccessOrExit(err);
+
+        // Commit to the persistent store.
+        err = nvs_commit(handle);
+        SuccessOrExit(err);
+    }
+
+exit:
+    if (needClose)
+    {
+        nvs_close(handle);
+    }
+    return err;
+}
+
+WEAVE_ERROR GroupKeyStore::FormKeyName(uint32_t keyId, char * buf, size_t bufSize)
+{
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
+
+    VerifyOrExit(bufSize >= kMaxGroupKeyNameLength, err = WEAVE_ERROR_BUFFER_TOO_SMALL);
+
+    if (keyId == WeaveKeyId::kFabricSecret)
+    {
+        strcpy(buf, kNVSKeyName_FabricSecret);
+    }
+    else
+    {
+        snprintf(buf, bufSize, "%s%08" PRIX32, kNVSKeyName_GroupKeyPrefix, keyId);
+    }
+
+exit:
+    return err;
+}
+
 
 // ==================== Utility Functions for accessing ESP NVS ====================
 
@@ -1081,37 +1270,6 @@ exit:
     return err;
 }
 
-WEAVE_ERROR GetNVSBlobLength(const char * ns, const char * name, size_t & outLen)
-{
-    WEAVE_ERROR err;
-    nvs_handle handle;
-    bool needClose = false;
-
-    err = nvs_open(ns, NVS_READONLY, &handle);
-    SuccessOrExit(err);
-    needClose = true;
-
-    outLen = 0;
-    err = nvs_get_blob(handle, name, NULL, &outLen);
-    if (err == ESP_ERR_NVS_NOT_FOUND)
-    {
-        outLen = 0;
-        ExitNow(err = WEAVE_NO_ERROR);
-    }
-    if (err == ESP_ERR_NVS_INVALID_LENGTH)
-    {
-        ExitNow(err = WEAVE_NO_ERROR);
-    }
-    SuccessOrExit(err);
-
-exit:
-    if (needClose)
-    {
-        nvs_close(handle);
-    }
-    return err;
-}
-
 WEAVE_ERROR EnsureNamespace(const char * ns)
 {
     WEAVE_ERROR err;
@@ -1130,30 +1288,6 @@ WEAVE_ERROR EnsureNamespace(const char * ns)
     }
     SuccessOrExit(err);
     needClose = true;
-
-exit:
-    if (needClose)
-    {
-        nvs_close(handle);
-    }
-    return err;
-}
-
-WEAVE_ERROR EraseNamespace(const char * ns)
-{
-    WEAVE_ERROR err;
-    nvs_handle handle;
-    bool needClose = false;
-
-    err = nvs_open(ns, NVS_READWRITE, &handle);
-    SuccessOrExit(err);
-    needClose = true;
-
-    err = nvs_erase_all(handle);
-    SuccessOrExit(err);
-
-    err = nvs_commit(handle);
-    SuccessOrExit(err);
 
 exit:
     if (needClose)
