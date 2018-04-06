@@ -450,13 +450,18 @@ WEAVE_ERROR NotificationEngine::IntermediateGraphSolver::RetrieveTraitInstanceDa
         //      other parts of the tree/other dictionaries, the deletion reverts to the same treatment as mentioned in 1)
         //
         // Key Variables:
+        //
         //      currentCommonHandle = The current LCA of all handles evaluated thus far.
+        //
         //      candidateHandle = The next handle picked out from either the dirty or delete stores that will be evaluated against
         //                   the current common handle to compute the next common handle
+        //
         //      nextCommonHandle = The next computed LCA of the current handle and the candidate handle
+        //
         //      laggingHandles = immediate children of the newly computed LCA that encompass the two
         //                   candidates passed into the LCA computation function respectively. If either of the two input handles
         //                   passed in match the newly computed LCA, the lagging handle will be set to kNullPropertyPathHandle
+        //
         //      mergeHandleSet = set of handles that will be merged in relative to the currentCommonHandle. If empty, all children
         //                   under the commonHandle will be included.
         //

@@ -2853,7 +2853,7 @@ WEAVE_ERROR SubscriptionClient::BuildSingleUpdateRequestDataList(bool & aIsParti
 
                     if (traitInfo->mNextDictionaryElementPathHandle != kNullPropertyPathHandle)
                     {
-                        // GIUSEPPE: processing this case (continuing a dictionary) in the for loop over
+                        // TODO: processing this case (continuing a dictionary) in the for loop over
                         // the pending path store seems wrong.
                         // There is no coverage for this case yet.
                         WeaveLogDetail(DataManagement, "process partial dictionary");
@@ -2888,7 +2888,7 @@ WEAVE_ERROR SubscriptionClient::BuildSingleUpdateRequestDataList(bool & aIsParti
                     }
                     else
                     {
-                        // GIUSEPPE: there is no coverage for this yet
+                        // TODO: there is no coverage for this yet
 
                         aUpdateWriteInReady = false;
 
