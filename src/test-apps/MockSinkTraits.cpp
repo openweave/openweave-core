@@ -1693,7 +1693,7 @@ WEAVE_ERROR TestATraitUpdatableDataSink::Mutate(SubscriptionClient * apSubClient
 
     if (mTraitTestSet == 0)
     {
-        static const uint8_t kNumTestCases = 10;
+        static const uint8_t kNumTestCases = 11;
 
         WeaveLogDetail(DataManagement, "TestATraitUpdatableDataSink::mTestCounter: %" PRIu32 "", mTestCounter);
 
@@ -1869,12 +1869,7 @@ WEAVE_ERROR TestATraitUpdatableDataSink::Mutate(SubscriptionClient * apSubClient
             tad.saB = !tad.saB;
         }
         else if ((mTestCounter % kNumTestCases) == 10) {
-            // This test is disabled! Initialize kNumTestCases to 11 instead of 10 to execute it.
-            // And add something to the mock source trait in TestATraitDataSource::Mutate
-
-            // sink, all merge with root handle, cut oversized dictionary
-            // real service, which need update fragmentation
-            WeaveLogDetail(DataManagement, "It is failing with update fragmentation");
+            WeaveLogDetail(DataManagement, "all merge with root handle, cut oversized dictionary");
             err = SetUpdated(apSubClient, TestATrait::kPropertyHandle_Root, aIsConditional);
             SuccessOrExit(err);
 

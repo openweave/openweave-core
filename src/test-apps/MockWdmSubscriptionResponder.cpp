@@ -295,7 +295,13 @@ private:
         uint8_t aMsgType, PacketBuffer *aPayload);
     static void HandleCustomCommandTimeout(nl::Weave::System::Layer* aSystemLayer, void *aAppState, ::nl::Weave::System::Error aErr);
     static void IncomingUpdateRequest(nl::Weave::ExchangeContext *ec, const nl::Weave::IPPacketInfo *pktInfo,
-    const nl::Weave::WeaveMessageInfo *msgInfo, uint32_t profileId,
+            const nl::Weave::WeaveMessageInfo *msgInfo, uint32_t profileId,
+            uint8_t msgType, PacketBuffer *payload);
+    static void IncomingPartialUpdateRequest(nl::Weave::ExchangeContext *ec, const nl::Weave::IPPacketInfo *pktInfo,
+            const nl::Weave::WeaveMessageInfo *msgInfo, uint32_t profileId,
+            uint8_t msgType, PacketBuffer *payload);
+    static void IncomingUpdateRequestHandler(nl::Weave::ExchangeContext *ec, const nl::Weave::IPPacketInfo *pktInfo,
+            const nl::Weave::WeaveMessageInfo *msgInfo, uint32_t profileId,
             uint8_t msgType, PacketBuffer *payload);
 };
 
@@ -482,7 +488,15 @@ const char * const aTimeBetweenLivenessCheckSec)
     mSinkAddressList[kTestBDataSinkIndex] = &mTestBDataSink;
     mSinkAddressList[kLocaleCapabilitiesTraitSinkIndex] = &mLocaleCapabilitiesDataSink;
 
-    err = mExchangeMgr->RegisterUnsolicitedMessageHandler(nl::Weave::Profiles::kWeaveProfile_WDM, kMsgType_UpdateRequest, IncomingUpdateRequest, this);
+    err = mExchangeMgr->RegisterUnsolicitedMessageHandler(nl::Weave::Profiles::kWeaveProfile_WDM,
+                                                          kMsgType_UpdateRequest,
+                                                          IncomingUpdateRequest,
+                                                          this);
+    SuccessOrExit(err);
+    err = mExchangeMgr->RegisterUnsolicitedMessageHandler(nl::Weave::Profiles::kWeaveProfile_WDM,
+                                                          kMsgType_PartialUpdateRequest,
+                                                          IncomingPartialUpdateRequest,
+                                                          this);
     SuccessOrExit(err);
     Command_End();
 
@@ -1078,6 +1092,28 @@ void MockWdmSubscriptionResponderImpl::HandleCustomCommandTimeout(nl::Weave::Sys
     pResponder->Command_End(true);
 }
 
+void MockWdmSubscriptionResponderImpl::IncomingUpdateRequestHandler(nl::Weave::ExchangeContext *ec, const nl::Weave::IPPacketInfo *pktInfo,
+    const nl::Weave::WeaveMessageInfo *msgInfo, uint32_t profileId,
+            uint8_t msgType, PacketBuffer *payload)
+{
+    switch (msgType)
+    {
+        case kMsgType_UpdateRequest:
+            IncomingUpdateRequest(ec, pktInfo, msgInfo, profileId, msgType, payload);
+            break;
+
+        case kMsgType_PartialUpdateRequest:
+            IncomingPartialUpdateRequest(ec, pktInfo, msgInfo, profileId, msgType, payload);
+            break;
+
+        default:
+            WeaveLogError(DataManagement, "Unexpected message with type 0x" PRIu8 "");
+            PacketBuffer::Free(payload);
+            ec->Close();
+            break;
+    }
+}
+
 void MockWdmSubscriptionResponderImpl::IncomingUpdateRequest(nl::Weave::ExchangeContext *ec, const nl::Weave::IPPacketInfo *pktInfo,
     const nl::Weave::WeaveMessageInfo *msgInfo, uint32_t profileId,
             uint8_t msgType, PacketBuffer *payload)
@@ -1180,6 +1216,55 @@ exit:
     {
         ec->Close();
     }
+}
+
+void MockWdmSubscriptionResponderImpl::IncomingPartialUpdateRequest(nl::Weave::ExchangeContext *ec, const nl::Weave::IPPacketInfo *pktInfo,
+    const nl::Weave::WeaveMessageInfo *msgInfo, uint32_t profileId,
+            uint8_t msgType, PacketBuffer *payload)
+{
+    WEAVE_ERROR     err     = WEAVE_NO_ERROR;
+    nl::Weave::TLV::TLVReader reader;
+    UpdateRequest::Parser parser;
+    WeaveLogDetail(DataManagement, "Incoming PartialUpdate Request");
+
+    // Set the handler on the EC, as we'll get more requests on this exchange.
+    ec->OnMessageReceived = IncomingUpdateRequestHandler;
+
+    reader.Init(payload);
+    reader.Next();
+    parser.Init(reader);
+    parser.CheckSchemaValidity();
+
+    reader.Init(payload);
+    DebugPrettyPrint(reader);
+
+    PacketBuffer * msgBuf   = PacketBuffer::NewWithAvailableSize(0);
+    VerifyOrExit(NULL != msgBuf, err = WEAVE_ERROR_NO_MEMORY);
+
+    err = ec->SendMessage(nl::Weave::Profiles::kWeaveProfile_WDM,
+                          nl::Weave::Profiles::DataManagement::kMsgType_UpdateContinue,
+                          msgBuf,
+                          nl::Weave::ExchangeContext::kSendFlag_RequestAck);
+    msgBuf = NULL;
+    SuccessOrExit(err);
+
+exit:
+    WeaveLogFunctError(err);
+
+    if (NULL != payload)
+    {
+        PacketBuffer::Free(payload);
+        payload = NULL;
+    }
+
+    if (NULL != msgBuf)
+    {
+        PacketBuffer::Free(msgBuf);
+        msgBuf = NULL;
+    }
+
+    // Don't close the EC; more requests fill follow.
+    // TODO: we should close the EC on a timeout.
 }
 
 void MockWdmSubscriptionResponderImpl::OnMessageReceivedForCustomCommand (nl::Weave::ExchangeContext *aEC, const nl::Inet::IPPacketInfo *aPktInfo,

@@ -82,9 +82,8 @@ enum
     kStatus_IncompatibleDataSchemaVersion = 0x2B,
 };
 
-// This type was wrong (16bit), so stuff was working by chance.
-// The type is only used in a few places.
-// A typedef like this shuold come with the relative PRIDataVersion define
+// TODO: The type is only used in a few places. We should use it everywhere.
+// TODO: A typedef like this should come with the relative PRIDataVersion define
 typedef uint64_t DataVersion;
 
 typedef uint16_t SchemaVersion;

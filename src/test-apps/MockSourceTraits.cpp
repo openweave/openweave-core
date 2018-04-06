@@ -531,7 +531,7 @@ void TestATraitDataSource::Mutate()
     {
         // This is the behavior for WDM update tests
 
-        kNumTestCases = 10;
+        kNumTestCases = 11;
         if ((mTestCounter % kNumTestCases) == 0) {
             //sink 3 leaf properties changes, source 3 leaf properties changes
             SetDirty(TestATrait::kPropertyHandle_TaP);
@@ -662,6 +662,27 @@ void TestATraitDataSource::Mutate()
             tai_map.clear();
             for (uint16_t i = 0; i < 3; i++) {
                 tai_map[i] = { ((uint32_t)i + 1)*10 + 7 };
+            }
+            if (taa == TestATrait::ENUM_A_VALUE_1) {
+                taa = TestATrait::ENUM_A_VALUE_2;
+            }
+            else {
+                taa = TestATrait::ENUM_A_VALUE_1;
+            }
+
+            tad.saB = !tad.saB;
+        }
+        else if ((mTestCounter % kNumTestCases) == 10) {
+            WeaveLogDetail(DataManagement, "all merge with root handle, cut oversized dictionary");
+            SetDirty(TestATrait::kPropertyHandle_Root);
+            SetDirty(TestATrait::kPropertyHandle_TaD_SaA);
+            SetDirty(TestATrait::kPropertyHandle_TaA);
+            SetDirty(TestATrait::kPropertyHandle_TaD);
+            SetDirty(TestATrait::kPropertyHandle_TaI);
+
+            tai_map.clear();
+            for (uint16_t i = 0; i < 800; i++) {
+                tai_map[i] = { (uint32_t)i + 1 };
             }
             if (taa == TestATrait::ENUM_A_VALUE_1) {
                 taa = TestATrait::ENUM_A_VALUE_2;

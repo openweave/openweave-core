@@ -319,8 +319,14 @@ WEAVE_ERROR TraitSchemaEngine::RetrieveUpdatableDictionaryData(PropertyPathHandl
             aPropertyPathHandleOfDictItemToStartFrom = kNullPropertyPathHandle;
 
             err = RetrieveData(dictionaryItemPathHandle, tag, aWriter, aDelegate);
+            if (err != WEAVE_NO_ERROR)
+            {
+                WeaveLogDetail(DataManagement, "Dictionary item whith path 0x%" PRIx32 ", tag 0x% " PRIx64 " failed with error % " PRIu32 "",
+                               dictionaryItemPathHandle, tag, err);
+            }
             if ((err == WEAVE_ERROR_BUFFER_TOO_SMALL) || (err == WEAVE_ERROR_NO_MEMORY))
             {
+                // TODO: In the current code, this is BUFFER_TOO_SMALL. Should we actually check for NO_MEMORY?
                 aWriter = backupWriter;
                 aPropertyPathHandleOfDictItemToStartFrom = dictionaryItemPathHandle;
                 err = WEAVE_NO_ERROR;

@@ -94,7 +94,7 @@ void SubscriptionClient::Reset(void)
     mFlushInProgress                        = false;
     mNumUpdatableTraitInstances             = 0;
     mMaxUpdateSize                          = 0;
-    mCurProcessingTraitInstanceIdx          = 0;
+    mUpdateRequestContext.mCurProcessingTraitInstanceIdx = 0;
 #endif // WEAVE_CONFIG_ENABLE_WDM_UPDATE
 
 #if WDM_ENABLE_PROTOCOL_CHECKS
@@ -140,7 +140,7 @@ WEAVE_ERROR SubscriptionClient::Init(Binding * const apBinding, void * const apA
     mFlushInProgress                        = false;
     mNumUpdatableTraitInstances             = 0;
     mMaxUpdateSize                          = 0;
-    mCurProcessingTraitInstanceIdx          = 0;
+    mUpdateRequestContext.mCurProcessingTraitInstanceIdx          = 0;
 
 #endif // WEAVE_CONFIG_ENABLE_WDM_UPDATE
     MoveToState(kState_Initialized);
@@ -2103,8 +2103,8 @@ WEAVE_ERROR SubscriptionClient::AddItemPendingUpdateStore(TraitPath aItem, const
                                                           bool aForceMerge)
 {
     bool isAddSuccess = false;
-    TraitInstanceInfo * traitInstance;
-    traitInstance = GetTraitInstanceInfoList();
+    UpdatableTIContext * traitInstance;
+    traitInstance = GetUpdatableTIContextList();
     uint32_t numPendingHandles;
     numPendingHandles = mPendingUpdateStore.GetPathStoreSize();
 
@@ -2139,7 +2139,9 @@ WEAVE_ERROR SubscriptionClient::AddItemPendingUpdateStore(TraitPath aItem, const
                 if (aForceMerge)
                 {
                     traitInstance[j].SetForceMerge();
+                    mUpdateRequestContext.mIsPartialUpdate = true;
                 }
+                break;
             }
         }
     }
@@ -2570,6 +2572,7 @@ void SubscriptionClient::UpdateEventCallback (void * const aAppState, UpdateClie
         break;
     case UpdateClient::kEvent_UpdateContinue:
         WeaveLogDetail(DataManagement, "UpdateContinue event: %d", aEvent);
+        pSubClient->ClearUpdateInFlight();
         pSubClient->FormAndSendUpdate(true);
         break;
     default:
@@ -2646,7 +2649,7 @@ WEAVE_ERROR SubscriptionClient::PurgePendingUpdate()
     WEAVE_ERROR err                  = WEAVE_NO_ERROR;
     TraitDataSink * dataSink;
     TraitUpdatableDataSink * updatableDataSink;
-    TraitInstanceInfo * traitInfo;
+    UpdatableTIContext * traitInfo;
     bool isLocked = false;
     bool needResubscribe = false;
     uint32_t numUpdatableTraitInstances = GetNumUpdatableTraitInstances();
@@ -2713,6 +2716,7 @@ exit:
 
 void SubscriptionClient::CancelUpdateClient(void)
 {
+    WeaveLogDetail(DataManagement, "SubscriptionClient::CancelUpdateClient");
     mUpdateInFlight                   = false;
     mUpdateClient.CancelUpdate();
 }
@@ -2720,7 +2724,7 @@ void SubscriptionClient::CancelUpdateClient(void)
 void SubscriptionClient::ShutdownUpdateClient(void)
 {
     mNumUpdatableTraitInstances        = 0;
-    mCurProcessingTraitInstanceIdx     = 0;
+    mUpdateRequestContext.mCurProcessingTraitInstanceIdx     = 0;
     mMaxUpdateSize                     = 0;
     mUpdateInFlight                    = false;
     mFlushInProgress                   = false;
@@ -2738,14 +2742,16 @@ WEAVE_ERROR SubscriptionClient::AddElementFunc(UpdateClient * apClient, void * a
     nl::Weave::TLV::TLVType dataContainerType;
     uint64_t tag = nl::Weave::TLV::ContextTag(DataElement::kCsTag_Data);
 
-    AddElementCallState * addElementCallState = static_cast<AddElementCallState *>(apCallState);
-    SubscriptionClient * pSubClient = addElementCallState->mpSubClient;
-    TraitInstanceInfo * pTraitInstanceInfo = addElementCallState->mpTraitInstanceInfo;
+    UpdateRequestContext * updateRequestContext = static_cast<UpdateRequestContext *>(apCallState);
+    SubscriptionClient * pSubClient = updateRequestContext->mpSubClient;
+    UpdatableTIContext * pTraitInstanceInfo = updateRequestContext->mpUpdatableTIContext;
 
     err = pSubClient->mDataSinkCatalog->Locate(pTraitInstanceInfo->mTraitDataHandle, &dataSink);
     SuccessOrExit(err);
 
-    VerifyOrExit(dataSink->IsUpdatableDataSink() == true, WeaveLogDetail(DataManagement, "<AddElementFunc> not updatable sink."));
+    VerifyOrExit(dataSink->IsUpdatableDataSink() == true,
+            WeaveLogDetail(DataManagement, "<AddElementFunc> not updatable sink."));
+
     updatableDataSink = static_cast<TraitUpdatableDataSink *> (dataSink);
     schemaEngine = updatableDataSink->GetSchemaEngine();
 
@@ -2794,15 +2800,96 @@ exit:
     return err;
 }
 
-WEAVE_ERROR SubscriptionClient::BuildSingleUpdateRequestDataList(bool & aIsPartialUpdate, bool & aUpdateWriteInReady)
+WEAVE_ERROR SubscriptionClient::Lookup(UpdatableTIContext * traitInfo,
+                                       TraitUpdatableDataSink * &updatableDataSink,
+                                       const TraitSchemaEngine * &schemaEngine,
+                                       ResourceIdentifier &resourceId,
+                                       uint64_t &instanceId)
+{
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
+    TraitDataSink * dataSink = NULL;
+
+    err = mDataSinkCatalog->Locate(traitInfo->mTraitDataHandle, &dataSink);
+    SuccessOrExit(err);
+
+    VerifyOrExit(dataSink->IsUpdatableDataSink() == true, err = WEAVE_ERROR_WDM_SCHEMA_MISMATCH);
+
+    updatableDataSink = static_cast<TraitUpdatableDataSink *> (dataSink);
+    schemaEngine = updatableDataSink->GetSchemaEngine();
+    VerifyOrDie(schemaEngine != NULL);
+
+    err = mDataSinkCatalog->GetResourceId(traitInfo->mTraitDataHandle, resourceId);
+    SuccessOrExit(err);
+
+    err = mDataSinkCatalog->GetInstanceId(traitInfo->mTraitDataHandle, instanceId);
+    SuccessOrExit(err);
+
+exit:
+    return err;
+}
+
+WEAVE_ERROR SubscriptionClient::DirtyPathToDataElement(UpdateRequestContext &aContext)
+{
+    WEAVE_ERROR err;
+    uint32_t numTags = 0;
+    ResourceIdentifier resourceId;
+    uint64_t instanceId;
+    const TraitSchemaEngine * schemaEngine;
+    TraitUpdatableDataSink * updatableDataSink  = NULL;
+    TraitPath dirtyPath;
+    UpdatableTIContext *traitInfo = aContext.mpUpdatableTIContext;
+
+    err = Lookup(traitInfo, updatableDataSink, schemaEngine, resourceId, instanceId);
+    SuccessOrExit(err);
+
+    {
+    uint64_t tags[schemaEngine->mSchema.mTreeDepth];
+
+    err = schemaEngine->GetRelativePathTags(traitInfo->mCandidatePropertyPathHandle, tags,
+            //ArraySize(tags),
+            schemaEngine->mSchema.mTreeDepth,
+            numTags);
+    SuccessOrExit(err);
+
+    if (schemaEngine->IsDictionary(traitInfo->mCandidatePropertyPathHandle) &&
+            ! traitInfo->IsForceMerge())
+    {
+        // If the property being updated is a dictionary, we need to use the "replace"
+        // scheme explicitly so that the whole property is replaced on the responder.
+        // So, the path has to point to the parent of the dictionary.
+        VerifyOrExit(numTags > 0, err = WEAVE_ERROR_WDM_SCHEMA_MISMATCH);
+        numTags--;
+    }
+
+    err = mUpdateClient.AddElement(schemaEngine->GetProfileId(),
+            instanceId,
+            resourceId,
+            updatableDataSink->GetUpdateRequiredVersion(),
+            NULL, tags, numTags,
+            AddElementFunc, &aContext);
+    SuccessOrExit(err);
+
+    aContext.mNumDataElementsAddedToPayload++;
+
+    dirtyPath.mTraitDataHandle = traitInfo->mTraitDataHandle;
+    dirtyPath.mPropertyPathHandle = traitInfo->mCandidatePropertyPathHandle;
+    mDispatchedUpdateStore.AddItem(dirtyPath);
+    }
+
+exit:
+    return err;
+}
+
+
+WEAVE_ERROR SubscriptionClient::BuildSingleUpdateRequestDataList(UpdateRequestContext &context)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
     ResourceIdentifier resourceId;
     uint64_t instanceId;
     const TraitSchemaEngine * schemaEngine;
-    TraitInstanceInfo * traitInfo;
-    TraitDataSink * dataSink                    = NULL;
+    UpdatableTIContext * traitInfo;
     TraitUpdatableDataSink * updatableDataSink  = NULL;
+    bool dictionaryOverflowed;
 
     size_t   numTraitInstanceHandled            = 0;
     uint32_t numDirtyPendingHandles             = mPendingUpdateStore.GetNumItems();
@@ -2812,195 +2899,158 @@ WEAVE_ERROR SubscriptionClient::BuildSingleUpdateRequestDataList(bool & aIsParti
 
     while (numTraitInstanceHandled < mNumUpdatableTraitInstances)
     {
-        traitInfo = mClientTraitInfoPool + mCurProcessingTraitInstanceIdx;
+        dictionaryOverflowed = false;
 
-        if ((traitInfo->IsDirty()) || (traitInfo->mNextDictionaryElementPathHandle != kNullPropertyPathHandle))
+        traitInfo = mClientTraitInfoPool + context.mCurProcessingTraitInstanceIdx;
+        context.mpUpdatableTIContext = traitInfo;
+
+        err = Lookup(traitInfo, updatableDataSink, schemaEngine, resourceId, instanceId);
+        SuccessOrExit(err);
+
+        if (! traitInfo->IsDirty())
         {
-            WeaveLogDetail(DataManagement, "T%u is dirty", mCurProcessingTraitInstanceIdx);
+            numTraitInstanceHandled++;
+            context.mCurProcessingTraitInstanceIdx++;
+            context.mCurProcessingTraitInstanceIdx %= mNumUpdatableTraitInstances;
 
-            err = mDataSinkCatalog->Locate(traitInfo->mTraitDataHandle, &dataSink);
+            continue;
+        }
+
+        WeaveLogDetail(DataManagement, "T%u is dirty", context.mCurProcessingTraitInstanceIdx);
+
+
+        // Several possibilities:
+        // - We go look for pending paths for this trait
+        // - The trait was processed before, but a dictionary did not fit in the payload and
+        //   we have to resume encoding it.
+        //   - if the application has put the dictionary back in the pending list,
+        //     should we start processing it back from the beginning?
+
+        //if (traitInfo->mNextDictionaryElementPathHandle != kNullPropertyPathHandle)
+        //{
+        //    PropertyPathHandle nextDictionaryElementToEncode = traitInfo->mNextDictionaryElementPathHandle;
+
+        //    if (IsPropertyPending(traitInfo->mTraitDataHandle, nextDictionaryElementToEncode, schemaEngine))
+        //    {
+        //        traitInfo->mNextDictionaryElementPathHandle = kNullPropertyPathHandle;
+        //    }
+        //}
+
+        if (traitInfo->mNextDictionaryElementPathHandle != kNullPropertyPathHandle)
+        {
+            traitInfo->mCandidatePropertyPathHandle =
+                schemaEngine->GetParent(traitInfo->mNextDictionaryElementPathHandle);
+
+            WeaveLogDetail(DataManagement, "Resume encoding a dictionary");
+
+            err = DirtyPathToDataElement(mUpdateRequestContext);
             SuccessOrExit(err);
+            dictionaryOverflowed = (traitInfo->mNextDictionaryElementPathHandle != kNullPropertyPathHandle);
+            VerifyOrExit(!dictionaryOverflowed, /* no error */);
+        }
 
-            VerifyOrExit(dataSink->IsUpdatableDataSink() == true, WeaveLogDetail(DataManagement, "not updatable sink."));
-            updatableDataSink = static_cast<TraitUpdatableDataSink *> (dataSink);
-            schemaEngine = updatableDataSink->GetSchemaEngine();
-
-            err = mDataSinkCatalog->GetResourceId(traitInfo->mTraitDataHandle, resourceId);
-            SuccessOrExit(err);
-
-            err = mDataSinkCatalog->GetInstanceId(traitInfo->mTraitDataHandle, instanceId);
-            SuccessOrExit(err);
-
-            if (traitInfo->mNextDictionaryElementPathHandle != kNullPropertyPathHandle)
+        size_t i = 0;
+        while (i < pendingPathStoreSize)
+        {
+            // Now look for more paths for the same trait in the pending store
+            if (!(mPendingUpdateStore.mValidFlags[i] &&
+                        (mPendingUpdateStore.mPathStore[i].mTraitDataHandle == traitInfo->mTraitDataHandle)))
             {
-                PropertyPathHandle nextDictionaryElementToEncode = traitInfo->mNextDictionaryElementPathHandle;
-
-                if (IsPropertyPending(traitInfo->mTraitDataHandle, nextDictionaryElementToEncode, schemaEngine))
-                {
-                    traitInfo->mNextDictionaryElementPathHandle = kNullPropertyPathHandle;
-                }
-                else
-                {
-                    traitInfo->mCandidatePropertyPathHandle = nextDictionaryElementToEncode;
-                }
+                i++;
+                continue;
             }
 
-            for (size_t i=0; i < pendingPathStoreSize; i++)
-            {
-                if ((mPendingUpdateStore.mValidFlags[i] &&
-                            (mPendingUpdateStore.mPathStore[i].mTraitDataHandle == traitInfo->mTraitDataHandle))
-                        || (traitInfo->mNextDictionaryElementPathHandle != kNullPropertyPathHandle))
-                {
-                    TraitPath dirtyPath;
-                    uint32_t numTags = 0;
-                    uint64_t tags[schemaEngine->mSchema.mTreeDepth];
+            traitInfo->mCandidatePropertyPathHandle = mPendingUpdateStore.mPathStore[i].mPropertyPathHandle;
+            mPendingUpdateStore.RemoveItemAt(i);
 
-                    if (traitInfo->mNextDictionaryElementPathHandle != kNullPropertyPathHandle)
-                    {
-                        // TODO: processing this case (continuing a dictionary) in the for loop over
-                        // the pending path store seems wrong.
-                        // There is no coverage for this case yet.
-                        WeaveLogDetail(DataManagement, "process partial dictionary");
-                        dirtyPath.mTraitDataHandle = traitInfo->mTraitDataHandle;
-                        dirtyPath.mPropertyPathHandle = traitInfo->mCandidatePropertyPathHandle;
+            err = DirtyPathToDataElement(mUpdateRequestContext);
+            SuccessOrExit(err);
+            dictionaryOverflowed = (traitInfo->mNextDictionaryElementPathHandle != kNullPropertyPathHandle);
+            VerifyOrExit(!dictionaryOverflowed, /* no error */);
 
-                    }
-                    else
-                    {
-                        dirtyPath.mTraitDataHandle = mPendingUpdateStore.mPathStore[i].mTraitDataHandle;
-                        dirtyPath.mPropertyPathHandle = mPendingUpdateStore.mPathStore[i].mPropertyPathHandle;
-                        mPendingUpdateStore.RemoveItemAt(i);
-                        traitInfo->mCandidatePropertyPathHandle = dirtyPath.mPropertyPathHandle;
-                    }
+            // Check from the beginning of the array because the last element processed
+            // for the current trait could have queued another dictionary.
+            i = 0;
 
-                    err = schemaEngine->GetRelativePathTags(traitInfo->mCandidatePropertyPathHandle, tags, ArraySize(tags), numTags);
-                    SuccessOrExit(err);
+        } // for loop over the pending store
 
-                    if (schemaEngine->IsDictionary(traitInfo->mCandidatePropertyPathHandle) &&
-                            ! traitInfo->IsForceMerge())
-                    {
-                        // If the property being updated is a dictionary, we need to use the "replace"
-                        // scheme explicitly so that the whole property is replaced on the responder.
-                        // So, the path has to point to the parent of the dictionary.
-                        VerifyOrExit(numTags > 0, err = WEAVE_ERROR_WDM_SCHEMA_MISMATCH);
-                        numTags--;
-                    }
+        traitInfo->ClearDirty();
 
-                    AddElementCallState addElementCallState;
-                    addElementCallState.mpSubClient = this;
-                    addElementCallState.mpTraitInstanceInfo = traitInfo;
-
-                    err = mUpdateClient.AddElement(schemaEngine->GetProfileId(),
-                                                   instanceId,
-                                                   resourceId,
-                                                   updatableDataSink->GetUpdateRequiredVersion(),
-                                                   NULL, tags, numTags,
-                                                   AddElementFunc, &addElementCallState);
-                    if (err == WEAVE_NO_ERROR)
-                    {
-                        mDispatchedUpdateStore.AddItem(dirtyPath);
-                        aUpdateWriteInReady = true;
-                    }
-                    else
-                    {
-                        // TODO: there is no coverage for this yet
-
-                        aUpdateWriteInReady = false;
-
-                        if ((err == WEAVE_ERROR_BUFFER_TOO_SMALL) || (err == WEAVE_ERROR_NO_MEMORY))
-                        {
-                            WeaveLogDetail(DataManagement, "illegal oversized trait property is too big to fit in the packet");
-                        }
-
-                        InEventParam inParam;
-                        OutEventParam outParam;
-                        inParam.Clear();
-                        outParam.Clear();
-                        inParam.mUpdateComplete.mClient = this;
-                        inParam.mUpdateComplete.mReason = err;
-                        mEventCallback(mAppState, kEvent_OnUpdateComplete, inParam, outParam);
-
-                        RemoveItemDispatchedUpdateStore(traitInfo->mTraitDataHandle);
-                        RemoveItemPendingUpdateStore(traitInfo->mTraitDataHandle);
-
-                        updatableDataSink->ClearUpdateRequiredVersion();
-                        updatableDataSink->ClearVersion();
-
-                        traitInfo->mNextDictionaryElementPathHandle = kNullPropertyPathHandle;
-
-                        if (IsEstablishedIdle())
-                        {
-                            HandleSubscriptionTerminated(IsRetryEnabled(), err, NULL);
-                        }
-                    }
-                    SuccessOrExit(err);
-                } // if the current pending store entry matches the current trait, or there is a dictionary in process
-
-                if (traitInfo->mNextDictionaryElementPathHandle != kNullPropertyPathHandle)
-                {
-                    // A dictionary didn't fit in the payload; exit and send the current payload as a
-                    // partial update.
-                    aIsPartialUpdate = true;
-                    break;
-                }
-            } // for loop over the pending store
-        } // if trait is dirty or mNextDictionaryElement...
-
-        if ((!IsTraitPresentInPendingUpdateStore(traitInfo->mTraitDataHandle)) && (traitInfo->mNextDictionaryElementPathHandle == kNullPropertyPathHandle))
-        {
-            traitInfo->ClearDirty();
-            numTraitInstanceHandled ++;
-            mCurProcessingTraitInstanceIdx ++;
-            mCurProcessingTraitInstanceIdx %= mNumUpdatableTraitInstances;
-
-            // Comment this out if you want to send more than one DataElement per request.
-            if (aUpdateWriteInReady)
-            {
-                break;
-            }
-        }
-
-        if (aIsPartialUpdate)
-        {
-            break;
-        }
-
-        if (IsTraitPresentInPendingUpdateStore(traitInfo->mTraitDataHandle))
-        {
-            aUpdateWriteInReady = false;
-        }
-    } // while (numTraitInstanceHandled < mNumUpdatableTraitInstances)
+    } // trait loop
 
 exit:
+    if (err == WEAVE_NO_ERROR)
+    {
+        mUpdateRequestContext.mIsPartialUpdate = dictionaryOverflowed;
+    }
+
+    if (mUpdateRequestContext.mNumDataElementsAddedToPayload > 0 && err != WEAVE_NO_ERROR)
+    {
+        WeaveLogDetail(DataManagement, "Suppressing error %d; will try again later", err);
+        err = WEAVE_NO_ERROR;
+    }
+
+    if (err != WEAVE_NO_ERROR)
+    {
+        // TODO: there is no coverage for this yet
+
+        if ((err == WEAVE_ERROR_BUFFER_TOO_SMALL) || (err == WEAVE_ERROR_NO_MEMORY))
+        {
+            WeaveLogDetail(DataManagement, "illegal oversized trait property is too big to fit in the packet");
+        }
+
+        InEventParam inParam;
+        OutEventParam outParam;
+        inParam.Clear();
+        outParam.Clear();
+        inParam.mUpdateComplete.mClient = this;
+        inParam.mUpdateComplete.mReason = err;
+        mEventCallback(mAppState, kEvent_OnUpdateComplete, inParam, outParam);
+
+        RemoveItemDispatchedUpdateStore(traitInfo->mTraitDataHandle);
+        RemoveItemPendingUpdateStore(traitInfo->mTraitDataHandle);
+
+        updatableDataSink->ClearUpdateRequiredVersion();
+        updatableDataSink->ClearVersion();
+
+        traitInfo->mNextDictionaryElementPathHandle = kNullPropertyPathHandle;
+
+        if (IsEstablishedIdle())
+        {
+            HandleSubscriptionTerminated(IsRetryEnabled(), err, NULL);
+        }
+    }
+
     return err;
 }
 
 WEAVE_ERROR SubscriptionClient::SendSingleUpdateRequest()
 {
     WEAVE_ERROR err   = WEAVE_NO_ERROR;
-    bool isPartialUpdate = false;
-    bool updateWriteInReady = false;
     uint32_t maxUpdateSize;
 
     maxUpdateSize = GetMaxUpdateSize();
 
+    mUpdateRequestContext.mpSubClient = this;
+    mUpdateRequestContext.mNumDataElementsAddedToPayload = 0;
+    mUpdateRequestContext.mIsPartialUpdate = false;
+
     err = mUpdateClient.StartUpdate(0, NULL, maxUpdateSize);
     SuccessOrExit(err);
 
-    err = BuildSingleUpdateRequestDataList(isPartialUpdate, updateWriteInReady);
+    err = BuildSingleUpdateRequestDataList(mUpdateRequestContext);
     SuccessOrExit(err);
 
-    if (updateWriteInReady)
+    if (mUpdateRequestContext.mNumDataElementsAddedToPayload)
     {
         WeaveLogDetail(DataManagement, "Sending update");
-        err = mUpdateClient.SendUpdate(isPartialUpdate);
+        err = mUpdateClient.SendUpdate(mUpdateRequestContext.mIsPartialUpdate);
         SuccessOrExit(err);
         SetUpdateInFlight();
     }
     else
     {
-        err = mUpdateClient.CancelUpdate();
-        SuccessOrExit(err);
+        mUpdateClient.CancelUpdate();
     }
 
 exit:
@@ -3096,39 +3146,43 @@ void SubscriptionClient::InitUpdatableSinkTrait(void * aDataSink, TraitDataHandl
     WEAVE_ERROR err = WEAVE_NO_ERROR;
     TraitUpdatableDataSink * updatableDataSink = NULL;
     SubscriptionClient * subClient = NULL;
-    TraitInstanceInfo * traitInstance = NULL;
+    UpdatableTIContext * traitInstance = NULL;
     TraitDataSink * dataSink = static_cast<TraitDataSink *>(aDataSink);
-    VerifyOrExit(dataSink->IsUpdatableDataSink() == true, );
+
+    VerifyOrExit(dataSink->IsUpdatableDataSink() == true, /* no error */);
+
     updatableDataSink = static_cast<TraitUpdatableDataSink *>(dataSink);
 
     subClient = static_cast<SubscriptionClient *>(aContext);
     updatableDataSink->SetSubScriptionClient(subClient);
     updatableDataSink->ClearUpdateRequiredVersion();
 
-    if (subClient->mNumUpdatableTraitInstances < WDM_CLIENT_MAX_NUM_UPDATABLE_TRAITS)
-    {
-        traitInstance = subClient->mClientTraitInfoPool + subClient->mNumUpdatableTraitInstances;
-        ++(subClient->mNumUpdatableTraitInstances);
-        traitInstance->Init();
-    }
-    else
-    {
-        SuccessOrExit(err = WEAVE_ERROR_NO_MEMORY);
-    }
+    VerifyOrExit(subClient->mNumUpdatableTraitInstances < WDM_CLIENT_MAX_NUM_UPDATABLE_TRAITS,
+                 err = WEAVE_ERROR_NO_MEMORY);
 
-    traitInstance->mTraitDataHandle  = aDataHandle;
+    traitInstance = subClient->mClientTraitInfoPool + subClient->mNumUpdatableTraitInstances;
+    ++(subClient->mNumUpdatableTraitInstances);
+    traitInstance->Init();
+    traitInstance->mTraitDataHandle = aDataHandle;
 
 exit:
 
     if (WEAVE_NO_ERROR != err)
     {
+        /* TODO: this iteration is invoked by SubscriptionClient::Init(); the event
+         * given to the applicatio in case of error is not right.
+         * We should store an error in the context, so that Init can return error.
+         */
+
         InEventParam inParam;
         OutEventParam outParam;
+
         inParam.Clear();
         outParam.Clear();
         inParam.mUpdateComplete.mClient = subClient;
         inParam.mUpdateComplete.mReason = err;
         subClient->mEventCallback(subClient->mAppState, kEvent_OnUpdateComplete, inParam, outParam);
+
         WeaveLogDetail(DataManagement, "run out of updatable trait instances");
     }
 

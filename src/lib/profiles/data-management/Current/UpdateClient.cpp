@@ -138,7 +138,7 @@ exit:
 
     if (err != WEAVE_NO_ERROR)
     {
-        WeaveLogDetail(DataManagement, "<UC:Run> Fail in StartUpdate");
+        WeaveLogDetail(DataManagement, "<UC:Run> Fail in StartUpdate: %" PRId32 "");
         CancelUpdate();
     }
 
@@ -545,9 +545,9 @@ WEAVE_ERROR UpdateClient::SendUpdate(bool aIsPartialUpdate)
     if (mNumPartialUpdateRequest == 0)
     {
         FlushExistingExchangeContext();
+        err = mpBinding->NewExchangeContext(mEC);
+        SuccessOrExit(err);
     }
-
-    err = mpBinding->NewExchangeContext(mEC);
 
     mEC->AppState = this;
     mEC->OnMessageReceived = OnMessageReceived;
@@ -570,6 +570,7 @@ WEAVE_ERROR UpdateClient::SendUpdate(bool aIsPartialUpdate)
         SuccessOrExit(err);
 
         mNumPartialUpdateRequest ++;
+        WeaveLogDetail(DataManagement, "mNumPartialUpdateRequest: %" PRIu32 "", mNumPartialUpdateRequest);
     }
     else
     {
@@ -610,6 +611,8 @@ exit:
  */
 WEAVE_ERROR UpdateClient::CancelUpdate(void)
 {
+    WeaveLogDetail(DataManagement, "UpdateClient::CancelUpdate");
+
     if (kState_Uninitialized != mState && kState_Initialized != mState)
     {
         if (NULL != mpBuf)
@@ -624,6 +627,7 @@ WEAVE_ERROR UpdateClient::CancelUpdate(void)
         MoveToState(kState_Initialized);
     }
 
+    //TODO: this method should be void
     return WEAVE_NO_ERROR;
 }
 
@@ -725,29 +729,32 @@ void UpdateClient::OnMessageReceived(nl::Weave::ExchangeContext * aEC, const nl:
     EventCallback CallbackFunc = pUpdateClient->mEventCallback;
     InEventParam inParam;
     OutEventParam outParam;
+
     inParam.Clear();
     outParam.Clear();
 
     VerifyOrExit(kState_AwaitingResponse == pUpdateClient->mState, err = WEAVE_ERROR_INCORRECT_STATE);
     VerifyOrExit(aEC == pUpdateClient->mEC, err = WEAVE_NO_ERROR);
 
-    err = pUpdateClient->CancelUpdate();
-    SuccessOrExit(err);
-
-    err = nl::Weave::Profiles::StatusReporting::StatusReport::parse(aPayload, status);
-    SuccessOrExit(err);
-
     if ((nl::Weave::Profiles::kWeaveProfile_Common == aProfileId) &&
         (nl::Weave::Profiles::Common::kMsgType_StatusReport == aMsgType))
     {
+        err = nl::Weave::Profiles::StatusReporting::StatusReport::parse(aPayload, status);
+        SuccessOrExit(err);
+
         inParam.Source= pUpdateClient;
         inParam.UpdateComplete.Reason = WEAVE_NO_ERROR;
         inParam.UpdateComplete.StatusReportPtr = &status;
+
+        err = pUpdateClient->CancelUpdate();
+        SuccessOrExit(err);
+
         CallbackFunc(pAppState, kEvent_UpdateComplete, inParam, outParam);
 
     }
     else if ((nl::Weave::Profiles::kWeaveProfile_WDM == aProfileId) && (kMsgType_UpdateContinue == aMsgType))
     {
+        pUpdateClient->MoveToState(kState_Initialized);
         CallbackFunc(pAppState, kEvent_UpdateContinue, inParam, outParam);
     }
     else

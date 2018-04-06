@@ -433,7 +433,17 @@ private:
     WEAVE_ERROR PurgePendingUpdate();
     void OnUpdateConfirm(WEAVE_ERROR aReason, nl::Weave::Profiles::StatusReporting::StatusReport * apStatus);
     WEAVE_ERROR SendSingleUpdateRequest();
-    WEAVE_ERROR BuildSingleUpdateRequestDataList(bool & aIsPartialUpdate, bool & aUpdateWriteInProgress);
+
+    struct UpdateRequestContext;
+    struct UpdatableTIContext;
+    WEAVE_ERROR Lookup(UpdatableTIContext * traitInfo,
+            TraitUpdatableDataSink * &updatableDataSink,
+            const TraitSchemaEngine * &schemaEngine,
+            ResourceIdentifier &resourceId,
+            uint64_t &instanceId);
+    WEAVE_ERROR DirtyPathToDataElement(UpdateRequestContext &aContext);
+    WEAVE_ERROR BuildSingleUpdateRequestDataList(UpdateRequestContext &aContext);
+
     bool MergeDupInPendingUpdateStore(const TraitSchemaEngine * apSchemaEngine, size_t & candidateIndex);
 
     bool IsInclusiveDispatchedUpdateStore(TraitDataHandle aTraitDataHandle, PropertyPathHandle aPropertyPathHandle, const TraitSchemaEngine * const apSchemaEngine);
@@ -489,7 +499,10 @@ private:
         uint32_t mNumItems;
     };
 
-    struct TraitInstanceInfo
+    /**
+     * Updatable trait instance context
+     */
+    struct UpdatableTIContext
     {
         void Init(void) { this->ClearDirty(); this->ClearForceMerge(); }
         bool IsDirty(void) { return mDirty; }
@@ -507,18 +520,21 @@ private:
         bool mForceMerge;
     };
 
-    struct AddElementCallState
+    struct UpdateRequestContext
     {
+        uint16_t mCurProcessingTraitInstanceIdx;
+        uint16_t mNumDataElementsAddedToPayload;
+        bool mIsPartialUpdate;
         SubscriptionClient * mpSubClient;
-        TraitInstanceInfo * mpTraitInstanceInfo;
+        UpdatableTIContext * mpUpdatableTIContext;
     };
 
-    TraitInstanceInfo * GetTraitInstanceInfoList(void) { return mClientTraitInfoPool; }
+    UpdatableTIContext * GetUpdatableTIContextList(void) { return mClientTraitInfoPool; }
     uint32_t GetNumUpdatableTraitInstances(void) { return mNumUpdatableTraitInstances; }
 
-    TraitInstanceInfo mClientTraitInfoPool[WDM_CLIENT_MAX_NUM_UPDATABLE_TRAITS];
+    UpdateRequestContext mUpdateRequestContext;
+    UpdatableTIContext mClientTraitInfoPool[WDM_CLIENT_MAX_NUM_UPDATABLE_TRAITS];
     uint16_t mNumUpdatableTraitInstances;
-    uint32_t mCurProcessingTraitInstanceIdx;
     uint16_t mMaxUpdateSize;
     bool mUpdateInFlight;
     bool mFlushInProgress;
