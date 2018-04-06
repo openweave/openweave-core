@@ -346,6 +346,7 @@ static WEAVE_ERROR ConvertSubjectPublicKeyInfo(ASN1Reader& reader, TLVWriter& wr
                  keyAlgo == kOID_PubKeyAlgo_ECMQV)
         {
             // For EC certs, copy the X9.62 encoded EC point into the Weave certificate as a byte string.
+            VerifyOrExit(reader.ValueLen > 0, err = ASN1_ERROR_INVALID_ENCODING);
             err = writer.PutBytes(ContextTag(kTag_EllipticCurvePublicKey), reader.Value + 1, reader.ValueLen - 1);
             SuccessOrExit(err);
         }
