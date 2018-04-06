@@ -310,6 +310,7 @@ ASN1_ERROR ASN1Reader::DecodeHead()
             if ((Tag & 0xFE000000) != 0)
                 return ASN1_ERROR_TAG_OVERFLOW;
             Tag = (Tag << 7) | (*p & 0x7F);
+            p++;
         } while ((*p & 0x80) != 0);
     }
 
