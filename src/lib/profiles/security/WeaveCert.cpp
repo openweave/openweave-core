@@ -452,6 +452,7 @@ WEAVE_ERROR WeaveCertificateSet::FindValidCert(const WeaveDN& subjectDN, const C
     context.TrustAnchor = NULL;
 
     err = FindValidCert(subjectDN, subjectKeyId, context, context.ValidateFlags, 0, cert);
+    SuccessOrExit(err);
 
 exit:
     return err;

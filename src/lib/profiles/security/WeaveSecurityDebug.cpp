@@ -258,6 +258,8 @@ NL_DLL_EXPORT void PrintCert(FILE *out, const WeaveCertificateData& cert, const 
 
 NL_DLL_EXPORT void PrintCertValidationResults(FILE *out, const WeaveCertificateSet& certSet, const ValidationContext& validContext, uint16_t indent)
 {
+#if WEAVE_CONFIG_DEBUG_CERT_VALIDATION
+
     WEAVE_ERROR *certValidRes = validContext.CertValidationResults;
 
     for (uint8_t i = 0; i < certSet.CertCount && i < validContext.CertValidationResultsLen; i++)
@@ -278,6 +280,8 @@ NL_DLL_EXPORT void PrintCertValidationResults(FILE *out, const WeaveCertificateS
         }
         printf("\n");
     }
+
+#endif // WEAVE_CONFIG_DEBUG_CERT_VALIDATION
 }
 
 void PrintWeaveDN(FILE *out, const WeaveDN& dn)
