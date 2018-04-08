@@ -71,7 +71,7 @@ CONFIGURE_OPTIONS       	:= AR="$(AR)" CC="$(CC)" CXX="$(CXX)" LD="$(LD)" OBJCOP
                                --with-network-layer=inet \
                                --with-target-network=lwip \
                                --with-lwip=$(LWIP_COMPONENT_DIR) \
-                               --with-inet-endpoint="tcp udp tun" \
+                               --with-inet-endpoint="tcp udp tun dns" \
                                --with-openssl=no \
                                --disable-tests \
                                --disable-tools \

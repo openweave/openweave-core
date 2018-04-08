@@ -12,16 +12,6 @@
 #define WEAVE_PLATFORM_CONFIG_MAX_EVENT_QUEUE_SIZE CONFIG_MAX_EVENT_QUEUE_SIZE
 #endif
 
-/**
- * WEAVE_PLATFORM_CONFIG_MAX_GROUP_KEYS
- *
- * The maximum number of group keys that can be stored on the device.  This count includes
- * root keys, epoch keys, application master keys and the fabric secret.
- */
-#ifndef WEAVE_PLATFORM_CONFIG_MAX_GROUP_KEYS
-#define WEAVE_PLATFORM_CONFIG_MAX_GROUP_KEYS CONFIG_MAX_GROUP_KEYS
-#endif
-
 // -------------------- Device Identification Configuration --------------------
 
 /**

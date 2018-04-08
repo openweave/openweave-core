@@ -17,6 +17,15 @@ namespace WeavePlatform {
 
 namespace {
 
+enum
+{
+    kMaxGroupKeys = WEAVE_CONFIG_MAX_APPLICATION_EPOCH_KEYS +       // Maximum number of Epoch keys
+                    WEAVE_CONFIG_MAX_APPLICATION_GROUPS +           // Maximum number of Application Group Master keys
+                    1 +                                             // Maximum number of Root keys (1 for Service root key)
+                    1                                               // Fabric secret
+};
+
+
 class GroupKeyStore : public ::nl::Weave::Profiles::Security::AppKeys::GroupKeyStoreBase
 {
 public:
@@ -39,7 +48,7 @@ private:
     WEAVE_ERROR Init();
 
 private:
-    uint32_t mKeyIndex[WEAVE_PLATFORM_CONFIG_MAX_GROUP_KEYS];
+    uint32_t mKeyIndex[kMaxGroupKeys];
     uint8_t mNumKeys;
 
     WEAVE_ERROR AddKeyToIndex(uint32_t keyId, bool & indexUpdated);
@@ -859,7 +868,7 @@ WEAVE_ERROR GroupKeyStore::AddKeyToIndex(uint32_t keyId, bool & indexUpdated)
         }
     }
 
-    VerifyOrExit(mNumKeys < WEAVE_PLATFORM_CONFIG_MAX_GROUP_KEYS, err = WEAVE_ERROR_TOO_MANY_KEYS);
+    VerifyOrExit(mNumKeys < kMaxGroupKeys, err = WEAVE_ERROR_TOO_MANY_KEYS);
 
     mKeyIndex[mNumKeys++] = keyId;
     indexUpdated = true;

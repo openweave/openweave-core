@@ -18,8 +18,10 @@
 
 /**
  *    @file
- *      WARM project configuration for the esp32 platform.
+ *      WARM project configuration for the ESP32 platform.
  *
  */
+
+// ==================== Platform Adaptations ====================
 
 #define WARM_CONFIG_SUPPORT_THREAD 0

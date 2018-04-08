@@ -1,6 +1,6 @@
 /*
  *
- *    Copyright (c) 2016-2017 Nest Labs, Inc.
+ *    Copyright (c) 2018 Nest Labs, Inc.
  *    All rights reserved.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,7 +18,7 @@
 
 /**
  *    @file
- *      Inet project configuration for esp32 builds.
+ *      Inet project configuration for the ESP32 platform.
  *
  */
 #ifndef INETPROJECTCONFIG_H
@@ -26,11 +26,20 @@
 
 #include "esp_err.h"
 
+// NOTE: The values that are mapped to CONFIG_ #defines are settable via the ESP-IDF Kconfig mechanism.
+
+// ==================== General Configuration ====================
+
+#define INET_CONFIG_NUM_TCP_ENDPOINTS CONFIG_NUM_TCP_ENDPOINTS
+#define INET_CONFIG_NUM_UDP_ENDPOINTS CONFIG_NUM_UDP_ENDPOINTS
+#define INET_CONFIG_NUM_TUN_ENDPOINTS 1
+
+// ==================== Platform Adaptations ====================
+
 #define INET_CONFIG_ERROR_TYPE esp_err_t
 #define INET_CONFIG_NO_ERROR ESP_OK
 #define INET_CONFIG_ERROR_MIN 1000000
 #define INET_CONFIG_ERROR_MAX 1000999
-
 
 
 #endif // INETPROJECTCONFIG_H

@@ -9,13 +9,6 @@ config MAX_EVENT_QUEUE_SIZE
     help
         The maximum number of events that can be held in the Weave Platform event queue.
 
-config MAX_GROUP_KEYS
-    int "Max Group Keys"
-    range 0 255
-    default 16
-    help
-        The maximum number of group keys that can be stored on the device.
-
 endmenu
 
 menu "Device Identification Options"
