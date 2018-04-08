@@ -565,6 +565,7 @@ WEAVE_ERROR ConfigurationManager::ConfigureWeaveStack()
     bool needClose = false;
     size_t pairingCodeLen;
 
+    // Open the weave-factory namespace.
     err = nvs_open(kNVSNamespace_WeaveFactory, NVS_READONLY, &handle);
     SuccessOrExit(err);
     needClose = true;
@@ -579,16 +580,6 @@ WEAVE_ERROR ConfigurationManager::ConfigureWeaveStack()
         err = WEAVE_NO_ERROR;
     }
 #endif // WEAVE_PLATFORM_CONFIG_ENABLE_TEST_DEVICE_IDENTITY
-    SuccessOrExit(err);
-
-    // Read the fabric id from NVS.  If not present, then the device is not currently a
-    // member of a Weave fabric.
-    err = nvs_get_u64(handle, kNVSKeyName_FabricId, &FabricState.FabricId);
-    if (err == ESP_ERR_NVS_NOT_FOUND)
-    {
-        FabricState.FabricId = kFabricIdNotSpecified;
-        err = WEAVE_NO_ERROR;
-    }
     SuccessOrExit(err);
 
     // Read the pairing code from NVS.
@@ -606,6 +597,24 @@ WEAVE_ERROR ConfigurationManager::ConfigureWeaveStack()
     SuccessOrExit(err);
 
     FabricState.PairingCode = mPairingCode;
+
+    nvs_close(handle);
+    needClose = false;
+
+    // Open the weave-config namespace.
+    err = nvs_open(kNVSNamespace_WeaveConfig, NVS_READONLY, &handle);
+    SuccessOrExit(err);
+    needClose = true;
+
+    // Read the fabric id from NVS.  If not present, then the device is not currently a
+    // member of a Weave fabric.
+    err = nvs_get_u64(handle, kNVSKeyName_FabricId, &FabricState.FabricId);
+    if (err == ESP_ERR_NVS_NOT_FOUND)
+    {
+        FabricState.FabricId = kFabricIdNotSpecified;
+        err = WEAVE_NO_ERROR;
+    }
+    SuccessOrExit(err);
 
     // Configure the FabricState object with a reference to the GroupKeyStore object.
     FabricState.GroupKeyStore = &gGroupKeyStore;
@@ -1175,7 +1184,7 @@ WEAVE_ERROR StoreNVS(const char * ns, const char * name, uint32_t val)
     err = nvs_commit(handle);
     SuccessOrExit(err);
 
-    ESP_LOGI(TAG, "StoreNVS: %s/%s = %" PRIu32, ns, name, val);
+    ESP_LOGI(TAG, "StoreNVS: %s/%s = %" PRIu32 " (0x%" PRIX32 ")", ns, name, val, val);
 
 exit:
     if (needClose)
@@ -1203,7 +1212,7 @@ WEAVE_ERROR StoreNVS(const char * ns, const char * name, uint64_t val)
     err = nvs_commit(handle);
     SuccessOrExit(err);
 
-    ESP_LOGI(TAG, "StoreNVS: %s/%s = %" PRIu64, ns, name, val);
+    ESP_LOGI(TAG, "StoreNVS: %s/%s = %" PRIu64 " (0x%" PRIX64 ")", ns, name, val, val);
 
 exit:
     if (needClose)

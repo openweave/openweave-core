@@ -1,6 +1,6 @@
 /*
  *
- *    Copyright (c) 2016-2017 Nest Labs, Inc.
+ *    Copyright (c) 2018 Nest Labs, Inc.
  *    All rights reserved.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,7 +18,7 @@
 
 /**
  *    @file
- *      Weave project configuration for esp32 builds.
+ *      Weave project configuration for the esp32 platform.
  *
  */
 #ifndef WEAVEPROJECTCONFIG_H
@@ -56,6 +56,8 @@
 #define WEAVE_CONFIG_SUPPORT_PASE_CONFIG3 0
 #define WEAVE_CONFIG_SUPPORT_PASE_CONFIG4 1
 #define WEAVE_CONFIG_ENABLE_PROVISIONING_BUNDLE_SUPPORT 0
+
+#define WEAVE_CONFIG_ENABLE_TUNNELING 1
 
 #define WeaveDie() abort()
 

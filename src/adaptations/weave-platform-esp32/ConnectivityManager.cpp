@@ -4,6 +4,8 @@
 #include <internal/NetworkInfo.h>
 #include <Weave/Profiles/WeaveProfiles.h>
 #include <Weave/Profiles/common/CommonProfile.h>
+#include <Warm/Warm.h>
+#include "esp_event.h"
 #include "esp_wifi.h"
 #include <new>
 
@@ -27,9 +29,11 @@ enum
 };
 
 extern const char *ESPWiFiModeToStr(wifi_mode_t wifiMode);
+extern const char *ESPInterfaceIdToName(tcpip_adapter_if_t intfId);
 extern WEAVE_ERROR ChangeESPWiFiMode(esp_interface_t intf, bool enabled);
 extern WiFiSecurityType ESPWiFiAuthModeToWeaveWiFiSecurityType(wifi_auth_mode_t authMode);
 extern int OrderESPScanResultsByRSSI(const void * _res1, const void * _res2);
+
 
 } // namespace Internal
 
@@ -175,6 +179,10 @@ WEAVE_ERROR ConnectivityManager::Init()
     mWiFiAPIdleTimeoutMS = WEAVE_PLATFORM_CONFIG_WIFI_AP_IDLE_TIMEOUT;
     mScanInProgress = false;
 
+    // Initialize the Weave Addressing and Routing Module.
+    err = Warm::Init(FabricState);
+    SuccessOrExit(err);
+
     // If there is no persistent station provision...
     if (!IsWiFiStationProvisioned())
     {
@@ -251,8 +259,6 @@ NetworkProvisioningDelegate * ConnectivityManager::GetNetworkProvisioningDelegat
 
 void ConnectivityManager::OnPlatformEvent(const struct WeavePlatformEvent * event)
 {
-    WEAVE_ERROR err;
-
     // Handle ESP system events...
     if (event->Type == WeavePlatformEvent::kEventType_ESPSystemEvent)
     {
@@ -283,27 +289,15 @@ void ConnectivityManager::OnPlatformEvent(const struct WeavePlatformEvent * even
             break;
         case SYSTEM_EVENT_STA_GOT_IP:
             ESP_LOGI(TAG, "SYSTEM_EVENT_STA_GOT_IP");
-            err = MessageLayer.RefreshEndpoints();
-            if (err != WEAVE_NO_ERROR)
-            {
-                ESP_LOGE(TAG, "Error returned by MessageLayer.RefreshEndpoints(): %s", nl::ErrorStr(err));
-            }
+            OnStationIPv4AddressAvailable(event->ESPSystemEvent.event_info.got_ip);
             break;
         case SYSTEM_EVENT_STA_LOST_IP:
             ESP_LOGI(TAG, "SYSTEM_EVENT_STA_LOST_IP");
-            err = MessageLayer.RefreshEndpoints();
-            if (err != WEAVE_NO_ERROR)
-            {
-                ESP_LOGE(TAG, "Error returned by MessageLayer.RefreshEndpoints(): %s", nl::ErrorStr(err));
-            }
+            OnStationIPv4AddressLost();
             break;
         case SYSTEM_EVENT_GOT_IP6:
             ESP_LOGI(TAG, "SYSTEM_EVENT_GOT_IP6");
-            err = MessageLayer.RefreshEndpoints();
-            if (err != WEAVE_NO_ERROR)
-            {
-                ESP_LOGE(TAG, "Error returned by MessageLayer.RefreshEndpoints(): %s", nl::ErrorStr(err));
-            }
+            OnIPv6AddressAvailable(event->ESPSystemEvent.event_info.got_ip6);
             break;
         case SYSTEM_EVENT_AP_START:
             ESP_LOGI(TAG, "SYSTEM_EVENT_AP_START");
@@ -582,15 +576,60 @@ exit:
 
 void ConnectivityManager::OnStationConnected()
 {
-    // TODO: alert other subsystems of connected state
-
     // Assign an IPv6 link local address to the station interface.
     tcpip_adapter_create_ip6_linklocal(TCPIP_ADAPTER_IF_STA);
+
+    // Invoke WARM to perform actions that occur when the WiFi station interface comes up.
+    Warm::WiFiInterfaceStateChange(Warm::kInterfaceStateUp);
+
+    // TODO: alert other subsystems of connected state
 }
 
 void ConnectivityManager::OnStationDisconnected()
 {
+    // Invoke WARM to perform actions that occur when the WiFi station interface goes down.
+    Warm::WiFiInterfaceStateChange(Warm::kInterfaceStateDown);
+
     // TODO: alert other subsystems of disconnected state
+}
+
+void ConnectivityManager::OnStationIPv4AddressAvailable(const system_event_sta_got_ip_t & got_ip)
+{
+    if (LOG_LOCAL_LEVEL >= ESP_LOG_INFO)
+    {
+        char ipAddrStr[INET_ADDRSTRLEN], netMaskStr[INET_ADDRSTRLEN], gatewayStr[INET_ADDRSTRLEN];
+        IPAddress::FromIPv4(got_ip.ip_info.ip).ToString(ipAddrStr, sizeof(ipAddrStr));
+        IPAddress::FromIPv4(got_ip.ip_info.netmask).ToString(netMaskStr, sizeof(netMaskStr));
+        IPAddress::FromIPv4(got_ip.ip_info.gw).ToString(gatewayStr, sizeof(gatewayStr));
+        ESP_LOGI(TAG, "IPv4 address %s on WiFi station interface: %s/%s gateway %s",
+                 (got_ip.ip_changed) ? "changed" : "ready",
+                 ipAddrStr, netMaskStr, gatewayStr);
+    }
+
+    RefreshMessageLayer();
+}
+
+void ConnectivityManager::OnStationIPv4AddressLost(void)
+{
+    ESP_LOGI(TAG, "IPv4 address lost on WiFi station interface");
+
+    RefreshMessageLayer();
+}
+
+void ConnectivityManager::OnIPv6AddressAvailable(const system_event_got_ip6_t & got_ip)
+{
+    if (LOG_LOCAL_LEVEL >= ESP_LOG_INFO)
+    {
+        IPAddress ipAddr = IPAddress::FromIPv6(got_ip.ip6_info.ip);
+        char ipAddrStr[INET6_ADDRSTRLEN];
+        ipAddr.ToString(ipAddrStr, sizeof(ipAddrStr));
+        ESP_LOGI(TAG, "%s ready on %s interface: %s",
+                 CharacterizeIPv6Address(ipAddr),
+                 ESPInterfaceIdToName(got_ip.if_index),
+                 ipAddrStr);
+    }
+
+    RefreshMessageLayer();
 }
 
 void ConnectivityManager::ChangeWiFiStationState(WiFiStationState newState)
@@ -699,6 +738,15 @@ void ConnectivityManager::DriveStationState(nl::Weave::System::Layer * aLayer, v
 void ConnectivityManager::DriveAPState(nl::Weave::System::Layer * aLayer, void * aAppState, nl::Weave::System::Error aError)
 {
     ConnectivityMgr.DriveAPState();
+}
+
+void ConnectivityManager::RefreshMessageLayer(void)
+{
+    WEAVE_ERROR err = MessageLayer.RefreshEndpoints();
+    if (err != WEAVE_NO_ERROR)
+    {
+        ESP_LOGE(TAG, "MessageLayer.RefreshEndpoints() failed: %s", nl::ErrorStr(err));
+    }
 }
 
 // ==================== ConnectivityManager::NetworkProvisioningDelegate Public Methods ====================
@@ -1447,6 +1495,50 @@ void ConnectivityManager::NetworkProvisioningDelegate::HandleScanTimeOut(::nl::W
 
 #endif // WEAVE_PLATFORM_CONFIG_WIFI_SCAN_COMPLETION_TIMEOUT
 
+
+// ==================== Internal Utility Functions ====================
+
+namespace Internal {
+
+const char *CharacterizeIPv6Address(const IPAddress & ipAddr)
+{
+    if (ipAddr.IsIPv6LinkLocal())
+    {
+        return "Link-local IPv6 address";
+    }
+    else if (ipAddr.IsIPv6ULA())
+    {
+        if (FabricState.FabricId != kFabricIdNotSpecified && ipAddr.GlobalId() == nl::Weave::WeaveFabricIdToIPv6GlobalId(FabricState.FabricId))
+        {
+            switch (ipAddr.Subnet())
+            {
+            case kWeaveSubnetId_PrimaryWiFi:
+                return "Weave WiFi IPv6 ULA";
+            case kWeaveSubnetId_Service:
+                return "Weave Service IPv6 ULA";
+            case kWeaveSubnetId_ThreadMesh:
+                return "Weave Thread IPv6 ULA";
+            case kWeaveSubnetId_ThreadAlarm:
+                return "Weave Thread Alarm IPv6 ULA";
+            case kWeaveSubnetId_WiFiAP:
+                return "Weave WiFi AP IPv6 ULA";
+            case kWeaveSubnetId_MobileDevice:
+                return "Weave Mobile IPv6 ULA";
+            default:
+                return "Weave IPv6 ULA";
+            }
+        }
+    }
+    else if ((ntohl(ipAddr.Addr[0]) & 0xE0000000U) == 0x20000000U)
+    {
+        return "Global IPv6 address";
+    }
+    return "IPv6 address";
+}
+
+} // namespace Internal
+
+
 // ==================== Local Utility Functions ====================
 
 namespace {
@@ -1463,6 +1555,21 @@ const char *ESPWiFiModeToStr(wifi_mode_t wifiMode)
         return "AP";
     case WIFI_MODE_APSTA:
         return "STA+AP";
+    default:
+        return "(unknown)";
+    }
+}
+
+const char *ESPInterfaceIdToName(tcpip_adapter_if_t intfId)
+{
+    switch (intfId)
+    {
+    case TCPIP_ADAPTER_IF_STA:
+        return "WiFi station";
+    case TCPIP_ADAPTER_IF_AP:
+        return "WiFi AP";
+    case TCPIP_ADAPTER_IF_ETH:
+        return "Ethernet";
     default:
         return "(unknown)";
     }

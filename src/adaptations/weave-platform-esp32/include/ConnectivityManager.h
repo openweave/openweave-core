@@ -2,13 +2,24 @@
 #define CONNECTIVITY_MANAGER_H
 
 #include <Weave/Profiles/network-provisioning/NetworkProvisioning.h>
+#include "esp_event.h"
+
+namespace nl {
+namespace Inet {
+class IPAddress;
+} // namespace Inet
+} // namespace nl
 
 namespace WeavePlatform {
 
 namespace Internal {
+
 struct WeavePlatformEvent;
 class NetworkInfo;
 class NetworkProvisioningServer;
+
+extern const char *CharacterizeIPv6Address(const ::nl::Inet::IPAddress & ipAddr);
+
 } // namespace Internal
 
 class ConnectivityManager
@@ -63,8 +74,8 @@ private:
     friend class ::WeavePlatform::PlatformManager;
     friend class ::WeavePlatform::Internal::NetworkProvisioningServer;
 
-    WEAVE_ERROR Init();
-    ::nl::Weave::Profiles::NetworkProvisioning::NetworkProvisioningDelegate * GetNetworkProvisioningDelegate();
+    WEAVE_ERROR Init(void);
+    ::nl::Weave::Profiles::NetworkProvisioning::NetworkProvisioningDelegate * GetNetworkProvisioningDelegate(void);
     void OnPlatformEvent(const struct ::WeavePlatform::Internal::WeavePlatformEvent * event);
 
 private:
@@ -83,8 +94,8 @@ private:
         virtual WEAVE_ERROR HandleTestConnectivity(uint32_t networkId);
         virtual WEAVE_ERROR HandleSetRendezvousMode(uint16_t rendezvousMode);
 
-        void StartPendingScan();
-        void HandleScanDone();
+        void StartPendingScan(void);
+        void HandleScanDone(void);
 
     private:
         WEAVE_ERROR GetWiFiStationProvision(::WeavePlatform::Internal::NetworkInfo & netInfo, bool includeCredentials);
@@ -126,11 +137,14 @@ private:
     uint32_t mWiFiAPIdleTimeoutMS;
     bool mScanInProgress;
 
-    void DriveStationState();
-    void DriveAPState();
-    WEAVE_ERROR ConfigureWiFiAP();
+    void DriveStationState(void);
+    void DriveAPState(void);
+    WEAVE_ERROR ConfigureWiFiAP(void);
     void OnStationConnected(void);
     void OnStationDisconnected(void);
+    void OnStationIPv4AddressAvailable(const system_event_sta_got_ip_t & got_ip);
+    void OnStationIPv4AddressLost(void);
+    void OnIPv6AddressAvailable(const system_event_got_ip6_t & got_ip);
     void ChangeWiFiStationState(WiFiStationState newState);
     void ChangeWiFiAPState(WiFiAPState newState);
 
@@ -140,6 +154,7 @@ private:
     static const char * WiFiAPStateToStr(WiFiAPState state);
     static void DriveStationState(::nl::Weave::System::Layer * aLayer, void * aAppState, ::nl::Weave::System::Error aError);
     static void DriveAPState(::nl::Weave::System::Layer * aLayer, void * aAppState, ::nl::Weave::System::Error aError);
+    static void RefreshMessageLayer(void);
 };
 
 inline bool ConnectivityManager::IsWiFiStationApplicationControlled(void) const
