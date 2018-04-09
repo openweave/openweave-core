@@ -2986,6 +2986,10 @@ exit:
 
     if (mUpdateRequestContext.mNumDataElementsAddedToPayload > 0 && err != WEAVE_NO_ERROR)
     {
+        // TODO: if things are done right, we should suppress only BUFFER_TOO_SMALL errors.
+        // If the TLV writer is setup properly, it'll never try to allocate
+        // a chain of buffers and will never return NO_MEMORY. We should be able
+        // to check only for BUFFER_TOO_SMALL
         WeaveLogDetail(DataManagement, "Suppressing error %d; will try again later", err);
         err = WEAVE_NO_ERROR;
     }
@@ -2996,6 +3000,7 @@ exit:
 
         if ((err == WEAVE_ERROR_BUFFER_TOO_SMALL) || (err == WEAVE_ERROR_NO_MEMORY))
         {
+            // We should be able to check only for BUFFER_TOO_SMALL, see above.
             WeaveLogDetail(DataManagement, "illegal oversized trait property is too big to fit in the packet");
         }
 

@@ -509,6 +509,8 @@ target_triplet = @target@
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@    happy/tests/standalone/wdmNext/test_weave_wdm_next_oneway_resub.py            \
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@    happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_resub.py            \
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@    happy/tests/standalone/wdmNext/test_weave_wdm_next_update_01.py               \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@    happy/tests/standalone/wdmNext/test_weave_wdm_next_update_02.py               \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@    happy/tests/standalone/wdmNext/test_weave_wdm_next_update_03.py               \
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@    happy/tests/standalone/wdmNext/test_weave_wdm_next_subless_notify_01.py       \
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@    $(NULL)
 
@@ -2344,6 +2346,8 @@ AM_RECURSIVE_TARGETS = check recheck
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@	happy/tests/standalone/wdmNext/test_weave_wdm_next_oneway_resub.py \
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@	happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_resub.py \
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@	happy/tests/standalone/wdmNext/test_weave_wdm_next_update_01.py \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@	happy/tests/standalone/wdmNext/test_weave_wdm_next_update_02.py \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@	happy/tests/standalone/wdmNext/test_weave_wdm_next_update_03.py \
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@	happy/tests/standalone/wdmNext/test_weave_wdm_next_subless_notify_01.py
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_BDX_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@am__EXEEXT_24 = happy/tests/standalone/bdx/test_weave_bdx_01.py \
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_BDX_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@	happy/tests/standalone/bdx/test_weave_bdx_02.py \
@@ -7534,6 +7538,20 @@ happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_resub.py.log: happy/te
 happy/tests/standalone/wdmNext/test_weave_wdm_next_update_01.py.log: happy/tests/standalone/wdmNext/test_weave_wdm_next_update_01.py
 	@p='happy/tests/standalone/wdmNext/test_weave_wdm_next_update_01.py'; \
 	b='happy/tests/standalone/wdmNext/test_weave_wdm_next_update_01.py'; \
+	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
+	--log-file $$b.log --trs-file $$b.trs \
+	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
+	"$$tst" $(AM_TESTS_FD_REDIRECT)
+happy/tests/standalone/wdmNext/test_weave_wdm_next_update_02.py.log: happy/tests/standalone/wdmNext/test_weave_wdm_next_update_02.py
+	@p='happy/tests/standalone/wdmNext/test_weave_wdm_next_update_02.py'; \
+	b='happy/tests/standalone/wdmNext/test_weave_wdm_next_update_02.py'; \
+	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
+	--log-file $$b.log --trs-file $$b.trs \
+	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
+	"$$tst" $(AM_TESTS_FD_REDIRECT)
+happy/tests/standalone/wdmNext/test_weave_wdm_next_update_03.py.log: happy/tests/standalone/wdmNext/test_weave_wdm_next_update_03.py
+	@p='happy/tests/standalone/wdmNext/test_weave_wdm_next_update_03.py'; \
+	b='happy/tests/standalone/wdmNext/test_weave_wdm_next_update_03.py'; \
 	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
 	--log-file $$b.log --trs-file $$b.trs \
 	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
