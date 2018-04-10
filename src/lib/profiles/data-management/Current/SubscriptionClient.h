@@ -481,21 +481,30 @@ private:
     struct PathStore
     {
     public:
+        typedef enum {
+            kFlag_Valid      = 0x1,
+            kFlag_ForceMerge = 0x2,
+        } Flag;
+
         PathStore();
-        bool AddItem(TraitPath aItem);
+        bool AddItem(TraitPath aItem, bool aForceMerge = false);
         void RemoveItem(TraitDataHandle aDataHandle);
         void RemoveItemAt(uint32_t aIndex);
         void GetItemAt(uint32_t aIndex, TraitPath &aTraitPath);
         bool IsInclusive(TraitPath aItem, const TraitSchemaEngine * const apSchemaEngine);
         bool IsPresent(TraitPath aItem);
         bool IsTraitPresent(TraitDataHandle aDataHandle);
+        bool IsFlagSet(uint32_t aIndex, Flag aFlag) { return ((mFlags[aIndex] & static_cast<uint8_t>(aFlag)) == aFlag); };
+        void SetFlag(uint32_t aIndex, Flag aFlag, bool aValue);
+        bool IsItemValid(uint32_t aIndex) { return IsFlagSet(aIndex, kFlag_Valid); };
+        bool IsItemForceMerge(uint32_t aIndex) { return IsFlagSet(aIndex, kFlag_ForceMerge); }
         bool IsEmpty();
         bool IsFull();
         uint32_t GetNumItems();
         uint32_t GetPathStoreSize();
         void Clear();
         TraitPath mPathStore[WDM_UPDATE_MAX_ITEMS_IN_TRAIT_DIRTY_PATH_STORE];
-        bool mValidFlags[WDM_UPDATE_MAX_ITEMS_IN_TRAIT_DIRTY_PATH_STORE];
+        uint8_t mFlags[WDM_UPDATE_MAX_ITEMS_IN_TRAIT_DIRTY_PATH_STORE];
         uint32_t mNumItems;
     };
 
@@ -504,20 +513,16 @@ private:
      */
     struct UpdatableTIContext
     {
-        void Init(void) { this->ClearDirty(); this->ClearForceMerge(); }
+        void Init(void) { this->ClearDirty(); }
         bool IsDirty(void) { return mDirty; }
         void SetDirty(void) { mDirty = true; }
         void ClearDirty(void) { mDirty = false; }
-        bool IsForceMerge(void) { return mForceMerge; }
-        void SetForceMerge(void) { mForceMerge = true; }
-        void ClearForceMerge(void) { mForceMerge = false; }
 
         TraitDataHandle mTraitDataHandle;
         uint16_t mRequestedVersion;
         bool mDirty;
         PropertyPathHandle mNextDictionaryElementPathHandle;
         PropertyPathHandle mCandidatePropertyPathHandle;
-        bool mForceMerge;
     };
 
     struct UpdateRequestContext
@@ -525,6 +530,7 @@ private:
         uint16_t mCurProcessingTraitInstanceIdx;
         uint16_t mNumDataElementsAddedToPayload;
         bool mIsPartialUpdate;
+        bool mForceMerge;
         SubscriptionClient * mpSubClient;
         UpdatableTIContext * mpUpdatableTIContext;
     };

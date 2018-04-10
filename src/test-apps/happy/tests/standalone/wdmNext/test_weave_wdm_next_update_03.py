@@ -53,7 +53,6 @@ class test_weave_wdm_next_update_03(weave_wdm_next_test_base):
         wdm_next_args['client_clear_state_between_iterations'] = False
         wdm_next_args['server_clear_state_between_iterations'] = False
 
-        #wdm_next_args['client_log_check'] = [('Update: Good Iteration', wdm_next_args['test_client_iterations'] * (wdm_next_args['total_client_count'] -1) * 4)]
         wdm_next_args['client_log_check'] = [('Update: Good Iteration', wdm_next_args['test_client_iterations'] * wdm_next_args['total_client_count'])]
         wdm_next_args['server_log_check'] = []
         wdm_next_args['test_tag'] = self.__class__.__name__[19:].upper()

@@ -1920,8 +1920,8 @@ SubscriptionClient::PathStore::PathStore()
     {
         mPathStore[i].mPropertyPathHandle = kNullPropertyPathHandle;
         mPathStore[i].mTraitDataHandle    = UINT16_MAX;
-        mValidFlags[i]                = false;
     }
+    memset(mFlags, 0, sizeof(mFlags));
 }
 
 bool SubscriptionClient::PathStore::IsEmpty()
@@ -1944,7 +1944,7 @@ uint32_t SubscriptionClient::PathStore::GetPathStoreSize()
     return WDM_UPDATE_MAX_ITEMS_IN_TRAIT_DIRTY_PATH_STORE;
 }
 
-bool SubscriptionClient::PathStore::AddItem(TraitPath aItem)
+bool SubscriptionClient::PathStore::AddItem(TraitPath aItem, bool aForceMerge)
 {
     if (mNumItems >= WDM_UPDATE_MAX_ITEMS_IN_TRAIT_DIRTY_PATH_STORE)
     {
@@ -1953,10 +1953,11 @@ bool SubscriptionClient::PathStore::AddItem(TraitPath aItem)
 
     for (size_t i = 0; i < WDM_UPDATE_MAX_ITEMS_IN_TRAIT_DIRTY_PATH_STORE; i++)
     {
-        if (!mValidFlags[i])
+        if (!IsItemValid(i))
         {
             mPathStore[i]      = aItem;
-            mValidFlags[i] = true;
+            SetFlag(i, kFlag_Valid, true);
+            SetFlag(i, kFlag_ForceMerge, aForceMerge);
             mNumItems++;
             return true;
         }
@@ -1964,7 +1965,7 @@ bool SubscriptionClient::PathStore::AddItem(TraitPath aItem)
 
     return false;
 
-    // Shouldn't get here since that would imply that mNumItems and mValidFlags are out of sync
+    // Shouldn't get here since that would imply that mNumItems and mFlags are out of sync
     // which should never happen unless someone mucked with the flags themselves. Continuing past
     // this point runs the risk of unpredictable behavior and so, it's better to just assert
     // at this point.
@@ -1977,9 +1978,9 @@ void SubscriptionClient::PathStore::RemoveItem(TraitDataHandle aDataHandle)
     {
         for (size_t i = 0; i < WDM_UPDATE_MAX_ITEMS_IN_TRAIT_DIRTY_PATH_STORE; i++)
         {
-            if (mValidFlags[i] && (mPathStore[i].mTraitDataHandle == aDataHandle))
+            if (IsItemValid(i) && (mPathStore[i].mTraitDataHandle == aDataHandle))
             {
-                mValidFlags[i] = false;
+                SetFlag(i, kFlag_Valid, false);
                 mNumItems--;
             }
         }
@@ -1994,7 +1995,7 @@ bool SubscriptionClient::PathStore::IsTraitPresent(TraitDataHandle aDataHandle)
     {
         for (size_t i = 0; i < WDM_UPDATE_MAX_ITEMS_IN_TRAIT_DIRTY_PATH_STORE; i++)
         {
-            if (mValidFlags[i] && (mPathStore[i].mTraitDataHandle == aDataHandle))
+            if (IsItemValid(i) && (mPathStore[i].mTraitDataHandle == aDataHandle))
             {
                 found = true;
                 break;
@@ -2005,11 +2006,20 @@ bool SubscriptionClient::PathStore::IsTraitPresent(TraitDataHandle aDataHandle)
     return found;
 }
 
+void SubscriptionClient::PathStore::SetFlag(uint32_t aIndex, Flag aFlag, bool aValue)
+{
+    mFlags[aIndex] &= ~aFlag;
+    if (aValue)
+    {
+        mFlags[aIndex] |= aFlag;
+    }
+}
+
 void SubscriptionClient::PathStore::RemoveItemAt(uint32_t aIndex)
 {
     if (mNumItems)
     {
-        mValidFlags[aIndex] = false;
+        SetFlag(aIndex, kFlag_Valid, false);
         mNumItems--;
     }
 }
@@ -2023,7 +2033,7 @@ bool SubscriptionClient::PathStore::IsPresent(TraitPath aItem)
 {
     for (size_t i = 0; i < WDM_UPDATE_MAX_ITEMS_IN_TRAIT_DIRTY_PATH_STORE; i++)
     {
-        if (mValidFlags[i] && (mPathStore[i] == aItem))
+        if (IsItemValid(i) && (mPathStore[i] == aItem))
         {
             return true;
         }
@@ -2040,9 +2050,9 @@ bool SubscriptionClient::PathStore::IsInclusive(TraitPath aItem, const TraitSche
     for (size_t i = 0; i < WDM_UPDATE_MAX_ITEMS_IN_TRAIT_DIRTY_PATH_STORE; i++)
     {
         PropertyPathHandle curProperty = aItem.mPropertyPathHandle;
-        // WeaveLogDetail(DataManagement, "IsInclusive datahandle %u: %s, store %u, cur %u", i, mValidFlags[i] ? "true" : "false", mPathStore[i].mTraitDataHandle, curDataHandle);
-        // WeaveLogDetail(DataManagement, "IsInclusive property %u: %s, store %u, cur %u", i, mValidFlags[i] ? "true" : "false", mPathStore[i].mPropertyPathHandle, curProperty);
-        if (mValidFlags[i] && (mPathStore[i].mTraitDataHandle == curDataHandle))
+        // WeaveLogDetail(DataManagement, "IsInclusive datahandle %u: %s, store %u, cur %u", i, IsItemValid(i) ? "true" : "false", mPathStore[i].mTraitDataHandle, curDataHandle);
+        // WeaveLogDetail(DataManagement, "IsInclusive property %u: %s, store %u, cur %u", i, IsItemValid(i) ? "true" : "false", mPathStore[i].mPropertyPathHandle, curProperty);
+        if (IsItemValid(i) && (mPathStore[i].mTraitDataHandle == curDataHandle))
         {
             while (curProperty != kRootPropertyPathHandle)
             {
@@ -2108,13 +2118,15 @@ WEAVE_ERROR SubscriptionClient::AddItemPendingUpdateStore(TraitPath aItem, const
     uint32_t numPendingHandles;
     numPendingHandles = mPendingUpdateStore.GetPathStoreSize();
 
-    isAddSuccess = mPendingUpdateStore.AddItem(aItem);
+    // TODO: I'm not convinced this always does the right thing when we want to
+    // force-merge a dictonary
+    isAddSuccess = mPendingUpdateStore.AddItem(aItem, aForceMerge);
 
     if (isAddSuccess)
     {
         for (size_t i=0; i < numPendingHandles; i++)
         {
-            if (mPendingUpdateStore.mValidFlags[i] && (mPendingUpdateStore.mPathStore[i].mTraitDataHandle == aItem.mTraitDataHandle))
+            if (mPendingUpdateStore.IsItemValid(i) && (mPendingUpdateStore.mPathStore[i].mTraitDataHandle == aItem.mTraitDataHandle))
             {
                 if (mPendingUpdateStore.mPathStore[i].mPropertyPathHandle == kRootPropertyPathHandle)
                 {
@@ -2138,7 +2150,8 @@ WEAVE_ERROR SubscriptionClient::AddItemPendingUpdateStore(TraitPath aItem, const
                 traitInstance[j].SetDirty();
                 if (aForceMerge)
                 {
-                    traitInstance[j].SetForceMerge();
+                    // In case not even the path of the dictionary will fit in the
+                    // payload, mark this as a partial update already.
                     mUpdateRequestContext.mIsPartialUpdate = true;
                 }
                 break;
@@ -2162,7 +2175,7 @@ WEAVE_ERROR SubscriptionClient::RemoveItemDispatchedUpdateStore(TraitDataHandle 
 void SubscriptionClient::PathStore::Clear()
 {
     mNumItems = 0;
-    memset(mValidFlags, 0, sizeof(mValidFlags));
+    memset(mFlags, 0, sizeof(mFlags));
 }
 
 WEAVE_ERROR SubscriptionClient::ClearDirty()
@@ -2259,7 +2272,7 @@ bool SubscriptionClient::MergeDupInPendingUpdateStore(const TraitSchemaEngine * 
     {
         for (size_t j = 0; j < numPendingHandles; j++)
         {
-            if ((candidateIndex != j) && mPendingUpdateStore.mValidFlags[j] && (mPendingUpdateStore.mPathStore[j].mTraitDataHandle == candidateTraitPath.mTraitDataHandle))
+            if ((candidateIndex != j) && mPendingUpdateStore.IsItemValid(j) && (mPendingUpdateStore.mPathStore[j].mTraitDataHandle == candidateTraitPath.mTraitDataHandle))
             {
                 if (parentPathHandle == mPendingUpdateStore.mPathStore[j].mPropertyPathHandle)
                 {
@@ -2271,7 +2284,7 @@ bool SubscriptionClient::MergeDupInPendingUpdateStore(const TraitSchemaEngine * 
             }
         }
 
-        if (!mPendingUpdateStore.mValidFlags[candidateIndex])
+        if (!mPendingUpdateStore.IsItemValid(candidateIndex))
         {
             break;
         }
@@ -2376,7 +2389,7 @@ void SubscriptionClient::OnUpdateConfirm(WEAVE_ERROR aReason, nl::Weave::Profile
 
         for (size_t j = 0; j < numDispatchedHandles; j++)
         {
-            if (mDispatchedUpdateStore.mValidFlags[j])
+            if (mDispatchedUpdateStore.IsItemValid(j))
             {
                 err = versionList.Next();
                 SuccessOrExit(err);
@@ -2455,7 +2468,7 @@ void SubscriptionClient::OnUpdateConfirm(WEAVE_ERROR aReason, nl::Weave::Profile
         size_t k = 0;
         for (k = 0; k < numDispatchedHandles; k++)
         {
-            if (mDispatchedUpdateStore.mValidFlags[k])
+            if (mDispatchedUpdateStore.IsItemValid(k))
             {
                 mDispatchedUpdateStore.GetItemAt(k, traitPath);
 
@@ -2521,7 +2534,7 @@ void SubscriptionClient::OnUpdateResponseTimeout(WEAVE_ERROR aError)
     //Move paths from DispatchedUpdates to PendingUpdates for all TIs.
     for (size_t i = 0; i < numDispatchedHandles; i++)
     {
-        if (mDispatchedUpdateStore.mValidFlags[i])
+        if (mDispatchedUpdateStore.IsItemValid(i))
         {
             mDispatchedUpdateStore.GetItemAt(i, traitPath);
 
@@ -2759,7 +2772,7 @@ WEAVE_ERROR SubscriptionClient::AddElementFunc(UpdateClient * apClient, void * a
             pTraitInstanceInfo->mCandidatePropertyPathHandle);
 
     if (schemaEngine->IsDictionary(pTraitInstanceInfo->mCandidatePropertyPathHandle) &&
-        !pTraitInstanceInfo->IsForceMerge())
+        !updateRequestContext->mForceMerge)
     {
         isDictionaryReplace = true;
     }
@@ -2777,18 +2790,11 @@ WEAVE_ERROR SubscriptionClient::AddElementFunc(UpdateClient * apClient, void * a
     }
 
     err = updatableDataSink->ReadData(pTraitInstanceInfo->mTraitDataHandle,
-            pTraitInstanceInfo->mCandidatePropertyPathHandle,
-            tag,
-            aOuterWriter,
-            pTraitInstanceInfo->mNextDictionaryElementPathHandle);
+                                      pTraitInstanceInfo->mCandidatePropertyPathHandle,
+                                      tag,
+                                      aOuterWriter,
+                                      pTraitInstanceInfo->mNextDictionaryElementPathHandle);
     SuccessOrExit(err);
-
-    if (! IsNullPropertyPathHandle(pTraitInstanceInfo->mNextDictionaryElementPathHandle))
-    {
-        // A dictionary didn't fit in the payload; and so we need to resume
-        // the encoding in a new DataElement, with a "merge" scheme.
-        pTraitInstanceInfo->SetForceMerge();
-    }
 
     if (isDictionaryReplace)
     {
@@ -2852,7 +2858,7 @@ WEAVE_ERROR SubscriptionClient::DirtyPathToDataElement(UpdateRequestContext &aCo
     SuccessOrExit(err);
 
     if (schemaEngine->IsDictionary(traitInfo->mCandidatePropertyPathHandle) &&
-            ! traitInfo->IsForceMerge())
+            ! aContext.mForceMerge)
     {
         // If the property being updated is a dictionary, we need to use the "replace"
         // scheme explicitly so that the whole property is replaced on the responder.
@@ -2869,6 +2875,7 @@ WEAVE_ERROR SubscriptionClient::DirtyPathToDataElement(UpdateRequestContext &aCo
             AddElementFunc, &aContext);
     SuccessOrExit(err);
 
+    aContext.mForceMerge = false;
     aContext.mNumDataElementsAddedToPayload++;
 
     dirtyPath.mTraitDataHandle = traitInfo->mTraitDataHandle;
@@ -2943,6 +2950,7 @@ WEAVE_ERROR SubscriptionClient::BuildSingleUpdateRequestDataList(UpdateRequestCo
 
             WeaveLogDetail(DataManagement, "Resume encoding a dictionary");
 
+            mUpdateRequestContext.mForceMerge = true;
             err = DirtyPathToDataElement(mUpdateRequestContext);
             SuccessOrExit(err);
             dictionaryOverflowed = (traitInfo->mNextDictionaryElementPathHandle != kNullPropertyPathHandle);
@@ -2953,7 +2961,7 @@ WEAVE_ERROR SubscriptionClient::BuildSingleUpdateRequestDataList(UpdateRequestCo
         while (i < pendingPathStoreSize)
         {
             // Now look for more paths for the same trait in the pending store
-            if (!(mPendingUpdateStore.mValidFlags[i] &&
+            if (!(mPendingUpdateStore.IsItemValid(i) &&
                         (mPendingUpdateStore.mPathStore[i].mTraitDataHandle == traitInfo->mTraitDataHandle)))
             {
                 i++;
@@ -2963,6 +2971,7 @@ WEAVE_ERROR SubscriptionClient::BuildSingleUpdateRequestDataList(UpdateRequestCo
             traitInfo->mCandidatePropertyPathHandle = mPendingUpdateStore.mPathStore[i].mPropertyPathHandle;
             mPendingUpdateStore.RemoveItemAt(i);
 
+            mUpdateRequestContext.mForceMerge = mPendingUpdateStore.IsItemForceMerge(i);
             err = DirtyPathToDataElement(mUpdateRequestContext);
             SuccessOrExit(err);
             dictionaryOverflowed = (traitInfo->mNextDictionaryElementPathHandle != kNullPropertyPathHandle);
