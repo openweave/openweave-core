@@ -2,6 +2,8 @@
 #define CONNECTIVITY_MANAGER_H
 
 #include <Weave/Profiles/network-provisioning/NetworkProvisioning.h>
+#include <Weave/Profiles/weave-tunneling/WeaveTunnelCommon.h>
+#include <Weave/Profiles/weave-tunneling/WeaveTunnelConnectionMgr.h>
 #include "esp_event.h"
 
 namespace nl {
@@ -155,6 +157,8 @@ private:
     static void DriveStationState(::nl::Weave::System::Layer * aLayer, void * aAppState, ::nl::Weave::System::Error aError);
     static void DriveAPState(::nl::Weave::System::Layer * aLayer, void * aAppState, ::nl::Weave::System::Error aError);
     static void RefreshMessageLayer(void);
+    static void HandleServiceTunnelNotification(::nl::Weave::Profiles::WeaveTunnel::WeaveTunnelConnectionMgr::TunnelConnNotifyReasons reason,
+            WEAVE_ERROR err, void *appCtxt);
 };
 
 inline bool ConnectivityManager::IsWiFiStationApplicationControlled(void) const

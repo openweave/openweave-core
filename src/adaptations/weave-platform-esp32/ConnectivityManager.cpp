@@ -2,6 +2,7 @@
 #include <ConnectivityManager.h>
 #include <internal/NetworkProvisioningServer.h>
 #include <internal/NetworkInfo.h>
+#include <internal/ServiceTunnelAgent.h>
 #include <Weave/Profiles/WeaveProfiles.h>
 #include <Weave/Profiles/common/CommonProfile.h>
 #include <Warm/Warm.h>
@@ -14,6 +15,7 @@ using namespace ::nl::Weave;
 using namespace ::nl::Weave::TLV;
 using namespace ::nl::Weave::Profiles::Common;
 using namespace ::nl::Weave::Profiles::NetworkProvisioning;
+using namespace ::nl::Weave::Profiles::WeaveTunnel;
 using namespace ::WeavePlatform::Internal;
 
 using Profiles::kWeaveProfile_Common;
@@ -183,6 +185,10 @@ WEAVE_ERROR ConnectivityManager::Init()
     err = Warm::Init(FabricState);
     SuccessOrExit(err);
 
+    // Initialize the service tunnel agent.
+    err = InitServiceTunnelAgent();
+    SuccessOrExit(err);
+
     // If there is no persistent station provision...
     if (!IsWiFiStationProvisioned())
     {
@@ -246,6 +252,11 @@ WEAVE_ERROR ConnectivityManager::Init()
     err = SystemLayer.ScheduleWork(DriveStationState, NULL);
     SuccessOrExit(err);
     err = SystemLayer.ScheduleWork(DriveAPState, NULL);
+    SuccessOrExit(err);
+
+    ServiceTunnelAgent.OnServiceTunStatusNotify = HandleServiceTunnelNotification;
+
+    err = ServiceTunnelAgent.StartServiceTunnel();
     SuccessOrExit(err);
 
 exit:
@@ -746,6 +757,25 @@ void ConnectivityManager::RefreshMessageLayer(void)
     if (err != WEAVE_NO_ERROR)
     {
         ESP_LOGE(TAG, "MessageLayer.RefreshEndpoints() failed: %s", nl::ErrorStr(err));
+    }
+}
+
+void ConnectivityManager::HandleServiceTunnelNotification(WeaveTunnelConnectionMgr::TunnelConnNotifyReasons reason,
+            WEAVE_ERROR err, void *appCtxt)
+{
+    switch (reason)
+    {
+    case WeaveTunnelConnectionMgr::kStatus_TunDown:
+        ESP_LOGI(TAG, "ConnectivityManager: Service tunnel down");
+        break;
+    case WeaveTunnelConnectionMgr::kStatus_TunPrimaryConnError:
+        ESP_LOGI(TAG, "ConnectivityManager: Service tunnel connection error: %s", ::nl::ErrorStr(err));
+        break;
+    case WeaveTunnelConnectionMgr::kStatus_TunPrimaryUp:
+        ESP_LOGI(TAG, "ConnectivityManager: Service tunnel established");
+        break;
+    default:
+        break;
     }
 }
 

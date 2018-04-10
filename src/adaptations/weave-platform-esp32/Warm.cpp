@@ -89,12 +89,15 @@ PlatformResult AddRemoveHostAddress(InterfaceType inInterfaceType, const Inet::I
 
     if (LOG_LOCAL_LEVEL >= ESP_LOG_INFO)
     {
+        char interfaceName[4];
+        GetInterfaceName(netif, interfaceName, sizeof(interfaceName));
         char ipAddrStr[INET6_ADDRSTRLEN];
         inAddress.ToString(ipAddrStr, sizeof(ipAddrStr));
-        ESP_LOGI(TAG, "%s %s on %s interface: %s/%" PRId8,
+        ESP_LOGI(TAG, "%s %s on %s interface (%s): %s/%" PRId8,
                  (inAdd) ? "Adding" : "Removing",
                  CharacterizeIPv6Address(inAddress),
                  WarmInterfaceTypeToStr(inInterfaceType),
+                 interfaceName,
                  ipAddrStr, inPrefixLength);
     }
 
@@ -102,6 +105,11 @@ exit:
     if (lockHeld)
     {
         UNLOCK_TCPIP_CORE();
+    }
+
+    if (err != WEAVE_NO_ERROR)
+    {
+        ESP_LOGE(TAG, "AddRemoveHostAddress() failed: %s", ::nl::ErrorStr(err));
     }
 
     return (err == WEAVE_NO_ERROR) ? kPlatformResultSuccess : kPlatformResultFailure;
@@ -145,14 +153,17 @@ PlatformResult AddRemoveHostRoute(InterfaceType inInterfaceType, const Inet::IPP
 
     if (LOG_LOCAL_LEVEL >= ESP_LOG_INFO)
     {
+        char interfaceName[4];
+        GetInterfaceName(netif, interfaceName, sizeof(interfaceName));
         char prefixAddrStr[INET6_ADDRSTRLEN];
         inPrefix.IPAddr.ToString(prefixAddrStr, sizeof(prefixAddrStr));
         const char * prefixDesc = CharacterizeIPv6Prefix(inPrefix);
-        ESP_LOGI(TAG, "IPv6 route%s%s %s %s interface: %s/%" PRId8,
+        ESP_LOGI(TAG, "IPv6 route%s%s %s %s interface (%s): %s/%" PRId8,
                  (prefixDesc != NULL) ? " for " : "",
                  (prefixDesc != NULL) ? prefixDesc : "",
                  (inAdd) ? "added to" : "removed from",
                  WarmInterfaceTypeToStr(inInterfaceType),
+                 interfaceName,
                  prefixAddrStr, inPrefix.Length);
     }
 
@@ -160,6 +171,11 @@ exit:
     if (lockHeld)
     {
         UNLOCK_TCPIP_CORE();
+    }
+
+    if (err != WEAVE_NO_ERROR)
+    {
+        ESP_LOGE(TAG, "AddRemoveHostRoute() failed: %s", ::nl::ErrorStr(err));
     }
 
     return (err == WEAVE_NO_ERROR) ? kPlatformResultSuccess : kPlatformResultFailure;
@@ -176,28 +192,22 @@ namespace {
 
 WEAVE_ERROR GetLwIPNetifForWarmInterfaceType(InterfaceType inInterfaceType, struct netif *& netif)
 {
-    WEAVE_ERROR err;
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
 
-    // Get the LwIP netif structure for the specified interface type.
-    if (inInterfaceType == kInterfaceTypeWiFi)
+    for (netif = netif_list; netif != NULL; netif = netif->next)
     {
-        err = tcpip_adapter_get_netif(TCPIP_ADAPTER_IF_STA, (void **)&netif);
-        if (err != ESP_OK)
+        if (inInterfaceType == kInterfaceTypeWiFi && netif->name[0] == 's' && netif->name[1] == 't')
         {
-            ESP_LOGE(TAG, "tcpip_adapter_get_netif(TCPIP_ADAPTER_IF_STA) failed: %s", nl::ErrorStr(err));
-            ExitNow();
+            ExitNow(err = WEAVE_NO_ERROR);
+        }
+
+        if (inInterfaceType == kInterfaceTypeTunnel && netif->name[0] == 't' && netif->name[1] == 'n')
+        {
+            ExitNow(err = WEAVE_NO_ERROR);
         }
     }
-    else if (inInterfaceType == kInterfaceTypeTunnel)
-    {
-        // TODO: implement this
-        ExitNow(err = WEAVE_ERROR_NOT_IMPLEMENTED);
-    }
-    else
-    {
-        ESP_LOGE(TAG, "Invalid interface type: %d", (int)inInterfaceType);
-        ExitNow(err = WEAVE_ERROR_INVALID_ARGUMENT);
-    }
+
+    ExitNow(err = INET_ERROR_UNKNOWN_INTERFACE);
 
 exit:
     return err;
