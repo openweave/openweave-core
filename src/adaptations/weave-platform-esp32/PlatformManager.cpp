@@ -378,7 +378,7 @@ extern "C" void unlock_lwip_core()
 }
 
 
-// ==================== Time / Timer Support Functions ====================
+// ==================== Timer Support Functions ====================
 
 namespace nl {
 namespace Weave {
@@ -388,11 +388,6 @@ namespace Layer {
 
 using namespace ::WeavePlatform;
 using namespace ::WeavePlatform::Internal;
-
-uint64_t GetSystemTimeMS(void)
-{
-    return (uint64_t)::esp_timer_get_time()/1000;
-}
 
 System::Error StartTimer(System::Layer & aLayer, void * aContext, uint32_t aMilliseconds)
 {
