@@ -274,7 +274,6 @@ WEAVE_ERROR SingleResourceTraitCatalog<T>::AddressToHandle(TLV::TLVReader & aRea
         ResourceIdentifier resourceId;
         err = resourceId.FromTLV(reader);
         SuccessOrExit(err);
-        VerifyOrExit(resourceId == mResourceId, err = WEAVE_ERROR_UNKNOWN_RESOURCE_ID);
     }
     else if (err == WEAVE_END_OF_TLV)
     {
