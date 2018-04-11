@@ -35,7 +35,6 @@ public:
     virtual WEAVE_ERROR DeleteGroupKeysOfAType(uint32_t keyType);
     virtual WEAVE_ERROR EnumerateGroupKeys(uint32_t keyType, uint32_t * keyIds, uint8_t keyIdsArraySize, uint8_t & keyCount);
     virtual WEAVE_ERROR Clear(void);
-    virtual WEAVE_ERROR GetCurrentUTCTime(uint32_t& utcTime);
     virtual WEAVE_ERROR RetrieveLastUsedEpochKeyId(void);
     virtual WEAVE_ERROR StoreLastUsedEpochKeyId(void);
 
@@ -809,12 +808,6 @@ WEAVE_ERROR GroupKeyStore::EnumerateGroupKeys(uint32_t keyType, uint32_t * keyId
 WEAVE_ERROR GroupKeyStore::Clear(void)
 {
     return DeleteKeyOrKeys(WeaveKeyId::kNone, WeaveKeyId::kType_None);
-}
-
-WEAVE_ERROR GroupKeyStore::GetCurrentUTCTime(uint32_t & utcTime)
-{
-    // TODO: support real time when available.
-    return WEAVE_ERROR_UNSUPPORTED_CLOCK;
 }
 
 WEAVE_ERROR GroupKeyStore::RetrieveLastUsedEpochKeyId(void)

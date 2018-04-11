@@ -132,7 +132,7 @@ void ConnectivityManager::DemandStartWiFiAP(void)
     if (mWiFiAPMode == kWiFiAPMode_OnDemand ||
         mWiFiAPMode == kWiFiAPMode_OnDemand_NoStationProvision)
     {
-        mLastAPDemandTime = SystemLayer.GetSystemTimeMS();
+        mLastAPDemandTime = System::Layer::GetClock_MonotonicMS();
         SystemLayer.ScheduleWork(DriveAPState, NULL);
     }
 }
@@ -154,7 +154,7 @@ void ConnectivityManager::MaintainOnDemandWiFiAP(void)
     {
         if (mWiFiAPState == kWiFiAPState_Activating || mWiFiAPState == kWiFiAPState_Active)
         {
-            mLastAPDemandTime = SystemLayer.GetSystemTimeMS();
+            mLastAPDemandTime = System::Layer::GetClock_MonotonicMS();
         }
     }
 }
@@ -409,7 +409,7 @@ void ConnectivityManager::DriveStationState()
     // Otherwise the station interface is NOT connected to an AP, so...
     else
     {
-        uint64_t now = SystemLayer.GetSystemTimeMS();
+        uint64_t now = System::Layer::GetClock_MonotonicMS();
 
         // Advance the station state to NotConnected if it was previously Connected or Disconnecting,
         // or if a previous initiated connect attempt failed.
@@ -502,7 +502,7 @@ void ConnectivityManager::DriveAPState()
     else if (mWiFiAPMode == kWiFiAPMode_OnDemand ||
              mWiFiAPMode == kWiFiAPMode_OnDemand_NoStationProvision)
     {
-        uint64_t now = SystemLayer.GetSystemTimeMS();
+        uint64_t now = System::Layer::GetClock_MonotonicMS();
 
         if (mLastAPDemandTime != 0 && now < (mLastAPDemandTime + mWiFiAPIdleTimeoutMS))
         {
