@@ -64,7 +64,7 @@ WEAVE_ERROR UpdateClient::Init(Binding * const apBinding, void * const apAppStat
     mpAppState           = apAppState;
     mEventCallback       = aEventCallback;
     mEC                  = NULL;
-    mNumPartialUpdateRequest = 0;
+    mUpdateRequestIndex  = 0;
     MoveToState(kState_Initialized);
 
 exit:
@@ -96,10 +96,10 @@ exit:
  *  @retval #WEAVE_NO_ERROR On success.
  *  @retval other           Was unable to add number of partial update requests into the TLV stream
  */
-WEAVE_ERROR UpdateClient::AddNumPartialUpdateRequests(void)
+WEAVE_ERROR UpdateClient::AddUpdateRequestIndex(void)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
-    err = mWriter.Put(nl::Weave::TLV::ContextTag(UpdateRequest::kCsTag_NumPartialUpdateRequests), mNumPartialUpdateRequest);
+    err = mWriter.Put(nl::Weave::TLV::ContextTag(UpdateRequest::kCsTag_UpdateRequestIndex), mUpdateRequestIndex);
     SuccessOrExit(err);
 
 exit:
@@ -176,7 +176,7 @@ WEAVE_ERROR UpdateClient::StartUpdateRequest(utc_timestamp_t aExpiryTimeMicroSec
         SuccessOrExit(err);
     }
 
-    err = AddNumPartialUpdateRequests();
+    err = AddUpdateRequestIndex();
     SuccessOrExit(err);
 
 exit:
@@ -542,7 +542,7 @@ WEAVE_ERROR UpdateClient::SendUpdate(bool aIsPartialUpdate)
     err = EndUpdateRequest();
     SuccessOrExit(err);
 
-    if (mNumPartialUpdateRequest == 0)
+    if (mUpdateRequestIndex == 0)
     {
         FlushExistingExchangeContext();
         err = mpBinding->NewExchangeContext(mEC);
@@ -569,8 +569,8 @@ WEAVE_ERROR UpdateClient::SendUpdate(bool aIsPartialUpdate)
         mpBuf = NULL;
         SuccessOrExit(err);
 
-        mNumPartialUpdateRequest ++;
-        WeaveLogDetail(DataManagement, "mNumPartialUpdateRequest: %" PRIu32 "", mNumPartialUpdateRequest);
+        mUpdateRequestIndex ++;
+        WeaveLogDetail(DataManagement, "mUpdateRequestIndex: %" PRIu32 "", mUpdateRequestIndex);
     }
     else
     {
@@ -579,7 +579,7 @@ WEAVE_ERROR UpdateClient::SendUpdate(bool aIsPartialUpdate)
         mpBuf = NULL;
         SuccessOrExit(err);
 
-        mNumPartialUpdateRequest = 0;
+        mUpdateRequestIndex = 0;
     }
 
     MoveToState(kState_AwaitingResponse);
@@ -622,7 +622,7 @@ WEAVE_ERROR UpdateClient::CancelUpdate(void)
         }
 
         mAddArgumentCallback = NULL;
-        mNumPartialUpdateRequest = 0;
+        mUpdateRequestIndex = 0;
         FlushExistingExchangeContext();
         MoveToState(kState_Initialized);
     }

@@ -122,7 +122,7 @@ private:
     PacketBuffer * mpBuf;
     utc_timestamp_t mExpiryTimeMicroSecond;
     AddArgumentCallback mAddArgumentCallback;
-    uint32_t mNumPartialUpdateRequest;
+    uint32_t mUpdateRequestIndex;
 
     nl::Weave::TLV::TLVType mDataListContainerType, mDataElementContainerType;
 
@@ -154,7 +154,7 @@ private:
 
     WEAVE_ERROR AddExpiryTime(utc_timestamp_t aExpiryTimeMicroSecond);
 
-    WEAVE_ERROR AddNumPartialUpdateRequests(void);
+    WEAVE_ERROR AddUpdateRequestIndex(void);
 
     void FlushExistingExchangeContext(const bool aAbortNow = false);
 };

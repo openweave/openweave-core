@@ -469,7 +469,7 @@ private:
     WEAVE_ERROR SetUpdateInFlight();
     WEAVE_ERROR ClearUpdateInFlight();
 
-    void UpdateCompleteEventCbHelper(size_t &index, uint32_t &aStatusProfileId, uint16_t &aStatusCode, WEAVE_ERROR aReason);
+    void UpdateCompleteEventCbHelper(const TraitPath &aTraitPath, uint32_t &aStatusProfileId, uint16_t &aStatusCode, WEAVE_ERROR aReason);
     static void UpdateEventCallback (void * const aAppState, UpdateClient::EventType aEvent, const UpdateClient::InEventParam & aInParam, UpdateClient::OutEventParam & aOutParam);
     WEAVE_ERROR FormAndSendUpdate(bool aNotifyOnError);
 
@@ -484,10 +484,11 @@ private:
         typedef enum {
             kFlag_Valid      = 0x1,
             kFlag_ForceMerge = 0x2,
+            kFlag_Private    = 0x4,
         } Flag;
 
         PathStore();
-        bool AddItem(TraitPath aItem, bool aForceMerge = false);
+        bool AddItem(TraitPath aItem, bool aForceMerge = false, bool aPrivate = false);
         void RemoveItem(TraitDataHandle aDataHandle);
         void RemoveItemAt(uint32_t aIndex);
         void GetItemAt(uint32_t aIndex, TraitPath &aTraitPath);
@@ -498,6 +499,9 @@ private:
         void SetFlag(uint32_t aIndex, Flag aFlag, bool aValue);
         bool IsItemValid(uint32_t aIndex) { return IsFlagSet(aIndex, kFlag_Valid); };
         bool IsItemForceMerge(uint32_t aIndex) { return IsFlagSet(aIndex, kFlag_ForceMerge); }
+        bool IsItemPrivate(uint32_t aIndex) { return IsFlagSet(aIndex, kFlag_Private); }
+        void SetPrivate(TraitDataHandle aDataHandle);
+
         bool IsEmpty();
         bool IsFull();
         uint32_t GetNumItems();

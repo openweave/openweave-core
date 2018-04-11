@@ -1702,16 +1702,16 @@ WEAVE_ERROR TestATraitUpdatableDataSink::Mutate(SubscriptionClient * apSubClient
             err = SetUpdated(apSubClient, TestATrait::kPropertyHandle_TaP, aIsConditional);
             SuccessOrExit(err);
 
-            err = SetUpdated(apSubClient, TestATrait::kPropertyHandle_TaC, aIsConditional);
-            SuccessOrExit(err);
+            //err = SetUpdated(apSubClient, TestATrait::kPropertyHandle_TaC, aIsConditional);
+            //SuccessOrExit(err);
 
-            err = SetUpdated(apSubClient, TestATrait::kPropertyHandle_TaR, aIsConditional);
-            SuccessOrExit(err);
+            //err = SetUpdated(apSubClient, TestATrait::kPropertyHandle_TaR, aIsConditional);
+            //SuccessOrExit(err);
 
 
             tap++;
-            tac++;
-            tar++;
+            //tac++;
+            //tar++;
         }
         else if ((mTestCounter % kNumTestCases) == 1) {
             //mock sink 3 leaf properties changes, mock source 4 leaf properties changes

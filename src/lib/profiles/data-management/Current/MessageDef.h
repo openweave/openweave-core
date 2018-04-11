@@ -1380,7 +1380,7 @@ namespace UpdateRequest {
         kCsTag_Argument                     = 10,
         /* 11-19 are reserved */
         kCsTag_DataList                     = 20,
-        kCsTag_NumPartialUpdateRequests     = 21,
+        kCsTag_UpdateRequestIndex           = 21,
     };
 
     class Parser;
@@ -1440,16 +1440,16 @@ public:
     WEAVE_ERROR GetDataList (DataList::Parser * const apDataList) const;
 
     /**
-     *  @brief Get the number of partial update request for this request
+     *  @brief Get the UdpateRequestIndex of this request.
      *
-     *  @param [out] apNumPartialUpdateRequest    A pointer to some variable to receive
-     *                                          the number of partial update requests on success
+     *  @param [out] apUpdateRequestIndex       A pointer to some variable to receive
+     *                                          the index of the payload.
      *
      *  @retval #WEAVE_NO_ERROR on success
      *  @retval #WEAVE_END_OF_TLV if there is no such element
      *  @retval #WEAVE_ERROR_WRONG_TLV_TYPE if there is such element but it's not a unsigned integer
      */
-    WEAVE_ERROR GetNumPartialUpdateRequest(nl::Weave::TLV::TLVReader * const apReader, uint32_t * const apNumPartialUpdateRequest) const;
+    WEAVE_ERROR GetUpdateRequestIndex(nl::Weave::TLV::TLVReader * const apReader, uint32_t * const apUpdateRequestIndex) const;
 };
 
 namespace UpdateResponse {

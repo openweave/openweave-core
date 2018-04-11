@@ -2440,10 +2440,17 @@ WEAVE_ERROR StatusList::Parser::CheckSchemaValidity(void) const
     // make a copy of the reader
     reader.Init(mReader);
 
+
     while (WEAVE_NO_ERROR == (err = reader.Next()))
     {
+        // The spec says the StatusList should be an array of arrays, but in
+        // the current implementation it's an array of structures. The array of
+        // array is less intuitive but more space efficient.
+        //WeaveLogDetail(DataManagement, "tag: 0x%" PRIx64 "; I want 0x%" PRIx64 "", reader.GetTag(), nl::Weave::TLV::AnonymousTag);
+        //WeaveLogDetail(DataManagement, "type: 0x%" PRIx32 "; I want 0x%" PRIx32 "", reader.GetType(), nl::Weave::TLV::kTLVType_Array);
         VerifyOrExit(nl::Weave::TLV::AnonymousTag == reader.GetTag(), err = WEAVE_ERROR_INVALID_TLV_TAG);
-        VerifyOrExit(nl::Weave::TLV::kTLVType_Array == reader.GetType(), err = WEAVE_ERROR_WRONG_TLV_TYPE);
+
+        VerifyOrExit(nl::Weave::TLV::kTLVType_Structure == reader.GetType(), err = WEAVE_ERROR_WRONG_TLV_TYPE);
 
         {
             StatusElement::Parser status;
@@ -3927,7 +3934,7 @@ WEAVE_ERROR UpdateRequest::Parser::CheckSchemaValidity(void) const
         bool Argument;
         bool DataList;
         bool Authenticator;
-        bool PartialUpdateRequest;
+        bool UpdateRequestIndex;
     };
 
     TagPresence tagPresence = { 0 };
@@ -3965,10 +3972,10 @@ WEAVE_ERROR UpdateRequest::Parser::CheckSchemaValidity(void) const
 
                 break;
 
-            case kCsTag_NumPartialUpdateRequests:
+            case kCsTag_UpdateRequestIndex:
                 // check if this tag has appeared before
-                VerifyOrExit(tagPresence.PartialUpdateRequest== false, err = WEAVE_ERROR_INVALID_TLV_TAG);
-                tagPresence.PartialUpdateRequest = true;
+                VerifyOrExit(tagPresence.UpdateRequestIndex == false, err = WEAVE_ERROR_INVALID_TLV_TAG);
+                tagPresence.UpdateRequestIndex = true;
 
                 VerifyOrExit(nl::Weave::TLV::kTLVType_UnsignedInteger == reader.GetType(), err = WEAVE_ERROR_WRONG_TLV_TYPE);
 
@@ -3978,7 +3985,7 @@ WEAVE_ERROR UpdateRequest::Parser::CheckSchemaValidity(void) const
                     err = reader.Get(value);
                     SuccessOrExit(err);
 
-                    PRETTY_PRINT("\tNumPartialUpdatRequests = 0x%" PRIx32 ",", static_cast<uint32_t>(value));
+                    PRETTY_PRINT("\tUpdateRequestIndex = 0x%" PRIx32 ",", static_cast<uint32_t>(value));
                 }
 #endif // WEAVE_DETAIL_LOGGING
 
@@ -4102,9 +4109,9 @@ WEAVE_ERROR UpdateRequest::Parser::GetReaderOnArgument(nl::Weave::TLV::TLVReader
     return GetReaderOnTag(nl::Weave::TLV::ContextTag(kCsTag_Argument), apReader);
 }
 
-WEAVE_ERROR UpdateRequest::Parser::GetNumPartialUpdateRequest(nl::Weave::TLV::TLVReader * const apReader, uint32_t * const apNumPartialUpdateRequest) const
+WEAVE_ERROR UpdateRequest::Parser::GetUpdateRequestIndex(nl::Weave::TLV::TLVReader * const apReader, uint32_t * const apUpdateRequestIndex) const
 {
-    return GetSimpleValue(kCsTag_NumPartialUpdateRequests, nl::Weave::TLV::kTLVType_UnsignedInteger, apNumPartialUpdateRequest);
+    return GetSimpleValue(kCsTag_UpdateRequestIndex, nl::Weave::TLV::kTLVType_UnsignedInteger, apUpdateRequestIndex);
 }
 
 // Get a TLVReader for the Paths. Next() must be called before accessing them.
@@ -4140,6 +4147,87 @@ WEAVE_ERROR UpdateResponse::Parser::Init(const nl::Weave::TLV::TLVReader & aRead
     // This is just a dummy, as we're not going to exit this container ever
     nl::Weave::TLV::TLVType OuterContainerType;
     err = mReader.EnterContainer(OuterContainerType);
+
+exit:
+    WeaveLogFunctError(err);
+    return err;
+}
+
+WEAVE_ERROR UpdateResponse::Parser::CheckSchemaValidity(void) const
+{
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
+    nl::Weave::TLV::TLVReader reader;
+    StatusList::Parser statusList;
+    VersionList::Parser versionList;
+    struct TagPresence
+    {
+        bool StatusList;
+        bool VersionList;
+    };
+
+    TagPresence tagPresence = { 0 };
+
+    reader.Init(mReader);
+
+    PRETTY_PRINT("{");
+
+    while (WEAVE_NO_ERROR == (err = reader.Next()))
+    {
+        const uint64_t tag = reader.GetTag();
+
+        if (nl::Weave::TLV::IsContextTag(tag))
+        {
+            switch (nl::Weave::TLV::TagNumFromTag(tag))
+            {
+                case kCsTag_StatusList:
+                    VerifyOrExit(tagPresence.StatusList == false, err = WEAVE_ERROR_INVALID_TLV_TAG);
+                    tagPresence.StatusList = true;
+                    VerifyOrExit(nl::Weave::TLV::kTLVType_Array == reader.GetType(), err = WEAVE_ERROR_WRONG_TLV_TYPE);
+                    {
+                        statusList.Init(reader);
+
+                        PRETTY_PRINT_INCDEPTH();
+
+                        statusList.CheckSchemaValidity();
+                        SuccessOrExit(err);
+
+                        PRETTY_PRINT_DECDEPTH();
+                    }
+                    break;
+
+                case kCsTag_VersionList:
+                    VerifyOrExit(tagPresence.VersionList == false, err = WEAVE_ERROR_INVALID_TLV_TAG);
+                    tagPresence.VersionList = true;
+                    VerifyOrExit(nl::Weave::TLV::kTLVType_Array == reader.GetType(), err = WEAVE_ERROR_WRONG_TLV_TYPE);
+                    {
+                        versionList.Init(reader);
+
+                        PRETTY_PRINT_INCDEPTH();
+
+                        versionList.CheckSchemaValidity();
+                        SuccessOrExit(err);
+
+                        PRETTY_PRINT_DECDEPTH();
+                    }
+                    break;
+
+                default:
+                    WeaveLogDetail(DataManagement, "UNKONWN, IGNORE");
+                    break;
+            }
+        }
+    }
+
+    if (WEAVE_END_OF_TLV == err)
+    {
+        if (tagPresence.VersionList && tagPresence.StatusList)
+        {
+            err = WEAVE_NO_ERROR;
+        }
+    }
+
+    PRETTY_PRINT("}");
+    PRETTY_PRINT("");
 
 exit:
     WeaveLogFunctError(err);
