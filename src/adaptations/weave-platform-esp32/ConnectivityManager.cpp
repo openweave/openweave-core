@@ -491,6 +491,51 @@ exit:
     mNetProvDelegate.StartPendingScan();
 }
 
+void ConnectivityManager::OnStationConnected()
+{
+    // Assign an IPv6 link local address to the station interface.
+    tcpip_adapter_create_ip6_linklocal(TCPIP_ADAPTER_IF_STA);
+
+    // Invoke WARM to perform actions that occur when the WiFi station interface comes up.
+    Warm::WiFiInterfaceStateChange(Warm::kInterfaceStateUp);
+
+    // Alert other components of the new state.
+    WeavePlatformEvent event;
+    event.Type = WeavePlatformEvent::kEventType_WiFiConnectivityChange;
+    event.WiFiConnectivityChange.Result = kConnectivity_Established;
+    PlatformMgr.PostEvent(&event);
+
+    UpdateInternetConnectivityState();
+}
+
+void ConnectivityManager::OnStationDisconnected()
+{
+    // Invoke WARM to perform actions that occur when the WiFi station interface goes down.
+    Warm::WiFiInterfaceStateChange(Warm::kInterfaceStateDown);
+
+    // Alert other components of the new state.
+    WeavePlatformEvent event;
+    event.Type = WeavePlatformEvent::kEventType_WiFiConnectivityChange;
+    event.WiFiConnectivityChange.Result = kConnectivity_Lost;
+    PlatformMgr.PostEvent(&event);
+
+    UpdateInternetConnectivityState();
+}
+
+void ConnectivityManager::ChangeWiFiStationState(WiFiStationState newState)
+{
+    if (mWiFiStationState != newState)
+    {
+        ESP_LOGI(TAG, "WiFi station state change: %s -> %s", WiFiStationStateToStr(mWiFiStationState), WiFiStationStateToStr(newState));
+    }
+    mWiFiStationState = newState;
+}
+
+void ConnectivityManager::DriveStationState(nl::Weave::System::Layer * aLayer, void * aAppState, nl::Weave::System::Error aError)
+{
+    ConnectivityMgr.DriveStationState();
+}
+
 void ConnectivityManager::DriveAPState()
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
@@ -599,91 +644,6 @@ exit:
     return err;
 }
 
-void ConnectivityManager::OnStationConnected()
-{
-    // Assign an IPv6 link local address to the station interface.
-    tcpip_adapter_create_ip6_linklocal(TCPIP_ADAPTER_IF_STA);
-
-    // Invoke WARM to perform actions that occur when the WiFi station interface comes up.
-    Warm::WiFiInterfaceStateChange(Warm::kInterfaceStateUp);
-
-    // Alert other components of the new state.
-    WeavePlatformEvent event;
-    event.Type = WeavePlatformEvent::kEventType_WiFiConnectivityChange;
-    event.WiFiConnectivityChange.Result = kConnectivity_Established;
-    PlatformMgr.PostEvent(&event);
-
-    UpdateInternetConnectivityState();
-}
-
-void ConnectivityManager::OnStationDisconnected()
-{
-    // Invoke WARM to perform actions that occur when the WiFi station interface goes down.
-    Warm::WiFiInterfaceStateChange(Warm::kInterfaceStateDown);
-
-    // Alert other components of the new state.
-    WeavePlatformEvent event;
-    event.Type = WeavePlatformEvent::kEventType_WiFiConnectivityChange;
-    event.WiFiConnectivityChange.Result = kConnectivity_Lost;
-    PlatformMgr.PostEvent(&event);
-
-    UpdateInternetConnectivityState();
-}
-
-void ConnectivityManager::OnStationIPv4AddressAvailable(const system_event_sta_got_ip_t & got_ip)
-{
-    if (LOG_LOCAL_LEVEL >= ESP_LOG_INFO)
-    {
-        char ipAddrStr[INET_ADDRSTRLEN], netMaskStr[INET_ADDRSTRLEN], gatewayStr[INET_ADDRSTRLEN];
-        IPAddress::FromIPv4(got_ip.ip_info.ip).ToString(ipAddrStr, sizeof(ipAddrStr));
-        IPAddress::FromIPv4(got_ip.ip_info.netmask).ToString(netMaskStr, sizeof(netMaskStr));
-        IPAddress::FromIPv4(got_ip.ip_info.gw).ToString(gatewayStr, sizeof(gatewayStr));
-        ESP_LOGI(TAG, "IPv4 address %s on WiFi station interface: %s/%s gateway %s",
-                 (got_ip.ip_changed) ? "changed" : "ready",
-                 ipAddrStr, netMaskStr, gatewayStr);
-    }
-
-    RefreshMessageLayer();
-
-    UpdateInternetConnectivityState();
-}
-
-void ConnectivityManager::OnStationIPv4AddressLost(void)
-{
-    ESP_LOGI(TAG, "IPv4 address lost on WiFi station interface");
-
-    RefreshMessageLayer();
-
-    UpdateInternetConnectivityState();
-}
-
-void ConnectivityManager::OnIPv6AddressAvailable(const system_event_got_ip6_t & got_ip)
-{
-    if (LOG_LOCAL_LEVEL >= ESP_LOG_INFO)
-    {
-        IPAddress ipAddr = IPAddress::FromIPv6(got_ip.ip6_info.ip);
-        char ipAddrStr[INET6_ADDRSTRLEN];
-        ipAddr.ToString(ipAddrStr, sizeof(ipAddrStr));
-        ESP_LOGI(TAG, "%s ready on %s interface: %s",
-                 CharacterizeIPv6Address(ipAddr),
-                 ESPInterfaceIdToName(got_ip.if_index),
-                 ipAddrStr);
-    }
-
-    RefreshMessageLayer();
-
-    UpdateInternetConnectivityState();
-}
-
-void ConnectivityManager::ChangeWiFiStationState(WiFiStationState newState)
-{
-    if (mWiFiStationState != newState)
-    {
-        ESP_LOGI(TAG, "WiFi station state change: %s -> %s", WiFiStationStateToStr(mWiFiStationState), WiFiStationStateToStr(newState));
-    }
-    mWiFiStationState = newState;
-}
-
 void ConnectivityManager::ChangeWiFiAPState(WiFiAPState newState)
 {
     if (mWiFiAPState != newState)
@@ -691,6 +651,11 @@ void ConnectivityManager::ChangeWiFiAPState(WiFiAPState newState)
         ESP_LOGI(TAG, "WiFi AP state change: %s -> %s", WiFiAPStateToStr(mWiFiAPState), WiFiAPStateToStr(newState));
     }
     mWiFiAPState = newState;
+}
+
+void ConnectivityManager::DriveAPState(nl::Weave::System::Layer * aLayer, void * aAppState, nl::Weave::System::Error aError)
+{
+    ConnectivityMgr.DriveAPState();
 }
 
 void ConnectivityManager::UpdateInternetConnectivityState(void)
@@ -785,6 +750,51 @@ void ConnectivityManager::UpdateInternetConnectivityState(void)
     }
 }
 
+void ConnectivityManager::OnStationIPv4AddressAvailable(const system_event_sta_got_ip_t & got_ip)
+{
+    if (LOG_LOCAL_LEVEL >= ESP_LOG_INFO)
+    {
+        char ipAddrStr[INET_ADDRSTRLEN], netMaskStr[INET_ADDRSTRLEN], gatewayStr[INET_ADDRSTRLEN];
+        IPAddress::FromIPv4(got_ip.ip_info.ip).ToString(ipAddrStr, sizeof(ipAddrStr));
+        IPAddress::FromIPv4(got_ip.ip_info.netmask).ToString(netMaskStr, sizeof(netMaskStr));
+        IPAddress::FromIPv4(got_ip.ip_info.gw).ToString(gatewayStr, sizeof(gatewayStr));
+        ESP_LOGI(TAG, "IPv4 address %s on WiFi station interface: %s/%s gateway %s",
+                 (got_ip.ip_changed) ? "changed" : "ready",
+                 ipAddrStr, netMaskStr, gatewayStr);
+    }
+
+    RefreshMessageLayer();
+
+    UpdateInternetConnectivityState();
+}
+
+void ConnectivityManager::OnStationIPv4AddressLost(void)
+{
+    ESP_LOGI(TAG, "IPv4 address lost on WiFi station interface");
+
+    RefreshMessageLayer();
+
+    UpdateInternetConnectivityState();
+}
+
+void ConnectivityManager::OnIPv6AddressAvailable(const system_event_got_ip6_t & got_ip)
+{
+    if (LOG_LOCAL_LEVEL >= ESP_LOG_INFO)
+    {
+        IPAddress ipAddr = IPAddress::FromIPv6(got_ip.ip6_info.ip);
+        char ipAddrStr[INET6_ADDRSTRLEN];
+        ipAddr.ToString(ipAddrStr, sizeof(ipAddrStr));
+        ESP_LOGI(TAG, "%s ready on %s interface: %s",
+                 CharacterizeIPv6Address(ipAddr),
+                 ESPInterfaceIdToName(got_ip.if_index),
+                 ipAddrStr);
+    }
+
+    RefreshMessageLayer();
+
+    UpdateInternetConnectivityState();
+}
+
 const char * ConnectivityManager::WiFiStationModeToStr(WiFiStationMode mode)
 {
     switch (mode)
@@ -863,16 +873,6 @@ const char * ConnectivityManager::WiFiAPStateToStr(WiFiAPState state)
     default:
         return "(unknown)";
     }
-}
-
-void ConnectivityManager::DriveStationState(nl::Weave::System::Layer * aLayer, void * aAppState, nl::Weave::System::Error aError)
-{
-    ConnectivityMgr.DriveStationState();
-}
-
-void ConnectivityManager::DriveAPState(nl::Weave::System::Layer * aLayer, void * aAppState, nl::Weave::System::Error aError)
-{
-    ConnectivityMgr.DriveAPState();
 }
 
 void ConnectivityManager::RefreshMessageLayer(void)

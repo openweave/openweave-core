@@ -154,23 +154,25 @@ private:
     uint16_t mFlags;
 
     void DriveStationState(void);
-    void DriveAPState(void);
-    WEAVE_ERROR ConfigureWiFiAP(void);
     void OnStationConnected(void);
     void OnStationDisconnected(void);
+    void ChangeWiFiStationState(WiFiStationState newState);
+    static void DriveStationState(::nl::Weave::System::Layer * aLayer, void * aAppState, ::nl::Weave::System::Error aError);
+
+    void DriveAPState(void);
+    WEAVE_ERROR ConfigureWiFiAP(void);
+    void ChangeWiFiAPState(WiFiAPState newState);
+    static void DriveAPState(::nl::Weave::System::Layer * aLayer, void * aAppState, ::nl::Weave::System::Error aError);
+
+    void UpdateInternetConnectivityState(void);
     void OnStationIPv4AddressAvailable(const system_event_sta_got_ip_t & got_ip);
     void OnStationIPv4AddressLost(void);
     void OnIPv6AddressAvailable(const system_event_got_ip6_t & got_ip);
-    void ChangeWiFiStationState(WiFiStationState newState);
-    void ChangeWiFiAPState(WiFiAPState newState);
-    void UpdateInternetConnectivityState(void);
 
     static const char * WiFiStationModeToStr(WiFiStationMode mode);
     static const char * WiFiStationStateToStr(WiFiStationState state);
     static const char * WiFiAPModeToStr(WiFiAPMode mode);
     static const char * WiFiAPStateToStr(WiFiAPState state);
-    static void DriveStationState(::nl::Weave::System::Layer * aLayer, void * aAppState, ::nl::Weave::System::Error aError);
-    static void DriveAPState(::nl::Weave::System::Layer * aLayer, void * aAppState, ::nl::Weave::System::Error aError);
     static void RefreshMessageLayer(void);
     static void HandleServiceTunnelNotification(::nl::Weave::Profiles::WeaveTunnel::WeaveTunnelConnectionMgr::TunnelConnNotifyReasons reason,
             WEAVE_ERROR err, void *appCtxt);
