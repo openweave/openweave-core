@@ -6,10 +6,7 @@
 namespace WeavePlatform {
 
 class ConnectivityManager;
-
-namespace Internal {
 struct WeavePlatformEvent;
-} // namespace Internal
 
 class PlatformManager
 {
@@ -18,26 +15,59 @@ public:
     WEAVE_ERROR InitLwIPCoreLock();
     WEAVE_ERROR InitWeaveStack();
 
-    void RunEventLoop();
-
-    static esp_err_t HandleESPSystemEvent(void * ctx, system_event_t * event);
+    typedef void (*EventHandlerFunct)(const WeavePlatformEvent * event, intptr_t arg);
+    WEAVE_ERROR AddEventHandler(EventHandlerFunct handler, intptr_t arg = 0);
+    void RemoveEventHandler(EventHandlerFunct handler, intptr_t arg = 0);
 
     typedef void (*AsyncWorkFunct)(intptr_t arg);
     void ScheduleWork(AsyncWorkFunct workFunct, intptr_t arg = 0);
+
+    void RunEventLoop();
+
+    static esp_err_t HandleESPSystemEvent(void * ctx, system_event_t * event);
 
 private:
 
     // NOTE: These members are for internal use by the following friend classes.
 
     friend class ConnectivityManager;
-    friend nl::Weave::System::Error nl::Weave::System::Platform::Layer::DispatchEvent(nl::Weave::System::Layer & aLayer, void * aContext, const ::WeavePlatform::Internal::WeavePlatformEvent * aEvent);
+    friend nl::Weave::System::Error nl::Weave::System::Platform::Layer::DispatchEvent(nl::Weave::System::Layer & aLayer, void * aContext, const ::WeavePlatform::WeavePlatformEvent * aEvent);
 
-    void PostEvent(const Internal::WeavePlatformEvent * event);
+    void PostEvent(const WeavePlatformEvent * event);
 
 private:
 
     WEAVE_ERROR InitWeaveEventQueue();
-    void DispatchEvent(const Internal::WeavePlatformEvent * event);
+    void DispatchEvent(const WeavePlatformEvent * event);
+};
+
+
+struct WeavePlatformEvent
+{
+    enum
+    {
+        kEventType_ESPSystemEvent                               = 0,
+        kEventType_WeaveSystemLayerEvent,
+        kEventType_CallWorkFunct,
+    };
+
+    uint16_t Type;
+
+    union
+    {
+        system_event_t ESPSystemEvent;
+        struct
+        {
+            nl::Weave::System::EventType Type;
+            nl::Weave::System::Object * Target;
+            uintptr_t Argument;
+        } WeaveSystemLayerEvent;
+        struct
+        {
+            PlatformManager::AsyncWorkFunct WorkFunct;
+            intptr_t Arg;
+        } CallWorkFunct;
+    };
 };
 
 } // namespace WeavePlatform

@@ -23,33 +23,6 @@ using namespace ::nl::Weave;
 namespace WeavePlatform {
 namespace Internal {
 
-struct WeavePlatformEvent
-{
-    enum
-    {
-        kEventType_WeaveSystemLayerEvent                = 0,
-        kEventType_ESPSystemEvent                       = 1,
-        kEventType_CallWorkFunct                        = 2,
-    };
-
-    union
-    {
-        struct
-        {
-            nl::Weave::System::EventType Type;
-            nl::Weave::System::Object * Target;
-            uintptr_t Argument;
-        } WeaveSystemLayerEvent;
-        system_event_t ESPSystemEvent;
-        struct
-        {
-            PlatformManager::AsyncWorkFunct WorkFunct;
-            intptr_t Arg;
-        } CallWorkFunct;
-    };
-    uint8_t Type;
-};
-
 extern const char * const TAG;
 
 #if WEAVE_PLATFORM_CONFIG_ENABLE_TEST_DEVICE_IDENTITY

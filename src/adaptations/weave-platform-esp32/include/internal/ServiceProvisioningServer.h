@@ -21,7 +21,7 @@ public:
     virtual void HandlePairDeviceToAccountResult(WEAVE_ERROR localErr, uint32_t serverStatusProfileId, uint16_t serverStatusCode);
     virtual bool IsPairedToAccount() const;
 
-    void OnPlatformEvent(const struct ::WeavePlatform::Internal::WeavePlatformEvent * event);
+    void OnPlatformEvent(const WeavePlatformEvent * event);
 };
 
 extern ServiceProvisioningServer ServiceProvisioningSvr;

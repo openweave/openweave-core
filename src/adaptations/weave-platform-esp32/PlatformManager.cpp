@@ -18,17 +18,25 @@ namespace WeavePlatform {
 namespace Internal {
 
 extern WEAVE_ERROR InitCASEAuthDelegate();
-extern int GetEntropy_ESP32(uint8_t *buf, size_t bufSize);
+extern WEAVE_ERROR InitEntropy();
 
 } // namespace Internal
 
 namespace {
+
+struct RegisteredEventHandler
+{
+    RegisteredEventHandler * Next;
+    PlatformManager::EventHandlerFunct Handler;
+    intptr_t Arg;
+};
 
 SemaphoreHandle_t gLwIPCoreLock;
 QueueHandle_t gWeaveEventQueue;
 bool gWeaveTimerActive;
 TimeOut_t gNextTimerBaseTime;
 TickType_t gNextTimerDurationTicks;
+RegisteredEventHandler * gRegisteredEventHandlerList;
 
 } // unnamed namespace
 
@@ -51,11 +59,7 @@ WEAVE_ERROR PlatformManager::InitWeaveStack()
     WEAVE_ERROR err;
 
     // Initialize the source used by Weave to get secure random data.
-    err = nl::Weave::Platform::Security::InitSecureRandomDataSource(GetEntropy_ESP32, 64, NULL, 0);
-    if (err != WEAVE_NO_ERROR)
-    {
-        ESP_LOGE(TAG, "Secure random data source initialization failed: %s", ErrorStr(err));
-    }
+    err = InitEntropy();
     SuccessOrExit(err);
 
     // Initialize the master Weave event queue.
@@ -219,6 +223,63 @@ exit:
     return err;
 }
 
+WEAVE_ERROR PlatformManager::AddEventHandler(EventHandlerFunct handler, intptr_t arg)
+{
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
+    RegisteredEventHandler * eventHandler;
+
+    // Do nothing if the event handler is already registered.
+    for (eventHandler = gRegisteredEventHandlerList; eventHandler != NULL; eventHandler = eventHandler->Next)
+    {
+        if (eventHandler->Handler == handler && eventHandler->Arg == arg)
+        {
+            ExitNow();
+        }
+    }
+
+    eventHandler = (RegisteredEventHandler *)malloc(sizeof(RegisteredEventHandler));
+    VerifyOrExit(eventHandler != NULL, err = WEAVE_ERROR_NO_MEMORY);
+
+    eventHandler->Next = gRegisteredEventHandlerList;
+    eventHandler->Handler = handler;
+    eventHandler->Arg = arg;
+
+    gRegisteredEventHandlerList = eventHandler;
+
+exit:
+    return err;
+}
+
+void PlatformManager::RemoveEventHandler(EventHandlerFunct handler, intptr_t arg)
+{
+    RegisteredEventHandler ** eventHandlerIndirectPtr;
+
+    for (eventHandlerIndirectPtr = &gRegisteredEventHandlerList; *eventHandlerIndirectPtr != NULL; )
+    {
+        RegisteredEventHandler * eventHandler = (*eventHandlerIndirectPtr);
+
+        if (eventHandler->Handler == handler && eventHandler->Arg == arg)
+        {
+            *eventHandlerIndirectPtr = eventHandler->Next;
+            free(eventHandler);
+        }
+        else
+        {
+            eventHandlerIndirectPtr = &eventHandler->Next;
+        }
+    }
+}
+
+void PlatformManager::ScheduleWork(AsyncWorkFunct workFunct, intptr_t arg)
+{
+    WeavePlatformEvent event;
+    event.Type = WeavePlatformEvent::kEventType_CallWorkFunct;
+    event.CallWorkFunct.WorkFunct = workFunct;
+    event.CallWorkFunct.Arg = arg;
+
+    PostEvent(&event);
+}
+
 void PlatformManager::RunEventLoop()
 {
     WEAVE_ERROR err;
@@ -308,17 +369,7 @@ WEAVE_ERROR PlatformManager::InitWeaveEventQueue()
     return WEAVE_NO_ERROR;
 }
 
-void PlatformManager::ScheduleWork(AsyncWorkFunct workFunct, intptr_t arg)
-{
-    WeavePlatformEvent event;
-    event.Type = WeavePlatformEvent::kEventType_CallWorkFunct;
-    event.CallWorkFunct.WorkFunct = workFunct;
-    event.CallWorkFunct.Arg = arg;
-
-    PostEvent(&event);
-}
-
-void PlatformManager::PostEvent(const Internal::WeavePlatformEvent * event)
+void PlatformManager::PostEvent(const WeavePlatformEvent * event)
 {
     if (gWeaveEventQueue != NULL)
     {
@@ -349,8 +400,8 @@ void PlatformManager::DispatchEvent(const WeavePlatformEvent * event)
         event->CallWorkFunct.WorkFunct(event->CallWorkFunct.Arg);
     }
 
-    // Otherwise deliver the event to all the Weave Platform components, each of which will decide
-    // whether and how they want to react it.
+    // Otherwise deliver the event to all the platform components, followed by any application-registered
+    // event handlers.  Each of these will decide whether and how they want to react to the event.
     else
     {
         ConnectivityMgr.OnPlatformEvent(event);
@@ -359,6 +410,13 @@ void PlatformManager::DispatchEvent(const WeavePlatformEvent * event)
         NetworkProvisioningSvr.OnPlatformEvent(event);
         FabricProvisioningSvr.OnPlatformEvent(event);
         ServiceProvisioningSvr.OnPlatformEvent(event);
+
+        for (RegisteredEventHandler * eventHandler = gRegisteredEventHandlerList;
+             eventHandler != NULL;
+             eventHandler = eventHandler->Next)
+        {
+            eventHandler->Handler(event, eventHandler->Arg);
+        }
     }
 }
 

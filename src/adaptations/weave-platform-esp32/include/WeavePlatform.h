@@ -2,7 +2,6 @@
 #define WEAVE_PLATFORM_ESP32_H__
 
 #include <Weave/Core/WeaveCore.h>
-
 #include <WeavePlatformConfig.h>
 #include <PlatformManager.h>
 #include <ConfigurationManager.h>
@@ -10,6 +9,8 @@
 #include <WeavePlatformError.h>
 
 namespace WeavePlatform {
+
+struct WeavePlatformEvent;
 
 extern PlatformManager PlatformMgr;
 extern ConfigurationManager ConfigurationMgr;

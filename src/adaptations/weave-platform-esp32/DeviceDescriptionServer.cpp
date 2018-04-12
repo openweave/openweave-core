@@ -96,7 +96,7 @@ exit:
     }
 }
 
-void DeviceDescriptionServer::OnPlatformEvent(const struct ::WeavePlatform::Internal::WeavePlatformEvent * event)
+void DeviceDescriptionServer::OnPlatformEvent(const WeavePlatformEvent * event)
 {
     // Nothing to do so far.
 }

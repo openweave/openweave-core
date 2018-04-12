@@ -33,7 +33,7 @@ bool NetworkProvisioningServer::IsPairedToAccount() const
     return ConfigurationMgr.IsServiceProvisioned();
 }
 
-void NetworkProvisioningServer::OnPlatformEvent(const struct ::WeavePlatform::Internal::WeavePlatformEvent * event)
+void NetworkProvisioningServer::OnPlatformEvent(const WeavePlatformEvent * event)
 {
     // Nothing to do so far.
 }

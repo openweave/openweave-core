@@ -14,7 +14,7 @@ class DeviceDescriptionServer : public ::nl::Weave::Profiles::DeviceDescription:
 public:
     WEAVE_ERROR Init();
 
-    void OnPlatformEvent(const struct ::WeavePlatform::Internal::WeavePlatformEvent * event);
+    void OnPlatformEvent(const WeavePlatformEvent * event);
 
 private:
     static void HandleIdentifyRequest(void *appState, uint64_t nodeId, const IPAddress& nodeAddr,

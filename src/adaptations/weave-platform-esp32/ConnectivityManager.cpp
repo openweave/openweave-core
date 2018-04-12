@@ -268,7 +268,7 @@ NetworkProvisioningDelegate * ConnectivityManager::GetNetworkProvisioningDelegat
     return &mNetProvDelegate;
 }
 
-void ConnectivityManager::OnPlatformEvent(const struct WeavePlatformEvent * event)
+void ConnectivityManager::OnPlatformEvent(const WeavePlatformEvent * event)
 {
     // Handle ESP system events...
     if (event->Type == WeavePlatformEvent::kEventType_ESPSystemEvent)

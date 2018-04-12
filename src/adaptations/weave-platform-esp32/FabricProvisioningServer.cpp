@@ -82,7 +82,7 @@ bool FabricProvisioningServer::IsPairedToAccount() const
     return ConfigurationMgr.IsServiceProvisioned();
 }
 
-void FabricProvisioningServer::OnPlatformEvent(const struct ::WeavePlatform::Internal::WeavePlatformEvent * event)
+void FabricProvisioningServer::OnPlatformEvent(const WeavePlatformEvent * event)
 {
     // Nothing to do so far.
 }

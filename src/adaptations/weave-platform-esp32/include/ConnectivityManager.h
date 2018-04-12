@@ -16,7 +16,6 @@ namespace WeavePlatform {
 
 namespace Internal {
 
-struct WeavePlatformEvent;
 class NetworkInfo;
 class NetworkProvisioningServer;
 
@@ -78,7 +77,7 @@ private:
 
     WEAVE_ERROR Init(void);
     ::nl::Weave::Profiles::NetworkProvisioning::NetworkProvisioningDelegate * GetNetworkProvisioningDelegate(void);
-    void OnPlatformEvent(const struct ::WeavePlatform::Internal::WeavePlatformEvent * event);
+    void OnPlatformEvent(const WeavePlatformEvent * event);
 
 private:
 

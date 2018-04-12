@@ -21,7 +21,7 @@ public:
     virtual WEAVE_ERROR HandleGetFabricConfig(void);
     virtual bool IsPairedToAccount() const;
 
-    void OnPlatformEvent(const struct ::WeavePlatform::Internal::WeavePlatformEvent * event);
+    void OnPlatformEvent(const WeavePlatformEvent * event);
 };
 
 extern FabricProvisioningServer FabricProvisioningSvr;
