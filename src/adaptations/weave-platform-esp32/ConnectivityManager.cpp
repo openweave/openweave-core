@@ -3,11 +3,19 @@
 #include <internal/NetworkProvisioningServer.h>
 #include <internal/NetworkInfo.h>
 #include <internal/ServiceTunnelAgent.h>
+
 #include <Weave/Profiles/WeaveProfiles.h>
 #include <Weave/Profiles/common/CommonProfile.h>
 #include <Warm/Warm.h>
+
 #include "esp_event.h"
 #include "esp_wifi.h"
+
+#include <lwip/ip_addr.h>
+#include <lwip/netif.h>
+#include <lwip/nd6.h>
+#include <lwip/dns.h>
+
 #include <new>
 
 using namespace ::nl;
@@ -30,12 +38,22 @@ enum
     kWiFiStationNetworkId  = 1
 };
 
+extern struct netif * GetWiFiStationNetif(void);
 extern const char *ESPWiFiModeToStr(wifi_mode_t wifiMode);
 extern const char *ESPInterfaceIdToName(tcpip_adapter_if_t intfId);
 extern WEAVE_ERROR ChangeESPWiFiMode(esp_interface_t intf, bool enabled);
 extern WiFiSecurityType ESPWiFiAuthModeToWeaveWiFiSecurityType(wifi_auth_mode_t authMode);
 extern int OrderESPScanResultsByRSSI(const void * _res1, const void * _res2);
 
+inline ConnectivityChange GetConnectivityChange(bool prevState, bool newState)
+{
+    if (prevState == newState)
+        return kConnectivity_NoChange;
+    else if (newState)
+        return kConnectivity_Established;
+    else
+        return kConnectivity_Lost;
+}
 
 } // namespace Internal
 
@@ -75,7 +93,7 @@ WEAVE_ERROR ConnectivityManager::SetWiFiStationMode(WiFiStationMode val)
 
     if (mWiFiStationMode != val)
     {
-        ESP_LOGI(TAG, "Changing WiFi station mode: %s -> %s", WiFiStationModeToStr(mWiFiStationMode), WiFiStationModeToStr(val));
+        ESP_LOGI(TAG, "WiFi station mode change: %s -> %s", WiFiStationModeToStr(mWiFiStationMode), WiFiStationModeToStr(val));
     }
 
     mWiFiStationMode = val;
@@ -116,7 +134,7 @@ WEAVE_ERROR ConnectivityManager::SetWiFiAPMode(WiFiAPMode val)
 
     if (mWiFiAPMode != val)
     {
-        ESP_LOGI(TAG, "Changing WiFi AP mode: %s -> %s", WiFiAPModeToStr(mWiFiAPMode), WiFiAPModeToStr(val));
+        ESP_LOGI(TAG, "WiFi AP mode change: %s -> %s", WiFiAPModeToStr(mWiFiAPMode), WiFiAPModeToStr(val));
     }
 
     mWiFiAPMode = val;
@@ -179,7 +197,7 @@ WEAVE_ERROR ConnectivityManager::Init()
     mWiFiAPState = kWiFiAPState_NotActive;
     mWiFiStationReconnectIntervalMS = WEAVE_PLATFORM_CONFIG_WIFI_STATION_RECONNECT_INTERVAL;
     mWiFiAPIdleTimeoutMS = WEAVE_PLATFORM_CONFIG_WIFI_AP_IDLE_TIMEOUT;
-    mScanInProgress = false;
+    mFlags = 0;
 
     // Initialize the Weave Addressing and Routing Module.
     err = Warm::Init(FabricState);
@@ -188,6 +206,7 @@ WEAVE_ERROR ConnectivityManager::Init()
     // Initialize the service tunnel agent.
     err = InitServiceTunnelAgent();
     SuccessOrExit(err);
+    ServiceTunnelAgent.OnServiceTunStatusNotify = HandleServiceTunnelNotification;
 
     // If there is no persistent station provision...
     if (!IsWiFiStationProvisioned())
@@ -252,11 +271,6 @@ WEAVE_ERROR ConnectivityManager::Init()
     err = SystemLayer.ScheduleWork(DriveStationState, NULL);
     SuccessOrExit(err);
     err = SystemLayer.ScheduleWork(DriveAPState, NULL);
-    SuccessOrExit(err);
-
-    ServiceTunnelAgent.OnServiceTunStatusNotify = HandleServiceTunnelNotification;
-
-    err = ServiceTunnelAgent.StartServiceTunnel();
     SuccessOrExit(err);
 
 exit:
@@ -434,7 +448,7 @@ void ConnectivityManager::DriveStationState()
         // If the WiFi station interface is now enabled and provisioned (and by implication,
         // not presently under application control), AND the system is not in the process of
         // scanning, then...
-        if (mWiFiStationMode == kWiFiStationMode_Enabled && IsWiFiStationProvisioned() && !mScanInProgress)
+        if (mWiFiStationMode == kWiFiStationMode_Enabled && IsWiFiStationProvisioned() && !GetFlag(mFlags, kFlag_ScanInProgress))
         {
             // Initiate a connection to the AP if we haven't done so before, or if enough
             // time has passed since the last attempt.
@@ -593,7 +607,13 @@ void ConnectivityManager::OnStationConnected()
     // Invoke WARM to perform actions that occur when the WiFi station interface comes up.
     Warm::WiFiInterfaceStateChange(Warm::kInterfaceStateUp);
 
-    // TODO: alert other subsystems of connected state
+    // Alert other components of the new state.
+    WeavePlatformEvent event;
+    event.Type = WeavePlatformEvent::kEventType_WiFiConnectivityChange;
+    event.WiFiConnectivityChange.Result = kConnectivity_Established;
+    PlatformMgr.PostEvent(&event);
+
+    UpdateInternetConnectivityState();
 }
 
 void ConnectivityManager::OnStationDisconnected()
@@ -601,7 +621,13 @@ void ConnectivityManager::OnStationDisconnected()
     // Invoke WARM to perform actions that occur when the WiFi station interface goes down.
     Warm::WiFiInterfaceStateChange(Warm::kInterfaceStateDown);
 
-    // TODO: alert other subsystems of disconnected state
+    // Alert other components of the new state.
+    WeavePlatformEvent event;
+    event.Type = WeavePlatformEvent::kEventType_WiFiConnectivityChange;
+    event.WiFiConnectivityChange.Result = kConnectivity_Lost;
+    PlatformMgr.PostEvent(&event);
+
+    UpdateInternetConnectivityState();
 }
 
 void ConnectivityManager::OnStationIPv4AddressAvailable(const system_event_sta_got_ip_t & got_ip)
@@ -618,6 +644,8 @@ void ConnectivityManager::OnStationIPv4AddressAvailable(const system_event_sta_g
     }
 
     RefreshMessageLayer();
+
+    UpdateInternetConnectivityState();
 }
 
 void ConnectivityManager::OnStationIPv4AddressLost(void)
@@ -625,6 +653,8 @@ void ConnectivityManager::OnStationIPv4AddressLost(void)
     ESP_LOGI(TAG, "IPv4 address lost on WiFi station interface");
 
     RefreshMessageLayer();
+
+    UpdateInternetConnectivityState();
 }
 
 void ConnectivityManager::OnIPv6AddressAvailable(const system_event_got_ip6_t & got_ip)
@@ -641,13 +671,15 @@ void ConnectivityManager::OnIPv6AddressAvailable(const system_event_got_ip6_t & 
     }
 
     RefreshMessageLayer();
+
+    UpdateInternetConnectivityState();
 }
 
 void ConnectivityManager::ChangeWiFiStationState(WiFiStationState newState)
 {
     if (mWiFiStationState != newState)
     {
-        ESP_LOGI(TAG, "Changing WiFi station state: %s -> %s", WiFiStationStateToStr(mWiFiStationState), WiFiStationStateToStr(newState));
+        ESP_LOGI(TAG, "WiFi station state change: %s -> %s", WiFiStationStateToStr(mWiFiStationState), WiFiStationStateToStr(newState));
     }
     mWiFiStationState = newState;
 }
@@ -656,9 +688,101 @@ void ConnectivityManager::ChangeWiFiAPState(WiFiAPState newState)
 {
     if (mWiFiAPState != newState)
     {
-        ESP_LOGI(TAG, "Changing WiFi AP state: %s -> %s", WiFiAPStateToStr(mWiFiAPState), WiFiAPStateToStr(newState));
+        ESP_LOGI(TAG, "WiFi AP state change: %s -> %s", WiFiAPStateToStr(mWiFiAPState), WiFiAPStateToStr(newState));
     }
     mWiFiAPState = newState;
+}
+
+void ConnectivityManager::UpdateInternetConnectivityState(void)
+{
+    WEAVE_ERROR err;
+    bool newIPv4State = false;
+    bool newIPv6State = false;
+    bool prevIPv4State = GetFlag(mFlags, kFlag_HaveIPv4InternetConnectivity);
+    bool prevIPv6State = GetFlag(mFlags, kFlag_HaveIPv6InternetConnectivity);
+
+    // If the WiFi station is currently in the connected state...
+    if (mWiFiStationState == kWiFiStationState_Connected)
+    {
+        // Get the LwIP netif for the WiFi station interface.
+        struct netif * netif = GetWiFiStationNetif();
+
+        // If the WiFi station interface is up...
+        if (netif != NULL && netif_is_up(netif) && netif_is_link_up(netif))
+        {
+            // Check if a DNS server is currently configured.  If so...
+            ip_addr_t dnsServerAddr = dns_getserver(0);
+            if (!ip_addr_isany_val(dnsServerAddr))
+            {
+                // If the station interface has been assigned an IPv4 address, and has
+                // an IPv4 gateway, then presume that the device has IPv4 Internet
+                // connectivity.
+                if (!ip4_addr_isany_val(*netif_ip4_addr(netif)) &&
+                    !ip4_addr_isany_val(*netif_ip4_gw(netif)))
+                {
+                    newIPv4State = true;
+                }
+
+                // Search among the IPv6 addresses assigned to the interface for a Global Unicast
+                // address (2000::/3) that is in the valid state.  If such an address is found...
+                for (uint8_t i = 0; i < LWIP_IPV6_NUM_ADDRESSES; i++)
+                {
+                    if (ip6_addr_isglobal(netif_ip6_addr(netif, i)) &&
+                        ip6_addr_isvalid(netif_ip6_addr_state(netif, i)))
+                    {
+                        // Determine if there is a default IPv6 router that is currently reachable
+                        // via the station interface.  If so, presume for now that the device has
+                        // IPv6 connectivity.
+                        if (nd6_select_router(IP6_ADDR_ANY6, netif) >= 0)
+                        {
+                            newIPv6State = true;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    // If the internet connectivity state has changed...
+    if (newIPv4State != prevIPv4State || newIPv6State != prevIPv6State)
+    {
+        // Update the current state.
+        SetFlag(mFlags, kFlag_HaveIPv4InternetConnectivity, newIPv4State);
+        SetFlag(mFlags, kFlag_HaveIPv6InternetConnectivity, newIPv6State);
+
+        // If IPv4 connectivity has been established, start the service tunnel.
+        if (newIPv4State)
+        {
+            err = ServiceTunnelAgent.StartServiceTunnel();
+            if (err != WEAVE_NO_ERROR)
+            {
+                ESP_LOGE(TAG, "StartServiceTunnel() failed: %s", nl::ErrorStr(err));
+            }
+        }
+
+        // Otherwise, when IPv4 connectivity is lost, stop the service tunnel.
+        else
+        {
+            ServiceTunnelAgent.StopServiceTunnel();
+        }
+
+        // Alert other components of the state change.
+        WeavePlatformEvent event;
+        event.Type = WeavePlatformEvent::kEventType_InternetConnectivityChange;
+        event.InternetConnectivityChange.IPv4 = GetConnectivityChange(prevIPv4State, newIPv4State);
+        event.InternetConnectivityChange.IPv6 = GetConnectivityChange(prevIPv6State, newIPv6State);
+        PlatformMgr.PostEvent(&event);
+
+        if (newIPv4State != prevIPv4State)
+        {
+            ESP_LOGI(TAG, "%s Internet connectivity %s", "IPv4", (newIPv4State) ? "ESTABLISHED" : "LOST");
+        }
+
+        if (newIPv6State != prevIPv6State)
+        {
+            ESP_LOGI(TAG, "%s Internet connectivity %s", "IPv6", (newIPv6State) ? "ESTABLISHED" : "LOST");
+        }
+    }
 }
 
 const char * ConnectivityManager::WiFiStationModeToStr(WiFiStationMode mode)
@@ -763,6 +887,9 @@ void ConnectivityManager::RefreshMessageLayer(void)
 void ConnectivityManager::HandleServiceTunnelNotification(WeaveTunnelConnectionMgr::TunnelConnNotifyReasons reason,
             WEAVE_ERROR err, void *appCtxt)
 {
+    bool newServiceState = false;
+    bool prevServiceState = GetFlag(ConnectivityMgr.mFlags, kFlag_HaveServiceConnectivity);
+
     switch (reason)
     {
     case WeaveTunnelConnectionMgr::kStatus_TunDown:
@@ -773,9 +900,23 @@ void ConnectivityManager::HandleServiceTunnelNotification(WeaveTunnelConnectionM
         break;
     case WeaveTunnelConnectionMgr::kStatus_TunPrimaryUp:
         ESP_LOGI(TAG, "ConnectivityManager: Service tunnel established");
+        newServiceState = true;
         break;
     default:
         break;
+    }
+
+    // If service connectivity state has changed...
+    if (newServiceState != prevServiceState)
+    {
+        // Update the state.
+        SetFlag(ConnectivityMgr.mFlags, kFlag_HaveServiceConnectivity, newServiceState);
+
+        // Alert other components of the change.
+        WeavePlatformEvent event;
+        event.Type = WeavePlatformEvent::kEventType_ServiceConnectivityChange;
+        event.ServiceConnectivityChange.Result = GetConnectivityChange(prevServiceState, newServiceState);
+        PlatformMgr.PostEvent(&event);
     }
 }
 
@@ -1148,7 +1289,7 @@ void ConnectivityManager::NetworkProvisioningDelegate::StartPendingScan()
     wifi_scan_config_t scanConfig;
 
     // Do nothing if there's no ScanNetworks request pending, or if a scan is already in progress.
-    if (NetworkProvisioningSvr.GetCurrentOp() != kMsgType_ScanNetworks || ConnectivityMgr.mScanInProgress)
+    if (NetworkProvisioningSvr.GetCurrentOp() != kMsgType_ScanNetworks || GetFlag(ConnectivityMgr.mFlags, kFlag_ScanInProgress))
     {
         return;
     }
@@ -1171,7 +1312,7 @@ void ConnectivityManager::NetworkProvisioningDelegate::StartPendingScan()
     SystemLayer.StartTimer(WEAVE_PLATFORM_CONFIG_WIFI_SCAN_COMPLETION_TIMEOUT, HandleScanTimeOut, NULL);
 #endif // WEAVE_PLATFORM_CONFIG_WIFI_SCAN_COMPLETION_TIMEOUT
 
-    ConnectivityMgr.mScanInProgress = true;
+    SetFlag(ConnectivityMgr.mFlags, kFlag_ScanInProgress);
 
 exit:
     // If an error occurred, send a Internal Error back to the requestor.
@@ -1190,9 +1331,9 @@ void ConnectivityManager::NetworkProvisioningDelegate::HandleScanDone()
     PacketBuffer * respBuf = NULL;
 
     // If we receive a SCAN DONE event for a scan that we didn't initiate, ignore it.
-    VerifyOrExit(ConnectivityMgr.mScanInProgress, err = WEAVE_ERROR_INCORRECT_STATE);
+    VerifyOrExit(GetFlag(ConnectivityMgr.mFlags, kFlag_ScanInProgress), err = WEAVE_ERROR_INCORRECT_STATE);
 
-    ConnectivityMgr.mScanInProgress = false;
+    ClearFlag(ConnectivityMgr.mFlags, kFlag_ScanInProgress);
 
 #if WEAVE_PLATFORM_CONFIG_WIFI_SCAN_COMPLETION_TIMEOUT
     // Cancel the scan timeout timer.
@@ -1510,7 +1651,7 @@ void ConnectivityManager::NetworkProvisioningDelegate::HandleScanTimeOut(::nl::W
 {
     ESP_LOGE(TAG, "WiFi scan timed out");
 
-    ConnectivityMgr.mScanInProgress = false;
+    ClearFlag(ConnectivityMgr.mFlags, kFlag_ScanInProgress);
 
     // If we haven't yet responded, send a Internal Error back to the requestor.
     if (NetworkProvisioningSvr.GetCurrentOp() == kMsgType_ScanNetworks)
@@ -1572,6 +1713,21 @@ const char *CharacterizeIPv6Address(const IPAddress & ipAddr)
 // ==================== Local Utility Functions ====================
 
 namespace {
+
+struct netif * GetWiFiStationNetif(void)
+{
+    struct netif * netif;
+
+    for (netif = netif_list; netif != NULL; netif = netif->next)
+    {
+        if (netif->name[0] == 's' && netif->name[1] == 't')
+        {
+            return netif;
+        }
+    }
+
+    return NULL;
+}
 
 const char *ESPWiFiModeToStr(wifi_mode_t wifiMode)
 {

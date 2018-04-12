@@ -4,6 +4,7 @@
 #include <Weave/Profiles/network-provisioning/NetworkProvisioning.h>
 #include <Weave/Profiles/weave-tunneling/WeaveTunnelCommon.h>
 #include <Weave/Profiles/weave-tunneling/WeaveTunnelConnectionMgr.h>
+#include <Weave/Support/FlagUtils.hpp>
 #include "esp_event.h"
 
 namespace nl {
@@ -45,28 +46,34 @@ public:
         kWiFiAPMode_OnDemand_NoStationProvision     = 4,
     };
 
+    // WiFi station methods
     WiFiStationMode GetWiFiStationMode(void);
     WEAVE_ERROR SetWiFiStationMode(WiFiStationMode val);
     bool IsWiFiStationEnabled(void);
     bool IsWiFiStationApplicationControlled(void) const;
-
+    bool IsWiFiStationConnected(void) const;
     uint32_t GetWiFiStationReconnectIntervalMS(void) const;
     WEAVE_ERROR SetWiFiStationReconnectIntervalMS(uint32_t val) const;
-
     bool IsWiFiStationProvisioned(void) const;
     void ClearWiFiStationProvision(void);
     uint32_t GetWiFiStationNetworkId(void) const;
 
+    // WiFi AP methods
     WiFiAPMode GetWiFiAPMode(void) const;
     WEAVE_ERROR SetWiFiAPMode(WiFiAPMode val);
     bool IsWiFiAPApplicationControlled(void) const;
-
     void DemandStartWiFiAP(void);
     void StopOnDemandWiFiAP(void);
     void MaintainOnDemandWiFiAP(void);
-
     uint32_t GetWiFiAPIdleTimeoutMS(void) const;
     void SetWiFiAPIdleTimeoutMS(uint32_t val);
+
+    // Internet connectivity methods
+    bool HaveIPv4InternetConnectivity(void) const;
+    bool HaveIPv6InternetConnectivity(void) const;
+
+    // Service connectivity methods
+    bool HaveServiceConnectivity(void) const;
 
 private:
 
@@ -127,6 +134,14 @@ private:
         kWiFiAPState_Deactivating,
     };
 
+    enum Flags
+    {
+        kFlag_ScanInProgress                    = 0x0001,
+        kFlag_HaveIPv4InternetConnectivity      = 0x0002,
+        kFlag_HaveIPv6InternetConnectivity      = 0x0004,
+        kFlag_HaveServiceConnectivity           = 0x0008,
+    };
+
     NetworkProvisioningDelegate mNetProvDelegate;
     uint64_t mLastStationConnectFailTime;
     uint64_t mLastAPDemandTime;
@@ -136,7 +151,7 @@ private:
     WiFiAPState mWiFiAPState;
     uint32_t mWiFiStationReconnectIntervalMS;
     uint32_t mWiFiAPIdleTimeoutMS;
-    bool mScanInProgress;
+    uint16_t mFlags;
 
     void DriveStationState(void);
     void DriveAPState(void);
@@ -148,6 +163,7 @@ private:
     void OnIPv6AddressAvailable(const system_event_got_ip6_t & got_ip);
     void ChangeWiFiStationState(WiFiStationState newState);
     void ChangeWiFiAPState(WiFiAPState newState);
+    void UpdateInternetConnectivityState(void);
 
     static const char * WiFiStationModeToStr(WiFiStationMode mode);
     static const char * WiFiStationStateToStr(WiFiStationState state);
@@ -163,6 +179,11 @@ private:
 inline bool ConnectivityManager::IsWiFiStationApplicationControlled(void) const
 {
     return mWiFiStationMode == kWiFiStationMode_ApplicationControlled;
+}
+
+inline bool ConnectivityManager::IsWiFiStationConnected(void) const
+{
+    return mWiFiStationState == kWiFiStationState_Connected;
 }
 
 inline bool ConnectivityManager::IsWiFiAPApplicationControlled(void) const
@@ -185,6 +206,20 @@ inline uint32_t ConnectivityManager::GetWiFiAPIdleTimeoutMS(void) const
     return mWiFiAPIdleTimeoutMS;
 }
 
+inline bool ConnectivityManager::HaveIPv4InternetConnectivity(void) const
+{
+    return ::nl::GetFlag(mFlags, kFlag_HaveIPv4InternetConnectivity);
+}
+
+inline bool ConnectivityManager::HaveIPv6InternetConnectivity(void) const
+{
+    return ::nl::GetFlag(mFlags, kFlag_HaveIPv6InternetConnectivity);
+}
+
+inline bool ConnectivityManager::HaveServiceConnectivity(void) const
+{
+    return ::nl::GetFlag(mFlags, kFlag_HaveServiceConnectivity);
+}
 
 } // namespace WeavePlatform
 

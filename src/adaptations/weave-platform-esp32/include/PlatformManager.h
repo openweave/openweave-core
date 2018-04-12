@@ -8,6 +8,13 @@ namespace WeavePlatform {
 class ConnectivityManager;
 struct WeavePlatformEvent;
 
+enum ConnectivityChange
+{
+    kConnectivity_Established = 0,
+    kConnectivity_Lost,
+    kConnectivity_NoChange
+};
+
 class PlatformManager
 {
 public:
@@ -41,7 +48,6 @@ private:
     void DispatchEvent(const WeavePlatformEvent * event);
 };
 
-
 struct WeavePlatformEvent
 {
     enum
@@ -49,6 +55,11 @@ struct WeavePlatformEvent
         kEventType_ESPSystemEvent                               = 0,
         kEventType_WeaveSystemLayerEvent,
         kEventType_CallWorkFunct,
+        kEventType_WiFiConnectivityChange,
+        kEventType_InternetConnectivityChange,
+        kEventType_ServiceConnectivityChange,
+        kEventType_FabricMembershipChange,
+        kEventType_ServiceProvisioningChange,
     };
 
     uint16_t Type;
@@ -67,6 +78,19 @@ struct WeavePlatformEvent
             PlatformManager::AsyncWorkFunct WorkFunct;
             intptr_t Arg;
         } CallWorkFunct;
+        struct
+        {
+            ConnectivityChange Result;
+        } WiFiConnectivityChange;
+        struct
+        {
+            ConnectivityChange IPv4;
+            ConnectivityChange IPv6;
+        } InternetConnectivityChange;
+        struct
+        {
+            ConnectivityChange Result;
+        } ServiceConnectivityChange;
     };
 };
 
