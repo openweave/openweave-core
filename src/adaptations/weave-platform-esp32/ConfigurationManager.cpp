@@ -528,6 +528,11 @@ bool ConfigurationManager::IsServiceProvisioned()
     return (err == WEAVE_NO_ERROR && serviceId != 0);
 }
 
+bool ConfigurationManager::IsMemberOfFabric()
+{
+    return FabricState.FabricId != kFabricIdNotSpecified;
+}
+
 void ConfigurationManager::InitiateFactoryReset()
 {
     PlatformMgr.ScheduleWork(DoFactoryReset);

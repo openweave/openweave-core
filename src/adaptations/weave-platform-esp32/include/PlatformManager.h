@@ -8,6 +8,11 @@ namespace WeavePlatform {
 class ConnectivityManager;
 struct WeavePlatformEvent;
 
+namespace Internal {
+class FabricProvisioningServer;
+class ServiceProvisioningServer;
+} // namespace Internal
+
 enum ConnectivityChange
 {
     kConnectivity_Established = 0,
@@ -38,6 +43,8 @@ private:
     // NOTE: These members are for internal use by the following friend classes.
 
     friend class ConnectivityManager;
+    friend class Internal::FabricProvisioningServer;
+    friend class Internal::ServiceProvisioningServer;
     friend nl::Weave::System::Error nl::Weave::System::Platform::Layer::DispatchEvent(nl::Weave::System::Layer & aLayer, void * aContext, const ::WeavePlatform::WeavePlatformEvent * aEvent);
 
     void PostEvent(const WeavePlatformEvent * event);
@@ -91,6 +98,15 @@ struct WeavePlatformEvent
         {
             ConnectivityChange Result;
         } ServiceConnectivityChange;
+        struct
+        {
+            bool IsMemberOfFabric;
+        } FabricMembershipChange;
+        struct
+        {
+            bool IsServiceProvisioned;
+            bool ServiceConfigUpdated;
+        } ServiceProvisioningChange;
     };
 };
 

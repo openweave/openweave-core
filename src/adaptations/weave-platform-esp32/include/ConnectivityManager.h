@@ -46,6 +46,13 @@ public:
         kWiFiAPMode_OnDemand_NoStationProvision     = 4,
     };
 
+    enum ServiceTunnelMode
+    {
+        kServiceTunnelMode_NotSupported             = -1,
+        kServiceTunnelMode_Disabled                 = 0,
+        kServiceTunnelMode_Enabled                  = 1,
+    };
+
     // WiFi station methods
     WiFiStationMode GetWiFiStationMode(void);
     WEAVE_ERROR SetWiFiStationMode(WiFiStationMode val);
@@ -72,7 +79,9 @@ public:
     bool HaveIPv4InternetConnectivity(void) const;
     bool HaveIPv6InternetConnectivity(void) const;
 
-    // Service connectivity methods
+    // Service tunnel methods
+    ServiceTunnelMode GetServiceTunnelMode(void) const;
+    WEAVE_ERROR SetServiceTunnelMode(ServiceTunnelMode val);
     bool HaveServiceConnectivity(void) const;
 
 private:
@@ -140,6 +149,7 @@ private:
         kFlag_HaveIPv4InternetConnectivity      = 0x0002,
         kFlag_HaveIPv6InternetConnectivity      = 0x0004,
         kFlag_HaveServiceConnectivity           = 0x0008,
+        kFlag_ServiceTunnelStarted              = 0x0010,
     };
 
     NetworkProvisioningDelegate mNetProvDelegate;
@@ -149,6 +159,7 @@ private:
     WiFiStationState mWiFiStationState;
     WiFiAPMode mWiFiAPMode;
     WiFiAPState mWiFiAPState;
+    ServiceTunnelMode mServiceTunnelMode;
     uint32_t mWiFiStationReconnectIntervalMS;
     uint32_t mWiFiAPIdleTimeoutMS;
     uint16_t mFlags;
@@ -168,6 +179,8 @@ private:
     void OnStationIPv4AddressAvailable(const system_event_sta_got_ip_t & got_ip);
     void OnStationIPv4AddressLost(void);
     void OnIPv6AddressAvailable(const system_event_got_ip6_t & got_ip);
+
+    void DriveServiceTunnelState(void);
 
     static const char * WiFiStationModeToStr(WiFiStationMode mode);
     static const char * WiFiStationStateToStr(WiFiStationState state);
@@ -221,6 +234,11 @@ inline bool ConnectivityManager::HaveIPv6InternetConnectivity(void) const
 inline bool ConnectivityManager::HaveServiceConnectivity(void) const
 {
     return ::nl::GetFlag(mFlags, kFlag_HaveServiceConnectivity);
+}
+
+inline ConnectivityManager::ServiceTunnelMode ConnectivityManager::GetServiceTunnelMode(void) const
+{
+    return mServiceTunnelMode;
 }
 
 } // namespace WeavePlatform

@@ -32,6 +32,13 @@ WEAVE_ERROR FabricProvisioningServer::HandleCreateFabric(void)
 
     ESP_LOGI(TAG, "Weave fabric created; fabric id %016" PRIX64, ::WeavePlatform::FabricState.FabricId);
 
+    {
+        WeavePlatformEvent event;
+        event.Type = WeavePlatformEvent::kEventType_FabricMembershipChange;
+        event.FabricMembershipChange.IsMemberOfFabric = true;
+        PlatformMgr.PostEvent(&event);
+    }
+
     err = SendSuccessResponse();
     SuccessOrExit(err);
 
@@ -48,6 +55,13 @@ WEAVE_ERROR FabricProvisioningServer::HandleJoinExistingFabric(void)
 
     ESP_LOGI(TAG, "Join existing Weave fabric; fabric id %016" PRIX64, ::WeavePlatform::FabricState.FabricId);
 
+    {
+        WeavePlatformEvent event;
+        event.Type = WeavePlatformEvent::kEventType_FabricMembershipChange;
+        event.FabricMembershipChange.IsMemberOfFabric = true;
+        PlatformMgr.PostEvent(&event);
+    }
+
     err = SendSuccessResponse();
     SuccessOrExit(err);
 
@@ -63,6 +77,13 @@ WEAVE_ERROR FabricProvisioningServer::HandleLeaveFabric(void)
     SuccessOrExit(err);
 
     ESP_LOGI(TAG, "Leave Weave fabric");
+
+    {
+        WeavePlatformEvent event;
+        event.Type = WeavePlatformEvent::kEventType_FabricMembershipChange;
+        event.FabricMembershipChange.IsMemberOfFabric = false;
+        PlatformMgr.PostEvent(&event);
+    }
 
     err = SendSuccessResponse();
     SuccessOrExit(err);

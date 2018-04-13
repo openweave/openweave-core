@@ -195,6 +195,7 @@ WEAVE_ERROR ConnectivityManager::Init()
     mWiFiStationState = kWiFiStationState_Disabled;
     mWiFiAPMode = kWiFiAPMode_Disabled;
     mWiFiAPState = kWiFiAPState_NotActive;
+    mServiceTunnelMode = kServiceTunnelMode_Enabled;
     mWiFiStationReconnectIntervalMS = WEAVE_PLATFORM_CONFIG_WIFI_STATION_RECONNECT_INTERVAL;
     mWiFiAPIdleTimeoutMS = WEAVE_PLATFORM_CONFIG_WIFI_AP_IDLE_TIMEOUT;
     mFlags = 0;
@@ -345,6 +346,18 @@ void ConnectivityManager::OnPlatformEvent(const WeavePlatformEvent * event)
         default:
             break;
         }
+    }
+
+    // Handle fabric membership changes.
+    else if (event->Type == WeavePlatformEvent::kEventType_FabricMembershipChange)
+    {
+        DriveServiceTunnelState();
+    }
+
+    // Handle service provisioning changes.
+    else if (event->Type == WeavePlatformEvent::kEventType_ServiceProvisioningChange)
+    {
+        DriveServiceTunnelState();
     }
 }
 
@@ -660,11 +673,10 @@ void ConnectivityManager::DriveAPState(nl::Weave::System::Layer * aLayer, void *
 
 void ConnectivityManager::UpdateInternetConnectivityState(void)
 {
-    WEAVE_ERROR err;
-    bool newIPv4State = false;
-    bool newIPv6State = false;
-    bool prevIPv4State = GetFlag(mFlags, kFlag_HaveIPv4InternetConnectivity);
-    bool prevIPv6State = GetFlag(mFlags, kFlag_HaveIPv6InternetConnectivity);
+    bool ipv4ConnState = false;
+    bool ipv6ConnState = false;
+    bool prevIPv4ConnState = GetFlag(mFlags, kFlag_HaveIPv4InternetConnectivity);
+    bool prevIPv6ConnState = GetFlag(mFlags, kFlag_HaveIPv6InternetConnectivity);
 
     // If the WiFi station is currently in the connected state...
     if (mWiFiStationState == kWiFiStationState_Connected)
@@ -685,7 +697,7 @@ void ConnectivityManager::UpdateInternetConnectivityState(void)
                 if (!ip4_addr_isany_val(*netif_ip4_addr(netif)) &&
                     !ip4_addr_isany_val(*netif_ip4_gw(netif)))
                 {
-                    newIPv4State = true;
+                    ipv4ConnState = true;
                 }
 
                 // Search among the IPv6 addresses assigned to the interface for a Global Unicast
@@ -700,7 +712,7 @@ void ConnectivityManager::UpdateInternetConnectivityState(void)
                         // IPv6 connectivity.
                         if (nd6_select_router(IP6_ADDR_ANY6, netif) >= 0)
                         {
-                            newIPv6State = true;
+                            ipv6ConnState = true;
                         }
                     }
                 }
@@ -709,44 +721,30 @@ void ConnectivityManager::UpdateInternetConnectivityState(void)
     }
 
     // If the internet connectivity state has changed...
-    if (newIPv4State != prevIPv4State || newIPv6State != prevIPv6State)
+    if (ipv4ConnState != prevIPv4ConnState || ipv6ConnState != prevIPv6ConnState)
     {
         // Update the current state.
-        SetFlag(mFlags, kFlag_HaveIPv4InternetConnectivity, newIPv4State);
-        SetFlag(mFlags, kFlag_HaveIPv6InternetConnectivity, newIPv6State);
-
-        // If IPv4 connectivity has been established, start the service tunnel.
-        if (newIPv4State)
-        {
-            err = ServiceTunnelAgent.StartServiceTunnel();
-            if (err != WEAVE_NO_ERROR)
-            {
-                ESP_LOGE(TAG, "StartServiceTunnel() failed: %s", nl::ErrorStr(err));
-            }
-        }
-
-        // Otherwise, when IPv4 connectivity is lost, stop the service tunnel.
-        else
-        {
-            ServiceTunnelAgent.StopServiceTunnel();
-        }
+        SetFlag(mFlags, kFlag_HaveIPv4InternetConnectivity, ipv4ConnState);
+        SetFlag(mFlags, kFlag_HaveIPv6InternetConnectivity, ipv6ConnState);
 
         // Alert other components of the state change.
         WeavePlatformEvent event;
         event.Type = WeavePlatformEvent::kEventType_InternetConnectivityChange;
-        event.InternetConnectivityChange.IPv4 = GetConnectivityChange(prevIPv4State, newIPv4State);
-        event.InternetConnectivityChange.IPv6 = GetConnectivityChange(prevIPv6State, newIPv6State);
+        event.InternetConnectivityChange.IPv4 = GetConnectivityChange(prevIPv4ConnState, ipv4ConnState);
+        event.InternetConnectivityChange.IPv6 = GetConnectivityChange(prevIPv6ConnState, ipv6ConnState);
         PlatformMgr.PostEvent(&event);
 
-        if (newIPv4State != prevIPv4State)
+        if (ipv4ConnState != prevIPv4ConnState)
         {
-            ESP_LOGI(TAG, "%s Internet connectivity %s", "IPv4", (newIPv4State) ? "ESTABLISHED" : "LOST");
+            ESP_LOGI(TAG, "%s Internet connectivity %s", "IPv4", (ipv4ConnState) ? "ESTABLISHED" : "LOST");
         }
 
-        if (newIPv6State != prevIPv6State)
+        if (ipv6ConnState != prevIPv6ConnState)
         {
-            ESP_LOGI(TAG, "%s Internet connectivity %s", "IPv6", (newIPv6State) ? "ESTABLISHED" : "LOST");
+            ESP_LOGI(TAG, "%s Internet connectivity %s", "IPv6", (ipv6ConnState) ? "ESTABLISHED" : "LOST");
         }
+
+        DriveServiceTunnelState();
     }
 }
 
@@ -793,6 +791,42 @@ void ConnectivityManager::OnIPv6AddressAvailable(const system_event_got_ip6_t & 
     RefreshMessageLayer();
 
     UpdateInternetConnectivityState();
+}
+
+void ConnectivityManager::DriveServiceTunnelState(void)
+{
+    WEAVE_ERROR err;
+    bool startServiceTunnel;
+
+    // Determine if the tunnel to the service should be started.
+    startServiceTunnel =
+            (mServiceTunnelMode == kServiceTunnelMode_Enabled &&
+             GetFlag(mFlags, kFlag_HaveIPv4InternetConnectivity) &&
+             ConfigurationMgr.IsMemberOfFabric() &&
+             ConfigurationMgr.IsServiceProvisioned());
+
+    // If the tunnel should be started but isn't, or vice versa, ...
+    if (startServiceTunnel != GetFlag(mFlags, kFlag_ServiceTunnelStarted))
+    {
+        // Update the tunnel started state.
+        SetFlag(mFlags, kFlag_ServiceTunnelStarted, startServiceTunnel);
+
+        // Start or stop the tunnel as necessary.
+        if (startServiceTunnel)
+        {
+            err = ServiceTunnelAgent.StartServiceTunnel();
+            if (err != WEAVE_NO_ERROR)
+            {
+                ESP_LOGE(TAG, "StartServiceTunnel() failed: %s", nl::ErrorStr(err));
+                ClearFlag(mFlags, kFlag_ServiceTunnelStarted);
+            }
+        }
+
+        else
+        {
+            ServiceTunnelAgent.StopServiceTunnel();
+        }
+    }
 }
 
 const char * ConnectivityManager::WiFiStationModeToStr(WiFiStationMode mode)

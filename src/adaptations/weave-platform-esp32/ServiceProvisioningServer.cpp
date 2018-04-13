@@ -50,10 +50,20 @@ WEAVE_ERROR ServiceProvisioningServer::HandleRegisterServicePairAccount(Register
         ExitNow();
     }
 
-    // TODO: Send PairDeviceToAccount request to service
-
+    // Store the service config in persistent storage.
     err = ConfigurationMgr.StoreServiceProvisioningData(msg.ServiceId, msg.ServiceConfig, msg.ServiceConfigLen, msg.AccountId, msg.AccountIdLen);
     SuccessOrExit(err);
+
+    // Post an event alerting other subsystems to the change in the service provisioning state.
+    {
+        WeavePlatformEvent event;
+        event.Type = WeavePlatformEvent::kEventType_ServiceProvisioningChange;
+        event.ServiceProvisioningChange.IsServiceProvisioned = true;
+        event.ServiceProvisioningChange.ServiceConfigUpdated = false;
+        PlatformMgr.PostEvent(&event);
+    }
+
+    // TODO: Send PairDeviceToAccount request to service
 
     // Send "Success" back to the requestor.
     err = ServiceProvisioningSvr.SendSuccessResponse();
@@ -88,6 +98,15 @@ WEAVE_ERROR ServiceProvisioningServer::HandleUpdateService(UpdateServiceMessage&
     err = ConfigurationMgr.StoreServiceConfig(msg.ServiceConfig, msg.ServiceConfigLen);
     SuccessOrExit(err);
 
+    // Post an event alerting other subsystems to the change in the service provisioning state.
+    {
+        WeavePlatformEvent event;
+        event.Type = WeavePlatformEvent::kEventType_ServiceProvisioningChange;
+        event.ServiceProvisioningChange.IsServiceProvisioned = true;
+        event.ServiceProvisioningChange.ServiceConfigUpdated = true;
+        PlatformMgr.PostEvent(&event);
+    }
+
     // Send "Success" back to the requestor.
     err = ServiceProvisioningSvr.SendSuccessResponse();
     SuccessOrExit(err);
@@ -113,6 +132,15 @@ WEAVE_ERROR ServiceProvisioningServer::HandleUnregisterService(uint64_t serviceI
     // Clear the persisted service.
     err = ConfigurationMgr.ClearServiceProvisioningData();
     SuccessOrExit(err);
+
+    // Post an event alerting other subsystems to the change in the service provisioning state.
+    {
+        WeavePlatformEvent event;
+        event.Type = WeavePlatformEvent::kEventType_ServiceProvisioningChange;
+        event.ServiceProvisioningChange.IsServiceProvisioned = false;
+        event.ServiceProvisioningChange.ServiceConfigUpdated = false;
+        PlatformMgr.PostEvent(&event);
+    }
 
     // Send "Success" back to the requestor.
     err = ServiceProvisioningSvr.SendSuccessResponse();

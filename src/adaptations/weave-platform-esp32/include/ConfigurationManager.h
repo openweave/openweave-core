@@ -56,6 +56,7 @@ public:
     WEAVE_ERROR GetWiFiAPSSID(char * buf, size_t bufSize);
 
     bool IsServiceProvisioned();
+    bool IsMemberOfFabric();
 
     void InitiateFactoryReset();
 
