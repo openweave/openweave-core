@@ -1,14 +1,16 @@
 #include <internal/WeavePlatformInternal.h>
 #include <Weave/Core/WeaveTLV.h>
-#include <Weave/Support/NestCerts.h>
-#include <Weave/Support/ASN1.h>
 #include <Weave/Profiles/WeaveProfiles.h>
 #include <Weave/Profiles/security/WeaveSecurity.h>
 #include <Weave/Profiles/security/WeaveCert.h>
 #include <Weave/Profiles/security/WeaveCASE.h>
 #include <Weave/Profiles/service-provisioning/ServiceProvisioning.h>
+#include <Weave/Support/NestCerts.h>
+#include <Weave/Support/ASN1.h>
+#include <Weave/Support/TimeUtils.h>
 #include <new>
 
+using namespace ::nl;
 using namespace ::nl::Weave;
 using namespace ::nl::Weave::TLV;
 using namespace ::nl::Weave::Profiles;
@@ -169,6 +171,7 @@ WEAVE_ERROR CASEAuthDelegate::BeginCertValidation(bool isInitiator, WeaveCertifi
     nl::Weave::ASN1::ASN1UniversalTime validTime;
     WeaveCertificateData *cert;
     size_t serviceConfigLen;
+    uint64_t nowMS;
 
     // Initialize the certificate set object arranging for it to call the platform
     // memory allocation functions when it need memory.
@@ -234,17 +237,34 @@ WEAVE_ERROR CASEAuthDelegate::BeginCertValidation(bool isInitiator, WeaveCertifi
 
     memset(&validContext, 0, sizeof(validContext));
 
-    // Set the effective time for certificate validation to the firmware build time.
-    // TODO: use real time if available.
-    err = ConfigurationMgr.GetFirmwareBuildTime(validTime.Year, validTime.Month, validTime.Day,
-            validTime.Hour, validTime.Minute, validTime.Second);
-    SuccessOrExit(err);
+    // Set the effective time for certificate validation.
+    //
+    // If the system's real time clock is synchronized, use the current time.
+    //
+    // If the system's real time clock is NOT synchronized, use the firmware build time, and arrange to ignore
+    // the "not before" date in the peer's certificate(s).
+    //
+    err = System::Layer::GetClock_RealTimeMS(nowMS);
+    if (err == WEAVE_NO_ERROR)
+    {
+        SecondsSinceEpochToCalendarTime((uint32_t)(nowMS / 1000), validTime.Year, validTime.Month, validTime.Day,
+                validTime.Hour, validTime.Minute, validTime.Second);
+    }
+    else if (err == WEAVE_SYSTEM_ERROR_REAL_TIME_NOT_SYNCED)
+    {
+        err = ConfigurationMgr.GetFirmwareBuildTime(validTime.Year, validTime.Month, validTime.Day,
+                validTime.Hour, validTime.Minute, validTime.Second);
+        SuccessOrExit(err);
+        validContext.ValidateFlags |= kValidateFlag_IgnoreNotBefore;
+        ESP_LOGV(TAG, "No real time; Using build time for cert validation");
+    }
+    else
+    {
+        ExitNow();
+    }
+
     err = PackCertTime(validTime, validContext.EffectiveTime);
     SuccessOrExit(err);
-
-    // Since we're not using current time for the effective validation time, arrange to ignore
-    // the "not before" date in the peer's certificates.
-    validContext.ValidateFlags |= kValidateFlag_IgnoreNotBefore;
 
     // Set the appropriate required key usages and purposes for the peer's certificates based
     // on whether we're initiating or responding.
