@@ -799,11 +799,13 @@ void ConnectivityManager::DriveServiceTunnelState(void)
     bool startServiceTunnel;
 
     // Determine if the tunnel to the service should be started.
-    startServiceTunnel =
-            (mServiceTunnelMode == kServiceTunnelMode_Enabled &&
-             GetFlag(mFlags, kFlag_HaveIPv4InternetConnectivity) &&
-             ConfigurationMgr.IsMemberOfFabric() &&
-             ConfigurationMgr.IsServiceProvisioned());
+    startServiceTunnel = (mServiceTunnelMode == kServiceTunnelMode_Enabled
+                          && GetFlag(mFlags, kFlag_HaveIPv4InternetConnectivity)
+                          && ConfigurationMgr.IsMemberOfFabric()
+#if !CONFIG_ENABLE_FIXED_TUNNEL_SERVER
+                          && ConfigurationMgr.IsServiceProvisioned()
+#endif
+                         );
 
     // If the tunnel should be started but isn't, or vice versa, ...
     if (startServiceTunnel != GetFlag(mFlags, kFlag_ServiceTunnelStarted))

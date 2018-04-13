@@ -9,6 +9,14 @@ config MAX_EVENT_QUEUE_SIZE
     help
         The maximum number of events that can be held in the Weave Platform event queue.
 
+config SERVICE_DIRECTORY_CACHE_SIZE
+    int "Weave Service Directory Cache Size"
+    range 0 65535
+    default 512
+    help
+        The size (in bytes) of the service directory cache.  This limits the maximum size of the directory
+        that can be returned in response to a service directory query. 
+
 endmenu
 
 menu "Device Identification Options"
@@ -151,6 +159,24 @@ config USE_TEST_PAIRING_CODE
         Setting the value to an empty string disables the feature.
         
         This option is for testing only and should not be enabled in production releases.
+
+config ENABLE_FIXED_TUNNEL_SERVER
+    bool "Use Fixed Tunnel Server"
+    default n
+    help
+        Forces the use of a service tunnel server at a fixed IP address and port.  This
+        bypasses the need for a directory query to the service directory endpoint to
+        determine the tunnel server address.  When enabled, this option allows devices
+        that haven't been service provisioned to establish a service tunnel. 
+        
+config TUNNEL_SERVER_ADDRESS
+    string "Tunnel Server Address"
+    default ""
+    depends on ENABLE_FIXED_TUNNEL_SERVER
+    help
+        The address of the server to which the device should establish a service tunnel.
+        
+        Note: Currently this must be a dot-notation IP address--not a host name. 
 
 endmenu
 

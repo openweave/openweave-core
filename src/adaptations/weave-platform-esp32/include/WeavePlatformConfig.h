@@ -12,6 +12,15 @@
 #define WEAVE_PLATFORM_CONFIG_MAX_EVENT_QUEUE_SIZE CONFIG_MAX_EVENT_QUEUE_SIZE
 #endif
 
+/**
+ * WEAVE_PLATFORM_CONFIG_SERVICE_DIRECTORY_CACHE_SIZE
+ *
+ * The size (in bytes) of the service directory cache.
+ */
+#ifndef WEAVE_PLATFORM_CONFIG_SERVICE_DIRECTORY_CACHE_SIZE
+#define WEAVE_PLATFORM_CONFIG_SERVICE_DIRECTORY_CACHE_SIZE CONFIG_SERVICE_DIRECTORY_CACHE_SIZE
+#endif
+
 // -------------------- Device Identification Configuration --------------------
 
 /**

@@ -5,6 +5,7 @@
 #include <internal/NetworkProvisioningServer.h>
 #include <internal/FabricProvisioningServer.h>
 #include <internal/ServiceProvisioningServer.h>
+#include <internal/ServiceDirectoryManager.h>
 #include <internal/EchoServer.h>
 #include <new>
 #include <esp_timer.h>
@@ -146,6 +147,12 @@ WEAVE_ERROR PlatformManager::InitWeaveStack()
 
 #if WEAVE_CONFIG_SECURITY_TEST_MODE
     SecurityMgr.CASEUseKnownECDHKey = true;
+#endif
+
+#if WEAVE_CONFIG_ENABLE_SERVICE_DIRECTORY
+    // Initialize the service directory manager.
+    err = InitServiceDirectoryManager();
+    SuccessOrExit(err);
 #endif
 
     // Perform dynamic configuration of the Weave stack based on stored settings.

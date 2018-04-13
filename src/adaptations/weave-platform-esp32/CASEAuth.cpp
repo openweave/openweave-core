@@ -176,8 +176,8 @@ WEAVE_ERROR CASEAuthDelegate::BeginCertValidation(bool isInitiator, WeaveCertifi
     SuccessOrExit(err);
 
     // Determine if the device has been provisioned for talking to a service by querying the device state manager
-    // for the length of the service configuration data.  If service configuration data is present (length != 0),
-    // then the device has been service provisioned.
+    // for the length of the service configuration data.  If service configuration data is present, then the device
+    // has been service provisioned.
     err = ConfigurationMgr.GetServiceConfigLength(serviceConfigLen);
     if (err != WEAVE_PLATFORM_ERROR_CONFIG_NOT_FOUND)
         SuccessOrExit(err);

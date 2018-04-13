@@ -1,5 +1,6 @@
 #include <internal/WeavePlatformInternal.h>
 #include <ConnectivityManager.h>
+#include <internal/ServiceDirectoryManager.h>
 #include <Weave/Profiles/weave-tunneling/WeaveTunnelAgent.h>
 #include <new>
 
@@ -19,16 +20,40 @@ WEAVE_ERROR InitServiceTunnelAgent()
 
     new (&ServiceTunnelAgent) WeaveTunnelAgent();
 
-#define kServiceEndpoint_WeaveTunneling         (0x18B4300200000011ull)     ///< Weave tunneling endpoint
+#if CONFIG_ENABLE_FIXED_TUNNEL_SERVER
 
-    IPAddress tfeAddr;
-    IPAddress::FromString("52.87.170.40", tfeAddr); // tunnel04.weave01.iad02.integration.nestlabs.com
+    {
+        IPAddress tunnelServerAddr;
+        if (!IPAddress::FromString(CONFIG_TUNNEL_SERVER_ADDRESS, tunnelServerAddr))
+        {
+            ESP_LOGE(TAG, "Invalid value specified for TUNNEL_SERVER_ADDRESS config: %s", CONFIG_TUNNEL_SERVER_ADDRESS);
+            ExitNow(err = WEAVE_ERROR_INVALID_ARGUMENT);
+        }
+
+        ESP_LOGW(TAG, "Using fixed tunnel server address: %s", CONFIG_TUNNEL_SERVER_ADDRESS);
+
+        err = ServiceTunnelAgent.Init(&InetLayer, &ExchangeMgr, kServiceEndpoint_WeaveTunneling,
+                tunnelServerAddr, kWeaveAuthMode_CASE_ServiceEndPoint);
+        SuccessOrExit(err);
+    }
+
+#else // CONFIG_ENABLE_FIXED_TUNNEL_SERVER
+
+#if !WEAVE_CONFIG_ENABLE_SERVICE_DIRECTORY
+#error "Weave service directory feature not enabled (WEAVE_CONFIG_ENABLE_SERVICE_DIRECTORY)"
+#endif
 
     err = ServiceTunnelAgent.Init(&InetLayer, &ExchangeMgr, kServiceEndpoint_WeaveTunneling,
-            tfeAddr, kWeaveAuthMode_CASE_ServiceEndPoint);
+            kWeaveAuthMode_CASE_ServiceEndPoint, &ServiceDirectoryMgr);
     SuccessOrExit(err);
 
+#endif // CONFIG_ENABLE_FIXED_TUNNEL_SERVER
+
 exit:
+    if (err != WEAVE_NO_ERROR)
+    {
+        ESP_LOGE(TAG, "InitServiceTunnelAgent() failed: %s", ErrorStr(err));
+    }
     return err;
 }
 
