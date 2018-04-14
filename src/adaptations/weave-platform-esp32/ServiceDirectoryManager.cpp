@@ -1,8 +1,10 @@
 #include <internal/WeavePlatformInternal.h>
 #include <internal/ServiceDirectoryManager.h>
+#include <TimeSyncManager.h>
 #include <Weave/Core/WeaveTLV.h>
 #include <Weave/Profiles/service-directory/ServiceDirectory.h>
 #include <Weave/Profiles/service-provisioning/ServiceProvisioning.h>
+#include <new>
 
 using namespace ::nl;
 using namespace ::nl::Weave;
@@ -30,9 +32,18 @@ WEAVE_ERROR InitServiceDirectoryManager(void)
 {
     WEAVE_ERROR err;
 
+    new (&ServiceDirectoryMgr) ServiceDirectory::WeaveServiceManager();
+
     err = ServiceDirectoryMgr.init(&ExchangeMgr,
             ServiceDirectoryCache, sizeof(ServiceDirectoryCache),
-            GetRootDirectoryEntry, kWeaveAuthMode_CASE_ServiceEndPoint);
+            GetRootDirectoryEntry,
+            kWeaveAuthMode_CASE_ServiceEndPoint,
+#if WEAVE_PLATFORM_CONFIG_ENABLE_SERVICE_DIRECTORY_TIME_SYNC
+            TimeSyncManager::MarkServiceDirRequestStart,
+            TimeSyncManager::ProcessServiceDirTimeData);
+#else
+            NULL, NULL);
+#endif
     if (err != WEAVE_NO_ERROR)
     {
         ESP_LOGE(TAG, "ServiceDirectoryMgr.init() failed: %s", ErrorStr(err));

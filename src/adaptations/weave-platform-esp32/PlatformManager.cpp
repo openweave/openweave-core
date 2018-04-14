@@ -226,6 +226,15 @@ WEAVE_ERROR PlatformManager::InitWeaveStack()
     }
     SuccessOrExit(err);
 
+    // Initialize the Time Sync Manager object.
+    new (&TimeSyncMgr) TimeSyncManager();
+    err = TimeSyncMgr.Init();
+    if (err != WEAVE_NO_ERROR)
+    {
+        ESP_LOGE(TAG, "Time Sync Manager initialization failed: %s", ErrorStr(err));
+    }
+    SuccessOrExit(err);
+
 exit:
     return err;
 }
@@ -417,6 +426,7 @@ void PlatformManager::DispatchEvent(const WeavePlatformEvent * event)
         NetworkProvisioningSvr.OnPlatformEvent(event);
         FabricProvisioningSvr.OnPlatformEvent(event);
         ServiceProvisioningSvr.OnPlatformEvent(event);
+        TimeSyncMgr.OnPlatformEvent(event);
 
         for (RegisteredEventHandler * eventHandler = gRegisteredEventHandlerList;
              eventHandler != NULL;

@@ -6,6 +6,7 @@
 #include <PlatformManager.h>
 #include <ConfigurationManager.h>
 #include <ConnectivityManager.h>
+#include <TimeSyncManager.h>
 #include <WeavePlatformError.h>
 
 namespace WeavePlatform {
@@ -15,6 +16,7 @@ struct WeavePlatformEvent;
 extern PlatformManager PlatformMgr;
 extern ConfigurationManager ConfigurationMgr;
 extern ConnectivityManager ConnectivityMgr;
+extern TimeSyncManager TimeSyncMgr;
 extern nl::Weave::System::Layer SystemLayer;
 extern nl::Inet::InetLayer InetLayer;
 extern nl::Weave::WeaveFabricState FabricState;

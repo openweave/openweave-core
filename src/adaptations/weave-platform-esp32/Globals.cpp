@@ -1,3 +1,4 @@
+#include <internal/WeavePlatformInternal.h>
 #include <internal/DeviceControlServer.h>
 #include <internal/DeviceDescriptionServer.h>
 #include <internal/NetworkProvisioningServer.h>
@@ -11,6 +12,8 @@ namespace WeavePlatform {
 PlatformManager PlatformMgr;
 ConfigurationManager ConfigurationMgr;
 ConnectivityManager ConnectivityMgr;
+TimeSyncManager TimeSyncMgr;
+
 nl::Weave::System::Layer SystemLayer;
 nl::Inet::InetLayer InetLayer;
 nl::Weave::WeaveFabricState FabricState;

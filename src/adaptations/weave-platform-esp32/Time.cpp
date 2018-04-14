@@ -73,7 +73,7 @@ Error SetClock_RealTime(uint64_t newCurTime)
         uint16_t year;
         uint8_t month, dayOfMonth, hour, minute, second;
         SecondsSinceEpochToCalendarTime(tv.tv_sec, year, month, dayOfMonth, hour, minute, second);
-        ESP_LOGI(TAG, "Real time clock set to %ld (%04" PRId16 "/%02" PRId8 "/%02" PRId8 " %02" PRId8 ":%02" PRId8 ":%02" PRId8 ")",
+        ESP_LOGI(TAG, "Real time clock set to %ld (%04" PRId16 "/%02" PRId8 "/%02" PRId8 " %02" PRId8 ":%02" PRId8 ":%02" PRId8 " UTC)",
                  tv.tv_sec, year, month, dayOfMonth, hour, minute, second);
     }
     return WEAVE_SYSTEM_NO_ERROR;

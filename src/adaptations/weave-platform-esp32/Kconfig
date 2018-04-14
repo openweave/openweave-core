@@ -138,6 +138,49 @@ config WIFI_AP_IDLE_TIMEOUT
 
 endmenu
 
+menu "Time Sync Options"
+
+config ENABLE_SERVICE_DIRECTORY_TIME_SYNC
+    bool "Enable Service Directory Time Sync"
+    default y
+    help
+        Enables synchronizing the device real-time clock using information returned during
+        a Weave service directory query.  For any device that uses the Weave service directory
+        to lookup a tunnel server, enabling this option will result in the real time clock being
+        synchronized every time the service tunnel is established.
+
+config ENABLE_WEAVE_TIME_SERVICE_TIME_SYNC
+    bool "Enable Time Service Time Sync"
+    default y
+    help
+        Enables synchronizing the device's real time clock with a remote Weave Time service
+        using the Weave Time Sync protocol.
+
+config WEAVE_TIME_SERVICE_ENDPOINT_ID
+    hex "Weave Time Service Endpoint Id"
+    default 18B4300200000005
+    depends on ENABLE_WEAVE_TIME_SERVICE_TIME_SYNC
+    help
+        Specifies the service endpoint id of the Weave Time Sync service to be used to synchronize time.
+
+config DEFAULT_TIME_SYNC_INTERVAL
+    int "Time Sync Interval (seconds)"
+    default 60
+    depends on ENABLE_WEAVE_TIME_SERVICE_TIME_SYNC
+    help
+        Specifies the minimum interval (in seconds) at which the device should synchronize its real time
+        clock with the configured Weave Time Sync server.
+
+config TIME_SYNC_TIMEOUT
+    int "Time Sync Timeout (ms)"
+    default 10000
+    depends on ENABLE_WEAVE_TIME_SERVICE_TIME_SYNC
+    help
+        Specifies the maximum amount of time (in milliseconds) to wait for a response from a
+        Weave Time Sync server.
+
+endmenu
+
 menu "Testing Options"
 
 config ENABLE_TEST_DEVICE_IDENTITY

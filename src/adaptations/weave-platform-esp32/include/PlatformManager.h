@@ -43,6 +43,7 @@ private:
     // NOTE: These members are for internal use by the following friend classes.
 
     friend class ConnectivityManager;
+    friend class TimeSyncManager;
     friend class Internal::FabricProvisioningServer;
     friend class Internal::ServiceProvisioningServer;
     friend nl::Weave::System::Error nl::Weave::System::Platform::Layer::DispatchEvent(nl::Weave::System::Layer & aLayer, void * aContext, const ::WeavePlatform::WeavePlatformEvent * aEvent);
@@ -67,6 +68,7 @@ struct WeavePlatformEvent
         kEventType_ServiceConnectivityChange,
         kEventType_FabricMembershipChange,
         kEventType_ServiceProvisioningChange,
+        kEventType_TimeSyncChange,
     };
 
     uint16_t Type;
@@ -107,6 +109,10 @@ struct WeavePlatformEvent
             bool IsServiceProvisioned;
             bool ServiceConfigUpdated;
         } ServiceProvisioningChange;
+        struct
+        {
+            bool IsTimeSynchronized;
+        } TimeSyncChange;
     };
 };
 
