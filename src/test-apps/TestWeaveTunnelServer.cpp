@@ -73,6 +73,7 @@ WeaveEchoServer gEchoServer;
 
 uint32_t gCurrTestNum = 0;
 bool gReconnectSent = false;
+bool gStatusReportSuppressed = false;
 
 static HelpOptions gHelpOptions(
     TOOL_NAME,
@@ -684,8 +685,11 @@ void WeaveTunnelServer::HandleTunnelControlMsg (ExchangeContext *ec, const IPPac
                 err = WeaveTunnelRoute::DecodeFabricTunnelRoutes(&msgFabricId, &tunRoute, payload);
                 SuccessOrExit(err);
 
-                if (gCurrTestNum == kTestNum_TestTunnelNoStatusReportReconnect)
+                if (gCurrTestNum == kTestNum_TestTunnelNoStatusReportReconnect ||
+                    gCurrTestNum == kTestNum_TestTunnelNoStatusReportResetReconnectBackoff)
                 {
+                    gStatusReportSuppressed = true;
+
                     WeaveLogDetail(WeaveTunnel, "Received TunOpenV2 message for test %d\n", gCurrTestNum);
                     ExitNow();
                 }

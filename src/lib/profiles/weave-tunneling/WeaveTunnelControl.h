@@ -191,7 +191,7 @@ private:
 
     // Timeout handler for tunnel control response.
 
-    static void TunCtrlRespExpiryHandler(ExchangeContext *ec);
+    static void TunCtrlRespTimeoutHandler(ExchangeContext *ec);
 
     // Helper function to close the tunnel connection and report error based on a status report
 

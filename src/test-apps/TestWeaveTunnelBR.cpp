@@ -72,6 +72,8 @@ static WEAVE_ERROR SendTunnelTestMessage(ExchangeContext *ec, uint32_t profileId
 static void HandleTunnelTestResponse(ExchangeContext *ec, const IPPacketInfo *pktInfo,
                                      const WeaveMessageInfo *msgInfo, uint32_t profileId,
                                      uint8_t msgType, PacketBuffer *payload);
+static void ResetReconnectTimeout(System::Layer* aSystemLayer, void* aAppState, System::Error aError);
+
 #if WEAVE_SYSTEM_CONFIG_USE_SOCKETS
 static int AddDeleteIPv4Address(InterfaceId intf, const char *ipAddr, bool isAdd);
 #endif // WEAVE_SYSTEM_CONFIG_USE_SOCKETS
@@ -1054,6 +1056,119 @@ static void TestTunnelNoStatusReportReconnect(nlTestSuite *inSuite, void *inCont
 
             err = SendTunnelTestMessage(exchangeCtxt, kWeaveProfile_TunnelTest_End,
                                         kTestNum_TestTunnelNoStatusReportReconnect,
+                                        0);
+            SuccessOrExit(err);
+
+            gTunAgent.StopServiceTunnel(WEAVE_ERROR_NOT_CONNECTED);
+        }
+    }
+
+exit:
+    if (exchangeCtxt)
+    {
+        exchangeCtxt->Close();
+        exchangeCtxt = NULL;
+    }
+
+    NL_TEST_ASSERT(inSuite, err == WEAVE_NO_ERROR);
+    NL_TEST_ASSERT(inSuite, gTestSucceeded == true);
+
+    gTunAgent.Shutdown();
+}
+
+void ResetReconnectTimeout(System::Layer* aSystemLayer, void* aAppState, System::Error aError)
+{
+    WeaveLogDetail(WeaveTunnel, "Triggering a ResetReconnect Backoff after TunnelOpen sent\n");
+    /* Try resetting the connection and issuing a reconnect */
+    gTunAgent.ResetPrimaryReconnectBackoff(true);
+}
+
+/**
+ * Test that a Tunnel reset reconnect backoff does not close an existing tunnel
+ * open operation.
+ * 1. Send Tunnel Open. The Mock Service is expected not to respond and the
+ *    TunnelOpen should timeout.
+ * 2. Schedule ResetReconnect before TunnelOpen response timeout happens.
+ * 3. Verify that the TunnelOpen response timeout happens normally without
+ *    the ResetReconnect re-establishing the connection.
+ */
+static void TestTunnelNoStatusReportResetReconnectBackoff(nlTestSuite *inSuite, void *inContext)
+{
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
+    ExchangeContext *exchangeCtxt = NULL;
+    uint32_t delayForResetReconnect = 0;
+    Done = false;
+    gTestSucceeded = false;
+    /* Set the test timeout to be a little longer than the Tunnel Control ExchangeContext
+     * timeout */
+    gMaxTestDurationMillisecs = (WEAVE_CONFIG_TUNNELING_CTRL_RESPONSE_TIMEOUT_SECS + 1 ) * System::kTimerFactor_milli_per_unit;
+    gCurrTestNum = kTestNum_TestTunnelNoStatusReportResetReconnectBackoff;
+    gTestStartTime = Now();
+
+#if WEAVE_CONFIG_ENABLE_SERVICE_DIRECTORY
+    if (gUseServiceDir)
+    {
+        err = gTunAgent.Init(&Inet, &ExchangeMgr, gDestNodeId,
+                            gAuthMode, &gServiceMgr);
+    }
+    else
+#endif
+    {
+        err = gTunAgent.Init(&Inet, &ExchangeMgr, gDestNodeId, gDestAddr,
+                            gAuthMode);
+    }
+
+    gTunAgent.OnServiceTunStatusNotify = WeaveTunnelOnStatusNotifyHandlerCB;
+
+    SuccessOrExit(err);
+
+    exchangeCtxt = ExchangeMgr.NewContext(gDestNodeId, gDestAddr, &gTunAgent);
+    VerifyOrExit(exchangeCtxt, err = WEAVE_ERROR_NO_MEMORY);
+
+    err = SendTunnelTestMessage(exchangeCtxt, kWeaveProfile_TunnelTest_Start,
+                                kTestNum_TestTunnelNoStatusReportResetReconnectBackoff,
+                                0);
+    SuccessOrExit(err);
+
+    err = gTunAgent.StartServiceTunnel();
+    SuccessOrExit(err);
+
+    /* Wait for some time for tunnel connection to be established but before TunnelOpen
+     * response timeout happens for triggering a reconnect */
+    delayForResetReconnect = (WEAVE_CONFIG_TUNNELING_CTRL_RESPONSE_TIMEOUT_SECS - 1) * System::kTimerFactor_milli_per_unit;
+
+    ExchangeMgr.MessageLayer->SystemLayer->StartTimer(delayForResetReconnect, ResetReconnectTimeout, NULL);
+
+    while (!Done)
+    {
+        struct timeval sleepTime;
+        sleepTime.tv_sec = TEST_SLEEP_TIME_WITHIN_LOOP_SECS;
+        sleepTime.tv_usec = TEST_SLEEP_TIME_WITHIN_LOOP_MICROSECS;
+
+        ServiceNetwork(sleepTime);
+
+        if (Now() < gTestStartTime + gMaxTestDurationMillisecs * System::kTimerFactor_micro_per_milli)
+        {
+            if (gTestSucceeded)
+            {
+                Done = true;
+            }
+            else
+            {
+                continue;
+            }
+        }
+        else // Time's up
+        {
+            gTestSucceeded = false;
+            Done = true;
+        }
+
+        if (Done)
+        {
+
+            err = SendTunnelTestMessage(exchangeCtxt, kWeaveProfile_TunnelTest_End,
+                                        kTestNum_TestTunnelNoStatusReportResetReconnectBackoff,
                                         0);
             SuccessOrExit(err);
 
@@ -2632,6 +2747,22 @@ WeaveTunnelOnStatusNotifyHandlerCB(WeaveTunnelConnectionMgr::TunnelConnNotifyRea
 
         break;
 
+      case kTestNum_TestTunnelNoStatusReportResetReconnectBackoff:
+        if (reason == WeaveTunnelConnectionMgr::kStatus_TunPrimaryConnError)
+        {
+            if (aErr == WEAVE_ERROR_TIMEOUT)
+            {
+                WeaveLogDetail(WeaveTunnel, "Tun Open Timeout error");
+                gTestSucceeded = true;
+            }
+            else
+            {
+                WeaveLogDetail(WeaveTunnel, "Connect error received with error %s", ErrorStr(aErr));
+                gTestSucceeded = false;
+            }
+        }
+        break;
+
       case kTestNum_TestCallTunnelDownAfterMaxReconnects:
         if (reason == WeaveTunnelConnectionMgr::kStatus_TunDown)
         {
@@ -2939,6 +3070,7 @@ static const nlTest tunnelTests[] = {
     NL_TEST_DEF("TestTunnelRestrictedRoutingOnTunnelOpen", TestTunnelRestrictedRoutingOnTunnelOpen),
     NL_TEST_DEF("TestTunnelResetReconnectBackoffImmediately", TestTunnelResetReconnectBackoffImmediately),
     NL_TEST_DEF("TestTunnelResetReconnectBackoffRandomized", TestTunnelResetReconnectBackoffRandomized),
+    NL_TEST_DEF("TestTunnelNoStatusReportResetReconnectBackoff", TestTunnelNoStatusReportResetReconnectBackoff),
 #if WEAVE_SYSTEM_CONFIG_USE_SOCKETS && WEAVE_CONFIG_TUNNEL_TCP_USER_TIMEOUT_SUPPORTED && INET_CONFIG_OVERRIDE_SYSTEM_TCP_USER_TIMEOUT
     NL_TEST_DEF("TestTCPUserTimeoutOnAddrRemoval", TestTCPUserTimeoutOnAddrRemoval),
 #endif // WEAVE_SYSTEM_CONFIG_USE_SOCKETS && WEAVE_CONFIG_TUNNEL_TCP_USER_TIMEOUT_SUPPORTED && INET_CONFIG_OVERRIDE_SYSTEM_TCP_USER_TIMEOUT

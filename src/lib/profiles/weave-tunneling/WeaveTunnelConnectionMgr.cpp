@@ -422,13 +422,11 @@ void WeaveTunnelConnectionMgr::ServiceConnectTimeout(System::Layer* aSystemLayer
         ExitNow();
     }
 
-    // Check the connection state; Make sure it is reset and in kState_NotConnected
-    // state before connecting.
-
-    if (tConnMgr->mConnectionState != kState_NotConnected)
-    {
-        tConnMgr->StopServiceTunnelConn(aError);
-    }
+    /* Check if the WeaveConnectionManager is in the correct state to effect a
+     * reconnect.
+     */
+    VerifyOrExit(tConnMgr->mConnectionState == kState_NotConnected,
+                 /* NO_OP */);
 
     // Reconnect to Service.
 
@@ -881,12 +879,6 @@ WEAVE_ERROR WeaveTunnelConnectionMgr::ResetReconnectBackoff(bool reconnectImmedi
     WEAVE_ERROR err = WEAVE_NO_ERROR;
     uint32_t waitTimeInMsec = 0;
 
-    /* Check if the WeaveConnectionManager is in the correct state to effect a
-     * reset of the reconnect backoff.
-     */
-    VerifyOrExit((mConnectionState == kState_Connecting || mConnectionState == kState_NotConnected),
-                  err = WEAVE_ERROR_INCORRECT_STATE);
-
     /* A reconnect reset request is not honored when a previous one has
      * not been executed yet.
      */
@@ -1027,6 +1019,8 @@ void WeaveTunnelConnectionMgr::HandleOnlineCheckResult(bool isOnline)
         {
             // Reset the tunnel backoff and reconnect after a short randomized wait.
 
+            WeaveLogDetail(WeaveTunnel, "Tunnel Reconnecting on OnlineCheck success for %s tunnel : %s",
+                           mTunType == kType_TunnelPrimary ? "primary" : "backup");
             err = ResetReconnectBackoff(!reconnectImmediately);
             if (err != WEAVE_NO_ERROR)
             {

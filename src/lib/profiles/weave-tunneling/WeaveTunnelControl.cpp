@@ -725,7 +725,7 @@ WEAVE_ERROR WeaveTunnelControl::CreateContext (WeaveConnection *aConnection,
     exchangeCtx->OnMessageReceived = onMsgRcvd;
 
     exchangeCtx->ResponseTimeout   = mCtrlResponseTimeout * nl::Weave::System::kTimerFactor_milli_per_unit;
-    exchangeCtx->OnResponseTimeout = TunCtrlRespExpiryHandler;
+    exchangeCtx->OnResponseTimeout = TunCtrlRespTimeoutHandler;
     mServiceExchangeCtxt           = exchangeCtx;
 
 exit:
@@ -1273,54 +1273,51 @@ exit:
 
 }
 
-/* Tunnel connection closing handler for tunnel control message error paths and
- * response timeouts.
+/**
+ * Tunnel control message response timeout handler.
  */
-void WeaveTunnelControl::TunCtrlRespExpiryHandler(ExchangeContext *ec)
+void WeaveTunnelControl::TunCtrlRespTimeoutHandler(ExchangeContext *ec)
 {
     WeaveTunnelConnectionMgr *connMgr = NULL;
     WeaveTunnelControl *tunControl    = NULL;
     ReconnectParam reconnParam;
 
-    if (ec)
+    tunControl = static_cast<WeaveTunnelControl *>(ec->AppState);
+
+    if (ec->Con)
     {
-        tunControl = static_cast<WeaveTunnelControl *>(ec->AppState);
-
-        if (ec->Con)
-        {
-            connMgr = static_cast<WeaveTunnelConnectionMgr *>(ec->Con->AppState);
-
-            // Set the ExchangeContext for this connMgr to NULL;
-
-            connMgr->mTunControl.mServiceExchangeCtxt = NULL;
-
-
-            if (connMgr->mConnectionState == WeaveTunnelConnectionMgr::kState_TunnelClosing)
-            {
-                // Stop the connection.
-
-                connMgr->StopServiceTunnelConn(WEAVE_ERROR_TIMEOUT);
-
-                // Callback to WeaveTunnelAgent to notify application if it has already closed the tunnel.
-
-                tunControl->mTunnelAgent->WeaveTunnelConnectionDown(connMgr, WEAVE_ERROR_TIMEOUT);
-            }
-            else
-            {
-                // Stop the connection and attempt to reconnect.
-
-                reconnParam.PopulateReconnectParam(WEAVE_ERROR_TIMEOUT);
-
-                connMgr->StopAndReconnectTunnelConn(reconnParam);
-            }
-        }
-
-        // Close the ExchangeContext
-
-        ec->Close();
-        ec = NULL;
+        connMgr = static_cast<WeaveTunnelConnectionMgr *>(ec->Con->AppState);
     }
 
+    // Close the ExchangeContext
+
+    ec->Close();
+
+    // Set the ExchangeContext for this connMgr to NULL;
+    ec = NULL;
+    tunControl->mServiceExchangeCtxt = NULL;
+
+    if (connMgr)
+    {
+        if (connMgr->mConnectionState == WeaveTunnelConnectionMgr::kState_TunnelClosing)
+        {
+            // Stop the connection.
+
+            connMgr->StopServiceTunnelConn(WEAVE_ERROR_TIMEOUT);
+
+            // Callback to WeaveTunnelAgent to notify application if it has already closed the tunnel.
+
+            tunControl->mTunnelAgent->WeaveTunnelConnectionDown(connMgr, WEAVE_ERROR_TIMEOUT);
+        }
+        else
+        {
+            // Stop the connection and attempt to reconnect.
+
+            reconnParam.PopulateReconnectParam(WEAVE_ERROR_TIMEOUT);
+
+            connMgr->StopAndReconnectTunnelConn(reconnParam);
+        }
+    }
 }
 
 /**
