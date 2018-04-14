@@ -68,6 +68,7 @@ struct WeavePlatformEvent
         kEventType_ServiceConnectivityChange,
         kEventType_FabricMembershipChange,
         kEventType_ServiceProvisioningChange,
+        kEventType_AccountPairingChange,
         kEventType_TimeSyncChange,
     };
 
@@ -109,6 +110,10 @@ struct WeavePlatformEvent
             bool IsServiceProvisioned;
             bool ServiceConfigUpdated;
         } ServiceProvisioningChange;
+        struct
+        {
+            bool IsPairedToAccount;
+        } AccountPairingChange;
         struct
         {
             bool IsTimeSynchronized;

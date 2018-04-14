@@ -30,7 +30,7 @@ exit:
 
 bool NetworkProvisioningServer::IsPairedToAccount() const
 {
-    return ConfigurationMgr.IsServiceProvisioned();
+    return ConfigurationMgr.IsServiceProvisioned() && ConfigurationMgr.IsPairedToAccount();
 }
 
 void NetworkProvisioningServer::OnPlatformEvent(const WeavePlatformEvent * event)

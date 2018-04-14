@@ -100,7 +100,7 @@ WEAVE_ERROR FabricProvisioningServer::HandleGetFabricConfig(void)
 
 bool FabricProvisioningServer::IsPairedToAccount() const
 {
-    return ConfigurationMgr.IsServiceProvisioned();
+    return ConfigurationMgr.IsServiceProvisioned() && ConfigurationMgr.IsPairedToAccount();
 }
 
 void FabricProvisioningServer::OnPlatformEvent(const WeavePlatformEvent * event)

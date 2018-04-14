@@ -357,15 +357,30 @@ WEAVE_ERROR ConfigurationManager::StoreServiceProvisioningData(uint64_t serviceI
     err = nvs_set_blob(handle, kNVSKeyName_ServiceConfig, serviceConfig, serviceConfigLen);
     SuccessOrExit(err);
 
-    accountIdCopy = strndup(accountId, accountIdLen);
-    VerifyOrExit(accountIdCopy != NULL, err = WEAVE_ERROR_NO_MEMORY);
-    err = nvs_set_str(handle, kNVSKeyName_PairedAccountId, accountIdCopy);
-    free(accountIdCopy);
-    SuccessOrExit(err);
+    if (accountId != NULL && accountIdLen != 0)
+    {
+        accountIdCopy = strndup(accountId, accountIdLen);
+        VerifyOrExit(accountIdCopy != NULL, err = WEAVE_ERROR_NO_MEMORY);
+        err = nvs_set_str(handle, kNVSKeyName_PairedAccountId, accountIdCopy);
+        free(accountIdCopy);
+        SuccessOrExit(err);
+    }
+    else
+    {
+        err = nvs_erase_key(handle, kNVSKeyName_PairedAccountId);
+        if (err == ESP_ERR_NVS_NOT_FOUND)
+        {
+            err = WEAVE_NO_ERROR;
+        }
+        SuccessOrExit(err);
+    }
 
     // Commit the value to the persistent store.
     err = nvs_commit(handle);
     SuccessOrExit(err);
+
+    SetFlag(mFlags, kFlag_IsServiceProvisioned);
+    SetFlag(mFlags, kFlag_IsPairedToAccount, (accountId != NULL && accountIdLen != 0));
 
 exit:
     if (needClose)
@@ -410,6 +425,9 @@ WEAVE_ERROR ConfigurationManager::ClearServiceProvisioningData()
     err = nvs_commit(handle);
     SuccessOrExit(err);
 
+    ClearFlag(mFlags, kFlag_IsServiceProvisioned);
+    ClearFlag(mFlags, kFlag_IsPairedToAccount);
+
 exit:
     if (needClose)
     {
@@ -421,6 +439,30 @@ exit:
 WEAVE_ERROR ConfigurationManager::StoreServiceConfig(const uint8_t * serviceConfig, size_t serviceConfigLen)
 {
     return StoreNVS(kNVSNamespace_WeaveConfig, kNVSKeyName_ServiceConfig, serviceConfig, serviceConfigLen);
+}
+
+WEAVE_ERROR ConfigurationManager::StoreAccountId(const char * accountId, size_t accountIdLen)
+{
+    WEAVE_ERROR err;
+
+    if (accountId != NULL && accountIdLen != 0)
+    {
+        char * accountIdCopy = strndup(accountId, accountIdLen);
+        VerifyOrExit(accountIdCopy != NULL, err = WEAVE_ERROR_NO_MEMORY);
+        err = StoreNVS(kNVSNamespace_WeaveConfig, kNVSKeyName_PairedAccountId, accountIdCopy);
+        free(accountIdCopy);
+        SuccessOrExit(err);
+        SetFlag(mFlags, kFlag_IsPairedToAccount);
+    }
+    else
+    {
+        err = ClearNVSKey(kNVSNamespace_WeaveConfig, kNVSKeyName_PairedAccountId);
+        SuccessOrExit(err);
+        ClearFlag(mFlags, kFlag_IsPairedToAccount);
+    }
+
+exit:
+    return err;
 }
 
 WEAVE_ERROR ConfigurationManager::GetPersistedCounter(const char * key, uint32_t & value)
@@ -519,18 +561,9 @@ exit:
     return err;
 }
 
-bool ConfigurationManager::IsServiceProvisioned()
-{
-    WEAVE_ERROR err;
-    uint64_t serviceId;
-
-    err = GetServiceId(serviceId);
-    return (err == WEAVE_NO_ERROR && serviceId != 0);
-}
-
 bool ConfigurationManager::IsMemberOfFabric()
 {
-    return FabricState.FabricId != kFabricIdNotSpecified;
+    return FabricState.FabricId != ::nl::Weave::kFabricIdNotSpecified;
 }
 
 void ConfigurationManager::InitiateFactoryReset()
@@ -544,6 +577,8 @@ WEAVE_ERROR ConfigurationManager::Init()
 {
     WEAVE_ERROR err;
     uint32_t failSafeArmed;
+
+    mFlags = 0;
 
     // Force initialization of weave NVS namespaces if they doesn't already exist.
     err = EnsureNamespace(kNVSNamespace_WeaveFactory);
@@ -628,6 +663,20 @@ WEAVE_ERROR ConfigurationManager::ConfigureWeaveStack()
         err = WEAVE_NO_ERROR;
     }
     SuccessOrExit(err);
+
+    // Determine whether the device is currently service provisioned.
+    {
+        size_t l;
+        bool isServiceProvisioned = (nvs_get_blob(handle, kNVSKeyName_ServiceConfig, NULL, &l) != ESP_ERR_NVS_NOT_FOUND);
+        SetFlag(mFlags, kFlag_IsServiceProvisioned, isServiceProvisioned);
+    }
+
+    // Determine whether the device is currently paired to an account.
+    {
+        size_t l;
+        bool isPairedToAccount = (nvs_get_str(handle, kNVSKeyName_PairedAccountId, NULL, &l) != ESP_ERR_NVS_NOT_FOUND);
+        SetFlag(mFlags, kFlag_IsPairedToAccount, isPairedToAccount);
+    }
 
     // Configure the FabricState object with a reference to the GroupKeyStore object.
     FabricState.GroupKeyStore = &gGroupKeyStore;

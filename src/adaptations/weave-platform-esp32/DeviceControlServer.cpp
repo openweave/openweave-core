@@ -127,7 +127,7 @@ exit:
 
 bool DeviceControlServer::IsPairedToAccount() const
 {
-    return ConfigurationMgr.IsServiceProvisioned();
+    return ConfigurationMgr.IsServiceProvisioned() && ConfigurationMgr.IsPairedToAccount();
 }
 
 void DeviceControlServer::OnPlatformEvent(const WeavePlatformEvent * event)

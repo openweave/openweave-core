@@ -205,6 +205,43 @@
 #define WEAVE_PLATFORM_CONFIG_TIME_SYNC_TIMEOUT CONFIG_TIME_SYNC_TIMEOUT
 #endif // WEAVE_PLATFORM_CONFIG_TIME_SYNC_TIMEOUT
 
+
+// -------------------- Service Provisioning Configuration --------------------
+
+/**
+ * WEAVE_PLATFORM_CONFIG_SERVICE_PROVISIONING_ENDPOINT_ID
+ *
+ * Specifies the service endpoint id of the Weave Service Provisioning service.  When a device
+ * undergoes service provisioning, this is the endpoint to which it will send its Pair Device
+ * to Account request.
+ */
+#ifndef WEAVE_PLATFORM_CONFIG_SERVICE_PROVISIONING_ENDPOINT_ID
+#define WEAVE_PLATFORM_CONFIG_SERVICE_PROVISIONING_ENDPOINT_ID CONFIG_SERVICE_PROVISIONING_ENDPOINT_ID
+#endif // WEAVE_PLATFORM_CONFIG_SERVICE_PROVISIONING_ENDPOINT_ID
+
+/**
+ * WEAVE_PLATFORM_CONFIG_SERVICE_PROVISIONING_CONNECTIVITY_TIMEOUT
+ *
+ * The maximum amount of time (in milliseconds) to wait for service connectivity during the device
+ * service provisioning step.  More specifically, this is the maximum amount of time the device will
+ * wait for connectivity to be established with the service at the point where the device waiting
+ * to send a Pair Device to Account request to the Service Provisioning service.
+ */
+#ifndef WEAVE_PLATFORM_CONFIG_SERVICE_PROVISIONING_CONNECTIVITY_TIMEOUT
+#define WEAVE_PLATFORM_CONFIG_SERVICE_PROVISIONING_CONNECTIVITY_TIMEOUT CONFIG_SERVICE_PROVISIONING_CONNECTIVITY_TIMEOUT
+#endif // WEAVE_PLATFORM_CONFIG_SERVICE_PROVISIONING_CONNECTIVITY_TIMEOUT
+
+/**
+ * WEAVE_PLATFORM_CONFIG_SERVICE_PROVISIONING_REQUEST_TIMEOUT
+ *
+ * Specifies the maximum amount of time (in milliseconds) to wait for a response from the Service
+ * Provisioning service.
+ */
+#ifndef WEAVE_PLATFORM_CONFIG_SERVICE_PROVISIONING_REQUEST_TIMEOUT
+#define WEAVE_PLATFORM_CONFIG_SERVICE_PROVISIONING_REQUEST_TIMEOUT CONFIG_SERVICE_PROVISIONING_REQUEST_TIMEOUT
+#endif // WEAVE_PLATFORM_CONFIG_SERVICE_PROVISIONING_REQUEST_TIMEOUT
+
+
 // -------------------- Test Configuration --------------------
 
 /**
@@ -219,5 +256,16 @@
 #ifndef WEAVE_PLATFORM_CONFIG_ENABLE_TEST_DEVICE_IDENTITY
 #define WEAVE_PLATFORM_CONFIG_ENABLE_TEST_DEVICE_IDENTITY CONFIG_ENABLE_TEST_DEVICE_IDENTITY
 #endif
+
+/**
+ * WEAVE_PLATFORM_CONFIG_DISABLE_ACCOUNT_PAIRING
+ *
+ * Disables sending the PairDeviceToAccount request to the service during a RegisterServicePairAccount
+ * operation.  When this option is enabled, the device will perform all local operations associated
+ * with registering a service, but will not request the service to add the device to the user's account.
+ */
+#ifndef WEAVE_PLATFORM_CONFIG_DISABLE_ACCOUNT_PAIRING
+#define WEAVE_PLATFORM_CONFIG_DISABLE_ACCOUNT_PAIRING CONFIG_DISABLE_ACCOUNT_PAIRING
+#endif // WEAVE_PLATFORM_CONFIG_DISABLE_ACCOUNT_PAIRING
 
 #endif // WEAVE_PLATFORM_CONFIG_H
