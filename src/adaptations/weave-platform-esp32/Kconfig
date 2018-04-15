@@ -2,6 +2,22 @@ menu "Weave Platform"
 
 menu "General Options"
 
+config WEAVE_TASK_STACK_SIZE
+    int "Weave Task Stack Size"
+    range 0 65535
+    default 4096
+    help
+        The size (in bytes) of the Weave task stack.
+
+config WEAVE_TASK_PRIORITY
+    int "Weave Task Priority"
+    range 0 256
+    default 1
+    help
+        The priority of the Weave task.
+        
+        On the ESP32 platform this value is added to ESP_TASK_PRIO_MIN to determine the FreeRTOS priority value.
+
 config MAX_EVENT_QUEUE_SIZE
     int "Max Event Queue Size"
     range 0 65535

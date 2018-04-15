@@ -1,7 +1,7 @@
 #ifndef PLATFORM_MANAGER_H
 #define PLATFORM_MANAGER_H
 
-#include <esp_event.h>
+#include <WeavePlatformEvent.h>
 
 namespace WeavePlatform {
 
@@ -13,112 +13,47 @@ class FabricProvisioningServer;
 class ServiceProvisioningServer;
 } // namespace Internal
 
-enum ConnectivityChange
-{
-    kConnectivity_Established = 0,
-    kConnectivity_Lost,
-    kConnectivity_NoChange
-};
-
 class PlatformManager
 {
 public:
 
-    WEAVE_ERROR InitLwIPCoreLock();
+    WEAVE_ERROR InitLocks();
     WEAVE_ERROR InitWeaveStack();
 
     typedef void (*EventHandlerFunct)(const WeavePlatformEvent * event, intptr_t arg);
     WEAVE_ERROR AddEventHandler(EventHandlerFunct handler, intptr_t arg = 0);
     void RemoveEventHandler(EventHandlerFunct handler, intptr_t arg = 0);
 
-    typedef void (*AsyncWorkFunct)(intptr_t arg);
     void ScheduleWork(AsyncWorkFunct workFunct, intptr_t arg = 0);
 
     void RunEventLoop();
+    WEAVE_ERROR StartEventLoopTask();
+
+    void LockWeaveStack();
+    void UnlockWeaveStack();
 
     static esp_err_t HandleESPSystemEvent(void * ctx, system_event_t * event);
 
 private:
 
-    // NOTE: These members are for internal use by the following friend classes.
+    // NOTE: These members are for internal use by the following friends.
 
     friend class ConnectivityManager;
     friend class TimeSyncManager;
     friend class Internal::FabricProvisioningServer;
     friend class Internal::ServiceProvisioningServer;
     friend nl::Weave::System::Error nl::Weave::System::Platform::Layer::DispatchEvent(nl::Weave::System::Layer & aLayer, void * aContext, const ::WeavePlatform::WeavePlatformEvent * aEvent);
+    friend nl::Weave::System::Error nl::Weave::System::Platform::Layer::StartTimer(nl::Weave::System::Layer & aLayer, void * aContext, uint32_t aMilliseconds);
 
     void PostEvent(const WeavePlatformEvent * event);
 
 private:
 
+    // NOTE: These members are private to the class and should not be used by friends.
+
     WEAVE_ERROR InitWeaveEventQueue();
     void DispatchEvent(const WeavePlatformEvent * event);
-};
-
-struct WeavePlatformEvent
-{
-    enum
-    {
-        kEventType_ESPSystemEvent                               = 0,
-        kEventType_WeaveSystemLayerEvent,
-        kEventType_CallWorkFunct,
-        kEventType_WiFiConnectivityChange,
-        kEventType_InternetConnectivityChange,
-        kEventType_ServiceConnectivityChange,
-        kEventType_FabricMembershipChange,
-        kEventType_ServiceProvisioningChange,
-        kEventType_AccountPairingChange,
-        kEventType_TimeSyncChange,
-    };
-
-    uint16_t Type;
-
-    union
-    {
-        system_event_t ESPSystemEvent;
-        struct
-        {
-            nl::Weave::System::EventType Type;
-            nl::Weave::System::Object * Target;
-            uintptr_t Argument;
-        } WeaveSystemLayerEvent;
-        struct
-        {
-            PlatformManager::AsyncWorkFunct WorkFunct;
-            intptr_t Arg;
-        } CallWorkFunct;
-        struct
-        {
-            ConnectivityChange Result;
-        } WiFiConnectivityChange;
-        struct
-        {
-            ConnectivityChange IPv4;
-            ConnectivityChange IPv6;
-        } InternetConnectivityChange;
-        struct
-        {
-            ConnectivityChange Result;
-        } ServiceConnectivityChange;
-        struct
-        {
-            bool IsMemberOfFabric;
-        } FabricMembershipChange;
-        struct
-        {
-            bool IsServiceProvisioned;
-            bool ServiceConfigUpdated;
-        } ServiceProvisioningChange;
-        struct
-        {
-            bool IsPairedToAccount;
-        } AccountPairingChange;
-        struct
-        {
-            bool IsTimeSynchronized;
-        } TimeSyncChange;
-    };
+    static void RunEventLoop(void * arg);
 };
 
 } // namespace WeavePlatform

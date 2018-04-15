@@ -32,22 +32,30 @@ struct RegisteredEventHandler
     intptr_t Arg;
 };
 
-SemaphoreHandle_t gLwIPCoreLock;
-QueueHandle_t gWeaveEventQueue;
-bool gWeaveTimerActive;
-TimeOut_t gNextTimerBaseTime;
-TickType_t gNextTimerDurationTicks;
-RegisteredEventHandler * gRegisteredEventHandlerList;
+SemaphoreHandle_t WeaveStackLock;
+SemaphoreHandle_t LwIPCoreLock;
+QueueHandle_t WeaveEventQueue;
+bool WeaveTimerActive;
+TimeOut_t NextTimerBaseTime;
+TickType_t NextTimerDurationTicks;
+RegisteredEventHandler * RegisteredEventHandlerList;
+TaskHandle_t EventLoopTask;
 
 } // unnamed namespace
 
 
 // ==================== PlatformManager Public Members ====================
 
-WEAVE_ERROR PlatformManager::InitLwIPCoreLock()
+WEAVE_ERROR PlatformManager::InitLocks()
 {
-    gLwIPCoreLock = xSemaphoreCreateMutex();
-    if (gLwIPCoreLock == NULL) {
+    WeaveStackLock = xSemaphoreCreateMutex();
+    if (WeaveStackLock == NULL) {
+        ESP_LOGE(TAG, "Failed to create Weave stack lock");
+        return WEAVE_ERROR_NO_MEMORY;
+    }
+
+    LwIPCoreLock = xSemaphoreCreateMutex();
+    if (LwIPCoreLock == NULL) {
         ESP_LOGE(TAG, "Failed to create LwIP core lock");
         return WEAVE_ERROR_NO_MEMORY;
     }
@@ -245,7 +253,7 @@ WEAVE_ERROR PlatformManager::AddEventHandler(EventHandlerFunct handler, intptr_t
     RegisteredEventHandler * eventHandler;
 
     // Do nothing if the event handler is already registered.
-    for (eventHandler = gRegisteredEventHandlerList; eventHandler != NULL; eventHandler = eventHandler->Next)
+    for (eventHandler = RegisteredEventHandlerList; eventHandler != NULL; eventHandler = eventHandler->Next)
     {
         if (eventHandler->Handler == handler && eventHandler->Arg == arg)
         {
@@ -256,11 +264,11 @@ WEAVE_ERROR PlatformManager::AddEventHandler(EventHandlerFunct handler, intptr_t
     eventHandler = (RegisteredEventHandler *)malloc(sizeof(RegisteredEventHandler));
     VerifyOrExit(eventHandler != NULL, err = WEAVE_ERROR_NO_MEMORY);
 
-    eventHandler->Next = gRegisteredEventHandlerList;
+    eventHandler->Next = RegisteredEventHandlerList;
     eventHandler->Handler = handler;
     eventHandler->Arg = arg;
 
-    gRegisteredEventHandlerList = eventHandler;
+    RegisteredEventHandlerList = eventHandler;
 
 exit:
     return err;
@@ -270,7 +278,7 @@ void PlatformManager::RemoveEventHandler(EventHandlerFunct handler, intptr_t arg
 {
     RegisteredEventHandler ** eventHandlerIndirectPtr;
 
-    for (eventHandlerIndirectPtr = &gRegisteredEventHandlerList; *eventHandlerIndirectPtr != NULL; )
+    for (eventHandlerIndirectPtr = &RegisteredEventHandlerList; *eventHandlerIndirectPtr != NULL; )
     {
         RegisteredEventHandler * eventHandler = (*eventHandlerIndirectPtr);
 
@@ -298,65 +306,31 @@ void PlatformManager::ScheduleWork(AsyncWorkFunct workFunct, intptr_t arg)
 
 void PlatformManager::RunEventLoop()
 {
-    WEAVE_ERROR err;
-    WeavePlatformEvent event;
+    RunEventLoop(NULL);
+}
 
-    while (true)
-    {
-        TickType_t waitTime;
+WEAVE_ERROR PlatformManager::StartEventLoopTask()
+{
+    BaseType_t res;
 
-        // If one or more Weave timers are active...
-        if (gWeaveTimerActive) {
+    res = xTaskCreate(RunEventLoop,
+                WEAVE_PLATFORM_CONFIG_WEAVE_TASK_NAME,
+                WEAVE_PLATFORM_CONFIG_WEAVE_TASK_STACK_SIZE,
+                NULL,
+                ESP_TASK_PRIO_MIN + WEAVE_PLATFORM_CONFIG_WEAVE_TASK_PRIORITY,
+                NULL);
 
-            // Adjust the base time and remaining duration for the next scheduled timer based on the
-            // amount of time that has elapsed since it was started.
-            // IF the timer's expiration time has already arrived...
-            if (xTaskCheckForTimeOut(&gNextTimerBaseTime, &gNextTimerDurationTicks) == pdTRUE) {
+    return (res == pdPASS) ? WEAVE_NO_ERROR : WEAVE_ERROR_NO_MEMORY;
+}
 
-                // Reset the 'timer active' flag.  This will be set to true again by HandlePlatformTimer()
-                // if there are further timers beyond the expired one that are still active.
-                gWeaveTimerActive = false;
+void PlatformManager::LockWeaveStack()
+{
+    xSemaphoreTake(WeaveStackLock, portMAX_DELAY);
+}
 
-                // Call into the system layer to dispatch the callback functions for all timers
-                // that have expired.
-                err = SystemLayer.HandlePlatformTimer();
-                if (err != WEAVE_SYSTEM_NO_ERROR) {
-                    ESP_LOGE(TAG, "Error handling Weave timers: %s", ErrorStr(err));
-                }
-
-                // When processing the event queue below, do not wait if the queue is empty.  Instead
-                // immediately loop around and process timers again
-                waitTime = 0;
-            }
-
-            // If there is still time before the next timer expires, arrange to wait on the event queue
-            // until that timer expires.
-            else {
-                waitTime = gNextTimerDurationTicks;
-            }
-        }
-
-        // Otherwise no Weave timers are active, so wait indefinitely for an event to arrive on the event
-        // queue.
-        else {
-            waitTime = portMAX_DELAY;
-        }
-
-        // TODO: unlock Weave stack
-
-        BaseType_t eventReceived = xQueueReceive(gWeaveEventQueue, &event, waitTime);
-
-        // TODO: lock Weave stack
-
-        // If an event was received, dispatch it.  Continue receiving events from the queue and
-        // dispatching them until the queue is empty.
-        while (eventReceived == pdTRUE) {
-
-            DispatchEvent(&event);
-
-            eventReceived = xQueueReceive(gWeaveEventQueue, &event, 0);
-        }
-    }
+void PlatformManager::UnlockWeaveStack()
+{
+    xSemaphoreGive(WeaveStackLock);
 }
 
 esp_err_t PlatformManager::HandleESPSystemEvent(void * ctx, system_event_t * espEvent)
@@ -375,8 +349,8 @@ esp_err_t PlatformManager::HandleESPSystemEvent(void * ctx, system_event_t * esp
 
 WEAVE_ERROR PlatformManager::InitWeaveEventQueue()
 {
-    gWeaveEventQueue = xQueueCreate(WEAVE_PLATFORM_CONFIG_MAX_EVENT_QUEUE_SIZE, sizeof(WeavePlatformEvent));
-    if (gWeaveEventQueue == NULL)
+    WeaveEventQueue = xQueueCreate(WEAVE_PLATFORM_CONFIG_MAX_EVENT_QUEUE_SIZE, sizeof(WeavePlatformEvent));
+    if (WeaveEventQueue == NULL)
     {
         ESP_LOGE(TAG, "Failed to allocate Weave event queue");
         return WEAVE_ERROR_NO_MEMORY;
@@ -387,9 +361,9 @@ WEAVE_ERROR PlatformManager::InitWeaveEventQueue()
 
 void PlatformManager::PostEvent(const WeavePlatformEvent * event)
 {
-    if (gWeaveEventQueue != NULL)
+    if (WeaveEventQueue != NULL)
     {
-        if (!xQueueSend(gWeaveEventQueue, event, 1))
+        if (!xQueueSend(WeaveEventQueue, event, 1))
         {
             ESP_LOGE(TAG, "Failed to post event to Weave Platform event queue");
         }
@@ -428,11 +402,80 @@ void PlatformManager::DispatchEvent(const WeavePlatformEvent * event)
         ServiceProvisioningSvr.OnPlatformEvent(event);
         TimeSyncMgr.OnPlatformEvent(event);
 
-        for (RegisteredEventHandler * eventHandler = gRegisteredEventHandlerList;
+        for (RegisteredEventHandler * eventHandler = RegisteredEventHandlerList;
              eventHandler != NULL;
              eventHandler = eventHandler->Next)
         {
             eventHandler->Handler(event, eventHandler->Arg);
+        }
+    }
+}
+
+void PlatformManager::RunEventLoop(void * /* unused */)
+{
+    WEAVE_ERROR err;
+    WeavePlatformEvent event;
+
+    VerifyOrDie(EventLoopTask == NULL);
+
+    EventLoopTask = xTaskGetCurrentTaskHandle();
+
+    while (true)
+    {
+        TickType_t waitTime;
+
+        // If one or more Weave timers are active...
+        if (WeaveTimerActive) {
+
+            // Adjust the base time and remaining duration for the next scheduled timer based on the
+            // amount of time that has elapsed since it was started.
+            // IF the timer's expiration time has already arrived...
+            if (xTaskCheckForTimeOut(&NextTimerBaseTime, &NextTimerDurationTicks) == pdTRUE) {
+
+                // Reset the 'timer active' flag.  This will be set to true again by HandlePlatformTimer()
+                // if there are further timers beyond the expired one that are still active.
+                WeaveTimerActive = false;
+
+                // Call into the system layer to dispatch the callback functions for all timers
+                // that have expired.
+                err = SystemLayer.HandlePlatformTimer();
+                if (err != WEAVE_SYSTEM_NO_ERROR) {
+                    ESP_LOGE(TAG, "Error handling Weave timers: %s", ErrorStr(err));
+                }
+
+                // When processing the event queue below, do not wait if the queue is empty.  Instead
+                // immediately loop around and process timers again
+                waitTime = 0;
+            }
+
+            // If there is still time before the next timer expires, arrange to wait on the event queue
+            // until that timer expires.
+            else {
+                waitTime = NextTimerDurationTicks;
+            }
+        }
+
+        // Otherwise no Weave timers are active, so wait indefinitely for an event to arrive on the event
+        // queue.
+        else {
+            waitTime = portMAX_DELAY;
+        }
+
+        // Unlock the Weave stack, allowing other threads to enter Weave while the event loop thread is sleeping.
+        PlatformMgr.UnlockWeaveStack();
+
+        BaseType_t eventReceived = xQueueReceive(WeaveEventQueue, &event, waitTime);
+
+        // Lock the Weave stack.
+        PlatformMgr.LockWeaveStack();
+
+        // If an event was received, dispatch it.  Continue receiving events from the queue and
+        // dispatching them until the queue is empty.
+        while (eventReceived == pdTRUE) {
+
+            PlatformMgr.DispatchEvent(&event);
+
+            eventReceived = xQueueReceive(WeaveEventQueue, &event, 0);
         }
     }
 }
@@ -444,12 +487,12 @@ void PlatformManager::DispatchEvent(const WeavePlatformEvent * event)
 
 extern "C" void lock_lwip_core()
 {
-    xSemaphoreTake(::WeavePlatform::gLwIPCoreLock, portMAX_DELAY);
+    xSemaphoreTake(::WeavePlatform::LwIPCoreLock, portMAX_DELAY);
 }
 
 extern "C" void unlock_lwip_core()
 {
-    xSemaphoreGive(::WeavePlatform::gLwIPCoreLock);
+    xSemaphoreGive(::WeavePlatform::LwIPCoreLock);
 }
 
 
@@ -466,11 +509,19 @@ using namespace ::WeavePlatform::Internal;
 
 System::Error StartTimer(System::Layer & aLayer, void * aContext, uint32_t aMilliseconds)
 {
-    gWeaveTimerActive = true;
-    vTaskSetTimeOutState(&gNextTimerBaseTime);
-    gNextTimerDurationTicks = pdMS_TO_TICKS(aMilliseconds);
+    WeaveTimerActive = true;
+    vTaskSetTimeOutState(&NextTimerBaseTime);
+    NextTimerDurationTicks = pdMS_TO_TICKS(aMilliseconds);
 
-    // TODO: kick event loop thread if this method is called on a different thread.
+    // If the platform timer is being updated by a thread other than the event loop thread,
+    // trigger the event loop thread to recalculate its wait time by posting a no-op event
+    // to the event queue.
+    if (xTaskGetCurrentTaskHandle() != EventLoopTask)
+    {
+        WeavePlatformEvent event;
+        event.Type = WeavePlatformEvent::kEventType_NoOp;
+        PlatformMgr.PostEvent(&event);
+    }
 
     return WEAVE_SYSTEM_NO_ERROR;
 }
@@ -503,7 +554,7 @@ System::Error PostEvent(System::Layer & aLayer, void * aContext, System::Object 
     event.WeaveSystemLayerEvent.Target = &aTarget;
     event.WeaveSystemLayerEvent.Argument = aArgument;
 
-    if (!xQueueSend(gWeaveEventQueue, &event, 1)) {
+    if (!xQueueSend(WeaveEventQueue, &event, 1)) {
         ESP_LOGE(TAG, "Failed to post event to Weave Platform event queue");
         err = WEAVE_ERROR_NO_MEMORY;
     }
