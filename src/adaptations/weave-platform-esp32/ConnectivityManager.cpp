@@ -653,6 +653,9 @@ WEAVE_ERROR ConnectivityManager::ConfigureWiFiAP()
     }
     SuccessOrExit(err);
 
+    // Assign an IPv6 link local address to the AP interface.
+    tcpip_adapter_create_ip6_linklocal(TCPIP_ADAPTER_IF_AP);
+
 exit:
     return err;
 }
