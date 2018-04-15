@@ -802,7 +802,7 @@ void ConnectivityManager::DriveServiceTunnelState(void)
     startServiceTunnel = (mServiceTunnelMode == kServiceTunnelMode_Enabled
                           && GetFlag(mFlags, kFlag_HaveIPv4InternetConnectivity)
                           && ConfigurationMgr.IsMemberOfFabric()
-#if !CONFIG_ENABLE_FIXED_TUNNEL_SERVER
+#if !WEAVE_PLATFORM_CONFIG_ENABLE_FIXED_TUNNEL_SERVER
                           && ConfigurationMgr.IsServiceProvisioned()
 #endif
                          );

@@ -1,6 +1,10 @@
 #ifndef WEAVE_PLATFORM_CONFIG_H
 #define WEAVE_PLATFORM_CONFIG_H
 
+
+#include <internal/WeavePlatformConfig-ESP32.h>
+
+
 // -------------------- General Configuration --------------------
 
 /**
@@ -18,7 +22,7 @@
  * The size (in bytes) of the Weave task stack.
  */
 #ifndef WEAVE_PLATFORM_CONFIG_WEAVE_TASK_STACK_SIZE
-#define WEAVE_PLATFORM_CONFIG_WEAVE_TASK_STACK_SIZE CONFIG_WEAVE_TASK_STACK_SIZE
+#define WEAVE_PLATFORM_CONFIG_WEAVE_TASK_STACK_SIZE 4096
 #endif
 
 /**
@@ -27,7 +31,7 @@
  * The priority of the Weave task.
  */
 #ifndef WEAVE_PLATFORM_CONFIG_WEAVE_TASK_PRIORITY
-#define WEAVE_PLATFORM_CONFIG_WEAVE_TASK_PRIORITY CONFIG_WEAVE_TASK_PRIORITY
+#define WEAVE_PLATFORM_CONFIG_WEAVE_TASK_PRIORITY 1
 #endif
 
 /**
@@ -36,7 +40,7 @@
  * The maximum number of events that can be held in the Weave Platform event queue.
  */
 #ifndef WEAVE_PLATFORM_CONFIG_MAX_EVENT_QUEUE_SIZE
-#define WEAVE_PLATFORM_CONFIG_MAX_EVENT_QUEUE_SIZE CONFIG_MAX_EVENT_QUEUE_SIZE
+#define WEAVE_PLATFORM_CONFIG_MAX_EVENT_QUEUE_SIZE 100
 #endif
 
 /**
@@ -45,7 +49,7 @@
  * The size (in bytes) of the service directory cache.
  */
 #ifndef WEAVE_PLATFORM_CONFIG_SERVICE_DIRECTORY_CACHE_SIZE
-#define WEAVE_PLATFORM_CONFIG_SERVICE_DIRECTORY_CACHE_SIZE CONFIG_SERVICE_DIRECTORY_CACHE_SIZE
+#define WEAVE_PLATFORM_CONFIG_SERVICE_DIRECTORY_CACHE_SIZE 512
 #endif
 
 // -------------------- Device Identification Configuration --------------------
@@ -56,7 +60,7 @@
  * The Nest-assigned vendor id for the organization responsible for producing the device.
  */
 #ifndef WEAVE_PLATFORM_CONFIG_DEVICE_VENDOR_ID
-#define WEAVE_PLATFORM_CONFIG_DEVICE_VENDOR_ID CONFIG_DEVICE_VENDOR_ID
+#define WEAVE_PLATFORM_CONFIG_DEVICE_VENDOR_ID 9050
 #endif
 
 /**
@@ -66,7 +70,7 @@
  * number is scoped to the device vendor id.
  */
 #ifndef WEAVE_PLATFORM_CONFIG_DEVICE_PRODUCT_ID
-#define WEAVE_PLATFORM_CONFIG_DEVICE_PRODUCT_ID CONFIG_DEVICE_PRODUCT_ID
+#define WEAVE_PLATFORM_CONFIG_DEVICE_PRODUCT_ID 65279
 #endif
 
 /**
@@ -78,7 +82,7 @@
  * This value is generally *not* incremented for device software revisions.
  */
 #ifndef WEAVE_PLATFORM_CONFIG_DEVICE_PRODUCT_REVISION
-#define WEAVE_PLATFORM_CONFIG_DEVICE_PRODUCT_REVISION CONFIG_DEVICE_PRODUCT_REVISION
+#define WEAVE_PLATFORM_CONFIG_DEVICE_PRODUCT_REVISION 1
 #endif
 
 /**
@@ -87,7 +91,7 @@
  * A string identifying the firmware revision running on the device.
  */
 #ifndef WEAVE_PLATFORM_CONFIG_DEVICE_FIRMWARE_REVISION
-#define WEAVE_PLATFORM_CONFIG_DEVICE_FIRMWARE_REVISION CONFIG_DEVICE_FIRMWARE_REVISION
+#define WEAVE_PLATFORM_CONFIG_DEVICE_FIRMWARE_REVISION "prerelease"
 #endif
 
 // -------------------- WiFi Station Configuration --------------------
@@ -99,7 +103,7 @@
  * network (in milliseconds).
  */
 #ifndef WEAVE_PLATFORM_CONFIG_WIFI_STATION_RECONNECT_INTERVAL
-#define WEAVE_PLATFORM_CONFIG_WIFI_STATION_RECONNECT_INTERVAL CONFIG_WIFI_STATION_RECONNECT_INTERVAL
+#define WEAVE_PLATFORM_CONFIG_WIFI_STATION_RECONNECT_INTERVAL 5000
 #endif
 
 /**
@@ -108,7 +112,7 @@
  * The maximum number of networks to return as a result of a NetworkProvisioning:ScanNetworks request.
  */
 #ifndef WEAVE_PLATFORM_CONFIG_MAX_SCAN_NETWORKS_RESULTS
-#define WEAVE_PLATFORM_CONFIG_MAX_SCAN_NETWORKS_RESULTS CONFIG_MAX_SCAN_NETWORKS_RESULTS
+#define WEAVE_PLATFORM_CONFIG_MAX_SCAN_NETWORKS_RESULTS 10
 #endif
 
 /**
@@ -118,7 +122,7 @@
  * operation that hasn't completed.  A value of 0 will disable the timeout logic.
  */
 #ifndef WEAVE_PLATFORM_CONFIG_WIFI_SCAN_COMPLETION_TIMEOUT
-#define WEAVE_PLATFORM_CONFIG_WIFI_SCAN_COMPLETION_TIMEOUT CONFIG_WIFI_SCAN_COMPLETION_TIMEOUT
+#define WEAVE_PLATFORM_CONFIG_WIFI_SCAN_COMPLETION_TIMEOUT 10000
 #endif
 
 // -------------------- WiFi AP Configuration --------------------
@@ -130,7 +134,7 @@
  * consists of the final two bytes of the device's primary WiFi MAC address in hex.
  */
 #ifndef WEAVE_PLATFORM_CONFIG_WIFI_AP_SSID_PREFIX
-#define WEAVE_PLATFORM_CONFIG_WIFI_AP_SSID_PREFIX CONFIG_WIFI_AP_SSID_PREFIX
+#define WEAVE_PLATFORM_CONFIG_WIFI_AP_SSID_PREFIX "WEAVE-"
 #endif
 
 /**
@@ -139,7 +143,7 @@
  * The WiFi channel number to be used by the soft-AP.
  */
 #ifndef WEAVE_PLATFORM_CONFIG_WIFI_AP_CHANNEL
-#define WEAVE_PLATFORM_CONFIG_WIFI_AP_CHANNEL CONFIG_WIFI_AP_CHANNEL
+#define WEAVE_PLATFORM_CONFIG_WIFI_AP_CHANNEL 1
 #endif
 
 /**
@@ -148,7 +152,7 @@
  * The maximum number of stations allowed to connect to the soft-AP.
  */
 #ifndef WEAVE_PLATFORM_CONFIG_WIFI_AP_MAX_STATIONS
-#define WEAVE_PLATFORM_CONFIG_WIFI_AP_MAX_STATIONS CONFIG_WIFI_AP_MAX_STATIONS
+#define WEAVE_PLATFORM_CONFIG_WIFI_AP_MAX_STATIONS 4
 #endif
 
 /**
@@ -157,7 +161,7 @@
  * The beacon interval (in milliseconds) for the WiFi soft-AP.
  */
 #ifndef WEAVE_PLATFORM_CONFIG_WIFI_AP_BEACON_INTERVAL
-#define WEAVE_PLATFORM_CONFIG_WIFI_AP_BEACON_INTERVAL CONFIG_WIFI_AP_BEACON_INTERVAL
+#define WEAVE_PLATFORM_CONFIG_WIFI_AP_BEACON_INTERVAL 100
 #endif
 
 /**
@@ -167,7 +171,7 @@
  * if it has been idle.
  */
 #ifndef WEAVE_PLATFORM_CONFIG_WIFI_AP_IDLE_TIMEOUT
-#define WEAVE_PLATFORM_CONFIG_WIFI_AP_IDLE_TIMEOUT CONFIG_WIFI_AP_IDLE_TIMEOUT
+#define WEAVE_PLATFORM_CONFIG_WIFI_AP_IDLE_TIMEOUT 30000
 #endif
 
 // -------------------- Time Sync Configuration --------------------
@@ -181,7 +185,7 @@
  * synchronized every time the service tunnel is established.
  */
 #ifndef WEAVE_PLATFORM_CONFIG_ENABLE_SERVICE_DIRECTORY_TIME_SYNC
-#define WEAVE_PLATFORM_CONFIG_ENABLE_SERVICE_DIRECTORY_TIME_SYNC CONFIG_ENABLE_SERVICE_DIRECTORY_TIME_SYNC
+#define WEAVE_PLATFORM_CONFIG_ENABLE_SERVICE_DIRECTORY_TIME_SYNC 1
 #endif
 
 /**
@@ -191,7 +195,7 @@
  * using the Weave Time Sync protocol.
  */
 #ifndef WEAVE_PLATFORM_CONFIG_ENABLE_WEAVE_TIME_SERVICE_TIME_SYNC
-#define WEAVE_PLATFORM_CONFIG_ENABLE_WEAVE_TIME_SERVICE_TIME_SYNC CONFIG_ENABLE_WEAVE_TIME_SERVICE_TIME_SYNC
+#define WEAVE_PLATFORM_CONFIG_ENABLE_WEAVE_TIME_SERVICE_TIME_SYNC 1
 #endif
 
 /**
@@ -203,7 +207,7 @@
  * been enabled.
  */
 #ifndef WEAVE_PLATFORM_CONFIG_WEAVE_TIME_SERVICE_ENDPOINT_ID
-#define WEAVE_PLATFORM_CONFIG_WEAVE_TIME_SERVICE_ENDPOINT_ID CONFIG_WEAVE_TIME_SERVICE_ENDPOINT_ID
+#define WEAVE_PLATFORM_CONFIG_WEAVE_TIME_SERVICE_ENDPOINT_ID 0x18B4300200000005ULL
 #endif
 
 /**
@@ -216,7 +220,7 @@
  * been enabled.
  */
 #ifndef WEAVE_PLATFORM_CONFIG_DEFAULT_TIME_SYNC_INTERVAL
-#define WEAVE_PLATFORM_CONFIG_DEFAULT_TIME_SYNC_INTERVAL CONFIG_DEFAULT_TIME_SYNC_INTERVAL
+#define WEAVE_PLATFORM_CONFIG_DEFAULT_TIME_SYNC_INTERVAL 180
 #endif
 
 /**
@@ -229,7 +233,7 @@
  * been enabled.
  */
 #ifndef WEAVE_PLATFORM_CONFIG_TIME_SYNC_TIMEOUT
-#define WEAVE_PLATFORM_CONFIG_TIME_SYNC_TIMEOUT CONFIG_TIME_SYNC_TIMEOUT
+#define WEAVE_PLATFORM_CONFIG_TIME_SYNC_TIMEOUT 10000
 #endif
 
 
@@ -243,7 +247,7 @@
  * to Account request.
  */
 #ifndef WEAVE_PLATFORM_CONFIG_SERVICE_PROVISIONING_ENDPOINT_ID
-#define WEAVE_PLATFORM_CONFIG_SERVICE_PROVISIONING_ENDPOINT_ID CONFIG_SERVICE_PROVISIONING_ENDPOINT_ID
+#define WEAVE_PLATFORM_CONFIG_SERVICE_PROVISIONING_ENDPOINT_ID 0x18B4300200000010ULL
 #endif
 
 /**
@@ -255,7 +259,7 @@
  * to send a Pair Device to Account request to the Service Provisioning service.
  */
 #ifndef WEAVE_PLATFORM_CONFIG_SERVICE_PROVISIONING_CONNECTIVITY_TIMEOUT
-#define WEAVE_PLATFORM_CONFIG_SERVICE_PROVISIONING_CONNECTIVITY_TIMEOUT CONFIG_SERVICE_PROVISIONING_CONNECTIVITY_TIMEOUT
+#define WEAVE_PLATFORM_CONFIG_SERVICE_PROVISIONING_CONNECTIVITY_TIMEOUT 10000
 #endif
 
 /**
@@ -265,7 +269,7 @@
  * Provisioning service.
  */
 #ifndef WEAVE_PLATFORM_CONFIG_SERVICE_PROVISIONING_REQUEST_TIMEOUT
-#define WEAVE_PLATFORM_CONFIG_SERVICE_PROVISIONING_REQUEST_TIMEOUT CONFIG_SERVICE_PROVISIONING_REQUEST_TIMEOUT
+#define WEAVE_PLATFORM_CONFIG_SERVICE_PROVISIONING_REQUEST_TIMEOUT 10000
 #endif
 
 
@@ -281,7 +285,36 @@
  * This option is for testing only and should be disabled in production releases.
  */
 #ifndef WEAVE_PLATFORM_CONFIG_ENABLE_TEST_DEVICE_IDENTITY
-#define WEAVE_PLATFORM_CONFIG_ENABLE_TEST_DEVICE_IDENTITY CONFIG_ENABLE_TEST_DEVICE_IDENTITY
+#define WEAVE_PLATFORM_CONFIG_ENABLE_TEST_DEVICE_IDENTITY 0
+#endif
+
+/**
+ * WEAVE_PLATFORM_CONFIG_ENABLE_FIXED_TUNNEL_SERVER
+ *
+ * Forces the use of a service tunnel server at a fixed IP address and port.  This
+ * bypasses the need for a directory query to the service directory endpoint to
+ * determine the tunnel server address.  When enabled, this option allows devices
+ * that haven't been service provisioned to establish a service tunnel.
+ *
+ * When this option is enabled, WEAVE_PLATFORM_CONFIG_TUNNEL_SERVER_ADDRESS must
+ * be set to the address of the tunnel server.
+ */
+#ifndef WEAVE_PLATFORM_CONFIG_ENABLE_FIXED_TUNNEL_SERVER
+#define WEAVE_PLATFORM_CONFIG_ENABLE_FIXED_TUNNEL_SERVER 0
+#endif
+
+
+/** WEAVE_PLATFORM_CONFIG_TUNNEL_SERVER_ADDRESS
+ *
+ * The address of the server to which the device should establish a service tunnel.
+ *
+ * This value is only meaningful if WEAVE_PLATFORM_CONFIG_ENABLE_FIXED_TUNNEL_SERVER
+ * has been enabled.
+ *
+ * Note: Currently this must be a dot-notation IP address--not a host name.
+ */
+#ifndef WEAVE_PLATFORM_CONFIG_TUNNEL_SERVER_ADDRESS
+#define WEAVE_PLATFORM_CONFIG_TUNNEL_SERVER_ADDRESS ""
 #endif
 
 /**
@@ -292,7 +325,7 @@
  * with registering a service, but will not request the service to add the device to the user's account.
  */
 #ifndef WEAVE_PLATFORM_CONFIG_DISABLE_ACCOUNT_PAIRING
-#define WEAVE_PLATFORM_CONFIG_DISABLE_ACCOUNT_PAIRING CONFIG_DISABLE_ACCOUNT_PAIRING
+#define WEAVE_PLATFORM_CONFIG_DISABLE_ACCOUNT_PAIRING 0
 #endif
 
 #endif // WEAVE_PLATFORM_CONFIG_H

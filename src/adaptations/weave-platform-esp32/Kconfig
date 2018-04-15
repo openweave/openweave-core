@@ -5,7 +5,7 @@ menu "General Options"
 config WEAVE_TASK_STACK_SIZE
     int "Weave Task Stack Size"
     range 0 65535
-    default 4096
+    default 4608
     help
         The size (in bytes) of the Weave task stack.
 
