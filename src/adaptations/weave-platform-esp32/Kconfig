@@ -118,7 +118,7 @@ menu "WiFi AP Options"
 
 config WIFI_AP_SSID_PREFIX
     string "WiFi AP SSID Prefix"
-    default "WEAVE-ESP32-"
+    default "NEST-"
     help
         A prefix string used in forming the WiFi soft-AP SSID.  The remainder of the SSID
         consists of the final two bytes of the device's primary WiFi MAC address in hex.

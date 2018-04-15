@@ -134,7 +134,7 @@
  * consists of the final two bytes of the device's primary WiFi MAC address in hex.
  */
 #ifndef WEAVE_PLATFORM_CONFIG_WIFI_AP_SSID_PREFIX
-#define WEAVE_PLATFORM_CONFIG_WIFI_AP_SSID_PREFIX "WEAVE-"
+#define WEAVE_PLATFORM_CONFIG_WIFI_AP_SSID_PREFIX "NEST-"
 #endif
 
 /**
