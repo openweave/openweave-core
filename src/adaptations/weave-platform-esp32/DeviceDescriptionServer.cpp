@@ -31,26 +31,32 @@ void DeviceDescriptionServer::HandleIdentifyRequest(void *appState, uint64_t nod
     WEAVE_ERROR err = WEAVE_NO_ERROR;
     WeaveDeviceDescriptor deviceDesc;
 
-#if LOG_LOCAL_LEVEL >= ESP_LOG_ERROR
+#if LOG_LOCAL_LEVEL >= ESP_LOG_INFO
     {
         char ipAddrStr[64];
         nodeAddr.ToString(ipAddrStr, sizeof(ipAddrStr));
 
-        ESP_LOGD(TAG, "IdentifyRequest received from node %" PRIX64 " (%s)", nodeId, ipAddrStr);
-        ESP_LOGD(TAG, "  Target Fabric Id: %016" PRIX64, reqMsg.TargetFabricId);
-        ESP_LOGD(TAG, "  Target Modes: %08" PRIX32, reqMsg.TargetModes);
-        ESP_LOGD(TAG, "  Target Vendor Id: %04" PRIX16, reqMsg.TargetVendorId);
-        ESP_LOGD(TAG, "  Target Product Id: %04" PRIX16, reqMsg.TargetProductId);
+        ESP_LOGI(TAG, "IdentifyRequest received from node %" PRIX64 " (%s)", nodeId, ipAddrStr);
+        ESP_LOGI(TAG, "  Target Fabric Id: %016" PRIX64, reqMsg.TargetFabricId);
+        ESP_LOGI(TAG, "  Target Modes: %08" PRIX32, reqMsg.TargetModes);
+        ESP_LOGI(TAG, "  Target Vendor Id: %04" PRIX16, reqMsg.TargetVendorId);
+        ESP_LOGI(TAG, "  Target Product Id: %04" PRIX16, reqMsg.TargetProductId);
     }
 #endif // LOG_LOCAL_LEVEL >= ESP_LOG_ERROR
 
     sendResp = true;
 
     if (!MatchTargetFabricId(::WeavePlatform::FabricState.FabricId, reqMsg.TargetFabricId))
+    {
+        ESP_LOGI(TAG, "IdentifyRequest target fabric does not match device fabric");
         sendResp = false;
+    }
 
     if (reqMsg.TargetModes != kTargetDeviceMode_Any && (reqMsg.TargetModes & kTargetDeviceMode_UserSelectedMode) == 0)
+    {
+        ESP_LOGI(TAG, "IdentifyRequest target mode does not match device mode");
         sendResp = false;
+    }
 
     if (reqMsg.TargetVendorId != 0xFFFF)
     {
@@ -61,6 +67,7 @@ void DeviceDescriptionServer::HandleIdentifyRequest(void *appState, uint64_t nod
 
         if (reqMsg.TargetVendorId != vendorId)
         {
+            ESP_LOGI(TAG, "IdentifyRequest target vendor does not match device vendor");
             sendResp = false;
         }
     }
@@ -74,13 +81,14 @@ void DeviceDescriptionServer::HandleIdentifyRequest(void *appState, uint64_t nod
 
         if (reqMsg.TargetProductId != productId)
         {
+            ESP_LOGI(TAG, "IdentifyRequest target product does not match device product");
             sendResp = false;
         }
     }
 
     if (sendResp)
     {
-        ESP_LOGD(TAG, "Sending IdentifyResponse");
+        ESP_LOGI(TAG, "Sending IdentifyResponse");
     }
 
 exit:
