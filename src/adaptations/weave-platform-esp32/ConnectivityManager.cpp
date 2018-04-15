@@ -1419,6 +1419,7 @@ void ConnectivityManager::NetworkProvisioningDelegate::HandleScanDone()
             const wifi_ap_record_t & scanResult = scanResults[encodedResultCount];
 
             netInfo.Reset();
+            netInfo.NetworkType = kNetworkType_WiFi;
             memcpy(netInfo.WiFiSSID, scanResult.ssid, min(strlen((char *)scanResult.ssid) + 1, (size_t)NetworkInfo::kMaxWiFiSSIDLength));
             netInfo.WiFiSSID[NetworkInfo::kMaxWiFiSSIDLength] = 0;
             netInfo.WiFiMode = kWiFiMode_Managed;
