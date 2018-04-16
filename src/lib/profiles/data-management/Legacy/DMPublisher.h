@@ -175,7 +175,7 @@ namespace WeaveMakeManagedNamespaceIdentifier(DataManagement, kWeaveManagedNames
 
             inline void Deactivate(void)
             {
-                mFlags &= !kSubscriptionFlags_Active;
+                mFlags &= ~kSubscriptionFlags_Active;
             }
 
             inline bool MatchSubscription(const TopicIdentifier &aTopicId, const uint64_t &aClientId) const
