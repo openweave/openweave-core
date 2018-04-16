@@ -461,7 +461,7 @@ WEAVE_ERROR WeaveCASEEngine::GetSessionKey(const WeaveEncryptionKey *& encKey)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
 
-    VerifyOrExit(kState_Complete, err = WEAVE_ERROR_INCORRECT_STATE);
+    VerifyOrExit(State == kState_Complete, err = WEAVE_ERROR_INCORRECT_STATE);
 
     encKey = &mSecureState.AfterKeyGen.EncryptionKey;
 
