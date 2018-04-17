@@ -52,18 +52,7 @@ UpdateDirtyPathFilter::UpdateDirtyPathFilter(SubscriptionClient *apSubClient, Tr
 
 bool UpdateDirtyPathFilter::FilterPath (PropertyPathHandle pathhandle, const TraitSchemaEngine * aEngine)
 {
-    bool filterConfirmPendingUpdate = false;
-    bool filterConfirmDispatchedUpdate = false;
-
-#if WEAVE_CONFIG_ENABLE_WDM_UPDATE
-    if (mFilterDispatchedUpdate && (NULL != mpSubClient))
-        filterConfirmDispatchedUpdate = mpSubClient->IsInclusiveDispatchedUpdateStore(mTraitDataHandle, pathhandle, aEngine);
-
-    if (mFilterPendingUpdate && (NULL != mpSubClient))
-        filterConfirmPendingUpdate = mpSubClient->IsPropertyPending(mTraitDataHandle, pathhandle, aEngine);
-#endif // WEAVE_CONFIG_ENABLE_WDM_UPDATE
-
-    return (filterConfirmPendingUpdate || filterConfirmDispatchedUpdate);
+    return mpSubClient->IsDirty(mTraitDataHandle, pathhandle, aEngine);
 }
 
 UpdateDictionaryDirtyPathCut::UpdateDictionaryDirtyPathCut(TraitDataHandle aTraitDataHandle, SubscriptionClient * apSubClient)
@@ -465,7 +454,7 @@ WEAVE_ERROR TraitSchemaEngine::StoreData(PropertyPathHandle aHandle, TLVReader &
                         // two handles (target and current) are equivalent to each other).
                         aDelegate->OnDataSinkEvent(ISetDataDelegate::kDataSinkEvent_DictionaryReplaceEnd, curHandle);
                     } else if (IsDictionary(parentHandle)) {
-                        // We can surmise this is a modify/add if we're ascending to a node who's parent is a dictionary, and that node
+                        // We can surmise this is a modify/add if we're ascending to a node whose parent is a dictionary, and that node
                         // is lower than the target node this function was directed at (we can't get to this point in code if the
                         // two handles (target and current) are equivalent to each other). Those cases are handled by the two 'if'
                         // statements at the top and bottom of this function.
@@ -507,7 +496,7 @@ WEAVE_ERROR TraitSchemaEngine::StoreData(PropertyPathHandle aHandle, TLVReader &
                     // dictionary itself.
                     aDelegate->OnDataSinkEvent(ISetDataDelegate::kDataSinkEvent_DictionaryReplaceBegin, curHandle);
                 } else if (IsDictionary(parentHandle)) {
-                    // Alternatively, if we're descending onto a node who's parent is a dictionary, we know that this node
+                    // Alternatively, if we're descending onto a node whose parent is a dictionary, we know that this node
                     // represents an element in the dictionary and as such, is an appropriate point in the traversal to notify the
                     // application of an upcoming dictionary item modification/insertion.
                     aDelegate->OnDataSinkEvent(ISetDataDelegate::kDataSinkEvent_DictionaryItemModifyBegin,
@@ -908,7 +897,7 @@ WEAVE_ERROR TraitDataSink::StoreDataElement(PropertyPathHandle aHandle, TLVReade
 {
     DataElement::Parser parser;
     WEAVE_ERROR err = WEAVE_NO_ERROR;
-    uint64_t versionInDE;
+    DataVersion versionInDE;
     bool dataPresent = false, deletePresent = false;
     bool filterPendingUpdate = false, filterDispatchedUpdate = false;
 
@@ -918,7 +907,8 @@ WEAVE_ERROR TraitDataSink::StoreDataElement(PropertyPathHandle aHandle, TLVReade
     err = parser.GetVersion(&versionInDE);
     SuccessOrExit(err);
 
-    if (!mHasValidVersion || (mHasValidVersion && (versionInDE != mVersion)))
+    // TODO: this should use IsVersionOlder, once the algorithm is actually implemented.
+    if (!mHasValidVersion || (versionInDE != mVersion))
     {
         if (mHasValidVersion)
         {
@@ -984,8 +974,10 @@ WEAVE_ERROR TraitDataSink::StoreDataElement(PropertyPathHandle aHandle, TLVReade
                     SuccessOrExit(err);
                 }
 
-                if (IsVersionValid() || versionInDE >= mVersion)
+                if ((! IsVersionValid()) || IsVersionOlder(versionInDE, mVersion))
                 {
+                    subClient->CheckPotentialDataLoss(aDatahandle, aHandle, mSchemaEngine);
+
                     if (subClient->IsEmptyPendingUpdateStore() && subClient->IsEmptyDispatchedUpdateStore())
                     {
                         filterPendingUpdate = false;

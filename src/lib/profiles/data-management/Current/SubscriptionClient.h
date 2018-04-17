@@ -446,12 +446,12 @@ private:
 
     bool MergeDupInPendingUpdateStore(const TraitSchemaEngine * apSchemaEngine, size_t & candidateIndex);
 
-    bool IsInclusiveDispatchedUpdateStore(TraitDataHandle aTraitDataHandle, PropertyPathHandle aPropertyPathHandle, const TraitSchemaEngine * const apSchemaEngine);
-    bool IsPropertyPending(TraitDataHandle aTraitDataHandle, PropertyPathHandle aPropertyPathHandle, const TraitSchemaEngine * const apSchemaEngine);
+    void CheckPotentialDataLoss(TraitDataHandle aTraitDataHandle, PropertyPathHandle aPropertyPathHandle, const TraitSchemaEngine * const apSchemaEngine);
+    bool IsDirty(TraitDataHandle aTraitDataHandle, PropertyPathHandle aPropertyPathHandle, const TraitSchemaEngine * const apSchemaEngine);
     bool IsPresentDispatchedUpdateStore(TraitDataHandle aTraitDataHandle, PropertyPathHandle aPropertyPathHandle);
 
-    WEAVE_ERROR ClearPendingUpdateStore(void);
-    WEAVE_ERROR ClearDispatchedUpdateStore(void);
+    WEAVE_ERROR ClearPendingUpdateStore(WEAVE_ERROR aErr);
+    void ClearDispatchedUpdateStore(WEAVE_ERROR aErr);
     WEAVE_ERROR RemoveItemPendingUpdateStore(TraitDataHandle aDataHandle);
     WEAVE_ERROR RemoveItemDispatchedUpdateStore(TraitDataHandle aDataHandle);
     WEAVE_ERROR AddItemPendingUpdateStore(TraitPath aItem, const TraitSchemaEngine * const apSchemaEngine, bool aForceMerge = false);
@@ -463,13 +463,13 @@ private:
 
     bool IsFlushInProgress();
     WEAVE_ERROR SetFlushInProgress();
-    WEAVE_ERROR ClearFlushInProgress();
+    void ClearFlushInProgress();
 
     bool IsUpdateInFlight();
     WEAVE_ERROR SetUpdateInFlight();
     WEAVE_ERROR ClearUpdateInFlight();
 
-    void UpdateCompleteEventCbHelper(const TraitPath &aTraitPath, uint32_t &aStatusProfileId, uint16_t &aStatusCode, WEAVE_ERROR aReason);
+    void UpdateCompleteEventCbHelper(const TraitPath &aTraitPath, uint32_t aStatusProfileId, uint16_t aStatusCode, WEAVE_ERROR aReason);
     static void UpdateEventCallback (void * const aAppState, UpdateClient::EventType aEvent, const UpdateClient::InEventParam & aInParam, UpdateClient::OutEventParam & aOutParam);
     WEAVE_ERROR FormAndSendUpdate(bool aNotifyOnError);
 
@@ -482,25 +482,30 @@ private:
     {
     public:
         typedef enum {
+            kFlag_None       = 0x0,
             kFlag_Valid      = 0x1,
             kFlag_ForceMerge = 0x2,
             kFlag_Private    = 0x4,
         } Flag;
+        typedef uint8_t Flags;
 
         PathStore();
         bool AddItem(TraitPath aItem, bool aForceMerge = false, bool aPrivate = false);
+        bool AddItem(TraitPath aItem, Flags aFlags);
         void RemoveItem(TraitDataHandle aDataHandle);
         void RemoveItemAt(uint32_t aIndex);
         void GetItemAt(uint32_t aIndex, TraitPath &aTraitPath);
-        bool IsInclusive(TraitPath aItem, const TraitSchemaEngine * const apSchemaEngine);
+        bool Includes(TraitPath aItem, const TraitSchemaEngine * const apSchemaEngine);
+        bool Intersects(TraitPath aItem, const TraitSchemaEngine * const apSchemaEngine);
         bool IsPresent(TraitPath aItem);
         bool IsTraitPresent(TraitDataHandle aDataHandle);
-        bool IsFlagSet(uint32_t aIndex, Flag aFlag) { return ((mFlags[aIndex] & static_cast<uint8_t>(aFlag)) == aFlag); };
+        bool IsFlagSet(uint32_t aIndex, Flag aFlag) { return ((mFlags[aIndex] & static_cast<Flags>(aFlag)) == aFlag); };
         void SetFlag(uint32_t aIndex, Flag aFlag, bool aValue);
+        Flags GetFlags(uint32_t aIndex) { return mFlags[aIndex]; };
+        WEAVE_ERROR Import(PathStore &aSourceStore);
         bool IsItemValid(uint32_t aIndex) { return IsFlagSet(aIndex, kFlag_Valid); };
         bool IsItemForceMerge(uint32_t aIndex) { return IsFlagSet(aIndex, kFlag_ForceMerge); }
         bool IsItemPrivate(uint32_t aIndex) { return IsFlagSet(aIndex, kFlag_Private); }
-        void SetPrivate(TraitDataHandle aDataHandle);
 
         bool IsEmpty();
         bool IsFull();
@@ -508,7 +513,7 @@ private:
         uint32_t GetPathStoreSize();
         void Clear();
         TraitPath mPathStore[WDM_UPDATE_MAX_ITEMS_IN_TRAIT_DIRTY_PATH_STORE];
-        uint8_t mFlags[WDM_UPDATE_MAX_ITEMS_IN_TRAIT_DIRTY_PATH_STORE];
+        Flags mFlags[WDM_UPDATE_MAX_ITEMS_IN_TRAIT_DIRTY_PATH_STORE];
         uint32_t mNumItems;
     };
 
@@ -517,14 +522,18 @@ private:
      */
     struct UpdatableTIContext
     {
+        // TODO: check if it makes sense to move some of this state
+        // to the UpdatableTraitInstance class itself.
         void Init(void) { this->ClearDirty(); }
         bool IsDirty(void) { return mDirty; }
         void SetDirty(void) { mDirty = true; }
         void ClearDirty(void) { mDirty = false; }
 
         TraitDataHandle mTraitDataHandle;
+        TraitUpdatableDataSink *mUpdatableDataSink;
         uint16_t mRequestedVersion;
         bool mDirty;
+        bool mPotentialDataLoss;
         PropertyPathHandle mNextDictionaryElementPathHandle;
         PropertyPathHandle mCandidatePropertyPathHandle;
     };
@@ -540,6 +549,7 @@ private:
     };
 
     UpdatableTIContext * GetUpdatableTIContextList(void) { return mClientTraitInfoPool; }
+    UpdatableTIContext * GetUpdatableTIContext(TraitDataHandle aHandle);
     uint32_t GetNumUpdatableTraitInstances(void) { return mNumUpdatableTraitInstances; }
 
     UpdateRequestContext mUpdateRequestContext;

@@ -86,6 +86,8 @@ enum
 // TODO: A typedef like this should come with the relative PRIDataVersion define
 typedef uint64_t DataVersion;
 
+bool IsVersionOlder(const DataVersion &aReference, const DataVersion &aVersion);
+
 typedef uint16_t SchemaVersion;
 
 struct ConstSchemaVersionRange

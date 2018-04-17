@@ -2618,13 +2618,15 @@ WEAVE_ERROR TestBTraitUpdatableDataSink::Mutate(SubscriptionClient * apSubClient
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
     bool isLocked = false;
+    static int testNum = 0;
+    const int numTests = 3;
 
     err = Lock(apSubClient);
     SuccessOrExit(err);
 
     isLocked = true;
 
-    if ((GetVersion() % 3) == 0) {
+    if ((testNum % numTests) == 2) {
         err = SetUpdated(apSubClient, TestBTrait::kPropertyHandle_TbB_SbB, aIsConditional);
         SuccessOrExit(err);
 
@@ -2640,7 +2642,7 @@ WEAVE_ERROR TestBTraitUpdatableDataSink::Mutate(SubscriptionClient * apSubClient
 
         tbb_sbb++;
     }
-    else if ((GetVersion() % 3) == 1) {
+    else if ((testNum % numTests) == 1) {
         err = SetUpdated(apSubClient, TestBTrait::kPropertyHandle_TaC, aIsConditional);
         SuccessOrExit(err);
 
@@ -2654,12 +2656,14 @@ WEAVE_ERROR TestBTraitUpdatableDataSink::Mutate(SubscriptionClient * apSubClient
         tac++;
         tbc_sab = !tbc_sab;
     }
-    else if ((GetVersion() % 3) == 2) {
+    else if ((testNum % numTests) == 0) {
         err = SetUpdated(apSubClient, TestBTrait::kPropertyHandle_TaP, aIsConditional);
         SuccessOrExit(err);
 
         tap++;
     }
+
+    testNum = (testNum +1) % numTests;
 
 exit:
 

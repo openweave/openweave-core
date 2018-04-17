@@ -62,6 +62,12 @@ static uint32_t gPrettyPrintingDepthLevel = 0;
 static char gLineBuffer[256];
 static uint32_t gCurLineBufferSize = 0;
 
+bool IsVersionOlder(const DataVersion &aReference, const DataVersion &aVersion)
+{
+    // TODO: implement the new algorithm
+    return (aVersion < aReference);
+}
+
 #define PRETTY_PRINT(fmt, ...)                                                                                                     \
     do                                                                                                                             \
     {                                                                                                                              \

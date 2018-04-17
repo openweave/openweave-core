@@ -28,6 +28,7 @@ import re
 import sys
 import unittest
 import set_test_path
+import time
 
 from happy.Utils import *
 import WeaveTunnelStart
@@ -115,6 +116,14 @@ class weave_wdm_next_test_service_base(unittest.TestCase):
 
         # Start tunnel
         value, data = self.__start_tunnel_from("BorderRouter")
+
+        print "Going to sleep for one hour"
+        try:
+            time.sleep(60*60)
+        except KeyboardInterrupt:
+            print "sleep interrupted"
+
+
 
 
     def tearDown(self):
