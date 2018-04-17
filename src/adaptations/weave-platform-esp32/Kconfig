@@ -112,6 +112,14 @@ config WIFI_SCAN_COMPLETION_TIMEOUT
         The amount of time (in milliseconds) after which the Weave platform will timeout a WiFi scan
         operation that hasn't completed.  A value of 0 will disable the timeout logic.
 
+config WIFI_CONNECTIVITY_TIMEOUT
+    int "WiFi Connectivity Timeout (ms)"
+    range 0 65535
+    default 30000
+    help
+        The amount of time (in milliseconds) to wait for Internet connectivity to be established on
+        the device's WiFi station interface during a Network Provisioning TestConnectivity operation.
+
 endmenu
 
 menu "WiFi AP Options"

@@ -125,6 +125,16 @@
 #define WEAVE_PLATFORM_CONFIG_WIFI_SCAN_COMPLETION_TIMEOUT 10000
 #endif
 
+/**
+ * WEAVE_PLATFORM_CONFIG_WIFI_CONNECTIVITY_TIMEOUT
+ *
+ * The amount of time (in milliseconds) to wait for Internet connectivity to be established on
+ * the device's WiFi station interface during a Network Provisioning TestConnectivity operation.
+ */
+#ifndef WEAVE_PLATFORM_CONFIG_WIFI_CONNECTIVITY_TIMEOUT
+#define WEAVE_PLATFORM_CONFIG_WIFI_CONNECTIVITY_TIMEOUT 30000
+#endif
+
 // -------------------- WiFi AP Configuration --------------------
 
 /**

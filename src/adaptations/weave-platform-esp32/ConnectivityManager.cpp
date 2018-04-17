@@ -200,6 +200,10 @@ WEAVE_ERROR ConnectivityManager::Init()
     mWiFiAPIdleTimeoutMS = WEAVE_PLATFORM_CONFIG_WIFI_AP_IDLE_TIMEOUT;
     mFlags = 0;
 
+    // Initialize the network provisioning delegate.
+    err = mNetProvDelegate.Init();
+    SuccessOrExit(err);
+
     // Initialize the Weave Addressing and Routing Module.
     err = Warm::Init(FabricState);
     SuccessOrExit(err);
@@ -461,7 +465,7 @@ void ConnectivityManager::DriveStationState()
         // If the WiFi station interface is now enabled and provisioned (and by implication,
         // not presently under application control), AND the system is not in the process of
         // scanning, then...
-        if (mWiFiStationMode == kWiFiStationMode_Enabled && IsWiFiStationProvisioned() && !GetFlag(mFlags, kFlag_ScanInProgress))
+        if (mWiFiStationMode == kWiFiStationMode_Enabled && IsWiFiStationProvisioned() && !mNetProvDelegate.ScanInProgress())
         {
             // Initiate a connection to the AP if we haven't done so before, or if enough
             // time has passed since the last attempt.
@@ -748,6 +752,11 @@ void ConnectivityManager::UpdateInternetConnectivityState(void)
         }
 
         DriveServiceTunnelState();
+
+        if (ipv4ConnState)
+        {
+            mNetProvDelegate.CheckInternetConnectivity();
+        }
     }
 }
 
@@ -961,9 +970,17 @@ void ConnectivityManager::HandleServiceTunnelNotification(WeaveTunnelConnectionM
 
 // ==================== ConnectivityManager::NetworkProvisioningDelegate Public Methods ====================
 
+WEAVE_ERROR ConnectivityManager::NetworkProvisioningDelegate::Init()
+{
+    mState = kState_Idle;
+    return WEAVE_NO_ERROR;
+}
+
 WEAVE_ERROR ConnectivityManager::NetworkProvisioningDelegate::HandleScanNetworks(uint8_t networkType)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
+
+    VerifyOrExit(mState == kState_Idle, err = WEAVE_ERROR_INCORRECT_STATE);
 
     // Verify the expected network type.
     if (networkType != kNetworkType_WiFi)
@@ -978,6 +995,8 @@ WEAVE_ERROR ConnectivityManager::NetworkProvisioningDelegate::HandleScanNetworks
         ExitNow();
     }
 
+    // Enter the ScanNetworks Pending state and attempt to start the scan.
+    mState = kState_ScanNetworks_Pending;
     StartPendingScan();
 
 exit:
@@ -988,6 +1007,8 @@ WEAVE_ERROR ConnectivityManager::NetworkProvisioningDelegate::HandleAddNetwork(P
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
     NetworkInfo netInfo;
+
+    VerifyOrExit(mState == kState_Idle, err = WEAVE_ERROR_INCORRECT_STATE);
 
     // Parse the supplied network configuration info.
     {
@@ -1007,9 +1028,8 @@ WEAVE_ERROR ConnectivityManager::NetworkProvisioningDelegate::HandleAddNetwork(P
         ExitNow();
     }
 
-    // Delegate to the ConnectivityManager to check the validity of the new WiFi station provision.
-    // If the new provision is not acceptable, respond to the requestor with an appropriate
-    // StatusReport.
+    // Check the validity of the new WiFi station provision. If not acceptable, respond to
+    // the requestor with an appropriate StatusReport.
     {
         uint32_t statusProfileId;
         uint16_t statusCode;
@@ -1041,6 +1061,8 @@ WEAVE_ERROR ConnectivityManager::NetworkProvisioningDelegate::HandleUpdateNetwor
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
     NetworkInfo netInfo, netInfoUpdates;
+
+    VerifyOrExit(mState == kState_Idle, err = WEAVE_ERROR_INCORRECT_STATE);
 
     // Parse the supplied network configuration info.
     {
@@ -1083,8 +1105,8 @@ WEAVE_ERROR ConnectivityManager::NetworkProvisioningDelegate::HandleUpdateNetwor
     err = netInfoUpdates.MergeTo(netInfo);
     SuccessOrExit(err);
 
-    // Check the validity of the updated station provision. If the new provision is not acceptable,
-    // respond to the requestor with an appropriate StatusReport.
+    // Check the validity of the updated station provision. If not acceptable, respond to the requestor with an
+    // appropriate StatusReport.
     {
         uint32_t statusProfileId;
         uint16_t statusCode;
@@ -1117,6 +1139,8 @@ WEAVE_ERROR ConnectivityManager::NetworkProvisioningDelegate::HandleRemoveNetwor
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
     wifi_config_t stationConfig;
+
+    VerifyOrExit(mState == kState_Idle, err = WEAVE_ERROR_INCORRECT_STATE);
 
     // Reject the request if the application is currently in control of the WiFi station.
     if (RejectIfApplicationControlled(true))
@@ -1155,6 +1179,8 @@ WEAVE_ERROR ConnectivityManager::NetworkProvisioningDelegate::HandleGetNetworks(
     TLVWriter writer;
     uint8_t resultCount;
     const bool includeCredentials = (flags & kGetNetwork_IncludeCredentials) != 0;
+
+    VerifyOrExit(mState == kState_Idle, err = WEAVE_ERROR_INCORRECT_STATE);
 
     // Reject the request if the application is currently in control of the WiFi station.
     if (RejectIfApplicationControlled(true))
@@ -1200,6 +1226,8 @@ WEAVE_ERROR ConnectivityManager::NetworkProvisioningDelegate::HandleEnableNetwor
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
 
+    VerifyOrExit(mState == kState_Idle, err = WEAVE_ERROR_INCORRECT_STATE);
+
     // Reject the request if the application is currently in control of the WiFi station.
     if (RejectIfApplicationControlled(true))
     {
@@ -1220,9 +1248,8 @@ WEAVE_ERROR ConnectivityManager::NetworkProvisioningDelegate::HandleEnableNetwor
     err = ConnectivityMgr.SetWiFiStationMode(ConnectivityManager::kWiFiStationMode_Enabled);
     SuccessOrExit(err);
 
-    // Respond with a Success response.
-    err = NetworkProvisioningSvr.SendSuccessResponse();
-    SuccessOrExit(err);
+    // Send a Success response back to the client.
+    NetworkProvisioningSvr.SendSuccessResponse();
 
 exit:
     return err;
@@ -1231,6 +1258,8 @@ exit:
 WEAVE_ERROR ConnectivityManager::NetworkProvisioningDelegate::HandleDisableNetwork(uint32_t networkId)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
+
+    VerifyOrExit(mState == kState_Idle, err = WEAVE_ERROR_INCORRECT_STATE);
 
     // Reject the request if the application is currently in control of the WiFi station.
     if (RejectIfApplicationControlled(true))
@@ -1261,12 +1290,48 @@ exit:
 
 WEAVE_ERROR ConnectivityManager::NetworkProvisioningDelegate::HandleTestConnectivity(uint32_t networkId)
 {
-    return WEAVE_ERROR_NOT_IMPLEMENTED;
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
+
+    VerifyOrExit(mState == kState_Idle, err = WEAVE_ERROR_INCORRECT_STATE);
+
+    // Reject the request if the application is currently in control of the WiFi station.
+    if (RejectIfApplicationControlled(true))
+    {
+        ExitNow();
+    }
+
+    // Verify that the specified network exists.
+    if (!ConnectivityMgr.IsWiFiStationProvisioned() || networkId != kWiFiStationNetworkId)
+    {
+        err = NetworkProvisioningSvr.SendStatusReport(kWeaveProfile_NetworkProvisioning, kStatusCode_UnknownNetwork);
+        SuccessOrExit(err);
+        ExitNow();
+    }
+
+    // Tell the ConnectivityManager to enable the WiFi station interface if it hasn't been done already.
+    // Note that any effects of enabling the WiFi station interface (e.g. connecting to an AP) happen
+    // asynchronously with this call.
+    err = ConnectivityMgr.SetWiFiStationMode(ConnectivityManager::kWiFiStationMode_Enabled);
+    SuccessOrExit(err);
+
+    // Record that we're waiting for the WiFi station interface to establish connectivity
+    // with the Internet and arm a timer that will generate an error if connectivity isn't established
+    // within a certain amount of time.
+    mState = kState_TestConnectivity_WaitConnectivity;
+    SystemLayer.StartTimer(WEAVE_PLATFORM_CONFIG_WIFI_CONNECTIVITY_TIMEOUT, HandleConnectivityTimeOut, NULL);
+
+    // Go check for connectivity now.
+    CheckInternetConnectivity();
+
+exit:
+    return err;
 }
 
 WEAVE_ERROR ConnectivityManager::NetworkProvisioningDelegate::HandleSetRendezvousMode(uint16_t rendezvousMode)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
+
+    VerifyOrExit(mState == kState_Idle, err = WEAVE_ERROR_INCORRECT_STATE);
 
     // If any modes other than EnableWiFiRendezvousNetwork or EnableThreadRendezvous
     // were specified, fail with Common:UnsupportedMessage.
@@ -1327,16 +1392,17 @@ void ConnectivityManager::NetworkProvisioningDelegate::StartPendingScan()
     WEAVE_ERROR err = WEAVE_NO_ERROR;
     wifi_scan_config_t scanConfig;
 
-    // Do nothing if there's no ScanNetworks request pending, or if a scan is already in progress.
-    if (NetworkProvisioningSvr.GetCurrentOp() != kMsgType_ScanNetworks || GetFlag(ConnectivityMgr.mFlags, kFlag_ScanInProgress))
+    // Do nothing if there's no pending ScanNetworks request outstanding, or if a scan is already in progress.
+    if (mState != kState_ScanNetworks_Pending)
     {
-        return;
+        ExitNow();
     }
 
-    // Defer the scan if the WiFi station is in the process of connecting.
+    // Defer the scan if the WiFi station is in the process of connecting. The Connection Manager will
+    // call this method again when the connect attempt is complete.
     if (ConnectivityMgr.mWiFiStationState == kWiFiStationState_Connecting)
     {
-        return;
+        ExitNow();
     }
 
     // Initiate an active scan using the default dwell times.  Configure the scan to return hidden networks.
@@ -1351,13 +1417,14 @@ void ConnectivityManager::NetworkProvisioningDelegate::StartPendingScan()
     SystemLayer.StartTimer(WEAVE_PLATFORM_CONFIG_WIFI_SCAN_COMPLETION_TIMEOUT, HandleScanTimeOut, NULL);
 #endif // WEAVE_PLATFORM_CONFIG_WIFI_SCAN_COMPLETION_TIMEOUT
 
-    SetFlag(ConnectivityMgr.mFlags, kFlag_ScanInProgress);
+    mState = kState_ScanNetworks_InProgress;
 
 exit:
     // If an error occurred, send a Internal Error back to the requestor.
     if (err != WEAVE_NO_ERROR)
     {
         NetworkProvisioningSvr.SendStatusReport(kWeaveProfile_Common, kStatus_InternalError, err);
+        mState = kState_Idle;
     }
 }
 
@@ -1369,10 +1436,10 @@ void ConnectivityManager::NetworkProvisioningDelegate::HandleScanDone()
     uint16_t encodedResultCount;
     PacketBuffer * respBuf = NULL;
 
-    // If we receive a SCAN DONE event for a scan that we didn't initiate, ignore it.
-    VerifyOrExit(GetFlag(ConnectivityMgr.mFlags, kFlag_ScanInProgress), err = WEAVE_ERROR_INCORRECT_STATE);
+    // If we receive a SCAN DONE event for a scan that we didn't initiate, simply ignore it.
+    VerifyOrExit(mState == kState_ScanNetworks_InProgress, err = WEAVE_NO_ERROR);
 
-    ClearFlag(ConnectivityMgr.mFlags, kFlag_ScanInProgress);
+    mState = kState_Idle;
 
 #if WEAVE_PLATFORM_CONFIG_WIFI_SCAN_COMPLETION_TIMEOUT
     // Cancel the scan timeout timer.
@@ -1596,6 +1663,27 @@ exit:
     return err;
 }
 
+void ConnectivityManager::NetworkProvisioningDelegate::CheckInternetConnectivity(void)
+{
+    // If waiting for Internet connectivity to be established, and IPv4 Internet connectivity
+    // now exists...
+    if (mState == kState_TestConnectivity_WaitConnectivity && ConnectivityMgr.HaveIPv4InternetConnectivity())
+    {
+        // Reset the state.
+        mState = kState_Idle;
+        SystemLayer.CancelTimer(HandleConnectivityTimeOut, NULL);
+
+        // Verify that the TestConnectivity request is still outstanding; if so...
+        if (NetworkProvisioningSvr.GetCurrentOp() == kMsgType_TestConnectivity)
+        {
+            // TODO: perform positive test of connectivity to the Internet.
+
+            // Send a Success response to the client.
+            NetworkProvisioningSvr.SendSuccessResponse();
+        }
+    }
+}
+
 WEAVE_ERROR ConnectivityManager::NetworkProvisioningDelegate::SetESPStationConfig(const ::WeavePlatform::Internal::NetworkInfo  & netInfo)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
@@ -1691,9 +1779,11 @@ void ConnectivityManager::NetworkProvisioningDelegate::HandleScanTimeOut(::nl::W
 {
     ESP_LOGE(TAG, "WiFi scan timed out");
 
-    ClearFlag(ConnectivityMgr.mFlags, kFlag_ScanInProgress);
+    // Reset the state.
+    ConnectivityMgr.mNetProvDelegate.mState = kState_Idle;
 
-    // If we haven't yet responded, send a Internal Error back to the requestor.
+    // Verify that the ScanNetworks request is still outstanding; if so, send a
+    // Common:InternalError StatusReport to the client.
     if (NetworkProvisioningSvr.GetCurrentOp() == kMsgType_ScanNetworks)
     {
         NetworkProvisioningSvr.SendStatusReport(kWeaveProfile_Common, kStatus_InternalError, WEAVE_ERROR_TIMEOUT);
@@ -1705,6 +1795,22 @@ void ConnectivityManager::NetworkProvisioningDelegate::HandleScanTimeOut(::nl::W
 }
 
 #endif // WEAVE_PLATFORM_CONFIG_WIFI_SCAN_COMPLETION_TIMEOUT
+
+void ConnectivityManager::NetworkProvisioningDelegate::HandleConnectivityTimeOut(::nl::Weave::System::Layer * aLayer, void * aAppState, ::nl::Weave::System::Error aError)
+{
+    ESP_LOGI(TAG, "Time out waiting for Internet connectivity");
+
+    // Reset the state.
+    ConnectivityMgr.mNetProvDelegate.mState = kState_Idle;
+    SystemLayer.CancelTimer(HandleConnectivityTimeOut, NULL);
+
+    // Verify that the TestConnectivity request is still outstanding; if so, send a
+    // NetworkProvisioning:NetworkConnectFailed StatusReport to the client.
+    if (NetworkProvisioningSvr.GetCurrentOp() == kMsgType_TestConnectivity)
+    {
+        NetworkProvisioningSvr.SendStatusReport(kWeaveProfile_NetworkProvisioning, kStatusCode_NetworkConnectFailed, WEAVE_ERROR_TIMEOUT);
+    }
+}
 
 
 // ==================== Internal Utility Functions ====================

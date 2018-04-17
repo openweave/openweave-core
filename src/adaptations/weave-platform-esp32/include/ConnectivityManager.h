@@ -86,7 +86,7 @@ public:
 
 private:
 
-    // NOTE: These members are for internal use by the following friend classes.
+    // NOTE: These members are for internal use by the following friends.
 
     friend class ::WeavePlatform::PlatformManager;
     friend class ::WeavePlatform::Internal::NetworkProvisioningServer;
@@ -97,10 +97,14 @@ private:
 
 private:
 
+    // NOTE: These members are private to the class and should not be used by friends.
+
     class NetworkProvisioningDelegate
             : public ::nl::Weave::Profiles::NetworkProvisioning::NetworkProvisioningDelegate
     {
     public:
+        WEAVE_ERROR Init();
+
         virtual WEAVE_ERROR HandleScanNetworks(uint8_t networkType);
         virtual WEAVE_ERROR HandleAddNetwork(::nl::Weave::System::PacketBuffer *networkInfoTLV);
         virtual WEAVE_ERROR HandleUpdateNetwork(::nl::Weave::System::PacketBuffer *networkInfoTLV);
@@ -111,16 +115,29 @@ private:
         virtual WEAVE_ERROR HandleTestConnectivity(uint32_t networkId);
         virtual WEAVE_ERROR HandleSetRendezvousMode(uint16_t rendezvousMode);
 
+        bool ScanInProgress(void);
         void StartPendingScan(void);
         void HandleScanDone(void);
+        void CheckInternetConnectivity(void);
 
     private:
+        enum State
+        {
+            kState_Idle = 0,
+            kState_ScanNetworks_Pending,
+            kState_ScanNetworks_InProgress,
+            kState_TestConnectivity_WaitConnectivity
+        };
+
+        State mState;
+
         WEAVE_ERROR GetWiFiStationProvision(::WeavePlatform::Internal::NetworkInfo & netInfo, bool includeCredentials);
         WEAVE_ERROR ValidateWiFiStationProvision(const ::WeavePlatform::Internal::NetworkInfo & netInfo,
                         uint32_t & statusProfileId, uint16_t & statusCode);
         WEAVE_ERROR SetESPStationConfig(const ::WeavePlatform::Internal::NetworkInfo & netInfo);
         bool RejectIfApplicationControlled(bool station);
         static void HandleScanTimeOut(::nl::Weave::System::Layer * aLayer, void * aAppState, ::nl::Weave::System::Error aError);
+        static void HandleConnectivityTimeOut(::nl::Weave::System::Layer * aLayer, void * aAppState, ::nl::Weave::System::Error aError);
     };
 
     enum WiFiStationState
@@ -150,6 +167,7 @@ private:
         kFlag_HaveIPv6InternetConnectivity      = 0x0004,
         kFlag_HaveServiceConnectivity           = 0x0008,
         kFlag_ServiceTunnelStarted              = 0x0010,
+        kFlag_AwaitingConnectivity              = 0x0020,
     };
 
     NetworkProvisioningDelegate mNetProvDelegate;
@@ -239,6 +257,11 @@ inline bool ConnectivityManager::HaveServiceConnectivity(void) const
 inline ConnectivityManager::ServiceTunnelMode ConnectivityManager::GetServiceTunnelMode(void) const
 {
     return mServiceTunnelMode;
+}
+
+inline bool ConnectivityManager::NetworkProvisioningDelegate::ScanInProgress(void)
+{
+    return mState == kState_ScanNetworks_InProgress;
 }
 
 } // namespace WeavePlatform
