@@ -29,10 +29,13 @@
 
 #include "esp_err.h"
 
-namespace WeavePlatform {
-struct WeavePlatformEvent;
-} // namespace WeavePlatform
-
+namespace nl {
+namespace Weave {
+namespace Device {
+struct WeaveDeviceEvent;
+} // namespace Device
+} // namespace Weave
+} // namespace nl
 
 // NOTE: The values that are mapped to CONFIG_ #defines are settable via the ESP-IDF Kconfig mechanism.
 
@@ -48,7 +51,7 @@ struct WeavePlatformEvent;
 #define WEAVE_SYSTEM_CONFIG_PLATFORM_PROVIDES_EVENT_FUNCTIONS 1
 #define WEAVE_SYSTEM_CONFIG_PLATFORM_PROVIDES_TIME 1
 #define WEAVE_SYSTEM_CONFIG_LWIP_EVENT_TYPE int
-#define WEAVE_SYSTEM_CONFIG_LWIP_EVENT_OBJECT_TYPE const struct ::WeavePlatform::WeavePlatformEvent *
+#define WEAVE_SYSTEM_CONFIG_LWIP_EVENT_OBJECT_TYPE const struct ::nl::Weave::Device::WeaveDeviceEvent *
 
 #define WEAVE_SYSTEM_CONFIG_ERROR_TYPE esp_err_t
 #define WEAVE_SYSTEM_CONFIG_NO_ERROR ESP_OK

@@ -1,0 +1,603 @@
+/*
+ *
+ *    Copyright (c) 2018 Nest Labs, Inc.
+ *    All rights reserved.
+ *
+ *    Licensed under the Apache License, Version 2.0 (the "License");
+ *    you may not use this file except in compliance with the License.
+ *    You may obtain a copy of the License at
+ *
+ *        http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *    Unless required by applicable law or agreed to in writing, software
+ *    distributed under the License is distributed on an "AS IS" BASIS,
+ *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *    See the License for the specific language governing permissions and
+ *    limitations under the License.
+ */
+
+#include <internal/WeaveDeviceInternal.h>
+#include <PlatformManager.h>
+#include <internal/DeviceControlServer.h>
+#include <internal/DeviceDescriptionServer.h>
+#include <internal/NetworkProvisioningServer.h>
+#include <internal/FabricProvisioningServer.h>
+#include <internal/ServiceProvisioningServer.h>
+#include <internal/ServiceDirectoryManager.h>
+#include <internal/EchoServer.h>
+#include <new>
+#include <esp_timer.h>
+
+using namespace ::nl;
+using namespace ::nl::Weave;
+using namespace ::nl::Weave::Device::Internal;
+
+namespace nl {
+namespace Weave {
+namespace Device {
+
+namespace Internal {
+
+extern WEAVE_ERROR InitCASEAuthDelegate();
+extern WEAVE_ERROR InitEntropy();
+
+} // namespace Internal
+
+namespace {
+
+struct RegisteredEventHandler
+{
+    RegisteredEventHandler * Next;
+    PlatformManager::EventHandlerFunct Handler;
+    intptr_t Arg;
+};
+
+SemaphoreHandle_t WeaveStackLock;
+SemaphoreHandle_t LwIPCoreLock;
+QueueHandle_t WeaveEventQueue;
+bool WeaveTimerActive;
+TimeOut_t NextTimerBaseTime;
+TickType_t NextTimerDurationTicks;
+RegisteredEventHandler * RegisteredEventHandlerList;
+TaskHandle_t EventLoopTask;
+
+} // unnamed namespace
+
+
+// ==================== PlatformManager Public Members ====================
+
+WEAVE_ERROR PlatformManager::InitLocks()
+{
+    WeaveStackLock = xSemaphoreCreateMutex();
+    if (WeaveStackLock == NULL) {
+        ESP_LOGE(TAG, "Failed to create Weave stack lock");
+        return WEAVE_ERROR_NO_MEMORY;
+    }
+
+    LwIPCoreLock = xSemaphoreCreateMutex();
+    if (LwIPCoreLock == NULL) {
+        ESP_LOGE(TAG, "Failed to create LwIP core lock");
+        return WEAVE_ERROR_NO_MEMORY;
+    }
+
+    return WEAVE_NO_ERROR;
+}
+
+WEAVE_ERROR PlatformManager::InitWeaveStack()
+{
+    WEAVE_ERROR err;
+
+    // Initialize the source used by Weave to get secure random data.
+    err = InitEntropy();
+    SuccessOrExit(err);
+
+    // Initialize the master Weave event queue.
+    err = InitWeaveEventQueue();
+    SuccessOrExit(err);
+
+    // Initialize the Configuration Manager object.
+    new (&ConfigurationMgr) ConfigurationManager();
+    err = ConfigurationMgr.Init();
+    if (err != WEAVE_NO_ERROR)
+    {
+        ESP_LOGE(TAG, "Configuration Manager initialization failed: %s", ErrorStr(err));
+    }
+    SuccessOrExit(err);
+
+    // Initialize the Weave system layer.
+    new (&SystemLayer) System::Layer();
+    err = SystemLayer.Init(NULL);
+    if (err != WEAVE_SYSTEM_NO_ERROR)
+    {
+        ESP_LOGE(TAG, "SystemLayer initialization failed: %s", ErrorStr(err));
+    }
+    SuccessOrExit(err);
+
+    // Initialize the Weave Inet layer.
+    new (&InetLayer) Inet::InetLayer();
+    err = InetLayer.Init(SystemLayer, NULL);
+    if (err != INET_NO_ERROR)
+    {
+        ESP_LOGE(TAG, "InetLayer initialization failed: %s", ErrorStr(err));
+    }
+    SuccessOrExit(err);
+
+    // Initialize the Weave fabric state object.
+    new (&FabricState) WeaveFabricState();
+    err = FabricState.Init();
+    if (err != WEAVE_NO_ERROR)
+    {
+        ESP_LOGE(TAG, "FabricState initialization failed: %s", ErrorStr(err));
+    }
+    SuccessOrExit(err);
+
+    FabricState.DefaultSubnet = kWeaveSubnetId_PrimaryWiFi;
+
+#if WEAVE_CONFIG_SECURITY_TEST_MODE
+    FabricState.LogKeys = true;
+#endif
+
+    {
+        WeaveMessageLayer::InitContext initContext;
+        initContext.systemLayer = &SystemLayer;
+        initContext.inet = &InetLayer;
+        initContext.fabricState = &FabricState;
+        initContext.listenTCP = true;
+        initContext.listenUDP = true;
+
+        // Initialize the Weave message layer.
+        new (&MessageLayer) WeaveMessageLayer();
+        err = MessageLayer.Init(&initContext);
+        if (err != WEAVE_NO_ERROR) {
+            ESP_LOGE(TAG, "MessageLayer initialization failed: %s", ErrorStr(err));
+        }
+        SuccessOrExit(err);
+    }
+
+    // Initialize the Weave exchange manager.
+    err = ExchangeMgr.Init(&MessageLayer);
+    if (err != WEAVE_NO_ERROR) {
+        ESP_LOGE(TAG, "ExchangeMgr initialization failed: %s", ErrorStr(err));
+    }
+    SuccessOrExit(err);
+
+    // Initialize the Weave security manager.
+    new (&SecurityMgr) WeaveSecurityManager();
+    err = SecurityMgr.Init(ExchangeMgr, SystemLayer);
+    if (err != WEAVE_NO_ERROR) {
+        ESP_LOGE(TAG, "SecurityMgr initialization failed: %s", ErrorStr(err));
+    }
+    SuccessOrExit(err);
+
+    // Initialize the CASE auth delegate object.
+    err = InitCASEAuthDelegate();
+    SuccessOrExit(err);
+
+#if WEAVE_CONFIG_SECURITY_TEST_MODE
+    SecurityMgr.CASEUseKnownECDHKey = true;
+#endif
+
+#if WEAVE_CONFIG_ENABLE_SERVICE_DIRECTORY
+    // Initialize the service directory manager.
+    err = InitServiceDirectoryManager();
+    SuccessOrExit(err);
+#endif
+
+    // Perform dynamic configuration of the Weave stack based on stored settings.
+    err = ConfigurationMgr.ConfigureWeaveStack();
+    if (err != WEAVE_NO_ERROR)
+    {
+        ESP_LOGE(TAG, "ConfigureWeaveStack failed: %s", ErrorStr(err));
+    }
+    SuccessOrExit(err);
+
+    // Initialize the Connectivity Manager object.
+    new (&ConnectivityMgr) ConnectivityManager();
+    err = ConnectivityMgr.Init();
+    if (err != WEAVE_NO_ERROR)
+    {
+        ESP_LOGE(TAG, "Connectivity Manager initialization failed: %s", ErrorStr(err));
+    }
+    SuccessOrExit(err);
+
+    // Initialize the Device Control server.
+    new (&DeviceControlSvr) DeviceControlServer();
+    err = DeviceControlSvr.Init();
+    if (err != WEAVE_NO_ERROR)
+    {
+        ESP_LOGE(TAG, "Weave Device Control server initialization failed: %s", ErrorStr(err));
+    }
+    SuccessOrExit(err);
+
+    // Initialize the Device Description server.
+    new (&DeviceDescriptionSvr) DeviceDescriptionServer();
+    err = DeviceDescriptionSvr.Init();
+    if (err != WEAVE_NO_ERROR)
+    {
+        ESP_LOGE(TAG, "Weave Device Control server initialization failed: %s", ErrorStr(err));
+    }
+    SuccessOrExit(err);
+
+    // Initialize the Network Provisioning server.
+    new (&NetworkProvisioningSvr) NetworkProvisioningServer();
+    err = NetworkProvisioningSvr.Init();
+    if (err != WEAVE_NO_ERROR)
+    {
+        ESP_LOGE(TAG, "Weave Network Provisionining server initialization failed: %s", ErrorStr(err));
+    }
+    SuccessOrExit(err);
+
+    // Initialize the Fabric Provisioning server.
+    new (&FabricProvisioningSvr) FabricProvisioningServer();
+    err = FabricProvisioningSvr.Init();
+    if (err != WEAVE_NO_ERROR)
+    {
+        ESP_LOGE(TAG, "Weave Fabric Provisionining server initialization failed: %s", ErrorStr(err));
+    }
+    SuccessOrExit(err);
+
+    // Initialize the Service Provisioning server.
+    new (&ServiceProvisioningSvr) ServiceProvisioningServer();
+    err = ServiceProvisioningSvr.Init();
+    if (err != WEAVE_NO_ERROR)
+    {
+        ESP_LOGE(TAG, "Weave Service Provisionining server initialization failed: %s", ErrorStr(err));
+    }
+    SuccessOrExit(err);
+
+    // Initialize the Echo server.
+    new (&EchoSvr) EchoServer();
+    err = EchoSvr.Init();
+    if (err != WEAVE_NO_ERROR)
+    {
+        ESP_LOGE(TAG, "Weave Echo server initialization failed: %s", ErrorStr(err));
+    }
+    SuccessOrExit(err);
+
+    // Initialize the Time Sync Manager object.
+    new (&TimeSyncMgr) TimeSyncManager();
+    err = TimeSyncMgr.Init();
+    if (err != WEAVE_NO_ERROR)
+    {
+        ESP_LOGE(TAG, "Time Sync Manager initialization failed: %s", ErrorStr(err));
+    }
+    SuccessOrExit(err);
+
+exit:
+    return err;
+}
+
+WEAVE_ERROR PlatformManager::AddEventHandler(EventHandlerFunct handler, intptr_t arg)
+{
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
+    RegisteredEventHandler * eventHandler;
+
+    // Do nothing if the event handler is already registered.
+    for (eventHandler = RegisteredEventHandlerList; eventHandler != NULL; eventHandler = eventHandler->Next)
+    {
+        if (eventHandler->Handler == handler && eventHandler->Arg == arg)
+        {
+            ExitNow();
+        }
+    }
+
+    eventHandler = (RegisteredEventHandler *)malloc(sizeof(RegisteredEventHandler));
+    VerifyOrExit(eventHandler != NULL, err = WEAVE_ERROR_NO_MEMORY);
+
+    eventHandler->Next = RegisteredEventHandlerList;
+    eventHandler->Handler = handler;
+    eventHandler->Arg = arg;
+
+    RegisteredEventHandlerList = eventHandler;
+
+exit:
+    return err;
+}
+
+void PlatformManager::RemoveEventHandler(EventHandlerFunct handler, intptr_t arg)
+{
+    RegisteredEventHandler ** eventHandlerIndirectPtr;
+
+    for (eventHandlerIndirectPtr = &RegisteredEventHandlerList; *eventHandlerIndirectPtr != NULL; )
+    {
+        RegisteredEventHandler * eventHandler = (*eventHandlerIndirectPtr);
+
+        if (eventHandler->Handler == handler && eventHandler->Arg == arg)
+        {
+            *eventHandlerIndirectPtr = eventHandler->Next;
+            free(eventHandler);
+        }
+        else
+        {
+            eventHandlerIndirectPtr = &eventHandler->Next;
+        }
+    }
+}
+
+void PlatformManager::ScheduleWork(AsyncWorkFunct workFunct, intptr_t arg)
+{
+    WeaveDeviceEvent event;
+    event.Type = WeaveDeviceEvent::kEventType_CallWorkFunct;
+    event.CallWorkFunct.WorkFunct = workFunct;
+    event.CallWorkFunct.Arg = arg;
+
+    PostEvent(&event);
+}
+
+void PlatformManager::RunEventLoop()
+{
+    RunEventLoop(NULL);
+}
+
+WEAVE_ERROR PlatformManager::StartEventLoopTask()
+{
+    BaseType_t res;
+
+    res = xTaskCreate(RunEventLoop,
+                WEAVE_PLATFORM_CONFIG_WEAVE_TASK_NAME,
+                WEAVE_PLATFORM_CONFIG_WEAVE_TASK_STACK_SIZE,
+                NULL,
+                ESP_TASK_PRIO_MIN + WEAVE_PLATFORM_CONFIG_WEAVE_TASK_PRIORITY,
+                NULL);
+
+    return (res == pdPASS) ? WEAVE_NO_ERROR : WEAVE_ERROR_NO_MEMORY;
+}
+
+void PlatformManager::LockWeaveStack()
+{
+    xSemaphoreTake(WeaveStackLock, portMAX_DELAY);
+}
+
+void PlatformManager::UnlockWeaveStack()
+{
+    xSemaphoreGive(WeaveStackLock);
+}
+
+esp_err_t PlatformManager::HandleESPSystemEvent(void * ctx, system_event_t * espEvent)
+{
+    WeaveDeviceEvent event;
+    event.Type = WeaveDeviceEvent::kEventType_ESPSystemEvent;
+    event.ESPSystemEvent = *espEvent;
+
+    PlatformMgr.PostEvent(&event);
+
+    return ESP_OK;
+}
+
+
+// ==================== PlatformManager Private Members ====================
+
+WEAVE_ERROR PlatformManager::InitWeaveEventQueue()
+{
+    WeaveEventQueue = xQueueCreate(WEAVE_PLATFORM_CONFIG_MAX_EVENT_QUEUE_SIZE, sizeof(WeaveDeviceEvent));
+    if (WeaveEventQueue == NULL)
+    {
+        ESP_LOGE(TAG, "Failed to allocate Weave event queue");
+        return WEAVE_ERROR_NO_MEMORY;
+    }
+
+    return WEAVE_NO_ERROR;
+}
+
+void PlatformManager::PostEvent(const WeaveDeviceEvent * event)
+{
+    if (WeaveEventQueue != NULL)
+    {
+        if (!xQueueSend(WeaveEventQueue, event, 1))
+        {
+            ESP_LOGE(TAG, "Failed to post event to Weave Platform event queue");
+        }
+    }
+}
+
+void PlatformManager::DispatchEvent(const WeaveDeviceEvent * event)
+{
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
+
+    // If the event is a Weave System or Inet Layer event, deliver it to the SystemLayer event handler.
+    if (event->Type == WeaveDeviceEvent::kEventType_WeaveSystemLayerEvent)
+    {
+        err = SystemLayer.HandleEvent(*event->WeaveSystemLayerEvent.Target, event->WeaveSystemLayerEvent.Type, event->WeaveSystemLayerEvent.Argument);
+        if (err != WEAVE_SYSTEM_NO_ERROR)
+        {
+            ESP_LOGE(TAG, "Error handling Weave System Layer event (type %d): %s", event->Type, nl::ErrorStr(err));
+        }
+    }
+
+    // If the event is a "call work function" event, call the specified function.
+    else if (event->Type == WeaveDeviceEvent::kEventType_CallWorkFunct)
+    {
+        event->CallWorkFunct.WorkFunct(event->CallWorkFunct.Arg);
+    }
+
+    // Otherwise deliver the event to all the platform components, followed by any application-registered
+    // event handlers.  Each of these will decide whether and how they want to react to the event.
+    else
+    {
+        ConnectivityMgr.OnPlatformEvent(event);
+        DeviceControlSvr.OnPlatformEvent(event);
+        DeviceDescriptionSvr.OnPlatformEvent(event);
+        NetworkProvisioningSvr.OnPlatformEvent(event);
+        FabricProvisioningSvr.OnPlatformEvent(event);
+        ServiceProvisioningSvr.OnPlatformEvent(event);
+        TimeSyncMgr.OnPlatformEvent(event);
+
+        for (RegisteredEventHandler * eventHandler = RegisteredEventHandlerList;
+             eventHandler != NULL;
+             eventHandler = eventHandler->Next)
+        {
+            eventHandler->Handler(event, eventHandler->Arg);
+        }
+    }
+}
+
+void PlatformManager::RunEventLoop(void * /* unused */)
+{
+    WEAVE_ERROR err;
+    WeaveDeviceEvent event;
+
+    VerifyOrDie(EventLoopTask == NULL);
+
+    EventLoopTask = xTaskGetCurrentTaskHandle();
+
+    while (true)
+    {
+        TickType_t waitTime;
+
+        // If one or more Weave timers are active...
+        if (WeaveTimerActive) {
+
+            // Adjust the base time and remaining duration for the next scheduled timer based on the
+            // amount of time that has elapsed since it was started.
+            // IF the timer's expiration time has already arrived...
+            if (xTaskCheckForTimeOut(&NextTimerBaseTime, &NextTimerDurationTicks) == pdTRUE) {
+
+                // Reset the 'timer active' flag.  This will be set to true again by HandlePlatformTimer()
+                // if there are further timers beyond the expired one that are still active.
+                WeaveTimerActive = false;
+
+                // Call into the system layer to dispatch the callback functions for all timers
+                // that have expired.
+                err = SystemLayer.HandlePlatformTimer();
+                if (err != WEAVE_SYSTEM_NO_ERROR) {
+                    ESP_LOGE(TAG, "Error handling Weave timers: %s", ErrorStr(err));
+                }
+
+                // When processing the event queue below, do not wait if the queue is empty.  Instead
+                // immediately loop around and process timers again
+                waitTime = 0;
+            }
+
+            // If there is still time before the next timer expires, arrange to wait on the event queue
+            // until that timer expires.
+            else {
+                waitTime = NextTimerDurationTicks;
+            }
+        }
+
+        // Otherwise no Weave timers are active, so wait indefinitely for an event to arrive on the event
+        // queue.
+        else {
+            waitTime = portMAX_DELAY;
+        }
+
+        // Unlock the Weave stack, allowing other threads to enter Weave while the event loop thread is sleeping.
+        PlatformMgr.UnlockWeaveStack();
+
+        BaseType_t eventReceived = xQueueReceive(WeaveEventQueue, &event, waitTime);
+
+        // Lock the Weave stack.
+        PlatformMgr.LockWeaveStack();
+
+        // If an event was received, dispatch it.  Continue receiving events from the queue and
+        // dispatching them until the queue is empty.
+        while (eventReceived == pdTRUE) {
+
+            PlatformMgr.DispatchEvent(&event);
+
+            eventReceived = xQueueReceive(WeaveEventQueue, &event, 0);
+        }
+    }
+}
+
+} // namespace Device
+} // namespace Weave
+} // namespace nl
+
+
+// ==================== LwIP Core Locking Functions ====================
+
+extern "C" void lock_lwip_core()
+{
+    xSemaphoreTake(::nl::Weave::Device::LwIPCoreLock, portMAX_DELAY);
+}
+
+extern "C" void unlock_lwip_core()
+{
+    xSemaphoreGive(::nl::Weave::Device::LwIPCoreLock);
+}
+
+
+// ==================== Timer Support Functions ====================
+
+namespace nl {
+namespace Weave {
+namespace System {
+namespace Platform {
+namespace Layer {
+
+using namespace ::nl::Weave::Device;
+using namespace ::nl::Weave::Device::Internal;
+
+System::Error StartTimer(System::Layer & aLayer, void * aContext, uint32_t aMilliseconds)
+{
+    WeaveTimerActive = true;
+    vTaskSetTimeOutState(&NextTimerBaseTime);
+    NextTimerDurationTicks = pdMS_TO_TICKS(aMilliseconds);
+
+    // If the platform timer is being updated by a thread other than the event loop thread,
+    // trigger the event loop thread to recalculate its wait time by posting a no-op event
+    // to the event queue.
+    if (xTaskGetCurrentTaskHandle() != EventLoopTask)
+    {
+        WeaveDeviceEvent event;
+        event.Type = WeaveDeviceEvent::kEventType_NoOp;
+        PlatformMgr.PostEvent(&event);
+    }
+
+    return WEAVE_SYSTEM_NO_ERROR;
+}
+
+} // namespace Layer
+} // namespace Platform
+} // namespace System
+} // namespace Weave
+} // namespace nl
+
+
+// ==================== System Layer Event Support Functions ====================
+
+namespace nl {
+namespace Weave {
+namespace System {
+namespace Platform {
+namespace Layer {
+
+using namespace ::nl::Weave::Device;
+using namespace ::nl::Weave::Device::Internal;
+
+System::Error PostEvent(System::Layer & aLayer, void * aContext, System::Object & aTarget, System::EventType aType, uintptr_t aArgument)
+{
+    Error err = WEAVE_SYSTEM_NO_ERROR;
+    WeaveDeviceEvent event;
+
+    event.Type = WeaveDeviceEvent::kEventType_WeaveSystemLayerEvent;
+    event.WeaveSystemLayerEvent.Type = aType;
+    event.WeaveSystemLayerEvent.Target = &aTarget;
+    event.WeaveSystemLayerEvent.Argument = aArgument;
+
+    if (!xQueueSend(WeaveEventQueue, &event, 1)) {
+        ESP_LOGE(TAG, "Failed to post event to Weave Platform event queue");
+        err = WEAVE_ERROR_NO_MEMORY;
+    }
+
+    return err;
+}
+
+System::Error DispatchEvents(Layer & aLayer, void * aContext)
+{
+    PlatformMgr.RunEventLoop();
+    return WEAVE_SYSTEM_NO_ERROR;
+}
+
+System::Error DispatchEvent(System::Layer & aLayer, void * aContext, const WeaveDeviceEvent * aEvent)
+{
+    PlatformMgr.DispatchEvent(aEvent);
+    return WEAVE_NO_ERROR;
+}
+
+} // namespace Layer
+} // namespace Platform
+} // namespace System
+} // namespace Weave
+} // namespace nl
