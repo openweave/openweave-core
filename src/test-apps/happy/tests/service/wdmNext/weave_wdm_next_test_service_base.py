@@ -117,11 +117,11 @@ class weave_wdm_next_test_service_base(unittest.TestCase):
         # Start tunnel
         value, data = self.__start_tunnel_from("BorderRouter")
 
-        print "Going to sleep for one hour"
-        try:
-            time.sleep(60*60)
-        except KeyboardInterrupt:
-            print "sleep interrupted"
+        #print "Going to sleep for one hour"
+        #try:
+        #    time.sleep(60*60)
+        #except KeyboardInterrupt:
+        #    print "sleep interrupted"
 
 
 

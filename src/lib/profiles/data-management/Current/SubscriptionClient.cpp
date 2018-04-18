@@ -1916,14 +1916,7 @@ void SubscriptionClient::SetMaxUpdateSize(const uint32_t aMaxSize)
 
 SubscriptionClient::PathStore::PathStore()
 {
-    mNumItems = 0;
-
-    for (size_t i = 0; i < WDM_UPDATE_MAX_ITEMS_IN_TRAIT_DIRTY_PATH_STORE; i++)
-    {
-        mPathStore[i].mPropertyPathHandle = kNullPropertyPathHandle;
-        mPathStore[i].mTraitDataHandle    = UINT16_MAX;
-    }
-    memset(mFlags, 0, sizeof(mFlags));
+    Clear();
 }
 
 bool SubscriptionClient::PathStore::IsEmpty()
@@ -1957,8 +1950,8 @@ bool SubscriptionClient::PathStore::AddItem(TraitPath aItem, Flags aFlags)
     {
         if (!IsItemValid(i))
         {
-            mPathStore[i]      = aItem;
-            mFlags[i] = aFlags;
+            mStore[i].mTraitPath = aItem;
+            mStore[i].mFlags = aFlags;
             SetFlag(i, kFlag_Valid, true);
             mNumItems++;
             return true;
@@ -1995,7 +1988,7 @@ void SubscriptionClient::PathStore::RemoveItem(TraitDataHandle aDataHandle)
     {
         for (size_t i = 0; i < WDM_UPDATE_MAX_ITEMS_IN_TRAIT_DIRTY_PATH_STORE; i++)
         {
-            if (IsItemValid(i) && (mPathStore[i].mTraitDataHandle == aDataHandle))
+            if (IsItemValid(i) && (mStore[i].mTraitPath.mTraitDataHandle == aDataHandle))
             {
                 SetFlag(i, kFlag_Valid, false);
                 mNumItems--;
@@ -2012,7 +2005,7 @@ bool SubscriptionClient::PathStore::IsTraitPresent(TraitDataHandle aDataHandle)
     {
         for (size_t i = 0; i < WDM_UPDATE_MAX_ITEMS_IN_TRAIT_DIRTY_PATH_STORE; i++)
         {
-            if (IsItemValid(i) && (mPathStore[i].mTraitDataHandle == aDataHandle))
+            if (IsItemValid(i) && (mStore[i].mTraitPath.mTraitDataHandle == aDataHandle))
             {
                 found = true;
                 break;
@@ -2025,36 +2018,43 @@ bool SubscriptionClient::PathStore::IsTraitPresent(TraitDataHandle aDataHandle)
 
 void SubscriptionClient::PathStore::SetFlag(uint32_t aIndex, Flag aFlag, bool aValue)
 {
-    mFlags[aIndex] &= ~aFlag;
+    mStore[aIndex].mFlags &= ~aFlag;
     if (aValue)
     {
-        mFlags[aIndex] |= static_cast<Flags>(aFlag);
+        mStore[aIndex].mFlags |= static_cast<Flags>(aFlag);
     }
 }
 
-WEAVE_ERROR SubscriptionClient::PathStore::Import(PathStore &aSourceStore)
+/**
+ * Move paths from the dispatched store back to the pending one.
+ * Skip the private ones, as they will be re-added during the recursion.
+ */
+WEAVE_ERROR SubscriptionClient::MoveDispatchedToPending(void)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
-    uint32_t numSourceItems = aSourceStore.GetNumItems();
+    uint32_t numSourceItems = mDispatchedUpdateStore.GetNumItems();
+    TraitDataSink *dataSink;
     TraitPath traitPath;
-    Flags flags;
 
     for (size_t i = 0; i < numSourceItems; i++)
     {
-        if (aSourceStore.IsItemValid(i))
+        if (mDispatchedUpdateStore.IsItemValid(i))
         {
-            aSourceStore.GetItemAt(i, traitPath);
-            flags = aSourceStore.GetFlags(i);
+            mDispatchedUpdateStore.GetItemAt(i, traitPath);
 
-            if (!this->IsPresent(traitPath))
+            if ( ! mDispatchedUpdateStore.IsItemPrivate(i))
             {
-                this->AddItem(traitPath, flags);
+                err = mDataSinkCatalog->Locate(traitPath.mTraitDataHandle, &dataSink);
+                SuccessOrExit(err);
+                err = AddItemPendingUpdateStore(traitPath, dataSink->GetSchemaEngine());
+                SuccessOrExit(err);
             }
 
-            aSourceStore.RemoveItemAt(i);
+            mDispatchedUpdateStore.RemoveItemAt(i);
         }
     }
 
+exit:
     return err;
 }
 
@@ -2069,14 +2069,14 @@ void SubscriptionClient::PathStore::RemoveItemAt(uint32_t aIndex)
 
 void SubscriptionClient::PathStore::GetItemAt(uint32_t aIndex, TraitPath &aTraitPath)
 {
-    aTraitPath = mPathStore[aIndex];
+    aTraitPath = mStore[aIndex].mTraitPath;
 }
 
 bool SubscriptionClient::PathStore::IsPresent(TraitPath aItem)
 {
     for (size_t i = 0; i < WDM_UPDATE_MAX_ITEMS_IN_TRAIT_DIRTY_PATH_STORE; i++)
     {
-        if (IsItemValid(i) && (mPathStore[i] == aItem))
+        if (IsItemValid(i) && (mStore[i].mTraitPath == aItem))
         {
             return true;
         }
@@ -2093,13 +2093,13 @@ bool SubscriptionClient::PathStore::Intersects(TraitPath aItem, const TraitSchem
     for (size_t i = 0; i < WDM_UPDATE_MAX_ITEMS_IN_TRAIT_DIRTY_PATH_STORE; i++)
     {
         PropertyPathHandle pathHandle = aItem.mPropertyPathHandle;
-        if (! (IsItemValid(i) && (mPathStore[i].mTraitDataHandle == curDataHandle)))
+        if (! (IsItemValid(i) && (mStore[i].mTraitPath.mTraitDataHandle == curDataHandle)))
         {
             continue;
         }
-        if (pathHandle == mPathStore[i].mPropertyPathHandle ||
-                apSchemaEngine->IsParent(pathHandle, mPathStore[i].mPropertyPathHandle) ||
-                apSchemaEngine->IsParent(mPathStore[i].mPropertyPathHandle, pathHandle))
+        if (pathHandle == mStore[i].mTraitPath.mPropertyPathHandle ||
+                apSchemaEngine->IsParent(pathHandle, mStore[i].mTraitPath.mPropertyPathHandle) ||
+                apSchemaEngine->IsParent(mStore[i].mTraitPath.mPropertyPathHandle, pathHandle))
         {
             found = true;
             break;
@@ -2118,12 +2118,12 @@ bool SubscriptionClient::PathStore::Includes(TraitPath aItem, const TraitSchemaE
     for (size_t i = 0; i < WDM_UPDATE_MAX_ITEMS_IN_TRAIT_DIRTY_PATH_STORE; i++)
     {
         PropertyPathHandle pathHandle = aItem.mPropertyPathHandle;
-        if (! (IsItemValid(i) && (mPathStore[i].mTraitDataHandle == curDataHandle)))
+        if (! (IsItemValid(i) && (mStore[i].mTraitPath.mTraitDataHandle == curDataHandle)))
         {
             continue;
         }
-        if (pathHandle == mPathStore[i].mPropertyPathHandle ||
-                apSchemaEngine->IsParent(pathHandle, mPathStore[i].mPropertyPathHandle))
+        if (pathHandle == mStore[i].mTraitPath.mPropertyPathHandle ||
+                apSchemaEngine->IsParent(pathHandle, mStore[i].mTraitPath.mPropertyPathHandle))
         {
             found = true;
             break;
@@ -2134,38 +2134,31 @@ bool SubscriptionClient::PathStore::Includes(TraitPath aItem, const TraitSchemaE
 }
 
 /**
- * Clears the list of dispatched paths, giving a callback
+ * Clears the list of paths, giving a callback
  * to the application with an internal error for each
  * path still in the list.
  */
-void SubscriptionClient::ClearDispatchedUpdateStore(WEAVE_ERROR aErr)
+void SubscriptionClient::ClearPathStore(PathStore &aPathStore, WEAVE_ERROR aErr)
 {
     TraitPath traitPath;
 
-    for (size_t j = 0; j < mDispatchedUpdateStore.GetPathStoreSize(); j++)
+    for (size_t j = 0; j < aPathStore.GetPathStoreSize(); j++)
     {
-        if (! mDispatchedUpdateStore.IsItemValid(j))
+        if (! aPathStore.IsItemValid(j))
         {
             continue;
         }
-        mDispatchedUpdateStore.GetItemAt(j, traitPath);
-        if (! mDispatchedUpdateStore.IsItemPrivate(j))
+        aPathStore.GetItemAt(j, traitPath);
+        if (! aPathStore.IsItemPrivate(j))
         {
-            UpdateCompleteEventCbHelper(traitPath, 
-                                        nl::Weave::Profiles::kWeaveProfile_Common, 
-                                        nl::Weave::Profiles::Common::kStatus_InternalError, 
+            UpdateCompleteEventCbHelper(traitPath,
+                                        nl::Weave::Profiles::kWeaveProfile_Common,
+                                        nl::Weave::Profiles::Common::kStatus_InternalError,
                                         aErr);
         }
     }
 
-    mDispatchedUpdateStore.Clear();
-}
-
-WEAVE_ERROR SubscriptionClient::ClearPendingUpdateStore(WEAVE_ERROR aErr)
-{
-    // TODO: this should notify the application for any leftover paths
-    mPendingUpdateStore.Clear();
-    return WEAVE_NO_ERROR;
+    aPathStore.Clear();
 }
 
 bool SubscriptionClient::IsEmptyPendingUpdateStore(void)
@@ -2204,12 +2197,12 @@ WEAVE_ERROR SubscriptionClient::AddItemPendingUpdateStore(TraitPath aItem, const
     {
         for (size_t i=0; i < numPendingHandles; i++)
         {
-            if (mPendingUpdateStore.IsItemValid(i) && (mPendingUpdateStore.mPathStore[i].mTraitDataHandle == aItem.mTraitDataHandle))
+            if (mPendingUpdateStore.IsItemValid(i) && (mPendingUpdateStore.mStore[i].mTraitPath.mTraitDataHandle == aItem.mTraitDataHandle))
             {
-                if (mPendingUpdateStore.mPathStore[i].mPropertyPathHandle == kRootPropertyPathHandle)
+                if (mPendingUpdateStore.mStore[i].mTraitPath.mPropertyPathHandle == kRootPropertyPathHandle)
                 {
                     WeaveLogDetail(DataManagement, "exist root updated, merge all to root!");
-                    RemoveItemPendingUpdateStore(mPendingUpdateStore.mPathStore[i].mTraitDataHandle);
+                    RemoveItemPendingUpdateStore(mPendingUpdateStore.mStore[i].mTraitPath.mTraitDataHandle);
                     mPendingUpdateStore.AddItem(TraitPath(aItem.mTraitDataHandle, kRootPropertyPathHandle));
                     break;
                 }
@@ -2253,7 +2246,13 @@ WEAVE_ERROR SubscriptionClient::RemoveItemDispatchedUpdateStore(TraitDataHandle 
 void SubscriptionClient::PathStore::Clear()
 {
     mNumItems = 0;
-    memset(mFlags, 0, sizeof(mFlags));
+
+    for (size_t i = 0; i < WDM_UPDATE_MAX_ITEMS_IN_TRAIT_DIRTY_PATH_STORE; i++)
+    {
+        mStore[i].mFlags                         = 0x0;
+        mStore[i].mTraitPath.mPropertyPathHandle = kNullPropertyPathHandle;
+        mStore[i].mTraitPath.mTraitDataHandle    = UINT16_MAX;
+    }
 }
 
 WEAVE_ERROR SubscriptionClient::ClearDirty()
@@ -2266,7 +2265,7 @@ WEAVE_ERROR SubscriptionClient::ClearDirty()
 
 void SubscriptionClient::CheckPotentialDataLoss(TraitDataHandle aTraitDataHandle, PropertyPathHandle aPropertyPathHandle, const TraitSchemaEngine * const apSchemaEngine)
 {
-    if(mDispatchedUpdateStore.Intersects(TraitPath(aTraitDataHandle, aPropertyPathHandle), apSchemaEngine) ||
+    if (mDispatchedUpdateStore.Intersects(TraitPath(aTraitDataHandle, aPropertyPathHandle), apSchemaEngine) ||
         mPendingUpdateStore.Intersects(TraitPath(aTraitDataHandle, aPropertyPathHandle), apSchemaEngine))
     {
         UpdatableTIContext * tIContext = GetUpdatableTIContext(aTraitDataHandle);
@@ -2347,7 +2346,7 @@ WEAVE_ERROR SubscriptionClient::ClearUpdateInFlight()
 //Check if candidate property path in i is part of the other property path in the same trait in PendingUpdateStore, , if yes, eliminate it.
 bool SubscriptionClient::MergeDupInPendingUpdateStore(const TraitSchemaEngine * apSchemaEngine, size_t & candidateIndex)
 {
-    TraitPath candidateTraitPath = mPendingUpdateStore.mPathStore[candidateIndex];
+    TraitPath candidateTraitPath = mPendingUpdateStore.mStore[candidateIndex].mTraitPath;
     PropertyPathHandle parentPathHandle = candidateTraitPath.mPropertyPathHandle;
     uint32_t numPendingHandles = mPendingUpdateStore.GetPathStoreSize();
     bool remove = false;
@@ -2356,11 +2355,17 @@ bool SubscriptionClient::MergeDupInPendingUpdateStore(const TraitSchemaEngine * 
     {
         for (size_t j = 0; j < numPendingHandles; j++)
         {
-            if ((candidateIndex != j) && mPendingUpdateStore.IsItemValid(j) && (mPendingUpdateStore.mPathStore[j].mTraitDataHandle == candidateTraitPath.mTraitDataHandle))
+            if ((candidateIndex != j) &&
+                    mPendingUpdateStore.IsItemValid(j) &&
+                    (mPendingUpdateStore.mStore[j].mTraitPath.mTraitDataHandle == candidateTraitPath.mTraitDataHandle))
             {
-                if (parentPathHandle == mPendingUpdateStore.mPathStore[j].mPropertyPathHandle)
+                if (parentPathHandle == mPendingUpdateStore.mStore[j].mTraitPath.mPropertyPathHandle)
                 {
-                    WeaveLogDetail(DataManagement, "<UE:Run> T %u merge property %u with %u", candidateTraitPath.mTraitDataHandle, candidateTraitPath.mPropertyPathHandle, mPendingUpdateStore.mPathStore[j].mPropertyPathHandle);
+                    WeaveLogDetail(DataManagement, "<UE:Run> T %u merge property %u with %u",
+                            candidateTraitPath.mTraitDataHandle,
+                            candidateTraitPath.mPropertyPathHandle,
+                            mPendingUpdateStore.mStore[j].mTraitPath.mPropertyPathHandle);
+
                     mPendingUpdateStore.RemoveItemAt(candidateIndex);
                     remove = false;
                     break;
@@ -2408,9 +2413,9 @@ void SubscriptionClient::OnUpdateConfirm(WEAVE_ERROR aReason, nl::Weave::Profile
     uint32_t numDispatchedHandles;
     StatusList::Parser statusList;
     VersionList::Parser versionList;
-    uint64_t existingVersion;
-    bool IsVersionListPresent         = false;
-    bool IsStatusListPresent          = false;
+    uint64_t versionCreated = 0;
+    bool IsVersionListPresent = false;
+    bool IsStatusListPresent = false;
     bool needResubscribe = false;
     nl::Weave::TLV::TLVReader reader;
     uint32_t profileID;
@@ -2428,7 +2433,7 @@ void SubscriptionClient::OnUpdateConfirm(WEAVE_ERROR aReason, nl::Weave::Profile
 
     WeaveLogDetail(DataManagement, "Received Status Report 0x%" PRIX32 " : 0x%" PRIX16,
                    apStatus->mProfileId, apStatus->mStatusCode);
-    WeaveLogDetail(DataManagement, "Received Status Report additional info %u", 
+    WeaveLogDetail(DataManagement, "Received Status Report additional info %u",
                    additionalInfo.theLength);
 
     if (apStatus->mProfileId == nl::Weave::Profiles::kWeaveProfile_Common &&
@@ -2483,88 +2488,101 @@ void SubscriptionClient::OnUpdateConfirm(WEAVE_ERROR aReason, nl::Weave::Profile
         default:
             ExitNow();
         }
+    }
 
-        VerifyOrExit(IsStatusListPresent && IsVersionListPresent, 
-                     WeaveLogDetail(DataManagement, "<OnUpdateConfirm> version/status list is empty"));
+    if ((wholeRequestSucceeded) && !(IsStatusListPresent && IsVersionListPresent))
+    {
+        WeaveLogDetail(DataManagement, "<OnUpdateConfirm> version/status list is empty");
+        ExitNow(err = WEAVE_ERROR_WDM_MALFORMED_UPDATE_RESPONSE);
+    }
 
-        for (size_t j = 0; j < numDispatchedHandles; j++)
+    for (size_t j = 0; j < numDispatchedHandles; j++)
+    {
+        // TODO: This looks very fragile; we implicitly assume that the dispatched handles store
+        // is always in the right order
+        if (! mDispatchedUpdateStore.IsItemValid(j))
         {
-            // TODO: This looks very fragile; we implicitly assume that the dispatched handles store
-            // is always in the right order
-            if (! mDispatchedUpdateStore.IsItemValid(j))
-            {
-                continue;
-            }
+            continue;
+        }
 
+        if (IsVersionListPresent)
+        {
             err = versionList.Next();
-            SuccessOrExit(err);
+            // TODO: hack to be able to test something with the current service implementation
+            //SuccessOrExit(err);
 
-            err = versionList.GetVersion(&existingVersion);
+            if (err == WEAVE_NO_ERROR) // hack
+            {                          // hack
+            err = versionList.GetVersion(&versionCreated);
             SuccessOrExit(err);
+            }                          // hack
+        }
 
-            if ( ! wholeRequestSucceeded)
+        if ((! wholeRequestSucceeded) && IsStatusListPresent)
+        {
+            err = statusList.Next();
+            // SuccessOrExit(err); hack
+
+            if (err == WEAVE_NO_ERROR) // hack
+            {                          // hack
+            err = statusList.GetStatusAndProfileID(&profileID, &statusCode);
+            SuccessOrExit(err);
+            }                          // hack
+        }
+
+        mDispatchedUpdateStore.GetItemAt(j, traitPath);
+
+        tIContext = GetUpdatableTIContext(traitPath.mTraitDataHandle);
+        VerifyOrDie(tIContext != NULL);
+
+        if (! mDispatchedUpdateStore.IsItemPrivate(j))
+        {
+            UpdateCompleteEventCbHelper(traitPath, profileID, statusCode, aReason);
+        }
+        mDispatchedUpdateStore.RemoveItemAt(j);
+
+        updatableDataSink = tIContext->mUpdatableDataSink;
+
+        WeaveLogDetail(DataManagement, "item: %zu, profile: %" PRIu32 ", statusCode: % " PRIu16 ", version 0x%" PRIx64 "",
+                j, profileID, statusCode, versionCreated);
+        WeaveLogDetail(DataManagement, "item: %zu, traitDataHandle: %" PRIu16 ", pathHandle: %" PRIu32 "",
+                j, traitPath.mTraitDataHandle, traitPath.mPropertyPathHandle);
+
+        if (profileID == nl::Weave::Profiles::kWeaveProfile_Common &&
+                statusCode == nl::Weave::Profiles::Common::kStatus_Success)
+        {
+            if (updatableDataSink->IsConditionalUpdate())
             {
-                err = statusList.Next();
-                SuccessOrExit(err);
-
-                err = statusList.GetStatusAndProfileID(&profileID, &statusCode);
-                SuccessOrExit(err);
+                if (mPendingUpdateStore.IsPresent(traitPath))
+                {
+                    updatableDataSink->SetUpdateRequiredVersion(versionCreated);
+                }
+                else
+                {
+                    updatableDataSink->SetUpdateRequiredVersion(0);
+                    // TODO: we can update the version of the TI here.
+                    // Can we also update it if there are pending updates?
+                }
             }
 
-            mDispatchedUpdateStore.GetItemAt(j, traitPath);
-
-            tIContext = GetUpdatableTIContext(traitPath.mTraitDataHandle);
-            VerifyOrDie(tIContext != NULL);
-
-            if (! mDispatchedUpdateStore.IsItemPrivate(j))
+            if (updatableDataSink->IsVersionValid() &&
+                    (versionCreated == updatableDataSink->GetVersion()) &&
+                    tIContext->mPotentialDataLoss)
             {
-                UpdateCompleteEventCbHelper(traitPath, profileID, statusCode, aReason);
+                WeaveLogDetail(DataManagement, "traitDataHandle: %" PRIu16 ", pathHandle: %" PRIu32 " clearing potentialDataLoss",
+                        traitPath.mTraitDataHandle, traitPath.mPropertyPathHandle);
+                tIContext->mPotentialDataLoss = false;
             }
-            mDispatchedUpdateStore.RemoveItemAt(j);
+        } // Success
+        else
+        {
+            // Clearing the version will trigger a re-subscription and
+            // the app will be notified for all conditional pending paths
+            // with a VERSION_MISMATCH error.
+            updatableDataSink->ClearVersion();
 
-            updatableDataSink = tIContext->mUpdatableDataSink;
-
-            WeaveLogDetail(DataManagement, "item: %zu, profile: %" PRIu32 ", statusCode: % " PRIu16 ", version 0x%" PRIx64 "",
-                           j, profileID, statusCode, existingVersion);
-            WeaveLogDetail(DataManagement, "item: %zu, traitDataHandle: %" PRIu16 ", pathHandle: %" PRIu32 "",
-                           j, traitPath.mTraitDataHandle, traitPath.mPropertyPathHandle);
-
-            if (profileID == nl::Weave::Profiles::kWeaveProfile_Common && 
-                    statusCode == nl::Weave::Profiles::Common::kStatus_Success)
-            {
-                if (updatableDataSink->IsConditionalUpdate())
-                {
-                    if (mPendingUpdateStore.IsPresent(traitPath))
-                    {
-                        updatableDataSink->SetUpdateRequiredVersion(existingVersion);
-                    }
-                    else
-                    {
-                        updatableDataSink->SetUpdateRequiredVersion(0);
-                        // TODO: we can update the version of the TI here.
-                        // Can we also update it if there are pending updates?
-                    }
-                }
-
-                if (updatableDataSink->IsVersionValid() && 
-                        (existingVersion == updatableDataSink->GetVersion()) &&
-                        tIContext->mPotentialDataLoss)
-                {
-                    WeaveLogDetail(DataManagement, "traitDataHandle: %" PRIu16 ", pathHandle: %" PRIu32 " clearing potentialDataLoss",
-                            traitPath.mTraitDataHandle, traitPath.mPropertyPathHandle);
-                    tIContext->mPotentialDataLoss = false;
-                }
-            } // Success
-            else 
-            {
-                // Clearing the version will trigger a re-subscription and
-                // the app will be notified for all conditional pending paths
-                // with a VERSION_MISMATCH error.
-                updatableDataSink->ClearVersion();
-
-            } // Not success
-        } // for numDispatchedHandles
-    } // if (additionalInfo.theLength != 0)
+        } // Not success
+    } // for numDispatchedHandles
 
 exit:
     // If the loop above exited early for an error, the application
@@ -2618,13 +2636,18 @@ exit:
     WeaveLogFunctError(err);
 }
 
+/**
+ * This handler is optimized for the case that the request never reached the
+ * responder: the dispatched paths are put back in the pending queue and retried.
+ */
 void SubscriptionClient::OnUpdateResponseTimeout(WEAVE_ERROR aError)
 {
     // TODO: no test for this yet
- 
+
     TraitPath traitPath;
     WEAVE_ERROR err = WEAVE_NO_ERROR;
     bool isLocked = false;
+    uint32_t numDispatchedHandles = mDispatchedUpdateStore.GetPathStoreSize();
 
     err = Lock();
     SuccessOrExit(err);
@@ -2633,13 +2656,24 @@ void SubscriptionClient::OnUpdateResponseTimeout(WEAVE_ERROR aError)
 
     ClearUpdateInFlight();
 
-    // TODO: preserve the flags (ForceMerge, private, etc)
+    // Notify the app for all dispatched paths.
+    // TODO: this implementation is incomplete...
+    for (size_t j = 0; j < numDispatchedHandles; j++)
+    {
+        if (! mDispatchedUpdateStore.IsItemValid(j))
+        {
+            continue;
+        }
 
-    // TODO: move this to a function/method that moves one whole
-    // store or only one item to another store.
+        if (! mDispatchedUpdateStore.IsItemPrivate(j))
+        {
+            // TODO: does it make sense to put a profile and status when we never received a StatusReport?
+            UpdateCompleteEventCbHelper(traitPath, nl::Weave::Profiles::kWeaveProfile_Common, nl::Weave::Profiles::Common::kStatus_Timeout, WEAVE_ERROR_TIMEOUT);
+        }
+    }
 
     //Move paths from DispatchedUpdates to PendingUpdates for all TIs.
-    err = mPendingUpdateStore.Import(mDispatchedUpdateStore);
+    err = MoveDispatchedToPending();
     if (err != WEAVE_NO_ERROR)
     {
         // Fail everything; think about dictionaries spread over
@@ -2665,14 +2699,14 @@ exit:
     }
 }
 
-void SubscriptionClient::UpdateEventCallback (void * const aAppState, 
-                                              UpdateClient::EventType aEvent, 
-                                              const UpdateClient::InEventParam & aInParam, 
+void SubscriptionClient::UpdateEventCallback (void * const aAppState,
+                                              UpdateClient::EventType aEvent,
+                                              const UpdateClient::InEventParam & aInParam,
                                               UpdateClient::OutEventParam & aOutParam)
 {
     SubscriptionClient * const pSubClient = reinterpret_cast<SubscriptionClient *>(aAppState);
 
-    VerifyOrExit(!(pSubClient->IsAborting() ||pSubClient->IsAborted()), 
+    VerifyOrExit(!(pSubClient->IsAborting() ||pSubClient->IsAborted()),
             WeaveLogDetail(DataManagement, "<UpdateEventCallback> subscription has been aborted"));
 
     switch (aEvent)
@@ -2708,7 +2742,8 @@ WEAVE_ERROR SubscriptionClient::SetUpdated(TraitUpdatableDataSink * aDataSink, P
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
     TraitDataHandle dataHandle;
-    bool isLocked                  = false;
+    bool isLocked = false;
+
     err = Lock();
     SuccessOrExit(err);
 
@@ -2718,8 +2753,8 @@ WEAVE_ERROR SubscriptionClient::SetUpdated(TraitUpdatableDataSink * aDataSink, P
     {
         if (!aDataSink->IsVersionValid())
         {
-            WeaveLogDetail(DataManagement, "Reject mutation with error");
             err = WEAVE_ERROR_INCORRECT_STATE;
+            WeaveLogDetail(DataManagement, "Rejected mutation with error %d", err);
             ExitNow();
         }
     }
@@ -2730,7 +2765,7 @@ WEAVE_ERROR SubscriptionClient::SetUpdated(TraitUpdatableDataSink * aDataSink, P
     err = mDataSinkCatalog->Locate(aDataSink, dataHandle);
     SuccessOrExit(err);
 
-    // If we have exceeded the num items in the store, we need to mark the whole trait instance as dirty and remove all
+    // TODO: If we have exceeded the num items in the store, we need to mark the whole trait instance as dirty and remove all
     // existing references to this trait instance in the dirty store.
 
     VerifyOrExit(!mPendingUpdateStore.IsFull(), WeaveLogDetail(DataManagement, "<SetUpdated> No more space in granular store!"));
@@ -2783,7 +2818,7 @@ WEAVE_ERROR SubscriptionClient::PurgePendingUpdate()
         traitInfo = mClientTraitInfoPool + i;
         updatableDataSink = traitInfo->mUpdatableDataSink;
 
-        if ( ! (traitInfo->IsDirty() && 
+        if ( ! (traitInfo->IsDirty() &&
                     IsTraitPresentInPendingUpdateStore(traitInfo->mTraitDataHandle) &&
                     updatableDataSink->IsConditionalUpdate()))
         {
@@ -2794,7 +2829,7 @@ WEAVE_ERROR SubscriptionClient::PurgePendingUpdate()
         DataVersion updateRequiredVersion = updatableDataSink->GetUpdateRequiredVersion();
         bool isVersionValid = updatableDataSink->IsVersionValid();
 
-        WeaveLogDetail(DataManagement, "<PurgeUpdate> current version 0x%" PRIx64 ", valid: %d, updateRequiredVersion: 0x" PRIx64 "", 
+        WeaveLogDetail(DataManagement, "<PurgeUpdate> current version 0x%" PRIx64 ", valid: %d, updateRequiredVersion: 0x%" PRIx64 "",
                 currentVersion, isVersionValid, updateRequiredVersion);
 
         // TODO: I think we need to fail all pending if the version is invalid:
@@ -2993,12 +3028,16 @@ WEAVE_ERROR SubscriptionClient::BuildSingleUpdateRequestDataList(UpdateRequestCo
     bool dictionaryOverflowed;
 
     size_t   numTraitInstanceHandled            = 0;
+    size_t   numDirtyTraitInstanceFound         = 0;
     uint32_t numDirtyPendingHandles             = mPendingUpdateStore.GetNumItems();
     uint32_t pendingPathStoreSize               = mPendingUpdateStore.GetPathStoreSize();
 
     WeaveLogDetail(DataManagement, "CurUpdatedItems in Pending = %u/%u", numDirtyPendingHandles, pendingPathStoreSize);
 
-    while (numTraitInstanceHandled < mNumUpdatableTraitInstances)
+    // Temp hack for compatibility with the service:
+    // process only one dirty trait
+    while (numDirtyTraitInstanceFound == 0 &&
+            numTraitInstanceHandled < mNumUpdatableTraitInstances)
     {
         dictionaryOverflowed = false;
 
@@ -3016,6 +3055,8 @@ WEAVE_ERROR SubscriptionClient::BuildSingleUpdateRequestDataList(UpdateRequestCo
 
             continue;
         }
+
+        numDirtyTraitInstanceFound++;
 
         WeaveLogDetail(DataManagement, "T%u is dirty", context.mCurProcessingTraitInstanceIdx);
 
@@ -3038,13 +3079,13 @@ WEAVE_ERROR SubscriptionClient::BuildSingleUpdateRequestDataList(UpdateRequestCo
         {
             // Now look for more paths for the same trait in the pending store
             if (!(mPendingUpdateStore.IsItemValid(i) &&
-                        (mPendingUpdateStore.mPathStore[i].mTraitDataHandle == traitInfo->mTraitDataHandle)))
+                        (mPendingUpdateStore.mStore[i].mTraitPath.mTraitDataHandle == traitInfo->mTraitDataHandle)))
             {
                 i++;
                 continue;
             }
 
-            traitInfo->mCandidatePropertyPathHandle = mPendingUpdateStore.mPathStore[i].mPropertyPathHandle;
+            traitInfo->mCandidatePropertyPathHandle = mPendingUpdateStore.mStore[i].mTraitPath.mPropertyPathHandle;
             mPendingUpdateStore.RemoveItemAt(i);
 
             mUpdateRequestContext.mForceMerge = mPendingUpdateStore.IsItemForceMerge(i);

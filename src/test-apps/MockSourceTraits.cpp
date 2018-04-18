@@ -1307,29 +1307,29 @@ void TestBTraitDataSource::Mutate()
 {
     Lock();
 
-    //if ((GetVersion() % 3) == 0) {
-    //    SetDirty(TestBTrait::kPropertyHandle_TbB_SbB);
-    //    SetDirty(TestBTrait::kPropertyHandle_TaA);
+    if ((GetVersion() % 3) == 0) {
+        SetDirty(TestBTrait::kPropertyHandle_TbB_SbB);
+        SetDirty(TestBTrait::kPropertyHandle_TaA);
 
-    //    if (taa == TestATrait::ENUM_A_VALUE_1) {
-    //        taa = TestATrait::ENUM_A_VALUE_2;
-    //    }
-    //    else {
-    //        taa = TestATrait::ENUM_A_VALUE_1;
-    //    }
+        if (taa == TestATrait::ENUM_A_VALUE_1) {
+            taa = TestATrait::ENUM_A_VALUE_2;
+        }
+        else {
+            taa = TestATrait::ENUM_A_VALUE_1;
+        }
 
-    //    tbb_sbb++;
-    //}
-    //else if ((GetVersion() % 3) == 1) {
-    //    SetDirty(TestBTrait::kPropertyHandle_TaC);
-    //    SetDirty(TestBTrait::kPropertyHandle_TaP);
-    //    SetDirty(TestBTrait::kPropertyHandle_TbC_SaB);
+        tbb_sbb++;
+    }
+    else if ((GetVersion() % 3) == 1) {
+        SetDirty(TestBTrait::kPropertyHandle_TaC);
+        SetDirty(TestBTrait::kPropertyHandle_TaP);
+        SetDirty(TestBTrait::kPropertyHandle_TbC_SaB);
 
-    //    tap++;
-    //    tac++;
-    //    tbc_sab = !tbc_sab;
-    //}
-    //else if ((GetVersion() % 3) == 2) 
+        tap++;
+        tac++;
+        tbc_sab = !tbc_sab;
+    }
+    else if ((GetVersion() % 3) == 2)
     {
         SetDirty(TestBTrait::kPropertyHandle_TaP);
 

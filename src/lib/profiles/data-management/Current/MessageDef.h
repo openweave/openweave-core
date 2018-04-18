@@ -86,7 +86,15 @@ enum
 // TODO: A typedef like this should come with the relative PRIDataVersion define
 typedef uint64_t DataVersion;
 
-bool IsVersionOlder(const DataVersion &aReference, const DataVersion &aVersion);
+/**
+ * This is an optimized implementation of the algorithm to compare versions.
+ * On the client side, a version received from the service is always
+ * the latest one.
+ */
+static bool IsVersionOlder(const DataVersion &aReference, const DataVersion &aVersion)
+{
+    return (aVersion != aReference);
+}
 
 typedef uint16_t SchemaVersion;
 

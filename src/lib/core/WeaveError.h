@@ -1624,8 +1624,8 @@ typedef WEAVE_CONFIG_ERROR_TYPE WEAVE_ERROR;
  * @def WEAVE_ERROR_WDM_MALFORMED_STATUS_ELEMENT
  *
  * @brief
- *   The WDM STATUSElement is malformed: it either does not contain
- *   the required profile id and status code.
+ *   The WDM StatusElement is malformed: it does not contain
+ *   either the profile id or the status code.
  */
 #define WEAVE_ERROR_WDM_MALFORMED_STATUS_ELEMENT                _WEAVE_ERROR(171)
 
@@ -1653,6 +1653,16 @@ typedef WEAVE_CONFIG_ERROR_TYPE WEAVE_ERROR;
  *
  */
 #define WEAVE_ERROR_UNKNOWN_RESOURCE_ID                          _WEAVE_ERROR(174)
+
+/**
+ * @def WEAVE_ERROR_WDM_MALFORMED_UPDATE_RESPONSE
+ *
+ * @brief
+ *   The WDM UpdateResponse payload is malformed: it does not contain
+ *   either the StatusList or the VersionList.
+ */
+#define WEAVE_ERROR_WDM_MALFORMED_UPDATE_RESPONSE                _WEAVE_ERROR(175)
+
 
 /**
  *  @}
