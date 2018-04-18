@@ -1,5 +1,5 @@
 #
-#    Copyright 2016 The nlfaultinjection Authors.
+#    Copyright 2016-2018 The nlfaultinjection Authors.
 #
 #    Licensed under the Apache License, Version 2.0 (the "License");
 #    you may not use this file except in compliance with the License.
@@ -32,13 +32,17 @@ SUBDIRS                                   = \
     $(NULL)
 
 EXTRA_DIST                                = \
+    CHANGES                                 \
     CONTRIBUTING.md                         \
     LICENSE                                 \
+    Makefile-bootstrap                      \
     README.md                               \
     .default-version                        \
+    .travis.yml                             \
     bootstrap                               \
     bootstrap-configure                     \
     $(srcdir)/build/cstyle                  \
+    repos.conf                              \
     $(srcdir)/third_party/nlbuild-autotools \
     $(srcdir)/third_party/cstyle/repo       \
     $(NULL)
@@ -78,9 +82,9 @@ VERSION_FILE                      := $(if $(wildcard $(builddir)/.local-version)
 
 #
 # Override autotool's default notion of the package version variables.
-# This ensures that when we create a source distribution that the
-# version is always the current version, not the version when the
-# package was bootstrapped.
+# This ensures that when we create a source distribution the
+# version is always the current version, not the package bootstrap
+# version.
 #
 
 NLFAULTINJECTION_VERSION                      ?= $(shell cat $(VERSION_FILE) 2> /dev/null)
@@ -103,10 +107,10 @@ VERSION                            = $(PACKAGE_VERSION)
 define check-file-.local-version
 if [ "$(origin NLFAULTINJECTION_VERSION)" != "file" ]; then        \
     echo "$(NLFAULTINJECTION_VERSION)" > "$(2)";                   \
-else                                                   \
-    $(abs_top_nlbuild_autotools_dir)/scripts/mkversion \
+else                                                               \
+    $(abs_top_nlbuild_autotools_dir)/scripts/mkversion             \
         -b "$(NLFAULTINJECTION_VERSION)" "$(top_srcdir)"           \
-        > "$(2)";                                      \
+        > "$(2)";                                                  \
 fi
 endef
 
@@ -142,9 +146,24 @@ $(distdir)/.dist-version: $(builddir)/.local-version force
 $(distdir)/.dist-version $(builddir)/.local-version:
 	$(call check-file,$(@F))
 
+#
+# When we run 'distcheck' and --with-nlassert or --with-nlunit_test
+# default to 'internal', the nlbuild-autotools infrastructure will
+# attempt to create git paths to manage the nlunit-test repo. Two
+# directories need to be writable to facilitate this.
+#
+DISTCHECK_CONFIGURE_FLAGS=`chmod u+w .. ../third_party`
+
 dist distcheck: $(BUILT_SOURCES)
 
 dist-hook: $(distdir)/.dist-version
+
+#
+# Ensure any locally synchronized repositories defined by 'repos.conf'
+# are cleaned up.
+#
+distclean-local:
+	$(MAKE) -C $(srcdir) -f Makefile-bootstrap clean-repos
 
 #
 # Top-level convenience target for making a documentation-only
