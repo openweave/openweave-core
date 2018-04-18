@@ -91,7 +91,7 @@ typedef uint64_t DataVersion;
  * On the client side, a version received from the service is always
  * the latest one.
  */
-static bool IsVersionOlder(const DataVersion &aReference, const DataVersion &aVersion)
+static inline bool IsVersionOlder(const DataVersion &aReference, const DataVersion &aVersion)
 {
     return (aVersion != aReference);
 }

@@ -210,12 +210,12 @@ WEAVE_ERROR TraitSchemaEngine::RetrieveData(PropertyPathHandle aHandle, uint64_t
 #if TDM_ENABLE_PUBLISHER_DICTIONARY_SUPPORT
         if (IsDictionary(aHandle))
         {
+            PropertyDictionaryKey dictionaryItemKey;
+            uintptr_t context = 0;
             if (NULL == updateDirtyPathCut)
             {
 
                 // TODO: this looks like RetrieveUpdatableDictionaryData; must avoid the duplication
-                PropertyDictionaryKey dictionaryItemKey;
-                uintptr_t context = 0;
 
                 // if it's a dictionary, we need to iterate through the items in the container by asking our delegate.
                 while ((err = aDelegate->GetNextDictionaryItemKey(aHandle, context, dictionaryItemKey)) == WEAVE_NO_ERROR)
@@ -245,7 +245,10 @@ WEAVE_ERROR TraitSchemaEngine::RetrieveData(PropertyPathHandle aHandle, uint64_t
                 // The dictionary will be encoded in a new DataElement as a "replace".
                 // The reason for that is that if the dictionary is too large to fit in the payload,
                 // it's easier to split it in more than one data element outside of a recursion.
-                updateDirtyPathCut->CutPath(aHandle, this);
+                if (aDelegate->GetNextDictionaryItemKey(aHandle, context, dictionaryItemKey) == WEAVE_NO_ERROR)
+                {
+                    updateDirtyPathCut->CutPath(aHandle, this);
+                }
             }
         }
         else

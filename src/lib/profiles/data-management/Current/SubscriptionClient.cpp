@@ -2292,9 +2292,16 @@ bool SubscriptionClient::IsTraitPresentInPendingUpdateStore(TraitDataHandle aTra
 
 WEAVE_ERROR SubscriptionClient::Lock()
 {
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
+
     if (mLock)
     {
-        return mLock->Lock();
+        err = mLock->Lock();
+    }
+
+    if (err != WEAVE_NO_ERROR)
+    {
+        WeaveLogDetail(DataManagement, "Lock failed with %d", err);
     }
 
     return WEAVE_NO_ERROR;
@@ -2430,6 +2437,17 @@ void SubscriptionClient::OnUpdateConfirm(WEAVE_ERROR aReason, nl::Weave::Profile
     numDispatchedHandles = mDispatchedUpdateStore.GetPathStoreSize();
     additionalInfo = apStatus->mAdditionalInfo;
     ClearUpdateInFlight();
+
+    if (mUpdateRequestContext.mIsPartialUpdate)
+    {
+        WeaveLogDetail(DataManagement, "Got StatusReport in the middle of a long update");
+
+        // TODO: implemente a simple FSM to handle long updates
+
+        mUpdateRequestContext.mIsPartialUpdate = false;
+        mUpdateRequestContext.mpUpdatableTIContext->mCandidatePropertyPathHandle = kNullPropertyPathHandle;
+        mUpdateRequestContext.mpUpdatableTIContext->mNextDictionaryElementPathHandle = kNullPropertyPathHandle;
+    }
 
     WeaveLogDetail(DataManagement, "Received Status Report 0x%" PRIX32 " : 0x%" PRIX16,
                    apStatus->mProfileId, apStatus->mStatusCode);
@@ -2601,16 +2619,19 @@ exit:
     }
     else
     {
-        tIContext = GetUpdatableTIContextList();
         bool needToResubscribe;
 
         ClearFlushInProgress();
+
+        tIContext = GetUpdatableTIContextList();
 
         for (size_t i = 0; i < GetNumUpdatableTraitInstances(); i++)
         {
             if (tIContext->mPotentialDataLoss)
             {
                 TraitDataSink * dataSink;
+
+                WeaveLogDetail(DataManagement, "Potential data loss in tdh %d", tIContext->mTraitDataHandle);
 
                 err = mDataSinkCatalog->Locate(tIContext->mTraitDataHandle, &dataSink);
                 SuccessOrExit(err);
@@ -2813,6 +2834,8 @@ WEAVE_ERROR SubscriptionClient::PurgePendingUpdate()
 
     isLocked = true;
 
+    WeaveLogDetail(DataManagement, "PurgePendingUpdate: numItems before: %d", mPendingUpdateStore.mNumItems);
+
     for (size_t i = 0; i < numUpdatableTraitInstances; i++)
     {
         traitInfo = mClientTraitInfoPool + i;
@@ -2851,6 +2874,8 @@ WEAVE_ERROR SubscriptionClient::PurgePendingUpdate()
     }
 
 exit:
+
+    WeaveLogDetail(DataManagement, "PurgePendingUpdate: numItems after: %d", mPendingUpdateStore.mNumItems);
 
     if (isLocked)
     {
@@ -3006,7 +3031,9 @@ WEAVE_ERROR SubscriptionClient::DirtyPathToDataElement(UpdateRequestContext &aCo
 
         dirtyPath.mTraitDataHandle = traitInfo->mTraitDataHandle;
         dirtyPath.mPropertyPathHandle = traitInfo->mCandidatePropertyPathHandle;
-        mDispatchedUpdateStore.AddItem(dirtyPath, aContext.mForceMerge);
+        mDispatchedUpdateStore.AddItem(dirtyPath,
+                                       aContext.mForceMerge,
+                                       aContext.mForceMerge); // For now, ForceMerge implies Private; TODO: clean this up
 
         aContext.mForceMerge = false;
         aContext.mNumDataElementsAddedToPayload++;

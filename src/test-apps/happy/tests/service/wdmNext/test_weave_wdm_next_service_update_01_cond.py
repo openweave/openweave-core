@@ -35,7 +35,7 @@ class test_weave_wdm_next_service_update_01_cond(weave_wdm_next_test_service_bas
         wdm_next_args['wdm_option'] = "mutual_subscribe"
         wdm_next_args['final_client_status'] = 0
         wdm_next_args['enable_client_flip'] = 1
-        wdm_next_args['test_client_iterations'] = 1
+        wdm_next_args['test_client_iterations'] = 2
         wdm_next_args['test_client_delay'] = 15000
         wdm_next_args['client_clear_state_between_iterations'] = False
         wdm_next_args['test_client_case'] = 10 # kTestCase_TestUpdatableTrait_OneTraitConditional
