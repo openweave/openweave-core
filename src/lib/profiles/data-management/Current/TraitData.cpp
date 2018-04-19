@@ -54,12 +54,14 @@ bool UpdateDirtyPathFilter::FilterPath (PropertyPathHandle pathhandle, const Tra
 {
     bool retval = false;
 
+#if WEAVE_CONFIG_ENABLE_WDM_UPDATE
     if (mpSubClient)
     {
         // TODO: clean this up:
         // mpSubClient is set to something only by UpdatableDataSink instances
         retval = mpSubClient->IsDirty(mTraitDataHandle, pathhandle, aEngine);
     }
+#endif // WEAVE_CONFIG_ENABLE_WDM_UPDATE
 
     return retval;
 }
