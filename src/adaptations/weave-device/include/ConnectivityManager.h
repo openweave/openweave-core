@@ -87,6 +87,7 @@ public:
     // WiFi AP methods
     WiFiAPMode GetWiFiAPMode(void) const;
     WEAVE_ERROR SetWiFiAPMode(WiFiAPMode val);
+    bool IsWiFiAPActive(void) const;
     bool IsWiFiAPApplicationControlled(void) const;
     void DemandStartWiFiAP(void);
     void StopOnDemandWiFiAP(void);
@@ -161,8 +162,6 @@ private:
 
     enum WiFiStationState
     {
-        kWiFiStationState_Disabled,
-        kWiFiStationState_Enabling,
         kWiFiStationState_NotConnected,
         kWiFiStationState_Connecting,
         kWiFiStationState_Connecting_Succeeded,
@@ -251,6 +250,11 @@ inline uint32_t ConnectivityManager::GetWiFiStationReconnectIntervalMS(void) con
 inline ConnectivityManager::WiFiAPMode ConnectivityManager::GetWiFiAPMode(void) const
 {
     return mWiFiAPMode;
+}
+
+inline bool ConnectivityManager::IsWiFiAPActive(void) const
+{
+    return mWiFiAPState == kWiFiAPState_Active;
 }
 
 inline uint32_t ConnectivityManager::GetWiFiAPIdleTimeoutMS(void) const
