@@ -2423,7 +2423,6 @@ void SubscriptionClient::OnUpdateConfirm(WEAVE_ERROR aReason, nl::Weave::Profile
     uint64_t versionCreated = 0;
     bool IsVersionListPresent = false;
     bool IsStatusListPresent = false;
-    bool needResubscribe = false;
     nl::Weave::TLV::TLVReader reader;
     uint32_t profileID;
     uint16_t statusCode;
@@ -2823,7 +2822,6 @@ exit:
 WEAVE_ERROR SubscriptionClient::PurgePendingUpdate()
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
-    TraitDataSink * dataSink;
     TraitUpdatableDataSink * updatableDataSink;
     UpdatableTIContext * traitInfo;
     bool isLocked = false;
@@ -2971,9 +2969,6 @@ WEAVE_ERROR SubscriptionClient::Lookup(UpdatableTIContext * traitInfo,
                                        uint64_t &instanceId)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
-    TraitDataSink * dataSink = NULL;
-
-    updatableDataSink = traitInfo->mUpdatableDataSink;
 
     schemaEngine = updatableDataSink->GetSchemaEngine();
     VerifyOrDie(schemaEngine != NULL);

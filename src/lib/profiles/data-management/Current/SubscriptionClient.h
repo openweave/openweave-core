@@ -555,7 +555,14 @@ private:
 
     struct UpdateRequestContext
     {
+        // TODO: separate "state" from "arguments"
+        // and implement the "transaction model" discussed on
+        // April 17
+
+        // State:
         uint16_t mCurProcessingTraitInstanceIdx;
+
+        // Arguments to lower level calls and callbacks
         uint16_t mNumDataElementsAddedToPayload;
         bool mIsPartialUpdate;
         bool mForceMerge;
