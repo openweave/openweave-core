@@ -199,7 +199,7 @@
  * if it has been idle.
  */
 #ifndef WEAVE_PLATFORM_CONFIG_WIFI_AP_IDLE_TIMEOUT
-#define WEAVE_PLATFORM_CONFIG_WIFI_AP_IDLE_TIMEOUT 30000
+#define WEAVE_PLATFORM_CONFIG_WIFI_AP_IDLE_TIMEOUT 120000
 #endif
 
 // -------------------- Time Sync Configuration --------------------
