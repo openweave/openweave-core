@@ -222,6 +222,7 @@ done
 
 populate "${DIR}" 664 configure.ac        .
 populate "${DIR}" 775 bootstrap           .
+populate "${DIR}" 664 repos.conf          .
 populate "${DIR}" 664 Makefile.am         .
 populate "${DIR}" 664 Makefile-bootstrap  .
 populate "${DIR}" 664 Makefile.am         doc
