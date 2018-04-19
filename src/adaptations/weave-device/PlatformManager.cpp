@@ -66,7 +66,7 @@ TaskHandle_t EventLoopTask;
 
 // ==================== PlatformManager Public Members ====================
 
-WEAVE_ERROR PlatformManager::InitLocks()
+WEAVE_ERROR PlatformManager::InitLocks(void)
 {
     WeaveStackLock = xSemaphoreCreateMutex();
     if (WeaveStackLock == NULL) {
@@ -83,7 +83,7 @@ WEAVE_ERROR PlatformManager::InitLocks()
     return WEAVE_NO_ERROR;
 }
 
-WEAVE_ERROR PlatformManager::InitWeaveStack()
+WEAVE_ERROR PlatformManager::InitWeaveStack(void)
 {
     WEAVE_ERROR err;
 
@@ -324,12 +324,12 @@ void PlatformManager::ScheduleWork(AsyncWorkFunct workFunct, intptr_t arg)
     PostEvent(&event);
 }
 
-void PlatformManager::RunEventLoop()
+void PlatformManager::RunEventLoop(void)
 {
     RunEventLoop(NULL);
 }
 
-WEAVE_ERROR PlatformManager::StartEventLoopTask()
+WEAVE_ERROR PlatformManager::StartEventLoopTask(void)
 {
     BaseType_t res;
 
@@ -343,12 +343,17 @@ WEAVE_ERROR PlatformManager::StartEventLoopTask()
     return (res == pdPASS) ? WEAVE_NO_ERROR : WEAVE_ERROR_NO_MEMORY;
 }
 
-void PlatformManager::LockWeaveStack()
+void PlatformManager::LockWeaveStack(void)
 {
     xSemaphoreTake(WeaveStackLock, portMAX_DELAY);
 }
 
-void PlatformManager::UnlockWeaveStack()
+bool PlatformManager::TryLockWeaveStack(void)
+{
+    return xSemaphoreTake(WeaveStackLock, 0) == pdTRUE;
+}
+
+void PlatformManager::UnlockWeaveStack(void)
 {
     xSemaphoreGive(WeaveStackLock);
 }
@@ -367,7 +372,7 @@ esp_err_t PlatformManager::HandleESPSystemEvent(void * ctx, system_event_t * esp
 
 // ==================== PlatformManager Private Members ====================
 
-WEAVE_ERROR PlatformManager::InitWeaveEventQueue()
+WEAVE_ERROR PlatformManager::InitWeaveEventQueue(void)
 {
     WeaveEventQueue = xQueueCreate(WEAVE_PLATFORM_CONFIG_MAX_EVENT_QUEUE_SIZE, sizeof(WeaveDeviceEvent));
     if (WeaveEventQueue == NULL)

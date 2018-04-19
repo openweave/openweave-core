@@ -46,11 +46,12 @@ public:
 
     void ScheduleWork(AsyncWorkFunct workFunct, intptr_t arg = 0);
 
-    void RunEventLoop();
-    WEAVE_ERROR StartEventLoopTask();
+    void RunEventLoop(void);
+    WEAVE_ERROR StartEventLoopTask(void);
 
-    void LockWeaveStack();
-    void UnlockWeaveStack();
+    void LockWeaveStack(void);
+    bool TryLockWeaveStack(void);
+    void UnlockWeaveStack(void);
 
     static esp_err_t HandleESPSystemEvent(void * ctx, system_event_t * event);
 
@@ -71,7 +72,7 @@ private:
 
     // NOTE: These members are private to the class and should not be used by friends.
 
-    WEAVE_ERROR InitWeaveEventQueue();
+    WEAVE_ERROR InitWeaveEventQueue(void);
     void DispatchEvent(const WeaveDeviceEvent * event);
     static void RunEventLoop(void * arg);
 };
