@@ -52,7 +52,16 @@ UpdateDirtyPathFilter::UpdateDirtyPathFilter(SubscriptionClient *apSubClient, Tr
 
 bool UpdateDirtyPathFilter::FilterPath (PropertyPathHandle pathhandle, const TraitSchemaEngine * aEngine)
 {
-    return mpSubClient->IsDirty(mTraitDataHandle, pathhandle, aEngine);
+    bool retval = false;
+
+    if (mpSubClient)
+    {
+        // TODO: clean this up:
+        // mpSubClient is set to something only by UpdatableDataSink instances
+        retval = mpSubClient->IsDirty(mTraitDataHandle, pathhandle, aEngine);
+    }
+
+    return retval;
 }
 
 UpdateDictionaryDirtyPathCut::UpdateDictionaryDirtyPathCut(TraitDataHandle aTraitDataHandle, SubscriptionClient * apSubClient)
