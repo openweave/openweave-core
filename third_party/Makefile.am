@@ -1,5 +1,5 @@
 #
-#    Copyright 2016 The nlfaultinjection Authors.
+#    Copyright 2016-2018 The nlfaultinjection Authors.
 #
 #    Licensed under the Apache License, Version 2.0 (the "License");
 #    you may not use this file except in compliance with the License.
@@ -22,31 +22,31 @@
 
 include $(abs_top_nlbuild_autotools_dir)/automake/pre.am
 
+EXTRA_DIST                        = \
+    nlbuild-autotools               \
+    $(NULL)
 # Always package (e.g. for 'make dist') these subdirectories.
 
-DIST_SUBDIRS             = \
-    nlunit-test/repo       \
-    nlassert/repo          \
+DIST_SUBDIRS                      = \
     $(NULL)
+
+# NLASSERT_SUBDIRS and NLUNIT_TEST_SUBDIRS are not a permanent part of DIST_SUBDIRS
+# since we do not ever want to include them in a distribution archive; however, when
+# they've been pulled as a 'repo' module, we do want to remove them on invocation of
+# the 'distclean' target. Consequently, we conditionally include them in DIST_SUBDIRS
+# on invocation of 'distclean-recursive'
+
+distclean-recursive: DIST_SUBDIRS += $(NLASSERT_SUBDIRS) $(NLUNIT_TEST_SUBDIRS)
 
 # Always build (e.g. for 'make all') these subdirectories.
+#
+# The values of NLASSERT_SUBDIRS and NLUNIT_TEST_SUBDIRS will be populated by 
+# configure if --with-nlassert=internal and --with-nlunit_test=internal,
+# respectively.
 
-SUBDIRS                  = \
+SUBDIRS                           = \
+    $(NLASSERT_SUBDIRS)             \
+    $(NLUNIT_TEST_SUBDIRS)          \
     $(NULL)
-
-# Only build (e.g. for 'make all') these subdirectories when requested.
-
-if NLFAULTINJECTION_WITH_NLASSERT_INTERNAL
-SUBDIRS                 += \
-	nlassert/repo          \
-    $(NULL)
-endif # NLFAULTINJECTION_WITH_NLASSERT_INTERNAL
-
-if NLFAULTINJECTION_WITH_NLUNITTEST_INTERNAL
-SUBDIRS                 += \
-    nlunit-test/repo            \
-    $(NULL)
-endif # NLFAULTINJECTION_WITH_NLUNITTEST_INTERNAL
 
 include $(abs_top_nlbuild_autotools_dir)/automake/post.am
-

@@ -1,19 +1,21 @@
 #                                               -*- Autoconf -*-
 # Process this file with autoconf to produce a configure script.
 
-# Copyright 2016-2017 The nlfaultinjection Authors.
-# 
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-# 
-#     http://www.apache.org/licenses/LICENSE-2.0
-# 
-#     Unless required by applicable law or agreed to in writing, software
-#     distributed under the License is distributed on an "AS IS" BASIS,
-#     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-#     See the License for the specific language governing permissions and
-#     limitations under the License.
+#
+# Copyright 2016-2018 The nlfaultinjection Authors.
+
+#
+#    Licensed under the Apache License, Version 2.0 (the "License");
+#    you may not use this file except in compliance with the License.
+#    You may obtain a copy of the License at
+#
+#        http://www.apache.org/licenses/LICENSE-2.0
+#
+#    Unless required by applicable law or agreed to in writing, software
+#    distributed under the License is distributed on an "AS IS" BASIS,
+#    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#    See the License for the specific language governing permissions and
+#    limitations under the License.
 #
 
 #
@@ -30,11 +32,11 @@ AC_PREREQ([2.68])
 #
 # Initialize autoconf for the package
 #
-AC_INIT([NLFAULTINJECTION],
+AC_INIT([nlfaultinjection],
         m4_esyscmd([third_party/nlbuild-autotools/repo/scripts/mkversion -b `cat .default-version` .]),
-        [developer@nest.com],
+        [nlfaultinjection-users@google.com],
         [nlfaultinjection],
-        [http://developer.nest.com/])
+        [https://github.com/nestlabs/nlfaultinjection/])
 
 # Tell the rest of the build system the absolute path where the
 # nlbuild-autotools repository is rooted at.
@@ -44,6 +46,10 @@ AC_SUBST(abs_top_nlbuild_autotools_dir,[\${abs_top_srcdir}/\${nlbuild_autotools_
 
 #
 # nlfaultinjection interface current, revision, and age versions.
+#
+# NOTE: At present, NLFAULTINJECTION makes NO ABI compatibility
+#       commitments. Consequently, these simply serve as documentation
+#       for how the interfaces have evolved.
 #
 # Maintainters: Please manage these fields as follows:
 #
@@ -338,78 +344,126 @@ AM_CONDITIONAL(NLFAULTINJECTION_BUILD_DOCS, [test "${nl_cv_build_docs}" = "yes"]
 #
 #   * nlassert
 #
-# The following are optional, depending on configuration:
+# At minimum, the following packages are optional, depending on
+# configuration:
 #
-#   * nlunittest
+#   * nlunit-test
 #
 # All of these are supplied "in package"; however, they may be also
 # supplied out of package.
 #
-AC_MSG_NOTICE([checking required package dependencies])
+AC_MSG_NOTICE([checking required and optional package dependencies])
 
 # Check if the build host has pkg-config
 
 AC_PATH_PROG([PKG_CONFIG],[pkg-config])
 
 #
-# Nlunittest
+# Nlassert
 #
 
-if test "${nl_cv_build_tests}" = "yes"; then
-    AC_CHECK_HEADERS([time.h])
-
-    NL_WITH_REQUIRED_INTERNAL_PACKAGE(
-        [Nlunittest],
-        [NLUNITTEST],
-        [nlunittest],
-        [-lnlunittest],
-        [
-        # At this point, the internal Nlunittest package will be neither
-        # configured nor built, so the normal checks we undertake for an
-        # external package cannot be run here. Simply set the appropriate
-        # variables and trust all will be well.
-
-            NLUNITTEST_CPPFLAGS="-I\${abs_top_srcdir}/third_party/nlunit-test/repo/src"
-            NLUNITTEST_LDFLAGS="-L${ac_pwd}/third_party/nlunit-test/repo/src"
-            NLUNITTEST_LIBS="-lnlunit-test"
-        ],
-        [   
-            # Check for required Nlunittest headers.
-
-            AC_CHECK_HEADERS([nlunit-test.h],
-            [],
-            [   
-                AC_MSG_ERROR(The nlunittest header "$ac_header" is required but cannot be found.)
-            ])
-        ])
-fi
-
-AM_CONDITIONAL([NLFAULTINJECTION_WITH_NLUNITTEST_INTERNAL], [test "${nl_with_nlunittest}" = "internal"])
-
-NL_WITH_REQUIRED_INTERNAL_PACKAGE(
+NL_WITH_PACKAGE(
     [Nlassert],
     [NLASSERT],
     [nlassert],
     [],
     [
-    # At this point, the internal Nlunittest package will be neither
-    # configured nor built, so the normal checks we undertake for an
-    # external package cannot be run here. Simply set the appropriate
-    # variables and trust all will be well.
+        # At this point, the internal Nlassert package will be neither
+        # configured nor built, so the normal checks we undertake for an
+        # external package cannot be run here. Simply set the appropriate
+        # variables and trust all will be well.
 
         NLASSERT_CPPFLAGS="-I\${abs_top_srcdir}/third_party/nlassert/repo/include"
+        NLASSERT_LDFLAGS=
+        NLASSERT_LIBS=
     ],
-    [   
+    [
         # Check for required Nlassert headers.
 
         AC_CHECK_HEADERS([nlassert.h],
         [],
-        [   
+        [
             AC_MSG_ERROR(The nlassert header "$ac_header" is required but cannot be found.)
         ])
-    ])
+    ]
+)
 
+# Depending on whether nlassert has been configured for an internal
+# location, it's directory stem within this package needs to be set
+# accordingly. In addition, if the location is internal, then we need
+# to attempt to pull it down using the bootstrap makefile.
+
+if test "${nl_with_nlassert}" = "internal"; then
+    maybe_nlassert_dirstem="nlassert/repo"
+    nlassert_dirstem="third_party/${maybe_nlassert_dirstem}"
+
+    AC_MSG_NOTICE([attempting to create internal ${nlassert_dirstem}])
+
+    ${MAKE-make} --no-print-directory -C ${srcdir} -f Makefile-bootstrap ${nlassert_dirstem}
+
+    if test $? -ne 0; then
+        AC_MSG_ERROR([failed to create ${nlassert_dirstem}. Please check your network connection or the correctness of 'repos.conf'])
+    fi
+else
+    maybe_nlassert_dirstem=""
+fi
+
+AC_SUBST(NLASSERT_SUBDIRS, [${maybe_nlassert_dirstem}])
 AM_CONDITIONAL([NLFAULTINJECTION_WITH_NLASSERT_INTERNAL], [test "${nl_with_nlassert}" = "internal"])
+
+#
+# Nlunit-test
+#
+
+if test "${nl_cv_build_tests}" = "yes"; then
+    NL_WITH_PACKAGE(
+        [Nlunit-test],
+        [NLUNIT_TEST],
+        [nlunit_test],
+        [-lnlunit-test],
+        [
+	    # At this point, the internal Nlunit-test package will be neither
+	    # configured nor built, so the normal checks we undertake for an
+	    # external package cannot be run here. Simply set the appropriate
+	    # variables and trust all will be well.
+
+            NLUNIT_TEST_CPPFLAGS="-I\${abs_top_srcdir}/third_party/nlunit-test/repo/src"
+            NLUNIT_TEST_LDFLAGS="-L${ac_pwd}/third_party/nlunit-test/repo/src"
+            NLUNIT_TEST_LIBS="-lnlunit-test"
+        ],
+        [
+            # Check for required nlunit-test headers.
+
+            AC_CHECK_HEADERS([nlunit-test.h],
+            [],
+            [
+                AC_MSG_ERROR(The nlunit-test header "$ac_header" is required but cannot be found.)
+            ])
+        ])
+fi
+
+# Depending on whether nlunit-test has been configured for an internal
+# location, it's directory stem within this package needs to be set
+# accordingly. In addition, if the location is internal, then we need
+# to attempt to pull it down using the bootstrap makefile.
+
+if test "${nl_with_nlunit_test}" = "internal"; then
+    maybe_nlunit_test_dirstem="nlunit-test/repo"
+    nlunit_test_dirstem="third_party/${maybe_nlunit_test_dirstem}"
+
+    AC_MSG_NOTICE([attempting to create internal ${nlunit_test_dirstem}])
+
+    ${MAKE-make} --no-print-directory -C ${srcdir} -f Makefile-bootstrap ${nlunit_test_dirstem}
+
+    if test $? -ne 0; then
+        AC_MSG_ERROR([failed to create ${nlunit_test_dirstem}. Please check your network connection or the correctness of 'repos.conf'])
+    fi
+else
+    maybe_nlunit_test_dirstem=""
+fi
+
+AC_SUBST(NLUNIT_TEST_SUBDIRS, [${maybe_nlunit_test_dirstem}])
+AM_CONDITIONAL([NLFAULTINJECTION_WITH_NLUNIT_TEST_INTERNAL], [test "${nl_with_nlunit_test}" = "internal"])
 
 #
 # Check for headers
@@ -441,20 +495,22 @@ if test "${ac_no_link}" != "yes"; then
     AC_CHECK_FUNCS([rand])
 fi
 
-# Add any nlunittest CPPFLAGS, LDFLAGS, and LIBS
-
-CPPFLAGS="${CPPFLAGS} ${NLUNITTEST_CPPFLAGS}"
-LDFLAGS="${LDFLAGS} ${NLUNITTEST_LDFLAGS}"
-LIBS="${LIBS} ${NLUNITTEST_LIBS}"
-
 # Add any nlassert CPPFLAGS, LDFLAGS, and LIBS
 
 CPPFLAGS="${CPPFLAGS} ${NLASSERT_CPPFLAGS}"
+LDFLAGS="${LDFLAGS} ${NLASSERT_LDFLAGS}"
+LIBS="${LIBS} ${NLASSERT_LIBS}"
 
-# Add any code coverage CPPFLAGS and LDFLAGS
+# Add any nlunit-test CPPFLAGS, LDFLAGS, and LIBS
+
+CPPFLAGS="${CPPFLAGS} ${NLUNIT_TEST_CPPFLAGS}"
+LDFLAGS="${LDFLAGS} ${NLUNIT_TEST_LDFLAGS}"
+LIBS="${LIBS} ${NLUNIT_TEST_LIBS}"
+
+# Add any code coverage CPPFLAGS and LIBS
 
 CPPFLAGS="${CPPFLAGS} ${NL_COVERAGE_CPPFLAGS}"
-LDFLAGS="${LDFLAGS} ${NL_COVERAGE_LDFLAGS}"
+LIBS="${LIBS} ${NL_COVERAGE_LIBS}"
 
 # At this point, we can restore the compiler flags to whatever the
 # user passed in, now that we're clear of an -Werror issues by
@@ -462,8 +518,14 @@ LDFLAGS="${LDFLAGS} ${NL_COVERAGE_LDFLAGS}"
 
 NL_RESTORE_WERROR
 
-AC_CONFIG_SUBDIRS([third_party/nlunit-test/repo])
-AC_CONFIG_SUBDIRS([third_party/nlassert/repo])
+# Configure any autotools-based subdirectories
+if test "${nl_with_nlassert}" = "internal"; then
+    AC_CONFIG_SUBDIRS([third_party/nlassert/repo])
+fi
+
+if test "${nl_with_nlunit_test}" = "internal"; then
+    AC_CONFIG_SUBDIRS([third_party/nlunit-test/repo])
+fi
 
 #
 # Identify the various makefiles and auto-generated files for the package
@@ -514,6 +576,14 @@ AC_MSG_NOTICE([
   Documentation support                     : ${nl_cv_build_docs}
   Doxygen                                   : ${DOXYGEN:--}
   GraphViz dot                              : ${DOT:--}
+  Nlassert source                           : ${nl_with_nlassert:--}
+  Nlassert compile flags                    : ${NLASSERT_CPPFLAGS:--}
+  Nlassert link flags                       : ${NLASSERT_LDFLAGS:--}
+  Nlassert link libraries                   : ${NLASSERT_LIBS:--}
+  Nlunit-test source                        : ${nl_with_nlunit_test:--}
+  Nlunit-test compile flags                 : ${NLUNIT_TEST_CPPFLAGS:--}
+  Nlunit-test link flags                    : ${NLUNIT_TEST_LDFLAGS:--}
+  Nlunit-test link libraries                : ${NLUNIT_TEST_LIBS:--}
   C Preprocessor                            : ${CPP}
   C Compiler                                : ${CC}
   C++ Preprocessor                          : ${CXXCPP}
