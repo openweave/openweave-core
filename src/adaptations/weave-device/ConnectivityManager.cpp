@@ -266,6 +266,10 @@ WEAVE_ERROR ConnectivityManager::Init()
         }
     }
 
+    // Force AP mode off for now.
+    err = ESPUtils::SetAPMode(false);
+    SuccessOrExit(err);
+
     // Queue work items to bootstrap the AP and station state machines once the Weave event loop is running.
     err = SystemLayer.ScheduleWork(DriveStationState, NULL);
     SuccessOrExit(err);

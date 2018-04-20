@@ -566,6 +566,26 @@ exit:
     return err;
 }
 
+WEAVE_ERROR ConfigurationManager::GetQRCodeString(char * buf, size_t bufSize)
+{
+    WEAVE_ERROR err;
+    WeaveDeviceDescriptor deviceDesc;
+    uint32_t encodedLen;
+
+    err = GetDeviceDescriptor(deviceDesc);
+    SuccessOrExit(err);
+
+    strncpy(deviceDesc.PairingCode, FabricState.PairingCode, WeaveDeviceDescriptor::kMaxPairingCodeLength);
+    deviceDesc.PairingCode[WeaveDeviceDescriptor::kMaxPairingCodeLength] = 0;
+
+    err = WeaveDeviceDescriptor::EncodeText(deviceDesc, buf, (uint32_t)bufSize, encodedLen);
+    SuccessOrExit(err);
+
+exit:
+    return err;
+}
+
+
 WEAVE_ERROR ConfigurationManager::GetWiFiAPSSID(char * buf, size_t bufSize)
 {
     WEAVE_ERROR err;

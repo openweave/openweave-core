@@ -75,6 +75,7 @@ private:
     WEAVE_ERROR InitWeaveEventQueue(void);
     void DispatchEvent(const WeaveDeviceEvent * event);
     static void RunEventLoop(void * arg);
+    static void HandleSessionEstablished(::nl::Weave::WeaveSecurityManager * sm, ::nl::Weave::WeaveConnection * con, void * reqState, uint16_t sessionKeyId, uint64_t peerNodeId, uint8_t encType);
 };
 
 } // namespace Device

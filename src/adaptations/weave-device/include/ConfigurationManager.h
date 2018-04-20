@@ -73,6 +73,7 @@ public:
 
     WEAVE_ERROR GetDeviceDescriptor(nl::Weave::Profiles::DeviceDescription::WeaveDeviceDescriptor & deviceDesc);
     WEAVE_ERROR GetDeviceDescriptorTLV(uint8_t * buf, size_t bufSize, size_t & encodedLen);
+    WEAVE_ERROR GetQRCodeString(char * buf, size_t bufSize);
 
     WEAVE_ERROR GetWiFiAPSSID(char * buf, size_t bufSize);
 

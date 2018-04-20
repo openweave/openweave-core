@@ -169,6 +169,8 @@ WEAVE_ERROR PlatformManager::InitWeaveStack(void)
     }
     SuccessOrExit(err);
 
+    SecurityMgr.OnSessionEstablished = HandleSessionEstablished;
+
     // Initialize the CASE auth delegate object.
     err = InitCASEAuthDelegate();
     SuccessOrExit(err);
@@ -502,6 +504,31 @@ void PlatformManager::RunEventLoop(void * /* unused */)
 
             eventReceived = xQueueReceive(WeaveEventQueue, &event, 0);
         }
+    }
+}
+
+void PlatformManager::HandleSessionEstablished(WeaveSecurityManager * sm, WeaveConnection * con, void * reqState, uint16_t sessionKeyId, uint64_t peerNodeId, uint8_t encType)
+{
+    // Get the auth mode for the newly established session key.
+    WeaveSessionKey * sessionKey;
+    FabricState.GetSessionKey(sessionKeyId, peerNodeId, sessionKey);
+    WeaveAuthMode authMode = (sessionKey != NULL) ? sessionKey->AuthMode : kWeaveAuthMode_NotSpecified;
+
+    // Post a SessionEstablished event for the new session.  If a PASE session is established
+    // using the device's pairing code, presume that this is a commissioner and set the
+    // IsCommissioner flag as a convenience to the application.
+    WeaveDeviceEvent event;
+    event.Type = WeaveDeviceEvent::kEventType_SessionEstablished;
+    event.SessionEstablished.PeerNodeId = peerNodeId;
+    event.SessionEstablished.SessionKeyId = sessionKeyId;
+    event.SessionEstablished.EncType = encType;
+    event.SessionEstablished.AuthMode = authMode;
+    event.SessionEstablished.IsCommissioner = (authMode == kWeaveAuthMode_PASE_PairingCode);
+    PlatformMgr.PostEvent(&event);
+
+    if (event.SessionEstablished.IsCommissioner)
+    {
+        ESP_LOGI(TAG, "Commissioner session established");
     }
 }
 

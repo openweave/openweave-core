@@ -49,6 +49,7 @@ struct WeaveDeviceEvent
         kEventType_ServiceProvisioningChange,
         kEventType_AccountPairingChange,
         kEventType_TimeSyncChange,
+        kEventType_SessionEstablished,
     };
 
     uint16_t Type;
@@ -58,8 +59,8 @@ struct WeaveDeviceEvent
         system_event_t ESPSystemEvent;
         struct
         {
-            nl::Weave::System::EventType Type;
-            nl::Weave::System::Object * Target;
+            ::nl::Weave::System::EventType Type;
+            ::nl::Weave::System::Object * Target;
             uintptr_t Argument;
         } WeaveSystemLayerEvent;
         struct
@@ -97,6 +98,14 @@ struct WeaveDeviceEvent
         {
             bool IsTimeSynchronized;
         } TimeSyncChange;
+        struct
+        {
+            uint64_t PeerNodeId;
+            uint16_t SessionKeyId;
+            uint8_t EncType;
+            ::nl::Weave::WeaveAuthMode AuthMode;
+            bool IsCommissioner;
+        } SessionEstablished;
     };
 };
 
