@@ -77,9 +77,10 @@ EventOptions::EventOptions(utc_timestamp_t aUtcTimestamp, DetailedRootSection * 
 { }
 
 EventLoadOutContext::EventLoadOutContext(nl::Weave::TLV::TLVWriter & inWriter, ImportanceType inImportance,
-                                         uint32_t inStartingEventID) :
+                                         uint32_t inStartingEventID, ExternalEvents * ioExternalEvents) :
     mWriter(inWriter),
     mImportance(inImportance), mStartingEventID(inStartingEventID), mCurrentTime(0), mCurrentEventID(0),
+    mExternalEvents(ioExternalEvents),
 #if WEAVE_CONFIG_EVENT_LOGGING_UTC_TIMESTAMPS
     mCurrentUTCTime(0), mFirstUtc(true),
 #endif // WEAVE_CONFIG_EVENT_LOGGING_UTC_TIMESTAMPS

@@ -2986,7 +2986,13 @@ static void CheckExternalEvents(nlTestSuite *inSuite, void *inContext)
 
     // positive case where events lie within event range in importance buffer
     // retrieve all events in order
-    for (int j = 0; j < 3; j++)
+
+    // we make two calls to FetchEventsSince. The first one grabs all
+    // the initial batch of 10 internally-stored events, and all the
+    // external events.  The second one grabs the remaining 10
+    // internally stored events.
+
+    for (int j = 1; j < 3; j++)
     {
         testWriter.Init(gLargeMemoryBackingStore, sizeof(gLargeMemoryBackingStore));
         err = nl::Weave::Profiles::DataManagement::LoggingManagement::GetInstance().FetchEventsSince(testWriter, nl::Weave::Profiles::DataManagement::Production, eid);
@@ -3048,7 +3054,7 @@ static void CheckExternalEventsMultipleCallbacks(nlTestSuite *inSuite, void *inC
     TLVReader testReader;
     event_id_t eid = 0;
     TestLoggingContext *context = static_cast<TestLoggingContext *>(inContext);
-
+    event_id_t endingEIDs[] = {10, 30, 40};
     InitializeEventLogging(context);
 
     err = LogMockExternalEvents(10, 1);
@@ -3064,8 +3070,11 @@ static void CheckExternalEventsMultipleCallbacks(nlTestSuite *inSuite, void *inC
     err = LogMockExternalEvents(10, 2);
     NL_TEST_ASSERT(inSuite, err == WEAVE_NO_ERROR);
 
+    // Note: with the current external event logging scheme, the
+    // number of externally stored event segments is only limited by
+    // the available buffering space.
     err = LogMockExternalEvents(10, 3);
-    NL_TEST_ASSERT(inSuite, err == WEAVE_ERROR_NO_MEMORY);
+    NL_TEST_ASSERT(inSuite, err == WEAVE_NO_ERROR);
 
     ClearMockExternalEvents(1);
 
@@ -3074,7 +3083,7 @@ static void CheckExternalEventsMultipleCallbacks(nlTestSuite *inSuite, void *inC
     {
         testWriter.Init(gLargeMemoryBackingStore, sizeof(gLargeMemoryBackingStore));
         err = nl::Weave::Profiles::DataManagement::LoggingManagement::GetInstance().FetchEventsSince(testWriter, nl::Weave::Profiles::DataManagement::Production, eid);
-        NL_TEST_ASSERT(inSuite, eid == 10*(static_cast<event_id_t>(j) + 1));
+        NL_TEST_ASSERT(inSuite, eid == endingEIDs[j]);
         NL_TEST_ASSERT(inSuite, err == WEAVE_END_OF_TLV || err == WEAVE_NO_ERROR);
 
         if (context->mVerbose)
@@ -3285,7 +3294,7 @@ static void CheckExternalEventsMultipleFetches(nlTestSuite *inSuite, void *inCon
         }
         else
         {
-        NL_TEST_ASSERT(inSuite, err == WEAVE_NO_ERROR);
+            NL_TEST_ASSERT(inSuite, err == WEAVE_NO_ERROR);
         }
 
         if (err == WEAVE_ERROR_BUFFER_TOO_SMALL)

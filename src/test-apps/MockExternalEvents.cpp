@@ -47,10 +47,10 @@ static WEAVE_ERROR FetchMockExternalEvents(EventLoadOutContext *aContext);
 static WEAVE_ERROR FetchWithBlitEvent(EventLoadOutContext *aContext);
 
 #define NUM_CALLBACKS 3
-ExternalEvents *extEvtPtrs[NUM_CALLBACKS];
+event_id_t extEvtPtrs[NUM_CALLBACKS];
 size_t numEvents[NUM_CALLBACKS];
 
-ExternalEvents *blitEvtPtr;
+event_id_t blitEvtPtr;
 
 
 WEAVE_ERROR LogMockExternalEvents(size_t aNumEvents, int numCallback)
@@ -110,10 +110,11 @@ WEAVE_ERROR FetchMockExternalEvents(EventLoadOutContext *aContext)
     int i;
     for (i = 0; i < 3; i++)
     {
-        if ((aContext->mCurrentEventID >= extEvtPtrs[i]->mFirstEventID) &&
-            (aContext->mCurrentEventID <= extEvtPtrs[i]->mLastEventID))
+        if ((aContext->mExternalEvents != NULL) &&
+            aContext->mExternalEvents->IsValid() &&
+            aContext->mExternalEvents->mLastEventID == extEvtPtrs[i])
         {
-            aContext->mCurrentEventID = extEvtPtrs[i]->mLastEventID + 1;
+            aContext->mCurrentEventID = extEvtPtrs[i] + 1;
             break;
         }
     }
@@ -147,7 +148,7 @@ WEAVE_ERROR FetchWithBlitEvent(EventLoadOutContext *aContext)
     context.mFmt = testString;
     context.mRegion = "";
 
-    while ((err == WEAVE_NO_ERROR) && (aContext->mCurrentEventID <= blitEvtPtr->mLastEventID))
+    while ((err == WEAVE_NO_ERROR) && (aContext->mCurrentEventID <= blitEvtPtr))
     {
         err = logger.BlitEvent(aContext, schema, PlainTextWriter, &context, &evOpts);
     }

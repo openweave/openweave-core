@@ -136,6 +136,10 @@ typedef uint32_t event_id_t;
  */
 typedef uint64_t utc_timestamp_t;
 
+// forward declaration
+
+struct ExternalEvents;
+
 // Structures used to describe in detail additional options for event encoding
 
 /**
@@ -231,13 +235,14 @@ struct EventOptions
 
 struct EventLoadOutContext
 {
-    EventLoadOutContext(nl::Weave::TLV::TLVWriter & inWriter, ImportanceType inImportance, uint32_t inStartingEventID);
+    EventLoadOutContext(nl::Weave::TLV::TLVWriter & inWriter, ImportanceType inImportance, uint32_t inStartingEventID, ExternalEvents * ioExternalEvent);
 
     nl::Weave::TLV::TLVWriter & mWriter;
     ImportanceType mImportance;
     uint32_t mStartingEventID;
     uint32_t mCurrentTime;
     uint32_t mCurrentEventID;
+    ExternalEvents *mExternalEvents;
 #if WEAVE_CONFIG_EVENT_LOGGING_UTC_TIMESTAMPS
     uint64_t mCurrentUTCTime;
     bool mFirstUtc;
@@ -312,9 +317,6 @@ typedef WEAVE_ERROR (*EventWriterFunct)(nl::Weave::TLV::TLVWriter & ioWriter, ui
  */
 typedef WEAVE_ERROR (*FetchExternalEventsFunct)(EventLoadOutContext * aContext);
 
-// forward declaration
-
-struct ExternalEvents;
 /**
  * @brief
  *
@@ -347,6 +349,8 @@ struct ExternalEvents
 
     FetchExternalEventsFunct mFetchEventsFunct; /**< The callback to use to fetch the above IDs. */
     NotifyExternalEventsDeliveredFunct mNotifyEventsDeliveredFunct;
+    bool IsValid(void) { return mFirstEventID <= mLastEventID; };
+    void Invalidate(void) { mFirstEventID = 1; mLastEventID = 0; };
 };
 
 // internal API
