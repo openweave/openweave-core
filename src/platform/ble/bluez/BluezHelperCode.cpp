@@ -38,6 +38,8 @@ static GMainLoop * gBluezMainLoop;
 static DBusConnection * gBluezDbusConn;
 static Adapter * gDefaultAdapter;
 
+static void PowerCb(const DBusError * error, void * bluezData);
+
 static void WeaveRegisterSetup(DBusMessageIter * iter, void * bluezData)
 {
     DBusMessageIter dict;
@@ -1204,6 +1206,7 @@ static void WeaveAdapterAdded(GDBusProxy * proxy)
     DBusMessageIter iter;
     const char * addr = NULL;
     bool proxyAdded = false;
+    dbus_bool_t powered = TRUE;
 
     if (g_dbus_proxy_get_property(proxy, "Address", &iter))
     {
@@ -1217,15 +1220,17 @@ static void WeaveAdapterAdded(GDBusProxy * proxy)
                 gDefaultAdapter->profileProxy = NULL;
                 gDefaultAdapter->deviceProxies.clear();
                 proxyAdded = true;
+
+                WeaveLogProgress(Ble, "%p(%s) added as default adapter proxy", proxy, addr);
+                if (FALSE == g_dbus_proxy_set_property_basic(proxy, "Powered", DBUS_TYPE_BOOLEAN, &powered, PowerCb, NULL, NULL))
+                {
+                    WeaveLogError(Ble, "Fail to set Powered property for adapter %p(%s)", proxy, addr);
+                }
             }
         }
     }
 
-    if (proxyAdded)
-    {
-        WeaveLogProgress(Ble, "%p(%s) added as default adapter proxy", proxy, addr);
-    }
-    else
+    if (!proxyAdded)
     {
         WeaveLogDetail(Ble, "Adaptor proxy %p(%s) ignored", proxy, addr);
     }
@@ -1437,14 +1442,7 @@ exit:
 
 static void WeaveClientReady(GDBusClient * weaveClient, void * bluezData)
 {
-    dbus_bool_t powered = TRUE;
-    gboolean err =
-        g_dbus_proxy_set_property_basic(gDefaultAdapter->adapterProxy, "Powered", DBUS_TYPE_BOOLEAN, &powered, PowerCb, NULL, NULL);
-    if (FALSE == err)
-    {
-        WeaveLogError(Ble, "Fail to set Power property in WeaveClientReady");
-    }
-
+    WeaveLogProgress(Ble, "Weave client is ready");
     return;
 }
 
