@@ -24,6 +24,7 @@
 include $(abs_top_nlbuild_autotools_dir)/automake/pre.am
 
 DIST_SUBDIRS                      = \
+    jni-utils                       \
     security-support                \
     $(NULL)
 

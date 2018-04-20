@@ -409,7 +409,7 @@ nl_public_WeaveSupport_verhoeff_header_sources = \
 $(nl_public_WeaveSupport_source_dirstem)/verhoeff/Verhoeff.h \
 $(NULL)
 
-nl_public_WeaveSupport_pairing_code_sources = \
+nl_public_WeaveSupport_pairing_code_header_sources = \
 $(nl_public_WeaveSupport_source_dirstem)/pairing-code/PairingCodeUtils.h \
 $(NULL)
 
@@ -422,7 +422,7 @@ $(nl_public_WeaveSupport_base_header_sources) \
 $(nl_public_WeaveSupport_crypto_header_sources) \
 $(nl_public_WeaveSupport_logging_header_sources) \
 $(nl_public_WeaveSupport_verhoeff_header_sources) \
-$(nl_public_WeaveSupport_pairing_code_sources) \
+$(nl_public_WeaveSupport_pairing_code_header_sources) \
 $(nl_public_WeaveSupport_platform_header_sources) \
 $(NULL)
 
@@ -452,6 +452,9 @@ dist_weave_support_logging_HEADERS = $(addprefix ../,$(nl_public_WeaveSupport_lo
 
 weave_support_verhoeffdir = $(includedir)/$(nl_public_WeaveSupport_destination_dirstem)/verhoeff
 dist_weave_support_verhoeff_HEADERS = $(addprefix ../,$(nl_public_WeaveSupport_verhoeff_header_sources))
+
+weave_support_pairing_codedir = $(includedir)/$(nl_public_WeaveSupport_destination_dirstem)/pairing-code
+dist_weave_support_pairing_code_HEADERS = $(addprefix ../,$(nl_public_WeaveSupport_pairing_code_header_sources))
 
 weave_support_platformdir = $(includedir)/$(nl_public_WeaveSupport_destination_dirstem)/platform
 dist_weave_support_platform_HEADERS = $(addprefix ../,$(nl_public_WeaveSupport_platform_header_sources))

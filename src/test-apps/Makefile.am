@@ -1,5 +1,5 @@
 #
-#    Copyright (c) 2014-2017 Nest Labs, Inc.
+#    Copyright (c) 2014-2018 Nest Labs, Inc.
 #    All rights reserved.
 #
 #    Licensed under the Apache License, Version 2.0 (the "License");
@@ -29,54 +29,77 @@ LOG_DRIVER=$(abs_srcdir)/weave-parallel-test-engine
 # Local headers to build against and distribute but not to install
 # since they are not part of the Weave SDK public API.
 #
-noinst_HEADERS                                 = \
-    CASEOptions.h                                \
-    KeyExportOptions.h                           \
-    ToolCommonOptions.h                          \
-    TAKEOptions.h                                \
-    DeviceDescOptions.h                          \
-    DMTestClient.h                               \
-    MockDCLPServer.h                             \
-    MockDCServer.h                               \
-    MockDDServer.h                               \
-    MockDMPublisher.h                            \
-    MockExternalEvents.h                         \
-    MockFPServer.h                               \
-    MockNPServer.h                               \
-    MockOpActions.h                              \
-    MockPairingServer.h                          \
-    MockSinkTraits.h                             \
-    MockSPServer.h                               \
-    MockSDServer.h                               \
-    MockSWUServer.h                              \
-    MockTimeSyncUtil.h                           \
-    MockTimeSyncServer.h                         \
-    MockTimeSyncClient.h                         \
-    MockTimeSyncCoordinator.h                    \
-    MockTokenPairingServer.h                     \
-    MockWdmViewServer.h                          \
-    MockWdmViewClient.h                          \
-    MockWdmTestVerifier.h                        \
-    MockWdmSubscriptionInitiator.h               \
-    MockWdmSubscriptionResponder.h               \
-    TestWdmOneWayCommand.h                       \
-    TestWdmSubscriptionlessNotification.h        \
-    TestGroupKeyStore.h                          \
-    TestDRBG.h                                   \
-    TestPersistedStorageImplementation.h         \
-    TestEventLoggingSchemaExamples.h             \
-    TestProfile.h                                \
-    TestWRMP.h                                   \
-    TestWeaveTunnel.h                            \
-    TestWeaveTunnelServer.h                      \
-    ToolCommon.h                                 \
-    TestWeaveCertData.h                          \
-    nlweavebdxclient.h                           \
-    nlweavebdxclient-development.h               \
-    nlweavebdxserver-development.h               \
-    nlweaveswuclient.h                           \
-    weave-bdx-common-development.h               \
-    MockIAServer.h                               \
+noinst_HEADERS                                             = \
+    CASEOptions.h                                            \
+    DMTestClient.h                                           \
+    DeviceDescOptions.h                                      \
+    KeyExportOptions.h                                       \
+    MockDCLPServer.h                                         \
+    MockDCServer.h                                           \
+    MockDDServer.h                                           \
+    MockDMPublisher.h                                        \
+    MockEvents.h                                             \
+    MockExternalEvents.h                                     \
+    MockFPServer.h                                           \
+    MockIAServer.h                                           \
+    MockLoggingManager.h                                     \
+    MockMismatchedSchemaSinkAndSource.h                      \
+    MockNPServer.h                                           \
+    MockOpActions.h                                          \
+    MockPairingServer.h                                      \
+    MockSDServer.h                                           \
+    MockSPServer.h                                           \
+    MockSWUServer.h                                          \
+    MockSinkTraits.h                                         \
+    MockSourceTraits.h                                       \
+    MockTestBTrait.h                                         \
+    MockTimeSyncClient.h                                     \
+    MockTimeSyncCoordinator.h                                \
+    MockTimeSyncServer.h                                     \
+    MockTimeSyncUtil.h                                       \
+    MockTokenPairingServer.h                                 \
+    MockWdmSubscriptionInitiator.h                           \
+    MockWdmSubscriptionResponder.h                           \
+    MockWdmTestVerifier.h                                    \
+    MockWdmViewClient.h                                      \
+    MockWdmViewServer.h                                      \
+    TAKEOptions.h                                            \
+    TestDRBG.h                                               \
+    TestEventLoggingSchemaExamples.h                         \
+    TestGroupKeyStore.h                                      \
+    TestPersistedStorageImplementation.h                     \
+    TestPlatformTime.h                                       \
+    TestProfile.h                                            \
+    TestWRMP.h                                               \
+    TestWdmOneWayCommand.h                                   \
+    TestWdmSubscriptionlessNotification.h                    \
+    TestWeaveCertData.h                                      \
+    TestWeaveTunnel.h                                        \
+    TestWeaveTunnelServer.h                                  \
+    ToolCommon.h                                             \
+    ToolCommonOptions.h                                      \
+    WdmNextPerfUtility.h                                     \
+    crypto-tests/WeaveCryptoTests.h                          \
+    nlweavebdxclient-development.h                           \
+    nlweavebdxclient.h                                       \
+    nlweavebdxserver-development.h                           \
+    nlweaveswuclient.h                                       \
+    schema/weave/trait/locale/LocaleCapabilitiesTrait.h      \
+    schema/weave/trait/locale/LocaleSettingsTrait.h          \
+    schema/weave/trait/telemetry/NetworkWiFiTelemetryTrait.h \
+    schema/weave/trait/security/BoltLockSettingsTrait.h      \
+    schema/weave/common/DayOfWeekEnum.h                      \
+    schema/nest/test/trait/TestCommon.h                      \
+    schema/nest/test/trait/TestHTrait.h                      \
+    schema/nest/test/trait/TestETrait.h                      \
+    schema/nest/test/trait/TestCTrait.h                      \
+    schema/nest/test/trait/TestATrait.h                      \
+    schema/nest/test/trait/TestFTrait.h                      \
+    schema/nest/test/trait/TestCommonVersioned.h             \
+    schema/nest/test/trait/TestBTrait.h                      \
+    schema/nest/test/trait/TestDTrait.h                      \
+    schema/nest/test/trait/TestMismatchedCTrait.h            \
+    weave-bdx-common-development.h                           \
     $(NULL)
 
 if CONFIG_NETWORK_LAYER_BLE
@@ -94,7 +117,7 @@ endif # CONFIG_NETWORK_LAYER_BLE
 # XXX - Should these be sanitized out for external distribution? If so,
 #       which?
 #
-EXTRA_DIST                                     =	\
+EXTRA_DIST                                            = \
     AndroidTest.cpp					\
     ComplexMockTrait.proto				\
     SimpleMockTrait.proto				\
@@ -102,21 +125,22 @@ EXTRA_DIST                                     =	\
     TestWeaveDeviceMangerJNI				\
     connect-BR-Svc-ns.sh				\
     happy/tests/service					\
-    weave-parallel-test-engine				\
-    happy/tests/standalone						\
-    remove-weave-devs.sh				\
-    setup-weave-devs.sh					\
-    test-weave-device-descriptor-encode.sh		\
-    nlweavebdxclient.cpp				\
+    happy/tests/standalone				\
     nlweavebdxclient-development.cpp			\
+    nlweavebdxclient.cpp				\
     nlweavebdxserver-development.cpp			\
     nlweavebdxserver.h					\
     remove-tunnel-intf.sh				\
+    remove-weave-devs.sh				\
     setup-network-namespaces.sh				\
     setup-tunnel-intf.sh				\
+    setup-weave-devs.sh					\
+    test-Verhoeff.sh                                    \
     test-bdx-development.sh				\
     test-file-development.txt				\
+    test-weave-device-descriptor-encode.sh		\
     weave-bdx-client.cpp				\
+    weave-parallel-test-engine				\
     $(NULL)
 
 if WEAVE_BUILD_TESTS

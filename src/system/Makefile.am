@@ -23,6 +23,10 @@ include $(abs_top_nlbuild_autotools_dir)/automake/pre.am
 
 include SystemLayer.am
 
+EXTRA_DIST                        = \
+    SystemLayerPrivate.h            \
+    $(NULL)
+
 lib_LIBRARIES                     = libSystemLayer.a
 
 libSystemLayer_a_CPPFLAGS         = \

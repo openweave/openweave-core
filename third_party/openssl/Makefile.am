@@ -107,7 +107,11 @@ all-local: build-local
 # Use a dedicated sentinel stamp file to ensure the job is
 # done. Attempts to use an actual shadowed file (e.g. Configure) will
 # fail with non-colocated source and build directories because VPATH
-# will believe it to already be satisfied.
+# will believe it to already be satisfied. Finally, ensure that the
+# shadowed tree is user-writable so that operations like 'make
+# distcheck' succeed. In such an an environment, the source tree is
+# read-only and shadowing it will otherwise create a read-only shadow
+# copy.
 
 $(dir $(OPENSSL_SHADOW_SENTINEL)):
 	$(create-directory)
@@ -115,6 +119,8 @@ $(dir $(OPENSSL_SHADOW_SENTINEL)):
 $(OPENSSL_SHADOW_SENTINEL): | $(dir $(OPENSSL_SHADOW_SENTINEL))
 	@echo "  LNDIR    $(srcdir)"
 	$(AM_V_at)$(LNDIR) $(abs_srcdir)/openssl/. $(@D)
+	@echo "  CHMOD     $(srcdir)"
+	$(AM_V_at)chmod -R u+w $(@D)
 	$(AM_V_at)echo "sentinel stamp for openssl shadow" > $(@)
 
 .PHONY: shadow-local

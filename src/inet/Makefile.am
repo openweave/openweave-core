@@ -25,6 +25,10 @@ include $(abs_top_nlbuild_autotools_dir)/automake/pre.am
 
 include InetLayer.am
 
+EXTRA_DIST                          = \
+    arpa-inet-compatibility.h         \
+    $(NULL)
+
 lib_LIBRARIES                       = libInetLayer.a
 
 libInetLayer_a_CPPFLAGS             = \
