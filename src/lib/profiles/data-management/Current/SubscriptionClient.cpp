@@ -962,10 +962,6 @@ void SubscriptionClient::HandleSubscriptionTerminated(bool aWillRetry, WEAVE_ERR
         // context should be considered an error.
         const bool abortExchangeContext = true;
         FlushExistingExchangeContext(abortExchangeContext);
-
-#if WEAVE_CONFIG_ENABLE_WDM_UPDATE
-        CancelUpdateClient();
-#endif // WEAVE_CONFIG_ENABLE_WDM_UPDATE
     }
 
     if (NULL != callbackFunc)
@@ -2618,8 +2614,11 @@ void SubscriptionClient::OnUpdateConfirm(WEAVE_ERROR aReason, nl::Weave::Profile
             // Clearing the version will trigger a re-subscription and
             // the app will be notified for all conditional pending paths
             // with a VERSION_MISMATCH error.
-            updatableDataSink->ClearVersion();
+            WeaveLogDetail(DataManagement, "Clearing version for tdh %d, trait %08x",
+                    tIContext->mTraitDataHandle,
+                    tIContext->mUpdatableDataSink->GetSchemaEngine()->GetProfileId());
 
+            updatableDataSink->ClearVersion();
         } // Not success
     } // for numDispatchedHandles
 
@@ -3401,21 +3400,16 @@ exit:
 
 SubscriptionClient::UpdatableTIContext *SubscriptionClient::GetUpdatableTIContext(TraitDataHandle aHandle)
 {
-    UpdatableTIContext *tIContext = GetUpdatableTIContextList();
-    bool foundIt = false;
+    UpdatableTIContext *tIContextList = GetUpdatableTIContextList();
+    UpdatableTIContext *tIContext = NULL;
 
     for (size_t j = 0; j < mNumUpdatableTraitInstances; j++)
     {
-        if (tIContext[j].mTraitDataHandle == aHandle)
+        if (tIContextList[j].mTraitDataHandle == aHandle)
         {
-            foundIt = true;
+            tIContext = &(tIContextList[j]);
             break;
         }
-    }
-
-    if (!foundIt)
-    {
-        tIContext = NULL;
     }
 
     return tIContext;
