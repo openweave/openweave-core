@@ -585,6 +585,13 @@ WEAVE_ERROR SubscriptionClient::SendSubscribeRequest(void)
                 else
                 {
                     versionList.AddNull();
+#if WEAVE_CONFIG_ENABLE_WDM_UPDATE
+                    if (pDataSink->IsUpdatableDataSink() && ( ! pDataSink->IsVersionValid()))
+                    {
+                        ClearPotentialDataLoss(versionedTraitPath.mTraitDataHandle);
+                    }
+#endif // WEAVE_CONFIG_ENABLE_WDM_UPDATE
+
                 }
             }
 
@@ -2271,7 +2278,20 @@ void SubscriptionClient::CheckPotentialDataLoss(TraitDataHandle aTraitDataHandle
         UpdatableTIContext * tIContext = GetUpdatableTIContext(aTraitDataHandle);
 
         tIContext->mPotentialDataLoss = true;
+
+        WeaveLogDetail(DataManagement, "Potential data loss set for traitDataHandle: %" PRIu16 ", trait %08x pathHandle: %" PRIu32 "",
+               aTraitDataHandle, apSchemaEngine->GetProfileId(), aPropertyPathHandle);
     }
+}
+
+void SubscriptionClient::ClearPotentialDataLoss(TraitDataHandle aTraitDataHandle)
+{
+    UpdatableTIContext * tIContext = GetUpdatableTIContext(aTraitDataHandle);
+
+    tIContext->mPotentialDataLoss = false;
+
+    WeaveLogDetail(DataManagement, "Potential data loss cleared for traitDataHandle: %" PRIu16 ", trait %08x",
+            aTraitDataHandle, tIContext->mUpdatableDataSink->GetSchemaEngine()->GetProfileId());
 }
 
 bool SubscriptionClient::IsDirty(TraitDataHandle aTraitDataHandle, PropertyPathHandle aPropertyPathHandle, const TraitSchemaEngine * const apSchemaEngine)
@@ -2460,9 +2480,10 @@ void SubscriptionClient::OnUpdateConfirm(WEAVE_ERROR aReason, nl::Weave::Profile
         // is allowed to be empty.
         wholeRequestSucceeded = true;
 
-        profileID = nl::Weave::Profiles::kWeaveProfile_Common;
-        statusCode = nl::Weave::Profiles::Common::kStatus_Success;
     }
+
+    profileID = apStatus->mProfileId;
+    statusCode = apStatus->mStatusCode;
 
     // TODO: handle the case of empty lists in case of total failure.
     if (additionalInfo.theLength != 0)
@@ -2560,7 +2581,7 @@ void SubscriptionClient::OnUpdateConfirm(WEAVE_ERROR aReason, nl::Weave::Profile
 
         updatableDataSink = tIContext->mUpdatableDataSink;
 
-        WeaveLogDetail(DataManagement, "item: %zu, profile: %" PRIu32 ", statusCode: % " PRIu16 ", version 0x%" PRIx64 "",
+        WeaveLogDetail(DataManagement, "item: %zu, profile: %" PRIu32 ", statusCode: 0x% " PRIx16 ", version 0x%" PRIx64 "",
                 j, profileID, statusCode, versionCreated);
         WeaveLogDetail(DataManagement, "item: %zu, traitDataHandle: %" PRIu16 ", pathHandle: %" PRIu32 "",
                 j, traitPath.mTraitDataHandle, traitPath.mPropertyPathHandle);
@@ -2586,9 +2607,10 @@ void SubscriptionClient::OnUpdateConfirm(WEAVE_ERROR aReason, nl::Weave::Profile
                     (versionCreated == updatableDataSink->GetVersion()) &&
                     tIContext->mPotentialDataLoss)
             {
-                WeaveLogDetail(DataManagement, "traitDataHandle: %" PRIu16 ", pathHandle: %" PRIu32 " clearing potentialDataLoss",
+                WeaveLogDetail(DataManagement, "traitDataHandle: %" PRIu16 ", pathHandle: %" PRIu32 " matched current version",
                         traitPath.mTraitDataHandle, traitPath.mPropertyPathHandle);
-                tIContext->mPotentialDataLoss = false;
+
+                ClearPotentialDataLoss(traitPath.mTraitDataHandle);
             }
         } // Success
         else
@@ -2612,15 +2634,37 @@ exit:
     VerifyOrDie(mDispatchedUpdateStore.mNumItems == 0);
 
     PurgePendingUpdate();
+
+    bool needToResubscribe;
+
+    // Check if we need to refresh the subscription because some
+    // trait's version has been nulled
+    tIContext = GetUpdatableTIContextList();
+
+    for (size_t i = 0; i < GetNumUpdatableTraitInstances(); i++)
+    {
+        if (! tIContext->mUpdatableDataSink->IsVersionValid())
+        {
+            WeaveLogDetail(DataManagement, "Need to resubscribe for tdh %d, trait %08x",
+                    tIContext->mTraitDataHandle,
+                    tIContext->mUpdatableDataSink->GetSchemaEngine()->GetProfileId());
+            needToResubscribe = true;
+        }
+
+        tIContext++;
+    }
+
     if (mPendingUpdateStore.mNumItems > 0)
     {
         FormAndSendUpdate(true);
     }
     else
     {
-        bool needToResubscribe;
+        // TODO: notify the application that all updates have been attempted
 
         ClearFlushInProgress();
+
+        // check if we need to refresh any trait that has potential data loss
 
         tIContext = GetUpdatableTIContextList();
 
@@ -2628,24 +2672,29 @@ exit:
         {
             if (tIContext->mPotentialDataLoss)
             {
-                TraitDataSink * dataSink;
-
-                WeaveLogDetail(DataManagement, "Potential data loss in tdh %d", tIContext->mTraitDataHandle);
-
-                err = mDataSinkCatalog->Locate(tIContext->mTraitDataHandle, &dataSink);
-                SuccessOrExit(err);
+                WeaveLogDetail(DataManagement, "Potential data loss in tdh %d, trait %08x",
+                        tIContext->mTraitDataHandle,
+                        tIContext->mUpdatableDataSink->GetSchemaEngine()->GetProfileId());
 
                 tIContext->mUpdatableDataSink->ClearVersion();
+            }
 
+            if (! tIContext->mUpdatableDataSink->IsVersionValid())
+            {
+                WeaveLogDetail(DataManagement, "Need to resubscribe for tdh %d, trait %08x",
+                        tIContext->mTraitDataHandle,
+                        tIContext->mUpdatableDataSink->GetSchemaEngine()->GetProfileId());
                 needToResubscribe = true;
             }
+
             tIContext++;
         }
 
-        if (needToResubscribe && IsEstablishedIdle())
-        {
-            HandleSubscriptionTerminated(IsRetryEnabled(), err, NULL);
-        }
+    }
+
+    if (needToResubscribe && IsEstablishedIdle())
+    {
+        HandleSubscriptionTerminated(IsRetryEnabled(), err, NULL);
     }
 
     if (isLocked)
@@ -3324,6 +3373,7 @@ void SubscriptionClient::InitUpdatableSinkTrait(void * aDataSink, TraitDataHandl
     traitInstance->Init();
     traitInstance->mTraitDataHandle = aDataHandle;
     traitInstance->mUpdatableDataSink = updatableDataSink;
+    traitInstance->mPotentialDataLoss = false;
 
 exit:
 

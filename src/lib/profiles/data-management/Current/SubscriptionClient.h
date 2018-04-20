@@ -447,6 +447,7 @@ private:
     bool MergeDupInPendingUpdateStore(const TraitSchemaEngine * apSchemaEngine, size_t & candidateIndex);
 
     void CheckPotentialDataLoss(TraitDataHandle aTraitDataHandle, PropertyPathHandle aPropertyPathHandle, const TraitSchemaEngine * const apSchemaEngine);
+    void ClearPotentialDataLoss(TraitDataHandle aTraitDataHandle);
     bool IsDirty(TraitDataHandle aTraitDataHandle, PropertyPathHandle aPropertyPathHandle, const TraitSchemaEngine * const apSchemaEngine);
     bool IsPresentDispatchedUpdateStore(TraitDataHandle aTraitDataHandle, PropertyPathHandle aPropertyPathHandle);
 

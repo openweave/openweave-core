@@ -42,12 +42,10 @@ using namespace ::nl::Weave::Profiles::Common;
 using namespace ::nl::Weave::Profiles::DataManagement;
 using namespace ::nl::Weave::Profiles::DataManagement_Current;
 
-UpdateDirtyPathFilter::UpdateDirtyPathFilter(SubscriptionClient *apSubClient, TraitDataHandle traitDataHandle, bool & aFilterPendingUpdate, bool & aFilterDispatchedUpdate)
+UpdateDirtyPathFilter::UpdateDirtyPathFilter(SubscriptionClient *apSubClient, TraitDataHandle traitDataHandle)
 {
     mpSubClient = apSubClient;
     mTraitDataHandle = traitDataHandle;
-    mFilterPendingUpdate = aFilterPendingUpdate;
-    mFilterDispatchedUpdate = aFilterDispatchedUpdate;
 }
 
 bool UpdateDirtyPathFilter::FilterPath (PropertyPathHandle pathhandle, const TraitSchemaEngine * aEngine)
@@ -945,6 +943,8 @@ WEAVE_ERROR TraitDataSink::StoreDataElement(PropertyPathHandle aHandle, TLVReade
         // Signal to the app we're about to process a data element.
         OnEvent(kEventDataElementBegin, NULL);
 
+        // TODO: we need to check if there are pending updates for paths
+        // being deleted
         if (deletePresent)
         {
             err = parser.GetDeletedDictionaryKeys(&aReader);
@@ -991,45 +991,10 @@ WEAVE_ERROR TraitDataSink::StoreDataElement(PropertyPathHandle aHandle, TLVReade
                 if ((! IsVersionValid()) || IsVersionOlder(versionInDE, mVersion))
                 {
                     subClient->CheckPotentialDataLoss(aDatahandle, aHandle, mSchemaEngine);
-
-                    if (subClient->IsEmptyPendingUpdateStore() && subClient->IsEmptyDispatchedUpdateStore())
-                    {
-                        filterPendingUpdate = false;
-                        filterDispatchedUpdate = false;
-                    }
-                    else
-                    {
-                        if (IsConditionalUpdate())
-                        {
-                            if (versionInDE == GetUpdateRequiredVersion())
-                            {
-                                filterPendingUpdate = true;
-                                filterDispatchedUpdate = true;
-                            }
-                            else
-                            {
-                                if (GetSubscriptionClient()->IsUpdateInFlight())
-                                {
-                                    filterPendingUpdate = true;
-                                    filterDispatchedUpdate = false;
-                                }
-                                else
-                                {
-                                    filterPendingUpdate = false;
-                                    filterDispatchedUpdate = false;
-                                }
-                            }
-                        }
-                        else
-                        {
-                            filterPendingUpdate = true;
-                            filterDispatchedUpdate = false;
-                        }
-                    }
                 }
             }
 #endif // WEAVE_CONFIG_ENABLE_WDM_UPDATE
-            UpdateDirtyPathFilter pathFilter(GetSubscriptionClient(), aDatahandle, filterPendingUpdate, filterDispatchedUpdate);
+            UpdateDirtyPathFilter pathFilter(GetSubscriptionClient(), aDatahandle);
             err = mSchemaEngine->StoreData(aHandle, aReader, this, &pathFilter);
         }
 

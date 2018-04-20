@@ -118,7 +118,7 @@ public:
 class UpdateDirtyPathFilter : public IPathFilter
 {
 public:
-    UpdateDirtyPathFilter(SubscriptionClient *apSubClient, TraitDataHandle traitDataHandle, bool & aFilterPendingUpdate, bool & aFilterDispatchedUpdate);
+    UpdateDirtyPathFilter(SubscriptionClient *apSubClient, TraitDataHandle traitDataHandle);
     virtual bool FilterPath (PropertyPathHandle aPathhandle, const TraitSchemaEngine * apEngine);
 
 private:
