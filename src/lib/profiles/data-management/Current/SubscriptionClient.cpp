@@ -2970,6 +2970,8 @@ WEAVE_ERROR SubscriptionClient::Lookup(UpdatableTIContext * traitInfo,
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
 
+    updatableDataSink = traitInfo->mUpdatableDataSink;
+
     schemaEngine = updatableDataSink->GetSchemaEngine();
     VerifyOrDie(schemaEngine != NULL);
 
@@ -3145,6 +3147,7 @@ exit:
     if (err != WEAVE_NO_ERROR)
     {
         // TODO: there is no coverage for this yet
+        WeaveLogDetail(DataManagement, "%s failed: %d", __func__, err);
 
         if ((err == WEAVE_ERROR_BUFFER_TOO_SMALL) || (err == WEAVE_ERROR_NO_MEMORY))
         {
