@@ -31,6 +31,59 @@ namespace Ble {
 namespace Platform {
 namespace BlueZ {
 
+static void WeaveRegisterSetup(DBusMessageIter * iter, void * bluezData);
+static void WeaveRegisterReply(DBusMessage * message, void * bluezData);
+static gboolean WeaveAdvertisingGetType(const GDBusPropertyTable * property, DBusMessageIter * iter, void * bluezData);
+static gboolean GetWeaveUUIDs(const GDBusPropertyTable * property, DBusMessageIter * iter, void * bluezData);
+static gboolean WeaveServiceDataCheck(const GDBusPropertyTable * property, void * bluezData);
+static gboolean AppendArrayVariant(DBusMessageIter * iter, int type, void * val, int nElements);
+static gboolean DictAppendBasicArray(DBusMessageIter * dict, int keyType, const void * key, int type, void * val, int nElements);
+static gboolean GetWeaveServiceData(const GDBusPropertyTable * property, DBusMessageIter * iter, void * bluezData);
+static gboolean WeaveNameCheck(const GDBusPropertyTable * property, void * bluezData);
+static gboolean WeaveGetName(const GDBusPropertyTable * property, DBusMessageIter * iter, void * bluezData);
+static DBusMessage * WeaveDestroyAdvertising(DBusConnection * dbusConn, DBusMessage * dbusMsg, void * bluezData);
+static DBusMessage * WeaveDestroyProfile(DBusConnection * dbusConn, DBusMessage * dbusMsg, void * bluezData);
+static void RegisterWeaveAppSetup(DBusMessageIter * iter, void * bluezData);
+static void RegisterWeaveAppReply(DBusMessage * message, void * bluezData);
+static void WeaveCharacteristicDestroy(void * bluezData);
+static gboolean WeaveServiceGetUUID(const GDBusPropertyTable * property, DBusMessageIter * iter, void * bluezData);
+static gboolean WeaveServiceGetPrimary(const GDBusPropertyTable * property, DBusMessageIter * iter, void * bluezData);
+static void ServiceDestroy(void * bluezData);
+static gboolean CharacteristicGetUUID(const GDBusPropertyTable * property, DBusMessageIter * iter, void * bluezData);
+static gboolean CharacteristicGetService(const GDBusPropertyTable * property, DBusMessageIter * iter, void * bluezData);
+static gboolean CharacteristicGetValue(const GDBusPropertyTable * property, DBusMessageIter * iter, void * bluezData);
+static gboolean CharacteristicGetNotifying(const GDBusPropertyTable * property, DBusMessageIter * iter, void * bluezData);
+static gboolean CharacteristicGetFlags(const GDBusPropertyTable * property, DBusMessageIter * iter, void * bluezData);
+static DBusMessage * CharacteristicRead(DBusConnection * dbusConn, DBusMessage * dbusMsg, void * bluezData);
+
+#if BLE_CONFIG_BLUEZ_MTU_FEATURE
+static bool WritePipeIORead(struct io * io, void * bluezData);
+static bool PipeIODestroy(struct io * io, void * bluezData);
+static DBusMessage * CharacteristicCreatePipe(Characteristic * characteristic, DBusMessage * dbusMsg);
+static DBusMessage * CharacteristicAcquireWrite(DBusConnection * dbusConn, DBusMessage * dbusMsg, void * bluezData);
+static DBusMessage * CharacteristicAcquireNotify(DBusConnection * dbusConn, DBusMessage * dbusMsg, void * bluezData);
+static gboolean CharacteristicPipeAcquired(const GDBusPropertyTable * property, DBusMessageIter * iter, void * bluezData);
+#endif
+
+static DBusMessage * CharacteristicWrite(DBusConnection * dbusConn, DBusMessage * dbusMsg, void * bluezData);
+static DBusMessage * CharacteristicStartNotify(DBusConnection * dbusConn, DBusMessage * dbusMsg, void * bluezData);
+static DBusMessage * CharacteristicStopNotify(DBusConnection * dbusConn, DBusMessage * dbusMsg, void * bluezData);
+static DBusMessage * CharacteristicIndicationConf(DBusConnection * dbusConn, DBusMessage * dbusMsg, void * bluezData);
+static void WeaveClientConnectHandler(DBusConnection * connection, void * bluezData);
+static void WeaveClientDisconnectHandler(DBusConnection * connection, void * bluezData);
+static gboolean CheckDeviceIsChild(GDBusProxy * childProxy, GDBusProxy * parentProxy);
+static void WeaveAdapterAdded(GDBusProxy * proxy);
+static void WeaveProfileAdded(GDBusProxy * proxy);
+static void WeaveAdvertisingAdded(GDBusProxy * proxy);
+static void WeaveDeviceAdded(GDBusProxy *proxy);
+static void WeaveProxyAdded(GDBusProxy * proxy, void * bluezData);
+static void WeaveProxyDeleted(GDBusProxy * proxy, void * bluezData);
+static void WeaveDisconnReply(DBusMessage * dbusMsg, void * bluezData);
+static void WeaveDeviceDisconnect(GDBusProxy * proxy);
+static void WeavePropertyChange(GDBusProxy *proxy, const char *name, DBusMessageIter *iter, void *bluezData);
+static void PowerCb(const DBusError * error, void * bluezData);
+static void WeaveClientReady(GDBusClient * weaveClient, void * bluezData);
+
 BluezServerEndpoint * gBluezServerEndpoint = NULL;
 BluezBlePlatformDelegate * gBluezBlePlatformDelegate = NULL;
 BluezBleApplicationDelegate * gBluezBleApplicationDelegate = NULL;
@@ -38,7 +91,51 @@ static GMainLoop * gBluezMainLoop;
 static DBusConnection * gBluezDbusConn;
 static Adapter * gDefaultAdapter;
 
-static void PowerCb(const DBusError * error, void * bluezData);
+static const GDBusMethodTable weaveAdvertisingMethods[] = {
+    { "Release", WeaveDestroyAdvertising, (GDBusMethodFlags) 0, 0, NULL, NULL }, { }
+};
+
+static const GDBusPropertyTable weaveAdvertisingProperties[] = { { "Type", "s", WeaveAdvertisingGetType },
+                                                                 { "ServiceUUIDs", "as", GetWeaveUUIDs, NULL, NULL },
+                                                                 { "LocalName", "s", WeaveGetName, NULL, WeaveNameCheck },
+                                                                 { "ServiceData", "a{sv}", GetWeaveServiceData, NULL,
+                                                                   WeaveServiceDataCheck },
+                                                                 { } };
+
+static const GDBusMethodTable weaveAppMethods[] = { { "Release", WeaveDestroyProfile, GDBusMethodFlags(0), 0, NULL, NULL }, { } };
+
+static const GDBusPropertyTable weaveAppProperties[] = { { "UUIDs", "as", GetWeaveUUIDs }, { } };
+
+static const GDBusPropertyTable serviceProperties[] = { { "UUID", "s", WeaveServiceGetUUID },
+                                                        { "Primary", "b", WeaveServiceGetPrimary },
+                                                        { } };
+
+static const GDBusPropertyTable WeaveCharacteristicProperties[] = {
+    { "UUID", "s", CharacteristicGetUUID, NULL, NULL },
+    { "Service", "o", CharacteristicGetService, NULL, NULL },
+    { "Value", "ay", CharacteristicGetValue, NULL, NULL },
+    { "Notifying", "b", CharacteristicGetNotifying, NULL, NULL },
+    { "Flags", "as", CharacteristicGetFlags, NULL, NULL },
+#if BLE_CONFIG_BLUEZ_MTU_FEATURE
+    { "WriteAcquired", "b", CharacteristicPipeAcquired, NULL, NULL },
+    { "NotifyAcquired", "b", CharacteristicPipeAcquired, NULL, NULL },
+#endif // BLE_CONFIG_BLUEZ_MTU_FEATURE
+    { }
+};
+
+static const GDBusMethodTable weaveCharacteristicMethods[] = {
+    { "ReadValue", CharacteristicRead, G_DBUS_METHOD_FLAG_ASYNC, 0, GDBUS_ARGS( { "options", "a{sv}" }),
+      GDBUS_ARGS( { "value", "ay" }) },
+#if BLE_CONFIG_BLUEZ_MTU_FEATURE
+    { "AcquireWrite", CharacteristicAcquireWrite, G_DBUS_METHOD_FLAG_ASYNC, 0, GDBUS_ARGS( { "options", "a{sv}" }), NULL },
+    { "AcquireNotify", CharacteristicAcquireNotify, G_DBUS_METHOD_FLAG_ASYNC, 0, GDBUS_ARGS( { "options", "a{sv}" }), NULL },
+#endif // BLE_CONFIG_BLUEZ_MTU_FEATURE
+    { "WriteValue", CharacteristicWrite, G_DBUS_METHOD_FLAG_ASYNC, 0, GDBUS_ARGS( { "value", "ay" }, { "options", "a{sv}" }), NULL },
+    { "StartNotify", CharacteristicStartNotify, G_DBUS_METHOD_FLAG_ASYNC, 0, NULL, NULL },
+    { "StopNotify", CharacteristicStopNotify, G_DBUS_METHOD_FLAG_ASYNC, 0, NULL, NULL },
+    { "Confirm", CharacteristicIndicationConf, G_DBUS_METHOD_FLAG_ASYNC, 0, NULL, NULL },
+    { }
+};
 
 static void WeaveRegisterSetup(DBusMessageIter * iter, void * bluezData)
 {
@@ -271,17 +368,6 @@ static DBusMessage * WeaveDestroyAdvertising(DBusConnection * dbusConn, DBusMess
     return dbus_message_new_method_return(dbusMsg);
 }
 
-static const GDBusMethodTable weaveAdvertisingMethods[] = {
-    { "Release", WeaveDestroyAdvertising, (GDBusMethodFlags) 0, 0, NULL, NULL }, { }
-};
-
-static const GDBusPropertyTable weaveAdvertisingProperties[] = { { "Type", "s", WeaveAdvertisingGetType },
-                                                                 { "ServiceUUIDs", "as", GetWeaveUUIDs, NULL, NULL },
-                                                                 { "LocalName", "s", WeaveGetName, NULL, WeaveNameCheck },
-                                                                 { "ServiceData", "a{sv}", GetWeaveServiceData, NULL,
-                                                                   WeaveServiceDataCheck },
-                                                                 { } };
-
 gboolean AdvertisingRegister(DBusConnection * dbusConn, GDBusProxy * proxy)
 {
     gboolean success = FALSE;
@@ -352,10 +438,6 @@ static void RegisterWeaveAppReply(DBusMessage * message, void * bluezData)
         dbus_error_free(&error);
     }
 }
-
-static const GDBusMethodTable weaveAppMethods[] = { { "Release", WeaveDestroyProfile, GDBusMethodFlags(0), 0, NULL, NULL }, { } };
-
-static const GDBusPropertyTable weaveAppProperties[] = { { "UUIDs", "as", GetWeaveUUIDs }, { } };
 
 gboolean SetupWeaveApp(DBusConnection * dbusConn, GDBusProxy * proxy)
 {
@@ -432,10 +514,6 @@ exit:
 
     return success;
 }
-
-static const GDBusPropertyTable serviceProperties[] = { { "UUID", "s", WeaveServiceGetUUID },
-                                                        { "Primary", "b", WeaveServiceGetPrimary },
-                                                        { } };
 
 static void ServiceDestroy(void * bluezData)
 {
@@ -1089,33 +1167,6 @@ exit:
 }
 #endif // BLE_CONFIG_BLUEZ_MTU_FEATURE
 
-static const GDBusPropertyTable WeaveCharacteristicProperties[] = {
-    { "UUID", "s", CharacteristicGetUUID, NULL, NULL },
-    { "Service", "o", CharacteristicGetService, NULL, NULL },
-    { "Value", "ay", CharacteristicGetValue, NULL, NULL },
-    { "Notifying", "b", CharacteristicGetNotifying, NULL, NULL },
-    { "Flags", "as", CharacteristicGetFlags, NULL, NULL },
-#if BLE_CONFIG_BLUEZ_MTU_FEATURE
-    { "WriteAcquired", "b", CharacteristicPipeAcquired, NULL, NULL },
-    { "NotifyAcquired", "b", CharacteristicPipeAcquired, NULL, NULL },
-#endif // BLE_CONFIG_BLUEZ_MTU_FEATURE
-    { }
-};
-
-static const GDBusMethodTable weaveCharacteristicMethods[] = {
-    { "ReadValue", CharacteristicRead, G_DBUS_METHOD_FLAG_ASYNC, 0, GDBUS_ARGS( { "options", "a{sv}" }),
-      GDBUS_ARGS( { "value", "ay" }) },
-#if BLE_CONFIG_BLUEZ_MTU_FEATURE
-    { "AcquireWrite", CharacteristicAcquireWrite, G_DBUS_METHOD_FLAG_ASYNC, 0, GDBUS_ARGS( { "options", "a{sv}" }), NULL },
-    { "AcquireNotify", CharacteristicAcquireNotify, G_DBUS_METHOD_FLAG_ASYNC, 0, GDBUS_ARGS( { "options", "a{sv}" }), NULL },
-#endif // BLE_CONFIG_BLUEZ_MTU_FEATURE
-    { "WriteValue", CharacteristicWrite, G_DBUS_METHOD_FLAG_ASYNC, 0, GDBUS_ARGS( { "value", "ay" }, { "options", "a{sv}" }), NULL },
-    { "StartNotify", CharacteristicStartNotify, G_DBUS_METHOD_FLAG_ASYNC, 0, NULL, NULL },
-    { "StopNotify", CharacteristicStopNotify, G_DBUS_METHOD_FLAG_ASYNC, 0, NULL, NULL },
-    { "Confirm", CharacteristicIndicationConf, G_DBUS_METHOD_FLAG_ASYNC, 0, NULL, NULL },
-    { }
-};
-
 Characteristic * RegisterWeaveCharacteristic(DBusConnection * dbusConn, const char * uuid, const char * flags)
 {
     Characteristic * weaveCharacteristic = NULL;
@@ -1222,6 +1273,7 @@ static void WeaveAdapterAdded(GDBusProxy * proxy)
                 proxyAdded = true;
 
                 WeaveLogProgress(Ble, "%p(%s) added as default adapter proxy", proxy, addr);
+
                 if (FALSE == g_dbus_proxy_set_property_basic(proxy, "Powered", DBUS_TYPE_BOOLEAN, &powered, PowerCb, NULL, NULL))
                 {
                     WeaveLogError(Ble, "Fail to set Powered property for adapter %p(%s)", proxy, addr);
