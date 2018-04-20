@@ -506,6 +506,7 @@ top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 @WEAVE_WITH_OPENSSL_TRUE@EXTRA_DIST = \
+@WEAVE_WITH_OPENSSL_TRUE@    openssl/crypto                       \
 @WEAVE_WITH_OPENSSL_TRUE@    openssl/include                      \
 @WEAVE_WITH_OPENSSL_TRUE@    $(NULL)
 

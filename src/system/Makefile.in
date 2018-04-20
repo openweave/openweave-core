@@ -547,6 +547,10 @@ nl_SystemLayer_sources = @top_builddir@/src/system/SystemError.cpp \
 	@top_builddir@/src/system/SystemPacketBuffer.cpp \
 	@top_builddir@/src/system/SystemStats.cpp $(NULL) \
 	$(am__append_1)
+EXTRA_DIST = \
+    SystemLayerPrivate.h            \
+    $(NULL)
+
 lib_LIBRARIES = libSystemLayer.a
 libSystemLayer_a_CPPFLAGS = \
     -I$(top_srcdir)/src/include     \

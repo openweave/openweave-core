@@ -591,6 +591,10 @@ nl_InetLayer_sources = @top_builddir@/src/inet/EndPointBasis.cpp \
 @WEAVE_WITH_ANDROID_TRUE@    -I$(android_platform_libcore_dir)/include                \
 @WEAVE_WITH_ANDROID_TRUE@    $(NULL)
 
+EXTRA_DIST = \
+    arpa-inet-compatibility.h         \
+    $(NULL)
+
 lib_LIBRARIES = libInetLayer.a
 libInetLayer_a_CPPFLAGS = \
     -I$(top_srcdir)/src/include       \

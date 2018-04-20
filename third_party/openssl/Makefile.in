@@ -684,7 +684,11 @@ include $(abs_top_nlbuild_autotools_dir)/automake/pre.am
 # Use a dedicated sentinel stamp file to ensure the job is
 # done. Attempts to use an actual shadowed file (e.g. Configure) will
 # fail with non-colocated source and build directories because VPATH
-# will believe it to already be satisfied.
+# will believe it to already be satisfied. Finally, ensure that the
+# shadowed tree is user-writable so that operations like 'make
+# distcheck' succeed. In such an an environment, the source tree is
+# read-only and shadowing it will otherwise create a read-only shadow
+# copy.
 
 @WEAVE_WITH_OPENSSL_INTERNAL_TRUE@$(dir $(OPENSSL_SHADOW_SENTINEL)):
 @WEAVE_WITH_OPENSSL_INTERNAL_TRUE@	$(create-directory)
@@ -692,6 +696,8 @@ include $(abs_top_nlbuild_autotools_dir)/automake/pre.am
 @WEAVE_WITH_OPENSSL_INTERNAL_TRUE@$(OPENSSL_SHADOW_SENTINEL): | $(dir $(OPENSSL_SHADOW_SENTINEL))
 @WEAVE_WITH_OPENSSL_INTERNAL_TRUE@	@echo "  LNDIR    $(srcdir)"
 @WEAVE_WITH_OPENSSL_INTERNAL_TRUE@	$(AM_V_at)$(LNDIR) $(abs_srcdir)/openssl/. $(@D)
+@WEAVE_WITH_OPENSSL_INTERNAL_TRUE@	@echo "  CHMOD     $(srcdir)"
+@WEAVE_WITH_OPENSSL_INTERNAL_TRUE@	$(AM_V_at)chmod -R u+w $(@D)
 @WEAVE_WITH_OPENSSL_INTERNAL_TRUE@	$(AM_V_at)echo "sentinel stamp for openssl shadow" > $(@)
 
 @WEAVE_WITH_OPENSSL_INTERNAL_TRUE@.PHONY: shadow-local
