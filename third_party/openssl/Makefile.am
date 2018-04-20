@@ -163,12 +163,13 @@ build-local: configure-local
 	@echo "  SUBDIR   $(openssl_builddir)"
 	@echo "  MAKE     all"
 	$(AM_V_at)$(MAKE) $(AM_MAKEFLAGS) -C $(abs_openssl_builddir) \
-		CC="$(CC) $(CFLAGS)" AR="$(AR) $(ARFLAGS)" RANLIB=$(RANLIB) \
-		CROSS_TOP="$(CROSS_TOP)" \
-		CROSS_SDK="$(CROSS_SDK)" \
+                CC="$(CC) $(CFLAGS)" AR="$(AR) $(ARFLAGS)" RANLIB=$(RANLIB) \
+                CROSS_TOP="$(CROSS_TOP)" \
+                CROSS_SDK="$(CROSS_SDK)" \
                 CROSS_SYSROOT="$(CROSS_SYSROOT)" \
-	        INSTALL_PREFIX=$(DESTDIR)$(prefix) \
-		all
+                DESTDIR="$(prefix)" \
+                INSTALLTOP="/" \
+                all
 
 # Install (stage) the built OpenSSL source.
 
@@ -176,14 +177,15 @@ stage-local: build-local
 	@echo "  SUBDIR   $(openssl_builddir)"
 	@echo "  MAKE     install"
 	$(AM_V_at)$(MAKE) $(AM_MAKEFLAGS) -C $(abs_openssl_builddir) \
-	        CC="$(CC) $(CFLAGS)" AR="$(AR) $(ARFLAGS)" RANLIB=$(RANLIB) \
-		CROSS_TOP="$(CROSS_TOP)" \
-		CROSS_SDK="$(CROSS_SDK)" \
+                CC="$(CC) $(CFLAGS)" AR="$(AR) $(ARFLAGS)" RANLIB=$(RANLIB) \
+                CROSS_TOP="$(CROSS_TOP)" \
+                CROSS_SDK="$(CROSS_SDK)" \
                 CROSS_SYSROOT="$(CROSS_SYSROOT)" \
-	        INSTALL="$(INSTALL)" \
-	        INSTALL_PREFIX=$(DESTDIR)$(prefix) \
-	        LIBDIR=$(libdir) \
-	        install_sw
+                INSTALL="$(INSTALL)" \
+                DESTDIR="$(prefix)" \
+                INSTALLTOP="/" \
+                LIBDIR=$(libdir) \
+                install_sw
 
 install-data-local: stage-local
 
