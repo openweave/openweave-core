@@ -156,40 +156,47 @@ $(OPENSSL_CONFIG_SENTINEL): $(OPENSSL_SHADOW_SENTINEL)
 .PHONY: configure-local
 configure-local: $(OPENSSL_CONFIG_SENTINEL)
 
+#
+# MakeOpenSSLWithTarget <OpenSSL Target> [<Verbose Target>]
+#
+# This invokes make against the specified OpenSSL target displaying
+# that target or, if provided, the optional "verbose" target as the
+# verbose output.
+
+define MakeOpenSSLWithTarget
+@echo "  SUBDIR   $(openssl_builddir)"
+@echo "  MAKE     $(if $(2),$(2),$(1))"
+$(AM_V_at)$(MAKE) $(AM_MAKEFLAGS) -C $(abs_openssl_builddir) \
+        CC="$(CC) $(CFLAGS)" AR="$(AR) $(ARFLAGS)" RANLIB=$(RANLIB) \
+        CROSS_TOP="$(CROSS_TOP)" \
+        CROSS_SDK="$(CROSS_SDK)" \
+        CROSS_SYSROOT="$(CROSS_SYSROOT)" \
+        DESTDIR="$(DESTDIR)" \
+        INSTALLTOP="$(prefix)" \
+        $(1)
+endef # MakeOpenSSLWithTarget
+
 # Build the configured OpenSSL source.
 
 .PHONY: build-local
 build-local: configure-local
-	@echo "  SUBDIR   $(openssl_builddir)"
-	@echo "  MAKE     all"
-	$(AM_V_at)$(MAKE) $(AM_MAKEFLAGS) -C $(abs_openssl_builddir) \
-                CC="$(CC) $(CFLAGS)" AR="$(AR) $(ARFLAGS)" RANLIB=$(RANLIB) \
-                CROSS_TOP="$(CROSS_TOP)" \
-                CROSS_SDK="$(CROSS_SDK)" \
-                CROSS_SYSROOT="$(CROSS_SYSROOT)" \
-                DESTDIR="$(prefix)" \
-                INSTALLTOP="/" \
-                all
+	$(call MakeOpenSSLWithTarget, all)
 
 # Install (stage) the built OpenSSL source.
 
 stage-local: build-local
-	@echo "  SUBDIR   $(openssl_builddir)"
-	@echo "  MAKE     install"
-	$(AM_V_at)$(MAKE) $(AM_MAKEFLAGS) -C $(abs_openssl_builddir) \
-                CC="$(CC) $(CFLAGS)" AR="$(AR) $(ARFLAGS)" RANLIB=$(RANLIB) \
-                CROSS_TOP="$(CROSS_TOP)" \
-                CROSS_SDK="$(CROSS_SDK)" \
-                CROSS_SYSROOT="$(CROSS_SYSROOT)" \
-                INSTALL="$(INSTALL)" \
-                DESTDIR="$(prefix)" \
-                INSTALLTOP="/" \
-                LIBDIR=$(libdir) \
-                install_sw
+	$(call MakeOpenSSLWithTarget, install_sw, install)
 
 install-data-local: stage-local
 
 install-headers: stage-local
+
+# Uninstall (to support the 'distcheck' and 'distuninstallcheck' targets)
+
+unstage-local:
+	$(call MakeOpenSSLWithTarget, uninstall_sw, uninstall)
+
+uninstall: unstage-local
 
 # Clean things up to the requested level.
 
