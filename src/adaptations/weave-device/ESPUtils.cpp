@@ -240,3 +240,9 @@ const char * ESPUtils::InterfaceIdToName(tcpip_adapter_if_t intfId)
         return "(unknown)";
     }
 }
+
+bool ESPUtils::HasIPv6LinkLocalAddress(tcpip_adapter_if_t intfId)
+{
+    ip6_addr_t unused;
+    return tcpip_adapter_get_ip6_linklocal(intfId, &unused) == ESP_OK;
+}

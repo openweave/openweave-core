@@ -82,7 +82,6 @@ public:
     WEAVE_ERROR SetWiFiStationReconnectIntervalMS(uint32_t val) const;
     bool IsWiFiStationProvisioned(void) const;
     void ClearWiFiStationProvision(void);
-    uint32_t GetWiFiStationNetworkId(void) const;
 
     // WiFi AP methods
     WiFiAPMode GetWiFiAPMode(void) const;
@@ -112,53 +111,14 @@ private:
     friend class ::nl::Weave::Device::Internal::NetworkProvisioningServer;
 
     WEAVE_ERROR Init(void);
-    ::nl::Weave::Profiles::NetworkProvisioning::NetworkProvisioningDelegate * GetNetworkProvisioningDelegate(void);
     void OnPlatformEvent(const WeaveDeviceEvent * event);
+    bool CanStartWiFiScan();
+    void OnWiFiScanDone();
+    void OnWiFiStationProvisionChange();
 
 private:
 
     // NOTE: These members are private to the class and should not be used by friends.
-
-    class NetworkProvisioningDelegate
-            : public ::nl::Weave::Profiles::NetworkProvisioning::NetworkProvisioningDelegate
-    {
-    public:
-        WEAVE_ERROR Init();
-
-        virtual WEAVE_ERROR HandleScanNetworks(uint8_t networkType);
-        virtual WEAVE_ERROR HandleAddNetwork(::nl::Weave::System::PacketBuffer *networkInfoTLV);
-        virtual WEAVE_ERROR HandleUpdateNetwork(::nl::Weave::System::PacketBuffer *networkInfoTLV);
-        virtual WEAVE_ERROR HandleRemoveNetwork(uint32_t networkId);
-        virtual WEAVE_ERROR HandleGetNetworks(uint8_t flags);
-        virtual WEAVE_ERROR HandleEnableNetwork(uint32_t networkId);
-        virtual WEAVE_ERROR HandleDisableNetwork(uint32_t networkId);
-        virtual WEAVE_ERROR HandleTestConnectivity(uint32_t networkId);
-        virtual WEAVE_ERROR HandleSetRendezvousMode(uint16_t rendezvousMode);
-
-        bool ScanInProgress(void);
-        void StartPendingScan(void);
-        void HandleScanDone(void);
-        void CheckInternetConnectivity(void);
-
-    private:
-        enum State
-        {
-            kState_Idle = 0,
-            kState_ScanNetworks_Pending,
-            kState_ScanNetworks_InProgress,
-            kState_TestConnectivity_WaitConnectivity
-        };
-
-        State mState;
-
-        WEAVE_ERROR GetWiFiStationProvision(::nl::Weave::Device::Internal::NetworkInfo & netInfo, bool includeCredentials);
-        WEAVE_ERROR ValidateWiFiStationProvision(const ::nl::Weave::Device::Internal::NetworkInfo & netInfo,
-                        uint32_t & statusProfileId, uint16_t & statusCode);
-        WEAVE_ERROR SetESPStationConfig(const ::nl::Weave::Device::Internal::NetworkInfo & netInfo);
-        bool RejectIfApplicationControlled(bool station);
-        static void HandleScanTimeOut(::nl::Weave::System::Layer * aLayer, void * aAppState, ::nl::Weave::System::Error aError);
-        static void HandleConnectivityTimeOut(::nl::Weave::System::Layer * aLayer, void * aAppState, ::nl::Weave::System::Error aError);
-    };
 
     enum WiFiStationState
     {
@@ -188,7 +148,6 @@ private:
         kFlag_AwaitingConnectivity              = 0x0020,
     };
 
-    NetworkProvisioningDelegate mNetProvDelegate;
     uint64_t mLastStationConnectFailTime;
     uint64_t mLastAPDemandTime;
     WiFiStationMode mWiFiStationMode;
@@ -282,9 +241,9 @@ inline ConnectivityManager::ServiceTunnelMode ConnectivityManager::GetServiceTun
     return mServiceTunnelMode;
 }
 
-inline bool ConnectivityManager::NetworkProvisioningDelegate::ScanInProgress(void)
+inline bool ConnectivityManager::CanStartWiFiScan()
 {
-    return mState == kState_ScanNetworks_InProgress;
+    return mWiFiStationState != kWiFiStationState_Connecting;
 }
 
 } // namespace Device

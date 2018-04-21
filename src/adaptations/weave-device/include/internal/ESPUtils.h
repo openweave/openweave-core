@@ -41,6 +41,7 @@ public:
     static const char * WiFiModeToStr(wifi_mode_t wifiMode);
     static struct netif * GetStationNetif(void);
     static const char * InterfaceIdToName(tcpip_adapter_if_t intfId);
+    static bool HasIPv6LinkLocalAddress(tcpip_adapter_if_t intfId);
 };
 
 } // namespace Internal

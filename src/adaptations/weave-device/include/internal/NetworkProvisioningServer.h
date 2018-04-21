@@ -28,18 +28,52 @@ namespace Device {
 namespace Internal {
 
 class NetworkProvisioningServer
-        : public ::nl::Weave::Profiles::NetworkProvisioning::NetworkProvisioningServer
+        : public ::nl::Weave::Profiles::NetworkProvisioning::NetworkProvisioningServer,
+          public ::nl::Weave::Profiles::NetworkProvisioning::NetworkProvisioningDelegate
 {
 public:
     typedef ::nl::Weave::Profiles::NetworkProvisioning::NetworkProvisioningServer ServerBaseClass;
 
     WEAVE_ERROR Init();
-
     int16_t GetCurrentOp() const;
-
-    virtual bool IsPairedToAccount() const;
-
+    void StartPendingScan(void);
+    bool ScanInProgress(void);
     void OnPlatformEvent(const WeaveDeviceEvent * event);
+
+private:
+    enum State
+    {
+        kState_Idle = 0,
+        kState_ScanNetworks_Pending,
+        kState_ScanNetworks_InProgress,
+        kState_TestConnectivity_WaitConnectivity
+    };
+
+    State mState;
+
+    WEAVE_ERROR GetWiFiStationProvision(::nl::Weave::Device::Internal::NetworkInfo & netInfo, bool includeCredentials);
+    WEAVE_ERROR ValidateWiFiStationProvision(const ::nl::Weave::Device::Internal::NetworkInfo & netInfo,
+                    uint32_t & statusProfileId, uint16_t & statusCode);
+    WEAVE_ERROR SetESPStationConfig(const ::nl::Weave::Device::Internal::NetworkInfo & netInfo);
+    bool RejectIfApplicationControlled(bool station);
+    void HandleScanDone(void);
+    void ContinueTestConnectivity(void);
+    static void HandleScanTimeOut(::nl::Weave::System::Layer * aLayer, void * aAppState, ::nl::Weave::System::Error aError);
+    static void HandleConnectivityTimeOut(::nl::Weave::System::Layer * aLayer, void * aAppState, ::nl::Weave::System::Error aError);
+
+    // NetworkProvisioningDelegate methods
+    virtual WEAVE_ERROR HandleScanNetworks(uint8_t networkType);
+    virtual WEAVE_ERROR HandleAddNetwork(::nl::Weave::System::PacketBuffer *networkInfoTLV);
+    virtual WEAVE_ERROR HandleUpdateNetwork(::nl::Weave::System::PacketBuffer *networkInfoTLV);
+    virtual WEAVE_ERROR HandleRemoveNetwork(uint32_t networkId);
+    virtual WEAVE_ERROR HandleGetNetworks(uint8_t flags);
+    virtual WEAVE_ERROR HandleEnableNetwork(uint32_t networkId);
+    virtual WEAVE_ERROR HandleDisableNetwork(uint32_t networkId);
+    virtual WEAVE_ERROR HandleTestConnectivity(uint32_t networkId);
+    virtual WEAVE_ERROR HandleSetRendezvousMode(uint16_t rendezvousMode);
+
+    // NetworkProvisioningServer methods
+    virtual bool IsPairedToAccount() const;
 };
 
 extern NetworkProvisioningServer NetworkProvisioningSvr;
@@ -47,6 +81,11 @@ extern NetworkProvisioningServer NetworkProvisioningSvr;
 inline int16_t NetworkProvisioningServer::GetCurrentOp() const
 {
     return (mCurOp != NULL) ? mCurOpType : -1;
+}
+
+inline bool NetworkProvisioningServer::ScanInProgress(void)
+{
+    return mState == kState_ScanNetworks_InProgress;
 }
 
 } // namespace Internal

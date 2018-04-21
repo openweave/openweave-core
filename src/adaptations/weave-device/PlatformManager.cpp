@@ -512,7 +512,7 @@ void PlatformManager::HandleSessionEstablished(WeaveSecurityManager * sm, WeaveC
     // Get the auth mode for the newly established session key.
     WeaveSessionKey * sessionKey;
     FabricState.GetSessionKey(sessionKeyId, peerNodeId, sessionKey);
-    WeaveAuthMode authMode = (sessionKey != NULL) ? sessionKey->AuthMode : kWeaveAuthMode_NotSpecified;
+    WeaveAuthMode authMode = (sessionKey != NULL) ? sessionKey->AuthMode : (WeaveAuthMode)kWeaveAuthMode_NotSpecified;
 
     // Post a SessionEstablished event for the new session.  If a PASE session is established
     // using the device's pairing code, presume that this is a commissioner and set the
