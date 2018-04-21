@@ -537,7 +537,7 @@ installdirs:
 install: install-am
 install-exec: install-exec-am
 install-data: install-data-am
-uninstall: uninstall-am
+@WEAVE_WITH_OPENSSL_INTERNAL_FALSE@uninstall: uninstall-am
 
 install-am: all-am
 	@$(MAKE) $(AM_MAKEFLAGS) install-exec-am install-data-am
@@ -565,8 +565,8 @@ maintainer-clean-generic:
 	@echo "This command is intended for maintainers to use"
 	@echo "it deletes files that may require special tools to rebuild."
 @WEAVE_WITH_OPENSSL_INTERNAL_FALSE@distclean-local:
-@WEAVE_WITH_OPENSSL_INTERNAL_FALSE@install-data-local:
 @WEAVE_WITH_OPENSSL_INTERNAL_FALSE@clean-local:
+@WEAVE_WITH_OPENSSL_INTERNAL_FALSE@install-data-local:
 clean: clean-am
 
 clean-am: clean-generic clean-libtool clean-local mostlyclean-am
@@ -733,40 +733,47 @@ include $(abs_top_nlbuild_autotools_dir)/automake/pre.am
 @WEAVE_WITH_OPENSSL_INTERNAL_TRUE@.PHONY: configure-local
 @WEAVE_WITH_OPENSSL_INTERNAL_TRUE@configure-local: $(OPENSSL_CONFIG_SENTINEL)
 
+#
+# MakeOpenSSLWithTarget <OpenSSL Target> [<Verbose Target>]
+#
+# This invokes make against the specified OpenSSL target displaying
+# that target or, if provided, the optional "verbose" target as the
+# verbose output.
+
+@WEAVE_WITH_OPENSSL_INTERNAL_TRUE@define MakeOpenSSLWithTarget
+@WEAVE_WITH_OPENSSL_INTERNAL_TRUE@@echo "  SUBDIR   $(openssl_builddir)"
+@WEAVE_WITH_OPENSSL_INTERNAL_TRUE@@echo "  MAKE     $(if $(2),$(2),$(1))"
+@WEAVE_WITH_OPENSSL_INTERNAL_TRUE@$(AM_V_at)$(MAKE) $(AM_MAKEFLAGS) -C $(abs_openssl_builddir) \
+@WEAVE_WITH_OPENSSL_INTERNAL_TRUE@        CC="$(CC) $(CFLAGS)" AR="$(AR) $(ARFLAGS)" RANLIB=$(RANLIB) \
+@WEAVE_WITH_OPENSSL_INTERNAL_TRUE@        CROSS_TOP="$(CROSS_TOP)" \
+@WEAVE_WITH_OPENSSL_INTERNAL_TRUE@        CROSS_SDK="$(CROSS_SDK)" \
+@WEAVE_WITH_OPENSSL_INTERNAL_TRUE@        CROSS_SYSROOT="$(CROSS_SYSROOT)" \
+@WEAVE_WITH_OPENSSL_INTERNAL_TRUE@        DESTDIR="$(DESTDIR)" \
+@WEAVE_WITH_OPENSSL_INTERNAL_TRUE@        INSTALLTOP="$(prefix)" \
+@WEAVE_WITH_OPENSSL_INTERNAL_TRUE@        $(1)
+@WEAVE_WITH_OPENSSL_INTERNAL_TRUE@endef # MakeOpenSSLWithTarget
+
 # Build the configured OpenSSL source.
 
 @WEAVE_WITH_OPENSSL_INTERNAL_TRUE@.PHONY: build-local
 @WEAVE_WITH_OPENSSL_INTERNAL_TRUE@build-local: configure-local
-@WEAVE_WITH_OPENSSL_INTERNAL_TRUE@	@echo "  SUBDIR   $(openssl_builddir)"
-@WEAVE_WITH_OPENSSL_INTERNAL_TRUE@	@echo "  MAKE     all"
-@WEAVE_WITH_OPENSSL_INTERNAL_TRUE@	$(AM_V_at)$(MAKE) $(AM_MAKEFLAGS) -C $(abs_openssl_builddir) \
-@WEAVE_WITH_OPENSSL_INTERNAL_TRUE@                CC="$(CC) $(CFLAGS)" AR="$(AR) $(ARFLAGS)" RANLIB=$(RANLIB) \
-@WEAVE_WITH_OPENSSL_INTERNAL_TRUE@                CROSS_TOP="$(CROSS_TOP)" \
-@WEAVE_WITH_OPENSSL_INTERNAL_TRUE@                CROSS_SDK="$(CROSS_SDK)" \
-@WEAVE_WITH_OPENSSL_INTERNAL_TRUE@                CROSS_SYSROOT="$(CROSS_SYSROOT)" \
-@WEAVE_WITH_OPENSSL_INTERNAL_TRUE@                DESTDIR="$(prefix)" \
-@WEAVE_WITH_OPENSSL_INTERNAL_TRUE@                INSTALLTOP="/" \
-@WEAVE_WITH_OPENSSL_INTERNAL_TRUE@                all
+@WEAVE_WITH_OPENSSL_INTERNAL_TRUE@	$(call MakeOpenSSLWithTarget, all)
 
 # Install (stage) the built OpenSSL source.
 
 @WEAVE_WITH_OPENSSL_INTERNAL_TRUE@stage-local: build-local
-@WEAVE_WITH_OPENSSL_INTERNAL_TRUE@	@echo "  SUBDIR   $(openssl_builddir)"
-@WEAVE_WITH_OPENSSL_INTERNAL_TRUE@	@echo "  MAKE     install"
-@WEAVE_WITH_OPENSSL_INTERNAL_TRUE@	$(AM_V_at)$(MAKE) $(AM_MAKEFLAGS) -C $(abs_openssl_builddir) \
-@WEAVE_WITH_OPENSSL_INTERNAL_TRUE@                CC="$(CC) $(CFLAGS)" AR="$(AR) $(ARFLAGS)" RANLIB=$(RANLIB) \
-@WEAVE_WITH_OPENSSL_INTERNAL_TRUE@                CROSS_TOP="$(CROSS_TOP)" \
-@WEAVE_WITH_OPENSSL_INTERNAL_TRUE@                CROSS_SDK="$(CROSS_SDK)" \
-@WEAVE_WITH_OPENSSL_INTERNAL_TRUE@                CROSS_SYSROOT="$(CROSS_SYSROOT)" \
-@WEAVE_WITH_OPENSSL_INTERNAL_TRUE@                INSTALL="$(INSTALL)" \
-@WEAVE_WITH_OPENSSL_INTERNAL_TRUE@                DESTDIR="$(prefix)" \
-@WEAVE_WITH_OPENSSL_INTERNAL_TRUE@                INSTALLTOP="/" \
-@WEAVE_WITH_OPENSSL_INTERNAL_TRUE@                LIBDIR=$(libdir) \
-@WEAVE_WITH_OPENSSL_INTERNAL_TRUE@                install_sw
+@WEAVE_WITH_OPENSSL_INTERNAL_TRUE@	$(call MakeOpenSSLWithTarget, install_sw, install)
 
 @WEAVE_WITH_OPENSSL_INTERNAL_TRUE@install-data-local: stage-local
 
 @WEAVE_WITH_OPENSSL_INTERNAL_TRUE@install-headers: stage-local
+
+# Uninstall (to support the 'distcheck' and 'distuninstallcheck' targets)
+
+@WEAVE_WITH_OPENSSL_INTERNAL_TRUE@unstage-local:
+@WEAVE_WITH_OPENSSL_INTERNAL_TRUE@	$(call MakeOpenSSLWithTarget, uninstall_sw, uninstall)
+
+@WEAVE_WITH_OPENSSL_INTERNAL_TRUE@uninstall: unstage-local
 
 # Clean things up to the requested level.
 
