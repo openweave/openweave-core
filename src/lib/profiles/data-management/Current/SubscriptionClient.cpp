@@ -95,6 +95,7 @@ void SubscriptionClient::Reset(void)
     mNumUpdatableTraitInstances             = 0;
     mMaxUpdateSize                          = 0;
     mUpdateRequestContext.mCurProcessingTraitInstanceIdx = 0;
+    mUpdateRequestContext.mNextDictionaryElementPathHandle = kNullPropertyPathHandle;
 #endif // WEAVE_CONFIG_ENABLE_WDM_UPDATE
 
 #if WDM_ENABLE_PROTOCOL_CHECKS
@@ -2460,8 +2461,8 @@ void SubscriptionClient::OnUpdateConfirm(WEAVE_ERROR aReason, nl::Weave::Profile
         // TODO: implemente a simple FSM to handle long updates
 
         mUpdateRequestContext.mIsPartialUpdate = false;
-        mUpdateRequestContext.mpUpdatableTIContext->mCandidatePropertyPathHandle = kNullPropertyPathHandle;
-        mUpdateRequestContext.mpUpdatableTIContext->mNextDictionaryElementPathHandle = kNullPropertyPathHandle;
+        mUpdateRequestContext.mCandidatePropertyPathHandle = kNullPropertyPathHandle;
+        mUpdateRequestContext.mNextDictionaryElementPathHandle = kNullPropertyPathHandle;
     }
 
     WeaveLogDetail(DataManagement, "Received Status Report 0x%" PRIX32 " : 0x%" PRIX16,
@@ -2811,6 +2812,8 @@ WEAVE_ERROR SubscriptionClient::SetUpdated(TraitUpdatableDataSink * aDataSink, P
     WEAVE_ERROR err = WEAVE_NO_ERROR;
     TraitDataHandle dataHandle;
     bool isLocked = false;
+    const UpdatableTIContext * traitInfo;
+    const TraitSchemaEngine * schemaEngine;
 
     err = Lock();
     SuccessOrExit(err);
@@ -2827,11 +2830,19 @@ WEAVE_ERROR SubscriptionClient::SetUpdated(TraitUpdatableDataSink * aDataSink, P
         }
     }
 
-    const TraitSchemaEngine * schemaEngine;
     schemaEngine = aDataSink->GetSchemaEngine();
 
     err = mDataSinkCatalog->Locate(aDataSink, dataHandle);
     SuccessOrExit(err);
+
+    traitInfo = GetUpdatableTIContext(dataHandle);
+
+    // It is not supported to mix conditional and non-conditional updates
+    // in the same trait.
+    if (mPendingUpdateStore.IsTraitPresent(dataHandle) || mDispatchedUpdateStore.IsTraitPresent(dataHandle))
+    {
+        VerifyOrExit(aIsConditional == aDataSink->IsConditionalUpdate(), err = WEAVE_ERROR_INVALID_ARGUMENT);
+    }
 
     // TODO: If we have exceeded the num items in the store, we need to mark the whole trait instance as dirty and remove all
     // existing references to this trait instance in the dirty store.
@@ -2942,6 +2953,7 @@ void SubscriptionClient::ShutdownUpdateClient(void)
 {
     mNumUpdatableTraitInstances        = 0;
     mUpdateRequestContext.mCurProcessingTraitInstanceIdx     = 0;
+    mUpdateRequestContext.mNextDictionaryElementPathHandle   = kNullPropertyPathHandle;
     mMaxUpdateSize                     = 0;
     mUpdateInFlight                    = false;
     mFlushInProgress                   = false;
@@ -2973,9 +2985,9 @@ WEAVE_ERROR SubscriptionClient::AddElementFunc(UpdateClient * apClient, void * a
     schemaEngine = updatableDataSink->GetSchemaEngine();
 
     WeaveLogDetail(DataManagement, "<AddElementFunc> with property path handle 0x%08x",
-            pTraitInstanceInfo->mCandidatePropertyPathHandle);
+            updateRequestContext->mCandidatePropertyPathHandle);
 
-    if (schemaEngine->IsDictionary(pTraitInstanceInfo->mCandidatePropertyPathHandle) &&
+    if (schemaEngine->IsDictionary(updateRequestContext->mCandidatePropertyPathHandle) &&
         !updateRequestContext->mForceMerge)
     {
         isDictionaryReplace = true;
@@ -2990,14 +3002,14 @@ WEAVE_ERROR SubscriptionClient::AddElementFunc(UpdateClient * apClient, void * a
         err = aOuterWriter.StartContainer(tag, nl::Weave::TLV::kTLVType_Structure, dataContainerType);
         SuccessOrExit(err);
 
-        tag = schemaEngine->GetTag(pTraitInstanceInfo->mCandidatePropertyPathHandle);
+        tag = schemaEngine->GetTag(updateRequestContext->mCandidatePropertyPathHandle);
     }
 
     err = updatableDataSink->ReadData(pTraitInstanceInfo->mTraitDataHandle,
-                                      pTraitInstanceInfo->mCandidatePropertyPathHandle,
+                                      updateRequestContext->mCandidatePropertyPathHandle,
                                       tag,
                                       aOuterWriter,
-                                      pTraitInstanceInfo->mNextDictionaryElementPathHandle);
+                                      updateRequestContext->mNextDictionaryElementPathHandle);
     SuccessOrExit(err);
 
     if (isDictionaryReplace)
@@ -3050,13 +3062,13 @@ WEAVE_ERROR SubscriptionClient::DirtyPathToDataElement(UpdateRequestContext &aCo
     {
         uint64_t tags[schemaEngine->mSchema.mTreeDepth];
 
-        err = schemaEngine->GetRelativePathTags(traitInfo->mCandidatePropertyPathHandle, tags,
+        err = schemaEngine->GetRelativePathTags(aContext.mCandidatePropertyPathHandle, tags,
                 //ArraySize(tags),
                 schemaEngine->mSchema.mTreeDepth,
                 numTags);
         SuccessOrExit(err);
 
-        if (schemaEngine->IsDictionary(traitInfo->mCandidatePropertyPathHandle) &&
+        if (schemaEngine->IsDictionary(aContext.mCandidatePropertyPathHandle) &&
                 ! aContext.mForceMerge)
         {
             // If the property being updated is a dictionary, we need to use the "replace"
@@ -3075,7 +3087,7 @@ WEAVE_ERROR SubscriptionClient::DirtyPathToDataElement(UpdateRequestContext &aCo
         SuccessOrExit(err);
 
         dirtyPath.mTraitDataHandle = traitInfo->mTraitDataHandle;
-        dirtyPath.mPropertyPathHandle = traitInfo->mCandidatePropertyPathHandle;
+        dirtyPath.mPropertyPathHandle = aContext.mCandidatePropertyPathHandle;
         mDispatchedUpdateStore.AddItem(dirtyPath,
                                        aContext.mForceMerge,
                                        aContext.mForceMerge); // For now, ForceMerge implies Private; TODO: clean this up
@@ -3132,17 +3144,17 @@ WEAVE_ERROR SubscriptionClient::BuildSingleUpdateRequestDataList(UpdateRequestCo
 
         WeaveLogDetail(DataManagement, "T%u is dirty", context.mCurProcessingTraitInstanceIdx);
 
-        if (traitInfo->mNextDictionaryElementPathHandle != kNullPropertyPathHandle)
+        if (context.mNextDictionaryElementPathHandle != kNullPropertyPathHandle)
         {
-            traitInfo->mCandidatePropertyPathHandle =
-                schemaEngine->GetParent(traitInfo->mNextDictionaryElementPathHandle);
+            context.mCandidatePropertyPathHandle =
+                schemaEngine->GetParent(context.mNextDictionaryElementPathHandle);
 
             WeaveLogDetail(DataManagement, "Resume encoding a dictionary");
 
             mUpdateRequestContext.mForceMerge = true;
             err = DirtyPathToDataElement(mUpdateRequestContext);
             SuccessOrExit(err);
-            dictionaryOverflowed = (traitInfo->mNextDictionaryElementPathHandle != kNullPropertyPathHandle);
+            dictionaryOverflowed = (context.mNextDictionaryElementPathHandle != kNullPropertyPathHandle);
             VerifyOrExit(!dictionaryOverflowed, /* no error */);
         }
 
@@ -3157,13 +3169,13 @@ WEAVE_ERROR SubscriptionClient::BuildSingleUpdateRequestDataList(UpdateRequestCo
                 continue;
             }
 
-            traitInfo->mCandidatePropertyPathHandle = mPendingUpdateStore.mStore[i].mTraitPath.mPropertyPathHandle;
+            context.mCandidatePropertyPathHandle = mPendingUpdateStore.mStore[i].mTraitPath.mPropertyPathHandle;
             mPendingUpdateStore.RemoveItemAt(i);
 
             mUpdateRequestContext.mForceMerge = mPendingUpdateStore.IsItemForceMerge(i);
             err = DirtyPathToDataElement(mUpdateRequestContext);
             SuccessOrExit(err);
-            dictionaryOverflowed = (traitInfo->mNextDictionaryElementPathHandle != kNullPropertyPathHandle);
+            dictionaryOverflowed = (context.mNextDictionaryElementPathHandle != kNullPropertyPathHandle);
             VerifyOrExit(!dictionaryOverflowed, /* no error */);
 
             // Check from the beginning of the array because the last element processed
@@ -3217,7 +3229,7 @@ exit:
         updatableDataSink->ClearUpdateRequiredVersion();
         updatableDataSink->ClearVersion();
 
-        traitInfo->mNextDictionaryElementPathHandle = kNullPropertyPathHandle;
+        context.mNextDictionaryElementPathHandle = kNullPropertyPathHandle;
 
         if (IsEstablishedIdle())
         {

@@ -550,8 +550,6 @@ private:
         uint16_t mRequestedVersion;
         bool mDirty;
         bool mPotentialDataLoss;
-        PropertyPathHandle mNextDictionaryElementPathHandle;
-        PropertyPathHandle mCandidatePropertyPathHandle;
     };
 
     struct UpdateRequestContext
@@ -562,8 +560,10 @@ private:
 
         // State:
         uint16_t mCurProcessingTraitInstanceIdx;
+        PropertyPathHandle mNextDictionaryElementPathHandle;
 
         // Arguments to lower level calls and callbacks
+        PropertyPathHandle mCandidatePropertyPathHandle;
         uint16_t mNumDataElementsAddedToPayload;
         bool mIsPartialUpdate;
         bool mForceMerge;
