@@ -21,7 +21,7 @@
  *      THIS FILE IS GENERATED. DO NOT MODIFY.
  *
  *      SOURCE PROTO: weave/trait/security/bolt_lock_setting_trait.proto
- * 
+ *
  */
 
 
@@ -43,7 +43,7 @@ namespace BoltLockSettingTrait {
 
     enum {
         /*
-         * Root = 
+         * Root =
          * {
          *       auto_relock_on = 1 (bool),
          */

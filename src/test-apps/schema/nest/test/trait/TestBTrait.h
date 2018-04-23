@@ -294,4 +294,3 @@ inline bool StructEA::IsSaAPresent(void)
 } // namespace Nest
 } // namespace Schema
 #endif // _NEST_TEST_TRAIT__TEST_B_TRAIT_H_
-

@@ -72,4 +72,3 @@ struct CommonStructE_array {
 } // namespace Nest
 } // namespace Schema
 #endif // _NEST_TEST_TRAIT__TEST_COMMON_H_
-

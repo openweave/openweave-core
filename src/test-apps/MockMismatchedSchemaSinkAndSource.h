@@ -71,7 +71,7 @@ private:
 
 // This data sink matches the schema of TestMismatchedCTrait and the
 // corresponding data source. However, the application (SetLeafData)
-// has not been updated. This tests the default 
+// has not been updated. This tests the default
 class TestMismatchedCTraitDataSink : public TraitDataSink
 {
 public:

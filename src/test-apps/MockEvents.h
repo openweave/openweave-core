@@ -48,7 +48,7 @@
 #ifdef PHOENIX_RESOURCE_STRINGS
 typedef uint8_t * user_id_t;
 #define USER_ID_INITIAL NULL
-static uint8_t kTestUserId[1]     = {1};
+static uint8_t kTestUserId[1]         = { 1 };
 #else
 typedef uint64_t user_id_t;
 #define USER_ID_INITIAL 0

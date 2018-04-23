@@ -71,7 +71,7 @@ namespace NetworkWiFiTelemetryTrait {
 
     inline WEAVE_ERROR LogNetworkWiFiStatsEvent(NetworkWiFiStatsEvent *aEvent, nl::Weave::Profiles::DataManagement::ImportanceType aImportance)
     {
-        nl::StructureSchemaPointerPair structureSchemaPair = {(void *)aEvent, &NetworkWiFiStatsEventFieldSchema};
+        nl::StructureSchemaPointerPair structureSchemaPair = { (void *)aEvent, &NetworkWiFiStatsEventFieldSchema };
         nl::Weave::Profiles::DataManagement::LogEvent(NetworkWiFiStatsEventSchema, nl::SerializedDataToTLVWriterHelper, (void *)&structureSchemaPair);
         return WEAVE_NO_ERROR;
     }
@@ -86,7 +86,7 @@ namespace NetworkWiFiTelemetryTrait {
 
     inline WEAVE_ERROR LogNetworkWiFiDeauthEvent(NetworkWiFiDeauthEvent *aEvent, nl::Weave::Profiles::DataManagement::ImportanceType aImportance)
     {
-        nl::StructureSchemaPointerPair structureSchemaPair = {(void *)aEvent, &NetworkWiFiDeauthEventFieldSchema};
+        nl::StructureSchemaPointerPair structureSchemaPair = { (void *)aEvent, &NetworkWiFiDeauthEventFieldSchema };
         nl::Weave::Profiles::DataManagement::LogEvent(NetworkWiFiDeauthEventSchema, nl::SerializedDataToTLVWriterHelper, (void *)&structureSchemaPair);
         return WEAVE_NO_ERROR;
     }
@@ -101,7 +101,7 @@ namespace NetworkWiFiTelemetryTrait {
 
     inline WEAVE_ERROR LogNetworkWiFiInvalidKeyEvent(NetworkWiFiInvalidKeyEvent *aEvent, nl::Weave::Profiles::DataManagement::ImportanceType aImportance)
     {
-        nl::StructureSchemaPointerPair structureSchemaPair = {(void *)aEvent, &NetworkWiFiInvalidKeyEventFieldSchema};
+        nl::StructureSchemaPointerPair structureSchemaPair = { (void *)aEvent, &NetworkWiFiInvalidKeyEventFieldSchema };
         nl::Weave::Profiles::DataManagement::LogEvent(NetworkWiFiInvalidKeyEventSchema, nl::SerializedDataToTLVWriterHelper, (void *)&structureSchemaPair);
         return WEAVE_NO_ERROR;
     }
@@ -116,7 +116,7 @@ namespace NetworkWiFiTelemetryTrait {
 
     inline WEAVE_ERROR LogNetworkWiFiDHCPFailureEvent(NetworkWiFiDHCPFailureEvent *aEvent, nl::Weave::Profiles::DataManagement::ImportanceType aImportance)
     {
-        nl::StructureSchemaPointerPair structureSchemaPair = {(void *)aEvent, &NetworkWiFiDHCPFailureEventFieldSchema};
+        nl::StructureSchemaPointerPair structureSchemaPair = { (void *)aEvent, &NetworkWiFiDHCPFailureEventFieldSchema };
         nl::Weave::Profiles::DataManagement::LogEvent(NetworkWiFiDHCPFailureEventSchema, nl::SerializedDataToTLVWriterHelper, (void *)&structureSchemaPair);
         return WEAVE_NO_ERROR;
     }

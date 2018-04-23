@@ -21,7 +21,7 @@
  *      THIS FILE IS GENERATED. DO NOT MODIFY.
  *
  *      SOURCE PROTO: weave/trait/locale/locale_settings_trait.proto
- * 
+ *
  */
 
 #ifndef _LOCALE_SETTINGS_TRAIT_H
@@ -43,7 +43,7 @@ namespace LocaleSettingsTrait {
     enum {
                  kPropertyHandle_Root = 1,
         /*
-         * Root = 
+         * Root =
          * {
          *       active_locale = 1 (string),
          */

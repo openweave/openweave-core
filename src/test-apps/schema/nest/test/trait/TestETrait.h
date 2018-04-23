@@ -514,4 +514,3 @@ enum EnumE {
 } // namespace Nest
 } // namespace Schema
 #endif // _NEST_TEST_TRAIT__TEST_E_TRAIT_H_
-

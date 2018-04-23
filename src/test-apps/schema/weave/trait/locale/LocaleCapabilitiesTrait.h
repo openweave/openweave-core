@@ -21,7 +21,7 @@
  *      THIS FILE IS GENERATED. DO NOT MODIFY.
  *
  *      SOURCE PROTO: weave/trait/locale/locale_capabilities_trait.proto
- * 
+ *
  */
 
 #ifndef _LOCALE_CAPABILITIES_TRAIT_H

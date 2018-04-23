@@ -39,7 +39,7 @@
 #define ENABLE_WDMPERFDATA 1
 
 
-struct perfData{
+struct perfData {
     int index;
     timeval latency;
     size_t vmsize;
@@ -52,7 +52,7 @@ class WdmNextPerfUtility
 public:
     static WdmNextPerfUtility* Instance();
     static void Remove();
-    void operator()();
+    void operator ()();
     void ReportPerf();
     void ReportAll();
     void SetPerf();
@@ -77,4 +77,3 @@ private:
 #endif
 
 };
-

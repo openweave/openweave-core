@@ -84,4 +84,3 @@ struct TestFEvent_array {
 } // namespace Nest
 } // namespace Schema
 #endif // _NEST_TEST_TRAIT__TEST_F_TRAIT_H_
-
