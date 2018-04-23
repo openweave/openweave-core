@@ -535,12 +535,12 @@ void TestATraitDataSource::Mutate()
         if ((mTestCounter % kNumTestCases) == 0) {
             //sink 3 leaf properties changes, source 3 leaf properties changes
             SetDirty(TestATrait::kPropertyHandle_TaP);
-            //SetDirty(TestATrait::kPropertyHandle_TaC);
-            //SetDirty(TestATrait::kPropertyHandle_TaR);
+            SetDirty(TestATrait::kPropertyHandle_TaC);
+            SetDirty(TestATrait::kPropertyHandle_TaR);
 
             tap++;
-            //tac++;
-            //tar++;
+            tac++;
+            tar++;
         }
         else if ((mTestCounter % kNumTestCases) == 1) {
             //sink 3 leaf properties changes, source 4 leaf properties changes
