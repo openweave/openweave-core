@@ -25,16 +25,15 @@
 #ifndef MOCKWDMSUBSCRIPTIONRESPONDER_H_
 #define MOCKWDMSUBSCRIPTIONRESPONDER_H_
 
+#include "MockWdmNodeOptions.h"
 
 class MockWdmSubscriptionResponder
 {
 public:
     static MockWdmSubscriptionResponder * GetInstance ();
 
-    virtual WEAVE_ERROR Init (nl::Weave::WeaveExchangeManager *aExchangeMgr, const bool aMutualSubscription,
-                              const char * const aTestCaseId, const char * const aNumDataChangeBeforeCancellation,
-                              const char * const aFinalStatus, const char * const aTimeBetweenDataChangeMsec,
-                              const bool aEnableDataFlip, const char * const aTimeBetweenLivenessCheckSec) = 0;
+    virtual WEAVE_ERROR Init (nl::Weave::WeaveExchangeManager *aExchangeMgr,
+                              const MockWdmNodeOptions &aConfig) = 0;
 
     typedef void(*HandleCompleteTestFunct)();
     HandleCompleteTestFunct onCompleteTest;

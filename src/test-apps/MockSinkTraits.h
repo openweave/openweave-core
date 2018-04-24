@@ -80,6 +80,10 @@ private:
 class TestATraitUpdatableDataSink : public MockTraitUpdatableDataSink
 {
 public:
+    enum
+    {
+        kNumMutations = 11
+    };
     TestATraitUpdatableDataSink();
 
     WEAVE_ERROR OnEvent(uint16_t aType, void *aInParam) __OVERRIDE;

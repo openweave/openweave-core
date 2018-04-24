@@ -58,6 +58,7 @@ noinst_HEADERS                                             = \
     MockTimeSyncServer.h                                     \
     MockTimeSyncUtil.h                                       \
     MockTokenPairingServer.h                                 \
+	MockWdmNodeOptions.h                                     \
     MockWdmSubscriptionInitiator.h                           \
     MockWdmSubscriptionResponder.h                           \
     MockWdmTestVerifier.h                                    \
@@ -1290,6 +1291,7 @@ TestWdmNext_SOURCES                      = TestWdmNext.cpp						\
                                            schema/weave/trait/locale/LocaleCapabilitiesTrait.cpp	\
                                            schema/weave/trait/security/BoltLockSettingsTrait.cpp	\
                                            schema/weave/trait/telemetry/NetworkWiFiTelemetryTrait.cpp	\
+										   MockWdmNodeOptions.cpp                   \
                                            MockWdmViewServer.cpp					\
                                            MockWdmViewClient.cpp					\
                                            MockWdmSubscriptionInitiator.cpp				\
@@ -1357,6 +1359,7 @@ mock_device_SOURCES                      = mock-device.cpp                      
                                            MockWdmSubscriptionInitiator.cpp                         \
                                            MockWdmTestVerifier.cpp	                            \
                                            MockWdmSubscriptionResponder.cpp                         \
+										   MockWdmNodeOptions.cpp                                   \
                                            MockLoggingManager.cpp                                   \
                                            MockEvents.cpp
 

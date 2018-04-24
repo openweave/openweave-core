@@ -133,10 +133,8 @@ public:
 
     MockWdmSubscriptionResponderImpl ();
 
-    virtual WEAVE_ERROR Init (nl::Weave::WeaveExchangeManager *aExchangeMgr, const bool aMutualSubscription,
-        const char * const aTestCaseId, const char * const aNumDataChangeBeforeCancellation,
-        const char * const aFinalStatus, const char * const aTimeBetweenDataChangeMsec, const bool aEnableDataFlip,
-        const char * const aTimeBetweenLivenessCheckSec);
+    virtual WEAVE_ERROR Init (nl::Weave::WeaveExchangeManager *aExchangeMgr,
+                              const MockWdmNodeOptions &aConfig);
     void PrintVersionsLog();
     virtual void ClearDataSinkState(void);
 
@@ -322,18 +320,16 @@ MockWdmSubscriptionResponderImpl::MockWdmSubscriptionResponderImpl() :
 }
 
 WEAVE_ERROR MockWdmSubscriptionResponderImpl::Init (nl::Weave::WeaveExchangeManager *aExchangeMgr,
-const bool aMutualSubscription, const char * const aTestCaseId, const char * const aNumDataChangeBeforeCancellation,
-const char * const aFinalStatus, const char * const aTimeBetweenDataChangeMsec, const bool aEnableDataFlip,
-const char * const aTimeBetweenLivenessCheckSec)
+                                                    const MockWdmNodeOptions &aConfig)
 {
     gResponderState.init();
     WEAVE_ERROR err = WEAVE_NO_ERROR;
 
-    WeaveLogDetail(DataManagement, "Test Case ID: %s", (aTestCaseId == NULL) ? "NULL" : aTestCaseId);
+    WeaveLogDetail(DataManagement, "Test Case ID: %s", (aConfig.mTestCaseId == NULL) ? "NULL" : aConfig.mTestCaseId);
 
-    if (NULL != aNumDataChangeBeforeCancellation)
+    if (NULL != aConfig.mNumDataChangeBeforeCancellation)
     {
-        gNumDataChangeBeforeCancellation = atoi(aNumDataChangeBeforeCancellation);
+        gNumDataChangeBeforeCancellation = atoi(aConfig.mNumDataChangeBeforeCancellation);
         if (gNumDataChangeBeforeCancellation < -1)
         {
             gNumDataChangeBeforeCancellation = -1;
@@ -344,38 +340,38 @@ const char * const aTimeBetweenLivenessCheckSec)
         gNumDataChangeBeforeCancellation = -1;
     }
 
-    if (NULL != aFinalStatus)
+    if (NULL != aConfig.mFinalStatus)
     {
-        gFinalStatus = atoi(aFinalStatus);
+        gFinalStatus = atoi(aConfig.mFinalStatus);
     }
     else
     {
         gFinalStatus = 1;
     }
 
-    if (NULL != aTestCaseId)
+    if (NULL != aConfig.mTestCaseId)
     {
-        mTestCaseId = atoi(aTestCaseId);
+        mTestCaseId = atoi(aConfig.mTestCaseId);
     }
     else
     {
         mTestCaseId = kTestCase_TestTrait;
     }
 
-    if (NULL != aTimeBetweenDataChangeMsec)
+    if (NULL != aConfig.mTimeBetweenDataChangeMsec)
     {
-        gTimeBetweenDataChangeMsec = atoi(aTimeBetweenDataChangeMsec);
+        gTimeBetweenDataChangeMsec = atoi(aConfig.mTimeBetweenDataChangeMsec);
     }
     else
     {
         gTimeBetweenDataChangeMsec = 15000;
     }
 
-    gEnableDataFlip = aEnableDataFlip;
+    gEnableDataFlip = aConfig.mEnableDataFlip;
 
-    if (NULL != aTimeBetweenLivenessCheckSec)
+    if (NULL != aConfig.mTimeBetweenLivenessCheckSec)
     {
-        mTimeBetweenLivenessCheckSec = atoi(aTimeBetweenLivenessCheckSec);
+        mTimeBetweenLivenessCheckSec = atoi(aConfig.mTimeBetweenLivenessCheckSec);
     }
     else
     {
@@ -463,7 +459,7 @@ const char * const aTimeBetweenLivenessCheckSec)
         break;
     }
 
-    mIsMutualSubscription = aMutualSubscription;
+    mIsMutualSubscription = aConfig.mEnableMutualSubscription;
 
     mSubscriptionClient = NULL;
     mExchangeMgr = aExchangeMgr;

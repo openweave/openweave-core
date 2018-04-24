@@ -69,6 +69,7 @@
 #include "MockWdmSubscriptionInitiator.h"
 #include "MockWdmSubscriptionResponder.h"
 #include "MockLoggingManager.h"
+#include "MockWdmNodeOptions.h"
 
 #if WEAVE_CONFIG_TIME
 #include "MockTimeSyncUtil.h"
@@ -151,8 +152,6 @@ int TimeBetweenEvents = 1000;
 
 // only for wdm next test
 #if WEAVE_CONFIG_ENABLE_RELIABLE_MESSAGING
-uint64_t WdmPublisherNodeId = kAnyNodeId;
-uint16_t WdmUseSubnetId = kWeaveSubnetId_NotSpecified;
 int WdmRoleInTest = 0;
 bool EnableRetry = false;
 #endif // WEAVE_CONFIG_ENABLE_RELIABLE_MESSAGING
@@ -213,27 +212,6 @@ enum
     kToolOpt_TunnelConnectAddr                  = 1014,
     kToolOpt_TunnelDestNodeId                   = 1015,
 
-#if WEAVE_CONFIG_ENABLE_RELIABLE_MESSAGING
-    kToolOpt_WdmPublisherNodeId                 = 1016, // Specify the node ID of the WDM Publisher we should connect to
-    kToolOpt_WdmUseSubnetId                     = 1017, // True if the publisher is within the specified subnet
-    //kToolOpt_WdmSimpleViewClient                = 1018,
-    //kToolOpt_WdmSimpleViewServer                = 1019,
-    kToolOpt_WdmSubscriptionClient              = 1020,
-    kToolOpt_WdmSubscriptionPublisher           = 1021,
-    kToolOpt_WdmInitMutualSubscription          = 1022,
-    kToolOpt_WdmRespMutualSubscription          = 1023,
-#endif // WEAVE_CONFIG_ENABLE_RELIABLE_MESSAGING
-// only for wdm next test
-    kToolOpt_TestCaseId                         = 1024,
-    kToolOpt_EnableStopTest                     = 1025,
-    kToolOpt_NumDataChangeBeforeCancellation    = 1026,
-    kToolOpt_FinalStatus                        = 1027,
-    kToolOpt_TimeBetweenDataChangeMsec          = 1028,
-    kToolOpt_EnableDataFlip                     = 1031,
-    kToolOpt_EventGenerator                     = 1032,
-    kToolOpt_TimeBetweenEvents                  = 1033,
-    kToolOpt_TimeBetweenLivenessCheckSec        = 1034,
-// only for wdm next test
     kToolOpt_PairViaWRM                         = 1035,
     kToolOpt_PairingEndPointId                  = 1037,
 
@@ -243,8 +221,6 @@ enum
     kToolOpt_TimeSyncServerNodeAddr             = 1041, // Specify the node address of the Time Sync Server we should contact
     kToolOpt_TimeSyncModeServiceOverTunnel      = 1042, // specify that the Time Client Sync mode is Service (time sync with Service over a tunnel)
     kToolOpt_UseServiceDir,
-    kToolOpt_EnableDictionaryTest,
-    kToolOpt_WdmEnableRetry,
     kToolOpt_SuppressAccessControl,
 
 // only for weave over bluez peripheral
@@ -295,29 +271,6 @@ static OptionDef gToolOptionDefs[] =
     { "ts-server-node-addr",        kArgumentRequired,  kToolOpt_TimeSyncServerNodeAddr },
     { "ts-server-subnet-id",        kArgumentRequired,  kToolOpt_TimeSyncServerSubnetId },
 #endif // WEAVE_CONFIG_TIME
-// only for wdm next test
-    { "test-case",                  kArgumentRequired,  kToolOpt_TestCaseId },
-    { "enable-stop",                kNoArgument,        kToolOpt_EnableStopTest },
-    { "total-count",                kArgumentRequired,  kToolOpt_NumDataChangeBeforeCancellation },
-    { "final-status",               kArgumentRequired,  kToolOpt_FinalStatus },
-    { "timer-period",               kArgumentRequired,  kToolOpt_TimeBetweenDataChangeMsec },
-    { "enable-flip",                kArgumentRequired,  kToolOpt_EnableDataFlip },
-    { "enable-dictionary-test",     kArgumentRequired,  kToolOpt_EnableDictionaryTest },
-    { "event-generator",            kArgumentRequired,  kToolOpt_EventGenerator },
-    { "inter-event-period",         kArgumentRequired,  kToolOpt_TimeBetweenEvents },
-// only for wdm next test
-#if WEAVE_CONFIG_ENABLE_RELIABLE_MESSAGING
-    { "wdm-publisher",              kArgumentRequired,  kToolOpt_WdmPublisherNodeId },
-    { "wdm-subnet",                 kArgumentRequired,  kToolOpt_WdmUseSubnetId },
-    //{ "wdm-simple-view-client",     kNoArgument,        kToolOpt_WdmSimpleViewClient },
-    //{ "wdm-simple-view-server",     kNoArgument,        kToolOpt_WdmSimpleViewServer },
-    { "wdm-one-way-sub-client",     kNoArgument,        kToolOpt_WdmSubscriptionClient },
-    { "wdm-one-way-sub-publisher",  kNoArgument,        kToolOpt_WdmSubscriptionPublisher },
-    { "wdm-init-mutual-sub",        kNoArgument,        kToolOpt_WdmInitMutualSubscription },
-    { "wdm-resp-mutual-sub",        kNoArgument,        kToolOpt_WdmRespMutualSubscription },
-    { "wdm-liveness-check-period",  kArgumentRequired,  kToolOpt_TimeBetweenLivenessCheckSec },
-    { "wdm-enable-retry",           kNoArgument,        kToolOpt_WdmEnableRetry },
-#endif // WEAVE_CONFIG_ENABLE_RELIABLE_MESSAGING
     { NULL }
 };
 
@@ -524,6 +477,7 @@ static OptionSet *gToolOptionSets[] =
     &gToolOptions,
     &gNetworkOptions,
     &gWeaveNodeOptions,
+    &gMockWdmNodeOptions,
     &gWRMPOptions,
     &gWeaveSecurityMode,
     &gCASEOptions,
@@ -541,7 +495,6 @@ int main(int argc, char *argv[])
 {
     WEAVE_ERROR err;
     WeaveAuthMode authMode = kWeaveAuthMode_Unauthenticated;
-    uint32_t KeyId = WeaveKeyId::kNone;
 
 #if CONFIG_BLE_PLATFORM_BLUEZ
     nl::Ble::Platform::BlueZ::BluezPeripheralArgs Bluez_PeripheralArgs;
@@ -590,8 +543,6 @@ int main(int argc, char *argv[])
     InitNetwork();
 
     InitWeaveStack(true, true);
-
-    KeyId = gGroupKeyEncOptions.GetEncKeyId();
 
 #if WEAVE_CONFIG_ENABLE_TUNNELING
     if (TunnelDestAddr == IPAddress::Any)
@@ -708,42 +659,18 @@ int main(int argc, char *argv[])
     {
     case 0:
         break;
-/*
-    case kToolOpt_WdmSimpleViewClient:
-        if (WdmPublisherNodeId != kAnyNodeId)
-        {
-            err = MockWdmViewClient::GetInstance()->Init(&ExchangeMgr, TestCaseId);
-            FAIL_ERROR(err, "MockWdmViewClient.Init failed");
-            err = MockWdmViewClient::GetInstance()->StartTesting(WdmPublisherNodeId, WdmUseSubnetId);
-            FAIL_ERROR(err, "MockWdmViewClient.StartTesting failed");
-
-            MockWdmViewClient::GetInstance()-> onCompleteTest = HandleWdmCompleteTest;
-        }
-        else
-        {
-            err = WEAVE_ERROR_INVALID_ARGUMENT;
-            FAIL_ERROR(err, "Simple View Client requires node ID to some publisher");
-        }
-        break;
-    case kToolOpt_WdmSimpleViewServer:
-        err = MockWdmViewServer::GetInstance()->Init(&ExchangeMgr, TestCaseId);
-        FAIL_ERROR(err, "MockWdmViewServer.Init failed");
-        break;
-*/
-
     case kToolOpt_WdmInitMutualSubscription:
     case kToolOpt_WdmSubscriptionClient:
 
-        if (WdmPublisherNodeId != kAnyNodeId)
+        if (gMockWdmNodeOptions.mWdmPublisherNodeId != kAnyNodeId)
         {
             err = MockWdmSubscriptionInitiator::GetInstance()->Init(&ExchangeMgr,
-                kToolOpt_WdmInitMutualSubscription == WdmRoleInTest,
-                TestCaseId, NumDataChangeBeforeCancellation, FinalStatus,
-                TimeBetweenDataChangeMsec, EnableDataFlip,
-                TimeBetweenLivenessCheckSec, EnableDictionaryTest,
-                gWeaveSecurityMode.SecurityMode, KeyId, EnableRetry);
+                                                                    gGroupKeyEncOptions.GetEncKeyId(),
+                                                                    gWeaveSecurityMode.SecurityMode,
+                                                                    gMockWdmNodeOptions);
             FAIL_ERROR(err, "MockWdmSubscriptionInitiator.Init failed");
-            err = MockWdmSubscriptionInitiator::GetInstance()->StartTesting(WdmPublisherNodeId, WdmUseSubnetId);
+            err = MockWdmSubscriptionInitiator::GetInstance()->StartTesting(gMockWdmNodeOptions.mWdmPublisherNodeId,
+                                                                            gMockWdmNodeOptions.mWdmUseSubnetId);
             FAIL_ERROR(err, "MockWdmSubscriptionInitiator.StartTesting failed");
             MockWdmSubscriptionInitiator::GetInstance()->onCompleteTest = HandleWdmCompleteTest;
         }
@@ -762,8 +689,7 @@ int main(int argc, char *argv[])
         }
 
         err = MockWdmSubscriptionResponder::GetInstance()->Init(&ExchangeMgr,
-            kToolOpt_WdmRespMutualSubscription == WdmRoleInTest,
-            TestCaseId, NumDataChangeBeforeCancellation, FinalStatus, TimeBetweenDataChangeMsec, EnableDataFlip, TimeBetweenLivenessCheckSec);
+                                                                gMockWdmNodeOptions);
         FAIL_ERROR(err, "MockWdmSubscriptionResponder.Init failed");
         MockWdmSubscriptionResponder::GetInstance()->onCompleteTest = HandleWdmCompleteTest;
         break;
@@ -1038,154 +964,6 @@ bool HandleOption(const char *progName, OptionSet *optSet, int id, const char *n
     case kToolOpt_SuppressAccessControl:
         sSuppressAccessControls = true;
         break;
-#if WEAVE_CONFIG_ENABLE_RELIABLE_MESSAGING
-    case kToolOpt_WdmPublisherNodeId:
-        if (!ParseNodeId(arg, WdmPublisherNodeId))
-        {
-            PrintArgError("%s: Invalid value specified for WDM publisher node id: %s\n", progName, arg);
-            return false;
-        }
-        break;
-    case kToolOpt_WdmUseSubnetId:
-        if (!ParseSubnetId(arg, WdmUseSubnetId))
-        {
-            PrintArgError("%s: Invalid value specified for publisher subnet id: %s\n", progName, arg);
-            return false;
-        }
-        break;
-    /*
-    case kToolOpt_WdmSimpleViewClient:
-        if (0 != WdmRoleInTest)
-        {
-            PrintArgError("%s: Mock device can only play one role in WDM tests (%s)\n", progName, arg);
-            return false;
-        }
-        WdmRoleInTest = kToolOpt_WdmSimpleViewClient;
-        break;
-    case kToolOpt_WdmSimpleViewServer:
-        if (0 != WdmRoleInTest)
-        {
-            PrintArgError("%s: Mock device can only play one role in WDM tests (%s)\n", progName, arg);
-            return false;
-        }
-        WdmRoleInTest = kToolOpt_WdmSimpleViewServer;
-        break;
-    */
-    case kToolOpt_WdmSubscriptionClient:
-        if (0 != WdmRoleInTest)
-        {
-            PrintArgError("%s: Mock device can only play one role in WDM tests (%s)\n", progName, arg);
-            return false;
-        }
-        WdmRoleInTest = kToolOpt_WdmSubscriptionClient;
-        break;
-    case kToolOpt_WdmSubscriptionPublisher:
-        if (0 != WdmRoleInTest)
-        {
-            PrintArgError("%s: Mock device can only play one role in WDM tests (%s)\n", progName, arg);
-            return false;
-        }
-        WdmRoleInTest = kToolOpt_WdmSubscriptionPublisher;
-        break;
-    case kToolOpt_WdmInitMutualSubscription:
-        if (0 != WdmRoleInTest)
-        {
-            PrintArgError("%s: Mock device can only play one role in WDM tests (%s)\n", progName, arg);
-            return false;
-        }
-        WdmRoleInTest = kToolOpt_WdmInitMutualSubscription;
-        break;
-    case kToolOpt_WdmRespMutualSubscription:
-        if (0 != WdmRoleInTest)
-        {
-            PrintArgError("%s: Mock device can only play one role in WDM tests (%s)\n", progName, arg);
-            return false;
-        }
-        WdmRoleInTest = kToolOpt_WdmRespMutualSubscription;
-        break;
-    case kToolOpt_WdmEnableRetry:
-        EnableRetry = true;
-        break;
-
-#endif // WEAVE_CONFIG_ENABLE_RELIABLE_MESSAGING
-    case kToolOpt_TestCaseId:
-        if (NULL != TestCaseId)
-        {
-            free(TestCaseId);
-        }
-        TestCaseId = strdup(arg);
-        break;
-    case kToolOpt_EnableStopTest:
-        EnableStopTest = true;
-        break;
-    case kToolOpt_NumDataChangeBeforeCancellation:
-        if (NULL != NumDataChangeBeforeCancellation)
-        {
-            free(NumDataChangeBeforeCancellation);
-        }
-        NumDataChangeBeforeCancellation = strdup(arg);
-        break;
-    case kToolOpt_FinalStatus:
-        if (NULL != FinalStatus)
-        {
-            free(FinalStatus);
-        }
-        FinalStatus = strdup(arg);
-        break;
-    case kToolOpt_TimeBetweenDataChangeMsec:
-        if (NULL != TimeBetweenDataChangeMsec)
-        {
-            free(TimeBetweenDataChangeMsec);
-        }
-        TimeBetweenDataChangeMsec = strdup(arg);
-        break;
-    case kToolOpt_EnableDataFlip:
-        if (!ParseBoolean(arg, EnableDataFlip))
-        {
-            PrintArgError("%s: Invalid value specified for enable data flip: %s\n", progName, arg);
-            return false;
-        }
-        break;
-    case kToolOpt_EnableDictionaryTest:
-        EnableDictionaryTest = true;
-        break;
-    case kToolOpt_TimeBetweenLivenessCheckSec:
-        if (NULL != TimeBetweenLivenessCheckSec)
-        {
-            free(TimeBetweenLivenessCheckSec);
-        }
-        TimeBetweenLivenessCheckSec = strdup(arg);
-        break;
-    case kToolOpt_EventGenerator:
-        if (strncmp(arg, "None", strlen("None")) == 0)
-            gEventGenerator = NULL;
-        else if (strncmp(arg, "Debug", strlen("Debug")) == 0)
-            gEventGenerator = GetTestDebugGenerator();
-        else if (strncmp(arg, "Liveness", strlen("Liveness")) == 0)
-            gEventGenerator = GetTestLivenessGenerator();
-        else if (strncmp(arg, "Security", strlen("Security")) == 0)
-            gEventGenerator = GetTestSecurityGenerator();
-        else if (strncmp(arg, "Telemetry", strlen("Telemetry")) == 0)
-            gEventGenerator = GetTestTelemetryGenerator();
-        else if (strncmp(arg, "TestTrait", strlen("TestTrait")) == 0)
-            gEventGenerator = GetTestTraitGenerator();
-        else
-        {
-            PrintArgError("%s: Unrecognized event generator name, exiting\n", progName);
-            return false;
-        }
-        break;
-    case kToolOpt_TimeBetweenEvents:
-    {
-        char *endptr;
-        TimeBetweenEvents = strtoul(arg, &endptr, 0);
-        if (endptr == arg)
-        {
-            PrintArgError("%s: Invalid inter-event timeout, exiting\n", progName);
-            return false;
-        }
-        break;
-    }
     default:
         PrintArgError("%s: INTERNAL ERROR: Unhandled option: %s\n", progName, name);
         return false;

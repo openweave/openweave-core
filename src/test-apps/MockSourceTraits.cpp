@@ -300,7 +300,7 @@ void TestATraitDataSource::Mutate()
     Lock();
     uint8_t kNumTestCases;
 
-    WeaveLogDetail(DataManagement, "mTraitTestSet: %" PRIu32 ", mTestCounter: %" PRIu32 "", mTraitTestSet, mTestCounter);
+    WeaveLogDetail(DataManagement, "TestATraitDataSource: mTraitTestSet: %" PRIu32 ", mTestCounter: %" PRIu32 "", mTraitTestSet, mTestCounter);
 
     if (mTraitTestSet == 0)
     {

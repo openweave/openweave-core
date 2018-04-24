@@ -1691,11 +1691,11 @@ WEAVE_ERROR TestATraitUpdatableDataSink::Mutate(SubscriptionClient * apSubClient
 
     isLocked = true;
 
+    WeaveLogDetail(DataManagement, "TestATraitUpdatableDataSink: mTraitTestSet: %" PRIu32 ", mTestCounter: %" PRIu32 "", mTraitTestSet, mTestCounter);
+
     if (mTraitTestSet == 0)
     {
         static const uint8_t kNumTestCases = 11;
-
-        WeaveLogDetail(DataManagement, "TestATraitUpdatableDataSink::mTestCounter: %" PRIu32 "", mTestCounter);
 
         if ((mTestCounter % kNumTestCases) == 0) {
             WeaveLogDetail(DataManagement, "mock sink 3 leaf properties changes, source 3 leaf properties changes");

@@ -27,18 +27,19 @@
 
 
 #include <Weave/Core/WeaveExchangeMgr.h>
+#include "ToolCommonOptions.h"
+#include "MockWdmNodeOptions.h"
 
 class MockWdmSubscriptionInitiator
 {
 public:
-    static MockWdmSubscriptionInitiator * GetInstance ();
+    static MockWdmSubscriptionInitiator * GetInstance();
+    static uint32_t GetNumUpdatableTraits(void);
 
-    virtual WEAVE_ERROR Init (nl::Weave::WeaveExchangeManager *aExchangeMgr, const bool aMutualSubscription,
-                              const char * const aTestCaseId, const char * const aNumDataChangeBeforeCancellation,
-                              const char * const aFinalStatus, const char * const aTimeBetweenDataChangeMsec,
-                              const bool aEnableDataFlip, const char * const aTimeBetweenLivenessCheckSec,
-                              const bool aEnableDictionaryTest, const int aTestSecurityMode,
-                              const uint32_t aKeyId, const bool aEnableRetry) = 0;
+    virtual WEAVE_ERROR Init(nl::Weave::WeaveExchangeManager *aExchangeMgr,
+                             uint32_t aKeyId,
+                             uint32_t aTestSecurityMode,
+                             const MockWdmNodeOptions &aConfig) = 0;
 
     virtual WEAVE_ERROR StartTesting(const uint64_t aPublisherNodeId, const uint16_t aSubnetId) = 0;
 

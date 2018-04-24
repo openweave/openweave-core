@@ -55,6 +55,7 @@
 #include "MockWdmViewServer.h"
 #include "WdmNextPerfUtility.h"
 #include "TestWdmSubscriptionlessNotification.h"
+#include "MockWdmNodeOptions.h"
 
 using nl::Inet::IPAddress;
 using namespace nl::Weave;
@@ -68,204 +69,10 @@ static bool HandleOption(const char *progName, OptionSet *optSet, int id, const 
 static void HandleWdmCompleteTest();
 static void HandleError();
 
-char * TestCaseId = NULL;
-bool EnableStopTest = false;
-bool EnableRetry = false;
-bool EnableMockTimestampInitialCounter = false;
-char * NumDataChangeBeforeCancellation = NULL;
-char * FinalStatus = NULL;
-char * TimeBetweenDataChangeMsec = NULL;
-uint32_t TestIterations = 1;
-int WdmRoleInTest = 0;
-uint32_t TestDelayBetweenIterationMsec = 0;
-uint32_t TestWdmSublessNotifyDelayMsec = 6000;
-bool EnableDataFlip = true;
-bool EnableDictionaryTest = false;
-char *  TimeBetweenLivenessCheckSec = NULL;
-bool SavePerfData = false;
-bool gClearDataSinkState = false;
+
 // events
 EventGenerator * gEventGenerator = NULL;
-
-int TimeBetweenEvents = 1000;
-
-uint64_t WdmPublisherNodeId = kAnyNodeId;
-uint16_t WdmUseSubnetId = kWeaveSubnetId_NotSpecified;
-
-#if WDM_ENABLE_SUBSCRIPTIONLESS_NOTIFICATION
-uint64_t WdmSublessNotifyDestNodeId = kAnyNodeId;
-#endif // WDM_ENABLE_SUBSCRIPTIONLESS_NOTIFICATION
-
-enum
-{
-    kToolOpt_WdmPublisherNodeId                        = 1000,  // Specify the node ID of the WDM Publisher we should connect to
-    kToolOpt_WdmUseSubnetId,                                    // True if the publisher is within the specified subnet
-    //kToolOpt_WdmSimpleViewClient,
-    //kToolOpt_WdmSimpleViewServer,
-    kToolOpt_WdmSubscriptionClient,
-    kToolOpt_WdmSubscriptionPublisher,
-    kToolOpt_WdmInitMutualSubscription,
-    kToolOpt_WdmRespMutualSubscription,
-    kToolOpt_TestCaseId,
-    kToolOpt_EnableStopTest,
-    kToolOpt_NumDataChangeBeforeCancellation,
-    kToolOpt_FinalStatus,
-    kToolOpt_TimeBetweenDataChangeMsec,
-    kToolOpt_TestIterations,
-    kToolOpt_TestDelayBetweenIterationMsec,
-    kToolOpt_EnableDataFlip,
-    kToolOpt_EnableDictionaryTest,
-    kToolOpt_SavePerfData,
-    kToolOpt_EventGenerator,
-    kToolOpt_TimeBetweenEvents,
-    kToolOpt_ClearDataSinkStateBetweenTests,
-    kToolOpt_TimeBetweenLivenessCheckSec,
-    kToolOpt_WdmEnableRetry,
-    kToolopt_EnableMockTimestampInitialCounter,
-    kToolOpt_WdmSimpleSublessNotifyClient,
-    kToolOpt_WdmSimpleSublessNotifyServer,
-    kToolOpt_WdmSublessNotifyDestNodeId,
-};
-
-static OptionDef gToolOptionDefs[] =
-{
-    { "test-case",                                      kArgumentRequired,  kToolOpt_TestCaseId },
-    { "enable-stop",                                    kNoArgument,        kToolOpt_EnableStopTest },
-    { "total-count",                                    kArgumentRequired,  kToolOpt_NumDataChangeBeforeCancellation },
-    { "final-status",                                   kArgumentRequired,  kToolOpt_FinalStatus },
-    { "timer-period",                                   kArgumentRequired,  kToolOpt_TimeBetweenDataChangeMsec },
-    { "test-iterations",                                kArgumentRequired,  kToolOpt_TestIterations },
-    { "test-delay",                                     kArgumentRequired,  kToolOpt_TestDelayBetweenIterationMsec },
-    { "enable-flip",                                    kArgumentRequired,  kToolOpt_EnableDataFlip },
-    { "enable-dictionary-test",                         kNoArgument,        kToolOpt_EnableDictionaryTest },
-    { "save-perf",                                      kNoArgument,        kToolOpt_SavePerfData },
-    { "event-generator",                                kArgumentRequired,  kToolOpt_EventGenerator },
-    { "inter-event-period",                             kArgumentRequired,  kToolOpt_TimeBetweenEvents },
-#if WEAVE_CONFIG_ENABLE_RELIABLE_MESSAGING
-    { "wdm-publisher",                                  kArgumentRequired,  kToolOpt_WdmPublisherNodeId },
-    { "wdm-subless-notify-dest-node",                   kArgumentRequired,  kToolOpt_WdmSublessNotifyDestNodeId },
-    { "wdm-subnet",                                     kArgumentRequired,  kToolOpt_WdmUseSubnetId },
-    //{ "wdm-simple-view-client",                       kNoArgument,        kToolOpt_WdmSimpleViewClient },
-    //{ "wdm-simple-view-server",                       kNoArgument,        kToolOpt_WdmSimpleViewServer },
-    { "wdm-simple-subless-notify-client",               kNoArgument,        kToolOpt_WdmSimpleSublessNotifyClient },
-    { "wdm-simple-subless-notify-server",               kNoArgument,        kToolOpt_WdmSimpleSublessNotifyServer },
-    { "wdm-one-way-sub-client",                         kNoArgument,        kToolOpt_WdmSubscriptionClient },
-    { "wdm-one-way-sub-publisher",                      kNoArgument,        kToolOpt_WdmSubscriptionPublisher },
-    { "wdm-init-mutual-sub",                            kNoArgument,        kToolOpt_WdmInitMutualSubscription },
-    { "wdm-resp-mutual-sub",                            kNoArgument,        kToolOpt_WdmRespMutualSubscription },
-    { "clear-state-between-iterations",                 kNoArgument,        kToolOpt_ClearDataSinkStateBetweenTests },
-    { "wdm-liveness-check-period",                      kArgumentRequired,  kToolOpt_TimeBetweenLivenessCheckSec },
-    { "enable-retry",                                   kNoArgument,        kToolOpt_WdmEnableRetry },
-    { "enable-mock-event-timestamp-initial-counter",    kNoArgument,        kToolopt_EnableMockTimestampInitialCounter },
-#endif // WEAVE_CONFIG_ENABLE_RELIABLE_MESSAGING
-    { NULL }
-};
-
-static const char *const gToolOptionHelp =
-    "  --wdm-publisher <publisher node id>\n"
-    "       Configure the node ID for WDM Next publisher\n"
-    "\n"
-    "  --wdm-subnet <subnet of the publisher in hex>\n"
-    "       Predefined service subnet ID is 5\n"
-    "\n"
-    "  --wdm-simple-view-client\n"
-    "       Initiate a simple WDM Next view client\n"
-    "\n"
-    "  --wdm-simple-view-server\n"
-    "       Initiate a simple WDM Next view server\n"
-    "\n"
-    "  --wdm-simple-subless-notify-client\n"
-    "       Initiate a simple WDM Next Subscriptionless Notify Client\n"
-    "\n"
-    "  --wdm-simple-subless-notify-server\n"
-    "       Initiate a simple WDM Next Subscriptionless Notify Server\n"
-    "\n"
-    "  --wdm-subless-notify-dest-node <dest-node-id>\n"
-    "       The node id of the destination node\n"
-    "\n"
-    "  --wdm-one-way-sub-client\n"
-    "       Initiate a subscription to some WDM Next publisher\n"
-    "\n"
-    "  --wdm-one-way-sub-publisher\n"
-    "       Respond to a number of WDM Next subscriptions as a publisher\n"
-    "\n"
-    "  --wdm-init-mutual-sub\n"
-    "       Initiate a subscription to some WDM Next publisher, while publishing at the same time \n"
-    "\n"
-    "  --wdm-resp-mutual-sub\n"
-    "       Respond to WDM Next subscription as a publisher with a mutual subscription\n"
-    "\n"
-    "  --wdm-liveness-check-period\n"
-    "       Specify the time, in seconds, between liveness check in WDM Next subscription as a publisher\n"
-    "\n"
-    "  --test-case <test case id>\n"
-    "       Further configure device behavior with this test case id\n"
-    "\n"
-    "  --enable-stop\n"
-    "       Terminate WDM Next test in advance for Happy test\n"
-    "\n"
-    "  --total-count\n"
-    "      when it is -1, mutate trait instance for unlimited iterations, when it is X,\n"
-    "      mutate trait instance for X iterations\n"
-    "\n"
-    "  --final-status\n"
-    "      When Final Status is\n"
-    "      0: Client Cancel,\n"
-    "      1: Publisher Cancel,\n"
-    "      2: Client Abort,\n"
-    "      3: Publisher Abort,\n"
-    "      4: Idle\n"
-    "\n"
-    "  --timer-period\n"
-    "      Every timer-period, the timer handler is triggered to mutate the trait instance\n"
-    "\n"
-    "  --test-iterations\n"
-    "      control the number of wdm test iterations\n"
-    "\n"
-    "  --clear-state-between-iterations\n"
-    "      Clear data sink state between WDM test iterations. Default: state of the data \n"
-    "      sinks is unchanged between iterations.\n"
-    "\n"
-    "  --test-delay\n"
-    "      control the delay period among wdm test iterations\n"
-    "\n"
-    "  --enable-flip <true|false|yes|no|1|0>\n"
-    "      Enable/disable flip trait data in HandleDataFlipTimeout\n"
-    "\n"
-    "  --enable-dictionary-test\n"
-    "      Enable/disable dictionary tests\n"
-    "\n"
-    "  --save-perf\n"
-    "      save wdm perf data in files\n"
-    "\n"
-    "  --event-generator [None | Debug | Livenesss | Security | Telemetry | TestTrait]\n"
-    "       Generate structured Weave events using a particular generator:"
-    "         None: no events\n"
-    "         Debug: Freeform strings, from helloweave-app.  Uses debug_trait to emit messages at \n"
-    "                   Production level\n"
-    "         Liveness: Liveness events, using liveness_trait at Production level.\n"
-    "         Security: Multi-trait scenario emitting events from debug_trait, open_close_trait,\n"
-    "                   pincode_input_trait and bolt_lock_trait\n"
-    "         Telemetry: WiFi telemetry events at Production level.\n"
-    "         TestTrait: TestETrait events which cover a range of types.\n"
-    "\n"
-    "  --inter-event-period <ms>"
-    "       Delay between emitting consecutive events (default 1s)\n"
-    "\n"
-    "  --enable-retry"
-    "       Enable automatic retries by WDM\n"
-    "\n"
-    "  --enable-mock-event-timestamp-initial-counter"
-    "       Enable mock event initial counter using timestamp\n"
-    "\n";
-
-static OptionSet gToolOptions =
-{
-    HandleOption,
-    gToolOptionDefs,
-    "GENERAL OPTIONS",
-    gToolOptionHelp
-};
+uint32_t TestWdmSublessNotifyDelayMsec = 6000;
 
 static HelpOptions gHelpOptions(
     TOOL_NAME,
@@ -275,7 +82,8 @@ static HelpOptions gHelpOptions(
 
 static OptionSet *gToolOptionSets[] =
 {
-    &gToolOptions,
+    &gTestWdmNextOptions,
+    &gMockWdmNodeOptions,
     &gNetworkOptions,
     &gWeaveNodeOptions,
     &gWeaveSecurityMode,
@@ -298,7 +106,8 @@ int main(int argc, char *argv[])
     nl::Weave::System::Stats::Snapshot before;
     nl::Weave::System::Stats::Snapshot after;
     const bool printStats = true;
-    uint32_t KeyId = WeaveKeyId::kNone;
+
+    gMockWdmNodeOptions.mWdmUpdateMaxNumberOfTraits = MockWdmSubscriptionInitiator::GetNumUpdatableTraits();
 
     InitToolCommon();
 
@@ -341,16 +150,14 @@ int main(int argc, char *argv[])
 
     InitWeaveStack(true, true);
 
-    if (EnableMockTimestampInitialCounter)
+    if (gTestWdmNextOptions.mEnableMockTimestampInitialCounter)
     {
         EnableMockEventTimestampInitialCounter();
     }
 
     InitializeEventLogging(&ExchangeMgr);
 
-    KeyId = gGroupKeyEncOptions.GetEncKeyId();
-
-    switch (WdmRoleInTest)
+    switch (gMockWdmNodeOptions.mWdmRoleInTest)
     {
         case 0:
             break;
@@ -358,9 +165,9 @@ int main(int argc, char *argv[])
 #if ENABLE_VIEW_TEST
 
         case kToolOpt_WdmSimpleViewClient:
-                if (WdmPublisherNodeId != kAnyNodeId)
+                if (gMockWdmNodeOptions.mWdmPublisherNodeId != kAnyNodeId)
                 {
-                    err = MockWdmViewClient::GetInstance()->Init(&ExchangeMgr, TestCaseId);
+                    err = MockWdmViewClient::GetInstance()->Init(&ExchangeMgr, gMockWdmNodeOptions.mTestCaseId);
                     FAIL_ERROR(err, "MockWdmViewClient.Init failed");
                     MockWdmViewClient::GetInstance()-> onCompleteTest = HandleWdmCompleteTest;
                 }
@@ -372,7 +179,7 @@ int main(int argc, char *argv[])
 
                 break;
             case kToolOpt_WdmSimpleViewServer:
-                err = MockWdmViewServer::GetInstance()->Init(&ExchangeMgr, TestCaseId);
+                err = MockWdmViewServer::GetInstance()->Init(&ExchangeMgr, gMockWdmNodeOptions.mTestCaseId);
                 FAIL_ERROR(err, "MockWdmViewServer.Init failed");
                 break;
 
@@ -399,10 +206,11 @@ int main(int argc, char *argv[])
                 printf("delay %d milliseconds\n", TestWdmSublessNotifyDelayMsec);
                 seconds = 0;
 
-                if (WdmSublessNotifyDestNodeId != kAnyNodeId)
+                if (gMockWdmNodeOptions.mWdmSublessNotifyDestNodeId != kAnyNodeId)
                 {
-                    err = TestWdmSubscriptionlessNotificationSender::GetInstance()->Init(&ExchangeMgr, WdmUseSubnetId,
-                                                                                         WdmSublessNotifyDestNodeId);
+                    err = TestWdmSubscriptionlessNotificationSender::GetInstance()->Init(&ExchangeMgr,
+                                                                                         gMockWdmNodeOptions.mWdmUseSubnetId,
+                                                                                         gMockWdmNodeOptions.mWdmSublessNotifyDestNodeId);
                     FAIL_ERROR(err, "TestWdmSubscriptionlessNotificationSender.Init failed");
                 }
             break;
@@ -410,16 +218,12 @@ int main(int argc, char *argv[])
         case kToolOpt_WdmInitMutualSubscription:
         case kToolOpt_WdmSubscriptionClient:
 
-            if (WdmPublisherNodeId != kAnyNodeId)
+            if (gMockWdmNodeOptions.mWdmPublisherNodeId != kAnyNodeId)
             {
                 err = MockWdmSubscriptionInitiator::GetInstance()->Init(&ExchangeMgr,
-                                                                        kToolOpt_WdmInitMutualSubscription ==
-                                                                        WdmRoleInTest,
-                                                                        TestCaseId, NumDataChangeBeforeCancellation,
-                                                                        FinalStatus, TimeBetweenDataChangeMsec,
-                                                                        EnableDataFlip, TimeBetweenLivenessCheckSec,
-                                                                        EnableDictionaryTest, gWeaveSecurityMode.SecurityMode,
-                                                                        KeyId, EnableRetry);
+                                                                        gGroupKeyEncOptions.GetEncKeyId(),
+                                                                        gWeaveSecurityMode.SecurityMode,
+                                                                        gMockWdmNodeOptions);
                 FAIL_ERROR(err, "MockWdmSubscriptionInitiator.Init failed");
                 MockWdmSubscriptionInitiator::GetInstance()->onCompleteTest = HandleWdmCompleteTest;
                 MockWdmSubscriptionInitiator::GetInstance()->onError = HandleError;
@@ -434,21 +238,18 @@ int main(int argc, char *argv[])
             break;
         case kToolOpt_WdmRespMutualSubscription:
         case kToolOpt_WdmSubscriptionPublisher:
-            if (EnableRetry)
+            if (gMockWdmNodeOptions.mEnableRetry)
             {
                 err = WEAVE_ERROR_INVALID_ARGUMENT;
                 FAIL_ERROR(err, "MockWdmSubcriptionResponder is incompatible with --enable-retry");
             }
 
             err = MockWdmSubscriptionResponder::GetInstance()->Init(&ExchangeMgr,
-                                                                    kToolOpt_WdmRespMutualSubscription == WdmRoleInTest,
-                                                                    TestCaseId, NumDataChangeBeforeCancellation,
-                                                                    FinalStatus, TimeBetweenDataChangeMsec,
-                                                                    EnableDataFlip, TimeBetweenLivenessCheckSec);
+                                                                    gMockWdmNodeOptions);
             FAIL_ERROR(err, "MockWdmSubscriptionResponder.Init failed");
             MockWdmSubscriptionResponder::GetInstance()->onCompleteTest = HandleWdmCompleteTest;
             MockWdmSubscriptionResponder::GetInstance()->onError = HandleError;
-            if (gClearDataSinkState)
+            if (gTestWdmNextOptions.mClearDataSinkState)
             {
                 MockWdmSubscriptionResponder::GetInstance()->ClearDataSinkState();
             }
@@ -460,7 +261,7 @@ int main(int argc, char *argv[])
 
     nl::Weave::Stats::UpdateSnapshot(before);
 
-    for (uint32_t iteration = 1; iteration <= TestIterations; iteration++)
+    for (uint32_t iteration = 1; iteration <= gTestWdmNextOptions.mTestIterations; iteration++)
     {
 
 #ifdef ENABLE_WDMPERFDATA
@@ -469,7 +270,7 @@ int main(int argc, char *argv[])
 
 #endif //ENABLE_WDMPERFDATA
 
-        switch (WdmRoleInTest)
+        switch (gMockWdmNodeOptions.mWdmRoleInTest)
         {
         case 0:
             break;
@@ -477,7 +278,7 @@ int main(int argc, char *argv[])
 #if ENABLE_VIEW_TEST
 
         case kToolOpt_WdmSimpleViewClient:
-            if (gClearDataSinkState)
+            if (gTestWdmNextOptions.mClearDataSinkState)
             {
                 MockWdmViewClient::GetInstance()->ClearDataSinkState();
             }
@@ -492,7 +293,7 @@ int main(int argc, char *argv[])
         case kToolOpt_WdmSimpleSublessNotifyClient:
             break;
         case kToolOpt_WdmSimpleSublessNotifyServer:
-                if (WdmSublessNotifyDestNodeId != kAnyNodeId)
+                if (gMockWdmNodeOptions.mWdmSublessNotifyDestNodeId != kAnyNodeId)
                 {
                     err = TestWdmSubscriptionlessNotificationSender::GetInstance()->SendSubscriptionlessNotify();
                     Done = true;
@@ -502,11 +303,11 @@ int main(int argc, char *argv[])
 #endif // WDM_ENABLE_SUBSCRIPTIONLESS_NOTIFICATION
         case kToolOpt_WdmInitMutualSubscription:
         case kToolOpt_WdmSubscriptionClient:
-            if (gClearDataSinkState)
+            if (gTestWdmNextOptions.mClearDataSinkState)
             {
                 MockWdmSubscriptionInitiator::GetInstance()->ClearDataSinkState();
             }
-            err = MockWdmSubscriptionInitiator::GetInstance()->StartTesting(WdmPublisherNodeId, WdmUseSubnetId);
+            err = MockWdmSubscriptionInitiator::GetInstance()->StartTesting(gMockWdmNodeOptions.mWdmPublisherNodeId, gMockWdmNodeOptions.mWdmUseSubnetId);
             if (err != WEAVE_NO_ERROR)
             {
                 printf("\nMockWdmSubscriptionInitiator.StartTesting failed: %s\n", ErrorStr(err));
@@ -520,10 +321,32 @@ int main(int argc, char *argv[])
 
         PrintNodeConfig();
 
+        switch (gMockWdmNodeOptions.mEventGeneratorType)
+        {
+            case MockWdmNodeOptions::kGenerator_None:
+                gEventGenerator = NULL;
+                break;
+            case MockWdmNodeOptions::kGenerator_TestDebug:
+                gEventGenerator = GetTestDebugGenerator();
+                break;
+            case MockWdmNodeOptions::kGenerator_TestLiveness:
+                gEventGenerator = GetTestLivenessGenerator();
+                break;
+            case MockWdmNodeOptions::kGenerator_TestSecurity:
+                gEventGenerator = GetTestSecurityGenerator();
+                break;
+            case MockWdmNodeOptions::kGenerator_TestTelemetry:
+                gEventGenerator = GetTestTelemetryGenerator();
+                break;
+            case MockWdmNodeOptions::kGenerator_TestTrait:
+                gEventGenerator = GetTestTraitGenerator();
+                break;
+        }
+
         if (gEventGenerator != NULL)
         {
             printf("Starting Event Generator\n");
-            MockEventGenerator::GetInstance()->Init(&ExchangeMgr, gEventGenerator, TimeBetweenEvents, true);
+            MockEventGenerator::GetInstance()->Init(&ExchangeMgr, gEventGenerator, gMockWdmNodeOptions.mTimeBetweenEvents, true);
         }
 
         while (!Done)
@@ -559,15 +382,15 @@ int main(int argc, char *argv[])
         }
 
         time(&begin);
-        if (TestDelayBetweenIterationMsec != 0)
+        if (gTestWdmNextOptions.mTestDelayBetweenIterationMsec != 0)
         {
-            while (seconds * 1000 < TestDelayBetweenIterationMsec)
+            while (seconds * 1000 < gTestWdmNextOptions.mTestDelayBetweenIterationMsec)
             {
                 ServiceNetwork(sleepTime);
                 time(&end);
                 seconds = difftime(end, begin);
             }
-            printf("delay %d milliseconds\n", TestDelayBetweenIterationMsec);
+            printf("delay %d milliseconds\n", gTestWdmNextOptions.mTestDelayBetweenIterationMsec);
             seconds = 0;
         }
         else
@@ -582,7 +405,7 @@ int main(int argc, char *argv[])
     MockWdmSubscriptionResponder::GetInstance()->PrintVersionsLog();
 
 
-    if (SavePerfData)
+    if (gTestWdmNextOptions.mSavePerfData)
     {
         TimeRef.SaveToFile();
     }
@@ -593,7 +416,7 @@ int main(int argc, char *argv[])
     PrintFaultInjectionCounters();
 
 #if WDM_ENABLE_SUBSCRIPTIONLESS_NOTIFICATION
-    if (WdmRoleInTest == kToolOpt_WdmSimpleSublessNotifyServer)
+    if (gMockWdmNodeOptions.mWdmRoleInTest == kToolOpt_WdmSimpleSublessNotifyServer)
     {
         err = TestWdmSubscriptionlessNotificationSender::GetInstance()->Shutdown();
         FAIL_ERROR(err, "TestWdmSubscriptionlessNotificationSender.Shutdown failed");
@@ -606,223 +429,9 @@ int main(int argc, char *argv[])
     return 0;
 }
 
-bool HandleOption(const char *progName, OptionSet *optSet, int id, const char *name, const char *arg)
-{
-    switch (id)
-    {
-    case kToolOpt_WdmPublisherNodeId:
-        if (!ParseNodeId(arg, WdmPublisherNodeId))
-        {
-            PrintArgError("%s: Invalid value specified for WDM publisher node id: %s\n", progName, arg);
-            return false;
-        }
-        break;
-    case kToolOpt_WdmUseSubnetId:
-        if (!ParseSubnetId(arg, WdmUseSubnetId))
-        {
-            PrintArgError("%s: Invalid value specified for publisher subnet id: %s\n", progName, arg);
-            return false;
-        }
-        break;
-
-#if ENABLE_VIEW_TEST
-
-    case kToolOpt_WdmSimpleViewClient:
-        if (0 != WdmRoleInTest)
-        {
-            PrintArgError("%s: Mock WDM device can only play one role in WDM tests (%s)\n", progName, arg);
-            return false;
-        }
-        WdmRoleInTest = kToolOpt_WdmSimpleViewClient;
-        break;
-    case kToolOpt_WdmSimpleViewServer:
-        if (0 != WdmRoleInTest)
-        {
-            PrintArgError("%s: Mock WDM device can only play one role in WDM tests (%s)\n", progName, arg);
-            return false;
-        }
-        WdmRoleInTest = kToolOpt_WdmSimpleViewServer;
-        break;
-
-#endif
-
-#if WDM_ENABLE_SUBSCRIPTIONLESS_NOTIFICATION
-    case kToolOpt_WdmSimpleSublessNotifyClient:
-        if (0 != WdmRoleInTest)
-        {
-            PrintArgError("%s: Mock WDM device can only play one role in WDM tests (%s)\n", progName, arg);
-            return false;
-        }
-        WdmRoleInTest = kToolOpt_WdmSimpleSublessNotifyClient;
-        break;
-    case kToolOpt_WdmSimpleSublessNotifyServer:
-        if (0 != WdmRoleInTest)
-        {
-            PrintArgError("%s: Mock WDM device can only play one role in WDM tests (%s)\n", progName, arg);
-            return false;
-        }
-        WdmRoleInTest = kToolOpt_WdmSimpleSublessNotifyServer;
-        break;
-    case kToolOpt_WdmSublessNotifyDestNodeId:
-        if (!ParseNodeId(arg, WdmSublessNotifyDestNodeId))
-        {
-            PrintArgError("%s: Invalid value specified for WDM publisher node id: %s\n", progName, arg);
-            return false;
-        }
-        break;
-#endif // WDM_ENABLE_SUBSCRIPTIONLESS_NOTIFICATION
-
-    case kToolOpt_ClearDataSinkStateBetweenTests:
-        gClearDataSinkState = true;
-        break;
-
-    case kToolOpt_WdmSubscriptionClient:
-        if (0 != WdmRoleInTest)
-        {
-            PrintArgError("%s: Mock WDM device can only play one role in WDM tests (%s)\n", progName, arg);
-            return false;
-        }
-        WdmRoleInTest = kToolOpt_WdmSubscriptionClient;
-        break;
-    case kToolOpt_WdmSubscriptionPublisher:
-        if (0 != WdmRoleInTest)
-        {
-            PrintArgError("%s: Mock WDM device can only play one role in WDM tests (%s)\n", progName, arg);
-            return false;
-        }
-        WdmRoleInTest = kToolOpt_WdmSubscriptionPublisher;
-        break;
-    case kToolOpt_WdmInitMutualSubscription:
-        if (0 != WdmRoleInTest)
-        {
-            PrintArgError("%s: Mock WDM device can only play one role in WDM tests (%s)\n", progName, arg);
-            return false;
-        }
-        WdmRoleInTest = kToolOpt_WdmInitMutualSubscription;
-        break;
-    case kToolOpt_WdmRespMutualSubscription:
-        if (0 != WdmRoleInTest)
-        {
-            PrintArgError("%s: Mock WDM device can only play one role in WDM tests (%s)\n", progName, arg);
-            return false;
-        }
-        WdmRoleInTest = kToolOpt_WdmRespMutualSubscription;
-        break;
-
-    case kToolOpt_WdmEnableRetry:
-        EnableRetry = true;
-        break;
-
-    case kToolopt_EnableMockTimestampInitialCounter:
-        EnableMockTimestampInitialCounter = true;
-        break;
-
-    case kToolOpt_TestCaseId:
-        if (NULL != TestCaseId)
-        {
-            free(TestCaseId);
-        }
-        TestCaseId = strdup(arg);
-        break;
-    case kToolOpt_EnableStopTest:
-        EnableStopTest = true;
-        break;
-    case kToolOpt_NumDataChangeBeforeCancellation:
-        if (NULL != NumDataChangeBeforeCancellation)
-        {
-            free(NumDataChangeBeforeCancellation);
-        }
-        NumDataChangeBeforeCancellation = strdup(arg);
-        break;
-    case kToolOpt_TimeBetweenLivenessCheckSec:
-        if (NULL != TimeBetweenLivenessCheckSec)
-        {
-            free(TimeBetweenLivenessCheckSec);
-        }
-        TimeBetweenLivenessCheckSec = strdup(arg);
-        break;
-    case kToolOpt_FinalStatus:
-        if (NULL != FinalStatus)
-        {
-            free(FinalStatus);
-        }
-        FinalStatus = strdup(arg);
-        break;
-    case kToolOpt_TimeBetweenDataChangeMsec:
-        if (NULL != TimeBetweenDataChangeMsec)
-        {
-            free(TimeBetweenDataChangeMsec);
-        }
-        TimeBetweenDataChangeMsec = strdup(arg);
-        break;
-    case kToolOpt_TestIterations:
-        if (!ParseInt(arg, TestIterations))
-        {
-            PrintArgError("%s: Invalid value specified for test iterations: %s\n", progName, arg);
-            return false;
-        }
-        break;
-    case kToolOpt_TestDelayBetweenIterationMsec:
-        if (!ParseInt(arg, TestDelayBetweenIterationMsec))
-        {
-            PrintArgError("%s: Invalid value specified for test delay between iterations: %s\n", progName, arg);
-            return false;
-        }
-        break;
-    case kToolOpt_EnableDataFlip:
-        if (!ParseBoolean(arg, EnableDataFlip))
-        {
-            PrintArgError("%s: Invalid value specified for enable data flip: %s\n", progName, arg);
-            return false;
-        }
-        break;
-    case kToolOpt_EnableDictionaryTest:
-        EnableDictionaryTest = true;
-        break;
-    case kToolOpt_SavePerfData:
-        SavePerfData = true;
-        break;
-    case kToolOpt_EventGenerator:
-        if (strncmp(arg, "None", strlen("None")) == 0)
-            gEventGenerator = NULL;
-        else if (strncmp(arg, "Debug", strlen("Debug")) == 0)
-            gEventGenerator = GetTestDebugGenerator();
-        else if (strncmp(arg, "Liveness", strlen("Liveness")) == 0)
-            gEventGenerator = GetTestLivenessGenerator();
-        else if (strncmp(arg, "Security", strlen("Security")) == 0)
-            gEventGenerator = GetTestSecurityGenerator();
-        else if (strncmp(arg, "Telemetry", strlen("Telemetry")) == 0)
-            gEventGenerator = GetTestTelemetryGenerator();
-        else if (strncmp(arg, "TestTrait", strlen("TestTrait")) == 0)
-            gEventGenerator = GetTestTraitGenerator();
-        else
-        {
-            PrintArgError("%s: Unrecognized event generator name\n", progName);
-            return false;
-        }
-        break;
-    case kToolOpt_TimeBetweenEvents:
-    {
-        char *endptr;
-        TimeBetweenEvents = strtoul(arg, &endptr, 0);
-        if (endptr == arg)
-        {
-            PrintArgError("%s: Invalid inter-event timeout\n", progName);
-            return false;
-        }
-        break;
-    }
-    default:
-        PrintArgError("%s: INTERNAL ERROR: Unhandled option: %s\n", progName, name);
-        return false;
-    }
-
-    return true;
-}
-
 static void HandleWdmCompleteTest()
 {
-    if (EnableStopTest)
+    if (gMockWdmNodeOptions.mEnableStopTest)
     {
         Done = true;
     }

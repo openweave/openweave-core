@@ -124,11 +124,10 @@ class MockWdmSubscriptionInitiatorImpl: public MockWdmSubscriptionInitiator
 public:
     MockWdmSubscriptionInitiatorImpl();
 
-    virtual WEAVE_ERROR Init (nl::Weave::WeaveExchangeManager *aExchangeMgr, const bool aMutualSubscription,
-    const char * const aTestCaseId, const char * const aNumDataChangeBeforeCancellation,
-    const char * const aFinalStatus, const char * const aTimeBetweenDataChangeMsec, const bool aEnableDataFlip,
-    const char * const aTimeBetweenLivenessCheckSec, const bool aEnableDictionaryTest, const int aTestSecurityMode, const uint32_t aKeyId,
-    const bool aEnableRetry);
+    virtual WEAVE_ERROR Init (nl::Weave::WeaveExchangeManager *aExchangeMgr,
+                              uint32_t aKeyId,
+                              uint32_t aTestSecurityMode,
+                              const MockWdmNodeOptions &aConfig);
 
     virtual WEAVE_ERROR StartTesting(const uint64_t aPublisherNodeId, const uint16_t aSubnetId);
     void PrintVersionsLog();
@@ -314,61 +313,70 @@ MockWdmSubscriptionInitiator * MockWdmSubscriptionInitiator::GetInstance ()
     return &gWdmSubscriptionInitiator;
 }
 
-WEAVE_ERROR MockWdmSubscriptionInitiatorImpl::Init(nl::Weave::WeaveExchangeManager *aExchangeMgr,
-const bool aMutualSubscription, const char * const aTestCaseId, const char * const aNumDataChangeBeforeCancellation,
-const char * const aFinalStatus, const char * const aTimeBetweenDataChangeMsec, const bool aEnableDataFlip,
-const char * const aTimeBetweenLivenessCheckSec, const bool aEnableDictionaryTest, const int aTestSecurityMode, const uint32_t aKeyId,
-const bool aEnableRetry)
+uint32_t MockWdmSubscriptionInitiator::GetNumUpdatableTraits ()
+{
+#if WEAVE_CONFIG_ENABLE_WDM_UPDATE
+    return 4;
+#else
+    return 0;
+#endif
+}
+
+WEAVE_ERROR MockWdmSubscriptionInitiatorImpl::Init(
+        nl::Weave::WeaveExchangeManager *aExchangeMgr,
+        uint32_t aKeyId,
+        uint32_t aTestSecurityMode,
+        const MockWdmNodeOptions &aConfig)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
 
-    gIsMutualSubscription = aMutualSubscription;
+    gIsMutualSubscription = aConfig.mEnableMutualSubscription;
 
-    WeaveLogDetail(DataManagement, "Test Case ID: %s", (aTestCaseId == NULL) ? "NULL" : aTestCaseId);
+    WeaveLogDetail(DataManagement, "Test Case ID: %s", (aConfig.mTestCaseId == NULL) ? "NULL" : aConfig.mTestCaseId);
 
-    if (NULL != aNumDataChangeBeforeCancellation)
+    if (NULL != aConfig.mNumDataChangeBeforeCancellation)
     {
-        gNumDataChangeBeforeCancellation = atoi(aNumDataChangeBeforeCancellation);
+        gNumDataChangeBeforeCancellation = atoi(aConfig.mNumDataChangeBeforeCancellation);
     }
     else
     {
         gNumDataChangeBeforeCancellation = -1;
     }
 
-    if (NULL != aFinalStatus)
+    if (NULL != aConfig.mFinalStatus)
     {
-        gFinalStatus = atoi(aFinalStatus);
+        gFinalStatus = atoi(aConfig.mFinalStatus);
     }
     else
     {
         gFinalStatus = 0;
     }
 
-    if (NULL != aTimeBetweenDataChangeMsec)
+    if (NULL != aConfig.mTimeBetweenDataChangeMsec)
     {
-        gTimeBetweenDataChangeMsec = atoi(aTimeBetweenDataChangeMsec);
+        gTimeBetweenDataChangeMsec = atoi(aConfig.mTimeBetweenDataChangeMsec);
     }
     else
     {
         gTimeBetweenDataChangeMsec = 15000;
     }
 
-    if (NULL != aTimeBetweenLivenessCheckSec)
+    if (NULL != aConfig.mTimeBetweenLivenessCheckSec)
     {
-        gMinimumTimeBetweenLivenessCheckSec = atoi(aTimeBetweenLivenessCheckSec);
+        gMinimumTimeBetweenLivenessCheckSec = atoi(aConfig.mTimeBetweenLivenessCheckSec);
     }
     else
     {
         gMinimumTimeBetweenLivenessCheckSec = 30;
     }
 
-    gEnableDataFlip = aEnableDataFlip;
+    gEnableDataFlip = aConfig.mEnableDataFlip;
 
-    printf("aTestCaseId = %s\n", aTestCaseId);
+    printf("aTestCaseId = %s\n", aConfig.mTestCaseId);
 
-    if (NULL != aTestCaseId)
+    if (NULL != aConfig.mTestCaseId)
     {
-        mTestCaseId = atoi(aTestCaseId);
+        mTestCaseId = atoi(aConfig.mTestCaseId);
     }
     else
     {
@@ -383,12 +391,12 @@ const bool aEnableRetry)
 
     mTestATraitDataSource1.mTraitTestSet = 0;
 
-    if (aEnableDictionaryTest)
+    if (aConfig.mEnableDictionaryTest)
     {
         mTestATraitDataSource1.mTraitTestSet = 1;
     }
 
-    mEnableRetry = aEnableRetry;
+    mEnableRetry = aConfig.mEnableRetry;
 
     switch (mTestCaseId)
     {
