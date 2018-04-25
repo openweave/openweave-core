@@ -519,6 +519,7 @@ TestATraitDataSink::SetData(PropertyPathHandle aHandle, TLVReader &aReader, bool
             aHandle = mSchemaEngine->GetParent(aHandle);
         }
     }
+
 exit:
     return err;
 }

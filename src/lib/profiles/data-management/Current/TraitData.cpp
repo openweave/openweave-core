@@ -911,7 +911,6 @@ WEAVE_ERROR TraitDataSink::StoreDataElement(PropertyPathHandle aHandle, TLVReade
     WEAVE_ERROR err = WEAVE_NO_ERROR;
     DataVersion versionInDE;
     bool dataPresent = false, deletePresent = false;
-    bool filterPendingUpdate = false, filterDispatchedUpdate = false;
 
     err = parser.Init(aReader);
     SuccessOrExit(err);

@@ -2812,7 +2812,6 @@ WEAVE_ERROR SubscriptionClient::SetUpdated(TraitUpdatableDataSink * aDataSink, P
     WEAVE_ERROR err = WEAVE_NO_ERROR;
     TraitDataHandle dataHandle;
     bool isLocked = false;
-    const UpdatableTIContext * traitInfo;
     const TraitSchemaEngine * schemaEngine;
 
     err = Lock();
@@ -2834,8 +2833,6 @@ WEAVE_ERROR SubscriptionClient::SetUpdated(TraitUpdatableDataSink * aDataSink, P
 
     err = mDataSinkCatalog->Locate(aDataSink, dataHandle);
     SuccessOrExit(err);
-
-    traitInfo = GetUpdatableTIContext(dataHandle);
 
     // It is not supported to mix conditional and non-conditional updates
     // in the same trait.

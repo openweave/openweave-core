@@ -220,7 +220,6 @@ TestWdm::ClientSubscriptionEventCallback (void * const aAppState,
     switch (aEvent) {
         case SubscriptionClient::kEvent_OnSubscribeRequestPrepareNeeded:
             {
-                SubscriptionClient* client = aInParam.mSubscribeRequestPrepareNeeded.mClient;
                 WeaveLogDetail(DataManagement, "Client->kEvent_OnSubscribeRequestPrepareNeeded\n");
 
                 aOutParam.mSubscribeRequestPrepareNeeded.mPathList = NULL;
@@ -265,7 +264,6 @@ TestWdm::PublisherEventCallback (void * const aAppState,
 int TestWdm::Setup()
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
-    SubscriptionHandler::TraitInstanceInfo *traitInstance = NULL;
 
     gSubscriptionEngine = &mSubscriptionEngine;
 

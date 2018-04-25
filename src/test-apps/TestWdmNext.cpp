@@ -65,7 +65,6 @@ using nl::Weave::WeaveExchangeManager;
 
 #define TOOL_NAME "TestWdmNext"
 
-static bool HandleOption(const char *progName, OptionSet *optSet, int id, const char *name, const char *arg);
 static void HandleWdmCompleteTest();
 static void HandleError();
 
