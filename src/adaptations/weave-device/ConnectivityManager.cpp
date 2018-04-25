@@ -228,6 +228,11 @@ WEAVE_ERROR ConnectivityManager::SetBLEDeviceName(const char * deviceName)
     return BLEMgr.SetDeviceName(deviceName);
 }
 
+uint16_t ConnectivityManager::NumBLEConnections(void)
+{
+    return BLEMgr.NumConnections();
+}
+
 // ==================== ConnectivityManager Platform Internal Methods ====================
 
 WEAVE_ERROR ConnectivityManager::Init()

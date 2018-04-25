@@ -213,6 +213,11 @@ void BLEManager::OnPlatformEvent(const WeaveDeviceEvent * event)
     {
     case WeaveDeviceEvent::kInternalEventType_WoBLESubscribe:
         HandleSubscribeReceived(event->WoBLESubscribe.ConId, &WEAVE_BLE_SVC_ID, &WeaveUUID_WoBLEChar_TX);
+        {
+            WeaveDeviceEvent event;
+            event.Type = WeaveDeviceEvent::kEventType_WoBLEConnectionEstablished;
+            PlatformMgr.PostEvent(&event);
+        }
         break;
 
     case WeaveDeviceEvent::kInternalEventType_WoBLEUnsubscribe:
@@ -1051,9 +1056,9 @@ void BLEManager::HandleDisconnect(esp_ble_gatts_cb_param_t * param)
 
 BLEManager::WoBLEConState * BLEManager::GetConnectionState(uint16_t conId, bool allocate)
 {
-    size_t freeIndex = kMaxConnections;
+    uint16_t freeIndex = kMaxConnections;
 
-    for (size_t i = 0; i < kMaxConnections; i++)
+    for (uint16_t i = 0; i < kMaxConnections; i++)
     {
         if (mCons[i].Allocated == 1)
         {
@@ -1087,7 +1092,7 @@ BLEManager::WoBLEConState * BLEManager::GetConnectionState(uint16_t conId, bool 
 
 bool BLEManager::ReleaseConnectionState(uint16_t conId)
 {
-    for (size_t i = 0; i < kMaxConnections; i++)
+    for (uint16_t i = 0; i < kMaxConnections; i++)
     {
         if (mCons[i].Allocated && mCons[i].ConId == conId)
         {
@@ -1100,10 +1105,10 @@ bool BLEManager::ReleaseConnectionState(uint16_t conId)
     return false;
 }
 
-size_t BLEManager::NumConnections(void)
+uint16_t BLEManager::NumConnections(void)
 {
-    size_t numCons = 0;
-    for (size_t i = 0; i < kMaxConnections; i++)
+    uint16_t numCons = 0;
+    for (uint16_t i = 0; i < kMaxConnections; i++)
     {
         if (mCons[i].Allocated)
         {

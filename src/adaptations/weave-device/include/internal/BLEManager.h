@@ -48,6 +48,8 @@ public:
     WEAVE_ERROR GetDeviceName(char * buf, size_t bufSize);
     WEAVE_ERROR SetDeviceName(const char * deviceName);
 
+    uint16_t NumConnections(void);
+
     void OnPlatformEvent(const WeaveDeviceEvent * event);
 
     BleLayer * GetBleLayer(void) const;
@@ -111,7 +113,6 @@ private:
     void HandleDisconnect(esp_ble_gatts_cb_param_t * param);
     WoBLEConState * GetConnectionState(uint16_t conId, bool allocate = false);
     bool ReleaseConnectionState(uint16_t conId);
-    size_t NumConnections(void);
 
     static void HandleGATTEvent(esp_gatts_cb_event_t event, esp_gatt_if_t gatts_if, esp_ble_gatts_cb_param_t * param);
     static void HandleGAPEvent(esp_gap_ble_cb_event_t event, esp_ble_gap_cb_param_t * param);

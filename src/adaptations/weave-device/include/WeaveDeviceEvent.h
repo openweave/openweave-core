@@ -59,6 +59,7 @@ struct WeaveDeviceEvent
         kEventType_AccountPairingChange,
         kEventType_TimeSyncChange,
         kEventType_SessionEstablished,
+        kEventType_WoBLEConnectionEstablished,
 
         kInternalEventType_WoBLESubscribe                       = kInternalEventRange_Start,
         kInternalEventType_WoBLEUnsubscribe,

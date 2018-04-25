@@ -119,6 +119,7 @@ public:
     WEAVE_ERROR SetBLEFastAdvertisingEnabled(bool val);
     WEAVE_ERROR GetBLEDeviceName(char * buf, size_t bufSize);
     WEAVE_ERROR SetBLEDeviceName(const char * deviceName);
+    uint16_t NumBLEConnections(void);
 
 private:
 
