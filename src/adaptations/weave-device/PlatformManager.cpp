@@ -237,7 +237,7 @@ WEAVE_ERROR PlatformManager::InitWeaveStack(void)
     err = NetworkProvisioningSvr.Init();
     if (err != WEAVE_NO_ERROR)
     {
-        ESP_LOGE(TAG, "Weave Network Provisionining server initialization failed: %s", ErrorStr(err));
+        ESP_LOGE(TAG, "Weave Network Provisioning server initialization failed: %s", ErrorStr(err));
     }
     SuccessOrExit(err);
 
@@ -246,7 +246,7 @@ WEAVE_ERROR PlatformManager::InitWeaveStack(void)
     err = FabricProvisioningSvr.Init();
     if (err != WEAVE_NO_ERROR)
     {
-        ESP_LOGE(TAG, "Weave Fabric Provisionining server initialization failed: %s", ErrorStr(err));
+        ESP_LOGE(TAG, "Weave Fabric Provisioning server initialization failed: %s", ErrorStr(err));
     }
     SuccessOrExit(err);
 
@@ -255,7 +255,7 @@ WEAVE_ERROR PlatformManager::InitWeaveStack(void)
     err = ServiceProvisioningSvr.Init();
     if (err != WEAVE_NO_ERROR)
     {
-        ESP_LOGE(TAG, "Weave Service Provisionining server initialization failed: %s", ErrorStr(err));
+        ESP_LOGE(TAG, "Weave Service Provisioning server initialization failed: %s", ErrorStr(err));
     }
     SuccessOrExit(err);
 
