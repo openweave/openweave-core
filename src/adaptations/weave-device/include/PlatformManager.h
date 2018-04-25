@@ -31,6 +31,7 @@ struct WeaveDeviceEvent;
 namespace Internal {
 class FabricProvisioningServer;
 class ServiceProvisioningServer;
+class BLEManager;
 } // namespace Internal
 
 class PlatformManager
@@ -63,6 +64,7 @@ private:
     friend class TimeSyncManager;
     friend class Internal::FabricProvisioningServer;
     friend class Internal::ServiceProvisioningServer;
+    friend class Internal::BLEManager;
     friend nl::Weave::System::Error nl::Weave::System::Platform::Layer::DispatchEvent(nl::Weave::System::Layer & aLayer, void * aContext, const ::nl::Weave::Device::WeaveDeviceEvent * aEvent);
     friend nl::Weave::System::Error nl::Weave::System::Platform::Layer::StartTimer(nl::Weave::System::Layer & aLayer, void * aContext, uint32_t aMilliseconds);
 

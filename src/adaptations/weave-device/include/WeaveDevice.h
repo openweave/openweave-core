@@ -21,6 +21,7 @@
 
 #include <Weave/Core/WeaveCore.h>
 #include <WeaveDeviceConfig.h>
+#include <BleLayer/BleLayer.h>
 #include <PlatformManager.h>
 #include <ConfigurationManager.h>
 #include <ConnectivityManager.h>

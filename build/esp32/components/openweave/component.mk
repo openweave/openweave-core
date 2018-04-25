@@ -68,7 +68,7 @@ CONFIGURE_OPTIONS       	:= AR="$(AR)" CC="$(CC)" CXX="$(CXX)" LD="$(LD)" OBJCOP
                                --exec-prefix=$(OUTPUT_DIR) \
                                --host=$(HOST_ARCH) \
                                --build=$(BUILD_ARCH) \
-                               --with-network-layer=inet \
+                               --with-network-layer=all \
                                --with-target-network=lwip \
                                --with-lwip=$(LWIP_COMPONENT_DIR) \
                                --with-inet-endpoint="tcp udp tun dns" \
@@ -82,6 +82,7 @@ CONFIGURE_OPTIONS       	:= AR="$(AR)" CC="$(CC)" CXX="$(CXX)" LD="$(LD)" OBJCOP
                                --with-weave-project-includes=$(PROJECT_CONFIG_DIR) \
                                --with-weave-system-project-includes=$(PROJECT_CONFIG_DIR) \
                                --with-weave-inet-project-includes=$(PROJECT_CONFIG_DIR) \
+                               --with-weave-ble-project-includes=$(PROJECT_CONFIG_DIR) \
                                --with-weave-warm-project-includes=$(PROJECT_CONFIG_DIR)
 
 # Enable debug and disable optimization if ESP-IDF Optimization Level is set to Debug.

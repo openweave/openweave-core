@@ -17,13 +17,13 @@
  */
 
 #include <internal/WeaveDeviceInternal.h>
+#include <internal/BLEManager.h>
 #include <internal/DeviceControlServer.h>
 #include <internal/DeviceDescriptionServer.h>
 #include <internal/NetworkProvisioningServer.h>
 #include <internal/FabricProvisioningServer.h>
 #include <internal/ServiceProvisioningServer.h>
 #include <internal/EchoServer.h>
-#include <internal/WeaveDeviceInternal.h>
 
 namespace nl {
 namespace Weave {
@@ -36,6 +36,7 @@ TimeSyncManager TimeSyncMgr;
 
 nl::Weave::System::Layer SystemLayer;
 nl::Inet::InetLayer InetLayer;
+
 nl::Weave::WeaveFabricState FabricState;
 nl::Weave::WeaveMessageLayer MessageLayer;
 nl::Weave::WeaveExchangeManager ExchangeMgr;
@@ -43,12 +44,13 @@ nl::Weave::WeaveSecurityManager SecurityMgr;
 
 namespace Internal {
 
+BLEManager BLEMgr;
+EchoServer EchoSvr;
 DeviceControlServer DeviceControlSvr;
 DeviceDescriptionServer DeviceDescriptionSvr;
 NetworkProvisioningServer NetworkProvisioningSvr;
 FabricProvisioningServer FabricProvisioningSvr;
 ServiceProvisioningServer ServiceProvisioningSvr;
-EchoServer EchoSvr;
 
 const char * const TAG = "weave[DAL]";
 

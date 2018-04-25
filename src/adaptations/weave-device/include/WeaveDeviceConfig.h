@@ -202,6 +202,48 @@
 #define WEAVE_PLATFORM_CONFIG_WIFI_AP_IDLE_TIMEOUT 120000
 #endif
 
+// -------------------- BLE/WoBLE Configuration --------------------
+
+/**
+ * WEAVE_PLATFORM_CONFIG_BLE_DEVICE_NAME_PREFIX
+ *
+ * A prefix string used in forming the BLE device name.  The remainder of the name
+ * consists of the final two bytes of the device's Weave node id in hex.
+ *
+ * NOTE: The device layer limits the total length of a device name to 16 characters.
+ * However, due to other data sent in WoBLE advertise packets, the device name
+ * may need to be shorter.
+ */
+#ifndef WEAVE_PLATFORM_CONFIG_BLE_DEVICE_NAME_PREFIX
+#define WEAVE_PLATFORM_CONFIG_BLE_DEVICE_NAME_PREFIX "NEST-"
+#endif
+
+/**
+ * WEAVE_PLATFORM_CONFIG_BLE_FAST_ADVERTISING_INTERVAL
+ *
+ * The interval (in units of 0.625ms) at which the device will send BLE advertisements while
+ * in fast advertising mode.
+ *
+ * Defaults to 800 (500ms).
+ */
+#ifndef WEAVE_PLATFORM_CONFIG_BLE_FAST_ADVERTISING_INTERVAL
+#define WEAVE_PLATFORM_CONFIG_BLE_FAST_ADVERTISING_INTERVAL 800
+#endif
+
+/**
+ * WEAVE_PLATFORM_CONFIG_BLE_SLOW_ADVERTISING_INTERVAL
+ *
+ * The interval (in units of 0.625ms) at which the device will send BLE advertisements while
+ * in slow advertisement mode.
+ *
+ * Defaults to 3200 (20000ms).
+ */
+#ifndef WEAVE_PLATFORM_CONFIG_BLE_SLOW_ADVERTISING_INTERVAL
+#define WEAVE_PLATFORM_CONFIG_BLE_SLOW_ADVERTISING_INTERVAL 3200
+#endif
+
+
+
 // -------------------- Time Sync Configuration --------------------
 
 /**

@@ -38,7 +38,16 @@ struct WeaveDeviceEvent
 {
     enum
     {
-        kEventType_NoOp                                         = 0,
+        kPublicEventRange_Start                                 = 0x0000,
+        kPublicEventRange_End                                   = 0x7FFF,
+
+        kInternalEventRange_Start                               = 0x8000,
+        kInternalEventRange_End                                 = 0xFFFF,
+    };
+
+    enum
+    {
+        kEventType_NoOp                                         = kPublicEventRange_Start,
         kEventType_ESPSystemEvent,
         kEventType_WeaveSystemLayerEvent,
         kEventType_CallWorkFunct,
@@ -50,6 +59,12 @@ struct WeaveDeviceEvent
         kEventType_AccountPairingChange,
         kEventType_TimeSyncChange,
         kEventType_SessionEstablished,
+
+        kInternalEventType_WoBLESubscribe                       = kInternalEventRange_Start,
+        kInternalEventType_WoBLEUnsubscribe,
+        kInternalEventType_WoBLEWriteReceived,
+        kInternalEventType_WoBLEIndicateConfirm,
+        kInternalEventType_WoBLEConnectionError,
     };
 
     uint16_t Type;
@@ -106,8 +121,38 @@ struct WeaveDeviceEvent
             ::nl::Weave::WeaveAuthMode AuthMode;
             bool IsCommissioner;
         } SessionEstablished;
+        struct
+        {
+            uint16_t ConId;
+        } WoBLESubscribe;
+        struct
+        {
+            uint16_t ConId;
+        } WoBLEUnsubscribe;
+        struct
+        {
+            uint16_t ConId;
+            PacketBuffer * Data;
+        } WoBLEWriteReceived;
+        struct
+        {
+            uint16_t ConId;
+        } WoBLEIndicateConfirm;
+        struct
+        {
+            uint16_t ConId;
+            WEAVE_ERROR Reason;
+        } WoBLEConnectionError;
     };
+
+    static bool IsInternalEvent(uint16_t eventType);
 };
+
+inline bool WeaveDeviceEvent::IsInternalEvent(uint16_t eventType)
+{
+    return eventType >= kInternalEventRange_Start && eventType < kInternalEventRange_End;
+}
+
 
 } // namespace Device
 } // namespace Weave

@@ -27,6 +27,7 @@
 #include <internal/EchoServer.h>
 #include <new>
 #include <esp_timer.h>
+#include <internal/BLEManager.h>
 
 using namespace ::nl;
 using namespace ::nl::Weave;
@@ -122,6 +123,15 @@ WEAVE_ERROR PlatformManager::InitWeaveStack(void)
     }
     SuccessOrExit(err);
 
+    // Initialize the BLE manager.
+    new (&BLEMgr) BLEManager();
+    err = BLEMgr.Init();
+    if (err != WEAVE_NO_ERROR)
+    {
+        ESP_LOGE(TAG, "BLEManager initialization failed: %s", ErrorStr(err));
+    }
+    SuccessOrExit(err);
+
     // Initialize the Weave fabric state object.
     new (&FabricState) WeaveFabricState();
     err = FabricState.Init();
@@ -141,9 +151,11 @@ WEAVE_ERROR PlatformManager::InitWeaveStack(void)
         WeaveMessageLayer::InitContext initContext;
         initContext.systemLayer = &SystemLayer;
         initContext.inet = &InetLayer;
-        initContext.fabricState = &FabricState;
         initContext.listenTCP = true;
         initContext.listenUDP = true;
+        initContext.ble = BLEMgr.GetBleLayer();
+        initContext.listenBLE = true;
+        initContext.fabricState = &FabricState;
 
         // Initialize the Weave message layer.
         new (&MessageLayer) WeaveMessageLayer();
@@ -417,8 +429,8 @@ void PlatformManager::DispatchEvent(const WeaveDeviceEvent * event)
         event->CallWorkFunct.WorkFunct(event->CallWorkFunct.Arg);
     }
 
-    // Otherwise deliver the event to all the platform components, followed by any application-registered
-    // event handlers.  Each of these will decide whether and how they want to react to the event.
+    // Otherwise deliver the event to all the platform components.  Each of these will decide
+    // whether and how they want to react to the event.
     else
     {
         ConnectivityMgr.OnPlatformEvent(event);
@@ -428,7 +440,13 @@ void PlatformManager::DispatchEvent(const WeaveDeviceEvent * event)
         FabricProvisioningSvr.OnPlatformEvent(event);
         ServiceProvisioningSvr.OnPlatformEvent(event);
         TimeSyncMgr.OnPlatformEvent(event);
+        BLEMgr.OnPlatformEvent(event);
+    }
 
+    // If the event is not a device-layer internal event, deliver it to the application's registered
+    // event handlers.
+    if (!WeaveDeviceEvent::IsInternalEvent(event->Type))
+    {
         for (RegisteredEventHandler * eventHandler = RegisteredEventHandlerList;
              eventHandler != NULL;
              eventHandler = eventHandler->Next)

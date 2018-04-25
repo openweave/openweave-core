@@ -21,6 +21,7 @@
 #include <internal/NetworkProvisioningServer.h>
 #include <internal/NetworkInfo.h>
 #include <internal/ServiceTunnelAgent.h>
+#include <internal/BLEManager.h>
 #include <internal/ESPUtils.h>
 
 #include <Weave/Profiles/WeaveProfiles.h>
@@ -64,7 +65,7 @@ inline ConnectivityChange GetConnectivityChange(bool prevState, bool newState)
         return kConnectivity_Lost;
 }
 
-} // namespace Internal
+} // unnamed namespace
 
 
 // ==================== ConnectivityManager Public Methods ====================
@@ -185,6 +186,46 @@ void ConnectivityManager::SetWiFiAPIdleTimeoutMS(uint32_t val)
 {
     mWiFiAPIdleTimeoutMS = val;
     SystemLayer.ScheduleWork(DriveAPState, NULL);
+}
+
+ConnectivityManager::WoBLEServiceMode ConnectivityManager::GetWoBLEServiceMode(void)
+{
+    return BLEMgr.GetWoBLEServiceMode();
+}
+
+WEAVE_ERROR ConnectivityManager::SetWoBLEServiceMode(WoBLEServiceMode val)
+{
+    return BLEMgr.SetWoBLEServiceMode(val);
+}
+
+bool ConnectivityManager::IsBLEAdvertisingEnabled(void)
+{
+    return BLEMgr.IsAdvertisingEnabled();
+}
+
+WEAVE_ERROR ConnectivityManager::SetBLEAdvertisingEnabled(bool val)
+{
+    return BLEMgr.SetAdvertisingEnabled(val);
+}
+
+bool ConnectivityManager::IsBLEFastAdvertisingEnabled(void)
+{
+    return BLEMgr.IsFastAdvertisingEnabled();
+}
+
+WEAVE_ERROR ConnectivityManager::SetBLEFastAdvertisingEnabled(bool val)
+{
+    return BLEMgr.SetFastAdvertisingEnabled(val);
+}
+
+WEAVE_ERROR ConnectivityManager::GetBLEDeviceName(char * buf, size_t bufSize)
+{
+    return BLEMgr.GetDeviceName(buf, bufSize);
+}
+
+WEAVE_ERROR ConnectivityManager::SetBLEDeviceName(const char * deviceName)
+{
+    return BLEMgr.SetDeviceName(deviceName);
 }
 
 // ==================== ConnectivityManager Platform Internal Methods ====================

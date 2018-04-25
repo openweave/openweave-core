@@ -72,6 +72,13 @@ public:
         kServiceTunnelMode_Enabled                  = 1,
     };
 
+    enum WoBLEServiceMode
+    {
+        kWoBLEServiceMode_NotSupported              = -1,
+        kWoBLEServiceMode_Enabled                   = 0,
+        kWoBLEServiceMode_Disabled                  = 1,
+    };
+
     // WiFi station methods
     WiFiStationMode GetWiFiStationMode(void);
     WEAVE_ERROR SetWiFiStationMode(WiFiStationMode val);
@@ -102,6 +109,16 @@ public:
     ServiceTunnelMode GetServiceTunnelMode(void) const;
     WEAVE_ERROR SetServiceTunnelMode(ServiceTunnelMode val);
     bool HaveServiceConnectivity(void) const;
+
+    // WoBLE service methods
+    WoBLEServiceMode GetWoBLEServiceMode(void);
+    WEAVE_ERROR SetWoBLEServiceMode(WoBLEServiceMode val);
+    bool IsBLEAdvertisingEnabled(void);
+    WEAVE_ERROR SetBLEAdvertisingEnabled(bool val);
+    bool IsBLEFastAdvertisingEnabled(void);
+    WEAVE_ERROR SetBLEFastAdvertisingEnabled(bool val);
+    WEAVE_ERROR GetBLEDeviceName(char * buf, size_t bufSize);
+    WEAVE_ERROR SetBLEDeviceName(const char * deviceName);
 
 private:
 
