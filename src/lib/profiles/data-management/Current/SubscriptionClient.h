@@ -49,6 +49,8 @@ typedef uint16_t TraitDataHandle;
  * @brief Interface that is to be implemented by app to serialize access to key WDM data structures.
  *        This should be backed by a recursive lock implementation.
  */
+
+// TODO: does it really need to return WEAVE_ERROR?
 class IWeaveClientLock
 {
 public:
@@ -485,7 +487,7 @@ private:
     struct PathStore
     {
     public:
-        typedef enum {
+        enum Flag {
             kFlag_None       = 0x0,
             kFlag_Valid      = 0x1,
             kFlag_ForceMerge = 0x2, /**< Paths are encoded with the "replace" format by
@@ -497,13 +499,13 @@ private:
                                          to encode a dictionary in its own separate
                                          DataElement.
                                          */
-        } Flag;
+        };
         typedef uint8_t Flags;
 
-        typedef struct {
+        struct Record {
             Flags mFlags;
             TraitPath mTraitPath;
-        } Record;
+        };
 
         PathStore();
         bool AddItem(TraitPath aItem, bool aForceMerge = false, bool aPrivate = false);
@@ -540,7 +542,13 @@ private:
     {
         // TODO: check if it makes sense to move some of this state
         // to the UpdatableTraitInstance class itself.
-        void Init(void) { this->ClearDirty(); }
+        void Init(TraitUpdatableDataSink *aUpdatableDataSink, TraitDataHandle aTraitDataHandle)
+        {
+            mUpdatableDataSink = aUpdatableDataSink;
+            mTraitDataHandle = aTraitDataHandle;
+            mPotentialDataLoss = false;
+            this->ClearDirty();
+        }
         bool IsDirty(void) { return mDirty; }
         void SetDirty(void) { mDirty = true; }
         void ClearDirty(void) { mDirty = false; }

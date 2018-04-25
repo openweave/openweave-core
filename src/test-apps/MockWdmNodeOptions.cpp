@@ -32,24 +32,24 @@
 MockWdmNodeOptions::MockWdmNodeOptions() :
     mWdmPublisherNodeId(nl::Weave::kAnyNodeId),
     mWdmUseSubnetId(nl::Weave::kWeaveSubnetId_NotSpecified),
-    mTimeBetweenEvents(1000),
-    mEventGeneratorType(kGenerator_None),
+    mWdmRoleInTest(0),
+    mEnableMutualSubscription(false),
     mTestCaseId(NULL),
     mEnableStopTest(false),
-    mEnableRetry(false),
     mNumDataChangeBeforeCancellation(NULL),
     mFinalStatus(NULL),
     mTimeBetweenDataChangeMsec(NULL),
-    mWdmRoleInTest(0),
-    mEnableMutualSubscription(false),
     mEnableDataFlip(true),
-    mEnableDictionaryTest(false),
+    mEventGeneratorType(kGenerator_None),
+    mTimeBetweenEvents(1000),
     mTimeBetweenLivenessCheckSec(NULL),
-    mWdmUpdateConditionality(kConditional),
-    mWdmUpdateMutation(0),
+    mEnableDictionaryTest(false),
+    mEnableRetry(false),
 #if WDM_ENABLE_SUBSCRIPTIONLESS_NOTIFICATION
     mWdmSublessNotifyDestNodeId(nl::Weave::kAnyNodeId),
 #endif // WDM_ENABLE_SUBSCRIPTIONLESS_NOTIFICATION
+    mWdmUpdateConditionality(kConditional),
+    mWdmUpdateMutation(0),
     mWdmUpdateNumberOfTraits(1),
     mWdmUpdateMaxNumberOfTraits(1)
 {
@@ -400,7 +400,7 @@ bool MockWdmNodeOptions::HandleOption(const char *progName, OptionSet *optSet, i
     {
         int tmp;
 
-        if (!ParseInt(arg, tmp) || tmp < 1 || tmp > mWdmUpdateMaxNumberOfTraits)
+        if ((!ParseInt(arg, tmp)) || (tmp < 1) || (tmp > mWdmUpdateMaxNumberOfTraits))
         {
             PrintArgError("%s: Invalid value specified for wdm-update-number-of-traits: %s\n", progName, arg);
             return false;

@@ -1945,10 +1945,9 @@ uint32_t SubscriptionClient::PathStore::GetPathStoreSize()
 
 bool SubscriptionClient::PathStore::AddItem(TraitPath aItem, Flags aFlags)
 {
-    if (mNumItems >= WDM_UPDATE_MAX_ITEMS_IN_TRAIT_DIRTY_PATH_STORE)
-    {
-        return false;
-    }
+    bool retval = false;
+
+    VerifyOrExit(mNumItems < WDM_UPDATE_MAX_ITEMS_IN_TRAIT_DIRTY_PATH_STORE, retval = false);
 
     for (size_t i = 0; i < WDM_UPDATE_MAX_ITEMS_IN_TRAIT_DIRTY_PATH_STORE; i++)
     {
@@ -1958,16 +1957,17 @@ bool SubscriptionClient::PathStore::AddItem(TraitPath aItem, Flags aFlags)
             mStore[i].mFlags = aFlags;
             SetFlag(i, kFlag_Valid, true);
             mNumItems++;
-            return true;
+            ExitNow(retval = true);
         }
     }
     // Shouldn't get here since that would imply that mNumItems and mFlags are out of sync
     // which should never happen unless someone mucked with the flags themselves. Continuing past
     // this point runs the risk of unpredictable behavior and so, it's better to just assert
     // at this point.
-    VerifyOrDie(0);
+    WeaveDie();
 
-    return false;
+exit:
+    return retval;
 }
 
 bool SubscriptionClient::PathStore::AddItem(TraitPath aItem, bool aForceMerge, bool aPrivate)
@@ -2425,6 +2425,7 @@ void SubscriptionClient::UpdateCompleteEventCbHelper(const TraitPath &aTraitPath
     mEventCallback(mAppState, kEvent_OnUpdateComplete, inParam, outParam);
 }
 
+// TODO: Break this method down into smaller methods.
 void SubscriptionClient::OnUpdateConfirm(WEAVE_ERROR aReason, nl::Weave::Profiles::StatusReporting::StatusReport * apStatus)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
@@ -3378,10 +3379,7 @@ void SubscriptionClient::InitUpdatableSinkTrait(void * aDataSink, TraitDataHandl
 
     traitInstance = subClient->mClientTraitInfoPool + subClient->mNumUpdatableTraitInstances;
     ++(subClient->mNumUpdatableTraitInstances);
-    traitInstance->Init();
-    traitInstance->mTraitDataHandle = aDataHandle;
-    traitInstance->mUpdatableDataSink = updatableDataSink;
-    traitInstance->mPotentialDataLoss = false;
+    traitInstance->Init(updatableDataSink, aDataHandle);
 
 exit:
 

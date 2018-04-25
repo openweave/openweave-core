@@ -69,27 +69,27 @@ enum
 class MockWdmNodeOptions : public OptionSetBase
 {
 public:
-    typedef enum {
+    enum WdmUpdateConditionality {
         kConditional = 0,
         kUnconditional,
         kMixed,
         kAlternate,
-    } WdmUpdateConditionality;
+    };
 
-    typedef enum {
+    enum WdmUpdateTiming {
         kBeforeSub = 0,
         kDuringSub,
         kAfterSub,
-    } WdmUpdateTiming;
+    };
 
-    typedef enum {
+    enum EventGeneratorType {
         kGenerator_None,
         kGenerator_TestDebug,
         kGenerator_TestLiveness,
         kGenerator_TestSecurity,
         kGenerator_TestTelemetry,
         kGenerator_TestTrait,
-    } EventGeneratorType;
+    };
 
     MockWdmNodeOptions();
 
@@ -108,13 +108,13 @@ public:
     const char * mTimeBetweenLivenessCheckSec;
     bool mEnableDictionaryTest;
     bool mEnableRetry;
+#if WDM_ENABLE_SUBSCRIPTIONLESS_NOTIFICATION
+    uint64_t mWdmSublessNotifyDestNodeId;
+#endif // WDM_ENABLE_SUBSCRIPTIONLESS_NOTIFICATION
     WdmUpdateConditionality mWdmUpdateConditionality;
     uint32_t mWdmUpdateMutation;
     uint32_t mWdmUpdateNumberOfTraits;
     WdmUpdateTiming mWdmUpdateTiming;
-#if WDM_ENABLE_SUBSCRIPTIONLESS_NOTIFICATION
-    uint64_t mWdmSublessNotifyDestNodeId;
-#endif // WDM_ENABLE_SUBSCRIPTIONLESS_NOTIFICATION
 
     uint32_t mWdmUpdateMaxNumberOfTraits;
 

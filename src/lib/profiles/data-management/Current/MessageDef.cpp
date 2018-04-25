@@ -2443,7 +2443,7 @@ WEAVE_ERROR StatusList::Parser::CheckSchemaValidity(void) const
 
     while (WEAVE_NO_ERROR == (err = reader.Next()))
     {
-        // The spec says the StatusList should be an array of arrays, but in
+        // TODO: The spec says the StatusList should be an array of arrays, but in
         // the current implementation it's an array of structures. The array of
         // array is less intuitive but more space efficient.
         //WeaveLogDetail(DataManagement, "tag: 0x%" PRIx64 "; I want 0x%" PRIx64 "", reader.GetTag(), nl::Weave::TLV::AnonymousTag);
