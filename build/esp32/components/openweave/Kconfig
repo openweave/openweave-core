@@ -257,7 +257,18 @@ config SECURITY_TEST_MODE
         
         WARNING: This option makes it possible to circumvent basic Weave security functionality,
         including message encryption. Because of this it SHOULD NEVER BE ENABLED IN PRODUCTION BUILDS.
+
+config DISABLE_PROVISIONING_AUTH
+    bool "Disable Provisioning Authentication Checks"
+    default n
+    help
+        Disable authentication checks for Weave provisioning operations.  This makes it possible to
+        perform device provisioning operations (e.g. adding a network or joining a fabric) without
+        establishing a secure session. 
         
+        WARNING: This option makes it possible to circumvent basic Weave security functionality.
+        Because of this it SHOULD NEVER BE ENABLED IN PRODUCTION BUILDS.
+
 config DEBUG_CERT_VALIDATION
     bool "Enable Certificate Validation Debugging"
     default n
