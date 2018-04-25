@@ -643,7 +643,6 @@ WEAVE_ERROR BLEManager::StartAdvertising(void)
 
     // Advertise connectable if we haven't reached the maximum number of connections.
     size_t numCons = NumConnections();
-    ESP_LOGE(TAG, "numCons = %" PRId32, (uint32_t)numCons);
     bool connectable = (numCons < kMaxConnections);
     advertParams.adv_type = connectable ? ADV_TYPE_IND : ADV_TYPE_NONCONN_IND;
 

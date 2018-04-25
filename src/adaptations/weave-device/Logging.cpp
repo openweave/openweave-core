@@ -19,6 +19,25 @@
 #include <internal/WeaveDeviceInternal.h>
 #include <Weave/Support/logging/WeaveLogging.h>
 
+using namespace ::nl::Weave;
+using namespace ::nl::Weave::Device::Internal;
+
+namespace {
+
+void GetModuleName(char *buf, uint8_t module)
+{
+    if (module == ::nl::Weave::Logging::kLogModule_DeviceLayer)
+    {
+        memcpy(buf, "DL", 3);
+    }
+    else
+    {
+        ::nl::Weave::Logging::GetModuleName(buf, module);
+    }
+}
+
+} // unnamed namespace
+
 namespace nl {
 namespace Weave {
 namespace Logging {
@@ -31,13 +50,16 @@ void Log(uint8_t module, uint8_t category, const char *msg, ...)
 
     if (IsCategoryEnabled(category))
     {
-        char tag[7 + nlWeaveLoggingModuleNameLen + 1];
+        enum {
+            kMaxTagLen = 7 + nlWeaveLoggingModuleNameLen
+        };
+        char tag[kMaxTagLen + 1];
         size_t tagLen;
         char formattedMsg[256];
 
         strcpy(tag, "weave[");
         tagLen = strlen(tag);
-        nl::Weave::Logging::GetModuleName(tag + tagLen, module);
+        ::GetModuleName(tag + tagLen, module);
         tagLen = strlen(tag);
         tag[tagLen++] = ']';
         tag[tagLen] = 0;

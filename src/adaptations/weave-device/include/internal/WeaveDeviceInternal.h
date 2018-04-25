@@ -40,6 +40,19 @@ using namespace ::nl::Weave;
 
 namespace nl {
 namespace Weave {
+namespace Logging {
+
+enum
+{
+    kLogModule_DeviceLayer = 255,
+};
+
+} // namespace Logging
+} // namespace Weave
+} // namespace nl
+
+namespace nl {
+namespace Weave {
 namespace Device {
 namespace Internal {
 

@@ -52,7 +52,7 @@ NetworkProvisioningServer NetworkProvisioningSvr;
 FabricProvisioningServer FabricProvisioningSvr;
 ServiceProvisioningServer ServiceProvisioningSvr;
 
-const char * const TAG = "weave[DAL]";
+const char * const TAG = "weave[DL]";
 
 } // namespace Internal
 } // namespace Device
