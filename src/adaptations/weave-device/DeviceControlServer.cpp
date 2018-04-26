@@ -18,6 +18,7 @@
 
 #include <internal/WeaveDeviceInternal.h>
 #include <internal/DeviceControlServer.h>
+#include <internal/FabricProvisioningServer.h>
 #include <Weave/Profiles/WeaveProfiles.h>
 #include <Weave/Profiles/common/CommonProfile.h>
 
@@ -55,12 +56,53 @@ bool DeviceControlServer::ShouldCloseConBeforeResetConfig(uint16_t resetFlags)
 
 WEAVE_ERROR DeviceControlServer::OnResetConfig(uint16_t resetFlags)
 {
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
+    WEAVE_ERROR tmpErr;
+
+    // If a factory reset has been requested, initiate it now.
     if ((resetFlags & kResetConfigFlag_FactoryDefaults) != 0)
     {
         ConfigurationMgr.InitiateFactoryReset();
     }
 
-    return WEAVE_NO_ERROR;
+    else
+    {
+        // If a network config reset has been requested, clear the
+        // WiFi station provision.
+        if ((resetFlags & kResetConfigFlag_NetworkConfig) != 0)
+        {
+            WeaveLogProgress(DeviceLayer, "Reset network config");
+            ConnectivityMgr.ClearWiFiStationProvision();
+        }
+
+        // If a fabric config reset has been requested then leave the Weave
+        // fabric.
+        if ((resetFlags & kResetConfigFlag_FabricConfig) != 0)
+        {
+            WeaveLogProgress(DeviceLayer, "Reset Weave fabric config");
+            tmpErr = FabricProvisioningSvr.LeaveFabric();
+            if (tmpErr != WEAVE_NO_ERROR)
+            {
+                WeaveLogProgress(DeviceLayer, "FabricProvisioningSvr.LeaveFabric() failed: %s", ErrorStr(tmpErr));
+                err = (err == WEAVE_NO_ERROR) ? tmpErr : err;
+            }
+        }
+
+        // If a service config request has been requested, clear the persisted
+        // service provisioning data, if present.
+        if ((resetFlags & kResetConfigFlag_ServiceConfig) != 0)
+        {
+            WeaveLogProgress(DeviceLayer, "Reset service config");
+            tmpErr = ConfigurationMgr.ClearServiceProvisioningData();
+            if (tmpErr != WEAVE_NO_ERROR)
+            {
+                WeaveLogProgress(DeviceLayer, "ConfigurationMgr.ClearServiceProvisioningData() failed: %s", ErrorStr(tmpErr));
+                err = (err == WEAVE_NO_ERROR) ? tmpErr : err;
+            }
+        }
+    }
+
+    return err;
 }
 
 WEAVE_ERROR DeviceControlServer::OnFailSafeArmed(void)
@@ -112,15 +154,18 @@ void DeviceControlServer::WillCloseRemotePassiveRendezvous(void)
 
 bool DeviceControlServer::IsResetAllowed(uint16_t resetFlags)
 {
-    // Only reset to factory defaults supported.
-    if ((resetFlags & kResetConfigFlag_FactoryDefaults) == 0)
+    // If factory reset requested, defer to the Configuration Manager to determine if the
+    // system is in a state where this is allowed.
+    if ((resetFlags & kResetConfigFlag_FactoryDefaults) != 0)
     {
-        return false;
+        return ConfigurationMgr.CanFactoryReset();
     }
 
-    // Defer to the Configuration Manager to determine if the system is in a
-    // state where factory reset is allowed.
-    return ConfigurationMgr.CanFactoryReset();
+    const uint16_t supportedResetOps =
+            (kResetConfigFlag_NetworkConfig | kResetConfigFlag_FabricConfig | kResetConfigFlag_ServiceConfig);
+
+    // Otherwise, verify the requested reset operation is supported.
+    return (resetFlags == kResetConfigFlag_All || (resetFlags & ~supportedResetOps) == 0);
 }
 
 WEAVE_ERROR DeviceControlServer::OnSystemTestStarted(uint32_t profileId, uint32_t testId)

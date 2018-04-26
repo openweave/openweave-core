@@ -61,6 +61,7 @@ private:
     // NOTE: These members are for internal use by the following friends.
 
     friend class ConnectivityManager;
+    friend class ConfigurationManager;
     friend class TimeSyncManager;
     friend class Internal::FabricProvisioningServer;
     friend class Internal::ServiceProvisioningServer;

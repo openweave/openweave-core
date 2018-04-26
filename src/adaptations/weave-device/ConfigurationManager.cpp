@@ -455,6 +455,27 @@ WEAVE_ERROR ConfigurationManager::ClearServiceProvisioningData()
     err = nvs_commit(handle);
     SuccessOrExit(err);
 
+    // If necessary, post an event alerting other subsystems to the change in
+    // the account pairing state.
+    if (IsPairedToAccount())
+    {
+        WeaveDeviceEvent event;
+        event.Type = WeaveDeviceEvent::kEventType_AccountPairingChange;
+        event.AccountPairingChange.IsPairedToAccount = false;
+        PlatformMgr.PostEvent(&event);
+    }
+
+    // If necessary, post an event alerting other subsystems to the change in
+    // the service provisioning state.
+    if (IsServiceProvisioned())
+    {
+        WeaveDeviceEvent event;
+        event.Type = WeaveDeviceEvent::kEventType_ServiceProvisioningChange;
+        event.ServiceProvisioningChange.IsServiceProvisioned = false;
+        event.ServiceProvisioningChange.ServiceConfigUpdated = false;
+        PlatformMgr.PostEvent(&event);
+    }
+
     ClearFlag(mFlags, kFlag_IsServiceProvisioned);
     ClearFlag(mFlags, kFlag_IsPairedToAccount);
 

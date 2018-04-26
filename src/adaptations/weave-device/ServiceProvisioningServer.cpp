@@ -172,26 +172,9 @@ WEAVE_ERROR ServiceProvisioningServer::HandleUnregisterService(uint64_t serviceI
     }
     SuccessOrExit(err);
 
-    // Clear the persisted service.
+    // Clear the persisted service provisioning data, if present.
     err = ConfigurationMgr.ClearServiceProvisioningData();
     SuccessOrExit(err);
-
-    // Post an event alerting other subsystems to the change in the account pairing state.
-    {
-        WeaveDeviceEvent event;
-        event.Type = WeaveDeviceEvent::kEventType_AccountPairingChange;
-        event.AccountPairingChange.IsPairedToAccount = false;
-        PlatformMgr.PostEvent(&event);
-    }
-
-    // Post an event alerting other subsystems to the change in the service provisioning state.
-    {
-        WeaveDeviceEvent event;
-        event.Type = WeaveDeviceEvent::kEventType_ServiceProvisioningChange;
-        event.ServiceProvisioningChange.IsServiceProvisioned = false;
-        event.ServiceProvisioningChange.ServiceConfigUpdated = false;
-        PlatformMgr.PostEvent(&event);
-    }
 
     // Send "Success" back to the requestor.
     err = ServiceProvisioningSvr.SendSuccessResponse();

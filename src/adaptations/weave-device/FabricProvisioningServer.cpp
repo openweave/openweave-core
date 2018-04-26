@@ -93,10 +93,10 @@ WEAVE_ERROR FabricProvisioningServer::HandleLeaveFabric(void)
 {
     WEAVE_ERROR err;
 
+    ESP_LOGI(TAG, "Leave Weave fabric");
+
     err = ConfigurationMgr.StoreFabricId(kFabricIdNotSpecified);
     SuccessOrExit(err);
-
-    ESP_LOGI(TAG, "Leave Weave fabric");
 
     {
         WeaveDeviceEvent event;
@@ -107,6 +107,32 @@ WEAVE_ERROR FabricProvisioningServer::HandleLeaveFabric(void)
 
     err = SendSuccessResponse();
     SuccessOrExit(err);
+
+exit:
+    return err;
+}
+
+WEAVE_ERROR FabricProvisioningServer::LeaveFabric(void)
+{
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
+
+    if (ConfigurationMgr.IsMemberOfFabric())
+    {
+        // Clear the fabric state.
+        FabricState->ClearFabricState();
+
+        // Clear the persisted fabric id.
+        err = ConfigurationMgr.StoreFabricId(kFabricIdNotSpecified);
+        SuccessOrExit(err);
+
+        // Post a FabricMembershipChange event.
+        {
+            WeaveDeviceEvent event;
+            event.Type = WeaveDeviceEvent::kEventType_FabricMembershipChange;
+            event.FabricMembershipChange.IsMemberOfFabric = false;
+            PlatformMgr.PostEvent(&event);
+        }
+    }
 
 exit:
     return err;

@@ -39,6 +39,7 @@ public:
     virtual WEAVE_ERROR HandleJoinExistingFabric(void);
     virtual WEAVE_ERROR HandleLeaveFabric(void);
     virtual WEAVE_ERROR HandleGetFabricConfig(void);
+    WEAVE_ERROR LeaveFabric(void);
     virtual bool IsPairedToAccount() const;
 
     void OnPlatformEvent(const WeaveDeviceEvent * event);
