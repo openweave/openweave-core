@@ -1375,7 +1375,7 @@ void MockWdmSubscriptionInitiatorImpl::HandleDataFlipTimeout(nl::Weave::System::
             {
                 WeaveLogDetail(DataManagement, "Mutation %u of %u; %u trait instances",
                         i+1, initiator->mUpdateNumMutations, initiator->mUpdateNumTraits);
-                switch(initiator->mUpdateNumTraits)
+                switch (initiator->mUpdateNumTraits)
                 {
                     case 4:
                         err = initiator->mTestATraitUpdatableDataSink1.Mutate(initiator->mSubscriptionClient, false, initiator->mUpdateMutation);

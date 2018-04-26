@@ -918,8 +918,7 @@ WEAVE_ERROR TraitDataSink::StoreDataElement(PropertyPathHandle aHandle, TLVReade
     err = parser.GetVersion(&versionInDE);
     SuccessOrExit(err);
 
-    // TODO: this should use IsVersionOlder, once the algorithm is actually implemented.
-    if (!mHasValidVersion || (versionInDE != mVersion))
+    if (!mHasValidVersion || IsVersionNewer(versionInDE, mVersion))
     {
         if (mHasValidVersion)
         {
@@ -987,10 +986,8 @@ WEAVE_ERROR TraitDataSink::StoreDataElement(PropertyPathHandle aHandle, TLVReade
                     SuccessOrExit(err);
                 }
 
-                if ((! IsVersionValid()) || IsVersionOlder(versionInDE, mVersion))
-                {
-                    subClient->CheckPotentialDataLoss(aDatahandle, aHandle, mSchemaEngine);
-                }
+                // TODO: this can be done by the pathFilter itself.
+                subClient->CheckPotentialDataLoss(aDatahandle, aHandle, mSchemaEngine);
             }
 #endif // WEAVE_CONFIG_ENABLE_WDM_UPDATE
             UpdateDirtyPathFilter pathFilter(GetSubscriptionClient(), aDatahandle);

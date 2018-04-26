@@ -2634,8 +2634,6 @@ exit:
     }
     VerifyOrDie(mDispatchedUpdateStore.mNumItems == 0);
 
-    PurgePendingUpdate();
-
     bool needToResubscribe;
 
     // Check if we need to refresh the subscription because some
@@ -2876,6 +2874,9 @@ exit:
     return err;
 }
 
+// TODO: this will happen in-line when the data list of notifications is processed,
+// and when dispatched paths are moved back to the pending list on a timeout.
+// But we might want to notify the application only after all data changes are applied.
 WEAVE_ERROR SubscriptionClient::PurgePendingUpdate()
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
@@ -2910,9 +2911,7 @@ WEAVE_ERROR SubscriptionClient::PurgePendingUpdate()
         WeaveLogDetail(DataManagement, "<PurgeUpdate> current version 0x%" PRIx64 ", valid: %d, updateRequiredVersion: 0x%" PRIx64 "",
                 currentVersion, isVersionValid, updateRequiredVersion);
 
-        // TODO: I think we need to fail all pending if the version is invalid:
-        // but the specs don't say it explicitly
-        if (! isVersionValid || IsVersionOlder(currentVersion, updateRequiredVersion))
+        if (isVersionValid && IsVersionNewer(updateRequiredVersion, currentVersion))
         {
             InEventParam inParam;
             OutEventParam outParam;
