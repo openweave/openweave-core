@@ -221,5 +221,4 @@ extern Error SetClock_RealTime(uint64_t newCurTime);
 } // namespace Weave
 } // namespace nl
 
-
 #endif // SYSTEMTIME_H
