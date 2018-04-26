@@ -95,12 +95,6 @@ void LocaleSettingsTraitDataSource::Mutate()
 }
 
 WEAVE_ERROR
-LocaleSettingsTraitDataSource::SetLeafData(PropertyPathHandle aLeafHandle, TLVReader &aReader)
-{
-    return WEAVE_ERROR_UNSUPPORTED_WEAVE_FEATURE;
-}
-
-WEAVE_ERROR
 LocaleSettingsTraitDataSource::GetLeafData(PropertyPathHandle aLeafHandle, uint64_t aTagToWrite, TLVWriter &aWriter)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
@@ -165,12 +159,6 @@ void LocaleCapabilitiesTraitDataSource::Mutate()
 }
 
 WEAVE_ERROR
-LocaleCapabilitiesTraitDataSource::SetLeafData(PropertyPathHandle aLeafHandle, TLVReader &aReader)
-{
-    return WEAVE_ERROR_UNSUPPORTED_WEAVE_FEATURE;
-}
-
-WEAVE_ERROR
 LocaleCapabilitiesTraitDataSource::GetLeafData(PropertyPathHandle aLeafHandle, uint64_t aTagToWrite, TLVWriter &aWriter)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
@@ -225,12 +213,6 @@ void BoltLockSettingTraitDataSource::Mutate()
     }
 
     Unlock();
-}
-
-WEAVE_ERROR
-BoltLockSettingTraitDataSource::SetLeafData(PropertyPathHandle aLeafHandle, TLVReader &aReader)
-{
-    return WEAVE_ERROR_UNSUPPORTED_WEAVE_FEATURE;
 }
 
 WEAVE_ERROR
@@ -659,11 +641,6 @@ void TestATraitDataSource::Mutate()
 
     mTestCounter++;
     Unlock();
-}
-
-WEAVE_ERROR TestATraitDataSource::SetLeafData(PropertyPathHandle aLeafHandle, TLVReader &aReader)
-{
-    return WEAVE_ERROR_UNSUPPORTED_WEAVE_FEATURE;
 }
 
 template <typename T>
@@ -1305,11 +1282,6 @@ void TestBTraitDataSource::Mutate()
     Unlock();
 }
 
-WEAVE_ERROR TestBTraitDataSource::SetLeafData(PropertyPathHandle aLeafHandle, TLVReader &aReader)
-{
-    return WEAVE_ERROR_UNSUPPORTED_WEAVE_FEATURE;
-}
-
 WEAVE_ERROR TestBTraitDataSource::GetLeafData(PropertyPathHandle aLeafHandle, uint64_t aTagToWrite, TLVWriter &aWriter)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
@@ -1497,11 +1469,6 @@ void TestBLargeTraitDataSource::Mutate()
     }
 
     Unlock();
-}
-
-WEAVE_ERROR TestBLargeTraitDataSource::SetLeafData(PropertyPathHandle aLeafHandle, TLVReader &aReader)
-{
-    return WEAVE_ERROR_UNSUPPORTED_WEAVE_FEATURE;
 }
 
 WEAVE_ERROR TestBLargeTraitDataSource::GetLeafData(PropertyPathHandle aLeafHandle, uint64_t aTagToWrite, TLVWriter &aWriter)
@@ -1888,11 +1855,6 @@ exit:
 WEAVE_ERROR ApplicationKeysTraitDataSource::GetNextDictionaryItemKey(PropertyPathHandle aDictionaryHandle, uintptr_t &aContext, PropertyDictionaryKey &aKey)
 {
     return WEAVE_END_OF_INPUT;
-}
-
-WEAVE_ERROR ApplicationKeysTraitDataSource::SetLeafData(PropertyPathHandle aLeafHandle, TLVReader &aReader)
-{
-    return WEAVE_ERROR_UNSUPPORTED_WEAVE_FEATURE;
 }
 
 WEAVE_ERROR ApplicationKeysTraitDataSource::GetLeafData(PropertyPathHandle aLeafHandle, uint64_t aTagToWrite, TLVWriter &aWriter)

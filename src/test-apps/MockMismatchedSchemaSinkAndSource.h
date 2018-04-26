@@ -43,7 +43,6 @@ public:
     void Reset(void) { SetVersion(0); };
 
 private:
-    WEAVE_ERROR SetLeafData(PropertyPathHandle aLeafHandle, TLVReader &aReader);
     WEAVE_ERROR GetLeafData(PropertyPathHandle aLeafHandle, uint64_t aTagToWrite, TLVWriter &aWriter) __OVERRIDE;
 
     bool tc_a;

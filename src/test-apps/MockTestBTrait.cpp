@@ -131,11 +131,6 @@ void TestBTraitDataSource::SetPresentPath(PropertyPathHandle aHandle, bool isPre
     }
 }
 
-WEAVE_ERROR TestBTraitDataSource::SetLeafData(PropertyPathHandle aLeafHandle, TLVReader &aReader)
-{
-    return WEAVE_ERROR_UNSUPPORTED_WEAVE_FEATURE;
-}
-
 WEAVE_ERROR TestBTraitDataSource::GetLeafData(PropertyPathHandle aLeafHandle, uint64_t aTagToWrite, TLVWriter &aWriter)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
