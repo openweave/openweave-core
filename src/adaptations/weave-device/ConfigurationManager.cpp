@@ -19,7 +19,10 @@
 #include <internal/WeaveDeviceInternal.h>
 #include <ConfigurationManager.h>
 #include <Weave/Core/WeaveKeyIds.h>
+#include <Weave/Core/WeaveVendorIdentifiers.hpp>
 #include <Weave/Profiles/security/WeaveApplicationKeys.h>
+#include <Weave/Profiles/vendor/nestlabs/device-description/NestProductIdentifiers.hpp>
+
 #include "esp_wifi.h"
 #include "nvs_flash.h"
 #include "nvs.h"
@@ -31,11 +34,18 @@ using namespace ::nl::Weave::Profiles::Security::AppKeys;
 using namespace ::nl::Weave::Profiles::DeviceDescription;
 using namespace ::nl::Weave::Device::Internal;
 
+using ::nl::Weave::kWeaveVendor_NestLabs;
+
 namespace nl {
 namespace Weave {
 namespace Device {
 
 namespace {
+
+enum
+{
+    kNestWeaveProduct_Connect = 0x0016
+};
 
 enum
 {
@@ -546,6 +556,15 @@ WEAVE_ERROR ConfigurationManager::GetDeviceDescriptor(WeaveDeviceDescriptor & de
         err = WEAVE_NO_ERROR;
     }
     SuccessOrExit(err);
+
+    // If we're pretending to be a Nest Connect, fake the presence of a 805.15.4 radio by encoding
+    // the Weave device id in the Primary 802.15.4 MAC address field.  This is necessary to fool
+    // the Nest mobile app into believing we are indeed a Connect.
+    if (deviceDesc.VendorId == kWeaveVendor_NestLabs && deviceDesc.ProductId == kNestWeaveProduct_Connect)
+    {
+        ::nl::Weave::Encoding::BigEndian::Put64(deviceDesc.Primary802154MACAddress, deviceDesc.DeviceId);
+        deviceDesc.DeviceId = ::nl::Weave::kNodeIdNotSpecified;
+    }
 
 exit:
     return err;
