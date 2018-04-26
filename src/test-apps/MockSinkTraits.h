@@ -33,6 +33,8 @@
 #include <Weave/Profiles/data-management/SubscriptionClient.h>
 #include <Weave/Profiles/security/ApplicationKeysTraitDataSink.h>
 
+#include "MockWdmNodeOptions.h"
+
 #include <weave/trait/security/BoltLockSettingsTrait.h>
 #include <weave/trait/locale/LocaleSettingsTrait.h>
 #include <weave/trait/locale/LocaleCapabilitiesTrait.h>
@@ -63,7 +65,9 @@ class LocaleSettingsTraitUpdatableDataSink : public MockTraitUpdatableDataSink
 {
 public:
     LocaleSettingsTraitUpdatableDataSink();
-    WEAVE_ERROR Mutate(SubscriptionClient * apSubClient, bool aIsConditional);
+    WEAVE_ERROR Mutate(SubscriptionClient * apSubClient,
+                       bool aIsConditional,
+                       MockWdmNodeOptions::WdmUpdateMutation aMutation);
 
 private:
     WEAVE_ERROR SetLeafData(nl::Weave::Profiles::DataManagement::PropertyPathHandle aLeafHandle, nl::Weave::TLV::TLVReader &aReader) __OVERRIDE;
@@ -88,7 +92,7 @@ public:
 
     WEAVE_ERROR OnEvent(uint16_t aType, void *aInParam) __OVERRIDE;
 
-    WEAVE_ERROR Mutate(SubscriptionClient * apSubClient, bool aIsConditional);
+    WEAVE_ERROR Mutate(SubscriptionClient * apSubClient, bool aIsConditional, MockWdmNodeOptions::WdmUpdateMutation aMutation);
     uint32_t mTraitTestSet = 0;
 
 private:
@@ -152,7 +156,7 @@ class TestBTraitUpdatableDataSink : public MockTraitUpdatableDataSink
 {
 public:
     TestBTraitUpdatableDataSink();
-    WEAVE_ERROR Mutate(SubscriptionClient * apSubClient, bool aIsConditional);
+    WEAVE_ERROR Mutate(SubscriptionClient * apSubClient, bool aIsConditional, MockWdmNodeOptions::WdmUpdateMutation aMutation);
 
 private:
     void SetNullifiedPath(nl::Weave::Profiles::DataManagement::PropertyPathHandle aHandle, bool isNull);

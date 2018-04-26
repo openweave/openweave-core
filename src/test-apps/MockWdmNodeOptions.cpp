@@ -48,8 +48,9 @@ MockWdmNodeOptions::MockWdmNodeOptions() :
 #if WDM_ENABLE_SUBSCRIPTIONLESS_NOTIFICATION
     mWdmSublessNotifyDestNodeId(nl::Weave::kAnyNodeId),
 #endif // WDM_ENABLE_SUBSCRIPTIONLESS_NOTIFICATION
-    mWdmUpdateConditionality(kConditional),
-    mWdmUpdateMutation(0),
+    mWdmUpdateConditionality(kConditionality_Conditional),
+    mWdmUpdateMutation(kMutation_OneLeaf),
+    mWdmUpdateNumberOfMutations(1),
     mWdmUpdateNumberOfTraits(1),
     mWdmUpdateMaxNumberOfTraits(1)
 {
@@ -79,6 +80,7 @@ MockWdmNodeOptions::MockWdmNodeOptions() :
         { "wdm-liveness-check-period",                      kArgumentRequired,  kToolOpt_TimeBetweenLivenessCheckSec },
         { "enable-retry",                                   kNoArgument,        kToolOpt_WdmEnableRetry },
         { "wdm-update-mutation",                            kArgumentRequired,  kToolOpt_WdmUpdateMutation },
+        { "wdm-update-number-of-mutations",                 kArgumentRequired,  kToolOpt_WdmUpdateNumberOfMutations },
         { "wdm-update-number-of-traits",                    kArgumentRequired,  kToolOpt_WdmUpdateNumberOfTraits },
         { "wdm-update-conditionality",                      kArgumentRequired,  kToolOpt_WdmUpdateConditionality },
         { "wdm-update-timing",                              kArgumentRequired,  kToolOpt_WdmUpdateTiming },
@@ -171,9 +173,11 @@ MockWdmNodeOptions::MockWdmNodeOptions() :
         "  --enable-retry\n"
         "       Enable automatic subscription retries by WDM\n"
         "\n"
-        "  --wdm-update-mutation <int>\n"
-        "       0-based index that selects the first mutation to apply to the TestATraitUpdatableDataSink instance.\n"
-        "       Default is 0. For every cycle up to total-count, the index is incremented."
+        "  --wdm-update-mutation <mutation>\n"
+        "       The first mutation to apply to each trait instance.\n"
+        "       For every cycle up to total-count, the mutations are applied in order.\n"
+        "       Only TestATrait supports all mutations. The other trait handlers revert to\n"
+        "       default one (OneLeaf) in case of a mutation they don't support.\n"
         "\n"
         "  --wdm-update-number-of-mutations <int>\n"
         "       Number of mutations (and therefore calls to FlushUpdate) performed in the same context\n"
@@ -181,7 +185,11 @@ MockWdmNodeOptions::MockWdmNodeOptions() :
         "       Default: 1\n"
         "\n"
         "  --wdm-update-number-of-traits <int>\n"
-        "       Number of traits to mutate. Default is 1, max is 3.\n"
+        "       Number of traits to mutate. Default is 1, max is 4.\n"
+        "         1: TestATraitUpdatableDataSink (default resource id)\n"
+        "         2: All of the above, plus LocaleSettingsTrait\n"
+        "         3: All of the above, plus TestBTrait\n"
+        "         4: All of the above, plus TestATraitUpdatableDataSink (resource id 1)\n"
         "\n"
         "  --wdm-update-conditionality <conditional, unconditional, mixed, alternate>\n"
         "       The conditionality of the update:\n"
@@ -201,6 +209,79 @@ MockWdmNodeOptions::MockWdmNodeOptions() :
         "\n";
 
 }
+
+const char **MockWdmNodeOptions::GetMutationStrings(void)
+{
+    static const char *mutationStrings[kMutation_NumItems] =
+    {
+        "OneLeaf",
+        "SameLevelLeafs",
+        "DiffLevelLeafs",
+        "WholeDictionary",
+        "WholeLargeDictionary",
+        "FewDictionaryItems",
+        "WholeDictionaryAndLeaf",
+        "OneStructure",
+        "OneLeafOneStructure",
+        "Root",
+        "RootWithLargeDictionary",
+    };
+
+    return mutationStrings;
+}
+
+const char **MockWdmNodeOptions::GetGeneratorStrings(void)
+{
+    const char *generatorStrings[kGenerator_NumItems] = {
+        "None",
+        "Debug",
+        "Liveness",
+        "Security",
+        "Telemetry",
+        "TestTrait"
+    };
+
+    return generatorStrings;
+}
+
+const char **MockWdmNodeOptions::GetConditionalityStrings(void)
+{
+    const char *conditionalityStrings[kConditionality_NumItems] = {
+        "Conditional",
+        "Unconditional",
+        "Mixed",
+        "Alternate"
+    };
+
+    return conditionalityStrings;
+}
+
+const char **MockWdmNodeOptions::GetUpdateTimingStrings(void)
+{
+    const char *updateTimingStrings[kTiming_NumItems] = {
+        "BeforeSub",
+        "DuringSub",
+        "AfterSub"
+    };
+
+    return updateTimingStrings;
+}
+
+static bool FindStringInArray(const char *aTarget, const char **aArray, size_t aArrayLength, int &aIndex)
+{
+    for (aIndex = 0; aIndex < aArrayLength && (strcmp(aTarget, aArray[aIndex]) != 0); aIndex++)
+    {
+        break;
+    }
+
+    if (aIndex == aArrayLength)
+    {
+        return false;
+    }
+
+    return true;
+}
+
 bool MockWdmNodeOptions::HandleOption(const char *progName, OptionSet *optSet, int id, const char *name, const char *arg)
 {
     switch (id)
@@ -354,25 +435,19 @@ bool MockWdmNodeOptions::HandleOption(const char *progName, OptionSet *optSet, i
     case kToolOpt_EnableDictionaryTest:
         mEnableDictionaryTest = true;
         break;
+
     case kToolOpt_EventGenerator:
-        if (strncmp(arg, "None", strlen("None")) == 0)
-            mEventGeneratorType = kGenerator_None;
-        else if (strncmp(arg, "Debug", strlen("Debug")) == 0)
-            mEventGeneratorType = kGenerator_TestDebug;
-        else if (strncmp(arg, "Liveness", strlen("Liveness")) == 0)
-            mEventGeneratorType = kGenerator_TestLiveness;
-        else if (strncmp(arg, "Security", strlen("Security")) == 0)
-            mEventGeneratorType = kGenerator_TestSecurity;
-        else if (strncmp(arg, "Telemetry", strlen("Telemetry")) == 0)
-            mEventGeneratorType = kGenerator_TestTelemetry;
-        else if (strncmp(arg, "TestTrait", strlen("TestTrait")) == 0)
-            mEventGeneratorType = kGenerator_TestTrait;
-        else
+    {
+        int i;
+
+        if (!FindStringInArray(arg, GetGeneratorStrings(), kGenerator_NumItems, i))
         {
             PrintArgError("%s: Unrecognized event generator name\n", progName);
             return false;
         }
+        mEventGeneratorType = static_cast<EventGeneratorType>(i);
         break;
+    }
     case kToolOpt_TimeBetweenEvents:
     {
         char *endptr;
@@ -386,14 +461,27 @@ bool MockWdmNodeOptions::HandleOption(const char *progName, OptionSet *optSet, i
     }
     case kToolOpt_WdmUpdateMutation:
     {
-        int tmp;
+        int i;
 
-        if (!ParseInt(arg, tmp) || tmp < 0 || tmp >= TestATraitUpdatableDataSink::kNumMutations)
+        if (!FindStringInArray(arg, GetMutationStrings(), kMutation_NumItems, i))
         {
-            PrintArgError("%s: Invalid value specified for wdm-update-mutation: %s\n", progName, arg);
+            printf("%s: Invalid value specified for --wdm-update-mutation: %s\n", progName, arg);
+            PrintArgError("%s: Invalid value specified for --wdm-update-mutation: %s\n", progName, arg);
             return false;
         }
-        mWdmUpdateMutation = static_cast<uint32_t>(tmp);
+        mWdmUpdateMutation = static_cast<WdmUpdateMutation>(i);
+        break;
+    }
+    case kToolOpt_WdmUpdateNumberOfMutations:
+    {
+        int tmp;
+
+        if ((!ParseInt(arg, tmp)) || (tmp < 1))
+        {
+            PrintArgError("%s: Invalid value specified for --wdm-update-number-of-mutations: %s; min 1\n", progName, arg);
+            return false;
+        }
+        mWdmUpdateNumberOfMutations = static_cast<uint32_t>(tmp);
         break;
     }
     case kToolOpt_WdmUpdateNumberOfTraits:
@@ -402,7 +490,7 @@ bool MockWdmNodeOptions::HandleOption(const char *progName, OptionSet *optSet, i
 
         if ((!ParseInt(arg, tmp)) || (tmp < 1) || (tmp > mWdmUpdateMaxNumberOfTraits))
         {
-            PrintArgError("%s: Invalid value specified for wdm-update-number-of-traits: %s\n", progName, arg);
+            PrintArgError("%s: Invalid value specified for --wdm-update-number-of-traits: %s; min 1, max %u\n", progName, arg, mWdmUpdateMaxNumberOfTraits);
             return false;
         }
         mWdmUpdateNumberOfTraits = static_cast<uint32_t>(tmp);
@@ -410,30 +498,21 @@ bool MockWdmNodeOptions::HandleOption(const char *progName, OptionSet *optSet, i
     }
     case kToolOpt_WdmUpdateConditionality:
     {
-        if (strcmp(arg, "conditional") == 0)
-            mWdmUpdateConditionality = kConditional;
-        else if (strcmp(arg, "unconditional") == 0)
-            mWdmUpdateConditionality = kUnconditional;
-        else if (strcmp(arg, "mixed") == 0)
-            mWdmUpdateConditionality = kMixed;
-        else if (strcmp(arg, "alternate") == 0)
-            mWdmUpdateConditionality = kAlternate;
-        else
+        int i;
+
+        if (!FindStringInArray(arg, GetConditionalityStrings(), kConditionality_NumItems, i))
         {
             PrintArgError("%s: Invalid value specified for --wdm-update-conditionality: %s\n", progName, arg);
             return false;
         }
+        mWdmUpdateConditionality = static_cast<WdmUpdateConditionality>(i);
         break;
     }
     case kToolOpt_WdmUpdateTiming:
     {
-        if (strcmp(arg, "before-sub") == 0)
-            mWdmUpdateTiming = kBeforeSub;
-        else if (strcmp(arg, "during-sub") == 0)
-            mWdmUpdateTiming = kDuringSub;
-        else if (strcmp(arg, "after-sub") == 0)
-            mWdmUpdateTiming = kAfterSub;
-        else
+        int i;
+
+        if (!FindStringInArray(arg, GetUpdateTimingStrings(), kTiming_NumItems, i))
         {
             PrintArgError("%s: Invalid value specified for --wdm-update-timing: %s\n", progName, arg);
             return false;

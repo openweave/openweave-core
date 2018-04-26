@@ -76,6 +76,9 @@ options = { "clients": None,
             "test_server_delay": None,
             "enable_client_flip": None,
             "enable_server_flip": None,
+            "client_update_mutation": None,
+            "client_update_num_mutations": None,
+            "client_update_num_traits": None,
           }
 
 
@@ -575,6 +578,15 @@ class WeaveWdmNext(HappyNode, HappyNetwork, WeaveTest):
 
         if self.enable_mock_event_timestamp_initial_counter:
             cmd += " --enable-mock-event-timestamp-initial-counter"
+
+        if self.client_update_mutation:
+            cmd += " --wdm-update-mutation " + self.client_update_mutation
+
+        if self.client_update_num_mutations:
+            cmd += " --wdm-update-number-of-mutations " + str(self.client_update_num_mutations)
+
+        if self.client_update_num_traits:
+            cmd += " --wdm-update-number-of-traits " + str(self.client_update_num_traits)
 
         custom_env = {}
 

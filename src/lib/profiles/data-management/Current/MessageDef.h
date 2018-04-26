@@ -93,7 +93,15 @@ typedef uint64_t DataVersion;
  */
 static inline bool IsVersionOlder(const DataVersion &aReference, const DataVersion &aVersion)
 {
-    return (aVersion != aReference);
+    const DataVersion maxLegacyVersion = 0xFFFFFFFFull;
+    if (aVersion <= maxLegacyVersion && aReference <= maxLegacyVersion)
+    {
+        return (aVersion != aReference);
+    }
+    else
+    {
+        return (aVersion < aReference);
+    }
 }
 
 typedef uint16_t SchemaVersion;

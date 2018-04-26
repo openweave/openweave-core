@@ -35,11 +35,17 @@ class test_weave_wdm_next_service_update_01_cond(weave_wdm_next_test_service_bas
         wdm_next_args['wdm_option'] = "mutual_subscribe"
         wdm_next_args['final_client_status'] = 0
         wdm_next_args['enable_client_flip'] = 1
-        wdm_next_args['test_client_iterations'] = 2
+        wdm_next_args['test_client_iterations'] = 1
         wdm_next_args['test_client_delay'] = 15000
         wdm_next_args['client_clear_state_between_iterations'] = False
         wdm_next_args['test_client_case'] = 10 # kTestCase_TestUpdatableTrait_OneTraitConditional
-        wdm_next_args['total_client_count'] = 11
+        wdm_next_args['total_client_count'] = 1 
+
+        wdm_next_args['enable_retry'] = True 
+
+        wdm_next_args['client_update_mutation'] = "OneLeaf" 
+        wdm_next_args['client_update_num_traits'] = 2 
+        wdm_next_args['client_update_num_mutations'] = 2 
 
         wdm_next_args['client_log_check'] = [('Update: Good Iteration', wdm_next_args['test_client_iterations'] * (wdm_next_args['total_client_count'] - 1) * 4)]
 

@@ -34,5 +34,5 @@ export weave_service_address='frontdoor.integration.nestlabs.com'
 #export weave_service_address='tunnel02.weave01.iad02.integration.nestlabs.com'
 export happy_dns='8.8.8.8 172.16.255.1 172.16.255.153 172.16.255.53'
 #python wdmNext/test_weave_wdm_next_service_mutual_subscribe_01.py
-python wdmNext/test_weave_wdm_next_service_update_01.py
+python wdmNext/test_weave_wdm_next_service_update_01_cond.py
 #python echo/test_weave_echo_02.py

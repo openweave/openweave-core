@@ -3129,60 +3129,58 @@ WEAVE_ERROR SubscriptionClient::BuildSingleUpdateRequestDataList(UpdateRequestCo
         err = Lookup(traitInfo, updatableDataSink, schemaEngine, resourceId, instanceId);
         SuccessOrExit(err);
 
-        if (! traitInfo->IsDirty())
+        if (traitInfo->IsDirty())
         {
-            numTraitInstanceHandled++;
-            context.mCurProcessingTraitInstanceIdx++;
-            context.mCurProcessingTraitInstanceIdx %= mNumUpdatableTraitInstances;
+            numDirtyTraitInstanceFound++;
 
-            continue;
-        }
+            WeaveLogDetail(DataManagement, "T%u is dirty", context.mCurProcessingTraitInstanceIdx);
 
-        numDirtyTraitInstanceFound++;
-
-        WeaveLogDetail(DataManagement, "T%u is dirty", context.mCurProcessingTraitInstanceIdx);
-
-        if (context.mNextDictionaryElementPathHandle != kNullPropertyPathHandle)
-        {
-            context.mCandidatePropertyPathHandle =
-                schemaEngine->GetParent(context.mNextDictionaryElementPathHandle);
-
-            WeaveLogDetail(DataManagement, "Resume encoding a dictionary");
-
-            mUpdateRequestContext.mForceMerge = true;
-            err = DirtyPathToDataElement(mUpdateRequestContext);
-            SuccessOrExit(err);
-            dictionaryOverflowed = (context.mNextDictionaryElementPathHandle != kNullPropertyPathHandle);
-            VerifyOrExit(!dictionaryOverflowed, /* no error */);
-        }
-
-        size_t i = 0;
-        while (i < pendingPathStoreSize)
-        {
-            // Now look for more paths for the same trait in the pending store
-            if (!(mPendingUpdateStore.IsItemValid(i) &&
-                        (mPendingUpdateStore.mStore[i].mTraitPath.mTraitDataHandle == traitInfo->mTraitDataHandle)))
+            if (context.mNextDictionaryElementPathHandle != kNullPropertyPathHandle)
             {
-                i++;
-                continue;
+                context.mCandidatePropertyPathHandle =
+                    schemaEngine->GetParent(context.mNextDictionaryElementPathHandle);
+
+                WeaveLogDetail(DataManagement, "Resume encoding a dictionary");
+
+                mUpdateRequestContext.mForceMerge = true;
+                err = DirtyPathToDataElement(mUpdateRequestContext);
+                SuccessOrExit(err);
+                dictionaryOverflowed = (context.mNextDictionaryElementPathHandle != kNullPropertyPathHandle);
+                VerifyOrExit(!dictionaryOverflowed, /* no error */);
             }
 
-            context.mCandidatePropertyPathHandle = mPendingUpdateStore.mStore[i].mTraitPath.mPropertyPathHandle;
-            mPendingUpdateStore.RemoveItemAt(i);
+            size_t i = 0;
+            while (i < pendingPathStoreSize)
+            {
+                // Now look for more paths for the same trait in the pending store
+                if (!(mPendingUpdateStore.IsItemValid(i) &&
+                            (mPendingUpdateStore.mStore[i].mTraitPath.mTraitDataHandle == traitInfo->mTraitDataHandle)))
+                {
+                    i++;
+                    continue;
+                }
 
-            mUpdateRequestContext.mForceMerge = mPendingUpdateStore.IsItemForceMerge(i);
-            err = DirtyPathToDataElement(mUpdateRequestContext);
-            SuccessOrExit(err);
-            dictionaryOverflowed = (context.mNextDictionaryElementPathHandle != kNullPropertyPathHandle);
-            VerifyOrExit(!dictionaryOverflowed, /* no error */);
+                context.mCandidatePropertyPathHandle = mPendingUpdateStore.mStore[i].mTraitPath.mPropertyPathHandle;
+                mPendingUpdateStore.RemoveItemAt(i);
 
-            // Check from the beginning of the array because the last element processed
-            // for the current trait could have queued another dictionary.
-            i = 0;
+                mUpdateRequestContext.mForceMerge = mPendingUpdateStore.IsItemForceMerge(i);
+                err = DirtyPathToDataElement(mUpdateRequestContext);
+                SuccessOrExit(err);
+                dictionaryOverflowed = (context.mNextDictionaryElementPathHandle != kNullPropertyPathHandle);
+                VerifyOrExit(!dictionaryOverflowed, /* no error */);
 
-        } // for loop over the pending store
+                // Check from the beginning of the array because the last element processed
+                // for the current trait could have queued another dictionary.
+                i = 0;
 
-        traitInfo->ClearDirty();
+            } // for loop over the pending store
+
+            traitInfo->ClearDirty();
+        }
+
+        numTraitInstanceHandled++;
+        context.mCurProcessingTraitInstanceIdx++;
+        context.mCurProcessingTraitInstanceIdx %= mNumUpdatableTraitInstances;
 
     } // trait loop
 

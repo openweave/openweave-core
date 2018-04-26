@@ -1645,12 +1645,15 @@ LocaleSettingsTraitUpdatableDataSink::GetLeafData(PropertyPathHandle aLeafHandle
     return err;
 }
 
-WEAVE_ERROR LocaleSettingsTraitUpdatableDataSink::Mutate(SubscriptionClient * apSubClient, bool aIsConditional)
+WEAVE_ERROR LocaleSettingsTraitUpdatableDataSink::Mutate(SubscriptionClient * apSubClient,
+                                                         bool aIsConditional,
+                                                         MockWdmNodeOptions::WdmUpdateMutation aMutation)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
     static unsigned int whichLocale = 0;
     static const char * locales[] = { "en-US", "zh-TW", "ja-JP", "pl-PL", "zh-CN" };
     bool isLocked = false;
+    PropertyPathHandle pathHandle = kNullPropertyPathHandle;
 
     err = Lock(apSubClient);
     SuccessOrExit(err);
@@ -1659,15 +1662,29 @@ WEAVE_ERROR LocaleSettingsTraitUpdatableDataSink::Mutate(SubscriptionClient * ap
 
     MOCK_strlcpy(mLocale, locales[whichLocale], sizeof(mLocale));
     whichLocale = (whichLocale + 1) % (sizeof(locales)/sizeof(locales[0]));
-    err = SetUpdated(apSubClient, LocaleSettingsTrait::kPropertyHandle_active_locale, aIsConditional);
-    SuccessOrExit(err);
 
-    err = SetUpdated(apSubClient, LocaleSettingsTrait::kPropertyHandle_Root, aIsConditional);
-    SuccessOrExit(err);
+    // This trait instance only supports the OneLeaf and Root mutations.
 
-    WeaveLogDetail(DataManagement, "<set updated> in 0x%08x", LocaleSettingsTrait::kPropertyHandle_active_locale);
+    switch (aMutation)
+    {
+    case MockWdmNodeOptions::kMutation_Root:
+        pathHandle = LocaleSettingsTrait::kPropertyHandle_Root;
+        break;
+
+    case MockWdmNodeOptions::kMutation_OneLeaf:
+    default:
+        aMutation = MockWdmNodeOptions::kMutation_OneLeaf;
+        pathHandle = LocaleSettingsTrait::kPropertyHandle_active_locale;
+        break;
+    }
+
+    WeaveLogDetail(DataManagement, "<set updated> in 0x%08x", pathHandle);
+
+    err = SetUpdated(apSubClient, pathHandle, aIsConditional);
+    SuccessOrExit(err);
 
 exit:
+    WeaveLogDetail(DataManagement, "LocaleSettingsTrait mutated %s with error %d", MockWdmNodeOptions::GetMutationStrings()[aMutation], err);
 
     if (isLocked)
     {
@@ -1682,7 +1699,9 @@ WEAVE_ERROR LocaleSettingsTraitUpdatableDataSink::GetNextDictionaryItemKey(Prope
     return WEAVE_END_OF_INPUT;
 }
 
-WEAVE_ERROR TestATraitUpdatableDataSink::Mutate(SubscriptionClient * apSubClient, bool aIsConditional)
+WEAVE_ERROR TestATraitUpdatableDataSink::Mutate(SubscriptionClient * apSubClient,
+                                                bool aIsConditional,
+                                                MockWdmNodeOptions::WdmUpdateMutation aMutation)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
     bool isLocked = false;
@@ -1692,217 +1711,192 @@ WEAVE_ERROR TestATraitUpdatableDataSink::Mutate(SubscriptionClient * apSubClient
 
     isLocked = true;
 
-    WeaveLogDetail(DataManagement, "TestATraitUpdatableDataSink: mTraitTestSet: %" PRIu32 ", mTestCounter: %" PRIu32 "", mTraitTestSet, mTestCounter);
+    WeaveLogDetail(DataManagement,
+            "TestATraitUpdatableDataSink: mTraitTestSet: %" PRIu32 ", mTestCounter: %" PRIu32 "",
+            mTraitTestSet, mTestCounter);
 
-    if (mTraitTestSet == 0)
+    switch (aMutation)
     {
-        static const uint8_t kNumTestCases = 11;
+    case MockWdmNodeOptions::kMutation_OneLeaf:
+        err = SetUpdated(apSubClient, TestATrait::kPropertyHandle_TaP, aIsConditional);
+        SuccessOrExit(err);
 
-        if ((mTestCounter % kNumTestCases) == 0) {
-            WeaveLogDetail(DataManagement, "mock sink 3 leaf properties changes, source 3 leaf properties changes");
-            err = SetUpdated(apSubClient, TestATrait::kPropertyHandle_TaP, aIsConditional);
-            SuccessOrExit(err);
+        break;
 
-            err = SetUpdated(apSubClient, TestATrait::kPropertyHandle_TaC, aIsConditional);
-            SuccessOrExit(err);
+    case MockWdmNodeOptions::kMutation_SameLevelLeafs:
+        err = SetUpdated(apSubClient, TestATrait::kPropertyHandle_TaP, aIsConditional);
+        SuccessOrExit(err);
 
-            err = SetUpdated(apSubClient, TestATrait::kPropertyHandle_TaR, aIsConditional);
-            SuccessOrExit(err);
+        err = SetUpdated(apSubClient, TestATrait::kPropertyHandle_TaC, aIsConditional);
+        SuccessOrExit(err);
 
+        err = SetUpdated(apSubClient, TestATrait::kPropertyHandle_TaR, aIsConditional);
+        SuccessOrExit(err);
 
-            tap++;
-            tac++;
-            tar++;
+        tap++;
+        tac++;
+        tar++;
+
+        break;
+
+    case MockWdmNodeOptions::kMutation_DiffLevelLeafs:
+        err = SetUpdated(apSubClient, TestATrait::kPropertyHandle_TaD_SaB, aIsConditional);
+        SuccessOrExit(err);
+
+        err = SetUpdated(apSubClient, TestATrait::kPropertyHandle_TaA, aIsConditional);
+        SuccessOrExit(err);
+
+        if (taa == TestATrait::ENUM_A_VALUE_1) {
+            taa = TestATrait::ENUM_A_VALUE_2;
         }
-        else if ((mTestCounter % kNumTestCases) == 1) {
-            //mock sink 3 leaf properties changes, mock source 4 leaf properties changes
-            err = SetUpdated(apSubClient, TestATrait::kPropertyHandle_TaP, aIsConditional);
-            SuccessOrExit(err);
-
-            err = SetUpdated(apSubClient, TestATrait::kPropertyHandle_TaC, aIsConditional);
-            SuccessOrExit(err);
-
-            err = SetUpdated(apSubClient, TestATrait::kPropertyHandle_TaR, aIsConditional);
-            SuccessOrExit(err);
-
-            tap++;
-            tac++;
-            tar++;
+        else {
+            taa = TestATrait::ENUM_A_VALUE_1;
         }
-        else if ((mTestCounter % kNumTestCases) == 2) {
-            //mock sink 3 leaf properties changes, mock source 2 leaf properties changes
-            err = SetUpdated(apSubClient, TestATrait::kPropertyHandle_TaP, aIsConditional);
-            SuccessOrExit(err);
 
-            err = SetUpdated(apSubClient, TestATrait::kPropertyHandle_TaC, aIsConditional);
-            SuccessOrExit(err);
+        tad.saB = !tad.saB;
 
-            err = SetUpdated(apSubClient, TestATrait::kPropertyHandle_TaR, aIsConditional);
-            SuccessOrExit(err);
+        break;
 
-            tap++;
-            tac++;
-            tar++;
+    case MockWdmNodeOptions::kMutation_WholeDictionary:
+        err = SetUpdated(apSubClient, TestATrait::kPropertyHandle_TaI, aIsConditional);
+        SuccessOrExit(err);
+
+        tai_map.clear();
+        for (uint16_t i = 0; i < 10; i++) {
+            tai_map[i] = { (uint32_t)i };
         }
-        else if ((mTestCounter % kNumTestCases) == 3) {
-            // mock sink, one independent leaf and one leaf in one structure property changes
-            // mock source, one independent leaf and one leaf in one structure property changes
-            //SetUpdated(apSubClient, TestATrait::kPropertyHandle_TaD_SaA);
-            err = SetUpdated(apSubClient, TestATrait::kPropertyHandle_TaD_SaB, aIsConditional);
-            SuccessOrExit(err);
 
-            err = SetUpdated(apSubClient, TestATrait::kPropertyHandle_TaA, aIsConditional);
-            SuccessOrExit(err);
+        break;
 
-            if (taa == TestATrait::ENUM_A_VALUE_1) {
-                taa = TestATrait::ENUM_A_VALUE_2;
-            }
-            else {
-                taa = TestATrait::ENUM_A_VALUE_1;
-            }
+    case MockWdmNodeOptions::kMutation_WholeLargeDictionary:
+        err = SetUpdated(apSubClient, TestATrait::kPropertyHandle_TaI, aIsConditional);
+        SuccessOrExit(err);
 
-            // tad.saA++;
-            tad.saB = !tad.saB;
+        tai_map.clear();
+        for (uint16_t i = 0; i < 800; i++) {
+            tai_map[i] = { (uint32_t)i + 1 };
         }
-        else if ((mTestCounter % kNumTestCases) == 4) {
-            // sink, one independent leaf, one leaf in one structure property changes, mark this structure dirty, merge
-            // source, one independent leaf and two leaf in one structure property changes
-            err = SetUpdated(apSubClient, TestATrait::kPropertyHandle_TaD_SaA, aIsConditional);
-            SuccessOrExit(err);
 
-            err = SetUpdated(apSubClient, TestATrait::kPropertyHandle_TaA, aIsConditional);
-            SuccessOrExit(err);
+        break;
 
-            err = SetUpdated(apSubClient, TestATrait::kPropertyHandle_TaD, aIsConditional);
-            SuccessOrExit(err);
+    case MockWdmNodeOptions::kMutation_FewDictionaryItems:
+        err = SetUpdated(apSubClient, CreatePropertyPathHandle(TestATrait::kPropertyHandle_TaI_Value, 4), aIsConditional);
+        SuccessOrExit(err);
 
-            if (taa == TestATrait::ENUM_A_VALUE_1) {
-                taa = TestATrait::ENUM_A_VALUE_2;
-            }
-            else {
-                taa = TestATrait::ENUM_A_VALUE_1;
-            }
+        err = SetUpdated(apSubClient, CreatePropertyPathHandle(TestATrait::kPropertyHandle_TaI_Value, 5), aIsConditional);
+        SuccessOrExit(err);
 
-            tad.saB = !tad.saB;
+        err = SetUpdated(apSubClient, CreatePropertyPathHandle(TestATrait::kPropertyHandle_TaI_Value, 6), aIsConditional);
+        SuccessOrExit(err);
+
+        err = SetUpdated(apSubClient, CreatePropertyPathHandle(TestATrait::kPropertyHandle_TaI_Value, 7), aIsConditional);
+        SuccessOrExit(err);
+
+        tai_map[4] = { 4 };
+        tai_map[5] = { 5 };
+        tai_map[6] = { 6 };
+        tai_map[7] = { 7 };
+
+        break;
+
+    case MockWdmNodeOptions::kMutation_WholeDictionaryAndLeaf:
+        err = SetUpdated(apSubClient, TestATrait::kPropertyHandle_TaI, aIsConditional);
+        SuccessOrExit(err);
+
+        err = SetUpdated(apSubClient, TestATrait::kPropertyHandle_TaP, aIsConditional);
+        SuccessOrExit(err);
+
+        tai_map.clear();
+        for (uint16_t i = 0; i < 800; i++) {
+            tai_map[i] = { (uint32_t)i + 1 };
         }
-        else if ((mTestCounter % kNumTestCases) == 5) {
-            err = SetUpdated(apSubClient, TestATrait::kPropertyHandle_TaI, aIsConditional);
-            SuccessOrExit(err);
 
-            for (uint16_t i = 0; i < 10; i++) {
-                tai_map[i] = { (uint32_t)i + 1 };
-            }
+        tap++;
+
+        break;
+
+    case MockWdmNodeOptions::kMutation_OneStructure:
+
+        err = SetUpdated(apSubClient, TestATrait::kPropertyHandle_TaD, aIsConditional);
+        SuccessOrExit(err);
+
+        tad.saA = mTestCounter;
+        tad.saB = !tad.saB;
+
+        break;
+
+    case MockWdmNodeOptions::kMutation_OneLeafOneStructure:
+
+        err = SetUpdated(apSubClient, TestATrait::kPropertyHandle_TaP, aIsConditional);
+        SuccessOrExit(err);
+
+        err = SetUpdated(apSubClient, TestATrait::kPropertyHandle_TaD, aIsConditional);
+        SuccessOrExit(err);
+
+        tap++;
+
+        tad.saA = mTestCounter;
+        tad.saB = !tad.saB;
+
+        break;
+
+    case MockWdmNodeOptions::kMutation_Root:
+
+        // Root and some more subpaths
+        err = SetUpdated(apSubClient, TestATrait::kPropertyHandle_TaD_SaA, aIsConditional);
+        SuccessOrExit(err);
+
+        err = SetUpdated(apSubClient, TestATrait::kPropertyHandle_TaA, aIsConditional);
+        SuccessOrExit(err);
+
+        err = SetUpdated(apSubClient, TestATrait::kPropertyHandle_TaD, aIsConditional);
+        SuccessOrExit(err);
+
+        err = SetUpdated(apSubClient, TestATrait::kPropertyHandle_TaI, aIsConditional);
+        SuccessOrExit(err);
+
+        err = SetUpdated(apSubClient, TestATrait::kPropertyHandle_Root, aIsConditional);
+        SuccessOrExit(err);
+
+        tai_map.clear();
+        for (uint16_t i = 0; i < 3; i++) {
+            tai_map[i] = { ((uint32_t)i + 1)*10 + 7 };
         }
-        else if ((mTestCounter % kNumTestCases) == 6) {
-            err = SetUpdated(apSubClient, CreatePropertyPathHandle(TestATrait::kPropertyHandle_TaI_Value, 4), aIsConditional);
-            SuccessOrExit(err);
-
-            err = SetUpdated(apSubClient, CreatePropertyPathHandle(TestATrait::kPropertyHandle_TaI_Value, 5), aIsConditional);
-            SuccessOrExit(err);
-
-            err = SetUpdated(apSubClient, CreatePropertyPathHandle(TestATrait::kPropertyHandle_TaI_Value, 6), aIsConditional);
-            SuccessOrExit(err);
-
-            err = SetUpdated(apSubClient, CreatePropertyPathHandle(TestATrait::kPropertyHandle_TaI_Value, 7), aIsConditional);
-            SuccessOrExit(err);
-
-            tai_map[4] = { 4 };
-            tai_map[5] = { 5 };
-            tai_map[6] = { 6 };
-            tai_map[7] = { 7 };
+        if (taa == TestATrait::ENUM_A_VALUE_1) {
+            taa = TestATrait::ENUM_A_VALUE_2;
         }
-        else if ((mTestCounter % kNumTestCases) == 7) {
-            err = SetUpdated(apSubClient, TestATrait::kPropertyHandle_TaI, aIsConditional);
-            SuccessOrExit(err);
-
-            for (uint16_t i = 0; i < 10; i++) {
-                tai_map[i] = { (uint32_t)i + 1 };
-            }
-
-            err = SetUpdated(apSubClient, TestATrait::kPropertyHandle_TaA, aIsConditional);
-            SuccessOrExit(err);
-
-            if (taa == TestATrait::ENUM_A_VALUE_1) {
-                taa = TestATrait::ENUM_A_VALUE_2;
-            }
-            else {
-                taa = TestATrait::ENUM_A_VALUE_1;
-            }
+        else {
+            taa = TestATrait::ENUM_A_VALUE_1;
         }
-        else if ((mTestCounter % kNumTestCases) == 8) {
-            WeaveLogDetail(DataManagement, "Update member ta_d, which is a StructA");
 
-            err = SetUpdated(apSubClient, TestATrait::kPropertyHandle_TaD, aIsConditional);
-            SuccessOrExit(err);
+        tad.saB = !tad.saB;
 
-            tad.saA = mTestCounter;
-            tad.saB = !tad.saB;
+        break;
+
+    case MockWdmNodeOptions::kMutation_RootWithLargeDictionary:
+
+        err = SetUpdated(apSubClient, TestATrait::kPropertyHandle_Root, aIsConditional);
+        SuccessOrExit(err);
+
+        tai_map.clear();
+        for (uint16_t i = 0; i < 800; i++) {
+            tai_map[i] = { ((uint32_t)i + 1)*10 + 3 };
         }
-        else if ((mTestCounter % kNumTestCases) == 9) {
-            WeaveLogDetail(DataManagement, "all merge with root handle, cut dictionary");
 
-            err = SetUpdated(apSubClient, TestATrait::kPropertyHandle_Root, aIsConditional);
-            SuccessOrExit(err);
+        tad.saB = !tad.saB;
 
-            err = SetUpdated(apSubClient, TestATrait::kPropertyHandle_TaD_SaA, aIsConditional);
-            SuccessOrExit(err);
+        break;
 
-            err = SetUpdated(apSubClient, TestATrait::kPropertyHandle_TaA, aIsConditional);
-            SuccessOrExit(err);
-
-            err = SetUpdated(apSubClient, TestATrait::kPropertyHandle_TaD, aIsConditional);
-            SuccessOrExit(err);
-
-            err = SetUpdated(apSubClient, TestATrait::kPropertyHandle_TaI, aIsConditional);
-            SuccessOrExit(err);
-
-            tai_map.clear();
-            for (uint16_t i = 0; i < 3; i++) {
-                tai_map[i] = { ((uint32_t)i + 1)*10 + 7 };
-            }
-            if (taa == TestATrait::ENUM_A_VALUE_1) {
-                taa = TestATrait::ENUM_A_VALUE_2;
-            }
-            else {
-                taa = TestATrait::ENUM_A_VALUE_1;
-            }
-
-            tad.saB = !tad.saB;
-        }
-        else if ((mTestCounter % kNumTestCases) == 10) {
-            WeaveLogDetail(DataManagement, "all merge with root handle, cut oversized dictionary");
-            err = SetUpdated(apSubClient, TestATrait::kPropertyHandle_Root, aIsConditional);
-            SuccessOrExit(err);
-
-            err = SetUpdated(apSubClient, TestATrait::kPropertyHandle_TaD_SaA, aIsConditional);
-            SuccessOrExit(err);
-
-            err = SetUpdated(apSubClient, TestATrait::kPropertyHandle_TaA, aIsConditional);
-            SuccessOrExit(err);
-
-            err = SetUpdated(apSubClient, TestATrait::kPropertyHandle_TaD, aIsConditional);
-            SuccessOrExit(err);
-
-            err = SetUpdated(apSubClient, TestATrait::kPropertyHandle_TaI, aIsConditional);
-            SuccessOrExit(err);
-
-            for (uint16_t i = 0; i < 800; i++) {
-                tai_map[i] = { (uint32_t)i + 1 };
-            }
-            if (taa == TestATrait::ENUM_A_VALUE_1) {
-                taa = TestATrait::ENUM_A_VALUE_2;
-            }
-            else {
-                taa = TestATrait::ENUM_A_VALUE_1;
-            }
-
-            tad.saB = !tad.saB;
-        }
+    default:
+        WeaveDie();
+        break;
     }
 
     mTestCounter++;
 
 exit:
+
+    WeaveLogDetail(DataManagement, "TestATrait mutated %s with error %d", MockWdmNodeOptions::GetMutationStrings()[aMutation], err);
 
     if (isLocked)
     {
@@ -2615,7 +2609,9 @@ TestBTraitUpdatableDataSink::TestBTraitUpdatableDataSink()
     }
 }
 
-WEAVE_ERROR TestBTraitUpdatableDataSink::Mutate(SubscriptionClient * apSubClient, bool aIsConditional)
+WEAVE_ERROR TestBTraitUpdatableDataSink::Mutate(SubscriptionClient * apSubClient,
+                                                bool aIsConditional,
+                                                MockWdmNodeOptions::WdmUpdateMutation aMutation)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
     bool isLocked = false;
@@ -2627,7 +2623,10 @@ WEAVE_ERROR TestBTraitUpdatableDataSink::Mutate(SubscriptionClient * apSubClient
 
     isLocked = true;
 
-    if ((testNum % numTests) == 0) {
+    switch (aMutation)
+    {
+    case MockWdmNodeOptions::kMutation_OneLeafOneStructure:
+
         err = SetUpdated(apSubClient, TestBTrait::kPropertyHandle_TbB_SbB, aIsConditional);
         SuccessOrExit(err);
 
@@ -2642,8 +2641,11 @@ WEAVE_ERROR TestBTraitUpdatableDataSink::Mutate(SubscriptionClient * apSubClient
         }
 
         tbb_sbb++;
-    }
-    else if ((testNum % numTests) == 1) {
+
+        break;
+
+    case MockWdmNodeOptions::kMutation_DiffLevelLeafs:
+
         err = SetUpdated(apSubClient, TestBTrait::kPropertyHandle_TaC, aIsConditional);
         SuccessOrExit(err);
 
@@ -2656,17 +2658,24 @@ WEAVE_ERROR TestBTraitUpdatableDataSink::Mutate(SubscriptionClient * apSubClient
         tap++;
         tac++;
         tbc_sab = !tbc_sab;
-    }
-    else if ((testNum % numTests) == 2) {
+
+        break;
+
+    case MockWdmNodeOptions::kMutation_OneLeaf:
+    default:
+        aMutation = MockWdmNodeOptions::kMutation_OneLeaf;
+
         err = SetUpdated(apSubClient, TestBTrait::kPropertyHandle_TaP, aIsConditional);
         SuccessOrExit(err);
 
         tap++;
+        break;
     }
 
     testNum = (testNum +1) % numTests;
 
 exit:
+    WeaveLogDetail(DataManagement, "TestBTrait mutated %s with error %d", MockWdmNodeOptions::GetMutationStrings()[aMutation], err);
 
     if (isLocked)
     {

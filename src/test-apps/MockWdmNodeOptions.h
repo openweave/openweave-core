@@ -61,6 +61,7 @@ enum
     kToolOpt_WdmSimpleSublessNotifyServer,
     kToolOpt_WdmSublessNotifyDestNodeId,
     kToolOpt_WdmUpdateMutation,
+    kToolOpt_WdmUpdateNumberOfMutations,
     kToolOpt_WdmUpdateNumberOfTraits,
     kToolOpt_WdmUpdateConditionality,
     kToolOpt_WdmUpdateTiming,
@@ -70,26 +71,56 @@ class MockWdmNodeOptions : public OptionSetBase
 {
 public:
     enum WdmUpdateConditionality {
-        kConditional = 0,
-        kUnconditional,
-        kMixed,
-        kAlternate,
+        kConditionality_Conditional = 0,
+        kConditionality_Unconditional,
+        kConditionality_Mixed,
+        kConditionality_Alternate,
+
+        kConditionality_NumItems
     };
+
+    static const char **GetConditionalityStrings(void);
 
     enum WdmUpdateTiming {
-        kBeforeSub = 0,
-        kDuringSub,
-        kAfterSub,
+        kTiming_BeforeSub = 0,
+        kTiming_DuringSub,
+        kTiming_AfterSub,
+
+        kTiming_NumItems
     };
 
+    static const char **GetUpdateTimingStrings(void);
+
+    enum WdmUpdateMutation {
+        kMutation_OneLeaf = 0,
+        kMutation_SameLevelLeafs,
+        kMutation_DiffLevelLeafs,
+        kMutation_WholeDictionary,
+        kMutation_WholeLargeDictionary,
+        kMutation_FewDictionaryItems,
+        kMutation_WholeDictionaryAndLeaf,
+        kMutation_OneStructure,
+        kMutation_OneLeafOneStructure,
+        kMutation_Root,
+        kMutation_RootWithLargeDictionary,
+
+        kMutation_NumItems
+    };
+
+    static const char **GetMutationStrings(void);
+
     enum EventGeneratorType {
-        kGenerator_None,
+        kGenerator_None = 0,
         kGenerator_TestDebug,
         kGenerator_TestLiveness,
         kGenerator_TestSecurity,
         kGenerator_TestTelemetry,
         kGenerator_TestTrait,
+
+        kGenerator_NumItems
     };
+
+    static const char **GetGeneratorStrings(void);
 
     MockWdmNodeOptions();
 
@@ -112,8 +143,9 @@ public:
     uint64_t mWdmSublessNotifyDestNodeId;
 #endif // WDM_ENABLE_SUBSCRIPTIONLESS_NOTIFICATION
     WdmUpdateConditionality mWdmUpdateConditionality;
-    uint32_t mWdmUpdateMutation;
+    WdmUpdateMutation mWdmUpdateMutation;
     uint32_t mWdmUpdateNumberOfTraits;
+    uint32_t mWdmUpdateNumberOfMutations;
     WdmUpdateTiming mWdmUpdateTiming;
 
     uint32_t mWdmUpdateMaxNumberOfTraits;
