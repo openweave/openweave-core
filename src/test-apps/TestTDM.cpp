@@ -157,6 +157,7 @@ static void TestTdmDictionary_DeleteAndModifyLeafSimilar(nlTestSuite *inSuite, v
 static void TestTdmDictionary_DeleteStoreOverflowAndItemAddition(nlTestSuite *inSuite, void *inContext);
 static void TestTdmDictionary_DirtyStoreOverflowAndItemDeletion(nlTestSuite *inSuite, void *inContext);
 static void TestTdmDictionary_DeleteEntryTwice(nlTestSuite *inSuite, void *inContext);
+static void TestRandomizedDataVersions(nlTestSuite *inSuite, void *inContext);
 
 static void TestTdmStatic_MultiInstance(nlTestSuite *inSuite, void *inContext);
 static void CheckAllocateRightSizedBufferForNotifications(nlTestSuite *inSuite, void *inContext);
@@ -217,6 +218,9 @@ static const nlTest sTests[] = {
     NL_TEST_DEF("Test Tdm (Dictionary Deletion): Test dirty store overflow + item deletion", TestTdmDictionary_DirtyStoreOverflowAndItemDeletion),
     NL_TEST_DEF("Test Tdm (Dictionary Deletion): Test delete same dictionary entry twice", TestTdmDictionary_DeleteEntryTwice),
 
+    // Test randomized data versions
+    NL_TEST_DEF("Test Tdm (Randomized Data Versions): Randomized Data Versions", TestRandomizedDataVersions),
+
     NL_TEST_DEF("Test Tdm (Multi Instance): Multi Instance", TestTdmStatic_MultiInstance),
 
     // Tests the allocation of buffer for building and sending Notifies and
@@ -264,6 +268,10 @@ const TraitSchemaEngine gEmptyTraitSchema = {
 class TestEmptyDataSource : public TraitDataSource {
 public:
     TestEmptyDataSource(const TraitSchemaEngine *aSchema) : TraitDataSource(aSchema), mGetLeafDataCalled(false) { }
+
+    // Making these public to allow tests to access them.
+    using TraitDataSource::SetVersion;
+    using TraitDataSource::IncrementVersion;
 
     // Throw an error if this ever gets called.
     WEAVE_ERROR GetLeafData(PropertyPathHandle aLeafHandle, uint64_t aTagToWrite, TLVWriter &aWriter) { mGetLeafDataCalled = true; return WEAVE_ERROR_INVALID_ARGUMENT; }
@@ -724,6 +732,8 @@ public:
     void TestTdmDictionary_DeleteStoreOverflowAndItemAddition(nlTestSuite *inSuite);
     void TestTdmDictionary_DirtyStoreOverflowAndItemDeletion(nlTestSuite *inSuite);
     void TestTdmDictionary_DeleteEntryTwice(nlTestSuite *inSuite);
+
+    void TestRandomizedDataVersions(nlTestSuite *inSuite);
 
     void TestTdmStatic_MultiInstance(nlTestSuite *inSuite);
 
@@ -1976,6 +1986,28 @@ exit:
     NL_TEST_ASSERT(inSuite, testPass);
 }
 
+void TestTdm::TestRandomizedDataVersions(nlTestSuite *inSuite)
+{
+    TestEmptyDataSource dataSource1(&gEmptyTraitSchema);
+    TestEmptyDataSource dataSource2(&gEmptyTraitSchema);
+    TestEmptyDataSource dataSource3(&gEmptyTraitSchema);
+    uint64_t version;
+
+    // Case 1 - retrieve version right after construction - it should not be 0.
+    version = dataSource1.GetVersion();
+    NL_TEST_ASSERT(inSuite, version != 0);
+
+    // Case 2 - increment the version first, then retrieve it to ensure it is not 1
+    dataSource2.IncrementVersion();
+    version = dataSource2.GetVersion();
+    NL_TEST_ASSERT(inSuite, version != 1);
+
+    // Case 3 - set the version to something other than 0 post construction, then check it.
+    dataSource3.SetVersion(10);
+    version = dataSource3.GetVersion();
+    NL_TEST_ASSERT(inSuite, version == 10);
+}
+
 WEAVE_ERROR TestTdm::AllocateBuffer(uint32_t desiredSize, uint32_t minSize)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
@@ -2210,6 +2242,11 @@ static void TestTdmDictionary_DirtyStoreOverflowAndItemDeletion(nlTestSuite *inS
 static void TestTdmDictionary_DeleteEntryTwice(nlTestSuite *inSuite, void *inContext)
 {
     gTestTdm->TestTdmDictionary_DeleteEntryTwice(inSuite);
+}
+
+static void  TestRandomizedDataVersions(nlTestSuite *inSuite, void *inContext)
+{
+    gTestTdm->TestRandomizedDataVersions(inSuite);
 }
 
 static void TestTdmStatic_MultiInstance(nlTestSuite *inSuite, void *inContext)

@@ -823,7 +823,7 @@ public:
     virtual ~TraitDataSource() { }
     const TraitSchemaEngine * GetSchemaEngine(void) const { return mSchemaEngine; }
 
-    uint64_t GetVersion(void) const { return mVersion; }
+    uint64_t GetVersion(void);
 
     WEAVE_ERROR ReadData(PropertyPathHandle aHandle, uint64_t aTagToWrite, TLV::TLVWriter & aWriter);
 
@@ -892,8 +892,9 @@ protected: // IGetDataDelegate
 
     // Set current version of the data in this source.
     void SetVersion(uint64_t version) { mVersion = version; }
+
     // Increment current version of the data in this source.
-    void IncrementVersion(void) { mVersion++; }
+    void IncrementVersion(void);
 
     // Controls whether mVersion is incremented automatically or not.
     bool mManagedVersion;

@@ -35,6 +35,7 @@
 #include <Weave/Profiles/data-management/Current/WdmManagedNamespace.h>
 #include <Weave/Profiles/data-management/DataManagement.h>
 #include <Weave/Support/WeaveFaultInjection.h>
+#include <Weave/Support/RandUtils.h>
 
 using namespace ::nl::Weave;
 using namespace ::nl::Weave::TLV;
@@ -1124,7 +1125,9 @@ WEAVE_ERROR TraitDataSink::SetData(PropertyPathHandle aHandle, TLVReader & aRead
 
 TraitDataSource::TraitDataSource(const TraitSchemaEngine * aEngine)
 {
+    // Set the version to 0, indicating the lack of a valid version.
     SetVersion(0);
+
     mManagedVersion = true;
     mSetDirtyCalled = false;
     mSchemaEngine   = aEngine;
@@ -1132,6 +1135,27 @@ TraitDataSource::TraitDataSource(const TraitSchemaEngine * aEngine)
 #if (WEAVE_CONFIG_WDM_PUBLISHER_GRAPH_SOLVER == IntermediateGraphSolver)
     ClearRootDirty();
 #endif
+}
+
+uint64_t TraitDataSource::GetVersion(void)
+{
+    // At the time of version retrieval, check to see if the version is still at the sentinel value of 0 (indicating 'no version') set at construction. If it is,
+    // it means that the data source has not over-ridden the version to something other than 0, indicating that it desires to use randomized data versions.
+    if (mVersion == 0)
+    {
+        do
+        {
+            mVersion = GetRandU64();
+        } while (mVersion == 0);
+    }
+
+    return mVersion;
+}
+
+void TraitDataSource::IncrementVersion()
+{
+    // By invoking GetVersion within here, we get the benefit of checking if the version is currently 0 and if so, randomize it.
+    SetVersion(GetVersion() + 1);
 }
 
 /**
