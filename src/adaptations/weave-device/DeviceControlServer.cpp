@@ -67,12 +67,17 @@ WEAVE_ERROR DeviceControlServer::OnResetConfig(uint16_t resetFlags)
 
     else
     {
-        // If a network config reset has been requested, clear the
-        // WiFi station provision.
-        if ((resetFlags & kResetConfigFlag_NetworkConfig) != 0)
+        // If a service config request has been requested, clear the persisted
+        // service provisioning data, if present.
+        if ((resetFlags & kResetConfigFlag_ServiceConfig) != 0)
         {
-            WeaveLogProgress(DeviceLayer, "Reset network config");
-            ConnectivityMgr.ClearWiFiStationProvision();
+            WeaveLogProgress(DeviceLayer, "Reset service config");
+            tmpErr = ConfigurationMgr.ClearServiceProvisioningData();
+            if (tmpErr != WEAVE_NO_ERROR)
+            {
+                WeaveLogProgress(DeviceLayer, "ConfigurationMgr.ClearServiceProvisioningData() failed: %s", ErrorStr(tmpErr));
+                err = (err == WEAVE_NO_ERROR) ? tmpErr : err;
+            }
         }
 
         // If a fabric config reset has been requested then leave the Weave
@@ -88,17 +93,12 @@ WEAVE_ERROR DeviceControlServer::OnResetConfig(uint16_t resetFlags)
             }
         }
 
-        // If a service config request has been requested, clear the persisted
-        // service provisioning data, if present.
-        if ((resetFlags & kResetConfigFlag_ServiceConfig) != 0)
+        // If a network config reset has been requested, clear the
+        // WiFi station provision.
+        if ((resetFlags & kResetConfigFlag_NetworkConfig) != 0)
         {
-            WeaveLogProgress(DeviceLayer, "Reset service config");
-            tmpErr = ConfigurationMgr.ClearServiceProvisioningData();
-            if (tmpErr != WEAVE_NO_ERROR)
-            {
-                WeaveLogProgress(DeviceLayer, "ConfigurationMgr.ClearServiceProvisioningData() failed: %s", ErrorStr(tmpErr));
-                err = (err == WEAVE_NO_ERROR) ? tmpErr : err;
-            }
+            WeaveLogProgress(DeviceLayer, "Reset network config");
+            ConnectivityMgr.ClearWiFiStationProvision();
         }
     }
 

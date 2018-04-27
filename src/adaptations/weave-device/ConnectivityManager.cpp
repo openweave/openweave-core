@@ -128,6 +128,7 @@ void ConnectivityManager::ClearWiFiStationProvision(void)
         esp_wifi_set_config(ESP_IF_WIFI_STA, &stationConfig);
 
         SystemLayer.ScheduleWork(DriveStationState, NULL);
+        SystemLayer.ScheduleWork(DriveAPState, NULL);
     }
 }
 
@@ -749,10 +750,10 @@ void ConnectivityManager::DriveAPState(nl::Weave::System::Layer * aLayer, void *
 
 void ConnectivityManager::UpdateInternetConnectivityState(void)
 {
-    bool ipv4ConnState = false;
-    bool ipv6ConnState = false;
-    bool prevIPv4ConnState = GetFlag(mFlags, kFlag_HaveIPv4InternetConnectivity);
-    bool prevIPv6ConnState = GetFlag(mFlags, kFlag_HaveIPv6InternetConnectivity);
+    bool haveIPv4Conn = false;
+    bool haveIPv6Conn = false;
+    bool hadIPv4Conn = GetFlag(mFlags, kFlag_HaveIPv4InternetConnectivity);
+    bool hadIPv6Conn = GetFlag(mFlags, kFlag_HaveIPv6InternetConnectivity);
 
     // If the WiFi station is currently in the connected state...
     if (mWiFiStationState == kWiFiStationState_Connected)
@@ -773,7 +774,7 @@ void ConnectivityManager::UpdateInternetConnectivityState(void)
                 if (!ip4_addr_isany_val(*netif_ip4_addr(netif)) &&
                     !ip4_addr_isany_val(*netif_ip4_gw(netif)))
                 {
-                    ipv4ConnState = true;
+                    haveIPv4Conn = true;
                 }
 
                 // Search among the IPv6 addresses assigned to the interface for a Global Unicast
@@ -788,7 +789,7 @@ void ConnectivityManager::UpdateInternetConnectivityState(void)
                         // IPv6 connectivity.
                         if (nd6_select_router(IP6_ADDR_ANY6, netif) >= 0)
                         {
-                            ipv6ConnState = true;
+                            haveIPv6Conn = true;
                         }
                     }
                 }
@@ -797,27 +798,27 @@ void ConnectivityManager::UpdateInternetConnectivityState(void)
     }
 
     // If the internet connectivity state has changed...
-    if (ipv4ConnState != prevIPv4ConnState || ipv6ConnState != prevIPv6ConnState)
+    if (haveIPv4Conn != hadIPv4Conn || haveIPv6Conn != hadIPv6Conn)
     {
         // Update the current state.
-        SetFlag(mFlags, kFlag_HaveIPv4InternetConnectivity, ipv4ConnState);
-        SetFlag(mFlags, kFlag_HaveIPv6InternetConnectivity, ipv6ConnState);
+        SetFlag(mFlags, kFlag_HaveIPv4InternetConnectivity, haveIPv4Conn);
+        SetFlag(mFlags, kFlag_HaveIPv6InternetConnectivity, haveIPv6Conn);
 
         // Alert other components of the state change.
         WeaveDeviceEvent event;
         event.Type = WeaveDeviceEvent::kEventType_InternetConnectivityChange;
-        event.InternetConnectivityChange.IPv4 = GetConnectivityChange(prevIPv4ConnState, ipv4ConnState);
-        event.InternetConnectivityChange.IPv6 = GetConnectivityChange(prevIPv6ConnState, ipv6ConnState);
+        event.InternetConnectivityChange.IPv4 = GetConnectivityChange(hadIPv4Conn, haveIPv4Conn);
+        event.InternetConnectivityChange.IPv6 = GetConnectivityChange(hadIPv6Conn, haveIPv6Conn);
         PlatformMgr.PostEvent(&event);
 
-        if (ipv4ConnState != prevIPv4ConnState)
+        if (haveIPv4Conn != hadIPv4Conn)
         {
-            ESP_LOGI(TAG, "%s Internet connectivity %s", "IPv4", (ipv4ConnState) ? "ESTABLISHED" : "LOST");
+            ESP_LOGI(TAG, "%s Internet connectivity %s", "IPv4", (haveIPv4Conn) ? "ESTABLISHED" : "LOST");
         }
 
-        if (ipv6ConnState != prevIPv6ConnState)
+        if (haveIPv6Conn != hadIPv6Conn)
         {
-            ESP_LOGI(TAG, "%s Internet connectivity %s", "IPv6", (ipv6ConnState) ? "ESTABLISHED" : "LOST");
+            ESP_LOGI(TAG, "%s Internet connectivity %s", "IPv6", (haveIPv6Conn) ? "ESTABLISHED" : "LOST");
         }
 
         DriveServiceTunnelState();
@@ -892,6 +893,8 @@ void ConnectivityManager::DriveServiceTunnelState(void)
         // Start or stop the tunnel as necessary.
         if (startServiceTunnel)
         {
+            WeaveLogProgress(DeviceLayer, "Starting service tunnel");
+
             err = ServiceTunnelAgent.StartServiceTunnel();
             if (err != WEAVE_NO_ERROR)
             {
@@ -902,6 +905,7 @@ void ConnectivityManager::DriveServiceTunnelState(void)
 
         else
         {
+            WeaveLogProgress(DeviceLayer, "Stopping service tunnel");
             ServiceTunnelAgent.StopServiceTunnel();
         }
     }
