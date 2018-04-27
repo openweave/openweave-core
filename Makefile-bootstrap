@@ -22,7 +22,7 @@
 #      system used by this package.
 #
 #      If your package has dependent git repositories that you might
-#      otherwise be inclinded to subtree in, you can define a
+#      otherwise be inclined to subtree in, you can define a
 #      "repos.conf" file at the top of your project that enumerates
 #      the repositories, the branch thereof, and where to put it in
 #      your project. An example is shown below:
