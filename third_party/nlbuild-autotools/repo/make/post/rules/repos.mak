@@ -158,7 +158,7 @@ $(NL_V_AT)echo "    options to specify external instances of those packages."
 $(NL_V_AT)echo
 $(NL_V_AT)echo "  clean-repos"
 $(NL_V_AT)echo "    This is the opposite of the 'repos' target. This removes, in their"
-$(NL_V_AT)echo "    entirety, any clone of any upstream, dependent git repositories that"
+$(NL_V_AT)echo "    entirety, any clones of any upstream, dependent git repositories that"
 $(NL_V_AT)echo "    this package regards as required or optional."
 $(NL_V_AT)echo
 endef # MaybePrintReposHelp

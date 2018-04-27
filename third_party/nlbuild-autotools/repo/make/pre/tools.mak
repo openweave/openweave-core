@@ -17,8 +17,9 @@
 #
 #    Description:
 #      This file is the generic "header" or pre make header for all
-#      common (i.e., non-host, -target-specific, and -toolchain-specific)
-#      tools included in any makefile used in the build tree.
+#      common (i.e., non-host-specific, non-target-specific, and
+#      non-toolchain-specific) tools included in any makefile used in the
+#      build tree.
 #
 
 include $(abs_top_nlbuild_autotools_dir)/make/host/tools.mak

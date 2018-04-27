@@ -375,7 +375,7 @@ CPPFLAGS="${CPPFLAGS} ${NL_COVERAGE_CPPFLAGS}"
 LIBS="${LIBS} ${NL_COVERAGE_LIBS}"
 
 # At this point, we can restore the compiler flags to whatever the
-# user passed in, now that we're clear of an -Werror issues by
+# user passed in, now that we're clear of any -Werror issues by
 # transforming -Wno-error back to -Werror.
 
 NL_RESTORE_WERROR

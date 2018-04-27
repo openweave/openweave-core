@@ -139,7 +139,9 @@ users. The bootstrap makefile supports both the generic 'repos' target
 to pull down all repositories on which your project depends as well as
 relative path targets to where those repositories might live in your
 project when they are internal (e.g,
-third_party/package/repo). Consequently, you can, for example, invoke:
+third_party/package/repo).
+
+Consequently, you can, for example, invoke:
 
 ```
 % make -f Makefile-bootstrap repos
@@ -167,7 +169,7 @@ behalf of the user. For example:
 
 ```
 # Depending on whether my-package has been configured for an internal
-# location, it's directory stem within this package needs to be set
+# location, its directory stem within this package needs to be set
 # accordingly. In addition, if the location is internal, then we need
 # to attempt to pull it down using the bootstrap makefile.
 
