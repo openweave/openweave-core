@@ -51,7 +51,7 @@ void DeviceDescriptionServer::HandleIdentifyRequest(void *appState, uint64_t nod
     WEAVE_ERROR err = WEAVE_NO_ERROR;
     WeaveDeviceDescriptor deviceDesc;
 
-#if LOG_LOCAL_LEVEL >= ESP_LOG_INFO
+    if (LOG_LOCAL_LEVEL >= ESP_LOG_INFO)
     {
         char ipAddrStr[64];
         nodeAddr.ToString(ipAddrStr, sizeof(ipAddrStr));
@@ -62,7 +62,6 @@ void DeviceDescriptionServer::HandleIdentifyRequest(void *appState, uint64_t nod
         ESP_LOGI(TAG, "  Target Vendor Id: %04" PRIX16, reqMsg.TargetVendorId);
         ESP_LOGI(TAG, "  Target Product Id: %04" PRIX16, reqMsg.TargetProductId);
     }
-#endif // LOG_LOCAL_LEVEL >= ESP_LOG_ERROR
 
     sendResp = true;
 
