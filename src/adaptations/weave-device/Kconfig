@@ -286,12 +286,12 @@ menu "Testing Options"
 
 config ENABLE_TEST_DEVICE_IDENTITY
     int "Use Test Device Identity"
-    range 0 10
+    range 0 256
     default 1
     help
         Enables the use of a hard-coded Weave device id and credentials if no device id is
-        found in Weave NV storage.  The value specifies which of 10 identities, numbered 1
-        through 10, is to be used.  A value of 0 disables use of a test identity.
+        found in Weave NV storage.  The value specifies which of 256 identities, numbered 1
+        through 256, is to be used.  A value of 0 disables use of a test identity.
         
         This option is for testing only and should not be enabled in production releases.
 
