@@ -247,8 +247,8 @@ WEAVE_ERROR ConnectivityManager::Init()
     mWiFiAPMode = kWiFiAPMode_Disabled;
     mWiFiAPState = kWiFiAPState_NotActive;
     mServiceTunnelMode = kServiceTunnelMode_Enabled;
-    mWiFiStationReconnectIntervalMS = WEAVE_PLATFORM_CONFIG_WIFI_STATION_RECONNECT_INTERVAL;
-    mWiFiAPIdleTimeoutMS = WEAVE_PLATFORM_CONFIG_WIFI_AP_IDLE_TIMEOUT;
+    mWiFiStationReconnectIntervalMS = WEAVE_DEVICE_CONFIG_WIFI_STATION_RECONNECT_INTERVAL;
+    mWiFiAPIdleTimeoutMS = WEAVE_DEVICE_CONFIG_WIFI_AP_IDLE_TIMEOUT;
     mFlags = 0;
 
     // Initialize the Weave Addressing and Routing Module.
@@ -718,10 +718,10 @@ WEAVE_ERROR ConnectivityManager::ConfigureWiFiAP()
     memset(&wifiConfig, 0, sizeof(wifiConfig));
     err = ConfigurationMgr.GetWiFiAPSSID((char *)wifiConfig.ap.ssid, sizeof(wifiConfig.ap.ssid));
     SuccessOrExit(err);
-    wifiConfig.ap.channel = WEAVE_PLATFORM_CONFIG_WIFI_AP_CHANNEL;
+    wifiConfig.ap.channel = WEAVE_DEVICE_CONFIG_WIFI_AP_CHANNEL;
     wifiConfig.ap.authmode = WIFI_AUTH_OPEN;
-    wifiConfig.ap.max_connection = WEAVE_PLATFORM_CONFIG_WIFI_AP_MAX_STATIONS;
-    wifiConfig.ap.beacon_interval = WEAVE_PLATFORM_CONFIG_WIFI_AP_BEACON_INTERVAL;
+    wifiConfig.ap.max_connection = WEAVE_DEVICE_CONFIG_WIFI_AP_MAX_STATIONS;
+    wifiConfig.ap.beacon_interval = WEAVE_DEVICE_CONFIG_WIFI_AP_BEACON_INTERVAL;
     ESP_LOGI(TAG, "Configuring WiFi AP: SSID %s, channel %u", wifiConfig.ap.ssid, wifiConfig.ap.channel);
     err = esp_wifi_set_config(ESP_IF_WIFI_AP, &wifiConfig);
     if (err != ESP_OK)
@@ -879,7 +879,7 @@ void ConnectivityManager::DriveServiceTunnelState(void)
     startServiceTunnel = (mServiceTunnelMode == kServiceTunnelMode_Enabled
                           && GetFlag(mFlags, kFlag_HaveIPv4InternetConnectivity)
                           && ConfigurationMgr.IsMemberOfFabric()
-#if !WEAVE_PLATFORM_CONFIG_ENABLE_FIXED_TUNNEL_SERVER
+#if !WEAVE_DEVICE_CONFIG_ENABLE_FIXED_TUNNEL_SERVER
                           && ConfigurationMgr.IsServiceProvisioned()
 #endif
                          );

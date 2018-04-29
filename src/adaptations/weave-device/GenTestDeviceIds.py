@@ -34,12 +34,12 @@ namespace Internal {
 
 postamble = '''
 
-#if WEAVE_PLATFORM_CONFIG_ENABLE_TEST_DEVICE_IDENTITY
+#if WEAVE_DEVICE_CONFIG_ENABLE_TEST_DEVICE_IDENTITY
 
 const uint16_t TestDeviceCertLength = sizeof(TestDeviceCert);
 const uint16_t TestDevicePrivateKeyLength = sizeof(TestDevicePrivateKey);
 
-#endif // WEAVE_PLATFORM_CONFIG_ENABLE_TEST_DEVICE_IDENTITY
+#endif // WEAVE_DEVICE_CONFIG_ENABLE_TEST_DEVICE_IDENTITY
 
 } // namespace Internal
 } // namespace Device
@@ -90,7 +90,7 @@ with open(inFileName, 'r') as inFile:
             idNum = int(macAddr[-2:], 16)
 
             outFile.write('''\
-#%s WEAVE_PLATFORM_CONFIG_ENABLE_TEST_DEVICE_IDENTITY == %d
+#%s WEAVE_DEVICE_CONFIG_ENABLE_TEST_DEVICE_IDENTITY == %d
 
 ''' % ('if' if isFirst else 'elif', idNum))
 
@@ -120,7 +120,7 @@ const uint8_t TestDevicePrivateKey[] =
 ''')
             
         outFile.write('''\
-#endif // WEAVE_PLATFORM_CONFIG_ENABLE_TEST_DEVICE_IDENTITY == %d
+#endif // WEAVE_DEVICE_CONFIG_ENABLE_TEST_DEVICE_IDENTITY == %d
 ''' % (idNum))
 
         outFile.write(postamble);

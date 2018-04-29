@@ -28,8 +28,8 @@ using namespace ::nl::Weave;
 using namespace ::nl::Weave::Profiles::Time;
 using namespace ::nl::Weave::Device::Internal;
 
-#if WEAVE_PLATFORM_CONFIG_ENABLE_SERVICE_DIRECTORY_TIME_SYNC && !WEAVE_CONFIG_ENABLE_SERVICE_DIRECTORY
-#error "CONFIG ERROR: WEAVE_PLATFORM_CONFIG_ENABLE_SERVICE_DIRECTORY_TIME_SYNC requires WEAVE_CONFIG_ENABLE_SERVICE_DIRECTORY to be enabled"
+#if WEAVE_DEVICE_CONFIG_ENABLE_SERVICE_DIRECTORY_TIME_SYNC && !WEAVE_CONFIG_ENABLE_SERVICE_DIRECTORY
+#error "CONFIG ERROR: WEAVE_DEVICE_CONFIG_ENABLE_SERVICE_DIRECTORY_TIME_SYNC requires WEAVE_CONFIG_ENABLE_SERVICE_DIRECTORY to be enabled"
 #endif
 
 namespace nl {
@@ -38,7 +38,7 @@ namespace Device {
 
 namespace {
 
-#if WEAVE_PLATFORM_CONFIG_ENABLE_WEAVE_TIME_SERVICE_TIME_SYNC
+#if WEAVE_DEVICE_CONFIG_ENABLE_WEAVE_TIME_SERVICE_TIME_SYNC
 SingleSourceTimeSyncClient TimeSyncClient;
 #endif
 
@@ -51,7 +51,7 @@ WEAVE_ERROR TimeSyncManager::SetMode(TimeSyncMode newMode)
 
     VerifyOrExit(newMode > kTimeSyncMode_NotSupported && newMode < kTimeSyncMode_Max, err = WEAVE_ERROR_INVALID_ARGUMENT);
 
-#if !WEAVE_PLATFORM_CONFIG_ENABLE_SERVICE_DIRECTORY_TIME_SYNC && !WEAVE_PLATFORM_CONFIG_ENABLE_WEAVE_TIME_SERVICE_TIME_SYNC
+#if !WEAVE_DEVICE_CONFIG_ENABLE_SERVICE_DIRECTORY_TIME_SYNC && !WEAVE_DEVICE_CONFIG_ENABLE_WEAVE_TIME_SERVICE_TIME_SYNC
     VerifyOrExit(newMode != kTimeSyncMode_Service, err = WEAVE_ERROR_UNSUPPORTED_WEAVE_FEATURE);
 #endif
 
@@ -79,22 +79,22 @@ WEAVE_ERROR TimeSyncManager::Init()
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
 
-#if WEAVE_PLATFORM_CONFIG_ENABLE_SERVICE_DIRECTORY_TIME_SYNC
+#if WEAVE_DEVICE_CONFIG_ENABLE_SERVICE_DIRECTORY_TIME_SYNC
     mServiceDirTimeSyncStartUS = 0;
-#endif // WEAVE_PLATFORM_CONFIG_ENABLE_SERVICE_DIRECTORY_TIME_SYNC
+#endif // WEAVE_DEVICE_CONFIG_ENABLE_SERVICE_DIRECTORY_TIME_SYNC
 
-#if WEAVE_PLATFORM_CONFIG_ENABLE_WEAVE_TIME_SERVICE_TIME_SYNC
+#if WEAVE_DEVICE_CONFIG_ENABLE_WEAVE_TIME_SERVICE_TIME_SYNC
     new (&TimeSyncClient) SingleSourceTimeSyncClient();
 
     err = TimeSyncClient.Init(NULL, &ExchangeMgr);
     SuccessOrExit(err);
 
     mLastSyncTimeMS = 0;
-    mSyncIntervalSec = WEAVE_PLATFORM_CONFIG_DEFAULT_TIME_SYNC_INTERVAL;
+    mSyncIntervalSec = WEAVE_DEVICE_CONFIG_DEFAULT_TIME_SYNC_INTERVAL;
     mTimeSyncBinding = NULL;
-#endif // WEAVE_PLATFORM_CONFIG_ENABLE_WEAVE_TIME_SERVICE_TIME_SYNC
+#endif // WEAVE_DEVICE_CONFIG_ENABLE_WEAVE_TIME_SERVICE_TIME_SYNC
 
-#if WEAVE_PLATFORM_CONFIG_ENABLE_SERVICE_DIRECTORY_TIME_SYNC || WEAVE_PLATFORM_CONFIG_ENABLE_WEAVE_TIME_SERVICE_TIME_SYNC
+#if WEAVE_DEVICE_CONFIG_ENABLE_SERVICE_DIRECTORY_TIME_SYNC || WEAVE_DEVICE_CONFIG_ENABLE_WEAVE_TIME_SERVICE_TIME_SYNC
     mMode = kTimeSyncMode_Service;
 #else
     mMode = kTimeSyncMode_Disabled;
@@ -114,7 +114,7 @@ void TimeSyncManager::OnPlatformEvent(const WeaveDeviceEvent * event)
     }
 }
 
-#if WEAVE_PLATFORM_CONFIG_ENABLE_SERVICE_DIRECTORY_TIME_SYNC
+#if WEAVE_DEVICE_CONFIG_ENABLE_SERVICE_DIRECTORY_TIME_SYNC
 
 void TimeSyncManager::MarkServiceDirRequestStart()
 {
@@ -147,7 +147,7 @@ void TimeSyncManager::ProcessServiceDirTimeData(uint64_t serverRealTimeMS, uint3
     }
 }
 
-#endif // WEAVE_PLATFORM_CONFIG_ENABLE_SERVICE_DIRECTORY_TIME_SYNC
+#endif // WEAVE_DEVICE_CONFIG_ENABLE_SERVICE_DIRECTORY_TIME_SYNC
 
 void TimeSyncManager::DriveTimeSync()
 {
@@ -156,7 +156,7 @@ void TimeSyncManager::DriveTimeSync()
     // If synchronizing time with the service and the system has service connectivity...
     if (mMode == kTimeSyncMode_Service && ConnectivityMgr.HaveServiceConnectivity())
     {
-#if WEAVE_PLATFORM_CONFIG_ENABLE_WEAVE_TIME_SERVICE_TIME_SYNC
+#if WEAVE_DEVICE_CONFIG_ENABLE_WEAVE_TIME_SERVICE_TIME_SYNC
 
         // Compute the amount of time until the next synchronization event.  If current real time
         // is NOT known, arrange to do time sync immediately.
@@ -185,9 +185,9 @@ void TimeSyncManager::DriveTimeSync()
             mTimeSyncBinding = ExchangeMgr.NewBinding(TimeServiceSync_HandleBindingEvent, NULL);
             VerifyOrExit(mTimeSyncBinding != NULL, err = WEAVE_ERROR_NO_MEMORY);
             err = mTimeSyncBinding->BeginConfiguration()
-                    .Target_ServiceEndpoint(WEAVE_PLATFORM_CONFIG_WEAVE_TIME_SERVICE_ENDPOINT_ID)
+                    .Target_ServiceEndpoint(WEAVE_DEVICE_CONFIG_WEAVE_TIME_SERVICE_ENDPOINT_ID)
                     .Transport_UDP_WRM()
-                    .Exchange_ResponseTimeoutMsec(WEAVE_PLATFORM_CONFIG_TIME_SYNC_TIMEOUT)
+                    .Exchange_ResponseTimeoutMsec(WEAVE_DEVICE_CONFIG_TIME_SYNC_TIMEOUT)
                     .Security_SharedCASESession()
                     .PrepareBinding();
             SuccessOrExit(err);
@@ -199,7 +199,7 @@ void TimeSyncManager::DriveTimeSync()
             SystemLayer.StartTimer((uint32_t)timeToNextSyncMS, DriveTimeSync, NULL);
         }
 
-#endif // WEAVE_PLATFORM_CONFIG_ENABLE_WEAVE_TIME_SERVICE_TIME_SYNC
+#endif // WEAVE_DEVICE_CONFIG_ENABLE_WEAVE_TIME_SERVICE_TIME_SYNC
     }
 
     // Otherwise stop any time sync that might be in progress and cancel the interval timer.
@@ -219,11 +219,11 @@ exit:
 
 void TimeSyncManager::CancelTimeSync()
 {
-#if WEAVE_PLATFORM_CONFIG_ENABLE_SERVICE_DIRECTORY_TIME_SYNC
+#if WEAVE_DEVICE_CONFIG_ENABLE_SERVICE_DIRECTORY_TIME_SYNC
     TimeSyncMgr.mServiceDirTimeSyncStartUS = 0;
 #endif
 
-#if WEAVE_PLATFORM_CONFIG_ENABLE_WEAVE_TIME_SERVICE_TIME_SYNC
+#if WEAVE_DEVICE_CONFIG_ENABLE_WEAVE_TIME_SERVICE_TIME_SYNC
     SystemLayer.CancelTimer(DriveTimeSync, NULL);
     TimeSyncClient.Abort();
     if (mTimeSyncBinding != NULL)
@@ -231,7 +231,7 @@ void TimeSyncManager::CancelTimeSync()
         mTimeSyncBinding->Close();
         mTimeSyncBinding = NULL;
     }
-#endif // WEAVE_PLATFORM_CONFIG_ENABLE_WEAVE_TIME_SERVICE_TIME_SYNC
+#endif // WEAVE_DEVICE_CONFIG_ENABLE_WEAVE_TIME_SERVICE_TIME_SYNC
 }
 
 void TimeSyncManager::ApplySynchronizedTime(uint64_t syncedRealTimeUS)
@@ -285,7 +285,7 @@ void TimeSyncManager::DriveTimeSync(System::Layer * /* unused */, void * /* unus
     TimeSyncMgr.DriveTimeSync();
 }
 
-#if WEAVE_PLATFORM_CONFIG_ENABLE_WEAVE_TIME_SERVICE_TIME_SYNC
+#if WEAVE_DEVICE_CONFIG_ENABLE_WEAVE_TIME_SERVICE_TIME_SYNC
 
 void TimeSyncManager::TimeServiceSync_HandleBindingEvent(void * appState, ::nl::Weave::Binding::EventType eventType,
             const ::nl::Weave::Binding::InEventParam & inParam, ::nl::Weave::Binding::OutEventParam & outParam)
@@ -330,7 +330,7 @@ void TimeSyncManager::TimeServiceSync_HandleSyncComplete(void * context, WEAVE_E
     }
 }
 
-#endif // WEAVE_PLATFORM_CONFIG_ENABLE_WEAVE_TIME_SERVICE_TIME_SYNC
+#endif // WEAVE_DEVICE_CONFIG_ENABLE_WEAVE_TIME_SERVICE_TIME_SYNC
 
 } // namespace Device
 } // namespace Weave

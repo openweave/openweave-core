@@ -40,11 +40,11 @@ WEAVE_ERROR InitServiceTunnelAgent()
 
     new (&ServiceTunnelAgent) WeaveTunnelAgent();
 
-#if WEAVE_PLATFORM_CONFIG_ENABLE_FIXED_TUNNEL_SERVER
+#if WEAVE_DEVICE_CONFIG_ENABLE_FIXED_TUNNEL_SERVER
 
     {
         IPAddress tunnelServerAddr;
-        if (!IPAddress::FromString(WEAVE_PLATFORM_CONFIG_TUNNEL_SERVER_ADDRESS, tunnelServerAddr))
+        if (!IPAddress::FromString(WEAVE_DEVICE_CONFIG_TUNNEL_SERVER_ADDRESS, tunnelServerAddr))
         {
             ESP_LOGE(TAG, "Invalid value specified for TUNNEL_SERVER_ADDRESS config: %s", CONFIG_TUNNEL_SERVER_ADDRESS);
             ExitNow(err = WEAVE_ERROR_INVALID_ARGUMENT);
@@ -57,7 +57,7 @@ WEAVE_ERROR InitServiceTunnelAgent()
         SuccessOrExit(err);
     }
 
-#else // WEAVE_PLATFORM_CONFIG_ENABLE_FIXED_TUNNEL_SERVER
+#else // WEAVE_DEVICE_CONFIG_ENABLE_FIXED_TUNNEL_SERVER
 
 #if !WEAVE_CONFIG_ENABLE_SERVICE_DIRECTORY
 #error "Weave service directory feature not enabled (WEAVE_CONFIG_ENABLE_SERVICE_DIRECTORY)"
@@ -67,7 +67,7 @@ WEAVE_ERROR InitServiceTunnelAgent()
             kWeaveAuthMode_CASE_ServiceEndPoint, &ServiceDirectoryMgr);
     SuccessOrExit(err);
 
-#endif // WEAVE_PLATFORM_CONFIG_ENABLE_FIXED_TUNNEL_SERVER
+#endif // WEAVE_DEVICE_CONFIG_ENABLE_FIXED_TUNNEL_SERVER
 
 exit:
     if (err != WEAVE_NO_ERROR)

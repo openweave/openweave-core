@@ -348,10 +348,10 @@ WEAVE_ERROR PlatformManager::StartEventLoopTask(void)
     BaseType_t res;
 
     res = xTaskCreate(RunEventLoop,
-                WEAVE_PLATFORM_CONFIG_WEAVE_TASK_NAME,
-                WEAVE_PLATFORM_CONFIG_WEAVE_TASK_STACK_SIZE,
+                WEAVE_DEVICE_CONFIG_WEAVE_TASK_NAME,
+                WEAVE_DEVICE_CONFIG_WEAVE_TASK_STACK_SIZE,
                 NULL,
-                ESP_TASK_PRIO_MIN + WEAVE_PLATFORM_CONFIG_WEAVE_TASK_PRIORITY,
+                ESP_TASK_PRIO_MIN + WEAVE_DEVICE_CONFIG_WEAVE_TASK_PRIORITY,
                 NULL);
 
     return (res == pdPASS) ? WEAVE_NO_ERROR : WEAVE_ERROR_NO_MEMORY;
@@ -388,7 +388,7 @@ esp_err_t PlatformManager::HandleESPSystemEvent(void * ctx, system_event_t * esp
 
 WEAVE_ERROR PlatformManager::InitWeaveEventQueue(void)
 {
-    WeaveEventQueue = xQueueCreate(WEAVE_PLATFORM_CONFIG_MAX_EVENT_QUEUE_SIZE, sizeof(WeaveDeviceEvent));
+    WeaveEventQueue = xQueueCreate(WEAVE_DEVICE_CONFIG_MAX_EVENT_QUEUE_SIZE, sizeof(WeaveDeviceEvent));
     if (WeaveEventQueue == NULL)
     {
         ESP_LOGE(TAG, "Failed to allocate Weave event queue");
@@ -463,7 +463,7 @@ void PlatformManager::DispatchEvent(const WeaveDeviceEvent * event)
     uint32_t delta = ((uint32_t)(System::Layer::GetClock_MonotonicHiRes() - startUS)) / 1000;
     if (delta > 100)
     {
-        ESP_LOGE(TAG, "Long dispatch time: %" PRId32 " ms", delta)
+        ESP_LOGE(TAG, "Long dispatch time: %" PRId32 " ms", delta);
     }
 #endif // CONFIG_LOG_DEFAULT_LEVEL >= ESP_LOG_INFO
 }

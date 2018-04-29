@@ -60,7 +60,7 @@ WEAVE_ERROR ServiceProvisioningServer::HandleRegisterServicePairAccount(Register
                 (curServiceId == msg.ServiceId) ? kStatusCode_ServiceAlreadyRegistered : kStatusCode_TooManyServices);
         ExitNow();
     }
-    if (err == WEAVE_PLATFORM_ERROR_CONFIG_NOT_FOUND)
+    if (err == WEAVE_DEVICE_ERROR_CONFIG_NOT_FOUND)
     {
         err = WEAVE_NO_ERROR;
     }
@@ -88,12 +88,12 @@ WEAVE_ERROR ServiceProvisioningServer::HandleRegisterServicePairAccount(Register
         PlatformMgr.PostEvent(&event);
     }
 
-#if !WEAVE_PLATFORM_CONFIG_DISABLE_ACCOUNT_PAIRING
+#if !WEAVE_DEVICE_CONFIG_DISABLE_ACCOUNT_PAIRING
 
     // Initiate the process of sending a PairDeviceToAccount request to the Service Provisioning service.
     PlatformMgr.ScheduleWork(AsyncStartPairDeviceToAccount);
 
-#else // !WEAVE_PLATFORM_CONFIG_DISABLE_ACCOUNT_PAIRING
+#else // !WEAVE_DEVICE_CONFIG_DISABLE_ACCOUNT_PAIRING
 
     // Store the account id in persistent storage.
     err = ConfigurationMgr.StoreAccountId(msg.AccountId, msg.AccountIdLen);
@@ -110,7 +110,7 @@ WEAVE_ERROR ServiceProvisioningServer::HandleRegisterServicePairAccount(Register
     // Send a success StatusReport for the RegisterServicePairDevice request.
     SendSuccessResponse();
 
-#endif // !WEAVE_PLATFORM_CONFIG_DISABLE_ACCOUNT_PAIRING
+#endif // !WEAVE_DEVICE_CONFIG_DISABLE_ACCOUNT_PAIRING
 
 exit:
     return err;
@@ -123,7 +123,7 @@ WEAVE_ERROR ServiceProvisioningServer::HandleUpdateService(UpdateServiceMessage&
 
     // Verify that the service id matches the existing service.  If not respond with "No Such Service".
     err = ConfigurationMgr.GetServiceId(curServiceId);
-    if (err == WEAVE_PLATFORM_ERROR_CONFIG_NOT_FOUND || curServiceId != msg.ServiceId)
+    if (err == WEAVE_DEVICE_ERROR_CONFIG_NOT_FOUND || curServiceId != msg.ServiceId)
     {
         err = ServiceProvisioningSvr.SendStatusReport(kWeaveProfile_ServiceProvisioning, kStatusCode_NoSuchService);
         ExitNow();
@@ -165,7 +165,7 @@ WEAVE_ERROR ServiceProvisioningServer::HandleUnregisterService(uint64_t serviceI
 
     // Verify that the service id matches the existing service.  If not respond with "No Such Service".
     err = ConfigurationMgr.GetServiceId(curServiceId);
-    if (err == WEAVE_PLATFORM_ERROR_CONFIG_NOT_FOUND || curServiceId != serviceId)
+    if (err == WEAVE_DEVICE_ERROR_CONFIG_NOT_FOUND || curServiceId != serviceId)
     {
         err = ServiceProvisioningSvr.SendStatusReport(kWeaveProfile_ServiceProvisioning, kStatusCode_NoSuchService);
         ExitNow();
@@ -191,7 +191,7 @@ bool ServiceProvisioningServer::IsPairedToAccount(void) const
 
 void ServiceProvisioningServer::OnPlatformEvent(const WeaveDeviceEvent * event)
 {
-#if !WEAVE_PLATFORM_CONFIG_DISABLE_ACCOUNT_PAIRING
+#if !WEAVE_DEVICE_CONFIG_DISABLE_ACCOUNT_PAIRING
 
     // If connectivity to the service has been established...
     if (event->Type == WeaveDeviceEvent::kEventType_ServiceConnectivityChange &&
@@ -205,10 +205,10 @@ void ServiceProvisioningServer::OnPlatformEvent(const WeaveDeviceEvent * event)
         }
     }
 
-#endif // !WEAVE_PLATFORM_CONFIG_DISABLE_ACCOUNT_PAIRING
+#endif // !WEAVE_DEVICE_CONFIG_DISABLE_ACCOUNT_PAIRING
 }
 
-#if !WEAVE_PLATFORM_CONFIG_DISABLE_ACCOUNT_PAIRING
+#if !WEAVE_DEVICE_CONFIG_DISABLE_ACCOUNT_PAIRING
 
 void ServiceProvisioningServer::StartPairDeviceToAccount(void)
 {
@@ -219,7 +219,7 @@ void ServiceProvisioningServer::StartPairDeviceToAccount(void)
     {
         mAwaitingServiceConnectivity = true;
 
-        err = SystemLayer.StartTimer(WEAVE_PLATFORM_CONFIG_SERVICE_PROVISIONING_CONNECTIVITY_TIMEOUT,
+        err = SystemLayer.StartTimer(WEAVE_DEVICE_CONFIG_SERVICE_PROVISIONING_CONNECTIVITY_TIMEOUT,
                 HandleConnectivityTimeout,
                 NULL);
         SuccessOrExit(err);
@@ -237,9 +237,9 @@ void ServiceProvisioningServer::StartPairDeviceToAccount(void)
     mProvServiceBinding = ExchangeMgr->NewBinding(HandleProvServiceBindingEvent, NULL);
     VerifyOrExit(mProvServiceBinding != NULL, err = WEAVE_ERROR_NO_MEMORY);
     err = mProvServiceBinding->BeginConfiguration()
-            .Target_ServiceEndpoint(WEAVE_PLATFORM_CONFIG_SERVICE_PROVISIONING_ENDPOINT_ID)
+            .Target_ServiceEndpoint(WEAVE_DEVICE_CONFIG_SERVICE_PROVISIONING_ENDPOINT_ID)
             .Transport_UDP_WRM()
-            .Exchange_ResponseTimeoutMsec(WEAVE_PLATFORM_CONFIG_SERVICE_PROVISIONING_REQUEST_TIMEOUT)
+            .Exchange_ResponseTimeoutMsec(WEAVE_DEVICE_CONFIG_SERVICE_PROVISIONING_REQUEST_TIMEOUT)
             .Security_SharedCASESession()
             .PrepareBinding();
     SuccessOrExit(err);
@@ -402,13 +402,13 @@ void ServiceProvisioningServer::HandleProvServiceBindingEvent(void * appState, B
     }
 }
 
-#else // !WEAVE_PLATFORM_CONFIG_DISABLE_ACCOUNT_PAIRING
+#else // !WEAVE_DEVICE_CONFIG_DISABLE_ACCOUNT_PAIRING
 
 void ServiceProvisioningServer::HandlePairDeviceToAccountResult(WEAVE_ERROR err, uint32_t statusReportProfileId, uint16_t statusReportStatusCode)
 {
 }
 
-#endif // !WEAVE_PLATFORM_CONFIG_DISABLE_ACCOUNT_PAIRING
+#endif // !WEAVE_DEVICE_CONFIG_DISABLE_ACCOUNT_PAIRING
 
 } // namespace Internal
 } // namespace Device

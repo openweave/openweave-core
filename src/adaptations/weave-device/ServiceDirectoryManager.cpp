@@ -41,7 +41,7 @@ ServiceDirectory::WeaveServiceManager ServiceDirectoryMgr;
 
 namespace {
 
-uint8_t ServiceDirectoryCache[WEAVE_PLATFORM_CONFIG_SERVICE_DIRECTORY_CACHE_SIZE];
+uint8_t ServiceDirectoryCache[WEAVE_DEVICE_CONFIG_SERVICE_DIRECTORY_CACHE_SIZE];
 
 extern WEAVE_ERROR GetRootDirectoryEntry(uint8_t *buf, uint16_t bufSize);
 
@@ -58,7 +58,7 @@ WEAVE_ERROR InitServiceDirectoryManager(void)
             ServiceDirectoryCache, sizeof(ServiceDirectoryCache),
             GetRootDirectoryEntry,
             kWeaveAuthMode_CASE_ServiceEndPoint,
-#if WEAVE_PLATFORM_CONFIG_ENABLE_SERVICE_DIRECTORY_TIME_SYNC
+#if WEAVE_DEVICE_CONFIG_ENABLE_SERVICE_DIRECTORY_TIME_SYNC
             TimeSyncManager::MarkServiceDirRequestStart,
             TimeSyncManager::ProcessServiceDirTimeData);
 #else

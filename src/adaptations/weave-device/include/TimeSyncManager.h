@@ -69,7 +69,7 @@ private:
 
     void OnPlatformEvent(const WeaveDeviceEvent * event);
 
-#if WEAVE_PLATFORM_CONFIG_ENABLE_SERVICE_DIRECTORY_TIME_SYNC
+#if WEAVE_DEVICE_CONFIG_ENABLE_SERVICE_DIRECTORY_TIME_SYNC
     static void MarkServiceDirRequestStart();
     static void ProcessServiceDirTimeData(uint64_t timeQueryReceiptMsec, uint32_t timeProcessMsec);
 #endif
@@ -79,10 +79,10 @@ private:
     // NOTE: These members are private to the class and should not be used by friends.
 
     uint64_t mLastSyncTimeMS; // in monotonic time
-#if WEAVE_PLATFORM_CONFIG_ENABLE_SERVICE_DIRECTORY_TIME_SYNC
+#if WEAVE_DEVICE_CONFIG_ENABLE_SERVICE_DIRECTORY_TIME_SYNC
     uint64_t mServiceDirTimeSyncStartUS;
 #endif
-#if WEAVE_PLATFORM_CONFIG_ENABLE_WEAVE_TIME_SERVICE_TIME_SYNC
+#if WEAVE_DEVICE_CONFIG_ENABLE_WEAVE_TIME_SERVICE_TIME_SYNC
     ::nl::Weave::Binding * mTimeSyncBinding;
 #endif
     uint32_t mSyncIntervalSec;
@@ -93,7 +93,7 @@ private:
     void ApplySynchronizedTime(uint64_t syncedRealTimeUS);
     void TimeSyncFailed(WEAVE_ERROR reason, nl::Weave::Profiles::StatusReporting::StatusReport * statusReport);
 
-#if WEAVE_PLATFORM_CONFIG_ENABLE_WEAVE_TIME_SERVICE_TIME_SYNC
+#if WEAVE_DEVICE_CONFIG_ENABLE_WEAVE_TIME_SERVICE_TIME_SYNC
     static void TimeServiceSync_HandleBindingEvent(void * appState, ::nl::Weave::Binding::EventType event,
             const ::nl::Weave::Binding::InEventParam & inParam, ::nl::Weave::Binding::OutEventParam & outParam);
     static void TimeServiceSync_HandleSyncComplete(void * context, WEAVE_ERROR result, int64_t syncedRealTimeUS);

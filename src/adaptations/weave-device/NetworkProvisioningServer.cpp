@@ -89,10 +89,10 @@ void NetworkProvisioningServer::StartPendingScan()
     err = esp_wifi_scan_start(&scanConfig, false);
     SuccessOrExit(err);
 
-#if WEAVE_PLATFORM_CONFIG_WIFI_SCAN_COMPLETION_TIMEOUT
+#if WEAVE_DEVICE_CONFIG_WIFI_SCAN_COMPLETION_TIMEOUT
     // Arm timer in case we never get the scan done event.
-    SystemLayer.StartTimer(WEAVE_PLATFORM_CONFIG_WIFI_SCAN_COMPLETION_TIMEOUT, HandleScanTimeOut, NULL);
-#endif // WEAVE_PLATFORM_CONFIG_WIFI_SCAN_COMPLETION_TIMEOUT
+    SystemLayer.StartTimer(WEAVE_DEVICE_CONFIG_WIFI_SCAN_COMPLETION_TIMEOUT, HandleScanTimeOut, NULL);
+#endif // WEAVE_DEVICE_CONFIG_WIFI_SCAN_COMPLETION_TIMEOUT
 
     mState = kState_ScanNetworks_InProgress;
 
@@ -360,17 +360,17 @@ void NetworkProvisioningServer::HandleScanDone()
 
     mState = kState_Idle;
 
-#if WEAVE_PLATFORM_CONFIG_WIFI_SCAN_COMPLETION_TIMEOUT
+#if WEAVE_DEVICE_CONFIG_WIFI_SCAN_COMPLETION_TIMEOUT
     // Cancel the scan timeout timer.
     SystemLayer.CancelTimer(HandleScanTimeOut, NULL);
-#endif // WEAVE_PLATFORM_CONFIG_WIFI_SCAN_COMPLETION_TIMEOUT
+#endif // WEAVE_DEVICE_CONFIG_WIFI_SCAN_COMPLETION_TIMEOUT
 
     // Determine the number of scan results found.
     err = esp_wifi_scan_get_ap_num(&scanResultCount);
     SuccessOrExit(err);
 
-    // Only return up to WEAVE_PLATFORM_CONFIG_MAX_SCAN_NETWORKS_RESULTS.
-    scanResultCount = min(scanResultCount, (uint16_t)WEAVE_PLATFORM_CONFIG_MAX_SCAN_NETWORKS_RESULTS);
+    // Only return up to WEAVE_DEVICE_CONFIG_MAX_SCAN_NETWORKS_RESULTS.
+    scanResultCount = min(scanResultCount, (uint16_t)WEAVE_DEVICE_CONFIG_MAX_SCAN_NETWORKS_RESULTS);
 
     // Allocate a buffer to hold the scan results array.
     scanResults = (wifi_ap_record_t *)malloc(scanResultCount * sizeof(wifi_ap_record_t));
@@ -472,7 +472,7 @@ void NetworkProvisioningServer::ContinueTestConnectivity(void)
     }
 }
 
-#if WEAVE_PLATFORM_CONFIG_WIFI_SCAN_COMPLETION_TIMEOUT
+#if WEAVE_DEVICE_CONFIG_WIFI_SCAN_COMPLETION_TIMEOUT
 
 void NetworkProvisioningServer::HandleScanTimeOut(::nl::Weave::System::Layer * aLayer, void * aAppState, ::nl::Weave::System::Error aError)
 {
@@ -492,7 +492,7 @@ void NetworkProvisioningServer::HandleScanTimeOut(::nl::Weave::System::Layer * a
     ConnectivityMgr.OnWiFiScanDone();
 }
 
-#endif // WEAVE_PLATFORM_CONFIG_WIFI_SCAN_COMPLETION_TIMEOUT
+#endif // WEAVE_DEVICE_CONFIG_WIFI_SCAN_COMPLETION_TIMEOUT
 
 void NetworkProvisioningServer::HandleConnectivityTimeOut(::nl::Weave::System::Layer * aLayer, void * aAppState, ::nl::Weave::System::Error aError)
 {
@@ -859,7 +859,7 @@ WEAVE_ERROR NetworkProvisioningServer::HandleTestConnectivity(uint32_t networkId
     // with the Internet and arm a timer that will generate an error if connectivity isn't established
     // within a certain amount of time.
     mState = kState_TestConnectivity_WaitConnectivity;
-    SystemLayer.StartTimer(WEAVE_PLATFORM_CONFIG_WIFI_CONNECTIVITY_TIMEOUT, HandleConnectivityTimeOut, NULL);
+    SystemLayer.StartTimer(WEAVE_DEVICE_CONFIG_WIFI_CONNECTIVITY_TIMEOUT, HandleConnectivityTimeOut, NULL);
 
     // Go check for connectivity now.
     ContinueTestConnectivity();

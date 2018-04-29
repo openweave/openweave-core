@@ -133,19 +133,19 @@ WEAVE_ERROR EnsureNamespace(const char * ns);
 
 WEAVE_ERROR ConfigurationManager::GetVendorId(uint16_t& vendorId)
 {
-    vendorId = (uint16_t)WEAVE_PLATFORM_CONFIG_DEVICE_VENDOR_ID;
+    vendorId = (uint16_t)WEAVE_DEVICE_CONFIG_DEVICE_VENDOR_ID;
     return WEAVE_NO_ERROR;
 }
 
 WEAVE_ERROR ConfigurationManager::GetProductId(uint16_t& productId)
 {
-    productId = (uint16_t)WEAVE_PLATFORM_CONFIG_DEVICE_PRODUCT_ID;
+    productId = (uint16_t)WEAVE_DEVICE_CONFIG_DEVICE_PRODUCT_ID;
     return WEAVE_NO_ERROR;
 }
 
 WEAVE_ERROR ConfigurationManager::GetProductRevision(uint16_t& productRev)
 {
-    productRev = (uint16_t)WEAVE_PLATFORM_CONFIG_DEVICE_PRODUCT_REVISION;
+    productRev = (uint16_t)WEAVE_DEVICE_CONFIG_DEVICE_PRODUCT_REVISION;
     return WEAVE_NO_ERROR;
 }
 
@@ -181,18 +181,18 @@ exit:
 
 WEAVE_ERROR ConfigurationManager::GetFirmwareRevision(char * buf, size_t bufSize, size_t & outLen)
 {
-#ifdef WEAVE_PLATFORM_CONFIG_DEVICE_FIRMWARE_REVISION
-    if (WEAVE_PLATFORM_CONFIG_DEVICE_FIRMWARE_REVISION[0] != 0)
+#ifdef WEAVE_DEVICE_CONFIG_DEVICE_FIRMWARE_REVISION
+    if (WEAVE_DEVICE_CONFIG_DEVICE_FIRMWARE_REVISION[0] != 0)
     {
-        outLen = min(bufSize, sizeof(WEAVE_PLATFORM_CONFIG_DEVICE_FIRMWARE_REVISION) - 1);
-        memcpy(buf, WEAVE_PLATFORM_CONFIG_DEVICE_FIRMWARE_REVISION, outLen);
+        outLen = min(bufSize, sizeof(WEAVE_DEVICE_CONFIG_DEVICE_FIRMWARE_REVISION) - 1);
+        memcpy(buf, WEAVE_DEVICE_CONFIG_DEVICE_FIRMWARE_REVISION, outLen);
         return WEAVE_NO_ERROR;
     }
     else
-#endif // WEAVE_PLATFORM_CONFIG_DEVICE_FIRMWARE_REVISION
+#endif // WEAVE_DEVICE_CONFIG_DEVICE_FIRMWARE_REVISION
     {
         outLen = 0;
-        return WEAVE_PLATFORM_ERROR_CONFIG_NOT_FOUND;
+        return WEAVE_DEVICE_ERROR_CONFIG_NOT_FOUND;
     }
 }
 
@@ -240,9 +240,9 @@ WEAVE_ERROR ConfigurationManager::GetDeviceCertificate(uint8_t * buf, size_t buf
 
     err = GetNVS(kNVSNamespace_WeaveFactory, kNVSKeyName_DeviceCert, buf, bufSize, certLen);
 
-#if WEAVE_PLATFORM_CONFIG_ENABLE_TEST_DEVICE_IDENTITY
+#if WEAVE_DEVICE_CONFIG_ENABLE_TEST_DEVICE_IDENTITY
 
-    if (err == WEAVE_PLATFORM_ERROR_CONFIG_NOT_FOUND)
+    if (err == WEAVE_DEVICE_ERROR_CONFIG_NOT_FOUND)
     {
         certLen = TestDeviceCertLength;
         VerifyOrExit(TestDeviceCertLength <= bufSize, err = WEAVE_ERROR_BUFFER_TOO_SMALL);
@@ -251,7 +251,7 @@ WEAVE_ERROR ConfigurationManager::GetDeviceCertificate(uint8_t * buf, size_t buf
         err = WEAVE_NO_ERROR;
     }
 
-#endif // WEAVE_PLATFORM_CONFIG_ENABLE_TEST_DEVICE_IDENTITY
+#endif // WEAVE_DEVICE_CONFIG_ENABLE_TEST_DEVICE_IDENTITY
 
     SuccessOrExit(err);
 
@@ -275,9 +275,9 @@ WEAVE_ERROR ConfigurationManager::GetDevicePrivateKey(uint8_t * buf, size_t bufS
 
     err = GetNVS(kNVSNamespace_WeaveFactory, kNVSKeyName_DevicePrivateKey, buf, bufSize, keyLen);
 
-#if WEAVE_PLATFORM_CONFIG_ENABLE_TEST_DEVICE_IDENTITY
+#if WEAVE_DEVICE_CONFIG_ENABLE_TEST_DEVICE_IDENTITY
 
-    if (err == WEAVE_PLATFORM_ERROR_CONFIG_NOT_FOUND)
+    if (err == WEAVE_DEVICE_ERROR_CONFIG_NOT_FOUND)
     {
         keyLen = TestDevicePrivateKeyLength;
         VerifyOrExit(TestDevicePrivateKeyLength <= bufSize, err = WEAVE_ERROR_BUFFER_TOO_SMALL);
@@ -286,7 +286,7 @@ WEAVE_ERROR ConfigurationManager::GetDevicePrivateKey(uint8_t * buf, size_t bufS
         err = WEAVE_NO_ERROR;
     }
 
-#endif // WEAVE_PLATFORM_CONFIG_ENABLE_TEST_DEVICE_IDENTITY
+#endif // WEAVE_DEVICE_CONFIG_ENABLE_TEST_DEVICE_IDENTITY
 
     SuccessOrExit(err);
 
@@ -519,7 +519,7 @@ exit:
 WEAVE_ERROR ConfigurationManager::GetPersistedCounter(const char * key, uint32_t & value)
 {
     WEAVE_ERROR err = GetNVS(kNVSNamespace_WeaveCounters, key, value);
-    if (err == WEAVE_PLATFORM_ERROR_CONFIG_NOT_FOUND)
+    if (err == WEAVE_DEVICE_ERROR_CONFIG_NOT_FOUND)
     {
         err = WEAVE_ERROR_PERSISTED_STORAGE_VALUE_NOT_FOUND;
     }
@@ -552,7 +552,7 @@ WEAVE_ERROR ConfigurationManager::GetDeviceDescriptor(WeaveDeviceDescriptor & de
     SuccessOrExit(err);
 
     err = GetManufacturingDate(deviceDesc.ManufacturingDate.Year, deviceDesc.ManufacturingDate.Month, deviceDesc.ManufacturingDate.Day);
-    if (err == WEAVE_PLATFORM_ERROR_CONFIG_NOT_FOUND)
+    if (err == WEAVE_DEVICE_ERROR_CONFIG_NOT_FOUND)
     {
         err = WEAVE_NO_ERROR;
     }
@@ -565,14 +565,14 @@ WEAVE_ERROR ConfigurationManager::GetDeviceDescriptor(WeaveDeviceDescriptor & de
     SuccessOrExit(err);
 
     err = GetSerialNumber(deviceDesc.SerialNumber, sizeof(deviceDesc.SerialNumber), outLen);
-    if (err == WEAVE_PLATFORM_ERROR_CONFIG_NOT_FOUND)
+    if (err == WEAVE_DEVICE_ERROR_CONFIG_NOT_FOUND)
     {
         err = WEAVE_NO_ERROR;
     }
     SuccessOrExit(err);
 
     err = GetFirmwareRevision(deviceDesc.SoftwareVersion, sizeof(deviceDesc.SoftwareVersion), outLen);
-    if (err == WEAVE_PLATFORM_ERROR_CONFIG_NOT_FOUND)
+    if (err == WEAVE_DEVICE_ERROR_CONFIG_NOT_FOUND)
     {
         err = WEAVE_NO_ERROR;
     }
@@ -634,7 +634,7 @@ WEAVE_ERROR ConfigurationManager::GetWiFiAPSSID(char * buf, size_t bufSize)
     err = esp_wifi_get_mac(ESP_IF_WIFI_STA, mac);
     SuccessOrExit(err);
 
-    snprintf(buf, bufSize, "%s%02X%02X", WEAVE_PLATFORM_CONFIG_WIFI_AP_SSID_PREFIX, mac[4], mac[5]);
+    snprintf(buf, bufSize, "%s%02X%02X", WEAVE_DEVICE_CONFIG_WIFI_AP_SSID_PREFIX, mac[4], mac[5]);
     buf[bufSize - 1] = 0;
 
 exit:
@@ -700,14 +700,14 @@ WEAVE_ERROR ConfigurationManager::ConfigureWeaveStack()
 
     // Read the device id from NVS.
     err = nvs_get_u64(handle, kNVSKeyName_DeviceId, &FabricState.LocalNodeId);
-#if WEAVE_PLATFORM_CONFIG_ENABLE_TEST_DEVICE_IDENTITY
+#if WEAVE_DEVICE_CONFIG_ENABLE_TEST_DEVICE_IDENTITY
     if (err == ESP_ERR_NVS_NOT_FOUND)
     {
         ESP_LOGI(TAG, "Device id not found in nvs; using hard-coded default: %" PRIX64, TestDeviceId);
         FabricState.LocalNodeId = TestDeviceId;
         err = WEAVE_NO_ERROR;
     }
-#endif // WEAVE_PLATFORM_CONFIG_ENABLE_TEST_DEVICE_IDENTITY
+#endif // WEAVE_DEVICE_CONFIG_ENABLE_TEST_DEVICE_IDENTITY
     SuccessOrExit(err);
 
     // Read the pairing code from NVS.
@@ -824,7 +824,7 @@ WEAVE_ERROR GroupKeyStore::RetrieveGroupKey(uint32_t keyId, WeaveGroupKey & key)
     SuccessOrExit(err);
 
     err = GetNVS(kNVSNamespace_WeaveConfig, keyName, key.Key, sizeof(key.Key), keyLen);
-    if (err == WEAVE_PLATFORM_ERROR_CONFIG_NOT_FOUND)
+    if (err == WEAVE_DEVICE_ERROR_CONFIG_NOT_FOUND)
     {
         err = WEAVE_ERROR_KEY_NOT_FOUND;
     }
@@ -949,7 +949,7 @@ WEAVE_ERROR GroupKeyStore::RetrieveLastUsedEpochKeyId(void)
     WEAVE_ERROR err;
 
     err = GetNVS(kNVSNamespace_WeaveConfig, kNVSKeyName_LastUsedEpochKeyId, LastUsedEpochKeyId);
-    if (err == WEAVE_PLATFORM_ERROR_CONFIG_NOT_FOUND)
+    if (err == WEAVE_DEVICE_ERROR_CONFIG_NOT_FOUND)
     {
         LastUsedEpochKeyId = WeaveKeyId::kNone;
         err = WEAVE_NO_ERROR;
@@ -968,7 +968,7 @@ WEAVE_ERROR GroupKeyStore::Init()
     size_t indexSizeBytes;
 
     err = GetNVS(kNVSNamespace_WeaveConfig, kNVSKeyName_GroupKeyIndex, (uint8_t *)mKeyIndex, sizeof(mKeyIndex), indexSizeBytes);
-    if (err == WEAVE_PLATFORM_ERROR_CONFIG_NOT_FOUND)
+    if (err == WEAVE_DEVICE_ERROR_CONFIG_NOT_FOUND)
     {
         err = WEAVE_NO_ERROR;
         indexSizeBytes = 0;
@@ -1128,7 +1128,7 @@ WEAVE_ERROR GetNVS(const char * ns, const char * name, uint8_t * buf, size_t buf
     if (err == ESP_ERR_NVS_NOT_FOUND)
     {
         outLen = 0;
-        err = WEAVE_PLATFORM_ERROR_CONFIG_NOT_FOUND;
+        err = WEAVE_DEVICE_ERROR_CONFIG_NOT_FOUND;
     }
     else if (err == ESP_ERR_NVS_INVALID_LENGTH)
     {
@@ -1160,7 +1160,7 @@ WEAVE_ERROR GetNVS(const char * ns, const char * name, char * buf, size_t bufSiz
     if (err == ESP_ERR_NVS_NOT_FOUND)
     {
         outLen = 0;
-        err = WEAVE_PLATFORM_ERROR_CONFIG_NOT_FOUND;
+        err = WEAVE_DEVICE_ERROR_CONFIG_NOT_FOUND;
     }
     else if (err == ESP_ERR_NVS_INVALID_LENGTH)
     {
@@ -1192,7 +1192,7 @@ WEAVE_ERROR GetNVS(const char * ns, const char * name, uint32_t & val)
     err = nvs_get_u32(handle, name, &val);
     if (err == ESP_ERR_NVS_NOT_FOUND)
     {
-        err = WEAVE_PLATFORM_ERROR_CONFIG_NOT_FOUND;
+        err = WEAVE_DEVICE_ERROR_CONFIG_NOT_FOUND;
     }
     SuccessOrExit(err);
 
@@ -1217,7 +1217,7 @@ WEAVE_ERROR GetNVS(const char * ns, const char * name, uint64_t & val)
     err = nvs_get_u64(handle, name, &val);
     if (err == ESP_ERR_NVS_NOT_FOUND)
     {
-        err = WEAVE_PLATFORM_ERROR_CONFIG_NOT_FOUND;
+        err = WEAVE_DEVICE_ERROR_CONFIG_NOT_FOUND;
     }
     SuccessOrExit(err);
 
