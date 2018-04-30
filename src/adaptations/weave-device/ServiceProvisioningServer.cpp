@@ -229,6 +229,7 @@ void ServiceProvisioningServer::StartPairDeviceToAccount(void)
     }
 
     mAwaitingServiceConnectivity = false;
+    SystemLayer.CancelTimer(HandleConnectivityTimeout, NULL);
 
     WeaveLogProgress(DeviceLayer, "Initiating communication with Service Provisioning service");
 
@@ -296,19 +297,22 @@ void ServiceProvisioningServer::HandlePairDeviceToAccountResult(WEAVE_ERROR err,
     }
 
     // Return immediately if for some reason the client's RegisterServicePairAccount request
-    // is no longer pending.
+    // is no longer pending.  Note that, even if the PairDeviceToAccount request succeeded,
+    // the device must clear the persisted service configuration in this case because it has
+    // lost access to the account id (which was in the RegisterServicePairAccount message)
+    // and therefore cannot complete the process of registering the service.
     if (mCurClientOp == NULL)
     {
-        ExitNow(err = WEAVE_NO_ERROR);
+        ExitNow(err = WEAVE_ERROR_INCORRECT_STATE);
     }
 
-    // If the PairDeviceToAccount request was successful, send a success StatusReport back
-    // to the client.
+    // If the PairDeviceToAccount request was successful...
     if (err == WEAVE_NO_ERROR)
     {
         const RegisterServicePairAccountMessage & regServiceMsg = mCurClientOpMsg.RegisterServicePairAccount;
 
-        // Store the account id in persistent storage.
+        // Store the account id in persistent storage.  This is the final step of registering a
+        // service and marks that the device is properly associated with a user's account.
         err = ConfigurationMgr.StoreAccountId(regServiceMsg.AccountId, regServiceMsg.AccountIdLen);
         SuccessOrExit(err);
 
@@ -322,6 +326,7 @@ void ServiceProvisioningServer::HandlePairDeviceToAccountResult(WEAVE_ERROR err,
 
         WeaveLogProgress(DeviceLayer, "PairDeviceToAccount request completed successfully");
 
+        // Send a success StatusReport back to the client.
         err = SendSuccessResponse();
         SuccessOrExit(err);
     }
