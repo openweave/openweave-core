@@ -276,7 +276,7 @@ WEAVE_ERROR CASEAuthDelegate::BeginCertValidation(bool isInitiator, WeaveCertifi
                 validTime.Hour, validTime.Minute, validTime.Second);
         SuccessOrExit(err);
         validContext.ValidateFlags |= kValidateFlag_IgnoreNotBefore;
-        ESP_LOGV(TAG, "No real time; Using build time for cert validation");
+        WeaveLogProgress(DeviceLayer, "Real time clock not synchronized; Using build time for cert validation");
     }
     else
     {
@@ -351,11 +351,11 @@ WEAVE_ERROR CASEAuthDelegate::HandleCertValidationResult(bool isInitiator, WEAVE
 
     if (validRes == WEAVE_NO_ERROR)
     {
-        ESP_LOGD(TAG, "Certificate validation completed successfully");
+        WeaveLogProgress(DeviceLayer, "Certificate validation completed successfully");
     }
     else
     {
-        ESP_LOGE(TAG, "Certificate validation failed: %s", nl::ErrorStr(validRes));
+        WeaveLogError(DeviceLayer, "Certificate validation failed: %s", nl::ErrorStr(validRes));
     }
 
     return WEAVE_NO_ERROR;

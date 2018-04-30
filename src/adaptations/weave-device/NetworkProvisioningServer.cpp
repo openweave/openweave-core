@@ -112,7 +112,7 @@ void NetworkProvisioningServer::OnPlatformEvent(const WeaveDeviceEvent * event)
     {
         switch(event->ESPSystemEvent.event_id) {
         case SYSTEM_EVENT_SCAN_DONE:
-            ESP_LOGI(TAG, "SYSTEM_EVENT_SCAN_DONE");
+            WeaveLogProgress(DeviceLayer, "SYSTEM_EVENT_SCAN_DONE");
             HandleScanDone();
             break;
         default:
@@ -195,7 +195,7 @@ WEAVE_ERROR NetworkProvisioningServer::ValidateWiFiStationProvision(
 
     if (netInfo.NetworkType != kNetworkType_WiFi)
     {
-        ESP_LOGE(TAG, "ConnectivityManager: Unsupported WiFi station network type: %d", netInfo.NetworkType);
+        WeaveLogError(DeviceLayer, "ConnectivityManager: Unsupported WiFi station network type: %d", netInfo.NetworkType);
         statusProfileId = kWeaveProfile_NetworkProvisioning;
         statusCode = kStatusCode_UnsupportedNetworkType;
         ExitNow(err = WEAVE_ERROR_INVALID_ARGUMENT);
@@ -203,7 +203,7 @@ WEAVE_ERROR NetworkProvisioningServer::ValidateWiFiStationProvision(
 
     if (netInfo.WiFiSSID[0] == 0)
     {
-        ESP_LOGE(TAG, "ConnectivityManager: Missing WiFi station SSID");
+        WeaveLogError(DeviceLayer, "ConnectivityManager: Missing WiFi station SSID");
         statusProfileId = kWeaveProfile_NetworkProvisioning;
         statusCode = kStatusCode_InvalidNetworkConfiguration;
         ExitNow(err = WEAVE_ERROR_INVALID_ARGUMENT);
@@ -213,11 +213,11 @@ WEAVE_ERROR NetworkProvisioningServer::ValidateWiFiStationProvision(
     {
         if (netInfo.WiFiMode == kWiFiMode_NotSpecified)
         {
-            ESP_LOGE(TAG, "ConnectivityManager: Missing WiFi station mode");
+            WeaveLogError(DeviceLayer, "ConnectivityManager: Missing WiFi station mode");
         }
         else
         {
-            ESP_LOGE(TAG, "ConnectivityManager: Unsupported WiFi station mode: %d", netInfo.WiFiMode);
+            WeaveLogError(DeviceLayer, "ConnectivityManager: Unsupported WiFi station mode: %d", netInfo.WiFiMode);
         }
         statusProfileId = kWeaveProfile_NetworkProvisioning;
         statusCode = kStatusCode_InvalidNetworkConfiguration;
@@ -228,11 +228,11 @@ WEAVE_ERROR NetworkProvisioningServer::ValidateWiFiStationProvision(
     {
         if (netInfo.WiFiRole == kWiFiRole_NotSpecified)
         {
-            ESP_LOGE(TAG, "ConnectivityManager: Missing WiFi station role");
+            WeaveLogError(DeviceLayer, "ConnectivityManager: Missing WiFi station role");
         }
         else
         {
-            ESP_LOGE(TAG, "ConnectivityManager: Unsupported WiFi station role: %d", netInfo.WiFiRole);
+            WeaveLogError(DeviceLayer, "ConnectivityManager: Unsupported WiFi station role: %d", netInfo.WiFiRole);
         }
         statusProfileId = kWeaveProfile_NetworkProvisioning;
         statusCode = kStatusCode_InvalidNetworkConfiguration;
@@ -245,7 +245,7 @@ WEAVE_ERROR NetworkProvisioningServer::ValidateWiFiStationProvision(
         netInfo.WiFiSecurityType != kWiFiSecurityType_WPA2Personal &&
         netInfo.WiFiSecurityType != kWiFiSecurityType_WPA2Enterprise)
     {
-        ESP_LOGE(TAG, "ConnectivityManager: Unsupported WiFi station security type: %d", netInfo.WiFiSecurityType);
+        WeaveLogError(DeviceLayer, "ConnectivityManager: Unsupported WiFi station security type: %d", netInfo.WiFiSecurityType);
         statusProfileId = kWeaveProfile_NetworkProvisioning;
         statusCode = kStatusCode_UnsupportedWiFiSecurityType;
         ExitNow(err = WEAVE_ERROR_INVALID_ARGUMENT);
@@ -253,7 +253,7 @@ WEAVE_ERROR NetworkProvisioningServer::ValidateWiFiStationProvision(
 
     if (netInfo.WiFiSecurityType != kWiFiSecurityType_None && netInfo.WiFiKeyLen == 0)
     {
-        ESP_LOGE(TAG, "NetworkProvisioning: Missing WiFi Key");
+        WeaveLogError(DeviceLayer, "NetworkProvisioning: Missing WiFi Key");
         statusProfileId = kWeaveProfile_NetworkProvisioning;
         statusCode = kStatusCode_InvalidNetworkConfiguration;
         ExitNow(err = WEAVE_ERROR_INVALID_ARGUMENT);
@@ -314,11 +314,11 @@ WEAVE_ERROR NetworkProvisioningServer::SetESPStationConfig(const ::nl::Weave::De
     err = esp_wifi_set_config(ESP_IF_WIFI_STA, &wifiConfig);
     if (err != ESP_OK)
     {
-        ESP_LOGE(TAG, "esp_wifi_set_config() failed: %s", nl::ErrorStr(err));
+        WeaveLogError(DeviceLayer, "esp_wifi_set_config() failed: %s", nl::ErrorStr(err));
     }
     SuccessOrExit(err);
 
-    ESP_LOGI(TAG, "WiFi station provision set (SSID: %s)", netInfo.WiFiSSID);
+    WeaveLogProgress(DeviceLayer, "WiFi station provision set (SSID: %s)", netInfo.WiFiSSID);
 
 exit:
     if (restoreMode)
@@ -326,7 +326,7 @@ exit:
         WEAVE_ERROR setModeErr = esp_wifi_set_mode(wifiMode);
         if (setModeErr != ESP_OK)
         {
-            ESP_LOGE(TAG, "esp_wifi_set_mode() failed: %s", nl::ErrorStr(setModeErr));
+            WeaveLogError(DeviceLayer, "esp_wifi_set_mode() failed: %s", nl::ErrorStr(setModeErr));
         }
     }
     return err;
@@ -476,7 +476,7 @@ void NetworkProvisioningServer::ContinueTestConnectivity(void)
 
 void NetworkProvisioningServer::HandleScanTimeOut(::nl::Weave::System::Layer * aLayer, void * aAppState, ::nl::Weave::System::Error aError)
 {
-    ESP_LOGE(TAG, "WiFi scan timed out");
+    WeaveLogError(DeviceLayer, "WiFi scan timed out");
 
     // Reset the state.
     NetworkProvisioningSvr.mState = kState_Idle;
@@ -496,7 +496,7 @@ void NetworkProvisioningServer::HandleScanTimeOut(::nl::Weave::System::Layer * a
 
 void NetworkProvisioningServer::HandleConnectivityTimeOut(::nl::Weave::System::Layer * aLayer, void * aAppState, ::nl::Weave::System::Error aError)
 {
-    ESP_LOGI(TAG, "Time out waiting for Internet connectivity");
+    WeaveLogError(DeviceLayer, "Time out waiting for Internet connectivity");
 
     // Reset the state.
     NetworkProvisioningSvr.mState = kState_Idle;

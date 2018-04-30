@@ -85,7 +85,7 @@ PlatformResult AddRemoveHostAddress(InterfaceType inInterfaceType, const Inet::I
         err = System::MapErrorLwIP(lwipErr);
         if (err != WEAVE_NO_ERROR)
         {
-            ESP_LOGE(TAG, "netif_add_ip6_address_with_route() failed for %s interface: %s",
+            WeaveLogError(DeviceLayer, "netif_add_ip6_address_with_route() failed for %s interface: %s",
                     WarmInterfaceTypeToStr(inInterfaceType), nl::ErrorStr(err));
             ExitNow();
         }
@@ -96,7 +96,7 @@ PlatformResult AddRemoveHostAddress(InterfaceType inInterfaceType, const Inet::I
         err = System::MapErrorLwIP(lwipErr);
         if (err != WEAVE_NO_ERROR)
         {
-            ESP_LOGE(TAG, "netif_remove_ip6_address_with_route() failed for %s interface: %s",
+            WeaveLogError(DeviceLayer, "netif_remove_ip6_address_with_route() failed for %s interface: %s",
                      WarmInterfaceTypeToStr(inInterfaceType), nl::ErrorStr(err));
             ExitNow();
         }
@@ -111,7 +111,7 @@ PlatformResult AddRemoveHostAddress(InterfaceType inInterfaceType, const Inet::I
         GetInterfaceName(netif, interfaceName, sizeof(interfaceName));
         char ipAddrStr[INET6_ADDRSTRLEN];
         inAddress.ToString(ipAddrStr, sizeof(ipAddrStr));
-        ESP_LOGI(TAG, "%s %s on %s interface (%s): %s/%" PRId8,
+        WeaveLogProgress(DeviceLayer, "%s %s on %s interface (%s): %s/%" PRId8,
                  (inAdd) ? "Adding" : "Removing",
                  CharacterizeIPv6Address(inAddress),
                  WarmInterfaceTypeToStr(inInterfaceType),
@@ -127,7 +127,7 @@ exit:
 
     if (err != WEAVE_NO_ERROR)
     {
-        ESP_LOGE(TAG, "AddRemoveHostAddress() failed: %s", ::nl::ErrorStr(err));
+        WeaveLogError(DeviceLayer, "AddRemoveHostAddress() failed: %s", ::nl::ErrorStr(err));
     }
 
     return (err == WEAVE_NO_ERROR) ? kPlatformResultSuccess : kPlatformResultFailure;
@@ -156,7 +156,7 @@ PlatformResult AddRemoveHostRoute(InterfaceType inInterfaceType, const Inet::IPP
         err = System::MapErrorLwIP(lwipErr);
         if (err != WEAVE_NO_ERROR)
         {
-            ESP_LOGE(TAG, "ip6_add_route_entry() failed for %s interface: %s",
+            WeaveLogError(DeviceLayer, "ip6_add_route_entry() failed for %s interface: %s",
                      WarmInterfaceTypeToStr(inInterfaceType), nl::ErrorStr(err));
             ExitNow();
         }
@@ -176,7 +176,7 @@ PlatformResult AddRemoveHostRoute(InterfaceType inInterfaceType, const Inet::IPP
         char prefixAddrStr[INET6_ADDRSTRLEN];
         inPrefix.IPAddr.ToString(prefixAddrStr, sizeof(prefixAddrStr));
         const char * prefixDesc = CharacterizeIPv6Prefix(inPrefix);
-        ESP_LOGI(TAG, "IPv6 route%s%s %s %s interface (%s): %s/%" PRId8,
+        WeaveLogProgress(DeviceLayer, "IPv6 route%s%s %s %s interface (%s): %s/%" PRId8,
                  (prefixDesc != NULL) ? " for " : "",
                  (prefixDesc != NULL) ? prefixDesc : "",
                  (inAdd) ? "added to" : "removed from",
@@ -193,7 +193,7 @@ exit:
 
     if (err != WEAVE_NO_ERROR)
     {
-        ESP_LOGE(TAG, "AddRemoveHostRoute() failed: %s", ::nl::ErrorStr(err));
+        WeaveLogError(DeviceLayer, "AddRemoveHostRoute() failed: %s", ::nl::ErrorStr(err));
     }
 
     return (err == WEAVE_NO_ERROR) ? kPlatformResultSuccess : kPlatformResultFailure;

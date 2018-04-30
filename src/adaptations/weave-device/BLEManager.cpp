@@ -243,13 +243,13 @@ void BLEManager::OnPlatformEvent(const WeaveDeviceEvent * event)
 
 bool BLEManager::SubscribeCharacteristic(uint16_t conId, const WeaveBleUUID * svcId, const WeaveBleUUID * charId)
 {
-    ESP_LOGI(TAG, "BLEManager::SubscribeCharacteristic() not supported");
+    WeaveLogProgress(DeviceLayer, "BLEManager::SubscribeCharacteristic() not supported");
     return false;
 }
 
 bool BLEManager::UnsubscribeCharacteristic(uint16_t conId, const WeaveBleUUID * svcId, const WeaveBleUUID * charId)
 {
-    ESP_LOGI(TAG, "BLEManager::UnsubscribeCharacteristic() not supported");
+    WeaveLogProgress(DeviceLayer, "BLEManager::UnsubscribeCharacteristic() not supported");
     return false;
 }
 
@@ -257,12 +257,12 @@ bool BLEManager::CloseConnection(uint16_t conId)
 {
     WEAVE_ERROR err;
 
-    ESP_LOGI(TAG, "Closing BLE GATT connection (con %u)", conId);
+    WeaveLogProgress(DeviceLayer, "Closing BLE GATT connection (con %u)", conId);
 
     // Signal the ESP BLE layer to close the conntion.
     err = esp_ble_gatts_close(mAppIf, conId);
     {
-        ESP_LOGE(TAG, "esp_ble_gatts_close() failed: %s", esp_err_to_name(err));
+        WeaveLogError(DeviceLayer, "esp_ble_gatts_close() failed: %s", esp_err_to_name(err));
     }
 
     // Release the associated connection state record.
@@ -296,7 +296,7 @@ bool BLEManager::SendIndication(uint16_t conId, const WeaveBleUUID * svcId, cons
     err = esp_ble_gatts_send_indicate(mAppIf, conId, mTXCharAttrHandle, data->DataLength(), data->Start(), false);
     if (err != WEAVE_NO_ERROR)
     {
-        ESP_LOGE(TAG, "esp_ble_gatts_send_indicate() failed: %s", esp_err_to_name(err));
+        WeaveLogError(DeviceLayer, "esp_ble_gatts_send_indicate() failed: %s", esp_err_to_name(err));
         ExitNow();
     }
 
@@ -308,7 +308,7 @@ bool BLEManager::SendIndication(uint16_t conId, const WeaveBleUUID * svcId, cons
 exit:
     if (err != WEAVE_NO_ERROR)
     {
-        ESP_LOGE(TAG, "BLEManager::SendIndication() failed: %s", ErrorStr(err));
+        WeaveLogError(DeviceLayer, "BLEManager::SendIndication() failed: %s", ErrorStr(err));
         PacketBuffer::Free(data);
         return false;
     }
@@ -317,19 +317,19 @@ exit:
 
 bool BLEManager::SendWriteRequest(uint16_t conId, const WeaveBleUUID * svcId, const WeaveBleUUID * charId, PacketBuffer * pBuf)
 {
-    ESP_LOGE(TAG, "BLEManager::SendWriteRequest() not supported");
+    WeaveLogError(DeviceLayer, "BLEManager::SendWriteRequest() not supported");
     return false;
 }
 
 bool BLEManager::SendReadRequest(uint16_t conId, const WeaveBleUUID * svcId, const WeaveBleUUID * charId, PacketBuffer * pBuf)
 {
-    ESP_LOGE(TAG, "BLEManager::SendReadRequest() not supported");
+    WeaveLogError(DeviceLayer, "BLEManager::SendReadRequest() not supported");
     return false;
 }
 
 bool BLEManager::SendReadResponse(uint16_t conId, BLE_READ_REQUEST_CONTEXT requestContext, const WeaveBleUUID * svcId, const WeaveBleUUID * charId)
 {
-    ESP_LOGE(TAG, "BLEManager::SendReadResponse() not supported");
+    WeaveLogError(DeviceLayer, "BLEManager::SendReadResponse() not supported");
     return false;
 }
 
@@ -357,7 +357,7 @@ void BLEManager::DriveBLEState(void)
         err = esp_ble_gatts_app_register(WoBLEAppId);
         if (err != WEAVE_NO_ERROR)
         {
-            ESP_LOGE(TAG, "esp_ble_gatts_app_register() failed: %s", esp_err_to_name(err));
+            WeaveLogError(DeviceLayer, "esp_ble_gatts_app_register() failed: %s", esp_err_to_name(err));
             ExitNow();
         }
 
@@ -372,7 +372,7 @@ void BLEManager::DriveBLEState(void)
         err = esp_ble_gatts_create_attr_tab(WoBLEGATTAttrs, mAppIf, WoBLEGATTAttrCount, 0);
         if (err != WEAVE_NO_ERROR)
         {
-            ESP_LOGE(TAG, "esp_ble_gatts_create_attr_tab() failed: %s", esp_err_to_name(err));
+            WeaveLogError(DeviceLayer, "esp_ble_gatts_create_attr_tab() failed: %s", esp_err_to_name(err));
             ExitNow();
         }
 
@@ -387,7 +387,7 @@ void BLEManager::DriveBLEState(void)
         err = esp_ble_gatts_start_service(mServiceAttrHandle);
         if (err != WEAVE_NO_ERROR)
         {
-            ESP_LOGE(TAG, "esp_ble_gatts_start_service() failed: %s", esp_err_to_name(err));
+            WeaveLogError(DeviceLayer, "esp_ble_gatts_start_service() failed: %s", esp_err_to_name(err));
             ExitNow();
         }
 
@@ -422,7 +422,7 @@ void BLEManager::DriveBLEState(void)
             err = esp_ble_gap_stop_advertising();
             if (err != WEAVE_NO_ERROR)
             {
-                ESP_LOGE(TAG, "esp_ble_gap_stop_advertising() failed: %s", esp_err_to_name(err));
+                WeaveLogError(DeviceLayer, "esp_ble_gap_stop_advertising() failed: %s", esp_err_to_name(err));
                 ExitNow();
             }
 
@@ -440,7 +440,7 @@ void BLEManager::DriveBLEState(void)
         err = esp_ble_gatts_stop_service(mServiceAttrHandle);
         if (err != WEAVE_NO_ERROR)
         {
-            ESP_LOGE(TAG, "esp_ble_gatts_stop_service() failed: %s", esp_err_to_name(err));
+            WeaveLogError(DeviceLayer, "esp_ble_gatts_stop_service() failed: %s", esp_err_to_name(err));
             ExitNow();
         }
 
@@ -452,7 +452,7 @@ void BLEManager::DriveBLEState(void)
 exit:
     if (err != WEAVE_NO_ERROR)
     {
-        ESP_LOGE(TAG, "Disabling WoBLE service due to error: %s", ErrorStr(err));
+        WeaveLogError(DeviceLayer, "Disabling WoBLE service due to error: %s", ErrorStr(err));
         mServiceMode = ConnectivityManager::kWoBLEServiceMode_Disabled;
     }
 }
@@ -470,7 +470,7 @@ WEAVE_ERROR BLEManager::InitESPBleLayer(void)
         err = esp_bt_controller_mem_release(ESP_BT_MODE_CLASSIC_BT);
         if (err != WEAVE_NO_ERROR)
         {
-            ESP_LOGE(TAG, "esp_bt_controller_mem_release() failed: %s", esp_err_to_name(err));
+            WeaveLogError(DeviceLayer, "esp_bt_controller_mem_release() failed: %s", esp_err_to_name(err));
             ExitNow();
         }
 
@@ -479,7 +479,7 @@ WEAVE_ERROR BLEManager::InitESPBleLayer(void)
         err = esp_bt_controller_init(&bt_cfg);
         if (err != WEAVE_NO_ERROR)
         {
-            ESP_LOGE(TAG, "esp_bt_controller_init() failed: %s", esp_err_to_name(err));
+            WeaveLogError(DeviceLayer, "esp_bt_controller_init() failed: %s", esp_err_to_name(err));
             ExitNow();
         }
     }
@@ -490,7 +490,7 @@ WEAVE_ERROR BLEManager::InitESPBleLayer(void)
         err = esp_bt_controller_enable(ESP_BT_MODE_BLE);
         if (err != WEAVE_NO_ERROR)
         {
-            ESP_LOGE(TAG, "esp_bt_controller_enable() failed: %s", esp_err_to_name(err));
+            WeaveLogError(DeviceLayer, "esp_bt_controller_enable() failed: %s", esp_err_to_name(err));
             ExitNow();
         }
     }
@@ -501,7 +501,7 @@ WEAVE_ERROR BLEManager::InitESPBleLayer(void)
         err = esp_bluedroid_init();
         if (err != WEAVE_NO_ERROR)
         {
-            ESP_LOGE(TAG, "esp_bluedroid_init() failed: %s", esp_err_to_name(err));
+            WeaveLogError(DeviceLayer, "esp_bluedroid_init() failed: %s", esp_err_to_name(err));
             ExitNow();
         }
     }
@@ -512,7 +512,7 @@ WEAVE_ERROR BLEManager::InitESPBleLayer(void)
         err = esp_bluedroid_enable();
         if (err != WEAVE_NO_ERROR)
         {
-            ESP_LOGE(TAG, "esp_bluedroid_enable() failed: %s", esp_err_to_name(err));
+            WeaveLogError(DeviceLayer, "esp_bluedroid_enable() failed: %s", esp_err_to_name(err));
             ExitNow();
         }
     }
@@ -521,7 +521,7 @@ WEAVE_ERROR BLEManager::InitESPBleLayer(void)
     err = esp_ble_gatts_register_callback(HandleGATTEvent);
     if (err != WEAVE_NO_ERROR)
     {
-        ESP_LOGE(TAG, "esp_ble_gatts_register_callback() failed: %s", esp_err_to_name(err));
+        WeaveLogError(DeviceLayer, "esp_ble_gatts_register_callback() failed: %s", esp_err_to_name(err));
         ExitNow();
     }
 
@@ -529,14 +529,14 @@ WEAVE_ERROR BLEManager::InitESPBleLayer(void)
     err = esp_ble_gap_register_callback(HandleGAPEvent);
     if (err != WEAVE_NO_ERROR)
     {
-        ESP_LOGE(TAG, "esp_ble_gap_register_callback() failed: %s", esp_err_to_name(err));
+        WeaveLogError(DeviceLayer, "esp_ble_gap_register_callback() failed: %s", esp_err_to_name(err));
         ExitNow();
     }
 
     // Set the maximum supported MTU size.
     err = esp_ble_gatt_set_local_mtu(ESP_GATT_MAX_MTU_SIZE);
     if (err != WEAVE_NO_ERROR){
-        ESP_LOGE(TAG, "esp_ble_gatt_set_local_mtu() failed: %s", esp_err_to_name(err));
+        WeaveLogError(DeviceLayer, "esp_ble_gatt_set_local_mtu() failed: %s", esp_err_to_name(err));
     }
     SuccessOrExit(err);
 
@@ -566,7 +566,7 @@ WEAVE_ERROR BLEManager::ConfigureAdvertisingData(void)
     err = esp_ble_gap_set_device_name(mDeviceName);
     if (err != WEAVE_NO_ERROR)
     {
-        ESP_LOGE(TAG, "esp_ble_gap_set_device_name() failed: %s", esp_err_to_name(err));
+        WeaveLogError(DeviceLayer, "esp_ble_gap_set_device_name() failed: %s", esp_err_to_name(err));
         ExitNow();
     }
 
@@ -588,7 +588,7 @@ WEAVE_ERROR BLEManager::ConfigureAdvertisingData(void)
     err = esp_ble_gap_config_adv_data(&advertData);
     if (err != WEAVE_NO_ERROR)
     {
-        ESP_LOGE(TAG, "esp_ble_gap_config_adv_data(<advertising data>) failed: %s", esp_err_to_name(err));
+        WeaveLogError(DeviceLayer, "esp_ble_gap_config_adv_data(<advertising data>) failed: %s", esp_err_to_name(err));
         ExitNow();
     }
 
@@ -621,7 +621,7 @@ WEAVE_ERROR BLEManager::ConfigureAdvertisingData(void)
     err = esp_ble_gap_config_adv_data(&advertData);
     if (err != WEAVE_NO_ERROR)
     {
-        ESP_LOGE(TAG, "esp_ble_gap_config_adv_data(<scan response>) failed: %s", esp_err_to_name(err));
+        WeaveLogError(DeviceLayer, "esp_ble_gap_config_adv_data(<scan response>) failed: %s", esp_err_to_name(err));
         ExitNow();
     }
 
@@ -657,7 +657,7 @@ WEAVE_ERROR BLEManager::StartAdvertising(void)
         ? WEAVE_DEVICE_CONFIG_BLE_FAST_ADVERTISING_INTERVAL
         : WEAVE_DEVICE_CONFIG_BLE_SLOW_ADVERTISING_INTERVAL;
 
-    ESP_LOGI(TAG, "Configuring BLE advertising (interval %" PRIu32 " ms, %sconnectable, device name %s)",
+    WeaveLogProgress(DeviceLayer, "Configuring BLE advertising (interval %" PRIu32 " ms, %sconnectable, device name %s)",
              (((uint32_t)advertParams.adv_int_min) * 10) / 16,
              (connectable) ? "" : "non-",
              mDeviceName);
@@ -665,7 +665,7 @@ WEAVE_ERROR BLEManager::StartAdvertising(void)
     err = esp_ble_gap_start_advertising(&advertParams);
     if (err != WEAVE_NO_ERROR)
     {
-        ESP_LOGE(TAG, "esp_ble_gap_start_advertising() failed: %s", esp_err_to_name(err));
+        WeaveLogError(DeviceLayer, "esp_ble_gap_start_advertising() failed: %s", esp_err_to_name(err));
         ExitNow();
     }
 
@@ -694,7 +694,7 @@ void BLEManager::HandleGATTControlEvent(esp_gatts_cb_event_t event, esp_gatt_if_
         {
             if (param->reg.status != ESP_GATT_OK)
             {
-                ESP_LOGE(TAG, "ESP_GATTS_REG_EVT error: %d", (int)param->reg.status);
+                WeaveLogError(DeviceLayer, "ESP_GATTS_REG_EVT error: %d", (int)param->reg.status);
                 ExitNow(err = ESP_ERR_INVALID_RESPONSE);
             }
 
@@ -711,7 +711,7 @@ void BLEManager::HandleGATTControlEvent(esp_gatts_cb_event_t event, esp_gatt_if_
 
         if (param->add_attr_tab.status != ESP_GATT_OK)
         {
-            ESP_LOGE(TAG, "ESP_GATTS_CREAT_ATTR_TAB_EVT error: %d", (int)param->add_attr_tab.status);
+            WeaveLogError(DeviceLayer, "ESP_GATTS_CREAT_ATTR_TAB_EVT error: %d", (int)param->add_attr_tab.status);
             ExitNow(err = ESP_ERR_INVALID_RESPONSE);
         }
 
@@ -730,11 +730,11 @@ void BLEManager::HandleGATTControlEvent(esp_gatts_cb_event_t event, esp_gatt_if_
 
         if (param->start.status != ESP_GATT_OK)
         {
-            ESP_LOGE(TAG, "ESP_GATTS_START_EVT error: %d", (int)param->start.status);
+            WeaveLogError(DeviceLayer, "ESP_GATTS_START_EVT error: %d", (int)param->start.status);
             ExitNow(err = ESP_ERR_INVALID_RESPONSE);
         }
 
-        ESP_LOGI(TAG, "WoBLE GATT service started");
+        WeaveLogProgress(DeviceLayer, "WoBLE GATT service started");
 
         SetFlag(mFlags, kFlag_GATTServiceStarted);
         controlOpComplete = true;
@@ -746,11 +746,11 @@ void BLEManager::HandleGATTControlEvent(esp_gatts_cb_event_t event, esp_gatt_if_
 
         if (param->stop.status != ESP_GATT_OK)
         {
-            ESP_LOGE(TAG, "ESP_GATTS_STOP_EVT error: %d", (int)param->stop.status);
+            WeaveLogError(DeviceLayer, "ESP_GATTS_STOP_EVT error: %d", (int)param->stop.status);
             ExitNow(err = ESP_ERR_INVALID_RESPONSE);
         }
 
-        ESP_LOGI(TAG, "WoBLE GATT service stopped");
+        WeaveLogProgress(DeviceLayer, "WoBLE GATT service stopped");
 
         ClearFlag(mFlags, kFlag_GATTServiceStarted);
         controlOpComplete = true;
@@ -769,7 +769,7 @@ void BLEManager::HandleGATTControlEvent(esp_gatts_cb_event_t event, esp_gatt_if_
 exit:
     if (err != WEAVE_NO_ERROR)
     {
-        ESP_LOGE(TAG, "Disabling WoBLE service due to error: %s", ErrorStr(err));
+        WeaveLogError(DeviceLayer, "Disabling WoBLE service due to error: %s", ErrorStr(err));
         mServiceMode = ConnectivityManager::kWoBLEServiceMode_Disabled;
     }
     if (controlOpComplete)
@@ -791,7 +791,7 @@ void BLEManager::HandleGATTCommEvent(esp_gatts_cb_event_t event, esp_gatt_if_t g
     switch (event)
     {
     case ESP_GATTS_CONNECT_EVT:
-        ESP_LOGI(TAG, "BLE GATT connection established (con %u)", param->connect.conn_id);
+        WeaveLogProgress(DeviceLayer, "BLE GATT connection established (con %u)", param->connect.conn_id);
 
         // Allocate a connection state record for the new connection.
         GetConnectionState(param->mtu.conn_id, true);
@@ -892,7 +892,7 @@ void BLEManager::HandleRXCharWrite(esp_ble_gatts_cb_param_t * param)
 exit:
     if (err != WEAVE_NO_ERROR)
     {
-        ESP_LOGE(TAG, "HandleRXCharWrite() failed: %s", ErrorStr(err));
+        WeaveLogError(DeviceLayer, "HandleRXCharWrite() failed: %s", ErrorStr(err));
         if (needResp)
         {
             esp_ble_gatts_send_response(mAppIf, param->write.conn_id, param->write.trans_id, ESP_GATT_INTERNAL_ERROR, NULL);
@@ -915,7 +915,7 @@ void BLEManager::HandleTXCharRead(esp_ble_gatts_cb_param_t * param)
     err = esp_ble_gatts_send_response(mAppIf, param->read.conn_id, param->read.trans_id, ESP_GATT_OK, &rsp);
     if (err != WEAVE_NO_ERROR)
     {
-        ESP_LOGE(TAG, "esp_ble_gatts_send_response() failed: %s", esp_err_to_name(err));
+        WeaveLogError(DeviceLayer, "esp_ble_gatts_send_response() failed: %s", esp_err_to_name(err));
     }
 }
 
@@ -941,7 +941,7 @@ void BLEManager::HandleTXCharCCCDRead(esp_ble_gatts_cb_param_t * param)
     err = esp_ble_gatts_send_response(mAppIf, param->read.conn_id, param->read.trans_id, (conState != NULL) ? ESP_GATT_OK : ESP_GATT_INTERNAL_ERROR, &rsp);
     if (err != WEAVE_NO_ERROR)
     {
-        ESP_LOGE(TAG, "esp_ble_gatts_send_response() failed: %s", esp_err_to_name(err));
+        WeaveLogError(DeviceLayer, "esp_ble_gatts_send_response() failed: %s", esp_err_to_name(err));
     }
 }
 
@@ -980,12 +980,12 @@ void BLEManager::HandleTXCharCCCDWrite(esp_ble_gatts_cb_param_t * param)
         PlatformMgr.PostEvent(&event);
     }
 
-    ESP_LOGI(TAG, "WoBLE %s received", indicationsEnabled ? "subscribe" : "unsubscribe");
+    WeaveLogProgress(DeviceLayer, "WoBLE %s received", indicationsEnabled ? "subscribe" : "unsubscribe");
 
 exit:
     if (err != WEAVE_NO_ERROR)
     {
-        ESP_LOGE(TAG, "HandleTXCharCCCDWrite() failed: %s", ErrorStr(err));
+        WeaveLogError(DeviceLayer, "HandleTXCharCCCDWrite() failed: %s", ErrorStr(err));
         if (needResp)
         {
             esp_ble_gatts_send_response(mAppIf, param->write.conn_id, param->write.trans_id, ESP_GATT_INTERNAL_ERROR, NULL);
@@ -1024,7 +1024,7 @@ void BLEManager::HandleTXCharConfirm(WoBLEConState * conState, esp_ble_gatts_cb_
 
 void BLEManager::HandleDisconnect(esp_ble_gatts_cb_param_t * param)
 {
-    ESP_LOGI(TAG, "BLE GATT connection closed (con %u, reason %u)", param->disconnect.conn_id, param->disconnect.reason);
+    WeaveLogProgress(DeviceLayer, "BLE GATT connection closed (con %u, reason %u)", param->disconnect.conn_id, param->disconnect.reason);
 
     // If this was a WoBLE connection, release the associated connection state record
     // and post an event to deliver a connection error to the WoBLE layer.
@@ -1084,7 +1084,7 @@ BLEManager::WoBLEConState * BLEManager::GetConnectionState(uint16_t conId, bool 
             return &mCons[freeIndex];
         }
 
-        ESP_LOGE(TAG, "Failed to allocate WoBLEConState");
+        WeaveLogError(DeviceLayer, "Failed to allocate WoBLEConState");
     }
 
     return NULL;
@@ -1149,7 +1149,7 @@ void BLEManager::HandleGAPEvent(esp_gap_ble_cb_event_t event, esp_ble_gap_cb_par
 
         if (param->adv_data_cmpl.status != ESP_BT_STATUS_SUCCESS)
         {
-            ESP_LOGE(TAG, "ESP_GAP_BLE_ADV_DATA_SET_COMPLETE_EVT error: %d", (int)param->adv_data_cmpl.status);
+            WeaveLogError(DeviceLayer, "ESP_GAP_BLE_ADV_DATA_SET_COMPLETE_EVT error: %d", (int)param->adv_data_cmpl.status);
             ExitNow(err = ESP_ERR_INVALID_RESPONSE);
         }
 
@@ -1162,11 +1162,11 @@ void BLEManager::HandleGAPEvent(esp_gap_ble_cb_event_t event, esp_ble_gap_cb_par
 
         if (param->adv_start_cmpl.status != ESP_BT_STATUS_SUCCESS)
         {
-            ESP_LOGE(TAG, "ESP_GAP_BLE_ADV_START_COMPLETE_EVT error: %d", (int)param->adv_start_cmpl.status);
+            WeaveLogError(DeviceLayer, "ESP_GAP_BLE_ADV_START_COMPLETE_EVT error: %d", (int)param->adv_start_cmpl.status);
             ExitNow(err = ESP_ERR_INVALID_RESPONSE);
         }
 
-        ESP_LOGI(TAG, "BLE advertising started");
+        WeaveLogProgress(DeviceLayer, "BLE advertising started");
 
         SetFlag(BLEMgr.mFlags, kFlag_Advertising);
         ClearFlag(BLEMgr.mFlags, kFlag_ControlOpInProgress);
@@ -1177,11 +1177,11 @@ void BLEManager::HandleGAPEvent(esp_gap_ble_cb_event_t event, esp_ble_gap_cb_par
 
         if (param->adv_stop_cmpl.status != ESP_BT_STATUS_SUCCESS)
         {
-            ESP_LOGE(TAG, "ESP_GAP_BLE_ADV_STOP_COMPLETE_EVT error: %d", (int)param->adv_stop_cmpl.status);
+            WeaveLogError(DeviceLayer, "ESP_GAP_BLE_ADV_STOP_COMPLETE_EVT error: %d", (int)param->adv_stop_cmpl.status);
             ExitNow(err = ESP_ERR_INVALID_RESPONSE);
         }
 
-        ESP_LOGI(TAG, "BLE advertising stopped");
+        WeaveLogProgress(DeviceLayer, "BLE advertising stopped");
 
         ClearFlag(BLEMgr.mFlags, kFlag_Advertising);
         ClearFlag(BLEMgr.mFlags, kFlag_ControlOpInProgress);
@@ -1195,7 +1195,7 @@ void BLEManager::HandleGAPEvent(esp_gap_ble_cb_event_t event, esp_ble_gap_cb_par
 exit:
     if (err != WEAVE_NO_ERROR)
     {
-        ESP_LOGE(TAG, "Disabling WoBLE service due to error: %s", ErrorStr(err));
+        WeaveLogError(DeviceLayer, "Disabling WoBLE service due to error: %s", ErrorStr(err));
         BLEMgr.mServiceMode = ConnectivityManager::kWoBLEServiceMode_Disabled;
     }
     PlatformMgr.ScheduleWork(Internal::BLEMgr.DriveBLEState, 0);

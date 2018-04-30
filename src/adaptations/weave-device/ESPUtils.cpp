@@ -33,7 +33,7 @@ WEAVE_ERROR ESPUtils::IsAPEnabled(bool & apEnabled)
     err = esp_wifi_get_mode(&curWiFiMode);
     if (err != ESP_OK)
     {
-        ESP_LOGE(TAG, "esp_wifi_get_mode() failed: %s", nl::ErrorStr(err));
+        WeaveLogError(DeviceLayer, "esp_wifi_get_mode() failed: %s", nl::ErrorStr(err));
         return err;
     }
 
@@ -80,12 +80,12 @@ WEAVE_ERROR ESPUtils::StartWiFiLayer(void)
 
     if (!wifiStarted)
     {
-        ESP_LOGI(TAG, "Starting ESP WiFi layer");
+        WeaveLogProgress(DeviceLayer, "Starting ESP WiFi layer");
 
         err = esp_wifi_start();
         if (err != ESP_OK)
         {
-            ESP_LOGE(TAG, "esp_wifi_start() failed: %s", nl::ErrorStr(err));
+            WeaveLogError(DeviceLayer, "esp_wifi_start() failed: %s", nl::ErrorStr(err));
         }
     }
 
@@ -102,7 +102,7 @@ WEAVE_ERROR ESPUtils::EnableStationMode(void)
     err = esp_wifi_get_mode(&curWiFiMode);
     if (err != ESP_OK)
     {
-        ESP_LOGE(TAG, "esp_wifi_get_mode() failed: %s", nl::ErrorStr(err));
+        WeaveLogError(DeviceLayer, "esp_wifi_get_mode() failed: %s", nl::ErrorStr(err));
     }
     SuccessOrExit(err);
 
@@ -110,12 +110,12 @@ WEAVE_ERROR ESPUtils::EnableStationMode(void)
     // the mode to WIFI_MODE_APSTA.
     if (curWiFiMode == WIFI_MODE_AP)
     {
-        ESP_LOGI(TAG, "Changing ESP WiFi mode: %s -> %s", WiFiModeToStr(WIFI_MODE_AP), WiFiModeToStr(WIFI_MODE_APSTA));
+        WeaveLogProgress(DeviceLayer, "Changing ESP WiFi mode: %s -> %s", WiFiModeToStr(WIFI_MODE_AP), WiFiModeToStr(WIFI_MODE_APSTA));
 
         err = esp_wifi_set_mode(WIFI_MODE_APSTA);
         if (err != ESP_OK)
         {
-            ESP_LOGE(TAG, "esp_wifi_set_mode() failed: %s", nl::ErrorStr(err));
+            WeaveLogError(DeviceLayer, "esp_wifi_set_mode() failed: %s", nl::ErrorStr(err));
         }
         SuccessOrExit(err);
     }
@@ -135,7 +135,7 @@ WEAVE_ERROR ESPUtils::SetAPMode(bool enabled)
     err = esp_wifi_get_mode(&curWiFiMode);
     if (err != ESP_OK)
     {
-        ESP_LOGE(TAG, "esp_wifi_get_mode() failed: %s", nl::ErrorStr(err));
+        WeaveLogError(DeviceLayer, "esp_wifi_get_mode() failed: %s", nl::ErrorStr(err));
     }
     SuccessOrExit(err);
 
@@ -143,12 +143,12 @@ WEAVE_ERROR ESPUtils::SetAPMode(bool enabled)
     // the mode to WIFI_MODE_APSTA.
     if (true /* curWiFiMode != targetWiFiMode */)
     {
-        ESP_LOGI(TAG, "Changing ESP WiFi mode: %s -> %s", WiFiModeToStr(curWiFiMode), WiFiModeToStr(targetWiFiMode));
+        WeaveLogProgress(DeviceLayer, "Changing ESP WiFi mode: %s -> %s", WiFiModeToStr(curWiFiMode), WiFiModeToStr(targetWiFiMode));
 
         err = esp_wifi_set_mode(targetWiFiMode);
         if (err != ESP_OK)
         {
-            ESP_LOGE(TAG, "esp_wifi_set_mode() failed: %s", nl::ErrorStr(err));
+            WeaveLogError(DeviceLayer, "esp_wifi_set_mode() failed: %s", nl::ErrorStr(err));
         }
         SuccessOrExit(err);
     }

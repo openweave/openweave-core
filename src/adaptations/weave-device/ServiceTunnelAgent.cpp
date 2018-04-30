@@ -46,7 +46,7 @@ WEAVE_ERROR InitServiceTunnelAgent()
         IPAddress tunnelServerAddr;
         if (!IPAddress::FromString(WEAVE_DEVICE_CONFIG_TUNNEL_SERVER_ADDRESS, tunnelServerAddr))
         {
-            ESP_LOGE(TAG, "Invalid value specified for TUNNEL_SERVER_ADDRESS config: %s", CONFIG_TUNNEL_SERVER_ADDRESS);
+            WeaveLogError(DeviceLayer, "Invalid value specified for TUNNEL_SERVER_ADDRESS config: %s", CONFIG_TUNNEL_SERVER_ADDRESS);
             ExitNow(err = WEAVE_ERROR_INVALID_ARGUMENT);
         }
 
@@ -72,7 +72,7 @@ WEAVE_ERROR InitServiceTunnelAgent()
 exit:
     if (err != WEAVE_NO_ERROR)
     {
-        ESP_LOGE(TAG, "InitServiceTunnelAgent() failed: %s", ErrorStr(err));
+        WeaveLogError(DeviceLayer, "InitServiceTunnelAgent() failed: %s", ErrorStr(err));
     }
     return err;
 }

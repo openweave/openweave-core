@@ -130,7 +130,7 @@ void TimeSyncManager::ProcessServiceDirTimeData(uint64_t serverRealTimeMS, uint3
         // Mark the end time of the request using the hi-res clock.
         uint64_t timeSyncEndUS = System::Layer::GetClock_MonotonicHiRes();
 
-        ESP_LOGI(TAG, "Time sync with service directory complete");
+        WeaveLogProgress(DeviceLayer, "Time sync with service directory complete");
 
         // Use the information from the directory server response to compute an approximation of
         // the current real time.
@@ -177,7 +177,7 @@ void TimeSyncManager::DriveTimeSync()
             // Make sure there's no time sync in progress.
             CancelTimeSync();
 
-            ESP_LOGI(TAG, "Starting time sync with Weave time server");
+            WeaveLogProgress(DeviceLayer, "Starting time sync with Weave time server");
 
             // Create and prepare a binding for talking to the time server endpoint.
             // This will result in a callback to HandleTimeServerSyncBindingEvent when
@@ -258,7 +258,7 @@ void TimeSyncManager::ApplySynchronizedTime(uint64_t syncedRealTimeUS)
         }
         else
         {
-            ESP_LOGE(TAG, "SetClock_RealTime() failed: %s", ErrorStr(err));
+            WeaveLogError(DeviceLayer, "SetClock_RealTime() failed: %s", ErrorStr(err));
         }
     }
 
@@ -268,7 +268,7 @@ void TimeSyncManager::ApplySynchronizedTime(uint64_t syncedRealTimeUS)
 
 void TimeSyncManager::TimeSyncFailed(WEAVE_ERROR reason, Profiles::StatusReporting::StatusReport * statusReport)
 {
-    ESP_LOGE(TAG, "Time sync failed: %s",
+    WeaveLogError(DeviceLayer, "Time sync failed: %s",
              (reason == WEAVE_ERROR_STATUS_REPORT_RECEIVED && statusReport != NULL)
              ? StatusReportStr(statusReport->mProfileId, statusReport->mStatusCode)
              : ErrorStr(reason));
@@ -320,7 +320,7 @@ void TimeSyncManager::TimeServiceSync_HandleSyncComplete(void * context, WEAVE_E
 {
     if (result == WEAVE_NO_ERROR)
     {
-        ESP_LOGI(TAG, "Time sync with time service complete");
+        WeaveLogProgress(DeviceLayer, "Time sync with time service complete");
         TimeSyncMgr.ApplySynchronizedTime((uint64_t)syncedRealTimeUS);
         TimeSyncMgr.DriveTimeSync();
     }

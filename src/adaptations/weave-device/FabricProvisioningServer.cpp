@@ -50,7 +50,7 @@ WEAVE_ERROR FabricProvisioningServer::HandleCreateFabric(void)
     err = ConfigurationMgr.StoreFabricId(::nl::Weave::Device::FabricState.FabricId);
     SuccessOrExit(err);
 
-    ESP_LOGI(TAG, "Weave fabric created; fabric id %016" PRIX64, ::nl::Weave::Device::FabricState.FabricId);
+    WeaveLogProgress(DeviceLayer, "Weave fabric created; fabric id %016" PRIX64, ::nl::Weave::Device::FabricState.FabricId);
 
     {
         WeaveDeviceEvent event;
@@ -73,7 +73,7 @@ WEAVE_ERROR FabricProvisioningServer::HandleJoinExistingFabric(void)
     err = ConfigurationMgr.StoreFabricId(::nl::Weave::Device::FabricState.FabricId);
     SuccessOrExit(err);
 
-    ESP_LOGI(TAG, "Join existing Weave fabric; fabric id %016" PRIX64, ::nl::Weave::Device::FabricState.FabricId);
+    WeaveLogProgress(DeviceLayer, "Join existing Weave fabric; fabric id %016" PRIX64, ::nl::Weave::Device::FabricState.FabricId);
 
     {
         WeaveDeviceEvent event;
@@ -93,7 +93,7 @@ WEAVE_ERROR FabricProvisioningServer::HandleLeaveFabric(void)
 {
     WEAVE_ERROR err;
 
-    ESP_LOGI(TAG, "Leave Weave fabric");
+    WeaveLogProgress(DeviceLayer, "Leave Weave fabric");
 
     err = ConfigurationMgr.StoreFabricId(kFabricIdNotSpecified);
     SuccessOrExit(err);

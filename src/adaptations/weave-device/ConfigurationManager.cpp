@@ -246,7 +246,7 @@ WEAVE_ERROR ConfigurationManager::GetDeviceCertificate(uint8_t * buf, size_t buf
     {
         certLen = TestDeviceCertLength;
         VerifyOrExit(TestDeviceCertLength <= bufSize, err = WEAVE_ERROR_BUFFER_TOO_SMALL);
-        ESP_LOGI(TAG, "Device certificate not found in nvs; using default");
+        WeaveLogProgress(DeviceLayer, "Device certificate not found in nvs; using default");
         memcpy(buf, TestDeviceCert, TestDeviceCertLength);
         err = WEAVE_NO_ERROR;
     }
@@ -281,7 +281,7 @@ WEAVE_ERROR ConfigurationManager::GetDevicePrivateKey(uint8_t * buf, size_t bufS
     {
         keyLen = TestDevicePrivateKeyLength;
         VerifyOrExit(TestDevicePrivateKeyLength <= bufSize, err = WEAVE_ERROR_BUFFER_TOO_SMALL);
-        ESP_LOGI(TAG, "Device private key not found in nvs; using default");
+        WeaveLogProgress(DeviceLayer, "Device private key not found in nvs; using default");
         memcpy(buf, TestDevicePrivateKey, TestDevicePrivateKeyLength);
         err = WEAVE_NO_ERROR;
     }
@@ -677,7 +677,7 @@ WEAVE_ERROR ConfigurationManager::Init()
     if (GetNVS(kNVSNamespace_WeaveConfig, kNVSKeyName_FailSafeArmed, failSafeArmed) == WEAVE_NO_ERROR &&
         failSafeArmed != 0)
     {
-        ESP_LOGI(TAG, "Detected fail-safe armed on reboot; initiating factory reset");
+        WeaveLogProgress(DeviceLayer, "Detected fail-safe armed on reboot; initiating factory reset");
         InitiateFactoryReset();
     }
     err = WEAVE_NO_ERROR;
@@ -703,7 +703,7 @@ WEAVE_ERROR ConfigurationManager::ConfigureWeaveStack()
 #if WEAVE_DEVICE_CONFIG_ENABLE_TEST_DEVICE_IDENTITY
     if (err == ESP_ERR_NVS_NOT_FOUND)
     {
-        ESP_LOGI(TAG, "Device id not found in nvs; using hard-coded default: %" PRIX64, TestDeviceId);
+        WeaveLogProgress(DeviceLayer, "Device id not found in nvs; using hard-coded default: %" PRIX64, TestDeviceId);
         FabricState.LocalNodeId = TestDeviceId;
         err = WEAVE_NO_ERROR;
     }
@@ -716,7 +716,7 @@ WEAVE_ERROR ConfigurationManager::ConfigureWeaveStack()
 #ifdef CONFIG_USE_TEST_PAIRING_CODE
     if (CONFIG_USE_TEST_PAIRING_CODE[0] != 0 && err == ESP_ERR_NVS_NOT_FOUND)
     {
-        ESP_LOGI(TAG, "Pairing code not found in nvs; using hard-coded default: %s", CONFIG_USE_TEST_PAIRING_CODE);
+        WeaveLogProgress(DeviceLayer, "Pairing code not found in nvs; using hard-coded default: %s", CONFIG_USE_TEST_PAIRING_CODE);
         memcpy(mPairingCode, CONFIG_USE_TEST_PAIRING_CODE, min(sizeof(mPairingCode) - 1, sizeof(CONFIG_USE_TEST_PAIRING_CODE)));
         mPairingCode[sizeof(mPairingCode) - 1] = 0;
         err = WEAVE_NO_ERROR;
@@ -789,24 +789,24 @@ void ConfigurationManager::DoFactoryReset(intptr_t arg)
 {
     WEAVE_ERROR err;
 
-    ESP_LOGI(TAG, "Performing factory reset");
+    WeaveLogProgress(DeviceLayer, "Performing factory reset");
 
     // Erase all values in the weave-config NVS namespace.
     err = ClearNVSNamespace(kNVSNamespace_WeaveConfig);
     if (err != WEAVE_NO_ERROR)
     {
-        ESP_LOGE(TAG, "ClearNVSNamespace(WeaveConfig) failed: %s", nl::ErrorStr(err));
+        WeaveLogError(DeviceLayer, "ClearNVSNamespace(WeaveConfig) failed: %s", nl::ErrorStr(err));
     }
 
     // Restore WiFi persistent settings to default values.
     err = esp_wifi_restore();
     if (err != ESP_OK)
     {
-        ESP_LOGE(TAG, "esp_wifi_restore() failed: %s", nl::ErrorStr(err));
+        WeaveLogError(DeviceLayer, "esp_wifi_restore() failed: %s", nl::ErrorStr(err));
     }
 
     // Restart the system.
-    ESP_LOGI(TAG, "System restarting");
+    WeaveLogProgress(DeviceLayer, "System restarting");
     esp_restart();
 }
 
@@ -872,18 +872,18 @@ WEAVE_ERROR GroupKeyStore::StoreGroupKey(const WeaveGroupKey & key)
     {
         if (WeaveKeyId::IsAppEpochKey(key.KeyId))
         {
-            ESP_LOGI(TAG, "GroupKeyStore: storing epoch key %s/%s (key len %" PRId8 ", start time %" PRIu32 ")",
+            WeaveLogProgress(DeviceLayer, "GroupKeyStore: storing epoch key %s/%s (key len %" PRId8 ", start time %" PRIu32 ")",
                     kNVSNamespace_WeaveConfig, keyName, key.KeyLen, key.StartTime);
         }
         else if (WeaveKeyId::IsAppGroupMasterKey(key.KeyId))
         {
-            ESP_LOGI(TAG, "GroupKeyStore: storing app master key %s/%s (key len %" PRId8 ", global id 0x%" PRIX32 ")",
+            WeaveLogProgress(DeviceLayer, "GroupKeyStore: storing app master key %s/%s (key len %" PRId8 ", global id 0x%" PRIX32 ")",
                     kNVSNamespace_WeaveConfig, keyName, key.KeyLen, key.GlobalId);
         }
         else
         {
             const char * keyType = (WeaveKeyId::IsAppRootKey(key.KeyId)) ? "root": "general";
-            ESP_LOGI(TAG, "GroupKeyStore: storing %s key %s/%s (key len %" PRId8 ")", keyType, kNVSNamespace_WeaveConfig, keyName, key.KeyLen);
+            WeaveLogProgress(DeviceLayer, "GroupKeyStore: storing %s key %s/%s (key len %" PRId8 ")", keyType, kNVSNamespace_WeaveConfig, keyName, key.KeyLen);
         }
     }
 
@@ -1006,7 +1006,7 @@ exit:
 
 WEAVE_ERROR GroupKeyStore::WriteKeyIndex(nvs_handle handle)
 {
-    ESP_LOGI(TAG, "GroupKeyStore: writing key index %s/%s (num keys %" PRIu8 ")", kNVSNamespace_WeaveConfig, kNVSKeyName_GroupKeyIndex, mNumKeys);
+    WeaveLogProgress(DeviceLayer, "GroupKeyStore: writing key index %s/%s (num keys %" PRIu8 ")", kNVSNamespace_WeaveConfig, kNVSKeyName_GroupKeyIndex, mNumKeys);
     return nvs_set_blob(handle, kNVSKeyName_GroupKeyIndex, mKeyIndex, mNumKeys * sizeof(uint32_t));
 }
 
@@ -1055,7 +1055,7 @@ WEAVE_ERROR GroupKeyStore::DeleteKeyOrKeys(uint32_t targetKeyId, uint32_t target
                 {
                     keyType = "general";
                 }
-                ESP_LOGI(TAG, "GroupKeyStore: erasing %s key %s/%s", keyType, kNVSNamespace_WeaveConfig, keyName);
+                WeaveLogProgress(DeviceLayer, "GroupKeyStore: erasing %s key %s/%s", keyType, kNVSNamespace_WeaveConfig, keyName);
             }
             else if (err == ESP_ERR_NVS_NOT_FOUND)
             {
@@ -1248,7 +1248,7 @@ WEAVE_ERROR StoreNVS(const char * ns, const char * name, const uint8_t * data, s
         err = nvs_commit(handle);
         SuccessOrExit(err);
 
-        ESP_LOGI(TAG, "StoreNVS: %s/%s = (blob length %" PRId32 ")", ns, name, dataLen);
+        WeaveLogProgress(DeviceLayer, "StoreNVS: %s/%s = (blob length %" PRId32 ")", ns, name, dataLen);
     }
 
     else
@@ -1285,7 +1285,7 @@ WEAVE_ERROR StoreNVS(const char * ns, const char * name, const char * data)
         err = nvs_commit(handle);
         SuccessOrExit(err);
 
-        ESP_LOGI(TAG, "StoreNVS: %s/%s = \"%s\"", ns, name, data);
+        WeaveLogProgress(DeviceLayer, "StoreNVS: %s/%s = \"%s\"", ns, name, data);
     }
 
     else
@@ -1320,7 +1320,7 @@ WEAVE_ERROR StoreNVS(const char * ns, const char * name, uint32_t val)
     err = nvs_commit(handle);
     SuccessOrExit(err);
 
-    ESP_LOGI(TAG, "StoreNVS: %s/%s = %" PRIu32 " (0x%" PRIX32 ")", ns, name, val, val);
+    WeaveLogProgress(DeviceLayer, "StoreNVS: %s/%s = %" PRIu32 " (0x%" PRIX32 ")", ns, name, val, val);
 
 exit:
     if (needClose)
@@ -1348,7 +1348,7 @@ WEAVE_ERROR StoreNVS(const char * ns, const char * name, uint64_t val)
     err = nvs_commit(handle);
     SuccessOrExit(err);
 
-    ESP_LOGI(TAG, "StoreNVS: %s/%s = %" PRIu64 " (0x%" PRIX64 ")", ns, name, val, val);
+    WeaveLogProgress(DeviceLayer, "StoreNVS: %s/%s = %" PRIu64 " (0x%" PRIX64 ")", ns, name, val, val);
 
 exit:
     if (needClose)
@@ -1380,7 +1380,7 @@ WEAVE_ERROR ClearNVSKey(const char * ns, const char * name)
     err = nvs_commit(handle);
     SuccessOrExit(err);
 
-    ESP_LOGI(TAG, "ClearNVSKey: %s/%s", ns, name);
+    WeaveLogProgress(DeviceLayer, "ClearNVSKey: %s/%s", ns, name);
 
 exit:
     if (needClose)

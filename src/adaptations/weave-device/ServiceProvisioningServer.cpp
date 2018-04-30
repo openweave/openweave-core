@@ -73,7 +73,7 @@ WEAVE_ERROR ServiceProvisioningServer::HandleRegisterServicePairAccount(Register
         ExitNow();
     }
 
-    ESP_LOGI(TAG, "Registering new service: %" PRIx64 " (account id %*s)", msg.ServiceId, (int)msg.AccountIdLen, msg.AccountId);
+    WeaveLogProgress(DeviceLayer, "Registering new service: %" PRIx64 " (account id %*s)", msg.ServiceId, (int)msg.AccountIdLen, msg.AccountId);
 
     // Store the service id and the service config in persistent storage.
     err = ConfigurationMgr.StoreServiceProvisioningData(msg.ServiceId, msg.ServiceConfig, msg.ServiceConfigLen, NULL, 0);
@@ -225,12 +225,12 @@ void ServiceProvisioningServer::StartPairDeviceToAccount(void)
         SuccessOrExit(err);
         ExitNow();
 
-        ESP_LOGI(TAG, "Waiting for service connectivity to complete RegisterServicePairDevice action");
+        WeaveLogProgress(DeviceLayer, "Waiting for service connectivity to complete RegisterServicePairDevice action");
     }
 
     mAwaitingServiceConnectivity = false;
 
-    ESP_LOGI(TAG, "Initiating communication with Service Provisioning service");
+    WeaveLogProgress(DeviceLayer, "Initiating communication with Service Provisioning service");
 
     // Create a binding and begin the process of preparing it for talking to the Service Provisioning
     // service. When this completes HandleProvServiceBindingEvent will be called with a BindingReady event.
@@ -270,7 +270,7 @@ void ServiceProvisioningServer::SendPairDeviceToAccountRequest(void)
     // were received in the Register Service message.  For Device Init Data, pass the encoded device
     // descriptor.  Finally, pass the id of the Weave fabric for which the device is a member.
     //
-    ESP_LOGI(TAG, "Sending PairDeviceToAccount request to Service Provisioning service");
+    WeaveLogProgress(DeviceLayer, "Sending PairDeviceToAccount request to Service Provisioning service");
     err = ServerBaseClass::SendPairDeviceToAccountRequest(mProvServiceBinding,
             regServiceMsg.ServiceId, FabricState->FabricId,
             regServiceMsg.AccountId, regServiceMsg.AccountIdLen,
@@ -320,7 +320,7 @@ void ServiceProvisioningServer::HandlePairDeviceToAccountResult(WEAVE_ERROR err,
             PlatformMgr.PostEvent(&event);
         }
 
-        ESP_LOGI(TAG, "PairDeviceToAccount request completed successfully");
+        WeaveLogProgress(DeviceLayer, "PairDeviceToAccount request completed successfully");
 
         err = SendSuccessResponse();
         SuccessOrExit(err);
@@ -330,7 +330,7 @@ exit:
 
     if (err != WEAVE_NO_ERROR)
     {
-        ESP_LOGE(TAG, "PairDeviceToAccount request failed with %s: %s",
+        WeaveLogError(DeviceLayer, "PairDeviceToAccount request failed with %s: %s",
                  (err == WEAVE_ERROR_STATUS_REPORT_RECEIVED) ? "status report from service" : "local error",
                  (err == WEAVE_ERROR_STATUS_REPORT_RECEIVED)
                   ? ::nl::StatusReportStr(statusReportProfileId, statusReportStatusCode)

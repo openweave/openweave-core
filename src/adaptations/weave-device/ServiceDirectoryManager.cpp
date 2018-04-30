@@ -66,7 +66,7 @@ WEAVE_ERROR InitServiceDirectoryManager(void)
 #endif
     if (err != WEAVE_NO_ERROR)
     {
-        ESP_LOGE(TAG, "ServiceDirectoryMgr.init() failed: %s", ErrorStr(err));
+        WeaveLogError(DeviceLayer, "ServiceDirectoryMgr.init() failed: %s", ErrorStr(err));
     }
 
     return err;

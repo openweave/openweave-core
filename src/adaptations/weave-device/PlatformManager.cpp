@@ -71,13 +71,13 @@ WEAVE_ERROR PlatformManager::InitLocks(void)
 {
     WeaveStackLock = xSemaphoreCreateMutex();
     if (WeaveStackLock == NULL) {
-        ESP_LOGE(TAG, "Failed to create Weave stack lock");
+        WeaveLogError(DeviceLayer, "Failed to create Weave stack lock");
         return WEAVE_ERROR_NO_MEMORY;
     }
 
     LwIPCoreLock = xSemaphoreCreateMutex();
     if (LwIPCoreLock == NULL) {
-        ESP_LOGE(TAG, "Failed to create LwIP core lock");
+        WeaveLogError(DeviceLayer, "Failed to create LwIP core lock");
         return WEAVE_ERROR_NO_MEMORY;
     }
 
@@ -101,7 +101,7 @@ WEAVE_ERROR PlatformManager::InitWeaveStack(void)
     err = ConfigurationMgr.Init();
     if (err != WEAVE_NO_ERROR)
     {
-        ESP_LOGE(TAG, "Configuration Manager initialization failed: %s", ErrorStr(err));
+        WeaveLogError(DeviceLayer, "Configuration Manager initialization failed: %s", ErrorStr(err));
     }
     SuccessOrExit(err);
 
@@ -110,7 +110,7 @@ WEAVE_ERROR PlatformManager::InitWeaveStack(void)
     err = SystemLayer.Init(NULL);
     if (err != WEAVE_SYSTEM_NO_ERROR)
     {
-        ESP_LOGE(TAG, "SystemLayer initialization failed: %s", ErrorStr(err));
+        WeaveLogError(DeviceLayer, "SystemLayer initialization failed: %s", ErrorStr(err));
     }
     SuccessOrExit(err);
 
@@ -119,7 +119,7 @@ WEAVE_ERROR PlatformManager::InitWeaveStack(void)
     err = InetLayer.Init(SystemLayer, NULL);
     if (err != INET_NO_ERROR)
     {
-        ESP_LOGE(TAG, "InetLayer initialization failed: %s", ErrorStr(err));
+        WeaveLogError(DeviceLayer, "InetLayer initialization failed: %s", ErrorStr(err));
     }
     SuccessOrExit(err);
 
@@ -128,7 +128,7 @@ WEAVE_ERROR PlatformManager::InitWeaveStack(void)
     err = BLEMgr.Init();
     if (err != WEAVE_NO_ERROR)
     {
-        ESP_LOGE(TAG, "BLEManager initialization failed: %s", ErrorStr(err));
+        WeaveLogError(DeviceLayer, "BLEManager initialization failed: %s", ErrorStr(err));
     }
     SuccessOrExit(err);
 
@@ -137,7 +137,7 @@ WEAVE_ERROR PlatformManager::InitWeaveStack(void)
     err = FabricState.Init();
     if (err != WEAVE_NO_ERROR)
     {
-        ESP_LOGE(TAG, "FabricState initialization failed: %s", ErrorStr(err));
+        WeaveLogError(DeviceLayer, "FabricState initialization failed: %s", ErrorStr(err));
     }
     SuccessOrExit(err);
 
@@ -161,7 +161,7 @@ WEAVE_ERROR PlatformManager::InitWeaveStack(void)
         new (&MessageLayer) WeaveMessageLayer();
         err = MessageLayer.Init(&initContext);
         if (err != WEAVE_NO_ERROR) {
-            ESP_LOGE(TAG, "MessageLayer initialization failed: %s", ErrorStr(err));
+            WeaveLogError(DeviceLayer, "MessageLayer initialization failed: %s", ErrorStr(err));
         }
         SuccessOrExit(err);
     }
@@ -169,7 +169,7 @@ WEAVE_ERROR PlatformManager::InitWeaveStack(void)
     // Initialize the Weave exchange manager.
     err = ExchangeMgr.Init(&MessageLayer);
     if (err != WEAVE_NO_ERROR) {
-        ESP_LOGE(TAG, "ExchangeMgr initialization failed: %s", ErrorStr(err));
+        WeaveLogError(DeviceLayer, "ExchangeMgr initialization failed: %s", ErrorStr(err));
     }
     SuccessOrExit(err);
 
@@ -177,7 +177,7 @@ WEAVE_ERROR PlatformManager::InitWeaveStack(void)
     new (&SecurityMgr) WeaveSecurityManager();
     err = SecurityMgr.Init(ExchangeMgr, SystemLayer);
     if (err != WEAVE_NO_ERROR) {
-        ESP_LOGE(TAG, "SecurityMgr initialization failed: %s", ErrorStr(err));
+        WeaveLogError(DeviceLayer, "SecurityMgr initialization failed: %s", ErrorStr(err));
     }
     SuccessOrExit(err);
 
@@ -201,7 +201,7 @@ WEAVE_ERROR PlatformManager::InitWeaveStack(void)
     err = ConfigurationMgr.ConfigureWeaveStack();
     if (err != WEAVE_NO_ERROR)
     {
-        ESP_LOGE(TAG, "ConfigureWeaveStack failed: %s", ErrorStr(err));
+        WeaveLogError(DeviceLayer, "ConfigureWeaveStack failed: %s", ErrorStr(err));
     }
     SuccessOrExit(err);
 
@@ -210,7 +210,7 @@ WEAVE_ERROR PlatformManager::InitWeaveStack(void)
     err = ConnectivityMgr.Init();
     if (err != WEAVE_NO_ERROR)
     {
-        ESP_LOGE(TAG, "Connectivity Manager initialization failed: %s", ErrorStr(err));
+        WeaveLogError(DeviceLayer, "Connectivity Manager initialization failed: %s", ErrorStr(err));
     }
     SuccessOrExit(err);
 
@@ -219,7 +219,7 @@ WEAVE_ERROR PlatformManager::InitWeaveStack(void)
     err = DeviceControlSvr.Init();
     if (err != WEAVE_NO_ERROR)
     {
-        ESP_LOGE(TAG, "Weave Device Control server initialization failed: %s", ErrorStr(err));
+        WeaveLogError(DeviceLayer, "Weave Device Control server initialization failed: %s", ErrorStr(err));
     }
     SuccessOrExit(err);
 
@@ -228,7 +228,7 @@ WEAVE_ERROR PlatformManager::InitWeaveStack(void)
     err = DeviceDescriptionSvr.Init();
     if (err != WEAVE_NO_ERROR)
     {
-        ESP_LOGE(TAG, "Weave Device Control server initialization failed: %s", ErrorStr(err));
+        WeaveLogError(DeviceLayer, "Weave Device Control server initialization failed: %s", ErrorStr(err));
     }
     SuccessOrExit(err);
 
@@ -237,7 +237,7 @@ WEAVE_ERROR PlatformManager::InitWeaveStack(void)
     err = NetworkProvisioningSvr.Init();
     if (err != WEAVE_NO_ERROR)
     {
-        ESP_LOGE(TAG, "Weave Network Provisioning server initialization failed: %s", ErrorStr(err));
+        WeaveLogError(DeviceLayer, "Weave Network Provisioning server initialization failed: %s", ErrorStr(err));
     }
     SuccessOrExit(err);
 
@@ -246,7 +246,7 @@ WEAVE_ERROR PlatformManager::InitWeaveStack(void)
     err = FabricProvisioningSvr.Init();
     if (err != WEAVE_NO_ERROR)
     {
-        ESP_LOGE(TAG, "Weave Fabric Provisioning server initialization failed: %s", ErrorStr(err));
+        WeaveLogError(DeviceLayer, "Weave Fabric Provisioning server initialization failed: %s", ErrorStr(err));
     }
     SuccessOrExit(err);
 
@@ -255,7 +255,7 @@ WEAVE_ERROR PlatformManager::InitWeaveStack(void)
     err = ServiceProvisioningSvr.Init();
     if (err != WEAVE_NO_ERROR)
     {
-        ESP_LOGE(TAG, "Weave Service Provisioning server initialization failed: %s", ErrorStr(err));
+        WeaveLogError(DeviceLayer, "Weave Service Provisioning server initialization failed: %s", ErrorStr(err));
     }
     SuccessOrExit(err);
 
@@ -264,7 +264,7 @@ WEAVE_ERROR PlatformManager::InitWeaveStack(void)
     err = EchoSvr.Init();
     if (err != WEAVE_NO_ERROR)
     {
-        ESP_LOGE(TAG, "Weave Echo server initialization failed: %s", ErrorStr(err));
+        WeaveLogError(DeviceLayer, "Weave Echo server initialization failed: %s", ErrorStr(err));
     }
     SuccessOrExit(err);
 
@@ -273,7 +273,7 @@ WEAVE_ERROR PlatformManager::InitWeaveStack(void)
     err = TimeSyncMgr.Init();
     if (err != WEAVE_NO_ERROR)
     {
-        ESP_LOGE(TAG, "Time Sync Manager initialization failed: %s", ErrorStr(err));
+        WeaveLogError(DeviceLayer, "Time Sync Manager initialization failed: %s", ErrorStr(err));
     }
     SuccessOrExit(err);
 
@@ -391,7 +391,7 @@ WEAVE_ERROR PlatformManager::InitWeaveEventQueue(void)
     WeaveEventQueue = xQueueCreate(WEAVE_DEVICE_CONFIG_MAX_EVENT_QUEUE_SIZE, sizeof(WeaveDeviceEvent));
     if (WeaveEventQueue == NULL)
     {
-        ESP_LOGE(TAG, "Failed to allocate Weave event queue");
+        WeaveLogError(DeviceLayer, "Failed to allocate Weave event queue");
         return WEAVE_ERROR_NO_MEMORY;
     }
 
@@ -404,7 +404,7 @@ void PlatformManager::PostEvent(const WeaveDeviceEvent * event)
     {
         if (!xQueueSend(WeaveEventQueue, event, 1))
         {
-            ESP_LOGE(TAG, "Failed to post event to Weave Platform event queue");
+            WeaveLogError(DeviceLayer, "Failed to post event to Weave Platform event queue");
         }
     }
 }
@@ -423,7 +423,7 @@ void PlatformManager::DispatchEvent(const WeaveDeviceEvent * event)
         err = SystemLayer.HandleEvent(*event->WeaveSystemLayerEvent.Target, event->WeaveSystemLayerEvent.Type, event->WeaveSystemLayerEvent.Argument);
         if (err != WEAVE_SYSTEM_NO_ERROR)
         {
-            ESP_LOGE(TAG, "Error handling Weave System Layer event (type %d): %s", event->Type, nl::ErrorStr(err));
+            WeaveLogError(DeviceLayer, "Error handling Weave System Layer event (type %d): %s", event->Type, nl::ErrorStr(err));
         }
     }
 
@@ -463,7 +463,7 @@ void PlatformManager::DispatchEvent(const WeaveDeviceEvent * event)
     uint32_t delta = ((uint32_t)(System::Layer::GetClock_MonotonicHiRes() - startUS)) / 1000;
     if (delta > 100)
     {
-        ESP_LOGE(TAG, "Long dispatch time: %" PRId32 " ms", delta);
+        WeaveLogError(DeviceLayer, "Long dispatch time: %" PRId32 " ms", delta);
     }
 #endif // CONFIG_LOG_DEFAULT_LEVEL >= ESP_LOG_INFO
 }
@@ -497,7 +497,7 @@ void PlatformManager::RunEventLoop(void * /* unused */)
                 // that have expired.
                 err = SystemLayer.HandlePlatformTimer();
                 if (err != WEAVE_SYSTEM_NO_ERROR) {
-                    ESP_LOGE(TAG, "Error handling Weave timers: %s", ErrorStr(err));
+                    WeaveLogError(DeviceLayer, "Error handling Weave timers: %s", ErrorStr(err));
                 }
 
                 // When processing the event queue below, do not wait if the queue is empty.  Instead
@@ -558,7 +558,7 @@ void PlatformManager::HandleSessionEstablished(WeaveSecurityManager * sm, WeaveC
 
     if (event.SessionEstablished.IsCommissioner)
     {
-        ESP_LOGI(TAG, "Commissioner session established");
+        WeaveLogProgress(DeviceLayer, "Commissioner session established");
     }
 }
 
@@ -639,7 +639,7 @@ System::Error PostEvent(System::Layer & aLayer, void * aContext, System::Object 
     event.WeaveSystemLayerEvent.Argument = aArgument;
 
     if (!xQueueSend(WeaveEventQueue, &event, 1)) {
-        ESP_LOGE(TAG, "Failed to post event to Weave Platform event queue");
+        WeaveLogError(DeviceLayer, "Failed to post event to Weave Platform event queue");
         err = WEAVE_ERROR_NO_MEMORY;
     }
 

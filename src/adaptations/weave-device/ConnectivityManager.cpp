@@ -104,7 +104,7 @@ WEAVE_ERROR ConnectivityManager::SetWiFiStationMode(WiFiStationMode val)
 
     if (mWiFiStationMode != val)
     {
-        ESP_LOGI(TAG, "WiFi station mode change: %s -> %s", WiFiStationModeToStr(mWiFiStationMode), WiFiStationModeToStr(val));
+        WeaveLogProgress(DeviceLayer, "WiFi station mode change: %s -> %s", WiFiStationModeToStr(mWiFiStationMode), WiFiStationModeToStr(val));
     }
 
     mWiFiStationMode = val;
@@ -140,7 +140,7 @@ WEAVE_ERROR ConnectivityManager::SetWiFiAPMode(WiFiAPMode val)
 
     if (mWiFiAPMode != val)
     {
-        ESP_LOGI(TAG, "WiFi AP mode change: %s -> %s", WiFiAPModeToStr(mWiFiAPMode), WiFiAPModeToStr(val));
+        WeaveLogProgress(DeviceLayer, "WiFi AP mode change: %s -> %s", WiFiAPModeToStr(mWiFiAPMode), WiFiAPModeToStr(val));
     }
 
     mWiFiAPMode = val;
@@ -270,7 +270,7 @@ WEAVE_ERROR ConnectivityManager::Init()
         // If the code has been compiled with a default WiFi station provision, configure that now.
         if (CONFIG_DEFAULT_WIFI_SSID[0] != 0)
         {
-            ESP_LOGI(TAG, "Setting default WiFi station configuration (SSID: %s)", CONFIG_DEFAULT_WIFI_SSID);
+            WeaveLogProgress(DeviceLayer, "Setting default WiFi station configuration (SSID: %s)", CONFIG_DEFAULT_WIFI_SSID);
 
             // Set a default station configuration.
             wifi_config_t wifiConfig;
@@ -282,7 +282,7 @@ WEAVE_ERROR ConnectivityManager::Init()
             err = esp_wifi_set_config(ESP_IF_WIFI_STA, &wifiConfig);
             if (err != ESP_OK)
             {
-                ESP_LOGE(TAG, "esp_wifi_set_config() failed: %s", nl::ErrorStr(err));
+                WeaveLogError(DeviceLayer, "esp_wifi_set_config() failed: %s", nl::ErrorStr(err));
             }
             err = WEAVE_NO_ERROR;
 
@@ -320,11 +320,11 @@ void ConnectivityManager::OnPlatformEvent(const WeaveDeviceEvent * event)
     {
         switch(event->ESPSystemEvent.event_id) {
         case SYSTEM_EVENT_STA_START:
-            ESP_LOGI(TAG, "SYSTEM_EVENT_STA_START");
+            WeaveLogProgress(DeviceLayer, "SYSTEM_EVENT_STA_START");
             DriveStationState();
             break;
         case SYSTEM_EVENT_STA_CONNECTED:
-            ESP_LOGI(TAG, "SYSTEM_EVENT_STA_CONNECTED");
+            WeaveLogProgress(DeviceLayer, "SYSTEM_EVENT_STA_CONNECTED");
             if (mWiFiStationState == kWiFiStationState_Connecting)
             {
                 ChangeWiFiStationState(kWiFiStationState_Connecting_Succeeded);
@@ -332,7 +332,7 @@ void ConnectivityManager::OnPlatformEvent(const WeaveDeviceEvent * event)
             DriveStationState();
             break;
         case SYSTEM_EVENT_STA_DISCONNECTED:
-            ESP_LOGI(TAG, "SYSTEM_EVENT_STA_DISCONNECTED");
+            WeaveLogProgress(DeviceLayer, "SYSTEM_EVENT_STA_DISCONNECTED");
             if (mWiFiStationState == kWiFiStationState_Connecting)
             {
                 ChangeWiFiStationState(kWiFiStationState_Connecting_Failed);
@@ -340,33 +340,33 @@ void ConnectivityManager::OnPlatformEvent(const WeaveDeviceEvent * event)
             DriveStationState();
             break;
         case SYSTEM_EVENT_STA_STOP:
-            ESP_LOGI(TAG, "SYSTEM_EVENT_STA_STOP");
+            WeaveLogProgress(DeviceLayer, "SYSTEM_EVENT_STA_STOP");
             DriveStationState();
             break;
         case SYSTEM_EVENT_STA_GOT_IP:
-            ESP_LOGI(TAG, "SYSTEM_EVENT_STA_GOT_IP");
+            WeaveLogProgress(DeviceLayer, "SYSTEM_EVENT_STA_GOT_IP");
             OnStationIPv4AddressAvailable(event->ESPSystemEvent.event_info.got_ip);
             break;
         case SYSTEM_EVENT_STA_LOST_IP:
-            ESP_LOGI(TAG, "SYSTEM_EVENT_STA_LOST_IP");
+            WeaveLogProgress(DeviceLayer, "SYSTEM_EVENT_STA_LOST_IP");
             OnStationIPv4AddressLost();
             break;
         case SYSTEM_EVENT_GOT_IP6:
-            ESP_LOGI(TAG, "SYSTEM_EVENT_GOT_IP6");
+            WeaveLogProgress(DeviceLayer, "SYSTEM_EVENT_GOT_IP6");
             OnIPv6AddressAvailable(event->ESPSystemEvent.event_info.got_ip6);
             break;
         case SYSTEM_EVENT_AP_START:
-            ESP_LOGI(TAG, "SYSTEM_EVENT_AP_START");
+            WeaveLogProgress(DeviceLayer, "SYSTEM_EVENT_AP_START");
             ChangeWiFiAPState(kWiFiAPState_Active);
             DriveAPState();
             break;
         case SYSTEM_EVENT_AP_STOP:
-            ESP_LOGI(TAG, "SYSTEM_EVENT_AP_STOP");
+            WeaveLogProgress(DeviceLayer, "SYSTEM_EVENT_AP_STOP");
             ChangeWiFiAPState(kWiFiAPState_NotActive);
             DriveAPState();
             break;
         case SYSTEM_EVENT_AP_STACONNECTED:
-            ESP_LOGI(TAG, "SYSTEM_EVENT_AP_STACONNECTED");
+            WeaveLogProgress(DeviceLayer, "SYSTEM_EVENT_AP_STACONNECTED");
             MaintainOnDemandWiFiAP();
             break;
         default:
@@ -437,7 +437,7 @@ void ConnectivityManager::DriveStationState()
             mWiFiStationState == kWiFiStationState_Connecting_Succeeded)
         {
             ChangeWiFiStationState(kWiFiStationState_Connected);
-            ESP_LOGI(TAG, "WiFi station interface connected");
+            WeaveLogProgress(DeviceLayer, "WiFi station interface connected");
             mLastStationConnectFailTime = 0;
             OnStationConnected();
         }
@@ -448,11 +448,11 @@ void ConnectivityManager::DriveStationState()
         if (mWiFiStationMode != kWiFiStationMode_ApplicationControlled &&
             (mWiFiStationMode != kWiFiStationMode_Enabled || !IsWiFiStationProvisioned()))
         {
-            ESP_LOGI(TAG, "Disconnecting WiFi station interface");
+            WeaveLogProgress(DeviceLayer, "Disconnecting WiFi station interface");
             err = esp_wifi_disconnect();
             if (err != ESP_OK)
             {
-                ESP_LOGE(TAG, "esp_wifi_disconnect() failed: %s", nl::ErrorStr(err));
+                WeaveLogError(DeviceLayer, "esp_wifi_disconnect() failed: %s", nl::ErrorStr(err));
             }
             SuccessOrExit(err);
 
@@ -475,7 +475,7 @@ void ConnectivityManager::DriveStationState()
             ChangeWiFiStationState(kWiFiStationState_NotConnected);
             if (prevState != kWiFiStationState_Connecting_Failed)
             {
-                ESP_LOGI(TAG, "WiFi station interface disconnected");
+                WeaveLogProgress(DeviceLayer, "WiFi station interface disconnected");
                 mLastStationConnectFailTime = 0;
                 OnStationDisconnected();
             }
@@ -494,11 +494,11 @@ void ConnectivityManager::DriveStationState()
             // time has passed since the last attempt.
             if (mLastStationConnectFailTime == 0 || now >= mLastStationConnectFailTime + mWiFiStationReconnectIntervalMS)
             {
-                ESP_LOGI(TAG, "Attempting to connect WiFi station interface");
+                WeaveLogProgress(DeviceLayer, "Attempting to connect WiFi station interface");
                 err = esp_wifi_connect();
                 if (err != ESP_OK)
                 {
-                    ESP_LOGE(TAG, "esp_wifi_connect() failed: %s", nl::ErrorStr(err));
+                    WeaveLogError(DeviceLayer, "esp_wifi_connect() failed: %s", nl::ErrorStr(err));
                 }
                 SuccessOrExit(err);
 
@@ -510,7 +510,7 @@ void ConnectivityManager::DriveStationState()
             {
                 uint32_t timeToNextConnect = (uint32_t)((mLastStationConnectFailTime + mWiFiStationReconnectIntervalMS) - now);
 
-                ESP_LOGI(TAG, "Next WiFi station reconnect in %" PRIu32 " ms", timeToNextConnect);
+                WeaveLogProgress(DeviceLayer, "Next WiFi station reconnect in %" PRIu32 " ms", timeToNextConnect);
 
                 err = SystemLayer.StartTimer(timeToNextConnect, DriveStationState, NULL);
                 SuccessOrExit(err);
@@ -533,7 +533,7 @@ void ConnectivityManager::OnStationConnected()
     err = tcpip_adapter_create_ip6_linklocal(TCPIP_ADAPTER_IF_STA);
     if (err != ESP_OK)
     {
-        ESP_LOGE(TAG, "tcpip_adapter_create_ip6_linklocal(TCPIP_ADAPTER_IF_STA) failed: %s", nl::ErrorStr(err));
+        WeaveLogError(DeviceLayer, "tcpip_adapter_create_ip6_linklocal(TCPIP_ADAPTER_IF_STA) failed: %s", nl::ErrorStr(err));
     }
 
     // Invoke WARM to perform actions that occur when the WiFi station interface comes up.
@@ -566,7 +566,7 @@ void ConnectivityManager::ChangeWiFiStationState(WiFiStationState newState)
 {
     if (mWiFiStationState != newState)
     {
-        ESP_LOGI(TAG, "WiFi station state change: %s -> %s", WiFiStationStateToStr(mWiFiStationState), WiFiStationStateToStr(newState));
+        WeaveLogProgress(DeviceLayer, "WiFi station state change: %s -> %s", WiFiStationStateToStr(mWiFiStationState), WiFiStationStateToStr(newState));
         mWiFiStationState = newState;
     }
 }
@@ -637,7 +637,7 @@ void ConnectivityManager::DriveAPState()
                 apTimeout = (uint32_t)((mLastAPDemandTime + mWiFiAPIdleTimeoutMS) - now);
                 err = SystemLayer.StartTimer(apTimeout, DriveAPState, NULL);
                 SuccessOrExit(err);
-                ESP_LOGI(TAG, "Next WiFi AP timeout in %" PRIu32 " ms", apTimeout);
+                WeaveLogProgress(DeviceLayer, "Next WiFi AP timeout in %" PRIu32 " ms", apTimeout);
             }
             else
             {
@@ -697,7 +697,7 @@ void ConnectivityManager::DriveAPState()
         err = tcpip_adapter_create_ip6_linklocal(TCPIP_ADAPTER_IF_AP);
         if (err != ESP_OK)
         {
-            ESP_LOGE(TAG, "tcpip_adapter_create_ip6_linklocal(TCPIP_ADAPTER_IF_AP) failed: %s", nl::ErrorStr(err));
+            WeaveLogError(DeviceLayer, "tcpip_adapter_create_ip6_linklocal(TCPIP_ADAPTER_IF_AP) failed: %s", nl::ErrorStr(err));
         }
         SuccessOrExit(err);
     }
@@ -722,11 +722,11 @@ WEAVE_ERROR ConnectivityManager::ConfigureWiFiAP()
     wifiConfig.ap.authmode = WIFI_AUTH_OPEN;
     wifiConfig.ap.max_connection = WEAVE_DEVICE_CONFIG_WIFI_AP_MAX_STATIONS;
     wifiConfig.ap.beacon_interval = WEAVE_DEVICE_CONFIG_WIFI_AP_BEACON_INTERVAL;
-    ESP_LOGI(TAG, "Configuring WiFi AP: SSID %s, channel %u", wifiConfig.ap.ssid, wifiConfig.ap.channel);
+    WeaveLogProgress(DeviceLayer, "Configuring WiFi AP: SSID %s, channel %u", wifiConfig.ap.ssid, wifiConfig.ap.channel);
     err = esp_wifi_set_config(ESP_IF_WIFI_AP, &wifiConfig);
     if (err != ESP_OK)
     {
-        ESP_LOGE(TAG, "esp_wifi_set_config(ESP_IF_WIFI_AP) failed: %s", nl::ErrorStr(err));
+        WeaveLogError(DeviceLayer, "esp_wifi_set_config(ESP_IF_WIFI_AP) failed: %s", nl::ErrorStr(err));
     }
     SuccessOrExit(err);
 
@@ -738,7 +738,7 @@ void ConnectivityManager::ChangeWiFiAPState(WiFiAPState newState)
 {
     if (mWiFiAPState != newState)
     {
-        ESP_LOGI(TAG, "WiFi AP state change: %s -> %s", WiFiAPStateToStr(mWiFiAPState), WiFiAPStateToStr(newState));
+        WeaveLogProgress(DeviceLayer, "WiFi AP state change: %s -> %s", WiFiAPStateToStr(mWiFiAPState), WiFiAPStateToStr(newState));
         mWiFiAPState = newState;
     }
 }
@@ -813,12 +813,12 @@ void ConnectivityManager::UpdateInternetConnectivityState(void)
 
         if (haveIPv4Conn != hadIPv4Conn)
         {
-            ESP_LOGI(TAG, "%s Internet connectivity %s", "IPv4", (haveIPv4Conn) ? "ESTABLISHED" : "LOST");
+            WeaveLogProgress(DeviceLayer, "%s Internet connectivity %s", "IPv4", (haveIPv4Conn) ? "ESTABLISHED" : "LOST");
         }
 
         if (haveIPv6Conn != hadIPv6Conn)
         {
-            ESP_LOGI(TAG, "%s Internet connectivity %s", "IPv6", (haveIPv6Conn) ? "ESTABLISHED" : "LOST");
+            WeaveLogProgress(DeviceLayer, "%s Internet connectivity %s", "IPv6", (haveIPv6Conn) ? "ESTABLISHED" : "LOST");
         }
 
         DriveServiceTunnelState();
@@ -833,7 +833,7 @@ void ConnectivityManager::OnStationIPv4AddressAvailable(const system_event_sta_g
         IPAddress::FromIPv4(got_ip.ip_info.ip).ToString(ipAddrStr, sizeof(ipAddrStr));
         IPAddress::FromIPv4(got_ip.ip_info.netmask).ToString(netMaskStr, sizeof(netMaskStr));
         IPAddress::FromIPv4(got_ip.ip_info.gw).ToString(gatewayStr, sizeof(gatewayStr));
-        ESP_LOGI(TAG, "IPv4 address %s on WiFi station interface: %s/%s gateway %s",
+        WeaveLogProgress(DeviceLayer, "IPv4 address %s on WiFi station interface: %s/%s gateway %s",
                  (got_ip.ip_changed) ? "changed" : "ready",
                  ipAddrStr, netMaskStr, gatewayStr);
     }
@@ -845,7 +845,7 @@ void ConnectivityManager::OnStationIPv4AddressAvailable(const system_event_sta_g
 
 void ConnectivityManager::OnStationIPv4AddressLost(void)
 {
-    ESP_LOGI(TAG, "IPv4 address lost on WiFi station interface");
+    WeaveLogProgress(DeviceLayer, "IPv4 address lost on WiFi station interface");
 
     RefreshMessageLayer();
 
@@ -859,7 +859,7 @@ void ConnectivityManager::OnIPv6AddressAvailable(const system_event_got_ip6_t & 
         IPAddress ipAddr = IPAddress::FromIPv6(got_ip.ip6_info.ip);
         char ipAddrStr[INET6_ADDRSTRLEN];
         ipAddr.ToString(ipAddrStr, sizeof(ipAddrStr));
-        ESP_LOGI(TAG, "%s ready on %s interface: %s",
+        WeaveLogProgress(DeviceLayer, "%s ready on %s interface: %s",
                  CharacterizeIPv6Address(ipAddr),
                  ESPUtils::InterfaceIdToName(got_ip.if_index),
                  ipAddrStr);
@@ -898,7 +898,7 @@ void ConnectivityManager::DriveServiceTunnelState(void)
             err = ServiceTunnelAgent.StartServiceTunnel();
             if (err != WEAVE_NO_ERROR)
             {
-                ESP_LOGE(TAG, "StartServiceTunnel() failed: %s", nl::ErrorStr(err));
+                WeaveLogError(DeviceLayer, "StartServiceTunnel() failed: %s", nl::ErrorStr(err));
                 ClearFlag(mFlags, kFlag_ServiceTunnelStarted);
             }
         }
@@ -992,7 +992,7 @@ void ConnectivityManager::RefreshMessageLayer(void)
     WEAVE_ERROR err = MessageLayer.RefreshEndpoints();
     if (err != WEAVE_NO_ERROR)
     {
-        ESP_LOGE(TAG, "MessageLayer.RefreshEndpoints() failed: %s", nl::ErrorStr(err));
+        WeaveLogError(DeviceLayer, "MessageLayer.RefreshEndpoints() failed: %s", nl::ErrorStr(err));
     }
 }
 
@@ -1005,13 +1005,13 @@ void ConnectivityManager::HandleServiceTunnelNotification(WeaveTunnelConnectionM
     switch (reason)
     {
     case WeaveTunnelConnectionMgr::kStatus_TunDown:
-        ESP_LOGI(TAG, "ConnectivityManager: Service tunnel down");
+        WeaveLogProgress(DeviceLayer, "ConnectivityManager: Service tunnel down");
         break;
     case WeaveTunnelConnectionMgr::kStatus_TunPrimaryConnError:
-        ESP_LOGI(TAG, "ConnectivityManager: Service tunnel connection error: %s", ::nl::ErrorStr(err));
+        WeaveLogProgress(DeviceLayer, "ConnectivityManager: Service tunnel connection error: %s", ::nl::ErrorStr(err));
         break;
     case WeaveTunnelConnectionMgr::kStatus_TunPrimaryUp:
-        ESP_LOGI(TAG, "ConnectivityManager: Service tunnel established");
+        WeaveLogProgress(DeviceLayer, "ConnectivityManager: Service tunnel established");
         newServiceState = true;
         break;
     default:

@@ -56,24 +56,24 @@ void DeviceDescriptionServer::HandleIdentifyRequest(void *appState, uint64_t nod
         char ipAddrStr[64];
         nodeAddr.ToString(ipAddrStr, sizeof(ipAddrStr));
 
-        ESP_LOGI(TAG, "IdentifyRequest received from node %" PRIX64 " (%s)", nodeId, ipAddrStr);
-        ESP_LOGI(TAG, "  Target Fabric Id: %016" PRIX64, reqMsg.TargetFabricId);
-        ESP_LOGI(TAG, "  Target Modes: %08" PRIX32, reqMsg.TargetModes);
-        ESP_LOGI(TAG, "  Target Vendor Id: %04" PRIX16, reqMsg.TargetVendorId);
-        ESP_LOGI(TAG, "  Target Product Id: %04" PRIX16, reqMsg.TargetProductId);
+        WeaveLogProgress(DeviceLayer, "IdentifyRequest received from node %" PRIX64 " (%s)", nodeId, ipAddrStr);
+        WeaveLogProgress(DeviceLayer, "  Target Fabric Id: %016" PRIX64, reqMsg.TargetFabricId);
+        WeaveLogProgress(DeviceLayer, "  Target Modes: %08" PRIX32, reqMsg.TargetModes);
+        WeaveLogProgress(DeviceLayer, "  Target Vendor Id: %04" PRIX16, reqMsg.TargetVendorId);
+        WeaveLogProgress(DeviceLayer, "  Target Product Id: %04" PRIX16, reqMsg.TargetProductId);
     }
 
     sendResp = true;
 
     if (!MatchTargetFabricId(::nl::Weave::Device::FabricState.FabricId, reqMsg.TargetFabricId))
     {
-        ESP_LOGI(TAG, "IdentifyRequest target fabric does not match device fabric");
+        WeaveLogProgress(DeviceLayer, "IdentifyRequest target fabric does not match device fabric");
         sendResp = false;
     }
 
     if (reqMsg.TargetModes != kTargetDeviceMode_Any && (reqMsg.TargetModes & kTargetDeviceMode_UserSelectedMode) == 0)
     {
-        ESP_LOGI(TAG, "IdentifyRequest target mode does not match device mode");
+        WeaveLogProgress(DeviceLayer, "IdentifyRequest target mode does not match device mode");
         sendResp = false;
     }
 
@@ -86,7 +86,7 @@ void DeviceDescriptionServer::HandleIdentifyRequest(void *appState, uint64_t nod
 
         if (reqMsg.TargetVendorId != vendorId)
         {
-            ESP_LOGI(TAG, "IdentifyRequest target vendor does not match device vendor");
+            WeaveLogProgress(DeviceLayer, "IdentifyRequest target vendor does not match device vendor");
             sendResp = false;
         }
     }
@@ -100,14 +100,14 @@ void DeviceDescriptionServer::HandleIdentifyRequest(void *appState, uint64_t nod
 
         if (reqMsg.TargetProductId != productId)
         {
-            ESP_LOGI(TAG, "IdentifyRequest target product does not match device product");
+            WeaveLogProgress(DeviceLayer, "IdentifyRequest target product does not match device product");
             sendResp = false;
         }
     }
 
     if (sendResp)
     {
-        ESP_LOGI(TAG, "Sending IdentifyResponse");
+        WeaveLogProgress(DeviceLayer, "Sending IdentifyResponse");
     }
 
 exit:
