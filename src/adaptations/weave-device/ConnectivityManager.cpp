@@ -527,7 +527,7 @@ exit:
 
 void ConnectivityManager::OnStationConnected()
 {
-    esp_err_t err;
+    WEAVE_ERROR err;
 
     // Assign an IPv6 link local address to the station interface.
     err = tcpip_adapter_create_ip6_linklocal(TCPIP_ADAPTER_IF_STA);

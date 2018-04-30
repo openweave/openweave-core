@@ -27,7 +27,7 @@ using namespace ::nl::Weave::Profiles::NetworkProvisioning;
 
 WEAVE_ERROR ESPUtils::IsAPEnabled(bool & apEnabled)
 {
-    esp_err_t err;
+    WEAVE_ERROR err;
     wifi_mode_t curWiFiMode;
 
     err = esp_wifi_get_mode(&curWiFiMode);
@@ -57,7 +57,7 @@ WEAVE_ERROR ESPUtils::IsStationConnected(bool & connected)
 
 WEAVE_ERROR ESPUtils::StartWiFiLayer(void)
 {
-    esp_err_t err;
+    WEAVE_ERROR err;
     int8_t ignored;
     bool wifiStarted;
 
@@ -95,7 +95,7 @@ exit:
 
 WEAVE_ERROR ESPUtils::EnableStationMode(void)
 {
-    esp_err_t err;
+    WEAVE_ERROR err;
     wifi_mode_t curWiFiMode;
 
     // Get the current ESP WiFI mode.
@@ -126,7 +126,7 @@ exit:
 
 WEAVE_ERROR ESPUtils::SetAPMode(bool enabled)
 {
-    esp_err_t err;
+    WEAVE_ERROR err;
     wifi_mode_t curWiFiMode, targetWiFiMode;
 
     targetWiFiMode = (enabled) ? WIFI_MODE_APSTA : WIFI_MODE_STA;
