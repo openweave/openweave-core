@@ -77,7 +77,7 @@ static bool gCleanStatus = true;
 static bool gTestCase_TestOversizeTrait2DumpFlip = true;
 static nl::Weave::WRMPConfig gWRMPConfig = { kWRMPInitialRetransTimeoutMsec, kWRMPActiveRetransTimeoutMsec, kWRMPAckTimeoutMsec, kWRMPMaxRetrans };
 
-static DEFINE_ALIGNED_VAR(sTestGroupKeyStore, sizeof(TestGroupKeyStore), void*);
+static nlDEFINE_ALIGNED_VAR(sTestGroupKeyStore, sizeof(TestGroupKeyStore), void*);
 
 struct VersionNode
 {

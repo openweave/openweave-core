@@ -340,7 +340,7 @@ static void InitPlatformState(void)
 static void Setup(nlTestSuite *inSuite, void *inContext)
 {
     WEAVE_ERROR err;
-    static DEFINE_ALIGNED_VAR(sTestGroupKeyStore, sizeof(TestGroupKeyStore), void*);
+    static nlDEFINE_ALIGNED_VAR(sTestGroupKeyStore, sizeof(TestGroupKeyStore), void*);
 
     err = sFabricState.Init(new (&sTestGroupKeyStore) TestGroupKeyStore());
 

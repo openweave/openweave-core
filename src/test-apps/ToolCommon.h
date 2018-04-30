@@ -71,8 +71,8 @@ using namespace nl::Inet;
 using namespace nl::Weave;
 using namespace nl::Weave::Profiles;
 
-#ifndef DEFINE_ALIGNED_VAR
-#define DEFINE_ALIGNED_VAR(varName, bytes, alignment_type) \
+#ifndef nlDEFINE_ALIGNED_VAR
+#define nlDEFINE_ALIGNED_VAR(varName, bytes, alignment_type) \
   alignment_type varName[(((bytes)+(sizeof(alignment_type)-1))/sizeof(alignment_type))]
 #endif
 

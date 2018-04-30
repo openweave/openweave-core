@@ -1046,7 +1046,7 @@ void InitWeaveStack(bool listen, bool initExchangeMgr)
 {
     WEAVE_ERROR res;
     WeaveMessageLayer::InitContext initContext;
-    static DEFINE_ALIGNED_VAR(sTestGroupKeyStore, sizeof(TestGroupKeyStore), void*);
+    static nlDEFINE_ALIGNED_VAR(sTestGroupKeyStore, sizeof(TestGroupKeyStore), void*);
 
 #if CONFIG_BLE_PLATFORM_BLUEZ
     // Initialize the BleLayer object.
