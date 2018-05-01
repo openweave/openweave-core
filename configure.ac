@@ -2266,7 +2266,7 @@ if test "${ac_no_link}" != "yes"; then
                 return 0;
             }
         ]])],
-        [AC_DEFINE([HAVE_CLOCK_SETTIME], [1]) AC_MSG_RESULT([yes])],
+        [AC_DEFINE([HAVE_CLOCK_SETTIME], [1], [Define to 1 if you have the `clock_settime' function.]) AC_MSG_RESULT([yes])],
         [AC_MSG_RESULT([no])]
     ) 
 

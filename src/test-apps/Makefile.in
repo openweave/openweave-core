@@ -288,6 +288,8 @@ target_triplet = @target@
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_TRUE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@    happy/tests/service/wdmNext/test_weave_wdm_next_service_mutual_subscribe_25.py                              \
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_TRUE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@    happy/tests/service/wdmNext/test_weave_wdm_next_service_mutual_subscribe_application_key_01.py              \
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_TRUE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@    happy/tests/service/wdmNext/test_weave_wdm_next_service_update_01.py                                        \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_TRUE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@    happy/tests/service/wdmNext/test_weave_wdm_next_service_update_cond_OneLeaf.py                              \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_TRUE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@    happy/tests/service/wdmNext/test_weave_wdm_next_service_update_uncond_OneLeaf.py                            \
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_TRUE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@    $(NULL)
 
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_BDX_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_LONG_TESTS_TRUE@am__append_22 = happy/tests/standalone/bdx/test_weave_bdx_faults_download_v0_v0_1_of_4.sh \
@@ -508,9 +510,6 @@ target_triplet = @target@
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@    happy/tests/standalone/wdmNext/test_weave_wdm_next_application_key_02.py      \
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@    happy/tests/standalone/wdmNext/test_weave_wdm_next_oneway_resub.py            \
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@    happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_resub.py            \
-@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@    happy/tests/standalone/wdmNext/test_weave_wdm_next_update_01.py               \
-@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@    happy/tests/standalone/wdmNext/test_weave_wdm_next_update_02.py               \
-@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@    happy/tests/standalone/wdmNext/test_weave_wdm_next_update_03.py               \
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@    happy/tests/standalone/wdmNext/test_weave_wdm_next_subless_notify_01.py       \
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@    $(NULL)
 
@@ -651,7 +650,8 @@ libWeaveTestCommon_a_LIBADD =
 am__libWeaveTestCommon_a_SOURCES_DIST = CASEOptions.cpp \
 	KeyExportOptions.cpp TAKEOptions.cpp DeviceDescOptions.cpp \
 	Certs.cpp TestGroupKeyStore.cpp ToolCommon.cpp \
-	ToolCommonOptions.cpp
+	ToolCommonOptions.cpp MockPlatformClocks.cpp \
+	TestPersistedStorageImplementation.cpp
 @WEAVE_BUILD_TESTS_TRUE@am_libWeaveTestCommon_a_OBJECTS =  \
 @WEAVE_BUILD_TESTS_TRUE@	CASEOptions.$(OBJEXT) \
 @WEAVE_BUILD_TESTS_TRUE@	KeyExportOptions.$(OBJEXT) \
@@ -660,7 +660,9 @@ am__libWeaveTestCommon_a_SOURCES_DIST = CASEOptions.cpp \
 @WEAVE_BUILD_TESTS_TRUE@	Certs.$(OBJEXT) \
 @WEAVE_BUILD_TESTS_TRUE@	TestGroupKeyStore.$(OBJEXT) \
 @WEAVE_BUILD_TESTS_TRUE@	ToolCommon.$(OBJEXT) \
-@WEAVE_BUILD_TESTS_TRUE@	ToolCommonOptions.$(OBJEXT)
+@WEAVE_BUILD_TESTS_TRUE@	ToolCommonOptions.$(OBJEXT) \
+@WEAVE_BUILD_TESTS_TRUE@	MockPlatformClocks.$(OBJEXT) \
+@WEAVE_BUILD_TESTS_TRUE@	TestPersistedStorageImplementation.$(OBJEXT)
 libWeaveTestCommon_a_OBJECTS = $(am_libWeaveTestCommon_a_OBJECTS)
 libWeaveTestGroupKeyStore_a_AR = $(AR) $(ARFLAGS)
 libWeaveTestGroupKeyStore_a_LIBADD =
@@ -669,14 +671,6 @@ am__libWeaveTestGroupKeyStore_a_SOURCES_DIST = TestGroupKeyStore.cpp
 @WEAVE_BUILD_TESTS_TRUE@	TestGroupKeyStore.$(OBJEXT)
 libWeaveTestGroupKeyStore_a_OBJECTS =  \
 	$(am_libWeaveTestGroupKeyStore_a_OBJECTS)
-libWeaveTestPlatform_a_AR = $(AR) $(ARFLAGS)
-libWeaveTestPlatform_a_LIBADD =
-am__libWeaveTestPlatform_a_SOURCES_DIST = TestPlatformTime.cpp \
-	TestPersistedStorageImplementation.cpp
-@WEAVE_BUILD_TESTS_TRUE@am_libWeaveTestPlatform_a_OBJECTS =  \
-@WEAVE_BUILD_TESTS_TRUE@	TestPlatformTime.$(OBJEXT) \
-@WEAVE_BUILD_TESTS_TRUE@	TestPersistedStorageImplementation.$(OBJEXT)
-libWeaveTestPlatform_a_OBJECTS = $(am_libWeaveTestPlatform_a_OBJECTS)
 @HAVE_CXX11_TRUE@@WEAVE_BUILD_TESTS_TRUE@am__EXEEXT_1 =  \
 @HAVE_CXX11_TRUE@@WEAVE_BUILD_TESTS_TRUE@	TestTDM$(EXEEXT)
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_BUILD_WARM_TRUE@am__EXEEXT_2 = TestWarm$(EXEEXT)
@@ -787,11 +781,9 @@ am__DEPENDENCIES_2 =
 @WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_2) \
 @WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_2) \
 @WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_2)
-@CONFIG_NETWORK_LAYER_BLE_TRUE@@WEAVE_BUILD_TESTS_TRUE@am__DEPENDENCIES_7 = libWeaveTestPlatform.a
 @WEAVE_BUILD_TESTS_TRUE@GenerateEventLog_DEPENDENCIES =  \
 @WEAVE_BUILD_TESTS_TRUE@	libWeaveTestCommon.a \
-@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_6) \
-@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_7)
+@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_6)
 AM_V_lt = $(am__v_lt_@AM_V@)
 am__v_lt_ = $(am__v_lt_@AM_DEFAULT_V@)
 am__v_lt_0 = --silent
@@ -803,16 +795,14 @@ GenerateEventLog_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
 am__TestASN1_SOURCES_DIST = TestASN1.cpp
 @WEAVE_BUILD_TESTS_TRUE@am_TestASN1_OBJECTS = TestASN1.$(OBJEXT)
 TestASN1_OBJECTS = $(am_TestASN1_OBJECTS)
-@WEAVE_BUILD_TESTS_TRUE@TestASN1_DEPENDENCIES = $(am__DEPENDENCIES_6) \
-@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_7)
+@WEAVE_BUILD_TESTS_TRUE@TestASN1_DEPENDENCIES = $(am__DEPENDENCIES_6)
 am__TestAppKeys_SOURCES_DIST = TestAppKeys.cpp
 @WEAVE_BUILD_TESTS_TRUE@am_TestAppKeys_OBJECTS =  \
 @WEAVE_BUILD_TESTS_TRUE@	TestAppKeys.$(OBJEXT)
 TestAppKeys_OBJECTS = $(am_TestAppKeys_OBJECTS)
 @WEAVE_BUILD_TESTS_TRUE@TestAppKeys_DEPENDENCIES =  \
 @WEAVE_BUILD_TESTS_TRUE@	libWeaveTestCommon.a \
-@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_6) \
-@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_7)
+@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_6)
 am__TestArgParser_SOURCES_DIST = TestArgParser.cpp
 @WEAVE_BUILD_TESTS_TRUE@am_TestArgParser_OBJECTS =  \
 @WEAVE_BUILD_TESTS_TRUE@	TestArgParser.$(OBJEXT)
@@ -826,8 +816,7 @@ am__TestBinding_SOURCES_DIST = TestBinding.cpp
 TestBinding_OBJECTS = $(am_TestBinding_OBJECTS)
 @WEAVE_BUILD_TESTS_TRUE@TestBinding_DEPENDENCIES =  \
 @WEAVE_BUILD_TESTS_TRUE@	libWeaveTestCommon.a \
-@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_6) \
-@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_7)
+@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_6)
 TestBinding_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) \
 	$(LIBTOOLFLAGS) --mode=link $(CXXLD) $(AM_CXXFLAGS) \
 	$(CXXFLAGS) $(TestBinding_LDFLAGS) $(LDFLAGS) -o $@
@@ -835,8 +824,7 @@ am__TestCASE_SOURCES_DIST = TestCASE.cpp
 @WEAVE_BUILD_TESTS_TRUE@am_TestCASE_OBJECTS = TestCASE.$(OBJEXT)
 TestCASE_OBJECTS = $(am_TestCASE_OBJECTS)
 @WEAVE_BUILD_TESTS_TRUE@TestCASE_DEPENDENCIES = libWeaveTestCommon.a \
-@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_6) \
-@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_7)
+@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_6)
 TestCASE_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) \
 	$(LIBTOOLFLAGS) --mode=link $(CXXLD) $(AM_CXXFLAGS) \
 	$(CXXFLAGS) $(TestCASE_LDFLAGS) $(LDFLAGS) -o $@
@@ -851,16 +839,14 @@ am__TestCrypto_SOURCES_DIST = TestCrypto.cpp
 TestCrypto_OBJECTS = $(am_TestCrypto_OBJECTS)
 @WEAVE_BUILD_TESTS_TRUE@TestCrypto_DEPENDENCIES =  \
 @WEAVE_BUILD_TESTS_TRUE@	libWeaveCryptoTests.a \
-@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_6) \
-@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_7)
+@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_6)
 am__TestDNSResolution_SOURCES_DIST = TestDNSResolution.cpp
 @WEAVE_BUILD_TESTS_TRUE@am_TestDNSResolution_OBJECTS =  \
 @WEAVE_BUILD_TESTS_TRUE@	TestDNSResolution.$(OBJEXT)
 TestDNSResolution_OBJECTS = $(am_TestDNSResolution_OBJECTS)
 @WEAVE_BUILD_TESTS_TRUE@TestDNSResolution_DEPENDENCIES =  \
 @WEAVE_BUILD_TESTS_TRUE@	libWeaveTestCommon.a \
-@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_6) \
-@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_7)
+@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_6)
 TestDNSResolution_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
 	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CXXLD) \
 	$(AM_CXXFLAGS) $(CXXFLAGS) $(TestDNSResolution_LDFLAGS) \
@@ -868,8 +854,7 @@ TestDNSResolution_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
 am__TestDRBG_SOURCES_DIST = TestDRBG.cpp
 @WEAVE_BUILD_TESTS_TRUE@am_TestDRBG_OBJECTS = TestDRBG.$(OBJEXT)
 TestDRBG_OBJECTS = $(am_TestDRBG_OBJECTS)
-@WEAVE_BUILD_TESTS_TRUE@TestDRBG_DEPENDENCIES = $(am__DEPENDENCIES_6) \
-@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_7)
+@WEAVE_BUILD_TESTS_TRUE@TestDRBG_DEPENDENCIES = $(am__DEPENDENCIES_6)
 am__TestDataManagement_SOURCES_DIST = TestDataManagement.cpp \
 	TestProfile.cpp
 @WEAVE_BUILD_TESTS_TRUE@am_TestDataManagement_OBJECTS =  \
@@ -878,8 +863,7 @@ am__TestDataManagement_SOURCES_DIST = TestDataManagement.cpp \
 TestDataManagement_OBJECTS = $(am_TestDataManagement_OBJECTS)
 @WEAVE_BUILD_TESTS_TRUE@TestDataManagement_DEPENDENCIES =  \
 @WEAVE_BUILD_TESTS_TRUE@	libWeaveTestCommon.a \
-@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_6) \
-@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_7)
+@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_6)
 TestDataManagement_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
 	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CXXLD) \
 	$(AM_CXXFLAGS) $(CXXFLAGS) $(TestDataManagement_LDFLAGS) \
@@ -889,33 +873,28 @@ am__TestDeviceDescriptor_SOURCES_DIST = TestDeviceDescriptor.cpp
 @WEAVE_BUILD_TESTS_TRUE@	TestDeviceDescriptor.$(OBJEXT)
 TestDeviceDescriptor_OBJECTS = $(am_TestDeviceDescriptor_OBJECTS)
 @WEAVE_BUILD_TESTS_TRUE@TestDeviceDescriptor_DEPENDENCIES =  \
-@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_6) \
-@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_7)
+@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_6)
 am__TestECDH_SOURCES_DIST = TestECDH.cpp
 @WEAVE_BUILD_TESTS_TRUE@am_TestECDH_OBJECTS = TestECDH.$(OBJEXT)
 TestECDH_OBJECTS = $(am_TestECDH_OBJECTS)
-@WEAVE_BUILD_TESTS_TRUE@TestECDH_DEPENDENCIES = $(am__DEPENDENCIES_6) \
-@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_7)
+@WEAVE_BUILD_TESTS_TRUE@TestECDH_DEPENDENCIES = $(am__DEPENDENCIES_6)
 am__TestECDSA_SOURCES_DIST = TestECDSA.cpp
 @WEAVE_BUILD_TESTS_TRUE@am_TestECDSA_OBJECTS = TestECDSA.$(OBJEXT)
 TestECDSA_OBJECTS = $(am_TestECDSA_OBJECTS)
 @WEAVE_BUILD_TESTS_TRUE@TestECDSA_DEPENDENCIES =  \
-@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_6) \
-@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_7)
+@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_6)
 am__TestECMath_SOURCES_DIST = TestECMath.cpp TestECMathParams.cpp
 @WEAVE_BUILD_TESTS_TRUE@am_TestECMath_OBJECTS = TestECMath.$(OBJEXT) \
 @WEAVE_BUILD_TESTS_TRUE@	TestECMathParams.$(OBJEXT)
 TestECMath_OBJECTS = $(am_TestECMath_OBJECTS)
 @WEAVE_BUILD_TESTS_TRUE@TestECMath_DEPENDENCIES =  \
-@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_6) \
-@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_7)
+@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_6)
 am__TestErrorStr_SOURCES_DIST = TestErrorStr.cpp
 @WEAVE_BUILD_TESTS_TRUE@am_TestErrorStr_OBJECTS =  \
 @WEAVE_BUILD_TESTS_TRUE@	TestErrorStr.$(OBJEXT)
 TestErrorStr_OBJECTS = $(am_TestErrorStr_OBJECTS)
 @WEAVE_BUILD_TESTS_TRUE@TestErrorStr_DEPENDENCIES =  \
-@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_6) \
-@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_7)
+@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_6)
 am__TestEventLogging_SOURCES_DIST =  \
 	schema/nest/test/trait/TestETrait.cpp \
 	schema/nest/test/trait/TestCommon.cpp MockExternalEvents.cpp \
@@ -927,8 +906,7 @@ am__TestEventLogging_SOURCES_DIST =  \
 TestEventLogging_OBJECTS = $(am_TestEventLogging_OBJECTS)
 @WEAVE_BUILD_TESTS_TRUE@TestEventLogging_DEPENDENCIES =  \
 @WEAVE_BUILD_TESTS_TRUE@	libWeaveTestCommon.a \
-@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_6) \
-@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_7)
+@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_6)
 TestEventLogging_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
 	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CXXLD) \
 	$(AM_CXXFLAGS) $(CXXFLAGS) $(TestEventLogging_LDFLAGS) \
@@ -943,8 +921,7 @@ TestFabricStateDelegate_OBJECTS =  \
 	$(am_TestFabricStateDelegate_OBJECTS)
 @WEAVE_BUILD_TESTS_TRUE@TestFabricStateDelegate_DEPENDENCIES =  \
 @WEAVE_BUILD_TESTS_TRUE@	libWeaveTestCommon.a \
-@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_6) \
-@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_7)
+@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_6)
 TestFabricStateDelegate_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
 	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CXXLD) \
 	$(AM_CXXFLAGS) $(CXXFLAGS) $(TestFabricStateDelegate_LDFLAGS) \
@@ -955,24 +932,21 @@ am__TestInetAddress_SOURCES_DIST = TestInetAddress.cpp
 TestInetAddress_OBJECTS = $(am_TestInetAddress_OBJECTS)
 @WEAVE_BUILD_TESTS_TRUE@TestInetAddress_DEPENDENCIES =  \
 @WEAVE_BUILD_TESTS_TRUE@	libWeaveTestCommon.a \
-@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_6) \
-@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_7)
+@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_6)
 am__TestInetBuffer_SOURCES_DIST = TestInetBuffer.cpp
 @WEAVE_BUILD_TESTS_TRUE@am_TestInetBuffer_OBJECTS =  \
 @WEAVE_BUILD_TESTS_TRUE@	TestInetBuffer.$(OBJEXT)
 TestInetBuffer_OBJECTS = $(am_TestInetBuffer_OBJECTS)
 @WEAVE_BUILD_TESTS_TRUE@TestInetBuffer_DEPENDENCIES =  \
 @WEAVE_BUILD_TESTS_TRUE@	libWeaveTestCommon.a \
-@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_6) \
-@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_7)
+@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_6)
 am__TestInetEndPoint_SOURCES_DIST = TestInetEndPoint.cpp
 @WEAVE_BUILD_TESTS_TRUE@am_TestInetEndPoint_OBJECTS =  \
 @WEAVE_BUILD_TESTS_TRUE@	TestInetEndPoint.$(OBJEXT)
 TestInetEndPoint_OBJECTS = $(am_TestInetEndPoint_OBJECTS)
 @WEAVE_BUILD_TESTS_TRUE@TestInetEndPoint_DEPENDENCIES =  \
 @WEAVE_BUILD_TESTS_TRUE@	libWeaveTestCommon.a \
-@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_6) \
-@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_7)
+@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_6)
 TestInetEndPoint_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
 	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CXXLD) \
 	$(AM_CXXFLAGS) $(CXXFLAGS) $(TestInetEndPoint_LDFLAGS) \
@@ -983,8 +957,7 @@ am__TestInetLayer_SOURCES_DIST = TestInetLayer.cpp
 TestInetLayer_OBJECTS = $(am_TestInetLayer_OBJECTS)
 @WEAVE_BUILD_TESTS_TRUE@TestInetLayer_DEPENDENCIES =  \
 @WEAVE_BUILD_TESTS_TRUE@	libWeaveTestCommon.a \
-@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_6) \
-@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_7)
+@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_6)
 TestInetLayer_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
 	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CXXLD) \
 	$(AM_CXXFLAGS) $(CXXFLAGS) $(TestInetLayer_LDFLAGS) $(LDFLAGS) \
@@ -995,8 +968,7 @@ am__TestInetTimer_SOURCES_DIST = TestInetTimer.cpp
 TestInetTimer_OBJECTS = $(am_TestInetTimer_OBJECTS)
 @WEAVE_BUILD_TESTS_TRUE@TestInetTimer_DEPENDENCIES =  \
 @WEAVE_BUILD_TESTS_TRUE@	libWeaveTestCommon.a \
-@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_6) \
-@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_7)
+@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_6)
 TestInetTimer_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
 	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CXXLD) \
 	$(AM_CXXFLAGS) $(CXXFLAGS) $(TestInetTimer_LDFLAGS) $(LDFLAGS) \
@@ -1007,8 +979,7 @@ am__TestKeyExport_SOURCES_DIST = TestKeyExport.cpp
 TestKeyExport_OBJECTS = $(am_TestKeyExport_OBJECTS)
 @WEAVE_BUILD_TESTS_TRUE@TestKeyExport_DEPENDENCIES =  \
 @WEAVE_BUILD_TESTS_TRUE@	libWeaveTestCommon.a \
-@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_6) \
-@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_7)
+@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_6)
 TestKeyExport_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
 	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CXXLD) \
 	$(AM_CXXFLAGS) $(CXXFLAGS) $(TestKeyExport_LDFLAGS) $(LDFLAGS) \
@@ -1018,8 +989,7 @@ am__TestKeyIds_SOURCES_DIST = TestKeyIds.cpp
 TestKeyIds_OBJECTS = $(am_TestKeyIds_OBJECTS)
 @WEAVE_BUILD_TESTS_TRUE@TestKeyIds_DEPENDENCIES =  \
 @WEAVE_BUILD_TESTS_TRUE@	libWeaveTestCommon.a \
-@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_6) \
-@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_7)
+@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_6)
 TestKeyIds_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) \
 	$(LIBTOOLFLAGS) --mode=link $(CXXLD) $(AM_CXXFLAGS) \
 	$(CXXFLAGS) $(TestKeyIds_LDFLAGS) $(LDFLAGS) -o $@
@@ -1028,8 +998,7 @@ am__TestMsgEnc_SOURCES_DIST = TestMsgEnc.cpp
 TestMsgEnc_OBJECTS = $(am_TestMsgEnc_OBJECTS)
 @WEAVE_BUILD_TESTS_TRUE@TestMsgEnc_DEPENDENCIES =  \
 @WEAVE_BUILD_TESTS_TRUE@	libWeaveTestCommon.a \
-@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_6) \
-@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_7)
+@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_6)
 TestMsgEnc_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) \
 	$(LIBTOOLFLAGS) --mode=link $(CXXLD) $(AM_CXXFLAGS) \
 	$(CXXFLAGS) $(TestMsgEnc_LDFLAGS) $(LDFLAGS) -o $@
@@ -1039,8 +1008,7 @@ am__TestNetworkInfo_SOURCES_DIST = TestNetworkInfo.cpp
 TestNetworkInfo_OBJECTS = $(am_TestNetworkInfo_OBJECTS)
 @WEAVE_BUILD_TESTS_TRUE@TestNetworkInfo_DEPENDENCIES =  \
 @WEAVE_BUILD_TESTS_TRUE@	libWeaveTestCommon.a \
-@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_6) \
-@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_7)
+@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_6)
 TestNetworkInfo_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
 	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CXXLD) \
 	$(AM_CXXFLAGS) $(CXXFLAGS) $(TestNetworkInfo_LDFLAGS) \
@@ -1049,8 +1017,7 @@ am__TestPASE_SOURCES_DIST = TestPASE.cpp
 @WEAVE_BUILD_TESTS_TRUE@am_TestPASE_OBJECTS = TestPASE.$(OBJEXT)
 TestPASE_OBJECTS = $(am_TestPASE_OBJECTS)
 @WEAVE_BUILD_TESTS_TRUE@TestPASE_DEPENDENCIES = libWeaveTestCommon.a \
-@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_6) \
-@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_7)
+@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_6)
 TestPASE_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) \
 	$(LIBTOOLFLAGS) --mode=link $(CXXLD) $(AM_CXXFLAGS) \
 	$(CXXFLAGS) $(TestPASE_LDFLAGS) $(LDFLAGS) -o $@
@@ -1060,23 +1027,20 @@ am__TestPacketBuffer_SOURCES_DIST = TestPacketBuffer.cpp
 TestPacketBuffer_OBJECTS = $(am_TestPacketBuffer_OBJECTS)
 @WEAVE_BUILD_TESTS_TRUE@TestPacketBuffer_DEPENDENCIES =  \
 @WEAVE_BUILD_TESTS_TRUE@	libWeaveTestCommon.a \
-@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_6) \
-@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_7)
+@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_6)
 am__TestPairingCodeUtils_SOURCES_DIST = TestPairingCodeUtils.cpp
 @WEAVE_BUILD_TESTS_TRUE@am_TestPairingCodeUtils_OBJECTS =  \
 @WEAVE_BUILD_TESTS_TRUE@	TestPairingCodeUtils.$(OBJEXT)
 TestPairingCodeUtils_OBJECTS = $(am_TestPairingCodeUtils_OBJECTS)
 @WEAVE_BUILD_TESTS_TRUE@TestPairingCodeUtils_DEPENDENCIES =  \
-@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_6) \
-@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_7)
+@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_6)
 am__TestPasscodeEnc_SOURCES_DIST = TestPasscodeEnc.cpp
 @WEAVE_BUILD_TESTS_TRUE@am_TestPasscodeEnc_OBJECTS =  \
 @WEAVE_BUILD_TESTS_TRUE@	TestPasscodeEnc.$(OBJEXT)
 TestPasscodeEnc_OBJECTS = $(am_TestPasscodeEnc_OBJECTS)
 @WEAVE_BUILD_TESTS_TRUE@TestPasscodeEnc_DEPENDENCIES =  \
 @WEAVE_BUILD_TESTS_TRUE@	libWeaveTestCommon.a \
-@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_6) \
-@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_7)
+@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_6)
 am__TestPersistedCounter_SOURCES_DIST = TestPersistedCounter.cpp \
 	TestPersistedStorageImplementation.cpp
 @WEAVE_BUILD_TESTS_TRUE@am_TestPersistedCounter_OBJECTS =  \
@@ -1085,8 +1049,7 @@ am__TestPersistedCounter_SOURCES_DIST = TestPersistedCounter.cpp \
 TestPersistedCounter_OBJECTS = $(am_TestPersistedCounter_OBJECTS)
 @WEAVE_BUILD_TESTS_TRUE@TestPersistedCounter_DEPENDENCIES =  \
 @WEAVE_BUILD_TESTS_TRUE@	libWeaveTestCommon.a \
-@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_6) \
-@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_7)
+@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_6)
 am__TestPersistedStorage_SOURCES_DIST = TestPersistedStorage.cpp \
 	TestPersistedStorageImplementation.cpp
 @WEAVE_BUILD_TESTS_TRUE@am_TestPersistedStorage_OBJECTS =  \
@@ -1095,8 +1058,7 @@ am__TestPersistedStorage_SOURCES_DIST = TestPersistedStorage.cpp \
 TestPersistedStorage_OBJECTS = $(am_TestPersistedStorage_OBJECTS)
 @WEAVE_BUILD_TESTS_TRUE@TestPersistedStorage_DEPENDENCIES =  \
 @WEAVE_BUILD_TESTS_TRUE@	libWeaveTestCommon.a \
-@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_6) \
-@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_7)
+@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_6)
 am__TestProfileStringSupport_SOURCES_DIST =  \
 	TestProfileStringSupport.cpp
 @WEAVE_BUILD_TESTS_TRUE@am_TestProfileStringSupport_OBJECTS =  \
@@ -1104,30 +1066,26 @@ am__TestProfileStringSupport_SOURCES_DIST =  \
 TestProfileStringSupport_OBJECTS =  \
 	$(am_TestProfileStringSupport_OBJECTS)
 @WEAVE_BUILD_TESTS_TRUE@TestProfileStringSupport_DEPENDENCIES =  \
-@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_6) \
-@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_7)
+@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_6)
 am__TestProvHash_SOURCES_DIST = TestProvHash.cpp
 @WEAVE_BUILD_TESTS_TRUE@am_TestProvHash_OBJECTS =  \
 @WEAVE_BUILD_TESTS_TRUE@	TestProvHash.$(OBJEXT)
 TestProvHash_OBJECTS = $(am_TestProvHash_OBJECTS)
 @WEAVE_BUILD_TESTS_TRUE@TestProvHash_DEPENDENCIES =  \
-@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_6) \
-@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_7)
+@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_6)
 am__TestRADaemon_SOURCES_DIST = TestRADaemon.cpp
 @WEAVE_BUILD_TESTS_TRUE@am_TestRADaemon_OBJECTS =  \
 @WEAVE_BUILD_TESTS_TRUE@	TestRADaemon-TestRADaemon.$(OBJEXT)
 TestRADaemon_OBJECTS = $(am_TestRADaemon_OBJECTS)
 @WEAVE_BUILD_TESTS_TRUE@TestRADaemon_DEPENDENCIES =  \
 @WEAVE_BUILD_TESTS_TRUE@	libWeaveTestCommon.a \
-@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_6) \
-@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_7)
+@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_6)
 am__TestResourceIdentifier_SOURCES_DIST = TestResourceIdentifier.cpp
 @WEAVE_BUILD_TESTS_TRUE@am_TestResourceIdentifier_OBJECTS =  \
 @WEAVE_BUILD_TESTS_TRUE@	TestResourceIdentifier.$(OBJEXT)
 TestResourceIdentifier_OBJECTS = $(am_TestResourceIdentifier_OBJECTS)
 @WEAVE_BUILD_TESTS_TRUE@TestResourceIdentifier_DEPENDENCIES =  \
-@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_6) \
-@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_7)
+@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_6)
 am__TestRetainedPacketBuffer_SOURCES_DIST =  \
 	TestRetainedPacketBuffer.cpp
 @WEAVE_BUILD_TESTS_TRUE@am_TestRetainedPacketBuffer_OBJECTS =  \
@@ -1142,23 +1100,20 @@ am__TestSerialNumUtils_SOURCES_DIST = TestSerialNumUtils.cpp
 @WEAVE_BUILD_TESTS_TRUE@	TestSerialNumUtils.$(OBJEXT)
 TestSerialNumUtils_OBJECTS = $(am_TestSerialNumUtils_OBJECTS)
 @WEAVE_BUILD_TESTS_TRUE@TestSerialNumUtils_DEPENDENCIES =  \
-@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_6) \
-@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_7)
+@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_6)
 am__TestStatusReportStr_SOURCES_DIST = TestStatusReportStr.cpp
 @WEAVE_BUILD_TESTS_TRUE@am_TestStatusReportStr_OBJECTS =  \
 @WEAVE_BUILD_TESTS_TRUE@	TestStatusReportStr.$(OBJEXT)
 TestStatusReportStr_OBJECTS = $(am_TestStatusReportStr_OBJECTS)
 @WEAVE_BUILD_TESTS_TRUE@TestStatusReportStr_DEPENDENCIES =  \
-@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_6) \
-@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_7)
+@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_6)
 am__TestSystemObject_SOURCES_DIST = TestSystemObject.cpp
 @WEAVE_BUILD_TESTS_TRUE@am_TestSystemObject_OBJECTS = TestSystemObject-TestSystemObject.$(OBJEXT)
 TestSystemObject_OBJECTS = $(am_TestSystemObject_OBJECTS)
 @WEAVE_BUILD_TESTS_TRUE@TestSystemObject_DEPENDENCIES =  \
 @WEAVE_BUILD_TESTS_TRUE@	libWeaveTestCommon.a \
 @WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_2) \
-@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_6) \
-@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_7)
+@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_6)
 TestSystemObject_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
 	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CXXLD) \
 	$(AM_CXXFLAGS) $(CXXFLAGS) $(TestSystemObject_LDFLAGS) \
@@ -1169,14 +1124,12 @@ am__TestSystemTimer_SOURCES_DIST = TestSystemTimer.cpp
 TestSystemTimer_OBJECTS = $(am_TestSystemTimer_OBJECTS)
 @WEAVE_BUILD_TESTS_TRUE@TestSystemTimer_DEPENDENCIES =  \
 @WEAVE_BUILD_TESTS_TRUE@	libWeaveTestCommon.a \
-@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_6) \
-@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_7)
+@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_6)
 am__TestTAKE_SOURCES_DIST = TestTAKE.cpp
 @WEAVE_BUILD_TESTS_TRUE@am_TestTAKE_OBJECTS = TestTAKE.$(OBJEXT)
 TestTAKE_OBJECTS = $(am_TestTAKE_OBJECTS)
 @WEAVE_BUILD_TESTS_TRUE@TestTAKE_DEPENDENCIES = libWeaveTestCommon.a \
-@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_6) \
-@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_7)
+@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_6)
 TestTAKE_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) \
 	$(LIBTOOLFLAGS) --mode=link $(CXXLD) $(AM_CXXFLAGS) \
 	$(CXXFLAGS) $(TestTAKE_LDFLAGS) $(LDFLAGS) -o $@
@@ -1200,8 +1153,7 @@ am__TestTDM_SOURCES_DIST = TestTDM.cpp \
 TestTDM_OBJECTS = $(am_TestTDM_OBJECTS)
 @HAVE_CXX11_TRUE@@WEAVE_BUILD_TESTS_TRUE@TestTDM_DEPENDENCIES =  \
 @HAVE_CXX11_TRUE@@WEAVE_BUILD_TESTS_TRUE@	libWeaveTestCommon.a \
-@HAVE_CXX11_TRUE@@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_6) \
-@HAVE_CXX11_TRUE@@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_7)
+@HAVE_CXX11_TRUE@@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_6)
 TestTDM_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) \
 	$(LIBTOOLFLAGS) --mode=link $(CXXLD) $(AM_CXXFLAGS) \
 	$(CXXFLAGS) $(TestTDM_LDFLAGS) $(LDFLAGS) -o $@
@@ -1209,36 +1161,31 @@ am__TestTLV_SOURCES_DIST = TestTLV.cpp
 @WEAVE_BUILD_TESTS_TRUE@am_TestTLV_OBJECTS = TestTLV.$(OBJEXT)
 TestTLV_OBJECTS = $(am_TestTLV_OBJECTS)
 @WEAVE_BUILD_TESTS_TRUE@TestTLV_DEPENDENCIES = libWeaveTestCommon.a \
-@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_6) \
-@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_7)
+@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_6)
 am__TestThermostatStatus_SOURCES_DIST = TestThermostatStatus.cpp
 @WEAVE_BUILD_TESTS_TRUE@am_TestThermostatStatus_OBJECTS =  \
 @WEAVE_BUILD_TESTS_TRUE@	TestThermostatStatus.$(OBJEXT)
 TestThermostatStatus_OBJECTS = $(am_TestThermostatStatus_OBJECTS)
 @WEAVE_BUILD_TESTS_TRUE@TestThermostatStatus_DEPENDENCIES =  \
-@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_6) \
-@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_7)
+@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_6)
 am__TestTimeUtils_SOURCES_DIST = TestTimeUtils.cpp
 @WEAVE_BUILD_TESTS_TRUE@am_TestTimeUtils_OBJECTS =  \
 @WEAVE_BUILD_TESTS_TRUE@	TestTimeUtils.$(OBJEXT)
 TestTimeUtils_OBJECTS = $(am_TestTimeUtils_OBJECTS)
 @WEAVE_BUILD_TESTS_TRUE@TestTimeUtils_DEPENDENCIES =  \
-@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_6) \
-@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_7)
+@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_6)
 am__TestTimeZone_SOURCES_DIST = TestTimeZone.cpp
 @WEAVE_BUILD_TESTS_TRUE@am_TestTimeZone_OBJECTS =  \
 @WEAVE_BUILD_TESTS_TRUE@	TestTimeZone.$(OBJEXT)
 TestTimeZone_OBJECTS = $(am_TestTimeZone_OBJECTS)
 @WEAVE_BUILD_TESTS_TRUE@TestTimeZone_DEPENDENCIES =  \
-@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_6) \
-@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_7)
+@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_6)
 am__TestWDM_SOURCES_DIST = TestWdm.cpp
 @WEAVE_BUILD_TESTS_TRUE@am_TestWDM_OBJECTS =  \
 @WEAVE_BUILD_TESTS_TRUE@	TestWDM-TestWdm.$(OBJEXT)
 TestWDM_OBJECTS = $(am_TestWDM_OBJECTS)
 @WEAVE_BUILD_TESTS_TRUE@TestWDM_DEPENDENCIES = libWeaveTestCommon.a \
-@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_6) \
-@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_7)
+@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_6)
 TestWDM_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) \
 	$(LIBTOOLFLAGS) --mode=link $(CXXLD) $(AM_CXXFLAGS) \
 	$(CXXFLAGS) $(TestWDM_LDFLAGS) $(LDFLAGS) -o $@
@@ -1246,8 +1193,7 @@ am__TestWRMP_SOURCES_DIST = TestWRMP.cpp
 @WEAVE_BUILD_TESTS_TRUE@am_TestWRMP_OBJECTS = TestWRMP.$(OBJEXT)
 TestWRMP_OBJECTS = $(am_TestWRMP_OBJECTS)
 @WEAVE_BUILD_TESTS_TRUE@TestWRMP_DEPENDENCIES = libWeaveTestCommon.a \
-@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_6) \
-@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_7)
+@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_6)
 TestWRMP_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) \
 	$(LIBTOOLFLAGS) --mode=link $(CXXLD) $(AM_CXXFLAGS) \
 	$(CXXFLAGS) $(TestWRMP_LDFLAGS) $(LDFLAGS) -o $@
@@ -1257,8 +1203,7 @@ am__TestWarm_SOURCES_DIST = TestWarm.cpp \
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_BUILD_WARM_TRUE@	TestPersistedStorageImplementation.$(OBJEXT)
 TestWarm_OBJECTS = $(am_TestWarm_OBJECTS)
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_BUILD_WARM_TRUE@TestWarm_DEPENDENCIES = libWeaveTestGroupKeyStore.a \
-@WEAVE_BUILD_TESTS_TRUE@@WEAVE_BUILD_WARM_TRUE@	$(am__DEPENDENCIES_6) \
-@WEAVE_BUILD_TESTS_TRUE@@WEAVE_BUILD_WARM_TRUE@	$(am__DEPENDENCIES_7)
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_BUILD_WARM_TRUE@	$(am__DEPENDENCIES_6)
 TestWarm_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) \
 	$(LIBTOOLFLAGS) --mode=link $(CXXLD) $(AM_CXXFLAGS) \
 	$(CXXFLAGS) $(TestWarm_LDFLAGS) $(LDFLAGS) -o $@
@@ -1304,8 +1249,7 @@ am__TestWdmNext_SOURCES_DIST = TestWdmNext.cpp MockSinkTraits.cpp \
 TestWdmNext_OBJECTS = $(am_TestWdmNext_OBJECTS)
 @WEAVE_BUILD_TESTS_TRUE@TestWdmNext_DEPENDENCIES =  \
 @WEAVE_BUILD_TESTS_TRUE@	libWeaveTestCommon.a \
-@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_6) \
-@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_7)
+@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_6)
 TestWdmNext_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) \
 	$(LIBTOOLFLAGS) --mode=link $(CXXLD) $(AM_CXXFLAGS) \
 	$(CXXFLAGS) $(TestWdmNext_LDFLAGS) $(LDFLAGS) -o $@
@@ -1336,8 +1280,7 @@ TestWdmOneWayCommandReceiver_OBJECTS =  \
 	$(am_TestWdmOneWayCommandReceiver_OBJECTS)
 @WEAVE_BUILD_TESTS_TRUE@TestWdmOneWayCommandReceiver_DEPENDENCIES =  \
 @WEAVE_BUILD_TESTS_TRUE@	libWeaveTestCommon.a \
-@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_6) \
-@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_7)
+@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_6)
 TestWdmOneWayCommandReceiver_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
 	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CXXLD) \
 	$(AM_CXXFLAGS) $(CXXFLAGS) \
@@ -1349,8 +1292,7 @@ TestWdmOneWayCommandSender_OBJECTS =  \
 	$(am_TestWdmOneWayCommandSender_OBJECTS)
 @WEAVE_BUILD_TESTS_TRUE@TestWdmOneWayCommandSender_DEPENDENCIES =  \
 @WEAVE_BUILD_TESTS_TRUE@	libWeaveTestCommon.a \
-@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_6) \
-@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_7)
+@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_6)
 TestWdmOneWayCommandSender_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
 	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CXXLD) \
 	$(AM_CXXFLAGS) $(CXXFLAGS) \
@@ -1363,8 +1305,7 @@ am__TestWeaveCert_SOURCES_DIST = TestWeaveCert.cpp \
 TestWeaveCert_OBJECTS = $(am_TestWeaveCert_OBJECTS)
 @WEAVE_BUILD_TESTS_TRUE@TestWeaveCert_DEPENDENCIES =  \
 @WEAVE_BUILD_TESTS_TRUE@	libWeaveTestCommon.a \
-@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_6) \
-@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_7)
+@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_6)
 am__TestWeaveEncoding_SOURCES_DIST = TestWeaveEncoding.cpp
 @WEAVE_BUILD_TESTS_TRUE@am_TestWeaveEncoding_OBJECTS =  \
 @WEAVE_BUILD_TESTS_TRUE@	TestWeaveEncoding.$(OBJEXT)
@@ -1378,8 +1319,7 @@ am__TestWeaveFabricState_SOURCES_DIST = TestWeaveFabricState.cpp \
 TestWeaveFabricState_OBJECTS = $(am_TestWeaveFabricState_OBJECTS)
 @WEAVE_BUILD_TESTS_TRUE@TestWeaveFabricState_DEPENDENCIES =  \
 @WEAVE_BUILD_TESTS_TRUE@	libWeaveTestCommon.a \
-@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_6) \
-@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_7)
+@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_6)
 TestWeaveFabricState_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
 	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CXXLD) \
 	$(AM_CXXFLAGS) $(CXXFLAGS) $(TestWeaveFabricState_LDFLAGS) \
@@ -1390,8 +1330,7 @@ am__TestWeaveMessageLayer_SOURCES_DIST = TestWeaveMessageLayer.cpp
 TestWeaveMessageLayer_OBJECTS = $(am_TestWeaveMessageLayer_OBJECTS)
 @WEAVE_BUILD_TESTS_TRUE@TestWeaveMessageLayer_DEPENDENCIES =  \
 @WEAVE_BUILD_TESTS_TRUE@	libWeaveTestCommon.a \
-@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_6) \
-@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_7)
+@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_6)
 TestWeaveMessageLayer_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
 	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CXXLD) \
 	$(AM_CXXFLAGS) $(CXXFLAGS) $(TestWeaveMessageLayer_LDFLAGS) \
@@ -1401,8 +1340,7 @@ am__TestWeaveProvBundle_SOURCES_DIST = TestWeaveProvBundle.cpp
 @WEAVE_BUILD_TESTS_TRUE@	TestWeaveProvBundle.$(OBJEXT)
 TestWeaveProvBundle_OBJECTS = $(am_TestWeaveProvBundle_OBJECTS)
 @WEAVE_BUILD_TESTS_TRUE@TestWeaveProvBundle_DEPENDENCIES =  \
-@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_6) \
-@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_7)
+@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_6)
 TestWeaveProvBundle_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
 	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CXXLD) \
 	$(AM_CXXFLAGS) $(CXXFLAGS) $(TestWeaveProvBundle_LDFLAGS) \
@@ -1412,8 +1350,7 @@ am__TestWeaveSignature_SOURCES_DIST = TestWeaveSignature.cpp
 @WEAVE_BUILD_TESTS_TRUE@	TestWeaveSignature.$(OBJEXT)
 TestWeaveSignature_OBJECTS = $(am_TestWeaveSignature_OBJECTS)
 @WEAVE_BUILD_TESTS_TRUE@TestWeaveSignature_DEPENDENCIES =  \
-@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_6) \
-@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_7)
+@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_6)
 TestWeaveSignature_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
 	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CXXLD) \
 	$(AM_CXXFLAGS) $(CXXFLAGS) $(TestWeaveSignature_LDFLAGS) \
@@ -1424,8 +1361,7 @@ am__TestWeaveTunnelBR_SOURCES_DIST = TestWeaveTunnelBR.cpp
 TestWeaveTunnelBR_OBJECTS = $(am_TestWeaveTunnelBR_OBJECTS)
 @WEAVE_BUILD_TESTS_TRUE@TestWeaveTunnelBR_DEPENDENCIES =  \
 @WEAVE_BUILD_TESTS_TRUE@	libWeaveTestCommon.a \
-@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_6) \
-@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_7)
+@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_6)
 TestWeaveTunnelBR_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
 	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CXXLD) \
 	$(AM_CXXFLAGS) $(CXXFLAGS) $(TestWeaveTunnelBR_LDFLAGS) \
@@ -1436,8 +1372,7 @@ am__TestWeaveTunnelServer_SOURCES_DIST = TestWeaveTunnelServer.cpp
 TestWeaveTunnelServer_OBJECTS = $(am_TestWeaveTunnelServer_OBJECTS)
 @WEAVE_BUILD_TESTS_TRUE@TestWeaveTunnelServer_DEPENDENCIES =  \
 @WEAVE_BUILD_TESTS_TRUE@	libWeaveTestCommon.a \
-@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_6) \
-@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_7)
+@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_6)
 TestWeaveTunnelServer_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
 	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CXXLD) \
 	$(AM_CXXFLAGS) $(CXXFLAGS) $(TestWeaveTunnelServer_LDFLAGS) \
@@ -1446,8 +1381,7 @@ am__infratest_SOURCES_DIST = infratest.cpp
 @WEAVE_BUILD_TESTS_TRUE@am_infratest_OBJECTS = infratest.$(OBJEXT)
 infratest_OBJECTS = $(am_infratest_OBJECTS)
 @WEAVE_BUILD_TESTS_TRUE@infratest_DEPENDENCIES =  \
-@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_6) \
-@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_7)
+@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_6)
 am__mock_device_SOURCES_DIST = mock-device.cpp MockDCLPServer.cpp \
 	MockDCServer.cpp MockDDServer.cpp MockFPServer.cpp \
 	MockNPServer.cpp MockOpActions.cpp MockPairingServer.cpp \
@@ -1507,7 +1441,6 @@ mock_device_OBJECTS = $(am_mock_device_OBJECTS)
 @WEAVE_BUILD_TESTS_TRUE@mock_device_DEPENDENCIES =  \
 @WEAVE_BUILD_TESTS_TRUE@	libWeaveTestCommon.a \
 @WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_6) \
-@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_7) \
 @WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_2)
 mock_device_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) \
 	$(LIBTOOLFLAGS) --mode=link $(CXXLD) $(AM_CXXFLAGS) \
@@ -1518,8 +1451,7 @@ am__mock_weave_bg_SOURCES_DIST = mock-weave-bg.cpp
 mock_weave_bg_OBJECTS = $(am_mock_weave_bg_OBJECTS)
 @WEAVE_BUILD_TESTS_TRUE@mock_weave_bg_DEPENDENCIES =  \
 @WEAVE_BUILD_TESTS_TRUE@	libWeaveTestCommon.a \
-@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_6) \
-@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_7)
+@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_6)
 mock_weave_bg_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
 	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CXXLD) \
 	$(AM_CXXFLAGS) $(CXXFLAGS) $(mock_weave_bg_LDFLAGS) $(LDFLAGS) \
@@ -1528,8 +1460,7 @@ am__wdmtest_SOURCES_DIST = wdmtest.cpp
 @WEAVE_BUILD_TESTS_TRUE@am_wdmtest_OBJECTS = wdmtest.$(OBJEXT)
 wdmtest_OBJECTS = $(am_wdmtest_OBJECTS)
 @WEAVE_BUILD_TESTS_TRUE@wdmtest_DEPENDENCIES = libWeaveTestCommon.a \
-@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_6) \
-@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_7)
+@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_6)
 wdmtest_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) \
 	$(LIBTOOLFLAGS) --mode=link $(CXXLD) $(AM_CXXFLAGS) \
 	$(CXXFLAGS) $(wdmtest_LDFLAGS) $(LDFLAGS) -o $@
@@ -1540,12 +1471,11 @@ am__weave_bdx_client_development_SOURCES_DIST =  \
 @WEAVE_BUILD_TESTS_TRUE@	weave-bdx-common-development.$(OBJEXT)
 weave_bdx_client_development_OBJECTS =  \
 	$(am_weave_bdx_client_development_OBJECTS)
-@WEAVE_BUILD_TESTS_TRUE@@WEAVE_WITH_CURL_TRUE@am__DEPENDENCIES_8 = $(am__DEPENDENCIES_2)
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_WITH_CURL_TRUE@am__DEPENDENCIES_7 = $(am__DEPENDENCIES_2)
 @WEAVE_BUILD_TESTS_TRUE@weave_bdx_client_development_DEPENDENCIES =  \
 @WEAVE_BUILD_TESTS_TRUE@	libWeaveTestCommon.a \
 @WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_6) \
-@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_7) \
-@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_8)
+@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_7)
 weave_bdx_client_development_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
 	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CXXLD) \
 	$(AM_CXXFLAGS) $(CXXFLAGS) \
@@ -1556,8 +1486,7 @@ am__weave_bdx_client_v0_SOURCES_DIST = weave-bdx-client-v0.cpp
 weave_bdx_client_v0_OBJECTS = $(am_weave_bdx_client_v0_OBJECTS)
 @WEAVE_BUILD_TESTS_TRUE@weave_bdx_client_v0_DEPENDENCIES =  \
 @WEAVE_BUILD_TESTS_TRUE@	libWeaveTestCommon.a \
-@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_6) \
-@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_7)
+@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_6)
 weave_bdx_client_v0_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
 	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CXXLD) \
 	$(AM_CXXFLAGS) $(CXXFLAGS) $(weave_bdx_client_v0_LDFLAGS) \
@@ -1572,8 +1501,7 @@ weave_bdx_server_development_OBJECTS =  \
 @WEAVE_BUILD_TESTS_TRUE@weave_bdx_server_development_DEPENDENCIES =  \
 @WEAVE_BUILD_TESTS_TRUE@	libWeaveTestCommon.a \
 @WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_6) \
-@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_7) \
-@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_8)
+@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_7)
 weave_bdx_server_development_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
 	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CXXLD) \
 	$(AM_CXXFLAGS) $(CXXFLAGS) \
@@ -1586,8 +1514,7 @@ am__weave_bdx_server_v0_SOURCES_DIST = weave-bdx-server-v0.cpp \
 weave_bdx_server_v0_OBJECTS = $(am_weave_bdx_server_v0_OBJECTS)
 @WEAVE_BUILD_TESTS_TRUE@weave_bdx_server_v0_DEPENDENCIES =  \
 @WEAVE_BUILD_TESTS_TRUE@	libWeaveTestCommon.a \
-@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_6) \
-@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_7)
+@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_6)
 weave_bdx_server_v0_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
 	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CXXLD) \
 	$(AM_CXXFLAGS) $(CXXFLAGS) $(weave_bdx_server_v0_LDFLAGS) \
@@ -1600,8 +1527,7 @@ weave_connection_tunnel_OBJECTS =  \
 	$(am_weave_connection_tunnel_OBJECTS)
 @WEAVE_BUILD_TESTS_TRUE@weave_connection_tunnel_DEPENDENCIES =  \
 @WEAVE_BUILD_TESTS_TRUE@	libWeaveTestCommon.a \
-@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_6) \
-@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_7)
+@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_6)
 weave_connection_tunnel_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
 	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CXXLD) \
 	$(AM_CXXFLAGS) $(CXXFLAGS) $(weave_connection_tunnel_LDFLAGS) \
@@ -1612,8 +1538,7 @@ am__weave_dd_client_SOURCES_DIST = weave-dd-client.cpp
 weave_dd_client_OBJECTS = $(am_weave_dd_client_OBJECTS)
 @WEAVE_BUILD_TESTS_TRUE@weave_dd_client_DEPENDENCIES =  \
 @WEAVE_BUILD_TESTS_TRUE@	libWeaveTestCommon.a \
-@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_6) \
-@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_7)
+@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_6)
 weave_dd_client_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
 	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CXXLD) \
 	$(AM_CXXFLAGS) $(CXXFLAGS) $(weave_dd_client_LDFLAGS) \
@@ -1626,8 +1551,7 @@ weave_device_descriptor_OBJECTS =  \
 	$(am_weave_device_descriptor_OBJECTS)
 @WEAVE_BUILD_TESTS_TRUE@weave_device_descriptor_DEPENDENCIES =  \
 @WEAVE_BUILD_TESTS_TRUE@	libWeaveTestCommon.a \
-@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_6) \
-@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_7)
+@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_6)
 weave_device_descriptor_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
 	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CXXLD) \
 	$(AM_CXXFLAGS) $(CXXFLAGS) $(weave_device_descriptor_LDFLAGS) \
@@ -1638,8 +1562,7 @@ am__weave_heartbeat_SOURCES_DIST = weave-heartbeat.cpp
 weave_heartbeat_OBJECTS = $(am_weave_heartbeat_OBJECTS)
 @WEAVE_BUILD_TESTS_TRUE@weave_heartbeat_DEPENDENCIES =  \
 @WEAVE_BUILD_TESTS_TRUE@	libWeaveTestCommon.a \
-@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_6) \
-@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_7)
+@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_6)
 weave_heartbeat_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
 	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CXXLD) \
 	$(AM_CXXFLAGS) $(CXXFLAGS) $(weave_heartbeat_LDFLAGS) \
@@ -1650,8 +1573,7 @@ am__weave_key_export_SOURCES_DIST = weave-key-export.cpp
 weave_key_export_OBJECTS = $(am_weave_key_export_OBJECTS)
 @WEAVE_BUILD_TESTS_TRUE@weave_key_export_DEPENDENCIES =  \
 @WEAVE_BUILD_TESTS_TRUE@	libWeaveTestCommon.a \
-@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_6) \
-@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_7)
+@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_6)
 weave_key_export_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
 	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CXXLD) \
 	$(AM_CXXFLAGS) $(CXXFLAGS) $(weave_key_export_LDFLAGS) \
@@ -1661,8 +1583,7 @@ am__weave_ping_SOURCES_DIST = weave-ping.cpp
 weave_ping_OBJECTS = $(am_weave_ping_OBJECTS)
 @WEAVE_BUILD_TESTS_TRUE@weave_ping_DEPENDENCIES =  \
 @WEAVE_BUILD_TESTS_TRUE@	libWeaveTestCommon.a \
-@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_6) \
-@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_7)
+@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_6)
 weave_ping_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) \
 	$(LIBTOOLFLAGS) --mode=link $(CXXLD) $(AM_CXXFLAGS) \
 	$(CXXFLAGS) $(weave_ping_LDFLAGS) $(LDFLAGS) -o $@
@@ -1674,8 +1595,7 @@ am__weave_service_dir_SOURCES_DIST = weave-service-dir.cpp \
 weave_service_dir_OBJECTS = $(am_weave_service_dir_OBJECTS)
 @WEAVE_BUILD_TESTS_TRUE@weave_service_dir_DEPENDENCIES =  \
 @WEAVE_BUILD_TESTS_TRUE@	libWeaveTestCommon.a \
-@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_6) \
-@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_7)
+@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_6)
 weave_service_dir_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
 	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CXXLD) \
 	$(AM_CXXFLAGS) $(CXXFLAGS) $(weave_service_dir_LDFLAGS) \
@@ -1689,8 +1609,7 @@ am__weave_swu_client_SOURCES_DIST = weave-swu-client.cpp \
 weave_swu_client_OBJECTS = $(am_weave_swu_client_OBJECTS)
 @WEAVE_BUILD_TESTS_TRUE@weave_swu_client_DEPENDENCIES =  \
 @WEAVE_BUILD_TESTS_TRUE@	libWeaveTestCommon.a \
-@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_6) \
-@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_7)
+@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_6)
 weave_swu_client_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
 	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CXXLD) \
 	$(AM_CXXFLAGS) $(CXXFLAGS) $(weave_swu_client_LDFLAGS) \
@@ -1703,8 +1622,7 @@ am__weave_swu_server_SOURCES_DIST = weave-swu-server.cpp \
 weave_swu_server_OBJECTS = $(am_weave_swu_server_OBJECTS)
 @WEAVE_BUILD_TESTS_TRUE@weave_swu_server_DEPENDENCIES =  \
 @WEAVE_BUILD_TESTS_TRUE@	libWeaveTestCommon.a \
-@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_6) \
-@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_7)
+@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_6)
 weave_swu_server_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
 	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CXXLD) \
 	$(AM_CXXFLAGS) $(CXXFLAGS) $(weave_swu_server_LDFLAGS) \
@@ -1712,8 +1630,7 @@ weave_swu_server_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
 am__wsuptest_SOURCES_DIST = wsuptest.cpp
 @WEAVE_BUILD_TESTS_TRUE@am_wsuptest_OBJECTS = wsuptest.$(OBJEXT)
 wsuptest_OBJECTS = $(am_wsuptest_OBJECTS)
-@WEAVE_BUILD_TESTS_TRUE@wsuptest_DEPENDENCIES = $(am__DEPENDENCIES_6) \
-@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_7)
+@WEAVE_BUILD_TESTS_TRUE@wsuptest_DEPENDENCIES = $(am__DEPENDENCIES_6)
 AM_V_P = $(am__v_P_@AM_V@)
 am__v_P_ = $(am__v_P_@AM_DEFAULT_V@)
 am__v_P_0 = false
@@ -1754,14 +1671,13 @@ SOURCES = $(libMockBleApplicationDelegate_a_SOURCES) \
 	$(libWeaveCryptoTests_a_SOURCES) \
 	$(libWeaveTestCommon_a_SOURCES) \
 	$(libWeaveTestGroupKeyStore_a_SOURCES) \
-	$(libWeaveTestPlatform_a_SOURCES) $(GenerateEventLog_SOURCES) \
-	$(TestASN1_SOURCES) $(TestAppKeys_SOURCES) \
-	$(TestArgParser_SOURCES) $(TestBinding_SOURCES) \
-	$(TestCASE_SOURCES) $(TestCodeUtils_SOURCES) \
-	$(TestCrypto_SOURCES) $(TestDNSResolution_SOURCES) \
-	$(TestDRBG_SOURCES) $(TestDataManagement_SOURCES) \
-	$(TestDeviceDescriptor_SOURCES) $(TestECDH_SOURCES) \
-	$(TestECDSA_SOURCES) $(TestECMath_SOURCES) \
+	$(GenerateEventLog_SOURCES) $(TestASN1_SOURCES) \
+	$(TestAppKeys_SOURCES) $(TestArgParser_SOURCES) \
+	$(TestBinding_SOURCES) $(TestCASE_SOURCES) \
+	$(TestCodeUtils_SOURCES) $(TestCrypto_SOURCES) \
+	$(TestDNSResolution_SOURCES) $(TestDRBG_SOURCES) \
+	$(TestDataManagement_SOURCES) $(TestDeviceDescriptor_SOURCES) \
+	$(TestECDH_SOURCES) $(TestECDSA_SOURCES) $(TestECMath_SOURCES) \
 	$(TestErrorStr_SOURCES) $(TestEventLogging_SOURCES) \
 	$(TestFabricStateDelegate_SOURCES) $(TestInetAddress_SOURCES) \
 	$(TestInetBuffer_SOURCES) $(TestInetEndPoint_SOURCES) \
@@ -1803,7 +1719,6 @@ DIST_SOURCES = $(am__libMockBleApplicationDelegate_a_SOURCES_DIST) \
 	$(am__libWeaveCryptoTests_a_SOURCES_DIST) \
 	$(am__libWeaveTestCommon_a_SOURCES_DIST) \
 	$(am__libWeaveTestGroupKeyStore_a_SOURCES_DIST) \
-	$(am__libWeaveTestPlatform_a_SOURCES_DIST) \
 	$(am__GenerateEventLog_SOURCES_DIST) \
 	$(am__TestASN1_SOURCES_DIST) $(am__TestAppKeys_SOURCES_DIST) \
 	$(am__TestArgParser_SOURCES_DIST) \
@@ -1890,12 +1805,12 @@ am__noinst_HEADERS_DIST = CASEOptions.h DMTestClient.h \
 	MockSourceTraits.h MockTestBTrait.h MockTimeSyncClient.h \
 	MockTimeSyncCoordinator.h MockTimeSyncServer.h \
 	MockTimeSyncUtil.h MockTokenPairingServer.h \
-	MockWdmSubscriptionInitiator.h MockWdmSubscriptionResponder.h \
-<<<<<<< HEAD
-	MockWdmTestVerifier.h MockWdmViewClient.h MockWdmViewServer.h \
-	TAKEOptions.h TestDRBG.h TestEventLoggingSchemaExamples.h \
+	MockWdmNodeOptions.h MockWdmSubscriptionInitiator.h \
+	MockWdmSubscriptionResponder.h MockWdmTestVerifier.h \
+	MockWdmViewClient.h MockWdmViewServer.h TAKEOptions.h \
+	TestDRBG.h TestEventLoggingSchemaExamples.h \
 	TestGroupKeyStore.h TestPersistedStorageImplementation.h \
-	TestPlatformTime.h TestProfile.h TestWRMP.h \
+	MockPlatformClocks.h TestProfile.h TestWRMP.h \
 	TestWdmOneWayCommand.h TestWdmSubscriptionlessNotification.h \
 	TestWeaveCertData.h TestWeaveTunnel.h TestWeaveTunnelServer.h \
 	ToolCommon.h ToolCommonOptions.h WdmNextPerfUtility.h \
@@ -1918,17 +1833,6 @@ am__noinst_HEADERS_DIST = CASEOptions.h DMTestClient.h \
 	schema/nest/test/trait/TestDTrait.h \
 	schema/nest/test/trait/TestMismatchedCTrait.h \
 	weave-bdx-common-development.h MockBleApplicationDelegate.h \
-=======
-	MockWdmNodeOptions.h TestWdmOneWayCommand.h \
-	TestWdmSubscriptionlessNotification.h TestGroupKeyStore.h \
-	TestDRBG.h TestPersistedStorageImplementation.h \
-	TestEventLoggingSchemaExamples.h TestProfile.h TestWRMP.h \
-	TestWeaveTunnel.h TestWeaveTunnelServer.h ToolCommon.h \
-	TestWeaveCertData.h nlweavebdxclient.h \
-	nlweavebdxclient-development.h nlweavebdxserver-development.h \
-	nlweaveswuclient.h weave-bdx-common-development.h \
-	MockIAServer.h MockBleApplicationDelegate.h \
->>>>>>> Refactored the WdmNext options duplicated by TestWdmNext and mock-device
 	MockBlePlatformDelegate.h
 HEADERS = $(noinst_HEADERS)
 am__tagged_files = $(HEADERS) $(SOURCES) $(TAGS_FILES) $(LISP)
@@ -2169,7 +2073,9 @@ AM_RECURSIVE_TARGETS = check recheck
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_TRUE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@	happy/tests/service/wdmNext/test_weave_wdm_next_service_mutual_subscribe_24.py \
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_TRUE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@	happy/tests/service/wdmNext/test_weave_wdm_next_service_mutual_subscribe_25.py \
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_TRUE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@	happy/tests/service/wdmNext/test_weave_wdm_next_service_mutual_subscribe_application_key_01.py \
-@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_TRUE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@	happy/tests/service/wdmNext/test_weave_wdm_next_service_update_01.py
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_TRUE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@	happy/tests/service/wdmNext/test_weave_wdm_next_service_update_01.py \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_TRUE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@	happy/tests/service/wdmNext/test_weave_wdm_next_service_update_cond_OneLeaf.py \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_TRUE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@	happy/tests/service/wdmNext/test_weave_wdm_next_service_update_uncond_OneLeaf.py
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_BDX_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_LONG_TESTS_TRUE@am__EXEEXT_16 = happy/tests/standalone/bdx/test_weave_bdx_faults_download_v0_v0_1_of_4.sh \
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_BDX_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_LONG_TESTS_TRUE@	happy/tests/standalone/bdx/test_weave_bdx_faults_download_v0_v0_2_of_4.sh \
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_BDX_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_LONG_TESTS_TRUE@	happy/tests/standalone/bdx/test_weave_bdx_faults_download_v0_v0_3_of_4.sh \
@@ -2361,9 +2267,6 @@ AM_RECURSIVE_TARGETS = check recheck
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@	happy/tests/standalone/wdmNext/test_weave_wdm_next_application_key_02.py \
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@	happy/tests/standalone/wdmNext/test_weave_wdm_next_oneway_resub.py \
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@	happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_resub.py \
-@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@	happy/tests/standalone/wdmNext/test_weave_wdm_next_update_01.py \
-@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@	happy/tests/standalone/wdmNext/test_weave_wdm_next_update_02.py \
-@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@	happy/tests/standalone/wdmNext/test_weave_wdm_next_update_03.py \
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@	happy/tests/standalone/wdmNext/test_weave_wdm_next_subless_notify_01.py
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_BDX_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@am__EXEEXT_24 = happy/tests/standalone/bdx/test_weave_bdx_01.py \
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_BDX_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@	happy/tests/standalone/bdx/test_weave_bdx_02.py \
@@ -2725,12 +2628,12 @@ noinst_HEADERS = CASEOptions.h DMTestClient.h DeviceDescOptions.h \
 	MockSourceTraits.h MockTestBTrait.h MockTimeSyncClient.h \
 	MockTimeSyncCoordinator.h MockTimeSyncServer.h \
 	MockTimeSyncUtil.h MockTokenPairingServer.h \
-	MockWdmSubscriptionInitiator.h MockWdmSubscriptionResponder.h \
-<<<<<<< HEAD
-	MockWdmTestVerifier.h MockWdmViewClient.h MockWdmViewServer.h \
-	TAKEOptions.h TestDRBG.h TestEventLoggingSchemaExamples.h \
+	MockWdmNodeOptions.h MockWdmSubscriptionInitiator.h \
+	MockWdmSubscriptionResponder.h MockWdmTestVerifier.h \
+	MockWdmViewClient.h MockWdmViewServer.h TAKEOptions.h \
+	TestDRBG.h TestEventLoggingSchemaExamples.h \
 	TestGroupKeyStore.h TestPersistedStorageImplementation.h \
-	TestPlatformTime.h TestProfile.h TestWRMP.h \
+	MockPlatformClocks.h TestProfile.h TestWRMP.h \
 	TestWdmOneWayCommand.h TestWdmSubscriptionlessNotification.h \
 	TestWeaveCertData.h TestWeaveTunnel.h TestWeaveTunnelServer.h \
 	ToolCommon.h ToolCommonOptions.h WdmNextPerfUtility.h \
@@ -2753,17 +2656,6 @@ noinst_HEADERS = CASEOptions.h DMTestClient.h DeviceDescOptions.h \
 	schema/nest/test/trait/TestDTrait.h \
 	schema/nest/test/trait/TestMismatchedCTrait.h \
 	weave-bdx-common-development.h $(NULL) $(am__append_1)
-=======
-	MockWdmNodeOptions.h TestWdmOneWayCommand.h \
-	TestWdmSubscriptionlessNotification.h TestGroupKeyStore.h \
-	TestDRBG.h TestPersistedStorageImplementation.h \
-	TestEventLoggingSchemaExamples.h TestProfile.h TestWRMP.h \
-	TestWeaveTunnel.h TestWeaveTunnelServer.h ToolCommon.h \
-	TestWeaveCertData.h nlweavebdxclient.h \
-	nlweavebdxclient-development.h nlweavebdxserver-development.h \
-	nlweaveswuclient.h weave-bdx-common-development.h \
-	MockIAServer.h $(NULL) $(am__append_1)
->>>>>>> Refactored the WdmNext options duplicated by TestWdmNext and mock-device
 
 #
 # Other files we do want to distribute with the Weave source SDK.
@@ -2804,7 +2696,6 @@ EXTRA_DIST = \
 # This will NOT be part of the externally-consumable binary SDK.
 @WEAVE_BUILD_TESTS_TRUE@noinst_LIBRARIES = libWeaveCryptoTests.a \
 @WEAVE_BUILD_TESTS_TRUE@	libWeaveTestCommon.a \
-@WEAVE_BUILD_TESTS_TRUE@	libWeaveTestPlatform.a \
 @WEAVE_BUILD_TESTS_TRUE@	libWeaveTestGroupKeyStore.a $(NULL) \
 @WEAVE_BUILD_TESTS_TRUE@	$(am__append_5)
 
@@ -2830,10 +2721,7 @@ EXTRA_DIST = \
 @WEAVE_BUILD_TESTS_TRUE@    TestGroupKeyStore.cpp                        \
 @WEAVE_BUILD_TESTS_TRUE@    ToolCommon.cpp                               \
 @WEAVE_BUILD_TESTS_TRUE@    ToolCommonOptions.cpp                        \
-@WEAVE_BUILD_TESTS_TRUE@    $(NULL)
-
-@WEAVE_BUILD_TESTS_TRUE@libWeaveTestPlatform_a_SOURCES = \
-@WEAVE_BUILD_TESTS_TRUE@    TestPlatformTime.cpp                         \
+@WEAVE_BUILD_TESTS_TRUE@    MockPlatformClocks.cpp                       \
 @WEAVE_BUILD_TESTS_TRUE@    TestPersistedStorageImplementation.cpp       \
 @WEAVE_BUILD_TESTS_TRUE@    $(NULL)
 
@@ -2854,10 +2742,6 @@ EXTRA_DIST = \
 @CONFIG_BLE_PLATFORM_BLUEZ_FALSE@@CONFIG_NETWORK_LAYER_BLE_TRUE@@WEAVE_BUILD_TESTS_TRUE@libMockBleApplicationDelegate_a_SOURCES = \
 @CONFIG_BLE_PLATFORM_BLUEZ_FALSE@@CONFIG_NETWORK_LAYER_BLE_TRUE@@WEAVE_BUILD_TESTS_TRUE@    MockBleApplicationDelegate.cpp               \
 @CONFIG_BLE_PLATFORM_BLUEZ_FALSE@@CONFIG_NETWORK_LAYER_BLE_TRUE@@WEAVE_BUILD_TESTS_TRUE@    $(NULL)
-
-@CONFIG_NETWORK_LAYER_BLE_TRUE@@WEAVE_BUILD_TESTS_TRUE@TEST_PLATFORM_LDADD = \
-@CONFIG_NETWORK_LAYER_BLE_TRUE@@WEAVE_BUILD_TESTS_TRUE@    libWeaveTestPlatform.a                       \
-@CONFIG_NETWORK_LAYER_BLE_TRUE@@WEAVE_BUILD_TESTS_TRUE@    $(NULL)
 
 @CONFIG_NETWORK_LAYER_BLE_TRUE@@WEAVE_BUILD_TESTS_TRUE@libMockBlePlatformDelegate_a_SOURCES = \
 @CONFIG_NETWORK_LAYER_BLE_TRUE@@WEAVE_BUILD_TESTS_TRUE@    MockBlePlatformDelegate.cpp                  \
@@ -3022,39 +2906,39 @@ EXTRA_DIST = \
 
 @WEAVE_BUILD_TESTS_TRUE@GenerateEventLog_LDFLAGS = $(AM_CPPFLAGS)
 @WEAVE_BUILD_TESTS_TRUE@GenerateEventLog_CPPFLAGS = $(AM_CPPFLAGS) -I$(top_srcdir)/src/test-apps/schema
-@WEAVE_BUILD_TESTS_TRUE@GenerateEventLog_LDADD = libWeaveTestCommon.a $(COMMON_LDADD) $(TEST_PLATFORM_LDADD)
+@WEAVE_BUILD_TESTS_TRUE@GenerateEventLog_LDADD = libWeaveTestCommon.a $(COMMON_LDADD)
 @WEAVE_BUILD_TESTS_TRUE@TestASN1_SOURCES = TestASN1.cpp
-@WEAVE_BUILD_TESTS_TRUE@TestASN1_LDADD = $(COMMON_LDADD) $(TEST_PLATFORM_LDADD)
+@WEAVE_BUILD_TESTS_TRUE@TestASN1_LDADD = $(COMMON_LDADD)
 @WEAVE_BUILD_TESTS_TRUE@TestAppKeys_SOURCES = TestAppKeys.cpp
-@WEAVE_BUILD_TESTS_TRUE@TestAppKeys_LDADD = libWeaveTestCommon.a $(COMMON_LDADD) $(TEST_PLATFORM_LDADD)
+@WEAVE_BUILD_TESTS_TRUE@TestAppKeys_LDADD = libWeaveTestCommon.a $(COMMON_LDADD)
 @WEAVE_BUILD_TESTS_TRUE@TestArgParser_SOURCES = TestArgParser.cpp
 @WEAVE_BUILD_TESTS_TRUE@TestArgParser_LDADD = libWeaveTestCommon.a $(COMMON_LDADD)
 @WEAVE_BUILD_TESTS_TRUE@TestBinding_SOURCES = TestBinding.cpp
 @WEAVE_BUILD_TESTS_TRUE@TestBinding_LDFLAGS = $(AM_CPPFLAGS)
-@WEAVE_BUILD_TESTS_TRUE@TestBinding_LDADD = libWeaveTestCommon.a $(COMMON_LDADD) $(TEST_PLATFORM_LDADD)
+@WEAVE_BUILD_TESTS_TRUE@TestBinding_LDADD = libWeaveTestCommon.a $(COMMON_LDADD)
 @WEAVE_BUILD_TESTS_TRUE@TestCASE_SOURCES = TestCASE.cpp
 @WEAVE_BUILD_TESTS_TRUE@TestCASE_LDFLAGS = $(AM_CPPFLAGS)
-@WEAVE_BUILD_TESTS_TRUE@TestCASE_LDADD = libWeaveTestCommon.a $(COMMON_LDADD) $(TEST_PLATFORM_LDADD)
+@WEAVE_BUILD_TESTS_TRUE@TestCASE_LDADD = libWeaveTestCommon.a $(COMMON_LDADD)
 @WEAVE_BUILD_TESTS_TRUE@TestCodeUtils_SOURCES = TestCodeUtils.cpp
 @WEAVE_BUILD_TESTS_TRUE@TestCodeUtils_LDADD = 
 @WEAVE_BUILD_TESTS_TRUE@TestCrypto_SOURCES = TestCrypto.cpp
 @WEAVE_BUILD_TESTS_TRUE@TestCrypto_CPPFLAGS = $(AM_CPPFLAGS) -I$(top_srcdir)/src/test-apps/crypto-tests
-@WEAVE_BUILD_TESTS_TRUE@TestCrypto_LDADD = libWeaveCryptoTests.a $(COMMON_LDADD) $(TEST_PLATFORM_LDADD)
+@WEAVE_BUILD_TESTS_TRUE@TestCrypto_LDADD = libWeaveCryptoTests.a $(COMMON_LDADD)
 @WEAVE_BUILD_TESTS_TRUE@TestDRBG_SOURCES = TestDRBG.cpp
-@WEAVE_BUILD_TESTS_TRUE@TestDRBG_LDADD = $(COMMON_LDADD) $(TEST_PLATFORM_LDADD)
+@WEAVE_BUILD_TESTS_TRUE@TestDRBG_LDADD = $(COMMON_LDADD)
 @WEAVE_BUILD_TESTS_TRUE@TestDataManagement_SOURCES = TestDataManagement.cpp \
 @WEAVE_BUILD_TESTS_TRUE@                                           TestProfile.cpp
 
 @WEAVE_BUILD_TESTS_TRUE@TestDataManagement_LDFLAGS = $(AM_CPPFLAGS)
-@WEAVE_BUILD_TESTS_TRUE@TestDataManagement_LDADD = libWeaveTestCommon.a $(COMMON_LDADD) $(TEST_PLATFORM_LDADD)
+@WEAVE_BUILD_TESTS_TRUE@TestDataManagement_LDADD = libWeaveTestCommon.a $(COMMON_LDADD)
 @WEAVE_BUILD_TESTS_TRUE@TestDeviceDescriptor_SOURCES = TestDeviceDescriptor.cpp
-@WEAVE_BUILD_TESTS_TRUE@TestDeviceDescriptor_LDADD = $(COMMON_LDADD) $(TEST_PLATFORM_LDADD)
+@WEAVE_BUILD_TESTS_TRUE@TestDeviceDescriptor_LDADD = $(COMMON_LDADD)
 @WEAVE_BUILD_TESTS_TRUE@TestECDH_SOURCES = TestECDH.cpp
-@WEAVE_BUILD_TESTS_TRUE@TestECDH_LDADD = $(COMMON_LDADD) $(TEST_PLATFORM_LDADD)
+@WEAVE_BUILD_TESTS_TRUE@TestECDH_LDADD = $(COMMON_LDADD)
 @WEAVE_BUILD_TESTS_TRUE@TestECDSA_SOURCES = TestECDSA.cpp
-@WEAVE_BUILD_TESTS_TRUE@TestECDSA_LDADD = $(COMMON_LDADD) $(TEST_PLATFORM_LDADD)
+@WEAVE_BUILD_TESTS_TRUE@TestECDSA_LDADD = $(COMMON_LDADD)
 @WEAVE_BUILD_TESTS_TRUE@TestECMath_SOURCES = TestECMath.cpp TestECMathParams.cpp
-@WEAVE_BUILD_TESTS_TRUE@TestECMath_LDADD = $(COMMON_LDADD) $(TEST_PLATFORM_LDADD)
+@WEAVE_BUILD_TESTS_TRUE@TestECMath_LDADD = $(COMMON_LDADD)
 @WEAVE_BUILD_TESTS_TRUE@TestEventLogging_SOURCES = schema/nest/test/trait/TestETrait.cpp \
 @WEAVE_BUILD_TESTS_TRUE@                                           schema/nest/test/trait/TestCommon.cpp \
 @WEAVE_BUILD_TESTS_TRUE@                                           MockExternalEvents.cpp \
@@ -3062,7 +2946,7 @@ EXTRA_DIST = \
 
 @WEAVE_BUILD_TESTS_TRUE@TestEventLogging_CPPFLAGS = $(AM_CPPFLAGS) -I$(top_srcdir)/src/test-apps/schema
 @WEAVE_BUILD_TESTS_TRUE@TestEventLogging_LDFLAGS = $(AM_CPPFLAGS)
-@WEAVE_BUILD_TESTS_TRUE@TestEventLogging_LDADD = libWeaveTestCommon.a $(COMMON_LDADD) $(TEST_PLATFORM_LDADD)
+@WEAVE_BUILD_TESTS_TRUE@TestEventLogging_LDADD = libWeaveTestCommon.a $(COMMON_LDADD)
 @HAVE_CXX11_TRUE@@WEAVE_BUILD_TESTS_TRUE@TestTDM_SOURCES = TestTDM.cpp \
 @HAVE_CXX11_TRUE@@WEAVE_BUILD_TESTS_TRUE@                                           schema/nest/test/trait/TestHTrait.cpp \
 @HAVE_CXX11_TRUE@@WEAVE_BUILD_TESTS_TRUE@                                           schema/nest/test/trait/TestCTrait.cpp \
@@ -3075,104 +2959,104 @@ EXTRA_DIST = \
 
 @HAVE_CXX11_TRUE@@WEAVE_BUILD_TESTS_TRUE@TestTDM_CPPFLAGS = $(AM_CPPFLAGS) -I$(top_srcdir)/src/test-apps/schema
 @HAVE_CXX11_TRUE@@WEAVE_BUILD_TESTS_TRUE@TestTDM_LDFLAGS = $(AM_CPPFLAGS)
-@HAVE_CXX11_TRUE@@WEAVE_BUILD_TESTS_TRUE@TestTDM_LDADD = libWeaveTestCommon.a $(COMMON_LDADD) $(TEST_PLATFORM_LDADD)
+@HAVE_CXX11_TRUE@@WEAVE_BUILD_TESTS_TRUE@TestTDM_LDADD = libWeaveTestCommon.a $(COMMON_LDADD)
 @WEAVE_BUILD_TESTS_TRUE@TestWDM_SOURCES = TestWdm.cpp
 @WEAVE_BUILD_TESTS_TRUE@TestWDM_CPPFLAGS = $(AM_CPPFLAGS)
 @WEAVE_BUILD_TESTS_TRUE@TestWDM_LDFLAGS = $(AM_CPPFLAGS)
-@WEAVE_BUILD_TESTS_TRUE@TestWDM_LDADD = libWeaveTestCommon.a $(COMMON_LDADD) $(TEST_PLATFORM_LDADD)
+@WEAVE_BUILD_TESTS_TRUE@TestWDM_LDADD = libWeaveTestCommon.a $(COMMON_LDADD)
 @WEAVE_BUILD_TESTS_TRUE@TestFabricStateDelegate_SOURCES = TestFabricStateDelegate.cpp TestPersistedStorageImplementation.cpp
 @WEAVE_BUILD_TESTS_TRUE@TestFabricStateDelegate_LDFLAGS = $(AM_CPPFLAGS)
-@WEAVE_BUILD_TESTS_TRUE@TestFabricStateDelegate_LDADD = libWeaveTestCommon.a $(COMMON_LDADD) $(TEST_PLATFORM_LDADD)
+@WEAVE_BUILD_TESTS_TRUE@TestFabricStateDelegate_LDADD = libWeaveTestCommon.a $(COMMON_LDADD)
 @WEAVE_BUILD_TESTS_TRUE@TestInetEndPoint_SOURCES = TestInetEndPoint.cpp
 @WEAVE_BUILD_TESTS_TRUE@TestInetEndPoint_LDFLAGS = $(AM_CPPFLAGS)
-@WEAVE_BUILD_TESTS_TRUE@TestInetEndPoint_LDADD = libWeaveTestCommon.a $(COMMON_LDADD) $(TEST_PLATFORM_LDADD)
+@WEAVE_BUILD_TESTS_TRUE@TestInetEndPoint_LDADD = libWeaveTestCommon.a $(COMMON_LDADD)
 @WEAVE_BUILD_TESTS_TRUE@TestInetBuffer_SOURCES = TestInetBuffer.cpp
-@WEAVE_BUILD_TESTS_TRUE@TestInetBuffer_LDADD = libWeaveTestCommon.a $(COMMON_LDADD) $(TEST_PLATFORM_LDADD)
+@WEAVE_BUILD_TESTS_TRUE@TestInetBuffer_LDADD = libWeaveTestCommon.a $(COMMON_LDADD)
 @WEAVE_BUILD_TESTS_TRUE@TestInetTimer_SOURCES = TestInetTimer.cpp
 @WEAVE_BUILD_TESTS_TRUE@TestInetTimer_LDFLAGS = $(AM_CPPFLAGS)
-@WEAVE_BUILD_TESTS_TRUE@TestInetTimer_LDADD = libWeaveTestCommon.a $(COMMON_LDADD) $(TEST_PLATFORM_LDADD)
+@WEAVE_BUILD_TESTS_TRUE@TestInetTimer_LDADD = libWeaveTestCommon.a $(COMMON_LDADD)
 @WEAVE_BUILD_TESTS_TRUE@TestInetLayer_SOURCES = TestInetLayer.cpp
 @WEAVE_BUILD_TESTS_TRUE@TestInetLayer_LDFLAGS = $(AM_CPPFLAGS)
-@WEAVE_BUILD_TESTS_TRUE@TestInetLayer_LDADD = libWeaveTestCommon.a $(COMMON_LDADD) $(TEST_PLATFORM_LDADD)
+@WEAVE_BUILD_TESTS_TRUE@TestInetLayer_LDADD = libWeaveTestCommon.a $(COMMON_LDADD)
 @WEAVE_BUILD_TESTS_TRUE@TestInetAddress_SOURCES = TestInetAddress.cpp
-@WEAVE_BUILD_TESTS_TRUE@TestInetAddress_LDADD = libWeaveTestCommon.a $(COMMON_LDADD) $(TEST_PLATFORM_LDADD)
+@WEAVE_BUILD_TESTS_TRUE@TestInetAddress_LDADD = libWeaveTestCommon.a $(COMMON_LDADD)
 @WEAVE_BUILD_TESTS_TRUE@TestKeyExport_SOURCES = TestKeyExport.cpp
 @WEAVE_BUILD_TESTS_TRUE@TestKeyExport_LDFLAGS = $(AM_CPPFLAGS)
-@WEAVE_BUILD_TESTS_TRUE@TestKeyExport_LDADD = libWeaveTestCommon.a $(COMMON_LDADD) $(TEST_PLATFORM_LDADD)
+@WEAVE_BUILD_TESTS_TRUE@TestKeyExport_LDADD = libWeaveTestCommon.a $(COMMON_LDADD)
 @WEAVE_BUILD_TESTS_TRUE@TestKeyIds_SOURCES = TestKeyIds.cpp
 @WEAVE_BUILD_TESTS_TRUE@TestKeyIds_LDFLAGS = $(AM_CPPFLAGS)
-@WEAVE_BUILD_TESTS_TRUE@TestKeyIds_LDADD = libWeaveTestCommon.a $(COMMON_LDADD) $(TEST_PLATFORM_LDADD)
+@WEAVE_BUILD_TESTS_TRUE@TestKeyIds_LDADD = libWeaveTestCommon.a $(COMMON_LDADD)
 @WEAVE_BUILD_TESTS_TRUE@TestMsgEnc_SOURCES = TestMsgEnc.cpp
 @WEAVE_BUILD_TESTS_TRUE@TestMsgEnc_LDFLAGS = $(AM_CPPFLAGS)
-@WEAVE_BUILD_TESTS_TRUE@TestMsgEnc_LDADD = libWeaveTestCommon.a $(COMMON_LDADD) $(TEST_PLATFORM_LDADD)
+@WEAVE_BUILD_TESTS_TRUE@TestMsgEnc_LDADD = libWeaveTestCommon.a $(COMMON_LDADD)
 @WEAVE_BUILD_TESTS_TRUE@TestNetworkInfo_SOURCES = TestNetworkInfo.cpp
 @WEAVE_BUILD_TESTS_TRUE@TestNetworkInfo_LDFLAGS = $(AM_CPPFLAGS)
-@WEAVE_BUILD_TESTS_TRUE@TestNetworkInfo_LDADD = libWeaveTestCommon.a $(COMMON_LDADD) $(TEST_PLATFORM_LDADD)
+@WEAVE_BUILD_TESTS_TRUE@TestNetworkInfo_LDADD = libWeaveTestCommon.a $(COMMON_LDADD)
 @WEAVE_BUILD_TESTS_TRUE@TestPASE_SOURCES = TestPASE.cpp
 @WEAVE_BUILD_TESTS_TRUE@TestPASE_LDFLAGS = $(AM_CPPFLAGS)
-@WEAVE_BUILD_TESTS_TRUE@TestPASE_LDADD = libWeaveTestCommon.a $(COMMON_LDADD) $(TEST_PLATFORM_LDADD)
+@WEAVE_BUILD_TESTS_TRUE@TestPASE_LDADD = libWeaveTestCommon.a $(COMMON_LDADD)
 @WEAVE_BUILD_TESTS_TRUE@TestPacketBuffer_SOURCES = TestPacketBuffer.cpp
-@WEAVE_BUILD_TESTS_TRUE@TestPacketBuffer_LDADD = libWeaveTestCommon.a $(COMMON_LDADD) $(TEST_PLATFORM_LDADD)
+@WEAVE_BUILD_TESTS_TRUE@TestPacketBuffer_LDADD = libWeaveTestCommon.a $(COMMON_LDADD)
 @WEAVE_BUILD_TESTS_TRUE@TestPasscodeEnc_SOURCES = TestPasscodeEnc.cpp
-@WEAVE_BUILD_TESTS_TRUE@TestPasscodeEnc_LDADD = libWeaveTestCommon.a $(COMMON_LDADD) $(TEST_PLATFORM_LDADD)
+@WEAVE_BUILD_TESTS_TRUE@TestPasscodeEnc_LDADD = libWeaveTestCommon.a $(COMMON_LDADD)
 @WEAVE_BUILD_TESTS_TRUE@TestPersistedCounter_SOURCES = TestPersistedCounter.cpp TestPersistedStorageImplementation.cpp
-@WEAVE_BUILD_TESTS_TRUE@TestPersistedCounter_LDADD = libWeaveTestCommon.a $(COMMON_LDADD) $(TEST_PLATFORM_LDADD)
+@WEAVE_BUILD_TESTS_TRUE@TestPersistedCounter_LDADD = libWeaveTestCommon.a $(COMMON_LDADD)
 @WEAVE_BUILD_TESTS_TRUE@TestPersistedStorage_SOURCES = TestPersistedStorage.cpp TestPersistedStorageImplementation.cpp
-@WEAVE_BUILD_TESTS_TRUE@TestPersistedStorage_LDADD = libWeaveTestCommon.a $(COMMON_LDADD) $(TEST_PLATFORM_LDADD)
+@WEAVE_BUILD_TESTS_TRUE@TestPersistedStorage_LDADD = libWeaveTestCommon.a $(COMMON_LDADD)
 @WEAVE_BUILD_TESTS_TRUE@TestProfileStringSupport_SOURCES = TestProfileStringSupport.cpp
-@WEAVE_BUILD_TESTS_TRUE@TestProfileStringSupport_LDADD = $(COMMON_LDADD) $(TEST_PLATFORM_LDADD)
+@WEAVE_BUILD_TESTS_TRUE@TestProfileStringSupport_LDADD = $(COMMON_LDADD)
 @WEAVE_BUILD_TESTS_TRUE@TestProvHash_SOURCES = TestProvHash.cpp
-@WEAVE_BUILD_TESTS_TRUE@TestProvHash_LDADD = $(COMMON_LDADD) $(TEST_PLATFORM_LDADD)
+@WEAVE_BUILD_TESTS_TRUE@TestProvHash_LDADD = $(COMMON_LDADD)
 @WEAVE_BUILD_TESTS_TRUE@TestRADaemon_SOURCES = TestRADaemon.cpp
 @WEAVE_BUILD_TESTS_TRUE@TestRADaemon_CPPFLAGS = $(AM_CPPFLAGS) -I$(top_srcdir)/src/ra-daemon
-@WEAVE_BUILD_TESTS_TRUE@TestRADaemon_LDADD = libWeaveTestCommon.a -L$(top_builddir)/src/ra-daemon -lRADaemon $(COMMON_LDADD) $(TEST_PLATFORM_LDADD)
+@WEAVE_BUILD_TESTS_TRUE@TestRADaemon_LDADD = libWeaveTestCommon.a -L$(top_builddir)/src/ra-daemon -lRADaemon $(COMMON_LDADD)
 @WEAVE_BUILD_TESTS_TRUE@TestRetainedPacketBuffer_SOURCES = TestRetainedPacketBuffer.cpp
 @WEAVE_BUILD_TESTS_TRUE@TestRetainedPacketBuffer_LDADD = libWeaveTestCommon.a $(COMMON_LDADD)
 @WEAVE_BUILD_TESTS_TRUE@TestSerialNumUtils_SOURCES = TestSerialNumUtils.cpp
-@WEAVE_BUILD_TESTS_TRUE@TestSerialNumUtils_LDADD = $(COMMON_LDADD) $(TEST_PLATFORM_LDADD)
+@WEAVE_BUILD_TESTS_TRUE@TestSerialNumUtils_LDADD = $(COMMON_LDADD)
 @WEAVE_BUILD_TESTS_TRUE@TestSystemObject_SOURCES = TestSystemObject.cpp
 @WEAVE_BUILD_TESTS_TRUE@TestSystemObject_CPPFLAGS = $(AM_CPPFLAGS) $(PTHREAD_CFLAGS)
 @WEAVE_BUILD_TESTS_TRUE@TestSystemObject_LDFLAGS = $(PTHREAD_CFLAGS)
-@WEAVE_BUILD_TESTS_TRUE@TestSystemObject_LDADD = libWeaveTestCommon.a $(PTHREAD_LIBS) $(COMMON_LDADD) $(TEST_PLATFORM_LDADD)
+@WEAVE_BUILD_TESTS_TRUE@TestSystemObject_LDADD = libWeaveTestCommon.a $(PTHREAD_LIBS) $(COMMON_LDADD)
 @WEAVE_BUILD_TESTS_TRUE@TestSystemTimer_SOURCES = TestSystemTimer.cpp
-@WEAVE_BUILD_TESTS_TRUE@TestSystemTimer_LDADD = libWeaveTestCommon.a $(COMMON_LDADD) $(TEST_PLATFORM_LDADD)
+@WEAVE_BUILD_TESTS_TRUE@TestSystemTimer_LDADD = libWeaveTestCommon.a $(COMMON_LDADD)
 @WEAVE_BUILD_TESTS_TRUE@TestTAKE_SOURCES = TestTAKE.cpp
 @WEAVE_BUILD_TESTS_TRUE@TestTAKE_LDFLAGS = $(AM_CPPFLAGS)
-@WEAVE_BUILD_TESTS_TRUE@TestTAKE_LDADD = libWeaveTestCommon.a $(COMMON_LDADD) $(TEST_PLATFORM_LDADD)
+@WEAVE_BUILD_TESTS_TRUE@TestTAKE_LDADD = libWeaveTestCommon.a $(COMMON_LDADD)
 @WEAVE_BUILD_TESTS_TRUE@TestTLV_SOURCES = TestTLV.cpp
-@WEAVE_BUILD_TESTS_TRUE@TestTLV_LDADD = libWeaveTestCommon.a $(COMMON_LDADD) $(TEST_PLATFORM_LDADD)
+@WEAVE_BUILD_TESTS_TRUE@TestTLV_LDADD = libWeaveTestCommon.a $(COMMON_LDADD)
 @WEAVE_BUILD_TESTS_TRUE@TestTimeUtils_SOURCES = TestTimeUtils.cpp
-@WEAVE_BUILD_TESTS_TRUE@TestTimeUtils_LDADD = $(COMMON_LDADD) $(TEST_PLATFORM_LDADD)
+@WEAVE_BUILD_TESTS_TRUE@TestTimeUtils_LDADD = $(COMMON_LDADD)
 @WEAVE_BUILD_TESTS_TRUE@TestTimeZone_SOURCES = TestTimeZone.cpp
-@WEAVE_BUILD_TESTS_TRUE@TestTimeZone_LDADD = $(COMMON_LDADD) $(TEST_PLATFORM_LDADD)
+@WEAVE_BUILD_TESTS_TRUE@TestTimeZone_LDADD = $(COMMON_LDADD)
 @WEAVE_BUILD_TESTS_TRUE@TestWRMP_SOURCES = TestWRMP.cpp
 @WEAVE_BUILD_TESTS_TRUE@TestWRMP_LDFLAGS = $(AM_CPPFLAGS)
-@WEAVE_BUILD_TESTS_TRUE@TestWRMP_LDADD = libWeaveTestCommon.a $(COMMON_LDADD) $(TEST_PLATFORM_LDADD)
+@WEAVE_BUILD_TESTS_TRUE@TestWRMP_LDADD = libWeaveTestCommon.a $(COMMON_LDADD)
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_BUILD_WARM_TRUE@TestWarm_SOURCES = TestWarm.cpp TestPersistedStorageImplementation.cpp
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_BUILD_WARM_TRUE@TestWarm_LDFLAGS = $(AM_CPPFLAGS)
-@WEAVE_BUILD_TESTS_TRUE@@WEAVE_BUILD_WARM_TRUE@TestWarm_LDADD = libWeaveTestGroupKeyStore.a $(COMMON_LDADD) $(TEST_PLATFORM_LDADD)
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_BUILD_WARM_TRUE@TestWarm_LDADD = libWeaveTestGroupKeyStore.a $(COMMON_LDADD)
 @WEAVE_BUILD_TESTS_TRUE@TestWeaveCert_SOURCES = TestWeaveCert.cpp TestWeaveCertData.cpp
-@WEAVE_BUILD_TESTS_TRUE@TestWeaveCert_LDADD = libWeaveTestCommon.a $(COMMON_LDADD) $(TEST_PLATFORM_LDADD)
+@WEAVE_BUILD_TESTS_TRUE@TestWeaveCert_LDADD = libWeaveTestCommon.a $(COMMON_LDADD)
 @WEAVE_BUILD_TESTS_TRUE@TestWeaveEncoding_SOURCES = TestWeaveEncoding.cpp
 @WEAVE_BUILD_TESTS_TRUE@TestWeaveEncoding_LDADD = 
 @WEAVE_BUILD_TESTS_TRUE@TestWeaveFabricState_SOURCES = TestWeaveFabricState.cpp TestPersistedStorageImplementation.cpp
 @WEAVE_BUILD_TESTS_TRUE@TestWeaveFabricState_LDFLAGS = $(AM_CPPFLAGS)
-@WEAVE_BUILD_TESTS_TRUE@TestWeaveFabricState_LDADD = libWeaveTestCommon.a $(COMMON_LDADD) $(TEST_PLATFORM_LDADD)
+@WEAVE_BUILD_TESTS_TRUE@TestWeaveFabricState_LDADD = libWeaveTestCommon.a $(COMMON_LDADD)
 @WEAVE_BUILD_TESTS_TRUE@TestWeaveMessageLayer_SOURCES = TestWeaveMessageLayer.cpp
 @WEAVE_BUILD_TESTS_TRUE@TestWeaveMessageLayer_LDFLAGS = $(AM_CPPFLAGS)
-@WEAVE_BUILD_TESTS_TRUE@TestWeaveMessageLayer_LDADD = libWeaveTestCommon.a $(COMMON_LDADD) $(TEST_PLATFORM_LDADD)
+@WEAVE_BUILD_TESTS_TRUE@TestWeaveMessageLayer_LDADD = libWeaveTestCommon.a $(COMMON_LDADD)
 @WEAVE_BUILD_TESTS_TRUE@TestWeaveProvBundle_SOURCES = TestWeaveProvBundle.cpp
 @WEAVE_BUILD_TESTS_TRUE@TestWeaveProvBundle_LDFLAGS = $(AM_CPPFLAGS)
-@WEAVE_BUILD_TESTS_TRUE@TestWeaveProvBundle_LDADD = $(COMMON_LDADD) $(TEST_PLATFORM_LDADD)
+@WEAVE_BUILD_TESTS_TRUE@TestWeaveProvBundle_LDADD = $(COMMON_LDADD)
 @WEAVE_BUILD_TESTS_TRUE@TestWeaveSignature_SOURCES = TestWeaveSignature.cpp
 @WEAVE_BUILD_TESTS_TRUE@TestWeaveSignature_LDFLAGS = $(AM_CPPFLAGS)
-@WEAVE_BUILD_TESTS_TRUE@TestWeaveSignature_LDADD = $(COMMON_LDADD) $(TEST_PLATFORM_LDADD)
+@WEAVE_BUILD_TESTS_TRUE@TestWeaveSignature_LDADD = $(COMMON_LDADD)
 @WEAVE_BUILD_TESTS_TRUE@TestWeaveTunnelBR_SOURCES = TestWeaveTunnelBR.cpp
 @WEAVE_BUILD_TESTS_TRUE@TestWeaveTunnelBR_LDFLAGS = $(AM_CPPFLAGS)
-@WEAVE_BUILD_TESTS_TRUE@TestWeaveTunnelBR_LDADD = libWeaveTestCommon.a $(COMMON_LDADD) $(TEST_PLATFORM_LDADD)
+@WEAVE_BUILD_TESTS_TRUE@TestWeaveTunnelBR_LDADD = libWeaveTestCommon.a $(COMMON_LDADD)
 @WEAVE_BUILD_TESTS_TRUE@TestWeaveTunnelServer_SOURCES = TestWeaveTunnelServer.cpp
 @WEAVE_BUILD_TESTS_TRUE@TestWeaveTunnelServer_LDFLAGS = $(AM_CPPFLAGS)
-@WEAVE_BUILD_TESTS_TRUE@TestWeaveTunnelServer_LDADD = libWeaveTestCommon.a $(COMMON_LDADD) $(TEST_PLATFORM_LDADD)
+@WEAVE_BUILD_TESTS_TRUE@TestWeaveTunnelServer_LDADD = libWeaveTestCommon.a $(COMMON_LDADD)
 @WEAVE_BUILD_TESTS_TRUE@TestWdmNext_SOURCES = TestWdmNext.cpp						\
 @WEAVE_BUILD_TESTS_TRUE@                                           MockSinkTraits.cpp						\
 @WEAVE_BUILD_TESTS_TRUE@                                           MockSourceTraits.cpp						\
@@ -3198,11 +3082,11 @@ EXTRA_DIST = \
 
 @WEAVE_BUILD_TESTS_TRUE@TestWdmNext_CPPFLAGS = $(AM_CPPFLAGS) -I$(top_srcdir)/src/test-apps/schema
 @WEAVE_BUILD_TESTS_TRUE@TestWdmNext_LDFLAGS = $(AM_CPPFLAGS)
-@WEAVE_BUILD_TESTS_TRUE@TestWdmNext_LDADD = libWeaveTestCommon.a $(COMMON_LDADD) $(TEST_PLATFORM_LDADD)
+@WEAVE_BUILD_TESTS_TRUE@TestWdmNext_LDADD = libWeaveTestCommon.a $(COMMON_LDADD)
 @WEAVE_BUILD_TESTS_TRUE@TestWdmOneWayCommandSender_SOURCES = TestWdmOneWayCommandSender.cpp
 @WEAVE_BUILD_TESTS_TRUE@TestWdmOneWayCommandSender_CPPFLAGS = $(AM_CPPFLAGS) -I$(top_srcdir)/src/test-apps/schema
 @WEAVE_BUILD_TESTS_TRUE@TestWdmOneWayCommandSender_LDFLAGS = $(AM_CPPFLAGS)
-@WEAVE_BUILD_TESTS_TRUE@TestWdmOneWayCommandSender_LDADD = libWeaveTestCommon.a $(COMMON_LDADD) $(TEST_PLATFORM_LDADD)
+@WEAVE_BUILD_TESTS_TRUE@TestWdmOneWayCommandSender_LDADD = libWeaveTestCommon.a $(COMMON_LDADD)
 @WEAVE_BUILD_TESTS_TRUE@TestWdmOneWayCommandReceiver_SOURCES = TestWdmOneWayCommandReceiver.cpp				\
 @WEAVE_BUILD_TESTS_TRUE@                                           MockSourceTraits.cpp						\
 @WEAVE_BUILD_TESTS_TRUE@                                           MockLoggingManager.cpp					\
@@ -3218,9 +3102,9 @@ EXTRA_DIST = \
 
 @WEAVE_BUILD_TESTS_TRUE@TestWdmOneWayCommandReceiver_CPPFLAGS = $(AM_CPPFLAGS) -I$(top_srcdir)/src/test-apps/schema
 @WEAVE_BUILD_TESTS_TRUE@TestWdmOneWayCommandReceiver_LDFLAGS = $(AM_CPPFLAGS)
-@WEAVE_BUILD_TESTS_TRUE@TestWdmOneWayCommandReceiver_LDADD = libWeaveTestCommon.a $(COMMON_LDADD) $(TEST_PLATFORM_LDADD)
+@WEAVE_BUILD_TESTS_TRUE@TestWdmOneWayCommandReceiver_LDADD = libWeaveTestCommon.a $(COMMON_LDADD)
 @WEAVE_BUILD_TESTS_TRUE@infratest_SOURCES = infratest.cpp
-@WEAVE_BUILD_TESTS_TRUE@infratest_LDADD = $(COMMON_LDADD) $(TEST_PLATFORM_LDADD)
+@WEAVE_BUILD_TESTS_TRUE@infratest_LDADD = $(COMMON_LDADD)
 @WEAVE_BUILD_TESTS_TRUE@mock_device_SOURCES = mock-device.cpp \
 @WEAVE_BUILD_TESTS_TRUE@	MockDCLPServer.cpp MockDCServer.cpp \
 @WEAVE_BUILD_TESTS_TRUE@	MockDDServer.cpp MockFPServer.cpp \
@@ -3250,36 +3134,34 @@ EXTRA_DIST = \
 @WEAVE_BUILD_TESTS_TRUE@	MockLoggingManager.cpp MockEvents.cpp \
 @WEAVE_BUILD_TESTS_TRUE@	$(am__append_39)
 @WEAVE_BUILD_TESTS_TRUE@TestErrorStr_SOURCES = TestErrorStr.cpp
-@WEAVE_BUILD_TESTS_TRUE@TestErrorStr_LDADD = $(COMMON_LDADD) $(TEST_PLATFORM_LDADD)
+@WEAVE_BUILD_TESTS_TRUE@TestErrorStr_LDADD = $(COMMON_LDADD)
 @WEAVE_BUILD_TESTS_TRUE@TestStatusReportStr_SOURCES = TestStatusReportStr.cpp
-@WEAVE_BUILD_TESTS_TRUE@TestStatusReportStr_LDADD = $(COMMON_LDADD) $(TEST_PLATFORM_LDADD)
+@WEAVE_BUILD_TESTS_TRUE@TestStatusReportStr_LDADD = $(COMMON_LDADD)
 @WEAVE_BUILD_TESTS_TRUE@TestThermostatStatus_SOURCES = TestThermostatStatus.cpp
-@WEAVE_BUILD_TESTS_TRUE@TestThermostatStatus_LDADD = $(COMMON_LDADD) $(TEST_PLATFORM_LDADD)
+@WEAVE_BUILD_TESTS_TRUE@TestThermostatStatus_LDADD = $(COMMON_LDADD)
 @WEAVE_BUILD_TESTS_TRUE@TestPairingCodeUtils_SOURCES = TestPairingCodeUtils.cpp
-@WEAVE_BUILD_TESTS_TRUE@TestPairingCodeUtils_LDADD = $(COMMON_LDADD) $(TEST_PLATFORM_LDADD)
+@WEAVE_BUILD_TESTS_TRUE@TestPairingCodeUtils_LDADD = $(COMMON_LDADD)
 @WEAVE_BUILD_TESTS_TRUE@TestResourceIdentifier_SOURCES = TestResourceIdentifier.cpp
 @WEAVE_BUILD_TESTS_TRUE@TestResourceIdentifier_LDADD = $(COMMON_LDADD) $(TEST_PLATFORM_LDADD)
 @WEAVE_BUILD_TESTS_TRUE@TestDNSResolution_SOURCES = TestDNSResolution.cpp
 @WEAVE_BUILD_TESTS_TRUE@TestDNSResolution_LDFLAGS = $(AM_CPPFLAGS)
-@WEAVE_BUILD_TESTS_TRUE@TestDNSResolution_LDADD = libWeaveTestCommon.a $(COMMON_LDADD) $(TEST_PLATFORM_LDADD)
+@WEAVE_BUILD_TESTS_TRUE@TestDNSResolution_LDADD = libWeaveTestCommon.a $(COMMON_LDADD)
 @WEAVE_BUILD_TESTS_TRUE@mock_device_CPPFLAGS = $(AM_CPPFLAGS) -I$(top_srcdir)/src/test-apps/schema
 @WEAVE_BUILD_TESTS_TRUE@mock_device_LDADD = libWeaveTestCommon.a \
-@WEAVE_BUILD_TESTS_TRUE@	$(COMMON_LDADD) $(TEST_PLATFORM_LDADD) \
-@WEAVE_BUILD_TESTS_TRUE@	$(am__append_40)
+@WEAVE_BUILD_TESTS_TRUE@	$(COMMON_LDADD) $(am__append_40)
 @WEAVE_BUILD_TESTS_TRUE@mock_device_LDFLAGS = $(AM_CPPFLAGS)
 @WEAVE_BUILD_TESTS_TRUE@mock_weave_bg_SOURCES = mock-weave-bg.cpp
 @WEAVE_BUILD_TESTS_TRUE@mock_weave_bg_LDFLAGS = $(AM_CPPFLAGS)
-@WEAVE_BUILD_TESTS_TRUE@mock_weave_bg_LDADD = libWeaveTestCommon.a $(COMMON_LDADD) $(TEST_PLATFORM_LDADD)
+@WEAVE_BUILD_TESTS_TRUE@mock_weave_bg_LDADD = libWeaveTestCommon.a $(COMMON_LDADD)
 @WEAVE_BUILD_TESTS_TRUE@wdmtest_SOURCES = wdmtest.cpp
 @WEAVE_BUILD_TESTS_TRUE@wdmtest_LDFLAGS = $(AM_CPPFLAGS)
-@WEAVE_BUILD_TESTS_TRUE@wdmtest_LDADD = libWeaveTestCommon.a $(COMMON_LDADD) $(TEST_PLATFORM_LDADD)
+@WEAVE_BUILD_TESTS_TRUE@wdmtest_LDADD = libWeaveTestCommon.a $(COMMON_LDADD)
 @WEAVE_BUILD_TESTS_TRUE@weave_bdx_client_development_SOURCES = weave-bdx-client-development.cpp  \
 @WEAVE_BUILD_TESTS_TRUE@                                           weave-bdx-common-development.cpp
 
 @WEAVE_BUILD_TESTS_TRUE@weave_bdx_client_development_LDFLAGS = $(AM_CPPFLAGS)
 @WEAVE_BUILD_TESTS_TRUE@weave_bdx_client_development_LDADD =  \
 @WEAVE_BUILD_TESTS_TRUE@	libWeaveTestCommon.a $(COMMON_LDADD) \
-@WEAVE_BUILD_TESTS_TRUE@	$(TEST_PLATFORM_LDADD) \
 @WEAVE_BUILD_TESTS_TRUE@	$(am__append_41)
 @WEAVE_BUILD_TESTS_TRUE@weave_bdx_server_development_SOURCES = weave-bdx-server-development.cpp  \
 @WEAVE_BUILD_TESTS_TRUE@                                           weave-bdx-common-development.cpp
@@ -3287,52 +3169,51 @@ EXTRA_DIST = \
 @WEAVE_BUILD_TESTS_TRUE@weave_bdx_server_development_LDFLAGS = $(AM_CPPFLAGS)
 @WEAVE_BUILD_TESTS_TRUE@weave_bdx_server_development_LDADD =  \
 @WEAVE_BUILD_TESTS_TRUE@	libWeaveTestCommon.a $(COMMON_LDADD) \
-@WEAVE_BUILD_TESTS_TRUE@	$(TEST_PLATFORM_LDADD) \
 @WEAVE_BUILD_TESTS_TRUE@	$(am__append_42)
 @WEAVE_BUILD_TESTS_TRUE@weave_bdx_client_v0_SOURCES = weave-bdx-client-v0.cpp
 @WEAVE_BUILD_TESTS_TRUE@weave_bdx_client_v0_LDFLAGS = ${AM_CPPFLAGS}
-@WEAVE_BUILD_TESTS_TRUE@weave_bdx_client_v0_LDADD = libWeaveTestCommon.a $(COMMON_LDADD) $(TEST_PLATFORM_LDADD)
+@WEAVE_BUILD_TESTS_TRUE@weave_bdx_client_v0_LDADD = libWeaveTestCommon.a $(COMMON_LDADD)
 @WEAVE_BUILD_TESTS_TRUE@weave_bdx_server_v0_SOURCES = weave-bdx-server-v0.cpp              \
 @WEAVE_BUILD_TESTS_TRUE@                                           nlweavebdxserver.cpp
 
 @WEAVE_BUILD_TESTS_TRUE@weave_bdx_server_v0_LDFLAGS = ${AM_CPPFLAGS}
-@WEAVE_BUILD_TESTS_TRUE@weave_bdx_server_v0_LDADD = libWeaveTestCommon.a $(COMMON_LDADD) $(TEST_PLATFORM_LDADD)
+@WEAVE_BUILD_TESTS_TRUE@weave_bdx_server_v0_LDADD = libWeaveTestCommon.a $(COMMON_LDADD)
 @WEAVE_BUILD_TESTS_TRUE@weave_connection_tunnel_SOURCES = weave-connection-tunnel.cpp
 @WEAVE_BUILD_TESTS_TRUE@weave_connection_tunnel_LDFLAGS = ${AM_CPPFLAGS}
-@WEAVE_BUILD_TESTS_TRUE@weave_connection_tunnel_LDADD = libWeaveTestCommon.a $(COMMON_LDADD) $(TEST_PLATFORM_LDADD)
+@WEAVE_BUILD_TESTS_TRUE@weave_connection_tunnel_LDADD = libWeaveTestCommon.a $(COMMON_LDADD)
 @WEAVE_BUILD_TESTS_TRUE@weave_dd_client_SOURCES = weave-dd-client.cpp
 @WEAVE_BUILD_TESTS_TRUE@weave_dd_client_LDFLAGS = ${AM_CPPFLAGS}
-@WEAVE_BUILD_TESTS_TRUE@weave_dd_client_LDADD = libWeaveTestCommon.a $(COMMON_LDADD) $(TEST_PLATFORM_LDADD)
+@WEAVE_BUILD_TESTS_TRUE@weave_dd_client_LDADD = libWeaveTestCommon.a $(COMMON_LDADD)
 @WEAVE_BUILD_TESTS_TRUE@weave_device_descriptor_SOURCES = weave-device-descriptor.cpp
 @WEAVE_BUILD_TESTS_TRUE@weave_device_descriptor_LDFLAGS = ${AM_CPPFLAGS}
-@WEAVE_BUILD_TESTS_TRUE@weave_device_descriptor_LDADD = libWeaveTestCommon.a $(COMMON_LDADD) $(TEST_PLATFORM_LDADD)
+@WEAVE_BUILD_TESTS_TRUE@weave_device_descriptor_LDADD = libWeaveTestCommon.a $(COMMON_LDADD)
 @WEAVE_BUILD_TESTS_TRUE@weave_heartbeat_SOURCES = weave-heartbeat.cpp
 @WEAVE_BUILD_TESTS_TRUE@weave_heartbeat_LDFLAGS = ${AM_CPPFLAGS}
-@WEAVE_BUILD_TESTS_TRUE@weave_heartbeat_LDADD = libWeaveTestCommon.a  $(COMMON_LDADD) $(TEST_PLATFORM_LDADD)
+@WEAVE_BUILD_TESTS_TRUE@weave_heartbeat_LDADD = libWeaveTestCommon.a  $(COMMON_LDADD)
 @WEAVE_BUILD_TESTS_TRUE@weave_key_export_SOURCES = weave-key-export.cpp
 @WEAVE_BUILD_TESTS_TRUE@weave_key_export_LDFLAGS = ${AM_CPPFLAGS}
-@WEAVE_BUILD_TESTS_TRUE@weave_key_export_LDADD = libWeaveTestCommon.a $(COMMON_LDADD) $(TEST_PLATFORM_LDADD)
+@WEAVE_BUILD_TESTS_TRUE@weave_key_export_LDADD = libWeaveTestCommon.a $(COMMON_LDADD)
 @WEAVE_BUILD_TESTS_TRUE@weave_ping_SOURCES = weave-ping.cpp
 @WEAVE_BUILD_TESTS_TRUE@weave_ping_LDFLAGS = ${AM_CPPFLAGS}
-@WEAVE_BUILD_TESTS_TRUE@weave_ping_LDADD = libWeaveTestCommon.a $(COMMON_LDADD) $(TEST_PLATFORM_LDADD)
+@WEAVE_BUILD_TESTS_TRUE@weave_ping_LDADD = libWeaveTestCommon.a $(COMMON_LDADD)
 @WEAVE_BUILD_TESTS_TRUE@weave_service_dir_SOURCES = weave-service-dir.cpp \
 @WEAVE_BUILD_TESTS_TRUE@                                           MockSDServer.cpp
 
 @WEAVE_BUILD_TESTS_TRUE@weave_service_dir_LDFLAGS = ${AM_CPPFLAGS}
-@WEAVE_BUILD_TESTS_TRUE@weave_service_dir_LDADD = libWeaveTestCommon.a $(COMMON_LDADD) $(TEST_PLATFORM_LDADD)
+@WEAVE_BUILD_TESTS_TRUE@weave_service_dir_LDADD = libWeaveTestCommon.a $(COMMON_LDADD)
 @WEAVE_BUILD_TESTS_TRUE@weave_swu_client_SOURCES = weave-swu-client.cpp  \
 @WEAVE_BUILD_TESTS_TRUE@                                           nlweaveswuclient.cpp  \
 @WEAVE_BUILD_TESTS_TRUE@                                           MockIAServer.cpp
 
 @WEAVE_BUILD_TESTS_TRUE@weave_swu_client_LDFLAGS = ${AM_CPPFLAGS}
-@WEAVE_BUILD_TESTS_TRUE@weave_swu_client_LDADD = libWeaveTestCommon.a $(COMMON_LDADD) $(TEST_PLATFORM_LDADD)
+@WEAVE_BUILD_TESTS_TRUE@weave_swu_client_LDADD = libWeaveTestCommon.a $(COMMON_LDADD)
 @WEAVE_BUILD_TESTS_TRUE@weave_swu_server_SOURCES = weave-swu-server.cpp  \
 @WEAVE_BUILD_TESTS_TRUE@                                           MockSWUServer.cpp
 
 @WEAVE_BUILD_TESTS_TRUE@weave_swu_server_LDFLAGS = ${AM_CPPFLAGS}
-@WEAVE_BUILD_TESTS_TRUE@weave_swu_server_LDADD = libWeaveTestCommon.a $(COMMON_LDADD) $(TEST_PLATFORM_LDADD)
+@WEAVE_BUILD_TESTS_TRUE@weave_swu_server_LDADD = libWeaveTestCommon.a $(COMMON_LDADD)
 @WEAVE_BUILD_TESTS_TRUE@wsuptest_SOURCES = wsuptest.cpp
-@WEAVE_BUILD_TESTS_TRUE@wsuptest_LDADD = $(COMMON_LDADD) $(TEST_PLATFORM_LDADD)
+@WEAVE_BUILD_TESTS_TRUE@wsuptest_LDADD = $(COMMON_LDADD)
 @WEAVE_BUILD_COVERAGE_TRUE@@WEAVE_BUILD_TESTS_TRUE@CLEANFILES = $(wildcard *.gcda *.gcno)
 
 # The bundle should positively be qualified with the absolute build
@@ -3422,11 +3303,6 @@ libWeaveTestGroupKeyStore.a: $(libWeaveTestGroupKeyStore_a_OBJECTS) $(libWeaveTe
 	$(AM_V_at)-rm -f libWeaveTestGroupKeyStore.a
 	$(AM_V_AR)$(libWeaveTestGroupKeyStore_a_AR) libWeaveTestGroupKeyStore.a $(libWeaveTestGroupKeyStore_a_OBJECTS) $(libWeaveTestGroupKeyStore_a_LIBADD)
 	$(AM_V_at)$(RANLIB) libWeaveTestGroupKeyStore.a
-
-libWeaveTestPlatform.a: $(libWeaveTestPlatform_a_OBJECTS) $(libWeaveTestPlatform_a_DEPENDENCIES) $(EXTRA_libWeaveTestPlatform_a_DEPENDENCIES) 
-	$(AM_V_at)-rm -f libWeaveTestPlatform.a
-	$(AM_V_AR)$(libWeaveTestPlatform_a_AR) libWeaveTestPlatform.a $(libWeaveTestPlatform_a_OBJECTS) $(libWeaveTestPlatform_a_LIBADD)
-	$(AM_V_at)$(RANLIB) libWeaveTestPlatform.a
 
 clean-checkPROGRAMS:
 	@list='$(check_PROGRAMS)'; test -n "$$list" || exit 0; \
@@ -3961,6 +3837,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/MockBleApplicationDelegate.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/MockBlePlatformDelegate.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/MockIAServer.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/MockPlatformClocks.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/MockSDServer.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/MockSWUServer.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/TAKEOptions.Po@am__quote@
@@ -4000,7 +3877,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/TestPersistedCounter.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/TestPersistedStorage.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/TestPersistedStorageImplementation.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/TestPlatformTime.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/TestProfile.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/TestProfileStringSupport.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/TestProvHash.Po@am__quote@
@@ -6258,6 +6134,20 @@ happy/tests/service/wdmNext/test_weave_wdm_next_service_update_01.py.log: happy/
 	--log-file $$b.log --trs-file $$b.trs \
 	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
 	"$$tst" $(AM_TESTS_FD_REDIRECT)
+happy/tests/service/wdmNext/test_weave_wdm_next_service_update_cond_OneLeaf.py.log: happy/tests/service/wdmNext/test_weave_wdm_next_service_update_cond_OneLeaf.py
+	@p='happy/tests/service/wdmNext/test_weave_wdm_next_service_update_cond_OneLeaf.py'; \
+	b='happy/tests/service/wdmNext/test_weave_wdm_next_service_update_cond_OneLeaf.py'; \
+	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
+	--log-file $$b.log --trs-file $$b.trs \
+	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
+	"$$tst" $(AM_TESTS_FD_REDIRECT)
+happy/tests/service/wdmNext/test_weave_wdm_next_service_update_uncond_OneLeaf.py.log: happy/tests/service/wdmNext/test_weave_wdm_next_service_update_uncond_OneLeaf.py
+	@p='happy/tests/service/wdmNext/test_weave_wdm_next_service_update_uncond_OneLeaf.py'; \
+	b='happy/tests/service/wdmNext/test_weave_wdm_next_service_update_uncond_OneLeaf.py'; \
+	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
+	--log-file $$b.log --trs-file $$b.trs \
+	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
+	"$$tst" $(AM_TESTS_FD_REDIRECT)
 happy/tests/standalone/bdx/test_weave_bdx_faults_download_v0_v0_1_of_4.sh.log: happy/tests/standalone/bdx/test_weave_bdx_faults_download_v0_v0_1_of_4.sh
 	@p='happy/tests/standalone/bdx/test_weave_bdx_faults_download_v0_v0_1_of_4.sh'; \
 	b='happy/tests/standalone/bdx/test_weave_bdx_faults_download_v0_v0_1_of_4.sh'; \
@@ -7591,27 +7481,6 @@ happy/tests/standalone/wdmNext/test_weave_wdm_next_oneway_resub.py.log: happy/te
 happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_resub.py.log: happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_resub.py
 	@p='happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_resub.py'; \
 	b='happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_resub.py'; \
-	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
-	--log-file $$b.log --trs-file $$b.trs \
-	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
-	"$$tst" $(AM_TESTS_FD_REDIRECT)
-happy/tests/standalone/wdmNext/test_weave_wdm_next_update_01.py.log: happy/tests/standalone/wdmNext/test_weave_wdm_next_update_01.py
-	@p='happy/tests/standalone/wdmNext/test_weave_wdm_next_update_01.py'; \
-	b='happy/tests/standalone/wdmNext/test_weave_wdm_next_update_01.py'; \
-	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
-	--log-file $$b.log --trs-file $$b.trs \
-	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
-	"$$tst" $(AM_TESTS_FD_REDIRECT)
-happy/tests/standalone/wdmNext/test_weave_wdm_next_update_02.py.log: happy/tests/standalone/wdmNext/test_weave_wdm_next_update_02.py
-	@p='happy/tests/standalone/wdmNext/test_weave_wdm_next_update_02.py'; \
-	b='happy/tests/standalone/wdmNext/test_weave_wdm_next_update_02.py'; \
-	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
-	--log-file $$b.log --trs-file $$b.trs \
-	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
-	"$$tst" $(AM_TESTS_FD_REDIRECT)
-happy/tests/standalone/wdmNext/test_weave_wdm_next_update_03.py.log: happy/tests/standalone/wdmNext/test_weave_wdm_next_update_03.py
-	@p='happy/tests/standalone/wdmNext/test_weave_wdm_next_update_03.py'; \
-	b='happy/tests/standalone/wdmNext/test_weave_wdm_next_update_03.py'; \
 	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
 	--log-file $$b.log --trs-file $$b.trs \
 	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \

@@ -609,6 +609,8 @@ check_SCRIPTS                                 +=             \
     happy/tests/service/wdmNext/test_weave_wdm_next_service_mutual_subscribe_25.py                              \
     happy/tests/service/wdmNext/test_weave_wdm_next_service_mutual_subscribe_application_key_01.py              \
     happy/tests/service/wdmNext/test_weave_wdm_next_service_update_01.py                                        \
+    happy/tests/service/wdmNext/test_weave_wdm_next_service_update_cond_OneLeaf.py                              \
+    happy/tests/service/wdmNext/test_weave_wdm_next_service_update_uncond_OneLeaf.py                            \
     $(NULL)
 endif # WEAVE_RUN_HAPPY_WDM
 

@@ -220,9 +220,6 @@
 /* Define to 1 if you have the `realloc' function. */
 #undef HAVE_REALLOC
 
-/* Define to 1 if you have the `settimeofday' function. */
-#undef HAVE_SETTIMEOFDAY
-
 /* Define to 1 if you have the `snprintf' function. */
 #undef HAVE_SNPRINTF
 
