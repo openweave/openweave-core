@@ -51,6 +51,7 @@ MockWdmNodeOptions::MockWdmNodeOptions() :
     mWdmUpdateConditionality(kConditionality_Conditional),
     mWdmUpdateMutation(kMutation_OneLeaf),
     mWdmUpdateNumberOfMutations(1),
+    mWdmUpdateNumberOfRepeatedMutations(1),
     mWdmUpdateNumberOfTraits(1),
     mWdmUpdateMaxNumberOfTraits(1)
 {
@@ -81,6 +82,7 @@ MockWdmNodeOptions::MockWdmNodeOptions() :
         { "enable-retry",                                   kNoArgument,        kToolOpt_WdmEnableRetry },
         { "wdm-update-mutation",                            kArgumentRequired,  kToolOpt_WdmUpdateMutation },
         { "wdm-update-number-of-mutations",                 kArgumentRequired,  kToolOpt_WdmUpdateNumberOfMutations },
+        { "wdm-update-number-of-repeated-mutations",        kArgumentRequired,  kToolOpt_WdmUpdateNumberOfRepeatedMutations },
         { "wdm-update-number-of-traits",                    kArgumentRequired,  kToolOpt_WdmUpdateNumberOfTraits },
         { "wdm-update-conditionality",                      kArgumentRequired,  kToolOpt_WdmUpdateConditionality },
         { "wdm-update-timing",                              kArgumentRequired,  kToolOpt_WdmUpdateTiming },
@@ -182,6 +184,11 @@ MockWdmNodeOptions::MockWdmNodeOptions() :
         "  --wdm-update-number-of-mutations <int>\n"
         "       Number of mutations (and therefore calls to FlushUpdate) performed in the same context\n"
         "       The first mutation is decided by --wdm-update-mutation. The following ones increment from there\n"
+        "       but the same mutation is used as many times as specified with --wdm-update-number-of-repeated-mutations.\n"
+        "       Default: 1\n"
+        "\n"
+        "  --wdm-update-number-of-repeated-mutations <int>\n"
+        "       How many times the same mutation should be applied before moving to the next one\n"
         "       Default: 1\n"
         "\n"
         "  --wdm-update-number-of-traits <int>\n"
@@ -199,8 +206,16 @@ MockWdmNodeOptions::MockWdmNodeOptions() :
         "         alternate: like mixed, but inverting the conditionality at every mutation\n"
         "       Default is conditional\n"
         "\n"
-        "  --wdm-update-timing <before-sub, during-sub, after-sub>\n"
+        "  TODO: --wdm-update-timing <before-sub, during-sub, after-sub>\n"
         "       Controls when the first mutation is applied and flushed:\n"
+        "         before-sub: before the subscription is started\n"
+        "         during-sub: right after the subscription has been started, but without waiting for the\n"
+        "                     subscription to be established\n"
+        "         after-sub:  after the subscription has been established\n"
+        "       Default is after-sub\n"
+        "\n"
+        "  TODO: --wdm-update-trigger <timer, notification, update-response>\n"
+        "       Controls what triggers mutations after the first one:\n"
         "         before-sub: before the subscription is started\n"
         "         during-sub: right after the subscription has been started, but without waiting for the\n"
         "                     subscription to be established\n"
@@ -232,7 +247,7 @@ const char **MockWdmNodeOptions::GetMutationStrings(void)
 
 const char **MockWdmNodeOptions::GetGeneratorStrings(void)
 {
-    const char *generatorStrings[kGenerator_NumItems] = {
+    static const char *generatorStrings[kGenerator_NumItems] = {
         "None",
         "Debug",
         "Liveness",
@@ -246,7 +261,7 @@ const char **MockWdmNodeOptions::GetGeneratorStrings(void)
 
 const char **MockWdmNodeOptions::GetConditionalityStrings(void)
 {
-    const char *conditionalityStrings[kConditionality_NumItems] = {
+    static const char *conditionalityStrings[kConditionality_NumItems] = {
         "Conditional",
         "Unconditional",
         "Mixed",
@@ -258,7 +273,7 @@ const char **MockWdmNodeOptions::GetConditionalityStrings(void)
 
 const char **MockWdmNodeOptions::GetUpdateTimingStrings(void)
 {
-    const char *updateTimingStrings[kTiming_NumItems] = {
+    static const char *updateTimingStrings[kTiming_NumItems] = {
         "BeforeSub",
         "DuringSub",
         "AfterSub"
@@ -271,7 +286,7 @@ static bool FindStringInArray(const char *aTarget, const char **aArray, size_t a
 {
     for (aIndex = 0; aIndex < aArrayLength && (strcmp(aTarget, aArray[aIndex]) != 0); aIndex++)
     {
-        break;
+        continue;
     }
 
     if (aIndex == aArrayLength)
@@ -482,6 +497,18 @@ bool MockWdmNodeOptions::HandleOption(const char *progName, OptionSet *optSet, i
             return false;
         }
         mWdmUpdateNumberOfMutations = static_cast<uint32_t>(tmp);
+        break;
+    }
+    case kToolOpt_WdmUpdateNumberOfRepeatedMutations:
+    {
+        int tmp;
+
+        if ((!ParseInt(arg, tmp)) || (tmp < 1))
+        {
+            PrintArgError("%s: Invalid value specified for --wdm-update-number-of-repeated-mutations: %s; min 1\n", progName, arg);
+            return false;
+        }
+        mWdmUpdateNumberOfRepeatedMutations = static_cast<uint32_t>(tmp);
         break;
     }
     case kToolOpt_WdmUpdateNumberOfTraits:

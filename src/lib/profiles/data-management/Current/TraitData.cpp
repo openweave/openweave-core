@@ -42,13 +42,16 @@ using namespace ::nl::Weave::Profiles::Common;
 using namespace ::nl::Weave::Profiles::DataManagement;
 using namespace ::nl::Weave::Profiles::DataManagement_Current;
 
-UpdateDirtyPathFilter::UpdateDirtyPathFilter(SubscriptionClient *apSubClient, TraitDataHandle traitDataHandle)
+UpdateDirtyPathFilter::UpdateDirtyPathFilter(SubscriptionClient *apSubClient,
+                                             TraitDataHandle traitDataHandle,
+                                             const TraitSchemaEngine * aEngine)
 {
     mpSubClient = apSubClient;
     mTraitDataHandle = traitDataHandle;
+    mSchemaEngine = aEngine;
 }
 
-bool UpdateDirtyPathFilter::FilterPath (PropertyPathHandle pathhandle, const TraitSchemaEngine * aEngine)
+bool UpdateDirtyPathFilter::FilterPath (PropertyPathHandle pathhandle)
 {
     bool retval = false;
 
@@ -57,7 +60,7 @@ bool UpdateDirtyPathFilter::FilterPath (PropertyPathHandle pathhandle, const Tra
     {
         // TODO: clean this up:
         // mpSubClient is set to something only by UpdatableDataSink instances
-        retval = mpSubClient->IsDirty(mTraitDataHandle, pathhandle, aEngine);
+        retval = mpSubClient->IsPathDirty(mTraitDataHandle, pathhandle, mSchemaEngine);
     }
 #endif // WEAVE_CONFIG_ENABLE_WDM_UPDATE
 
@@ -400,7 +403,7 @@ WEAVE_ERROR TraitSchemaEngine::StoreData(PropertyPathHandle aHandle, TLVReader &
     PropertyPathHandle dictionaryItemHandle;
     bool descending = true;
 
-    VerifyOrExit(!(apPathFilter != NULL && apPathFilter->FilterPath(curHandle, this)), );
+    VerifyOrExit(!(apPathFilter != NULL && apPathFilter->FilterPath(curHandle)), );
 
     // While the logic to actually parse out dictionaries is relatively easy, the logic to appropriately emit the
     // OnReplace and OnItemModified events is not similarly so.
@@ -427,7 +430,7 @@ WEAVE_ERROR TraitSchemaEngine::StoreData(PropertyPathHandle aHandle, TLVReader &
         // ascension is returning back to a higher point in the tree.
         do
         {
-            if (!(apPathFilter != NULL && apPathFilter->FilterPath(curHandle, this))) {
+            if (!(apPathFilter != NULL && apPathFilter->FilterPath(curHandle))) {
 #if TDM_DISABLE_STRICT_SCHEMA_COMPLIANCE
                 if (!IsNullPropertyPathHandle(curHandle))
 #endif
@@ -894,14 +897,32 @@ SchemaVersion TraitSchemaEngine::GetMaxVersion() const
     return currentVersion;
 }
 
+void TraitDataSink::SetVersion(uint64_t aVersion)
+{
+    if (mHasValidVersion)
+    {
+        if (aVersion != mVersion)
+        {
+            WeaveLogDetail(DataManagement, "Trait %08x version: 0x%" PRIx64 " -> 0x%" PRIx64 "", mSchemaEngine->GetProfileId(), mVersion,
+                    aVersion);
+        }
+    }
+    else
+    {
+        WeaveLogDetail(DataManagement, "Trait %08x version: n/a -> 0x%" PRIx64 "", mSchemaEngine->GetProfileId(), aVersion);
+    }
+    mVersion = aVersion;
+    mHasValidVersion = true;
+}
+
 TraitDataSink::OnChangeRejection TraitDataSink::sChangeRejectionCb = NULL;
 void * TraitDataSink::sChangeRejectionContext                      = NULL;
 
 TraitDataSink::TraitDataSink(const TraitSchemaEngine * aEngine)
 {
     mSchemaEngine    = aEngine;
-    mHasValidVersion = false;
-    SetVersion(0);
+    mVersion         = 0;
+    mHasValidVersion = 0;
 }
 
 WEAVE_ERROR TraitDataSink::StoreDataElement(PropertyPathHandle aHandle, TLVReader & aReader, uint8_t aFlags,
@@ -922,12 +943,13 @@ WEAVE_ERROR TraitDataSink::StoreDataElement(PropertyPathHandle aHandle, TLVReade
     {
         if (mHasValidVersion)
         {
-            WeaveLogDetail(DataManagement, "<StoreDataElement> [Trait %08x] version: 0x%" PRIx64 " -> 0x%" PRIx64 "", mSchemaEngine->GetProfileId(), mVersion,
-                           versionInDE);
+            WeaveLogDetail(DataManagement, "<StoreDataElement> [Trait %08x] version: 0x%" PRIx64 " -> 0x%" PRIx64 "",
+                           mSchemaEngine->GetProfileId(), mVersion, versionInDE);
         }
         else
         {
-            WeaveLogDetail(DataManagement, "<StoreDataElement> [Trait %08x] version: n/a -> 0x%" PRIx64 "", mSchemaEngine->GetProfileId(), versionInDE);
+            WeaveLogDetail(DataManagement, "<StoreDataElement> [Trait %08x] version: n/a -> 0x%" PRIx64 "",
+                           mSchemaEngine->GetProfileId(), versionInDE);
         }
 
         err = parser.CheckPresence(&dataPresent, &deletePresent);
@@ -987,10 +1009,10 @@ WEAVE_ERROR TraitDataSink::StoreDataElement(PropertyPathHandle aHandle, TLVReade
                 }
 
                 // TODO: this can be done by the pathFilter itself.
-                subClient->CheckPotentialDataLoss(aDatahandle, aHandle, mSchemaEngine);
+                subClient->MarkFailedPendingPaths(aDatahandle, versionInDE);
             }
 #endif // WEAVE_CONFIG_ENABLE_WDM_UPDATE
-            UpdateDirtyPathFilter pathFilter(GetSubscriptionClient(), aDatahandle);
+            UpdateDirtyPathFilter pathFilter(GetSubscriptionClient(), aDatahandle, mSchemaEngine);
             err = mSchemaEngine->StoreData(aHandle, aReader, this, &pathFilter);
         }
 
@@ -1002,7 +1024,6 @@ WEAVE_ERROR TraitDataSink::StoreDataElement(PropertyPathHandle aHandle, TLVReade
             // Only update our internal version tracker if this is indeed the last element in the change.
             if (aFlags & kLastElementInChange)
             {
-                mHasValidVersion = true;
                 SetVersion(versionInDE);
 
                 OnEvent(kEventChangeEnd, NULL);
@@ -1235,7 +1256,25 @@ WEAVE_ERROR TraitUpdatableDataSink::GetData(PropertyPathHandle aHandle, uint64_t
 
 WEAVE_ERROR TraitUpdatableDataSink::SetUpdateRequiredVersion(uint64_t aUpdateRequiredVersion)
 {
-    mUpdateRequiredVersion = aUpdateRequiredVersion;
+    if (aUpdateRequiredVersion != mUpdateRequiredVersion)
+    {
+        WeaveLogDetail(DataManagement, "[Trait %08x] UpdateRequiredVersion: 0x%" PRIx64 " -> 0x%" PRIx64 "",
+                mSchemaEngine->GetProfileId(), mUpdateRequiredVersion, aUpdateRequiredVersion);
+        mUpdateRequiredVersion = aUpdateRequiredVersion;
+    }
+
+    return WEAVE_NO_ERROR;
+}
+
+WEAVE_ERROR TraitUpdatableDataSink::SetUpdateStartVersion(void)
+{
+    if (GetVersion() != mUpdateStartVersion)
+    {
+        WeaveLogDetail(DataManagement, "[Trait %08x] UpdateStartVersion: 0x%" PRIx64 " -> 0x%" PRIx64 "",
+                mSchemaEngine->GetProfileId(), mUpdateStartVersion, GetVersion());
+        mUpdateStartVersion = GetVersion();
+    }
+
     return WEAVE_NO_ERROR;
 }
 

@@ -62,6 +62,7 @@ enum
     kToolOpt_WdmSublessNotifyDestNodeId,
     kToolOpt_WdmUpdateMutation,
     kToolOpt_WdmUpdateNumberOfMutations,
+    kToolOpt_WdmUpdateNumberOfRepeatedMutations,
     kToolOpt_WdmUpdateNumberOfTraits,
     kToolOpt_WdmUpdateConditionality,
     kToolOpt_WdmUpdateTiming,
@@ -146,6 +147,7 @@ public:
     WdmUpdateMutation mWdmUpdateMutation;
     uint32_t mWdmUpdateNumberOfTraits;
     uint32_t mWdmUpdateNumberOfMutations;
+    uint32_t mWdmUpdateNumberOfRepeatedMutations;
     WdmUpdateTiming mWdmUpdateTiming;
 
     uint32_t mWdmUpdateMaxNumberOfTraits;

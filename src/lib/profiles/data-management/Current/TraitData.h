@@ -107,7 +107,7 @@ inline bool IsNullPropertyPathHandle(PropertyPathHandle aHandle)
 class IPathFilter
 {
 public:
-    virtual bool FilterPath(PropertyPathHandle aPathhandle, const TraitSchemaEngine * apEngine) = 0;
+    virtual bool FilterPath(PropertyPathHandle aPathhandle) = 0;
 };
 
 /**
@@ -118,14 +118,18 @@ public:
 class UpdateDirtyPathFilter : public IPathFilter
 {
 public:
-    UpdateDirtyPathFilter(SubscriptionClient *apSubClient, TraitDataHandle traitDataHandle);
-    virtual bool FilterPath (PropertyPathHandle aPathhandle, const TraitSchemaEngine * apEngine);
+    UpdateDirtyPathFilter(SubscriptionClient *apSubClient,
+                          TraitDataHandle traitDataHandle,
+                          const TraitSchemaEngine * aSchemaEngine);
+    virtual bool FilterPath (PropertyPathHandle aPathhandle);
 
 private:
     SubscriptionClient *mpSubClient;
     TraitDataHandle mTraitDataHandle;
     bool mFilterPendingUpdate;
     bool mFilterDispatchedUpdate;
+    DataVersion mLatestVersion;
+    const TraitSchemaEngine *mSchemaEngine;
 };
 
 class IDirtyPathCut
@@ -729,7 +733,7 @@ protected: // ISetDataDelegate
 #endif // WDM_ENABLE_SUBSCRIPTIONLESS_NOTIFICATION
 
     // Set current version of the data in this sink.
-    void SetVersion(uint64_t version) { mVersion = version; }
+    void SetVersion(uint64_t version);
 
     const TraitSchemaEngine * mSchemaEngine;
 
@@ -785,7 +789,13 @@ private:
     virtual void SetConditionalUpdate(void) { mConditionalUpdate = true; }
     virtual void ClearConditionalUpdate(void) { mConditionalUpdate = false; }
 
+    virtual uint64_t GetUpdateStartVersion(void) { return mUpdateStartVersion; }
+    virtual void ClearUpdateStartVersion(void) { mUpdateStartVersion = 0; }
+
+    WEAVE_ERROR SetUpdateStartVersion (void);
+
     uint64_t mUpdateRequiredVersion;
+    uint64_t mUpdateStartVersion;
     bool mConditionalUpdate;
     SubscriptionClient * mpSubClient;
 };

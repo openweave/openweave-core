@@ -96,6 +96,11 @@ static inline bool IsVersionNewer(const DataVersion &aVersion, const DataVersion
     return (aVersion != aReference);
 }
 
+static inline bool IsVersionNewerOrEqual(const DataVersion &aVersion, const DataVersion &aReference)
+{
+    return true;
+}
+
 typedef uint16_t SchemaVersion;
 
 struct ConstSchemaVersionRange

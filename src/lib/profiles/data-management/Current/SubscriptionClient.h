@@ -117,8 +117,11 @@ public:
         kEvent_OnSubscriptionActivity = 8,
 
 #if WEAVE_CONFIG_ENABLE_WDM_UPDATE
-        // An event indicating update complete
+        // The update of a trait path has succeeded or failed
         kEvent_OnUpdateComplete       = 9,
+
+        // No more paths need to be udpated
+        kEvent_OnNoMorePendingUpdates = 10,
 #endif // WEAVE_CONFIG_ENABLE_WDM_UPDATE
     };
 
@@ -432,9 +435,10 @@ private:
 
     static WEAVE_ERROR AddElementFunc(UpdateClient * apClient, void *apCallState, TLV::TLVWriter & aOuterWriter);
     void OnUpdateResponseTimeout(WEAVE_ERROR aReason);
-    WEAVE_ERROR PurgePendingUpdate();
+    WEAVE_ERROR PurgePendingUpdate(void);
     void OnUpdateConfirm(WEAVE_ERROR aReason, nl::Weave::Profiles::StatusReporting::StatusReport * apStatus);
-    WEAVE_ERROR SendSingleUpdateRequest();
+    WEAVE_ERROR SetUpdateStartVersions(void);
+    WEAVE_ERROR SendSingleUpdateRequest(void);
 
     struct UpdateRequestContext;
     struct UpdatableTIContext;
@@ -450,13 +454,15 @@ private:
 
     void CheckPotentialDataLoss(TraitDataHandle aTraitDataHandle, PropertyPathHandle aPropertyPathHandle, const TraitSchemaEngine * const apSchemaEngine);
     void ClearPotentialDataLoss(TraitDataHandle aTraitDataHandle);
-    bool IsDirty(TraitDataHandle aTraitDataHandle, PropertyPathHandle aPropertyPathHandle, const TraitSchemaEngine * const apSchemaEngine);
+    void MarkFailedPendingPaths(TraitDataHandle aTraitDataHandle, const DataVersion &aLatestVersion);
+    bool IsPathDirty(TraitDataHandle aTraitDataHandle, PropertyPathHandle aPropertyPathHandle, const TraitSchemaEngine * const apSchemaEngine);
     bool IsPresentDispatchedUpdateStore(TraitDataHandle aTraitDataHandle, PropertyPathHandle aPropertyPathHandle);
 
     struct PathStore;
     void ClearPathStore(PathStore &aPathStore, WEAVE_ERROR aErr);
     void ClearPendingUpdateStore(WEAVE_ERROR aErr) { ClearPathStore(mPendingUpdateStore, aErr); }
     void ClearDispatchedUpdateStore(WEAVE_ERROR aErr) { ClearPathStore(mDispatchedUpdateStore, aErr); }
+    void PurgeFailedPaths(PathStore &aPathStore);
     WEAVE_ERROR RemoveItemPendingUpdateStore(TraitDataHandle aDataHandle);
     WEAVE_ERROR RemoveItemDispatchedUpdateStore(TraitDataHandle aDataHandle);
     WEAVE_ERROR AddItemPendingUpdateStore(TraitPath aItem, const TraitSchemaEngine * const apSchemaEngine, bool aForceMerge = false);
@@ -472,10 +478,12 @@ private:
     void ClearFlushInProgress();
 
     bool IsUpdateInFlight();
+    bool IsUpdateInFlight(TraitDataHandle aTraitDataHandle);
     WEAVE_ERROR SetUpdateInFlight();
     WEAVE_ERROR ClearUpdateInFlight();
 
     void UpdateCompleteEventCbHelper(const TraitPath &aTraitPath, uint32_t aStatusProfileId, uint16_t aStatusCode, WEAVE_ERROR aReason);
+    void NoMorePendingEventCbHelper(void);
     static void UpdateEventCallback (void * const aAppState, UpdateClient::EventType aEvent, const UpdateClient::InEventParam & aInParam, UpdateClient::OutEventParam & aOutParam);
     WEAVE_ERROR FormAndSendUpdate(bool aNotifyOnError);
 
@@ -489,7 +497,7 @@ private:
     public:
         enum Flag {
             kFlag_None       = 0x0,
-            kFlag_Valid      = 0x1,
+            kFlag_InUse      = 0x1,
             kFlag_ForceMerge = 0x2, /**< Paths are encoded with the "replace" format by
                                          default; this flag is used to force the encoding of
                                          dictionaries so that the items are merged.
@@ -499,11 +507,16 @@ private:
                                          to encode a dictionary in its own separate
                                          DataElement.
                                          */
+
+            kFlag_Failed     = 0x8, /**< The update of this path has failed.
+                                         It will be deleted after the application has been notified.
+                                         */
         };
         typedef uint8_t Flags;
 
         struct Record {
             Flags mFlags;
+            WEAVE_ERROR mError;
             TraitPath mTraitPath;
         };
 
@@ -515,14 +528,19 @@ private:
         void RemoveItemAt(uint32_t aIndex);
 
         void GetItemAt(uint32_t aIndex, TraitPath &aTraitPath);
+        WEAVE_ERROR GetErrorAt(uint32_t aIndex) { return mStore[aIndex].mError; }
         bool Includes(TraitPath aItem, const TraitSchemaEngine * const apSchemaEngine);
         bool Intersects(TraitPath aItem, const TraitSchemaEngine * const apSchemaEngine);
         bool IsPresent(TraitPath aItem);
         bool IsTraitPresent(TraitDataHandle aDataHandle);
         bool IsFlagSet(uint32_t aIndex, Flag aFlag) { return ((mStore[aIndex].mFlags & static_cast<Flags>(aFlag)) == aFlag); }
         void SetFlag(uint32_t aIndex, Flag aFlag, bool aValue);
+        void SetFailed(uint32_t aIndex, WEAVE_ERROR aErr) { SetFlag(aIndex, kFlag_Failed, true); mStore[aIndex].mError = aErr; }
+        void SetFailedTrait(TraitDataHandle aDataHandle, WEAVE_ERROR aErr);
         Flags GetFlags(uint32_t aIndex) { return mStore[aIndex].mFlags; }
-        bool IsItemValid(uint32_t aIndex) { return IsFlagSet(aIndex, kFlag_Valid); }
+        bool IsItemInUse(uint32_t aIndex) { return IsFlagSet(aIndex, kFlag_InUse); }
+        bool IsItemValid(uint32_t aIndex) { return (IsItemInUse(aIndex) && (!IsFlagSet(aIndex, kFlag_Failed))); }
+        bool IsItemFailed(uint32_t aIndex) { return IsFlagSet(aIndex, kFlag_Failed); }
         bool IsItemForceMerge(uint32_t aIndex) { return IsFlagSet(aIndex, kFlag_ForceMerge); }
         bool IsItemPrivate(uint32_t aIndex) { return IsFlagSet(aIndex, kFlag_Private); }
 

@@ -1663,6 +1663,16 @@ typedef WEAVE_CONFIG_ERROR_TYPE WEAVE_ERROR;
  */
 #define WEAVE_ERROR_WDM_MALFORMED_UPDATE_RESPONSE                _WEAVE_ERROR(175)
 
+/**
+ * @def WEAVE_ERROR_WDM_VERSION_MISMATCH
+ *
+ * @brief
+ *   The conditional update of a trait instance path has failed
+ *   because the local changes are based on an obsolete version of the
+ *   data.
+ */
+#define WEAVE_ERROR_WDM_VERSION_MISMATCH                         _WEAVE_ERROR(176)
+
 
 /**
  *  @}

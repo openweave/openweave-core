@@ -25,6 +25,7 @@
 import os
 import re
 import sys
+import time
 
 from happy.ReturnMsg import ReturnMsg
 from happy.Utils import *
@@ -77,7 +78,9 @@ options = { "clients": None,
             "enable_client_flip": None,
             "enable_server_flip": None,
             "client_update_mutation": None,
+            "client_update_conditionality": None,
             "client_update_num_mutations": None,
+            "client_update_num_repeated_mutations": None,
             "client_update_num_traits": None,
           }
 
@@ -582,13 +585,27 @@ class WeaveWdmNext(HappyNode, HappyNetwork, WeaveTest):
         if self.client_update_mutation:
             cmd += " --wdm-update-mutation " + self.client_update_mutation
 
+        if self.client_update_conditionality:
+            cmd += " --wdm-update-conditionality " + self.client_update_conditionality
+
         if self.client_update_num_mutations:
             cmd += " --wdm-update-number-of-mutations " + str(self.client_update_num_mutations)
+
+        if self.client_update_num_repeated_mutations:
+            cmd += " --wdm-update-number-of-repeated-mutations " + str(self.client_update_num_repeated_mutations)
 
         if self.client_update_num_traits:
             cmd += " --wdm-update-number-of-traits " + str(self.client_update_num_traits)
 
         custom_env = {}
+
+        if False:
+            try:
+                print "cmd = \n" + cmd
+                print "sleeping..."
+                time.sleep(60*60)
+            except:
+                print "sleep interrupted"
 
         if self.use_plaid:
             custom_env = self.plaid.getPlaidClientLibEnv(client_info["client_node_id"])

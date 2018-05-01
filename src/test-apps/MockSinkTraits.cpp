@@ -1721,6 +1721,8 @@ WEAVE_ERROR TestATraitUpdatableDataSink::Mutate(SubscriptionClient * apSubClient
         err = SetUpdated(apSubClient, TestATrait::kPropertyHandle_TaP, aIsConditional);
         SuccessOrExit(err);
 
+        tap++;
+
         break;
 
     case MockWdmNodeOptions::kMutation_SameLevelLeafs:
