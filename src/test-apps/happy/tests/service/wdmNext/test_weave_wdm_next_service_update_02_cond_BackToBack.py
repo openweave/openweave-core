@@ -28,8 +28,8 @@ import unittest
 from weave_wdm_next_test_service_base import weave_wdm_next_test_service_base
 
 
-class test_weave_wdm_next_service_update_cond_OneLeaf(weave_wdm_next_test_service_base):
-    def test_weave_wdm_next_service_update_cond_OneLeaf(self):
+class test_weave_wdm_next_service_update_02_cond_BackToBack(weave_wdm_next_test_service_base):
+    def test_weave_wdm_next_service_update_02_cond_BackToBack(self):
         wdm_next_args = {}
 
         wdm_next_args['wdm_option'] = "mutual_subscribe"
@@ -46,18 +46,20 @@ class test_weave_wdm_next_service_update_cond_OneLeaf(weave_wdm_next_test_servic
 
         wdm_next_args['client_update_mutation'] = "OneLeaf" 
         wdm_next_args['client_update_num_traits'] = 1
-        wdm_next_args['client_update_num_mutations'] = 1
+        wdm_next_args['client_update_num_mutations'] = 2
+        wdm_next_args['client_update_num_repeated_mutations'] = 2
 
-        wdm_next_args['client_log_check'] = [('Update: iteration finished', wdm_next_args['test_client_iterations']),
-                                             ('Update: path result: success', 1),
+        wdm_next_args['client_log_check'] = [('Mutual: Good Iteration', 1),
+                                             ('Update: path result: success', 2),
+                                             ('Update: no more pending updates', 1),
                                              ('Update: path failed', 0),
                                              ('Need to resubscribe', 0)]
 
         wdm_next_args['test_tag'] = self.__class__.__name__
-        wdm_next_args['test_case_name'] = ['Wdm-NestService-O01: Client creates a mutual subscription, sends one UpdateRequest to the publisher, and receives a StatusReport']
+        wdm_next_args['test_case_name'] = ['Wdm-NestService-O02: Client creates a mutual subscription, sends two conditional UpdateRequests to the publisher back-to-back']
         print 'test file: ' + self.__class__.__name__
-        print "weave-wdm-next test O01"
-        super(test_weave_wdm_next_service_update_cond_OneLeaf, self).weave_wdm_next_test_service_base(wdm_next_args)
+        print "weave-wdm-next test O02"
+        super(test_weave_wdm_next_service_update_02_cond_BackToBack, self).weave_wdm_next_test_service_base(wdm_next_args)
 
 
 if __name__ == "__main__":
