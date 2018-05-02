@@ -767,7 +767,7 @@ private:
 class TraitUpdatableDataSink : public TraitDataSink, protected TraitSchemaEngine::IGetDataDelegate
 {
 public:
-    TraitUpdatableDataSink(const TraitSchemaEngine * aEngine):TraitDataSink(aEngine) {  };
+    TraitUpdatableDataSink(const TraitSchemaEngine * aEngine):TraitDataSink(aEngine), mpSubClient(NULL) {  };
     WEAVE_ERROR ReadData(TraitDataHandle aTraitDataHandle, PropertyPathHandle aHandle, uint64_t aTagToWrite, TLV::TLVWriter & aWriter, PropertyPathHandle & aPropertyPathHandleOfDictItemToStartFrom);
 
     virtual WEAVE_ERROR GetData(PropertyPathHandle aHandle, uint64_t aTagToWrite, nl::Weave::TLV::TLVWriter & aWriter,
