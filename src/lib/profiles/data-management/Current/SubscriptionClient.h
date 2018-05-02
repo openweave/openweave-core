@@ -437,7 +437,7 @@ private:
     void OnUpdateResponseTimeout(WEAVE_ERROR aReason);
     WEAVE_ERROR PurgePendingUpdate(void);
     void OnUpdateConfirm(WEAVE_ERROR aReason, nl::Weave::Profiles::StatusReporting::StatusReport * apStatus);
-    WEAVE_ERROR SetUpdateStartVersions(void);
+    void SetUpdateStartVersions(void);
     WEAVE_ERROR SendSingleUpdateRequest(void);
 
     struct UpdateRequestContext;

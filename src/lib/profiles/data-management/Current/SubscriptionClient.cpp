@@ -2021,7 +2021,7 @@ exit:
 
 void SubscriptionClient::PathStore::SetFailedTrait(TraitDataHandle aDataHandle, WEAVE_ERROR aErr)
 {
-    if (mNumItems = 0)
+    if (mNumItems == 0)
         ExitNow();
 
     for (size_t i = 0; i < WDM_UPDATE_MAX_ITEMS_IN_TRAIT_DIRTY_PATH_STORE; i++)
@@ -3329,7 +3329,7 @@ exit:
     return err;
 }
 
-WEAVE_ERROR SubscriptionClient::SetUpdateStartVersions(void)
+void SubscriptionClient::SetUpdateStartVersions(void)
 {
     uint32_t numSourceItems = mDispatchedUpdateStore.GetNumItems();
     TraitPath traitPath;
