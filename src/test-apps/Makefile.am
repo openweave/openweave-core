@@ -608,10 +608,10 @@ check_SCRIPTS                                 +=             \
     happy/tests/service/wdmNext/test_weave_wdm_next_service_mutual_subscribe_24.py                              \
     happy/tests/service/wdmNext/test_weave_wdm_next_service_mutual_subscribe_25.py                              \
     happy/tests/service/wdmNext/test_weave_wdm_next_service_mutual_subscribe_application_key_01.py              \
-    happy/tests/service/wdmNext/test_weave_wdm_next_service_update_cond_OneLeaf.py                              \
-    happy/tests/service/wdmNext/test_weave_wdm_next_service_update_uncond_OneLeaf.py                            \
-    happy/tests/service/wdmNext/test_weave_wdm_next_service_update_cond_BackToBack.py                           \
-    happy/tests/service/wdmNext/test_weave_wdm_next_service_update_uncond_BackToBack.py                         \
+    happy/tests/service/wdmNext/test_weave_wdm_next_service_update_01_cond_OneLeaf.py                           \
+    happy/tests/service/wdmNext/test_weave_wdm_next_service_update_02_cond_BackToBack.py                        \
+    happy/tests/service/wdmNext/test_weave_wdm_next_service_update_03_uncond_OneLeaf.py                         \
+    happy/tests/service/wdmNext/test_weave_wdm_next_service_update_04_uncond_BackToBack.py                      \
     $(NULL)
 endif # WEAVE_RUN_HAPPY_WDM
 
