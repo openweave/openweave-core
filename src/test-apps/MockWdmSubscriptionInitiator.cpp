@@ -1092,11 +1092,13 @@ void MockWdmSubscriptionInitiatorImpl::ClientEventCallback (void * const aAppSta
         }
         else
         {
-            WeaveLogDetail(DataManagement, "Update: path failed");
+            WeaveLogDetail(DataManagement, "Update: path failed: %s, %s",
+                           ErrorStr(aInParam.mUpdateComplete.mReason),
+                           nl::StatusReportStr(aInParam.mUpdateComplete.mStatusProfileId, aInParam.mUpdateComplete.mStatusCode));
         }
         break;
     case SubscriptionClient::kEvent_OnNoMorePendingUpdates:
-        WeaveLogDetail(DataManagement, "Update: iteration finished");
+        WeaveLogDetail(DataManagement, "Update: no more pending updates");
         break;
 #endif // WEAVE_CONFIG_ENABLE_WDM_UPDATE
 

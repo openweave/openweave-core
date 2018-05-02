@@ -922,6 +922,7 @@ TraitDataSink::TraitDataSink(const TraitSchemaEngine * aEngine)
 {
     mSchemaEngine    = aEngine;
     mVersion         = 0;
+    mLastNotifyVersion = 0;
     mHasValidVersion = 0;
 }
 
@@ -939,7 +940,7 @@ WEAVE_ERROR TraitDataSink::StoreDataElement(PropertyPathHandle aHandle, TLVReade
     err = parser.GetVersion(&versionInDE);
     SuccessOrExit(err);
 
-    if (!mHasValidVersion || IsVersionNewer(versionInDE, mVersion))
+    if (IsVersionNewer(versionInDE))
     {
         if (mHasValidVersion)
         {
@@ -1039,6 +1040,10 @@ WEAVE_ERROR TraitDataSink::StoreDataElement(PropertyPathHandle aHandle, TLVReade
     {
         WeaveLogDetail(DataManagement, "<StoreData> [Trait %08x] version: 0x%" PRIx64 " (no-change)",
                        mSchemaEngine->GetProfileId(), mVersion);
+        if (aFlags & kLastElementInChange)
+        {
+            SetLastNotifyVersion(versionInDE);
+        }
     }
 
 exit:

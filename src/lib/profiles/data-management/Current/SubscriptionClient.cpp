@@ -2498,6 +2498,13 @@ void SubscriptionClient::UpdateCompleteEventCbHelper(const TraitPath &aTraitPath
     InEventParam inParam;
     OutEventParam outParam;
 
+    if (aReason == WEAVE_NO_ERROR &&
+            false == (aStatusProfileId == nl::Weave::Profiles::kWeaveProfile_Common &&
+                      aStatusCode == nl::Weave::Profiles::Common::kStatus_Success))
+    {
+        aReason = WEAVE_ERROR_STATUS_REPORT_RECEIVED;
+    }
+
     inParam.Clear();
     outParam.Clear();
     inParam.mUpdateComplete.mClient = this;
@@ -2556,7 +2563,7 @@ void SubscriptionClient::OnUpdateConfirm(WEAVE_ERROR aReason, nl::Weave::Profile
     {
         WeaveLogDetail(DataManagement, "Got StatusReport in the middle of a long update");
 
-        // TODO: implemente a simple FSM to handle long updates
+        // TODO: implement a simple FSM to handle long updates
 
         mUpdateRequestContext.mIsPartialUpdate = false;
         mUpdateRequestContext.mCandidatePropertyPathHandle = kNullPropertyPathHandle;
@@ -2574,13 +2581,11 @@ void SubscriptionClient::OnUpdateConfirm(WEAVE_ERROR aReason, nl::Weave::Profile
         // If the whole udpate has succeeded, the status list
         // is allowed to be empty.
         wholeRequestSucceeded = true;
-
     }
 
     profileID = apStatus->mProfileId;
     statusCode = apStatus->mStatusCode;
 
-    // TODO: handle the case of empty lists in case of total failure.
     if (additionalInfo.theLength != 0)
     {
         reader.Init(additionalInfo.theData, additionalInfo.theLength);
@@ -2607,6 +2612,7 @@ void SubscriptionClient::OnUpdateConfirm(WEAVE_ERROR aReason, nl::Weave::Profile
             break;
         default:
             ExitNow();
+            break;
         }
 
         err = response.GetStatusList(&statusList);
@@ -2620,14 +2626,18 @@ void SubscriptionClient::OnUpdateConfirm(WEAVE_ERROR aReason, nl::Weave::Profile
             break;
         default:
             ExitNow();
+            break;
         }
     }
 
     if ((wholeRequestSucceeded) && !(IsStatusListPresent && IsVersionListPresent))
     {
-        WeaveLogDetail(DataManagement, "<OnUpdateConfirm> version/status list is empty");
+        WeaveLogDetail(DataManagement, "<OnUpdateConfirm> version/status list missing");
         ExitNow(err = WEAVE_ERROR_WDM_MALFORMED_UPDATE_RESPONSE);
     }
+
+    // TODO: validate that the version and status lists are either empty or contain
+    // the same number of items as the dispatched list
 
     for (size_t j = 0; j < numDispatchedHandles; j++)
     {
@@ -2662,6 +2672,8 @@ void SubscriptionClient::OnUpdateConfirm(WEAVE_ERROR aReason, nl::Weave::Profile
             SuccessOrExit(err);
             }                          // hack
         }
+
+        err = WEAVE_NO_ERROR;
 
         mDispatchedUpdateStore.GetItemAt(j, traitPath);
 
@@ -2750,7 +2762,6 @@ exit:
     if (err != WEAVE_NO_ERROR)
     {
         ClearDispatchedUpdateStore(err);
-        // TODO: purge the pending ones as well.
     }
     VerifyOrDie(mDispatchedUpdateStore.mNumItems == 0);
 

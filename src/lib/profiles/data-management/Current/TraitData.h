@@ -570,11 +570,12 @@ public:
      * Retrieves the current version of the data that resides in this sink.
      */
     uint64_t GetVersion(void) const { return mVersion; }
-
     /**
      * Returns a boolean value that determines whether the version is valid.
      */
     bool IsVersionValid(void) const { return mHasValidVersion; }
+
+    virtual bool IsVersionNewer(DataVersion &aVersion) { return aVersion != mVersion || false == mHasValidVersion; }
 
 #if WDM_ENABLE_SUBSCRIPTIONLESS_NOTIFICATION
     /**
@@ -734,12 +735,16 @@ protected: // ISetDataDelegate
 
     // Set current version of the data in this sink.
     void SetVersion(uint64_t version);
+    void SetLastNotifyVersion(uint64_t version) { mLastNotifyVersion = version; }
+    uint64_t GetLastNotifyVersion(void) const { return mLastNotifyVersion; }
+
 
     const TraitSchemaEngine * mSchemaEngine;
 
 private:
     // Current version of the data in this sink.
     uint64_t mVersion;
+    uint64_t mLastNotifyVersion;
     void OnDataSinkEvent(DataSinkEventType aType, PropertyPathHandle aHandle) __OVERRIDE;
     static OnChangeRejection sChangeRejectionCb;
     static void * sChangeRejectionContext;
@@ -781,6 +786,7 @@ public:
 private:
     friend class SubscriptionClient;
 
+    virtual bool IsVersionNewer(DataVersion &aVersion) { return false == IsVersionValid() || aVersion > GetVersion() || aVersion  < GetLastNotifyVersion(); }
     virtual uint64_t GetUpdateRequiredVersion(void) { return mUpdateRequiredVersion; }
     virtual void ClearUpdateRequiredVersion(void) { mUpdateRequiredVersion = 0; }
     virtual WEAVE_ERROR SetUpdateRequiredVersion (uint64_t aUpdateRequiredVersion);
