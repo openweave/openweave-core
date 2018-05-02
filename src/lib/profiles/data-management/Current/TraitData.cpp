@@ -1141,12 +1141,9 @@ uint64_t TraitDataSource::GetVersion(void)
 {
     // At the time of version retrieval, check to see if the version is still at the sentinel value of 0 (indicating 'no version') set at construction. If it is,
     // it means that the data source has not over-ridden the version to something other than 0, indicating that it desires to use randomized data versions.
-    if (mVersion == 0)
+    while (mVersion == 0)
     {
-        do
-        {
-            mVersion = GetRandU64();
-        } while (mVersion == 0);
+        mVersion = GetRandU64();
     }
 
     return mVersion;
