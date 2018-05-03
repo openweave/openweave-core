@@ -224,7 +224,7 @@ class weave_wdm_next_test_service_base(unittest.TestCase):
                         wdm_sanity_diag_list.append("missing '%s' in client_output" % i[0])
                     elif item_output_cnt != 0 and i[1] == 0:
                         wdm_sanity_check = False
-                        wdm_sanity_diag_list.append("unwanted '%s' in client_output" % i[0])
+                        wdm_sanity_diag_list.append("unexpected '%s' in client_output" % i[0])
 
                 if len(re.findall("Good Iteration", client_completed_iter_list[0])) != 1:
                     wdm_sanity_check = False
@@ -253,7 +253,7 @@ class weave_wdm_next_test_service_base(unittest.TestCase):
                 item_output_cnt = len(re.findall(i[0], data["client_output"]))
                 if item_output_cnt != i[1]:
                     wdm_stress_check = False
-                    wdm_stress_diag_list.append("wrong number of '%s' in client_output, need %d, actual %d" % (i[0], i[1], item_output_cnt))
+                    wdm_stress_diag_list.append("wrong number of '%s' in client_output, expected %d, actual %d" % (i[0], i[1], item_output_cnt))
 
             if self.client_event_generator is not None:
                 client_stress_event_dic = self.weave_wdm.wdm_next_client_event_sequence_process(data["client_output"])
@@ -301,9 +301,15 @@ class weave_wdm_next_test_service_base(unittest.TestCase):
 
             self.__output_test_result(output_file_name, output_data)
 
+            if not wdm_sanity_check:
+                print "wdm_sanity_check is False\n\n" + "\n\t".join(wdm_sanity_diag_list)
+            if not wdm_stress_check:
+                print "wdm_stress_check is False\n\n" + "\n\t".join(wdm_stress_diag_list)
+
+
             try:
-                self.assertTrue(wdm_sanity_check, "wdm_sanity_check %s == True %%" % (str(wdm_sanity_check)))
-                self.assertTrue(wdm_stress_check, "wdm_stress_check %s == True %%" % (str(wdm_stress_check)))
+                self.assertTrue(wdm_sanity_check, "wdm_sanity_check %s == True %%" % (str(wdm_sanity_check))) 
+                self.assertTrue(wdm_stress_check, "wdm_stress_check %s == True %%" % (str(wdm_stress_check))) 
             except AssertionError:
                 success = False
                 exception_dic[data['client']] = test_results
