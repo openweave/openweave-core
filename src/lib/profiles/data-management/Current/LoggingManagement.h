@@ -219,7 +219,7 @@ public:
     bool CheckShouldRunWDM(void);
 #endif
 private:
-    WEAVE_ERROR GetExternalEventsFromEventId(ImportanceType inImportance, event_id_t inEventId, ExternalEvents *outExternalEvents);
+    WEAVE_ERROR GetExternalEventsFromEventId(ImportanceType inImportance, event_id_t inEventId, ExternalEvents * outExternalEvents);
     event_id_t LogEventPrivate(const EventSchema & inSchema, EventWriterFunct inEventWriter, void * inAppData,
                                const EventOptions * inOptions);
 

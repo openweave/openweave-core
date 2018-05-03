@@ -57,7 +57,7 @@ namespace WeaveMakeManagedNamespaceIdentifier(DataManagement, kWeaveManagedNames
 #define EVENT_CONTAINER_OVERHEAD_TLV_SIZE 2
 // Event importance element consumes 3 bytes: control byte, 1-byte tag, and 1 byte value
 #define IMPORTANCE_TLV_SIZE 3
-// Overhead of embeding something in a (short) byte string: 1 byte control, 1 byte tag, 1 byte length
+// Overhead of embedding something in a (short) byte string: 1 byte control, 1 byte tag, 1 byte length
 #define EXTERNAL_EVENT_BYTE_STRING_TLV_SIZE 3
 
 // Static instance: embedded platforms not always implement a proper
@@ -688,11 +688,11 @@ event_id_t LoggingManagement::GetLastEventID(ImportanceType inImportance)
 
 /**
  * @brief
- *   Fetch the most recently vended ID for a particular importance level
+ *   Fetch the first event ID currently stored for a particular importance level
  *
  * @param inImportance Importance level
  *
- * @return event_id_t most recently vended event ID for that event importance
+ * @return event_id_t First currently stored event ID for that event importance
  */
 event_id_t LoggingManagement::GetFirstEventID(ImportanceType inImportance)
 {
@@ -734,13 +734,14 @@ CircularEventBuffer * LoggingManagement::GetImportanceBuffer(ImportanceType inIm
  * See the documentation for #FetchExternalEventsFunct for details on what
  * the callback must implement.
  *
- * @param inImportance          Importance level
+ * @param[in] inImportance      Importance level
  *
- * @param inCallback            Callback to register to fetch external events
+ * @param[in] inCallback        Callback to register to fetch external events
  *
- * @param inNumEvents           Number of events in this set
+ * @param[in] inNumEvents       Number of events in this set
  *
- * @param aExternalEventsPtr    Pointer to ExternalEvents struct.
+ * @param[out] outLastEventID   Pointer to an event_id_t; on successful registration of external events the function will store the
+ *                              event ID corresponding to the last event ID of the external event block. The parameter may be NULL.
  *
  * @retval WEAVE_ERROR_NO_MEMORY        If no more callback slots are available.
  * @retval WEAVE_ERROR_INVALID_ARGUMENT Null function callback or no events to register.
@@ -782,15 +783,16 @@ WEAVE_ERROR LoggingManagement::RegisterEventCallbackForImportance(ImportanceType
  * See the documentation for #FetchExternalEventsFunct for details on what
  * the callback must implement.
  *
- * @param inImportance          Importance level
+ * @param[in] inImportance      Importance level
  *
- * @param inFetchCallback       Callback to register to fetch external events
+ * @param[in] inFetchCallback   Callback to register to fetch external events
  *
- * @param inNotifyCallback      Callback to register for delivery notification
+ * @param[in] inNotifyCallback  Callback to register for delivery notification
  *
- * @param inNumEvents           Number of events in this set
+ * @param[in] inNumEvents       Number of events in this set
  *
- * @param aExternalEventsPtr    Pointer to ExternalEvents struct.
+ * @param[out] outLastEventID   Pointer to an event_id_t; on successful registration of external events the function will store the
+ *                              event ID corresponding to the last event ID of the external event block. The parameter may be NULL.
  *
  * @retval WEAVE_ERROR_NO_MEMORY        If no more callback slots are available.
  * @retval WEAVE_ERROR_INVALID_ARGUMENT Null function callback or no events to register.
@@ -891,8 +893,8 @@ exit:
  * This function succeeds unconditionally. If the callback was never
  * registered or was already unregistered, it's a no-op.
  *
- * @param inImportance          Importance level
- * @param inPtr                 Pointer to ExternalEvents struct to unregister.
+ * @param[in] inImportance          Importance level
+ * @param[in] inEventID             An event ID corresponding to any of the events in the external event block to be unregistered.
  */
 void LoggingManagement::UnregisterEventCallbackForImportance(ImportanceType inImportance, event_id_t inEventID)
 {
@@ -1814,6 +1816,24 @@ void LoggingManagement::NotifyEventsDelivered(ImportanceType inImportance, event
 exit:
     Platform::CriticalSectionExit();
 }
+
+
+/**
+ * @brief
+ *   Retrieve ExternalEvent descriptor based on the importance and event ID of the external event.
+ *
+ * @param[in]  inImportance      The importance of the event
+ * @param[in]  inEventID         The ID of the event
+ *
+ * @param[out] outExternalEvents A pointer to the ExternalEvent structure.  If the external event specified via inImportance /
+ *                               inEventID tuple corresponds to a valid external ID, the structure will be populated with the
+ *                               descriptor holding all relevant information about that particular block of external events.
+ *
+ * @retval WEAVE_NO_ERROR                On successful retrieval of the ExternalEvents
+ *
+ * @retval WEAVE_ERROR_INVALID_ARGUMENT  When the arguments passed in do not correspond to an external event, or if the external
+ *                                       event was already either dropped or unregistered.
+ */
 
 WEAVE_ERROR LoggingManagement::GetExternalEventsFromEventId(ImportanceType inImportance, event_id_t inEventID,
                                                             ExternalEvents * outExternalEvents)

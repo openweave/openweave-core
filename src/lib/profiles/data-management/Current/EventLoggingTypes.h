@@ -349,7 +349,7 @@ struct ExternalEvents
 
     FetchExternalEventsFunct mFetchEventsFunct; /**< The callback to use to fetch the above IDs. */
     NotifyExternalEventsDeliveredFunct mNotifyEventsDeliveredFunct;
-    bool IsValid(void) { return mFirstEventID <= mLastEventID; };
+    bool IsValid(void) const { return mFirstEventID <= mLastEventID; };
     void Invalidate(void) { mFirstEventID = 1; mLastEventID = 0; };
 };
 
