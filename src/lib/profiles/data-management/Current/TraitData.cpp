@@ -915,6 +915,14 @@ void TraitDataSink::SetVersion(uint64_t aVersion)
     mHasValidVersion = true;
 }
 
+void TraitDataSink::SetLastNotifyVersion(uint64_t aVersion)
+{
+    WeaveLogDetail(DataManagement, "Trait %08x last notify version: 0x%" PRIx64 " -> 0x%" PRIx64 "", mSchemaEngine->GetProfileId(), mLastNotifyVersion,
+            aVersion);
+
+    mLastNotifyVersion = aVersion;
+}
+
 TraitDataSink::OnChangeRejection TraitDataSink::sChangeRejectionCb = NULL;
 void * TraitDataSink::sChangeRejectionContext                      = NULL;
 
@@ -1040,10 +1048,11 @@ WEAVE_ERROR TraitDataSink::StoreDataElement(PropertyPathHandle aHandle, TLVReade
     {
         WeaveLogDetail(DataManagement, "<StoreData> [Trait %08x] version: 0x%" PRIx64 " (no-change)",
                        mSchemaEngine->GetProfileId(), mVersion);
-        if (aFlags & kLastElementInChange)
-        {
-            SetLastNotifyVersion(versionInDE);
-        }
+    }
+
+    if (aFlags & kLastElementInChange)
+    {
+        SetLastNotifyVersion(versionInDE);
     }
 
 exit:

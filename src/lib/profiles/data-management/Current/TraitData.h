@@ -735,7 +735,7 @@ protected: // ISetDataDelegate
 
     // Set current version of the data in this sink.
     void SetVersion(uint64_t version);
-    void SetLastNotifyVersion(uint64_t version) { mLastNotifyVersion = version; }
+    void SetLastNotifyVersion(uint64_t version);
     uint64_t GetLastNotifyVersion(void) const { return mLastNotifyVersion; }
 
 
