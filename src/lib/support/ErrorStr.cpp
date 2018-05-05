@@ -531,6 +531,7 @@ NL_DLL_EXPORT const char *ErrorStr(int32_t err)
     case WEAVE_ERROR_ACCESS_DENIED                              : return WeaveFormatError(err, "The Weave message is not granted access");
     case WEAVE_ERROR_UNKNOWN_RESOURCE_ID                        : return WeaveFormatError(err, "Unknown resource ID");
     case WEAVE_ERROR_WDM_MALFORMED_UPDATE_RESPONSE              : return WeaveFormatError(err, "Malformed WDM Update response");
+    case WEAVE_ERROR_WDM_VERSION_MISMATCH                       : return WeaveFormatError(err, "The conditional update of a WDM path failed for a version mismatch");
 
     // ----- ASN1 Errors -----
     case ASN1_END                                               : return ASN1FormatError(err, "End of input");
