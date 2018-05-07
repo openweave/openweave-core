@@ -1268,7 +1268,7 @@ WEAVE_ERROR TraitUpdatableDataSink::GetData(PropertyPathHandle aHandle, uint64_t
     return err;
 }
 
-WEAVE_ERROR TraitUpdatableDataSink::SetUpdateRequiredVersion(uint64_t aUpdateRequiredVersion)
+WEAVE_ERROR TraitUpdatableDataSink::SetUpdateRequiredVersion(const uint64_t &aUpdateRequiredVersion)
 {
     if (aUpdateRequiredVersion != mUpdateRequiredVersion)
     {

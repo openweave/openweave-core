@@ -1404,6 +1404,9 @@ void MockWdmSubscriptionInitiatorImpl::HandleDataFlipTimeout(nl::Weave::System::
                     testATraitConditional = ! testATraitConditional;
                     otherTraitsConditional = ! testATraitConditional;
                     break;
+                default:
+                    WeaveDie();
+                    break;
             }
 
             for (uint32_t i = 0; i < initiator->mUpdateNumMutations; i++)

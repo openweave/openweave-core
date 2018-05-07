@@ -688,13 +688,6 @@ public:
 
 #if WEAVE_CONFIG_ENABLE_WDM_UPDATE
     virtual bool IsUpdatableDataSink(void)  { return false; }
-
-    virtual uint64_t GetUpdateRequiredVersion(void) { return 0; }
-
-    virtual void ClearUpdateRequiredVersion(void) {  }
-
-    virtual WEAVE_ERROR SetUpdateRequiredVersion(uint64_t aUpdateRequiredVersion) { return WEAVE_NO_ERROR; };
-
     virtual bool IsConditionalUpdate(void) { return false; }
     virtual void SetConditionalUpdate(void) {  }
     virtual void ClearConditionalUpdate(void) {  }
@@ -786,16 +779,23 @@ public:
 private:
     friend class SubscriptionClient;
 
+    /**
+     * Checks if a DataVersion is more recent than the one currently stored in the Sink.
+     * Note: publishers are allowed to reset the version of a trait instance after rebooting.
+     * This implies that a notification with the lastest data for a trait instance can have
+     * a version number that is lower than the current one. Please refer to the WDM
+     * specification for more details.
+     */
     virtual bool IsVersionNewer(DataVersion &aVersion) { return false == IsVersionValid() || aVersion > GetVersion() || aVersion  < GetLastNotifyVersion(); }
-    virtual uint64_t GetUpdateRequiredVersion(void) { return mUpdateRequiredVersion; }
-    virtual void ClearUpdateRequiredVersion(void) { mUpdateRequiredVersion = 0; }
-    virtual WEAVE_ERROR SetUpdateRequiredVersion (uint64_t aUpdateRequiredVersion);
+    uint64_t GetUpdateRequiredVersion(void) const { return mUpdateRequiredVersion; }
+    void ClearUpdateRequiredVersion(void) { mUpdateRequiredVersion = 0; }
+    WEAVE_ERROR SetUpdateRequiredVersion(const uint64_t &aUpdateRequiredVersion);
 
     virtual bool IsConditionalUpdate(void) { return mConditionalUpdate; }
     virtual void SetConditionalUpdate(void) { mConditionalUpdate = true; }
     virtual void ClearConditionalUpdate(void) { mConditionalUpdate = false; }
 
-    virtual uint64_t GetUpdateStartVersion(void) { return mUpdateStartVersion; }
+    virtual uint64_t GetUpdateStartVersion(void) const { return mUpdateStartVersion; }
     virtual void ClearUpdateStartVersion(void) { mUpdateStartVersion = 0; }
 
     WEAVE_ERROR SetUpdateStartVersion (void);
