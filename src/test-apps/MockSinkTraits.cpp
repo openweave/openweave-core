@@ -1725,7 +1725,7 @@ WEAVE_ERROR TestATraitUpdatableDataSink::Mutate(SubscriptionClient * apSubClient
 
         break;
 
-    case MockWdmNodeOptions::kMutation_SameLevelLeafs:
+    case MockWdmNodeOptions::kMutation_SameLevelLeaves:
         err = SetUpdated(apSubClient, TestATrait::kPropertyHandle_TaP, aIsConditional);
         SuccessOrExit(err);
 
@@ -1741,7 +1741,7 @@ WEAVE_ERROR TestATraitUpdatableDataSink::Mutate(SubscriptionClient * apSubClient
 
         break;
 
-    case MockWdmNodeOptions::kMutation_DiffLevelLeafs:
+    case MockWdmNodeOptions::kMutation_DiffLevelLeaves:
         err = SetUpdated(apSubClient, TestATrait::kPropertyHandle_TaD_SaB, aIsConditional);
         SuccessOrExit(err);
 
@@ -1829,7 +1829,7 @@ WEAVE_ERROR TestATraitUpdatableDataSink::Mutate(SubscriptionClient * apSubClient
         SuccessOrExit(err);
 
         tai_map.clear();
-        for (uint16_t i = 0; i < 800; i++) {
+        for (uint16_t i = 0; i < 10; i++) {
             tai_map[i] = { (uint32_t)i + 1 };
         }
 
@@ -2666,7 +2666,7 @@ WEAVE_ERROR TestBTraitUpdatableDataSink::Mutate(SubscriptionClient * apSubClient
 
         break;
 
-    case MockWdmNodeOptions::kMutation_DiffLevelLeafs:
+    case MockWdmNodeOptions::kMutation_DiffLevelLeaves:
 
         err = SetUpdated(apSubClient, TestBTrait::kPropertyHandle_TaC, aIsConditional);
         SuccessOrExit(err);

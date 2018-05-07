@@ -94,8 +94,8 @@ public:
 
     enum WdmUpdateMutation {
         kMutation_OneLeaf = 0,
-        kMutation_SameLevelLeafs,
-        kMutation_DiffLevelLeafs,
+        kMutation_SameLevelLeaves,
+        kMutation_DiffLevelLeaves,
         kMutation_WholeDictionary,
         kMutation_WholeLargeDictionary,
         kMutation_FewDictionaryItems,

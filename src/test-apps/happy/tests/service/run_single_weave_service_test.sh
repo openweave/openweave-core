@@ -37,11 +37,18 @@ export happy_dns='8.8.8.8 172.16.255.1 172.16.255.153 172.16.255.53'
 # exit if something fails
 set -e
 
-# put your tests here:
+# By default, run a mutual subscription test. If tests have been
+# listed as arguments, run those instead
 
-#python echo/test_weave_echo_02.py
-#python wdmNext/test_weave_wdm_next_service_mutual_subscribe_01.py
+# echo/test_weave_echo_02.py
+# wdmNext/test_weave_wdm_next_service_mutual_subscribe_01.py
+# wdmNext/test_weave_wdm_next_service_update_*
 
-for wdm_update_test in wdmNext/test_weave_wdm_next_service_update_* ; do python $wdm_update_test ;  done
+if [[ $# -eq 0 ]]
+then
+    wdmNext/test_weave_wdm_next_service_mutual_subscribe_01.py
+else
+    for test_to_run in $* ; do python $test_to_run ;  done
+fi
 
 echo All tests have run

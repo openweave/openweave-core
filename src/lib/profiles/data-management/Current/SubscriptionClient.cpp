@@ -2651,26 +2651,18 @@ void SubscriptionClient::OnUpdateConfirm(WEAVE_ERROR aReason, nl::Weave::Profile
         if (IsVersionListPresent)
         {
             err = versionList.Next();
-            // TODO: hack to be able to test something with the current service implementation
-            //SuccessOrExit(err);
+            SuccessOrExit(err);
 
-            if (err == WEAVE_NO_ERROR) // hack
-            {                          // hack
             err = versionList.GetVersion(&versionCreated);
             SuccessOrExit(err);
-            }                          // hack
         }
 
         if ((! wholeRequestSucceeded) && IsStatusListPresent)
         {
             err = statusList.Next();
-            // SuccessOrExit(err); hack
 
-            if (err == WEAVE_NO_ERROR) // hack
-            {                          // hack
             err = statusList.GetStatusAndProfileID(&profileID, &statusCode);
             SuccessOrExit(err);
-            }                          // hack
         }
 
         err = WEAVE_NO_ERROR;
@@ -3201,16 +3193,12 @@ WEAVE_ERROR SubscriptionClient::BuildSingleUpdateRequestDataList(UpdateRequestCo
     bool dictionaryOverflowed;
 
     size_t   numTraitInstanceHandled            = 0;
-    size_t   numDirtyTraitInstanceFound         = 0;
     uint32_t numDirtyPendingHandles             = mPendingUpdateStore.GetNumItems();
     uint32_t pendingPathStoreSize               = mPendingUpdateStore.GetPathStoreSize();
 
     WeaveLogDetail(DataManagement, "CurUpdatedItems in Pending = %u/%u", numDirtyPendingHandles, pendingPathStoreSize);
 
-    // Temp hack for compatibility with the service:
-    // process only one dirty trait
-    while (numDirtyTraitInstanceFound == 0 &&
-            numTraitInstanceHandled < mNumUpdatableTraitInstances)
+    while (numTraitInstanceHandled < mNumUpdatableTraitInstances)
     {
         dictionaryOverflowed = false;
 
@@ -3222,8 +3210,6 @@ WEAVE_ERROR SubscriptionClient::BuildSingleUpdateRequestDataList(UpdateRequestCo
 
         if (traitInfo->IsDirty())
         {
-            numDirtyTraitInstanceFound++;
-
             WeaveLogDetail(DataManagement, "T%u is dirty", context.mCurProcessingTraitInstanceIdx);
 
             if (context.mNextDictionaryElementPathHandle != kNullPropertyPathHandle)

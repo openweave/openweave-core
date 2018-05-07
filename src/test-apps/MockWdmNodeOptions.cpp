@@ -230,8 +230,8 @@ const char **MockWdmNodeOptions::GetMutationStrings(void)
     static const char *mutationStrings[kMutation_NumItems] =
     {
         "OneLeaf",
-        "SameLevelLeafs",
-        "DiffLevelLeafs",
+        "SameLevelLeaves",
+        "DiffLevelLeaves",
         "WholeDictionary",
         "WholeLargeDictionary",
         "FewDictionaryItems",
