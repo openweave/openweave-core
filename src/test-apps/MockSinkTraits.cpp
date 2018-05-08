@@ -1881,7 +1881,7 @@ WEAVE_ERROR TestATraitUpdatableDataSink::Mutate(SubscriptionClient * apSubClient
         SuccessOrExit(err);
 
         tai_map.clear();
-        for (uint16_t i = 0; i < 3; i++) {
+        for (uint16_t i = 0; i < 100; i++) {
             tai_map[i] = { ((uint32_t)i + 1)*10 + 7 };
         }
         if (taa == TestATrait::ENUM_A_VALUE_1) {

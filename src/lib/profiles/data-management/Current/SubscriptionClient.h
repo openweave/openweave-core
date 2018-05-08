@@ -449,6 +449,7 @@ private:
             uint64_t &instanceId);
     WEAVE_ERROR DirtyPathToDataElement(UpdateRequestContext &aContext);
     WEAVE_ERROR BuildSingleUpdateRequestDataList(UpdateRequestContext &aContext);
+    WEAVE_ERROR EncodePendingPaths(UpdateRequestContext &context, TraitDataHandle aDataHandle, bool aForceMerge, bool &aDictionaryOververflowed);
 
     bool MergeDupInPendingUpdateStore(const TraitSchemaEngine * apSchemaEngine, size_t & candidateIndex);
 
@@ -532,6 +533,7 @@ private:
         bool Includes(TraitPath aItem, const TraitSchemaEngine * const apSchemaEngine);
         bool Intersects(TraitPath aItem, const TraitSchemaEngine * const apSchemaEngine);
         bool IsPresent(TraitPath aItem);
+        bool IsPresent(TraitPath aItem, bool *aForceMerge);
         bool IsTraitPresent(TraitDataHandle aDataHandle);
         bool IsFlagSet(uint32_t aIndex, Flag aFlag) { return ((mStore[aIndex].mFlags & static_cast<Flags>(aFlag)) == aFlag); }
         void SetFlag(uint32_t aIndex, Flag aFlag, bool aValue);

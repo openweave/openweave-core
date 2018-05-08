@@ -2094,11 +2094,23 @@ void SubscriptionClient::PathStore::GetItemAt(uint32_t aIndex, TraitPath &aTrait
 
 bool SubscriptionClient::PathStore::IsPresent(TraitPath aItem)
 {
+    return IsPresent(aItem, NULL);
+}
+
+bool SubscriptionClient::PathStore::IsPresent(TraitPath aItem, bool *aForceMerge)
+{
     for (size_t i = 0; i < WDM_UPDATE_MAX_ITEMS_IN_TRAIT_DIRTY_PATH_STORE; i++)
     {
         if (IsItemValid(i) && (mStore[i].mTraitPath == aItem))
         {
-            return true;
+            if (aForceMerge)
+            {
+                return (IsItemForceMerge(i) == *aForceMerge);
+            }
+            else
+            {
+                return true;
+            }
         }
     }
 
@@ -2231,8 +2243,14 @@ WEAVE_ERROR SubscriptionClient::AddItemPendingUpdateStore(TraitPath aItem, const
     uint32_t numPendingHandles;
     numPendingHandles = mPendingUpdateStore.GetPathStoreSize();
 
+    if (mPendingUpdateStore.IsPresent(aItem, &aForceMerge))
+    {
+        WeaveLogDetail(DataManagement, "Path already pending");
+        ExitNow();
+    }
+
     // TODO: I'm not convinced this always does the right thing when we want to
-    // force-merge a dictonary
+    // force-merge a dictionary
     isAddSuccess = mPendingUpdateStore.AddItem(aItem, aForceMerge);
 
     // TODO: we should check if root is already in the store BEFORE adding, so
@@ -2240,37 +2258,43 @@ WEAVE_ERROR SubscriptionClient::AddItemPendingUpdateStore(TraitPath aItem, const
 
     if (isAddSuccess)
     {
-        for (size_t i=0; i < numPendingHandles; i++)
+        if (false == aForceMerge)
         {
-            if (mPendingUpdateStore.IsItemValid(i) && (mPendingUpdateStore.mStore[i].mTraitPath.mTraitDataHandle == aItem.mTraitDataHandle))
+            // Dictionaries that must use the merge format are created for internal purposes;
+            // don't deduplicate them.
+
+            for (size_t i=0; i < numPendingHandles; i++)
             {
-                if (mPendingUpdateStore.mStore[i].mTraitPath.mPropertyPathHandle == kRootPropertyPathHandle)
+                if (mPendingUpdateStore.IsItemValid(i) && (mPendingUpdateStore.mStore[i].mTraitPath.mTraitDataHandle == aItem.mTraitDataHandle))
                 {
-                    WeaveLogDetail(DataManagement, "exist root updated, merge all to root!");
-                    RemoveItemPendingUpdateStore(mPendingUpdateStore.mStore[i].mTraitPath.mTraitDataHandle);
-                    mPendingUpdateStore.AddItem(TraitPath(aItem.mTraitDataHandle, kRootPropertyPathHandle));
-                    break;
-                }
-                else
-                {
-                    MergeDupInPendingUpdateStore(apSchemaEngine, i);
+                    if (mPendingUpdateStore.mStore[i].mTraitPath.mPropertyPathHandle == kRootPropertyPathHandle)
+                    {
+                        WeaveLogDetail(DataManagement, "exist root updated, merge all to root!");
+                        RemoveItemPendingUpdateStore(mPendingUpdateStore.mStore[i].mTraitPath.mTraitDataHandle);
+                        mPendingUpdateStore.AddItem(TraitPath(aItem.mTraitDataHandle, kRootPropertyPathHandle));
+                        break;
+                    }
+                    else
+                    {
+                        MergeDupInPendingUpdateStore(apSchemaEngine, i);
+                    }
                 }
             }
-        }
 
-        for (size_t j = 0; j < mNumUpdatableTraitInstances; j++)
-        {
-            if (traitInstance[j].mTraitDataHandle == aItem.mTraitDataHandle)
+            for (size_t j = 0; j < mNumUpdatableTraitInstances; j++)
             {
-                WeaveLogDetail(DataManagement, "Set T%u updated", j);
-                traitInstance[j].SetDirty();
-                if (aForceMerge)
+                if (traitInstance[j].mTraitDataHandle == aItem.mTraitDataHandle)
                 {
-                    // In case not even the path of the dictionary will fit in the
-                    // payload, mark this as a partial update already.
-                    mUpdateRequestContext.mIsPartialUpdate = true;
+                    WeaveLogDetail(DataManagement, "Set T%u updated", j);
+                    traitInstance[j].SetDirty();
+                    if (aForceMerge)
+                    {
+                        // In case not even the path of the dictionary will fit in the
+                        // payload, mark this as a partial update already.
+                        mUpdateRequestContext.mIsPartialUpdate = true;
+                    }
+                    break;
                 }
-                break;
             }
         }
     }
@@ -2279,6 +2303,7 @@ WEAVE_ERROR SubscriptionClient::AddItemPendingUpdateStore(TraitPath aItem, const
         WeaveLogDetail(DataManagement, "UpdatePendingStore is full, skip t%u, p%u", aItem.mTraitDataHandle, aItem.mPropertyPathHandle);
     }
 
+exit:
     return WEAVE_NO_ERROR;
 }
 
@@ -2452,7 +2477,7 @@ WEAVE_ERROR SubscriptionClient::ClearUpdateInFlight()
     return WEAVE_NO_ERROR;
 }
 
-//Check if candidate property path in i is part of the other property path in the same trait in PendingUpdateStore, , if yes, eliminate it.
+// Check if candidate property path is part of the other property path in the same trait in PendingUpdateStore, if yes, eliminate it.
 bool SubscriptionClient::MergeDupInPendingUpdateStore(const TraitSchemaEngine * apSchemaEngine, size_t & candidateIndex)
 {
     TraitPath candidateTraitPath = mPendingUpdateStore.mStore[candidateIndex].mTraitPath;
@@ -3042,7 +3067,7 @@ void SubscriptionClient::ShutdownUpdateClient(void)
     mUpdateClient.Shutdown();
 }
 
-WEAVE_ERROR SubscriptionClient::AddElementFunc(UpdateClient * apClient, void * apCallState, TLV::TLVWriter & aOuterWriter)
+WEAVE_ERROR SubscriptionClient::AddElementFunc(UpdateClient * apClient, void * apCallState, TLV::TLVWriter & aWriter)
 {
     WEAVE_ERROR err;
     TraitDataSink * dataSink;
@@ -3080,7 +3105,7 @@ WEAVE_ERROR SubscriptionClient::AddElementFunc(UpdateClient * apClient, void * a
         // The path of the DataElement points to the parent of the dictionary.
         // The data has to be a structure with one element, which is the dictionary itself.
         WeaveLogDetail(DataManagement, "<AddElementFunc> replace dictionary");
-        err = aOuterWriter.StartContainer(tag, nl::Weave::TLV::kTLVType_Structure, dataContainerType);
+        err = aWriter.StartContainer(tag, nl::Weave::TLV::kTLVType_Structure, dataContainerType);
         SuccessOrExit(err);
 
         tag = schemaEngine->GetTag(updateRequestContext->mCandidatePropertyPathHandle);
@@ -3089,13 +3114,13 @@ WEAVE_ERROR SubscriptionClient::AddElementFunc(UpdateClient * apClient, void * a
     err = updatableDataSink->ReadData(pTraitInstanceInfo->mTraitDataHandle,
                                       updateRequestContext->mCandidatePropertyPathHandle,
                                       tag,
-                                      aOuterWriter,
+                                      aWriter,
                                       updateRequestContext->mNextDictionaryElementPathHandle);
     SuccessOrExit(err);
 
     if (isDictionaryReplace)
     {
-        err = aOuterWriter.EndContainer(dataContainerType);
+        err = aWriter.EndContainer(dataContainerType);
         SuccessOrExit(err);
     }
 
@@ -3181,6 +3206,45 @@ exit:
     return err;
 }
 
+WEAVE_ERROR SubscriptionClient::EncodePendingPaths(UpdateRequestContext &context,
+                                                   TraitDataHandle aDataHandle,
+                                                   bool aForceMerge,
+                                                   bool &aDictionaryOverflowed)
+{
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
+    uint32_t pendingPathStoreSize = mPendingUpdateStore.GetPathStoreSize();
+    size_t i = 0;
+
+    while (i < pendingPathStoreSize)
+    {
+        if (!(mPendingUpdateStore.IsItemValid(i) &&
+                    (mPendingUpdateStore.IsItemForceMerge(i) == aForceMerge) &&
+                    (mPendingUpdateStore.mStore[i].mTraitPath.mTraitDataHandle == aDataHandle)))
+        {
+            i++;
+            continue;
+        }
+
+        WeaveLogDetail(DataManagement, "Found pending path %d to encode", i);
+
+        context.mCandidatePropertyPathHandle = mPendingUpdateStore.mStore[i].mTraitPath.mPropertyPathHandle;
+
+        context.mForceMerge = mPendingUpdateStore.IsItemForceMerge(i);
+        err = DirtyPathToDataElement(context);
+        SuccessOrExit(err);
+        mPendingUpdateStore.RemoveItemAt(i);
+        aDictionaryOverflowed = (context.mNextDictionaryElementPathHandle != kNullPropertyPathHandle);
+        VerifyOrExit(!aDictionaryOverflowed, /* no error */);
+
+        // Check from the beginning of the array because the last element processed
+        // for the current trait could have queued another dictionary.
+        i = 0;
+
+    } // while loop over the pending store
+
+exit:
+    return err;
+}
 
 WEAVE_ERROR SubscriptionClient::BuildSingleUpdateRequestDataList(UpdateRequestContext &context)
 {
@@ -3226,31 +3290,16 @@ WEAVE_ERROR SubscriptionClient::BuildSingleUpdateRequestDataList(UpdateRequestCo
                 VerifyOrExit(!dictionaryOverflowed, /* no error */);
             }
 
-            size_t i = 0;
-            while (i < pendingPathStoreSize)
-            {
-                // Now look for more paths for the same trait in the pending store
-                if (!(mPendingUpdateStore.IsItemValid(i) &&
-                            (mPendingUpdateStore.mStore[i].mTraitPath.mTraitDataHandle == traitInfo->mTraitDataHandle)))
-                {
-                    i++;
-                    continue;
-                }
+            // Now look for more paths for the same trait in the pending store
+            err = EncodePendingPaths(context, traitInfo->mTraitDataHandle, false, dictionaryOverflowed);
+            SuccessOrExit(err);
+            VerifyOrExit(!dictionaryOverflowed, /* no error */);
 
-                context.mCandidatePropertyPathHandle = mPendingUpdateStore.mStore[i].mTraitPath.mPropertyPathHandle;
-                mPendingUpdateStore.RemoveItemAt(i);
-
-                context.mForceMerge = mPendingUpdateStore.IsItemForceMerge(i);
-                err = DirtyPathToDataElement(context);
-                SuccessOrExit(err);
-                dictionaryOverflowed = (context.mNextDictionaryElementPathHandle != kNullPropertyPathHandle);
-                VerifyOrExit(!dictionaryOverflowed, /* no error */);
-
-                // Check from the beginning of the array because the last element processed
-                // for the current trait could have queued another dictionary.
-                i = 0;
-
-            } // for loop over the pending store
+            // Now look for more paths for the same trait in the pending store, which have to
+            // be force-merged
+            err = EncodePendingPaths(context, traitInfo->mTraitDataHandle, true, dictionaryOverflowed);
+            SuccessOrExit(err);
+            VerifyOrExit(!dictionaryOverflowed, /* no error */);
 
             traitInfo->ClearDirty();
         }

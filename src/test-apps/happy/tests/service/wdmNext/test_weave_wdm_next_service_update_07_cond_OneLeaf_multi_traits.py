@@ -30,8 +30,8 @@ import unittest
 from weave_wdm_next_test_service_base import weave_wdm_next_test_service_base
 
 
-class test_weave_wdm_next_service_update_06_cond_OneLeaf_multi_traits(weave_wdm_next_test_service_base):
-    def test_weave_wdm_next_service_update_06_cond_OneLeaf_multi_traits(self):
+class test_weave_wdm_next_service_update_07_cond_OneLeaf_multi_traits(weave_wdm_next_test_service_base):
+    def test_weave_wdm_next_service_update_07_cond_OneLeaf_multi_traits(self):
         wdm_next_args = {}
 
         wdm_next_args['wdm_option'] = "mutual_subscribe"
@@ -59,8 +59,8 @@ class test_weave_wdm_next_service_update_06_cond_OneLeaf_multi_traits(weave_wdm_
         wdm_next_args['test_tag'] = self.__class__.__name__
         wdm_next_args['test_case_name'] = ['Wdm-NestService-O07: Client creates a mutual subscription, sends one UpdateRequest to the publisher with 2 traits, and receives a StatusReport']
         print 'test file: ' + self.__class__.__name__
-        print "weave-wdm-next test O01"
-        super(test_weave_wdm_next_service_update_06_cond_OneLeaf_multi_traits, self).weave_wdm_next_test_service_base(wdm_next_args)
+        print "weave-wdm-next test O07"
+        super(test_weave_wdm_next_service_update_07_cond_OneLeaf_multi_traits, self).weave_wdm_next_test_service_base(wdm_next_args)
 
 
 if __name__ == "__main__":

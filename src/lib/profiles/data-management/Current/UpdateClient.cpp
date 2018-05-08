@@ -138,9 +138,10 @@ exit:
 
     if (err != WEAVE_NO_ERROR)
     {
-        WeaveLogDetail(DataManagement, "<UC:Run> Fail in StartUpdate: %" PRId32 "");
         CancelUpdate();
     }
+
+    WeaveLogFunctError(err);
 
     return err;
 }
@@ -181,10 +182,7 @@ WEAVE_ERROR UpdateClient::StartUpdateRequest(utc_timestamp_t aExpiryTimeMicroSec
 
 exit:
 
-    if (err != WEAVE_NO_ERROR)
-    {
-        WeaveLogDetail(DataManagement, "<UC:Run> Fail in StartUpdateRequest");
-    }
+    WeaveLogFunctError(err);
 
     return err;
 }
@@ -210,10 +208,7 @@ WEAVE_ERROR UpdateClient::EndUpdateRequest()
 
 exit:
 
-    if (err != WEAVE_NO_ERROR)
-    {
-        WeaveLogDetail(DataManagement, "<UC:Run> Fail in EndUpdateRequest");
-    }
+    WeaveLogFunctError(err);
 
     return err;
 }
@@ -238,10 +233,7 @@ WEAVE_ERROR UpdateClient::StartDataList()
 
 exit:
 
-    if (err != WEAVE_NO_ERROR)
-    {
-        WeaveLogDetail(DataManagement, "<UC:Run> Fail in StartDataList");
-    }
+    WeaveLogFunctError(err);
 
     return err;
 }
@@ -264,10 +256,7 @@ WEAVE_ERROR UpdateClient::EndDataList()
 
 exit:
 
-    if (err != WEAVE_NO_ERROR)
-    {
-        WeaveLogDetail(DataManagement, "<UC:Run> Fail in EndDataList");
-    }
+    WeaveLogFunctError(err);
 
     return err;
 }
@@ -282,7 +271,6 @@ exit:
  * @param[in] aSchemaVersionRange SchemaVersionRange for data element, optional
  * @param[in] aPathArray pathArray for data element, optional
  * @param[in] aPathLength pathLength for data element, optional
- * @param[in] aOuterWriter OuterWriter for data element
  *
  * @retval #WEAVE_NO_ERROR On success.
  * @retval other           Unable to construct data element.
@@ -293,17 +281,17 @@ WEAVE_ERROR UpdateClient::StartElement(const uint32_t &aProfileID,
                     const DataVersion &aRequiredDataVersion,
                     const SchemaVersionRange * aSchemaVersionRange,
                     const uint64_t *aPathArray,
-				    const size_t aPathLength,
-				    TLV::TLVWriter &aOuterWriter)
+				    const size_t aPathLength)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
     Path::Builder pathBuilder;
     VerifyOrExit(kState_BuildDataList == mState, err = WEAVE_ERROR_INCORRECT_STATE);
-    Checkpoint(aOuterWriter);
 
-    err = aOuterWriter.StartContainer(nl::Weave::TLV::AnonymousTag, nl::Weave::TLV::kTLVType_Structure, mDataElementContainerType);
+    MoveToState(kState_BuildDataElement);
+
+    err = mWriter.StartContainer(nl::Weave::TLV::AnonymousTag, nl::Weave::TLV::kTLVType_Structure, mDataElementContainerType);
     SuccessOrExit(err);
-    err = pathBuilder.Init(&aOuterWriter, nl::Weave::TLV::ContextTag(DataElement::kCsTag_Path));
+    err = pathBuilder.Init(&mWriter, nl::Weave::TLV::ContextTag(DataElement::kCsTag_Path));
     SuccessOrExit(err);
     if (aSchemaVersionRange == NULL)
         pathBuilder.ProfileID(aProfileID);
@@ -334,7 +322,7 @@ WEAVE_ERROR UpdateClient::StartElement(const uint32_t &aProfileID,
     if (aRequiredDataVersion != 0x0)
     {
         WeaveLogDetail(DataManagement, "<UC:Run> conditional update");
-        err = aOuterWriter.Put(nl::Weave::TLV::ContextTag(DataElement::kCsTag_Version), aRequiredDataVersion);
+        err = mWriter.Put(nl::Weave::TLV::ContextTag(DataElement::kCsTag_Version), aRequiredDataVersion);
         SuccessOrExit(err);
     }
     else
@@ -342,15 +330,9 @@ WEAVE_ERROR UpdateClient::StartElement(const uint32_t &aProfileID,
         WeaveLogDetail(DataManagement, "<UC:Run> unconditional update");
     }
 
-    MoveToState(kState_BuildDataElement);
-
 exit:
 
-    if (err != WEAVE_NO_ERROR)
-    {
-        WeaveLogDetail(DataManagement, "<UC:Run> Fail in StartElement");
-        err = CancelElement(aOuterWriter);
-    }
+    WeaveLogFunctError(err);
 
     return err;
 }
@@ -383,24 +365,27 @@ WEAVE_ERROR UpdateClient::AddElement(const uint32_t &aProfileID,
                     void * aCallState)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
-    TLV::TLVWriter outerWriter;
+    TLV::TLVWriter checkpoint;
 
-    err = StartElement(aProfileID, aInstanceID, aResourceID, aRequiredDataVersion, aSchemaVersionRange, aPathArray, aPathLength, outerWriter);
+    Checkpoint(checkpoint);
+
+    err = StartElement(aProfileID, aInstanceID, aResourceID, aRequiredDataVersion, aSchemaVersionRange, aPathArray, aPathLength);
     SuccessOrExit(err);
 
-    err = aAddElementCallback(this, aCallState, outerWriter);
+    err = aAddElementCallback(this, aCallState, mWriter);
     SuccessOrExit(err);
 
-    err = FinalizeElement(outerWriter);
+    err = FinalizeElement();
     SuccessOrExit(err);
 
 exit:
 
     if (err != WEAVE_NO_ERROR)
     {
-        WeaveLogDetail(DataManagement, "<UC:Run> Fail in AddElement %d", err);
-        CancelElement(outerWriter);
+        CancelElement(checkpoint);
     }
+
+    WeaveLogFunctError(err);
 
     return err;
 }
@@ -412,11 +397,10 @@ exit:
  * @retval #WEAVE_ERROR_INCORRECT_STATE If the request is not at the DataElement container.
  * @retval other           Unable to construct the end of the data and data element.
  */
-WEAVE_ERROR UpdateClient::FinalizeElement(TLV::TLVWriter &aOuterWriter)
+WEAVE_ERROR UpdateClient::FinalizeElement()
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
     VerifyOrExit(kState_BuildDataElement == mState, err = WEAVE_ERROR_INCORRECT_STATE);
-    mWriter = aOuterWriter;
 
     err = mWriter.EndContainer(mDataElementContainerType);
     SuccessOrExit(err);
@@ -425,11 +409,7 @@ WEAVE_ERROR UpdateClient::FinalizeElement(TLV::TLVWriter &aOuterWriter)
 
 exit:
 
-    if (err != WEAVE_NO_ERROR)
-    {
-        WeaveLogDetail(DataManagement, "<UC:Run> Fail in FinalizeElement");
-        CancelElement(aOuterWriter);
-    }
+    WeaveLogFunctError(err);
 
     return err;
 }
@@ -465,28 +445,20 @@ void UpdateClient::FlushExistingExchangeContext(const bool aAbortNow)
  * Checkpoint the request state into a TLVWriter
  *
  * @param[out] aWriter A writer to checkpoint the state of the TLV writer into.
- *
- * @retval #WEAVE_NO_ERROR On success.
  */
-WEAVE_ERROR UpdateClient::Checkpoint(TLV::TLVWriter &aWriter)
+void UpdateClient::Checkpoint(TLV::TLVWriter &aWriter)
 {
-    WEAVE_ERROR err = WEAVE_NO_ERROR;
     aWriter    = mWriter;
-    return err;
 }
 
 /**
  * Restore a TLVWriter into the request state
  *
- * @param aWriter[out] A writer to restore the state of the TLV writer into.
- *
- * @retval #WEAVE_NO_ERROR On success.
+ * @param aWriter[out] A writer to restore the state of the TLV writer from.
  */
-WEAVE_ERROR UpdateClient::Rollback(TLV::TLVWriter &aWriter)
+void UpdateClient::Rollback(TLV::TLVWriter &aWriter)
 {
-    WEAVE_ERROR err = WEAVE_NO_ERROR;
-    mWriter    = aWriter;
-    return err;
+    mWriter = aWriter;
 }
 
 /**
@@ -496,12 +468,12 @@ WEAVE_ERROR UpdateClient::Rollback(TLV::TLVWriter &aWriter)
  *
  * @retval #WEAVE_NO_ERROR On success.
  */
-WEAVE_ERROR UpdateClient::CancelElement(TLV::TLVWriter &aOuterWriter)
+WEAVE_ERROR UpdateClient::CancelElement(TLV::TLVWriter &aCheckpoint)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
     VerifyOrExit(kState_BuildDataElement == mState, err = WEAVE_ERROR_INCORRECT_STATE);
-    err = Rollback(aOuterWriter);
-    SuccessOrExit(err);
+
+    Rollback(aCheckpoint);
 
 exit:
 
@@ -588,7 +560,6 @@ exit:
 
     if (err != WEAVE_NO_ERROR)
     {
-        WeaveLogDetail(DataManagement, "<UC:Run> Fail in SendUpdate");
         CancelUpdate();
     }
 
@@ -598,7 +569,7 @@ exit:
         mpBuf = NULL;
     }
 
-     WeaveLogFunctError(err);
+    WeaveLogFunctError(err);
 
     return err;
 
@@ -680,11 +651,9 @@ exit:
 
     if (err != WEAVE_NO_ERROR)
     {
-        WeaveLogDetail(DataManagement, "<UC:Run> Fail in OnSendError");
+        WeaveLogFunctError(err);
         err = pUpdateClient->CancelUpdate();
     }
-
-    WeaveLogFunctError(err);
 }
 
 void UpdateClient::OnResponseTimeout(nl::Weave::ExchangeContext * aEC)
@@ -709,13 +678,13 @@ void UpdateClient::OnResponseTimeout(nl::Weave::ExchangeContext * aEC)
 
 exit:
 
+    WeaveLogFunctError(err);
+
     if (err != WEAVE_NO_ERROR)
     {
-        WeaveLogDetail(DataManagement, "<UC:Run> Fail in OnResponseTimeout");
         err = pUpdateClient->CancelUpdate();
     }
 
-    WeaveLogFunctError(err);
 }
 
 void UpdateClient::OnMessageReceived(nl::Weave::ExchangeContext * aEC, const nl::Inet::IPPacketInfo * aPktInfo,
@@ -765,9 +734,10 @@ void UpdateClient::OnMessageReceived(nl::Weave::ExchangeContext * aEC, const nl:
 
 exit:
 
+    WeaveLogFunctError(err);
+
     if (err != WEAVE_NO_ERROR)
     {
-        WeaveLogDetail(DataManagement, "<UC:Run> Fail in OnMessageReceived %d", err);
         err = pUpdateClient->CancelUpdate();
     }
 
@@ -777,7 +747,6 @@ exit:
         aPayload = NULL;
     }
 
-    WeaveLogFunctError(err);
     aEC = NULL;
 }
 

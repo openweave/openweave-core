@@ -97,18 +97,17 @@ public:
                              const DataVersion & aRequiredDataVersion,
                              const SchemaVersionRange * aSchemaVersionRange,
                              const uint64_t *aPathArray,
-                             const size_t aPathLength,
-                             TLV::TLVWriter & aOuterWriter);
+                             const size_t aPathLength);
 
-    WEAVE_ERROR FinalizeElement(TLV::TLVWriter & aOuterWriter);
+    WEAVE_ERROR FinalizeElement();
 
     WEAVE_ERROR CancelElement(TLV::TLVWriter & aOuterWriter);
 
     WEAVE_ERROR SendUpdate(bool aIsPartialUpdate);
 
-    WEAVE_ERROR Checkpoint(TLV::TLVWriter &aWriter);
+    void Checkpoint(TLV::TLVWriter &aWriter);
 
-    WEAVE_ERROR Rollback(TLV::TLVWriter &aWriter);
+    void Rollback(TLV::TLVWriter &aWriter);
 
     void * mpAppState;
 

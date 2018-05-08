@@ -21,14 +21,17 @@
 #
 #    @file
 #       Calls Weave WDM mutual subscribe between mock device and real service.
+#       Test Wdm-NestService-O07: Client creates a mutual subscription, sends one
+#           UpdateRequest to the publisher with 2 traits, and receives a
+#           StatusReport
 #
 
 import unittest
 from weave_wdm_next_test_service_base import weave_wdm_next_test_service_base
 
 
-class test_weave_wdm_next_service_update_08_mixed_OneLeaf_multi_traits(weave_wdm_next_test_service_base):
-    def test_weave_wdm_next_service_update_08_mixed_OneLeaf_multi_traits(self):
+class test_weave_wdm_next_service_update_10_cond_Root_multi_traits(weave_wdm_next_test_service_base):
+    def test_weave_wdm_next_service_update_10_cond_Root_multi_traits(self):
         wdm_next_args = {}
 
         wdm_next_args['wdm_option'] = "mutual_subscribe"
@@ -43,22 +46,22 @@ class test_weave_wdm_next_service_update_08_mixed_OneLeaf_multi_traits(weave_wdm
 
         wdm_next_args['enable_retry'] = True 
 
-        wdm_next_args['client_update_mutation'] = "OneLeaf" 
-        wdm_next_args['client_update_num_traits'] = 2
+        wdm_next_args['client_update_mutation'] = "Root" 
+        wdm_next_args['client_update_num_traits'] = 4
         wdm_next_args['client_update_num_mutations'] = 1
-        wdm_next_args['client_update_conditionality'] = "Mixed"
 
         wdm_next_args['client_log_check'] = [('Mutual: Good Iteration', 1),
-                                             ('Update: path result: success', 2),
+                                             ('Update: path result: success', 4),
                                              ('Update: no more pending updates', 1),
+                                             ('Suppressing error .*; will try again later', 1), # make sure to test failing to add a DataElement
                                              ('Update: path failed', 0),
                                              ('Need to resubscribe', 0)]
 
         wdm_next_args['test_tag'] = self.__class__.__name__
-        wdm_next_args['test_case_name'] = ['Wdm-NestService-O08: Client creates a mutual subscription, sends one UpdateRequest to the publisher with 2 traits, one conditional and one not, and receives a StatusReport']
+        wdm_next_args['test_case_name'] = ['Wdm-NestService-O10: Client creates a mutual subscription, sends one UpdateRequest to the publisher with 4 full traits, and receives a StatusReport']
         print 'test file: ' + self.__class__.__name__
-        print "weave-wdm-next test O08"
-        super(test_weave_wdm_next_service_update_08_mixed_OneLeaf_multi_traits, self).weave_wdm_next_test_service_base(wdm_next_args)
+        print "weave-wdm-next test O10"
+        super(test_weave_wdm_next_service_update_10_cond_Root_multi_traits, self).weave_wdm_next_test_service_base(wdm_next_args)
 
 
 if __name__ == "__main__":
