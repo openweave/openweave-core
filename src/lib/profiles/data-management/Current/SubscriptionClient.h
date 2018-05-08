@@ -475,7 +475,7 @@ private:
     bool IsTraitPresentInPendingUpdateStore(TraitDataHandle aTraitDataHandle);
 
     bool IsFlushInProgress();
-    WEAVE_ERROR SetFlushInProgress();
+    void SetFlushInProgress();
     void ClearFlushInProgress();
 
     bool IsUpdateInFlight();

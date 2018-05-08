@@ -2444,10 +2444,9 @@ bool SubscriptionClient::IsFlushInProgress()
     return mFlushInProgress;
 }
 
-WEAVE_ERROR SubscriptionClient::SetFlushInProgress()
+void SubscriptionClient::SetFlushInProgress()
 {
     mFlushInProgress = true;
-    return WEAVE_NO_ERROR;
 }
 
 void SubscriptionClient::ClearFlushInProgress()
@@ -3415,6 +3414,7 @@ WEAVE_ERROR SubscriptionClient::SendSingleUpdateRequest(void)
     else
     {
         mUpdateClient.CancelUpdate();
+        ClearFlushInProgress();
     }
 
 exit:
@@ -3465,6 +3465,8 @@ exit:
 
     if (aNotifyOnError && WEAVE_NO_ERROR != err)
     {
+        ClearFlushInProgress();
+
         inParam.Clear();
         outParam.Clear();
         inParam.mUpdateComplete.mClient = this;
@@ -3487,18 +3489,12 @@ WEAVE_ERROR SubscriptionClient::FlushUpdate()
     VerifyOrExit(!IsFlushInProgress(), WeaveLogDetail(DataManagement, "updating has been triggered, skip!"));
     VerifyOrExit(!IsEmptyPendingUpdateStore(), WeaveLogDetail(DataManagement, "updating queue is empty, skip!"));
 
-    err = SetFlushInProgress();
-    SuccessOrExit(err);
+    SetFlushInProgress();
 
     err = FormAndSendUpdate(false);
     SuccessOrExit(err);
 
 exit:
-
-    if (err != WEAVE_NO_ERROR)
-    {
-        ClearFlushInProgress();
-    }
 
     if (isLocked)
     {
