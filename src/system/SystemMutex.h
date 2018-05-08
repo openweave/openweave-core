@@ -76,7 +76,10 @@ private:
 #endif // WEAVE_SYSTEM_CONFIG_POSIX_LOCKING
 
 #if WEAVE_SYSTEM_CONFIG_FREERTOS_LOCKING
-    volatile xSemaphoreHandle mFreeRTOSSemaphore;
+#if (configSUPPORT_STATIC_ALLOCATION == 1)
+    StaticSemaphore_t mFreeRTOSSemaphoreObj;
+#endif // (configSUPPORT_STATIC_ALLOCATION == 1)
+    volatile SemaphoreHandle_t mFreeRTOSSemaphore;
     volatile int mInitialized;
 #endif // WEAVE_SYSTEM_CONFIG_FREERTOS_LOCKING
 

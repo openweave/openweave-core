@@ -78,7 +78,11 @@ NL_DLL_EXPORT Error Mutex::Init(Mutex& aThis)
 restart:
     if (__sync_bool_compare_and_swap(&aThis.mInitialized, 0, 1))
     {
+#if (configSUPPORT_STATIC_ALLOCATION == 1)
+        aThis.mFreeRTOSSemaphore = xSemaphoreCreateMutexStatic(&aThis.mFreeRTOSSemaphoreObj);
+#else
         aThis.mFreeRTOSSemaphore = xSemaphoreCreateMutex();
+#endif
         if (aThis.mFreeRTOSSemaphore == NULL)
         {
             aThis.mInitialized = 0;

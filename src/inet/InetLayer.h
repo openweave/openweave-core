@@ -332,7 +332,10 @@ class NL_DLL_EXPORT InetLayer
 #elif WEAVE_SYSTEM_CONFIG_POSIX_LOCKING
     sem_t mDroppableEvents;
 #elif WEAVE_SYSTEM_CONFIG_FREERTOS_LOCKING
-    xSemaphoreHandle mDroppableEvents;
+#if (configSUPPORT_STATIC_ALLOCATION == 1)
+    StaticSemaphore_t mDroppableEventsObj;
+#endif // (configSUPPORT_STATIC_ALLOCATION == 1)
+    SemaphoreHandle_t mDroppableEvents;
 #endif // WEAVE_SYSTEM_CONFIG_FREERTOS_LOCKING
 
 #else // !INET_CONFIG_MAX_DROPPABLE_EVENTS
