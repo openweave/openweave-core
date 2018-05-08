@@ -63,6 +63,7 @@ static const nl::FaultInjection::Name sFaultNames[] = {
     "WDMNotificationSize",
     "WDMSendCommandExpired",
     "WDMSendCommandBadVersion",
+    "WDMSendUpdateBadVersion",
     "CASEKeyConfirm",
     "SecMgrBusy",
 #if WEAVE_CONFIG_ENABLE_TUNNELING

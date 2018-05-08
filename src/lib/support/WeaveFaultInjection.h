@@ -80,6 +80,7 @@ typedef enum
                                                      an argument to the fault */
     kFault_WDM_SendCommandExpired,              /**< Force the ExpiryTime of a WDM command to be in the past */
     kFault_WDM_SendCommandBadVersion,           /**< Alter the version of a WDM command being transmitted */
+    kFault_WDM_SendUpdateBadVersion,            /**< Alter the version of a WDM update data element being transmitted */
     kFault_CASEKeyConfirm,                      /**< Trigger a WEAVE_ERROR_KEY_CONFIRMATION_FAILED error in WeaveCASEEngine */
     kFault_SecMgrBusy,                          /**< Trigger a WEAVE_ERROR_SECURITY_MANAGER_BUSY when starting an authentication session */
 #if WEAVE_CONFIG_ENABLE_TUNNELING

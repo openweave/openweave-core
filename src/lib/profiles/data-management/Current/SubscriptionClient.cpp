@@ -2977,7 +2977,7 @@ WEAVE_ERROR SubscriptionClient::SetUpdated(TraitUpdatableDataSink * aDataSink, P
     {
         uint64_t requiredDataVersion = aDataSink->GetVersion();
         err = aDataSink->SetUpdateRequiredVersion(requiredDataVersion);
-        WeaveLogDetail(DataManagement, "<SetUpdated> Set update required version to 0x%" PRIx64 "", requiredDataVersion);
+        WeaveLogDetail(DataManagement, "<SetUpdated> Set update required version to 0x%" PRIx64 "", aDataSink->GetUpdateRequiredVersion());
         SuccessOrExit(err);
     }
 

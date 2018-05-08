@@ -48,6 +48,8 @@ class test_weave_wdm_next_service_update_09_mixed_SameLevelLeaves_multi_traits(w
         wdm_next_args['client_update_num_mutations'] = 1
         wdm_next_args['client_update_conditionality'] = "Mixed"
 
+        # The update will contain 3 paths for TestATrait and 1 for the Locale trait.
+
         wdm_next_args['client_log_check'] = [('Mutual: Good Iteration', 1),
                                              ('Update: path result: success', 4),
                                              ('Update: no more pending updates', 1),

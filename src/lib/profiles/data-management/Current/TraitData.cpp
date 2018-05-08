@@ -34,6 +34,7 @@
 
 #include <Weave/Profiles/data-management/Current/WdmManagedNamespace.h>
 #include <Weave/Profiles/data-management/DataManagement.h>
+#include <Weave/Support/WeaveFaultInjection.h>
 
 using namespace ::nl::Weave;
 using namespace ::nl::Weave::TLV;
@@ -188,6 +189,7 @@ WEAVE_ERROR TraitSchemaEngine::RetrieveData(PropertyPathHandle aHandle, uint64_t
     if (IsLeaf(aHandle) || IsNullable(aHandle) || IsOptional(aHandle))
     {
         bool isPresent = true, isNull = false;
+
         err = aDelegate->GetData(aHandle, aTagToWrite, aWriter, isNull, isPresent);
         SuccessOrExit(err);
 
@@ -1275,6 +1277,12 @@ WEAVE_ERROR TraitUpdatableDataSink::SetUpdateRequiredVersion(const uint64_t &aUp
         WeaveLogDetail(DataManagement, "[Trait %08x] UpdateRequiredVersion: 0x%" PRIx64 " -> 0x%" PRIx64 "",
                 mSchemaEngine->GetProfileId(), mUpdateRequiredVersion, aUpdateRequiredVersion);
         mUpdateRequiredVersion = aUpdateRequiredVersion;
+
+        // TODO: Ideally, this fault would be injected when the payload is encoded; but, all DataElements for the
+        // same trait instance need to have the same RequiredVersion, and it's easier to achieve that by
+        // changing the state here. The loop that does the encoding is being reworked, so this will
+        // probably change soon.
+        WEAVE_FAULT_INJECT(FaultInjection::kFault_WDM_SendUpdateBadVersion, mUpdateRequiredVersion -= 1);
     }
 
     return WEAVE_NO_ERROR;

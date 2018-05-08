@@ -150,6 +150,7 @@ class weave_wdm_next_test_service_base(unittest.TestCase):
 
         value, data = self.__run_wdm_test_between("ThreadNode", "service")
         self.__process_result("ThreadNode", "service", value, data)
+        self.result_data = data
 
         delayExecution(1)
 
