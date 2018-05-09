@@ -73,6 +73,16 @@ PlatformResult AddRemoveHostAddress(InterfaceType inInterfaceType, const Inet::I
     ip6_addr_t ip6addr = inAddress.ToIPv6();
     bool lockHeld = false;
 
+    // If an address is being added/removed from the tunnel interface, and the address in question
+    // is a ULA referring to the Weave Primary WiFi subnet, substitute the Thread Mesh subnet id.
+    // This works around a limitation in the current Nest service, which presumes that all devices
+    // have a Thread radio, and therefore a Thread Mesh address to which packets can be routed.
+    if (inInterfaceType == kInterfaceTypeTunnel && inAddress.IsIPv6ULA() && inAddress.Subnet() == kWeaveSubnetId_PrimaryWiFi)
+    {
+        Inet::IPAddress altAddr = Inet::IPAddress::MakeULA(inAddress.GlobalId(), kWeaveSubnetId_ThreadMesh, inAddress.InterfaceId());
+        ip6addr = altAddr.ToIPv6();
+    }
+
     LOCK_TCPIP_CORE();
     lockHeld = true;
 
