@@ -41,7 +41,7 @@ WEAVE_ERROR ServiceProvisioningServer::Init(void)
     SetDelegate(this);
 
     mProvServiceBinding = NULL;
-    mAwaitingServiceConnectivity = false;
+    mWaitingForServiceTunnel = false;
 
 exit:
     return err;
@@ -193,13 +193,13 @@ void ServiceProvisioningServer::OnPlatformEvent(const WeaveDeviceEvent * event)
 {
 #if !WEAVE_DEVICE_CONFIG_DISABLE_ACCOUNT_PAIRING
 
-    // If connectivity to the service has been established...
-    if (event->Type == WeaveDeviceEvent::kEventType_ServiceConnectivityChange &&
-        event->ServiceConnectivityChange.Result == kConnectivity_Established)
+    // If a tunnel to the service has been established...
+    if (event->Type == WeaveDeviceEvent::kEventType_ServiceTunnelStateChange &&
+        event->ServiceTunnelStateChange.Result == kConnectivity_Established)
     {
-        // If a RegisterServicePairAccount request is active and the system is waiting for
-        // connectivity to the service, initiate the PairDeviceToAccount request now.
-        if (mCurClientOp != NULL && mAwaitingServiceConnectivity)
+        // If a RegisterServicePairAccount request is pending and the system is waiting for
+        // the service tunnel to be established, initiate the PairDeviceToAccount request now.
+        if (mCurClientOp != NULL && mWaitingForServiceTunnel)
         {
             StartPairDeviceToAccount();
         }
@@ -214,22 +214,23 @@ void ServiceProvisioningServer::StartPairDeviceToAccount(void)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
 
-    // If the system does not currently have service connectivity, wait a period of time for it to be established.
-    if (!ConnectivityMgr.HaveServiceConnectivity())
+    // If the system does not currently have a tunnel established with the service, wait a
+    // period of time for it to be established.
+    if (!ConnectivityMgr.IsServiceTunnelConnected())
     {
-        mAwaitingServiceConnectivity = true;
+        mWaitingForServiceTunnel = true;
 
         err = SystemLayer.StartTimer(WEAVE_DEVICE_CONFIG_SERVICE_PROVISIONING_CONNECTIVITY_TIMEOUT,
-                HandleConnectivityTimeout,
+                HandleServiceTunnelTimeout,
                 NULL);
         SuccessOrExit(err);
         ExitNow();
 
-        WeaveLogProgress(DeviceLayer, "Waiting for service connectivity to complete RegisterServicePairDevice action");
+        WeaveLogProgress(DeviceLayer, "Waiting for service tunnel to complete RegisterServicePairDevice action");
     }
 
-    mAwaitingServiceConnectivity = false;
-    SystemLayer.CancelTimer(HandleConnectivityTimeout, NULL);
+    mWaitingForServiceTunnel = false;
+    SystemLayer.CancelTimer(HandleServiceTunnelTimeout, NULL);
 
     WeaveLogProgress(DeviceLayer, "Initiating communication with Service Provisioning service");
 
@@ -371,7 +372,7 @@ void ServiceProvisioningServer::AsyncStartPairDeviceToAccount(intptr_t arg)
     ServiceProvisioningSvr.StartPairDeviceToAccount();
 }
 
-void ServiceProvisioningServer::HandleConnectivityTimeout(System::Layer * /* unused */, void * /* unused */, System::Error /* unused */)
+void ServiceProvisioningServer::HandleServiceTunnelTimeout(System::Layer * /* unused */, void * /* unused */, System::Error /* unused */)
 {
     ServiceProvisioningSvr.HandlePairDeviceToAccountResult(WEAVE_ERROR_TIMEOUT, 0, 0);
 }

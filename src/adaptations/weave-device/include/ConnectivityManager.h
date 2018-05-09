@@ -108,7 +108,11 @@ public:
     // Service tunnel methods
     ServiceTunnelMode GetServiceTunnelMode(void) const;
     WEAVE_ERROR SetServiceTunnelMode(ServiceTunnelMode val);
-    bool HaveServiceConnectivity(void) const;
+    bool IsServiceTunnelConnected(void);
+    bool IsServiceTunnelRestricted(void);
+
+    // Service connectivity methods
+    bool HaveServiceConnectivity(void);
 
     // WoBLE service methods
     WoBLEServiceMode GetWoBLEServiceMode(void);
@@ -161,8 +165,8 @@ private:
         kFlag_ScanInProgress                    = 0x0001,
         kFlag_HaveIPv4InternetConnectivity      = 0x0002,
         kFlag_HaveIPv6InternetConnectivity      = 0x0004,
-        kFlag_HaveServiceConnectivity           = 0x0008,
-        kFlag_ServiceTunnelStarted              = 0x0010,
+        kFlag_ServiceTunnelStarted              = 0x0008,
+        kFlag_ServiceTunnelUp                   = 0x0010,
         kFlag_AwaitingConnectivity              = 0x0020,
     };
 
@@ -194,6 +198,7 @@ private:
     void OnIPv6AddressAvailable(const system_event_got_ip6_t & got_ip);
 
     void DriveServiceTunnelState(void);
+    static void DriveServiceTunnelState(::nl::Weave::System::Layer * aLayer, void * aAppState, ::nl::Weave::System::Error aError);
 
     static const char * WiFiStationModeToStr(WiFiStationMode mode);
     static const char * WiFiStationStateToStr(WiFiStationState state);
@@ -247,11 +252,6 @@ inline bool ConnectivityManager::HaveIPv4InternetConnectivity(void) const
 inline bool ConnectivityManager::HaveIPv6InternetConnectivity(void) const
 {
     return ::nl::GetFlag(mFlags, kFlag_HaveIPv6InternetConnectivity);
-}
-
-inline bool ConnectivityManager::HaveServiceConnectivity(void) const
-{
-    return ::nl::GetFlag(mFlags, kFlag_HaveServiceConnectivity);
 }
 
 inline ConnectivityManager::ServiceTunnelMode ConnectivityManager::GetServiceTunnelMode(void) const

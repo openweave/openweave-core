@@ -56,14 +56,14 @@ public:
 private:
 
     ::nl::Weave::Binding * mProvServiceBinding;
-    bool mAwaitingServiceConnectivity;
+    bool mWaitingForServiceTunnel;
 
     void StartPairDeviceToAccount(void);
     void SendPairDeviceToAccountRequest(void);
     virtual void HandlePairDeviceToAccountResult(WEAVE_ERROR localErr, uint32_t serverStatusProfileId, uint16_t serverStatusCode);
 
     static void AsyncStartPairDeviceToAccount(intptr_t arg);
-    static void HandleConnectivityTimeout(::nl::Weave::System::Layer * layer, void * appState, ::nl::Weave::System::Error err);
+    static void HandleServiceTunnelTimeout(::nl::Weave::System::Layer * layer, void * appState, ::nl::Weave::System::Error err);
     static void HandleProvServiceBindingEvent(void * appState, nl::Weave::Binding::EventType eventType,
             const nl::Weave::Binding::InEventParam & inParam, nl::Weave::Binding::OutEventParam & outParam);
 };

@@ -189,6 +189,38 @@ void ConnectivityManager::SetWiFiAPIdleTimeoutMS(uint32_t val)
     SystemLayer.ScheduleWork(DriveAPState, NULL);
 }
 
+WEAVE_ERROR ConnectivityManager::SetServiceTunnelMode(ServiceTunnelMode val)
+{
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
+
+    VerifyOrExit(val != kServiceTunnelMode_NotSupported, err = WEAVE_ERROR_INVALID_ARGUMENT);
+
+    mServiceTunnelMode = val;
+
+    SystemLayer.ScheduleWork(DriveServiceTunnelState, NULL);
+
+exit:
+    return err;
+}
+
+bool ConnectivityManager::IsServiceTunnelConnected(void)
+{
+    WeaveTunnelAgent::AgentState tunnelState = ServiceTunnelAgent.GetWeaveTunnelAgentState();
+    return (tunnelState == WeaveTunnelAgent::kState_PrimaryTunModeEstablished ||
+            tunnelState == WeaveTunnelAgent::kState_PrimaryAndBkupTunModeEstablished ||
+            tunnelState == WeaveTunnelAgent::kState_BkupOnlyTunModeEstablished);
+}
+
+bool ConnectivityManager::IsServiceTunnelRestricted(void)
+{
+    return ServiceTunnelAgent.IsTunnelRoutingRestricted();
+}
+
+bool ConnectivityManager::HaveServiceConnectivity(void)
+{
+    return IsServiceTunnelConnected() && !IsServiceTunnelRestricted();
+}
+
 ConnectivityManager::WoBLEServiceMode ConnectivityManager::GetWoBLEServiceMode(void)
 {
     return BLEMgr.GetWoBLEServiceMode();
@@ -385,6 +417,29 @@ void ConnectivityManager::OnPlatformEvent(const WeaveDeviceEvent * event)
     {
         DriveServiceTunnelState();
     }
+
+#if !WEAVE_DEVICE_CONFIG_DISABLE_ACCOUNT_PAIRING
+
+    // Handle account pairing changes.
+    else if (event->Type == WeaveDeviceEvent::kEventType_AccountPairingChange)
+    {
+        // When account pairing successfully completes, if the tunnel to the
+        // service is subject to routing restrictions (imposed because at the time
+        // the tunnel was established the device was not paired to an account)
+        // then force the tunnel to close.  This will result in the tunnel being
+        // re-established, which should lift the service-side restrictions.
+        if (event->AccountPairingChange.IsPairedToAccount &&
+            GetFlag(mFlags, kFlag_ServiceTunnelStarted) &&
+            ServiceTunnelAgent.IsTunnelRoutingRestricted())
+        {
+            WeaveLogProgress(DeviceLayer, "Restarting service tunnel to lift routing restrictions");
+            ClearFlag(mFlags, kFlag_ServiceTunnelStarted);
+            ServiceTunnelAgent.StopServiceTunnel(WEAVE_ERROR_TUNNEL_FORCE_ABORT);
+            DriveServiceTunnelState();
+        }
+    }
+
+#endif // !WEAVE_DEVICE_CONFIG_DISABLE_ACCOUNT_PAIRING
 }
 
 void ConnectivityManager::OnWiFiScanDone()
@@ -911,6 +966,11 @@ void ConnectivityManager::DriveServiceTunnelState(void)
     }
 }
 
+void ConnectivityManager::DriveServiceTunnelState(nl::Weave::System::Layer * aLayer, void * aAppState, nl::Weave::System::Error aError)
+{
+    ConnectivityMgr.DriveServiceTunnelState();
+}
+
 const char * ConnectivityManager::WiFiStationModeToStr(WiFiStationMode mode)
 {
     switch (mode)
@@ -999,8 +1059,9 @@ void ConnectivityManager::RefreshMessageLayer(void)
 void ConnectivityManager::HandleServiceTunnelNotification(WeaveTunnelConnectionMgr::TunnelConnNotifyReasons reason,
             WEAVE_ERROR err, void *appCtxt)
 {
-    bool newServiceState = false;
-    bool prevServiceState = GetFlag(ConnectivityMgr.mFlags, kFlag_HaveServiceConnectivity);
+    bool newTunnelState = false;
+    bool prevTunnelState = GetFlag(ConnectivityMgr.mFlags, kFlag_ServiceTunnelUp);
+    bool isRestricted = false;
 
     switch (reason)
     {
@@ -1011,24 +1072,48 @@ void ConnectivityManager::HandleServiceTunnelNotification(WeaveTunnelConnectionM
         WeaveLogProgress(DeviceLayer, "ConnectivityManager: Service tunnel connection error: %s", ::nl::ErrorStr(err));
         break;
     case WeaveTunnelConnectionMgr::kStatus_TunPrimaryUp:
-        WeaveLogProgress(DeviceLayer, "ConnectivityManager: Service tunnel established");
-        newServiceState = true;
+        newTunnelState = true;
+        isRestricted = (err == WEAVE_ERROR_TUNNEL_ROUTING_RESTRICTED);
+        WeaveLogProgress(DeviceLayer, "ConnectivityManager: %service tunnel established", (isRestricted) ? "RESTRICTED s" : "S");
         break;
     default:
         break;
     }
 
-    // If service connectivity state has changed...
-    if (newServiceState != prevServiceState)
+    // If the tunnel state has changed...
+    if (newTunnelState != prevTunnelState)
     {
-        // Update the state.
-        SetFlag(ConnectivityMgr.mFlags, kFlag_HaveServiceConnectivity, newServiceState);
+        // Update the cached copy of the state.
+        SetFlag(ConnectivityMgr.mFlags, kFlag_ServiceTunnelUp, newTunnelState);
 
-        // Alert other components of the change.
+        // Alert other components of the change to the tunnel state.
         WeaveDeviceEvent event;
-        event.Type = WeaveDeviceEvent::kEventType_ServiceConnectivityChange;
-        event.ServiceConnectivityChange.Result = GetConnectivityChange(prevServiceState, newServiceState);
+        event.Type = WeaveDeviceEvent::kEventType_ServiceTunnelStateChange;
+        event.ServiceTunnelStateChange.Result = GetConnectivityChange(prevTunnelState, newTunnelState);
+        event.ServiceTunnelStateChange.IsRestricted = isRestricted;
         PlatformMgr.PostEvent(&event);
+
+        // If the new tunnel state represents a logical change in connectivity to the service, as it
+        // relates to the application, post a ServiceConnectivityChange event.
+        // (Note that the establishment of a restricted tunnel to the service does not constitute a
+        // logical change in service connectivity from the application's standpoint, as such a tunnel
+        // cannot be used for general application interactions, only pairing).
+        if (newTunnelState)
+        {
+            if (!isRestricted)
+            {
+                event.Type = WeaveDeviceEvent::kEventType_ServiceConnectivityChange;
+                event.ServiceConnectivityChange.Result = kConnectivity_Established;
+                PlatformMgr.PostEvent(&event);
+            }
+        }
+
+        else
+        {
+            event.Type = WeaveDeviceEvent::kEventType_ServiceConnectivityChange;
+            event.ServiceConnectivityChange.Result = kConnectivity_Lost;
+            PlatformMgr.PostEvent(&event);
+        }
     }
 }
 

@@ -53,6 +53,7 @@ struct WeaveDeviceEvent
         kEventType_CallWorkFunct,
         kEventType_WiFiConnectivityChange,
         kEventType_InternetConnectivityChange,
+        kEventType_ServiceTunnelStateChange,
         kEventType_ServiceConnectivityChange,
         kEventType_FabricMembershipChange,
         kEventType_ServiceProvisioningChange,
@@ -93,6 +94,11 @@ struct WeaveDeviceEvent
             ConnectivityChange IPv4;
             ConnectivityChange IPv6;
         } InternetConnectivityChange;
+        struct
+        {
+            ConnectivityChange Result;
+            bool IsRestricted;
+        } ServiceTunnelStateChange;
         struct
         {
             ConnectivityChange Result;
