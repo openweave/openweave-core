@@ -789,7 +789,7 @@ private:
     virtual bool IsVersionNewer(DataVersion &aVersion) { return false == IsVersionValid() || aVersion > GetVersion() || aVersion  < GetLastNotifyVersion(); }
     uint64_t GetUpdateRequiredVersion(void) const { return mUpdateRequiredVersion; }
     void ClearUpdateRequiredVersion(void) { mUpdateRequiredVersion = 0; }
-    WEAVE_ERROR SetUpdateRequiredVersion(const uint64_t &aUpdateRequiredVersion);
+    void SetUpdateRequiredVersion(const uint64_t &aUpdateRequiredVersion);
 
     virtual bool IsConditionalUpdate(void) { return mConditionalUpdate; }
     virtual void SetConditionalUpdate(void) { mConditionalUpdate = true; }

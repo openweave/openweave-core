@@ -51,6 +51,7 @@ class test_weave_wdm_next_service_update_05_cond_WholeDictionary(weave_wdm_next_
         wdm_next_args['client_log_check'] = [('Mutual: Good Iteration', 1),
                                              ('Update: path result: success', 1),
                                              ('Update: no more pending updates', 1),
+                                             ('replace dictionary', 1),
                                              ('Update: path failed', 0),
                                              ('Need to resubscribe', 0)]
 

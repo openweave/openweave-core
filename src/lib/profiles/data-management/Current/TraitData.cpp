@@ -79,7 +79,8 @@ WEAVE_ERROR UpdateDictionaryDirtyPathCut::CutPath (PropertyPathHandle aPathhandl
     // TODO: rename this struct, and pass apEngine to the constructor.
     // Probably just replace the struct with a function; I don't see the point of it really.
 #if WEAVE_CONFIG_ENABLE_WDM_UPDATE
-    mpSubClient->AddItemPendingUpdateStore(TraitPath(mTraitDataHandle, aPathhandle), apEngine, true);
+    // TODO: handle errors!!
+    mpSubClient->InsertInProgressUpdateItem(TraitPath(mTraitDataHandle, aPathhandle), apEngine);
     WeaveLogDetail(DataManagement, "Cut dictionary %u, %u", mTraitDataHandle, aPathhandle);
 #endif // WEAVE_CONFIG_ENABLE_WDM_UPDATE
 
@@ -1276,7 +1277,7 @@ WEAVE_ERROR TraitUpdatableDataSink::GetData(PropertyPathHandle aHandle, uint64_t
     return err;
 }
 
-WEAVE_ERROR TraitUpdatableDataSink::SetUpdateRequiredVersion(const uint64_t &aUpdateRequiredVersion)
+void TraitUpdatableDataSink::SetUpdateRequiredVersion(const uint64_t &aUpdateRequiredVersion)
 {
     if (aUpdateRequiredVersion != mUpdateRequiredVersion)
     {
@@ -1291,7 +1292,7 @@ WEAVE_ERROR TraitUpdatableDataSink::SetUpdateRequiredVersion(const uint64_t &aUp
         WEAVE_FAULT_INJECT(FaultInjection::kFault_WDM_SendUpdateBadVersion, mUpdateRequiredVersion -= 1);
     }
 
-    return WEAVE_NO_ERROR;
+    return;
 }
 
 WEAVE_ERROR TraitUpdatableDataSink::SetUpdateStartVersion(void)

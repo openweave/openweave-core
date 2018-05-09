@@ -1880,6 +1880,9 @@ WEAVE_ERROR TestATraitUpdatableDataSink::Mutate(SubscriptionClient * apSubClient
         err = SetUpdated(apSubClient, TestATrait::kPropertyHandle_Root, aIsConditional);
         SuccessOrExit(err);
 
+        err = SetUpdated(apSubClient, TestATrait::kPropertyHandle_TaD, aIsConditional);
+        SuccessOrExit(err);
+
         tai_map.clear();
         for (uint16_t i = 0; i < 100; i++) {
             tai_map[i] = { ((uint32_t)i + 1)*10 + 7 };

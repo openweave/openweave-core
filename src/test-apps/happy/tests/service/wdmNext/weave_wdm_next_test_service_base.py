@@ -116,6 +116,15 @@ class weave_wdm_next_test_service_base(unittest.TestCase):
         # Start tunnel
         value, data = self.__start_tunnel_from("BorderRouter")
 
+        import time
+        try:
+            print "sleeping..."
+            #time.sleep(60*60)
+        except:
+            print "sleep interrupted"
+
+
+
 
     def tearDown(self):
 

@@ -52,6 +52,7 @@ class test_weave_wdm_next_service_update_01_cond_OneLeaf(weave_wdm_next_test_ser
                                              ('Update: path result: success', 1),
                                              ('Update: no more pending updates', 1),
                                              ('Update: path failed', 0),
+                                             ('unconditional update', 0),
                                              ('Need to resubscribe', 0)]
 
         wdm_next_args['test_tag'] = self.__class__.__name__

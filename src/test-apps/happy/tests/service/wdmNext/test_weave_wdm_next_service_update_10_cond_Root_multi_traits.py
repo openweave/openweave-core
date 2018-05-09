@@ -53,7 +53,14 @@ class test_weave_wdm_next_service_update_10_cond_Root_multi_traits(weave_wdm_nex
         wdm_next_args['client_log_check'] = [('Mutual: Good Iteration', 1),
                                              ('Update: path result: success', 4),
                                              ('Update: no more pending updates', 1),
-                                             ('Suppressing error .*; will try again later', 1), # make sure to test failing to add a DataElement
+                                             ('Suppressing error .*; will try again later', 1), # make sure to test failing to add a DataElement...
+                                             ('Msg sent 0000000B:44', 1),                       # ... which will cause a PartialUpdateReq + UpdateReq, instead of two separate UpdateRequests.
+                                             ('Msg sent 0000000B:34', 1),
+                                             ('Not inserting duplicate path', 1),  # processing the same root twice won't cause a duplicate private path for the dictionary
+                                             ('Path already pending', 2),          # TestATrait's root mutation re-adds a path after adding root (there are two instances of TestATrait)
+                                             ('replace dictionary', 0),      # All DataElements for dictionaries are "merge", not "replace" 
+                                             #('DataElementPath = <Resource = {ProfileId = 0x235afe00,}/0xb = null>', 1),
+                                             #('DataElementPath = <Resource = {ProfileId = 0x235afe00,InstanceId = 0x1,}/0xb = null>', 1),
                                              ('Update: path failed', 0),
                                              ('Need to resubscribe', 0)]
 
