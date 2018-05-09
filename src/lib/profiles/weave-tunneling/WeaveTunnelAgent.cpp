@@ -523,6 +523,19 @@ void WeaveTunnelAgent::DisablePrimaryTunnel(void)
     SetFlag(mTunnelFlags, kTunnelFlag_PrimaryEnabled, false);
 }
 
+/**
+ *  Check if the primary tunnel is subject to routing restrictions.
+ *
+ *  @return true    if the primary tunnel is established but subject to routing
+ *                  restrictions by the service.
+ */
+bool WeaveTunnelAgent::IsPrimaryTunnelRoutingRestricted(void)
+{
+    return (mTunAgentState == kState_PrimaryTunModeEstablished ||
+            mTunAgentState == kState_PrimaryAndBkupTunModeEstablished) &&
+           GetFlag(mTunnelFlags, kTunnelFlag_PrimaryRestricted);
+}
+
 #if WEAVE_CONFIG_TUNNEL_FAILOVER_SUPPORTED
 
 /**
@@ -616,6 +629,19 @@ void WeaveTunnelAgent::StopBackupTunnel(void)
     DisableBackupTunnel();
 
     mBackupTunConnMgr.ServiceTunnelClose(WEAVE_ERROR_TUNNEL_FORCE_ABORT);
+}
+
+/**
+ *  Check if the backup tunnel is subject to routing restrictions.
+ *
+ *  @return true    if the backup tunnel is established but subject to routing
+ *                  restrictions by the service.
+ */
+bool WeaveTunnelAgent::IsBackupTunnelRoutingRestricted(void)
+{
+    return (mTunAgentState == kState_BkupOnlyTunModeEstablished ||
+            mTunAgentState == kState_PrimaryAndBkupTunModeEstablished) &&
+           GetFlag(mTunnelFlags, kTunnelFlag_BackupRestricted);
 }
 
 #if WEAVE_CONFIG_TUNNEL_TCP_USER_TIMEOUT_SUPPORTED
@@ -776,6 +802,21 @@ void WeaveTunnelAgent::StopServiceTunnel(WEAVE_ERROR err)
     }
 #endif // WEAVE_CONFIG_TUNNEL_FAILOVER_SUPPORTED
 
+}
+
+/**
+ *  Check if the tunnel is subject to routing restrictions.
+ *
+ *  @return true    if either the primary or backup tunnel is established, and either are
+ *                  subject to routing restrictions by the service.
+ */
+bool WeaveTunnelAgent::IsTunnelRoutingRestricted(void)
+{
+    return IsPrimaryTunnelRoutingRestricted()
+#if WEAVE_CONFIG_TUNNEL_FAILOVER_SUPPORTED
+           || IsBackupTunnelRoutingRestricted()
+#endif
+           ;
 }
 
 #if WEAVE_CONFIG_TUNNEL_ENABLE_STATISTICS
@@ -1799,6 +1840,17 @@ void WeaveTunnelAgent::WeaveTunnelUpNotifyAndSetState(AgentState state,
                                                       const bool isRoutingRestricted)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
+
+    // Record whether the tunnel is subject to restricted routing by the service.
+
+    if (connMgr->mTunType == kType_TunnelPrimary)
+    {
+        SetFlag(mTunnelFlags, kTunnelFlag_PrimaryRestricted, isRoutingRestricted);
+    }
+    else if (connMgr->mTunType == kType_TunnelBackup)
+    {
+        SetFlag(mTunnelFlags, kTunnelFlag_BackupRestricted, isRoutingRestricted);
+    }
 
     // Perform address and route additions when the Service tunnel connection
     // is established.

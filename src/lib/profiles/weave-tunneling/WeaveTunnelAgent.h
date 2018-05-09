@@ -155,8 +155,10 @@ public:
 /// Weave Tunnel flag bits.
     typedef enum WeaveTunnelFlags
     {
-        kTunnelFlag_PrimaryEnabled  = 0x01,  ///< Set when the primary tunnel is enabled.
-        kTunnelFlag_BackupEnabled   = 0x02,  ///< Set when the backup tunnel is enabled.
+        kTunnelFlag_PrimaryEnabled      = 0x01,  ///< Set when the primary tunnel is enabled.
+        kTunnelFlag_BackupEnabled       = 0x02,  ///< Set when the backup tunnel is enabled.
+        kTunnelFlag_PrimaryRestricted   = 0x04,  ///< Set when the primary tunnel is routing restricted.
+        kTunnelFlag_BackupRestricted    = 0x08,  ///< Set when the backup tunnel is routing restricted.
     } WeaveTunnelFlags;
 
 #if WEAVE_CONFIG_ENABLE_SERVICE_DIRECTORY
@@ -252,6 +254,11 @@ public:
     void DisablePrimaryTunnel(void);
 
 /**
+ *  Check if the primary tunnel is subject to routing restrictions by the service.
+ */
+    bool IsPrimaryTunnelRoutingRestricted(void);
+
+/**
  * Reset the Reconnect time for the primary tunnel
  *
  */
@@ -299,6 +306,11 @@ public:
  * Stop Backup Tunnel.
  */
     void StopBackupTunnel(void);
+
+/**
+ *  Check if the backup tunnel is subject to routing restrictions by the service.
+ */
+    bool IsBackupTunnelRoutingRestricted(void);
 
 #if WEAVE_CONFIG_TUNNEL_TCP_USER_TIMEOUT_SUPPORTED
 /**
@@ -378,6 +390,11 @@ public:
  * Close the Tunnel connection to the Service.
  */
     void StopServiceTunnel(WEAVE_ERROR err);
+
+/**
+ *  Check if the tunnel is subject to routing restrictions by the service.
+ */
+    bool IsTunnelRoutingRestricted(void);
 
 #if WEAVE_CONFIG_TUNNEL_ENABLE_STATISTICS
 /**
