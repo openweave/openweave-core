@@ -20,3 +20,4 @@
 #
 
 COMPONENT_DEPENDS			:= weave
+COMPONENT_SRCDIRS           := . trait-support/weave/trait/description

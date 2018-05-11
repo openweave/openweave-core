@@ -32,6 +32,7 @@ namespace Device {
 PlatformManager PlatformMgr;
 ConfigurationManager ConfigurationMgr;
 ConnectivityManager ConnectivityMgr;
+TraitManager TraitMgr;
 TimeSyncManager TimeSyncMgr;
 
 nl::Weave::System::Layer SystemLayer;

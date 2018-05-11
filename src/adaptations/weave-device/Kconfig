@@ -20,316 +20,316 @@
 
 menu "Weave Device Layer"
 
-menu "General Options"
-
-config WEAVE_TASK_STACK_SIZE
-    int "Weave Task Stack Size"
-    range 0 65535
-    default 4608
-    help
-        The size (in bytes) of the Weave task stack.
-
-config WEAVE_TASK_PRIORITY
-    int "Weave Task Priority"
-    range 0 256
-    default 1
-    help
-        The priority of the Weave task.
+    menu "General Options"
+    
+        config WEAVE_TASK_STACK_SIZE
+            int "Weave Task Stack Size"
+            range 0 65535
+            default 4608
+            help
+                The size (in bytes) of the Weave task stack.
         
-        On the ESP32 platform this value is added to ESP_TASK_PRIO_MIN to determine the FreeRTOS priority value.
-
-config MAX_EVENT_QUEUE_SIZE
-    int "Max Event Queue Size"
-    range 0 65535
-    default 100
-    help
-        The maximum number of events that can be held in the Weave Platform event queue.
-
-config SERVICE_DIRECTORY_CACHE_SIZE
-    int "Weave Service Directory Cache Size"
-    range 0 65535
-    default 512
-    help
-        The size (in bytes) of the service directory cache.  This limits the maximum size of the directory
-        that can be returned in response to a service directory query. 
-
-endmenu
-
-menu "Device Identification Options"
-
-config DEVICE_VENDOR_ID
-    int "Device Vendor Id"
-    range 0 65535
-    default 9050
-    help
-        The device vendor id. This a Nest-assigned id for the organization responsible for producing the device.  
-        Defaults to Nest Labs (0x235A). 
-
-config DEVICE_PRODUCT_ID
-    int "Device Product Id"
-    range 0 65535
-    default 65279
-    help
-        The device product id.  This is a unique id assigned by the device vendor to identify the product or device type.
-        Defaults to a Nest-assigned id designating a non-production or test "product".
-
-config DEVICE_PRODUCT_REVISION
-    int "Device Product Revision"
-    range 0 65535
-    default 1
-    help
-        The device product revision.  This number is assigned to device or product by the device vendor.  The number is
-        scoped to the device product id, and typically corresponds to a revision of the physical device, a change to its
-        packaging, and/or a change to its marketing presentation.  This value is generally *not* incremented for device
-        software revisions.
-
-config DEVICE_FIRMWARE_REVISION
-    string "Device Firmware Revision"
-    default ""
-    help
-        A string identifying the firmware revision running on the device.  
-
-endmenu
-
-menu "WiFi Station Options"
-
-config DEFAULT_WIFI_SSID
-    string "Default WiFi SSID"
-    default ""
-    help
-        The SSID of network to connect to if no WiFi station configuration exists in NV storage
-        at the time the device boots.  
-
-        This option is for testing only and should be disabled in production releases.
-
-config DEFAULT_WIFI_PASSWORD
-    string "Default WiFi Password"
-    default ""
-    help
-        The password for the default WiFi network.  
-
-        This option is for testing only and should be disabled in production releases.
-
-config WIFI_STATION_RECONNECT_INTERVAL
-    int "WiFi Station Interface Reconnect Interval (ms)"
-    range 0 65535
-    default 5000
-    help
-        The interval at which the Weave platform will attempt to reconnect to the configured WiFi network (in milliseconds).
-
-config MAX_SCAN_NETWORKS_RESULTS
-    int "Max ScanNetworks Results"
-    range 0 65535
-    default 10
-    help
-        The maximum number of networks to return as a result of a Weave NetworkProvisioning:ScanNetworks request.
-
-config WIFI_SCAN_COMPLETION_TIMEOUT
-    int "WiFi Scan Completion Timeout (ms)"
-    range 0 65535
-    default 10000
-    help
-        The amount of time (in milliseconds) after which the Weave platform will timeout a WiFi scan
-        operation that hasn't completed.  A value of 0 will disable the timeout logic.
-
-config WIFI_CONNECTIVITY_TIMEOUT
-    int "WiFi Connectivity Timeout (ms)"
-    range 0 65535
-    default 30000
-    help
-        The amount of time (in milliseconds) to wait for Internet connectivity to be established on
-        the device's WiFi station interface during a Network Provisioning TestConnectivity operation.
-
-endmenu
-
-menu "WiFi AP Options"
-
-config WIFI_AP_SSID_PREFIX
-    string "WiFi AP SSID Prefix"
-    default "NEST-"
-    help
-        A prefix string used in forming the WiFi soft-AP SSID.  The remainder of the SSID
-        consists of the final two bytes of the device's primary WiFi MAC address in hex.
-
-config WIFI_AP_CHANNEL
-    int "WiFi AP Channel"
-    range 1 14
-    default 1
-    help
-        The WiFi channel number to be used by the soft-AP.
-
-config WIFI_AP_MAX_STATIONS
-    int "WiFi AP Max Allowed Stations"
-    range 1 10
-    default 4
-    help
-        The maximum number of stations allowed to connect to the soft-AP.
-
-config WIFI_AP_BEACON_INTERVAL
-    int "WiFi AP Beacon Interval (ms)"
-    range 100 60000 
-    default 100
-    help
-        The beacon interval (in milliseconds) for the WiFi soft-AP.
-
-config WIFI_AP_IDLE_TIMEOUT
-    int "WiFi AP Idle Timeout (ms)"
-    range 0 65535
-    default 120000
-    help
-        The amount of time (in milliseconds) after which the Weave platform will deactivate the soft-AP
-        if it has been idle.
-
-endmenu
-
-menu "BLE Options"
-
-config BLE_DEVICE_NAME_PREFIX
-    string "BLE Device Name Prefix"
-    default "NEST-"
-    help
-        A prefix string used in forming the BLE device name.  The remainder of the name
-        consists of the final two bytes of the device's Weave node id in hex.
+        config WEAVE_TASK_PRIORITY
+            int "Weave Task Priority"
+            range 0 256
+            default 1
+            help
+                The priority of the Weave task.
+                
+                On the ESP32 platform this value is added to ESP_TASK_PRIO_MIN to determine the FreeRTOS priority value.
         
-        NOTE: The device layer limits the total length of a device name to 16 characters.
-        However, due to other data sent in WoBLE advertise packets, the device name
-        may need to be shorter.
-
-config BLE_FAST_ADVERTISING_INTERVAL
-    int "Fast Advertising Interval"
-    default 800
-    help
-        The interval (in units of 0.625ms) at which the device will send BLE advertisements while
-        in fast advertising mode.
-
-config BLE_SLOW_ADVERTISING_INTERVAL
-    int "Slow Advertising Interval"
-    default 3200
-    help
-        The interval (in units of 0.625ms) at which the device will send BLE advertisements while
-        in slow advertising mode.
-
-endmenu
-
-menu "Time Sync Options"
-
-config ENABLE_SERVICE_DIRECTORY_TIME_SYNC
-    bool "Enable Service Directory Time Sync"
-    default y
-    help
-        Enables synchronizing the device real-time clock using information returned during
-        a Weave service directory query.  For any device that uses the Weave service directory
-        to lookup a tunnel server, enabling this option will result in the real time clock being
-        synchronized every time the service tunnel is established.
-
-config ENABLE_WEAVE_TIME_SERVICE_TIME_SYNC
-    bool "Enable Time Service Time Sync"
-    default y
-    help
-        Enables synchronizing the device's real time clock with a remote Weave Time service
-        using the Weave Time Sync protocol.
-
-config WEAVE_TIME_SERVICE_ENDPOINT_ID
-    hex "Weave Time Service Endpoint Id"
-    default 18B4300200000005
-    depends on ENABLE_WEAVE_TIME_SERVICE_TIME_SYNC
-    help
-        Specifies the service endpoint id of the Weave Time Sync service to be used to synchronize time.
-
-config DEFAULT_TIME_SYNC_INTERVAL
-    int "Time Sync Interval (seconds)"
-    default 60
-    depends on ENABLE_WEAVE_TIME_SERVICE_TIME_SYNC
-    help
-        Specifies the minimum interval (in seconds) at which the device should synchronize its real time
-        clock with the configured Weave Time Sync server.
-
-config TIME_SYNC_TIMEOUT
-    int "Time Sync Timeout (ms)"
-    default 10000
-    depends on ENABLE_WEAVE_TIME_SERVICE_TIME_SYNC
-    help
-        Specifies the maximum amount of time (in milliseconds) to wait for a response from a
-        Weave Time Sync server.
-
-endmenu
-
-menu "Service Provisioning Options"
-
-config SERVICE_PROVISIONING_ENDPOINT_ID
-    hex "Weave Service Provisioning Endpoint Id"
-    default 18B4300200000010
-    help
-        Specifies the service endpoint id of the Weave Service Provisioning service.  When a device
-        undergoes service provisioning, this is the endpoint to which it will send its Pair Device
-        to Account request.
-
-config SERVICE_PROVISIONING_CONNECTIVITY_TIMEOUT
-    int "Service Provisioning Connectivity Timeout (ms)"
-    default 10000
-    help
-        The maximum amount of time (in milliseconds) to wait for service connectivity during the device
-        service provisioning step.  More specifically, this is the maximum amount of time the device will
-        wait for connectivity to be established with the service at the point where the device waiting
-        to send a Pair Device to Account request to the Service Provisioning service.
-
-config SERVICE_PROVISIONING_REQUEST_TIMEOUT
-    int "Service Provisioning Request Timeout (ms)"
-    default 10000
-    help
-        Specifies the maximum amount of time (in milliseconds) to wait for a response from the Service
-        Provisioning service.
-
-endmenu
-
-menu "Testing Options"
-
-config ENABLE_TEST_DEVICE_IDENTITY
-    int "Use Test Device Identity"
-    range 0 256
-    default 1
-    help
-        Enables the use of a hard-coded Weave device id and credentials if no device id is
-        found in Weave NV storage.  The value specifies which of 256 identities, numbered 1
-        through 256, is to be used.  A value of 0 disables use of a test identity.
+        config MAX_EVENT_QUEUE_SIZE
+            int "Max Event Queue Size"
+            range 0 65535
+            default 100
+            help
+                The maximum number of events that can be held in the Weave Platform event queue.
         
-        This option is for testing only and should not be enabled in production releases.
-
-config USE_TEST_PAIRING_CODE
-    string "Use Test Pairing Code"
-    default "TEST"
-    help
-        Specifies a hard-coded device pairing code to use if none found in Weave NV storage.
-        Setting the value to an empty string disables the feature.
+        config SERVICE_DIRECTORY_CACHE_SIZE
+            int "Weave Service Directory Cache Size"
+            range 0 65535
+            default 512
+            help
+                The size (in bytes) of the service directory cache.  This limits the maximum size of the directory
+                that can be returned in response to a service directory query. 
         
-        This option is for testing only and should not be enabled in production releases.
-
-config ENABLE_FIXED_TUNNEL_SERVER
-    bool "Use Fixed Tunnel Server"
-    default n
-    help
-        Forces the use of a service tunnel server at a fixed IP address and port.  This
-        bypasses the need for a directory query to the service directory endpoint to
-        determine the tunnel server address.  When enabled, this option allows devices
-        that haven't been service provisioned to establish a service tunnel. 
+    endmenu
+    
+    menu "Device Identification Options"
+    
+        config DEVICE_VENDOR_ID
+            int "Device Vendor Id"
+            range 0 65535
+            default 9050
+            help
+                The device vendor id. This a Nest-assigned id for the organization responsible for producing the device.  
+                Defaults to Nest Labs (0x235A). 
         
-config TUNNEL_SERVER_ADDRESS
-    string "Tunnel Server Address"
-    default ""
-    depends on ENABLE_FIXED_TUNNEL_SERVER
-    help
-        The address of the server to which the device should establish a service tunnel.
+        config DEVICE_PRODUCT_ID
+            int "Device Product Id"
+            range 0 65535
+            default 65279
+            help
+                The device product id.  This is a unique id assigned by the device vendor to identify the product or device type.
+                Defaults to a Nest-assigned id designating a non-production or test "product".
         
-        Note: Currently this must be a dot-notation IP address--not a host name. 
-
-config DISABLE_ACCOUNT_PAIRING
-    bool "Disable Account Pairing"
-    default n
-    help
-        Disables sending the PairDeviceToAccount request to the service during a RegisterServicePairAccount
-        operation.  When this option is enabled, the device will perform all local operations associated
-        with registering a service, but will not request the service to add the device to the user's account.
-
-endmenu
+        config DEVICE_PRODUCT_REVISION
+            int "Device Product Revision"
+            range 0 65535
+            default 1
+            help
+                The device product revision.  This number is assigned to device or product by the device vendor.  The number is
+                scoped to the device product id, and typically corresponds to a revision of the physical device, a change to its
+                packaging, and/or a change to its marketing presentation.  This value is generally *not* incremented for device
+                software revisions.
+        
+        config DEVICE_FIRMWARE_REVISION
+            string "Device Firmware Revision"
+            default ""
+            help
+                A string identifying the firmware revision running on the device.  
+        
+    endmenu
+    
+    menu "WiFi Station Options"
+    
+        config DEFAULT_WIFI_SSID
+            string "Default WiFi SSID"
+            default ""
+            help
+                The SSID of network to connect to if no WiFi station configuration exists in NV storage
+                at the time the device boots.  
+        
+                This option is for testing only and should be disabled in production releases.
+        
+        config DEFAULT_WIFI_PASSWORD
+            string "Default WiFi Password"
+            default ""
+            help
+                The password for the default WiFi network.  
+        
+                This option is for testing only and should be disabled in production releases.
+        
+        config WIFI_STATION_RECONNECT_INTERVAL
+            int "WiFi Station Interface Reconnect Interval (ms)"
+            range 0 65535
+            default 5000
+            help
+                The interval at which the Weave platform will attempt to reconnect to the configured WiFi network (in milliseconds).
+        
+        config MAX_SCAN_NETWORKS_RESULTS
+            int "Max ScanNetworks Results"
+            range 0 65535
+            default 10
+            help
+                The maximum number of networks to return as a result of a Weave NetworkProvisioning:ScanNetworks request.
+        
+        config WIFI_SCAN_COMPLETION_TIMEOUT
+            int "WiFi Scan Completion Timeout (ms)"
+            range 0 65535
+            default 10000
+            help
+                The amount of time (in milliseconds) after which the Weave platform will timeout a WiFi scan
+                operation that hasn't completed.  A value of 0 will disable the timeout logic.
+        
+        config WIFI_CONNECTIVITY_TIMEOUT
+            int "WiFi Connectivity Timeout (ms)"
+            range 0 65535
+            default 30000
+            help
+                The amount of time (in milliseconds) to wait for Internet connectivity to be established on
+                the device's WiFi station interface during a Network Provisioning TestConnectivity operation.
+    
+    endmenu
+    
+    menu "WiFi AP Options"
+    
+        config WIFI_AP_SSID_PREFIX
+            string "WiFi AP SSID Prefix"
+            default "NEST-"
+            help
+                A prefix string used in forming the WiFi soft-AP SSID.  The remainder of the SSID
+                consists of the final two bytes of the device's primary WiFi MAC address in hex.
+        
+        config WIFI_AP_CHANNEL
+            int "WiFi AP Channel"
+            range 1 14
+            default 1
+            help
+                The WiFi channel number to be used by the soft-AP.
+        
+        config WIFI_AP_MAX_STATIONS
+            int "WiFi AP Max Allowed Stations"
+            range 1 10
+            default 4
+            help
+                The maximum number of stations allowed to connect to the soft-AP.
+        
+        config WIFI_AP_BEACON_INTERVAL
+            int "WiFi AP Beacon Interval (ms)"
+            range 100 60000 
+            default 100
+            help
+                The beacon interval (in milliseconds) for the WiFi soft-AP.
+        
+        config WIFI_AP_IDLE_TIMEOUT
+            int "WiFi AP Idle Timeout (ms)"
+            range 0 65535
+            default 120000
+            help
+                The amount of time (in milliseconds) after which the Weave platform will deactivate the soft-AP
+                if it has been idle.
+    
+    endmenu
+    
+    menu "BLE Options"
+    
+        config BLE_DEVICE_NAME_PREFIX
+            string "BLE Device Name Prefix"
+            default "NEST-"
+            help
+                A prefix string used in forming the BLE device name.  The remainder of the name
+                consists of the final two bytes of the device's Weave node id in hex.
+                
+                NOTE: The device layer limits the total length of a device name to 16 characters.
+                However, due to other data sent in WoBLE advertise packets, the device name
+                may need to be shorter.
+        
+        config BLE_FAST_ADVERTISING_INTERVAL
+            int "Fast Advertising Interval"
+            default 800
+            help
+                The interval (in units of 0.625ms) at which the device will send BLE advertisements while
+                in fast advertising mode.
+        
+        config BLE_SLOW_ADVERTISING_INTERVAL
+            int "Slow Advertising Interval"
+            default 3200
+            help
+                The interval (in units of 0.625ms) at which the device will send BLE advertisements while
+                in slow advertising mode.
+    
+    endmenu
+    
+    menu "Time Sync Options"
+    
+        config ENABLE_SERVICE_DIRECTORY_TIME_SYNC
+            bool "Enable Service Directory Time Sync"
+            default y
+            help
+                Enables synchronizing the device real-time clock using information returned during
+                a Weave service directory query.  For any device that uses the Weave service directory
+                to lookup a tunnel server, enabling this option will result in the real time clock being
+                synchronized every time the service tunnel is established.
+        
+        config ENABLE_WEAVE_TIME_SERVICE_TIME_SYNC
+            bool "Enable Time Service Time Sync"
+            default y
+            help
+                Enables synchronizing the device's real time clock with a remote Weave Time service
+                using the Weave Time Sync protocol.
+        
+        config WEAVE_TIME_SERVICE_ENDPOINT_ID
+            hex "Weave Time Service Endpoint Id"
+            default 18B4300200000005
+            depends on ENABLE_WEAVE_TIME_SERVICE_TIME_SYNC
+            help
+                Specifies the service endpoint id of the Weave Time Sync service to be used to synchronize time.
+        
+        config DEFAULT_TIME_SYNC_INTERVAL
+            int "Time Sync Interval (seconds)"
+            default 60
+            depends on ENABLE_WEAVE_TIME_SERVICE_TIME_SYNC
+            help
+                Specifies the minimum interval (in seconds) at which the device should synchronize its real time
+                clock with the configured Weave Time Sync server.
+        
+        config TIME_SYNC_TIMEOUT
+            int "Time Sync Timeout (ms)"
+            default 10000
+            depends on ENABLE_WEAVE_TIME_SERVICE_TIME_SYNC
+            help
+                Specifies the maximum amount of time (in milliseconds) to wait for a response from a
+                Weave Time Sync server.
+    
+    endmenu
+    
+    menu "Service Provisioning Options"
+    
+        config SERVICE_PROVISIONING_ENDPOINT_ID
+            hex "Weave Service Provisioning Endpoint Id"
+            default 18B4300200000010
+            help
+                Specifies the service endpoint id of the Weave Service Provisioning service.  When a device
+                undergoes service provisioning, this is the endpoint to which it will send its Pair Device
+                to Account request.
+        
+        config SERVICE_PROVISIONING_CONNECTIVITY_TIMEOUT
+            int "Service Provisioning Connectivity Timeout (ms)"
+            default 10000
+            help
+                The maximum amount of time (in milliseconds) to wait for service connectivity during the device
+                service provisioning step.  More specifically, this is the maximum amount of time the device will
+                wait for connectivity to be established with the service at the point where the device waiting
+                to send a Pair Device to Account request to the Service Provisioning service.
+        
+        config SERVICE_PROVISIONING_REQUEST_TIMEOUT
+            int "Service Provisioning Request Timeout (ms)"
+            default 10000
+            help
+                Specifies the maximum amount of time (in milliseconds) to wait for a response from the Service
+                Provisioning service.
+    
+    endmenu
+    
+    menu "Testing Options"
+    
+        config ENABLE_TEST_DEVICE_IDENTITY
+            int "Use Test Device Identity"
+            range 0 256
+            default 1
+            help
+                Enables the use of a hard-coded Weave device id and credentials if no device id is
+                found in Weave NV storage.  The value specifies which of 256 identities, numbered 1
+                through 256, is to be used.  A value of 0 disables use of a test identity.
+                
+                This option is for testing only and should not be enabled in production releases.
+        
+        config USE_TEST_PAIRING_CODE
+            string "Use Test Pairing Code"
+            default "TEST"
+            help
+                Specifies a hard-coded device pairing code to use if none found in Weave NV storage.
+                Setting the value to an empty string disables the feature.
+                
+                This option is for testing only and should not be enabled in production releases.
+        
+        config ENABLE_FIXED_TUNNEL_SERVER
+            bool "Use Fixed Tunnel Server"
+            default n
+            help
+                Forces the use of a service tunnel server at a fixed IP address and port.  This
+                bypasses the need for a directory query to the service directory endpoint to
+                determine the tunnel server address.  When enabled, this option allows devices
+                that haven't been service provisioned to establish a service tunnel. 
+                
+        config TUNNEL_SERVER_ADDRESS
+            string "Tunnel Server Address"
+            default ""
+            depends on ENABLE_FIXED_TUNNEL_SERVER
+            help
+                The address of the server to which the device should establish a service tunnel.
+                
+                Note: Currently this must be a dot-notation IP address--not a host name. 
+        
+        config DISABLE_ACCOUNT_PAIRING
+            bool "Disable Account Pairing"
+            default n
+            help
+                Disables sending the PairDeviceToAccount request to the service during a RegisterServicePairAccount
+                operation.  When this option is enabled, the device will perform all local operations associated
+                with registering a service, but will not request the service to add the device to the user's account.
+    
+    endmenu
 
 endmenu

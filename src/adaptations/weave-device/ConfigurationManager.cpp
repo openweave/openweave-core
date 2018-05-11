@@ -759,7 +759,7 @@ WEAVE_ERROR ConfigurationManager::ConfigureWeaveStack()
     }
 
     // Configure the FabricState object with a reference to the GroupKeyStore object.
-    FabricState.GroupKeyStore = &gGroupKeyStore;
+    FabricState.GroupKeyStore = GetGroupKeyStore();
 
 exit:
     if (needClose)
@@ -767,6 +767,11 @@ exit:
         nvs_close(handle);
     }
     return err;
+}
+
+::nl::Weave::Profiles::Security::AppKeys::GroupKeyStoreBase * ConfigurationManager::GetGroupKeyStore()
+{
+    return &gGroupKeyStore;
 }
 
 bool ConfigurationManager::CanFactoryReset()

@@ -26,6 +26,7 @@ namespace Weave {
 namespace Device {
 
 class ConnectivityManager;
+class TraitManager;
 struct WeaveDeviceEvent;
 
 namespace Internal {
@@ -62,6 +63,7 @@ private:
 
     friend class ConnectivityManager;
     friend class ConfigurationManager;
+    friend class TraitManager;
     friend class TimeSyncManager;
     friend class Internal::FabricProvisioningServer;
     friend class Internal::ServiceProvisioningServer;

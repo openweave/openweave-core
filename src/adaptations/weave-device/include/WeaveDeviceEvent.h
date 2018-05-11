@@ -55,6 +55,7 @@ struct WeaveDeviceEvent
         kEventType_InternetConnectivityChange,
         kEventType_ServiceTunnelStateChange,
         kEventType_ServiceConnectivityChange,
+        kEventType_ServiceSubscriptionStateChange,
         kEventType_FabricMembershipChange,
         kEventType_ServiceProvisioningChange,
         kEventType_AccountPairingChange,
@@ -103,6 +104,10 @@ struct WeaveDeviceEvent
         {
             ConnectivityChange Result;
         } ServiceConnectivityChange;
+        struct
+        {
+            ConnectivityChange Result;
+        } ServiceSubscriptionStateChange;
         struct
         {
             bool IsMemberOfFabric;

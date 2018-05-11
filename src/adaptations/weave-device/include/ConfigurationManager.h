@@ -25,6 +25,7 @@ namespace nl {
 namespace Weave {
 namespace Device {
 
+class TraitManager;
 namespace Internal
 {
 class DeviceControlServer;
@@ -36,7 +37,9 @@ class ConfigurationManager
 public:
     enum
     {
-        kMaxPairingCodeLength = 15
+        kMaxPairingCodeLength = 15,
+        kMaxSerialNumberLength = ::nl::Weave::Profiles::DeviceDescription::WeaveDeviceDescriptor::kMaxSerialNumberLength,
+        kMaxFirmwareRevisionLength = ::nl::Weave::Profiles::DeviceDescription::WeaveDeviceDescriptor::kMaxSoftwareVersionLength,
     };
 
     WEAVE_ERROR GetVendorId(uint16_t & vendorId);
@@ -71,7 +74,7 @@ public:
     WEAVE_ERROR GetPersistedCounter(const char * key, uint32_t & value);
     WEAVE_ERROR StorePersistedCounter(const char * key, uint32_t value);
 
-    WEAVE_ERROR GetDeviceDescriptor(nl::Weave::Profiles::DeviceDescription::WeaveDeviceDescriptor & deviceDesc);
+    WEAVE_ERROR GetDeviceDescriptor(::nl::Weave::Profiles::DeviceDescription::WeaveDeviceDescriptor & deviceDesc);
     WEAVE_ERROR GetDeviceDescriptorTLV(uint8_t * buf, size_t bufSize, size_t & encodedLen);
     WEAVE_ERROR GetQRCodeString(char * buf, size_t bufSize);
 
@@ -89,9 +92,11 @@ private:
 
     friend class ::nl::Weave::Device::PlatformManager;
     friend class ::nl::Weave::Device::Internal::DeviceControlServer;
+    friend class ::nl::Weave::Device::TraitManager;
 
     WEAVE_ERROR Init();
     WEAVE_ERROR ConfigureWeaveStack();
+    ::nl::Weave::Profiles::Security::AppKeys::GroupKeyStoreBase * GetGroupKeyStore();
     bool CanFactoryReset();
     WEAVE_ERROR SetFailSafeArmed();
     WEAVE_ERROR ClearFailSafeArmed();

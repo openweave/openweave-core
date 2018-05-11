@@ -20,264 +20,327 @@
 
 menu "Weave"
 
-menu "General Options"
-
-config MAX_EXCHANGE_CONTEXTS
-    int "Max Weave Exchange Contexts"
-    range 0 65535
-    default 8
-    help
-        The maximum number of simultaneously active Weave exchange contexts.
-        
-        An exchange context object is used to track the state of an ongoing Weave message
-        exchange (conversation) with a peer, e.g. a cloud service, a mobile application, or
-        another device.
-
-config MAX_BINDINGS
-    int "Max Bindings"
-    range 0 65535
-    default 8
-    help
-        The maximum number of simultaneously active Weave Binding objects.
-
-        A Binding object is used to configure how the local device communicates with
-        a remote entity, be it a cloud service, a mobile application, or another device.    
-
-config MAX_PEER_NODES
-    int "Max Peer Nodes"
-    range 0 65535
-    default 16
-    help
-        The maximum number of peer nodes that the local node can communicate with using
-        connectionless communication (e.g. UDP).  This value sizes a table that tracks
-        communication state with peer nodes by their Weave node id.  
-
-config MAX_UNSOLICITED_MESSAGE_HANDLERS
-    int "Max Unsolicited Message Handlers"
-    range 0 65535
-    default 16
-    help
-        The maximum number of simultaneously active unsolicited message handlers.
-        
-        Applications or protocol libraries acting as a Weave server register unsolicited
-        message handlers with the Weave message layer to direct incoming messages to
-        their code.
-
-config SHORT_ERROR_STR
-    bool "Use Short Error Strings"
-    default n
-    help
-        Configure the Weave ErrorStr() function to return short error strings
-        containing only the error, without any descriptive text.
-        
-        This option is generally used to reduce flash usage.
-
-# TODO: add log level selection
-
-endmenu # "General Options"
-
-menu "Networking Options"
-
-config NUM_TCP_ENDPOINTS
-    int "Max TCP EndPoints"
-    default 8
-    help
-        The maximum number of simultaneously active TCP EndPoint objects.
-
-        Weave generally needs one TCP EndPoint object for each active Weave TCP
-        connection, plus up to 3 additional EndPoints to listen for incoming
-        connections.
-
-config NUM_UDP_ENDPOINTS
-    int "Max UDP EndPoints"
-    default 8
-    help
-        The maximum number of simultaneously active UDP EndPoint objects.
-
-        Weave generally needs one UDP EndPoint object for each local network
-        interface, plus 2 additional EndPoints for general UDP communcation.
-
-config MAX_CONNECTIONS
-    int "Max Weave Connections"
-    range 0 65535
-    default 8
-    help
-        The maximum number of simultaneously active Weave connections, either locally
-        or remotely initiated.  This limit covers both Weave TCP connections, and
-        Weave-over-BLE (WoBLE) connections.
-
-endmenu # "Networking Options"
-
-menu "System Options"
-
-config NUM_TIMERS
-    int "Max System Timers"
-    default 32
-    help
-        The maximum number of simultaneously timers in the Weave System Layer.
-
-
-endmenu # "System Options"
-
-menu "Security Options"
-
-config MAX_SESSION_KEYS
-    int "Max Session Keys"
-    range 0 65535
-    default 8
-    help
-        The maximum number of simultaneously active session keys.
-        
-config DEFAULT_SECURITY_SESSION_ESTABLISHMENT_TIMEOUT
-    int "Default Security Session Establishment Timeout (ms)"
-    range 0 65535
-    default 30000
-    help
-        The default amount of time, in milliseconds, after which an in-progess
-        session establishment will fail due to a timeout.
-
-        This value can be overrided by the application at runtime.
+    menu "General Options"
     
-config DEFAULT_SECURITY_SESSION_IDLE_TIMEOUT
-    int "Default Security Session Idle Timeout (ms)"
-    range 0 65535
-    default 15000
-    help
-        The default minimum amount of time, in milliseconds, that an unreserved
-        and idle security session will be allowed to exist before being destroyed.
-        In practice, unreserved idle sessions can exist for up to twice this value.
-
-        This value can be overrided by the application at runtime.
-
-menu "Protocols"
-
-config ENABLE_PASE_INITIATOR
-    bool "Enable PASE Initiator"
-    default n
-    help
-        Enable support for initiating PASE security sessions with a remote node.
+        config MAX_EXCHANGE_CONTEXTS
+            int "Max Weave Exchange Contexts"
+            range 0 65535
+            default 8
+            help
+                The maximum number of simultaneously active Weave exchange contexts.
+                
+                An exchange context object is used to track the state of an ongoing Weave message
+                exchange (conversation) with a peer, e.g. a cloud service, a mobile application, or
+                another device.
         
-        This feature is rarely needed in device applications of Weave.
-
-        (PASE = Password Authenticated Session Establishment).
+        config MAX_BINDINGS
+            int "Max Bindings"
+            range 0 65535
+            default 8
+            help
+                The maximum number of simultaneously active Weave Binding objects.
         
-config ENABLE_PASE_RESPONDER
-    bool "Enable PASE Responder"
-    default y
-    help
-        Enable support for responding to a request from a remote node to initiate
-        a PASE security session.
-
-        This feature is necessary to support standard Weave pairing.
-
-        (PASE = Password Authenticated Session Establishment).
-
-config ENABLE_CASE_INITIATOR
-    bool "Enable CASE Initiator"
-    default y
-    help
-        Enable support for initiating CASE security sessions with a remote node.
-
-        This feature is necessary to support interacting with Weave cloud services.
+                A Binding object is used to configure how the local device communicates with
+                a remote entity, be it a cloud service, a mobile application, or another device.    
         
-        (CASE = Certificate Authenticated Session Establishment).
-
-config ENABLE_CASE_RESPONDER
-    bool "Enable CASE Responder"
-    default y
-    help
-        Enable support for responding to a request from a remote note to initiate
-        a CASE security session.
-
-        This feature is necessary to support standard Weave pairing.
+        config MAX_PEER_NODES
+            int "Max Peer Nodes"
+            range 0 65535
+            default 16
+            help
+                The maximum number of peer nodes that the local node can communicate with using
+                connectionless communication (e.g. UDP).  This value sizes a table that tracks
+                communication state with peer nodes by their Weave node id.  
         
-        (CASE = Certificate Authenticated Session Establishment).
-
-endmenu # "Protocols"
-
-menu "Group Keys"
-
-config USE_APP_GROUP_KEYS_FOR_MSG_ENC
-    bool "Enable Group Keys for Weave Message Encryption"
-    default y
-    help
-        Enable the use of application group keys for Weave message encryption.
-
-config MAX_CACHED_MSG_ENC_APP_KEYS
-    int "Group Key Cache Size"
-    range 0 255
-    default 5
-    depends on USE_APP_GROUP_KEYS_FOR_MSG_ENC
-    help
-        The size of the cache (in number of keys) used to store derived application
-        group encryption keys.
+        config MAX_UNSOLICITED_MESSAGE_HANDLERS
+            int "Max Unsolicited Message Handlers"
+            range 0 65535
+            default 16
+            help
+                The maximum number of simultaneously active unsolicited message handlers.
+                
+                Applications or protocol libraries acting as a Weave server register unsolicited
+                message handlers with the Weave message layer to direct incoming messages to
+                their code.
         
-        This value is only meaningful when group keys are enabled for Weave message
-        encryption.
+        config SHORT_ERROR_STR
+            bool "Use Short Error Strings"
+            default n
+            help
+                Configure the Weave ErrorStr() function to return short error strings
+                containing only the error, without any descriptive text.
+                
+                This option is generally used to reduce flash usage.
         
-config MAX_APPLICATION_EPOCH_KEYS
-    int "Max Application Epoch Keys"
-    range 0 8
-    default 4
-    help
-        The maximum number of simultaneously supported application epoch keys.
-
-        (Epoch keys are a kind of symmetric key that gets mixed together with
-        other key material to form a group encryption key which can be used
-        for private communication amongst a set of related Weave nodes).  
-
-        This value should be set to the maximum number of epoch keys that
-        can be simultaneously provisioned on the local Weave node.  The
-        maximum supported value is 8, however, in most cases only two such
-        keys will exist at any given point in time.
+        # TODO: add log level selection
+    
+    endmenu # "General Options"
+    
+    menu "Networking Options"
+    
+        config NUM_TCP_ENDPOINTS
+            int "Max TCP EndPoints"
+            default 8
+            help
+                The maximum number of simultaneously active TCP EndPoint objects.
         
-config MAX_APPLICATION_GROUPS        
-    int "Max Application Master Keys"
-    range 0 255
-    default 4
-    help
-        The maximum number of simultaneously supported application group master keys.
-
-        (Application group master keys are a kind of symmetric key that gets mixed
-        together with other key material to form a group encryption key which can
-        be used for private communication amongst a set of related Weave nodes).  
-         
-        This value should be set to the number of Weave application groups
-        in which the local Weave device will be a member.
-
-endmenu # "Group Keys"
-
-menu "Debugging"
-
-config SECURITY_TEST_MODE
-    bool "Enable Weave Security Test Mode"
-    default n
-    help
-        Enable various features that make it easier to debug secure Weave communication.
+                Weave generally needs one TCP EndPoint object for each active Weave TCP
+                connection, plus up to 3 additional EndPoints to listen for incoming
+                connections.
         
-        WARNING: This option makes it possible to circumvent basic Weave security functionality,
-        including message encryption. Because of this it SHOULD NEVER BE ENABLED IN PRODUCTION BUILDS.
-
-config DISABLE_PROVISIONING_AUTH
-    bool "Disable Provisioning Authentication Checks"
-    default n
-    help
-        Disable authentication checks for Weave provisioning operations.  This makes it possible to
-        perform device provisioning operations (e.g. adding a network or joining a fabric) without
-        establishing a secure session. 
+        config NUM_UDP_ENDPOINTS
+            int "Max UDP EndPoints"
+            default 8
+            help
+                The maximum number of simultaneously active UDP EndPoint objects.
         
-        WARNING: This option makes it possible to circumvent basic Weave security functionality.
-        Because of this it SHOULD NEVER BE ENABLED IN PRODUCTION BUILDS.
+                Weave generally needs one UDP EndPoint object for each local network
+                interface, plus 2 additional EndPoints for general UDP communcation.
+        
+        config MAX_CONNECTIONS
+            int "Max Weave Connections"
+            range 0 65535
+            default 8
+            help
+                The maximum number of simultaneously active Weave connections, either locally
+                or remotely initiated.  This limit covers both Weave TCP connections, and
+                Weave-over-BLE (WoBLE) connections.
+    
+    endmenu # "Networking Options"
+    
+    menu "System Options"
+    
+        config NUM_TIMERS
+            int "Max System Timers"
+            default 32
+            help
+                The maximum number of simultaneously timers in the Weave System Layer.
+    
+    endmenu # "System Options"
+    
+    menu "Security Options"
+    
+        config MAX_SESSION_KEYS
+            int "Max Session Keys"
+            range 0 65535
+            default 8
+            help
+                The maximum number of simultaneously active session keys.
+                
+        config DEFAULT_SECURITY_SESSION_ESTABLISHMENT_TIMEOUT
+            int "Default Security Session Establishment Timeout (ms)"
+            range 0 65535
+            default 30000
+            help
+                The default amount of time, in milliseconds, after which an in-progess
+                session establishment will fail due to a timeout.
+        
+                This value can be overrided by the application at runtime.
+            
+        config DEFAULT_SECURITY_SESSION_IDLE_TIMEOUT
+            int "Default Security Session Idle Timeout (ms)"
+            range 0 65535
+            default 15000
+            help
+                The default minimum amount of time, in milliseconds, that an unreserved
+                and idle security session will be allowed to exist before being destroyed.
+                In practice, unreserved idle sessions can exist for up to twice this value.
+        
+                This value can be overrided by the application at runtime.
+    
+        menu "Protocols"
+        
+            config ENABLE_PASE_INITIATOR
+                bool "Enable PASE Initiator"
+                default n
+                help
+                    Enable support for initiating PASE security sessions with a remote node.
+                    
+                    This feature is rarely needed in device applications of Weave.
+            
+                    (PASE = Password Authenticated Session Establishment).
+                    
+            config ENABLE_PASE_RESPONDER
+                bool "Enable PASE Responder"
+                default y
+                help
+                    Enable support for responding to a request from a remote node to initiate
+                    a PASE security session.
+            
+                    This feature is necessary to support standard Weave pairing.
+            
+                    (PASE = Password Authenticated Session Establishment).
+            
+            config ENABLE_CASE_INITIATOR
+                bool "Enable CASE Initiator"
+                default y
+                help
+                    Enable support for initiating CASE security sessions with a remote node.
+            
+                    This feature is necessary to support interacting with Weave cloud services.
+                    
+                    (CASE = Certificate Authenticated Session Establishment).
+            
+            config ENABLE_CASE_RESPONDER
+                bool "Enable CASE Responder"
+                default y
+                help
+                    Enable support for responding to a request from a remote note to initiate
+                    a CASE security session.
+            
+                    This feature is necessary to support standard Weave pairing.
+                    
+                    (CASE = Certificate Authenticated Session Establishment).
+        
+        endmenu # "Protocols"
+        
+        menu "Group Keys"
+        
+            config USE_APP_GROUP_KEYS_FOR_MSG_ENC
+                bool "Enable Group Keys for Weave Message Encryption"
+                default y
+                help
+                    Enable the use of application group keys for Weave message encryption.
+            
+            config MAX_CACHED_MSG_ENC_APP_KEYS
+                int "Group Key Cache Size"
+                range 0 255
+                default 5
+                depends on USE_APP_GROUP_KEYS_FOR_MSG_ENC
+                help
+                    The size of the cache (in number of keys) used to store derived application
+                    group encryption keys.
+                    
+                    This value is only meaningful when group keys are enabled for Weave message
+                    encryption.
+                    
+            config MAX_APPLICATION_EPOCH_KEYS
+                int "Max Application Epoch Keys"
+                range 0 8
+                default 4
+                help
+                    The maximum number of simultaneously supported application epoch keys.
+            
+                    (Epoch keys are a kind of symmetric key that gets mixed together with
+                    other key material to form a group encryption key which can be used
+                    for private communication amongst a set of related Weave nodes).  
+            
+                    This value should be set to the maximum number of epoch keys that
+                    can be simultaneously provisioned on the local Weave node.  The
+                    maximum supported value is 8, however, in most cases only two such
+                    keys will exist at any given point in time.
+                    
+            config MAX_APPLICATION_GROUPS        
+                int "Max Application Master Keys"
+                range 0 255
+                default 4
+                help
+                    The maximum number of simultaneously supported application group master keys.
+            
+                    (Application group master keys are a kind of symmetric key that gets mixed
+                    together with other key material to form a group encryption key which can
+                    be used for private communication amongst a set of related Weave nodes).  
+                     
+                    This value should be set to the number of Weave application groups
+                    in which the local Weave device will be a member.
+        
+        endmenu # "Group Keys"
+        
+        menu "Debugging"
+        
+            config SECURITY_TEST_MODE
+                bool "Enable Weave Security Test Mode"
+                default n
+                help
+                    Enable various features that make it easier to debug secure Weave communication.
+                    
+                    WARNING: This option makes it possible to circumvent basic Weave security functionality,
+                    including message encryption. Because of this it SHOULD NEVER BE ENABLED IN PRODUCTION BUILDS.
+            
+            config DISABLE_PROVISIONING_AUTH
+                bool "Disable Provisioning Authentication Checks"
+                default n
+                help
+                    Disable authentication checks for Weave provisioning operations.  This makes it possible to
+                    perform device provisioning operations (e.g. adding a network or joining a fabric) without
+                    establishing a secure session. 
+                    
+                    WARNING: This option makes it possible to circumvent basic Weave security functionality.
+                    Because of this it SHOULD NEVER BE ENABLED IN PRODUCTION BUILDS.
+            
+            config DEBUG_CERT_VALIDATION
+                bool "Enable Certificate Validation Debugging"
+                default n
+                help
+                    Enable support for debugging output from certificate validation.
+        
+        endmenu # "Debugging"
+    
+    endmenu # "Security Options"
 
-config DEBUG_CERT_VALIDATION
-    bool "Enable Certificate Validation Debugging"
-    default n
-    help
-        Enable support for debugging output from certificate validation.
+    menu "Weave Data Management Options"
+    
+        config MAX_WDM_SUBSCRIPTION_CLIENTS
+            int "Max WDM Subscription Clients"
+            default 2
+            help
+                Specifies the maximum number of WDM subscription client objects that can be active simultaneously.
+                One client object is required for each outbound subscription from the device to a peer node, including
+                the subscription the device establishes to the Nest service, if enabled.
 
-endmenu # "Debugging"
+        config MAX_WDM_SUBSCRIPTION_HANDLERS
+            int "Max WDM Subscription Handlers"
+            default 2
+            help
+                Specifies the maximum number of WDM subscription handlers objects that can be active simultaneously.
+                One handler object is required for each inbound subscription to the device from a peer node.  This
+                includes the counter-subscription from the Nest service to the device, if enabled.
 
-endmenu # "Security Options"
+        config MAX_WDM_NOTIFIES_IN_FLIGHT
+            int "Maximum In-flight WDM Notify Messages"
+            default 2
+            help
+                Specifies the maximum number of WDM notify messages that can be in-flight at any given time, across
+                all active inbound subscriptions.  Any changes to trait data that occur while this limit is reached
+                will be queued locally until an in-flight completes.
 
+        config MAX_WDM_NOTIFY_SIZE
+            int "Maximum WDM Notify Message Size"
+            default 2048
+            help
+                Specifies the maximum size (in bytes) of a WDM notify message that will be generated while servicing
+                an inbound subscription to the device.  The limit governs both notify messages that are generated
+                as part of the subscription establishment process, as well as those generated when data changes
+                occur.
+                
+                Note that other limits, such as UDP MTU size limits, or limits on available packet buffers may mean
+                that notify messages smaller than this limit are generated.  
+        
+        config MIN_WDM_NOTIFY_BUFFER_SIZE
+            int "Minimum WDM Notify Buffer Size"
+            default 1024
+            help
+                When allocating a packet buffer in preparation for generating a WDM notify message, defer sending
+                the notify message if a buffer of at least this size is unavailable.
+                
+                Note that, because the WDM protocol requires that the static properties of a trait, and any
+                events emited by a trait, fit within a single notify message, this value should be set *larger*
+                than the larges of these limits for any trait published by the device.
+
+        config MAX_WDM_RESUBSCRIBE_INTERVAL
+            int "Maximum WDM Resubscribe Interval (ms)"
+            default 5538000
+            help
+                When the default fibonacci-based resubscription back-off policy is in effect, this value specifies the
+                maximum time (in ms) between any two resubscription attempts.
+
+        config WDM_ENABLE_SCHEMA_CHECK
+            bool "Enable WDM Message Schema Checking"
+            default y
+            help
+                Enables pre-flight schema validation for protocol messages used in Weave Data Management profile.
+
+    endmenu
+    
 endmenu # "Weave"
 
