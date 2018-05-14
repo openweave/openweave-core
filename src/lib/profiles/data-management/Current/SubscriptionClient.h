@@ -308,6 +308,7 @@ private:
     friend class SubscriptionEngine;
     friend class TestTdm;
     friend class TestWdm;
+    friend class PathStoreTest;
     friend class TraitDataSink;
     friend class TraitSchemaEngine;
     friend class UpdateDirtyPathFilter;
@@ -450,8 +451,6 @@ private:
     WEAVE_ERROR DirtyPathToDataElement(UpdateRequestContext &aContext);
     WEAVE_ERROR BuildSingleUpdateRequestDataList(UpdateRequestContext &aContext);
 
-    bool MergeDupInPendingUpdateSet(const TraitSchemaEngine * apSchemaEngine, size_t & candidateIndex);
-
     void CheckPotentialDataLoss(TraitDataHandle aTraitDataHandle, PropertyPathHandle aPropertyPathHandle, const TraitSchemaEngine * const apSchemaEngine);
     void ClearPotentialDataLoss(TraitDataHandle aTraitDataHandle);
     void MarkFailedPendingPaths(TraitDataHandle aTraitDataHandle, const DataVersion &aLatestVersion);
@@ -467,6 +466,7 @@ private:
     WEAVE_ERROR RemoveItemInProgressUpdateList(TraitDataHandle aDataHandle);
     WEAVE_ERROR AddItemPendingUpdateSet(const TraitPath &aItem, const TraitSchemaEngine * const apSchemaEngine);
     WEAVE_ERROR InsertInProgressUpdateItem(const TraitPath &aItem, const TraitSchemaEngine * const apSchemaEngine);
+    void RemoveInProgressPrivateItemsAfter(uint16_t aItemInProgress);
     WEAVE_ERROR MoveInProgressToPending(void);
     WEAVE_ERROR MovePendingToInProgress(void);
     WEAVE_ERROR ClearDirty(void);
@@ -519,37 +519,43 @@ private:
         };
 
         PathStore();
-        bool AddItem(TraitPath aItem, bool aForceMerge = false, bool aPrivate = false);
-        bool AddItem(TraitPath aItem, Flags aFlags);
-        bool InsertItemAfter(uint32_t aIndex, TraitPath aItem, bool aForceMerge = false, bool aPrivate = false);
-        bool InsertItemAfter(uint32_t aIndex, TraitPath aItem, Flags aFlags);
+
+        bool IsEmpty();
+        bool IsFull();
+        uint32_t GetNumItems();
+        uint32_t GetPathStoreSize();
+
+        WEAVE_ERROR AddItem(TraitPath aItem, bool aForceMerge = false, bool aPrivate = false);
+        WEAVE_ERROR AddItem(TraitPath aItem, Flags aFlags);
+        WEAVE_ERROR InsertItemAfter(uint32_t aIndex, TraitPath aItem, bool aForceMerge = false, bool aPrivate = false);
+        WEAVE_ERROR InsertItemAfter(uint32_t aIndex, TraitPath aItem, Flags aFlags);
+
+        void SetFailed(uint32_t aIndex, WEAVE_ERROR aErr) { SetFlag(aIndex, kFlag_Failed, true); mStore[aIndex].mError = aErr; }
+        void SetFailedTrait(TraitDataHandle aDataHandle, WEAVE_ERROR aErr);
+
+        void GetItemAt(uint32_t aIndex, TraitPath &aTraitPath) { aTraitPath = mStore[aIndex].mTraitPath; }
+        void GetErrorAt(uint32_t aIndex, WEAVE_ERROR &aErr) { aErr = mStore[aIndex].mError; }
 
         void RemoveItem(TraitDataHandle aDataHandle);
         void RemoveItemAt(uint32_t aIndex);
 
-        void GetItemAt(uint32_t aIndex, TraitPath &aTraitPath);
-        WEAVE_ERROR GetErrorAt(uint32_t aIndex) { return mStore[aIndex].mError; }
+        void Clear();
+
         bool Includes(TraitPath aItem, const TraitSchemaEngine * const apSchemaEngine);
         bool Intersects(TraitPath aItem, const TraitSchemaEngine * const apSchemaEngine);
         bool IsPresent(TraitPath aItem);
         bool IsPresent(TraitPath aItem, const bool *aForceMerge);
         bool IsTraitPresent(TraitDataHandle aDataHandle);
-        bool IsFlagSet(uint32_t aIndex, Flag aFlag) { return ((mStore[aIndex].mFlags & static_cast<Flags>(aFlag)) == aFlag); }
-        void SetFlag(uint32_t aIndex, Flag aFlag, bool aValue);
-        void SetFailed(uint32_t aIndex, WEAVE_ERROR aErr) { SetFlag(aIndex, kFlag_Failed, true); mStore[aIndex].mError = aErr; }
-        void SetFailedTrait(TraitDataHandle aDataHandle, WEAVE_ERROR aErr);
-        Flags GetFlags(uint32_t aIndex) { return mStore[aIndex].mFlags; }
         bool IsItemInUse(uint32_t aIndex) { return IsFlagSet(aIndex, kFlag_InUse); }
         bool IsItemValid(uint32_t aIndex) { return (IsItemInUse(aIndex) && (!IsFlagSet(aIndex, kFlag_Failed))); }
         bool IsItemFailed(uint32_t aIndex) { return IsFlagSet(aIndex, kFlag_Failed); }
         bool IsItemForceMerge(uint32_t aIndex) { return IsFlagSet(aIndex, kFlag_ForceMerge); }
         bool IsItemPrivate(uint32_t aIndex) { return IsFlagSet(aIndex, kFlag_Private); }
 
-        bool IsEmpty();
-        bool IsFull();
-        uint32_t GetNumItems();
-        uint32_t GetPathStoreSize();
-        void Clear();
+        bool IsFlagSet(uint32_t aIndex, Flag aFlag) { return ((mStore[aIndex].mFlags & static_cast<Flags>(aFlag)) == aFlag); }
+        void SetFlag(uint32_t aIndex, Flag aFlag, bool aValue);
+        Flags GetFlags(uint32_t aIndex) { return mStore[aIndex].mFlags; }
+
         Record mStore[WDM_UPDATE_MAX_ITEMS_IN_TRAIT_DIRTY_PATH_STORE];
         uint32_t mNumItems;
     };

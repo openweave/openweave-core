@@ -195,7 +195,8 @@ target_triplet = @target@
 @WEAVE_BUILD_TESTS_TRUE@	TestPairingCodeUtils$(EXEEXT) \
 @WEAVE_BUILD_TESTS_TRUE@	TestResourceIdentifier$(EXEEXT) \
 @WEAVE_BUILD_TESTS_TRUE@	$(am__EXEEXT_1) TestTDM$(EXEEXT) \
-@WEAVE_BUILD_TESTS_TRUE@	$(am__EXEEXT_2) $(am__EXEEXT_3)
+@WEAVE_BUILD_TESTS_TRUE@	TestPathStore$(EXEEXT) $(am__EXEEXT_2) \
+@WEAVE_BUILD_TESTS_TRUE@	$(am__EXEEXT_3)
 @HAVE_CXX11_TRUE@@WEAVE_BUILD_TESTS_TRUE@am__append_7 = \
 @HAVE_CXX11_TRUE@@WEAVE_BUILD_TESTS_TRUE@    TestTDM                                      \
 @HAVE_CXX11_TRUE@@WEAVE_BUILD_TESTS_TRUE@    $(NULL)
@@ -215,6 +216,7 @@ target_triplet = @target@
 
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_BUILD_WARM_TRUE@am__append_11 = \
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_BUILD_WARM_TRUE@    TestWarm                                     \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_BUILD_WARM_TRUE@	TestPathStore                                \
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_BUILD_WARM_TRUE@    $(NULL)
 
 @WEAVE_BUILD_LEGACY_WDM_TRUE@@WEAVE_BUILD_TESTS_TRUE@am__append_12 = \
@@ -222,11 +224,11 @@ target_triplet = @target@
 @WEAVE_BUILD_LEGACY_WDM_TRUE@@WEAVE_BUILD_TESTS_TRUE@    wdmtest                                      \
 @WEAVE_BUILD_LEGACY_WDM_TRUE@@WEAVE_BUILD_TESTS_TRUE@	$(NULL)
 
-@WEAVE_BUILD_TESTS_TRUE@noinst_PROGRAMS = $(am__EXEEXT_6) \
-@WEAVE_BUILD_TESTS_TRUE@	$(am__EXEEXT_8)
+@WEAVE_BUILD_TESTS_TRUE@noinst_PROGRAMS = $(am__EXEEXT_7) \
+@WEAVE_BUILD_TESTS_TRUE@	$(am__EXEEXT_9)
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@TESTS = $(check_PROGRAMS) \
-@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@	$(am__EXEEXT_33)
-@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_TRUE@TESTS = $(am__EXEEXT_33)
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@	$(am__EXEEXT_34)
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_TRUE@TESTS = $(am__EXEEXT_34)
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_TRUE@am__append_13 = \
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_TRUE@    weave_service_address='$(HAPPY_SERVICE)'
 
@@ -681,7 +683,9 @@ am__installdirs = "$(DESTDIR)$(libexecdir)"
 @HAVE_CXX11_TRUE@@WEAVE_BUILD_TESTS_TRUE@am__EXEEXT_5 =  \
 @HAVE_CXX11_TRUE@@WEAVE_BUILD_TESTS_TRUE@	TestTDM$(EXEEXT) \
 @HAVE_CXX11_TRUE@@WEAVE_BUILD_TESTS_TRUE@	TestWDM$(EXEEXT)
-@WEAVE_BUILD_TESTS_TRUE@am__EXEEXT_6 = GenerateEventLog$(EXEEXT) \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_BUILD_WARM_TRUE@am__EXEEXT_6 = TestWarm$(EXEEXT) \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_BUILD_WARM_TRUE@	TestPathStore$(EXEEXT)
+@WEAVE_BUILD_TESTS_TRUE@am__EXEEXT_7 = GenerateEventLog$(EXEEXT) \
 @WEAVE_BUILD_TESTS_TRUE@	TestASN1$(EXEEXT) TestAppKeys$(EXEEXT) \
 @WEAVE_BUILD_TESTS_TRUE@	TestArgParser$(EXEEXT) \
 @WEAVE_BUILD_TESTS_TRUE@	TestCASE$(EXEEXT) \
@@ -723,10 +727,10 @@ am__installdirs = "$(DESTDIR)$(libexecdir)"
 @WEAVE_BUILD_TESTS_TRUE@	TestThermostatStatus$(EXEEXT) \
 @WEAVE_BUILD_TESTS_TRUE@	TestPairingCodeUtils$(EXEEXT) \
 @WEAVE_BUILD_TESTS_TRUE@	TestResourceIdentifier$(EXEEXT) \
-@WEAVE_BUILD_TESTS_TRUE@	$(am__EXEEXT_5) $(am__EXEEXT_2)
-@WEAVE_BUILD_LEGACY_WDM_TRUE@@WEAVE_BUILD_TESTS_TRUE@am__EXEEXT_7 = TestDataManagement$(EXEEXT) \
+@WEAVE_BUILD_TESTS_TRUE@	$(am__EXEEXT_5) $(am__EXEEXT_6)
+@WEAVE_BUILD_LEGACY_WDM_TRUE@@WEAVE_BUILD_TESTS_TRUE@am__EXEEXT_8 = TestDataManagement$(EXEEXT) \
 @WEAVE_BUILD_LEGACY_WDM_TRUE@@WEAVE_BUILD_TESTS_TRUE@	wdmtest$(EXEEXT)
-@WEAVE_BUILD_TESTS_TRUE@am__EXEEXT_8 = TestBinding$(EXEEXT) \
+@WEAVE_BUILD_TESTS_TRUE@am__EXEEXT_9 = TestBinding$(EXEEXT) \
 @WEAVE_BUILD_TESTS_TRUE@	TestEventLogging$(EXEEXT) \
 @WEAVE_BUILD_TESTS_TRUE@	TestInetLayer$(EXEEXT) \
 @WEAVE_BUILD_TESTS_TRUE@	TestPersistedCounter$(EXEEXT) \
@@ -751,7 +755,7 @@ am__installdirs = "$(DESTDIR)$(libexecdir)"
 @WEAVE_BUILD_TESTS_TRUE@	weave-service-dir$(EXEEXT) \
 @WEAVE_BUILD_TESTS_TRUE@	weave-swu-client$(EXEEXT) \
 @WEAVE_BUILD_TESTS_TRUE@	weave-swu-server$(EXEEXT) \
-@WEAVE_BUILD_TESTS_TRUE@	wsuptest$(EXEEXT) $(am__EXEEXT_7)
+@WEAVE_BUILD_TESTS_TRUE@	wsuptest$(EXEEXT) $(am__EXEEXT_8)
 PROGRAMS = $(libexec_PROGRAMS) $(noinst_PROGRAMS)
 am__GenerateEventLog_SOURCES_DIST = GenerateEventLog.cpp \
 	MockEvents.cpp \
@@ -1042,6 +1046,23 @@ TestPasscodeEnc_OBJECTS = $(am_TestPasscodeEnc_OBJECTS)
 @WEAVE_BUILD_TESTS_TRUE@TestPasscodeEnc_DEPENDENCIES =  \
 @WEAVE_BUILD_TESTS_TRUE@	libWeaveTestCommon.a \
 @WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_6)
+am__TestPathStore_SOURCES_DIST = TestPathStore.cpp \
+	schema/nest/test/trait/TestHTrait.cpp \
+	TestPersistedStorageImplementation.cpp \
+	schema/nest/test/trait/TestCommon.cpp
+@WEAVE_BUILD_TESTS_TRUE@am_TestPathStore_OBJECTS =  \
+@WEAVE_BUILD_TESTS_TRUE@	TestPathStore-TestPathStore.$(OBJEXT) \
+@WEAVE_BUILD_TESTS_TRUE@	schema/nest/test/trait/TestPathStore-TestHTrait.$(OBJEXT) \
+@WEAVE_BUILD_TESTS_TRUE@	TestPathStore-TestPersistedStorageImplementation.$(OBJEXT) \
+@WEAVE_BUILD_TESTS_TRUE@	schema/nest/test/trait/TestPathStore-TestCommon.$(OBJEXT)
+TestPathStore_OBJECTS = $(am_TestPathStore_OBJECTS)
+@WEAVE_BUILD_TESTS_TRUE@TestPathStore_DEPENDENCIES =  \
+@WEAVE_BUILD_TESTS_TRUE@	libWeaveTestCommon.a \
+@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_6)
+TestPathStore_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
+	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CXXLD) \
+	$(AM_CXXFLAGS) $(CXXFLAGS) $(TestPathStore_LDFLAGS) $(LDFLAGS) \
+	-o $@
 am__TestPersistedCounter_SOURCES_DIST = TestPersistedCounter.cpp \
 	TestPersistedStorageImplementation.cpp
 @WEAVE_BUILD_TESTS_TRUE@am_TestPersistedCounter_OBJECTS =  \
@@ -1687,7 +1708,7 @@ SOURCES = $(libMockBleApplicationDelegate_a_SOURCES) \
 	$(TestMsgEnc_SOURCES) $(TestNetworkInfo_SOURCES) \
 	$(TestPASE_SOURCES) $(TestPacketBuffer_SOURCES) \
 	$(TestPairingCodeUtils_SOURCES) $(TestPasscodeEnc_SOURCES) \
-	$(TestPersistedCounter_SOURCES) \
+	$(TestPathStore_SOURCES) $(TestPersistedCounter_SOURCES) \
 	$(TestPersistedStorage_SOURCES) \
 	$(TestProfileStringSupport_SOURCES) $(TestProvHash_SOURCES) \
 	$(TestRADaemon_SOURCES) $(TestResourceIdentifier_SOURCES) \
@@ -1747,6 +1768,7 @@ DIST_SOURCES = $(am__libMockBleApplicationDelegate_a_SOURCES_DIST) \
 	$(am__TestPacketBuffer_SOURCES_DIST) \
 	$(am__TestPairingCodeUtils_SOURCES_DIST) \
 	$(am__TestPasscodeEnc_SOURCES_DIST) \
+	$(am__TestPathStore_SOURCES_DIST) \
 	$(am__TestPersistedCounter_SOURCES_DIST) \
 	$(am__TestPersistedStorage_SOURCES_DIST) \
 	$(am__TestProfileStringSupport_SOURCES_DIST) \
@@ -2039,16 +2061,16 @@ am__set_TESTS_bases = \
   bases=`echo $$bases`
 RECHECK_LOGS = $(TEST_LOGS)
 AM_RECURSIVE_TARGETS = check recheck
-@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_TRUE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_TUNNEL_TRUE@am__EXEEXT_9 = happy/tests/service/tunnel/test_weave_tunnel_01.py \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_TRUE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_TUNNEL_TRUE@am__EXEEXT_10 = happy/tests/service/tunnel/test_weave_tunnel_01.py \
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_TRUE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_TUNNEL_TRUE@	happy/tests/service/tunnel/test_weave_tunnel_02.py
-@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_TRUE@@WEAVE_RUN_HAPPY_TIME_TRUE@@WEAVE_RUN_HAPPY_TRUE@am__EXEEXT_10 = happy/tests/service/time/test_weave_time_01.py
-@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_ECHO_TRUE@@WEAVE_RUN_HAPPY_SERVICE_TRUE@@WEAVE_RUN_HAPPY_TRUE@am__EXEEXT_11 = happy/tests/service/echo/test_weave_echo_01.py \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_TRUE@@WEAVE_RUN_HAPPY_TIME_TRUE@@WEAVE_RUN_HAPPY_TRUE@am__EXEEXT_11 = happy/tests/service/time/test_weave_time_01.py
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_ECHO_TRUE@@WEAVE_RUN_HAPPY_SERVICE_TRUE@@WEAVE_RUN_HAPPY_TRUE@am__EXEEXT_12 = happy/tests/service/echo/test_weave_echo_01.py \
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_ECHO_TRUE@@WEAVE_RUN_HAPPY_SERVICE_TRUE@@WEAVE_RUN_HAPPY_TRUE@	happy/tests/service/echo/test_weave_echo_02.py \
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_ECHO_TRUE@@WEAVE_RUN_HAPPY_SERVICE_TRUE@@WEAVE_RUN_HAPPY_TRUE@	happy/tests/service/echo/test_weave_echo_03.py
-@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_KEY_EXPORT_TRUE@@WEAVE_RUN_HAPPY_SERVICE_TRUE@@WEAVE_RUN_HAPPY_TRUE@am__EXEEXT_12 = happy/tests/service/key_export/test_weave_key_export_01.py
-@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_PAIRING_TRUE@@WEAVE_RUN_HAPPY_SERVICE_TRUE@@WEAVE_RUN_HAPPY_TRUE@am__EXEEXT_13 = happy/tests/service/pairing/test_weave_pairing_01.py
-@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_PERF_TRUE@@WEAVE_RUN_HAPPY_SERVICE_TRUE@@WEAVE_RUN_HAPPY_TRUE@am__EXEEXT_14 = happy/tests/service/weave_service_perf_run.sh
-@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_TRUE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@am__EXEEXT_15 = happy/tests/service/wdmNext/test_weave_wdm_next_service_mutual_subscribe_01.py \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_KEY_EXPORT_TRUE@@WEAVE_RUN_HAPPY_SERVICE_TRUE@@WEAVE_RUN_HAPPY_TRUE@am__EXEEXT_13 = happy/tests/service/key_export/test_weave_key_export_01.py
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_PAIRING_TRUE@@WEAVE_RUN_HAPPY_SERVICE_TRUE@@WEAVE_RUN_HAPPY_TRUE@am__EXEEXT_14 = happy/tests/service/pairing/test_weave_pairing_01.py
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_PERF_TRUE@@WEAVE_RUN_HAPPY_SERVICE_TRUE@@WEAVE_RUN_HAPPY_TRUE@am__EXEEXT_15 = happy/tests/service/weave_service_perf_run.sh
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_TRUE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@am__EXEEXT_16 = happy/tests/service/wdmNext/test_weave_wdm_next_service_mutual_subscribe_01.py \
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_TRUE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@	happy/tests/service/wdmNext/test_weave_wdm_next_service_mutual_subscribe_02.py \
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_TRUE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@	happy/tests/service/wdmNext/test_weave_wdm_next_service_mutual_subscribe_03.py \
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_TRUE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@	happy/tests/service/wdmNext/test_weave_wdm_next_service_mutual_subscribe_04.py \
@@ -2078,7 +2100,7 @@ AM_RECURSIVE_TARGETS = check recheck
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_TRUE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@	happy/tests/service/wdmNext/test_weave_wdm_next_service_update_02_cond_BackToBack.py \
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_TRUE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@	happy/tests/service/wdmNext/test_weave_wdm_next_service_update_03_uncond_OneLeaf.py \
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_TRUE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@	happy/tests/service/wdmNext/test_weave_wdm_next_service_update_04_uncond_BackToBack.py
-@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_BDX_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_LONG_TESTS_TRUE@am__EXEEXT_16 = happy/tests/standalone/bdx/test_weave_bdx_faults_download_v0_v0_1_of_4.sh \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_BDX_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_LONG_TESTS_TRUE@am__EXEEXT_17 = happy/tests/standalone/bdx/test_weave_bdx_faults_download_v0_v0_1_of_4.sh \
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_BDX_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_LONG_TESTS_TRUE@	happy/tests/standalone/bdx/test_weave_bdx_faults_download_v0_v0_2_of_4.sh \
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_BDX_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_LONG_TESTS_TRUE@	happy/tests/standalone/bdx/test_weave_bdx_faults_download_v0_v0_3_of_4.sh \
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_BDX_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_LONG_TESTS_TRUE@	happy/tests/standalone/bdx/test_weave_bdx_faults_download_v0_v0_4_of_4.sh \
@@ -2110,7 +2132,7 @@ AM_RECURSIVE_TARGETS = check recheck
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_BDX_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_LONG_TESTS_TRUE@	happy/tests/standalone/bdx/test_weave_bdx_faults_upload_v1_v1_2_of_4.sh \
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_BDX_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_LONG_TESTS_TRUE@	happy/tests/standalone/bdx/test_weave_bdx_faults_upload_v1_v1_3_of_4.sh \
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_BDX_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_LONG_TESTS_TRUE@	happy/tests/standalone/bdx/test_weave_bdx_faults_upload_v1_v1_4_of_4.sh
-@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SECMGR_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_LONG_TESTS_TRUE@am__EXEEXT_17 = happy/tests/standalone/echo/test_weave_echo_secmgr_faults_case_wrmp_1_of_8.sh \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SECMGR_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_LONG_TESTS_TRUE@am__EXEEXT_18 = happy/tests/standalone/echo/test_weave_echo_secmgr_faults_case_wrmp_1_of_8.sh \
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SECMGR_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_LONG_TESTS_TRUE@	happy/tests/standalone/echo/test_weave_echo_secmgr_faults_case_wrmp_2_of_8.sh \
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SECMGR_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_LONG_TESTS_TRUE@	happy/tests/standalone/echo/test_weave_echo_secmgr_faults_case_wrmp_3_of_8.sh \
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SECMGR_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_LONG_TESTS_TRUE@	happy/tests/standalone/echo/test_weave_echo_secmgr_faults_case_wrmp_4_of_8.sh \
@@ -2130,7 +2152,7 @@ AM_RECURSIVE_TARGETS = check recheck
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SECMGR_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_LONG_TESTS_TRUE@	happy/tests/standalone/echo/test_weave_echo_secmgr_faults_pase_tcp_2_of_4.sh \
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SECMGR_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_LONG_TESTS_TRUE@	happy/tests/standalone/echo/test_weave_echo_secmgr_faults_pase_tcp_3_of_4.sh \
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SECMGR_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_LONG_TESTS_TRUE@	happy/tests/standalone/echo/test_weave_echo_secmgr_faults_pase_tcp_4_of_4.sh
-@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@@WEAVE_RUN_LONG_TESTS_TRUE@am__EXEEXT_18 = happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_faults_1_of_12.sh \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@@WEAVE_RUN_LONG_TESTS_TRUE@am__EXEEXT_19 = happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_faults_1_of_12.sh \
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@@WEAVE_RUN_LONG_TESTS_TRUE@	happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_faults_2_of_12.sh \
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@@WEAVE_RUN_LONG_TESTS_TRUE@	happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_faults_3_of_12.sh \
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@@WEAVE_RUN_LONG_TESTS_TRUE@	happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_faults_4_of_12.sh \
@@ -2150,17 +2172,17 @@ AM_RECURSIVE_TARGETS = check recheck
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@@WEAVE_RUN_LONG_TESTS_TRUE@	happy/tests/standalone/wdmNext/test_weave_wdm_next_oneway_subscribe_faults_6_of_8.sh \
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@@WEAVE_RUN_LONG_TESTS_TRUE@	happy/tests/standalone/wdmNext/test_weave_wdm_next_oneway_subscribe_faults_7_of_8.sh \
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@@WEAVE_RUN_LONG_TESTS_TRUE@	happy/tests/standalone/wdmNext/test_weave_wdm_next_oneway_subscribe_faults_8_of_8.sh
-@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_KEY_EXPORT_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_LONG_TESTS_TRUE@am__EXEEXT_19 = happy/tests/standalone/key_export/test_weave_key_export_faults_tcp_1_of_2.sh \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_KEY_EXPORT_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_LONG_TESTS_TRUE@am__EXEEXT_20 = happy/tests/standalone/key_export/test_weave_key_export_faults_tcp_1_of_2.sh \
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_KEY_EXPORT_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_LONG_TESTS_TRUE@	happy/tests/standalone/key_export/test_weave_key_export_faults_tcp_2_of_2.sh \
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_KEY_EXPORT_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_LONG_TESTS_TRUE@	happy/tests/standalone/key_export/test_weave_key_export_faults_wrmp_1_of_4.sh \
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_KEY_EXPORT_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_LONG_TESTS_TRUE@	happy/tests/standalone/key_export/test_weave_key_export_faults_wrmp_2_of_4.sh \
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_KEY_EXPORT_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_LONG_TESTS_TRUE@	happy/tests/standalone/key_export/test_weave_key_export_faults_wrmp_3_of_4.sh \
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_KEY_EXPORT_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_LONG_TESTS_TRUE@	happy/tests/standalone/key_export/test_weave_key_export_faults_wrmp_4_of_4.sh
-@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICEDIR_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_LONG_TESTS_TRUE@am__EXEEXT_20 = happy/tests/standalone/servicedir/test_weave_service_directory_faults_1_of_4.sh \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICEDIR_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_LONG_TESTS_TRUE@am__EXEEXT_21 = happy/tests/standalone/servicedir/test_weave_service_directory_faults_1_of_4.sh \
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICEDIR_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_LONG_TESTS_TRUE@	happy/tests/standalone/servicedir/test_weave_service_directory_faults_2_of_4.sh \
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICEDIR_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_LONG_TESTS_TRUE@	happy/tests/standalone/servicedir/test_weave_service_directory_faults_3_of_4.sh \
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICEDIR_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_LONG_TESTS_TRUE@	happy/tests/standalone/servicedir/test_weave_service_directory_faults_4_of_4.sh
-@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_TUNNEL_TRUE@@WEAVE_RUN_LONG_TESTS_TRUE@am__EXEEXT_21 = happy/tests/standalone/tunnel/test_weave_tunnel_faults_1_of_8.sh \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_TUNNEL_TRUE@@WEAVE_RUN_LONG_TESTS_TRUE@am__EXEEXT_22 = happy/tests/standalone/tunnel/test_weave_tunnel_faults_1_of_8.sh \
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_TUNNEL_TRUE@@WEAVE_RUN_LONG_TESTS_TRUE@	happy/tests/standalone/tunnel/test_weave_tunnel_faults_2_of_8.sh \
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_TUNNEL_TRUE@@WEAVE_RUN_LONG_TESTS_TRUE@	happy/tests/standalone/tunnel/test_weave_tunnel_faults_3_of_8.sh \
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_TUNNEL_TRUE@@WEAVE_RUN_LONG_TESTS_TRUE@	happy/tests/standalone/tunnel/test_weave_tunnel_faults_4_of_8.sh \
@@ -2168,7 +2190,7 @@ AM_RECURSIVE_TARGETS = check recheck
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_TUNNEL_TRUE@@WEAVE_RUN_LONG_TESTS_TRUE@	happy/tests/standalone/tunnel/test_weave_tunnel_faults_6_of_8.sh \
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_TUNNEL_TRUE@@WEAVE_RUN_LONG_TESTS_TRUE@	happy/tests/standalone/tunnel/test_weave_tunnel_faults_7_of_8.sh \
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_TUNNEL_TRUE@@WEAVE_RUN_LONG_TESTS_TRUE@	happy/tests/standalone/tunnel/test_weave_tunnel_faults_8_of_8.sh
-@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TIME_TRUE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_LONG_TESTS_TRUE@am__EXEEXT_22 = happy/tests/standalone/time/test_weave_time_faults_local_1_of_4.sh \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TIME_TRUE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_LONG_TESTS_TRUE@am__EXEEXT_23 = happy/tests/standalone/time/test_weave_time_faults_local_1_of_4.sh \
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TIME_TRUE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_LONG_TESTS_TRUE@	happy/tests/standalone/time/test_weave_time_faults_local_2_of_4.sh \
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TIME_TRUE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_LONG_TESTS_TRUE@	happy/tests/standalone/time/test_weave_time_faults_local_3_of_4.sh \
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TIME_TRUE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_LONG_TESTS_TRUE@	happy/tests/standalone/time/test_weave_time_faults_local_4_of_4.sh \
@@ -2184,7 +2206,7 @@ AM_RECURSIVE_TARGETS = check recheck
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TIME_TRUE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_LONG_TESTS_TRUE@	happy/tests/standalone/time/test_weave_time_faults_auto_6_of_8.sh \
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TIME_TRUE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_LONG_TESTS_TRUE@	happy/tests/standalone/time/test_weave_time_faults_auto_7_of_8.sh \
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TIME_TRUE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_LONG_TESTS_TRUE@	happy/tests/standalone/time/test_weave_time_faults_auto_8_of_8.sh
-@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@am__EXEEXT_23 = happy/tests/standalone/wdmNext/test_weave_wdm_next_one_way_subscribe_01.py \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@am__EXEEXT_24 = happy/tests/standalone/wdmNext/test_weave_wdm_next_one_way_subscribe_01.py \
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@	happy/tests/standalone/wdmNext/test_weave_wdm_next_one_way_subscribe_02.py \
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@	happy/tests/standalone/wdmNext/test_weave_wdm_next_one_way_subscribe_03.py \
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@	happy/tests/standalone/wdmNext/test_weave_wdm_next_one_way_subscribe_04.py \
@@ -2270,26 +2292,26 @@ AM_RECURSIVE_TARGETS = check recheck
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@	happy/tests/standalone/wdmNext/test_weave_wdm_next_oneway_resub.py \
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@	happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_resub.py \
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@	happy/tests/standalone/wdmNext/test_weave_wdm_next_subless_notify_01.py
-@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_BDX_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@am__EXEEXT_24 = happy/tests/standalone/bdx/test_weave_bdx_01.py \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_BDX_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@am__EXEEXT_25 = happy/tests/standalone/bdx/test_weave_bdx_01.py \
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_BDX_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@	happy/tests/standalone/bdx/test_weave_bdx_02.py \
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_BDX_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@	happy/tests/standalone/bdx/test_weave_bdx_03.py \
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_BDX_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@	happy/tests/standalone/bdx/test_weave_bdx_04.py \
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_BDX_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@	happy/tests/standalone/bdx/test_weave_bdx_05.py
-@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_ECHO_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@am__EXEEXT_25 = happy/tests/standalone/echo/test_weave_echo_01.py \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_ECHO_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@am__EXEEXT_26 = happy/tests/standalone/echo/test_weave_echo_01.py \
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_ECHO_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@	happy/tests/standalone/echo/test_weave_echo_03.py
-@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SECMGR_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@am__EXEEXT_26 = happy/tests/standalone/echo/test_weave_echo_02.py
-@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_TUNNEL_TRUE@am__EXEEXT_27 = happy/tests/standalone/tunnel/test_weave_tunnel_01.py \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SECMGR_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@am__EXEEXT_27 = happy/tests/standalone/echo/test_weave_echo_02.py
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_TUNNEL_TRUE@am__EXEEXT_28 = happy/tests/standalone/tunnel/test_weave_tunnel_01.py \
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_TUNNEL_TRUE@	happy/tests/standalone/tunnel/test_weave_tunnel_02.py \
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_TUNNEL_TRUE@	happy/tests/standalone/tunnel/test_weave_tunnel_03.py \
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_TUNNEL_TRUE@	happy/tests/standalone/tunnel/test_weave_tunnel_04.py \
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_TUNNEL_TRUE@	happy/tests/standalone/con_tunnel/test_weave_con_tunnel_01.py
-@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_KEY_EXPORT_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@am__EXEEXT_28 = happy/tests/standalone/key_export/test_weave_key_export_01.py
-@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_PAIRING_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@am__EXEEXT_29 = happy/tests/standalone/pairing/test_weave_pairing_01.py
-@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICEDIR_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@am__EXEEXT_30 = happy/tests/standalone/servicedir/test_service_directory_01.py
-@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TIME_TRUE@@WEAVE_RUN_HAPPY_TRUE@am__EXEEXT_31 = happy/tests/standalone/time/test_weave_time_local.sh \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_KEY_EXPORT_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@am__EXEEXT_29 = happy/tests/standalone/key_export/test_weave_key_export_01.py
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_PAIRING_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@am__EXEEXT_30 = happy/tests/standalone/pairing/test_weave_pairing_01.py
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICEDIR_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@am__EXEEXT_31 = happy/tests/standalone/servicedir/test_service_directory_01.py
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TIME_TRUE@@WEAVE_RUN_HAPPY_TRUE@am__EXEEXT_32 = happy/tests/standalone/time/test_weave_time_local.sh \
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TIME_TRUE@@WEAVE_RUN_HAPPY_TRUE@	happy/tests/standalone/time/test_weave_time_service.sh \
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TIME_TRUE@@WEAVE_RUN_HAPPY_TRUE@	happy/tests/standalone/time/test_weave_time_auto.sh
-@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_CORE_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@am__EXEEXT_32 = happy/tests/standalone/wdmv0/test_weave_wdmv0_01.py \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_CORE_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@am__EXEEXT_33 = happy/tests/standalone/wdmv0/test_weave_wdmv0_01.py \
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_CORE_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@	happy/tests/standalone/swu/test_weave_swu_01.py \
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_CORE_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@	happy/tests/standalone/swu/test_weave_swu_02.py \
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_CORE_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@	happy/tests/standalone/messagelayer/test_weave_messagelayer_01.py \
@@ -2297,9 +2319,8 @@ AM_RECURSIVE_TARGETS = check recheck
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_CORE_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@	happy/tests/standalone/inet/test_weave_inet_01.py \
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_CORE_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@	happy/tests/standalone/heartbeat/test_weave_heartbeat_01.py \
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_CORE_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@	happy/tests/standalone/wrmp/test_weave_wrmp_01.py
-@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@am__EXEEXT_33 = test-weave-device-descriptor-encode.sh \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@am__EXEEXT_34 = test-weave-device-descriptor-encode.sh \
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@	test-Verhoeff.sh \
-@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@	$(am__EXEEXT_9) \
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@	$(am__EXEEXT_10) \
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@	$(am__EXEEXT_11) \
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@	$(am__EXEEXT_12) \
@@ -2322,9 +2343,9 @@ AM_RECURSIVE_TARGETS = check recheck
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@	$(am__EXEEXT_29) \
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@	$(am__EXEEXT_30) \
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@	$(am__EXEEXT_31) \
-@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@	$(am__EXEEXT_32)
-@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_TRUE@am__EXEEXT_33 = $(am__EXEEXT_9) \
-@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_TRUE@	$(am__EXEEXT_10) \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@	$(am__EXEEXT_32) \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@	$(am__EXEEXT_33)
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_TRUE@am__EXEEXT_34 = $(am__EXEEXT_10) \
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_TRUE@	$(am__EXEEXT_11) \
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_TRUE@	$(am__EXEEXT_12) \
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_TRUE@	$(am__EXEEXT_13) \
@@ -2346,7 +2367,8 @@ AM_RECURSIVE_TARGETS = check recheck
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_TRUE@	$(am__EXEEXT_29) \
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_TRUE@	$(am__EXEEXT_30) \
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_TRUE@	$(am__EXEEXT_31) \
-@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_TRUE@	$(am__EXEEXT_32)
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_TRUE@	$(am__EXEEXT_32) \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_TRUE@	$(am__EXEEXT_33)
 TEST_SUITE_LOG = test-suite.log
 TEST_EXTENSIONS = @EXEEXT@ .test
 LOG_COMPILE = $(LOG_COMPILER) $(AM_LOG_FLAGS) $(LOG_FLAGS)
@@ -2966,6 +2988,14 @@ EXTRA_DIST = \
 @WEAVE_BUILD_TESTS_TRUE@TestWDM_CPPFLAGS = $(AM_CPPFLAGS)
 @WEAVE_BUILD_TESTS_TRUE@TestWDM_LDFLAGS = $(AM_CPPFLAGS)
 @WEAVE_BUILD_TESTS_TRUE@TestWDM_LDADD = libWeaveTestCommon.a $(COMMON_LDADD)
+@WEAVE_BUILD_TESTS_TRUE@TestPathStore_SOURCES = TestPathStore.cpp \
+@WEAVE_BUILD_TESTS_TRUE@                                                 schema/nest/test/trait/TestHTrait.cpp \
+@WEAVE_BUILD_TESTS_TRUE@                                                 TestPersistedStorageImplementation.cpp \
+@WEAVE_BUILD_TESTS_TRUE@                                                 schema/nest/test/trait/TestCommon.cpp
+
+@WEAVE_BUILD_TESTS_TRUE@TestPathStore_CPPFLAGS = $(AM_CPPFLAGS) -I$(top_srcdir)/src/test-apps/schema
+@WEAVE_BUILD_TESTS_TRUE@TestPathStore_LDFLAGS = $(AM_CPPFLAGS)
+@WEAVE_BUILD_TESTS_TRUE@TestPathStore_LDADD = libWeaveTestCommon.a $(COMMON_LDADD)
 @WEAVE_BUILD_TESTS_TRUE@TestFabricStateDelegate_SOURCES = TestFabricStateDelegate.cpp TestPersistedStorageImplementation.cpp
 @WEAVE_BUILD_TESTS_TRUE@TestFabricStateDelegate_LDFLAGS = $(AM_CPPFLAGS)
 @WEAVE_BUILD_TESTS_TRUE@TestFabricStateDelegate_LDADD = libWeaveTestCommon.a $(COMMON_LDADD)
@@ -3523,6 +3553,16 @@ TestPairingCodeUtils$(EXEEXT): $(TestPairingCodeUtils_OBJECTS) $(TestPairingCode
 TestPasscodeEnc$(EXEEXT): $(TestPasscodeEnc_OBJECTS) $(TestPasscodeEnc_DEPENDENCIES) $(EXTRA_TestPasscodeEnc_DEPENDENCIES) 
 	@rm -f TestPasscodeEnc$(EXEEXT)
 	$(AM_V_CXXLD)$(CXXLINK) $(TestPasscodeEnc_OBJECTS) $(TestPasscodeEnc_LDADD) $(LIBS)
+schema/nest/test/trait/TestPathStore-TestHTrait.$(OBJEXT):  \
+	schema/nest/test/trait/$(am__dirstamp) \
+	schema/nest/test/trait/$(DEPDIR)/$(am__dirstamp)
+schema/nest/test/trait/TestPathStore-TestCommon.$(OBJEXT):  \
+	schema/nest/test/trait/$(am__dirstamp) \
+	schema/nest/test/trait/$(DEPDIR)/$(am__dirstamp)
+
+TestPathStore$(EXEEXT): $(TestPathStore_OBJECTS) $(TestPathStore_DEPENDENCIES) $(EXTRA_TestPathStore_DEPENDENCIES) 
+	@rm -f TestPathStore$(EXEEXT)
+	$(AM_V_CXXLD)$(TestPathStore_LINK) $(TestPathStore_OBJECTS) $(TestPathStore_LDADD) $(LIBS)
 
 TestPersistedCounter$(EXEEXT): $(TestPersistedCounter_OBJECTS) $(TestPersistedCounter_DEPENDENCIES) $(EXTRA_TestPersistedCounter_DEPENDENCIES) 
 	@rm -f TestPersistedCounter$(EXEEXT)
@@ -3876,6 +3916,8 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/TestPacketBuffer.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/TestPairingCodeUtils.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/TestPasscodeEnc.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/TestPathStore-TestPathStore.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/TestPathStore-TestPersistedStorageImplementation.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/TestPersistedCounter.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/TestPersistedStorage.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/TestPersistedStorageImplementation.Po@am__quote@
@@ -3985,6 +4027,8 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@schema/nest/test/trait/$(DEPDIR)/GenerateEventLog-TestETrait.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@schema/nest/test/trait/$(DEPDIR)/TestEventLogging-TestCommon.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@schema/nest/test/trait/$(DEPDIR)/TestEventLogging-TestETrait.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@schema/nest/test/trait/$(DEPDIR)/TestPathStore-TestCommon.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@schema/nest/test/trait/$(DEPDIR)/TestPathStore-TestHTrait.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@schema/nest/test/trait/$(DEPDIR)/TestTDM-TestBTrait.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@schema/nest/test/trait/$(DEPDIR)/TestTDM-TestCTrait.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@schema/nest/test/trait/$(DEPDIR)/TestTDM-TestCommon.Po@am__quote@
@@ -4179,6 +4223,62 @@ TestEventLogging-TestEventLogging.obj: TestEventLogging.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='TestEventLogging.cpp' object='TestEventLogging-TestEventLogging.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(TestEventLogging_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o TestEventLogging-TestEventLogging.obj `if test -f 'TestEventLogging.cpp'; then $(CYGPATH_W) 'TestEventLogging.cpp'; else $(CYGPATH_W) '$(srcdir)/TestEventLogging.cpp'; fi`
+
+TestPathStore-TestPathStore.o: TestPathStore.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(TestPathStore_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT TestPathStore-TestPathStore.o -MD -MP -MF $(DEPDIR)/TestPathStore-TestPathStore.Tpo -c -o TestPathStore-TestPathStore.o `test -f 'TestPathStore.cpp' || echo '$(srcdir)/'`TestPathStore.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/TestPathStore-TestPathStore.Tpo $(DEPDIR)/TestPathStore-TestPathStore.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='TestPathStore.cpp' object='TestPathStore-TestPathStore.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(TestPathStore_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o TestPathStore-TestPathStore.o `test -f 'TestPathStore.cpp' || echo '$(srcdir)/'`TestPathStore.cpp
+
+TestPathStore-TestPathStore.obj: TestPathStore.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(TestPathStore_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT TestPathStore-TestPathStore.obj -MD -MP -MF $(DEPDIR)/TestPathStore-TestPathStore.Tpo -c -o TestPathStore-TestPathStore.obj `if test -f 'TestPathStore.cpp'; then $(CYGPATH_W) 'TestPathStore.cpp'; else $(CYGPATH_W) '$(srcdir)/TestPathStore.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/TestPathStore-TestPathStore.Tpo $(DEPDIR)/TestPathStore-TestPathStore.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='TestPathStore.cpp' object='TestPathStore-TestPathStore.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(TestPathStore_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o TestPathStore-TestPathStore.obj `if test -f 'TestPathStore.cpp'; then $(CYGPATH_W) 'TestPathStore.cpp'; else $(CYGPATH_W) '$(srcdir)/TestPathStore.cpp'; fi`
+
+schema/nest/test/trait/TestPathStore-TestHTrait.o: schema/nest/test/trait/TestHTrait.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(TestPathStore_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT schema/nest/test/trait/TestPathStore-TestHTrait.o -MD -MP -MF schema/nest/test/trait/$(DEPDIR)/TestPathStore-TestHTrait.Tpo -c -o schema/nest/test/trait/TestPathStore-TestHTrait.o `test -f 'schema/nest/test/trait/TestHTrait.cpp' || echo '$(srcdir)/'`schema/nest/test/trait/TestHTrait.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) schema/nest/test/trait/$(DEPDIR)/TestPathStore-TestHTrait.Tpo schema/nest/test/trait/$(DEPDIR)/TestPathStore-TestHTrait.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='schema/nest/test/trait/TestHTrait.cpp' object='schema/nest/test/trait/TestPathStore-TestHTrait.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(TestPathStore_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o schema/nest/test/trait/TestPathStore-TestHTrait.o `test -f 'schema/nest/test/trait/TestHTrait.cpp' || echo '$(srcdir)/'`schema/nest/test/trait/TestHTrait.cpp
+
+schema/nest/test/trait/TestPathStore-TestHTrait.obj: schema/nest/test/trait/TestHTrait.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(TestPathStore_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT schema/nest/test/trait/TestPathStore-TestHTrait.obj -MD -MP -MF schema/nest/test/trait/$(DEPDIR)/TestPathStore-TestHTrait.Tpo -c -o schema/nest/test/trait/TestPathStore-TestHTrait.obj `if test -f 'schema/nest/test/trait/TestHTrait.cpp'; then $(CYGPATH_W) 'schema/nest/test/trait/TestHTrait.cpp'; else $(CYGPATH_W) '$(srcdir)/schema/nest/test/trait/TestHTrait.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) schema/nest/test/trait/$(DEPDIR)/TestPathStore-TestHTrait.Tpo schema/nest/test/trait/$(DEPDIR)/TestPathStore-TestHTrait.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='schema/nest/test/trait/TestHTrait.cpp' object='schema/nest/test/trait/TestPathStore-TestHTrait.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(TestPathStore_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o schema/nest/test/trait/TestPathStore-TestHTrait.obj `if test -f 'schema/nest/test/trait/TestHTrait.cpp'; then $(CYGPATH_W) 'schema/nest/test/trait/TestHTrait.cpp'; else $(CYGPATH_W) '$(srcdir)/schema/nest/test/trait/TestHTrait.cpp'; fi`
+
+TestPathStore-TestPersistedStorageImplementation.o: TestPersistedStorageImplementation.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(TestPathStore_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT TestPathStore-TestPersistedStorageImplementation.o -MD -MP -MF $(DEPDIR)/TestPathStore-TestPersistedStorageImplementation.Tpo -c -o TestPathStore-TestPersistedStorageImplementation.o `test -f 'TestPersistedStorageImplementation.cpp' || echo '$(srcdir)/'`TestPersistedStorageImplementation.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/TestPathStore-TestPersistedStorageImplementation.Tpo $(DEPDIR)/TestPathStore-TestPersistedStorageImplementation.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='TestPersistedStorageImplementation.cpp' object='TestPathStore-TestPersistedStorageImplementation.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(TestPathStore_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o TestPathStore-TestPersistedStorageImplementation.o `test -f 'TestPersistedStorageImplementation.cpp' || echo '$(srcdir)/'`TestPersistedStorageImplementation.cpp
+
+TestPathStore-TestPersistedStorageImplementation.obj: TestPersistedStorageImplementation.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(TestPathStore_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT TestPathStore-TestPersistedStorageImplementation.obj -MD -MP -MF $(DEPDIR)/TestPathStore-TestPersistedStorageImplementation.Tpo -c -o TestPathStore-TestPersistedStorageImplementation.obj `if test -f 'TestPersistedStorageImplementation.cpp'; then $(CYGPATH_W) 'TestPersistedStorageImplementation.cpp'; else $(CYGPATH_W) '$(srcdir)/TestPersistedStorageImplementation.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/TestPathStore-TestPersistedStorageImplementation.Tpo $(DEPDIR)/TestPathStore-TestPersistedStorageImplementation.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='TestPersistedStorageImplementation.cpp' object='TestPathStore-TestPersistedStorageImplementation.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(TestPathStore_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o TestPathStore-TestPersistedStorageImplementation.obj `if test -f 'TestPersistedStorageImplementation.cpp'; then $(CYGPATH_W) 'TestPersistedStorageImplementation.cpp'; else $(CYGPATH_W) '$(srcdir)/TestPersistedStorageImplementation.cpp'; fi`
+
+schema/nest/test/trait/TestPathStore-TestCommon.o: schema/nest/test/trait/TestCommon.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(TestPathStore_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT schema/nest/test/trait/TestPathStore-TestCommon.o -MD -MP -MF schema/nest/test/trait/$(DEPDIR)/TestPathStore-TestCommon.Tpo -c -o schema/nest/test/trait/TestPathStore-TestCommon.o `test -f 'schema/nest/test/trait/TestCommon.cpp' || echo '$(srcdir)/'`schema/nest/test/trait/TestCommon.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) schema/nest/test/trait/$(DEPDIR)/TestPathStore-TestCommon.Tpo schema/nest/test/trait/$(DEPDIR)/TestPathStore-TestCommon.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='schema/nest/test/trait/TestCommon.cpp' object='schema/nest/test/trait/TestPathStore-TestCommon.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(TestPathStore_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o schema/nest/test/trait/TestPathStore-TestCommon.o `test -f 'schema/nest/test/trait/TestCommon.cpp' || echo '$(srcdir)/'`schema/nest/test/trait/TestCommon.cpp
+
+schema/nest/test/trait/TestPathStore-TestCommon.obj: schema/nest/test/trait/TestCommon.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(TestPathStore_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT schema/nest/test/trait/TestPathStore-TestCommon.obj -MD -MP -MF schema/nest/test/trait/$(DEPDIR)/TestPathStore-TestCommon.Tpo -c -o schema/nest/test/trait/TestPathStore-TestCommon.obj `if test -f 'schema/nest/test/trait/TestCommon.cpp'; then $(CYGPATH_W) 'schema/nest/test/trait/TestCommon.cpp'; else $(CYGPATH_W) '$(srcdir)/schema/nest/test/trait/TestCommon.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) schema/nest/test/trait/$(DEPDIR)/TestPathStore-TestCommon.Tpo schema/nest/test/trait/$(DEPDIR)/TestPathStore-TestCommon.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='schema/nest/test/trait/TestCommon.cpp' object='schema/nest/test/trait/TestPathStore-TestCommon.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(TestPathStore_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o schema/nest/test/trait/TestPathStore-TestCommon.obj `if test -f 'schema/nest/test/trait/TestCommon.cpp'; then $(CYGPATH_W) 'schema/nest/test/trait/TestCommon.cpp'; else $(CYGPATH_W) '$(srcdir)/schema/nest/test/trait/TestCommon.cpp'; fi`
 
 TestRADaemon-TestRADaemon.o: TestRADaemon.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(TestRADaemon_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT TestRADaemon-TestRADaemon.o -MD -MP -MF $(DEPDIR)/TestRADaemon-TestRADaemon.Tpo -c -o TestRADaemon-TestRADaemon.o `test -f 'TestRADaemon.cpp' || echo '$(srcdir)/'`TestRADaemon.cpp
@@ -5852,6 +5952,13 @@ TestResourceIdentifier.log: TestResourceIdentifier$(EXEEXT)
 TestTDM.log: TestTDM$(EXEEXT)
 	@p='TestTDM$(EXEEXT)'; \
 	b='TestTDM'; \
+	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
+	--log-file $$b.log --trs-file $$b.trs \
+	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
+	"$$tst" $(AM_TESTS_FD_REDIRECT)
+TestPathStore.log: TestPathStore$(EXEEXT)
+	@p='TestPathStore$(EXEEXT)'; \
+	b='TestPathStore'; \
 	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
 	--log-file $$b.log --trs-file $$b.trs \
 	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
@@ -7788,11 +7895,11 @@ distclean-generic:
 maintainer-clean-generic:
 	@echo "This command is intended for maintainers to use"
 	@echo "it deletes files that may require special tools to rebuild."
-@WEAVE_BUILD_TESTS_FALSE@uninstall-local:
 @WEAVE_BUILD_COVERAGE_FALSE@clean-local:
 @WEAVE_BUILD_COVERAGE_REPORTS_FALSE@clean-local:
 @WEAVE_BUILD_TESTS_FALSE@clean-local:
 @WEAVE_BUILD_TESTS_FALSE@install-exec-local:
+@WEAVE_BUILD_TESTS_FALSE@uninstall-local:
 clean: clean-am
 
 clean-am: clean-checkPROGRAMS clean-generic clean-libexecPROGRAMS \

@@ -1863,6 +1863,9 @@ WEAVE_ERROR TestATraitUpdatableDataSink::Mutate(SubscriptionClient * apSubClient
         break;
 
     case MockWdmNodeOptions::kMutation_Root:
+        {
+
+        Schema::Nest::Test::Trait::TestATrait::StructA tmpTajItem;
 
         // Root and some more subpaths
         err = SetUpdated(apSubClient, TestATrait::kPropertyHandle_TaD_SaA, aIsConditional);
@@ -1884,9 +1887,24 @@ WEAVE_ERROR TestATraitUpdatableDataSink::Mutate(SubscriptionClient * apSubClient
         SuccessOrExit(err);
 
         tai_map.clear();
-        for (uint16_t i = 0; i < 100; i++) {
+        // test_weave_wdm_next_service_update_10_cond_Root_multi_traits.py depends on
+        // the number of items added the to the dictionaries here
+        for (uint16_t i = 0; i < 85; i++) {
             tai_map[i] = { ((uint32_t)i + 1)*10 + 7 };
         }
+
+        taj_map.clear();
+        tmpTajItem.saB = tad.saB;
+        tmpTajItem.saA = 0;
+        if (tmpTajItem.saB)
+        {
+            tmpTajItem.saA++;
+        }
+        for (uint16_t i = 0; i < 10; i++) {
+            tmpTajItem.saA++;
+            taj_map[i] = tmpTajItem;
+        }
+
         if (taa == TestATrait::ENUM_A_VALUE_1) {
             taa = TestATrait::ENUM_A_VALUE_2;
         }
@@ -1897,6 +1915,7 @@ WEAVE_ERROR TestATraitUpdatableDataSink::Mutate(SubscriptionClient * apSubClient
         tad.saB = !tad.saB;
 
         break;
+        }
 
     case MockWdmNodeOptions::kMutation_RootWithLargeDictionary:
 
