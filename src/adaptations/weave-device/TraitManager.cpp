@@ -130,6 +130,13 @@ WEAVE_ERROR TraitManager::UnsubscribeServiceTrait(TraitDataSink * dataSink)
     return SubscribedServiceTraits.Remove(dataSink);
 }
 
+WEAVE_ERROR TraitManager::PublishTrait(const uint64_t & instanceId, TraitDataSource * dataSource)
+{
+    ResourceIdentifier selfResId(ResourceIdentifier::RESOURCE_TYPE_RESERVED, ResourceIdentifier::SELF_NODE_ID);
+    TraitDataHandle traitHandle;
+    return PublishedTraits.Add(selfResId, instanceId, kRootPropertyPathHandle, dataSource, traitHandle);
+}
+
 WEAVE_ERROR TraitManager::PublishTrait(const ResourceIdentifier & resId, const uint64_t & instanceId, TraitDataSource * dataSource)
 {
     TraitDataHandle traitHandle;

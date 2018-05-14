@@ -18,7 +18,8 @@
 
 /**
  *    @file
- *      This file defines application keys trait data sink interfaces.
+ *      This file contains an implementation of a trait data source for the
+ *      Weave DeviceIdentityTrait.
  *
  */
 

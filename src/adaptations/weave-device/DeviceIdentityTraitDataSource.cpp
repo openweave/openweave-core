@@ -16,6 +16,13 @@
  *    limitations under the License.
  */
 
+/**
+ *    @file
+ *      This file contains an implementation of a trait data source for the
+ *      Weave DeviceIdentityTrait.
+ *
+ */
+
 #include <internal/WeaveDeviceInternal.h>
 #include <ConfigurationManager.h>
 #include <internal/DeviceIdentityTraitDataSource.h>
