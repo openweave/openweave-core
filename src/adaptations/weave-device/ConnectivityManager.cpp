@@ -882,7 +882,7 @@ void ConnectivityManager::UpdateInternetConnectivityState(void)
 
 void ConnectivityManager::OnStationIPv4AddressAvailable(const system_event_sta_got_ip_t & got_ip)
 {
-    if (LOG_LOCAL_LEVEL >= ESP_LOG_INFO)
+#if WEAVE_PROGRESS_LOGGING
     {
         char ipAddrStr[INET_ADDRSTRLEN], netMaskStr[INET_ADDRSTRLEN], gatewayStr[INET_ADDRSTRLEN];
         IPAddress::FromIPv4(got_ip.ip_info.ip).ToString(ipAddrStr, sizeof(ipAddrStr));
@@ -892,6 +892,7 @@ void ConnectivityManager::OnStationIPv4AddressAvailable(const system_event_sta_g
                  (got_ip.ip_changed) ? "changed" : "ready",
                  ipAddrStr, netMaskStr, gatewayStr);
     }
+#endif // WEAVE_PROGRESS_LOGGING
 
     RefreshMessageLayer();
 
@@ -909,7 +910,7 @@ void ConnectivityManager::OnStationIPv4AddressLost(void)
 
 void ConnectivityManager::OnIPv6AddressAvailable(const system_event_got_ip6_t & got_ip)
 {
-    if (LOG_LOCAL_LEVEL >= ESP_LOG_INFO)
+#if WEAVE_PROGRESS_LOGGING
     {
         IPAddress ipAddr = IPAddress::FromIPv6(got_ip.ip6_info.ip);
         char ipAddrStr[INET6_ADDRSTRLEN];
@@ -919,6 +920,7 @@ void ConnectivityManager::OnIPv6AddressAvailable(const system_event_got_ip6_t & 
                  ESPUtils::InterfaceIdToName(got_ip.if_index),
                  ipAddrStr);
     }
+#endif // WEAVE_PROGRESS_LOGGING
 
     RefreshMessageLayer();
 

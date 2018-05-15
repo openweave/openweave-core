@@ -422,9 +422,9 @@ void PlatformManager::DispatchEvent(const WeaveDeviceEvent * event)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
 
-#if CONFIG_LOG_DEFAULT_LEVEL >= ESP_LOG_INFO
+#if WEAVE_PROGRESS_LOGGING
     uint64_t startUS = System::Layer::GetClock_MonotonicHiRes();
-#endif // CONFIG_LOG_DEFAULT_LEVEL >= ESP_LOG_INFO
+#endif // WEAVE_PROGRESS_LOGGING
 
     // If the event is a Weave System or Inet Layer event, deliver it to the SystemLayer event handler.
     if (event->Type == WeaveDeviceEvent::kEventType_WeaveSystemLayerEvent)
@@ -469,13 +469,13 @@ void PlatformManager::DispatchEvent(const WeaveDeviceEvent * event)
         }
     }
 
-#if CONFIG_LOG_DEFAULT_LEVEL >= ESP_LOG_INFO
+#if WEAVE_PROGRESS_LOGGING
     uint32_t delta = ((uint32_t)(System::Layer::GetClock_MonotonicHiRes() - startUS)) / 1000;
     if (delta > 100)
     {
         WeaveLogError(DeviceLayer, "Long dispatch time: %" PRId32 " ms", delta);
     }
-#endif // CONFIG_LOG_DEFAULT_LEVEL >= ESP_LOG_INFO
+#endif // WEAVE_PROGRESS_LOGGING
 }
 
 void PlatformManager::RunEventLoop(void * /* unused */)

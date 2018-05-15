@@ -86,7 +86,7 @@ Error SetClock_RealTime(uint64_t newCurTime)
     {
         return (errno == EPERM) ? WEAVE_SYSTEM_ERROR_ACCESS_DENIED : MapErrorPOSIX(errno);
     }
-    if (LOG_LOCAL_LEVEL >= ESP_LOG_INFO)
+#if WEAVE_PROGRESS_LOGGING
     {
         uint16_t year;
         uint8_t month, dayOfMonth, hour, minute, second;
@@ -94,6 +94,7 @@ Error SetClock_RealTime(uint64_t newCurTime)
         WeaveLogProgress(DeviceLayer, "Real time clock set to %ld (%04" PRId16 "/%02" PRId8 "/%02" PRId8 " %02" PRId8 ":%02" PRId8 ":%02" PRId8 " UTC)",
                  tv.tv_sec, year, month, dayOfMonth, hour, minute, second);
     }
+#endif // WEAVE_PROGRESS_LOGGING
     return WEAVE_SYSTEM_NO_ERROR;
 }
 

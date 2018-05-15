@@ -115,7 +115,7 @@ PlatformResult AddRemoveHostAddress(InterfaceType inInterfaceType, const Inet::I
     UNLOCK_TCPIP_CORE();
     lockHeld = false;
 
-    if (LOG_LOCAL_LEVEL >= ESP_LOG_INFO)
+#if WEAVE_PROGRESS_LOGGING
     {
         char interfaceName[4];
         GetInterfaceName(netif, interfaceName, sizeof(interfaceName));
@@ -128,6 +128,7 @@ PlatformResult AddRemoveHostAddress(InterfaceType inInterfaceType, const Inet::I
                  interfaceName,
                  ipAddrStr, inPrefixLength);
     }
+#endif // WEAVE_PROGRESS_LOGGING
 
 exit:
     if (lockHeld)
@@ -179,7 +180,7 @@ PlatformResult AddRemoveHostRoute(InterfaceType inInterfaceType, const Inet::IPP
     UNLOCK_TCPIP_CORE();
     lockHeld = false;
 
-    if (LOG_LOCAL_LEVEL >= ESP_LOG_INFO)
+#if WEAVE_PROGRESS_LOGGING
     {
         char interfaceName[4];
         GetInterfaceName(netif, interfaceName, sizeof(interfaceName));
@@ -194,6 +195,7 @@ PlatformResult AddRemoveHostRoute(InterfaceType inInterfaceType, const Inet::IPP
                  interfaceName,
                  prefixAddrStr, inPrefix.Length);
     }
+#endif // WEAVE_PROGRESS_LOGGING
 
 exit:
     if (lockHeld)

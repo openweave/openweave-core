@@ -985,24 +985,23 @@ WEAVE_ERROR GroupKeyStore::StoreGroupKey(const WeaveGroupKey & key)
         memcpy(keyData + kWeaveAppGroupKeySize, (const void *)&key.StartTime, sizeof(uint32_t));
     }
 
-    if (LOG_LOCAL_LEVEL >= ESP_LOG_INFO)
+#if WEAVE_PROGRESS_LOGGING
+    if (WeaveKeyId::IsAppEpochKey(key.KeyId))
     {
-        if (WeaveKeyId::IsAppEpochKey(key.KeyId))
-        {
-            WeaveLogProgress(DeviceLayer, "GroupKeyStore: storing epoch key %s/%s (key len %" PRId8 ", start time %" PRIu32 ")",
-                    kNVSNamespace_WeaveConfig, keyName, key.KeyLen, key.StartTime);
-        }
-        else if (WeaveKeyId::IsAppGroupMasterKey(key.KeyId))
-        {
-            WeaveLogProgress(DeviceLayer, "GroupKeyStore: storing app master key %s/%s (key len %" PRId8 ", global id 0x%" PRIX32 ")",
-                    kNVSNamespace_WeaveConfig, keyName, key.KeyLen, key.GlobalId);
-        }
-        else
-        {
-            const char * keyType = (WeaveKeyId::IsAppRootKey(key.KeyId)) ? "root": "general";
-            WeaveLogProgress(DeviceLayer, "GroupKeyStore: storing %s key %s/%s (key len %" PRId8 ")", keyType, kNVSNamespace_WeaveConfig, keyName, key.KeyLen);
-        }
+        WeaveLogProgress(DeviceLayer, "GroupKeyStore: storing epoch key %s/%s (key len %" PRId8 ", start time %" PRIu32 ")",
+                kNVSNamespace_WeaveConfig, keyName, key.KeyLen, key.StartTime);
     }
+    else if (WeaveKeyId::IsAppGroupMasterKey(key.KeyId))
+    {
+        WeaveLogProgress(DeviceLayer, "GroupKeyStore: storing app master key %s/%s (key len %" PRId8 ", global id 0x%" PRIX32 ")",
+                kNVSNamespace_WeaveConfig, keyName, key.KeyLen, key.GlobalId);
+    }
+    else
+    {
+        const char * keyType = (WeaveKeyId::IsAppRootKey(key.KeyId)) ? "root": "general";
+        WeaveLogProgress(DeviceLayer, "GroupKeyStore: storing %s key %s/%s (key len %" PRId8 ")", keyType, kNVSNamespace_WeaveConfig, keyName, key.KeyLen);
+    }
+#endif // WEAVE_PROGRESS_LOGGING
 
     err = nvs_set_blob(handle, keyName, keyData, WeaveGroupKey::MaxKeySize);
     SuccessOrExit(err);
@@ -1153,7 +1152,8 @@ WEAVE_ERROR GroupKeyStore::DeleteKeyOrKeys(uint32_t targetKeyId, uint32_t target
             SuccessOrExit(err);
 
             err = nvs_erase_key(handle, keyName);
-            if (err == ESP_OK && LOG_LOCAL_LEVEL >= ESP_LOG_INFO)
+#if WEAVE_PROGRESS_LOGGING
+            if (err == ESP_OK)
             {
                 const char * keyType;
                 if (WeaveKeyId::IsAppRootKey(curKeyId))
@@ -1174,7 +1174,9 @@ WEAVE_ERROR GroupKeyStore::DeleteKeyOrKeys(uint32_t targetKeyId, uint32_t target
                 }
                 WeaveLogProgress(DeviceLayer, "GroupKeyStore: erasing %s key %s/%s", keyType, kNVSNamespace_WeaveConfig, keyName);
             }
-            else if (err == ESP_ERR_NVS_NOT_FOUND)
+            else
+#endif // WEAVE_PROGRESS_LOGGING
+            if (err == ESP_ERR_NVS_NOT_FOUND)
             {
                 err = WEAVE_NO_ERROR;
             }
