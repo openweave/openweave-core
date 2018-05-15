@@ -111,6 +111,7 @@ const char kNVSKeyName_GroupKeyIndex[]       = "group-key-index";
 const char kNVSKeyName_GroupKeyPrefix[]      = "gk-";
 const char kNVSKeyName_LastUsedEpochKeyId[]  = "last-ek-id";
 const char kNVSKeyName_FailSafeArmed[]       = "fail-safe-armed";
+const char kNVSKeyName_WiFiStationSecType[]  = "sta-sec-type";
 
 const size_t kMaxGroupKeyNameLength = max(sizeof(kNVSKeyName_FabricSecret), sizeof(kNVSKeyName_GroupKeyPrefix) + 8);
 
@@ -811,6 +812,45 @@ WEAVE_ERROR ConfigurationManager::ClearFailSafeArmed()
 {
     return ClearNVSKey(kNVSNamespace_WeaveConfig, kNVSKeyName_FailSafeArmed);
 }
+
+WEAVE_ERROR ConfigurationManager::GetWiFiStationSecurityType(Profiles::NetworkProvisioning::WiFiSecurityType & secType)
+{
+    WEAVE_ERROR err;
+    uint32_t secTypeInt;
+
+    err = GetNVS(kNVSNamespace_WeaveConfig, kNVSKeyName_WiFiStationSecType, secTypeInt);
+    if (err == WEAVE_NO_ERROR)
+    {
+        secType = (Profiles::NetworkProvisioning::WiFiSecurityType)secTypeInt;
+    }
+    return err;
+}
+
+WEAVE_ERROR ConfigurationManager::UpdateWiFiStationSecurityType(Profiles::NetworkProvisioning::WiFiSecurityType secType)
+{
+    WEAVE_ERROR err;
+    Profiles::NetworkProvisioning::WiFiSecurityType curSecType;
+
+    if (secType != Profiles::NetworkProvisioning::kWiFiSecurityType_NotSpecified)
+    {
+        err = GetWiFiStationSecurityType(curSecType);
+        if (err == WEAVE_DEVICE_ERROR_CONFIG_NOT_FOUND || (err == WEAVE_NO_ERROR && secType != curSecType))
+        {
+            uint32_t secTypeInt = secType;
+            err = StoreNVS(kNVSNamespace_WeaveConfig, kNVSKeyName_WiFiStationSecType, secTypeInt);
+        }
+        SuccessOrExit(err);
+    }
+    else
+    {
+        err = ClearNVSKey(kNVSNamespace_WeaveConfig, kNVSKeyName_WiFiStationSecType);
+        SuccessOrExit(err);
+    }
+
+exit:
+    return err;
+}
+
 
 #if WEAVE_PROGRESS_LOGGING
 

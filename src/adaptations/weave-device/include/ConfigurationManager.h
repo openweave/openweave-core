@@ -20,6 +20,7 @@
 #define CONFIGURATION_MANAGER_H
 
 #include <Weave/Profiles/device-description/DeviceDescription.h>
+#include <Weave/Profiles/network-provisioning/NetworkProvisioning.h>
 
 namespace nl {
 namespace Weave {
@@ -29,6 +30,7 @@ class TraitManager;
 namespace Internal
 {
 class DeviceControlServer;
+class NetworkProvisioningServer;
 }
 
 class ConfigurationManager
@@ -91,8 +93,9 @@ private:
     // NOTE: These members are for internal use by the following friends.
 
     friend class ::nl::Weave::Device::PlatformManager;
-    friend class ::nl::Weave::Device::Internal::DeviceControlServer;
     friend class ::nl::Weave::Device::TraitManager;
+    friend class ::nl::Weave::Device::Internal::DeviceControlServer;
+    friend class ::nl::Weave::Device::Internal::NetworkProvisioningServer;
 
     WEAVE_ERROR Init();
     WEAVE_ERROR ConfigureWeaveStack();
@@ -100,6 +103,8 @@ private:
     bool CanFactoryReset();
     WEAVE_ERROR SetFailSafeArmed();
     WEAVE_ERROR ClearFailSafeArmed();
+    WEAVE_ERROR GetWiFiStationSecurityType(::nl::Weave::Profiles::NetworkProvisioning::WiFiSecurityType & secType);
+    WEAVE_ERROR UpdateWiFiStationSecurityType(::nl::Weave::Profiles::NetworkProvisioning::WiFiSecurityType secType);
 
 private:
 

@@ -107,6 +107,8 @@ exit:
 
 void NetworkProvisioningServer::OnPlatformEvent(const WeaveDeviceEvent * event)
 {
+    WEAVE_ERROR err;
+
     // Handle ESP system events...
     if (event->Type == WeaveDeviceEvent::kEventType_ESPSystemEvent)
     {
@@ -120,6 +122,25 @@ void NetworkProvisioningServer::OnPlatformEvent(const WeaveDeviceEvent * event)
         }
     }
 
+    // Handle a change in WiFi connectivity...
+    else if (event->Type == WeaveDeviceEvent::kEventType_WiFiConnectivityChange)
+    {
+        // Whenever WiFi connectivity is established, update the persisted WiFi
+        // station security type to match that used by the connected AP.
+        if (event->WiFiConnectivityChange.Result == kConnectivity_Established)
+        {
+            wifi_ap_record_t ap_info;
+
+            err = esp_wifi_sta_get_ap_info(&ap_info);
+            SuccessOrExit(err);
+
+            WiFiSecurityType secType = ESPUtils::WiFiAuthModeToWeaveWiFiSecurityType(ap_info.authmode);
+
+            err = ConfigurationMgr.UpdateWiFiStationSecurityType(secType);
+            SuccessOrExit(err);
+        }
+    }
+
     // Handle a change in Internet connectivity...
     else if (event->Type == WeaveDeviceEvent::kEventType_InternetConnectivityChange)
     {
@@ -130,6 +151,9 @@ void NetworkProvisioningServer::OnPlatformEvent(const WeaveDeviceEvent * event)
             ContinueTestConnectivity();
         }
     }
+
+exit:
+    return;
 }
 
 // ==================== NetworkProvisioningServer Private Methods ====================
@@ -152,31 +176,14 @@ WEAVE_ERROR NetworkProvisioningServer::GetWiFiStationProvision(NetworkInfo & net
     memcpy(netInfo.WiFiSSID, stationConfig.sta.ssid, min(strlen((char *)stationConfig.sta.ssid) + 1, sizeof(netInfo.WiFiSSID)));
     netInfo.WiFiMode = kWiFiMode_Managed;
     netInfo.WiFiRole = kWiFiRole_Station;
-    // TODO: this is broken
-    switch (stationConfig.sta.threshold.authmode)
+
+    err = ConfigurationMgr.GetWiFiStationSecurityType(netInfo.WiFiSecurityType);
+    if (err == WEAVE_DEVICE_ERROR_CONFIG_NOT_FOUND)
     {
-    case WIFI_AUTH_OPEN:
-        netInfo.WiFiSecurityType = kWiFiSecurityType_None;
-        break;
-    case WIFI_AUTH_WEP:
-        netInfo.WiFiSecurityType = kWiFiSecurityType_WEP;
-        break;
-    case WIFI_AUTH_WPA_PSK:
-        netInfo.WiFiSecurityType = kWiFiSecurityType_WPAPersonal;
-        break;
-    case WIFI_AUTH_WPA2_PSK:
-        netInfo.WiFiSecurityType = kWiFiSecurityType_WPA2Personal;
-        break;
-    case WIFI_AUTH_WPA_WPA2_PSK:
-        netInfo.WiFiSecurityType = kWiFiSecurityType_WPA2MixedPersonal;
-        break;
-    case WIFI_AUTH_WPA2_ENTERPRISE:
-        netInfo.WiFiSecurityType = kWiFiSecurityType_WPA2Enterprise;
-        break;
-    default:
-        netInfo.WiFiSecurityType = kWiFiSecurityType_NotSpecified;
-        break;
+        err = WEAVE_NO_ERROR;
     }
+    SuccessOrExit(err);
+
     if (includeCredentials)
     {
         netInfo.WiFiKeyLen = min(strlen((char *)stationConfig.sta.password), sizeof(netInfo.WiFiKey));
@@ -316,6 +323,11 @@ WEAVE_ERROR NetworkProvisioningServer::SetESPStationConfig(const ::nl::Weave::De
     {
         WeaveLogError(DeviceLayer, "esp_wifi_set_config() failed: %s", nl::ErrorStr(err));
     }
+    SuccessOrExit(err);
+
+    // Store the WiFi Station security type separately in NVS.  This is necessary because the ESP wifi API
+    // does not provide a way to query the configured WiFi auth mode.
+    err = ConfigurationMgr.UpdateWiFiStationSecurityType(netInfo.WiFiSecurityType);
     SuccessOrExit(err);
 
     WeaveLogProgress(DeviceLayer, "WiFi station provision set (SSID: %s)", netInfo.WiFiSSID);
@@ -700,6 +712,9 @@ WEAVE_ERROR NetworkProvisioningServer::HandleRemoveNetwork(uint32_t networkId)
     // Clear the ESP WiFi station configuration.
     memset(&stationConfig, 0, sizeof(stationConfig));
     esp_wifi_set_config(ESP_IF_WIFI_STA, &stationConfig);
+
+    // Clear the persisted WiFi station security type.
+    ConfigurationMgr.UpdateWiFiStationSecurityType(kWiFiSecurityType_NotSpecified);
 
     // Tell the ConnectivityManager there's been a change to the station provision.
     ConnectivityMgr.OnWiFiStationProvisionChange();
