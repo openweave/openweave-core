@@ -114,6 +114,8 @@ private:
     uint8_t mFlags;
     char mPairingCode[kMaxPairingCodeLength + 1];
 
+    void LogDeviceConfig();
+
     static void DoFactoryReset(intptr_t arg);
 };
 

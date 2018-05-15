@@ -157,14 +157,17 @@ WEAVE_ERROR ConfigurationManager::GetSerialNumber(char * buf, size_t bufSize, si
 WEAVE_ERROR ConfigurationManager::GetManufacturingDate(uint16_t& year, uint8_t& month, uint8_t& dayOfMonth)
 {
     WEAVE_ERROR err;
-    char dateStr[11]; // sized for big-endian date: YYYY-MM-DD
+    enum {
+        kDateStringLength = 10 // YYYY-MM-DD
+    };
+    char dateStr[kDateStringLength + 1];
     size_t dateLen;
     char *parseEnd;
 
     err = GetNVS(kNVSNamespace_WeaveFactory, kNVSKeyName_ManufacturingDate, dateStr, sizeof(dateStr), dateLen);
     SuccessOrExit(err);
 
-    VerifyOrExit(dateLen == sizeof(dateStr), err = WEAVE_ERROR_INVALID_ARGUMENT);
+    VerifyOrExit(dateLen == kDateStringLength, err = WEAVE_ERROR_INVALID_ARGUMENT);
 
     year = strtoul(dateStr, &parseEnd, 10);
     VerifyOrExit(parseEnd == dateStr + 4, err = WEAVE_ERROR_INVALID_ARGUMENT);
@@ -176,6 +179,10 @@ WEAVE_ERROR ConfigurationManager::GetManufacturingDate(uint16_t& year, uint8_t& 
     VerifyOrExit(parseEnd == dateStr + 10, err = WEAVE_ERROR_INVALID_ARGUMENT);
 
 exit:
+    if (err != WEAVE_NO_ERROR && err != WEAVE_DEVICE_ERROR_CONFIG_NOT_FOUND)
+    {
+        WeaveLogError(DeviceLayer, "Invalid manufacturing date: %s", dateStr);
+    }
     return err;
 }
 
@@ -332,8 +339,8 @@ WEAVE_ERROR ConfigurationManager::GetPairedAccountId(char * buf, size_t bufSize,
 WEAVE_ERROR ConfigurationManager::StoreDeviceId(uint64_t deviceId)
 {
     return (deviceId != kNodeIdNotSpecified)
-           ? StoreNVS(kNVSNamespace_WeaveConfig, kNVSKeyName_DeviceId, deviceId)
-           : ClearNVSKey(kNVSNamespace_WeaveConfig, kNVSKeyName_DeviceId);
+           ? StoreNVS(kNVSNamespace_WeaveFactory, kNVSKeyName_DeviceId, deviceId)
+           : ClearNVSKey(kNVSNamespace_WeaveFactory, kNVSKeyName_DeviceId);
 }
 
 WEAVE_ERROR ConfigurationManager::StoreSerialNumber(const char * serialNum)
@@ -698,17 +705,28 @@ WEAVE_ERROR ConfigurationManager::ConfigureWeaveStack()
     SuccessOrExit(err);
     needClose = true;
 
-    // Read the device id from NVS.
-    err = nvs_get_u64(handle, kNVSKeyName_DeviceId, &FabricState.LocalNodeId);
-#if WEAVE_DEVICE_CONFIG_ENABLE_TEST_DEVICE_IDENTITY
-    if (err == ESP_ERR_NVS_NOT_FOUND)
+    // Read the device id from NVS.  For the convenience of manufacturing, the value
+    // is expected to be stored as an 8-byte blob in big-endian format, rather than a
+    // u64 value.
     {
-        WeaveLogProgress(DeviceLayer, "Device id not found in nvs; using hard-coded default: %" PRIX64, TestDeviceId);
-        FabricState.LocalNodeId = TestDeviceId;
-        err = WEAVE_NO_ERROR;
-    }
+        uint8_t nodeIdBytes[sizeof(uint64_t)];
+        size_t nodeIdLen = sizeof(nodeIdBytes);
+        err = nvs_get_blob(handle, kNVSKeyName_DeviceId, nodeIdBytes, &nodeIdLen);
+#if WEAVE_DEVICE_CONFIG_ENABLE_TEST_DEVICE_IDENTITY
+        if (err == ESP_ERR_NVS_NOT_FOUND)
+        {
+            WeaveLogProgress(DeviceLayer, "Device id not found in nvs; using hard-coded default: %" PRIX64, TestDeviceId);
+            FabricState.LocalNodeId = TestDeviceId;
+            err = WEAVE_NO_ERROR;
+        }
+        else
 #endif // WEAVE_DEVICE_CONFIG_ENABLE_TEST_DEVICE_IDENTITY
-    SuccessOrExit(err);
+        {
+            SuccessOrExit(err);
+            VerifyOrExit(nodeIdLen == sizeof(nodeIdBytes), err = ESP_ERR_NVS_INVALID_LENGTH);
+            FabricState.LocalNodeId = Encoding::BigEndian::Get64(nodeIdBytes);
+        }
+    }
 
     // Read the pairing code from NVS.
     pairingCodeLen = sizeof(mPairingCode);
@@ -761,6 +779,10 @@ WEAVE_ERROR ConfigurationManager::ConfigureWeaveStack()
     // Configure the FabricState object with a reference to the GroupKeyStore object.
     FabricState.GroupKeyStore = GetGroupKeyStore();
 
+#if WEAVE_PROGRESS_LOGGING
+    LogDeviceConfig();
+#endif
+
 exit:
     if (needClose)
     {
@@ -789,6 +811,56 @@ WEAVE_ERROR ConfigurationManager::ClearFailSafeArmed()
 {
     return ClearNVSKey(kNVSNamespace_WeaveConfig, kNVSKeyName_FailSafeArmed);
 }
+
+#if WEAVE_PROGRESS_LOGGING
+
+void ConfigurationManager::LogDeviceConfig()
+{
+    WEAVE_ERROR err;
+
+    WeaveLogProgress(DeviceLayer, "Device Configuration:");
+
+    WeaveLogProgress(DeviceLayer, "  Device Id: %016" PRIX64, FabricState.LocalNodeId);
+
+    {
+        char serialNum[kMaxSerialNumberLength];
+        size_t serialNumLen;
+        err = GetSerialNumber(serialNum, sizeof(serialNum), serialNumLen);
+        WeaveLogProgress(DeviceLayer, "  Serial Number: %s", (err == WEAVE_NO_ERROR) ? serialNum : "(not set)");
+    }
+
+    {
+        uint16_t vendorId;
+        if (GetVendorId(vendorId) != WEAVE_NO_ERROR)
+        {
+            vendorId = 0;
+        }
+        WeaveLogProgress(DeviceLayer, "  Vendor Id: %" PRId16 " (0x%" PRIX16 ")%s",
+                vendorId, vendorId, (vendorId == kWeaveVendor_NestLabs) ? " (Nest)" : "");
+    }
+
+    {
+        uint16_t productId;
+        if (GetProductId(productId) != WEAVE_NO_ERROR)
+        {
+            productId = 0;
+        }
+        WeaveLogProgress(DeviceLayer, "  Product Id: %" PRId16 " (0x%" PRIX16 ")", productId, productId);
+    }
+
+    if (FabricState.FabricId != kFabricIdNotSpecified)
+    {
+        WeaveLogProgress(DeviceLayer, "  Fabric Id: %" PRIX64, FabricState.FabricId);
+    }
+    else
+    {
+        WeaveLogProgress(DeviceLayer, "  Fabric Id: (none)");
+    }
+
+    WeaveLogProgress(DeviceLayer, "  Pairing Code: %s", mPairingCode);
+}
+
+#endif // WEAVE_PROGRESS_LOGGING
 
 void ConfigurationManager::DoFactoryReset(intptr_t arg)
 {
