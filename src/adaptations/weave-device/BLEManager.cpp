@@ -262,7 +262,7 @@ bool BLEManager::CloseConnection(uint16_t conId)
     // Signal the ESP BLE layer to close the conntion.
     err = esp_ble_gatts_close(mAppIf, conId);
     {
-        WeaveLogError(DeviceLayer, "esp_ble_gatts_close() failed: %s", esp_err_to_name(err));
+        WeaveLogError(DeviceLayer, "esp_ble_gatts_close() failed: %s", ErrorStr(err));
     }
 
     // Release the associated connection state record.
@@ -296,7 +296,7 @@ bool BLEManager::SendIndication(uint16_t conId, const WeaveBleUUID * svcId, cons
     err = esp_ble_gatts_send_indicate(mAppIf, conId, mTXCharAttrHandle, data->DataLength(), data->Start(), false);
     if (err != WEAVE_NO_ERROR)
     {
-        WeaveLogError(DeviceLayer, "esp_ble_gatts_send_indicate() failed: %s", esp_err_to_name(err));
+        WeaveLogError(DeviceLayer, "esp_ble_gatts_send_indicate() failed: %s", ErrorStr(err));
         ExitNow();
     }
 
@@ -357,7 +357,7 @@ void BLEManager::DriveBLEState(void)
         err = esp_ble_gatts_app_register(WoBLEAppId);
         if (err != WEAVE_NO_ERROR)
         {
-            WeaveLogError(DeviceLayer, "esp_ble_gatts_app_register() failed: %s", esp_err_to_name(err));
+            WeaveLogError(DeviceLayer, "esp_ble_gatts_app_register() failed: %s", ErrorStr(err));
             ExitNow();
         }
 
@@ -372,7 +372,7 @@ void BLEManager::DriveBLEState(void)
         err = esp_ble_gatts_create_attr_tab(WoBLEGATTAttrs, mAppIf, WoBLEGATTAttrCount, 0);
         if (err != WEAVE_NO_ERROR)
         {
-            WeaveLogError(DeviceLayer, "esp_ble_gatts_create_attr_tab() failed: %s", esp_err_to_name(err));
+            WeaveLogError(DeviceLayer, "esp_ble_gatts_create_attr_tab() failed: %s", ErrorStr(err));
             ExitNow();
         }
 
@@ -387,7 +387,7 @@ void BLEManager::DriveBLEState(void)
         err = esp_ble_gatts_start_service(mServiceAttrHandle);
         if (err != WEAVE_NO_ERROR)
         {
-            WeaveLogError(DeviceLayer, "esp_ble_gatts_start_service() failed: %s", esp_err_to_name(err));
+            WeaveLogError(DeviceLayer, "esp_ble_gatts_start_service() failed: %s", ErrorStr(err));
             ExitNow();
         }
 
@@ -422,7 +422,7 @@ void BLEManager::DriveBLEState(void)
             err = esp_ble_gap_stop_advertising();
             if (err != WEAVE_NO_ERROR)
             {
-                WeaveLogError(DeviceLayer, "esp_ble_gap_stop_advertising() failed: %s", esp_err_to_name(err));
+                WeaveLogError(DeviceLayer, "esp_ble_gap_stop_advertising() failed: %s", ErrorStr(err));
                 ExitNow();
             }
 
@@ -440,7 +440,7 @@ void BLEManager::DriveBLEState(void)
         err = esp_ble_gatts_stop_service(mServiceAttrHandle);
         if (err != WEAVE_NO_ERROR)
         {
-            WeaveLogError(DeviceLayer, "esp_ble_gatts_stop_service() failed: %s", esp_err_to_name(err));
+            WeaveLogError(DeviceLayer, "esp_ble_gatts_stop_service() failed: %s", ErrorStr(err));
             ExitNow();
         }
 
@@ -470,7 +470,7 @@ WEAVE_ERROR BLEManager::InitESPBleLayer(void)
         err = esp_bt_controller_mem_release(ESP_BT_MODE_CLASSIC_BT);
         if (err != WEAVE_NO_ERROR)
         {
-            WeaveLogError(DeviceLayer, "esp_bt_controller_mem_release() failed: %s", esp_err_to_name(err));
+            WeaveLogError(DeviceLayer, "esp_bt_controller_mem_release() failed: %s", ErrorStr(err));
             ExitNow();
         }
 
@@ -479,7 +479,7 @@ WEAVE_ERROR BLEManager::InitESPBleLayer(void)
         err = esp_bt_controller_init(&bt_cfg);
         if (err != WEAVE_NO_ERROR)
         {
-            WeaveLogError(DeviceLayer, "esp_bt_controller_init() failed: %s", esp_err_to_name(err));
+            WeaveLogError(DeviceLayer, "esp_bt_controller_init() failed: %s", ErrorStr(err));
             ExitNow();
         }
     }
@@ -490,7 +490,7 @@ WEAVE_ERROR BLEManager::InitESPBleLayer(void)
         err = esp_bt_controller_enable(ESP_BT_MODE_BLE);
         if (err != WEAVE_NO_ERROR)
         {
-            WeaveLogError(DeviceLayer, "esp_bt_controller_enable() failed: %s", esp_err_to_name(err));
+            WeaveLogError(DeviceLayer, "esp_bt_controller_enable() failed: %s", ErrorStr(err));
             ExitNow();
         }
     }
@@ -501,7 +501,7 @@ WEAVE_ERROR BLEManager::InitESPBleLayer(void)
         err = esp_bluedroid_init();
         if (err != WEAVE_NO_ERROR)
         {
-            WeaveLogError(DeviceLayer, "esp_bluedroid_init() failed: %s", esp_err_to_name(err));
+            WeaveLogError(DeviceLayer, "esp_bluedroid_init() failed: %s", ErrorStr(err));
             ExitNow();
         }
     }
@@ -512,7 +512,7 @@ WEAVE_ERROR BLEManager::InitESPBleLayer(void)
         err = esp_bluedroid_enable();
         if (err != WEAVE_NO_ERROR)
         {
-            WeaveLogError(DeviceLayer, "esp_bluedroid_enable() failed: %s", esp_err_to_name(err));
+            WeaveLogError(DeviceLayer, "esp_bluedroid_enable() failed: %s", ErrorStr(err));
             ExitNow();
         }
     }
@@ -521,7 +521,7 @@ WEAVE_ERROR BLEManager::InitESPBleLayer(void)
     err = esp_ble_gatts_register_callback(HandleGATTEvent);
     if (err != WEAVE_NO_ERROR)
     {
-        WeaveLogError(DeviceLayer, "esp_ble_gatts_register_callback() failed: %s", esp_err_to_name(err));
+        WeaveLogError(DeviceLayer, "esp_ble_gatts_register_callback() failed: %s", ErrorStr(err));
         ExitNow();
     }
 
@@ -529,14 +529,14 @@ WEAVE_ERROR BLEManager::InitESPBleLayer(void)
     err = esp_ble_gap_register_callback(HandleGAPEvent);
     if (err != WEAVE_NO_ERROR)
     {
-        WeaveLogError(DeviceLayer, "esp_ble_gap_register_callback() failed: %s", esp_err_to_name(err));
+        WeaveLogError(DeviceLayer, "esp_ble_gap_register_callback() failed: %s", ErrorStr(err));
         ExitNow();
     }
 
     // Set the maximum supported MTU size.
     err = esp_ble_gatt_set_local_mtu(ESP_GATT_MAX_MTU_SIZE);
     if (err != WEAVE_NO_ERROR){
-        WeaveLogError(DeviceLayer, "esp_ble_gatt_set_local_mtu() failed: %s", esp_err_to_name(err));
+        WeaveLogError(DeviceLayer, "esp_ble_gatt_set_local_mtu() failed: %s", ErrorStr(err));
     }
     SuccessOrExit(err);
 
@@ -566,7 +566,7 @@ WEAVE_ERROR BLEManager::ConfigureAdvertisingData(void)
     err = esp_ble_gap_set_device_name(mDeviceName);
     if (err != WEAVE_NO_ERROR)
     {
-        WeaveLogError(DeviceLayer, "esp_ble_gap_set_device_name() failed: %s", esp_err_to_name(err));
+        WeaveLogError(DeviceLayer, "esp_ble_gap_set_device_name() failed: %s", ErrorStr(err));
         ExitNow();
     }
 
@@ -588,7 +588,7 @@ WEAVE_ERROR BLEManager::ConfigureAdvertisingData(void)
     err = esp_ble_gap_config_adv_data(&advertData);
     if (err != WEAVE_NO_ERROR)
     {
-        WeaveLogError(DeviceLayer, "esp_ble_gap_config_adv_data(<advertising data>) failed: %s", esp_err_to_name(err));
+        WeaveLogError(DeviceLayer, "esp_ble_gap_config_adv_data(<advertising data>) failed: %s", ErrorStr(err));
         ExitNow();
     }
 
@@ -621,7 +621,7 @@ WEAVE_ERROR BLEManager::ConfigureAdvertisingData(void)
     err = esp_ble_gap_config_adv_data(&advertData);
     if (err != WEAVE_NO_ERROR)
     {
-        WeaveLogError(DeviceLayer, "esp_ble_gap_config_adv_data(<scan response>) failed: %s", esp_err_to_name(err));
+        WeaveLogError(DeviceLayer, "esp_ble_gap_config_adv_data(<scan response>) failed: %s", ErrorStr(err));
         ExitNow();
     }
 
@@ -665,7 +665,7 @@ WEAVE_ERROR BLEManager::StartAdvertising(void)
     err = esp_ble_gap_start_advertising(&advertParams);
     if (err != WEAVE_NO_ERROR)
     {
-        WeaveLogError(DeviceLayer, "esp_ble_gap_start_advertising() failed: %s", esp_err_to_name(err));
+        WeaveLogError(DeviceLayer, "esp_ble_gap_start_advertising() failed: %s", ErrorStr(err));
         ExitNow();
     }
 
@@ -915,7 +915,7 @@ void BLEManager::HandleTXCharRead(esp_ble_gatts_cb_param_t * param)
     err = esp_ble_gatts_send_response(mAppIf, param->read.conn_id, param->read.trans_id, ESP_GATT_OK, &rsp);
     if (err != WEAVE_NO_ERROR)
     {
-        WeaveLogError(DeviceLayer, "esp_ble_gatts_send_response() failed: %s", esp_err_to_name(err));
+        WeaveLogError(DeviceLayer, "esp_ble_gatts_send_response() failed: %s", ErrorStr(err));
     }
 }
 
@@ -941,7 +941,7 @@ void BLEManager::HandleTXCharCCCDRead(esp_ble_gatts_cb_param_t * param)
     err = esp_ble_gatts_send_response(mAppIf, param->read.conn_id, param->read.trans_id, (conState != NULL) ? ESP_GATT_OK : ESP_GATT_INTERNAL_ERROR, &rsp);
     if (err != WEAVE_NO_ERROR)
     {
-        WeaveLogError(DeviceLayer, "esp_ble_gatts_send_response() failed: %s", esp_err_to_name(err));
+        WeaveLogError(DeviceLayer, "esp_ble_gatts_send_response() failed: %s", ErrorStr(err));
     }
 }
 
