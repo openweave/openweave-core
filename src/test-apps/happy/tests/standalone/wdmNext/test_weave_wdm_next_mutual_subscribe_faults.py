@@ -49,14 +49,20 @@ class test_weave_wdm_next_mutual_subscribe_faults(weave_wdm_next_test_base):
         counters['client'] = WeaveUtilities.parse_fault_injection_counters(output_logs['client'])
         counters['server'] = WeaveUtilities.parse_fault_injection_counters(output_logs['server'])
 
-        # As of today, all fault points should be executed on the server
-        required_server_faults = [ key for key in counters["server"].keys() if "Weave_WDM" in key ]
+        # As of today, all fault points should be executed on the server, but not Weave_WDMSendUpdateBadVersion
+        not_required_server_faults = [ "Weave_WDMSendUpdateBadVersion" ]
+
+        required_server_faults = [ key for key in counters["server"].keys() if "Weave_WDM" in key and key not in not_required_server_faults]
 
         # This will raise a ValueError
         WeaveUtilities.validate_counters(required_server_faults, counters["server"], "server")
 
-        # As of today, the client does not send commands
-        required_client_faults = [ key for key in counters["client"].keys() if "Weave_WDM" in key and not "SendCommand" in key ]
+        # As of today, the client does not send commands nor updates
+        not_required_client_faults = [ "Weave_WDMSendCommandBadVersion",
+                                       "Weave_WDMSendCommandExpired",
+                                       "Weave_WDMSendUpdateBadVersion" ]
+
+        required_client_faults = [ key for key in counters["client"].keys() if "Weave_WDM" in key and key not in not_required_client_faults]
 
         # This will raise a ValueError
         WeaveUtilities.validate_counters(required_client_faults, counters["client"], "client")
