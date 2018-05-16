@@ -1242,6 +1242,20 @@ void TestTdm::TestTdmStatic_TestIsParent(nlTestSuite *inSuite)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
     const TraitSchemaEngine *se = mTestBSource.GetSchemaEngine();
+    PropertyPathHandle leafInDictionary = CreatePropertyPathHandle(TestBTrait::kPropertyHandle_TaJ_Value_SaA, 3);
+
+    // Remember that here "parent" really means "ancestor"
+
+    // Check that:
+    // 0. if any one of the argumets is kNullPropertyPathHandle, the result is false
+    // 1. a property path is not its own parent
+    // 2. root is a parent of any other property path
+    // 3. the usual cases
+
+    // kPropertyHandle_TaA is a leaf;
+    // kPropertyHandle_TaD is a structure;
+    // kPropertyHandle_TaD_SaA is a leaf inside TaD
+    // kPropertyHandle_TaI and kPropertyHandle_TaJ are dictionaries
 
     NL_TEST_ASSERT(inSuite, false == se->IsParent(CreatePropertyPathHandle(TestBTrait::kPropertyHandle_TaD),
                                                   CreatePropertyPathHandle(TestBTrait::kPropertyHandle_TaD)));
@@ -1273,6 +1287,45 @@ void TestTdm::TestTdmStatic_TestIsParent(nlTestSuite *inSuite)
     NL_TEST_ASSERT(inSuite, false == se->IsParent(CreatePropertyPathHandle(TestBTrait::kPropertyHandle_TaA),
                                                   CreatePropertyPathHandle(kNullPropertyPathHandle)));
 
+    NL_TEST_ASSERT(inSuite,          se->IsParent(se->GetDictionaryItemHandle(TestBTrait::kPropertyHandle_TaI, 3),
+                                                  CreatePropertyPathHandle(TestBTrait::kPropertyHandle_TaI)));
+
+    NL_TEST_ASSERT(inSuite, false == se->IsParent(CreatePropertyPathHandle(TestBTrait::kPropertyHandle_TaI),
+                                                  se->GetDictionaryItemHandle(TestBTrait::kPropertyHandle_TaI, 3)));
+
+    NL_TEST_ASSERT(inSuite,          se->IsParent(CreatePropertyPathHandle(TestBTrait::kPropertyHandle_TaJ_Value_SaA, 3),
+                                                  CreatePropertyPathHandle(TestBTrait::kPropertyHandle_TaJ_Value, 3)));
+
+    // the dictionary item structure with key 2 is not the parent of a leaf with key 3
+    NL_TEST_ASSERT(inSuite, false == se->IsParent(CreatePropertyPathHandle(TestBTrait::kPropertyHandle_TaJ_Value_SaA, 3),
+                                                  CreatePropertyPathHandle(TestBTrait::kPropertyHandle_TaJ_Value, 2)));
+
+    // Note that these two are the same:
+    NL_TEST_ASSERT(inSuite, CreatePropertyPathHandle(TestBTrait::kPropertyHandle_TaJ_Value, 2) == se->GetDictionaryItemHandle(TestBTrait::kPropertyHandle_TaJ, 2));
+
+
+    // the dictionary item structure with key 0 is not the parent of a leaf with key 3
+    NL_TEST_ASSERT(inSuite, false == se->IsParent(CreatePropertyPathHandle(TestBTrait::kPropertyHandle_TaJ_Value_SaA, 3),
+                                                  CreatePropertyPathHandle(TestBTrait::kPropertyHandle_TaJ_Value)));
+
+    NL_TEST_ASSERT(inSuite,          se->IsParent(CreatePropertyPathHandle(TestBTrait::kPropertyHandle_TaJ_Value_SaA, 3),
+                                                  CreatePropertyPathHandle(TestBTrait::kPropertyHandle_TaJ)));
+
+    NL_TEST_ASSERT(inSuite,          se->IsParent(CreatePropertyPathHandle(TestBTrait::kPropertyHandle_TaJ_Value_SaA, 3),
+                                                  kRootPropertyPathHandle));
+
+    NL_TEST_ASSERT(inSuite, false == se->IsParent(CreatePropertyPathHandle(TestBTrait::kPropertyHandle_TaI),
+                                                  se->GetDictionaryItemHandle(TestBTrait::kPropertyHandle_TaI, 3)));
+
+    NL_TEST_ASSERT(inSuite, false == se->IsParent(CreatePropertyPathHandle(TestBTrait::kPropertyHandle_TaJ_Value_SaA, 3),
+                                                  CreatePropertyPathHandle(TestBTrait::kPropertyHandle_TaI)));
+
+    // Check all ancestors of a leaf in a dictionary:
+    for (PropertyPathHandle ancestor = se->GetParent(leafInDictionary); ancestor != kNullPropertyPathHandle; ancestor = se->GetParent(ancestor))
+    {
+        NL_TEST_ASSERT(inSuite, se->IsParent(leafInDictionary, ancestor));
+        NL_TEST_ASSERT(inSuite, false == se->IsParent(ancestor, leafInDictionary));
+    }
 }
 
 void TestTdm::TestTdmMismatched_PathInDataElement(nlTestSuite *inSuite)
