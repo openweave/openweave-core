@@ -490,6 +490,8 @@ private:
 
     static void InitUpdatableSinkTrait(void * aDataSink, TraitDataHandle aDataHandle, void * aContext);
 
+    // TODO: this started as a copy&paste of the path store in NotificationEngine.h.
+    // Remove the duplication.
     struct PathStore
     {
     public:
@@ -514,7 +516,6 @@ private:
 
         struct Record {
             Flags mFlags;
-            WEAVE_ERROR mError;
             TraitPath mTraitPath;
         };
 
@@ -530,21 +531,21 @@ private:
         WEAVE_ERROR InsertItemAfter(uint32_t aIndex, TraitPath aItem, bool aForceMerge = false, bool aPrivate = false);
         WEAVE_ERROR InsertItemAfter(uint32_t aIndex, TraitPath aItem, Flags aFlags);
 
-        void SetFailed(uint32_t aIndex, WEAVE_ERROR aErr) { SetFlag(aIndex, kFlag_Failed, true); mStore[aIndex].mError = aErr; }
-        void SetFailedTrait(TraitDataHandle aDataHandle, WEAVE_ERROR aErr);
+        void SetFailed(uint32_t aIndex) { SetFlag(aIndex, kFlag_Failed, true); }
+        void SetFailedTrait(TraitDataHandle aDataHandle);
 
         void GetItemAt(uint32_t aIndex, TraitPath &aTraitPath) { aTraitPath = mStore[aIndex].mTraitPath; }
-        void GetErrorAt(uint32_t aIndex, WEAVE_ERROR &aErr) { aErr = mStore[aIndex].mError; }
 
         void RemoveItem(TraitDataHandle aDataHandle);
         void RemoveItemAt(uint32_t aIndex);
+
+        void Compact();
 
         void Clear();
 
         bool Includes(TraitPath aItem, const TraitSchemaEngine * const apSchemaEngine);
         bool Intersects(TraitPath aItem, const TraitSchemaEngine * const apSchemaEngine);
         bool IsPresent(TraitPath aItem);
-        bool IsPresent(TraitPath aItem, const bool *aForceMerge);
         bool IsTraitPresent(TraitDataHandle aDataHandle);
         bool IsItemInUse(uint32_t aIndex) { return IsFlagSet(aIndex, kFlag_InUse); }
         bool IsItemValid(uint32_t aIndex) { return (IsItemInUse(aIndex) && (!IsFlagSet(aIndex, kFlag_Failed))); }

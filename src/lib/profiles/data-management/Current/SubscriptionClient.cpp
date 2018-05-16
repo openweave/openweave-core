@@ -1946,7 +1946,6 @@ WEAVE_ERROR SubscriptionClient::PathStore::AddItem(TraitPath aItem, Flags aFlags
         {
             mStore[i].mTraitPath = aItem;
             mStore[i].mFlags = aFlags;
-            mStore[i].mError = WEAVE_NO_ERROR;
             SetFlag(i, kFlag_InUse, true);
             mNumItems++;
             err = WEAVE_NO_ERROR;
@@ -1974,7 +1973,6 @@ WEAVE_ERROR SubscriptionClient::PathStore::InsertItemAfter(uint32_t aIndex, Trai
 
     mStore[destIndex].mTraitPath = aItem;
     mStore[destIndex].mFlags = aFlags;
-    mStore[destIndex].mError = WEAVE_NO_ERROR;
     SetFlag(destIndex, kFlag_InUse, true);
 
     mNumItems++;
@@ -2017,17 +2015,11 @@ WEAVE_ERROR SubscriptionClient::PathStore::InsertItemAfter(uint32_t aIndex, Trai
 
 void SubscriptionClient::PathStore::RemoveItem(TraitDataHandle aDataHandle)
 {
-    size_t i = 0;
-
-    while (i < mNumItems -1)
+    for (size_t i = 0; i < WDM_UPDATE_MAX_ITEMS_IN_TRAIT_DIRTY_PATH_STORE; i++)
     {
         if (IsItemInUse(i) && (mStore[i].mTraitPath.mTraitDataHandle == aDataHandle))
         {
             RemoveItemAt(i);
-        }
-        else
-        {
-            i++;
         }
     }
 }
@@ -2052,7 +2044,7 @@ exit:
     return found;
 }
 
-void SubscriptionClient::PathStore::SetFailedTrait(TraitDataHandle aDataHandle, WEAVE_ERROR aErr)
+void SubscriptionClient::PathStore::SetFailedTrait(TraitDataHandle aDataHandle)
 {
     if (mNumItems == 0)
         ExitNow();
@@ -2061,7 +2053,7 @@ void SubscriptionClient::PathStore::SetFailedTrait(TraitDataHandle aDataHandle, 
     {
         if (IsItemInUse(i) && (mStore[i].mTraitPath.mTraitDataHandle == aDataHandle))
         {
-            SetFailed(i, aErr);
+            SetFailed(i);
         }
     }
 
@@ -2162,41 +2154,40 @@ exit:
 
 void SubscriptionClient::PathStore::RemoveItemAt(uint32_t aIndex)
 {
-    size_t numItemsToMove;
-    size_t numBytesToMove;
-    uint32_t lastIndex = mNumItems -1;
+    VerifyOrDie(mNumItems >0);
 
-    VerifyOrDie(mNumItems > aIndex);
-
-    if (aIndex < lastIndex)
-    {
-        numItemsToMove = lastIndex - aIndex;
-        numBytesToMove = numItemsToMove * sizeof(mStore[0]);
-        memmove(&mStore[aIndex], &mStore[aIndex+1], numBytesToMove);
-    }
-    SetFlag(lastIndex, kFlag_InUse, false);
+    SetFlag(aIndex, kFlag_InUse, false);
     mNumItems--;
 }
 
-bool SubscriptionClient::PathStore::IsPresent(TraitPath aItem)
+void SubscriptionClient::PathStore::Compact()
 {
-    return IsPresent(aItem, NULL);
+    uint32_t numItemsRemaining = mNumItems;
+    size_t numBytesToMove, numItemsToMove;
+    const size_t lastIndex = WDM_UPDATE_MAX_ITEMS_IN_TRAIT_DIRTY_PATH_STORE -1;
+
+    for (size_t i = 0; i < WDM_UPDATE_MAX_ITEMS_IN_TRAIT_DIRTY_PATH_STORE && numItemsRemaining > 0; i++)
+    {
+        if (IsItemInUse(i))
+        {
+            numItemsRemaining--;
+            continue;
+        }
+
+        numItemsToMove = lastIndex -i;
+        numBytesToMove = numItemsToMove * sizeof(mStore[0]);
+        memmove(&mStore[i], &mStore[i+1], numBytesToMove);
+        SetFlag(lastIndex, kFlag_InUse, false);
+    }
 }
 
-bool SubscriptionClient::PathStore::IsPresent(TraitPath aItem, const bool *aForceMerge)
+bool SubscriptionClient::PathStore::IsPresent(TraitPath aItem)
 {
     for (size_t i = 0; i < WDM_UPDATE_MAX_ITEMS_IN_TRAIT_DIRTY_PATH_STORE; i++)
     {
         if (IsItemValid(i) && (mStore[i].mTraitPath == aItem))
         {
-            if (aForceMerge)
-            {
-                return (IsItemForceMerge(i) == *aForceMerge);
-            }
-            else
-            {
-                return true;
-            }
+            return true;
         }
     }
 
@@ -2296,19 +2287,18 @@ void SubscriptionClient::PurgeFailedPaths(PathStore &aPathStore)
         {
             if (! aPathStore.IsItemPrivate(j))
             {
-                WEAVE_ERROR err;
-
                 aPathStore.GetItemAt(j, traitPath);
-                aPathStore.GetErrorAt(j, err);
 
                 UpdateCompleteEventCbHelper(traitPath,
                         nl::Weave::Profiles::kWeaveProfile_Common,
                         nl::Weave::Profiles::Common::kStatus_InternalError,
-                        err);
+                        WEAVE_ERROR_WDM_VERSION_MISMATCH);
             }
             aPathStore.RemoveItemAt(j);
         }
     }
+
+    aPathStore.Compact();
 }
 
 bool SubscriptionClient::IsEmptyPendingUpdateSet(void)
@@ -2331,7 +2321,6 @@ WEAVE_ERROR SubscriptionClient::AddItemPendingUpdateSet(const TraitPath &aItem, 
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
     UpdatableTIContext * traitInstance = GetUpdatableTIContext(aItem.mTraitDataHandle);
-    size_t i;
 
     if (mPendingUpdateSet.Includes(aItem, apSchemaEngine))
     {
@@ -2340,22 +2329,16 @@ WEAVE_ERROR SubscriptionClient::AddItemPendingUpdateSet(const TraitPath &aItem, 
     }
 
     // Remove any paths of which aItem is an ancestor
-    i = 0;
-    while (i < mPendingUpdateSet.GetNumItems())
+    for (size_t i = 0; i < mPendingUpdateSet.GetPathStoreSize(); i++)
     {
         if (mPendingUpdateSet.IsItemValid(i) && 
                 (mPendingUpdateSet.mStore[i].mTraitPath.mTraitDataHandle == aItem.mTraitDataHandle) &&
-                (aItem.mPropertyPathHandle == kRootPropertyPathHandle ||
-                    apSchemaEngine->IsParent(mPendingUpdateSet.mStore[i].mTraitPath.mPropertyPathHandle, aItem.mPropertyPathHandle)))
+                    apSchemaEngine->IsParent(mPendingUpdateSet.mStore[i].mTraitPath.mPropertyPathHandle, aItem.mPropertyPathHandle))
         {
             WeaveLogDetail(DataManagement, "Removing pending item %u t%u p%u", i,
                     mPendingUpdateSet.mStore[i].mTraitPath.mTraitDataHandle,
                     mPendingUpdateSet.mStore[i].mTraitPath.mPropertyPathHandle);
             mPendingUpdateSet.RemoveItemAt(i);
-        }
-        else
-        {
-            i++;
         }
     }
 
@@ -2391,9 +2374,8 @@ exit:
 void SubscriptionClient::RemoveInProgressPrivateItemsAfter(uint16_t aItemInProgress)
 {
     int count = 0;
-    size_t i = aItemInProgress + 1;
 
-    while (i < mInProgressUpdateList.GetNumItems())
+    for (size_t i = aItemInProgress + 1; i < mInProgressUpdateList.GetPathStoreSize(); i++)
     {
         if (mInProgressUpdateList.IsItemValid(i) &&
                 mInProgressUpdateList.IsItemPrivate(i))
@@ -2401,10 +2383,11 @@ void SubscriptionClient::RemoveInProgressPrivateItemsAfter(uint16_t aItemInProgr
             mInProgressUpdateList.RemoveItemAt(i);
             count++;
         }
-        else
-        {
-            i++;
-        }
+    }
+
+    if (count > 0)
+    {
+        mInProgressUpdateList.Compact();
     }
 
     WeaveLogDetail(DataManagement, "Removed %d private InProgress items after %u; numItems: %u",
@@ -2489,7 +2472,7 @@ void SubscriptionClient::MarkFailedPendingPaths(TraitDataHandle aTraitDataHandle
                     tIContext->mUpdatableDataSink->GetUpdateRequiredVersion(),
                     aLatestVersion);
 
-            mPendingUpdateSet.SetFailedTrait(aTraitDataHandle, WEAVE_ERROR_WDM_VERSION_MISMATCH);
+            mPendingUpdateSet.SetFailedTrait(aTraitDataHandle);
         }
     }
 exit:
@@ -2815,7 +2798,7 @@ void SubscriptionClient::OnUpdateConfirm(WEAVE_ERROR aReason, nl::Weave::Profile
                 // Fail all pending ones as well for VersionMismatch and force resubscribe
                 if (mPendingUpdateSet.IsTraitPresent(tIContext->mTraitDataHandle))
                 {
-                    mPendingUpdateSet.SetFailedTrait(tIContext->mTraitDataHandle, WEAVE_ERROR_WDM_VERSION_MISMATCH);
+                    mPendingUpdateSet.SetFailedTrait(tIContext->mTraitDataHandle);
                     tIContext->mUpdatableDataSink->ClearVersion();
                     needToResubscribe = true;
                 }
@@ -2825,7 +2808,7 @@ void SubscriptionClient::OnUpdateConfirm(WEAVE_ERROR aReason, nl::Weave::Profile
                 if (tIContext->mUpdatableDataSink->IsConditionalUpdate() &&
                         mPendingUpdateSet.IsTraitPresent(tIContext->mTraitDataHandle))
                 {
-                    mPendingUpdateSet.SetFailedTrait(tIContext->mTraitDataHandle, WEAVE_ERROR_WDM_VERSION_MISMATCH);
+                    mPendingUpdateSet.SetFailedTrait(tIContext->mTraitDataHandle);
                 }
 
                 if (updatableDataSink->IsVersionValid())
@@ -3393,11 +3376,10 @@ exit:
 
 void SubscriptionClient::SetUpdateStartVersions(void)
 {
-    uint32_t numSourceItems = mInProgressUpdateList.GetNumItems();
     TraitPath traitPath;
     UpdatableTIContext * tIContext;
 
-    for (size_t i = 0; i < numSourceItems; i++)
+    for (size_t i = 0; i < mInProgressUpdateList.GetPathStoreSize(); i++)
     {
         if (mInProgressUpdateList.IsItemValid(i))
         {
