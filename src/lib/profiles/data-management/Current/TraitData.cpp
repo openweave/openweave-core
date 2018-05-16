@@ -546,17 +546,23 @@ PropertyPathHandle TraitSchemaEngine::GetFirstChild(PropertyPathHandle aParentHa
 
 bool TraitSchemaEngine::IsParent(PropertyPathHandle aChildHandle, PropertyPathHandle aParentHandle) const
 {
-    while (aChildHandle != kRootPropertyPathHandle)
+    bool retval = false;
+
+    VerifyOrExit(aChildHandle != kNullPropertyPathHandle &&
+                 aParentHandle != kNullPropertyPathHandle, );
+
+    do
     {
+        aChildHandle = GetParent(aChildHandle);
+
         if (aChildHandle == aParentHandle)
         {
-            return true;
+            ExitNow(retval = true);
         }
+    } while (aChildHandle != kNullPropertyPathHandle);
 
-        aChildHandle = GetParent(aChildHandle);
-    }
-
-    return false;
+exit:
+    return retval;
 }
 
 PropertyPathHandle TraitSchemaEngine::GetParent(PropertyPathHandle aHandle) const

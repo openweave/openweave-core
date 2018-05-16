@@ -131,6 +131,8 @@ static void TestTdmStatic_TestNonNullableLeaf(nlTestSuite *inSuite, void *inCont
 static void TestTdmStatic_TestEphemeralLeaf(nlTestSuite *inSuite, void *inContext);
 static void TestTdmStatic_TestEphemeralStruct(nlTestSuite *inSuite, void *inContext);
 
+static void TestTdmStatic_TestIsParent(nlTestSuite *inSuite, void *inContext);
+
 static void TestTdmMismatched_PathInDataElement(nlTestSuite *inSuite, void *inContext);
 static void TestTdmMismatched_TopLevelPOD(nlTestSuite *inSuite, void *inContext);
 static void TestTdmMismatched_NestedStruct(nlTestSuite *inSuite, void *inContext);
@@ -184,6 +186,8 @@ static const nlTest sTests[] = {
 
     NL_TEST_DEF("Test Tdm (Static schema): Ephemeral leaf data", TestTdmStatic_TestEphemeralLeaf),
     NL_TEST_DEF("Test Tdm (Static schema): Ephemeral struct", TestTdmStatic_TestEphemeralStruct),
+
+    NL_TEST_DEF("Test Tdm (Static schema): IsParent", TestTdmStatic_TestIsParent),
 
     // Tests a mismatched schema on publisher and subscriber
     NL_TEST_DEF("Test Tdm (Mismatched schema): Path in DataElement is unmappable", TestTdmMismatched_PathInDataElement),
@@ -693,6 +697,8 @@ public:
 
     void TestTdmStatic_TestEphemeralLeaf(nlTestSuite *inSuite);
     void TestTdmStatic_TestEphemeralStruct(nlTestSuite *inSuite);
+
+    void TestTdmStatic_TestIsParent(nlTestSuite *inSuite);
 
     void TestTdmMismatched_PathInDataElement(nlTestSuite *inSuite);
     void TestTdmMismatched_TopLevelPOD(nlTestSuite *inSuite);
@@ -1230,6 +1236,43 @@ void TestTdm::TestTdmStatic_TestEphemeralStruct(nlTestSuite *inSuite)
         anyChildrenSet |= mTestBSink.IsPathHandleSet(i);
     }
     NL_TEST_ASSERT(inSuite, anyChildrenSet == false);
+}
+
+void TestTdm::TestTdmStatic_TestIsParent(nlTestSuite *inSuite)
+{
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
+    const TraitSchemaEngine *se = mTestBSource.GetSchemaEngine();
+
+    NL_TEST_ASSERT(inSuite, false == se->IsParent(CreatePropertyPathHandle(TestBTrait::kPropertyHandle_TaD),
+                                                  CreatePropertyPathHandle(TestBTrait::kPropertyHandle_TaD)));
+
+    NL_TEST_ASSERT(inSuite, false == se->IsParent(CreatePropertyPathHandle(TestBTrait::kPropertyHandle_TaA),
+                                                  CreatePropertyPathHandle(TestBTrait::kPropertyHandle_TaA)));
+
+    NL_TEST_ASSERT(inSuite, false == se->IsParent(kRootPropertyPathHandle,
+                                                  kRootPropertyPathHandle));
+
+    NL_TEST_ASSERT(inSuite,          se->IsParent(CreatePropertyPathHandle(TestBTrait::kPropertyHandle_TaD_SaA),
+                                                  CreatePropertyPathHandle(TestBTrait::kPropertyHandle_TaD)));
+
+    NL_TEST_ASSERT(inSuite, false == se->IsParent(CreatePropertyPathHandle(TestBTrait::kPropertyHandle_TaD),
+                                                  CreatePropertyPathHandle(TestBTrait::kPropertyHandle_TaD_SaA)));
+
+    NL_TEST_ASSERT(inSuite, false == se->IsParent(kRootPropertyPathHandle,
+                                                  CreatePropertyPathHandle(TestBTrait::kPropertyHandle_TaD)));
+
+    NL_TEST_ASSERT(inSuite,          se->IsParent(CreatePropertyPathHandle(TestBTrait::kPropertyHandle_TaD),
+                                                  kRootPropertyPathHandle));
+
+    NL_TEST_ASSERT(inSuite, false == se->IsParent(CreatePropertyPathHandle(TestBTrait::kPropertyHandle_TaD_SaA),
+                                                  CreatePropertyPathHandle(TestBTrait::kPropertyHandle_TaA)));
+
+    NL_TEST_ASSERT(inSuite, false == se->IsParent(CreatePropertyPathHandle(kNullPropertyPathHandle),
+                                                  CreatePropertyPathHandle(TestBTrait::kPropertyHandle_TaA)));
+
+    NL_TEST_ASSERT(inSuite, false == se->IsParent(CreatePropertyPathHandle(TestBTrait::kPropertyHandle_TaA),
+                                                  CreatePropertyPathHandle(kNullPropertyPathHandle)));
+
 }
 
 void TestTdm::TestTdmMismatched_PathInDataElement(nlTestSuite *inSuite)
@@ -1995,6 +2038,11 @@ static void TestTdmStatic_TestNonNullableLeaf(nlTestSuite *inSuite, void *inCont
 static void TestTdmStatic_TestEphemeralStruct(nlTestSuite *inSuite, void *inContext)
 {
     gTestTdm->TestTdmStatic_TestEphemeralStruct(inSuite);
+}
+
+static void TestTdmStatic_TestIsParent(nlTestSuite *inSuite, void *inContext)
+{
+    gTestTdm->TestTdmStatic_TestIsParent(inSuite);
 }
 
 static void TestTdmStatic_TestEphemeralLeaf(nlTestSuite *inSuite, void *inContext)

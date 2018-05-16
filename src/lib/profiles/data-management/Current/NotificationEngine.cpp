@@ -244,7 +244,8 @@ WEAVE_ERROR NotificationEngine::IntermediateGraphSolver::DeleteKey(TraitDataHand
         {
             if (mDirtyStore.mValidFlags[i] && (mDirtyStore.mStore[i].mTraitDataHandle == aDataHandle))
             {
-                if (dataSource->GetSchemaEngine()->IsParent(mDirtyStore.mStore[i].mPropertyPathHandle, aPropertyHandle))
+                if (mDirtyStore.mStore[i].mPropertyPathHandle == aPropertyHandle ||
+                        dataSource->GetSchemaEngine()->IsParent(mDirtyStore.mStore[i].mPropertyPathHandle, aPropertyHandle))
                 {
                     WeaveLogDetail(DataManagement, "<ISolver:DeleteKey> Removing previously added dirty handle (%u:%u)",
                                    GetPropertyDictionaryKey(mDirtyStore.mStore[i].mPropertyPathHandle),
@@ -310,7 +311,8 @@ WEAVE_ERROR NotificationEngine::IntermediateGraphSolver::SetDirty(TraitDataHandl
         {
             if (mDeleteStore.mValidFlags[i] && (mDeleteStore.mStore[i].mTraitDataHandle == aDataHandle))
             {
-                if (dataSource->GetSchemaEngine()->IsParent(aPropertyHandle, mDeleteStore.mStore[i].mPropertyPathHandle))
+                if (aPropertyHandle == mDeleteStore.mStore[i].mPropertyPathHandle ||
+                        dataSource->GetSchemaEngine()->IsParent(aPropertyHandle, mDeleteStore.mStore[i].mPropertyPathHandle))
                 {
                     WeaveLogDetail(DataManagement, "<ISolver:DeleteKey> Removing previously deleted element (%u:%u)",
                                    GetPropertyDictionaryKey(mDeleteStore.mStore[i].mPropertyPathHandle),
