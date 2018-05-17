@@ -899,6 +899,7 @@ private:
     // Tracks whether SetDirty was called within a Lock/Unlock 'session'
     bool mSetDirtyCalled;
 };
+
 }; // namespace WeaveMakeManagedNamespaceIdentifier(DataManagement, kWeaveManagedNamespaceDesignation_Current)
 }; // namespace Profiles
 }; // namespace Weave

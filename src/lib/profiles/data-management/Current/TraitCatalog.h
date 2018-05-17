@@ -445,6 +445,7 @@ WEAVE_ERROR SingleResourceTraitCatalog<T>::GetResourceId(TraitDataHandle aHandle
 
     return err;
 }
+
 #endif // WEAVE_CONFIG_ENABLE_WDM_UPDATE
 
 }; // namespace WeaveMakeManagedNamespaceIdentifier(DataManagement, kWeaveManagedNamespaceDesignation_Current)

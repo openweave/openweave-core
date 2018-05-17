@@ -96,8 +96,8 @@ void SubscriptionClient::Reset(void)
     mUpdateRequestContext.mItemInProgress = 0;
     mUpdateRequestContext.mNextDictionaryElementPathHandle = kNullPropertyPathHandle;
     mPendingSetState = kPendingSetEmpty;
-    mPendingUpdateSet.Clear();
-    mInProgressUpdateList.Clear();
+    mPendingUpdateSet.Init(mPendingStore, ARRAY_SIZE(mPendingStore));
+    mInProgressUpdateList.Init(mInProgressStore, ARRAY_SIZE(mInProgressStore));
 #endif // WEAVE_CONFIG_ENABLE_WDM_UPDATE
 
 #if WDM_ENABLE_PROTOCOL_CHECKS
@@ -1911,165 +1911,6 @@ void SubscriptionClient::SetMaxUpdateSize(const uint32_t aMaxSize)
         mMaxUpdateSize = aMaxSize;
 }
 
-SubscriptionClient::PathStore::PathStore()
-{
-    Clear();
-}
-
-bool SubscriptionClient::PathStore::IsEmpty()
-{
-    return mNumItems == 0;
-}
-
-bool SubscriptionClient::PathStore::IsFull()
-{
-    return mNumItems >= WDM_UPDATE_MAX_ITEMS_IN_TRAIT_DIRTY_PATH_STORE;
-}
-
-uint32_t SubscriptionClient::PathStore::GetNumItems()
-{
-    return mNumItems;
-}
-
-uint32_t SubscriptionClient::PathStore::GetPathStoreSize()
-{
-    return WDM_UPDATE_MAX_ITEMS_IN_TRAIT_DIRTY_PATH_STORE;
-}
-
-WEAVE_ERROR SubscriptionClient::PathStore::AddItem(TraitPath aItem, Flags aFlags)
-{
-    WEAVE_ERROR err = WEAVE_ERROR_NO_MEMORY;
-
-    for (size_t i = 0; i < WDM_UPDATE_MAX_ITEMS_IN_TRAIT_DIRTY_PATH_STORE; i++)
-    {
-        if (!IsItemInUse(i))
-        {
-            mStore[i].mTraitPath = aItem;
-            mStore[i].mFlags = aFlags;
-            SetFlag(i, kFlag_InUse, true);
-            mNumItems++;
-            err = WEAVE_NO_ERROR;
-            break;
-        }
-    }
-
-    return err;
-}
-
-// Assumes the array is compacted!
-WEAVE_ERROR SubscriptionClient::PathStore::InsertItemAfter(uint32_t aIndex, TraitPath aItem, Flags aFlags)
-{
-    WEAVE_ERROR err = WEAVE_NO_ERROR;
-    size_t destIndex = aIndex + 1;
-    size_t numItemsToMove = mNumItems - destIndex;
-    size_t numBytesToMove = numItemsToMove * sizeof(mStore[0]);
-
-    VerifyOrExit(false == IsFull(), err = WEAVE_ERROR_NO_MEMORY);
-
-    if (numItemsToMove > 0)
-    {
-        memmove(&mStore[destIndex+1], &mStore[destIndex], numBytesToMove);
-    }
-
-    mStore[destIndex].mTraitPath = aItem;
-    mStore[destIndex].mFlags = aFlags;
-    SetFlag(destIndex, kFlag_InUse, true);
-
-    mNumItems++;
-
-exit:
-    return err;
-}
-
-WEAVE_ERROR SubscriptionClient::PathStore::AddItem(TraitPath aItem, bool aForceMerge, bool aPrivate)
-{
-    Flags flags = static_cast<Flags>(kFlag_None);
-
-    if (aForceMerge)
-    {
-        flags |= static_cast<Flags>(kFlag_ForceMerge);
-    }
-    if (aPrivate)
-    {
-        flags |= static_cast<Flags>(kFlag_Private);
-    }
-
-    return AddItem(aItem, flags);
-}
-
-WEAVE_ERROR SubscriptionClient::PathStore::InsertItemAfter(uint32_t aIndex, TraitPath aItem, bool aForceMerge, bool aPrivate)
-{
-    Flags flags = static_cast<Flags>(kFlag_None);
-
-    if (aForceMerge)
-    {
-        flags |= static_cast<Flags>(kFlag_ForceMerge);
-    }
-    if (aPrivate)
-    {
-        flags |= static_cast<Flags>(kFlag_Private);
-    }
-
-    return InsertItemAfter(aIndex, aItem, flags);
-}
-
-void SubscriptionClient::PathStore::RemoveItem(TraitDataHandle aDataHandle)
-{
-    for (size_t i = 0; i < WDM_UPDATE_MAX_ITEMS_IN_TRAIT_DIRTY_PATH_STORE; i++)
-    {
-        if (IsItemInUse(i) && (mStore[i].mTraitPath.mTraitDataHandle == aDataHandle))
-        {
-            RemoveItemAt(i);
-        }
-    }
-}
-
-bool SubscriptionClient::PathStore::IsTraitPresent(TraitDataHandle aDataHandle)
-{
-    bool found = false;
-
-    if (mNumItems == 0)
-        ExitNow();
-
-    for (size_t i = 0; i < WDM_UPDATE_MAX_ITEMS_IN_TRAIT_DIRTY_PATH_STORE; i++)
-    {
-        if (IsItemInUse(i) && (mStore[i].mTraitPath.mTraitDataHandle == aDataHandle))
-        {
-            found = true;
-            break;
-        }
-    }
-
-exit:
-    return found;
-}
-
-void SubscriptionClient::PathStore::SetFailedTrait(TraitDataHandle aDataHandle)
-{
-    if (mNumItems == 0)
-        ExitNow();
-
-    for (size_t i = 0; i < WDM_UPDATE_MAX_ITEMS_IN_TRAIT_DIRTY_PATH_STORE; i++)
-    {
-        if (IsItemInUse(i) && (mStore[i].mTraitPath.mTraitDataHandle == aDataHandle))
-        {
-            SetFailed(i);
-        }
-    }
-
-exit:
-    return;
-}
-
-void SubscriptionClient::PathStore::SetFlag(uint32_t aIndex, Flag aFlag, bool aValue)
-{
-    mStore[aIndex].mFlags &= ~aFlag;
-    if (aValue)
-    {
-        mStore[aIndex].mFlags |= static_cast<Flags>(aFlag);
-    }
-}
-
 /**
  * Move paths from the dispatched store back to the pending one.
  * Skip the private ones, as they will be re-added during the recursion.
@@ -2150,99 +1991,6 @@ exit:
     WeaveLogDetail(DataManagement, "Moved %d items from Pending to InProgress; err %" PRId32 "", count, err);
 
     return err;
-}
-
-void SubscriptionClient::PathStore::RemoveItemAt(uint32_t aIndex)
-{
-    VerifyOrDie(mNumItems >0);
-
-    SetFlag(aIndex, kFlag_InUse, false);
-    mNumItems--;
-}
-
-void SubscriptionClient::PathStore::Compact()
-{
-    uint32_t numItemsRemaining = mNumItems;
-    size_t numBytesToMove, numItemsToMove;
-    const size_t lastIndex = WDM_UPDATE_MAX_ITEMS_IN_TRAIT_DIRTY_PATH_STORE -1;
-
-    for (size_t i = 0; i < WDM_UPDATE_MAX_ITEMS_IN_TRAIT_DIRTY_PATH_STORE && numItemsRemaining > 0; i++)
-    {
-        if (IsItemInUse(i))
-        {
-            numItemsRemaining--;
-            continue;
-        }
-
-        numItemsToMove = lastIndex -i;
-        numBytesToMove = numItemsToMove * sizeof(mStore[0]);
-        memmove(&mStore[i], &mStore[i+1], numBytesToMove);
-        SetFlag(lastIndex, kFlag_InUse, false);
-    }
-}
-
-bool SubscriptionClient::PathStore::IsPresent(TraitPath aItem)
-{
-    for (size_t i = 0; i < WDM_UPDATE_MAX_ITEMS_IN_TRAIT_DIRTY_PATH_STORE; i++)
-    {
-        if (IsItemValid(i) && (mStore[i].mTraitPath == aItem))
-        {
-            return true;
-        }
-    }
-
-    return false;
-}
-
-bool SubscriptionClient::PathStore::Intersects(TraitPath aItem, const TraitSchemaEngine * const apSchemaEngine)
-{
-    bool found = false;
-    TraitDataHandle curDataHandle = aItem.mTraitDataHandle;
-
-    for (size_t i = 0; i < WDM_UPDATE_MAX_ITEMS_IN_TRAIT_DIRTY_PATH_STORE; i++)
-    {
-        PropertyPathHandle pathHandle = aItem.mPropertyPathHandle;
-        if (! (IsItemValid(i) && (mStore[i].mTraitPath.mTraitDataHandle == curDataHandle)))
-        {
-            continue;
-        }
-        if (pathHandle == mStore[i].mTraitPath.mPropertyPathHandle ||
-                mStore[i].mTraitPath.mPropertyPathHandle == kRootPropertyPathHandle ||
-                apSchemaEngine->IsParent(pathHandle, mStore[i].mTraitPath.mPropertyPathHandle) ||
-                pathHandle == kRootPropertyPathHandle ||
-                apSchemaEngine->IsParent(mStore[i].mTraitPath.mPropertyPathHandle, pathHandle))
-        {
-            found = true;
-            break;
-        }
-    }
-
-    return found;
-}
-
-bool SubscriptionClient::PathStore::Includes(TraitPath aItem, const TraitSchemaEngine * const apSchemaEngine)
-{
-    bool found = false;
-    TraitDataHandle dataHandle = aItem.mTraitDataHandle;
-
-    // Check if the store contains aItem or one of its uncestors.
-    for (size_t i = 0; i < WDM_UPDATE_MAX_ITEMS_IN_TRAIT_DIRTY_PATH_STORE; i++)
-    {
-        PropertyPathHandle pathHandle = aItem.mPropertyPathHandle;
-        if (! (IsItemValid(i) && (mStore[i].mTraitPath.mTraitDataHandle == dataHandle)))
-        {
-            continue;
-        }
-        if (pathHandle == mStore[i].mTraitPath.mPropertyPathHandle ||
-                mStore[i].mTraitPath.mPropertyPathHandle == kRootPropertyPathHandle ||
-                apSchemaEngine->IsParent(pathHandle, mStore[i].mTraitPath.mPropertyPathHandle))
-        {
-            found = true;
-            break;
-        }
-    }
-
-    return found;
 }
 
 /**
@@ -2399,18 +2147,6 @@ WEAVE_ERROR SubscriptionClient::RemoveItemInProgressUpdateList(TraitDataHandle a
     mInProgressUpdateList.RemoveItem(aDataHandle);
 
     return WEAVE_NO_ERROR;
-}
-
-void SubscriptionClient::PathStore::Clear()
-{
-    mNumItems = 0;
-
-    for (size_t i = 0; i < WDM_UPDATE_MAX_ITEMS_IN_TRAIT_DIRTY_PATH_STORE; i++)
-    {
-        mStore[i].mFlags                         = 0x0;
-        mStore[i].mTraitPath.mPropertyPathHandle = kNullPropertyPathHandle;
-        mStore[i].mTraitPath.mTraitDataHandle    = UINT16_MAX;
-    }
 }
 
 WEAVE_ERROR SubscriptionClient::ClearDirty()
