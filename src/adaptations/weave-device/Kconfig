@@ -184,9 +184,20 @@ menu "Weave Device Layer"
     
     menu "BLE Options"
     
+        config ENABLE_WOBLE
+            bool "Enable Weave-over-BLE (WoBLE) Support"
+            default y
+            help
+                Enables support for sending and receiving Weave messages over a BLE connection.
+                
+                NOTE: This feature depends on BLE central support being enabled in ESP-IDF. In
+                particular, the ESP-IDF features CONFIG_BT_ENABLED and CONFIG_GATTS_ENABLE must
+                both be enabled.
+        
         config BLE_DEVICE_NAME_PREFIX
             string "BLE Device Name Prefix"
             default "NEST-"
+            depends on ENABLE_WOBLE
             help
                 A prefix string used in forming the BLE device name.  The remainder of the name
                 consists of the final two bytes of the device's Weave node id in hex.
@@ -198,6 +209,7 @@ menu "Weave Device Layer"
         config BLE_FAST_ADVERTISING_INTERVAL
             int "Fast Advertising Interval"
             default 800
+            depends on ENABLE_WOBLE
             help
                 The interval (in units of 0.625ms) at which the device will send BLE advertisements while
                 in fast advertising mode.
@@ -205,6 +217,7 @@ menu "Weave Device Layer"
         config BLE_SLOW_ADVERTISING_INTERVAL
             int "Slow Advertising Interval"
             default 3200
+            depends on ENABLE_WOBLE
             help
                 The interval (in units of 0.625ms) at which the device will send BLE advertisements while
                 in slow advertising mode.

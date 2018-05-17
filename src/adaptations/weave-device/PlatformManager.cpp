@@ -124,6 +124,7 @@ WEAVE_ERROR PlatformManager::InitWeaveStack(void)
     SuccessOrExit(err);
 
     // Initialize the BLE manager.
+#if WEAVE_DEVICE_CONFIG_ENABLE_WOBLE
     new (&BLEMgr) BLEManager();
     err = BLEMgr.Init();
     if (err != WEAVE_NO_ERROR)
@@ -131,6 +132,7 @@ WEAVE_ERROR PlatformManager::InitWeaveStack(void)
         WeaveLogError(DeviceLayer, "BLEManager initialization failed: %s", ErrorStr(err));
     }
     SuccessOrExit(err);
+#endif
 
     // Initialize the Weave fabric state object.
     new (&FabricState) WeaveFabricState();
@@ -153,8 +155,10 @@ WEAVE_ERROR PlatformManager::InitWeaveStack(void)
         initContext.inet = &InetLayer;
         initContext.listenTCP = true;
         initContext.listenUDP = true;
+#if WEAVE_DEVICE_CONFIG_ENABLE_WOBLE
         initContext.ble = BLEMgr.GetBleLayer();
         initContext.listenBLE = true;
+#endif
         initContext.fabricState = &FabricState;
 
         // Initialize the Weave message layer.
@@ -454,7 +458,9 @@ void PlatformManager::DispatchEvent(const WeaveDeviceEvent * event)
         ServiceProvisioningSvr.OnPlatformEvent(event);
         TraitMgr.OnPlatformEvent(event);
         TimeSyncMgr.OnPlatformEvent(event);
+#if WEAVE_DEVICE_CONFIG_ENABLE_WOBLE
         BLEMgr.OnPlatformEvent(event);
+#endif
     }
 
     // If the event is not a device-layer internal event, deliver it to the application's registered

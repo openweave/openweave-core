@@ -45,7 +45,10 @@ nl::Weave::WeaveSecurityManager SecurityMgr;
 
 namespace Internal {
 
+#if WEAVE_DEVICE_CONFIG_ENABLE_WOBLE
 BLEManager BLEMgr;
+#endif
+
 EchoServer EchoSvr;
 DeviceControlServer DeviceControlSvr;
 DeviceDescriptionServer DeviceDescriptionSvr;

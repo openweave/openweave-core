@@ -205,6 +205,15 @@
 // -------------------- BLE/WoBLE Configuration --------------------
 
 /**
+ * WEAVE_DEVICE_CONFIG_ENABLE_WOBLE
+ *
+ * Enable support for Weave-over-BLE (WoBLE).
+ */
+#ifndef WEAVE_DEVICE_CONFIG_ENABLE_WOBLE
+#define WEAVE_DEVICE_CONFIG_ENABLE_WOBLE 1
+#endif
+
+/**
  * WEAVE_DEVICE_CONFIG_BLE_DEVICE_NAME_PREFIX
  *
  * A prefix string used in forming the BLE device name.  The remainder of the name

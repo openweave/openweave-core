@@ -223,47 +223,83 @@ bool ConnectivityManager::HaveServiceConnectivity(void)
 
 ConnectivityManager::WoBLEServiceMode ConnectivityManager::GetWoBLEServiceMode(void)
 {
+#if WEAVE_DEVICE_CONFIG_ENABLE_WOBLE
     return BLEMgr.GetWoBLEServiceMode();
+#else
+    return kWoBLEServiceMode_NotSupported;
+#endif
 }
 
 WEAVE_ERROR ConnectivityManager::SetWoBLEServiceMode(WoBLEServiceMode val)
 {
+#if WEAVE_DEVICE_CONFIG_ENABLE_WOBLE
     return BLEMgr.SetWoBLEServiceMode(val);
+#else
+    return WEAVE_ERROR_UNSUPPORTED_WEAVE_FEATURE;
+#endif
 }
 
 bool ConnectivityManager::IsBLEAdvertisingEnabled(void)
 {
+#if WEAVE_DEVICE_CONFIG_ENABLE_WOBLE
     return BLEMgr.IsAdvertisingEnabled();
+#else
+    return false;
+#endif
 }
 
 WEAVE_ERROR ConnectivityManager::SetBLEAdvertisingEnabled(bool val)
 {
+#if WEAVE_DEVICE_CONFIG_ENABLE_WOBLE
     return BLEMgr.SetAdvertisingEnabled(val);
+#else
+    return WEAVE_ERROR_UNSUPPORTED_WEAVE_FEATURE;
+#endif
 }
 
 bool ConnectivityManager::IsBLEFastAdvertisingEnabled(void)
 {
+#if WEAVE_DEVICE_CONFIG_ENABLE_WOBLE
     return BLEMgr.IsFastAdvertisingEnabled();
+#else
+    return false;
+#endif
 }
 
 WEAVE_ERROR ConnectivityManager::SetBLEFastAdvertisingEnabled(bool val)
 {
+#if WEAVE_DEVICE_CONFIG_ENABLE_WOBLE
     return BLEMgr.SetFastAdvertisingEnabled(val);
+#else
+    return WEAVE_ERROR_UNSUPPORTED_WEAVE_FEATURE;
+#endif
 }
 
 WEAVE_ERROR ConnectivityManager::GetBLEDeviceName(char * buf, size_t bufSize)
 {
+#if WEAVE_DEVICE_CONFIG_ENABLE_WOBLE
     return BLEMgr.GetDeviceName(buf, bufSize);
+#else
+    return WEAVE_ERROR_UNSUPPORTED_WEAVE_FEATURE;
+#endif
 }
 
 WEAVE_ERROR ConnectivityManager::SetBLEDeviceName(const char * deviceName)
 {
+#if WEAVE_DEVICE_CONFIG_ENABLE_WOBLE
     return BLEMgr.SetDeviceName(deviceName);
+#else
+    return WEAVE_ERROR_UNSUPPORTED_WEAVE_FEATURE;
+#endif
 }
 
 uint16_t ConnectivityManager::NumBLEConnections(void)
 {
+#if WEAVE_DEVICE_CONFIG_ENABLE_WOBLE
     return BLEMgr.NumConnections();
+#else
+    return 0;
+#endif
 }
 
 // ==================== ConnectivityManager Platform Internal Methods ====================

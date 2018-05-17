@@ -20,6 +20,8 @@
 #include <internal/BLEManager.h>
 #include <new>
 
+#if WEAVE_DEVICE_CONFIG_ENABLE_WOBLE
+
 #include "esp_bt.h"
 #include "esp_bt_main.h"
 #include "esp_gap_ble_api.h"
@@ -1212,3 +1214,6 @@ void BLEManager::DriveBLEState(intptr_t arg)
 } // namespace Device
 } // namespace Weave
 } // namespace nl
+
+#endif // WEAVE_DEVICE_CONFIG_ENABLE_WOBLE
+

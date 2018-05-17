@@ -19,6 +19,8 @@
 #ifndef BLE_MANAGER_H
 #define BLE_MANAGER_H
 
+#if WEAVE_DEVICE_CONFIG_ENABLE_WOBLE
+
 #include "esp_bt.h"
 #include "esp_gap_ble_api.h"
 #include "esp_gatts_api.h"
@@ -159,6 +161,8 @@ inline bool BLEManager::IsFastAdvertisingEnabled(void)
 } // namespace Device
 } // namespace Weave
 } // namespace nl
+
+#endif // WEAVE_DEVICE_CONFIG_ENABLE_WOBLE
 
 #endif // BLE_MANAGER_H
 
