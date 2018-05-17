@@ -58,19 +58,19 @@ menu "Weave Device Layer"
     menu "Device Identification Options"
     
         config DEVICE_VENDOR_ID
-            int "Device Vendor Id"
-            range 0 65535
-            default 9050
+            hex "Device Vendor Id"
+            range 1 0xFFFE
+            default 0x235A
             help
-                The device vendor id. This a Nest-assigned id for the organization responsible for producing the device.  
+                The device vendor id (in hex). This a Nest-assigned id for the organization responsible for producing the device.  
                 Defaults to Nest Labs (0x235A). 
         
         config DEVICE_PRODUCT_ID
-            int "Device Product Id"
-            range 0 65535
-            default 65279
+            hex "Device Product Id"
+            range 1 0xFFFE
+            default 0xFEFF
             help
-                The device product id.  This is a unique id assigned by the device vendor to identify the product or device type.
+                The device product id (in hex).  This is a unique id assigned by the device vendor to identify the product or device type.
                 Defaults to a Nest-assigned id designating a non-production or test "product".
         
         config DEVICE_PRODUCT_REVISION
@@ -297,10 +297,18 @@ menu "Weave Device Layer"
         
         config USE_TEST_PAIRING_CODE
             string "Use Test Pairing Code"
-            default "TEST"
+            default "NESTUS"
             help
-                Specifies a hard-coded device pairing code to use if none found in Weave NV storage.
+                Specifies a hard-coded device pairing code to be used if none is found in Weave NV storage.
                 Setting the value to an empty string disables the feature.
+                
+                Note that any string up to 15 characters can be used here.  However, the code within
+                the Nest mobile application that orchestrates the device pairing process expects this
+                string to end with a valid Verhoeff check character, and will reject any input that
+                does not.
+                
+                Other valid but memorable 6 character pairing codes include: TESTEM, MAXBUX, TRYAGN
+                and NESTHW.     
                 
                 This option is for testing only and should not be enabled in production releases.
         
