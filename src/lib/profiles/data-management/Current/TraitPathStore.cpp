@@ -345,6 +345,83 @@ void TraitPathStore::Clear()
     }
 }
 
+/**
+ * @return The index of the first item of the store for which IsValidItem()
+ *          returns true.
+ *          If no item is valid, the function returns mStoreSize.
+ */
+size_t TraitPathStore::GetFirstValidItem() const
+{
+    size_t i = 0;
+
+    if (mNumItems == 0)
+    {
+        i = mStoreSize;
+    }
+
+    while (i < mStoreSize && false == IsItemValid(i))
+    {
+        i++;
+    }
+
+    return i;
+}
+
+/**
+ * @param[in]   aIndex   An index into the store.
+ * @return The index of the first item of the store following i for which IsValidItem()
+ *          returns true.
+ *          If i is the last valid item, the function returns mStoreSize.
+ */
+size_t TraitPathStore::GetNextValidItem(size_t aIndex) const
+{
+    do
+    {
+        aIndex++;
+    }
+    while (aIndex < mStoreSize && false == IsItemValid(aIndex));
+
+    return aIndex;
+}
+
+/**
+ * @param[in] aTDH The TraitDataHandle of the trait instance to iterate on.
+ *
+ * @return The index of the first item of the store for which IsValidItem()
+ *          returns true and which refers to the TraitDataHandle passed in.
+ *          If no item is valid, the function returns mStoreSize.
+ */
+size_t TraitPathStore::GetFirstValidItem(TraitDataHandle aTDH) const
+{
+    size_t i = GetFirstValidItem();
+
+    while (i < mStoreSize && mStore[i].mTraitPath.mTraitDataHandle != aTDH)
+    {
+        i = GetNextValidItem(i);
+    }
+
+    return i;
+}
+
+/**
+ * @param[in]   aIndex   An index into the store.
+ * @param[in] aTDH The TraitDataHandle of the trait instance to iterate on.
+ *
+ * @return The index of the first item of the store following i for which IsValidItem()
+ *          returns true and which refers to the TraitDataHandle passed in.
+ *          If i is the last valid item for the trait instance, the function returns mStoreSize.
+ */
+size_t TraitPathStore::GetNextValidItem(size_t aIndex, TraitDataHandle aTDH) const
+{
+    do
+    {
+        aIndex = GetNextValidItem(aIndex);
+    }
+    while (aIndex < mStoreSize && mStore[aIndex].mTraitPath.mTraitDataHandle != aTDH);
+
+    return aIndex;
+}
+
 // Private members
 
 size_t TraitPathStore::FindFirstAvailableItem() const
@@ -382,53 +459,3 @@ void TraitPathStore::SetFlag(size_t aIndex, Flag aFlag, bool aValue)
     }
 }
 
-size_t TraitPathStore::GetFirstValidItem() const
-{
-    size_t i = 0;
-
-    if (mNumItems == 0)
-    {
-        i = mStoreSize;
-    }
-
-    while (i < mStoreSize && false == IsItemValid(i))
-    {
-        i++;
-    }
-
-    return i;
-}
-
-size_t TraitPathStore::GetNextValidItem(size_t i) const
-{
-    do
-    {
-        i++;
-    }
-    while (i < mStoreSize && false == IsItemValid(i));
-
-    return i;
-}
-
-size_t TraitPathStore::GetFirstValidItem(TraitDataHandle aTDH) const
-{
-    size_t i = GetFirstValidItem();
-
-    while (i < mStoreSize && mStore[i].mTraitPath.mTraitDataHandle != aTDH)
-    {
-        i = GetNextValidItem(i);
-    }
-
-    return i;
-}
-
-size_t TraitPathStore::GetNextValidItem(size_t i, TraitDataHandle aTDH) const
-{
-    do
-    {
-        i = GetNextValidItem(i);
-    }
-    while (i < mStoreSize && mStore[i].mTraitPath.mTraitDataHandle != aTDH);
-
-    return i;
-}
