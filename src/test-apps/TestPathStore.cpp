@@ -326,7 +326,7 @@ void TraitPathStoreTest::TestRemoveAndCompact(nlTestSuite *inSuite, void *inCont
     NL_TEST_ASSERT(inSuite, false == mStore.IsPresent(tp));
     NL_TEST_ASSERT(inSuite, mStore.GetNumItems() == mStore.GetPathStoreSize()-1);
 
-    mStore.RemoveItem(mTDH1+2);
+    mStore.RemoveTrait(mTDH1+2);
 
     tp.mTraitDataHandle = mTDH1 + 2;
     tp.mPropertyPathHandle = kRootPropertyPathHandle + 2;

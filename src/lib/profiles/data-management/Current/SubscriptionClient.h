@@ -473,7 +473,6 @@ private:
 
     bool IsEmptyPendingUpdateSet(void);
     bool IsEmptyInProgressUpdateList(void);
-    bool IsTraitPresentInPendingUpdateSet(TraitDataHandle aTraitDataHandle);
 
     bool IsUpdateInFlight();
     bool IsUpdateInFlight(TraitDataHandle aTraitDataHandle);
@@ -522,7 +521,7 @@ private:
         // April 17
 
         // State:
-        uint16_t mItemInProgress;
+        size_t mItemInProgress;
         PropertyPathHandle mNextDictionaryElementPathHandle;
 
         // Arguments to lower level calls and callbacks

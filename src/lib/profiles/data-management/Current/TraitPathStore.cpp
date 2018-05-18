@@ -41,13 +41,22 @@ using namespace ::nl::Weave::Profiles::Common;
 using namespace ::nl::Weave::Profiles::DataManagement;
 using namespace ::nl::Weave::Profiles::DataManagement_Current;
 
-
+/**
+ * Empty constructor
+ */
 TraitPathStore::TraitPathStore()
     : mStore(NULL), mStoreSize(0), mNumItems(0)
 {
 }
 
-void TraitPathStore::Init(TraitPathStore::Record *aRecordArray, uint32_t aArrayLength)
+/**
+ * Inits the TraitPathStore
+ *
+ * @param[in]   aRecordArray    Pointer to an array of Records that will be used
+ *                              to store paths and flags.
+ * @param[in]   aArrayLength    Length of the storage array in number of items.
+ */
+void TraitPathStore::Init(TraitPathStore::Record *aRecordArray, size_t aArrayLength)
 {
     mStore = aRecordArray;
     mStoreSize = aArrayLength;
@@ -55,174 +64,170 @@ void TraitPathStore::Init(TraitPathStore::Record *aRecordArray, uint32_t aArrayL
     Clear();
 }
 
-bool TraitPathStore::IsEmpty()
-{
-    return mNumItems == 0;
-}
+/**
+ * @fn bool TraitPathStore::IsEmpty()
+ * @return  Returns true if the store is empty; false otherwise.
+ */
 
-bool TraitPathStore::IsFull()
-{
-    return mNumItems >= mStoreSize;
-}
+/**
+ * @fn bool TraitPathStore::IsFull()
+ * @return  Returns true if the store is full; false otherwise.
+ */
 
-uint32_t TraitPathStore::GetNumItems()
-{
-    return mNumItems;
-}
+/**
+ * @fn size_t TraitPathStore::GetNumItems()
+ * @return  Returns the number of TraitPaths in the store.
+ */
 
-uint32_t TraitPathStore::GetPathStoreSize()
-{
-    return mStoreSize;
-}
+/**
+ * @fn size_t TraitPathStore::GetPathStoreSize()
+ * @return  Returns the capacity of the store.
+ */
 
-WEAVE_ERROR TraitPathStore::AddItem(TraitPath aItem, Flags aFlags)
-{
-    WEAVE_ERROR err = WEAVE_ERROR_NO_MEMORY;
-
-    for (size_t i = 0; i < mStoreSize; i++)
-    {
-        if (!IsItemInUse(i))
-        {
-            mStore[i].mTraitPath = aItem;
-            mStore[i].mFlags = aFlags;
-            SetFlag(i, kFlag_InUse, true);
-            mNumItems++;
-            err = WEAVE_NO_ERROR;
-            break;
-        }
-    }
-
-    return err;
-}
-
-// Assumes the array is compacted!
-WEAVE_ERROR TraitPathStore::InsertItemAfter(uint32_t aIndex, TraitPath aItem, Flags aFlags)
+/**
+ * Adds a TraitPath to the store with a given set of flags
+ *
+ * @param[in]   aItem   The TraitPath to be stored
+ * @param[in]   aFlags  The flags to be set to true for the item being added
+ *
+ * @retval WEAVE_NO_ERROR               in case of success.
+ * @retval WEAVE_ERROR_NO_MEMORY        if the store is full.
+ * @retval WEAVE_ERROR_INVALID_ARGUMENT if aFlags contains reserved flags
+ */
+WEAVE_ERROR TraitPathStore::AddItem(const TraitPath &aItem, Flags aFlags)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
-    size_t destIndex = aIndex + 1;
-    size_t numItemsToMove = mNumItems - destIndex;
-    size_t numBytesToMove = numItemsToMove * sizeof(mStore[0]);
+    size_t i = 0;
 
-    VerifyOrExit(false == IsFull(), err = WEAVE_ERROR_NO_MEMORY);
+    VerifyOrExit((aFlags & static_cast<Flags>(kFlags_ReservedFlags)) == 0x0,
+                 err = WEAVE_ERROR_INVALID_ARGUMENT);
 
-    if (numItemsToMove > 0)
-    {
-        memmove(&mStore[destIndex+1], &mStore[destIndex], numBytesToMove);
-    }
+    i = FindFirstAvailableItem();
+    VerifyOrExit(i < mStoreSize, err = WEAVE_ERROR_NO_MEMORY);
 
-    mStore[destIndex].mTraitPath = aItem;
-    mStore[destIndex].mFlags = aFlags;
-    SetFlag(destIndex, kFlag_InUse, true);
-
+    SetItem(i, aItem, aFlags);
     mNumItems++;
 
 exit:
     return err;
 }
 
-WEAVE_ERROR TraitPathStore::AddItem(TraitPath aItem, bool aForceMerge, bool aPrivate)
+/**
+ * Adds a TraitPath to the store.
+ *
+ * @param[in]   aItem   The TraitPath to be stored
+ *
+ * @retval WEAVE_NO_ERROR               in case of success.
+ * @retval WEAVE_ERROR_NO_MEMORY        if the store is full.
+ */
+WEAVE_ERROR TraitPathStore::AddItem(const TraitPath &aItem)
 {
-    Flags flags = static_cast<Flags>(kFlag_None);
-
-    if (aForceMerge)
-    {
-        flags |= static_cast<Flags>(kFlag_ForceMerge);
-    }
-    if (aPrivate)
-    {
-        flags |= static_cast<Flags>(kFlag_Private);
-    }
-
-    return AddItem(aItem, flags);
+    return AddItem(aItem, kFlag_None);
 }
 
-WEAVE_ERROR TraitPathStore::InsertItemAfter(uint32_t aIndex, TraitPath aItem, bool aForceMerge, bool aPrivate)
+/**
+ * Adds an TraitPath to the store, inserting it at a given index.
+ * Assumes the store has no gaps.
+ *
+ * @param[in]   aIndex  The index at which to insert the TraitPath; the insertion
+ *                      has to keep the store compacted.
+ * @param[in]   aFlags  The flags to be set to true for the item being added.
+ *
+ * @retval WEAVE_ERROR_INVALID_STATE    if the store has gaps.
+ * @retval WEAVE_ERROR_INVALID_ARGUMENT if adding the TraitPath at aIndex would make
+ *                                      the store not compact.
+ * @retval WEAVE_ERROR_NO_MEMORY        if the store is full.
+ * @retval WEAVE_NO_ERROR               in case of success.
+ */
+WEAVE_ERROR TraitPathStore::InsertItemAt(size_t aIndex, const TraitPath &aItem, Flags aFlags)
 {
-    Flags flags = static_cast<Flags>(kFlag_None);
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
+    size_t numItemsToMove;
 
-    if (aForceMerge)
+    VerifyOrExit(false == IsFull(), err = WEAVE_ERROR_NO_MEMORY);
+    VerifyOrExit(FindFirstAvailableItem() == mNumItems, err = WEAVE_ERROR_INCORRECT_STATE);
+    VerifyOrExit(aIndex <= mNumItems, err = WEAVE_ERROR_INVALID_ARGUMENT);
+
+    numItemsToMove = mNumItems - aIndex;
+
+    if (numItemsToMove > 0)
     {
-        flags |= static_cast<Flags>(kFlag_ForceMerge);
-    }
-    if (aPrivate)
-    {
-        flags |= static_cast<Flags>(kFlag_Private);
+        memmove(&mStore[aIndex+1], &mStore[aIndex],
+                numItemsToMove * sizeof(mStore[0]));
+        SetFlag(aIndex, kFlag_InUse, false);
     }
 
-    return InsertItemAfter(aIndex, aItem, flags);
-}
-
-void TraitPathStore::RemoveItem(TraitDataHandle aDataHandle)
-{
-    for (size_t i = 0; i < mStoreSize; i++)
-    {
-        if (IsItemInUse(i) && (mStore[i].mTraitPath.mTraitDataHandle == aDataHandle))
-        {
-            RemoveItemAt(i);
-        }
-    }
-}
-
-bool TraitPathStore::IsTraitPresent(TraitDataHandle aDataHandle)
-{
-    bool found = false;
-
-    if (mNumItems == 0)
-        ExitNow();
-
-    for (size_t i = 0; i < mStoreSize; i++)
-    {
-        if (IsItemInUse(i) && (mStore[i].mTraitPath.mTraitDataHandle == aDataHandle))
-        {
-            found = true;
-            break;
-        }
-    }
+    SetItem(aIndex, aItem, aFlags);
+    mNumItems++;
 
 exit:
-    return found;
+    return err;
 }
 
+/**
+ * Remove all TraitPaths that refer to a given TraitDataHandle
+ *
+ * @param[in]   aDataHandle     The TraitDataHandle
+ */
+void TraitPathStore::RemoveTrait(TraitDataHandle aDataHandle)
+{
+    for (size_t i = GetFirstValidItem(aDataHandle);
+            i < mStoreSize;
+            i = GetNextValidItem(i, aDataHandle))
+    {
+        RemoveItemAt(i);
+    }
+}
+
+/**
+ * @param[in] aDataHandle   The TraitDataHandle to look for.
+ * @return  Returns true if the store contains one or more paths referring
+ *          to the given TraitDataHandle
+ */
+bool TraitPathStore::IsTraitPresent(TraitDataHandle aDataHandle) const
+{
+    size_t i = GetFirstValidItem(aDataHandle);
+
+    return i < mStoreSize;
+}
+
+/**
+ * Mark all TraitPaths referring to the given TraitDataHandle as failed.
+ *
+ * @param aDataHandle   The TraitDataHandle to look for.
+ */
 void TraitPathStore::SetFailedTrait(TraitDataHandle aDataHandle)
 {
-    if (mNumItems == 0)
-        ExitNow();
-
-    for (size_t i = 0; i < mStoreSize; i++)
+    for (size_t i = GetFirstValidItem(aDataHandle);
+            i < mStoreSize;
+            i = GetNextValidItem(i, aDataHandle))
     {
-        if (IsItemInUse(i) && (mStore[i].mTraitPath.mTraitDataHandle == aDataHandle))
-        {
-            SetFailed(i);
-        }
-    }
-
-exit:
-    return;
-}
-
-void TraitPathStore::SetFlag(uint32_t aIndex, Flag aFlag, bool aValue)
-{
-    mStore[aIndex].mFlags &= ~aFlag;
-    if (aValue)
-    {
-        mStore[aIndex].mFlags |= static_cast<Flags>(aFlag);
+        SetFailed(i);
     }
 }
 
-void TraitPathStore::RemoveItemAt(uint32_t aIndex)
+void TraitPathStore::RemoveItemAt(size_t aIndex)
 {
-    VerifyOrDie(mNumItems >0);
+    VerifyOrDie(mNumItems > 0);
+    VerifyOrDie(IsItemInUse(aIndex));
 
     if (IsItemInUse(aIndex))
     {
-        SetFlag(aIndex, kFlag_InUse, false);
+        ClearItem(aIndex);
         mNumItems--;
     }
 }
 
+/**
+ * Compacts the store moving all items in use down towards
+ * the start of the array.
+ * This is useful to use TraitPathStore to implement a list
+ * that can be edited (like the list of in-progress paths maintained
+ * by SubscriptionClient).
+ */
 void TraitPathStore::Compact()
 {
-    uint32_t numItemsRemaining = mNumItems;
+    size_t numItemsRemaining = mNumItems;
     size_t numBytesToMove, numItemsToMove;
     const size_t lastIndex = mStoreSize -1;
     size_t i = 0;
@@ -243,11 +248,18 @@ void TraitPathStore::Compact()
     }
 }
 
-bool TraitPathStore::IsPresent(TraitPath aItem)
+/**
+ * Checks if a given TraitPath is already in the store.
+ *
+ * @param[in] aItem The TraitPath to look for.
+ *
+ * @return Returns true if the store contains aItem.
+ */
+bool TraitPathStore::IsPresent(const TraitPath &aItem) const
 {
-    for (size_t i = 0; i < mStoreSize; i++)
+    for (size_t i = GetFirstValidItem(); i < mStoreSize; i = GetNextValidItem(i))
     {
-        if (IsItemValid(i) && (mStore[i].mTraitPath == aItem))
+        if (mStore[i].mTraitPath == aItem)
         {
             return true;
         }
@@ -256,47 +268,60 @@ bool TraitPathStore::IsPresent(TraitPath aItem)
     return false;
 }
 
-bool TraitPathStore::Intersects(TraitPath aItem, const TraitSchemaEngine * const apSchemaEngine)
+/**
+ * Check if any of the TraitPaths in the store intersects a given TraitPath.
+ * Two TraitPaths intersect each other if any of the following is true:
+ * - the two TraitPaths are the same;
+ * - one of the two TraitPaths is an ancestor of the other TraitPath.
+ *
+ * @param[in]   aTraitPath  The TraitPath to be checked against the store.
+ * @param[in]   aSchemaEngine   A pointer to the TraitSchemaEngine for the trait instance
+ *                              aTraitPath refers to.
+ *
+ * @return  true if the store intersects the given TraitPath; false otherwise.
+ */
+bool TraitPathStore::Intersects(const TraitPath &aTraitPath, const TraitSchemaEngine * const aSchemaEngine) const
 {
-    bool found = false;
-    TraitDataHandle curDataHandle = aItem.mTraitDataHandle;
+    bool intersects = false;
+    size_t i = 0;
+    TraitDataHandle dataHandle = aTraitPath.mTraitDataHandle;
+    PropertyPathHandle pathHandle = aTraitPath.mPropertyPathHandle;
 
-    for (size_t i = 0; i < mStoreSize; i++)
+    for (size_t i = GetFirstValidItem(dataHandle); i < mStoreSize; i = GetNextValidItem(i, dataHandle))
     {
-        PropertyPathHandle pathHandle = aItem.mPropertyPathHandle;
-        if (! (IsItemValid(i) && (mStore[i].mTraitPath.mTraitDataHandle == curDataHandle)))
-        {
-            continue;
-        }
         if (pathHandle == mStore[i].mTraitPath.mPropertyPathHandle ||
-                mStore[i].mTraitPath.mPropertyPathHandle == kRootPropertyPathHandle ||
-                apSchemaEngine->IsParent(pathHandle, mStore[i].mTraitPath.mPropertyPathHandle) ||
-                pathHandle == kRootPropertyPathHandle ||
-                apSchemaEngine->IsParent(mStore[i].mTraitPath.mPropertyPathHandle, pathHandle))
+                aSchemaEngine->IsParent(pathHandle, mStore[i].mTraitPath.mPropertyPathHandle) ||
+                aSchemaEngine->IsParent(mStore[i].mTraitPath.mPropertyPathHandle, pathHandle))
         {
-            found = true;
+            intersects = true;
             break;
         }
     }
 
-    return found;
+    return intersects;
 }
 
-bool TraitPathStore::Includes(TraitPath aItem, const TraitSchemaEngine * const apSchemaEngine)
+/**
+ * Check if any of the TraitPaths in the store includes a given TraitPath.
+ * TraitPath A includes TraitPath B if either:
+ * - the two TraitPaths are the same;
+ * - A is an ancestor of B.
+ *
+ * @param[in]   aTraitPath      The TraitPath to be checked against the store.
+ * @param[in]   aSchemaEngine   A pointer to the TraitSchemaEngine for the trait instance
+ *                              aTraitPath refers to.
+ *
+ * @return  true if the TraitPath is already included by the paths in the store.
+ */
+bool TraitPathStore::Includes(const TraitPath &aItem, const TraitSchemaEngine * const apSchemaEngine) const
 {
     bool found = false;
     TraitDataHandle dataHandle = aItem.mTraitDataHandle;
+    PropertyPathHandle pathHandle = aItem.mPropertyPathHandle;
 
-    // Check if the store contains aItem or one of its uncestors.
-    for (size_t i = 0; i < mStoreSize; i++)
+    for (size_t i = GetFirstValidItem(dataHandle); i < mStoreSize; i = GetNextValidItem(i, dataHandle))
     {
-        PropertyPathHandle pathHandle = aItem.mPropertyPathHandle;
-        if (! (IsItemValid(i) && (mStore[i].mTraitPath.mTraitDataHandle == dataHandle)))
-        {
-            continue;
-        }
         if (pathHandle == mStore[i].mTraitPath.mPropertyPathHandle ||
-                mStore[i].mTraitPath.mPropertyPathHandle == kRootPropertyPathHandle ||
                 apSchemaEngine->IsParent(pathHandle, mStore[i].mTraitPath.mPropertyPathHandle))
         {
             found = true;
@@ -307,15 +332,103 @@ bool TraitPathStore::Includes(TraitPath aItem, const TraitSchemaEngine * const a
     return found;
 }
 
+/**
+ * Empties the store.
+ */
 void TraitPathStore::Clear()
 {
     mNumItems = 0;
 
     for (size_t i = 0; i < mStoreSize; i++)
     {
-        mStore[i].mFlags                         = 0x0;
-        mStore[i].mTraitPath.mPropertyPathHandle = kNullPropertyPathHandle;
-        mStore[i].mTraitPath.mTraitDataHandle    = UINT16_MAX;
+        ClearItem(i);
     }
 }
 
+// Private members
+
+size_t TraitPathStore::FindFirstAvailableItem() const
+{
+    size_t i = 0;
+
+    while(i < mStoreSize && IsItemInUse(i))
+    {
+        i++;
+    }
+
+    return i;
+}
+
+void TraitPathStore::SetItem(size_t aIndex, const TraitPath &aItem, Flags aFlags)
+{
+    mStore[aIndex].mTraitPath = aItem;
+    mStore[aIndex].mFlags = aFlags;
+    SetFlag(aIndex, kFlag_InUse, true);
+}
+
+void TraitPathStore::ClearItem(size_t aIndex)
+{
+    mStore[aIndex].mFlags                         = 0x0;
+    mStore[aIndex].mTraitPath.mPropertyPathHandle = kNullPropertyPathHandle;
+    mStore[aIndex].mTraitPath.mTraitDataHandle    = UINT16_MAX;
+}
+
+void TraitPathStore::SetFlag(size_t aIndex, Flag aFlag, bool aValue)
+{
+    mStore[aIndex].mFlags &= ~aFlag;
+    if (aValue)
+    {
+        mStore[aIndex].mFlags |= static_cast<Flags>(aFlag);
+    }
+}
+
+size_t TraitPathStore::GetFirstValidItem() const
+{
+    size_t i = 0;
+
+    if (mNumItems == 0)
+    {
+        i = mStoreSize;
+    }
+
+    while (i < mStoreSize && false == IsItemValid(i))
+    {
+        i++;
+    }
+
+    return i;
+}
+
+size_t TraitPathStore::GetNextValidItem(size_t i) const
+{
+    do
+    {
+        i++;
+    }
+    while (i < mStoreSize && false == IsItemValid(i));
+
+    return i;
+}
+
+size_t TraitPathStore::GetFirstValidItem(TraitDataHandle aTDH) const
+{
+    size_t i = GetFirstValidItem();
+
+    while (i < mStoreSize && mStore[i].mTraitPath.mTraitDataHandle != aTDH)
+    {
+        i = GetNextValidItem(i);
+    }
+
+    return i;
+}
+
+size_t TraitPathStore::GetNextValidItem(size_t i, TraitDataHandle aTDH) const
+{
+    do
+    {
+        i = GetNextValidItem(i);
+    }
+    while (i < mStoreSize && mStore[i].mTraitPath.mTraitDataHandle != aTDH);
+
+    return i;
+}

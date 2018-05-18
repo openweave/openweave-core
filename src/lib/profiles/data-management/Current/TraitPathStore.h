@@ -44,14 +44,17 @@ struct TraitPathStore
             kFlag_InUse      = 0x1,
             kFlag_Failed     = 0x2, /**< The item is in use, but is not valid anymore.
                                       */
-            kFlag_ForceMerge = 0x4, /**< Paths are encoded with the "replace" format by
+            kFlag_ForceMerge = 0x4, /**< In UpdateRequest, DataElements are encoded with the "replace" format by
                                       default; this flag is used to force the encoding of
                                       dictionaries so that the items are merged.
                                       */
             kFlag_Private    = 0x8, /**< The path was created internally by the engine
                                       to encode a dictionary in its own separate
-                                      DataElement.
+                                      DataElement; the application is notified about it
+                                      only if the update fails.
                                       */
+
+            kFlags_ReservedFlags = kFlag_InUse,
         };
         typedef uint8_t Flags;
 
@@ -62,47 +65,59 @@ struct TraitPathStore
 
         TraitPathStore();
 
-        void Init(Record *aRecordArray, uint32_t aNumItems);
+        void Init(Record *aRecordArray, size_t aNumItems);
 
-        bool IsEmpty();
-        bool IsFull();
-        uint32_t GetNumItems();
-        uint32_t GetPathStoreSize();
+        bool IsEmpty() { return mNumItems == 0; }
+        bool IsFull() { return mNumItems >= mStoreSize; }
+        size_t GetNumItems() { return mNumItems; }
+        size_t GetPathStoreSize() { return mStoreSize; }
 
-        WEAVE_ERROR AddItem(TraitPath aItem, bool aForceMerge = false, bool aPrivate = false);
-        WEAVE_ERROR AddItem(TraitPath aItem, Flags aFlags);
-        WEAVE_ERROR InsertItemAfter(uint32_t aIndex, TraitPath aItem, bool aForceMerge = false, bool aPrivate = false);
-        WEAVE_ERROR InsertItemAfter(uint32_t aIndex, TraitPath aItem, Flags aFlags);
+        WEAVE_ERROR AddItem(const TraitPath &aItem);
+        WEAVE_ERROR AddItem(const TraitPath &aItem, Flags aFlags);
+        WEAVE_ERROR InsertItemAt(size_t aIndex, const TraitPath &aItem, Flags aFlags);
+        WEAVE_ERROR InsertItemAfter(size_t aIndex, const TraitPath &aItem, Flags aFlags) { return InsertItemAt(aIndex+1, aItem, aFlags); }
 
-        void SetFailed(uint32_t aIndex) { SetFlag(aIndex, kFlag_Failed, true); }
+        void SetFailed(size_t aIndex) { SetFlag(aIndex, kFlag_Failed, true); }
         void SetFailedTrait(TraitDataHandle aDataHandle);
 
-        void GetItemAt(uint32_t aIndex, TraitPath &aTraitPath) { aTraitPath = mStore[aIndex].mTraitPath; }
+        void GetItemAt(size_t aIndex, TraitPath &aTraitPath) { aTraitPath = mStore[aIndex].mTraitPath; }
 
-        void RemoveItem(TraitDataHandle aDataHandle);
-        void RemoveItemAt(uint32_t aIndex);
+        size_t GetFirstValidItem() const;
+        size_t GetNextValidItem(size_t i) const;
+        size_t GetFirstValidItem(TraitDataHandle aTraitDataHandle) const;
+        size_t GetNextValidItem(size_t i, TraitDataHandle aTraitDataHandle) const;
+
+        void RemoveTrait(TraitDataHandle aDataHandle);
+        void RemoveItemAt(size_t aIndex);
 
         void Compact();
 
         void Clear();
 
-        bool Includes(TraitPath aItem, const TraitSchemaEngine * const apSchemaEngine);
-        bool Intersects(TraitPath aItem, const TraitSchemaEngine * const apSchemaEngine);
-        bool IsPresent(TraitPath aItem);
-        bool IsTraitPresent(TraitDataHandle aDataHandle);
-        bool IsItemInUse(uint32_t aIndex) { return IsFlagSet(aIndex, kFlag_InUse); }
-        bool IsItemValid(uint32_t aIndex) { return (IsItemInUse(aIndex) && (!IsFlagSet(aIndex, kFlag_Failed))); }
-        bool IsItemFailed(uint32_t aIndex) { return IsFlagSet(aIndex, kFlag_Failed); }
-        bool IsItemForceMerge(uint32_t aIndex) { return IsFlagSet(aIndex, kFlag_ForceMerge); }
-        bool IsItemPrivate(uint32_t aIndex) { return IsFlagSet(aIndex, kFlag_Private); }
+        bool IsPresent(const TraitPath &aItem) const;
+        bool Includes(const TraitPath &aItem, const TraitSchemaEngine * const apSchemaEngine) const;
+        bool Intersects(const TraitPath &aItem, const TraitSchemaEngine * const apSchemaEngine) const;
+        bool IsTraitPresent(TraitDataHandle aDataHandle) const;
+        bool IsItemInUse(size_t aIndex) const { return IsFlagSet(aIndex, kFlag_InUse); }
+        bool IsItemValid(size_t aIndex) const { return (IsItemInUse(aIndex) && (!IsFlagSet(aIndex, kFlag_Failed))); }
+        bool IsItemFailed(size_t aIndex) const { return IsFlagSet(aIndex, kFlag_Failed); }
+        bool IsItemForceMerge(size_t aIndex) const { return IsFlagSet(aIndex, kFlag_ForceMerge); }
+        bool IsItemPrivate(size_t aIndex) const { return IsFlagSet(aIndex, kFlag_Private); }
 
-        bool IsFlagSet(uint32_t aIndex, Flag aFlag) { return ((mStore[aIndex].mFlags & static_cast<Flags>(aFlag)) == aFlag); }
-        void SetFlag(uint32_t aIndex, Flag aFlag, bool aValue);
-        Flags GetFlags(uint32_t aIndex) { return mStore[aIndex].mFlags; }
+        bool IsFlagSet(size_t aIndex, Flag aFlag) const { return ((mStore[aIndex].mFlags & static_cast<Flags>(aFlag)) == aFlag); }
+        WEAVE_ERROR SetFlags(size_t aIndex, Flag aFlag, bool aValue);
+        Flags GetFlags(size_t aIndex) const { return mStore[aIndex].mFlags; }
 
         Record *mStore;
-        uint32_t mStoreSize;
-        uint32_t mNumItems;
+
+   private:
+        size_t FindFirstAvailableItem() const;
+        void SetItem(size_t aIndex, const TraitPath &aItem, Flags aFlags);
+        void ClearItem(size_t aIndex);
+        void SetFlag(size_t aIndex, Flag aFlag, bool aValue);
+
+        size_t mStoreSize;
+        size_t mNumItems;
 };
 
 }; // namespace WeaveMakeManagedNamespaceIdentifier(DataManagement, kWeaveManagedNamespaceDesignation_Current)

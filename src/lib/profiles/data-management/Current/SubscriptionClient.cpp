@@ -2061,7 +2061,7 @@ bool SubscriptionClient::IsEmptyInProgressUpdateList(void)
 
 WEAVE_ERROR SubscriptionClient::RemoveItemPendingUpdateSet(TraitDataHandle aDataHandle)
 {
-    mPendingUpdateSet.RemoveItem(aDataHandle);
+    mPendingUpdateSet.RemoveTrait(aDataHandle);
     return WEAVE_NO_ERROR;
 }
 
@@ -2077,11 +2077,11 @@ WEAVE_ERROR SubscriptionClient::AddItemPendingUpdateSet(const TraitPath &aItem, 
     }
 
     // Remove any paths of which aItem is an ancestor
-    for (size_t i = 0; i < mPendingUpdateSet.GetPathStoreSize(); i++)
+    for (size_t i = mPendingUpdateSet.GetFirstValidItem(aItem.mTraitDataHandle);
+            i < mPendingUpdateSet.GetPathStoreSize();
+            i = mPendingUpdateSet.GetNextValidItem(i, aItem.mTraitDataHandle))
     {
-        if (mPendingUpdateSet.IsItemValid(i) && 
-                (mPendingUpdateSet.mStore[i].mTraitPath.mTraitDataHandle == aItem.mTraitDataHandle) &&
-                    apSchemaEngine->IsParent(mPendingUpdateSet.mStore[i].mTraitPath.mPropertyPathHandle, aItem.mPropertyPathHandle))
+        if (apSchemaEngine->IsParent(mPendingUpdateSet.mStore[i].mTraitPath.mPropertyPathHandle, aItem.mPropertyPathHandle))
         {
             WeaveLogDetail(DataManagement, "Removing pending item %u t%u p%u", i,
                     mPendingUpdateSet.mStore[i].mTraitPath.mTraitDataHandle,
@@ -2103,16 +2103,15 @@ exit:
 WEAVE_ERROR SubscriptionClient::InsertInProgressUpdateItem(const TraitPath &aItem, const TraitSchemaEngine * const apSchemaEngine)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
-    const bool isForceMerge = true;
-    const bool isPrivate = true;
     TraitPath traitPath;
+    TraitPathStore::Flags flags = (TraitPathStore::kFlag_Private | TraitPathStore::kFlag_ForceMerge);
 
-    err = mInProgressUpdateList.InsertItemAfter(mUpdateRequestContext.mItemInProgress, aItem, isForceMerge, isPrivate);
+    err = mInProgressUpdateList.InsertItemAfter(mUpdateRequestContext.mItemInProgress, aItem, flags);
     SuccessOrExit(err);
 
 exit:
-    WeaveLogDetail(DataManagement, "%s %u t%u, p%u  numItems: %u, err %d", __func__, 
-            mUpdateRequestContext.mItemInProgress, 
+    WeaveLogDetail(DataManagement, "%s %u t%u, p%u  numItems: %u, err %d", __func__,
+            mUpdateRequestContext.mItemInProgress,
             aItem.mTraitDataHandle, aItem.mPropertyPathHandle,
             mInProgressUpdateList.GetNumItems(), err);
 
@@ -2123,10 +2122,11 @@ void SubscriptionClient::RemoveInProgressPrivateItemsAfter(uint16_t aItemInProgr
 {
     int count = 0;
 
-    for (size_t i = aItemInProgress + 1; i < mInProgressUpdateList.GetPathStoreSize(); i++)
+    for (size_t i = mInProgressUpdateList.GetNextValidItem(aItemInProgress);
+            i < mInProgressUpdateList.GetPathStoreSize();
+            i = mInProgressUpdateList.GetNextValidItem(i))
     {
-        if (mInProgressUpdateList.IsItemValid(i) &&
-                mInProgressUpdateList.IsItemPrivate(i))
+        if (mInProgressUpdateList.IsItemPrivate(i))
         {
             mInProgressUpdateList.RemoveItemAt(i);
             count++;
@@ -2144,7 +2144,7 @@ void SubscriptionClient::RemoveInProgressPrivateItemsAfter(uint16_t aItemInProgr
 
 WEAVE_ERROR SubscriptionClient::RemoveItemInProgressUpdateList(TraitDataHandle aDataHandle)
 {
-    mInProgressUpdateList.RemoveItem(aDataHandle);
+    mInProgressUpdateList.RemoveTrait(aDataHandle);
 
     return WEAVE_NO_ERROR;
 }
@@ -2244,11 +2244,6 @@ exit:
 bool SubscriptionClient::IsPresentDispatchedUpdateStore(TraitDataHandle aTraitDataHandle, PropertyPathHandle aPropertyPathHandle)
 {
     return mInProgressUpdateList.IsPresent(TraitPath(aTraitDataHandle, aPropertyPathHandle));
-}
-
-bool SubscriptionClient::IsTraitPresentInPendingUpdateSet(TraitDataHandle aTraitDataHandle)
-{
-    return mPendingUpdateSet.IsTraitPresent(aTraitDataHandle);
 }
 
 WEAVE_ERROR SubscriptionClient::Lock()
@@ -2488,7 +2483,7 @@ void SubscriptionClient::OnUpdateConfirm(WEAVE_ERROR aReason, nl::Weave::Profile
             UpdateCompleteEventCbHelper(traitPath, profileID, statusCode, aReason);
         }
 
-        mInProgressUpdateList.SetFlag(j, TraitPathStore::kFlag_InUse, false);
+        mInProgressUpdateList.RemoveItemAt(j);
 
         updatableDataSink = tIContext->mUpdatableDataSink;
 
@@ -2816,7 +2811,7 @@ WEAVE_ERROR SubscriptionClient::PurgePendingUpdate()
 
     isLocked = true;
 
-    WeaveLogDetail(DataManagement, "PurgePendingUpdate: numItems before: %d", mPendingUpdateSet.mNumItems);
+    WeaveLogDetail(DataManagement, "PurgePendingUpdate: numItems before: %d", mPendingUpdateSet.GetNumItems());
 
     for (size_t i = 0; i < numUpdatableTraitInstances; i++)
     {
@@ -2838,7 +2833,7 @@ WEAVE_ERROR SubscriptionClient::PurgePendingUpdate()
 
 exit:
 
-    WeaveLogDetail(DataManagement, "PurgePendingUpdate: numItems after: %d", mPendingUpdateSet.mNumItems);
+    WeaveLogDetail(DataManagement, "PurgePendingUpdate: numItems after: %d", mPendingUpdateSet.GetNumItems());
 
     if (isLocked)
     {
@@ -3022,7 +3017,7 @@ WEAVE_ERROR SubscriptionClient::BuildSingleUpdateRequestDataList(UpdateRequestCo
 
     while (context.mItemInProgress < mInProgressUpdateList.GetPathStoreSize())
     {
-        uint16_t &i = context.mItemInProgress;
+        size_t &i = context.mItemInProgress;
 
         if (!(mInProgressUpdateList.IsItemValid(i)))
         {
@@ -3115,18 +3110,17 @@ void SubscriptionClient::SetUpdateStartVersions(void)
     TraitPath traitPath;
     UpdatableTIContext * tIContext;
 
-    for (size_t i = 0; i < mInProgressUpdateList.GetPathStoreSize(); i++)
+    for (size_t i = mInProgressUpdateList.GetFirstValidItem();
+            i < mInProgressUpdateList.GetPathStoreSize();
+            i = mInProgressUpdateList.GetNextValidItem(i))
     {
-        if (mInProgressUpdateList.IsItemValid(i))
+        mInProgressUpdateList.GetItemAt(i, traitPath);
+
+        tIContext = GetUpdatableTIContext(traitPath.mTraitDataHandle);
+
+        if (tIContext)
         {
-            mInProgressUpdateList.GetItemAt(i, traitPath);
-
-            tIContext = GetUpdatableTIContext(traitPath.mTraitDataHandle);
-
-            if (tIContext)
-            {
-                tIContext->mUpdatableDataSink->SetUpdateStartVersion();
-            }
+            tIContext->mUpdatableDataSink->SetUpdateStartVersion();
         }
     }
 }
