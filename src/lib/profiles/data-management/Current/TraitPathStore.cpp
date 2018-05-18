@@ -62,7 +62,7 @@ bool TraitPathStore::IsEmpty()
 
 bool TraitPathStore::IsFull()
 {
-    return mNumItems >= mPathStoreSize;
+    return mNumItems >= mStoreSize;
 }
 
 uint32_t TraitPathStore::GetNumItems()
@@ -72,14 +72,14 @@ uint32_t TraitPathStore::GetNumItems()
 
 uint32_t TraitPathStore::GetPathStoreSize()
 {
-    return mPathStoreSize;
+    return mStoreSize;
 }
 
 WEAVE_ERROR TraitPathStore::AddItem(TraitPath aItem, Flags aFlags)
 {
     WEAVE_ERROR err = WEAVE_ERROR_NO_MEMORY;
 
-    for (size_t i = 0; i < mPathStoreSize; i++)
+    for (size_t i = 0; i < mStoreSize; i++)
     {
         if (!IsItemInUse(i))
         {
@@ -154,7 +154,7 @@ WEAVE_ERROR TraitPathStore::InsertItemAfter(uint32_t aIndex, TraitPath aItem, bo
 
 void TraitPathStore::RemoveItem(TraitDataHandle aDataHandle)
 {
-    for (size_t i = 0; i < mPathStoreSize; i++)
+    for (size_t i = 0; i < mStoreSize; i++)
     {
         if (IsItemInUse(i) && (mStore[i].mTraitPath.mTraitDataHandle == aDataHandle))
         {
@@ -170,7 +170,7 @@ bool TraitPathStore::IsTraitPresent(TraitDataHandle aDataHandle)
     if (mNumItems == 0)
         ExitNow();
 
-    for (size_t i = 0; i < mPathStoreSize; i++)
+    for (size_t i = 0; i < mStoreSize; i++)
     {
         if (IsItemInUse(i) && (mStore[i].mTraitPath.mTraitDataHandle == aDataHandle))
         {
@@ -188,7 +188,7 @@ void TraitPathStore::SetFailedTrait(TraitDataHandle aDataHandle)
     if (mNumItems == 0)
         ExitNow();
 
-    for (size_t i = 0; i < mPathStoreSize; i++)
+    for (size_t i = 0; i < mStoreSize; i++)
     {
         if (IsItemInUse(i) && (mStore[i].mTraitPath.mTraitDataHandle == aDataHandle))
         {
@@ -213,18 +213,21 @@ void TraitPathStore::RemoveItemAt(uint32_t aIndex)
 {
     VerifyOrDie(mNumItems >0);
 
-    SetFlag(aIndex, kFlag_InUse, false);
-    mNumItems--;
+    if (IsItemInUse(aIndex))
+    {
+        SetFlag(aIndex, kFlag_InUse, false);
+        mNumItems--;
+    }
 }
 
 void TraitPathStore::Compact()
 {
     uint32_t numItemsRemaining = mNumItems;
     size_t numBytesToMove, numItemsToMove;
-    const size_t lastIndex = mPathStoreSize -1;
+    const size_t lastIndex = mStoreSize -1;
     size_t i = 0;
 
-    while (i < mPathStoreSize && numItemsRemaining > 0)
+    while (i < mStoreSize && numItemsRemaining > 0)
     {
         if (IsItemInUse(i))
         {
@@ -242,7 +245,7 @@ void TraitPathStore::Compact()
 
 bool TraitPathStore::IsPresent(TraitPath aItem)
 {
-    for (size_t i = 0; i < mPathStoreSize; i++)
+    for (size_t i = 0; i < mStoreSize; i++)
     {
         if (IsItemValid(i) && (mStore[i].mTraitPath == aItem))
         {
@@ -258,7 +261,7 @@ bool TraitPathStore::Intersects(TraitPath aItem, const TraitSchemaEngine * const
     bool found = false;
     TraitDataHandle curDataHandle = aItem.mTraitDataHandle;
 
-    for (size_t i = 0; i < mPathStoreSize; i++)
+    for (size_t i = 0; i < mStoreSize; i++)
     {
         PropertyPathHandle pathHandle = aItem.mPropertyPathHandle;
         if (! (IsItemValid(i) && (mStore[i].mTraitPath.mTraitDataHandle == curDataHandle)))
@@ -285,7 +288,7 @@ bool TraitPathStore::Includes(TraitPath aItem, const TraitSchemaEngine * const a
     TraitDataHandle dataHandle = aItem.mTraitDataHandle;
 
     // Check if the store contains aItem or one of its uncestors.
-    for (size_t i = 0; i < mPathStoreSize; i++)
+    for (size_t i = 0; i < mStoreSize; i++)
     {
         PropertyPathHandle pathHandle = aItem.mPropertyPathHandle;
         if (! (IsItemValid(i) && (mStore[i].mTraitPath.mTraitDataHandle == dataHandle)))
@@ -308,7 +311,7 @@ void TraitPathStore::Clear()
 {
     mNumItems = 0;
 
-    for (size_t i = 0; i < mPathStoreSize; i++)
+    for (size_t i = 0; i < mStoreSize; i++)
     {
         mStore[i].mFlags                         = 0x0;
         mStore[i].mTraitPath.mPropertyPathHandle = kNullPropertyPathHandle;

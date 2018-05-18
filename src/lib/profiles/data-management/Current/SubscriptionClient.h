@@ -458,11 +458,10 @@ private:
     bool IsPathDirty(TraitDataHandle aTraitDataHandle, PropertyPathHandle aPropertyPathHandle, const TraitSchemaEngine * const apSchemaEngine);
     bool IsPresentDispatchedUpdateStore(TraitDataHandle aTraitDataHandle, PropertyPathHandle aPropertyPathHandle);
 
-    struct PathStore;
-    void ClearPathStore(PathStore &aPathStore, WEAVE_ERROR aErr);
+    void ClearPathStore(TraitPathStore &aPathStore, WEAVE_ERROR aErr);
     void ClearPendingUpdateSet(WEAVE_ERROR aErr) { ClearPathStore(mPendingUpdateSet, aErr); }
     void ClearInProgressUpdateList(WEAVE_ERROR aErr) { ClearPathStore(mInProgressUpdateList, aErr); }
-    void PurgeFailedPaths(PathStore &aPathStore);
+    void PurgeFailedPaths(TraitPathStore &aPathStore);
     WEAVE_ERROR RemoveItemPendingUpdateSet(TraitDataHandle aDataHandle);
     WEAVE_ERROR RemoveItemInProgressUpdateList(TraitDataHandle aDataHandle);
     WEAVE_ERROR AddItemPendingUpdateSet(const TraitPath &aItem, const TraitSchemaEngine * const apSchemaEngine);

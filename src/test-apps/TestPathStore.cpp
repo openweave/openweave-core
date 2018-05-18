@@ -18,7 +18,7 @@
 
 /**
  *    @file
- *      This file implements unit tests for the SubscriptionClient::PathStore
+ *      This file implements unit tests for the TraiPathStore
  *      class.
  *
  */
@@ -72,23 +72,34 @@ namespace Platform {
     }
 } // Platform
 
-class PathStoreTest {
+class TraitPathStoreTest {
     public:
-        PathStoreTest() :
-            mTDH1(1), mSchemaEngine(&TestHTrait::TraitSchema) {}
-        ~PathStoreTest() {}
+        TraitPathStoreTest();
+        ~TraitPathStoreTest() {}
 
-        SubscriptionClient::PathStore mStore;
+        TraitPathStore mStore;
+        TraitPathStore::Record mStorage[10];
+
         TraitPath mPath;
         TraitDataHandle mTDH1;
         const TraitSchemaEngine *mSchemaEngine;
 
         void TestInitCleanup(nlTestSuite *inSuite, void *inContext);
         void TestAddGet(nlTestSuite *inSuite, void *inContext);
+        void TestFull(nlTestSuite *inSuite, void *inContext);
+        void TestIncludes(nlTestSuite *inSuite, void *inContext);
         void TestIntersects(nlTestSuite *inSuite, void *inContext);
+        void TestIsPresent(nlTestSuite *inSuite, void *inContext);
+        void TestRemoveAndCompact(nlTestSuite *inSuite, void *inContext);
 };
 
-void PathStoreTest::TestInitCleanup(nlTestSuite *inSuite, void *inContext)
+TraitPathStoreTest::TraitPathStoreTest() :
+            mTDH1(1), mSchemaEngine(&TestHTrait::TraitSchema)
+{
+    mStore.Init(mStorage, ArraySize(mStorage));
+}
+
+void TraitPathStoreTest::TestInitCleanup(nlTestSuite *inSuite, void *inContext)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
 
@@ -106,7 +117,7 @@ void PathStoreTest::TestInitCleanup(nlTestSuite *inSuite, void *inContext)
     NL_TEST_ASSERT(inSuite, mStore.GetNumItems() == 0);
 }
 
-void PathStoreTest::TestAddGet(nlTestSuite *inSuite, void *inContext)
+void TraitPathStoreTest::TestAddGet(nlTestSuite *inSuite, void *inContext)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
     TraitPath tp;
@@ -128,7 +139,95 @@ void PathStoreTest::TestAddGet(nlTestSuite *inSuite, void *inContext)
     mStore.Clear();
 }
 
-void PathStoreTest::TestIntersects(nlTestSuite *inSuite, void *inContext)
+void TraitPathStoreTest::TestFull(nlTestSuite *inSuite, void *inContext)
+{
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
+    TraitPath tp;
+
+    mStore.Clear();
+
+    for (size_t i = 0; i < mStore.GetPathStoreSize(); i++)
+    {
+        NL_TEST_ASSERT(inSuite, false == mStore.IsFull());
+
+        mPath.mTraitDataHandle = mTDH1;
+        mPath.mPropertyPathHandle = kRootPropertyPathHandle+i;
+
+        err = mStore.AddItem(mPath);
+        NL_TEST_ASSERT(inSuite, err == WEAVE_NO_ERROR);
+        NL_TEST_ASSERT(inSuite, mStore.GetNumItems() == i+1);
+        NL_TEST_ASSERT(inSuite, mStore.IsPresent(mPath));
+    }
+
+    NL_TEST_ASSERT(inSuite, mStore.IsFull());
+    NL_TEST_ASSERT(inSuite, mStore.GetNumItems() == mStore.GetPathStoreSize());
+
+    err = mStore.AddItem(mPath);
+    NL_TEST_ASSERT(inSuite, err == WEAVE_ERROR_NO_MEMORY);
+
+    NL_TEST_ASSERT(inSuite, mStore.GetNumItems() == mStore.GetPathStoreSize());
+
+    mStore.Clear();
+
+    NL_TEST_ASSERT(inSuite, mStore.GetNumItems() == 0);
+}
+
+void TraitPathStoreTest::TestIncludes(nlTestSuite *inSuite, void *inContext)
+{
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
+    TraitPath tp;
+
+    mStore.Clear();
+
+    mPath.mTraitDataHandle = mTDH1;
+    mPath.mPropertyPathHandle = TestHTrait::kPropertyHandle_K;
+
+    err = mStore.AddItem(mPath);
+
+    tp.mTraitDataHandle = mTDH1;
+    tp.mPropertyPathHandle = TestHTrait::kPropertyHandle_Root;
+    NL_TEST_ASSERT(inSuite, false == mStore.Includes(tp, mSchemaEngine));
+
+    tp.mPropertyPathHandle = CreatePropertyPathHandle(TestHTrait::kPropertyHandle_K);
+    NL_TEST_ASSERT(inSuite, mStore.Includes(tp, mSchemaEngine));
+
+    tp.mPropertyPathHandle = mSchemaEngine->GetDictionaryItemHandle(CreatePropertyPathHandle(TestHTrait::kPropertyHandle_K_Sa), 1);
+    NL_TEST_ASSERT(inSuite, mStore.Includes(tp, mSchemaEngine));
+
+    tp.mPropertyPathHandle = CreatePropertyPathHandle(TestHTrait::kPropertyHandle_I);
+    NL_TEST_ASSERT(inSuite, false == mStore.Includes(tp, mSchemaEngine));
+
+    tp.mPropertyPathHandle = mSchemaEngine->GetDictionaryItemHandle(CreatePropertyPathHandle(TestHTrait::kPropertyHandle_L), 1);
+    NL_TEST_ASSERT(inSuite, false == mStore.Includes(tp, mSchemaEngine));
+
+    // Now add root as well; everything should be "included".
+    mPath.mPropertyPathHandle = kRootPropertyPathHandle;
+
+    err = mStore.AddItem(mPath);
+
+    tp.mPropertyPathHandle = TestHTrait::kPropertyHandle_Root;
+    NL_TEST_ASSERT(inSuite, mStore.Includes(tp, mSchemaEngine));
+
+    tp.mPropertyPathHandle = CreatePropertyPathHandle(TestHTrait::kPropertyHandle_K);
+    NL_TEST_ASSERT(inSuite, mStore.Includes(tp, mSchemaEngine));
+
+    tp.mPropertyPathHandle = mSchemaEngine->GetDictionaryItemHandle(CreatePropertyPathHandle(TestHTrait::kPropertyHandle_K_Sa), 1);
+    NL_TEST_ASSERT(inSuite, mStore.Includes(tp, mSchemaEngine));
+
+    tp.mPropertyPathHandle = CreatePropertyPathHandle(TestHTrait::kPropertyHandle_I);
+    NL_TEST_ASSERT(inSuite, mStore.Includes(tp, mSchemaEngine));
+
+    tp.mPropertyPathHandle = mSchemaEngine->GetDictionaryItemHandle(CreatePropertyPathHandle(TestHTrait::kPropertyHandle_L), 1);
+    NL_TEST_ASSERT(inSuite, mStore.Includes(tp, mSchemaEngine));
+
+    // A TraitPath for a different trait handler is not
+    tp.mTraitDataHandle = mTDH1 + 1;
+    tp.mPropertyPathHandle = CreatePropertyPathHandle(TestHTrait::kPropertyHandle_K);
+    NL_TEST_ASSERT(inSuite, false == mStore.Includes(tp, mSchemaEngine));
+
+    mStore.Clear();
+}
+void TraitPathStoreTest::TestIntersects(nlTestSuite *inSuite, void *inContext)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
     TraitPath tp;
@@ -156,9 +255,112 @@ void PathStoreTest::TestIntersects(nlTestSuite *inSuite, void *inContext)
     tp.mPropertyPathHandle = mSchemaEngine->GetDictionaryItemHandle(CreatePropertyPathHandle(TestHTrait::kPropertyHandle_L), 1);
     NL_TEST_ASSERT(inSuite, false == mStore.Intersects(tp, mSchemaEngine));
 
+    tp.mTraitDataHandle = mTDH1+1;
+    tp.mPropertyPathHandle = CreatePropertyPathHandle(TestHTrait::kPropertyHandle_K);
+    NL_TEST_ASSERT(inSuite, false == mStore.Intersects(tp, mSchemaEngine));
+
     mStore.Clear();
 }
 
+void TraitPathStoreTest::TestIsPresent(nlTestSuite *inSuite, void *inContext)
+{
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
+    TraitPath tp;
+
+    mStore.Clear();
+
+    tp.mTraitDataHandle = mTDH1;
+    mPath.mTraitDataHandle = mTDH1;
+    mPath.mPropertyPathHandle = CreatePropertyPathHandle(TestHTrait::kPropertyHandle_K);
+
+    NL_TEST_ASSERT(inSuite, false == mStore.IsPresent(mPath));
+
+    err = mStore.AddItem(mPath);
+
+    tp.mPropertyPathHandle = CreatePropertyPathHandle(TestHTrait::kPropertyHandle_K);
+    NL_TEST_ASSERT(inSuite, mStore.IsPresent(tp));
+    NL_TEST_ASSERT(inSuite, mStore.IsTraitPresent(mTDH1));
+    NL_TEST_ASSERT(inSuite, false == mStore.IsTraitPresent(mTDH1+1));
+
+    tp.mPropertyPathHandle = kRootPropertyPathHandle;
+    NL_TEST_ASSERT(inSuite, false == mStore.IsPresent(tp));
+
+    tp.mPropertyPathHandle = mSchemaEngine->GetDictionaryItemHandle(CreatePropertyPathHandle(TestHTrait::kPropertyHandle_K_Sa), 1);
+    NL_TEST_ASSERT(inSuite, false == mStore.IsPresent(tp));
+
+    tp.mPropertyPathHandle = CreatePropertyPathHandle(TestHTrait::kPropertyHandle_I);
+    NL_TEST_ASSERT(inSuite, false == mStore.IsPresent(tp));
+
+    tp.mPropertyPathHandle = mSchemaEngine->GetDictionaryItemHandle(CreatePropertyPathHandle(TestHTrait::kPropertyHandle_L), 1);
+    NL_TEST_ASSERT(inSuite, false == mStore.IsPresent(tp));
+
+    mStore.Clear();
+
+    tp.mPropertyPathHandle = CreatePropertyPathHandle(TestHTrait::kPropertyHandle_K);
+    NL_TEST_ASSERT(inSuite, false == mStore.IsPresent(tp));
+}
+
+void TraitPathStoreTest::TestRemoveAndCompact(nlTestSuite *inSuite, void *inContext)
+{
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
+    TraitPath tp;
+
+
+    mStore.Clear();
+
+    for (size_t i = 0; i < mStore.GetPathStoreSize(); i++)
+    {
+        mPath.mTraitDataHandle = mTDH1+i;
+        mPath.mPropertyPathHandle = kRootPropertyPathHandle+i;
+
+        err = mStore.AddItem(mPath);
+        NL_TEST_ASSERT(inSuite, err == WEAVE_NO_ERROR);
+    }
+
+    tp.mTraitDataHandle = mTDH1 + 1;
+    tp.mPropertyPathHandle = kRootPropertyPathHandle + 1;
+    NL_TEST_ASSERT(inSuite, mStore.IsPresent(tp));
+
+    mStore.RemoveItemAt(1);
+
+    NL_TEST_ASSERT(inSuite, false == mStore.IsPresent(tp));
+    NL_TEST_ASSERT(inSuite, mStore.GetNumItems() == mStore.GetPathStoreSize()-1);
+
+    mStore.RemoveItem(mTDH1+2);
+
+    tp.mTraitDataHandle = mTDH1 + 2;
+    tp.mPropertyPathHandle = kRootPropertyPathHandle + 2;
+    NL_TEST_ASSERT(inSuite, false == mStore.IsPresent(tp));
+    NL_TEST_ASSERT(inSuite, mStore.GetNumItems() == mStore.GetPathStoreSize()-2);
+
+    mStore.RemoveItemAt(4);
+    mStore.RemoveItemAt(5);
+    mStore.RemoveItemAt(6);
+
+    NL_TEST_ASSERT(inSuite, mStore.GetNumItems() == mStore.GetPathStoreSize()-5);
+
+    mStore.Compact();
+
+    NL_TEST_ASSERT(inSuite, mStore.GetNumItems() == mStore.GetPathStoreSize()-5);
+
+    for (size_t i = 0; i < mStore.GetPathStoreSize(); i++)
+    {
+        if (i < mStore.GetNumItems())
+        {
+            NL_TEST_ASSERT(inSuite, mStore.IsItemValid(i));
+        }
+        else
+        {
+            NL_TEST_ASSERT(inSuite, false == mStore.IsItemValid(i));
+        }
+    }
+
+    tp.mTraitDataHandle = mTDH1 + 9;
+    tp.mPropertyPathHandle = kRootPropertyPathHandle + 9;
+    NL_TEST_ASSERT(inSuite, mStore.IsPresent(tp));
+
+    mStore.Clear();
+}
 
 } // WeaveMakeManagedNamespaceIdentifier(DataManagement, kWeaveManagedNamespaceDesignation_Current)
 }
@@ -172,23 +374,43 @@ SubscriptionEngine * SubscriptionEngine::GetInstance()
     return gSubscriptionEngine;
 }
 
-PathStoreTest gPathStoreTest;
+TraitPathStoreTest gPathStoreTest;
 
 
 
-void PathStoreTest_InitCleanup(nlTestSuite *inSuite, void *inContext)
+void TraitPathStoreTest_InitCleanup(nlTestSuite *inSuite, void *inContext)
 {
     gPathStoreTest.TestInitCleanup(inSuite, inContext);
 }
 
-void PathStoreTest_AddGet(nlTestSuite *inSuite, void *inContext)
+void TraitPathStoreTest_AddGet(nlTestSuite *inSuite, void *inContext)
 {
     gPathStoreTest.TestInitCleanup(inSuite, inContext);
 }
 
-void PathStoreTest_Intersects(nlTestSuite *inSuite, void *inContext)
+void TraitPathStoreTest_Full(nlTestSuite *inSuite, void *inContext)
+{
+    gPathStoreTest.TestFull(inSuite, inContext);
+}
+
+void TraitPathStoreTest_Includes(nlTestSuite *inSuite, void *inContext)
+{
+    gPathStoreTest.TestIncludes(inSuite, inContext);
+}
+
+void TraitPathStoreTest_Intersects(nlTestSuite *inSuite, void *inContext)
 {
     gPathStoreTest.TestIntersects(inSuite, inContext);
+}
+
+void TraitPathStoreTest_IsPresent(nlTestSuite *inSuite, void *inContext)
+{
+    gPathStoreTest.TestIsPresent(inSuite, inContext);
+}
+
+void TraitPathStoreTest_RemoveAndCompact(nlTestSuite *inSuite, void *inContext)
+{
+    gPathStoreTest.TestRemoveAndCompact(inSuite, inContext);
 }
 
 // Test Suite
@@ -197,10 +419,13 @@ void PathStoreTest_Intersects(nlTestSuite *inSuite, void *inContext)
  *  Test Suite that lists all the test functions.
  */
 static const nlTest sTests[] = {
-    NL_TEST_DEF("Init and cleanup",  PathStoreTest_InitCleanup),
-    NL_TEST_DEF("AddItem and GetItem",  PathStoreTest_AddGet),
-    NL_TEST_DEF("Intersects",  PathStoreTest_Intersects),
-
+    NL_TEST_DEF("Init and cleanup",  TraitPathStoreTest_InitCleanup),
+    NL_TEST_DEF("AddItem and GetItem",  TraitPathStoreTest_AddGet),
+    NL_TEST_DEF("Full store",  TraitPathStoreTest_Full),
+    NL_TEST_DEF("Includes",  TraitPathStoreTest_Includes),
+    NL_TEST_DEF("Intersects",  TraitPathStoreTest_Intersects),
+    NL_TEST_DEF("IsPresent",  TraitPathStoreTest_IsPresent),
+    NL_TEST_DEF("Remove and Compact",  TraitPathStoreTest_RemoveAndCompact),
 
     NL_TEST_SENTINEL()
 };
@@ -242,7 +467,7 @@ static int TestTeardown(void *inContext)
 int main(int argc, char *argv[])
 {
     nlTestSuite theSuite = {
-        "weave-pathstore",
+        "weave-TraitPathStore",
         &sTests[0],
         TestSetup,
         TestTeardown

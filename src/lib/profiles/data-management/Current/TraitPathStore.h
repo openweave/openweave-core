@@ -31,6 +31,10 @@
 
 #include <Weave/Profiles/data-management/TraitCatalog.h>
 
+namespace nl {
+namespace Weave {
+namespace Profiles {
+namespace WeaveMakeManagedNamespaceIdentifier(DataManagement, kWeaveManagedNamespaceDesignation_Current) {
 
 struct TraitPathStore
 {
@@ -101,5 +105,9 @@ struct TraitPathStore
         uint32_t mNumItems;
 };
 
+}; // namespace WeaveMakeManagedNamespaceIdentifier(DataManagement, kWeaveManagedNamespaceDesignation_Current)
+}; // namespace Profiles
+}; // namespace Weave
+}; // namespace nl
 
 #endif // _WEAVE_DATA_MANAGEMENT_TRAIT_PATH_STORE_CURRENT_H

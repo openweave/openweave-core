@@ -526,6 +526,7 @@ am__libWeave_a_SOURCES_DIST =  \
 	@top_builddir@/src/lib/profiles/data-management/Current/SubscriptionEngine.cpp \
 	@top_builddir@/src/lib/profiles/data-management/Current/SubscriptionHandler.cpp \
 	@top_builddir@/src/lib/profiles/data-management/Current/TraitData.cpp \
+	@top_builddir@/src/lib/profiles/data-management/Current/TraitPathStore.cpp \
 	@top_builddir@/src/lib/profiles/data-management/Current/ViewClient.cpp \
 	@top_builddir@/src/lib/profiles/data-management/Current/Command.cpp \
 	@top_builddir@/src/lib/profiles/data-management/Current/UpdateClient.cpp \
@@ -723,6 +724,7 @@ am__objects_20 = @top_builddir@/src/lib/profiles/bulk-data-transfer/libWeave_a-B
 	@top_builddir@/src/lib/profiles/data-management/Current/libWeave_a-SubscriptionEngine.$(OBJEXT) \
 	@top_builddir@/src/lib/profiles/data-management/Current/libWeave_a-SubscriptionHandler.$(OBJEXT) \
 	@top_builddir@/src/lib/profiles/data-management/Current/libWeave_a-TraitData.$(OBJEXT) \
+	@top_builddir@/src/lib/profiles/data-management/Current/libWeave_a-TraitPathStore.$(OBJEXT) \
 	@top_builddir@/src/lib/profiles/data-management/Current/libWeave_a-ViewClient.$(OBJEXT) \
 	@top_builddir@/src/lib/profiles/data-management/Current/libWeave_a-Command.$(OBJEXT) \
 	@top_builddir@/src/lib/profiles/data-management/Current/libWeave_a-UpdateClient.$(OBJEXT) \
@@ -1219,6 +1221,7 @@ nl_WeaveProfiles_sources = @top_builddir@/src/lib/profiles/bulk-data-transfer/Bu
 	@top_builddir@/src/lib/profiles/data-management/Current/SubscriptionEngine.cpp \
 	@top_builddir@/src/lib/profiles/data-management/Current/SubscriptionHandler.cpp \
 	@top_builddir@/src/lib/profiles/data-management/Current/TraitData.cpp \
+	@top_builddir@/src/lib/profiles/data-management/Current/TraitPathStore.cpp \
 	@top_builddir@/src/lib/profiles/data-management/Current/ViewClient.cpp \
 	@top_builddir@/src/lib/profiles/data-management/Current/Command.cpp \
 	@top_builddir@/src/lib/profiles/data-management/Current/UpdateClient.cpp \
@@ -1802,6 +1805,8 @@ clean-libLIBRARIES:
 	@top_builddir@/src/lib/profiles/data-management/Current/$(DEPDIR)/$(am__dirstamp)
 @top_builddir@/src/lib/profiles/data-management/Current/libWeave_a-TraitData.$(OBJEXT): @top_builddir@/src/lib/profiles/data-management/Current/$(am__dirstamp) \
 	@top_builddir@/src/lib/profiles/data-management/Current/$(DEPDIR)/$(am__dirstamp)
+@top_builddir@/src/lib/profiles/data-management/Current/libWeave_a-TraitPathStore.$(OBJEXT): @top_builddir@/src/lib/profiles/data-management/Current/$(am__dirstamp) \
+	@top_builddir@/src/lib/profiles/data-management/Current/$(DEPDIR)/$(am__dirstamp)
 @top_builddir@/src/lib/profiles/data-management/Current/libWeave_a-ViewClient.$(OBJEXT): @top_builddir@/src/lib/profiles/data-management/Current/$(am__dirstamp) \
 	@top_builddir@/src/lib/profiles/data-management/Current/$(DEPDIR)/$(am__dirstamp)
 @top_builddir@/src/lib/profiles/data-management/Current/libWeave_a-Command.$(OBJEXT): @top_builddir@/src/lib/profiles/data-management/Current/$(am__dirstamp) \
@@ -2198,6 +2203,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@@top_builddir@/src/lib/profiles/data-management/Current/$(DEPDIR)/libWeave_a-SubscriptionEngine.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@@top_builddir@/src/lib/profiles/data-management/Current/$(DEPDIR)/libWeave_a-SubscriptionHandler.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@@top_builddir@/src/lib/profiles/data-management/Current/$(DEPDIR)/libWeave_a-TraitData.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@@top_builddir@/src/lib/profiles/data-management/Current/$(DEPDIR)/libWeave_a-TraitPathStore.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@@top_builddir@/src/lib/profiles/data-management/Current/$(DEPDIR)/libWeave_a-UpdateClient.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@@top_builddir@/src/lib/profiles/data-management/Current/$(DEPDIR)/libWeave_a-ViewClient.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@@top_builddir@/src/lib/profiles/data-management/Legacy/$(DEPDIR)/libWeave_a-Binding.Po@am__quote@
@@ -3878,6 +3884,20 @@ distclean-compile:
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='@top_builddir@/src/lib/profiles/data-management/Current/TraitData.cpp' object='@top_builddir@/src/lib/profiles/data-management/Current/libWeave_a-TraitData.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libWeave_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o @top_builddir@/src/lib/profiles/data-management/Current/libWeave_a-TraitData.obj `if test -f '@top_builddir@/src/lib/profiles/data-management/Current/TraitData.cpp'; then $(CYGPATH_W) '@top_builddir@/src/lib/profiles/data-management/Current/TraitData.cpp'; else $(CYGPATH_W) '$(srcdir)/@top_builddir@/src/lib/profiles/data-management/Current/TraitData.cpp'; fi`
+
+@top_builddir@/src/lib/profiles/data-management/Current/libWeave_a-TraitPathStore.o: @top_builddir@/src/lib/profiles/data-management/Current/TraitPathStore.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libWeave_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT @top_builddir@/src/lib/profiles/data-management/Current/libWeave_a-TraitPathStore.o -MD -MP -MF @top_builddir@/src/lib/profiles/data-management/Current/$(DEPDIR)/libWeave_a-TraitPathStore.Tpo -c -o @top_builddir@/src/lib/profiles/data-management/Current/libWeave_a-TraitPathStore.o `test -f '@top_builddir@/src/lib/profiles/data-management/Current/TraitPathStore.cpp' || echo '$(srcdir)/'`@top_builddir@/src/lib/profiles/data-management/Current/TraitPathStore.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) @top_builddir@/src/lib/profiles/data-management/Current/$(DEPDIR)/libWeave_a-TraitPathStore.Tpo @top_builddir@/src/lib/profiles/data-management/Current/$(DEPDIR)/libWeave_a-TraitPathStore.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='@top_builddir@/src/lib/profiles/data-management/Current/TraitPathStore.cpp' object='@top_builddir@/src/lib/profiles/data-management/Current/libWeave_a-TraitPathStore.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libWeave_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o @top_builddir@/src/lib/profiles/data-management/Current/libWeave_a-TraitPathStore.o `test -f '@top_builddir@/src/lib/profiles/data-management/Current/TraitPathStore.cpp' || echo '$(srcdir)/'`@top_builddir@/src/lib/profiles/data-management/Current/TraitPathStore.cpp
+
+@top_builddir@/src/lib/profiles/data-management/Current/libWeave_a-TraitPathStore.obj: @top_builddir@/src/lib/profiles/data-management/Current/TraitPathStore.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libWeave_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT @top_builddir@/src/lib/profiles/data-management/Current/libWeave_a-TraitPathStore.obj -MD -MP -MF @top_builddir@/src/lib/profiles/data-management/Current/$(DEPDIR)/libWeave_a-TraitPathStore.Tpo -c -o @top_builddir@/src/lib/profiles/data-management/Current/libWeave_a-TraitPathStore.obj `if test -f '@top_builddir@/src/lib/profiles/data-management/Current/TraitPathStore.cpp'; then $(CYGPATH_W) '@top_builddir@/src/lib/profiles/data-management/Current/TraitPathStore.cpp'; else $(CYGPATH_W) '$(srcdir)/@top_builddir@/src/lib/profiles/data-management/Current/TraitPathStore.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) @top_builddir@/src/lib/profiles/data-management/Current/$(DEPDIR)/libWeave_a-TraitPathStore.Tpo @top_builddir@/src/lib/profiles/data-management/Current/$(DEPDIR)/libWeave_a-TraitPathStore.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='@top_builddir@/src/lib/profiles/data-management/Current/TraitPathStore.cpp' object='@top_builddir@/src/lib/profiles/data-management/Current/libWeave_a-TraitPathStore.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libWeave_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o @top_builddir@/src/lib/profiles/data-management/Current/libWeave_a-TraitPathStore.obj `if test -f '@top_builddir@/src/lib/profiles/data-management/Current/TraitPathStore.cpp'; then $(CYGPATH_W) '@top_builddir@/src/lib/profiles/data-management/Current/TraitPathStore.cpp'; else $(CYGPATH_W) '$(srcdir)/@top_builddir@/src/lib/profiles/data-management/Current/TraitPathStore.cpp'; fi`
 
 @top_builddir@/src/lib/profiles/data-management/Current/libWeave_a-ViewClient.o: @top_builddir@/src/lib/profiles/data-management/Current/ViewClient.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libWeave_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT @top_builddir@/src/lib/profiles/data-management/Current/libWeave_a-ViewClient.o -MD -MP -MF @top_builddir@/src/lib/profiles/data-management/Current/$(DEPDIR)/libWeave_a-ViewClient.Tpo -c -o @top_builddir@/src/lib/profiles/data-management/Current/libWeave_a-ViewClient.o `test -f '@top_builddir@/src/lib/profiles/data-management/Current/ViewClient.cpp' || echo '$(srcdir)/'`@top_builddir@/src/lib/profiles/data-management/Current/ViewClient.cpp

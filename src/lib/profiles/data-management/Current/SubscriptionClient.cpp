@@ -96,8 +96,8 @@ void SubscriptionClient::Reset(void)
     mUpdateRequestContext.mItemInProgress = 0;
     mUpdateRequestContext.mNextDictionaryElementPathHandle = kNullPropertyPathHandle;
     mPendingSetState = kPendingSetEmpty;
-    mPendingUpdateSet.Init(mPendingStore, ARRAY_SIZE(mPendingStore));
-    mInProgressUpdateList.Init(mInProgressStore, ARRAY_SIZE(mInProgressStore));
+    mPendingUpdateSet.Init(mPendingStore, ArraySize(mPendingStore));
+    mInProgressUpdateList.Init(mInProgressStore, ArraySize(mInProgressStore));
 #endif // WEAVE_CONFIG_ENABLE_WDM_UPDATE
 
 #if WDM_ENABLE_PROTOCOL_CHECKS
@@ -1998,7 +1998,7 @@ exit:
  * to the application with an internal error for each
  * path still in the list.
  */
-void SubscriptionClient::ClearPathStore(PathStore &aPathStore, WEAVE_ERROR aErr)
+void SubscriptionClient::ClearPathStore(TraitPathStore &aPathStore, WEAVE_ERROR aErr)
 {
     TraitPath traitPath;
 
@@ -2021,7 +2021,7 @@ void SubscriptionClient::ClearPathStore(PathStore &aPathStore, WEAVE_ERROR aErr)
     aPathStore.Clear();
 }
 
-void SubscriptionClient::PurgeFailedPaths(PathStore &aPathStore)
+void SubscriptionClient::PurgeFailedPaths(TraitPathStore &aPathStore)
 {
     TraitPath traitPath;
 
@@ -2488,7 +2488,7 @@ void SubscriptionClient::OnUpdateConfirm(WEAVE_ERROR aReason, nl::Weave::Profile
             UpdateCompleteEventCbHelper(traitPath, profileID, statusCode, aReason);
         }
 
-        mInProgressUpdateList.SetFlag(j, PathStore::kFlag_InUse, false);
+        mInProgressUpdateList.SetFlag(j, TraitPathStore::kFlag_InUse, false);
 
         updatableDataSink = tIContext->mUpdatableDataSink;
 
