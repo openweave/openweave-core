@@ -76,12 +76,28 @@ WEAVE_LDADD                                    = \
     $(top_builddir)/src/lib/libWeave.a       \
     $(NULL)
 
+if CONFIG_BLE_PLATFORM_BLUEZ
+
+BLE_LDADD                                    = \
+    $(top_builddir)/src/platform/ble/bluez/libWoBluez.a \
+    $(BLUEZ_LDFLAGS)                                    \
+    @BLUEZ_LIBS@ @GLIB_LIBS@ @DBUS_LIBS@ -ldl -lrt      \
+    $(NULL)
+
+else
+
+BLE_LDADD                                  = \
+    $(NULL)
+
+endif #CONFIG_BLE_PLATFORM_BLUEZ
+
 COMMON_LDADD                                   = \
     $(COMMON_LDFLAGS)                            \
     $(WEAVE_LDADD)                               \
     $(LWIP_LDFLAGS) $(LWIP_LIBS)                 \
     $(SOCKETS_LDFLAGS) $(SOCKETS_LIBS)           \
     $(PTHREAD_CFLAGS) $(PTHREAD_LIBS)            \
+    $(BLE_LDADD)                                 \
     $(NULL)
 #                             
 
