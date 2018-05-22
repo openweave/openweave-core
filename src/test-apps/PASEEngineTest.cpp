@@ -71,7 +71,7 @@ do { \
     } \
 } while (0)
 
-void MessageMutator::MutateMessage(const char *msgName, PacketBuffer *msgBuf) {}
+void MessageMutator::MutateMessage(const char *msgName, PacketBuffer *msgBuf) { }
 
 static MessageMutator gNullMutator;
 
@@ -177,7 +177,8 @@ bool PASEEngineTest::IsExpectedError(const char *opName, WEAVE_ERROR err) const
     for (size_t i = 0; i < kMaxExpectedErrors && mExpectedErrors[i].Error != WEAVE_NO_ERROR; i++)
     {
         if (mExpectedErrors[i].Error == err &&
-            (mExpectedErrors[i].OpName == NULL || strcmp(mExpectedErrors[i].OpName, opName) == 0)){
+            (mExpectedErrors[i].OpName == NULL || strcmp(mExpectedErrors[i].OpName, opName) == 0))
+        {
             return true;
         }
     }
@@ -293,10 +294,11 @@ onReconfig:
 
     // =========== Responder Processes PASE InitiatorStep1 ================
     err = responderEng.ProcessInitiatorStep1(msgBuf, respNodeId, initNodeId, &respFabricState);
-    if(IsExpectedError(INITIATOR_STEP_1, err))
+    if (IsExpectedError(INITIATOR_STEP_1, err))
         goto onExpectedError;
 
-    if(ExpectReconfig()){
+    if (ExpectReconfig())
+    {
         VerifyOrQuit(err == WEAVE_ERROR_PASE_RECONFIGURE_REQUIRED, "WEAVE_ERROR_PASE_RECONFIG_REQUIRED error expected");
         PacketBuffer::Free(msgBuf);
         msgBuf = NULL;
@@ -322,7 +324,7 @@ onReconfig:
         {
             uint32_t tempProposedConfig = mProposedConfig;
             err = initiatorEng.ProcessResponderReconfigure(msgBuf, mProposedConfig);
-            if(IsExpectedError("Initiator:ProcessResponderReconfigure", err))
+            if (IsExpectedError("Initiator:ProcessResponderReconfigure", err))
             {
                 mProposedConfig = tempProposedConfig;
                 goto onExpectedError;
@@ -378,7 +380,7 @@ onReconfig:
     {
         // Initiator receives and processes PASE Responder Step 1 message.
         err = initiatorEng.ProcessResponderStep1(msgBuf);
-        if(IsExpectedError(RESPONDER_STEP_1, err))
+        if (IsExpectedError(RESPONDER_STEP_1, err))
             goto onExpectedError;
         SuccessOrQuit(err, "WeavePASEEngine::ProcessResponderStep1 failed\n");
         PacketBuffer::Free(msgBuf);
@@ -386,7 +388,7 @@ onReconfig:
 
         // Initiator receives and processes PASE Responder Step 2 message.
         err = initiatorEng.ProcessResponderStep2(msgBuf2);
-        if(IsExpectedError(RESPONDER_STEP_2, err))
+        if (IsExpectedError(RESPONDER_STEP_2, err))
             goto onExpectedError;
         SuccessOrQuit(err, "WeavePASEEngine::ProcessResponderStep2 failed\n");
         PacketBuffer::Free(msgBuf2);
@@ -415,7 +417,7 @@ onReconfig:
         PacketBuffer::Free(msgBuf);
         msgBuf = NULL;
 
-        if(IsExpectedError(INITIATOR_STEP_2, err))
+        if (IsExpectedError(INITIATOR_STEP_2, err))
             goto onExpectedError;
 
         if (expectSuccess)
@@ -450,7 +452,7 @@ onReconfig:
         {
             err = initiatorEng.ProcessResponderKeyConfirm(msgBuf);
 
-            if(IsExpectedError(RESPONDER_KEY_CONFIRM, err))
+            if (IsExpectedError(RESPONDER_KEY_CONFIRM, err))
                 goto onExpectedError;
 
             SuccessOrQuit(err, "WeavePASEEngine::ProcessResponderKeyConfirm failed\n");

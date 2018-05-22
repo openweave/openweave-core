@@ -31,7 +31,7 @@ class MessageMutator
 {
 public:
     virtual void MutateMessage(const char *msgName, PacketBuffer *msgBuf);
-    virtual ~MessageMutator() {}
+    virtual ~MessageMutator() { }
 };
 
 class MessageExternalFuzzer : public MessageMutator

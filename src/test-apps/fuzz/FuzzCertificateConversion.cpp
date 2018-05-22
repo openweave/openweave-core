@@ -42,11 +42,13 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
 {
     static uint8_t inCert[MAX_CERT_SIZE];
     static uint8_t outCert[MAX_CERT_SIZE];
-    CertFormat outputFormats[4] = {
+    CertFormat outputFormats[4] =
+    {
         kCertFormat_X509_PEM,
         kCertFormat_X509_DER,
         kCertFormat_Weave_Base64,
-        kCertFormat_Weave_Raw};
+        kCertFormat_Weave_Raw
+    };
 
     bool res = true;
     WEAVE_ERROR err;
@@ -55,7 +57,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
     CertFormat outCertFormat;
     uint32_t outCertLen = 0;
 
-    if(size > sizeof(inCert))
+    if (size > sizeof(inCert))
     {
         fprintf(stderr, "weave: Input certificate too big\n");
         ExitNow();
@@ -70,7 +72,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
     }
 
     inCertFormat = DetectCertFormat(inCert, inCertLen);
-    for(int i = 0; i < 4; i++)
+    for (int i = 0; i < 4; i++)
     {
         outCertFormat = outputFormats[i];
         if (inCertFormat == outCertFormat)
