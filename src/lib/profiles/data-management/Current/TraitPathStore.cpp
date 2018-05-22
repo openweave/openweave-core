@@ -283,7 +283,6 @@ bool TraitPathStore::IsPresent(const TraitPath &aItem) const
 bool TraitPathStore::Intersects(const TraitPath &aTraitPath, const TraitSchemaEngine * const aSchemaEngine) const
 {
     bool intersects = false;
-    size_t i = 0;
     TraitDataHandle dataHandle = aTraitPath.mTraitDataHandle;
     PropertyPathHandle pathHandle = aTraitPath.mPropertyPathHandle;
 
@@ -428,7 +427,7 @@ size_t TraitPathStore::FindFirstAvailableItem() const
 {
     size_t i = 0;
 
-    while(i < mStoreSize && IsItemInUse(i))
+    while (i < mStoreSize && IsItemInUse(i))
     {
         i++;
     }
@@ -458,4 +457,3 @@ void TraitPathStore::SetFlag(size_t aIndex, Flag aFlag, bool aValue)
         mStore[aIndex].mFlags |= static_cast<Flags>(aFlag);
     }
 }
-

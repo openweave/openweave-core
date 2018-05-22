@@ -309,7 +309,7 @@ private:
     friend class SubscriptionEngine;
     friend class TestTdm;
     friend class TestWdm;
-    friend class PathStoreTest;
+    friend class MockWdmSubscriptionInitiatorImpl;
     friend class TraitDataSink;
     friend class TraitSchemaEngine;
     friend class UpdateDirtyPathFilter;

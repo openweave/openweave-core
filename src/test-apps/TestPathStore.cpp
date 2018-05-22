@@ -75,7 +75,7 @@ namespace Platform {
 class TraitPathStoreTest {
     public:
         TraitPathStoreTest();
-        ~TraitPathStoreTest() {}
+        ~TraitPathStoreTest() { }
 
         TraitPathStore mStore;
         TraitPathStore::Record mStorage[10];
@@ -183,6 +183,7 @@ void TraitPathStoreTest::TestIncludes(nlTestSuite *inSuite, void *inContext)
     mPath.mPropertyPathHandle = TestHTrait::kPropertyHandle_K;
 
     err = mStore.AddItem(mPath);
+    NL_TEST_ASSERT(inSuite, err == WEAVE_NO_ERROR);
 
     tp.mTraitDataHandle = mTDH1;
     tp.mPropertyPathHandle = TestHTrait::kPropertyHandle_Root;
@@ -204,6 +205,7 @@ void TraitPathStoreTest::TestIncludes(nlTestSuite *inSuite, void *inContext)
     mPath.mPropertyPathHandle = kRootPropertyPathHandle;
 
     err = mStore.AddItem(mPath);
+    NL_TEST_ASSERT(inSuite, err == WEAVE_NO_ERROR);
 
     tp.mPropertyPathHandle = TestHTrait::kPropertyHandle_Root;
     NL_TEST_ASSERT(inSuite, mStore.Includes(tp, mSchemaEngine));
@@ -238,6 +240,7 @@ void TraitPathStoreTest::TestIntersects(nlTestSuite *inSuite, void *inContext)
     mPath.mPropertyPathHandle = TestHTrait::kPropertyHandle_K;
 
     err = mStore.AddItem(mPath);
+    NL_TEST_ASSERT(inSuite, err == WEAVE_NO_ERROR);
 
     tp.mTraitDataHandle = mTDH1;
     tp.mPropertyPathHandle = TestHTrait::kPropertyHandle_Root;
@@ -276,6 +279,7 @@ void TraitPathStoreTest::TestIsPresent(nlTestSuite *inSuite, void *inContext)
     NL_TEST_ASSERT(inSuite, false == mStore.IsPresent(mPath));
 
     err = mStore.AddItem(mPath);
+    NL_TEST_ASSERT(inSuite, err == WEAVE_NO_ERROR);
 
     tp.mPropertyPathHandle = CreatePropertyPathHandle(TestHTrait::kPropertyHandle_K);
     NL_TEST_ASSERT(inSuite, mStore.IsPresent(tp));

@@ -1316,7 +1316,10 @@ WEAVE_ERROR SubscriptionClient::ProcessDataList(nl::Weave::TLV::TLVReader & aRea
     SuccessOrExit(err);
 
 #if WEAVE_CONFIG_ENABLE_WDM_UPDATE
-    PurgeFailedPaths(mPendingUpdateSet);
+    if (false == IsUpdateInFlight())
+    {
+        PurgePendingUpdate();
+    }
 #endif // WEAVE_CONFIG_ENABLE_WDM_UPDATE
 
 exit:
@@ -1809,6 +1812,18 @@ void SubscriptionClient::OnMessageReceivedFromLocallyInitiatedExchange(nl::Weave
 
 #if WEAVE_CONFIG_ENABLE_WDM_UPDATE
 
+            for (size_t i = 0; i < pClient->GetNumUpdatableTraitInstances(); i++)
+            {
+                UpdatableTIContext *tIContext = &pClient->GetUpdatableTIContextList()[i];
+
+                if (false == tIContext->mUpdatableDataSink->IsVersionValid())
+                {
+                    WeaveLogDetail(DataManagement, "Terminating subscription because TDH %" PRIu16 " has no version",
+                            tIContext->mTraitDataHandle);
+                    ExitNow(err = WEAVE_ERROR_WDM_VERSION_MISMATCH);
+                }
+            }
+
             if (pClient->mPendingSetState == kPendingSetReady &&
                     pClient->IsEmptyInProgressUpdateList())
             {
@@ -2021,9 +2036,13 @@ void SubscriptionClient::ClearPathStore(TraitPathStore &aPathStore, WEAVE_ERROR 
     aPathStore.Clear();
 }
 
+// TODO: this is only used for the pending set!
 void SubscriptionClient::PurgeFailedPaths(TraitPathStore &aPathStore)
 {
     TraitPath traitPath;
+    bool needToResubscribe = false;
+    UpdatableTIContext *tIContext = NULL;
+
 
     for (size_t j = 0; j < aPathStore.GetPathStoreSize(); j++)
     {
@@ -2033,10 +2052,16 @@ void SubscriptionClient::PurgeFailedPaths(TraitPathStore &aPathStore)
         }
         if (aPathStore.IsItemFailed(j))
         {
+            needToResubscribe = true;
+            aPathStore.GetItemAt(j, traitPath);
+            tIContext = GetUpdatableTIContext(traitPath.mTraitDataHandle);
+            VerifyOrDie(tIContext != NULL);
+            tIContext->mUpdatableDataSink->ClearVersion();
+            tIContext->mUpdatableDataSink->ClearUpdateRequiredVersion();
+            tIContext->mUpdatableDataSink->ClearConditionalUpdate();
+
             if (! aPathStore.IsItemPrivate(j))
             {
-                aPathStore.GetItemAt(j, traitPath);
-
                 UpdateCompleteEventCbHelper(traitPath,
                         nl::Weave::Profiles::kWeaveProfile_Common,
                         nl::Weave::Profiles::Common::kStatus_InternalError,
@@ -2047,6 +2072,16 @@ void SubscriptionClient::PurgeFailedPaths(TraitPathStore &aPathStore)
     }
 
     aPathStore.Compact();
+
+    if (mPendingUpdateSet.IsEmpty())
+    {
+        SetPendingSetState(kPendingSetEmpty);
+    }
+
+    if (needToResubscribe && IsEstablishedIdle())
+    {
+        HandleSubscriptionTerminated(IsRetryEnabled(), WEAVE_ERROR_WDM_VERSION_MISMATCH, NULL);
+    }
 }
 
 bool SubscriptionClient::IsEmptyPendingUpdateSet(void)
@@ -2199,7 +2234,7 @@ void SubscriptionClient::MarkFailedPendingPaths(TraitDataHandle aTraitDataHandle
         if (tIContext->mUpdatableDataSink->IsConditionalUpdate() &&
                 IsVersionNewer(aLatestVersion, tIContext->mUpdatableDataSink->GetUpdateRequiredVersion()))
         {
-            WeaveLogDetail(DataManagement, "<PurgeUpdate> current version 0x%" PRIx64
+            WeaveLogDetail(DataManagement, "<MarkFailedPendingPaths> current version 0x%" PRIx64
                     ", valid: %d"
                     ", updateRequiredVersion: 0x%" PRIx64
                     ", latest known version: 0x%" PRIx64 "",
@@ -2509,7 +2544,8 @@ void SubscriptionClient::OnUpdateConfirm(WEAVE_ERROR aReason, nl::Weave::Profile
                 }
                 else
                 {
-                    updatableDataSink->SetUpdateRequiredVersion(0);
+                    updatableDataSink->ClearUpdateRequiredVersion();
+                    updatableDataSink->ClearConditionalUpdate();
                 }
             }
 
@@ -2530,9 +2566,11 @@ void SubscriptionClient::OnUpdateConfirm(WEAVE_ERROR aReason, nl::Weave::Profile
                 if (mPendingUpdateSet.IsTraitPresent(tIContext->mTraitDataHandle))
                 {
                     mPendingUpdateSet.SetFailedTrait(tIContext->mTraitDataHandle);
-                    tIContext->mUpdatableDataSink->ClearVersion();
-                    needToResubscribe = true;
                 }
+                tIContext->mUpdatableDataSink->ClearVersion();
+                tIContext->mUpdatableDataSink->ClearUpdateRequiredVersion();
+                tIContext->mUpdatableDataSink->ClearConditionalUpdate();
+                needToResubscribe = true;
             }
             else
             {
@@ -2540,6 +2578,8 @@ void SubscriptionClient::OnUpdateConfirm(WEAVE_ERROR aReason, nl::Weave::Profile
                         mPendingUpdateSet.IsTraitPresent(tIContext->mTraitDataHandle))
                 {
                     mPendingUpdateSet.SetFailedTrait(tIContext->mTraitDataHandle);
+                    tIContext->mUpdatableDataSink->ClearUpdateRequiredVersion();
+                    tIContext->mUpdatableDataSink->ClearConditionalUpdate();
                 }
 
                 if (updatableDataSink->IsVersionValid())
@@ -2565,7 +2605,7 @@ exit:
 
     if (needToResubscribe)
     {
-        WeaveLogDetail(DataManagement, "I already know I need to resubscribe");
+        WeaveLogDetail(DataManagement, "UpdateResponse: triggering resubscription");
     }
 
     // TODO: should the purge happen only if the pending set is ready?
@@ -2588,11 +2628,13 @@ exit:
         {
             if (tIContext->mPotentialDataLoss)
             {
-                WeaveLogDetail(DataManagement, "Potential data loss in tdh %d, trait %08x",
+                WeaveLogDetail(DataManagement, "UpdateResponse: Potential data loss in tdh %d, trait %08x; resubscribing",
                         tIContext->mTraitDataHandle,
                         tIContext->mUpdatableDataSink->GetSchemaEngine()->GetProfileId());
 
                 tIContext->mUpdatableDataSink->ClearVersion();
+                tIContext->mUpdatableDataSink->ClearUpdateRequiredVersion();
+                tIContext->mUpdatableDataSink->ClearConditionalUpdate();
                 needToResubscribe = true;
             }
 
@@ -2652,6 +2694,7 @@ void SubscriptionClient::OnUpdateResponseTimeout(WEAVE_ERROR aError)
 
     //Move paths from DispatchedUpdates to PendingUpdates for all TIs.
     err = MoveInProgressToPending();
+    mUpdateRequestContext.mItemInProgress = 0;
     if (err != WEAVE_NO_ERROR)
     {
         // Fail everything; think about dictionaries spread over
@@ -2813,6 +2856,8 @@ WEAVE_ERROR SubscriptionClient::PurgePendingUpdate()
 
     WeaveLogDetail(DataManagement, "PurgePendingUpdate: numItems before: %d", mPendingUpdateSet.GetNumItems());
 
+    VerifyOrExit(mPendingUpdateSet.GetNumItems() > 0, );
+
     for (size_t i = 0; i < numUpdatableTraitInstances; i++)
     {
         traitInfo = mClientTraitInfoPool + i;
@@ -2825,11 +2870,6 @@ WEAVE_ERROR SubscriptionClient::PurgePendingUpdate()
     }
 
     PurgeFailedPaths(mPendingUpdateSet);
-
-    if (mPendingUpdateSet.IsEmpty())
-    {
-        SetPendingSetState(kPendingSetEmpty);
-    }
 
 exit:
 
@@ -3091,8 +3131,9 @@ exit:
         RemoveItemInProgressUpdateList(traitInfo->mTraitDataHandle);
         RemoveItemPendingUpdateSet(traitInfo->mTraitDataHandle);
 
-        updatableDataSink->ClearUpdateRequiredVersion();
         updatableDataSink->ClearVersion();
+        updatableDataSink->ClearUpdateRequiredVersion();
+        updatableDataSink->ClearConditionalUpdate();
 
         context.mNextDictionaryElementPathHandle = kNullPropertyPathHandle;
 
@@ -3150,9 +3191,15 @@ WEAVE_ERROR SubscriptionClient::SendSingleUpdateRequest(void)
         }
 
         WeaveLogDetail(DataManagement, "Sending update");
+        SetUpdateInFlight();
         err = mUpdateClient.SendUpdate(mUpdateRequestContext.mIsPartialUpdate);
         SuccessOrExit(err);
-        SetUpdateInFlight();
+
+        WEAVE_FAULT_INJECT(FaultInjection::kFault_WDM_DelayUpdateResponse,
+                           nl::Weave::FaultInjection::GetManager().FailAtFault(
+                               nl::Weave::FaultInjection::kFault_DropIncomingUDPMsg,
+                               0, 1));
+
     }
     else
     {
@@ -3163,6 +3210,7 @@ exit:
 
     if (err != WEAVE_NO_ERROR)
     {
+        ClearUpdateInFlight();
         mUpdateClient.CancelUpdate();
     }
 
@@ -3267,6 +3315,7 @@ void SubscriptionClient::InitUpdatableSinkTrait(void * aDataSink, TraitDataHandl
     subClient = static_cast<SubscriptionClient *>(aContext);
     updatableDataSink->SetSubScriptionClient(subClient);
     updatableDataSink->ClearUpdateRequiredVersion();
+    updatableDataSink->ClearConditionalUpdate();
 
     VerifyOrExit(subClient->mNumUpdatableTraitInstances < WDM_CLIENT_MAX_NUM_UPDATABLE_TRAITS,
                  err = WEAVE_ERROR_NO_MEMORY);

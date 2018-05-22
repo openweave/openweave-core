@@ -1015,21 +1015,6 @@ WEAVE_ERROR TraitDataSink::StoreDataElement(PropertyPathHandle aHandle, TLVReade
             err = parser.GetData(&aReader);
             SuccessOrExit(err);
 
-#if WEAVE_CONFIG_ENABLE_WDM_UPDATE
-            if (IsUpdatableDataSink())
-            {
-                SubscriptionClient * subClient = GetSubscriptionClient();
-                if (NULL == subClient)
-                {
-                    WeaveLogDetail(DataManagement, "subClient is not set in UpdatableDataSink");
-                    err = WEAVE_ERROR_INCORRECT_STATE;
-                    SuccessOrExit(err);
-                }
-
-                // TODO: this can be done by the pathFilter itself.
-                subClient->MarkFailedPendingPaths(aDatahandle, versionInDE);
-            }
-#endif // WEAVE_CONFIG_ENABLE_WDM_UPDATE
             UpdateDirtyPathFilter pathFilter(GetSubscriptionClient(), aDatahandle, mSchemaEngine);
             err = mSchemaEngine->StoreData(aHandle, aReader, this, &pathFilter);
         }
@@ -1250,6 +1235,11 @@ WEAVE_ERROR TraitDataSource::Unlock()
 }
 
 #if WEAVE_CONFIG_ENABLE_WDM_UPDATE
+TraitUpdatableDataSink::TraitUpdatableDataSink(const TraitSchemaEngine * aEngine) :
+    TraitDataSink(aEngine), mUpdateRequiredVersion(0), mUpdateStartVersion(0), mpSubClient(NULL)
+{
+};
+
 WEAVE_ERROR TraitUpdatableDataSink::Lock(SubscriptionClient * apSubClient)
 {
     VerifyOrDie(apSubClient!=NULL);

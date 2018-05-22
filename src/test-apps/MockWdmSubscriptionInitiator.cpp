@@ -119,6 +119,10 @@ static WEAVE_ERROR DebugPrettyPrint(nl::Weave::TLV::TLVReader & aReader)
     return nl::Weave::TLV::Debug::Dump(aReader, TLVPrettyPrinter);
 }
 
+namespace nl {
+namespace Weave {
+namespace Profiles {
+namespace WeaveMakeManagedNamespaceIdentifier(DataManagement, kWeaveManagedNamespaceDesignation_Current) {
 class MockWdmSubscriptionInitiatorImpl: public MockWdmSubscriptionInitiator
 {
 public:
@@ -130,6 +134,7 @@ public:
                               const MockWdmNodeOptions &aConfig);
 
     virtual WEAVE_ERROR StartTesting(const uint64_t aPublisherNodeId, const uint16_t aSubnetId);
+    virtual int32_t GetNumFaultInjectionEventsAvailable(void);
     void PrintVersionsLog();
     void ClearDataSinkState(void);
 
@@ -301,7 +306,6 @@ private:
     static void MonitorClientCurrentState (nl::Weave::System::Layer* aSystemLayer, void *aAppState, INET_ERROR aErr);
 };
 
-static MockWdmSubscriptionInitiatorImpl gWdmSubscriptionInitiator;
 
 bool MockWdmSubscriptionInitiatorImpl::mClearDataSink = false;
 
@@ -311,18 +315,19 @@ MockWdmSubscriptionInitiatorImpl::MockWdmSubscriptionInitiatorImpl() :
 {
 }
 
-MockWdmSubscriptionInitiator * MockWdmSubscriptionInitiator::GetInstance(void)
+int32_t MockWdmSubscriptionInitiatorImpl::GetNumFaultInjectionEventsAvailable(void)
 {
-    return &gWdmSubscriptionInitiator;
-}
+    int32_t retval = 0;
 
-uint32_t MockWdmSubscriptionInitiator::GetNumUpdatableTraits(void)
-{
 #if WEAVE_CONFIG_ENABLE_WDM_UPDATE
-    return 4;
-#else
-    return 0;
+    if (mSubscriptionClient && mSubscriptionClient->IsUpdateInFlight())
+    {
+        retval = 1;
+    }
 #endif
+
+    return retval;
+
 }
 
 WEAVE_ERROR MockWdmSubscriptionInitiatorImpl::Init(
@@ -1549,5 +1554,25 @@ void MockWdmSubscriptionInitiatorImpl::MonitorClientCurrentState (nl::Weave::Sys
         initiator->onCompleteTest();
     }
 }
+} // WeaveMakeManagedNamespaceIdentifier(DataManagement, kWeaveManagedNamespaceDesignation_Current)
+}
+}
+}
+
+static nl::Weave::Profiles::DataManagement::MockWdmSubscriptionInitiatorImpl gWdmSubscriptionInitiator;
+MockWdmSubscriptionInitiator * MockWdmSubscriptionInitiator::GetInstance(void)
+{
+    return &gWdmSubscriptionInitiator;
+}
+
+uint32_t MockWdmSubscriptionInitiator::GetNumUpdatableTraits(void)
+{
+#if WEAVE_CONFIG_ENABLE_WDM_UPDATE
+    return 4;
+#else
+    return 0;
+#endif
+}
+
 
 #endif // WEAVE_CONFIG_ENABLE_RELIABLE_MESSAGING

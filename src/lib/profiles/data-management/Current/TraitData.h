@@ -760,7 +760,8 @@ private:
 class TraitUpdatableDataSink : public TraitDataSink, protected TraitSchemaEngine::IGetDataDelegate
 {
 public:
-    TraitUpdatableDataSink(const TraitSchemaEngine * aEngine):TraitDataSink(aEngine), mpSubClient(NULL) {  };
+    TraitUpdatableDataSink(const TraitSchemaEngine * aEngine);
+
     WEAVE_ERROR ReadData(TraitDataHandle aTraitDataHandle, PropertyPathHandle aHandle, uint64_t aTagToWrite, TLV::TLVWriter & aWriter, PropertyPathHandle & aPropertyPathHandleOfDictItemToStartFrom);
 
     virtual WEAVE_ERROR GetData(PropertyPathHandle aHandle, uint64_t aTagToWrite, nl::Weave::TLV::TLVWriter & aWriter,
@@ -788,7 +789,7 @@ private:
      */
     virtual bool IsVersionNewer(DataVersion &aVersion) { return false == IsVersionValid() || aVersion > GetVersion() || aVersion  < GetLastNotifyVersion(); }
     uint64_t GetUpdateRequiredVersion(void) const { return mUpdateRequiredVersion; }
-    void ClearUpdateRequiredVersion(void) { mUpdateRequiredVersion = 0; }
+    void ClearUpdateRequiredVersion(void) { SetUpdateRequiredVersion(0); }
     void SetUpdateRequiredVersion(const uint64_t &aUpdateRequiredVersion);
 
     virtual bool IsConditionalUpdate(void) { return mConditionalUpdate; }

@@ -93,6 +93,25 @@ static OptionSet *gToolOptionSets[] =
     NULL
 };
 
+static int32_t GetNumFaultInjectionEventsAvailable(void)
+{
+    int32_t retval = 0;
+
+#if WEAVE_CONFIG_ENABLE_WDM_UPDATE
+    MockWdmSubscriptionInitiator *initiator = MockWdmSubscriptionInitiator::GetInstance();
+
+    retval = initiator->GetNumFaultInjectionEventsAvailable();
+#endif
+
+    return retval;
+
+}
+static void ExpireTimer(int32_t argument)
+{
+    ExchangeMgr.ExpireExchangeTimers();
+}
+
+
 int main(int argc, char *argv[])
 {
     WEAVE_ERROR err;
@@ -110,7 +129,9 @@ int main(int argc, char *argv[])
 
     InitToolCommon();
 
-    SetupFaultInjectionContext(argc, argv);
+    SetupFaultInjectionContext(argc, argv,
+            GetNumFaultInjectionEventsAvailable, ExpireTimer);
+
     SetSignalHandler(DoneOnHandleSIGUSR1);
 
     if (argc == 1)

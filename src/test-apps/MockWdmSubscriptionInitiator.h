@@ -43,6 +43,8 @@ public:
 
     virtual WEAVE_ERROR StartTesting(const uint64_t aPublisherNodeId, const uint16_t aSubnetId) = 0;
 
+    virtual int32_t GetNumFaultInjectionEventsAvailable(void) = 0;
+
     typedef void(*HandleCompleteTestFunct)();
     HandleCompleteTestFunct onCompleteTest;
     HandleCompleteTestFunct onError;
