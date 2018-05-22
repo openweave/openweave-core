@@ -50,6 +50,7 @@ MockWdmNodeOptions::MockWdmNodeOptions() :
 #endif // WDM_ENABLE_SUBSCRIPTIONLESS_NOTIFICATION
     mWdmUpdateConditionality(kConditionality_Conditional),
     mWdmUpdateMutation(kMutation_OneLeaf),
+    mWdmUpdateTiming(kTiming_AfterSub),
     mWdmUpdateNumberOfMutations(1),
     mWdmUpdateNumberOfRepeatedMutations(1),
     mWdmUpdateNumberOfTraits(1),
@@ -544,6 +545,7 @@ bool MockWdmNodeOptions::HandleOption(const char *progName, OptionSet *optSet, i
             PrintArgError("%s: Invalid value specified for --wdm-update-timing: %s\n", progName, arg);
             return false;
         }
+        mWdmUpdateTiming = static_cast<WdmUpdateTiming>(i);
         break;
     }
     default:

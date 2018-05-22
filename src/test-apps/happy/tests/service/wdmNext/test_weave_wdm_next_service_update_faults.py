@@ -87,7 +87,9 @@ class test_weave_wdm_next_service_update_faults(weave_wdm_next_test_service_base
                         ("MarkFailedPendingPaths", 2),
                         # The application is notified again because now the two paths have been purged:
                         ("The conditional update of a WDM path failed for a version mismatch", 2),
-                        # Resubscribing a second time clears the potential data loss:
+                        # Data loss at the SubscribeResponse triggers another subscription:
+                        ("Need to resubscribe for potential data loss in TDH", 1),
+                        # This last subscription request clears the flag:
                         ("Potential data loss cleared for traitDataHandle", 2),
                         # The update never succeeds:
                         ('Update: path result: success', 0)]

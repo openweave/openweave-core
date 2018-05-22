@@ -79,6 +79,7 @@ options = { "clients": None,
             "enable_server_flip": None,
             "client_update_mutation": None,
             "client_update_conditionality": None,
+            "client_update_timing": None,
             "client_update_num_mutations": None,
             "client_update_num_repeated_mutations": None,
             "client_update_num_traits": None,
@@ -587,6 +588,9 @@ class WeaveWdmNext(HappyNode, HappyNetwork, WeaveTest):
 
         if self.client_update_conditionality:
             cmd += " --wdm-update-conditionality " + self.client_update_conditionality
+
+        if self.client_update_timing:
+            cmd += " --wdm-update-timing " + self.client_update_timing
 
         if self.client_update_num_mutations:
             cmd += " --wdm-update-number-of-mutations " + str(self.client_update_num_mutations)

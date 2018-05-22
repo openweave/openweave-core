@@ -1673,6 +1673,13 @@ typedef WEAVE_CONFIG_ERROR_TYPE WEAVE_ERROR;
  */
 #define WEAVE_ERROR_WDM_VERSION_MISMATCH                         _WEAVE_ERROR(176)
 
+/**
+ * @def WEAVE_ERROR_WDM_POTENTIAL_DATA_LOSS
+ *
+ * @brief
+ *   A potential data loss was detected for a Trait Instance.
+ */
+#define WEAVE_ERROR_WDM_POTENTIAL_DATA_LOSS                      _WEAVE_ERROR(177)
 
 /**
  *  @}

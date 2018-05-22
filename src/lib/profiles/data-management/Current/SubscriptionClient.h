@@ -517,8 +517,6 @@ private:
     struct UpdateRequestContext
     {
         // TODO: separate "state" from "arguments"
-        // and implement the "transaction model" discussed on
-        // April 17
 
         // State:
         size_t mItemInProgress;

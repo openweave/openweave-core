@@ -1811,19 +1811,6 @@ void SubscriptionClient::OnMessageReceivedFromLocallyInitiatedExchange(nl::Weave
             // since the state could have been changed, we must not assume anything
 
 #if WEAVE_CONFIG_ENABLE_WDM_UPDATE
-
-            for (size_t i = 0; i < pClient->GetNumUpdatableTraitInstances(); i++)
-            {
-                UpdatableTIContext *tIContext = &pClient->GetUpdatableTIContextList()[i];
-
-                if (false == tIContext->mUpdatableDataSink->IsVersionValid())
-                {
-                    WeaveLogDetail(DataManagement, "Terminating subscription because TDH %" PRIu16 " has no version",
-                            tIContext->mTraitDataHandle);
-                    ExitNow(err = WEAVE_ERROR_WDM_VERSION_MISMATCH);
-                }
-            }
-
             if (pClient->mPendingSetState == kPendingSetReady &&
                     pClient->IsEmptyInProgressUpdateList())
             {
@@ -1831,7 +1818,20 @@ void SubscriptionClient::OnMessageReceivedFromLocallyInitiatedExchange(nl::Weave
                 pClient->MovePendingToInProgress();
                 pClient->FormAndSendUpdate(true);
             }
+            else
+            {
+                for (size_t i = 0; i < pClient->GetNumUpdatableTraitInstances(); i++)
+                {
+                    UpdatableTIContext *tIContext = &pClient->GetUpdatableTIContextList()[i];
 
+                    if (tIContext->mPotentialDataLoss)
+                    {
+                        WeaveLogDetail(DataManagement, "Need to resubscribe for potential data loss in TDH %" PRIu16 "",
+                                tIContext->mTraitDataHandle);
+                        ExitNow(err = WEAVE_ERROR_WDM_POTENTIAL_DATA_LOSS);
+                    }
+                }
+            }
 #endif // WEAVE_CONFIG_ENABLE_WDM_UPDATE
 
             ExitNow();
