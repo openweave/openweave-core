@@ -29,6 +29,7 @@ EXTRA_DIST                                      = \
     images/ow-icon.png                            \
     images/ow-logo.png                            \
     images/ow-logo-200x20.png                     \
+    images/ow-logo-weave.png                      \
     $(NULL)
 
 #
