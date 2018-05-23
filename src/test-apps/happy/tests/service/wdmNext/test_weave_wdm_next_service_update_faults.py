@@ -88,7 +88,7 @@ class test_weave_wdm_next_service_update_faults(weave_wdm_next_test_service_base
                         # The application is notified again because now the two paths have been purged:
                         ("The conditional update of a WDM path failed for a version mismatch", 2),
                         # Data loss at the SubscribeResponse triggers another subscription:
-                        ("Need to resubscribe for potential data loss in TDH", 1),
+                        ("Need to resubscribe for potential data loss in TDH", 2),
                         # This last subscription request clears the flag:
                         ("Potential data loss cleared for traitDataHandle", 2),
                         # The update never succeeds:
@@ -252,7 +252,7 @@ if __name__ == "__main__":
     help_str = """usage:
     --help  Print this usage info and exit
     --testcase { """ + """, """.join(gTestCases) + """ } (default: all of them)
-    --conditionality { """ + """, """.join(gConditionalities) + """ } (default: Conditional)
+    --conditionality { """ + """, """.join(gConditionalities) + """ } (default: all of them)
     """
 
     help_str += gFaultopts.help_string

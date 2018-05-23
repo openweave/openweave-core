@@ -1820,16 +1820,9 @@ void SubscriptionClient::OnMessageReceivedFromLocallyInitiatedExchange(nl::Weave
             }
             else
             {
-                for (size_t i = 0; i < pClient->GetNumUpdatableTraitInstances(); i++)
+                if (pClient->CheckForSinksWithDataLoss())
                 {
-                    UpdatableTIContext *tIContext = &pClient->GetUpdatableTIContextList()[i];
-
-                    if (tIContext->mPotentialDataLoss)
-                    {
-                        WeaveLogDetail(DataManagement, "Need to resubscribe for potential data loss in TDH %" PRIu16 "",
-                                tIContext->mTraitDataHandle);
-                        ExitNow(err = WEAVE_ERROR_WDM_POTENTIAL_DATA_LOSS);
-                    }
+                    ExitNow(err = WEAVE_ERROR_WDM_POTENTIAL_DATA_LOSS);
                 }
             }
 #endif // WEAVE_CONFIG_ENABLE_WDM_UPDATE
@@ -2041,7 +2034,7 @@ void SubscriptionClient::PurgeFailedPaths(TraitPathStore &aPathStore)
 {
     TraitPath traitPath;
     bool needToResubscribe = false;
-    UpdatableTIContext *tIContext = NULL;
+    TraitUpdatableDataSink *updatableDataSink = NULL;
 
 
     for (size_t j = 0; j < aPathStore.GetPathStoreSize(); j++)
@@ -2054,11 +2047,10 @@ void SubscriptionClient::PurgeFailedPaths(TraitPathStore &aPathStore)
         {
             needToResubscribe = true;
             aPathStore.GetItemAt(j, traitPath);
-            tIContext = GetUpdatableTIContext(traitPath.mTraitDataHandle);
-            VerifyOrDie(tIContext != NULL);
-            tIContext->mUpdatableDataSink->ClearVersion();
-            tIContext->mUpdatableDataSink->ClearUpdateRequiredVersion();
-            tIContext->mUpdatableDataSink->ClearConditionalUpdate();
+            updatableDataSink = Locate(traitPath.mTraitDataHandle);
+            updatableDataSink->ClearVersion();
+            updatableDataSink->ClearUpdateRequiredVersion();
+            updatableDataSink->SetConditionalUpdate(false);
 
             if (! aPathStore.IsItemPrivate(j))
             {
@@ -2103,7 +2095,6 @@ WEAVE_ERROR SubscriptionClient::RemoveItemPendingUpdateSet(TraitDataHandle aData
 WEAVE_ERROR SubscriptionClient::AddItemPendingUpdateSet(const TraitPath &aItem, const TraitSchemaEngine * const apSchemaEngine)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
-    UpdatableTIContext * traitInstance = GetUpdatableTIContext(aItem.mTraitDataHandle);
 
     if (mPendingUpdateSet.Includes(aItem, apSchemaEngine))
     {
@@ -2127,8 +2118,6 @@ WEAVE_ERROR SubscriptionClient::AddItemPendingUpdateSet(const TraitPath &aItem, 
 
     err = mPendingUpdateSet.AddItem(aItem);
     SuccessOrExit(err);
-
-    traitInstance->SetDirty();
 
 exit:
     WeaveLogDetail(DataManagement, "%s t%u, p%u, err %d", __func__, aItem.mTraitDataHandle, aItem.mPropertyPathHandle, err);
@@ -2192,55 +2181,35 @@ WEAVE_ERROR SubscriptionClient::ClearDirty()
     return WEAVE_NO_ERROR;
 }
 
-void SubscriptionClient::CheckPotentialDataLoss(TraitDataHandle aTraitDataHandle, PropertyPathHandle aPropertyPathHandle, const TraitSchemaEngine * const apSchemaEngine)
-{
-    if (mInProgressUpdateList.Intersects(TraitPath(aTraitDataHandle, aPropertyPathHandle), apSchemaEngine) ||
-        mPendingUpdateSet.Intersects(TraitPath(aTraitDataHandle, aPropertyPathHandle), apSchemaEngine))
-    {
-        UpdatableTIContext * tIContext = GetUpdatableTIContext(aTraitDataHandle);
-
-        VerifyOrExit(tIContext != NULL, );
-
-        tIContext->mPotentialDataLoss = true;
-
-        WeaveLogDetail(DataManagement, "Potential data loss set for traitDataHandle: %" PRIu16 ", trait %08x pathHandle: %" PRIu32 "",
-               aTraitDataHandle, apSchemaEngine->GetProfileId(), aPropertyPathHandle);
-    }
-exit:
-    return;
-}
-
 void SubscriptionClient::ClearPotentialDataLoss(TraitDataHandle aTraitDataHandle)
 {
-    UpdatableTIContext * tIContext = GetUpdatableTIContext(aTraitDataHandle);
+    TraitUpdatableDataSink *updatableDataSink = Locate(aTraitDataHandle);
 
-    VerifyOrExit(tIContext != NULL, );
-    tIContext->mPotentialDataLoss = false;
+    if (updatableDataSink->IsPotentialDataLoss())
+    {
+        WeaveLogDetail(DataManagement, "Potential data loss cleared for traitDataHandle: %" PRIu16 ", trait %08x",
+                aTraitDataHandle, updatableDataSink->GetSchemaEngine()->GetProfileId());
+    }
 
-    WeaveLogDetail(DataManagement, "Potential data loss cleared for traitDataHandle: %" PRIu16 ", trait %08x",
-            aTraitDataHandle, tIContext->mUpdatableDataSink->GetSchemaEngine()->GetProfileId());
-exit:
-    return;
+    updatableDataSink->SetPotentialDataLoss(false);
 }
 
 void SubscriptionClient::MarkFailedPendingPaths(TraitDataHandle aTraitDataHandle, const DataVersion &aLatestVersion)
 {
     if (! IsUpdateInFlight())
     {
-        UpdatableTIContext * tIContext = GetUpdatableTIContext(aTraitDataHandle);
+        TraitUpdatableDataSink *updatableDataSink = Locate(aTraitDataHandle);
 
-        VerifyOrExit(tIContext != NULL, );
-
-        if (tIContext->mUpdatableDataSink->IsConditionalUpdate() &&
-                IsVersionNewer(aLatestVersion, tIContext->mUpdatableDataSink->GetUpdateRequiredVersion()))
+        if (updatableDataSink->IsConditionalUpdate() &&
+                IsVersionNewer(aLatestVersion, updatableDataSink->GetUpdateRequiredVersion()))
         {
             WeaveLogDetail(DataManagement, "<MarkFailedPendingPaths> current version 0x%" PRIx64
                     ", valid: %d"
                     ", updateRequiredVersion: 0x%" PRIx64
                     ", latest known version: 0x%" PRIx64 "",
-                    tIContext->mUpdatableDataSink->GetVersion(),
-                    tIContext->mUpdatableDataSink->IsVersionValid(),
-                    tIContext->mUpdatableDataSink->GetUpdateRequiredVersion(),
+                    updatableDataSink->GetVersion(),
+                    updatableDataSink->IsVersionValid(),
+                    updatableDataSink->GetUpdateRequiredVersion(),
                     aLatestVersion);
 
             mPendingUpdateSet.SetFailedTrait(aTraitDataHandle);
@@ -2250,29 +2219,28 @@ exit:
     return;
 }
 
-bool SubscriptionClient::IsPathDirty(TraitDataHandle aTraitDataHandle, PropertyPathHandle aLeafPathHandle, const TraitSchemaEngine * const apSchemaEngine)
+bool SubscriptionClient::FilterNotifiedPath(TraitDataHandle aTraitDataHandle,
+                                            PropertyPathHandle aLeafPathHandle,
+                                            const TraitSchemaEngine * const apSchemaEngine)
 {
     bool retval = false;
 
     retval = mInProgressUpdateList.Includes(TraitPath(aTraitDataHandle, aLeafPathHandle), apSchemaEngine) ||
-        mPendingUpdateSet.Includes(TraitPath(aTraitDataHandle, aLeafPathHandle), apSchemaEngine);
+             mPendingUpdateSet.Includes(TraitPath(aTraitDataHandle, aLeafPathHandle), apSchemaEngine);
 
     if (retval)
     {
-        UpdatableTIContext * tIContext = GetUpdatableTIContext(aTraitDataHandle);
+        TraitUpdatableDataSink *updatableDataSink = Locate(aTraitDataHandle);
 
-        VerifyOrExit(tIContext != NULL, );
-
-        if (tIContext->mPotentialDataLoss == false)
+        if (false == updatableDataSink->IsPotentialDataLoss())
         {
-            tIContext->mPotentialDataLoss = true;
+            updatableDataSink->SetPotentialDataLoss(true);
 
             WeaveLogDetail(DataManagement, "Potential data loss set for traitDataHandle: %" PRIu16 ", trait %08x pathHandle: %" PRIu32 "",
                     aTraitDataHandle, apSchemaEngine->GetProfileId(), aLeafPathHandle);
         }
     }
 
-exit:
     return retval;
 }
 
@@ -2380,7 +2348,6 @@ void SubscriptionClient::OnUpdateConfirm(WEAVE_ERROR aReason, nl::Weave::Profile
     WEAVE_ERROR err = WEAVE_NO_ERROR;
     bool isLocked = false;
     TraitPath traitPath;
-    UpdatableTIContext *tIContext;
     TraitUpdatableDataSink * updatableDataSink = NULL;
     UpdateResponse::Parser response;
     ReferencedTLVData additionalInfo;
@@ -2412,7 +2379,7 @@ void SubscriptionClient::OnUpdateConfirm(WEAVE_ERROR aReason, nl::Weave::Profile
         // TODO: implement a simple FSM to handle long updates
 
         mUpdateRequestContext.mIsPartialUpdate = false;
-        mUpdateRequestContext.mCandidatePropertyPathHandle = kNullPropertyPathHandle;
+        mUpdateRequestContext.mPathToEncode.mPropertyPathHandle = kNullPropertyPathHandle;
         mUpdateRequestContext.mNextDictionaryElementPathHandle = kNullPropertyPathHandle;
     }
 
@@ -2510,8 +2477,7 @@ void SubscriptionClient::OnUpdateConfirm(WEAVE_ERROR aReason, nl::Weave::Profile
 
         mInProgressUpdateList.GetItemAt(j, traitPath);
 
-        tIContext = GetUpdatableTIContext(traitPath.mTraitDataHandle);
-        VerifyOrDie(tIContext != NULL);
+        updatableDataSink = Locate(traitPath.mTraitDataHandle);
 
         if (! mInProgressUpdateList.IsItemPrivate(j))
         {
@@ -2519,8 +2485,6 @@ void SubscriptionClient::OnUpdateConfirm(WEAVE_ERROR aReason, nl::Weave::Profile
         }
 
         mInProgressUpdateList.RemoveItemAt(j);
-
-        updatableDataSink = tIContext->mUpdatableDataSink;
 
         WeaveLogDetail(DataManagement, "item: %zu, profile: %" PRIu32 ", statusCode: 0x% " PRIx16 ", version 0x%" PRIx64 "",
                 j, profileID, statusCode, versionCreated);
@@ -2545,11 +2509,11 @@ void SubscriptionClient::OnUpdateConfirm(WEAVE_ERROR aReason, nl::Weave::Profile
                 else
                 {
                     updatableDataSink->ClearUpdateRequiredVersion();
-                    updatableDataSink->ClearConditionalUpdate();
+                    updatableDataSink->SetConditionalUpdate(false);
                 }
             }
 
-            if (tIContext->mPotentialDataLoss &&
+            if (updatableDataSink->IsPotentialDataLoss() &&
                     updatableDataSink->IsVersionValid() &&
                     versionCreated >= updatableDataSink->GetVersion() &&
                     updatableDataSink->GetVersion() >= updatableDataSink->GetUpdateStartVersion())
@@ -2563,30 +2527,30 @@ void SubscriptionClient::OnUpdateConfirm(WEAVE_ERROR aReason, nl::Weave::Profile
                     statusCode == nl::Weave::Profiles::DataManagement::kStatus_VersionMismatch)
             {
                 // Fail all pending ones as well for VersionMismatch and force resubscribe
-                if (mPendingUpdateSet.IsTraitPresent(tIContext->mTraitDataHandle))
+                if (mPendingUpdateSet.IsTraitPresent(traitPath.mTraitDataHandle))
                 {
-                    mPendingUpdateSet.SetFailedTrait(tIContext->mTraitDataHandle);
+                    mPendingUpdateSet.SetFailedTrait(traitPath.mTraitDataHandle);
                 }
-                tIContext->mUpdatableDataSink->ClearVersion();
-                tIContext->mUpdatableDataSink->ClearUpdateRequiredVersion();
-                tIContext->mUpdatableDataSink->ClearConditionalUpdate();
+                updatableDataSink->ClearVersion();
+                updatableDataSink->ClearUpdateRequiredVersion();
+                updatableDataSink->SetConditionalUpdate(false);
                 needToResubscribe = true;
             }
             else
             {
-                if (tIContext->mUpdatableDataSink->IsConditionalUpdate() &&
-                        mPendingUpdateSet.IsTraitPresent(tIContext->mTraitDataHandle))
+                if (updatableDataSink->IsConditionalUpdate() &&
+                        mPendingUpdateSet.IsTraitPresent(traitPath.mTraitDataHandle))
                 {
-                    mPendingUpdateSet.SetFailedTrait(tIContext->mTraitDataHandle);
-                    tIContext->mUpdatableDataSink->ClearUpdateRequiredVersion();
-                    tIContext->mUpdatableDataSink->ClearConditionalUpdate();
+                    mPendingUpdateSet.SetFailedTrait(traitPath.mTraitDataHandle);
+                    updatableDataSink->ClearUpdateRequiredVersion();
+                    updatableDataSink->SetConditionalUpdate(false);
                 }
 
                 if (updatableDataSink->IsVersionValid())
                 {
                     WeaveLogDetail(DataManagement, "Clearing version for tdh %d, trait %08x",
-                            tIContext->mTraitDataHandle,
-                            tIContext->mUpdatableDataSink->GetSchemaEngine()->GetProfileId());
+                            traitPath.mTraitDataHandle,
+                            updatableDataSink->GetSchemaEngine()->GetProfileId());
 
                     updatableDataSink->ClearVersion();
                     needToResubscribe = true;
@@ -2620,27 +2584,10 @@ exit:
     {
         NoMorePendingEventCbHelper();
 
-        // check if we need to refresh any trait that has potential data loss
-
-        tIContext = GetUpdatableTIContextList();
-
-        for (size_t i = 0; i < GetNumUpdatableTraitInstances(); i++)
+        if (CheckForSinksWithDataLoss())
         {
-            if (tIContext->mPotentialDataLoss)
-            {
-                WeaveLogDetail(DataManagement, "UpdateResponse: Potential data loss in tdh %d, trait %08x; resubscribing",
-                        tIContext->mTraitDataHandle,
-                        tIContext->mUpdatableDataSink->GetSchemaEngine()->GetProfileId());
-
-                tIContext->mUpdatableDataSink->ClearVersion();
-                tIContext->mUpdatableDataSink->ClearUpdateRequiredVersion();
-                tIContext->mUpdatableDataSink->ClearConditionalUpdate();
-                needToResubscribe = true;
-            }
-
-            tIContext++;
+            needToResubscribe = true;
         }
-
     }
 
     if (needToResubscribe && IsEstablishedIdle())
@@ -2815,12 +2762,8 @@ WEAVE_ERROR SubscriptionClient::SetUpdated(TraitUpdatableDataSink * aDataSink, P
             WeaveLogDetail(DataManagement, "<SetUpdated> Set update required version to 0x%" PRIx64 "", aDataSink->GetUpdateRequiredVersion());
         }
 
-        aDataSink->SetConditionalUpdate();
     }
-    else
-    {
-        aDataSink->ClearConditionalUpdate();
-    }
+    aDataSink->SetConditionalUpdate(aIsConditional);
 
 exit:
     if (err == WEAVE_NO_ERROR)
@@ -2907,7 +2850,6 @@ void SubscriptionClient::ShutdownUpdateClient(void)
 WEAVE_ERROR SubscriptionClient::AddElementFunc(UpdateClient * apClient, void * apCallState, TLV::TLVWriter & aWriter)
 {
     WEAVE_ERROR err;
-    TraitDataSink * dataSink;
     TraitUpdatableDataSink * updatableDataSink;
     const TraitSchemaEngine * schemaEngine;
     bool isDictionaryReplace = false;
@@ -2916,21 +2858,14 @@ WEAVE_ERROR SubscriptionClient::AddElementFunc(UpdateClient * apClient, void * a
 
     UpdateRequestContext * updateRequestContext = static_cast<UpdateRequestContext *>(apCallState);
     SubscriptionClient * pSubClient = updateRequestContext->mpSubClient;
-    UpdatableTIContext * pTraitInstanceInfo = updateRequestContext->mpUpdatableTIContext;
 
-    err = pSubClient->mDataSinkCatalog->Locate(pTraitInstanceInfo->mTraitDataHandle, &dataSink);
-    SuccessOrExit(err);
-
-    VerifyOrExit(dataSink->IsUpdatableDataSink() == true,
-            WeaveLogDetail(DataManagement, "<AddElementFunc> not updatable sink."));
-
-    updatableDataSink = static_cast<TraitUpdatableDataSink *> (dataSink);
+    updatableDataSink = pSubClient->Locate(updateRequestContext->mPathToEncode.mTraitDataHandle);
     schemaEngine = updatableDataSink->GetSchemaEngine();
 
     WeaveLogDetail(DataManagement, "<AddElementFunc> with property path handle 0x%08x",
-            updateRequestContext->mCandidatePropertyPathHandle);
+            updateRequestContext->mPathToEncode.mPropertyPathHandle);
 
-    if (schemaEngine->IsDictionary(updateRequestContext->mCandidatePropertyPathHandle) &&
+    if (schemaEngine->IsDictionary(updateRequestContext->mPathToEncode.mPropertyPathHandle) &&
         !updateRequestContext->mForceMerge)
     {
         isDictionaryReplace = true;
@@ -2945,11 +2880,11 @@ WEAVE_ERROR SubscriptionClient::AddElementFunc(UpdateClient * apClient, void * a
         err = aWriter.StartContainer(tag, nl::Weave::TLV::kTLVType_Structure, dataContainerType);
         SuccessOrExit(err);
 
-        tag = schemaEngine->GetTag(updateRequestContext->mCandidatePropertyPathHandle);
+        tag = schemaEngine->GetTag(updateRequestContext->mPathToEncode.mPropertyPathHandle);
     }
 
-    err = updatableDataSink->ReadData(pTraitInstanceInfo->mTraitDataHandle,
-                                      updateRequestContext->mCandidatePropertyPathHandle,
+    err = updatableDataSink->ReadData(updateRequestContext->mPathToEncode.mTraitDataHandle,
+                                      updateRequestContext->mPathToEncode.mPropertyPathHandle,
                                       tag,
                                       aWriter,
                                       updateRequestContext->mNextDictionaryElementPathHandle);
@@ -2965,7 +2900,7 @@ exit:
     return err;
 }
 
-WEAVE_ERROR SubscriptionClient::Lookup(UpdatableTIContext * traitInfo,
+WEAVE_ERROR SubscriptionClient::Lookup(TraitDataHandle aTraitDataHandle,
                                        TraitUpdatableDataSink * &updatableDataSink,
                                        const TraitSchemaEngine * &schemaEngine,
                                        ResourceIdentifier &resourceId,
@@ -2973,15 +2908,15 @@ WEAVE_ERROR SubscriptionClient::Lookup(UpdatableTIContext * traitInfo,
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
 
-    updatableDataSink = traitInfo->mUpdatableDataSink;
+    updatableDataSink = Locate(aTraitDataHandle);
 
     schemaEngine = updatableDataSink->GetSchemaEngine();
     VerifyOrDie(schemaEngine != NULL);
 
-    err = mDataSinkCatalog->GetResourceId(traitInfo->mTraitDataHandle, resourceId);
+    err = mDataSinkCatalog->GetResourceId(aTraitDataHandle, resourceId);
     SuccessOrExit(err);
 
-    err = mDataSinkCatalog->GetInstanceId(traitInfo->mTraitDataHandle, instanceId);
+    err = mDataSinkCatalog->GetInstanceId(aTraitDataHandle, instanceId);
     SuccessOrExit(err);
 
 exit:
@@ -2996,22 +2931,21 @@ WEAVE_ERROR SubscriptionClient::DirtyPathToDataElement(UpdateRequestContext &aCo
     uint64_t instanceId;
     const TraitSchemaEngine * schemaEngine;
     TraitUpdatableDataSink * updatableDataSink  = NULL;
-    TraitPath dirtyPath;
-    UpdatableTIContext *traitInfo = aContext.mpUpdatableTIContext;
 
-    err = Lookup(traitInfo, updatableDataSink, schemaEngine, resourceId, instanceId);
+    err = Lookup(aContext.mPathToEncode.mTraitDataHandle,
+                 updatableDataSink, schemaEngine, resourceId, instanceId);
     SuccessOrExit(err);
 
     {
         uint64_t tags[schemaEngine->mSchema.mTreeDepth];
 
-        err = schemaEngine->GetRelativePathTags(aContext.mCandidatePropertyPathHandle, tags,
+        err = schemaEngine->GetRelativePathTags(aContext.mPathToEncode.mPropertyPathHandle, tags,
                 //ArraySize(tags),
                 schemaEngine->mSchema.mTreeDepth,
                 numTags);
         SuccessOrExit(err);
 
-        if (schemaEngine->IsDictionary(aContext.mCandidatePropertyPathHandle) &&
+        if (schemaEngine->IsDictionary(aContext.mPathToEncode.mPropertyPathHandle) &&
                 ! aContext.mForceMerge)
         {
             // If the property being updated is a dictionary, we need to use the "replace"
@@ -3029,9 +2963,6 @@ WEAVE_ERROR SubscriptionClient::DirtyPathToDataElement(UpdateRequestContext &aCo
                 AddElementFunc, &aContext);
         SuccessOrExit(err);
 
-        dirtyPath.mTraitDataHandle = traitInfo->mTraitDataHandle;
-        dirtyPath.mPropertyPathHandle = aContext.mCandidatePropertyPathHandle;
-
         aContext.mForceMerge = false;
         aContext.mNumDataElementsAddedToPayload++;
     }
@@ -3046,7 +2977,7 @@ WEAVE_ERROR SubscriptionClient::BuildSingleUpdateRequestDataList(UpdateRequestCo
     ResourceIdentifier resourceId;
     const TraitSchemaEngine * schemaEngine;
     UpdatableTIContext * traitInfo;
-    TraitUpdatableDataSink * updatableDataSink  = NULL;
+    TraitUpdatableDataSink * updatableDataSink = NULL;
     bool dictionaryOverflowed = false;
     TraitPath traitPath;
 
@@ -3070,10 +3001,9 @@ WEAVE_ERROR SubscriptionClient::BuildSingleUpdateRequestDataList(UpdateRequestCo
 
         mInProgressUpdateList.GetItemAt(i, traitPath);
 
-        traitInfo = GetUpdatableTIContext(traitPath.mTraitDataHandle);
-        context.mpUpdatableTIContext = traitInfo;
-        schemaEngine = context.mpUpdatableTIContext->mUpdatableDataSink->GetSchemaEngine();
-        context.mCandidatePropertyPathHandle = traitPath.mPropertyPathHandle;
+        updatableDataSink = Locate(traitPath.mTraitDataHandle);
+        schemaEngine = updatableDataSink->GetSchemaEngine();
+        context.mPathToEncode = traitPath;
         context.mForceMerge = mInProgressUpdateList.IsItemForceMerge(i);
 
         if (context.mNextDictionaryElementPathHandle != kNullPropertyPathHandle)
@@ -3112,7 +3042,6 @@ exit:
     }
     else
     {
-        traitPath.mTraitDataHandle = traitInfo->mTraitDataHandle;
         traitPath.mPropertyPathHandle = kRootPropertyPathHandle;
 
         // TODO: there is no coverage for this yet
@@ -3128,12 +3057,12 @@ exit:
                                     nl::Weave::Profiles::Common::kStatus_InternalError,
                                     err);
 
-        RemoveItemInProgressUpdateList(traitInfo->mTraitDataHandle);
-        RemoveItemPendingUpdateSet(traitInfo->mTraitDataHandle);
+        RemoveItemInProgressUpdateList(traitPath.mTraitDataHandle);
+        RemoveItemPendingUpdateSet(traitPath.mTraitDataHandle);
 
         updatableDataSink->ClearVersion();
         updatableDataSink->ClearUpdateRequiredVersion();
-        updatableDataSink->ClearConditionalUpdate();
+        updatableDataSink->SetConditionalUpdate(false);
 
         context.mNextDictionaryElementPathHandle = kNullPropertyPathHandle;
 
@@ -3149,7 +3078,7 @@ exit:
 void SubscriptionClient::SetUpdateStartVersions(void)
 {
     TraitPath traitPath;
-    UpdatableTIContext * tIContext;
+    TraitUpdatableDataSink *updatableSink;
 
     for (size_t i = mInProgressUpdateList.GetFirstValidItem();
             i < mInProgressUpdateList.GetPathStoreSize();
@@ -3157,12 +3086,9 @@ void SubscriptionClient::SetUpdateStartVersions(void)
     {
         mInProgressUpdateList.GetItemAt(i, traitPath);
 
-        tIContext = GetUpdatableTIContext(traitPath.mTraitDataHandle);
+        updatableSink = Locate(traitPath.mTraitDataHandle);
 
-        if (tIContext)
-        {
-            tIContext->mUpdatableDataSink->SetUpdateStartVersion();
-        }
+        updatableSink->SetUpdateStartVersion();
     }
 }
 
@@ -3300,6 +3226,41 @@ exit:
     return err;
 }
 
+bool SubscriptionClient::CheckForSinksWithDataLoss()
+{
+    bool needToResubscribe = false;
+
+    mDataSinkCatalog->Iterate(CheckForSinksWithDataLossIteratorCb, &needToResubscribe);
+
+    return needToResubscribe;
+}
+
+void SubscriptionClient::CheckForSinksWithDataLossIteratorCb(void * aDataSink, TraitDataHandle aDataHandle, void * aContext)
+{
+    TraitDataSink * dataSink = static_cast<TraitDataSink *>(aDataSink);
+    TraitUpdatableDataSink * updatableDataSink = NULL;
+    bool *needToResubscribe = static_cast<bool *>(aContext);
+
+    VerifyOrExit(dataSink->IsUpdatableDataSink() == true, /* no error */);
+
+    updatableDataSink = static_cast<TraitUpdatableDataSink *>(dataSink);
+
+    if (updatableDataSink->IsPotentialDataLoss())
+    {
+        WeaveLogDetail(DataManagement, "Need to resubscribe for potential data loss in TDH %d, trait %08x",
+                aDataHandle,
+                updatableDataSink->GetSchemaEngine()->GetProfileId());
+
+        updatableDataSink->ClearVersion();
+        updatableDataSink->ClearUpdateRequiredVersion();
+        updatableDataSink->SetConditionalUpdate(false);
+        *needToResubscribe = true;
+    }
+
+exit:
+    return;
+}
+
 void SubscriptionClient::InitUpdatableSinkTrait(void * aDataSink, TraitDataHandle aDataHandle, void * aContext)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
@@ -3313,9 +3274,9 @@ void SubscriptionClient::InitUpdatableSinkTrait(void * aDataSink, TraitDataHandl
     updatableDataSink = static_cast<TraitUpdatableDataSink *>(dataSink);
 
     subClient = static_cast<SubscriptionClient *>(aContext);
-    updatableDataSink->SetSubScriptionClient(subClient);
+    updatableDataSink->SetSubscriptionClient(subClient);
     updatableDataSink->ClearUpdateRequiredVersion();
-    updatableDataSink->ClearConditionalUpdate();
+    updatableDataSink->SetConditionalUpdate(false);
 
     VerifyOrExit(subClient->mNumUpdatableTraitInstances < WDM_CLIENT_MAX_NUM_UPDATABLE_TRAITS,
                  err = WEAVE_ERROR_NO_MEMORY);
@@ -3348,22 +3309,25 @@ exit:
     return;
 }
 
-SubscriptionClient::UpdatableTIContext *SubscriptionClient::GetUpdatableTIContext(TraitDataHandle aHandle)
+TraitUpdatableDataSink *SubscriptionClient::Locate(TraitDataHandle aTraitDataHandle) const
 {
-    UpdatableTIContext *tIContextList = GetUpdatableTIContextList();
-    UpdatableTIContext *tIContext = NULL;
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
+    TraitDataSink *dataSink = NULL;
+    TraitUpdatableDataSink *updatableDataSink = NULL;
 
-    for (size_t j = 0; j < mNumUpdatableTraitInstances; j++)
-    {
-        if (tIContextList[j].mTraitDataHandle == aHandle)
-        {
-            tIContext = &(tIContextList[j]);
-            break;
-        }
-    }
+    err = mDataSinkCatalog->Locate(aTraitDataHandle, &dataSink);
+    SuccessOrExit(err);
 
-    return tIContext;
+    VerifyOrExit(dataSink->IsUpdatableDataSink(), );
+
+    updatableDataSink = static_cast<TraitUpdatableDataSink *>(dataSink);
+
+exit:
+    VerifyOrDie(NULL != updatableDataSink);
+
+    return updatableDataSink;
 }
+
 #endif // WEAVE_CONFIG_ENABLE_WDM_UPDATE
 }; // namespace WeaveMakeManagedNamespaceIdentifier(DataManagement, kWeaveManagedNamespaceDesignation_Current)
 }; // namespace Profiles

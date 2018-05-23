@@ -444,7 +444,7 @@ private:
 
     struct UpdateRequestContext;
     struct UpdatableTIContext;
-    WEAVE_ERROR Lookup(UpdatableTIContext * traitInfo,
+    WEAVE_ERROR Lookup(TraitDataHandle aTraitDataHandle,
             TraitUpdatableDataSink * &updatableDataSink,
             const TraitSchemaEngine * &schemaEngine,
             ResourceIdentifier &resourceId,
@@ -452,10 +452,9 @@ private:
     WEAVE_ERROR DirtyPathToDataElement(UpdateRequestContext &aContext);
     WEAVE_ERROR BuildSingleUpdateRequestDataList(UpdateRequestContext &aContext);
 
-    void CheckPotentialDataLoss(TraitDataHandle aTraitDataHandle, PropertyPathHandle aPropertyPathHandle, const TraitSchemaEngine * const apSchemaEngine);
     void ClearPotentialDataLoss(TraitDataHandle aTraitDataHandle);
     void MarkFailedPendingPaths(TraitDataHandle aTraitDataHandle, const DataVersion &aLatestVersion);
-    bool IsPathDirty(TraitDataHandle aTraitDataHandle, PropertyPathHandle aPropertyPathHandle, const TraitSchemaEngine * const apSchemaEngine);
+    bool FilterNotifiedPath(TraitDataHandle aTraitDataHandle, PropertyPathHandle aPropertyPathHandle, const TraitSchemaEngine * const apSchemaEngine);
     bool IsPresentDispatchedUpdateStore(TraitDataHandle aTraitDataHandle, PropertyPathHandle aPropertyPathHandle);
 
     void ClearPathStore(TraitPathStore &aPathStore, WEAVE_ERROR aErr);
@@ -470,6 +469,9 @@ private:
     WEAVE_ERROR MoveInProgressToPending(void);
     WEAVE_ERROR MovePendingToInProgress(void);
     WEAVE_ERROR ClearDirty(void);
+
+    bool CheckForSinksWithDataLoss();
+    static void CheckForSinksWithDataLossIteratorCb(void * aDataSink, TraitDataHandle aDataHandle, void * aContext);
 
     bool IsEmptyPendingUpdateSet(void);
     bool IsEmptyInProgressUpdateList(void);
@@ -494,24 +496,14 @@ private:
      */
     struct UpdatableTIContext
     {
-        // TODO: check if it makes sense to move some of this state
-        // to the UpdatableTraitInstance class itself.
         void Init(TraitUpdatableDataSink *aUpdatableDataSink, TraitDataHandle aTraitDataHandle)
         {
             mUpdatableDataSink = aUpdatableDataSink;
             mTraitDataHandle = aTraitDataHandle;
-            mPotentialDataLoss = false;
-            this->ClearDirty();
         }
-        bool IsDirty(void) { return mDirty; }
-        void SetDirty(void) { mDirty = true; }
-        void ClearDirty(void) { mDirty = false; }
 
         TraitDataHandle mTraitDataHandle;
         TraitUpdatableDataSink *mUpdatableDataSink;
-        uint16_t mRequestedVersion;
-        bool mDirty;
-        bool mPotentialDataLoss;
     };
 
     struct UpdateRequestContext
@@ -523,12 +515,11 @@ private:
         PropertyPathHandle mNextDictionaryElementPathHandle;
 
         // Arguments to lower level calls and callbacks
-        PropertyPathHandle mCandidatePropertyPathHandle;
+        TraitPath mPathToEncode;
         uint16_t mNumDataElementsAddedToPayload;
         bool mIsPartialUpdate;
         bool mForceMerge;
         SubscriptionClient * mpSubClient;
-        UpdatableTIContext * mpUpdatableTIContext;
     };
 
     enum PendingSetState {
@@ -538,7 +529,7 @@ private:
     };
 
     UpdatableTIContext * GetUpdatableTIContextList(void) { return mClientTraitInfoPool; }
-    UpdatableTIContext * GetUpdatableTIContext(TraitDataHandle aHandle);
+    TraitUpdatableDataSink *Locate(TraitDataHandle aTraitDataHandle) const;
     uint32_t GetNumUpdatableTraitInstances(void) { return mNumUpdatableTraitInstances; }
 
     void SetPendingSetState(PendingSetState aState);

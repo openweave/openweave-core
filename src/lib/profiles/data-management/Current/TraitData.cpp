@@ -61,7 +61,7 @@ bool UpdateDirtyPathFilter::FilterPath (PropertyPathHandle pathhandle)
     {
         // TODO: clean this up:
         // mpSubClient is set to something only by UpdatableDataSink instances
-        retval = mpSubClient->IsPathDirty(mTraitDataHandle, pathhandle, mSchemaEngine);
+        retval = mpSubClient->FilterNotifiedPath(mTraitDataHandle, pathhandle, mSchemaEngine);
     }
 #endif // WEAVE_CONFIG_ENABLE_WDM_UPDATE
 
@@ -1236,7 +1236,12 @@ WEAVE_ERROR TraitDataSource::Unlock()
 
 #if WEAVE_CONFIG_ENABLE_WDM_UPDATE
 TraitUpdatableDataSink::TraitUpdatableDataSink(const TraitSchemaEngine * aEngine) :
-    TraitDataSink(aEngine), mUpdateRequiredVersion(0), mUpdateStartVersion(0), mpSubClient(NULL)
+    TraitDataSink(aEngine),
+    mUpdateRequiredVersion(0),
+    mUpdateStartVersion(0),
+    mConditionalUpdate(false),
+    mPotentialDataLoss(false),
+    mpSubClient(NULL)
 {
 };
 
@@ -1285,7 +1290,7 @@ void TraitUpdatableDataSink::SetUpdateRequiredVersion(const uint64_t &aUpdateReq
     return;
 }
 
-WEAVE_ERROR TraitUpdatableDataSink::SetUpdateStartVersion(void)
+void TraitUpdatableDataSink::SetUpdateStartVersion(void)
 {
     if (GetVersion() != mUpdateStartVersion)
     {
@@ -1293,8 +1298,6 @@ WEAVE_ERROR TraitUpdatableDataSink::SetUpdateStartVersion(void)
                 mSchemaEngine->GetProfileId(), mUpdateStartVersion, GetVersion());
         mUpdateStartVersion = GetVersion();
     }
-
-    return WEAVE_NO_ERROR;
 }
 
 WEAVE_ERROR TraitUpdatableDataSink::ReadData(TraitDataHandle aTraitDataHandle,

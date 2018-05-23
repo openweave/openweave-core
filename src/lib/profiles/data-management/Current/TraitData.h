@@ -688,11 +688,8 @@ public:
 
 #if WEAVE_CONFIG_ENABLE_WDM_UPDATE
     virtual bool IsUpdatableDataSink(void)  { return false; }
-    virtual bool IsConditionalUpdate(void) { return false; }
-    virtual void SetConditionalUpdate(void) {  }
-    virtual void ClearConditionalUpdate(void) {  }
 
-    virtual WEAVE_ERROR SetSubScriptionClient(SubscriptionClient * apSubClient) { return WEAVE_NO_ERROR; };
+    virtual WEAVE_ERROR SetSubscriptionClient(SubscriptionClient * apSubClient) { return WEAVE_NO_ERROR; };
 
 #endif // WEAVE_CONFIG_ENABLE_WDM_UPDATE
 
@@ -774,7 +771,7 @@ public:
 
     virtual bool IsUpdatableDataSink(void) { return true; }
 
-    virtual WEAVE_ERROR SetSubScriptionClient(SubscriptionClient * apSubClient) { mpSubClient = apSubClient; return WEAVE_NO_ERROR; }
+    virtual WEAVE_ERROR SetSubscriptionClient(SubscriptionClient * apSubClient) { mpSubClient = apSubClient; return WEAVE_NO_ERROR; }
 
     virtual SubscriptionClient * GetSubscriptionClient() { return mpSubClient; }
 private:
@@ -787,23 +784,25 @@ private:
      * a version number that is lower than the current one. Please refer to the WDM
      * specification for more details.
      */
-    virtual bool IsVersionNewer(DataVersion &aVersion) { return false == IsVersionValid() || aVersion > GetVersion() || aVersion  < GetLastNotifyVersion(); }
+    bool IsVersionNewer(DataVersion &aVersion) { return false == IsVersionValid() || aVersion > GetVersion() || aVersion  < GetLastNotifyVersion(); }
     uint64_t GetUpdateRequiredVersion(void) const { return mUpdateRequiredVersion; }
     void ClearUpdateRequiredVersion(void) { SetUpdateRequiredVersion(0); }
     void SetUpdateRequiredVersion(const uint64_t &aUpdateRequiredVersion);
 
-    virtual bool IsConditionalUpdate(void) { return mConditionalUpdate; }
-    virtual void SetConditionalUpdate(void) { mConditionalUpdate = true; }
-    virtual void ClearConditionalUpdate(void) { mConditionalUpdate = false; }
+    uint64_t GetUpdateStartVersion(void) const { return mUpdateStartVersion; }
+    void SetUpdateStartVersion (void);
+    void ClearUpdateStartVersion(void) { mUpdateStartVersion = 0; }
 
-    virtual uint64_t GetUpdateStartVersion(void) const { return mUpdateStartVersion; }
-    virtual void ClearUpdateStartVersion(void) { mUpdateStartVersion = 0; }
+    bool IsConditionalUpdate(void) { return mConditionalUpdate; }
+    void SetConditionalUpdate(bool aValue) { mConditionalUpdate = aValue; }
 
-    WEAVE_ERROR SetUpdateStartVersion (void);
+    bool IsPotentialDataLoss(void) { return mPotentialDataLoss; }
+    void SetPotentialDataLoss(bool aValue) { mPotentialDataLoss = aValue; }
 
     uint64_t mUpdateRequiredVersion;
     uint64_t mUpdateStartVersion;
     bool mConditionalUpdate;
+    bool mPotentialDataLoss;
     SubscriptionClient * mpSubClient;
 };
 #endif    // WEAVE_CONFIG_ENABLE_WDM_UPDATE
