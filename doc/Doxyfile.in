@@ -76,7 +76,7 @@ PROJECT_BRIEF          = "Weave is the Nest communications home area network (HA
 # and the maximum width should not exceed 200 pixels. Doxygen will copy the logo
 # to the output directory.
 
-PROJECT_LOGO           = @abs_srcdir@/images/Works-w-Nest-Logo_Gray_Vert_CMYK-icon.png
+PROJECT_LOGO           = @abs_srcdir@/images/ow-logo-200x20.png
 
 # The OUTPUT_DIRECTORY tag is used to specify the (relative or absolute) path
 # into which the generated documentation will be written. If a relative path is

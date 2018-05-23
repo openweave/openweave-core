@@ -26,8 +26,9 @@ include $(abs_top_nlbuild_autotools_dir)/automake/pre.am
 EXTRA_DIST                                      = \
     $(srcdir)/Doxyfile.in                         \
     $(srcdir)/namespaces.dox                      \
-    images/Works-w-Nest-Logo_Gray_Vert_CMYK.png   \
-    images/Works-w-Nest-Logo_Gray_Vert_CMYK-icon.png   \
+    images/ow-icon.png                            \
+    images/ow-logo.png                            \
+    images/ow-logo-200x20.png                     \
     $(NULL)
 
 #

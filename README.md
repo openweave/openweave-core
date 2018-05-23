@@ -1,4 +1,8 @@
+[![OpenWeave][ow-logo]][ow-repo]
+
 # What is OpenWeave?
+
+<img src="doc/images/ow-logo-weave.png" width="200px" align="right">
 
 Weave is the network application layer that provides a secure, reliable
 communications backbone for Nest's products. OpenWeave is the open source
@@ -14,6 +18,10 @@ products securely and seamlessly communicate with one another. Nest's first open
 source release was our implementation of Thread, OpenThread. OpenWeave can run
 on OpenThread, and is another step in the direction of making our core
 technologies more widely available.
+
+[ow-repo]: https://github.com/openweave/openweave-core
+[ow-logo]: doc/images/ow-logo.png
+[ow-logo-weave]: doc/images/ow-logo-weave.png
 
 # OpenWeave Features
 
@@ -57,45 +65,23 @@ technologies more widely available.
   models / patterns such as device-to-device, device-to-service,
   device-to-mobile/PC (remote and local).
 
-# Get started with OpenWeave Core
+# Getting started with OpenWeave Core
 
-Want to try OpenWeave? The quickest way is to build the standalone
-distribution, and run through the attached examples.
+All end-user documentation and guides are located at [openweave.io](https://openweave.io).
+Learn how Weave works with our [Weave Primer](https://openweave.io/guides/weave_primer),
+or dig right in and learn how to:
 
-For information on configuring and building OpenWeave, see
-[BUILDING.md](./BUILDING.md).
+* [Build the standalone OpenWeave distribution](https://openweave.io/guides/build), or for
+  iOS or Android project linking
+* [Run test scripts](https://openweave.io/guides/test) and explore the applications that the
+  OpenWeave team uses to test the codebase
+* [Use tools](https://openweave.io/guides/tools) such as Weave Device Manager and Mock Device,
+  and test Weave protocols such as Heartbeat and Echo
+* [Build simulated IoT networks](https://openweave.io/happy) with our Happy tool
 
-Once the distribution is built, you can dive into a number of
-examples:
-
-* `weave-echo` will demonstrate perhaps the simplest possible Weave
-  protocol. The associated example will also guide you through the
-  steps needed to set up and start the OpenWeave stack.
-
-* `weave-device-manager` and `mock-device` will guide you through the
-  steps required to securely provision a new device to join the Weave
-  fabric.
-
-## Next Steps
-
-Beyond the initial set of examples, you will find a larger set of test applications that the OpenWeave team uses to test the codebase. You will find applications that
-
-* Test other Weave protocols — time sync, heartbeat, bulk data
-  transfer, and a variety of security protocols
-* Examples of different topologies found in different home area
-  network scenarios
-* Examples of establishing wide-area connectivity via a dedicated Weave tunnel 
-* Examples of different scenarios for different Weave Data Management scenarios
+Additional build information can also be found in [BUILDING.md](./BUILDING.md).
 
 # Need help?
-
-## Wiki
-
-Explore the [OpenWeave Wiki on
-GitHub](https://github.com/openweave/openweave-core/wiki) for more
-in-depth documentation on building, testing, automation and tools.
-
-## Interact
 
 There are numerous avenues for OpenWeave support:
 * Bugs and feature requests — [submit to the Issue Tracker](https://github.com/openweave/openweave-core/issues)
@@ -147,7 +133,7 @@ The OpenWeave repository is structured as follows:
 | `src/wrappers` | Java wrappers for OpenWeave library |
 | `third_party/` | Third-party code used by OpenWeave. |
 
-# Want to contribute?
+# Contributing
 
 We would love for you to contribute to OpenWeave and help make it even
 better than it is today! See the [CONTRIBUTING.md](./CONTRIBUTING.md)
