@@ -74,6 +74,11 @@ namespace Platform {
 
 class TraitPathStoreTest {
     public:
+        enum {
+            kFlag_BadFlag = 0x1,
+            kFlag_GoodFlag = 0x4,
+            kFlag_GoodFlag2 = 0x8,
+        };
         TraitPathStoreTest();
         ~TraitPathStoreTest() { }
 
@@ -94,6 +99,7 @@ class TraitPathStoreTest {
         void TestRemoveAndCompact(nlTestSuite *inSuite, void *inContext);
         void TestAddItemDedup(nlTestSuite *inSuite, void *inContext);
         void TestGetFirstGetNext(nlTestSuite *inSuite, void *inContext);
+        void TestFlags(nlTestSuite *inSuite, void *inContext);
 };
 
 TraitPathStoreTest::TraitPathStoreTest() :
@@ -473,6 +479,57 @@ void TraitPathStoreTest::TestGetFirstGetNext(nlTestSuite *inSuite, void *inConte
     mStore.Clear();
 }
 
+void TraitPathStoreTest::TestFlags(nlTestSuite *inSuite, void *inContext)
+{
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
+    size_t numItems = 0;
+    size_t i;
+
+    mStore.Clear();
+
+    mPath.mTraitDataHandle = mTDH1;
+    mPath.mPropertyPathHandle = CreatePropertyPathHandle(TestHTrait::kPropertyHandle_K);
+
+    err = mStore.AddItem(mPath);
+    NL_TEST_ASSERT(inSuite, err == WEAVE_NO_ERROR);
+
+    i = mStore.GetFirstValidItem();
+    NL_TEST_ASSERT(inSuite, i < mStore.GetPathStoreSize());
+
+    NL_TEST_ASSERT(inSuite, false == mStore.AreFlagsSet(i, kFlag_GoodFlag));
+    NL_TEST_ASSERT(inSuite, false == mStore.AreFlagsSet(i, kFlag_GoodFlag2));
+    NL_TEST_ASSERT(inSuite, false == mStore.AreFlagsSet(i, kFlag_BadFlag));
+
+    mStore.Clear();
+
+    err = mStore.AddItem(mPath, kFlag_BadFlag);
+    NL_TEST_ASSERT(inSuite, err == WEAVE_ERROR_INVALID_ARGUMENT);
+
+    err = mStore.AddItem(mPath, kFlag_BadFlag | kFlag_GoodFlag);
+    NL_TEST_ASSERT(inSuite, err == WEAVE_ERROR_INVALID_ARGUMENT);
+
+    err = mStore.AddItem(mPath, kFlag_GoodFlag);
+    NL_TEST_ASSERT(inSuite, err == WEAVE_NO_ERROR);
+
+    NL_TEST_ASSERT(inSuite, mStore.AreFlagsSet(i, kFlag_GoodFlag));
+    NL_TEST_ASSERT(inSuite, false == mStore.AreFlagsSet(i, kFlag_GoodFlag2));
+    NL_TEST_ASSERT(inSuite, false == mStore.AreFlagsSet(i, kFlag_GoodFlag | kFlag_GoodFlag2));
+    NL_TEST_ASSERT(inSuite, false == mStore.AreFlagsSet(i, kFlag_BadFlag));
+    NL_TEST_ASSERT(inSuite, false == mStore.AreFlagsSet(i, kFlag_GoodFlag | kFlag_BadFlag));
+
+    mStore.Clear();
+
+    err = mStore.AddItem(mPath, kFlag_GoodFlag | kFlag_GoodFlag2);
+    NL_TEST_ASSERT(inSuite, err == WEAVE_NO_ERROR);
+
+    NL_TEST_ASSERT(inSuite, mStore.AreFlagsSet(i, kFlag_GoodFlag));
+    NL_TEST_ASSERT(inSuite, mStore.AreFlagsSet(i, kFlag_GoodFlag2));
+    NL_TEST_ASSERT(inSuite, mStore.AreFlagsSet(i, kFlag_GoodFlag | kFlag_GoodFlag2));
+    NL_TEST_ASSERT(inSuite, false == mStore.AreFlagsSet(i, kFlag_BadFlag));
+
+    mStore.Clear();
+}
+
 } // WeaveMakeManagedNamespaceIdentifier(DataManagement, kWeaveManagedNamespaceDesignation_Current)
 }
 }
@@ -534,6 +591,10 @@ void TraitPathStoreTest_GetFirstGetNext(nlTestSuite *inSuite, void *inContext)
     gPathStoreTest.TestGetFirstGetNext(inSuite, inContext);
 }
 
+void TraitPathStoreTest_Flags(nlTestSuite *inSuite, void *inContext)
+{
+    gPathStoreTest.TestFlags(inSuite, inContext);
+}
 
 // Test Suite
 
@@ -550,6 +611,7 @@ static const nlTest sTests[] = {
     NL_TEST_DEF("Remove and Compact",  TraitPathStoreTest_RemoveAndCompact),
     NL_TEST_DEF("AddItemDedup",  TraitPathStoreTest_AddItemDedup),
     NL_TEST_DEF("GetFirstGetNext",  TraitPathStoreTest_GetFirstGetNext),
+    NL_TEST_DEF("Flags",  TraitPathStoreTest_Flags),
 
     NL_TEST_SENTINEL()
 };

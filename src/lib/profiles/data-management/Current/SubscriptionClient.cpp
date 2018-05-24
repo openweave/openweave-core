@@ -1938,7 +1938,7 @@ WEAVE_ERROR SubscriptionClient::MoveInProgressToPending(void)
         {
             mInProgressUpdateList.GetItemAt(i, traitPath);
 
-            if ( ! mInProgressUpdateList.IsFlagSet(i, kFlag_Private))
+            if ( ! mInProgressUpdateList.AreFlagsSet(i, kFlag_Private))
             {
                 err = mDataSinkCatalog->Locate(traitPath.mTraitDataHandle, &dataSink);
                 SuccessOrExit(err);
@@ -2019,7 +2019,7 @@ void SubscriptionClient::ClearPathStore(TraitPathStore &aPathStore, WEAVE_ERROR 
             continue;
         }
         aPathStore.GetItemAt(j, traitPath);
-        if (! aPathStore.IsFlagSet(j, kFlag_Private))
+        if (! aPathStore.AreFlagsSet(j, kFlag_Private))
         {
             UpdateCompleteEventCbHelper(traitPath,
                                         nl::Weave::Profiles::kWeaveProfile_Common,
@@ -2057,7 +2057,7 @@ size_t SubscriptionClient::PurgeFailedPendingPaths(WEAVE_ERROR aErr)
             updatableDataSink->ClearUpdateRequiredVersion();
             updatableDataSink->SetConditionalUpdate(false);
 
-            if (! mPendingUpdateSet.IsFlagSet(j, kFlag_Private))
+            if (! mPendingUpdateSet.AreFlagsSet(j, kFlag_Private))
             {
                 UpdateCompleteEventCbHelper(traitPath,
                         nl::Weave::Profiles::kWeaveProfile_Common,
@@ -2118,7 +2118,7 @@ void SubscriptionClient::RemoveInProgressPrivateItemsAfter(uint16_t aItemInProgr
             i < mInProgressUpdateList.GetPathStoreSize();
             i = mInProgressUpdateList.GetNextValidItem(i))
     {
-        if (mInProgressUpdateList.IsFlagSet(i, kFlag_Private))
+        if (mInProgressUpdateList.AreFlagsSet(i, kFlag_Private))
         {
             mInProgressUpdateList.RemoveItemAt(i);
             count++;
@@ -2405,7 +2405,7 @@ void SubscriptionClient::OnUpdateConfirm(WEAVE_ERROR aReason, nl::Weave::Profile
 
         updatableDataSink = Locate(traitPath.mTraitDataHandle);
 
-        if (! mInProgressUpdateList.IsFlagSet(j, kFlag_Private))
+        if (! mInProgressUpdateList.AreFlagsSet(j, kFlag_Private))
         {
             UpdateCompleteEventCbHelper(traitPath, profileID, statusCode, aReason);
         }
@@ -2558,7 +2558,7 @@ void SubscriptionClient::OnUpdateNoResponse(WEAVE_ERROR aError)
             continue;
         }
 
-        if (! mInProgressUpdateList.IsFlagSet(j, kFlag_Private))
+        if (! mInProgressUpdateList.AreFlagsSet(j, kFlag_Private))
         {
             // TODO: does it make sense to put a profile and status when we never received a StatusReport?
             UpdateCompleteEventCbHelper(traitPath, nl::Weave::Profiles::kWeaveProfile_Common, nl::Weave::Profiles::Common::kStatus_Timeout, aError);
@@ -2930,15 +2930,15 @@ WEAVE_ERROR SubscriptionClient::BuildSingleUpdateRequestDataList(UpdateRequestCo
             continue;
         }
 
-        WeaveLogDetail(DataManagement, "Encoding item %u, ForceMerge: %d, Private: %d", i, mInProgressUpdateList.IsFlagSet(i, kFlag_ForceMerge),
-                mInProgressUpdateList.IsFlagSet(i, kFlag_Private));
+        WeaveLogDetail(DataManagement, "Encoding item %u, ForceMerge: %d, Private: %d", i, mInProgressUpdateList.AreFlagsSet(i, kFlag_ForceMerge),
+                mInProgressUpdateList.AreFlagsSet(i, kFlag_Private));
 
         mInProgressUpdateList.GetItemAt(i, traitPath);
 
         updatableDataSink = Locate(traitPath.mTraitDataHandle);
         schemaEngine = updatableDataSink->GetSchemaEngine();
         context.mPathToEncode = traitPath;
-        context.mForceMerge = mInProgressUpdateList.IsFlagSet(i, kFlag_ForceMerge);
+        context.mForceMerge = mInProgressUpdateList.AreFlagsSet(i, kFlag_ForceMerge);
 
         if (context.mNextDictionaryElementPathHandle != kNullPropertyPathHandle)
         {

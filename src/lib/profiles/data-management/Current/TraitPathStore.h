@@ -39,13 +39,13 @@ namespace WeaveMakeManagedNamespaceIdentifier(DataManagement, kWeaveManagedNames
 struct TraitPathStore
 {
     public:
-        enum Flag {
+        enum {
             kFlag_None       = 0x0,
             kFlag_InUse      = 0x1,
             kFlag_Failed     = 0x2, /**< The item is in use, but is not valid anymore.
                                       */
 
-            kFlags_ReservedFlags = kFlag_InUse | kFlag_Failed,
+            kFlag_ReservedFlags = kFlag_InUse | kFlag_Failed,
         };
         typedef uint8_t Flags;
 
@@ -90,12 +90,11 @@ struct TraitPathStore
         bool Includes(const TraitPath &aItem, const TraitSchemaEngine * const aSchemaEngine) const;
         bool Intersects(const TraitPath &aItem, const TraitSchemaEngine * const aSchemaEngine) const;
         bool IsTraitPresent(TraitDataHandle aDataHandle) const;
-        bool IsItemInUse(size_t aIndex) const { return IsFlagSet(aIndex, kFlag_InUse); }
-        bool IsItemValid(size_t aIndex) const { return (IsItemInUse(aIndex) && (!IsFlagSet(aIndex, kFlag_Failed))); }
-        bool IsItemFailed(size_t aIndex) const { return IsFlagSet(aIndex, kFlag_Failed); }
+        bool IsItemInUse(size_t aIndex) const { return AreFlagsSet_private(aIndex, kFlag_InUse); }
+        bool IsItemValid(size_t aIndex) const { return (IsItemInUse(aIndex) && (!IsItemFailed(aIndex))); }
+        bool IsItemFailed(size_t aIndex) const { return AreFlagsSet_private(aIndex, kFlag_Failed); }
 
-        bool IsFlagSet(size_t aIndex, Flags aFlag) const { return ((mStore[aIndex].mFlags & aFlag) == aFlag); }
-        Flags GetFlags(size_t aIndex) const { return mStore[aIndex].mFlags; }
+        bool AreFlagsSet(size_t aIndex, Flags aFlags) const;
 
         Record *mStore;
 
@@ -103,7 +102,8 @@ struct TraitPathStore
         size_t FindFirstAvailableItem() const;
         void SetItem(size_t aIndex, const TraitPath &aItem, Flags aFlags);
         void ClearItem(size_t aIndex);
-        void SetFlag(size_t aIndex, Flag aFlag, bool aValue);
+        void SetFlags(size_t aIndex, Flags aFlags, bool aValue);
+        bool AreFlagsSet_private(size_t aIndex, Flags aFlags) const { return ((mStore[aIndex].mFlags & aFlags) == aFlags); }
 
         size_t mStoreSize;
         size_t mNumItems;

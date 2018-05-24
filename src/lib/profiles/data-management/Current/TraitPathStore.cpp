@@ -99,7 +99,7 @@ WEAVE_ERROR TraitPathStore::AddItem(const TraitPath &aItem, Flags aFlags)
     WEAVE_ERROR err = WEAVE_NO_ERROR;
     size_t i = 0;
 
-    VerifyOrExit((aFlags & static_cast<Flags>(kFlags_ReservedFlags)) == 0x0,
+    VerifyOrExit((aFlags & static_cast<Flags>(kFlag_ReservedFlags)) == 0x0,
                  err = WEAVE_ERROR_INVALID_ARGUMENT);
 
     i = FindFirstAvailableItem();
@@ -185,7 +185,7 @@ WEAVE_ERROR TraitPathStore::InsertItemAt(size_t aIndex, const TraitPath &aItem, 
     {
         memmove(&mStore[aIndex+1], &mStore[aIndex],
                 numItemsToMove * sizeof(mStore[0]));
-        SetFlag(aIndex, kFlag_InUse, false);
+        SetFlags(aIndex, kFlag_InUse, false);
     }
 
     SetItem(aIndex, aItem, aFlags);
@@ -275,7 +275,7 @@ void TraitPathStore::Compact()
         numItemsToMove = lastIndex -i;
         numBytesToMove = numItemsToMove * sizeof(mStore[0]);
         memmove(&mStore[i], &mStore[i+1], numBytesToMove);
-        SetFlag(lastIndex, kFlag_InUse, false);
+        SetFlags(lastIndex, kFlag_InUse, false);
     }
 }
 
@@ -452,6 +452,16 @@ size_t TraitPathStore::GetNextValidItem(size_t aIndex, TraitDataHandle aTDH) con
     return aIndex;
 }
 
+bool TraitPathStore::AreFlagsSet(size_t aIndex, Flags aFlags) const
+{
+    if (aFlags & kFlag_ReservedFlags != 0x0)
+    {
+        return false;
+    }
+
+    return AreFlagsSet_private(aIndex, aFlags);
+}
+
 // Private members
 
 size_t TraitPathStore::FindFirstAvailableItem() const
@@ -470,7 +480,7 @@ void TraitPathStore::SetItem(size_t aIndex, const TraitPath &aItem, Flags aFlags
 {
     mStore[aIndex].mTraitPath = aItem;
     mStore[aIndex].mFlags = aFlags;
-    SetFlag(aIndex, kFlag_InUse, true);
+    SetFlags(aIndex, kFlag_InUse, true);
 }
 
 void TraitPathStore::ClearItem(size_t aIndex)
@@ -480,11 +490,11 @@ void TraitPathStore::ClearItem(size_t aIndex)
     mStore[aIndex].mTraitPath.mTraitDataHandle    = UINT16_MAX;
 }
 
-void TraitPathStore::SetFlag(size_t aIndex, Flag aFlag, bool aValue)
+void TraitPathStore::SetFlags(size_t aIndex, Flags aFlags, bool aValue)
 {
-    mStore[aIndex].mFlags &= ~aFlag;
+    mStore[aIndex].mFlags &= ~aFlags;
     if (aValue)
     {
-        mStore[aIndex].mFlags |= static_cast<Flags>(aFlag);
+        mStore[aIndex].mFlags |= aFlags;
     }
 }
