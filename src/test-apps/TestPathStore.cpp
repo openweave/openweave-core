@@ -82,6 +82,7 @@ class TraitPathStoreTest {
 
         TraitPath mPath;
         TraitDataHandle mTDH1;
+        TraitDataHandle mTDH2;
         const TraitSchemaEngine *mSchemaEngine;
 
         void TestInitCleanup(nlTestSuite *inSuite, void *inContext);
@@ -92,10 +93,11 @@ class TraitPathStoreTest {
         void TestIsPresent(nlTestSuite *inSuite, void *inContext);
         void TestRemoveAndCompact(nlTestSuite *inSuite, void *inContext);
         void TestAddItemDedup(nlTestSuite *inSuite, void *inContext);
+        void TestGetFirstGetNext(nlTestSuite *inSuite, void *inContext);
 };
 
 TraitPathStoreTest::TraitPathStoreTest() :
-            mTDH1(1), mSchemaEngine(&TestHTrait::TraitSchema)
+            mTDH1(1), mTDH2(2), mSchemaEngine(&TestHTrait::TraitSchema)
 {
     mStore.Init(mStorage, ArraySize(mStorage));
 }
@@ -224,7 +226,7 @@ void TraitPathStoreTest::TestIncludes(nlTestSuite *inSuite, void *inContext)
     NL_TEST_ASSERT(inSuite, mStore.Includes(tp, mSchemaEngine));
 
     // A TraitPath for a different trait handler is not
-    tp.mTraitDataHandle = mTDH1 + 1;
+    tp.mTraitDataHandle = mTDH2;
     tp.mPropertyPathHandle = CreatePropertyPathHandle(TestHTrait::kPropertyHandle_K);
     NL_TEST_ASSERT(inSuite, false == mStore.Includes(tp, mSchemaEngine));
 
@@ -260,7 +262,7 @@ void TraitPathStoreTest::TestIntersects(nlTestSuite *inSuite, void *inContext)
     tp.mPropertyPathHandle = mSchemaEngine->GetDictionaryItemHandle(CreatePropertyPathHandle(TestHTrait::kPropertyHandle_L), 1);
     NL_TEST_ASSERT(inSuite, false == mStore.Intersects(tp, mSchemaEngine));
 
-    tp.mTraitDataHandle = mTDH1+1;
+    tp.mTraitDataHandle = mTDH2;
     tp.mPropertyPathHandle = CreatePropertyPathHandle(TestHTrait::kPropertyHandle_K);
     NL_TEST_ASSERT(inSuite, false == mStore.Intersects(tp, mSchemaEngine));
 
@@ -286,7 +288,7 @@ void TraitPathStoreTest::TestIsPresent(nlTestSuite *inSuite, void *inContext)
     tp.mPropertyPathHandle = CreatePropertyPathHandle(TestHTrait::kPropertyHandle_K);
     NL_TEST_ASSERT(inSuite, mStore.IsPresent(tp));
     NL_TEST_ASSERT(inSuite, mStore.IsTraitPresent(mTDH1));
-    NL_TEST_ASSERT(inSuite, false == mStore.IsTraitPresent(mTDH1+1));
+    NL_TEST_ASSERT(inSuite, false == mStore.IsTraitPresent(mTDH2));
 
     tp.mPropertyPathHandle = kRootPropertyPathHandle;
     NL_TEST_ASSERT(inSuite, false == mStore.IsPresent(tp));
@@ -431,12 +433,42 @@ void TraitPathStoreTest::TestAddItemDedup(nlTestSuite *inSuite, void *inContext)
     numItems = mStore.GetNumItems();
 
     // A TraitPath for a different trait handler
-    tp.mTraitDataHandle = mTDH1 + 1;
+    tp.mTraitDataHandle = mTDH2;
     NL_TEST_ASSERT(inSuite, false == mStore.Includes(tp, mSchemaEngine));
     err = mStore.AddItemDedup(tp, mSchemaEngine);
     NL_TEST_ASSERT(inSuite, err == WEAVE_NO_ERROR);
     NL_TEST_ASSERT(inSuite, mStore.Includes(tp, mSchemaEngine));
     NL_TEST_ASSERT(inSuite, (numItems+1) == mStore.GetNumItems());
+
+    mStore.Clear();
+}
+
+void TraitPathStoreTest::TestGetFirstGetNext(nlTestSuite *inSuite, void *inContext)
+{
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
+    size_t numItems = 0;
+    size_t i;
+
+    mStore.Clear();
+
+    NL_TEST_ASSERT(inSuite, mStore.GetFirstValidItem() == mStore.GetPathStoreSize());
+    NL_TEST_ASSERT(inSuite, mStore.GetFirstValidItem(mTDH1) == mStore.GetPathStoreSize());
+
+    mPath.mTraitDataHandle = mTDH1;
+    mPath.mPropertyPathHandle = CreatePropertyPathHandle(TestHTrait::kPropertyHandle_K);
+
+    err = mStore.AddItem(mPath);
+    NL_TEST_ASSERT(inSuite, err == WEAVE_NO_ERROR);
+
+    i = mStore.GetFirstValidItem();
+    NL_TEST_ASSERT(inSuite, i < mStore.GetPathStoreSize());
+    NL_TEST_ASSERT(inSuite, mStore.GetNextValidItem(i) == mStore.GetPathStoreSize());
+
+    NL_TEST_ASSERT(inSuite, mStore.GetFirstValidItem(mTDH2) == mStore.GetPathStoreSize());
+
+    i = mStore.GetFirstValidItem(mTDH1);
+    NL_TEST_ASSERT(inSuite, i < mStore.GetPathStoreSize());
+    NL_TEST_ASSERT(inSuite, mStore.GetNextValidItem(i, mTDH1) == mStore.GetPathStoreSize());
 
     mStore.Clear();
 }
@@ -497,6 +529,11 @@ void TraitPathStoreTest_AddItemDedup(nlTestSuite *inSuite, void *inContext)
     gPathStoreTest.TestAddItemDedup(inSuite, inContext);
 }
 
+void TraitPathStoreTest_GetFirstGetNext(nlTestSuite *inSuite, void *inContext)
+{
+    gPathStoreTest.TestGetFirstGetNext(inSuite, inContext);
+}
+
 
 // Test Suite
 
@@ -512,6 +549,7 @@ static const nlTest sTests[] = {
     NL_TEST_DEF("IsPresent",  TraitPathStoreTest_IsPresent),
     NL_TEST_DEF("Remove and Compact",  TraitPathStoreTest_RemoveAndCompact),
     NL_TEST_DEF("AddItemDedup",  TraitPathStoreTest_AddItemDedup),
+    NL_TEST_DEF("GetFirstGetNext",  TraitPathStoreTest_GetFirstGetNext),
 
     NL_TEST_SENTINEL()
 };
