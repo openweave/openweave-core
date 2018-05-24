@@ -295,6 +295,8 @@ public:
     bool IsFree() { return (mCurrentState == kState_Free); }
     bool IsAborting() { return (mCurrentState == kState_Aborting); }
 
+    void IndicateActivity(void);
+
 #if WEAVE_CONFIG_ENABLE_WDM_UPDATE
     WEAVE_ERROR Lock(void);
     WEAVE_ERROR Unlock(void);
@@ -303,7 +305,6 @@ public:
     WEAVE_ERROR SetUpdated(TraitUpdatableDataSink * aDataSink, PropertyPathHandle aPropertyHandle, bool aIsConditional);
 #endif // WEAVE_CONFIG_ENABLE_WDM_UPDATE
 
-    void IndicateActivity(void);
 
 private:
     friend class SubscriptionEngine;
@@ -431,66 +432,87 @@ private:
                                                               uint8_t aMsgType, PacketBuffer * aPayload);
 
 #if WEAVE_CONFIG_ENABLE_WDM_UPDATE
-    uint32_t GetMaxUpdateSize(void) const { return mMaxUpdateSize == 0 ? UINT16_MAX : mMaxUpdateSize; }
 
+    struct UpdateRequestContext
+    {
+        // TODO: separate "state" from "arguments"
+
+        // State:
+        size_t mItemInProgress;
+        PropertyPathHandle mNextDictionaryElementPathHandle;
+
+        // Arguments to lower level calls and callbacks
+        TraitPath mPathToEncode;
+        bool mForceMerge;
+        SubscriptionClient *mSubClient;
+
+        uint16_t mNumDataElementsAddedToPayload;
+        bool mIsPartialUpdate;
+    };
+
+    uint32_t GetMaxUpdateSize(void) const { return mMaxUpdateSize == 0 ? UINT16_MAX : mMaxUpdateSize; }
     void SetMaxUpdateSize(const uint32_t aMaxPayload);
 
-    static WEAVE_ERROR AddElementFunc(UpdateClient * apClient, void *apCallState, TLV::TLVWriter & aOuterWriter);
-    void OnUpdateResponseTimeout(WEAVE_ERROR aReason);
-    WEAVE_ERROR PurgePendingUpdate(void);
-    void OnUpdateConfirm(WEAVE_ERROR aReason, nl::Weave::Profiles::StatusReporting::StatusReport * apStatus);
-    void SetUpdateStartVersions(void);
+    // Methods to encode and send update requests
+    WEAVE_ERROR FormAndSendUpdate(bool aNotifyOnError);
     WEAVE_ERROR SendSingleUpdateRequest(void);
-
-    struct UpdateRequestContext;
-    struct UpdatableTIContext;
-    WEAVE_ERROR Lookup(TraitDataHandle aTraitDataHandle,
-            TraitUpdatableDataSink * &updatableDataSink,
-            const TraitSchemaEngine * &schemaEngine,
-            ResourceIdentifier &resourceId,
-            uint64_t &instanceId);
-    WEAVE_ERROR DirtyPathToDataElement(UpdateRequestContext &aContext);
     WEAVE_ERROR BuildSingleUpdateRequestDataList(UpdateRequestContext &aContext);
+    WEAVE_ERROR DirtyPathToDataElement(UpdateRequestContext &aContext);
+    static WEAVE_ERROR AddElementFunc(UpdateClient * apClient, void *apCallState, TLV::TLVWriter & aOuterWriter);
+    WEAVE_ERROR Lookup(TraitDataHandle aTraitDataHandle,
+                       TraitUpdatableDataSink * &updatableDataSink,
+                       const TraitSchemaEngine * &schemaEngine,
+                       ResourceIdentifier &resourceId,
+                       uint64_t &instanceId);
+    void SetUpdateStartVersions(void);
 
-    void ClearPotentialDataLoss(TraitDataHandle aTraitDataHandle);
+    // Methods to handle update response and timeout
+    void OnUpdateConfirm(WEAVE_ERROR aReason, nl::Weave::Profiles::StatusReporting::StatusReport * apStatus);
+    void OnUpdateResponseTimeout(WEAVE_ERROR aReason);
+
+    // Methods to purge obsolete pending paths
+    WEAVE_ERROR PurgePendingUpdate(void);
     void MarkFailedPendingPaths(TraitDataHandle aTraitDataHandle, const DataVersion &aLatestVersion);
-    bool FilterNotifiedPath(TraitDataHandle aTraitDataHandle, PropertyPathHandle aPropertyPathHandle, const TraitSchemaEngine * const apSchemaEngine);
-    bool IsPresentDispatchedUpdateStore(TraitDataHandle aTraitDataHandle, PropertyPathHandle aPropertyPathHandle);
+    size_t PurgeFailedPendingPaths(WEAVE_ERROR aErr);
 
-    void ClearPathStore(TraitPathStore &aPathStore, WEAVE_ERROR aErr);
-    void ClearPendingUpdateSet(WEAVE_ERROR aErr) { ClearPathStore(mPendingUpdateSet, aErr); }
-    void ClearInProgressUpdateList(WEAVE_ERROR aErr) { ClearPathStore(mInProgressUpdateList, aErr); }
-    void PurgeFailedPaths(TraitPathStore &aPathStore);
-    WEAVE_ERROR RemoveItemPendingUpdateSet(TraitDataHandle aDataHandle);
-    WEAVE_ERROR RemoveItemInProgressUpdateList(TraitDataHandle aDataHandle);
-    WEAVE_ERROR AddItemPendingUpdateSet(const TraitPath &aItem, const TraitSchemaEngine * const apSchemaEngine);
-    WEAVE_ERROR InsertInProgressUpdateItem(const TraitPath &aItem, const TraitSchemaEngine * const apSchemaEngine);
-    void RemoveInProgressPrivateItemsAfter(uint16_t aItemInProgress);
-    WEAVE_ERROR MoveInProgressToPending(void);
-    WEAVE_ERROR MovePendingToInProgress(void);
-    WEAVE_ERROR ClearDirty(void);
-
+    // Methods to handle potential data loss due to notifications received with updates pending or in progress
+    bool FilterNotifiedPath(TraitDataHandle aTraitDataHandle, PropertyPathHandle aPropertyPathHandle, const TraitSchemaEngine * const aSchemaEngine);
+    void ClearPotentialDataLoss(TraitDataHandle aTraitDataHandle);
     bool CheckForSinksWithDataLoss();
     static void CheckForSinksWithDataLossIteratorCb(void * aDataSink, TraitDataHandle aDataHandle, void * aContext);
 
-    bool IsEmptyPendingUpdateSet(void);
-    bool IsEmptyInProgressUpdateList(void);
+    // Methods to fail everything and notify the application
+    void ClearPathStore(TraitPathStore &aPathStore, WEAVE_ERROR aErr);
 
-    bool IsUpdateInFlight();
-    bool IsUpdateInFlight(TraitDataHandle aTraitDataHandle);
-    WEAVE_ERROR SetUpdateInFlight();
-    WEAVE_ERROR ClearUpdateInFlight();
+    // Methods to manage the pending set and in-progress list
+    enum PendingSetState {
+        kPendingSetEmpty,
+        kPendingSetOpen,
+        kPendingSetReady
+    };
+    void SetPendingSetState(PendingSetState aState);
+    WEAVE_ERROR MovePendingToInProgress(void);
+    WEAVE_ERROR AddItemPendingUpdateSet(const TraitPath &aItem, const TraitSchemaEngine * const aSchemaEngine);
+    WEAVE_ERROR InsertInProgressUpdateItem(const TraitPath &aItem, const TraitSchemaEngine * const aSchemaEngine);
+    void RemoveInProgressPrivateItemsAfter(uint16_t aItemInProgress);
+    WEAVE_ERROR MoveInProgressToPending(void);
 
+    // Tracking if a payload is in flight
+    bool IsUpdateInFlight() { return mUpdateInFlight; }
+    void SetUpdateInFlight() { mUpdateInFlight = true; }
+    void ClearUpdateInFlight() { mUpdateInFlight = false; }
+
+    // Methods to notify the application
     void UpdateCompleteEventCbHelper(const TraitPath &aTraitPath, uint32_t aStatusProfileId, uint16_t aStatusCode, WEAVE_ERROR aReason);
     void NoMorePendingEventCbHelper(void);
-    static void UpdateEventCallback (void * const aAppState, UpdateClient::EventType aEvent, const UpdateClient::InEventParam & aInParam, UpdateClient::OutEventParam & aOutParam);
-    WEAVE_ERROR FormAndSendUpdate(bool aNotifyOnError);
 
+    // Other methods related to mUpdateClient
+    static void UpdateEventCallback(void * const aAppState, UpdateClient::EventType aEvent, const UpdateClient::InEventParam & aInParam, UpdateClient::OutEventParam & aOutParam);
     void CancelUpdateClient(void);
     void ShutdownUpdateClient(void);
 
-    static void InitUpdatableSinkTrait(void * aDataSink, TraitDataHandle aDataHandle, void * aContext);
 
+    // Index of the TraitUpdatableDataSink instances stored in mDataSinkCatalog
     /**
      * Updatable trait instance context
      */
@@ -505,38 +527,17 @@ private:
         TraitDataHandle mTraitDataHandle;
         TraitUpdatableDataSink *mUpdatableDataSink;
     };
-
-    struct UpdateRequestContext
-    {
-        // TODO: separate "state" from "arguments"
-
-        // State:
-        size_t mItemInProgress;
-        PropertyPathHandle mNextDictionaryElementPathHandle;
-
-        // Arguments to lower level calls and callbacks
-        TraitPath mPathToEncode;
-        uint16_t mNumDataElementsAddedToPayload;
-        bool mIsPartialUpdate;
-        bool mForceMerge;
-        SubscriptionClient * mpSubClient;
-    };
-
-    enum PendingSetState {
-        kPendingSetEmpty,
-        kPendingSetOpen,
-        kPendingSetReady
-    };
-
-    UpdatableTIContext * GetUpdatableTIContextList(void) { return mClientTraitInfoPool; }
-    TraitUpdatableDataSink *Locate(TraitDataHandle aTraitDataHandle) const;
+    static void InitUpdatableSinkTrait(void *aDataSink, TraitDataHandle aDataHandle, void *aContext);
+    UpdatableTIContext *GetUpdatableTIContextList(void) { return mClientTraitInfoPool; }
     uint32_t GetNumUpdatableTraitInstances(void) { return mNumUpdatableTraitInstances; }
+    TraitUpdatableDataSink *Locate(TraitDataHandle aTraitDataHandle) const;
 
-    void SetPendingSetState(PendingSetState aState);
+    // Data members for WDM Update
 
-    UpdateRequestContext mUpdateRequestContext;
     UpdatableTIContext mClientTraitInfoPool[WDM_CLIENT_MAX_NUM_UPDATABLE_TRAITS];
     uint16_t mNumUpdatableTraitInstances;
+
+    UpdateRequestContext mUpdateRequestContext;
     uint16_t mMaxUpdateSize;
     bool mUpdateInFlight;
 

@@ -1329,6 +1329,31 @@ exit:
     return err;
 }
 
+/**
+ * Declares that the given PropertyPathHandle has local modifications.
+ * The NotificationEngine will not override the handle and its descendants
+ * until the update request has been processed.
+ * The application will receive kEvent_OnUpdateComplete callbacks for this
+ * handle or for one of its ancestors with the result of the update operation.
+ * The modification can be conditional or not. Conditional data updates will
+ * be lost if the local copy of the trait instance is not in sync anymore with
+ * publisher's because it was mutated by the publisher itself or by another client.
+ * Conditional and unconditional mutations are not supported at the same time in
+ * the same trait instance.
+ *
+ * @param[in]   apSubClient         A pointer to the SubscriptionClient managing this sink.
+ * @param[in]   aPropertyHandle     Any valid PropertyPathHandle for this Trait instance.
+ * @param[in]   aIsConditional      True for a conditional update; false otherwise.
+ *
+ * @retval      WEAVE_NO_ERROR if the property handle was successfully added to the set of
+ *                  properties to be sent to the owner of the trait.
+ * @retval      WEAVE_ERROR_INVALID_ARGUMENT if the handle or the SubscriptionClient
+ *                  pointer are invalid, or if the trait instance is already being
+ *                  udpated with the opposite conditionality.
+ * @retval      WEAVE_ERROR_WDM_INCORRECT_STATE if aIsConditional is true but the
+ *                  trait instance does not have a valid version.
+ * @retval      Other WEAVE_ERROR codes depending on the failure.
+ */
 WEAVE_ERROR TraitUpdatableDataSink::SetUpdated(SubscriptionClient * apSubClient, PropertyPathHandle aPropertyHandle, bool aIsConditional)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;

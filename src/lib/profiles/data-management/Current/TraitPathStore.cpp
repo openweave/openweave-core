@@ -125,6 +125,37 @@ WEAVE_ERROR TraitPathStore::AddItem(const TraitPath &aItem)
     return AddItem(aItem, kFlag_None);
 }
 
+WEAVE_ERROR TraitPathStore::AddItemDedup(const TraitPath &aItem, const TraitSchemaEngine * const aSchemaEngine)
+{
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
+
+    if (Includes(aItem, aSchemaEngine))
+    {
+        WeaveLogDetail(DataManagement, "Path already present");
+        ExitNow();
+    }
+
+    // Remove any paths of which aItem is an ancestor
+    for (size_t i = GetFirstValidItem(aItem.mTraitDataHandle);
+            i < GetPathStoreSize();
+            i = GetNextValidItem(i, aItem.mTraitDataHandle))
+    {
+        if (aSchemaEngine->IsParent(mStore[i].mTraitPath.mPropertyPathHandle, aItem.mPropertyPathHandle))
+        {
+            WeaveLogDetail(DataManagement, "Removing item %u t%u p%u while adding p%u", i,
+                    mStore[i].mTraitPath.mTraitDataHandle,
+                    mStore[i].mTraitPath.mPropertyPathHandle,
+                    aItem.mPropertyPathHandle);
+            RemoveItemAt(i);
+        }
+    }
+
+    err = AddItem(aItem, kFlag_None);
+
+exit:
+    return err;
+}
+
 /**
  * Adds an TraitPath to the store, inserting it at a given index.
  * Assumes the store has no gaps.
@@ -312,7 +343,7 @@ bool TraitPathStore::Intersects(const TraitPath &aTraitPath, const TraitSchemaEn
  *
  * @return  true if the TraitPath is already included by the paths in the store.
  */
-bool TraitPathStore::Includes(const TraitPath &aItem, const TraitSchemaEngine * const apSchemaEngine) const
+bool TraitPathStore::Includes(const TraitPath &aItem, const TraitSchemaEngine * const aSchemaEngine) const
 {
     bool found = false;
     TraitDataHandle dataHandle = aItem.mTraitDataHandle;
@@ -321,7 +352,7 @@ bool TraitPathStore::Includes(const TraitPath &aItem, const TraitSchemaEngine * 
     for (size_t i = GetFirstValidItem(dataHandle); i < mStoreSize; i = GetNextValidItem(i, dataHandle))
     {
         if (pathHandle == mStore[i].mTraitPath.mPropertyPathHandle ||
-                apSchemaEngine->IsParent(pathHandle, mStore[i].mTraitPath.mPropertyPathHandle))
+                aSchemaEngine->IsParent(pathHandle, mStore[i].mTraitPath.mPropertyPathHandle))
         {
             found = true;
             break;

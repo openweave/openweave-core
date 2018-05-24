@@ -50,10 +50,10 @@ MockWdmNodeOptions::MockWdmNodeOptions() :
 #endif // WDM_ENABLE_SUBSCRIPTIONLESS_NOTIFICATION
     mWdmUpdateConditionality(kConditionality_Conditional),
     mWdmUpdateMutation(kMutation_OneLeaf),
-    mWdmUpdateTiming(kTiming_AfterSub),
+    mWdmUpdateNumberOfTraits(1),
     mWdmUpdateNumberOfMutations(1),
     mWdmUpdateNumberOfRepeatedMutations(1),
-    mWdmUpdateNumberOfTraits(1),
+    mWdmUpdateTiming(kTiming_AfterSub),
     mWdmUpdateMaxNumberOfTraits(1)
 {
     static OptionDef optionDefs[] =
@@ -283,7 +283,7 @@ const char **MockWdmNodeOptions::GetUpdateTimingStrings(void)
     return updateTimingStrings;
 }
 
-static bool FindStringInArray(const char *aTarget, const char **aArray, size_t aArrayLength, int &aIndex)
+static bool FindStringInArray(const char *aTarget, const char **aArray, size_t aArrayLength, size_t &aIndex)
 {
     for (aIndex = 0; aIndex < aArrayLength && (strcmp(aTarget, aArray[aIndex]) != 0); aIndex++)
     {
@@ -454,7 +454,7 @@ bool MockWdmNodeOptions::HandleOption(const char *progName, OptionSet *optSet, i
 
     case kToolOpt_EventGenerator:
     {
-        int i;
+        size_t i;
 
         if (!FindStringInArray(arg, GetGeneratorStrings(), kGenerator_NumItems, i))
         {
@@ -477,7 +477,7 @@ bool MockWdmNodeOptions::HandleOption(const char *progName, OptionSet *optSet, i
     }
     case kToolOpt_WdmUpdateMutation:
     {
-        int i;
+        size_t i;
 
         if (!FindStringInArray(arg, GetMutationStrings(), kMutation_NumItems, i))
         {
@@ -526,7 +526,7 @@ bool MockWdmNodeOptions::HandleOption(const char *progName, OptionSet *optSet, i
     }
     case kToolOpt_WdmUpdateConditionality:
     {
-        int i;
+        size_t i;
 
         if (!FindStringInArray(arg, GetConditionalityStrings(), kConditionality_NumItems, i))
         {
@@ -538,7 +538,7 @@ bool MockWdmNodeOptions::HandleOption(const char *progName, OptionSet *optSet, i
     }
     case kToolOpt_WdmUpdateTiming:
     {
-        int i;
+        size_t i;
 
         if (!FindStringInArray(arg, GetUpdateTimingStrings(), kTiming_NumItems, i))
         {

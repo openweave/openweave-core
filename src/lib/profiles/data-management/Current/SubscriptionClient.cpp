@@ -903,9 +903,9 @@ void SubscriptionClient::AbortSubscription(void)
 
 #if WEAVE_CONFIG_ENABLE_WDM_UPDATE
         // TODO: aborting the subscription should not impact the "udpate client"
-        ClearPendingUpdateSet(WEAVE_ERROR_CONNECTION_ABORTED);
+        ClearPathStore(mPendingUpdateSet, WEAVE_ERROR_CONNECTION_ABORTED);
         // TODO: what's the right error code for this?
-        ClearInProgressUpdateList(WEAVE_ERROR_CONNECTION_ABORTED);
+        ClearPathStore(mInProgressUpdateList, WEAVE_ERROR_CONNECTION_ABORTED);
         ShutdownUpdateClient();
 #endif // WEAVE_CONFIG_ENABLE_WDM_UPDATE
         // Note that ref count is not touched at here, as _Abort doesn't change the ownership
@@ -1812,11 +1812,13 @@ void SubscriptionClient::OnMessageReceivedFromLocallyInitiatedExchange(nl::Weave
 
 #if WEAVE_CONFIG_ENABLE_WDM_UPDATE
             if (pClient->mPendingSetState == kPendingSetReady &&
-                    pClient->IsEmptyInProgressUpdateList())
+                    pClient->mInProgressUpdateList.IsEmpty())
             {
-                // TODO: handle errors!
-                pClient->MovePendingToInProgress();
-                pClient->FormAndSendUpdate(true);
+                // TODO: test failing here..
+                err = pClient->MovePendingToInProgress();
+                SuccessOrExit(err);
+                err = pClient->FormAndSendUpdate(true);
+                SuccessOrExit(err);
             }
             else
             {
@@ -1972,7 +1974,7 @@ WEAVE_ERROR SubscriptionClient::MovePendingToInProgress(void)
     {
         traitInfo = mClientTraitInfoPool + traitInstance;
 
-        for (size_t i = 0; i < mPendingUpdateSet.GetPathStoreSize() && false == IsEmptyPendingUpdateSet(); i++)
+        for (size_t i = 0; i < mPendingUpdateSet.GetPathStoreSize() && false == mPendingUpdateSet.IsEmpty(); i++)
         {
             if (mPendingUpdateSet.IsItemInUse(i))
             {
@@ -2029,102 +2031,68 @@ void SubscriptionClient::ClearPathStore(TraitPathStore &aPathStore, WEAVE_ERROR 
     aPathStore.Clear();
 }
 
-// TODO: this is only used for the pending set!
-void SubscriptionClient::PurgeFailedPaths(TraitPathStore &aPathStore)
+/**
+ * Notify the application for each failed pending path and
+ * remove it from the pending set.
+ * Return the number of paths removed.
+ */
+size_t SubscriptionClient::PurgeFailedPendingPaths(WEAVE_ERROR aErr)
 {
     TraitPath traitPath;
-    bool needToResubscribe = false;
     TraitUpdatableDataSink *updatableDataSink = NULL;
+    size_t count = 0;
 
 
-    for (size_t j = 0; j < aPathStore.GetPathStoreSize(); j++)
+    for (size_t j = 0; j < mPendingUpdateSet.GetPathStoreSize(); j++)
     {
-        if (! aPathStore.IsItemInUse(j))
+        if (! mPendingUpdateSet.IsItemInUse(j))
         {
             continue;
         }
-        if (aPathStore.IsItemFailed(j))
+        if (mPendingUpdateSet.IsItemFailed(j))
         {
-            needToResubscribe = true;
-            aPathStore.GetItemAt(j, traitPath);
+            mPendingUpdateSet.GetItemAt(j, traitPath);
             updatableDataSink = Locate(traitPath.mTraitDataHandle);
             updatableDataSink->ClearVersion();
             updatableDataSink->ClearUpdateRequiredVersion();
             updatableDataSink->SetConditionalUpdate(false);
 
-            if (! aPathStore.IsItemPrivate(j))
+            if (! mPendingUpdateSet.IsItemPrivate(j))
             {
                 UpdateCompleteEventCbHelper(traitPath,
                         nl::Weave::Profiles::kWeaveProfile_Common,
                         nl::Weave::Profiles::Common::kStatus_InternalError,
-                        WEAVE_ERROR_WDM_VERSION_MISMATCH);
+                        aErr);
             }
-            aPathStore.RemoveItemAt(j);
+            mPendingUpdateSet.RemoveItemAt(j);
+            count++;
         }
     }
-
-    aPathStore.Compact();
 
     if (mPendingUpdateSet.IsEmpty())
     {
         SetPendingSetState(kPendingSetEmpty);
     }
 
-    if (needToResubscribe && IsEstablishedIdle())
-    {
-        HandleSubscriptionTerminated(IsRetryEnabled(), WEAVE_ERROR_WDM_VERSION_MISMATCH, NULL);
-    }
+    return count;
 }
 
-bool SubscriptionClient::IsEmptyPendingUpdateSet(void)
-{
-    return mPendingUpdateSet.IsEmpty();
-}
-
-bool SubscriptionClient::IsEmptyInProgressUpdateList(void)
-{
-    return mInProgressUpdateList.IsEmpty();
-}
-
-WEAVE_ERROR SubscriptionClient::RemoveItemPendingUpdateSet(TraitDataHandle aDataHandle)
-{
-    mPendingUpdateSet.RemoveTrait(aDataHandle);
-    return WEAVE_NO_ERROR;
-}
-
-WEAVE_ERROR SubscriptionClient::AddItemPendingUpdateSet(const TraitPath &aItem, const TraitSchemaEngine * const apSchemaEngine)
+WEAVE_ERROR SubscriptionClient::AddItemPendingUpdateSet(const TraitPath &aItem, const TraitSchemaEngine * const aSchemaEngine)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
 
-    if (mPendingUpdateSet.Includes(aItem, apSchemaEngine))
-    {
-        WeaveLogDetail(DataManagement, "Path already pending");
-        ExitNow();
-    }
+    err = mPendingUpdateSet.AddItemDedup(aItem, aSchemaEngine);
 
-    // Remove any paths of which aItem is an ancestor
-    for (size_t i = mPendingUpdateSet.GetFirstValidItem(aItem.mTraitDataHandle);
-            i < mPendingUpdateSet.GetPathStoreSize();
-            i = mPendingUpdateSet.GetNextValidItem(i, aItem.mTraitDataHandle))
-    {
-        if (apSchemaEngine->IsParent(mPendingUpdateSet.mStore[i].mTraitPath.mPropertyPathHandle, aItem.mPropertyPathHandle))
-        {
-            WeaveLogDetail(DataManagement, "Removing pending item %u t%u p%u", i,
-                    mPendingUpdateSet.mStore[i].mTraitPath.mTraitDataHandle,
-                    mPendingUpdateSet.mStore[i].mTraitPath.mPropertyPathHandle);
-            mPendingUpdateSet.RemoveItemAt(i);
-        }
-    }
-
-    err = mPendingUpdateSet.AddItem(aItem);
-    SuccessOrExit(err);
-
-exit:
     WeaveLogDetail(DataManagement, "%s t%u, p%u, err %d", __func__, aItem.mTraitDataHandle, aItem.mPropertyPathHandle, err);
     return err;
 }
 
-WEAVE_ERROR SubscriptionClient::InsertInProgressUpdateItem(const TraitPath &aItem, const TraitSchemaEngine * const apSchemaEngine)
+/**
+ * Add a private path in the list of paths in progress,
+ * inserting it after the one being encoded right now.
+ */
+WEAVE_ERROR SubscriptionClient::InsertInProgressUpdateItem(const TraitPath &aItem,
+                                                           const TraitSchemaEngine * const aSchemaEngine)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
     TraitPath traitPath;
@@ -2164,21 +2132,6 @@ void SubscriptionClient::RemoveInProgressPrivateItemsAfter(uint16_t aItemInProgr
 
     WeaveLogDetail(DataManagement, "Removed %d private InProgress items after %u; numItems: %u",
             count, aItemInProgress, mInProgressUpdateList.GetNumItems());
-}
-
-WEAVE_ERROR SubscriptionClient::RemoveItemInProgressUpdateList(TraitDataHandle aDataHandle)
-{
-    mInProgressUpdateList.RemoveTrait(aDataHandle);
-
-    return WEAVE_NO_ERROR;
-}
-
-WEAVE_ERROR SubscriptionClient::ClearDirty()
-{
-    mPendingUpdateSet.Clear();
-    mInProgressUpdateList.Clear();
-
-    return WEAVE_NO_ERROR;
 }
 
 void SubscriptionClient::ClearPotentialDataLoss(TraitDataHandle aTraitDataHandle)
@@ -2221,12 +2174,12 @@ exit:
 
 bool SubscriptionClient::FilterNotifiedPath(TraitDataHandle aTraitDataHandle,
                                             PropertyPathHandle aLeafPathHandle,
-                                            const TraitSchemaEngine * const apSchemaEngine)
+                                            const TraitSchemaEngine * const aSchemaEngine)
 {
     bool retval = false;
 
-    retval = mInProgressUpdateList.Includes(TraitPath(aTraitDataHandle, aLeafPathHandle), apSchemaEngine) ||
-             mPendingUpdateSet.Includes(TraitPath(aTraitDataHandle, aLeafPathHandle), apSchemaEngine);
+    retval = mInProgressUpdateList.Includes(TraitPath(aTraitDataHandle, aLeafPathHandle), aSchemaEngine) ||
+             mPendingUpdateSet.Includes(TraitPath(aTraitDataHandle, aLeafPathHandle), aSchemaEngine);
 
     if (retval)
     {
@@ -2237,16 +2190,11 @@ bool SubscriptionClient::FilterNotifiedPath(TraitDataHandle aTraitDataHandle,
             updatableDataSink->SetPotentialDataLoss(true);
 
             WeaveLogDetail(DataManagement, "Potential data loss set for traitDataHandle: %" PRIu16 ", trait %08x pathHandle: %" PRIu32 "",
-                    aTraitDataHandle, apSchemaEngine->GetProfileId(), aLeafPathHandle);
+                    aTraitDataHandle, aSchemaEngine->GetProfileId(), aLeafPathHandle);
         }
     }
 
     return retval;
-}
-
-bool SubscriptionClient::IsPresentDispatchedUpdateStore(TraitDataHandle aTraitDataHandle, PropertyPathHandle aPropertyPathHandle)
-{
-    return mInProgressUpdateList.IsPresent(TraitPath(aTraitDataHandle, aPropertyPathHandle));
 }
 
 WEAVE_ERROR SubscriptionClient::Lock()
@@ -2273,28 +2221,6 @@ WEAVE_ERROR SubscriptionClient::Unlock()
         return mLock->Unlock();
     }
 
-    return WEAVE_NO_ERROR;
-}
-
-bool SubscriptionClient::IsUpdateInFlight()
-{
-    return mUpdateInFlight;
-}
-
-bool SubscriptionClient::IsUpdateInFlight(TraitDataHandle aTraitDataHandle)
-{
-    return mUpdateInFlight && mInProgressUpdateList.IsTraitPresent(aTraitDataHandle);
-}
-
-WEAVE_ERROR SubscriptionClient::SetUpdateInFlight()
-{
-    mUpdateInFlight = true;
-    return WEAVE_NO_ERROR;
-}
-
-WEAVE_ERROR SubscriptionClient::ClearUpdateInFlight()
-{
-    mUpdateInFlight = false;
     return WEAVE_NO_ERROR;
 }
 
@@ -2563,7 +2489,7 @@ exit:
 
     // If the loop above exited early for an error, the application
     // is notified for any remaining path by the following method.
-    ClearInProgressUpdateList(err);
+    ClearPathStore(mInProgressUpdateList, err);
 
     mUpdateRequestContext.mItemInProgress = 0;
 
@@ -2646,15 +2572,15 @@ void SubscriptionClient::OnUpdateResponseTimeout(WEAVE_ERROR aError)
     {
         // Fail everything; think about dictionaries spread over
         // more than one DataElement
-        ClearInProgressUpdateList(WEAVE_ERROR_NO_MEMORY); // TODO: Or timeout?
-        ClearPendingUpdateSet(WEAVE_ERROR_NO_MEMORY);
+        ClearPathStore(mInProgressUpdateList, WEAVE_ERROR_NO_MEMORY); // TODO: Or timeout?
+        ClearPathStore(mPendingUpdateSet, WEAVE_ERROR_NO_MEMORY);
     }
     else
     {
         PurgePendingUpdate();
     }
 
-    if (!IsEmptyPendingUpdateSet() && IsEstablishedIdle())
+    if ((false == mPendingUpdateSet.IsEmpty()) && IsEstablishedIdle())
     {
         HandleSubscriptionTerminated(IsRetryEnabled(), aError, NULL);
     }
@@ -2714,6 +2640,7 @@ WEAVE_ERROR SubscriptionClient::SetUpdated(TraitUpdatableDataSink * aDataSink, P
     bool isLocked = false;
     const TraitSchemaEngine * schemaEngine;
     bool needToSetUpdateRequiredVersion = false;
+    bool isTraitInstanceInUpdate = false;
 
     err = Lock();
     SuccessOrExit(err);
@@ -2735,19 +2662,21 @@ WEAVE_ERROR SubscriptionClient::SetUpdated(TraitUpdatableDataSink * aDataSink, P
     err = mDataSinkCatalog->Locate(aDataSink, dataHandle);
     SuccessOrExit(err);
 
+    isTraitInstanceInUpdate = mPendingUpdateSet.IsTraitPresent(dataHandle) ||
+                              mInProgressUpdateList.IsTraitPresent(dataHandle);
+
     // It is not supported to mix conditional and non-conditional updates
     // in the same trait.
-    if (mPendingUpdateSet.IsTraitPresent(dataHandle) || mInProgressUpdateList.IsTraitPresent(dataHandle))
+    if (isTraitInstanceInUpdate)
     {
-        VerifyOrExit(aIsConditional == aDataSink->IsConditionalUpdate(), err = WEAVE_ERROR_INVALID_ARGUMENT);
+        VerifyOrExit(aIsConditional == aDataSink->IsConditionalUpdate(), err = WEAVE_ERROR_INCORRECT_STATE);
     }
-
-
-    if (aIsConditional &&
-            (false == mPendingUpdateSet.IsTraitPresent(dataHandle)) &&
-            (false == mInProgressUpdateList.IsTraitPresent(dataHandle)))
+    else
     {
-        needToSetUpdateRequiredVersion = true;
+        if (aIsConditional)
+        {
+            needToSetUpdateRequiredVersion = true;
+        }
     }
 
     err = AddItemPendingUpdateSet(TraitPath(dataHandle, aPropertyHandle), schemaEngine);
@@ -2780,7 +2709,7 @@ exit:
 }
 
 /**
- * Mark all conditional pending paths that have become obsolete and
+ * Fail all conditional pending paths that have become obsolete and
  * notify the application.
  */
 WEAVE_ERROR SubscriptionClient::PurgePendingUpdate()
@@ -2789,7 +2718,8 @@ WEAVE_ERROR SubscriptionClient::PurgePendingUpdate()
     TraitUpdatableDataSink * updatableDataSink;
     UpdatableTIContext * traitInfo;
     bool isLocked = false;
-    uint32_t numUpdatableTraitInstances = GetNumUpdatableTraitInstances();
+    size_t numUpdatableTraitInstances = GetNumUpdatableTraitInstances();
+    size_t numPendingPathsDeleted = 0;
 
     // Lock before attempting to modify any of the shared data structures.
     err = Lock();
@@ -2812,7 +2742,12 @@ WEAVE_ERROR SubscriptionClient::PurgePendingUpdate()
         }
     }
 
-    PurgeFailedPaths(mPendingUpdateSet);
+    numPendingPathsDeleted = PurgeFailedPendingPaths(WEAVE_ERROR_WDM_VERSION_MISMATCH);
+
+    if (numPendingPathsDeleted > 0 && IsEstablishedIdle())
+    {
+        HandleSubscriptionTerminated(IsRetryEnabled(), WEAVE_ERROR_WDM_VERSION_MISMATCH, NULL);
+    }
 
 exit:
 
@@ -2829,7 +2764,7 @@ exit:
 void SubscriptionClient::CancelUpdateClient(void)
 {
     WeaveLogDetail(DataManagement, "SubscriptionClient::CancelUpdateClient");
-    mUpdateInFlight                   = false;
+    ClearUpdateInFlight();
     mUpdateClient.CancelUpdate();
 }
 
@@ -2857,7 +2792,7 @@ WEAVE_ERROR SubscriptionClient::AddElementFunc(UpdateClient * apClient, void * a
     uint64_t tag = nl::Weave::TLV::ContextTag(DataElement::kCsTag_Data);
 
     UpdateRequestContext * updateRequestContext = static_cast<UpdateRequestContext *>(apCallState);
-    SubscriptionClient * pSubClient = updateRequestContext->mpSubClient;
+    SubscriptionClient * pSubClient = updateRequestContext->mSubClient;
 
     updatableDataSink = pSubClient->Locate(updateRequestContext->mPathToEncode.mTraitDataHandle);
     schemaEngine = updatableDataSink->GetSchemaEngine();
@@ -2976,7 +2911,6 @@ WEAVE_ERROR SubscriptionClient::BuildSingleUpdateRequestDataList(UpdateRequestCo
     WEAVE_ERROR err = WEAVE_NO_ERROR;
     ResourceIdentifier resourceId;
     const TraitSchemaEngine * schemaEngine;
-    UpdatableTIContext * traitInfo;
     TraitUpdatableDataSink * updatableDataSink = NULL;
     bool dictionaryOverflowed = false;
     TraitPath traitPath;
@@ -3057,8 +2991,8 @@ exit:
                                     nl::Weave::Profiles::Common::kStatus_InternalError,
                                     err);
 
-        RemoveItemInProgressUpdateList(traitPath.mTraitDataHandle);
-        RemoveItemPendingUpdateSet(traitPath.mTraitDataHandle);
+        mInProgressUpdateList.RemoveTrait(traitPath.mTraitDataHandle);
+        mPendingUpdateSet.RemoveTrait(traitPath.mTraitDataHandle);
 
         updatableDataSink->ClearVersion();
         updatableDataSink->ClearUpdateRequiredVersion();
@@ -3099,7 +3033,7 @@ WEAVE_ERROR SubscriptionClient::SendSingleUpdateRequest(void)
 
     maxUpdateSize = GetMaxUpdateSize();
 
-    mUpdateRequestContext.mpSubClient = this;
+    mUpdateRequestContext.mSubClient = this;
     mUpdateRequestContext.mNumDataElementsAddedToPayload = 0;
     mUpdateRequestContext.mIsPartialUpdate = false;
 
@@ -3197,10 +3131,18 @@ exit:
     return err;
 }
 
+/**
+ * Signals that the application has finished mutating all TraitUpdatableDataSinks.
+ * Unless a previous update exchange is in progress, the client will
+ * take all data marked as updated and send it to the responder in one update request.
+ *
+ * @return WEAVE_NO_ERROR in case of success; other WEAVE_ERROR codes in case of failure.
+ */
 WEAVE_ERROR SubscriptionClient::FlushUpdate()
 {
     WEAVE_ERROR err                  = WEAVE_NO_ERROR;
     bool isLocked                    = false;
+
     // Lock before attempting to modify any of the shared data structures.
     err = Lock();
     SuccessOrExit(err);

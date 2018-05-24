@@ -91,6 +91,7 @@ class TraitPathStoreTest {
         void TestIntersects(nlTestSuite *inSuite, void *inContext);
         void TestIsPresent(nlTestSuite *inSuite, void *inContext);
         void TestRemoveAndCompact(nlTestSuite *inSuite, void *inContext);
+        void TestAddItemDedup(nlTestSuite *inSuite, void *inContext);
 };
 
 TraitPathStoreTest::TraitPathStoreTest() :
@@ -180,7 +181,7 @@ void TraitPathStoreTest::TestIncludes(nlTestSuite *inSuite, void *inContext)
     mStore.Clear();
 
     mPath.mTraitDataHandle = mTDH1;
-    mPath.mPropertyPathHandle = TestHTrait::kPropertyHandle_K;
+    mPath.mPropertyPathHandle = CreatePropertyPathHandle(TestHTrait::kPropertyHandle_K);
 
     err = mStore.AddItem(mPath);
     NL_TEST_ASSERT(inSuite, err == WEAVE_NO_ERROR);
@@ -229,6 +230,7 @@ void TraitPathStoreTest::TestIncludes(nlTestSuite *inSuite, void *inContext)
 
     mStore.Clear();
 }
+
 void TraitPathStoreTest::TestIntersects(nlTestSuite *inSuite, void *inContext)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
@@ -366,6 +368,79 @@ void TraitPathStoreTest::TestRemoveAndCompact(nlTestSuite *inSuite, void *inCont
     mStore.Clear();
 }
 
+void TraitPathStoreTest::TestAddItemDedup(nlTestSuite *inSuite, void *inContext)
+{
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
+    TraitPath tp;
+    size_t numItems = 0;
+
+    mStore.Clear();
+
+    mPath.mTraitDataHandle = mTDH1;
+    mPath.mPropertyPathHandle = CreatePropertyPathHandle(TestHTrait::kPropertyHandle_K);
+
+    err = mStore.AddItem(mPath);
+    NL_TEST_ASSERT(inSuite, err == WEAVE_NO_ERROR);
+
+    numItems = mStore.GetNumItems();
+
+    tp.mTraitDataHandle = mTDH1;
+
+    tp.mPropertyPathHandle = CreatePropertyPathHandle(TestHTrait::kPropertyHandle_K);
+    NL_TEST_ASSERT(inSuite, mStore.Includes(tp, mSchemaEngine));
+
+    err = mStore.AddItemDedup(tp, mSchemaEngine);
+    NL_TEST_ASSERT(inSuite, err == WEAVE_NO_ERROR);
+    NL_TEST_ASSERT(inSuite, mStore.Includes(tp, mSchemaEngine));
+    NL_TEST_ASSERT(inSuite, numItems == mStore.GetNumItems());
+
+    tp.mPropertyPathHandle = mSchemaEngine->GetDictionaryItemHandle(CreatePropertyPathHandle(TestHTrait::kPropertyHandle_K_Sa), 1);
+    NL_TEST_ASSERT(inSuite, mStore.Includes(tp, mSchemaEngine));
+
+    err = mStore.AddItemDedup(tp, mSchemaEngine);
+    NL_TEST_ASSERT(inSuite, err == WEAVE_NO_ERROR);
+    NL_TEST_ASSERT(inSuite, mStore.Includes(tp, mSchemaEngine));
+    NL_TEST_ASSERT(inSuite, numItems == mStore.GetNumItems());
+
+    tp.mPropertyPathHandle = CreatePropertyPathHandle(TestHTrait::kPropertyHandle_I);
+    NL_TEST_ASSERT(inSuite, false == mStore.Includes(tp, mSchemaEngine));
+
+    err = mStore.AddItemDedup(tp, mSchemaEngine);
+    NL_TEST_ASSERT(inSuite, err == WEAVE_NO_ERROR);
+    NL_TEST_ASSERT(inSuite, mStore.Includes(tp, mSchemaEngine));
+    NL_TEST_ASSERT(inSuite, (numItems+1) == mStore.GetNumItems());
+
+    numItems = mStore.GetNumItems();
+
+
+    // Add root: the number of items goes down to 1 and the previous two are still included
+    tp.mPropertyPathHandle = TestHTrait::kPropertyHandle_Root;
+    NL_TEST_ASSERT(inSuite, false == mStore.Includes(tp, mSchemaEngine));
+
+    err = mStore.AddItemDedup(tp, mSchemaEngine);
+    NL_TEST_ASSERT(inSuite, err == WEAVE_NO_ERROR);
+    NL_TEST_ASSERT(inSuite, mStore.Includes(tp, mSchemaEngine));
+    NL_TEST_ASSERT(inSuite, (numItems-1) == mStore.GetNumItems());
+
+    tp.mPropertyPathHandle = CreatePropertyPathHandle(TestHTrait::kPropertyHandle_I);
+    NL_TEST_ASSERT(inSuite, mStore.Includes(tp, mSchemaEngine));
+
+    tp.mPropertyPathHandle = CreatePropertyPathHandle(TestHTrait::kPropertyHandle_K);
+    NL_TEST_ASSERT(inSuite, mStore.Includes(tp, mSchemaEngine));
+
+    numItems = mStore.GetNumItems();
+
+    // A TraitPath for a different trait handler
+    tp.mTraitDataHandle = mTDH1 + 1;
+    NL_TEST_ASSERT(inSuite, false == mStore.Includes(tp, mSchemaEngine));
+    err = mStore.AddItemDedup(tp, mSchemaEngine);
+    NL_TEST_ASSERT(inSuite, err == WEAVE_NO_ERROR);
+    NL_TEST_ASSERT(inSuite, mStore.Includes(tp, mSchemaEngine));
+    NL_TEST_ASSERT(inSuite, (numItems+1) == mStore.GetNumItems());
+
+    mStore.Clear();
+}
+
 } // WeaveMakeManagedNamespaceIdentifier(DataManagement, kWeaveManagedNamespaceDesignation_Current)
 }
 }
@@ -389,7 +464,7 @@ void TraitPathStoreTest_InitCleanup(nlTestSuite *inSuite, void *inContext)
 
 void TraitPathStoreTest_AddGet(nlTestSuite *inSuite, void *inContext)
 {
-    gPathStoreTest.TestInitCleanup(inSuite, inContext);
+    gPathStoreTest.TestAddGet(inSuite, inContext);
 }
 
 void TraitPathStoreTest_Full(nlTestSuite *inSuite, void *inContext)
@@ -417,6 +492,12 @@ void TraitPathStoreTest_RemoveAndCompact(nlTestSuite *inSuite, void *inContext)
     gPathStoreTest.TestRemoveAndCompact(inSuite, inContext);
 }
 
+void TraitPathStoreTest_AddItemDedup(nlTestSuite *inSuite, void *inContext)
+{
+    gPathStoreTest.TestAddItemDedup(inSuite, inContext);
+}
+
+
 // Test Suite
 
 /**
@@ -430,6 +511,7 @@ static const nlTest sTests[] = {
     NL_TEST_DEF("Intersects",  TraitPathStoreTest_Intersects),
     NL_TEST_DEF("IsPresent",  TraitPathStoreTest_IsPresent),
     NL_TEST_DEF("Remove and Compact",  TraitPathStoreTest_RemoveAndCompact),
+    NL_TEST_DEF("AddItemDedup",  TraitPathStoreTest_AddItemDedup),
 
     NL_TEST_SENTINEL()
 };

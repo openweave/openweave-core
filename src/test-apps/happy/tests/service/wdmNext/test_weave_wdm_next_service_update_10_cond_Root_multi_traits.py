@@ -58,7 +58,7 @@ class test_weave_wdm_next_service_update_10_cond_Root_multi_traits(weave_wdm_nex
                                              ('Msg sent 0000000B:34', 1),
                                              ('Removed 2 private InProgress items after 3', 1), # when the second TestATrait fails to fit, we have to remove
                                                                                                 # the private paths it has generated
-                                             ('Path already pending', 2),    # TestATrait's root mutation re-adds a path after adding root 
+                                             ('Path already present', 2),    # TestATrait's root mutation re-adds a path after adding root 
                                                                              # (there are two instances of TestATrait)
                                              ('replace dictionary', 0),      # All DataElements for dictionaries are "merge", not "replace" 
                                              ('Update: path failed', 0),

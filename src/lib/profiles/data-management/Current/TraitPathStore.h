@@ -74,6 +74,7 @@ struct TraitPathStore
 
         WEAVE_ERROR AddItem(const TraitPath &aItem);
         WEAVE_ERROR AddItem(const TraitPath &aItem, Flags aFlags);
+        WEAVE_ERROR AddItemDedup(const TraitPath &aItem, const TraitSchemaEngine * const aSchemaEngine);
         WEAVE_ERROR InsertItemAt(size_t aIndex, const TraitPath &aItem, Flags aFlags);
         WEAVE_ERROR InsertItemAfter(size_t aIndex, const TraitPath &aItem, Flags aFlags) { return InsertItemAt(aIndex+1, aItem, aFlags); }
 
@@ -95,8 +96,8 @@ struct TraitPathStore
         void Clear();
 
         bool IsPresent(const TraitPath &aItem) const;
-        bool Includes(const TraitPath &aItem, const TraitSchemaEngine * const apSchemaEngine) const;
-        bool Intersects(const TraitPath &aItem, const TraitSchemaEngine * const apSchemaEngine) const;
+        bool Includes(const TraitPath &aItem, const TraitSchemaEngine * const aSchemaEngine) const;
+        bool Intersects(const TraitPath &aItem, const TraitSchemaEngine * const aSchemaEngine) const;
         bool IsTraitPresent(TraitDataHandle aDataHandle) const;
         bool IsItemInUse(size_t aIndex) const { return IsFlagSet(aIndex, kFlag_InUse); }
         bool IsItemValid(size_t aIndex) const { return (IsItemInUse(aIndex) && (!IsFlagSet(aIndex, kFlag_Failed))); }
