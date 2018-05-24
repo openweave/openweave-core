@@ -614,6 +614,14 @@ check_SCRIPTS                                 +=             \
     happy/tests/service/wdmNext/test_weave_wdm_next_service_update_02_cond_BackToBack.py                        \
     happy/tests/service/wdmNext/test_weave_wdm_next_service_update_03_uncond_OneLeaf.py                         \
     happy/tests/service/wdmNext/test_weave_wdm_next_service_update_04_uncond_BackToBack.py                      \
+    happy/tests/service/wdmNext/test_weave_wdm_next_service_update_05_cond_WholeDictionary.py                   \
+    happy/tests/service/wdmNext/test_weave_wdm_next_service_update_06_cond_WholeLargeDictionary.py              \
+    happy/tests/service/wdmNext/test_weave_wdm_next_service_update_07_cond_OneLeaf_multi_traits.py              \
+    happy/tests/service/wdmNext/test_weave_wdm_next_service_update_08_mixed_OneLeaf_multi_traits.py             \
+    happy/tests/service/wdmNext/test_weave_wdm_next_service_update_09_mixed_SameLevelLeafs_multi_traits.py      \
+    happy/tests/service/wdmNext/test_weave_wdm_next_service_update_10_cond_Root_multi_traits.py                 \
+    happy/tests/service/wdmNext/test_weave_wdm_next_service_update_11_uncond_WholeLargeDictionary.py            \
+    happy/tests/service/wdmNext/test_weave_wdm_next_service_update_12_uncond_OneLeaf_BeforeSub.py               \
     $(NULL)
 endif # WEAVE_RUN_HAPPY_WDM
 

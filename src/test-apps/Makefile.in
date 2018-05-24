@@ -293,6 +293,14 @@ target_triplet = @target@
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_TRUE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@    happy/tests/service/wdmNext/test_weave_wdm_next_service_update_02_cond_BackToBack.py                        \
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_TRUE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@    happy/tests/service/wdmNext/test_weave_wdm_next_service_update_03_uncond_OneLeaf.py                         \
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_TRUE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@    happy/tests/service/wdmNext/test_weave_wdm_next_service_update_04_uncond_BackToBack.py                      \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_TRUE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@    happy/tests/service/wdmNext/test_weave_wdm_next_service_update_05_cond_WholeDictionary.py                   \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_TRUE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@    happy/tests/service/wdmNext/test_weave_wdm_next_service_update_06_cond_WholeLargeDictionary.py              \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_TRUE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@    happy/tests/service/wdmNext/test_weave_wdm_next_service_update_07_cond_OneLeaf_multi_traits.py              \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_TRUE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@    happy/tests/service/wdmNext/test_weave_wdm_next_service_update_08_mixed_OneLeaf_multi_traits.py             \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_TRUE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@    happy/tests/service/wdmNext/test_weave_wdm_next_service_update_09_mixed_SameLevelLeafs_multi_traits.py      \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_TRUE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@    happy/tests/service/wdmNext/test_weave_wdm_next_service_update_10_cond_Root_multi_traits.py                 \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_TRUE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@    happy/tests/service/wdmNext/test_weave_wdm_next_service_update_11_uncond_WholeLargeDictionary.py            \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_TRUE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@    happy/tests/service/wdmNext/test_weave_wdm_next_service_update_12_uncond_OneLeaf_BeforeSub.py               \
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_TRUE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@    $(NULL)
 
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_BDX_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_LONG_TESTS_TRUE@am__append_22 = happy/tests/standalone/bdx/test_weave_bdx_faults_download_v0_v0_1_of_4.sh \
@@ -2099,7 +2107,15 @@ AM_RECURSIVE_TARGETS = check recheck
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_TRUE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@	happy/tests/service/wdmNext/test_weave_wdm_next_service_update_01_cond_OneLeaf.py \
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_TRUE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@	happy/tests/service/wdmNext/test_weave_wdm_next_service_update_02_cond_BackToBack.py \
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_TRUE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@	happy/tests/service/wdmNext/test_weave_wdm_next_service_update_03_uncond_OneLeaf.py \
-@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_TRUE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@	happy/tests/service/wdmNext/test_weave_wdm_next_service_update_04_uncond_BackToBack.py
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_TRUE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@	happy/tests/service/wdmNext/test_weave_wdm_next_service_update_04_uncond_BackToBack.py \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_TRUE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@	happy/tests/service/wdmNext/test_weave_wdm_next_service_update_05_cond_WholeDictionary.py \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_TRUE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@	happy/tests/service/wdmNext/test_weave_wdm_next_service_update_06_cond_WholeLargeDictionary.py \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_TRUE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@	happy/tests/service/wdmNext/test_weave_wdm_next_service_update_07_cond_OneLeaf_multi_traits.py \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_TRUE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@	happy/tests/service/wdmNext/test_weave_wdm_next_service_update_08_mixed_OneLeaf_multi_traits.py \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_TRUE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@	happy/tests/service/wdmNext/test_weave_wdm_next_service_update_09_mixed_SameLevelLeafs_multi_traits.py \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_TRUE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@	happy/tests/service/wdmNext/test_weave_wdm_next_service_update_10_cond_Root_multi_traits.py \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_TRUE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@	happy/tests/service/wdmNext/test_weave_wdm_next_service_update_11_uncond_WholeLargeDictionary.py \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_TRUE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_HAPPY_WDM_TRUE@	happy/tests/service/wdmNext/test_weave_wdm_next_service_update_12_uncond_OneLeaf_BeforeSub.py
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_BDX_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_LONG_TESTS_TRUE@am__EXEEXT_17 = happy/tests/standalone/bdx/test_weave_bdx_faults_download_v0_v0_1_of_4.sh \
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_BDX_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_LONG_TESTS_TRUE@	happy/tests/standalone/bdx/test_weave_bdx_faults_download_v0_v0_2_of_4.sh \
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_BDX_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@@WEAVE_RUN_LONG_TESTS_TRUE@	happy/tests/standalone/bdx/test_weave_bdx_faults_download_v0_v0_3_of_4.sh \
@@ -6264,6 +6280,62 @@ happy/tests/service/wdmNext/test_weave_wdm_next_service_update_04_uncond_BackToB
 	--log-file $$b.log --trs-file $$b.trs \
 	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
 	"$$tst" $(AM_TESTS_FD_REDIRECT)
+happy/tests/service/wdmNext/test_weave_wdm_next_service_update_05_cond_WholeDictionary.py.log: happy/tests/service/wdmNext/test_weave_wdm_next_service_update_05_cond_WholeDictionary.py
+	@p='happy/tests/service/wdmNext/test_weave_wdm_next_service_update_05_cond_WholeDictionary.py'; \
+	b='happy/tests/service/wdmNext/test_weave_wdm_next_service_update_05_cond_WholeDictionary.py'; \
+	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
+	--log-file $$b.log --trs-file $$b.trs \
+	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
+	"$$tst" $(AM_TESTS_FD_REDIRECT)
+happy/tests/service/wdmNext/test_weave_wdm_next_service_update_06_cond_WholeLargeDictionary.py.log: happy/tests/service/wdmNext/test_weave_wdm_next_service_update_06_cond_WholeLargeDictionary.py
+	@p='happy/tests/service/wdmNext/test_weave_wdm_next_service_update_06_cond_WholeLargeDictionary.py'; \
+	b='happy/tests/service/wdmNext/test_weave_wdm_next_service_update_06_cond_WholeLargeDictionary.py'; \
+	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
+	--log-file $$b.log --trs-file $$b.trs \
+	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
+	"$$tst" $(AM_TESTS_FD_REDIRECT)
+happy/tests/service/wdmNext/test_weave_wdm_next_service_update_07_cond_OneLeaf_multi_traits.py.log: happy/tests/service/wdmNext/test_weave_wdm_next_service_update_07_cond_OneLeaf_multi_traits.py
+	@p='happy/tests/service/wdmNext/test_weave_wdm_next_service_update_07_cond_OneLeaf_multi_traits.py'; \
+	b='happy/tests/service/wdmNext/test_weave_wdm_next_service_update_07_cond_OneLeaf_multi_traits.py'; \
+	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
+	--log-file $$b.log --trs-file $$b.trs \
+	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
+	"$$tst" $(AM_TESTS_FD_REDIRECT)
+happy/tests/service/wdmNext/test_weave_wdm_next_service_update_08_mixed_OneLeaf_multi_traits.py.log: happy/tests/service/wdmNext/test_weave_wdm_next_service_update_08_mixed_OneLeaf_multi_traits.py
+	@p='happy/tests/service/wdmNext/test_weave_wdm_next_service_update_08_mixed_OneLeaf_multi_traits.py'; \
+	b='happy/tests/service/wdmNext/test_weave_wdm_next_service_update_08_mixed_OneLeaf_multi_traits.py'; \
+	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
+	--log-file $$b.log --trs-file $$b.trs \
+	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
+	"$$tst" $(AM_TESTS_FD_REDIRECT)
+happy/tests/service/wdmNext/test_weave_wdm_next_service_update_09_mixed_SameLevelLeafs_multi_traits.py.log: happy/tests/service/wdmNext/test_weave_wdm_next_service_update_09_mixed_SameLevelLeafs_multi_traits.py
+	@p='happy/tests/service/wdmNext/test_weave_wdm_next_service_update_09_mixed_SameLevelLeafs_multi_traits.py'; \
+	b='happy/tests/service/wdmNext/test_weave_wdm_next_service_update_09_mixed_SameLevelLeafs_multi_traits.py'; \
+	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
+	--log-file $$b.log --trs-file $$b.trs \
+	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
+	"$$tst" $(AM_TESTS_FD_REDIRECT)
+happy/tests/service/wdmNext/test_weave_wdm_next_service_update_10_cond_Root_multi_traits.py.log: happy/tests/service/wdmNext/test_weave_wdm_next_service_update_10_cond_Root_multi_traits.py
+	@p='happy/tests/service/wdmNext/test_weave_wdm_next_service_update_10_cond_Root_multi_traits.py'; \
+	b='happy/tests/service/wdmNext/test_weave_wdm_next_service_update_10_cond_Root_multi_traits.py'; \
+	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
+	--log-file $$b.log --trs-file $$b.trs \
+	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
+	"$$tst" $(AM_TESTS_FD_REDIRECT)
+happy/tests/service/wdmNext/test_weave_wdm_next_service_update_11_uncond_WholeLargeDictionary.py.log: happy/tests/service/wdmNext/test_weave_wdm_next_service_update_11_uncond_WholeLargeDictionary.py
+	@p='happy/tests/service/wdmNext/test_weave_wdm_next_service_update_11_uncond_WholeLargeDictionary.py'; \
+	b='happy/tests/service/wdmNext/test_weave_wdm_next_service_update_11_uncond_WholeLargeDictionary.py'; \
+	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
+	--log-file $$b.log --trs-file $$b.trs \
+	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
+	"$$tst" $(AM_TESTS_FD_REDIRECT)
+happy/tests/service/wdmNext/test_weave_wdm_next_service_update_12_uncond_OneLeaf_BeforeSub.py.log: happy/tests/service/wdmNext/test_weave_wdm_next_service_update_12_uncond_OneLeaf_BeforeSub.py
+	@p='happy/tests/service/wdmNext/test_weave_wdm_next_service_update_12_uncond_OneLeaf_BeforeSub.py'; \
+	b='happy/tests/service/wdmNext/test_weave_wdm_next_service_update_12_uncond_OneLeaf_BeforeSub.py'; \
+	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
+	--log-file $$b.log --trs-file $$b.trs \
+	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
+	"$$tst" $(AM_TESTS_FD_REDIRECT)
 happy/tests/standalone/bdx/test_weave_bdx_faults_download_v0_v0_1_of_4.sh.log: happy/tests/standalone/bdx/test_weave_bdx_faults_download_v0_v0_1_of_4.sh
 	@p='happy/tests/standalone/bdx/test_weave_bdx_faults_download_v0_v0_1_of_4.sh'; \
 	b='happy/tests/standalone/bdx/test_weave_bdx_faults_download_v0_v0_1_of_4.sh'; \
@@ -7895,11 +7967,11 @@ distclean-generic:
 maintainer-clean-generic:
 	@echo "This command is intended for maintainers to use"
 	@echo "it deletes files that may require special tools to rebuild."
+@WEAVE_BUILD_TESTS_FALSE@uninstall-local:
 @WEAVE_BUILD_COVERAGE_FALSE@clean-local:
 @WEAVE_BUILD_COVERAGE_REPORTS_FALSE@clean-local:
 @WEAVE_BUILD_TESTS_FALSE@clean-local:
 @WEAVE_BUILD_TESTS_FALSE@install-exec-local:
-@WEAVE_BUILD_TESTS_FALSE@uninstall-local:
 clean: clean-am
 
 clean-am: clean-checkPROGRAMS clean-generic clean-libexecPROGRAMS \
