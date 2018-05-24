@@ -172,7 +172,7 @@ WEAVE_ERROR EncodeRootDirectoryFromServiceConfig(const uint8_t * serviceConfig, 
         }
 
         // Encode the Host/Port entry
-        Write8(p, 0x80);                    // Host/Port Entry Control Byte (Type = Fully Qualified, Suffix Index Present = false, Port Id Present = true)
+        Write8(p, 0x08);                    // Host/Port Entry Control Byte (Type = Fully Qualified, Suffix Index Present = false, Port Id Present = true)
         Write8(p, (uint8_t)hostNameLen);    // Host Name length
         memcpy(p, hostName, hostNameLen);   // Host Name string
         p += hostNameLen;
