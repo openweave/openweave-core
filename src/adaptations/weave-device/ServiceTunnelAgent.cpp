@@ -44,10 +44,21 @@ WEAVE_ERROR InitServiceTunnelAgent()
 
     {
         IPAddress tunnelServerAddr;
-        if (!IPAddress::FromString(WEAVE_DEVICE_CONFIG_TUNNEL_SERVER_ADDRESS, tunnelServerAddr))
+        const char * tunnelServerAddrStr;
+        uint16_t tunnelServerAddrStrLen;
+        uint16_t tunnelServerPort;
+
+        err = ParseHostAndPort(WEAVE_DEVICE_CONFIG_TUNNEL_SERVER_ADDRESS, strlen(WEAVE_DEVICE_CONFIG_TUNNEL_SERVER_ADDRESS),
+                tunnelServerAddrStr, tunnelServerAddrStrLen, tunnelServerPort);
+        if (err != WEAVE_NO_ERROR || !IPAddress::FromString(tunnelServerAddrStr, tunnelServerAddrStrLen, tunnelServerAddr))
         {
             WeaveLogError(DeviceLayer, "Invalid value specified for TUNNEL_SERVER_ADDRESS config: %s", CONFIG_TUNNEL_SERVER_ADDRESS);
             ExitNow(err = WEAVE_ERROR_INVALID_ARGUMENT);
+        }
+
+        if (tunnelServerPort == 0)
+        {
+            tunnelServerPort = WEAVE_PORT;
         }
 
         ESP_LOGW(TAG, "Using fixed tunnel server address: %s", CONFIG_TUNNEL_SERVER_ADDRESS);
@@ -55,6 +66,9 @@ WEAVE_ERROR InitServiceTunnelAgent()
         err = ServiceTunnelAgent.Init(&InetLayer, &ExchangeMgr, kServiceEndpoint_WeaveTunneling,
                 tunnelServerAddr, kWeaveAuthMode_CASE_ServiceEndPoint);
         SuccessOrExit(err);
+
+        // This is necessary because the Init() function doesn't provide a way to specify the port.
+        ServiceTunnelAgent.SetDestination(kServiceEndpoint_WeaveTunneling, tunnelServerAddr, tunnelServerPort);
     }
 
 #else // WEAVE_DEVICE_CONFIG_ENABLE_FIXED_TUNNEL_SERVER
