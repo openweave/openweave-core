@@ -466,9 +466,9 @@ private:
                        uint64_t &instanceId);
     void SetUpdateStartVersions(void);
 
-    // Methods to handle update response and timeout
+    // Methods to handle update response and exchange failures (OnResponseTimeout, OnSendError)
     void OnUpdateConfirm(WEAVE_ERROR aReason, nl::Weave::Profiles::StatusReporting::StatusReport * apStatus);
-    void OnUpdateResponseTimeout(WEAVE_ERROR aReason);
+    void OnUpdateNoResponse(WEAVE_ERROR aReason);
 
     // Methods to purge obsolete pending paths
     WEAVE_ERROR PurgePendingUpdate(void);

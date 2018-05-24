@@ -81,8 +81,9 @@ typedef enum
     kFault_WDM_SendCommandExpired,              /**< Force the ExpiryTime of a WDM command to be in the past */
     kFault_WDM_SendCommandBadVersion,           /**< Alter the version of a WDM command being transmitted */
     kFault_WDM_SendUpdateBadVersion,            /**< Alter the version of a WDM update data element being transmitted */
-    kFault_WDM_DelayUpdateResponse,           /**< Drop the message received after sending an UpdateRequest, which usually is the StatusReport;
+    kFault_WDM_DelayUpdateResponse,             /**< Drop the message received after sending an UpdateRequest, which usually is the StatusReport;
                                                      this causes the NotificationRequest to be processed first */
+    kFault_WDM_UpdateRequestSendError,          /**< Inject a WRM SendError for the UpdateRequest */
     kFault_CASEKeyConfirm,                      /**< Trigger a WEAVE_ERROR_KEY_CONFIRMATION_FAILED error in WeaveCASEEngine */
     kFault_SecMgrBusy,                          /**< Trigger a WEAVE_ERROR_SECURITY_MANAGER_BUSY when starting an authentication session */
 #if WEAVE_CONFIG_ENABLE_TUNNELING

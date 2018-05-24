@@ -2533,7 +2533,7 @@ exit:
  * This handler is optimized for the case that the request never reached the
  * responder: the dispatched paths are put back in the pending queue and retried.
  */
-void SubscriptionClient::OnUpdateResponseTimeout(WEAVE_ERROR aError)
+void SubscriptionClient::OnUpdateNoResponse(WEAVE_ERROR aError)
 {
     // TODO: no test for this yet
 
@@ -2561,7 +2561,7 @@ void SubscriptionClient::OnUpdateResponseTimeout(WEAVE_ERROR aError)
         if (! mInProgressUpdateList.IsItemPrivate(j))
         {
             // TODO: does it make sense to put a profile and status when we never received a StatusReport?
-            UpdateCompleteEventCbHelper(traitPath, nl::Weave::Profiles::kWeaveProfile_Common, nl::Weave::Profiles::Common::kStatus_Timeout, WEAVE_ERROR_TIMEOUT);
+            UpdateCompleteEventCbHelper(traitPath, nl::Weave::Profiles::kWeaveProfile_Common, nl::Weave::Profiles::Common::kStatus_Timeout, aError);
         }
     }
 
@@ -2572,7 +2572,7 @@ void SubscriptionClient::OnUpdateResponseTimeout(WEAVE_ERROR aError)
     {
         // Fail everything; think about dictionaries spread over
         // more than one DataElement
-        ClearPathStore(mInProgressUpdateList, WEAVE_ERROR_NO_MEMORY); // TODO: Or timeout?
+        ClearPathStore(mInProgressUpdateList, WEAVE_ERROR_NO_MEMORY);
         ClearPathStore(mPendingUpdateSet, WEAVE_ERROR_NO_MEMORY);
     }
     else
@@ -2614,7 +2614,7 @@ void SubscriptionClient::UpdateEventCallback (void * const aAppState,
         }
         else
         {
-            pSubClient->OnUpdateResponseTimeout(aInParam.UpdateComplete.Reason);
+            pSubClient->OnUpdateNoResponse(aInParam.UpdateComplete.Reason);
         }
 
         break;
@@ -3051,7 +3051,15 @@ WEAVE_ERROR SubscriptionClient::SendSingleUpdateRequest(void)
         }
 
         WeaveLogDetail(DataManagement, "Sending update");
+        // TODO: SetUpdateInFlight is here instead of after SendUpdate
+        // to be able to inject timeouts; must improve this..
         SetUpdateInFlight();
+
+        WEAVE_FAULT_INJECT(FaultInjection::kFault_WDM_UpdateRequestSendError,
+                           nl::Weave::FaultInjection::GetManager().FailAtFault(
+                               nl::Weave::FaultInjection::kFault_WRMSendError,
+                               0, 1));
+
         err = mUpdateClient.SendUpdate(mUpdateRequestContext.mIsPartialUpdate);
         SuccessOrExit(err);
 

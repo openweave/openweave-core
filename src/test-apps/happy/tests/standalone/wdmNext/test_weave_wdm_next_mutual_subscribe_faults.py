@@ -60,7 +60,8 @@ class test_weave_wdm_next_mutual_subscribe_faults(weave_wdm_next_test_base):
         # As of today, the client does not send commands nor updates
         not_required_client_faults = [ "Weave_WDMSendCommandBadVersion",
                                        "Weave_WDMSendCommandExpired",
-                                       "Weave_WDMSendUpdateBadVersion" ]
+                                       "Weave_WDMSendUpdateBadVersion",
+                                       "Weave_WDMUpdateRequestSendError" ]
 
         required_client_faults = [ key for key in counters["client"].keys() if "Weave_WDM" in key and key not in not_required_client_faults]
 
