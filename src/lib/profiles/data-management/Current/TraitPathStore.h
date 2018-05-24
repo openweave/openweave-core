@@ -44,17 +44,8 @@ struct TraitPathStore
             kFlag_InUse      = 0x1,
             kFlag_Failed     = 0x2, /**< The item is in use, but is not valid anymore.
                                       */
-            kFlag_ForceMerge = 0x4, /**< In UpdateRequest, DataElements are encoded with the "replace" format by
-                                      default; this flag is used to force the encoding of
-                                      dictionaries so that the items are merged.
-                                      */
-            kFlag_Private    = 0x8, /**< The path was created internally by the engine
-                                      to encode a dictionary in its own separate
-                                      DataElement; the application is notified about it
-                                      only if the update fails.
-                                      */
 
-            kFlags_ReservedFlags = kFlag_InUse,
+            kFlags_ReservedFlags = kFlag_InUse | kFlag_Failed,
         };
         typedef uint8_t Flags;
 
@@ -102,11 +93,8 @@ struct TraitPathStore
         bool IsItemInUse(size_t aIndex) const { return IsFlagSet(aIndex, kFlag_InUse); }
         bool IsItemValid(size_t aIndex) const { return (IsItemInUse(aIndex) && (!IsFlagSet(aIndex, kFlag_Failed))); }
         bool IsItemFailed(size_t aIndex) const { return IsFlagSet(aIndex, kFlag_Failed); }
-        bool IsItemForceMerge(size_t aIndex) const { return IsFlagSet(aIndex, kFlag_ForceMerge); }
-        bool IsItemPrivate(size_t aIndex) const { return IsFlagSet(aIndex, kFlag_Private); }
 
-        bool IsFlagSet(size_t aIndex, Flag aFlag) const { return ((mStore[aIndex].mFlags & static_cast<Flags>(aFlag)) == aFlag); }
-        WEAVE_ERROR SetFlags(size_t aIndex, Flag aFlag, bool aValue);
+        bool IsFlagSet(size_t aIndex, Flags aFlag) const { return ((mStore[aIndex].mFlags & aFlag) == aFlag); }
         Flags GetFlags(size_t aIndex) const { return mStore[aIndex].mFlags; }
 
         Record *mStore;

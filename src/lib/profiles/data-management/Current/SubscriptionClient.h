@@ -541,6 +541,20 @@ private:
     uint16_t mMaxUpdateSize;
     bool mUpdateInFlight;
 
+    // Flags used with mInProgressUpdateList
+    enum {
+        kFlag_ForceMerge = 0x4, /**< In UpdateRequest, DataElements are encoded with the "replace" format by
+                                  default; this flag is used to force the encoding of
+                                  dictionaries so that the items are merged.
+                                  */
+        kFlag_Private    = 0x8, /**< The path was created internally by the engine
+                                  to encode a dictionary in its own separate
+                                  DataElement; the application is notified about it
+                                  only if the update fails.
+                                  */
+
+    };
+
     PendingSetState mPendingSetState;
     TraitPathStore mPendingUpdateSet;
     TraitPathStore::Record mPendingStore[WDM_UPDATE_MAX_ITEMS_IN_TRAIT_DIRTY_PATH_STORE];
