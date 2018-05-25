@@ -2407,6 +2407,7 @@ exit:
 
     return err;
 }
+#endif // WEAVE_CONFIG_DATA_MANAGEMENT_ENABLE_SCHEMA_CHECK
 
 WEAVE_ERROR StatusList::Parser::GetStatusAndProfileID(uint32_t * const apProfileID, uint16_t * const apStatusCode)
 {
@@ -2424,6 +2425,8 @@ WEAVE_ERROR StatusList::Parser::GetStatusAndProfileID(uint32_t * const apProfile
 exit:
     return err;
 }
+
+#if WEAVE_CONFIG_DATA_MANAGEMENT_ENABLE_SCHEMA_CHECK
 // Roughly verify the schema is right, including
 // 1) at least one element is there
 // 2) all elements are anonymous and of Structure type
