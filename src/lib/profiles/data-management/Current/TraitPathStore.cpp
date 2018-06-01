@@ -454,7 +454,7 @@ size_t TraitPathStore::GetNextValidItem(size_t aIndex, TraitDataHandle aTDH) con
 
 bool TraitPathStore::AreFlagsSet(size_t aIndex, Flags aFlags) const
 {
-    if (aFlags & kFlag_ReservedFlags != 0x0)
+    if ((aFlags & kFlag_ReservedFlags) != 0x0)
     {
         return false;
     }
