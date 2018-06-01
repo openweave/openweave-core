@@ -2340,21 +2340,28 @@ void SubscriptionClient::CheckPotentialDataLoss(TraitDataHandle aTraitDataHandle
     {
         UpdatableTIContext * tIContext = GetUpdatableTIContext(aTraitDataHandle);
 
+        VerifyOrExit(tIContext != NULL, );
+
         tIContext->mPotentialDataLoss = true;
 
         WeaveLogDetail(DataManagement, "Potential data loss set for traitDataHandle: %" PRIu16 ", trait %08x pathHandle: %" PRIu32 "",
                aTraitDataHandle, apSchemaEngine->GetProfileId(), aPropertyPathHandle);
     }
+exit:
+    return;
 }
 
 void SubscriptionClient::ClearPotentialDataLoss(TraitDataHandle aTraitDataHandle)
 {
     UpdatableTIContext * tIContext = GetUpdatableTIContext(aTraitDataHandle);
 
+    VerifyOrExit(tIContext != NULL, );
     tIContext->mPotentialDataLoss = false;
 
     WeaveLogDetail(DataManagement, "Potential data loss cleared for traitDataHandle: %" PRIu16 ", trait %08x",
             aTraitDataHandle, tIContext->mUpdatableDataSink->GetSchemaEngine()->GetProfileId());
+exit:
+    return;
 }
 
 void SubscriptionClient::MarkFailedPendingPaths(TraitDataHandle aTraitDataHandle, const DataVersion &aLatestVersion)
@@ -2362,6 +2369,8 @@ void SubscriptionClient::MarkFailedPendingPaths(TraitDataHandle aTraitDataHandle
     if (! IsUpdateInFlight())
     {
         UpdatableTIContext * tIContext = GetUpdatableTIContext(aTraitDataHandle);
+
+        VerifyOrExit(tIContext != NULL, );
 
         if (tIContext->mUpdatableDataSink->IsConditionalUpdate() &&
                 IsVersionNewer(aLatestVersion, tIContext->mUpdatableDataSink->GetUpdateRequiredVersion()))
@@ -2378,6 +2387,8 @@ void SubscriptionClient::MarkFailedPendingPaths(TraitDataHandle aTraitDataHandle
             mPendingUpdateStore.SetFailedTrait(aTraitDataHandle, WEAVE_ERROR_WDM_VERSION_MISMATCH);
         }
     }
+exit:
+    return;
 }
 
 bool SubscriptionClient::IsPathDirty(TraitDataHandle aTraitDataHandle, PropertyPathHandle aLeafPathHandle, const TraitSchemaEngine * const apSchemaEngine)
@@ -2391,6 +2402,8 @@ bool SubscriptionClient::IsPathDirty(TraitDataHandle aTraitDataHandle, PropertyP
     {
         UpdatableTIContext * tIContext = GetUpdatableTIContext(aTraitDataHandle);
 
+        VerifyOrExit(tIContext != NULL, );
+
         if (tIContext->mPotentialDataLoss == false)
         {
             tIContext->mPotentialDataLoss = true;
@@ -2399,6 +2412,8 @@ bool SubscriptionClient::IsPathDirty(TraitDataHandle aTraitDataHandle, PropertyP
                     aTraitDataHandle, apSchemaEngine->GetProfileId(), aLeafPathHandle);
         }
     }
+
+exit:
     return retval;
 }
 
@@ -3377,7 +3392,10 @@ void SubscriptionClient::SetUpdateStartVersions(void)
 
             tIContext = GetUpdatableTIContext(traitPath.mTraitDataHandle);
 
-            tIContext->mUpdatableDataSink->SetUpdateStartVersion();
+            if (tIContext)
+            {
+                tIContext->mUpdatableDataSink->SetUpdateStartVersion();
+            }
         }
     }
 }
