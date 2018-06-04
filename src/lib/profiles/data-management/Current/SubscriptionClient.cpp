@@ -2168,7 +2168,7 @@ void SubscriptionClient::MarkFailedPendingPaths(TraitDataHandle aTraitDataHandle
             mPendingUpdateSet.SetFailedTrait(aTraitDataHandle);
         }
     }
-exit:
+
     return;
 }
 

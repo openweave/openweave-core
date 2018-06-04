@@ -511,6 +511,8 @@ void TraitPathStoreTest::TestFlags(nlTestSuite *inSuite, void *inContext)
     err = mStore.AddItem(mPath, kFlag_GoodFlag);
     NL_TEST_ASSERT(inSuite, err == WEAVE_NO_ERROR);
 
+    i = mStore.GetFirstValidItem();
+
     NL_TEST_ASSERT(inSuite, mStore.AreFlagsSet(i, kFlag_GoodFlag));
     NL_TEST_ASSERT(inSuite, false == mStore.AreFlagsSet(i, kFlag_GoodFlag2));
     NL_TEST_ASSERT(inSuite, false == mStore.AreFlagsSet(i, kFlag_GoodFlag | kFlag_GoodFlag2));
@@ -522,10 +524,27 @@ void TraitPathStoreTest::TestFlags(nlTestSuite *inSuite, void *inContext)
     err = mStore.AddItem(mPath, kFlag_GoodFlag | kFlag_GoodFlag2);
     NL_TEST_ASSERT(inSuite, err == WEAVE_NO_ERROR);
 
+    i = mStore.GetFirstValidItem();
+
     NL_TEST_ASSERT(inSuite, mStore.AreFlagsSet(i, kFlag_GoodFlag));
     NL_TEST_ASSERT(inSuite, mStore.AreFlagsSet(i, kFlag_GoodFlag2));
     NL_TEST_ASSERT(inSuite, mStore.AreFlagsSet(i, kFlag_GoodFlag | kFlag_GoodFlag2));
     NL_TEST_ASSERT(inSuite, false == mStore.AreFlagsSet(i, kFlag_BadFlag));
+
+    mStore.Clear();
+
+    err = mStore.AddItem(mPath);
+    NL_TEST_ASSERT(inSuite, err == WEAVE_NO_ERROR);
+
+    i = mStore.GetFirstValidItem();
+
+    NL_TEST_ASSERT(inSuite, mStore.IsItemValid(i));
+    NL_TEST_ASSERT(inSuite, false == mStore.IsItemFailed(i));
+
+    mStore.SetFailed(i);
+    NL_TEST_ASSERT(inSuite, mStore.IsItemFailed(i));
+    NL_TEST_ASSERT(inSuite, mStore.IsItemInUse(i));
+    NL_TEST_ASSERT(inSuite, false == mStore.IsItemValid(i));
 
     mStore.Clear();
 }

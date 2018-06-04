@@ -69,7 +69,7 @@ struct TraitPathStore
         WEAVE_ERROR InsertItemAt(size_t aIndex, const TraitPath &aItem, Flags aFlags);
         WEAVE_ERROR InsertItemAfter(size_t aIndex, const TraitPath &aItem, Flags aFlags) { return InsertItemAt(aIndex+1, aItem, aFlags); }
 
-        void SetFailed(size_t aIndex) { SetFlag(aIndex, kFlag_Failed, true); }
+        void SetFailed(size_t aIndex) { SetFlags(aIndex, kFlag_Failed, true); }
         void SetFailedTrait(TraitDataHandle aDataHandle);
 
         void GetItemAt(size_t aIndex, TraitPath &aTraitPath) { aTraitPath = mStore[aIndex].mTraitPath; }
