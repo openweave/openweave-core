@@ -45,14 +45,12 @@ namespace WeaveMakeManagedNamespaceIdentifier(DataManagement, kWeaveManagedNames
 class UpdateEncoder
 {
 public:
-    UpdateEncoder() {}
+    UpdateEncoder() : mState(kState_Uninitialized) {}
     ~UpdateEncoder() {}
 
-    typedef WEAVE_ERROR (*AddArgumentCallback)(UpdateClient * apClient, void *apCallState, TLV::TLVWriter & aOuterWriter);
+    typedef WEAVE_ERROR (*AddElementCallback)(UpdateEncoder * aEncoder, void *apCallState, TLV::TLVWriter & aOuterWriter);
 
-    typedef WEAVE_ERROR (*AddElementCallback)(UpdateClient * apClient, void *apCallState, TLV::TLVWriter & aOuterWriter);
-
-    WEAVE_ERROR StartUpdate(utc_timestamp_t aExpiryTimeMicroSecond, AddArgumentCallback aAddArgumentCallback, uint32_t maxUpdateSize);
+    WEAVE_ERROR StartUpdate(PacketBuffer *aBuf, utc_timestamp_t aExpiryTimeMicroSecond, uint32_t aMaxUpdateSize, uint32_t aUpdateReqIndex);
 
     WEAVE_ERROR AddElement(const uint32_t & aProfileID,
                            const uint64_t & aInstanceID,
@@ -86,31 +84,37 @@ public:
 
     WEAVE_ERROR StartUpdateRequest(utc_timestamp_t aExpiryTimeMicroSecond);
 
+    WEAVE_ERROR FinishUpdate();
+
     WEAVE_ERROR EndUpdateRequest(void);
 
     WEAVE_ERROR AddExpiryTime(utc_timestamp_t aExpiryTimeMicroSecond);
 
     WEAVE_ERROR AddUpdateRequestIndex(void);
 
-    PacketBuffer *GetPBuf() const { return mBuf; mBuf = NULL; }
+    PacketBuffer *ReturnPBuf();
 
     void Cancel();
-
-
 
 private:
     enum UpdateEncoderState
     {
+        kState_Uninitialized,        //< The encoder has not been initialized
         kState_Ready,                //< The encoder has been initialized and is ready
         kState_EncodingDataList,     //< The encoder has opened the DataList; DataElements can be added
         kState_EncodingDataElement,  //< The encoder is encoding a DataElement
         kState_Done,                 //< The DataList has been closed
     };
+
+    void MoveToState(const UpdateEncoderState aTargetState);
+    const char * GetStateStr(void) const;
+
     TLV::TLVWriter mWriter;
     UpdateEncoderState mState;
     PacketBuffer *mBuf;
-    AddArgumentCallback mAddArgumentCallback;
-}
+    uint32_t mUpdateRequestIndex;
+    nl::Weave::TLV::TLVType mDataListOuterContainerType, mDataElementOuterContainerType;
+};
 
 class UpdateClient
 {
@@ -143,21 +147,20 @@ public:
 
     WEAVE_ERROR CancelUpdate(void);
 
-    WEAVE_ERROR SendUpdate(bool aIsPartialUpdate);
+    WEAVE_ERROR SendUpdate(bool aIsPartialUpdate, PacketBuffer *aPBuf);
+
+    uint32_t GetUpdateRequestIndex() const { return mUpdateRequestIndex; }
 
     void * mpAppState;
 
+    Binding * mpBinding;
 private:
 
-    Binding * mpBinding;
     EventCallback mEventCallback;
     nl::Weave::ExchangeContext * mEC;
     UpdateClientState mState;
-    PacketBuffer * mpBuf;
     utc_timestamp_t mExpiryTimeMicroSecond;
     uint32_t mUpdateRequestIndex;
-
-    nl::Weave::TLV::TLVType mDataListContainerType, mDataElementContainerType;
 
     static void OnSendError(ExchangeContext * aEC, WEAVE_ERROR aErrorCode, void * aMsgSpecificContext);
     static void OnResponseTimeout(nl::Weave::ExchangeContext * aEC);

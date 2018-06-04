@@ -2789,7 +2789,7 @@ void SubscriptionClient::ShutdownUpdateClient(void)
     mUpdateClient.Shutdown();
 }
 
-WEAVE_ERROR SubscriptionClient::AddElementFunc(UpdateClient * apClient, void * apCallState, TLV::TLVWriter & aWriter)
+WEAVE_ERROR SubscriptionClient::AddElementFunc(UpdateEncoder * aEncoder, void * apCallState, TLV::TLVWriter & aWriter)
 {
     WEAVE_ERROR err;
     TraitUpdatableDataSink * updatableDataSink;
@@ -3037,6 +3037,8 @@ WEAVE_ERROR SubscriptionClient::SendSingleUpdateRequest(void)
 {
     WEAVE_ERROR err   = WEAVE_NO_ERROR;
     uint32_t maxUpdateSize;
+    uint32_t maxPayloadSize = 0;
+    PacketBuffer* pBuf = NULL;
 
     maxUpdateSize = GetMaxUpdateSize();
 
@@ -3044,10 +3046,17 @@ WEAVE_ERROR SubscriptionClient::SendSingleUpdateRequest(void)
     mUpdateRequestContext.mNumDataElementsAddedToPayload = 0;
     mUpdateRequestContext.mIsPartialUpdate = false;
 
-    err = mUpdateEncoder.StartUpdate(0, NULL, maxUpdateSize);
+    err = mUpdateClient.mpBinding->AllocateRightSizedBuffer(pBuf, maxUpdateSize, WDM_MIN_UPDATE_SIZE, maxPayloadSize);
+    SuccessOrExit(err);
+
+    err = mUpdateEncoder.StartUpdate(pBuf, 0, maxPayloadSize, mUpdateClient.GetUpdateRequestIndex());
+    pBuf = NULL;
     SuccessOrExit(err);
 
     err = BuildSingleUpdateRequestDataList(mUpdateRequestContext);
+    SuccessOrExit(err);
+
+    err = mUpdateEncoder.FinishUpdate();
     SuccessOrExit(err);
 
     if (mUpdateRequestContext.mNumDataElementsAddedToPayload)
@@ -3067,7 +3076,7 @@ WEAVE_ERROR SubscriptionClient::SendSingleUpdateRequest(void)
                                nl::Weave::FaultInjection::kFault_WRMSendError,
                                0, 1));
 
-        err = mUpdateClient.SendUpdate(mUpdateRequestContext.mIsPartialUpdate, mUpdateEncoder.GetPBuf());
+        err = mUpdateClient.SendUpdate(mUpdateRequestContext.mIsPartialUpdate, mUpdateEncoder.ReturnPBuf());
         SuccessOrExit(err);
 
         WEAVE_FAULT_INJECT(FaultInjection::kFault_WDM_DelayUpdateResponse,

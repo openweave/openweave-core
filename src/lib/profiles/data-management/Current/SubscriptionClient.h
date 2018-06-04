@@ -459,7 +459,7 @@ private:
     WEAVE_ERROR SendSingleUpdateRequest(void);
     WEAVE_ERROR BuildSingleUpdateRequestDataList(UpdateRequestContext &aContext);
     WEAVE_ERROR DirtyPathToDataElement(UpdateRequestContext &aContext);
-    static WEAVE_ERROR AddElementFunc(UpdateClient * apClient, void *apCallState, TLV::TLVWriter & aOuterWriter);
+    static WEAVE_ERROR AddElementFunc(UpdateEncoder * aEncoder, void *apCallState, TLV::TLVWriter & aOuterWriter);
     WEAVE_ERROR Lookup(TraitDataHandle aTraitDataHandle,
                        TraitUpdatableDataSink * &updatableDataSink,
                        const TraitSchemaEngine * &schemaEngine,

@@ -83,21 +83,22 @@ exit:
  * @retval #WEAVE_NO_ERROR On success.
  * @retval other           Was unable to initialize the update.
  */
-WEAVE_ERROR UpdateEncoder::StartUpdate(utc_timestamp_t aExpiryTimeMicroSecond, AddArgumentCallback aAddArgumentCallback, uint32_t maxUpdateSize)
+WEAVE_ERROR UpdateEncoder::StartUpdate(PacketBuffer *aBuf, utc_timestamp_t aExpiryTimeMicroSecond, uint32_t maxPayloadSize, uint32_t aUpdateReqIndex)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
-    uint32_t maxPayloadSize;
 
-    VerifyOrExit(mState == kState_Ready, err = WEAVE_ERROR_INCORRECT_STATE);
+    VerifyOrExit(mState == kState_Uninitialized, err = WEAVE_ERROR_INCORRECT_STATE);
+    VerifyOrExit(NULL != aBuf, err = WEAVE_ERROR_INVALID_ARGUMENT);
 
     WeaveLogDetail(DataManagement, "<UC:Run> Init PacketBuf");
 
-    err = mpBinding->AllocateRightSizedBuffer(mpBuf, maxUpdateSize, WDM_MIN_UPDATE_SIZE, maxPayloadSize);
-    SuccessOrExit(err);
+    mBuf = aBuf;
 
-    mWriter.Init(mpBuf, maxPayloadSize);
+    mUpdateRequestIndex = aUpdateReqIndex;
 
-    mAddArgumentCallback = aAddArgumentCallback;
+    mWriter.Init(mBuf, maxPayloadSize);
+
+    MoveToState(kState_Ready);
 
     err = StartUpdateRequest(aExpiryTimeMicroSecond);
     SuccessOrExit(err);
@@ -109,7 +110,7 @@ exit:
 
     if (err != WEAVE_NO_ERROR)
     {
-        CancelUpdate();
+        Cancel();
     }
 
     WeaveLogFunctError(err);
@@ -142,12 +143,6 @@ WEAVE_ERROR UpdateEncoder::StartUpdateRequest(utc_timestamp_t aExpiryTimeMicroSe
         SuccessOrExit(err);
     }
 
-    if (mAddArgumentCallback != NULL)
-    {
-        err = mAddArgumentCallback(this, mpAppState, mWriter);
-        SuccessOrExit(err);
-    }
-
     err = AddUpdateRequestIndex();
     SuccessOrExit(err);
 
@@ -177,11 +172,36 @@ WEAVE_ERROR UpdateEncoder::EndUpdateRequest()
     err = mWriter.Finalize();
     SuccessOrExit(err);
 
+    MoveToState(kState_Done);
+
 exit:
 
     WeaveLogFunctError(err);
 
     return err;
+}
+
+WEAVE_ERROR UpdateEncoder::FinishUpdate()
+{
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
+
+    err = EndDataList();
+    SuccessOrExit(err);
+
+    err = EndUpdateRequest();
+    SuccessOrExit(err);
+
+exit:
+    return err;
+}
+
+PacketBuffer *UpdateEncoder::ReturnPBuf() 
+{  
+    PacketBuffer *retval = mBuf;
+    mBuf = NULL; 
+    MoveToState(kState_Uninitialized); 
+
+    return retval;
 }
 
 /**
@@ -197,10 +217,10 @@ WEAVE_ERROR UpdateEncoder::StartDataList()
 
     VerifyOrExit(mState == kState_Ready, err = WEAVE_ERROR_INCORRECT_STATE);
 
-    err = mWriter.StartContainer(nl::Weave::TLV::ContextTag(UpdateRequest::kCsTag_DataList), nl::Weave::TLV::kTLVType_Array, mDataListContainerType);
+    err = mWriter.StartContainer(nl::Weave::TLV::ContextTag(UpdateRequest::kCsTag_DataList), nl::Weave::TLV::kTLVType_Array, mDataListOuterContainerType);
     SuccessOrExit(err);
 
-    MoveToState(kState_BuildDataList);
+    MoveToState(kState_EncodingDataList);
 
 exit:
 
@@ -222,7 +242,7 @@ WEAVE_ERROR UpdateEncoder::EndDataList()
 
     VerifyOrExit(mState == kState_EncodingDataList, err = WEAVE_ERROR_INCORRECT_STATE);
 
-    err = mWriter.EndContainer(mDataListContainerType);
+    err = mWriter.EndContainer(mDataListOuterContainerType);
     SuccessOrExit(err);
 
 exit:
@@ -260,7 +280,7 @@ WEAVE_ERROR UpdateEncoder::StartElement(const uint32_t &aProfileID,
 
     MoveToState(kState_EncodingDataElement);
 
-    err = mWriter.StartContainer(nl::Weave::TLV::AnonymousTag, nl::Weave::TLV::kTLVType_Structure, mDataElementContainerType);
+    err = mWriter.StartContainer(nl::Weave::TLV::AnonymousTag, nl::Weave::TLV::kTLVType_Structure, mDataElementOuterContainerType);
     SuccessOrExit(err);
     err = pathBuilder.Init(&mWriter, nl::Weave::TLV::ContextTag(DataElement::kCsTag_Path));
     SuccessOrExit(err);
@@ -371,15 +391,14 @@ exit:
 WEAVE_ERROR UpdateEncoder::FinalizeElement()
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
-    VerifyOrExit(kState_BuildDataElement == mState, err = WEAVE_ERROR_INCORRECT_STATE);
+    VerifyOrExit(kState_EncodingDataElement == mState, err = WEAVE_ERROR_INCORRECT_STATE);
 
-    err = mWriter.EndContainer(mDataElementContainerType);
+    err = mWriter.EndContainer(mDataElementOuterContainerType);
     SuccessOrExit(err);
 
     MoveToState(kState_EncodingDataList);
 
 exit:
-
     WeaveLogFunctError(err);
 
     return err;
@@ -454,7 +473,7 @@ exit:
     }
     else
     {
-        Shutdown();
+        Cancel();
     }
 
     return err;
@@ -496,7 +515,7 @@ exit:
  * @retval #WEAVE_NO_ERROR On success.
  * @retval other           Unable to send update
  */
-WEAVE_ERROR UpdateClient::SendUpdate(bool aIsPartialUpdate, PacketBuffer *aPBuf)
+WEAVE_ERROR UpdateClient::SendUpdate(bool aIsPartialUpdate, PacketBuffer *aBuf)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
 
@@ -508,12 +527,6 @@ WEAVE_ERROR UpdateClient::SendUpdate(bool aIsPartialUpdate, PacketBuffer *aPBuf)
     VerifyOrExit(NULL != aBuf, err = WEAVE_ERROR_INVALID_ARGUMENT);
 
     VerifyOrExit(kState_Initialized == mState, err = WEAVE_ERROR_INCORRECT_STATE);
-
-    err = EndDataList();
-    SuccessOrExit(err);
-
-    err = EndUpdateRequest();
-    SuccessOrExit(err);
 
     if (mUpdateRequestIndex == 0)
     {
@@ -528,7 +541,7 @@ WEAVE_ERROR UpdateClient::SendUpdate(bool aIsPartialUpdate, PacketBuffer *aPBuf)
     mEC->OnSendError = OnSendError;
 
 #if WEAVE_CONFIG_DATA_MANAGEMENT_ENABLE_SCHEMA_CHECK
-    reader.Init(mpBuf);
+    reader.Init(aBuf);
     reader.Next();
     parser.Init(reader);
     parser.CheckSchemaValidity();
@@ -537,7 +550,7 @@ WEAVE_ERROR UpdateClient::SendUpdate(bool aIsPartialUpdate, PacketBuffer *aPBuf)
     if (aIsPartialUpdate)
     {
         WeaveLogDetail(DataManagement, "<UC:Run> Partial update");
-        err = mEC->SendMessage(nl::Weave::Profiles::kWeaveProfile_WDM, kMsgType_PartialUpdateRequest, mpBuf,
+        err = mEC->SendMessage(nl::Weave::Profiles::kWeaveProfile_WDM, kMsgType_PartialUpdateRequest, aBuf,
                            nl::Weave::ExchangeContext::kSendFlag_ExpectResponse);
         aBuf = NULL;
         SuccessOrExit(err);
@@ -547,7 +560,7 @@ WEAVE_ERROR UpdateClient::SendUpdate(bool aIsPartialUpdate, PacketBuffer *aPBuf)
     }
     else
     {
-        err = mEC->SendMessage(nl::Weave::Profiles::kWeaveProfile_WDM, kMsgType_UpdateRequest, mpBuf,
+        err = mEC->SendMessage(nl::Weave::Profiles::kWeaveProfile_WDM, kMsgType_UpdateRequest, aBuf,
                                nl::Weave::ExchangeContext::kSendFlag_ExpectResponse);
         aBuf = NULL;
         SuccessOrExit(err);
@@ -583,9 +596,34 @@ void UpdateEncoder::Cancel(void)
         PacketBuffer::Free(mBuf);
         mBuf = NULL;
     }
-    mState = kState_Ready;
-    mAddArgumentCallback = NULL;
+    MoveToState(kState_Uninitialized);
 }
+
+void UpdateEncoder::MoveToState(const UpdateEncoderState aTargetState)
+{
+    mState = aTargetState;
+    WeaveLogDetail(DataManagement, "UE moving to [%10.10s]", GetStateStr());
+}
+
+#if WEAVE_DETAIL_LOGGING
+const char * UpdateEncoder::GetStateStr() const
+{
+    switch (mState)
+    {
+    case kState_Uninitialized:
+        return "Uninitialized";
+    case kState_Ready:
+        return "Ready";
+    case kState_EncodingDataList:
+        return "EncodingDataList";
+    case kState_EncodingDataElement:
+        return "EncodingDataElement";
+    case kState_Done:
+        return "Done";
+    }
+    return "N/A";
+}
+#endif // WEAVE_DETAIL_LOGGING
 
 /**
  * Reset update client to initialized status. clear the buffer
@@ -773,12 +811,6 @@ const char * UpdateClient::GetStateStr() const
 
     case kState_Initialized:
         return "Initialized";
-
-    case kState_BuildDataList:
-        return "BuildDataList";
-
-    case kState_BuildDataElement:
-        return "BuildDataElement";
 
     case kState_AwaitingResponse:
         return "AwaitingResponse";
