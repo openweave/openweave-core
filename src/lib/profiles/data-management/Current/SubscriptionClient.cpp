@@ -3239,11 +3239,6 @@ exit:
 
     if (WEAVE_NO_ERROR != err)
     {
-        /* TODO: this iteration is invoked by SubscriptionClient::Init(); the event
-         * given to the application in case of error is not right.
-         * We should store an error in the context, so that Init can return error.
-         */
-
         InEventParam inParam;
         OutEventParam outParam;
 
@@ -3254,6 +3249,13 @@ exit:
         subClient->mEventCallback(subClient->mAppState, kEvent_OnUpdateComplete, inParam, outParam);
 
         WeaveLogDetail(DataManagement, "run out of updatable trait instances");
+
+        /* TODO: this iteration is invoked by SubscriptionClient::Init(); the event
+         * given to the application in case of error is not right.
+         * We should store an error in the context, so that Init can return error.
+         * Assert for now.
+         */
+        WeaveDie();
     }
 
     return;
