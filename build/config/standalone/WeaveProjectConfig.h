@@ -31,6 +31,12 @@
 
 #define WEAVE_CONFIG_EVENT_LOGGING_NUM_EXTERNAL_CALLBACKS 2
 
+
+#define WDM_UPDATE_MAX_ITEMS_IN_TRAIT_DIRTY_PATH_STORE 300
+
+// Uncomment this for a large Tunnel MTU.
+//#define WEAVE_CONFIG_TUNNEL_INTERFACE_MTU                           (9000)
+
 // Max number of Bindings per WeaveExchangeManager
 #define WEAVE_CONFIG_MAX_BINDINGS 8
 

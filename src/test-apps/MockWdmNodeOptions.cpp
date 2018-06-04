@@ -236,6 +236,7 @@ const char **MockWdmNodeOptions::GetMutationStrings(void)
         "WholeDictionary",
         "WholeLargeDictionary",
         "FewDictionaryItems",
+        "ManyDictionaryItems",
         "WholeDictionaryAndLeaf",
         "OneStructure",
         "OneLeafOneStructure",

@@ -1970,32 +1970,38 @@ WEAVE_ERROR SubscriptionClient::MovePendingToInProgress(void)
 
     VerifyOrDie(mInProgressUpdateList.IsEmpty());
 
+    // TODO: if we send too many DataElements in the same UpdateRequest, the response
+    // is never received. Untill the problem is rootcaused and fixed, the loop below
+    // limits the number of items transferred to mInProgressUpdateList.
+    // 94 items triggers the problem; 75 does not. Using a value of 50 to be safe (more
+    // DataElements are generated during the encoding).
+
     for (size_t traitInstance = 0; traitInstance < mNumUpdatableTraitInstances; traitInstance++)
     {
         traitInfo = mClientTraitInfoPool + traitInstance;
 
-        for (size_t i = 0; i < mPendingUpdateSet.GetPathStoreSize() && false == mPendingUpdateSet.IsEmpty(); i++)
+        for (size_t i = mPendingUpdateSet.GetFirstValidItem(traitInfo->mTraitDataHandle);
+                i < mPendingUpdateSet.GetPathStoreSize();
+                i = mPendingUpdateSet.GetNextValidItem(i, traitInfo->mTraitDataHandle))
         {
-            if (mPendingUpdateSet.IsItemInUse(i))
-            {
-                mPendingUpdateSet.GetItemAt(i, traitPath);
+            mPendingUpdateSet.GetItemAt(i, traitPath);
 
-                if (traitPath.mTraitDataHandle != traitInfo->mTraitDataHandle)
-                {
-                    continue;
-                }
+            err = mInProgressUpdateList.AddItem(traitPath);
+            SuccessOrExit(err);
 
-                err = mInProgressUpdateList.AddItem(traitPath);
-                SuccessOrExit(err);
+            mPendingUpdateSet.RemoveItemAt(i); // Temp hack: remove this line
 
-                count++;
-            }
+            count++;
         }
     }
 
-    mPendingUpdateSet.Clear();
+    // Temp hack: uncomment this line
+    // mPendingUpdateSet.Clear();
 
-    SetPendingSetState(kPendingSetEmpty);
+    if (mPendingUpdateSet.IsEmpty())
+    {
+        SetPendingSetState(kPendingSetEmpty);
+    }
 
 exit:
     WeaveLogDetail(DataManagement, "Moved %d items from Pending to InProgress; err %" PRId32 "", count, err);

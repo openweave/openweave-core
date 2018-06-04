@@ -99,6 +99,7 @@ public:
         kMutation_WholeDictionary,
         kMutation_WholeLargeDictionary,
         kMutation_FewDictionaryItems,
+        kMutation_ManyDictionaryItems,
         kMutation_WholeDictionaryAndLeaf,
         kMutation_OneStructure,
         kMutation_OneLeafOneStructure,

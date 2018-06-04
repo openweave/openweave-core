@@ -1821,6 +1821,17 @@ WEAVE_ERROR TestATraitUpdatableDataSink::Mutate(SubscriptionClient * apSubClient
 
         break;
 
+    case MockWdmNodeOptions::kMutation_ManyDictionaryItems:
+        for (size_t i = 0; i < 60; i++)
+        {
+            err = SetUpdated(apSubClient, CreatePropertyPathHandle(TestATrait::kPropertyHandle_TaI_Value, i), aIsConditional);
+            SuccessOrExit(err);
+
+            tai_map[i] = { static_cast<uint32_t>(i) };
+        }
+
+        break;
+
     case MockWdmNodeOptions::kMutation_WholeDictionaryAndLeaf:
         err = SetUpdated(apSubClient, TestATrait::kPropertyHandle_TaI, aIsConditional);
         SuccessOrExit(err);
@@ -1830,7 +1841,7 @@ WEAVE_ERROR TestATraitUpdatableDataSink::Mutate(SubscriptionClient * apSubClient
 
         tai_map.clear();
         for (uint16_t i = 0; i < 10; i++) {
-            tai_map[i] = { (uint32_t)i + 1 };
+            tai_map[i] = { static_cast<uint32_t>(i) + 1 };
         }
 
         tap++;
