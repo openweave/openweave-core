@@ -2772,6 +2772,7 @@ void SubscriptionClient::CancelUpdateClient(void)
     WeaveLogDetail(DataManagement, "SubscriptionClient::CancelUpdateClient");
     ClearUpdateInFlight();
     mUpdateClient.CancelUpdate();
+    mUpdateEncoder.Cancel();
 }
 
 void SubscriptionClient::ShutdownUpdateClient(void)
@@ -2896,7 +2897,7 @@ WEAVE_ERROR SubscriptionClient::DirtyPathToDataElement(UpdateRequestContext &aCo
             numTags--;
         }
 
-        err = mUpdateClient.AddElement(schemaEngine->GetProfileId(),
+        err = mUpdateEncoder.AddElement(schemaEngine->GetProfileId(),
                 instanceId,
                 resourceId,
                 updatableDataSink->GetUpdateRequiredVersion(),
@@ -3043,7 +3044,7 @@ WEAVE_ERROR SubscriptionClient::SendSingleUpdateRequest(void)
     mUpdateRequestContext.mNumDataElementsAddedToPayload = 0;
     mUpdateRequestContext.mIsPartialUpdate = false;
 
-    err = mUpdateClient.StartUpdate(0, NULL, maxUpdateSize);
+    err = mUpdateEncoder.StartUpdate(0, NULL, maxUpdateSize);
     SuccessOrExit(err);
 
     err = BuildSingleUpdateRequestDataList(mUpdateRequestContext);
@@ -3066,7 +3067,7 @@ WEAVE_ERROR SubscriptionClient::SendSingleUpdateRequest(void)
                                nl::Weave::FaultInjection::kFault_WRMSendError,
                                0, 1));
 
-        err = mUpdateClient.SendUpdate(mUpdateRequestContext.mIsPartialUpdate);
+        err = mUpdateClient.SendUpdate(mUpdateRequestContext.mIsPartialUpdate, mUpdateEncoder.GetPBuf());
         SuccessOrExit(err);
 
         WEAVE_FAULT_INJECT(FaultInjection::kFault_WDM_DelayUpdateResponse,
@@ -3078,6 +3079,7 @@ WEAVE_ERROR SubscriptionClient::SendSingleUpdateRequest(void)
     else
     {
         mUpdateClient.CancelUpdate();
+        mUpdateEncoder.Cancel();
     }
 
 exit:
@@ -3086,6 +3088,7 @@ exit:
     {
         ClearUpdateInFlight();
         mUpdateClient.CancelUpdate();
+        mUpdateEncoder.Cancel();
     }
 
     WeaveLogFunctError(err);

@@ -341,6 +341,7 @@ endif
 check_PROGRAMS +=                                \
     TestTDM                                      \
 	TestPathStore                                \
+	TestWdmUpdateEncoder                         \
     $(NULL)
 
 if WEAVE_BUILD_WARM
@@ -436,6 +437,7 @@ if WEAVE_BUILD_WARM
 local_test_programs                           += \
     TestWarm                                     \
 	TestPathStore                                \
+	TestWdmUpdateEncoder                         \
     $(NULL)
 endif
 
@@ -1169,6 +1171,16 @@ TestPathStore_SOURCES                          = TestPathStore.cpp \
 TestPathStore_CPPFLAGS                         = $(AM_CPPFLAGS) -I$(top_srcdir)/src/test-apps/schema
 TestPathStore_LDFLAGS                          = $(AM_CPPFLAGS)
 TestPathStore_LDADD                            = libWeaveTestCommon.a $(COMMON_LDADD)
+
+
+TestWdmUpdateEncoder_SOURCES                   = TestWdmUpdateEncoder.cpp \
+                                                 schema/nest/test/trait/TestATrait.cpp \
+                                                 TestPersistedStorageImplementation.cpp \
+                                                 schema/nest/test/trait/TestCommon.cpp
+
+TestWdmUpdateEncoder_CPPFLAGS                         = $(AM_CPPFLAGS) -I$(top_srcdir)/src/test-apps/schema
+TestWdmUpdateEncoder_LDFLAGS                          = $(AM_CPPFLAGS)
+TestWdmUpdateEncoder_LDADD                            = libWeaveTestCommon.a $(COMMON_LDADD)
 
 TestFabricStateDelegate_SOURCES          = TestFabricStateDelegate.cpp TestPersistedStorageImplementation.cpp
 TestFabricStateDelegate_LDFLAGS          = $(AM_CPPFLAGS)

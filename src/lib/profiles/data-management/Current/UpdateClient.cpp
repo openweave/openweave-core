@@ -42,35 +42,6 @@ namespace Weave {
 namespace Profiles {
 namespace WeaveMakeManagedNamespaceIdentifier(DataManagement, kWeaveManagedNamespaceDesignation_Current) {
 
-// Do nothing
-UpdateClient::UpdateClient() { }
-
-/**
- * AddRef to Binding
- *store pointers to binding and delegate
- * @retval #WEAVE_NO_ERROR On success.
- */
-WEAVE_ERROR UpdateClient::Init(Binding * const apBinding, void * const apAppState, EventCallback const aEventCallback)
-{
-    WEAVE_ERROR err = WEAVE_NO_ERROR;
-
-    VerifyOrExit(apBinding != NULL , err = WEAVE_ERROR_INCORRECT_STATE);
-
-    // add reference to the binding
-    apBinding->AddRef();
-
-    // make a copy of the pointers
-    mpBinding             = apBinding;
-    mpAppState           = apAppState;
-    mEventCallback       = aEventCallback;
-    mEC                  = NULL;
-    mUpdateRequestIndex  = 0;
-    MoveToState(kState_Initialized);
-
-exit:
-    return err;
-}
-
 /**
  *  @brief Inject expiry time into the TLV stream
  *
@@ -79,7 +50,7 @@ exit:
  *  @retval #WEAVE_NO_ERROR On success.
  *  @retval other           Was unable to inject expiry time into the TLV stream
  */
-WEAVE_ERROR UpdateClient::AddExpiryTime(utc_timestamp_t aExpiryTimeMicroSecond)
+WEAVE_ERROR UpdateEncoder::AddExpiryTime(utc_timestamp_t aExpiryTimeMicroSecond)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
     err = mWriter.Put(nl::Weave::TLV::ContextTag(UpdateRequest::kCsTag_ExpiryTime), aExpiryTimeMicroSecond);
@@ -96,7 +67,7 @@ exit:
  *  @retval #WEAVE_NO_ERROR On success.
  *  @retval other           Was unable to add number of partial update requests into the TLV stream
  */
-WEAVE_ERROR UpdateClient::AddUpdateRequestIndex(void)
+WEAVE_ERROR UpdateEncoder::AddUpdateRequestIndex(void)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
     err = mWriter.Put(nl::Weave::TLV::ContextTag(UpdateRequest::kCsTag_UpdateRequestIndex), mUpdateRequestIndex);
@@ -112,12 +83,12 @@ exit:
  * @retval #WEAVE_NO_ERROR On success.
  * @retval other           Was unable to initialize the update.
  */
-WEAVE_ERROR UpdateClient::StartUpdate(utc_timestamp_t aExpiryTimeMicroSecond, AddArgumentCallback aAddArgumentCallback, uint32_t maxUpdateSize)
+WEAVE_ERROR UpdateEncoder::StartUpdate(utc_timestamp_t aExpiryTimeMicroSecond, AddArgumentCallback aAddArgumentCallback, uint32_t maxUpdateSize)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
     uint32_t maxPayloadSize;
 
-    VerifyOrExit(mState == kState_Initialized, err = WEAVE_ERROR_INCORRECT_STATE);
+    VerifyOrExit(mState == kState_Ready, err = WEAVE_ERROR_INCORRECT_STATE);
 
     WeaveLogDetail(DataManagement, "<UC:Run> Init PacketBuf");
 
@@ -155,12 +126,12 @@ exit:
  * @retval #WEAVE_ERROR_INCORRECT_STATE If the request is not at the toplevel of the buffer.
  * @retval other           Unable to construct the end of the update request.
  */
-WEAVE_ERROR UpdateClient::StartUpdateRequest(utc_timestamp_t aExpiryTimeMicroSecond)
+WEAVE_ERROR UpdateEncoder::StartUpdateRequest(utc_timestamp_t aExpiryTimeMicroSecond)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
     nl::Weave::TLV::TLVType dummyType;
 
-    VerifyOrExit(mState == kState_Initialized, err = WEAVE_ERROR_INCORRECT_STATE);
+    VerifyOrExit(mState == kState_Ready, err = WEAVE_ERROR_INCORRECT_STATE);
 
     err = mWriter.StartContainer(TLV::AnonymousTag, nl::Weave::TLV::kTLVType_Structure, dummyType);
     SuccessOrExit(err);
@@ -194,11 +165,11 @@ exit:
  * @retval #WEAVE_ERROR_INCORRECT_STATE If the request is not at update request container.
  * @retval other           Unable to construct the end of the update request.
  */
-WEAVE_ERROR UpdateClient::EndUpdateRequest()
+WEAVE_ERROR UpdateEncoder::EndUpdateRequest()
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
 
-    VerifyOrExit(mState == kState_BuildDataList, err = WEAVE_ERROR_INCORRECT_STATE);
+    VerifyOrExit(mState == kState_EncodingDataList, err = WEAVE_ERROR_INCORRECT_STATE);
 
     err = mWriter.EndContainer(nl::Weave::TLV::kTLVType_NotSpecified);
     SuccessOrExit(err);
@@ -220,11 +191,11 @@ exit:
  * @retval #WEAVE_ERROR_INCORRECT_STATE If it is not at the DataList container.
  * @retval other           Unable to construct the beginning of the data list.
  */
-WEAVE_ERROR UpdateClient::StartDataList()
+WEAVE_ERROR UpdateEncoder::StartDataList()
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
 
-    VerifyOrExit(mState == kState_Initialized, err = WEAVE_ERROR_INCORRECT_STATE);
+    VerifyOrExit(mState == kState_Ready, err = WEAVE_ERROR_INCORRECT_STATE);
 
     err = mWriter.StartContainer(nl::Weave::TLV::ContextTag(UpdateRequest::kCsTag_DataList), nl::Weave::TLV::kTLVType_Array, mDataListContainerType);
     SuccessOrExit(err);
@@ -245,11 +216,11 @@ exit:
  * @retval #WEAVE_ERROR_INCORRECT_STATE If it is not at the DataList container.
  * @retval other           Unable to construct the end of the data list.
  */
-WEAVE_ERROR UpdateClient::EndDataList()
+WEAVE_ERROR UpdateEncoder::EndDataList()
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
 
-    VerifyOrExit(mState == kState_BuildDataList, err = WEAVE_ERROR_INCORRECT_STATE);
+    VerifyOrExit(mState == kState_EncodingDataList, err = WEAVE_ERROR_INCORRECT_STATE);
 
     err = mWriter.EndContainer(mDataListContainerType);
     SuccessOrExit(err);
@@ -275,7 +246,7 @@ exit:
  * @retval #WEAVE_NO_ERROR On success.
  * @retval other           Unable to construct data element.
  */
-WEAVE_ERROR UpdateClient::StartElement(const uint32_t &aProfileID,
+WEAVE_ERROR UpdateEncoder::StartElement(const uint32_t &aProfileID,
                     const uint64_t &aInstanceID,
                     const ResourceIdentifier &aResourceID,
                     const DataVersion &aRequiredDataVersion,
@@ -285,9 +256,9 @@ WEAVE_ERROR UpdateClient::StartElement(const uint32_t &aProfileID,
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
     Path::Builder pathBuilder;
-    VerifyOrExit(kState_BuildDataList == mState, err = WEAVE_ERROR_INCORRECT_STATE);
+    VerifyOrExit(kState_EncodingDataList == mState, err = WEAVE_ERROR_INCORRECT_STATE);
 
-    MoveToState(kState_BuildDataElement);
+    MoveToState(kState_EncodingDataElement);
 
     err = mWriter.StartContainer(nl::Weave::TLV::AnonymousTag, nl::Weave::TLV::kTLVType_Structure, mDataElementContainerType);
     SuccessOrExit(err);
@@ -354,7 +325,7 @@ exit:
  * @retval other           Unable to construct data element.
  *
  */
-WEAVE_ERROR UpdateClient::AddElement(const uint32_t &aProfileID,
+WEAVE_ERROR UpdateEncoder::AddElement(const uint32_t &aProfileID,
                     const uint64_t &aInstanceID,
                     const ResourceIdentifier &aResourceID,
                     const DataVersion &aRequiredDataVersion,
@@ -397,7 +368,7 @@ exit:
  * @retval #WEAVE_ERROR_INCORRECT_STATE If the request is not at the DataElement container.
  * @retval other           Unable to construct the end of the data and data element.
  */
-WEAVE_ERROR UpdateClient::FinalizeElement()
+WEAVE_ERROR UpdateEncoder::FinalizeElement()
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
     VerifyOrExit(kState_BuildDataElement == mState, err = WEAVE_ERROR_INCORRECT_STATE);
@@ -405,7 +376,7 @@ WEAVE_ERROR UpdateClient::FinalizeElement()
     err = mWriter.EndContainer(mDataElementContainerType);
     SuccessOrExit(err);
 
-    MoveToState(kState_BuildDataList);
+    MoveToState(kState_EncodingDataList);
 
 exit:
 
@@ -446,7 +417,7 @@ void UpdateClient::FlushExistingExchangeContext(const bool aAbortNow)
  *
  * @param[out] aWriter A writer to checkpoint the state of the TLV writer into.
  */
-void UpdateClient::Checkpoint(TLV::TLVWriter &aWriter)
+void UpdateEncoder::Checkpoint(TLV::TLVWriter &aWriter)
 {
     aWriter    = mWriter;
 }
@@ -456,7 +427,7 @@ void UpdateClient::Checkpoint(TLV::TLVWriter &aWriter)
  *
  * @param aWriter[out] A writer to restore the state of the TLV writer from.
  */
-void UpdateClient::Rollback(TLV::TLVWriter &aWriter)
+void UpdateEncoder::Rollback(TLV::TLVWriter &aWriter)
 {
     mWriter = aWriter;
 }
@@ -468,10 +439,10 @@ void UpdateClient::Rollback(TLV::TLVWriter &aWriter)
  *
  * @retval #WEAVE_NO_ERROR On success.
  */
-WEAVE_ERROR UpdateClient::CancelElement(TLV::TLVWriter &aCheckpoint)
+WEAVE_ERROR UpdateEncoder::CancelElement(TLV::TLVWriter &aCheckpoint)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
-    VerifyOrExit(kState_BuildDataElement == mState, err = WEAVE_ERROR_INCORRECT_STATE);
+    VerifyOrExit(kState_EncodingDataElement == mState, err = WEAVE_ERROR_INCORRECT_STATE);
 
     Rollback(aCheckpoint);
 
@@ -479,7 +450,7 @@ exit:
 
     if (err == WEAVE_NO_ERROR)
     {
-        MoveToState(kState_BuildDataList);
+        MoveToState(kState_EncodingDataList);
     }
     else
     {
@@ -489,13 +460,43 @@ exit:
     return err;
 }
 
+// Do nothing
+UpdateClient::UpdateClient() { }
+
+/**
+ * AddRef to Binding
+ *store pointers to binding and delegate
+ * @retval #WEAVE_NO_ERROR On success.
+ */
+WEAVE_ERROR UpdateClient::Init(Binding * const apBinding, void * const apAppState, EventCallback const aEventCallback)
+{
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
+
+    VerifyOrExit(apBinding != NULL , err = WEAVE_ERROR_INCORRECT_STATE);
+
+    // add reference to the binding
+    apBinding->AddRef();
+
+    // make a copy of the pointers
+    mpBinding             = apBinding;
+    mpAppState           = apAppState;
+    mEventCallback       = aEventCallback;
+    mEC                  = NULL;
+    mUpdateRequestIndex  = 0;
+    MoveToState(kState_Initialized);
+
+exit:
+    return err;
+}
+
+
 /**
  * acquire EC from binding, kick off send message
  *
  * @retval #WEAVE_NO_ERROR On success.
  * @retval other           Unable to send update
  */
-WEAVE_ERROR UpdateClient::SendUpdate(bool aIsPartialUpdate)
+WEAVE_ERROR UpdateClient::SendUpdate(bool aIsPartialUpdate, PacketBuffer *aPBuf)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
 
@@ -504,9 +505,9 @@ WEAVE_ERROR UpdateClient::SendUpdate(bool aIsPartialUpdate)
     UpdateRequest::Parser parser;
 #endif //WEAVE_CONFIG_DATA_MANAGEMENT_ENABLE_SCHEMA_CHECK
 
-    VerifyOrExit(NULL != mpBuf, err = WEAVE_ERROR_NO_MEMORY);
+    VerifyOrExit(NULL != aBuf, err = WEAVE_ERROR_INVALID_ARGUMENT);
 
-    VerifyOrExit(kState_BuildDataList == mState, err = WEAVE_ERROR_INCORRECT_STATE);
+    VerifyOrExit(kState_Initialized == mState, err = WEAVE_ERROR_INCORRECT_STATE);
 
     err = EndDataList();
     SuccessOrExit(err);
@@ -538,7 +539,7 @@ WEAVE_ERROR UpdateClient::SendUpdate(bool aIsPartialUpdate)
         WeaveLogDetail(DataManagement, "<UC:Run> Partial update");
         err = mEC->SendMessage(nl::Weave::Profiles::kWeaveProfile_WDM, kMsgType_PartialUpdateRequest, mpBuf,
                            nl::Weave::ExchangeContext::kSendFlag_ExpectResponse);
-        mpBuf = NULL;
+        aBuf = NULL;
         SuccessOrExit(err);
 
         mUpdateRequestIndex ++;
@@ -548,7 +549,7 @@ WEAVE_ERROR UpdateClient::SendUpdate(bool aIsPartialUpdate)
     {
         err = mEC->SendMessage(nl::Weave::Profiles::kWeaveProfile_WDM, kMsgType_UpdateRequest, mpBuf,
                                nl::Weave::ExchangeContext::kSendFlag_ExpectResponse);
-        mpBuf = NULL;
+        aBuf = NULL;
         SuccessOrExit(err);
 
         mUpdateRequestIndex = 0;
@@ -563,16 +564,27 @@ exit:
         CancelUpdate();
     }
 
-    if (NULL != mpBuf)
+    if (NULL != aBuf)
     {
-        PacketBuffer::Free(mpBuf);
-        mpBuf = NULL;
+        PacketBuffer::Free(aBuf);
+        aBuf = NULL;
     }
 
     WeaveLogFunctError(err);
 
     return err;
 
+}
+
+void UpdateEncoder::Cancel(void)
+{
+    if (mBuf)
+    {
+        PacketBuffer::Free(mBuf);
+        mBuf = NULL;
+    }
+    mState = kState_Ready;
+    mAddArgumentCallback = NULL;
 }
 
 /**
@@ -586,13 +598,6 @@ WEAVE_ERROR UpdateClient::CancelUpdate(void)
 
     if (kState_Uninitialized != mState && kState_Initialized != mState)
     {
-        if (NULL != mpBuf)
-        {
-            PacketBuffer::Free(mpBuf);
-            mpBuf = NULL;
-        }
-
-        mAddArgumentCallback = NULL;
         mUpdateRequestIndex = 0;
         FlushExistingExchangeContext();
         MoveToState(kState_Initialized);

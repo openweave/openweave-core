@@ -42,44 +42,17 @@ namespace Weave {
 namespace Profiles {
 namespace WeaveMakeManagedNamespaceIdentifier(DataManagement, kWeaveManagedNamespaceDesignation_Current) {
 
-class UpdateClient
+class UpdateEncoder
 {
 public:
-    struct InEventParam;
-    struct OutEventParam;
-
-    enum EventType
-    {
-        kEvent_UpdateComplete = 1,
-        kEvent_UpdateContinue = 2,
-    };
-
-    enum UpdateClientState
-    {
-        kState_Uninitialized = 0,    //< The update client has not been initialized
-        kState_Initialized,          //< The update client has been initialized and is ready
-        kState_BuildDataList,        //< The update client is ready to build the DataList portion of the structure
-        kState_BuildDataElement,     //< The update client is ready to build the Data Element in data list
-        kState_AwaitingResponse,     //< The update client has sent the update request, and pending for response
-    };
-
-    typedef void (*EventCallback)(void *apAppState, EventType aEvent, const InEventParam & aInParam, OutEventParam & aOutParam);
-
-    static void DefaultEventHandler(void *apAppState, EventType aEvent, const InEventParam & aInParam, OutEventParam & aOutParam);
+    UpdateEncoder() {}
+    ~UpdateEncoder() {}
 
     typedef WEAVE_ERROR (*AddArgumentCallback)(UpdateClient * apClient, void *apCallState, TLV::TLVWriter & aOuterWriter);
 
     typedef WEAVE_ERROR (*AddElementCallback)(UpdateClient * apClient, void *apCallState, TLV::TLVWriter & aOuterWriter);
 
-    UpdateClient(void);
-
-    WEAVE_ERROR Init(Binding * const apBinding, void * const apAppState, EventCallback const aEventCallback);
-
-    WEAVE_ERROR Shutdown(void);
-
     WEAVE_ERROR StartUpdate(utc_timestamp_t aExpiryTimeMicroSecond, AddArgumentCallback aAddArgumentCallback, uint32_t maxUpdateSize);
-
-    WEAVE_ERROR CancelUpdate(void);
 
     WEAVE_ERROR AddElement(const uint32_t & aProfileID,
                            const uint64_t & aInstanceID,
@@ -103,11 +76,74 @@ public:
 
     WEAVE_ERROR CancelElement(TLV::TLVWriter & aOuterWriter);
 
-    WEAVE_ERROR SendUpdate(bool aIsPartialUpdate);
-
     void Checkpoint(TLV::TLVWriter &aWriter);
 
     void Rollback(TLV::TLVWriter &aWriter);
+
+    WEAVE_ERROR StartDataList(void);
+
+    WEAVE_ERROR EndDataList(void);
+
+    WEAVE_ERROR StartUpdateRequest(utc_timestamp_t aExpiryTimeMicroSecond);
+
+    WEAVE_ERROR EndUpdateRequest(void);
+
+    WEAVE_ERROR AddExpiryTime(utc_timestamp_t aExpiryTimeMicroSecond);
+
+    WEAVE_ERROR AddUpdateRequestIndex(void);
+
+    PacketBuffer *GetPBuf() const { return mBuf; mBuf = NULL; }
+
+    void Cancel();
+
+
+
+private:
+    enum UpdateEncoderState
+    {
+        kState_Ready,                //< The encoder has been initialized and is ready
+        kState_EncodingDataList,     //< The encoder has opened the DataList; DataElements can be added
+        kState_EncodingDataElement,  //< The encoder is encoding a DataElement
+        kState_Done,                 //< The DataList has been closed
+    };
+    TLV::TLVWriter mWriter;
+    UpdateEncoderState mState;
+    PacketBuffer *mBuf;
+    AddArgumentCallback mAddArgumentCallback;
+}
+
+class UpdateClient
+{
+public:
+    struct InEventParam;
+    struct OutEventParam;
+
+    enum EventType
+    {
+        kEvent_UpdateComplete = 1,
+        kEvent_UpdateContinue = 2,
+    };
+
+    enum UpdateClientState
+    {
+        kState_Uninitialized = 0,    //< The update client has not been initialized
+        kState_Initialized,          //< The update client has been initialized and is ready
+        kState_AwaitingResponse,     //< The update client has sent the update request, and pending for response
+    };
+
+    typedef void (*EventCallback)(void *apAppState, EventType aEvent, const InEventParam & aInParam, OutEventParam & aOutParam);
+
+    static void DefaultEventHandler(void *apAppState, EventType aEvent, const InEventParam & aInParam, OutEventParam & aOutParam);
+
+    UpdateClient(void);
+
+    WEAVE_ERROR Init(Binding * const apBinding, void * const apAppState, EventCallback const aEventCallback);
+
+    WEAVE_ERROR Shutdown(void);
+
+    WEAVE_ERROR CancelUpdate(void);
+
+    WEAVE_ERROR SendUpdate(bool aIsPartialUpdate);
 
     void * mpAppState;
 
@@ -116,11 +152,9 @@ private:
     Binding * mpBinding;
     EventCallback mEventCallback;
     nl::Weave::ExchangeContext * mEC;
-    TLV::TLVWriter mWriter;
     UpdateClientState mState;
     PacketBuffer * mpBuf;
     utc_timestamp_t mExpiryTimeMicroSecond;
-    AddArgumentCallback mAddArgumentCallback;
     uint32_t mUpdateRequestIndex;
 
     nl::Weave::TLV::TLVType mDataListContainerType, mDataElementContainerType;
@@ -140,20 +174,8 @@ private:
 
     void ClearState(void);
 
-    WEAVE_ERROR StartDataList(void);
-
-    WEAVE_ERROR EndDataList(void);
-
-    WEAVE_ERROR StartUpdateRequest(utc_timestamp_t aExpiryTimeMicroSecond);
-
-    WEAVE_ERROR EndUpdateRequest(void);
-
     static void BindingEventCallback(void * const apAppState, const Binding::EventType aEvent,
                                      const Binding::InEventParam & aInParam, Binding::OutEventParam & aOutParam);
-
-    WEAVE_ERROR AddExpiryTime(utc_timestamp_t aExpiryTimeMicroSecond);
-
-    WEAVE_ERROR AddUpdateRequestIndex(void);
 
     void FlushExistingExchangeContext(const bool aAbortNow = false);
 };

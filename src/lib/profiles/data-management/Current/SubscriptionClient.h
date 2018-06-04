@@ -310,6 +310,7 @@ private:
     friend class SubscriptionEngine;
     friend class TestTdm;
     friend class TestWdm;
+    friend class TestWdmUpdateEncoder;
     friend class MockWdmSubscriptionInitiatorImpl;
     friend class TraitDataSink;
     friend class TraitSchemaEngine;
@@ -563,6 +564,7 @@ private:
     TraitPathStore::Record mInProgressStore[WDM_UPDATE_MAX_ITEMS_IN_TRAIT_DIRTY_PATH_STORE];
 
     UpdateClient mUpdateClient;
+    UpdateEncoder mUpdateEncoder;
 #endif // WEAVE_CONFIG_ENABLE_WDM_UPDATE
 };
 
