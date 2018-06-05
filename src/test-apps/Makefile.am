@@ -1174,9 +1174,17 @@ TestPathStore_LDADD                            = libWeaveTestCommon.a $(COMMON_L
 
 
 TestWdmUpdateEncoder_SOURCES                   = TestWdmUpdateEncoder.cpp \
-                                                 schema/nest/test/trait/TestATrait.cpp \
-                                                 TestPersistedStorageImplementation.cpp \
-                                                 schema/nest/test/trait/TestCommon.cpp
+												 MockSinkTraits.cpp						\
+												 schema/nest/test/trait/TestATrait.cpp			\
+												 schema/nest/test/trait/TestBTrait.cpp			\
+												 schema/nest/test/trait/TestETrait.cpp			\
+												 schema/nest/test/trait/TestCommon.cpp \
+											     schema/weave/trait/locale/LocaleSettingsTrait.cpp		\
+											     schema/weave/trait/locale/LocaleCapabilitiesTrait.cpp	\
+											     schema/weave/trait/security/BoltLockSettingsTrait.cpp	\
+											     schema/weave/trait/telemetry/NetworkWiFiTelemetryTrait.cpp	\
+												 MockWdmNodeOptions.cpp                   \
+                                                 TestPersistedStorageImplementation.cpp
 
 TestWdmUpdateEncoder_CPPFLAGS                         = $(AM_CPPFLAGS) -I$(top_srcdir)/src/test-apps/schema
 TestWdmUpdateEncoder_LDFLAGS                          = $(AM_CPPFLAGS)

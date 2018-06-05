@@ -1333,13 +1333,27 @@ TestWdmOneWayCommandSender_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
 	$(AM_CXXFLAGS) $(CXXFLAGS) \
 	$(TestWdmOneWayCommandSender_LDFLAGS) $(LDFLAGS) -o $@
 am__TestWdmUpdateEncoder_SOURCES_DIST = TestWdmUpdateEncoder.cpp \
-	schema/nest/test/trait/TestATrait.cpp \
-	TestPersistedStorageImplementation.cpp \
-	schema/nest/test/trait/TestCommon.cpp
+	MockSinkTraits.cpp schema/nest/test/trait/TestATrait.cpp \
+	schema/nest/test/trait/TestBTrait.cpp \
+	schema/nest/test/trait/TestETrait.cpp \
+	schema/nest/test/trait/TestCommon.cpp \
+	schema/weave/trait/locale/LocaleSettingsTrait.cpp \
+	schema/weave/trait/locale/LocaleCapabilitiesTrait.cpp \
+	schema/weave/trait/security/BoltLockSettingsTrait.cpp \
+	schema/weave/trait/telemetry/NetworkWiFiTelemetryTrait.cpp \
+	MockWdmNodeOptions.cpp TestPersistedStorageImplementation.cpp
 @WEAVE_BUILD_TESTS_TRUE@am_TestWdmUpdateEncoder_OBJECTS = TestWdmUpdateEncoder-TestWdmUpdateEncoder.$(OBJEXT) \
+@WEAVE_BUILD_TESTS_TRUE@	TestWdmUpdateEncoder-MockSinkTraits.$(OBJEXT) \
 @WEAVE_BUILD_TESTS_TRUE@	schema/nest/test/trait/TestWdmUpdateEncoder-TestATrait.$(OBJEXT) \
-@WEAVE_BUILD_TESTS_TRUE@	TestWdmUpdateEncoder-TestPersistedStorageImplementation.$(OBJEXT) \
-@WEAVE_BUILD_TESTS_TRUE@	schema/nest/test/trait/TestWdmUpdateEncoder-TestCommon.$(OBJEXT)
+@WEAVE_BUILD_TESTS_TRUE@	schema/nest/test/trait/TestWdmUpdateEncoder-TestBTrait.$(OBJEXT) \
+@WEAVE_BUILD_TESTS_TRUE@	schema/nest/test/trait/TestWdmUpdateEncoder-TestETrait.$(OBJEXT) \
+@WEAVE_BUILD_TESTS_TRUE@	schema/nest/test/trait/TestWdmUpdateEncoder-TestCommon.$(OBJEXT) \
+@WEAVE_BUILD_TESTS_TRUE@	schema/weave/trait/locale/TestWdmUpdateEncoder-LocaleSettingsTrait.$(OBJEXT) \
+@WEAVE_BUILD_TESTS_TRUE@	schema/weave/trait/locale/TestWdmUpdateEncoder-LocaleCapabilitiesTrait.$(OBJEXT) \
+@WEAVE_BUILD_TESTS_TRUE@	schema/weave/trait/security/TestWdmUpdateEncoder-BoltLockSettingsTrait.$(OBJEXT) \
+@WEAVE_BUILD_TESTS_TRUE@	schema/weave/trait/telemetry/TestWdmUpdateEncoder-NetworkWiFiTelemetryTrait.$(OBJEXT) \
+@WEAVE_BUILD_TESTS_TRUE@	TestWdmUpdateEncoder-MockWdmNodeOptions.$(OBJEXT) \
+@WEAVE_BUILD_TESTS_TRUE@	TestWdmUpdateEncoder-TestPersistedStorageImplementation.$(OBJEXT)
 TestWdmUpdateEncoder_OBJECTS = $(am_TestWdmUpdateEncoder_OBJECTS)
 @WEAVE_BUILD_TESTS_TRUE@TestWdmUpdateEncoder_DEPENDENCIES =  \
 @WEAVE_BUILD_TESTS_TRUE@	libWeaveTestCommon.a \
@@ -3040,9 +3054,17 @@ EXTRA_DIST = \
 @WEAVE_BUILD_TESTS_TRUE@TestPathStore_LDFLAGS = $(AM_CPPFLAGS)
 @WEAVE_BUILD_TESTS_TRUE@TestPathStore_LDADD = libWeaveTestCommon.a $(COMMON_LDADD)
 @WEAVE_BUILD_TESTS_TRUE@TestWdmUpdateEncoder_SOURCES = TestWdmUpdateEncoder.cpp \
-@WEAVE_BUILD_TESTS_TRUE@                                                 schema/nest/test/trait/TestATrait.cpp \
-@WEAVE_BUILD_TESTS_TRUE@                                                 TestPersistedStorageImplementation.cpp \
-@WEAVE_BUILD_TESTS_TRUE@                                                 schema/nest/test/trait/TestCommon.cpp
+@WEAVE_BUILD_TESTS_TRUE@												 MockSinkTraits.cpp						\
+@WEAVE_BUILD_TESTS_TRUE@												 schema/nest/test/trait/TestATrait.cpp			\
+@WEAVE_BUILD_TESTS_TRUE@												 schema/nest/test/trait/TestBTrait.cpp			\
+@WEAVE_BUILD_TESTS_TRUE@												 schema/nest/test/trait/TestETrait.cpp			\
+@WEAVE_BUILD_TESTS_TRUE@												 schema/nest/test/trait/TestCommon.cpp \
+@WEAVE_BUILD_TESTS_TRUE@											     schema/weave/trait/locale/LocaleSettingsTrait.cpp		\
+@WEAVE_BUILD_TESTS_TRUE@											     schema/weave/trait/locale/LocaleCapabilitiesTrait.cpp	\
+@WEAVE_BUILD_TESTS_TRUE@											     schema/weave/trait/security/BoltLockSettingsTrait.cpp	\
+@WEAVE_BUILD_TESTS_TRUE@											     schema/weave/trait/telemetry/NetworkWiFiTelemetryTrait.cpp	\
+@WEAVE_BUILD_TESTS_TRUE@												 MockWdmNodeOptions.cpp                   \
+@WEAVE_BUILD_TESTS_TRUE@                                                 TestPersistedStorageImplementation.cpp
 
 @WEAVE_BUILD_TESTS_TRUE@TestWdmUpdateEncoder_CPPFLAGS = $(AM_CPPFLAGS) -I$(top_srcdir)/src/test-apps/schema
 @WEAVE_BUILD_TESTS_TRUE@TestWdmUpdateEncoder_LDFLAGS = $(AM_CPPFLAGS)
@@ -3784,9 +3806,27 @@ TestWdmOneWayCommandSender$(EXEEXT): $(TestWdmOneWayCommandSender_OBJECTS) $(Tes
 schema/nest/test/trait/TestWdmUpdateEncoder-TestATrait.$(OBJEXT):  \
 	schema/nest/test/trait/$(am__dirstamp) \
 	schema/nest/test/trait/$(DEPDIR)/$(am__dirstamp)
+schema/nest/test/trait/TestWdmUpdateEncoder-TestBTrait.$(OBJEXT):  \
+	schema/nest/test/trait/$(am__dirstamp) \
+	schema/nest/test/trait/$(DEPDIR)/$(am__dirstamp)
+schema/nest/test/trait/TestWdmUpdateEncoder-TestETrait.$(OBJEXT):  \
+	schema/nest/test/trait/$(am__dirstamp) \
+	schema/nest/test/trait/$(DEPDIR)/$(am__dirstamp)
 schema/nest/test/trait/TestWdmUpdateEncoder-TestCommon.$(OBJEXT):  \
 	schema/nest/test/trait/$(am__dirstamp) \
 	schema/nest/test/trait/$(DEPDIR)/$(am__dirstamp)
+schema/weave/trait/locale/TestWdmUpdateEncoder-LocaleSettingsTrait.$(OBJEXT):  \
+	schema/weave/trait/locale/$(am__dirstamp) \
+	schema/weave/trait/locale/$(DEPDIR)/$(am__dirstamp)
+schema/weave/trait/locale/TestWdmUpdateEncoder-LocaleCapabilitiesTrait.$(OBJEXT):  \
+	schema/weave/trait/locale/$(am__dirstamp) \
+	schema/weave/trait/locale/$(DEPDIR)/$(am__dirstamp)
+schema/weave/trait/security/TestWdmUpdateEncoder-BoltLockSettingsTrait.$(OBJEXT):  \
+	schema/weave/trait/security/$(am__dirstamp) \
+	schema/weave/trait/security/$(DEPDIR)/$(am__dirstamp)
+schema/weave/trait/telemetry/TestWdmUpdateEncoder-NetworkWiFiTelemetryTrait.$(OBJEXT):  \
+	schema/weave/trait/telemetry/$(am__dirstamp) \
+	schema/weave/trait/telemetry/$(DEPDIR)/$(am__dirstamp)
 
 TestWdmUpdateEncoder$(EXEEXT): $(TestWdmUpdateEncoder_OBJECTS) $(TestWdmUpdateEncoder_DEPENDENCIES) $(EXTRA_TestWdmUpdateEncoder_DEPENDENCIES) 
 	@rm -f TestWdmUpdateEncoder$(EXEEXT)
@@ -4024,6 +4064,8 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/TestWdmOneWayCommandReceiver-MockSourceTraits.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/TestWdmOneWayCommandReceiver-TestWdmOneWayCommandReceiver.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/TestWdmOneWayCommandSender-TestWdmOneWayCommandSender.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/TestWdmUpdateEncoder-MockSinkTraits.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/TestWdmUpdateEncoder-MockWdmNodeOptions.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/TestWdmUpdateEncoder-TestPersistedStorageImplementation.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/TestWdmUpdateEncoder-TestWdmUpdateEncoder.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/TestWeaveCert.Po@am__quote@
@@ -4107,7 +4149,9 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@schema/nest/test/trait/$(DEPDIR)/TestWdmOneWayCommandReceiver-TestCommon.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@schema/nest/test/trait/$(DEPDIR)/TestWdmOneWayCommandReceiver-TestETrait.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@schema/nest/test/trait/$(DEPDIR)/TestWdmUpdateEncoder-TestATrait.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@schema/nest/test/trait/$(DEPDIR)/TestWdmUpdateEncoder-TestBTrait.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@schema/nest/test/trait/$(DEPDIR)/TestWdmUpdateEncoder-TestCommon.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@schema/nest/test/trait/$(DEPDIR)/TestWdmUpdateEncoder-TestETrait.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@schema/nest/test/trait/$(DEPDIR)/mock_device-TestATrait.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@schema/nest/test/trait/$(DEPDIR)/mock_device-TestBTrait.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@schema/nest/test/trait/$(DEPDIR)/mock_device-TestCommon.Po@am__quote@
@@ -4116,14 +4160,18 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@schema/weave/trait/locale/$(DEPDIR)/TestWdmNext-LocaleSettingsTrait.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@schema/weave/trait/locale/$(DEPDIR)/TestWdmOneWayCommandReceiver-LocaleCapabilitiesTrait.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@schema/weave/trait/locale/$(DEPDIR)/TestWdmOneWayCommandReceiver-LocaleSettingsTrait.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@schema/weave/trait/locale/$(DEPDIR)/TestWdmUpdateEncoder-LocaleCapabilitiesTrait.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@schema/weave/trait/locale/$(DEPDIR)/TestWdmUpdateEncoder-LocaleSettingsTrait.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@schema/weave/trait/locale/$(DEPDIR)/mock_device-LocaleCapabilitiesTrait.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@schema/weave/trait/locale/$(DEPDIR)/mock_device-LocaleSettingsTrait.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@schema/weave/trait/security/$(DEPDIR)/TestWdmNext-BoltLockSettingsTrait.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@schema/weave/trait/security/$(DEPDIR)/TestWdmOneWayCommandReceiver-BoltLockSettingsTrait.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@schema/weave/trait/security/$(DEPDIR)/TestWdmUpdateEncoder-BoltLockSettingsTrait.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@schema/weave/trait/security/$(DEPDIR)/mock_device-BoltLockSettingsTrait.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@schema/weave/trait/telemetry/$(DEPDIR)/GenerateEventLog-NetworkWiFiTelemetryTrait.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@schema/weave/trait/telemetry/$(DEPDIR)/TestWdmNext-NetworkWiFiTelemetryTrait.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@schema/weave/trait/telemetry/$(DEPDIR)/TestWdmOneWayCommandReceiver-NetworkWiFiTelemetryTrait.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@schema/weave/trait/telemetry/$(DEPDIR)/TestWdmUpdateEncoder-NetworkWiFiTelemetryTrait.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@schema/weave/trait/telemetry/$(DEPDIR)/mock_device-NetworkWiFiTelemetryTrait.Po@am__quote@
 
 .cpp.o:
@@ -5018,6 +5066,20 @@ TestWdmUpdateEncoder-TestWdmUpdateEncoder.obj: TestWdmUpdateEncoder.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(TestWdmUpdateEncoder_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o TestWdmUpdateEncoder-TestWdmUpdateEncoder.obj `if test -f 'TestWdmUpdateEncoder.cpp'; then $(CYGPATH_W) 'TestWdmUpdateEncoder.cpp'; else $(CYGPATH_W) '$(srcdir)/TestWdmUpdateEncoder.cpp'; fi`
 
+TestWdmUpdateEncoder-MockSinkTraits.o: MockSinkTraits.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(TestWdmUpdateEncoder_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT TestWdmUpdateEncoder-MockSinkTraits.o -MD -MP -MF $(DEPDIR)/TestWdmUpdateEncoder-MockSinkTraits.Tpo -c -o TestWdmUpdateEncoder-MockSinkTraits.o `test -f 'MockSinkTraits.cpp' || echo '$(srcdir)/'`MockSinkTraits.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/TestWdmUpdateEncoder-MockSinkTraits.Tpo $(DEPDIR)/TestWdmUpdateEncoder-MockSinkTraits.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='MockSinkTraits.cpp' object='TestWdmUpdateEncoder-MockSinkTraits.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(TestWdmUpdateEncoder_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o TestWdmUpdateEncoder-MockSinkTraits.o `test -f 'MockSinkTraits.cpp' || echo '$(srcdir)/'`MockSinkTraits.cpp
+
+TestWdmUpdateEncoder-MockSinkTraits.obj: MockSinkTraits.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(TestWdmUpdateEncoder_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT TestWdmUpdateEncoder-MockSinkTraits.obj -MD -MP -MF $(DEPDIR)/TestWdmUpdateEncoder-MockSinkTraits.Tpo -c -o TestWdmUpdateEncoder-MockSinkTraits.obj `if test -f 'MockSinkTraits.cpp'; then $(CYGPATH_W) 'MockSinkTraits.cpp'; else $(CYGPATH_W) '$(srcdir)/MockSinkTraits.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/TestWdmUpdateEncoder-MockSinkTraits.Tpo $(DEPDIR)/TestWdmUpdateEncoder-MockSinkTraits.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='MockSinkTraits.cpp' object='TestWdmUpdateEncoder-MockSinkTraits.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(TestWdmUpdateEncoder_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o TestWdmUpdateEncoder-MockSinkTraits.obj `if test -f 'MockSinkTraits.cpp'; then $(CYGPATH_W) 'MockSinkTraits.cpp'; else $(CYGPATH_W) '$(srcdir)/MockSinkTraits.cpp'; fi`
+
 schema/nest/test/trait/TestWdmUpdateEncoder-TestATrait.o: schema/nest/test/trait/TestATrait.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(TestWdmUpdateEncoder_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT schema/nest/test/trait/TestWdmUpdateEncoder-TestATrait.o -MD -MP -MF schema/nest/test/trait/$(DEPDIR)/TestWdmUpdateEncoder-TestATrait.Tpo -c -o schema/nest/test/trait/TestWdmUpdateEncoder-TestATrait.o `test -f 'schema/nest/test/trait/TestATrait.cpp' || echo '$(srcdir)/'`schema/nest/test/trait/TestATrait.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) schema/nest/test/trait/$(DEPDIR)/TestWdmUpdateEncoder-TestATrait.Tpo schema/nest/test/trait/$(DEPDIR)/TestWdmUpdateEncoder-TestATrait.Po
@@ -5032,19 +5094,33 @@ schema/nest/test/trait/TestWdmUpdateEncoder-TestATrait.obj: schema/nest/test/tra
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(TestWdmUpdateEncoder_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o schema/nest/test/trait/TestWdmUpdateEncoder-TestATrait.obj `if test -f 'schema/nest/test/trait/TestATrait.cpp'; then $(CYGPATH_W) 'schema/nest/test/trait/TestATrait.cpp'; else $(CYGPATH_W) '$(srcdir)/schema/nest/test/trait/TestATrait.cpp'; fi`
 
-TestWdmUpdateEncoder-TestPersistedStorageImplementation.o: TestPersistedStorageImplementation.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(TestWdmUpdateEncoder_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT TestWdmUpdateEncoder-TestPersistedStorageImplementation.o -MD -MP -MF $(DEPDIR)/TestWdmUpdateEncoder-TestPersistedStorageImplementation.Tpo -c -o TestWdmUpdateEncoder-TestPersistedStorageImplementation.o `test -f 'TestPersistedStorageImplementation.cpp' || echo '$(srcdir)/'`TestPersistedStorageImplementation.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/TestWdmUpdateEncoder-TestPersistedStorageImplementation.Tpo $(DEPDIR)/TestWdmUpdateEncoder-TestPersistedStorageImplementation.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='TestPersistedStorageImplementation.cpp' object='TestWdmUpdateEncoder-TestPersistedStorageImplementation.o' libtool=no @AMDEPBACKSLASH@
+schema/nest/test/trait/TestWdmUpdateEncoder-TestBTrait.o: schema/nest/test/trait/TestBTrait.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(TestWdmUpdateEncoder_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT schema/nest/test/trait/TestWdmUpdateEncoder-TestBTrait.o -MD -MP -MF schema/nest/test/trait/$(DEPDIR)/TestWdmUpdateEncoder-TestBTrait.Tpo -c -o schema/nest/test/trait/TestWdmUpdateEncoder-TestBTrait.o `test -f 'schema/nest/test/trait/TestBTrait.cpp' || echo '$(srcdir)/'`schema/nest/test/trait/TestBTrait.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) schema/nest/test/trait/$(DEPDIR)/TestWdmUpdateEncoder-TestBTrait.Tpo schema/nest/test/trait/$(DEPDIR)/TestWdmUpdateEncoder-TestBTrait.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='schema/nest/test/trait/TestBTrait.cpp' object='schema/nest/test/trait/TestWdmUpdateEncoder-TestBTrait.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(TestWdmUpdateEncoder_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o TestWdmUpdateEncoder-TestPersistedStorageImplementation.o `test -f 'TestPersistedStorageImplementation.cpp' || echo '$(srcdir)/'`TestPersistedStorageImplementation.cpp
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(TestWdmUpdateEncoder_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o schema/nest/test/trait/TestWdmUpdateEncoder-TestBTrait.o `test -f 'schema/nest/test/trait/TestBTrait.cpp' || echo '$(srcdir)/'`schema/nest/test/trait/TestBTrait.cpp
 
-TestWdmUpdateEncoder-TestPersistedStorageImplementation.obj: TestPersistedStorageImplementation.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(TestWdmUpdateEncoder_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT TestWdmUpdateEncoder-TestPersistedStorageImplementation.obj -MD -MP -MF $(DEPDIR)/TestWdmUpdateEncoder-TestPersistedStorageImplementation.Tpo -c -o TestWdmUpdateEncoder-TestPersistedStorageImplementation.obj `if test -f 'TestPersistedStorageImplementation.cpp'; then $(CYGPATH_W) 'TestPersistedStorageImplementation.cpp'; else $(CYGPATH_W) '$(srcdir)/TestPersistedStorageImplementation.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/TestWdmUpdateEncoder-TestPersistedStorageImplementation.Tpo $(DEPDIR)/TestWdmUpdateEncoder-TestPersistedStorageImplementation.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='TestPersistedStorageImplementation.cpp' object='TestWdmUpdateEncoder-TestPersistedStorageImplementation.obj' libtool=no @AMDEPBACKSLASH@
+schema/nest/test/trait/TestWdmUpdateEncoder-TestBTrait.obj: schema/nest/test/trait/TestBTrait.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(TestWdmUpdateEncoder_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT schema/nest/test/trait/TestWdmUpdateEncoder-TestBTrait.obj -MD -MP -MF schema/nest/test/trait/$(DEPDIR)/TestWdmUpdateEncoder-TestBTrait.Tpo -c -o schema/nest/test/trait/TestWdmUpdateEncoder-TestBTrait.obj `if test -f 'schema/nest/test/trait/TestBTrait.cpp'; then $(CYGPATH_W) 'schema/nest/test/trait/TestBTrait.cpp'; else $(CYGPATH_W) '$(srcdir)/schema/nest/test/trait/TestBTrait.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) schema/nest/test/trait/$(DEPDIR)/TestWdmUpdateEncoder-TestBTrait.Tpo schema/nest/test/trait/$(DEPDIR)/TestWdmUpdateEncoder-TestBTrait.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='schema/nest/test/trait/TestBTrait.cpp' object='schema/nest/test/trait/TestWdmUpdateEncoder-TestBTrait.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(TestWdmUpdateEncoder_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o TestWdmUpdateEncoder-TestPersistedStorageImplementation.obj `if test -f 'TestPersistedStorageImplementation.cpp'; then $(CYGPATH_W) 'TestPersistedStorageImplementation.cpp'; else $(CYGPATH_W) '$(srcdir)/TestPersistedStorageImplementation.cpp'; fi`
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(TestWdmUpdateEncoder_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o schema/nest/test/trait/TestWdmUpdateEncoder-TestBTrait.obj `if test -f 'schema/nest/test/trait/TestBTrait.cpp'; then $(CYGPATH_W) 'schema/nest/test/trait/TestBTrait.cpp'; else $(CYGPATH_W) '$(srcdir)/schema/nest/test/trait/TestBTrait.cpp'; fi`
+
+schema/nest/test/trait/TestWdmUpdateEncoder-TestETrait.o: schema/nest/test/trait/TestETrait.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(TestWdmUpdateEncoder_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT schema/nest/test/trait/TestWdmUpdateEncoder-TestETrait.o -MD -MP -MF schema/nest/test/trait/$(DEPDIR)/TestWdmUpdateEncoder-TestETrait.Tpo -c -o schema/nest/test/trait/TestWdmUpdateEncoder-TestETrait.o `test -f 'schema/nest/test/trait/TestETrait.cpp' || echo '$(srcdir)/'`schema/nest/test/trait/TestETrait.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) schema/nest/test/trait/$(DEPDIR)/TestWdmUpdateEncoder-TestETrait.Tpo schema/nest/test/trait/$(DEPDIR)/TestWdmUpdateEncoder-TestETrait.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='schema/nest/test/trait/TestETrait.cpp' object='schema/nest/test/trait/TestWdmUpdateEncoder-TestETrait.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(TestWdmUpdateEncoder_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o schema/nest/test/trait/TestWdmUpdateEncoder-TestETrait.o `test -f 'schema/nest/test/trait/TestETrait.cpp' || echo '$(srcdir)/'`schema/nest/test/trait/TestETrait.cpp
+
+schema/nest/test/trait/TestWdmUpdateEncoder-TestETrait.obj: schema/nest/test/trait/TestETrait.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(TestWdmUpdateEncoder_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT schema/nest/test/trait/TestWdmUpdateEncoder-TestETrait.obj -MD -MP -MF schema/nest/test/trait/$(DEPDIR)/TestWdmUpdateEncoder-TestETrait.Tpo -c -o schema/nest/test/trait/TestWdmUpdateEncoder-TestETrait.obj `if test -f 'schema/nest/test/trait/TestETrait.cpp'; then $(CYGPATH_W) 'schema/nest/test/trait/TestETrait.cpp'; else $(CYGPATH_W) '$(srcdir)/schema/nest/test/trait/TestETrait.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) schema/nest/test/trait/$(DEPDIR)/TestWdmUpdateEncoder-TestETrait.Tpo schema/nest/test/trait/$(DEPDIR)/TestWdmUpdateEncoder-TestETrait.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='schema/nest/test/trait/TestETrait.cpp' object='schema/nest/test/trait/TestWdmUpdateEncoder-TestETrait.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(TestWdmUpdateEncoder_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o schema/nest/test/trait/TestWdmUpdateEncoder-TestETrait.obj `if test -f 'schema/nest/test/trait/TestETrait.cpp'; then $(CYGPATH_W) 'schema/nest/test/trait/TestETrait.cpp'; else $(CYGPATH_W) '$(srcdir)/schema/nest/test/trait/TestETrait.cpp'; fi`
 
 schema/nest/test/trait/TestWdmUpdateEncoder-TestCommon.o: schema/nest/test/trait/TestCommon.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(TestWdmUpdateEncoder_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT schema/nest/test/trait/TestWdmUpdateEncoder-TestCommon.o -MD -MP -MF schema/nest/test/trait/$(DEPDIR)/TestWdmUpdateEncoder-TestCommon.Tpo -c -o schema/nest/test/trait/TestWdmUpdateEncoder-TestCommon.o `test -f 'schema/nest/test/trait/TestCommon.cpp' || echo '$(srcdir)/'`schema/nest/test/trait/TestCommon.cpp
@@ -5059,6 +5135,90 @@ schema/nest/test/trait/TestWdmUpdateEncoder-TestCommon.obj: schema/nest/test/tra
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='schema/nest/test/trait/TestCommon.cpp' object='schema/nest/test/trait/TestWdmUpdateEncoder-TestCommon.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(TestWdmUpdateEncoder_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o schema/nest/test/trait/TestWdmUpdateEncoder-TestCommon.obj `if test -f 'schema/nest/test/trait/TestCommon.cpp'; then $(CYGPATH_W) 'schema/nest/test/trait/TestCommon.cpp'; else $(CYGPATH_W) '$(srcdir)/schema/nest/test/trait/TestCommon.cpp'; fi`
+
+schema/weave/trait/locale/TestWdmUpdateEncoder-LocaleSettingsTrait.o: schema/weave/trait/locale/LocaleSettingsTrait.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(TestWdmUpdateEncoder_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT schema/weave/trait/locale/TestWdmUpdateEncoder-LocaleSettingsTrait.o -MD -MP -MF schema/weave/trait/locale/$(DEPDIR)/TestWdmUpdateEncoder-LocaleSettingsTrait.Tpo -c -o schema/weave/trait/locale/TestWdmUpdateEncoder-LocaleSettingsTrait.o `test -f 'schema/weave/trait/locale/LocaleSettingsTrait.cpp' || echo '$(srcdir)/'`schema/weave/trait/locale/LocaleSettingsTrait.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) schema/weave/trait/locale/$(DEPDIR)/TestWdmUpdateEncoder-LocaleSettingsTrait.Tpo schema/weave/trait/locale/$(DEPDIR)/TestWdmUpdateEncoder-LocaleSettingsTrait.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='schema/weave/trait/locale/LocaleSettingsTrait.cpp' object='schema/weave/trait/locale/TestWdmUpdateEncoder-LocaleSettingsTrait.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(TestWdmUpdateEncoder_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o schema/weave/trait/locale/TestWdmUpdateEncoder-LocaleSettingsTrait.o `test -f 'schema/weave/trait/locale/LocaleSettingsTrait.cpp' || echo '$(srcdir)/'`schema/weave/trait/locale/LocaleSettingsTrait.cpp
+
+schema/weave/trait/locale/TestWdmUpdateEncoder-LocaleSettingsTrait.obj: schema/weave/trait/locale/LocaleSettingsTrait.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(TestWdmUpdateEncoder_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT schema/weave/trait/locale/TestWdmUpdateEncoder-LocaleSettingsTrait.obj -MD -MP -MF schema/weave/trait/locale/$(DEPDIR)/TestWdmUpdateEncoder-LocaleSettingsTrait.Tpo -c -o schema/weave/trait/locale/TestWdmUpdateEncoder-LocaleSettingsTrait.obj `if test -f 'schema/weave/trait/locale/LocaleSettingsTrait.cpp'; then $(CYGPATH_W) 'schema/weave/trait/locale/LocaleSettingsTrait.cpp'; else $(CYGPATH_W) '$(srcdir)/schema/weave/trait/locale/LocaleSettingsTrait.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) schema/weave/trait/locale/$(DEPDIR)/TestWdmUpdateEncoder-LocaleSettingsTrait.Tpo schema/weave/trait/locale/$(DEPDIR)/TestWdmUpdateEncoder-LocaleSettingsTrait.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='schema/weave/trait/locale/LocaleSettingsTrait.cpp' object='schema/weave/trait/locale/TestWdmUpdateEncoder-LocaleSettingsTrait.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(TestWdmUpdateEncoder_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o schema/weave/trait/locale/TestWdmUpdateEncoder-LocaleSettingsTrait.obj `if test -f 'schema/weave/trait/locale/LocaleSettingsTrait.cpp'; then $(CYGPATH_W) 'schema/weave/trait/locale/LocaleSettingsTrait.cpp'; else $(CYGPATH_W) '$(srcdir)/schema/weave/trait/locale/LocaleSettingsTrait.cpp'; fi`
+
+schema/weave/trait/locale/TestWdmUpdateEncoder-LocaleCapabilitiesTrait.o: schema/weave/trait/locale/LocaleCapabilitiesTrait.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(TestWdmUpdateEncoder_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT schema/weave/trait/locale/TestWdmUpdateEncoder-LocaleCapabilitiesTrait.o -MD -MP -MF schema/weave/trait/locale/$(DEPDIR)/TestWdmUpdateEncoder-LocaleCapabilitiesTrait.Tpo -c -o schema/weave/trait/locale/TestWdmUpdateEncoder-LocaleCapabilitiesTrait.o `test -f 'schema/weave/trait/locale/LocaleCapabilitiesTrait.cpp' || echo '$(srcdir)/'`schema/weave/trait/locale/LocaleCapabilitiesTrait.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) schema/weave/trait/locale/$(DEPDIR)/TestWdmUpdateEncoder-LocaleCapabilitiesTrait.Tpo schema/weave/trait/locale/$(DEPDIR)/TestWdmUpdateEncoder-LocaleCapabilitiesTrait.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='schema/weave/trait/locale/LocaleCapabilitiesTrait.cpp' object='schema/weave/trait/locale/TestWdmUpdateEncoder-LocaleCapabilitiesTrait.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(TestWdmUpdateEncoder_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o schema/weave/trait/locale/TestWdmUpdateEncoder-LocaleCapabilitiesTrait.o `test -f 'schema/weave/trait/locale/LocaleCapabilitiesTrait.cpp' || echo '$(srcdir)/'`schema/weave/trait/locale/LocaleCapabilitiesTrait.cpp
+
+schema/weave/trait/locale/TestWdmUpdateEncoder-LocaleCapabilitiesTrait.obj: schema/weave/trait/locale/LocaleCapabilitiesTrait.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(TestWdmUpdateEncoder_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT schema/weave/trait/locale/TestWdmUpdateEncoder-LocaleCapabilitiesTrait.obj -MD -MP -MF schema/weave/trait/locale/$(DEPDIR)/TestWdmUpdateEncoder-LocaleCapabilitiesTrait.Tpo -c -o schema/weave/trait/locale/TestWdmUpdateEncoder-LocaleCapabilitiesTrait.obj `if test -f 'schema/weave/trait/locale/LocaleCapabilitiesTrait.cpp'; then $(CYGPATH_W) 'schema/weave/trait/locale/LocaleCapabilitiesTrait.cpp'; else $(CYGPATH_W) '$(srcdir)/schema/weave/trait/locale/LocaleCapabilitiesTrait.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) schema/weave/trait/locale/$(DEPDIR)/TestWdmUpdateEncoder-LocaleCapabilitiesTrait.Tpo schema/weave/trait/locale/$(DEPDIR)/TestWdmUpdateEncoder-LocaleCapabilitiesTrait.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='schema/weave/trait/locale/LocaleCapabilitiesTrait.cpp' object='schema/weave/trait/locale/TestWdmUpdateEncoder-LocaleCapabilitiesTrait.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(TestWdmUpdateEncoder_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o schema/weave/trait/locale/TestWdmUpdateEncoder-LocaleCapabilitiesTrait.obj `if test -f 'schema/weave/trait/locale/LocaleCapabilitiesTrait.cpp'; then $(CYGPATH_W) 'schema/weave/trait/locale/LocaleCapabilitiesTrait.cpp'; else $(CYGPATH_W) '$(srcdir)/schema/weave/trait/locale/LocaleCapabilitiesTrait.cpp'; fi`
+
+schema/weave/trait/security/TestWdmUpdateEncoder-BoltLockSettingsTrait.o: schema/weave/trait/security/BoltLockSettingsTrait.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(TestWdmUpdateEncoder_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT schema/weave/trait/security/TestWdmUpdateEncoder-BoltLockSettingsTrait.o -MD -MP -MF schema/weave/trait/security/$(DEPDIR)/TestWdmUpdateEncoder-BoltLockSettingsTrait.Tpo -c -o schema/weave/trait/security/TestWdmUpdateEncoder-BoltLockSettingsTrait.o `test -f 'schema/weave/trait/security/BoltLockSettingsTrait.cpp' || echo '$(srcdir)/'`schema/weave/trait/security/BoltLockSettingsTrait.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) schema/weave/trait/security/$(DEPDIR)/TestWdmUpdateEncoder-BoltLockSettingsTrait.Tpo schema/weave/trait/security/$(DEPDIR)/TestWdmUpdateEncoder-BoltLockSettingsTrait.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='schema/weave/trait/security/BoltLockSettingsTrait.cpp' object='schema/weave/trait/security/TestWdmUpdateEncoder-BoltLockSettingsTrait.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(TestWdmUpdateEncoder_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o schema/weave/trait/security/TestWdmUpdateEncoder-BoltLockSettingsTrait.o `test -f 'schema/weave/trait/security/BoltLockSettingsTrait.cpp' || echo '$(srcdir)/'`schema/weave/trait/security/BoltLockSettingsTrait.cpp
+
+schema/weave/trait/security/TestWdmUpdateEncoder-BoltLockSettingsTrait.obj: schema/weave/trait/security/BoltLockSettingsTrait.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(TestWdmUpdateEncoder_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT schema/weave/trait/security/TestWdmUpdateEncoder-BoltLockSettingsTrait.obj -MD -MP -MF schema/weave/trait/security/$(DEPDIR)/TestWdmUpdateEncoder-BoltLockSettingsTrait.Tpo -c -o schema/weave/trait/security/TestWdmUpdateEncoder-BoltLockSettingsTrait.obj `if test -f 'schema/weave/trait/security/BoltLockSettingsTrait.cpp'; then $(CYGPATH_W) 'schema/weave/trait/security/BoltLockSettingsTrait.cpp'; else $(CYGPATH_W) '$(srcdir)/schema/weave/trait/security/BoltLockSettingsTrait.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) schema/weave/trait/security/$(DEPDIR)/TestWdmUpdateEncoder-BoltLockSettingsTrait.Tpo schema/weave/trait/security/$(DEPDIR)/TestWdmUpdateEncoder-BoltLockSettingsTrait.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='schema/weave/trait/security/BoltLockSettingsTrait.cpp' object='schema/weave/trait/security/TestWdmUpdateEncoder-BoltLockSettingsTrait.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(TestWdmUpdateEncoder_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o schema/weave/trait/security/TestWdmUpdateEncoder-BoltLockSettingsTrait.obj `if test -f 'schema/weave/trait/security/BoltLockSettingsTrait.cpp'; then $(CYGPATH_W) 'schema/weave/trait/security/BoltLockSettingsTrait.cpp'; else $(CYGPATH_W) '$(srcdir)/schema/weave/trait/security/BoltLockSettingsTrait.cpp'; fi`
+
+schema/weave/trait/telemetry/TestWdmUpdateEncoder-NetworkWiFiTelemetryTrait.o: schema/weave/trait/telemetry/NetworkWiFiTelemetryTrait.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(TestWdmUpdateEncoder_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT schema/weave/trait/telemetry/TestWdmUpdateEncoder-NetworkWiFiTelemetryTrait.o -MD -MP -MF schema/weave/trait/telemetry/$(DEPDIR)/TestWdmUpdateEncoder-NetworkWiFiTelemetryTrait.Tpo -c -o schema/weave/trait/telemetry/TestWdmUpdateEncoder-NetworkWiFiTelemetryTrait.o `test -f 'schema/weave/trait/telemetry/NetworkWiFiTelemetryTrait.cpp' || echo '$(srcdir)/'`schema/weave/trait/telemetry/NetworkWiFiTelemetryTrait.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) schema/weave/trait/telemetry/$(DEPDIR)/TestWdmUpdateEncoder-NetworkWiFiTelemetryTrait.Tpo schema/weave/trait/telemetry/$(DEPDIR)/TestWdmUpdateEncoder-NetworkWiFiTelemetryTrait.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='schema/weave/trait/telemetry/NetworkWiFiTelemetryTrait.cpp' object='schema/weave/trait/telemetry/TestWdmUpdateEncoder-NetworkWiFiTelemetryTrait.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(TestWdmUpdateEncoder_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o schema/weave/trait/telemetry/TestWdmUpdateEncoder-NetworkWiFiTelemetryTrait.o `test -f 'schema/weave/trait/telemetry/NetworkWiFiTelemetryTrait.cpp' || echo '$(srcdir)/'`schema/weave/trait/telemetry/NetworkWiFiTelemetryTrait.cpp
+
+schema/weave/trait/telemetry/TestWdmUpdateEncoder-NetworkWiFiTelemetryTrait.obj: schema/weave/trait/telemetry/NetworkWiFiTelemetryTrait.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(TestWdmUpdateEncoder_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT schema/weave/trait/telemetry/TestWdmUpdateEncoder-NetworkWiFiTelemetryTrait.obj -MD -MP -MF schema/weave/trait/telemetry/$(DEPDIR)/TestWdmUpdateEncoder-NetworkWiFiTelemetryTrait.Tpo -c -o schema/weave/trait/telemetry/TestWdmUpdateEncoder-NetworkWiFiTelemetryTrait.obj `if test -f 'schema/weave/trait/telemetry/NetworkWiFiTelemetryTrait.cpp'; then $(CYGPATH_W) 'schema/weave/trait/telemetry/NetworkWiFiTelemetryTrait.cpp'; else $(CYGPATH_W) '$(srcdir)/schema/weave/trait/telemetry/NetworkWiFiTelemetryTrait.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) schema/weave/trait/telemetry/$(DEPDIR)/TestWdmUpdateEncoder-NetworkWiFiTelemetryTrait.Tpo schema/weave/trait/telemetry/$(DEPDIR)/TestWdmUpdateEncoder-NetworkWiFiTelemetryTrait.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='schema/weave/trait/telemetry/NetworkWiFiTelemetryTrait.cpp' object='schema/weave/trait/telemetry/TestWdmUpdateEncoder-NetworkWiFiTelemetryTrait.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(TestWdmUpdateEncoder_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o schema/weave/trait/telemetry/TestWdmUpdateEncoder-NetworkWiFiTelemetryTrait.obj `if test -f 'schema/weave/trait/telemetry/NetworkWiFiTelemetryTrait.cpp'; then $(CYGPATH_W) 'schema/weave/trait/telemetry/NetworkWiFiTelemetryTrait.cpp'; else $(CYGPATH_W) '$(srcdir)/schema/weave/trait/telemetry/NetworkWiFiTelemetryTrait.cpp'; fi`
+
+TestWdmUpdateEncoder-MockWdmNodeOptions.o: MockWdmNodeOptions.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(TestWdmUpdateEncoder_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT TestWdmUpdateEncoder-MockWdmNodeOptions.o -MD -MP -MF $(DEPDIR)/TestWdmUpdateEncoder-MockWdmNodeOptions.Tpo -c -o TestWdmUpdateEncoder-MockWdmNodeOptions.o `test -f 'MockWdmNodeOptions.cpp' || echo '$(srcdir)/'`MockWdmNodeOptions.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/TestWdmUpdateEncoder-MockWdmNodeOptions.Tpo $(DEPDIR)/TestWdmUpdateEncoder-MockWdmNodeOptions.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='MockWdmNodeOptions.cpp' object='TestWdmUpdateEncoder-MockWdmNodeOptions.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(TestWdmUpdateEncoder_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o TestWdmUpdateEncoder-MockWdmNodeOptions.o `test -f 'MockWdmNodeOptions.cpp' || echo '$(srcdir)/'`MockWdmNodeOptions.cpp
+
+TestWdmUpdateEncoder-MockWdmNodeOptions.obj: MockWdmNodeOptions.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(TestWdmUpdateEncoder_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT TestWdmUpdateEncoder-MockWdmNodeOptions.obj -MD -MP -MF $(DEPDIR)/TestWdmUpdateEncoder-MockWdmNodeOptions.Tpo -c -o TestWdmUpdateEncoder-MockWdmNodeOptions.obj `if test -f 'MockWdmNodeOptions.cpp'; then $(CYGPATH_W) 'MockWdmNodeOptions.cpp'; else $(CYGPATH_W) '$(srcdir)/MockWdmNodeOptions.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/TestWdmUpdateEncoder-MockWdmNodeOptions.Tpo $(DEPDIR)/TestWdmUpdateEncoder-MockWdmNodeOptions.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='MockWdmNodeOptions.cpp' object='TestWdmUpdateEncoder-MockWdmNodeOptions.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(TestWdmUpdateEncoder_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o TestWdmUpdateEncoder-MockWdmNodeOptions.obj `if test -f 'MockWdmNodeOptions.cpp'; then $(CYGPATH_W) 'MockWdmNodeOptions.cpp'; else $(CYGPATH_W) '$(srcdir)/MockWdmNodeOptions.cpp'; fi`
+
+TestWdmUpdateEncoder-TestPersistedStorageImplementation.o: TestPersistedStorageImplementation.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(TestWdmUpdateEncoder_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT TestWdmUpdateEncoder-TestPersistedStorageImplementation.o -MD -MP -MF $(DEPDIR)/TestWdmUpdateEncoder-TestPersistedStorageImplementation.Tpo -c -o TestWdmUpdateEncoder-TestPersistedStorageImplementation.o `test -f 'TestPersistedStorageImplementation.cpp' || echo '$(srcdir)/'`TestPersistedStorageImplementation.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/TestWdmUpdateEncoder-TestPersistedStorageImplementation.Tpo $(DEPDIR)/TestWdmUpdateEncoder-TestPersistedStorageImplementation.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='TestPersistedStorageImplementation.cpp' object='TestWdmUpdateEncoder-TestPersistedStorageImplementation.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(TestWdmUpdateEncoder_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o TestWdmUpdateEncoder-TestPersistedStorageImplementation.o `test -f 'TestPersistedStorageImplementation.cpp' || echo '$(srcdir)/'`TestPersistedStorageImplementation.cpp
+
+TestWdmUpdateEncoder-TestPersistedStorageImplementation.obj: TestPersistedStorageImplementation.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(TestWdmUpdateEncoder_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT TestWdmUpdateEncoder-TestPersistedStorageImplementation.obj -MD -MP -MF $(DEPDIR)/TestWdmUpdateEncoder-TestPersistedStorageImplementation.Tpo -c -o TestWdmUpdateEncoder-TestPersistedStorageImplementation.obj `if test -f 'TestPersistedStorageImplementation.cpp'; then $(CYGPATH_W) 'TestPersistedStorageImplementation.cpp'; else $(CYGPATH_W) '$(srcdir)/TestPersistedStorageImplementation.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/TestWdmUpdateEncoder-TestPersistedStorageImplementation.Tpo $(DEPDIR)/TestWdmUpdateEncoder-TestPersistedStorageImplementation.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='TestPersistedStorageImplementation.cpp' object='TestWdmUpdateEncoder-TestPersistedStorageImplementation.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(TestWdmUpdateEncoder_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o TestWdmUpdateEncoder-TestPersistedStorageImplementation.obj `if test -f 'TestPersistedStorageImplementation.cpp'; then $(CYGPATH_W) 'TestPersistedStorageImplementation.cpp'; else $(CYGPATH_W) '$(srcdir)/TestPersistedStorageImplementation.cpp'; fi`
 
 mock_device-mock-device.o: mock-device.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mock_device_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT mock_device-mock-device.o -MD -MP -MF $(DEPDIR)/mock_device-mock-device.Tpo -c -o mock_device-mock-device.o `test -f 'mock-device.cpp' || echo '$(srcdir)/'`mock-device.cpp

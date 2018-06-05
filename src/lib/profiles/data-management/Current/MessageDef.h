@@ -239,6 +239,7 @@ enum
     kCsTag_ResourceID      = 1,
     kCsTag_TraitProfileID  = 2,
     kCsTag_TraitInstanceID = 3,
+    kCsTag_RequestedVersion = 4,
 };
 
 class Parser;
@@ -1466,7 +1467,7 @@ public:
      *  @retval #WEAVE_END_OF_TLV if there is no such element
      *  @retval #WEAVE_ERROR_WRONG_TLV_TYPE if there is such element but it's not a unsigned integer
      */
-    WEAVE_ERROR GetUpdateRequestIndex(nl::Weave::TLV::TLVReader * const apReader, uint32_t * const apUpdateRequestIndex) const;
+    WEAVE_ERROR GetUpdateRequestIndex(uint32_t * const apUpdateRequestIndex) const;
 };
 
 namespace UpdateResponse {

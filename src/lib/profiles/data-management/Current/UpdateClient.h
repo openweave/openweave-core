@@ -42,33 +42,69 @@ namespace Weave {
 namespace Profiles {
 namespace WeaveMakeManagedNamespaceIdentifier(DataManagement, kWeaveManagedNamespaceDesignation_Current) {
 
+TraitUpdatableDataSink *Locate(TraitDataHandle aTraitDataHandle, const TraitCatalogBase<TraitDataSink> * aDataSinkCatalog);
+
 class UpdateEncoder
 {
 public:
-    UpdateEncoder() : mState(kState_Uninitialized) {}
-    ~UpdateEncoder() {}
+    UpdateEncoder() : mState(kState_Uninitialized) { }
+    ~UpdateEncoder() { }
+
+    struct Context
+    {
+        Context() { memset(this, 0, sizeof(*this)); }
+
+        // Destination buffer
+        PacketBuffer *mBuf;
+        uint32_t mMaxPayloadSize;
+
+        // Other fields of the payload
+        uint32_t mUpdateRequestIndex;
+        utc_timestamp_t mExpiryTimeMicroSecond;
+
+        // What to encode
+        size_t mItemInProgress;
+        TraitPathStore *mInProgressUpdateList;
+        PropertyPathHandle mNextDictionaryElementPathHandle;
+        TraitCatalogBase<TraitDataSink> * mDataSinkCatalog;
+
+        // Other
+        size_t mNumDataElementsAddedToPayload;
+    };
+
+    struct DataElementContext
+    {
+        DataElementContext() { memset(this, 0, sizeof(*this)); }
+
+        TraitPath mTraitPath;
+        bool mForceMerge;
+        TraitUpdatableDataSink *mDataSink;
+        const TraitSchemaEngine *mSchemaEngine;
+        uint32_t mProfileId;
+        ResourceIdentifier mResourceId;
+        uint64_t mInstanceId;
+        uint32_t mNumTags;
+        uint64_t *mTags;
+        const SchemaVersionRange * mSchemaVersionRange;
+        DataVersion mUpdateRequiredVersion;
+    };
+
+    WEAVE_ERROR InsertInProgressUpdateItem(const TraitPath &aItem, const TraitSchemaEngine * const aSchemaEngine);
+    void RemoveInProgressPrivateItemsAfter(uint16_t aItemInProgress);
+
+    WEAVE_ERROR EncodeRequest(Context *aContext);
 
     typedef WEAVE_ERROR (*AddElementCallback)(UpdateEncoder * aEncoder, void *apCallState, TLV::TLVWriter & aOuterWriter);
 
-    WEAVE_ERROR StartUpdate(PacketBuffer *aBuf, utc_timestamp_t aExpiryTimeMicroSecond, uint32_t aMaxUpdateSize, uint32_t aUpdateReqIndex);
+    WEAVE_ERROR StartUpdate();
 
-    WEAVE_ERROR AddElement(const uint32_t & aProfileID,
-                           const uint64_t & aInstanceID,
-                           const ResourceIdentifier & aResourceID,
-                           const DataVersion & aRequiredDataVersion,
-                           const SchemaVersionRange * aSchemaVersionRange,
-                           const uint64_t *aPathArray,
-                           const size_t aPathLength,
-                           AddElementCallback aAddElementCallback,
-                           void * aCallState);
+    WEAVE_ERROR BuildSingleUpdateRequestDataList();
 
-    WEAVE_ERROR StartElement(const uint32_t & aProfileID,
-                             const uint64_t & aInstanceID,
-                             const ResourceIdentifier & aResourceID,
-                             const DataVersion & aRequiredDataVersion,
-                             const SchemaVersionRange * aSchemaVersionRange,
-                             const uint64_t *aPathArray,
-                             const size_t aPathLength);
+    WEAVE_ERROR DirtyPathToDataElement();
+
+    WEAVE_ERROR EncodeElement(const DataElementContext &aElementContext);
+
+    WEAVE_ERROR StartElement(const DataElementContext &aElementContext);
 
     WEAVE_ERROR FinalizeElement();
 
@@ -82,7 +118,7 @@ public:
 
     WEAVE_ERROR EndDataList(void);
 
-    WEAVE_ERROR StartUpdateRequest(utc_timestamp_t aExpiryTimeMicroSecond);
+    WEAVE_ERROR StartUpdateRequest();
 
     WEAVE_ERROR FinishUpdate();
 
@@ -91,10 +127,6 @@ public:
     WEAVE_ERROR AddExpiryTime(utc_timestamp_t aExpiryTimeMicroSecond);
 
     WEAVE_ERROR AddUpdateRequestIndex(void);
-
-    PacketBuffer *ReturnPBuf();
-
-    void Cancel();
 
 private:
     enum UpdateEncoderState
@@ -109,11 +141,12 @@ private:
     void MoveToState(const UpdateEncoderState aTargetState);
     const char * GetStateStr(void) const;
 
+    Context *mContext;
+
     TLV::TLVWriter mWriter;
     UpdateEncoderState mState;
-    PacketBuffer *mBuf;
-    uint32_t mUpdateRequestIndex;
     nl::Weave::TLV::TLVType mDataListOuterContainerType, mDataElementOuterContainerType;
+
 };
 
 class UpdateClient

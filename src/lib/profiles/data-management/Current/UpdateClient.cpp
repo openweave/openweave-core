@@ -42,6 +42,229 @@ namespace Weave {
 namespace Profiles {
 namespace WeaveMakeManagedNamespaceIdentifier(DataManagement, kWeaveManagedNamespaceDesignation_Current) {
 
+TraitUpdatableDataSink *Locate(TraitDataHandle aTraitDataHandle, const TraitCatalogBase<TraitDataSink> *aDataSinkCatalog)
+{
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
+    TraitDataSink *dataSink = NULL;
+    TraitUpdatableDataSink *updatableDataSink = NULL;
+
+    err = aDataSinkCatalog->Locate(aTraitDataHandle, &dataSink);
+    SuccessOrExit(err);
+
+    VerifyOrExit(dataSink->IsUpdatableDataSink(), );
+
+    updatableDataSink = static_cast<TraitUpdatableDataSink *>(dataSink);
+
+exit:
+    VerifyOrDie(NULL != updatableDataSink);
+
+    return updatableDataSink;
+}
+
+
+WEAVE_ERROR UpdateEncoder::EncodeRequest(Context *aContext)
+{
+    WEAVE_ERROR err;
+
+    // TODO: VerifyOrExit(...
+
+    mContext = aContext;
+
+    err = StartUpdate();
+    SuccessOrExit(err);
+
+    err = BuildSingleUpdateRequestDataList();
+    SuccessOrExit(err);
+
+    err = FinishUpdate();
+    SuccessOrExit(err);
+
+exit:
+    mContext = NULL;
+    MoveToState(kState_Uninitialized);
+
+    return err;
+}
+
+WEAVE_ERROR UpdateEncoder::BuildSingleUpdateRequestDataList()
+{
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
+    const TraitSchemaEngine * schemaEngine;
+    bool dictionaryOverflowed = false;
+    TraitPathStore &traitPathList = *(mContext->mInProgressUpdateList);
+
+    WeaveLogDetail(DataManagement, "Num items in progress = %u/%u; current: %u",
+            traitPathList.GetNumItems(),
+            traitPathList.GetPathStoreSize(),
+            mContext->mItemInProgress);
+
+    while (mContext->mItemInProgress < traitPathList.GetPathStoreSize())
+    {
+        size_t &i = mContext->mItemInProgress;
+
+        if (!(traitPathList.IsItemValid(i)))
+        {
+            i++;
+            continue;
+        }
+
+        WeaveLogDetail(DataManagement, "Encoding item %u, ForceMerge: %d, Private: %d", i, traitPathList.AreFlagsSet(i, SubscriptionClient::kFlag_ForceMerge),
+                traitPathList.AreFlagsSet(i, SubscriptionClient::kFlag_Private));
+
+        if (mContext->mNextDictionaryElementPathHandle != kNullPropertyPathHandle)
+        {
+            WeaveLogDetail(DataManagement, "Resume encoding a dictionary");
+        }
+
+        err = DirtyPathToDataElement();
+        SuccessOrExit(err);
+
+        dictionaryOverflowed = (mContext->mNextDictionaryElementPathHandle != kNullPropertyPathHandle);
+        if (dictionaryOverflowed)
+        {
+            TraitPath traitPath;
+            traitPathList.GetItemAt(i, traitPath);
+            InsertInProgressUpdateItem(traitPath, schemaEngine);
+        }
+
+        i++;
+
+        VerifyOrExit(!dictionaryOverflowed, /* no error */);
+    }
+
+exit:
+
+    if (mContext->mNumDataElementsAddedToPayload > 0 &&
+            (err == WEAVE_ERROR_BUFFER_TOO_SMALL))
+    {
+        WeaveLogDetail(DataManagement, "Suppressing error %" PRId32 "; will try again later", err);
+        RemoveInProgressPrivateItemsAfter(mContext->mItemInProgress);
+        err = WEAVE_NO_ERROR;
+    }
+
+    return err;
+
+}
+
+WEAVE_ERROR UpdateEncoder::EncodeElement(const DataElementContext &aElementContext)
+{
+    WEAVE_ERROR err;
+    bool isDictionaryReplace = false;
+    nl::Weave::TLV::TLVType dataContainerType;
+    uint64_t tag = nl::Weave::TLV::ContextTag(DataElement::kCsTag_Data);
+
+    WeaveLogDetail(DataManagement, "<EncodeElement> with property path handle 0x%08x",
+            aElementContext.mTraitPath.mPropertyPathHandle);
+
+    if (aElementContext.mSchemaEngine->IsDictionary(aElementContext.mTraitPath.mPropertyPathHandle) &&
+            ! aElementContext.mForceMerge)
+    {
+        isDictionaryReplace = true;
+    }
+
+    if (isDictionaryReplace)
+    {
+        // If the element is a whole dictionary, use the "replace" scheme.
+        // The path of the DataElement points to the parent of the dictionary.
+        // The data has to be a structure with one element, which is the dictionary itself.
+        WeaveLogDetail(DataManagement, "<EncodeElement> replace dictionary");
+        err = mWriter.StartContainer(tag, nl::Weave::TLV::kTLVType_Structure, dataContainerType);
+        SuccessOrExit(err);
+
+        tag = aElementContext.mSchemaEngine->GetTag(aElementContext.mTraitPath.mPropertyPathHandle);
+    }
+
+    err = aElementContext.mDataSink->ReadData(aElementContext.mTraitPath.mTraitDataHandle,
+                                      aElementContext.mTraitPath.mPropertyPathHandle,
+                                      tag,
+                                      mWriter,
+                                      mContext->mNextDictionaryElementPathHandle);
+    SuccessOrExit(err);
+
+    if (isDictionaryReplace)
+    {
+        err = mWriter.EndContainer(dataContainerType);
+        SuccessOrExit(err);
+    }
+
+exit:
+    return err;
+}
+
+
+WEAVE_ERROR UpdateEncoder::DirtyPathToDataElement()
+{
+    WEAVE_ERROR err;
+    TLV::TLVWriter checkpoint;
+    DataElementContext elementContext;
+
+    Checkpoint(checkpoint);
+
+    mContext->mInProgressUpdateList->GetItemAt(mContext->mItemInProgress, elementContext.mTraitPath);
+
+    elementContext.mDataSink = Locate(elementContext.mTraitPath.mTraitDataHandle, mContext->mDataSinkCatalog);
+
+    elementContext.mSchemaEngine = elementContext.mDataSink->GetSchemaEngine();
+    VerifyOrDie(elementContext.mSchemaEngine != NULL);
+
+    elementContext.mProfileId = elementContext.mSchemaEngine->GetProfileId();
+
+    err = mContext->mDataSinkCatalog->GetResourceId(elementContext.mTraitPath.mTraitDataHandle,
+                                          elementContext.mResourceId);
+    SuccessOrExit(err);
+
+    err = mContext->mDataSinkCatalog->GetInstanceId(elementContext.mTraitPath.mTraitDataHandle,
+                                          elementContext.mInstanceId);
+    SuccessOrExit(err);
+
+    elementContext.mUpdateRequiredVersion = elementContext.mDataSink->GetUpdateRequiredVersion();
+
+    {
+        uint64_t tags[elementContext.mSchemaEngine->mSchema.mTreeDepth];
+
+        elementContext.mTags = &(tags[0]);
+        err = elementContext.mSchemaEngine->GetRelativePathTags(elementContext.mTraitPath.mPropertyPathHandle,
+                elementContext.mTags,
+                //ArraySize(tags),
+                elementContext.mSchemaEngine->mSchema.mTreeDepth,
+                elementContext.mNumTags);
+        SuccessOrExit(err);
+
+        elementContext.mForceMerge = mContext->mInProgressUpdateList->AreFlagsSet(mContext->mItemInProgress, SubscriptionClient::kFlag_ForceMerge);
+
+        if (elementContext.mSchemaEngine->IsDictionary(elementContext.mTraitPath.mPropertyPathHandle) &&
+                ! elementContext.mForceMerge)
+        {
+            // If the property being updated is a dictionary, we need to use the "replace"
+            // scheme explicitly so that the whole property is replaced on the responder.
+            // So, the path has to point to the parent of the dictionary.
+            VerifyOrExit(elementContext.mNumTags > 0, err = WEAVE_ERROR_WDM_SCHEMA_MISMATCH);
+            elementContext.mNumTags--;
+        }
+
+        err = StartElement(elementContext);
+        SuccessOrExit(err);
+
+        err = EncodeElement(elementContext);
+        SuccessOrExit(err);
+
+        err = FinalizeElement();
+        SuccessOrExit(err);
+
+        mContext->mNumDataElementsAddedToPayload++;
+    }
+
+exit:
+    if (err != WEAVE_NO_ERROR)
+    {
+        CancelElement(checkpoint);
+    }
+
+    return err;
+}
+
+
+
 /**
  *  @brief Inject expiry time into the TLV stream
  *
@@ -70,7 +293,7 @@ exit:
 WEAVE_ERROR UpdateEncoder::AddUpdateRequestIndex(void)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
-    err = mWriter.Put(nl::Weave::TLV::ContextTag(UpdateRequest::kCsTag_UpdateRequestIndex), mUpdateRequestIndex);
+    err = mWriter.Put(nl::Weave::TLV::ContextTag(UpdateRequest::kCsTag_UpdateRequestIndex), mContext->mUpdateRequestIndex);
     SuccessOrExit(err);
 
 exit:
@@ -83,36 +306,24 @@ exit:
  * @retval #WEAVE_NO_ERROR On success.
  * @retval other           Was unable to initialize the update.
  */
-WEAVE_ERROR UpdateEncoder::StartUpdate(PacketBuffer *aBuf, utc_timestamp_t aExpiryTimeMicroSecond, uint32_t maxPayloadSize, uint32_t aUpdateReqIndex)
+WEAVE_ERROR UpdateEncoder::StartUpdate()
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
 
     VerifyOrExit(mState == kState_Uninitialized, err = WEAVE_ERROR_INCORRECT_STATE);
-    VerifyOrExit(NULL != aBuf, err = WEAVE_ERROR_INVALID_ARGUMENT);
+    VerifyOrExit(NULL != mContext->mBuf, err = WEAVE_ERROR_INVALID_ARGUMENT);
 
-    WeaveLogDetail(DataManagement, "<UC:Run> Init PacketBuf");
-
-    mBuf = aBuf;
-
-    mUpdateRequestIndex = aUpdateReqIndex;
-
-    mWriter.Init(mBuf, maxPayloadSize);
+    mWriter.Init(mContext->mBuf, mContext->mMaxPayloadSize);
 
     MoveToState(kState_Ready);
 
-    err = StartUpdateRequest(aExpiryTimeMicroSecond);
+    err = StartUpdateRequest();
     SuccessOrExit(err);
 
     err = StartDataList();
     SuccessOrExit(err);
 
 exit:
-
-    if (err != WEAVE_NO_ERROR)
-    {
-        Cancel();
-    }
-
     WeaveLogFunctError(err);
 
     return err;
@@ -127,7 +338,7 @@ exit:
  * @retval #WEAVE_ERROR_INCORRECT_STATE If the request is not at the toplevel of the buffer.
  * @retval other           Unable to construct the end of the update request.
  */
-WEAVE_ERROR UpdateEncoder::StartUpdateRequest(utc_timestamp_t aExpiryTimeMicroSecond)
+WEAVE_ERROR UpdateEncoder::StartUpdateRequest()
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
     nl::Weave::TLV::TLVType dummyType;
@@ -137,9 +348,9 @@ WEAVE_ERROR UpdateEncoder::StartUpdateRequest(utc_timestamp_t aExpiryTimeMicroSe
     err = mWriter.StartContainer(TLV::AnonymousTag, nl::Weave::TLV::kTLVType_Structure, dummyType);
     SuccessOrExit(err);
 
-    if (aExpiryTimeMicroSecond != 0)
+    if (mContext->mExpiryTimeMicroSecond != 0)
     {
-        err = AddExpiryTime(aExpiryTimeMicroSecond);
+        err = AddExpiryTime(mContext->mExpiryTimeMicroSecond);
         SuccessOrExit(err);
     }
 
@@ -193,15 +404,6 @@ WEAVE_ERROR UpdateEncoder::FinishUpdate()
 
 exit:
     return err;
-}
-
-PacketBuffer *UpdateEncoder::ReturnPBuf() 
-{  
-    PacketBuffer *retval = mBuf;
-    mBuf = NULL; 
-    MoveToState(kState_Uninitialized); 
-
-    return retval;
 }
 
 /**
@@ -266,13 +468,7 @@ exit:
  * @retval #WEAVE_NO_ERROR On success.
  * @retval other           Unable to construct data element.
  */
-WEAVE_ERROR UpdateEncoder::StartElement(const uint32_t &aProfileID,
-                    const uint64_t &aInstanceID,
-                    const ResourceIdentifier &aResourceID,
-                    const DataVersion &aRequiredDataVersion,
-                    const SchemaVersionRange * aSchemaVersionRange,
-                    const uint64_t *aPathArray,
-				    const size_t aPathLength)
+WEAVE_ERROR UpdateEncoder::StartElement(const DataElementContext &aElementContext)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
     Path::Builder pathBuilder;
@@ -284,24 +480,24 @@ WEAVE_ERROR UpdateEncoder::StartElement(const uint32_t &aProfileID,
     SuccessOrExit(err);
     err = pathBuilder.Init(&mWriter, nl::Weave::TLV::ContextTag(DataElement::kCsTag_Path));
     SuccessOrExit(err);
-    if (aSchemaVersionRange == NULL)
-        pathBuilder.ProfileID(aProfileID);
+    if (aElementContext.mSchemaVersionRange == NULL)
+        pathBuilder.ProfileID(aElementContext.mProfileId);
     else
-        pathBuilder.ProfileID(aProfileID, *aSchemaVersionRange);
+        pathBuilder.ProfileID(aElementContext.mProfileId, *aElementContext.mSchemaVersionRange);
 
-    if (aResourceID != ResourceIdentifier::SELF_NODE_ID)
-       pathBuilder.ResourceID(aResourceID);
+    if (aElementContext.mResourceId != ResourceIdentifier::SELF_NODE_ID)
+       pathBuilder.ResourceID(aElementContext.mResourceId);
 
-    if (aInstanceID != 0x0)
-        pathBuilder.InstanceID(aInstanceID);
+    if (aElementContext.mInstanceId != 0x0)
+        pathBuilder.InstanceID(aElementContext.mInstanceId);
 
-    if (aPathLength != 0)
+    if (aElementContext.mNumTags != 0)
     {
         pathBuilder.TagSection();
 
-        for (size_t pathIndex = 0; pathIndex < aPathLength;  pathIndex++)
+        for (size_t pathIndex = 0; pathIndex < aElementContext.mNumTags;  pathIndex++)
         {
-            pathBuilder.AdditionalTag(aPathArray[pathIndex]);
+            pathBuilder.AdditionalTag(aElementContext.mTags[pathIndex]);
         }
     }
 
@@ -310,10 +506,10 @@ WEAVE_ERROR UpdateEncoder::StartElement(const uint32_t &aProfileID,
     err = pathBuilder.GetError();
     SuccessOrExit(err);
 
-    if (aRequiredDataVersion != 0x0)
+    if (aElementContext.mUpdateRequiredVersion != 0x0)
     {
         WeaveLogDetail(DataManagement, "<UC:Run> conditional update");
-        err = mWriter.Put(nl::Weave::TLV::ContextTag(DataElement::kCsTag_Version), aRequiredDataVersion);
+        err = mWriter.Put(nl::Weave::TLV::ContextTag(DataElement::kCsTag_Version), aElementContext.mUpdateRequiredVersion);
         SuccessOrExit(err);
     }
     else
@@ -345,41 +541,6 @@ exit:
  * @retval other           Unable to construct data element.
  *
  */
-WEAVE_ERROR UpdateEncoder::AddElement(const uint32_t &aProfileID,
-                    const uint64_t &aInstanceID,
-                    const ResourceIdentifier &aResourceID,
-                    const DataVersion &aRequiredDataVersion,
-                    const SchemaVersionRange * aSchemaVersionRange,
-                    const uint64_t *aPathArray,
-				    const size_t aPathLength,
-                    AddElementCallback aAddElementCallback,
-                    void * aCallState)
-{
-    WEAVE_ERROR err = WEAVE_NO_ERROR;
-    TLV::TLVWriter checkpoint;
-
-    Checkpoint(checkpoint);
-
-    err = StartElement(aProfileID, aInstanceID, aResourceID, aRequiredDataVersion, aSchemaVersionRange, aPathArray, aPathLength);
-    SuccessOrExit(err);
-
-    err = aAddElementCallback(this, aCallState, mWriter);
-    SuccessOrExit(err);
-
-    err = FinalizeElement();
-    SuccessOrExit(err);
-
-exit:
-
-    if (err != WEAVE_NO_ERROR)
-    {
-        CancelElement(checkpoint);
-    }
-
-    WeaveLogFunctError(err);
-
-    return err;
-}
 
 /**
  * End the data element's container
@@ -402,6 +563,31 @@ exit:
     WeaveLogFunctError(err);
 
     return err;
+}
+
+void UpdateEncoder::RemoveInProgressPrivateItemsAfter(uint16_t aItemInProgress)
+{
+    int count = 0;
+    TraitPathStore &list = *(mContext->mInProgressUpdateList);
+
+    for (size_t i = list.GetNextValidItem(aItemInProgress);
+            i < list.GetPathStoreSize();
+            i = list.GetNextValidItem(i))
+    {
+        if (list.AreFlagsSet(i, SubscriptionClient::kFlag_Private))
+        {
+            list.RemoveItemAt(i);
+            count++;
+        }
+    }
+
+    if (count > 0)
+    {
+        list.Compact();
+    }
+
+    WeaveLogDetail(DataManagement, "Removed %d private InProgress items after %u; numItems: %u",
+            count, aItemInProgress, list.GetNumItems());
 }
 
 /**
@@ -470,10 +656,6 @@ exit:
     if (err == WEAVE_NO_ERROR)
     {
         MoveToState(kState_EncodingDataList);
-    }
-    else
-    {
-        Cancel();
     }
 
     return err;
@@ -589,21 +771,35 @@ exit:
 
 }
 
-void UpdateEncoder::Cancel(void)
-{
-    if (mBuf)
-    {
-        PacketBuffer::Free(mBuf);
-        mBuf = NULL;
-    }
-    MoveToState(kState_Uninitialized);
-}
-
 void UpdateEncoder::MoveToState(const UpdateEncoderState aTargetState)
 {
     mState = aTargetState;
     WeaveLogDetail(DataManagement, "UE moving to [%10.10s]", GetStateStr());
 }
+
+/**
+ * Add a private path in the list of paths in progress,
+ * inserting it after the one being encoded right now.
+ */
+WEAVE_ERROR UpdateEncoder::InsertInProgressUpdateItem(const TraitPath &aItem,
+                                                      const TraitSchemaEngine * const aSchemaEngine)
+{
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
+    TraitPath traitPath;
+    TraitPathStore::Flags flags = (SubscriptionClient::kFlag_Private | SubscriptionClient::kFlag_ForceMerge);
+
+    err = mContext->mInProgressUpdateList->InsertItemAfter(mContext->mItemInProgress, aItem, flags);
+    SuccessOrExit(err);
+
+exit:
+    WeaveLogDetail(DataManagement, "%s %u t%u, p%u  numItems: %u, err %d", __func__,
+            mContext->mItemInProgress,
+            aItem.mTraitDataHandle, aItem.mPropertyPathHandle,
+            mContext->mInProgressUpdateList->GetNumItems(), err);
+
+    return err;
+}
+
 
 #if WEAVE_DETAIL_LOGGING
 const char * UpdateEncoder::GetStateStr() const
@@ -615,9 +811,9 @@ const char * UpdateEncoder::GetStateStr() const
     case kState_Ready:
         return "Ready";
     case kState_EncodingDataList:
-        return "EncodingDataList";
+        return "EncDataList";
     case kState_EncodingDataElement:
-        return "EncodingDataElement";
+        return "EncDataElement";
     case kState_Done:
         return "Done";
     }

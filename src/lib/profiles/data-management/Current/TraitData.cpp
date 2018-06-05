@@ -68,9 +68,9 @@ bool UpdateDirtyPathFilter::FilterPath (PropertyPathHandle pathhandle)
     return retval;
 }
 
-UpdateDictionaryDirtyPathCut::UpdateDictionaryDirtyPathCut(TraitDataHandle aTraitDataHandle, SubscriptionClient * apSubClient)
+UpdateDictionaryDirtyPathCut::UpdateDictionaryDirtyPathCut(TraitDataHandle aTraitDataHandle, UpdateEncoder * apEncoder)
 {
-    mpSubClient = apSubClient;
+    mpUpdateEncoder = apEncoder;
     mTraitDataHandle = aTraitDataHandle;
 }
 
@@ -80,7 +80,7 @@ WEAVE_ERROR UpdateDictionaryDirtyPathCut::CutPath (PropertyPathHandle aPathhandl
     // Probably just replace the struct with a function; I don't see the point of it really.
 #if WEAVE_CONFIG_ENABLE_WDM_UPDATE
     // TODO: handle errors!!
-    mpSubClient->InsertInProgressUpdateItem(TraitPath(mTraitDataHandle, aPathhandle), apEngine);
+    mpUpdateEncoder->InsertInProgressUpdateItem(TraitPath(mTraitDataHandle, aPathhandle), apEngine);
     WeaveLogDetail(DataManagement, "Cut dictionary %u, %u", mTraitDataHandle, aPathhandle);
 #endif // WEAVE_CONFIG_ENABLE_WDM_UPDATE
 
@@ -257,7 +257,7 @@ WEAVE_ERROR TraitSchemaEngine::RetrieveData(PropertyPathHandle aHandle, uint64_t
                 // - the handle of the dictionary is put back in the queue.
                 // The empty dictionary is encoded here because if the dictionary is not a child of the
                 // current DataElement's path, it cannot be omitted.
-                // The dictionary will be encoded in a new DataElement as a "replace".
+                // The dictionary will be encoded in a new DataElement as a "merge".
                 // The reason for that is that if the dictionary is too large to fit in the payload,
                 // it's easier to split it in more than one data element outside of a recursion.
                 if (aDelegate->GetNextDictionaryItemKey(aHandle, context, dictionaryItemKey) == WEAVE_NO_ERROR)
@@ -1241,7 +1241,8 @@ TraitUpdatableDataSink::TraitUpdatableDataSink(const TraitSchemaEngine * aEngine
     mUpdateStartVersion(0),
     mConditionalUpdate(false),
     mPotentialDataLoss(false),
-    mpSubClient(NULL)
+    mpSubClient(NULL),
+    mpUpdateEncoder(NULL)
 {
 };
 
@@ -1317,7 +1318,7 @@ WEAVE_ERROR TraitUpdatableDataSink::ReadData(TraitDataHandle aTraitDataHandle,
     }
     else
     {
-        UpdateDictionaryDirtyPathCut updateDirtyPathCut(aTraitDataHandle, GetSubscriptionClient());
+        UpdateDictionaryDirtyPathCut updateDirtyPathCut(aTraitDataHandle, GetUpdateEncoder());
         err = mSchemaEngine->RetrieveData(aHandle, aTagToWrite, aWriter,
                                           static_cast<TraitSchemaEngine::IGetDataDelegate *>(this),
                                           &updateDirtyPathCut);

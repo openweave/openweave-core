@@ -33,6 +33,7 @@
 #include <Weave/Profiles/data-management/DataManagement.h>
 
 #include <nest/test/trait/TestATrait.h>
+#include "MockSinkTraits.h"
 
 #include <new>
 #include <map>
@@ -41,6 +42,8 @@
 #include <set>
 #include <string>
 #include <iterator>
+
+#define PRINT_TEST_NAME() printf("\n%s\n", __func__);
 
 using namespace nl;
 using namespace nl::Weave::TLV;
@@ -59,7 +62,7 @@ namespace Weave {
 namespace Profiles {
 namespace WeaveMakeManagedNamespaceIdentifier(DataManagement, kWeaveManagedNamespaceDesignation_Current) {
 namespace Platform {
-    // for unit tests, the dummy critical section is sufficient.
+    // For unit tests, a dummy critical section is sufficient.
     void CriticalSectionEnter()
     {
         return;
@@ -76,27 +79,191 @@ class WdmUpdateEncoderTest {
         WdmUpdateEncoderTest();
         ~WdmUpdateEncoderTest() { }
 
+        // Tests
+        void TestInitCleanup(nlTestSuite *inSuite, void *inContext);
+        void TestOneLeaf(nlTestSuite *inSuite, void *inContext);
+
+    private:
+        // The encoder
+        UpdateEncoder mEncoder;
+        UpdateEncoder::Context mContext;
+
+        // These are here for convenience
+        PacketBuffer *mBuf;
+        TraitPath mTP;
+
+        //
+        // The state usually held by the SubscriptionClient
+        //
+
+        // The list of path to encode
         TraitPathStore mPathList;
         TraitPathStore::Record mStorage[10];
 
-        const TraitSchemaEngine *mSchemaEngine;
+        // The Trait instances
+        TestATraitUpdatableDataSink mTestATraitUpdatableDataSink0;
 
-        void TestInitCleanup(nlTestSuite *inSuite, void *inContext);
+        // The catalog
+        SingleResourceSinkTraitCatalog mSinkCatalog;
+        SingleResourceSinkTraitCatalog::CatalogItem mSinkCatalogStore[9];
+
+        // The set of TraitDataHandles assigned by the catalog
+        // to the Trait instances
+        enum
+        {
+            kTestATraitSink0Index = 0,
+            kTestATraitSink1Index,
+            kTestBTraitSinkIndex,
+            kLocaleSettingsSinkIndex,
+            kBoltLockSettingTraitSinkIndex,
+            kApplicationKeysTraitSinkIndex,
+
+            kLocaleCapabilitiesSourceIndex,
+            kTestATraitSource0Index,
+            kTestATraitSource1Index,
+            kTestBTraitSourceIndex,
+            kTestBLargeTraitSourceIndex,
+            kMaxNumTraitHandles,
+        };
+        TraitDataHandle mTraitHandleSet[kMaxNumTraitHandles];
+
+        // Test support functions
+        void InitEncoderContext(nlTestSuite *inSuite);
+        void VerifyDataList(nlTestSuite *inSuite, PacketBuffer *aBuf);
+
 };
 
 WdmUpdateEncoderTest::WdmUpdateEncoderTest() :
-            mSchemaEngine(&TestATrait::TraitSchema)
+    mBuf(NULL),
+    mSinkCatalog(ResourceIdentifier(ResourceIdentifier::SELF_NODE_ID), mSinkCatalogStore, sizeof(mSinkCatalogStore) / sizeof(mSinkCatalogStore[0]))
 {
     mPathList.Init(mStorage, ArraySize(mStorage));
+
+    mSinkCatalog.Add(0, &mTestATraitUpdatableDataSink0, mTraitHandleSet[kTestATraitSink0Index]);
+}
+
+void WdmUpdateEncoderTest::InitEncoderContext(nlTestSuite *inSuite)
+{
+    if (NULL == mBuf)
+    {
+        mBuf = PacketBuffer::New();
+        NL_TEST_ASSERT(inSuite, mBuf != NULL);
+    }
+
+    mContext.mBuf = mBuf;
+    mContext.mMaxPayloadSize = 1000;
+    mContext.mUpdateRequestIndex = 7;
+    mContext.mExpiryTimeMicroSecond = 0;
+    mContext.mItemInProgress = 0;
+    mContext.mNextDictionaryElementPathHandle = kNullPropertyPathHandle;
+    mContext.mInProgressUpdateList = &mPathList;
+    mContext.mDataSinkCatalog = &mSinkCatalog;
 }
 
 void WdmUpdateEncoderTest::TestInitCleanup(nlTestSuite *inSuite, void *inContext)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
 
+    PRINT_TEST_NAME();
+
     mPathList.Clear();
 
     NL_TEST_ASSERT(inSuite, mPathList.GetNumItems() == 0);
+}
+
+void WdmUpdateEncoderTest::VerifyDataList(nlTestSuite *inSuite, PacketBuffer *aBuf)
+{
+    WEAVE_ERROR err;
+    nl::Weave::TLV::TLVReader reader;
+    nl::Weave::TLV::TLVReader dataListReader;
+    UpdateRequest::Parser parser;
+    TraitPath tp;
+
+    reader.Init(aBuf);
+    reader.Next();
+    parser.Init(reader);
+
+    err = parser.CheckSchemaValidity();
+    NL_TEST_ASSERT(inSuite, err == WEAVE_NO_ERROR);
+
+    DataList::Parser dataList;
+
+    err = parser.GetDataList(&dataList);
+    NL_TEST_ASSERT(inSuite, err == WEAVE_NO_ERROR);
+
+    uint32_t updateRequestIndex = 0;
+    err = parser.GetUpdateRequestIndex(&updateRequestIndex);
+    NL_TEST_ASSERT(inSuite, err == WEAVE_NO_ERROR);
+    NL_TEST_ASSERT(inSuite, updateRequestIndex == mContext.mUpdateRequestIndex);
+
+    dataList.GetReader(&dataListReader);
+
+    for (size_t i = mPathList.GetFirstValidItem();
+            i < mPathList.GetPathStoreSize();
+            i = mPathList.GetNextValidItem(i))
+    {
+        mPathList.GetItemAt(i, tp);
+
+        err = dataListReader.Next();
+        NL_TEST_ASSERT(inSuite, err == WEAVE_NO_ERROR);
+
+        DataElement::Parser element;
+        err = element.Init(dataListReader);
+        NL_TEST_ASSERT(inSuite, err == WEAVE_NO_ERROR);
+
+        nl::Weave::TLV::TLVReader pathReader;
+
+        err = element.GetReaderOnPath(&pathReader);
+        NL_TEST_ASSERT(inSuite, err == WEAVE_NO_ERROR);
+
+        TraitDataSink * dataSink;
+        TraitDataHandle handle;
+        PropertyPathHandle pathHandle;
+        SchemaVersionRange versionRange;
+
+        err = mSinkCatalog.AddressToHandle(pathReader, handle, versionRange);
+        NL_TEST_ASSERT(inSuite, err == WEAVE_NO_ERROR);
+
+        NL_TEST_ASSERT(inSuite, handle == tp.mTraitDataHandle);
+
+        err = mSinkCatalog.Locate(handle, &dataSink);
+        NL_TEST_ASSERT(inSuite, err == WEAVE_NO_ERROR);
+
+        err = dataSink->GetSchemaEngine()->MapPathToHandle(pathReader, pathHandle);
+        NL_TEST_ASSERT(inSuite, err == WEAVE_NO_ERROR);
+
+        NL_TEST_ASSERT(inSuite, pathHandle == tp.mPropertyPathHandle);
+    }
+}
+
+void WdmUpdateEncoderTest::TestOneLeaf(nlTestSuite *inSuite, void *inContext)
+{
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
+
+    PRINT_TEST_NAME();
+
+    mPathList.Clear();
+
+    NL_TEST_ASSERT(inSuite, mPathList.GetNumItems() == 0);
+
+    mTP = {
+        mTraitHandleSet[kTestATraitSink0Index],
+        CreatePropertyPathHandle(TestATrait::kPropertyHandle_TaC)
+    };
+
+    err = mPathList.AddItem(mTP);
+    NL_TEST_ASSERT(inSuite, err == WEAVE_NO_ERROR);
+
+    InitEncoderContext(inSuite);
+
+    err = mEncoder.EncodeRequest(&mContext);
+
+    NL_TEST_ASSERT(inSuite, err == WEAVE_NO_ERROR);
+    NL_TEST_ASSERT(inSuite, mPathList.GetPathStoreSize() == mContext.mItemInProgress);
+    NL_TEST_ASSERT(inSuite, 1 == mPathList.GetNumItems());
+    NL_TEST_ASSERT(inSuite, kNullPropertyPathHandle == mContext.mNextDictionaryElementPathHandle);
+
+    VerifyDataList(inSuite, mBuf);
 }
 
 
@@ -121,6 +288,10 @@ void WdmUpdateEncoderTest_InitCleanup(nlTestSuite *inSuite, void *inContext)
     gWdmUpdateEncoderTest.TestInitCleanup(inSuite, inContext);
 }
 
+void WdmUpdateEncoderTest_OneLeaf(nlTestSuite *inSuite, void *inContext)
+{
+    gWdmUpdateEncoderTest.TestOneLeaf(inSuite, inContext);
+}
 // Test Suite
 
 /**
@@ -128,6 +299,7 @@ void WdmUpdateEncoderTest_InitCleanup(nlTestSuite *inSuite, void *inContext)
  */
 static const nlTest sTests[] = {
     NL_TEST_DEF("Init and cleanup",  WdmUpdateEncoderTest_InitCleanup),
+    NL_TEST_DEF("Encode one leaf",  WdmUpdateEncoderTest_OneLeaf),
 
     NL_TEST_SENTINEL()
 };

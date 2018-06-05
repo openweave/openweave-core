@@ -2058,7 +2058,7 @@ size_t SubscriptionClient::PurgeFailedPendingPaths(WEAVE_ERROR aErr)
         if (mPendingUpdateSet.IsItemFailed(j))
         {
             mPendingUpdateSet.GetItemAt(j, traitPath);
-            updatableDataSink = Locate(traitPath.mTraitDataHandle);
+            updatableDataSink = Locate(traitPath.mTraitDataHandle, mDataSinkCatalog);
             updatableDataSink->ClearVersion();
             updatableDataSink->ClearUpdateRequiredVersion();
             updatableDataSink->SetConditionalUpdate(false);
@@ -2093,56 +2093,9 @@ WEAVE_ERROR SubscriptionClient::AddItemPendingUpdateSet(const TraitPath &aItem, 
     return err;
 }
 
-/**
- * Add a private path in the list of paths in progress,
- * inserting it after the one being encoded right now.
- */
-WEAVE_ERROR SubscriptionClient::InsertInProgressUpdateItem(const TraitPath &aItem,
-                                                           const TraitSchemaEngine * const aSchemaEngine)
-{
-    WEAVE_ERROR err = WEAVE_NO_ERROR;
-    TraitPath traitPath;
-    TraitPathStore::Flags flags = (kFlag_Private | kFlag_ForceMerge);
-
-    err = mInProgressUpdateList.InsertItemAfter(mUpdateRequestContext.mItemInProgress, aItem, flags);
-    SuccessOrExit(err);
-
-exit:
-    WeaveLogDetail(DataManagement, "%s %u t%u, p%u  numItems: %u, err %d", __func__,
-            mUpdateRequestContext.mItemInProgress,
-            aItem.mTraitDataHandle, aItem.mPropertyPathHandle,
-            mInProgressUpdateList.GetNumItems(), err);
-
-    return err;
-}
-
-void SubscriptionClient::RemoveInProgressPrivateItemsAfter(uint16_t aItemInProgress)
-{
-    int count = 0;
-
-    for (size_t i = mInProgressUpdateList.GetNextValidItem(aItemInProgress);
-            i < mInProgressUpdateList.GetPathStoreSize();
-            i = mInProgressUpdateList.GetNextValidItem(i))
-    {
-        if (mInProgressUpdateList.AreFlagsSet(i, kFlag_Private))
-        {
-            mInProgressUpdateList.RemoveItemAt(i);
-            count++;
-        }
-    }
-
-    if (count > 0)
-    {
-        mInProgressUpdateList.Compact();
-    }
-
-    WeaveLogDetail(DataManagement, "Removed %d private InProgress items after %u; numItems: %u",
-            count, aItemInProgress, mInProgressUpdateList.GetNumItems());
-}
-
 void SubscriptionClient::ClearPotentialDataLoss(TraitDataHandle aTraitDataHandle)
 {
-    TraitUpdatableDataSink *updatableDataSink = Locate(aTraitDataHandle);
+    TraitUpdatableDataSink *updatableDataSink = Locate(aTraitDataHandle, mDataSinkCatalog);
 
     if (updatableDataSink->IsPotentialDataLoss())
     {
@@ -2157,7 +2110,7 @@ void SubscriptionClient::MarkFailedPendingPaths(TraitDataHandle aTraitDataHandle
 {
     if (! IsUpdateInFlight())
     {
-        TraitUpdatableDataSink *updatableDataSink = Locate(aTraitDataHandle);
+        TraitUpdatableDataSink *updatableDataSink = Locate(aTraitDataHandle, mDataSinkCatalog);
 
         if (updatableDataSink->IsConditionalUpdate() &&
                 IsVersionNewer(aLatestVersion, updatableDataSink->GetUpdateRequiredVersion()))
@@ -2189,7 +2142,7 @@ bool SubscriptionClient::FilterNotifiedPath(TraitDataHandle aTraitDataHandle,
 
     if (retval)
     {
-        TraitUpdatableDataSink *updatableDataSink = Locate(aTraitDataHandle);
+        TraitUpdatableDataSink *updatableDataSink = Locate(aTraitDataHandle, mDataSinkCatalog);
 
         if (false == updatableDataSink->IsPotentialDataLoss())
         {
@@ -2409,7 +2362,7 @@ void SubscriptionClient::OnUpdateConfirm(WEAVE_ERROR aReason, nl::Weave::Profile
 
         mInProgressUpdateList.GetItemAt(j, traitPath);
 
-        updatableDataSink = Locate(traitPath.mTraitDataHandle);
+        updatableDataSink = Locate(traitPath.mTraitDataHandle, mDataSinkCatalog);
 
         if (! mInProgressUpdateList.AreFlagsSet(j, kFlag_Private))
         {
@@ -2772,7 +2725,6 @@ void SubscriptionClient::CancelUpdateClient(void)
     WeaveLogDetail(DataManagement, "SubscriptionClient::CancelUpdateClient");
     ClearUpdateInFlight();
     mUpdateClient.CancelUpdate();
-    mUpdateEncoder.Cancel();
 }
 
 void SubscriptionClient::ShutdownUpdateClient(void)
@@ -2789,233 +2741,6 @@ void SubscriptionClient::ShutdownUpdateClient(void)
     mUpdateClient.Shutdown();
 }
 
-WEAVE_ERROR SubscriptionClient::AddElementFunc(UpdateEncoder * aEncoder, void * apCallState, TLV::TLVWriter & aWriter)
-{
-    WEAVE_ERROR err;
-    TraitUpdatableDataSink * updatableDataSink;
-    const TraitSchemaEngine * schemaEngine;
-    bool isDictionaryReplace = false;
-    nl::Weave::TLV::TLVType dataContainerType;
-    uint64_t tag = nl::Weave::TLV::ContextTag(DataElement::kCsTag_Data);
-
-    UpdateRequestContext * updateRequestContext = static_cast<UpdateRequestContext *>(apCallState);
-    SubscriptionClient * pSubClient = updateRequestContext->mSubClient;
-
-    updatableDataSink = pSubClient->Locate(updateRequestContext->mPathToEncode.mTraitDataHandle);
-    schemaEngine = updatableDataSink->GetSchemaEngine();
-
-    WeaveLogDetail(DataManagement, "<AddElementFunc> with property path handle 0x%08x",
-            updateRequestContext->mPathToEncode.mPropertyPathHandle);
-
-    if (schemaEngine->IsDictionary(updateRequestContext->mPathToEncode.mPropertyPathHandle) &&
-        !updateRequestContext->mForceMerge)
-    {
-        isDictionaryReplace = true;
-    }
-
-    if (isDictionaryReplace)
-    {
-        // If the element is a whole dictionary, use the "replace" scheme.
-        // The path of the DataElement points to the parent of the dictionary.
-        // The data has to be a structure with one element, which is the dictionary itself.
-        WeaveLogDetail(DataManagement, "<AddElementFunc> replace dictionary");
-        err = aWriter.StartContainer(tag, nl::Weave::TLV::kTLVType_Structure, dataContainerType);
-        SuccessOrExit(err);
-
-        tag = schemaEngine->GetTag(updateRequestContext->mPathToEncode.mPropertyPathHandle);
-    }
-
-    err = updatableDataSink->ReadData(updateRequestContext->mPathToEncode.mTraitDataHandle,
-                                      updateRequestContext->mPathToEncode.mPropertyPathHandle,
-                                      tag,
-                                      aWriter,
-                                      updateRequestContext->mNextDictionaryElementPathHandle);
-    SuccessOrExit(err);
-
-    if (isDictionaryReplace)
-    {
-        err = aWriter.EndContainer(dataContainerType);
-        SuccessOrExit(err);
-    }
-
-exit:
-    return err;
-}
-
-WEAVE_ERROR SubscriptionClient::Lookup(TraitDataHandle aTraitDataHandle,
-                                       TraitUpdatableDataSink * &updatableDataSink,
-                                       const TraitSchemaEngine * &schemaEngine,
-                                       ResourceIdentifier &resourceId,
-                                       uint64_t &instanceId)
-{
-    WEAVE_ERROR err = WEAVE_NO_ERROR;
-
-    updatableDataSink = Locate(aTraitDataHandle);
-
-    schemaEngine = updatableDataSink->GetSchemaEngine();
-    VerifyOrDie(schemaEngine != NULL);
-
-    err = mDataSinkCatalog->GetResourceId(aTraitDataHandle, resourceId);
-    SuccessOrExit(err);
-
-    err = mDataSinkCatalog->GetInstanceId(aTraitDataHandle, instanceId);
-    SuccessOrExit(err);
-
-exit:
-    return err;
-}
-
-WEAVE_ERROR SubscriptionClient::DirtyPathToDataElement(UpdateRequestContext &aContext)
-{
-    WEAVE_ERROR err;
-    uint32_t numTags = 0;
-    ResourceIdentifier resourceId;
-    uint64_t instanceId;
-    const TraitSchemaEngine * schemaEngine;
-    TraitUpdatableDataSink * updatableDataSink  = NULL;
-
-    err = Lookup(aContext.mPathToEncode.mTraitDataHandle,
-                 updatableDataSink, schemaEngine, resourceId, instanceId);
-    SuccessOrExit(err);
-
-    {
-        uint64_t tags[schemaEngine->mSchema.mTreeDepth];
-
-        err = schemaEngine->GetRelativePathTags(aContext.mPathToEncode.mPropertyPathHandle, tags,
-                //ArraySize(tags),
-                schemaEngine->mSchema.mTreeDepth,
-                numTags);
-        SuccessOrExit(err);
-
-        if (schemaEngine->IsDictionary(aContext.mPathToEncode.mPropertyPathHandle) &&
-                ! aContext.mForceMerge)
-        {
-            // If the property being updated is a dictionary, we need to use the "replace"
-            // scheme explicitly so that the whole property is replaced on the responder.
-            // So, the path has to point to the parent of the dictionary.
-            VerifyOrExit(numTags > 0, err = WEAVE_ERROR_WDM_SCHEMA_MISMATCH);
-            numTags--;
-        }
-
-        err = mUpdateEncoder.AddElement(schemaEngine->GetProfileId(),
-                instanceId,
-                resourceId,
-                updatableDataSink->GetUpdateRequiredVersion(),
-                NULL, tags, numTags,
-                AddElementFunc, &aContext);
-        SuccessOrExit(err);
-
-        aContext.mForceMerge = false;
-        aContext.mNumDataElementsAddedToPayload++;
-    }
-
-exit:
-    return err;
-}
-
-WEAVE_ERROR SubscriptionClient::BuildSingleUpdateRequestDataList(UpdateRequestContext &context)
-{
-    WEAVE_ERROR err = WEAVE_NO_ERROR;
-    ResourceIdentifier resourceId;
-    const TraitSchemaEngine * schemaEngine;
-    TraitUpdatableDataSink * updatableDataSink = NULL;
-    bool dictionaryOverflowed = false;
-    TraitPath traitPath;
-
-    WeaveLogDetail(DataManagement, "Num items in progress = %u/%u; current: %u",
-            mInProgressUpdateList.GetNumItems(),
-            mInProgressUpdateList.GetPathStoreSize(),
-            context.mItemInProgress);
-
-    while (context.mItemInProgress < mInProgressUpdateList.GetPathStoreSize())
-    {
-        size_t &i = context.mItemInProgress;
-
-        if (!(mInProgressUpdateList.IsItemValid(i)))
-        {
-            i++;
-            continue;
-        }
-
-        WeaveLogDetail(DataManagement, "Encoding item %u, ForceMerge: %d, Private: %d", i, mInProgressUpdateList.AreFlagsSet(i, kFlag_ForceMerge),
-                mInProgressUpdateList.AreFlagsSet(i, kFlag_Private));
-
-        mInProgressUpdateList.GetItemAt(i, traitPath);
-
-        updatableDataSink = Locate(traitPath.mTraitDataHandle);
-        schemaEngine = updatableDataSink->GetSchemaEngine();
-        context.mPathToEncode = traitPath;
-        context.mForceMerge = mInProgressUpdateList.AreFlagsSet(i, kFlag_ForceMerge);
-
-        if (context.mNextDictionaryElementPathHandle != kNullPropertyPathHandle)
-        {
-            WeaveLogDetail(DataManagement, "Resume encoding a dictionary");
-        }
-
-        err = DirtyPathToDataElement(context);
-        SuccessOrExit(err);
-
-        dictionaryOverflowed = (context.mNextDictionaryElementPathHandle != kNullPropertyPathHandle);
-        if (dictionaryOverflowed)
-        {
-            InsertInProgressUpdateItem(traitPath, schemaEngine);
-        }
-
-        i++;
-
-        VerifyOrExit(!dictionaryOverflowed, /* no error */);
-    }
-
-exit:
-
-    if (mUpdateRequestContext.mNumDataElementsAddedToPayload > 0 &&
-            (err == WEAVE_ERROR_BUFFER_TOO_SMALL))
-    {
-        WeaveLogDetail(DataManagement, "Suppressing error %" PRId32 "; will try again later", err);
-        RemoveInProgressPrivateItemsAfter(context.mItemInProgress);
-        err = WEAVE_NO_ERROR;
-    }
-
-    if (err == WEAVE_NO_ERROR)
-    {
-        mUpdateRequestContext.mIsPartialUpdate =
-            (context.mItemInProgress < mInProgressUpdateList.GetPathStoreSize());
-    }
-    else
-    {
-        traitPath.mPropertyPathHandle = kRootPropertyPathHandle;
-
-        // TODO: there is no coverage for this yet
-        WeaveLogDetail(DataManagement, "%s failed: %d", __func__, err);
-
-        if (err == WEAVE_ERROR_BUFFER_TOO_SMALL)
-        {
-            WeaveLogDetail(DataManagement, "illegal oversized trait property is too big to fit in the packet");
-        }
-
-        UpdateCompleteEventCbHelper(traitPath,
-                                    nl::Weave::Profiles::kWeaveProfile_Common,
-                                    nl::Weave::Profiles::Common::kStatus_InternalError,
-                                    err);
-
-        mInProgressUpdateList.RemoveTrait(traitPath.mTraitDataHandle);
-        mPendingUpdateSet.RemoveTrait(traitPath.mTraitDataHandle);
-
-        updatableDataSink->ClearVersion();
-        updatableDataSink->ClearUpdateRequiredVersion();
-        updatableDataSink->SetConditionalUpdate(false);
-
-        context.mNextDictionaryElementPathHandle = kNullPropertyPathHandle;
-
-        if (IsEstablishedIdle())
-        {
-            HandleSubscriptionTerminated(IsRetryEnabled(), err, NULL);
-        }
-    }
-
-    return err;
-}
-
 void SubscriptionClient::SetUpdateStartVersions(void)
 {
     TraitPath traitPath;
@@ -3027,7 +2752,7 @@ void SubscriptionClient::SetUpdateStartVersions(void)
     {
         mInProgressUpdateList.GetItemAt(i, traitPath);
 
-        updatableSink = Locate(traitPath.mTraitDataHandle);
+        updatableSink = Locate(traitPath.mTraitDataHandle, mDataSinkCatalog);
 
         updatableSink->SetUpdateStartVersion();
     }
@@ -3039,30 +2764,37 @@ WEAVE_ERROR SubscriptionClient::SendSingleUpdateRequest(void)
     uint32_t maxUpdateSize;
     uint32_t maxPayloadSize = 0;
     PacketBuffer* pBuf = NULL;
+    UpdateEncoder::Context context;
 
     maxUpdateSize = GetMaxUpdateSize();
+    err = mUpdateClient.mpBinding->AllocateRightSizedBuffer(pBuf, maxUpdateSize, WDM_MIN_UPDATE_SIZE, maxPayloadSize);
+    SuccessOrExit(err);
 
     mUpdateRequestContext.mSubClient = this;
     mUpdateRequestContext.mNumDataElementsAddedToPayload = 0;
     mUpdateRequestContext.mIsPartialUpdate = false;
 
-    err = mUpdateClient.mpBinding->AllocateRightSizedBuffer(pBuf, maxUpdateSize, WDM_MIN_UPDATE_SIZE, maxPayloadSize);
+    context.mBuf = pBuf;
+    context.mMaxPayloadSize = maxPayloadSize;
+    context.mUpdateRequestIndex = mUpdateClient.GetUpdateRequestIndex();
+    context.mExpiryTimeMicroSecond = 0;
+    context.mItemInProgress = mUpdateRequestContext.mItemInProgress;
+    context.mNextDictionaryElementPathHandle = mUpdateRequestContext.mNextDictionaryElementPathHandle;
+    context.mInProgressUpdateList = &mInProgressUpdateList;
+    context.mDataSinkCatalog = mDataSinkCatalog;
+
+    err = mUpdateEncoder.EncodeRequest(&context);
     SuccessOrExit(err);
 
-    err = mUpdateEncoder.StartUpdate(pBuf, 0, maxPayloadSize, mUpdateClient.GetUpdateRequestIndex());
-    pBuf = NULL;
-    SuccessOrExit(err);
+    mUpdateRequestContext.mNextDictionaryElementPathHandle = context.mNextDictionaryElementPathHandle;
 
-    err = BuildSingleUpdateRequestDataList(mUpdateRequestContext);
-    SuccessOrExit(err);
+    mUpdateRequestContext.mIsPartialUpdate = (context.mItemInProgress < mInProgressUpdateList.GetPathStoreSize());
 
-    err = mUpdateEncoder.FinishUpdate();
-    SuccessOrExit(err);
-
-    if (mUpdateRequestContext.mNumDataElementsAddedToPayload)
+    if (context.mNumDataElementsAddedToPayload)
     {
         if (false == mUpdateRequestContext.mIsPartialUpdate)
         {
+            // TODO: Should this happen at the first PartialUpdateRequest, or at the final UpdateRequest?
             SetUpdateStartVersions();
         }
 
@@ -3076,7 +2808,8 @@ WEAVE_ERROR SubscriptionClient::SendSingleUpdateRequest(void)
                                nl::Weave::FaultInjection::kFault_WRMSendError,
                                0, 1));
 
-        err = mUpdateClient.SendUpdate(mUpdateRequestContext.mIsPartialUpdate, mUpdateEncoder.ReturnPBuf());
+        err = mUpdateClient.SendUpdate(mUpdateRequestContext.mIsPartialUpdate, pBuf);
+        pBuf = NULL;
         SuccessOrExit(err);
 
         WEAVE_FAULT_INJECT(FaultInjection::kFault_WDM_DelayUpdateResponse,
@@ -3084,23 +2817,45 @@ WEAVE_ERROR SubscriptionClient::SendSingleUpdateRequest(void)
                                nl::Weave::FaultInjection::kFault_DropIncomingUDPMsg,
                                0, 1));
 
+        mUpdateRequestContext.mItemInProgress = context.mItemInProgress;
+
     }
     else
     {
         mUpdateClient.CancelUpdate();
-        mUpdateEncoder.Cancel();
     }
 
 exit:
+
+    if (NULL != pBuf)
+    {
+        PacketBuffer::Free(pBuf);
+        pBuf = NULL;
+    }
 
     if (err != WEAVE_NO_ERROR)
     {
         ClearUpdateInFlight();
         mUpdateClient.CancelUpdate();
-        mUpdateEncoder.Cancel();
+
+        context.mNextDictionaryElementPathHandle = kNullPropertyPathHandle;
+
+        // TODO: there is no coverage for this yet
+        WeaveLogDetail(DataManagement, "%s failed: %d", __func__, err);
+
+        if (err == WEAVE_ERROR_BUFFER_TOO_SMALL)
+        {
+            WeaveLogDetail(DataManagement, "illegal oversized trait property is too big to fit in the packet");
+        }
+
+        ClearPathStore(mInProgressUpdateList, err);
+
+        if (IsEstablishedIdle())
+        {
+            HandleSubscriptionTerminated(IsRetryEnabled(), err, NULL);
+        }
     }
 
-    WeaveLogFunctError(err);
     return err;
 }
 
@@ -3243,6 +2998,7 @@ void SubscriptionClient::InitUpdatableSinkTrait(void * aDataSink, TraitDataHandl
 
     subClient = static_cast<SubscriptionClient *>(aContext);
     updatableDataSink->SetSubscriptionClient(subClient);
+    updatableDataSink->SetUpdateEncoder(&subClient->mUpdateEncoder);
     updatableDataSink->ClearUpdateRequiredVersion();
     updatableDataSink->SetConditionalUpdate(false);
 
@@ -3277,25 +3033,6 @@ exit:
     }
 
     return;
-}
-
-TraitUpdatableDataSink *SubscriptionClient::Locate(TraitDataHandle aTraitDataHandle) const
-{
-    WEAVE_ERROR err = WEAVE_NO_ERROR;
-    TraitDataSink *dataSink = NULL;
-    TraitUpdatableDataSink *updatableDataSink = NULL;
-
-    err = mDataSinkCatalog->Locate(aTraitDataHandle, &dataSink);
-    SuccessOrExit(err);
-
-    VerifyOrExit(dataSink->IsUpdatableDataSink(), );
-
-    updatableDataSink = static_cast<TraitUpdatableDataSink *>(dataSink);
-
-exit:
-    VerifyOrDie(NULL != updatableDataSink);
-
-    return updatableDataSink;
 }
 
 #endif // WEAVE_CONFIG_ENABLE_WDM_UPDATE

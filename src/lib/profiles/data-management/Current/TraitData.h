@@ -41,6 +41,7 @@ namespace Profiles {
 namespace WeaveMakeManagedNamespaceIdentifier(DataManagement, kWeaveManagedNamespaceDesignation_Current) {
 
 class SubscriptionClient;
+class UpdateEncoder;
 struct TraitPath;
 class TraitSchemaEngine;
 class UpdateDirtyPathFilter;
@@ -146,11 +147,11 @@ public:
 class UpdateDictionaryDirtyPathCut : public IDirtyPathCut
 {
 public:
-    UpdateDictionaryDirtyPathCut(TraitDataHandle aTraitDataHandle, SubscriptionClient *pSubClient);
+    UpdateDictionaryDirtyPathCut(TraitDataHandle aTraitDataHandle, UpdateEncoder *pEncoder);
     virtual WEAVE_ERROR CutPath (PropertyPathHandle aPathhandle, const TraitSchemaEngine * apEngine);
 
 private:
-    SubscriptionClient *mpSubClient;
+    UpdateEncoder *mpUpdateEncoder;
     TraitDataHandle mTraitDataHandle;
 };
 
@@ -690,10 +691,12 @@ public:
     virtual bool IsUpdatableDataSink(void)  { return false; }
 
     virtual WEAVE_ERROR SetSubscriptionClient(SubscriptionClient * apSubClient) { return WEAVE_NO_ERROR; };
+    virtual WEAVE_ERROR SetUpdateEncoder(UpdateEncoder * apEncoder) { return WEAVE_NO_ERROR; };
 
 #endif // WEAVE_CONFIG_ENABLE_WDM_UPDATE
 
     virtual SubscriptionClient * GetSubscriptionClient() { return NULL; }
+    virtual UpdateEncoder * GetUpdateEncoder() { return NULL; }
 
     /* Subclass can invoke this to clear out their version */
     void ClearVersion(void) { mHasValidVersion = false; }
@@ -772,10 +775,13 @@ public:
     virtual bool IsUpdatableDataSink(void) { return true; }
 
     virtual WEAVE_ERROR SetSubscriptionClient(SubscriptionClient * apSubClient) { mpSubClient = apSubClient; return WEAVE_NO_ERROR; }
+    virtual WEAVE_ERROR SetUpdateEncoder(UpdateEncoder * apEncoder) { mpUpdateEncoder = apEncoder; return WEAVE_NO_ERROR; }
 
     virtual SubscriptionClient * GetSubscriptionClient() { return mpSubClient; }
+    virtual UpdateEncoder * GetUpdateEncoder() { return mpUpdateEncoder; }
 private:
     friend class SubscriptionClient;
+    friend class UpdateEncoder;
 
     /**
      * Checks if a DataVersion is more recent than the one currently stored in the Sink.
@@ -804,6 +810,7 @@ private:
     bool mConditionalUpdate;
     bool mPotentialDataLoss;
     SubscriptionClient * mpSubClient;
+    UpdateEncoder * mpUpdateEncoder;
 };
 #endif    // WEAVE_CONFIG_ENABLE_WDM_UPDATE
 

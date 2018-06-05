@@ -446,6 +446,8 @@ WEAVE_ERROR Path::Parser::CheckSchemaValidity(void) const
                     SuccessOrExit(err);
                 }
 
+                TagPresenceMask |= (1 << kCsTag_RequestedVersion);
+
                 err = reader.Next();
                 VerifyOrExit(err == WEAVE_END_OF_TLV, err = WEAVE_ERROR_WDM_MALFORMED_DATA_ELEMENT);
 
@@ -460,7 +462,7 @@ WEAVE_ERROR Path::Parser::CheckSchemaValidity(void) const
 
 #if WEAVE_DETAIL_LOGGING
             {
-                if (requestedVersion.mMaxVersion > 1 || requestedVersion.mMinVersion > 1)
+                if (TagPresenceMask & (1 << kCsTag_RequestedVersion))
                 {
                     PRETTY_PRINT_SAMELINE("[ProfileId = 0x%" PRIx32, ProfileID);
 
@@ -4081,7 +4083,7 @@ WEAVE_ERROR UpdateRequest::Parser::CheckSchemaValidity(void) const
         }
         else
         {
-            // a custom command can only contain, at top level, context-specific tags or profile tags
+            // an UpdateRequest can only contain, at top level, context-specific tags or profile tags
             ExitNow(err = WEAVE_ERROR_INVALID_TLV_TAG);
         }
     }
@@ -4089,7 +4091,6 @@ WEAVE_ERROR UpdateRequest::Parser::CheckSchemaValidity(void) const
     PRETTY_PRINT("}");
     PRETTY_PRINT("");
 
-    // almost all fields in an Event are optional
     if (WEAVE_END_OF_TLV == err)
     {
         err = WEAVE_NO_ERROR;
@@ -4112,7 +4113,7 @@ WEAVE_ERROR UpdateRequest::Parser::GetReaderOnArgument(nl::Weave::TLV::TLVReader
     return GetReaderOnTag(nl::Weave::TLV::ContextTag(kCsTag_Argument), apReader);
 }
 
-WEAVE_ERROR UpdateRequest::Parser::GetUpdateRequestIndex(nl::Weave::TLV::TLVReader * const apReader, uint32_t * const apUpdateRequestIndex) const
+WEAVE_ERROR UpdateRequest::Parser::GetUpdateRequestIndex(uint32_t * const apUpdateRequestIndex) const
 {
     return GetSimpleValue(kCsTag_UpdateRequestIndex, nl::Weave::TLV::kTLVType_UnsignedInteger, apUpdateRequestIndex);
 }
@@ -4123,17 +4124,7 @@ WEAVE_ERROR UpdateRequest::Parser::GetDataList (DataList::Parser * const apDataL
     WEAVE_ERROR err = WEAVE_NO_ERROR;
     nl::Weave::TLV::TLVReader reader;
 
-    err = LookForElementWithTag(mReader, nl::Weave::TLV::ProfileTag(nl::Weave::Profiles::kWeaveProfile_WDM, kCsTag_DataList), &reader);
-    SuccessOrExit(err);
-
-    VerifyOrExit(nl::Weave::TLV::kTLVType_Array == reader.GetType(), err = WEAVE_ERROR_WRONG_TLV_TYPE);
-
-    apDataList->Init(reader);
-
-exit:
-    WeaveLogIfFalse((WEAVE_NO_ERROR == err) || (WEAVE_END_OF_TLV == err));
-
-    return err;
+    return apDataList->InitIfPresent(mReader, kCsTag_DataList);
 }
 
 // aReader has to be on the element of anonymous container

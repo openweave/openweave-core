@@ -316,6 +316,7 @@ private:
     friend class TraitSchemaEngine;
     friend class UpdateDirtyPathFilter;
     friend class UpdateDictionaryDirtyPathCut;
+    friend class UpdateEncoder;
 
     enum ClientState
     {
@@ -457,14 +458,7 @@ private:
     // Methods to encode and send update requests
     WEAVE_ERROR FormAndSendUpdate(bool aNotifyOnError);
     WEAVE_ERROR SendSingleUpdateRequest(void);
-    WEAVE_ERROR BuildSingleUpdateRequestDataList(UpdateRequestContext &aContext);
-    WEAVE_ERROR DirtyPathToDataElement(UpdateRequestContext &aContext);
     static WEAVE_ERROR AddElementFunc(UpdateEncoder * aEncoder, void *apCallState, TLV::TLVWriter & aOuterWriter);
-    WEAVE_ERROR Lookup(TraitDataHandle aTraitDataHandle,
-                       TraitUpdatableDataSink * &updatableDataSink,
-                       const TraitSchemaEngine * &schemaEngine,
-                       ResourceIdentifier &resourceId,
-                       uint64_t &instanceId);
     void SetUpdateStartVersions(void);
 
     // Methods to handle update response and exchange failures (OnResponseTimeout, OnSendError)
@@ -494,8 +488,6 @@ private:
     void SetPendingSetState(PendingSetState aState);
     WEAVE_ERROR MovePendingToInProgress(void);
     WEAVE_ERROR AddItemPendingUpdateSet(const TraitPath &aItem, const TraitSchemaEngine * const aSchemaEngine);
-    WEAVE_ERROR InsertInProgressUpdateItem(const TraitPath &aItem, const TraitSchemaEngine * const aSchemaEngine);
-    void RemoveInProgressPrivateItemsAfter(uint16_t aItemInProgress);
     WEAVE_ERROR MoveInProgressToPending(void);
 
     // Tracking if a payload is in flight
@@ -531,7 +523,6 @@ private:
     static void InitUpdatableSinkTrait(void *aDataSink, TraitDataHandle aDataHandle, void *aContext);
     UpdatableTIContext *GetUpdatableTIContextList(void) { return mClientTraitInfoPool; }
     uint32_t GetNumUpdatableTraitInstances(void) { return mNumUpdatableTraitInstances; }
-    TraitUpdatableDataSink *Locate(TraitDataHandle aTraitDataHandle) const;
 
     // Data members for WDM Update
 
