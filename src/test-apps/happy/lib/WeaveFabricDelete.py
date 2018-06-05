@@ -43,10 +43,20 @@ def option():
 
 class WeaveFabricDelete(HappyNetwork, Weave):
     """
-    Deletes a Weave Fabric. If there are any nodes or networks, their lose
-    their ULA addresses on Weave fabric.
+    Deletes a Weave Fabric and removes any Weave ULA addresses assigned
+    to nodes or networks in a Happy topology.
 
     weave-fabric-delete [-h --help] [-q --quiet] [-i --id <FABRIC_ID>]
+
+        -i --id     Optional. Fabric ID. Omit to delete the Weave Fabric
+                    for the current topology.
+
+    Examples:
+    $ weave-fabric-delete fab1
+        Deletes a Weave Fabric with an ID of fab1.
+
+    $ weave-fabric-delete
+        Deletes the current topology's Weave Fabric.
 
     return:
         0    success

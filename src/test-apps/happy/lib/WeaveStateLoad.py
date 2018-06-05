@@ -49,13 +49,16 @@ def option():
 
 class WeaveStateLoad(WeaveState):
     """
-    weave-state-load loads weave virtual network topology from a file.
+    Loads a Weave-enabled virtual network topology from a JSON file.
 
     weave-state-load [-h --help] [-q --quiet] [-f --file <JSON_FILE>]
 
+        -f --file   Required. A valid JSON file with the topology to load.
+
     Example:
-    $ waeve-state-load <file>.json
-        Builds weave virtual network topology based on description specified in <file>.json.
+    $ weave-state-load myweavestate.json
+        Creates a virtual network topology based on the state described
+        in myweavestate.json.
 
     return:
         0    success

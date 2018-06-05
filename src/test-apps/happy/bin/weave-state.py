@@ -31,5 +31,27 @@ import WeaveState
 
 if __name__ == "__main__":
 
-    weave_state = WeaveState.WeaveState()
+    options = WeaveState.option()
+
+    try:
+        opts, args = getopt.getopt(sys.argv[1:], "hq",
+                                   ["help", "quiet"])
+
+    except getopt.GetoptError as err:
+    	print WeaveState.WeaveState.__doc__
+        print hred(str(err))
+        sys.exit(hred("%s: Failed to parse arguments." % (__file__)))
+
+    for o, a in opts:
+        if o in ("-h", "--help"):
+            print WeaveState.WeaveState.__doc__
+            sys.exit(0)
+
+        elif o in ("-q", "--quiet"):
+            options["quiet"] = True
+
+        else:
+            assert False, "unhandled option"
+
+    weave_state = WeaveState.WeaveState(options)
     weave_state.printState()

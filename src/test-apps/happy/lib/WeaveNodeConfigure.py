@@ -55,24 +55,33 @@ def option():
 
 class WeaveNodeConfigure():
     """
-    weave-node-configure: configure weave-related parameters for happy nodes.
+    Configures Weave-related parameters for Happy nodes.
 
-    weave-node-configure [-h --help]
+    weave-node-configure [-h --help] [-d --delete <NODE_NAME>]
                          [
-                           [-w --weave-node-id <WEAVE_ID>] \\
-                           [-c --weave-certificate </path/to/weave_certificate>] \\
-                           [-k --private-key </path/to/private_key>] \\
-                           [-p --pairing_code <pairing_code>] \\
-                           node_name
-                         ]
-                         [-d --delete [node_name]]
+                           [-w --weave-node-id <WEAVE_ID>]
+                           [-c --weave-certificate </PATH/TO/WEAVE_CERITIFICATE>]
+                           [-k --private-key </PATH/TO/PRIVATE_KEY>]
+                           [-p --pairing_code <PAIRING_CODE>]
+                           <NODE_NAME>
+                         ]         
 
-    Example:
+    Examples:
     $ weave-node-configure
+        Configures all Weave-capable nodes with randomly-generated parameters.
+
     $ weave-node-configure -w 18B4300000000001 BorderRouter
+        Configures the BorderRouter node with a Weave Node ID of 18B4300000000001.
+
     $ weave-node-configure -w 18B4300000000001 -c /tmp/node.cert -k /tmp/node.key -p ABC123 BorderRouter
+        Configures the BorderRouter node with all Weave-related parameters.
+
     $ weave-node-configure -d
+        Deletes all Weave-related parameters from all Weave nodes in a Happy
+        topology.
+
     $ weave-node-configure --delete BorderRouter
+        Deletes all Weave-related parameters from the BorderRouter node.
 
     return:
         0   success

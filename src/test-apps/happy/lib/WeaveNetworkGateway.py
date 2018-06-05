@@ -50,14 +50,20 @@ def option():
 
 class WeaveNetworkGateway(HappyNetwork, HappyNode, Weave):
     """
-    weave-network-gateway manages network IP routes.
+    Manages Weave network IP routes in a Happy topology and assigns a gateway
+    node for the Weave Fabric.
 
-    weave-network-gateway [-h --help] [-q --quiet] [-i --id <NETWORK_NAME>]
-                      [-a --add] [-d --delete] [-g --gateway <NODE>]
+    weave-network-gateway [-h --help] [-q --quiet] [-a --add] [-d --delete]
+                          [-i --id <NETWORK_NAME>] [-g --gateway <NODE>]
 
-    Example:
-    $ weave-network-gateway Home node02
-        Network Home get route on Weave Fabric through node02.
+    Examples:
+    $ weave-network-gateway HomeThread BorderRouter
+        Adds routes for all Weave nodes in the HomeThread network to the default
+        routes of all nodes accessible via the BorderRouter gateway.
+
+    $ weave-network-gateway -d -i HomeThread -g BorderRouter
+        Delete routes for all Weave nodes in the HomeThread network to the default
+        routes of all nodes accessible via the BorderRouter gateway.
 
     return:
         0    success

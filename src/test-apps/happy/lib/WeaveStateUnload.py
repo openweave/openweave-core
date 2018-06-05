@@ -48,13 +48,18 @@ def option():
 
 class WeaveStateUnload(WeaveState):
     """
-    weave-state-unload loads virtual weave network from a file.
+    Deletes a Weave-enabled virtual network topology based on the state described
+    in a JSON file. If the current Happy state does not match the specified JSON
+    file, a partial deletion of the topology might occur.
 
     weave-state-unload [-h --help] [-q --quiet] [-f --file <JSON_FILE>]
 
+        -f --file   Required. A valid JSON file with the topology to delete.
+
     Example:
-    $ weave-state-unload <file>.json
-        Deletes virtual network topology based on description specified in <file>.json.
+    $ weave-state-unload myweavestate.json
+        Deletes the Weave-enabled network topology based on the state described in
+        myweavestate.json.
 
     return:
         0    success

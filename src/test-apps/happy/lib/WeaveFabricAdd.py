@@ -46,13 +46,21 @@ def option():
 
 class WeaveFabricAdd(HappyNetwork, HappyNode, Weave):
     """
-    weave-fabric-add creates a weave fabric.
+    Creates a Weave Fabric for a Happy topology.
 
     weave-fabric-add [-h --help] [-q --quiet] [-i --id <FABRIC_ID>]
 
-    Example:
-    $ weave-fabric-add 123456
-        Creates a Weave Fabric with id 123456
+        -i --id 	Optional. Fabric ID. Limit 10 characters in
+                    hexadecimal format. Omit to generate a random
+                    Fabric ID.
+
+    Examples:
+    $ weave-fabric-delete fab1
+        Creates a Weave Fabric with an ID of fab1 and a Weave
+        Global Prefix of fd00:0000:fab1::/48.
+
+    $ weave-fabric-add
+        Creates a Weave Fabric with a randomly-generated ID.
 
     return:
         0    success
