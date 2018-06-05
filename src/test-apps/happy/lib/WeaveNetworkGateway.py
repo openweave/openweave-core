@@ -56,6 +56,10 @@ class WeaveNetworkGateway(HappyNetwork, HappyNode, Weave):
     weave-network-gateway [-h --help] [-q --quiet] [-a --add] [-d --delete]
                           [-i --id <NETWORK_NAME>] [-g --gateway <NODE>]
 
+        -i --id         Required. Network to add routes to. Find using happy-network-list
+                        or happy-state.
+        -g --gateway    Required. Weave node to serve as the Weave Fabric gateway.
+
     Examples:
     $ weave-network-gateway HomeThread BorderRouter
         Adds routes for all Weave nodes in the HomeThread network to the default

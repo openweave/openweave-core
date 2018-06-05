@@ -51,8 +51,8 @@ class WeaveFabricAdd(HappyNetwork, HappyNode, Weave):
     weave-fabric-add [-h --help] [-q --quiet] [-i --id <FABRIC_ID>]
 
         -i --id 	Optional. Fabric ID. Limit 10 characters in
-                    hexadecimal format. Omit to generate a random
-                    Fabric ID.
+                    hexadecimal format. Find using weave-state. Omit
+                    to generate a random Fabric ID.
 
     Examples:
     $ weave-fabric-delete fab1

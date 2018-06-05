@@ -48,8 +48,8 @@ class WeaveFabricDelete(HappyNetwork, Weave):
 
     weave-fabric-delete [-h --help] [-q --quiet] [-i --id <FABRIC_ID>]
 
-        -i --id     Optional. Fabric ID. Omit to delete the Weave Fabric
-                    for the current topology.
+        -i --id     Optional. Fabric ID. Find using weave-state. Omit to
+                    delete the Weave Fabric for the current topology.
 
     Examples:
     $ weave-fabric-delete fab1

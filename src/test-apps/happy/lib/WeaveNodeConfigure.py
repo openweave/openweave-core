@@ -57,14 +57,23 @@ class WeaveNodeConfigure():
     """
     Configures Weave-related parameters for Happy nodes.
 
-    weave-node-configure [-h --help] [-d --delete <NODE_NAME>]
-                         [
-                           [-w --weave-node-id <WEAVE_ID>]
-                           [-c --weave-certificate </PATH/TO/WEAVE_CERITIFICATE>]
-                           [-k --private-key </PATH/TO/PRIVATE_KEY>]
-                           [-p --pairing_code <PAIRING_CODE>]
-                           <NODE_NAME>
-                         ]         
+    weave-node-configure [-h --help] [-d --delete] [-w --weave-node-id <WEAVE_ID>]
+                         [-c --weave-certificate </PATH/TO/WEAVE_CERITIFICATE>]
+                         [-k --private-key </PATH/TO/PRIVATE_KEY>]
+                         [-p --pairing_code <PAIRING_CODE>] <NODE_NAME>
+
+        -w --weave-node-id      The EUI64 to use as a Weave Node ID, derived from a
+                                node's MAC address. Omit to generate a random Weave
+                                Node ID.
+        -c --weave-certificate  Optional. Path to a Weave certificate. A dummy Weave
+                                certificate is used in test scripts as needed.
+        -k --private-key        Optional. Path to a Weave private key. A dummy Weave
+                                private key is used in test scripts as needed.
+        -p --pairing-code       Weave pairing code, a six character alphanumeric
+                                string. Omit to generate a random pairing code.
+        <NODE_NAME>             Optional. Node to configure for Weave. Find using
+                                happy-node-list or happy-state. Omit to configure
+                                all Weave-capable nodes in the topology.
 
     Examples:
     $ weave-node-configure
