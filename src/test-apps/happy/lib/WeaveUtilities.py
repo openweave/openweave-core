@@ -265,8 +265,8 @@ class FaultInjectionOptions:
     """
 
     def __init__(self, nodes = None):
-        self.configuration = { 'faultid': None, 'faultskip': None, 'failonly': None, 'group': None, 'numgroups': None}
-        self.getopt_config = [ "faultid=", "faultskip=", "failonly=", "group=", "numgroups=" ]
+        self.configuration = { 'faultid': None, 'faultskip': None, 'failonly': None, 'group': None, 'numgroups': None, 'nofaults': False}
+        self.getopt_config = [ "faultid=", "faultskip=", "failonly=", "group=", "numgroups=", "nofaults" ]
         self.nodes = ['client', 'server']
         if(nodes):
             self.nodes = nodes
@@ -275,6 +275,7 @@ class FaultInjectionOptions:
         --faultskip N               Inject the fault only once, skipping N instances
         --failonly                  Inject faults only to the node specified; allowed values: { """ + """, """.join(self.nodes) + """ }
         --group N  --numgroups M    Divide the list of tests in M groups and execute only the Nth (1 <= N <= M)
+        --nofaults                  Disable all faults (to run the happy sequence only)
         """
 
     def is_node_enabled(self, node):
@@ -311,6 +312,8 @@ class FaultInjectionOptions:
                     print self.help_string
                     sys.exit(1)
                 self.configuration["numgroups"] = num
+            elif o in ("--nofaults"):
+                self.configuration["nofaults"] = True
             else:
                 ret_opts.append((o, a))
 
@@ -379,6 +382,11 @@ class FaultInjectionOptions:
 
         fault_ids = [ self.configuration['faultid'] ]
         ret_configs = []
+
+        if self.configuration["nofaults"]:
+            # nothing to do; return an empty list
+            return ret_configs
+
         if self.is_node_enabled(node):
             fault_counters = parse_fault_injection_counters(outputlog)
             fault_instance_parameters = self.parse_fault_instance_parameters(outputlog)

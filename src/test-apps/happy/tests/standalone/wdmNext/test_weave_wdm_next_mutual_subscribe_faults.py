@@ -50,7 +50,9 @@ class test_weave_wdm_next_mutual_subscribe_faults(weave_wdm_next_test_base):
         counters['server'] = WeaveUtilities.parse_fault_injection_counters(output_logs['server'])
 
         # As of today, all fault points should be executed on the server, but not Weave_WDMSendUpdateBadVersion
-        not_required_server_faults = [ "Weave_WDMSendUpdateBadVersion" ]
+        not_required_server_faults = [ "Weave_WDMSendUpdateBadVersion",
+                                       "Weave_WDMUpdateRequestSendError",
+                                       "Weave_WDMDelayUpdateResponse" ]
 
         required_server_faults = [ key for key in counters["server"].keys() if "Weave_WDM" in key and key not in not_required_server_faults]
 
@@ -61,7 +63,8 @@ class test_weave_wdm_next_mutual_subscribe_faults(weave_wdm_next_test_base):
         not_required_client_faults = [ "Weave_WDMSendCommandBadVersion",
                                        "Weave_WDMSendCommandExpired",
                                        "Weave_WDMSendUpdateBadVersion",
-                                       "Weave_WDMUpdateRequestSendError" ]
+                                       "Weave_WDMUpdateRequestSendError",
+                                       "Weave_WDMDelayUpdateResponse" ]
 
         required_client_faults = [ key for key in counters["client"].keys() if "Weave_WDM" in key and key not in not_required_client_faults]
 

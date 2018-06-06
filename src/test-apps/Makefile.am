@@ -980,6 +980,7 @@ check_SCRIPTS                                 +=                \
     happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_63.py     \
     happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_64.py     \
     happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_65.py     \
+    happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_subscribe_faults_happy.sh \
     happy/tests/standalone/wdmNext/test_weave_wdm_next_application_key_01.py      \
     happy/tests/standalone/wdmNext/test_weave_wdm_next_application_key_02.py      \
     happy/tests/standalone/wdmNext/test_weave_wdm_next_oneway_resub.py            \
