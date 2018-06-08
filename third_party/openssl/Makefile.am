@@ -144,6 +144,7 @@ $(OPENSSL_CONFIG_SENTINEL): $(OPENSSL_SHADOW_SENTINEL)
 	$(AM_V_CONFIG)cd $(abs_openssl_builddir) && \
                 INSTALL="$(INSTALL)" \
 		CFLAGS="$(CFLAGS)" \
+		LDFLAGS="$(LDFLAGS)" \
 		./Configure \
 		--prefix=/ \
 		--openssldir=/openssl \

@@ -1922,14 +1922,29 @@ NL_WITH_OPTIONAL_INTERNAL_PACKAGE([OpenSSL],
         # Android should come before the generic Linux catch-all
         # case.
 
-        *86*-*-android*)
+        arm-*-android*)
+            WEAVE_OPENSSL_TARGET=android-armeabi
+            WEAVE_OPENSSL_TARGET_DEFINES="-D__ARM_MAX_ARCH__=8"
+            ;;
+
+        armv7-*-android*)
+            WEAVE_OPENSSL_TARGET=android-armeabi
+            WEAVE_OPENSSL_TARGET_DEFINES="-march=armv7-a -D__ARM_MAX_ARCH__=8"
+            ;;
+
+        arm64-*-android*)
+            WEAVE_OPENSSL_TARGET=android64-aarch64
+            WEAVE_OPENSSL_TARGET_DEFINES="-D__ARM_MAX_ARCH__=8"
+            ;;
+
+        i386-*-android*)
             WEAVE_OPENSSL_TARGET=android-x86
             WEAVE_OPENSSL_TARGET_DEFINES=
             ;;
 
-        arm*-*-android*)
-            WEAVE_OPENSSL_TARGET=android-armeabi
-            WEAVE_OPENSSL_TARGET_DEFINES="-D__ARM_MAX_ARCH__=7"
+        x86_64-*-android*)
+            WEAVE_OPENSSL_TARGET=android64
+            WEAVE_OPENSSL_TARGET_DEFINES=
             ;;
 
         *-*-linux*)
