@@ -1,6 +1,6 @@
 /*
  *
- *    Copyright (c) 2013-2017 Nest Labs, Inc.
+ *    Copyright (c) 2013-2018 Nest Labs, Inc.
  *    All rights reserved.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
@@ -83,6 +83,26 @@
 // socket option for MacOS & iOS systems.
 #define TCP_IDLE_INTERVAL_OPT_NAME TCP_KEEPALIVE
 #endif
+
+/*
+ * This logic to register a null operation callback with the LwIP TCP/IP task
+ * ensures that the TCP timer loop is started when a connection is established,
+ * which is necessary to ensure that initial SYN and SYN-ACK packets are
+ * retransmitted during the 3-way handshake.
+ */
+#if WEAVE_SYSTEM_CONFIG_USE_LWIP
+namespace {
+
+void nil_tcpip_callback(void * _aContext)
+{ }
+
+err_t start_tcp_timers(void)
+{
+    return tcpip_callback(nil_tcpip_callback, NULL);
+}
+
+} // anonymous namespace
+#endif // WEAVE_SYSTEM_CONFIG_USE_LWIP
 
 namespace nl {
 namespace Inet {
@@ -339,6 +359,12 @@ INET_ERROR TCPEndPoint::Connect(IPAddress addr, uint16_t port, InterfaceId intf)
         else
             res = INET_ERROR_WRONG_ADDRESS_TYPE;
 #endif // LWIP_VERSION_MAJOR <= 1 || LWIP_VERSION_MINOR >= 5
+
+        // Ensure that TCP timers are started
+        if (res == INET_NO_ERROR)
+        {
+            res = start_tcp_timers();
+        }
 
         if (res == INET_NO_ERROR)
         {
@@ -1907,6 +1933,12 @@ err_t TCPEndPoint::LwIPHandleIncomingConnection(void *arg, struct tcp_pcb *tpcb,
             InetLayer& lInetLayer = listenEP->Layer();
 
             err = lInetLayer.NewTCPEndPoint(&conEP);
+        }
+
+        // Ensure that TCP timers have been started
+        if (err == INET_NO_ERROR)
+        {
+            err = start_tcp_timers();
         }
 
         // If successful in allocating an end point...
