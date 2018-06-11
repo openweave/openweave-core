@@ -43,16 +43,26 @@ noinst_LIBRARIES                        = \
     libWeaveTool.a                        \
     $(NULL)
 
-#Do not borrow this for other sections of code.
-#This is only broken apart for inclusion in the fuzzing
-
-libWeaveTool_a_SOURCES                    = \
+libWeaveTool_a_SOURCES                  = \
     CertUtils.cpp                         \
     GeneralUtils.cpp                      \
     KeyUtils.cpp                          \
     $(NULL)
 
-weave_SOURCES				= \
+libWeaveTool_a_CPPFLAGS				    = \
+    $(AM_CPPFLAGS)                        \
+    -I$(top_srcdir)/src/include           \
+    $(LWIP_CPPFLAGS)                      \
+    $(SOCKETS_CPPFLAGS)                   \
+    $(NULL)
+
+libWeaveTool_a_CXXFLAGS                 = \
+    $(PTHREAD_CFLAGS)                     \
+    $(NULL)
+
+
+
+weave_SOURCES				            = \
     Cmd_ConvertCert.cpp                   \
     Cmd_ConvertKey.cpp                    \
     Cmd_GenCACert.cpp                     \
@@ -81,7 +91,7 @@ weave_CXXFLAGS                          = \
     $(PTHREAD_CFLAGS)                     \
     $(NULL)
 
-weave_LDADD				= \
+weave_LDADD				                = \
     libWeaveTool.a                        \
     -L$(top_builddir)/src/lib -lWeave     \
     $(LWIP_LDFLAGS) $(LWIP_LIBS)          \

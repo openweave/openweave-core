@@ -162,9 +162,9 @@ libWeaveTool_a_LIBADD =
 am__libWeaveTool_a_SOURCES_DIST = CertUtils.cpp GeneralUtils.cpp \
 	KeyUtils.cpp
 @WEAVE_BUILD_TOOLS_TRUE@am_libWeaveTool_a_OBJECTS =  \
-@WEAVE_BUILD_TOOLS_TRUE@	CertUtils.$(OBJEXT) \
-@WEAVE_BUILD_TOOLS_TRUE@	GeneralUtils.$(OBJEXT) \
-@WEAVE_BUILD_TOOLS_TRUE@	KeyUtils.$(OBJEXT)
+@WEAVE_BUILD_TOOLS_TRUE@	libWeaveTool_a-CertUtils.$(OBJEXT) \
+@WEAVE_BUILD_TOOLS_TRUE@	libWeaveTool_a-GeneralUtils.$(OBJEXT) \
+@WEAVE_BUILD_TOOLS_TRUE@	libWeaveTool_a-KeyUtils.$(OBJEXT)
 libWeaveTool_a_OBJECTS = $(am_libWeaveTool_a_OBJECTS)
 am__installdirs = "$(DESTDIR)$(libexecdir)"
 PROGRAMS = $(libexec_PROGRAMS)
@@ -518,13 +518,21 @@ top_srcdir = @top_srcdir@
 @WEAVE_BUILD_TOOLS_TRUE@    libWeaveTool.a                        \
 @WEAVE_BUILD_TOOLS_TRUE@    $(NULL)
 
-
-#Do not borrow this for other sections of code.
-#This is only broken apart for inclusion in the fuzzing
 @WEAVE_BUILD_TOOLS_TRUE@libWeaveTool_a_SOURCES = \
 @WEAVE_BUILD_TOOLS_TRUE@    CertUtils.cpp                         \
 @WEAVE_BUILD_TOOLS_TRUE@    GeneralUtils.cpp                      \
 @WEAVE_BUILD_TOOLS_TRUE@    KeyUtils.cpp                          \
+@WEAVE_BUILD_TOOLS_TRUE@    $(NULL)
+
+@WEAVE_BUILD_TOOLS_TRUE@libWeaveTool_a_CPPFLAGS = \
+@WEAVE_BUILD_TOOLS_TRUE@    $(AM_CPPFLAGS)                        \
+@WEAVE_BUILD_TOOLS_TRUE@    -I$(top_srcdir)/src/include           \
+@WEAVE_BUILD_TOOLS_TRUE@    $(LWIP_CPPFLAGS)                      \
+@WEAVE_BUILD_TOOLS_TRUE@    $(SOCKETS_CPPFLAGS)                   \
+@WEAVE_BUILD_TOOLS_TRUE@    $(NULL)
+
+@WEAVE_BUILD_TOOLS_TRUE@libWeaveTool_a_CXXFLAGS = \
+@WEAVE_BUILD_TOOLS_TRUE@    $(PTHREAD_CFLAGS)                     \
 @WEAVE_BUILD_TOOLS_TRUE@    $(NULL)
 
 @WEAVE_BUILD_TOOLS_TRUE@weave_SOURCES = \
@@ -679,9 +687,9 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/CertUtils.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/GeneralUtils.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/KeyUtils.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libWeaveTool_a-CertUtils.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libWeaveTool_a-GeneralUtils.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libWeaveTool_a-KeyUtils.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/weave-Cmd_ConvertCert.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/weave-Cmd_ConvertKey.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/weave-Cmd_GenCACert.Po@am__quote@
@@ -721,6 +729,48 @@ distclean-compile:
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='$<' object='$@' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(LTCXXCOMPILE) -c -o $@ $<
+
+libWeaveTool_a-CertUtils.o: CertUtils.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libWeaveTool_a_CPPFLAGS) $(CPPFLAGS) $(libWeaveTool_a_CXXFLAGS) $(CXXFLAGS) -MT libWeaveTool_a-CertUtils.o -MD -MP -MF $(DEPDIR)/libWeaveTool_a-CertUtils.Tpo -c -o libWeaveTool_a-CertUtils.o `test -f 'CertUtils.cpp' || echo '$(srcdir)/'`CertUtils.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libWeaveTool_a-CertUtils.Tpo $(DEPDIR)/libWeaveTool_a-CertUtils.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='CertUtils.cpp' object='libWeaveTool_a-CertUtils.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libWeaveTool_a_CPPFLAGS) $(CPPFLAGS) $(libWeaveTool_a_CXXFLAGS) $(CXXFLAGS) -c -o libWeaveTool_a-CertUtils.o `test -f 'CertUtils.cpp' || echo '$(srcdir)/'`CertUtils.cpp
+
+libWeaveTool_a-CertUtils.obj: CertUtils.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libWeaveTool_a_CPPFLAGS) $(CPPFLAGS) $(libWeaveTool_a_CXXFLAGS) $(CXXFLAGS) -MT libWeaveTool_a-CertUtils.obj -MD -MP -MF $(DEPDIR)/libWeaveTool_a-CertUtils.Tpo -c -o libWeaveTool_a-CertUtils.obj `if test -f 'CertUtils.cpp'; then $(CYGPATH_W) 'CertUtils.cpp'; else $(CYGPATH_W) '$(srcdir)/CertUtils.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libWeaveTool_a-CertUtils.Tpo $(DEPDIR)/libWeaveTool_a-CertUtils.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='CertUtils.cpp' object='libWeaveTool_a-CertUtils.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libWeaveTool_a_CPPFLAGS) $(CPPFLAGS) $(libWeaveTool_a_CXXFLAGS) $(CXXFLAGS) -c -o libWeaveTool_a-CertUtils.obj `if test -f 'CertUtils.cpp'; then $(CYGPATH_W) 'CertUtils.cpp'; else $(CYGPATH_W) '$(srcdir)/CertUtils.cpp'; fi`
+
+libWeaveTool_a-GeneralUtils.o: GeneralUtils.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libWeaveTool_a_CPPFLAGS) $(CPPFLAGS) $(libWeaveTool_a_CXXFLAGS) $(CXXFLAGS) -MT libWeaveTool_a-GeneralUtils.o -MD -MP -MF $(DEPDIR)/libWeaveTool_a-GeneralUtils.Tpo -c -o libWeaveTool_a-GeneralUtils.o `test -f 'GeneralUtils.cpp' || echo '$(srcdir)/'`GeneralUtils.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libWeaveTool_a-GeneralUtils.Tpo $(DEPDIR)/libWeaveTool_a-GeneralUtils.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='GeneralUtils.cpp' object='libWeaveTool_a-GeneralUtils.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libWeaveTool_a_CPPFLAGS) $(CPPFLAGS) $(libWeaveTool_a_CXXFLAGS) $(CXXFLAGS) -c -o libWeaveTool_a-GeneralUtils.o `test -f 'GeneralUtils.cpp' || echo '$(srcdir)/'`GeneralUtils.cpp
+
+libWeaveTool_a-GeneralUtils.obj: GeneralUtils.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libWeaveTool_a_CPPFLAGS) $(CPPFLAGS) $(libWeaveTool_a_CXXFLAGS) $(CXXFLAGS) -MT libWeaveTool_a-GeneralUtils.obj -MD -MP -MF $(DEPDIR)/libWeaveTool_a-GeneralUtils.Tpo -c -o libWeaveTool_a-GeneralUtils.obj `if test -f 'GeneralUtils.cpp'; then $(CYGPATH_W) 'GeneralUtils.cpp'; else $(CYGPATH_W) '$(srcdir)/GeneralUtils.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libWeaveTool_a-GeneralUtils.Tpo $(DEPDIR)/libWeaveTool_a-GeneralUtils.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='GeneralUtils.cpp' object='libWeaveTool_a-GeneralUtils.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libWeaveTool_a_CPPFLAGS) $(CPPFLAGS) $(libWeaveTool_a_CXXFLAGS) $(CXXFLAGS) -c -o libWeaveTool_a-GeneralUtils.obj `if test -f 'GeneralUtils.cpp'; then $(CYGPATH_W) 'GeneralUtils.cpp'; else $(CYGPATH_W) '$(srcdir)/GeneralUtils.cpp'; fi`
+
+libWeaveTool_a-KeyUtils.o: KeyUtils.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libWeaveTool_a_CPPFLAGS) $(CPPFLAGS) $(libWeaveTool_a_CXXFLAGS) $(CXXFLAGS) -MT libWeaveTool_a-KeyUtils.o -MD -MP -MF $(DEPDIR)/libWeaveTool_a-KeyUtils.Tpo -c -o libWeaveTool_a-KeyUtils.o `test -f 'KeyUtils.cpp' || echo '$(srcdir)/'`KeyUtils.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libWeaveTool_a-KeyUtils.Tpo $(DEPDIR)/libWeaveTool_a-KeyUtils.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='KeyUtils.cpp' object='libWeaveTool_a-KeyUtils.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libWeaveTool_a_CPPFLAGS) $(CPPFLAGS) $(libWeaveTool_a_CXXFLAGS) $(CXXFLAGS) -c -o libWeaveTool_a-KeyUtils.o `test -f 'KeyUtils.cpp' || echo '$(srcdir)/'`KeyUtils.cpp
+
+libWeaveTool_a-KeyUtils.obj: KeyUtils.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libWeaveTool_a_CPPFLAGS) $(CPPFLAGS) $(libWeaveTool_a_CXXFLAGS) $(CXXFLAGS) -MT libWeaveTool_a-KeyUtils.obj -MD -MP -MF $(DEPDIR)/libWeaveTool_a-KeyUtils.Tpo -c -o libWeaveTool_a-KeyUtils.obj `if test -f 'KeyUtils.cpp'; then $(CYGPATH_W) 'KeyUtils.cpp'; else $(CYGPATH_W) '$(srcdir)/KeyUtils.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libWeaveTool_a-KeyUtils.Tpo $(DEPDIR)/libWeaveTool_a-KeyUtils.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='KeyUtils.cpp' object='libWeaveTool_a-KeyUtils.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libWeaveTool_a_CPPFLAGS) $(CPPFLAGS) $(libWeaveTool_a_CXXFLAGS) $(CXXFLAGS) -c -o libWeaveTool_a-KeyUtils.obj `if test -f 'KeyUtils.cpp'; then $(CYGPATH_W) 'KeyUtils.cpp'; else $(CYGPATH_W) '$(srcdir)/KeyUtils.cpp'; fi`
 
 weave-Cmd_ConvertCert.o: Cmd_ConvertCert.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(weave_CPPFLAGS) $(CPPFLAGS) $(weave_CXXFLAGS) $(CXXFLAGS) -MT weave-Cmd_ConvertCert.o -MD -MP -MF $(DEPDIR)/weave-Cmd_ConvertCert.Tpo -c -o weave-Cmd_ConvertCert.o `test -f 'Cmd_ConvertCert.cpp' || echo '$(srcdir)/'`Cmd_ConvertCert.cpp
