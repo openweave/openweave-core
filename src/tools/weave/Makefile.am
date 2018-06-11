@@ -90,6 +90,7 @@ weave_LDADD				= \
     $(NULL)
 
 weave_DEPENDENCIES                      = \
+    libWeaveTool.a                        \
     $(top_builddir)/src/lib/libWeave.a    \
     $(NULL)
 

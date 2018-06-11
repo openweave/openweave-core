@@ -565,6 +565,7 @@ top_srcdir = @top_srcdir@
 @WEAVE_BUILD_TOOLS_TRUE@    $(NULL)
 
 @WEAVE_BUILD_TOOLS_TRUE@weave_DEPENDENCIES = \
+@WEAVE_BUILD_TOOLS_TRUE@    libWeaveTool.a                        \
 @WEAVE_BUILD_TOOLS_TRUE@    $(top_builddir)/src/lib/libWeave.a    \
 @WEAVE_BUILD_TOOLS_TRUE@    $(NULL)
 
