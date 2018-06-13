@@ -84,6 +84,19 @@ public:
     static jobjectArray simulateDeviceKeyExport(JNIEnv *env, jclass cls, jbyteArray deviceCert, jbyteArray devicePrivKey, jbyteArray trustRootCert, jbyteArray keyExportReq);
 };
 
+class PairingCodeSupport
+{
+public:
+    static jboolean isValidPairingCode(JNIEnv *env, jclass cls, jstring pairingCode);
+    static jstring normalizePairingCode(JNIEnv *env, jclass cls, jstring pairingCode);
+    static jchar computeCheckChar(JNIEnv *env, jclass cls, jstring pairingCodeJStr);
+    static jstring addCheckChar(JNIEnv *env, jclass cls, jstring pairingCodeJStr);
+    static jstring intToPairingCode(JNIEnv * env, jclass cls, jlong val, jint pairingCodeLen);
+    static jlong pairingCodeToInt(JNIEnv * env, jclass cls, jstring pairingCode);
+    static jboolean isValidPairingCodeChar(JNIEnv * env, jclass cls, jchar ch);
+    static jstring generatePairingCode(JNIEnv * env, jclass cls, jint pairingCodeLen);
+};
+
 
 } // namespace SecuritySupport
 } // namespace Weave

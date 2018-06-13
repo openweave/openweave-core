@@ -187,12 +187,14 @@ am__libWeaveSecuritySupport_la_SOURCES_DIST =  \
 	native/WeaveSecuritySupport.cpp \
 	native/WeaveCertificateSupport.cpp \
 	native/PasscodeEncryptionSupport.cpp \
+	native/PairingCodeSupport.cpp \
 	native/WeaveKeyExportClientNative.cpp \
 	native/WeaveKeyExportSupportNative.cpp
 am__dirstamp = $(am__leading_dot)dirstamp
 @WEAVE_WITH_JAVA_TRUE@am_libWeaveSecuritySupport_la_OBJECTS = native/libWeaveSecuritySupport_la-WeaveSecuritySupport.lo \
 @WEAVE_WITH_JAVA_TRUE@	native/libWeaveSecuritySupport_la-WeaveCertificateSupport.lo \
 @WEAVE_WITH_JAVA_TRUE@	native/libWeaveSecuritySupport_la-PasscodeEncryptionSupport.lo \
+@WEAVE_WITH_JAVA_TRUE@	native/libWeaveSecuritySupport_la-PairingCodeSupport.lo \
 @WEAVE_WITH_JAVA_TRUE@	native/libWeaveSecuritySupport_la-WeaveKeyExportClientNative.lo \
 @WEAVE_WITH_JAVA_TRUE@	native/libWeaveSecuritySupport_la-WeaveKeyExportSupportNative.lo
 libWeaveSecuritySupport_la_OBJECTS =  \
@@ -525,6 +527,7 @@ top_srcdir = @top_srcdir@
 @WEAVE_WITH_JAVA_TRUE@    com/nestlabs/weave/security/WeaveKeyExportClient.java          \
 @WEAVE_WITH_JAVA_TRUE@    com/nestlabs/weave/security/WeaveKeyExportSupport.java         \
 @WEAVE_WITH_JAVA_TRUE@    com/nestlabs/weave/security/PasscodeEncryptionSupport.java     \
+@WEAVE_WITH_JAVA_TRUE@    com/nestlabs/weave/security/PairingCodeSupport.java            \
 @WEAVE_WITH_JAVA_TRUE@    com/nestlabs/weave/security/ApplicationKeySupport.java         \
 @WEAVE_WITH_JAVA_TRUE@    com/nestlabs/weave/security/WeaveKeyId.java                    \
 @WEAVE_WITH_JAVA_TRUE@    com/nestlabs/weave/security/ApplicationGroupGlobalId.java      \
@@ -545,6 +548,7 @@ top_srcdir = @top_srcdir@
 @WEAVE_WITH_JAVA_TRUE@    native/WeaveSecuritySupport.cpp                  \
 @WEAVE_WITH_JAVA_TRUE@    native/WeaveCertificateSupport.cpp               \
 @WEAVE_WITH_JAVA_TRUE@    native/PasscodeEncryptionSupport.cpp             \
+@WEAVE_WITH_JAVA_TRUE@    native/PairingCodeSupport.cpp                    \
 @WEAVE_WITH_JAVA_TRUE@    native/WeaveKeyExportClientNative.cpp            \
 @WEAVE_WITH_JAVA_TRUE@    native/WeaveKeyExportSupportNative.cpp           \
 @WEAVE_WITH_JAVA_TRUE@    $(NULL)
@@ -648,6 +652,8 @@ native/libWeaveSecuritySupport_la-WeaveCertificateSupport.lo:  \
 	native/$(am__dirstamp) native/$(DEPDIR)/$(am__dirstamp)
 native/libWeaveSecuritySupport_la-PasscodeEncryptionSupport.lo:  \
 	native/$(am__dirstamp) native/$(DEPDIR)/$(am__dirstamp)
+native/libWeaveSecuritySupport_la-PairingCodeSupport.lo:  \
+	native/$(am__dirstamp) native/$(DEPDIR)/$(am__dirstamp)
 native/libWeaveSecuritySupport_la-WeaveKeyExportClientNative.lo:  \
 	native/$(am__dirstamp) native/$(DEPDIR)/$(am__dirstamp)
 native/libWeaveSecuritySupport_la-WeaveKeyExportSupportNative.lo:  \
@@ -664,6 +670,7 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
+@AMDEP_TRUE@@am__include@ @am__quote@native/$(DEPDIR)/libWeaveSecuritySupport_la-PairingCodeSupport.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@native/$(DEPDIR)/libWeaveSecuritySupport_la-PasscodeEncryptionSupport.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@native/$(DEPDIR)/libWeaveSecuritySupport_la-WeaveCertificateSupport.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@native/$(DEPDIR)/libWeaveSecuritySupport_la-WeaveKeyExportClientNative.Plo@am__quote@
@@ -714,6 +721,13 @@ native/libWeaveSecuritySupport_la-PasscodeEncryptionSupport.lo: native/PasscodeE
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='native/PasscodeEncryptionSupport.cpp' object='native/libWeaveSecuritySupport_la-PasscodeEncryptionSupport.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libWeaveSecuritySupport_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o native/libWeaveSecuritySupport_la-PasscodeEncryptionSupport.lo `test -f 'native/PasscodeEncryptionSupport.cpp' || echo '$(srcdir)/'`native/PasscodeEncryptionSupport.cpp
+
+native/libWeaveSecuritySupport_la-PairingCodeSupport.lo: native/PairingCodeSupport.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libWeaveSecuritySupport_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT native/libWeaveSecuritySupport_la-PairingCodeSupport.lo -MD -MP -MF native/$(DEPDIR)/libWeaveSecuritySupport_la-PairingCodeSupport.Tpo -c -o native/libWeaveSecuritySupport_la-PairingCodeSupport.lo `test -f 'native/PairingCodeSupport.cpp' || echo '$(srcdir)/'`native/PairingCodeSupport.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) native/$(DEPDIR)/libWeaveSecuritySupport_la-PairingCodeSupport.Tpo native/$(DEPDIR)/libWeaveSecuritySupport_la-PairingCodeSupport.Plo
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='native/PairingCodeSupport.cpp' object='native/libWeaveSecuritySupport_la-PairingCodeSupport.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libWeaveSecuritySupport_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o native/libWeaveSecuritySupport_la-PairingCodeSupport.lo `test -f 'native/PairingCodeSupport.cpp' || echo '$(srcdir)/'`native/PairingCodeSupport.cpp
 
 native/libWeaveSecuritySupport_la-WeaveKeyExportClientNative.lo: native/WeaveKeyExportClientNative.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libWeaveSecuritySupport_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT native/libWeaveSecuritySupport_la-WeaveKeyExportClientNative.lo -MD -MP -MF native/$(DEPDIR)/libWeaveSecuritySupport_la-WeaveKeyExportClientNative.Tpo -c -o native/libWeaveSecuritySupport_la-WeaveKeyExportClientNative.lo `test -f 'native/WeaveKeyExportClientNative.cpp' || echo '$(srcdir)/'`native/WeaveKeyExportClientNative.cpp
@@ -858,9 +872,9 @@ distclean-generic:
 maintainer-clean-generic:
 	@echo "This command is intended for maintainers to use"
 	@echo "it deletes files that may require special tools to rebuild."
-@WEAVE_WITH_JAVA_FALSE@mostlyclean-local:
-@WEAVE_WITH_JAVA_FALSE@install-data-local:
 @WEAVE_WITH_JAVA_FALSE@uninstall-local:
+@WEAVE_WITH_JAVA_FALSE@install-data-local:
+@WEAVE_WITH_JAVA_FALSE@mostlyclean-local:
 clean: clean-am
 
 clean-am: clean-generic clean-libLTLIBRARIES clean-libtool \

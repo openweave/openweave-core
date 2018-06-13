@@ -230,6 +230,35 @@ exit:
     return;
 }
 
+static void Test_Generation(nlTestSuite *inSuite, void *inContext)
+{
+    WEAVE_ERROR err;
+    char pairingCodeBuf[kStandardPairingCodeLength + 20];
+    uint8_t pairingCodeLen;
+
+    // Verify failures for invalid lengths.
+    err = GeneratePairingCode(0, pairingCodeBuf);
+    NL_TEST_ASSERT_EXIT(inSuite, err == WEAVE_ERROR_INVALID_ARGUMENT);
+    err = GeneratePairingCode(1, pairingCodeBuf);
+    NL_TEST_ASSERT_EXIT(inSuite, err == WEAVE_ERROR_INVALID_ARGUMENT);
+
+    // Verify the ability to generate pairing codes of various lengths.
+    for (pairingCodeLen = kPairingCodeLenMin; pairingCodeLen < sizeof(pairingCodeBuf); pairingCodeLen++)
+    {
+        err = GeneratePairingCode(pairingCodeLen, pairingCodeBuf);
+        NL_TEST_ASSERT_EXIT(inSuite, err == WEAVE_NO_ERROR);
+
+        NL_TEST_ASSERT_EXIT(inSuite, pairingCodeBuf[pairingCodeLen] == 0);
+        NL_TEST_ASSERT_EXIT(inSuite, strlen(pairingCodeBuf) == pairingCodeLen);
+
+        err = VerifyPairingCode(pairingCodeBuf, pairingCodeLen);
+        NL_TEST_ASSERT_EXIT(inSuite, err == WEAVE_NO_ERROR);
+    }
+
+exit:
+    return;
+}
+
 
 
 // Test Suite
@@ -242,6 +271,7 @@ static const nlTest sTests[] =
     NL_TEST_DEF("Integer encode / decode tests", Test_IntEncodeDecode),
     NL_TEST_DEF("Check character tests", Test_CheckCharacter),
     NL_TEST_DEF("Normalization tests", Test_Normalization),
+    NL_TEST_DEF("Generation tests", Test_Generation),
     NL_TEST_DEF("Nevis pairing code tests", Test_NevisPairingCode),
     NL_TEST_DEF("Kryptonite pairing code tests", Test_KryptonitePairingCode),
 

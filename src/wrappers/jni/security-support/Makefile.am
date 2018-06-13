@@ -36,6 +36,7 @@ WeaveSecuritySupport_jar_JAVA_SRCS                 =               \
     com/nestlabs/weave/security/WeaveKeyExportClient.java          \
     com/nestlabs/weave/security/WeaveKeyExportSupport.java         \
     com/nestlabs/weave/security/PasscodeEncryptionSupport.java     \
+    com/nestlabs/weave/security/PairingCodeSupport.java            \
     com/nestlabs/weave/security/ApplicationKeySupport.java         \
     com/nestlabs/weave/security/WeaveKeyId.java                    \
     com/nestlabs/weave/security/ApplicationGroupGlobalId.java      \
@@ -61,6 +62,7 @@ libWeaveSecuritySupport_la_SOURCES                 = \
     native/WeaveSecuritySupport.cpp                  \
     native/WeaveCertificateSupport.cpp               \
     native/PasscodeEncryptionSupport.cpp             \
+    native/PairingCodeSupport.cpp                    \
     native/WeaveKeyExportClientNative.cpp            \
     native/WeaveKeyExportSupportNative.cpp           \
     $(NULL)

@@ -76,6 +76,16 @@ static const JNILibraryMethod sLibraryMethods[] = {
 
     // WeaveKeyExportSupport Methods
     { "WeaveKeyExportSupport", "simulateDeviceKeyExport", "([B[B[B[B)[Ljava/lang/Object;", (void *)WeaveKeyExportSupportNative::simulateDeviceKeyExport },
+
+    // PairingCodeSupport Methods
+    { "PairingCodeSupport", "isValidPairingCode", "(Ljava/lang/String;)Z", (void *)PairingCodeSupport::isValidPairingCode },
+    { "PairingCodeSupport", "normalizePairingCode", "(Ljava/lang/String;)Ljava/lang/String;", (void *)PairingCodeSupport::normalizePairingCode },
+    { "PairingCodeSupport", "computeCheckChar", "(Ljava/lang/String;)C", (void *)PairingCodeSupport::computeCheckChar },
+    { "PairingCodeSupport", "addCheckChar", "(Ljava/lang/String;)Ljava/lang/String;", (void *)PairingCodeSupport::addCheckChar },
+    { "PairingCodeSupport", "intToPairingCode", "(JI)Ljava/lang/String;", (void *)PairingCodeSupport::intToPairingCode },
+    { "PairingCodeSupport", "pairingCodeToInt", "(Ljava/lang/String;)J", (void *)PairingCodeSupport::pairingCodeToInt },
+    { "PairingCodeSupport", "isValidPairingCodeChar", "(C)Z", (void *)PairingCodeSupport::isValidPairingCodeChar },
+    { "PairingCodeSupport", "generatePairingCode", "(I)Ljava/lang/String;", (void *)PairingCodeSupport::generatePairingCode },
 };
 static const size_t sNumLibraryMethods = sizeof(sLibraryMethods) / sizeof(JNILibraryMethod);
 

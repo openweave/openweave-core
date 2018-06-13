@@ -35,6 +35,7 @@ WeaveJNIWrapperTests_jar_JAVA_SRCS                 = \
     WeaveSecuritySupportTest.java                    \
     ApplicationKeySupportTest.java                   \
     WeaveKeyExportClientTest.java                    \
+    PairingCodeSupportTest.java                      \
     $(NULL)
 
 WeaveJNIWrapperTests_jar_JAVA_CLASSPATHS           = $(top_builddir)/src/wrappers/jni/security-support/WeaveSecuritySupport.jar

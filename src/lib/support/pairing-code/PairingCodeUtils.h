@@ -56,5 +56,7 @@ extern bool IsValidPairingCodeChar(char ch);
 extern int PairingCodeCharToInt(char ch);
 extern char IntToPairingCodeChar(int val);
 
+extern WEAVE_ERROR GeneratePairingCode(uint8_t pairingCodeLen, char * outBuf);
+
 } // namespace PairingCode
 } // namespace nl

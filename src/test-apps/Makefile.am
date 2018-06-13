@@ -376,6 +376,13 @@ check_SCRIPTS                                 += \
     $(NULL)
 endif # WEAVE_BUILD_TOOLS
 
+if WEAVE_WITH_JAVA
+check_SCRIPTS                                 += \
+    run-security-support-test.sh                 \
+    $(NULL)
+endif # WEAVE_WITH_JAVA
+
+
 # Test applications that should be built but not installed that
 # require no network or complicated setup and should always be
 # built to ensure overall "build sanity".

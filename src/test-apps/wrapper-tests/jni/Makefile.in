@@ -423,6 +423,7 @@ top_srcdir = @top_srcdir@
 @WEAVE_WITH_JAVA_TRUE@    WeaveSecuritySupportTest.java                    \
 @WEAVE_WITH_JAVA_TRUE@    ApplicationKeySupportTest.java                   \
 @WEAVE_WITH_JAVA_TRUE@    WeaveKeyExportClientTest.java                    \
+@WEAVE_WITH_JAVA_TRUE@    PairingCodeSupportTest.java                      \
 @WEAVE_WITH_JAVA_TRUE@    $(NULL)
 
 @WEAVE_WITH_JAVA_TRUE@WeaveJNIWrapperTests_jar_JAVA_CLASSPATHS = $(top_builddir)/src/wrappers/jni/security-support/WeaveSecuritySupport.jar
@@ -537,9 +538,9 @@ distclean-generic:
 maintainer-clean-generic:
 	@echo "This command is intended for maintainers to use"
 	@echo "it deletes files that may require special tools to rebuild."
-@WEAVE_WITH_JAVA_FALSE@mostlyclean-local:
-@WEAVE_WITH_JAVA_FALSE@install-data-local:
 @WEAVE_WITH_JAVA_FALSE@uninstall-local:
+@WEAVE_WITH_JAVA_FALSE@install-data-local:
+@WEAVE_WITH_JAVA_FALSE@mostlyclean-local:
 clean: clean-am
 
 clean-am: clean-generic clean-libtool mostlyclean-am

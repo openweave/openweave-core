@@ -18,21 +18,28 @@
 #
 
 
-SCRIPT_DIR=`DIR=\`dirname "$0"\` && (cd $DIR && pwd )`
-
-WEAVE_ROOT_DIR=`(cd ${SCRIPT_DIR}/../.. && pwd)`
-
-BUILD_TARGET=`${WEAVE_ROOT_DIR}/third_party/nlbuild-autotools/repo/autoconf/config.guess | sed -e 's/[[:digit:].]*$$//g'`
-
-BUILD_TARGET_DIR=${WEAVE_ROOT_DIR}/build/${BUILD_TARGET}
-
-CLASSPATH=\
-${BUILD_TARGET_DIR}/src/wrappers/jni/security-support/WeaveSecuritySupport.jar\
-:${BUILD_TARGET_DIR}/src/test-apps/wrapper-tests/jni/WeaveJNIWrapperTests.jar
-
-if [ -z "$1" ]; then
-    echo "Please specify a test class name"
-    exit -1
+# Locate the target-specific Weave build directory. 
+if [ -z "${TARGET_BUILD_DIR}" ]; then
+    TARGET_BUILD_DIR=${abs_top_builddir}
+fi
+if [ -z "${TARGET_BUILD_DIR}" ]; then
+    if [ -z "${WEAVE_ROOT_DIR}" ]; then
+        SCRIPT_DIR=`DIR=\`dirname "$0"\` && (cd ${DIR} && pwd )`
+        WEAVE_ROOT_DIR=`(cd ${SCRIPT_DIR}/../.. && pwd)`
+    fi
+    BUILD_TARGET=`${WEAVE_ROOT_DIR}/third_party/nlbuild-autotools/repo/third_party/autoconf/config.guess | sed -e 's/[[:digit:].]*$$//g'`
+    TARGET_BUILD_DIR=${WEAVE_ROOT_DIR}/build/${BUILD_TARGET}
 fi
 
-java -verbose:jni -Xcheck:jni -Dnl.dontDeleteNativeLib=true -cp ${CLASSPATH} $@
+CLASSPATH=\
+${TARGET_BUILD_DIR}/src/wrappers/jni/security-support/WeaveSecuritySupport.jar\
+:${TARGET_BUILD_DIR}/src/test-apps/wrapper-tests/jni/WeaveJNIWrapperTests.jar
+
+TESTS=$*
+if [ -z "${TESTS}" ]; then
+    TESTS="ApplicationKeySupportTest HKDFTest PairingCodeSupportTest WeaveKeyExportClientTest WeaveSecuritySupportTest"
+fi
+
+for TEST in ${TESTS}; do
+    java -Xcheck:jni -Dnl.dontDeleteNativeLib=true -cp ${CLASSPATH} ${TEST}
+done

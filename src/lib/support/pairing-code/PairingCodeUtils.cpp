@@ -18,7 +18,7 @@
 
 /**
  *    @file
- *      Utility functions for working with Nest pairing codes.
+ *      Utility functions for working with Weave pairing codes.
  *
  */
 
@@ -28,6 +28,7 @@
 #include <Weave/Support/CodeUtils.h>
 #include <Weave/Support/verhoeff/Verhoeff.h>
 #include <Weave/Support/pairing-code/PairingCodeUtils.h>
+#include <Weave/Support/crypto/WeaveRNG.h>
 
 namespace nl {
 namespace PairingCode {
@@ -38,7 +39,7 @@ enum {
 };
 
 
-/** Verify a Nest pairing code against its check character.
+/** Verify a Weave pairing code against its check character.
  *
  * @param[in]   pairingCode             The pairing code string to be checked.  This string
  *                                      does not need to be NULL terminated.
@@ -113,9 +114,9 @@ void NormalizePairingCode(char *pairingCode, size_t& pairingCodeLen)
     pairingCodeLen = newLen;
 }
 
-/** Encode an integer value as a Nest pairing code.
+/** Encode an integer value as a Weave pairing code.
  *
- * The function generates a Nest pairing code string consisting of a supplied unsigned integer
+ * The function generates a Weave pairing code string consisting of a supplied unsigned integer
  * value, encoded as a big-endian, base-32 numeral, plus a trailing Verhoeff check character.
  * The generated string has a fixed length specified by the pairingCodeLen parameter. The
  * string is padded on the left with zeros as necessary to meet this length.
@@ -161,9 +162,9 @@ exit:
     return err;
 }
 
-/** Decode a Nest pairing code as an integer value.
+/** Decode a Weave pairing code as an integer value.
  *
- * The function parses the initial characters of a Nest pairing code string as a big-endian,
+ * The function parses the initial characters of a Weave pairing code string as a big-endian,
  * base-32 numeral and returns the resultant value as an unsigned integer.  The input string
  * can be any length >= 2 so long as the decoded integer fits within a uint64_t.
  *
@@ -212,20 +213,20 @@ exit:
     return err;
 }
 
-/** Returns true if a supplied character is a valid Nest pairing code character.
+/** Returns true if a supplied character is a valid Weave pairing code character.
  *
  * Note that this function is case-insensitive.
  *
  * @param[in]   ch                      The character to be tested.
  *
- * @returns                             True if a supplied character is a valid Nest pairing code character.
+ * @returns                             True if a supplied character is a valid Weave pairing code character.
  */
 bool IsValidPairingCodeChar(char ch)
 {
     return Verhoeff32::CharToVal(ch) >= 0;
 }
 
-/** Convert a Nest pairing code character to an integer value in the range 0..31
+/** Convert a Weave pairing code character to an integer value in the range 0..31
  *
  * Note that this function is case-insensitive.
  *
@@ -239,7 +240,7 @@ int PairingCodeCharToInt(char ch)
     return Verhoeff32::CharToVal(ch);
 }
 
-/** Convert an integer value in the range 0..31 to its corresponding Nest pairing code character.
+/** Convert an integer value in the range 0..31 to its corresponding Weave pairing code character.
  *
  * Note that this function always produces upper-case characters.
  *
@@ -253,6 +254,57 @@ char IntToPairingCodeChar(int val)
     return Verhoeff32::ValToChar(val);
 }
 
+/** Generate a random pairing code.
+ *
+ * The function generates a random Weave pairing code string with a specified length.
+ * value, encoded as a big-endian, base-32 numeral, plus a trailing Verhoeff check character.
+ * The generated string has a fixed length specified by the pairingCodeLen parameter. The
+ * string is padded on the left with zeros as necessary to meet this length.
+ *
+ * @param[in]   pairingCodeLen          The desired length of the pairing code string,
+ *                                      including the trailing check character.  Must be >= 2.
+ * @param[out]  outBuf                  A pointer to a character buffer that will receive the
+ *                                      encoded pairing code, plus a null terminator character.
+ *                                      The supplied buffer should be at least as big as
+ *                                      pairingCodeLen + 1.
+ *
+ * @retval #WEAVE_NO_ERROR              If the method succeeded.
+ * @retval #WEAVE_ERROR_INVALID_ARGUMENT If pairingCodeLen is < 2 or the supplied integer value
+ *                                      cannot be encoded in the number of characters specified
+ *                                      by pairingCodeLen, minus 1 for the check character.
+ *
+ */
+WEAVE_ERROR GeneratePairingCode(uint8_t pairingCodeLen, char * outBuf)
+{
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
+    enum
+    {
+        kBitsPerCharMask = 0x1F
+    };
+
+    // Verify minimum length requested.
+    VerifyOrExit(pairingCodeLen >= kPairingCodeLenMin, err = WEAVE_ERROR_INVALID_ARGUMENT);
+
+    // Get a string of random bytes equal to the desired pairing code length, not including the check character.
+    err = ::nl::Weave::Platform::Security::GetSecureRandomData((uint8_t *)outBuf, pairingCodeLen - 1);
+    SuccessOrExit(err);
+
+    // Convert each random byte to a corresponding pairing code character.  (Note that this discards the upper
+    // three bits of each byte).
+    for (uint8_t i = 0; i < pairingCodeLen - 1; i++)
+    {
+        outBuf[i] = Verhoeff32::ValToChar(outBuf[i] & kBitsPerCharMask);
+    }
+
+    // Add the check character to the end of the generated pairing code string.
+    outBuf[pairingCodeLen - 1] = Verhoeff32::ComputeCheckChar(outBuf, pairingCodeLen - 1);
+
+    // Terminate the string.
+    outBuf[pairingCodeLen] = '\0';
+
+exit:
+    return err;
+}
 
 
 } // namespace PairingCode
