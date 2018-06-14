@@ -81,6 +81,10 @@ private:
     char mLocale[kMaxNumOfCharsPerLocale];
 };
 
+namespace nl::Weave::Profiles::DataManagement_Current {
+class    WdmUpdateEncoderTest;
+}
+
 class TestATraitUpdatableDataSink : public MockTraitUpdatableDataSink
 {
 public:
@@ -96,6 +100,8 @@ public:
     uint32_t mTraitTestSet = 0;
 
 private:
+    friend class nl::Weave::Profiles::DataManagement::WdmUpdateEncoderTest;
+
     void SetNullifiedPath(nl::Weave::Profiles::DataManagement::PropertyPathHandle aHandle, bool isNull);
     WEAVE_ERROR SetData(nl::Weave::Profiles::DataManagement::PropertyPathHandle aHandle, nl::Weave::TLV::TLVReader &aReader, bool aIsNull) __OVERRIDE;
     WEAVE_ERROR SetLeafData(nl::Weave::Profiles::DataManagement::PropertyPathHandle aLeafHandle, nl::Weave::TLV::TLVReader &aReader) __OVERRIDE;

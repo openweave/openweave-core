@@ -310,7 +310,7 @@ private:
     friend class SubscriptionEngine;
     friend class TestTdm;
     friend class TestWdm;
-    friend class TestWdmUpdateEncoder;
+    friend class WdmUpdateEncoderTest;
     friend class MockWdmSubscriptionInitiatorImpl;
     friend class TraitDataSink;
     friend class TraitSchemaEngine;

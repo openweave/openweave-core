@@ -303,6 +303,7 @@ WEAVE_ERROR TraitSchemaEngine::RetrieveUpdatableDictionaryData(PropertyPathHandl
     nl::Weave::TLV::TLVType dataContainerType;
     PropertyDictionaryKey dictionaryItemKey;
     uintptr_t context = 0;
+    uint32_t numKeysEncoded = 0;
     PropertySchemaHandle dictionaryItemSchemaHandle = GetPropertySchemaHandle(GetFirstChild(aHandle));
 
     VerifyOrExit(IsDictionary(aHandle), err = WEAVE_ERROR_WDM_SCHEMA_MISMATCH);
@@ -331,7 +332,8 @@ WEAVE_ERROR TraitSchemaEngine::RetrieveUpdatableDictionaryData(PropertyPathHandl
                 WeaveLogDetail(DataManagement, "Dictionary item whith path 0x%" PRIx32 ", tag 0x% " PRIx64 " failed with error % " PRIu32 "",
                                dictionaryItemPathHandle, tag, err);
             }
-            if ((err == WEAVE_ERROR_BUFFER_TOO_SMALL) || (err == WEAVE_ERROR_NO_MEMORY))
+            if (numKeysEncoded > 0 &&
+                    ((err == WEAVE_ERROR_BUFFER_TOO_SMALL) || (err == WEAVE_ERROR_NO_MEMORY)))
             {
                 // TODO: In the current code, this is BUFFER_TOO_SMALL. Should we actually check for NO_MEMORY?
                 aWriter = backupWriter;
@@ -340,6 +342,8 @@ WEAVE_ERROR TraitSchemaEngine::RetrieveUpdatableDictionaryData(PropertyPathHandl
                 break;
             }
             SuccessOrExit(err);
+
+            numKeysEncoded++;
         }
     }
 
