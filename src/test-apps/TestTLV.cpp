@@ -3296,6 +3296,62 @@ static void CheckCloseContainerReserve(nlTestSuite *inSuite, void *inContext)
 
     err = writer2.EndContainer(container1);
     NL_TEST_ASSERT(inSuite, err == WEAVE_ERROR_BUFFER_TOO_SMALL);
+
+    // Test that the reservations work if the writer has a maxLen of 0.
+
+    writer1.Init(buf1, 0);
+
+    err = writer1.OpenContainer(ProfileTag(TestProfile_1, 2), kTLVType_Structure, innerWriter1);
+    NL_TEST_ASSERT(inSuite, err == WEAVE_ERROR_BUFFER_TOO_SMALL);
+
+    err = writer1.StartContainer(AnonymousTag, kTLVType_Array, container1);
+    NL_TEST_ASSERT(inSuite, err == WEAVE_ERROR_BUFFER_TOO_SMALL);
+
+    // Test again all cases from 0 to the length of buf1
+
+    for (size_t maxLen = 0; maxLen <= sizeof(buf); maxLen++)
+    {
+        // Open/CloseContainer
+
+        writer1.Init(buf, maxLen);
+
+        err = writer1.OpenContainer(AnonymousTag, kTLVType_Array, innerWriter1);
+
+        if (err == WEAVE_NO_ERROR)
+            err = innerWriter1.OpenContainer(AnonymousTag, kTLVType_Structure, innerWriter2);
+
+        if (err == WEAVE_NO_ERROR)
+            err = innerWriter2.PutBoolean(ProfileTag(TestProfile_1, 2), true);
+
+        if (err == WEAVE_NO_ERROR)
+            err = innerWriter1.CloseContainer(innerWriter2);
+
+        if (err == WEAVE_NO_ERROR)
+            err = writer1.CloseContainer(innerWriter1);
+
+        NL_TEST_ASSERT(inSuite, err == WEAVE_ERROR_BUFFER_TOO_SMALL);
+
+        // Start/EndContainer
+
+        writer1.Init(buf, maxLen);
+
+        if (err == WEAVE_NO_ERROR)
+            err = writer1.StartContainer(AnonymousTag, kTLVType_Array, container1);
+
+        if (err == WEAVE_NO_ERROR)
+            err = writer1.StartContainer(AnonymousTag, kTLVType_Structure, container2);
+
+        if (err == WEAVE_NO_ERROR)
+            err = writer1.PutBoolean(ProfileTag(TestProfile_1, 2), true);
+
+        if (err == WEAVE_NO_ERROR)
+            err = writer1.EndContainer(container2);
+
+        if (err == WEAVE_NO_ERROR)
+            err = writer1.EndContainer(container1);
+
+        NL_TEST_ASSERT(inSuite, err == WEAVE_ERROR_BUFFER_TOO_SMALL);
+    }
 }
 
 static WEAVE_ERROR ReadFuzzedEncoding1(nlTestSuite *inSuite, TLVReader& reader)

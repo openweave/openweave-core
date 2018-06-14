@@ -1191,12 +1191,16 @@ exit:
  */
 WEAVE_ERROR TLVWriter::OpenContainer(uint64_t tag, TLVType containerType, TLVWriter& containerWriter)
 {
-    if (!TLVTypeIsContainer(containerType))
-        return WEAVE_ERROR_WRONG_TLV_TYPE;
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
+
+    VerifyOrExit(TLVTypeIsContainer(containerType), err = WEAVE_ERROR_WRONG_TLV_TYPE);
 
     if (IsCloseContainerReserved())
+    {
+        VerifyOrExit(mMaxLen >= kEndOfContainerMarkerSize, err = WEAVE_ERROR_BUFFER_TOO_SMALL);
         mMaxLen -= kEndOfContainerMarkerSize;
-    WEAVE_ERROR err = WriteElementHead((TLVElementType) containerType, tag, 0);
+    }
+    err = WriteElementHead((TLVElementType) containerType, tag, 0);
 
     if (err != WEAVE_NO_ERROR)
     {
@@ -1204,7 +1208,7 @@ WEAVE_ERROR TLVWriter::OpenContainer(uint64_t tag, TLVType containerType, TLVWri
         if (IsCloseContainerReserved())
             mMaxLen += kEndOfContainerMarkerSize;
 
-        return err;
+        ExitNow();
     }
 
     containerWriter.mBufHandle = mBufHandle;
@@ -1222,7 +1226,8 @@ WEAVE_ERROR TLVWriter::OpenContainer(uint64_t tag, TLVType containerType, TLVWri
 
     SetContainerOpen(true);
 
-    return WEAVE_NO_ERROR;
+exit:
+    return err;
 }
 
 /**
@@ -1325,27 +1330,32 @@ WEAVE_ERROR TLVWriter::CloseContainer(TLVWriter& containerWriter)
  */
 WEAVE_ERROR TLVWriter::StartContainer(uint64_t tag, TLVType containerType, TLVType& outerContainerType)
 {
-    if (!TLVTypeIsContainer(containerType))
-        return WEAVE_ERROR_WRONG_TLV_TYPE;
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
+
+    VerifyOrExit(TLVTypeIsContainer(containerType), err = WEAVE_ERROR_WRONG_TLV_TYPE);
 
     if (IsCloseContainerReserved())
+    {
+        VerifyOrExit(mMaxLen >= kEndOfContainerMarkerSize, err = WEAVE_ERROR_BUFFER_TOO_SMALL);
         mMaxLen -= kEndOfContainerMarkerSize;
+    }
 
-    WEAVE_ERROR err = WriteElementHead((TLVElementType) containerType, tag, 0);
+    err = WriteElementHead((TLVElementType) containerType, tag, 0);
     if (err != WEAVE_NO_ERROR)
     {
         // undo the space reservation, as the container is not actually open
         if (IsCloseContainerReserved())
             mMaxLen += kEndOfContainerMarkerSize;
 
-        return err;
+        ExitNow();
     }
     outerContainerType = mContainerType;
     mContainerType = containerType;
 
     SetContainerOpen(false);
 
-    return WEAVE_NO_ERROR;
+exit:
+    return err;
 }
 
 /**
