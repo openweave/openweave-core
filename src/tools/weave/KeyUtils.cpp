@@ -341,7 +341,7 @@ bool EncodePrivateKey(EVP_PKEY *key, KeyFormat keyFormat, uint8_t *& encodedKey,
 
     if (keyFormat == kKeyFormat_DER || keyFormat == kKeyFormat_PEM)
     {
-        if (EVP_PKEY_type(EVP_PKEY_base_id(key)) == EVP_PKEY_EC)
+        if (EVP_PKEY_type(EVP_PKEY_id(key)) == EVP_PKEY_EC)
         {
             EC_KEY *ecKey = EVP_PKEY_get1_EC_KEY(key);
             EC_KEY_set_enc_flags(ecKey, EC_PKEY_NO_PARAMETERS);
@@ -383,12 +383,12 @@ bool EncodePrivateKey(EVP_PKEY *key, KeyFormat keyFormat, uint8_t *& encodedKey,
         uint8_t *tmpEncodedKey;
         uint32_t tmpEncodedKeyLen;
 
-        if (EVP_PKEY_type(EVP_PKEY_base_id(key)) == EVP_PKEY_RSA)
+        if (EVP_PKEY_type(EVP_PKEY_id(key)) == EVP_PKEY_RSA)
         {
             fprintf(stderr, "Encoding of RSA private keys not yet supported\n");
             ExitNow(res = false);
         }
-        else if (EVP_PKEY_type(EVP_PKEY_base_id(key)) == EVP_PKEY_EC)
+        else if (EVP_PKEY_type(EVP_PKEY_id(key)) == EVP_PKEY_EC)
         {
             EC_KEY *ecKey = EVP_PKEY_get1_EC_KEY(key);
             res = WeaveEncodeECPrivateKey(ecKey, true, tmpEncodedKey, tmpEncodedKeyLen);
@@ -428,12 +428,12 @@ bool WeaveEncodePrivateKey(EVP_PKEY *key, uint8_t *& encodedKey, uint32_t& encod
 {
     bool res = true;
 
-    if (EVP_PKEY_type(EVP_PKEY_base_id(key)) == EVP_PKEY_RSA)
+    if (EVP_PKEY_type(EVP_PKEY_id(key)) == EVP_PKEY_RSA)
     {
         fprintf(stderr, "Encoding of RSA private keys not yet supported\n");
         ExitNow(res = false);
     }
-    else if (EVP_PKEY_type(EVP_PKEY_base_id(key)) == EVP_PKEY_EC)
+    else if (EVP_PKEY_type(EVP_PKEY_id(key)) == EVP_PKEY_EC)
     {
         EC_KEY *ecKey = EVP_PKEY_get1_EC_KEY(key);
         res = WeaveEncodeECPrivateKey(ecKey, true, encodedKey, encodedKeyLen);
