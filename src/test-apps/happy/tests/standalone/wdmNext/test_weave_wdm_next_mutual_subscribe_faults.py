@@ -117,9 +117,9 @@ class test_weave_wdm_next_mutual_subscribe_faults(weave_wdm_next_test_base):
         wdm_next_args['timer_server_period'] = 4000
         wdm_next_args['enable_server_flip'] = 1
 
-        wdm_next_args['client_event_generator'] = 'Security'
+        wdm_next_args['client_event_generator'] = 'Liveness'
 
-        wdm_next_args['client_inter_event_period'] = 1000
+        wdm_next_args['client_inter_event_period'] = 9000
 
         wdm_next_args['client_log_check'] = [('Handler\[0\] \[(ALIVE|CONFM)\] bound mutual subscription is going away', wdm_next_args['test_client_iterations']),
                                              ('Client->kEvent_OnNotificationProcessed', wdm_next_args['test_client_iterations'] * (wdm_next_args['total_server_count'] + 1)),
@@ -127,7 +127,7 @@ class test_weave_wdm_next_mutual_subscribe_faults(weave_wdm_next_test_base):
                                              ('Client\[0\] moving to \[ FREE\] Ref\(0\)', wdm_next_args['test_client_iterations']),
                                              ('Handler\[0\] Moving to \[ FREE\] Ref\(0\)', wdm_next_args['test_client_iterations'])]
         wdm_next_args['server_log_check'] = [('bound mutual subscription is going away', wdm_next_args['test_client_iterations']),
-                                             ('Client->kEvent_OnNotificationProcessed', wdm_next_args['test_client_iterations'] * (wdm_next_args['total_client_count'] + 1)),
+                                             ('Client->kEvent_OnNotificationProcessed', 4),
                                              ('Client\[0\] \[(ALIVE|CONFM)\] CancelRequestHandler', wdm_next_args['test_client_iterations']),
                                              ('Client\[0\] moving to \[ FREE\] Ref\(0\)', wdm_next_args['test_client_iterations']),
                                              ('Handler\[0\] Moving to \[ FREE\] Ref\(0\)', wdm_next_args['test_client_iterations'])]
