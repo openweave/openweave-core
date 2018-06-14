@@ -70,6 +70,8 @@ WEAVE_ERROR UpdateEncoder::EncodeRequest(Context *aContext)
 
     mContext = aContext;
 
+    mContext->mNumDataElementsAddedToPayload = 0;
+
     err = StartUpdate();
     SuccessOrExit(err);
 

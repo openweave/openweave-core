@@ -90,6 +90,7 @@ class WdmUpdateEncoderTest {
         void TestDictionaryElements(nlTestSuite *inSuite, void *inContext);
         void TestStructure(nlTestSuite *inSuite, void *inContext);
         void TestOverflowDictionary(nlTestSuite *inSuite, void *inContext);
+        void TestDataElementTooBig(nlTestSuite *inSuite, void *inContext);
 
     private:
         // The encoder
@@ -205,6 +206,7 @@ void WdmUpdateEncoderTest::VerifyDataList(nlTestSuite *inSuite, PacketBuffer *aB
     nl::Weave::TLV::TLVReader dataListReader;
     UpdateRequest::Parser parser;
     TraitPath tp;
+    uint32_t count = 0;
 
     reader.Init(aBuf);
     reader.Next();
@@ -231,6 +233,8 @@ void WdmUpdateEncoderTest::VerifyDataList(nlTestSuite *inSuite, PacketBuffer *aB
             i < firstItemNotEncoded;
             i = mPathList.GetNextValidItem(i))
     {
+        count++;
+
         mPathList.GetItemAt(i, tp);
 
         err = dataListReader.Next();
@@ -274,6 +278,8 @@ void WdmUpdateEncoderTest::VerifyDataList(nlTestSuite *inSuite, PacketBuffer *aB
 
     err = dataListReader.Next();
     NL_TEST_ASSERT(inSuite, err == WEAVE_END_OF_TLV);
+
+    NL_TEST_ASSERT(inSuite, count == mContext.mNumDataElementsAddedToPayload);
 }
 
 
@@ -421,7 +427,6 @@ void WdmUpdateEncoderTest::TestStructure(nlTestSuite *inSuite, void *inContext)
 
     NL_TEST_ASSERT(inSuite, 1 == mPathList.GetNumItems());
 }
-
 
 void WdmUpdateEncoderTest::TestOverflowDictionary(nlTestSuite *inSuite, void *inContext)
 {
@@ -586,6 +591,73 @@ void WdmUpdateEncoderTest::TestOverflowDictionary(nlTestSuite *inSuite, void *in
     }
 }
 
+void WdmUpdateEncoderTest::TestDataElementTooBig(nlTestSuite *inSuite, void *inContext)
+{
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
+
+    PRINT_TEST_NAME();
+
+    PacketBuffer::Free(mBuf);
+    mBuf = NULL;
+
+    mBuf = PacketBuffer::New(0);
+
+    SetupTest();
+
+    uint16_t totLen = mBuf->TotalLength();
+    uint16_t available = mBuf->AvailableDataLength();
+    printf("totLen empty: %" PRIu16 " bytes; available %" PRIu16 "\n", totLen, mBuf->AvailableDataLength());
+
+    // encode the item to measure it
+
+    mTP = {
+        mTraitHandleSet[kTestATraitSink0Index],
+        CreatePropertyPathHandle(TestATrait::kPropertyHandle_TaD)
+    };
+
+    err = mPathList.AddItem(mTP);
+    NL_TEST_ASSERT(inSuite, err == WEAVE_NO_ERROR);
+
+    BasicTestBody(inSuite);
+
+    uint16_t encodedOneItemLen = mBuf->TotalLength();
+
+    PacketBuffer::Free(mBuf);
+    mBuf = NULL;
+
+    // Repeat the test with all the payload lengths that don't fit the element
+
+    for (uint16_t reserved = (available - encodedOneItemLen +1); reserved <= (available); reserved++)
+    {
+        SetupTest();
+
+        mTP = {
+            mTraitHandleSet[kTestATraitSink0Index],
+            CreatePropertyPathHandle(TestATrait::kPropertyHandle_TaD)
+        };
+
+        err = mPathList.AddItem(mTP);
+        NL_TEST_ASSERT(inSuite, err == WEAVE_NO_ERROR);
+
+        if (mBuf != NULL)
+        {
+            PacketBuffer::Free(mBuf);
+            mBuf = NULL;
+        }
+
+        mBuf = PacketBuffer::New(reserved);
+        NL_TEST_ASSERT(inSuite, NULL != mBuf);
+
+        InitEncoderContext(inSuite);
+        printf("reserved %" PRIu16 " bytes; available %" PRIu16 "\n", reserved, mBuf->AvailableDataLength());
+
+        err = mEncoder.EncodeRequest(&mContext);
+
+        NL_TEST_ASSERT(inSuite, 0 == mContext.mNumDataElementsAddedToPayload);
+        NL_TEST_ASSERT(inSuite, err == WEAVE_ERROR_BUFFER_TOO_SMALL);
+    }
+}
+
 } // WeaveMakeManagedNamespaceIdentifier(DataManagement, kWeaveManagedNamespaceDesignation_Current)
 }
 }
@@ -639,6 +711,12 @@ void WdmUpdateEncoderTest_OverflowDictionary(nlTestSuite *inSuite, void *inConte
 {
     gWdmUpdateEncoderTest.TestOverflowDictionary(inSuite, inContext);
 }
+
+void WdmUpdateEncoderTest_DataElementTooBig(nlTestSuite *inSuite, void *inContext)
+{
+    gWdmUpdateEncoderTest.TestDataElementTooBig(inSuite, inContext);
+}
+
 // Test Suite
 
 /**
@@ -653,6 +731,7 @@ static const nlTest sTests[] = {
     NL_TEST_DEF("Encode dictionary elements",  WdmUpdateEncoderTest_DictionaryElements),
     NL_TEST_DEF("Encode structure",  WdmUpdateEncoderTest_Structure),
     NL_TEST_DEF("Encode overflowing dictionary",  WdmUpdateEncoderTest_OverflowDictionary),
+    NL_TEST_DEF("Fail to encode because DataElement is too big",  WdmUpdateEncoderTest_DataElementTooBig),
 
     NL_TEST_SENTINEL()
 };
