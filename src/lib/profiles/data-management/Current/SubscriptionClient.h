@@ -31,6 +31,7 @@
 #include <Weave/Profiles/data-management/TraitCatalog.h>
 #include <Weave/Profiles/data-management/TraitPathStore.h>
 #include <Weave/Profiles/data-management/UpdateClient.h>
+#include <Weave/Profiles/data-management/UpdateEncoder.h>
 #include <Weave/Profiles/data-management/EventLogging.h>
 #include <Weave/Profiles/status-report/StatusReportProfile.h>
 

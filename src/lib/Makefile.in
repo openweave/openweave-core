@@ -530,6 +530,7 @@ am__libWeave_a_SOURCES_DIST =  \
 	@top_builddir@/src/lib/profiles/data-management/Current/ViewClient.cpp \
 	@top_builddir@/src/lib/profiles/data-management/Current/Command.cpp \
 	@top_builddir@/src/lib/profiles/data-management/Current/UpdateClient.cpp \
+	@top_builddir@/src/lib/profiles/data-management/Current/UpdateEncoder.cpp \
 	@top_builddir@/src/lib/profiles/data-management/Current/EventLogging.cpp \
 	@top_builddir@/src/lib/profiles/data-management/Current/EventLoggingTypes.cpp \
 	@top_builddir@/src/lib/profiles/data-management/Current/EventProcessor.cpp \
@@ -728,6 +729,7 @@ am__objects_20 = @top_builddir@/src/lib/profiles/bulk-data-transfer/libWeave_a-B
 	@top_builddir@/src/lib/profiles/data-management/Current/libWeave_a-ViewClient.$(OBJEXT) \
 	@top_builddir@/src/lib/profiles/data-management/Current/libWeave_a-Command.$(OBJEXT) \
 	@top_builddir@/src/lib/profiles/data-management/Current/libWeave_a-UpdateClient.$(OBJEXT) \
+	@top_builddir@/src/lib/profiles/data-management/Current/libWeave_a-UpdateEncoder.$(OBJEXT) \
 	@top_builddir@/src/lib/profiles/data-management/Current/libWeave_a-EventLogging.$(OBJEXT) \
 	@top_builddir@/src/lib/profiles/data-management/Current/libWeave_a-EventLoggingTypes.$(OBJEXT) \
 	@top_builddir@/src/lib/profiles/data-management/Current/libWeave_a-EventProcessor.$(OBJEXT) \
@@ -1225,6 +1227,7 @@ nl_WeaveProfiles_sources = @top_builddir@/src/lib/profiles/bulk-data-transfer/Bu
 	@top_builddir@/src/lib/profiles/data-management/Current/ViewClient.cpp \
 	@top_builddir@/src/lib/profiles/data-management/Current/Command.cpp \
 	@top_builddir@/src/lib/profiles/data-management/Current/UpdateClient.cpp \
+	@top_builddir@/src/lib/profiles/data-management/Current/UpdateEncoder.cpp \
 	@top_builddir@/src/lib/profiles/data-management/Current/EventLogging.cpp \
 	@top_builddir@/src/lib/profiles/data-management/Current/EventLoggingTypes.cpp \
 	@top_builddir@/src/lib/profiles/data-management/Current/EventProcessor.cpp \
@@ -1813,6 +1816,8 @@ clean-libLIBRARIES:
 	@top_builddir@/src/lib/profiles/data-management/Current/$(DEPDIR)/$(am__dirstamp)
 @top_builddir@/src/lib/profiles/data-management/Current/libWeave_a-UpdateClient.$(OBJEXT): @top_builddir@/src/lib/profiles/data-management/Current/$(am__dirstamp) \
 	@top_builddir@/src/lib/profiles/data-management/Current/$(DEPDIR)/$(am__dirstamp)
+@top_builddir@/src/lib/profiles/data-management/Current/libWeave_a-UpdateEncoder.$(OBJEXT): @top_builddir@/src/lib/profiles/data-management/Current/$(am__dirstamp) \
+	@top_builddir@/src/lib/profiles/data-management/Current/$(DEPDIR)/$(am__dirstamp)
 @top_builddir@/src/lib/profiles/data-management/Current/libWeave_a-EventLogging.$(OBJEXT): @top_builddir@/src/lib/profiles/data-management/Current/$(am__dirstamp) \
 	@top_builddir@/src/lib/profiles/data-management/Current/$(DEPDIR)/$(am__dirstamp)
 @top_builddir@/src/lib/profiles/data-management/Current/libWeave_a-EventLoggingTypes.$(OBJEXT): @top_builddir@/src/lib/profiles/data-management/Current/$(am__dirstamp) \
@@ -2205,6 +2210,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@@top_builddir@/src/lib/profiles/data-management/Current/$(DEPDIR)/libWeave_a-TraitData.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@@top_builddir@/src/lib/profiles/data-management/Current/$(DEPDIR)/libWeave_a-TraitPathStore.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@@top_builddir@/src/lib/profiles/data-management/Current/$(DEPDIR)/libWeave_a-UpdateClient.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@@top_builddir@/src/lib/profiles/data-management/Current/$(DEPDIR)/libWeave_a-UpdateEncoder.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@@top_builddir@/src/lib/profiles/data-management/Current/$(DEPDIR)/libWeave_a-ViewClient.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@@top_builddir@/src/lib/profiles/data-management/Legacy/$(DEPDIR)/libWeave_a-Binding.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@@top_builddir@/src/lib/profiles/data-management/Legacy/$(DEPDIR)/libWeave_a-ClientNotifier.Po@am__quote@
@@ -3940,6 +3946,20 @@ distclean-compile:
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='@top_builddir@/src/lib/profiles/data-management/Current/UpdateClient.cpp' object='@top_builddir@/src/lib/profiles/data-management/Current/libWeave_a-UpdateClient.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libWeave_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o @top_builddir@/src/lib/profiles/data-management/Current/libWeave_a-UpdateClient.obj `if test -f '@top_builddir@/src/lib/profiles/data-management/Current/UpdateClient.cpp'; then $(CYGPATH_W) '@top_builddir@/src/lib/profiles/data-management/Current/UpdateClient.cpp'; else $(CYGPATH_W) '$(srcdir)/@top_builddir@/src/lib/profiles/data-management/Current/UpdateClient.cpp'; fi`
+
+@top_builddir@/src/lib/profiles/data-management/Current/libWeave_a-UpdateEncoder.o: @top_builddir@/src/lib/profiles/data-management/Current/UpdateEncoder.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libWeave_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT @top_builddir@/src/lib/profiles/data-management/Current/libWeave_a-UpdateEncoder.o -MD -MP -MF @top_builddir@/src/lib/profiles/data-management/Current/$(DEPDIR)/libWeave_a-UpdateEncoder.Tpo -c -o @top_builddir@/src/lib/profiles/data-management/Current/libWeave_a-UpdateEncoder.o `test -f '@top_builddir@/src/lib/profiles/data-management/Current/UpdateEncoder.cpp' || echo '$(srcdir)/'`@top_builddir@/src/lib/profiles/data-management/Current/UpdateEncoder.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) @top_builddir@/src/lib/profiles/data-management/Current/$(DEPDIR)/libWeave_a-UpdateEncoder.Tpo @top_builddir@/src/lib/profiles/data-management/Current/$(DEPDIR)/libWeave_a-UpdateEncoder.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='@top_builddir@/src/lib/profiles/data-management/Current/UpdateEncoder.cpp' object='@top_builddir@/src/lib/profiles/data-management/Current/libWeave_a-UpdateEncoder.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libWeave_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o @top_builddir@/src/lib/profiles/data-management/Current/libWeave_a-UpdateEncoder.o `test -f '@top_builddir@/src/lib/profiles/data-management/Current/UpdateEncoder.cpp' || echo '$(srcdir)/'`@top_builddir@/src/lib/profiles/data-management/Current/UpdateEncoder.cpp
+
+@top_builddir@/src/lib/profiles/data-management/Current/libWeave_a-UpdateEncoder.obj: @top_builddir@/src/lib/profiles/data-management/Current/UpdateEncoder.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libWeave_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT @top_builddir@/src/lib/profiles/data-management/Current/libWeave_a-UpdateEncoder.obj -MD -MP -MF @top_builddir@/src/lib/profiles/data-management/Current/$(DEPDIR)/libWeave_a-UpdateEncoder.Tpo -c -o @top_builddir@/src/lib/profiles/data-management/Current/libWeave_a-UpdateEncoder.obj `if test -f '@top_builddir@/src/lib/profiles/data-management/Current/UpdateEncoder.cpp'; then $(CYGPATH_W) '@top_builddir@/src/lib/profiles/data-management/Current/UpdateEncoder.cpp'; else $(CYGPATH_W) '$(srcdir)/@top_builddir@/src/lib/profiles/data-management/Current/UpdateEncoder.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) @top_builddir@/src/lib/profiles/data-management/Current/$(DEPDIR)/libWeave_a-UpdateEncoder.Tpo @top_builddir@/src/lib/profiles/data-management/Current/$(DEPDIR)/libWeave_a-UpdateEncoder.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='@top_builddir@/src/lib/profiles/data-management/Current/UpdateEncoder.cpp' object='@top_builddir@/src/lib/profiles/data-management/Current/libWeave_a-UpdateEncoder.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libWeave_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o @top_builddir@/src/lib/profiles/data-management/Current/libWeave_a-UpdateEncoder.obj `if test -f '@top_builddir@/src/lib/profiles/data-management/Current/UpdateEncoder.cpp'; then $(CYGPATH_W) '@top_builddir@/src/lib/profiles/data-management/Current/UpdateEncoder.cpp'; else $(CYGPATH_W) '$(srcdir)/@top_builddir@/src/lib/profiles/data-management/Current/UpdateEncoder.cpp'; fi`
 
 @top_builddir@/src/lib/profiles/data-management/Current/libWeave_a-EventLogging.o: @top_builddir@/src/lib/profiles/data-management/Current/EventLogging.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libWeave_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT @top_builddir@/src/lib/profiles/data-management/Current/libWeave_a-EventLogging.o -MD -MP -MF @top_builddir@/src/lib/profiles/data-management/Current/$(DEPDIR)/libWeave_a-EventLogging.Tpo -c -o @top_builddir@/src/lib/profiles/data-management/Current/libWeave_a-EventLogging.o `test -f '@top_builddir@/src/lib/profiles/data-management/Current/EventLogging.cpp' || echo '$(srcdir)/'`@top_builddir@/src/lib/profiles/data-management/Current/EventLogging.cpp
