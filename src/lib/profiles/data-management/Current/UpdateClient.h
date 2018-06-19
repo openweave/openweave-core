@@ -33,9 +33,7 @@
 #include <Weave/Profiles/data-management/Current/WdmManagedNamespace.h>
 
 #include <Weave/Core/WeaveCore.h>
-#include <Weave/Profiles/data-management/MessageDef.h>
 #include <Weave/Profiles/data-management/EventLoggingTypes.h>
-#include <Weave/Profiles/data-management/TraitCatalog.h>
 
 namespace nl {
 namespace Weave {

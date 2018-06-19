@@ -80,7 +80,7 @@ WEAVE_ERROR UpdateDictionaryDirtyPathCut::CutPath (PropertyPathHandle aPathhandl
     // Probably just replace the struct with a function; I don't see the point of it really.
 #if WEAVE_CONFIG_ENABLE_WDM_UPDATE
     // TODO: handle errors!!
-    mpUpdateEncoder->InsertInProgressUpdateItem(TraitPath(mTraitDataHandle, aPathhandle), apEngine);
+    mpUpdateEncoder->InsertInProgressUpdateItem(TraitPath(mTraitDataHandle, aPathhandle));
     WeaveLogDetail(DataManagement, "Cut dictionary %u, %u", mTraitDataHandle, aPathhandle);
 #endif // WEAVE_CONFIG_ENABLE_WDM_UPDATE
 

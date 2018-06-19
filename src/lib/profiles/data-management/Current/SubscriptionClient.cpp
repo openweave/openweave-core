@@ -2783,7 +2783,7 @@ WEAVE_ERROR SubscriptionClient::SendSingleUpdateRequest(void)
     context.mInProgressUpdateList = &mInProgressUpdateList;
     context.mDataSinkCatalog = mDataSinkCatalog;
 
-    err = mUpdateEncoder.EncodeRequest(&context);
+    err = mUpdateEncoder.EncodeRequest(context);
     SuccessOrExit(err);
 
     mUpdateRequestContext.mNextDictionaryElementPathHandle = context.mNextDictionaryElementPathHandle;

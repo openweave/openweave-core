@@ -44,108 +44,116 @@ namespace WeaveMakeManagedNamespaceIdentifier(DataManagement, kWeaveManagedNames
 
 TraitUpdatableDataSink *Locate(TraitDataHandle aTraitDataHandle, const TraitCatalogBase<TraitDataSink> * aDataSinkCatalog);
 
+/**
+ * This object encodes WDM UpdateRequest and PartialUpdateRequest payloads.
+ * Note that both requests have the same format; they are differentiated only
+ * by the message type, which is outside the scope of this object.
+ *
+ * The encoding is done synchronously by the EncodeRequest method.
+ * The only other public method is InsertInProgressUpdateItem, which is
+ * called by the SchemaEngine when it needs to push a dictionary back to the queue.
+ */
 class UpdateEncoder
 {
 public:
-    UpdateEncoder() : mState(kState_Uninitialized) { }
+    UpdateEncoder() { }
     ~UpdateEncoder() { }
 
+    /**
+     * This structure holds the I/O arguments to the EncodeRequest method.
+     */
     struct Context
     {
         Context() { memset(this, 0, sizeof(*this)); }
 
         // Destination buffer
-        PacketBuffer *mBuf;
-        uint32_t mMaxPayloadSize;
+        PacketBuffer *mBuf;                      /**< The output buffer. */
+        uint32_t mMaxPayloadSize;                /**< The maximum number of bytes to write. */
 
         // Other fields of the payload
-        uint32_t mUpdateRequestIndex;
-        utc_timestamp_t mExpiryTimeMicroSecond;
+        uint32_t mUpdateRequestIndex;            /**< The value of the UpdateRequestIndex field for this request. */
+        utc_timestamp_t mExpiryTimeMicroSecond;  /**< The value of the ExpiryTimeMicroSecond field for this request.
+                                                      It is encoded only if different than 0 */
 
         // What to encode
-        size_t mItemInProgress;
-        TraitPathStore *mInProgressUpdateList;
-        PropertyPathHandle mNextDictionaryElementPathHandle;
-        TraitCatalogBase<TraitDataSink> * mDataSinkCatalog;
+        size_t mItemInProgress;                  /**< Input: the index of the item of mInProgressUpdateList to start
+                                                      encoding from.
+                                                      Output: Upon returning, if the whole path list fit in the payload,
+                                                      this field equals mInProgressUpdateList->GetPathStoreSize().
+                                                      Otherwise, the index of the item to start the next payload from.*/
+
+        TraitPathStore *mInProgressUpdateList;   /**< The list of TraitPaths to encode. */
+        PropertyPathHandle mNextDictionaryElementPathHandle; /**< Input: if the encoding starts with a dictionary being
+                                                                 resumed, this field holds the property path of the next
+                                                                 dictionary item to encode. Otherwise, this field should be
+                                                                 kNullPropertyPathHandle.
+                                                                 Output: if the last DataElement encoded is a dictionary and
+                                                                 not all items fit in the payload, this field holds the property
+                                                                 path handle of the item to start from for the next payload. */
+
+
+        const TraitCatalogBase<TraitDataSink> * mDataSinkCatalog; /**< Input: The catalog of TraitDataSinks which the
+                                                                       TraitPaths refer to. */
 
         // Other
-        size_t mNumDataElementsAddedToPayload;
+        size_t mNumDataElementsAddedToPayload;    /**< Output: The number of items encoded in the payload. */
     };
 
-    struct DataElementContext
-    {
-        DataElementContext() { memset(this, 0, sizeof(*this)); }
+    WEAVE_ERROR EncodeRequest(Context &aContext);
 
-        TraitPath mTraitPath;
-        bool mForceMerge;
-        TraitUpdatableDataSink *mDataSink;
-        const TraitSchemaEngine *mSchemaEngine;
-        uint32_t mProfileId;
-        ResourceIdentifier mResourceId;
-        uint64_t mInstanceId;
-        uint32_t mNumTags;
-        uint64_t *mTags;
-        const SchemaVersionRange * mSchemaVersionRange;
-        DataVersion mUpdateRequiredVersion;
-    };
-
-    WEAVE_ERROR InsertInProgressUpdateItem(const TraitPath &aItem, const TraitSchemaEngine * const aSchemaEngine);
-    void RemoveInProgressPrivateItemsAfter(uint16_t aItemInProgress);
-
-    WEAVE_ERROR EncodeRequest(Context *aContext);
-
-    typedef WEAVE_ERROR (*AddElementCallback)(UpdateEncoder * aEncoder, void *apCallState, TLV::TLVWriter & aOuterWriter);
-
-    WEAVE_ERROR StartUpdate();
-
-    WEAVE_ERROR BuildSingleUpdateRequestDataList();
-
-    WEAVE_ERROR DirtyPathToDataElement();
-
-    WEAVE_ERROR EncodeElement(const DataElementContext &aElementContext);
-
-    WEAVE_ERROR StartElement(const DataElementContext &aElementContext);
-
-    WEAVE_ERROR FinalizeElement();
-
-    WEAVE_ERROR CancelElement(TLV::TLVWriter & aOuterWriter);
-
-    void Checkpoint(TLV::TLVWriter &aWriter);
-
-    void Rollback(TLV::TLVWriter &aWriter);
-
-    WEAVE_ERROR StartDataList(void);
-
-    WEAVE_ERROR EndDataList(void);
-
-    WEAVE_ERROR StartUpdateRequest();
-
-    WEAVE_ERROR FinishUpdate();
-
-    WEAVE_ERROR EndUpdateRequest(void);
-
-    WEAVE_ERROR AddExpiryTime(utc_timestamp_t aExpiryTimeMicroSecond);
-
-    WEAVE_ERROR AddUpdateRequestIndex(void);
+    WEAVE_ERROR InsertInProgressUpdateItem(const TraitPath &aItem);
 
 private:
-    enum UpdateEncoderState
+
+    /**
+     * The context used to encode the path of a DataElement.
+     */
+    struct DataElementPathContext
     {
-        kState_Uninitialized,        //< The encoder has not been initialized
-        kState_Ready,                //< The encoder has been initialized and is ready
-        kState_EncodingDataList,     //< The encoder has opened the DataList; DataElements can be added
-        kState_EncodingDataElement,  //< The encoder is encoding a DataElement
-        kState_Done,                 //< The DataList has been closed
+        DataElementPathContext() { memset(this, 0, sizeof(*this)); }
+
+        uint32_t mProfileId;                    /**< Profile ID of the data sink. */
+        ResourceIdentifier mResourceId;         /**< Resource ID of the data sink; if 0 it is not encoded
+                                                     and defaults to the resource ID of the publisher. */
+        uint64_t mInstanceId;                   /**< Instance ID of the data sink; if 0 it is not encoded
+                                                     and defaults to the first instance of the trait in the publisher. */
+        uint32_t mNumTags;                      /**< Number of tags in the tags array mTags. */
+        uint64_t *mTags;                        /**< Array of tags to be encoded in the path. */
+        const SchemaVersionRange * mSchemaVersionRange; /**< Schema version range. */
     };
 
-    void MoveToState(const UpdateEncoderState aTargetState);
-    const char * GetStateStr(void) const;
+    /**
+     * The context used to encode the data of a DataElement.
+     */
+    struct DataElementDataContext
+    {
+        DataElementDataContext() { memset(this, 0, sizeof(*this)); }
+
+        TraitPath mTraitPath;                   /**< The TraitPath to encode. */
+        DataVersion mUpdateRequiredVersion;     /**< If the update is conditional, the version the update is based off. */
+        bool mForceMerge;                       /**< True if the property is a dictionary and should be encoded as a merge. */
+        TraitUpdatableDataSink *mDataSink;      /**< DataSink the TraitPath refers to. */
+        const TraitSchemaEngine *mSchemaEngine; /**< The TraitSchemaEngine of the data sink. */
+        PropertyPathHandle mNextDictionaryElementPathHandle; /**< See @UpdateEncoder::Context */
+    };
+
+    WEAVE_ERROR EncodePreamble();
+    WEAVE_ERROR EncodeDataList(void);
+    WEAVE_ERROR EncodeDataElements();
+    WEAVE_ERROR EncodeDataElement();
+    static WEAVE_ERROR EncodeElementPath(const DataElementPathContext &aElementContext, TLV::TLVWriter &aWriter);
+    static WEAVE_ERROR EncodeElementData(DataElementDataContext &aElementContext, TLV::TLVWriter &aWriter);
+    WEAVE_ERROR EndUpdateRequest(void);
+
+    void Checkpoint(TLV::TLVWriter &aWriter) { aWriter = mWriter; }
+    void Rollback(TLV::TLVWriter &aWriter) { mWriter = aWriter; }
+
+    static void RemoveInProgressPrivateItemsAfter(TraitPathStore &aList, size_t aItemInProgress);
 
     Context *mContext;
 
     TLV::TLVWriter mWriter;
-    UpdateEncoderState mState;
-    nl::Weave::TLV::TLVType mDataListOuterContainerType, mDataElementOuterContainerType;
+    nl::Weave::TLV::TLVType mPayloadOuterContainerType, mDataListOuterContainerType, mDataElementOuterContainerType;
 
 };
 
