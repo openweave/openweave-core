@@ -26,6 +26,8 @@
 #ifndef _WEAVE_DATA_MANAGEMENT_UPDATE_ENCODER_CURRENT_H
 #define _WEAVE_DATA_MANAGEMENT_UPDATE_ENCODER_CURRENT_H
 
+#if WEAVE_CONFIG_ENABLE_RELIABLE_MESSAGING && WEAVE_CONFIG_ENABLE_WDM_UPDATE
+
 #ifndef __STDC_FORMAT_MACROS
 #define __STDC_FORMAT_MACROS
 #endif // __STDC_FORMAT_MACROS
@@ -41,6 +43,7 @@ namespace nl {
 namespace Weave {
 namespace Profiles {
 namespace WeaveMakeManagedNamespaceIdentifier(DataManagement, kWeaveManagedNamespaceDesignation_Current) {
+
 
 TraitUpdatableDataSink *Locate(TraitDataHandle aTraitDataHandle, const TraitCatalogBase<TraitDataSink> * aDataSinkCatalog);
 
@@ -161,5 +164,7 @@ private:
 }; // namespace Profiles
 }; // namespace Weave
 }; // namespace nl
+
+#endif // WEAVE_CONFIG_ENABLE_RELIABLE_MESSAGING && WEAVE_CONFIG_ENABLE_WDM_UPDATE
 
 #endif // _WEAVE_DATA_MANAGEMENT_UPDATE_ENCODER_CURRENT_H

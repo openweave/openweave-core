@@ -301,7 +301,9 @@ private:
     static void HandlePublisherRelease();
 
     static void HandleDataFlipTimeout (nl::Weave::System::Layer *aSystemLayer, void *aAppState, nl::Weave::System::Error aErr);
+#if WEAVE_CONFIG_ENABLE_WDM_UPDATE
     WEAVE_ERROR ApplyWdmUpdateMutations();
+#endif
 
     static void MonitorPublisherCurrentState (nl::Weave::System::Layer* aSystemLayer, void *aAppState, INET_ERROR aErr);
 
@@ -408,6 +410,7 @@ WEAVE_ERROR MockWdmSubscriptionInitiatorImpl::Init(
 
     mEnableRetry = aConfig.mEnableRetry;
 
+#if WEAVE_CONFIG_ENABLE_WDM_UPDATE
     mUpdateMutation = aConfig.mWdmUpdateMutation;
     mUpdateConditionality = aConfig.mWdmUpdateConditionality;
     mUpdateTiming = aConfig.mWdmUpdateTiming;
@@ -415,6 +418,7 @@ WEAVE_ERROR MockWdmSubscriptionInitiatorImpl::Init(
     mUpdateNumMutations = aConfig.mWdmUpdateNumberOfMutations;
     mUpdateNumRepeatedMutations = aConfig.mWdmUpdateNumberOfRepeatedMutations;
     mUpdateSameMutationCounter = 0;
+#endif // WEAVE_CONFIG_ENABLE_WDM_UPDATE
 
     switch (mTestCaseId)
     {
@@ -1326,6 +1330,7 @@ void MockWdmSubscriptionInitiatorImpl::HandlePublisherRelease()
     gSubscriptionHandler = NULL;
 }
 
+#if WEAVE_CONFIG_ENABLE_WDM_UPDATE
 WEAVE_ERROR MockWdmSubscriptionInitiatorImpl::ApplyWdmUpdateMutations()
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
@@ -1398,6 +1403,7 @@ WEAVE_ERROR MockWdmSubscriptionInitiatorImpl::ApplyWdmUpdateMutations()
 exit:
     return err;
 }
+#endif
 
 void MockWdmSubscriptionInitiatorImpl::HandleDataFlipTimeout(nl::Weave::System::Layer* aSystemLayer, void *aAppState,
     nl::Weave::System::Error aErr)

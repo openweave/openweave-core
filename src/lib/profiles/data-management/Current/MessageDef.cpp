@@ -4121,9 +4121,6 @@ WEAVE_ERROR UpdateRequest::Parser::GetUpdateRequestIndex(uint32_t * const apUpda
 // Get a TLVReader for the Paths. Next() must be called before accessing them.
 WEAVE_ERROR UpdateRequest::Parser::GetDataList (DataList::Parser * const apDataList) const
 {
-    WEAVE_ERROR err = WEAVE_NO_ERROR;
-    nl::Weave::TLV::TLVReader reader;
-
     return apDataList->InitIfPresent(mReader, kCsTag_DataList);
 }
 

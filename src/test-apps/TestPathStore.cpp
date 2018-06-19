@@ -452,7 +452,6 @@ void TraitPathStoreTest::TestAddItemDedup(nlTestSuite *inSuite, void *inContext)
 void TraitPathStoreTest::TestGetFirstGetNext(nlTestSuite *inSuite, void *inContext)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
-    size_t numItems = 0;
     size_t i;
 
     mStore.Clear();
@@ -482,7 +481,6 @@ void TraitPathStoreTest::TestGetFirstGetNext(nlTestSuite *inSuite, void *inConte
 void TraitPathStoreTest::TestFlags(nlTestSuite *inSuite, void *inContext)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
-    size_t numItems = 0;
     size_t i;
 
     mStore.Clear();

@@ -45,6 +45,8 @@
 
 #define PRINT_TEST_NAME() printf("\n%s\n", __func__);
 
+
+
 using namespace nl;
 using namespace nl::Weave::TLV;
 using namespace nl::Weave::Profiles::DataManagement;
@@ -57,10 +59,18 @@ using namespace Schema::Nest::Test::Trait;
 //
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+
 namespace nl {
 namespace Weave {
 namespace Profiles {
 namespace WeaveMakeManagedNamespaceIdentifier(DataManagement, kWeaveManagedNamespaceDesignation_Current) {
+
+SubscriptionEngine * SubscriptionEngine::GetInstance()
+{
+    static SubscriptionEngine *gSubscriptionEngine = NULL;
+    return gSubscriptionEngine;
+}
+
 namespace Platform {
     // For unit tests, a dummy critical section is sufficient.
     void CriticalSectionEnter()
@@ -72,7 +82,19 @@ namespace Platform {
     {
         return;
     }
+
 } // Platform
+
+} // WeaveMakeManagedNamespaceIdentifier(DataManagement, kWeaveManagedNamespaceDesignation_Current)
+} // Profiles
+} // Weave
+} // nl 
+
+#if WEAVE_CONFIG_ENABLE_RELIABLE_MESSAGING && WEAVE_CONFIG_ENABLE_WDM_UPDATE
+namespace nl {
+namespace Weave {
+namespace Profiles {
+namespace WeaveMakeManagedNamespaceIdentifier(DataManagement, kWeaveManagedNamespaceDesignation_Current) {
 
 class WdmUpdateEncoderTest {
     public:
@@ -202,8 +224,6 @@ void WdmUpdateEncoderTest::InitEncoderContext(nlTestSuite *inSuite)
 
 void WdmUpdateEncoderTest::TestInitCleanup(nlTestSuite *inSuite, void *inContext)
 {
-    WEAVE_ERROR err = WEAVE_NO_ERROR;
-
     PRINT_TEST_NAME();
 
     NL_TEST_ASSERT(inSuite, 0 == mPathList.GetNumItems());
@@ -500,8 +520,6 @@ void WdmUpdateEncoderTest::TestOverflowDictionary(nlTestSuite *inSuite, void *in
     printf("encoded with two items: %" PRIu16 " bytes; totLen: %" PRIu16 " available %" PRIu16 "\n",
             encodedTwoItems, mBuf->TotalLength(), mBuf->AvailableDataLength());
 
-    uint16_t maxLen = mBuf->MaxDataLength();
-
     PacketBuffer::Free(mBuf);
     mBuf = NULL;
 
@@ -695,16 +713,11 @@ void WdmUpdateEncoderTest::TestBadInputs(nlTestSuite *inSuite, void *inContext)
     NL_TEST_ASSERT(inSuite, err == WEAVE_ERROR_WDM_SCHEMA_MISMATCH);
 }
 
-
 } // WeaveMakeManagedNamespaceIdentifier(DataManagement, kWeaveManagedNamespaceDesignation_Current)
 }
 }
-} static SubscriptionEngine *gSubscriptionEngine;
+} 
 
-SubscriptionEngine * SubscriptionEngine::GetInstance()
-{
-    return gSubscriptionEngine;
-}
 
 WdmUpdateEncoderTest gWdmUpdateEncoderTest;
 
@@ -780,26 +793,11 @@ static const nlTest sTests[] = {
     NL_TEST_SENTINEL()
 };
 
-namespace nl {
-namespace Weave {
-namespace Profiles {
-namespace WeaveMakeManagedNamespaceIdentifier(DataManagement, kWeaveManagedNamespaceDesignation_Current) {
-
-
-
-} // WeaveMakeManagedNamespaceIdentifier(DataManagement, kWeaveManagedNamespaceDesignation_Current)
-} // Profiles
-} // Weave
-} // nl
-
-
 /**
  *  Set up the test suite.
  */
 static int SuiteSetup(void *inContext)
 {
-    gSubscriptionEngine = NULL;
-
     return 0;
 }
 
@@ -831,6 +829,7 @@ static int TestTeardown(void *inContext)
     return 0;
 }
 
+
 /**
  *  Main
  */
@@ -853,3 +852,12 @@ int main(int argc, char *argv[])
 
     return nlTestRunnerStats(&theSuite);
 }
+
+#else  // WEAVE_CONFIG_ENABLE_RELIABLE_MESSAGING && WEAVE_CONFIG_ENABLE_WDM_UPDATE
+
+int main(int argc, char *argv[])
+{
+    return 0;
+}
+
+#endif // WEAVE_CONFIG_ENABLE_RELIABLE_MESSAGING && WEAVE_CONFIG_ENABLE_WDM_UPDATE
