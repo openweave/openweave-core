@@ -1403,7 +1403,7 @@ WEAVE_ERROR MockWdmSubscriptionInitiatorImpl::ApplyWdmUpdateMutations()
 exit:
     return err;
 }
-#endif
+#endif // WEAVE_CONFIG_ENABLE_WDM_UPDATE
 
 void MockWdmSubscriptionInitiatorImpl::HandleDataFlipTimeout(nl::Weave::System::Layer* aSystemLayer, void *aAppState,
     nl::Weave::System::Error aErr)

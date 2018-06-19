@@ -88,7 +88,7 @@ namespace Platform {
 } // WeaveMakeManagedNamespaceIdentifier(DataManagement, kWeaveManagedNamespaceDesignation_Current)
 } // Profiles
 } // Weave
-} // nl 
+} // nl
 
 #if WEAVE_CONFIG_ENABLE_RELIABLE_MESSAGING && WEAVE_CONFIG_ENABLE_WDM_UPDATE
 namespace nl {
@@ -902,7 +902,7 @@ void WdmUpdateEncoderTest::TestStoreTooSmall(nlTestSuite *inSuite, void *inConte
 } // WeaveMakeManagedNamespaceIdentifier(DataManagement, kWeaveManagedNamespaceDesignation_Current)
 }
 }
-} 
+}
 
 
 WdmUpdateEncoderTest gWdmUpdateEncoderTest;
