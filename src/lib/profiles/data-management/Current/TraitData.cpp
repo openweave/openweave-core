@@ -76,15 +76,15 @@ UpdateDictionaryDirtyPathCut::UpdateDictionaryDirtyPathCut(TraitDataHandle aTrai
 
 WEAVE_ERROR UpdateDictionaryDirtyPathCut::CutPath (PropertyPathHandle aPathhandle, const TraitSchemaEngine * apEngine)
 {
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
     // TODO: rename this struct, and pass apEngine to the constructor.
     // Probably just replace the struct with a function; I don't see the point of it really.
 #if WEAVE_CONFIG_ENABLE_WDM_UPDATE
-    // TODO: handle errors!!
-    mpUpdateEncoder->InsertInProgressUpdateItem(TraitPath(mTraitDataHandle, aPathhandle));
-    WeaveLogDetail(DataManagement, "Cut dictionary %u, %u", mTraitDataHandle, aPathhandle);
+    err = mpUpdateEncoder->InsertInProgressUpdateItem(TraitPath(mTraitDataHandle, aPathhandle));
+    WeaveLogDetail(DataManagement, "Cut dictionary %u, %u; err %d", mTraitDataHandle, aPathhandle, err);
 #endif // WEAVE_CONFIG_ENABLE_WDM_UPDATE
 
-    return WEAVE_NO_ERROR;
+    return err;
 }
 
 WEAVE_ERROR TraitSchemaEngine::MapPathToHandle(TLVReader & aPathReader, PropertyPathHandle & aHandle) const
@@ -262,7 +262,8 @@ WEAVE_ERROR TraitSchemaEngine::RetrieveData(PropertyPathHandle aHandle, uint64_t
                 // it's easier to split it in more than one data element outside of a recursion.
                 if (aDelegate->GetNextDictionaryItemKey(aHandle, context, dictionaryItemKey) == WEAVE_NO_ERROR)
                 {
-                    updateDirtyPathCut->CutPath(aHandle, this);
+                    err = updateDirtyPathCut->CutPath(aHandle, this);
+                    SuccessOrExit(err);
                 }
             }
         }

@@ -100,6 +100,8 @@ class TraitPathStoreTest {
         void TestAddItemDedup(nlTestSuite *inSuite, void *inContext);
         void TestGetFirstGetNext(nlTestSuite *inSuite, void *inContext);
         void TestFlags(nlTestSuite *inSuite, void *inContext);
+        void TestInsertItem(nlTestSuite *inSuite, void *inContext);
+        void TestSetFailedTrait(nlTestSuite *inSuite, void *inContext);
 };
 
 TraitPathStoreTest::TraitPathStoreTest() :
@@ -475,6 +477,15 @@ void TraitPathStoreTest::TestGetFirstGetNext(nlTestSuite *inSuite, void *inConte
     NL_TEST_ASSERT(inSuite, i < mStore.GetPathStoreSize());
     NL_TEST_ASSERT(inSuite, mStore.GetNextValidItem(i, mTDH1) == mStore.GetPathStoreSize());
 
+    err = mStore.AddItem(mPath);
+    NL_TEST_ASSERT(inSuite, err == WEAVE_NO_ERROR);
+
+    mStore.RemoveItemAt(0);
+
+    i = mStore.GetFirstValidItem();
+    NL_TEST_ASSERT(inSuite, i < mStore.GetPathStoreSize());
+    NL_TEST_ASSERT(inSuite, mStore.GetNextValidItem(i) == mStore.GetPathStoreSize());
+
     mStore.Clear();
 }
 
@@ -547,6 +558,92 @@ void TraitPathStoreTest::TestFlags(nlTestSuite *inSuite, void *inContext)
     mStore.Clear();
 }
 
+void TraitPathStoreTest::TestInsertItem(nlTestSuite *inSuite, void *inContext)
+{
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
+    size_t i;
+
+    mStore.Clear();
+
+    mPath.mTraitDataHandle = mTDH1;
+    mPath.mPropertyPathHandle = CreatePropertyPathHandle(TestHTrait::kPropertyHandle_K);
+
+    for (i = 0; i < 4; i++)
+    {
+        err = mStore.AddItem(mPath);
+        NL_TEST_ASSERT(inSuite, err == WEAVE_NO_ERROR);
+    }
+
+    mPath.mTraitDataHandle = mTDH1;
+    mPath.mPropertyPathHandle = CreatePropertyPathHandle(TestHTrait::kPropertyHandle_I);
+
+    err = mStore.InsertItemAfter(0, mPath, TraitPathStore::kFlag_None);
+    NL_TEST_ASSERT(inSuite, err == WEAVE_NO_ERROR);
+
+    NL_TEST_ASSERT(inSuite, 5 == mStore.GetNumItems());
+
+    err = mStore.InsertItemAt(mStore.GetNumItems(), mPath, TraitPathStore::kFlag_None);
+    NL_TEST_ASSERT(inSuite, err == WEAVE_NO_ERROR);
+
+    TraitPath tp;
+
+    for (i = 0; i < mStore.GetNumItems(); i++)
+    {
+        mStore.GetItemAt(i, tp);
+        if (i == 1 || i == 5)
+        {
+            NL_TEST_ASSERT(inSuite, tp.mPropertyPathHandle == CreatePropertyPathHandle(TestHTrait::kPropertyHandle_I));
+        }
+        else
+        {
+            NL_TEST_ASSERT(inSuite, tp.mPropertyPathHandle == CreatePropertyPathHandle(TestHTrait::kPropertyHandle_K));
+        }
+    }
+
+    err = mStore.InsertItemAfter(7, mPath, TraitPathStore::kFlag_None);
+    NL_TEST_ASSERT(inSuite, err == WEAVE_ERROR_INVALID_ARGUMENT);
+
+    mStore.Clear();
+}
+
+void TraitPathStoreTest::TestSetFailedTrait(nlTestSuite *inSuite, void *inContext)
+{
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
+    size_t i;
+
+    mStore.Clear();
+
+    mPath.mTraitDataHandle = mTDH1;
+    mPath.mPropertyPathHandle = CreatePropertyPathHandle(TestHTrait::kPropertyHandle_K);
+
+    for (i = 0; i < 4; i++)
+    {
+        err = mStore.AddItem(mPath);
+        NL_TEST_ASSERT(inSuite, err == WEAVE_NO_ERROR);
+    }
+
+    // Fail a TDH that is not in the store:
+    mStore.SetFailedTrait(mTDH1+1);
+
+    NL_TEST_ASSERT(inSuite, 4 == mStore.GetNumItems());
+    NL_TEST_ASSERT(inSuite, mStore.GetPathStoreSize() > mStore.GetFirstValidItem(mTDH1));
+    NL_TEST_ASSERT(inSuite, mStore.GetPathStoreSize() == mStore.GetFirstValidItem(mTDH1+1));
+
+    mPath.mTraitDataHandle = mTDH1+1;
+
+    mStore.AddItem(mPath);
+
+    // Fail a TDH that is in the store:
+    mStore.SetFailedTrait(mTDH1);
+
+    NL_TEST_ASSERT(inSuite, 5 == mStore.GetNumItems());
+    NL_TEST_ASSERT(inSuite, mStore.GetPathStoreSize() == mStore.GetFirstValidItem(mTDH1));
+    NL_TEST_ASSERT(inSuite, mStore.GetPathStoreSize() > mStore.GetFirstValidItem(mTDH1+1));
+
+
+    mStore.Clear();
+}
+
 } // WeaveMakeManagedNamespaceIdentifier(DataManagement, kWeaveManagedNamespaceDesignation_Current)
 }
 }
@@ -613,6 +710,16 @@ void TraitPathStoreTest_Flags(nlTestSuite *inSuite, void *inContext)
     gPathStoreTest.TestFlags(inSuite, inContext);
 }
 
+void TraitPathStoreTest_InsertItem(nlTestSuite *inSuite, void *inContext)
+{
+    gPathStoreTest.TestInsertItem(inSuite, inContext);
+}
+
+void TraitPathStoreTest_SetFailedTrait(nlTestSuite *inSuite, void *inContext)
+{
+    gPathStoreTest.TestSetFailedTrait(inSuite, inContext);
+}
+
 // Test Suite
 
 /**
@@ -629,6 +736,8 @@ static const nlTest sTests[] = {
     NL_TEST_DEF("AddItemDedup",  TraitPathStoreTest_AddItemDedup),
     NL_TEST_DEF("GetFirstGetNext",  TraitPathStoreTest_GetFirstGetNext),
     NL_TEST_DEF("Flags",  TraitPathStoreTest_Flags),
+    NL_TEST_DEF("InsertItem",  TraitPathStoreTest_InsertItem),
+    NL_TEST_DEF("SetFailedTrait",  TraitPathStoreTest_SetFailedTrait),
 
     NL_TEST_SENTINEL()
 };
