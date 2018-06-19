@@ -198,7 +198,6 @@ exit:
 WEAVE_ERROR UpdateEncoder::EncodeDataElements()
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
-    const TraitSchemaEngine * schemaEngine;
     bool dictionaryOverflowed = false;
     TraitPathStore &traitPathList = *(mContext->mInProgressUpdateList);
 
