@@ -67,10 +67,15 @@ public:
      */
     struct Context
     {
-        Context() { memset(this, 0, sizeof(*this)); }
+        Context()
+            : mBuf(NULL), mMaxPayloadSize(0), mUpdateRequestIndex(0), mExpiryTimeMicroSecond(0),
+                    mItemInProgress(0), mInProgressUpdateList(NULL), mNextDictionaryElementPathHandle(kNullPropertyPathHandle),
+                    mDataSinkCatalog(NULL), mNumDataElementsAddedToPayload(0)
+        {  }
 
         // Destination buffer
-        PacketBuffer *mBuf;                      /**< The output buffer. */
+        PacketBuffer *mBuf;                      /**< The output buffer. In case of failure the PacketBuffer's data length
+                                                      is not updated, but the buffer contents are not preserved. */
         uint32_t mMaxPayloadSize;                /**< The maximum number of bytes to write. */
 
         // Other fields of the payload
@@ -113,7 +118,10 @@ private:
      */
     struct DataElementPathContext
     {
-        DataElementPathContext() { memset(this, 0, sizeof(*this)); }
+        DataElementPathContext()
+            : mProfileId(0), mResourceId(0), mInstanceId(0), mNumTags(0),
+              mTags(NULL), mSchemaVersionRange(NULL)
+        { }
 
         uint32_t mProfileId;                    /**< Profile ID of the data sink. */
         ResourceIdentifier mResourceId;         /**< Resource ID of the data sink; if 0 it is not encoded

@@ -468,12 +468,12 @@ private:
 
     // Methods to purge obsolete pending paths
     WEAVE_ERROR PurgePendingUpdate(void);
-    void MarkFailedPendingPaths(TraitDataHandle aTraitDataHandle, const DataVersion &aLatestVersion);
-    size_t PurgeFailedPendingPaths(WEAVE_ERROR aErr);
+    void MarkFailedPendingPaths(TraitDataHandle aTraitDataHandle, TraitUpdatableDataSink &aSink, const DataVersion &aLatestVersion);
+    WEAVE_ERROR PurgeFailedPendingPaths(WEAVE_ERROR aErr, size_t &aCount);
 
     // Methods to handle potential data loss due to notifications received with updates pending or in progress
     bool FilterNotifiedPath(TraitDataHandle aTraitDataHandle, PropertyPathHandle aPropertyPathHandle, const TraitSchemaEngine * const aSchemaEngine);
-    void ClearPotentialDataLoss(TraitDataHandle aTraitDataHandle);
+    void ClearPotentialDataLoss(TraitDataHandle aTraitDataHandle, TraitUpdatableDataSink &aUpdatableSink);
     bool CheckForSinksWithDataLoss();
     static void CheckForSinksWithDataLossIteratorCb(void * aDataSink, TraitDataHandle aDataHandle, void * aContext);
 

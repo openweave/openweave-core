@@ -589,7 +589,8 @@ WEAVE_ERROR SubscriptionClient::SendSubscribeRequest(void)
 #if WEAVE_CONFIG_ENABLE_WDM_UPDATE
                     if (pDataSink->IsUpdatableDataSink() && ( ! pDataSink->IsVersionValid()))
                     {
-                        ClearPotentialDataLoss(versionedTraitPath.mTraitDataHandle);
+                        TraitUpdatableDataSink *updatableSink = static_cast<TraitUpdatableDataSink *>(pDataSink);
+                        ClearPotentialDataLoss(versionedTraitPath.mTraitDataHandle, *updatableSink);
                     }
 #endif // WEAVE_CONFIG_ENABLE_WDM_UPDATE
 
@@ -2042,12 +2043,12 @@ void SubscriptionClient::ClearPathStore(TraitPathStore &aPathStore, WEAVE_ERROR 
  * remove it from the pending set.
  * Return the number of paths removed.
  */
-size_t SubscriptionClient::PurgeFailedPendingPaths(WEAVE_ERROR aErr)
+WEAVE_ERROR SubscriptionClient::PurgeFailedPendingPaths(WEAVE_ERROR aErr, size_t &aCount)
 {
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
     TraitPath traitPath;
     TraitUpdatableDataSink *updatableDataSink = NULL;
-    size_t count = 0;
-
+    aCount = 0;
 
     for (size_t j = 0; j < mPendingUpdateSet.GetPathStoreSize(); j++)
     {
@@ -2059,6 +2060,7 @@ size_t SubscriptionClient::PurgeFailedPendingPaths(WEAVE_ERROR aErr)
         {
             mPendingUpdateSet.GetItemAt(j, traitPath);
             updatableDataSink = Locate(traitPath.mTraitDataHandle, mDataSinkCatalog);
+            VerifyOrExit(updatableDataSink != NULL, err = WEAVE_ERROR_WDM_SCHEMA_MISMATCH);
             updatableDataSink->ClearVersion();
             updatableDataSink->ClearUpdateRequiredVersion();
             updatableDataSink->SetConditionalUpdate(false);
@@ -2071,7 +2073,7 @@ size_t SubscriptionClient::PurgeFailedPendingPaths(WEAVE_ERROR aErr)
                         aErr);
             }
             mPendingUpdateSet.RemoveItemAt(j);
-            count++;
+            aCount++;
         }
     }
 
@@ -2080,7 +2082,8 @@ size_t SubscriptionClient::PurgeFailedPendingPaths(WEAVE_ERROR aErr)
         SetPendingSetState(kPendingSetEmpty);
     }
 
-    return count;
+exit:
+    return err;
 }
 
 WEAVE_ERROR SubscriptionClient::AddItemPendingUpdateSet(const TraitPath &aItem, const TraitSchemaEngine * const aSchemaEngine)
@@ -2093,35 +2096,31 @@ WEAVE_ERROR SubscriptionClient::AddItemPendingUpdateSet(const TraitPath &aItem, 
     return err;
 }
 
-void SubscriptionClient::ClearPotentialDataLoss(TraitDataHandle aTraitDataHandle)
+void SubscriptionClient::ClearPotentialDataLoss(TraitDataHandle aTraitDataHandle, TraitUpdatableDataSink &aUpdatableSink)
 {
-    TraitUpdatableDataSink *updatableDataSink = Locate(aTraitDataHandle, mDataSinkCatalog);
-
-    if (updatableDataSink->IsPotentialDataLoss())
+    if (aUpdatableSink.IsPotentialDataLoss())
     {
         WeaveLogDetail(DataManagement, "Potential data loss cleared for traitDataHandle: %" PRIu16 ", trait %08x",
-                aTraitDataHandle, updatableDataSink->GetSchemaEngine()->GetProfileId());
+                aTraitDataHandle, aUpdatableSink.GetSchemaEngine()->GetProfileId());
     }
 
-    updatableDataSink->SetPotentialDataLoss(false);
+    aUpdatableSink.SetPotentialDataLoss(false);
 }
 
-void SubscriptionClient::MarkFailedPendingPaths(TraitDataHandle aTraitDataHandle, const DataVersion &aLatestVersion)
+void SubscriptionClient::MarkFailedPendingPaths(TraitDataHandle aTraitDataHandle, TraitUpdatableDataSink &aSink, const DataVersion &aLatestVersion)
 {
     if (! IsUpdateInFlight())
     {
-        TraitUpdatableDataSink *updatableDataSink = Locate(aTraitDataHandle, mDataSinkCatalog);
-
-        if (updatableDataSink->IsConditionalUpdate() &&
-                IsVersionNewer(aLatestVersion, updatableDataSink->GetUpdateRequiredVersion()))
+        if (aSink.IsConditionalUpdate() &&
+                IsVersionNewer(aLatestVersion, aSink.GetUpdateRequiredVersion()))
         {
             WeaveLogDetail(DataManagement, "<MarkFailedPendingPaths> current version 0x%" PRIx64
                     ", valid: %d"
                     ", updateRequiredVersion: 0x%" PRIx64
                     ", latest known version: 0x%" PRIx64 "",
-                    updatableDataSink->GetVersion(),
-                    updatableDataSink->IsVersionValid(),
-                    updatableDataSink->GetUpdateRequiredVersion(),
+                    aSink.GetVersion(),
+                    aSink.IsVersionValid(),
+                    aSink.GetUpdateRequiredVersion(),
                     aLatestVersion);
 
             mPendingUpdateSet.SetFailedTrait(aTraitDataHandle);
@@ -2144,7 +2143,7 @@ bool SubscriptionClient::FilterNotifiedPath(TraitDataHandle aTraitDataHandle,
     {
         TraitUpdatableDataSink *updatableDataSink = Locate(aTraitDataHandle, mDataSinkCatalog);
 
-        if (false == updatableDataSink->IsPotentialDataLoss())
+        if (NULL != updatableDataSink && false == updatableDataSink->IsPotentialDataLoss())
         {
             updatableDataSink->SetPotentialDataLoss(true);
 
@@ -2403,7 +2402,7 @@ void SubscriptionClient::OnUpdateConfirm(WEAVE_ERROR aReason, nl::Weave::Profile
                     versionCreated >= updatableDataSink->GetVersion() &&
                     updatableDataSink->GetVersion() >= updatableDataSink->GetUpdateStartVersion())
             {
-                ClearPotentialDataLoss(traitPath.mTraitDataHandle);
+                ClearPotentialDataLoss(traitPath.mTraitDataHandle, *updatableDataSink);
             }
         } // Success
         else
@@ -2697,13 +2696,13 @@ WEAVE_ERROR SubscriptionClient::PurgePendingUpdate()
 
         if (updatableDataSink->IsVersionValid())
         {
-            MarkFailedPendingPaths(traitInfo->mTraitDataHandle, updatableDataSink->GetVersion());
+            MarkFailedPendingPaths(traitInfo->mTraitDataHandle, *updatableDataSink, updatableDataSink->GetVersion());
         }
     }
 
-    numPendingPathsDeleted = PurgeFailedPendingPaths(WEAVE_ERROR_WDM_VERSION_MISMATCH);
+    err = PurgeFailedPendingPaths(WEAVE_ERROR_WDM_VERSION_MISMATCH, numPendingPathsDeleted);
 
-    if (numPendingPathsDeleted > 0 && IsEstablishedIdle())
+    if ((err != WEAVE_NO_ERROR || (numPendingPathsDeleted > 0)) && IsEstablishedIdle())
     {
         HandleSubscriptionTerminated(IsRetryEnabled(), WEAVE_ERROR_WDM_VERSION_MISMATCH, NULL);
     }
@@ -2753,8 +2752,10 @@ void SubscriptionClient::SetUpdateStartVersions(void)
         mInProgressUpdateList.GetItemAt(i, traitPath);
 
         updatableSink = Locate(traitPath.mTraitDataHandle, mDataSinkCatalog);
-
-        updatableSink->SetUpdateStartVersion();
+        if (NULL != updatableSink)
+        {
+            updatableSink->SetUpdateStartVersion();
+        }
     }
 }
 

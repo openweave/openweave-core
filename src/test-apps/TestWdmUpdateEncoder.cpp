@@ -847,6 +847,7 @@ void WdmUpdateEncoderTest::TestDataElementTooBig(nlTestSuite *inSuite, void *inC
 
         NL_TEST_ASSERT(inSuite, 0 == mContext.mNumDataElementsAddedToPayload);
         NL_TEST_ASSERT(inSuite, err == WEAVE_ERROR_BUFFER_TOO_SMALL);
+        NL_TEST_ASSERT(inSuite, mBuf->TotalLength() == 0);
     }
 }
 
@@ -873,6 +874,7 @@ void WdmUpdateEncoderTest::TestBadInputs(nlTestSuite *inSuite, void *inContext)
     err = mEncoder.EncodeRequest(mContext);
 
     NL_TEST_ASSERT(inSuite, err == WEAVE_ERROR_WDM_SCHEMA_MISMATCH);
+    NL_TEST_ASSERT(inSuite, mBuf->TotalLength() == 0);
 }
 
 void WdmUpdateEncoderTest::TestStoreTooSmall(nlTestSuite *inSuite, void *inContext)
@@ -897,6 +899,7 @@ void WdmUpdateEncoderTest::TestStoreTooSmall(nlTestSuite *inSuite, void *inConte
     err = mEncoder.EncodeRequest(mContext);
 
     NL_TEST_ASSERT(inSuite, err == WEAVE_ERROR_NO_MEMORY);
+    NL_TEST_ASSERT(inSuite, mBuf->TotalLength() == 0);
 }
 
 } // WeaveMakeManagedNamespaceIdentifier(DataManagement, kWeaveManagedNamespaceDesignation_Current)

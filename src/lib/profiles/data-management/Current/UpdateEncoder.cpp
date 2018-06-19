@@ -45,7 +45,7 @@ namespace WeaveMakeManagedNamespaceIdentifier(DataManagement, kWeaveManagedNames
  * @param[in] aTraitDataHandle  Handle of the Sink to lookup.
  * @param[in] aDataSinkCatalog  Catalog to search.
  * @return      A pointer to the TraitUpdatableDataSink; NULL if the handle does not exist or
- *              it points to a non updatable TraitDataSink. The function calls WeaveDie() before returning NULL.
+ *              it points to a non updatable TraitDataSink.
  */
 TraitUpdatableDataSink *Locate(TraitDataHandle aTraitDataHandle, const TraitCatalogBase<TraitDataSink> *aDataSinkCatalog)
 {
@@ -61,16 +61,17 @@ TraitUpdatableDataSink *Locate(TraitDataHandle aTraitDataHandle, const TraitCata
     updatableDataSink = static_cast<TraitUpdatableDataSink *>(dataSink);
 
 exit:
-    VerifyOrDie(NULL != updatableDataSink);
-
     return updatableDataSink;
 }
 
 /**
  * Encode a WDM Update request payload. See UpdateEncoder::Context.
+ * The PacketBuffer's data length is updated only in case of success, but the buffer
+ * contents are not preserved.
  *
  * @retval WEAVE_NO_ERROR    At least one DataElement was encoded in the payload's DataList.
  * @retval WEAVE_ERROR_BUFFER_TOO_SMALL  The first DataElement could not fit in the payload.
+ * @retval WEAVE_ERROR_INVALID_ARGUMENT  aContext was initialized with invalid values.
  * @retval other             Other errors from lower level objects (TLVWriter, SchemaEngine, etc).
  */
 WEAVE_ERROR UpdateEncoder::EncodeRequest(Context &aContext)
@@ -106,6 +107,9 @@ exit:
  * back to the list.
  *
  * @param[in]   aItem   The TraitPath to insert in the list being encoded.
+ *
+ * @retval WEAVE_NO_ERROR   The item was inserted successfully.
+ * @retval WEAVE_NO_MEMORY  There was no space in the TraitPathStore to insert the item.
  */
 WEAVE_ERROR UpdateEncoder::InsertInProgressUpdateItem(const TraitPath &aItem)
 {
@@ -280,9 +284,10 @@ WEAVE_ERROR UpdateEncoder::EncodeDataElement()
     mContext->mInProgressUpdateList->GetItemAt(mContext->mItemInProgress, dataContext.mTraitPath);
 
     dataContext.mDataSink = Locate(dataContext.mTraitPath.mTraitDataHandle, mContext->mDataSinkCatalog);
+    VerifyOrExit(NULL != dataContext.mDataSink, err = WEAVE_ERROR_WDM_SCHEMA_MISMATCH);
 
     dataContext.mSchemaEngine = dataContext.mDataSink->GetSchemaEngine();
-    VerifyOrDie(dataContext.mSchemaEngine != NULL);
+    VerifyOrExit(dataContext.mSchemaEngine != NULL, err = WEAVE_ERROR_WDM_SCHEMA_MISMATCH);
 
     pathContext.mProfileId = dataContext.mSchemaEngine->GetProfileId();
 
