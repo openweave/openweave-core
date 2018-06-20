@@ -43,6 +43,11 @@
 #include <string>
 #include <iterator>
 
+#if WEAVE_SYSTEM_CONFIG_USE_LWIP
+#include <lwip/init.h>
+#endif // WEAVE_SYSTEM_CONFIG_USE_LWIP
+
+
 #define PRINT_TEST_NAME() printf("\n%s\n", __func__);
 
 
@@ -1036,6 +1041,10 @@ static int TestTeardown(void *inContext)
  */
 int main(int argc, char *argv[])
 {
+#if WEAVE_SYSTEM_CONFIG_USE_LWIP
+    tcpip_init(NULL, NULL);
+#endif // WEAVE_SYSTEM_CONFIG_USE_LWIP
+
     nlTestSuite theSuite = {
         "weave-WdmUpdateEncoder",
         &sTests[0],
