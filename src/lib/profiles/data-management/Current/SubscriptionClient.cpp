@@ -1982,6 +1982,7 @@ WEAVE_ERROR SubscriptionClient::MovePendingToInProgress(void)
         traitInfo = mClientTraitInfoPool + traitInstance;
 
         for (size_t i = mPendingUpdateSet.GetFirstValidItem(traitInfo->mTraitDataHandle);
+                mInProgressUpdateList.GetNumItems() < 50 && // Hack to limit the number of DataElements
                 i < mPendingUpdateSet.GetPathStoreSize();
                 i = mPendingUpdateSet.GetNextValidItem(i, traitInfo->mTraitDataHandle))
         {
