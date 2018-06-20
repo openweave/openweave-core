@@ -123,6 +123,9 @@ class WdmUpdateEncoderTest {
         void TestBadInputs(nlTestSuite *inSuite, void *inContext);
         void TestStoreTooSmall(nlTestSuite *inSuite, void *inContext);
 
+        void TestRemoveDictionaryItemsBetweenPayloads_loop(nlTestSuite *inSuite, void *inContext, bool aRemoveAll);
+        void TestRemoveDictionaryItemsBetweenPayloads(nlTestSuite *inSuite, void *inContext);
+
     private:
         // The encoder
         UpdateEncoder mEncoder;
@@ -184,6 +187,12 @@ WdmUpdateEncoderTest::WdmUpdateEncoderTest() :
     mSinkCatalog.Add(0, &mTestATraitUpdatableDataSink0, mTraitHandleSet[kTestATraitSink0Index]);
 
     mTestATraitUpdatableDataSink0.SetUpdateEncoder(&mEncoder);
+}
+
+
+void WdmUpdateEncoderTest::SetupTest()
+{
+    mPathList.Clear();
 
     mTestATraitUpdatableDataSink0.tai_map.clear();
 
@@ -191,12 +200,6 @@ WdmUpdateEncoderTest::WdmUpdateEncoderTest() :
     {
         mTestATraitUpdatableDataSink0.tai_map[i] = i+100;
     }
-}
-
-
-void WdmUpdateEncoderTest::SetupTest()
-{
-    mPathList.Clear();
 }
 
 void WdmUpdateEncoderTest::TearDownTest()
@@ -907,6 +910,126 @@ void WdmUpdateEncoderTest::TestStoreTooSmall(nlTestSuite *inSuite, void *inConte
     NL_TEST_ASSERT(inSuite, mBuf->TotalLength() == 0);
 }
 
+void WdmUpdateEncoderTest::TestRemoveDictionaryItemsBetweenPayloads_loop(nlTestSuite *inSuite, void *inContext, bool aRemoveAll)
+{
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
+    uint16_t maxKey = 20;
+
+    PRINT_TEST_NAME();
+
+    printf("aRemoveAll = %d\n", aRemoveAll);
+
+    mTestATraitUpdatableDataSink0.tai_map.clear();
+
+    // Magic numbers: I know 20 items won't fit in 100 bytes.
+    for (int32_t i = 1; i <= maxKey; i++)
+    {
+        mTestATraitUpdatableDataSink0.tai_map[i] = i+100;
+    }
+
+    mTP = {
+        mTraitHandleSet[kTestATraitSink0Index],
+        CreatePropertyPathHandle(TestATrait::kPropertyHandle_TaI)
+    };
+
+    err = mPathList.AddItem(mTP);
+
+    InitEncoderContext(inSuite);
+
+    // Limit the payload to 100 bytes
+    mContext.mMaxPayloadSize = 100;
+
+    err = mEncoder.EncodeRequest(mContext);
+
+    VerifyDataList(inSuite, mBuf);
+
+    NL_TEST_ASSERT(inSuite, err == WEAVE_NO_ERROR);
+    NL_TEST_ASSERT(inSuite, mPathList.GetNumItems() == 2);
+    NL_TEST_ASSERT(inSuite, mContext.mItemInProgress == 1);
+    NL_TEST_ASSERT(inSuite, mContext.mNextDictionaryElementPathHandle != kNullPropertyPathHandle);
+
+    // Now remove the next dictionary item
+    uint16_t pivotKey = GetPropertyDictionaryKey(mContext.mNextDictionaryElementPathHandle);
+
+    if (aRemoveAll)
+    {
+        printf("removing all keys\n");
+        mTestATraitUpdatableDataSink0.tai_map.clear();
+    }
+    else
+    {
+        printf("removing key %u\n", pivotKey);
+        mTestATraitUpdatableDataSink0.tai_map.erase(pivotKey);
+    }
+
+    PacketBuffer::Free(mBuf);
+    mBuf = PacketBuffer::New(0);
+    NL_TEST_ASSERT(inSuite, NULL != mBuf);
+
+    mContext.mBuf = mBuf;
+    mContext.mMaxPayloadSize = mBuf->AvailableDataLength();
+
+    err = mEncoder.EncodeRequest(mContext);
+
+    VerifyDataList(inSuite, mBuf, 1);
+
+    NL_TEST_ASSERT(inSuite, mPathList.GetNumItems() == 2);
+    NL_TEST_ASSERT(inSuite, mPathList.GetPathStoreSize() == mContext.mItemInProgress);
+
+    nl::Weave::TLV::TLVReader reader;
+    reader.Init(mBuf);
+    reader.Next();
+
+    UpdateRequest::Parser parser;
+    parser.Init(reader);
+
+    DataList::Parser dataList;
+    err = parser.GetDataList(&dataList);
+    NL_TEST_ASSERT(inSuite, err == WEAVE_NO_ERROR);
+
+    nl::Weave::TLV::TLVReader dataListReader;
+    dataList.GetReader(&dataListReader);
+    err = dataListReader.Next();
+    NL_TEST_ASSERT(inSuite, err == WEAVE_NO_ERROR);
+
+    DataElement::Parser element;
+    err = element.Init(dataListReader);
+    NL_TEST_ASSERT(inSuite, err == WEAVE_NO_ERROR);
+
+    nl::Weave::TLV::TLVReader dataReader;
+    err = element.GetData(&dataReader);
+    NL_TEST_ASSERT(inSuite, err == WEAVE_NO_ERROR);
+
+    // check there are some keys
+    TLVType outerContainerType;
+    err = dataReader.EnterContainer(outerContainerType);
+    NL_TEST_ASSERT(inSuite, err == WEAVE_NO_ERROR);
+
+    if (false == aRemoveAll)
+    {
+        for (size_t i = pivotKey+1; i <= maxKey; i++)
+        {
+            err = dataReader.Next();
+            NL_TEST_ASSERT(inSuite, err == WEAVE_NO_ERROR);
+            NL_TEST_ASSERT(inSuite, i == nl::Weave::TLV::TagNumFromTag(dataReader.GetTag()));
+        }
+    }
+
+    err = dataReader.Next();
+    NL_TEST_ASSERT(inSuite, err != WEAVE_NO_ERROR);
+
+}
+void WdmUpdateEncoderTest::TestRemoveDictionaryItemsBetweenPayloads(nlTestSuite *inSuite, void *inContext)
+{
+    TestRemoveDictionaryItemsBetweenPayloads_loop(inSuite, inContext, false);
+
+    SetupTest();
+
+    TestRemoveDictionaryItemsBetweenPayloads_loop(inSuite, inContext, true);
+
+    return;
+}
+
 } // WeaveMakeManagedNamespaceIdentifier(DataManagement, kWeaveManagedNamespaceDesignation_Current)
 }
 }
@@ -977,6 +1100,11 @@ void WdmUpdateEncoderTest_StoreTooSmall(nlTestSuite *inSuite, void *inContext)
     gWdmUpdateEncoderTest.TestStoreTooSmall(inSuite, inContext);
 }
 
+void WdmUpdateEncoderTest_RemoveDictionaryItemsBetweenPayloads(nlTestSuite *inSuite, void *inContext)
+{
+    gWdmUpdateEncoderTest.TestRemoveDictionaryItemsBetweenPayloads(inSuite, inContext);
+}
+
 // Test Suite
 
 /**
@@ -995,6 +1123,7 @@ static const nlTest sTests[] = {
     NL_TEST_DEF("Fail to encode because DataElement is too big",  WdmUpdateEncoderTest_DataElementTooBig),
     NL_TEST_DEF("Fail to encode because of bad inputs",  WdmUpdateEncoderTest_BadInputs),
     NL_TEST_DEF("Fail to encode because the path store can't hold private paths",  WdmUpdateEncoderTest_StoreTooSmall),
+    NL_TEST_DEF("Remove dictionary items between payloads",  WdmUpdateEncoderTest_RemoveDictionaryItemsBetweenPayloads),
 
     NL_TEST_SENTINEL()
 };

@@ -306,46 +306,54 @@ WEAVE_ERROR TraitSchemaEngine::RetrieveUpdatableDictionaryData(PropertyPathHandl
     uintptr_t context = 0;
     uint32_t numKeysEncoded = 0;
     PropertySchemaHandle dictionaryItemSchemaHandle = GetPropertySchemaHandle(GetFirstChild(aHandle));
+    PropertyPathHandle dictionaryItemPathHandle;
+    PropertyPathHandle itemToSkipTo = aPropertyPathHandleOfDictItemToStartFrom;
 
     VerifyOrExit(IsDictionary(aHandle), err = WEAVE_ERROR_WDM_SCHEMA_MISMATCH);
+
+    // Clear the key to start from; it will be set again below if we can't encode all remaing
+    // items.
+    aPropertyPathHandleOfDictItemToStartFrom = kNullPropertyPathHandle;
 
     err = aWriter.StartContainer(aTagToWrite,
             nl::Weave::TLV::kTLVType_Structure, dataContainerType);
     SuccessOrExit(err);
 
-    // if it's a dictionary, we need to iterate through the items in the container by asking our delegate.
     while ((err = aDelegate->GetNextDictionaryItemKey(aHandle, context, dictionaryItemKey)) == WEAVE_NO_ERROR)
     {
-        uint64_t tag                    = ProfileTag(kWeaveProfile_DictionaryKey, dictionaryItemKey);
+        uint64_t tag = ProfileTag(kWeaveProfile_DictionaryKey, dictionaryItemKey);
 
-        PropertyPathHandle dictionaryItemPathHandle = CreatePropertyPathHandle(dictionaryItemSchemaHandle, dictionaryItemKey);
+        dictionaryItemPathHandle = CreatePropertyPathHandle(dictionaryItemSchemaHandle, dictionaryItemKey);
 
-        if (IsNullPropertyPathHandle(aPropertyPathHandleOfDictItemToStartFrom) ||
-                aPropertyPathHandleOfDictItemToStartFrom == dictionaryItemPathHandle)
+        if (dictionaryItemPathHandle < itemToSkipTo)
         {
-            TLVWriter backupWriter = aWriter;
-
-            aPropertyPathHandleOfDictItemToStartFrom = kNullPropertyPathHandle;
-
-            err = RetrieveData(dictionaryItemPathHandle, tag, aWriter, aDelegate);
-            if (err != WEAVE_NO_ERROR)
-            {
-                WeaveLogDetail(DataManagement, "Dictionary item whith path 0x%" PRIx32 ", tag 0x% " PRIx64 " failed with error % " PRIu32 "",
-                               dictionaryItemPathHandle, tag, err);
-            }
-            if (numKeysEncoded > 0 &&
-                    ((err == WEAVE_ERROR_BUFFER_TOO_SMALL) || (err == WEAVE_ERROR_NO_MEMORY)))
-            {
-                // TODO: In the current code, this is BUFFER_TOO_SMALL. Should we actually check for NO_MEMORY?
-                aWriter = backupWriter;
-                aPropertyPathHandleOfDictItemToStartFrom = dictionaryItemPathHandle;
-                err = WEAVE_NO_ERROR;
-                break;
-            }
-            SuccessOrExit(err);
-
-            numKeysEncoded++;
+            continue;
         }
+
+        TLVWriter backupWriter = aWriter;
+
+        aPropertyPathHandleOfDictItemToStartFrom = kNullPropertyPathHandle;
+
+        err = RetrieveData(dictionaryItemPathHandle, tag, aWriter, aDelegate);
+        if (err != WEAVE_NO_ERROR)
+        {
+            WeaveLogDetail(DataManagement, "Dictionary item whith path 0x%" PRIx32 ", tag 0x% " PRIx64 " failed with error % " PRIu32 "",
+                    dictionaryItemPathHandle, tag, err);
+        }
+        if (numKeysEncoded > 0 &&
+                ((err == WEAVE_ERROR_BUFFER_TOO_SMALL) || (err == WEAVE_ERROR_NO_MEMORY)))
+        {
+            // BUFFER_TOO_SMALL means there is no more space in the current buffer.
+            // NO_MEMORY means the application is trying to build a chain of pBufs, but
+            // there are no more buffers.
+            aWriter = backupWriter;
+            aPropertyPathHandleOfDictItemToStartFrom = dictionaryItemPathHandle;
+            err = WEAVE_NO_ERROR;
+            break;
+        }
+        SuccessOrExit(err);
+
+        numKeysEncoded++;
     }
 
     if (err == WEAVE_END_OF_INPUT)
