@@ -69,7 +69,9 @@ public:
 
     WEAVE_ERROR Shutdown(void);
 
-    WEAVE_ERROR CancelUpdate(void);
+    void CloseUpdate(bool aAbort);
+
+    void CancelUpdate(void);
 
     WEAVE_ERROR SendUpdate(bool aIsPartialUpdate, PacketBuffer *aPBuf);
 

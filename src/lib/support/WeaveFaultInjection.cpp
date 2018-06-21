@@ -66,6 +66,8 @@ static const nl::FaultInjection::Name sFaultNames[] = {
     "WDMSendUpdateBadVersion",
     "WDMDelayUpdateResponse",
     "WDMUpdateRequestSendError",
+    "WDMUpdateRequestBadProfile",
+    "WDMTreatNotifyAsCancel",
     "CASEKeyConfirm",
     "SecMgrBusy",
 #if WEAVE_CONFIG_ENABLE_TUNNELING

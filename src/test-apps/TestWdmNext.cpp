@@ -383,8 +383,20 @@ int main(int argc, char *argv[])
             }
         }
 
+        switch (gMockWdmNodeOptions.mWdmRoleInTest)
+        {
+            case kToolOpt_WdmInitMutualSubscription:
+            case kToolOpt_WdmSubscriptionClient:
+                if (gTestWdmNextOptions.mClearDataSinkState)
+                {
+                    MockWdmSubscriptionInitiator::GetInstance()->Cleanup();
+                }
+                break;
+            default:
+                break;
+        }
 
-        printf("Current completed test iteration is %d\n", iteration);
+
         Done = false;
 
 #ifdef ENABLE_WDMPERFDATA
@@ -418,9 +430,12 @@ int main(int argc, char *argv[])
             printf("no delay\n");
         }
 
+        printf("Current completed test iteration is %d\n", iteration);
+
     }
 
     MockWdmSubscriptionInitiator::GetInstance()->PrintVersionsLog();
+    MockWdmSubscriptionInitiator::GetInstance()->Cleanup();
 
     MockWdmSubscriptionResponder::GetInstance()->PrintVersionsLog();
 

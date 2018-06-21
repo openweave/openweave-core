@@ -34,7 +34,7 @@ from weave_wdm_next_test_service_base import weave_wdm_next_test_service_base
 
 import WeaveUtilities
 
-gTestCases = [ "UpdateResponseDelay", "UpdateResponseTimeout", "CondUpdateBadVersion", "UpdateRequestSendError" ]
+gTestCases = [ "UpdateResponseDelay", "UpdateResponseTimeout", "CondUpdateBadVersion", "UpdateRequestSendError", "UpdateRequestBadProfile" ]
 gConditionalities = [ "Conditional", "Unconditional", "Mixed" ]
 gFaultopts = WeaveUtilities.FaultInjectionOptions()
 gOpts = { "conditionality" : None,
@@ -166,6 +166,21 @@ class test_weave_wdm_next_service_update_faults(weave_wdm_next_test_service_base
             else:
                 # Can't inject a bad version in a scenarion without conditional updates
                 return False
+
+        if testcase == "UpdateRequestBadProfile":
+            fault_config = "Weave_WDMUpdateRequestBadProfile_s0_f1"
+            if conditionality == "Conditional":
+                client_log_check = [
+                        ('Update: path result: success', 1),
+                        ]
+            elif conditionality == "Unconditional":
+                client_log_check = [
+                        ('Update: path result: success', 1),
+                        ]
+            elif conditionality == "Mixed":
+                client_log_check = [
+                        ('Update: path result: success', 1),
+                        ]
 
         wdm_next_args['test_tag'] = self.base_test_tag + "_" + str(self.num_tests) + "_" + testcase + "_" + conditionality + "_" + fault_config
         print wdm_next_args['test_tag']

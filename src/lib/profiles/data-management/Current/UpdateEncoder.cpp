@@ -31,6 +31,7 @@
 #include <Weave/Support/RandUtils.h>
 #include <Weave/Support/FibonacciUtils.h>
 #include <SystemLayer/SystemStats.h>
+#include <Weave/Support/WeaveFaultInjection.h>
 
 #if WEAVE_CONFIG_ENABLE_RELIABLE_MESSAGING && WEAVE_CONFIG_ENABLE_WDM_UPDATE
 
@@ -290,6 +291,9 @@ WEAVE_ERROR UpdateEncoder::EncodeDataElement()
     VerifyOrExit(dataContext.mSchemaEngine != NULL, err = WEAVE_ERROR_WDM_SCHEMA_MISMATCH);
 
     pathContext.mProfileId = dataContext.mSchemaEngine->GetProfileId();
+
+    WEAVE_FAULT_INJECT(FaultInjection::kFault_WDM_UpdateRequestBadProfile,
+                       pathContext.mProfileId = 0xFFFFFFFF);
 
     err = mContext->mDataSinkCatalog->GetResourceId(dataContext.mTraitPath.mTraitDataHandle,
                                                     pathContext.mResourceId);

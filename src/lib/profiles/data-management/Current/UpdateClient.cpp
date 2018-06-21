@@ -179,24 +179,28 @@ exit:
 
 }
 
+void UpdateClient::CloseUpdate(bool aAbort)
+{
+    if (kState_Uninitialized != mState && kState_Initialized != mState)
+    {
+        mUpdateRequestIndex = 0;
+        FlushExistingExchangeContext(aAbort);
+        MoveToState(kState_Initialized);
+    }
+}
+
 /**
  * Reset update client to initialized status. clear the buffer
  *
  * @retval #WEAVE_NO_ERROR On success.
  */
-WEAVE_ERROR UpdateClient::CancelUpdate(void)
+void UpdateClient::CancelUpdate(void)
 {
+    bool abort = true;
+
     WeaveLogDetail(DataManagement, "UpdateClient::CancelUpdate");
 
-    if (kState_Uninitialized != mState && kState_Initialized != mState)
-    {
-        mUpdateRequestIndex = 0;
-        FlushExistingExchangeContext();
-        MoveToState(kState_Initialized);
-    }
-
-    //TODO: this method should be void
-    return WEAVE_NO_ERROR;
+    CloseUpdate(abort);
 }
 
 /**
@@ -249,7 +253,7 @@ exit:
     if (err != WEAVE_NO_ERROR)
     {
         WeaveLogFunctError(err);
-        err = pUpdateClient->CancelUpdate();
+        pUpdateClient->CancelUpdate();
     }
 }
 
@@ -279,7 +283,7 @@ exit:
 
     if (err != WEAVE_NO_ERROR)
     {
-        err = pUpdateClient->CancelUpdate();
+        pUpdateClient->CancelUpdate();
     }
 
 }
@@ -305,6 +309,8 @@ void UpdateClient::OnMessageReceived(nl::Weave::ExchangeContext * aEC, const nl:
     if ((nl::Weave::Profiles::kWeaveProfile_Common == aProfileId) &&
         (nl::Weave::Profiles::Common::kMsgType_StatusReport == aMsgType))
     {
+        bool noAbort = false;
+
         err = nl::Weave::Profiles::StatusReporting::StatusReport::parse(aPayload, status);
         SuccessOrExit(err);
 
@@ -312,8 +318,7 @@ void UpdateClient::OnMessageReceived(nl::Weave::ExchangeContext * aEC, const nl:
         inParam.UpdateComplete.Reason = WEAVE_NO_ERROR;
         inParam.UpdateComplete.StatusReportPtr = &status;
 
-        err = pUpdateClient->CancelUpdate();
-        SuccessOrExit(err);
+        pUpdateClient->CloseUpdate(noAbort);
 
         CallbackFunc(pAppState, kEvent_UpdateComplete, inParam, outParam);
 
@@ -335,7 +340,7 @@ exit:
 
     if (err != WEAVE_NO_ERROR)
     {
-        err = pUpdateClient->CancelUpdate();
+        pUpdateClient->CancelUpdate();
     }
 
     if (NULL != aPayload)

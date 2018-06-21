@@ -292,7 +292,6 @@ public:
     bool IsRetryEnabled() { return (mResubscribePolicyCallback != NULL); }
 
     bool IsEstablishedIdle() { return (mCurrentState == kState_SubscriptionEstablished_Idle); }
-    bool IsAborted() { return (mCurrentState == kState_Aborted); }
     bool IsFree() { return (mCurrentState == kState_Free); }
     bool IsAborting() { return (mCurrentState == kState_Aborting); }
 
@@ -342,7 +341,6 @@ private:
         kState_InProgressOrEstablished_End         = kState_SubscriptionEstablished_Confirming,
 
         kState_Aborting = 8,
-        kState_Aborted  = 9,
     };
 
     ClientState mCurrentState;
@@ -350,7 +348,23 @@ private:
     // Lock
     IWeaveClientLock * mLock;
 
-    bool mIsInitiator;
+    /**
+     * The runtime configuration; i.e. the desired state of the Client.
+     */
+    enum ClientConfig {
+        kConfig_Down,               /**< The default configuration: no subscription, no binding.
+                                         The client comes back to this configuration automatically if the responder
+                                         sends a Cancel request. */
+        kConfig_Initiator,          /**< Subscribe as an initiator */
+        kConfig_CounterSubscriber   /**< Start a "counter subscription" */
+    };
+
+    bool IsInitiator() { return mConfig == kConfig_Initiator; }
+    bool IsCounterSubscriber() { return mConfig == kConfig_CounterSubscriber; }
+    bool ShouldBind();
+    bool ShouldSubscribe() { return mConfig > kConfig_Down; }
+
+    ClientConfig mConfig;
     bool mPrevIsPartialChange;
 #if WDM_ENABLE_PROTOCOL_CHECKS
     TraitDataHandle mPrevTraitDataHandle;
@@ -394,12 +408,18 @@ private:
     void _InitiateSubscription(void);
     WEAVE_ERROR SendSubscribeRequest(void);
 
+    void _AbortSubscription();
+    void _Cleanup();
+
     WEAVE_ERROR ProcessDataList(nl::Weave::TLV::TLVReader & aReader);
 
     void _AddRef(void);
     void _Release(void);
 
     void HandleSubscriptionTerminated(bool aWillRetry, WEAVE_ERROR aReason,
+                                      nl::Weave::Profiles::StatusReporting::StatusReport * aStatusReportPtr);
+    WEAVE_ERROR _PrepareBinding(void);
+    void HandleBindingFailed(bool aWillRetry, WEAVE_ERROR aReason,
                                       nl::Weave::Profiles::StatusReporting::StatusReport * aStatusReportPtr);
 
     WEAVE_ERROR ReplaceExchangeContext(void);

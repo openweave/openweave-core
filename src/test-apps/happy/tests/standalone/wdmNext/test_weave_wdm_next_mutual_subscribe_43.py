@@ -51,7 +51,6 @@ class test_weave_wdm_next_mutual_subscribe_43(weave_wdm_next_test_base):
 
         wdm_next_args['client_log_check'] = [('Handler\[0\] \[(ALIVE|CONFM)\] bound mutual subscription is going away', wdm_next_args['test_client_iterations']),
                                              ('Client->kEvent_OnNotificationProcessed', wdm_next_args['test_client_iterations'] * wdm_next_args['total_server_count'] + 1),
-                                             ('Client\[0\] moving to \[ FREE\] Ref\(0\)', wdm_next_args['test_client_iterations']),
                                              ('Handler\[0\] Moving to \[ FREE\] Ref\(0\)', wdm_next_args['test_client_iterations']),
                                              ('0 ==> 100 ==> 101 ==> 102 ==> 103 ==> 104 ==> 105 ==> 106 ==> 107 ==> 108 ==> 109 ==> 110', 2),
                                              ('0 ==> 200 ==> 201 ==> 202 ==> 203 ==> 204 ==> 205 ==> 206 ==> 207 ==> 208 ==> 209 ==> 210', 1),
@@ -67,7 +66,7 @@ class test_weave_wdm_next_mutual_subscribe_43(weave_wdm_next_test_base):
         wdm_next_args['test_tag'] = self.__class__.__name__[19:].upper()
         wdm_next_args['test_case_name'] = ['G03: Mutual Subscribe: Multiple Iterations. Mutate data in initiator and responder. Client in initiator aborts. Version is kept']
         print 'test file: ' + self.__class__.__name__
-        print "weave-wdm-next test G02"
+        print "weave-wdm-next test G03"
         super(test_weave_wdm_next_mutual_subscribe_43, self).weave_wdm_next_test_base(wdm_next_args)
 
 

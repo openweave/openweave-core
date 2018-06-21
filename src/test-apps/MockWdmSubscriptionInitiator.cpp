@@ -137,6 +137,7 @@ public:
     virtual int32_t GetNumFaultInjectionEventsAvailable(void);
     void PrintVersionsLog();
     void ClearDataSinkState(void);
+    void Cleanup(void);
 
 private:
     nl::Weave::WeaveExchangeManager *mExchangeMgr;
@@ -293,8 +294,6 @@ private:
         const nl::Weave::Binding::InEventParam & aInParam, nl::Weave::Binding::OutEventParam & aOutParam);
 
     static void HandleClientComplete(void *aAppState);
-
-    static void HandleClientRelease(void *aAppState);
 
     static void HandlePublisherComplete();
 
@@ -545,16 +544,22 @@ WEAVE_ERROR MockWdmSubscriptionInitiatorImpl::StartTesting(const uint64_t aPubli
     mPublisherNodeId = aPublisherNodeId;
     mPublisherSubnetId = aSubnetId;
 
-    mBinding = mExchangeMgr->NewBinding(BindingEventCallback, this);
-    VerifyOrExit(NULL != mBinding, err = WEAVE_ERROR_NO_MEMORY);
+    if (mBinding == NULL)
+    {
+        mBinding = mExchangeMgr->NewBinding(BindingEventCallback, this);
+        VerifyOrExit(NULL != mBinding, err = WEAVE_ERROR_NO_MEMORY);
+    }
 
-    err =  SubscriptionEngine::GetInstance()->NewClient(&mSubscriptionClient,
+    if (mSubscriptionClient == NULL)
+    {
+        err =  SubscriptionEngine::GetInstance()->NewClient(&mSubscriptionClient,
                 mBinding,
                 this,
                 ClientEventCallback,
                 &mSinkCatalog,
                 kResponseTimeoutMsec * 2); // max num of msec between subscribe request and subscribe response
-    SuccessOrExit(err);
+        SuccessOrExit(err);
+    }
 
     // TODO: EVENT-DEMO
     // TODO: Fix this dummy observed event list
@@ -931,6 +936,21 @@ void MockWdmSubscriptionInitiatorImpl::AddNewVersion(int aTraitDataSinkIndex)
     }
 }
 
+void MockWdmSubscriptionInitiatorImpl::Cleanup()
+{
+    if (NULL != mSubscriptionClient)
+    {
+        mSubscriptionClient->Free();
+        mSubscriptionClient = NULL;
+    }
+
+    if (NULL != mBinding)
+    {
+        mBinding->Release();
+        mBinding = NULL;
+    }
+}
+
 void MockWdmSubscriptionInitiatorImpl::PrintVersionsLog()
 {
     for (int i = 0; i< kMaxNumTraitHandles; i++)
@@ -1102,7 +1122,6 @@ void MockWdmSubscriptionInitiatorImpl::ClientEventCallback (void * const aAppSta
             {
                 initiator->mExchangeMgr->MessageLayer->SystemLayer->CancelTimer(HandleDataFlipTimeout, initiator);
             }
-            HandleClientRelease(initiator);
             initiator->onCompleteTest();
         }
         break;
@@ -1236,7 +1255,6 @@ void MockWdmSubscriptionInitiatorImpl::PublisherEventCallback (void * const aApp
         if (initiator->mEnableRetry == false || initiator->mWillRetry == false)
         {
             HandlePublisherRelease();
-            HandleClientRelease(initiator);
             if (gEvaluateSuccessIteration == true)
             {
                 WeaveLogDetail(DataManagement, "Mutual: Good Iteration");
@@ -1284,23 +1302,6 @@ void MockWdmSubscriptionInitiatorImpl::HandleClientComplete(void *aAppState)
     }
 
     gInitiatorState.mDataflipCount = 0;
-}
-
-void MockWdmSubscriptionInitiatorImpl::HandleClientRelease(void *aAppState)
-{
-    MockWdmSubscriptionInitiatorImpl * const initiator = reinterpret_cast<MockWdmSubscriptionInitiatorImpl *>(aAppState);
-
-    if (NULL != initiator->mSubscriptionClient)
-    {
-        initiator->mSubscriptionClient->Free();
-        initiator->mSubscriptionClient = NULL;
-    }
-
-    if (NULL !=initiator->mBinding)
-    {
-        initiator->mBinding->Release();
-        initiator->mBinding = NULL;
-    }
 }
 
 void MockWdmSubscriptionInitiatorImpl::HandlePublisherComplete()
@@ -1522,7 +1523,6 @@ void MockWdmSubscriptionInitiatorImpl::MonitorPublisherCurrentState (nl::Weave::
                 WeaveLogDetail(DataManagement, "state is not idle or aborted within %d msec", kMonitorCurrentStateInterval * kMonitorCurrentStateCnt);
                 (void)initiator->mSubscriptionClient->AbortSubscription();
                 HandlePublisherRelease();
-                HandleClientRelease(initiator);
                 initiator->onCompleteTest();
             }
         }
@@ -1532,7 +1532,6 @@ void MockWdmSubscriptionInitiatorImpl::MonitorPublisherCurrentState (nl::Weave::
         WeaveLogDetail(DataManagement, "gSubscriptionHandler is NULL, and current session is torn down");
         (void)initiator->mSubscriptionClient->AbortSubscription();
         HandlePublisherRelease();
-        HandleClientRelease(initiator);
         initiator->onCompleteTest();
     }
 
@@ -1551,7 +1550,6 @@ void MockWdmSubscriptionInitiatorImpl::MonitorClientCurrentState (nl::Weave::Sys
 
             if (gIsMutualSubscription == false)
             {
-                HandleClientRelease(initiator);
                 WeaveLogDetail(DataManagement, "One_way: Good Iteration");
                 initiator->onCompleteTest();
             }
@@ -1570,7 +1568,6 @@ void MockWdmSubscriptionInitiatorImpl::MonitorClientCurrentState (nl::Weave::Sys
                 WeaveLogDetail(DataManagement, "state is not idle or aborted within %d msec", kMonitorCurrentStateInterval * kMonitorCurrentStateCnt);
                 (void)initiator->mSubscriptionClient->AbortSubscription();
                 HandlePublisherRelease();
-                HandleClientRelease(initiator);
                 initiator->onCompleteTest();
 
             }
@@ -1580,7 +1577,6 @@ void MockWdmSubscriptionInitiatorImpl::MonitorClientCurrentState (nl::Weave::Sys
     {
         WeaveLogDetail(DataManagement, "mSubscriptionClient is NULL, and current session is torn down");
         HandlePublisherRelease();
-        HandleClientRelease(initiator);
         initiator->onCompleteTest();
     }
 }

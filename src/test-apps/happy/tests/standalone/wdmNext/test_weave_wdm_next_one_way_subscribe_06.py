@@ -53,7 +53,7 @@ class test_weave_wdm_next_one_way_subscribe_06(weave_wdm_next_test_base):
         wdm_next_args['client_clear_state_between_iterations'] = True
         wdm_next_args['server_clear_state_between_iterations'] = True
 
-        wdm_next_args['client_log_check'] = [('Client\[0\] \[ALIVE\] AbortSubscription Ref\(\d+\)', wdm_next_args['test_client_iterations']),
+        wdm_next_args['client_log_check'] = [('Client\[0\] \[ALIVE\] _AbortSubscription Ref\(\d+\)', wdm_next_args['test_client_iterations']),
                                              ('Client->kEvent_OnNotificationProcessed', wdm_next_args['test_client_iterations'] * (wdm_next_args['total_server_count'] + 1)),
                                              ('Client\[0\] moving to \[ FREE\] Ref\(0\)', wdm_next_args['test_client_iterations'])]
         wdm_next_args['server_log_check'] = [('Handler\[0\] \[(ALIVE|CONFM)\] TimerEventHandler Ref\(\d+\) Timeout', wdm_next_args['test_client_iterations']),

@@ -51,6 +51,7 @@ public:
 
     virtual void PrintVersionsLog() = 0;
     virtual void ClearDataSinkState(void) = 0;
+    virtual void Cleanup() { return; }
 };
 
 

@@ -320,6 +320,8 @@ void SubscriptionEngine::UnsolicitedMessageHandler(nl::Weave::ExchangeContext * 
 #if WDM_ENABLE_SUBSCRIPTION_CLIENT
     case kMsgType_NotificationRequest:
         func = OnNotificationRequest;
+
+        WEAVE_FAULT_INJECT(FaultInjection::kFault_WDM_TreatNotifyAsCancel, func = OnCancelRequest);
         break;
 #endif // WDM_ENABLE_SUBSCRIPTION_CLIENT
 
