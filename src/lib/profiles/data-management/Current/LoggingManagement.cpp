@@ -908,11 +908,8 @@ void LoggingManagement::UnregisterEventCallbackForImportance(ImportanceType inIm
 
     if (ev.IsValid())
     {
-        if (ev.mFetchEventsFunct != NULL)
-        {
-            ev.mFetchEventsFunct           = NULL;
-            ev.mNotifyEventsDeliveredFunct = NULL;
-        }
+        ev.mFetchEventsFunct           = NULL;
+        ev.mNotifyEventsDeliveredFunct = NULL;
     }
 
 exit:

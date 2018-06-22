@@ -3310,6 +3310,101 @@ static void CheckExternalEventsMultipleFetches(nlTestSuite * inSuite, void * inC
     NL_TEST_ASSERT(inSuite, err == WEAVE_NO_ERROR);
 }
 
+static event_id_t sLastExpectedExternalEventID;
+static bool sExternalEventNotificationPassed;
+static bool sExternalEventNotificationCalled;
+
+static void ResetExternalEventDeliveryState(void)
+{
+    sLastExpectedExternalEventID = 0;
+    sExternalEventNotificationCalled = false;
+    sExternalEventNotificationPassed = false;
+}
+
+static void MockExternalEventsDelivered(ExternalEvents * inEv, event_id_t inLastDeliveredEventID,
+                           uint64_t inRecipientNodeID)
+{
+    sExternalEventNotificationCalled = true;
+    sExternalEventNotificationPassed = (inEv->mLastEventID == sLastExpectedExternalEventID);
+}
+
+static WEAVE_ERROR MockExternalEventsFetch(EventLoadOutContext * aContext)
+{
+    return WEAVE_NO_ERROR;
+}
+
+static void CheckExternalEventNotifyDelivered(nlTestSuite * inSuite, void * inContext)
+{
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
+    event_id_t eid_p, eid_d;
+    event_id_t external_eid_production, external_eid_debug;
+    size_t cnt = 1;
+    timestamp_t now;
+    ::nl::Weave::Profiles::DataManagement::TestSubscriptionHandler subHandler;
+    TestLoggingContext * context = static_cast<TestLoggingContext *>(inContext);
+    nl::Weave::Profiles::DataManagement::LoggingManagement & logger =
+        nl::Weave::Profiles::DataManagement::LoggingManagement::GetInstance();
+    nl::Weave::Profiles::DataManagement::ImportanceType importance;
+
+    InitializeEventLogging(context);
+
+    // Prime the event buffers with some internal events
+    now = System::Layer::GetClock_MonotonicMS();
+    eid_p = FastLogFreeform(nl::Weave::Profiles::DataManagement::Production, now, "Freeform entry %d", cnt);
+    eid_d = FastLogFreeform(nl::Weave::Profiles::DataManagement::Debug, now, "Freeform entry %d", cnt);
+
+    // Register external events with production and debug importance
+    err = logger.RegisterEventCallbackForImportance(nl::Weave::Profiles::DataManagement::Production, MockExternalEventsFetch, MockExternalEventsDelivered, 10, &external_eid_production);
+    NL_TEST_ASSERT(inSuite, err == WEAVE_NO_ERROR);
+    NL_TEST_ASSERT(inSuite, external_eid_production == (eid_p + 10));
+
+    err = logger.RegisterEventCallbackForImportance(nl::Weave::Profiles::DataManagement::Debug, MockExternalEventsFetch, MockExternalEventsDelivered, 10, &external_eid_debug);
+    NL_TEST_ASSERT(inSuite, err == WEAVE_NO_ERROR);
+    NL_TEST_ASSERT(inSuite, external_eid_debug == (eid_d + 10));
+
+    // Verify that we do not get a notification for an event that
+    // comes before the external production event
+    ResetExternalEventDeliveryState();
+    sLastExpectedExternalEventID = external_eid_production;
+
+    logger.NotifyEventsDelivered(nl::Weave::Profiles::DataManagement::Production, eid_p, 0ULL);
+
+    NL_TEST_ASSERT(inSuite, sExternalEventNotificationCalled == false);
+
+    // Verify we do get called for the first and last event in the external event range
+    logger.NotifyEventsDelivered(nl::Weave::Profiles::DataManagement::Production, eid_p+1, 0ULL);
+
+    NL_TEST_ASSERT(inSuite, sExternalEventNotificationCalled);
+    NL_TEST_ASSERT(inSuite, sExternalEventNotificationPassed);
+
+    ResetExternalEventDeliveryState();
+    logger.NotifyEventsDelivered(nl::Weave::Profiles::DataManagement::Production, external_eid_production, 0ULL);
+
+    NL_TEST_ASSERT(inSuite, sExternalEventNotificationCalled);
+    NL_TEST_ASSERT(inSuite, sExternalEventNotificationPassed);
+
+    // Verify that we get called when the event handler is registered and that we do not get called when event handler is unregistered.  First, reset the checks notification state, and check we get a notification
+    ResetExternalEventDeliveryState();
+    sLastExpectedExternalEventID = external_eid_debug;
+
+    logger.NotifyEventsDelivered(nl::Weave::Profiles::DataManagement::Debug, external_eid_debug, 0ULL);
+
+    NL_TEST_ASSERT(inSuite, sExternalEventNotificationCalled);
+    NL_TEST_ASSERT(inSuite, sExternalEventNotificationPassed);
+
+    // Next, reset the delivery state, unregister the event handler and verify we do not get notified
+    ResetExternalEventDeliveryState();
+
+    logger.UnregisterEventCallbackForImportance(nl::Weave::Profiles::DataManagement::Debug, external_eid_debug);
+
+    logger.NotifyEventsDelivered(nl::Weave::Profiles::DataManagement::Debug, external_eid_debug, 0ULL);
+
+    NL_TEST_ASSERT(inSuite, sExternalEventNotificationCalled == false);
+
+}
+
+
+
 static void CheckShutdownLogic(nlTestSuite * inSuite, void * inContext)
 {
     event_id_t eid = 0;
@@ -3595,6 +3690,7 @@ static const nlTest sTests[] = {
     NL_TEST_DEF("Check Gap detection", CheckGapDetection),
     NL_TEST_DEF("Check Drop Overlapping Event Id Ranges", CheckDropOverlap),
     NL_TEST_DEF("Check Last Observed Event Id", CheckLastObservedEventId),
+    NL_TEST_DEF("Check External Event delivery notification", CheckExternalEventNotifyDelivered),
     NL_TEST_SENTINEL()
 };
 
