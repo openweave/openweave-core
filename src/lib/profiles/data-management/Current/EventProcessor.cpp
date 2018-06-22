@@ -441,24 +441,25 @@ WEAVE_ERROR
 EventProcessor::ProcessHeader(const EventHeader & inEventHeader, bool & outIsNewEvent)
 {
     bool isEventNew; // Set by all branches.
+    size_t index = inEventHeader.mImportance - kImportanceType_First;
 
     // If any event has already been received for that importance
-    if (mLargestEventId[inEventHeader.mImportance] != 0)
+    if (mLargestEventId[index] != 0)
     {
         // If larger than previous
-        if (inEventHeader.mId > mLargestEventId[inEventHeader.mImportance])
+        if (inEventHeader.mId > mLargestEventId[index])
         {
-            if (inEventHeader.mId > (mLargestEventId[inEventHeader.mImportance] + 1))
+            if (inEventHeader.mId > (mLargestEventId[index] + 1))
             {
                 WeaveLogDetail(DataManagement,
                                "EventProcessor found gap for importance: %u (0x%" PRIx32 " -> 0x%" PRIx64 ") NodeId=0x%" PRIx64,
-                               inEventHeader.mImportance, mLargestEventId[inEventHeader.mImportance], inEventHeader.mId,
+                               inEventHeader.mImportance, mLargestEventId[index], inEventHeader.mId,
                                inEventHeader.mSource);
                 GapDetected(inEventHeader);
             }
 
-            mLargestEventId[inEventHeader.mImportance] = inEventHeader.mId;
-            isEventNew                                 = true;
+            mLargestEventId[index] = inEventHeader.mId;
+            isEventNew             = true;
         }
         else
         {
@@ -471,8 +472,8 @@ EventProcessor::ProcessHeader(const EventHeader & inEventHeader, bool & outIsNew
     {
         WeaveLogDetail(DataManagement, "EventProcessor stream for importance: %u initialized with id: 0x%" PRIx64,
                        inEventHeader.mImportance, inEventHeader.mId);
-        mLargestEventId[inEventHeader.mImportance] = inEventHeader.mId;
-        isEventNew                                 = true;
+        mLargestEventId[index] = inEventHeader.mId;
+        isEventNew             = true;
     }
 
     outIsNewEvent = isEventNew;
