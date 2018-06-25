@@ -49,6 +49,8 @@ public:
     WEAVE_ERROR ProcessEvents(nl::Weave::TLV::TLVReader & inReader,
                               nl::Weave::Profiles::DataManagement::SubscriptionClient & inClient);
 
+    const event_id_t *GetLargestEventIdList(size_t & outSize);
+
 public:
     struct EventHeader
     {

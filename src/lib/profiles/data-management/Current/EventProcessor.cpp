@@ -504,6 +504,13 @@ exit:
     return err;
 }
 
+const event_id_t *
+EventProcessor::GetLargestEventIdList(size_t & outSize)
+{
+    outSize = sizeof(mLargestEventId) / sizeof(mLargestEventId[0]);
+    return mLargestEventId;
+}
+
 #endif // WEAVE_CONFIG_SERIALIZATION_ENABLE_DESERIALIZATION
 
 } // namespace WeaveMakeManagedNamespaceIdentifier(DataManagement, kWeaveManagedNamespaceDesignation_Current)
