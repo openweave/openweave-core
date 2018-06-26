@@ -145,12 +145,8 @@ Error GetClock_RealTime(uint64_t & curTime)
 
 Error GetClock_RealTimeMS(uint64_t & curTime)
 {
-    uint64_t curTimeUS;
-    Error err = GetClock_RealTime(curTimeUS);
-    if (err == WEAVE_SYSTEM_NO_ERROR)
-    {
-        curTime = curTime / 1000;
-    }
+    Error err = GetClock_RealTime(curTime);
+    curTime = curTime / 1000;
     return err;
 }
 
