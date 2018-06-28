@@ -1,0 +1,41 @@
+import groovy.json.JsonOutput
+
+library 'jenkins-shared-library@master'
+
+/*
+ * TODO : Deferred Work
+ * - Remove Email Addresses : Post-Migration Task
+ * - OSX Targets : Post-Migration Task
+ * - BVT Tests : Post-Migration Task
+ * - OSX Sim App : DEVINFRA-7192
+ * - OSX Sim Custom Compile Script : DEVINFRA-7222
+ * - Push-to-Tier Amaber/Amber2 : DEVINFRA-7190
+ */
+
+def version = "4.0"
+
+def config =
+[
+    versionBase : "${version}d1-cov-" ,
+    repository : "platform/weave" ,
+    platform : "linux" ,
+    buildType : "Coverity" ,
+    targets :
+    [
+        [
+            buildProduct : "weave" ,
+            buildConfig : "development" ,
+            envVars :
+            [
+                "bamboo_alwaysCovAnalyze=1" ,
+                "bamboo_stream=master - weave" ,
+                "bamboo_CovMakeCommand=make DEBUG=1 -f Makefile-Standalone" ,
+            ] ,
+        ] ,
+    ] ,
+    // TODO : Post-Migration Task
+    emailFailed : "evedar@google.com" ,
+    emailSuccess : "evedar@google.com" ,
+]
+
+build(JsonOutput.toJson(config))

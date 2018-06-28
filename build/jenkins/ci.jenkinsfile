@@ -1,0 +1,119 @@
+import groovy.json.JsonOutput
+
+library 'jenkins-shared-library@master'
+
+/*
+ * TODO : Deferred Work
+ * - Remove Email Addresses : Post-Migration Task
+ */
+
+def version = "4.0"
+
+def config =
+[
+    versionBase : "${version}d" ,
+    repository : "platform/weave" ,
+    platform : "linux" ,
+    buildType : "CI" ,
+    targets :
+    [
+
+        [
+            description : "Compile Linux 64-bit" ,
+            buildProduct : "weave" ,
+            buildConfig : "development" ,
+            compileScriptAlternate : "make -f Makefile-Standalone; make -f Makefile-Standalone lint" ,
+        ] ,
+        [
+            description : "Compile Linux 64-bit LWIP" ,
+            buildProduct : "weave" ,
+            buildConfig : "development" ,
+            os : "linux-sudo" ,
+            compileScriptAlternate : "make -f Makefile-Standalone; make -f Makefile-Standalone lint; make -f Makefile-Standalone check" ,
+            envVars : [
+              "USE_LWIP=1" ,
+            ] ,
+        ] ,
+        [
+            description : "Compile Linux 32-bit" ,
+            buildProduct : "weave" ,
+            buildConfig : "development" ,
+            compileScriptAlternate : "I686TARGET=1 make DEBUG=1 -f Makefile-Standalone; I686TARGET=1 make -f Makefile-Standalone lint" ,
+        ] ,
+        [
+            description : "Compile Mac" ,
+            buildProduct : "weave" ,
+            buildConfig : "development" ,
+            os : "osx" ,
+            compileScriptAlternate : "make -f Makefile-Standalone; make -f Makefile-Standalone check; make -f Makefile-Standalone lint" ,
+        ] ,
+        [
+            description : "Compile Mac LWIP" ,
+            buildProduct : "weave" ,
+            buildConfig : "development" ,
+            os : "osx" ,
+            compileScriptAlternate : "make -f Makefile-Standalone; make -f Makefile-Standalone check; make -f Makefile-Standalone lint" ,
+            envVars : [
+              "USE_LWIP=1" ,
+            ] ,
+        ] ,
+        [
+            description : "Compile iOS" ,
+            buildProduct : "weave" ,
+            buildConfig : "development" ,
+            os : "osx" ,
+            compileScriptAlternate : "make -f Makefile-iOS" ,
+        ] ,
+        [
+            description : "Compile Android" ,
+            buildProduct : "weave" ,
+            buildConfig : "development" ,
+            compileScriptAlternate : "make -f Makefile-Android" ,
+            envVars : [
+              "ANDROID_HOME=/usr/local/android/android-sdk-linux" ,
+              "ANDROID_NDK_HOME=/usr/local/android/android-ndk-r14" ,
+              "JAVA_HOME=/Library/Java/JavaVirtualMachines/jdk1.8.0_131.jdk/Contents/Home" ,
+            ] ,
+        ] ,
+        [
+            description : "Generate Code Coverage" ,
+            buildProduct : "weave" ,
+            buildConfig : "development" ,
+            os : "linux-sudo" ,
+            compileScriptAlternate : "echo skip compile" ,
+            miscScripts : [
+              scriptRepo : "platform/happy" ,
+              './buildtools/platform/weave/clean_happy_logs.sh' : '' ,
+              './buildtools/platform/weave/generate_code_coverage.sh' : '' ,
+              './buildtools/platform/weave/save_happy_logs.sh' : '' ,
+              './buildtools/platform/weave/uninstall_happy.sh' : '' ,
+            ] ,
+            envVars : [
+              "DEBUG=1" ,
+            ] ,
+        ] ,
+        [
+            description : "Generate Code Coverage LWIP" ,
+            buildProduct : "weave" ,
+            buildConfig : "development" ,
+            os : "linux-sudo" ,
+            compileScriptAlternate : "echo skip compile" ,
+            miscScripts : [
+              scriptRepo : "platform/happy" ,
+              './buildtools/platform/weave/clean_happy_logs.sh' : '' ,
+              './buildtools/platform/weave/generate_code_coverage.sh' : '' ,
+              './buildtools/platform/weave/save_happy_logs.sh' : '' ,
+              './buildtools/platform/weave/uninstall_happy.sh' : '' ,
+            ] ,
+            envVars : [
+              "DEBUG=1" ,
+              "bamboo_UseLWIP='USE_LWIP=1'" ,
+            ] ,
+        ] ,
+    ] ,
+    // TODO : Post-Migration Task
+    emailFailed : "evedar@google.com" ,
+    emailSuccess : "evedar@google.com" ,
+]
+
+build(JsonOutput.toJson(config))
