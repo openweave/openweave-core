@@ -181,7 +181,7 @@ bool Cmd_GenDeviceCert(int argc, char *argv[])
 
     if (!ParseArgs(CMD_NAME, argc, argv, gCmdOptionSets))
     {
-        ExitNow(res = true);
+        ExitNow(res = false);
     }
 
     if (gDevId == 0)

@@ -149,7 +149,7 @@ exit:
     return err;
 }
 
-bool DecodePrivateKey(uint8_t *keyData, uint32_t keyDataLen, KeyFormat keyFormat, const char *keySource, const char *prompt, EVP_PKEY *& key)
+bool DecodePrivateKey(const uint8_t *keyData, uint32_t keyDataLen, KeyFormat keyFormat, const char *keySource, const char *prompt, EVP_PKEY *& key)
 {
     bool res = true;
     uint8_t *tmpKeyBuf = NULL;
@@ -187,14 +187,14 @@ bool DecodePrivateKey(uint8_t *keyData, uint32_t keyDataLen, KeyFormat keyFormat
         EVP_set_pw_prompt(prompt);
 #endif
 
-        keyBIO = BIO_new_mem_buf((void*)keyData, keyDataLen);
+        keyBIO = BIO_new_mem_buf((void *)keyData, keyDataLen);
         if (keyBIO == NULL)
         {
             fprintf(stderr, "Memory allocation error\n");
             ExitNow(res = false);
         }
 
-        if (keyFormat == kKeyFormat_PEM)
+        if (keyFormat == kKeyFormat_PEM || keyFormat == kKeyFormat_PEM_PKCS8)
         {
             if (PEM_read_bio_PrivateKey(keyBIO, &key, NULL, NULL) == NULL)
             {
@@ -240,7 +240,7 @@ bool DetectKeyFormat(FILE *keyFile, KeyFormat& keyFormat)
     return true;
 }
 
-KeyFormat DetectKeyFormat(uint8_t *key, uint32_t keyLen)
+KeyFormat DetectKeyFormat(const uint8_t *key, uint32_t keyLen)
 {
     static const uint8_t ecWeaveRawPrefix[] = { 0xD5, 0x00, 0x00, 0x04, 0x00, 0x02, 0x00 };
     static const char *ecWeaveB64Prefix = "1QAABAAC";
@@ -252,7 +252,7 @@ KeyFormat DetectKeyFormat(uint8_t *key, uint32_t keyLen)
     static const uint32_t rsaWeaveB64PrefixLen = sizeof(rsaWeaveB64Prefix) - 1;
     static const char *rsaPEMMarker = "-----BEGIN RSA PRIVATE KEY-----";
 
-    static const char *genPEMMarker = "-----BEGIN PRIVATE KEY-----";
+    static const char *pkcs8PEMMarker = "-----BEGIN PRIVATE KEY-----";
 
     if (keyLen > sizeof(ecWeaveRawPrefix) && memcmp(key, ecWeaveRawPrefix, sizeof(ecWeaveRawPrefix)) == 0)
         return kKeyFormat_Weave_Raw;
@@ -272,8 +272,8 @@ KeyFormat DetectKeyFormat(uint8_t *key, uint32_t keyLen)
     if (ContainsPEMMarker(rsaPEMMarker, key, keyLen))
         return kKeyFormat_PEM;
 
-    if (ContainsPEMMarker(genPEMMarker, key, keyLen))
-        return kKeyFormat_PEM;
+    if (ContainsPEMMarker(pkcs8PEMMarker, key, keyLen))
+        return kKeyFormat_PEM_PKCS8;
 
     return kKeyFormat_DER;
 }
@@ -334,19 +334,29 @@ exit:
 bool EncodePrivateKey(EVP_PKEY *key, KeyFormat keyFormat, uint8_t *& encodedKey, uint32_t& encodedKeyLen)
 {
     bool res = true;
+    PKCS8_PRIV_KEY_INFO *pkcs8Key = NULL;
+    EC_KEY *ecKey;
     BIO *outBIO = NULL;
     BUF_MEM *memBuf;
 
     encodedKey = NULL;
 
-    if (keyFormat == kKeyFormat_DER || keyFormat == kKeyFormat_PEM)
+    if (EVP_PKEY_type(EVP_PKEY_id(key)) == EVP_PKEY_RSA)
     {
-        if (EVP_PKEY_type(EVP_PKEY_id(key)) == EVP_PKEY_EC)
-        {
-            EC_KEY *ecKey = EVP_PKEY_get1_EC_KEY(key);
-            EC_KEY_set_enc_flags(ecKey, EC_PKEY_NO_PARAMETERS);
-        }
+        fprintf(stderr, "Encoding of RSA private keys not yet supported\n");
+        ExitNow(res = false);
+    }
+    if (EVP_PKEY_type(EVP_PKEY_id(key)) != EVP_PKEY_EC)
+    {
+        fprintf(stderr, "Unsupported private key type\n");
+        ExitNow(res = false);
+    }
 
+    ecKey = EVP_PKEY_get1_EC_KEY(key);
+
+    if (keyFormat == kKeyFormat_DER || keyFormat == kKeyFormat_DER_PKCS8 ||
+        keyFormat == kKeyFormat_PEM || keyFormat == kKeyFormat_PEM_PKCS8)
+    {
         outBIO = BIO_new(BIO_s_mem());
         if (outBIO == NULL)
         {
@@ -354,15 +364,39 @@ bool EncodePrivateKey(EVP_PKEY *key, KeyFormat keyFormat, uint8_t *& encodedKey,
             ExitNow(res = false);
         }
 
-        if (keyFormat == kKeyFormat_DER)
+        if (keyFormat == kKeyFormat_DER_PKCS8 || keyFormat == kKeyFormat_PEM_PKCS8)
         {
-            if (i2d_PrivateKey_bio(outBIO, key) < 0)
-                ReportOpenSSLErrorAndExit("i2d_PrivateKey_bio", res = false);
+            pkcs8Key = EVP_PKEY2PKCS8(key);
+            if (pkcs8Key == NULL)
+            {
+                fprintf(stderr, "Memory allocation error\n");
+                ExitNow(res = false);
+            }
+
+            if (keyFormat == kKeyFormat_DER_PKCS8)
+            {
+                if (i2d_PKCS8_PRIV_KEY_INFO_bio(outBIO, pkcs8Key) < 0)
+                    ReportOpenSSLErrorAndExit("i2d_PKCS8_PRIV_KEY_INFO_bio", res = false);
+            }
+            else
+            {
+                if (!PEM_write_bio_PKCS8_PRIV_KEY_INFO(outBIO, pkcs8Key))
+                    ReportOpenSSLErrorAndExit("PEM_write_bio_PKCS8_PRIV_KEY_INFO", res = false);
+            }
         }
+
         else
         {
-            if (!PEM_write_bio_PrivateKey(outBIO, key, NULL, NULL, 0, NULL, NULL))
-                ReportOpenSSLErrorAndExit("PEM_write_bio_PrivateKey", res = false);
+            if (keyFormat == kKeyFormat_DER)
+            {
+                if (i2d_ECPrivateKey_bio(outBIO, ecKey) < 0)
+                    ReportOpenSSLErrorAndExit("i2d_PrivateKey_bio", res = false);
+            }
+            else
+            {
+                if (!PEM_write_bio_ECPrivateKey(outBIO, ecKey, NULL, NULL, 0, NULL, NULL))
+                    ReportOpenSSLErrorAndExit("PEM_write_bio_ECPrivateKey", res = false);
+            }
         }
 
         BIO_get_mem_ptr(outBIO, &memBuf);
@@ -383,22 +417,8 @@ bool EncodePrivateKey(EVP_PKEY *key, KeyFormat keyFormat, uint8_t *& encodedKey,
         uint8_t *tmpEncodedKey;
         uint32_t tmpEncodedKeyLen;
 
-        if (EVP_PKEY_type(EVP_PKEY_id(key)) == EVP_PKEY_RSA)
-        {
-            fprintf(stderr, "Encoding of RSA private keys not yet supported\n");
-            ExitNow(res = false);
-        }
-        else if (EVP_PKEY_type(EVP_PKEY_id(key)) == EVP_PKEY_EC)
-        {
-            EC_KEY *ecKey = EVP_PKEY_get1_EC_KEY(key);
-            res = WeaveEncodeECPrivateKey(ecKey, true, tmpEncodedKey, tmpEncodedKeyLen);
-            VerifyOrExit(res == true, (void)0);
-        }
-        else
-        {
-            fprintf(stderr, "Unsupported private key type\n");
-            ExitNow(res = false);
-        }
+        res = WeaveEncodeECPrivateKey(ecKey, true, tmpEncodedKey, tmpEncodedKeyLen);
+        VerifyOrExit(res == true, (void)0);
 
         if (keyFormat == kKeyFormat_Weave_Raw)
         {
@@ -419,7 +439,11 @@ bool EncodePrivateKey(EVP_PKEY *key, KeyFormat keyFormat, uint8_t *& encodedKey,
 
 exit:
     if (outBIO != NULL)
-        BIO_free(outBIO); // FIXME: possible memory leak of BUF_MEM???
+        BIO_free(outBIO);
+    if (pkcs8Key != NULL)
+    {
+        PKCS8_PRIV_KEY_INFO_free(pkcs8Key);
+    }
     return res;
 }
 

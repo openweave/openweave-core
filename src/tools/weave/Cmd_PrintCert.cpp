@@ -79,7 +79,7 @@ bool Cmd_PrintCert(int argc, char *argv[])
 
     if (!ParseArgs(CMD_NAME, argc, argv, gCmdOptionSets, HandleNonOptionArgs))
     {
-        ExitNow(res = true);
+        ExitNow(res = false);
     }
 
     err = certSet.Init(1, 2048);

@@ -53,6 +53,8 @@ static const char *const sHelp =
         "\n"
         "    convert-key -- Convert a private key between Weave and PEM/DER form.\n"
         "\n"
+        "    convert-provisioning-data -- Perform various conversions on a device provisioning data file.\n"
+        "\n"
         "    resign-cert -- Resign a weave certificate using a new CA key.\n"
         "\n"
         "    make-service-config -- Make a service config object.\n"
@@ -114,6 +116,9 @@ int main(int argc, char *argv[])
 
     else if (strcasecmp(argv[1], "convert-key") == 0 || strcasecmp(argv[1], "convertkey") == 0)
         res = Cmd_ConvertKey(argc - 1, argv + 1);
+
+    else if (strcasecmp(argv[1], "convert-provisioning-data") == 0 || strcasecmp(argv[1], "convertprovisioningdata") == 0)
+        res = Cmd_ConvertProvisioningData(argc - 1, argv + 1);
 
     else if (strcasecmp(argv[1], "resign-cert") == 0 || strcasecmp(argv[1], "resigncert") == 0)
         res = Cmd_ResignCert(argc - 1, argv + 1);

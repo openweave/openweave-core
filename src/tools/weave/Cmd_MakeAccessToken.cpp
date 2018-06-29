@@ -93,7 +93,7 @@ bool Cmd_MakeAccessToken(int argc, char *argv[])
 
     if (!ParseArgs(CMD_NAME, argc, argv, gCmdOptionSets, HandleNonOptionArgs))
     {
-        ExitNow(res = true);
+        ExitNow(res = false);
     }
 
     if (!ReadWeaveCert(gCertFileName, certBuf, certLen))

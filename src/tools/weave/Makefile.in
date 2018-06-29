@@ -168,7 +168,8 @@ am__libWeaveTool_a_SOURCES_DIST = CertUtils.cpp GeneralUtils.cpp \
 libWeaveTool_a_OBJECTS = $(am_libWeaveTool_a_OBJECTS)
 am__installdirs = "$(DESTDIR)$(libexecdir)"
 PROGRAMS = $(libexec_PROGRAMS)
-am__weave_SOURCES_DIST = Cmd_ConvertCert.cpp Cmd_ConvertKey.cpp \
+am__weave_SOURCES_DIST = Cmd_ConvertCert.cpp \
+	Cmd_ConvertProvisioningData.cpp Cmd_ConvertKey.cpp \
 	Cmd_GenCACert.cpp Cmd_GenCodeSigningCert.cpp \
 	Cmd_GenDeviceCert.cpp Cmd_GenGeneralCert.cpp \
 	Cmd_GenProvisioningData.cpp Cmd_GenServiceEndpointCert.cpp \
@@ -177,6 +178,7 @@ am__weave_SOURCES_DIST = Cmd_ConvertCert.cpp Cmd_ConvertKey.cpp \
 	Cmd_ResignCert.cpp weave-tool.cpp
 @WEAVE_BUILD_TOOLS_TRUE@am_weave_OBJECTS =  \
 @WEAVE_BUILD_TOOLS_TRUE@	weave-Cmd_ConvertCert.$(OBJEXT) \
+@WEAVE_BUILD_TOOLS_TRUE@	weave-Cmd_ConvertProvisioningData.$(OBJEXT) \
 @WEAVE_BUILD_TOOLS_TRUE@	weave-Cmd_ConvertKey.$(OBJEXT) \
 @WEAVE_BUILD_TOOLS_TRUE@	weave-Cmd_GenCACert.$(OBJEXT) \
 @WEAVE_BUILD_TOOLS_TRUE@	weave-Cmd_GenCodeSigningCert.$(OBJEXT) \
@@ -537,6 +539,7 @@ top_srcdir = @top_srcdir@
 
 @WEAVE_BUILD_TOOLS_TRUE@weave_SOURCES = \
 @WEAVE_BUILD_TOOLS_TRUE@    Cmd_ConvertCert.cpp                   \
+@WEAVE_BUILD_TOOLS_TRUE@    Cmd_ConvertProvisioningData.cpp       \
 @WEAVE_BUILD_TOOLS_TRUE@    Cmd_ConvertKey.cpp                    \
 @WEAVE_BUILD_TOOLS_TRUE@    Cmd_GenCACert.cpp                     \
 @WEAVE_BUILD_TOOLS_TRUE@    Cmd_GenCodeSigningCert.cpp            \
@@ -692,6 +695,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libWeaveTool_a-KeyUtils.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/weave-Cmd_ConvertCert.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/weave-Cmd_ConvertKey.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/weave-Cmd_ConvertProvisioningData.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/weave-Cmd_GenCACert.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/weave-Cmd_GenCodeSigningCert.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/weave-Cmd_GenDeviceCert.Po@am__quote@
@@ -785,6 +789,20 @@ weave-Cmd_ConvertCert.obj: Cmd_ConvertCert.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='Cmd_ConvertCert.cpp' object='weave-Cmd_ConvertCert.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(weave_CPPFLAGS) $(CPPFLAGS) $(weave_CXXFLAGS) $(CXXFLAGS) -c -o weave-Cmd_ConvertCert.obj `if test -f 'Cmd_ConvertCert.cpp'; then $(CYGPATH_W) 'Cmd_ConvertCert.cpp'; else $(CYGPATH_W) '$(srcdir)/Cmd_ConvertCert.cpp'; fi`
+
+weave-Cmd_ConvertProvisioningData.o: Cmd_ConvertProvisioningData.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(weave_CPPFLAGS) $(CPPFLAGS) $(weave_CXXFLAGS) $(CXXFLAGS) -MT weave-Cmd_ConvertProvisioningData.o -MD -MP -MF $(DEPDIR)/weave-Cmd_ConvertProvisioningData.Tpo -c -o weave-Cmd_ConvertProvisioningData.o `test -f 'Cmd_ConvertProvisioningData.cpp' || echo '$(srcdir)/'`Cmd_ConvertProvisioningData.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/weave-Cmd_ConvertProvisioningData.Tpo $(DEPDIR)/weave-Cmd_ConvertProvisioningData.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='Cmd_ConvertProvisioningData.cpp' object='weave-Cmd_ConvertProvisioningData.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(weave_CPPFLAGS) $(CPPFLAGS) $(weave_CXXFLAGS) $(CXXFLAGS) -c -o weave-Cmd_ConvertProvisioningData.o `test -f 'Cmd_ConvertProvisioningData.cpp' || echo '$(srcdir)/'`Cmd_ConvertProvisioningData.cpp
+
+weave-Cmd_ConvertProvisioningData.obj: Cmd_ConvertProvisioningData.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(weave_CPPFLAGS) $(CPPFLAGS) $(weave_CXXFLAGS) $(CXXFLAGS) -MT weave-Cmd_ConvertProvisioningData.obj -MD -MP -MF $(DEPDIR)/weave-Cmd_ConvertProvisioningData.Tpo -c -o weave-Cmd_ConvertProvisioningData.obj `if test -f 'Cmd_ConvertProvisioningData.cpp'; then $(CYGPATH_W) 'Cmd_ConvertProvisioningData.cpp'; else $(CYGPATH_W) '$(srcdir)/Cmd_ConvertProvisioningData.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/weave-Cmd_ConvertProvisioningData.Tpo $(DEPDIR)/weave-Cmd_ConvertProvisioningData.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='Cmd_ConvertProvisioningData.cpp' object='weave-Cmd_ConvertProvisioningData.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(weave_CPPFLAGS) $(CPPFLAGS) $(weave_CXXFLAGS) $(CXXFLAGS) -c -o weave-Cmd_ConvertProvisioningData.obj `if test -f 'Cmd_ConvertProvisioningData.cpp'; then $(CYGPATH_W) 'Cmd_ConvertProvisioningData.cpp'; else $(CYGPATH_W) '$(srcdir)/Cmd_ConvertProvisioningData.cpp'; fi`
 
 weave-Cmd_ConvertKey.o: Cmd_ConvertKey.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(weave_CPPFLAGS) $(CPPFLAGS) $(weave_CXXFLAGS) $(CXXFLAGS) -MT weave-Cmd_ConvertKey.o -MD -MP -MF $(DEPDIR)/weave-Cmd_ConvertKey.Tpo -c -o weave-Cmd_ConvertKey.o `test -f 'Cmd_ConvertKey.cpp' || echo '$(srcdir)/'`Cmd_ConvertKey.cpp

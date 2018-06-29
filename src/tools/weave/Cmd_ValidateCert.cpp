@@ -127,7 +127,7 @@ bool Cmd_ValidateCert(int argc, char *argv[])
 
     if (!ParseArgs(CMD_NAME, argc, argv, gCmdOptionSets, HandleNonOptionArgs))
     {
-        ExitNow(res = true);
+        ExitNow(res = false);
     }
 
     err = certSet.Init(kMaxCerts, 2048);

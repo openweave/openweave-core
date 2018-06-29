@@ -61,6 +61,7 @@ using nl::Weave::ASN1::OID;
 
 enum CertFormat
 {
+    kCertFormat_Unknown                         = 0,
     kCertFormat_X509_DER,
     kCertFormat_X509_PEM,
     kCertFormat_Weave_Raw,
@@ -71,7 +72,9 @@ enum KeyFormat
 {
     kKeyFormat_Unknown                          = 0,
     kKeyFormat_DER,
+    kKeyFormat_DER_PKCS8,
     kKeyFormat_PEM,
+    kKeyFormat_PEM_PKCS8,
     kKeyFormat_Weave_Raw,
     kKeyFormat_Weave_Base64
 };
@@ -83,6 +86,7 @@ extern bool Cmd_GenServiceEndpointCert(int argc, char *argv[]);
 extern bool Cmd_GenGeneralCert(int argc, char *argv[]);
 extern bool Cmd_ConvertCert(int argc, char *argv[]);
 extern bool Cmd_ConvertKey(int argc, char *argv[]);
+extern bool Cmd_ConvertProvisioningData(int argc, char *argv[]);
 extern bool Cmd_ResignCert(int argc, char *argv[]);
 extern bool Cmd_MakeServiceConfig(int argc, char *argv[]);
 extern bool Cmd_MakeAccessToken(int argc, char *argv[]);
@@ -111,15 +115,16 @@ extern bool AddExtension(X509 *devCert, int extNID, const char *extStr);
 extern bool AddSubjectKeyId(X509 *cert);
 extern bool AddAuthorityKeyId(X509 *cert, X509 *caCert);
 extern bool WeaveEncodeCert(X509 *cert, uint8_t *& encodedCert, uint32_t& encodedCertLen);
+extern bool DEREncodeCert(X509 *cert, uint8_t *& encodedCert, uint32_t& encodedCertLen);
 extern bool X509PEMToDER(uint8_t *cert, uint32_t& certLen);
 extern bool X509DERToPEM(uint8_t *cert, uint32_t& certLen, uint32_t bufLen);
 extern CertFormat DetectCertFormat(uint8_t *cert, uint32_t certLen);
 
 extern bool ReadPrivateKey(const char *fileName, const char *prompt, EVP_PKEY *& key);
 extern bool ReadWeavePrivateKey(const char *fileName, uint8_t *& key, uint32_t &keyLen);
-extern bool DecodePrivateKey(uint8_t *keyData, uint32_t keyDataLen, KeyFormat keyFormat, const char *keySource, const char *prompt, EVP_PKEY *& key);
+extern bool DecodePrivateKey(const uint8_t *keyData, uint32_t keyDataLen, KeyFormat keyFormat, const char *keySource, const char *prompt, EVP_PKEY *& key);
 extern bool DetectKeyFormat(FILE *keyFile, KeyFormat& keyFormat);
-extern KeyFormat DetectKeyFormat(uint8_t *key, uint32_t keyLen);
+extern KeyFormat DetectKeyFormat(const uint8_t *key, uint32_t keyLen);
 extern bool GenerateKeyPair(const char *curveName, EVP_PKEY *& key);
 extern bool EncodePrivateKey(EVP_PKEY *key, KeyFormat keyFormat, uint8_t *& encodedKey, uint32_t& encodedKeyLen);
 extern bool WeaveEncodePrivateKey(EVP_PKEY *key, uint8_t *& encodedKey, uint32_t& encodedKeyLen);

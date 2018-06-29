@@ -42,30 +42,40 @@ static bool HandleNonOptionArgs(const char *progName, int argc, char *argv[]);
 
 static OptionDef gCmdOptionDefs[] =
 {
-    { "der",        kNoArgument, 'x' },
-    { "pem",        kNoArgument, 'p' },
-    { "weave",      kNoArgument, 'w' },
-    { "weave-b64",  kNoArgument, 'b' },
+    { "der",            kNoArgument, 'x' },
+    { "pem",            kNoArgument, 'p' },
+    { "weave",          kNoArgument, 'w' },
+    { "weave-b64",      kNoArgument, 'b' },
+    { "pkcs8-der",      kNoArgument, 'X' },
+    { "pkcs8-pem",      kNoArgument, 'P' },
     { NULL }
 };
 
 static const char *const gCmdOptionHelp =
-    "  -p, --pem\n"
+    "   -p, --pem\n"
     "\n"
-    "      Output the private key in PEM format.\n"
+    "       Output the private key in SEC1/RFC-5915 PEM format.\n"
     "\n"
-    "  -x, --der\n"
+    "   -x, --der\n"
     "\n"
-    "      Output the private key in DER format.\n"
+    "       Output the private key in SEC1/RFC-5915 DER format. \n"
     "\n"
-    "  -w, --weave\n"
+    "   -w, --weave\n"
     "\n"
-    "      Output the private key in Weave raw TLV format.\n"
-    "      This is the default.\n"
+    "       Output the private key in Weave raw TLV format.\n"
+    "       This is the default.\n"
     "\n"
-    "  -b, --weave-b64\n"
+    "   -b, --weave-b64\n"
     "\n"
-    "      Output the private key in Weave base-64 format.\n"
+    "       Output the private key in Weave base-64 TLV format.\n"
+    "\n"
+    "   -P, --pkcs8-pem\n"
+    "\n"
+    "       Output the private key in PKCS#8 PEM format.\n"
+    "\n"
+    "   -X, --pkcs8-der\n"
+    "\n"
+    "       Output the private key in PKCS#8 DER format.\n"
     "\n"
     ;
 
@@ -85,13 +95,13 @@ static HelpOptions gHelpOptions(
     "\n"
     "ARGUMENTS\n"
     "\n"
-    "  <in-file>\n"
+    "   <in-file>\n"
     "\n"
     "       The input private key file name, or - to read from stdin. The\n"
     "       format of the input key is auto-detected and can be any\n"
     "       of: PEM, DER, Weave base-64 or Weave raw TLV.\n"
     "\n"
-    "  <out-file>\n"
+    "   <out-file>\n"
     "\n"
     "       The output private key file name, or - to write to stdout.\n"
     "\n"
@@ -130,7 +140,7 @@ bool Cmd_ConvertKey(int argc, char *argv[])
 
     if (!ParseArgs(CMD_NAME, argc, argv, gCmdOptionSets, HandleNonOptionArgs))
     {
-        ExitNow(res = true);
+        ExitNow(res = false);
     }
 
     if (strcmp(gInFileName, "-") != 0)
@@ -224,6 +234,12 @@ bool HandleOption(const char *progName, OptionSet *optSet, int id, const char *n
         break;
     case 'w':
         gOutFormat = kKeyFormat_Weave_Raw;
+        break;
+    case 'P':
+        gOutFormat = kKeyFormat_PEM_PKCS8;
+        break;
+    case 'X':
+        gOutFormat = kKeyFormat_DER_PKCS8;
         break;
     default:
         PrintArgError("%s: INTERNAL ERROR: Unhandled option: %s\n", progName, name);

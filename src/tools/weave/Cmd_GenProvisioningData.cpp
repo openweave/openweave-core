@@ -48,23 +48,41 @@ using namespace nl::Weave::ASN1;
 static bool HandleOption(const char *progName, OptionSet *optSet, int id, const char *name, const char *arg);
 static bool OutputProvisioningData(FILE *outFile, uint64_t devId, X509 *caCert, EVP_PKEY *caKey, const char *curveName,
                                    const struct tm& validFrom, uint32_t validDays,
-                                   const char *sigType, const EVP_MD *sigHashAlgo, uint32_t pairingCodeLen);
+                                   const char *sigType, const EVP_MD *sigHashAlgo,
+                                   CertFormat certFormat, KeyFormat keyFormat,
+                                   uint32_t pairingCodeLen);
 static char *GeneratePairingCode(uint32_t pairingCodeLen);
 static char *GeneratePermissions(uint64_t devId);
 
+enum
+{
+    kToolOpt_WeaveCert  = 1000,
+    kToolOpt_DERCert    = 1001,
+    kToolOpt_WeaveKey   = 1002,
+    kToolOpt_DERKey     = 1003,
+    kToolOpt_PKCS8Key   = 1004,
+};
+
 static OptionDef gCmdOptionDefs[] =
 {
-    { "dev-id",            kArgumentRequired, 'i' },
-    { "count",             kArgumentRequired, 'c' },
-    { "ca-cert",           kArgumentRequired, 'C' },
-    { "ca-key",            kArgumentRequired, 'K' },
-    { "out",               kArgumentRequired, 'o' },
-    { "curve",             kArgumentRequired, 'u' },
-    { "valid-from",        kArgumentRequired, 'V' },
-    { "lifetime",          kArgumentRequired, 'l' },
-    { "pairing-code-len",  kArgumentRequired, 'P' },
-    { "sha1",              kNoArgument,       '1' },
-    { "sha256",            kNoArgument,       '2' },
+    { "dev-id",            kArgumentRequired, 'i'                   },
+    { "count",             kArgumentRequired, 'c'                   },
+    { "ca-cert",           kArgumentRequired, 'C'                   },
+    { "ca-key",            kArgumentRequired, 'K'                   },
+    { "out",               kArgumentRequired, 'o'                   },
+    { "curve",             kArgumentRequired, 'u'                   },
+    { "valid-from",        kArgumentRequired, 'V'                   },
+    { "lifetime",          kArgumentRequired, 'l'                   },
+    { "pairing-code-len",  kArgumentRequired, 'P'                   },
+    { "sha1",              kNoArgument,       '1'                   },
+    { "sha256",            kNoArgument,       '2'                   },
+    { "weave",             kNoArgument,       'w'                   },
+    { "der",               kNoArgument,       'x'                   },
+    { "weave-cert",        kNoArgument,       kToolOpt_WeaveCert    },
+    { "der-cert",          kNoArgument,       kToolOpt_DERCert      },
+    { "weave-key",         kNoArgument,       kToolOpt_WeaveKey     },
+    { "der-key",           kNoArgument,       kToolOpt_DERKey       },
+    { "pkcs8-key",         kNoArgument,       kToolOpt_PKCS8Key     },
     { NULL }
 };
 
@@ -118,6 +136,37 @@ static const char *const gCmdOptionHelp =
     "\n"
     "       Sign the certificate using a SHA-256 hash.\n"
     "\n"
+    "   -w, --weave\n"
+    "\n"
+    "       Output both the certificate and private key in Weave TLV format.\n"
+    "       This is the default.\n"
+    "\n"
+    "   -x, --der\n"
+    "\n"
+    "       Output both the certificate and private key in DER format. The certificate\n"
+    "       is output in X.509 form, while the private key is output in SEC1/RFC-5915\n"
+    "       form.\n"
+    "\n"
+    "   --weave-cert\n"
+    "\n"
+    "       Output the certificate in Weave TLV format.\n"
+    "\n"
+    "   --der-cert\n"
+    "\n"
+    "       Output the certificate in X.509 DER format.\n"
+    "\n"
+    "   --weave-key\n"
+    "\n"
+    "       Output the private key in Weave TLV format.\n"
+    "\n"
+    "   --der-key\n"
+    "\n"
+    "       Output the private key in SEC1/RFC-5915 DER format.\n"
+    "\n"
+    "   --pkcs8-key\n"
+    "\n"
+    "       Output the private key in PKCS#8 DER format.\n"
+    "\n"
     ;
 
 static OptionSet gCmdOptions =
@@ -153,6 +202,8 @@ static int32_t gPairingCodeLen = 6;
 static const EVP_MD *gSigHashAlgo = NULL;
 static const char *gSigType = NULL;
 static struct tm gValidFrom;
+static CertFormat gCertFormat = kCertFormat_Weave_Base64;
+static KeyFormat gKeyFormat = kKeyFormat_Weave_Base64;
 
 bool Cmd_GenProvisioningData(int argc, char *argv[])
 {
@@ -160,6 +211,8 @@ bool Cmd_GenProvisioningData(int argc, char *argv[])
     X509 *caCert = NULL;
     EVP_PKEY *caKey = NULL;
     FILE *outFile = NULL;
+    const char * certColumnName;
+    const char * privateKeyColumnName;
     bool outFileCreated = false;
 
     {
@@ -178,7 +231,7 @@ bool Cmd_GenProvisioningData(int argc, char *argv[])
 
     if (!ParseArgs(CMD_NAME, argc, argv, gCmdOptionSets))
     {
-        ExitNow(res = true);
+        ExitNow(res = false);
     }
 
     if (gDevId == 0)
@@ -245,7 +298,36 @@ bool Cmd_GenProvisioningData(int argc, char *argv[])
     else
         outFile = stdout;
 
-    if (fprintf(outFile, "MAC, Certificate, Private Key, Permissions, Pairing Code, Certificate Type\n") < 0 ||
+    switch (gCertFormat)
+    {
+    case kCertFormat_Weave_Base64:
+        certColumnName = "Certificate";
+        break;
+    case kCertFormat_X509_DER:
+        certColumnName = "Certificate DER";
+        break;
+    default:
+        fprintf(stderr, "INTERNAL ERROR: Invalid cert format\n");
+        ExitNow(res = false);
+    }
+
+    switch (gKeyFormat)
+    {
+    case kKeyFormat_Weave_Base64:
+        privateKeyColumnName = "Private Key";
+        break;
+    case kKeyFormat_DER:
+        privateKeyColumnName = "Private Key DER";
+        break;
+    case kKeyFormat_DER_PKCS8:
+        privateKeyColumnName = "Private Key PKCS8";
+        break;
+    default:
+        fprintf(stderr, "INTERNAL ERROR: Invalid key format\n");
+        ExitNow(res = false);
+    }
+
+    if (fprintf(outFile, "MAC, %s, %s, Permissions, Pairing Code, Certificate Type\n", certColumnName, privateKeyColumnName) < 0 ||
         ferror(outFile))
     {
         fprintf(stderr, "Error writing to output file: %s\n", strerror(errno));
@@ -253,7 +335,13 @@ bool Cmd_GenProvisioningData(int argc, char *argv[])
     }
 
     for (int32_t i = 0; i < gDevCount; i++)
-        if (!OutputProvisioningData(outFile, gDevId + i, caCert, caKey, gCurveName, gValidFrom, gValidDays, gSigType, gSigHashAlgo, gPairingCodeLen))
+        if (!OutputProvisioningData(outFile, gDevId + i,
+                caCert, caKey,
+                gCurveName,
+                gValidFrom, gValidDays,
+                gSigType, gSigHashAlgo,
+                gCertFormat, gKeyFormat,
+                gPairingCodeLen))
             ExitNow(res = false);
 
 exit:
@@ -327,6 +415,29 @@ bool HandleOption(const char *progName, OptionSet *optSet, int id, const char *n
         gSigHashAlgo = EVP_sha256();
         gSigType = "ECDSAWithSHA256";
         break;
+    case 'w':
+        gCertFormat = kCertFormat_Weave_Base64;
+        gKeyFormat = kKeyFormat_Weave_Base64;
+        break;
+    case 'x':
+        gCertFormat = kCertFormat_X509_DER;
+        gKeyFormat = kKeyFormat_DER;
+        break;
+    case kToolOpt_WeaveCert:
+        gCertFormat = kCertFormat_Weave_Base64;
+        break;
+    case kToolOpt_DERCert:
+        gCertFormat = kCertFormat_X509_DER;
+        break;
+    case kToolOpt_WeaveKey:
+        gKeyFormat = kKeyFormat_Weave_Base64;
+        break;
+    case kToolOpt_DERKey:
+        gKeyFormat = kKeyFormat_DER;
+        break;
+    case kToolOpt_PKCS8Key:
+        gKeyFormat = kKeyFormat_DER_PKCS8;
+        break;
     default:
         PrintArgError("%s: INTERNAL ERROR: Unhandled option: %s\n", progName, name);
         return false;
@@ -337,38 +448,49 @@ bool HandleOption(const char *progName, OptionSet *optSet, int id, const char *n
 
 bool OutputProvisioningData(FILE *outFile, uint64_t devId, X509 *caCert, EVP_PKEY *caKey, const char *curveName,
                             const struct tm& validFrom, uint32_t validDays,
-                            const char *sigType, const EVP_MD *sigHashAlgo, uint32_t pairingCodeLen)
+                            const char *sigType, const EVP_MD *sigHashAlgo,
+                            CertFormat certFormat, KeyFormat keyFormat,
+                            uint32_t pairingCodeLen)
 {
     bool res = true;
     X509 *devCert = NULL;
     EVP_PKEY *devKey = NULL;
-    uint8_t *weaveCert = NULL;
-    uint32_t weaveCertLen;
-    char *weaveCertB64 = NULL;
-    uint8_t *weaveKey = NULL;
-    uint32_t weaveKeyLen;
-    char *weaveKeyB64 = NULL;
+    uint8_t *encodedCert = NULL;
+    uint32_t encodedCertLen;
+    char *encodedCertB64 = NULL;
+    uint8_t *encodedKey = NULL;
+    uint32_t encodedKeyLen;
+    char *encodedKeyB64 = NULL;
     char *pairingCode = NULL;
     char *perms = NULL;
 
     if (!MakeDeviceCert(devId, caCert, caKey, curveName, validFrom, validDays, sigHashAlgo, devCert, devKey))
         ExitNow(res = false);
 
-    if (!WeaveEncodeCert(devCert, weaveCert, weaveCertLen))
-        ExitNow(res = false);
+    if (certFormat == kCertFormat_Weave_Base64)
+    {
+        if (!WeaveEncodeCert(devCert, encodedCert, encodedCertLen))
+            ExitNow(res = false);
+    }
 
-    if (!WeaveEncodePrivateKey(devKey, weaveKey, weaveKeyLen))
-        ExitNow(res = false);
+    else
+    {
+        if (!DEREncodeCert(devCert, encodedCert, encodedCertLen))
+            ExitNow(res = false);
+    }
 
-    weaveCertB64 = Base64Encode(weaveCert, weaveCertLen);
-    if (weaveCertB64 == NULL)
+    encodedCertB64 = Base64Encode(encodedCert, encodedCertLen);
+    if (encodedCertB64 == NULL)
     {
         fprintf(stderr, "Memory allocation error\n");
         ExitNow(res = false);
     }
 
-    weaveKeyB64 = Base64Encode(weaveKey, weaveKeyLen);
-    if (weaveKeyB64 == NULL)
+    if (!EncodePrivateKey(devKey, keyFormat == kKeyFormat_Weave_Base64 ? kKeyFormat_Weave_Raw : keyFormat, encodedKey, encodedKeyLen))
+        ExitNow(res = false);
+
+    encodedKeyB64 = Base64Encode(encodedKey, encodedKeyLen);
+    if (encodedKeyB64 == NULL)
     {
         fprintf(stderr, "Memory allocation error\n");
         ExitNow(res = false);
@@ -382,7 +504,7 @@ bool OutputProvisioningData(FILE *outFile, uint64_t devId, X509 *caCert, EVP_PKE
     if (pairingCode == NULL)
         ExitNow(res = false);
 
-    if (fprintf(outFile, "%016" PRIX64 ",%s,%s,%s,%s,%s\n", devId, weaveCertB64, weaveKeyB64, perms, pairingCode, sigType) < 0 ||
+    if (fprintf(outFile, "%016" PRIX64 ",%s,%s,%s,%s,%s\n", devId, encodedCertB64, encodedKeyB64, perms, pairingCode, sigType) < 0 ||
         ferror(outFile))
     {
         fprintf(stderr, "Error writing to output file: %s\n", strerror(errno));
@@ -390,18 +512,18 @@ bool OutputProvisioningData(FILE *outFile, uint64_t devId, X509 *caCert, EVP_PKE
     }
 
 exit:
-    if (weaveCertB64 != NULL)
-        free(weaveCertB64);
-    if (weaveKeyB64 != NULL)
-        free(weaveKeyB64);
+    if (encodedCertB64 != NULL)
+        free(encodedCertB64);
+    if (encodedKeyB64 != NULL)
+        free(encodedKeyB64);
     if (devCert != NULL)
         X509_free(devCert);
     if (devKey != NULL)
         EVP_PKEY_free(devKey);
-    if (weaveCert != NULL)
-        free(weaveCert);
-    if (weaveKey != NULL)
-        free(weaveKey);
+    if (encodedCert != NULL)
+        free(encodedCert);
+    if (encodedKey != NULL)
+        free(encodedKey);
     if (pairingCode != NULL)
         free(pairingCode);
     if (perms != NULL)

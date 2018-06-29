@@ -64,6 +64,7 @@ libWeaveTool_a_CXXFLAGS                 = \
 
 weave_SOURCES				            = \
     Cmd_ConvertCert.cpp                   \
+    Cmd_ConvertProvisioningData.cpp       \
     Cmd_ConvertKey.cpp                    \
     Cmd_GenCACert.cpp                     \
     Cmd_GenCodeSigningCert.cpp            \

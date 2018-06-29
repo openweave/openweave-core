@@ -109,7 +109,7 @@ bool Cmd_PrintTLV(int argc, char *argv[])
 
     if (!ParseArgs(CMD_NAME, argc, argv, gCmdOptionSets, HandleNonOptionArgs))
     {
-        ExitNow(res = true);
+        ExitNow(res = false);
     }
 
     fd = open(gFileName, O_RDONLY | O_CLOEXEC);

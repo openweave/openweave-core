@@ -305,6 +305,21 @@ exit:
     return res;
 }
 
+bool DEREncodeCert(X509 *cert, uint8_t *& encodedCert, uint32_t& encodedCertLen)
+{
+    int res;
+
+    encodedCert = NULL;
+    res = i2d_X509(cert, &encodedCert);
+    if (res < 0)
+        ReportOpenSSLErrorAndExit("i2d_X509", );
+
+    encodedCertLen = (uint32_t)res;
+
+exit:
+    return res >= 0;
+}
+
 bool MakeDeviceCert(uint64_t devId, X509 *caCert, EVP_PKEY *caKey, const char *curveName, const struct tm& validFrom, uint32_t validDays,
                     const EVP_MD *sigHashAlgo, X509 *& devCert, EVP_PKEY *& devKey)
 {

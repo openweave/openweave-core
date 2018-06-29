@@ -164,7 +164,7 @@ bool Cmd_GenCACert(int argc, char *argv[])
 
     if (!ParseArgs(CMD_NAME, argc, argv, gCmdOptionSets))
     {
-        ExitNow(res = true);
+        ExitNow(res = false);
     }
 
     if (gCertId == 0)

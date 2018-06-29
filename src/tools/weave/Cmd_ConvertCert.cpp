@@ -130,7 +130,7 @@ bool Cmd_ConvertCert(int argc, char *argv[])
 
     if (!ParseArgs(CMD_NAME, argc, argv, gCmdOptionSets, HandleNonOptionArgs))
     {
-        ExitNow(res = true);
+        ExitNow(res = false);
     }
 
     if (strcmp(gInFileName, "-") != 0)

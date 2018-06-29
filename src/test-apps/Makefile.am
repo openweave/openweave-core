@@ -370,6 +370,11 @@ check_SCRIPTS                                  = \
     $(NULL)
 endif # WEAVE_RUN_HAPPY_SERVICE
 
+if WEAVE_BUILD_TOOLS
+check_SCRIPTS                                 += \
+    TestWeaveTool.py                             \
+    $(NULL)
+endif # WEAVE_BUILD_TOOLS
 
 # Test applications that should be built but not installed that
 # require no network or complicated setup and should always be
