@@ -165,6 +165,11 @@ public:
 
     WEAVE_ERROR Locate(uint64_t aProfileId, uint64_t aInstanceId, TraitDataHandle & aHandle) const;
 
+    /**
+     * Return the number of trait instances in the catalog.
+     */
+    uint32_t Count() const;
+
 public: // TraitCatalogBase
     WEAVE_ERROR AddressToHandle(TLV::TLVReader & aReader, TraitDataHandle & aHandle,
                                 SchemaVersionRange & aSchemaVersionRange) const;
@@ -423,6 +428,12 @@ WEAVE_ERROR SingleResourceTraitCatalog<T>::DispatchEvent(uint16_t aEvent, void *
     }
 
     return err;
+}
+
+template <typename T>
+uint32_t SingleResourceTraitCatalog<T>::Count() const
+{
+    return mNumCurCatalogItems;
 }
 
 #if WEAVE_CONFIG_ENABLE_WDM_UPDATE
