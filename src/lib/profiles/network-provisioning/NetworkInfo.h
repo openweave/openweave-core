@@ -76,7 +76,9 @@ public:
     char *ThreadNetworkName;        /**< The name of the Thread network, or NULL if not specified. It is a
                                      * NUL-terminated, dynamically-allocated C-string, owned by the class.  Destroyed
                                      * on any condition that calls `Clear()` on the object. */
-    uint8_t *ThreadExtendedPANId;   /**< The Thread extended PAN id (8 bytes). */
+    uint8_t *ThreadExtendedPANId;   /**< The Thread extended PAN ID. It is a dynamically allocated array of 8 octects,
+                                     * owned by the class.  Destroyed on any condition that calls `Clear()` on
+                                     * the object. */
     uint8_t *ThreadNetworkKey;      /**< The Thread master network key , or NULL if not specified. It is a dynamically
                                      * allocated array of arbitrary octets, owned by the class, with length specified
                                      * by `ThreadNetworkKeyLen`.  Destroyed on any condition that calls `Clear()` on
