@@ -257,7 +257,7 @@ KeyFormat DetectKeyFormat(const uint8_t *key, uint32_t keyLen)
     if (keyLen > sizeof(ecWeaveRawPrefix) && memcmp(key, ecWeaveRawPrefix, sizeof(ecWeaveRawPrefix)) == 0)
         return kKeyFormat_Weave_Raw;
 
-    if (keyLen > sizeof(rsaWeaveRawPrefix) && memcmp(key, rsaWeaveRawPrefix, sizeof(rsaWeaveB64Prefix)) == 0)
+    if (keyLen > sizeof(rsaWeaveRawPrefix) && memcmp(key, rsaWeaveRawPrefix, sizeof(rsaWeaveRawPrefix)) == 0)
         return kKeyFormat_Weave_Raw;
 
     if (keyLen > ecWeaveB64PrefixLen && memcmp(key, ecWeaveB64Prefix, ecWeaveB64PrefixLen) == 0)
