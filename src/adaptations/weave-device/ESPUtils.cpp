@@ -16,8 +16,8 @@
  *    limitations under the License.
  */
 
-#include <internal/WeaveDeviceInternal.h>
-#include <internal/ESPUtils.h>
+#include <Weave/DeviceLayer/internal/WeaveDeviceInternal.h>
+#include <Weave/DeviceLayer/internal/ESPUtils.h>
 
 #include "esp_event.h"
 #include "esp_wifi.h"

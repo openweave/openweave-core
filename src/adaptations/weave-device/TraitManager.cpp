@@ -16,10 +16,10 @@
  *    limitations under the License.
  */
 
-#include <internal/WeaveDeviceInternal.h>
-#include <TraitManager.h>
+#include <Weave/DeviceLayer/internal/WeaveDeviceInternal.h>
+#include <Weave/DeviceLayer/TraitManager.h>
 #include <Weave/Profiles/security/ApplicationKeysTraitDataSink.h>
-#include <internal/DeviceIdentityTraitDataSource.h>
+#include <Weave/DeviceLayer/internal/DeviceIdentityTraitDataSource.h>
 
 #include <new>
 

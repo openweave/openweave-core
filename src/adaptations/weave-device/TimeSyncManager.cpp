@@ -16,8 +16,8 @@
  *    limitations under the License.
  */
 
-#include <internal/WeaveDeviceInternal.h>
-#include <internal/ServiceDirectoryManager.h>
+#include <Weave/DeviceLayer/internal/WeaveDeviceInternal.h>
+#include <Weave/DeviceLayer/internal/ServiceDirectoryManager.h>
 #include <Weave/Profiles/time/WeaveTime.h>
 #include <Weave/Support/TimeUtils.h>
 

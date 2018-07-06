@@ -19,7 +19,7 @@
 #ifndef NETWORK_PROVISIONING_SERVER_H
 #define NETWORK_PROVISIONING_SERVER_H
 
-#include <internal/WeaveDeviceInternal.h>
+#include <Weave/DeviceLayer/internal/WeaveDeviceInternal.h>
 #include <Weave/Profiles/network-provisioning/NetworkProvisioning.h>
 
 namespace nl {

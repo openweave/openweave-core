@@ -16,8 +16,8 @@
  *    limitations under the License.
  */
 
-#include <internal/WeaveDeviceInternal.h>
-#include <ConfigurationManager.h>
+#include <Weave/DeviceLayer/internal/WeaveDeviceInternal.h>
+#include <Weave/DeviceLayer/ConfigurationManager.h>
 
 namespace nl {
 namespace Weave {

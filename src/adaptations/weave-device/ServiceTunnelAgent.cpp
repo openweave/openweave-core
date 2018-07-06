@@ -16,9 +16,9 @@
  *    limitations under the License.
  */
 
-#include <internal/WeaveDeviceInternal.h>
-#include <ConnectivityManager.h>
-#include <internal/ServiceDirectoryManager.h>
+#include <Weave/DeviceLayer/internal/WeaveDeviceInternal.h>
+#include <Weave/DeviceLayer/ConnectivityManager.h>
+#include <Weave/DeviceLayer/internal/ServiceDirectoryManager.h>
 #include <Weave/Profiles/weave-tunneling/WeaveTunnelAgent.h>
 #include <new>
 

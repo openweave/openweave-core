@@ -16,14 +16,14 @@
  *    limitations under the License.
  */
 
-#include <internal/WeaveDeviceInternal.h>
-#include <internal/BLEManager.h>
-#include <internal/DeviceControlServer.h>
-#include <internal/DeviceDescriptionServer.h>
-#include <internal/NetworkProvisioningServer.h>
-#include <internal/FabricProvisioningServer.h>
-#include <internal/ServiceProvisioningServer.h>
-#include <internal/EchoServer.h>
+#include <Weave/DeviceLayer/internal/WeaveDeviceInternal.h>
+#include <Weave/DeviceLayer/internal/BLEManager.h>
+#include <Weave/DeviceLayer/internal/DeviceControlServer.h>
+#include <Weave/DeviceLayer/internal/DeviceDescriptionServer.h>
+#include <Weave/DeviceLayer/internal/NetworkProvisioningServer.h>
+#include <Weave/DeviceLayer/internal/FabricProvisioningServer.h>
+#include <Weave/DeviceLayer/internal/ServiceProvisioningServer.h>
+#include <Weave/DeviceLayer/internal/EchoServer.h>
 
 namespace nl {
 namespace Weave {

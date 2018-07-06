@@ -16,8 +16,8 @@
  *    limitations under the License.
  */
 
-#include <internal/WeaveDeviceInternal.h>
-#include <ConnectivityManager.h>
+#include <Weave/DeviceLayer/internal/WeaveDeviceInternal.h>
+#include <Weave/DeviceLayer/ConnectivityManager.h>
 #include <Warm/Warm.h>
 #include <lwip/netif.h>
 #include <lwip/ip6_route_table.h>

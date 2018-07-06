@@ -16,28 +16,24 @@
  *    limitations under the License.
  */
 
-#ifndef SERVICE_DIRECTORY_MANAGER_H
-#define SERVICE_DIRECTORY_MANAGER_H
+#ifndef TUNNEL_AGENT_H
+#define TUNNEL_AGENT_H
 
-#include <internal/WeaveDeviceInternal.h>
-#include <Weave/Profiles/service-directory/ServiceDirectory.h>
+#include <Weave/DeviceLayer/internal/WeaveDeviceInternal.h>
+#include <Weave/Profiles/weave-tunneling/WeaveTunnelAgent.h>
 
 namespace nl {
 namespace Weave {
 namespace Device {
 namespace Internal {
 
-#if WEAVE_CONFIG_ENABLE_SERVICE_DIRECTORY
+extern ::nl::Weave::Profiles::WeaveTunnel::WeaveTunnelAgent ServiceTunnelAgent;
 
-extern ::nl::Weave::Profiles::ServiceDirectory::WeaveServiceManager ServiceDirectoryMgr;
-
-extern WEAVE_ERROR InitServiceDirectoryManager(void);
-
-#endif // WEAVE_CONFIG_ENABLE_SERVICE_DIRECTORY
+extern WEAVE_ERROR InitServiceTunnelAgent();
 
 } // namespace Internal
 } // namespace Device
 } // namespace Weave
 } // namespace nl
 
-#endif // SERVICE_DIRECTORY_MANAGER_H
+#endif // TUNNEL_AGENT_H

@@ -16,13 +16,13 @@
  *    limitations under the License.
  */
 
-#include <internal/WeaveDeviceInternal.h>
-#include <ConnectivityManager.h>
-#include <internal/NetworkProvisioningServer.h>
-#include <internal/NetworkInfo.h>
-#include <internal/ServiceTunnelAgent.h>
-#include <internal/BLEManager.h>
-#include <internal/ESPUtils.h>
+#include <Weave/DeviceLayer/internal/WeaveDeviceInternal.h>
+#include <Weave/DeviceLayer/ConnectivityManager.h>
+#include <Weave/DeviceLayer/internal/NetworkProvisioningServer.h>
+#include <Weave/DeviceLayer/internal/NetworkInfo.h>
+#include <Weave/DeviceLayer/internal/ServiceTunnelAgent.h>
+#include <Weave/DeviceLayer/internal/BLEManager.h>
+#include <Weave/DeviceLayer/internal/ESPUtils.h>
 
 #include <Weave/Profiles/WeaveProfiles.h>
 #include <Weave/Profiles/common/CommonProfile.h>

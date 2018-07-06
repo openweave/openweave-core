@@ -19,7 +19,7 @@
 #ifndef PLATFORM_MANAGER_H
 #define PLATFORM_MANAGER_H
 
-#include <WeaveDeviceEvent.h>
+#include <Weave/DeviceLayer/WeaveDeviceEvent.h>
 
 namespace nl {
 namespace Weave {

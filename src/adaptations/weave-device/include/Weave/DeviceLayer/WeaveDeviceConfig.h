@@ -20,7 +20,7 @@
 #define WEAVE_DEVICE_CONFIG_H
 
 
-#include <internal/WeaveDeviceConfig-ESP32.h>
+#include <Weave/DeviceLayer/internal/WeaveDeviceConfig-ESP32.h>
 
 
 // -------------------- General Configuration --------------------

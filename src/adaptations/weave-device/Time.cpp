@@ -16,7 +16,7 @@
  *    limitations under the License.
  */
 
-#include <internal/WeaveDeviceInternal.h>
+#include <Weave/DeviceLayer/internal/WeaveDeviceInternal.h>
 #include <esp_timer.h>
 
 #include <Weave/Support/TimeUtils.h>

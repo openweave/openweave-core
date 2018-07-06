@@ -19,7 +19,7 @@
 #ifndef WEAVE_DEVICE_INTERNAL_H
 #define WEAVE_DEVICE_INTERNAL_H
 
-#include <WeaveDevice.h>
+#include <Weave/DeviceLayer/WeaveDevice.h>
 
 #include "freertos/FreeRTOS.h"
 #include "freertos/event_groups.h"

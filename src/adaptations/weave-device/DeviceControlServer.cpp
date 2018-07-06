@@ -16,9 +16,9 @@
  *    limitations under the License.
  */
 
-#include <internal/WeaveDeviceInternal.h>
-#include <internal/DeviceControlServer.h>
-#include <internal/FabricProvisioningServer.h>
+#include <Weave/DeviceLayer/internal/WeaveDeviceInternal.h>
+#include <Weave/DeviceLayer/internal/DeviceControlServer.h>
+#include <Weave/DeviceLayer/internal/FabricProvisioningServer.h>
 #include <Weave/Profiles/WeaveProfiles.h>
 #include <Weave/Profiles/common/CommonProfile.h>
 

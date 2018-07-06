@@ -19,7 +19,7 @@
 #ifndef DEVICE_CONTROL_SERVER_H
 #define DEVICE_CONTROL_SERVER_H
 
-#include <internal/WeaveDeviceInternal.h>
+#include <Weave/DeviceLayer/internal/WeaveDeviceInternal.h>
 #include <Weave/Profiles/device-control/DeviceControl.h>
 
 namespace nl {

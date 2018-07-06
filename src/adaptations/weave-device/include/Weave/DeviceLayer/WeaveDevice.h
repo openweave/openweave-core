@@ -20,14 +20,14 @@
 #define WEAVE_DEVICE_H
 
 #include <Weave/Core/WeaveCore.h>
-#include <WeaveDeviceConfig.h>
+#include <Weave/DeviceLayer/WeaveDeviceConfig.h>
 #include <BleLayer/BleLayer.h>
-#include <PlatformManager.h>
-#include <ConfigurationManager.h>
-#include <ConnectivityManager.h>
-#include <TraitManager.h>
-#include <TimeSyncManager.h>
-#include <WeaveDeviceError.h>
+#include <Weave/DeviceLayer/PlatformManager.h>
+#include <Weave/DeviceLayer/ConfigurationManager.h>
+#include <Weave/DeviceLayer/ConnectivityManager.h>
+#include <Weave/DeviceLayer/TraitManager.h>
+#include <Weave/DeviceLayer/TimeSyncManager.h>
+#include <Weave/DeviceLayer/WeaveDeviceError.h>
 
 namespace nl {
 namespace Weave {

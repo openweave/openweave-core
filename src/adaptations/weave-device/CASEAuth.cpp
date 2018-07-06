@@ -16,7 +16,7 @@
  *    limitations under the License.
  */
 
-#include <internal/WeaveDeviceInternal.h>
+#include <Weave/DeviceLayer/internal/WeaveDeviceInternal.h>
 #include <Weave/Core/WeaveTLV.h>
 #include <Weave/Profiles/WeaveProfiles.h>
 #include <Weave/Profiles/security/WeaveSecurity.h>

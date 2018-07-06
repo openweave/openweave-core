@@ -16,8 +16,8 @@
  *    limitations under the License.
  */
 
-#include <internal/WeaveDeviceInternal.h>
-#include <ConfigurationManager.h>
+#include <Weave/DeviceLayer/internal/WeaveDeviceInternal.h>
+#include <Weave/DeviceLayer/ConfigurationManager.h>
 #include <Weave/Core/WeaveKeyIds.h>
 #include <Weave/Core/WeaveVendorIdentifiers.hpp>
 #include <Weave/Profiles/security/WeaveApplicationKeys.h>

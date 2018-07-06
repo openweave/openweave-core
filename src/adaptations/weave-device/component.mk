@@ -21,3 +21,4 @@
 
 COMPONENT_DEPENDS			:= weave
 COMPONENT_SRCDIRS           := . trait-support/weave/trait/description
+COMPONENT_PRIV_INCLUDEDIRS  := trait-support

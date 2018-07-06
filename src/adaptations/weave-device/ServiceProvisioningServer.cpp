@@ -16,8 +16,8 @@
  *    limitations under the License.
  */
 
-#include <internal/WeaveDeviceInternal.h>
-#include <internal/ServiceProvisioningServer.h>
+#include <Weave/DeviceLayer/internal/WeaveDeviceInternal.h>
+#include <Weave/DeviceLayer/internal/ServiceProvisioningServer.h>
 
 using namespace ::nl;
 using namespace ::nl::Weave;

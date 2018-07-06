@@ -19,7 +19,7 @@
 #ifndef ESP_UTILS_H
 #define ESP_UTILS_H
 
-#include <internal/WeaveDeviceInternal.h>
+#include <Weave/DeviceLayer/internal/WeaveDeviceInternal.h>
 #include <Weave/Profiles/network-provisioning/NetworkProvisioning.h>
 
 namespace nl {

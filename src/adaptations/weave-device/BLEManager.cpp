@@ -16,8 +16,8 @@
  *    limitations under the License.
  */
 
-#include <internal/WeaveDeviceInternal.h>
-#include <internal/BLEManager.h>
+#include <Weave/DeviceLayer/internal/WeaveDeviceInternal.h>
+#include <Weave/DeviceLayer/internal/BLEManager.h>
 #include <new>
 
 #if WEAVE_DEVICE_CONFIG_ENABLE_WOBLE

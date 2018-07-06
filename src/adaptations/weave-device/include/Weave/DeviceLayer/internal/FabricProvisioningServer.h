@@ -16,38 +16,40 @@
  *    limitations under the License.
  */
 
-#ifndef DEVICE_DESCRIPTION_SERVER_H
-#define DEVICE_DESCRIPTION_SERVER_H
+#ifndef FABRIC_PROVISIONING_SERVER_H
+#define FABRIC_PROVISIONING_SERVER_H
 
-#include <internal/WeaveDeviceInternal.h>
-#include <Weave/Profiles/device-description/DeviceDescription.h>
+#include <Weave/DeviceLayer/internal/WeaveDeviceInternal.h>
+#include <Weave/Profiles/fabric-provisioning/FabricProvisioning.h>
 
 namespace nl {
 namespace Weave {
 namespace Device {
 namespace Internal {
 
-class DeviceDescriptionServer : public ::nl::Weave::Profiles::DeviceDescription::DeviceDescriptionServer
+class FabricProvisioningServer
+        : public ::nl::Weave::Profiles::FabricProvisioning::FabricProvisioningServer,
+          public ::nl::Weave::Profiles::FabricProvisioning::FabricProvisioningDelegate
 {
-    typedef ::nl::Weave::Profiles::DeviceDescription::DeviceDescriptionServer ServerBaseClass;
-
 public:
+    typedef ::nl::Weave::Profiles::FabricProvisioning::FabricProvisioningServer ServerBaseClass;
+
     WEAVE_ERROR Init();
+    virtual WEAVE_ERROR HandleCreateFabric(void);
+    virtual WEAVE_ERROR HandleJoinExistingFabric(void);
+    virtual WEAVE_ERROR HandleLeaveFabric(void);
+    virtual WEAVE_ERROR HandleGetFabricConfig(void);
+    WEAVE_ERROR LeaveFabric(void);
+    virtual bool IsPairedToAccount() const;
 
     void OnPlatformEvent(const WeaveDeviceEvent * event);
-
-private:
-    static void HandleIdentifyRequest(void *appState, uint64_t nodeId, const IPAddress& nodeAddr,
-            const ::nl::Weave::Profiles::DeviceDescription::IdentifyRequestMessage& reqMsg, bool& sendResp,
-            ::nl::Weave::Profiles::DeviceDescription::IdentifyResponseMessage& respMsg);
 };
 
-extern DeviceDescriptionServer DeviceDescriptionSvr;
+extern FabricProvisioningServer FabricProvisioningSvr;
 
 } // namespace Internal
 } // namespace Device
 } // namespace Weave
 } // namespace nl
 
-
-#endif // DEVICE_DESCRIPTION_SERVER_H
+#endif // FABRIC_PROVISIONING_SERVER_H

@@ -23,9 +23,9 @@
  *
  */
 
-#include <internal/WeaveDeviceInternal.h>
-#include <ConfigurationManager.h>
-#include <internal/DeviceIdentityTraitDataSource.h>
+#include <Weave/DeviceLayer/internal/WeaveDeviceInternal.h>
+#include <Weave/DeviceLayer/ConfigurationManager.h>
+#include <Weave/DeviceLayer/internal/DeviceIdentityTraitDataSource.h>
 #include <weave/trait/description/DeviceIdentityTrait.h>
 
 namespace nl {
