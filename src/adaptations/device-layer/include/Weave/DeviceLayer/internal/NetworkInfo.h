@@ -19,8 +19,8 @@
 #ifndef NETWORK_INFO_H
 #define NETWORK_INFO_H
 
-#include <Weave/Core/WeaveTLV.h>
 #include <Weave/DeviceLayer/internal/WeaveDeviceLayerInternal.h>
+#include <Weave/Core/WeaveTLV.h>
 #include <Weave/Profiles/network-provisioning/NetworkProvisioning.h>
 
 namespace nl {
