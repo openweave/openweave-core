@@ -19,13 +19,13 @@
 #ifndef NETWORK_INFO_H
 #define NETWORK_INFO_H
 
-#include <Weave/DeviceLayer/internal/WeaveDeviceInternal.h>
 #include <Weave/Core/WeaveTLV.h>
+#include <Weave/DeviceLayer/internal/WeaveDeviceLayerInternal.h>
 #include <Weave/Profiles/network-provisioning/NetworkProvisioning.h>
 
 namespace nl {
 namespace Weave {
-namespace Device {
+namespace DeviceLayer {
 namespace Internal {
 
 class NetworkInfo
@@ -66,7 +66,7 @@ public:
 };
 
 } // namespace Internal
-} // namespace Device
+} // namespace DeviceLayer
 } // namespace Weave
 } // namespace nl
 

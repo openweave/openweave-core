@@ -16,7 +16,7 @@
  *    limitations under the License.
  */
 
-#include <Weave/DeviceLayer/internal/WeaveDeviceInternal.h>
+#include <Weave/DeviceLayer/internal/WeaveDeviceLayerInternal.h>
 #include <Weave/DeviceLayer/PlatformManager.h>
 #include <Weave/DeviceLayer/internal/DeviceControlServer.h>
 #include <Weave/DeviceLayer/internal/DeviceDescriptionServer.h>
@@ -31,11 +31,11 @@
 
 using namespace ::nl;
 using namespace ::nl::Weave;
-using namespace ::nl::Weave::Device::Internal;
+using namespace ::nl::Weave::DeviceLayer::Internal;
 
 namespace nl {
 namespace Weave {
-namespace Device {
+namespace DeviceLayer {
 
 namespace Internal {
 
@@ -578,7 +578,7 @@ void PlatformManager::HandleSessionEstablished(WeaveSecurityManager * sm, WeaveC
     }
 }
 
-} // namespace Device
+} // namespace DeviceLayer
 } // namespace Weave
 } // namespace nl
 
@@ -587,12 +587,12 @@ void PlatformManager::HandleSessionEstablished(WeaveSecurityManager * sm, WeaveC
 
 extern "C" void lock_lwip_core()
 {
-    xSemaphoreTake(::nl::Weave::Device::LwIPCoreLock, portMAX_DELAY);
+    xSemaphoreTake(::nl::Weave::DeviceLayer::LwIPCoreLock, portMAX_DELAY);
 }
 
 extern "C" void unlock_lwip_core()
 {
-    xSemaphoreGive(::nl::Weave::Device::LwIPCoreLock);
+    xSemaphoreGive(::nl::Weave::DeviceLayer::LwIPCoreLock);
 }
 
 
@@ -604,8 +604,8 @@ namespace System {
 namespace Platform {
 namespace Layer {
 
-using namespace ::nl::Weave::Device;
-using namespace ::nl::Weave::Device::Internal;
+using namespace ::nl::Weave::DeviceLayer;
+using namespace ::nl::Weave::DeviceLayer::Internal;
 
 System::Error StartTimer(System::Layer & aLayer, void * aContext, uint32_t aMilliseconds)
 {
@@ -641,8 +641,8 @@ namespace System {
 namespace Platform {
 namespace Layer {
 
-using namespace ::nl::Weave::Device;
-using namespace ::nl::Weave::Device::Internal;
+using namespace ::nl::Weave::DeviceLayer;
+using namespace ::nl::Weave::DeviceLayer::Internal;
 
 System::Error PostEvent(System::Layer & aLayer, void * aContext, System::Object & aTarget, System::EventType aType, uintptr_t aArgument)
 {

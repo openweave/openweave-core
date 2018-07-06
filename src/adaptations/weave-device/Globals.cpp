@@ -16,7 +16,7 @@
  *    limitations under the License.
  */
 
-#include <Weave/DeviceLayer/internal/WeaveDeviceInternal.h>
+#include <Weave/DeviceLayer/internal/WeaveDeviceLayerInternal.h>
 #include <Weave/DeviceLayer/internal/BLEManager.h>
 #include <Weave/DeviceLayer/internal/DeviceControlServer.h>
 #include <Weave/DeviceLayer/internal/DeviceDescriptionServer.h>
@@ -27,7 +27,7 @@
 
 namespace nl {
 namespace Weave {
-namespace Device {
+namespace DeviceLayer {
 
 PlatformManager PlatformMgr;
 ConfigurationManager ConfigurationMgr;
@@ -59,6 +59,6 @@ ServiceProvisioningServer ServiceProvisioningSvr;
 const char * const TAG = "weave[DL]";
 
 } // namespace Internal
-} // namespace Device
+} // namespace DeviceLayer
 } // namespace Weave
 } // namespace nl

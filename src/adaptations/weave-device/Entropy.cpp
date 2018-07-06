@@ -16,7 +16,7 @@
  *    limitations under the License.
  */
 
-#include <Weave/DeviceLayer/internal/WeaveDeviceInternal.h>
+#include <Weave/DeviceLayer/internal/WeaveDeviceLayerInternal.h>
 #include <Weave/Support/crypto/WeaveRNG.h>
 
 using namespace ::nl;
@@ -24,7 +24,7 @@ using namespace ::nl::Weave;
 
 namespace nl {
 namespace Weave {
-namespace Device {
+namespace DeviceLayer {
 namespace Internal {
 
 namespace {
@@ -76,6 +76,6 @@ exit:
 }
 
 } // namespace Internal
-} // namespace Device
+} // namespace DeviceLayer
 } // namespace Weave
 } // namespace nl

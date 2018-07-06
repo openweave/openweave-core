@@ -16,12 +16,12 @@
  *    limitations under the License.
  */
 
-#include <Weave/DeviceLayer/internal/WeaveDeviceInternal.h>
+#include <Weave/DeviceLayer/internal/WeaveDeviceLayerInternal.h>
 #include <Weave/DeviceLayer/ConfigurationManager.h>
 
 namespace nl {
 namespace Weave {
-namespace Device {
+namespace DeviceLayer {
 namespace Internal {
 
 #if WEAVE_DEVICE_CONFIG_ENABLE_TEST_DEVICE_IDENTITY == 1
@@ -8811,6 +8811,6 @@ const uint16_t TestDevicePrivateKeyLength = sizeof(TestDevicePrivateKey);
 #endif // WEAVE_DEVICE_CONFIG_ENABLE_TEST_DEVICE_IDENTITY
 
 } // namespace Internal
-} // namespace Device
+} // namespace DeviceLayer
 } // namespace Weave
 } // namespace nl

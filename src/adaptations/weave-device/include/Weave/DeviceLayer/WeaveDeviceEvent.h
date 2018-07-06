@@ -23,7 +23,7 @@
 
 namespace nl {
 namespace Weave {
-namespace Device {
+namespace DeviceLayer {
 
 enum ConnectivityChange
 {
@@ -166,7 +166,7 @@ inline bool WeaveDeviceEvent::IsInternalEvent(uint16_t eventType)
 }
 
 
-} // namespace Device
+} // namespace DeviceLayer
 } // namespace Weave
 } // namespace nl
 

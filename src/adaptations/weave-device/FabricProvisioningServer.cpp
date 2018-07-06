@@ -16,7 +16,7 @@
  *    limitations under the License.
  */
 
-#include <Weave/DeviceLayer/internal/WeaveDeviceInternal.h>
+#include <Weave/DeviceLayer/internal/WeaveDeviceLayerInternal.h>
 #include <Weave/DeviceLayer/internal/FabricProvisioningServer.h>
 
 using namespace ::nl;
@@ -25,7 +25,7 @@ using namespace ::nl::Weave::Profiles::FabricProvisioning;
 
 namespace nl {
 namespace Weave {
-namespace Device {
+namespace DeviceLayer {
 namespace Internal {
 
 WEAVE_ERROR FabricProvisioningServer::Init()
@@ -33,7 +33,7 @@ WEAVE_ERROR FabricProvisioningServer::Init()
     WEAVE_ERROR err;
 
     // Call init on the server base class.
-    err = ServerBaseClass::Init(&::nl::Weave::Device::ExchangeMgr);
+    err = ServerBaseClass::Init(&::nl::Weave::DeviceLayer::ExchangeMgr);
     SuccessOrExit(err);
 
     // Set the pointer to the delegate object.
@@ -47,10 +47,10 @@ WEAVE_ERROR FabricProvisioningServer::HandleCreateFabric(void)
 {
     WEAVE_ERROR err;
 
-    err = ConfigurationMgr.StoreFabricId(::nl::Weave::Device::FabricState.FabricId);
+    err = ConfigurationMgr.StoreFabricId(::nl::Weave::DeviceLayer::FabricState.FabricId);
     SuccessOrExit(err);
 
-    WeaveLogProgress(DeviceLayer, "Weave fabric created; fabric id %016" PRIX64, ::nl::Weave::Device::FabricState.FabricId);
+    WeaveLogProgress(DeviceLayer, "Weave fabric created; fabric id %016" PRIX64, ::nl::Weave::DeviceLayer::FabricState.FabricId);
 
     {
         WeaveDeviceEvent event;
@@ -70,10 +70,10 @@ WEAVE_ERROR FabricProvisioningServer::HandleJoinExistingFabric(void)
 {
     WEAVE_ERROR err;
 
-    err = ConfigurationMgr.StoreFabricId(::nl::Weave::Device::FabricState.FabricId);
+    err = ConfigurationMgr.StoreFabricId(::nl::Weave::DeviceLayer::FabricState.FabricId);
     SuccessOrExit(err);
 
-    WeaveLogProgress(DeviceLayer, "Join existing Weave fabric; fabric id %016" PRIX64, ::nl::Weave::Device::FabricState.FabricId);
+    WeaveLogProgress(DeviceLayer, "Join existing Weave fabric; fabric id %016" PRIX64, ::nl::Weave::DeviceLayer::FabricState.FabricId);
 
     {
         WeaveDeviceEvent event;
@@ -156,6 +156,6 @@ void FabricProvisioningServer::OnPlatformEvent(const WeaveDeviceEvent * event)
 
 
 } // namespace Internal
-} // namespace Device
+} // namespace DeviceLayer
 } // namespace Weave
 } // namespace nl

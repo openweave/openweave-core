@@ -31,7 +31,7 @@
 
 namespace nl {
 namespace Weave {
-namespace Device {
+namespace DeviceLayer {
 
 struct WeaveDeviceEvent;
 
@@ -47,7 +47,7 @@ extern nl::Weave::WeaveMessageLayer MessageLayer;
 extern nl::Weave::WeaveExchangeManager ExchangeMgr;
 extern nl::Weave::WeaveSecurityManager SecurityMgr;
 
-} // namespace Device
+} // namespace DeviceLayer
 } // namespace Weave
 } // namespace nl
 

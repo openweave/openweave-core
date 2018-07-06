@@ -19,12 +19,12 @@
 #ifndef TUNNEL_AGENT_H
 #define TUNNEL_AGENT_H
 
-#include <Weave/DeviceLayer/internal/WeaveDeviceInternal.h>
+#include <Weave/DeviceLayer/internal/WeaveDeviceLayerInternal.h>
 #include <Weave/Profiles/weave-tunneling/WeaveTunnelAgent.h>
 
 namespace nl {
 namespace Weave {
-namespace Device {
+namespace DeviceLayer {
 namespace Internal {
 
 extern ::nl::Weave::Profiles::WeaveTunnel::WeaveTunnelAgent ServiceTunnelAgent;
@@ -32,7 +32,7 @@ extern ::nl::Weave::Profiles::WeaveTunnel::WeaveTunnelAgent ServiceTunnelAgent;
 extern WEAVE_ERROR InitServiceTunnelAgent();
 
 } // namespace Internal
-} // namespace Device
+} // namespace DeviceLayer
 } // namespace Weave
 } // namespace nl
 

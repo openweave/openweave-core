@@ -23,14 +23,14 @@
  *
  */
 
-#include <Weave/DeviceLayer/internal/WeaveDeviceInternal.h>
+#include <Weave/DeviceLayer/internal/WeaveDeviceLayerInternal.h>
 #include <Weave/DeviceLayer/ConfigurationManager.h>
 #include <Weave/DeviceLayer/internal/DeviceIdentityTraitDataSource.h>
 #include <weave/trait/description/DeviceIdentityTrait.h>
 
 namespace nl {
 namespace Weave {
-namespace Device {
+namespace DeviceLayer {
 namespace Internal {
 
 using namespace ::nl::Weave::Profiles::DataManagement_Current;
@@ -120,14 +120,14 @@ WEAVE_ERROR DeviceIdentityTraitDataSource::GetLeafData(PropertyPathHandle aLeafH
     }
 
     case DeviceIdentityTrait::kPropertyHandle_DeviceId:
-        err = aWriter.Put(aTagToWrite, ::nl::Weave::Device::FabricState.LocalNodeId);
+        err = aWriter.Put(aTagToWrite, ::nl::Weave::DeviceLayer::FabricState.LocalNodeId);
         SuccessOrExit(err);
         break;
 
     case DeviceIdentityTrait::kPropertyHandle_FabricId:
         if (ConfigurationMgr.IsMemberOfFabric())
         {
-            err = aWriter.Put(aTagToWrite, ::nl::Weave::Device::FabricState.FabricId);
+            err = aWriter.Put(aTagToWrite, ::nl::Weave::DeviceLayer::FabricState.FabricId);
             SuccessOrExit(err);
         }
         break;

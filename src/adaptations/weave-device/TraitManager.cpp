@@ -16,15 +16,15 @@
  *    limitations under the License.
  */
 
-#include <Weave/DeviceLayer/internal/WeaveDeviceInternal.h>
+#include <Weave/DeviceLayer/internal/WeaveDeviceLayerInternal.h>
 #include <Weave/DeviceLayer/TraitManager.h>
 #include <Weave/Profiles/security/ApplicationKeysTraitDataSink.h>
 #include <Weave/DeviceLayer/internal/DeviceIdentityTraitDataSource.h>
 
 #include <new>
 
-using namespace ::nl::Weave::Device;
-using namespace ::nl::Weave::Device::Internal;
+using namespace ::nl::Weave::DeviceLayer;
+using namespace ::nl::Weave::DeviceLayer::Internal;
 using namespace ::nl::Weave::Profiles::DataManagement_Current;
 
 using Schema::Weave::Trait::Auth::ApplicationKeysTrait::ApplicationKeysTraitDataSink;
@@ -97,7 +97,7 @@ DeviceIdentityTraitDataSource DeviceIdTraitDataSource;
 
 namespace nl {
 namespace Weave {
-namespace Device {
+namespace DeviceLayer {
 
 WEAVE_ERROR TraitManager::SetServiceSubscriptionMode(ServiceSubscriptionMode val)
 {
@@ -505,7 +505,7 @@ void TraitManager::HandleInboundSubscriptionEvent(void * aAppState, Subscription
 }
 
 
-} // namespace Device
+} // namespace DeviceLayer
 } // namespace Weave
 } // namespace nl
 
@@ -627,7 +627,7 @@ WEAVE_ERROR DecodeTraitInstancePath(TLV::TLVReader & aReader, ResourceIdentifier
         err = path.GetResourceID(&reader);
         if (err == WEAVE_NO_ERROR)
         {
-            err = resourceId.FromTLV(reader, ::nl::Weave::Device::FabricState.LocalNodeId);
+            err = resourceId.FromTLV(reader, ::nl::Weave::DeviceLayer::FabricState.LocalNodeId);
             SuccessOrExit(err);
         }
         else if (err == WEAVE_END_OF_TLV)

@@ -19,12 +19,12 @@
 #ifndef NETWORK_PROVISIONING_SERVER_H
 #define NETWORK_PROVISIONING_SERVER_H
 
-#include <Weave/DeviceLayer/internal/WeaveDeviceInternal.h>
+#include <Weave/DeviceLayer/internal/WeaveDeviceLayerInternal.h>
 #include <Weave/Profiles/network-provisioning/NetworkProvisioning.h>
 
 namespace nl {
 namespace Weave {
-namespace Device {
+namespace DeviceLayer {
 namespace Internal {
 
 class NetworkProvisioningServer
@@ -51,10 +51,10 @@ private:
 
     State mState;
 
-    WEAVE_ERROR GetWiFiStationProvision(::nl::Weave::Device::Internal::NetworkInfo & netInfo, bool includeCredentials);
-    WEAVE_ERROR ValidateWiFiStationProvision(const ::nl::Weave::Device::Internal::NetworkInfo & netInfo,
+    WEAVE_ERROR GetWiFiStationProvision(::nl::Weave::DeviceLayer::Internal::NetworkInfo & netInfo, bool includeCredentials);
+    WEAVE_ERROR ValidateWiFiStationProvision(const ::nl::Weave::DeviceLayer::Internal::NetworkInfo & netInfo,
                     uint32_t & statusProfileId, uint16_t & statusCode);
-    WEAVE_ERROR SetESPStationConfig(const ::nl::Weave::Device::Internal::NetworkInfo & netInfo);
+    WEAVE_ERROR SetESPStationConfig(const ::nl::Weave::DeviceLayer::Internal::NetworkInfo & netInfo);
     bool RejectIfApplicationControlled(bool station);
     void HandleScanDone(void);
     void ContinueTestConnectivity(void);
@@ -89,7 +89,7 @@ inline bool NetworkProvisioningServer::ScanInProgress(void)
 }
 
 } // namespace Internal
-} // namespace Device
+} // namespace DeviceLayer
 } // namespace Weave
 } // namespace nl
 

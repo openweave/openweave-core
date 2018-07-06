@@ -16,7 +16,7 @@
  *    limitations under the License.
  */
 
-#include <Weave/DeviceLayer/internal/WeaveDeviceInternal.h>
+#include <Weave/DeviceLayer/internal/WeaveDeviceLayerInternal.h>
 #include <Weave/DeviceLayer/ConnectivityManager.h>
 #include <Weave/DeviceLayer/internal/ServiceDirectoryManager.h>
 #include <Weave/Profiles/weave-tunneling/WeaveTunnelAgent.h>
@@ -29,7 +29,7 @@ using namespace ::nl::Inet;
 
 namespace nl {
 namespace Weave {
-namespace Device {
+namespace DeviceLayer {
 namespace Internal {
 
 WeaveTunnelAgent ServiceTunnelAgent;
@@ -92,7 +92,7 @@ exit:
 }
 
 } // namespace Internal
-} // namespace Device
+} // namespace DeviceLayer
 } // namespace Weave
 } // namespace nl
 

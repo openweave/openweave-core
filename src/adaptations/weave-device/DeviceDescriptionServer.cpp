@@ -16,7 +16,7 @@
  *    limitations under the License.
  */
 
-#include <Weave/DeviceLayer/internal/WeaveDeviceInternal.h>
+#include <Weave/DeviceLayer/internal/WeaveDeviceLayerInternal.h>
 #include <Weave/DeviceLayer/internal/DeviceDescriptionServer.h>
 
 using namespace ::nl;
@@ -25,7 +25,7 @@ using namespace ::nl::Weave::Profiles::DeviceDescription;
 
 namespace nl {
 namespace Weave {
-namespace Device {
+namespace DeviceLayer {
 namespace Internal {
 
 DeviceDescriptionServer DeviceDescriptionSrv;
@@ -35,7 +35,7 @@ WEAVE_ERROR DeviceDescriptionServer::Init()
     WEAVE_ERROR err;
 
     // Call init on the server base class.
-    err = ServerBaseClass::Init(&::nl::Weave::Device::ExchangeMgr);
+    err = ServerBaseClass::Init(&::nl::Weave::DeviceLayer::ExchangeMgr);
     SuccessOrExit(err);
 
     // Set the pointer to the HandleIdentifyRequest function.
@@ -66,7 +66,7 @@ void DeviceDescriptionServer::HandleIdentifyRequest(void *appState, uint64_t nod
 
     sendResp = true;
 
-    if (!MatchTargetFabricId(::nl::Weave::Device::FabricState.FabricId, reqMsg.TargetFabricId))
+    if (!MatchTargetFabricId(::nl::Weave::DeviceLayer::FabricState.FabricId, reqMsg.TargetFabricId))
     {
         WeaveLogProgress(DeviceLayer, "IdentifyRequest target fabric does not match device fabric");
         sendResp = false;
@@ -131,6 +131,6 @@ void DeviceDescriptionServer::OnPlatformEvent(const WeaveDeviceEvent * event)
 
 
 } // namespace Internal
-} // namespace Device
+} // namespace DeviceLayer
 } // namespace Weave
 } // namespace nl

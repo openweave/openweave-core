@@ -16,7 +16,7 @@
  *    limitations under the License.
  */
 
-#include <Weave/DeviceLayer/internal/WeaveDeviceInternal.h>
+#include <Weave/DeviceLayer/internal/WeaveDeviceLayerInternal.h>
 #include <Weave/DeviceLayer/internal/DeviceControlServer.h>
 #include <Weave/DeviceLayer/internal/FabricProvisioningServer.h>
 #include <Weave/Profiles/WeaveProfiles.h>
@@ -30,7 +30,7 @@ using namespace ::nl::Weave::Profiles::DeviceControl;
 
 namespace nl {
 namespace Weave {
-namespace Device {
+namespace DeviceLayer {
 namespace Internal {
 
 WEAVE_ERROR DeviceControlServer::Init()
@@ -38,7 +38,7 @@ WEAVE_ERROR DeviceControlServer::Init()
     WEAVE_ERROR err;
 
     // Call init on the server base class.
-    err = ServerBaseClass::Init(&::nl::Weave::Device::ExchangeMgr);
+    err = ServerBaseClass::Init(&::nl::Weave::DeviceLayer::ExchangeMgr);
     SuccessOrExit(err);
 
     // Set the pointer to the delegate object.
@@ -201,7 +201,7 @@ void DeviceControlServer::OnPlatformEvent(const WeaveDeviceEvent * event)
 }
 
 } // namespace Internal
-} // namespace Device
+} // namespace DeviceLayer
 } // namespace Weave
 } // namespace nl
 

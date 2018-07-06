@@ -24,7 +24,7 @@
 
 namespace nl {
 namespace Weave {
-namespace Device {
+namespace DeviceLayer {
 
 class TraitManager;
 namespace Internal
@@ -92,10 +92,10 @@ private:
 
     // NOTE: These members are for internal use by the following friends.
 
-    friend class ::nl::Weave::Device::PlatformManager;
-    friend class ::nl::Weave::Device::TraitManager;
-    friend class ::nl::Weave::Device::Internal::DeviceControlServer;
-    friend class ::nl::Weave::Device::Internal::NetworkProvisioningServer;
+    friend class ::nl::Weave::DeviceLayer::PlatformManager;
+    friend class ::nl::Weave::DeviceLayer::TraitManager;
+    friend class ::nl::Weave::DeviceLayer::Internal::DeviceControlServer;
+    friend class ::nl::Weave::DeviceLayer::Internal::NetworkProvisioningServer;
 
     WEAVE_ERROR Init();
     WEAVE_ERROR ConfigureWeaveStack();
@@ -134,7 +134,7 @@ inline bool ConfigurationManager::IsPairedToAccount()
     return ::nl::GetFlag(mFlags, kFlag_IsPairedToAccount);
 }
 
-} // namespace Device
+} // namespace DeviceLayer
 } // namespace Weave
 } // namespace nl
 

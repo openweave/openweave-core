@@ -19,7 +19,7 @@
 #ifndef SERVICE_PROVISIONING_SERVER_H
 #define SERVICE_PROVISIONING_SERVER_H
 
-#include <Weave/DeviceLayer/internal/WeaveDeviceInternal.h>
+#include <Weave/DeviceLayer/internal/WeaveDeviceLayerInternal.h>
 #include <Weave/Profiles/service-provisioning/ServiceProvisioning.h>
 
 namespace nl {
@@ -34,7 +34,7 @@ class StatusReport;
 
 namespace nl {
 namespace Weave {
-namespace Device {
+namespace DeviceLayer {
 namespace Internal {
 
 class ServiceProvisioningServer
@@ -71,7 +71,7 @@ private:
 extern ServiceProvisioningServer ServiceProvisioningSvr;
 
 } // namespace Internal
-} // namespace Device
+} // namespace DeviceLayer
 } // namespace Weave
 } // namespace nl
 

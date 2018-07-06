@@ -16,7 +16,7 @@
  *    limitations under the License.
  */
 
-#include <Weave/DeviceLayer/internal/WeaveDeviceInternal.h>
+#include <Weave/DeviceLayer/internal/WeaveDeviceLayerInternal.h>
 #include <Weave/DeviceLayer/internal/EchoServer.h>
 
 using namespace ::nl;
@@ -24,14 +24,14 @@ using namespace ::nl::Weave;
 
 namespace nl {
 namespace Weave {
-namespace Device {
+namespace DeviceLayer {
 namespace Internal {
 
 WEAVE_ERROR EchoServer::Init()
 {
     WEAVE_ERROR err;
 
-    err = ServerBaseClass::Init(&::nl::Weave::Device::ExchangeMgr, ServerBaseClass::DefaultEventHandler);
+    err = ServerBaseClass::Init(&::nl::Weave::DeviceLayer::ExchangeMgr, ServerBaseClass::DefaultEventHandler);
     SuccessOrExit(err);
 
 exit:
@@ -39,6 +39,6 @@ exit:
 }
 
 } // namespace Internal
-} // namespace Device
+} // namespace DeviceLayer
 } // namespace Weave
 } // namespace nl

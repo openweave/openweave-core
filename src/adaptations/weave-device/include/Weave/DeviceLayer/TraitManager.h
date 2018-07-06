@@ -23,7 +23,7 @@
 
 namespace nl {
 namespace Weave {
-namespace Device {
+namespace DeviceLayer {
 
 class TraitManager
 {
@@ -63,7 +63,7 @@ private:
 
     // NOTE: These members are for internal use by the following friends.
 
-    friend class ::nl::Weave::Device::PlatformManager;
+    friend class ::nl::Weave::DeviceLayer::PlatformManager;
 
     WEAVE_ERROR Init(void);
     void OnPlatformEvent(const WeaveDeviceEvent * event);
@@ -108,7 +108,7 @@ inline bool TraitManager::IsServiceSubscriptionEstablished(void)
 }
 
 
-} // namespace Device
+} // namespace DeviceLayer
 } // namespace Weave
 } // namespace nl
 

@@ -16,7 +16,7 @@
  *    limitations under the License.
  */
 
-#include <Weave/DeviceLayer/internal/WeaveDeviceInternal.h>
+#include <Weave/DeviceLayer/internal/WeaveDeviceLayerInternal.h>
 #include <Weave/DeviceLayer/internal/ServiceProvisioningServer.h>
 
 using namespace ::nl;
@@ -26,7 +26,7 @@ using namespace ::nl::Weave::Profiles::ServiceProvisioning;
 
 namespace nl {
 namespace Weave {
-namespace Device {
+namespace DeviceLayer {
 namespace Internal {
 
 WEAVE_ERROR ServiceProvisioningServer::Init(void)
@@ -34,7 +34,7 @@ WEAVE_ERROR ServiceProvisioningServer::Init(void)
     WEAVE_ERROR err;
 
     // Call init on the server base class.
-    err = ServerBaseClass::Init(&::nl::Weave::Device::ExchangeMgr);
+    err = ServerBaseClass::Init(&::nl::Weave::DeviceLayer::ExchangeMgr);
     SuccessOrExit(err);
 
     // Set the pointer to the delegate object.
@@ -417,7 +417,7 @@ void ServiceProvisioningServer::HandlePairDeviceToAccountResult(WEAVE_ERROR err,
 #endif // !WEAVE_DEVICE_CONFIG_DISABLE_ACCOUNT_PAIRING
 
 } // namespace Internal
-} // namespace Device
+} // namespace DeviceLayer
 } // namespace Weave
 } // namespace nl
 

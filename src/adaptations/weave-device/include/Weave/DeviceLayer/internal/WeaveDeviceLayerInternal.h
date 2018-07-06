@@ -19,8 +19,7 @@
 #ifndef WEAVE_DEVICE_INTERNAL_H
 #define WEAVE_DEVICE_INTERNAL_H
 
-#include <Weave/DeviceLayer/WeaveDevice.h>
-
+#include <Weave/DeviceLayer/WeaveDeviceLayer.h>
 #include "freertos/FreeRTOS.h"
 #include "freertos/event_groups.h"
 #include "freertos/queue.h"
@@ -53,7 +52,7 @@ enum
 
 namespace nl {
 namespace Weave {
-namespace Device {
+namespace DeviceLayer {
 namespace Internal {
 
 extern const char * const TAG;
@@ -67,7 +66,7 @@ extern const uint16_t TestDevicePrivateKeyLength;
 #endif // WEAVE_DEVICE_CONFIG_ENABLE_TEST_DEVICE_IDENTITY
 
 } // namespace Internal
-} // namespace Device
+} // namespace DeviceLayer
 } // namespace Weave
 } // namespace nl
 

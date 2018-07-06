@@ -16,7 +16,7 @@
  *    limitations under the License.
  */
 
-#include <Weave/DeviceLayer/internal/WeaveDeviceInternal.h>
+#include <Weave/DeviceLayer/internal/WeaveDeviceLayerInternal.h>
 #include <Weave/DeviceLayer/internal/ServiceDirectoryManager.h>
 #include <Weave/Profiles/time/WeaveTime.h>
 #include <Weave/Support/TimeUtils.h>
@@ -26,7 +26,7 @@
 using namespace ::nl;
 using namespace ::nl::Weave;
 using namespace ::nl::Weave::Profiles::Time;
-using namespace ::nl::Weave::Device::Internal;
+using namespace ::nl::Weave::DeviceLayer::Internal;
 
 #if WEAVE_DEVICE_CONFIG_ENABLE_SERVICE_DIRECTORY_TIME_SYNC && !WEAVE_CONFIG_ENABLE_SERVICE_DIRECTORY
 #error "CONFIG ERROR: WEAVE_DEVICE_CONFIG_ENABLE_SERVICE_DIRECTORY_TIME_SYNC requires WEAVE_CONFIG_ENABLE_SERVICE_DIRECTORY to be enabled"
@@ -34,7 +34,7 @@ using namespace ::nl::Weave::Device::Internal;
 
 namespace nl {
 namespace Weave {
-namespace Device {
+namespace DeviceLayer {
 
 namespace {
 
@@ -332,6 +332,6 @@ void TimeSyncManager::TimeServiceSync_HandleSyncComplete(void * context, WEAVE_E
 
 #endif // WEAVE_DEVICE_CONFIG_ENABLE_WEAVE_TIME_SERVICE_TIME_SYNC
 
-} // namespace Device
+} // namespace DeviceLayer
 } // namespace Weave
 } // namespace nl

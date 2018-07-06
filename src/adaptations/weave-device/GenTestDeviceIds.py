@@ -27,7 +27,7 @@ preamble = '''\
 
 namespace nl {
 namespace Weave {
-namespace Device {
+namespace DeviceLayer {
 namespace Internal {
 
 '''
@@ -42,7 +42,7 @@ const uint16_t TestDevicePrivateKeyLength = sizeof(TestDevicePrivateKey);
 #endif // WEAVE_DEVICE_CONFIG_ENABLE_TEST_DEVICE_IDENTITY
 
 } // namespace Internal
-} // namespace Device
+} // namespace DeviceLayer
 } // namespace Weave
 } // namespace nl
 '''

@@ -16,13 +16,13 @@
  *    limitations under the License.
  */
 
-#include <Weave/DeviceLayer/internal/WeaveDeviceInternal.h>
+#include <Weave/DeviceLayer/internal/WeaveDeviceLayerInternal.h>
 #include <Weave/DeviceLayer/internal/ESPUtils.h>
 
 #include "esp_event.h"
 #include "esp_wifi.h"
 
-using namespace ::nl::Weave::Device::Internal;
+using namespace ::nl::Weave::DeviceLayer::Internal;
 using namespace ::nl::Weave::Profiles::NetworkProvisioning;
 
 WEAVE_ERROR ESPUtils::IsAPEnabled(bool & apEnabled)

@@ -16,7 +16,7 @@
  *    limitations under the License.
  */
 
-#include <Weave/DeviceLayer/internal/WeaveDeviceInternal.h>
+#include <Weave/DeviceLayer/internal/WeaveDeviceLayerInternal.h>
 #include <Weave/Core/WeaveTLV.h>
 #include <Weave/Profiles/WeaveProfiles.h>
 #include <Weave/Profiles/security/WeaveSecurity.h>
@@ -34,12 +34,12 @@ using namespace ::nl::Weave::TLV;
 using namespace ::nl::Weave::Profiles;
 using namespace ::nl::Weave::Profiles::Security;
 
-using namespace ::nl::Weave::Device;
-using namespace ::nl::Weave::Device::Internal;
+using namespace ::nl::Weave::DeviceLayer;
+using namespace ::nl::Weave::DeviceLayer::Internal;
 
 namespace nl {
 namespace Weave {
-namespace Device {
+namespace DeviceLayer {
 
 namespace {
 
@@ -458,6 +458,6 @@ exit:
 }
 
 } // unnamed namespace
-} // namespace Device
+} // namespace DeviceLayer
 } // namespace Weave
 } // namespace nl

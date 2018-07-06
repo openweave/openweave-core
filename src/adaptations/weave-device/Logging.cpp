@@ -16,11 +16,11 @@
  *    limitations under the License.
  */
 
-#include <Weave/DeviceLayer/internal/WeaveDeviceInternal.h>
+#include <Weave/DeviceLayer/internal/WeaveDeviceLayerInternal.h>
 #include <Weave/Support/logging/WeaveLogging.h>
 
 using namespace ::nl::Weave;
-using namespace ::nl::Weave::Device::Internal;
+using namespace ::nl::Weave::DeviceLayer::Internal;
 
 namespace {
 

@@ -23,7 +23,7 @@
 
 namespace nl {
 namespace Weave {
-namespace Device {
+namespace DeviceLayer {
 
 class ConnectivityManager;
 class TraitManager;
@@ -68,7 +68,7 @@ private:
     friend class Internal::FabricProvisioningServer;
     friend class Internal::ServiceProvisioningServer;
     friend class Internal::BLEManager;
-    friend nl::Weave::System::Error nl::Weave::System::Platform::Layer::DispatchEvent(nl::Weave::System::Layer & aLayer, void * aContext, const ::nl::Weave::Device::WeaveDeviceEvent * aEvent);
+    friend nl::Weave::System::Error nl::Weave::System::Platform::Layer::DispatchEvent(nl::Weave::System::Layer & aLayer, void * aContext, const ::nl::Weave::DeviceLayer::WeaveDeviceEvent * aEvent);
     friend nl::Weave::System::Error nl::Weave::System::Platform::Layer::StartTimer(nl::Weave::System::Layer & aLayer, void * aContext, uint32_t aMilliseconds);
 
     void PostEvent(const WeaveDeviceEvent * event);
@@ -83,7 +83,7 @@ private:
     static void HandleSessionEstablished(::nl::Weave::WeaveSecurityManager * sm, ::nl::Weave::WeaveConnection * con, void * reqState, uint16_t sessionKeyId, uint64_t peerNodeId, uint8_t encType);
 };
 
-} // namespace Device
+} // namespace DeviceLayer
 } // namespace Weave
 } // namespace nl
 

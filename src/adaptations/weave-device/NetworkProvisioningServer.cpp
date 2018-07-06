@@ -16,7 +16,7 @@
  *    limitations under the License.
  */
 
-#include <Weave/DeviceLayer/internal/WeaveDeviceInternal.h>
+#include <Weave/DeviceLayer/internal/WeaveDeviceLayerInternal.h>
 #include <Weave/DeviceLayer/internal/NetworkProvisioningServer.h>
 #include <Weave/DeviceLayer/internal/NetworkInfo.h>
 #include <Weave/DeviceLayer/internal/ESPUtils.h>
@@ -39,7 +39,7 @@ using Profiles::kWeaveProfile_NetworkProvisioning;
 
 namespace nl {
 namespace Weave {
-namespace Device {
+namespace DeviceLayer {
 namespace Internal {
 
 enum
@@ -52,7 +52,7 @@ WEAVE_ERROR NetworkProvisioningServer::Init()
     WEAVE_ERROR err;
 
     // Call init on the server base class.
-    err = ServerBaseClass::Init(&::nl::Weave::Device::ExchangeMgr);
+    err = ServerBaseClass::Init(&::nl::Weave::DeviceLayer::ExchangeMgr);
     SuccessOrExit(err);
 
     // Set the pointer to the delegate object.
@@ -195,7 +195,7 @@ exit:
 }
 
 WEAVE_ERROR NetworkProvisioningServer::ValidateWiFiStationProvision(
-        const ::nl::Weave::Device::Internal::NetworkInfo & netInfo,
+        const ::nl::Weave::DeviceLayer::Internal::NetworkInfo & netInfo,
         uint32_t & statusProfileId, uint16_t & statusCode)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
@@ -270,7 +270,7 @@ exit:
     return err;
 }
 
-WEAVE_ERROR NetworkProvisioningServer::SetESPStationConfig(const ::nl::Weave::Device::Internal::NetworkInfo  & netInfo)
+WEAVE_ERROR NetworkProvisioningServer::SetESPStationConfig(const ::nl::Weave::DeviceLayer::Internal::NetworkInfo  & netInfo)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
     wifi_mode_t wifiMode;
@@ -949,6 +949,6 @@ bool NetworkProvisioningServer::IsPairedToAccount() const
 }
 
 } // namespace Internal
-} // namespace Device
+} // namespace DeviceLayer
 } // namespace Weave
 } // namespace nl

@@ -19,12 +19,12 @@
 #ifndef DEVICE_CONTROL_SERVER_H
 #define DEVICE_CONTROL_SERVER_H
 
-#include <Weave/DeviceLayer/internal/WeaveDeviceInternal.h>
+#include <Weave/DeviceLayer/internal/WeaveDeviceLayerInternal.h>
 #include <Weave/Profiles/device-control/DeviceControl.h>
 
 namespace nl {
 namespace Weave {
-namespace Device {
+namespace DeviceLayer {
 namespace Internal {
 
 class DeviceControlServer
@@ -55,7 +55,7 @@ public:
 extern DeviceControlServer DeviceControlSvr;
 
 } // namespace Internal
-} // namespace Device
+} // namespace DeviceLayer
 } // namespace Weave
 } // namespace nl
 

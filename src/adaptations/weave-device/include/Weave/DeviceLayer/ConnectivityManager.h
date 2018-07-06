@@ -33,7 +33,7 @@ class IPAddress;
 
 namespace nl {
 namespace Weave {
-namespace Device {
+namespace DeviceLayer {
 namespace Internal {
 
 class NetworkInfo;
@@ -129,8 +129,8 @@ private:
 
     // NOTE: These members are for internal use by the following friends.
 
-    friend class ::nl::Weave::Device::PlatformManager;
-    friend class ::nl::Weave::Device::Internal::NetworkProvisioningServer;
+    friend class ::nl::Weave::DeviceLayer::PlatformManager;
+    friend class ::nl::Weave::DeviceLayer::Internal::NetworkProvisioningServer;
 
     WEAVE_ERROR Init(void);
     void OnPlatformEvent(const WeaveDeviceEvent * event);
@@ -264,7 +264,7 @@ inline bool ConnectivityManager::CanStartWiFiScan()
     return mWiFiStationState != kWiFiStationState_Connecting;
 }
 
-} // namespace Device
+} // namespace DeviceLayer
 } // namespace Weave
 } // namespace nl
 

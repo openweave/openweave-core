@@ -27,7 +27,7 @@
 
 namespace nl {
 namespace Weave {
-namespace Device {
+namespace DeviceLayer {
 namespace Internal {
 
 class BLEManager : private ::nl::Ble::BleLayer, private BlePlatformDelegate, private BleApplicationDelegate
@@ -158,7 +158,7 @@ inline bool BLEManager::IsFastAdvertisingEnabled(void)
 }
 
 } // namespace Internal
-} // namespace Device
+} // namespace DeviceLayer
 } // namespace Weave
 } // namespace nl
 

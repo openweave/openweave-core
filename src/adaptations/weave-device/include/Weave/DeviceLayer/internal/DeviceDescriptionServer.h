@@ -19,12 +19,12 @@
 #ifndef DEVICE_DESCRIPTION_SERVER_H
 #define DEVICE_DESCRIPTION_SERVER_H
 
-#include <Weave/DeviceLayer/internal/WeaveDeviceInternal.h>
+#include <Weave/DeviceLayer/internal/WeaveDeviceLayerInternal.h>
 #include <Weave/Profiles/device-description/DeviceDescription.h>
 
 namespace nl {
 namespace Weave {
-namespace Device {
+namespace DeviceLayer {
 namespace Internal {
 
 class DeviceDescriptionServer : public ::nl::Weave::Profiles::DeviceDescription::DeviceDescriptionServer
@@ -45,7 +45,7 @@ private:
 extern DeviceDescriptionServer DeviceDescriptionSvr;
 
 } // namespace Internal
-} // namespace Device
+} // namespace DeviceLayer
 } // namespace Weave
 } // namespace nl
 

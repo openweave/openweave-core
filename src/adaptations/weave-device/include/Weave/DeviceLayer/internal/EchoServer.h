@@ -19,12 +19,12 @@
 #ifndef ECHO_SERVER_H
 #define ECHO_SERVER_H
 
-#include <Weave/DeviceLayer/internal/WeaveDeviceInternal.h>
+#include <Weave/DeviceLayer/internal/WeaveDeviceLayerInternal.h>
 #include <Weave/Profiles/echo/Next/WeaveEchoServer.h>
 
 namespace nl {
 namespace Weave {
-namespace Device {
+namespace DeviceLayer {
 namespace Internal {
 
 class EchoServer : public ::nl::Weave::Profiles::Echo_Next::WeaveEchoServer
@@ -38,7 +38,7 @@ public:
 extern EchoServer EchoSvr;
 
 } // namespace Internal
-} // namespace Device
+} // namespace DeviceLayer
 } // namespace Weave
 } // namespace nl
 

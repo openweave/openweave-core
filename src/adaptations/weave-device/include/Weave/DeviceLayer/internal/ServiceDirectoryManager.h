@@ -19,12 +19,12 @@
 #ifndef SERVICE_DIRECTORY_MANAGER_H
 #define SERVICE_DIRECTORY_MANAGER_H
 
-#include <Weave/DeviceLayer/internal/WeaveDeviceInternal.h>
+#include <Weave/DeviceLayer/internal/WeaveDeviceLayerInternal.h>
 #include <Weave/Profiles/service-directory/ServiceDirectory.h>
 
 namespace nl {
 namespace Weave {
-namespace Device {
+namespace DeviceLayer {
 namespace Internal {
 
 #if WEAVE_CONFIG_ENABLE_SERVICE_DIRECTORY
@@ -36,7 +36,7 @@ extern WEAVE_ERROR InitServiceDirectoryManager(void);
 #endif // WEAVE_CONFIG_ENABLE_SERVICE_DIRECTORY
 
 } // namespace Internal
-} // namespace Device
+} // namespace DeviceLayer
 } // namespace Weave
 } // namespace nl
 

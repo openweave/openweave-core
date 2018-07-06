@@ -16,7 +16,7 @@
  *    limitations under the License.
  */
 
-#include <Weave/DeviceLayer/internal/WeaveDeviceInternal.h>
+#include <Weave/DeviceLayer/internal/WeaveDeviceLayerInternal.h>
 #include <Weave/DeviceLayer/internal/ServiceDirectoryManager.h>
 #include <Weave/DeviceLayer/TimeSyncManager.h>
 #include <Weave/Core/WeaveTLV.h>
@@ -32,7 +32,7 @@ using namespace ::nl::Weave::Profiles;
 
 namespace nl {
 namespace Weave {
-namespace Device {
+namespace DeviceLayer {
 namespace Internal {
 
 #if WEAVE_CONFIG_ENABLE_SERVICE_DIRECTORY
@@ -231,7 +231,7 @@ exit:
 #endif // WEAVE_CONFIG_ENABLE_SERVICE_DIRECTORY
 
 } // namespace Internal
-} // namespace Device
+} // namespace DeviceLayer
 } // namespace Weave
 } // namespace nl
 

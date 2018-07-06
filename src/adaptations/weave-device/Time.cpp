@@ -16,12 +16,12 @@
  *    limitations under the License.
  */
 
-#include <Weave/DeviceLayer/internal/WeaveDeviceInternal.h>
+#include <Weave/DeviceLayer/internal/WeaveDeviceLayerInternal.h>
 #include <esp_timer.h>
 
 #include <Weave/Support/TimeUtils.h>
 
-using namespace ::nl::Weave::Device::Internal;
+using namespace ::nl::Weave::DeviceLayer::Internal;
 
 namespace nl {
 namespace Weave {

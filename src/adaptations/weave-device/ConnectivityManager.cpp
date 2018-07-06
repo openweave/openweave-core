@@ -16,7 +16,7 @@
  *    limitations under the License.
  */
 
-#include <Weave/DeviceLayer/internal/WeaveDeviceInternal.h>
+#include <Weave/DeviceLayer/internal/WeaveDeviceLayerInternal.h>
 #include <Weave/DeviceLayer/ConnectivityManager.h>
 #include <Weave/DeviceLayer/internal/NetworkProvisioningServer.h>
 #include <Weave/DeviceLayer/internal/NetworkInfo.h>
@@ -44,14 +44,14 @@ using namespace ::nl::Weave::TLV;
 using namespace ::nl::Weave::Profiles::Common;
 using namespace ::nl::Weave::Profiles::NetworkProvisioning;
 using namespace ::nl::Weave::Profiles::WeaveTunnel;
-using namespace ::nl::Weave::Device::Internal;
+using namespace ::nl::Weave::DeviceLayer::Internal;
 
 using Profiles::kWeaveProfile_Common;
 using Profiles::kWeaveProfile_NetworkProvisioning;
 
 namespace nl {
 namespace Weave {
-namespace Device {
+namespace DeviceLayer {
 
 namespace {
 
@@ -1197,6 +1197,6 @@ const char *CharacterizeIPv6Address(const IPAddress & ipAddr)
 
 } // namespace Internal
 
-} // namespace Device
+} // namespace DeviceLayer
 } // namespace Weave
 } // namespace nl

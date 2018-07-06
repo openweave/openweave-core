@@ -31,7 +31,7 @@ class StatusReport;
 
 namespace nl {
 namespace Weave {
-namespace Device {
+namespace DeviceLayer {
 
 namespace Internal {
 extern WEAVE_ERROR InitServiceDirectoryManager(void);
@@ -112,7 +112,7 @@ inline uint32_t TimeSyncManager::GetSyncInterval()
     return mSyncIntervalSec;
 }
 
-} // namespace Device
+} // namespace DeviceLayer
 } // namespace Weave
 } // namespace nl
 

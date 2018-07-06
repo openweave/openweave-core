@@ -16,14 +16,14 @@
  *    limitations under the License.
  */
 
-#include <Weave/DeviceLayer/internal/WeaveDeviceInternal.h>
+#include <Weave/DeviceLayer/internal/WeaveDeviceLayerInternal.h>
 #include <Weave/DeviceLayer/ConnectivityManager.h>
 #include <Warm/Warm.h>
 #include <lwip/netif.h>
 #include <lwip/ip6_route_table.h>
 
-using namespace ::nl::Weave::Device;
-using namespace ::nl::Weave::Device::Internal;
+using namespace ::nl::Weave::DeviceLayer;
+using namespace ::nl::Weave::DeviceLayer::Internal;
 
 using namespace ::nl;
 using namespace ::nl::Weave;
@@ -266,8 +266,8 @@ const char * CharacterizeIPv6Prefix(const Inet::IPPrefix & inPrefix)
 {
     if (inPrefix.IPAddr.IsIPv6ULA())
     {
-        if (::nl::Weave::Device::FabricState.FabricId != kFabricIdNotSpecified &&
-            inPrefix.IPAddr.GlobalId() == nl::Weave::WeaveFabricIdToIPv6GlobalId(::nl::Weave::Device::FabricState.FabricId))
+        if (::nl::Weave::DeviceLayer::FabricState.FabricId != kFabricIdNotSpecified &&
+            inPrefix.IPAddr.GlobalId() == nl::Weave::WeaveFabricIdToIPv6GlobalId(::nl::Weave::DeviceLayer::FabricState.FabricId))
         {
             if (inPrefix.Length == 48)
             {

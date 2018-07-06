@@ -19,12 +19,12 @@
 #ifndef FABRIC_PROVISIONING_SERVER_H
 #define FABRIC_PROVISIONING_SERVER_H
 
-#include <Weave/DeviceLayer/internal/WeaveDeviceInternal.h>
+#include <Weave/DeviceLayer/internal/WeaveDeviceLayerInternal.h>
 #include <Weave/Profiles/fabric-provisioning/FabricProvisioning.h>
 
 namespace nl {
 namespace Weave {
-namespace Device {
+namespace DeviceLayer {
 namespace Internal {
 
 class FabricProvisioningServer
@@ -48,7 +48,7 @@ public:
 extern FabricProvisioningServer FabricProvisioningSvr;
 
 } // namespace Internal
-} // namespace Device
+} // namespace DeviceLayer
 } // namespace Weave
 } // namespace nl
 

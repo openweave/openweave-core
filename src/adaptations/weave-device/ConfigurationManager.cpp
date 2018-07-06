@@ -16,7 +16,7 @@
  *    limitations under the License.
  */
 
-#include <Weave/DeviceLayer/internal/WeaveDeviceInternal.h>
+#include <Weave/DeviceLayer/internal/WeaveDeviceLayerInternal.h>
 #include <Weave/DeviceLayer/ConfigurationManager.h>
 #include <Weave/Core/WeaveKeyIds.h>
 #include <Weave/Core/WeaveVendorIdentifiers.hpp>
@@ -32,13 +32,13 @@ using namespace ::nl;
 using namespace ::nl::Weave;
 using namespace ::nl::Weave::Profiles::Security::AppKeys;
 using namespace ::nl::Weave::Profiles::DeviceDescription;
-using namespace ::nl::Weave::Device::Internal;
+using namespace ::nl::Weave::DeviceLayer::Internal;
 
 using ::nl::Weave::kWeaveVendor_NestLabs;
 
 namespace nl {
 namespace Weave {
-namespace Device {
+namespace DeviceLayer {
 
 namespace {
 
@@ -72,7 +72,7 @@ private:
 
     // NOTE: These members are for internal use by the following friend classes.
 
-    friend class ::nl::Weave::Device::ConfigurationManager;
+    friend class ::nl::Weave::DeviceLayer::ConfigurationManager;
 
     WEAVE_ERROR Init();
 
@@ -1562,7 +1562,7 @@ exit:
 }
 
 } // unnamed namespace
-} // namespace Device
+} // namespace DeviceLayer
 } // namespace Weave
 } // namespace nl
 
@@ -1571,7 +1571,7 @@ namespace Weave {
 namespace Platform {
 namespace PersistedStorage {
 
-using namespace ::nl::Weave::Device;
+using namespace ::nl::Weave::DeviceLayer;
 
 WEAVE_ERROR Read(Key key, uint32_t & value)
 {
