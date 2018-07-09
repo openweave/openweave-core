@@ -288,8 +288,13 @@ extern "C" void WeaveDie(void) __attribute((noreturn));
 
 inline void WeaveDie(void)
 {
+    WeaveLogError(NotSpecified, "WeaveDie WeaveDie WeaveDie");
+
     while (true)
-        *((volatile long *)1) = 0;
+    {
+        // NL_ASSERT_ABORT is redefined to be WeaveDie, so not useful here.
+        abort();
+    }
 }
 #endif // WeaveDie
 
