@@ -3330,6 +3330,7 @@ WEAVE_ERROR NotificationRequest::Parser::CheckSchemaValidity(void) const
         {
             PRETTY_PRINT("\tUnknown tag 0x%" PRIx64, tag);
         }
+
     }
 
     PRETTY_PRINT("}");
@@ -3338,8 +3339,9 @@ WEAVE_ERROR NotificationRequest::Parser::CheckSchemaValidity(void) const
     // if we have exhausted this container
     if (WEAVE_END_OF_TLV == err)
     {
-        // if we have at least the PathList field
-        if (TagPresenceMask & (1 << kBit_SubscriptionId))
+        // if we have at least the DataList or EventList field
+        if ((TagPresenceMask & (1 << kBit_DataList)) ||
+            (TagPresenceMask & (1 << kBit_EventList)))
         {
             err = WEAVE_NO_ERROR;
         }

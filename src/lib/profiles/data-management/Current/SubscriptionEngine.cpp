@@ -513,7 +513,7 @@ WEAVE_ERROR SubscriptionEngine::ProcessDataList(nl::Weave::TLV::TLVReader & aRea
 #endif
         SuccessOrExit(err);
 
-        traitPath.mTraitDataHandle = aOutTraitDataHandle;
+        traitPath.mTraitDataHandle = handle;
         traitPath.mPropertyPathHandle = pathHandle;
 
         err = acDelegate.DataElementAccessCheck(traitPath, *aCatalog);
