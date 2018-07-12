@@ -43,6 +43,21 @@ namespace TLV {
 
 using namespace nl::Weave::Encoding;
 
+WeaveCircularTLVBuffer::WeaveCircularTLVBuffer(uint8_t *inBuffer, size_t inBufferLength, uint8_t *inHead)
+{
+    mQueue = inBuffer;
+    mQueueSize = inBufferLength;
+    mQueueLength = 0;
+    mQueueHead = inHead;
+
+    mProcessEvictedElement = NULL;
+    mAppData = NULL;
+
+    // use common as opposed to unspecified, s.t. the reader that
+    // skips over the elements does not complain about implicit
+    // profile tags.
+    mImplicitProfileId = kCommonProfileId;
+}
 /**
  * @brief
  *   WeaveCircularTLVBuffer constructor
