@@ -59,6 +59,8 @@ extern WEAVE_ERROR Count(const TLVReader &aReader, size_t &aCount, const bool aR
 extern WEAVE_ERROR Find(const TLVReader &aReader, const uint64_t &aTag, TLVReader &aResult);
 extern WEAVE_ERROR Find(const TLVReader &aReader, const uint64_t &aTag, TLVReader &aResult, const bool aRecurse);
 
+extern WEAVE_ERROR Find(TLVReader &aReader, IterateHandler aHandler, void *aContext);
+extern WEAVE_ERROR Find(TLVReader &aReader, IterateHandler aHandler, void *aContext, const bool aRecurse);
 } // namespace Utilities
 
 } // namespace TLV

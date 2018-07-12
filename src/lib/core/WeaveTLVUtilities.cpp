@@ -336,6 +336,128 @@ WEAVE_ERROR Find(const TLVReader &aReader, const uint64_t &aTag, TLVReader &aRes
 
     return retval;
 }
+/**
+ *  Search for the specified tag within the provided TLV reader,
+ *  optionally descending into arrays or structures.
+ *
+ *  @param[in]   aReader        A read-only reference to the TLV reader in
+ *                              which to find the specified tag.
+ *  @param[in]   aTag           A read-only reference to the TLV tag to find.
+ *  @param[out]  aResult        A reference to storage to a TLV reader which
+ *                              will be positioned at the specified tag
+ *                              on success.
+ *  @param[in]   aRecurse       A Boolean indicating whether (true) or not (false)
+ *                              any encountered arrays or structures should be
+ *                              descended into.
+ *
+ *  @retval  #WEAVE_NO_ERROR                    On success.
+ *
+ *  @retval  #WEAVE_ERROR_TLV_TAG_NOT_FOUND     If the specified tag @a aTag was not found.
+ *
+ */
+struct FindPredicateContext
+{
+    TLVReader &mResult;
+    IterateHandler mHandler;
+    void * mContext;
+    FindPredicateContext(TLVReader &inReader, IterateHandler inHandler, void *inContext);
+};
+
+FindPredicateContext::FindPredicateContext(TLVReader &inReader, IterateHandler inHandler, void *inContext) :
+        mResult(inReader),
+        mHandler(inHandler),
+        mContext(inContext)
+{
+}
+
+static WEAVE_ERROR FindPredicateHandler(const TLVReader & aReader, size_t aDepth, void *aContext)
+{
+    FindPredicateContext *theContext = static_cast<FindPredicateContext *>(aContext);
+    WEAVE_ERROR err;
+
+    err = theContext->mHandler(aReader, aDepth, theContext->mContext);
+
+    if (err == WEAVE_ERROR_MAX)
+        theContext->mResult.Init(aReader);
+
+    return err;
+}
+
+/**
+ *  Search for the first element matching the predicate within the TLV reader
+ *  descending into arrays or structures. The @ aPredicate is applied
+ *  to each visited TLV element; the @aPredicate shall return WEAVE_ERROR_MAX
+ *  for the matching elements, WEAVE_NO_ERROR for non-matching elements, and any
+ *  other value to terminate the search.
+ *
+ *  @param[in,out] aReader A reference to the TLV reader in which to find the
+ *                         element matching the predicate.  If the element is
+ *                         found, this reader will be positioned on the first
+ *                         matching TLV element.
+ *  @param[in] aPredicate  A predicate to be applied to each TLV element.  To
+ *                         support the code reuse, aPredicate has the
+ *                         IterateHandler type.  The return value of aPredicate
+ *                         controls the search: a WEAVE_ERROR_MAX signals that
+ *                         desired element has been found, WEAVE_NO_ERROR
+ *                         signals that the desired element has not been found,
+ *                         and all other values signal that the saerch should be
+ *                         terminated.
+ *  @param[in] aContext    An optional pointer to caller-provided context data.
+ *
+ *  @retval  #WEAVE_NO_ERROR                    On success.
+ *
+ *  @retval  #WEAVE_ERROR_TLV_TAG_NOT_FOUND     If the specified tag @a aTag was not found.
+ *
+ */
+WEAVE_ERROR Find(TLVReader &aReader, IterateHandler aPredicate, void *aContext)
+{
+    const bool  recurse = true;
+    return Find(aReader, aPredicate, aContext, recurse);
+}
+
+/**
+ *  Search for the first element matching the predicate within the TLV reader
+ *  optionally descending into arrays or structures. The @ aPredicate is applied
+ *  to each visited TLV element; the @aPredicate shall return WEAVE_ERROR_MAX
+ *  for the matching elements, WEAVE_NO_ERROR for non-matching elements, and any
+ *  other value to terminate the search.
+ *
+ *  @param[in,out] aReader A reference to the TLV reader in which to find the
+ *                         element matching the predicate.  If the element is
+ *                         found, this reader will be positioned on the first
+ *                         matching TLV element.
+ *  @param[in] aPredicate  A predicate to be applied to each TLV element.  To
+ *                         support the code reuse, aPredicate has the
+ *                         IterateHandler type.  The return value of aPredicate
+ *                         controls the search: a WEAVE_ERROR_MAX signals that
+ *                         desired element has been found, WEAVE_NO_ERROR
+ *                         signals that the desired element has not been found,
+ *                         and all other values signal that the saerch should be
+ *                         terminated.
+ *  @param[in] aContext    An optional pointer to caller-provided context data.
+ *  @param[in] aRecurse    A Boolean indicating whether (true) or not (false) any
+ *                         encountered arrays or structures should be descended
+ *                         into.
+ *
+ *  @retval  #WEAVE_NO_ERROR                    On success.
+ *
+ *  @retval  #WEAVE_ERROR_TLV_TAG_NOT_FOUND     If the specified tag @a aTag was not found.
+ *
+ */
+WEAVE_ERROR Find(TLVReader &aReader, IterateHandler aPredicate, void *aContext, const bool aRecurse)
+{
+    WEAVE_ERROR retval;
+    FindPredicateContext theContext(aReader, aPredicate, aContext);
+
+    retval = Iterate(aReader, FindPredicateHandler, &theContext, aRecurse);
+
+    if (retval == WEAVE_ERROR_MAX)
+        retval = WEAVE_NO_ERROR;
+    else
+        retval = WEAVE_ERROR_TLV_TAG_NOT_FOUND;
+
+    return retval;
+}
 
 } // namespace Utilities
 
