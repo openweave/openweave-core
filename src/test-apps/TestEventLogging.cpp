@@ -3378,6 +3378,8 @@ static void CheckExternalEventNotifyDelivered(nlTestSuite * inSuite, void * inCo
     NL_TEST_ASSERT(inSuite, sExternalEventNotificationPassed);
 
     ResetExternalEventDeliveryState();
+    sLastExpectedExternalEventID = external_eid_production;
+
     logger.NotifyEventsDelivered(nl::Weave::Profiles::DataManagement::Production, external_eid_production, 0ULL);
 
     NL_TEST_ASSERT(inSuite, sExternalEventNotificationCalled);
