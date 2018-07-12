@@ -199,6 +199,84 @@
 #define WARM_CONFIG_SUPPORT_BORDER_ROUTING          (WARM_CONFIG_SUPPORT_THREAD && WARM_CONFIG_SUPPORT_WEAVE_TUNNEL && (WARM_CONFIG_SUPPORT_WIFI || WARM_CONFIG_SUPPORT_CELLULAR))
 #endif
 
+/**
+ *  @def WARM_CONFIG_ENABLE_FABRIC_DEFAULT_ROUTING
+ *
+ *  @brief
+ *    Enable the use of fabric-default /48 routes
+ *    for routing external traffic for
+ *    unknown/non-local subnets to the Nest service.
+ *
+ *    When enabled, the WARM layer will install a
+ *    /48 route, with the fabric prefix, that points
+ *    at the service tunnel interface whenever a tunnel
+ *    connection is established with the service. This
+ *    results in traffic to unknown subnets being routed
+ *    over the tunnel connection. Additionally, if
+ *    #WARM_CONFIG_ENABLE_BACKUP_ROUTING_OVER_THREAD is
+ *    also enabled, WARM will assign an identical /48
+ *    route, at low priority, to the Thread interface,
+ *    causing fabric-default traffic to route across
+ *    the Thread network(to another potential border
+ *    gateway) whenever the local service tunnel
+ *    is down.
+ *
+ *    Disabling this option disables all fabric default
+ *    routing, resulting in traffic to unknown subnets
+ *    dying in the local network stack. Traffic to known
+ *    subnets (WiFi, Thread, Service, etc.) is unaffected.
+ *
+ *    This option exists primarily to support legacy device
+ *    behavior and should be disabled by default on new
+ *    devices.
+ *
+ */
+#ifndef WARM_CONFIG_ENABLE_FABRIC_DEFAULT_ROUTING
+#define WARM_CONFIG_ENABLE_FABRIC_DEFAULT_ROUTING                 1
+#endif // WARM_CONFIG_ENABLE_FABRIC_DEFAULT_ROUTING
+
+/**
+ *  @def WARM_CONFIG_ENABLE_BACKUP_ROUTING_OVER_THREAD
+ *
+ *  @brief
+ *    Enable routing of service traffic (and possibly
+ *    traffic to unknown subnets) over the Thread interface
+ *    as a fallback option when the tunnel to the Service
+ *    is down.
+ *
+ *    When enabled, WARM assigns low-priority routes to
+ *    the Thread interface that result in traffic destined
+ *    to the service(or other external subnets) being routed
+ *    across the Thread network whenever the local service
+ *    tunnel is down. This allows, for example, a device
+ *    with an off-line WiFi interface to route its service
+ *    traffic through another border gateway in the network
+ *    that has connectivity to the service.
+ *
+ *    If #WARM_CONFIG_ENABLE_FABRIC_DEFAULT_ROUTING is also
+ *    enabled, traffic to unknown/non-local subnets will also
+ *    route across Thread in the event the service tunnel is
+ *    down. More specifically, if both options are enabled,
+ *    WARM will assign a low-priority /48 fabric route to
+ *    the Thread interface. If only
+ *    #WARM_CONFIG_ENABLE_BACKUP_ROUTING_OVER_THREAD is enabled,
+ *    WARM will assign a low-priority /64 route for just the
+ *    Service subnet to the Thread interface.
+ *
+ *    Disabling this option results in traffic to the service
+ *    (or to unknown subnets) dying in the local network stack
+ *    whenever the tunnel to the service down.
+ *
+ *    Device implementers should enable this option only if
+ *    they know that the volume of traffic exchanged with the
+ *    service is small enough to be accommodated by the Thread
+ *    network.
+ *
+ */
+#ifndef WARM_CONFIG_ENABLE_BACKUP_ROUTING_OVER_THREAD
+#define WARM_CONFIG_ENABLE_BACKUP_ROUTING_OVER_THREAD             1
+#endif // WARM_CONFIG_ENABLE_BACKUP_ROUTING_OVER_THREAD
+
 // clang-format on
 
 #endif /* WARMCONFIG_H_ */

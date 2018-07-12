@@ -71,6 +71,7 @@ static bool sAPIInterfaceStateThreadAdvertisement[Warm::kInterfaceTypeMax];
 static bool sAPIInterfaceStateThreadRoute[Warm::kInterfaceTypeMax];
 
 static nl::Inet::IPAddress sAPIInterfaceAddressHostAddress[Warm::kInterfaceTypeMax];
+static nl::Inet::IPPrefix  sAPIInterfaceHostRoute[Warm::kInterfaceTypeMax];
 static nl::Inet::IPAddress zeroIPAddress;
 
 const uint64_t kTestNodeId = 0x18B43000002DCF71ULL;
@@ -144,6 +145,8 @@ PlatformResult AddRemoveHostRoute(InterfaceType inInterfaceType, const Inet::IPP
     sAPICallCounters[kAPITagHostRoute]++;
 
     sAPIInterfaceStateHostRoute[inInterfaceType] = inAssign;
+
+    sAPIInterfaceHostRoute[inInterfaceType] = inPrefix;
 
     return kPlatformResultSuccess;
 }
@@ -331,7 +334,7 @@ static void InitPlatformState(void)
     memset(sAPICallCounters,                        0, sizeof(sAPICallCounters));
     memset(sAPIInterfaceStateHostAddress,           0, sizeof(sAPIInterfaceStateHostAddress));
     memset(sAPIInterfaceStateHostRoute,             0, sizeof(sAPIInterfaceStateHostRoute));
-    memset(sAPIInterfaceStateHostRoute,             0, sizeof(sAPIInterfaceStateHostRoute));
+    memset(sAPIInterfaceHostRoute,                  0, sizeof(sAPIInterfaceHostRoute));
     memset(sAPIInterfaceStateThreadAddress,         0, sizeof(sAPIInterfaceStateThreadAddress));
     memset(sAPIInterfaceStateThreadAdvertisement,   0, sizeof(sAPIInterfaceStateThreadAdvertisement));
     memset(sAPIInterfaceStateThreadRoute,           0, sizeof(sAPIInterfaceStateThreadRoute));
@@ -713,9 +716,12 @@ static void CheckWiFiThreadRouteBorderTunnel(nlTestSuite *inSuite, void *inConte
     const uint64_t interfaceId = nl::Weave::WeaveNodeIdToIPv6InterfaceId(sFabricState.LocalNodeId);
     uint64_t globalId;
     nl::Inet::IPAddress address;
+    nl::Inet::IPPrefix prefix;
 
     InitPlatformState();
 
+    memset(&address, 0, sizeof(address));
+    memset(&prefix, 0, sizeof(prefix));
     memcpy(callCounterSnapshot, sAPICallCounters, sizeof(sAPICallCounters));
 
     // The API calls for this test
@@ -739,7 +745,9 @@ static void CheckWiFiThreadRouteBorderTunnel(nlTestSuite *inSuite, void *inConte
     NL_TEST_ASSERT(inSuite, callCounterSnapshot[kAPITagHostRoute] + 2                       == sAPICallCounters[kAPITagHostRoute]);
     NL_TEST_ASSERT(inSuite, callCounterSnapshot[kAPITagThreadAddress] + 2                   == sAPICallCounters[kAPITagThreadAddress]);
     NL_TEST_ASSERT(inSuite, callCounterSnapshot[kAPITagThreadAdvertisement] + 1             == sAPICallCounters[kAPITagThreadAdvertisement]);
+#if WARM_CONFIG_ENABLE_BACKUP_ROUTING_OVER_THREAD
     NL_TEST_ASSERT(inSuite, callCounterSnapshot[kAPITagThreadRoute] + 1                     == sAPICallCounters[kAPITagThreadRoute]);
+#endif
 
     NL_TEST_ASSERT(inSuite, sAPICallCounters[kAPITagCriticalSectionEnter]                   == sAPICallCounters[kAPITagCriticalSectionExit]);
     NL_TEST_ASSERT(inSuite, callCounterSnapshot[kAPITagInitRequestInvokeActions] + 8        == sAPICallCounters[kAPITagInitRequestInvokeActions]);
@@ -749,7 +757,9 @@ static void CheckWiFiThreadRouteBorderTunnel(nlTestSuite *inSuite, void *inConte
     NL_TEST_ASSERT(inSuite, 0 == memcmp(requiredInterfaceStateHostRoute,           sAPIInterfaceStateHostRoute,           sizeof(sAPIInterfaceStateHostRoute)));
     NL_TEST_ASSERT(inSuite, 0 == memcmp(requiredInterfaceStateThreadAddress,       sAPIInterfaceStateThreadAddress,       sizeof(sAPIInterfaceStateThreadAddress)));
     NL_TEST_ASSERT(inSuite, 0 == memcmp(requiredInterfaceStateThreadAdvertisement, sAPIInterfaceStateThreadAdvertisement, sizeof(sAPIInterfaceStateThreadAdvertisement)));
+#if WARM_CONFIG_ENABLE_BACKUP_ROUTING_OVER_THREAD
     NL_TEST_ASSERT(inSuite, 0 == memcmp(requiredInterfaceStateThreadRoute,         sAPIInterfaceStateThreadRoute,         sizeof(sAPIInterfaceStateThreadRoute)));
+#endif
 
     // Test that the IP Addresses are set as expected.
     globalId = nl::Weave::WeaveFabricIdToIPv6GlobalId(sFabricState.FabricId);
@@ -767,6 +777,25 @@ static void CheckWiFiThreadRouteBorderTunnel(nlTestSuite *inSuite, void *inConte
     NL_TEST_ASSERT(inSuite, address == sAPIInterfaceAddressHostAddress[Warm::kInterfaceTypeTunnel]);
 
     NL_TEST_ASSERT(inSuite, zeroIPAddress == sAPIInterfaceAddressHostAddress[Warm::kInterfaceTypeCellular]);
+
+    // Test that the route installation for the Tunnel interface is correct
+#if WARM_CONFIG_ENABLE_FABRIC_DEFAULT_ROUTING
+    address = nl::Inet::IPAddress::MakeULA(globalId, 0, 0);
+    prefix.IPAddr = address;
+    prefix.Length = 48;
+#else
+    address = nl::Inet::IPAddress::MakeULA(globalId, nl::Weave::kWeaveSubnetId_Service, 0);
+    prefix.IPAddr = address;
+    prefix.Length = 64;
+#endif
+
+    NL_TEST_ASSERT(inSuite, prefix == sAPIInterfaceHostRoute[Warm::kInterfaceTypeTunnel]);
+
+    // Test that the route installation for the Thread interface is correct
+
+#if WARM_CONFIG_ENABLE_BACKUP_ROUTING_OVER_THREAD
+    NL_TEST_ASSERT(inSuite, prefix == sAPIInterfaceHostRoute[Warm::kInterfaceTypeThread]);
+#endif
 
     // Now try to disable features and re-test.
 
@@ -826,7 +855,9 @@ static void CheckWiFiThreadRouteBorderTunnel(nlTestSuite *inSuite, void *inConte
     NL_TEST_ASSERT(inSuite, callCounterSnapshot[kAPITagHostRoute] + 4                       == sAPICallCounters[kAPITagHostRoute]);
     NL_TEST_ASSERT(inSuite, callCounterSnapshot[kAPITagThreadAddress] + 4                   == sAPICallCounters[kAPITagThreadAddress]);
     NL_TEST_ASSERT(inSuite, callCounterSnapshot[kAPITagThreadAdvertisement] + 2             == sAPICallCounters[kAPITagThreadAdvertisement]);
+#if WARM_CONFIG_ENABLE_BACKUP_ROUTING_OVER_THREAD
     NL_TEST_ASSERT(inSuite, callCounterSnapshot[kAPITagThreadRoute] + 2                     == sAPICallCounters[kAPITagThreadRoute]);
+#endif
 
     NL_TEST_ASSERT(inSuite, sAPICallCounters[kAPITagCriticalSectionEnter]                   == sAPICallCounters[kAPITagCriticalSectionExit]);
     NL_TEST_ASSERT(inSuite, callCounterSnapshot[kAPITagInitRequestInvokeActions] + 15       == sAPICallCounters[kAPITagInitRequestInvokeActions]);
@@ -851,6 +882,14 @@ static void CheckWiFiThreadRouteBorderTunnel(nlTestSuite *inSuite, void *inConte
 
     address = nl::Inet::IPAddress::MakeULA(globalId, nl::Weave::kWeaveSubnetId_ThreadMesh, interfaceId);
     NL_TEST_ASSERT(inSuite, address == sAPIInterfaceAddressHostAddress[Warm::kInterfaceTypeTunnel]);
+
+#if WARM_CONFIG_ENABLE_BACKUP_ROUTING_OVER_THREAD
+    // Test that correct route is removed.
+    NL_TEST_ASSERT(inSuite, prefix == sAPIInterfaceHostRoute[Warm::kInterfaceTypeThread]);
+#endif
+
+    NL_TEST_ASSERT(inSuite, prefix == sAPIInterfaceHostRoute[Warm::kInterfaceTypeTunnel]);
+
 }
 #endif // WARM_CONFIG_SUPPORT_WEAVE_TUNNEL && WARM_CONFIG_SUPPORT_BORDER_ROUTING
 #endif // WARM_CONFIG_SUPPORT_THREAD_ROUTING

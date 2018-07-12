@@ -69,6 +69,7 @@ typedef enum {
     kActionTypeTunnelHostAddress            = (1 << 8),   /**< Add | Remove the IP address for the Tunnel Interface on the host's IP stack. */
     kActionTypeTunnelHostRoute              = (1 << 9),   /**< Add | Remove the IP route for the Tunnel Interface on the host's IP stack. */
     kActionTypeThreadRoutePriority          = (1 << 10),  /**< Change the Route Priority of the Thread Route on the Thread Module. */
+    kActionTypeTunnelServiceRoute           = (1 << 11),  /**< Add | Remove the 64 bit IP route for Service subnet on the host's IP stack. */
 
     kActionTypeMax                          = (1 << 16)   /**< DO NOT EXCEED; reserved to mark the max available bits. */
 } ActionType;
@@ -130,6 +131,8 @@ static const uint8_t kLegacy6LoWPANULAAddressPrefixLength = 64;
 #if WARM_CONFIG_SUPPORT_WEAVE_TUNNEL
 
 static const uint8_t kTunnelAddressPrefixLength           = 128;
+
+static const uint8_t kServiceULAAddressPrefixLength       = 64;
 
 #endif // WARM_CONFIG_SUPPORT_WEAVE_TUNNEL
 
@@ -670,14 +673,15 @@ void WiFiInterfaceStateChange(InterfaceState inState)
     WARM_CONFIG_SUPPORT_CELLULAR || \
     WARM_CONFIG_SUPPORT_WEAVE_TUNNEL || \
     WARM_CONFIG_SUPPORT_BORDER_ROUTING
-static void MakePrefix(const uint64_t &inGlobalID, Inet::IPPrefix &outPrefix)
+static void MakePrefix(const uint64_t &inGlobalID, const uint16_t subnetId, const uint8_t inPrefixLen,
+                       Inet::IPPrefix &outPrefix)
 {
-    const Inet::IPAddress address = nl::Inet::IPAddress::MakeULA(inGlobalID, 0, 0);
+    const Inet::IPAddress address = nl::Inet::IPAddress::MakeULA(inGlobalID, subnetId, 0);
 
     outPrefix.IPAddr = address;
-    outPrefix.Length = kGlobalULAPrefixLength;
+    outPrefix.Length = inPrefixLen;
 }
-#endif
+#endif // WARM_CONFIG_SUPPORT_THREAD_ROUTING || WARM_CONFIG_SUPPORT_WIFI...
 
 #if WARM_CONFIG_SUPPORT_THREAD
 
@@ -733,7 +737,15 @@ static PlatformResult ThreadHostRouteAction(ActionType inAction, bool inActivate
     Inet::IPPrefix prefix;
 
 #if WARM_CONFIG_SUPPORT_WIFI || WARM_CONFIG_SUPPORT_CELLULAR
-    MakePrefix(inGlobalId, prefix);
+
+#if WARM_CONFIG_ENABLE_BACKUP_ROUTING_OVER_THREAD
+#if WARM_CONFIG_ENABLE_FABRIC_DEFAULT_ROUTING
+    MakePrefix(inGlobalId, 0, kGlobalULAPrefixLength, prefix);
+#else
+    MakePrefix(inGlobalId, nl::Weave::kWeaveSubnetId_Service, kServiceULAAddressPrefixLength, prefix);
+#endif // WARM_CONFIG_ENABLE_FABRIC_DEFAULT_ROUTING
+#endif // WARM_CONFIG_ENABLE_BACKUP_ROUTING_OVER_THREAD
+
 #else
     prefix = prefix.Zero;
     prefix.Length = 0;
@@ -816,7 +828,7 @@ static PlatformResult ThreadAdvertisementAction(ActionType inAction, bool inActi
 {
     Inet::IPPrefix prefix;
 
-    MakePrefix(inGlobalId, prefix);
+    MakePrefix(inGlobalId, 0, kGlobalULAPrefixLength, prefix);
 
     return Platform::StartStopThreadAdvertisement(kInterfaceTypeThread, prefix, inActivate);
 }
@@ -882,7 +894,11 @@ static PlatformResult TunnelHostRouteAction(ActionType inAction, bool inActivate
 {
     Inet::IPPrefix prefix;
 
-    MakePrefix(inGlobalId, prefix);
+#if WARM_CONFIG_ENABLE_FABRIC_DEFAULT_ROUTING
+    MakePrefix(inGlobalId, 0, kGlobalULAPrefixLength, prefix);
+#else
+    MakePrefix(inGlobalId, nl::Weave::kWeaveSubnetId_Service, kServiceULAAddressPrefixLength, prefix);
+#endif
 
     return Platform::AddRemoveHostRoute(kInterfaceTypeTunnel, prefix, kRoutePriorityMedium, inActivate);
 }
@@ -1087,6 +1103,8 @@ void BorderRouterStateChange(InterfaceState inState)
     SystemFeatureStateChangeHandler(kSystemFeatureTypeBorderRoutingEnabled, inState);
 }
 
+#if WARM_CONFIG_ENABLE_BACKUP_ROUTING_OVER_THREAD
+
 /**
  *  A static function that returns a mapping from TunnelAvailability to RoutePriority
  *
@@ -1113,6 +1131,7 @@ static RoutePriority MapAvailabilityToPriority(Profiles::WeaveTunnel::Platform::
 
     return retval;
 }
+#endif // WARM_CONFIG_ENABLE_BACKUP_ROUTING_OVER_THREAD
 
 /**
  *  One of the Action methods. Sets the Thread Route for the Thread Stack.
@@ -1128,10 +1147,19 @@ static RoutePriority MapAvailabilityToPriority(Profiles::WeaveTunnel::Platform::
 static PlatformResult ThreadThreadRouteAction(ActionType inAction, bool inActivate, const uint64_t &inGlobalId, const uint64_t &inInterfaceId)
 {
     Inet::IPPrefix prefix;
+    PlatformResult result = kPlatformResultSuccess;
 
-    MakePrefix(inGlobalId, prefix);
+#if WARM_CONFIG_ENABLE_FABRIC_DEFAULT_ROUTING
+    MakePrefix(inGlobalId, 0, kGlobalULAPrefixLength, prefix);
+#else
+    MakePrefix(inGlobalId, nl::Weave::kWeaveSubnetId_Service, kServiceULAAddressPrefixLength, prefix);
+#endif
 
-    return Platform::AddRemoveThreadRoute(kInterfaceTypeThread, prefix, MapAvailabilityToPriority(sState.mTunnelRequestedAvailability), inActivate);
+#if WARM_CONFIG_ENABLE_BACKUP_ROUTING_OVER_THREAD
+    result = Platform::AddRemoveThreadRoute(kInterfaceTypeThread, prefix, MapAvailabilityToPriority(sState.mTunnelRequestedAvailability), inActivate);
+#endif
+
+    return result;
 }
 
 /**
@@ -1148,10 +1176,19 @@ static PlatformResult ThreadThreadRouteAction(ActionType inAction, bool inActiva
 static PlatformResult ThreadRoutePriorityAction(ActionType inAction, bool inActivate, const uint64_t &inGlobalId, const uint64_t &inInterfaceId)
 {
     Inet::IPPrefix prefix;
+    PlatformResult result = kPlatformResultSuccess;
 
-    MakePrefix(inGlobalId, prefix);
+#if WARM_CONFIG_ENABLE_FABRIC_DEFAULT_ROUTING
+    MakePrefix(inGlobalId, 0, kGlobalULAPrefixLength, prefix);
+#else
+    MakePrefix(inGlobalId, nl::Weave::kWeaveSubnetId_Service, kServiceULAAddressPrefixLength, prefix);
+#endif
 
-    return Platform::SetThreadRoutePriority(kInterfaceTypeThread, prefix, MapAvailabilityToPriority(sState.mTunnelRequestedAvailability));
+#if WARM_CONFIG_ENABLE_BACKUP_ROUTING_OVER_THREAD
+    result = Platform::SetThreadRoutePriority(kInterfaceTypeThread, prefix, MapAvailabilityToPriority(sState.mTunnelRequestedAvailability));
+#endif
+
+    return result;
 }
 
 #endif // WARM_CONFIG_SUPPORT_BORDER_ROUTING
