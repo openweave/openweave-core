@@ -32,6 +32,13 @@
 #      sh run_parallel_topology.sh create 1 1 0x00001 --cellular --mobile
 #
 
+# The amount of time in seconds to pause between topology creations.
+# Topology creation takes around 15 seconds, so sleeping 10 seconds
+# creates an overlap of about 2 topology creations at the same time.
+# Parallelizing more than that seems to lock up the aws vm occasionally
+# where some of the tests using these topologies run.
+CREATION_PAUSE=${CREATION_PAUSE:=0}
+
 if [ -z "$EUI64_PREFIX" ]; then
     #18:B4:30:AA Simulated / Test Weave Device Identifiers
     EUI64_PREFIX='18:B4:30:AA:00:'
@@ -97,6 +104,7 @@ for ((i=0; i <$total_count; i++)); do
     HAPPY_STATE_ID=${x} python $TEST_DIR/../../topologies/dynamic/thread_wifi_ap_internet_configurable_topology.py --action=${action} --fabric_id=${y} --customized_eui64_seed=${z} --device_numbers=${device_numbers} ${cellular} ${mobile} ${enable_random_fabric}&
     pids+="$! "
     pid_array["$!"]=${x}
+    sleep ${CREATION_PAUSE}
 done
 
 echo "all bullets are on the fly"
