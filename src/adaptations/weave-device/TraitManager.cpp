@@ -488,9 +488,9 @@ void TraitManager::HandleInboundSubscriptionEvent(void * aAppState, Subscription
         else
         {
 #if WEAVE_PROGRESS_LOGGING
-            uint64_t peerNodeId = inParam.mSubscriptionEstablished.mHandler->GetPeerNodeId();
+            uint64_t peerNodeId = inParam.mSubscriptionTerminated.mHandler->GetPeerNodeId();
             uint64_t subId;
-            inParam.mSubscriptionEstablished.mHandler->GetSubscriptionId(&subId);
+            inParam.mSubscriptionTerminated.mHandler->GetSubscriptionId(&subId);
             WeaveLogProgress(DeviceLayer, "Inbound subscription terminated with node %016" PRIX64 "(sub id %016" PRIX64 "): %s",
                     peerNodeId, subId, termDesc);
 #endif // WEAVE_PROGRESS_LOGGING
