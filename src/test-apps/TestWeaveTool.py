@@ -194,6 +194,12 @@ def parseOpenSSLTextField(text, startMarker):
     else:
         return None
 
+def parseOpenSSLDNField(text, startMarker):
+    v = parseOpenSSLTextField(text, startMarker)
+    if v != None:
+        v = re.sub(r'''\s+=\s+''', '=', v)
+    return v
+
 def parseOpenSSLHexField(text, startMarker):
     m = re.search(r'''^\s*%s\s*(([0-9A-Fa-f]{2}[\s:]+)+)''' % (startMarker), text, re.MULTILINE)
     if m:
@@ -360,10 +366,10 @@ class WeaveToolTestCase(unittest.TestCase):
         certProps['Version'] = parseOpenSSLTextField(certText, 'Version:')
         certProps['SerialNumber'] = parseOpenSSLTextField(certText, 'Serial Number:')
         certProps['SignatureAlgorithm'] = parseOpenSSLTextField(certText, 'Signature Algorithm:')
-        certProps['Issuer'] = parseOpenSSLTextField(certText, 'Issuer:')
+        certProps['Issuer'] = parseOpenSSLDNField(certText, 'Issuer:')
         certProps['NotBefore'] = parseOpenSSLTextField(certText, 'Not Before:')
         certProps['NotAfter'] = parseOpenSSLTextField(certText, 'Not After :')
-        certProps['Subject'] = parseOpenSSLTextField(certText, 'Subject:')
+        certProps['Subject'] = parseOpenSSLDNField(certText, 'Subject:')
         certProps['Curve'] = parseOpenSSLTextField(certText, 'ASN1 OID:')
         certProps['PublicKeyAlgorithm'] = parseOpenSSLTextField(certText, 'Public Key Algorithm:')
         certProps['PublicKey'] = parseOpenSSLHexField(certText, 'pub:')
