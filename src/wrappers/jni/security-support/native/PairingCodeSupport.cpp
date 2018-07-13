@@ -217,7 +217,7 @@ jlong PairingCodeSupport::pairingCodeToInt(JNIEnv * env, jclass cls, jstring pai
     WEAVE_ERROR err = WEAVE_NO_ERROR;
     const char * pairingCode = NULL;
     size_t pairingCodeLen;
-    uint64_t intVal;
+    uint64_t intVal = 0;
 
     VerifyOrExit(pairingCodeJStr != NULL, err = WEAVE_ERROR_INVALID_ARGUMENT);
 
