@@ -1222,6 +1222,10 @@ void SubscriptionEngine::OnSubscribeConfirmRequest(nl::Weave::ExchangeContext * 
         SuccessOrExit(err);
     }
 
+    // Discard the buffer so that it may be reused by the code below.
+    PacketBuffer::Free(aPayload);
+    aPayload = NULL;
+
     if (pEngine->mIsPublisherEnabled)
     {
         // find a matching subscription
@@ -1264,11 +1268,13 @@ void SubscriptionEngine::OnSubscribeConfirmRequest(nl::Weave::ExchangeContext * 
 exit:
     WeaveLogFunctError(err);
 
-    // aPayload is guaranteed to be non-NULL
-    PacketBuffer::Free(aPayload);
+    if (aPayload != NULL)
+    {
+        PacketBuffer::Free(aPayload);
+    }
 
     // aEC is guaranteed to be non-NULL.
-    aEC->Abort();
+    aEC->Close();
 }
 
 #if WDM_PUBLISHER_ENABLE_CUSTOM_COMMANDS
