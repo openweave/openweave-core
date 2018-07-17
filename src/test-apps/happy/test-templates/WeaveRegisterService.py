@@ -29,7 +29,7 @@ import shutil
 import sys
 import tarfile
 
-from grpc.beta import implementations
+import grpc
 from grpc.framework.interfaces.face.face import ExpirationError
 from httplib import HTTPSConnection
 from happy.Driver import Driver
@@ -100,23 +100,28 @@ class ServiceClient(object):
         self.password = password
 
         use_phoenix_schema(schema_branch)
-        import nestlabs.gateway.v2.gateway_api_pb2 as gateway_api
-        self.gateway_api = gateway_api
+        import nestlabs.gateway.v2.gateway_api_pb2 as gateway_api_pb2
+        import nestlabs.gateway.v2.gateway_api_pb2_grpc as gateway_api_pb2_grpc
+        self.gateway_api_pb2 = gateway_api_pb2
+        self.gateway_api_pb2_grpc = gateway_api_pb2_grpc
+
         auth_token = 'Basic ' + token
         self._auth_metadata = [('authorization', auth_token)]
 
     def _create_gateway_service_stub(self):
+        gateway_api_pb2_grpc = self.gateway_api_pb2_grpc
         apigw = apigw_fmt.format(tier=self.tier)
+
         return \
-            self.gateway_api.beta_create_GatewayService_stub(
-                implementations.insecure_channel(apigw, 9953))
+            gateway_api_pb2_grpc.GatewayServiceStub(
+                grpc.insecure_channel('{}:9953'.format(apigw)))
 
     @property
     def account_id(self):
-        gateway_api = self.gateway_api
-        request = gateway_api.ObserveRequest()
-        request.state_types.append(gateway_api.StateType.Value('ACCEPTED'))
-        request.state_types.append(gateway_api.StateType.Value('CONFIRMED'))
+        gateway_api_pb2 = self.gateway_api_pb2
+        request = gateway_api_pb2.ObserveRequest()
+        request.state_types.append(gateway_api_pb2.StateType.Value('ACCEPTED'))
+        request.state_types.append(gateway_api_pb2.StateType.Value('CONFIRMED'))
 
         stub = self._create_gateway_service_stub()
         for response in stub.Observe(request, 999999, self._auth_metadata):
@@ -128,10 +133,10 @@ class ServiceClient(object):
 
     @property
     def structure_ids(self):
-        gateway_api = self.gateway_api
-        request = gateway_api.ObserveRequest()
-        request.state_types.append(gateway_api.StateType.Value('ACCEPTED'))
-        request.state_types.append(gateway_api.StateType.Value('CONFIRMED'))
+        gateway_api_pb2 = self.gateway_api_pb2
+        request = gateway_api_pb2.ObserveRequest()
+        request.state_types.append(gateway_api_pb2.StateType.Value('ACCEPTED'))
+        request.state_types.append(gateway_api_pb2.StateType.Value('CONFIRMED'))
 
         stub = self._create_gateway_service_stub()
 
