@@ -51,7 +51,7 @@ class WeaveTest(Weave):
             self.jitter_distribution_curve = None
 
 
-    def start_weave_process(self, node_id, cmd, tag, quiet = None, strace = True, env = {}, sync_on_output = None):
+    def start_weave_process(self, node_id, cmd, tag, quiet = None, strace = True, env = {}, sync_on_output = None, rootMode=False):
         emsg = "start_weave_process %s at %s node." % (tag, node_id)
         self.logger.debug("[%s] WeaveTest: %s" % (node_id, emsg))
 
@@ -62,6 +62,8 @@ class WeaveTest(Weave):
         options["strace"] = strace
         options["env"] = env
         options["sync_on_output"] = sync_on_output
+        options["rootMode"] = rootMode
+
         if env:
             options["with_stderr"] = True
 

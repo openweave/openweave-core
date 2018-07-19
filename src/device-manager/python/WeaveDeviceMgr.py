@@ -411,6 +411,15 @@ if not os.path.exists(dmLibName):
     if not os.path.exists(dmLibName):
         dmLibName = dmLibFile
 
+if not os.path.exists(dmLibName):
+    for path in sys.path:
+        dmLibName = os.path.join(path, '_WeaveDeviceMgr.so')
+        if os.path.exists(dmLibName):
+            break
+
+if not os.path.isfile(dmLibName):
+    print "%s not exist" % dmLibName
+
 _dmLib = None
 _CompleteFunct                              = CFUNCTYPE(None, c_void_p, c_void_p)
 _IdentifyDeviceCompleteFunct                = CFUNCTYPE(None, c_void_p, c_void_p, POINTER(_DeviceDescriptorStruct))

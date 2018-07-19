@@ -987,8 +987,8 @@ distclean-generic:
 maintainer-clean-generic:
 	@echo "This command is intended for maintainers to use"
 	@echo "it deletes files that may require special tools to rebuild."
-@WEAVE_WITH_PYTHON_FALSE@uninstall-local:
 @WEAVE_WITH_PYTHON_FALSE@install-exec-local:
+@WEAVE_WITH_PYTHON_FALSE@uninstall-local:
 @WEAVE_WITH_PYTHON_FALSE@install-exec-hook:
 clean: clean-am
 

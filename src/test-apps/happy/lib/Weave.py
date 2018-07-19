@@ -223,3 +223,15 @@ class Weave(WeaveState):
     def getWeaveCertPath(self):
         self.__setup_weave_cert_path()
         return self.weave_cert_path
+
+    def getBluetoothdPath(self):
+        self.__check_weave_path()
+        relative_path = os.path.join('..', '..', 'third_party', 'bluez', 'repo', 'src', 'bluetoothd')
+        cmd_path = self.__get_cmd_path(relative_path)
+        return cmd_path
+
+    def getBtvirtPath(self):
+        self.__check_weave_path()
+        relative_path = os.path.join('..', '..', 'third_party', 'bluez', 'repo', 'emulator', 'btvirt')
+        cmd_path = self.__get_cmd_path(relative_path)
+        return cmd_path

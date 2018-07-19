@@ -60,7 +60,8 @@ try:
 except Exception:
     pyversion = sys.version[:3]
 
-    pkgpythondirs = [ "lib/python/weave",
+    pkgpythondirs = [ "python",
+                      "lib/python/weave",
                       "lib/python" + pyversion + "/dist-packages/weave",
                       "lib/python" + pyversion + "/site-packages/weave" ]
 
