@@ -83,6 +83,15 @@ EXAMPLES_SUBDIR                   = \
     examples                        \
     $(NULL)
 
+ADAPTATION_SUBDIRS                = \
+    $(NULL)
+
+if CONFIG_DEVICE_LAYER
+ADAPTATION_SUBDIRS               += \
+    adaptations/device-layer        \
+    $(NULL)
+endif # CONFIG_DEVICE_LAYER
+
 # Always package (e.g. for 'make dist') these subdirectories.
 
 DIST_SUBDIRS                      = \
@@ -105,6 +114,7 @@ DIST_SUBDIRS                      = \
     wrappers/jni                    \
     $(EXAMPLES_SUBDIR)              \
     $(WARM_SUBDIRS)                 \
+    $(ADAPTATION_SUBDIRS)           \
     $(NULL)
 
 # Always build (e.g. for 'make all') these subdirectories.
@@ -128,6 +138,7 @@ SUBDIRS                           = \
     tools/misc                      \
     test-apps/fuzz                  \
     $(EXAMPLES_SUBDIR)              \
+    $(ADAPTATION_SUBDIRS)           \
     $(NULL)
 
 include $(abs_top_nlbuild_autotools_dir)/automake/post.am

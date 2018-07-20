@@ -127,6 +127,10 @@ target_triplet = @target@
 @CONFIG_BLE_PLATFORM_BLUEZ_TRUE@    $(BLUEZ_SUBDIRS)                \
 @CONFIG_BLE_PLATFORM_BLUEZ_TRUE@    $(NULL)
 
+@CONFIG_DEVICE_LAYER_TRUE@am__append_5 = \
+@CONFIG_DEVICE_LAYER_TRUE@    adaptations/device-layer        \
+@CONFIG_DEVICE_LAYER_TRUE@    $(NULL)
+
 subdir = src
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/third_party/nlbuild-autotools/repo/autoconf/m4/ax_check_compiler.m4 \
@@ -262,6 +266,8 @@ CC = @CC@
 CCDEPMODE = @CCDEPMODE@
 CFLAGS = @CFLAGS@
 CMP = @CMP@
+CONFIG_DEVICE_LAYER = @CONFIG_DEVICE_LAYER@
+CONFIG_DEVICE_LAYER_ESP32 = @CONFIG_DEVICE_LAYER_ESP32@
 CONFIG_HAVE_HEAP = @CONFIG_HAVE_HEAP@
 CONFIG_HAVE_VCBPRINTF = @CONFIG_HAVE_VCBPRINTF@
 CONFIG_HAVE_VSNPRINTF_EX = @CONFIG_HAVE_VSNPRINTF_EX@
@@ -518,6 +524,7 @@ EXAMPLES_SUBDIR = \
     examples                        \
     $(NULL)
 
+ADAPTATION_SUBDIRS = $(NULL) $(am__append_5)
 
 # Always package (e.g. for 'make dist') these subdirectories.
 DIST_SUBDIRS = \
@@ -540,6 +547,7 @@ DIST_SUBDIRS = \
     wrappers/jni                    \
     $(EXAMPLES_SUBDIR)              \
     $(WARM_SUBDIRS)                 \
+    $(ADAPTATION_SUBDIRS)           \
     $(NULL)
 
 
@@ -563,6 +571,7 @@ SUBDIRS = \
     tools/misc                      \
     test-apps/fuzz                  \
     $(EXAMPLES_SUBDIR)              \
+    $(ADAPTATION_SUBDIRS)           \
     $(NULL)
 
 all: all-recursive

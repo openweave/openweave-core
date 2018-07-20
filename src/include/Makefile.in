@@ -311,7 +311,10 @@ HEADERS = $(dist_ble_ble_HEADERS) $(dist_ble_device_manager_HEADERS) \
 	$(dist_mincrypt_HEADERS) $(dist_platform_ble_bluez_HEADERS) \
 	$(dist_system_HEADERS) $(dist_warm_HEADERS) \
 	$(dist_weave_HEADERS) $(dist_weave_common_HEADERS) \
-	$(dist_weave_core_HEADERS) $(dist_weave_support_base_HEADERS) \
+	$(dist_weave_core_HEADERS) \
+	$(am__dist_weave_device_layer_base_HEADERS_DIST) \
+	$(am__dist_weave_device_layer_internal_HEADERS_DIST) \
+	$(dist_weave_support_base_HEADERS) \
 	$(dist_weave_support_crypto_HEADERS) \
 	$(dist_weave_support_logging_HEADERS) \
 	$(dist_weave_support_pairing_code_HEADERS) \
@@ -390,6 +393,8 @@ CC = @CC@
 CCDEPMODE = @CCDEPMODE@
 CFLAGS = @CFLAGS@
 CMP = @CMP@
+CONFIG_DEVICE_LAYER = @CONFIG_DEVICE_LAYER@
+CONFIG_DEVICE_LAYER_ESP32 = @CONFIG_DEVICE_LAYER_ESP32@
 CONFIG_HAVE_HEAP = @CONFIG_HAVE_HEAP@
 CONFIG_HAVE_VCBPRINTF = @CONFIG_HAVE_VCBPRINTF@
 CONFIG_HAVE_VSNPRINTF_EX = @CONFIG_HAVE_VSNPRINTF_EX@
@@ -687,7 +692,8 @@ ble_bledir = $(includedir)/$(nl_public_BleLayer_ble_destination_dirstem)
 #
 nl_public_BleLayer_device_manager_source_dirstem = device-manager
 nl_public_BleLayer_device_manager_header_sources = \
-$(nl_public_BleLayer_device_manager_source_dirstem)/WoBleTest.h
+$(nl_public_BleLayer_device_manager_source_dirstem)/WoBleTest.h \
+$(NULL)
 
 dist_ble_device_manager_HEADERS = $(addprefix ../,$(nl_public_BleLayer_device_manager_header_sources))
 nl_public_BleLayer_device_manager_destination_dirstem = BleLayer
@@ -1265,6 +1271,53 @@ weave_commondir = $(includedir)/$(nl_public_WeaveCommon_destination_dirstem)
 dist_weave_common_HEADERS = $(addprefix ../,$(nl_public_WeaveCommon_header_sources))
 
 #
+# Weave Device Layer Public Headers
+#
+@CONFIG_DEVICE_LAYER_TRUE@nl_public_WeaveDeviceLayer_source_dirstem = adaptations/device-layer/include/Weave/DeviceLayer
+@CONFIG_DEVICE_LAYER_TRUE@nl_public_WeaveDeviceLayer_destination_dirstem = Weave/DeviceLayer
+@CONFIG_DEVICE_LAYER_TRUE@nl_public_WeaveDeviceLayer_base_header_sources = \
+@CONFIG_DEVICE_LAYER_TRUE@$(nl_public_WeaveDeviceLayer_source_dirstem)/ConnectivityManager.h                    \
+@CONFIG_DEVICE_LAYER_TRUE@$(nl_public_WeaveDeviceLayer_source_dirstem)/TimeSyncManager.h                        \
+@CONFIG_DEVICE_LAYER_TRUE@$(nl_public_WeaveDeviceLayer_source_dirstem)/WeaveDeviceConfig.h                      \
+@CONFIG_DEVICE_LAYER_TRUE@$(nl_public_WeaveDeviceLayer_source_dirstem)/ConfigurationManager.h                   \
+@CONFIG_DEVICE_LAYER_TRUE@$(nl_public_WeaveDeviceLayer_source_dirstem)/TraitManager.h                           \
+@CONFIG_DEVICE_LAYER_TRUE@$(nl_public_WeaveDeviceLayer_source_dirstem)/WeaveDeviceEvent.h                       \
+@CONFIG_DEVICE_LAYER_TRUE@$(nl_public_WeaveDeviceLayer_source_dirstem)/WeaveDeviceLayer.h                       \
+@CONFIG_DEVICE_LAYER_TRUE@$(nl_public_WeaveDeviceLayer_source_dirstem)/PlatformManager.h                        \
+@CONFIG_DEVICE_LAYER_TRUE@$(nl_public_WeaveDeviceLayer_source_dirstem)/WeaveDeviceError.h                       \
+@CONFIG_DEVICE_LAYER_TRUE@$(NULL)
+
+@CONFIG_DEVICE_LAYER_TRUE@nl_public_WeaveDeviceLayer_internal_header_sources = \
+@CONFIG_DEVICE_LAYER_TRUE@$(nl_public_WeaveDeviceLayer_source_dirstem)/internal/BLEManager.h                    \
+@CONFIG_DEVICE_LAYER_TRUE@$(nl_public_WeaveDeviceLayer_source_dirstem)/internal/ServiceTunnelAgent.h            \
+@CONFIG_DEVICE_LAYER_TRUE@$(nl_public_WeaveDeviceLayer_source_dirstem)/internal/DeviceControlServer.h           \
+@CONFIG_DEVICE_LAYER_TRUE@$(nl_public_WeaveDeviceLayer_source_dirstem)/internal/WeaveDeviceLayerInternal.h      \
+@CONFIG_DEVICE_LAYER_TRUE@$(nl_public_WeaveDeviceLayer_source_dirstem)/internal/NetworkInfo.h                   \
+@CONFIG_DEVICE_LAYER_TRUE@$(nl_public_WeaveDeviceLayer_source_dirstem)/internal/FabricProvisioningServer.h      \
+@CONFIG_DEVICE_LAYER_TRUE@$(nl_public_WeaveDeviceLayer_source_dirstem)/internal/NetworkProvisioningServer.h     \
+@CONFIG_DEVICE_LAYER_TRUE@$(nl_public_WeaveDeviceLayer_source_dirstem)/internal/EchoServer.h                    \
+@CONFIG_DEVICE_LAYER_TRUE@$(nl_public_WeaveDeviceLayer_source_dirstem)/internal/ServiceProvisioningServer.h     \
+@CONFIG_DEVICE_LAYER_TRUE@$(nl_public_WeaveDeviceLayer_source_dirstem)/internal/WeaveDeviceConfig-ESP32.h       \
+@CONFIG_DEVICE_LAYER_TRUE@$(nl_public_WeaveDeviceLayer_source_dirstem)/internal/ServiceDirectoryManager.h       \
+@CONFIG_DEVICE_LAYER_TRUE@$(nl_public_WeaveDeviceLayer_source_dirstem)/internal/DeviceDescriptionServer.h       \
+@CONFIG_DEVICE_LAYER_TRUE@$(nl_public_WeaveDeviceLayer_source_dirstem)/internal/ESPUtils.h                      \
+@CONFIG_DEVICE_LAYER_TRUE@$(nl_public_WeaveDeviceLayer_source_dirstem)/internal/DeviceIdentityTraitDataSource.h \
+@CONFIG_DEVICE_LAYER_TRUE@$(NULL)
+
+@CONFIG_DEVICE_LAYER_TRUE@nl_public_WeaveDeviceLayer_header_sources = \
+@CONFIG_DEVICE_LAYER_TRUE@$(nl_public_WeaveDeviceLayer_base_header_sources) \
+@CONFIG_DEVICE_LAYER_TRUE@$(nl_public_WeaveDeviceLayer_internal_header_sources) \
+@CONFIG_DEVICE_LAYER_TRUE@$(NULL)
+
+@CONFIG_DEVICE_LAYER_TRUE@nl_public_WeaveDeviceLayer_header_paths = $(subst $(nl_public_WeaveDeviceLayer_source_dirstem)/,,$(nl_public_WeaveDeviceLayer_header_sources))
+@CONFIG_DEVICE_LAYER_TRUE@nl_public_WeaveDeviceLayer_header_destinations = $(addprefix $(nl_public_WeaveDeviceLayer_destination_dirstem)/,$(nl_public_WeaveDeviceLayer_header_paths))
+@CONFIG_DEVICE_LAYER_TRUE@nl_public_WeaveDeviceLayer_header_dirs = $(call Deslashify,$(sort $(dir $(nl_public_WeaveDeviceLayer_header_destinations))))
+@CONFIG_DEVICE_LAYER_TRUE@weave_device_layer_basedir = $(includedir)/$(nl_public_WeaveDeviceLayer_destination_dirstem)
+@CONFIG_DEVICE_LAYER_TRUE@dist_weave_device_layer_base_HEADERS = $(addprefix ../,$(nl_public_WeaveDeviceLayer_base_header_sources))
+@CONFIG_DEVICE_LAYER_TRUE@weave_device_layer_internaldir = $(includedir)/$(nl_public_WeaveDeviceLayer_destination_dirstem)/internal
+@CONFIG_DEVICE_LAYER_TRUE@dist_weave_device_layer_internal_HEADERS = $(addprefix ../,$(nl_public_WeaveDeviceLayer_internal_header_sources))
+
+#
 # Third-party Public Headers
 #
 
@@ -1314,8 +1367,9 @@ nl_public_headers = \
     $(nl_public_Weave_header_destinations)                    \
     $(nl_public_WeaveSupport_header_destinations)             \
     $(nl_public_WeaveCore_header_destinations)                \
-    $(nl_public_WeaveCommon_header_destinations)                \
+    $(nl_public_WeaveCommon_header_destinations)              \
     $(nl_public_WeaveProfiles_header_destinations)            \
+    $(nl_public_WeaveDeviceLayer_header_destinations)         \
     $(NULL)
 
 platform_public_headers = \
@@ -1673,6 +1727,48 @@ uninstall-dist_weave_coreHEADERS:
 	@list='$(dist_weave_core_HEADERS)'; test -n "$(weave_coredir)" || list=; \
 	files=`for p in $$list; do echo $$p; done | sed -e 's|^.*/||'`; \
 	dir='$(DESTDIR)$(weave_coredir)'; $(am__uninstall_files_from_dir)
+install-dist_weave_device_layer_baseHEADERS: $(dist_weave_device_layer_base_HEADERS)
+	@$(NORMAL_INSTALL)
+	@list='$(dist_weave_device_layer_base_HEADERS)'; test -n "$(weave_device_layer_basedir)" || list=; \
+	if test -n "$$list"; then \
+	  echo " $(MKDIR_P) '$(DESTDIR)$(weave_device_layer_basedir)'"; \
+	  $(MKDIR_P) "$(DESTDIR)$(weave_device_layer_basedir)" || exit 1; \
+	fi; \
+	for p in $$list; do \
+	  if test -f "$$p"; then d=; else d="$(srcdir)/"; fi; \
+	  echo "$$d$$p"; \
+	done | $(am__base_list) | \
+	while read files; do \
+	  echo " $(INSTALL_HEADER) $$files '$(DESTDIR)$(weave_device_layer_basedir)'"; \
+	  $(INSTALL_HEADER) $$files "$(DESTDIR)$(weave_device_layer_basedir)" || exit $$?; \
+	done
+
+uninstall-dist_weave_device_layer_baseHEADERS:
+	@$(NORMAL_UNINSTALL)
+	@list='$(dist_weave_device_layer_base_HEADERS)'; test -n "$(weave_device_layer_basedir)" || list=; \
+	files=`for p in $$list; do echo $$p; done | sed -e 's|^.*/||'`; \
+	dir='$(DESTDIR)$(weave_device_layer_basedir)'; $(am__uninstall_files_from_dir)
+install-dist_weave_device_layer_internalHEADERS: $(dist_weave_device_layer_internal_HEADERS)
+	@$(NORMAL_INSTALL)
+	@list='$(dist_weave_device_layer_internal_HEADERS)'; test -n "$(weave_device_layer_internaldir)" || list=; \
+	if test -n "$$list"; then \
+	  echo " $(MKDIR_P) '$(DESTDIR)$(weave_device_layer_internaldir)'"; \
+	  $(MKDIR_P) "$(DESTDIR)$(weave_device_layer_internaldir)" || exit 1; \
+	fi; \
+	for p in $$list; do \
+	  if test -f "$$p"; then d=; else d="$(srcdir)/"; fi; \
+	  echo "$$d$$p"; \
+	done | $(am__base_list) | \
+	while read files; do \
+	  echo " $(INSTALL_HEADER) $$files '$(DESTDIR)$(weave_device_layer_internaldir)'"; \
+	  $(INSTALL_HEADER) $$files "$(DESTDIR)$(weave_device_layer_internaldir)" || exit $$?; \
+	done
+
+uninstall-dist_weave_device_layer_internalHEADERS:
+	@$(NORMAL_UNINSTALL)
+	@list='$(dist_weave_device_layer_internal_HEADERS)'; test -n "$(weave_device_layer_internaldir)" || list=; \
+	files=`for p in $$list; do echo $$p; done | sed -e 's|^.*/||'`; \
+	dir='$(DESTDIR)$(weave_device_layer_internaldir)'; $(am__uninstall_files_from_dir)
 install-dist_weave_support_baseHEADERS: $(dist_weave_support_base_HEADERS)
 	@$(NORMAL_INSTALL)
 	@list='$(dist_weave_support_base_HEADERS)'; test -n "$(weave_support_basedir)" || list=; \
@@ -2689,6 +2785,8 @@ install-data-am: install-dist_ble_bleHEADERS \
 	install-dist_systemHEADERS install-dist_warmHEADERS \
 	install-dist_weaveHEADERS install-dist_weave_commonHEADERS \
 	install-dist_weave_coreHEADERS \
+	install-dist_weave_device_layer_baseHEADERS \
+	install-dist_weave_device_layer_internalHEADERS \
 	install-dist_weave_support_baseHEADERS \
 	install-dist_weave_support_cryptoHEADERS \
 	install-dist_weave_support_loggingHEADERS \
@@ -2780,6 +2878,8 @@ uninstall-am: uninstall-dist_ble_bleHEADERS \
 	uninstall-dist_systemHEADERS uninstall-dist_warmHEADERS \
 	uninstall-dist_weaveHEADERS uninstall-dist_weave_commonHEADERS \
 	uninstall-dist_weave_coreHEADERS \
+	uninstall-dist_weave_device_layer_baseHEADERS \
+	uninstall-dist_weave_device_layer_internalHEADERS \
 	uninstall-dist_weave_support_baseHEADERS \
 	uninstall-dist_weave_support_cryptoHEADERS \
 	uninstall-dist_weave_support_loggingHEADERS \
@@ -2836,6 +2936,8 @@ uninstall-am: uninstall-dist_ble_bleHEADERS \
 	install-dist_systemHEADERS install-dist_warmHEADERS \
 	install-dist_weaveHEADERS install-dist_weave_commonHEADERS \
 	install-dist_weave_coreHEADERS \
+	install-dist_weave_device_layer_baseHEADERS \
+	install-dist_weave_device_layer_internalHEADERS \
 	install-dist_weave_support_baseHEADERS \
 	install-dist_weave_support_cryptoHEADERS \
 	install-dist_weave_support_loggingHEADERS \
@@ -2891,6 +2993,8 @@ uninstall-am: uninstall-dist_ble_bleHEADERS \
 	uninstall-dist_systemHEADERS uninstall-dist_warmHEADERS \
 	uninstall-dist_weaveHEADERS uninstall-dist_weave_commonHEADERS \
 	uninstall-dist_weave_coreHEADERS \
+	uninstall-dist_weave_device_layer_baseHEADERS \
+	uninstall-dist_weave_device_layer_internalHEADERS \
 	uninstall-dist_weave_support_baseHEADERS \
 	uninstall-dist_weave_support_cryptoHEADERS \
 	uninstall-dist_weave_support_loggingHEADERS \
@@ -2942,7 +3046,6 @@ include $(abs_top_nlbuild_autotools_dir)/automake/pre.am
 
 @CONFIG_NETWORK_LAYER_BLE_TRUE@$(nl_public_BleLayer_ble_header_destinations): $(nl_public_BleLayer_ble_destination_dirstem)/%.h: $(abs_srcdir)/../$(nl_public_BleLayer_ble_source_dirstem)/%.h | $(nl_public_BleLayer_ble_header_dirs)
 @CONFIG_NETWORK_LAYER_BLE_TRUE@	$(call create-link)
-$(NULL)
 
 @CONFIG_NETWORK_LAYER_BLE_TRUE@@WEAVE_ENABLE_WOBLE_TEST_TRUE@$(nl_public_BleLayer_device_manager_header_dirs):
 @CONFIG_NETWORK_LAYER_BLE_TRUE@@WEAVE_ENABLE_WOBLE_TEST_TRUE@	$(call create-directory)
@@ -3025,6 +3128,15 @@ $(filter %.h,$(nl_public_WeaveCommon_header_destinations)): $(nl_public_WeaveCom
 
 $(filter %.hpp,$(nl_public_WeaveCommon_header_destinations)): $(nl_public_WeaveCommon_destination_dirstem)/%.hpp: $(abs_srcdir)/../$(nl_public_WeaveCommon_source_dirstem)/%.hpp | $(nl_public_WeaveCommon_header_dirs)
 	$(call create-link)
+
+@CONFIG_DEVICE_LAYER_TRUE@$(nl_public_WeaveDeviceLayer_header_dirs):
+@CONFIG_DEVICE_LAYER_TRUE@	$(call create-directory)
+
+@CONFIG_DEVICE_LAYER_TRUE@$(filter %.h,$(nl_public_WeaveDeviceLayer_header_destinations)): $(nl_public_WeaveDeviceLayer_destination_dirstem)/%.h: $(abs_srcdir)/../$(nl_public_WeaveDeviceLayer_source_dirstem)/%.h | $(nl_public_WeaveDeviceLayer_header_dirs)
+@CONFIG_DEVICE_LAYER_TRUE@	$(call create-link)
+
+@CONFIG_DEVICE_LAYER_TRUE@$(filter %.hpp,$(nl_public_WeaveDeviceLayer_header_destinations)): $(nl_public_WeaveDeviceLayer_destination_dirstem)/%.hpp: $(abs_srcdir)/../$(nl_public_WeaveDeviceLayer_source_dirstem)/%.hpp | $(nl_public_WeaveDeviceLayer_header_dirs)
+@CONFIG_DEVICE_LAYER_TRUE@	$(call create-link)
 
 $(tps_public_micro_ecc_header_dirs):
 	$(call create-directory)

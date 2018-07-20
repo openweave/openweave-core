@@ -113,7 +113,7 @@ endif # CONFIG_NETWORK_LAYER_BLE
 nl_public_BleLayer_device_manager_source_dirstem = device-manager
 
 nl_public_BleLayer_device_manager_header_sources = \
-$(nl_public_BleLayer_device_manager_source_dirstem)/WoBleTest.h
+$(nl_public_BleLayer_device_manager_source_dirstem)/WoBleTest.h \
 $(NULL)
 
 dist_ble_device_manager_HEADERS = $(addprefix ../,$(nl_public_BleLayer_device_manager_header_sources))
@@ -911,6 +911,73 @@ weave_commondir = $(includedir)/$(nl_public_WeaveCommon_destination_dirstem)
 dist_weave_common_HEADERS = $(addprefix ../,$(nl_public_WeaveCommon_header_sources))
 
 #
+# Weave Device Layer Public Headers
+#
+
+if CONFIG_DEVICE_LAYER
+
+nl_public_WeaveDeviceLayer_source_dirstem = adaptations/device-layer/include/Weave/DeviceLayer
+nl_public_WeaveDeviceLayer_destination_dirstem = Weave/DeviceLayer
+
+nl_public_WeaveDeviceLayer_base_header_sources = \
+$(nl_public_WeaveDeviceLayer_source_dirstem)/ConnectivityManager.h                    \
+$(nl_public_WeaveDeviceLayer_source_dirstem)/TimeSyncManager.h                        \
+$(nl_public_WeaveDeviceLayer_source_dirstem)/WeaveDeviceConfig.h                      \
+$(nl_public_WeaveDeviceLayer_source_dirstem)/ConfigurationManager.h                   \
+$(nl_public_WeaveDeviceLayer_source_dirstem)/TraitManager.h                           \
+$(nl_public_WeaveDeviceLayer_source_dirstem)/WeaveDeviceEvent.h                       \
+$(nl_public_WeaveDeviceLayer_source_dirstem)/WeaveDeviceLayer.h                       \
+$(nl_public_WeaveDeviceLayer_source_dirstem)/PlatformManager.h                        \
+$(nl_public_WeaveDeviceLayer_source_dirstem)/WeaveDeviceError.h                       \
+$(NULL)
+
+nl_public_WeaveDeviceLayer_internal_header_sources = \
+$(nl_public_WeaveDeviceLayer_source_dirstem)/internal/BLEManager.h                    \
+$(nl_public_WeaveDeviceLayer_source_dirstem)/internal/ServiceTunnelAgent.h            \
+$(nl_public_WeaveDeviceLayer_source_dirstem)/internal/DeviceControlServer.h           \
+$(nl_public_WeaveDeviceLayer_source_dirstem)/internal/WeaveDeviceLayerInternal.h      \
+$(nl_public_WeaveDeviceLayer_source_dirstem)/internal/NetworkInfo.h                   \
+$(nl_public_WeaveDeviceLayer_source_dirstem)/internal/FabricProvisioningServer.h      \
+$(nl_public_WeaveDeviceLayer_source_dirstem)/internal/NetworkProvisioningServer.h     \
+$(nl_public_WeaveDeviceLayer_source_dirstem)/internal/EchoServer.h                    \
+$(nl_public_WeaveDeviceLayer_source_dirstem)/internal/ServiceProvisioningServer.h     \
+$(nl_public_WeaveDeviceLayer_source_dirstem)/internal/WeaveDeviceConfig-ESP32.h       \
+$(nl_public_WeaveDeviceLayer_source_dirstem)/internal/ServiceDirectoryManager.h       \
+$(nl_public_WeaveDeviceLayer_source_dirstem)/internal/DeviceDescriptionServer.h       \
+$(nl_public_WeaveDeviceLayer_source_dirstem)/internal/ESPUtils.h                      \
+$(nl_public_WeaveDeviceLayer_source_dirstem)/internal/DeviceIdentityTraitDataSource.h \
+$(NULL)
+
+nl_public_WeaveDeviceLayer_header_sources = \
+$(nl_public_WeaveDeviceLayer_base_header_sources) \
+$(nl_public_WeaveDeviceLayer_internal_header_sources) \
+$(NULL)
+
+nl_public_WeaveDeviceLayer_header_paths = $(subst $(nl_public_WeaveDeviceLayer_source_dirstem)/,,$(nl_public_WeaveDeviceLayer_header_sources))
+
+nl_public_WeaveDeviceLayer_header_destinations = $(addprefix $(nl_public_WeaveDeviceLayer_destination_dirstem)/,$(nl_public_WeaveDeviceLayer_header_paths))
+
+nl_public_WeaveDeviceLayer_header_dirs = $(call Deslashify,$(sort $(dir $(nl_public_WeaveDeviceLayer_header_destinations))))
+
+$(nl_public_WeaveDeviceLayer_header_dirs):
+	$(call create-directory)
+
+$(filter %.h,$(nl_public_WeaveDeviceLayer_header_destinations)): $(nl_public_WeaveDeviceLayer_destination_dirstem)/%.h: $(abs_srcdir)/../$(nl_public_WeaveDeviceLayer_source_dirstem)/%.h | $(nl_public_WeaveDeviceLayer_header_dirs)
+	$(call create-link)
+
+$(filter %.hpp,$(nl_public_WeaveDeviceLayer_header_destinations)): $(nl_public_WeaveDeviceLayer_destination_dirstem)/%.hpp: $(abs_srcdir)/../$(nl_public_WeaveDeviceLayer_source_dirstem)/%.hpp | $(nl_public_WeaveDeviceLayer_header_dirs)
+	$(call create-link)
+
+weave_device_layer_basedir = $(includedir)/$(nl_public_WeaveDeviceLayer_destination_dirstem)
+dist_weave_device_layer_base_HEADERS = $(addprefix ../,$(nl_public_WeaveDeviceLayer_base_header_sources))
+
+weave_device_layer_internaldir = $(includedir)/$(nl_public_WeaveDeviceLayer_destination_dirstem)/internal
+dist_weave_device_layer_internal_HEADERS = $(addprefix ../,$(nl_public_WeaveDeviceLayer_internal_header_sources))
+
+endif # CONFIG_DEVICE_LAYER
+
+
+#
 # Third-party Public Headers
 #
 
@@ -983,8 +1050,9 @@ nl_public_headers                                           = \
     $(nl_public_Weave_header_destinations)                    \
     $(nl_public_WeaveSupport_header_destinations)             \
     $(nl_public_WeaveCore_header_destinations)                \
-    $(nl_public_WeaveCommon_header_destinations)                \
+    $(nl_public_WeaveCommon_header_destinations)              \
     $(nl_public_WeaveProfiles_header_destinations)            \
+    $(nl_public_WeaveDeviceLayer_header_destinations)         \
     $(NULL)
 
 platform_public_headers                                     = \
