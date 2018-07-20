@@ -273,9 +273,7 @@ exit:
 WEAVE_ERROR NetworkProvisioningServer::SetESPStationConfig(const ::nl::Weave::DeviceLayer::Internal::NetworkInfo  & netInfo)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
-    wifi_mode_t wifiMode;
     wifi_config_t wifiConfig;
-    bool restoreMode = false;
 
     // Ensure that ESP station mode is enabled.  This is required before esp_wifi_set_config(ESP_IF_WIFI_STA,...)
     // can be called.
@@ -333,14 +331,6 @@ WEAVE_ERROR NetworkProvisioningServer::SetESPStationConfig(const ::nl::Weave::De
     WeaveLogProgress(DeviceLayer, "WiFi station provision set (SSID: %s)", netInfo.WiFiSSID);
 
 exit:
-    if (restoreMode)
-    {
-        WEAVE_ERROR setModeErr = esp_wifi_set_mode(wifiMode);
-        if (setModeErr != ESP_OK)
-        {
-            WeaveLogError(DeviceLayer, "esp_wifi_set_mode() failed: %s", nl::ErrorStr(setModeErr));
-        }
-    }
     return err;
 }
 
