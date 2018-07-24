@@ -1050,6 +1050,7 @@ void DeviceControlServer::HandleConnectionReceived(WeaveMessageLayer *msgLayer, 
             server->ExchangeMgr->AllowUnsolicitedMessages(con);
             err = lSystemLayer->StartTimer(secondsToMilliseconds(server->mTunnelInactivityTimeout), HandleLookingToRendezvousTimeout, con);
             SuccessOrExit(err);
+            con->OnConnectionClosed = HandleLookingToRendezvousClosed;
             con = NULL;
         }
     }
@@ -1070,6 +1071,32 @@ exit:
     }
 }
 
+/**
+ * Static handler of type WeaveConnection::ConnectionClosedFunct.
+ * This handler is installed on connections waiting for the LookingToRendezVous message.
+ * Its purpose is to stop the timer that guards the connection in case the connection object is closed by the
+ * lower layers.
+ * This handler will be in effect until either:
+ * - the connection closes itself and the handler is executed;
+ * - the LookingToRandezvous message is never received and the timer fires, making this node close the connection;
+ * - the message is received, and the WeaveConnection object is given to the WeaveConnectionTunnel object, which
+ *   takes ownership of the TCPEndPoint and destroys the WeaveConnection.
+ *
+ * @param[in] con    The connection.
+ * @param[in] conErr An error code that explains why the connection was closed.
+ */
+void DeviceControlServer::HandleLookingToRendezvousClosed(WeaveConnection *con, WEAVE_ERROR conErr)
+{
+    DeviceControlServer *_this =  sRemotePassiveRendezvousServer;
+    System::Layer* lSystemLayer = _this->ExchangeMgr->MessageLayer->SystemLayer;
+
+    WeaveLogProgress(DeviceControl, "Connection waiting for LookingToRendezvous message self-closed with error %d", conErr);
+
+    lSystemLayer->CancelTimer(HandleLookingToRendezvousTimeout, con);
+
+    con->Close();
+}
+
 void DeviceControlServer::HandleLookingToRendezvousTimeout(System::Layer* aSystemLayer, void* aAppState, System::Error aError)
 {
     WeaveConnection * con = static_cast<WeaveConnection *>(aAppState);
@@ -1078,7 +1105,7 @@ void DeviceControlServer::HandleLookingToRendezvousTimeout(System::Layer* aSyste
     if (con != _this->mRemotePassiveRendezvousJoinerCon)
     {
         WeaveLogProgress(DeviceControl, "Failed to receive a matching LookingToRendezvous message");
-        con->Close();
+        con->Abort();
     }
 }
 

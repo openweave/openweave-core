@@ -366,6 +366,7 @@ private:
     static void HandleMonitorTimer(System::Layer* aSystemLayer, void* aAppState, System::Error aError);
     static void HandleRemotePassiveRendezvousTimeout(System::Layer* aSystemLayer, void* aAppState, System::Error aError);
     static void HandleLookingToRendezvousTimeout(System::Layer* aSystemLayer, void* aAppState, System::Error aError);
+    static void HandleLookingToRendezvousClosed(WeaveConnection *con, WEAVE_ERROR conErr);
 
     // RPR tunnel shutdown
     static void HandleTunnelShutdown(WeaveConnectionTunnel *tunnel);
