@@ -37,6 +37,7 @@ TUNNEL_FAILOVER                ?= 0
 USE_LWIP                       ?= 0
 NO_OPENSSL                     ?= 0
 BLUEZ                          ?= 0
+USE_FUZZING                    ?= 0
 
 HOSTOS                          = $(shell uname -s |tr [:upper:] [:lower:])
 ARCH                            = $(shell uname -i |tr [:upper:] [:lower:])
@@ -100,6 +101,11 @@ configure_OPTIONS              += --with-openssl=internal
 else
 configure_OPTIONS              += --with-openssl=
 endif
+endif
+
+# If the user has asserted USE_FUZZING enable fuzzing build
+ifeq ($(USE_FUZZING),1)
+configure_OPTIONS              += --enable-fuzzing
 endif
 
 # If the user has asserted COVERAGE, alter the configuration options
