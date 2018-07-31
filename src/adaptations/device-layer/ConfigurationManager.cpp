@@ -332,7 +332,7 @@ WEAVE_ERROR ConfigurationManager::GetServiceId(uint64_t & serviceId)
     return GetNVS(kNVSNamespace_WeaveConfig, kNVSKeyName_ServiceId, serviceId);
 }
 
-WEAVE_ERROR ConfigurationManager::GetPairedAccountId(char * buf, size_t bufSize, size_t accountIdLen)
+WEAVE_ERROR ConfigurationManager::GetPairedAccountId(char * buf, size_t bufSize, size_t & accountIdLen)
 {
     return GetNVS(kNVSNamespace_WeaveConfig, kNVSKeyName_PairedAccountId, buf, bufSize, accountIdLen);
 }

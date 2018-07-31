@@ -59,7 +59,7 @@ public:
     WEAVE_ERROR GetServiceId(uint64_t & serviceId);
     WEAVE_ERROR GetServiceConfig(uint8_t * buf, size_t bufSize, size_t & serviceConfigLen);
     WEAVE_ERROR GetServiceConfigLength(size_t & serviceConfigLen);
-    WEAVE_ERROR GetPairedAccountId(char * buf, size_t bufSize, size_t accountIdLen);
+    WEAVE_ERROR GetPairedAccountId(char * buf, size_t bufSize, size_t & accountIdLen);
 
     WEAVE_ERROR StoreDeviceId(uint64_t deviceId);
     WEAVE_ERROR StoreSerialNumber(const char * serialNum);
