@@ -304,8 +304,8 @@ private:
 
     void InitAsFree(void);
 
-    inline WEAVE_ERROR ParsePathVersionEventLists(SubscribeRequest::Parser & aRequest, uint32_t & aRejectReasonProfileId,
-                                                  uint16_t & aRejectReasonStatusCode);
+    WEAVE_ERROR ParsePathVersionEventLists(SubscribeRequest::Parser & aRequest, uint32_t & aRejectReasonProfileId,
+                                           uint16_t & aRejectReasonStatusCode);
 
     inline WEAVE_ERROR ParseSubscriptionId(SubscribeRequest::Parser & aRequest, uint32_t & aRejectReasonProfileId,
                                            uint16_t & aRejectReasonStatusCode, const uint64_t aRandomNumber);

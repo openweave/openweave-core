@@ -225,9 +225,9 @@ exit:
     return err;
 }
 
-inline WEAVE_ERROR SubscriptionHandler::ParsePathVersionEventLists(SubscribeRequest::Parser & aRequest,
-                                                                   uint32_t & aRejectReasonProfileId,
-                                                                   uint16_t & aRejectReasonStatusCode)
+WEAVE_ERROR SubscriptionHandler::ParsePathVersionEventLists(SubscribeRequest::Parser & aRequest,
+                                                            uint32_t & aRejectReasonProfileId,
+                                                            uint16_t & aRejectReasonStatusCode)
 {
     WEAVE_ERROR err                   = WEAVE_NO_ERROR;
     bool parsingCompletedSuccessfully = false;
@@ -483,8 +483,12 @@ inline WEAVE_ERROR SubscriptionHandler::ParsePathVersionEventLists(SubscribeRequ
                     (static_cast<uint32_t>(importance) >= static_cast<uint32_t>(kImportanceType_First)) &&
                     (static_cast<uint32_t>(importance) <= static_cast<uint32_t>(kImportanceType_Last)))
                 {
+                    // We add one to the observed event ID because
+                    // mSelfVendedEvents should point to the next event ID that
+                    // we publish. Otherwise, we would publish an event that
+                    // the subscriber already received.
                     mSelfVendedEvents[static_cast<uint32_t>(importance) - static_cast<uint32_t>(kImportanceType_First)] =
-                        static_cast<event_id_t>(eventId);
+                        static_cast<event_id_t>(eventId + 1);
                 }
                 else
                 {

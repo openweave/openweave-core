@@ -134,19 +134,20 @@ class TestSubscriptionHandler : public SubscriptionHandler
 public:
     TestSubscriptionHandler(void);
 
-    bool CheckEventUpToDate(nl::Weave::Profiles::DataManagement::LoggingManagement &logger);
-
-    nl::Weave::Profiles::DataManagement::ImportanceType FindNextImportanceForTransfer(void);
-
-    WEAVE_ERROR SetEventLogEndpoint(nl::Weave::Profiles::DataManagement::LoggingManagement &logger);
-
-    nl::Weave::Profiles::DataManagement::event_id_t & GetVendedEvent(nl::Weave::Profiles::DataManagement::ImportanceType inImportance);
+    // Make methods from SubscriptionHandler public so we can call them from
+    // our test cases.
+    using SubscriptionHandler::CheckEventUpToDate;
+    using SubscriptionHandler::FindNextImportanceForTransfer;
+    using SubscriptionHandler::SetEventLogEndpoint;
+    using SubscriptionHandler::ParsePathVersionEventLists;
 
     bool VerifyTraversingImportance(void);
+    nl::Weave::Profiles::DataManagement::event_id_t & GetVendedEvent(nl::Weave::Profiles::DataManagement::ImportanceType inImportance);
 
     void SetActive(void) { mCurrentState = kState_Subscribing_Evaluating; }
     void SetAborted(void) { mCurrentState = kState_Aborted; }
     void SetEstablishedIdle(void) { mCurrentState = kState_SubscriptionEstablished_Idle; }
+    void SetExchangeContext(nl::Weave::ExchangeContext *aEC) { mEC = aEC; }
 private:
     /* important: this class must not add any members or declare virtual functions */
 };
@@ -157,24 +158,9 @@ TestSubscriptionHandler::TestSubscriptionHandler(void)
     InitAsFree();
 }
 
-bool TestSubscriptionHandler::CheckEventUpToDate(nl::Weave::Profiles::DataManagement::LoggingManagement &logger)
-{
-    return SubscriptionHandler::CheckEventUpToDate(logger);
-}
-
 bool TestSubscriptionHandler::VerifyTraversingImportance(void)
 {
     return FindNextImportanceForTransfer() == nl::Weave::Profiles::DataManagement::kImportanceType_Invalid;
-}
-
-nl::Weave::Profiles::DataManagement::ImportanceType TestSubscriptionHandler::FindNextImportanceForTransfer(void)
-{
-    return SubscriptionHandler::FindNextImportanceForTransfer();
-}
-
-WEAVE_ERROR TestSubscriptionHandler::SetEventLogEndpoint(nl::Weave::Profiles::DataManagement::LoggingManagement &logger)
-{
-    return SubscriptionHandler::SetEventLogEndpoint(logger);
 }
 
 nl::Weave::Profiles::DataManagement::event_id_t & TestSubscriptionHandler::GetVendedEvent(nl::Weave::Profiles::DataManagement::ImportanceType inImportance)
@@ -3331,6 +3317,222 @@ static void CheckShutdownLogic(nlTestSuite *inSuite, void *inContext)
 
     NL_TEST_ASSERT(inSuite, eid == 0);
 }
+
+static WEAVE_ERROR BuildSubscribeRequest(
+        nl::Weave::TLV::TLVWriter& writer,
+        const nl::Weave::Profiles::DataManagement::SubscriptionClient::OutEventParam& outSubscribeParam)
+{
+    WEAVE_ERROR err;
+    SubscribeRequest::Builder request;
+
+    err = request.Init(&writer);
+    SuccessOrExit(err);
+
+    {
+        PathList::Builder & pathList = request.CreatePathListBuilder();
+
+        pathList.EndOfPathList();
+        SuccessOrExit(err = pathList.GetError());
+    }
+
+    {
+        VersionList::Builder & versionList = request.CreateVersionListBuilder();
+
+        versionList.EndOfVersionList();
+        SuccessOrExit(err = versionList.GetError());
+    }
+
+    if (outSubscribeParam.mSubscribeRequestPrepareNeeded.mNeedAllEvents)
+    {
+        request.SubscribeToAllEvents(true);
+
+        if (outSubscribeParam.mSubscribeRequestPrepareNeeded.mLastObservedEventListSize > 0)
+        {
+            EventList::Builder & eventList = request.CreateLastObservedEventIdListBuilder();
+
+            for (size_t n = 0; n < outSubscribeParam.mSubscribeRequestPrepareNeeded.mLastObservedEventListSize; ++n)
+            {
+                Event::Builder & event = eventList.CreateEventBuilder();
+                event.SourceId(outSubscribeParam.mSubscribeRequestPrepareNeeded.mLastObservedEventList[n].mSourceId)
+                    .Importance(outSubscribeParam.mSubscribeRequestPrepareNeeded.mLastObservedEventList[n].mImportance)
+                    .EventId(outSubscribeParam.mSubscribeRequestPrepareNeeded.mLastObservedEventList[n].mEventId)
+                    .EndOfEvent();
+                SuccessOrExit(err = event.GetError());
+            }
+
+            eventList.EndOfEventList();
+            SuccessOrExit(err = eventList.GetError());
+        }
+    }
+
+    request.EndOfRequest();
+    SuccessOrExit(err = request.GetError());
+
+    err = writer.Finalize();
+    SuccessOrExit(err);
+
+exit:
+    return err;
+}
+
+static void MockSubscribeRequest(
+        nlTestSuite* inSuite,
+        ::nl::Weave::Profiles::DataManagement::TestSubscriptionHandler& aSubHandler,
+        const nl::Weave::Profiles::DataManagement::SubscriptionClient::OutEventParam& outSubscribeParam)
+{
+    WEAVE_ERROR err;
+    uint8_t backingStore[1024];
+    TLVWriter writer;
+    TLVReader reader;
+    SubscribeRequest::Parser request;
+    uint32_t rejectReasonProfileId = 0;
+    uint16_t rejectReasonStatusCode = 0;
+
+    writer.Init(backingStore, sizeof(backingStore));
+
+    err = BuildSubscribeRequest(writer, outSubscribeParam);
+    NL_TEST_ASSERT(inSuite, err == WEAVE_NO_ERROR);
+
+    reader.Init(backingStore, writer.GetLengthWritten());
+
+    err = reader.Next();
+    NL_TEST_ASSERT(inSuite, err == WEAVE_NO_ERROR);
+
+    err = request.Init(reader);
+    NL_TEST_ASSERT(inSuite, err == WEAVE_NO_ERROR);
+
+    err = aSubHandler.ParsePathVersionEventLists(request, rejectReasonProfileId, rejectReasonStatusCode);
+    NL_TEST_ASSERT(inSuite, err == WEAVE_NO_ERROR);
+}
+
+/*
+ * This test validates that if a peer specified X as the last observed event
+ * ID, the subscription handler publishes X+1 for the next event.
+ */
+static void CheckLastObservedEventId(nlTestSuite *inSuite, void *inContext)
+{
+#define ARRAY_SIZE(x) (sizeof(x) / sizeof(x[0]))
+
+    event_id_t prod_eids[3] = {0};
+    event_id_t info_eids[3] = {0};
+
+    TestLoggingContext *context = static_cast<TestLoggingContext *>(inContext);
+
+    InitializeEventLogging(context);
+
+    // Mock 3 production events and 3 info events
+    timestamp_t now = System::Layer::GetClock_MonotonicMS();
+    for (int i = 0; i < 3; i++)
+    {
+        prod_eids[i] = FastLogFreeform(
+            nl::Weave::Profiles::DataManagement::Production,
+            now + i*10,
+            "Prod entry %d", i);
+
+        info_eids[i] = FastLogFreeform(
+            nl::Weave::Profiles::DataManagement::Info,
+            now + i*10 + 5,
+            "Info entry %d", i);
+    }
+
+    ::nl::Weave::Profiles::DataManagement::TestSubscriptionHandler subHandler;
+    nl::Weave::Profiles::DataManagement::LoggingManagement &logger =
+        nl::Weave::Profiles::DataManagement::LoggingManagement::GetInstance();
+
+    subHandler.SetEventLogEndpoint(logger);
+
+    // Make sure we logged all events
+    CheckLogReadOut(inSuite, context, logger, nl::Weave::Profiles::DataManagement::Production, prod_eids[0], 3);
+    CheckLogReadOut(inSuite, context, logger, nl::Weave::Profiles::DataManagement::Info, info_eids[0], 3);
+
+    // We still have events to upload
+    NL_TEST_ASSERT(inSuite, subHandler.CheckEventUpToDate(logger) == false);
+
+    // No events have been observed so the next importance should be
+    // Production.
+    NL_TEST_ASSERT(inSuite, subHandler.FindNextImportanceForTransfer() == nl::Weave::Profiles::DataManagement::Production);
+
+    // Create a dummy exchange context so that SubscriptionHandler can verify
+    // the local node id when parsing the Last Observed Event List in the
+    // subscribe request.
+    nl::Weave::ExchangeContext ec;
+    ec.ExchangeMgr = static_cast<TestLoggingContext *>(inContext)->mExchangeMgr;
+    subHandler.SetExchangeContext(&ec);
+
+    // Mock Last Observed Event List
+    {
+        nl::Weave::Profiles::DataManagement::SubscriptionClient::OutEventParam outParam;
+        nl::Weave::Profiles::DataManagement::SubscriptionClient::LastObservedEvent lastObservedEventList[2];
+
+        // Production event
+        lastObservedEventList[0].mSourceId = kTestNodeId;
+        lastObservedEventList[0].mImportance = nl::Weave::Profiles::DataManagement::Production;
+        lastObservedEventList[0].mEventId = prod_eids[2];
+
+        // Info event
+        lastObservedEventList[1].mSourceId = kTestNodeId;
+        lastObservedEventList[1].mImportance = nl::Weave::Profiles::DataManagement::Info;
+        lastObservedEventList[1].mEventId = info_eids[1];
+
+        outParam.mSubscribeRequestPrepareNeeded.mNeedAllEvents = true;
+        outParam.mSubscribeRequestPrepareNeeded.mLastObservedEventList = lastObservedEventList;
+        outParam.mSubscribeRequestPrepareNeeded.mLastObservedEventListSize = ARRAY_SIZE(lastObservedEventList);
+
+        MockSubscribeRequest(inSuite, subHandler, outParam);
+    }
+
+    // We still have events to process
+    NL_TEST_ASSERT(inSuite, subHandler.CheckEventUpToDate(logger) == false);
+
+    // Since Production events were all observed, the next importance should be
+    // Info
+    NL_TEST_ASSERT(inSuite, subHandler.FindNextImportanceForTransfer() == nl::Weave::Profiles::DataManagement::Info);
+
+    // Make sure vended EIDs are what we expect
+    NL_TEST_ASSERT(inSuite, subHandler.GetVendedEvent(nl::Weave::Profiles::DataManagement::Production) == prod_eids[2] + 1);
+    NL_TEST_ASSERT(inSuite, subHandler.GetVendedEvent(nl::Weave::Profiles::DataManagement::Info) == info_eids[1]+ 1);
+
+    // Now mock another subscribe request where all events are observed
+    {
+        nl::Weave::Profiles::DataManagement::SubscriptionClient::OutEventParam outParam;
+        nl::Weave::Profiles::DataManagement::SubscriptionClient::LastObservedEvent lastObservedEventList[2];
+
+        // Production event
+        lastObservedEventList[0].mSourceId = kTestNodeId;
+        lastObservedEventList[0].mImportance = nl::Weave::Profiles::DataManagement::Production;
+        lastObservedEventList[0].mEventId = prod_eids[2];
+
+        // Info event
+        lastObservedEventList[1].mSourceId = kTestNodeId;
+        lastObservedEventList[1].mImportance = nl::Weave::Profiles::DataManagement::Info;
+        lastObservedEventList[1].mEventId = info_eids[2];
+
+        outParam.mSubscribeRequestPrepareNeeded.mNeedAllEvents = true;
+        outParam.mSubscribeRequestPrepareNeeded.mLastObservedEventList = lastObservedEventList;
+        outParam.mSubscribeRequestPrepareNeeded.mLastObservedEventListSize = ARRAY_SIZE(lastObservedEventList);
+
+        MockSubscribeRequest(inSuite, subHandler, outParam);
+    }
+
+    // No events to process
+    NL_TEST_ASSERT(inSuite, subHandler.CheckEventUpToDate(logger) == true);
+    NL_TEST_ASSERT(inSuite, subHandler.FindNextImportanceForTransfer() == nl::Weave::Profiles::DataManagement::kImportanceType_Invalid);
+
+    // Log a new event and confirm that there's more events to process
+    (void)FastLogFreeform(
+        nl::Weave::Profiles::DataManagement::Production,
+        now + 1000,
+        "Last Prod entry");
+
+    subHandler.SetEventLogEndpoint(logger);
+
+    NL_TEST_ASSERT(inSuite, subHandler.CheckEventUpToDate(logger) == false);
+    NL_TEST_ASSERT(inSuite, subHandler.FindNextImportanceForTransfer() == nl::Weave::Profiles::DataManagement::Production);
+
+    DestroyEventLogging(context);
+}
+
+
 //Test Suite
 
 /**
@@ -3379,6 +3581,7 @@ static const nlTest sTests[] = {
     NL_TEST_DEF("Check data incompatible encoding + decoding", CheckDataIncompatibility),
     NL_TEST_DEF("Check Gap detection", CheckGapDetection),
     NL_TEST_DEF("Check Drop Overlapping Event Id Ranges", CheckDropOverlap),
+    NL_TEST_DEF("Check Last Observed Event Id", CheckLastObservedEventId),
     NL_TEST_SENTINEL()
 };
 
