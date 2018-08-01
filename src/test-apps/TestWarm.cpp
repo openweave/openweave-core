@@ -397,7 +397,9 @@ static void CheckThread(nlTestSuite *inSuite, void *inContext)
     uint32_t callCounterSnapshot[sizeof(sAPICallCounters) / sizeof(sAPICallCounters[0])];
                                                                                        // legacy, thread, wifi, tunnel, cellular
     const bool requiredInterfaceStateHostAddress[Warm::kInterfaceTypeMax]           = { true, true, false, false, false };
+#if WARM_CONFIG_ENABLE_BACKUP_ROUTING_OVER_THREAD
     const bool requiredInterfaceStateHostRoute[Warm::kInterfaceTypeMax]             = { false, true, false, false, false };
+#endif //WARM_CONFIG_ENABLE_BACKUP_ROUTING_OVER_THREAD
     const bool requiredInterfaceStateThreadAddress[Warm::kInterfaceTypeMax]         = { true, true, false, false, false };
     const bool requiredInterfaceStateThreadAdvertisement[Warm::kInterfaceTypeMax]   = { false, false, false, false, false };
     const bool requiredInterfaceStateThreadRoute[Warm::kInterfaceTypeMax]           = { false, false, false, false, false };
@@ -419,7 +421,9 @@ static void CheckThread(nlTestSuite *inSuite, void *inContext)
     // Test that the expected number of platform API calls are made.
 
     NL_TEST_ASSERT(inSuite, callCounterSnapshot[kAPITagHostAddress] + 2                     == sAPICallCounters[kAPITagHostAddress]);
+#if WARM_CONFIG_ENABLE_BACKUP_ROUTING_OVER_THREAD
     NL_TEST_ASSERT(inSuite, callCounterSnapshot[kAPITagHostRoute] + 1                       == sAPICallCounters[kAPITagHostRoute]);
+#endif // WARM_CONFIG_ENABLE_BACKUP_ROUTING_OVER_THREAD
     NL_TEST_ASSERT(inSuite, callCounterSnapshot[kAPITagThreadAddress] + 2                   == sAPICallCounters[kAPITagThreadAddress]);
     NL_TEST_ASSERT(inSuite, callCounterSnapshot[kAPITagThreadAdvertisement]                 == sAPICallCounters[kAPITagThreadAdvertisement]);
     NL_TEST_ASSERT(inSuite, callCounterSnapshot[kAPITagThreadRoute]                         == sAPICallCounters[kAPITagThreadRoute]);
@@ -430,7 +434,9 @@ static void CheckThread(nlTestSuite *inSuite, void *inContext)
     // Test that the expected platform State exists after making the API calls.
 
     NL_TEST_ASSERT(inSuite, 0 == memcmp(requiredInterfaceStateHostAddress,         sAPIInterfaceStateHostAddress,         sizeof(sAPIInterfaceStateHostAddress)));
+#if WARM_CONFIG_ENABLE_BACKUP_ROUTING_OVER_THREAD
     NL_TEST_ASSERT(inSuite, 0 == memcmp(requiredInterfaceStateHostRoute,           sAPIInterfaceStateHostRoute,           sizeof(sAPIInterfaceStateHostRoute)));
+#endif // WARM_CONFIG_ENABLE_BACKUP_ROUTING_OVER_THREAD
     NL_TEST_ASSERT(inSuite, 0 == memcmp(requiredInterfaceStateThreadAddress,       sAPIInterfaceStateThreadAddress,       sizeof(sAPIInterfaceStateThreadAddress)));
     NL_TEST_ASSERT(inSuite, 0 == memcmp(requiredInterfaceStateThreadAdvertisement, sAPIInterfaceStateThreadAdvertisement, sizeof(sAPIInterfaceStateThreadAdvertisement)));
     NL_TEST_ASSERT(inSuite, 0 == memcmp(requiredInterfaceStateThreadRoute,         sAPIInterfaceStateThreadRoute,         sizeof(sAPIInterfaceStateThreadRoute)));
@@ -465,7 +471,9 @@ static void CheckThread(nlTestSuite *inSuite, void *inContext)
     // Test that the expected number of platform API calls are made.
 
     NL_TEST_ASSERT(inSuite, callCounterSnapshot[kAPITagHostAddress] + 4                     == sAPICallCounters[kAPITagHostAddress]);
+#if WARM_CONFIG_ENABLE_BACKUP_ROUTING_OVER_THREAD
     NL_TEST_ASSERT(inSuite, callCounterSnapshot[kAPITagHostRoute] + 2                       == sAPICallCounters[kAPITagHostRoute]);
+#endif // WARM_CONFIG_ENABLE_BACKUP_ROUTING_OVER_THREAD
     NL_TEST_ASSERT(inSuite, callCounterSnapshot[kAPITagThreadAddress] + 4                   == sAPICallCounters[kAPITagThreadAddress]);
     NL_TEST_ASSERT(inSuite, callCounterSnapshot[kAPITagThreadAdvertisement]                 == sAPICallCounters[kAPITagThreadAdvertisement]);
     NL_TEST_ASSERT(inSuite, callCounterSnapshot[kAPITagThreadRoute]                         == sAPICallCounters[kAPITagThreadRoute]);
@@ -495,7 +503,9 @@ static void CheckWiFiThread(nlTestSuite *inSuite, void *inContext)
     uint32_t callCounterSnapshot[sizeof(sAPICallCounters) / sizeof(sAPICallCounters[0])];
                                                                                        // legacy, thread, wifi, tunnel, cellular
     const bool requiredInterfaceStateHostAddress[Warm::kInterfaceTypeMax]           = { true, true, true, false, false };
+#if WARM_CONFIG_ENABLE_BACKUP_ROUTING_OVER_THREAD
     const bool requiredInterfaceStateHostRoute[Warm::kInterfaceTypeMax]             = { false, true, false, false, false };
+#endif // WARM_CONFIG_ENABLE_BACKUP_ROUTING_OVER_THREAD
     const bool requiredInterfaceStateThreadAddress[Warm::kInterfaceTypeMax]         = { true, true, false, false, false };
     const bool requiredInterfaceStateThreadAdvertisement[Warm::kInterfaceTypeMax]   = { false, false, false, false, false };
     const bool requiredInterfaceStateThreadRoute[Warm::kInterfaceTypeMax]           = { false, false, false, false, false };
@@ -519,7 +529,9 @@ static void CheckWiFiThread(nlTestSuite *inSuite, void *inContext)
     // Test that the expected number of platform API calls are made.
 
     NL_TEST_ASSERT(inSuite, callCounterSnapshot[kAPITagHostAddress] + 3                     == sAPICallCounters[kAPITagHostAddress]);
+#if WARM_CONFIG_ENABLE_BACKUP_ROUTING_OVER_THREAD
     NL_TEST_ASSERT(inSuite, callCounterSnapshot[kAPITagHostRoute] + 1                       == sAPICallCounters[kAPITagHostRoute]);
+#endif // WARM_CONFIG_ENABLE_BACKUP_ROUTING_OVER_THREAD
     NL_TEST_ASSERT(inSuite, callCounterSnapshot[kAPITagThreadAddress] + 2                   == sAPICallCounters[kAPITagThreadAddress]);
     NL_TEST_ASSERT(inSuite, callCounterSnapshot[kAPITagThreadAdvertisement]                 == sAPICallCounters[kAPITagThreadAdvertisement]);
     NL_TEST_ASSERT(inSuite, callCounterSnapshot[kAPITagThreadRoute]                         == sAPICallCounters[kAPITagThreadRoute]);
@@ -530,7 +542,9 @@ static void CheckWiFiThread(nlTestSuite *inSuite, void *inContext)
     // Test that the expected platform State exists after making the API calls.
 
     NL_TEST_ASSERT(inSuite, 0 == memcmp(requiredInterfaceStateHostAddress,         sAPIInterfaceStateHostAddress,         sizeof(sAPIInterfaceStateHostAddress)));
+#if WARM_CONFIG_ENABLE_BACKUP_ROUTING_OVER_THREAD
     NL_TEST_ASSERT(inSuite, 0 == memcmp(requiredInterfaceStateHostRoute,           sAPIInterfaceStateHostRoute,           sizeof(sAPIInterfaceStateHostRoute)));
+#endif // WARM_CONFIG_ENABLE_BACKUP_ROUTING_OVER_THREAD
     NL_TEST_ASSERT(inSuite, 0 == memcmp(requiredInterfaceStateThreadAddress,       sAPIInterfaceStateThreadAddress,       sizeof(sAPIInterfaceStateThreadAddress)));
     NL_TEST_ASSERT(inSuite, 0 == memcmp(requiredInterfaceStateThreadAdvertisement, sAPIInterfaceStateThreadAdvertisement, sizeof(sAPIInterfaceStateThreadAdvertisement)));
     NL_TEST_ASSERT(inSuite, 0 == memcmp(requiredInterfaceStateThreadRoute,         sAPIInterfaceStateThreadRoute,         sizeof(sAPIInterfaceStateThreadRoute)));
@@ -566,7 +580,9 @@ static void CheckWiFiThread(nlTestSuite *inSuite, void *inContext)
     // Test that the expected number of platform API calls are made.
 
     NL_TEST_ASSERT(inSuite, callCounterSnapshot[kAPITagHostAddress] + 6                     == sAPICallCounters[kAPITagHostAddress]);
+#if WARM_CONFIG_ENABLE_BACKUP_ROUTING_OVER_THREAD
     NL_TEST_ASSERT(inSuite, callCounterSnapshot[kAPITagHostRoute] + 2                       == sAPICallCounters[kAPITagHostRoute]);
+#endif // WARM_CONFIG_ENABLE_BACKUP_ROUTING_OVER_THREAD
     NL_TEST_ASSERT(inSuite, callCounterSnapshot[kAPITagThreadAddress] + 4                   == sAPICallCounters[kAPITagThreadAddress]);
     NL_TEST_ASSERT(inSuite, callCounterSnapshot[kAPITagThreadAdvertisement]                 == sAPICallCounters[kAPITagThreadAdvertisement]);
     NL_TEST_ASSERT(inSuite, callCounterSnapshot[kAPITagThreadRoute]                         == sAPICallCounters[kAPITagThreadRoute]);
@@ -601,7 +617,9 @@ static void CheckWiFiThreadRoute(nlTestSuite *inSuite, void *inContext)
     uint32_t callCounterSnapshot[sizeof(sAPICallCounters) / sizeof(sAPICallCounters[0])];
                                                                                        // legacy, thread, wifi, tunnel, cellular
     const bool requiredInterfaceStateHostAddress[Warm::kInterfaceTypeMax]           = { true, true, true, false, false };
+#if WARM_CONFIG_ENABLE_BACKUP_ROUTING_OVER_THREAD
     const bool requiredInterfaceStateHostRoute[Warm::kInterfaceTypeMax]             = { false, true, false, false, false };
+#endif // WARM_CONFIG_ENABLE_BACKUP_ROUTING_OVER_THREAD
     const bool requiredInterfaceStateThreadAddress[Warm::kInterfaceTypeMax]         = { true, true, false, false, false };
     const bool requiredInterfaceStateThreadAdvertisement[Warm::kInterfaceTypeMax]   = { false, true, false, false, false };
     const bool requiredInterfaceStateThreadRoute[Warm::kInterfaceTypeMax]           = { false, false, false, false, false };
@@ -625,7 +643,9 @@ static void CheckWiFiThreadRoute(nlTestSuite *inSuite, void *inContext)
     // Test that the expected number of platform API calls are made.
 
     NL_TEST_ASSERT(inSuite, callCounterSnapshot[kAPITagHostAddress] + 3                     == sAPICallCounters[kAPITagHostAddress]);
+#if WARM_CONFIG_ENABLE_BACKUP_ROUTING_OVER_THREAD
     NL_TEST_ASSERT(inSuite, callCounterSnapshot[kAPITagHostRoute] + 1                       == sAPICallCounters[kAPITagHostRoute]);
+#endif // WARM_CONFIG_ENABLE_BACKUP_ROUTING_OVER_THREAD
     NL_TEST_ASSERT(inSuite, callCounterSnapshot[kAPITagThreadAddress] + 2                   == sAPICallCounters[kAPITagThreadAddress]);
     NL_TEST_ASSERT(inSuite, callCounterSnapshot[kAPITagThreadAdvertisement] + 1             == sAPICallCounters[kAPITagThreadAdvertisement]);
     NL_TEST_ASSERT(inSuite, callCounterSnapshot[kAPITagThreadRoute]                         == sAPICallCounters[kAPITagThreadRoute]);
@@ -636,7 +656,9 @@ static void CheckWiFiThreadRoute(nlTestSuite *inSuite, void *inContext)
     // Test that the expected platform State exists after making the API calls.
 
     NL_TEST_ASSERT(inSuite, 0 == memcmp(requiredInterfaceStateHostAddress,         sAPIInterfaceStateHostAddress,         sizeof(sAPIInterfaceStateHostAddress)));
+#if WARM_CONFIG_ENABLE_BACKUP_ROUTING_OVER_THREAD
     NL_TEST_ASSERT(inSuite, 0 == memcmp(requiredInterfaceStateHostRoute,           sAPIInterfaceStateHostRoute,           sizeof(sAPIInterfaceStateHostRoute)));
+#endif // WARM_CONFIG_ENABLE_BACKUP_ROUTING_OVER_THREAD
     NL_TEST_ASSERT(inSuite, 0 == memcmp(requiredInterfaceStateThreadAddress,       sAPIInterfaceStateThreadAddress,       sizeof(sAPIInterfaceStateThreadAddress)));
     NL_TEST_ASSERT(inSuite, 0 == memcmp(requiredInterfaceStateThreadAdvertisement, sAPIInterfaceStateThreadAdvertisement, sizeof(sAPIInterfaceStateThreadAdvertisement)));
     NL_TEST_ASSERT(inSuite, 0 == memcmp(requiredInterfaceStateThreadRoute,         sAPIInterfaceStateThreadRoute,         sizeof(sAPIInterfaceStateThreadRoute)));
@@ -673,7 +695,9 @@ static void CheckWiFiThreadRoute(nlTestSuite *inSuite, void *inContext)
     // Test that the expected number of platform API calls are made.
 
     NL_TEST_ASSERT(inSuite, callCounterSnapshot[kAPITagHostAddress] + 6                     == sAPICallCounters[kAPITagHostAddress]);
+#if WARM_CONFIG_ENABLE_BACKUP_ROUTING_OVER_THREAD
     NL_TEST_ASSERT(inSuite, callCounterSnapshot[kAPITagHostRoute] + 2                       == sAPICallCounters[kAPITagHostRoute]);
+#endif // WARM_CONFIG_ENABLE_BACKUP_ROUTING_OVER_THREAD
     NL_TEST_ASSERT(inSuite, callCounterSnapshot[kAPITagThreadAddress] + 4                   == sAPICallCounters[kAPITagThreadAddress]);
     NL_TEST_ASSERT(inSuite, callCounterSnapshot[kAPITagThreadAdvertisement] + 2             == sAPICallCounters[kAPITagThreadAdvertisement]);
     NL_TEST_ASSERT(inSuite, callCounterSnapshot[kAPITagThreadRoute]                         == sAPICallCounters[kAPITagThreadRoute]);
@@ -708,7 +732,11 @@ static void CheckWiFiThreadRouteBorderTunnel(nlTestSuite *inSuite, void *inConte
     uint32_t callCounterSnapshot[sizeof(sAPICallCounters) / sizeof(sAPICallCounters[0])];
                                                                               // legacy, thread, wifi, tunnel, cellular
     bool requiredInterfaceStateHostAddress[Warm::kInterfaceTypeMax]           = { true,  true,  true,  true,  false };
+#if WARM_CONFIG_ENABLE_BACKUP_ROUTING_OVER_THREAD
     bool requiredInterfaceStateHostRoute[Warm::kInterfaceTypeMax]             = { false, true,  false, true,  false };
+#else
+    bool requiredInterfaceStateHostRoute[Warm::kInterfaceTypeMax]             = { false, false,  false, true,  false };
+#endif // WARM_CONFIG_ENABLE_BACKUP_ROUTING_OVER_THREAD
     bool requiredInterfaceStateThreadAddress[Warm::kInterfaceTypeMax]         = { true,  true,  false, false, false };
     bool requiredInterfaceStateThreadAdvertisement[Warm::kInterfaceTypeMax]   = { false, true,  false, false, false };
     bool requiredInterfaceStateThreadRoute[Warm::kInterfaceTypeMax]           = { false, true,  false, false, false };
@@ -742,12 +770,14 @@ static void CheckWiFiThreadRouteBorderTunnel(nlTestSuite *inSuite, void *inConte
     // Test that the expected number of platform API calls are made.
 
     NL_TEST_ASSERT(inSuite, callCounterSnapshot[kAPITagHostAddress] + 4                     == sAPICallCounters[kAPITagHostAddress]);
+#if WARM_CONFIG_ENABLE_BACKUP_ROUTING_OVER_THREAD
     NL_TEST_ASSERT(inSuite, callCounterSnapshot[kAPITagHostRoute] + 2                       == sAPICallCounters[kAPITagHostRoute]);
+#else
+    NL_TEST_ASSERT(inSuite, callCounterSnapshot[kAPITagHostRoute] + 1                       == sAPICallCounters[kAPITagHostRoute]);
+#endif // WARM_CONFIG_ENABLE_BACKUP_ROUTING_OVER_THREAD
     NL_TEST_ASSERT(inSuite, callCounterSnapshot[kAPITagThreadAddress] + 2                   == sAPICallCounters[kAPITagThreadAddress]);
     NL_TEST_ASSERT(inSuite, callCounterSnapshot[kAPITagThreadAdvertisement] + 1             == sAPICallCounters[kAPITagThreadAdvertisement]);
-#if WARM_CONFIG_ENABLE_BACKUP_ROUTING_OVER_THREAD
     NL_TEST_ASSERT(inSuite, callCounterSnapshot[kAPITagThreadRoute] + 1                     == sAPICallCounters[kAPITagThreadRoute]);
-#endif
 
     NL_TEST_ASSERT(inSuite, sAPICallCounters[kAPITagCriticalSectionEnter]                   == sAPICallCounters[kAPITagCriticalSectionExit]);
     NL_TEST_ASSERT(inSuite, callCounterSnapshot[kAPITagInitRequestInvokeActions] + 8        == sAPICallCounters[kAPITagInitRequestInvokeActions]);
@@ -757,9 +787,7 @@ static void CheckWiFiThreadRouteBorderTunnel(nlTestSuite *inSuite, void *inConte
     NL_TEST_ASSERT(inSuite, 0 == memcmp(requiredInterfaceStateHostRoute,           sAPIInterfaceStateHostRoute,           sizeof(sAPIInterfaceStateHostRoute)));
     NL_TEST_ASSERT(inSuite, 0 == memcmp(requiredInterfaceStateThreadAddress,       sAPIInterfaceStateThreadAddress,       sizeof(sAPIInterfaceStateThreadAddress)));
     NL_TEST_ASSERT(inSuite, 0 == memcmp(requiredInterfaceStateThreadAdvertisement, sAPIInterfaceStateThreadAdvertisement, sizeof(sAPIInterfaceStateThreadAdvertisement)));
-#if WARM_CONFIG_ENABLE_BACKUP_ROUTING_OVER_THREAD
     NL_TEST_ASSERT(inSuite, 0 == memcmp(requiredInterfaceStateThreadRoute,         sAPIInterfaceStateThreadRoute,         sizeof(sAPIInterfaceStateThreadRoute)));
-#endif
 
     // Test that the IP Addresses are set as expected.
     globalId = nl::Weave::WeaveFabricIdToIPv6GlobalId(sFabricState.FabricId);
@@ -852,12 +880,14 @@ static void CheckWiFiThreadRouteBorderTunnel(nlTestSuite *inSuite, void *inConte
     // Test that the expected number of platform API calls are made.
 
     NL_TEST_ASSERT(inSuite, callCounterSnapshot[kAPITagHostAddress] + 8                     == sAPICallCounters[kAPITagHostAddress]);
+#if WARM_CONFIG_ENABLE_BACKUP_ROUTING_OVER_THREAD
     NL_TEST_ASSERT(inSuite, callCounterSnapshot[kAPITagHostRoute] + 4                       == sAPICallCounters[kAPITagHostRoute]);
+#else
+    NL_TEST_ASSERT(inSuite, callCounterSnapshot[kAPITagHostRoute] + 2                       == sAPICallCounters[kAPITagHostRoute]);
+#endif // WARM_CONFIG_ENABLE_BACKUP_ROUTING_OVER_THREAD
     NL_TEST_ASSERT(inSuite, callCounterSnapshot[kAPITagThreadAddress] + 4                   == sAPICallCounters[kAPITagThreadAddress]);
     NL_TEST_ASSERT(inSuite, callCounterSnapshot[kAPITagThreadAdvertisement] + 2             == sAPICallCounters[kAPITagThreadAdvertisement]);
-#if WARM_CONFIG_ENABLE_BACKUP_ROUTING_OVER_THREAD
     NL_TEST_ASSERT(inSuite, callCounterSnapshot[kAPITagThreadRoute] + 2                     == sAPICallCounters[kAPITagThreadRoute]);
-#endif
 
     NL_TEST_ASSERT(inSuite, sAPICallCounters[kAPITagCriticalSectionEnter]                   == sAPICallCounters[kAPITagCriticalSectionExit]);
     NL_TEST_ASSERT(inSuite, callCounterSnapshot[kAPITagInitRequestInvokeActions] + 15       == sAPICallCounters[kAPITagInitRequestInvokeActions]);
@@ -886,7 +916,7 @@ static void CheckWiFiThreadRouteBorderTunnel(nlTestSuite *inSuite, void *inConte
 #if WARM_CONFIG_ENABLE_BACKUP_ROUTING_OVER_THREAD
     // Test that correct route is removed.
     NL_TEST_ASSERT(inSuite, prefix == sAPIInterfaceHostRoute[Warm::kInterfaceTypeThread]);
-#endif
+#endif // WARM_CONFIG_ENABLE_BACKUP_ROUTING_OVER_THREAD
 
     NL_TEST_ASSERT(inSuite, prefix == sAPIInterfaceHostRoute[Warm::kInterfaceTypeTunnel]);
 
