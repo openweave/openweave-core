@@ -3413,8 +3413,8 @@ static void CheckLastObservedEventId(nlTestSuite *inSuite, void *inContext)
 {
 #define ARRAY_SIZE(x) (sizeof(x) / sizeof(x[0]))
 
-    event_id_t prod_eids[3] = {0};
-    event_id_t info_eids[3] = {0};
+    event_id_t prod_eids[3];
+    event_id_t info_eids[3];
 
     TestLoggingContext *context = static_cast<TestLoggingContext *>(inContext);
 
