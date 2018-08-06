@@ -1188,13 +1188,19 @@ class DeviceMgrCmd(Cmd):
 
     def do_addthreadnetwork(self, line):
         """
-          add-thread-network <name> <extended-pan-id> [ <key> ]
+          add-thread-network <name> <extended-pan-id> [ <key> ] [ <field>=<value>... ]
 
           Provision a new Thread network.
 
             <name>: string name of network
             <extended-pan-id>: hex string (8 bytes)
             <key>: hex string (any length)
+
+            <field>:
+              thread-key or key
+              thread-pan-id or pan-id
+              thread-channel or channel
+              ...
         """
 
         args = shlex.split(line)
@@ -1203,19 +1209,14 @@ class DeviceMgrCmd(Cmd):
             print "Usage:"
             self.do_help('add-thread-network')
             return
-        if (len(args) == 1):
-            print "Please specify the extended PAN id"
-            return
-        if (len(args) == 2):
-            print "Please specify the network key"
-            return
-        if (len(args) > 3):
-            print "Unexpected argument: " + args[3]
+        if (len(args) < 2):
+            print "Please specify the Network Name and Extended PAN Identifier"
             return
 
         networkInfo = WeaveDeviceMgr.NetworkInfo()
         networkInfo.NetworkType = WeaveDeviceMgr.NetworkType_Thread
         networkInfo.ThreadNetworkName = args[0]
+
         try:
             networkInfo.ThreadExtendedPANId = bytearray(binascii.unhexlify(args[1]))
             if len(networkInfo.ThreadExtendedPANId) != 8:
@@ -1224,11 +1225,56 @@ class DeviceMgrCmd(Cmd):
         except ValueError:
             print "Invalid value specified for thread extended PAN id: " + args[1]
             return
-        try:
-            networkInfo.ThreadNetworkKey = bytearray(binascii.unhexlify(args[2]))
-        except ValueError:
-            print "Invalid value specified for thread network key: " + args[2]
-            return
+
+        kvstart = 3 if (len(args[2].split('=', 1)) == 1) else 2
+
+        if (kvstart > 2):
+            try:
+                networkInfo.ThreadNetworkKey = bytearray(binascii.unhexlify(args[2]))
+            except ValueError:
+                print "Invalid value for Thread Network Key"
+                return
+
+        for addedVal in args[kvstart:]:
+            pair = addedVal.split('=', 1)
+            if (len(pair) < 2):
+                print "Invalid argument: must be key=value format <" + addedVal + ">"
+                return
+
+            name = pair[0]
+            val = pair[1]
+
+            if name == 'key':
+                name = 'threadnetworkkey'
+            elif name == 'channel':
+                name = 'threadchannel'
+            elif name == 'extended-pan-id':
+                name = 'threadextendedpanid'
+
+            try:
+                if (name == 'threadchannel' or name == 'thread-channel'):
+                    val = int(val, 10)
+                elif (name == 'threadnetworkkey' or name == 'thread-network-key' or name == 'thread-key'):
+                    val = bytearray(binascii.unhexlify(val))
+                elif (name == 'threadextendedpanid' or name == 'thread-extended-pan-id'):
+                    val = bytearray(binascii.unhexlify(val))
+                elif (name == 'threadpanid' or name == 'thread-pan-id' or name == 'pan-id'):
+                    val = int(val, 16)
+            except ValueError:
+                print "Invalid value specified for <" + name + "> field"
+                return
+
+            try:
+                networkInfo.SetField(name, val)
+            except Exception, ex:
+                print str(ex)
+                return
+
+        if networkInfo.ThreadPANId  != None:
+            panId=networkInfo.ThreadPANId
+            if panId < 1 or panId > 0xffff:
+                print "Thread PAN Id must be non-zero and 2 bytes in hex"
+                return
 
         try:
             addResult = self.devMgr.AddNetwork(networkInfo)
