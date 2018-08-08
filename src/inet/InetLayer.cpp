@@ -93,19 +93,24 @@ namespace Inet {
 void InetLayer::UpdateSnapshot(nl::Weave::System::Stats::Snapshot &aSnapshot)
 {
 #if INET_CONFIG_ENABLE_DNS_RESOLVER
-    DNSResolver::sPool.GetStatistics(aSnapshot.mResourcesInUse[nl::Weave::System::Stats::kInetLayer_NumDNSResolvers]);
+    DNSResolver::sPool.GetStatistics(aSnapshot.mResourcesInUse[nl::Weave::System::Stats::kInetLayer_NumDNSResolvers],
+                                     aSnapshot.mHighWatermarks[nl::Weave::System::Stats::kInetLayer_NumDNSResolvers]);
 #endif // INET_CONFIG_ENABLE_DNS_RESOLVER
 #if INET_CONFIG_ENABLE_TCP_ENDPOINT
-    TCPEndPoint::sPool.GetStatistics(aSnapshot.mResourcesInUse[nl::Weave::System::Stats::kInetLayer_NumTCPEps]);
+    TCPEndPoint::sPool.GetStatistics(aSnapshot.mResourcesInUse[nl::Weave::System::Stats::kInetLayer_NumTCPEps],
+                                     aSnapshot.mHighWatermarks[nl::Weave::System::Stats::kInetLayer_NumTCPEps]);
 #endif // INET_CONFIG_ENABLE_TCP_ENDPOINT
 #if INET_CONFIG_ENABLE_UDP_ENDPOINT
-    UDPEndPoint::sPool.GetStatistics(aSnapshot.mResourcesInUse[nl::Weave::System::Stats::kInetLayer_NumUDPEps]);
+    UDPEndPoint::sPool.GetStatistics(aSnapshot.mResourcesInUse[nl::Weave::System::Stats::kInetLayer_NumUDPEps],
+                                     aSnapshot.mHighWatermarks[nl::Weave::System::Stats::kInetLayer_NumUDPEps]);
 #endif // INET_CONFIG_ENABLE_UDP_ENDPOINT
 #if INET_CONFIG_ENABLE_RAW_ENDPOINT
-    RawEndPoint::sPool.GetStatistics(aSnapshot.mResourcesInUse[nl::Weave::System::Stats::kInetLayer_NumRawEps]);
+    RawEndPoint::sPool.GetStatistics(aSnapshot.mResourcesInUse[nl::Weave::System::Stats::kInetLayer_NumRawEps],
+                                     aSnapshot.mHighWatermarks[nl::Weave::System::Stats::kInetLayer_NumRawEps]);
 #endif // INET_CONFIG_ENABLE_RAW_ENDPOINT
 #if INET_CONFIG_ENABLE_TUN_ENDPOINT
-    TunEndPoint::sPool.GetStatistics(aSnapshot.mResourcesInUse[nl::Weave::System::Stats::kInetLayer_NumTunEps]);
+    TunEndPoint::sPool.GetStatistics(aSnapshot.mResourcesInUse[nl::Weave::System::Stats::kInetLayer_NumTunEps],
+                                     aSnapshot.mHighWatermarks[nl::Weave::System::Stats::kInetLayer_NumTunEps]);
 #endif // INET_CONFIG_ENABLE_TUN_ENDPOINT
 }
 

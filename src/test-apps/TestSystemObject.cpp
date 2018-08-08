@@ -27,6 +27,10 @@
 #define __STDC_LIMIT_MACROS
 #endif
 
+// Install a sleep in the high water mark function, to force
+// collisions between the threads that call it.
+#define SYSTEM_OBJECT_HWM_TEST_HOOK() do { usleep(1000); } while(0)
+
 #include <SystemLayer/SystemLayer.h>
 
 #include <Weave/Support/ErrorStr.h>
@@ -49,13 +53,15 @@
 
 
 // Test context
+using namespace nl::Weave::System;
 
-namespace {
+namespace nl {
+namespace Weave {
+namespace System {
 
 extern nlTestSuite kTheSuite;
 
 using nl::ErrorStr;
-using namespace nl::Weave::System;
 
 class TestObject : public Object
 {
@@ -64,9 +70,11 @@ public:
 
     static void CheckRetention(nlTestSuite* inSuite, void* aContext);
     static void CheckConcurrency(nlTestSuite* inSuite, void* aContext);
+    static void CheckHighWatermark(nlTestSuite* inSuite, void* aContext);
+    static void CheckHighWatermarkConcurrency(nlTestSuite* inSuite, void* aContext);
 
 private:
-    enum { kPoolSize = 1024 };
+    enum { kPoolSize = 122 }; // a multiple of kNumThreads, less than WEAVE_SYS_STATS_COUNT_MAX
     static ObjectPool<TestObject, kPoolSize> sPool;
 
 #if WEAVE_SYSTEM_CONFIG_POSIX_LOCKING
@@ -75,6 +83,8 @@ private:
     enum { kNumThreads = 16, kLoopIterations = 100000, kMaxDelayIterations = 3 };
     void Delay(volatile unsigned int& aAccumulator);
     static void* CheckConcurrencyThread(void* aContext);
+    static void* CheckHighWatermarkThread(void* aContext);
+    static void MultithreadedTest(nlTestSuite* inSuite, void* aContext, void *(*aStartRoutine) (void *));
 #endif // WEAVE_SYSTEM_CONFIG_POSIX_LOCKING
 
     // Not defined
@@ -203,6 +213,8 @@ void* TestObject::CheckConcurrencyThread(void* aContext)
 
     lLayer.Init(lContext.mLayerContext);
 
+    // Take this thread's share of objects
+
     for (i = 0; i < kNumObjects; ++i)
     {
         while (lObject == NULL)
@@ -217,6 +229,9 @@ void* TestObject::CheckConcurrencyThread(void* aContext)
         lObject->Delay(lContext.mAccumulator);
     }
 
+    // Free the last object of the pool, if it belongs to
+    // this thread.
+
     lObject = sPool.Get(lLayer, kPoolSize - 1);
 
     if (lObject != NULL)
@@ -224,6 +239,9 @@ void* TestObject::CheckConcurrencyThread(void* aContext)
         lObject->Release();
         NL_TEST_ASSERT(lContext.mTestSuite, !lObject->IsRetained(lLayer));
     }
+
+    // For each iteration, take one more object, and free one starting from the end
+    // of the pool
 
     for (i = 0; i < kLoopIterations; ++i)
     {
@@ -257,6 +275,8 @@ void* TestObject::CheckConcurrencyThread(void* aContext)
         NL_TEST_ASSERT(lContext.mTestSuite, lObject != NULL);
     }
 
+    // Cleanup
+
     for (i = 0; i < kPoolSize; ++i)
     {
         lObject = sPool.Get(lLayer, i);
@@ -271,21 +291,39 @@ void* TestObject::CheckConcurrencyThread(void* aContext)
 
     return aContext;
 }
-#endif // WEAVE_SYSTEM_CONFIG_POSIX_LOCKING
 
-void TestObject::CheckConcurrency(nlTestSuite* inSuite, void* aContext)
+void* TestObject::CheckHighWatermarkThread(void* aContext)
+{
+    TestContext&        lContext        = *static_cast<TestContext*>(aContext);
+    unsigned int        i;
+    nl::Weave::System::Stats::count_t lNumInUse;
+    nl::Weave::System::Stats::count_t lHighWatermark;
+
+    i = (rand() % WEAVE_SYS_STATS_COUNT_MAX);
+
+    sPool.UpdateHighWatermark(i);
+
+    sPool.GetStatistics(lNumInUse, lHighWatermark);
+
+    NL_TEST_ASSERT(lContext.mTestSuite, lHighWatermark >= i);
+    if (lHighWatermark < i)
+    {
+        printf("hwm: %d, i: %u\n", lHighWatermark, i);
+    }
+
+    return aContext;
+}
+
+void TestObject::MultithreadedTest(nlTestSuite* inSuite, void* aContext, void *(*aStartRoutine) (void *))
 {
     TestContext& lContext = *static_cast<TestContext*>(aContext);
-#if WEAVE_SYSTEM_CONFIG_POSIX_LOCKING
     pthread_t lThread[kNumThreads];
-#endif // WEAVE_SYSTEM_CONFIG_POSIX_LOCKING
 
     memset(&sPool, 0, sizeof(sPool));
 
-#if WEAVE_SYSTEM_CONFIG_POSIX_LOCKING
     for (unsigned int i = 0; i < kNumThreads; ++i)
     {
-        int lError = pthread_create(&lThread[i], NULL, CheckConcurrencyThread, &lContext);
+        int lError = pthread_create(&lThread[i], NULL, aStartRoutine, &lContext);
 
         NL_TEST_ASSERT(lContext.mTestSuite, lError == 0);
     }
@@ -296,7 +334,115 @@ void TestObject::CheckConcurrency(nlTestSuite* inSuite, void* aContext)
 
         NL_TEST_ASSERT(lContext.mTestSuite, lError == 0);
     }
+}
 #endif // WEAVE_SYSTEM_CONFIG_POSIX_LOCKING
+
+
+void TestObject::CheckConcurrency(nlTestSuite* inSuite, void* aContext)
+{
+#if WEAVE_SYSTEM_CONFIG_POSIX_LOCKING
+    MultithreadedTest(inSuite, aContext, CheckConcurrencyThread);
+#endif // WEAVE_SYSTEM_CONFIG_POSIX_LOCKING
+}
+
+void TestObject::CheckHighWatermarkConcurrency(nlTestSuite* inSuite, void* aContext)
+{
+#if WEAVE_SYSTEM_CONFIG_POSIX_LOCKING
+    for (unsigned int i = 0; i < 1000; i++)
+    {
+        MultithreadedTest(inSuite, aContext, CheckHighWatermarkThread);
+    }
+#endif // WEAVE_SYSTEM_CONFIG_POSIX_LOCKING
+}
+
+void TestObject::CheckHighWatermark(nlTestSuite* inSuite, void* aContext)
+{
+    memset(&sPool, 0, sizeof(sPool));
+
+    const unsigned int  kNumObjects     = kPoolSize;
+    TestObject*         lObject         = NULL;
+    TestContext&        lContext        = *static_cast<TestContext*>(aContext);
+    Layer               lLayer;
+    unsigned int        i;
+    nl::Weave::System::Stats::count_t lNumInUse;
+    nl::Weave::System::Stats::count_t lHighWatermark;
+
+    lLayer.Init(lContext.mLayerContext);
+
+    // Take all objects one at a time and check the watermark
+    // increases monotonically
+
+    for (i = 0; i < kNumObjects; ++i)
+    {
+        lObject = sPool.TryCreate(lLayer);
+
+        NL_TEST_ASSERT(lContext.mTestSuite, lObject->IsRetained(lLayer));
+        NL_TEST_ASSERT(lContext.mTestSuite, &(lObject->SystemLayer()) == &lLayer);
+
+        sPool.GetStatistics(lNumInUse, lHighWatermark);
+        NL_TEST_ASSERT(lContext.mTestSuite, lNumInUse == (i+1));
+        NL_TEST_ASSERT(lContext.mTestSuite, lHighWatermark == lNumInUse);
+
+        lObject->Init();
+    }
+
+    // Fail an allocation and check that both stats don't change
+
+    lObject = sPool.TryCreate(lLayer);
+    NL_TEST_ASSERT(lContext.mTestSuite, lObject == NULL);
+
+    sPool.GetStatistics(lNumInUse, lHighWatermark);
+    NL_TEST_ASSERT(lContext.mTestSuite, lNumInUse == kNumObjects);
+    NL_TEST_ASSERT(lContext.mTestSuite, lHighWatermark == kNumObjects);
+
+    // Free all objects one at a time and check that the watermark does not
+    // change.
+
+    for (i = 0; i < kNumObjects; ++i)
+    {
+        lObject = sPool.Get(lLayer, i);
+
+        NL_TEST_ASSERT(lContext.mTestSuite, lObject != NULL);
+
+        lObject->Release();
+        NL_TEST_ASSERT(lContext.mTestSuite, !lObject->IsRetained(lLayer));
+
+        sPool.GetStatistics(lNumInUse, lHighWatermark);
+        NL_TEST_ASSERT(lContext.mTestSuite, lNumInUse == (kNumObjects - i -1));
+        NL_TEST_ASSERT(lContext.mTestSuite, lHighWatermark == kNumObjects);
+    }
+
+    // Take all objects one at a time  again and check the watermark
+    // does not move
+
+    for (i = 0; i < kNumObjects; ++i)
+    {
+        lObject = sPool.TryCreate(lLayer);
+
+        NL_TEST_ASSERT(lContext.mTestSuite, lObject->IsRetained(lLayer));
+        NL_TEST_ASSERT(lContext.mTestSuite, &(lObject->SystemLayer()) == &lLayer);
+
+        sPool.GetStatistics(lNumInUse, lHighWatermark);
+        NL_TEST_ASSERT(lContext.mTestSuite, lNumInUse == (i+1));
+        NL_TEST_ASSERT(lContext.mTestSuite, lHighWatermark == kNumObjects);
+
+        lObject->Init();
+    }
+
+
+    // Cleanup
+
+    for (i = 0; i < kPoolSize; ++i)
+    {
+        lObject = sPool.Get(lLayer, i);
+
+        if (lObject == NULL) continue;
+
+        lObject->Release();
+        NL_TEST_ASSERT(lContext.mTestSuite, !lObject->IsRetained(lLayer));
+    }
+
+    lLayer.Shutdown();
 }
 
 
@@ -309,6 +455,8 @@ void TestObject::CheckConcurrency(nlTestSuite* inSuite, void* aContext)
 const nlTest sTests[] = {
     NL_TEST_DEF("Retention", TestObject::CheckRetention),
     NL_TEST_DEF("Concurrency", TestObject::CheckConcurrency),
+    NL_TEST_DEF("HighWatermark", TestObject::CheckHighWatermark),
+    NL_TEST_DEF("HighWatermarkConcurrency", TestObject::CheckHighWatermarkConcurrency),
     NL_TEST_SENTINEL()
 };
 
@@ -357,7 +505,10 @@ nlTestSuite kTheSuite = {
     Finalize
 };
 
-} // end anonymous namespace
+} // System
+} // Weave
+} // nl
+
 
 int main(int argc, char *argv[])
 {
@@ -368,7 +519,8 @@ int main(int argc, char *argv[])
     nl_test_set_output_style(OUTPUT_CSV);
 
     // Run test suit againt one lContext.
-    nlTestRunner(&kTheSuite, &sContext);
+    nlTestRunner(&kTheSuite, &nl::Weave::System::sContext);
 
     return nlTestRunnerStats(&kTheSuite);
 }
+

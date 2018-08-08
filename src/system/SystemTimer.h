@@ -85,7 +85,7 @@ public:
     Error Start(uint32_t aDelayMilliseconds, OnCompleteFunct aOnComplete, void* aAppState);
     Error Cancel(void);
 
-    static void GetStatistics(nl::Weave::System::Stats::count_t& aNumInUse);
+    static void GetStatistics(nl::Weave::System::Stats::count_t& aNumInUse, nl::Weave::System::Stats::count_t& aHighWatermark);
 
 #if WEAVE_SYSTEM_CONFIG_PROVIDE_OBSOLESCENT_INTERFACES
     void AttachInetLayer(Inet::InetLayer& aInetLayer, void* aOnCompleteInetLayer, void* aAppStateInetLayer);
@@ -121,9 +121,10 @@ private:
 };
 
 
-inline void Timer::GetStatistics(nl::Weave::System::Stats::count_t& aNumInUse)
+inline void Timer::GetStatistics(nl::Weave::System::Stats::count_t& aNumInUse,
+                                 nl::Weave::System::Stats::count_t& aHighWatermark)
 {
-    sPool.GetStatistics(aNumInUse);
+    sPool.GetStatistics(aNumInUse, aHighWatermark);
 }
 
 #if WEAVE_SYSTEM_CONFIG_PROVIDE_OBSOLESCENT_INTERFACES
