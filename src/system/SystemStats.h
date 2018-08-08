@@ -109,6 +109,7 @@ enum
 
 typedef int8_t count_t;
 #define PRI_WEAVE_SYS_STATS_COUNT PRId8
+#define WEAVE_SYS_STATS_COUNT_MAX INT8_MAX
 
 extern count_t ResourcesInUse[kNumEntries];
 extern count_t HighWatermarks[kNumEntries];

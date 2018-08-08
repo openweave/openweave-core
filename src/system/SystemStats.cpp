@@ -72,16 +72,16 @@ static const Label sStatsStrings[nl::Weave::System::Stats::kNumEntries] =
 #endif
 
 #if WDM_ENABLE_SUBSCRIPTION_PUBLISHER
-    "kWDM_NumTraits",
+    "WDM_NumTraits",
 #endif
 #if WDM_ENABLE_SUBSCRIPTION_CLIENT
-    "kWDM_NumSubscriptionClients",
+    "WDM_NumSubscriptionClients",
 #endif
 #if WDM_ENABLE_SUBSCRIPTION_PUBLISHER
-    "kWDM_NumSubscriptionHandlers",
+    "WDM_NumSubscriptionHandlers",
 #endif
 #if WDM_PUBLISHER_ENABLE_CUSTOM_COMMANDS
-    "kWDM_NumCommands",
+    "WDM_NumCommands",
 #endif
 
 #if WEAVE_CONFIG_LEGACY_WDM
@@ -120,7 +120,8 @@ void UpdateSnapshot(Snapshot &aSnapshot)
     memcpy(&aSnapshot.mResourcesInUse, &sResourcesInUse, sizeof(aSnapshot.mResourcesInUse));
     memcpy(&aSnapshot.mHighWatermarks, &sHighWatermarks, sizeof(aSnapshot.mHighWatermarks));
 
-    nl::Weave::System::Timer::GetStatistics(aSnapshot.mResourcesInUse[kSystemLayer_NumTimers]);
+    nl::Weave::System::Timer::GetStatistics(aSnapshot.mResourcesInUse[kSystemLayer_NumTimers],
+                                            aSnapshot.mHighWatermarks[kSystemLayer_NumTimers]);
 
     SYSTEM_STATS_UPDATE_LWIP_PBUF_COUNTS();
 }

@@ -35,11 +35,16 @@
 // Include dependent headers
 #include <stddef.h>
 #include <stdint.h>
+#include <unistd.h>
 
 #include <Weave/Support/NLDLLUtil.h>
 
 #include <SystemLayer/SystemError.h>
 #include <SystemLayer/SystemStats.h>
+
+#ifndef SYSTEM_OBJECT_HWM_TEST_HOOK
+#define SYSTEM_OBJECT_HWM_TEST_HOOK()
+#endif
 
 namespace nl {
 namespace Weave {
@@ -177,10 +182,18 @@ public:
 
     T* Get(const Layer& aLayer, size_t aIndex);
     T* TryCreate(Layer& aLayer);
-    void GetStatistics(nl::Weave::System::Stats::count_t& aNumInUse);
+    void GetStatistics(nl::Weave::System::Stats::count_t& aNumInUse, nl::Weave::System::Stats::count_t& aHighWatermark);
 
 private:
+    friend class TestObject;
+
     ObjectArena<void*, N * sizeof(T)> mArena;
+
+#if WEAVE_SYSTEM_CONFIG_PROVIDE_STATISTICS
+    void GetNumObjectsInUse(unsigned int aStartIndex, unsigned int& aNumInUse);
+    void UpdateHighWatermark(const unsigned int& aCandidate);
+    volatile unsigned int mHighWatermark;
+#endif
 };
 
 /**
@@ -218,10 +231,15 @@ template<class T, unsigned int N>
 inline T* ObjectPool<T, N>::TryCreate(Layer& aLayer)
 {
     T* lReturn = NULL;
+    unsigned int lIndex;
+#if WEAVE_SYSTEM_CONFIG_PROVIDE_STATISTICS
+    unsigned int lNumInUse = 0;
+#endif
 
-    for (unsigned int lIndex = 0; lIndex < N; ++lIndex)
+    for (lIndex = 0; lIndex < N; ++lIndex)
     {
         T& lObject = reinterpret_cast<T*>(mArena.uMemory)[lIndex];
+
 
         if (lObject.TryCreate(aLayer, sizeof(T)))
         {
@@ -230,21 +248,92 @@ inline T* ObjectPool<T, N>::TryCreate(Layer& aLayer)
         }
     }
 
+#if WEAVE_SYSTEM_CONFIG_PROVIDE_STATISTICS
+    if (lReturn != NULL)
+    {
+        lIndex++;
+        lNumInUse = lIndex;
+        GetNumObjectsInUse(lIndex, lNumInUse);
+    }
+    else
+    {
+        lNumInUse = N;
+    }
+
+    UpdateHighWatermark(lNumInUse);
+#endif
+
     return lReturn;
 }
 
+#if WEAVE_SYSTEM_CONFIG_PROVIDE_STATISTICS
 template<class T, unsigned int N>
-inline void ObjectPool<T, N>::GetStatistics(nl::Weave::System::Stats::count_t& aNumInUse)
+inline void ObjectPool<T, N>::UpdateHighWatermark(const unsigned int& aCandidate)
 {
-    aNumInUse = 0;
+    unsigned int lTmp;
 
-    for (size_t lIndex = 0; lIndex < N; ++lIndex)
+    while (aCandidate > (lTmp = mHighWatermark))
+    {
+        SYSTEM_OBJECT_HWM_TEST_HOOK();
+        (void)__sync_bool_compare_and_swap(&mHighWatermark, lTmp, aCandidate);
+    }
+}
+
+/**
+ * Return the number of objects in use starting at a given index
+ *
+ * @param[in] aStartIndex      The index to start counting from; pass 0 to count over
+ *                             the whole pool.
+ * @param[in/out] aNumInUse    The number of objects in use. If aStartIndex is not 0,
+ *                             the function adds to the counter without resetting it first.
+ */
+template<class T, unsigned int N>
+inline void ObjectPool<T, N>::GetNumObjectsInUse(unsigned int aStartIndex, unsigned int& aNumInUse)
+{
+    unsigned int count = 0;
+
+    for (unsigned int lIndex = aStartIndex; lIndex < N; ++lIndex)
     {
         T& lObject = reinterpret_cast<T*>(mArena.uMemory)[lIndex];
 
         if (lObject.mSystemLayer != NULL)
-            aNumInUse++;
+        {
+            count++;
+        }
     }
+
+    if (aStartIndex == 0)
+    {
+        aNumInUse = 0;
+    }
+
+    aNumInUse += count;
+}
+#endif
+
+
+template<class T, unsigned int N>
+inline void ObjectPool<T, N>::GetStatistics(nl::Weave::System::Stats::count_t& aNumInUse,
+                                            nl::Weave::System::Stats::count_t& aHighWatermark)
+{
+#if WEAVE_SYSTEM_CONFIG_PROVIDE_STATISTICS
+    unsigned int lNumInUse;
+    unsigned int lHighWatermark;
+
+    GetNumObjectsInUse(0, lNumInUse);
+    lHighWatermark = mHighWatermark;
+
+    if (lNumInUse > WEAVE_SYS_STATS_COUNT_MAX)
+    {
+        lNumInUse = WEAVE_SYS_STATS_COUNT_MAX;
+    }
+    if (lHighWatermark > WEAVE_SYS_STATS_COUNT_MAX)
+    {
+        lHighWatermark = WEAVE_SYS_STATS_COUNT_MAX;
+    }
+    aNumInUse = static_cast<nl::Weave::System::Stats::count_t>(lNumInUse);
+    aHighWatermark = static_cast<nl::Weave::System::Stats::count_t>(lHighWatermark);
+#endif
 }
 
 } // namespace System
