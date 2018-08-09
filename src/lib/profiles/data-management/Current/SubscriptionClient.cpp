@@ -2499,6 +2499,7 @@ void SubscriptionClient::OnUpdateConfirm(WEAVE_ERROR aReason, nl::Weave::Profile
         mInProgressUpdateList.GetItemAt(j, traitPath);
 
         updatableDataSink = Locate(traitPath.mTraitDataHandle, mDataSinkCatalog);
+        VerifyOrExit(updatableDataSink != NULL, err = WEAVE_ERROR_WDM_SCHEMA_MISMATCH);
 
         if (! mInProgressUpdateList.AreFlagsSet(j, kFlag_Private))
         {
