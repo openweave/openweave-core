@@ -197,6 +197,7 @@ class BuilderBase
 {
 public:
     void ResetError(void);
+    void ResetError(WEAVE_ERROR aErr);
     WEAVE_ERROR GetError(void) const { return mError; };
     nl::Weave::TLV::TLVWriter * GetWriter(void) { return mpWriter; };
 
@@ -224,6 +225,7 @@ protected:
 
 public:
     WEAVE_ERROR Init(nl::Weave::TLV::TLVWriter * const apWriter, const uint8_t aContextTagToUse);
+    WEAVE_ERROR Init(nl::Weave::TLV::TLVWriter * const apWriter);
 };
 
 /**
@@ -324,6 +326,7 @@ namespace StatusElement {
     };
 
     class Parser;
+    class Builder;
 }; // namespace DataElement
 
 /**
@@ -342,15 +345,35 @@ public:
     // 3) any tag can only appear once
     // At the top level of the structure, unknown tags are ignored for foward compatibility
     WEAVE_ERROR CheckSchemaValidity(void) const;
+    WEAVE_ERROR CheckSchemaValidityDeprecated(void) const;
+    WEAVE_ERROR CheckSchemaValidityCurrent(void) const;
 
     // WEAVE_END_OF_TLV if there is no such element
     // WEAVE_ERROR_WRONG_TLV_TYPE if there is such element but it's not any of the defined unsigned integer types
-    WEAVE_ERROR GetProfileID(uint32_t * apProfileID) const;
+    WEAVE_ERROR GetProfileIDAndStatusCode(uint32_t * apProfileID, uint16_t * aStatusCode) const;
 
-    // WEAVE_END_OF_TLV if there is no such element
-    // WEAVE_ERROR_WRONG_TLV_TYPE if there is such element but it's not any of the defined unsigned integer types
-    WEAVE_ERROR GetStatus(uint16_t * apStatus) const;
+private:
+    bool mDeprecatedFormat;
 };
+
+/**
+ *  @brief
+ *    WDM Status Element encoder definition
+ */
+class StatusElement::Builder : public ListBuilderBase
+{
+public:
+    WEAVE_ERROR Init(nl::Weave::TLV::TLVWriter * const apWriter);
+    WEAVE_ERROR InitDeprecated(nl::Weave::TLV::TLVWriter * const apWriter);
+
+    StatusElement::Builder & ProfileIDAndStatus(const uint32_t aProfileID, const uint16_t aStatusCode);
+
+    StatusElement::Builder & EndOfStatusElement(void);
+
+private:
+    bool mDeprecatedFormat;
+};
+
 
 /**
  *  @brief
@@ -661,14 +684,35 @@ public:
 
 namespace StatusList {
     class Parser;
+    class Builder;
 }; // namespace StatusList
+
+/**
+ * StatusList builder.
+ * Supports both the current and the deprecated StatusList format.
+ */
+class StatusList::Builder : public ListBuilderBase
+{
+public:
+
+    /**
+     * Write the list as an array of structures, instead of an array of arrays.
+     */
+    void UseDeprecatedFormat() { this->mDeprecatedFormat = true; }
+
+    StatusList::Builder & AddStatus(uint32_t aProfileID, uint16_t aStatusCode);
+
+    StatusList::Builder & EndOfStatusList(void);
+private:
+    bool mDeprecatedFormat;
+
+};
 
 class StatusList::Parser : public ListParserBase
 {
 public:
     WEAVE_ERROR CheckSchemaValidity(void) const;
-    WEAVE_ERROR GetVersion(uint64_t * const apVersion);
-    WEAVE_ERROR GetStatusAndProfileID(uint32_t * const apProfileID, uint16_t * const apStatusCode);
+    WEAVE_ERROR GetProfileIDAndStatusCode(uint32_t * const apProfileID, uint16_t * const apStatusCode);
 };
 
 namespace ViewRequest {
@@ -1477,6 +1521,41 @@ namespace UpdateResponse {
     };
 
     class Parser;
+    class Builder;
+};
+
+/**
+ *  @brief
+ *    WDM Update Response encoder definition
+ */
+class UpdateResponse::Builder : public BuilderBase
+{
+public:
+    WEAVE_ERROR Init(nl::Weave::TLV::TLVWriter * const apWriter);
+    /**
+     *  @brief Create the VersionList::Builder
+     *
+     *  @return A reference to a VersionList::Builder
+     */
+    VersionList::Builder & CreateVersionListBuilder(void);
+
+    /**
+     *  @brief Create the StatusList::Builder
+     *
+     *  @return A reference to a StatusList::Builder
+     */
+    StatusList::Builder & CreateStatusListBuilder(void);
+
+    /**
+     *  @brief Mark the end of this message
+     *
+     *  @return A reference to *this
+     */
+    UpdateResponse::Builder & EndOfResponse(void);
+
+private:
+    VersionList::Builder mVersionListBuilder;
+    StatusList::Builder mStatusListBuilder;
 };
 
 class UpdateResponse::Parser : public ParserBase

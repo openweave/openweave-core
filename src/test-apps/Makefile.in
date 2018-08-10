@@ -197,6 +197,7 @@ target_triplet = @target@
 @WEAVE_BUILD_TESTS_TRUE@	$(am__EXEEXT_1) TestTDM$(EXEEXT) \
 @WEAVE_BUILD_TESTS_TRUE@	TestPathStore$(EXEEXT) \
 @WEAVE_BUILD_TESTS_TRUE@	TestWdmUpdateEncoder$(EXEEXT) \
+@WEAVE_BUILD_TESTS_TRUE@	TestWdmUpdateResponse$(EXEEXT) \
 @WEAVE_BUILD_TESTS_TRUE@	$(am__EXEEXT_2) $(am__EXEEXT_3)
 @HAVE_CXX11_TRUE@@WEAVE_BUILD_TESTS_TRUE@am__append_7 = \
 @HAVE_CXX11_TRUE@@WEAVE_BUILD_TESTS_TRUE@    TestTDM                                      \
@@ -227,6 +228,7 @@ target_triplet = @target@
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_BUILD_WARM_TRUE@    TestWarm                                     \
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_BUILD_WARM_TRUE@	TestPathStore                                \
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_BUILD_WARM_TRUE@	TestWdmUpdateEncoder                         \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_BUILD_WARM_TRUE@	TestWdmUpdateResponse                        \
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_BUILD_WARM_TRUE@    $(NULL)
 
 @WEAVE_BUILD_LEGACY_WDM_TRUE@@WEAVE_BUILD_TESTS_TRUE@am__append_14 = \
@@ -709,7 +711,8 @@ am__installdirs = "$(DESTDIR)$(libexecdir)"
 @HAVE_CXX11_TRUE@@WEAVE_BUILD_TESTS_TRUE@	TestWDM$(EXEEXT)
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_BUILD_WARM_TRUE@am__EXEEXT_6 = TestWarm$(EXEEXT) \
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_BUILD_WARM_TRUE@	TestPathStore$(EXEEXT) \
-@WEAVE_BUILD_TESTS_TRUE@@WEAVE_BUILD_WARM_TRUE@	TestWdmUpdateEncoder$(EXEEXT)
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_BUILD_WARM_TRUE@	TestWdmUpdateEncoder$(EXEEXT) \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_BUILD_WARM_TRUE@	TestWdmUpdateResponse$(EXEEXT)
 @WEAVE_BUILD_TESTS_TRUE@am__EXEEXT_7 = GenerateEventLog$(EXEEXT) \
 @WEAVE_BUILD_TESTS_TRUE@	TestASN1$(EXEEXT) TestAppKeys$(EXEEXT) \
 @WEAVE_BUILD_TESTS_TRUE@	TestArgParser$(EXEEXT) \
@@ -1374,6 +1377,18 @@ TestWdmUpdateEncoder_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
 	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CXXLD) \
 	$(AM_CXXFLAGS) $(CXXFLAGS) $(TestWdmUpdateEncoder_LDFLAGS) \
 	$(LDFLAGS) -o $@
+am__TestWdmUpdateResponse_SOURCES_DIST = TestWdmUpdateResponse.cpp \
+	TestPersistedStorageImplementation.cpp
+@WEAVE_BUILD_TESTS_TRUE@am_TestWdmUpdateResponse_OBJECTS = TestWdmUpdateResponse-TestWdmUpdateResponse.$(OBJEXT) \
+@WEAVE_BUILD_TESTS_TRUE@	TestWdmUpdateResponse-TestPersistedStorageImplementation.$(OBJEXT)
+TestWdmUpdateResponse_OBJECTS = $(am_TestWdmUpdateResponse_OBJECTS)
+@WEAVE_BUILD_TESTS_TRUE@TestWdmUpdateResponse_DEPENDENCIES =  \
+@WEAVE_BUILD_TESTS_TRUE@	libWeaveTestCommon.a \
+@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_6)
+TestWdmUpdateResponse_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
+	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CXXLD) \
+	$(AM_CXXFLAGS) $(CXXFLAGS) $(TestWdmUpdateResponse_LDFLAGS) \
+	$(LDFLAGS) -o $@
 am__TestWeaveCert_SOURCES_DIST = TestWeaveCert.cpp \
 	TestWeaveCertData.cpp
 @WEAVE_BUILD_TESTS_TRUE@am_TestWeaveCert_OBJECTS =  \
@@ -1776,7 +1791,8 @@ SOURCES = $(libMockBleApplicationDelegate_a_SOURCES) \
 	$(TestWarm_SOURCES) $(TestWdmNext_SOURCES) \
 	$(TestWdmOneWayCommandReceiver_SOURCES) \
 	$(TestWdmOneWayCommandSender_SOURCES) \
-	$(TestWdmUpdateEncoder_SOURCES) $(TestWeaveCert_SOURCES) \
+	$(TestWdmUpdateEncoder_SOURCES) \
+	$(TestWdmUpdateResponse_SOURCES) $(TestWeaveCert_SOURCES) \
 	$(TestWeaveEncoding_SOURCES) $(TestWeaveFabricState_SOURCES) \
 	$(TestWeaveMessageLayer_SOURCES) \
 	$(TestWeaveProvBundle_SOURCES) $(TestWeaveSignature_SOURCES) \
@@ -1846,6 +1862,7 @@ DIST_SOURCES = $(am__libMockBleApplicationDelegate_a_SOURCES_DIST) \
 	$(am__TestWdmOneWayCommandReceiver_SOURCES_DIST) \
 	$(am__TestWdmOneWayCommandSender_SOURCES_DIST) \
 	$(am__TestWdmUpdateEncoder_SOURCES_DIST) \
+	$(am__TestWdmUpdateResponse_SOURCES_DIST) \
 	$(am__TestWeaveCert_SOURCES_DIST) \
 	$(am__TestWeaveEncoding_SOURCES_DIST) \
 	$(am__TestWeaveFabricState_SOURCES_DIST) \
@@ -3096,6 +3113,12 @@ EXTRA_DIST = \
 @WEAVE_BUILD_TESTS_TRUE@TestWdmUpdateEncoder_CPPFLAGS = $(AM_CPPFLAGS) -I$(top_srcdir)/src/test-apps/schema
 @WEAVE_BUILD_TESTS_TRUE@TestWdmUpdateEncoder_LDFLAGS = $(AM_CPPFLAGS)
 @WEAVE_BUILD_TESTS_TRUE@TestWdmUpdateEncoder_LDADD = libWeaveTestCommon.a $(COMMON_LDADD)
+@WEAVE_BUILD_TESTS_TRUE@TestWdmUpdateResponse_SOURCES = TestWdmUpdateResponse.cpp \
+@WEAVE_BUILD_TESTS_TRUE@                                                 TestPersistedStorageImplementation.cpp
+
+@WEAVE_BUILD_TESTS_TRUE@TestWdmUpdateResponse_CPPFLAGS = $(AM_CPPFLAGS) -I$(top_srcdir)/src/test-apps/schema
+@WEAVE_BUILD_TESTS_TRUE@TestWdmUpdateResponse_LDFLAGS = $(AM_CPPFLAGS)
+@WEAVE_BUILD_TESTS_TRUE@TestWdmUpdateResponse_LDADD = libWeaveTestCommon.a $(COMMON_LDADD)
 @WEAVE_BUILD_TESTS_TRUE@TestFabricStateDelegate_SOURCES = TestFabricStateDelegate.cpp TestPersistedStorageImplementation.cpp
 @WEAVE_BUILD_TESTS_TRUE@TestFabricStateDelegate_LDFLAGS = $(AM_CPPFLAGS)
 @WEAVE_BUILD_TESTS_TRUE@TestFabricStateDelegate_LDADD = libWeaveTestCommon.a $(COMMON_LDADD)
@@ -3859,6 +3882,10 @@ TestWdmUpdateEncoder$(EXEEXT): $(TestWdmUpdateEncoder_OBJECTS) $(TestWdmUpdateEn
 	@rm -f TestWdmUpdateEncoder$(EXEEXT)
 	$(AM_V_CXXLD)$(TestWdmUpdateEncoder_LINK) $(TestWdmUpdateEncoder_OBJECTS) $(TestWdmUpdateEncoder_LDADD) $(LIBS)
 
+TestWdmUpdateResponse$(EXEEXT): $(TestWdmUpdateResponse_OBJECTS) $(TestWdmUpdateResponse_DEPENDENCIES) $(EXTRA_TestWdmUpdateResponse_DEPENDENCIES) 
+	@rm -f TestWdmUpdateResponse$(EXEEXT)
+	$(AM_V_CXXLD)$(TestWdmUpdateResponse_LINK) $(TestWdmUpdateResponse_OBJECTS) $(TestWdmUpdateResponse_LDADD) $(LIBS)
+
 TestWeaveCert$(EXEEXT): $(TestWeaveCert_OBJECTS) $(TestWeaveCert_DEPENDENCIES) $(EXTRA_TestWeaveCert_DEPENDENCIES) 
 	@rm -f TestWeaveCert$(EXEEXT)
 	$(AM_V_CXXLD)$(CXXLINK) $(TestWeaveCert_OBJECTS) $(TestWeaveCert_LDADD) $(LIBS)
@@ -4095,6 +4122,8 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/TestWdmUpdateEncoder-MockWdmNodeOptions.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/TestWdmUpdateEncoder-TestPersistedStorageImplementation.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/TestWdmUpdateEncoder-TestWdmUpdateEncoder.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/TestWdmUpdateResponse-TestPersistedStorageImplementation.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/TestWdmUpdateResponse-TestWdmUpdateResponse.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/TestWeaveCert.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/TestWeaveCertData.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/TestWeaveEncoding.Po@am__quote@
@@ -5247,6 +5276,34 @@ TestWdmUpdateEncoder-TestPersistedStorageImplementation.obj: TestPersistedStorag
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(TestWdmUpdateEncoder_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o TestWdmUpdateEncoder-TestPersistedStorageImplementation.obj `if test -f 'TestPersistedStorageImplementation.cpp'; then $(CYGPATH_W) 'TestPersistedStorageImplementation.cpp'; else $(CYGPATH_W) '$(srcdir)/TestPersistedStorageImplementation.cpp'; fi`
 
+TestWdmUpdateResponse-TestWdmUpdateResponse.o: TestWdmUpdateResponse.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(TestWdmUpdateResponse_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT TestWdmUpdateResponse-TestWdmUpdateResponse.o -MD -MP -MF $(DEPDIR)/TestWdmUpdateResponse-TestWdmUpdateResponse.Tpo -c -o TestWdmUpdateResponse-TestWdmUpdateResponse.o `test -f 'TestWdmUpdateResponse.cpp' || echo '$(srcdir)/'`TestWdmUpdateResponse.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/TestWdmUpdateResponse-TestWdmUpdateResponse.Tpo $(DEPDIR)/TestWdmUpdateResponse-TestWdmUpdateResponse.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='TestWdmUpdateResponse.cpp' object='TestWdmUpdateResponse-TestWdmUpdateResponse.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(TestWdmUpdateResponse_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o TestWdmUpdateResponse-TestWdmUpdateResponse.o `test -f 'TestWdmUpdateResponse.cpp' || echo '$(srcdir)/'`TestWdmUpdateResponse.cpp
+
+TestWdmUpdateResponse-TestWdmUpdateResponse.obj: TestWdmUpdateResponse.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(TestWdmUpdateResponse_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT TestWdmUpdateResponse-TestWdmUpdateResponse.obj -MD -MP -MF $(DEPDIR)/TestWdmUpdateResponse-TestWdmUpdateResponse.Tpo -c -o TestWdmUpdateResponse-TestWdmUpdateResponse.obj `if test -f 'TestWdmUpdateResponse.cpp'; then $(CYGPATH_W) 'TestWdmUpdateResponse.cpp'; else $(CYGPATH_W) '$(srcdir)/TestWdmUpdateResponse.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/TestWdmUpdateResponse-TestWdmUpdateResponse.Tpo $(DEPDIR)/TestWdmUpdateResponse-TestWdmUpdateResponse.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='TestWdmUpdateResponse.cpp' object='TestWdmUpdateResponse-TestWdmUpdateResponse.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(TestWdmUpdateResponse_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o TestWdmUpdateResponse-TestWdmUpdateResponse.obj `if test -f 'TestWdmUpdateResponse.cpp'; then $(CYGPATH_W) 'TestWdmUpdateResponse.cpp'; else $(CYGPATH_W) '$(srcdir)/TestWdmUpdateResponse.cpp'; fi`
+
+TestWdmUpdateResponse-TestPersistedStorageImplementation.o: TestPersistedStorageImplementation.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(TestWdmUpdateResponse_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT TestWdmUpdateResponse-TestPersistedStorageImplementation.o -MD -MP -MF $(DEPDIR)/TestWdmUpdateResponse-TestPersistedStorageImplementation.Tpo -c -o TestWdmUpdateResponse-TestPersistedStorageImplementation.o `test -f 'TestPersistedStorageImplementation.cpp' || echo '$(srcdir)/'`TestPersistedStorageImplementation.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/TestWdmUpdateResponse-TestPersistedStorageImplementation.Tpo $(DEPDIR)/TestWdmUpdateResponse-TestPersistedStorageImplementation.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='TestPersistedStorageImplementation.cpp' object='TestWdmUpdateResponse-TestPersistedStorageImplementation.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(TestWdmUpdateResponse_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o TestWdmUpdateResponse-TestPersistedStorageImplementation.o `test -f 'TestPersistedStorageImplementation.cpp' || echo '$(srcdir)/'`TestPersistedStorageImplementation.cpp
+
+TestWdmUpdateResponse-TestPersistedStorageImplementation.obj: TestPersistedStorageImplementation.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(TestWdmUpdateResponse_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT TestWdmUpdateResponse-TestPersistedStorageImplementation.obj -MD -MP -MF $(DEPDIR)/TestWdmUpdateResponse-TestPersistedStorageImplementation.Tpo -c -o TestWdmUpdateResponse-TestPersistedStorageImplementation.obj `if test -f 'TestPersistedStorageImplementation.cpp'; then $(CYGPATH_W) 'TestPersistedStorageImplementation.cpp'; else $(CYGPATH_W) '$(srcdir)/TestPersistedStorageImplementation.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/TestWdmUpdateResponse-TestPersistedStorageImplementation.Tpo $(DEPDIR)/TestWdmUpdateResponse-TestPersistedStorageImplementation.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='TestPersistedStorageImplementation.cpp' object='TestWdmUpdateResponse-TestPersistedStorageImplementation.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(TestWdmUpdateResponse_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o TestWdmUpdateResponse-TestPersistedStorageImplementation.obj `if test -f 'TestPersistedStorageImplementation.cpp'; then $(CYGPATH_W) 'TestPersistedStorageImplementation.cpp'; else $(CYGPATH_W) '$(srcdir)/TestPersistedStorageImplementation.cpp'; fi`
+
 mock_device-mock-device.o: mock-device.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mock_device_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT mock_device-mock-device.o -MD -MP -MF $(DEPDIR)/mock_device-mock-device.Tpo -c -o mock_device-mock-device.o `test -f 'mock-device.cpp' || echo '$(srcdir)/'`mock-device.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/mock_device-mock-device.Tpo $(DEPDIR)/mock_device-mock-device.Po
@@ -6275,6 +6332,13 @@ TestPathStore.log: TestPathStore$(EXEEXT)
 TestWdmUpdateEncoder.log: TestWdmUpdateEncoder$(EXEEXT)
 	@p='TestWdmUpdateEncoder$(EXEEXT)'; \
 	b='TestWdmUpdateEncoder'; \
+	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
+	--log-file $$b.log --trs-file $$b.trs \
+	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
+	"$$tst" $(AM_TESTS_FD_REDIRECT)
+TestWdmUpdateResponse.log: TestWdmUpdateResponse$(EXEEXT)
+	@p='TestWdmUpdateResponse$(EXEEXT)'; \
+	b='TestWdmUpdateResponse'; \
 	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
 	--log-file $$b.log --trs-file $$b.trs \
 	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
@@ -8298,8 +8362,8 @@ maintainer-clean-generic:
 @WEAVE_BUILD_COVERAGE_FALSE@clean-local:
 @WEAVE_BUILD_COVERAGE_REPORTS_FALSE@clean-local:
 @WEAVE_BUILD_TESTS_FALSE@clean-local:
-@WEAVE_BUILD_TESTS_FALSE@uninstall-local:
 @WEAVE_BUILD_TESTS_FALSE@install-exec-local:
+@WEAVE_BUILD_TESTS_FALSE@uninstall-local:
 clean: clean-am
 
 clean-am: clean-checkPROGRAMS clean-generic clean-libexecPROGRAMS \

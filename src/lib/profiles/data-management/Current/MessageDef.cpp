@@ -62,6 +62,26 @@ static uint32_t gPrettyPrintingDepthLevel = 0;
 static char gLineBuffer[256];
 static uint32_t gCurLineBufferSize = 0;
 
+/**
+ * Simple object to checkpoint the pretty-print indentation level and make
+ * sure it is restored at the end of a block (even in case of early exit).
+ */
+class PrettyPrintCheckpoint
+{
+public:
+    PrettyPrintCheckpoint()
+    {
+        mLevel = gPrettyPrintingDepthLevel;
+    }
+    ~PrettyPrintCheckpoint()
+    {
+        gPrettyPrintingDepthLevel = mLevel;
+    }
+private:
+    uint32_t mLevel;
+};
+#define PRETTY_PRINT_CHECKPOINT()  PrettyPrintCheckpoint lPrettyPrintCheckpoint;
+
 #define PRETTY_PRINT(fmt, ...)                                                                                                     \
     do                                                                                                                             \
     {                                                                                                                              \
@@ -254,7 +274,12 @@ BuilderBase::BuilderBase() :
 
 void BuilderBase::ResetError()
 {
-    mError              = WEAVE_NO_ERROR;
+    return ResetError(WEAVE_NO_ERROR);
+}
+
+void BuilderBase::ResetError(WEAVE_ERROR aErr)
+{
+    mError              = aErr;
     mOuterContainerType = nl::Weave::TLV::kTLVType_NotSpecified;
 }
 
@@ -291,6 +316,26 @@ WEAVE_ERROR ListBuilderBase::Init(nl::Weave::TLV::TLVWriter * const apWriter, co
     mOuterContainerType = nl::Weave::TLV::kTLVType_NotSpecified;
     mError =
         mpWriter->StartContainer(nl::Weave::TLV::ContextTag(aContextTagToUse), nl::Weave::TLV::kTLVType_Array, mOuterContainerType);
+    WeaveLogFunctError(mError);
+
+    return mError;
+}
+
+/**
+ * Init the TLV array container with an anonymous tag.
+ * Required to implement arrays of arrays, and to test ListBuilderBase.
+ * There is no WDM message that has an array as the outermost container.
+ *
+ * @param[in]   apWriter    Pointer to the TLVWriter that is encoding the message.
+ *
+ * @return                  WEAVE_ERROR codes returned by Weave::TLV objects.
+ */
+WEAVE_ERROR ListBuilderBase::Init(nl::Weave::TLV::TLVWriter * const apWriter)
+{
+    mpWriter            = apWriter;
+    mOuterContainerType = nl::Weave::TLV::kTLVType_NotSpecified;
+    mError =
+        mpWriter->StartContainer(nl::Weave::TLV::AnonymousTag, nl::Weave::TLV::kTLVType_Array, mOuterContainerType);
     WeaveLogFunctError(mError);
 
     return mError;
@@ -837,7 +882,18 @@ WEAVE_ERROR StatusElement::Parser::Init(const nl::Weave::TLV::TLVReader & aReade
     // make a copy of the reader here
     mReader.Init(aReader);
 
-    VerifyOrExit(nl::Weave::TLV::kTLVType_Structure == mReader.GetType(), err = WEAVE_ERROR_WRONG_TLV_TYPE);
+    switch (mReader.GetType())
+    {
+        case nl::Weave::TLV::kTLVType_Structure:
+            mDeprecatedFormat = true;
+            break;
+        case nl::Weave::TLV::kTLVType_Array:
+            mDeprecatedFormat = false;
+            break;
+        default:
+            ExitNow(err = WEAVE_ERROR_WRONG_TLV_TYPE);
+            break;
+    }
 
     // This is just a dummy, as we're not going to exit this container ever
     nl::Weave::TLV::TLVType OuterContainerType;
@@ -849,27 +905,87 @@ exit:
     return err;
 }
 
-// WEAVE_END_OF_TLV if there is no such element
-// WEAVE_ERROR_WRONG_TLV_TYPE if there is such element but it's not a Path
-WEAVE_ERROR StatusElement::Parser::GetProfileID(uint32_t * const apProfileID) const
+/**
+ * Read the ProfileID and the StatusCode from the StatusElement.
+ *
+ * @param[out]   apProfileID     Pointer to the storage for the ProfileID
+ * @param[out]   apStatusCode    Pointer to the storage for the StatusCode
+ *
+ * @return       WEAVE_ERROR codes returned by Weave::TLV objects. WEAVE_END_OF_TLV if either
+ *               element is missing. WEAVE_ERROR_WRONG_TLV_TYPE if the elements are of the wrong
+ *               type.
+ */
+WEAVE_ERROR StatusElement::Parser::GetProfileIDAndStatusCode(uint32_t * const apProfileID,
+        uint16_t *const apStatusCode) const
 {
-    return GetUnsignedInteger(kCsTag_ProfileID, apProfileID);
-}
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
 
-// WEAVE_END_OF_TLV if there is no such element
-// WEAVE_ERROR_WRONG_TLV_TYPE if there is such element but it's not any of the defined unsigned integer types
-WEAVE_ERROR StatusElement::Parser::GetStatus(uint16_t * const apStatus) const
-{
-    return GetUnsignedInteger(kCsTag_Status, apStatus);
+    if (mDeprecatedFormat)
+    {
+        err = GetUnsignedInteger(kCsTag_ProfileID, apProfileID);
+        SuccessOrExit(err);
+        err = GetUnsignedInteger(kCsTag_Status, apStatusCode);
+        SuccessOrExit(err);
+    }
+    else
+    {
+        nl::Weave::TLV::TLVReader lReader;
+        lReader.Init(mReader);
+
+        err = lReader.Next();
+        SuccessOrExit(err);
+        VerifyOrExit(lReader.GetType() == nl::Weave::TLV::kTLVType_UnsignedInteger, err = WEAVE_ERROR_WRONG_TLV_TYPE);
+
+        err = lReader.Get(*apProfileID);
+        SuccessOrExit(err);
+
+        err = lReader.Next();
+        SuccessOrExit(err);
+        VerifyOrExit(lReader.GetType() == nl::Weave::TLV::kTLVType_UnsignedInteger, err = WEAVE_ERROR_WRONG_TLV_TYPE);
+
+        err = lReader.Get(*apStatusCode);
+        SuccessOrExit(err);
+    }
+exit:
+    return err;
 }
 
 #if WEAVE_CONFIG_DATA_MANAGEMENT_ENABLE_SCHEMA_CHECK
-// Roughly verify the schema is right, including
-// 1) all mandatory tags are present
-// 2) all elements have expected data type
-// 3) any tag can only appear once
-// At the top level of the structure, unknown tags are ignored for foward compatibility
+/**
+ * Roughly verify the schema is right, including
+ * 1) all mandatory tags are present
+ * 2) all elements have expected data type
+ * 3) any tag can only appear once
+ * At the top level of the structure, unknown tags are ignored for forward compatibility.
+ *
+ * @return  WEAVE_NO_ERROR in case of success; WEAVE_ERROR codes
+ *          returned by Weave::TLV objects otherwise.
+ */
 WEAVE_ERROR StatusElement::Parser::CheckSchemaValidity(void) const
+{
+    WEAVE_ERROR err;
+
+    if (mDeprecatedFormat)
+    {
+        err = CheckSchemaValidityDeprecated();
+    }
+    else
+    {
+        err = CheckSchemaValidityCurrent();
+    }
+
+    return err;
+}
+
+/**
+ * Check the StatusElement is a structure with two elements with the
+ * required context tags.
+ * This format was deprecated for a more compact array based one.
+ *
+ * @return  WEAVE_NO_ERROR in case of success; WEAVE_ERROR codes
+ *          returned by Weave::TLV objects otherwise.
+ */
+WEAVE_ERROR StatusElement::Parser::CheckSchemaValidityDeprecated(void) const
 {
     WEAVE_ERROR err          = WEAVE_NO_ERROR;
     uint16_t TagPresenceMask = 0;
@@ -951,7 +1067,135 @@ exit:
 
     return err;
 }
+
+/**
+ * Check the StatusElement is an array with at least two unsigned integers.
+ * The first one is the ProfileID, the second one is the StatusCode.
+ *
+ * @return  WEAVE_NO_ERROR in case of success; WEAVE_ERROR codes
+ *          returned by Weave::TLV objects otherwise.
+ */
+WEAVE_ERROR StatusElement::Parser::CheckSchemaValidityCurrent(void) const
+{
+    WEAVE_ERROR err          = WEAVE_NO_ERROR;
+    uint16_t TagPresenceMask = 0;
+    nl::Weave::TLV::TLVReader reader;
+    uint32_t tagNum = 0;
+
+    PRETTY_PRINT("\t{");
+
+    // make a copy of the reader
+    reader.Init(mReader);
+
+    while (WEAVE_NO_ERROR == (err = reader.Next()))
+    {
+        // This is an array; all elements are anonymous.
+        VerifyOrExit(nl::Weave::TLV::AnonymousTag == reader.GetTag(), err = WEAVE_ERROR_INVALID_TLV_TAG);
+
+        if (!(TagPresenceMask & (1 << kCsTag_ProfileID)))
+        {
+            // The first element has to be the ProfileID.
+            TagPresenceMask |= (1 << kCsTag_ProfileID);
+            VerifyOrExit(nl::Weave::TLV::kTLVType_UnsignedInteger == reader.GetType(), err = WEAVE_ERROR_WRONG_TLV_TYPE);
+
+#if WEAVE_DETAIL_LOGGING
+            {
+                uint32_t profileID;
+                err = reader.Get(profileID);
+                SuccessOrExit(err);
+
+                PRETTY_PRINT("\t\tProfileID = 0x%" PRIx32 ",", profileID);
+            }
+#endif // WEAVE_DETAIL_LOGGING
+        }
+        else if (!(TagPresenceMask & (1 << kCsTag_Status)))
+        {
+            // The second element has to be the StatusCode.
+            TagPresenceMask |= (1 << kCsTag_Status);
+            VerifyOrExit(nl::Weave::TLV::kTLVType_UnsignedInteger == reader.GetType(), err = WEAVE_ERROR_WRONG_TLV_TYPE);
+
+#if WEAVE_DETAIL_LOGGING
+            {
+                uint16_t status;
+                err = reader.Get(status);
+                SuccessOrExit(err);
+
+                PRETTY_PRINT("\t\tStatus = 0x%" PRIx16 ",", status);
+            }
+#endif // WEAVE_DETAIL_LOGGING
+        }
+        else
+        {
+            PRETTY_PRINT("\t\tUnknown tag num %" PRIu32, tagNum);
+        }
+    }
+
+    PRETTY_PRINT("\t},");
+
+    // if we have exhausted this container
+    if (WEAVE_END_OF_TLV == err)
+    {
+        // check for required fields:
+        const uint16_t RequiredFields = (1 << kCsTag_Status) | (1 << kCsTag_ProfileID);
+
+        if ((TagPresenceMask & RequiredFields) == RequiredFields)
+        {
+            err = WEAVE_NO_ERROR;
+        }
+        else
+        {
+            err = WEAVE_ERROR_WDM_MALFORMED_STATUS_ELEMENT;
+        }
+    }
+
+exit:
+    WeaveLogFunctError(err);
+
+    return err;
+}
 #endif // WEAVE_CONFIG_DATA_MANAGEMENT_ENABLE_SCHEMA_CHECK
+
+WEAVE_ERROR StatusElement::Builder::Init(nl::Weave::TLV::TLVWriter * const apWriter)
+{
+    mDeprecatedFormat = false;
+    return ListBuilderBase::Init(apWriter);
+}
+
+WEAVE_ERROR StatusElement::Builder::InitDeprecated(nl::Weave::TLV::TLVWriter * const apWriter)
+{
+    mDeprecatedFormat = true;
+    return InitAnonymousStructure(apWriter);
+}
+
+StatusElement::Builder & StatusElement::Builder::ProfileIDAndStatus(const uint32_t aProfileID, const uint16_t aStatusCode)
+{
+    uint64_t tag = nl::Weave::TLV::AnonymousTag;
+    SuccessOrExit(mError);
+
+    if (mDeprecatedFormat)
+    {
+       tag = nl::Weave::TLV::ContextTag(kCsTag_ProfileID);
+    }
+    mError = mpWriter->Put(tag, aProfileID);
+
+    if (mDeprecatedFormat)
+    {
+        tag = nl::Weave::TLV::ContextTag(kCsTag_Status);
+    }
+    mError = mpWriter->Put(tag, aStatusCode);
+
+exit:
+    WeaveLogFunctError(mError);
+
+    return *this;
+}
+
+StatusElement::Builder & StatusElement::Builder::EndOfStatusElement(void)
+{
+    EndOfContainer();
+
+    return *this;
+}
 
 // aReader has to be on the element of DataElement
 WEAVE_ERROR DataElement::Parser::Init(const nl::Weave::TLV::TLVReader & aReader)
@@ -1407,7 +1651,7 @@ WEAVE_ERROR DataElement::Builder::Init(nl::Weave::TLV::TLVWriter * const apWrite
 Path::Builder & DataElement::Builder::CreatePathBuilder()
 {
     // skip if error has already been set
-    SuccessOrExit(mError);
+    VerifyOrExit(WEAVE_NO_ERROR == mError, mPathBuilder.ResetError(mError));
 
     mError = mPathBuilder.Init(mpWriter, nl::Weave::TLV::ContextTag(kCsTag_Path));
     WeaveLogFunctError(mError);
@@ -1513,7 +1757,7 @@ exit:
 Path::Builder & PathList::Builder::CreatePathBuilder()
 {
     // skip if error has already been set
-    SuccessOrExit(mError);
+    VerifyOrExit(WEAVE_NO_ERROR == mError, mPathBuilder.ResetError(mError));
 
     mError = mPathBuilder.Init(mpWriter);
     WeaveLogFunctError(mError);
@@ -1588,7 +1832,7 @@ exit:
 DataElement::Builder & DataList::Builder::CreateDataElementBuilder()
 {
     // skip if error has already been set
-    SuccessOrExit(mError);
+    VerifyOrExit(WEAVE_NO_ERROR == mError, mDataElementBuilder.ResetError(mError));
 
     mError = mDataElementBuilder.Init(mpWriter);
     WeaveLogFunctError(mError);
@@ -2340,7 +2584,7 @@ exit:
 Event::Builder & EventList::Builder::CreateEventBuilder()
 {
     // skip if error has already been set
-    SuccessOrExit(mError);
+    VerifyOrExit(WEAVE_NO_ERROR == mError, mEventBuilder.ResetError(mError));
 
     mError = mEventBuilder.Init(mpWriter);
     WeaveLogFunctError(mError);
@@ -2411,17 +2655,66 @@ exit:
 }
 #endif // WEAVE_CONFIG_DATA_MANAGEMENT_ENABLE_SCHEMA_CHECK
 
-WEAVE_ERROR StatusList::Parser::GetStatusAndProfileID(uint32_t * const apProfileID, uint16_t * const apStatusCode)
+/**
+ * Append a StatusElement to the list.
+ *
+ * @param[in] aProfileID    ProfileID
+ * @param[in] aStatusCode   StatusCode
+ *
+ * @return          Reference to this builder.
+ */
+StatusList::Builder & StatusList::Builder::AddStatus(uint32_t aProfileID, uint16_t aStatusCode)
+{
+    StatusElement::Builder builder;
+
+    SuccessOrExit(mError);
+
+    if (mDeprecatedFormat)
+    {
+        builder.InitDeprecated(mpWriter);
+    }
+    else
+    {
+        builder.Init(mpWriter);
+    }
+
+    builder.ProfileIDAndStatus(aProfileID, aStatusCode);
+    builder.EndOfStatusElement();
+
+    mError = builder.GetError();
+
+exit:
+    WeaveLogFunctError(mError);
+
+    return *this;
+}
+
+StatusList::Builder & StatusList::Builder::EndOfStatusList()
+{
+    EndOfContainer();
+
+    return *this;
+}
+
+/**
+ * Read the ProfileID and the StatusCode from the current StatusElement.
+ *
+ * @param[out]   apProfileID     Pointer to the storage for the ProfileID
+ * @param[out]   apStatusCode    Pointer to the storage for the StatusCode
+ *
+ * @return       WEAVE_ERROR codes returned by Weave::TLV objects. WEAVE_END_OF_TLV if either
+ *               element is missing. WEAVE_ERROR_WRONG_TLV_TYPE if the elements are of the wrong
+ *               type.
+ */
+WEAVE_ERROR StatusList::Parser::GetProfileIDAndStatusCode(uint32_t * const apProfileID, uint16_t * const apStatusCode)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
     StatusElement::Parser statusElement;
+
     err = statusElement.Init(mReader);
     SuccessOrExit(err);
 
-    statusElement.GetStatus(apStatusCode);
-    SuccessOrExit(err);
-
-    statusElement.GetProfileID(apProfileID);
+    err = statusElement.GetProfileIDAndStatusCode(apProfileID, apStatusCode);
     SuccessOrExit(err);
 
 exit:
@@ -2450,12 +2743,11 @@ WEAVE_ERROR StatusList::Parser::CheckSchemaValidity(void) const
     {
         // TODO: The spec says the StatusList should be an array of arrays, but in
         // the current implementation it's an array of structures. The array of
-        // array is less intuitive but more space efficient.
-        //WeaveLogDetail(DataManagement, "tag: 0x%" PRIx64 "; I want 0x%" PRIx64 "", reader.GetTag(), nl::Weave::TLV::AnonymousTag);
-        //WeaveLogDetail(DataManagement, "type: 0x%" PRIx32 "; I want 0x%" PRIx32 "", reader.GetType(), nl::Weave::TLV::kTLVType_Array);
+        // arrays is less intuitive but more space efficient.
         VerifyOrExit(nl::Weave::TLV::AnonymousTag == reader.GetTag(), err = WEAVE_ERROR_INVALID_TLV_TAG);
 
-        VerifyOrExit(nl::Weave::TLV::kTLVType_Structure == reader.GetType(), err = WEAVE_ERROR_WRONG_TLV_TYPE);
+        VerifyOrExit((nl::Weave::TLV::kTLVType_Structure == reader.GetType() ||
+                      nl::Weave::TLV::kTLVType_Array), err = WEAVE_ERROR_WRONG_TLV_TYPE);
 
         {
             StatusElement::Parser status;
@@ -2473,11 +2765,9 @@ WEAVE_ERROR StatusList::Parser::CheckSchemaValidity(void) const
     // if we have exhausted this container
     if (WEAVE_END_OF_TLV == err)
     {
-        // if we have at least one data element
-        if (NumStatusElement > 0)
-        {
-            err = WEAVE_NO_ERROR;
-        }
+        // The StatusList of an UpdateResponse can be empty, in case the update
+        // was successful for all DataElements
+        err = WEAVE_NO_ERROR;
     }
 
 exit:
@@ -2871,7 +3161,7 @@ exit:
 EventList::Builder & SubscribeRequest::Builder::CreateLastObservedEventIdListBuilder()
 {
     // skip if error has already been set
-    SuccessOrExit(mError);
+    VerifyOrExit(WEAVE_NO_ERROR == mError, mEventListBuilder.ResetError(mError));
 
     mError = mEventListBuilder.Init(mpWriter, kCsTag_LastObservedEventIdList);
     WeaveLogFunctError(mError);
@@ -2885,7 +3175,7 @@ exit:
 PathList::Builder & SubscribeRequest::Builder::CreatePathListBuilder()
 {
     // skip if error has already been set
-    SuccessOrExit(mError);
+    VerifyOrExit(WEAVE_NO_ERROR == mError, mPathListBuilder.ResetError(mError));
 
     mError = mPathListBuilder.Init(mpWriter, kCsTag_PathList);
     WeaveLogFunctError(mError);
@@ -2899,7 +3189,7 @@ exit:
 VersionList::Builder & SubscribeRequest::Builder::CreateVersionListBuilder()
 {
     // skip if error has already been set
-    SuccessOrExit(mError);
+    VerifyOrExit(WEAVE_NO_ERROR == mError, mVersionListBuilder.ResetError(mError));
 
     mError = mVersionListBuilder.Init(mpWriter, kCsTag_VersionList);
     WeaveLogFunctError(mError);
@@ -3091,7 +3381,7 @@ exit:
 EventList::Builder & SubscribeResponse::Builder::CreateLastVendedEventIdListBuilder()
 {
     // skip if error has already been set
-    SuccessOrExit(mError);
+    VerifyOrExit(WEAVE_NO_ERROR == mError, mEventListBuilder.ResetError(mError));
 
     mError = mEventListBuilder.Init(mpWriter, kCsTag_LastVendedEventIdList);
     WeaveLogFunctError(mError);
@@ -3683,7 +3973,7 @@ WEAVE_ERROR CustomCommand::Builder::Init(nl::Weave::TLV::TLVWriter * const apWri
 Path::Builder & CustomCommand::Builder::CreatePathBuilder()
 {
     // skip if error has already been set
-    SuccessOrExit(mError);
+    VerifyOrExit(WEAVE_NO_ERROR == mError, mPathBuilder.ResetError(mError));
 
     mError = mPathBuilder.Init(mpWriter, nl::Weave::TLV::ContextTag(kCsTag_Path));
     WeaveLogFunctError(mError);
@@ -4162,6 +4452,8 @@ WEAVE_ERROR UpdateResponse::Parser::CheckSchemaValidity(void) const
 
     reader.Init(mReader);
 
+    PRETTY_PRINT_CHECKPOINT();
+
     PRETTY_PRINT("{");
 
     while (WEAVE_NO_ERROR == (err = reader.Next()))
@@ -4181,7 +4473,7 @@ WEAVE_ERROR UpdateResponse::Parser::CheckSchemaValidity(void) const
 
                         PRETTY_PRINT_INCDEPTH();
 
-                        statusList.CheckSchemaValidity();
+                        err = statusList.CheckSchemaValidity();
                         SuccessOrExit(err);
 
                         PRETTY_PRINT_DECDEPTH();
@@ -4197,7 +4489,7 @@ WEAVE_ERROR UpdateResponse::Parser::CheckSchemaValidity(void) const
 
                         PRETTY_PRINT_INCDEPTH();
 
-                        versionList.CheckSchemaValidity();
+                        err = versionList.CheckSchemaValidity();
                         SuccessOrExit(err);
 
                         PRETTY_PRINT_DECDEPTH();
@@ -4239,6 +4531,60 @@ WEAVE_ERROR UpdateResponse::Parser::GetStatusList(StatusList::Parser * const apS
 WEAVE_ERROR UpdateResponse::Parser::GetVersionList(VersionList::Parser * const apVersionList) const
 {
     return apVersionList->InitIfPresent(mReader, kCsTag_VersionList);
+}
+
+WEAVE_ERROR UpdateResponse::Builder::Init(nl::Weave::TLV::TLVWriter * const apWriter)
+{
+    return InitAnonymousStructure(apWriter);
+}
+
+VersionList::Builder & UpdateResponse::Builder::CreateVersionListBuilder()
+{
+    // skip if error has already been set
+    VerifyOrExit(WEAVE_NO_ERROR == mError, mVersionListBuilder.ResetError(mError));
+
+    mError = mVersionListBuilder.Init(mpWriter, kCsTag_VersionList);
+    WeaveLogFunctError(mError);
+
+exit:
+
+    // on error, mVersionListBuilder would be un-/partial initialized and cannot be used to write anything
+    return mVersionListBuilder;
+}
+
+StatusList::Builder & UpdateResponse::Builder::CreateStatusListBuilder()
+{
+    // Check if the VersionList::Builder has failed, or has not been used yet
+    if (WEAVE_NO_ERROR == mError)
+    {
+        mError = mVersionListBuilder.GetError();
+    }
+
+    // skip if error has already been set
+    VerifyOrExit(WEAVE_NO_ERROR == mError, mStatusListBuilder.ResetError(mError));
+
+    mError = mStatusListBuilder.Init(mpWriter, kCsTag_StatusList);
+    WeaveLogFunctError(mError);
+
+exit:
+
+    // on error, mStatusListBuilder would be un-/partial initialized and cannot be used to write anything
+    return mStatusListBuilder;
+}
+
+UpdateResponse::Builder & UpdateResponse::Builder::EndOfResponse(void)
+{
+    // Check if the StatusList::Builder has failed, or has not been used
+    if (WEAVE_NO_ERROR == mError)
+    {
+        mError = mStatusListBuilder.GetError();
+    }
+    SuccessOrExit(mError);
+
+    EndOfContainer();
+
+exit:
+    return *this;
 }
 
 }; // namespace WeaveMakeManagedNamespaceIdentifier(DataManagement, kWeaveManagedNamespaceDesignation_Current)
