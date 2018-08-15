@@ -103,6 +103,7 @@ WEAVE_ERROR WeaveDeviceManager::Init(WeaveExchangeManager *exchangeMgr, WeaveSec
     mOpState = kOpState_Idle;
     mCurReq = NULL;
     mCurReqMsg = NULL;
+    mCurReqMsgRetained = NULL;
     mAppReqState = NULL;
     memset(&mOnComplete, 0, sizeof(mOnComplete));
     mOnError = NULL;
@@ -178,6 +179,12 @@ WEAVE_ERROR WeaveDeviceManager::Shutdown()
     {
         PacketBuffer::Free(mCurReqMsg);
         mCurReqMsg = NULL;
+    }
+
+    if (mCurReqMsgRetained != NULL)
+    {
+        PacketBuffer::Free(mCurReqMsgRetained);
+        mCurReqMsgRetained = NULL;
     }
 
     if (mDeviceCon != NULL)
@@ -1499,7 +1506,21 @@ WEAVE_ERROR WeaveDeviceManager::AddNetwork(const NetworkInfo *netInfo, void* app
     mOnError = onError;
     mOpState = kOpState_AddNetwork;
 
-    err = SendRequest(kWeaveProfile_NetworkProvisioning, kMsgType_AddNetwork, msgBuf,
+#if WEAVE_CONFIG_SUPPORT_LEGACY_ADD_NETWORK_MESSAGE
+    // Create duplicate of a message buffer.
+    // If device returns error indicating that the new message type is not supported
+    // this retained message will be re-sent to the device as an old AddNetwork() message type.
+    mCurReqMsgRetained = PacketBuffer::NewWithAvailableSize(msgBuf->DataLength());
+    VerifyOrExit(mCurReqMsgRetained != NULL, err = WEAVE_ERROR_NO_MEMORY);
+
+    memcpy(mCurReqMsgRetained->Start(), msgBuf->Start(), msgBuf->DataLength());
+    mCurReqMsgRetained->SetDataLength(msgBuf->DataLength());
+
+    // Identify if this request creates new Thread network.
+    mCurReqCreateThreadNetwork = (netInfo->NetworkType == kNetworkType_Thread) && (netInfo->ThreadExtendedPANId == NULL);
+#endif // WEAVE_CONFIG_SUPPORT_LEGACY_ADD_NETWORK_MESSAGE
+
+    err = SendRequest(kWeaveProfile_NetworkProvisioning, kMsgType_AddNetworkV2, msgBuf,
             HandleNetworkProvisioningResponse);
     msgBuf = NULL;
 
@@ -2731,7 +2752,14 @@ exit:
     if (msgBuf != NULL)
         PacketBuffer::Free(msgBuf);
     if (err != WEAVE_NO_ERROR)
+    {
+        if (mCurReqMsgRetained != NULL)
+        {
+            PacketBuffer::Free(mCurReqMsgRetained);
+            mCurReqMsgRetained = NULL;
+        }
         ClearRequestState();
+    }
     return err;
 }
 
@@ -2767,6 +2795,7 @@ exit:
     if (mCurReqMsg)
     {
         PacketBuffer::Free(mCurReqMsg);
+        mCurReqMsg = NULL;
     }
 
     if (err != WEAVE_NO_ERROR)
@@ -2921,7 +2950,14 @@ void WeaveDeviceManager::ClearRequestState()
 
 void WeaveDeviceManager::ClearOpState()
 {
+    if (mCurReqMsgRetained != NULL)
+    {
+        PacketBuffer::Free(mCurReqMsgRetained);
+        mCurReqMsgRetained = NULL;
+    }
+
     ClearRequestState();
+
     mOpState = kOpState_Idle;
 }
 
@@ -4138,6 +4174,9 @@ void WeaveDeviceManager::HandleNetworkProvisioningResponse(ExchangeContext *ec, 
     WEAVE_ERROR err = WEAVE_NO_ERROR;
     WeaveDeviceManager *devMgr = (WeaveDeviceManager *) ec->AppState;
     OpState opState = devMgr->mOpState;
+#if WEAVE_CONFIG_SUPPORT_LEGACY_ADD_NETWORK_MESSAGE
+    uint16_t curReqMsgType = devMgr->mCurReqMsgType;
+#endif
 
     // Sanity check that the passed-in exchange context is in fact the one that represents the current
     // outstanding request.
@@ -4147,10 +4186,21 @@ void WeaveDeviceManager::HandleNetworkProvisioningResponse(ExchangeContext *ec, 
         ExitNow();
     }
 
-    // At this point the operation is effectively complete. Therefore we clear the current operation before
-    // continuing. This is important because the user could start another operation during one of the callbacks
-    // that happen below.
-    devMgr->ClearOpState();
+#if WEAVE_CONFIG_SUPPORT_LEGACY_ADD_NETWORK_MESSAGE
+    if (profileId == kWeaveProfile_Common && msgType == nl::Weave::Profiles::Common::kMsgType_StatusReport)
+    {
+        // At this point the current request is effectively complete but the operation might still continue. Specifically,
+        // there is still possibility that older version of the AddNetwork() message should be sent to the device.
+        devMgr->ClearRequestState();
+    }
+    else
+#endif
+    {
+        // At this point the operation is effectively complete. Therefore we clear the current operation before
+        // continuing. This is important because the user could start another operation during one of the callbacks
+        // that happen below.
+        devMgr->ClearOpState();
+    }
 
     // Decode and dispatch the response message.
     if (profileId == kWeaveProfile_NetworkProvisioning && msgType == NetworkProvisioning::kMsgType_NetworkScanComplete)
@@ -4215,10 +4265,36 @@ void WeaveDeviceManager::HandleNetworkProvisioningResponse(ExchangeContext *ec, 
         PacketBuffer::Free(payload);
         payload = NULL;
 
-        if (devStatus.StatusProfileId == kWeaveProfile_Common && devStatus.StatusCode == Common::kStatus_Success)
-            devMgr->mOnComplete.General(devMgr, devMgr->mAppReqState);
+#if WEAVE_CONFIG_SUPPORT_LEGACY_ADD_NETWORK_MESSAGE
+        // If legacy device doesn't support new version of AddNetwork() message.
+        if (curReqMsgType == kMsgType_AddNetworkV2 &&
+            devStatus.StatusProfileId == kWeaveProfile_Common &&
+            (devStatus.StatusCode == Common::kStatus_UnsupportedMessage ||
+             // Additional check is required because in some cases legacy devices return
+             // "bad request" status code in response to unsupported message type.
+             devStatus.StatusCode == Common::kStatus_BadRequest))
+        {
+            // Legacy devices don't support standalone Thread network creation.
+            VerifyOrExit(!devMgr->mCurReqCreateThreadNetwork, err = WEAVE_ERROR_UNSUPPORTED_THREAD_NETWORK_CREATE);
+
+            // Verify that a copy of the message is retained in a separate buffer.
+            VerifyOrExit(devMgr->mCurReqMsgRetained != NULL, err = WEAVE_ERROR_INCORRECT_STATE);
+
+            // Send old version of AddNetwork() message.
+            err = devMgr->SendRequest(kWeaveProfile_NetworkProvisioning, kMsgType_AddNetwork, devMgr->mCurReqMsgRetained,
+                                      devMgr->HandleNetworkProvisioningResponse);
+            devMgr->mCurReqMsgRetained = NULL;
+        }
         else
-            devMgr->mOnError(devMgr, devMgr->mAppReqState, WEAVE_ERROR_STATUS_REPORT_RECEIVED, &devStatus);
+#endif // WEAVE_CONFIG_SUPPORT_LEGACY_ADD_NETWORK_MESSAGE
+        {
+            devMgr->ClearOpState();
+
+            if (devStatus.StatusProfileId == kWeaveProfile_Common && devStatus.StatusCode == Common::kStatus_Success)
+                devMgr->mOnComplete.General(devMgr, devMgr->mAppReqState);
+            else
+                devMgr->mOnError(devMgr, devMgr->mAppReqState, WEAVE_ERROR_STATUS_REPORT_RECEIVED, &devStatus);
+        }
     }
 
     else
@@ -4226,7 +4302,10 @@ void WeaveDeviceManager::HandleNetworkProvisioningResponse(ExchangeContext *ec, 
 
 exit:
     if (err != WEAVE_NO_ERROR)
+    {
+        devMgr->ClearOpState();
         devMgr->mOnError(devMgr, devMgr->mAppReqState, err, NULL);
+    }
     if (payload != NULL)
         PacketBuffer::Free(payload);
 }

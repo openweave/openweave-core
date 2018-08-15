@@ -163,7 +163,9 @@ const char *GetMessageName(uint32_t profileId, uint8_t msgType)
         switch (msgType) {
         case NetworkProvisioning::kMsgType_ScanNetworks                     : return "ScanNetworks";
         case NetworkProvisioning::kMsgType_NetworkScanComplete              : return "NetworkScanComplete";
+#if WEAVE_CONFIG_SUPPORT_LEGACY_ADD_NETWORK_MESSAGE
         case NetworkProvisioning::kMsgType_AddNetwork                       : return "AddNetwork";
+#endif
         case NetworkProvisioning::kMsgType_AddNetworkComplete               : return "AddNetworkComplete";
         case NetworkProvisioning::kMsgType_UpdateNetwork                    : return "UpdateNetwork";
         case NetworkProvisioning::kMsgType_RemoveNetwork                    : return "RemoveNetwork";
@@ -174,6 +176,7 @@ const char *GetMessageName(uint32_t profileId, uint8_t msgType)
         case NetworkProvisioning::kMsgType_GetNetworks                      : return "GetNetworks";
         case NetworkProvisioning::kMsgType_GetNetworksComplete              : return "GetNetworksComplete";
         case NetworkProvisioning::kMsgType_GetLastResult                    : return "GetLastResult";
+        case NetworkProvisioning::kMsgType_AddNetworkV2                     : return "AddNetworkV2";
         }
         break;
     case kWeaveProfile_Security:

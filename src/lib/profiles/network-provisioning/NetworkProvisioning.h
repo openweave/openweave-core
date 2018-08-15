@@ -102,7 +102,8 @@ enum
     kMsgType_SetRendezvousMode                  = 10,
     kMsgType_GetNetworks                        = 11,
     kMsgType_GetNetworksComplete                = 12,
-    kMsgType_GetLastResult                      = 13
+    kMsgType_GetLastResult                      = 13,
+    kMsgType_AddNetworkV2                       = 14
 };
 
 /**

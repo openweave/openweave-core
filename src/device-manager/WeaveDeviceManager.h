@@ -434,6 +434,10 @@ private:
     uint32_t mCurReqProfileId;
     uint16_t mCurReqMsgType;
     PacketBuffer *mCurReqMsg;
+    PacketBuffer *mCurReqMsgRetained;
+#if WEAVE_CONFIG_SUPPORT_LEGACY_ADD_NETWORK_MESSAGE
+    bool mCurReqCreateThreadNetwork;
+#endif
     ExchangeContext::MessageReceiveFunct mCurReqRcvFunct;
     IPAddress mRendezvousAddr;
     IPAddress mDeviceAddr;
@@ -530,7 +534,7 @@ private:
     static void HandleSessionEstablished(WeaveSecurityManager *sm, WeaveConnection *con, void *appReqState,
             uint16_t sessionKeyId, uint64_t peerNodeId, uint8_t encType);
     static void HandleSessionError(WeaveSecurityManager *sm, WeaveConnection *con, void *appReqState,
-	    WEAVE_ERROR localErr, uint64_t peerNodeId, StatusReport *statusReport);
+            WEAVE_ERROR localErr, uint64_t peerNodeId, StatusReport *statusReport);
     static void RetrySession(System::Layer* aSystemLayer, void* aAppState, System::Error aError);
 
     void ReenableConnectionMonitor();
