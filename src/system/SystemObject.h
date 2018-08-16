@@ -309,7 +309,7 @@ inline void ObjectPool<T, N>::GetNumObjectsInUse(unsigned int aStartIndex, unsig
 
     aNumInUse += count;
 }
-#endif
+#endif // WEAVE_SYSTEM_CONFIG_PROVIDE_STATISTICS
 
 
 template<class T, unsigned int N>

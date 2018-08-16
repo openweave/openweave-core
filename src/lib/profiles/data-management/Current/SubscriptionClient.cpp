@@ -2490,7 +2490,7 @@ void SubscriptionClient::OnUpdateConfirm(WEAVE_ERROR aReason, nl::Weave::Profile
         {
             err = statusList.Next();
 
-            err = statusList.GetStatusAndProfileID(&profileID, &statusCode);
+            err = statusList.GetProfileIDAndStatusCode(&profileID, &statusCode);
             SuccessOrExit(err);
         }
 

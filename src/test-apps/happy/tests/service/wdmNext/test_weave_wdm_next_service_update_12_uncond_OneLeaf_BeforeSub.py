@@ -51,8 +51,8 @@ class test_weave_wdm_next_service_update_12_uncond_OneLeaf_BeforeSub(weave_wdm_n
         wdm_next_args['client_update_num_mutations'] = 1
 
         wdm_next_args['client_log_check'] = [('Mutual: Good Iteration', 1),
-                                             ('Potential data loss set for traitDataHandle', 1),
-                                             ('Potential data loss cleared for traitDataHandle', 1),
+                                             ('Potential data loss set for traitDataHandle', 0),
+                                             ('Potential data loss cleared for traitDataHandle', 0),
                                              ('Update: path result: success', 1),
                                              ('Update: no more pending updates', 1),
                                              ('Update: path failed', 0),

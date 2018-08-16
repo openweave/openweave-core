@@ -53,7 +53,7 @@ class test_weave_wdm_next_service_update_10_cond_Root_multi_traits(weave_wdm_nex
         wdm_next_args['client_log_check'] = [('Mutual: Good Iteration', 1),
                                              ('Update: path result: success', 4),
                                              ('Update: no more pending updates', 1),
-                                             ('Suppressing error .*; will try again later', 1), # make sure to test failing to add a DataElement...
+                                             ('DataElement didn.*; will try again later', 1), # make sure to test failing to add a DataElement...
                                              ('Msg sent 0000000B:44', 1),                       # ... which will cause PartialUpdateRequests to be sent
                                              ('Msg sent 0000000B:34', 1),
                                              ('Removed 2 private InProgress items after 3', 1), # when the second TestATrait fails to fit, we have to remove
