@@ -911,7 +911,7 @@ weave_commondir = $(includedir)/$(nl_public_WeaveCommon_destination_dirstem)
 dist_weave_common_HEADERS = $(addprefix ../,$(nl_public_WeaveCommon_header_sources))
 
 #
-# Weave Device Layer Public Headers
+# Weave Device Layer Headers
 #
 
 if CONFIG_DEVICE_LAYER
@@ -951,6 +951,7 @@ $(NULL)
 nl_public_WeaveDeviceLayer_header_sources = \
 $(nl_public_WeaveDeviceLayer_base_header_sources) \
 $(nl_public_WeaveDeviceLayer_internal_header_sources) \
+$(nl_public_WeaveDeviceLayer_target_header_sources) \
 $(NULL)
 
 nl_public_WeaveDeviceLayer_header_paths = $(subst $(nl_public_WeaveDeviceLayer_source_dirstem)/,,$(nl_public_WeaveDeviceLayer_header_sources))
@@ -974,7 +975,20 @@ dist_weave_device_layer_base_HEADERS = $(addprefix ../,$(nl_public_WeaveDeviceLa
 weave_device_layer_internaldir = $(includedir)/$(nl_public_WeaveDeviceLayer_destination_dirstem)/internal
 dist_weave_device_layer_internal_HEADERS = $(addprefix ../,$(nl_public_WeaveDeviceLayer_internal_header_sources))
 
+weave_device_layer_targetdir = $(includedir)/$(nl_public_WeaveDeviceLayer_destination_dirstem)/$(CONFIG_DEVICE_LAYER_NAME)
+dist_weave_device_layer_target_HEADERS = $(addprefix ../,$(nl_public_WeaveDeviceLayer_target_header_sources))
+
 endif # CONFIG_DEVICE_LAYER
+
+if CONFIG_DEVICE_LAYER_ESP32
+
+nl_public_WeaveDeviceLayer_target_header_sources = \
+$(nl_public_WeaveDeviceLayer_source_dirstem)/ESP32/ConfigurationManagerImpl.h         \
+$(nl_public_WeaveDeviceLayer_source_dirstem)/ESP32/GroupKeyStoreImpl.h                \
+$(nl_public_WeaveDeviceLayer_source_dirstem)/ESP32/NVSSupport.h                       \
+$(NULL)
+
+endif # CONFIG_DEVICE_LAYER_ESP32
 
 
 #

@@ -30,7 +30,6 @@ namespace Weave {
 namespace DeviceLayer {
 
 PlatformManager PlatformMgr;
-ConfigurationManager ConfigurationMgr;
 ConnectivityManager ConnectivityMgr;
 TraitManager TraitMgr;
 TimeSyncManager TimeSyncMgr;

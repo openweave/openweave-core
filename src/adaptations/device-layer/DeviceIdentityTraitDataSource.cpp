@@ -51,7 +51,7 @@ WEAVE_ERROR DeviceIdentityTraitDataSource::GetLeafData(PropertyPathHandle aLeafH
     case DeviceIdentityTrait::kPropertyHandle_VendorId:
     {
         uint16_t vendorId;
-        err = ConfigurationMgr.GetVendorId(vendorId);
+        err = ConfigurationMgr().GetVendorId(vendorId);
         SuccessOrExit(err);
         err = aWriter.Put(aTagToWrite, vendorId);
         SuccessOrExit(err);
@@ -61,7 +61,7 @@ WEAVE_ERROR DeviceIdentityTraitDataSource::GetLeafData(PropertyPathHandle aLeafH
     case DeviceIdentityTrait::kPropertyHandle_VendorProductId:
     {
         uint16_t productId;
-        err = ConfigurationMgr.GetProductId(productId);
+        err = ConfigurationMgr().GetProductId(productId);
         SuccessOrExit(err);
         err = aWriter.Put(aTagToWrite, productId);
         SuccessOrExit(err);
@@ -71,7 +71,7 @@ WEAVE_ERROR DeviceIdentityTraitDataSource::GetLeafData(PropertyPathHandle aLeafH
     case DeviceIdentityTrait::kPropertyHandle_ProductRevision:
     {
         uint16_t productRev;
-        err = ConfigurationMgr.GetProductRevision(productRev);
+        err = ConfigurationMgr().GetProductRevision(productRev);
         SuccessOrExit(err);
         err = aWriter.Put(aTagToWrite, productRev);
         SuccessOrExit(err);
@@ -82,7 +82,7 @@ WEAVE_ERROR DeviceIdentityTraitDataSource::GetLeafData(PropertyPathHandle aLeafH
     {
         char serialNum[ConfigurationManager::kMaxSerialNumberLength+1];
         size_t serialNumLen;
-        err = ConfigurationMgr.GetSerialNumber(serialNum, sizeof(serialNum), serialNumLen);
+        err = ConfigurationMgr().GetSerialNumber(serialNum, sizeof(serialNum), serialNumLen);
         VerifyOrExit(err != WEAVE_DEVICE_ERROR_CONFIG_NOT_FOUND, err = WEAVE_NO_ERROR);
         SuccessOrExit(err);
         err = aWriter.PutString(aTagToWrite, serialNum, (uint32_t)serialNumLen);
@@ -94,7 +94,7 @@ WEAVE_ERROR DeviceIdentityTraitDataSource::GetLeafData(PropertyPathHandle aLeafH
     {
         char firmwareRev[ConfigurationManager::kMaxFirmwareRevisionLength+1];
         size_t firmwareRevLen;
-        err = ConfigurationMgr.GetFirmwareRevision(firmwareRev, sizeof(firmwareRev), firmwareRevLen);
+        err = ConfigurationMgr().GetFirmwareRevision(firmwareRev, sizeof(firmwareRev), firmwareRevLen);
         VerifyOrExit(err != WEAVE_DEVICE_ERROR_CONFIG_NOT_FOUND, err = WEAVE_NO_ERROR);
         SuccessOrExit(err);
         err = aWriter.PutString(aTagToWrite, firmwareRev, (uint32_t)firmwareRevLen);
@@ -110,7 +110,7 @@ WEAVE_ERROR DeviceIdentityTraitDataSource::GetLeafData(PropertyPathHandle aLeafH
         char mfgDateStr[kDateStrLen+1];
         uint16_t year;
         uint8_t month, dayOfMonth;
-        err = ConfigurationMgr.GetManufacturingDate(year, month, dayOfMonth);
+        err = ConfigurationMgr().GetManufacturingDate(year, month, dayOfMonth);
         VerifyOrExit(err != WEAVE_DEVICE_ERROR_CONFIG_NOT_FOUND, err = WEAVE_NO_ERROR);
         SuccessOrExit(err);
         snprintf(mfgDateStr, sizeof(mfgDateStr), "%04" PRIu16 "-%02" PRIu8 "-%02" PRIu8, year, month, dayOfMonth);
@@ -125,7 +125,7 @@ WEAVE_ERROR DeviceIdentityTraitDataSource::GetLeafData(PropertyPathHandle aLeafH
         break;
 
     case DeviceIdentityTrait::kPropertyHandle_FabricId:
-        if (ConfigurationMgr.IsMemberOfFabric())
+        if (ConfigurationMgr().IsMemberOfFabric())
         {
             err = aWriter.Put(aTagToWrite, ::nl::Weave::DeviceLayer::FabricState.FabricId);
             SuccessOrExit(err);

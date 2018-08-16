@@ -807,7 +807,7 @@ WEAVE_ERROR ConnectivityManager::ConfigureWiFiAP()
     wifi_config_t wifiConfig;
 
     memset(&wifiConfig, 0, sizeof(wifiConfig));
-    err = ConfigurationMgr.GetWiFiAPSSID((char *)wifiConfig.ap.ssid, sizeof(wifiConfig.ap.ssid));
+    err = ConfigurationMgr().GetWiFiAPSSID((char *)wifiConfig.ap.ssid, sizeof(wifiConfig.ap.ssid));
     SuccessOrExit(err);
     wifiConfig.ap.channel = WEAVE_DEVICE_CONFIG_WIFI_AP_CHANNEL;
     wifiConfig.ap.authmode = WIFI_AUTH_OPEN;
@@ -971,9 +971,9 @@ void ConnectivityManager::DriveServiceTunnelState(void)
     // Determine if the tunnel to the service should be started.
     startServiceTunnel = (mServiceTunnelMode == kServiceTunnelMode_Enabled
                           && GetFlag(mFlags, kFlag_HaveIPv4InternetConnectivity)
-                          && ConfigurationMgr.IsMemberOfFabric()
+                          && ConfigurationMgr().IsMemberOfFabric()
 #if !WEAVE_DEVICE_CONFIG_ENABLE_FIXED_TUNNEL_SERVER
-                          && ConfigurationMgr.IsServiceProvisioned()
+                          && ConfigurationMgr().IsServiceProvisioned()
 #endif
                          );
 

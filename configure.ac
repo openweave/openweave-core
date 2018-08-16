@@ -1260,11 +1260,13 @@ case "${with_device_layer}" in
 esp32)
       CONFIG_DEVICE_LAYER=1
       CONFIG_DEVICE_LAYER_ESP32=1
+      CONFIG_DEVICE_LAYER_NAME=ESP32
       ;;
 
 none)
       CONFIG_DEVICE_LAYER=0
       CONFIG_DEVICE_LAYER_ESP32=0
+      CONFIG_DEVICE_LAYER_NAME=
       ;;
 
 esac
@@ -1277,6 +1279,8 @@ AC_SUBST(CONFIG_DEVICE_LAYER_ESP32)
 AM_CONDITIONAL([CONFIG_DEVICE_LAYER_ESP32],    [test "${CONFIG_DEVICE_LAYER_ESP32}" = 1])
 AC_DEFINE_UNQUOTED([CONFIG_DEVICE_LAYER_ESP32],[${CONFIG_DEVICE_LAYER_ESP32}],[Define to 1 if you want to build the OpenWeave device layer for the Espressif ESP32.])
 
+AC_SUBST(CONFIG_DEVICE_LAYER_NAME)
+AC_DEFINE_UNQUOTED([CONFIG_DEVICE_LAYER_NAME],[${CONFIG_DEVICE_LAYER_NAME}],[Target platform name for OpenWeave device layer.])
 
 #
 # WoBle over Bluez Peripheral support

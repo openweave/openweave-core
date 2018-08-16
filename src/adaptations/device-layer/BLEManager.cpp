@@ -603,7 +603,7 @@ WEAVE_ERROR BLEManager::ConfigureAdvertisingData(void)
     Encoding::LittleEndian::Put16(weaveServiceData.DeviceVendorId, (uint16_t)WEAVE_DEVICE_CONFIG_DEVICE_VENDOR_ID);
     Encoding::LittleEndian::Put16(weaveServiceData.DeviceProductId, (uint16_t)WEAVE_DEVICE_CONFIG_DEVICE_PRODUCT_ID);
     Encoding::LittleEndian::Put64(weaveServiceData.DeviceId, FabricState.LocalNodeId);
-    weaveServiceData.PairingStatus = ConfigurationMgr.IsPairedToAccount() ? 1 : 0;
+    weaveServiceData.PairingStatus = ConfigurationMgr().IsPairedToAccount() ? 1 : 0;
 
     // Configure the contents of the scan response packet.
     memset(&advertData, 0, sizeof(advertData));
@@ -655,7 +655,7 @@ WEAVE_ERROR BLEManager::StartAdvertising(void)
 
     // Advertise in fast mode if not paired to an account and there are no WoBLE connections.
     advertParams.adv_int_min = advertParams.adv_int_max =
-        (numCons == 0 && !ConfigurationMgr.IsPairedToAccount())
+        (numCons == 0 && !ConfigurationMgr().IsPairedToAccount())
         ? WEAVE_DEVICE_CONFIG_BLE_FAST_ADVERTISING_INTERVAL
         : WEAVE_DEVICE_CONFIG_BLE_SLOW_ADVERTISING_INTERVAL;
 

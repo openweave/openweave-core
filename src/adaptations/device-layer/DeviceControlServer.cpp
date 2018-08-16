@@ -62,7 +62,7 @@ WEAVE_ERROR DeviceControlServer::OnResetConfig(uint16_t resetFlags)
     // If a factory reset has been requested, initiate it now.
     if ((resetFlags & kResetConfigFlag_FactoryDefaults) != 0)
     {
-        ConfigurationMgr.InitiateFactoryReset();
+        ConfigurationMgr().InitiateFactoryReset();
     }
 
     else
@@ -72,10 +72,10 @@ WEAVE_ERROR DeviceControlServer::OnResetConfig(uint16_t resetFlags)
         if ((resetFlags & kResetConfigFlag_ServiceConfig) != 0)
         {
             WeaveLogProgress(DeviceLayer, "Reset service config");
-            tmpErr = ConfigurationMgr.ClearServiceProvisioningData();
+            tmpErr = ConfigurationMgr().ClearServiceProvisioningData();
             if (tmpErr != WEAVE_NO_ERROR)
             {
-                WeaveLogProgress(DeviceLayer, "ConfigurationMgr.ClearServiceProvisioningData() failed: %s", ErrorStr(tmpErr));
+                WeaveLogProgress(DeviceLayer, "ConfigurationMgr().ClearServiceProvisioningData() failed: %s", ErrorStr(tmpErr));
                 err = (err == WEAVE_NO_ERROR) ? tmpErr : err;
             }
         }
@@ -109,7 +109,7 @@ WEAVE_ERROR DeviceControlServer::OnFailSafeArmed(void)
 {
     WEAVE_ERROR err;
 
-    err = ConfigurationMgr.SetFailSafeArmed();
+    err = ConfigurationMgr().SetFailSafeArmed();
     SuccessOrExit(err);
 
 exit:
@@ -120,7 +120,7 @@ WEAVE_ERROR DeviceControlServer::OnFailSafeDisarmed(void)
 {
     WEAVE_ERROR err;
 
-    err = ConfigurationMgr.ClearFailSafeArmed();
+    err = ConfigurationMgr().ClearFailSafeArmed();
     SuccessOrExit(err);
 
 exit:
@@ -158,7 +158,7 @@ bool DeviceControlServer::IsResetAllowed(uint16_t resetFlags)
     // system is in a state where this is allowed.
     if ((resetFlags & kResetConfigFlag_FactoryDefaults) != 0)
     {
-        return ConfigurationMgr.CanFactoryReset();
+        return ConfigurationMgr().CanFactoryReset();
     }
 
     const uint16_t supportedResetOps =
@@ -192,7 +192,7 @@ exit:
 
 bool DeviceControlServer::IsPairedToAccount() const
 {
-    return ConfigurationMgr.IsServiceProvisioned() && ConfigurationMgr.IsPairedToAccount();
+    return ConfigurationMgr().IsServiceProvisioned() && ConfigurationMgr().IsPairedToAccount();
 }
 
 void DeviceControlServer::OnPlatformEvent(const WeaveDeviceEvent * event)

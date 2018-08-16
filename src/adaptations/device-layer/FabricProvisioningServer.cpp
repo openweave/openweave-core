@@ -47,7 +47,7 @@ WEAVE_ERROR FabricProvisioningServer::HandleCreateFabric(void)
 {
     WEAVE_ERROR err;
 
-    err = ConfigurationMgr.StoreFabricId(::nl::Weave::DeviceLayer::FabricState.FabricId);
+    err = ConfigurationMgr().StoreFabricId(::nl::Weave::DeviceLayer::FabricState.FabricId);
     SuccessOrExit(err);
 
     WeaveLogProgress(DeviceLayer, "Weave fabric created; fabric id %016" PRIX64, ::nl::Weave::DeviceLayer::FabricState.FabricId);
@@ -70,7 +70,7 @@ WEAVE_ERROR FabricProvisioningServer::HandleJoinExistingFabric(void)
 {
     WEAVE_ERROR err;
 
-    err = ConfigurationMgr.StoreFabricId(::nl::Weave::DeviceLayer::FabricState.FabricId);
+    err = ConfigurationMgr().StoreFabricId(::nl::Weave::DeviceLayer::FabricState.FabricId);
     SuccessOrExit(err);
 
     WeaveLogProgress(DeviceLayer, "Join existing Weave fabric; fabric id %016" PRIX64, ::nl::Weave::DeviceLayer::FabricState.FabricId);
@@ -95,7 +95,7 @@ WEAVE_ERROR FabricProvisioningServer::HandleLeaveFabric(void)
 
     WeaveLogProgress(DeviceLayer, "Leave Weave fabric");
 
-    err = ConfigurationMgr.StoreFabricId(kFabricIdNotSpecified);
+    err = ConfigurationMgr().StoreFabricId(kFabricIdNotSpecified);
     SuccessOrExit(err);
 
     {
@@ -116,13 +116,13 @@ WEAVE_ERROR FabricProvisioningServer::LeaveFabric(void)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
 
-    if (ConfigurationMgr.IsMemberOfFabric())
+    if (ConfigurationMgr().IsMemberOfFabric())
     {
         // Clear the fabric state.
         FabricState->ClearFabricState();
 
         // Clear the persisted fabric id.
-        err = ConfigurationMgr.StoreFabricId(kFabricIdNotSpecified);
+        err = ConfigurationMgr().StoreFabricId(kFabricIdNotSpecified);
         SuccessOrExit(err);
 
         // Post a FabricMembershipChange event.
@@ -146,7 +146,7 @@ WEAVE_ERROR FabricProvisioningServer::HandleGetFabricConfig(void)
 
 bool FabricProvisioningServer::IsPairedToAccount() const
 {
-    return ConfigurationMgr.IsServiceProvisioned() && ConfigurationMgr.IsPairedToAccount();
+    return ConfigurationMgr().IsServiceProvisioned() && ConfigurationMgr().IsPairedToAccount();
 }
 
 void FabricProvisioningServer::OnPlatformEvent(const WeaveDeviceEvent * event)

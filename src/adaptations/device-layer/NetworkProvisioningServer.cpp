@@ -136,7 +136,7 @@ void NetworkProvisioningServer::OnPlatformEvent(const WeaveDeviceEvent * event)
 
             WiFiSecurityType secType = ESPUtils::WiFiAuthModeToWeaveWiFiSecurityType(ap_info.authmode);
 
-            err = ConfigurationMgr.UpdateWiFiStationSecurityType(secType);
+            err = ConfigurationMgr().UpdateWiFiStationSecurityType(secType);
             SuccessOrExit(err);
         }
     }
@@ -177,7 +177,7 @@ WEAVE_ERROR NetworkProvisioningServer::GetWiFiStationProvision(NetworkInfo & net
     netInfo.WiFiMode = kWiFiMode_Managed;
     netInfo.WiFiRole = kWiFiRole_Station;
 
-    err = ConfigurationMgr.GetWiFiStationSecurityType(netInfo.WiFiSecurityType);
+    err = ConfigurationMgr().GetWiFiStationSecurityType(netInfo.WiFiSecurityType);
     if (err == WEAVE_DEVICE_ERROR_CONFIG_NOT_FOUND)
     {
         err = WEAVE_NO_ERROR;
@@ -325,7 +325,7 @@ WEAVE_ERROR NetworkProvisioningServer::SetESPStationConfig(const ::nl::Weave::De
 
     // Store the WiFi Station security type separately in NVS.  This is necessary because the ESP wifi API
     // does not provide a way to query the configured WiFi auth mode.
-    err = ConfigurationMgr.UpdateWiFiStationSecurityType(netInfo.WiFiSecurityType);
+    err = ConfigurationMgr().UpdateWiFiStationSecurityType(netInfo.WiFiSecurityType);
     SuccessOrExit(err);
 
     WeaveLogProgress(DeviceLayer, "WiFi station provision set (SSID: %s)", netInfo.WiFiSSID);
@@ -704,7 +704,7 @@ WEAVE_ERROR NetworkProvisioningServer::HandleRemoveNetwork(uint32_t networkId)
     esp_wifi_set_config(ESP_IF_WIFI_STA, &stationConfig);
 
     // Clear the persisted WiFi station security type.
-    ConfigurationMgr.UpdateWiFiStationSecurityType(kWiFiSecurityType_NotSpecified);
+    ConfigurationMgr().UpdateWiFiStationSecurityType(kWiFiSecurityType_NotSpecified);
 
     // Tell the ConnectivityManager there's been a change to the station provision.
     ConnectivityMgr.OnWiFiStationProvisionChange();
@@ -935,7 +935,7 @@ exit:
 
 bool NetworkProvisioningServer::IsPairedToAccount() const
 {
-    return ConfigurationMgr.IsServiceProvisioned() && ConfigurationMgr.IsPairedToAccount();
+    return ConfigurationMgr().IsServiceProvisioned() && ConfigurationMgr().IsPairedToAccount();
 }
 
 } // namespace Internal

@@ -82,7 +82,7 @@ void DeviceDescriptionServer::HandleIdentifyRequest(void *appState, uint64_t nod
     {
         uint16_t vendorId;
 
-        err = ConfigurationMgr.GetVendorId(vendorId);
+        err = ConfigurationMgr().GetVendorId(vendorId);
         SuccessOrExit(err);
 
         if (reqMsg.TargetVendorId != vendorId)
@@ -96,7 +96,7 @@ void DeviceDescriptionServer::HandleIdentifyRequest(void *appState, uint64_t nod
     {
         uint16_t productId;
 
-        err = ConfigurationMgr.GetProductId(productId);
+        err = ConfigurationMgr().GetProductId(productId);
         SuccessOrExit(err);
 
         if (reqMsg.TargetProductId != productId)
@@ -115,7 +115,7 @@ exit:
 
     if (err == WEAVE_NO_ERROR && sendResp)
     {
-        err = ConfigurationMgr.GetDeviceDescriptor(respMsg.DeviceDesc);
+        err = ConfigurationMgr().GetDeviceDescriptor(respMsg.DeviceDesc);
     }
 
     if (err != WEAVE_NO_ERROR)

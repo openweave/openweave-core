@@ -180,7 +180,7 @@ WEAVE_ERROR TraitManager::Init(void)
     err = SubscriptionEngine::GetInstance()->EnablePublisher(NULL, &PublishedTraits);
     SuccessOrExit(err);
 
-    AppKeysTraitDataSink.SetGroupKeyStore(ConfigurationMgr.GetGroupKeyStore());
+    AppKeysTraitDataSink.SetGroupKeyStore(ConfigurationMgr().GetGroupKeyStore());
 
     {
         ResourceIdentifier resourceId(ResourceIdentifier::RESOURCE_TYPE_RESERVED, ResourceIdentifier::SELF_NODE_ID);
@@ -215,7 +215,7 @@ void TraitManager::DriveServiceSubscriptionState(bool serviceConnectivityChanged
     bool serviceSubShouldBeActivated =
             (mServiceSubMode == kServiceSubscriptionMode_Enabled &&
              ConnectivityMgr.IsWiFiStationProvisioned() &&
-             ConfigurationMgr.IsPairedToAccount());
+             ConfigurationMgr().IsPairedToAccount());
 
     // If the service subscription activation state needs to change...
     if (GetFlag(mFlags, kFlag_ServiceSubscriptionActivated) != serviceSubShouldBeActivated)
