@@ -62,7 +62,7 @@ private:
     // NOTE: These members are for internal use by the following friends.
 
     friend class ConnectivityManager;
-    friend class ConfigurationManager;
+    template<class Target> friend class ConfigurationManagerImpl;
     friend class TraitManager;
     friend class TimeSyncManager;
     friend class Internal::FabricProvisioningServer;

@@ -97,8 +97,7 @@ WEAVE_ERROR PlatformManager::InitWeaveStack(void)
     SuccessOrExit(err);
 
     // Initialize the Configuration Manager object.
-    new (&ConfigurationMgr) ConfigurationManager();
-    err = ConfigurationMgr.Init();
+    err = ConfigurationMgr().Init();
     if (err != WEAVE_NO_ERROR)
     {
         WeaveLogError(DeviceLayer, "Configuration Manager initialization failed: %s", ErrorStr(err));
@@ -202,7 +201,7 @@ WEAVE_ERROR PlatformManager::InitWeaveStack(void)
 #endif
 
     // Perform dynamic configuration of the Weave stack based on stored settings.
-    err = ConfigurationMgr.ConfigureWeaveStack();
+    err = ConfigurationMgr().ConfigureWeaveStack();
     if (err != WEAVE_NO_ERROR)
     {
         WeaveLogError(DeviceLayer, "ConfigureWeaveStack failed: %s", ErrorStr(err));

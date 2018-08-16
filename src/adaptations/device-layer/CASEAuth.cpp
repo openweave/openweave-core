@@ -103,7 +103,7 @@ WEAVE_ERROR CASEAuthDelegate::GetNodeCertInfo(bool isInitiator, uint8_t *buf, ui
     size_t certLen;
 
     // Determine the length of the certificate.
-    err = ConfigurationMgr.GetDeviceCertificateLength(certLen);
+    err = ConfigurationMgr().GetDeviceCertificateLength(certLen);
     SuccessOrExit(err);
 
     // Fail if no certificate has been configured.
@@ -114,7 +114,7 @@ WEAVE_ERROR CASEAuthDelegate::GetNodeCertInfo(bool isInitiator, uint8_t *buf, ui
     VerifyOrExit(certBuf != NULL, err = WEAVE_ERROR_NO_MEMORY);
 
     // Read the certificate
-    err = ConfigurationMgr.GetDeviceCertificate(certBuf, certLen, certLen);
+    err = ConfigurationMgr().GetDeviceCertificate(certBuf, certLen, certLen);
     SuccessOrExit(err);
 
     // Encode a CASECertificateInformation TLV structure containing the device certificate.
@@ -135,7 +135,7 @@ WEAVE_ERROR CASEAuthDelegate::GetNodePrivateKey(bool isInitiator, const uint8_t 
     size_t privKeyLen;
 
     // Determine the length of the private key.
-    err = ConfigurationMgr.GetDevicePrivateKeyLength(privKeyLen);
+    err = ConfigurationMgr().GetDevicePrivateKeyLength(privKeyLen);
     SuccessOrExit(err);
 
     // Fail if no private key has been configured.
@@ -146,7 +146,7 @@ WEAVE_ERROR CASEAuthDelegate::GetNodePrivateKey(bool isInitiator, const uint8_t 
     VerifyOrExit(mPrivKeyBuf != NULL, err = WEAVE_ERROR_NO_MEMORY);
 
     // Read the private key.
-    err = ConfigurationMgr.GetDevicePrivateKey(mPrivKeyBuf, privKeyLen, privKeyLen);
+    err = ConfigurationMgr().GetDevicePrivateKey(mPrivKeyBuf, privKeyLen, privKeyLen);
     SuccessOrExit(err);
 
     weavePrivKey = mPrivKeyBuf;
@@ -176,7 +176,7 @@ WEAVE_ERROR CASEAuthDelegate::GetNodePayload(bool isInitiator, uint8_t *buf, uin
     WEAVE_ERROR err;
     size_t deviceDescLen;
 
-    err = ConfigurationMgr.GetDeviceDescriptorTLV(buf, (size_t)bufSize, deviceDescLen);
+    err = ConfigurationMgr().GetDeviceDescriptorTLV(buf, (size_t)bufSize, deviceDescLen);
     SuccessOrExit(err);
 
     payloadLen = deviceDescLen;
@@ -201,7 +201,7 @@ WEAVE_ERROR CASEAuthDelegate::BeginCertValidation(bool isInitiator, WeaveCertifi
     // Determine if the device has been provisioned for talking to a service by querying the device state manager
     // for the length of the service configuration data.  If service configuration data is present, then the device
     // has been service provisioned.
-    err = ConfigurationMgr.GetServiceConfigLength(serviceConfigLen);
+    err = ConfigurationMgr().GetServiceConfigLength(serviceConfigLen);
     if (err != WEAVE_DEVICE_ERROR_CONFIG_NOT_FOUND)
         SuccessOrExit(err);
 
@@ -213,7 +213,7 @@ WEAVE_ERROR CASEAuthDelegate::BeginCertValidation(bool isInitiator, WeaveCertifi
         VerifyOrExit(mServiceConfigBuf != NULL, err = WEAVE_ERROR_NO_MEMORY);
 
         // Read the service config data.
-        err = ConfigurationMgr.GetServiceConfig(mServiceConfigBuf, serviceConfigLen, serviceConfigLen);
+        err = ConfigurationMgr().GetServiceConfig(mServiceConfigBuf, serviceConfigLen, serviceConfigLen);
         SuccessOrExit(err);
 
         // Load the list of trusted root certificate from the service config.
@@ -272,7 +272,7 @@ WEAVE_ERROR CASEAuthDelegate::BeginCertValidation(bool isInitiator, WeaveCertifi
     }
     else if (err == WEAVE_SYSTEM_ERROR_REAL_TIME_NOT_SYNCED)
     {
-        err = ConfigurationMgr.GetFirmwareBuildTime(validTime.Year, validTime.Month, validTime.Day,
+        err = ConfigurationMgr().GetFirmwareBuildTime(validTime.Year, validTime.Month, validTime.Day,
                 validTime.Hour, validTime.Minute, validTime.Second);
         SuccessOrExit(err);
         validContext.ValidateFlags |= kValidateFlag_IgnoreNotBefore;

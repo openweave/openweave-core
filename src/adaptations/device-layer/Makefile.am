@@ -24,44 +24,54 @@ include $(abs_top_nlbuild_autotools_dir)/automake/pre.am
 
 if CONFIG_DEVICE_LAYER
 
-lib_LIBRARIES                   		= libDeviceLayer.a
+lib_LIBRARIES                           = libDeviceLayer.a
 
-libDeviceLayer_a_CPPFLAGS        = \
-    -I$(top_srcdir)/src/include    \
-    $(LWIP_CPPFLAGS)               \
-    $(SOCKETS_CPPFLAGS)            \
+libDeviceLayer_a_CPPFLAGS               = \
+    -I$(top_srcdir)/src/include           \
+    $(LWIP_CPPFLAGS)                      \
+    $(SOCKETS_CPPFLAGS)                   \
     $(NULL)
 
-libDeviceLayer_a_SOURCES         = \
-    AESBlockCipher.cpp                  \
-    BLEManager.cpp                      \
-    CASEAuth.cpp                        \
-    ConfigurationManager.cpp            \
-    ConnectivityManager.cpp             \
-    DeviceControlServer.cpp             \
-    DeviceDescriptionServer.cpp         \
-    DeviceIdentityTraitDataSource.cpp   \
-    EchoServer.cpp                      \
-    Entropy.cpp                         \
-    ESPUtils.cpp                        \
-    FabricProvisioningServer.cpp        \
-    Globals.cpp                         \
-    Logging.cpp                         \
-    NetworkInfo.cpp                     \
-    NetworkProvisioningServer.cpp       \
-    PlatformManager.cpp                 \
-    ServiceDirectoryManager.cpp         \
-    ServiceProvisioningServer.cpp       \
-    ServiceTunnelAgent.cpp              \
-    TestDeviceIds.cpp                   \
-    Time.cpp                            \
-    TimeSyncManager.cpp                 \
-    TraitManager.cpp                    \
-    Warm.cpp                            \
+libDeviceLayer_a_SOURCES                = \
+    AESBlockCipher.cpp                    \
+    BLEManager.cpp                        \
+    CASEAuth.cpp                          \
+    ConnectivityManager.cpp               \
+    DeviceControlServer.cpp               \
+    DeviceDescriptionServer.cpp           \
+    DeviceIdentityTraitDataSource.cpp     \
+    EchoServer.cpp                        \
+    Entropy.cpp                           \
+    ESPUtils.cpp                          \
+    FabricProvisioningServer.cpp          \
+    Globals.cpp                           \
+    Logging.cpp                           \
+    NetworkInfo.cpp                       \
+    NetworkProvisioningServer.cpp         \
+    PersistedStorage.cpp                  \
+    PlatformManager.cpp                   \
+    ServiceDirectoryManager.cpp           \
+    ServiceProvisioningServer.cpp         \
+    ServiceTunnelAgent.cpp                \
+    TestDeviceIds.cpp                     \
+    Time.cpp                              \
+    TimeSyncManager.cpp                   \
+    TraitManager.cpp                      \
+    Warm.cpp                              \
     trait-support/weave/trait/description/DeviceIdentityTrait.cpp \
     $(NULL)
 
-EXTRA_DIST                       = \
+if CONFIG_DEVICE_LAYER_ESP32
+
+libDeviceLayer_a_SOURCES               += \
+    ESP32/ConfigurationManagerImpl.cpp    \
+    ESP32/GroupKeyStoreImpl.cpp           \
+    ESP32/NVSSupport.cpp                  \
+    $(NULL)
+
+endif # CONFIG_DEVICE_LAYER_ESP32
+
+EXTRA_DIST                              = \
     $(NULL)
 
 endif # CONFIG_DEVICE_LAYER

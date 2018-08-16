@@ -53,7 +53,7 @@ WEAVE_ERROR ServiceProvisioningServer::HandleRegisterServicePairAccount(Register
     uint64_t curServiceId;
 
     // Check if a service is already provisioned. If so respond with "Too Many Services".
-    err = ConfigurationMgr.GetServiceId(curServiceId);
+    err = ConfigurationMgr().GetServiceId(curServiceId);
     if (err == WEAVE_NO_ERROR)
     {
         err = ServiceProvisioningSvr.SendStatusReport(kWeaveProfile_ServiceProvisioning,
@@ -76,7 +76,7 @@ WEAVE_ERROR ServiceProvisioningServer::HandleRegisterServicePairAccount(Register
     WeaveLogProgress(DeviceLayer, "Registering new service: %" PRIx64 " (account id %*s)", msg.ServiceId, (int)msg.AccountIdLen, msg.AccountId);
 
     // Store the service id and the service config in persistent storage.
-    err = ConfigurationMgr.StoreServiceProvisioningData(msg.ServiceId, msg.ServiceConfig, msg.ServiceConfigLen, NULL, 0);
+    err = ConfigurationMgr().StoreServiceProvisioningData(msg.ServiceId, msg.ServiceConfig, msg.ServiceConfigLen, NULL, 0);
     SuccessOrExit(err);
 
     // Post an event alerting other subsystems to the change in the service provisioning state.
@@ -96,7 +96,7 @@ WEAVE_ERROR ServiceProvisioningServer::HandleRegisterServicePairAccount(Register
 #else // !WEAVE_DEVICE_CONFIG_DISABLE_ACCOUNT_PAIRING
 
     // Store the account id in persistent storage.
-    err = ConfigurationMgr.StoreAccountId(msg.AccountId, msg.AccountIdLen);
+    err = ConfigurationMgr().StoreAccountId(msg.AccountId, msg.AccountIdLen);
     SuccessOrExit(err);
 
     // Post an event alerting other subsystems that the device is now paired to an account.
@@ -122,7 +122,7 @@ WEAVE_ERROR ServiceProvisioningServer::HandleUpdateService(UpdateServiceMessage&
     uint64_t curServiceId;
 
     // Verify that the service id matches the existing service.  If not respond with "No Such Service".
-    err = ConfigurationMgr.GetServiceId(curServiceId);
+    err = ConfigurationMgr().GetServiceId(curServiceId);
     if (err == WEAVE_DEVICE_ERROR_CONFIG_NOT_FOUND || curServiceId != msg.ServiceId)
     {
         err = ServiceProvisioningSvr.SendStatusReport(kWeaveProfile_ServiceProvisioning, kStatusCode_NoSuchService);
@@ -138,7 +138,7 @@ WEAVE_ERROR ServiceProvisioningServer::HandleUpdateService(UpdateServiceMessage&
     }
 
     // Save the new service configuration in device persistent storage, replacing the existing value.
-    err = ConfigurationMgr.StoreServiceConfig(msg.ServiceConfig, msg.ServiceConfigLen);
+    err = ConfigurationMgr().StoreServiceConfig(msg.ServiceConfig, msg.ServiceConfigLen);
     SuccessOrExit(err);
 
     // Post an event alerting other subsystems that the service config has changed.
@@ -164,7 +164,7 @@ WEAVE_ERROR ServiceProvisioningServer::HandleUnregisterService(uint64_t serviceI
     uint64_t curServiceId;
 
     // Verify that the service id matches the existing service.  If not respond with "No Such Service".
-    err = ConfigurationMgr.GetServiceId(curServiceId);
+    err = ConfigurationMgr().GetServiceId(curServiceId);
     if (err == WEAVE_DEVICE_ERROR_CONFIG_NOT_FOUND || curServiceId != serviceId)
     {
         err = ServiceProvisioningSvr.SendStatusReport(kWeaveProfile_ServiceProvisioning, kStatusCode_NoSuchService);
@@ -173,7 +173,7 @@ WEAVE_ERROR ServiceProvisioningServer::HandleUnregisterService(uint64_t serviceI
     SuccessOrExit(err);
 
     // Clear the persisted service provisioning data, if present.
-    err = ConfigurationMgr.ClearServiceProvisioningData();
+    err = ConfigurationMgr().ClearServiceProvisioningData();
     SuccessOrExit(err);
 
     // Send "Success" back to the requestor.
@@ -186,7 +186,7 @@ exit:
 
 bool ServiceProvisioningServer::IsPairedToAccount(void) const
 {
-    return ConfigurationMgr.IsServiceProvisioned() && ConfigurationMgr.IsPairedToAccount();
+    return ConfigurationMgr().IsServiceProvisioned() && ConfigurationMgr().IsPairedToAccount();
 }
 
 void ServiceProvisioningServer::OnPlatformEvent(const WeaveDeviceEvent * event)
@@ -261,7 +261,7 @@ void ServiceProvisioningServer::SendPairDeviceToAccountRequest(void)
     size_t devDescLen;
 
     // Generate a device descriptor for the local device in TLV.
-    err = ConfigurationMgr.GetDeviceDescriptorTLV(devDesc, sizeof(devDesc), devDescLen);
+    err = ConfigurationMgr().GetDeviceDescriptorTLV(devDesc, sizeof(devDesc), devDescLen);
     SuccessOrExit(err);
 
     // Call up to a helper function the server base class to encode and send a PairDeviceToAccount request to
@@ -314,7 +314,7 @@ void ServiceProvisioningServer::HandlePairDeviceToAccountResult(WEAVE_ERROR err,
 
         // Store the account id in persistent storage.  This is the final step of registering a
         // service and marks that the device is properly associated with a user's account.
-        err = ConfigurationMgr.StoreAccountId(regServiceMsg.AccountId, regServiceMsg.AccountIdLen);
+        err = ConfigurationMgr().StoreAccountId(regServiceMsg.AccountId, regServiceMsg.AccountIdLen);
         SuccessOrExit(err);
 
         // Post an event alerting other subsystems that the device is now paired to an account.
@@ -343,7 +343,7 @@ exit:
                   : ::nl::ErrorStr(err));
 
         // Since we're failing the RegisterServicePairDevice request, clear the persisted service configuration.
-        ConfigurationMgr.ClearServiceProvisioningData();
+        ConfigurationMgr().ClearServiceProvisioningData();
 
         // Choose an appropriate StatusReport to return if not already given.
         if (statusReportProfileId == 0 && statusReportStatusCode == 0)
