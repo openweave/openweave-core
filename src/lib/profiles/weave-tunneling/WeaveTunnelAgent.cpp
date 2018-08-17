@@ -451,6 +451,7 @@ WEAVE_ERROR WeaveTunnelAgent::ConfigurePrimaryTunnelTimeout(uint16_t maxTimeoutS
 {
     return mPrimaryTunConnMgr.ConfigureConnTimeout(maxTimeoutSecs);
 }
+
 #endif // WEAVE_CONFIG_TUNNEL_TCP_USER_TIMEOUT_SUPPORTED
 
 #if WEAVE_CONFIG_TUNNEL_TCP_KEEPALIVE_SUPPORTED
@@ -662,6 +663,7 @@ WEAVE_ERROR WeaveTunnelAgent::ConfigureBackupTunnelTimeout(uint16_t maxTimeoutSe
 {
     return mBackupTunConnMgr.ConfigureConnTimeout(maxTimeoutSecs);
 }
+
 #endif // WEAVE_CONFIG_TUNNEL_TCP_USER_TIMEOUT_SUPPORTED
 
 #if WEAVE_CONFIG_TUNNEL_TCP_KEEPALIVE_SUPPORTED
@@ -1699,6 +1701,19 @@ void WeaveTunnelAgent::WeaveTunnelConnectionErrorNotify(const WeaveTunnelConnect
 #endif // WEAVE_CONFIG_TUNNEL_FAILOVER_SUPPORTED
     }
 }
+
+#if WEAVE_CONFIG_TUNNEL_ENABLE_TCP_IDLE_CALLBACK
+/**
+ * Tunnel TCP connection send queue state notifier.
+ */
+void WeaveTunnelAgent::WeaveTunnelNotifyTCPSendIdleStateChange(const TunnelType tunType, const bool isIdle)
+{
+    if (OnServiceTunTCPIdleNotify)
+    {
+        OnServiceTunTCPIdleNotify(tunType, isIdle, mAppContext);
+    }
+}
+#endif // WEAVE_CONFIG_TUNNEL_ENABLE_TCP_IDLE_CALLBACK
 
 void WeaveTunnelAgent::WeaveTunnelServiceReconnectRequested(const WeaveTunnelConnectionMgr *connMgr,
                                                             const char *reconnectHost,

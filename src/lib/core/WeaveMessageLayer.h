@@ -296,6 +296,8 @@ public:
     WEAVE_ERROR ResetUserTimeout(void);
     uint16_t LogId(void) const { return static_cast<uint16_t>(reinterpret_cast<intptr_t>(this)); }
 
+    TCPEndPoint * GetTCPEndPoint(void) const { return mTcpEndPoint; }
+
     /**
      *  This function is the application callback that is invoked when a connection setup is complete.
      *
