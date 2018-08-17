@@ -1235,6 +1235,50 @@ AM_CONDITIONAL([CONFIG_NETWORK_LAYER_INET],    [test "${CONFIG_NETWORK_LAYER_INE
 AC_DEFINE_UNQUOTED([CONFIG_NETWORK_LAYER_INET],[${CONFIG_NETWORK_LAYER_INET}],[Define to 1 if you want to use Weave with the Internet Protocol network stack.])
 
 #
+# OpenWeave Device Layer
+#
+AC_MSG_CHECKING([device layer])
+AC_ARG_WITH(device-layer,
+    [AS_HELP_STRING([--with-device-layer=LAYER],
+        [Specify the target environment for the Weave Device Layer.  Choose one of: esp32, or none @<:@default=none@:>@.])],
+    [
+        case "${with_device_layer}" in
+
+        esp32|none)
+            ;;
+
+        *)
+            AC_MSG_ERROR([Invalid value ${with_device_layer} for --with-device-layer])
+            ;;
+
+        esac
+    ],
+    [with_device_layer=none])
+AC_MSG_RESULT(${with_device_layer})
+
+case "${with_device_layer}" in
+esp32)
+      CONFIG_DEVICE_LAYER=1
+      CONFIG_DEVICE_LAYER_ESP32=1
+      ;;
+
+none)
+      CONFIG_DEVICE_LAYER=0
+      CONFIG_DEVICE_LAYER_ESP32=0
+      ;;
+
+esac
+
+AC_SUBST(CONFIG_DEVICE_LAYER)
+AM_CONDITIONAL([CONFIG_DEVICE_LAYER],    [test "${CONFIG_DEVICE_LAYER}" = 1])
+AC_DEFINE_UNQUOTED([CONFIG_DEVICE_LAYER],[${CONFIG_NETWORK_LAYER_BLE}],[Define to 1 if you want to use the OpenWeave device layer.])
+
+AC_SUBST(CONFIG_DEVICE_LAYER_ESP32)
+AM_CONDITIONAL([CONFIG_DEVICE_LAYER_ESP32],    [test "${CONFIG_DEVICE_LAYER_ESP32}" = 1])
+AC_DEFINE_UNQUOTED([CONFIG_DEVICE_LAYER_ESP32],[${CONFIG_DEVICE_LAYER_ESP32}],[Define to 1 if you want to build the OpenWeave device layer for the Espressif ESP32.])
+
+
+#
 # WoBle over Bluez Peripheral support
 #
 
@@ -2460,6 +2504,7 @@ src/test-apps/fuzz/Makefile
 src/tools/weave/Makefile
 src/tools/misc/Makefile
 src/examples/Makefile
+src/adaptations/device-layer/Makefile
 doc/Makefile
 ])
 
