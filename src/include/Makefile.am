@@ -946,6 +946,7 @@ $(nl_public_WeaveDeviceLayer_source_dirstem)/internal/ServiceDirectoryManager.h 
 $(nl_public_WeaveDeviceLayer_source_dirstem)/internal/DeviceDescriptionServer.h       \
 $(nl_public_WeaveDeviceLayer_source_dirstem)/internal/ESPUtils.h                      \
 $(nl_public_WeaveDeviceLayer_source_dirstem)/internal/DeviceIdentityTraitDataSource.h \
+$(nl_public_WeaveDeviceLayer_source_dirstem)/internal/GenericConfigurationManagerImpl.h \
 $(NULL)
 
 nl_public_WeaveDeviceLayer_header_sources = \

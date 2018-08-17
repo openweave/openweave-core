@@ -70,6 +70,7 @@ public:
     WEAVE_ERROR GetFirmwareRevision(char * buf, size_t bufSize, size_t & outLen);
     WEAVE_ERROR GetFirmwareBuildTime(uint16_t & year, uint8_t & month, uint8_t & dayOfMonth,
             uint8_t & hour, uint8_t & minute, uint8_t & second);
+    WEAVE_ERROR GetDeviceId(uint64_t & deviceId);
     WEAVE_ERROR GetDeviceCertificate(uint8_t * buf, size_t bufSize, size_t & certLen);
     WEAVE_ERROR GetDeviceCertificateLength(size_t & certLen);
     WEAVE_ERROR GetDevicePrivateKey(uint8_t * buf, size_t bufSize, size_t & keyLen);
@@ -194,6 +195,12 @@ WEAVE_ERROR ConfigurationManager<Target>::GetFirmwareBuildTime(uint16_t & year, 
         uint8_t & hour, uint8_t & minute, uint8_t & second)
 {
     return Impl()->_GetFirmwareBuildTime(year, month, dayOfMonth, hour, minute, second);
+}
+
+template<class Target>
+WEAVE_ERROR ConfigurationManager<Target>::GetDeviceId(uint64_t & deviceId)
+{
+    return Impl()->_GetDeviceId(deviceId);
 }
 
 template<class Target>

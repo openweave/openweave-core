@@ -1,0 +1,118 @@
+/*
+ *
+ *    Copyright (c) 2018 Nest Labs, Inc.
+ *    All rights reserved.
+ *
+ *    Licensed under the Apache License, Version 2.0 (the "License");
+ *    you may not use this file except in compliance with the License.
+ *    You may obtain a copy of the License at
+ *
+ *        http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *    Unless required by applicable law or agreed to in writing, software
+ *    distributed under the License is distributed on an "AS IS" BASIS,
+ *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *    See the License for the specific language governing permissions and
+ *    limitations under the License.
+ */
+
+/**
+ *    @file
+ *          Utility types to aid in the implementation of the Device Layer
+ *          ConfigurationManager object.
+ */
+
+#ifndef GENERIC_CONFIGURATION_MANAGER_IMPL_H
+#define GENERIC_CONFIGURATION_MANAGER_IMPL_H
+
+namespace nl {
+namespace Weave {
+namespace DeviceLayer {
+namespace Internal {
+
+template<class ImplClass, class KeyMap>
+class GenericConfigStoreImpl
+{
+public:
+
+    WEAVE_ERROR _GetVendorId(uint16_t & vendorId);
+    WEAVE_ERROR _GetProductId(uint16_t & productId);
+    WEAVE_ERROR _GetProductRevision(uint16_t & productRev);
+    WEAVE_ERROR _GetFirmwareRevision(char * buf, size_t bufSize, size_t & outLen);
+    WEAVE_ERROR _GetFirmwareBuildTime(uint16_t & year, uint8_t & month, uint8_t & dayOfMonth,
+            uint8_t & hour, uint8_t & minute, uint8_t & second);
+
+    WEAVE_ERROR _GetDeviceId(uint64_t & deviceId);
+    WEAVE_ERROR _StoreDeviceId(uint64_t deviceId);
+    WEAVE_ERROR _GetSerialNumber(char * buf, size_t bufSize, size_t & serialNumLen);
+    WEAVE_ERROR _StoreSerialNumber(const char * serialNum);
+    WEAVE_ERROR _GetManufacturingDate(uint16_t & year, uint8_t & month, uint8_t & dayOfMonth);
+    WEAVE_ERROR _StoreManufacturingDate(const char * mfgDate);
+
+    WEAVE_ERROR _GetDeviceCertificate(uint8_t * buf, size_t bufSize, size_t & certLen);
+    WEAVE_ERROR _GetDeviceCertificateLength(size_t & certLen);
+    WEAVE_ERROR _GetDevicePrivateKey(uint8_t * buf, size_t bufSize, size_t & keyLen);
+    WEAVE_ERROR _GetDevicePrivateKeyLength(size_t & keyLen);
+    WEAVE_ERROR _StoreDeviceCertificate(const uint8_t * cert, size_t certLen);
+    WEAVE_ERROR _StoreDevicePrivateKey(const uint8_t * key, size_t keyLen);
+    WEAVE_ERROR _StorePairingCode(const char * pairingCode);
+
+    WEAVE_ERROR _GetFabricId(uint64_t & fabricId);
+    WEAVE_ERROR _StoreFabricId(uint64_t fabricId);
+    WEAVE_ERROR _GetServiceId(uint64_t & serviceId);
+    WEAVE_ERROR _GetServiceConfig(uint8_t * buf, size_t bufSize, size_t & serviceConfigLen);
+    WEAVE_ERROR _GetServiceConfigLength(size_t & serviceConfigLen);
+    WEAVE_ERROR _StoreServiceConfig(const uint8_t * serviceConfig, size_t serviceConfigLen);
+    WEAVE_ERROR _GetPairedAccountId(char * buf, size_t bufSize, size_t & accountIdLen);
+    WEAVE_ERROR _StorePairedAccountId(const char * accountId, size_t accountIdLen);
+    WEAVE_ERROR _StoreServiceProvisioningData(uint64_t serviceId, const uint8_t * serviceConfig,
+            size_t serviceConfigLen, const char * accountId, size_t accountIdLen);
+    WEAVE_ERROR _ClearServiceProvisioningData();
+
+    bool _IsServiceProvisioned();
+    bool _IsPairedToAccount();
+    bool _IsMemberOfFabric();
+
+protected:
+
+    enum
+    {
+        kFlag_IsServiceProvisioned      = 0x01,
+        kFlag_IsPairedToAccount         = 0x02,
+    };
+
+    uint8_t mFlags;
+
+private:
+
+    ImplClass * Impl() { return static_cast<ImplClass *>(this); }
+};
+
+template<class ImplClass, class KeyMap>
+inline WEAVE_ERROR GenericConfigStoreImpl<ImplClass, KeyMap>::_GetVendorId(uint16_t & vendorId)
+{
+    vendorId = (uint16_t)WEAVE_DEVICE_CONFIG_DEVICE_VENDOR_ID;
+    return WEAVE_NO_ERROR;
+}
+
+template<class ImplClass, class KeyMap>
+inline WEAVE_ERROR GenericConfigStoreImpl<ImplClass, KeyMap>::_GetProductId(uint16_t & productId)
+{
+    productId = (uint16_t)WEAVE_DEVICE_CONFIG_DEVICE_PRODUCT_ID;
+    return WEAVE_NO_ERROR;
+}
+
+template<class ImplClass, class KeyMap>
+inline WEAVE_ERROR GenericConfigStoreImpl<ImplClass, KeyMap>::_GetProductRevision(uint16_t & productRev)
+{
+    productRev = (uint16_t)WEAVE_DEVICE_CONFIG_DEVICE_PRODUCT_REVISION;
+    return WEAVE_NO_ERROR;
+}
+
+} // namespace Internal
+} // namespace DeviceLayer
+} // namespace Weave
+} // namespace nl
+
+#endif // GENERIC_CONFIGURATION_MANAGER_IMPL_H
+

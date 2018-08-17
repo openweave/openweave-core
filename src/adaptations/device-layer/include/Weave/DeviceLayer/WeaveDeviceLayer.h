@@ -21,13 +21,13 @@
 
 #include <Weave/Core/WeaveCore.h>
 #include <Weave/DeviceLayer/WeaveDeviceConfig.h>
+#include <Weave/DeviceLayer/WeaveDeviceError.h>
 #include <BleLayer/BleLayer.h>
 #include <Weave/DeviceLayer/PlatformManager.h>
 #include <Weave/DeviceLayer/ConfigurationManager.h>
 #include <Weave/DeviceLayer/ConnectivityManager.h>
 #include <Weave/DeviceLayer/TraitManager.h>
 #include <Weave/DeviceLayer/TimeSyncManager.h>
-#include <Weave/DeviceLayer/WeaveDeviceError.h>
 
 namespace nl {
 namespace Weave {
