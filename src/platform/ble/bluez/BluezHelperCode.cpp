@@ -368,6 +368,17 @@ static DBusMessage * WeaveDestroyAdvertising(DBusConnection * dbusConn, DBusMess
     return dbus_message_new_method_return(dbusMsg);
 }
 
+gboolean SetAlias(void)
+{
+    gboolean success = g_dbus_proxy_set_property_basic(gDefaultAdapter->adapterProxy, "Alias", DBUS_TYPE_STRING, &(gBluezServerEndpoint->adapterName), NULL, NULL, NULL);
+    if (FALSE == success)
+    {
+        WeaveLogError(Ble, "Fail to set controller alias for adapter %p(%s)", gDefaultAdapter->adapterProxy, gBluezServerEndpoint->adapterName);
+    }
+
+    return success;
+}
+
 gboolean EnableDiscoverable(void)
 {
     gboolean success = FALSE;
@@ -1496,6 +1507,9 @@ static void PowerCb(const DBusError * error, void * bluezData)
     VerifyOrExit(success == TRUE, err = WEAVE_ERROR_INCORRECT_STATE);
 
     success = EnableDiscoverable();
+    VerifyOrExit(success == TRUE, err = WEAVE_ERROR_INCORRECT_STATE);
+
+    success = SetAlias();
     VerifyOrExit(success == TRUE, err = WEAVE_ERROR_INCORRECT_STATE);
 
     success = AdvertisingRegister(gBluezDbusConn, gDefaultAdapter->advertisingProxy);
