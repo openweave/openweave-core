@@ -109,7 +109,7 @@ WEAVE_ERROR DeviceControlServer::OnFailSafeArmed(void)
 {
     WEAVE_ERROR err;
 
-    err = ConfigurationMgr().SetFailSafeArmed();
+    err = ConfigurationMgr().SetFailSafeArmed(true);
     SuccessOrExit(err);
 
 exit:
@@ -120,7 +120,7 @@ WEAVE_ERROR DeviceControlServer::OnFailSafeDisarmed(void)
 {
     WEAVE_ERROR err;
 
-    err = ConfigurationMgr().ClearFailSafeArmed();
+    err = ConfigurationMgr().SetFailSafeArmed(true);
     SuccessOrExit(err);
 
 exit:

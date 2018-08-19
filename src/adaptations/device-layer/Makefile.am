@@ -66,7 +66,7 @@ if CONFIG_DEVICE_LAYER_ESP32
 libDeviceLayer_a_SOURCES               += \
     ESP32/ConfigurationManagerImpl.cpp    \
     ESP32/GroupKeyStoreImpl.cpp           \
-    ESP32/NVSSupport.cpp                  \
+    ESP32/ESP32Config.cpp                 \
     $(NULL)
 
 endif # CONFIG_DEVICE_LAYER_ESP32

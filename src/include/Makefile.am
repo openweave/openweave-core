@@ -986,7 +986,7 @@ if CONFIG_DEVICE_LAYER_ESP32
 nl_public_WeaveDeviceLayer_target_header_sources = \
 $(nl_public_WeaveDeviceLayer_source_dirstem)/ESP32/ConfigurationManagerImpl.h         \
 $(nl_public_WeaveDeviceLayer_source_dirstem)/ESP32/GroupKeyStoreImpl.h                \
-$(nl_public_WeaveDeviceLayer_source_dirstem)/ESP32/NVSSupport.h                       \
+$(nl_public_WeaveDeviceLayer_source_dirstem)/ESP32/ESP32Config.h                      \
 $(NULL)
 
 endif # CONFIG_DEVICE_LAYER_ESP32

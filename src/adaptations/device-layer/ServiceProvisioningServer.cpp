@@ -314,7 +314,7 @@ void ServiceProvisioningServer::HandlePairDeviceToAccountResult(WEAVE_ERROR err,
 
         // Store the account id in persistent storage.  This is the final step of registering a
         // service and marks that the device is properly associated with a user's account.
-        err = ConfigurationMgr().StoreAccountId(regServiceMsg.AccountId, regServiceMsg.AccountIdLen);
+        err = ConfigurationMgr().StorePairedAccountId(regServiceMsg.AccountId, regServiceMsg.AccountIdLen);
         SuccessOrExit(err);
 
         // Post an event alerting other subsystems that the device is now paired to an account.
