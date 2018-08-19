@@ -102,8 +102,8 @@ WEAVE_ERROR CASEAuthDelegate::GetNodeCertInfo(bool isInitiator, uint8_t *buf, ui
     uint8_t * certBuf = NULL;
     size_t certLen;
 
-    // Determine the length of the certificate.
-    err = ConfigurationMgr().GetDeviceCertificateLength(certLen);
+    // Determine the length of the device certificate.
+    err = ConfigurationMgr().GetDeviceCertificate((uint8_t *)NULL, 0, certLen);
     SuccessOrExit(err);
 
     // Fail if no certificate has been configured.
@@ -135,7 +135,7 @@ WEAVE_ERROR CASEAuthDelegate::GetNodePrivateKey(bool isInitiator, const uint8_t 
     size_t privKeyLen;
 
     // Determine the length of the private key.
-    err = ConfigurationMgr().GetDevicePrivateKeyLength(privKeyLen);
+    err = ConfigurationMgr().GetDevicePrivateKey((uint8_t *)NULL, 0, privKeyLen);
     SuccessOrExit(err);
 
     // Fail if no private key has been configured.
@@ -198,10 +198,10 @@ WEAVE_ERROR CASEAuthDelegate::BeginCertValidation(bool isInitiator, WeaveCertifi
     err = certSet.Init(kMaxValidationCerts, kCertDecodeBufferSize, MemoryAlloc, MemoryFree);
     SuccessOrExit(err);
 
-    // Determine if the device has been provisioned for talking to a service by querying the device state manager
+    // Determine if the device has been provisioned for talking to a service by querying the configuration manager
     // for the length of the service configuration data.  If service configuration data is present, then the device
     // has been service provisioned.
-    err = ConfigurationMgr().GetServiceConfigLength(serviceConfigLen);
+    err = ConfigurationMgr().GetServiceConfig(NULL, 0, serviceConfigLen);
     if (err != WEAVE_DEVICE_ERROR_CONFIG_NOT_FOUND)
         SuccessOrExit(err);
 

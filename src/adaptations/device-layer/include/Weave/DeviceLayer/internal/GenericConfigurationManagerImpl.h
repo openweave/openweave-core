@@ -30,10 +30,13 @@ namespace Weave {
 namespace DeviceLayer {
 namespace Internal {
 
-template<class ImplClass, class KeyMap>
-class GenericConfigStoreImpl
+template<class ImplClass>
+class GenericConfigurationManagerImpl
 {
 public:
+
+    WEAVE_ERROR _Init();
+    WEAVE_ERROR _ConfigureWeaveStack();
 
     WEAVE_ERROR _GetVendorId(uint16_t & vendorId);
     WEAVE_ERROR _GetProductId(uint16_t & productId);
@@ -46,22 +49,24 @@ public:
     WEAVE_ERROR _StoreDeviceId(uint64_t deviceId);
     WEAVE_ERROR _GetSerialNumber(char * buf, size_t bufSize, size_t & serialNumLen);
     WEAVE_ERROR _StoreSerialNumber(const char * serialNum);
+    WEAVE_ERROR _GetPrimaryWiFiMACAddress(uint8_t * buf);
+    WEAVE_ERROR _StorePrimaryWiFiMACAddress(const uint8_t * buf);
+    WEAVE_ERROR _GetPrimary802154MACAddress(uint8_t * buf);
+    WEAVE_ERROR _StorePrimary802154MACAddress(const uint8_t * buf);
     WEAVE_ERROR _GetManufacturingDate(uint16_t & year, uint8_t & month, uint8_t & dayOfMonth);
     WEAVE_ERROR _StoreManufacturingDate(const char * mfgDate);
 
     WEAVE_ERROR _GetDeviceCertificate(uint8_t * buf, size_t bufSize, size_t & certLen);
-    WEAVE_ERROR _GetDeviceCertificateLength(size_t & certLen);
-    WEAVE_ERROR _GetDevicePrivateKey(uint8_t * buf, size_t bufSize, size_t & keyLen);
-    WEAVE_ERROR _GetDevicePrivateKeyLength(size_t & keyLen);
     WEAVE_ERROR _StoreDeviceCertificate(const uint8_t * cert, size_t certLen);
+    WEAVE_ERROR _GetDevicePrivateKey(uint8_t * buf, size_t bufSize, size_t & keyLen);
     WEAVE_ERROR _StoreDevicePrivateKey(const uint8_t * key, size_t keyLen);
+    WEAVE_ERROR _GetPairingCode(char * buf, size_t bufSize, size_t & pairingCodeLen);
     WEAVE_ERROR _StorePairingCode(const char * pairingCode);
 
     WEAVE_ERROR _GetFabricId(uint64_t & fabricId);
     WEAVE_ERROR _StoreFabricId(uint64_t fabricId);
     WEAVE_ERROR _GetServiceId(uint64_t & serviceId);
     WEAVE_ERROR _GetServiceConfig(uint8_t * buf, size_t bufSize, size_t & serviceConfigLen);
-    WEAVE_ERROR _GetServiceConfigLength(size_t & serviceConfigLen);
     WEAVE_ERROR _StoreServiceConfig(const uint8_t * serviceConfig, size_t serviceConfigLen);
     WEAVE_ERROR _GetPairedAccountId(char * buf, size_t bufSize, size_t & accountIdLen);
     WEAVE_ERROR _StorePairedAccountId(const char * accountId, size_t accountIdLen);
@@ -69,45 +74,60 @@ public:
             size_t serviceConfigLen, const char * accountId, size_t accountIdLen);
     WEAVE_ERROR _ClearServiceProvisioningData();
 
+    WEAVE_ERROR _GetFailSafeArmed(bool & val);
+    WEAVE_ERROR _SetFailSafeArmed(bool val);
+
+    WEAVE_ERROR _GetDeviceDescriptor(::nl::Weave::Profiles::DeviceDescription::WeaveDeviceDescriptor & deviceDesc);
+    WEAVE_ERROR _GetDeviceDescriptorTLV(uint8_t * buf, size_t bufSize, size_t & encodedLen);
+    WEAVE_ERROR _GetQRCodeString(char * buf, size_t bufSize);
+
+    WEAVE_ERROR _GetWiFiAPSSID(char * buf, size_t bufSize);
+
     bool _IsServiceProvisioned();
-    bool _IsPairedToAccount();
     bool _IsMemberOfFabric();
+    bool _IsPairedToAccount();
 
 protected:
 
     enum
     {
         kFlag_IsServiceProvisioned      = 0x01,
-        kFlag_IsPairedToAccount         = 0x02,
+        kFlag_IsMemberOfFabric          = 0x02,
+        kFlag_IsPairedToAccount         = 0x03,
     };
 
     uint8_t mFlags;
+
+    void LogDeviceConfig();
 
 private:
 
     ImplClass * Impl() { return static_cast<ImplClass *>(this); }
 };
 
-template<class ImplClass, class KeyMap>
-inline WEAVE_ERROR GenericConfigStoreImpl<ImplClass, KeyMap>::_GetVendorId(uint16_t & vendorId)
+template<class ImplClass>
+inline WEAVE_ERROR GenericConfigurationManagerImpl<ImplClass>::_GetVendorId(uint16_t & vendorId)
 {
     vendorId = (uint16_t)WEAVE_DEVICE_CONFIG_DEVICE_VENDOR_ID;
     return WEAVE_NO_ERROR;
 }
 
-template<class ImplClass, class KeyMap>
-inline WEAVE_ERROR GenericConfigStoreImpl<ImplClass, KeyMap>::_GetProductId(uint16_t & productId)
+template<class ImplClass>
+inline WEAVE_ERROR GenericConfigurationManagerImpl<ImplClass>::_GetProductId(uint16_t & productId)
 {
     productId = (uint16_t)WEAVE_DEVICE_CONFIG_DEVICE_PRODUCT_ID;
     return WEAVE_NO_ERROR;
 }
 
-template<class ImplClass, class KeyMap>
-inline WEAVE_ERROR GenericConfigStoreImpl<ImplClass, KeyMap>::_GetProductRevision(uint16_t & productRev)
+template<class ImplClass>
+inline WEAVE_ERROR GenericConfigurationManagerImpl<ImplClass>::_GetProductRevision(uint16_t & productRev)
 {
     productRev = (uint16_t)WEAVE_DEVICE_CONFIG_DEVICE_PRODUCT_REVISION;
     return WEAVE_NO_ERROR;
 }
+
+
+
 
 } // namespace Internal
 } // namespace DeviceLayer

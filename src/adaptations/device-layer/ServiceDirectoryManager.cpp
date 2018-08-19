@@ -203,7 +203,7 @@ WEAVE_ERROR GetRootDirectoryEntry(uint8_t * rootDirBuf, uint16_t rootDirBufSize)
     size_t serviceConfigLen;
 
     // Determine the length of the service configuration.
-    err = ConfigurationMgr().GetServiceConfigLength(serviceConfigLen);
+    err = ConfigurationMgr().GetServiceConfig(NULL, 0, serviceConfigLen);
     SuccessOrExit(err);
 
     // Allocate a buffer to hold the service config data.

@@ -33,6 +33,7 @@ namespace Internal {
 class FabricProvisioningServer;
 class ServiceProvisioningServer;
 class BLEManager;
+template<class ImplClass> class GenericConfigurationManagerImpl;
 } // namespace Internal
 
 class PlatformManager
@@ -63,6 +64,7 @@ private:
 
     friend class ConnectivityManager;
     template<class Target> friend class ConfigurationManagerImpl;
+    template<class ImplClass> friend class Internal::GenericConfigurationManagerImpl;
     friend class TraitManager;
     friend class TimeSyncManager;
     friend class Internal::FabricProvisioningServer;

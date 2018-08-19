@@ -25,6 +25,7 @@
 #include <Weave/DeviceLayer/internal/WeaveDeviceLayerInternal.h>
 #include <Weave/Core/WeaveKeyIds.h>
 #include <Weave/Profiles/security/WeaveApplicationKeys.h>
+#include <Weave/DeviceLayer/ESP32/ESP32Config.h>
 
 #include "nvs.h"
 
@@ -36,7 +37,9 @@ namespace Internal {
 /**
  * An implementation of the Weave GroupKeyStoreBase API for the ESP32.
  */
-class GroupKeyStoreImpl : public ::nl::Weave::Profiles::Security::AppKeys::GroupKeyStoreBase
+class GroupKeyStoreImpl
+        : public ::nl::Weave::Profiles::Security::AppKeys::GroupKeyStoreBase,
+          private ESP32Config
 {
     using WeaveGroupKey = ::nl::Weave::Profiles::Security::AppKeys::WeaveGroupKey;
 
