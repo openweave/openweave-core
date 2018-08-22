@@ -169,10 +169,13 @@ WEAVE_ERROR WeaveTunnelAgent::ConfigureAndInit (InetLayer *inet, WeaveExchangeMa
     mExchangeMgr             = exchMgr;
     mPeerNodeId              = dstNodeId;
     mServiceAddress          = dstIPAddr;
+    mServicePort             = WEAVE_PORT;
     mRole                    = role;
     mAuthMode                = authMode;
     mAppContext              = appContext;
     memset(queuedMsgs, 0, sizeof(queuedMsgs));
+    qFront                   = TUNNEL_PACKET_QUEUE_INVALID_INDEX;
+    qRear                    = TUNNEL_PACKET_QUEUE_INVALID_INDEX;
 #if WEAVE_CONFIG_TUNNEL_ENABLE_STATISTICS
     memset(&mWeaveTunnelStats, 0, sizeof(mWeaveTunnelStats));
 #endif
@@ -239,6 +242,15 @@ WEAVE_ERROR WeaveTunnelAgent::ConfigureAndInit (InetLayer *inet, WeaveExchangeMa
 
     mTunShortcutControl.EnableShortcutTunneling();
 #endif
+
+    // Set callbacks to NULL.
+    OnServiceTunStatusNotify    = NULL;
+
+    OnServiceTunReconnectNotify = NULL;
+
+#if WEAVE_CONFIG_TUNNEL_ENABLE_TRANSIT_CALLBACK
+    OnTunneledPacketTransit     = NULL;
+#endif // WEAVE_CONFIG_TUNNEL_ENABLE_TRANSIT_CALLBACK
 
     // Set the TunnelAgent state.
 
