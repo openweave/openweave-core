@@ -348,6 +348,16 @@ typedef INET_CONFIG_ERROR_TYPE          INET_ERROR;
 #define INET_ERROR_TCP_CONNECT_TIMEOUT                      _INET_ERROR(26)
 
 /**
+ *  @def INET_ERROR_INCOMPATIBLE_IP_ADDRESS_TYPE
+ *
+ *  @brief
+ *    The supplied text-form IP address was not compatible with the requested
+ *    IP address type.
+ *
+ */
+#define INET_ERROR_INCOMPATIBLE_IP_ADDRESS_TYPE             _INET_ERROR(27)
+
+/**
  *  @}
  */
 

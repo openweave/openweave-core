@@ -32,10 +32,36 @@
 
 #define NL_DNS_HOSTNAME_MAX_LEN      (253)
 
+struct addrinfo;
+
 namespace nl {
 namespace Inet {
 
 class InetLayer;
+
+/**
+ * Options controlling how IP address resolution is performed.
+ */
+enum DNSOptions
+{
+    kDNSOption_AddrFamily_Mask            = 0x07, ///< Bits within a DNSOptions integer value representing the desired address family.
+    kDNSOption_Flags_Mask                 = 0xF8, ///< Bits within a DNSOptions integer value reserved for flags.
+
+    // Address Family Choices
+    kDNSOption_AddrFamily_Any             = 0x00, ///< Return IPv4 and/or IPv6 addresses in the order returned by the nameserver.
+#if INET_CONFIG_ENABLE_IPV4
+    kDNSOption_AddrFamily_IPv4Only        = 0x01, ///< Return only IPv4 addresses.
+    kDNSOption_AddrFamily_IPv4Preferred   = 0x02, ///< Return IPv4 and/or IPv6 addresses, with IPv4 addresses listed first.
+#endif
+    kDNSOption_AddrFamily_IPv6Only        = 0x03, ///< Return only IPv6 addresses.
+    kDNSOption_AddrFamily_IPv6Preferred   = 0x04, ///< Return IPv4 and/or IPv6 addresses, with IPv6 addresses listed first.
+
+    // NOTE: At present there are no DNSOption flags define.
+    kDNSOption_ValidFlags                 = 0,    ///< Set of all valid DNSOption flags.
+
+    kDNSOption_Default                    = kDNSOption_AddrFamily_Any
+};
+
 
 /**
  *  @class DNSResolver
@@ -102,7 +128,18 @@ private:
      */
     uint8_t NumAddrs;
 
+    /**
+     * DNS options for the current request.
+     */
+    uint8_t DNSOptions;
+
 #if WEAVE_SYSTEM_CONFIG_USE_SOCKETS
+
+    void InitAddrInfoHints(struct addrinfo & hints);
+    INET_ERROR ProcessGetAddrInfoResult(int returnCode, struct addrinfo * results);
+    void CopyAddresses(int family, uint8_t maxAddrs, const struct addrinfo * addrs);
+    uint8_t CountAddresses(int family, const struct addrinfo * addrs);
+
 #if INET_CONFIG_ENABLE_ASYNC_DNS_SOCKETS
 
     /* Hostname that requires resolution */
@@ -117,14 +154,15 @@ private:
     void HandleAsyncResolveComplete(void);
 
 #endif // INET_CONFIG_ENABLE_ASYNC_DNS_SOCKETS
+
 #endif // WEAVE_SYSTEM_CONFIG_USE_SOCKETS
 
-    INET_ERROR Resolve(const char *hostName, uint16_t hostNameLen, uint8_t maxAddrs, IPAddress *addrArray,
-        OnResolveCompleteFunct onComplete, void *appState);
+    INET_ERROR Resolve(const char *hostName, uint16_t hostNameLen, uint8_t options,
+            uint8_t maxAddrs, IPAddress *addrArray,
+            OnResolveCompleteFunct onComplete, void *appState);
     INET_ERROR Cancel(void);
 
 #if WEAVE_SYSTEM_CONFIG_USE_LWIP
-    void CopyAddresses(uint8_t numAddrs, const ip_addr_t *addrs);
     void HandleResolveComplete(void);
 #if LWIP_VERSION_MAJOR > 1
     static void LwIPHandleResolveComplete(const char *name, const ip_addr_t *ipaddr, void *callback_arg);

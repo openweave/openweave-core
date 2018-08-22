@@ -321,6 +321,7 @@ NL_DLL_EXPORT const char *ErrorStr(int32_t err)
     case INET_ERROR_INTERFACE_INIT_FAILURE                      : return InetFormatError(err, "Failure to initialize interface");
     case INET_ERROR_TCP_USER_TIMEOUT                            : return InetFormatError(err, "TCP User Timeout");
     case INET_ERROR_TCP_CONNECT_TIMEOUT                         : return InetFormatError(err, "TCP Connect Timeout");
+    case INET_ERROR_INCOMPATIBLE_IP_ADDRESS_TYPE                : return InetFormatError(err, "Incompatible IP address type");
 
 #if CONFIG_NETWORK_LAYER_BLE
     // ----- BleLayer Errors -----
