@@ -2007,6 +2007,21 @@
 #endif
 
 /**
+ *  @def WEAVE_CONFIG_SUPPORT_LEGACY_ADD_NETWORK_MESSAGE
+ *
+ *  @brief
+ *    Enable (1) or disable (0) support for the depricated
+ *    version of AddNetwork() message in the Network Provisioning
+ *    profile.
+ *    This option should be enabled to support pairing with Nest
+ *    legacy devices that don't have latest SW.
+ *
+ */
+#ifndef WEAVE_CONFIG_SUPPORT_LEGACY_ADD_NETWORK_MESSAGE
+#define WEAVE_CONFIG_SUPPORT_LEGACY_ADD_NETWORK_MESSAGE     1
+#endif // WEAVE_CONFIG_SUPPORT_LEGACY_ADD_NETWORK_MESSAGE
+
+/**
  * @def WEAVE_NON_PRODUCTION_MARKER
  *
  * @brief Defines the name of a mark symbol whose presence signals that the Weave code

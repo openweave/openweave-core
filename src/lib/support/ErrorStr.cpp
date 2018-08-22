@@ -533,6 +533,7 @@ NL_DLL_EXPORT const char *ErrorStr(int32_t err)
     case WEAVE_ERROR_WDM_MALFORMED_UPDATE_RESPONSE              : return WeaveFormatError(err, "Malformed WDM Update response");
     case WEAVE_ERROR_WDM_VERSION_MISMATCH                       : return WeaveFormatError(err, "The conditional update of a WDM path failed for a version mismatch");
     case WEAVE_ERROR_WDM_POTENTIAL_DATA_LOSS                    : return WeaveFormatError(err, "A potential data loss was detected in a WDM Trait Instance");
+    case WEAVE_ERROR_UNSUPPORTED_THREAD_NETWORK_CREATE          : return WeaveFormatError(err, "Nest Legacy device doesn't support standalone Thread network creation");
 
     // ----- ASN1 Errors -----
     case ASN1_END                                               : return ASN1FormatError(err, "End of input");

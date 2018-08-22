@@ -1682,6 +1682,17 @@ typedef WEAVE_CONFIG_ERROR_TYPE WEAVE_ERROR;
 #define WEAVE_ERROR_WDM_POTENTIAL_DATA_LOSS                      _WEAVE_ERROR(177)
 
 /**
+ *  @def WEAVE_ERROR_UNSUPPORTED_THREAD_NETWORK_CREATE
+ *
+ *  @brief
+ *    Device doesn't support standalone Thread network creation.
+ *    On some legacy Nest devices new Thread network can only be created
+ *    together with Weave Fabric using CrateFabric() message.
+ *
+ */
+#define WEAVE_ERROR_UNSUPPORTED_THREAD_NETWORK_CREATE            _WEAVE_ERROR(178)
+
+/**
  *  @}
  */
 

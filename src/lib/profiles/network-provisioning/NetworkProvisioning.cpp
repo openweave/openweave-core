@@ -325,7 +325,10 @@ void NetworkProvisioningServer::HandleRequest(ExchangeContext *ec, const IPPacke
         err = delegate->HandleScanNetworks(networkType);
         break;
 
+#if WEAVE_CONFIG_SUPPORT_LEGACY_ADD_NETWORK_MESSAGE
     case kMsgType_AddNetwork:
+#endif
+    case kMsgType_AddNetworkV2:
         VerifyOrExit(dataLen >= 1, err = WEAVE_ERROR_INVALID_MESSAGE_LENGTH);
         err = delegate->HandleAddNetwork(payload);
         payload = NULL;
@@ -432,7 +435,10 @@ void NetworkProvisioningDelegate::EnforceAccessControl(ExchangeContext *ec, uint
         switch (msgType)
         {
         case kMsgType_ScanNetworks:
+#if WEAVE_CONFIG_SUPPORT_LEGACY_ADD_NETWORK_MESSAGE
         case kMsgType_AddNetwork:
+#endif
+        case kMsgType_AddNetworkV2:
         case kMsgType_UpdateNetwork:
         case kMsgType_RemoveNetwork:
         case kMsgType_EnableNetwork:
