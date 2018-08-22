@@ -231,11 +231,17 @@ class NL_DLL_EXPORT InetLayer
 
 #if INET_CONFIG_ENABLE_DNS_RESOLVER
 
-    INET_ERROR ResolveHostAddress(const char *hostName, uint16_t hostNameLen, uint8_t maxAddrs, IPAddress *addrArray,
-            DNSResolver::OnResolveCompleteFunct onComplete, void *appState);
+    typedef DNSResolver::OnResolveCompleteFunct DNSResolveCompleteFunct;
+
+    INET_ERROR ResolveHostAddress(const char *hostName, uint16_t hostNameLen, uint8_t options,
+            uint8_t maxAddrs, IPAddress *addrArray,
+            DNSResolveCompleteFunct onComplete, void *appState);
+    INET_ERROR ResolveHostAddress(const char *hostName, uint16_t hostNameLen,
+            uint8_t maxAddrs, IPAddress *addrArray,
+            DNSResolveCompleteFunct onComplete, void *appState);
     INET_ERROR ResolveHostAddress(const char *hostName, uint8_t maxAddrs, IPAddress *addrArray,
-            DNSResolver::OnResolveCompleteFunct onComplete, void *appState);
-    void CancelResolveHostAddress(DNSResolver::OnResolveCompleteFunct onComplete, void *appState);
+            DNSResolveCompleteFunct onComplete, void *appState);
+    void CancelResolveHostAddress(DNSResolveCompleteFunct onComplete, void *appState);
 
 #endif // INET_CONFIG_ENABLE_DNS_RESOLVER
 

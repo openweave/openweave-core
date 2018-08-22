@@ -118,10 +118,6 @@ System::Layer SystemLayer;
 
 InetLayer Inet;
 
-#if INET_CONFIG_ENABLE_DNS_RESOLVER
-IPAddress DNSServerAddr = IPAddress::Any;
-#endif // INET_CONFIG_ENABLE_DNS_RESOLVER
-
 #if WEAVE_SYSTEM_CONFIG_USE_LWIP && !WEAVE_SYSTEM_CONFIG_USE_SOCKETS
 TapInterface tapIF;
 struct netif netIF; // interface to filter
@@ -792,23 +788,9 @@ static void PrintNetworkState()
     {
       printf("  IPv6 address: %s, 0x%02x\n", ip6addr_ntoa(netif_ip6_addr(&netIF, i)), netif_ip6_addr_state(&netIF, i));
     }
-
 #if INET_CONFIG_ENABLE_DNS_RESOLVER
-    if (DNSServerAddr != IPAddress::Any)
-    {
-#if LWIP_VERSION_MAJOR > 1
-        ip_addr_t dnsServerAddr = DNSServerAddr.ToLwIPAddr();
-#else // LWIP_VERSION_MAJOR <= 1
-#if INET_CONFIG_ENABLE_IPV4
-        ip_addr_t dnsServerAddr = DNSServerAddr.ToIPv4();
-#else // !INET_CONFIG_ENABLE_IPV4
-#error "No support for DNS Resolver without IPv4!"
-#endif // !INET_CONFIG_ENABLE_IPV4
-#endif // LWIP_VERSION_MAJOR <= 1
-
-        dns_setserver(0, &dnsServerAddr);
-        printf("  DNS Server: %s\n", ipaddr_ntoa(&dnsServerAddr));
-    }
+    char dnsServerAddrStr[DNS_MAX_NAME_LENGTH];
+    printf("  DNS Server: %s\n", gNetworkOptions.DNSServerAddr.ToString(dnsServerAddrStr, sizeof(dnsServerAddrStr)));
 #endif // INET_CONFIG_ENABLE_DNS_RESOLVER
 }
 #endif // WEAVE_SYSTEM_CONFIG_USE_LWIP
@@ -898,7 +880,25 @@ void InitNetwork()
       netif_ip6_addr_set_state(&netIF, 1, 0x30);
     }
 
+#if INET_CONFIG_ENABLE_DNS_RESOLVER
+    if (gNetworkOptions.DNSServerAddr != IPAddress::Any)
+    {
+#if LWIP_VERSION_MAJOR > 1 || LWIP_VERSION_MINOR >= 5
+        ip_addr_t dnsServerAddr = gNetworkOptions.DNSServerAddr.ToLwIPAddr();
+#else // LWIP_VERSION_MAJOR <= 1
+#if INET_CONFIG_ENABLE_IPV4
+        ip_addr_t dnsServerAddr = gNetworkOptions.DNSServerAddr.ToIPv4();
+#else // !INET_CONFIG_ENABLE_IPV4
+#error "No support for DNS Resolver without IPv4!"
+#endif // !INET_CONFIG_ENABLE_IPV4
+#endif // LWIP_VERSION_MAJOR > 1 || LWIP_VERSION_MINOR >= 5
+
+        dns_setserver(0, &dnsServerAddr);
+    }
+#endif // INET_CONFIG_ENABLE_DNS_RESOLVER
+
     PrintNetworkState();
+
 #endif // !WEAVE_SYSTEM_CONFIG_USE_SOCKETS
 
     AcquireLwIP();

@@ -762,7 +762,7 @@ exit:
  */
 INET_ERROR InetLayer::ResolveHostAddress(const char *hostName, uint8_t maxAddrs,
                                          IPAddress *addrArray,
-                                         DNSResolver::OnResolveCompleteFunct onComplete, void *appState)
+                                         DNSResolveCompleteFunct onComplete, void *appState)
 {
     return ResolveHostAddress(hostName, strlen(hostName), maxAddrs, addrArray, onComplete, appState);
 }
@@ -807,7 +807,64 @@ INET_ERROR InetLayer::ResolveHostAddress(const char *hostName, uint8_t maxAddrs,
  */
 INET_ERROR InetLayer::ResolveHostAddress(const char *hostName, uint16_t hostNameLen,
                                          uint8_t maxAddrs, IPAddress *addrArray,
-                                         DNSResolver::OnResolveCompleteFunct onComplete, void *appState)
+                                         DNSResolveCompleteFunct onComplete, void *appState)
+{
+    return ResolveHostAddress(hostName, hostNameLen, kDNSOption_Default, maxAddrs, addrArray, onComplete, appState);
+}
+
+/**
+ *  Perform an IP address resolution of a specified hostname.
+ *
+ *  @param[in]  hostName    A pointer to a non NULL-terminated C string representing the host name
+ *                          to be queried.
+ *
+ *  @param[in]  hostNameLen The string length of host name.
+ *
+ *  @param[in]  options     An integer value controlling how host name resolution is performed.
+ *
+ *                          Value should be one of the address family values from the
+ *                          #DNSOptions enumeration:
+ *
+ *                          #kDNSOption_AddrFamily_Any
+ *                          #kDNSOption_AddrFamily_IPv4Only
+ *                          #kDNSOption_AddrFamily_IPv6Only
+ *                          #kDNSOption_AddrFamily_IPv4Preferred
+ *                          #kDNSOption_AddrFamily_IPv6Preferred
+ *
+ *  @param[in]  maxAddrs    The maximum number of addresses to store in the DNS
+ *                          table.
+ *
+ *  @param[in]  addrArray   A pointer to the DNS table.
+ *
+ *  @param[in]  onComplete  A pointer to the callback function when a DNS
+ *                          request is complete.
+ *
+ *  @param[in]  appState    A pointer to the application state to be passed to
+ *                          onComplete when a DNS request is complete.
+ *
+ *  @retval #INET_NO_ERROR                   if a DNS request is handled
+ *                                           successfully.
+ *  @retval #INET_ERROR_NO_MEMORY            if the Inet layer resolver pool
+ *                                           is full.
+ *  @retval #INET_ERROR_HOST_NAME_TOO_LONG   if a requested host name is too
+ *                                           long.
+ *  @retval #INET_ERROR_HOST_NOT_FOUND       if a request host name could not be
+ *                                           resolved to an address.
+ *  @retval #INET_ERROR_DNS_TRY_AGAIN        if a name server returned a
+ *                                           temporary failure indication;
+ *                                           try again later.
+ *  @retval #INET_ERROR_DNS_NO_RECOVERY      if a name server returned an
+ *                                           unrecoverable error.
+ *  @retval #INET_ERROR_NOT_IMPLEMENTED      if DNS resolution is not enabled on
+ *                                           the underlying platform.
+ *  @retval other POSIX network or OS error returned by the underlying DNS
+ *          resolver implementation.
+ *
+ */
+INET_ERROR InetLayer::ResolveHostAddress(const char *hostName, uint16_t hostNameLen,
+                                         uint8_t options,
+                                         uint8_t maxAddrs, IPAddress *addrArray,
+                                         DNSResolveCompleteFunct onComplete, void *appState)
 {
     INET_ERROR err = INET_NO_ERROR;
     DNSResolver *resolver = NULL;
@@ -831,11 +888,25 @@ INET_ERROR InetLayer::ResolveHostAddress(const char *hostName, uint16_t hostName
         ExitNow(err = INET_ERROR_NO_MEMORY);
     }
 
+    // Short-circuit full address resolution if the supplied host name is a text-form
+    // IP address...
     if (IPAddress::FromString(hostName, hostNameLen, *addrArray))
     {
+        uint8_t addrTypeOption = (options & kDNSOption_AddrFamily_Mask);
+        IPAddressType addrType = addrArray->Type();
+
+        if ((addrTypeOption == kDNSOption_AddrFamily_IPv6Only && addrType != kIPAddressType_IPv6)
+#if INET_CONFIG_ENABLE_IPV4
+            || (addrTypeOption == kDNSOption_AddrFamily_IPv4Only && addrType != kIPAddressType_IPv4)
+#endif
+            )
+        {
+            err = INET_ERROR_INCOMPATIBLE_IP_ADDRESS_TYPE;
+        }
+
         if (onComplete)
         {
-            onComplete(appState, INET_NO_ERROR, 1, addrArray);
+            onComplete(appState, err, (err == INET_NO_ERROR) ? 1 : 0, addrArray);
         }
 
         resolver->Release();
@@ -851,8 +922,8 @@ INET_ERROR InetLayer::ResolveHostAddress(const char *hostName, uint16_t hostName
 
 #if WEAVE_SYSTEM_CONFIG_USE_SOCKETS && INET_CONFIG_ENABLE_ASYNC_DNS_SOCKETS
 
-    err = mAsyncDNSResolver.PrepareDNSResolver(*resolver, hostName, hostNameLen, maxAddrs,
-                                               addrArray, onComplete, appState);
+    err = mAsyncDNSResolver.PrepareDNSResolver(*resolver, hostName, hostNameLen, options,
+                                               maxAddrs, addrArray, onComplete, appState);
     SuccessOrExit(err);
 
     mAsyncDNSResolver.EnqueueRequest(*resolver);
@@ -860,7 +931,7 @@ INET_ERROR InetLayer::ResolveHostAddress(const char *hostName, uint16_t hostName
 #endif // WEAVE_SYSTEM_CONFIG_USE_SOCKETS && INET_CONFIG_ENABLE_ASYNC_DNS_SOCKETS
 
 #if !INET_CONFIG_ENABLE_ASYNC_DNS_SOCKETS
-    err = resolver->Resolve(hostName, hostNameLen, maxAddrs, addrArray, onComplete, appState);
+    err = resolver->Resolve(hostName, hostNameLen, options, maxAddrs, addrArray, onComplete, appState);
 #endif // !INET_CONFIG_ENABLE_ASYNC_DNS_SOCKETS
 exit:
 
@@ -883,7 +954,7 @@ exit:
  *                             to the callback function as argument.
  *
  */
-void InetLayer::CancelResolveHostAddress(DNSResolver::OnResolveCompleteFunct onComplete, void *appState)
+void InetLayer::CancelResolveHostAddress(DNSResolveCompleteFunct onComplete, void *appState)
 {
     if (State != kState_Initialized)
         return;

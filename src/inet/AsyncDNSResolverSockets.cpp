@@ -120,6 +120,9 @@ INET_ERROR AsyncDNSResolverSockets::Shutdown(void)
  *  @param[in]  hostName    A pointer to a C string representing the host name
  *                          to be queried.
  *  @param[in]  hostNameLen The string length of host name.
+ *  @param[in]  options     An integer value controlling how host name address
+ *                          resolution is performed.  Values are from the #DNSOptions
+ *                          enumeration.
  *  @param[in]  maxAddrs    The maximum number of addresses to store in the DNS
  *                          table.
  *  @param[in]  addrArray   A pointer to the DNS table.
@@ -132,9 +135,8 @@ INET_ERROR AsyncDNSResolverSockets::Shutdown(void)
  *                                          successfully.
  *
  */
-INET_ERROR AsyncDNSResolverSockets::PrepareDNSResolver(DNSResolver &resolver, const char *hostName,
-                                                       uint16_t hostNameLen, uint8_t maxAddrs,
-                                                       IPAddress *addrArray,
+INET_ERROR AsyncDNSResolverSockets::PrepareDNSResolver(DNSResolver &resolver, const char *hostName, uint16_t hostNameLen,
+                                                       uint8_t options, uint8_t maxAddrs, IPAddress *addrArray,
                                                        DNSResolver::OnResolveCompleteFunct onComplete, void *appState)
 {
     INET_ERROR err = INET_NO_ERROR;
@@ -143,6 +145,7 @@ INET_ERROR AsyncDNSResolverSockets::PrepareDNSResolver(DNSResolver &resolver, co
     resolver.asyncHostNameBuf[hostNameLen] = 0;
     resolver.MaxAddrs = maxAddrs;
     resolver.NumAddrs = 0;
+    resolver.DNSOptions = options;
     resolver.AddrArray = addrArray;
     resolver.AppState = appState;
     resolver.OnComplete = onComplete;
@@ -268,65 +271,28 @@ void AsyncDNSResolverSockets::UpdateDNSResult(DNSResolver &resolver, struct addr
 
 void AsyncDNSResolverSockets::Resolve(DNSResolver &resolver)
 {
-    struct addrinfo hints;
-    struct addrinfo *lookupRes = NULL;
-    int getaddrinfoRes;
-    INET_ERROR err = INET_NO_ERROR;
+    struct addrinfo gaiHints;
+    struct addrinfo * gaiResults = NULL;
+    int gaiReturnCode;
 
-    // Initialize getaddrinfo parameters.
-    memset(&hints, 0, sizeof(hints));
-    hints.ai_family = AF_UNSPEC;
-    hints.ai_socktype = SOCK_STREAM;
-    hints.ai_protocol = 6;
-    hints.ai_flags = AI_ADDRCONFIG;
+    // Configure the hints argument for getaddrinfo()
+    resolver.InitAddrInfoHints(gaiHints);
 
-    getaddrinfoRes = getaddrinfo(resolver.asyncHostNameBuf, NULL, &hints, &lookupRes);
+    // Call getaddrinfo() to perform the name resolution.
+    gaiReturnCode = getaddrinfo(resolver.asyncHostNameBuf, NULL, &gaiHints, &gaiResults);
 
     // Mutex protects the read and write operation on resolver->mState
     AsyncMutexLock();
 
-    if (resolver.mState != DNSResolver::kState_Canceled)
-    {
-        if (getaddrinfoRes == 0)
-        {
-            UpdateDNSResult(resolver, lookupRes);
-        }
-        else
-        {
-            switch (getaddrinfoRes)
-            {
-            case EAI_NODATA:
-                err = INET_NO_ERROR;
-                break;
-            case EAI_NONAME:
-                err = INET_ERROR_HOST_NOT_FOUND;
-                break;
-            case EAI_AGAIN:
-                err = INET_ERROR_DNS_TRY_AGAIN;
-                break;
-            case EAI_SYSTEM:
-                err = Weave::System::MapErrorPOSIX(errno);
-                break;
-            default:
-                err = INET_ERROR_DNS_NO_RECOVERY;
-                break;
-            }
+    // Process the return code and results list returned by getaddrinfo(). If the call
+    // was successful this will copy the resultant addresses into the caller's array.
+    resolver.asyncDNSResolveResult = resolver.ProcessGetAddrInfoResult(gaiReturnCode, gaiResults);
 
-            // Set the result error code.
-            resolver.asyncDNSResolveResult = err;
-        }
-
-        // Set the DNS resolver state.
-        resolver.mState = DNSResolver::kState_Complete;
-    }
+    // Set the DNS resolver state.
+    resolver.mState = DNSResolver::kState_Complete;
 
     // Release lock.
     AsyncMutexUnlock();
-
-    if (lookupRes != NULL)
-    {
-        freeaddrinfo(lookupRes);
-    }
 
     return;
 }
