@@ -1199,7 +1199,6 @@ WEAVE_ERROR WeaveConnection::StartConnect()
         WeaveLogProgress(MessageLayer, "TCP con start %04" PRIX16 " %s %d", LogId(), ipAddrStr, (int)PeerPort);
     }
 #endif
-
     // Initiate the TCP connection.
     return mTcpEndPoint->Connect(PeerAddr, PeerPort, mTargetInterface);
 }

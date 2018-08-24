@@ -166,6 +166,13 @@ class NL_DLL_EXPORT WeaveTunnelConnectionMgr
  */
     static void HandleServiceConnectionComplete(WeaveConnection *con, WEAVE_ERROR conErr);
 
+#if WEAVE_CONFIG_TUNNEL_ENABLE_TCP_IDLE_CALLBACK
+/**
+ * Handler invoked when the Idle state of the underlying TCP connection's send channel changes.
+ */
+    static void HandleTCPSendIdleChanged(TCPEndPoint *tcpEndPoint, bool isIdle);
+#endif // WEAVE_CONFIG_TUNNEL_ENABLE_TCP_IDLE_CALLBACK
+
 /**
  * Handler invoked when Service TCP connection is closed. The device tries to re-establish the connection to
  * the Service if the mServiceConKeepAlive is set to true.
@@ -301,6 +308,7 @@ class NL_DLL_EXPORT WeaveTunnelConnectionMgr
     // Tunnel TCP connection max user timeout (in secs)
 
     uint16_t mMaxUserTimeoutSecs;
+
 #endif // WEAVE_CONFIG_TUNNEL_TCP_USER_TIMEOUT_SUPPORTED
 
 #if WEAVE_CONFIG_TUNNEL_LIVENESS_SUPPORTED

@@ -62,6 +62,11 @@ static bool HandleNonOptionArgs(const char *progName, int argc, char *argv[]);
 static void
 WeaveTunnelOnStatusNotifyHandlerCB(WeaveTunnelConnectionMgr::TunnelConnNotifyReasons reason,
                                    WEAVE_ERROR aErr, void *appCtxt);
+#if WEAVE_CONFIG_TUNNEL_ENABLE_TCP_IDLE_CALLBACK
+static void
+WeaveTunnelTCPIdleNotifyHandlerCB(TunnelType tunType,
+                                  bool aIsIdle, void *appCtxt);
+#endif // WEAVE_CONFIG_TUNNEL_ENABLE_TCP_IDLE_CALLBACK
 static WEAVE_ERROR SendWeavePingMessage(void);
 static void WeaveTunnelOnReconnectNotifyCB(TunnelType tunType,
                                            const char *reconnectHost,
@@ -97,6 +102,7 @@ uint8_t gTunUpCount = 0;
 uint8_t gConnAttemptsBeforeReset = 0;
 bool gReconnectResetArmed = false;
 uint64_t gReconnectResetArmTime = 0;
+bool gtestDataSent = false;
 
 #if WEAVE_CONFIG_ENABLE_SERVICE_DIRECTORY
 bool gUseServiceDir = false;
@@ -2516,9 +2522,13 @@ static void TestTCPUserTimeoutOnAddrRemoval(nlTestSuite *inSuite, void *inContex
                             gAuthMode);
     }
 
+    SuccessOrExit(err);
+
     gTunAgent.OnServiceTunStatusNotify = WeaveTunnelOnStatusNotifyHandlerCB;
 
-    SuccessOrExit(err);
+#if WEAVE_CONFIG_TUNNEL_ENABLE_TCP_IDLE_CALLBACK
+    gTunAgent.OnServiceTunTCPIdleNotify = WeaveTunnelTCPIdleNotifyHandlerCB;
+#endif // WEAVE_CONFIG_TUNNEL_ENABLE_TCP_IDLE_CALLBACK
 
 
     err = gTunAgent.StartServiceTunnel();
@@ -2570,6 +2580,83 @@ exit:
     gTunAgent.Shutdown();
 }
 #endif // WEAVE_SYSTEM_CONFIG_USE_SOCKETS && WEAVE_CONFIG_TUNNEL_TCP_USER_TIMEOUT_SUPPORTED && INET_CONFIG_OVERRIDE_SYSTEM_TCP_USER_TIMEOUT
+
+#if WEAVE_CONFIG_TUNNEL_ENABLE_TCP_IDLE_CALLBACK
+/**
+ * Test to verify that sent TCP data is acknowledged.
+ */
+static void TestTunnelTCPIdle(nlTestSuite *inSuite, void *inContext)
+{
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
+
+    Done = false;
+    gTestSucceeded = false;
+    gtestDataSent = false;
+    gMaxTestDurationMillisecs = DEFAULT_TEST_DURATION_MILLISECS;
+    gCurrTestNum = kTestNum_TestTunnelTCPIdle;
+    gTestStartTime = Now();
+
+#if WEAVE_CONFIG_ENABLE_SERVICE_DIRECTORY
+    if (gUseServiceDir)
+    {
+        err = gTunAgent.Init(&Inet, &ExchangeMgr, gDestNodeId,
+                            gAuthMode, &gServiceMgr);
+    }
+    else
+#endif
+    {
+        err = gTunAgent.Init(&Inet, &ExchangeMgr, gDestNodeId, gDestAddr,
+                            gAuthMode);
+    }
+
+    SuccessOrExit(err);
+
+    gTunAgent.OnServiceTunStatusNotify = WeaveTunnelOnStatusNotifyHandlerCB;
+
+    gTunAgent.OnServiceTunTCPIdleNotify = WeaveTunnelTCPIdleNotifyHandlerCB;
+
+    err = gTunAgent.StartServiceTunnel();
+    SuccessOrExit(err);
+
+    while (!Done)
+    {
+        struct timeval sleepTime;
+        sleepTime.tv_sec = TEST_SLEEP_TIME_WITHIN_LOOP_SECS;
+        sleepTime.tv_usec = TEST_SLEEP_TIME_WITHIN_LOOP_MICROSECS;
+
+        ServiceNetwork(sleepTime);
+
+        if (Now() < gTestStartTime + gMaxTestDurationMillisecs * System::kTimerFactor_micro_per_milli)
+        {
+            if (gTestSucceeded)
+            {
+                Done = true;
+            }
+            else
+            {
+                continue;
+            }
+        }
+        else // Time's up
+        {
+            gTestSucceeded = false;
+            Done = true;
+        }
+
+        if (Done)
+        {
+            gTunAgent.StopServiceTunnel(WEAVE_ERROR_TUNNEL_FORCE_ABORT);
+        }
+    }
+
+exit:
+    NL_TEST_ASSERT(inSuite, err == WEAVE_NO_ERROR);
+    NL_TEST_ASSERT(inSuite, gTestSucceeded == true);
+
+    gTunAgent.Shutdown();
+}
+#endif // WEAVE_CONFIG_TUNNEL_ENABLE_TCP_IDLE_CALLBACK
+
 void HandleTunnelTestResponse(ExchangeContext *ec, const IPPacketInfo *pktInfo,
                               const WeaveMessageInfo *msgInfo, uint32_t profileId,
                               uint8_t msgType, PacketBuffer *payload)
@@ -2644,6 +2731,45 @@ WEAVE_ERROR SendWeavePingMessage(void)
 exit:
     return err;
 }
+
+#if WEAVE_CONFIG_TUNNEL_ENABLE_TCP_IDLE_CALLBACK
+void
+WeaveTunnelTCPIdleNotifyHandlerCB(TunnelType tunType,
+                                  bool aIsIdle, void *appCtxt)
+{
+    switch (gCurrTestNum)
+    {
+      case kTestNum_TestTunnelTCPIdle:
+        if (aIsIdle)
+        {
+            WeaveLogDetail(WeaveTunnel, "Tunnel sent data flushed for tunnel type %d\n", tunType);
+            if (gtestDataSent)
+            {
+                gTestSucceeded = true;
+            }
+        }
+        else
+        {
+            WeaveLogDetail(WeaveTunnel, "Tunnel data transmitted for tunnel type %d: TCP channel not Idle yet.\n",
+                           tunType);
+        }
+
+        break;
+
+      case kTestNum_TestTCPUserTimeoutOnAddrRemoval:
+        if (aIsIdle)
+        {
+            WeaveLogDetail(WeaveTunnel, "Tunnel sent data flushed for tunnel type %d\n", tunType);
+            gTestSucceeded = false;
+        }
+        else
+        {
+            WeaveLogDetail(WeaveTunnel, "Tunnel data transmitted for tunnel type %d: TCP channel not Idle yet.\n",
+                           tunType);
+        }
+    }
+}
+#endif // WEAVE_CONFIG_TUNNEL_ENABLE_TCP_IDLE_CALLBACK
 
 void
 WeaveTunnelOnStatusNotifyHandlerCB(WeaveTunnelConnectionMgr::TunnelConnNotifyReasons reason,
@@ -2836,8 +2962,25 @@ WeaveTunnelOnStatusNotifyHandlerCB(WeaveTunnelConnectionMgr::TunnelConnNotifyRea
         }
 
         break;
-
 #endif // WEAVE_SYSTEM_CONFIG_USE_SOCKETS && WEAVE_CONFIG_TUNNEL_TCP_USER_TIMEOUT_SUPPORTED && INET_CONFIG_OVERRIDE_SYSTEM_TCP_USER_TIMEOUT
+
+#if WEAVE_CONFIG_TUNNEL_ENABLE_TCP_IDLE_CALLBACK
+      case kTestNum_TestTunnelTCPIdle:
+        if (reason == WeaveTunnelConnectionMgr::kStatus_TunPrimaryUp)
+        {
+            // Configure the TCP User Timeout
+            err = gTunAgent.ConfigurePrimaryTunnelTimeout(TEST_MAX_TIMEOUT_SECS);
+            SuccessOrExit(err);
+
+            // Send some data
+            err = SendWeavePingMessage();
+            SuccessOrExit(err);
+
+            gtestDataSent = true;
+        }
+
+        break;
+#endif // WEAVE_CONFIG_TUNNEL_ENABLE_TCP_IDLE_CALLBACK
 
 #if WEAVE_CONFIG_TUNNEL_LIVENESS_SUPPORTED
       case kTestNum_TestTunnelLivenessSendAndRecvResponse:
@@ -3071,6 +3214,9 @@ static const nlTest tunnelTests[] = {
     NL_TEST_DEF("TestTunnelResetReconnectBackoffImmediately", TestTunnelResetReconnectBackoffImmediately),
     NL_TEST_DEF("TestTunnelResetReconnectBackoffRandomized", TestTunnelResetReconnectBackoffRandomized),
     NL_TEST_DEF("TestTunnelNoStatusReportResetReconnectBackoff", TestTunnelNoStatusReportResetReconnectBackoff),
+#if WEAVE_CONFIG_TUNNEL_ENABLE_TCP_IDLE_CALLBACK
+    NL_TEST_DEF("TestTunnelTCPIdle", TestTunnelTCPIdle),
+#endif // WEAVE_CONFIG_TUNNEL_ENABLE_TCP_IDLE_CALLBACK
 #if WEAVE_SYSTEM_CONFIG_USE_SOCKETS && WEAVE_CONFIG_TUNNEL_TCP_USER_TIMEOUT_SUPPORTED && INET_CONFIG_OVERRIDE_SYSTEM_TCP_USER_TIMEOUT
     NL_TEST_DEF("TestTCPUserTimeoutOnAddrRemoval", TestTCPUserTimeoutOnAddrRemoval),
 #endif // WEAVE_SYSTEM_CONFIG_USE_SOCKETS && WEAVE_CONFIG_TUNNEL_TCP_USER_TIMEOUT_SUPPORTED && INET_CONFIG_OVERRIDE_SYSTEM_TCP_USER_TIMEOUT

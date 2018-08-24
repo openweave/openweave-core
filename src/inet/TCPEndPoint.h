@@ -526,6 +526,28 @@ public:
      */
     OnAcceptErrorFunct OnAcceptError;
 
+#if INET_CONFIG_ENABLE_TCP_SEND_IDLE_CALLBACKS
+    /**
+     * @brief   Type of TCP SendIdle changed signal handling function.
+     *
+     * @param[in]   endPoint    The TCP endpoint associated with the event.
+     *
+     * @param[in]   isIdle      True if the send channel of the TCP endpoint
+     *                          is Idle, otherwise false.
+     * @details
+     *  Provide a function of this type to the \c OnTCPSendIdleChanged delegate
+     *  member to process the event of the send channel of the TCPEndPoint
+     *  changing state between being idle and not idle.
+     */
+    typedef void (*OnTCPSendIdleChangedFunct)(TCPEndPoint *endPoint, bool isIdle);
+
+    /** The event handling function delegate of the endpoint signaling when the
+     *  idleness of the TCP connection's send channel changes. This is utilized
+     *  by upper layers to take appropriate actions based on whether sent data
+     *  has been reliably delivered to the peer. */
+    OnTCPSendIdleChangedFunct OnTCPSendIdleChanged;
+#endif // INET_CONFIG_ENABLE_TCP_SEND_IDLE_CALLBACKS
+
 private:
     static Weave::System::ObjectPool<TCPEndPoint, INET_CONFIG_NUM_TCP_ENDPOINTS> sPool;
 
@@ -542,6 +564,17 @@ private:
 #if INET_CONFIG_OVERRIDE_SYSTEM_TCP_USER_TIMEOUT
     uint32_t mUserTimeoutMillis;                        // The configured TCP user timeout value in milliseconds.
                                                         // If 0, assume not set.
+#if INET_CONFIG_ENABLE_TCP_SEND_IDLE_CALLBACKS
+    bool mIsTCPSendIdle;                                // Indicates whether the send channel of the TCPEndPoint is Idle.
+
+    uint16_t mTCPSendQueueRemainingPollCount;           // The current remaining number of TCP SendQueue polls before
+                                                        // the TCP User timeout period is reached.
+
+    uint32_t mTCPSendQueuePollPeriodMillis;             // The configured period of active polling of the TCP
+                                                        // SendQueue. If 0, assume not set.
+    void SetTCPSendIdleAndNotifyChange(bool aIsSendIdle);
+
+#endif // INET_CONFIG_ENABLE_TCP_SEND_IDLE_CALLBACKS
 
     bool mUserTimeoutTimerRunning;                      // Indicates whether the TCP UserTimeout timer has been started.
 
@@ -553,12 +586,18 @@ private:
 
     void RestartTCPUserTimeoutTimer(void);
 
+    void ScheduleNextTCPUserTimeoutPoll(uint32_t aTimeOut);
+
+#if INET_CONFIG_ENABLE_TCP_SEND_IDLE_CALLBACKS
+    uint16_t MaxTCPSendQueuePolls(void);
+#endif // INET_CONFIG_ENABLE_TCP_SEND_IDLE_CALLBACKS
+
 #if WEAVE_SYSTEM_CONFIG_USE_SOCKETS
     uint32_t mBytesWrittenSinceLastProbe;               // This counts the number of bytes written on the TCP socket since the
                                                         // last probe into the TCP outqueue was made.
 
-    uint32_t mLastTCPSendQueueLen;                      // This is the measured size(in bytes) of the TCP send queue at the end
-                                                        // of the last user timeout window.
+    uint32_t mLastTCPKernelSendQueueLen;                // This is the measured size(in bytes) of the kernel TCP send queue
+                                                        // at the end of the last user timeout window.
     INET_ERROR CheckConnectionProgress(bool &IsProgressing);
 #endif // WEAVE_SYSTEM_CONFIG_USE_SOCKETS
 
@@ -606,7 +645,19 @@ private:
     void ReceiveData(void);
     void HandleIncomingConnection(void);
 #endif // WEAVE_SYSTEM_CONFIG_USE_SOCKETS
+
 };
+
+#if INET_CONFIG_ENABLE_TCP_SEND_IDLE_CALLBACKS && INET_CONFIG_OVERRIDE_SYSTEM_TCP_USER_TIMEOUT
+inline uint16_t TCPEndPoint::MaxTCPSendQueuePolls(void)
+{
+    // If the UserTimeout is configured less than or equal to the poll interval,
+    // return 1 to poll at least once instead of returning zero and timing out
+    // immediately.
+    return  (mUserTimeoutMillis > mTCPSendQueuePollPeriodMillis) ?
+             (mUserTimeoutMillis / mTCPSendQueuePollPeriodMillis) : 1;
+}
+#endif // INET_CONFIG_ENABLE_TCP_SEND_IDLE_CALLBACKS && INET_CONFIG_OVERRIDE_SYSTEM_TCP_USER_TIMEOUT
 
 inline bool TCPEndPoint::IsConnected(void) const
 {

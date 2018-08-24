@@ -307,6 +307,19 @@
 #endif // WEAVE_CONFIG_TUNNEL_TCP_USER_TIMEOUT_SUPPORTED
 
 /**
+ *  @def WEAVE_CONFIG_TUNNEL_ENABLE_TCP_IDLE_CALLBACK
+ *
+ *  @brief
+ *    This defines whether support for enabling the TCP
+ *    send channel being idle is present for the Weave
+ *    Tunnel.
+ *
+ */
+#ifndef WEAVE_CONFIG_TUNNEL_ENABLE_TCP_IDLE_CALLBACK
+#define WEAVE_CONFIG_TUNNEL_ENABLE_TCP_IDLE_CALLBACK             (INET_CONFIG_ENABLE_TCP_SEND_IDLE_CALLBACKS)
+#endif // WEAVE_CONFIG_TUNNEL_ENABLE_TCP_IDLE_CALLBACK
+
+/**
  *  @def WEAVE_CONFIG_TUNNEL_SHORTCUT_SUPPORTED
  *
  *  @brief
