@@ -34,7 +34,7 @@ from weave_wdm_next_test_service_base import weave_wdm_next_test_service_base
 
 import WeaveUtilities
 
-gTestCases = [ "UpdateResponseDelay", "UpdateResponseTimeout", "CondUpdateBadVersion", "UpdateRequestSendError", "UpdateRequestBadProfile" ]
+gTestCases = [ "UpdateResponseDelay", "UpdateResponseTimeout", "CondUpdateBadVersion", "UpdateRequestSendError", "UpdateRequestBadProfile", "UpdateRequestBadProfileBeforeSub"]
 gConditionalities = [ "Conditional", "Unconditional", "Mixed" ]
 gFaultopts = WeaveUtilities.FaultInjectionOptions()
 gOpts = { "conditionality" : None,
@@ -169,18 +169,32 @@ class test_weave_wdm_next_service_update_faults(weave_wdm_next_test_service_base
 
         if testcase == "UpdateRequestBadProfile":
             fault_config = "Weave_WDMUpdateRequestBadProfile_s0_f1"
+            # This fault makes the service reply with an InternalError status.
+            # Weave holds on to the metadata and retries the update.
             if conditionality == "Conditional":
                 client_log_check = [
-                        ('Update: path result: success', 1),
+                        ('Update: path result: success', 2),
                         ]
             elif conditionality == "Unconditional":
                 client_log_check = [
-                        ('Update: path result: success', 1),
+                        ('Update: path result: success', 2),
                         ]
             elif conditionality == "Mixed":
                 client_log_check = [
-                        ('Update: path result: success', 1),
+                        ('Update: path result: success', 2),
                         ]
+
+        if testcase == "UpdateRequestBadProfileBeforeSub":
+            fault_config = "Weave_WDMUpdateRequestBadProfile_s0_f1"
+            # This fault makes the service reply with an InternalError status.
+            # Weave holds on to the metadata and retries the update.
+            wdm_next_args['client_update_timing'] = "BeforeSub"
+            if conditionality == "Unconditional":
+                client_log_check = [
+                        ('Update: path result: success', 2),
+                        ]
+            else:
+                return False
 
         wdm_next_args['test_tag'] = self.base_test_tag + "_" + str(self.num_tests) + "_" + testcase + "_" + conditionality + "_" + fault_config
         print wdm_next_args['test_tag']
