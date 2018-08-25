@@ -34,7 +34,7 @@ from weave_wdm_next_test_service_base import weave_wdm_next_test_service_base
 
 import WeaveUtilities
 
-gTestCases = [ "UpdateResponseDelay", "UpdateResponseTimeout", "CondUpdateBadVersion", "UpdateRequestSendError", "UpdateRequestBadProfile" ]
+gTestCases = [ "UpdateResponseDelay", "UpdateResponseTimeout", "CondUpdateBadVersion", "UpdateRequestSendError", "UpdateRequestBadProfile", "UpdateRequestBadProfileBeforeSub"]
 gConditionalities = [ "Conditional", "Unconditional", "Mixed" ]
 gFaultopts = WeaveUtilities.FaultInjectionOptions()
 gOpts = { "conditionality" : None,
@@ -81,29 +81,22 @@ class test_weave_wdm_next_service_update_faults(weave_wdm_next_test_service_base
                         # The UpdateRequest timeout:
                         ("Update: path failed: Weave Error 4050: Timeout", 2),
                         # But the service has received it and processed it;
-                        # when resubscribing, the notification triggers PotentialDataLoss:
-                        ("Potential data loss set for traitDataHandle", 2),
-                        # After the notification, the pending paths are purged:
-                        ("MarkFailedPendingPaths", 2),
-                        # The application is notified again because now the two paths have been purged:
-                        ("The conditional update of a WDM path failed for a version mismatch", 2),
-                        # Data loss at the SubscribeResponse triggers another subscription:
-                        ("Need to resubscribe for potential data loss in TDH", 2),
-                        # This last subscription request clears the flag:
-                        ("Potential data loss cleared for traitDataHandle", 2),
+                        # There is no PotentialDataLoss because we retry the update before the subscription
+                        ("Potential data loss set for traitDataHandle", 0),
+                        ("MarkFailedPendingPaths", 0),
+                        ("Need to resubscribe for potential data loss in TDH", 0),
+                        # The second attempt fails for a version mismatch:
+                        ("Update: path failed: Weave Error 4044:.*:37", 2),
                         # The update never succeeds:
                         ('Update: path result: success', 0)]
             elif conditionality == "Unconditional":
                 client_log_check = [
                         # The UpdateRequest timeout:
                         ("Update: path failed: Weave Error 4050: Timeout", 2),
-                        # When resubscribing, the notification triggers PotentialDataLoss:
-                        ("Potential data loss set for traitDataHandle", 2),
-                        # But after the notification no pending paths are purged
+                        # No data loss because we retry the update before the subscription
+                        ("Potential data loss set for traitDataHandle", 0),
                         ("MarkFailedPendingPaths", 0),
                         ("The conditional update of a WDM path failed for a version mismatch", 0),
-                        # Resubscribing a second time clears the potential data loss:
-                        ("Potential data loss cleared for traitDataHandle", 2),
                         # Finally the update succeeds:
                         ('Update: path result: success', 2)]
             elif conditionality == "Mixed":
@@ -111,16 +104,11 @@ class test_weave_wdm_next_service_update_faults(weave_wdm_next_test_service_base
                         # The UpdateRequest timeout:
                         ("Update: path failed: Weave Error 4050: Timeout", 2),
                         # But the service has received it and processed it;
-                        # when resubscribing, the notification triggers PotentialDataLoss:
-                        ("Potential data loss set for traitDataHandle", 2),
-                        # After the notification, the conditional pending paths are purged:
-                        ("MarkFailedPendingPaths", 1),
-                        # The application is notified again for the path that has been purged:
-                        ("The conditional update of a WDM path failed for a version mismatch", 1),
-                        # Resubscribing a second time clears the potential data loss on the conditional trait;
-                        # the unconditional one is cleared by the successful update at the end.
-                        ("Potential data loss cleared for traitDataHandle", 2),
-                        # The update succeeds only for the unconditional trait:
+                        # We retry the update before the sub, so no potential data loss.
+                        ("Potential data loss set for traitDataHandle", 0),
+                        ("MarkFailedPendingPaths", 0),
+                        # The update succeeds only for the unconditional trait; the conditional one fails with version mismatch
+                        ("Update: path failed: Weave Error 4044:.*:37", 1),
                         ('Update: path result: success', 1)]
 
         if testcase == "UpdateRequestSendError":
@@ -169,18 +157,30 @@ class test_weave_wdm_next_service_update_faults(weave_wdm_next_test_service_base
 
         if testcase == "UpdateRequestBadProfile":
             fault_config = "Weave_WDMUpdateRequestBadProfile_s0_f1"
-            if conditionality == "Conditional":
+            # This fault makes the service reply with an InternalError status.
+            # Weave holds on to the metadata and retries the update.
+            client_log_check = [
+                    # Status report "Internal error"
+                    ("Received Status Report 0x0 : 0x50", 1),
+                    # The paths fail and the application is notified:
+                    ("Update: path failed: Weave Error 4044: Status Report received from peer, .*Internal error", 2),
+                    # The update is tried again and it succeeds
+                    ('Update: path result: success', 2),
+                    # There are no notification while paths are pending/in-progress:
+                    ("Potential data loss set for traitDataHandle", 0)
+                    ]
+
+        if testcase == "UpdateRequestBadProfileBeforeSub":
+            fault_config = "Weave_WDMUpdateRequestBadProfile_s0_f1"
+            # This fault makes the service reply with an InternalError status.
+            # Weave holds on to the metadata and retries the update.
+            wdm_next_args['client_update_timing'] = "BeforeSub"
+            if conditionality == "Unconditional":
                 client_log_check = [
-                        ('Update: path result: success', 1),
+                        ('Update: path result: success', 2),
                         ]
-            elif conditionality == "Unconditional":
-                client_log_check = [
-                        ('Update: path result: success', 1),
-                        ]
-            elif conditionality == "Mixed":
-                client_log_check = [
-                        ('Update: path result: success', 1),
-                        ]
+            else:
+                return False
 
         wdm_next_args['test_tag'] = self.base_test_tag + "_" + str(self.num_tests) + "_" + testcase + "_" + conditionality + "_" + fault_config
         print wdm_next_args['test_tag']

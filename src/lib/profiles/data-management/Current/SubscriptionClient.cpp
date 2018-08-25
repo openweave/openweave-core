@@ -1378,18 +1378,26 @@ void SubscriptionClient::TimerEventHandler(void)
 
         MoveToState(kState_Initialized);
 
+#if WEAVE_CONFIG_ENABLE_WDM_UPDATE
+        if (mPendingSetState == kPendingSetReady &&
+                mInProgressUpdateList.IsEmpty())
+        {
+            // TODO: test errors here
+            err = MovePendingToInProgress();
+            if (err == WEAVE_NO_ERROR)
+            {
+                err = FormAndSendUpdate(true);
+            }
+            if (err != WEAVE_NO_ERROR)
+            {
+                SetRetryTimer(err);
+            }
+        }
+        else
+#endif
         if (ShouldSubscribe())
         {
             _InitiateSubscription();
-        }
-        else if (ShouldBind())
-        {
-            err = _PrepareBinding();
-            if (err != WEAVE_NO_ERROR)
-            {
-                HandleBindingFailed(IsRetryEnabled(), err, NULL);
-                err = WEAVE_NO_ERROR;
-            }
         }
         break;
 
@@ -2091,7 +2099,7 @@ WEAVE_ERROR SubscriptionClient::MoveInProgressToPending(void)
 
     mInProgressUpdateList.Clear();
 
-    if (mPendingSetState == kPendingSetEmpty)
+    if ((mPendingUpdateSet.GetNumItems() > 0) && (mPendingSetState == kPendingSetEmpty))
     {
         SetPendingSetState(kPendingSetReady);
     }
@@ -2364,7 +2372,7 @@ void SubscriptionClient::SetPendingSetState(PendingSetState aState)
 }
 
 // TODO: Break this method down into smaller methods.
-void SubscriptionClient::OnUpdateConfirm(WEAVE_ERROR aReason, nl::Weave::Profiles::StatusReporting::StatusReport * apStatus)
+void SubscriptionClient::OnUpdateResponse(WEAVE_ERROR aReason, nl::Weave::Profiles::StatusReporting::StatusReport * apStatus)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
     bool isLocked = false;
@@ -2415,6 +2423,10 @@ void SubscriptionClient::OnUpdateConfirm(WEAVE_ERROR aReason, nl::Weave::Profile
         // If the whole udpate has succeeded, the status list
         // is allowed to be empty.
         wholeRequestSucceeded = true;
+
+        // Also reset the retry counter.
+        // TODO: separate update retries from subscription retries.
+        mRetryCounter = 0;
     }
 
     profileID = apStatus->mProfileId;
@@ -2466,7 +2478,7 @@ void SubscriptionClient::OnUpdateConfirm(WEAVE_ERROR aReason, nl::Weave::Profile
 
     if ((wholeRequestSucceeded) && !(IsStatusListPresent && IsVersionListPresent))
     {
-        WeaveLogDetail(DataManagement, "<OnUpdateConfirm> version/status list missing");
+        WeaveLogDetail(DataManagement, "<OnUpdateResponse> version/status list missing");
         ExitNow(err = WEAVE_ERROR_WDM_MALFORMED_UPDATE_RESPONSE);
     }
 
@@ -2506,7 +2518,6 @@ void SubscriptionClient::OnUpdateConfirm(WEAVE_ERROR aReason, nl::Weave::Profile
             UpdateCompleteEventCbHelper(traitPath, profileID, statusCode, aReason);
         }
 
-        mInProgressUpdateList.RemoveItemAt(j);
 
         WeaveLogDetail(DataManagement, "item: %zu, profile: %" PRIu32 ", statusCode: 0x% " PRIx16 ", version 0x%" PRIx64 "",
                 j, profileID, statusCode, versionCreated);
@@ -2516,6 +2527,8 @@ void SubscriptionClient::OnUpdateConfirm(WEAVE_ERROR aReason, nl::Weave::Profile
         if (profileID == nl::Weave::Profiles::kWeaveProfile_Common &&
                 statusCode == nl::Weave::Profiles::Common::kStatus_Success)
         {
+            mInProgressUpdateList.RemoveItemAt(j);
+
             if (updatableDataSink->IsConditionalUpdate())
             {
                 if (updatableDataSink->IsVersionValid() &&
@@ -2548,6 +2561,8 @@ void SubscriptionClient::OnUpdateConfirm(WEAVE_ERROR aReason, nl::Weave::Profile
             if (profileID == nl::Weave::Profiles::kWeaveProfile_WDM &&
                     statusCode == nl::Weave::Profiles::DataManagement::kStatus_VersionMismatch)
             {
+                mInProgressUpdateList.RemoveItemAt(j);
+
                 // Fail all pending ones as well for VersionMismatch and force resubscribe
                 if (mPendingUpdateSet.IsTraitPresent(traitPath.mTraitDataHandle))
                 {
@@ -2581,11 +2596,17 @@ void SubscriptionClient::OnUpdateConfirm(WEAVE_ERROR aReason, nl::Weave::Profile
         } // Not success
     } // for numDispatchedHandles
 
+    // Whatever was not discarded above should be retried
+    err = MoveInProgressToPending();
+
 exit:
 
-    // If the loop above exited early for an error, the application
-    // is notified for any remaining path by the following method.
-    ClearPathStore(mInProgressUpdateList, err);
+    if (err != WEAVE_NO_ERROR)
+    {
+        // If the loop above exited early for an error, the application
+        // is notified for any remaining path by the following method.
+        ClearPathStore(mInProgressUpdateList, err);
+    }
 
     mUpdateRequestContext.mItemInProgress = 0;
 
@@ -2597,12 +2618,7 @@ exit:
     // TODO: should the purge happen only if the pending set is ready?
     PurgePendingUpdate();
 
-    if (mPendingSetState == kPendingSetReady)
-    {
-        // TODO: handle error!
-        FormAndSendUpdate(true);
-    }
-    else if (mPendingSetState == kPendingSetEmpty)
+    if (mPendingSetState == kPendingSetEmpty)
     {
         NoMorePendingEventCbHelper();
 
@@ -2612,15 +2628,25 @@ exit:
         }
     }
 
-    if (needToResubscribe && IsEstablishedIdle())
+    // For now we support only two configurations:
+    // - the application has started subscriptions and enabled retries
+    // - the application is doing unconditional updates before subscribing
+    if (mPendingSetState == kPendingSetReady)
     {
+        // Start the timer and go do more updates
+        SetRetryTimer(WEAVE_NO_ERROR);
+    }
+    else if (needToResubscribe && IsEstablishedIdle())
+    {
+        // no more updates, but some traits need to be refreshed
         HandleSubscriptionTerminated(IsRetryEnabled(), err, NULL);
     }
     else if (ShouldSubscribe() && (kState_Initialized == mCurrentState))
     {
+        // no more updates, and the subscription has to be brought up
         SetRetryTimer(WEAVE_NO_ERROR);
     }
-
+    // else the subscription is going up
 
     if (isLocked)
     {
@@ -2681,9 +2707,22 @@ void SubscriptionClient::OnUpdateNoResponse(WEAVE_ERROR aError)
         PurgePendingUpdate();
     }
 
-    if ((false == mPendingUpdateSet.IsEmpty()) && IsEstablishedIdle())
+    // For now we support only two configurations:
+    // - the application has started subscriptions and enabled retries
+    // - the application is doing unconditional updates before subscribing
+    if (false == mPendingUpdateSet.IsEmpty())
     {
-        HandleSubscriptionTerminated(IsRetryEnabled(), aError, NULL);
+       if (IsEstablishedIdle())
+       {
+           // The subscription is up
+           HandleSubscriptionTerminated(IsRetryEnabled(), aError, NULL);
+       }
+       else if (mCurrentState == kState_Initialized)
+       {
+           // This is for the case of the application doing unconditional updates before starting the subscription
+           SetRetryTimer(aError);
+       }
+       // else: the subscription is going up; the update will be retried after the subscription has been established
     }
 
 exit:
@@ -2711,7 +2750,7 @@ void SubscriptionClient::UpdateEventCallback (void * const aAppState,
 
         if (aInParam.UpdateComplete.Reason == WEAVE_NO_ERROR)
         {
-            pSubClient->OnUpdateConfirm(aInParam.UpdateComplete.Reason, aInParam.UpdateComplete.StatusReportPtr);
+            pSubClient->OnUpdateResponse(aInParam.UpdateComplete.Reason, aInParam.UpdateComplete.StatusReportPtr);
         }
         else
         {
