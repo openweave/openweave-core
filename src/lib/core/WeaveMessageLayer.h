@@ -253,7 +253,9 @@ public:
     WEAVE_ERROR Connect(uint64_t peerNodeId, WeaveAuthMode authMode, const IPAddress &peerAddr, uint16_t peerPort = 0, InterfaceId intf = INET_NULL_INTERFACEID);
     WEAVE_ERROR Connect(uint64_t peerNodeId, WeaveAuthMode authMode, const char *peerAddr, uint16_t defaultPort = 0);
     WEAVE_ERROR Connect(uint64_t peerNodeId, WeaveAuthMode authMode, const char *peerAddr, uint16_t peerAddrLen, uint16_t defaultPort = 0);
+    WEAVE_ERROR Connect(uint64_t peerNodeId, WeaveAuthMode authMode, const char *peerAddr, uint16_t peerAddrLen, uint8_t dnsOptions, uint16_t defaultPort);
     WEAVE_ERROR Connect(uint64_t peerNodeId, WeaveAuthMode authMode, HostPortList hostPortList, InterfaceId intf = INET_NULL_INTERFACEID);
+    WEAVE_ERROR Connect(uint64_t peerNodeId, WeaveAuthMode authMode, HostPortList hostPortList, uint8_t dnsOptions, InterfaceId intf);
 
     WEAVE_ERROR GetPeerAddressInfo(IPPacketInfo& addrInfo);
 
@@ -375,6 +377,7 @@ private:
     InterfaceId mTargetInterface;
     uint32_t mConnectTimeout;
     uint8_t mRefCount;
+    uint8_t mDNSOptions;
 
     void Init(WeaveMessageLayer *msgLayer);
     void MakeConnectedTcp(TCPEndPoint *endPoint, const IPAddress &localAddr, const IPAddress &peerAddr);

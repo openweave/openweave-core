@@ -274,6 +274,7 @@ private:
     AddressingOption mAddressingOption : 3;
     TransportOption mTransportOption : 3;
     unsigned mFlags : 3;
+    uint8_t mDNSOptions;
 
     EventCallback mAppEventCallback;
     EventCallback mProtocolLayerCallback;
@@ -358,6 +359,8 @@ public:
     Configuration& TargetAddress_IP(nl::Inet::IPAddress aPeerAddress, uint16_t aPeerPort = WEAVE_PORT, InterfaceId aInterfaceId = INET_NULL_INTERFACEID);
     Configuration& TargetAddress_IP(const char *aHostName, uint16_t aPeerPort = WEAVE_PORT, InterfaceId aInterfaceId = INET_NULL_INTERFACEID);
     Configuration& TargetAddress_IP(const char *aHostName, size_t aHostNameLen, uint16_t aPeerPort = WEAVE_PORT, InterfaceId aInterfaceId = INET_NULL_INTERFACEID);
+
+    Configuration& DNS_Options(uint8_t dnsOptions);
 
     Configuration& Transport_TCP(void);
     Configuration& Transport_UDP(void);

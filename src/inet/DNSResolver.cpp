@@ -151,6 +151,8 @@ INET_ERROR DNSResolver::Resolve(const char *hostName, uint16_t hostNameLen, uint
     case kDNSOption_AddrFamily_IPv6Preferred:
         lwipAddrType = LWIP_DNS_ADDRTYPE_IPV6_IPV4;
         break;
+    default:
+        WeaveDie();
     }
 #else // INET_CONFIG_ENABLE_IPV4
     lwipAddrType = LWIP_DNS_ADDRTYPE_IPV6;
@@ -409,6 +411,8 @@ INET_ERROR DNSResolver::ProcessGetAddrInfoResult(int returnCode, struct addrinfo
             primaryFamily = AF_INET6;
             secondaryFamily = AF_INET;
             break;
+        default:
+            WeaveDie();
         }
 
         // Determine the number of addresses of each family present in the results.
