@@ -854,6 +854,7 @@ void ExchangeContext::Release(void)
         // If configured, automatically release a reference to the WeaveConnection object.
         if (ShouldAutoReleaseConnection() && Con != NULL)
         {
+            SetShouldAutoReleaseConnection(false);
             Con->Release();
         }
 
@@ -1604,8 +1605,8 @@ void ExchangeContext::HandleConnectionClosed(WEAVE_ERROR conErr)
     // If configured, automatically release the EC's reference to the WeaveConnection object.
     if (ShouldAutoReleaseConnection() && Con != NULL)
     {
-        Con->Release();
         SetShouldAutoReleaseConnection(false);
+        Con->Release();
     }
 
     // Discard the EC's pointer to the connection, preventing further use.
