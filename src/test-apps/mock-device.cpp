@@ -104,7 +104,6 @@ static void HandleConnectionClosed(WeaveConnection *con, WEAVE_ERROR conErr);
 static void InitiateConnection(System::Layer* aSystemLayer, void* aAppState, System::Error aError);
 static void HandleConnectionComplete(WeaveConnection *con, WEAVE_ERROR conErr);
 static void HandleWdmCompleteTest();
-static WEAVE_ERROR GetRootDirectoryEntry (uint8_t *buf, uint16_t bufSize);
 
 #if CONFIG_BLE_PLATFORM_BLUEZ
 bool EnableWeaveBluezPeripheral = false;
@@ -562,7 +561,8 @@ int main(int argc, char *argv[])
 
 #if WEAVE_CONFIG_ENABLE_SERVICE_DIRECTORY
     err = ServiceMgr.init(&ExchangeMgr, ServiceDirCache, sizeof(ServiceDirCache),
-            GetRootDirectoryEntry, kWeaveAuthMode_CASE_ServiceEndPoint);
+            GetRootServiceDirectoryEntry, kWeaveAuthMode_CASE_ServiceEndPoint,
+            NULL, NULL, OverrideServiceConnectArguments);
     FAIL_ERROR(err, "ServiceMgr.Init failed");
 #endif
 
@@ -1087,9 +1087,3 @@ static void HandleWdmCompleteTest()
     }
 }
 
-#if WEAVE_CONFIG_ENABLE_TUNNELING & WEAVE_CONFIG_ENABLE_SERVICE_DIRECTORY
-WEAVE_ERROR GetRootDirectoryEntry (uint8_t *buf, uint16_t bufSize)
-{
-    return gServiceDirClientOptions.GetRootDirectoryEntry(buf, bufSize);
-}
-#endif // WEAVE_CONFIG_ENABLE_TUNNELING & WEAVE_CONFIG_ENABLE_SERVICE_DIRECTORY

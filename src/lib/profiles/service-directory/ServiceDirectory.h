@@ -55,6 +55,8 @@ namespace Weave {
 namespace Profiles {
 namespace ServiceDirectory {
 
+struct ServiceConnectBeginArgs;
+
 /**
  *  Weave message types used in this profile
  *
@@ -238,6 +240,19 @@ public:
      */
     typedef void (*OnServiceEndpointQueryBegin)(void);
 
+    /**
+     * @typedef OnConnectBegin
+     *
+     * @brief An application callback made immediately prior to connection establishment.
+     *
+     * This callback can be used by applications to observe and optionally alter the
+     * arguments passed to #WeaveConnection::Connect() during the course of establishing
+     * a service connection.  This callback will be called both for the connection to the
+     * target service endpoint, as well as the connection to the Service Directory endpoint
+     * in the event that a directory lookup must be performed.
+     */
+    typedef void (*OnConnectBegin)(struct ServiceConnectBeginArgs & args);
+
     WeaveServiceManager(void);
     ~WeaveServiceManager(void);
 
@@ -247,7 +262,8 @@ public:
                      RootDirectoryAccessor aAccessor,
                      WeaveAuthMode aDirAuthMode = kWeaveAuthMode_Unauthenticated,
                      OnServiceEndpointQueryBegin aServiceEndpointQueryBegin = NULL,
-                     OnServiceEndpointQueryEndWithTimeInfo aServiceEndpointQueryEndWithTimeInfo = NULL);
+                     OnServiceEndpointQueryEndWithTimeInfo aServiceEndpointQueryEndWithTimeInfo = NULL,
+                     OnConnectBegin aConnectBegin = NULL);
 
     WEAVE_ERROR connect(uint64_t  aServiceEp,
                         WeaveAuthMode aAuthMode,
@@ -285,6 +301,8 @@ public:
     // Clear cache and reset state so that the next connect request
     // goes to the service directory endpoint first
     void clearCache(void);
+
+    void SetConnectBeginCallback(OnConnectBegin aConnectBegin);
 
     enum
     {
@@ -436,16 +454,57 @@ private:
     uint32_t                mDirAndSuffTableSize;         ///< the size of the directory and suffix table  in the cache.
 
     /**
-     *  Callback happens right before we send out the service endpoing query request
+     *  Callback happens right before we send out the service endpoint query request
      */
     OnServiceEndpointQueryBegin mServiceEndpointQueryBegin;
 
     /**
-     *  Callback happens right after we receive a service endpoing query response with time
+     *  Callback happens right after we receive a service endpoint query response with time
      *  information
      */
     OnServiceEndpointQueryEndWithTimeInfo mServiceEndpointQueryEndWithTimeInfo;
+
+    /**
+     * Callback happens immediately prior to connection establishment.
+     */
+    OnConnectBegin mConnectBegin;
 };
+
+/**
+ * Arguments passed to the WeaveServiceManager::OnConnectBegin callback.
+ */
+struct ServiceConnectBeginArgs
+{
+    /** The service endpoint to which the connect is being established. */
+    const uint64_t ServiceEndpoint;
+
+    /** The #WeaveConnection object that will be used to establish the connection. */
+    WeaveConnection * const Connection;
+
+    /** A HostPortList object containing the hostname and port information for connection. */
+    HostPortList * const EndpointHostPortList;
+
+    /** The network interface over which the connection should be established. */
+    InterfaceId ConnectIntf;
+
+    /** The desired authentication mode for the connection. */
+    WeaveAuthMode AuthMode;
+
+    /** A set of options controlling how hostname resolution is performed. */
+    uint8_t DNSOptions;
+};
+
+/**
+ * Set a callback function to be called immediately prior to connection establishment.
+ *
+ *  @param [in] aConnectBegin       A pointer to the callback function.  A value of NULL
+ *                                  disables the callback.
+ */
+inline void WeaveServiceManager::SetConnectBeginCallback(OnConnectBegin aConnectBegin)
+{
+    mConnectBegin = aConnectBegin;
+}
+
 
 }; // ServiceDirectory
 }; // Profiles

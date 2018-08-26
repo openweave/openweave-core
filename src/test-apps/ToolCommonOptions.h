@@ -33,6 +33,16 @@
 
 using namespace nl::ArgParser;
 
+namespace nl {
+namespace Weave {
+namespace Profiles {
+namespace ServiceDirectory {
+class ServiceConnectBeginArgs;
+}; // ServiceDirectory
+}; // Profiles
+}; // Weave
+}; // nl
+
 #define TOOL_OPTIONS_ENV_VAR_NAME "WEAVE_TEST_OPTIONS"
 
 enum
@@ -62,6 +72,8 @@ enum
     kToolCommonOpt_DeviceProductRevision,
     kToolCommonOpt_DeviceSoftwareVersion,
     kToolCommonOpt_ServiceDirServer,
+    kToolCommonOpt_ServiceDirDNSOptions,
+    kToolCommonOpt_ServiceDirTargetDNSOptions,
     kToolCommonOpt_IPv4GatewayAddr,
     kToolCommonOpt_WRMPACKDelay,
     kToolCommonOpt_WRMPRetransInterval,
@@ -230,18 +242,25 @@ extern GeneralSecurityOptions gGeneralSecurityOptions;
  */
 class ServiceDirClientOptions : public OptionSetBase
 {
+    using ServiceConnectBeginArgs = ::nl::Weave::Profiles::ServiceDirectory::ServiceConnectBeginArgs;
+
 public:
     const char *ServerHost;
     uint16_t ServerPort;
+    uint8_t DNSOptions_ServiceDirEndpoint;
+    uint8_t DNSOptions_TargetEndpoint;
 
     ServiceDirClientOptions();
 
     WEAVE_ERROR GetRootDirectoryEntry(uint8_t *buf, uint16_t bufSize);
+    void OverrideConnectArguments(ServiceConnectBeginArgs & args);
 
     virtual bool HandleOption(const char *progName, OptionSet *optSet, int id, const char *name, const char *arg);
 };
 
 extern ServiceDirClientOptions gServiceDirClientOptions;
+extern WEAVE_ERROR GetRootServiceDirectoryEntry(uint8_t *buf, uint16_t bufSize);
+extern void OverrideServiceConnectArguments(::nl::Weave::Profiles::ServiceDirectory::ServiceConnectBeginArgs & args);
 
 
 /**
@@ -262,8 +281,7 @@ public:
 
 extern FaultInjectionOptions gFaultInjectionOptions;
 
-
-
+extern bool ParseDNSOptions(const char * progName, const char *argName, const char * arg, uint8_t & dnsOptions);
 
 
 #endif // TOOLCOMMONOPTIONS_H_

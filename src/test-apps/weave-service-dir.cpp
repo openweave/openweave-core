@@ -34,7 +34,6 @@
 #define TOOL_NAME "weave-service-dir"
 
 static void HandleConnectionComplete(WeaveConnection *con, WEAVE_ERROR conErr);
-static WEAVE_ERROR GetRootDirectoryEntry(uint8_t *, uint16_t);
 static void HandleServiceMgrStatus(void *appState, WEAVE_ERROR anError, StatusReport *aReport);
 static void HandleTestTimeout(System::Layer* aSystemLayer, void* aAppState, System::Error aError);
 
@@ -148,7 +147,7 @@ int main(int argc, char *argv[])
     else
     {
         err = ServiceMgr.init(&ExchangeMgr, ServiceDirCache, sizeof(ServiceDirCache),
-            GetRootDirectoryEntry, AuthMode);
+            GetRootServiceDirectoryEntry, AuthMode, NULL, NULL, OverrideServiceConnectArguments);
         if (err != WEAVE_NO_ERROR)
         {
             printf("ServiceMgr.init() failed with error: %s\n", ErrorStr(err));
@@ -239,11 +238,6 @@ void HandleConnectionComplete(WeaveConnection *con, WEAVE_ERROR conErr)
     // stop the test
     con->Close();
     Done = true;
-}
-
-WEAVE_ERROR GetRootDirectoryEntry(uint8_t *buf, uint16_t bufSize)
-{
-    return gServiceDirClientOptions.GetRootDirectoryEntry(buf, bufSize);
 }
 
 void HandleServiceMgrStatus(void* anAppState, WEAVE_ERROR anError, StatusReport *aReport)

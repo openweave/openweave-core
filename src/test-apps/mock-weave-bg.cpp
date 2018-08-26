@@ -248,13 +248,6 @@ bool HandleNonOptionArgs(const char *progName, int argc, char *argv[])
     return true;
 }
 
-#if WEAVE_CONFIG_ENABLE_SERVICE_DIRECTORY
-WEAVE_ERROR GetRootDirectoryEntry (uint8_t *buf, uint16_t bufSize)
-{
-    return gServiceDirClientOptions.GetRootDirectoryEntry(buf, bufSize);
-}
-#endif // WEAVE_CONFIG_ENABLE_SERVICE_DIRECTORY
-
 #if WEAVE_CONFIG_TUNNEL_ENABLE_TRANSIT_CALLBACK
 void TunneledPacketTransitHandler(const PacketBuffer &pkt, TunnelPktDirection pktDir, TunnelType tunnelType, bool &toDrop)
 {
@@ -366,7 +359,8 @@ int main(int argc, char *argv[])
 
 #if WEAVE_CONFIG_ENABLE_SERVICE_DIRECTORY
     err = gServiceMgr.init(&ExchangeMgr, gServiceDirCache, sizeof(gServiceDirCache),
-            GetRootDirectoryEntry, kWeaveAuthMode_CASE_ServiceEndPoint);
+            GetRootServiceDirectoryEntry, kWeaveAuthMode_CASE_ServiceEndPoint,
+            NULL, NULL, OverrideServiceConnectArguments);
     FAIL_ERROR(err, "gServiceMgr.Init failed");
 #endif
 

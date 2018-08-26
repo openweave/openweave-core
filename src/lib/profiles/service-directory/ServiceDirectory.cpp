@@ -306,6 +306,12 @@ WeaveServiceManager::~WeaveServiceManager()
  *   receives a response with time information. The cache should already be
  *   filled successfully before the callback is made.
  *
+ *  @param [in] aConnectBegin
+ *    A function pointer of type OnConnectBegin, that is called immediately
+ *    prior to connection establishment and allows applications to observe
+ *    and optionally alter the arguments passed to #WeaveConnection::Connect().
+ *    A value of NULL (the default) disables the callback.
+ *
  *  @return #WEAVE_ERROR_INVALID_ARGUMENT if a function
  *    argument is invalid; otherwise, #WEAVE_NO_ERROR.
  */
@@ -315,7 +321,8 @@ WEAVE_ERROR WeaveServiceManager::init(WeaveExchangeManager *aExchangeMgr,
                                       RootDirectoryAccessor aAccessor,
                                       WeaveAuthMode aDirAuthMode,
                                       OnServiceEndpointQueryBegin aServiceEndpointQueryBegin,
-                                      OnServiceEndpointQueryEndWithTimeInfo aServiceEndpointQueryEndWithTimeInfo)
+                                      OnServiceEndpointQueryEndWithTimeInfo aServiceEndpointQueryEndWithTimeInfo,
+                                      OnConnectBegin aConnectBegin)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
 
@@ -332,6 +339,7 @@ WEAVE_ERROR WeaveServiceManager::init(WeaveExchangeManager *aExchangeMgr,
     mDirAuthMode = aDirAuthMode;
     mServiceEndpointQueryBegin = aServiceEndpointQueryBegin;
     mServiceEndpointQueryEndWithTimeInfo = aServiceEndpointQueryEndWithTimeInfo;
+    mConnectBegin = aConnectBegin;
 
     cleanupExchangeContext();
 
@@ -1458,10 +1466,30 @@ WEAVE_ERROR WeaveServiceManager::lookupAndConnect(WeaveConnection *aConnection,
 
     aConnection->SetConnectTimeout(aConnectTimeoutMsecs);
 
-    err = aConnection->Connect(aServiceEp,
-                               aAuthMode,
-                               HostPortList(entry, itemCount, mSuffixTable.base, mSuffixTable.length),
-                               aConnectIntf);
+    {
+        HostPortList hostPortList(entry, itemCount, mSuffixTable.base, mSuffixTable.length);
+        ServiceConnectBeginArgs connectBeginArgs
+        {
+            aServiceEp,
+            aConnection,
+            &hostPortList,
+            aConnectIntf,
+            aAuthMode,
+            ::nl::Inet::kDNSOption_Default
+        };
+
+        if (mConnectBegin != NULL)
+        {
+            mConnectBegin(connectBeginArgs);
+        }
+
+        err = aConnection->Connect(aServiceEp,
+                                   connectBeginArgs.AuthMode,
+                                   hostPortList,
+                                   connectBeginArgs.DNSOptions,
+                                   connectBeginArgs.ConnectIntf);
+        SuccessOrExit(err);
+    }
 
 exit:
 

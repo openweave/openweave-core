@@ -68,7 +68,6 @@ static void HandleSecureSessionEstablished(WeaveSecurityManager *sm, WeaveConnec
 static void HandleSecureSessionError(WeaveSecurityManager *sm, WeaveConnection *con, void *reqState, WEAVE_ERROR localErr, uint64_t peerNodeId, StatusReport *statusReport);
 static void ParseDestAddress();
 #if WEAVE_CONFIG_ENABLE_SERVICE_DIRECTORY
-static WEAVE_ERROR GetRootDirectoryEntry(uint8_t *, uint16_t);
 static void HandleServiceMgrStatus(void *appState, WEAVE_ERROR anError, StatusReport *aReport);
 #endif
 
@@ -289,7 +288,8 @@ int main(int argc, char *argv[])
 
 #if WEAVE_CONFIG_ENABLE_SERVICE_DIRECTORY
     err = ServiceMgr.init(&ExchangeMgr, ServiceDirCache, sizeof(ServiceDirCache),
-            GetRootDirectoryEntry, kWeaveAuthMode_CASE_ServiceEndPoint);
+                          GetRootServiceDirectoryEntry, kWeaveAuthMode_CASE_ServiceEndPoint,
+                          NULL, NULL, OverrideServiceConnectArguments);
     if (err != WEAVE_NO_ERROR)
     {
         printf("ServiceMgr.init() failed with error: %s\n", ErrorStr(err));
@@ -1000,11 +1000,6 @@ void ParseDestAddress()
 }
 
 #if WEAVE_CONFIG_ENABLE_SERVICE_DIRECTORY
-WEAVE_ERROR GetRootDirectoryEntry(uint8_t *buf, uint16_t bufSize)
-{
-    return gServiceDirClientOptions.GetRootDirectoryEntry(buf, bufSize);
-}
-
 void HandleServiceMgrStatus(void* anAppState, WEAVE_ERROR anError, StatusReport *aReport)
 {
     if (aReport)
