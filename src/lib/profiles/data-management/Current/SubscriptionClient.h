@@ -291,6 +291,7 @@ public:
 
     bool IsRetryEnabled() { return (mResubscribePolicyCallback != NULL); }
 
+    bool IsEstablished() { return (mCurrentState >= kState_Established_Begin && mCurrentState <= kState_Established_End); }
     bool IsEstablishedIdle() { return (mCurrentState == kState_SubscriptionEstablished_Idle); }
     bool IsFree() { return (mCurrentState == kState_Free); }
     bool IsAborting() { return (mCurrentState == kState_Aborting); }
@@ -339,6 +340,9 @@ private:
         // Note that these are the same as the allowed states in NotificationRequestHandler
         kState_InProgressOrEstablished_Begin       = kState_Subscribing,
         kState_InProgressOrEstablished_End         = kState_SubscriptionEstablished_Confirming,
+
+        kState_Established_Begin           = kState_SubscriptionEstablished_Idle,
+        kState_Established_End             = kState_SubscriptionEstablished_Confirming,
 
         kState_Aborting = 8,
     };

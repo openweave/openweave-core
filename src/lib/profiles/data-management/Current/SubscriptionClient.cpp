@@ -2612,7 +2612,7 @@ exit:
         }
     }
 
-    if (needToResubscribe && IsEstablishedIdle())
+    if (needToResubscribe && IsEstablished())
     {
         HandleSubscriptionTerminated(IsRetryEnabled(), err, NULL);
     }
@@ -2681,7 +2681,7 @@ void SubscriptionClient::OnUpdateNoResponse(WEAVE_ERROR aError)
         PurgePendingUpdate();
     }
 
-    if ((false == mPendingUpdateSet.IsEmpty()) && IsEstablishedIdle())
+    if ((false == mPendingUpdateSet.IsEmpty()) && IsEstablished())
     {
         HandleSubscriptionTerminated(IsRetryEnabled(), aError, NULL);
     }
@@ -2845,7 +2845,7 @@ WEAVE_ERROR SubscriptionClient::PurgePendingUpdate()
 
     err = PurgeFailedPendingPaths(WEAVE_ERROR_WDM_VERSION_MISMATCH, numPendingPathsDeleted);
 
-    if ((err != WEAVE_NO_ERROR || (numPendingPathsDeleted > 0)) && IsEstablishedIdle())
+    if ((err != WEAVE_NO_ERROR || (numPendingPathsDeleted > 0)) && IsEstablished())
     {
         HandleSubscriptionTerminated(IsRetryEnabled(), WEAVE_ERROR_WDM_VERSION_MISMATCH, NULL);
     }
@@ -2994,7 +2994,7 @@ exit:
 
         ClearPathStore(mInProgressUpdateList, err);
 
-        if (IsEstablishedIdle())
+        if (IsEstablished())
         {
             HandleSubscriptionTerminated(IsRetryEnabled(), err, NULL);
         }
