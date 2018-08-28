@@ -653,7 +653,11 @@ WEAVE_ERROR SubscriptionClient::SendSubscribeRequest(void)
     // NOTE: State could be changed in sync error callback by message layer
     WEAVE_FAULT_INJECT(FaultInjection::kFault_WDM_SendUnsupportedReqMsgType, msgType += 50);
 
-#if WEAVE_CONFIG_DATA_MANAGEMENT_ENABLE_SCHEMA_CHECK
+#if 0 // WEAVE_CONFIG_DATA_MANAGEMENT_ENABLE_SCHEMA_CHECK
+    // TODO: SubscribeRequest::CheckSchemaValidity is correct and rejects empty PathLists;
+    // but the loop above can encode an empty PathList, and
+    // the parser in SubscriptionHandler::ParsePathVersionEventLists will accept it.
+    // Need to fix this in a way that's backward compatible.
     {
         nl::Weave::TLV::TLVReader reader;
         SubscribeRequest::Parser request;
