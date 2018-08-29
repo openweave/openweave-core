@@ -3,6 +3,9 @@
 /* Define to 1 if you want to enable WoBle over bluez. */
 #undef CONFIG_BLE_PLATFORM_BLUEZ
 
+/* Define to 1 if you want to use the OpenWeave Device Layer. */
+#undef CONFIG_DEVICE_LAYER
+
 /* Define to 1 if you want to use Weave with a system that supports
    callback-based vcbprintf */
 #undef CONFIG_HAVE_VCBPRINTF
@@ -388,6 +391,13 @@
 
 /* Define to 1 for enabling Weave Tunnel failover */
 #undef WEAVE_CONFIG_TUNNEL_FAILOVER_SUPPORTED
+
+/* Target platform name for OpenWeave Device Layer. */
+#undef WEAVE_DEVICE_LAYER_TARGET
+
+/* Define to 1 if you want to build the OpenWeave Device Layer for the
+   Espressif ESP32. */
+#undef WEAVE_DEVICE_LAYER_TARGET_ESP32
 
 /* Define to 1 if you want to enable WoBle Control Path and Throughput Test.
    */

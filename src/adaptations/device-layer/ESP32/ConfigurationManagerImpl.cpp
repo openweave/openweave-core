@@ -31,28 +31,19 @@
 #include <Weave/DeviceLayer/ESP32/GroupKeyStoreImpl.h>
 #include <Weave/DeviceLayer/ESP32/ESP32Config.h>
 
-// The ESP32 variant of ConfigurationManager relies on the GenericConfigurationManagerImpl
-// template class for much of its implementation.  Here we include the definition of the
-// GenericConfigurationManagerImpl and force
-#include "GenericConfigurationManagerImpl.cpp"
-
 #include "esp_wifi.h"
 #include "nvs_flash.h"
 #include "nvs.h"
-
-using namespace ::nl;
-using namespace ::nl::Weave;
-using namespace ::nl::Weave::Profiles::Security::AppKeys;
-using namespace ::nl::Weave::Profiles::DeviceDescription;
-using namespace ::nl::Weave::DeviceLayer::Internal;
-
-using ::nl::Weave::kWeaveVendor_NestLabs;
 
 namespace nl {
 namespace Weave {
 namespace DeviceLayer {
 
-template class Internal::GenericConfigurationManagerImpl<ConfigurationManagerImpl<ESP32>>;
+using namespace ::nl::Weave::Profiles::Security::AppKeys;
+using namespace ::nl::Weave::Profiles::DeviceDescription;
+using namespace ::nl::Weave::DeviceLayer::Internal;
+
+using ::nl::Weave::kWeaveVendor_NestLabs;
 
 namespace {
 
@@ -74,10 +65,10 @@ GroupKeyStoreImpl gGroupKeyStore;
 
 /** Singleton instance of the ConfigurationManager implementation object for the ESP32.
  */
-ConfigurationManagerImpl<ESP32> ConfigurationManagerImpl<ESP32>::sInstance;
+ConfigurationManagerImpl ConfigurationManagerImpl::sInstance;
 
 
-WEAVE_ERROR ConfigurationManagerImpl<ESP32>::_Init()
+WEAVE_ERROR ConfigurationManagerImpl::_Init()
 {
     WEAVE_ERROR err;
     bool failSafeArmed;
@@ -91,7 +82,7 @@ WEAVE_ERROR ConfigurationManagerImpl<ESP32>::_Init()
     SuccessOrExit(err);
 
     // Initialize the generic implementation base class.
-    err = Internal::GenericConfigurationManagerImpl<ConfigurationManagerImpl<ESP32>>::_Init();
+    err = Internal::GenericConfigurationManagerImpl<ConfigurationManagerImpl>::_Init();
     SuccessOrExit(err);
 
     // Initialize the global GroupKeyStore object.
@@ -110,17 +101,17 @@ exit:
     return err;
 }
 
-WEAVE_ERROR ConfigurationManagerImpl<ESP32>::_GetPrimaryWiFiMACAddress(uint8_t * buf)
+WEAVE_ERROR ConfigurationManagerImpl::_GetPrimaryWiFiMACAddress(uint8_t * buf)
 {
     return esp_wifi_get_mac(ESP_IF_WIFI_STA, buf);
 }
 
-WEAVE_ERROR ConfigurationManagerImpl<ESP32>::_GetDeviceDescriptor(::nl::Weave::Profiles::DeviceDescription::WeaveDeviceDescriptor & deviceDesc)
+WEAVE_ERROR ConfigurationManagerImpl::_GetDeviceDescriptor(::nl::Weave::Profiles::DeviceDescription::WeaveDeviceDescriptor & deviceDesc)
 {
     WEAVE_ERROR err;
 
     // Call the generic version of _GetDeviceDescriptor() supplied by the base class.
-    err = Internal::GenericConfigurationManagerImpl<ConfigurationManagerImpl<ESP32>>::_GetDeviceDescriptor(deviceDesc);
+    err = Internal::GenericConfigurationManagerImpl<ConfigurationManagerImpl>::_GetDeviceDescriptor(deviceDesc);
     SuccessOrExit(err);
 
     // If we're pretending to be a Nest Connect, fake the presence of a 805.15.4 radio by returning
@@ -137,23 +128,23 @@ exit:
     return err;
 }
 
-::nl::Weave::Profiles::Security::AppKeys::GroupKeyStoreBase * ConfigurationManagerImpl<ESP32>::_GetGroupKeyStore()
+::nl::Weave::Profiles::Security::AppKeys::GroupKeyStoreBase * ConfigurationManagerImpl::_GetGroupKeyStore()
 {
     return &gGroupKeyStore;
 }
 
-bool ConfigurationManagerImpl<ESP32>::_CanFactoryReset()
+bool ConfigurationManagerImpl::_CanFactoryReset()
 {
     // TODO: query the application to determine if factory reset is allowed.
     return true;
 }
 
-void ConfigurationManagerImpl<ESP32>::_InitiateFactoryReset()
+void ConfigurationManagerImpl::_InitiateFactoryReset()
 {
     PlatformMgr.ScheduleWork(DoFactoryReset);
 }
 
-WEAVE_ERROR ConfigurationManagerImpl<ESP32>::_ReadPersistedStorageValue(::nl::Weave::Platform::PersistedStorage::Key key, uint32_t & value)
+WEAVE_ERROR ConfigurationManagerImpl::_ReadPersistedStorageValue(::nl::Weave::Platform::PersistedStorage::Key key, uint32_t & value)
 {
     ESP32Config::Key configKey { kConfigNamespace_WeaveCounters, key };
 
@@ -165,13 +156,13 @@ WEAVE_ERROR ConfigurationManagerImpl<ESP32>::_ReadPersistedStorageValue(::nl::We
     return err;
 }
 
-WEAVE_ERROR ConfigurationManagerImpl<ESP32>::_WritePersistedStorageValue(::nl::Weave::Platform::PersistedStorage::Key key, uint32_t value)
+WEAVE_ERROR ConfigurationManagerImpl::_WritePersistedStorageValue(::nl::Weave::Platform::PersistedStorage::Key key, uint32_t value)
 {
     ESP32Config::Key configKey { kConfigNamespace_WeaveCounters, key };
     return WriteConfigValue(configKey, value);
 }
 
-WEAVE_ERROR ConfigurationManagerImpl<ESP32>::GetWiFiStationSecurityType(Profiles::NetworkProvisioning::WiFiSecurityType & secType)
+WEAVE_ERROR ConfigurationManagerImpl::GetWiFiStationSecurityType(Profiles::NetworkProvisioning::WiFiSecurityType & secType)
 {
     WEAVE_ERROR err;
     uint32_t secTypeInt;
@@ -184,7 +175,7 @@ WEAVE_ERROR ConfigurationManagerImpl<ESP32>::GetWiFiStationSecurityType(Profiles
     return err;
 }
 
-WEAVE_ERROR ConfigurationManagerImpl<ESP32>::UpdateWiFiStationSecurityType(Profiles::NetworkProvisioning::WiFiSecurityType secType)
+WEAVE_ERROR ConfigurationManagerImpl::UpdateWiFiStationSecurityType(Profiles::NetworkProvisioning::WiFiSecurityType secType)
 {
     WEAVE_ERROR err;
     Profiles::NetworkProvisioning::WiFiSecurityType curSecType;
@@ -209,7 +200,7 @@ exit:
     return err;
 }
 
-void ConfigurationManagerImpl<ESP32>::DoFactoryReset(intptr_t arg)
+void ConfigurationManagerImpl::DoFactoryReset(intptr_t arg)
 {
     WEAVE_ERROR err;
 
@@ -239,11 +230,18 @@ void ConfigurationManagerImpl<ESP32>::DoFactoryReset(intptr_t arg)
 } // namespace nl
 
 
+// The ESP32 variant of ConfigurationManager relies on the GenericConfigurationManagerImpl<>
+// template class for much of its implementation.  Here we include the non-inline definitions
+// of GenericConfigurationManagerImpl<> so that the template can be fully instantiated below.
+#include "GenericConfigurationManagerImpl.cpp"
+
+// Explicitly instantiate the GenericConfigurationManagerImpl<> template for use by the
+// ESP32 ConfigurationManagerImpl class.
 namespace nl {
 namespace Weave {
 namespace DeviceLayer {
 namespace Internal {
-//template class GenericConfigurationManagerImpl<ConfigurationManagerImpl<ESP32>>;
+template class GenericConfigurationManagerImpl<ConfigurationManagerImpl>;
 } // namespace Internal
 } // namespace DeviceLayer
 } // namespace Weave
