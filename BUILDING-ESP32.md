@@ -4,7 +4,7 @@ The OpenWeave source tree includes a set of build and configuration files that m
 
 tl;dr? Jump to [How to incorporate OpenWeave into an ESP32 project](#how-to-incorporate-openweave-into-an-esp32-project)
 
-Or take a look at the [OpenWeave ESP32 demo project](https://github.com/openweave/openweave-esp32-lwip).
+Or take a look at the [OpenWeave ESP32 demo project](https://github.com/openweave/openweave-esp32-demo).
 
 ## How OpenWeave gets built for the ESP32
 
