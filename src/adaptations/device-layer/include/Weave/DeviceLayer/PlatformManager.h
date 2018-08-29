@@ -28,6 +28,7 @@ namespace DeviceLayer {
 class ConnectivityManager;
 class TraitManager;
 struct WeaveDeviceEvent;
+class ComfigurationManagerImpl;
 
 namespace Internal {
 class FabricProvisioningServer;
@@ -63,7 +64,7 @@ private:
     // NOTE: These members are for internal use by the following friends.
 
     friend class ConnectivityManager;
-    template<class Target> friend class ConfigurationManagerImpl;
+    class ConfigurationManagerImpl;
     template<class ImplClass> friend class Internal::GenericConfigurationManagerImpl;
     friend class TraitManager;
     friend class TimeSyncManager;

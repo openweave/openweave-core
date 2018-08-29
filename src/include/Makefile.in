@@ -398,8 +398,6 @@ CCDEPMODE = @CCDEPMODE@
 CFLAGS = @CFLAGS@
 CMP = @CMP@
 CONFIG_DEVICE_LAYER = @CONFIG_DEVICE_LAYER@
-CONFIG_DEVICE_LAYER_ESP32 = @CONFIG_DEVICE_LAYER_ESP32@
-CONFIG_DEVICE_LAYER_NAME = @CONFIG_DEVICE_LAYER_NAME@
 CONFIG_HAVE_HEAP = @CONFIG_HAVE_HEAP@
 CONFIG_HAVE_VCBPRINTF = @CONFIG_HAVE_VCBPRINTF@
 CONFIG_HAVE_VSNPRINTF_EX = @CONFIG_HAVE_VSNPRINTF_EX@
@@ -544,6 +542,8 @@ VISIBILITY_CFLAGS = @VISIBILITY_CFLAGS@
 VISIBILITY_CXXFLAGS = @VISIBILITY_CXXFLAGS@
 VISIBILITY_OBJCFLAGS = @VISIBILITY_OBJCFLAGS@
 VISIBILITY_OBJCXXCFLAGS = @VISIBILITY_OBJCXXCFLAGS@
+WEAVE_DEVICE_LAYER_TARGET = @WEAVE_DEVICE_LAYER_TARGET@
+WEAVE_DEVICE_LAYER_TARGET_ESP32 = @WEAVE_DEVICE_LAYER_TARGET_ESP32@
 WEAVE_LOGGING_STYLE = @WEAVE_LOGGING_STYLE@
 WEAVE_LOGGING_STYLE_ANDROID = @WEAVE_LOGGING_STYLE_ANDROID@
 WEAVE_LOGGING_STYLE_EXTERNAL = @WEAVE_LOGGING_STYLE_EXTERNAL@
@@ -1277,6 +1277,12 @@ dist_weave_common_HEADERS = $(addprefix ../,$(nl_public_WeaveCommon_header_sourc
 #
 # Weave Device Layer Headers
 #
+@WEAVE_DEVICE_LAYER_TARGET_ESP32_TRUE@nl_public_WeaveDeviceLayer_target_header_sources = \
+@WEAVE_DEVICE_LAYER_TARGET_ESP32_TRUE@$(nl_public_WeaveDeviceLayer_source_dirstem)/ESP32/ConfigurationManagerImpl.h         \
+@WEAVE_DEVICE_LAYER_TARGET_ESP32_TRUE@$(nl_public_WeaveDeviceLayer_source_dirstem)/ESP32/GroupKeyStoreImpl.h                \
+@WEAVE_DEVICE_LAYER_TARGET_ESP32_TRUE@$(nl_public_WeaveDeviceLayer_source_dirstem)/ESP32/ESP32Config.h                      \
+@WEAVE_DEVICE_LAYER_TARGET_ESP32_TRUE@$(NULL)
+
 @CONFIG_DEVICE_LAYER_TRUE@nl_public_WeaveDeviceLayer_source_dirstem = adaptations/device-layer/include/Weave/DeviceLayer
 @CONFIG_DEVICE_LAYER_TRUE@nl_public_WeaveDeviceLayer_destination_dirstem = Weave/DeviceLayer
 @CONFIG_DEVICE_LAYER_TRUE@nl_public_WeaveDeviceLayer_base_header_sources = \
@@ -1322,14 +1328,8 @@ dist_weave_common_HEADERS = $(addprefix ../,$(nl_public_WeaveCommon_header_sourc
 @CONFIG_DEVICE_LAYER_TRUE@dist_weave_device_layer_base_HEADERS = $(addprefix ../,$(nl_public_WeaveDeviceLayer_base_header_sources))
 @CONFIG_DEVICE_LAYER_TRUE@weave_device_layer_internaldir = $(includedir)/$(nl_public_WeaveDeviceLayer_destination_dirstem)/internal
 @CONFIG_DEVICE_LAYER_TRUE@dist_weave_device_layer_internal_HEADERS = $(addprefix ../,$(nl_public_WeaveDeviceLayer_internal_header_sources))
-@CONFIG_DEVICE_LAYER_TRUE@weave_device_layer_targetdir = $(includedir)/$(nl_public_WeaveDeviceLayer_destination_dirstem)/$(CONFIG_DEVICE_LAYER_NAME)
+@CONFIG_DEVICE_LAYER_TRUE@weave_device_layer_targetdir = $(includedir)/$(nl_public_WeaveDeviceLayer_destination_dirstem)/$(WEAVE_DEVICE_LAYER_TARGET)
 @CONFIG_DEVICE_LAYER_TRUE@dist_weave_device_layer_target_HEADERS = $(addprefix ../,$(nl_public_WeaveDeviceLayer_target_header_sources))
-@CONFIG_DEVICE_LAYER_ESP32_TRUE@nl_public_WeaveDeviceLayer_target_header_sources = \
-@CONFIG_DEVICE_LAYER_ESP32_TRUE@$(nl_public_WeaveDeviceLayer_source_dirstem)/ESP32/ConfigurationManagerImpl.h         \
-@CONFIG_DEVICE_LAYER_ESP32_TRUE@$(nl_public_WeaveDeviceLayer_source_dirstem)/ESP32/GroupKeyStoreImpl.h                \
-@CONFIG_DEVICE_LAYER_ESP32_TRUE@$(nl_public_WeaveDeviceLayer_source_dirstem)/ESP32/ESP32Config.h                      \
-@CONFIG_DEVICE_LAYER_ESP32_TRUE@$(NULL)
-
 
 #
 # Third-party Public Headers

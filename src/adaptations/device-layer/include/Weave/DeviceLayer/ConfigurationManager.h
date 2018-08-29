@@ -28,37 +28,30 @@
 #include <Weave/Profiles/device-description/DeviceDescription.h>
 #include <Weave/Profiles/network-provisioning/NetworkProvisioning.h>
 
-#define WEAVE_DEVICE_TARGET ESP32
-
 namespace nl {
 namespace Weave {
 namespace DeviceLayer {
 
+class ConfigurationManagerImpl;
 class TraitManager;
-template<class Target> class ConfigurationManagerImpl;
-namespace Internal
-{
+namespace Internal {
 class DeviceControlServer;
 class NetworkProvisioningServer;
 }
 
-struct WEAVE_DEVICE_TARGET {};
-
-namespace Interface {
-
 /**
  * Provides access to runtime and build-time configuration information for a Weave device.
  */
-template<class Target>
 class ConfigurationManager
 {
+    using WeaveDeviceDescriptor = ::nl::Weave::Profiles::DeviceDescription::WeaveDeviceDescriptor;
 
 public:
     enum
     {
         kMaxPairingCodeLength = 15,
-        kMaxSerialNumberLength = ::nl::Weave::Profiles::DeviceDescription::WeaveDeviceDescriptor::kMaxSerialNumberLength,
-        kMaxFirmwareRevisionLength = ::nl::Weave::Profiles::DeviceDescription::WeaveDeviceDescriptor::kMaxSoftwareVersionLength,
+        kMaxSerialNumberLength = WeaveDeviceDescriptor::kMaxSerialNumberLength,
+        kMaxFirmwareRevisionLength = WeaveDeviceDescriptor::kMaxSoftwareVersionLength,
     };
 
     WEAVE_ERROR GetVendorId(uint16_t & vendorId);
@@ -94,7 +87,7 @@ public:
     WEAVE_ERROR StoreServiceConfig(const uint8_t * serviceConfig, size_t serviceConfigLen);
     WEAVE_ERROR StorePairedAccountId(const char * accountId, size_t accountIdLen);
 
-    WEAVE_ERROR GetDeviceDescriptor(::nl::Weave::Profiles::DeviceDescription::WeaveDeviceDescriptor & deviceDesc);
+    WEAVE_ERROR GetDeviceDescriptor(WeaveDeviceDescriptor & deviceDesc);
     WEAVE_ERROR GetDeviceDescriptorTLV(uint8_t * buf, size_t bufSize, size_t & encodedLen);
     WEAVE_ERROR GetQRCodeString(char * buf, size_t bufSize);
 
@@ -117,6 +110,8 @@ private:
     friend WEAVE_ERROR ::nl::Weave::Platform::PersistedStorage::Read(::nl::Weave::Platform::PersistedStorage::Key key, uint32_t & value);
     friend WEAVE_ERROR ::nl::Weave::Platform::PersistedStorage::Write(::nl::Weave::Platform::PersistedStorage::Key key, uint32_t value);
 
+    using ImplClass = ConfigurationManagerImpl;
+
     WEAVE_ERROR Init();
     WEAVE_ERROR ConfigureWeaveStack();
     ::nl::Weave::Profiles::Security::AppKeys::GroupKeyStoreBase * GetGroupKeyStore(); // TODO: maybe remove this???
@@ -126,14 +121,6 @@ private:
     WEAVE_ERROR ReadPersistedStorageValue(::nl::Weave::Platform::PersistedStorage::Key key, uint32_t & value);
     WEAVE_ERROR WritePersistedStorageValue(::nl::Weave::Platform::PersistedStorage::Key key, uint32_t value);
 
-private:
-
-    // Private members reserved for use by this class only.
-
-    using ImplClass = ConfigurationManagerImpl<Target>;
-    ImplClass * Impl() { return static_cast<ImplClass *>(this); }
-    const ImplClass * Impl() const { return static_cast<const ImplClass *>(this); }
-
 protected:
 
     // Access to construction/destruction is limited to subclasses.
@@ -142,328 +129,269 @@ protected:
 };
 
 /**
- * Id of the vendor that produced the device.
- */
-template<class Target>
-WEAVE_ERROR ConfigurationManager<Target>::GetVendorId(uint16_t & vendorId)
-{
-    return Impl()->_GetVendorId(vendorId);
-}
-
-/**
- * Device product id assigned by the vendor.
- */
-template<class Target>
-WEAVE_ERROR ConfigurationManager<Target>::GetProductId(uint16_t & productId)
-{
-    return Impl()->_GetProductId(productId);
-}
-
-/**
- * Product revision number assigned by the vendor.
- */
-template<class Target>
-WEAVE_ERROR ConfigurationManager<Target>::GetProductRevision(uint16_t & productRev)
-{
-    return Impl()->_GetProductRevision(productRev);
-}
-
-/**
+ * Returns a reference to the public interface of the ConfigurationManager singleton object.
  *
+ * API users should use this to access features of the ConfigurationManager object that are common
+ * to all platforms.
  */
-template<class Target>
-WEAVE_ERROR ConfigurationManager<Target>::GetSerialNumber(char * buf, size_t bufSize, size_t & serialNumLen)
-{
-    return Impl()->_GetSerialNumber(buf, bufSize, serialNumLen);
-}
-
-template<class Target>
-WEAVE_ERROR ConfigurationManager<Target>::GetPrimaryWiFiMACAddress(uint8_t * buf)
-{
-    return Impl()->_GetPrimaryWiFiMACAddress(buf);
-}
-
-template<class Target>
-WEAVE_ERROR ConfigurationManager<Target>::GetPrimary802154MACAddress(uint8_t * buf)
-{
-    return Impl()->_GetPrimary802154MACAddress(buf);
-}
-
-template<class Target>
-WEAVE_ERROR ConfigurationManager<Target>::GetManufacturingDate(uint16_t & year, uint8_t & month, uint8_t & dayOfMonth)
-{
-    return Impl()->_GetManufacturingDate(year, month, dayOfMonth);
-}
-
-template<class Target>
-WEAVE_ERROR ConfigurationManager<Target>::GetFirmwareRevision(char * buf, size_t bufSize, size_t & outLen)
-{
-    return Impl()->_GetFirmwareRevision(buf, bufSize, outLen);
-}
-
-template<class Target>
-WEAVE_ERROR ConfigurationManager<Target>::GetFirmwareBuildTime(uint16_t & year, uint8_t & month, uint8_t & dayOfMonth,
-        uint8_t & hour, uint8_t & minute, uint8_t & second)
-{
-    return Impl()->_GetFirmwareBuildTime(year, month, dayOfMonth, hour, minute, second);
-}
-
-template<class Target>
-WEAVE_ERROR ConfigurationManager<Target>::GetDeviceId(uint64_t & deviceId)
-{
-    return Impl()->_GetDeviceId(deviceId);
-}
-
-template<class Target>
-WEAVE_ERROR ConfigurationManager<Target>::GetDeviceCertificate(uint8_t * buf, size_t bufSize, size_t & certLen)
-{
-    return Impl()->_GetDeviceCertificate(buf, bufSize, certLen);
-}
-
-template<class Target>
-WEAVE_ERROR ConfigurationManager<Target>::GetDevicePrivateKey(uint8_t * buf, size_t bufSize, size_t & keyLen)
-{
-    return Impl()->_GetDevicePrivateKey(buf, bufSize, keyLen);
-}
-
-template<class Target>
-WEAVE_ERROR ConfigurationManager<Target>::GetPairingCode(char * buf, size_t bufSize, size_t & pairingCodeLen)
-{
-    return Impl()->_GetPairingCode(buf, bufSize, pairingCodeLen);
-}
-
-template<class Target>
-WEAVE_ERROR ConfigurationManager<Target>::GetServiceId(uint64_t & serviceId)
-{
-    return Impl()->_GetServiceId(serviceId);
-}
-
-template<class Target>
-WEAVE_ERROR ConfigurationManager<Target>::GetFabricId(uint64_t & fabricId)
-{
-    return Impl()->_GetFabricId(fabricId);
-}
-
-template<class Target>
-WEAVE_ERROR ConfigurationManager<Target>::GetServiceConfig(uint8_t * buf, size_t bufSize, size_t & serviceConfigLen)
-{
-    return Impl()->_GetServiceConfig(buf, bufSize, serviceConfigLen);
-}
-
-template<class Target>
-WEAVE_ERROR ConfigurationManager<Target>::GetPairedAccountId(char * buf, size_t bufSize, size_t & accountIdLen)
-{
-    return Impl()->_GetPairedAccountId(buf, bufSize, accountIdLen);
-}
-
-template<class Target>
-WEAVE_ERROR ConfigurationManager<Target>::StoreDeviceId(uint64_t deviceId)
-{
-    return Impl()->_StoreDeviceId(deviceId);
-}
-
-template<class Target>
-WEAVE_ERROR ConfigurationManager<Target>::StoreSerialNumber(const char * serialNum)
-{
-    return Impl()->_StoreSerialNumber(serialNum);
-}
-
-template<class Target>
-WEAVE_ERROR ConfigurationManager<Target>::StorePrimaryWiFiMACAddress(const uint8_t * buf)
-{
-    return Impl()->_StorePrimaryWiFiMACAddress(buf);
-}
-
-template<class Target>
-WEAVE_ERROR ConfigurationManager<Target>::StorePrimary802154MACAddress(const uint8_t * buf)
-{
-    return Impl()->_StorePrimary802154MACAddress(buf);
-}
-
-template<class Target>
-WEAVE_ERROR ConfigurationManager<Target>::StoreManufacturingDate(const char * mfgDate)
-{
-    return Impl()->_StoreManufacturingDate(mfgDate);
-}
-
-template<class Target>
-WEAVE_ERROR ConfigurationManager<Target>::StoreFabricId(uint64_t fabricId)
-{
-    return Impl()->_StoreFabricId(fabricId);
-}
-
-template<class Target>
-WEAVE_ERROR ConfigurationManager<Target>::StoreDeviceCertificate(const uint8_t * cert, size_t certLen)
-{
-    return Impl()->_StoreDeviceCertificate(cert, certLen);
-}
-
-template<class Target>
-WEAVE_ERROR ConfigurationManager<Target>::StoreDevicePrivateKey(const uint8_t * key, size_t keyLen)
-{
-    return Impl()->_StoreDevicePrivateKey(key, keyLen);
-}
-
-template<class Target>
-WEAVE_ERROR ConfigurationManager<Target>::StorePairingCode(const char * pairingCode)
-{
-    return Impl()->_StorePairingCode(pairingCode);
-}
-
-template<class Target>
-WEAVE_ERROR ConfigurationManager<Target>::StoreServiceProvisioningData(uint64_t serviceId, const uint8_t * serviceConfig, size_t serviceConfigLen, const char * accountId, size_t accountIdLen)
-{
-    return Impl()->_StoreServiceProvisioningData(serviceId, serviceConfig, serviceConfigLen, accountId, accountIdLen);
-}
-
-template<class Target>
-WEAVE_ERROR ConfigurationManager<Target>::ClearServiceProvisioningData()
-{
-    return Impl()->_ClearServiceProvisioningData();
-}
-
-template<class Target>
-WEAVE_ERROR ConfigurationManager<Target>::StoreServiceConfig(const uint8_t * serviceConfig, size_t serviceConfigLen)
-{
-    return Impl()->_StoreServiceConfig(serviceConfig, serviceConfigLen);
-}
-
-template<class Target>
-WEAVE_ERROR ConfigurationManager<Target>::StorePairedAccountId(const char * accountId, size_t accountIdLen)
-{
-    return Impl()->_StorePairedAccountId(accountId, accountIdLen);
-}
-
-template<class Target>
-WEAVE_ERROR ConfigurationManager<Target>::ReadPersistedStorageValue(::nl::Weave::Platform::PersistedStorage::Key key, uint32_t & value)
-{
-    return Impl()->_ReadPersistedStorageValue(key, value);
-}
-
-template<class Target>
-WEAVE_ERROR ConfigurationManager<Target>::WritePersistedStorageValue(::nl::Weave::Platform::PersistedStorage::Key key, uint32_t value)
-{
-    return Impl()->_WritePersistedStorageValue(key, value);
-}
-
-template<class Target>
-WEAVE_ERROR ConfigurationManager<Target>::GetDeviceDescriptor(::nl::Weave::Profiles::DeviceDescription::WeaveDeviceDescriptor & deviceDesc)
-{
-    return Impl()->_GetDeviceDescriptor(deviceDesc);
-}
-
-template<class Target>
-WEAVE_ERROR ConfigurationManager<Target>::GetDeviceDescriptorTLV(uint8_t * buf, size_t bufSize, size_t & encodedLen)
-{
-    return Impl()->_GetDeviceDescriptorTLV(buf, bufSize, encodedLen);
-}
-
-template<class Target>
-WEAVE_ERROR ConfigurationManager<Target>::GetQRCodeString(char * buf, size_t bufSize)
-{
-    return Impl()->_GetQRCodeString(buf, bufSize);
-}
-
-template<class Target>
-WEAVE_ERROR ConfigurationManager<Target>::GetWiFiAPSSID(char * buf, size_t bufSize)
-{
-    return Impl()->_GetWiFiAPSSID(buf, bufSize);
-}
-
-template<class Target>
-bool ConfigurationManager<Target>::IsServiceProvisioned()
-{
-    return Impl()->_IsServiceProvisioned();
-}
-
-template<class Target>
-bool ConfigurationManager<Target>::IsPairedToAccount()
-{
-    return Impl()->_IsPairedToAccount();
-}
-
-template<class Target>
-bool ConfigurationManager<Target>::IsMemberOfFabric()
-{
-    return Impl()->_IsMemberOfFabric();
-}
-
-template<class Target>
-void ConfigurationManager<Target>::InitiateFactoryReset()
-{
-    return Impl()->_InitiateFactoryReset();
-}
-
-template<class Target>
-WEAVE_ERROR ConfigurationManager<Target>::Init()
-{
-    return Impl()->_Init();
-}
-
-template<class Target>
-WEAVE_ERROR ConfigurationManager<Target>::ConfigureWeaveStack()
-{
-    return Impl()->_ConfigureWeaveStack();
-}
-
-template<class Target>
-::nl::Weave::Profiles::Security::AppKeys::GroupKeyStoreBase * ConfigurationManager<Target>::GetGroupKeyStore()
-{
-     return Impl()->_GetGroupKeyStore();
-}
-
-template<class Target>
-bool ConfigurationManager<Target>::CanFactoryReset()
-{
-    return Impl()->_CanFactoryReset();
-}
-
-template<class Target>
-WEAVE_ERROR ConfigurationManager<Target>::GetFailSafeArmed(bool & val)
-{
-    return Impl()->_GetFailSafeArmed(val);
-}
-
-template<class Target>
-WEAVE_ERROR ConfigurationManager<Target>::SetFailSafeArmed(bool val)
-{
-    return Impl()->_SetFailSafeArmed(val);
-}
-
-} // namespace Interface
-
-
-/**
- * A type alias for the class that defines the interface to the ConfigurationManager object.
- *
- * API users are encouraged to use this rather than the more cumbersome templated type name.
- */
-using ConfigurationManager = Interface::ConfigurationManager<WEAVE_DEVICE_TARGET>;
+extern ConfigurationManager & ConfigurationMgr();
 
 } // namespace DeviceLayer
 } // namespace Weave
 } // namespace nl
 
 /* Include a header file containing the implementation of the ConfigurationManager
- * object for the selected Device Layer target.
+ * object for the selected platform.
  */
-#define WEAVE_DEVICE_TARGET_INCLUDE <Weave/DeviceLayer/WEAVE_DEVICE_TARGET/ConfigurationManagerImpl.h>
-#include WEAVE_DEVICE_TARGET_INCLUDE
-#undef WEAVE_DEVICE_TARGET_INCLUDE
+#ifdef EXTERNAL_CONFIGURATIONMANAGERIMPL_HEADER
+#include EXTERNAL_CONFIGURATIONMANAGERIMPL_HEADER
+#else
+#define CONFIGURATIONMANAGERIMPL_HEADER <Weave/DeviceLayer/WEAVE_DEVICE_LAYER_TARGET/ConfigurationManagerImpl.h>
+#include CONFIGURATIONMANAGERIMPL_HEADER
+#endif
 
 namespace nl {
 namespace Weave {
 namespace DeviceLayer {
 
 /**
- * Returns a reference to the public interface of the singleton ConfigurationManager object.
- *
- * API users should use this to access features of the ConfigurationManager object that are common
- * to all target platforms.
+ * Id of the vendor that produced the device.
  */
-inline ConfigurationManager & ConfigurationMgr()
+inline WEAVE_ERROR ConfigurationManager::GetVendorId(uint16_t & vendorId)
 {
-    return ConfigurationManagerImpl<WEAVE_DEVICE_TARGET>::Instance();
+    return static_cast<ImplClass*>(this)->_GetVendorId(vendorId);
+}
+
+/**
+ * Device product id assigned by the vendor.
+ */
+inline WEAVE_ERROR ConfigurationManager::GetProductId(uint16_t & productId)
+{
+    return static_cast<ImplClass*>(this)->_GetProductId(productId);
+}
+
+/**
+ * Product revision number assigned by the vendor.
+ */
+inline WEAVE_ERROR ConfigurationManager::GetProductRevision(uint16_t & productRev)
+{
+    return static_cast<ImplClass*>(this)->_GetProductRevision(productRev);
+}
+
+inline WEAVE_ERROR ConfigurationManager::GetSerialNumber(char * buf, size_t bufSize, size_t & serialNumLen)
+{
+    return static_cast<ImplClass*>(this)->_GetSerialNumber(buf, bufSize, serialNumLen);
+}
+
+inline WEAVE_ERROR ConfigurationManager::GetPrimaryWiFiMACAddress(uint8_t * buf)
+{
+    return static_cast<ImplClass*>(this)->_GetPrimaryWiFiMACAddress(buf);
+}
+
+inline WEAVE_ERROR ConfigurationManager::GetPrimary802154MACAddress(uint8_t * buf)
+{
+    return static_cast<ImplClass*>(this)->_GetPrimary802154MACAddress(buf);
+}
+
+inline WEAVE_ERROR ConfigurationManager::GetManufacturingDate(uint16_t & year, uint8_t & month, uint8_t & dayOfMonth)
+{
+    return static_cast<ImplClass*>(this)->_GetManufacturingDate(year, month, dayOfMonth);
+}
+
+inline WEAVE_ERROR ConfigurationManager::GetFirmwareRevision(char * buf, size_t bufSize, size_t & outLen)
+{
+    return static_cast<ImplClass*>(this)->_GetFirmwareRevision(buf, bufSize, outLen);
+}
+
+inline WEAVE_ERROR ConfigurationManager::GetFirmwareBuildTime(uint16_t & year, uint8_t & month, uint8_t & dayOfMonth,
+        uint8_t & hour, uint8_t & minute, uint8_t & second)
+{
+    return static_cast<ImplClass*>(this)->_GetFirmwareBuildTime(year, month, dayOfMonth, hour, minute, second);
+}
+
+inline WEAVE_ERROR ConfigurationManager::GetDeviceId(uint64_t & deviceId)
+{
+    return static_cast<ImplClass*>(this)->_GetDeviceId(deviceId);
+}
+
+inline WEAVE_ERROR ConfigurationManager::GetDeviceCertificate(uint8_t * buf, size_t bufSize, size_t & certLen)
+{
+    return static_cast<ImplClass*>(this)->_GetDeviceCertificate(buf, bufSize, certLen);
+}
+
+inline WEAVE_ERROR ConfigurationManager::GetDevicePrivateKey(uint8_t * buf, size_t bufSize, size_t & keyLen)
+{
+    return static_cast<ImplClass*>(this)->_GetDevicePrivateKey(buf, bufSize, keyLen);
+}
+
+inline WEAVE_ERROR ConfigurationManager::GetPairingCode(char * buf, size_t bufSize, size_t & pairingCodeLen)
+{
+    return static_cast<ImplClass*>(this)->_GetPairingCode(buf, bufSize, pairingCodeLen);
+}
+
+inline WEAVE_ERROR ConfigurationManager::GetServiceId(uint64_t & serviceId)
+{
+    return static_cast<ImplClass*>(this)->_GetServiceId(serviceId);
+}
+
+inline WEAVE_ERROR ConfigurationManager::GetFabricId(uint64_t & fabricId)
+{
+    return static_cast<ImplClass*>(this)->_GetFabricId(fabricId);
+}
+
+inline WEAVE_ERROR ConfigurationManager::GetServiceConfig(uint8_t * buf, size_t bufSize, size_t & serviceConfigLen)
+{
+    return static_cast<ImplClass*>(this)->_GetServiceConfig(buf, bufSize, serviceConfigLen);
+}
+
+inline WEAVE_ERROR ConfigurationManager::GetPairedAccountId(char * buf, size_t bufSize, size_t & accountIdLen)
+{
+    return static_cast<ImplClass*>(this)->_GetPairedAccountId(buf, bufSize, accountIdLen);
+}
+
+inline WEAVE_ERROR ConfigurationManager::StoreDeviceId(uint64_t deviceId)
+{
+    return static_cast<ImplClass*>(this)->_StoreDeviceId(deviceId);
+}
+
+inline WEAVE_ERROR ConfigurationManager::StoreSerialNumber(const char * serialNum)
+{
+    return static_cast<ImplClass*>(this)->_StoreSerialNumber(serialNum);
+}
+
+inline WEAVE_ERROR ConfigurationManager::StorePrimaryWiFiMACAddress(const uint8_t * buf)
+{
+    return static_cast<ImplClass*>(this)->_StorePrimaryWiFiMACAddress(buf);
+}
+
+inline WEAVE_ERROR ConfigurationManager::StorePrimary802154MACAddress(const uint8_t * buf)
+{
+    return static_cast<ImplClass*>(this)->_StorePrimary802154MACAddress(buf);
+}
+
+inline WEAVE_ERROR ConfigurationManager::StoreManufacturingDate(const char * mfgDate)
+{
+    return static_cast<ImplClass*>(this)->_StoreManufacturingDate(mfgDate);
+}
+
+inline WEAVE_ERROR ConfigurationManager::StoreFabricId(uint64_t fabricId)
+{
+    return static_cast<ImplClass*>(this)->_StoreFabricId(fabricId);
+}
+
+inline WEAVE_ERROR ConfigurationManager::StoreDeviceCertificate(const uint8_t * cert, size_t certLen)
+{
+    return static_cast<ImplClass*>(this)->_StoreDeviceCertificate(cert, certLen);
+}
+
+inline WEAVE_ERROR ConfigurationManager::StoreDevicePrivateKey(const uint8_t * key, size_t keyLen)
+{
+    return static_cast<ImplClass*>(this)->_StoreDevicePrivateKey(key, keyLen);
+}
+
+inline WEAVE_ERROR ConfigurationManager::StorePairingCode(const char * pairingCode)
+{
+    return static_cast<ImplClass*>(this)->_StorePairingCode(pairingCode);
+}
+
+inline WEAVE_ERROR ConfigurationManager::StoreServiceProvisioningData(uint64_t serviceId, const uint8_t * serviceConfig, size_t serviceConfigLen, const char * accountId, size_t accountIdLen)
+{
+    return static_cast<ImplClass*>(this)->_StoreServiceProvisioningData(serviceId, serviceConfig, serviceConfigLen, accountId, accountIdLen);
+}
+
+inline WEAVE_ERROR ConfigurationManager::ClearServiceProvisioningData()
+{
+    return static_cast<ImplClass*>(this)->_ClearServiceProvisioningData();
+}
+
+inline WEAVE_ERROR ConfigurationManager::StoreServiceConfig(const uint8_t * serviceConfig, size_t serviceConfigLen)
+{
+    return static_cast<ImplClass*>(this)->_StoreServiceConfig(serviceConfig, serviceConfigLen);
+}
+
+inline WEAVE_ERROR ConfigurationManager::StorePairedAccountId(const char * accountId, size_t accountIdLen)
+{
+    return static_cast<ImplClass*>(this)->_StorePairedAccountId(accountId, accountIdLen);
+}
+
+inline WEAVE_ERROR ConfigurationManager::ReadPersistedStorageValue(::nl::Weave::Platform::PersistedStorage::Key key, uint32_t & value)
+{
+    return static_cast<ImplClass*>(this)->_ReadPersistedStorageValue(key, value);
+}
+
+inline WEAVE_ERROR ConfigurationManager::WritePersistedStorageValue(::nl::Weave::Platform::PersistedStorage::Key key, uint32_t value)
+{
+    return static_cast<ImplClass*>(this)->_WritePersistedStorageValue(key, value);
+}
+
+inline WEAVE_ERROR ConfigurationManager::GetDeviceDescriptor(WeaveDeviceDescriptor & deviceDesc)
+{
+    return static_cast<ImplClass*>(this)->_GetDeviceDescriptor(deviceDesc);
+}
+
+inline WEAVE_ERROR ConfigurationManager::GetDeviceDescriptorTLV(uint8_t * buf, size_t bufSize, size_t & encodedLen)
+{
+    return static_cast<ImplClass*>(this)->_GetDeviceDescriptorTLV(buf, bufSize, encodedLen);
+}
+
+inline WEAVE_ERROR ConfigurationManager::GetQRCodeString(char * buf, size_t bufSize)
+{
+    return static_cast<ImplClass*>(this)->_GetQRCodeString(buf, bufSize);
+}
+
+inline WEAVE_ERROR ConfigurationManager::GetWiFiAPSSID(char * buf, size_t bufSize)
+{
+    return static_cast<ImplClass*>(this)->_GetWiFiAPSSID(buf, bufSize);
+}
+
+inline bool ConfigurationManager::IsServiceProvisioned()
+{
+    return static_cast<ImplClass*>(this)->_IsServiceProvisioned();
+}
+
+inline bool ConfigurationManager::IsPairedToAccount()
+{
+    return static_cast<ImplClass*>(this)->_IsPairedToAccount();
+}
+
+inline bool ConfigurationManager::IsMemberOfFabric()
+{
+    return static_cast<ImplClass*>(this)->_IsMemberOfFabric();
+}
+
+inline void ConfigurationManager::InitiateFactoryReset()
+{
+    static_cast<ImplClass*>(this)->_InitiateFactoryReset();
+}
+
+inline WEAVE_ERROR ConfigurationManager::Init()
+{
+    return static_cast<ImplClass*>(this)->_Init();
+}
+
+inline WEAVE_ERROR ConfigurationManager::ConfigureWeaveStack()
+{
+    return static_cast<ImplClass*>(this)->_ConfigureWeaveStack();
+}
+
+inline ::nl::Weave::Profiles::Security::AppKeys::GroupKeyStoreBase * ConfigurationManager::GetGroupKeyStore()
+{
+     return static_cast<ImplClass*>(this)->_GetGroupKeyStore();
+}
+
+inline bool ConfigurationManager::CanFactoryReset()
+{
+    return static_cast<ImplClass*>(this)->_CanFactoryReset();
+}
+
+inline WEAVE_ERROR ConfigurationManager::GetFailSafeArmed(bool & val)
+{
+    return static_cast<ImplClass*>(this)->_GetFailSafeArmed(val);
+}
+
+inline WEAVE_ERROR ConfigurationManager::SetFailSafeArmed(bool val)
+{
+    return static_cast<ImplClass*>(this)->_SetFailSafeArmed(val);
 }
 
 } // namespace DeviceLayer

@@ -61,7 +61,7 @@ libDeviceLayer_a_SOURCES                = \
     trait-support/weave/trait/description/DeviceIdentityTrait.cpp \
     $(NULL)
 
-if CONFIG_DEVICE_LAYER_ESP32
+if WEAVE_DEVICE_LAYER_TARGET_ESP32
 
 libDeviceLayer_a_SOURCES               += \
     ESP32/ConfigurationManagerImpl.cpp    \
@@ -69,7 +69,7 @@ libDeviceLayer_a_SOURCES               += \
     ESP32/ESP32Config.cpp                 \
     $(NULL)
 
-endif # CONFIG_DEVICE_LAYER_ESP32
+endif # WEAVE_DEVICE_LAYER_TARGET_ESP32
 
 EXTRA_DIST                              = \
     $(NULL)

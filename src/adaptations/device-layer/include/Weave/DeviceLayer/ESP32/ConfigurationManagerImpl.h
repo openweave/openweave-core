@@ -18,7 +18,8 @@
 
 /**
  *    @file
- *          Provides the ESP32 implementation of the Device Layer ConfigurationManager object.
+ *          Provides an implementation of the ConfigurationManager object
+ *          for the ESP32 platform.
  */
 
 #ifndef CONFIGURATION_MANAGER_IMPL_H
@@ -35,31 +36,36 @@ namespace Internal {
 class NetworkProvisioningServer;
 }
 
+// Instruct the compiler to instantiate the GenericConfigurationManagerImpl<> template
+// only when explicitly instructed to do so.
+extern template class Internal::GenericConfigurationManagerImpl<ConfigurationManagerImpl>;
+
+
 /**
  * Concrete implementation of the ConfigurationManager interface for the ESP32.
  */
-template<>
-class ConfigurationManagerImpl<ESP32>
+class ConfigurationManagerImpl
     : public ConfigurationManager,
-      public Internal::GenericConfigurationManagerImpl<ConfigurationManagerImpl<ESP32>>,
+      public Internal::GenericConfigurationManagerImpl<ConfigurationManagerImpl>,
       private Internal::ESP32Config
 {
     // Allow the ConfigurationManager interface class to delegate method calls to
-    // the implementation methods on this class.
+    // the implementation methods provided by this class.
     friend class ConfigurationManager;
 
-    // Allow the generic implementation base class to access helper methods and types defined on this class.
-    friend class Internal::GenericConfigurationManagerImpl<ConfigurationManagerImpl<ESP32>>;
+    // Allow the GenericConfigurationManagerImpl base class to access helper methods and types
+    // defined on this class.
+    friend class Internal::GenericConfigurationManagerImpl<ConfigurationManagerImpl>;
 
 public:
 
     // Implementation-specific members that may be accessed directly by the application.
 
-    static ConfigurationManagerImpl<ESP32> & Instance();
+    static ConfigurationManagerImpl & Instance();
 
 private:
 
-    // Methods that implement the ConfigurationManager interface.
+    // Methods that implement the ConfigurationManager public interface.
 
     WEAVE_ERROR _Init();
     WEAVE_ERROR _GetPrimaryWiFiMACAddress(uint8_t * buf);
@@ -70,18 +76,23 @@ private:
     WEAVE_ERROR _ReadPersistedStorageValue(::nl::Weave::Platform::PersistedStorage::Key key, uint32_t & value);
     WEAVE_ERROR _WritePersistedStorageValue(::nl::Weave::Platform::PersistedStorage::Key key, uint32_t value);
 
+    // NOTE: Other public interface methods are implemented by GenericConfigurationManagerImpl<>.
+
 private:
 
     // Members for internal use by the following friends.
 
     friend class Internal::NetworkProvisioningServer;
+    friend ConfigurationManager & ConfigurationMgr();
+
+    static ConfigurationManagerImpl sInstance;
 
     WEAVE_ERROR GetWiFiStationSecurityType(::nl::Weave::Profiles::NetworkProvisioning::WiFiSecurityType & secType);
     WEAVE_ERROR UpdateWiFiStationSecurityType(::nl::Weave::Profiles::NetworkProvisioning::WiFiSecurityType secType);
 
-    // Private members reserved for use by this class only.
+private:
 
-    static ConfigurationManagerImpl sInstance;
+    // Private members reserved for use by this class only.
 
     static void DoFactoryReset(intptr_t arg);
 };
@@ -92,9 +103,14 @@ private:
  * API users can use this to gain access to features of the ConnectionManager that are specific
  * to the ESP32 implementation.
  */
-inline ConfigurationManagerImpl<ESP32> & ConfigurationManagerImpl<ESP32>::Instance()
+inline ConfigurationManagerImpl & ConfigurationManagerImpl::Instance()
 {
     return sInstance;
+}
+
+inline ConfigurationManager & ConfigurationMgr()
+{
+    return ConfigurationManagerImpl::sInstance;
 }
 
 } // namespace DeviceLayer
