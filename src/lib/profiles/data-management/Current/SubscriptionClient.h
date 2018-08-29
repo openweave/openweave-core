@@ -463,7 +463,7 @@ private:
 
     struct UpdateRequestContext
     {
-        // TODO: separate "state" from "arguments"
+        void Reset();
 
         // State:
         size_t mItemInProgress;

@@ -93,8 +93,7 @@ void SubscriptionClient::Reset(void)
     mUpdateInFlight                         = false;
     mNumUpdatableTraitInstances             = 0;
     mMaxUpdateSize                          = 0;
-    mUpdateRequestContext.mItemInProgress = 0;
-    mUpdateRequestContext.mNextDictionaryElementPathHandle = kNullPropertyPathHandle;
+    mUpdateRequestContext.Reset();
     mPendingSetState = kPendingSetEmpty;
     mPendingUpdateSet.Init(mPendingStore, ArraySize(mPendingStore));
     mInProgressUpdateList.Init(mInProgressStore, ArraySize(mInProgressStore));
@@ -2083,6 +2082,7 @@ WEAVE_ERROR SubscriptionClient::MoveInProgressToPending(void)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
     uint32_t numSourceItems = mInProgressUpdateList.GetNumItems();
+    uint32_t count = 0;
     TraitDataSink *dataSink;
     TraitPath traitPath;
 
@@ -2098,11 +2098,11 @@ WEAVE_ERROR SubscriptionClient::MoveInProgressToPending(void)
                 SuccessOrExit(err);
                 err = AddItemPendingUpdateSet(traitPath, dataSink->GetSchemaEngine());
                 SuccessOrExit(err);
+
+                count++;
             }
         }
     }
-
-    mInProgressUpdateList.Clear();
 
     if ((mPendingUpdateSet.GetNumItems() > 0) && (mPendingSetState == kPendingSetEmpty))
     {
@@ -2110,6 +2110,12 @@ WEAVE_ERROR SubscriptionClient::MoveInProgressToPending(void)
     }
 
 exit:
+    WeaveLogDetail(DataManagement, "Moved %" PRIu32 " items from InProgress to Pending; err %" PRId32 "", count, err);
+
+    mInProgressUpdateList.Clear();
+
+    mUpdateRequestContext.Reset();
+
     return err;
 }
 
@@ -2183,6 +2189,11 @@ void SubscriptionClient::ClearPathStore(TraitPathStore &aPathStore, WEAVE_ERROR 
                                         nl::Weave::Profiles::Common::kStatus_InternalError,
                                         aErr);
         }
+    }
+
+    if (&aPathStore == &mInProgressUpdateList)
+    {
+        mUpdateRequestContext.Reset();
     }
 
     aPathStore.Clear();
@@ -2411,10 +2422,6 @@ void SubscriptionClient::OnUpdateResponse(WEAVE_ERROR aReason, nl::Weave::Profil
         WeaveLogDetail(DataManagement, "Got StatusReport in the middle of a long update");
 
         // TODO: implement a simple FSM to handle long updates
-
-        mUpdateRequestContext.mIsPartialUpdate = false;
-        mUpdateRequestContext.mPathToEncode.mPropertyPathHandle = kNullPropertyPathHandle;
-        mUpdateRequestContext.mNextDictionaryElementPathHandle = kNullPropertyPathHandle;
     }
 
     WeaveLogDetail(DataManagement, "Received Status Report 0x%" PRIX32 " : 0x%" PRIX16,
@@ -2619,7 +2626,7 @@ exit:
         }
     }
 
-    mUpdateRequestContext.mItemInProgress = 0;
+    mUpdateRequestContext.Reset();
 
     if (needToResubscribe)
     {
@@ -2705,7 +2712,6 @@ void SubscriptionClient::OnUpdateNoResponse(WEAVE_ERROR aError)
 
     //Move paths from DispatchedUpdates to PendingUpdates for all TIs.
     err = MoveInProgressToPending();
-    mUpdateRequestContext.mItemInProgress = 0;
     if (err != WEAVE_NO_ERROR)
     {
         // Fail everything; think about dictionaries spread over
@@ -2922,8 +2928,7 @@ void SubscriptionClient::CancelUpdateClient(void)
 void SubscriptionClient::ShutdownUpdateClient(void)
 {
     mNumUpdatableTraitInstances        = 0;
-    mUpdateRequestContext.mItemInProgress = 0;
-    mUpdateRequestContext.mNextDictionaryElementPathHandle   = kNullPropertyPathHandle;
+    mUpdateRequestContext.Reset();
     mPendingUpdateSet.Clear();
     mInProgressUpdateList.Clear();
     mMaxUpdateSize                     = 0;
@@ -3230,6 +3235,20 @@ exit:
     }
 
     return;
+}
+
+void SubscriptionClient::UpdateRequestContext::Reset()
+{
+    mItemInProgress = 0;
+    mNextDictionaryElementPathHandle = kNullPropertyPathHandle;
+
+    mPathToEncode.mPropertyPathHandle = kNullPropertyPathHandle;
+    mPathToEncode.mTraitDataHandle = 0;
+    mForceMerge = false;
+    mSubClient = NULL;
+
+    mNumDataElementsAddedToPayload = 0;
+    mIsPartialUpdate = false;
 }
 
 #endif // WEAVE_CONFIG_ENABLE_WDM_UPDATE

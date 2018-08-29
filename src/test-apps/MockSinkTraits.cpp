@@ -1787,6 +1787,13 @@ WEAVE_ERROR TestATraitUpdatableDataSink::Mutate(SubscriptionClient * apSubClient
     {
         uint32_t seed = 0;
 
+        // Add a leaf as well, so if things fail and there are leftovers in the
+        // update context from the partial dictionary, we'll hopefully notice something wrong.
+        err = SetUpdated(apSubClient, TestATrait::kPropertyHandle_TaP, aIsConditional);
+        SuccessOrExit(err);
+
+        tap++;
+
         err = SetUpdated(apSubClient, TestATrait::kPropertyHandle_TaI, aIsConditional);
         SuccessOrExit(err);
 
