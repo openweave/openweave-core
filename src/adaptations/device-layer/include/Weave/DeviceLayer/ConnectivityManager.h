@@ -37,7 +37,8 @@ namespace DeviceLayer {
 namespace Internal {
 
 class NetworkInfo;
-class NetworkProvisioningServer;
+class NetworkProvisioningServerImpl;
+template<class ImplClass> class GenericNetworkProvisioningServerImpl;
 
 extern const char *CharacterizeIPv6Address(const ::nl::Inet::IPAddress & ipAddr);
 
@@ -130,7 +131,8 @@ private:
     // NOTE: These members are for internal use by the following friends.
 
     friend class ::nl::Weave::DeviceLayer::PlatformManager;
-    friend class ::nl::Weave::DeviceLayer::Internal::NetworkProvisioningServer;
+    friend class ::nl::Weave::DeviceLayer::Internal::NetworkProvisioningServerImpl;
+    template<class ImplClass> friend class ::nl::Weave::DeviceLayer::Internal::GenericNetworkProvisioningServerImpl;
 
     WEAVE_ERROR Init(void);
     void OnPlatformEvent(const WeaveDeviceEvent * event);
@@ -162,12 +164,11 @@ private:
 
     enum Flags
     {
-        kFlag_ScanInProgress                    = 0x0001,
-        kFlag_HaveIPv4InternetConnectivity      = 0x0002,
-        kFlag_HaveIPv6InternetConnectivity      = 0x0004,
-        kFlag_ServiceTunnelStarted              = 0x0008,
-        kFlag_ServiceTunnelUp                   = 0x0010,
-        kFlag_AwaitingConnectivity              = 0x0020,
+        kFlag_HaveIPv4InternetConnectivity      = 0x0001,
+        kFlag_HaveIPv6InternetConnectivity      = 0x0002,
+        kFlag_ServiceTunnelStarted              = 0x0004,
+        kFlag_ServiceTunnelUp                   = 0x0008,
+        kFlag_AwaitingConnectivity              = 0x0010,
     };
 
     uint64_t mLastStationConnectFailTime;

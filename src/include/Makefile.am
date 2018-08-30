@@ -916,8 +916,9 @@ dist_weave_common_HEADERS = $(addprefix ../,$(nl_public_WeaveCommon_header_sourc
 
 if WEAVE_DEVICE_LAYER_TARGET_ESP32
 
-nl_public_WeaveDeviceLayer_target_header_sources = \
+nl_public_WeaveDeviceLayer_target_header_sources =                                    \
 $(nl_public_WeaveDeviceLayer_source_dirstem)/ESP32/ConfigurationManagerImpl.h         \
+$(nl_public_WeaveDeviceLayer_source_dirstem)/ESP32/NetworkProvisioningServerImpl.h    \
 $(nl_public_WeaveDeviceLayer_source_dirstem)/ESP32/GroupKeyStoreImpl.h                \
 $(nl_public_WeaveDeviceLayer_source_dirstem)/ESP32/ESP32Config.h                      \
 $(NULL)
@@ -929,7 +930,7 @@ if CONFIG_DEVICE_LAYER
 nl_public_WeaveDeviceLayer_source_dirstem = adaptations/device-layer/include/Weave/DeviceLayer
 nl_public_WeaveDeviceLayer_destination_dirstem = Weave/DeviceLayer
 
-nl_public_WeaveDeviceLayer_base_header_sources = \
+nl_public_WeaveDeviceLayer_base_header_sources =                                      \
 $(nl_public_WeaveDeviceLayer_source_dirstem)/ConnectivityManager.h                    \
 $(nl_public_WeaveDeviceLayer_source_dirstem)/TimeSyncManager.h                        \
 $(nl_public_WeaveDeviceLayer_source_dirstem)/WeaveDeviceConfig.h                      \
@@ -941,22 +942,23 @@ $(nl_public_WeaveDeviceLayer_source_dirstem)/PlatformManager.h                  
 $(nl_public_WeaveDeviceLayer_source_dirstem)/WeaveDeviceError.h                       \
 $(NULL)
 
-nl_public_WeaveDeviceLayer_internal_header_sources = \
-$(nl_public_WeaveDeviceLayer_source_dirstem)/internal/BLEManager.h                    \
-$(nl_public_WeaveDeviceLayer_source_dirstem)/internal/ServiceTunnelAgent.h            \
-$(nl_public_WeaveDeviceLayer_source_dirstem)/internal/DeviceControlServer.h           \
-$(nl_public_WeaveDeviceLayer_source_dirstem)/internal/WeaveDeviceLayerInternal.h      \
-$(nl_public_WeaveDeviceLayer_source_dirstem)/internal/NetworkInfo.h                   \
-$(nl_public_WeaveDeviceLayer_source_dirstem)/internal/FabricProvisioningServer.h      \
-$(nl_public_WeaveDeviceLayer_source_dirstem)/internal/NetworkProvisioningServer.h     \
-$(nl_public_WeaveDeviceLayer_source_dirstem)/internal/EchoServer.h                    \
-$(nl_public_WeaveDeviceLayer_source_dirstem)/internal/ServiceProvisioningServer.h     \
-$(nl_public_WeaveDeviceLayer_source_dirstem)/internal/WeaveDeviceConfig-ESP32.h       \
-$(nl_public_WeaveDeviceLayer_source_dirstem)/internal/ServiceDirectoryManager.h       \
-$(nl_public_WeaveDeviceLayer_source_dirstem)/internal/DeviceDescriptionServer.h       \
-$(nl_public_WeaveDeviceLayer_source_dirstem)/internal/ESPUtils.h                      \
-$(nl_public_WeaveDeviceLayer_source_dirstem)/internal/DeviceIdentityTraitDataSource.h \
-$(nl_public_WeaveDeviceLayer_source_dirstem)/internal/GenericConfigurationManagerImpl.h \
+nl_public_WeaveDeviceLayer_internal_header_sources =                                        \
+$(nl_public_WeaveDeviceLayer_source_dirstem)/internal/BLEManager.h                          \
+$(nl_public_WeaveDeviceLayer_source_dirstem)/internal/ServiceTunnelAgent.h                  \
+$(nl_public_WeaveDeviceLayer_source_dirstem)/internal/DeviceControlServer.h                 \
+$(nl_public_WeaveDeviceLayer_source_dirstem)/internal/WeaveDeviceLayerInternal.h            \
+$(nl_public_WeaveDeviceLayer_source_dirstem)/internal/NetworkInfo.h                         \
+$(nl_public_WeaveDeviceLayer_source_dirstem)/internal/FabricProvisioningServer.h            \
+$(nl_public_WeaveDeviceLayer_source_dirstem)/internal/NetworkProvisioningServer.h           \
+$(nl_public_WeaveDeviceLayer_source_dirstem)/internal/EchoServer.h                          \
+$(nl_public_WeaveDeviceLayer_source_dirstem)/internal/ServiceProvisioningServer.h           \
+$(nl_public_WeaveDeviceLayer_source_dirstem)/internal/WeaveDeviceConfig-ESP32.h             \
+$(nl_public_WeaveDeviceLayer_source_dirstem)/internal/ServiceDirectoryManager.h             \
+$(nl_public_WeaveDeviceLayer_source_dirstem)/internal/DeviceDescriptionServer.h             \
+$(nl_public_WeaveDeviceLayer_source_dirstem)/internal/ESPUtils.h                            \
+$(nl_public_WeaveDeviceLayer_source_dirstem)/internal/DeviceIdentityTraitDataSource.h       \
+$(nl_public_WeaveDeviceLayer_source_dirstem)/internal/GenericConfigurationManagerImpl.h     \
+$(nl_public_WeaveDeviceLayer_source_dirstem)/internal/GenericNetworkProvisioningServerImpl.h \
 $(NULL)
 
 nl_public_WeaveDeviceLayer_header_sources = \

@@ -102,9 +102,10 @@ build_triplet = @build@
 host_triplet = @host@
 target_triplet = @target@
 @CONFIG_DEVICE_LAYER_TRUE@@WEAVE_DEVICE_LAYER_TARGET_ESP32_TRUE@am__append_1 = \
-@CONFIG_DEVICE_LAYER_TRUE@@WEAVE_DEVICE_LAYER_TARGET_ESP32_TRUE@    ESP32/ConfigurationManagerImpl.cpp    \
-@CONFIG_DEVICE_LAYER_TRUE@@WEAVE_DEVICE_LAYER_TARGET_ESP32_TRUE@    ESP32/GroupKeyStoreImpl.cpp           \
-@CONFIG_DEVICE_LAYER_TRUE@@WEAVE_DEVICE_LAYER_TARGET_ESP32_TRUE@    ESP32/ESP32Config.cpp                 \
+@CONFIG_DEVICE_LAYER_TRUE@@WEAVE_DEVICE_LAYER_TARGET_ESP32_TRUE@    ESP32/ConfigurationManagerImpl.cpp          \
+@CONFIG_DEVICE_LAYER_TRUE@@WEAVE_DEVICE_LAYER_TARGET_ESP32_TRUE@    ESP32/GroupKeyStoreImpl.cpp                 \
+@CONFIG_DEVICE_LAYER_TRUE@@WEAVE_DEVICE_LAYER_TARGET_ESP32_TRUE@    ESP32/NetworkProvisioningServerImpl.cpp     \
+@CONFIG_DEVICE_LAYER_TRUE@@WEAVE_DEVICE_LAYER_TARGET_ESP32_TRUE@    ESP32/ESP32Config.cpp                       \
 @CONFIG_DEVICE_LAYER_TRUE@@WEAVE_DEVICE_LAYER_TARGET_ESP32_TRUE@    $(NULL)
 
 subdir = src/adaptations/device-layer
@@ -187,17 +188,17 @@ am__libDeviceLayer_a_SOURCES_DIST = AESBlockCipher.cpp BLEManager.cpp \
 	DeviceDescriptionServer.cpp DeviceIdentityTraitDataSource.cpp \
 	EchoServer.cpp Entropy.cpp ESPUtils.cpp \
 	FabricProvisioningServer.cpp Globals.cpp Logging.cpp \
-	NetworkInfo.cpp NetworkProvisioningServer.cpp \
-	PersistedStorage.cpp PlatformManager.cpp \
+	NetworkInfo.cpp PersistedStorage.cpp PlatformManager.cpp \
 	ServiceDirectoryManager.cpp ServiceProvisioningServer.cpp \
 	ServiceTunnelAgent.cpp TestDeviceIds.cpp Time.cpp \
 	TimeSyncManager.cpp TraitManager.cpp Warm.cpp \
 	trait-support/weave/trait/description/DeviceIdentityTrait.cpp \
 	ESP32/ConfigurationManagerImpl.cpp ESP32/GroupKeyStoreImpl.cpp \
-	ESP32/ESP32Config.cpp
+	ESP32/NetworkProvisioningServerImpl.cpp ESP32/ESP32Config.cpp
 am__dirstamp = $(am__leading_dot)dirstamp
 @CONFIG_DEVICE_LAYER_TRUE@@WEAVE_DEVICE_LAYER_TARGET_ESP32_TRUE@am__objects_1 = ESP32/libDeviceLayer_a-ConfigurationManagerImpl.$(OBJEXT) \
 @CONFIG_DEVICE_LAYER_TRUE@@WEAVE_DEVICE_LAYER_TARGET_ESP32_TRUE@	ESP32/libDeviceLayer_a-GroupKeyStoreImpl.$(OBJEXT) \
+@CONFIG_DEVICE_LAYER_TRUE@@WEAVE_DEVICE_LAYER_TARGET_ESP32_TRUE@	ESP32/libDeviceLayer_a-NetworkProvisioningServerImpl.$(OBJEXT) \
 @CONFIG_DEVICE_LAYER_TRUE@@WEAVE_DEVICE_LAYER_TARGET_ESP32_TRUE@	ESP32/libDeviceLayer_a-ESP32Config.$(OBJEXT)
 @CONFIG_DEVICE_LAYER_TRUE@am_libDeviceLayer_a_OBJECTS = libDeviceLayer_a-AESBlockCipher.$(OBJEXT) \
 @CONFIG_DEVICE_LAYER_TRUE@	libDeviceLayer_a-BLEManager.$(OBJEXT) \
@@ -213,7 +214,6 @@ am__dirstamp = $(am__leading_dot)dirstamp
 @CONFIG_DEVICE_LAYER_TRUE@	libDeviceLayer_a-Globals.$(OBJEXT) \
 @CONFIG_DEVICE_LAYER_TRUE@	libDeviceLayer_a-Logging.$(OBJEXT) \
 @CONFIG_DEVICE_LAYER_TRUE@	libDeviceLayer_a-NetworkInfo.$(OBJEXT) \
-@CONFIG_DEVICE_LAYER_TRUE@	libDeviceLayer_a-NetworkProvisioningServer.$(OBJEXT) \
 @CONFIG_DEVICE_LAYER_TRUE@	libDeviceLayer_a-PersistedStorage.$(OBJEXT) \
 @CONFIG_DEVICE_LAYER_TRUE@	libDeviceLayer_a-PlatformManager.$(OBJEXT) \
 @CONFIG_DEVICE_LAYER_TRUE@	libDeviceLayer_a-ServiceDirectoryManager.$(OBJEXT) \
@@ -554,9 +554,7 @@ top_srcdir = @top_srcdir@
 @CONFIG_DEVICE_LAYER_TRUE@	ESPUtils.cpp \
 @CONFIG_DEVICE_LAYER_TRUE@	FabricProvisioningServer.cpp \
 @CONFIG_DEVICE_LAYER_TRUE@	Globals.cpp Logging.cpp \
-@CONFIG_DEVICE_LAYER_TRUE@	NetworkInfo.cpp \
-@CONFIG_DEVICE_LAYER_TRUE@	NetworkProvisioningServer.cpp \
-@CONFIG_DEVICE_LAYER_TRUE@	PersistedStorage.cpp \
+@CONFIG_DEVICE_LAYER_TRUE@	NetworkInfo.cpp PersistedStorage.cpp \
 @CONFIG_DEVICE_LAYER_TRUE@	PlatformManager.cpp \
 @CONFIG_DEVICE_LAYER_TRUE@	ServiceDirectoryManager.cpp \
 @CONFIG_DEVICE_LAYER_TRUE@	ServiceProvisioningServer.cpp \
@@ -653,6 +651,8 @@ ESP32/libDeviceLayer_a-ConfigurationManagerImpl.$(OBJEXT):  \
 	ESP32/$(am__dirstamp) ESP32/$(DEPDIR)/$(am__dirstamp)
 ESP32/libDeviceLayer_a-GroupKeyStoreImpl.$(OBJEXT):  \
 	ESP32/$(am__dirstamp) ESP32/$(DEPDIR)/$(am__dirstamp)
+ESP32/libDeviceLayer_a-NetworkProvisioningServerImpl.$(OBJEXT):  \
+	ESP32/$(am__dirstamp) ESP32/$(DEPDIR)/$(am__dirstamp)
 ESP32/libDeviceLayer_a-ESP32Config.$(OBJEXT): ESP32/$(am__dirstamp) \
 	ESP32/$(DEPDIR)/$(am__dirstamp)
 
@@ -683,7 +683,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libDeviceLayer_a-Globals.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libDeviceLayer_a-Logging.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libDeviceLayer_a-NetworkInfo.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libDeviceLayer_a-NetworkProvisioningServer.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libDeviceLayer_a-PersistedStorage.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libDeviceLayer_a-PlatformManager.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libDeviceLayer_a-ServiceDirectoryManager.Po@am__quote@
@@ -697,6 +696,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@ESP32/$(DEPDIR)/libDeviceLayer_a-ConfigurationManagerImpl.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@ESP32/$(DEPDIR)/libDeviceLayer_a-ESP32Config.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@ESP32/$(DEPDIR)/libDeviceLayer_a-GroupKeyStoreImpl.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@ESP32/$(DEPDIR)/libDeviceLayer_a-NetworkProvisioningServerImpl.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@trait-support/weave/trait/description/$(DEPDIR)/libDeviceLayer_a-DeviceIdentityTrait.Po@am__quote@
 
 .cpp.o:
@@ -919,20 +919,6 @@ libDeviceLayer_a-NetworkInfo.obj: NetworkInfo.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libDeviceLayer_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o libDeviceLayer_a-NetworkInfo.obj `if test -f 'NetworkInfo.cpp'; then $(CYGPATH_W) 'NetworkInfo.cpp'; else $(CYGPATH_W) '$(srcdir)/NetworkInfo.cpp'; fi`
 
-libDeviceLayer_a-NetworkProvisioningServer.o: NetworkProvisioningServer.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libDeviceLayer_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT libDeviceLayer_a-NetworkProvisioningServer.o -MD -MP -MF $(DEPDIR)/libDeviceLayer_a-NetworkProvisioningServer.Tpo -c -o libDeviceLayer_a-NetworkProvisioningServer.o `test -f 'NetworkProvisioningServer.cpp' || echo '$(srcdir)/'`NetworkProvisioningServer.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libDeviceLayer_a-NetworkProvisioningServer.Tpo $(DEPDIR)/libDeviceLayer_a-NetworkProvisioningServer.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='NetworkProvisioningServer.cpp' object='libDeviceLayer_a-NetworkProvisioningServer.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libDeviceLayer_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o libDeviceLayer_a-NetworkProvisioningServer.o `test -f 'NetworkProvisioningServer.cpp' || echo '$(srcdir)/'`NetworkProvisioningServer.cpp
-
-libDeviceLayer_a-NetworkProvisioningServer.obj: NetworkProvisioningServer.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libDeviceLayer_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT libDeviceLayer_a-NetworkProvisioningServer.obj -MD -MP -MF $(DEPDIR)/libDeviceLayer_a-NetworkProvisioningServer.Tpo -c -o libDeviceLayer_a-NetworkProvisioningServer.obj `if test -f 'NetworkProvisioningServer.cpp'; then $(CYGPATH_W) 'NetworkProvisioningServer.cpp'; else $(CYGPATH_W) '$(srcdir)/NetworkProvisioningServer.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libDeviceLayer_a-NetworkProvisioningServer.Tpo $(DEPDIR)/libDeviceLayer_a-NetworkProvisioningServer.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='NetworkProvisioningServer.cpp' object='libDeviceLayer_a-NetworkProvisioningServer.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libDeviceLayer_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o libDeviceLayer_a-NetworkProvisioningServer.obj `if test -f 'NetworkProvisioningServer.cpp'; then $(CYGPATH_W) 'NetworkProvisioningServer.cpp'; else $(CYGPATH_W) '$(srcdir)/NetworkProvisioningServer.cpp'; fi`
-
 libDeviceLayer_a-PersistedStorage.o: PersistedStorage.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libDeviceLayer_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT libDeviceLayer_a-PersistedStorage.o -MD -MP -MF $(DEPDIR)/libDeviceLayer_a-PersistedStorage.Tpo -c -o libDeviceLayer_a-PersistedStorage.o `test -f 'PersistedStorage.cpp' || echo '$(srcdir)/'`PersistedStorage.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libDeviceLayer_a-PersistedStorage.Tpo $(DEPDIR)/libDeviceLayer_a-PersistedStorage.Po
@@ -1114,6 +1100,20 @@ ESP32/libDeviceLayer_a-GroupKeyStoreImpl.obj: ESP32/GroupKeyStoreImpl.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='ESP32/GroupKeyStoreImpl.cpp' object='ESP32/libDeviceLayer_a-GroupKeyStoreImpl.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libDeviceLayer_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o ESP32/libDeviceLayer_a-GroupKeyStoreImpl.obj `if test -f 'ESP32/GroupKeyStoreImpl.cpp'; then $(CYGPATH_W) 'ESP32/GroupKeyStoreImpl.cpp'; else $(CYGPATH_W) '$(srcdir)/ESP32/GroupKeyStoreImpl.cpp'; fi`
+
+ESP32/libDeviceLayer_a-NetworkProvisioningServerImpl.o: ESP32/NetworkProvisioningServerImpl.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libDeviceLayer_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT ESP32/libDeviceLayer_a-NetworkProvisioningServerImpl.o -MD -MP -MF ESP32/$(DEPDIR)/libDeviceLayer_a-NetworkProvisioningServerImpl.Tpo -c -o ESP32/libDeviceLayer_a-NetworkProvisioningServerImpl.o `test -f 'ESP32/NetworkProvisioningServerImpl.cpp' || echo '$(srcdir)/'`ESP32/NetworkProvisioningServerImpl.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ESP32/$(DEPDIR)/libDeviceLayer_a-NetworkProvisioningServerImpl.Tpo ESP32/$(DEPDIR)/libDeviceLayer_a-NetworkProvisioningServerImpl.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='ESP32/NetworkProvisioningServerImpl.cpp' object='ESP32/libDeviceLayer_a-NetworkProvisioningServerImpl.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libDeviceLayer_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o ESP32/libDeviceLayer_a-NetworkProvisioningServerImpl.o `test -f 'ESP32/NetworkProvisioningServerImpl.cpp' || echo '$(srcdir)/'`ESP32/NetworkProvisioningServerImpl.cpp
+
+ESP32/libDeviceLayer_a-NetworkProvisioningServerImpl.obj: ESP32/NetworkProvisioningServerImpl.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libDeviceLayer_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT ESP32/libDeviceLayer_a-NetworkProvisioningServerImpl.obj -MD -MP -MF ESP32/$(DEPDIR)/libDeviceLayer_a-NetworkProvisioningServerImpl.Tpo -c -o ESP32/libDeviceLayer_a-NetworkProvisioningServerImpl.obj `if test -f 'ESP32/NetworkProvisioningServerImpl.cpp'; then $(CYGPATH_W) 'ESP32/NetworkProvisioningServerImpl.cpp'; else $(CYGPATH_W) '$(srcdir)/ESP32/NetworkProvisioningServerImpl.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ESP32/$(DEPDIR)/libDeviceLayer_a-NetworkProvisioningServerImpl.Tpo ESP32/$(DEPDIR)/libDeviceLayer_a-NetworkProvisioningServerImpl.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='ESP32/NetworkProvisioningServerImpl.cpp' object='ESP32/libDeviceLayer_a-NetworkProvisioningServerImpl.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libDeviceLayer_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o ESP32/libDeviceLayer_a-NetworkProvisioningServerImpl.obj `if test -f 'ESP32/NetworkProvisioningServerImpl.cpp'; then $(CYGPATH_W) 'ESP32/NetworkProvisioningServerImpl.cpp'; else $(CYGPATH_W) '$(srcdir)/ESP32/NetworkProvisioningServerImpl.cpp'; fi`
 
 ESP32/libDeviceLayer_a-ESP32Config.o: ESP32/ESP32Config.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libDeviceLayer_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT ESP32/libDeviceLayer_a-ESP32Config.o -MD -MP -MF ESP32/$(DEPDIR)/libDeviceLayer_a-ESP32Config.Tpo -c -o ESP32/libDeviceLayer_a-ESP32Config.o `test -f 'ESP32/ESP32Config.cpp' || echo '$(srcdir)/'`ESP32/ESP32Config.cpp

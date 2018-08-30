@@ -27,70 +27,82 @@ namespace Weave {
 namespace DeviceLayer {
 namespace Internal {
 
-class NetworkProvisioningServer
-        : public ::nl::Weave::Profiles::NetworkProvisioning::NetworkProvisioningServer,
-          public ::nl::Weave::Profiles::NetworkProvisioning::NetworkProvisioningDelegate
-{
-public:
-    typedef ::nl::Weave::Profiles::NetworkProvisioning::NetworkProvisioningServer ServerBaseClass;
+class NetworkProvisioningServerImpl;
 
-    WEAVE_ERROR Init();
-    int16_t GetCurrentOp() const;
+/**
+ * Provides network provisioning services for a Weave Device.
+ */
+class NetworkProvisioningServer
+{
+    using NetworkProvisioningDelegate = ::nl::Weave::Profiles::NetworkProvisioning::NetworkProvisioningDelegate;
+    using ImplClass = NetworkProvisioningServerImpl;
+
+public:
+
+    // Members for internal use by components within the Weave Device Layer.
+
+    WEAVE_ERROR Init(void);
+    NetworkProvisioningDelegate * GetDelegate(void);
     void StartPendingScan(void);
     bool ScanInProgress(void);
     void OnPlatformEvent(const WeaveDeviceEvent * event);
 
-private:
-    enum State
-    {
-        kState_Idle = 0,
-        kState_ScanNetworks_Pending,
-        kState_ScanNetworks_InProgress,
-        kState_TestConnectivity_WaitConnectivity
-    };
+protected:
 
-    State mState;
-
-    WEAVE_ERROR GetWiFiStationProvision(::nl::Weave::DeviceLayer::Internal::NetworkInfo & netInfo, bool includeCredentials);
-    WEAVE_ERROR ValidateWiFiStationProvision(const ::nl::Weave::DeviceLayer::Internal::NetworkInfo & netInfo,
-                    uint32_t & statusProfileId, uint16_t & statusCode);
-    WEAVE_ERROR SetESPStationConfig(const ::nl::Weave::DeviceLayer::Internal::NetworkInfo & netInfo);
-    bool RejectIfApplicationControlled(bool station);
-    void HandleScanDone(void);
-    void ContinueTestConnectivity(void);
-    static void HandleScanTimeOut(::nl::Weave::System::Layer * aLayer, void * aAppState, ::nl::Weave::System::Error aError);
-    static void HandleConnectivityTimeOut(::nl::Weave::System::Layer * aLayer, void * aAppState, ::nl::Weave::System::Error aError);
-
-    // NetworkProvisioningDelegate methods
-    virtual WEAVE_ERROR HandleScanNetworks(uint8_t networkType);
-    virtual WEAVE_ERROR HandleAddNetwork(::nl::Weave::System::PacketBuffer *networkInfoTLV);
-    virtual WEAVE_ERROR HandleUpdateNetwork(::nl::Weave::System::PacketBuffer *networkInfoTLV);
-    virtual WEAVE_ERROR HandleRemoveNetwork(uint32_t networkId);
-    virtual WEAVE_ERROR HandleGetNetworks(uint8_t flags);
-    virtual WEAVE_ERROR HandleEnableNetwork(uint32_t networkId);
-    virtual WEAVE_ERROR HandleDisableNetwork(uint32_t networkId);
-    virtual WEAVE_ERROR HandleTestConnectivity(uint32_t networkId);
-    virtual WEAVE_ERROR HandleSetRendezvousMode(uint16_t rendezvousMode);
-
-    // NetworkProvisioningServer methods
-    virtual bool IsPairedToAccount() const;
+    // Access to construction/destruction is limited to subclasses.
+    NetworkProvisioningServer(void) = default;
+    ~NetworkProvisioningServer(void) = default;
 };
 
-extern NetworkProvisioningServer NetworkProvisioningSvr;
+} // namespace Internal
+} // namespace DeviceLayer
+} // namespace Weave
+} // namespace nl
 
-inline int16_t NetworkProvisioningServer::GetCurrentOp() const
+/* Include a header file containing the implementation of the NetworkProvisioningServer
+ * object for the selected platform.
+ */
+#ifdef EXTERNAL_NETWORKPROVISIONINGSERVERIMPL_HEADER
+#include EXTERNAL_NETWORKPROVISIONINGSERVERIMPL_HEADER
+#else
+#define NETWORKPROVISIONINGSERVERIMPL_HEADER <Weave/DeviceLayer/WEAVE_DEVICE_LAYER_TARGET/NetworkProvisioningServerImpl.h>
+#include NETWORKPROVISIONINGSERVERIMPL_HEADER
+#endif
+
+namespace nl {
+namespace Weave {
+namespace DeviceLayer {
+namespace Internal {
+
+inline WEAVE_ERROR NetworkProvisioningServer::Init(void)
 {
-    return (mCurOp != NULL) ? mCurOpType : -1;
+    return static_cast<ImplClass*>(this)->_Init();
+}
+
+inline ::nl::Weave::Profiles::NetworkProvisioning::NetworkProvisioningDelegate * NetworkProvisioningServer::GetDelegate(void)
+{
+    return static_cast<ImplClass*>(this)->_GetDelegate();
+}
+
+inline void NetworkProvisioningServer::StartPendingScan(void)
+{
+    static_cast<ImplClass*>(this)->_StartPendingScan();
 }
 
 inline bool NetworkProvisioningServer::ScanInProgress(void)
 {
-    return mState == kState_ScanNetworks_InProgress;
+    return static_cast<ImplClass*>(this)->_ScanInProgress();
+}
+
+inline void NetworkProvisioningServer::OnPlatformEvent(const WeaveDeviceEvent * event)
+{
+    static_cast<ImplClass*>(this)->_OnPlatformEvent(event);
 }
 
 } // namespace Internal
 } // namespace DeviceLayer
 } // namespace Weave
 } // namespace nl
+
 
 #endif // NETWORK_PROVISIONING_SERVER_H

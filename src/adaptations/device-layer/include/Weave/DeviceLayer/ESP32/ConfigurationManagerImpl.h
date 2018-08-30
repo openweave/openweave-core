@@ -33,7 +33,7 @@ namespace Weave {
 namespace DeviceLayer {
 
 namespace Internal {
-class NetworkProvisioningServer;
+class NetworkProvisioningServerImpl;
 }
 
 // Instruct the compiler to instantiate the GenericConfigurationManagerImpl<> template
@@ -59,13 +59,13 @@ class ConfigurationManagerImpl
 
 public:
 
-    // Implementation-specific members that may be accessed directly by the application.
+    // ===== Implementation-specific members that may be accessed directly by the application.
 
     static ConfigurationManagerImpl & Instance();
 
 private:
 
-    // Methods that implement the ConfigurationManager public interface.
+    // ===== Methods that implement the ConfigurationManager public interface.
 
     WEAVE_ERROR _Init();
     WEAVE_ERROR _GetPrimaryWiFiMACAddress(uint8_t * buf);
@@ -80,9 +80,9 @@ private:
 
 private:
 
-    // Members for internal use by the following friends.
+    // ===== Members for internal use by the following friends.
 
-    friend class Internal::NetworkProvisioningServer;
+    friend class Internal::NetworkProvisioningServerImpl;
     friend ConfigurationManager & ConfigurationMgr();
 
     static ConfigurationManagerImpl sInstance;
@@ -92,7 +92,7 @@ private:
 
 private:
 
-    // Private members reserved for use by this class only.
+    // ===== Private members reserved for use by this class only.
 
     static void DoFactoryReset(intptr_t arg);
 };
