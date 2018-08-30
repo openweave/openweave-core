@@ -51,7 +51,6 @@ BLEManager BLEMgr;
 EchoServer EchoSvr;
 DeviceControlServer DeviceControlSvr;
 DeviceDescriptionServer DeviceDescriptionSvr;
-NetworkProvisioningServer NetworkProvisioningSvr;
 FabricProvisioningServer FabricProvisioningSvr;
 ServiceProvisioningServer ServiceProvisioningSvr;
 

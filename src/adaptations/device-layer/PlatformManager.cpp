@@ -236,8 +236,7 @@ WEAVE_ERROR PlatformManager::InitWeaveStack(void)
     SuccessOrExit(err);
 
     // Initialize the Network Provisioning server.
-    new (&NetworkProvisioningSvr) NetworkProvisioningServer();
-    err = NetworkProvisioningSvr.Init();
+    err = NetworkProvisioningSvr().Init();
     if (err != WEAVE_NO_ERROR)
     {
         WeaveLogError(DeviceLayer, "Weave Network Provisioning server initialization failed: %s", ErrorStr(err));
@@ -452,7 +451,7 @@ void PlatformManager::DispatchEvent(const WeaveDeviceEvent * event)
         ConnectivityMgr.OnPlatformEvent(event);
         DeviceControlSvr.OnPlatformEvent(event);
         DeviceDescriptionSvr.OnPlatformEvent(event);
-        NetworkProvisioningSvr.OnPlatformEvent(event);
+        NetworkProvisioningSvr().OnPlatformEvent(event);
         FabricProvisioningSvr.OnPlatformEvent(event);
         ServiceProvisioningSvr.OnPlatformEvent(event);
         TraitMgr.OnPlatformEvent(event);

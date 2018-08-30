@@ -47,7 +47,6 @@ libDeviceLayer_a_SOURCES                = \
     Globals.cpp                           \
     Logging.cpp                           \
     NetworkInfo.cpp                       \
-    NetworkProvisioningServer.cpp         \
     PersistedStorage.cpp                  \
     PlatformManager.cpp                   \
     ServiceDirectoryManager.cpp           \
@@ -63,10 +62,11 @@ libDeviceLayer_a_SOURCES                = \
 
 if WEAVE_DEVICE_LAYER_TARGET_ESP32
 
-libDeviceLayer_a_SOURCES               += \
-    ESP32/ConfigurationManagerImpl.cpp    \
-    ESP32/GroupKeyStoreImpl.cpp           \
-    ESP32/ESP32Config.cpp                 \
+libDeviceLayer_a_SOURCES               +=       \
+    ESP32/ConfigurationManagerImpl.cpp          \
+    ESP32/GroupKeyStoreImpl.cpp                 \
+    ESP32/NetworkProvisioningServerImpl.cpp     \
+    ESP32/ESP32Config.cpp                       \
     $(NULL)
 
 endif # WEAVE_DEVICE_LAYER_TARGET_ESP32
