@@ -16,6 +16,12 @@
  *    limitations under the License.
  */
 
+/**
+ *    @file
+ *          Provides implementations for the Weave entropy sourcing functions
+ *          on the ESP32 platform.
+ */
+
 #include <Weave/DeviceLayer/internal/WeaveDeviceLayerInternal.h>
 #include <Weave/Support/crypto/WeaveRNG.h>
 
@@ -31,7 +37,8 @@ namespace {
 
 int GetEntropy_ESP32(uint8_t *buf, size_t bufSize)
 {
-    while (bufSize > 0) {
+    while (bufSize > 0)
+    {
         union {
             uint32_t asInt;
             uint8_t asBytes[sizeof(asInt)];

@@ -22,11 +22,11 @@
 #include <Weave/DeviceLayer/internal/NetworkInfo.h>
 #include <Weave/DeviceLayer/internal/ServiceTunnelAgent.h>
 #include <Weave/DeviceLayer/internal/BLEManager.h>
-#include <Weave/DeviceLayer/internal/ESPUtils.h>
-
 #include <Weave/Profiles/WeaveProfiles.h>
 #include <Weave/Profiles/common/CommonProfile.h>
 #include <Warm/Warm.h>
+
+#include <Weave/DeviceLayer/ESP32/ESP32Utils.h>
 
 #include "esp_event.h"
 #include "esp_wifi.h"
@@ -115,7 +115,7 @@ exit:
 
 bool ConnectivityManagerImpl::_IsWiFiStationProvisioned(void)
 {
-    return ESPUtils::IsStationProvisioned();
+    return ESP32Utils::IsStationProvisioned();
 }
 
 void ConnectivityManagerImpl::_ClearWiFiStationProvision(void)
@@ -329,7 +329,7 @@ WEAVE_ERROR ConnectivityManagerImpl::_Init()
     ServiceTunnelAgent.OnServiceTunStatusNotify = HandleServiceTunnelNotification;
 
     // Ensure that ESP station mode is enabled.
-    err = ESPUtils::EnableStationMode();
+    err = ESP32Utils::EnableStationMode();
     SuccessOrExit(err);
 
     // If there is no persistent station provision...
@@ -368,7 +368,7 @@ WEAVE_ERROR ConnectivityManagerImpl::_Init()
     }
 
     // Force AP mode off for now.
-    err = ESPUtils::SetAPMode(false);
+    err = ESP32Utils::SetAPMode(false);
     SuccessOrExit(err);
 
     // Queue work items to bootstrap the AP and station state machines once the Weave event loop is running.
@@ -507,16 +507,16 @@ void ConnectivityManagerImpl::DriveStationState()
     if (mWiFiStationMode != kWiFiStationMode_ApplicationControlled)
     {
         // Ensure that the ESP WiFi layer is started.
-        err = ESPUtils::StartWiFiLayer();
+        err = ESP32Utils::StartWiFiLayer();
         SuccessOrExit(err);
 
         // Ensure that station mode is enabled in the ESP WiFi layer.
-        err = ESPUtils::EnableStationMode();
+        err = ESP32Utils::EnableStationMode();
         SuccessOrExit(err);
     }
 
     // Determine if the ESP WiFi layer thinks the station interface is currently connected.
-    err = ESPUtils::IsStationConnected(stationConnected);
+    err = ESP32Utils::IsStationConnected(stationConnected);
     SuccessOrExit(err);
 
     // If the station interface is currently connected ...
@@ -676,7 +676,7 @@ void ConnectivityManagerImpl::DriveAPState()
     bool espAPModeEnabled;
 
     // Determine if AP mode is currently enabled in the ESP WiFi layer.
-    err = ESPUtils::IsAPEnabled(espAPModeEnabled);
+    err = ESP32Utils::IsAPEnabled(espAPModeEnabled);
     SuccessOrExit(err);
 
     // Adjust the Connectivity Manager's AP state to match the state in the WiFi layer.
@@ -686,7 +686,7 @@ void ConnectivityManagerImpl::DriveAPState()
     if (mWiFiAPMode != kWiFiAPMode_ApplicationControlled)
     {
         // Ensure the ESP WiFi layer is started.
-        err = ESPUtils::StartWiFiLayer();
+        err = ESP32Utils::StartWiFiLayer();
         SuccessOrExit(err);
 
         // Determine the target (desired) state for AP interface...
@@ -753,7 +753,7 @@ void ConnectivityManagerImpl::DriveAPState()
             {
                 if (mWiFiAPState != kWiFiAPState_Activating)
                 {
-                    err = ESPUtils::SetAPMode(true);
+                    err = ESP32Utils::SetAPMode(true);
                     SuccessOrExit(err);
 
                     err = ConfigureWiFiAP();
@@ -770,7 +770,7 @@ void ConnectivityManagerImpl::DriveAPState()
             {
                 if (mWiFiAPState != kWiFiAPState_Deactivating)
                 {
-                    err = ESPUtils::SetAPMode(false);
+                    err = ESP32Utils::SetAPMode(false);
                     SuccessOrExit(err);
 
                     espAPModeEnabled = false;
@@ -783,7 +783,7 @@ void ConnectivityManagerImpl::DriveAPState()
 
     // If AP mode is enabled in the ESP WiFi layer, but the interface doesn't have an IPv6 link-local
     // address, assign one now.
-    if (espAPModeEnabled && !ESPUtils::HasIPv6LinkLocalAddress(TCPIP_ADAPTER_IF_AP))
+    if (espAPModeEnabled && !ESP32Utils::HasIPv6LinkLocalAddress(TCPIP_ADAPTER_IF_AP))
     {
         err = tcpip_adapter_create_ip6_linklocal(TCPIP_ADAPTER_IF_AP);
         if (err != ESP_OK)
@@ -797,7 +797,7 @@ exit:
     if (err != WEAVE_NO_ERROR && mWiFiAPMode != kWiFiAPMode_ApplicationControlled)
     {
         SetWiFiAPMode(kWiFiAPMode_Disabled);
-        ESPUtils::SetAPMode(false);
+        ESP32Utils::SetAPMode(false);
     }
 }
 
@@ -850,7 +850,7 @@ void ConnectivityManagerImpl::UpdateInternetConnectivityState(void)
     if (mWiFiStationState == kWiFiStationState_Connected)
     {
         // Get the LwIP netif for the WiFi station interface.
-        struct netif * netif = ESPUtils::GetStationNetif();
+        struct netif * netif = ESP32Utils::GetStationNetif();
 
         // If the WiFi station interface is up...
         if (netif != NULL && netif_is_up(netif) && netif_is_link_up(netif))
@@ -953,7 +953,7 @@ void ConnectivityManagerImpl::OnIPv6AddressAvailable(const system_event_got_ip6_
         ipAddr.ToString(ipAddrStr, sizeof(ipAddrStr));
         WeaveLogProgress(DeviceLayer, "%s ready on %s interface: %s",
                  CharacterizeIPv6Address(ipAddr),
-                 ESPUtils::InterfaceIdToName(got_ip.if_index),
+                 ESP32Utils::InterfaceIdToName(got_ip.if_index),
                  ipAddrStr);
     }
 #endif // WEAVE_PROGRESS_LOGGING

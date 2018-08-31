@@ -16,10 +16,15 @@
  *    limitations under the License.
  */
 
-#include <Weave/DeviceLayer/internal/WeaveDeviceLayerInternal.h>
-#include <esp_timer.h>
+/**
+ *    @file
+ *          Provides implementations for the OpenWeave platform time functions
+ *          on the ESP32 platform.
+ */
 
+#include <Weave/DeviceLayer/internal/WeaveDeviceLayerInternal.h>
 #include <Weave/Support/TimeUtils.h>
+#include <esp_timer.h>
 
 using namespace ::nl::Weave::DeviceLayer::Internal;
 

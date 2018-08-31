@@ -922,6 +922,7 @@ $(nl_public_WeaveDeviceLayer_source_dirstem)/ESP32/NetworkProvisioningServerImpl
 $(nl_public_WeaveDeviceLayer_source_dirstem)/ESP32/ConnectivityManagerImpl.h          \
 $(nl_public_WeaveDeviceLayer_source_dirstem)/ESP32/GroupKeyStoreImpl.h                \
 $(nl_public_WeaveDeviceLayer_source_dirstem)/ESP32/ESP32Config.h                      \
+$(nl_public_WeaveDeviceLayer_source_dirstem)/ESP32/ESP32Utils.h                       \
 $(NULL)
 
 endif # WEAVE_DEVICE_LAYER_TARGET_ESP32
@@ -956,7 +957,6 @@ $(nl_public_WeaveDeviceLayer_source_dirstem)/internal/ServiceProvisioningServer.
 $(nl_public_WeaveDeviceLayer_source_dirstem)/internal/WeaveDeviceConfig-ESP32.h             \
 $(nl_public_WeaveDeviceLayer_source_dirstem)/internal/ServiceDirectoryManager.h             \
 $(nl_public_WeaveDeviceLayer_source_dirstem)/internal/DeviceDescriptionServer.h             \
-$(nl_public_WeaveDeviceLayer_source_dirstem)/internal/ESPUtils.h                            \
 $(nl_public_WeaveDeviceLayer_source_dirstem)/internal/DeviceIdentityTraitDataSource.h       \
 $(nl_public_WeaveDeviceLayer_source_dirstem)/internal/GenericConfigurationManagerImpl.h     \
 $(nl_public_WeaveDeviceLayer_source_dirstem)/internal/GenericNetworkProvisioningServerImpl.h \

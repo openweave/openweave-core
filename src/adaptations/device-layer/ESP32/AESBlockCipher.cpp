@@ -16,6 +16,12 @@
  *    limitations under the License.
  */
 
+/**
+ *    @file
+ *          Provides implementations for the OpenWeave AES BlockCipher classes
+ *          on the ESP32 platform.
+ */
+
 #include <Weave/DeviceLayer/internal/WeaveDeviceLayerInternal.h>
 
 #include <string.h>

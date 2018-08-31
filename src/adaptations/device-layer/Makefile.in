@@ -102,11 +102,16 @@ build_triplet = @build@
 host_triplet = @host@
 target_triplet = @target@
 @CONFIG_DEVICE_LAYER_TRUE@@WEAVE_DEVICE_LAYER_TARGET_ESP32_TRUE@am__append_1 = \
+@CONFIG_DEVICE_LAYER_TRUE@@WEAVE_DEVICE_LAYER_TARGET_ESP32_TRUE@    ESP32/AESBlockCipher.cpp                    \
 @CONFIG_DEVICE_LAYER_TRUE@@WEAVE_DEVICE_LAYER_TARGET_ESP32_TRUE@    ESP32/ConfigurationManagerImpl.cpp          \
-@CONFIG_DEVICE_LAYER_TRUE@@WEAVE_DEVICE_LAYER_TARGET_ESP32_TRUE@    ESP32/GroupKeyStoreImpl.cpp                 \
-@CONFIG_DEVICE_LAYER_TRUE@@WEAVE_DEVICE_LAYER_TARGET_ESP32_TRUE@    ESP32/NetworkProvisioningServerImpl.cpp     \
 @CONFIG_DEVICE_LAYER_TRUE@@WEAVE_DEVICE_LAYER_TARGET_ESP32_TRUE@    ESP32/ConnectivityManagerImpl.cpp           \
+@CONFIG_DEVICE_LAYER_TRUE@@WEAVE_DEVICE_LAYER_TARGET_ESP32_TRUE@    ESP32/Entropy.cpp                           \
 @CONFIG_DEVICE_LAYER_TRUE@@WEAVE_DEVICE_LAYER_TARGET_ESP32_TRUE@    ESP32/ESP32Config.cpp                       \
+@CONFIG_DEVICE_LAYER_TRUE@@WEAVE_DEVICE_LAYER_TARGET_ESP32_TRUE@    ESP32/ESP32Utils.cpp                        \
+@CONFIG_DEVICE_LAYER_TRUE@@WEAVE_DEVICE_LAYER_TARGET_ESP32_TRUE@    ESP32/GroupKeyStoreImpl.cpp                 \
+@CONFIG_DEVICE_LAYER_TRUE@@WEAVE_DEVICE_LAYER_TARGET_ESP32_TRUE@    ESP32/Logging.cpp                           \
+@CONFIG_DEVICE_LAYER_TRUE@@WEAVE_DEVICE_LAYER_TARGET_ESP32_TRUE@    ESP32/NetworkProvisioningServerImpl.cpp     \
+@CONFIG_DEVICE_LAYER_TRUE@@WEAVE_DEVICE_LAYER_TARGET_ESP32_TRUE@    ESP32/Time.cpp                              \
 @CONFIG_DEVICE_LAYER_TRUE@@WEAVE_DEVICE_LAYER_TARGET_ESP32_TRUE@    $(NULL)
 
 subdir = src/adaptations/device-layer
@@ -184,37 +189,39 @@ am__v_AR_0 = @echo "  AR      " $@;
 am__v_AR_1 = 
 libDeviceLayer_a_AR = $(AR) $(ARFLAGS)
 libDeviceLayer_a_LIBADD =
-am__libDeviceLayer_a_SOURCES_DIST = AESBlockCipher.cpp BLEManager.cpp \
-	CASEAuth.cpp DeviceControlServer.cpp \
-	DeviceDescriptionServer.cpp DeviceIdentityTraitDataSource.cpp \
-	EchoServer.cpp Entropy.cpp ESPUtils.cpp \
-	FabricProvisioningServer.cpp Globals.cpp Logging.cpp \
-	NetworkInfo.cpp PersistedStorage.cpp PlatformManager.cpp \
+am__libDeviceLayer_a_SOURCES_DIST = BLEManager.cpp CASEAuth.cpp \
+	DeviceControlServer.cpp DeviceDescriptionServer.cpp \
+	DeviceIdentityTraitDataSource.cpp EchoServer.cpp \
+	FabricProvisioningServer.cpp Globals.cpp NetworkInfo.cpp \
+	PersistedStorage.cpp PlatformManager.cpp \
 	ServiceDirectoryManager.cpp ServiceProvisioningServer.cpp \
-	ServiceTunnelAgent.cpp TestDeviceIds.cpp Time.cpp \
-	TimeSyncManager.cpp TraitManager.cpp Warm.cpp \
+	ServiceTunnelAgent.cpp TestDeviceIds.cpp TimeSyncManager.cpp \
+	TraitManager.cpp Warm.cpp \
 	trait-support/weave/trait/description/DeviceIdentityTrait.cpp \
-	ESP32/ConfigurationManagerImpl.cpp ESP32/GroupKeyStoreImpl.cpp \
-	ESP32/NetworkProvisioningServerImpl.cpp \
-	ESP32/ConnectivityManagerImpl.cpp ESP32/ESP32Config.cpp
+	ESP32/AESBlockCipher.cpp ESP32/ConfigurationManagerImpl.cpp \
+	ESP32/ConnectivityManagerImpl.cpp ESP32/Entropy.cpp \
+	ESP32/ESP32Config.cpp ESP32/ESP32Utils.cpp \
+	ESP32/GroupKeyStoreImpl.cpp ESP32/Logging.cpp \
+	ESP32/NetworkProvisioningServerImpl.cpp ESP32/Time.cpp
 am__dirstamp = $(am__leading_dot)dirstamp
-@CONFIG_DEVICE_LAYER_TRUE@@WEAVE_DEVICE_LAYER_TARGET_ESP32_TRUE@am__objects_1 = ESP32/libDeviceLayer_a-ConfigurationManagerImpl.$(OBJEXT) \
-@CONFIG_DEVICE_LAYER_TRUE@@WEAVE_DEVICE_LAYER_TARGET_ESP32_TRUE@	ESP32/libDeviceLayer_a-GroupKeyStoreImpl.$(OBJEXT) \
-@CONFIG_DEVICE_LAYER_TRUE@@WEAVE_DEVICE_LAYER_TARGET_ESP32_TRUE@	ESP32/libDeviceLayer_a-NetworkProvisioningServerImpl.$(OBJEXT) \
+@CONFIG_DEVICE_LAYER_TRUE@@WEAVE_DEVICE_LAYER_TARGET_ESP32_TRUE@am__objects_1 = ESP32/libDeviceLayer_a-AESBlockCipher.$(OBJEXT) \
+@CONFIG_DEVICE_LAYER_TRUE@@WEAVE_DEVICE_LAYER_TARGET_ESP32_TRUE@	ESP32/libDeviceLayer_a-ConfigurationManagerImpl.$(OBJEXT) \
 @CONFIG_DEVICE_LAYER_TRUE@@WEAVE_DEVICE_LAYER_TARGET_ESP32_TRUE@	ESP32/libDeviceLayer_a-ConnectivityManagerImpl.$(OBJEXT) \
-@CONFIG_DEVICE_LAYER_TRUE@@WEAVE_DEVICE_LAYER_TARGET_ESP32_TRUE@	ESP32/libDeviceLayer_a-ESP32Config.$(OBJEXT)
-@CONFIG_DEVICE_LAYER_TRUE@am_libDeviceLayer_a_OBJECTS = libDeviceLayer_a-AESBlockCipher.$(OBJEXT) \
-@CONFIG_DEVICE_LAYER_TRUE@	libDeviceLayer_a-BLEManager.$(OBJEXT) \
+@CONFIG_DEVICE_LAYER_TRUE@@WEAVE_DEVICE_LAYER_TARGET_ESP32_TRUE@	ESP32/libDeviceLayer_a-Entropy.$(OBJEXT) \
+@CONFIG_DEVICE_LAYER_TRUE@@WEAVE_DEVICE_LAYER_TARGET_ESP32_TRUE@	ESP32/libDeviceLayer_a-ESP32Config.$(OBJEXT) \
+@CONFIG_DEVICE_LAYER_TRUE@@WEAVE_DEVICE_LAYER_TARGET_ESP32_TRUE@	ESP32/libDeviceLayer_a-ESP32Utils.$(OBJEXT) \
+@CONFIG_DEVICE_LAYER_TRUE@@WEAVE_DEVICE_LAYER_TARGET_ESP32_TRUE@	ESP32/libDeviceLayer_a-GroupKeyStoreImpl.$(OBJEXT) \
+@CONFIG_DEVICE_LAYER_TRUE@@WEAVE_DEVICE_LAYER_TARGET_ESP32_TRUE@	ESP32/libDeviceLayer_a-Logging.$(OBJEXT) \
+@CONFIG_DEVICE_LAYER_TRUE@@WEAVE_DEVICE_LAYER_TARGET_ESP32_TRUE@	ESP32/libDeviceLayer_a-NetworkProvisioningServerImpl.$(OBJEXT) \
+@CONFIG_DEVICE_LAYER_TRUE@@WEAVE_DEVICE_LAYER_TARGET_ESP32_TRUE@	ESP32/libDeviceLayer_a-Time.$(OBJEXT)
+@CONFIG_DEVICE_LAYER_TRUE@am_libDeviceLayer_a_OBJECTS = libDeviceLayer_a-BLEManager.$(OBJEXT) \
 @CONFIG_DEVICE_LAYER_TRUE@	libDeviceLayer_a-CASEAuth.$(OBJEXT) \
 @CONFIG_DEVICE_LAYER_TRUE@	libDeviceLayer_a-DeviceControlServer.$(OBJEXT) \
 @CONFIG_DEVICE_LAYER_TRUE@	libDeviceLayer_a-DeviceDescriptionServer.$(OBJEXT) \
 @CONFIG_DEVICE_LAYER_TRUE@	libDeviceLayer_a-DeviceIdentityTraitDataSource.$(OBJEXT) \
 @CONFIG_DEVICE_LAYER_TRUE@	libDeviceLayer_a-EchoServer.$(OBJEXT) \
-@CONFIG_DEVICE_LAYER_TRUE@	libDeviceLayer_a-Entropy.$(OBJEXT) \
-@CONFIG_DEVICE_LAYER_TRUE@	libDeviceLayer_a-ESPUtils.$(OBJEXT) \
 @CONFIG_DEVICE_LAYER_TRUE@	libDeviceLayer_a-FabricProvisioningServer.$(OBJEXT) \
 @CONFIG_DEVICE_LAYER_TRUE@	libDeviceLayer_a-Globals.$(OBJEXT) \
-@CONFIG_DEVICE_LAYER_TRUE@	libDeviceLayer_a-Logging.$(OBJEXT) \
 @CONFIG_DEVICE_LAYER_TRUE@	libDeviceLayer_a-NetworkInfo.$(OBJEXT) \
 @CONFIG_DEVICE_LAYER_TRUE@	libDeviceLayer_a-PersistedStorage.$(OBJEXT) \
 @CONFIG_DEVICE_LAYER_TRUE@	libDeviceLayer_a-PlatformManager.$(OBJEXT) \
@@ -222,7 +229,6 @@ am__dirstamp = $(am__leading_dot)dirstamp
 @CONFIG_DEVICE_LAYER_TRUE@	libDeviceLayer_a-ServiceProvisioningServer.$(OBJEXT) \
 @CONFIG_DEVICE_LAYER_TRUE@	libDeviceLayer_a-ServiceTunnelAgent.$(OBJEXT) \
 @CONFIG_DEVICE_LAYER_TRUE@	libDeviceLayer_a-TestDeviceIds.$(OBJEXT) \
-@CONFIG_DEVICE_LAYER_TRUE@	libDeviceLayer_a-Time.$(OBJEXT) \
 @CONFIG_DEVICE_LAYER_TRUE@	libDeviceLayer_a-TimeSyncManager.$(OBJEXT) \
 @CONFIG_DEVICE_LAYER_TRUE@	libDeviceLayer_a-TraitManager.$(OBJEXT) \
 @CONFIG_DEVICE_LAYER_TRUE@	libDeviceLayer_a-Warm.$(OBJEXT) \
@@ -546,21 +552,19 @@ top_srcdir = @top_srcdir@
 @CONFIG_DEVICE_LAYER_TRUE@    $(SOCKETS_CPPFLAGS)                   \
 @CONFIG_DEVICE_LAYER_TRUE@    $(NULL)
 
-@CONFIG_DEVICE_LAYER_TRUE@libDeviceLayer_a_SOURCES =  \
-@CONFIG_DEVICE_LAYER_TRUE@	AESBlockCipher.cpp BLEManager.cpp \
+@CONFIG_DEVICE_LAYER_TRUE@libDeviceLayer_a_SOURCES = BLEManager.cpp \
 @CONFIG_DEVICE_LAYER_TRUE@	CASEAuth.cpp DeviceControlServer.cpp \
 @CONFIG_DEVICE_LAYER_TRUE@	DeviceDescriptionServer.cpp \
 @CONFIG_DEVICE_LAYER_TRUE@	DeviceIdentityTraitDataSource.cpp \
-@CONFIG_DEVICE_LAYER_TRUE@	EchoServer.cpp Entropy.cpp \
-@CONFIG_DEVICE_LAYER_TRUE@	ESPUtils.cpp \
+@CONFIG_DEVICE_LAYER_TRUE@	EchoServer.cpp \
 @CONFIG_DEVICE_LAYER_TRUE@	FabricProvisioningServer.cpp \
-@CONFIG_DEVICE_LAYER_TRUE@	Globals.cpp Logging.cpp \
-@CONFIG_DEVICE_LAYER_TRUE@	NetworkInfo.cpp PersistedStorage.cpp \
+@CONFIG_DEVICE_LAYER_TRUE@	Globals.cpp NetworkInfo.cpp \
+@CONFIG_DEVICE_LAYER_TRUE@	PersistedStorage.cpp \
 @CONFIG_DEVICE_LAYER_TRUE@	PlatformManager.cpp \
 @CONFIG_DEVICE_LAYER_TRUE@	ServiceDirectoryManager.cpp \
 @CONFIG_DEVICE_LAYER_TRUE@	ServiceProvisioningServer.cpp \
 @CONFIG_DEVICE_LAYER_TRUE@	ServiceTunnelAgent.cpp \
-@CONFIG_DEVICE_LAYER_TRUE@	TestDeviceIds.cpp Time.cpp \
+@CONFIG_DEVICE_LAYER_TRUE@	TestDeviceIds.cpp \
 @CONFIG_DEVICE_LAYER_TRUE@	TimeSyncManager.cpp TraitManager.cpp \
 @CONFIG_DEVICE_LAYER_TRUE@	Warm.cpp \
 @CONFIG_DEVICE_LAYER_TRUE@	trait-support/weave/trait/description/DeviceIdentityTrait.cpp \
@@ -648,15 +652,25 @@ ESP32/$(am__dirstamp):
 ESP32/$(DEPDIR)/$(am__dirstamp):
 	@$(MKDIR_P) ESP32/$(DEPDIR)
 	@: > ESP32/$(DEPDIR)/$(am__dirstamp)
+ESP32/libDeviceLayer_a-AESBlockCipher.$(OBJEXT):  \
+	ESP32/$(am__dirstamp) ESP32/$(DEPDIR)/$(am__dirstamp)
 ESP32/libDeviceLayer_a-ConfigurationManagerImpl.$(OBJEXT):  \
-	ESP32/$(am__dirstamp) ESP32/$(DEPDIR)/$(am__dirstamp)
-ESP32/libDeviceLayer_a-GroupKeyStoreImpl.$(OBJEXT):  \
-	ESP32/$(am__dirstamp) ESP32/$(DEPDIR)/$(am__dirstamp)
-ESP32/libDeviceLayer_a-NetworkProvisioningServerImpl.$(OBJEXT):  \
 	ESP32/$(am__dirstamp) ESP32/$(DEPDIR)/$(am__dirstamp)
 ESP32/libDeviceLayer_a-ConnectivityManagerImpl.$(OBJEXT):  \
 	ESP32/$(am__dirstamp) ESP32/$(DEPDIR)/$(am__dirstamp)
+ESP32/libDeviceLayer_a-Entropy.$(OBJEXT): ESP32/$(am__dirstamp) \
+	ESP32/$(DEPDIR)/$(am__dirstamp)
 ESP32/libDeviceLayer_a-ESP32Config.$(OBJEXT): ESP32/$(am__dirstamp) \
+	ESP32/$(DEPDIR)/$(am__dirstamp)
+ESP32/libDeviceLayer_a-ESP32Utils.$(OBJEXT): ESP32/$(am__dirstamp) \
+	ESP32/$(DEPDIR)/$(am__dirstamp)
+ESP32/libDeviceLayer_a-GroupKeyStoreImpl.$(OBJEXT):  \
+	ESP32/$(am__dirstamp) ESP32/$(DEPDIR)/$(am__dirstamp)
+ESP32/libDeviceLayer_a-Logging.$(OBJEXT): ESP32/$(am__dirstamp) \
+	ESP32/$(DEPDIR)/$(am__dirstamp)
+ESP32/libDeviceLayer_a-NetworkProvisioningServerImpl.$(OBJEXT):  \
+	ESP32/$(am__dirstamp) ESP32/$(DEPDIR)/$(am__dirstamp)
+ESP32/libDeviceLayer_a-Time.$(OBJEXT): ESP32/$(am__dirstamp) \
 	ESP32/$(DEPDIR)/$(am__dirstamp)
 
 libDeviceLayer.a: $(libDeviceLayer_a_OBJECTS) $(libDeviceLayer_a_DEPENDENCIES) $(EXTRA_libDeviceLayer_a_DEPENDENCIES) 
@@ -672,18 +686,14 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libDeviceLayer_a-AESBlockCipher.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libDeviceLayer_a-BLEManager.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libDeviceLayer_a-CASEAuth.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libDeviceLayer_a-DeviceControlServer.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libDeviceLayer_a-DeviceDescriptionServer.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libDeviceLayer_a-DeviceIdentityTraitDataSource.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libDeviceLayer_a-ESPUtils.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libDeviceLayer_a-EchoServer.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libDeviceLayer_a-Entropy.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libDeviceLayer_a-FabricProvisioningServer.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libDeviceLayer_a-Globals.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libDeviceLayer_a-Logging.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libDeviceLayer_a-NetworkInfo.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libDeviceLayer_a-PersistedStorage.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libDeviceLayer_a-PlatformManager.Po@am__quote@
@@ -691,15 +701,19 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libDeviceLayer_a-ServiceProvisioningServer.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libDeviceLayer_a-ServiceTunnelAgent.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libDeviceLayer_a-TestDeviceIds.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libDeviceLayer_a-Time.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libDeviceLayer_a-TimeSyncManager.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libDeviceLayer_a-TraitManager.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libDeviceLayer_a-Warm.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@ESP32/$(DEPDIR)/libDeviceLayer_a-AESBlockCipher.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@ESP32/$(DEPDIR)/libDeviceLayer_a-ConfigurationManagerImpl.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@ESP32/$(DEPDIR)/libDeviceLayer_a-ConnectivityManagerImpl.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@ESP32/$(DEPDIR)/libDeviceLayer_a-ESP32Config.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@ESP32/$(DEPDIR)/libDeviceLayer_a-ESP32Utils.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@ESP32/$(DEPDIR)/libDeviceLayer_a-Entropy.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@ESP32/$(DEPDIR)/libDeviceLayer_a-GroupKeyStoreImpl.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@ESP32/$(DEPDIR)/libDeviceLayer_a-Logging.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@ESP32/$(DEPDIR)/libDeviceLayer_a-NetworkProvisioningServerImpl.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@ESP32/$(DEPDIR)/libDeviceLayer_a-Time.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@trait-support/weave/trait/description/$(DEPDIR)/libDeviceLayer_a-DeviceIdentityTrait.Po@am__quote@
 
 .cpp.o:
@@ -725,20 +739,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='$<' object='$@' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(LTCXXCOMPILE) -c -o $@ $<
-
-libDeviceLayer_a-AESBlockCipher.o: AESBlockCipher.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libDeviceLayer_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT libDeviceLayer_a-AESBlockCipher.o -MD -MP -MF $(DEPDIR)/libDeviceLayer_a-AESBlockCipher.Tpo -c -o libDeviceLayer_a-AESBlockCipher.o `test -f 'AESBlockCipher.cpp' || echo '$(srcdir)/'`AESBlockCipher.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libDeviceLayer_a-AESBlockCipher.Tpo $(DEPDIR)/libDeviceLayer_a-AESBlockCipher.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='AESBlockCipher.cpp' object='libDeviceLayer_a-AESBlockCipher.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libDeviceLayer_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o libDeviceLayer_a-AESBlockCipher.o `test -f 'AESBlockCipher.cpp' || echo '$(srcdir)/'`AESBlockCipher.cpp
-
-libDeviceLayer_a-AESBlockCipher.obj: AESBlockCipher.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libDeviceLayer_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT libDeviceLayer_a-AESBlockCipher.obj -MD -MP -MF $(DEPDIR)/libDeviceLayer_a-AESBlockCipher.Tpo -c -o libDeviceLayer_a-AESBlockCipher.obj `if test -f 'AESBlockCipher.cpp'; then $(CYGPATH_W) 'AESBlockCipher.cpp'; else $(CYGPATH_W) '$(srcdir)/AESBlockCipher.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libDeviceLayer_a-AESBlockCipher.Tpo $(DEPDIR)/libDeviceLayer_a-AESBlockCipher.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='AESBlockCipher.cpp' object='libDeviceLayer_a-AESBlockCipher.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libDeviceLayer_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o libDeviceLayer_a-AESBlockCipher.obj `if test -f 'AESBlockCipher.cpp'; then $(CYGPATH_W) 'AESBlockCipher.cpp'; else $(CYGPATH_W) '$(srcdir)/AESBlockCipher.cpp'; fi`
 
 libDeviceLayer_a-BLEManager.o: BLEManager.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libDeviceLayer_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT libDeviceLayer_a-BLEManager.o -MD -MP -MF $(DEPDIR)/libDeviceLayer_a-BLEManager.Tpo -c -o libDeviceLayer_a-BLEManager.o `test -f 'BLEManager.cpp' || echo '$(srcdir)/'`BLEManager.cpp
@@ -824,34 +824,6 @@ libDeviceLayer_a-EchoServer.obj: EchoServer.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libDeviceLayer_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o libDeviceLayer_a-EchoServer.obj `if test -f 'EchoServer.cpp'; then $(CYGPATH_W) 'EchoServer.cpp'; else $(CYGPATH_W) '$(srcdir)/EchoServer.cpp'; fi`
 
-libDeviceLayer_a-Entropy.o: Entropy.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libDeviceLayer_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT libDeviceLayer_a-Entropy.o -MD -MP -MF $(DEPDIR)/libDeviceLayer_a-Entropy.Tpo -c -o libDeviceLayer_a-Entropy.o `test -f 'Entropy.cpp' || echo '$(srcdir)/'`Entropy.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libDeviceLayer_a-Entropy.Tpo $(DEPDIR)/libDeviceLayer_a-Entropy.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='Entropy.cpp' object='libDeviceLayer_a-Entropy.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libDeviceLayer_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o libDeviceLayer_a-Entropy.o `test -f 'Entropy.cpp' || echo '$(srcdir)/'`Entropy.cpp
-
-libDeviceLayer_a-Entropy.obj: Entropy.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libDeviceLayer_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT libDeviceLayer_a-Entropy.obj -MD -MP -MF $(DEPDIR)/libDeviceLayer_a-Entropy.Tpo -c -o libDeviceLayer_a-Entropy.obj `if test -f 'Entropy.cpp'; then $(CYGPATH_W) 'Entropy.cpp'; else $(CYGPATH_W) '$(srcdir)/Entropy.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libDeviceLayer_a-Entropy.Tpo $(DEPDIR)/libDeviceLayer_a-Entropy.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='Entropy.cpp' object='libDeviceLayer_a-Entropy.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libDeviceLayer_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o libDeviceLayer_a-Entropy.obj `if test -f 'Entropy.cpp'; then $(CYGPATH_W) 'Entropy.cpp'; else $(CYGPATH_W) '$(srcdir)/Entropy.cpp'; fi`
-
-libDeviceLayer_a-ESPUtils.o: ESPUtils.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libDeviceLayer_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT libDeviceLayer_a-ESPUtils.o -MD -MP -MF $(DEPDIR)/libDeviceLayer_a-ESPUtils.Tpo -c -o libDeviceLayer_a-ESPUtils.o `test -f 'ESPUtils.cpp' || echo '$(srcdir)/'`ESPUtils.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libDeviceLayer_a-ESPUtils.Tpo $(DEPDIR)/libDeviceLayer_a-ESPUtils.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='ESPUtils.cpp' object='libDeviceLayer_a-ESPUtils.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libDeviceLayer_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o libDeviceLayer_a-ESPUtils.o `test -f 'ESPUtils.cpp' || echo '$(srcdir)/'`ESPUtils.cpp
-
-libDeviceLayer_a-ESPUtils.obj: ESPUtils.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libDeviceLayer_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT libDeviceLayer_a-ESPUtils.obj -MD -MP -MF $(DEPDIR)/libDeviceLayer_a-ESPUtils.Tpo -c -o libDeviceLayer_a-ESPUtils.obj `if test -f 'ESPUtils.cpp'; then $(CYGPATH_W) 'ESPUtils.cpp'; else $(CYGPATH_W) '$(srcdir)/ESPUtils.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libDeviceLayer_a-ESPUtils.Tpo $(DEPDIR)/libDeviceLayer_a-ESPUtils.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='ESPUtils.cpp' object='libDeviceLayer_a-ESPUtils.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libDeviceLayer_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o libDeviceLayer_a-ESPUtils.obj `if test -f 'ESPUtils.cpp'; then $(CYGPATH_W) 'ESPUtils.cpp'; else $(CYGPATH_W) '$(srcdir)/ESPUtils.cpp'; fi`
-
 libDeviceLayer_a-FabricProvisioningServer.o: FabricProvisioningServer.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libDeviceLayer_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT libDeviceLayer_a-FabricProvisioningServer.o -MD -MP -MF $(DEPDIR)/libDeviceLayer_a-FabricProvisioningServer.Tpo -c -o libDeviceLayer_a-FabricProvisioningServer.o `test -f 'FabricProvisioningServer.cpp' || echo '$(srcdir)/'`FabricProvisioningServer.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libDeviceLayer_a-FabricProvisioningServer.Tpo $(DEPDIR)/libDeviceLayer_a-FabricProvisioningServer.Po
@@ -879,20 +851,6 @@ libDeviceLayer_a-Globals.obj: Globals.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='Globals.cpp' object='libDeviceLayer_a-Globals.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libDeviceLayer_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o libDeviceLayer_a-Globals.obj `if test -f 'Globals.cpp'; then $(CYGPATH_W) 'Globals.cpp'; else $(CYGPATH_W) '$(srcdir)/Globals.cpp'; fi`
-
-libDeviceLayer_a-Logging.o: Logging.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libDeviceLayer_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT libDeviceLayer_a-Logging.o -MD -MP -MF $(DEPDIR)/libDeviceLayer_a-Logging.Tpo -c -o libDeviceLayer_a-Logging.o `test -f 'Logging.cpp' || echo '$(srcdir)/'`Logging.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libDeviceLayer_a-Logging.Tpo $(DEPDIR)/libDeviceLayer_a-Logging.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='Logging.cpp' object='libDeviceLayer_a-Logging.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libDeviceLayer_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o libDeviceLayer_a-Logging.o `test -f 'Logging.cpp' || echo '$(srcdir)/'`Logging.cpp
-
-libDeviceLayer_a-Logging.obj: Logging.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libDeviceLayer_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT libDeviceLayer_a-Logging.obj -MD -MP -MF $(DEPDIR)/libDeviceLayer_a-Logging.Tpo -c -o libDeviceLayer_a-Logging.obj `if test -f 'Logging.cpp'; then $(CYGPATH_W) 'Logging.cpp'; else $(CYGPATH_W) '$(srcdir)/Logging.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libDeviceLayer_a-Logging.Tpo $(DEPDIR)/libDeviceLayer_a-Logging.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='Logging.cpp' object='libDeviceLayer_a-Logging.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libDeviceLayer_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o libDeviceLayer_a-Logging.obj `if test -f 'Logging.cpp'; then $(CYGPATH_W) 'Logging.cpp'; else $(CYGPATH_W) '$(srcdir)/Logging.cpp'; fi`
 
 libDeviceLayer_a-NetworkInfo.o: NetworkInfo.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libDeviceLayer_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT libDeviceLayer_a-NetworkInfo.o -MD -MP -MF $(DEPDIR)/libDeviceLayer_a-NetworkInfo.Tpo -c -o libDeviceLayer_a-NetworkInfo.o `test -f 'NetworkInfo.cpp' || echo '$(srcdir)/'`NetworkInfo.cpp
@@ -992,20 +950,6 @@ libDeviceLayer_a-TestDeviceIds.obj: TestDeviceIds.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libDeviceLayer_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o libDeviceLayer_a-TestDeviceIds.obj `if test -f 'TestDeviceIds.cpp'; then $(CYGPATH_W) 'TestDeviceIds.cpp'; else $(CYGPATH_W) '$(srcdir)/TestDeviceIds.cpp'; fi`
 
-libDeviceLayer_a-Time.o: Time.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libDeviceLayer_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT libDeviceLayer_a-Time.o -MD -MP -MF $(DEPDIR)/libDeviceLayer_a-Time.Tpo -c -o libDeviceLayer_a-Time.o `test -f 'Time.cpp' || echo '$(srcdir)/'`Time.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libDeviceLayer_a-Time.Tpo $(DEPDIR)/libDeviceLayer_a-Time.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='Time.cpp' object='libDeviceLayer_a-Time.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libDeviceLayer_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o libDeviceLayer_a-Time.o `test -f 'Time.cpp' || echo '$(srcdir)/'`Time.cpp
-
-libDeviceLayer_a-Time.obj: Time.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libDeviceLayer_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT libDeviceLayer_a-Time.obj -MD -MP -MF $(DEPDIR)/libDeviceLayer_a-Time.Tpo -c -o libDeviceLayer_a-Time.obj `if test -f 'Time.cpp'; then $(CYGPATH_W) 'Time.cpp'; else $(CYGPATH_W) '$(srcdir)/Time.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libDeviceLayer_a-Time.Tpo $(DEPDIR)/libDeviceLayer_a-Time.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='Time.cpp' object='libDeviceLayer_a-Time.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libDeviceLayer_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o libDeviceLayer_a-Time.obj `if test -f 'Time.cpp'; then $(CYGPATH_W) 'Time.cpp'; else $(CYGPATH_W) '$(srcdir)/Time.cpp'; fi`
-
 libDeviceLayer_a-TimeSyncManager.o: TimeSyncManager.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libDeviceLayer_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT libDeviceLayer_a-TimeSyncManager.o -MD -MP -MF $(DEPDIR)/libDeviceLayer_a-TimeSyncManager.Tpo -c -o libDeviceLayer_a-TimeSyncManager.o `test -f 'TimeSyncManager.cpp' || echo '$(srcdir)/'`TimeSyncManager.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libDeviceLayer_a-TimeSyncManager.Tpo $(DEPDIR)/libDeviceLayer_a-TimeSyncManager.Po
@@ -1062,6 +1006,20 @@ trait-support/weave/trait/description/libDeviceLayer_a-DeviceIdentityTrait.obj: 
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libDeviceLayer_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o trait-support/weave/trait/description/libDeviceLayer_a-DeviceIdentityTrait.obj `if test -f 'trait-support/weave/trait/description/DeviceIdentityTrait.cpp'; then $(CYGPATH_W) 'trait-support/weave/trait/description/DeviceIdentityTrait.cpp'; else $(CYGPATH_W) '$(srcdir)/trait-support/weave/trait/description/DeviceIdentityTrait.cpp'; fi`
 
+ESP32/libDeviceLayer_a-AESBlockCipher.o: ESP32/AESBlockCipher.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libDeviceLayer_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT ESP32/libDeviceLayer_a-AESBlockCipher.o -MD -MP -MF ESP32/$(DEPDIR)/libDeviceLayer_a-AESBlockCipher.Tpo -c -o ESP32/libDeviceLayer_a-AESBlockCipher.o `test -f 'ESP32/AESBlockCipher.cpp' || echo '$(srcdir)/'`ESP32/AESBlockCipher.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ESP32/$(DEPDIR)/libDeviceLayer_a-AESBlockCipher.Tpo ESP32/$(DEPDIR)/libDeviceLayer_a-AESBlockCipher.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='ESP32/AESBlockCipher.cpp' object='ESP32/libDeviceLayer_a-AESBlockCipher.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libDeviceLayer_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o ESP32/libDeviceLayer_a-AESBlockCipher.o `test -f 'ESP32/AESBlockCipher.cpp' || echo '$(srcdir)/'`ESP32/AESBlockCipher.cpp
+
+ESP32/libDeviceLayer_a-AESBlockCipher.obj: ESP32/AESBlockCipher.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libDeviceLayer_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT ESP32/libDeviceLayer_a-AESBlockCipher.obj -MD -MP -MF ESP32/$(DEPDIR)/libDeviceLayer_a-AESBlockCipher.Tpo -c -o ESP32/libDeviceLayer_a-AESBlockCipher.obj `if test -f 'ESP32/AESBlockCipher.cpp'; then $(CYGPATH_W) 'ESP32/AESBlockCipher.cpp'; else $(CYGPATH_W) '$(srcdir)/ESP32/AESBlockCipher.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ESP32/$(DEPDIR)/libDeviceLayer_a-AESBlockCipher.Tpo ESP32/$(DEPDIR)/libDeviceLayer_a-AESBlockCipher.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='ESP32/AESBlockCipher.cpp' object='ESP32/libDeviceLayer_a-AESBlockCipher.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libDeviceLayer_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o ESP32/libDeviceLayer_a-AESBlockCipher.obj `if test -f 'ESP32/AESBlockCipher.cpp'; then $(CYGPATH_W) 'ESP32/AESBlockCipher.cpp'; else $(CYGPATH_W) '$(srcdir)/ESP32/AESBlockCipher.cpp'; fi`
+
 ESP32/libDeviceLayer_a-ConfigurationManagerImpl.o: ESP32/ConfigurationManagerImpl.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libDeviceLayer_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT ESP32/libDeviceLayer_a-ConfigurationManagerImpl.o -MD -MP -MF ESP32/$(DEPDIR)/libDeviceLayer_a-ConfigurationManagerImpl.Tpo -c -o ESP32/libDeviceLayer_a-ConfigurationManagerImpl.o `test -f 'ESP32/ConfigurationManagerImpl.cpp' || echo '$(srcdir)/'`ESP32/ConfigurationManagerImpl.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ESP32/$(DEPDIR)/libDeviceLayer_a-ConfigurationManagerImpl.Tpo ESP32/$(DEPDIR)/libDeviceLayer_a-ConfigurationManagerImpl.Po
@@ -1075,34 +1033,6 @@ ESP32/libDeviceLayer_a-ConfigurationManagerImpl.obj: ESP32/ConfigurationManagerI
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='ESP32/ConfigurationManagerImpl.cpp' object='ESP32/libDeviceLayer_a-ConfigurationManagerImpl.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libDeviceLayer_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o ESP32/libDeviceLayer_a-ConfigurationManagerImpl.obj `if test -f 'ESP32/ConfigurationManagerImpl.cpp'; then $(CYGPATH_W) 'ESP32/ConfigurationManagerImpl.cpp'; else $(CYGPATH_W) '$(srcdir)/ESP32/ConfigurationManagerImpl.cpp'; fi`
-
-ESP32/libDeviceLayer_a-GroupKeyStoreImpl.o: ESP32/GroupKeyStoreImpl.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libDeviceLayer_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT ESP32/libDeviceLayer_a-GroupKeyStoreImpl.o -MD -MP -MF ESP32/$(DEPDIR)/libDeviceLayer_a-GroupKeyStoreImpl.Tpo -c -o ESP32/libDeviceLayer_a-GroupKeyStoreImpl.o `test -f 'ESP32/GroupKeyStoreImpl.cpp' || echo '$(srcdir)/'`ESP32/GroupKeyStoreImpl.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ESP32/$(DEPDIR)/libDeviceLayer_a-GroupKeyStoreImpl.Tpo ESP32/$(DEPDIR)/libDeviceLayer_a-GroupKeyStoreImpl.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='ESP32/GroupKeyStoreImpl.cpp' object='ESP32/libDeviceLayer_a-GroupKeyStoreImpl.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libDeviceLayer_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o ESP32/libDeviceLayer_a-GroupKeyStoreImpl.o `test -f 'ESP32/GroupKeyStoreImpl.cpp' || echo '$(srcdir)/'`ESP32/GroupKeyStoreImpl.cpp
-
-ESP32/libDeviceLayer_a-GroupKeyStoreImpl.obj: ESP32/GroupKeyStoreImpl.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libDeviceLayer_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT ESP32/libDeviceLayer_a-GroupKeyStoreImpl.obj -MD -MP -MF ESP32/$(DEPDIR)/libDeviceLayer_a-GroupKeyStoreImpl.Tpo -c -o ESP32/libDeviceLayer_a-GroupKeyStoreImpl.obj `if test -f 'ESP32/GroupKeyStoreImpl.cpp'; then $(CYGPATH_W) 'ESP32/GroupKeyStoreImpl.cpp'; else $(CYGPATH_W) '$(srcdir)/ESP32/GroupKeyStoreImpl.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ESP32/$(DEPDIR)/libDeviceLayer_a-GroupKeyStoreImpl.Tpo ESP32/$(DEPDIR)/libDeviceLayer_a-GroupKeyStoreImpl.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='ESP32/GroupKeyStoreImpl.cpp' object='ESP32/libDeviceLayer_a-GroupKeyStoreImpl.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libDeviceLayer_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o ESP32/libDeviceLayer_a-GroupKeyStoreImpl.obj `if test -f 'ESP32/GroupKeyStoreImpl.cpp'; then $(CYGPATH_W) 'ESP32/GroupKeyStoreImpl.cpp'; else $(CYGPATH_W) '$(srcdir)/ESP32/GroupKeyStoreImpl.cpp'; fi`
-
-ESP32/libDeviceLayer_a-NetworkProvisioningServerImpl.o: ESP32/NetworkProvisioningServerImpl.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libDeviceLayer_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT ESP32/libDeviceLayer_a-NetworkProvisioningServerImpl.o -MD -MP -MF ESP32/$(DEPDIR)/libDeviceLayer_a-NetworkProvisioningServerImpl.Tpo -c -o ESP32/libDeviceLayer_a-NetworkProvisioningServerImpl.o `test -f 'ESP32/NetworkProvisioningServerImpl.cpp' || echo '$(srcdir)/'`ESP32/NetworkProvisioningServerImpl.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ESP32/$(DEPDIR)/libDeviceLayer_a-NetworkProvisioningServerImpl.Tpo ESP32/$(DEPDIR)/libDeviceLayer_a-NetworkProvisioningServerImpl.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='ESP32/NetworkProvisioningServerImpl.cpp' object='ESP32/libDeviceLayer_a-NetworkProvisioningServerImpl.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libDeviceLayer_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o ESP32/libDeviceLayer_a-NetworkProvisioningServerImpl.o `test -f 'ESP32/NetworkProvisioningServerImpl.cpp' || echo '$(srcdir)/'`ESP32/NetworkProvisioningServerImpl.cpp
-
-ESP32/libDeviceLayer_a-NetworkProvisioningServerImpl.obj: ESP32/NetworkProvisioningServerImpl.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libDeviceLayer_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT ESP32/libDeviceLayer_a-NetworkProvisioningServerImpl.obj -MD -MP -MF ESP32/$(DEPDIR)/libDeviceLayer_a-NetworkProvisioningServerImpl.Tpo -c -o ESP32/libDeviceLayer_a-NetworkProvisioningServerImpl.obj `if test -f 'ESP32/NetworkProvisioningServerImpl.cpp'; then $(CYGPATH_W) 'ESP32/NetworkProvisioningServerImpl.cpp'; else $(CYGPATH_W) '$(srcdir)/ESP32/NetworkProvisioningServerImpl.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ESP32/$(DEPDIR)/libDeviceLayer_a-NetworkProvisioningServerImpl.Tpo ESP32/$(DEPDIR)/libDeviceLayer_a-NetworkProvisioningServerImpl.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='ESP32/NetworkProvisioningServerImpl.cpp' object='ESP32/libDeviceLayer_a-NetworkProvisioningServerImpl.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libDeviceLayer_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o ESP32/libDeviceLayer_a-NetworkProvisioningServerImpl.obj `if test -f 'ESP32/NetworkProvisioningServerImpl.cpp'; then $(CYGPATH_W) 'ESP32/NetworkProvisioningServerImpl.cpp'; else $(CYGPATH_W) '$(srcdir)/ESP32/NetworkProvisioningServerImpl.cpp'; fi`
 
 ESP32/libDeviceLayer_a-ConnectivityManagerImpl.o: ESP32/ConnectivityManagerImpl.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libDeviceLayer_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT ESP32/libDeviceLayer_a-ConnectivityManagerImpl.o -MD -MP -MF ESP32/$(DEPDIR)/libDeviceLayer_a-ConnectivityManagerImpl.Tpo -c -o ESP32/libDeviceLayer_a-ConnectivityManagerImpl.o `test -f 'ESP32/ConnectivityManagerImpl.cpp' || echo '$(srcdir)/'`ESP32/ConnectivityManagerImpl.cpp
@@ -1118,6 +1048,20 @@ ESP32/libDeviceLayer_a-ConnectivityManagerImpl.obj: ESP32/ConnectivityManagerImp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libDeviceLayer_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o ESP32/libDeviceLayer_a-ConnectivityManagerImpl.obj `if test -f 'ESP32/ConnectivityManagerImpl.cpp'; then $(CYGPATH_W) 'ESP32/ConnectivityManagerImpl.cpp'; else $(CYGPATH_W) '$(srcdir)/ESP32/ConnectivityManagerImpl.cpp'; fi`
 
+ESP32/libDeviceLayer_a-Entropy.o: ESP32/Entropy.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libDeviceLayer_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT ESP32/libDeviceLayer_a-Entropy.o -MD -MP -MF ESP32/$(DEPDIR)/libDeviceLayer_a-Entropy.Tpo -c -o ESP32/libDeviceLayer_a-Entropy.o `test -f 'ESP32/Entropy.cpp' || echo '$(srcdir)/'`ESP32/Entropy.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ESP32/$(DEPDIR)/libDeviceLayer_a-Entropy.Tpo ESP32/$(DEPDIR)/libDeviceLayer_a-Entropy.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='ESP32/Entropy.cpp' object='ESP32/libDeviceLayer_a-Entropy.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libDeviceLayer_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o ESP32/libDeviceLayer_a-Entropy.o `test -f 'ESP32/Entropy.cpp' || echo '$(srcdir)/'`ESP32/Entropy.cpp
+
+ESP32/libDeviceLayer_a-Entropy.obj: ESP32/Entropy.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libDeviceLayer_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT ESP32/libDeviceLayer_a-Entropy.obj -MD -MP -MF ESP32/$(DEPDIR)/libDeviceLayer_a-Entropy.Tpo -c -o ESP32/libDeviceLayer_a-Entropy.obj `if test -f 'ESP32/Entropy.cpp'; then $(CYGPATH_W) 'ESP32/Entropy.cpp'; else $(CYGPATH_W) '$(srcdir)/ESP32/Entropy.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ESP32/$(DEPDIR)/libDeviceLayer_a-Entropy.Tpo ESP32/$(DEPDIR)/libDeviceLayer_a-Entropy.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='ESP32/Entropy.cpp' object='ESP32/libDeviceLayer_a-Entropy.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libDeviceLayer_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o ESP32/libDeviceLayer_a-Entropy.obj `if test -f 'ESP32/Entropy.cpp'; then $(CYGPATH_W) 'ESP32/Entropy.cpp'; else $(CYGPATH_W) '$(srcdir)/ESP32/Entropy.cpp'; fi`
+
 ESP32/libDeviceLayer_a-ESP32Config.o: ESP32/ESP32Config.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libDeviceLayer_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT ESP32/libDeviceLayer_a-ESP32Config.o -MD -MP -MF ESP32/$(DEPDIR)/libDeviceLayer_a-ESP32Config.Tpo -c -o ESP32/libDeviceLayer_a-ESP32Config.o `test -f 'ESP32/ESP32Config.cpp' || echo '$(srcdir)/'`ESP32/ESP32Config.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ESP32/$(DEPDIR)/libDeviceLayer_a-ESP32Config.Tpo ESP32/$(DEPDIR)/libDeviceLayer_a-ESP32Config.Po
@@ -1131,6 +1075,76 @@ ESP32/libDeviceLayer_a-ESP32Config.obj: ESP32/ESP32Config.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='ESP32/ESP32Config.cpp' object='ESP32/libDeviceLayer_a-ESP32Config.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libDeviceLayer_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o ESP32/libDeviceLayer_a-ESP32Config.obj `if test -f 'ESP32/ESP32Config.cpp'; then $(CYGPATH_W) 'ESP32/ESP32Config.cpp'; else $(CYGPATH_W) '$(srcdir)/ESP32/ESP32Config.cpp'; fi`
+
+ESP32/libDeviceLayer_a-ESP32Utils.o: ESP32/ESP32Utils.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libDeviceLayer_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT ESP32/libDeviceLayer_a-ESP32Utils.o -MD -MP -MF ESP32/$(DEPDIR)/libDeviceLayer_a-ESP32Utils.Tpo -c -o ESP32/libDeviceLayer_a-ESP32Utils.o `test -f 'ESP32/ESP32Utils.cpp' || echo '$(srcdir)/'`ESP32/ESP32Utils.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ESP32/$(DEPDIR)/libDeviceLayer_a-ESP32Utils.Tpo ESP32/$(DEPDIR)/libDeviceLayer_a-ESP32Utils.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='ESP32/ESP32Utils.cpp' object='ESP32/libDeviceLayer_a-ESP32Utils.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libDeviceLayer_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o ESP32/libDeviceLayer_a-ESP32Utils.o `test -f 'ESP32/ESP32Utils.cpp' || echo '$(srcdir)/'`ESP32/ESP32Utils.cpp
+
+ESP32/libDeviceLayer_a-ESP32Utils.obj: ESP32/ESP32Utils.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libDeviceLayer_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT ESP32/libDeviceLayer_a-ESP32Utils.obj -MD -MP -MF ESP32/$(DEPDIR)/libDeviceLayer_a-ESP32Utils.Tpo -c -o ESP32/libDeviceLayer_a-ESP32Utils.obj `if test -f 'ESP32/ESP32Utils.cpp'; then $(CYGPATH_W) 'ESP32/ESP32Utils.cpp'; else $(CYGPATH_W) '$(srcdir)/ESP32/ESP32Utils.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ESP32/$(DEPDIR)/libDeviceLayer_a-ESP32Utils.Tpo ESP32/$(DEPDIR)/libDeviceLayer_a-ESP32Utils.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='ESP32/ESP32Utils.cpp' object='ESP32/libDeviceLayer_a-ESP32Utils.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libDeviceLayer_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o ESP32/libDeviceLayer_a-ESP32Utils.obj `if test -f 'ESP32/ESP32Utils.cpp'; then $(CYGPATH_W) 'ESP32/ESP32Utils.cpp'; else $(CYGPATH_W) '$(srcdir)/ESP32/ESP32Utils.cpp'; fi`
+
+ESP32/libDeviceLayer_a-GroupKeyStoreImpl.o: ESP32/GroupKeyStoreImpl.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libDeviceLayer_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT ESP32/libDeviceLayer_a-GroupKeyStoreImpl.o -MD -MP -MF ESP32/$(DEPDIR)/libDeviceLayer_a-GroupKeyStoreImpl.Tpo -c -o ESP32/libDeviceLayer_a-GroupKeyStoreImpl.o `test -f 'ESP32/GroupKeyStoreImpl.cpp' || echo '$(srcdir)/'`ESP32/GroupKeyStoreImpl.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ESP32/$(DEPDIR)/libDeviceLayer_a-GroupKeyStoreImpl.Tpo ESP32/$(DEPDIR)/libDeviceLayer_a-GroupKeyStoreImpl.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='ESP32/GroupKeyStoreImpl.cpp' object='ESP32/libDeviceLayer_a-GroupKeyStoreImpl.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libDeviceLayer_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o ESP32/libDeviceLayer_a-GroupKeyStoreImpl.o `test -f 'ESP32/GroupKeyStoreImpl.cpp' || echo '$(srcdir)/'`ESP32/GroupKeyStoreImpl.cpp
+
+ESP32/libDeviceLayer_a-GroupKeyStoreImpl.obj: ESP32/GroupKeyStoreImpl.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libDeviceLayer_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT ESP32/libDeviceLayer_a-GroupKeyStoreImpl.obj -MD -MP -MF ESP32/$(DEPDIR)/libDeviceLayer_a-GroupKeyStoreImpl.Tpo -c -o ESP32/libDeviceLayer_a-GroupKeyStoreImpl.obj `if test -f 'ESP32/GroupKeyStoreImpl.cpp'; then $(CYGPATH_W) 'ESP32/GroupKeyStoreImpl.cpp'; else $(CYGPATH_W) '$(srcdir)/ESP32/GroupKeyStoreImpl.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ESP32/$(DEPDIR)/libDeviceLayer_a-GroupKeyStoreImpl.Tpo ESP32/$(DEPDIR)/libDeviceLayer_a-GroupKeyStoreImpl.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='ESP32/GroupKeyStoreImpl.cpp' object='ESP32/libDeviceLayer_a-GroupKeyStoreImpl.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libDeviceLayer_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o ESP32/libDeviceLayer_a-GroupKeyStoreImpl.obj `if test -f 'ESP32/GroupKeyStoreImpl.cpp'; then $(CYGPATH_W) 'ESP32/GroupKeyStoreImpl.cpp'; else $(CYGPATH_W) '$(srcdir)/ESP32/GroupKeyStoreImpl.cpp'; fi`
+
+ESP32/libDeviceLayer_a-Logging.o: ESP32/Logging.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libDeviceLayer_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT ESP32/libDeviceLayer_a-Logging.o -MD -MP -MF ESP32/$(DEPDIR)/libDeviceLayer_a-Logging.Tpo -c -o ESP32/libDeviceLayer_a-Logging.o `test -f 'ESP32/Logging.cpp' || echo '$(srcdir)/'`ESP32/Logging.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ESP32/$(DEPDIR)/libDeviceLayer_a-Logging.Tpo ESP32/$(DEPDIR)/libDeviceLayer_a-Logging.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='ESP32/Logging.cpp' object='ESP32/libDeviceLayer_a-Logging.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libDeviceLayer_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o ESP32/libDeviceLayer_a-Logging.o `test -f 'ESP32/Logging.cpp' || echo '$(srcdir)/'`ESP32/Logging.cpp
+
+ESP32/libDeviceLayer_a-Logging.obj: ESP32/Logging.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libDeviceLayer_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT ESP32/libDeviceLayer_a-Logging.obj -MD -MP -MF ESP32/$(DEPDIR)/libDeviceLayer_a-Logging.Tpo -c -o ESP32/libDeviceLayer_a-Logging.obj `if test -f 'ESP32/Logging.cpp'; then $(CYGPATH_W) 'ESP32/Logging.cpp'; else $(CYGPATH_W) '$(srcdir)/ESP32/Logging.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ESP32/$(DEPDIR)/libDeviceLayer_a-Logging.Tpo ESP32/$(DEPDIR)/libDeviceLayer_a-Logging.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='ESP32/Logging.cpp' object='ESP32/libDeviceLayer_a-Logging.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libDeviceLayer_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o ESP32/libDeviceLayer_a-Logging.obj `if test -f 'ESP32/Logging.cpp'; then $(CYGPATH_W) 'ESP32/Logging.cpp'; else $(CYGPATH_W) '$(srcdir)/ESP32/Logging.cpp'; fi`
+
+ESP32/libDeviceLayer_a-NetworkProvisioningServerImpl.o: ESP32/NetworkProvisioningServerImpl.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libDeviceLayer_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT ESP32/libDeviceLayer_a-NetworkProvisioningServerImpl.o -MD -MP -MF ESP32/$(DEPDIR)/libDeviceLayer_a-NetworkProvisioningServerImpl.Tpo -c -o ESP32/libDeviceLayer_a-NetworkProvisioningServerImpl.o `test -f 'ESP32/NetworkProvisioningServerImpl.cpp' || echo '$(srcdir)/'`ESP32/NetworkProvisioningServerImpl.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ESP32/$(DEPDIR)/libDeviceLayer_a-NetworkProvisioningServerImpl.Tpo ESP32/$(DEPDIR)/libDeviceLayer_a-NetworkProvisioningServerImpl.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='ESP32/NetworkProvisioningServerImpl.cpp' object='ESP32/libDeviceLayer_a-NetworkProvisioningServerImpl.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libDeviceLayer_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o ESP32/libDeviceLayer_a-NetworkProvisioningServerImpl.o `test -f 'ESP32/NetworkProvisioningServerImpl.cpp' || echo '$(srcdir)/'`ESP32/NetworkProvisioningServerImpl.cpp
+
+ESP32/libDeviceLayer_a-NetworkProvisioningServerImpl.obj: ESP32/NetworkProvisioningServerImpl.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libDeviceLayer_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT ESP32/libDeviceLayer_a-NetworkProvisioningServerImpl.obj -MD -MP -MF ESP32/$(DEPDIR)/libDeviceLayer_a-NetworkProvisioningServerImpl.Tpo -c -o ESP32/libDeviceLayer_a-NetworkProvisioningServerImpl.obj `if test -f 'ESP32/NetworkProvisioningServerImpl.cpp'; then $(CYGPATH_W) 'ESP32/NetworkProvisioningServerImpl.cpp'; else $(CYGPATH_W) '$(srcdir)/ESP32/NetworkProvisioningServerImpl.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ESP32/$(DEPDIR)/libDeviceLayer_a-NetworkProvisioningServerImpl.Tpo ESP32/$(DEPDIR)/libDeviceLayer_a-NetworkProvisioningServerImpl.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='ESP32/NetworkProvisioningServerImpl.cpp' object='ESP32/libDeviceLayer_a-NetworkProvisioningServerImpl.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libDeviceLayer_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o ESP32/libDeviceLayer_a-NetworkProvisioningServerImpl.obj `if test -f 'ESP32/NetworkProvisioningServerImpl.cpp'; then $(CYGPATH_W) 'ESP32/NetworkProvisioningServerImpl.cpp'; else $(CYGPATH_W) '$(srcdir)/ESP32/NetworkProvisioningServerImpl.cpp'; fi`
+
+ESP32/libDeviceLayer_a-Time.o: ESP32/Time.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libDeviceLayer_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT ESP32/libDeviceLayer_a-Time.o -MD -MP -MF ESP32/$(DEPDIR)/libDeviceLayer_a-Time.Tpo -c -o ESP32/libDeviceLayer_a-Time.o `test -f 'ESP32/Time.cpp' || echo '$(srcdir)/'`ESP32/Time.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ESP32/$(DEPDIR)/libDeviceLayer_a-Time.Tpo ESP32/$(DEPDIR)/libDeviceLayer_a-Time.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='ESP32/Time.cpp' object='ESP32/libDeviceLayer_a-Time.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libDeviceLayer_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o ESP32/libDeviceLayer_a-Time.o `test -f 'ESP32/Time.cpp' || echo '$(srcdir)/'`ESP32/Time.cpp
+
+ESP32/libDeviceLayer_a-Time.obj: ESP32/Time.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libDeviceLayer_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT ESP32/libDeviceLayer_a-Time.obj -MD -MP -MF ESP32/$(DEPDIR)/libDeviceLayer_a-Time.Tpo -c -o ESP32/libDeviceLayer_a-Time.obj `if test -f 'ESP32/Time.cpp'; then $(CYGPATH_W) 'ESP32/Time.cpp'; else $(CYGPATH_W) '$(srcdir)/ESP32/Time.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ESP32/$(DEPDIR)/libDeviceLayer_a-Time.Tpo ESP32/$(DEPDIR)/libDeviceLayer_a-Time.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='ESP32/Time.cpp' object='ESP32/libDeviceLayer_a-Time.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libDeviceLayer_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o ESP32/libDeviceLayer_a-Time.obj `if test -f 'ESP32/Time.cpp'; then $(CYGPATH_W) 'ESP32/Time.cpp'; else $(CYGPATH_W) '$(srcdir)/ESP32/Time.cpp'; fi`
 
 mostlyclean-libtool:
 	-rm -f *.lo

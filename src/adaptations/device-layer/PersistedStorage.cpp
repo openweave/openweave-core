@@ -18,8 +18,8 @@
 
 /**
  *    @file
- *          Provides implementations for the OpenWeave persistent storage platform
- *          APIs.
+ *          Provides implementations for the OpenWeave persistent storage
+ *          APIs.  This implementation is common across all platforms.
  */
 
 #include <Weave/DeviceLayer/internal/WeaveDeviceLayerInternal.h>
