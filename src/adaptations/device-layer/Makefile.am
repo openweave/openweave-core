@@ -33,18 +33,14 @@ libDeviceLayer_a_CPPFLAGS               = \
     $(NULL)
 
 libDeviceLayer_a_SOURCES                = \
-    AESBlockCipher.cpp                    \
     BLEManager.cpp                        \
     CASEAuth.cpp                          \
     DeviceControlServer.cpp               \
     DeviceDescriptionServer.cpp           \
     DeviceIdentityTraitDataSource.cpp     \
     EchoServer.cpp                        \
-    Entropy.cpp                           \
-    ESPUtils.cpp                          \
     FabricProvisioningServer.cpp          \
     Globals.cpp                           \
-    Logging.cpp                           \
     NetworkInfo.cpp                       \
     PersistedStorage.cpp                  \
     PlatformManager.cpp                   \
@@ -52,7 +48,6 @@ libDeviceLayer_a_SOURCES                = \
     ServiceProvisioningServer.cpp         \
     ServiceTunnelAgent.cpp                \
     TestDeviceIds.cpp                     \
-    Time.cpp                              \
     TimeSyncManager.cpp                   \
     TraitManager.cpp                      \
     Warm.cpp                              \
@@ -62,11 +57,16 @@ libDeviceLayer_a_SOURCES                = \
 if WEAVE_DEVICE_LAYER_TARGET_ESP32
 
 libDeviceLayer_a_SOURCES               +=       \
+    ESP32/AESBlockCipher.cpp                    \
     ESP32/ConfigurationManagerImpl.cpp          \
-    ESP32/GroupKeyStoreImpl.cpp                 \
-    ESP32/NetworkProvisioningServerImpl.cpp     \
     ESP32/ConnectivityManagerImpl.cpp           \
+    ESP32/Entropy.cpp                           \
     ESP32/ESP32Config.cpp                       \
+    ESP32/ESP32Utils.cpp                        \
+    ESP32/GroupKeyStoreImpl.cpp                 \
+    ESP32/Logging.cpp                           \
+    ESP32/NetworkProvisioningServerImpl.cpp     \
+    ESP32/Time.cpp                              \
     $(NULL)
 
 endif # WEAVE_DEVICE_LAYER_TARGET_ESP32

@@ -16,6 +16,12 @@
  *    limitations under the License.
  */
 
+/**
+ *    @file
+ *          Provides implementations for the OpenWeave logging functions
+ *          on the ESP32 platform.
+ */
+
 #include <Weave/DeviceLayer/internal/WeaveDeviceLayerInternal.h>
 #include <Weave/Support/logging/WeaveLogging.h>
 

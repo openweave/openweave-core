@@ -16,8 +16,14 @@
  *    limitations under the License.
  */
 
+/**
+ *    @file
+ *          General utility methods for the ESP32 platform.
+ */
+
 #include <Weave/DeviceLayer/internal/WeaveDeviceLayerInternal.h>
-#include <Weave/DeviceLayer/internal/ESPUtils.h>
+
+#include <Weave/DeviceLayer/ESP32/ESP32Utils.h>
 
 #include "esp_event.h"
 #include "esp_wifi.h"
@@ -25,7 +31,7 @@
 using namespace ::nl::Weave::DeviceLayer::Internal;
 using namespace ::nl::Weave::Profiles::NetworkProvisioning;
 
-WEAVE_ERROR ESPUtils::IsAPEnabled(bool & apEnabled)
+WEAVE_ERROR ESP32Utils::IsAPEnabled(bool & apEnabled)
 {
     WEAVE_ERROR err;
     wifi_mode_t curWiFiMode;
@@ -42,20 +48,20 @@ WEAVE_ERROR ESPUtils::IsAPEnabled(bool & apEnabled)
     return WEAVE_NO_ERROR;
 }
 
-bool ESPUtils::IsStationProvisioned(void)
+bool ESP32Utils::IsStationProvisioned(void)
 {
     wifi_config_t stationConfig;
     return (esp_wifi_get_config(ESP_IF_WIFI_STA, &stationConfig) == ERR_OK && stationConfig.sta.ssid[0] != 0);
 }
 
-WEAVE_ERROR ESPUtils::IsStationConnected(bool & connected)
+WEAVE_ERROR ESP32Utils::IsStationConnected(bool & connected)
 {
     wifi_ap_record_t apInfo;
     connected = (esp_wifi_sta_get_ap_info(&apInfo) == ESP_OK);
     return WEAVE_NO_ERROR;
 }
 
-WEAVE_ERROR ESPUtils::StartWiFiLayer(void)
+WEAVE_ERROR ESP32Utils::StartWiFiLayer(void)
 {
     WEAVE_ERROR err;
     int8_t ignored;
@@ -93,7 +99,7 @@ exit:
     return err;
 }
 
-WEAVE_ERROR ESPUtils::EnableStationMode(void)
+WEAVE_ERROR ESP32Utils::EnableStationMode(void)
 {
     WEAVE_ERROR err;
     wifi_mode_t curWiFiMode;
@@ -124,7 +130,7 @@ exit:
     return err;
 }
 
-WEAVE_ERROR ESPUtils::SetAPMode(bool enabled)
+WEAVE_ERROR ESP32Utils::SetAPMode(bool enabled)
 {
     WEAVE_ERROR err;
     wifi_mode_t curWiFiMode, targetWiFiMode;
@@ -157,7 +163,7 @@ exit:
     return err;
 }
 
-WiFiSecurityType ESPUtils::WiFiAuthModeToWeaveWiFiSecurityType(wifi_auth_mode_t authMode)
+WiFiSecurityType ESP32Utils::WiFiAuthModeToWeaveWiFiSecurityType(wifi_auth_mode_t authMode)
 {
     switch (authMode)
     {
@@ -178,7 +184,7 @@ WiFiSecurityType ESPUtils::WiFiAuthModeToWeaveWiFiSecurityType(wifi_auth_mode_t 
     }
 }
 
-int ESPUtils::OrderScanResultsByRSSI(const void * _res1, const void * _res2)
+int ESP32Utils::OrderScanResultsByRSSI(const void * _res1, const void * _res2)
 {
     const wifi_ap_record_t * res1 = (const wifi_ap_record_t *) _res1;
     const wifi_ap_record_t * res2 = (const wifi_ap_record_t *) _res2;
@@ -194,7 +200,7 @@ int ESPUtils::OrderScanResultsByRSSI(const void * _res1, const void * _res2)
     return 0;
 }
 
-const char * ESPUtils::WiFiModeToStr(wifi_mode_t wifiMode)
+const char * ESP32Utils::WiFiModeToStr(wifi_mode_t wifiMode)
 {
     switch (wifiMode)
     {
@@ -211,7 +217,7 @@ const char * ESPUtils::WiFiModeToStr(wifi_mode_t wifiMode)
     }
 }
 
-struct netif * ESPUtils::GetStationNetif(void)
+struct netif * ESP32Utils::GetStationNetif(void)
 {
     struct netif * netif;
 
@@ -226,7 +232,7 @@ struct netif * ESPUtils::GetStationNetif(void)
     return NULL;
 }
 
-const char * ESPUtils::InterfaceIdToName(tcpip_adapter_if_t intfId)
+const char * ESP32Utils::InterfaceIdToName(tcpip_adapter_if_t intfId)
 {
     switch (intfId)
     {
@@ -241,7 +247,7 @@ const char * ESPUtils::InterfaceIdToName(tcpip_adapter_if_t intfId)
     }
 }
 
-bool ESPUtils::HasIPv6LinkLocalAddress(tcpip_adapter_if_t intfId)
+bool ESP32Utils::HasIPv6LinkLocalAddress(tcpip_adapter_if_t intfId)
 {
     ip6_addr_t unused;
     return tcpip_adapter_get_ip6_linklocal(intfId, &unused) == ESP_OK;

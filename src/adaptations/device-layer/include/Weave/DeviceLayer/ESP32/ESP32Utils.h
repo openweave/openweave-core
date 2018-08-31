@@ -27,7 +27,7 @@ namespace Weave {
 namespace DeviceLayer {
 namespace Internal {
 
-class ESPUtils
+class ESP32Utils
 {
 public:
     static WEAVE_ERROR IsAPEnabled(bool & apEnabled);

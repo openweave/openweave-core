@@ -16,6 +16,14 @@
  *    limitations under the License.
  */
 
+/**
+ *    @file
+ *          Provides an implementation for the OpenWeave WeaveCASEAuthDelegate
+ *          interface.
+ */
+
+// TODO: Generalize this code to work on systems without malloc.
+
 #include <Weave/DeviceLayer/internal/WeaveDeviceLayerInternal.h>
 #include <Weave/Core/WeaveTLV.h>
 #include <Weave/Profiles/WeaveProfiles.h>

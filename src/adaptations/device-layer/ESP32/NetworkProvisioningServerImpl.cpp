@@ -19,11 +19,11 @@
 #include <Weave/DeviceLayer/internal/WeaveDeviceLayerInternal.h>
 #include <Weave/DeviceLayer/internal/NetworkProvisioningServer.h>
 #include <Weave/DeviceLayer/internal/NetworkInfo.h>
-#include <Weave/DeviceLayer/internal/ESPUtils.h>
-
 #include <Weave/Core/WeaveTLV.h>
 #include <Weave/Profiles/WeaveProfiles.h>
 #include <Weave/Profiles/common/CommonProfile.h>
+
+#include <Weave/DeviceLayer/ESP32/ESP32Utils.h>
 
 #include "esp_event.h"
 #include "esp_wifi.h"
@@ -72,7 +72,7 @@ void NetworkProvisioningServerImpl::_OnPlatformEvent(const WeaveDeviceEvent * ev
             err = esp_wifi_sta_get_ap_info(&ap_info);
             SuccessOrExit(err);
 
-            WiFiSecurityType secType = ESPUtils::WiFiAuthModeToWeaveWiFiSecurityType(ap_info.authmode);
+            WiFiSecurityType secType = ESP32Utils::WiFiAuthModeToWeaveWiFiSecurityType(ap_info.authmode);
 
             err = ConfigurationManagerImpl::Instance().UpdateWiFiStationSecurityType(secType);
             SuccessOrExit(err);
@@ -130,7 +130,7 @@ WEAVE_ERROR NetworkProvisioningServerImpl::SetWiFiStationProvision(const Network
 
     // Ensure that ESP station mode is enabled.  This is required before esp_wifi_set_config(ESP_IF_WIFI_STA,...)
     // can be called.
-    err = ESPUtils::EnableStationMode();
+    err = ESP32Utils::EnableStationMode();
     SuccessOrExit(err);
 
     // Initialize an ESP wifi_config_t structure based on the new provision information.
@@ -264,7 +264,7 @@ void NetworkProvisioningServerImpl::HandleScanDone()
         TLVType outerContainerType;
 
         // Sort results by rssi.
-        qsort(scanResults, scanResultCount, sizeof(*scanResults), ESPUtils::OrderScanResultsByRSSI);
+        qsort(scanResults, scanResultCount, sizeof(*scanResults), ESP32Utils::OrderScanResultsByRSSI);
 
         // Allocate a packet buffer to hold the encoded scan results.
         respBuf = PacketBuffer::New(WEAVE_SYSTEM_CONFIG_HEADER_RESERVE_SIZE + 1);
@@ -286,7 +286,7 @@ void NetworkProvisioningServerImpl::HandleScanDone()
             netInfo.WiFiSSID[NetworkInfo::kMaxWiFiSSIDLength] = 0;
             netInfo.WiFiMode = kWiFiMode_Managed;
             netInfo.WiFiRole = kWiFiRole_Station;
-            netInfo.WiFiSecurityType = ESPUtils::WiFiAuthModeToWeaveWiFiSecurityType(scanResult.authmode);
+            netInfo.WiFiSecurityType = ESP32Utils::WiFiAuthModeToWeaveWiFiSecurityType(scanResult.authmode);
             netInfo.WirelessSignalStrength = scanResult.rssi;
 
             {
