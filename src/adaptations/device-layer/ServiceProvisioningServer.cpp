@@ -216,7 +216,7 @@ void ServiceProvisioningServer::StartPairDeviceToAccount(void)
 
     // If the system does not currently have a tunnel established with the service, wait a
     // period of time for it to be established.
-    if (!ConnectivityMgr.IsServiceTunnelConnected())
+    if (!ConnectivityMgr().IsServiceTunnelConnected())
     {
         mWaitingForServiceTunnel = true;
 

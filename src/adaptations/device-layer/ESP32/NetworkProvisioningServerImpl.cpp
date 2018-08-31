@@ -16,7 +16,6 @@
  *    limitations under the License.
  */
 
-// TODO: remove unneeded includes
 #include <Weave/DeviceLayer/internal/WeaveDeviceLayerInternal.h>
 #include <Weave/DeviceLayer/internal/NetworkProvisioningServer.h>
 #include <Weave/DeviceLayer/internal/NetworkInfo.h>
@@ -35,9 +34,7 @@ using namespace ::nl::Weave::TLV;
 using namespace ::nl::Weave::Profiles::Common;
 using namespace ::nl::Weave::Profiles::NetworkProvisioning;
 
-// TODO: remove???
 using Profiles::kWeaveProfile_Common;
-using Profiles::kWeaveProfile_NetworkProvisioning;
 
 namespace nl {
 namespace Weave {
@@ -327,7 +324,7 @@ exit:
 
     // Tell the ConnectivityManager that the WiFi scan is now done.  This allows it to continue
     // any activities that were deferred while the scan was in progress.
-    ConnectivityMgr.OnWiFiScanDone();
+    ConnectivityMgr().OnWiFiScanDone();
 }
 
 #if WEAVE_DEVICE_CONFIG_WIFI_SCAN_COMPLETION_TIMEOUT
@@ -347,7 +344,7 @@ void NetworkProvisioningServerImpl::HandleScanTimeOut(::nl::Weave::System::Layer
     }
 
     // Tell the ConnectivityManager that the WiFi scan is now done.
-    ConnectivityMgr.OnWiFiScanDone();
+    ConnectivityMgr().OnWiFiScanDone();
 }
 
 #endif // WEAVE_DEVICE_CONFIG_WIFI_SCAN_COMPLETION_TIMEOUT

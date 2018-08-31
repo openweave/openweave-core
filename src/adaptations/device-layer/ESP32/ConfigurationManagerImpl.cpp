@@ -27,7 +27,6 @@
 #include <Weave/Core/WeaveKeyIds.h>
 #include <Weave/Core/WeaveVendorIdentifiers.hpp>
 #include <Weave/Profiles/security/WeaveApplicationKeys.h>
-#include <Weave/Profiles/vendor/nestlabs/device-description/NestProductIdentifiers.hpp>
 #include <Weave/DeviceLayer/ESP32/GroupKeyStoreImpl.h>
 #include <Weave/DeviceLayer/ESP32/ESP32Config.h>
 

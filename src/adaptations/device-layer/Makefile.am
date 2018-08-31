@@ -36,7 +36,6 @@ libDeviceLayer_a_SOURCES                = \
     AESBlockCipher.cpp                    \
     BLEManager.cpp                        \
     CASEAuth.cpp                          \
-    ConnectivityManager.cpp               \
     DeviceControlServer.cpp               \
     DeviceDescriptionServer.cpp           \
     DeviceIdentityTraitDataSource.cpp     \
@@ -66,6 +65,7 @@ libDeviceLayer_a_SOURCES               +=       \
     ESP32/ConfigurationManagerImpl.cpp          \
     ESP32/GroupKeyStoreImpl.cpp                 \
     ESP32/NetworkProvisioningServerImpl.cpp     \
+    ESP32/ConnectivityManagerImpl.cpp           \
     ESP32/ESP32Config.cpp                       \
     $(NULL)
 

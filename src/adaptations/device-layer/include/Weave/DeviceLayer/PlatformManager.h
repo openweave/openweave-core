@@ -63,8 +63,8 @@ private:
 
     // NOTE: These members are for internal use by the following friends.
 
-    friend class ConnectivityManager;
-    class ConfigurationManagerImpl;
+    friend class ConnectivityManagerImpl;
+    friend class ConfigurationManagerImpl;
     template<class ImplClass> friend class Internal::GenericConfigurationManagerImpl;
     friend class TraitManager;
     friend class TimeSyncManager;

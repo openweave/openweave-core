@@ -32,7 +32,7 @@ namespace Internal {
 extern template class GenericNetworkProvisioningServerImpl<NetworkProvisioningServerImpl>;
 
 /**
- * Concrete implementation of the NetworkProvisioningServer interface for the ESP32 platform.
+ * Concrete implementation of the NetworkProvisioningServer singleton object for the ESP32 platform.
  */
 class NetworkProvisioningServerImpl
     : public NetworkProvisioningServer,
