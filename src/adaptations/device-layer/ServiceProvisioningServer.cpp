@@ -29,6 +29,8 @@ namespace Weave {
 namespace DeviceLayer {
 namespace Internal {
 
+ServiceProvisioningServer ServiceProvisioningServer::sInstance;
+
 WEAVE_ERROR ServiceProvisioningServer::Init(void)
 {
     WEAVE_ERROR err;
@@ -56,7 +58,7 @@ WEAVE_ERROR ServiceProvisioningServer::HandleRegisterServicePairAccount(Register
     err = ConfigurationMgr().GetServiceId(curServiceId);
     if (err == WEAVE_NO_ERROR)
     {
-        err = ServiceProvisioningSvr.SendStatusReport(kWeaveProfile_ServiceProvisioning,
+        err = sInstance.SendStatusReport(kWeaveProfile_ServiceProvisioning,
                 (curServiceId == msg.ServiceId) ? kStatusCode_ServiceAlreadyRegistered : kStatusCode_TooManyServices);
         ExitNow();
     }
@@ -69,7 +71,7 @@ WEAVE_ERROR ServiceProvisioningServer::HandleRegisterServicePairAccount(Register
     // Validate the service config. We don't want to get any further along before making sure the data is good.
     if (!ServiceProvisioningServer::IsValidServiceConfig(msg.ServiceConfig, msg.ServiceConfigLen))
     {
-        err = ServiceProvisioningSvr.SendStatusReport(kWeaveProfile_ServiceProvisioning, kStatusCode_InvalidServiceConfig);
+        err = sInstance.SendStatusReport(kWeaveProfile_ServiceProvisioning, kStatusCode_InvalidServiceConfig);
         ExitNow();
     }
 
@@ -125,7 +127,7 @@ WEAVE_ERROR ServiceProvisioningServer::HandleUpdateService(UpdateServiceMessage&
     err = ConfigurationMgr().GetServiceId(curServiceId);
     if (err == WEAVE_DEVICE_ERROR_CONFIG_NOT_FOUND || curServiceId != msg.ServiceId)
     {
-        err = ServiceProvisioningSvr.SendStatusReport(kWeaveProfile_ServiceProvisioning, kStatusCode_NoSuchService);
+        err = sInstance.SendStatusReport(kWeaveProfile_ServiceProvisioning, kStatusCode_NoSuchService);
         ExitNow();
     }
     SuccessOrExit(err);
@@ -133,7 +135,7 @@ WEAVE_ERROR ServiceProvisioningServer::HandleUpdateService(UpdateServiceMessage&
     // Validate the service config. We don't want to get any further along before making sure the data is good.
     if (!ServiceProvisioningServer::IsValidServiceConfig(msg.ServiceConfig, msg.ServiceConfigLen))
     {
-        err = ServiceProvisioningSvr.SendStatusReport(kWeaveProfile_ServiceProvisioning, kStatusCode_InvalidServiceConfig);
+        err = sInstance.SendStatusReport(kWeaveProfile_ServiceProvisioning, kStatusCode_InvalidServiceConfig);
         ExitNow();
     }
 
@@ -151,7 +153,7 @@ WEAVE_ERROR ServiceProvisioningServer::HandleUpdateService(UpdateServiceMessage&
     }
 
     // Send "Success" back to the requestor.
-    err = ServiceProvisioningSvr.SendSuccessResponse();
+    err = sInstance.SendSuccessResponse();
     SuccessOrExit(err);
 
 exit:
@@ -167,7 +169,7 @@ WEAVE_ERROR ServiceProvisioningServer::HandleUnregisterService(uint64_t serviceI
     err = ConfigurationMgr().GetServiceId(curServiceId);
     if (err == WEAVE_DEVICE_ERROR_CONFIG_NOT_FOUND || curServiceId != serviceId)
     {
-        err = ServiceProvisioningSvr.SendStatusReport(kWeaveProfile_ServiceProvisioning, kStatusCode_NoSuchService);
+        err = sInstance.SendStatusReport(kWeaveProfile_ServiceProvisioning, kStatusCode_NoSuchService);
         ExitNow();
     }
     SuccessOrExit(err);
@@ -177,7 +179,7 @@ WEAVE_ERROR ServiceProvisioningServer::HandleUnregisterService(uint64_t serviceI
     SuccessOrExit(err);
 
     // Send "Success" back to the requestor.
-    err = ServiceProvisioningSvr.SendSuccessResponse();
+    err = sInstance.SendSuccessResponse();
     SuccessOrExit(err);
 
 exit:
@@ -369,12 +371,12 @@ exit:
 
 void ServiceProvisioningServer::AsyncStartPairDeviceToAccount(intptr_t arg)
 {
-    ServiceProvisioningSvr.StartPairDeviceToAccount();
+    sInstance.StartPairDeviceToAccount();
 }
 
 void ServiceProvisioningServer::HandleServiceTunnelTimeout(System::Layer * /* unused */, void * /* unused */, System::Error /* unused */)
 {
-    ServiceProvisioningSvr.HandlePairDeviceToAccountResult(WEAVE_ERROR_TIMEOUT, 0, 0);
+    sInstance.HandlePairDeviceToAccountResult(WEAVE_ERROR_TIMEOUT, 0, 0);
 }
 
 void ServiceProvisioningServer::HandleProvServiceBindingEvent(void * appState, Binding::EventType eventType,
@@ -386,7 +388,7 @@ void ServiceProvisioningServer::HandleProvServiceBindingEvent(void * appState, B
     switch (eventType)
     {
     case Binding::kEvent_BindingReady:
-        ServiceProvisioningSvr.SendPairDeviceToAccountRequest();
+        sInstance.SendPairDeviceToAccountRequest();
         break;
     case Binding::kEvent_PrepareFailed:
         if (inParam.PrepareFailed.StatusReport != NULL)
@@ -399,7 +401,7 @@ void ServiceProvisioningServer::HandleProvServiceBindingEvent(void * appState, B
             statusReportProfileId = kWeaveProfile_ServiceProvisioning;
             statusReportStatusCode = Profiles::ServiceProvisioning::kStatusCode_ServiceCommuncationError;
         }
-        ServiceProvisioningSvr.HandlePairDeviceToAccountResult(inParam.PrepareFailed.Reason,
+        sInstance.HandlePairDeviceToAccountResult(inParam.PrepareFailed.Reason,
                 statusReportProfileId, statusReportStatusCode);
         break;
     default:

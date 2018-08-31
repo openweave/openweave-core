@@ -16,6 +16,11 @@
  *    limitations under the License.
  */
 
+/**
+ *    @file
+ *          Defines the Device Layer ServiceProvisioningServer object.
+ */
+
 #ifndef SERVICE_PROVISIONING_SERVER_H
 #define SERVICE_PROVISIONING_SERVER_H
 
@@ -37,30 +42,48 @@ namespace Weave {
 namespace DeviceLayer {
 namespace Internal {
 
-class ServiceProvisioningServer
-        : public ::nl::Weave::Profiles::ServiceProvisioning::ServiceProvisioningServer,
-          public ::nl::Weave::Profiles::ServiceProvisioning::ServiceProvisioningDelegate
+/**
+ * Implements the Weave Service Provisioning profile for a Weave device.
+ */
+class ServiceProvisioningServer final
+    : public ::nl::Weave::Profiles::ServiceProvisioning::ServiceProvisioningServer,
+      public ::nl::Weave::Profiles::ServiceProvisioning::ServiceProvisioningDelegate
 {
+    using ServerBaseClass = ::nl::Weave::Profiles::ServiceProvisioning::ServiceProvisioningServer;
+
 public:
 
-    typedef ::nl::Weave::Profiles::ServiceProvisioning::ServiceProvisioningServer ServerBaseClass;
+    // ===== Members for internal use by other Device Layer components.
 
     WEAVE_ERROR Init(void);
-    virtual WEAVE_ERROR HandleRegisterServicePairAccount(::nl::Weave::Profiles::ServiceProvisioning::RegisterServicePairAccountMessage& msg);
-    virtual WEAVE_ERROR HandleUpdateService(::nl::Weave::Profiles::ServiceProvisioning::UpdateServiceMessage& msg);
-    virtual WEAVE_ERROR HandleUnregisterService(uint64_t serviceId);
-    virtual bool IsPairedToAccount(void) const;
-
     void OnPlatformEvent(const WeaveDeviceEvent * event);
 
+    // ===== Members that override virtual methods on ServiceProvisioningDelegate
+
+    WEAVE_ERROR HandleRegisterServicePairAccount(::nl::Weave::Profiles::ServiceProvisioning::RegisterServicePairAccountMessage& msg) override;
+    WEAVE_ERROR HandleUpdateService(::nl::Weave::Profiles::ServiceProvisioning::UpdateServiceMessage& msg) override;
+    WEAVE_ERROR HandleUnregisterService(uint64_t serviceId) override;
+    void HandlePairDeviceToAccountResult(WEAVE_ERROR localErr, uint32_t serverStatusProfileId, uint16_t serverStatusCode) override;
+
+    // ===== Members that override virtual methods on ServiceProvisioningServer
+
+    bool IsPairedToAccount(void) const override;
+
 private:
+
+    // ===== Members for internal use by the following friends.
+
+    friend ServiceProvisioningServer & ServiceProvisioningSvr(void);
+
+    static ServiceProvisioningServer sInstance;
+
+    // ===== Members for internal use by this class only.
 
     ::nl::Weave::Binding * mProvServiceBinding;
     bool mWaitingForServiceTunnel;
 
     void StartPairDeviceToAccount(void);
     void SendPairDeviceToAccountRequest(void);
-    virtual void HandlePairDeviceToAccountResult(WEAVE_ERROR localErr, uint32_t serverStatusProfileId, uint16_t serverStatusCode);
 
     static void AsyncStartPairDeviceToAccount(intptr_t arg);
     static void HandleServiceTunnelTimeout(::nl::Weave::System::Layer * layer, void * appState, ::nl::Weave::System::Error err);
@@ -68,7 +91,10 @@ private:
             const nl::Weave::Binding::InEventParam & inParam, nl::Weave::Binding::OutEventParam & outParam);
 };
 
-extern ServiceProvisioningServer ServiceProvisioningSvr;
+inline ServiceProvisioningServer & ServiceProvisioningSvr()
+{
+    return ServiceProvisioningServer::sInstance;
+}
 
 } // namespace Internal
 } // namespace DeviceLayer

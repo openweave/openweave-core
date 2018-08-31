@@ -28,7 +28,7 @@ namespace Weave {
 namespace DeviceLayer {
 namespace Internal {
 
-DeviceDescriptionServer DeviceDescriptionSrv;
+DeviceDescriptionServer DeviceDescriptionServer::sInstance;
 
 WEAVE_ERROR DeviceDescriptionServer::Init()
 {

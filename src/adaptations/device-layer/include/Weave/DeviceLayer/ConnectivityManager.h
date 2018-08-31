@@ -16,6 +16,11 @@
  *    limitations under the License.
  */
 
+/**
+ *    @file
+ *          Defines the public interface for the Device Layer ConnectivityManager object.
+ */
+
 #ifndef CONNECTIVITY_MANAGER_H
 #define CONNECTIVITY_MANAGER_H
 
@@ -30,6 +35,9 @@ template<class> class GenericNetworkProvisioningServerImpl;
 
 class ConnectivityManagerImpl;
 
+/**
+ * Provides control of network connectivity for a Weave device.
+ */
 class ConnectivityManager
 {
     using ImplClass = ::nl::Weave::DeviceLayer::ConnectivityManagerImpl;

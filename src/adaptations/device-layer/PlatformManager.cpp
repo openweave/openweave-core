@@ -217,8 +217,7 @@ WEAVE_ERROR PlatformManager::InitWeaveStack(void)
     SuccessOrExit(err);
 
     // Initialize the Device Control server.
-    new (&DeviceControlSvr) DeviceControlServer();
-    err = DeviceControlSvr.Init();
+    err = DeviceControlSvr().Init();
     if (err != WEAVE_NO_ERROR)
     {
         WeaveLogError(DeviceLayer, "Weave Device Control server initialization failed: %s", ErrorStr(err));
@@ -226,8 +225,7 @@ WEAVE_ERROR PlatformManager::InitWeaveStack(void)
     SuccessOrExit(err);
 
     // Initialize the Device Description server.
-    new (&DeviceDescriptionSvr) DeviceDescriptionServer();
-    err = DeviceDescriptionSvr.Init();
+    err = DeviceDescriptionSvr().Init();
     if (err != WEAVE_NO_ERROR)
     {
         WeaveLogError(DeviceLayer, "Weave Device Control server initialization failed: %s", ErrorStr(err));
@@ -243,8 +241,7 @@ WEAVE_ERROR PlatformManager::InitWeaveStack(void)
     SuccessOrExit(err);
 
     // Initialize the Fabric Provisioning server.
-    new (&FabricProvisioningSvr) FabricProvisioningServer();
-    err = FabricProvisioningSvr.Init();
+    err = FabricProvisioningSvr().Init();
     if (err != WEAVE_NO_ERROR)
     {
         WeaveLogError(DeviceLayer, "Weave Fabric Provisioning server initialization failed: %s", ErrorStr(err));
@@ -252,8 +249,7 @@ WEAVE_ERROR PlatformManager::InitWeaveStack(void)
     SuccessOrExit(err);
 
     // Initialize the Service Provisioning server.
-    new (&ServiceProvisioningSvr) ServiceProvisioningServer();
-    err = ServiceProvisioningSvr.Init();
+    err = ServiceProvisioningSvr().Init();
     if (err != WEAVE_NO_ERROR)
     {
         WeaveLogError(DeviceLayer, "Weave Service Provisioning server initialization failed: %s", ErrorStr(err));
@@ -261,8 +257,7 @@ WEAVE_ERROR PlatformManager::InitWeaveStack(void)
     SuccessOrExit(err);
 
     // Initialize the Echo server.
-    new (&EchoSvr) EchoServer();
-    err = EchoSvr.Init();
+    err = EchoSvr().Init();
     if (err != WEAVE_NO_ERROR)
     {
         WeaveLogError(DeviceLayer, "Weave Echo server initialization failed: %s", ErrorStr(err));
@@ -270,8 +265,7 @@ WEAVE_ERROR PlatformManager::InitWeaveStack(void)
     SuccessOrExit(err);
 
     // Initialize the Trait Manager object.
-    new (&TraitMgr) TraitManager();
-    err = TraitMgr.Init();
+    err = TraitMgr().Init();
     if (err != WEAVE_NO_ERROR)
     {
         WeaveLogError(DeviceLayer, "Trait Manager initialization failed: %s", ErrorStr(err));
@@ -279,8 +273,7 @@ WEAVE_ERROR PlatformManager::InitWeaveStack(void)
     SuccessOrExit(err);
 
     // Initialize the Time Sync Manager object.
-    new (&TimeSyncMgr) TimeSyncManager();
-    err = TimeSyncMgr.Init();
+    err = TimeSyncMgr().Init();
     if (err != WEAVE_NO_ERROR)
     {
         WeaveLogError(DeviceLayer, "Time Sync Manager initialization failed: %s", ErrorStr(err));
@@ -448,13 +441,13 @@ void PlatformManager::DispatchEvent(const WeaveDeviceEvent * event)
     else
     {
         ConnectivityMgr().OnPlatformEvent(event);
-        DeviceControlSvr.OnPlatformEvent(event);
-        DeviceDescriptionSvr.OnPlatformEvent(event);
+        DeviceControlSvr().OnPlatformEvent(event);
+        DeviceDescriptionSvr().OnPlatformEvent(event);
         NetworkProvisioningSvr().OnPlatformEvent(event);
-        FabricProvisioningSvr.OnPlatformEvent(event);
-        ServiceProvisioningSvr.OnPlatformEvent(event);
-        TraitMgr.OnPlatformEvent(event);
-        TimeSyncMgr.OnPlatformEvent(event);
+        FabricProvisioningSvr().OnPlatformEvent(event);
+        ServiceProvisioningSvr().OnPlatformEvent(event);
+        TraitMgr().OnPlatformEvent(event);
+        TimeSyncMgr().OnPlatformEvent(event);
 #if WEAVE_DEVICE_CONFIG_ENABLE_WOBLE
         BLEMgr.OnPlatformEvent(event);
 #endif

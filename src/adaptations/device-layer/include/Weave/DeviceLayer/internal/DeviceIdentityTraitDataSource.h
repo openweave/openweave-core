@@ -18,8 +18,7 @@
 
 /**
  *    @file
- *      This file contains an implementation of a trait data source for the
- *      Weave DeviceIdentityTrait.
+ *      A trait data source implementation for the Weave DeviceIdentityTrait.
  *
  */
 
@@ -40,14 +39,15 @@ namespace Internal {
  *    Implements a data source for the Weave DeviceIdentityTrait.
  *
  */
-class DeviceIdentityTraitDataSource : public ::nl::Weave::Profiles::DataManagement_Current::TraitDataSource
+class DeviceIdentityTraitDataSource final
+    : public ::nl::Weave::Profiles::DataManagement_Current::TraitDataSource
 {
 public:
     DeviceIdentityTraitDataSource(void);
 
 private:
     WEAVE_ERROR GetLeafData(::nl::Weave::Profiles::DataManagement_Current::PropertyPathHandle aLeafHandle, uint64_t aTagToWrite,
-                    ::nl::Weave::TLV::TLVWriter & aWriter) __OVERRIDE;
+                    ::nl::Weave::TLV::TLVWriter & aWriter) override;
 };
 
 } // Internal

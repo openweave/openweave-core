@@ -48,21 +48,21 @@ protected:
     bool _ScanInProgress(void);
     void _OnPlatformEvent(const WeaveDeviceEvent * event);
 
-    // ===== Members that implement pure virtual methods on NetworkProvisioningDelegate
+    // ===== Members that override virtual methods on NetworkProvisioningDelegate
 
-    virtual WEAVE_ERROR HandleScanNetworks(uint8_t networkType);
-    virtual WEAVE_ERROR HandleAddNetwork(PacketBuffer *networkInfoTLV);
-    virtual WEAVE_ERROR HandleUpdateNetwork(PacketBuffer *networkInfoTLV);
-    virtual WEAVE_ERROR HandleRemoveNetwork(uint32_t networkId);
-    virtual WEAVE_ERROR HandleGetNetworks(uint8_t flags);
-    virtual WEAVE_ERROR HandleEnableNetwork(uint32_t networkId);
-    virtual WEAVE_ERROR HandleDisableNetwork(uint32_t networkId);
-    virtual WEAVE_ERROR HandleTestConnectivity(uint32_t networkId);
-    virtual WEAVE_ERROR HandleSetRendezvousMode(uint16_t rendezvousMode);
+    WEAVE_ERROR HandleScanNetworks(uint8_t networkType) override;
+    WEAVE_ERROR HandleAddNetwork(PacketBuffer *networkInfoTLV) override;
+    WEAVE_ERROR HandleUpdateNetwork(PacketBuffer *networkInfoTLV) override;
+    WEAVE_ERROR HandleRemoveNetwork(uint32_t networkId) override;
+    WEAVE_ERROR HandleGetNetworks(uint8_t flags) override;
+    WEAVE_ERROR HandleEnableNetwork(uint32_t networkId) override;
+    WEAVE_ERROR HandleDisableNetwork(uint32_t networkId) override;
+    WEAVE_ERROR HandleTestConnectivity(uint32_t networkId) override;
+    WEAVE_ERROR HandleSetRendezvousMode(uint16_t rendezvousMode) override;
 
-    // ===== Members that implement pure virtual methods on NetworkProvisioningServer
+    // ===== Members that override virtual methods on NetworkProvisioningServer
 
-    virtual bool IsPairedToAccount(void) const;
+    bool IsPairedToAccount(void) const override;
 
     // ===== Members for use by the NetworkProvisioningServer implementation
     //       (both generic and platform-specific).

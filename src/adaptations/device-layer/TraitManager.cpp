@@ -16,12 +16,17 @@
  *    limitations under the License.
  */
 
+/**
+ *    @file
+ *      Implementation for the Weave Device Layer TraitManager object.
+ *
+ */
+
+
 #include <Weave/DeviceLayer/internal/WeaveDeviceLayerInternal.h>
 #include <Weave/DeviceLayer/TraitManager.h>
 #include <Weave/Profiles/security/ApplicationKeysTraitDataSink.h>
 #include <Weave/DeviceLayer/internal/DeviceIdentityTraitDataSource.h>
-
-#include <new>
 
 using namespace ::nl::Weave::DeviceLayer;
 using namespace ::nl::Weave::DeviceLayer::Internal;
@@ -99,6 +104,8 @@ namespace nl {
 namespace Weave {
 namespace DeviceLayer {
 
+TraitManager TraitManager::sInstance;
+
 WEAVE_ERROR TraitManager::SetServiceSubscriptionMode(ServiceSubscriptionMode val)
 {
     mServiceSubMode = val;
@@ -152,12 +159,6 @@ WEAVE_ERROR TraitManager::Init(void)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
     Binding * serviceBinding = NULL;
-
-    new (&WdmSubscriptionEngine) SubscriptionEngine();
-    new (&SubscribedServiceTraits) TraitSinkCatalog();
-    new (&PublishedTraits) TraitSourceCatalog();
-    new (&AppKeysTraitDataSink) ApplicationKeysTraitDataSink();
-    new (&DeviceIdTraitDataSource) DeviceIdentityTraitDataSource();
 
     err = WdmSubscriptionEngine.Init(&ExchangeMgr, NULL, HandleSubscriptionEngineEvent);
     SuccessOrExit(err);
@@ -246,9 +247,9 @@ void TraitManager::DriveServiceSubscriptionState(bool serviceConnectivityChanged
                 // If prior to this the service subscription was fully established (including the service's
                 // counter subscription) change the state and raise an event announcing the loss of the
                 // subscription.
-                if (GetFlag(TraitMgr.mFlags, kFlag_ServiceSubscriptionEstablished))
+                if (GetFlag(sInstance.mFlags, kFlag_ServiceSubscriptionEstablished))
                 {
-                    ClearFlag(TraitMgr.mFlags, kFlag_ServiceSubscriptionEstablished);
+                    ClearFlag(sInstance.mFlags, kFlag_ServiceSubscriptionEstablished);
                     WeaveDeviceEvent event;
                     event.Type = WeaveDeviceEvent::kEventType_ServiceSubscriptionStateChange;
                     event.ServiceSubscriptionStateChange.Result = kConnectivity_Lost;
@@ -270,12 +271,12 @@ void TraitManager::DriveServiceSubscriptionState(bool serviceConnectivityChanged
 void TraitManager::ActivateServiceSubscription(intptr_t arg)
 {
     // Enable automatic resubscription to the service using the default resubscription back-off policy.
-    TraitMgr.mServiceSubClient->EnableResubscribe(NULL);
+    sInstance.mServiceSubClient->EnableResubscribe(NULL);
 
     // Initial the outbound service subscription.  This will ultimately result in the service
     // setting up an inbound counter-subscription back to the device, at which point the
     // full mutual service subscription is considered established.
-    TraitMgr.mServiceSubClient->InitiateSubscription();
+    sInstance.mServiceSubClient->InitiateSubscription();
 }
 
 void TraitManager::HandleSubscriptionEngineEvent(void * appState, SubscriptionEngine::EventID eventType,
@@ -349,15 +350,15 @@ void TraitManager::HandleOutboundServiceSubscriptionEvent(void * appState, Subsc
         // TODO: Fix *LAME* SubscriptionClient callback API to handle errors!!!!
         // TODO: Fix *LAME* SubscriptionClient callback API to support initiator versions!!!!
 
-        if (TraitMgr.mServicePathList == NULL)
+        if (sInstance.mServicePathList == NULL)
         {
-            TraitMgr.mServicePathList = new TraitPath[TraitSinkCatalog::kMaxEntries];
+            sInstance.mServicePathList = new TraitPath[TraitSinkCatalog::kMaxEntries];
         }
 
-        err = SubscribedServiceTraits.PrepareSubscriptionPathList(TraitMgr.mServicePathList, TraitSinkCatalog::kMaxEntries, pathListLen);
+        err = SubscribedServiceTraits.PrepareSubscriptionPathList(sInstance.mServicePathList, TraitSinkCatalog::kMaxEntries, pathListLen);
         SuccessOrExit(err);
 
-        outParam.mSubscribeRequestPrepareNeeded.mPathList = TraitMgr.mServicePathList;
+        outParam.mSubscribeRequestPrepareNeeded.mPathList = sInstance.mServicePathList;
         outParam.mSubscribeRequestPrepareNeeded.mPathListSize = pathListLen;
         outParam.mSubscribeRequestPrepareNeeded.mVersionedPathList = NULL;
         outParam.mSubscribeRequestPrepareNeeded.mNeedAllEvents = false;
@@ -382,9 +383,9 @@ void TraitManager::HandleOutboundServiceSubscriptionEvent(void * appState, Subsc
                 : ErrorStr(inParam.mSubscriptionTerminated.mReason));
         // If prior to this the service subscription was fully established (including the service's counter subscription)
         // change the state and raise an event announcing the loss of the subscription.
-        if (GetFlag(TraitMgr.mFlags, kFlag_ServiceSubscriptionEstablished))
+        if (GetFlag(sInstance.mFlags, kFlag_ServiceSubscriptionEstablished))
         {
-            ClearFlag(TraitMgr.mFlags, kFlag_ServiceSubscriptionEstablished);
+            ClearFlag(sInstance.mFlags, kFlag_ServiceSubscriptionEstablished);
             WeaveDeviceEvent event;
             event.Type = WeaveDeviceEvent::kEventType_ServiceSubscriptionStateChange;
             event.ServiceSubscriptionStateChange.Result = kConnectivity_Lost;
@@ -414,7 +415,7 @@ void TraitManager::HandleInboundSubscriptionEvent(void * aAppState, Subscription
                     inParam.mSubscribeRequestParsed.mSubscriptionId,
                     inParam.mSubscribeRequestParsed.mNumTraitInstances);
 
-            TraitMgr.mServiceCounterSubHandler = inParam.mSubscribeRequestParsed.mHandler;
+            sInstance.mServiceCounterSubHandler = inParam.mSubscribeRequestParsed.mHandler;
         }
         else
         {
@@ -433,12 +434,12 @@ void TraitManager::HandleInboundSubscriptionEvent(void * aAppState, Subscription
         break;
 
     case SubscriptionHandler::kEvent_OnSubscriptionEstablished:
-        if (inParam.mSubscriptionEstablished.mHandler == TraitMgr.mServiceCounterSubHandler)
+        if (inParam.mSubscriptionEstablished.mHandler == sInstance.mServiceCounterSubHandler)
         {
             WeaveLogProgress(DeviceLayer, "Inbound service counter-subscription established");
 
             // Note that the service subscription is fully established.
-            SetFlag(TraitMgr.mFlags, kFlag_ServiceSubscriptionEstablished);
+            SetFlag(sInstance.mFlags, kFlag_ServiceSubscriptionEstablished);
 
             // Raise an event announcing the establishment of the subscription.
             {
@@ -468,17 +469,17 @@ void TraitManager::HandleInboundSubscriptionEvent(void * aAppState, Subscription
                 ? StatusReportStr(inParam.mSubscriptionTerminated.mStatusProfileId, inParam.mSubscriptionTerminated.mStatusCode)
                 : ErrorStr(inParam.mSubscriptionTerminated.mReason);
 #endif // WEAVE_PROGRESS_LOGGING
-        if (inParam.mSubscriptionTerminated.mHandler == TraitMgr.mServiceCounterSubHandler)
+        if (inParam.mSubscriptionTerminated.mHandler == sInstance.mServiceCounterSubHandler)
         {
             WeaveLogProgress(DeviceLayer, "Inbound service counter-subscription terminated: %s", termDesc);
 
-            TraitMgr.mServiceCounterSubHandler = NULL;
+            sInstance.mServiceCounterSubHandler = NULL;
 
             // If prior to this the service subscription was fully established (including the device's outbound subscription)
             // change the state and raise an event announcing the loss of the subscription.
-            if (GetFlag(TraitMgr.mFlags, kFlag_ServiceSubscriptionEstablished))
+            if (GetFlag(sInstance.mFlags, kFlag_ServiceSubscriptionEstablished))
             {
-                ClearFlag(TraitMgr.mFlags, kFlag_ServiceSubscriptionEstablished);
+                ClearFlag(sInstance.mFlags, kFlag_ServiceSubscriptionEstablished);
                 WeaveDeviceEvent event;
                 event.Type = WeaveDeviceEvent::kEventType_ServiceSubscriptionStateChange;
                 event.ServiceSubscriptionStateChange.Result = kConnectivity_Lost;

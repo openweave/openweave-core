@@ -16,6 +16,12 @@
  *    limitations under the License.
  */
 
+/**
+ *    @file
+ *      Implementation for the Weave Device Layer TimeSyncManager object.
+ *
+ */
+
 #include <Weave/DeviceLayer/internal/WeaveDeviceLayerInternal.h>
 #include <Weave/DeviceLayer/internal/ServiceDirectoryManager.h>
 #include <Weave/Profiles/time/WeaveTime.h>
@@ -44,6 +50,8 @@ SingleSourceTimeSyncClient TimeSyncClient;
 
 } // unnamed namespace
 
+
+TimeSyncManager TimeSyncManager::sInstance;
 
 WEAVE_ERROR TimeSyncManager::SetMode(TimeSyncMode newMode)
 {
@@ -110,7 +118,7 @@ void TimeSyncManager::OnPlatformEvent(const WeaveDeviceEvent * event)
 {
     if (event->Type == WeaveDeviceEvent::kEventType_ServiceConnectivityChange)
     {
-        TimeSyncMgr.DriveTimeSync();
+        sInstance.DriveTimeSync();
     }
 }
 
@@ -119,13 +127,13 @@ void TimeSyncManager::OnPlatformEvent(const WeaveDeviceEvent * event)
 void TimeSyncManager::MarkServiceDirRequestStart()
 {
     // Mark the local start time of the directory query request using the hi-res clock.
-    TimeSyncMgr.mServiceDirTimeSyncStartUS = System::Layer::GetClock_MonotonicHiRes();
+    sInstance.mServiceDirTimeSyncStartUS = System::Layer::GetClock_MonotonicHiRes();
 }
 
 void TimeSyncManager::ProcessServiceDirTimeData(uint64_t serverRealTimeMS, uint32_t serverProcessingTimeMS)
 {
     // If synchronizing time with the service, and a service directory time sync is in progress...
-    if (TimeSyncMgr.mMode == kTimeSyncMode_Service && TimeSyncMgr.mServiceDirTimeSyncStartUS != 0)
+    if (sInstance.mMode == kTimeSyncMode_Service && sInstance.mServiceDirTimeSyncStartUS != 0)
     {
         // Mark the end time of the request using the hi-res clock.
         uint64_t timeSyncEndUS = System::Layer::GetClock_MonotonicHiRes();
@@ -134,16 +142,16 @@ void TimeSyncManager::ProcessServiceDirTimeData(uint64_t serverRealTimeMS, uint3
 
         // Use the information from the directory server response to compute an approximation of
         // the current real time.
-        uint64_t twoWayTripTimeUS = timeSyncEndUS - TimeSyncMgr.mServiceDirTimeSyncStartUS - (serverProcessingTimeMS * 1000);
+        uint64_t twoWayTripTimeUS = timeSyncEndUS - sInstance.mServiceDirTimeSyncStartUS - (serverProcessingTimeMS * 1000);
         uint64_t avgOneWayTripTimeUS = twoWayTripTimeUS >> 1;
         uint64_t syncedRealTimeUS = (serverRealTimeMS * 1000) + avgOneWayTripTimeUS;
 
         // Update the system's real-time clock with the synchronized value.
-        TimeSyncMgr.ApplySynchronizedTime(syncedRealTimeUS);
+        sInstance.ApplySynchronizedTime(syncedRealTimeUS);
 
         // If Weave time server synchronization is also enabled, restart the time server sync
         // interval from this point.
-        TimeSyncMgr.DriveTimeSync();
+        sInstance.DriveTimeSync();
     }
 }
 
@@ -213,14 +221,14 @@ void TimeSyncManager::DriveTimeSync()
 exit:
     if (err != WEAVE_NO_ERROR)
     {
-        TimeSyncMgr.TimeSyncFailed(err, NULL);
+        sInstance.TimeSyncFailed(err, NULL);
     }
 }
 
 void TimeSyncManager::CancelTimeSync()
 {
 #if WEAVE_DEVICE_CONFIG_ENABLE_SERVICE_DIRECTORY_TIME_SYNC
-    TimeSyncMgr.mServiceDirTimeSyncStartUS = 0;
+    sInstance.mServiceDirTimeSyncStartUS = 0;
 #endif
 
 #if WEAVE_DEVICE_CONFIG_ENABLE_WEAVE_TIME_SERVICE_TIME_SYNC
@@ -241,7 +249,7 @@ void TimeSyncManager::ApplySynchronizedTime(uint64_t syncedRealTimeUS)
     // Only change the system clock if the final time value is valid...
     if (syncedRealTimeUS > (((uint64_t)WEAVE_SYSTEM_CONFIG_VALID_REAL_TIME_THRESHOLD) * kMicrosecondsPerSecond))
     {
-        bool wasSynchronized = TimeSyncMgr.IsTimeSynchronized();
+        bool wasSynchronized = sInstance.IsTimeSynchronized();
 
         // Attempt to set the system's real time clock.  If successful...
         err = System::Layer::SetClock_RealTime(syncedRealTimeUS);
@@ -263,7 +271,7 @@ void TimeSyncManager::ApplySynchronizedTime(uint64_t syncedRealTimeUS)
     }
 
     // Update the time from which the next sync interval should be counted.
-    TimeSyncMgr.mLastSyncTimeMS = System::Layer::GetClock_MonotonicMS();
+    sInstance.mLastSyncTimeMS = System::Layer::GetClock_MonotonicMS();
 }
 
 void TimeSyncManager::TimeSyncFailed(WEAVE_ERROR reason, Profiles::StatusReporting::StatusReport * statusReport)
@@ -274,15 +282,15 @@ void TimeSyncManager::TimeSyncFailed(WEAVE_ERROR reason, Profiles::StatusReporti
              : ErrorStr(reason));
 
     // Update the time from which the next sync interval should be counted.
-    TimeSyncMgr.mLastSyncTimeMS = System::Layer::GetClock_MonotonicMS();
+    sInstance.mLastSyncTimeMS = System::Layer::GetClock_MonotonicMS();
 
     // Arrange to try again at the next synchronization interval.
-    TimeSyncMgr.DriveTimeSync();
+    sInstance.DriveTimeSync();
 }
 
 void TimeSyncManager::DriveTimeSync(System::Layer * /* unused */, void * /* unused */, System::Error /* unused */)
 {
-    TimeSyncMgr.DriveTimeSync();
+    sInstance.DriveTimeSync();
 }
 
 #if WEAVE_DEVICE_CONFIG_ENABLE_WEAVE_TIME_SERVICE_TIME_SYNC
@@ -299,14 +307,14 @@ void TimeSyncManager::TimeServiceSync_HandleBindingEvent(void * appState, ::nl::
         err = TimeSyncClient.Sync(binding, TimeServiceSync_HandleSyncComplete);
         if (err != WEAVE_NO_ERROR)
         {
-            TimeSyncMgr.TimeSyncFailed(err, NULL);
+            sInstance.TimeSyncFailed(err, NULL);
         }
     }
 
     // Otherwise handle any failure that occurred during binding preparation.
     else if (eventType == Binding::kEvent_PrepareFailed)
     {
-        TimeSyncMgr.TimeSyncFailed(inParam.PrepareFailed.Reason, inParam.PrepareFailed.StatusReport);
+        sInstance.TimeSyncFailed(inParam.PrepareFailed.Reason, inParam.PrepareFailed.StatusReport);
     }
 
     // Pass all other events to the default handler.
@@ -321,12 +329,12 @@ void TimeSyncManager::TimeServiceSync_HandleSyncComplete(void * context, WEAVE_E
     if (result == WEAVE_NO_ERROR)
     {
         WeaveLogProgress(DeviceLayer, "Time sync with time service complete");
-        TimeSyncMgr.ApplySynchronizedTime((uint64_t)syncedRealTimeUS);
-        TimeSyncMgr.DriveTimeSync();
+        sInstance.ApplySynchronizedTime((uint64_t)syncedRealTimeUS);
+        sInstance.DriveTimeSync();
     }
     else
     {
-        TimeSyncMgr.TimeSyncFailed(result, NULL);
+        sInstance.TimeSyncFailed(result, NULL);
     }
 }
 

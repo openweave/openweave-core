@@ -16,6 +16,11 @@
  *    limitations under the License.
  */
 
+/**
+ *    @file
+ *          Defines the Device Layer DeviceDescriptionServer object.
+ */
+
 #ifndef DEVICE_DESCRIPTION_SERVER_H
 #define DEVICE_DESCRIPTION_SERVER_H
 
@@ -27,22 +32,46 @@ namespace Weave {
 namespace DeviceLayer {
 namespace Internal {
 
-class DeviceDescriptionServer : public ::nl::Weave::Profiles::DeviceDescription::DeviceDescriptionServer
+/**
+ * Implements the Weave Device Description profile for a Weave device.
+ */
+class DeviceDescriptionServer final
+    : public ::nl::Weave::Profiles::DeviceDescription::DeviceDescriptionServer
 {
     typedef ::nl::Weave::Profiles::DeviceDescription::DeviceDescriptionServer ServerBaseClass;
 
 public:
+
+    // ===== Members for internal use by other Device Layer components.
+
     WEAVE_ERROR Init();
 
     void OnPlatformEvent(const WeaveDeviceEvent * event);
 
 private:
+
+    // ===== Members for internal use by the following friends.
+
+    friend DeviceDescriptionServer & DeviceDescriptionSvr(void);
+
+    static DeviceDescriptionServer sInstance;
+
+private:
+
+    // ===== Private members reserved for use by this class only.
+
     static void HandleIdentifyRequest(void *appState, uint64_t nodeId, const IPAddress& nodeAddr,
             const ::nl::Weave::Profiles::DeviceDescription::IdentifyRequestMessage& reqMsg, bool& sendResp,
             ::nl::Weave::Profiles::DeviceDescription::IdentifyResponseMessage& respMsg);
 };
 
-extern DeviceDescriptionServer DeviceDescriptionSvr;
+/**
+ * Returns a reference to the DeviceDescriptionServer singleton object.
+ */
+inline DeviceDescriptionServer & DeviceDescriptionSvr(void)
+{
+    return DeviceDescriptionServer::sInstance;
+}
 
 } // namespace Internal
 } // namespace DeviceLayer

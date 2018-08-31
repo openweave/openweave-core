@@ -33,6 +33,8 @@ namespace Weave {
 namespace DeviceLayer {
 namespace Internal {
 
+DeviceControlServer DeviceControlServer::sInstance;
+
 WEAVE_ERROR DeviceControlServer::Init()
 {
     WEAVE_ERROR err;
@@ -85,10 +87,10 @@ WEAVE_ERROR DeviceControlServer::OnResetConfig(uint16_t resetFlags)
         if ((resetFlags & kResetConfigFlag_FabricConfig) != 0)
         {
             WeaveLogProgress(DeviceLayer, "Reset Weave fabric config");
-            tmpErr = FabricProvisioningSvr.LeaveFabric();
+            tmpErr = FabricProvisioningSvr().LeaveFabric();
             if (tmpErr != WEAVE_NO_ERROR)
             {
-                WeaveLogProgress(DeviceLayer, "FabricProvisioningSvr.LeaveFabric() failed: %s", ErrorStr(tmpErr));
+                WeaveLogProgress(DeviceLayer, "FabricProvisioningSvr().LeaveFabric() failed: %s", ErrorStr(tmpErr));
                 err = (err == WEAVE_NO_ERROR) ? tmpErr : err;
             }
         }

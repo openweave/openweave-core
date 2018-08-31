@@ -16,6 +16,11 @@
  *    limitations under the License.
  */
 
+/**
+ *    @file
+ *          Defines the Device Layer DeviceControlServer object.
+ */
+
 #ifndef DEVICE_CONTROL_SERVER_H
 #define DEVICE_CONTROL_SERVER_H
 
@@ -27,32 +32,57 @@ namespace Weave {
 namespace DeviceLayer {
 namespace Internal {
 
-class DeviceControlServer
-        : public ::nl::Weave::Profiles::DeviceControl::DeviceControlServer,
-          public ::nl::Weave::Profiles::DeviceControl::DeviceControlDelegate
+/**
+ * Implements the Weave Device Control profile for a Weave device.
+ */
+class DeviceControlServer final
+    : public ::nl::Weave::Profiles::DeviceControl::DeviceControlServer,
+      public ::nl::Weave::Profiles::DeviceControl::DeviceControlDelegate
 {
+    using ServerBaseClass = ::nl::Weave::Profiles::DeviceControl::DeviceControlServer;
+
 public:
-    typedef ::nl::Weave::Profiles::DeviceControl::DeviceControlServer ServerBaseClass;
+
+    // ===== Members for internal use by other Device Layer components.
 
     WEAVE_ERROR Init();
-    virtual bool ShouldCloseConBeforeResetConfig(uint16_t resetFlags);
-    virtual WEAVE_ERROR OnResetConfig(uint16_t resetFlags);
-    virtual WEAVE_ERROR OnFailSafeArmed(void);
-    virtual WEAVE_ERROR OnFailSafeDisarmed(void);
-    virtual void OnConnectionMonitorTimeout(uint64_t peerNodeId, IPAddress peerAddr);
-    virtual void OnRemotePassiveRendezvousStarted(void);
-    virtual void OnRemotePassiveRendezvousDone(void);
-    virtual WEAVE_ERROR WillStartRemotePassiveRendezvous(void);
-    virtual void WillCloseRemotePassiveRendezvous(void);
-    virtual bool IsResetAllowed(uint16_t resetFlags);
-    virtual WEAVE_ERROR OnSystemTestStarted(uint32_t profileId, uint32_t testId);
-    virtual WEAVE_ERROR OnSystemTestStopped(void);
-    virtual bool IsPairedToAccount() const;
-
     void OnPlatformEvent(const WeaveDeviceEvent * event);
+
+    // ===== Members that override virtual methods on DeviceControlDelegate
+
+    bool ShouldCloseConBeforeResetConfig(uint16_t resetFlags) override;
+    WEAVE_ERROR OnResetConfig(uint16_t resetFlags) override;
+    WEAVE_ERROR OnFailSafeArmed(void) override;
+    WEAVE_ERROR OnFailSafeDisarmed(void) override;
+    void OnConnectionMonitorTimeout(uint64_t peerNodeId, IPAddress peerAddr) override;
+    void OnRemotePassiveRendezvousStarted(void) override;
+    void OnRemotePassiveRendezvousDone(void) override;
+    WEAVE_ERROR WillStartRemotePassiveRendezvous(void) override;
+    void WillCloseRemotePassiveRendezvous(void) override;
+    bool IsResetAllowed(uint16_t resetFlags) override;
+    WEAVE_ERROR OnSystemTestStarted(uint32_t profileId, uint32_t testId) override;
+    WEAVE_ERROR OnSystemTestStopped(void) override;
+
+    // ===== Members that override virtual methods on DeviceControlServer
+
+    bool IsPairedToAccount() const override;
+
+private:
+
+    // ===== Members for internal use by the following friends.
+
+    friend DeviceControlServer & DeviceControlSvr(void);
+
+    static DeviceControlServer sInstance;
 };
 
-extern DeviceControlServer DeviceControlSvr;
+/**
+ * Returns a reference to the DeviceControlServer singleton object.
+ */
+inline DeviceControlServer & DeviceControlSvr(void)
+{
+    return DeviceControlServer::sInstance;
+}
 
 } // namespace Internal
 } // namespace DeviceLayer

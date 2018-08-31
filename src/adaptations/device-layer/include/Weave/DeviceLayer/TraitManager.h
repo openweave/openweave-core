@@ -16,6 +16,12 @@
  *    limitations under the License.
  */
 
+/**
+ *    @file
+ *      Defines the Weave Device Layer TraitManager object.
+ *
+ */
+
 #ifndef TRAIT_MANAGER_H
 #define TRAIT_MANAGER_H
 
@@ -25,7 +31,10 @@ namespace nl {
 namespace Weave {
 namespace DeviceLayer {
 
-class TraitManager
+/**
+ * Manages publication and subscription of Weave Data Management traits for a Weave device.
+ */
+class TraitManager final
 {
     typedef ::nl::Weave::Profiles::DataManagement_Current::SubscriptionClient SubscriptionClient;
     typedef ::nl::Weave::Profiles::DataManagement_Current::SubscriptionEngine SubscriptionEngine;
@@ -37,6 +46,8 @@ class TraitManager
     typedef ::nl::Weave::Profiles::DataManagement_Current::PropertyPathHandle PropertyPathHandle;
 
 public:
+
+    // ===== Members that define the public interface of the TraitManager
 
     enum ServiceSubscriptionMode
     {
@@ -61,16 +72,17 @@ public:
 
 private:
 
-    // NOTE: These members are for internal use by the following friends.
+    // ===== Members for internal use by the following friends.
 
     friend class ::nl::Weave::DeviceLayer::PlatformManager;
+    friend TraitManager & TraitMgr(void);
+
+    static TraitManager sInstance;
 
     WEAVE_ERROR Init(void);
     void OnPlatformEvent(const WeaveDeviceEvent * event);
 
-private:
-
-    // NOTE: These members are private to the class and should not be used by friends.
+    // ===== Private members for use by this class only.
 
     enum
     {
@@ -107,6 +119,13 @@ inline bool TraitManager::IsServiceSubscriptionEstablished(void)
     return GetFlag(mFlags, kFlag_ServiceSubscriptionEstablished);
 }
 
+/**
+ * Returns a reference to the TraitManager singleton object.
+ */
+inline TraitManager & TraitMgr(void)
+{
+    return TraitManager::sInstance;
+}
 
 } // namespace DeviceLayer
 } // namespace Weave

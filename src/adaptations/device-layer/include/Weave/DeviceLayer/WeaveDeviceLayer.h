@@ -36,8 +36,6 @@ namespace DeviceLayer {
 struct WeaveDeviceEvent;
 
 extern PlatformManager PlatformMgr;
-extern TraitManager TraitMgr;
-extern TimeSyncManager TimeSyncMgr;
 extern nl::Weave::System::Layer SystemLayer;
 extern nl::Inet::InetLayer InetLayer;
 extern nl::Weave::WeaveFabricState FabricState;
