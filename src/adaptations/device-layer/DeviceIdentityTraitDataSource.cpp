@@ -18,8 +18,7 @@
 
 /**
  *    @file
- *      This file contains an implementation of a trait data source for the
- *      Weave DeviceIdentityTrait.
+ *      A trait data source implementation for the Weave DeviceIdentityTrait.
  *
  */
 

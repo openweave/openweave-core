@@ -16,6 +16,12 @@
  *    limitations under the License.
  */
 
+/**
+ *    @file
+ *      Defines the Weave Device Layer TimeSyncManager object.
+ *
+ */
+
 #ifndef TIME_SYNC_MANAGER_H
 #define TIME_SYNC_MANAGER_H
 
@@ -37,9 +43,14 @@ namespace Internal {
 extern WEAVE_ERROR InitServiceDirectoryManager(void);
 }
 
-class TimeSyncManager
+/**
+ * Manages time synchronization for Weave Devices.
+ */
+class TimeSyncManager final
 {
 public:
+
+    // ===== Members that define the public interface of the TimeSyncManager
 
     enum TimeSyncMode
     {
@@ -60,23 +71,22 @@ public:
 
 private:
 
-    // NOTE: These members are for internal use by the following friends.
+    // ===== Members for internal use by the following friends.
 
     friend class PlatformManager;
     friend WEAVE_ERROR Internal::InitServiceDirectoryManager();
+    friend TimeSyncManager & TimeSyncMgr(void);
+
+    static TimeSyncManager sInstance;
 
     WEAVE_ERROR Init();
-
     void OnPlatformEvent(const WeaveDeviceEvent * event);
-
 #if WEAVE_DEVICE_CONFIG_ENABLE_SERVICE_DIRECTORY_TIME_SYNC
     static void MarkServiceDirRequestStart();
     static void ProcessServiceDirTimeData(uint64_t timeQueryReceiptMsec, uint32_t timeProcessMsec);
 #endif
 
-private:
-
-    // NOTE: These members are private to the class and should not be used by friends.
+    // ===== Private members for use by this class only.
 
     uint64_t mLastSyncTimeMS; // in monotonic time
 #if WEAVE_DEVICE_CONFIG_ENABLE_SERVICE_DIRECTORY_TIME_SYNC
@@ -110,6 +120,14 @@ inline TimeSyncManager::TimeSyncMode TimeSyncManager::GetMode()
 inline uint32_t TimeSyncManager::GetSyncInterval()
 {
     return mSyncIntervalSec;
+}
+
+/**
+ * Returns a reference to the TimeSyncManager singleton object.
+ */
+inline TimeSyncManager & TimeSyncMgr(void)
+{
+    return TimeSyncManager::sInstance;
 }
 
 } // namespace DeviceLayer

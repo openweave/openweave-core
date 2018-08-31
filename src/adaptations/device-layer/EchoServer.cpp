@@ -16,6 +16,11 @@
  *    limitations under the License.
  */
 
+/**
+ *    @file
+ *          Implementation of the Device Layer EchoServer object.
+ */
+
 #include <Weave/DeviceLayer/internal/WeaveDeviceLayerInternal.h>
 #include <Weave/DeviceLayer/internal/EchoServer.h>
 
@@ -26,6 +31,8 @@ namespace nl {
 namespace Weave {
 namespace DeviceLayer {
 namespace Internal {
+
+EchoServer EchoServer::sInstance;
 
 WEAVE_ERROR EchoServer::Init()
 {

@@ -16,6 +16,11 @@
  *    limitations under the License.
  */
 
+/**
+ *    @file
+ *          Defines the Device Layer EchoServer object.
+ */
+
 #ifndef ECHO_SERVER_H
 #define ECHO_SERVER_H
 
@@ -27,15 +32,36 @@ namespace Weave {
 namespace DeviceLayer {
 namespace Internal {
 
-class EchoServer : public ::nl::Weave::Profiles::Echo_Next::WeaveEchoServer
+/**
+ * Implements the Weave Echo Profile for a Weave Device.
+ */
+class EchoServer final
+    : public ::nl::Weave::Profiles::Echo_Next::WeaveEchoServer
 {
-public:
     typedef ::nl::Weave::Profiles::Echo_Next::WeaveEchoServer ServerBaseClass;
 
+public:
+
+    // ===== Members for internal use by other Device Layer components.
+
     WEAVE_ERROR Init();
+
+private:
+
+    // ===== Members for internal use by the following friends.
+
+    friend EchoServer & EchoSvr(void);
+
+    static EchoServer sInstance;
 };
 
-extern EchoServer EchoSvr;
+/**
+ * Returns a reference to the EchoServer singleton object.
+ */
+inline EchoServer & EchoSvr(void)
+{
+    return EchoServer::sInstance;
+}
 
 } // namespace Internal
 } // namespace DeviceLayer

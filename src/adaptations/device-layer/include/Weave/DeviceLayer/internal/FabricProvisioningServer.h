@@ -16,6 +16,11 @@
  *    limitations under the License.
  */
 
+/**
+ *    @file
+ *          Defines the Device Layer FabricProvisioningServer object.
+ */
+
 #ifndef FABRIC_PROVISIONING_SERVER_H
 #define FABRIC_PROVISIONING_SERVER_H
 
@@ -27,25 +32,51 @@ namespace Weave {
 namespace DeviceLayer {
 namespace Internal {
 
-class FabricProvisioningServer
-        : public ::nl::Weave::Profiles::FabricProvisioning::FabricProvisioningServer,
-          public ::nl::Weave::Profiles::FabricProvisioning::FabricProvisioningDelegate
+/**
+ * Implements the Weave Fabric Provisioning profile for a Weave device.
+ */
+class FabricProvisioningServer final
+    : public ::nl::Weave::Profiles::FabricProvisioning::FabricProvisioningServer,
+      public ::nl::Weave::Profiles::FabricProvisioning::FabricProvisioningDelegate
 {
+    using ServerBaseClass = ::nl::Weave::Profiles::FabricProvisioning::FabricProvisioningServer;
+
 public:
-    typedef ::nl::Weave::Profiles::FabricProvisioning::FabricProvisioningServer ServerBaseClass;
+
+    // ===== Members for internal use by other Device Layer components.
 
     WEAVE_ERROR Init();
-    virtual WEAVE_ERROR HandleCreateFabric(void);
-    virtual WEAVE_ERROR HandleJoinExistingFabric(void);
-    virtual WEAVE_ERROR HandleLeaveFabric(void);
-    virtual WEAVE_ERROR HandleGetFabricConfig(void);
-    WEAVE_ERROR LeaveFabric(void);
-    virtual bool IsPairedToAccount() const;
-
     void OnPlatformEvent(const WeaveDeviceEvent * event);
+    WEAVE_ERROR LeaveFabric(void);
+
+    // ===== Members that override virtual methods on FabricProvisioningDelegate
+
+    WEAVE_ERROR HandleCreateFabric(void) override;
+    WEAVE_ERROR HandleJoinExistingFabric(void) override;
+    WEAVE_ERROR HandleLeaveFabric(void) override;
+    WEAVE_ERROR HandleGetFabricConfig(void) override;
+
+    // ===== Members that override virtual methods on FabricProvisioningServer
+
+    bool IsPairedToAccount() const override;
+
+private:
+
+    // ===== Members for internal use by the following friends.
+
+    friend FabricProvisioningServer & FabricProvisioningSvr(void);
+
+    static FabricProvisioningServer sInstance;
 };
 
-extern FabricProvisioningServer FabricProvisioningSvr;
+/**
+ * Returns a reference to the FabricProvisioningServer singleton object.
+ */
+inline FabricProvisioningServer & FabricProvisioningSvr(void)
+{
+    return FabricProvisioningServer::sInstance;
+}
+
 
 } // namespace Internal
 } // namespace DeviceLayer

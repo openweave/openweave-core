@@ -28,6 +28,8 @@ namespace Weave {
 namespace DeviceLayer {
 namespace Internal {
 
+FabricProvisioningServer FabricProvisioningServer::sInstance;
+
 WEAVE_ERROR FabricProvisioningServer::Init()
 {
     WEAVE_ERROR err;

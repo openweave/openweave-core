@@ -30,8 +30,6 @@ namespace Weave {
 namespace DeviceLayer {
 
 PlatformManager PlatformMgr;
-TraitManager TraitMgr;
-TimeSyncManager TimeSyncMgr;
 
 nl::Weave::System::Layer SystemLayer;
 nl::Inet::InetLayer InetLayer;
@@ -46,12 +44,6 @@ namespace Internal {
 #if WEAVE_DEVICE_CONFIG_ENABLE_WOBLE
 BLEManager BLEMgr;
 #endif
-
-EchoServer EchoSvr;
-DeviceControlServer DeviceControlSvr;
-DeviceDescriptionServer DeviceDescriptionSvr;
-FabricProvisioningServer FabricProvisioningSvr;
-ServiceProvisioningServer ServiceProvisioningSvr;
 
 const char * const TAG = "weave[DL]";
 
