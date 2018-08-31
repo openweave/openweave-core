@@ -98,7 +98,7 @@ WEAVE_ERROR DeviceControlServer::OnResetConfig(uint16_t resetFlags)
         if ((resetFlags & kResetConfigFlag_NetworkConfig) != 0)
         {
             WeaveLogProgress(DeviceLayer, "Reset network config");
-            ConnectivityMgr.ClearWiFiStationProvision();
+            ConnectivityMgr().ClearWiFiStationProvision();
         }
     }
 

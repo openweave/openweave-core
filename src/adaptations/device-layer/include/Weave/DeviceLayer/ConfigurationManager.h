@@ -47,6 +47,9 @@ class ConfigurationManager
     using WeaveDeviceDescriptor = ::nl::Weave::Profiles::DeviceDescription::WeaveDeviceDescriptor;
 
 public:
+
+    // ===== Members that define the public interface of the ConfigurationManager
+
     enum
     {
         kMaxPairingCodeLength = 15,
@@ -101,12 +104,11 @@ public:
 
 private:
 
-    // Members for internal use by the following friends.
+    // ===== Members for internal use by the following friends.
 
     friend class ::nl::Weave::DeviceLayer::PlatformManager;
     friend class ::nl::Weave::DeviceLayer::TraitManager;
     friend class ::nl::Weave::DeviceLayer::Internal::DeviceControlServer;
-    friend class ::nl::Weave::DeviceLayer::Internal::NetworkProvisioningServer;
     friend WEAVE_ERROR ::nl::Weave::Platform::PersistedStorage::Read(::nl::Weave::Platform::PersistedStorage::Key key, uint32_t & value);
     friend WEAVE_ERROR ::nl::Weave::Platform::PersistedStorage::Write(::nl::Weave::Platform::PersistedStorage::Key key, uint32_t value);
 
@@ -131,10 +133,10 @@ protected:
 /**
  * Returns a reference to the public interface of the ConfigurationManager singleton object.
  *
- * API users should use this to access features of the ConfigurationManager object that are common
- * to all platforms.
+ * Weave application should use this to access features of the ConfigurationManager object
+ * that are common to all platforms.
  */
-extern ConfigurationManager & ConfigurationMgr();
+extern ConfigurationManager & ConfigurationMgr(void);
 
 } // namespace DeviceLayer
 } // namespace Weave

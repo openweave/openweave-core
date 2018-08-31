@@ -105,6 +105,7 @@ target_triplet = @target@
 @CONFIG_DEVICE_LAYER_TRUE@@WEAVE_DEVICE_LAYER_TARGET_ESP32_TRUE@    ESP32/ConfigurationManagerImpl.cpp          \
 @CONFIG_DEVICE_LAYER_TRUE@@WEAVE_DEVICE_LAYER_TARGET_ESP32_TRUE@    ESP32/GroupKeyStoreImpl.cpp                 \
 @CONFIG_DEVICE_LAYER_TRUE@@WEAVE_DEVICE_LAYER_TARGET_ESP32_TRUE@    ESP32/NetworkProvisioningServerImpl.cpp     \
+@CONFIG_DEVICE_LAYER_TRUE@@WEAVE_DEVICE_LAYER_TARGET_ESP32_TRUE@    ESP32/ConnectivityManagerImpl.cpp           \
 @CONFIG_DEVICE_LAYER_TRUE@@WEAVE_DEVICE_LAYER_TARGET_ESP32_TRUE@    ESP32/ESP32Config.cpp                       \
 @CONFIG_DEVICE_LAYER_TRUE@@WEAVE_DEVICE_LAYER_TARGET_ESP32_TRUE@    $(NULL)
 
@@ -184,7 +185,7 @@ am__v_AR_1 =
 libDeviceLayer_a_AR = $(AR) $(ARFLAGS)
 libDeviceLayer_a_LIBADD =
 am__libDeviceLayer_a_SOURCES_DIST = AESBlockCipher.cpp BLEManager.cpp \
-	CASEAuth.cpp ConnectivityManager.cpp DeviceControlServer.cpp \
+	CASEAuth.cpp DeviceControlServer.cpp \
 	DeviceDescriptionServer.cpp DeviceIdentityTraitDataSource.cpp \
 	EchoServer.cpp Entropy.cpp ESPUtils.cpp \
 	FabricProvisioningServer.cpp Globals.cpp Logging.cpp \
@@ -194,16 +195,17 @@ am__libDeviceLayer_a_SOURCES_DIST = AESBlockCipher.cpp BLEManager.cpp \
 	TimeSyncManager.cpp TraitManager.cpp Warm.cpp \
 	trait-support/weave/trait/description/DeviceIdentityTrait.cpp \
 	ESP32/ConfigurationManagerImpl.cpp ESP32/GroupKeyStoreImpl.cpp \
-	ESP32/NetworkProvisioningServerImpl.cpp ESP32/ESP32Config.cpp
+	ESP32/NetworkProvisioningServerImpl.cpp \
+	ESP32/ConnectivityManagerImpl.cpp ESP32/ESP32Config.cpp
 am__dirstamp = $(am__leading_dot)dirstamp
 @CONFIG_DEVICE_LAYER_TRUE@@WEAVE_DEVICE_LAYER_TARGET_ESP32_TRUE@am__objects_1 = ESP32/libDeviceLayer_a-ConfigurationManagerImpl.$(OBJEXT) \
 @CONFIG_DEVICE_LAYER_TRUE@@WEAVE_DEVICE_LAYER_TARGET_ESP32_TRUE@	ESP32/libDeviceLayer_a-GroupKeyStoreImpl.$(OBJEXT) \
 @CONFIG_DEVICE_LAYER_TRUE@@WEAVE_DEVICE_LAYER_TARGET_ESP32_TRUE@	ESP32/libDeviceLayer_a-NetworkProvisioningServerImpl.$(OBJEXT) \
+@CONFIG_DEVICE_LAYER_TRUE@@WEAVE_DEVICE_LAYER_TARGET_ESP32_TRUE@	ESP32/libDeviceLayer_a-ConnectivityManagerImpl.$(OBJEXT) \
 @CONFIG_DEVICE_LAYER_TRUE@@WEAVE_DEVICE_LAYER_TARGET_ESP32_TRUE@	ESP32/libDeviceLayer_a-ESP32Config.$(OBJEXT)
 @CONFIG_DEVICE_LAYER_TRUE@am_libDeviceLayer_a_OBJECTS = libDeviceLayer_a-AESBlockCipher.$(OBJEXT) \
 @CONFIG_DEVICE_LAYER_TRUE@	libDeviceLayer_a-BLEManager.$(OBJEXT) \
 @CONFIG_DEVICE_LAYER_TRUE@	libDeviceLayer_a-CASEAuth.$(OBJEXT) \
-@CONFIG_DEVICE_LAYER_TRUE@	libDeviceLayer_a-ConnectivityManager.$(OBJEXT) \
 @CONFIG_DEVICE_LAYER_TRUE@	libDeviceLayer_a-DeviceControlServer.$(OBJEXT) \
 @CONFIG_DEVICE_LAYER_TRUE@	libDeviceLayer_a-DeviceDescriptionServer.$(OBJEXT) \
 @CONFIG_DEVICE_LAYER_TRUE@	libDeviceLayer_a-DeviceIdentityTraitDataSource.$(OBJEXT) \
@@ -546,8 +548,7 @@ top_srcdir = @top_srcdir@
 
 @CONFIG_DEVICE_LAYER_TRUE@libDeviceLayer_a_SOURCES =  \
 @CONFIG_DEVICE_LAYER_TRUE@	AESBlockCipher.cpp BLEManager.cpp \
-@CONFIG_DEVICE_LAYER_TRUE@	CASEAuth.cpp ConnectivityManager.cpp \
-@CONFIG_DEVICE_LAYER_TRUE@	DeviceControlServer.cpp \
+@CONFIG_DEVICE_LAYER_TRUE@	CASEAuth.cpp DeviceControlServer.cpp \
 @CONFIG_DEVICE_LAYER_TRUE@	DeviceDescriptionServer.cpp \
 @CONFIG_DEVICE_LAYER_TRUE@	DeviceIdentityTraitDataSource.cpp \
 @CONFIG_DEVICE_LAYER_TRUE@	EchoServer.cpp Entropy.cpp \
@@ -653,6 +654,8 @@ ESP32/libDeviceLayer_a-GroupKeyStoreImpl.$(OBJEXT):  \
 	ESP32/$(am__dirstamp) ESP32/$(DEPDIR)/$(am__dirstamp)
 ESP32/libDeviceLayer_a-NetworkProvisioningServerImpl.$(OBJEXT):  \
 	ESP32/$(am__dirstamp) ESP32/$(DEPDIR)/$(am__dirstamp)
+ESP32/libDeviceLayer_a-ConnectivityManagerImpl.$(OBJEXT):  \
+	ESP32/$(am__dirstamp) ESP32/$(DEPDIR)/$(am__dirstamp)
 ESP32/libDeviceLayer_a-ESP32Config.$(OBJEXT): ESP32/$(am__dirstamp) \
 	ESP32/$(DEPDIR)/$(am__dirstamp)
 
@@ -672,7 +675,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libDeviceLayer_a-AESBlockCipher.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libDeviceLayer_a-BLEManager.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libDeviceLayer_a-CASEAuth.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libDeviceLayer_a-ConnectivityManager.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libDeviceLayer_a-DeviceControlServer.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libDeviceLayer_a-DeviceDescriptionServer.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libDeviceLayer_a-DeviceIdentityTraitDataSource.Po@am__quote@
@@ -694,6 +696,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libDeviceLayer_a-TraitManager.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libDeviceLayer_a-Warm.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@ESP32/$(DEPDIR)/libDeviceLayer_a-ConfigurationManagerImpl.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@ESP32/$(DEPDIR)/libDeviceLayer_a-ConnectivityManagerImpl.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@ESP32/$(DEPDIR)/libDeviceLayer_a-ESP32Config.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@ESP32/$(DEPDIR)/libDeviceLayer_a-GroupKeyStoreImpl.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@ESP32/$(DEPDIR)/libDeviceLayer_a-NetworkProvisioningServerImpl.Po@am__quote@
@@ -764,20 +767,6 @@ libDeviceLayer_a-CASEAuth.obj: CASEAuth.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='CASEAuth.cpp' object='libDeviceLayer_a-CASEAuth.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libDeviceLayer_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o libDeviceLayer_a-CASEAuth.obj `if test -f 'CASEAuth.cpp'; then $(CYGPATH_W) 'CASEAuth.cpp'; else $(CYGPATH_W) '$(srcdir)/CASEAuth.cpp'; fi`
-
-libDeviceLayer_a-ConnectivityManager.o: ConnectivityManager.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libDeviceLayer_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT libDeviceLayer_a-ConnectivityManager.o -MD -MP -MF $(DEPDIR)/libDeviceLayer_a-ConnectivityManager.Tpo -c -o libDeviceLayer_a-ConnectivityManager.o `test -f 'ConnectivityManager.cpp' || echo '$(srcdir)/'`ConnectivityManager.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libDeviceLayer_a-ConnectivityManager.Tpo $(DEPDIR)/libDeviceLayer_a-ConnectivityManager.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='ConnectivityManager.cpp' object='libDeviceLayer_a-ConnectivityManager.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libDeviceLayer_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o libDeviceLayer_a-ConnectivityManager.o `test -f 'ConnectivityManager.cpp' || echo '$(srcdir)/'`ConnectivityManager.cpp
-
-libDeviceLayer_a-ConnectivityManager.obj: ConnectivityManager.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libDeviceLayer_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT libDeviceLayer_a-ConnectivityManager.obj -MD -MP -MF $(DEPDIR)/libDeviceLayer_a-ConnectivityManager.Tpo -c -o libDeviceLayer_a-ConnectivityManager.obj `if test -f 'ConnectivityManager.cpp'; then $(CYGPATH_W) 'ConnectivityManager.cpp'; else $(CYGPATH_W) '$(srcdir)/ConnectivityManager.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libDeviceLayer_a-ConnectivityManager.Tpo $(DEPDIR)/libDeviceLayer_a-ConnectivityManager.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='ConnectivityManager.cpp' object='libDeviceLayer_a-ConnectivityManager.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libDeviceLayer_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o libDeviceLayer_a-ConnectivityManager.obj `if test -f 'ConnectivityManager.cpp'; then $(CYGPATH_W) 'ConnectivityManager.cpp'; else $(CYGPATH_W) '$(srcdir)/ConnectivityManager.cpp'; fi`
 
 libDeviceLayer_a-DeviceControlServer.o: DeviceControlServer.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libDeviceLayer_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT libDeviceLayer_a-DeviceControlServer.o -MD -MP -MF $(DEPDIR)/libDeviceLayer_a-DeviceControlServer.Tpo -c -o libDeviceLayer_a-DeviceControlServer.o `test -f 'DeviceControlServer.cpp' || echo '$(srcdir)/'`DeviceControlServer.cpp
@@ -1114,6 +1103,20 @@ ESP32/libDeviceLayer_a-NetworkProvisioningServerImpl.obj: ESP32/NetworkProvision
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='ESP32/NetworkProvisioningServerImpl.cpp' object='ESP32/libDeviceLayer_a-NetworkProvisioningServerImpl.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libDeviceLayer_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o ESP32/libDeviceLayer_a-NetworkProvisioningServerImpl.obj `if test -f 'ESP32/NetworkProvisioningServerImpl.cpp'; then $(CYGPATH_W) 'ESP32/NetworkProvisioningServerImpl.cpp'; else $(CYGPATH_W) '$(srcdir)/ESP32/NetworkProvisioningServerImpl.cpp'; fi`
+
+ESP32/libDeviceLayer_a-ConnectivityManagerImpl.o: ESP32/ConnectivityManagerImpl.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libDeviceLayer_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT ESP32/libDeviceLayer_a-ConnectivityManagerImpl.o -MD -MP -MF ESP32/$(DEPDIR)/libDeviceLayer_a-ConnectivityManagerImpl.Tpo -c -o ESP32/libDeviceLayer_a-ConnectivityManagerImpl.o `test -f 'ESP32/ConnectivityManagerImpl.cpp' || echo '$(srcdir)/'`ESP32/ConnectivityManagerImpl.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ESP32/$(DEPDIR)/libDeviceLayer_a-ConnectivityManagerImpl.Tpo ESP32/$(DEPDIR)/libDeviceLayer_a-ConnectivityManagerImpl.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='ESP32/ConnectivityManagerImpl.cpp' object='ESP32/libDeviceLayer_a-ConnectivityManagerImpl.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libDeviceLayer_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o ESP32/libDeviceLayer_a-ConnectivityManagerImpl.o `test -f 'ESP32/ConnectivityManagerImpl.cpp' || echo '$(srcdir)/'`ESP32/ConnectivityManagerImpl.cpp
+
+ESP32/libDeviceLayer_a-ConnectivityManagerImpl.obj: ESP32/ConnectivityManagerImpl.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libDeviceLayer_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT ESP32/libDeviceLayer_a-ConnectivityManagerImpl.obj -MD -MP -MF ESP32/$(DEPDIR)/libDeviceLayer_a-ConnectivityManagerImpl.Tpo -c -o ESP32/libDeviceLayer_a-ConnectivityManagerImpl.obj `if test -f 'ESP32/ConnectivityManagerImpl.cpp'; then $(CYGPATH_W) 'ESP32/ConnectivityManagerImpl.cpp'; else $(CYGPATH_W) '$(srcdir)/ESP32/ConnectivityManagerImpl.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ESP32/$(DEPDIR)/libDeviceLayer_a-ConnectivityManagerImpl.Tpo ESP32/$(DEPDIR)/libDeviceLayer_a-ConnectivityManagerImpl.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='ESP32/ConnectivityManagerImpl.cpp' object='ESP32/libDeviceLayer_a-ConnectivityManagerImpl.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libDeviceLayer_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o ESP32/libDeviceLayer_a-ConnectivityManagerImpl.obj `if test -f 'ESP32/ConnectivityManagerImpl.cpp'; then $(CYGPATH_W) 'ESP32/ConnectivityManagerImpl.cpp'; else $(CYGPATH_W) '$(srcdir)/ESP32/ConnectivityManagerImpl.cpp'; fi`
 
 ESP32/libDeviceLayer_a-ESP32Config.o: ESP32/ESP32Config.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libDeviceLayer_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT ESP32/libDeviceLayer_a-ESP32Config.o -MD -MP -MF ESP32/$(DEPDIR)/libDeviceLayer_a-ESP32Config.Tpo -c -o ESP32/libDeviceLayer_a-ESP32Config.o `test -f 'ESP32/ESP32Config.cpp' || echo '$(srcdir)/'`ESP32/ESP32Config.cpp

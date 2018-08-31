@@ -68,9 +68,9 @@ inline ConnectivityChange GetConnectivityChange(bool prevState, bool newState)
 } // unnamed namespace
 
 
-// ==================== ConnectivityManager Public Methods ====================
+ConnectivityManagerImpl ConnectivityManagerImpl::sInstance;
 
-ConnectivityManager::WiFiStationMode ConnectivityManager::GetWiFiStationMode(void)
+ConnectivityManager::WiFiStationMode ConnectivityManagerImpl::_GetWiFiStationMode(void)
 {
     if (mWiFiStationMode != kWiFiStationMode_ApplicationControlled)
     {
@@ -82,12 +82,12 @@ ConnectivityManager::WiFiStationMode ConnectivityManager::GetWiFiStationMode(voi
     return mWiFiStationMode;
 }
 
-bool ConnectivityManager::IsWiFiStationEnabled(void)
+bool ConnectivityManagerImpl::_IsWiFiStationEnabled(void)
 {
     return GetWiFiStationMode() == kWiFiStationMode_Enabled;
 }
 
-WEAVE_ERROR ConnectivityManager::SetWiFiStationMode(WiFiStationMode val)
+WEAVE_ERROR ConnectivityManagerImpl::_SetWiFiStationMode(WiFiStationMode val)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
 
@@ -113,12 +113,12 @@ exit:
     return err;
 }
 
-bool ConnectivityManager::IsWiFiStationProvisioned(void) const
+bool ConnectivityManagerImpl::_IsWiFiStationProvisioned(void)
 {
     return ESPUtils::IsStationProvisioned();
 }
 
-void ConnectivityManager::ClearWiFiStationProvision(void)
+void ConnectivityManagerImpl::_ClearWiFiStationProvision(void)
 {
     if (mWiFiStationMode != kWiFiStationMode_ApplicationControlled)
     {
@@ -132,7 +132,7 @@ void ConnectivityManager::ClearWiFiStationProvision(void)
     }
 }
 
-WEAVE_ERROR ConnectivityManager::SetWiFiAPMode(WiFiAPMode val)
+WEAVE_ERROR ConnectivityManagerImpl::_SetWiFiAPMode(WiFiAPMode val)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
 
@@ -151,7 +151,7 @@ exit:
     return err;
 }
 
-void ConnectivityManager::DemandStartWiFiAP(void)
+void ConnectivityManagerImpl::_DemandStartWiFiAP(void)
 {
     if (mWiFiAPMode == kWiFiAPMode_OnDemand ||
         mWiFiAPMode == kWiFiAPMode_OnDemand_NoStationProvision)
@@ -161,7 +161,7 @@ void ConnectivityManager::DemandStartWiFiAP(void)
     }
 }
 
-void ConnectivityManager::StopOnDemandWiFiAP(void)
+void ConnectivityManagerImpl::_StopOnDemandWiFiAP(void)
 {
     if (mWiFiAPMode == kWiFiAPMode_OnDemand ||
         mWiFiAPMode == kWiFiAPMode_OnDemand_NoStationProvision)
@@ -171,7 +171,7 @@ void ConnectivityManager::StopOnDemandWiFiAP(void)
     }
 }
 
-void ConnectivityManager::MaintainOnDemandWiFiAP(void)
+void ConnectivityManagerImpl::_MaintainOnDemandWiFiAP(void)
 {
     if (mWiFiAPMode == kWiFiAPMode_OnDemand ||
         mWiFiAPMode == kWiFiAPMode_OnDemand_NoStationProvision)
@@ -183,13 +183,13 @@ void ConnectivityManager::MaintainOnDemandWiFiAP(void)
     }
 }
 
-void ConnectivityManager::SetWiFiAPIdleTimeoutMS(uint32_t val)
+void ConnectivityManagerImpl::_SetWiFiAPIdleTimeoutMS(uint32_t val)
 {
     mWiFiAPIdleTimeoutMS = val;
     SystemLayer.ScheduleWork(DriveAPState, NULL);
 }
 
-WEAVE_ERROR ConnectivityManager::SetServiceTunnelMode(ServiceTunnelMode val)
+WEAVE_ERROR ConnectivityManagerImpl::_SetServiceTunnelMode(ServiceTunnelMode val)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
 
@@ -203,7 +203,7 @@ exit:
     return err;
 }
 
-bool ConnectivityManager::IsServiceTunnelConnected(void)
+bool ConnectivityManagerImpl::_IsServiceTunnelConnected(void)
 {
     WeaveTunnelAgent::AgentState tunnelState = ServiceTunnelAgent.GetWeaveTunnelAgentState();
     return (tunnelState == WeaveTunnelAgent::kState_PrimaryTunModeEstablished ||
@@ -211,17 +211,17 @@ bool ConnectivityManager::IsServiceTunnelConnected(void)
             tunnelState == WeaveTunnelAgent::kState_BkupOnlyTunModeEstablished);
 }
 
-bool ConnectivityManager::IsServiceTunnelRestricted(void)
+bool ConnectivityManagerImpl::_IsServiceTunnelRestricted(void)
 {
     return ServiceTunnelAgent.IsTunnelRoutingRestricted();
 }
 
-bool ConnectivityManager::HaveServiceConnectivity(void)
+bool ConnectivityManagerImpl::_HaveServiceConnectivity(void)
 {
     return IsServiceTunnelConnected() && !IsServiceTunnelRestricted();
 }
 
-ConnectivityManager::WoBLEServiceMode ConnectivityManager::GetWoBLEServiceMode(void)
+ConnectivityManager::WoBLEServiceMode ConnectivityManagerImpl::_GetWoBLEServiceMode(void)
 {
 #if WEAVE_DEVICE_CONFIG_ENABLE_WOBLE
     return BLEMgr.GetWoBLEServiceMode();
@@ -230,7 +230,7 @@ ConnectivityManager::WoBLEServiceMode ConnectivityManager::GetWoBLEServiceMode(v
 #endif
 }
 
-WEAVE_ERROR ConnectivityManager::SetWoBLEServiceMode(WoBLEServiceMode val)
+WEAVE_ERROR ConnectivityManagerImpl::_SetWoBLEServiceMode(WoBLEServiceMode val)
 {
 #if WEAVE_DEVICE_CONFIG_ENABLE_WOBLE
     return BLEMgr.SetWoBLEServiceMode(val);
@@ -239,7 +239,7 @@ WEAVE_ERROR ConnectivityManager::SetWoBLEServiceMode(WoBLEServiceMode val)
 #endif
 }
 
-bool ConnectivityManager::IsBLEAdvertisingEnabled(void)
+bool ConnectivityManagerImpl::_IsBLEAdvertisingEnabled(void)
 {
 #if WEAVE_DEVICE_CONFIG_ENABLE_WOBLE
     return BLEMgr.IsAdvertisingEnabled();
@@ -248,7 +248,7 @@ bool ConnectivityManager::IsBLEAdvertisingEnabled(void)
 #endif
 }
 
-WEAVE_ERROR ConnectivityManager::SetBLEAdvertisingEnabled(bool val)
+WEAVE_ERROR ConnectivityManagerImpl::_SetBLEAdvertisingEnabled(bool val)
 {
 #if WEAVE_DEVICE_CONFIG_ENABLE_WOBLE
     return BLEMgr.SetAdvertisingEnabled(val);
@@ -257,7 +257,7 @@ WEAVE_ERROR ConnectivityManager::SetBLEAdvertisingEnabled(bool val)
 #endif
 }
 
-bool ConnectivityManager::IsBLEFastAdvertisingEnabled(void)
+bool ConnectivityManagerImpl::_IsBLEFastAdvertisingEnabled(void)
 {
 #if WEAVE_DEVICE_CONFIG_ENABLE_WOBLE
     return BLEMgr.IsFastAdvertisingEnabled();
@@ -266,7 +266,7 @@ bool ConnectivityManager::IsBLEFastAdvertisingEnabled(void)
 #endif
 }
 
-WEAVE_ERROR ConnectivityManager::SetBLEFastAdvertisingEnabled(bool val)
+WEAVE_ERROR ConnectivityManagerImpl::_SetBLEFastAdvertisingEnabled(bool val)
 {
 #if WEAVE_DEVICE_CONFIG_ENABLE_WOBLE
     return BLEMgr.SetFastAdvertisingEnabled(val);
@@ -275,7 +275,7 @@ WEAVE_ERROR ConnectivityManager::SetBLEFastAdvertisingEnabled(bool val)
 #endif
 }
 
-WEAVE_ERROR ConnectivityManager::GetBLEDeviceName(char * buf, size_t bufSize)
+WEAVE_ERROR ConnectivityManagerImpl::_GetBLEDeviceName(char * buf, size_t bufSize)
 {
 #if WEAVE_DEVICE_CONFIG_ENABLE_WOBLE
     return BLEMgr.GetDeviceName(buf, bufSize);
@@ -284,7 +284,7 @@ WEAVE_ERROR ConnectivityManager::GetBLEDeviceName(char * buf, size_t bufSize)
 #endif
 }
 
-WEAVE_ERROR ConnectivityManager::SetBLEDeviceName(const char * deviceName)
+WEAVE_ERROR ConnectivityManagerImpl::_SetBLEDeviceName(const char * deviceName)
 {
 #if WEAVE_DEVICE_CONFIG_ENABLE_WOBLE
     return BLEMgr.SetDeviceName(deviceName);
@@ -293,7 +293,7 @@ WEAVE_ERROR ConnectivityManager::SetBLEDeviceName(const char * deviceName)
 #endif
 }
 
-uint16_t ConnectivityManager::NumBLEConnections(void)
+uint16_t ConnectivityManagerImpl::_NumBLEConnections(void)
 {
 #if WEAVE_DEVICE_CONFIG_ENABLE_WOBLE
     return BLEMgr.NumConnections();
@@ -304,7 +304,7 @@ uint16_t ConnectivityManager::NumBLEConnections(void)
 
 // ==================== ConnectivityManager Platform Internal Methods ====================
 
-WEAVE_ERROR ConnectivityManager::Init()
+WEAVE_ERROR ConnectivityManagerImpl::_Init()
 {
     WEAVE_ERROR err;
 
@@ -381,7 +381,7 @@ exit:
     return err;
 }
 
-void ConnectivityManager::OnPlatformEvent(const WeaveDeviceEvent * event)
+void ConnectivityManagerImpl::_OnPlatformEvent(const WeaveDeviceEvent * event)
 {
     // Handle ESP system events...
     if (event->Type == WeaveDeviceEvent::kEventType_ESPSystemEvent)
@@ -478,14 +478,14 @@ void ConnectivityManager::OnPlatformEvent(const WeaveDeviceEvent * event)
 #endif // !WEAVE_DEVICE_CONFIG_DISABLE_ACCOUNT_PAIRING
 }
 
-void ConnectivityManager::OnWiFiScanDone()
+void ConnectivityManagerImpl::_OnWiFiScanDone()
 {
     // Schedule a call to DriveStationState method in case a station connect attempt was
     // deferred because the scan was in progress.
     SystemLayer.ScheduleWork(DriveStationState, NULL);
 }
 
-void ConnectivityManager::OnWiFiStationProvisionChange()
+void ConnectivityManagerImpl::_OnWiFiStationProvisionChange()
 {
     // Schedule a call to the DriveStationState method to adjust the station state as needed.
     SystemLayer.ScheduleWork(DriveStationState, NULL);
@@ -493,7 +493,7 @@ void ConnectivityManager::OnWiFiStationProvisionChange()
 
 // ==================== ConnectivityManager Private Methods ====================
 
-void ConnectivityManager::DriveStationState()
+void ConnectivityManagerImpl::DriveStationState()
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
     bool stationConnected;
@@ -616,7 +616,7 @@ exit:
     NetworkProvisioningSvr().StartPendingScan();
 }
 
-void ConnectivityManager::OnStationConnected()
+void ConnectivityManagerImpl::OnStationConnected()
 {
     WEAVE_ERROR err;
 
@@ -639,7 +639,7 @@ void ConnectivityManager::OnStationConnected()
     UpdateInternetConnectivityState();
 }
 
-void ConnectivityManager::OnStationDisconnected()
+void ConnectivityManagerImpl::OnStationDisconnected()
 {
     // Invoke WARM to perform actions that occur when the WiFi station interface goes down.
     Warm::WiFiInterfaceStateChange(Warm::kInterfaceStateDown);
@@ -653,7 +653,7 @@ void ConnectivityManager::OnStationDisconnected()
     UpdateInternetConnectivityState();
 }
 
-void ConnectivityManager::ChangeWiFiStationState(WiFiStationState newState)
+void ConnectivityManagerImpl::ChangeWiFiStationState(WiFiStationState newState)
 {
     if (mWiFiStationState != newState)
     {
@@ -662,12 +662,12 @@ void ConnectivityManager::ChangeWiFiStationState(WiFiStationState newState)
     }
 }
 
-void ConnectivityManager::DriveStationState(nl::Weave::System::Layer * aLayer, void * aAppState, nl::Weave::System::Error aError)
+void ConnectivityManagerImpl::DriveStationState(nl::Weave::System::Layer * aLayer, void * aAppState, nl::Weave::System::Error aError)
 {
-    ConnectivityMgr.DriveStationState();
+    sInstance.DriveStationState();
 }
 
-void ConnectivityManager::DriveAPState()
+void ConnectivityManagerImpl::DriveAPState()
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
     WiFiAPState targetState;
@@ -801,7 +801,7 @@ exit:
     }
 }
 
-WEAVE_ERROR ConnectivityManager::ConfigureWiFiAP()
+WEAVE_ERROR ConnectivityManagerImpl::ConfigureWiFiAP()
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
     wifi_config_t wifiConfig;
@@ -825,7 +825,7 @@ exit:
     return err;
 }
 
-void ConnectivityManager::ChangeWiFiAPState(WiFiAPState newState)
+void ConnectivityManagerImpl::ChangeWiFiAPState(WiFiAPState newState)
 {
     if (mWiFiAPState != newState)
     {
@@ -834,12 +834,12 @@ void ConnectivityManager::ChangeWiFiAPState(WiFiAPState newState)
     }
 }
 
-void ConnectivityManager::DriveAPState(nl::Weave::System::Layer * aLayer, void * aAppState, nl::Weave::System::Error aError)
+void ConnectivityManagerImpl::DriveAPState(nl::Weave::System::Layer * aLayer, void * aAppState, nl::Weave::System::Error aError)
 {
-    ConnectivityMgr.DriveAPState();
+    sInstance.DriveAPState();
 }
 
-void ConnectivityManager::UpdateInternetConnectivityState(void)
+void ConnectivityManagerImpl::UpdateInternetConnectivityState(void)
 {
     bool haveIPv4Conn = false;
     bool haveIPv6Conn = false;
@@ -916,7 +916,7 @@ void ConnectivityManager::UpdateInternetConnectivityState(void)
     }
 }
 
-void ConnectivityManager::OnStationIPv4AddressAvailable(const system_event_sta_got_ip_t & got_ip)
+void ConnectivityManagerImpl::OnStationIPv4AddressAvailable(const system_event_sta_got_ip_t & got_ip)
 {
 #if WEAVE_PROGRESS_LOGGING
     {
@@ -935,7 +935,7 @@ void ConnectivityManager::OnStationIPv4AddressAvailable(const system_event_sta_g
     UpdateInternetConnectivityState();
 }
 
-void ConnectivityManager::OnStationIPv4AddressLost(void)
+void ConnectivityManagerImpl::OnStationIPv4AddressLost(void)
 {
     WeaveLogProgress(DeviceLayer, "IPv4 address lost on WiFi station interface");
 
@@ -944,7 +944,7 @@ void ConnectivityManager::OnStationIPv4AddressLost(void)
     UpdateInternetConnectivityState();
 }
 
-void ConnectivityManager::OnIPv6AddressAvailable(const system_event_got_ip6_t & got_ip)
+void ConnectivityManagerImpl::OnIPv6AddressAvailable(const system_event_got_ip6_t & got_ip)
 {
 #if WEAVE_PROGRESS_LOGGING
     {
@@ -963,7 +963,7 @@ void ConnectivityManager::OnIPv6AddressAvailable(const system_event_got_ip6_t & 
     UpdateInternetConnectivityState();
 }
 
-void ConnectivityManager::DriveServiceTunnelState(void)
+void ConnectivityManagerImpl::DriveServiceTunnelState(void)
 {
     WEAVE_ERROR err;
     bool startServiceTunnel;
@@ -1004,12 +1004,12 @@ void ConnectivityManager::DriveServiceTunnelState(void)
     }
 }
 
-void ConnectivityManager::DriveServiceTunnelState(nl::Weave::System::Layer * aLayer, void * aAppState, nl::Weave::System::Error aError)
+void ConnectivityManagerImpl::DriveServiceTunnelState(nl::Weave::System::Layer * aLayer, void * aAppState, nl::Weave::System::Error aError)
 {
-    ConnectivityMgr.DriveServiceTunnelState();
+    sInstance.DriveServiceTunnelState();
 }
 
-const char * ConnectivityManager::WiFiStationModeToStr(WiFiStationMode mode)
+const char * ConnectivityManagerImpl::WiFiStationModeToStr(WiFiStationMode mode)
 {
     switch (mode)
     {
@@ -1026,7 +1026,7 @@ const char * ConnectivityManager::WiFiStationModeToStr(WiFiStationMode mode)
     }
 }
 
-const char * ConnectivityManager::WiFiStationStateToStr(WiFiStationState state)
+const char * ConnectivityManagerImpl::WiFiStationStateToStr(WiFiStationState state)
 {
     switch (state)
     {
@@ -1047,7 +1047,7 @@ const char * ConnectivityManager::WiFiStationStateToStr(WiFiStationState state)
     }
 }
 
-const char * ConnectivityManager::WiFiAPModeToStr(WiFiAPMode mode)
+const char * ConnectivityManagerImpl::WiFiAPModeToStr(WiFiAPMode mode)
 {
     switch (mode)
     {
@@ -1068,7 +1068,7 @@ const char * ConnectivityManager::WiFiAPModeToStr(WiFiAPMode mode)
     }
 }
 
-const char * ConnectivityManager::WiFiAPStateToStr(WiFiAPState state)
+const char * ConnectivityManagerImpl::WiFiAPStateToStr(WiFiAPState state)
 {
     switch (state)
     {
@@ -1085,7 +1085,7 @@ const char * ConnectivityManager::WiFiAPStateToStr(WiFiAPState state)
     }
 }
 
-void ConnectivityManager::RefreshMessageLayer(void)
+void ConnectivityManagerImpl::RefreshMessageLayer(void)
 {
     WEAVE_ERROR err = MessageLayer.RefreshEndpoints();
     if (err != WEAVE_NO_ERROR)
@@ -1094,11 +1094,11 @@ void ConnectivityManager::RefreshMessageLayer(void)
     }
 }
 
-void ConnectivityManager::HandleServiceTunnelNotification(WeaveTunnelConnectionMgr::TunnelConnNotifyReasons reason,
+void ConnectivityManagerImpl::HandleServiceTunnelNotification(WeaveTunnelConnectionMgr::TunnelConnNotifyReasons reason,
             WEAVE_ERROR err, void *appCtxt)
 {
     bool newTunnelState = false;
-    bool prevTunnelState = GetFlag(ConnectivityMgr.mFlags, kFlag_ServiceTunnelUp);
+    bool prevTunnelState = GetFlag(sInstance.mFlags, kFlag_ServiceTunnelUp);
     bool isRestricted = false;
 
     switch (reason)
@@ -1122,7 +1122,7 @@ void ConnectivityManager::HandleServiceTunnelNotification(WeaveTunnelConnectionM
     if (newTunnelState != prevTunnelState)
     {
         // Update the cached copy of the state.
-        SetFlag(ConnectivityMgr.mFlags, kFlag_ServiceTunnelUp, newTunnelState);
+        SetFlag(sInstance.mFlags, kFlag_ServiceTunnelUp, newTunnelState);
 
         // Alert other components of the change to the tunnel state.
         WeaveDeviceEvent event;

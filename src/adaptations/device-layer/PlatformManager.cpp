@@ -209,8 +209,7 @@ WEAVE_ERROR PlatformManager::InitWeaveStack(void)
     SuccessOrExit(err);
 
     // Initialize the Connectivity Manager object.
-    new (&ConnectivityMgr) ConnectivityManager();
-    err = ConnectivityMgr.Init();
+    err = ConnectivityMgr().Init();
     if (err != WEAVE_NO_ERROR)
     {
         WeaveLogError(DeviceLayer, "Connectivity Manager initialization failed: %s", ErrorStr(err));
@@ -448,7 +447,7 @@ void PlatformManager::DispatchEvent(const WeaveDeviceEvent * event)
     // whether and how they want to react to the event.
     else
     {
-        ConnectivityMgr.OnPlatformEvent(event);
+        ConnectivityMgr().OnPlatformEvent(event);
         DeviceControlSvr.OnPlatformEvent(event);
         DeviceDescriptionSvr.OnPlatformEvent(event);
         NetworkProvisioningSvr().OnPlatformEvent(event);

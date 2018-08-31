@@ -65,7 +65,7 @@ void GenericNetworkProvisioningServerImpl<ImplClass>::_StartPendingScan()
     // where a WiFi scan cannot be started (e.g. if the system is connecting to
     // an AP and can't scan and connect at the same time). The Connection Manager
     // is responsible for calling this method again when the system is read to scan.
-    if (!ConnectivityMgr.CanStartWiFiScan())
+    if (!ConnectivityMgr().CanStartWiFiScan())
     {
         ExitNow();
     }
@@ -93,7 +93,7 @@ void GenericNetworkProvisioningServerImpl<ImplClass>::_OnPlatformEvent(const Wea
     {
         // If the system now has IPv4 Internet connectivity, continue the process of
         // performing the TestConnectivity request.
-        if (ConnectivityMgr.HaveIPv4InternetConnectivity())
+        if (ConnectivityMgr().HaveIPv4InternetConnectivity())
         {
             ContinueTestConnectivity();
         }
@@ -170,9 +170,9 @@ WEAVE_ERROR GenericNetworkProvisioningServerImpl<ImplClass>::HandleAddNetwork(Pa
     // If the WiFi station is not already configured, disable the WiFi station interface.
     // This ensures that the device will not automatically connect to the new network until
     // an EnableNetwork request is received.
-    if (!ConnectivityMgr.IsWiFiStationProvisioned())
+    if (!ConnectivityMgr().IsWiFiStationProvisioned())
     {
-        err = ConnectivityMgr.SetWiFiStationMode(ConnectivityManager::kWiFiStationMode_Disabled);
+        err = ConnectivityMgr().SetWiFiStationMode(ConnectivityManager::kWiFiStationMode_Disabled);
         SuccessOrExit(err);
     }
 
@@ -181,7 +181,7 @@ WEAVE_ERROR GenericNetworkProvisioningServerImpl<ImplClass>::HandleAddNetwork(Pa
     SuccessOrExit(err);
 
     // Tell the ConnectivityManager there's been a change to the station provision.
-    ConnectivityMgr.OnWiFiStationProvisionChange();
+    ConnectivityMgr().OnWiFiStationProvisionChange();
 
     // Send an AddNetworkComplete message back to the requestor.
     SendAddNetworkComplete(kWiFiStationNetworkId);
@@ -225,7 +225,7 @@ WEAVE_ERROR GenericNetworkProvisioningServerImpl<ImplClass>::HandleUpdateNetwork
     }
 
     // Verify that the specified network exists.
-    if (!ConnectivityMgr.IsWiFiStationProvisioned() || netInfoUpdates.NetworkId != kWiFiStationNetworkId)
+    if (!ConnectivityMgr().IsWiFiStationProvisioned() || netInfoUpdates.NetworkId != kWiFiStationNetworkId)
     {
         err = SendStatusReport(kWeaveProfile_NetworkProvisioning, kStatusCode_UnknownNetwork);
         SuccessOrExit(err);
@@ -258,7 +258,7 @@ WEAVE_ERROR GenericNetworkProvisioningServerImpl<ImplClass>::HandleUpdateNetwork
     SuccessOrExit(err);
 
     // Tell the ConnectivityManager there's been a change to the station provision.
-    ConnectivityMgr.OnWiFiStationProvisionChange();
+    ConnectivityMgr().OnWiFiStationProvisionChange();
 
     // Tell the requestor we succeeded.
     err = SendSuccessResponse();
@@ -283,7 +283,7 @@ WEAVE_ERROR GenericNetworkProvisioningServerImpl<ImplClass>::HandleRemoveNetwork
     }
 
     // Verify that the specified network exists.
-    if (!ConnectivityMgr.IsWiFiStationProvisioned() || networkId != kWiFiStationNetworkId)
+    if (!ConnectivityMgr().IsWiFiStationProvisioned() || networkId != kWiFiStationNetworkId)
     {
         err = SendStatusReport(kWeaveProfile_NetworkProvisioning, kStatusCode_UnknownNetwork);
         SuccessOrExit(err);
@@ -295,7 +295,7 @@ WEAVE_ERROR GenericNetworkProvisioningServerImpl<ImplClass>::HandleRemoveNetwork
     SuccessOrExit(err);
 
     // Tell the ConnectivityManager there's been a change to the station provision.
-    ConnectivityMgr.OnWiFiStationProvisionChange();
+    ConnectivityMgr().OnWiFiStationProvisionChange();
 
     // Respond with a Success response.
     err = SendSuccessResponse();
@@ -372,7 +372,7 @@ WEAVE_ERROR GenericNetworkProvisioningServerImpl<ImplClass>::HandleEnableNetwork
     }
 
     // Verify that the specified network exists.
-    if (!ConnectivityMgr.IsWiFiStationProvisioned() || networkId != kWiFiStationNetworkId)
+    if (!ConnectivityMgr().IsWiFiStationProvisioned() || networkId != kWiFiStationNetworkId)
     {
         err = SendStatusReport(kWeaveProfile_NetworkProvisioning, kStatusCode_UnknownNetwork);
         SuccessOrExit(err);
@@ -382,7 +382,7 @@ WEAVE_ERROR GenericNetworkProvisioningServerImpl<ImplClass>::HandleEnableNetwork
     // Tell the ConnectivityManager to enable the WiFi station interface.
     // Note that any effects of enabling the WiFi station interface (e.g. connecting to an AP) happen
     // asynchronously with this call.
-    err = ConnectivityMgr.SetWiFiStationMode(ConnectivityManager::kWiFiStationMode_Enabled);
+    err = ConnectivityMgr().SetWiFiStationMode(ConnectivityManager::kWiFiStationMode_Enabled);
     SuccessOrExit(err);
 
     // Send a Success response back to the client.
@@ -406,7 +406,7 @@ WEAVE_ERROR GenericNetworkProvisioningServerImpl<ImplClass>::HandleDisableNetwor
     }
 
     // Verify that the specified network exists.
-    if (!ConnectivityMgr.IsWiFiStationProvisioned() || networkId != kWiFiStationNetworkId)
+    if (!ConnectivityMgr().IsWiFiStationProvisioned() || networkId != kWiFiStationNetworkId)
     {
         err = SendStatusReport(kWeaveProfile_NetworkProvisioning, kStatusCode_UnknownNetwork);
         ExitNow();
@@ -415,7 +415,7 @@ WEAVE_ERROR GenericNetworkProvisioningServerImpl<ImplClass>::HandleDisableNetwor
     // Tell the ConnectivityManager to disable the WiFi station interface.
     // Note that any effects of disabling the WiFi station interface (e.g. disconnecting from an AP) happen
     // asynchronously with this call.
-    err = ConnectivityMgr.SetWiFiStationMode(ConnectivityManager::kWiFiStationMode_Disabled);
+    err = ConnectivityMgr().SetWiFiStationMode(ConnectivityManager::kWiFiStationMode_Disabled);
     SuccessOrExit(err);
 
     // Respond with a Success response.
@@ -440,7 +440,7 @@ WEAVE_ERROR GenericNetworkProvisioningServerImpl<ImplClass>::HandleTestConnectiv
     }
 
     // Verify that the specified network exists.
-    if (!ConnectivityMgr.IsWiFiStationProvisioned() || networkId != kWiFiStationNetworkId)
+    if (!ConnectivityMgr().IsWiFiStationProvisioned() || networkId != kWiFiStationNetworkId)
     {
         err = SendStatusReport(kWeaveProfile_NetworkProvisioning, kStatusCode_UnknownNetwork);
         SuccessOrExit(err);
@@ -450,7 +450,7 @@ WEAVE_ERROR GenericNetworkProvisioningServerImpl<ImplClass>::HandleTestConnectiv
     // Tell the ConnectivityManager to enable the WiFi station interface if it hasn't been done already.
     // Note that any effects of enabling the WiFi station interface (e.g. connecting to an AP) happen
     // asynchronously with this call.
-    err = ConnectivityMgr.SetWiFiStationMode(ConnectivityManager::kWiFiStationMode_Enabled);
+    err = ConnectivityMgr().SetWiFiStationMode(ConnectivityManager::kWiFiStationMode_Enabled);
     SuccessOrExit(err);
 
     // Record that we're waiting for the WiFi station interface to establish connectivity
@@ -498,7 +498,7 @@ WEAVE_ERROR GenericNetworkProvisioningServerImpl<ImplClass>::HandleSetRendezvous
     if (rendezvousMode != 0)
     {
         // If the AP interface has been expressly disabled by the application, fail with Common:NotAvailable.
-        if (ConnectivityMgr.GetWiFiAPMode() == ConnectivityManager::kWiFiAPMode_Disabled)
+        if (ConnectivityMgr().GetWiFiAPMode() == ConnectivityManager::kWiFiAPMode_Disabled)
         {
             err = SendStatusReport(kWeaveProfile_Common, kStatus_NotAvailable);
             ExitNow();
@@ -508,7 +508,7 @@ WEAVE_ERROR GenericNetworkProvisioningServerImpl<ImplClass>::HandleSetRendezvous
         // If the interface is already active this will have no immediate effect, except if the
         // interface is in the "demand" mode, in which case this will serve to extend the
         // active time.
-        ConnectivityMgr.DemandStartWiFiAP();
+        ConnectivityMgr().DemandStartWiFiAP();
     }
 
     // Otherwise the request is to stop the WiFi rendezvous network, so request the ConnectivityManager
@@ -516,7 +516,7 @@ WEAVE_ERROR GenericNetworkProvisioningServerImpl<ImplClass>::HandleSetRendezvous
     // interface is already stopped, or if the application has expressly enabled the interface.
     else
     {
-        ConnectivityMgr.StopOnDemandWiFiAP();
+        ConnectivityMgr().StopOnDemandWiFiAP();
     }
 
     // Respond with a Success response.
@@ -614,8 +614,8 @@ template<class ImplClass>
 bool GenericNetworkProvisioningServerImpl<ImplClass>::RejectIfApplicationControlled(bool station)
 {
     bool isAppControlled = (station)
-        ? ConnectivityMgr.IsWiFiStationApplicationControlled()
-        : ConnectivityMgr.IsWiFiAPApplicationControlled();
+        ? ConnectivityMgr().IsWiFiStationApplicationControlled()
+        : ConnectivityMgr().IsWiFiAPApplicationControlled();
 
     // Reject the request if the application is currently in control of the WiFi station.
     if (isAppControlled)
@@ -631,7 +631,7 @@ void GenericNetworkProvisioningServerImpl<ImplClass>::ContinueTestConnectivity(v
 {
     // If waiting for Internet connectivity to be established, and IPv4 Internet connectivity
     // now exists...
-    if (mState == kState_TestConnectivity_WaitConnectivity && ConnectivityMgr.HaveIPv4InternetConnectivity())
+    if (mState == kState_TestConnectivity_WaitConnectivity && ConnectivityMgr().HaveIPv4InternetConnectivity())
     {
         // Reset the state.
         mState = kState_Idle;

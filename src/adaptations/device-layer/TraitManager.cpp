@@ -214,14 +214,14 @@ void TraitManager::DriveServiceSubscriptionState(bool serviceConnectivityChanged
 {
     bool serviceSubShouldBeActivated =
             (mServiceSubMode == kServiceSubscriptionMode_Enabled &&
-             ConnectivityMgr.IsWiFiStationProvisioned() &&
+             ConnectivityMgr().IsWiFiStationProvisioned() &&
              ConfigurationMgr().IsPairedToAccount());
 
     // If the service subscription activation state needs to change...
     if (GetFlag(mFlags, kFlag_ServiceSubscriptionActivated) != serviceSubShouldBeActivated)
     {
         // If the system currently has service connectivity...
-        if (ConnectivityMgr.HaveServiceConnectivity())
+        if (ConnectivityMgr().HaveServiceConnectivity())
         {
             // Update the activation state.
             SetFlag(mFlags, kFlag_ServiceSubscriptionActivated, serviceSubShouldBeActivated);
@@ -260,7 +260,7 @@ void TraitManager::DriveServiceSubscriptionState(bool serviceConnectivityChanged
 
     // Otherwise, if service connectivity has just been established, and a service subscription should
     // be active, but currently isn't, kick-start the resubscription process.
-    else if (serviceConnectivityChanged && ConnectivityMgr.HaveServiceConnectivity() &&
+    else if (serviceConnectivityChanged && ConnectivityMgr().HaveServiceConnectivity() &&
              serviceSubShouldBeActivated && !mServiceSubClient->IsInProgressOrEstablished())
     {
         mServiceSubClient->ResetResubscribe();

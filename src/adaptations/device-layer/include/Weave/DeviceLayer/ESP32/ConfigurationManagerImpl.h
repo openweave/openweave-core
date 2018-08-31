@@ -42,7 +42,7 @@ extern template class Internal::GenericConfigurationManagerImpl<ConfigurationMan
 
 
 /**
- * Concrete implementation of the ConfigurationManager interface for the ESP32.
+ * Concrete implementation of the ConfigurationManager singleton object for the ESP32 platform.
  */
 class ConfigurationManagerImpl
     : public ConfigurationManager,
@@ -65,7 +65,7 @@ public:
 
 private:
 
-    // ===== Methods that implement the ConfigurationManager public interface.
+    // ===== Members that implement the ConfigurationManager public interface.
 
     WEAVE_ERROR _Init();
     WEAVE_ERROR _GetPrimaryWiFiMACAddress(uint8_t * buf);

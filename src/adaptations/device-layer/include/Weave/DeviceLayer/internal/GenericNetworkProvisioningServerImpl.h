@@ -27,10 +27,12 @@ namespace Weave {
 namespace DeviceLayer {
 namespace Internal {
 
+class NetworkInfo;
+
 template<class ImplClass>
 class GenericNetworkProvisioningServerImpl
-        : public ::nl::Weave::Profiles::NetworkProvisioning::NetworkProvisioningServer,
-          public ::nl::Weave::Profiles::NetworkProvisioning::NetworkProvisioningDelegate
+    : public ::nl::Weave::Profiles::NetworkProvisioning::NetworkProvisioningServer,
+      public ::nl::Weave::Profiles::NetworkProvisioning::NetworkProvisioningDelegate
 {
 protected:
 

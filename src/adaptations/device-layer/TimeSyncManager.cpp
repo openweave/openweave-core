@@ -154,7 +154,7 @@ void TimeSyncManager::DriveTimeSync()
     WEAVE_ERROR err;
 
     // If synchronizing time with the service and the system has service connectivity...
-    if (mMode == kTimeSyncMode_Service && ConnectivityMgr.HaveServiceConnectivity())
+    if (mMode == kTimeSyncMode_Service && ConnectivityMgr().HaveServiceConnectivity())
     {
 #if WEAVE_DEVICE_CONFIG_ENABLE_WEAVE_TIME_SERVICE_TIME_SYNC
 

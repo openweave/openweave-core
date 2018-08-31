@@ -54,6 +54,15 @@ protected:
     ~NetworkProvisioningServer(void) = default;
 };
 
+/**
+ * Returns a reference to the public interface of the NetworkProvisioningServer singleton object.
+ *
+ * Internal components should use this to access features of the NetworkProvisioningServer object
+ * that are common to all platforms.
+ */
+extern NetworkProvisioningServer & NetworkProvisioningSvr();
+
+
 } // namespace Internal
 } // namespace DeviceLayer
 } // namespace Weave
