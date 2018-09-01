@@ -44,7 +44,7 @@ private:
 
     // Allow the NetworkProvisioningServer interface class to delegate method calls to
     // the implementation methods provided by this class.
-    friend class NetworkProvisioningServer;
+    friend class ::nl::Weave::DeviceLayer::Internal::NetworkProvisioningServer;
 
     // Allow the GenericNetworkProvisioningServerImpl base class to access helper methods
     // and types defined on this class.
@@ -70,16 +70,29 @@ private:
     // ===== Members for internal use by the following friends.
 
     friend ::nl::Weave::DeviceLayer::Internal::NetworkProvisioningServer & NetworkProvisioningSvr(void);
+    friend NetworkProvisioningServerImpl & NetworkProvisioningSvrImpl(void);
 
     static NetworkProvisioningServerImpl sInstance;
 };
 
-inline NetworkProvisioningServerImpl & NetworkProvisioningServerImpl::Instance(void)
+/**
+ * Returns a reference to the public interface of the NetworkProvisioningServer singleton object.
+ *
+ * Internal components should use this to access features of the NetworkProvisioningServer object
+ * that are common to all platforms.
+ */
+inline NetworkProvisioningServer & NetworkProvisioningSvr(void)
 {
-    return sInstance;
+    return NetworkProvisioningServerImpl::sInstance;
 }
 
-inline NetworkProvisioningServer & NetworkProvisioningSvr(void)
+/**
+ * Returns the platform-specific implementation of the NetworkProvisioningServer singleton object.
+ *
+ * Internal components can use this to gain access to features of the NetworkProvisioningServer
+ * that are specific to the ESP32 platform.
+ */
+inline NetworkProvisioningServerImpl & NetworkProvisioningSvrImpl(void)
 {
     return NetworkProvisioningServerImpl::sInstance;
 }

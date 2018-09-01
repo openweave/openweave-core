@@ -634,7 +634,7 @@ void ConnectivityManagerImpl::OnStationConnected()
     WeaveDeviceEvent event;
     event.Type = WeaveDeviceEvent::kEventType_WiFiConnectivityChange;
     event.WiFiConnectivityChange.Result = kConnectivity_Established;
-    PlatformMgr.PostEvent(&event);
+    PlatformMgr().PostEvent(&event);
 
     UpdateInternetConnectivityState();
 }
@@ -648,7 +648,7 @@ void ConnectivityManagerImpl::OnStationDisconnected()
     WeaveDeviceEvent event;
     event.Type = WeaveDeviceEvent::kEventType_WiFiConnectivityChange;
     event.WiFiConnectivityChange.Result = kConnectivity_Lost;
-    PlatformMgr.PostEvent(&event);
+    PlatformMgr().PostEvent(&event);
 
     UpdateInternetConnectivityState();
 }
@@ -900,7 +900,7 @@ void ConnectivityManagerImpl::UpdateInternetConnectivityState(void)
         event.Type = WeaveDeviceEvent::kEventType_InternetConnectivityChange;
         event.InternetConnectivityChange.IPv4 = GetConnectivityChange(hadIPv4Conn, haveIPv4Conn);
         event.InternetConnectivityChange.IPv6 = GetConnectivityChange(hadIPv6Conn, haveIPv6Conn);
-        PlatformMgr.PostEvent(&event);
+        PlatformMgr().PostEvent(&event);
 
         if (haveIPv4Conn != hadIPv4Conn)
         {
@@ -1129,7 +1129,7 @@ void ConnectivityManagerImpl::HandleServiceTunnelNotification(WeaveTunnelConnect
         event.Type = WeaveDeviceEvent::kEventType_ServiceTunnelStateChange;
         event.ServiceTunnelStateChange.Result = GetConnectivityChange(prevTunnelState, newTunnelState);
         event.ServiceTunnelStateChange.IsRestricted = isRestricted;
-        PlatformMgr.PostEvent(&event);
+        PlatformMgr().PostEvent(&event);
 
         // If the new tunnel state represents a logical change in connectivity to the service, as it
         // relates to the application, post a ServiceConnectivityChange event.
@@ -1142,7 +1142,7 @@ void ConnectivityManagerImpl::HandleServiceTunnelNotification(WeaveTunnelConnect
             {
                 event.Type = WeaveDeviceEvent::kEventType_ServiceConnectivityChange;
                 event.ServiceConnectivityChange.Result = kConnectivity_Established;
-                PlatformMgr.PostEvent(&event);
+                PlatformMgr().PostEvent(&event);
             }
         }
 
@@ -1150,7 +1150,7 @@ void ConnectivityManagerImpl::HandleServiceTunnelNotification(WeaveTunnelConnect
         {
             event.Type = WeaveDeviceEvent::kEventType_ServiceConnectivityChange;
             event.ServiceConnectivityChange.Result = kConnectivity_Lost;
-            PlatformMgr.PostEvent(&event);
+            PlatformMgr().PostEvent(&event);
         }
     }
 }

@@ -43,7 +43,6 @@ libDeviceLayer_a_SOURCES                = \
     Globals.cpp                           \
     NetworkInfo.cpp                       \
     PersistedStorage.cpp                  \
-    PlatformManager.cpp                   \
     ServiceDirectoryManager.cpp           \
     ServiceProvisioningServer.cpp         \
     ServiceTunnelAgent.cpp                \
@@ -66,6 +65,7 @@ libDeviceLayer_a_SOURCES               +=       \
     ESP32/GroupKeyStoreImpl.cpp                 \
     ESP32/Logging.cpp                           \
     ESP32/NetworkProvisioningServerImpl.cpp     \
+    ESP32/PlatformManagerImpl.cpp               \
     ESP32/Time.cpp                              \
     $(NULL)
 

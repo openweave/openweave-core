@@ -87,13 +87,13 @@ WEAVE_ERROR ServiceProvisioningServer::HandleRegisterServicePairAccount(Register
         event.Type = WeaveDeviceEvent::kEventType_ServiceProvisioningChange;
         event.ServiceProvisioningChange.IsServiceProvisioned = true;
         event.ServiceProvisioningChange.ServiceConfigUpdated = false;
-        PlatformMgr.PostEvent(&event);
+        PlatformMgr().PostEvent(&event);
     }
 
 #if !WEAVE_DEVICE_CONFIG_DISABLE_ACCOUNT_PAIRING
 
     // Initiate the process of sending a PairDeviceToAccount request to the Service Provisioning service.
-    PlatformMgr.ScheduleWork(AsyncStartPairDeviceToAccount);
+    PlatformMgr().ScheduleWork(AsyncStartPairDeviceToAccount);
 
 #else // !WEAVE_DEVICE_CONFIG_DISABLE_ACCOUNT_PAIRING
 
@@ -106,7 +106,7 @@ WEAVE_ERROR ServiceProvisioningServer::HandleRegisterServicePairAccount(Register
         WeaveDeviceEvent event;
         event.Type = WeaveDeviceEvent::kEventType_AccountPairingChange;
         event.AccountPairingChange.IsPairedToAccount = true;
-        PlatformMgr.PostEvent(&event);
+        PlatformMgr().PostEvent(&event);
     }
 
     // Send a success StatusReport for the RegisterServicePairDevice request.
@@ -149,7 +149,7 @@ WEAVE_ERROR ServiceProvisioningServer::HandleUpdateService(UpdateServiceMessage&
         event.Type = WeaveDeviceEvent::kEventType_ServiceProvisioningChange;
         event.ServiceProvisioningChange.IsServiceProvisioned = true;
         event.ServiceProvisioningChange.ServiceConfigUpdated = true;
-        PlatformMgr.PostEvent(&event);
+        PlatformMgr().PostEvent(&event);
     }
 
     // Send "Success" back to the requestor.
@@ -324,7 +324,7 @@ void ServiceProvisioningServer::HandlePairDeviceToAccountResult(WEAVE_ERROR err,
             WeaveDeviceEvent event;
             event.Type = WeaveDeviceEvent::kEventType_AccountPairingChange;
             event.AccountPairingChange.IsPairedToAccount = true;
-            PlatformMgr.PostEvent(&event);
+            PlatformMgr().PostEvent(&event);
         }
 
         WeaveLogProgress(DeviceLayer, "PairDeviceToAccount request completed successfully");

@@ -128,7 +128,7 @@ private:
 
     // ===== Members for internal use by the following friends.
 
-    friend class ::nl::Weave::DeviceLayer::PlatformManager;
+    friend class ::nl::Weave::DeviceLayer::PlatformManagerImpl;
     friend class ::nl::Weave::DeviceLayer::Internal::NetworkProvisioningServerImpl;
     template<class> friend class ::nl::Weave::DeviceLayer::Internal::GenericNetworkProvisioningServerImpl;
 
@@ -146,6 +146,14 @@ private:
  * that are common to all platforms.
  */
 extern ConnectivityManager & ConnectivityMgr(void);
+
+/**
+ * Returns the platform-specific implementation of the ConnectivityManager singleton object.
+ *
+ * Weave applications can use this to gain access to features of the ConnectivityManager
+ * that are specific to the selected platform.
+ */
+extern ConnectivityManagerImpl & ConnectivityMgrImpl(void);
 
 } // namespace DeviceLayer
 } // namespace Weave

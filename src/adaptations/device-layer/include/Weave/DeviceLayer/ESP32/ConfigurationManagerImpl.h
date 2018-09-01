@@ -57,40 +57,31 @@ class ConfigurationManagerImpl
     // defined on this class.
     friend class Internal::GenericConfigurationManagerImpl<ConfigurationManagerImpl>;
 
-public:
-
-    // ===== Implementation-specific members that may be accessed directly by the application.
-
-    static ConfigurationManagerImpl & Instance();
-
 private:
 
     // ===== Members that implement the ConfigurationManager public interface.
 
-    WEAVE_ERROR _Init();
+    WEAVE_ERROR _Init(void);
     WEAVE_ERROR _GetPrimaryWiFiMACAddress(uint8_t * buf);
     WEAVE_ERROR _GetDeviceDescriptor(::nl::Weave::Profiles::DeviceDescription::WeaveDeviceDescriptor & deviceDesc);
-    ::nl::Weave::Profiles::Security::AppKeys::GroupKeyStoreBase * _GetGroupKeyStore();
-    bool _CanFactoryReset();
-    void _InitiateFactoryReset();
+    ::nl::Weave::Profiles::Security::AppKeys::GroupKeyStoreBase * _GetGroupKeyStore(void);
+    bool _CanFactoryReset(void);
+    void _InitiateFactoryReset(void);
     WEAVE_ERROR _ReadPersistedStorageValue(::nl::Weave::Platform::PersistedStorage::Key key, uint32_t & value);
     WEAVE_ERROR _WritePersistedStorageValue(::nl::Weave::Platform::PersistedStorage::Key key, uint32_t value);
 
     // NOTE: Other public interface methods are implemented by GenericConfigurationManagerImpl<>.
 
-private:
-
     // ===== Members for internal use by the following friends.
 
     friend class Internal::NetworkProvisioningServerImpl;
-    friend ConfigurationManager & ConfigurationMgr();
+    friend ConfigurationManager & ConfigurationMgr(void);
+    friend ConfigurationManagerImpl & ConfigurationMgrImpl(void);
 
     static ConfigurationManagerImpl sInstance;
 
     WEAVE_ERROR GetWiFiStationSecurityType(::nl::Weave::Profiles::NetworkProvisioning::WiFiSecurityType & secType);
     WEAVE_ERROR UpdateWiFiStationSecurityType(::nl::Weave::Profiles::NetworkProvisioning::WiFiSecurityType secType);
-
-private:
 
     // ===== Private members reserved for use by this class only.
 
@@ -98,17 +89,23 @@ private:
 };
 
 /**
- * Returns a reference to the singleton object that implements the ConnectionManager interface.
+ * Returns the public interface of the ConfigurationManager singleton object.
  *
- * API users can use this to gain access to features of the ConnectionManager that are specific
- * to the ESP32 implementation.
+ * Weave applications should use this to access features of the ConfigurationManager object
+ * that are common to all platforms.
  */
-inline ConfigurationManagerImpl & ConfigurationManagerImpl::Instance()
+inline ConfigurationManager & ConfigurationMgr(void)
 {
-    return sInstance;
+    return ConfigurationManagerImpl::sInstance;
 }
 
-inline ConfigurationManager & ConfigurationMgr()
+/**
+ * Returns the platform-specific implementation of the ConfigurationManager singleton object.
+ *
+ * Weave applications can use this to gain access to features of the ConfigurationManager
+ * that are specific to the ESP32 platform.
+ */
+inline ConfigurationManagerImpl & ConfigurationMgrImpl(void)
 {
     return ConfigurationManagerImpl::sInstance;
 }

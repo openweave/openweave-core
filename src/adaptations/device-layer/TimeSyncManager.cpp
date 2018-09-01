@@ -261,7 +261,7 @@ void TimeSyncManager::ApplySynchronizedTime(uint64_t syncedRealTimeUS)
                 WeaveDeviceEvent event;
                 event.Type = WeaveDeviceEvent::kEventType_TimeSyncChange;
                 event.TimeSyncChange.IsTimeSynchronized = true;
-                PlatformMgr.PostEvent(&event);
+                PlatformMgr().PostEvent(&event);
             }
         }
         else

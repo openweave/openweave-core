@@ -39,6 +39,7 @@ namespace nl {
 namespace Weave {
 namespace DeviceLayer {
 
+class PlatformManagerImpl;
 namespace Internal {
 extern WEAVE_ERROR InitServiceDirectoryManager(void);
 }
@@ -73,7 +74,7 @@ private:
 
     // ===== Members for internal use by the following friends.
 
-    friend class PlatformManager;
+    friend class PlatformManagerImpl;
     friend WEAVE_ERROR Internal::InitServiceDirectoryManager();
     friend TimeSyncManager & TimeSyncMgr(void);
 

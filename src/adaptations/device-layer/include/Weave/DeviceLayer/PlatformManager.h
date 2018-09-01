@@ -25,10 +25,9 @@ namespace nl {
 namespace Weave {
 namespace DeviceLayer {
 
-class ConnectivityManager;
+class ConnectivityManagerImpl;
+class ConfigurationManagerImpl;
 class TraitManager;
-struct WeaveDeviceEvent;
-class ComfigurationManagerImpl;
 
 namespace Internal {
 class FabricProvisioningServer;
@@ -37,32 +36,33 @@ class BLEManager;
 template<class ImplClass> class GenericConfigurationManagerImpl;
 } // namespace Internal
 
+class PlatformManagerImpl;
+
 class PlatformManager
 {
+    using ImplClass = ::nl::Weave::DeviceLayer::PlatformManagerImpl;
+
 public:
 
-    WEAVE_ERROR InitLocks();
-    WEAVE_ERROR InitWeaveStack();
+    // ===== Members that define the public interface of the PlatformManager
 
     typedef void (*EventHandlerFunct)(const WeaveDeviceEvent * event, intptr_t arg);
+
+    WEAVE_ERROR InitWeaveStack();
     WEAVE_ERROR AddEventHandler(EventHandlerFunct handler, intptr_t arg = 0);
     void RemoveEventHandler(EventHandlerFunct handler, intptr_t arg = 0);
-
     void ScheduleWork(AsyncWorkFunct workFunct, intptr_t arg = 0);
-
     void RunEventLoop(void);
     WEAVE_ERROR StartEventLoopTask(void);
-
     void LockWeaveStack(void);
     bool TryLockWeaveStack(void);
     void UnlockWeaveStack(void);
 
-    static esp_err_t HandleESPSystemEvent(void * ctx, system_event_t * event);
-
 private:
 
-    // NOTE: These members are for internal use by the following friends.
+    // ===== Members for internal use by the following friends.
 
+    friend class PlatformManagerImpl;
     friend class ConnectivityManagerImpl;
     friend class ConfigurationManagerImpl;
     template<class ImplClass> friend class Internal::GenericConfigurationManagerImpl;
@@ -75,19 +75,102 @@ private:
     friend nl::Weave::System::Error nl::Weave::System::Platform::Layer::StartTimer(nl::Weave::System::Layer & aLayer, void * aContext, uint32_t aMilliseconds);
 
     void PostEvent(const WeaveDeviceEvent * event);
-
-private:
-
-    // NOTE: These members are private to the class and should not be used by friends.
-
-    WEAVE_ERROR InitWeaveEventQueue(void);
     void DispatchEvent(const WeaveDeviceEvent * event);
-    static void RunEventLoop(void * arg);
-    static void HandleSessionEstablished(::nl::Weave::WeaveSecurityManager * sm, ::nl::Weave::WeaveConnection * con, void * reqState, uint16_t sessionKeyId, uint64_t peerNodeId, uint8_t encType);
 };
+
+/**
+ * Returns the public interface of the PlatformManager singleton object.
+ *
+ * Weave applications should use this to access features of the PlatformManager object
+ * that are common to all platforms.
+ */
+extern PlatformManager & PlatformMgr(void);
+
+/**
+ * Returns the platform-specific implementation of the PlatformManager singleton object.
+ *
+ * Weave applications can use this to gain access to features of the PlatformManager
+ * that are specific to the selected platform.
+ */
+extern PlatformManagerImpl & PlatformMgrImpl(void);
 
 } // namespace DeviceLayer
 } // namespace Weave
 } // namespace nl
+
+/* Include a header file containing the implementation of the ConfigurationManager
+ * object for the selected platform.
+ */
+#ifdef EXTERNAL_PLATFORMMANAGERIMPL_HEADER
+#include EXTERNAL_PLATFORMMANAGERIMPL_HEADER
+#else
+#define PLATFORMMANAGERIMPL_HEADER <Weave/DeviceLayer/WEAVE_DEVICE_LAYER_TARGET/PlatformManagerImpl.h>
+#include PLATFORMMANAGERIMPL_HEADER
+#endif
+
+namespace nl {
+namespace Weave {
+namespace DeviceLayer {
+
+inline WEAVE_ERROR PlatformManager::InitWeaveStack()
+{
+    return static_cast<ImplClass*>(this)->_InitWeaveStack();
+}
+
+inline WEAVE_ERROR PlatformManager::AddEventHandler(EventHandlerFunct handler, intptr_t arg)
+{
+    return static_cast<ImplClass*>(this)->_AddEventHandler(handler, arg);
+}
+
+inline void PlatformManager::RemoveEventHandler(EventHandlerFunct handler, intptr_t arg)
+{
+    static_cast<ImplClass*>(this)->_RemoveEventHandler(handler, arg);
+}
+
+inline void PlatformManager::ScheduleWork(AsyncWorkFunct workFunct, intptr_t arg)
+{
+    static_cast<ImplClass*>(this)->_ScheduleWork(workFunct, arg);
+}
+
+inline void PlatformManager::RunEventLoop(void)
+{
+    static_cast<ImplClass*>(this)->_RunEventLoop();
+}
+
+inline WEAVE_ERROR PlatformManager::StartEventLoopTask(void)
+{
+    return static_cast<ImplClass*>(this)->_StartEventLoopTask();
+}
+
+inline void PlatformManager::LockWeaveStack(void)
+{
+    static_cast<ImplClass*>(this)->_LockWeaveStack();
+}
+
+inline bool PlatformManager::TryLockWeaveStack(void)
+{
+    return static_cast<ImplClass*>(this)->_TryLockWeaveStack();
+}
+
+inline void PlatformManager::UnlockWeaveStack(void)
+{
+    static_cast<ImplClass*>(this)->_UnlockWeaveStack();
+}
+
+inline void PlatformManager::PostEvent(const WeaveDeviceEvent * event)
+{
+    static_cast<ImplClass*>(this)->_PostEvent(event);
+}
+
+inline void PlatformManager::DispatchEvent(const WeaveDeviceEvent * event)
+{
+    static_cast<ImplClass*>(this)->_DispatchEvent(event);
+}
+
+} // namespace DeviceLayer
+} // namespace Weave
+} // namespace nl
+
+
 
 #endif // PLATFORM_MANAGER_H

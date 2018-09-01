@@ -58,7 +58,7 @@ WEAVE_ERROR FabricProvisioningServer::HandleCreateFabric(void)
         WeaveDeviceEvent event;
         event.Type = WeaveDeviceEvent::kEventType_FabricMembershipChange;
         event.FabricMembershipChange.IsMemberOfFabric = true;
-        PlatformMgr.PostEvent(&event);
+        PlatformMgr().PostEvent(&event);
     }
 
     err = SendSuccessResponse();
@@ -81,7 +81,7 @@ WEAVE_ERROR FabricProvisioningServer::HandleJoinExistingFabric(void)
         WeaveDeviceEvent event;
         event.Type = WeaveDeviceEvent::kEventType_FabricMembershipChange;
         event.FabricMembershipChange.IsMemberOfFabric = true;
-        PlatformMgr.PostEvent(&event);
+        PlatformMgr().PostEvent(&event);
     }
 
     err = SendSuccessResponse();
@@ -104,7 +104,7 @@ WEAVE_ERROR FabricProvisioningServer::HandleLeaveFabric(void)
         WeaveDeviceEvent event;
         event.Type = WeaveDeviceEvent::kEventType_FabricMembershipChange;
         event.FabricMembershipChange.IsMemberOfFabric = false;
-        PlatformMgr.PostEvent(&event);
+        PlatformMgr().PostEvent(&event);
     }
 
     err = SendSuccessResponse();
@@ -132,7 +132,7 @@ WEAVE_ERROR FabricProvisioningServer::LeaveFabric(void)
             WeaveDeviceEvent event;
             event.Type = WeaveDeviceEvent::kEventType_FabricMembershipChange;
             event.FabricMembershipChange.IsMemberOfFabric = false;
-            PlatformMgr.PostEvent(&event);
+            PlatformMgr().PostEvent(&event);
         }
     }
 
