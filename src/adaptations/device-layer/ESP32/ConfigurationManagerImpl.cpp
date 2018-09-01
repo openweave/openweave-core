@@ -140,7 +140,7 @@ bool ConfigurationManagerImpl::_CanFactoryReset()
 
 void ConfigurationManagerImpl::_InitiateFactoryReset()
 {
-    PlatformMgr.ScheduleWork(DoFactoryReset);
+    PlatformMgr().ScheduleWork(DoFactoryReset);
 }
 
 WEAVE_ERROR ConfigurationManagerImpl::_ReadPersistedStorageValue(::nl::Weave::Platform::PersistedStorage::Key key, uint32_t & value)

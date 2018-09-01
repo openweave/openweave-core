@@ -230,7 +230,7 @@ void TraitManager::DriveServiceSubscriptionState(bool serviceConnectivityChanged
             // If service subscription should be activated, schedule an async work item to activate it.
             if (serviceSubShouldBeActivated)
             {
-                PlatformMgr.ScheduleWork(ActivateServiceSubscription);
+                PlatformMgr().ScheduleWork(ActivateServiceSubscription);
             }
 
             // If the service subscription should be deactivated...
@@ -253,7 +253,7 @@ void TraitManager::DriveServiceSubscriptionState(bool serviceConnectivityChanged
                     WeaveDeviceEvent event;
                     event.Type = WeaveDeviceEvent::kEventType_ServiceSubscriptionStateChange;
                     event.ServiceSubscriptionStateChange.Result = kConnectivity_Lost;
-                    PlatformMgr.PostEvent(&event);
+                    PlatformMgr().PostEvent(&event);
                 }
             }
         }
@@ -389,7 +389,7 @@ void TraitManager::HandleOutboundServiceSubscriptionEvent(void * appState, Subsc
             WeaveDeviceEvent event;
             event.Type = WeaveDeviceEvent::kEventType_ServiceSubscriptionStateChange;
             event.ServiceSubscriptionStateChange.Result = kConnectivity_Lost;
-            PlatformMgr.PostEvent(&event);
+            PlatformMgr().PostEvent(&event);
         }
         break;
 
@@ -446,7 +446,7 @@ void TraitManager::HandleInboundSubscriptionEvent(void * aAppState, Subscription
                 WeaveDeviceEvent event;
                 event.Type = WeaveDeviceEvent::kEventType_ServiceSubscriptionStateChange;
                 event.ServiceSubscriptionStateChange.Result = kConnectivity_Established;
-                PlatformMgr.PostEvent(&event);
+                PlatformMgr().PostEvent(&event);
             }
         }
         else
@@ -483,7 +483,7 @@ void TraitManager::HandleInboundSubscriptionEvent(void * aAppState, Subscription
                 WeaveDeviceEvent event;
                 event.Type = WeaveDeviceEvent::kEventType_ServiceSubscriptionStateChange;
                 event.ServiceSubscriptionStateChange.Result = kConnectivity_Lost;
-                PlatformMgr.PostEvent(&event);
+                PlatformMgr().PostEvent(&event);
             }
         }
         else

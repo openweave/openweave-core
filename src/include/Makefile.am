@@ -920,6 +920,7 @@ nl_public_WeaveDeviceLayer_target_header_sources =                              
 $(nl_public_WeaveDeviceLayer_source_dirstem)/ESP32/ConfigurationManagerImpl.h         \
 $(nl_public_WeaveDeviceLayer_source_dirstem)/ESP32/NetworkProvisioningServerImpl.h    \
 $(nl_public_WeaveDeviceLayer_source_dirstem)/ESP32/ConnectivityManagerImpl.h          \
+$(nl_public_WeaveDeviceLayer_source_dirstem)/ESP32/PlatformManagerImpl.h              \
 $(nl_public_WeaveDeviceLayer_source_dirstem)/ESP32/GroupKeyStoreImpl.h                \
 $(nl_public_WeaveDeviceLayer_source_dirstem)/ESP32/ESP32Config.h                      \
 $(nl_public_WeaveDeviceLayer_source_dirstem)/ESP32/ESP32Utils.h                       \

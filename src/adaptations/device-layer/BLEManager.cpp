@@ -121,7 +121,7 @@ WEAVE_ERROR BLEManager::Init()
     mFlags = kFlag_AdvertisingEnabled;
     memset(mDeviceName, 0, sizeof(mDeviceName));
 
-    PlatformMgr.ScheduleWork(DriveBLEState, 0);
+    PlatformMgr().ScheduleWork(DriveBLEState, 0);
 
 exit:
     return err;
@@ -137,7 +137,7 @@ WEAVE_ERROR BLEManager::SetWoBLEServiceMode(WoBLEServiceMode val)
     if (val != mServiceMode)
     {
         mServiceMode = val;
-        PlatformMgr.ScheduleWork(DriveBLEState, 0);
+        PlatformMgr().ScheduleWork(DriveBLEState, 0);
     }
 
 exit:
@@ -153,7 +153,7 @@ WEAVE_ERROR BLEManager::SetAdvertisingEnabled(bool val)
     if (val != mServiceMode)
     {
         SetFlag(mFlags, kFlag_AdvertisingEnabled, val);
-        PlatformMgr.ScheduleWork(DriveBLEState, 0);
+        PlatformMgr().ScheduleWork(DriveBLEState, 0);
     }
 
 exit:
@@ -169,7 +169,7 @@ WEAVE_ERROR BLEManager::SetFastAdvertisingEnabled(bool val)
     if (val != mServiceMode)
     {
         SetFlag(mFlags, kFlag_FastAdvertisingEnabled, val);
-        PlatformMgr.ScheduleWork(DriveBLEState, 0);
+        PlatformMgr().ScheduleWork(DriveBLEState, 0);
     }
 
 exit:
@@ -218,7 +218,7 @@ void BLEManager::OnPlatformEvent(const WeaveDeviceEvent * event)
         {
             WeaveDeviceEvent event;
             event.Type = WeaveDeviceEvent::kEventType_WoBLEConnectionEstablished;
-            PlatformMgr.PostEvent(&event);
+            PlatformMgr().PostEvent(&event);
         }
         break;
 
@@ -273,7 +273,7 @@ bool BLEManager::CloseConnection(uint16_t conId)
     // Arrange to re-enable connectable advertising in case it was disabled due to the
     // maximum connection limit being reached.
     ClearFlag(mFlags, kFlag_Advertising);
-    PlatformMgr.ScheduleWork(DriveBLEState, 0);
+    PlatformMgr().ScheduleWork(DriveBLEState, 0);
 
     return (err == WEAVE_NO_ERROR);
 }
@@ -777,7 +777,7 @@ exit:
     if (controlOpComplete)
     {
         ClearFlag(mFlags, kFlag_ControlOpInProgress);
-        PlatformMgr.ScheduleWork(DriveBLEState, 0);
+        PlatformMgr().ScheduleWork(DriveBLEState, 0);
     }
 }
 
@@ -800,7 +800,7 @@ void BLEManager::HandleGATTCommEvent(esp_gatts_cb_event_t event, esp_gatt_if_t g
 
         // Receiving a connection stops the advertising processes, so force it to be re-enabled.
         ClearFlag(mFlags, kFlag_Advertising);
-        PlatformMgr.ScheduleWork(DriveBLEState, 0);
+        PlatformMgr().ScheduleWork(DriveBLEState, 0);
 
         break;
 
@@ -887,7 +887,7 @@ void BLEManager::HandleRXCharWrite(esp_ble_gatts_cb_param_t * param)
         event.Type = WeaveDeviceEvent::kInternalEventType_WoBLEWriteReceived;
         event.WoBLEWriteReceived.ConId = param->write.conn_id;
         event.WoBLEWriteReceived.Data = buf;
-        PlatformMgr.PostEvent(&event);
+        PlatformMgr().PostEvent(&event);
         buf = NULL;
     }
 
@@ -979,7 +979,7 @@ void BLEManager::HandleTXCharCCCDWrite(esp_ble_gatts_cb_param_t * param)
         WeaveDeviceEvent event;
         event.Type = (indicationsEnabled) ? WeaveDeviceEvent::kInternalEventType_WoBLESubscribe : WeaveDeviceEvent::kInternalEventType_WoBLEUnsubscribe;
         event.WoBLESubscribe.ConId = param->write.conn_id;
-        PlatformMgr.PostEvent(&event);
+        PlatformMgr().PostEvent(&event);
     }
 
     WeaveLogProgress(DeviceLayer, "WoBLE %s received", indicationsEnabled ? "subscribe" : "unsubscribe");
@@ -1011,7 +1011,7 @@ void BLEManager::HandleTXCharConfirm(WoBLEConState * conState, esp_ble_gatts_cb_
         WeaveDeviceEvent event;
         event.Type = WeaveDeviceEvent::kInternalEventType_WoBLEIndicateConfirm;
         event.WoBLEIndicateConfirm.ConId = param->conf.conn_id;
-        PlatformMgr.PostEvent(&event);
+        PlatformMgr().PostEvent(&event);
     }
 
     else
@@ -1020,7 +1020,7 @@ void BLEManager::HandleTXCharConfirm(WoBLEConState * conState, esp_ble_gatts_cb_
         event.Type = WeaveDeviceEvent::kInternalEventType_WoBLEConnectionError;
         event.WoBLEConnectionError.ConId = param->disconnect.conn_id;
         event.WoBLEConnectionError.Reason = BLE_ERROR_WOBLE_PROTOCOL_ABORT;
-        PlatformMgr.PostEvent(&event);
+        PlatformMgr().PostEvent(&event);
     }
 }
 
@@ -1047,12 +1047,12 @@ void BLEManager::HandleDisconnect(esp_ble_gatts_cb_param_t * param)
             event.WoBLEConnectionError.Reason = BLE_ERROR_WOBLE_PROTOCOL_ABORT;
             break;
         }
-        PlatformMgr.PostEvent(&event);
+        PlatformMgr().PostEvent(&event);
 
         // Arrange to re-enable connectable advertising in case it was disabled due to the
         // maximum connection limit being reached.
         ClearFlag(mFlags, kFlag_Advertising);
-        PlatformMgr.ScheduleWork(DriveBLEState, 0);
+        PlatformMgr().ScheduleWork(DriveBLEState, 0);
     }
 }
 
@@ -1127,12 +1127,12 @@ void BLEManager::HandleGATTEvent(esp_gatts_cb_event_t event, esp_gatt_if_t gatts
 
     // This method is invoked on the ESP BLE thread.  Therefore we must hold a lock
     // on the Weave stack while processing the event.
-    PlatformMgr.LockWeaveStack();
+    PlatformMgr().LockWeaveStack();
 
     BLEMgr.HandleGATTControlEvent(event, gatts_if, param);
     BLEMgr.HandleGATTCommEvent(event, gatts_if, param);
 
-    PlatformMgr.UnlockWeaveStack();
+    PlatformMgr().UnlockWeaveStack();
 }
 
 void BLEManager::HandleGAPEvent(esp_gap_ble_cb_event_t event, esp_ble_gap_cb_param_t *param)
@@ -1143,7 +1143,7 @@ void BLEManager::HandleGAPEvent(esp_gap_ble_cb_event_t event, esp_ble_gap_cb_par
 
     // This method is invoked on the ESP BLE thread.  Therefore we must hold a lock
     // on the Weave stack while processing the event.
-    PlatformMgr.LockWeaveStack();
+    PlatformMgr().LockWeaveStack();
 
     switch (event)
     {
@@ -1200,8 +1200,8 @@ exit:
         WeaveLogError(DeviceLayer, "Disabling WoBLE service due to error: %s", ErrorStr(err));
         BLEMgr.mServiceMode = ConnectivityManager::kWoBLEServiceMode_Disabled;
     }
-    PlatformMgr.ScheduleWork(Internal::BLEMgr.DriveBLEState, 0);
-    PlatformMgr.UnlockWeaveStack();
+    PlatformMgr().ScheduleWork(Internal::BLEMgr.DriveBLEState, 0);
+    PlatformMgr().UnlockWeaveStack();
 }
 
 void BLEManager::DriveBLEState(intptr_t arg)

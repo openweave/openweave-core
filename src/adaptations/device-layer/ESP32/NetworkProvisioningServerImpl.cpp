@@ -74,7 +74,7 @@ void NetworkProvisioningServerImpl::_OnPlatformEvent(const WeaveDeviceEvent * ev
 
             WiFiSecurityType secType = ESP32Utils::WiFiAuthModeToWeaveWiFiSecurityType(ap_info.authmode);
 
-            err = ConfigurationManagerImpl::Instance().UpdateWiFiStationSecurityType(secType);
+            err = ConfigurationMgrImpl().UpdateWiFiStationSecurityType(secType);
             SuccessOrExit(err);
         }
     }
@@ -106,7 +106,7 @@ WEAVE_ERROR NetworkProvisioningServerImpl::GetWiFiStationProvision(NetworkInfo &
     netInfo.WiFiMode = kWiFiMode_Managed;
     netInfo.WiFiRole = kWiFiRole_Station;
 
-    err = ConfigurationManagerImpl::Instance().GetWiFiStationSecurityType(netInfo.WiFiSecurityType);
+    err = ConfigurationMgrImpl().GetWiFiStationSecurityType(netInfo.WiFiSecurityType);
     if (err == WEAVE_DEVICE_ERROR_CONFIG_NOT_FOUND)
     {
         err = WEAVE_NO_ERROR;
@@ -178,7 +178,7 @@ WEAVE_ERROR NetworkProvisioningServerImpl::SetWiFiStationProvision(const Network
 
     // Store the WiFi Station security type separately in NVS.  This is necessary because the ESP wifi API
     // does not provide a way to query the configured WiFi auth mode.
-    err = ConfigurationManagerImpl::Instance().UpdateWiFiStationSecurityType(netInfo.WiFiSecurityType);
+    err = ConfigurationMgrImpl().UpdateWiFiStationSecurityType(netInfo.WiFiSecurityType);
     SuccessOrExit(err);
 
     WeaveLogProgress(DeviceLayer, "WiFi station provision set (SSID: %s)", netInfo.WiFiSSID);
@@ -197,7 +197,7 @@ WEAVE_ERROR NetworkProvisioningServerImpl::ClearWiFiStationProvision(void)
     esp_wifi_set_config(ESP_IF_WIFI_STA, &stationConfig);
 
     // Clear the persisted WiFi station security type.
-    ConfigurationManagerImpl::Instance().UpdateWiFiStationSecurityType(kWiFiSecurityType_NotSpecified);
+    ConfigurationMgrImpl().UpdateWiFiStationSecurityType(kWiFiSecurityType_NotSpecified);
 
     return err;
 }

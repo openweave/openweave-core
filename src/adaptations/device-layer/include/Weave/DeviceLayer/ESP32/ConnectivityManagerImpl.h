@@ -35,6 +35,8 @@ namespace nl {
 namespace Weave {
 namespace DeviceLayer {
 
+class PlatformManagerImpl;
+
 namespace Internal {
 
 class NetworkProvisioningServerImpl;
@@ -48,7 +50,8 @@ extern const char *CharacterizeIPv6Address(const ::nl::Inet::IPAddress & ipAddr)
 /**
  * Concrete implementation of the ConnectivityManager singleton object for the ESP32 platform.
  */
-class ConnectivityManagerImpl : public ConnectivityManager
+class ConnectivityManagerImpl final
+    : public ConnectivityManager
 {
     using TunnelConnNotifyReasons = ::nl::Weave::Profiles::WeaveTunnel::WeaveTunnelConnectionMgr::TunnelConnNotifyReasons;
 
@@ -56,11 +59,10 @@ class ConnectivityManagerImpl : public ConnectivityManager
     // the implementation methods provided by this class.
     friend class ConnectivityManager;
 
-public:
+private:
 
-    // ===== Members that implement the ConnectivityManager public interface.
+    // ===== Members that implement the ConnectivityManager abstract interface.
 
-    // WiFi station methods
     WiFiStationMode _GetWiFiStationMode(void);
     WEAVE_ERROR _SetWiFiStationMode(WiFiStationMode val);
     bool _IsWiFiStationEnabled(void);
@@ -70,8 +72,6 @@ public:
     WEAVE_ERROR _SetWiFiStationReconnectIntervalMS(uint32_t val);
     bool _IsWiFiStationProvisioned(void);
     void _ClearWiFiStationProvision(void);
-
-    // WiFi AP methods
     WiFiAPMode _GetWiFiAPMode(void);
     WEAVE_ERROR _SetWiFiAPMode(WiFiAPMode val);
     bool _IsWiFiAPActive(void);
@@ -81,21 +81,13 @@ public:
     void _MaintainOnDemandWiFiAP(void);
     uint32_t _GetWiFiAPIdleTimeoutMS(void);
     void _SetWiFiAPIdleTimeoutMS(uint32_t val);
-
-    // Internet connectivity methods
     bool _HaveIPv4InternetConnectivity(void);
     bool _HaveIPv6InternetConnectivity(void);
-
-    // Service tunnel methods
     ServiceTunnelMode _GetServiceTunnelMode(void);
     WEAVE_ERROR _SetServiceTunnelMode(ServiceTunnelMode val);
     bool _IsServiceTunnelConnected(void);
     bool _IsServiceTunnelRestricted(void);
-
-    // Service connectivity methods
     bool _HaveServiceConnectivity(void);
-
-    // WoBLE service methods
     WoBLEServiceMode _GetWoBLEServiceMode(void);
     WEAVE_ERROR _SetWoBLEServiceMode(WoBLEServiceMode val);
     bool _IsBLEAdvertisingEnabled(void);
@@ -105,29 +97,18 @@ public:
     WEAVE_ERROR _GetBLEDeviceName(char * buf, size_t bufSize);
     WEAVE_ERROR _SetBLEDeviceName(const char * deviceName);
     uint16_t _NumBLEConnections(void);
-
-    // ===== Implementation-specific members that may be accessed directly by the application.
-
-    static ConnectivityManagerImpl & Instance();
-
-private:
-
-    // ===== Members for internal use by the following friends.
-
-    friend class ::nl::Weave::DeviceLayer::PlatformManager;
-    friend class ::nl::Weave::DeviceLayer::Internal::NetworkProvisioningServerImpl;
-    template<class ImplClass> friend class ::nl::Weave::DeviceLayer::Internal::GenericNetworkProvisioningServerImpl;
-    friend ConnectivityManager & ConnectivityMgr(void);
-
-    static ConnectivityManagerImpl sInstance;
-
     WEAVE_ERROR _Init(void);
     void _OnPlatformEvent(const WeaveDeviceEvent * event);
     bool _CanStartWiFiScan();
     void _OnWiFiScanDone();
     void _OnWiFiStationProvisionChange();
 
-private:
+    // ===== Members for internal use by the following friends.
+
+    friend ConnectivityManager & ConnectivityMgr(void);
+    friend ConnectivityManagerImpl & ConnectivityMgrImpl(void);
+
+    static ConnectivityManagerImpl sInstance;
 
     // ===== Private members reserved for use by this class only.
 
@@ -251,12 +232,24 @@ inline bool ConnectivityManagerImpl::_CanStartWiFiScan()
     return mWiFiStationState != kWiFiStationState_Connecting;
 }
 
-inline ConnectivityManagerImpl & ConnectivityManagerImpl::Instance(void)
+/**
+ * Returns the public interface of the ConnectivityManager singleton object.
+ *
+ * Weave applications should use this to access features of the ConnectivityManager object
+ * that are common to all platforms.
+ */
+inline ConnectivityManager & ConnectivityMgr(void)
 {
-    return sInstance;
+    return ConnectivityManagerImpl::sInstance;
 }
 
-inline ConnectivityManager & ConnectivityMgr(void)
+/**
+ * Returns the platform-specific implementation of the ConnectivityManager singleton object.
+ *
+ * Weave applications can use this to gain access to features of the ConnectivityManager
+ * that are specific to the ESP32 platform.
+ */
+inline ConnectivityManagerImpl & ConnectivityMgrImpl(void)
 {
     return ConnectivityManagerImpl::sInstance;
 }

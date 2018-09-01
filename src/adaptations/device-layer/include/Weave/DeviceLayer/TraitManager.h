@@ -31,6 +31,8 @@ namespace nl {
 namespace Weave {
 namespace DeviceLayer {
 
+class PlatformManagerImpl;
+
 /**
  * Manages publication and subscription of Weave Data Management traits for a Weave device.
  */
@@ -74,7 +76,7 @@ private:
 
     // ===== Members for internal use by the following friends.
 
-    friend class ::nl::Weave::DeviceLayer::PlatformManager;
+    friend class ::nl::Weave::DeviceLayer::PlatformManagerImpl;
     friend TraitManager & TraitMgr(void);
 
     static TraitManager sInstance;

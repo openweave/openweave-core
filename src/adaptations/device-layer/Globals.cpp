@@ -29,8 +29,6 @@ namespace nl {
 namespace Weave {
 namespace DeviceLayer {
 
-PlatformManager PlatformMgr;
-
 nl::Weave::System::Layer SystemLayer;
 nl::Inet::InetLayer InetLayer;
 

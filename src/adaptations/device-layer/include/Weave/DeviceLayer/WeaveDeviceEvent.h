@@ -135,24 +135,24 @@ struct WeaveDeviceEvent
         } SessionEstablished;
         struct
         {
-            uint16_t ConId;
+            BLE_CONNECTION_OBJECT ConId;
         } WoBLESubscribe;
         struct
         {
-            uint16_t ConId;
+            BLE_CONNECTION_OBJECT ConId;
         } WoBLEUnsubscribe;
         struct
         {
-            uint16_t ConId;
+            BLE_CONNECTION_OBJECT ConId;
             PacketBuffer * Data;
         } WoBLEWriteReceived;
         struct
         {
-            uint16_t ConId;
+            BLE_CONNECTION_OBJECT ConId;
         } WoBLEIndicateConfirm;
         struct
         {
-            uint16_t ConId;
+            BLE_CONNECTION_OBJECT ConId;
             WEAVE_ERROR Reason;
         } WoBLEConnectionError;
     };

@@ -32,6 +32,7 @@ namespace nl {
 namespace Weave {
 namespace DeviceLayer {
 
+class PlatformManagerImpl;
 class ConfigurationManagerImpl;
 class TraitManager;
 namespace Internal {
@@ -106,7 +107,7 @@ private:
 
     // ===== Members for internal use by the following friends.
 
-    friend class ::nl::Weave::DeviceLayer::PlatformManager;
+    friend class ::nl::Weave::DeviceLayer::PlatformManagerImpl;
     friend class ::nl::Weave::DeviceLayer::TraitManager;
     friend class ::nl::Weave::DeviceLayer::Internal::DeviceControlServer;
     friend WEAVE_ERROR ::nl::Weave::Platform::PersistedStorage::Read(::nl::Weave::Platform::PersistedStorage::Key key, uint32_t & value);
@@ -137,6 +138,14 @@ protected:
  * that are common to all platforms.
  */
 extern ConfigurationManager & ConfigurationMgr(void);
+
+/**
+ * Returns the platform-specific implementation of the ConfigurationManager singleton object.
+ *
+ * Weave applications can use this to gain access to features of the ConfigurationManager
+ * that are specific to the selected platform.
+ */
+extern ConfigurationManagerImpl & ConfigurationMgrImpl(void);
 
 } // namespace DeviceLayer
 } // namespace Weave

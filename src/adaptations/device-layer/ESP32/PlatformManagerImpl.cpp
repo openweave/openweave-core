@@ -49,7 +49,7 @@ namespace {
 struct RegisteredEventHandler
 {
     RegisteredEventHandler * Next;
-    PlatformManager::EventHandlerFunct Handler;
+    PlatformManagerImpl::EventHandlerFunct Handler;
     intptr_t Arg;
 };
 
@@ -64,10 +64,9 @@ TaskHandle_t EventLoopTask;
 
 } // unnamed namespace
 
+PlatformManagerImpl PlatformManagerImpl::sInstance;
 
-// ==================== PlatformManager Public Members ====================
-
-WEAVE_ERROR PlatformManager::InitLocks(void)
+WEAVE_ERROR PlatformManagerImpl::InitLocks(void)
 {
     WeaveStackLock = xSemaphoreCreateMutex();
     if (WeaveStackLock == NULL) {
@@ -84,7 +83,7 @@ WEAVE_ERROR PlatformManager::InitLocks(void)
     return WEAVE_NO_ERROR;
 }
 
-WEAVE_ERROR PlatformManager::InitWeaveStack(void)
+WEAVE_ERROR PlatformManagerImpl::_InitWeaveStack(void)
 {
     WEAVE_ERROR err;
 
@@ -284,7 +283,7 @@ exit:
     return err;
 }
 
-WEAVE_ERROR PlatformManager::AddEventHandler(EventHandlerFunct handler, intptr_t arg)
+WEAVE_ERROR PlatformManagerImpl::_AddEventHandler(EventHandlerFunct handler, intptr_t arg)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
     RegisteredEventHandler * eventHandler;
@@ -311,7 +310,7 @@ exit:
     return err;
 }
 
-void PlatformManager::RemoveEventHandler(EventHandlerFunct handler, intptr_t arg)
+void PlatformManagerImpl::_RemoveEventHandler(EventHandlerFunct handler, intptr_t arg)
 {
     RegisteredEventHandler ** eventHandlerIndirectPtr;
 
@@ -331,7 +330,7 @@ void PlatformManager::RemoveEventHandler(EventHandlerFunct handler, intptr_t arg
     }
 }
 
-void PlatformManager::ScheduleWork(AsyncWorkFunct workFunct, intptr_t arg)
+void PlatformManagerImpl::_ScheduleWork(AsyncWorkFunct workFunct, intptr_t arg)
 {
     WeaveDeviceEvent event;
     event.Type = WeaveDeviceEvent::kEventType_CallWorkFunct;
@@ -341,12 +340,12 @@ void PlatformManager::ScheduleWork(AsyncWorkFunct workFunct, intptr_t arg)
     PostEvent(&event);
 }
 
-void PlatformManager::RunEventLoop(void)
+void PlatformManagerImpl::_RunEventLoop(void)
 {
     RunEventLoop(NULL);
 }
 
-WEAVE_ERROR PlatformManager::StartEventLoopTask(void)
+WEAVE_ERROR PlatformManagerImpl::_StartEventLoopTask(void)
 {
     BaseType_t res;
 
@@ -360,36 +359,33 @@ WEAVE_ERROR PlatformManager::StartEventLoopTask(void)
     return (res == pdPASS) ? WEAVE_NO_ERROR : WEAVE_ERROR_NO_MEMORY;
 }
 
-void PlatformManager::LockWeaveStack(void)
+void PlatformManagerImpl::_LockWeaveStack(void)
 {
     xSemaphoreTake(WeaveStackLock, portMAX_DELAY);
 }
 
-bool PlatformManager::TryLockWeaveStack(void)
+bool PlatformManagerImpl::_TryLockWeaveStack(void)
 {
     return xSemaphoreTake(WeaveStackLock, 0) == pdTRUE;
 }
 
-void PlatformManager::UnlockWeaveStack(void)
+void PlatformManagerImpl::_UnlockWeaveStack(void)
 {
     xSemaphoreGive(WeaveStackLock);
 }
 
-esp_err_t PlatformManager::HandleESPSystemEvent(void * ctx, system_event_t * espEvent)
+esp_err_t PlatformManagerImpl::HandleESPSystemEvent(void * ctx, system_event_t * espEvent)
 {
     WeaveDeviceEvent event;
     event.Type = WeaveDeviceEvent::kEventType_ESPSystemEvent;
     event.ESPSystemEvent = *espEvent;
 
-    PlatformMgr.PostEvent(&event);
+    sInstance.PostEvent(&event);
 
     return ESP_OK;
 }
 
-
-// ==================== PlatformManager Private Members ====================
-
-WEAVE_ERROR PlatformManager::InitWeaveEventQueue(void)
+WEAVE_ERROR PlatformManagerImpl::InitWeaveEventQueue(void)
 {
     WeaveEventQueue = xQueueCreate(WEAVE_DEVICE_CONFIG_MAX_EVENT_QUEUE_SIZE, sizeof(WeaveDeviceEvent));
     if (WeaveEventQueue == NULL)
@@ -401,7 +397,7 @@ WEAVE_ERROR PlatformManager::InitWeaveEventQueue(void)
     return WEAVE_NO_ERROR;
 }
 
-void PlatformManager::PostEvent(const WeaveDeviceEvent * event)
+void PlatformManagerImpl::_PostEvent(const WeaveDeviceEvent * event)
 {
     if (WeaveEventQueue != NULL)
     {
@@ -412,7 +408,7 @@ void PlatformManager::PostEvent(const WeaveDeviceEvent * event)
     }
 }
 
-void PlatformManager::DispatchEvent(const WeaveDeviceEvent * event)
+void PlatformManagerImpl::_DispatchEvent(const WeaveDeviceEvent * event)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
 
@@ -474,7 +470,7 @@ void PlatformManager::DispatchEvent(const WeaveDeviceEvent * event)
 #endif // WEAVE_PROGRESS_LOGGING
 }
 
-void PlatformManager::RunEventLoop(void * /* unused */)
+void PlatformManagerImpl::RunEventLoop(void * /* unused */)
 {
     WEAVE_ERROR err;
     WeaveDeviceEvent event;
@@ -525,25 +521,25 @@ void PlatformManager::RunEventLoop(void * /* unused */)
         }
 
         // Unlock the Weave stack, allowing other threads to enter Weave while the event loop thread is sleeping.
-        PlatformMgr.UnlockWeaveStack();
+        sInstance.UnlockWeaveStack();
 
         BaseType_t eventReceived = xQueueReceive(WeaveEventQueue, &event, waitTime);
 
         // Lock the Weave stack.
-        PlatformMgr.LockWeaveStack();
+        sInstance.LockWeaveStack();
 
         // If an event was received, dispatch it.  Continue receiving events from the queue and
         // dispatching them until the queue is empty.
         while (eventReceived == pdTRUE) {
 
-            PlatformMgr.DispatchEvent(&event);
+            sInstance.DispatchEvent(&event);
 
             eventReceived = xQueueReceive(WeaveEventQueue, &event, 0);
         }
     }
 }
 
-void PlatformManager::HandleSessionEstablished(WeaveSecurityManager * sm, WeaveConnection * con, void * reqState, uint16_t sessionKeyId, uint64_t peerNodeId, uint8_t encType)
+void PlatformManagerImpl::HandleSessionEstablished(WeaveSecurityManager * sm, WeaveConnection * con, void * reqState, uint16_t sessionKeyId, uint64_t peerNodeId, uint8_t encType)
 {
     // Get the auth mode for the newly established session key.
     WeaveSessionKey * sessionKey;
@@ -560,7 +556,7 @@ void PlatformManager::HandleSessionEstablished(WeaveSecurityManager * sm, WeaveC
     event.SessionEstablished.EncType = encType;
     event.SessionEstablished.AuthMode = authMode;
     event.SessionEstablished.IsCommissioner = (authMode == kWeaveAuthMode_PASE_PairingCode);
-    PlatformMgr.PostEvent(&event);
+    sInstance.PostEvent(&event);
 
     if (event.SessionEstablished.IsCommissioner)
     {
@@ -610,7 +606,7 @@ System::Error StartTimer(System::Layer & aLayer, void * aContext, uint32_t aMill
     {
         WeaveDeviceEvent event;
         event.Type = WeaveDeviceEvent::kEventType_NoOp;
-        PlatformMgr.PostEvent(&event);
+        PlatformMgr().PostEvent(&event);
     }
 
     return WEAVE_SYSTEM_NO_ERROR;
@@ -654,13 +650,13 @@ System::Error PostEvent(System::Layer & aLayer, void * aContext, System::Object 
 
 System::Error DispatchEvents(Layer & aLayer, void * aContext)
 {
-    PlatformMgr.RunEventLoop();
+    PlatformMgr().RunEventLoop();
     return WEAVE_SYSTEM_NO_ERROR;
 }
 
 System::Error DispatchEvent(System::Layer & aLayer, void * aContext, const WeaveDeviceEvent * aEvent)
 {
-    PlatformMgr.DispatchEvent(aEvent);
+    PlatformMgr().DispatchEvent(aEvent);
     return WEAVE_NO_ERROR;
 }
 
