@@ -1285,6 +1285,7 @@ dist_weave_common_HEADERS = $(addprefix ../,$(nl_public_WeaveCommon_header_sourc
 @WEAVE_DEVICE_LAYER_TARGET_ESP32_TRUE@$(nl_public_WeaveDeviceLayer_source_dirstem)/ESP32/GroupKeyStoreImpl.h                \
 @WEAVE_DEVICE_LAYER_TARGET_ESP32_TRUE@$(nl_public_WeaveDeviceLayer_source_dirstem)/ESP32/NetworkProvisioningServerImpl.h    \
 @WEAVE_DEVICE_LAYER_TARGET_ESP32_TRUE@$(nl_public_WeaveDeviceLayer_source_dirstem)/ESP32/PlatformManagerImpl.h              \
+@WEAVE_DEVICE_LAYER_TARGET_ESP32_TRUE@$(nl_public_WeaveDeviceLayer_source_dirstem)/ESP32/WeaveDevicePlatformConfig.h        \
 @WEAVE_DEVICE_LAYER_TARGET_ESP32_TRUE@$(NULL)
 
 @CONFIG_DEVICE_LAYER_TRUE@nl_public_WeaveDeviceLayer_source_dirstem = adaptations/device-layer/include/Weave/DeviceLayer
@@ -1321,7 +1322,6 @@ dist_weave_common_HEADERS = $(addprefix ../,$(nl_public_WeaveCommon_header_sourc
 @CONFIG_DEVICE_LAYER_TRUE@$(nl_public_WeaveDeviceLayer_source_dirstem)/internal/ServiceDirectoryManager.h                     \
 @CONFIG_DEVICE_LAYER_TRUE@$(nl_public_WeaveDeviceLayer_source_dirstem)/internal/ServiceProvisioningServer.h                   \
 @CONFIG_DEVICE_LAYER_TRUE@$(nl_public_WeaveDeviceLayer_source_dirstem)/internal/ServiceTunnelAgent.h                          \
-@CONFIG_DEVICE_LAYER_TRUE@$(nl_public_WeaveDeviceLayer_source_dirstem)/internal/WeaveDeviceConfig-ESP32.h                     \
 @CONFIG_DEVICE_LAYER_TRUE@$(nl_public_WeaveDeviceLayer_source_dirstem)/internal/WeaveDeviceLayerInternal.h                    \
 @CONFIG_DEVICE_LAYER_TRUE@$(NULL)
 
