@@ -29,6 +29,7 @@
 #include <Weave/Profiles/security/WeaveApplicationKeys.h>
 #include <Weave/DeviceLayer/ESP32/GroupKeyStoreImpl.h>
 #include <Weave/DeviceLayer/ESP32/ESP32Config.h>
+#include <Weave/DeviceLayer/internal/GenericConfigurationManagerImpl.ipp>
 
 #include "esp_wifi.h"
 #include "nvs_flash.h"
@@ -60,6 +61,10 @@ enum
 GroupKeyStoreImpl gGroupKeyStore;
 
 } // unnamed namespace
+
+
+// Fully instantiate the template classes on which the ESP32 ConfigurationManager depends.
+template class Internal::GenericConfigurationManagerImpl<ConfigurationManagerImpl>;
 
 
 /** Singleton instance of the ConfigurationManager implementation object for the ESP32.
@@ -224,24 +229,6 @@ void ConfigurationManagerImpl::DoFactoryReset(intptr_t arg)
     esp_restart();
 }
 
-} // namespace DeviceLayer
-} // namespace Weave
-} // namespace nl
-
-
-// The ESP32 variant of ConfigurationManager relies on the GenericConfigurationManagerImpl<>
-// template class for much of its implementation.  Here we include the non-inline definitions
-// of GenericConfigurationManagerImpl<> so that the template can be fully instantiated below.
-#include "GenericConfigurationManagerImpl.cpp"
-
-// Explicitly instantiate the GenericConfigurationManagerImpl<> template for use by the
-// ESP32 ConfigurationManagerImpl class.
-namespace nl {
-namespace Weave {
-namespace DeviceLayer {
-namespace Internal {
-template class GenericConfigurationManagerImpl<ConfigurationManagerImpl>;
-} // namespace Internal
 } // namespace DeviceLayer
 } // namespace Weave
 } // namespace nl

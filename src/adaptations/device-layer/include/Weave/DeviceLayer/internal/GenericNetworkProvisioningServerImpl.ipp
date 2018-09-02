@@ -16,6 +16,12 @@
  *    limitations under the License.
  */
 
+/**
+ *    @file
+ *          Contains non-inline method definitions for the
+ *          GenericNetworkProvisioningServerImpl<> template.
+ */
+
 #include <Weave/DeviceLayer/internal/WeaveDeviceLayerInternal.h>
 #include <Weave/DeviceLayer/internal/NetworkProvisioningServer.h>
 #include <Weave/DeviceLayer/internal/GenericNetworkProvisioningServerImpl.h>

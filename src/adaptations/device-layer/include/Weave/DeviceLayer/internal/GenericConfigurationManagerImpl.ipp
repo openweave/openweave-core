@@ -18,9 +18,10 @@
 
 /**
  *    @file
- *          Provides the implementation of the Device Layer ConfigurationManager object
- *          for the ESP32.
+ *          Contains non-inline method definitions for the
+ *          GenericConfigurationManagerImpl<> template.
  */
+
 
 #include <Weave/DeviceLayer/internal/WeaveDeviceLayerInternal.h>
 #include <Weave/DeviceLayer/internal/GenericConfigurationManagerImpl.h>

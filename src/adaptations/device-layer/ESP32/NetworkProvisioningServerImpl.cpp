@@ -22,8 +22,8 @@
 #include <Weave/Core/WeaveTLV.h>
 #include <Weave/Profiles/WeaveProfiles.h>
 #include <Weave/Profiles/common/CommonProfile.h>
-
 #include <Weave/DeviceLayer/ESP32/ESP32Utils.h>
+#include <Weave/DeviceLayer/internal/GenericNetworkProvisioningServerImpl.ipp>
 
 #include "esp_event.h"
 #include "esp_wifi.h"
@@ -40,6 +40,10 @@ namespace nl {
 namespace Weave {
 namespace DeviceLayer {
 namespace Internal {
+
+// Explicitly instantiate the GenericNetworkProvisioningServerImpl<> template for use by the
+// ESP32 NetworkProvisioningServerImpl class.
+template class GenericNetworkProvisioningServerImpl<NetworkProvisioningServerImpl>;
 
 NetworkProvisioningServerImpl NetworkProvisioningServerImpl::sInstance;
 
@@ -349,24 +353,6 @@ void NetworkProvisioningServerImpl::HandleScanTimeOut(::nl::Weave::System::Layer
 
 #endif // WEAVE_DEVICE_CONFIG_WIFI_SCAN_COMPLETION_TIMEOUT
 
-} // namespace Internal
-} // namespace DeviceLayer
-} // namespace Weave
-} // namespace nl
-
-
-// The ESP32 variant of NetworkProvisioningServer relies on the GenericNetworkProvisioningServerImpl<>
-// template class for much of its implementation.  Here we include the non-inline definitions
-// of GenericNetworkProvisioningServerImpl<> so that the template can be fully instantiated below.
-#include "GenericNetworkProvisioningServerImpl.cpp"
-
-// Explicitly instantiate the GenericNetworkProvisioningServerImpl<> template for use by the
-// ESP32 NetworkProvisioningServerImpl class.
-namespace nl {
-namespace Weave {
-namespace DeviceLayer {
-namespace Internal {
-template class GenericNetworkProvisioningServerImpl<NetworkProvisioningServerImpl>;
 } // namespace Internal
 } // namespace DeviceLayer
 } // namespace Weave
