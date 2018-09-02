@@ -22,6 +22,8 @@
  *          GenericConfigurationManagerImpl<> template.
  */
 
+#ifndef GENERIC_CONFIGURATION_MANAGER_IMPL_IPP
+#define GENERIC_CONFIGURATION_MANAGER_IMPL_IPP
 
 #include <Weave/DeviceLayer/internal/WeaveDeviceLayerInternal.h>
 #include <Weave/DeviceLayer/internal/GenericConfigurationManagerImpl.h>
@@ -671,3 +673,5 @@ void GenericConfigurationManagerImpl<ImplClass>::LogDeviceConfig()
 } // namespace DeviceLayer
 } // namespace Weave
 } // namespace nl
+
+#endif // GENERIC_CONFIGURATION_MANAGER_IMPL_IPP
