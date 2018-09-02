@@ -16,11 +16,25 @@
  *    limitations under the License.
  */
 
+/**
+ *    @file
+ *          Defines compile-time configuration values for the Weave Device Layer.
+ */
+
+
+
 #ifndef WEAVE_DEVICE_CONFIG_H
 #define WEAVE_DEVICE_CONFIG_H
 
 
-#include <Weave/DeviceLayer/internal/WeaveDeviceConfig-ESP32.h>
+// Include a header file containing the platform-specific configuration overrides.
+
+#ifdef EXTERNAL_WEAVEDEVICEPLATFORMCONFIG_HEADER
+#include EXTERNAL_WEAVEDEVICEPLATFORMCONFIG_HEADER
+#else
+#define WEAVEDEVICEPLATFORMCONFIG_HEADER <Weave/DeviceLayer/WEAVE_DEVICE_LAYER_TARGET/WeaveDevicePlatformConfig.h>
+#include WEAVEDEVICEPLATFORMCONFIG_HEADER
+#endif
 
 
 // -------------------- General Configuration --------------------
