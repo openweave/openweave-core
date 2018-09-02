@@ -1309,7 +1309,9 @@ dist_weave_common_HEADERS = $(addprefix ../,$(nl_public_WeaveCommon_header_sourc
 @CONFIG_DEVICE_LAYER_TRUE@$(nl_public_WeaveDeviceLayer_source_dirstem)/internal/EchoServer.h                                  \
 @CONFIG_DEVICE_LAYER_TRUE@$(nl_public_WeaveDeviceLayer_source_dirstem)/internal/FabricProvisioningServer.h                    \
 @CONFIG_DEVICE_LAYER_TRUE@$(nl_public_WeaveDeviceLayer_source_dirstem)/internal/GenericConfigurationManagerImpl.h             \
+@CONFIG_DEVICE_LAYER_TRUE@$(nl_public_WeaveDeviceLayer_source_dirstem)/internal/GenericConfigurationManagerImpl.ipp           \
 @CONFIG_DEVICE_LAYER_TRUE@$(nl_public_WeaveDeviceLayer_source_dirstem)/internal/GenericNetworkProvisioningServerImpl.h        \
+@CONFIG_DEVICE_LAYER_TRUE@$(nl_public_WeaveDeviceLayer_source_dirstem)/internal/GenericNetworkProvisioningServerImpl.ipp      \
 @CONFIG_DEVICE_LAYER_TRUE@$(nl_public_WeaveDeviceLayer_source_dirstem)/internal/GenericPlatformManagerImpl.h                  \
 @CONFIG_DEVICE_LAYER_TRUE@$(nl_public_WeaveDeviceLayer_source_dirstem)/internal/GenericPlatformManagerImpl.ipp                \
 @CONFIG_DEVICE_LAYER_TRUE@$(nl_public_WeaveDeviceLayer_source_dirstem)/internal/GenericPlatformManagerImpl_FreeRTOS.h         \

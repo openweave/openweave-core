@@ -953,7 +953,9 @@ $(nl_public_WeaveDeviceLayer_source_dirstem)/internal/DeviceIdentityTraitDataSou
 $(nl_public_WeaveDeviceLayer_source_dirstem)/internal/EchoServer.h                                  \
 $(nl_public_WeaveDeviceLayer_source_dirstem)/internal/FabricProvisioningServer.h                    \
 $(nl_public_WeaveDeviceLayer_source_dirstem)/internal/GenericConfigurationManagerImpl.h             \
+$(nl_public_WeaveDeviceLayer_source_dirstem)/internal/GenericConfigurationManagerImpl.ipp           \
 $(nl_public_WeaveDeviceLayer_source_dirstem)/internal/GenericNetworkProvisioningServerImpl.h        \
+$(nl_public_WeaveDeviceLayer_source_dirstem)/internal/GenericNetworkProvisioningServerImpl.ipp      \
 $(nl_public_WeaveDeviceLayer_source_dirstem)/internal/GenericPlatformManagerImpl.h                  \
 $(nl_public_WeaveDeviceLayer_source_dirstem)/internal/GenericPlatformManagerImpl.ipp                \
 $(nl_public_WeaveDeviceLayer_source_dirstem)/internal/GenericPlatformManagerImpl_FreeRTOS.h         \
