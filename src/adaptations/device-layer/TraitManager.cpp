@@ -204,7 +204,7 @@ exit:
 void TraitManager::OnPlatformEvent(const WeaveDeviceEvent* event)
 {
     // If connectivity to the service has changed...
-    if (event->Type == WeaveDeviceEvent::kEventType_ServiceConnectivityChange)
+    if (event->Type == DeviceEventType::kServiceConnectivityChange)
     {
         // Update the service subscription state as needed.
         DriveServiceSubscriptionState(true);
@@ -251,7 +251,7 @@ void TraitManager::DriveServiceSubscriptionState(bool serviceConnectivityChanged
                 {
                     ClearFlag(sInstance.mFlags, kFlag_ServiceSubscriptionEstablished);
                     WeaveDeviceEvent event;
-                    event.Type = WeaveDeviceEvent::kEventType_ServiceSubscriptionStateChange;
+                    event.Type = DeviceEventType::kServiceSubscriptionStateChange;
                     event.ServiceSubscriptionStateChange.Result = kConnectivity_Lost;
                     PlatformMgr().PostEvent(&event);
                 }
@@ -387,7 +387,7 @@ void TraitManager::HandleOutboundServiceSubscriptionEvent(void * appState, Subsc
         {
             ClearFlag(sInstance.mFlags, kFlag_ServiceSubscriptionEstablished);
             WeaveDeviceEvent event;
-            event.Type = WeaveDeviceEvent::kEventType_ServiceSubscriptionStateChange;
+            event.Type = DeviceEventType::kServiceSubscriptionStateChange;
             event.ServiceSubscriptionStateChange.Result = kConnectivity_Lost;
             PlatformMgr().PostEvent(&event);
         }
@@ -444,7 +444,7 @@ void TraitManager::HandleInboundSubscriptionEvent(void * aAppState, Subscription
             // Raise an event announcing the establishment of the subscription.
             {
                 WeaveDeviceEvent event;
-                event.Type = WeaveDeviceEvent::kEventType_ServiceSubscriptionStateChange;
+                event.Type = DeviceEventType::kServiceSubscriptionStateChange;
                 event.ServiceSubscriptionStateChange.Result = kConnectivity_Established;
                 PlatformMgr().PostEvent(&event);
             }
@@ -481,7 +481,7 @@ void TraitManager::HandleInboundSubscriptionEvent(void * aAppState, Subscription
             {
                 ClearFlag(sInstance.mFlags, kFlag_ServiceSubscriptionEstablished);
                 WeaveDeviceEvent event;
-                event.Type = WeaveDeviceEvent::kEventType_ServiceSubscriptionStateChange;
+                event.Type = DeviceEventType::kServiceSubscriptionStateChange;
                 event.ServiceSubscriptionStateChange.Result = kConnectivity_Lost;
                 PlatformMgr().PostEvent(&event);
             }

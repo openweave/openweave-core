@@ -25,6 +25,8 @@
 #include <Weave/DeviceLayer/internal/WeaveDeviceLayerInternal.h>
 #include <Weave/Support/crypto/WeaveRNG.h>
 
+#include "esp_log.h"
+
 using namespace ::nl;
 using namespace ::nl::Weave;
 

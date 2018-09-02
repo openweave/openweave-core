@@ -98,7 +98,7 @@ template<class ImplClass>
 void GenericNetworkProvisioningServerImpl<ImplClass>::_OnPlatformEvent(const WeaveDeviceEvent * event)
 {
     // Handle a change in Internet connectivity...
-    if (event->Type == WeaveDeviceEvent::kEventType_InternetConnectivityChange)
+    if (event->Type == DeviceEventType::kInternetConnectivityChange)
     {
         // If the system now has IPv4 Internet connectivity, continue the process of
         // performing the TestConnectivity request.

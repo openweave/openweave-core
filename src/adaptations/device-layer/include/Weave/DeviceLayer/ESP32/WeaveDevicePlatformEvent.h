@@ -16,44 +16,48 @@
  *    limitations under the License.
  */
 
-#ifndef WEAVE_DEVICE_INTERNAL_H
-#define WEAVE_DEVICE_INTERNAL_H
+/**
+ *    @file
+ *          Defines platform-specific event types and data for the
+ *          Weave Device Layer on the ESP32.
+ */
 
-#include <Weave/DeviceLayer/WeaveDeviceLayer.h>
+#ifndef WEAVE_DEVICE_PLATFORM_EVENT_H
+#define WEAVE_DEVICE_PLATFORM_EVENT_H
 
-using namespace ::nl::Weave;
-
-namespace nl {
-namespace Weave {
-namespace Logging {
-
-enum
-{
-    kLogModule_DeviceLayer = 255,
-};
-
-} // namespace Logging
-} // namespace Weave
-} // namespace nl
+#include <Weave/DeviceLayer/WeaveDeviceEvent.h>
+#include <esp_event.h>
 
 namespace nl {
 namespace Weave {
 namespace DeviceLayer {
-namespace Internal {
 
-extern const char * const TAG;
+namespace DeviceEventType {
 
-#if WEAVE_DEVICE_CONFIG_ENABLE_TEST_DEVICE_IDENTITY
-extern const uint64_t TestDeviceId;
-extern const uint8_t TestDeviceCert[];
-extern const uint8_t TestDevicePrivateKey[];
-extern const uint16_t TestDeviceCertLength;
-extern const uint16_t TestDevicePrivateKeyLength;
-#endif // WEAVE_DEVICE_CONFIG_ENABLE_TEST_DEVICE_IDENTITY
+/**
+ * Enumerates platform-specific event types that are visible to the application.
+ */
+enum
+{
+    kESPSystemEvent                     = kRange_PublicPlatformSpecific,
+};
 
-} // namespace Internal
+} // namespace DeviceEventType
+
+/**
+ * Represents platform-specific event information for the ESP32 platform.
+ */
+struct WeaveDevicePlatformEvent final
+{
+    union
+    {
+        system_event_t ESPSystemEvent;
+    };
+};
+
 } // namespace DeviceLayer
 } // namespace Weave
 } // namespace nl
 
-#endif // WEAVE_DEVICE_INTERNAL_H
+
+#endif // WEAVE_DEVICE_PLATFORM_EVENT_H

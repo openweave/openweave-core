@@ -384,9 +384,9 @@ exit:
 void ConnectivityManagerImpl::_OnPlatformEvent(const WeaveDeviceEvent * event)
 {
     // Handle ESP system events...
-    if (event->Type == WeaveDeviceEvent::kEventType_ESPSystemEvent)
+    if (event->Type == DeviceEventType::kESPSystemEvent)
     {
-        switch(event->ESPSystemEvent.event_id) {
+        switch(event->Platform.ESPSystemEvent.event_id) {
         case SYSTEM_EVENT_STA_START:
             WeaveLogProgress(DeviceLayer, "SYSTEM_EVENT_STA_START");
             DriveStationState();
@@ -413,7 +413,7 @@ void ConnectivityManagerImpl::_OnPlatformEvent(const WeaveDeviceEvent * event)
             break;
         case SYSTEM_EVENT_STA_GOT_IP:
             WeaveLogProgress(DeviceLayer, "SYSTEM_EVENT_STA_GOT_IP");
-            OnStationIPv4AddressAvailable(event->ESPSystemEvent.event_info.got_ip);
+            OnStationIPv4AddressAvailable(event->Platform.ESPSystemEvent.event_info.got_ip);
             break;
         case SYSTEM_EVENT_STA_LOST_IP:
             WeaveLogProgress(DeviceLayer, "SYSTEM_EVENT_STA_LOST_IP");
@@ -421,7 +421,7 @@ void ConnectivityManagerImpl::_OnPlatformEvent(const WeaveDeviceEvent * event)
             break;
         case SYSTEM_EVENT_GOT_IP6:
             WeaveLogProgress(DeviceLayer, "SYSTEM_EVENT_GOT_IP6");
-            OnIPv6AddressAvailable(event->ESPSystemEvent.event_info.got_ip6);
+            OnIPv6AddressAvailable(event->Platform.ESPSystemEvent.event_info.got_ip6);
             break;
         case SYSTEM_EVENT_AP_START:
             WeaveLogProgress(DeviceLayer, "SYSTEM_EVENT_AP_START");
@@ -443,13 +443,13 @@ void ConnectivityManagerImpl::_OnPlatformEvent(const WeaveDeviceEvent * event)
     }
 
     // Handle fabric membership changes.
-    else if (event->Type == WeaveDeviceEvent::kEventType_FabricMembershipChange)
+    else if (event->Type == DeviceEventType::kFabricMembershipChange)
     {
         DriveServiceTunnelState();
     }
 
     // Handle service provisioning changes.
-    else if (event->Type == WeaveDeviceEvent::kEventType_ServiceProvisioningChange)
+    else if (event->Type == DeviceEventType::kServiceProvisioningChange)
     {
         DriveServiceTunnelState();
     }
@@ -457,7 +457,7 @@ void ConnectivityManagerImpl::_OnPlatformEvent(const WeaveDeviceEvent * event)
 #if !WEAVE_DEVICE_CONFIG_DISABLE_ACCOUNT_PAIRING
 
     // Handle account pairing changes.
-    else if (event->Type == WeaveDeviceEvent::kEventType_AccountPairingChange)
+    else if (event->Type == DeviceEventType::kAccountPairingChange)
     {
         // When account pairing successfully completes, if the tunnel to the
         // service is subject to routing restrictions (imposed because at the time
@@ -632,7 +632,7 @@ void ConnectivityManagerImpl::OnStationConnected()
 
     // Alert other components of the new state.
     WeaveDeviceEvent event;
-    event.Type = WeaveDeviceEvent::kEventType_WiFiConnectivityChange;
+    event.Type = DeviceEventType::kWiFiConnectivityChange;
     event.WiFiConnectivityChange.Result = kConnectivity_Established;
     PlatformMgr().PostEvent(&event);
 
@@ -646,7 +646,7 @@ void ConnectivityManagerImpl::OnStationDisconnected()
 
     // Alert other components of the new state.
     WeaveDeviceEvent event;
-    event.Type = WeaveDeviceEvent::kEventType_WiFiConnectivityChange;
+    event.Type = DeviceEventType::kWiFiConnectivityChange;
     event.WiFiConnectivityChange.Result = kConnectivity_Lost;
     PlatformMgr().PostEvent(&event);
 
@@ -897,7 +897,7 @@ void ConnectivityManagerImpl::UpdateInternetConnectivityState(void)
 
         // Alert other components of the state change.
         WeaveDeviceEvent event;
-        event.Type = WeaveDeviceEvent::kEventType_InternetConnectivityChange;
+        event.Type = DeviceEventType::kInternetConnectivityChange;
         event.InternetConnectivityChange.IPv4 = GetConnectivityChange(hadIPv4Conn, haveIPv4Conn);
         event.InternetConnectivityChange.IPv6 = GetConnectivityChange(hadIPv6Conn, haveIPv6Conn);
         PlatformMgr().PostEvent(&event);
@@ -1126,7 +1126,7 @@ void ConnectivityManagerImpl::HandleServiceTunnelNotification(WeaveTunnelConnect
 
         // Alert other components of the change to the tunnel state.
         WeaveDeviceEvent event;
-        event.Type = WeaveDeviceEvent::kEventType_ServiceTunnelStateChange;
+        event.Type = DeviceEventType::kServiceTunnelStateChange;
         event.ServiceTunnelStateChange.Result = GetConnectivityChange(prevTunnelState, newTunnelState);
         event.ServiceTunnelStateChange.IsRestricted = isRestricted;
         PlatformMgr().PostEvent(&event);
@@ -1140,7 +1140,7 @@ void ConnectivityManagerImpl::HandleServiceTunnelNotification(WeaveTunnelConnect
         {
             if (!isRestricted)
             {
-                event.Type = WeaveDeviceEvent::kEventType_ServiceConnectivityChange;
+                event.Type = DeviceEventType::kServiceConnectivityChange;
                 event.ServiceConnectivityChange.Result = kConnectivity_Established;
                 PlatformMgr().PostEvent(&event);
             }
@@ -1148,7 +1148,7 @@ void ConnectivityManagerImpl::HandleServiceTunnelNotification(WeaveTunnelConnect
 
         else
         {
-            event.Type = WeaveDeviceEvent::kEventType_ServiceConnectivityChange;
+            event.Type = DeviceEventType::kServiceConnectivityChange;
             event.ServiceConnectivityChange.Result = kConnectivity_Lost;
             PlatformMgr().PostEvent(&event);
         }

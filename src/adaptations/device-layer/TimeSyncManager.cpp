@@ -116,7 +116,7 @@ exit:
 
 void TimeSyncManager::OnPlatformEvent(const WeaveDeviceEvent * event)
 {
-    if (event->Type == WeaveDeviceEvent::kEventType_ServiceConnectivityChange)
+    if (event->Type == DeviceEventType::kServiceConnectivityChange)
     {
         sInstance.DriveTimeSync();
     }
@@ -259,7 +259,7 @@ void TimeSyncManager::ApplySynchronizedTime(uint64_t syncedRealTimeUS)
             if (!wasSynchronized)
             {
                 WeaveDeviceEvent event;
-                event.Type = WeaveDeviceEvent::kEventType_TimeSyncChange;
+                event.Type = DeviceEventType::kTimeSyncChange;
                 event.TimeSyncChange.IsTimeSynchronized = true;
                 PlatformMgr().PostEvent(&event);
             }
