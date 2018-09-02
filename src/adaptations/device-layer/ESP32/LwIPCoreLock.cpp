@@ -17,28 +17,44 @@
  */
 
 #include <Weave/DeviceLayer/internal/WeaveDeviceLayerInternal.h>
-#include <Weave/DeviceLayer/internal/BLEManager.h>
+
+namespace {
+
+SemaphoreHandle_t LwIPCoreLock;
+
+}
 
 namespace nl {
 namespace Weave {
 namespace DeviceLayer {
-
-nl::Weave::System::Layer SystemLayer;
-nl::Inet::InetLayer InetLayer;
-nl::Weave::WeaveFabricState FabricState;
-nl::Weave::WeaveMessageLayer MessageLayer;
-nl::Weave::WeaveExchangeManager ExchangeMgr;
-nl::Weave::WeaveSecurityManager SecurityMgr;
-
 namespace Internal {
 
-#if WEAVE_DEVICE_CONFIG_ENABLE_WOBLE
-BLEManager BLEMgr;
-#endif
+WEAVE_ERROR InitLwIPCoreLock(void)
+{
+    if (LwIPCoreLock == NULL)
+    {
+        LwIPCoreLock = xSemaphoreCreateMutex();
+        if (LwIPCoreLock == NULL)
+        {
+            WeaveLogError(DeviceLayer, "Failed to create LwIP core lock");
+            return WEAVE_ERROR_NO_MEMORY;
+        }
+    }
 
-const char * const TAG = "weave[DL]";
+    return WEAVE_NO_ERROR;
+}
 
 } // namespace Internal
 } // namespace DeviceLayer
 } // namespace Weave
 } // namespace nl
+
+extern "C" void lock_lwip_core()
+{
+    xSemaphoreTake(LwIPCoreLock, portMAX_DELAY);
+}
+
+extern "C" void unlock_lwip_core()
+{
+    xSemaphoreGive(LwIPCoreLock);
+}

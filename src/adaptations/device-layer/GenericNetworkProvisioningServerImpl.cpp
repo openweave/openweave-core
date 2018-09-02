@@ -655,14 +655,14 @@ void GenericNetworkProvisioningServerImpl<ImplClass>::HandleConnectivityTimeOut(
     WeaveLogError(DeviceLayer, "Time out waiting for Internet connectivity");
 
     // Reset the state.
-    ImplClass::Instance().mState = kState_Idle;
+    NetworkProvisioningSvrImpl().mState = kState_Idle;
     SystemLayer.CancelTimer(HandleConnectivityTimeOut, NULL);
 
     // Verify that the TestConnectivity request is still outstanding; if so, send a
     // NetworkProvisioning:NetworkConnectFailed StatusReport to the client.
-    if (ImplClass::Instance().GetCurrentOp() == kMsgType_TestConnectivity)
+    if (NetworkProvisioningSvrImpl().GetCurrentOp() == kMsgType_TestConnectivity)
     {
-        ImplClass::Instance().SendStatusReport(kWeaveProfile_NetworkProvisioning, kStatusCode_NetworkConnectFailed, WEAVE_ERROR_TIMEOUT);
+        NetworkProvisioningSvrImpl().SendStatusReport(kWeaveProfile_NetworkProvisioning, kStatusCode_NetworkConnectFailed, WEAVE_ERROR_TIMEOUT);
     }
 }
 

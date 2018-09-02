@@ -46,6 +46,8 @@ libDeviceLayer_a_SOURCES                = \
     ServiceDirectoryManager.cpp           \
     ServiceProvisioningServer.cpp         \
     ServiceTunnelAgent.cpp                \
+    SystemEventSupport.cpp                \
+    SystemTimerSupport.cpp                \
     TestDeviceIds.cpp                     \
     TimeSyncManager.cpp                   \
     TraitManager.cpp                      \
@@ -64,9 +66,10 @@ libDeviceLayer_a_SOURCES               +=       \
     ESP32/ESP32Utils.cpp                        \
     ESP32/GroupKeyStoreImpl.cpp                 \
     ESP32/Logging.cpp                           \
+    ESP32/LwIPCoreLock.cpp                      \
     ESP32/NetworkProvisioningServerImpl.cpp     \
     ESP32/PlatformManagerImpl.cpp               \
-    ESP32/Time.cpp                              \
+    ESP32/SystemTimeSupport.cpp                 \
     $(NULL)
 
 endif # WEAVE_DEVICE_LAYER_TARGET_ESP32

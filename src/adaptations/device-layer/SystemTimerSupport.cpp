@@ -16,29 +16,30 @@
  *    limitations under the License.
  */
 
+/**
+ *    @file
+ *          Provides implementations of the Weave System Layer platform
+ *          timer functions that are suitable for use on all platforms.
+ */
+
 #include <Weave/DeviceLayer/internal/WeaveDeviceLayerInternal.h>
-#include <Weave/DeviceLayer/internal/BLEManager.h>
+#include <Weave/DeviceLayer/PlatformManager.h>
 
 namespace nl {
 namespace Weave {
-namespace DeviceLayer {
+namespace System {
+namespace Platform {
+namespace Layer {
 
-nl::Weave::System::Layer SystemLayer;
-nl::Inet::InetLayer InetLayer;
-nl::Weave::WeaveFabricState FabricState;
-nl::Weave::WeaveMessageLayer MessageLayer;
-nl::Weave::WeaveExchangeManager ExchangeMgr;
-nl::Weave::WeaveSecurityManager SecurityMgr;
+using namespace ::nl::Weave::DeviceLayer;
 
-namespace Internal {
+System::Error StartTimer(System::Layer & aLayer, void * aContext, uint32_t aMilliseconds)
+{
+    return PlatformMgr().StartWeaveTimer(aMilliseconds);
+}
 
-#if WEAVE_DEVICE_CONFIG_ENABLE_WOBLE
-BLEManager BLEMgr;
-#endif
-
-const char * const TAG = "weave[DL]";
-
-} // namespace Internal
-} // namespace DeviceLayer
+} // namespace Layer
+} // namespace Platform
+} // namespace System
 } // namespace Weave
 } // namespace nl
