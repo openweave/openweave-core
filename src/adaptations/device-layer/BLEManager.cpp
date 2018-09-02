@@ -27,6 +27,7 @@
 #include "esp_gap_ble_api.h"
 #include "esp_gatts_api.h"
 #include "esp_gatt_common_api.h"
+#include "esp_log.h"
 
 using namespace ::nl;
 using namespace ::nl::Ble;
@@ -213,28 +214,28 @@ void BLEManager::OnPlatformEvent(const WeaveDeviceEvent * event)
 {
     switch (event->Type)
     {
-    case WeaveDeviceEvent::kInternalEventType_WoBLESubscribe:
+    case DeviceEventType::kWoBLESubscribe:
         HandleSubscribeReceived(event->WoBLESubscribe.ConId, &WEAVE_BLE_SVC_ID, &WeaveUUID_WoBLEChar_TX);
         {
             WeaveDeviceEvent event;
-            event.Type = WeaveDeviceEvent::kEventType_WoBLEConnectionEstablished;
+            event.Type = DeviceEventType::kWoBLEConnectionEstablished;
             PlatformMgr().PostEvent(&event);
         }
         break;
 
-    case WeaveDeviceEvent::kInternalEventType_WoBLEUnsubscribe:
+    case DeviceEventType::kWoBLEUnsubscribe:
         HandleUnsubscribeReceived(event->WoBLEUnsubscribe.ConId, &WEAVE_BLE_SVC_ID, &WeaveUUID_WoBLEChar_TX);
         break;
 
-    case WeaveDeviceEvent::kInternalEventType_WoBLEWriteReceived:
+    case DeviceEventType::kWoBLEWriteReceived:
         HandleWriteReceived(event->WoBLEWriteReceived.ConId, &WEAVE_BLE_SVC_ID, &WeaveUUID_WoBLEChar_RX, event->WoBLEWriteReceived.Data);
         break;
 
-    case WeaveDeviceEvent::kInternalEventType_WoBLEIndicateConfirm:
+    case DeviceEventType::kWoBLEIndicateConfirm:
         HandleIndicationConfirmation(event->WoBLEIndicateConfirm.ConId, &WEAVE_BLE_SVC_ID, &WeaveUUID_WoBLEChar_TX);
         break;
 
-    case WeaveDeviceEvent::kInternalEventType_WoBLEConnectionError:
+    case DeviceEventType::kWoBLEConnectionError:
         HandleConnectionError(event->WoBLEConnectionError.ConId, event->WoBLEConnectionError.Reason);
         break;
 
@@ -884,7 +885,7 @@ void BLEManager::HandleRXCharWrite(esp_ble_gatts_cb_param_t * param)
     // Post an event to the Weave queue to deliver the data into the Weave stack.
     {
         WeaveDeviceEvent event;
-        event.Type = WeaveDeviceEvent::kInternalEventType_WoBLEWriteReceived;
+        event.Type = DeviceEventType::kWoBLEWriteReceived;
         event.WoBLEWriteReceived.ConId = param->write.conn_id;
         event.WoBLEWriteReceived.Data = buf;
         PlatformMgr().PostEvent(&event);
@@ -977,7 +978,7 @@ void BLEManager::HandleTXCharCCCDWrite(esp_ble_gatts_cb_param_t * param)
     // whether the client is enabling or disabling indications.
     {
         WeaveDeviceEvent event;
-        event.Type = (indicationsEnabled) ? WeaveDeviceEvent::kInternalEventType_WoBLESubscribe : WeaveDeviceEvent::kInternalEventType_WoBLEUnsubscribe;
+        event.Type = (indicationsEnabled) ? DeviceEventType::kWoBLESubscribe : DeviceEventType::kWoBLEUnsubscribe;
         event.WoBLESubscribe.ConId = param->write.conn_id;
         PlatformMgr().PostEvent(&event);
     }
@@ -1009,7 +1010,7 @@ void BLEManager::HandleTXCharConfirm(WoBLEConState * conState, esp_ble_gatts_cb_
     {
         // Post an event to the Weave queue to process the indicate confirmation.
         WeaveDeviceEvent event;
-        event.Type = WeaveDeviceEvent::kInternalEventType_WoBLEIndicateConfirm;
+        event.Type = DeviceEventType::kWoBLEIndicateConfirm;
         event.WoBLEIndicateConfirm.ConId = param->conf.conn_id;
         PlatformMgr().PostEvent(&event);
     }
@@ -1017,7 +1018,7 @@ void BLEManager::HandleTXCharConfirm(WoBLEConState * conState, esp_ble_gatts_cb_
     else
     {
         WeaveDeviceEvent event;
-        event.Type = WeaveDeviceEvent::kInternalEventType_WoBLEConnectionError;
+        event.Type = DeviceEventType::kWoBLEConnectionError;
         event.WoBLEConnectionError.ConId = param->disconnect.conn_id;
         event.WoBLEConnectionError.Reason = BLE_ERROR_WOBLE_PROTOCOL_ABORT;
         PlatformMgr().PostEvent(&event);
@@ -1033,7 +1034,7 @@ void BLEManager::HandleDisconnect(esp_ble_gatts_cb_param_t * param)
     if (ReleaseConnectionState(param->disconnect.conn_id))
     {
         WeaveDeviceEvent event;
-        event.Type = WeaveDeviceEvent::kInternalEventType_WoBLEConnectionError;
+        event.Type = DeviceEventType::kWoBLEConnectionError;
         event.WoBLEConnectionError.ConId = param->disconnect.conn_id;
         switch (param->disconnect.reason)
         {

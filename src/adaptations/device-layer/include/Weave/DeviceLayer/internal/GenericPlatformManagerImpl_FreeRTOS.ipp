@@ -208,7 +208,7 @@ WEAVE_ERROR GenericPlatformManagerImpl_FreeRTOS<ImplClass>::_StartWeaveTimer(uin
     if (xTaskGetCurrentTaskHandle() != mEventLoopTask)
     {
         WeaveDeviceEvent event;
-        event.Type = WeaveDeviceEvent::kEventType_NoOp;
+        event.Type = DeviceEventType::kNoOp;
         Impl()->PostEvent(&event);
     }
 

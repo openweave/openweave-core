@@ -84,7 +84,7 @@ WEAVE_ERROR ServiceProvisioningServer::HandleRegisterServicePairAccount(Register
     // Post an event alerting other subsystems to the change in the service provisioning state.
     {
         WeaveDeviceEvent event;
-        event.Type = WeaveDeviceEvent::kEventType_ServiceProvisioningChange;
+        event.Type = DeviceEventType::kServiceProvisioningChange;
         event.ServiceProvisioningChange.IsServiceProvisioned = true;
         event.ServiceProvisioningChange.ServiceConfigUpdated = false;
         PlatformMgr().PostEvent(&event);
@@ -104,7 +104,7 @@ WEAVE_ERROR ServiceProvisioningServer::HandleRegisterServicePairAccount(Register
     // Post an event alerting other subsystems that the device is now paired to an account.
     {
         WeaveDeviceEvent event;
-        event.Type = WeaveDeviceEvent::kEventType_AccountPairingChange;
+        event.Type = DeviceEventType::kAccountPairingChange;
         event.AccountPairingChange.IsPairedToAccount = true;
         PlatformMgr().PostEvent(&event);
     }
@@ -146,7 +146,7 @@ WEAVE_ERROR ServiceProvisioningServer::HandleUpdateService(UpdateServiceMessage&
     // Post an event alerting other subsystems that the service config has changed.
     {
         WeaveDeviceEvent event;
-        event.Type = WeaveDeviceEvent::kEventType_ServiceProvisioningChange;
+        event.Type = DeviceEventType::kServiceProvisioningChange;
         event.ServiceProvisioningChange.IsServiceProvisioned = true;
         event.ServiceProvisioningChange.ServiceConfigUpdated = true;
         PlatformMgr().PostEvent(&event);
@@ -196,7 +196,7 @@ void ServiceProvisioningServer::OnPlatformEvent(const WeaveDeviceEvent * event)
 #if !WEAVE_DEVICE_CONFIG_DISABLE_ACCOUNT_PAIRING
 
     // If a tunnel to the service has been established...
-    if (event->Type == WeaveDeviceEvent::kEventType_ServiceTunnelStateChange &&
+    if (event->Type == DeviceEventType::kServiceTunnelStateChange &&
         event->ServiceTunnelStateChange.Result == kConnectivity_Established)
     {
         // If a RegisterServicePairAccount request is pending and the system is waiting for
@@ -322,7 +322,7 @@ void ServiceProvisioningServer::HandlePairDeviceToAccountResult(WEAVE_ERROR err,
         // Post an event alerting other subsystems that the device is now paired to an account.
         {
             WeaveDeviceEvent event;
-            event.Type = WeaveDeviceEvent::kEventType_AccountPairingChange;
+            event.Type = DeviceEventType::kAccountPairingChange;
             event.AccountPairingChange.IsPairedToAccount = true;
             PlatformMgr().PostEvent(&event);
         }

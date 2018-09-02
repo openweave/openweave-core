@@ -925,6 +925,7 @@ $(nl_public_WeaveDeviceLayer_source_dirstem)/ESP32/GroupKeyStoreImpl.h          
 $(nl_public_WeaveDeviceLayer_source_dirstem)/ESP32/NetworkProvisioningServerImpl.h    \
 $(nl_public_WeaveDeviceLayer_source_dirstem)/ESP32/PlatformManagerImpl.h              \
 $(nl_public_WeaveDeviceLayer_source_dirstem)/ESP32/WeaveDevicePlatformConfig.h        \
+$(nl_public_WeaveDeviceLayer_source_dirstem)/ESP32/WeaveDevicePlatformEvent.h         \
 $(NULL)
 
 endif # WEAVE_DEVICE_LAYER_TARGET_ESP32
@@ -935,15 +936,15 @@ nl_public_WeaveDeviceLayer_source_dirstem = adaptations/device-layer/include/Wea
 nl_public_WeaveDeviceLayer_destination_dirstem = Weave/DeviceLayer
 
 nl_public_WeaveDeviceLayer_base_header_sources =                                      \
-$(nl_public_WeaveDeviceLayer_source_dirstem)/ConnectivityManager.h                    \
-$(nl_public_WeaveDeviceLayer_source_dirstem)/TimeSyncManager.h                        \
-$(nl_public_WeaveDeviceLayer_source_dirstem)/WeaveDeviceConfig.h                      \
 $(nl_public_WeaveDeviceLayer_source_dirstem)/ConfigurationManager.h                   \
+$(nl_public_WeaveDeviceLayer_source_dirstem)/ConnectivityManager.h                    \
+$(nl_public_WeaveDeviceLayer_source_dirstem)/PlatformManager.h                        \
+$(nl_public_WeaveDeviceLayer_source_dirstem)/TimeSyncManager.h                        \
 $(nl_public_WeaveDeviceLayer_source_dirstem)/TraitManager.h                           \
+$(nl_public_WeaveDeviceLayer_source_dirstem)/WeaveDeviceConfig.h                      \
+$(nl_public_WeaveDeviceLayer_source_dirstem)/WeaveDeviceError.h                       \
 $(nl_public_WeaveDeviceLayer_source_dirstem)/WeaveDeviceEvent.h                       \
 $(nl_public_WeaveDeviceLayer_source_dirstem)/WeaveDeviceLayer.h                       \
-$(nl_public_WeaveDeviceLayer_source_dirstem)/PlatformManager.h                        \
-$(nl_public_WeaveDeviceLayer_source_dirstem)/WeaveDeviceError.h                       \
 $(NULL)
 
 nl_public_WeaveDeviceLayer_internal_header_sources =                                                \

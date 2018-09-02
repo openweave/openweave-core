@@ -65,8 +65,8 @@ WEAVE_ERROR PlatformManagerImpl::InitLwIPCoreLock(void)
 esp_err_t PlatformManagerImpl::HandleESPSystemEvent(void * ctx, system_event_t * espEvent)
 {
     WeaveDeviceEvent event;
-    event.Type = WeaveDeviceEvent::kEventType_ESPSystemEvent;
-    event.ESPSystemEvent = *espEvent;
+    event.Type = DeviceEventType::kESPSystemEvent;
+    event.Platform.ESPSystemEvent = *espEvent;
 
     sInstance.PostEvent(&event);
 

@@ -299,7 +299,7 @@ template<class ImplClass>
 void GenericPlatformManagerImpl<ImplClass>::_ScheduleWork(AsyncWorkFunct workFunct, intptr_t arg)
 {
     WeaveDeviceEvent event;
-    event.Type = WeaveDeviceEvent::kEventType_CallWorkFunct;
+    event.Type = DeviceEventType::kCallWorkFunct;
     event.CallWorkFunct.WorkFunct = workFunct;
     event.CallWorkFunct.Arg = arg;
 
@@ -316,7 +316,7 @@ void GenericPlatformManagerImpl<ImplClass>::_DispatchEvent(const WeaveDeviceEven
 #endif // WEAVE_PROGRESS_LOGGING
 
     // If the event is a Weave System or Inet Layer event, deliver it to the SystemLayer event handler.
-    if (event->Type == WeaveDeviceEvent::kEventType_WeaveSystemLayerEvent)
+    if (event->Type == DeviceEventType::kWeaveSystemLayerEvent)
     {
         err = SystemLayer.HandleEvent(*event->WeaveSystemLayerEvent.Target, event->WeaveSystemLayerEvent.Type, event->WeaveSystemLayerEvent.Argument);
         if (err != WEAVE_SYSTEM_NO_ERROR)
@@ -326,7 +326,7 @@ void GenericPlatformManagerImpl<ImplClass>::_DispatchEvent(const WeaveDeviceEven
     }
 
     // If the event is a "call work function" event, call the specified function.
-    else if (event->Type == WeaveDeviceEvent::kEventType_CallWorkFunct)
+    else if (event->Type == DeviceEventType::kCallWorkFunct)
     {
         event->CallWorkFunct.WorkFunct(event->CallWorkFunct.Arg);
     }
@@ -339,7 +339,7 @@ void GenericPlatformManagerImpl<ImplClass>::_DispatchEvent(const WeaveDeviceEven
 
         // If the event is not an internal event, deliver the event to the application's registered
         // event handlers.
-        if (!WeaveDeviceEvent::IsInternalEvent(event->Type))
+        if (!event->IsInternal())
         {
             Impl()->DispatchEventToApplication(event);
         }
@@ -396,7 +396,7 @@ void GenericPlatformManagerImpl<ImplClass>::HandleSessionEstablished(WeaveSecuri
     // using the device's pairing code, presume that this is a commissioner and set the
     // IsCommissioner flag as a convenience to the application.
     WeaveDeviceEvent event;
-    event.Type = WeaveDeviceEvent::kEventType_SessionEstablished;
+    event.Type = DeviceEventType::kSessionEstablished;
     event.SessionEstablished.PeerNodeId = peerNodeId;
     event.SessionEstablished.SessionKeyId = sessionKeyId;
     event.SessionEstablished.EncType = encType;

@@ -25,6 +25,8 @@
 #include <Weave/DeviceLayer/internal/WeaveDeviceLayerInternal.h>
 #include <Weave/Support/logging/WeaveLogging.h>
 
+#include "esp_log.h"
+
 using namespace ::nl::Weave;
 using namespace ::nl::Weave::DeviceLayer::Internal;
 

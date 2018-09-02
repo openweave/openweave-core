@@ -436,7 +436,7 @@ WEAVE_ERROR GenericConfigurationManagerImpl<ImplClass>::_ClearServiceProvisionin
     if (_IsPairedToAccount())
     {
         WeaveDeviceEvent event;
-        event.Type = WeaveDeviceEvent::kEventType_AccountPairingChange;
+        event.Type = DeviceEventType::kAccountPairingChange;
         event.AccountPairingChange.IsPairedToAccount = false;
         PlatformMgr().PostEvent(&event);
     }
@@ -446,7 +446,7 @@ WEAVE_ERROR GenericConfigurationManagerImpl<ImplClass>::_ClearServiceProvisionin
     if (_IsServiceProvisioned())
     {
         WeaveDeviceEvent event;
-        event.Type = WeaveDeviceEvent::kEventType_ServiceProvisioningChange;
+        event.Type = DeviceEventType::kServiceProvisioningChange;
         event.ServiceProvisioningChange.IsServiceProvisioned = false;
         event.ServiceProvisioningChange.ServiceConfigUpdated = false;
         PlatformMgr().PostEvent(&event);

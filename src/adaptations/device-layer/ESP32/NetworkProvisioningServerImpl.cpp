@@ -52,9 +52,9 @@ void NetworkProvisioningServerImpl::_OnPlatformEvent(const WeaveDeviceEvent * ev
     WEAVE_ERROR err;
 
     // Handle ESP system events...
-    if (event->Type == WeaveDeviceEvent::kEventType_ESPSystemEvent)
+    if (event->Type == DeviceEventType::kESPSystemEvent)
     {
-        switch(event->ESPSystemEvent.event_id) {
+        switch(event->Platform.ESPSystemEvent.event_id) {
         case SYSTEM_EVENT_SCAN_DONE:
             WeaveLogProgress(DeviceLayer, "SYSTEM_EVENT_SCAN_DONE");
             HandleScanDone();
@@ -65,7 +65,7 @@ void NetworkProvisioningServerImpl::_OnPlatformEvent(const WeaveDeviceEvent * ev
     }
 
     // Handle a change in WiFi connectivity...
-    else if (event->Type == WeaveDeviceEvent::kEventType_WiFiConnectivityChange)
+    else if (event->Type == DeviceEventType::kWiFiConnectivityChange)
     {
         // Whenever WiFi connectivity is established, update the persisted WiFi
         // station security type to match that used by the connected AP.

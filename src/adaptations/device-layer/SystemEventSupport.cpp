@@ -36,7 +36,7 @@ using namespace ::nl::Weave::DeviceLayer;
 System::Error PostEvent(System::Layer & aLayer, void * aContext, System::Object & aTarget, System::EventType aType, uintptr_t aArgument)
 {
     WeaveDeviceEvent event;
-    event.Type = WeaveDeviceEvent::kEventType_WeaveSystemLayerEvent;
+    event.Type = DeviceEventType::kWeaveSystemLayerEvent;
     event.WeaveSystemLayerEvent.Type = aType;
     event.WeaveSystemLayerEvent.Target = &aTarget;
     event.WeaveSystemLayerEvent.Argument = aArgument;
