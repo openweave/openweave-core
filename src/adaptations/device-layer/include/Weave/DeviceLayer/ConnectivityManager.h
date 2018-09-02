@@ -31,6 +31,8 @@ namespace DeviceLayer {
 namespace Internal {
 class NetworkProvisioningServerImpl;
 template<class> class GenericNetworkProvisioningServerImpl;
+template<class> class GenericPlatformManagerImpl;
+template<class> class GenericPlatformManagerImpl_FreeRTOS;
 } // namespace Internal
 
 class ConnectivityManagerImpl;
@@ -129,6 +131,8 @@ private:
     // ===== Members for internal use by the following friends.
 
     friend class ::nl::Weave::DeviceLayer::PlatformManagerImpl;
+    template<class> friend class ::nl::Weave::DeviceLayer::Internal::GenericPlatformManagerImpl;
+    template<class> friend class ::nl::Weave::DeviceLayer::Internal::GenericPlatformManagerImpl_FreeRTOS;
     friend class ::nl::Weave::DeviceLayer::Internal::NetworkProvisioningServerImpl;
     template<class> friend class ::nl::Weave::DeviceLayer::Internal::GenericNetworkProvisioningServerImpl;
 

@@ -32,6 +32,10 @@ namespace Weave {
 namespace DeviceLayer {
 
 class PlatformManagerImpl;
+namespace Internal {
+template<class> class GenericPlatformManagerImpl;
+template<class> class GenericPlatformManagerImpl_FreeRTOS;
+}
 
 /**
  * Manages publication and subscription of Weave Data Management traits for a Weave device.
@@ -77,6 +81,8 @@ private:
     // ===== Members for internal use by the following friends.
 
     friend class ::nl::Weave::DeviceLayer::PlatformManagerImpl;
+    template<class> friend class Internal::GenericPlatformManagerImpl;
+    template<class> friend class Internal::GenericPlatformManagerImpl_FreeRTOS;
     friend TraitManager & TraitMgr(void);
 
     static TraitManager sInstance;

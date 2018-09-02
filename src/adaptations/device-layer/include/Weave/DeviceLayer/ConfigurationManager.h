@@ -36,6 +36,7 @@ class PlatformManagerImpl;
 class ConfigurationManagerImpl;
 class TraitManager;
 namespace Internal {
+template<class> class GenericPlatformManagerImpl;
 class DeviceControlServer;
 class NetworkProvisioningServer;
 }
@@ -108,6 +109,7 @@ private:
     // ===== Members for internal use by the following friends.
 
     friend class ::nl::Weave::DeviceLayer::PlatformManagerImpl;
+    template<class> friend class ::nl::Weave::DeviceLayer::Internal::GenericPlatformManagerImpl;
     friend class ::nl::Weave::DeviceLayer::TraitManager;
     friend class ::nl::Weave::DeviceLayer::Internal::DeviceControlServer;
     friend WEAVE_ERROR ::nl::Weave::Platform::PersistedStorage::Read(::nl::Weave::Platform::PersistedStorage::Key key, uint32_t & value);

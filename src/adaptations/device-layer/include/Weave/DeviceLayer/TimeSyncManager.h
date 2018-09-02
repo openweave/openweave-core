@@ -42,6 +42,8 @@ namespace DeviceLayer {
 class PlatformManagerImpl;
 namespace Internal {
 extern WEAVE_ERROR InitServiceDirectoryManager(void);
+template<class> class GenericPlatformManagerImpl;
+template<class> class GenericPlatformManagerImpl_FreeRTOS;
 }
 
 /**
@@ -75,6 +77,8 @@ private:
     // ===== Members for internal use by the following friends.
 
     friend class PlatformManagerImpl;
+    template<class> friend class Internal::GenericPlatformManagerImpl;
+    template<class> friend class Internal::GenericPlatformManagerImpl_FreeRTOS;
     friend WEAVE_ERROR Internal::InitServiceDirectoryManager();
     friend TimeSyncManager & TimeSyncMgr(void);
 

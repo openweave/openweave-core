@@ -16,6 +16,11 @@
  *    limitations under the License.
  */
 
+/**
+ *    @file
+ *          Defines the public interface for the Device Layer PlatformManager object.
+ */
+
 #ifndef PLATFORM_MANAGER_H
 #define PLATFORM_MANAGER_H
 
@@ -28,16 +33,21 @@ namespace DeviceLayer {
 class ConnectivityManagerImpl;
 class ConfigurationManagerImpl;
 class TraitManager;
-
 namespace Internal {
 class FabricProvisioningServer;
 class ServiceProvisioningServer;
 class BLEManager;
 template<class ImplClass> class GenericConfigurationManagerImpl;
+template<class> class GenericPlatformManagerImpl;
+template<class> class GenericPlatformManagerImpl_FreeRTOS;
 } // namespace Internal
 
 class PlatformManagerImpl;
 
+/**
+ * Provides features for initializing and interacting with the Weave network
+ * stack on a Weave-enabled device.
+ */
 class PlatformManager
 {
     using ImplClass = ::nl::Weave::DeviceLayer::PlatformManagerImpl;
@@ -63,19 +73,24 @@ private:
     // ===== Members for internal use by the following friends.
 
     friend class PlatformManagerImpl;
+    template<class> friend class Internal::GenericPlatformManagerImpl;
+    template<class> friend class Internal::GenericPlatformManagerImpl_FreeRTOS;
     friend class ConnectivityManagerImpl;
+    template<class> friend class Internal::GenericConfigurationManagerImpl;
     friend class ConfigurationManagerImpl;
-    template<class ImplClass> friend class Internal::GenericConfigurationManagerImpl;
     friend class TraitManager;
     friend class TimeSyncManager;
     friend class Internal::FabricProvisioningServer;
     friend class Internal::ServiceProvisioningServer;
     friend class Internal::BLEManager;
-    friend nl::Weave::System::Error nl::Weave::System::Platform::Layer::DispatchEvent(nl::Weave::System::Layer & aLayer, void * aContext, const ::nl::Weave::DeviceLayer::WeaveDeviceEvent * aEvent);
-    friend nl::Weave::System::Error nl::Weave::System::Platform::Layer::StartTimer(nl::Weave::System::Layer & aLayer, void * aContext, uint32_t aMilliseconds);
+    friend ::nl::Weave::System::Error ::nl::Weave::System::Platform::Layer::PostEvent(::nl::Weave::System::Layer & aLayer, void * aContext, ::nl::Weave::System::Object & aTarget, ::nl::Weave::System::EventType aType, uintptr_t aArgument);
+    friend ::nl::Weave::System::Error ::nl::Weave::System::Platform::Layer::DispatchEvents(::nl::Weave::System::Layer & aLayer, void * aContext);
+    friend ::nl::Weave::System::Error ::nl::Weave::System::Platform::Layer::DispatchEvent(::nl::Weave::System::Layer & aLayer, void * aContext, ::nl::Weave::System::Event aEvent);
+    friend ::nl::Weave::System::Error ::nl::Weave::System::Platform::Layer::StartTimer(::nl::Weave::System::Layer & aLayer, void * aContext, uint32_t aMilliseconds);
 
     void PostEvent(const WeaveDeviceEvent * event);
     void DispatchEvent(const WeaveDeviceEvent * event);
+    WEAVE_ERROR StartWeaveTimer(uint32_t durationMS);
 };
 
 /**
@@ -166,6 +181,13 @@ inline void PlatformManager::DispatchEvent(const WeaveDeviceEvent * event)
 {
     static_cast<ImplClass*>(this)->_DispatchEvent(event);
 }
+
+inline WEAVE_ERROR PlatformManager::StartWeaveTimer(uint32_t durationMS)
+{
+    return static_cast<ImplClass*>(this)->_StartWeaveTimer(durationMS);
+}
+
+
 
 } // namespace DeviceLayer
 } // namespace Weave

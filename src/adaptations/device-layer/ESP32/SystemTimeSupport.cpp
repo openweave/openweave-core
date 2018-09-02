@@ -18,15 +18,14 @@
 
 /**
  *    @file
- *          Provides implementations for the OpenWeave platform time functions
- *          on the ESP32 platform.
+ *          Provides implementations of the Weave System Layer platform
+ *          time/clock functions that are suitable for use on the ESP32 platform.
  */
+
 
 #include <Weave/DeviceLayer/internal/WeaveDeviceLayerInternal.h>
 #include <Weave/Support/TimeUtils.h>
 #include <esp_timer.h>
-
-using namespace ::nl::Weave::DeviceLayer::Internal;
 
 namespace nl {
 namespace Weave {
