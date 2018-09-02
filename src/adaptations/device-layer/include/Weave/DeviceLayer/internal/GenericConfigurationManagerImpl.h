@@ -18,8 +18,8 @@
 
 /**
  *    @file
- *          Utility types to aid in the implementation of the Device Layer
- *          ConfigurationManager object.
+ *          Provides an generic implementation of ConfigurationManager features
+ *          for use on various platforms.
  */
 
 #ifndef GENERIC_CONFIGURATION_MANAGER_IMPL_H
@@ -30,6 +30,14 @@ namespace Weave {
 namespace DeviceLayer {
 namespace Internal {
 
+/**
+ * Provides a generic implementation of ConfigurationManager features that works on multiple platforms.
+ *
+ * This template contains implementations of select features from the ConfigurationManager abstract
+ * interface that are suitable for use on all platforms.  It is intended to be inherited (directly
+ * or indirectly) by the ConfigurationManagerImpl class, which also appears as the template's ImplClass
+ * parameter.
+ */
 template<class ImplClass>
 class GenericConfigurationManagerImpl
 {

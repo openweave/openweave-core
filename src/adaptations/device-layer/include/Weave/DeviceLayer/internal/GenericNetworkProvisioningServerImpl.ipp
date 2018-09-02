@@ -22,6 +22,9 @@
  *          GenericNetworkProvisioningServerImpl<> template.
  */
 
+#ifndef GENERIC_NETWORK_PROVISIONING_SERVER_IMPL_IPP
+#define GENERIC_NETWORK_PROVISIONING_SERVER_IMPL_IPP
+
 #include <Weave/DeviceLayer/internal/WeaveDeviceLayerInternal.h>
 #include <Weave/DeviceLayer/internal/NetworkProvisioningServer.h>
 #include <Weave/DeviceLayer/internal/GenericNetworkProvisioningServerImpl.h>
@@ -672,9 +675,10 @@ void GenericNetworkProvisioningServerImpl<ImplClass>::HandleConnectivityTimeOut(
     }
 }
 
-
-
 } // namespace Internal
 } // namespace DeviceLayer
 } // namespace Weave
 } // namespace nl
+
+
+#endif // GENERIC_NETWORK_PROVISIONING_SERVER_IMPL_IPP
