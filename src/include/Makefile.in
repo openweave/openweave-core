@@ -1278,6 +1278,7 @@ dist_weave_common_HEADERS = $(addprefix ../,$(nl_public_WeaveCommon_header_sourc
 # Weave Device Layer Headers
 #
 @WEAVE_DEVICE_LAYER_TARGET_ESP32_TRUE@nl_public_WeaveDeviceLayer_target_header_sources = \
+@WEAVE_DEVICE_LAYER_TARGET_ESP32_TRUE@$(nl_public_WeaveDeviceLayer_source_dirstem)/ESP32/BLEManagerImpl.h                   \
 @WEAVE_DEVICE_LAYER_TARGET_ESP32_TRUE@$(nl_public_WeaveDeviceLayer_source_dirstem)/ESP32/ConfigurationManagerImpl.h         \
 @WEAVE_DEVICE_LAYER_TARGET_ESP32_TRUE@$(nl_public_WeaveDeviceLayer_source_dirstem)/ESP32/ConnectivityManagerImpl.h          \
 @WEAVE_DEVICE_LAYER_TARGET_ESP32_TRUE@$(nl_public_WeaveDeviceLayer_source_dirstem)/ESP32/ESP32Config.h                      \

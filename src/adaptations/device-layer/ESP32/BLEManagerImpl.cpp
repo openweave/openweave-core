@@ -16,6 +16,12 @@
  *    limitations under the License.
  */
 
+/**
+ *    @file
+ *          Provides an implementation of the BLEManager singleton object
+ *          for the ESP32 platform.
+ */
+
 #include <Weave/DeviceLayer/internal/WeaveDeviceLayerInternal.h>
 #include <Weave/DeviceLayer/internal/BLEManager.h>
 #include <new>
@@ -104,7 +110,9 @@ const uint16_t WoBLEGATTAttrCount = sizeof(WoBLEGATTAttrs) / sizeof(WoBLEGATTAtt
 } // unnamed namespace
 
 
-WEAVE_ERROR BLEManager::Init()
+BLEManagerImpl BLEManagerImpl::sInstance;
+
+WEAVE_ERROR BLEManagerImpl::_Init()
 {
     WEAVE_ERROR err;
 
@@ -128,7 +136,7 @@ exit:
     return err;
 }
 
-WEAVE_ERROR BLEManager::SetWoBLEServiceMode(WoBLEServiceMode val)
+WEAVE_ERROR BLEManagerImpl::_SetWoBLEServiceMode(WoBLEServiceMode val)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
 
@@ -145,7 +153,7 @@ exit:
     return err;
 }
 
-WEAVE_ERROR BLEManager::SetAdvertisingEnabled(bool val)
+WEAVE_ERROR BLEManagerImpl::_SetAdvertisingEnabled(bool val)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
 
@@ -161,7 +169,7 @@ exit:
     return err;
 }
 
-WEAVE_ERROR BLEManager::SetFastAdvertisingEnabled(bool val)
+WEAVE_ERROR BLEManagerImpl::_SetFastAdvertisingEnabled(bool val)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
 
@@ -177,7 +185,7 @@ exit:
     return err;
 }
 
-WEAVE_ERROR BLEManager::GetDeviceName(char * buf, size_t bufSize)
+WEAVE_ERROR BLEManagerImpl::_GetDeviceName(char * buf, size_t bufSize)
 {
     if (strlen(mDeviceName) >= bufSize)
     {
@@ -187,7 +195,7 @@ WEAVE_ERROR BLEManager::GetDeviceName(char * buf, size_t bufSize)
     return WEAVE_NO_ERROR;
 }
 
-WEAVE_ERROR BLEManager::SetDeviceName(const char * deviceName)
+WEAVE_ERROR BLEManagerImpl::_SetDeviceName(const char * deviceName)
 {
     if (mServiceMode == ConnectivityManager::kWoBLEServiceMode_NotSupported)
     {
@@ -210,7 +218,7 @@ WEAVE_ERROR BLEManager::SetDeviceName(const char * deviceName)
     return WEAVE_NO_ERROR;
 }
 
-void BLEManager::OnPlatformEvent(const WeaveDeviceEvent * event)
+void BLEManagerImpl::_OnPlatformEvent(const WeaveDeviceEvent * event)
 {
     switch (event->Type)
     {
@@ -244,19 +252,19 @@ void BLEManager::OnPlatformEvent(const WeaveDeviceEvent * event)
     }
 }
 
-bool BLEManager::SubscribeCharacteristic(uint16_t conId, const WeaveBleUUID * svcId, const WeaveBleUUID * charId)
+bool BLEManagerImpl::SubscribeCharacteristic(BLE_CONNECTION_OBJECT conId, const WeaveBleUUID * svcId, const WeaveBleUUID * charId)
 {
-    WeaveLogProgress(DeviceLayer, "BLEManager::SubscribeCharacteristic() not supported");
+    WeaveLogProgress(DeviceLayer, "BLEManagerImpl::SubscribeCharacteristic() not supported");
     return false;
 }
 
-bool BLEManager::UnsubscribeCharacteristic(uint16_t conId, const WeaveBleUUID * svcId, const WeaveBleUUID * charId)
+bool BLEManagerImpl::UnsubscribeCharacteristic(BLE_CONNECTION_OBJECT conId, const WeaveBleUUID * svcId, const WeaveBleUUID * charId)
 {
-    WeaveLogProgress(DeviceLayer, "BLEManager::UnsubscribeCharacteristic() not supported");
+    WeaveLogProgress(DeviceLayer, "BLEManagerImpl::UnsubscribeCharacteristic() not supported");
     return false;
 }
 
-bool BLEManager::CloseConnection(uint16_t conId)
+bool BLEManagerImpl::CloseConnection(BLE_CONNECTION_OBJECT conId)
 {
     WEAVE_ERROR err;
 
@@ -279,13 +287,13 @@ bool BLEManager::CloseConnection(uint16_t conId)
     return (err == WEAVE_NO_ERROR);
 }
 
-uint16_t BLEManager::GetMTU(uint16_t conId) const
+uint16_t BLEManagerImpl::GetMTU(BLE_CONNECTION_OBJECT conId) const
 {
-    WoBLEConState * conState = const_cast<BLEManager *>(this)->GetConnectionState(conId);
+    WoBLEConState * conState = const_cast<BLEManagerImpl *>(this)->GetConnectionState(conId);
     return (conState != NULL) ? conState->MTU : 0;
 }
 
-bool BLEManager::SendIndication(uint16_t conId, const WeaveBleUUID * svcId, const WeaveBleUUID * charId, PacketBuffer * data)
+bool BLEManagerImpl::SendIndication(BLE_CONNECTION_OBJECT conId, const WeaveBleUUID * svcId, const WeaveBleUUID * charId, PacketBuffer * data)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
     WoBLEConState * conState = GetConnectionState(conId);
@@ -311,36 +319,36 @@ bool BLEManager::SendIndication(uint16_t conId, const WeaveBleUUID * svcId, cons
 exit:
     if (err != WEAVE_NO_ERROR)
     {
-        WeaveLogError(DeviceLayer, "BLEManager::SendIndication() failed: %s", ErrorStr(err));
+        WeaveLogError(DeviceLayer, "BLEManagerImpl::SendIndication() failed: %s", ErrorStr(err));
         PacketBuffer::Free(data);
         return false;
     }
     return true;
 }
 
-bool BLEManager::SendWriteRequest(uint16_t conId, const WeaveBleUUID * svcId, const WeaveBleUUID * charId, PacketBuffer * pBuf)
+bool BLEManagerImpl::SendWriteRequest(BLE_CONNECTION_OBJECT conId, const WeaveBleUUID * svcId, const WeaveBleUUID * charId, PacketBuffer * pBuf)
 {
-    WeaveLogError(DeviceLayer, "BLEManager::SendWriteRequest() not supported");
+    WeaveLogError(DeviceLayer, "BLEManagerImpl::SendWriteRequest() not supported");
     return false;
 }
 
-bool BLEManager::SendReadRequest(uint16_t conId, const WeaveBleUUID * svcId, const WeaveBleUUID * charId, PacketBuffer * pBuf)
+bool BLEManagerImpl::SendReadRequest(BLE_CONNECTION_OBJECT conId, const WeaveBleUUID * svcId, const WeaveBleUUID * charId, PacketBuffer * pBuf)
 {
-    WeaveLogError(DeviceLayer, "BLEManager::SendReadRequest() not supported");
+    WeaveLogError(DeviceLayer, "BLEManagerImpl::SendReadRequest() not supported");
     return false;
 }
 
-bool BLEManager::SendReadResponse(uint16_t conId, BLE_READ_REQUEST_CONTEXT requestContext, const WeaveBleUUID * svcId, const WeaveBleUUID * charId)
+bool BLEManagerImpl::SendReadResponse(BLE_CONNECTION_OBJECT conId, BLE_READ_REQUEST_CONTEXT requestContext, const WeaveBleUUID * svcId, const WeaveBleUUID * charId)
 {
-    WeaveLogError(DeviceLayer, "BLEManager::SendReadResponse() not supported");
+    WeaveLogError(DeviceLayer, "BLEManagerImpl::SendReadResponse() not supported");
     return false;
 }
 
-void BLEManager::NotifyWeaveConnectionClosed(uint16_t conId)
+void BLEManagerImpl::NotifyWeaveConnectionClosed(BLE_CONNECTION_OBJECT conId)
 {
 }
 
-void BLEManager::DriveBLEState(void)
+void BLEManagerImpl::DriveBLEState(void)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
 
@@ -460,7 +468,7 @@ exit:
     }
 }
 
-WEAVE_ERROR BLEManager::InitESPBleLayer(void)
+WEAVE_ERROR BLEManagerImpl::InitESPBleLayer(void)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
 
@@ -549,7 +557,7 @@ exit:
     return err;
 }
 
-WEAVE_ERROR BLEManager::ConfigureAdvertisingData(void)
+WEAVE_ERROR BLEManagerImpl::ConfigureAdvertisingData(void)
 {
     WEAVE_ERROR err;
     esp_ble_adv_data_t advertData;
@@ -634,7 +642,7 @@ exit:
     return err;
 }
 
-WEAVE_ERROR BLEManager::StartAdvertising(void)
+WEAVE_ERROR BLEManagerImpl::StartAdvertising(void)
 {
     WEAVE_ERROR err;
     esp_ble_adv_params_t advertParams =
@@ -678,7 +686,7 @@ exit:
     return err;
 }
 
-void BLEManager::HandleGATTControlEvent(esp_gatts_cb_event_t event, esp_gatt_if_t gatts_if, esp_ble_gatts_cb_param_t * param)
+void BLEManagerImpl::HandleGATTControlEvent(esp_gatts_cb_event_t event, esp_gatt_if_t gatts_if, esp_ble_gatts_cb_param_t * param)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
     bool controlOpComplete = false;
@@ -782,11 +790,11 @@ exit:
     }
 }
 
-void BLEManager::HandleGATTCommEvent(esp_gatts_cb_event_t event, esp_gatt_if_t gatts_if, esp_ble_gatts_cb_param_t * param)
+void BLEManagerImpl::HandleGATTCommEvent(esp_gatts_cb_event_t event, esp_gatt_if_t gatts_if, esp_ble_gatts_cb_param_t * param)
 {
     // Ignore the event if the WoBLE service hasn't been started, or if the event is for a different
     // BLE application.
-    if (!GetFlag(BLEMgr.mFlags, kFlag_GATTServiceStarted) || gatts_if != BLEMgr.mAppIf)
+    if (!GetFlag(sInstance.mFlags, kFlag_GATTServiceStarted) || gatts_if != sInstance.mAppIf)
     {
         return;
     }
@@ -857,7 +865,7 @@ void BLEManager::HandleGATTCommEvent(esp_gatts_cb_event_t event, esp_gatt_if_t g
     }
 }
 
-void BLEManager::HandleRXCharWrite(esp_ble_gatts_cb_param_t * param)
+void BLEManagerImpl::HandleRXCharWrite(esp_ble_gatts_cb_param_t * param)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
     PacketBuffer * buf = NULL;
@@ -905,7 +913,7 @@ exit:
     PacketBuffer::Free(buf);
 }
 
-void BLEManager::HandleTXCharRead(esp_ble_gatts_cb_param_t * param)
+void BLEManagerImpl::HandleTXCharRead(esp_ble_gatts_cb_param_t * param)
 {
     WEAVE_ERROR err;
     esp_gatt_rsp_t rsp;
@@ -922,7 +930,7 @@ void BLEManager::HandleTXCharRead(esp_ble_gatts_cb_param_t * param)
     }
 }
 
-void BLEManager::HandleTXCharCCCDRead(esp_ble_gatts_cb_param_t * param)
+void BLEManagerImpl::HandleTXCharCCCDRead(esp_ble_gatts_cb_param_t * param)
 {
     WEAVE_ERROR err;
     WoBLEConState * conState;
@@ -948,7 +956,7 @@ void BLEManager::HandleTXCharCCCDRead(esp_ble_gatts_cb_param_t * param)
     }
 }
 
-void BLEManager::HandleTXCharCCCDWrite(esp_ble_gatts_cb_param_t * param)
+void BLEManagerImpl::HandleTXCharCCCDWrite(esp_ble_gatts_cb_param_t * param)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
     WoBLEConState * conState;
@@ -997,7 +1005,7 @@ exit:
     }
 }
 
-void BLEManager::HandleTXCharConfirm(WoBLEConState * conState, esp_ble_gatts_cb_param_t * param)
+void BLEManagerImpl::HandleTXCharConfirm(WoBLEConState * conState, esp_ble_gatts_cb_param_t * param)
 {
     ESP_LOGD(TAG, "Confirm received for WoBLE TX characteristic indication (con %u, status %u)", param->conf.conn_id, param->conf.status);
 
@@ -1025,7 +1033,7 @@ void BLEManager::HandleTXCharConfirm(WoBLEConState * conState, esp_ble_gatts_cb_
     }
 }
 
-void BLEManager::HandleDisconnect(esp_ble_gatts_cb_param_t * param)
+void BLEManagerImpl::HandleDisconnect(esp_ble_gatts_cb_param_t * param)
 {
     WeaveLogProgress(DeviceLayer, "BLE GATT connection closed (con %u, reason %u)", param->disconnect.conn_id, param->disconnect.reason);
 
@@ -1057,7 +1065,7 @@ void BLEManager::HandleDisconnect(esp_ble_gatts_cb_param_t * param)
     }
 }
 
-BLEManager::WoBLEConState * BLEManager::GetConnectionState(uint16_t conId, bool allocate)
+BLEManagerImpl::WoBLEConState * BLEManagerImpl::GetConnectionState(uint16_t conId, bool allocate)
 {
     uint16_t freeIndex = kMaxConnections;
 
@@ -1093,7 +1101,7 @@ BLEManager::WoBLEConState * BLEManager::GetConnectionState(uint16_t conId, bool 
     return NULL;
 }
 
-bool BLEManager::ReleaseConnectionState(uint16_t conId)
+bool BLEManagerImpl::ReleaseConnectionState(uint16_t conId)
 {
     for (uint16_t i = 0; i < kMaxConnections; i++)
     {
@@ -1108,7 +1116,7 @@ bool BLEManager::ReleaseConnectionState(uint16_t conId)
     return false;
 }
 
-uint16_t BLEManager::NumConnections(void)
+uint16_t BLEManagerImpl::_NumConnections(void)
 {
     uint16_t numCons = 0;
     for (uint16_t i = 0; i < kMaxConnections; i++)
@@ -1122,7 +1130,7 @@ uint16_t BLEManager::NumConnections(void)
     return numCons;
 }
 
-void BLEManager::HandleGATTEvent(esp_gatts_cb_event_t event, esp_gatt_if_t gatts_if, esp_ble_gatts_cb_param_t * param)
+void BLEManagerImpl::HandleGATTEvent(esp_gatts_cb_event_t event, esp_gatt_if_t gatts_if, esp_ble_gatts_cb_param_t * param)
 {
     ESP_LOGV(TAG, "GATT Event: %d (if %d)", (int)event, (int)gatts_if);
 
@@ -1130,13 +1138,13 @@ void BLEManager::HandleGATTEvent(esp_gatts_cb_event_t event, esp_gatt_if_t gatts
     // on the Weave stack while processing the event.
     PlatformMgr().LockWeaveStack();
 
-    BLEMgr.HandleGATTControlEvent(event, gatts_if, param);
-    BLEMgr.HandleGATTCommEvent(event, gatts_if, param);
+    sInstance.HandleGATTControlEvent(event, gatts_if, param);
+    sInstance.HandleGATTCommEvent(event, gatts_if, param);
 
     PlatformMgr().UnlockWeaveStack();
 }
 
-void BLEManager::HandleGAPEvent(esp_gap_ble_cb_event_t event, esp_ble_gap_cb_param_t *param)
+void BLEManagerImpl::HandleGAPEvent(esp_gap_ble_cb_event_t event, esp_ble_gap_cb_param_t *param)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
 
@@ -1156,8 +1164,8 @@ void BLEManager::HandleGAPEvent(esp_gap_ble_cb_event_t event, esp_ble_gap_cb_par
             ExitNow(err = ESP_ERR_INVALID_RESPONSE);
         }
 
-        SetFlag(BLEMgr.mFlags, kFlag_AdvertisingConfigured);
-        ClearFlag(BLEMgr.mFlags, kFlag_ControlOpInProgress);
+        SetFlag(sInstance.mFlags, kFlag_AdvertisingConfigured);
+        ClearFlag(sInstance.mFlags, kFlag_ControlOpInProgress);
 
         break;
 
@@ -1171,8 +1179,8 @@ void BLEManager::HandleGAPEvent(esp_gap_ble_cb_event_t event, esp_ble_gap_cb_par
 
         WeaveLogProgress(DeviceLayer, "BLE advertising started");
 
-        SetFlag(BLEMgr.mFlags, kFlag_Advertising);
-        ClearFlag(BLEMgr.mFlags, kFlag_ControlOpInProgress);
+        SetFlag(sInstance.mFlags, kFlag_Advertising);
+        ClearFlag(sInstance.mFlags, kFlag_ControlOpInProgress);
 
         break;
 
@@ -1186,8 +1194,8 @@ void BLEManager::HandleGAPEvent(esp_gap_ble_cb_event_t event, esp_ble_gap_cb_par
 
         WeaveLogProgress(DeviceLayer, "BLE advertising stopped");
 
-        ClearFlag(BLEMgr.mFlags, kFlag_Advertising);
-        ClearFlag(BLEMgr.mFlags, kFlag_ControlOpInProgress);
+        ClearFlag(sInstance.mFlags, kFlag_Advertising);
+        ClearFlag(sInstance.mFlags, kFlag_ControlOpInProgress);
 
         break;
 
@@ -1199,15 +1207,15 @@ exit:
     if (err != WEAVE_NO_ERROR)
     {
         WeaveLogError(DeviceLayer, "Disabling WoBLE service due to error: %s", ErrorStr(err));
-        BLEMgr.mServiceMode = ConnectivityManager::kWoBLEServiceMode_Disabled;
+        sInstance.mServiceMode = ConnectivityManager::kWoBLEServiceMode_Disabled;
     }
-    PlatformMgr().ScheduleWork(Internal::BLEMgr.DriveBLEState, 0);
+    PlatformMgr().ScheduleWork(DriveBLEState, 0);
     PlatformMgr().UnlockWeaveStack();
 }
 
-void BLEManager::DriveBLEState(intptr_t arg)
+void BLEManagerImpl::DriveBLEState(intptr_t arg)
 {
-    BLEMgr.DriveBLEState();
+    sInstance.DriveBLEState();
 }
 
 

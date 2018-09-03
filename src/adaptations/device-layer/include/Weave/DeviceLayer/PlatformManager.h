@@ -36,7 +36,7 @@ class TraitManager;
 namespace Internal {
 class FabricProvisioningServer;
 class ServiceProvisioningServer;
-class BLEManager;
+class BLEManagerImpl;
 template<class ImplClass> class GenericConfigurationManagerImpl;
 template<class> class GenericPlatformManagerImpl;
 template<class> class GenericPlatformManagerImpl_FreeRTOS;
@@ -82,7 +82,7 @@ private:
     friend class TimeSyncManager;
     friend class Internal::FabricProvisioningServer;
     friend class Internal::ServiceProvisioningServer;
-    friend class Internal::BLEManager;
+    friend class Internal::BLEManagerImpl;
     friend ::nl::Weave::System::Error ::nl::Weave::System::Platform::Layer::PostEvent(::nl::Weave::System::Layer & aLayer, void * aContext, ::nl::Weave::System::Object & aTarget, ::nl::Weave::System::EventType aType, uintptr_t aArgument);
     friend ::nl::Weave::System::Error ::nl::Weave::System::Platform::Layer::DispatchEvents(::nl::Weave::System::Layer & aLayer, void * aContext);
     friend ::nl::Weave::System::Error ::nl::Weave::System::Platform::Layer::DispatchEvent(::nl::Weave::System::Layer & aLayer, void * aContext, ::nl::Weave::System::Event aEvent);

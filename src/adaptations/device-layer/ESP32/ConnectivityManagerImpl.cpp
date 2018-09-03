@@ -224,7 +224,7 @@ bool ConnectivityManagerImpl::_HaveServiceConnectivity(void)
 ConnectivityManager::WoBLEServiceMode ConnectivityManagerImpl::_GetWoBLEServiceMode(void)
 {
 #if WEAVE_DEVICE_CONFIG_ENABLE_WOBLE
-    return BLEMgr.GetWoBLEServiceMode();
+    return BLEMgr().GetWoBLEServiceMode();
 #else
     return kWoBLEServiceMode_NotSupported;
 #endif
@@ -233,7 +233,7 @@ ConnectivityManager::WoBLEServiceMode ConnectivityManagerImpl::_GetWoBLEServiceM
 WEAVE_ERROR ConnectivityManagerImpl::_SetWoBLEServiceMode(WoBLEServiceMode val)
 {
 #if WEAVE_DEVICE_CONFIG_ENABLE_WOBLE
-    return BLEMgr.SetWoBLEServiceMode(val);
+    return BLEMgr().SetWoBLEServiceMode(val);
 #else
     return WEAVE_ERROR_UNSUPPORTED_WEAVE_FEATURE;
 #endif
@@ -242,7 +242,7 @@ WEAVE_ERROR ConnectivityManagerImpl::_SetWoBLEServiceMode(WoBLEServiceMode val)
 bool ConnectivityManagerImpl::_IsBLEAdvertisingEnabled(void)
 {
 #if WEAVE_DEVICE_CONFIG_ENABLE_WOBLE
-    return BLEMgr.IsAdvertisingEnabled();
+    return BLEMgr().IsAdvertisingEnabled();
 #else
     return false;
 #endif
@@ -251,7 +251,7 @@ bool ConnectivityManagerImpl::_IsBLEAdvertisingEnabled(void)
 WEAVE_ERROR ConnectivityManagerImpl::_SetBLEAdvertisingEnabled(bool val)
 {
 #if WEAVE_DEVICE_CONFIG_ENABLE_WOBLE
-    return BLEMgr.SetAdvertisingEnabled(val);
+    return BLEMgr().SetAdvertisingEnabled(val);
 #else
     return WEAVE_ERROR_UNSUPPORTED_WEAVE_FEATURE;
 #endif
@@ -260,7 +260,7 @@ WEAVE_ERROR ConnectivityManagerImpl::_SetBLEAdvertisingEnabled(bool val)
 bool ConnectivityManagerImpl::_IsBLEFastAdvertisingEnabled(void)
 {
 #if WEAVE_DEVICE_CONFIG_ENABLE_WOBLE
-    return BLEMgr.IsFastAdvertisingEnabled();
+    return BLEMgr().IsFastAdvertisingEnabled();
 #else
     return false;
 #endif
@@ -269,7 +269,7 @@ bool ConnectivityManagerImpl::_IsBLEFastAdvertisingEnabled(void)
 WEAVE_ERROR ConnectivityManagerImpl::_SetBLEFastAdvertisingEnabled(bool val)
 {
 #if WEAVE_DEVICE_CONFIG_ENABLE_WOBLE
-    return BLEMgr.SetFastAdvertisingEnabled(val);
+    return BLEMgr().SetFastAdvertisingEnabled(val);
 #else
     return WEAVE_ERROR_UNSUPPORTED_WEAVE_FEATURE;
 #endif
@@ -278,7 +278,7 @@ WEAVE_ERROR ConnectivityManagerImpl::_SetBLEFastAdvertisingEnabled(bool val)
 WEAVE_ERROR ConnectivityManagerImpl::_GetBLEDeviceName(char * buf, size_t bufSize)
 {
 #if WEAVE_DEVICE_CONFIG_ENABLE_WOBLE
-    return BLEMgr.GetDeviceName(buf, bufSize);
+    return BLEMgr().GetDeviceName(buf, bufSize);
 #else
     return WEAVE_ERROR_UNSUPPORTED_WEAVE_FEATURE;
 #endif
@@ -287,7 +287,7 @@ WEAVE_ERROR ConnectivityManagerImpl::_GetBLEDeviceName(char * buf, size_t bufSiz
 WEAVE_ERROR ConnectivityManagerImpl::_SetBLEDeviceName(const char * deviceName)
 {
 #if WEAVE_DEVICE_CONFIG_ENABLE_WOBLE
-    return BLEMgr.SetDeviceName(deviceName);
+    return BLEMgr().SetDeviceName(deviceName);
 #else
     return WEAVE_ERROR_UNSUPPORTED_WEAVE_FEATURE;
 #endif
@@ -296,7 +296,7 @@ WEAVE_ERROR ConnectivityManagerImpl::_SetBLEDeviceName(const char * deviceName)
 uint16_t ConnectivityManagerImpl::_NumBLEConnections(void)
 {
 #if WEAVE_DEVICE_CONFIG_ENABLE_WOBLE
-    return BLEMgr.NumConnections();
+    return BLEMgr().NumConnections();
 #else
     return 0;
 #endif
