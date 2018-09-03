@@ -32,10 +32,6 @@ nl::Weave::WeaveSecurityManager SecurityMgr;
 
 namespace Internal {
 
-#if WEAVE_DEVICE_CONFIG_ENABLE_WOBLE
-BLEManager BLEMgr;
-#endif
-
 const char * const TAG = "weave[DL]";
 
 } // namespace Internal

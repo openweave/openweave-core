@@ -103,6 +103,7 @@ host_triplet = @host@
 target_triplet = @target@
 @CONFIG_DEVICE_LAYER_TRUE@@WEAVE_DEVICE_LAYER_TARGET_ESP32_TRUE@am__append_1 = \
 @CONFIG_DEVICE_LAYER_TRUE@@WEAVE_DEVICE_LAYER_TARGET_ESP32_TRUE@    ESP32/AESBlockCipher.cpp                    \
+@CONFIG_DEVICE_LAYER_TRUE@@WEAVE_DEVICE_LAYER_TARGET_ESP32_TRUE@    ESP32/BLEManagerImpl.cpp                    \
 @CONFIG_DEVICE_LAYER_TRUE@@WEAVE_DEVICE_LAYER_TARGET_ESP32_TRUE@    ESP32/ConfigurationManagerImpl.cpp          \
 @CONFIG_DEVICE_LAYER_TRUE@@WEAVE_DEVICE_LAYER_TARGET_ESP32_TRUE@    ESP32/ConnectivityManagerImpl.cpp           \
 @CONFIG_DEVICE_LAYER_TRUE@@WEAVE_DEVICE_LAYER_TARGET_ESP32_TRUE@    ESP32/Entropy.cpp                           \
@@ -191,7 +192,7 @@ am__v_AR_0 = @echo "  AR      " $@;
 am__v_AR_1 = 
 libDeviceLayer_a_AR = $(AR) $(ARFLAGS)
 libDeviceLayer_a_LIBADD =
-am__libDeviceLayer_a_SOURCES_DIST = BLEManager.cpp CASEAuth.cpp \
+am__libDeviceLayer_a_SOURCES_DIST = CASEAuth.cpp \
 	DeviceControlServer.cpp DeviceDescriptionServer.cpp \
 	DeviceIdentityTraitDataSource.cpp EchoServer.cpp \
 	FabricProvisioningServer.cpp Globals.cpp NetworkInfo.cpp \
@@ -201,7 +202,8 @@ am__libDeviceLayer_a_SOURCES_DIST = BLEManager.cpp CASEAuth.cpp \
 	TestDeviceIds.cpp TimeSyncManager.cpp TraitManager.cpp \
 	Warm.cpp \
 	trait-support/weave/trait/description/DeviceIdentityTrait.cpp \
-	ESP32/AESBlockCipher.cpp ESP32/ConfigurationManagerImpl.cpp \
+	ESP32/AESBlockCipher.cpp ESP32/BLEManagerImpl.cpp \
+	ESP32/ConfigurationManagerImpl.cpp \
 	ESP32/ConnectivityManagerImpl.cpp ESP32/Entropy.cpp \
 	ESP32/ESP32Config.cpp ESP32/ESP32Utils.cpp \
 	ESP32/GroupKeyStoreImpl.cpp ESP32/Logging.cpp \
@@ -209,6 +211,7 @@ am__libDeviceLayer_a_SOURCES_DIST = BLEManager.cpp CASEAuth.cpp \
 	ESP32/PlatformManagerImpl.cpp ESP32/SystemTimeSupport.cpp
 am__dirstamp = $(am__leading_dot)dirstamp
 @CONFIG_DEVICE_LAYER_TRUE@@WEAVE_DEVICE_LAYER_TARGET_ESP32_TRUE@am__objects_1 = ESP32/libDeviceLayer_a-AESBlockCipher.$(OBJEXT) \
+@CONFIG_DEVICE_LAYER_TRUE@@WEAVE_DEVICE_LAYER_TARGET_ESP32_TRUE@	ESP32/libDeviceLayer_a-BLEManagerImpl.$(OBJEXT) \
 @CONFIG_DEVICE_LAYER_TRUE@@WEAVE_DEVICE_LAYER_TARGET_ESP32_TRUE@	ESP32/libDeviceLayer_a-ConfigurationManagerImpl.$(OBJEXT) \
 @CONFIG_DEVICE_LAYER_TRUE@@WEAVE_DEVICE_LAYER_TARGET_ESP32_TRUE@	ESP32/libDeviceLayer_a-ConnectivityManagerImpl.$(OBJEXT) \
 @CONFIG_DEVICE_LAYER_TRUE@@WEAVE_DEVICE_LAYER_TARGET_ESP32_TRUE@	ESP32/libDeviceLayer_a-Entropy.$(OBJEXT) \
@@ -220,7 +223,7 @@ am__dirstamp = $(am__leading_dot)dirstamp
 @CONFIG_DEVICE_LAYER_TRUE@@WEAVE_DEVICE_LAYER_TARGET_ESP32_TRUE@	ESP32/libDeviceLayer_a-NetworkProvisioningServerImpl.$(OBJEXT) \
 @CONFIG_DEVICE_LAYER_TRUE@@WEAVE_DEVICE_LAYER_TARGET_ESP32_TRUE@	ESP32/libDeviceLayer_a-PlatformManagerImpl.$(OBJEXT) \
 @CONFIG_DEVICE_LAYER_TRUE@@WEAVE_DEVICE_LAYER_TARGET_ESP32_TRUE@	ESP32/libDeviceLayer_a-SystemTimeSupport.$(OBJEXT)
-@CONFIG_DEVICE_LAYER_TRUE@am_libDeviceLayer_a_OBJECTS = libDeviceLayer_a-BLEManager.$(OBJEXT) \
+@CONFIG_DEVICE_LAYER_TRUE@am_libDeviceLayer_a_OBJECTS =  \
 @CONFIG_DEVICE_LAYER_TRUE@	libDeviceLayer_a-CASEAuth.$(OBJEXT) \
 @CONFIG_DEVICE_LAYER_TRUE@	libDeviceLayer_a-DeviceControlServer.$(OBJEXT) \
 @CONFIG_DEVICE_LAYER_TRUE@	libDeviceLayer_a-DeviceDescriptionServer.$(OBJEXT) \
@@ -559,8 +562,8 @@ top_srcdir = @top_srcdir@
 @CONFIG_DEVICE_LAYER_TRUE@    $(SOCKETS_CPPFLAGS)                   \
 @CONFIG_DEVICE_LAYER_TRUE@    $(NULL)
 
-@CONFIG_DEVICE_LAYER_TRUE@libDeviceLayer_a_SOURCES = BLEManager.cpp \
-@CONFIG_DEVICE_LAYER_TRUE@	CASEAuth.cpp DeviceControlServer.cpp \
+@CONFIG_DEVICE_LAYER_TRUE@libDeviceLayer_a_SOURCES = CASEAuth.cpp \
+@CONFIG_DEVICE_LAYER_TRUE@	DeviceControlServer.cpp \
 @CONFIG_DEVICE_LAYER_TRUE@	DeviceDescriptionServer.cpp \
 @CONFIG_DEVICE_LAYER_TRUE@	DeviceIdentityTraitDataSource.cpp \
 @CONFIG_DEVICE_LAYER_TRUE@	EchoServer.cpp \
@@ -662,6 +665,8 @@ ESP32/$(DEPDIR)/$(am__dirstamp):
 	@: > ESP32/$(DEPDIR)/$(am__dirstamp)
 ESP32/libDeviceLayer_a-AESBlockCipher.$(OBJEXT):  \
 	ESP32/$(am__dirstamp) ESP32/$(DEPDIR)/$(am__dirstamp)
+ESP32/libDeviceLayer_a-BLEManagerImpl.$(OBJEXT):  \
+	ESP32/$(am__dirstamp) ESP32/$(DEPDIR)/$(am__dirstamp)
 ESP32/libDeviceLayer_a-ConfigurationManagerImpl.$(OBJEXT):  \
 	ESP32/$(am__dirstamp) ESP32/$(DEPDIR)/$(am__dirstamp)
 ESP32/libDeviceLayer_a-ConnectivityManagerImpl.$(OBJEXT):  \
@@ -698,7 +703,6 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libDeviceLayer_a-BLEManager.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libDeviceLayer_a-CASEAuth.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libDeviceLayer_a-DeviceControlServer.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libDeviceLayer_a-DeviceDescriptionServer.Po@am__quote@
@@ -718,6 +722,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libDeviceLayer_a-TraitManager.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libDeviceLayer_a-Warm.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@ESP32/$(DEPDIR)/libDeviceLayer_a-AESBlockCipher.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@ESP32/$(DEPDIR)/libDeviceLayer_a-BLEManagerImpl.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@ESP32/$(DEPDIR)/libDeviceLayer_a-ConfigurationManagerImpl.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@ESP32/$(DEPDIR)/libDeviceLayer_a-ConnectivityManagerImpl.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@ESP32/$(DEPDIR)/libDeviceLayer_a-ESP32Config.Po@am__quote@
@@ -754,20 +759,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='$<' object='$@' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(LTCXXCOMPILE) -c -o $@ $<
-
-libDeviceLayer_a-BLEManager.o: BLEManager.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libDeviceLayer_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT libDeviceLayer_a-BLEManager.o -MD -MP -MF $(DEPDIR)/libDeviceLayer_a-BLEManager.Tpo -c -o libDeviceLayer_a-BLEManager.o `test -f 'BLEManager.cpp' || echo '$(srcdir)/'`BLEManager.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libDeviceLayer_a-BLEManager.Tpo $(DEPDIR)/libDeviceLayer_a-BLEManager.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='BLEManager.cpp' object='libDeviceLayer_a-BLEManager.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libDeviceLayer_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o libDeviceLayer_a-BLEManager.o `test -f 'BLEManager.cpp' || echo '$(srcdir)/'`BLEManager.cpp
-
-libDeviceLayer_a-BLEManager.obj: BLEManager.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libDeviceLayer_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT libDeviceLayer_a-BLEManager.obj -MD -MP -MF $(DEPDIR)/libDeviceLayer_a-BLEManager.Tpo -c -o libDeviceLayer_a-BLEManager.obj `if test -f 'BLEManager.cpp'; then $(CYGPATH_W) 'BLEManager.cpp'; else $(CYGPATH_W) '$(srcdir)/BLEManager.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libDeviceLayer_a-BLEManager.Tpo $(DEPDIR)/libDeviceLayer_a-BLEManager.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='BLEManager.cpp' object='libDeviceLayer_a-BLEManager.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libDeviceLayer_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o libDeviceLayer_a-BLEManager.obj `if test -f 'BLEManager.cpp'; then $(CYGPATH_W) 'BLEManager.cpp'; else $(CYGPATH_W) '$(srcdir)/BLEManager.cpp'; fi`
 
 libDeviceLayer_a-CASEAuth.o: CASEAuth.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libDeviceLayer_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT libDeviceLayer_a-CASEAuth.o -MD -MP -MF $(DEPDIR)/libDeviceLayer_a-CASEAuth.Tpo -c -o libDeviceLayer_a-CASEAuth.o `test -f 'CASEAuth.cpp' || echo '$(srcdir)/'`CASEAuth.cpp
@@ -1048,6 +1039,20 @@ ESP32/libDeviceLayer_a-AESBlockCipher.obj: ESP32/AESBlockCipher.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='ESP32/AESBlockCipher.cpp' object='ESP32/libDeviceLayer_a-AESBlockCipher.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libDeviceLayer_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o ESP32/libDeviceLayer_a-AESBlockCipher.obj `if test -f 'ESP32/AESBlockCipher.cpp'; then $(CYGPATH_W) 'ESP32/AESBlockCipher.cpp'; else $(CYGPATH_W) '$(srcdir)/ESP32/AESBlockCipher.cpp'; fi`
+
+ESP32/libDeviceLayer_a-BLEManagerImpl.o: ESP32/BLEManagerImpl.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libDeviceLayer_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT ESP32/libDeviceLayer_a-BLEManagerImpl.o -MD -MP -MF ESP32/$(DEPDIR)/libDeviceLayer_a-BLEManagerImpl.Tpo -c -o ESP32/libDeviceLayer_a-BLEManagerImpl.o `test -f 'ESP32/BLEManagerImpl.cpp' || echo '$(srcdir)/'`ESP32/BLEManagerImpl.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ESP32/$(DEPDIR)/libDeviceLayer_a-BLEManagerImpl.Tpo ESP32/$(DEPDIR)/libDeviceLayer_a-BLEManagerImpl.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='ESP32/BLEManagerImpl.cpp' object='ESP32/libDeviceLayer_a-BLEManagerImpl.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libDeviceLayer_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o ESP32/libDeviceLayer_a-BLEManagerImpl.o `test -f 'ESP32/BLEManagerImpl.cpp' || echo '$(srcdir)/'`ESP32/BLEManagerImpl.cpp
+
+ESP32/libDeviceLayer_a-BLEManagerImpl.obj: ESP32/BLEManagerImpl.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libDeviceLayer_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT ESP32/libDeviceLayer_a-BLEManagerImpl.obj -MD -MP -MF ESP32/$(DEPDIR)/libDeviceLayer_a-BLEManagerImpl.Tpo -c -o ESP32/libDeviceLayer_a-BLEManagerImpl.obj `if test -f 'ESP32/BLEManagerImpl.cpp'; then $(CYGPATH_W) 'ESP32/BLEManagerImpl.cpp'; else $(CYGPATH_W) '$(srcdir)/ESP32/BLEManagerImpl.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ESP32/$(DEPDIR)/libDeviceLayer_a-BLEManagerImpl.Tpo ESP32/$(DEPDIR)/libDeviceLayer_a-BLEManagerImpl.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='ESP32/BLEManagerImpl.cpp' object='ESP32/libDeviceLayer_a-BLEManagerImpl.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libDeviceLayer_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o ESP32/libDeviceLayer_a-BLEManagerImpl.obj `if test -f 'ESP32/BLEManagerImpl.cpp'; then $(CYGPATH_W) 'ESP32/BLEManagerImpl.cpp'; else $(CYGPATH_W) '$(srcdir)/ESP32/BLEManagerImpl.cpp'; fi`
 
 ESP32/libDeviceLayer_a-ConfigurationManagerImpl.o: ESP32/ConfigurationManagerImpl.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libDeviceLayer_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT ESP32/libDeviceLayer_a-ConfigurationManagerImpl.o -MD -MP -MF ESP32/$(DEPDIR)/libDeviceLayer_a-ConfigurationManagerImpl.Tpo -c -o ESP32/libDeviceLayer_a-ConfigurationManagerImpl.o `test -f 'ESP32/ConfigurationManagerImpl.cpp' || echo '$(srcdir)/'`ESP32/ConfigurationManagerImpl.cpp

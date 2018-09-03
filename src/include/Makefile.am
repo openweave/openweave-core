@@ -917,6 +917,7 @@ dist_weave_common_HEADERS = $(addprefix ../,$(nl_public_WeaveCommon_header_sourc
 if WEAVE_DEVICE_LAYER_TARGET_ESP32
 
 nl_public_WeaveDeviceLayer_target_header_sources =                                    \
+$(nl_public_WeaveDeviceLayer_source_dirstem)/ESP32/BLEManagerImpl.h                   \
 $(nl_public_WeaveDeviceLayer_source_dirstem)/ESP32/ConfigurationManagerImpl.h         \
 $(nl_public_WeaveDeviceLayer_source_dirstem)/ESP32/ConnectivityManagerImpl.h          \
 $(nl_public_WeaveDeviceLayer_source_dirstem)/ESP32/ESP32Config.h                      \

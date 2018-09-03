@@ -84,8 +84,7 @@ WEAVE_ERROR GenericPlatformManagerImpl<ImplClass>::_InitWeaveStack(void)
 
     // Initialize the BLE manager.
 #if WEAVE_DEVICE_CONFIG_ENABLE_WOBLE
-    new (&BLEMgr) BLEManager();
-    err = BLEMgr.Init();
+    err = BLEMgr().Init();
     if (err != WEAVE_NO_ERROR)
     {
         WeaveLogError(DeviceLayer, "BLEManager initialization failed: %s", ErrorStr(err));
@@ -115,7 +114,7 @@ WEAVE_ERROR GenericPlatformManagerImpl<ImplClass>::_InitWeaveStack(void)
         initContext.listenTCP = true;
         initContext.listenUDP = true;
 #if WEAVE_DEVICE_CONFIG_ENABLE_WOBLE
-        initContext.ble = BLEMgr.GetBleLayer();
+        initContext.ble = BLEMgr().GetBleLayer();
         initContext.listenBLE = true;
 #endif
         initContext.fabricState = &FabricState;
@@ -368,7 +367,7 @@ void GenericPlatformManagerImpl<ImplClass>::DispatchEventToDeviceLayer(const Wea
     TraitMgr().OnPlatformEvent(event);
     TimeSyncMgr().OnPlatformEvent(event);
 #if WEAVE_DEVICE_CONFIG_ENABLE_WOBLE
-    BLEMgr.OnPlatformEvent(event);
+    BLEMgr().OnPlatformEvent(event);
 #endif
 }
 
