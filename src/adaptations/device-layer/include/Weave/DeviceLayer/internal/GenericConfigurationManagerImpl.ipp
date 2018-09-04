@@ -111,37 +111,14 @@ WEAVE_ERROR GenericConfigurationManagerImpl<ImplClass>::_GetFirmwareBuildTime(ui
         uint8_t & hour, uint8_t & minute, uint8_t & second)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
-    const char * buildDateStr = __DATE__; // e.g. Feb 12 1996
-    const char * buildTimeStr = __TIME__; // e.g. 23:59:01
-    char monthStr[4];
-    char * p;
 
-    // TODO: move to utility function
+    // TODO: Allow build time to be overridden by compile-time config (e.g. WEAVE_DEVICE_CONFIG_FIRMWARE_BUILD_TIME).
 
-    static const char months[] = "JanFebMarAprMayJunJulAugSepOctNovDec";
+    err = ParseCompilerDateStr(__DATE__, year, month, dayOfMonth);
+    SuccessOrExit(err);
 
-    memcpy(monthStr, buildDateStr, 3);
-    monthStr[3] = 0;
-
-    p = strstr(months, monthStr);
-    VerifyOrExit(p != NULL, err = WEAVE_ERROR_INVALID_ARGUMENT);
-
-    month = ((p - months) / 3) + 1;
-
-    dayOfMonth = strtoul(buildDateStr + 4, &p, 10);
-    VerifyOrExit(p == buildDateStr + 6, err = WEAVE_ERROR_INVALID_ARGUMENT);
-
-    year = strtoul(buildDateStr + 7, &p, 10);
-    VerifyOrExit(p == buildDateStr + 11, err = WEAVE_ERROR_INVALID_ARGUMENT);
-
-    hour = strtoul(buildTimeStr, &p, 10);
-    VerifyOrExit(p == buildTimeStr + 2, err = WEAVE_ERROR_INVALID_ARGUMENT);
-
-    minute = strtoul(buildTimeStr + 3, &p, 10);
-    VerifyOrExit(p == buildTimeStr + 5, err = WEAVE_ERROR_INVALID_ARGUMENT);
-
-    second = strtoul(buildTimeStr + 6, &p, 10);
-    VerifyOrExit(p == buildTimeStr + 8, err = WEAVE_ERROR_INVALID_ARGUMENT);
+    err = Parse24HourTimeStr(__TIME__, hour, minute, second);
+    SuccessOrExit(err);
 
 exit:
     return err;

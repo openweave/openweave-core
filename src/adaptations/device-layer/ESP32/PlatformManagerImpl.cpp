@@ -24,7 +24,7 @@
 
 #include <Weave/DeviceLayer/internal/WeaveDeviceLayerInternal.h>
 #include <Weave/DeviceLayer/PlatformManager.h>
-#include <Weave/DeviceLayer/internal/GenericPlatformManagerImpl_FreeRTOS.ipp>
+#include <Weave/DeviceLayer/FreeRTOS/GenericPlatformManagerImpl_FreeRTOS.ipp>
 
 namespace nl {
 namespace Weave {

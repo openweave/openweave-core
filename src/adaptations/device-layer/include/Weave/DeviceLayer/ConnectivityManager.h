@@ -126,6 +126,12 @@ public:
     WEAVE_ERROR SetBLEDeviceName(const char * deviceName);
     uint16_t NumBLEConnections(void);
 
+    // Support methods
+    static const char * WiFiStationModeToStr(WiFiStationMode mode);
+    static const char * WiFiAPModeToStr(WiFiAPMode mode);
+    static const char * ServiceTunnelModeToStr(ServiceTunnelMode mode);
+    static const char * WoBLEServiceModeToStr(WoBLEServiceMode mode);
+
 private:
 
     // ===== Members for internal use by the following friends.
@@ -347,6 +353,26 @@ inline WEAVE_ERROR ConnectivityManager::SetBLEDeviceName(const char * deviceName
 inline uint16_t ConnectivityManager::NumBLEConnections(void)
 {
     return static_cast<ImplClass*>(this)->_NumBLEConnections();
+}
+
+inline const char * ConnectivityManager::WiFiStationModeToStr(WiFiStationMode mode)
+{
+    return ImplClass::_WiFiStationModeToStr(mode);
+}
+
+inline const char * ConnectivityManager::WiFiAPModeToStr(WiFiAPMode mode)
+{
+    return ImplClass::_WiFiAPModeToStr(mode);
+}
+
+inline const char * ConnectivityManager::ServiceTunnelModeToStr(ServiceTunnelMode mode)
+{
+    return ImplClass::_ServiceTunnelModeToStr(mode);
+}
+
+inline const char * ConnectivityManager::WoBLEServiceModeToStr(WoBLEServiceMode mode)
+{
+    return ImplClass::_WoBLEServiceModeToStr(mode);
 }
 
 inline WEAVE_ERROR ConnectivityManager::Init(void)

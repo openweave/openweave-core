@@ -42,9 +42,6 @@ namespace Internal {
 class NetworkProvisioningServerImpl;
 template<class ImplClass> class GenericNetworkProvisioningServerImpl;
 
-// TODO: move this to utilities file.
-extern const char *CharacterizeIPv6Address(const ::nl::Inet::IPAddress & ipAddr);
-
 } // namespace Internal
 
 /**
@@ -102,6 +99,10 @@ private:
     bool _CanStartWiFiScan();
     void _OnWiFiScanDone();
     void _OnWiFiStationProvisionChange();
+    static const char * _WiFiStationModeToStr(WiFiStationMode mode);
+    static const char * _WiFiAPModeToStr(WiFiAPMode mode);
+    static const char * _ServiceTunnelModeToStr(ServiceTunnelMode mode);
+    static const char * _WoBLEServiceModeToStr(WoBLEServiceMode mode);
 
     // ===== Members for internal use by the following friends.
 
@@ -169,9 +170,7 @@ private:
     void DriveServiceTunnelState(void);
     static void DriveServiceTunnelState(::nl::Weave::System::Layer * aLayer, void * aAppState, ::nl::Weave::System::Error aError);
 
-    static const char * WiFiStationModeToStr(WiFiStationMode mode);
     static const char * WiFiStationStateToStr(WiFiStationState state);
-    static const char * WiFiAPModeToStr(WiFiAPMode mode);
     static const char * WiFiAPStateToStr(WiFiAPState state);
     static void RefreshMessageLayer(void);
     static void HandleServiceTunnelNotification(TunnelConnNotifyReasons reason, WEAVE_ERROR err, void *appCtxt);

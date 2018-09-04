@@ -27,7 +27,7 @@
 
 #include <Weave/DeviceLayer/internal/WeaveDeviceLayerInternal.h>
 #include <Weave/DeviceLayer/PlatformManager.h>
-#include <Weave/DeviceLayer/internal/GenericPlatformManagerImpl_FreeRTOS.h>
+#include <Weave/DeviceLayer/FreeRTOS/GenericPlatformManagerImpl_FreeRTOS.h>
 
 // Include the non-inline definitions for the GenericPlatformManagerImpl<> template,
 // from which the GenericPlatformManagerImpl_FreeRTOS<> template inherits.
@@ -122,8 +122,7 @@ void GenericPlatformManagerImpl_FreeRTOS<ImplClass>::_RunEventLoop(void)
             // IF the timer's expiration time has already arrived...
             if (xTaskCheckForTimeOut(&mNextTimerBaseTime, &mNextTimerDurationTicks) == pdTRUE)
             {
-                // TODO: fix the function name in this comment.
-                // Reset the 'timer active' flag.  This will be set to true again by HandlePlatformTimer()
+                // Reset the 'timer active' flag.  This will be set to true again by _StartWeaveTimer()
                 // if there are further timers beyond the expired one that are still active.
                 mWeaveTimerActive = false;
 

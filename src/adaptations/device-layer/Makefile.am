@@ -39,6 +39,7 @@ libDeviceLayer_a_SOURCES                = \
     DeviceIdentityTraitDataSource.cpp     \
     EchoServer.cpp                        \
     FabricProvisioningServer.cpp          \
+    GeneralUtils.cpp                      \
     Globals.cpp                           \
     NetworkInfo.cpp                       \
     PersistedStorage.cpp                  \
@@ -50,7 +51,6 @@ libDeviceLayer_a_SOURCES                = \
     TestDeviceIds.cpp                     \
     TimeSyncManager.cpp                   \
     TraitManager.cpp                      \
-    Warm.cpp                              \
     trait-support/weave/trait/description/DeviceIdentityTrait.cpp \
     $(NULL)
 
@@ -70,6 +70,7 @@ libDeviceLayer_a_SOURCES               +=       \
     ESP32/NetworkProvisioningServerImpl.cpp     \
     ESP32/PlatformManagerImpl.cpp               \
     ESP32/SystemTimeSupport.cpp                 \
+    LwIP/WarmSupport.cpp                        \
     $(NULL)
 
 endif # WEAVE_DEVICE_LAYER_TARGET_ESP32

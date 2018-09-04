@@ -25,7 +25,7 @@
 #ifndef PLATFORM_MANAGER_IMPL_H
 #define PLATFORM_MANAGER_IMPL_H
 
-#include <Weave/DeviceLayer/internal/GenericPlatformManagerImpl_FreeRTOS.h>
+#include <Weave/DeviceLayer/FreeRTOS/GenericPlatformManagerImpl_FreeRTOS.h>
 
 namespace nl {
 namespace Weave {
