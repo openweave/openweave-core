@@ -115,6 +115,7 @@ target_triplet = @target@
 @CONFIG_DEVICE_LAYER_TRUE@@WEAVE_DEVICE_LAYER_TARGET_ESP32_TRUE@    ESP32/NetworkProvisioningServerImpl.cpp     \
 @CONFIG_DEVICE_LAYER_TRUE@@WEAVE_DEVICE_LAYER_TARGET_ESP32_TRUE@    ESP32/PlatformManagerImpl.cpp               \
 @CONFIG_DEVICE_LAYER_TRUE@@WEAVE_DEVICE_LAYER_TARGET_ESP32_TRUE@    ESP32/SystemTimeSupport.cpp                 \
+@CONFIG_DEVICE_LAYER_TRUE@@WEAVE_DEVICE_LAYER_TARGET_ESP32_TRUE@    LwIP/WarmSupport.cpp                        \
 @CONFIG_DEVICE_LAYER_TRUE@@WEAVE_DEVICE_LAYER_TARGET_ESP32_TRUE@    $(NULL)
 
 subdir = src/adaptations/device-layer
@@ -195,12 +196,12 @@ libDeviceLayer_a_LIBADD =
 am__libDeviceLayer_a_SOURCES_DIST = CASEAuth.cpp \
 	DeviceControlServer.cpp DeviceDescriptionServer.cpp \
 	DeviceIdentityTraitDataSource.cpp EchoServer.cpp \
-	FabricProvisioningServer.cpp Globals.cpp NetworkInfo.cpp \
-	PersistedStorage.cpp ServiceDirectoryManager.cpp \
-	ServiceProvisioningServer.cpp ServiceTunnelAgent.cpp \
-	SystemEventSupport.cpp SystemTimerSupport.cpp \
-	TestDeviceIds.cpp TimeSyncManager.cpp TraitManager.cpp \
-	Warm.cpp \
+	FabricProvisioningServer.cpp GeneralUtils.cpp Globals.cpp \
+	NetworkInfo.cpp PersistedStorage.cpp \
+	ServiceDirectoryManager.cpp ServiceProvisioningServer.cpp \
+	ServiceTunnelAgent.cpp SystemEventSupport.cpp \
+	SystemTimerSupport.cpp TestDeviceIds.cpp TimeSyncManager.cpp \
+	TraitManager.cpp \
 	trait-support/weave/trait/description/DeviceIdentityTrait.cpp \
 	ESP32/AESBlockCipher.cpp ESP32/BLEManagerImpl.cpp \
 	ESP32/ConfigurationManagerImpl.cpp \
@@ -208,7 +209,8 @@ am__libDeviceLayer_a_SOURCES_DIST = CASEAuth.cpp \
 	ESP32/ESP32Config.cpp ESP32/ESP32Utils.cpp \
 	ESP32/GroupKeyStoreImpl.cpp ESP32/Logging.cpp \
 	ESP32/LwIPCoreLock.cpp ESP32/NetworkProvisioningServerImpl.cpp \
-	ESP32/PlatformManagerImpl.cpp ESP32/SystemTimeSupport.cpp
+	ESP32/PlatformManagerImpl.cpp ESP32/SystemTimeSupport.cpp \
+	LwIP/WarmSupport.cpp
 am__dirstamp = $(am__leading_dot)dirstamp
 @CONFIG_DEVICE_LAYER_TRUE@@WEAVE_DEVICE_LAYER_TARGET_ESP32_TRUE@am__objects_1 = ESP32/libDeviceLayer_a-AESBlockCipher.$(OBJEXT) \
 @CONFIG_DEVICE_LAYER_TRUE@@WEAVE_DEVICE_LAYER_TARGET_ESP32_TRUE@	ESP32/libDeviceLayer_a-BLEManagerImpl.$(OBJEXT) \
@@ -222,7 +224,8 @@ am__dirstamp = $(am__leading_dot)dirstamp
 @CONFIG_DEVICE_LAYER_TRUE@@WEAVE_DEVICE_LAYER_TARGET_ESP32_TRUE@	ESP32/libDeviceLayer_a-LwIPCoreLock.$(OBJEXT) \
 @CONFIG_DEVICE_LAYER_TRUE@@WEAVE_DEVICE_LAYER_TARGET_ESP32_TRUE@	ESP32/libDeviceLayer_a-NetworkProvisioningServerImpl.$(OBJEXT) \
 @CONFIG_DEVICE_LAYER_TRUE@@WEAVE_DEVICE_LAYER_TARGET_ESP32_TRUE@	ESP32/libDeviceLayer_a-PlatformManagerImpl.$(OBJEXT) \
-@CONFIG_DEVICE_LAYER_TRUE@@WEAVE_DEVICE_LAYER_TARGET_ESP32_TRUE@	ESP32/libDeviceLayer_a-SystemTimeSupport.$(OBJEXT)
+@CONFIG_DEVICE_LAYER_TRUE@@WEAVE_DEVICE_LAYER_TARGET_ESP32_TRUE@	ESP32/libDeviceLayer_a-SystemTimeSupport.$(OBJEXT) \
+@CONFIG_DEVICE_LAYER_TRUE@@WEAVE_DEVICE_LAYER_TARGET_ESP32_TRUE@	LwIP/libDeviceLayer_a-WarmSupport.$(OBJEXT)
 @CONFIG_DEVICE_LAYER_TRUE@am_libDeviceLayer_a_OBJECTS =  \
 @CONFIG_DEVICE_LAYER_TRUE@	libDeviceLayer_a-CASEAuth.$(OBJEXT) \
 @CONFIG_DEVICE_LAYER_TRUE@	libDeviceLayer_a-DeviceControlServer.$(OBJEXT) \
@@ -230,6 +233,7 @@ am__dirstamp = $(am__leading_dot)dirstamp
 @CONFIG_DEVICE_LAYER_TRUE@	libDeviceLayer_a-DeviceIdentityTraitDataSource.$(OBJEXT) \
 @CONFIG_DEVICE_LAYER_TRUE@	libDeviceLayer_a-EchoServer.$(OBJEXT) \
 @CONFIG_DEVICE_LAYER_TRUE@	libDeviceLayer_a-FabricProvisioningServer.$(OBJEXT) \
+@CONFIG_DEVICE_LAYER_TRUE@	libDeviceLayer_a-GeneralUtils.$(OBJEXT) \
 @CONFIG_DEVICE_LAYER_TRUE@	libDeviceLayer_a-Globals.$(OBJEXT) \
 @CONFIG_DEVICE_LAYER_TRUE@	libDeviceLayer_a-NetworkInfo.$(OBJEXT) \
 @CONFIG_DEVICE_LAYER_TRUE@	libDeviceLayer_a-PersistedStorage.$(OBJEXT) \
@@ -241,7 +245,6 @@ am__dirstamp = $(am__leading_dot)dirstamp
 @CONFIG_DEVICE_LAYER_TRUE@	libDeviceLayer_a-TestDeviceIds.$(OBJEXT) \
 @CONFIG_DEVICE_LAYER_TRUE@	libDeviceLayer_a-TimeSyncManager.$(OBJEXT) \
 @CONFIG_DEVICE_LAYER_TRUE@	libDeviceLayer_a-TraitManager.$(OBJEXT) \
-@CONFIG_DEVICE_LAYER_TRUE@	libDeviceLayer_a-Warm.$(OBJEXT) \
 @CONFIG_DEVICE_LAYER_TRUE@	trait-support/weave/trait/description/libDeviceLayer_a-DeviceIdentityTrait.$(OBJEXT) \
 @CONFIG_DEVICE_LAYER_TRUE@	$(am__objects_1)
 libDeviceLayer_a_OBJECTS = $(am_libDeviceLayer_a_OBJECTS)
@@ -568,8 +571,8 @@ top_srcdir = @top_srcdir@
 @CONFIG_DEVICE_LAYER_TRUE@	DeviceIdentityTraitDataSource.cpp \
 @CONFIG_DEVICE_LAYER_TRUE@	EchoServer.cpp \
 @CONFIG_DEVICE_LAYER_TRUE@	FabricProvisioningServer.cpp \
-@CONFIG_DEVICE_LAYER_TRUE@	Globals.cpp NetworkInfo.cpp \
-@CONFIG_DEVICE_LAYER_TRUE@	PersistedStorage.cpp \
+@CONFIG_DEVICE_LAYER_TRUE@	GeneralUtils.cpp Globals.cpp \
+@CONFIG_DEVICE_LAYER_TRUE@	NetworkInfo.cpp PersistedStorage.cpp \
 @CONFIG_DEVICE_LAYER_TRUE@	ServiceDirectoryManager.cpp \
 @CONFIG_DEVICE_LAYER_TRUE@	ServiceProvisioningServer.cpp \
 @CONFIG_DEVICE_LAYER_TRUE@	ServiceTunnelAgent.cpp \
@@ -577,7 +580,6 @@ top_srcdir = @top_srcdir@
 @CONFIG_DEVICE_LAYER_TRUE@	SystemTimerSupport.cpp \
 @CONFIG_DEVICE_LAYER_TRUE@	TestDeviceIds.cpp \
 @CONFIG_DEVICE_LAYER_TRUE@	TimeSyncManager.cpp TraitManager.cpp \
-@CONFIG_DEVICE_LAYER_TRUE@	Warm.cpp \
 @CONFIG_DEVICE_LAYER_TRUE@	trait-support/weave/trait/description/DeviceIdentityTrait.cpp \
 @CONFIG_DEVICE_LAYER_TRUE@	$(NULL) $(am__append_1)
 @CONFIG_DEVICE_LAYER_TRUE@EXTRA_DIST = \
@@ -689,6 +691,14 @@ ESP32/libDeviceLayer_a-PlatformManagerImpl.$(OBJEXT):  \
 	ESP32/$(am__dirstamp) ESP32/$(DEPDIR)/$(am__dirstamp)
 ESP32/libDeviceLayer_a-SystemTimeSupport.$(OBJEXT):  \
 	ESP32/$(am__dirstamp) ESP32/$(DEPDIR)/$(am__dirstamp)
+LwIP/$(am__dirstamp):
+	@$(MKDIR_P) LwIP
+	@: > LwIP/$(am__dirstamp)
+LwIP/$(DEPDIR)/$(am__dirstamp):
+	@$(MKDIR_P) LwIP/$(DEPDIR)
+	@: > LwIP/$(DEPDIR)/$(am__dirstamp)
+LwIP/libDeviceLayer_a-WarmSupport.$(OBJEXT): LwIP/$(am__dirstamp) \
+	LwIP/$(DEPDIR)/$(am__dirstamp)
 
 libDeviceLayer.a: $(libDeviceLayer_a_OBJECTS) $(libDeviceLayer_a_DEPENDENCIES) $(EXTRA_libDeviceLayer_a_DEPENDENCIES) 
 	$(AM_V_at)-rm -f libDeviceLayer.a
@@ -698,6 +708,7 @@ libDeviceLayer.a: $(libDeviceLayer_a_OBJECTS) $(libDeviceLayer_a_DEPENDENCIES) $
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT)
 	-rm -f ESP32/*.$(OBJEXT)
+	-rm -f LwIP/*.$(OBJEXT)
 	-rm -f trait-support/weave/trait/description/*.$(OBJEXT)
 
 distclean-compile:
@@ -709,6 +720,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libDeviceLayer_a-DeviceIdentityTraitDataSource.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libDeviceLayer_a-EchoServer.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libDeviceLayer_a-FabricProvisioningServer.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libDeviceLayer_a-GeneralUtils.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libDeviceLayer_a-Globals.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libDeviceLayer_a-NetworkInfo.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libDeviceLayer_a-PersistedStorage.Po@am__quote@
@@ -720,7 +732,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libDeviceLayer_a-TestDeviceIds.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libDeviceLayer_a-TimeSyncManager.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libDeviceLayer_a-TraitManager.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libDeviceLayer_a-Warm.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@ESP32/$(DEPDIR)/libDeviceLayer_a-AESBlockCipher.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@ESP32/$(DEPDIR)/libDeviceLayer_a-BLEManagerImpl.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@ESP32/$(DEPDIR)/libDeviceLayer_a-ConfigurationManagerImpl.Po@am__quote@
@@ -734,6 +745,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@ESP32/$(DEPDIR)/libDeviceLayer_a-NetworkProvisioningServerImpl.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@ESP32/$(DEPDIR)/libDeviceLayer_a-PlatformManagerImpl.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@ESP32/$(DEPDIR)/libDeviceLayer_a-SystemTimeSupport.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@LwIP/$(DEPDIR)/libDeviceLayer_a-WarmSupport.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@trait-support/weave/trait/description/$(DEPDIR)/libDeviceLayer_a-DeviceIdentityTrait.Po@am__quote@
 
 .cpp.o:
@@ -843,6 +855,20 @@ libDeviceLayer_a-FabricProvisioningServer.obj: FabricProvisioningServer.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='FabricProvisioningServer.cpp' object='libDeviceLayer_a-FabricProvisioningServer.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libDeviceLayer_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o libDeviceLayer_a-FabricProvisioningServer.obj `if test -f 'FabricProvisioningServer.cpp'; then $(CYGPATH_W) 'FabricProvisioningServer.cpp'; else $(CYGPATH_W) '$(srcdir)/FabricProvisioningServer.cpp'; fi`
+
+libDeviceLayer_a-GeneralUtils.o: GeneralUtils.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libDeviceLayer_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT libDeviceLayer_a-GeneralUtils.o -MD -MP -MF $(DEPDIR)/libDeviceLayer_a-GeneralUtils.Tpo -c -o libDeviceLayer_a-GeneralUtils.o `test -f 'GeneralUtils.cpp' || echo '$(srcdir)/'`GeneralUtils.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libDeviceLayer_a-GeneralUtils.Tpo $(DEPDIR)/libDeviceLayer_a-GeneralUtils.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='GeneralUtils.cpp' object='libDeviceLayer_a-GeneralUtils.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libDeviceLayer_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o libDeviceLayer_a-GeneralUtils.o `test -f 'GeneralUtils.cpp' || echo '$(srcdir)/'`GeneralUtils.cpp
+
+libDeviceLayer_a-GeneralUtils.obj: GeneralUtils.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libDeviceLayer_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT libDeviceLayer_a-GeneralUtils.obj -MD -MP -MF $(DEPDIR)/libDeviceLayer_a-GeneralUtils.Tpo -c -o libDeviceLayer_a-GeneralUtils.obj `if test -f 'GeneralUtils.cpp'; then $(CYGPATH_W) 'GeneralUtils.cpp'; else $(CYGPATH_W) '$(srcdir)/GeneralUtils.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libDeviceLayer_a-GeneralUtils.Tpo $(DEPDIR)/libDeviceLayer_a-GeneralUtils.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='GeneralUtils.cpp' object='libDeviceLayer_a-GeneralUtils.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libDeviceLayer_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o libDeviceLayer_a-GeneralUtils.obj `if test -f 'GeneralUtils.cpp'; then $(CYGPATH_W) 'GeneralUtils.cpp'; else $(CYGPATH_W) '$(srcdir)/GeneralUtils.cpp'; fi`
 
 libDeviceLayer_a-Globals.o: Globals.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libDeviceLayer_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT libDeviceLayer_a-Globals.o -MD -MP -MF $(DEPDIR)/libDeviceLayer_a-Globals.Tpo -c -o libDeviceLayer_a-Globals.o `test -f 'Globals.cpp' || echo '$(srcdir)/'`Globals.cpp
@@ -997,20 +1023,6 @@ libDeviceLayer_a-TraitManager.obj: TraitManager.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='TraitManager.cpp' object='libDeviceLayer_a-TraitManager.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libDeviceLayer_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o libDeviceLayer_a-TraitManager.obj `if test -f 'TraitManager.cpp'; then $(CYGPATH_W) 'TraitManager.cpp'; else $(CYGPATH_W) '$(srcdir)/TraitManager.cpp'; fi`
-
-libDeviceLayer_a-Warm.o: Warm.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libDeviceLayer_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT libDeviceLayer_a-Warm.o -MD -MP -MF $(DEPDIR)/libDeviceLayer_a-Warm.Tpo -c -o libDeviceLayer_a-Warm.o `test -f 'Warm.cpp' || echo '$(srcdir)/'`Warm.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libDeviceLayer_a-Warm.Tpo $(DEPDIR)/libDeviceLayer_a-Warm.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='Warm.cpp' object='libDeviceLayer_a-Warm.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libDeviceLayer_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o libDeviceLayer_a-Warm.o `test -f 'Warm.cpp' || echo '$(srcdir)/'`Warm.cpp
-
-libDeviceLayer_a-Warm.obj: Warm.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libDeviceLayer_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT libDeviceLayer_a-Warm.obj -MD -MP -MF $(DEPDIR)/libDeviceLayer_a-Warm.Tpo -c -o libDeviceLayer_a-Warm.obj `if test -f 'Warm.cpp'; then $(CYGPATH_W) 'Warm.cpp'; else $(CYGPATH_W) '$(srcdir)/Warm.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libDeviceLayer_a-Warm.Tpo $(DEPDIR)/libDeviceLayer_a-Warm.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='Warm.cpp' object='libDeviceLayer_a-Warm.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libDeviceLayer_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o libDeviceLayer_a-Warm.obj `if test -f 'Warm.cpp'; then $(CYGPATH_W) 'Warm.cpp'; else $(CYGPATH_W) '$(srcdir)/Warm.cpp'; fi`
 
 trait-support/weave/trait/description/libDeviceLayer_a-DeviceIdentityTrait.o: trait-support/weave/trait/description/DeviceIdentityTrait.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libDeviceLayer_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT trait-support/weave/trait/description/libDeviceLayer_a-DeviceIdentityTrait.o -MD -MP -MF trait-support/weave/trait/description/$(DEPDIR)/libDeviceLayer_a-DeviceIdentityTrait.Tpo -c -o trait-support/weave/trait/description/libDeviceLayer_a-DeviceIdentityTrait.o `test -f 'trait-support/weave/trait/description/DeviceIdentityTrait.cpp' || echo '$(srcdir)/'`trait-support/weave/trait/description/DeviceIdentityTrait.cpp
@@ -1208,6 +1220,20 @@ ESP32/libDeviceLayer_a-SystemTimeSupport.obj: ESP32/SystemTimeSupport.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libDeviceLayer_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o ESP32/libDeviceLayer_a-SystemTimeSupport.obj `if test -f 'ESP32/SystemTimeSupport.cpp'; then $(CYGPATH_W) 'ESP32/SystemTimeSupport.cpp'; else $(CYGPATH_W) '$(srcdir)/ESP32/SystemTimeSupport.cpp'; fi`
 
+LwIP/libDeviceLayer_a-WarmSupport.o: LwIP/WarmSupport.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libDeviceLayer_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT LwIP/libDeviceLayer_a-WarmSupport.o -MD -MP -MF LwIP/$(DEPDIR)/libDeviceLayer_a-WarmSupport.Tpo -c -o LwIP/libDeviceLayer_a-WarmSupport.o `test -f 'LwIP/WarmSupport.cpp' || echo '$(srcdir)/'`LwIP/WarmSupport.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) LwIP/$(DEPDIR)/libDeviceLayer_a-WarmSupport.Tpo LwIP/$(DEPDIR)/libDeviceLayer_a-WarmSupport.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='LwIP/WarmSupport.cpp' object='LwIP/libDeviceLayer_a-WarmSupport.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libDeviceLayer_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o LwIP/libDeviceLayer_a-WarmSupport.o `test -f 'LwIP/WarmSupport.cpp' || echo '$(srcdir)/'`LwIP/WarmSupport.cpp
+
+LwIP/libDeviceLayer_a-WarmSupport.obj: LwIP/WarmSupport.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libDeviceLayer_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT LwIP/libDeviceLayer_a-WarmSupport.obj -MD -MP -MF LwIP/$(DEPDIR)/libDeviceLayer_a-WarmSupport.Tpo -c -o LwIP/libDeviceLayer_a-WarmSupport.obj `if test -f 'LwIP/WarmSupport.cpp'; then $(CYGPATH_W) 'LwIP/WarmSupport.cpp'; else $(CYGPATH_W) '$(srcdir)/LwIP/WarmSupport.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) LwIP/$(DEPDIR)/libDeviceLayer_a-WarmSupport.Tpo LwIP/$(DEPDIR)/libDeviceLayer_a-WarmSupport.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='LwIP/WarmSupport.cpp' object='LwIP/libDeviceLayer_a-WarmSupport.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libDeviceLayer_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o LwIP/libDeviceLayer_a-WarmSupport.obj `if test -f 'LwIP/WarmSupport.cpp'; then $(CYGPATH_W) 'LwIP/WarmSupport.cpp'; else $(CYGPATH_W) '$(srcdir)/LwIP/WarmSupport.cpp'; fi`
+
 mostlyclean-libtool:
 	-rm -f *.lo
 
@@ -1331,6 +1357,8 @@ distclean-generic:
 	-test . = "$(srcdir)" || test -z "$(CONFIG_CLEAN_VPATH_FILES)" || rm -f $(CONFIG_CLEAN_VPATH_FILES)
 	-rm -f ESP32/$(DEPDIR)/$(am__dirstamp)
 	-rm -f ESP32/$(am__dirstamp)
+	-rm -f LwIP/$(DEPDIR)/$(am__dirstamp)
+	-rm -f LwIP/$(am__dirstamp)
 	-rm -f trait-support/weave/trait/description/$(DEPDIR)/$(am__dirstamp)
 	-rm -f trait-support/weave/trait/description/$(am__dirstamp)
 
@@ -1343,7 +1371,7 @@ clean-am: clean-generic clean-libLIBRARIES clean-libtool \
 	mostlyclean-am
 
 distclean: distclean-am
-	-rm -rf ./$(DEPDIR) ESP32/$(DEPDIR) trait-support/weave/trait/description/$(DEPDIR)
+	-rm -rf ./$(DEPDIR) ESP32/$(DEPDIR) LwIP/$(DEPDIR) trait-support/weave/trait/description/$(DEPDIR)
 	-rm -f Makefile
 distclean-am: clean-am distclean-compile distclean-generic \
 	distclean-tags
@@ -1389,7 +1417,7 @@ install-ps-am:
 installcheck-am:
 
 maintainer-clean: maintainer-clean-am
-	-rm -rf ./$(DEPDIR) ESP32/$(DEPDIR) trait-support/weave/trait/description/$(DEPDIR)
+	-rm -rf ./$(DEPDIR) ESP32/$(DEPDIR) LwIP/$(DEPDIR) trait-support/weave/trait/description/$(DEPDIR)
 	-rm -f Makefile
 maintainer-clean-am: distclean-am maintainer-clean-generic
 

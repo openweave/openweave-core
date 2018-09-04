@@ -16,6 +16,13 @@
  *    limitations under the License.
  */
 
+/**
+ *    @file
+ *          Provides implementations of platform functions for the Weave
+ *          Addressing and Routing Module (WARM) for use on LwIP-based
+ *          systems.
+ */
+
 #include <Weave/DeviceLayer/internal/WeaveDeviceLayerInternal.h>
 #include <Weave/DeviceLayer/ConnectivityManager.h>
 #include <Warm/Warm.h>

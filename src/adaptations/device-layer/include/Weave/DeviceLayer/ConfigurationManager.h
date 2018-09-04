@@ -119,7 +119,7 @@ private:
 
     WEAVE_ERROR Init();
     WEAVE_ERROR ConfigureWeaveStack();
-    ::nl::Weave::Profiles::Security::AppKeys::GroupKeyStoreBase * GetGroupKeyStore(); // TODO: maybe remove this???
+    ::nl::Weave::Profiles::Security::AppKeys::GroupKeyStoreBase * GetGroupKeyStore();
     bool CanFactoryReset();
     WEAVE_ERROR GetFailSafeArmed(bool & val);
     WEAVE_ERROR SetFailSafeArmed(bool val);

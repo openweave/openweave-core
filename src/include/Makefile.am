@@ -916,17 +916,19 @@ dist_weave_common_HEADERS = $(addprefix ../,$(nl_public_WeaveCommon_header_sourc
 
 if WEAVE_DEVICE_LAYER_TARGET_ESP32
 
-nl_public_WeaveDeviceLayer_target_header_sources =                                    \
-$(nl_public_WeaveDeviceLayer_source_dirstem)/ESP32/BLEManagerImpl.h                   \
-$(nl_public_WeaveDeviceLayer_source_dirstem)/ESP32/ConfigurationManagerImpl.h         \
-$(nl_public_WeaveDeviceLayer_source_dirstem)/ESP32/ConnectivityManagerImpl.h          \
-$(nl_public_WeaveDeviceLayer_source_dirstem)/ESP32/ESP32Config.h                      \
-$(nl_public_WeaveDeviceLayer_source_dirstem)/ESP32/ESP32Utils.h                       \
-$(nl_public_WeaveDeviceLayer_source_dirstem)/ESP32/GroupKeyStoreImpl.h                \
-$(nl_public_WeaveDeviceLayer_source_dirstem)/ESP32/NetworkProvisioningServerImpl.h    \
-$(nl_public_WeaveDeviceLayer_source_dirstem)/ESP32/PlatformManagerImpl.h              \
-$(nl_public_WeaveDeviceLayer_source_dirstem)/ESP32/WeaveDevicePlatformConfig.h        \
-$(nl_public_WeaveDeviceLayer_source_dirstem)/ESP32/WeaveDevicePlatformEvent.h         \
+nl_public_WeaveDeviceLayer_target_header_sources =                                                  \
+$(nl_public_WeaveDeviceLayer_source_dirstem)/ESP32/BLEManagerImpl.h                                 \
+$(nl_public_WeaveDeviceLayer_source_dirstem)/ESP32/ConfigurationManagerImpl.h                       \
+$(nl_public_WeaveDeviceLayer_source_dirstem)/ESP32/ConnectivityManagerImpl.h                        \
+$(nl_public_WeaveDeviceLayer_source_dirstem)/ESP32/ESP32Config.h                                    \
+$(nl_public_WeaveDeviceLayer_source_dirstem)/ESP32/ESP32Utils.h                                     \
+$(nl_public_WeaveDeviceLayer_source_dirstem)/ESP32/GroupKeyStoreImpl.h                              \
+$(nl_public_WeaveDeviceLayer_source_dirstem)/ESP32/NetworkProvisioningServerImpl.h                  \
+$(nl_public_WeaveDeviceLayer_source_dirstem)/ESP32/PlatformManagerImpl.h                            \
+$(nl_public_WeaveDeviceLayer_source_dirstem)/ESP32/WeaveDevicePlatformConfig.h                      \
+$(nl_public_WeaveDeviceLayer_source_dirstem)/ESP32/WeaveDevicePlatformEvent.h                       \
+$(nl_public_WeaveDeviceLayer_source_dirstem)/FreeRTOS/GenericPlatformManagerImpl_FreeRTOS.h         \
+$(nl_public_WeaveDeviceLayer_source_dirstem)/FreeRTOS/GenericPlatformManagerImpl_FreeRTOS.ipp       \
 $(NULL)
 
 endif # WEAVE_DEVICE_LAYER_TARGET_ESP32
@@ -939,6 +941,7 @@ nl_public_WeaveDeviceLayer_destination_dirstem = Weave/DeviceLayer
 nl_public_WeaveDeviceLayer_base_header_sources =                                      \
 $(nl_public_WeaveDeviceLayer_source_dirstem)/ConfigurationManager.h                   \
 $(nl_public_WeaveDeviceLayer_source_dirstem)/ConnectivityManager.h                    \
+$(nl_public_WeaveDeviceLayer_source_dirstem)/GeneralUtils.h                           \
 $(nl_public_WeaveDeviceLayer_source_dirstem)/PlatformManager.h                        \
 $(nl_public_WeaveDeviceLayer_source_dirstem)/TimeSyncManager.h                        \
 $(nl_public_WeaveDeviceLayer_source_dirstem)/TraitManager.h                           \
@@ -961,8 +964,6 @@ $(nl_public_WeaveDeviceLayer_source_dirstem)/internal/GenericNetworkProvisioning
 $(nl_public_WeaveDeviceLayer_source_dirstem)/internal/GenericNetworkProvisioningServerImpl.ipp      \
 $(nl_public_WeaveDeviceLayer_source_dirstem)/internal/GenericPlatformManagerImpl.h                  \
 $(nl_public_WeaveDeviceLayer_source_dirstem)/internal/GenericPlatformManagerImpl.ipp                \
-$(nl_public_WeaveDeviceLayer_source_dirstem)/internal/GenericPlatformManagerImpl_FreeRTOS.h         \
-$(nl_public_WeaveDeviceLayer_source_dirstem)/internal/GenericPlatformManagerImpl_FreeRTOS.ipp       \
 $(nl_public_WeaveDeviceLayer_source_dirstem)/internal/NetworkInfo.h                                 \
 $(nl_public_WeaveDeviceLayer_source_dirstem)/internal/NetworkProvisioningServer.h                   \
 $(nl_public_WeaveDeviceLayer_source_dirstem)/internal/ServiceDirectoryManager.h                     \
@@ -1003,6 +1004,9 @@ dist_weave_device_layer_internal_HEADERS = $(addprefix ../,$(nl_public_WeaveDevi
 
 weave_device_layer_targetdir = $(includedir)/$(nl_public_WeaveDeviceLayer_destination_dirstem)/$(WEAVE_DEVICE_LAYER_TARGET)
 dist_weave_device_layer_target_HEADERS = $(addprefix ../,$(nl_public_WeaveDeviceLayer_target_header_sources))
+
+weave_device_layer_freertosdir = $(includedir)/$(nl_public_WeaveDeviceLayer_destination_dirstem)/FreeRTOS
+dist_weave_device_layer_freertos_HEADERS = $(addprefix ../,$(nl_public_WeaveDeviceLayer_target_header_sources))
 
 endif # CONFIG_DEVICE_LAYER
 

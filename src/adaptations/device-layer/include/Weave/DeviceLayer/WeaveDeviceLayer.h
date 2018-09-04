@@ -22,6 +22,7 @@
 #include <Weave/Core/WeaveCore.h>
 #include <Weave/DeviceLayer/WeaveDeviceConfig.h>
 #include <Weave/DeviceLayer/WeaveDeviceError.h>
+#include <Weave/DeviceLayer/GeneralUtils.h>
 #include <BleLayer/BleLayer.h>
 #include <Weave/DeviceLayer/PlatformManager.h>
 #include <Weave/DeviceLayer/ConfigurationManager.h>

@@ -1009,7 +1009,7 @@ void ConnectivityManagerImpl::DriveServiceTunnelState(nl::Weave::System::Layer *
     sInstance.DriveServiceTunnelState();
 }
 
-const char * ConnectivityManagerImpl::WiFiStationModeToStr(WiFiStationMode mode)
+const char * ConnectivityManagerImpl::_WiFiStationModeToStr(WiFiStationMode mode)
 {
     switch (mode)
     {
@@ -1021,6 +1021,57 @@ const char * ConnectivityManagerImpl::WiFiStationModeToStr(WiFiStationMode mode)
         return "Enabled";
     case kWiFiStationMode_Disabled:
         return "Disabled";
+    default:
+        return "(unknown)";
+    }
+}
+
+const char * ConnectivityManagerImpl::_WiFiAPModeToStr(WiFiAPMode mode)
+{
+    switch (mode)
+    {
+    case kWiFiAPMode_NotSupported:
+        return "NotSupported";
+    case kWiFiAPMode_ApplicationControlled:
+        return "AppControlled";
+    case kWiFiAPMode_Disabled:
+        return "Disabled";
+    case kWiFiAPMode_Enabled:
+        return "Enabled";
+    case kWiFiAPMode_OnDemand:
+        return "OnDemand";
+    case kWiFiAPMode_OnDemand_NoStationProvision:
+        return "OnDemand_NoStationProvision";
+    default:
+        return "(unknown)";
+    }
+}
+
+const char * ConnectivityManagerImpl::_ServiceTunnelModeToStr(ServiceTunnelMode mode)
+{
+    switch (mode)
+    {
+    case kServiceTunnelMode_NotSupported:
+        return "NotSupported";
+    case kServiceTunnelMode_Disabled:
+        return "Disabled";
+    case kServiceTunnelMode_Enabled:
+        return "Enabled";
+    default:
+        return "(unknown)";
+    }
+}
+
+const char * ConnectivityManagerImpl::_WoBLEServiceModeToStr(WoBLEServiceMode mode)
+{
+    switch (mode)
+    {
+    case kWoBLEServiceMode_NotSupported:
+        return "NotSupported";
+    case kWoBLEServiceMode_Enabled:
+        return "Disabled";
+    case kWoBLEServiceMode_Disabled:
+        return "Enabled";
     default:
         return "(unknown)";
     }
@@ -1042,27 +1093,6 @@ const char * ConnectivityManagerImpl::WiFiStationStateToStr(WiFiStationState sta
         return "Connected";
     case kWiFiStationState_Disconnecting:
         return "Disconnecting";
-    default:
-        return "(unknown)";
-    }
-}
-
-const char * ConnectivityManagerImpl::WiFiAPModeToStr(WiFiAPMode mode)
-{
-    switch (mode)
-    {
-    case kWiFiAPMode_NotSupported:
-        return "NotSupported";
-    case kWiFiAPMode_ApplicationControlled:
-        return "AppControlled";
-    case kWiFiAPMode_Disabled:
-        return "Disabled";
-    case kWiFiAPMode_Enabled:
-        return "Enabled";
-    case kWiFiAPMode_OnDemand:
-        return "OnDemand";
-    case kWiFiAPMode_OnDemand_NoStationProvision:
-        return "OnDemand_NoStationProvision";
     default:
         return "(unknown)";
     }
@@ -1154,48 +1184,6 @@ void ConnectivityManagerImpl::HandleServiceTunnelNotification(WeaveTunnelConnect
         }
     }
 }
-
-// ==================== Internal Utility Functions ====================
-
-namespace Internal {
-
-const char *CharacterizeIPv6Address(const IPAddress & ipAddr)
-{
-    if (ipAddr.IsIPv6LinkLocal())
-    {
-        return "Link-local IPv6 address";
-    }
-    else if (ipAddr.IsIPv6ULA())
-    {
-        if (FabricState.FabricId != kFabricIdNotSpecified && ipAddr.GlobalId() == nl::Weave::WeaveFabricIdToIPv6GlobalId(FabricState.FabricId))
-        {
-            switch (ipAddr.Subnet())
-            {
-            case kWeaveSubnetId_PrimaryWiFi:
-                return "Weave WiFi IPv6 ULA";
-            case kWeaveSubnetId_Service:
-                return "Weave Service IPv6 ULA";
-            case kWeaveSubnetId_ThreadMesh:
-                return "Weave Thread IPv6 ULA";
-            case kWeaveSubnetId_ThreadAlarm:
-                return "Weave Thread Alarm IPv6 ULA";
-            case kWeaveSubnetId_WiFiAP:
-                return "Weave WiFi AP IPv6 ULA";
-            case kWeaveSubnetId_MobileDevice:
-                return "Weave Mobile IPv6 ULA";
-            default:
-                return "Weave IPv6 ULA";
-            }
-        }
-    }
-    else if ((ntohl(ipAddr.Addr[0]) & 0xE0000000U) == 0x20000000U)
-    {
-        return "Global IPv6 address";
-    }
-    return "IPv6 address";
-}
-
-} // namespace Internal
 
 } // namespace DeviceLayer
 } // namespace Weave
