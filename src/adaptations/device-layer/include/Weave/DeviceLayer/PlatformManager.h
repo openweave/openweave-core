@@ -187,8 +187,6 @@ inline WEAVE_ERROR PlatformManager::StartWeaveTimer(uint32_t durationMS)
     return static_cast<ImplClass*>(this)->_StartWeaveTimer(durationMS);
 }
 
-
-
 } // namespace DeviceLayer
 } // namespace Weave
 } // namespace nl

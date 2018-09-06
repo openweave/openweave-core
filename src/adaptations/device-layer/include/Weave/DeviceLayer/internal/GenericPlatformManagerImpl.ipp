@@ -308,40 +308,38 @@ void GenericPlatformManagerImpl<ImplClass>::_ScheduleWork(AsyncWorkFunct workFun
 template<class ImplClass>
 void GenericPlatformManagerImpl<ImplClass>::_DispatchEvent(const WeaveDeviceEvent * event)
 {
-    WEAVE_ERROR err = WEAVE_NO_ERROR;
-
 #if WEAVE_PROGRESS_LOGGING
     uint64_t startUS = System::Layer::GetClock_MonotonicHiRes();
 #endif // WEAVE_PROGRESS_LOGGING
 
-    // If the event is a Weave System or Inet Layer event, deliver it to the SystemLayer event handler.
-    if (event->Type == DeviceEventType::kWeaveSystemLayerEvent)
+    switch (event->Type)
     {
-        err = SystemLayer.HandleEvent(*event->WeaveSystemLayerEvent.Target, event->WeaveSystemLayerEvent.Type, event->WeaveSystemLayerEvent.Argument);
-        if (err != WEAVE_SYSTEM_NO_ERROR)
-        {
-            WeaveLogError(DeviceLayer, "Error handling Weave System Layer event (type %d): %s", event->Type, nl::ErrorStr(err));
-        }
-    }
+    case DeviceEventType::kNoOp:
+        // Do nothing for no-op events.
+        break;
 
-    // If the event is a "call work function" event, call the specified function.
-    else if (event->Type == DeviceEventType::kCallWorkFunct)
-    {
+    case DeviceEventType::kWeaveSystemLayerEvent:
+        // If the event is a Weave System or Inet Layer event, deliver it to the SystemLayer event handler.
+        Impl()->DispatchEventToSystemLayer(event);
+        break;
+
+    case DeviceEventType::kCallWorkFunct:
+        // If the event is a "call work function" event, call the specified function.
         event->CallWorkFunct.WorkFunct(event->CallWorkFunct.Arg);
-    }
+        break;
 
-    // Otherwise...
-    else
-    {
-        // Deliver the event to all the components in the Device Layer.
+    default:
+        // For all other events, deliver the event to each of the components in the Device Layer.
         Impl()->DispatchEventToDeviceLayer(event);
 
-        // If the event is not an internal event, deliver the event to the application's registered
+        // If the event is not an internal event, also deliver it to the application's registered
         // event handlers.
         if (!event->IsInternal())
         {
             Impl()->DispatchEventToApplication(event);
         }
+
+        break;
     }
 
     // TODO: make this configurable
@@ -352,6 +350,22 @@ void GenericPlatformManagerImpl<ImplClass>::_DispatchEvent(const WeaveDeviceEven
         WeaveLogError(DeviceLayer, "Long dispatch time: %" PRId32 " ms", delta);
     }
 #endif // WEAVE_PROGRESS_LOGGING
+}
+
+template<class ImplClass>
+void GenericPlatformManagerImpl<ImplClass>::DispatchEventToSystemLayer(const WeaveDeviceEvent * event)
+{
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
+
+    // Invoke the System Layer's event handler function.
+    err = SystemLayer.HandleEvent(*event->WeaveSystemLayerEvent.Target,
+                                  event->WeaveSystemLayerEvent.Type,
+                                  event->WeaveSystemLayerEvent.Argument);
+    if (err != WEAVE_SYSTEM_NO_ERROR)
+    {
+        WeaveLogError(DeviceLayer, "Error handling Weave System Layer event (type %d): %s",
+                event->Type, nl::ErrorStr(err));
+    }
 }
 
 template<class ImplClass>

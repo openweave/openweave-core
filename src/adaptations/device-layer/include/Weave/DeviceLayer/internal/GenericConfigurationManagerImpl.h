@@ -43,16 +43,16 @@ class GenericConfigurationManagerImpl
 {
 public:
 
+    // ===== Methods that implement the ConfigurationManager abstract interface.
+
     WEAVE_ERROR _Init();
     WEAVE_ERROR _ConfigureWeaveStack();
-
     WEAVE_ERROR _GetVendorId(uint16_t & vendorId);
     WEAVE_ERROR _GetProductId(uint16_t & productId);
     WEAVE_ERROR _GetProductRevision(uint16_t & productRev);
     WEAVE_ERROR _GetFirmwareRevision(char * buf, size_t bufSize, size_t & outLen);
     WEAVE_ERROR _GetFirmwareBuildTime(uint16_t & year, uint8_t & month, uint8_t & dayOfMonth,
             uint8_t & hour, uint8_t & minute, uint8_t & second);
-
     WEAVE_ERROR _GetDeviceId(uint64_t & deviceId);
     WEAVE_ERROR _StoreDeviceId(uint64_t deviceId);
     WEAVE_ERROR _GetSerialNumber(char * buf, size_t bufSize, size_t & serialNumLen);
@@ -63,14 +63,12 @@ public:
     WEAVE_ERROR _StorePrimary802154MACAddress(const uint8_t * buf);
     WEAVE_ERROR _GetManufacturingDate(uint16_t & year, uint8_t & month, uint8_t & dayOfMonth);
     WEAVE_ERROR _StoreManufacturingDate(const char * mfgDate);
-
     WEAVE_ERROR _GetDeviceCertificate(uint8_t * buf, size_t bufSize, size_t & certLen);
     WEAVE_ERROR _StoreDeviceCertificate(const uint8_t * cert, size_t certLen);
     WEAVE_ERROR _GetDevicePrivateKey(uint8_t * buf, size_t bufSize, size_t & keyLen);
     WEAVE_ERROR _StoreDevicePrivateKey(const uint8_t * key, size_t keyLen);
     WEAVE_ERROR _GetPairingCode(char * buf, size_t bufSize, size_t & pairingCodeLen);
     WEAVE_ERROR _StorePairingCode(const char * pairingCode);
-
     WEAVE_ERROR _GetFabricId(uint64_t & fabricId);
     WEAVE_ERROR _StoreFabricId(uint64_t fabricId);
     WEAVE_ERROR _GetServiceId(uint64_t & serviceId);
@@ -81,16 +79,12 @@ public:
     WEAVE_ERROR _StoreServiceProvisioningData(uint64_t serviceId, const uint8_t * serviceConfig,
             size_t serviceConfigLen, const char * accountId, size_t accountIdLen);
     WEAVE_ERROR _ClearServiceProvisioningData();
-
     WEAVE_ERROR _GetFailSafeArmed(bool & val);
     WEAVE_ERROR _SetFailSafeArmed(bool val);
-
     WEAVE_ERROR _GetDeviceDescriptor(::nl::Weave::Profiles::DeviceDescription::WeaveDeviceDescriptor & deviceDesc);
     WEAVE_ERROR _GetDeviceDescriptorTLV(uint8_t * buf, size_t bufSize, size_t & encodedLen);
     WEAVE_ERROR _GetQRCodeString(char * buf, size_t bufSize);
-
     WEAVE_ERROR _GetWiFiAPSSID(char * buf, size_t bufSize);
-
     bool _IsServiceProvisioned();
     bool _IsMemberOfFabric();
     bool _IsPairedToAccount();

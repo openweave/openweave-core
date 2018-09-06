@@ -34,7 +34,7 @@ extern template class GenericNetworkProvisioningServerImpl<NetworkProvisioningSe
 /**
  * Concrete implementation of the NetworkProvisioningServer singleton object for the ESP32 platform.
  */
-class NetworkProvisioningServerImpl
+class NetworkProvisioningServerImpl final
     : public NetworkProvisioningServer,
       public GenericNetworkProvisioningServerImpl<NetworkProvisioningServerImpl>
 {
