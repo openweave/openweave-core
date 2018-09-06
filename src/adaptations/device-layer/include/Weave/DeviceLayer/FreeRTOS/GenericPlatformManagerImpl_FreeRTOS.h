@@ -54,7 +54,7 @@ protected:
     TaskHandle_t mEventLoopTask;
     bool mWeaveTimerActive;
 
-    // ===== Methods that implement the ConnectivityManager abstract interface.
+    // ===== Methods that implement the PlatformManager abstract interface.
 
     WEAVE_ERROR _InitWeaveStack();
     void _LockWeaveStack(void);

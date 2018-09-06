@@ -52,7 +52,7 @@ protected:
 
     AppEventHandler * mAppEventHandlerList;
 
-    // ===== Methods that implement the ConnectivityManager abstract interface.
+    // ===== Methods that implement the PlatformManager abstract interface.
 
     WEAVE_ERROR _InitWeaveStack();
     WEAVE_ERROR _AddEventHandler(PlatformManager::EventHandlerFunct handler, intptr_t arg);
@@ -62,6 +62,7 @@ protected:
 
     // ===== Support methods that can be overridden by the implementation subclass.
 
+    void DispatchEventToSystemLayer(const WeaveDeviceEvent * event);
     void DispatchEventToDeviceLayer(const WeaveDeviceEvent * event);
     void DispatchEventToApplication(const WeaveDeviceEvent * event);
     static void HandleSessionEstablished(WeaveSecurityManager * sm, WeaveConnection * con,

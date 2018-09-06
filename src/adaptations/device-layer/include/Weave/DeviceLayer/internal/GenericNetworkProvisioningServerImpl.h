@@ -40,7 +40,7 @@ protected:
     using NetworkInfo = ::nl::Weave::DeviceLayer::Internal::NetworkInfo;
     using PacketBuffer = ::nl::Weave::System::PacketBuffer;
 
-    // ===== Members that implement the NetworkProvisioningServer public interface
+    // ===== Members that implement the NetworkProvisioningServer abstract interface
 
     WEAVE_ERROR _Init(void);
     NetworkProvisioningDelegate * _GetDelegate(void);

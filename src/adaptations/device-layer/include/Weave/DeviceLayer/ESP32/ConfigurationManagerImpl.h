@@ -44,7 +44,7 @@ extern template class Internal::GenericConfigurationManagerImpl<ConfigurationMan
 /**
  * Concrete implementation of the ConfigurationManager singleton object for the ESP32 platform.
  */
-class ConfigurationManagerImpl
+class ConfigurationManagerImpl final
     : public ConfigurationManager,
       public Internal::GenericConfigurationManagerImpl<ConfigurationManagerImpl>,
       private Internal::ESP32Config
