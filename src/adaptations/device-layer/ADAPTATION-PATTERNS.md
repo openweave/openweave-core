@@ -3,7 +3,7 @@
 The Weave Device Layer is intended to work across a variety of platforms and operating contexts.  These environments may
 differ by system type, OS, network stack and/or threading model.  One of the goals of the Device Layer is to make it easy
 to adapt the Weave application stack to new environments.  This is especially desirable in cases where the new platform is
-substantially similar to an already existing platform.
+substantially similar to an existing adaptation.
 
 As part of its design, the Weave Device Layer enables a pattern of code reuse that strives to reduce the need for preprocessor
 conditionals (e.g. #ifdef).  While not eliminating #ifdefs entirely, the design allows major variances in behavior to be expressed as
@@ -496,7 +496,7 @@ template class GenericConfigurationManagerImpl<ConfigurationManagerImpl>;
 ...
 ```
   
-The result is that the template's non-inlined members are only parsed and instiated once, during compilation
+The result is that the template's non-inlined members are only parsed and instantiated once, during compilation
 of the referencing .cpp file, avoiding redundant processing in other contexts.
 
   
