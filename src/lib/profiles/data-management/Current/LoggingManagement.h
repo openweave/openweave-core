@@ -231,6 +231,7 @@ private:
 
     static WEAVE_ERROR CopyEventsSince(const nl::Weave::TLV::TLVReader & aReader, size_t aDepth, void * aContext);
     static WEAVE_ERROR EventIterator(const nl::Weave::TLV::TLVReader & aReader, size_t aDepth, void * aContext);
+    static WEAVE_ERROR FindExternalEvents(const nl::Weave::TLV::TLVReader & aReader, size_t aDepth, void * aContext);
     static WEAVE_ERROR FetchEventParameters(const nl::Weave::TLV::TLVReader & aReader, size_t aDepth, void * aContext);
     static WEAVE_ERROR CopyAndAdjustDeltaTime(const nl::Weave::TLV::TLVReader & aReader, size_t aDepth, void * aContext);
     static WEAVE_ERROR EvictEvent(nl::Weave::TLV::WeaveCircularTLVBuffer & inBuffer, void * inAppData,

@@ -1278,6 +1278,7 @@ void LoggingManagement::UnthrottleLogger(void)
     }
 }
 
+
 // internal API, used to copy events to external buffers
 WEAVE_ERROR LoggingManagement::CopyEvent(const TLVReader & aReader, TLVWriter & aWriter, EventLoadOutContext * aContext)
 {
