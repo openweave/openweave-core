@@ -106,12 +106,12 @@ The methods on the implementation class that are the target of forwarding method
 methods_**.  For every forwarding method there must be a corresponding implementation method.
 
 A leading underscore (_) is used to distinguish implementation methods from their forwarding methods.  This arrangement
-helps to emphasize the distinction between the two, and ensures the flagging of a compilation error should an implementer neglect
-to provide a necessary implementation method.
+helps to emphasize the distinction between the two, and ensures the generation of a compilation error should an implementer neglect
+to provide an implementation method.
 
 Implementation methods are not meant to be called directly.  To block this type of use, implementation classes declare their
 implementation methods as private, and then use a friend declaration to give the interface class the (sole) right to invoke
-these methods within its forwarding methods.
+these methods as part of forwarding.
 
 ```cpp
 class ConfigurationManagerImpl;
@@ -158,9 +158,9 @@ inline WEAVE_ERROR ConfigurationManager::Init()
 ### Target Platform Selection
 
 An implementation class provides a concrete implementation of a Device Layer component for use on a particular
-platform.  Multiple implementation classes may exist within the Device Layer source tree for the same component,
-each having the same class name, but containing code unique to the associated platform.  The choice
-of which implementation class is included at compile time is done by means of a computed #include directive of the
+platform.  Multiple implementation classes may exist within the Device Layer source tree for the same component.
+Each of these classes has the same name, but their code is unique to the associated platform.  The choice
+of which implementation class is included at compile time is done by means of a computed #include directive with the
 following form:
 
 ```cpp
@@ -188,7 +188,7 @@ Source files specific to a platform are placed in subdirectories immediately ben
 directory (e.g. `src/adaptations/device-layer/ESP32`).  Like platform-specific header directories, these are subdirectories
 are named after the target platform.
 
-The target platform for the Device Layer is specified at project configuration time, using the configure script option
+The choice of target platform for the Device Layer is specified at project configuration time, using the configure script option
 `--device-layer=<target-platform>`.  Passing the --device-layer option results in the definition of a pair of pre-processor
 symbols where the name of the target platform is incorporated into the definitions.  E.g.:
 
@@ -203,12 +203,12 @@ in the generated library file.  This is accomplished via logic in the Device Lay
 ### Generic Implementation Classes
 
 Often it is possible to share implementation code across a range of platforms.  In some cases the code in question is
-substantially the same for all targets, with only minor customizations required in certain cases.  In other cases, the commonality
-of the implementation extends across platforms that share a particular architectural feature, such as a common OS (Linux,
+substantially the same for all targets, with only minor customizations required in each case.  In other cases, the commonality
+of the implementation extends across a subset of platforms that share a particular architectural feature, such as a common OS (Linux,
 FreeRTOS) or network stack (sockets, LwIP).
 
-To accommodate this, the Weave Device Layer encourages a pattern of factoring common functionality into generic
-implementation base classes.  These base classes are then used to compose (via inheritance) the concrete implementation
+To accommodate this, the Weave Device Layer encourages a pattern of factoring common functionality into **_generic
+implementation base classes_**.  These base classes are then used to compose (via inheritance) the concrete implementation
 classes that underlie a component.
 
 Generic implementation base classes are realized as C++ class templates which follow the C++ [Curiously Recurring
@@ -278,8 +278,8 @@ class ConfigurationManagerImpl final
 ### Overriding Generic Behaviors
 
 Where desirable, concrete implementation classes are free to override the implementation methods provided by a generic base
-class.  This is accomplished this simply by defining a new version of the method on the implementation class.  The rules of C++ take
-care that the method on the subclass is called in preference to the generic method. 
+class.  This is accomplished by defining a platform-specific version of the method on the implementation class.  The rules of C++
+result in the method on the implementation class being called in preference to the generic method. 
 
 The new method may entirely replace the behavior of the generic method, or it may augment its behavior by calling the generic
 method in the midst of its own implementation.
@@ -289,11 +289,11 @@ WEAVE_ERROR ConfigurationManagerImpl::_GetDeviceId(uint64_t & deviceId)
 {
     using GenericImpl = GenericConfigurationManagerImpl<ConfigurationManagerImpl>;
 
-    /* Call the generic implementation. */
+    /* Call the generic implementation to get the device id. */
     uint64_t deviceId = GenericImpl::_GetDeviceId(deviceId);
 
-    /* Provide some platform-specific behavior. */
-    if (deviceId == 0) {
+    /* Special case the situation where the device id is not known. */
+    if (deviceId == kNodeIdNotSpecified) {
         deviceId = PLATFORM_DEFAULT_DEVICE_ID;
     }
 
@@ -304,9 +304,9 @@ WEAVE_ERROR ConfigurationManagerImpl::_GetDeviceId(uint64_t & deviceId)
 ### Multiple Inheritance and Subclassing of Generic Implementations
 
 Concrete implementation classes are free to inherit from multiple generic base classes.  This pattern is particularly useful
-when the overall functionality of a component can be naturally split into slices (e.g. methods that support WiFi and methods
+when the overall functionality of a component can be naturally split into independent slices (e.g. methods that support WiFi and methods
 that support Thread).  Each such slice can then be implemented by a distinct base class which ends up being composed together
-with other base classes in the final implementation class.
+with other base classes in the final implementation.
 
 ```cpp
 /** Concrete implementation of ConfigurationManager component for specific platform
@@ -321,7 +321,7 @@ class ConfigurationManagerImpl final
 ```
 
 A generic implementation base class may also inherit from other generic base classes.  This is useful for “specializing” a generic
-implementation for a certain range of sub-use cases (e.g. by OS type).
+implementation for a certain sub-range of use cases (e.g. for a particular OS type).
 
 ```cpp
 /** Generic base class for use in implementing PlatformManager features
@@ -347,13 +347,13 @@ class GenericPlatformManagerImpl_FreeRTOS
 ### Static Virtualization of Generic Implementation Behavior
 
 When creating generic implementation base classes, developers are encouraged to use a pattern of static virtualization to
-delegate operations to the platform implementation class in cases where the operation may or must be implemented in a
+delegate operations to the concrete implementation class in cases where the operation may or must be implemented in a
 platform-specific way.
 
 For example, consider a generic implementation of the ConfigurationManager component where value accessor methods
-such as `GetDeviceId()` work by retrieving values from an underlying key-value store.  The implementation of the key-value
-store will likely vary by platform.  To allow for this, the generic implementation class is designed to delegate the operation
-of retrieving the value for a key to a method on the concrete implementation class.
+such as `GetDeviceId()` operate by retrieving values from an underlying key-value store.  The particulars of how the key-value
+store is implemented will likely vary by platform.  To allow for this, the generic implementation class is structured to delegate
+the operation of retrieving the value for a key to a method on the concrete implementation class.
 
 Following the Curiously Recurring Template Pattern, delegation is accomplished by casting the `this` pointer to the
 implementation class and calling a method with the appropriate signature.  An inline helper function named `Impl()` helps
@@ -395,10 +395,10 @@ WEAVE_ERROR ConfigurationManagerImpl::ReadConfigValue(const char * key, uint64_t
 
 In the above example, the delegated method is conceptually ‘pure virtual’ in that the concrete implementation class must
 supply a version of the method, otherwise compilation will fail.  In other situations, a similar pattern can be used to allow
-an implementation to override a default behavior supplied by the base class.
+an implementation to override a default behavior supplied by the base class on an as-needed basis.
 
 Again, delegation happens by casting the `this` pointer and calling an appropriate method.  In this case, however, the generic
-base class provides a default  implementation of the target method which will be used unless overridden in the subclass.
+base class provides a default  implementation of the target method which will be used unless the subclass overrides it.
 
 ```cpp
 template<class ImplClass>
@@ -496,7 +496,7 @@ template class GenericConfigurationManagerImpl<ConfigurationManagerImpl>;
 ...
 ```
   
-The result is that the template's non-inlined members are only parsed and instiated during compilation
+The result is that the template's non-inlined members are only parsed and instiated once, during compilation
 of the referencing .cpp file, avoiding redundant processing in other contexts.
 
   
