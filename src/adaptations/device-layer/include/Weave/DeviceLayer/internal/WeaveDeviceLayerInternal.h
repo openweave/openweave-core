@@ -21,8 +21,6 @@
 
 #include <Weave/DeviceLayer/WeaveDeviceLayer.h>
 
-using namespace ::nl::Weave;
-
 namespace nl {
 namespace Weave {
 namespace Logging {

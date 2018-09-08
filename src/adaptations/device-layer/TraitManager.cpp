@@ -28,6 +28,7 @@
 #include <Weave/Profiles/security/ApplicationKeysTraitDataSink.h>
 #include <Weave/DeviceLayer/internal/DeviceIdentityTraitDataSource.h>
 
+using namespace ::nl::Weave;
 using namespace ::nl::Weave::DeviceLayer;
 using namespace ::nl::Weave::DeviceLayer::Internal;
 using namespace ::nl::Weave::Profiles::DataManagement_Current;
