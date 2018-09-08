@@ -25,10 +25,6 @@ namespace DeviceLayer {
 
 nl::Weave::System::Layer SystemLayer;
 nl::Inet::InetLayer InetLayer;
-nl::Weave::WeaveFabricState FabricState;
-nl::Weave::WeaveMessageLayer MessageLayer;
-nl::Weave::WeaveExchangeManager ExchangeMgr;
-nl::Weave::WeaveSecurityManager SecurityMgr;
 
 namespace Internal {
 

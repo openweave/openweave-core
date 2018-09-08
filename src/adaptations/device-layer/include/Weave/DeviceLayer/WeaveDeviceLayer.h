@@ -20,6 +20,7 @@
 #define WEAVE_DEVICE_H
 
 #include <Weave/Core/WeaveCore.h>
+#include <Weave/Core/WeaveGlobals.h>
 #include <Weave/DeviceLayer/WeaveDeviceConfig.h>
 #include <Weave/DeviceLayer/WeaveDeviceError.h>
 #include <Weave/DeviceLayer/GeneralUtils.h>
@@ -36,12 +37,13 @@ namespace DeviceLayer {
 
 struct WeaveDeviceEvent;
 
+using nl::Weave::FabricState;
+using nl::Weave::MessageLayer;
+using nl::Weave::ExchangeMgr;
+using nl::Weave::SecurityMgr;
+
 extern nl::Weave::System::Layer SystemLayer;
 extern nl::Inet::InetLayer InetLayer;
-extern nl::Weave::WeaveFabricState FabricState;
-extern nl::Weave::WeaveMessageLayer MessageLayer;
-extern nl::Weave::WeaveExchangeManager ExchangeMgr;
-extern nl::Weave::WeaveSecurityManager SecurityMgr;
 
 } // namespace DeviceLayer
 } // namespace Weave
