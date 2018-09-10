@@ -190,7 +190,7 @@ WEAVE_ERROR ConfigurationManagerImpl::UpdateWiFiStationSecurityType(Profiles::Ne
         if (err == WEAVE_DEVICE_ERROR_CONFIG_NOT_FOUND || (err == WEAVE_NO_ERROR && secType != curSecType))
         {
             uint32_t secTypeInt = secType;
-            err = ReadConfigValue(kConfigKey_WiFiStationSecType, secTypeInt);
+            err = WriteConfigValue(kConfigKey_WiFiStationSecType, secTypeInt);
         }
         SuccessOrExit(err);
     }
