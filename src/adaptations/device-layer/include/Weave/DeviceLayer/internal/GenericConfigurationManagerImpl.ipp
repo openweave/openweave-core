@@ -235,6 +235,7 @@ WEAVE_ERROR GenericConfigurationManagerImpl<ImplClass>::_GetDeviceCertificate(ui
     if (err == WEAVE_DEVICE_ERROR_CONFIG_NOT_FOUND)
     {
         certLen = TestDeviceCertLength;
+        VerifyOrExit(buf != NULL, err = WEAVE_NO_ERROR);
         VerifyOrExit(TestDeviceCertLength <= bufSize, err = WEAVE_ERROR_BUFFER_TOO_SMALL);
         WeaveLogProgress(DeviceLayer, "Device certificate not found; using default");
         memcpy(buf, TestDeviceCert, TestDeviceCertLength);
@@ -267,6 +268,7 @@ WEAVE_ERROR GenericConfigurationManagerImpl<ImplClass>::_GetDevicePrivateKey(uin
     if (err == WEAVE_DEVICE_ERROR_CONFIG_NOT_FOUND)
     {
         keyLen = TestDevicePrivateKeyLength;
+        VerifyOrExit(buf != NULL, err = WEAVE_NO_ERROR);
         VerifyOrExit(TestDevicePrivateKeyLength <= bufSize, err = WEAVE_ERROR_BUFFER_TOO_SMALL);
         WeaveLogProgress(DeviceLayer, "Device private key not found; using default");
         memcpy(buf, TestDevicePrivateKey, TestDevicePrivateKeyLength);

@@ -95,7 +95,7 @@ protected:
     {
         kFlag_IsServiceProvisioned      = 0x01,
         kFlag_IsMemberOfFabric          = 0x02,
-        kFlag_IsPairedToAccount         = 0x03,
+        kFlag_IsPairedToAccount         = 0x04,
     };
 
     uint8_t mFlags;
