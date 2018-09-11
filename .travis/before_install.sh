@@ -31,8 +31,25 @@ die()
 case "${BUILD_TARGET}" in
 
     linux-auto-*)
+        # By default, the BLE layer is enabled in OpenWeave Core and, by
+        # default on Linux, the BLE layer is implemented by BlueZ. On Linux,
+        # BlueZ requires:
+        #
+        #   * libdbus-1-dev
+        #   * libical-dev
+        #   * libudev-dev
+        #   * systemd
+
         sudo apt-get update
         sudo apt-get install libdbus-1-dev libudev-dev libical-dev systemd
+
+        # By default, OpenWeave Core uses OpenSSL for cryptography on
+        # Linux and the OpenSSL version included in package depends
+        # on the perl Text::Template mmodule.
+
+        curl -L https://cpanmin.us | sudo perl - --sudo App::cpanminus
+        sudo cpanm "Text::Template"
+
         ;;
 
     *)
