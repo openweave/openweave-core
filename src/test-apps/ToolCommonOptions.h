@@ -247,8 +247,10 @@ class ServiceDirClientOptions : public OptionSetBase
 public:
     const char *ServerHost;
     uint16_t ServerPort;
+#if WEAVE_CONFIG_ENABLE_DNS_RESOLVER
     uint8_t DNSOptions_ServiceDirEndpoint;
     uint8_t DNSOptions_TargetEndpoint;
+#endif
 
     ServiceDirClientOptions();
 

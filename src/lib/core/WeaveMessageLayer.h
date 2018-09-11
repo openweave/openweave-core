@@ -377,7 +377,9 @@ private:
     InterfaceId mTargetInterface;
     uint32_t mConnectTimeout;
     uint8_t mRefCount;
+#if WEAVE_CONFIG_ENABLE_DNS_RESOLVER
     uint8_t mDNSOptions;
+#endif
 
     void Init(WeaveMessageLayer *msgLayer);
     void MakeConnectedTcp(TCPEndPoint *endPoint, const IPAddress &localAddr, const IPAddress &peerAddr);

@@ -274,7 +274,9 @@ private:
     AddressingOption mAddressingOption : 3;
     TransportOption mTransportOption : 3;
     unsigned mFlags : 3;
+#if WEAVE_CONFIG_ENABLE_DNS_RESOLVER
     uint8_t mDNSOptions;
+#endif
 
     EventCallback mAppEventCallback;
     EventCallback mProtocolLayerCallback;

@@ -300,7 +300,12 @@ WEAVE_ERROR WeaveConnection::Connect(uint64_t peerNodeId, WeaveAuthMode authMode
 WEAVE_ERROR WeaveConnection::Connect(uint64_t peerNodeId, WeaveAuthMode authMode, const char *peerAddr,
                                      uint16_t peerAddrLen, uint16_t defaultPort)
 {
-    return Connect(peerNodeId, authMode, peerAddr, peerAddrLen, ::nl::Inet::kDNSOption_Default, defaultPort);
+#if WEAVE_CONFIG_ENABLE_DNS_RESOLVER
+    const uint8_t dnsOptions = ::nl::Inet::kDNSOption_Default;
+#else
+    const uint8_t dnsOptions = 0;
+#endif
+    return Connect(peerNodeId, authMode, peerAddr, peerAddrLen, dnsOptions, defaultPort);
 }
 
 /**
@@ -436,7 +441,12 @@ exit:
 WEAVE_ERROR WeaveConnection::Connect(uint64_t peerNodeId, WeaveAuthMode authMode, HostPortList hostPortList,
                                      InterfaceId intf)
 {
-    return Connect(peerNodeId, authMode, hostPortList, kDNSOption_Default, intf);
+#if WEAVE_CONFIG_ENABLE_DNS_RESOLVER
+    const uint8_t dnsOptions = ::nl::Inet::kDNSOption_Default;
+#else
+    const uint8_t dnsOptions = 0;
+#endif
+    return Connect(peerNodeId, authMode, hostPortList, dnsOptions, intf);
 }
 
 /**
@@ -487,7 +497,9 @@ WEAVE_ERROR WeaveConnection::Connect(uint64_t peerNodeId, WeaveAuthMode authMode
     AuthMode = authMode;
     mPeerHostPortList = hostPortList;
     mTargetInterface = intf;
+#if WEAVE_CONFIG_ENABLE_DNS_RESOLVER
     mDNSOptions = dnsOptions;
+#endif
 
     // Bump the reference count when we start the connection process. The corresponding decrement happens when the
     // DoClose() method is called. This ensures the object stays live while there's the possibility of a callback
@@ -1620,7 +1632,9 @@ void WeaveConnection::Init(WeaveMessageLayer *msgLayer)
     SendSourceNodeId = false;
     SendDestNodeId = false;
     mConnectTimeout = 0;
+#if WEAVE_CONFIG_ENABLE_DNS_RESOLVER
     mDNSOptions = 0;
+#endif
 }
 
 // Default OnConnectionClosed handler.

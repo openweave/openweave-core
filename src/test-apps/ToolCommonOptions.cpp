@@ -692,8 +692,10 @@ ServiceDirClientOptions::ServiceDirClientOptions()
 #if WEAVE_CONFIG_ENABLE_SERVICE_DIRECTORY
         { "service-dir-server",             kArgumentRequired, kToolCommonOpt_ServiceDirServer },
         { "service-dir-url",                kArgumentRequired, kToolCommonOpt_ServiceDirServer }, // deprecated alias for service-dir-server
+#if WEAVE_CONFIG_ENABLE_DNS_RESOLVER
         { "service-dir-dns-options",        kArgumentRequired, kToolCommonOpt_ServiceDirDNSOptions },
         { "service-dir-target-dns-options", kArgumentRequired, kToolCommonOpt_ServiceDirTargetDNSOptions },
+#endif // WEAVE_CONFIG_ENABLE_DNS_RESOLVER
 #endif // WEAVE_CONFIG_ENABLE_SERVICE_DIRECTORY
         { NULL }
     };
@@ -707,6 +709,7 @@ ServiceDirClientOptions::ServiceDirClientOptions()
         "       Use the specified server when making service directory requests.\n"
         "       (Deprecated alias: --service-dir-url)\n"
         "\n"
+#if WEAVE_CONFIG_ENABLE_DNS_RESOLVER
         "  --service-dir-dns-options <dns-options>\n"
         "  --service-dir-target-dns-options <dns-options>\n"
         "       Use the specified DNS options when resolving hostnames during a\n"
@@ -729,14 +732,17 @@ ServiceDirClientOptions::ServiceDirClientOptions()
         "              - Resolve IPv4 and/or IPv6 addresses, with IPv6 addresses\n"
         "                given preference over IPv4.\n"
         "\n"
+#endif // WEAVE_CONFIG_ENABLE_DNS_RESOLVER
 #endif // WEAVE_CONFIG_ENABLE_SERVICE_DIRECTORY
         "";
 
     // Defaults.
     ServerHost = "frontdoor.integration.nestlabs.com";
     ServerPort = WEAVE_PORT;
+#if WEAVE_CONFIG_ENABLE_DNS_RESOLVER
     DNSOptions_ServiceDirEndpoint = kDNSOption_AddrFamily_Any;
     DNSOptions_TargetEndpoint = kDNSOption_AddrFamily_Any;
+#endif
 }
 
 bool ServiceDirClientOptions::HandleOption(const char *progName, OptionSet *optSet, int id, const char *name, const char *arg)
@@ -759,6 +765,7 @@ bool ServiceDirClientOptions::HandleOption(const char *progName, OptionSet *optS
         if (ServerPort == 0)
             ServerPort = WEAVE_PORT;
         break;
+#if WEAVE_CONFIG_ENABLE_DNS_RESOLVER
     case kToolCommonOpt_ServiceDirDNSOptions:
         if (!ParseDNSOptions(progName, name, arg, DNSOptions_ServiceDirEndpoint))
         {
@@ -771,6 +778,7 @@ bool ServiceDirClientOptions::HandleOption(const char *progName, OptionSet *optS
             return false;
         }
         break;
+#endif // WEAVE_CONFIG_ENABLE_DNS_RESOLVER
 #endif // WEAVE_CONFIG_ENABLE_SERVICE_DIRECTORY
     default:
         PrintArgError("%s: INTERNAL ERROR: Unhandled option: %s\n", progName, name);
@@ -808,6 +816,8 @@ WEAVE_ERROR GetRootServiceDirectoryEntry(uint8_t *buf, uint16_t bufSize)
 
 void ServiceDirClientOptions::OverrideConnectArguments(ServiceConnectBeginArgs & args)
 {
+#if WEAVE_CONFIG_ENABLE_DNS_RESOLVER
+
     // If specific DNS options have been set for the connection to the
     // ServiceDirectory endpoint, override the default DNS options.
     if (args.ServiceEndpoint == kServiceEndpoint_Directory)
@@ -827,6 +837,8 @@ void ServiceDirClientOptions::OverrideConnectArguments(ServiceConnectBeginArgs &
             args.DNSOptions = DNSOptions_TargetEndpoint;
         }
     }
+
+#endif // WEAVE_CONFIG_ENABLE_DNS_RESOLVER
 }
 
 void OverrideServiceConnectArguments(::nl::Weave::Profiles::ServiceDirectory::ServiceConnectBeginArgs & args)
@@ -939,6 +951,8 @@ bool FaultInjectionOptions::HandleOption(const char *progName, OptionSet *optSet
 }
 
 
+#if WEAVE_CONFIG_ENABLE_DNS_RESOLVER
+
 static bool GetToken(const char * & inStr, const char * & token, size_t & tokenLen, const char * sepChars)
 {
     token = inStr;
@@ -1033,3 +1047,5 @@ bool ParseDNSOptions(const char * progName, const char *argName, const char * ar
 
     return true;
 }
+
+#endif // WEAVE_CONFIG_ENABLE_DNS_RESOLVER
