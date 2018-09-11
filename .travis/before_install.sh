@@ -31,6 +31,7 @@ die()
 case "${BUILD_TARGET}" in
 
     linux-auto-*)
+        sudo apt-get update
         sudo apt-get install libdbus-1-dev libudev-dev libical-dev
         ;;
 
