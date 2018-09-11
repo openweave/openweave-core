@@ -475,6 +475,12 @@ private:
  */
 struct ServiceConnectBeginArgs
 {
+    ServiceConnectBeginArgs(uint64_t inServiceEndpoint,
+                            WeaveConnection *inConnection,
+                            HostPortList *inEndpointHostPortList,
+                            InterfaceId inConnectIntf,
+                            WeaveAuthMode inAuthMode,
+                            uint8_t inDNSOptions);
     /** The service endpoint to which the connect is being established. */
     const uint64_t ServiceEndpoint;
 

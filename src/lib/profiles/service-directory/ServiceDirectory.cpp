@@ -1431,6 +1431,22 @@ WEAVE_ERROR WeaveServiceManager::calculateEntryLength(uint8_t *entryStart,
     return err;
 }
 
+ServiceConnectBeginArgs::ServiceConnectBeginArgs(
+    uint64_t inServiceEndpoint,
+    WeaveConnection *inConnection,
+    HostPortList *inEndpointHostPortList,
+    InterfaceId inConnectIntf,
+    WeaveAuthMode inAuthMode,
+    uint8_t inDNSOptions) :
+    ServiceEndpoint(inServiceEndpoint),
+    Connection(inConnection),
+    EndpointHostPortList(inEndpointHostPortList),
+    ConnectIntf(inConnectIntf),
+    AuthMode(inAuthMode),
+    DNSOptions(inDNSOptions)
+{
+}
+
 /**
  *  @brief
  *    This method looks up the given service endpoint in the cache and sets up an
@@ -1469,14 +1485,14 @@ WEAVE_ERROR WeaveServiceManager::lookupAndConnect(WeaveConnection *aConnection,
     {
         HostPortList hostPortList(entry, itemCount, mSuffixTable.base, mSuffixTable.length);
         ServiceConnectBeginArgs connectBeginArgs
-        {
+            (
             aServiceEp,
             aConnection,
             &hostPortList,
             aConnectIntf,
             aAuthMode,
             ::nl::Inet::kDNSOption_Default
-        };
+             );
 
         if (mConnectBegin != NULL)
         {
