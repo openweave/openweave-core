@@ -443,7 +443,9 @@ void Binding::ResetConfig()
 
     mFlags = 0;
 
+#if WEAVE_CONFIG_ENABLE_DNS_RESOLVER
     mDNSOptions = ::nl::Inet::kDNSOption_Default;
+#endif
 }
 
 /**
@@ -1546,7 +1548,11 @@ Binding::Configuration& Binding::Configuration::TargetAddress_IP(const char *aHo
  */
 Binding::Configuration& Binding::Configuration::DNS_Options(uint8_t dnsOptions)
 {
+#if WEAVE_CONFIG_ENABLE_DNS_RESOLVER
     mBinding.mDNSOptions = dnsOptions;
+#else // WEAVE_CONFIG_ENABLE_DNS_RESOLVER
+    mError = WEAVE_ERROR_NOT_IMPLEMENTED;
+#endif // WEAVE_CONFIG_ENABLE_DNS_RESOLVER
     return *this;
 }
 

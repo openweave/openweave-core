@@ -1491,8 +1491,12 @@ WEAVE_ERROR WeaveServiceManager::lookupAndConnect(WeaveConnection *aConnection,
             &hostPortList,
             aConnectIntf,
             aAuthMode,
+#if WEAVE_CONFIG_ENABLE_DNS_RESOLVER
             ::nl::Inet::kDNSOption_Default
-             );
+#else
+            0
+#endif
+            );
 
         if (mConnectBegin != NULL)
         {
