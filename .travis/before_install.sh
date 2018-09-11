@@ -31,6 +31,7 @@ die()
 case "${BUILD_TARGET}" in
 
     linux-auto-*)
+        sudo apt-get install libdbus-1-3
         ;;
 
     *)
