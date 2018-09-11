@@ -1,4 +1,6 @@
 [![OpenWeave][ow-logo]][ow-core-repo]
+<br/>
+<br/>
 [![Build Status][ow-core-travis-svg]][ow-core-travis]
 [![Coverage Status][ow-core-codecov-svg]][ow-core-codecov]
 
