@@ -148,6 +148,7 @@ static void PrettyPrintWDM(bool aIsNewLine, const char * aFmt, ...)
     va_end(args);
 }
 #else // WEAVE_DETAIL_LOGGING
+#define PRETTY_PRINT_CHECKPOINT()
 #define PRETTY_PRINT(fmt, ...)
 #define PRETTY_PRINT_SAMELINE(fmt, ...)
 #define PRETTY_PRINT_INCDEPTH()
@@ -1080,7 +1081,6 @@ WEAVE_ERROR StatusElement::Parser::CheckSchemaValidityCurrent(void) const
     WEAVE_ERROR err          = WEAVE_NO_ERROR;
     uint16_t TagPresenceMask = 0;
     nl::Weave::TLV::TLVReader reader;
-    uint32_t tagNum = 0;
 
     PRETTY_PRINT("\t{");
 
@@ -1126,7 +1126,7 @@ WEAVE_ERROR StatusElement::Parser::CheckSchemaValidityCurrent(void) const
         }
         else
         {
-            PRETTY_PRINT("\t\tUnknown tag num %" PRIu32, tagNum);
+            PRETTY_PRINT("\t\tExtra element in StatusElement");
         }
     }
 
