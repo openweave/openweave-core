@@ -52,6 +52,9 @@ case "${BUILD_TARGET}" in
 
         ;;
 
+    osx-auto-clang)
+        ;;
+
     *)
         die "Unknown build target \"${BUILD_TARGET}\"."
         ;;
