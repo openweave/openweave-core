@@ -36,11 +36,11 @@ case "${BUILD_TARGET}" in
         ;;
 
     linux-auto-clang|linux-auto-gcc)
-        ./configure && make
+        ./configure && make && make check
         ;;
 
     osx-auto-clang)
-        ./configure && make
+        ./configure && make && make check
         ;;
 
     *)
