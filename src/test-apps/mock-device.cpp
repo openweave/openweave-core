@@ -1086,4 +1086,3 @@ static void HandleWdmCompleteTest()
         Done = true;
     }
 }
-
