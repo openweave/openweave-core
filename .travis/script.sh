@@ -31,7 +31,11 @@ die()
 
 case "${BUILD_TARGET}" in
 
-    linux-auto-*)
+    linux-auto-*-lint)
+        ./configure && make pretty-check
+        ;;
+
+    linux-auto-clang|linux-auto-gcc)
         ./configure && make
         ;;
 
