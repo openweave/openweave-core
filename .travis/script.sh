@@ -39,6 +39,10 @@ case "${BUILD_TARGET}" in
         ./configure && make
         ;;
 
+    osx-auto-clang)
+        ./configure && make
+        ;;
+
     *)
         die "Unknown build target \"${BUILD_TARGET}\"."
         ;;
