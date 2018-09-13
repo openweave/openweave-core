@@ -28,6 +28,19 @@ die()
     exit 1
 }
 
+# Package build machine OS-specific configuration and setup
+
+case "${TRAVIS_OS_NAME}" in
+
+    linux)
+        sysctl -a | grep '_ipv6'
+	sudo sysctl -w net.ipv6.conf.all.disable_ipv6=0
+        ;;
+
+esac
+
+# Package target-specific configuration and setup
+
 case "${BUILD_TARGET}" in
 
     linux-auto-*)
