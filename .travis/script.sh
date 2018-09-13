@@ -40,7 +40,7 @@ case "${BUILD_TARGET}" in
         ;;
 
     osx-auto-clang)
-        ./configure && make && make check || src/test-apps/TestInetEndPoint; src/test-apps/TestDNSResolution
+        ./configure && make
         ;;
 
     *)
