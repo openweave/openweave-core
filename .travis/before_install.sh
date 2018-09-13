@@ -33,8 +33,12 @@ die()
 case "${TRAVIS_OS_NAME}" in
 
     linux)
-        sysctl -a | grep '_ipv6'
-	sudo sysctl -w net.ipv6.conf.all.disable_ipv6=0
+        # By default, Travis CI does not have IPv6 enabled on
+        # Linux. Ensure that IPv6 is enabled since Weave, and its unit
+        # and functional tests, depend on working IPv6 support.
+
+        sudo sysctl -w net.ipv6.conf.all.disable_ipv6=0
+
         ;;
 
 esac
