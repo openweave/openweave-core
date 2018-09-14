@@ -23,6 +23,55 @@
 
 include $(abs_top_nlbuild_autotools_dir)/automake/pre.am
 
+#
+# Other files we do want to distribute with the Weave source SDK.
+#
+# XXX - Should these be sanitized out for external distribution? If so,
+#       which?
+#
+EXTRA_DIST                                            = \
+    AndroidTest.cpp					\
+    ComplexMockTrait.proto				\
+    SimpleMockTrait.proto				\
+    TestDNS.cpp						\
+    TestWeaveDeviceMangerJNI				\
+    connect-BR-Svc-ns.sh				\
+    happy/tests/service					\
+    happy/tests/standalone				\
+    nlweavebdxclient-development.cpp			\
+    nlweavebdxclient.cpp				\
+    nlweavebdxserver-development.cpp			\
+    nlweavebdxserver.h					\
+    remove-tunnel-intf.sh				\
+    remove-weave-devs.sh				\
+    setup-network-namespaces.sh				\
+    setup-tunnel-intf.sh				\
+    setup-weave-devs.sh					\
+    test-Verhoeff.sh                                    \
+    test-bdx-development.sh				\
+    test-file-development.txt				\
+    test-weave-device-descriptor-encode.sh		\
+    weave-bdx-client.cpp				\
+    weave-parallel-test-engine				\
+    $(NULL)
+
+# Always package (e.g. for 'make dist') these subdirectories (only
+# necessary if DIST_SUBDIRS and SUBDIRS are not always equivalent).
+
+DIST_SUBDIRS                      = \
+    $(NULL)
+
+# Always build (e.g. for 'make all') these subdirectories.
+
+SUBDIRS                           = \
+    wrapper-tests/jni               \
+    fuzz                            \
+    $(NULL)
+
+#
+# Define a package-specific test driver (for 'make check').
+#
+
 LOG_DRIVER=$(abs_srcdir)/weave-parallel-test-engine
 
 #
@@ -112,38 +161,6 @@ noinst_HEADERS                                += \
     $(NULL)
 
 endif # CONFIG_NETWORK_LAYER_BLE
-
-#
-# Other files we do want to distribute with the Weave source SDK.
-#
-# XXX - Should these be sanitized out for external distribution? If so,
-#       which?
-#
-EXTRA_DIST                                            = \
-    AndroidTest.cpp					\
-    ComplexMockTrait.proto				\
-    SimpleMockTrait.proto				\
-    TestDNS.cpp						\
-    TestWeaveDeviceMangerJNI				\
-    connect-BR-Svc-ns.sh				\
-    happy/tests/service					\
-    happy/tests/standalone				\
-    nlweavebdxclient-development.cpp			\
-    nlweavebdxclient.cpp				\
-    nlweavebdxserver-development.cpp			\
-    nlweavebdxserver.h					\
-    remove-tunnel-intf.sh				\
-    remove-weave-devs.sh				\
-    setup-network-namespaces.sh				\
-    setup-tunnel-intf.sh				\
-    setup-weave-devs.sh					\
-    test-Verhoeff.sh                                    \
-    test-bdx-development.sh				\
-    test-file-development.txt				\
-    test-weave-device-descriptor-encode.sh		\
-    weave-bdx-client.cpp				\
-    weave-parallel-test-engine				\
-    $(NULL)
 
 if WEAVE_BUILD_TESTS
 # A non-installed common library that may be used for all test

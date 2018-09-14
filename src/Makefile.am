@@ -108,7 +108,6 @@ DIST_SUBDIRS                      = \
     wrappers/jni                    \
     ra-daemon                       \
     test-apps                       \
-    test-apps/wrapper-tests/jni     \
     tools/weave                     \
     tools/misc                      \
     wrappers/jni                    \
