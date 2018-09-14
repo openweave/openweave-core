@@ -70,6 +70,13 @@ case "${BUILD_TARGET}" in
         ;;
 
     osx-auto-clang)
+        # By default, OpenWeave Core uses OpenSSL for cryptography on
+        # OS X and the OpenSSL version included in package depends
+        # on the perl Text::Template mmodule.
+
+        curl -L https://cpanmin.us | sudo perl - --sudo App::cpanminus
+        sudo cpanm "Text::Template"
+
         ;;
 
     *)
