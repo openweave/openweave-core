@@ -48,6 +48,6 @@ matrix:
       os: linux
       compiler: clang
     - name: "OS X with Defaults against clang/LLVM"
-      env: BUILD_TARGET="linux-auto-clang" CC="clang"
+      env: BUILD_TARGET="osx-auto-clang" CC="clang"
       os: osx
       compiler: clang
