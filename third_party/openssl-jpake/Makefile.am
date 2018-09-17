@@ -25,6 +25,10 @@ include $(abs_top_nlbuild_autotools_dir)/automake/pre.am
 if WEAVE_WITH_OPENSSL
 
 EXTRA_DIST                             = \
+    README.third_party                   \
+    openssl.url                          \
+    openssl.version                      \
+    openssl/LICENSE                      \
     openssl/crypto                       \
     openssl/include                      \
     $(NULL)
