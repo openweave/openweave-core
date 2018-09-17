@@ -25,11 +25,22 @@ include $(abs_top_nlbuild_autotools_dir)/automake/pre.am
 
 EXTRA_DIST                                      = \
     $(srcdir)/Doxyfile.in                         \
+    $(srcdir)/WeaveDoxygenLayout.xml              \
+    $(srcdir)/format-file.sh                      \
     $(srcdir)/namespaces.dox                      \
     images/ow-icon.png                            \
     images/ow-logo.png                            \
     images/ow-logo-200x20.png                     \
     images/ow-logo-weave.png                      \
+    presentations/openweave-pairing.pdf           \
+    presentations/openweave-security.pdf          \
+    specs/protocol-specification-weave-digital-certificates.pdf \
+    specs/protocol-specification-weave-message-layer.pdf \
+    specs/using-cddl-to-model-weave-tlv-structured-data.pdf \
+    specs/wdm-next-protocol.pdf                   \
+    specs/weave-glossary.pdf                      \
+    specs/weave-tlv-format.pdf                    \
+    weave-architecture.pdf                        \
     $(NULL)
 
 #
