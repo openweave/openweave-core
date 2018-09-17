@@ -1,5 +1,6 @@
 #
 #    Copyright (c) 2014-2018 Nest Labs, Inc.
+#    Copyright (c) 2018 Google LLC
 #    All rights reserved.
 #
 #    Licensed under the Apache License, Version 2.0 (the "License");
@@ -35,15 +36,23 @@ EXTRA_DIST                                            = \
     SimpleMockTrait.proto				\
     TestDNS.cpp						\
     TestWeaveDeviceMangerJNI				\
+    TestWeaveTool.py                                    \
     connect-BR-Svc-ns.sh				\
+    happy/bin                                           \
+    happy/lib                                           \
+    happy/test-templates                                \
     happy/tests/service					\
     happy/tests/standalone				\
+    happy/topologies     				\
     nlweavebdxclient-development.cpp			\
     nlweavebdxclient.cpp				\
     nlweavebdxserver-development.cpp			\
     nlweavebdxserver.h					\
     remove-tunnel-intf.sh				\
     remove-weave-devs.sh				\
+    run-security-support-test.sh                        \
+    schema/nest/test/trait/TestDTrait.cpp               \
+    schema/nest/test/trait/TestFTrait.cpp               \
     setup-network-namespaces.sh				\
     setup-tunnel-intf.sh				\
     setup-weave-devs.sh					\
@@ -54,14 +63,6 @@ EXTRA_DIST                                            = \
     weave-bdx-client.cpp				\
     weave-parallel-test-engine				\
     $(NULL)
-
-# Always package (e.g. for 'make dist') these subdirectories (only
-# necessary if DIST_SUBDIRS and SUBDIRS are not always equivalent).
-
-DIST_SUBDIRS                      = \
-    $(NULL)
-
-# Always build (e.g. for 'make all') these subdirectories.
 
 SUBDIRS                           = \
     wrapper-tests/jni               \
@@ -96,6 +97,7 @@ noinst_HEADERS                                             = \
     MockNPServer.h                                           \
     MockOpActions.h                                          \
     MockPairingServer.h                                      \
+    MockPlatformClocks.h                                     \
     MockSDServer.h                                           \
     MockSPServer.h                                           \
     MockSWUServer.h                                          \
@@ -107,19 +109,18 @@ noinst_HEADERS                                             = \
     MockTimeSyncServer.h                                     \
     MockTimeSyncUtil.h                                       \
     MockTokenPairingServer.h                                 \
-	MockWdmNodeOptions.h                                     \
+    MockWdmNodeOptions.h                                     \
     MockWdmSubscriptionInitiator.h                           \
     MockWdmSubscriptionResponder.h                           \
     MockWdmTestVerifier.h                                    \
     MockWdmViewClient.h                                      \
     MockWdmViewServer.h                                      \
+    PASEEngineTest.h                                         \
     TAKEOptions.h                                            \
     TestDRBG.h                                               \
     TestEventLoggingSchemaExamples.h                         \
     TestGroupKeyStore.h                                      \
-    PASEEngineTest.h                                         \
     TestPersistedStorageImplementation.h                     \
-    MockPlatformClocks.h                                     \
     TestProfile.h                                            \
     TestWRMP.h                                               \
     TestWdmOneWayCommand.h                                   \
@@ -135,21 +136,22 @@ noinst_HEADERS                                             = \
     nlweavebdxclient.h                                       \
     nlweavebdxserver-development.h                           \
     nlweaveswuclient.h                                       \
+    schema/nest/test/trait/TestATrait.h                      \
+    schema/nest/test/trait/TestBTrait.h                      \
+    schema/nest/test/trait/TestCTrait.h                      \
+    schema/nest/test/trait/TestCommon.h                      \
+    schema/nest/test/trait/TestCommonVersioned.h             \
+    schema/nest/test/trait/TestCommonVersioned.cpp           \
+    schema/nest/test/trait/TestDTrait.h                      \
+    schema/nest/test/trait/TestETrait.h                      \
+    schema/nest/test/trait/TestFTrait.h                      \
+    schema/nest/test/trait/TestHTrait.h                      \
+    schema/nest/test/trait/TestMismatchedCTrait.h            \
+    schema/weave/common/DayOfWeekEnum.h                      \
     schema/weave/trait/locale/LocaleCapabilitiesTrait.h      \
     schema/weave/trait/locale/LocaleSettingsTrait.h          \
-    schema/weave/trait/telemetry/NetworkWiFiTelemetryTrait.h \
     schema/weave/trait/security/BoltLockSettingsTrait.h      \
-    schema/weave/common/DayOfWeekEnum.h                      \
-    schema/nest/test/trait/TestCommon.h                      \
-    schema/nest/test/trait/TestHTrait.h                      \
-    schema/nest/test/trait/TestETrait.h                      \
-    schema/nest/test/trait/TestCTrait.h                      \
-    schema/nest/test/trait/TestATrait.h                      \
-    schema/nest/test/trait/TestFTrait.h                      \
-    schema/nest/test/trait/TestCommonVersioned.h             \
-    schema/nest/test/trait/TestBTrait.h                      \
-    schema/nest/test/trait/TestDTrait.h                      \
-    schema/nest/test/trait/TestMismatchedCTrait.h            \
+    schema/weave/trait/telemetry/NetworkWiFiTelemetryTrait.h \
     weave-bdx-common-development.h                           \
     $(NULL)
 
