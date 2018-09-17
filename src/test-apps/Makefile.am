@@ -328,6 +328,7 @@ check_PROGRAMS                                 = \
     TestErrorStr                                 \
     TestStatusReportStr                          \
     TestThermostatStatus                         \
+    TestWoble                                    \
     TestPairingCodeUtils                         \
     TestResourceIdentifier                       \
     $(NULL)
@@ -435,6 +436,7 @@ local_test_programs                            = \
     TestErrorStr                                 \
     TestStatusReportStr                          \
     TestThermostatStatus                         \
+    TestWoble                                    \
     TestPairingCodeUtils                         \
     TestResourceIdentifier                       \
     $(NULL)
@@ -1453,6 +1455,9 @@ TestStatusReportStr_LDADD                = $(COMMON_LDADD)
 
 TestThermostatStatus_SOURCES             = TestThermostatStatus.cpp
 TestThermostatStatus_LDADD               = $(COMMON_LDADD)
+
+TestWoble_SOURCES                        = TestWoble.cpp
+TestWoble_LDADD                          = libWeaveTestCommon.a $(COMMON_LDADD)
 
 TestPairingCodeUtils_SOURCES             = TestPairingCodeUtils.cpp
 TestPairingCodeUtils_LDADD               = $(COMMON_LDADD)

@@ -192,6 +192,7 @@ target_triplet = @target@
 @WEAVE_BUILD_TESTS_TRUE@	TestErrorStr$(EXEEXT) \
 @WEAVE_BUILD_TESTS_TRUE@	TestStatusReportStr$(EXEEXT) \
 @WEAVE_BUILD_TESTS_TRUE@	TestThermostatStatus$(EXEEXT) \
+@WEAVE_BUILD_TESTS_TRUE@	TestWoble$(EXEEXT) \
 @WEAVE_BUILD_TESTS_TRUE@	TestPairingCodeUtils$(EXEEXT) \
 @WEAVE_BUILD_TESTS_TRUE@	TestResourceIdentifier$(EXEEXT) \
 @WEAVE_BUILD_TESTS_TRUE@	$(am__EXEEXT_1) TestTDM$(EXEEXT) \
@@ -753,6 +754,7 @@ am__installdirs = "$(DESTDIR)$(libexecdir)"
 @WEAVE_BUILD_TESTS_TRUE@	TestErrorStr$(EXEEXT) \
 @WEAVE_BUILD_TESTS_TRUE@	TestStatusReportStr$(EXEEXT) \
 @WEAVE_BUILD_TESTS_TRUE@	TestThermostatStatus$(EXEEXT) \
+@WEAVE_BUILD_TESTS_TRUE@	TestWoble$(EXEEXT) \
 @WEAVE_BUILD_TESTS_TRUE@	TestPairingCodeUtils$(EXEEXT) \
 @WEAVE_BUILD_TESTS_TRUE@	TestResourceIdentifier$(EXEEXT) \
 @WEAVE_BUILD_TESTS_TRUE@	$(am__EXEEXT_5) $(am__EXEEXT_6)
@@ -1469,6 +1471,11 @@ TestWeaveTunnelServer_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
 	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CXXLD) \
 	$(AM_CXXFLAGS) $(CXXFLAGS) $(TestWeaveTunnelServer_LDFLAGS) \
 	$(LDFLAGS) -o $@
+am__TestWoble_SOURCES_DIST = TestWoble.cpp
+@WEAVE_BUILD_TESTS_TRUE@am_TestWoble_OBJECTS = TestWoble.$(OBJEXT)
+TestWoble_OBJECTS = $(am_TestWoble_OBJECTS)
+@WEAVE_BUILD_TESTS_TRUE@TestWoble_DEPENDENCIES = libWeaveTestCommon.a \
+@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_6)
 am__infratest_SOURCES_DIST = infratest.cpp
 @WEAVE_BUILD_TESTS_TRUE@am_infratest_OBJECTS = infratest.$(OBJEXT)
 infratest_OBJECTS = $(am_infratest_OBJECTS)
@@ -1797,9 +1804,9 @@ SOURCES = $(libMockBleApplicationDelegate_a_SOURCES) \
 	$(TestWeaveMessageLayer_SOURCES) \
 	$(TestWeaveProvBundle_SOURCES) $(TestWeaveSignature_SOURCES) \
 	$(TestWeaveTunnelBR_SOURCES) $(TestWeaveTunnelServer_SOURCES) \
-	$(infratest_SOURCES) $(mock_device_SOURCES) \
-	$(mock_weave_bg_SOURCES) $(wdmtest_SOURCES) \
-	$(weave_bdx_client_development_SOURCES) \
+	$(TestWoble_SOURCES) $(infratest_SOURCES) \
+	$(mock_device_SOURCES) $(mock_weave_bg_SOURCES) \
+	$(wdmtest_SOURCES) $(weave_bdx_client_development_SOURCES) \
 	$(weave_bdx_client_v0_SOURCES) \
 	$(weave_bdx_server_development_SOURCES) \
 	$(weave_bdx_server_v0_SOURCES) \
@@ -1871,7 +1878,8 @@ DIST_SOURCES = $(am__libMockBleApplicationDelegate_a_SOURCES_DIST) \
 	$(am__TestWeaveSignature_SOURCES_DIST) \
 	$(am__TestWeaveTunnelBR_SOURCES_DIST) \
 	$(am__TestWeaveTunnelServer_SOURCES_DIST) \
-	$(am__infratest_SOURCES_DIST) $(am__mock_device_SOURCES_DIST) \
+	$(am__TestWoble_SOURCES_DIST) $(am__infratest_SOURCES_DIST) \
+	$(am__mock_device_SOURCES_DIST) \
 	$(am__mock_weave_bg_SOURCES_DIST) $(am__wdmtest_SOURCES_DIST) \
 	$(am__weave_bdx_client_development_SOURCES_DIST) \
 	$(am__weave_bdx_client_v0_SOURCES_DIST) \
@@ -2503,6 +2511,8 @@ CC = @CC@
 CCDEPMODE = @CCDEPMODE@
 CFLAGS = @CFLAGS@
 CMP = @CMP@
+CONFIG_DEVICE_LAYER = @CONFIG_DEVICE_LAYER@
+CONFIG_DEVICE_LAYER_ESP32 = @CONFIG_DEVICE_LAYER_ESP32@
 CONFIG_HAVE_HEAP = @CONFIG_HAVE_HEAP@
 CONFIG_HAVE_VCBPRINTF = @CONFIG_HAVE_VCBPRINTF@
 CONFIG_HAVE_VSNPRINTF_EX = @CONFIG_HAVE_VSNPRINTF_EX@
@@ -2965,7 +2975,7 @@ EXTRA_DIST = \
 @WEAVE_BUILD_TESTS_TRUE@	TestWeaveProvBundle TestWeaveSignature \
 @WEAVE_BUILD_TESTS_TRUE@	infratest TestErrorStr \
 @WEAVE_BUILD_TESTS_TRUE@	TestStatusReportStr \
-@WEAVE_BUILD_TESTS_TRUE@	TestThermostatStatus \
+@WEAVE_BUILD_TESTS_TRUE@	TestThermostatStatus TestWoble \
 @WEAVE_BUILD_TESTS_TRUE@	TestPairingCodeUtils \
 @WEAVE_BUILD_TESTS_TRUE@	TestResourceIdentifier $(NULL) \
 @WEAVE_BUILD_TESTS_TRUE@	$(am__append_12) $(am__append_13)
@@ -3294,6 +3304,8 @@ EXTRA_DIST = \
 @WEAVE_BUILD_TESTS_TRUE@TestStatusReportStr_LDADD = $(COMMON_LDADD)
 @WEAVE_BUILD_TESTS_TRUE@TestThermostatStatus_SOURCES = TestThermostatStatus.cpp
 @WEAVE_BUILD_TESTS_TRUE@TestThermostatStatus_LDADD = $(COMMON_LDADD)
+@WEAVE_BUILD_TESTS_TRUE@TestWoble_SOURCES = TestWoble.cpp
+@WEAVE_BUILD_TESTS_TRUE@TestWoble_LDADD = libWeaveTestCommon.a $(COMMON_LDADD)
 @WEAVE_BUILD_TESTS_TRUE@TestPairingCodeUtils_SOURCES = TestPairingCodeUtils.cpp
 @WEAVE_BUILD_TESTS_TRUE@TestPairingCodeUtils_LDADD = $(COMMON_LDADD)
 @WEAVE_BUILD_TESTS_TRUE@TestResourceIdentifier_SOURCES = TestResourceIdentifier.cpp
@@ -3918,6 +3930,10 @@ TestWeaveTunnelServer$(EXEEXT): $(TestWeaveTunnelServer_OBJECTS) $(TestWeaveTunn
 	@rm -f TestWeaveTunnelServer$(EXEEXT)
 	$(AM_V_CXXLD)$(TestWeaveTunnelServer_LINK) $(TestWeaveTunnelServer_OBJECTS) $(TestWeaveTunnelServer_LDADD) $(LIBS)
 
+TestWoble$(EXEEXT): $(TestWoble_OBJECTS) $(TestWoble_DEPENDENCIES) $(EXTRA_TestWoble_DEPENDENCIES) 
+	@rm -f TestWoble$(EXEEXT)
+	$(AM_V_CXXLD)$(CXXLINK) $(TestWoble_OBJECTS) $(TestWoble_LDADD) $(LIBS)
+
 infratest$(EXEEXT): $(infratest_OBJECTS) $(infratest_DEPENDENCIES) $(EXTRA_infratest_DEPENDENCIES) 
 	@rm -f infratest$(EXEEXT)
 	$(AM_V_CXXLD)$(CXXLINK) $(infratest_OBJECTS) $(infratest_LDADD) $(LIBS)
@@ -4133,6 +4149,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/TestWeaveSignature.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/TestWeaveTunnelBR.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/TestWeaveTunnelServer.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/TestWoble.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ToolCommon.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ToolCommonOptions.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/infratest.Po@am__quote@
@@ -6297,6 +6314,13 @@ TestStatusReportStr.log: TestStatusReportStr$(EXEEXT)
 TestThermostatStatus.log: TestThermostatStatus$(EXEEXT)
 	@p='TestThermostatStatus$(EXEEXT)'; \
 	b='TestThermostatStatus'; \
+	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
+	--log-file $$b.log --trs-file $$b.trs \
+	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
+	"$$tst" $(AM_TESTS_FD_REDIRECT)
+TestWoble.log: TestWoble$(EXEEXT)
+	@p='TestWoble$(EXEEXT)'; \
+	b='TestWoble'; \
 	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
 	--log-file $$b.log --trs-file $$b.trs \
 	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
