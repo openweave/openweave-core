@@ -25,11 +25,27 @@ include $(abs_top_nlbuild_autotools_dir)/automake/pre.am
 
 LOG_DRIVER=$(abs_srcdir)/weave-parallel-test-engine
 
+EXTRA_DIST                                     = \
+    corpus/FuzzCertificateConversion/test-dev-18B430000000000A-cert-256.pem \
+    corpus/FuzzCertificateConversion/test-dev-18B430000000000A-cert-256.weave \
+    corpus/FuzzCertificateConversion/test-dev-18B430000000000A-cert.pem \
+    corpus/FuzzCertificateConversion/test-dev-18B430000000000A-cert.weave \
+    corpus/FuzzCertificateConversion/test-dev-18B430000000000A-key.pem \
+    corpus/FuzzCertificateConversion/test-dev-18B430000000000A-key.weave \
+    corpus/PASEInitiatorStep1/InitiatorStep1_Config1 \
+    corpus/PASEInitiatorStep2/InitiatorStep2_Config1 \
+    corpus/PASEKeyConfirm/KeyConfirm_Config1 \
+    corpus/PASEKeyConfirm/ResponderKeyConfirm \
+    corpus/PASEResponderStep1/ResponderStep1_Config1 \
+    corpus/PASEResponderStep2/ResponderStep2_Config1 \
+    $(NULL)
+
 #
 # Local headers to build against and distribute but not to install
 # since they are not part of the Weave SDK public API.
 #
 noinst_HEADERS                                 = \
+    FuzzUtils.h                                  \
     $(NULL)
 
 if WEAVE_BUILD_TESTS
@@ -52,7 +68,7 @@ endif
 
 # C preprocessor option flags that will apply to all compiled objects in this
 # makefile.
-    
+
 AM_CPPFLAGS                                    = \
     $(MAYBE_FUZZ)                                \
     -I$(top_srcdir)/src/include                  \
@@ -63,8 +79,8 @@ AM_CPPFLAGS                                    = \
     $(PTHREAD_CFLAGS)                            \
     $(NULL)
 
-libFuzzUtil_a_SOURCES                     = \
-    FuzzUtils.cpp                           \
+libFuzzUtil_a_SOURCES                          = \
+    FuzzUtils.cpp                                \
     $(NULL)
 
 
@@ -73,12 +89,12 @@ TEST_COMMON_LDADD                              = \
     $(NULL)
 
 WEAVE_LDADD                                    = \
-    $(top_builddir)/src/lib/libWeave.a       \
+    $(top_builddir)/src/lib/libWeave.a           \
     $(NULL)
 
 if CONFIG_BLE_PLATFORM_BLUEZ
 
-BLE_LDADD                                    = \
+BLE_LDADD                                      = \
     $(top_builddir)/src/platform/ble/bluez/libWoBluez.a \
     $(BLUEZ_LDFLAGS)                                    \
     @BLUEZ_LIBS@ @GLIB_LIBS@ @DBUS_LIBS@ -ldl -lrt      \
@@ -86,7 +102,7 @@ BLE_LDADD                                    = \
 
 else
 
-BLE_LDADD                                  = \
+BLE_LDADD                                      = \
     $(NULL)
 
 endif #CONFIG_BLE_PLATFORM_BLUEZ
