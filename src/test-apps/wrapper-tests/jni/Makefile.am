@@ -23,6 +23,15 @@
 
 include $(abs_top_nlbuild_autotools_dir)/automake/pre.am
 
+EXTRA_DIST                                         = \
+    src/ApplicationKeySupportTest.java               \
+    src/HKDFTest.java                                \
+    src/PairingCodeSupportTest.java                  \
+    src/SimpleTest.java                              \
+    src/WeaveKeyExportClientTest.java                \
+    src/WeaveSecuritySupportTest.java                \
+    $(NULL)
+
 if WEAVE_WITH_JAVA
 
 JARS                                               = \
@@ -30,12 +39,12 @@ JARS                                               = \
     $(NULL)
 
 WeaveJNIWrapperTests_jar_JAVA_SRCS                 = \
-    SimpleTest.java                                  \
-    HKDFTest.java                                    \
-    WeaveSecuritySupportTest.java                    \
     ApplicationKeySupportTest.java                   \
-    WeaveKeyExportClientTest.java                    \
+    HKDFTest.java                                    \
     PairingCodeSupportTest.java                      \
+    SimpleTest.java                                  \
+    WeaveKeyExportClientTest.java                    \
+    WeaveSecuritySupportTest.java                    \
     $(NULL)
 
 WeaveJNIWrapperTests_jar_JAVA_CLASSPATHS           = $(top_builddir)/src/wrappers/jni/security-support/WeaveSecuritySupport.jar
