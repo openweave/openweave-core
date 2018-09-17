@@ -108,6 +108,7 @@ DIST_SUBDIRS                      = \
     wrappers/jni                    \
     ra-daemon                       \
     test-apps                       \
+    test-apps/fuzz                  \
     tools/weave                     \
     tools/misc                      \
     wrappers/jni                    \
@@ -117,6 +118,10 @@ DIST_SUBDIRS                      = \
     $(NULL)
 
 # Always build (e.g. for 'make all') these subdirectories.
+#
+# NOTE: The 'fuzz' testing subdirectory has dependencies on
+# both test-apps/... and tools/weave/... and, consequently,
+# must appear after both.
 
 SUBDIRS                           = \
     lib/support                     \
@@ -134,6 +139,7 @@ SUBDIRS                           = \
     ra-daemon                       \
     test-apps                       \
     tools/weave                     \
+    test-apps/fuzz                  \
     tools/misc                      \
     test-apps/fuzz                  \
     $(EXAMPLES_SUBDIR)              \

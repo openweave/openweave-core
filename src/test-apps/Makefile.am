@@ -64,9 +64,8 @@ EXTRA_DIST                                            = \
     weave-parallel-test-engine				\
     $(NULL)
 
-SUBDIRS                           = \
-    wrapper-tests/jni               \
-    fuzz                            \
+SUBDIRS                                               = \
+    wrapper-tests/jni                                   \
     $(NULL)
 
 #
