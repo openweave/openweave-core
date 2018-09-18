@@ -52,6 +52,11 @@ case "${BUILD_TARGET}" in
 
         ;;
 
+    esp32)
+        .travis/prepare_esp32.sh
+
+        ;;
+
     osx-auto-clang)
         ;;
 

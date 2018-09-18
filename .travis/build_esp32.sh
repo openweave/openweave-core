@@ -18,37 +18,17 @@
 
 #
 #    Description:
-#      This file is the script for Travis CI hosted, distributed continuous 
-#      integration 'script' step.
+#      Travis CI build script for ESP32 integration builds.
 #
 
-die()
-{
-    echo " *** ERROR: " ${*}
-    exit 1
-}
+# Add the xtensa tool chain to the path.
+export PATH=$PATH:${TRAVIS_BUILD_DIR}/xtensa-esp32-elf/bin
 
+# Export IDF_PATH variable pointing to the ESP32 development environment.  
+export IDF_PATH=${TRAVIS_BUILD_DIR}/esp-idf
 
-case "${BUILD_TARGET}" in
+# Set defaults for all configuration options in the demo application.
+make -C ${TRAVIS_BUILD_DIR}/openweave-esp32-demo defconfig || exit 1
 
-    linux-auto-*-lint)
-        ./configure && make pretty-check
-        ;;
-
-    linux-auto-clang|linux-auto-gcc)
-        ./configure && make
-        ;;
-
-    osx-auto-clang)
-        ./configure && make
-        ;;
-
-    esp32)
-        .travis/build_esp32.sh
-        ;;
-
-    *)
-        die "Unknown build target \"${BUILD_TARGET}\"."
-        ;;
-        
-esac
+# Build the demo application.
+make -C ${TRAVIS_BUILD_DIR}/openweave-esp32-demo || exit 1
