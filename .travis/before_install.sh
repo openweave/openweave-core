@@ -69,6 +69,11 @@ case "${BUILD_TARGET}" in
 
         ;;
 
+    esp32)
+        .travis/prepare_esp32.sh
+
+        ;;
+
     osx-auto-clang)
         # By default, OpenWeave Core uses OpenSSL for cryptography on
         # OS X and the OpenSSL version included in package depends

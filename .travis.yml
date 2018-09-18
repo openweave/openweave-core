@@ -51,3 +51,5 @@ matrix:
       env: BUILD_TARGET="osx-auto-clang" CC="clang"
       os: osx
       compiler: clang
+    - name: "ESP32"
+      env: BUILD_TARGET="esp32"
