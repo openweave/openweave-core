@@ -91,8 +91,8 @@ public:
 
 public:
     // Public functions:
-    WoBle(void);
-    ~WoBle(void);
+    WoBle(void) { };
+    ~WoBle(void) { };
 
     BLE_ERROR Init(void * an_app_state, bool expect_first_ack);
 
@@ -150,14 +150,6 @@ public:
 
     void LogState(void) const;
     void LogStateDebug(void) const;
-
-    bool UnitTest(void);
-    bool UnitTest1(void);
-    bool UnitTest2(void);
-    bool UnitTest3(void);
-    bool UnitTest4(void);
-    bool UnitTest5(void);
-    bool UnitTest6(void);
 
 private:
     // Private data members:
