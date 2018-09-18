@@ -40,7 +40,7 @@ void BluezBleApplicationDelegate::NotifyWeaveConnectionClosed(BLE_CONNECTION_OBJ
 {
     bool status = true;
 
-    WeaveLogProgress(Ble, "Got notification regarding weave connection closure");
+    WeaveLogRetain(Ble, "Got notification regarding weave connection closure");
 
     status = RunOnBluezIOThread(CloseBleconnectionCB, NULL);
     if (!status)
