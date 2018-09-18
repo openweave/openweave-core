@@ -331,7 +331,7 @@ WEAVE_ERROR SubscriptionHandler::ParsePathVersionEventLists(SubscribeRequest::Pa
         if (!traitInstance)
         {
             // allocate a new trait instance
-            WEAVE_FAULT_INJECT(FaultInjection::kFault_WDM_TraitInstanceNew, SuccessOrExit(err = WEAVE_ERROR_NO_MEMORY));
+            WEAVE_FAULT_INJECT(FaultInjection::kFault_WDM_TraitInstanceNew, ExitNow(err = WEAVE_ERROR_NO_MEMORY));
 
             if (SubscriptionEngine::GetInstance()->mNumTraitInfosInPool < SubscriptionEngine::kMaxNumPathGroups)
             {

@@ -808,6 +808,8 @@ void ExchangeContext::Close()
 {
     VerifyOrDie(ExchangeMgr != NULL && mRefCount != 0);
 
+    WeaveLogProgress(ExchangeManager, "ec id: %d [%04" PRIX16 "], %s", EXCHANGE_CONTEXT_ID(this - ExchangeMgr->ContextPool), ExchangeId, __func__);
+
     DoClose(false);
     Release();
 }
@@ -819,6 +821,8 @@ void ExchangeContext::Close()
 void ExchangeContext::Abort()
 {
     VerifyOrDie(ExchangeMgr != NULL && mRefCount != 0);
+
+    WeaveLogProgress(ExchangeManager, "ec id: %d [%04" PRIX16 "], %s", EXCHANGE_CONTEXT_ID(this - ExchangeMgr->ContextPool), ExchangeId, __func__);
 
     DoClose(true);
     Release();

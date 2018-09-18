@@ -66,6 +66,7 @@ enum
     kToolOpt_WdmUpdateNumberOfTraits,
     kToolOpt_WdmUpdateConditionality,
     kToolOpt_WdmUpdateTiming,
+    kToolOpt_WdmUpdateDiscardOnError,
 };
 
 class MockWdmNodeOptions : public OptionSetBase
@@ -150,6 +151,7 @@ public:
     uint32_t mWdmUpdateNumberOfMutations;
     uint32_t mWdmUpdateNumberOfRepeatedMutations;
     WdmUpdateTiming mWdmUpdateTiming;
+    bool mWdmUpdateDiscardOnError;
 
     uint32_t mWdmUpdateMaxNumberOfTraits;
 

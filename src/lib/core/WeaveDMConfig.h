@@ -30,6 +30,10 @@
 
 #include <BuildConfig.h>
 
+/****************************************************************/
+/* WDM Legacy                                                   */
+/****************************************************************/
+
 /**
  *  @def WEAVE_CONFIG_LEGACY_WDM
  *
@@ -224,7 +228,7 @@
 #endif
 
 /****************************************************************/
-/* WDM Next (under development)                                 */
+/* WDM Current                                                  */
 /****************************************************************/
 
 /**
@@ -320,8 +324,10 @@
  *  @def WDM_CLIENT_MAX_NUM_UPDATABLE_TRAITS
  *
  *  @brief
- *    The number of updatable traits for each subscription,
- *    on a client in Weave Data Management Next profile.
+ *    The number of updatable trait instances for each
+ *    Weave Data Management subscription.
+ *    SubscriptionClient asserts if it is initialized with a higher
+ *    number of updatable trait instances than this value.
  *
  */
 #ifndef WDM_CLIENT_MAX_NUM_UPDATABLE_TRAITS
@@ -589,17 +595,6 @@
  */
 #ifndef WDM_ENABLE_PROTOCOL_CHECKS
 #define WDM_ENABLE_PROTOCOL_CHECKS 1
-#endif
-
-/**
- *  @def WDM_ENABLE_REAL_UPDATE_RESPONSE
- *
- *  @brief
- *    Enables WDM update logic for update response with version list
- *    and status list
- */
-#ifndef WDM_ENABLE_REAL_UPDATE_RESPONSE
-#define WDM_ENABLE_REAL_UPDATE_RESPONSE 0
 #endif
 
 /**

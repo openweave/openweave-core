@@ -83,6 +83,7 @@ options = { "clients": None,
             "client_update_num_mutations": None,
             "client_update_num_repeated_mutations": None,
             "client_update_num_traits": None,
+            "client_update_discard_on_error": False,
           }
 
 
@@ -600,6 +601,9 @@ class WeaveWdmNext(HappyNode, HappyNetwork, WeaveTest):
 
         if self.client_update_num_traits:
             cmd += " --wdm-update-number-of-traits " + str(self.client_update_num_traits)
+
+        if self.client_update_discard_on_error:
+            cmd += " --wdm-update-discard-on-error"
 
         custom_env = {}
 

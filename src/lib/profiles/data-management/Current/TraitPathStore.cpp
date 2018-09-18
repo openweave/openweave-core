@@ -90,20 +90,22 @@ void TraitPathStore::Init(TraitPathStore::Record *aRecordArray, size_t aArrayLen
  * @param[in]   aItem   The TraitPath to be stored
  * @param[in]   aFlags  The flags to be set to true for the item being added
  *
- * @retval WEAVE_NO_ERROR               in case of success.
- * @retval WEAVE_ERROR_NO_MEMORY        if the store is full.
- * @retval WEAVE_ERROR_INVALID_ARGUMENT if aFlags contains reserved flags
+ * @retval WEAVE_NO_ERROR                   in case of success.
+ * @retval WEAVE_ERROR_WDM_PATH_STORE_FULL  if the store is full.
+ * @retval WEAVE_ERROR_INVALID_ARGUMENT     if aFlags contains reserved flags
  */
 WEAVE_ERROR TraitPathStore::AddItem(const TraitPath &aItem, Flags aFlags)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
     size_t i = 0;
 
+    WEAVE_FAULT_INJECT(FaultInjection::kFault_WDM_PathStoreFull, return WEAVE_ERROR_WDM_PATH_STORE_FULL);
+
     VerifyOrExit((aFlags & static_cast<Flags>(kFlag_ReservedFlags)) == 0x0,
                  err = WEAVE_ERROR_INVALID_ARGUMENT);
 
     i = FindFirstAvailableItem();
-    VerifyOrExit(i < mStoreSize, err = WEAVE_ERROR_NO_MEMORY);
+    VerifyOrExit(i < mStoreSize, err = WEAVE_ERROR_WDM_PATH_STORE_FULL);
 
     SetItem(i, aItem, aFlags);
     mNumItems++;
@@ -117,8 +119,8 @@ exit:
  *
  * @param[in]   aItem   The TraitPath to be stored
  *
- * @retval WEAVE_NO_ERROR               in case of success.
- * @retval WEAVE_ERROR_NO_MEMORY        if the store is full.
+ * @retval WEAVE_NO_ERROR                   in case of success.
+ * @retval WEAVE_ERROR_WDM_PATH_STORE_FULL  if the store is full.
  */
 WEAVE_ERROR TraitPathStore::AddItem(const TraitPath &aItem)
 {
@@ -164,18 +166,20 @@ exit:
  *                      has to keep the store compacted.
  * @param[in]   aFlags  The flags to be set to true for the item being added.
  *
- * @retval WEAVE_ERROR_INVALID_STATE    if the store has gaps.
- * @retval WEAVE_ERROR_INVALID_ARGUMENT if adding the TraitPath at aIndex would make
- *                                      the store not compact.
- * @retval WEAVE_ERROR_NO_MEMORY        if the store is full.
- * @retval WEAVE_NO_ERROR               in case of success.
+ * @retval WEAVE_ERROR_INVALID_STATE        if the store has gaps.
+ * @retval WEAVE_ERROR_INVALID_ARGUMENT     if adding the TraitPath at aIndex would make
+ *                                          the store not compact.
+ * @retval WEAVE_ERROR_WDM_PATH_STORE_FULL  if the store is full.
+ * @retval WEAVE_NO_ERROR                   in case of success.
  */
 WEAVE_ERROR TraitPathStore::InsertItemAt(size_t aIndex, const TraitPath &aItem, Flags aFlags)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
     size_t numItemsToMove;
 
-    VerifyOrExit(false == IsFull(), err = WEAVE_ERROR_NO_MEMORY);
+    WEAVE_FAULT_INJECT(FaultInjection::kFault_WDM_PathStoreFull, return WEAVE_ERROR_WDM_PATH_STORE_FULL);
+
+    VerifyOrExit(false == IsFull(), err = WEAVE_ERROR_WDM_PATH_STORE_FULL);
     VerifyOrExit(FindFirstAvailableItem() == mNumItems, err = WEAVE_ERROR_INCORRECT_STATE);
     VerifyOrExit(aIndex <= mNumItems, err = WEAVE_ERROR_INVALID_ARGUMENT);
 
