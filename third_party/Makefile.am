@@ -1,5 +1,6 @@
 #
-#    Copyright (c) 2015-2017 Nest Labs, Inc.
+#    Copyright (c) 2015-2018 Nest Labs, Inc.
+#    Copyright (c) 2018 Google LLC
 #    All rights reserved.
 #
 #    Licensed under the Apache License, Version 2.0 (the "License");
@@ -26,6 +27,9 @@ include $(abs_top_nlbuild_autotools_dir)/automake/pre.am
 EXTRA_DIST                                   = \
     android/platform-libcore                   \
     android/platform-system/README.third_party \
+    bluez/bluez.url                            \
+    bluez/bluez.version                        \
+    cstyle                                     \
     nlbuild-autotools                          \
     $(NULL)
 
@@ -34,6 +38,7 @@ EXTRA_DIST                                   = \
 DIST_SUBDIRS                                 = \
     lwip                                       \
     android/platform-system/core-mincrypt      \
+    bluez/repo                                 \
     micro-ecc                                  \
     openssl                                    \
     openssl-jpake                              \
@@ -41,7 +46,6 @@ DIST_SUBDIRS                                 = \
     nlio/repo                                  \
     nlassert/repo                              \
     nlfaultinjection/repo                      \
-    bluez/repo                                 \
     $(NULL)
 
 # Always build (e.g. for 'make all') these subdirectories.
@@ -83,5 +87,5 @@ if WEAVE_WITH_BLUEZ_INTERNAL
 SUBDIRS                                    += \
     bluez/repo                                \
     $(NULL)
-endif # CONFIG_BLE_PLATFORM_BLUEZ
+endif # WEAVE_WITH_BLUEZ_INTERNAL
 include $(abs_top_nlbuild_autotools_dir)/automake/post.am
