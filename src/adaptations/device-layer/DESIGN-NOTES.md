@@ -14,3 +14,4 @@ The Device Layer uses various design patterns to make it easier to adapt the cod
 document provides an overview of these patterns: [Device Layer Adaptation Patterns](ADAPTATION-PATTERNS.md)  
 
 _____
+
