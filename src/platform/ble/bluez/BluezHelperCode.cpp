@@ -1440,7 +1440,7 @@ static void WeaveDeviceDisconnect(GDBusProxy * proxy)
             if (g_dbus_proxy_get_property(proxy, "Address", &iter))
             {
                 dbus_message_iter_get_basic(&iter, &devAddr);
-                WeaveLogProgress(Ble, "Issuing disconnect to device:%s", devAddr);
+                WeaveLogRetain(Ble, "Issuing disconnect to device:%s", devAddr);
             }
             g_dbus_proxy_method_call(proxy, "Disconnect", NULL, WeaveDisconnReply, proxy, NULL);
         }
@@ -1464,7 +1464,7 @@ static void WeavePropertyChange(GDBusProxy *proxy, const char *name, DBusMessage
                 if (g_dbus_proxy_get_property(proxy, "Address", &addrIter))
                 {
                     dbus_message_iter_get_basic(&addrIter, &devAddr);
-                    WeaveLogProgress(Ble, "%s device %p(%s)", connected?"Connected to":"Disconnected from", proxy, devAddr);
+                    WeaveLogRetain(Ble, "%s device %p(%s)", connected?"Connected to":"Disconnected with", proxy, devAddr);
                 }
 
                 if (connected)
