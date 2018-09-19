@@ -140,12 +140,12 @@ am__aclocal_m4_deps = $(top_srcdir)/third_party/nlbuild-autotools/repo/autoconf/
 	$(top_srcdir)/third_party/nlbuild-autotools/repo/third_party/autoconf/m4/ax_cxx_compile_stdcxx_11.m4 \
 	$(top_srcdir)/third_party/nlbuild-autotools/repo/third_party/autoconf/m4/ax_jni_include_dir.m4 \
 	$(top_srcdir)/third_party/nlbuild-autotools/repo/third_party/autoconf/m4/ax_pthread.m4 \
+	$(top_srcdir)/third_party/nlbuild-autotools/repo/third_party/autoconf/m4/libtool.m4 \
+	$(top_srcdir)/third_party/nlbuild-autotools/repo/third_party/autoconf/m4/ltoptions.m4 \
+	$(top_srcdir)/third_party/nlbuild-autotools/repo/third_party/autoconf/m4/ltsugar.m4 \
+	$(top_srcdir)/third_party/nlbuild-autotools/repo/third_party/autoconf/m4/ltversion.m4 \
+	$(top_srcdir)/third_party/nlbuild-autotools/repo/third_party/autoconf/m4/lt~obsolete.m4 \
 	$(top_srcdir)/third_party/nlbuild-autotools/repo/third_party/autoconf/m4/pkg.m4 \
-	$(top_srcdir)/build/autoconf/m4/libtool.m4 \
-	$(top_srcdir)/build/autoconf/m4/ltoptions.m4 \
-	$(top_srcdir)/build/autoconf/m4/ltsugar.m4 \
-	$(top_srcdir)/build/autoconf/m4/ltversion.m4 \
-	$(top_srcdir)/build/autoconf/m4/lt~obsolete.m4 \
 	$(top_srcdir)/build/autoconf/m4/nl_check_project_config_includes.m4 \
 	$(top_srcdir)/build/autoconf/m4/nl_enable_long_tests.m4 \
 	$(top_srcdir)/build/autoconf/m4/nl_with_lwip.m4 \
@@ -402,7 +402,6 @@ LIPO = @LIPO@
 LNDIR = @LNDIR@
 LN_S = @LN_S@
 LTLIBOBJS = @LTLIBOBJS@
-LT_SYS_LIBRARY_PATH = @LT_SYS_LIBRARY_PATH@
 LWIP_CPPFLAGS = @LWIP_CPPFLAGS@
 LWIP_LDFLAGS = @LWIP_LDFLAGS@
 LWIP_LIBS = @LWIP_LIBS@
