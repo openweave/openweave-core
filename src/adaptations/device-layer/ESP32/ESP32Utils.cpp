@@ -219,17 +219,19 @@ const char * ESP32Utils::WiFiModeToStr(wifi_mode_t wifiMode)
 
 struct netif * ESP32Utils::GetStationNetif(void)
 {
+    return GetNetif(TCPIP_ADAPTER_IF_STA);
+}
+
+struct netif * ESP32Utils::GetNetif(tcpip_adapter_if_t intfId)
+{
     struct netif * netif;
+    return (tcpip_adapter_get_netif(intfId, (void **)&netif) == ESP_OK) ? netif : NULL;
+}
 
-    for (netif = netif_list; netif != NULL; netif = netif->next)
-    {
-        if (netif->name[0] == 's' && netif->name[1] == 't')
-        {
-            return netif;
-        }
-    }
-
-    return NULL;
+bool ESP32Utils::IsInterfaceUp(tcpip_adapter_if_t intfId)
+{
+    struct netif * netif = GetNetif(intfId);
+    return netif != NULL && netif_is_up(netif);
 }
 
 const char * ESP32Utils::InterfaceIdToName(tcpip_adapter_if_t intfId)

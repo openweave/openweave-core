@@ -680,7 +680,14 @@ void ConnectivityManagerImpl::DriveAPState()
     SuccessOrExit(err);
 
     // Adjust the Connectivity Manager's AP state to match the state in the WiFi layer.
-    mWiFiAPState = (espAPModeEnabled) ? kWiFiAPState_Active : kWiFiAPState_NotActive;
+    if (espAPModeEnabled && (mWiFiAPState == kWiFiAPState_NotActive || mWiFiAPState == kWiFiAPState_Deactivating))
+    {
+        ChangeWiFiAPState(kWiFiAPState_Activating);
+    }
+    if (!espAPModeEnabled && (mWiFiAPState == kWiFiAPState_Active || mWiFiAPState == kWiFiAPState_Activating))
+    {
+        ChangeWiFiAPState(kWiFiAPState_Deactivating);
+    }
 
     // If the AP interface is not under application control...
     if (mWiFiAPMode != kWiFiAPMode_ApplicationControlled)
@@ -773,17 +780,17 @@ void ConnectivityManagerImpl::DriveAPState()
                     err = ESP32Utils::SetAPMode(false);
                     SuccessOrExit(err);
 
-                    espAPModeEnabled = false;
-
                     ChangeWiFiAPState(kWiFiAPState_Deactivating);
                 }
             }
         }
     }
 
-    // If AP mode is enabled in the ESP WiFi layer, but the interface doesn't have an IPv6 link-local
+    // If AP is active, but the interface doesn't have an IPv6 link-local
     // address, assign one now.
-    if (espAPModeEnabled && !ESP32Utils::HasIPv6LinkLocalAddress(TCPIP_ADAPTER_IF_AP))
+    if (mWiFiAPState == kWiFiAPState_Active &&
+        ESP32Utils::IsInterfaceUp(TCPIP_ADAPTER_IF_AP) &&
+        !ESP32Utils::HasIPv6LinkLocalAddress(TCPIP_ADAPTER_IF_AP))
     {
         err = tcpip_adapter_create_ip6_linklocal(TCPIP_ADAPTER_IF_AP);
         if (err != ESP_OK)

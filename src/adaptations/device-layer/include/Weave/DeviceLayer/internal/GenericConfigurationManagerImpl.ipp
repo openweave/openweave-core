@@ -327,9 +327,23 @@ WEAVE_ERROR GenericConfigurationManagerImpl<ImplClass>::_GetFabricId(uint64_t & 
 template<class ImplClass>
 WEAVE_ERROR GenericConfigurationManagerImpl<ImplClass>::_StoreFabricId(uint64_t fabricId)
 {
-    return (fabricId != kFabricIdNotSpecified)
-           ? Impl()->WriteConfigValue(ImplClass::kConfigKey_FabricId, fabricId)
-           : Impl()->ClearConfigValue(ImplClass::kConfigKey_FabricId);
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
+
+    if (fabricId != kFabricIdNotSpecified)
+    {
+        err = Impl()->WriteConfigValue(ImplClass::kConfigKey_FabricId, fabricId);
+        SuccessOrExit(err);
+        SetFlag(mFlags, kFlag_IsMemberOfFabric);
+    }
+    else
+    {
+        ClearFlag(mFlags, kFlag_IsMemberOfFabric);
+        err = Impl()->ClearConfigValue(ImplClass::kConfigKey_FabricId);
+        SuccessOrExit(err);
+    }
+
+exit:
+    return err;
 }
 
 template<class ImplClass>
