@@ -84,11 +84,15 @@ EXAMPLES_SUBDIR                   = \
     $(NULL)
 
 ADAPTATION_SUBDIRS                = \
+    adaptations/device-layer        \
+    $(NULL)
+
+MAYBE_ADAPTATION_SUBDIRS          = \
     $(NULL)
 
 if CONFIG_DEVICE_LAYER
-ADAPTATION_SUBDIRS               += \
-    adaptations/device-layer        \
+MAYBE_ADAPTATION_SUBDIRS         += \
+    $(ADAPTATION_SUBDIRS)           \
     $(NULL)
 endif # CONFIG_DEVICE_LAYER
 
@@ -135,15 +139,13 @@ SUBDIRS                           = \
     lib/support/verhoeff            \
     $(MAYBE_DEVICE_MANAGER_SUBDIRS) \
     wrappers/jni                    \
-    test-apps/wrapper-tests/jni     \
     ra-daemon                       \
     test-apps                       \
     tools/weave                     \
     test-apps/fuzz                  \
     tools/misc                      \
-    test-apps/fuzz                  \
     $(EXAMPLES_SUBDIR)              \
-    $(ADAPTATION_SUBDIRS)           \
+    $(MAYBE_ADAPTATION_SUBDIRS)     \
     $(NULL)
 
 include $(abs_top_nlbuild_autotools_dir)/automake/post.am
