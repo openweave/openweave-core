@@ -118,7 +118,7 @@ target_triplet = @target@
 @CONFIG_BLE_PLATFORM_BLUEZ_TRUE@    $(NULL)
 
 @CONFIG_DEVICE_LAYER_TRUE@am__append_5 = \
-@CONFIG_DEVICE_LAYER_TRUE@    adaptations/device-layer        \
+@CONFIG_DEVICE_LAYER_TRUE@    $(ADAPTATION_SUBDIRS)           \
 @CONFIG_DEVICE_LAYER_TRUE@    $(NULL)
 
 subdir = src
@@ -512,7 +512,11 @@ EXAMPLES_SUBDIR = \
     examples                        \
     $(NULL)
 
-ADAPTATION_SUBDIRS = $(NULL) $(am__append_5)
+ADAPTATION_SUBDIRS = \
+    adaptations/device-layer        \
+    $(NULL)
+
+MAYBE_ADAPTATION_SUBDIRS = $(NULL) $(am__append_5)
 
 # Always package (e.g. for 'make dist') these subdirectories.
 DIST_SUBDIRS = \
@@ -529,7 +533,7 @@ DIST_SUBDIRS = \
     wrappers/jni                    \
     ra-daemon                       \
     test-apps                       \
-    test-apps/wrapper-tests/jni     \
+    test-apps/fuzz                  \
     tools/weave                     \
     tools/misc                      \
     wrappers/jni                    \
@@ -540,6 +544,10 @@ DIST_SUBDIRS = \
 
 
 # Always build (e.g. for 'make all') these subdirectories.
+#
+# NOTE: The 'fuzz' testing subdirectory has dependencies on
+# both test-apps/... and tools/weave/... and, consequently,
+# must appear after both.
 SUBDIRS = \
     lib/support                     \
     include                         \
@@ -552,14 +560,13 @@ SUBDIRS = \
     lib/support/verhoeff            \
     $(MAYBE_DEVICE_MANAGER_SUBDIRS) \
     wrappers/jni                    \
-    test-apps/wrapper-tests/jni     \
     ra-daemon                       \
     test-apps                       \
     tools/weave                     \
-    tools/misc                      \
     test-apps/fuzz                  \
+    tools/misc                      \
     $(EXAMPLES_SUBDIR)              \
-    $(ADAPTATION_SUBDIRS)           \
+    $(MAYBE_ADAPTATION_SUBDIRS)     \
     $(NULL)
 
 all: all-recursive

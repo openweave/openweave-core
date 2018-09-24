@@ -506,6 +506,12 @@ target_vendor = @target_vendor@
 top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
+EXTRA_DIST = \
+    WeaveSecuritySupport.pom                         \
+    $(srcdir)/src                                    \
+    $(srcdir)/native                                 \
+    $(NULL)
+
 @WEAVE_WITH_JAVA_TRUE@JARS = \
 @WEAVE_WITH_JAVA_TRUE@    WeaveSecuritySupport.jar                         \
 @WEAVE_WITH_JAVA_TRUE@    $(NULL)
@@ -528,11 +534,6 @@ top_srcdir = @top_srcdir@
 @WEAVE_WITH_JAVA_TRUE@WeaveSecuritySupport_jar_JAVA_NATIVE_LIB = libWeaveSecuritySupport.la 
 @WEAVE_WITH_JAVA_TRUE@WeaveSecuritySupport_jar_JAVA_STRIP_NATIVE_LIB = true
 @WEAVE_WITH_JAVA_TRUE@WeaveSecuritySupport_jar_MAVEN_PROJECT_FILE = WeaveSecuritySupport.pom
-@WEAVE_WITH_JAVA_TRUE@EXTRA_DIST = \
-@WEAVE_WITH_JAVA_TRUE@    $(srcdir)/src                                    \
-@WEAVE_WITH_JAVA_TRUE@    $(srcdir)/native                                 \
-@WEAVE_WITH_JAVA_TRUE@    $(NULL)
-
 @WEAVE_WITH_JAVA_TRUE@lib_LTLIBRARIES = libWeaveSecuritySupport.la
 @WEAVE_WITH_JAVA_TRUE@libWeaveSecuritySupport_la_SOURCES = \
 @WEAVE_WITH_JAVA_TRUE@    native/WeaveSecuritySupport.cpp                  \
@@ -864,8 +865,8 @@ maintainer-clean-generic:
 	@echo "This command is intended for maintainers to use"
 	@echo "it deletes files that may require special tools to rebuild."
 @WEAVE_WITH_JAVA_FALSE@install-data-local:
-@WEAVE_WITH_JAVA_FALSE@uninstall-local:
 @WEAVE_WITH_JAVA_FALSE@mostlyclean-local:
+@WEAVE_WITH_JAVA_FALSE@uninstall-local:
 clean: clean-am
 
 clean-am: clean-generic clean-libLTLIBRARIES clean-libtool \
