@@ -37,6 +37,7 @@
 #      utility classes for embedding Weave in a JVM
 #
 
+
 VPATH = @srcdir@
 am__is_gnu_make = test -n '$(MAKEFILE_LIST)' && test -n '$(MAKELEVEL)'
 am__make_running_with_option = \
@@ -105,7 +106,8 @@ target_triplet = @target@
 subdir = src/wrappers/jni/jni-utils
 DIST_COMMON = $(srcdir)/Makefile.in $(srcdir)/Makefile.am \
 	$(top_srcdir)/third_party/nlbuild-autotools/repo/third_party/autoconf/mkinstalldirs \
-	$(top_srcdir)/third_party/nlbuild-autotools/repo/third_party/autoconf/depcomp
+	$(top_srcdir)/third_party/nlbuild-autotools/repo/third_party/autoconf/depcomp \
+	$(am__noinst_HEADERS_DIST)
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/third_party/nlbuild-autotools/repo/autoconf/m4/ax_check_compiler.m4 \
 	$(top_srcdir)/third_party/nlbuild-autotools/repo/autoconf/m4/nl_enable_coverage.m4 \
@@ -227,6 +229,8 @@ am__can_run_installinfo = \
     n|no|NO) false;; \
     *) (install-info --version) >/dev/null 2>&1;; \
   esac
+am__noinst_HEADERS_DIST = JNIUtils.h
+HEADERS = $(noinst_HEADERS)
 am__tagged_files = $(HEADERS) $(SOURCES) $(TAGS_FILES) $(LISP)
 # Read a list of newline-separated strings from the standard input,
 # and print each of them once, without duplicates.  Input order is
@@ -492,13 +496,22 @@ top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 @WEAVE_WITH_JAVA_TRUE@lib_LIBRARIES = libJNIUtils.a
 @WEAVE_WITH_JAVA_TRUE@libJNIUtils_a_SOURCES = \
-@WEAVE_WITH_JAVA_TRUE@	JNIUtils.cpp                       \
-@WEAVE_WITH_JAVA_TRUE@	$(NULL)
+@WEAVE_WITH_JAVA_TRUE@    JNIUtils.cpp                       \
+@WEAVE_WITH_JAVA_TRUE@    $(NULL)
 
 @WEAVE_WITH_JAVA_TRUE@libJNIUtils_a_CPPFLAGS = \
 @WEAVE_WITH_JAVA_TRUE@    -I$(top_srcdir)/src/include        \
-@WEAVE_WITH_JAVA_TRUE@	$(JNI_CPPFLAGS)                    \
-@WEAVE_WITH_JAVA_TRUE@	$(NULL)
+@WEAVE_WITH_JAVA_TRUE@    $(JNI_CPPFLAGS)                    \
+@WEAVE_WITH_JAVA_TRUE@    $(NULL)
+
+
+#
+# Local headers to build against and distribute but not to install
+# since they are not part of the Weave SDK public API.
+#
+@WEAVE_WITH_JAVA_TRUE@noinst_HEADERS = \
+@WEAVE_WITH_JAVA_TRUE@    JNIUtils.h                         \
+@WEAVE_WITH_JAVA_TRUE@    $(NULL)
 
 all: all-am
 
@@ -707,7 +720,7 @@ distdir: $(DISTFILES)
 	done
 check-am: all-am
 check: check-am
-all-am: Makefile $(LIBRARIES)
+all-am: Makefile $(LIBRARIES) $(HEADERS)
 installdirs:
 	for dir in "$(DESTDIR)$(libdir)"; do \
 	  test -z "$$dir" || $(MKDIR_P) "$$dir"; \

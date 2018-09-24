@@ -579,12 +579,28 @@ top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 LOG_DRIVER = $(abs_srcdir)/weave-parallel-test-engine
+EXTRA_DIST = \
+    corpus/FuzzCertificateConversion/test-dev-18B430000000000A-cert-256.pem \
+    corpus/FuzzCertificateConversion/test-dev-18B430000000000A-cert-256.weave \
+    corpus/FuzzCertificateConversion/test-dev-18B430000000000A-cert.pem \
+    corpus/FuzzCertificateConversion/test-dev-18B430000000000A-cert.weave \
+    corpus/FuzzCertificateConversion/test-dev-18B430000000000A-key.pem \
+    corpus/FuzzCertificateConversion/test-dev-18B430000000000A-key.weave \
+    corpus/PASEInitiatorStep1/InitiatorStep1_Config1 \
+    corpus/PASEInitiatorStep2/InitiatorStep2_Config1 \
+    corpus/PASEKeyConfirm/KeyConfirm_Config1 \
+    corpus/PASEKeyConfirm/ResponderKeyConfirm \
+    corpus/PASEResponderStep1/ResponderStep1_Config1 \
+    corpus/PASEResponderStep2/ResponderStep2_Config1 \
+    $(NULL)
+
 
 #
 # Local headers to build against and distribute but not to install
 # since they are not part of the Weave SDK public API.
 #
 noinst_HEADERS = \
+    FuzzUtils.h                                  \
     $(NULL)
 
 
@@ -611,7 +627,7 @@ noinst_HEADERS = \
 @WEAVE_BUILD_TESTS_TRUE@    $(NULL)
 
 @WEAVE_BUILD_TESTS_TRUE@libFuzzUtil_a_SOURCES = \
-@WEAVE_BUILD_TESTS_TRUE@    FuzzUtils.cpp                           \
+@WEAVE_BUILD_TESTS_TRUE@    FuzzUtils.cpp                                \
 @WEAVE_BUILD_TESTS_TRUE@    $(NULL)
 
 @WEAVE_BUILD_TESTS_TRUE@TEST_COMMON_LDADD = \
@@ -619,7 +635,7 @@ noinst_HEADERS = \
 @WEAVE_BUILD_TESTS_TRUE@    $(NULL)
 
 @WEAVE_BUILD_TESTS_TRUE@WEAVE_LDADD = \
-@WEAVE_BUILD_TESTS_TRUE@    $(top_builddir)/src/lib/libWeave.a       \
+@WEAVE_BUILD_TESTS_TRUE@    $(top_builddir)/src/lib/libWeave.a           \
 @WEAVE_BUILD_TESTS_TRUE@    $(NULL)
 
 @CONFIG_BLE_PLATFORM_BLUEZ_FALSE@@WEAVE_BUILD_TESTS_TRUE@BLE_LDADD = \

@@ -541,13 +541,25 @@ PRETTY_SUBDIRS = \
     $(NULL)
 
 EXTRA_DIST = \
+    BUILDING-ESP32.md                      \
+    BUILDING.md                            \
+    CONTRIBUTING.md                        \
     Makefile-Android                       \
     Makefile-iOS                           \
     Makefile-Standalone                    \
+    README.md                              \
     .default-version                       \
+    .travis.yml                            \
+    .travis/before_install.sh              \
+    .travis/script.sh                      \
     bootstrap                              \
     bootstrap-configure                    \
     $(srcdir)/build/autoconf               \
+    $(srcdir)/build/config                 \
+    $(srcdir)/build/cstyle/cstyle.options  \
+    $(srcdir)/build/esp32                  \
+    $(srcdir)/build/jenkins                \
+    $(srcdir)/build/make                   \
     $(srcdir)/build/scripts                \
     $(srcdir)/certs                        \
     $(NULL)

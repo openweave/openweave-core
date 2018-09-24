@@ -493,6 +493,10 @@ target_vendor = @target_vendor@
 top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
+EXTRA_DIST = \
+    weave-echo-app-tutorial.md                   \
+    $(NULL)
+
 
 #
 # Local headers to build against and distribute but not to install
