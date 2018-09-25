@@ -1,5 +1,6 @@
 #
-#    Copyright (c) 2014-2017 Nest Labs, Inc.
+#    Copyright (c) 2014-2018 Nest Labs, Inc.
+#    Copyright (c) 2018 Google LLC
 #    All rights reserved.
 #
 #    Licensed under the Apache License, Version 2.0 (the "License");
@@ -21,6 +22,60 @@
 #      library.
 
 include $(abs_top_nlbuild_autotools_dir)/automake/pre.am
+
+EXTRA_DIST                              = \
+    ADAPTATION-PATTERNS.md                \
+    DESIGN-NOTES.md                       \
+    GenTestDeviceIds.py                   \
+    $(NULL)
+
+#
+# Local headers to build against and distribute but not to install
+# since they are not part of the Weave SDK public API.
+#
+noinst_HEADERS                          = \
+    include/Weave/DeviceLayer/ConfigurationManager.h \
+    include/Weave/DeviceLayer/ConnectivityManager.h \
+    include/Weave/DeviceLayer/ESP32/WeaveDevicePlatformConfig.h \
+    include/Weave/DeviceLayer/ESP32/ESP32Utils.h \
+    include/Weave/DeviceLayer/ESP32/GroupKeyStoreImpl.h \
+    include/Weave/DeviceLayer/ESP32/ESP32Config.h \
+    include/Weave/DeviceLayer/ESP32/ConnectivityManagerImpl.h \
+    include/Weave/DeviceLayer/ESP32/BLEManagerImpl.h \
+    include/Weave/DeviceLayer/ESP32/ConfigurationManagerImpl.h \
+    include/Weave/DeviceLayer/ESP32/PlatformManagerImpl.h \
+    include/Weave/DeviceLayer/ESP32/WeaveDevicePlatformEvent.h \
+    include/Weave/DeviceLayer/ESP32/NetworkProvisioningServerImpl.h \
+    include/Weave/DeviceLayer/FreeRTOS/GenericPlatformManagerImpl_FreeRTOS.h \
+    include/Weave/DeviceLayer/FreeRTOS/GenericPlatformManagerImpl_FreeRTOS.ipp \
+    include/Weave/DeviceLayer/GeneralUtils.h \
+    include/Weave/DeviceLayer/PlatformManager.h \
+    include/Weave/DeviceLayer/TimeSyncManager.h \
+    include/Weave/DeviceLayer/TraitManager.h \
+    include/Weave/DeviceLayer/WeaveDeviceConfig.h \
+    include/Weave/DeviceLayer/WeaveDeviceError.h \
+    include/Weave/DeviceLayer/WeaveDeviceEvent.h \
+    include/Weave/DeviceLayer/WeaveDeviceLayer.h \
+    include/Weave/DeviceLayer/internal/BLEManager.h \
+    include/Weave/DeviceLayer/internal/DeviceControlServer.h \
+    include/Weave/DeviceLayer/internal/DeviceDescriptionServer.h \
+    include/Weave/DeviceLayer/internal/DeviceIdentityTraitDataSource.h \
+    include/Weave/DeviceLayer/internal/EchoServer.h \
+    include/Weave/DeviceLayer/internal/FabricProvisioningServer.h \
+    include/Weave/DeviceLayer/internal/GenericConfigurationManagerImpl.h \
+    include/Weave/DeviceLayer/internal/GenericConfigurationManagerImpl.ipp \
+    include/Weave/DeviceLayer/internal/GenericNetworkProvisioningServerImpl.h \
+    include/Weave/DeviceLayer/internal/GenericNetworkProvisioningServerImpl.ipp \
+    include/Weave/DeviceLayer/internal/GenericPlatformManagerImpl.h \
+    include/Weave/DeviceLayer/internal/GenericPlatformManagerImpl.ipp \
+    include/Weave/DeviceLayer/internal/NetworkInfo.h \
+    include/Weave/DeviceLayer/internal/NetworkProvisioningServer.h \
+    include/Weave/DeviceLayer/internal/ServiceDirectoryManager.h \
+    include/Weave/DeviceLayer/internal/ServiceProvisioningServer.h \
+    include/Weave/DeviceLayer/internal/ServiceTunnelAgent.h \
+    include/Weave/DeviceLayer/internal/WeaveDeviceLayerInternal.h \
+    trait-support/weave/trait/description/DeviceIdentityTrait.h \
+    $(NULL)
 
 if CONFIG_DEVICE_LAYER
 
@@ -74,9 +129,6 @@ libDeviceLayer_a_SOURCES               +=       \
     $(NULL)
 
 endif # WEAVE_DEVICE_LAYER_TARGET_ESP32
-
-EXTRA_DIST                              = \
-    $(NULL)
 
 endif # CONFIG_DEVICE_LAYER
 
