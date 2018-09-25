@@ -1,5 +1,6 @@
 #
-#    Copyright (c) 2014-2017 Nest Labs, Inc.
+#    Copyright (c) 2014-2018 Nest Labs, Inc.
+#    Copyright (c) 2018 Google LLC
 #    All rights reserved.
 #
 #    Licensed under the Apache License, Version 2.0 (the "License");
@@ -50,6 +51,8 @@ EXTRA_DIST                               = \
     .default-version                       \
     .travis.yml                            \
     .travis/before_install.sh              \
+    .travis/build_esp32.sh                 \
+    .travis/prepare_esp32.sh               \
     .travis/script.sh                      \
     bootstrap                              \
     bootstrap-configure                    \
