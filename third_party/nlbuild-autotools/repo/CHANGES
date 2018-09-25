@@ -1,3 +1,13 @@
+1.6.0 (2018-09-19)
+
+        * Added support to repos.conf for a 'commit' key such that a
+          hash or tag other than HEAD for a given repository and
+          branch may be synchronized and checked out.
+
+        * Made a minor change to the 'bootstrap' script such that it emits
+          the actual action commands that will be executed when the verbose
+          flag is asserted.
+
 1.5.3 (2018-09-14)
 
         * Address a number of issues with building the prepackaged GNU
