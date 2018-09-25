@@ -295,10 +295,10 @@ AUTOCONF = @AUTOCONF@
 AUTOHEADER = @AUTOHEADER@
 AUTOMAKE = @AUTOMAKE@
 AWK = @AWK@
-BLUEZ_BUILD_DIRECTORY = @BLUEZ_BUILD_DIRECTORY@
 BLUEZ_CPPFLAGS = @BLUEZ_CPPFLAGS@
 BLUEZ_LDFLAGS = @BLUEZ_LDFLAGS@
 BLUEZ_LIBS = @BLUEZ_LIBS@
+BLUEZ_SUBDIRS = @BLUEZ_SUBDIRS@
 CC = @CC@
 CCDEPMODE = @CCDEPMODE@
 CFLAGS = @CFLAGS@
@@ -385,15 +385,19 @@ MKDIR_P = @MKDIR_P@
 NLASSERT_CPPFLAGS = @NLASSERT_CPPFLAGS@
 NLASSERT_LDFLAGS = @NLASSERT_LDFLAGS@
 NLASSERT_LIBS = @NLASSERT_LIBS@
+NLASSERT_SUBDIRS = @NLASSERT_SUBDIRS@
 NLFAULTINJECTION_CPPFLAGS = @NLFAULTINJECTION_CPPFLAGS@
 NLFAULTINJECTION_LDFLAGS = @NLFAULTINJECTION_LDFLAGS@
 NLFAULTINJECTION_LIBS = @NLFAULTINJECTION_LIBS@
+NLFAULTINJECTION_SUBDIRS = @NLFAULTINJECTION_SUBDIRS@
 NLIO_CPPFLAGS = @NLIO_CPPFLAGS@
 NLIO_LDFLAGS = @NLIO_LDFLAGS@
 NLIO_LIBS = @NLIO_LIBS@
-NLUNITTEST_CPPFLAGS = @NLUNITTEST_CPPFLAGS@
-NLUNITTEST_LDFLAGS = @NLUNITTEST_LDFLAGS@
-NLUNITTEST_LIBS = @NLUNITTEST_LIBS@
+NLIO_SUBDIRS = @NLIO_SUBDIRS@
+NLUNIT_TEST_CPPFLAGS = @NLUNIT_TEST_CPPFLAGS@
+NLUNIT_TEST_LDFLAGS = @NLUNIT_TEST_LDFLAGS@
+NLUNIT_TEST_LIBS = @NLUNIT_TEST_LIBS@
+NLUNIT_TEST_SUBDIRS = @NLUNIT_TEST_SUBDIRS@
 NL_PROJECT_CONFIG_INCLUDES = @NL_PROJECT_CONFIG_INCLUDES@
 NM = @NM@
 NMEDIT = @NMEDIT@
@@ -546,6 +550,7 @@ EXTRA_DIST = \
     BUILDING.md                            \
     CONTRIBUTING.md                        \
     Makefile-Android                       \
+    Makefile-bootstrap                     \
     Makefile-iOS                           \
     Makefile-Standalone                    \
     README.md                              \
@@ -557,6 +562,7 @@ EXTRA_DIST = \
     .travis/script.sh                      \
     bootstrap                              \
     bootstrap-configure                    \
+    repos.conf                             \
     $(srcdir)/build/autoconf               \
     $(srcdir)/build/config                 \
     $(srcdir)/build/cstyle/cstyle.options  \
@@ -604,6 +610,24 @@ PRETTY_FILES := $(NULL)
 # .dist-version second, and the .default-version last.
 #
 VERSION_FILE := $(if $(wildcard $(builddir)/.local-version),$(builddir)/.local-version,$(if $(wildcard $(srcdir)/.dist-version),$(srcdir)/.dist-version,$(srcdir)/.default-version))
+
+#
+# When we run 'distcheck' and --with-<any of the third-party packages
+# listed in repos.conf>, default to 'internal', the nlbuild-autotools
+# infrastructure will attempt to create git paths to manage the
+# package repo. Two directories need to be writable to facilitate
+# this.
+#
+
+#
+# BlueZ is not well set-up without patching to handle 'make distcheck';
+# disable it for that target.
+#
+# We also want a more cursory sanity check for 'distcheck'; consequently,
+# skip running the Happy-centric tests.
+#
+DISTCHECK_CONFIGURE_FLAGS = `chmod u+w .. ../third_party` \
+	--without-bluez --without-happy
 weave_tooldist_alias = \
     $(PACKAGE_TARNAME)-tools
 

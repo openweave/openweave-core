@@ -193,8 +193,8 @@
 /* Define to 1 if you have the <nlfaultinjection.hpp> header file. */
 #undef HAVE_NLFAULTINJECTION_HPP
 
-/* Define to 1 if you have the <nltest.h> header file. */
-#undef HAVE_NLTEST_H
+/* Define to 1 if you have the <nlunit-test.h> header file. */
+#undef HAVE_NLUNIT_TEST_H
 
 /* Define to 1 if you have the <openssl/aes.h> header file. */
 #undef HAVE_OPENSSL_AES_H
