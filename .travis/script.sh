@@ -31,6 +31,10 @@ die()
 
 case "${BUILD_TARGET}" in
 
+    linux-auto-*-distcheck)
+        ./configure && make && make distcheck
+        ;;
+
     linux-auto-*-lint)
         ./configure && make pretty-check
         ;;
