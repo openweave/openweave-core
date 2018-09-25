@@ -15,7 +15,8 @@
 @SET_MAKE@
 
 #
-#    Copyright (c) 2014-2017 Nest Labs, Inc.
+#    Copyright (c) 2014-2018 Nest Labs, Inc.
+#    Copyright (c) 2018 Google LLC
 #    All rights reserved.
 #
 #    Licensed under the Apache License, Version 2.0 (the "License");
@@ -35,6 +36,7 @@
 #    Description:
 #      This file is the GNU automake template for the OpenWeave Device Layer
 #      library.
+
 
 VPATH = @srcdir@
 am__is_gnu_make = test -n '$(MAKEFILE_LIST)' && test -n '$(MAKELEVEL)'
@@ -121,7 +123,8 @@ target_triplet = @target@
 subdir = src/adaptations/device-layer
 DIST_COMMON = $(srcdir)/Makefile.in $(srcdir)/Makefile.am \
 	$(top_srcdir)/third_party/nlbuild-autotools/repo/third_party/autoconf/mkinstalldirs \
-	$(top_srcdir)/third_party/nlbuild-autotools/repo/third_party/autoconf/depcomp
+	$(top_srcdir)/third_party/nlbuild-autotools/repo/third_party/autoconf/depcomp \
+	$(noinst_HEADERS)
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/third_party/nlbuild-autotools/repo/autoconf/m4/ax_check_compiler.m4 \
 	$(top_srcdir)/third_party/nlbuild-autotools/repo/autoconf/m4/nl_enable_coverage.m4 \
@@ -294,6 +297,7 @@ am__can_run_installinfo = \
     n|no|NO) false;; \
     *) (install-info --version) >/dev/null 2>&1;; \
   esac
+HEADERS = $(noinst_HEADERS)
 am__tagged_files = $(HEADERS) $(SOURCES) $(TAGS_FILES) $(LISP)
 # Read a list of newline-separated strings from the standard input,
 # and print each of them once, without duplicates.  Input order is
@@ -557,6 +561,61 @@ target_vendor = @target_vendor@
 top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
+EXTRA_DIST = \
+    ADAPTATION-PATTERNS.md                \
+    DESIGN-NOTES.md                       \
+    GenTestDeviceIds.py                   \
+    $(NULL)
+
+
+#
+# Local headers to build against and distribute but not to install
+# since they are not part of the Weave SDK public API.
+#
+noinst_HEADERS = \
+    include/Weave/DeviceLayer/ConfigurationManager.h \
+    include/Weave/DeviceLayer/ConnectivityManager.h \
+    include/Weave/DeviceLayer/ESP32/WeaveDevicePlatformConfig.h \
+    include/Weave/DeviceLayer/ESP32/ESP32Utils.h \
+    include/Weave/DeviceLayer/ESP32/GroupKeyStoreImpl.h \
+    include/Weave/DeviceLayer/ESP32/ESP32Config.h \
+    include/Weave/DeviceLayer/ESP32/ConnectivityManagerImpl.h \
+    include/Weave/DeviceLayer/ESP32/BLEManagerImpl.h \
+    include/Weave/DeviceLayer/ESP32/ConfigurationManagerImpl.h \
+    include/Weave/DeviceLayer/ESP32/PlatformManagerImpl.h \
+    include/Weave/DeviceLayer/ESP32/WeaveDevicePlatformEvent.h \
+    include/Weave/DeviceLayer/ESP32/NetworkProvisioningServerImpl.h \
+    include/Weave/DeviceLayer/FreeRTOS/GenericPlatformManagerImpl_FreeRTOS.h \
+    include/Weave/DeviceLayer/FreeRTOS/GenericPlatformManagerImpl_FreeRTOS.ipp \
+    include/Weave/DeviceLayer/GeneralUtils.h \
+    include/Weave/DeviceLayer/PlatformManager.h \
+    include/Weave/DeviceLayer/TimeSyncManager.h \
+    include/Weave/DeviceLayer/TraitManager.h \
+    include/Weave/DeviceLayer/WeaveDeviceConfig.h \
+    include/Weave/DeviceLayer/WeaveDeviceError.h \
+    include/Weave/DeviceLayer/WeaveDeviceEvent.h \
+    include/Weave/DeviceLayer/WeaveDeviceLayer.h \
+    include/Weave/DeviceLayer/internal/BLEManager.h \
+    include/Weave/DeviceLayer/internal/DeviceControlServer.h \
+    include/Weave/DeviceLayer/internal/DeviceDescriptionServer.h \
+    include/Weave/DeviceLayer/internal/DeviceIdentityTraitDataSource.h \
+    include/Weave/DeviceLayer/internal/EchoServer.h \
+    include/Weave/DeviceLayer/internal/FabricProvisioningServer.h \
+    include/Weave/DeviceLayer/internal/GenericConfigurationManagerImpl.h \
+    include/Weave/DeviceLayer/internal/GenericConfigurationManagerImpl.ipp \
+    include/Weave/DeviceLayer/internal/GenericNetworkProvisioningServerImpl.h \
+    include/Weave/DeviceLayer/internal/GenericNetworkProvisioningServerImpl.ipp \
+    include/Weave/DeviceLayer/internal/GenericPlatformManagerImpl.h \
+    include/Weave/DeviceLayer/internal/GenericPlatformManagerImpl.ipp \
+    include/Weave/DeviceLayer/internal/NetworkInfo.h \
+    include/Weave/DeviceLayer/internal/NetworkProvisioningServer.h \
+    include/Weave/DeviceLayer/internal/ServiceDirectoryManager.h \
+    include/Weave/DeviceLayer/internal/ServiceProvisioningServer.h \
+    include/Weave/DeviceLayer/internal/ServiceTunnelAgent.h \
+    include/Weave/DeviceLayer/internal/WeaveDeviceLayerInternal.h \
+    trait-support/weave/trait/description/DeviceIdentityTrait.h \
+    $(NULL)
+
 @CONFIG_DEVICE_LAYER_TRUE@lib_LIBRARIES = libDeviceLayer.a
 @CONFIG_DEVICE_LAYER_TRUE@libDeviceLayer_a_CPPFLAGS = \
 @CONFIG_DEVICE_LAYER_TRUE@    -I$(top_srcdir)/src/include           \
@@ -581,9 +640,6 @@ top_srcdir = @top_srcdir@
 @CONFIG_DEVICE_LAYER_TRUE@	TimeSyncManager.cpp TraitManager.cpp \
 @CONFIG_DEVICE_LAYER_TRUE@	trait-support/weave/trait/description/DeviceIdentityTrait.cpp \
 @CONFIG_DEVICE_LAYER_TRUE@	$(NULL) $(am__append_1)
-@CONFIG_DEVICE_LAYER_TRUE@EXTRA_DIST = \
-@CONFIG_DEVICE_LAYER_TRUE@    $(NULL)
-
 all: all-am
 
 .SUFFIXES:
@@ -1323,7 +1379,7 @@ distdir: $(DISTFILES)
 	done
 check-am: all-am
 check: check-am
-all-am: Makefile $(LIBRARIES)
+all-am: Makefile $(LIBRARIES) $(HEADERS)
 installdirs:
 	for dir in "$(DESTDIR)$(libdir)"; do \
 	  test -z "$$dir" || $(MKDIR_P) "$$dir"; \
