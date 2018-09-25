@@ -35,6 +35,10 @@ after_success:
 
 matrix:
   include:
+    - name: "Linux with Defaults against GCC Distribution Sanity Check"
+      env: BUILD_TARGET="linux-auto-gcc-distcheck" CC="gcc"
+      os: linux
+      compiler: gcc
     - name: "Linux with Defaults against GCC Coding Style Check"
       env: BUILD_TARGET="linux-auto-gcc-lint" CC="gcc"
       os: linux
