@@ -63,6 +63,7 @@ REPOS_WARNING_SENTINEL           := $(top_builddir)/.repos-warning-stamp
 define REPOS_template
 $(2)_repo_NAME               := $(2)
 $(2)_repo_BRANCH             := $$(call nlGitGetBranchForRepoFromNameFromFile,$(1),$(2))
+$(2)_repo_COMMIT             := $$(call nlGitGetCommitForRepoFromNameFromFile,$(1),$(2))
 $(2)_repo_PATH               := $$(call nlGitGetPathForRepoFromNameFromFile,$(1),$(2))
 $(2)_repo_URL                := $$(call nlGitGetURLForRepoFromNameFromFile,$(1),$(2))
 
@@ -86,6 +87,9 @@ $$($(2)_repo_GIT): $(REPOS_PACKAGE_GIT_PATH) repos-warning
                 touch $(REPOS_GIT_MODULES_SENTINEL); \
         fi
 	$(NL_V_AT)$(GIT) -C $(top_srcdir) submodule -q add -f -b $$($(2)_repo_BRANCH) -- $$($(2)_repo_URL) $$($(2)_repo_PATH)
+	$(NL_V_AT)if ! test -z "$$($(2)_repo_COMMIT)"; then \
+                $(GIT) -C $$($(2)_repo_PATH) checkout -q $$($(2)_repo_COMMIT); \
+        fi
 endef # REPOS_template
 
 $(REPOS_PACKAGE_GIT_PATH):
