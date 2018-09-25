@@ -45,6 +45,7 @@ EXTRA_DIST                               = \
     BUILDING.md                            \
     CONTRIBUTING.md                        \
     Makefile-Android                       \
+    Makefile-bootstrap                     \
     Makefile-iOS                           \
     Makefile-Standalone                    \
     README.md                              \
@@ -56,6 +57,7 @@ EXTRA_DIST                               = \
     .travis/script.sh                      \
     bootstrap                              \
     bootstrap-configure                    \
+    repos.conf                             \
     $(srcdir)/build/autoconf               \
     $(srcdir)/build/config                 \
     $(srcdir)/build/cstyle/cstyle.options  \
@@ -170,6 +172,26 @@ $(distdir)/.dist-version: $(builddir)/.local-version force
 
 $(distdir)/.dist-version $(builddir)/.local-version:
 	$(call check-file,$(@F))
+
+#
+# When we run 'distcheck' and --with-<any of the third-party packages
+# listed in repos.conf>, default to 'internal', the nlbuild-autotools
+# infrastructure will attempt to create git paths to manage the
+# package repo. Two directories need to be writable to facilitate
+# this.
+#
+
+DISTCHECK_CONFIGURE_FLAGS = `chmod u+w .. ../third_party`
+
+#
+# BlueZ is not well set-up without patching to handle 'make distcheck';
+# disable it for that target.
+#
+# We also want a more cursory sanity check for 'distcheck'; consequently,
+# skip running the Happy-centric tests.
+#
+
+DISTCHECK_CONFIGURE_FLAGS += --without-bluez --without-happy
 
 dist distcheck install-headers: $(BUILT_SOURCES)
 
