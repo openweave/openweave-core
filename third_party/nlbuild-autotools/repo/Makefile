@@ -1,5 +1,6 @@
 #
-#    Copyright 2017 Nest Labs Inc. All Rights Reserved.
+#    Copyright 2017-2018 Nest Labs Inc. All Rights Reserved.
+#    Copyright 2018 Google LLC. All Rights Reserved.
 #
 #    Licensed under the Apache License, Version 2.0 (the "License");
 #    you may not use this file except in compliance with the License.
@@ -67,7 +68,11 @@ DISTFILES        := $(shell $(CAT) MANIFEST)
 # .dist-version second, and the .default-version last.
 #
 
-VERSION_FILE                      := $(if $(wildcard $(builddir)/.local-version),$(builddir)/.local-version,$(if $(wildcard $(srcdir)/.dist-version),$(srcdir)/.dist-version,$(srcdir)/.default-version))
+# VERSION_FILE should be and is intentionally a deferred (=) rather
+# than an immediate (:=) variable to ensure late evaluation AFTER
+# .local-version MAY be created rather than when this file is parsed.
+
+VERSION_FILE                       = $(if $(wildcard $(builddir)/.local-version),$(builddir)/.local-version,$(if $(wildcard $(srcdir)/.dist-version),$(srcdir)/.dist-version,$(srcdir)/.default-version))
 
 PACKAGE_VERSION                   ?= $(shell $(CAT) $(VERSION_FILE) 2> /dev/null)
 
