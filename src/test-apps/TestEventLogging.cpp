@@ -36,7 +36,7 @@
 #include <unistd.h>
 
 #include <nlbyteorder.h>
-#include <nltest.h>
+#include <nlunit-test.h>
 
 // Note that the choice of namespace alias must be made up front for each and every compile unit
 // This is because many include paths could set the default alias to unintended target.

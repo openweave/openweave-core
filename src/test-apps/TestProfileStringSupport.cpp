@@ -27,7 +27,7 @@
 
 #include <Weave/Support/ProfileStringSupport.hpp>
 
-#include <nltest.h>
+#include <nlunit-test.h>
 
 using namespace nl::Weave;
 

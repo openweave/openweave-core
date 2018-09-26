@@ -24,7 +24,7 @@
 
 #include <string.h>
 
-#include <nltest.h>
+#include <nlunit-test.h>
 
 #include <Weave/Support/crypto/HashAlgos.h>
 #include <Weave/Support/crypto/CTRMode.h>
