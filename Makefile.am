@@ -197,7 +197,7 @@ DISTCHECK_CONFIGURE_FLAGS = `chmod u+w .. ../third_party`
 
 DISTCHECK_CONFIGURE_FLAGS += --without-bluez --without-happy
 
-dist distcheck install-headers: $(BUILT_SOURCES)
+dist distcheck distdir install-headers: $(BUILT_SOURCES)
 
 dist-hook: $(distdir)/.dist-version
 
