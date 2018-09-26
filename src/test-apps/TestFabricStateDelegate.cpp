@@ -29,7 +29,7 @@
 #include <unistd.h>
 #include <new>
 
-#include <nltest.h>
+#include <nlunit-test.h>
 
 #include "ToolCommon.h"
 #include "TestGroupKeyStore.h"

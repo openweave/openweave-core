@@ -33,7 +33,7 @@
 #include <stdio.h>
 #include <string.h>
 
-#include <nltest.h>
+#include <nlunit-test.h>
 
 #define NL_TEST_ASSERT_EXIT(inSuite, inCondition)     \
     do {                                              \

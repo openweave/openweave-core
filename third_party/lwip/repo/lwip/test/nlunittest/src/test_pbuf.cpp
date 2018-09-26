@@ -1,6 +1,6 @@
 #include <string.h>
 
-#include "nltest.h"
+#include "nlunit-test.h"
 #include <test_pbuf.h>
 #include <lwip/init.h>
 #include <lwip/pbuf.h>

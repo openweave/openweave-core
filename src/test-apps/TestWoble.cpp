@@ -31,7 +31,7 @@
 
 #include <BleLayer/WoBle.h>
 #include <BleLayer/BleLayer.h>
-#include <nltest.h>
+#include <nlunit-test.h>
 
 #include "ToolCommon.h"
 

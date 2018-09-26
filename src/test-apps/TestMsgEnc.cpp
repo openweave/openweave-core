@@ -28,7 +28,7 @@
 #endif
 
 #include <stdio.h>
-#include <nltest.h>
+#include <nlunit-test.h>
 #include <string.h>
 
 #include "ToolCommon.h"

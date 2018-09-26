@@ -23,7 +23,7 @@
  */
 
 #include "ToolCommon.h"
-#include <nltest.h>
+#include <nlunit-test.h>
 
 #include <Weave/Core/WeaveCore.h>
 #include <Weave/Core/WeaveTLV.h>

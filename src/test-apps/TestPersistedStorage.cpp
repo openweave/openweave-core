@@ -36,7 +36,7 @@
 #include <string.h>
 #include <unistd.h>
 
-#include <nltest.h>
+#include <nlunit-test.h>
 
 #include <Weave/Support/platform/PersistedStorage.h>
 
