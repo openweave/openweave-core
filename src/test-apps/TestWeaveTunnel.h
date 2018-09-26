@@ -29,7 +29,7 @@
 #include <Weave/Core/WeaveServerBase.h>
 #include <Weave/Profiles/WeaveProfiles.h>
 
-#include <nltest.h>
+#include <nlunit-test.h>
 
 #define DEFAULT_TEST_DURATION_MILLISECS               (5000)
 #define RECONNECT_TEST_DURATION_MILLISECS             (2 * DEFAULT_TEST_DURATION_MILLISECS)

@@ -49,7 +49,7 @@
 
 #include <Weave/Support/ErrorStr.h>
 
-#include <nltest.h>
+#include <nlunit-test.h>
 
 using nl::ErrorStr;
 using namespace nl::Weave::System;

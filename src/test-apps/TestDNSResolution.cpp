@@ -31,7 +31,7 @@
 #include <unistd.h>
 
 #include "ToolCommon.h"
-#include <nltest.h>
+#include <nlunit-test.h>
 #include <SystemLayer/SystemClock.h>
 #include <SystemLayer/SystemTimer.h>
 

@@ -34,7 +34,7 @@
 #include <SystemLayer/SystemError.h>
 #include <SystemLayer/SystemTimer.h>
 
-#include <nltest.h>
+#include <nlunit-test.h>
 
 #include "ToolCommon.h"
 
