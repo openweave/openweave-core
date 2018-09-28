@@ -1578,6 +1578,66 @@ WEAVE_ERROR TLVWriter::CopyContainer(uint64_t tag, TLVReader& container)
 }
 
 /**
+ * Encodes a TLV container element that contains member elements from a pre-encoded container
+ *
+ * The CopyContainer() method encodes a new TLV container element (a structure, array or path)
+ * containing a set of member elements taken from the contents of a supplied pre-encoded container.
+ * When the method is called, data in the supplied input buffer is parsed as a TLV container element
+ * an a new container is written that has the same type and members as the input container.  The tag
+ * for the new container is specified as an input parameter.
+ *
+ * When the method returns, the writer object can be used to write additional TLV elements following
+ * the container element.
+ *
+ * @param[in] tag                   The TLV tag to be encoded with the container, or @p AnonymousTag if
+ *                                  the container should be encoded without a tag.  Tag values should be
+ *                                  constructed with one of the tag definition functions ProfileTag(),
+ *                                  ContextTag() or CommonTag().
+ * @param[in] encodedContainer      A buffer containing a pre-encoded TLV container whose type and members
+ *                                  should be copied.
+ * @param[in] encodedContainerLen   The length in bytes of the pre-encoded container.
+ *
+ * @retval #WEAVE_NO_ERROR          If the method succeeded.
+ * @retval #WEAVE_ERROR_TLV_CONTAINER_OPEN
+ *                                  If a container writer has been opened on the current writer and not
+ *                                  yet closed.
+ * @retval #WEAVE_ERROR_TLV_UNDERRUN
+ *                                  If the encoded container ended prematurely.
+ * @retval #WEAVE_ERROR_INVALID_TLV_ELEMENT
+ *                                  If the encoded container contained an invalid or unsupported TLV element type.
+ * @retval #WEAVE_ERROR_INVALID_TLV_TAG
+ *                                  If the encoded container contained a TLV tag in an invalid context,
+ *                                  or if the supplied tag is invalid or inappropriate in the context in
+ *                                  which the new container is being written.
+ * @retval #WEAVE_ERROR_BUFFER_TOO_SMALL
+ *                                  If writing the value would exceed the limit on the maximum number of
+ *                                  bytes specified when the writer was initialized.
+ * @retval #WEAVE_ERROR_NO_MEMORY
+ *                                  If an attempt to allocate an output buffer failed due to lack of
+ *                                  memory.
+ * @retval other                    Other Weave or platform-specific errors returned by the configured
+ *                                  GetNewBuffer() or FinalizeBuffer() functions, or by the GetNextBuffer()
+ *                                  function associated with the reader object.
+ *
+ */
+WEAVE_ERROR TLVWriter::CopyContainer(uint64_t tag, const uint8_t * encodedContainer, uint16_t encodedContainerLen)
+{
+    WEAVE_ERROR err;
+    TLVReader reader;
+
+    reader.Init(encodedContainer, encodedContainerLen);
+
+    err = reader.Next();
+    SuccessOrExit(err);
+
+    err = PutPreEncodedContainer(tag, reader.GetType(), reader.GetReadPoint(), reader.GetRemainingLength());
+    SuccessOrExit(err);
+
+exit:
+    return err;
+}
+
+/**
  * Returns the type of container within which the TLVWriter is currently writing.
  *
  * The GetContainerType() method returns the type of the TLV container within which the TLVWriter

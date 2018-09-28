@@ -145,7 +145,7 @@ enum
  * WeaveAuthMode includes a set of pre-defined values describing common
  * authentication modes.  These are broken down by the key agreement mechanism
  * (CASE, PASE, GroupKey, etc.).  Developers can extend WeaveAuthMode by defining
- * application-specific mode, which they can attach to specific encryption keys.
+ * application-specific modes, which they can attach to specific encryption keys.
  *
  * @note WeaveAuthMode is an API data type only; it should never be sent over-the-wire.
  */

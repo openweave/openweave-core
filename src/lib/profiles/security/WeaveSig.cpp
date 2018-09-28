@@ -410,6 +410,61 @@ exit:
     return err;
 }
 
+/**
+ * Generate and encode a Weave ECDSA signature
+ *
+ * Computes an ECDSA signature using a given private key and message hash and write the signature
+ * as a Weave ECDSASignature structure to the specified TLV writer with the given tag.
+ *
+ * @param[in] writer            The TLVWriter object to which the encoded signature should
+ *                              be written.
+ * @param[in] tag               TLV tag to be associated with the encoded signature structure.
+ * @param[in] msgHash           A buffer containing the hash of the message to be signed.
+ * @param[in] msgHashLen        The length in bytes of the message hash.
+ * @param[in] signingKey        A buffer containing the private key to be used to generate
+ *                              the signature.  The private key is expected to be encoded as
+ *                              a Weave EllipticCurvePrivateKey TLV structure.
+ * @param[in] signingKeyLen     The length in bytes of the encoded private key.
+ *
+ * @retval #WEAVE_NO_ERROR      If the operation succeeded.
+ * @retval other                Other Weave error codes related to decoding the private key,
+ *                              generating the signature or encoding the signature.
+ *
+ */
+WEAVE_ERROR GenerateAndEncodeWeaveECDSASignature(TLVWriter& writer, uint64_t tag,
+        const uint8_t * msgHash, uint8_t msgHashLen,
+        const uint8_t * signingKey, uint16_t signingKeyLen)
+{
+    WEAVE_ERROR err;
+    uint32_t privKeyCurveId;
+    EncodedECPublicKey pubKey;
+    EncodedECPrivateKey privKey;
+    EncodedECDSASignature ecdsaSig;
+    uint8_t ecdsaRBuf[EncodedECDSASignature::kMaxValueLength];
+    uint8_t ecdsaSBuf[EncodedECDSASignature::kMaxValueLength];
+
+    // Decode the supplied private key.
+    err = DecodeWeaveECPrivateKey(signingKey, signingKeyLen, privKeyCurveId, pubKey, privKey);
+    SuccessOrExit(err);
+
+    // Use temporary buffers to hold the generated signature value until we write it.
+    ecdsaSig.R = ecdsaRBuf;
+    ecdsaSig.RLen = sizeof(ecdsaRBuf);
+    ecdsaSig.S = ecdsaSBuf;
+    ecdsaSig.SLen = sizeof(ecdsaSBuf);
+
+    // Generate the signature for the message based on its hash.
+    err = GenerateECDSASignature(WeaveCurveIdToOID(privKeyCurveId), msgHash, msgHashLen, privKey, ecdsaSig);
+    SuccessOrExit(err);
+
+    // Encode an ECDSASignature structure into the supplied writer.
+    err = EncodeWeaveECDSASignature(writer, ecdsaSig, tag);
+    SuccessOrExit(err);
+
+exit:
+    return err;
+}
+
 // Encode a Weave ECDSASignature structure.
 WEAVE_ERROR EncodeWeaveECDSASignature(TLVWriter& writer, EncodedECDSASignature& sig, uint64_t tag)
 {

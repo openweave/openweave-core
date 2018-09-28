@@ -261,6 +261,7 @@ public:
     WEAVE_ERROR PutPreEncodedContainer(uint64_t tag, TLVType containerType, const uint8_t *data, uint32_t dataLen);
     WEAVE_ERROR CopyContainer(TLVReader& container);
     WEAVE_ERROR CopyContainer(uint64_t tag, TLVReader& container);
+    WEAVE_ERROR CopyContainer(uint64_t tag, const uint8_t * encodedContainer, uint16_t encodedContainerLen);
     TLVType GetContainerType(void) const;
 
     uint32_t GetLengthWritten(void);

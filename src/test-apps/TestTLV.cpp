@@ -2386,25 +2386,45 @@ void CheckSapphire10921(nlTestSuite *inSuite, void *inContext)
 void TestWeaveTLVWriterCopyContainer(nlTestSuite *inSuite)
 {
     uint8_t buf[2048];
-    TLVWriter writer;
-    TLVReader reader;
 
-    reader.Init(Encoding1, sizeof(Encoding1));
-    reader.ImplicitProfileId = TestProfile_2;
+    {
+        TLVWriter writer;
+        TLVReader reader;
 
-    TestNext<TLVReader>(inSuite, reader);
+        reader.Init(Encoding1, sizeof(Encoding1));
+        reader.ImplicitProfileId = TestProfile_2;
 
-    writer.Init(buf, sizeof(buf));
-    writer.ImplicitProfileId = TestProfile_2;
+        TestNext<TLVReader>(inSuite, reader);
 
-    WEAVE_ERROR err = writer.CopyContainer(reader);
-    NL_TEST_ASSERT(inSuite, err == WEAVE_NO_ERROR);
+        writer.Init(buf, sizeof(buf));
+        writer.ImplicitProfileId = TestProfile_2;
 
-    uint32_t encodedLen = writer.GetLengthWritten();
-    NL_TEST_ASSERT(inSuite, encodedLen == sizeof(Encoding1));
+        WEAVE_ERROR err = writer.CopyContainer(reader);
+        NL_TEST_ASSERT(inSuite, err == WEAVE_NO_ERROR);
 
-    int memcmpRes = memcmp(buf, Encoding1, encodedLen);
-    NL_TEST_ASSERT(inSuite, memcmpRes == 0);
+        uint32_t encodedLen = writer.GetLengthWritten();
+        NL_TEST_ASSERT(inSuite, encodedLen == sizeof(Encoding1));
+
+        int memcmpRes = memcmp(buf, Encoding1, encodedLen);
+        NL_TEST_ASSERT(inSuite, memcmpRes == 0);
+    }
+
+    {
+        TLVWriter writer;
+
+        writer.Init(buf, sizeof(buf));
+        writer.ImplicitProfileId = TestProfile_2;
+
+        WEAVE_ERROR err = writer.CopyContainer(ProfileTag(TestProfile_1, 1), Encoding1, sizeof(Encoding1));
+        NL_TEST_ASSERT(inSuite, err == WEAVE_NO_ERROR);
+
+        uint32_t encodedLen = writer.GetLengthWritten();
+        NL_TEST_ASSERT(inSuite, encodedLen == sizeof(Encoding1));
+
+        int memcmpRes = memcmp(buf, Encoding1, encodedLen);
+        NL_TEST_ASSERT(inSuite, memcmpRes == 0);
+
+    }
 }
 
 /**

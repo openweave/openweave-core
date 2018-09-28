@@ -1445,6 +1445,16 @@
 #endif // WEAVE_CONFIG_DEFAULT_CASE_ALLOWED_CURVES
 
 /**
+ * @def WEAVE_CONFIG_LEGACY_CASE_AUTH_DELEGATE
+ *
+ * @brief
+ *   Enable use of the legacy WeaveCASEAuthDelegate interface.
+ */
+#ifndef WEAVE_CONFIG_LEGACY_CASE_AUTH_DELEGATE
+#define WEAVE_CONFIG_LEGACY_CASE_AUTH_DELEGATE 1
+#endif
+
+/**
  *  @def WEAVE_CONFIG_MAX_SHARED_SESSIONS_END_NODES
  *
  *  @brief
