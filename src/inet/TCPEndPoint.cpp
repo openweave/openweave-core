@@ -380,6 +380,10 @@ INET_ERROR TCPEndPoint::Connect(IPAddress addr, uint16_t port, InterfaceId intf)
 
 #if WEAVE_SYSTEM_CONFIG_USE_SOCKETS
 
+    res = GetSocket(addrType);
+    if (res != INET_NO_ERROR)
+        return res;
+
     if (intf == INET_NULL_INTERFACEID)
     {
         // The behavior when connecting to an IPv6 link-local address without specifying an outbound
@@ -387,60 +391,40 @@ INET_ERROR TCPEndPoint::Connect(IPAddress addr, uint16_t port, InterfaceId intf)
         if (addr.IsIPv6LinkLocal())
             return INET_ERROR_WRONG_ADDRESS_TYPE;
     }
-
-#if INET_CONFIG_ENABLE_IPV4
     else
     {
-        // Attempting to initiate an IPv4 connection via a specific interface is not allowed.
-        // The only way to do this is to bind the local to an address on the desired interface,
-        // or bind the socket to the interface itself using SO_BINDTODEVICE.  The latter,
-        // however, requires privileged access.
-        if (addrType == kIPAddressType_IPv4)
+        // Try binding to the interface
+
+#ifdef SO_BINDTODEVICE
+        struct ifreq ifr;
+        memset(&ifr, 0, sizeof(ifr));
+
+        res = GetInterfaceName(intf, ifr.ifr_name, sizeof(ifr.ifr_name));
+        if (res != INET_NO_ERROR)
+            return res;
+
+        // Attempt to bind to the interface using SO_BINDTODEVICE which requires privileged access.
+        // If the permission is denied(EACCES) because Weave is running in a context
+        // that does not have privileged access, choose a source address on the
+        // interface to bind the connetion to.
+        int r = setsockopt(mSocket, SOL_SOCKET, SO_BINDTODEVICE, (void *)&ifr, sizeof(ifr));
+        if (r < 0 && errno == EACCES)
+#endif // SO_BINDTODEVICE
         {
-            if (State == kState_Bound)
-            {
-                return INET_ERROR_NOT_SUPPORTED;
-            }
-            else
-            {
-            // If we are trying to make a TCP connection over IPv4 and a 'specified target interface',
-            // then we bind the TCPEndPoint to an IPv4 address on that target interface and use that
-            // address as the source address for that connection.
-                IPAddress curAddr = IPAddress::Any;
-                InterfaceId curIntfId = INET_NULL_INTERFACEID;
-                bool ip4AddrFound = false;
-
-                for (InterfaceAddressIterator addrIter; addrIter.HasCurrent(); addrIter.Next())
-                {
-                    curAddr = addrIter.GetAddress();
-                    curIntfId = addrIter.GetInterface();
-
-                    // Search for an IPv4 address on the TargetInterface
-
-                    if (curAddr.IsIPv4() && curIntfId == intf)
-                    {
-                        // Bind to the IPv4 address of the TargetInterface
-                        ip4AddrFound = true;
-                        res = Bind(kIPAddressType_IPv4, curAddr, 0, true);
-                        if (res != INET_NO_ERROR)
-                            return res;
-
-                        break;
-                    }
-                }
-
-                if (!ip4AddrFound)
-                {
-                    return INET_ERROR_NOT_SUPPORTED;
-                }
-            }
+            // Attempting to initiate a connection via a specific interface is not allowed.
+            // The only way to do this is to bind the local to an address on the desired
+            // interface.
+            res = BindSrcAddrFromIntf(addrType, intf);
+            if (res != INET_NO_ERROR)
+                return res;
         }
+#ifdef SO_BINDTODEVICE
+        else
+        {
+            return res = Weave::System::MapErrorPOSIX(errno);
+        }
+#endif // SO_BINDTODEVICE
     }
-#endif // INET_CONFIG_ENABLE_IPV4
-
-    res = GetSocket(addrType);
-    if (res != INET_NO_ERROR)
-        return res;
 
     // Disable generation of SIGPIPE.
 #ifdef SO_NOSIGPIPE
@@ -2146,6 +2130,69 @@ void TCPEndPoint::LwIPHandleError(void *arg, err_t lwipErr)
 #endif // WEAVE_SYSTEM_CONFIG_USE_LWIP
 
 #if WEAVE_SYSTEM_CONFIG_USE_SOCKETS
+
+INET_ERROR TCPEndPoint::BindSrcAddrFromIntf(IPAddressType addrType, InterfaceId intf)
+{
+    INET_ERROR err = INET_NO_ERROR;
+
+    // If we are trying to make a TCP connection over a 'specified target interface',
+    // then we bind the TCPEndPoint to an IP address on that target interface
+    // and use that address as the source address for that connection. This is
+    // done in the event that directly binding the connection to the target
+    // interface is not allowed due to insufficient privileges.
+    IPAddress curAddr = IPAddress::Any;
+    InterfaceId curIntfId = INET_NULL_INTERFACEID;
+    bool ipAddrFound = false;
+
+    VerifyOrExit(State != kState_Bound, err = INET_ERROR_NOT_SUPPORTED);
+
+    for (InterfaceAddressIterator addrIter; addrIter.HasCurrent(); addrIter.Next())
+    {
+        curAddr = addrIter.GetAddress();
+        curIntfId = addrIter.GetInterface();
+
+        if (curIntfId == intf)
+        {
+        // Search for an IPv4 address on the TargetInterface
+
+#if INET_CONFIG_ENABLE_IPV4
+            if (addrType == kIPAddressType_IPv4)
+            {
+                if (curAddr.IsIPv4())
+                {
+                    // Bind to the IPv4 address of the TargetInterface
+                    ipAddrFound = true;
+                    err = Bind(kIPAddressType_IPv4, curAddr, 0, true);
+                    SuccessOrExit(err);
+
+                    break;
+                }
+            }
+#endif // INET_CONFIG_ENABLE_IPV4
+            if (addrType == kIPAddressType_IPv6)
+            {
+                // Select an IPv6 address on the interface that is not
+                // a link local or a multicast address.
+                //TODO: Define a proper IPv6GlobalUnicast address checker.
+                if (!curAddr.IsIPv4() && !curAddr.IsIPv6LinkLocal() &&
+                    !curAddr.IsMulticast())
+                {
+                    // Bind to the IPv6 address of the TargetInterface
+                    ipAddrFound = true;
+                    err = Bind(kIPAddressType_IPv6, curAddr, 0, true);
+                    SuccessOrExit(err);
+
+                    break;
+                }
+            }
+        }
+    }
+
+    VerifyOrExit(ipAddrFound, err = INET_ERROR_NOT_SUPPORTED);
+
+exit:
+    return err;
+}
 
 INET_ERROR TCPEndPoint::GetSocket(IPAddressType addrType)
 {

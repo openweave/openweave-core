@@ -644,6 +644,7 @@ private:
     void HandlePendingIO(void);
     void ReceiveData(void);
     void HandleIncomingConnection(void);
+    INET_ERROR BindSrcAddrFromIntf(IPAddressType addrType, InterfaceId intf);
 #endif // WEAVE_SYSTEM_CONFIG_USE_SOCKETS
 
 };
