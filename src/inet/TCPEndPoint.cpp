@@ -408,9 +408,15 @@ INET_ERROR TCPEndPoint::Connect(IPAddress addr, uint16_t port, InterfaceId intf)
         // that does not have privileged access, choose a source address on the
         // interface to bind the connetion to.
         int r = setsockopt(mSocket, SOL_SOCKET, SO_BINDTODEVICE, (void *)&ifr, sizeof(ifr));
-        if (r < 0 && errno == EACCES)
+        if (r < 0 && errno != EACCES)
+        {
+            return res = Weave::System::MapErrorPOSIX(errno);
+        }
+
+        if (r < 0)
 #endif // SO_BINDTODEVICE
         {
+
             // Attempting to initiate a connection via a specific interface is not allowed.
             // The only way to do this is to bind the local to an address on the desired
             // interface.
@@ -418,12 +424,6 @@ INET_ERROR TCPEndPoint::Connect(IPAddress addr, uint16_t port, InterfaceId intf)
             if (res != INET_NO_ERROR)
                 return res;
         }
-#ifdef SO_BINDTODEVICE
-        else
-        {
-            return res = Weave::System::MapErrorPOSIX(errno);
-        }
-#endif // SO_BINDTODEVICE
     }
 
     // Disable generation of SIGPIPE.
