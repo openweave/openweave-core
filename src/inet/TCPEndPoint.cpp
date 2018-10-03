@@ -2169,6 +2169,7 @@ INET_ERROR TCPEndPoint::BindSrcAddrFromIntf(IPAddressType addrType, InterfaceId 
                     break;
                 }
             }
+#endif // INET_CONFIG_ENABLE_IPV4
             if (addrType == kIPAddressType_IPv6)
             {
                 // Select an IPv6 address on the interface that is not
@@ -2185,7 +2186,6 @@ INET_ERROR TCPEndPoint::BindSrcAddrFromIntf(IPAddressType addrType, InterfaceId 
                     break;
                 }
             }
-#endif // INET_CONFIG_ENABLE_IPV4
         }
     }
 
