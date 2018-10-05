@@ -98,7 +98,7 @@ WEAVE_ERROR ServiceProvisioningServer::HandleRegisterServicePairAccount(Register
 #else // !WEAVE_DEVICE_CONFIG_DISABLE_ACCOUNT_PAIRING
 
     // Store the account id in persistent storage.
-    err = ConfigurationMgr().StoreAccountId(msg.AccountId, msg.AccountIdLen);
+    err = ConfigurationMgr().StorePairedAccountId(msg.AccountId, msg.AccountIdLen);
     SuccessOrExit(err);
 
     // Post an event alerting other subsystems that the device is now paired to an account.
