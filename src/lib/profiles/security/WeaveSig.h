@@ -72,6 +72,10 @@ extern WEAVE_ERROR VerifyWeaveSignature(const uint8_t *msgHash, uint8_t msgHashL
 
 extern WEAVE_ERROR GetWeaveSignatureAlgo(const uint8_t *sig, uint16_t sigLen, OID& sigAlgoOID);
 
+extern WEAVE_ERROR GenerateAndEncodeWeaveECDSASignature(TLVWriter& writer, uint64_t tag,
+        const uint8_t * msgHash, uint8_t msgHashLen,
+        const uint8_t * signingKey, uint16_t signingKeyLen);
+
 extern WEAVE_ERROR EncodeWeaveECDSASignature(TLVWriter& writer, EncodedECDSASignature& sig, uint64_t tag);
 extern WEAVE_ERROR DecodeWeaveECDSASignature(TLVReader& reader, EncodedECDSASignature& sig);
 

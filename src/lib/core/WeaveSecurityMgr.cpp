@@ -1055,29 +1055,34 @@ exit:
 
 void WeaveSecurityManager::StartCASESession(uint32_t config, uint32_t curveId)
 {
-    WEAVE_ERROR                         err;
-    CASE::BeginSessionRequestMessage    req;
-    PacketBuffer*                       msgBuf = NULL;
-    uint16_t                            sendFlags = 0;
+    WEAVE_ERROR err;
+    PacketBuffer * msgBuf = NULL;
+    uint16_t sendFlags = 0;
 
     // Allocate a buffer to hold the Begin Session message.
     msgBuf = PacketBuffer::New();
     VerifyOrExit(msgBuf != NULL, err = WEAVE_ERROR_NO_MEMORY);
 
     // Generate the CASE Begin Session message.
-    req.Reset();
-    req.PeerNodeId = mEC->PeerNodeId;
-    req.ProtocolConfig = config;
-    mCASEEngine->SetAlternateConfigs(req);
-    req.CurveId = curveId;
-    mCASEEngine->SetAlternateCurves(req);
-    req.PerformKeyConfirm = true;
-    req.SessionKeyId = mSessionKeyId;
-    req.EncryptionType = mEncType;
-    Platform::Security::OnTimeConsumingCryptoStart();
-    err = mCASEEngine->GenerateBeginSessionRequest(req, msgBuf);
-    Platform::Security::OnTimeConsumingCryptoDone();
-    SuccessOrExit(err);
+    {
+        CASE::BeginSessionRequestContext reqCtx;
+
+        reqCtx.Reset();
+        reqCtx.SetIsInitiator(true);
+        reqCtx.PeerNodeId = mEC->PeerNodeId;
+        reqCtx.ProtocolConfig = config;
+        mCASEEngine->SetAlternateConfigs(reqCtx);
+        reqCtx.CurveId = curveId;
+        mCASEEngine->SetAlternateCurves(reqCtx);
+        reqCtx.SetPerformKeyConfirm(true);
+        reqCtx.SessionKeyId = mSessionKeyId;
+        reqCtx.EncryptionType = mEncType;
+
+        Platform::Security::OnTimeConsumingCryptoStart();
+        err = mCASEEngine->GenerateBeginSessionRequest(reqCtx, msgBuf);
+        Platform::Security::OnTimeConsumingCryptoDone();
+        SuccessOrExit(err);
+    }
 
 #if WEAVE_CONFIG_ENABLE_RELIABLE_MESSAGING
     if (mCon == NULL)
@@ -1133,12 +1138,15 @@ void WeaveSecurityManager::HandleCASEMessageInitiator(ExchangeContext *ec, const
 
         // Decode and process the BeginSessionResponse.
         {
-            CASE::BeginSessionResponseMessage resp;
-            resp.Reset();
-            resp.PeerNodeId = ec->PeerNodeId;
+            CASE::BeginSessionResponseContext respCtx;
+
+            respCtx.Reset();
+            respCtx.SetIsInitiator(true);
+            respCtx.PeerNodeId = ec->PeerNodeId;
+            respCtx.MsgInfo = msgInfo;
 
             Platform::Security::OnTimeConsumingCryptoStart();
-            err = secMgr->mCASEEngine->ProcessBeginSessionResponse(msgBuf, resp);
+            err = secMgr->mCASEEngine->ProcessBeginSessionResponse(msgBuf, respCtx);
             Platform::Security::OnTimeConsumingCryptoDone();
             SuccessOrExit(err);
         }
@@ -1193,8 +1201,8 @@ void WeaveSecurityManager::HandleCASEMessageInitiator(ExchangeContext *ec, const
     {
         // Process the reconfigure message.  If this proposed alternate configuration is not acceptable,
         // the call will fail with an error.
-        CASE::ReconfigureMessage reconfMsg;
-        err = secMgr->mCASEEngine->ProcessReconfigure(msgBuf, reconfMsg);
+        CASE::ReconfigureContext reconfCtx;
+        err = secMgr->mCASEEngine->ProcessReconfigure(msgBuf, reconfCtx);
         SuccessOrExit(err);
 
         // Release the buffer containing the response.
@@ -1208,7 +1216,7 @@ void WeaveSecurityManager::HandleCASEMessageInitiator(ExchangeContext *ec, const
         SuccessOrExit(err);
 
         // Restart the CASE session using the peer's propose parameters.
-        secMgr->StartCASESession(reconfMsg.ProtocolConfig, reconfMsg.CurveId);
+        secMgr->StartCASESession(reconfCtx.ProtocolConfig, reconfCtx.CurveId);
     }
 
     // Fail if the message is unrecognized.
@@ -1238,12 +1246,12 @@ WEAVE_ERROR WeaveSecurityManager::StartCASESession(WeaveConnection *con, uint64_
 
 void WeaveSecurityManager::HandleCASESessionStart(ExchangeContext *ec, const IPPacketInfo *pktInfo, const WeaveMessageInfo *msgInfo, PacketBuffer* msgBuf)
 {
-    WEAVE_ERROR                         err;
-    WeaveSessionKey                     *sessionKey;
-    CASE::BeginSessionRequestMessage    req;
-    CASE::ReconfigureMessage            reconf;
-    PacketBuffer                        *respMsgBuf = NULL;
-    uint16_t                            sendFlags = 0;
+    WEAVE_ERROR err;
+    WeaveSessionKey * sessionKey;
+    CASE::BeginSessionRequestContext reqCtx;
+    CASE::ReconfigureContext reconfCtx;
+    PacketBuffer * respMsgBuf = NULL;
+    uint16_t sendFlags = 0;
 
     State = kState_CASEInProgress;
     mEC = ec;
@@ -1293,11 +1301,12 @@ void WeaveSecurityManager::HandleCASESessionStart(ExchangeContext *ec, const IPP
 #endif
 
     // Process the BeginSessionRequest
-    req.Reset();
-    req.PeerNodeId = ec->PeerNodeId;
-    reconf.Reset();
+    reqCtx.Reset();
+    reqCtx.PeerNodeId = ec->PeerNodeId;
+    reqCtx.MsgInfo = msgInfo;
+    reconfCtx.Reset();
     Platform::Security::OnTimeConsumingCryptoStart();
-    err = mCASEEngine->ProcessBeginSessionRequest(msgBuf, req, reconf);
+    err = mCASEEngine->ProcessBeginSessionRequest(msgBuf, reqCtx, reconfCtx);
     Platform::Security::OnTimeConsumingCryptoDone();
     if (err != WEAVE_ERROR_CASE_RECONFIG_REQUIRED)
         SuccessOrExit(err);
@@ -1312,7 +1321,7 @@ void WeaveSecurityManager::HandleCASESessionStart(ExchangeContext *ec, const IPP
         // Encode a CASE Reconfigure message into a new buffer.
         respMsgBuf = PacketBuffer::New();
         VerifyOrExit(respMsgBuf != NULL, err = WEAVE_ERROR_NO_MEMORY);
-        err = reconf.Encode(respMsgBuf);
+        err = reconfCtx.Encode(respMsgBuf);
         SuccessOrExit(err);
 
         // Send the Reconfigure message to the peer.
@@ -1332,32 +1341,35 @@ void WeaveSecurityManager::HandleCASESessionStart(ExchangeContext *ec, const IPP
         // be bound to the connection, such that when the connection closes, the key is removed.
         // Set the RemoveOnIdle flag so that the session will be automatically removed after a period of
         // inactivity (note that this only applies to sessions that are NOT bound to connections).
-        err = FabricState->AllocSessionKey(ec->PeerNodeId, req.SessionKeyId, ec->Con, sessionKey);
+        err = FabricState->AllocSessionKey(ec->PeerNodeId, reqCtx.SessionKeyId, ec->Con, sessionKey);
         SuccessOrExit(err);
         sessionKey->SetLocallyInitiated(false);
         sessionKey->SetRemoveOnIdle(true);
 
         // Save the proposed session key id and encryption type.
-        mSessionKeyId = req.SessionKeyId;
-        mEncType = req.EncryptionType;
-
-        // Prepare the contents of a BeginSessionResponse message to be sent to the initiator.
-        CASE::BeginSessionResponseMessage resp;
-        resp.Reset();
-        resp.PeerNodeId = ec->PeerNodeId;
-        resp.ProtocolConfig = req.ProtocolConfig;
-        resp.CurveId = req.CurveId;
-        resp.PerformKeyConfirm = true;
+        mSessionKeyId = reqCtx.SessionKeyId;
+        mEncType = reqCtx.EncryptionType;
 
         // Allocate a buffer to hold the encoded BeginSessionResponse message.
         respMsgBuf = PacketBuffer::New();
         VerifyOrExit(respMsgBuf != NULL, err = WEAVE_ERROR_NO_MEMORY);
 
         // Generate the BeginSessionResponse message.
-        Platform::Security::OnTimeConsumingCryptoStart();
-        err = mCASEEngine->GenerateBeginSessionResponse(resp, respMsgBuf, req);
-        Platform::Security::OnTimeConsumingCryptoDone();
-        SuccessOrExit(err);
+        {
+            CASE::BeginSessionResponseContext respCtx;
+
+            respCtx.Reset();
+            respCtx.PeerNodeId = ec->PeerNodeId;
+            respCtx.MsgInfo = msgInfo;
+            respCtx.ProtocolConfig = reqCtx.ProtocolConfig;
+            respCtx.CurveId = reqCtx.CurveId;
+            respCtx.SetPerformKeyConfirm(true);
+
+            Platform::Security::OnTimeConsumingCryptoStart();
+            err = mCASEEngine->GenerateBeginSessionResponse(respCtx, respMsgBuf, reqCtx);
+            Platform::Security::OnTimeConsumingCryptoDone();
+            SuccessOrExit(err);
+        }
 
         // Send the BeginSessionResponse message to the peer.
         err = ec->SendMessage(kWeaveProfile_Security, kMsgType_CASEBeginSessionResponse, respMsgBuf, sendFlags);

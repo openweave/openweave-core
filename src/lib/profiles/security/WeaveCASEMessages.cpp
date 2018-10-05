@@ -55,7 +55,7 @@ using namespace nl::Weave::TLV;
 
 // Encode the initial portion of Weave CASE BeginSessionRequest message, not including the DH public key,
 // the certificate info, the payload or the signature.
-WEAVE_ERROR BeginSessionRequestMessage::EncodeHead(PacketBuffer *msgBuf)
+WEAVE_ERROR BeginSessionRequestContext::EncodeHead(PacketBuffer *msgBuf)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
     uint8_t *p = msgBuf->Start();
@@ -69,7 +69,7 @@ WEAVE_ERROR BeginSessionRequestMessage::EncodeHead(PacketBuffer *msgBuf)
 
     // Encode the control header.
     *p++ = (EncryptionType & kCASEHeader_EncryptionTypeMask) |
-           ((PerformKeyConfirm) ? kCASEHeader_PerformKeyConfirmFlag : 0);
+           ((PerformKeyConfirm()) ? kCASEHeader_PerformKeyConfirmFlag : 0);
 
     // Encode the alternate config count, alternate curve count and DH public key length.
     *p++ = AlternateConfigCount;
@@ -88,7 +88,7 @@ WEAVE_ERROR BeginSessionRequestMessage::EncodeHead(PacketBuffer *msgBuf)
     // Encode the proposed elliptic curve.
     LittleEndian::Write32(p, CurveId);
 
-    // Encode the session id.
+    // Encode the session key id.
     LittleEndian::Write16(p, SessionKeyId);
 
     // Encode the list of alternate configs.
@@ -104,7 +104,7 @@ exit:
 }
 
 // Decode the initial portion of a Weave CASE BeginSessionRequest message.
-WEAVE_ERROR BeginSessionRequestMessage::DecodeHead(PacketBuffer *msgBuf)
+WEAVE_ERROR BeginSessionRequestContext::DecodeHead(PacketBuffer *msgBuf)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
     uint8_t *p = msgBuf->Start();
@@ -118,7 +118,7 @@ WEAVE_ERROR BeginSessionRequestMessage::DecodeHead(PacketBuffer *msgBuf)
     // Parse and decode the control header.
     controlHeader = *p++;
     EncryptionType = controlHeader & kCASEHeader_EncryptionTypeMask;
-    PerformKeyConfirm = ((controlHeader & kCASEHeader_PerformKeyConfirmFlag) != 0);
+    SetPerformKeyConfirm((controlHeader & kCASEHeader_PerformKeyConfirmFlag) != 0);
     VerifyOrExit((controlHeader & kCASEHeader_ControlHeaderUnusedBits) == 0, err = WEAVE_ERROR_INVALID_ARGUMENT);
 
     // Parse the alternate config count, alternate curve count and DH public key length.
@@ -176,7 +176,7 @@ exit:
 }
 
 // Determine if the given config is among the list of alternate configs.
-bool BeginSessionRequestMessage::IsAltConfig(uint32_t config) const
+bool BeginSessionRequestContext::IsAltConfig(uint32_t config) const
 {
     for (uint8_t i = 0; i < AlternateConfigCount; i++)
         if (AlternateConfigs[i] == config)
@@ -185,7 +185,7 @@ bool BeginSessionRequestMessage::IsAltConfig(uint32_t config) const
 }
 
 // Encode the initial portion of a Weave CASE BeginSessionResponse message.
-WEAVE_ERROR BeginSessionResponseMessage::EncodeHead(PacketBuffer *msgBuf)
+WEAVE_ERROR BeginSessionResponseContext::EncodeHead(PacketBuffer *msgBuf)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
     uint8_t *p = msgBuf->Start();
@@ -197,7 +197,7 @@ WEAVE_ERROR BeginSessionResponseMessage::EncodeHead(PacketBuffer *msgBuf)
 
     // If performing key confirmation, encode the length of the key confirmation hash value
     // in the upper bits of the control header.
-    if (PerformKeyConfirm)
+    if (PerformKeyConfirm())
     {
         switch (KeyConfirmHashLength)
         {
@@ -229,7 +229,7 @@ exit:
 }
 
 // Decode a Weave CASE BeginSessionResponse message.
-WEAVE_ERROR BeginSessionResponseMessage::DecodeHead(PacketBuffer *msgBuf)
+WEAVE_ERROR BeginSessionResponseContext::DecodeHead(PacketBuffer *msgBuf)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
     const uint8_t *p = msgBuf->Start();
@@ -253,15 +253,15 @@ WEAVE_ERROR BeginSessionResponseMessage::DecodeHead(PacketBuffer *msgBuf)
     switch (controlHeader & kCASEHeader_KeyConfirmHashLengthMask)
     {
     case kCASEKeyConfirmHashLength_0Bytes:
-        PerformKeyConfirm = false;
+        SetPerformKeyConfirm(false);
         KeyConfirmHashLength = 0;
         break;
     case kCASEKeyConfirmHashLength_20Bytes:
-        PerformKeyConfirm = true;
+        SetPerformKeyConfirm(true);
         KeyConfirmHashLength = 20;
         break;
     case kCASEKeyConfirmHashLength_32Bytes:
-        PerformKeyConfirm = true;
+        SetPerformKeyConfirm(true);
         KeyConfirmHashLength = 32;
         break;
     default:
@@ -292,14 +292,13 @@ WEAVE_ERROR BeginSessionResponseMessage::DecodeHead(PacketBuffer *msgBuf)
     p += SignatureLength;
 
     // Save a pointer to the start of the key confirmation hash, if present.
-    KeyConfirmHash = (PerformKeyConfirm) ? p : NULL;
+    KeyConfirmHash = (PerformKeyConfirm()) ? p : NULL;
 
 exit:
     return err;
 }
 
-
-WEAVE_ERROR ReconfigureMessage::Encode(PacketBuffer *msgBuf)
+WEAVE_ERROR ReconfigureContext::Encode(PacketBuffer *msgBuf)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
     uint8_t *p = msgBuf->Start();
@@ -321,7 +320,7 @@ exit:
     return err;
 }
 
-WEAVE_ERROR ReconfigureMessage::Decode(PacketBuffer *msgBuf, ReconfigureMessage& msg)
+WEAVE_ERROR ReconfigureContext::Decode(PacketBuffer *msgBuf, ReconfigureContext& msg)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
     const uint8_t *p = msgBuf->Start();

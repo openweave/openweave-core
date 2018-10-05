@@ -81,42 +81,42 @@ void WeaveCASEEngine::Reset()
     AuthDelegate = savedAuthDelegate;
 }
 
-void WeaveCASEEngine::SetAlternateConfigs(BeginSessionRequestMessage& req)
+void WeaveCASEEngine::SetAlternateConfigs(BeginSessionRequestContext & reqCtx)
 {
-    uint32_t altConfig = (req.ProtocolConfig == kCASEConfig_Config1) ? kCASEConfig_Config2 : kCASEConfig_Config1;
+    uint32_t altConfig = (reqCtx.ProtocolConfig == kCASEConfig_Config1) ? kCASEConfig_Config2 : kCASEConfig_Config1;
     if (IsAllowedConfig(altConfig))
     {
-        req.AlternateConfigs[0] = altConfig;
-        req.AlternateConfigCount = 1;
+        reqCtx.AlternateConfigs[0] = altConfig;
+        reqCtx.AlternateConfigCount = 1;
     }
 }
 
-void WeaveCASEEngine::SetAlternateCurves(BeginSessionRequestMessage& req)
+void WeaveCASEEngine::SetAlternateCurves(BeginSessionRequestContext & reqCtx)
 {
-    req.AlternateCurveCount = 0;
+    reqCtx.AlternateCurveCount = 0;
 
 #if WEAVE_CONFIG_SUPPORT_ELLIPTIC_CURVE_SECP256R1
     if ((mAllowedCurves & kWeaveCurveSet_prime256v1) != 0)
-        req.AlternateCurveIds[req.AlternateCurveCount++] = kWeaveCurveId_prime256v1;
+        reqCtx.AlternateCurveIds[reqCtx.AlternateCurveCount++] = kWeaveCurveId_prime256v1;
 #endif // WEAVE_CONFIG_SUPPORT_ELLIPTIC_CURVE_SECP256R1
 
 #if WEAVE_CONFIG_SUPPORT_ELLIPTIC_CURVE_SECP224R1
     if ((mAllowedCurves & kWeaveCurveSet_secp224r1) != 0)
-        req.AlternateCurveIds[req.AlternateCurveCount++] = kWeaveCurveId_secp224r1;
+        reqCtx.AlternateCurveIds[reqCtx.AlternateCurveCount++] = kWeaveCurveId_secp224r1;
 #endif // WEAVE_CONFIG_SUPPORT_ELLIPTIC_CURVE_SECP224R1
 
 #if WEAVE_CONFIG_SUPPORT_ELLIPTIC_CURVE_SECP192R1
     if ((mAllowedCurves & kWeaveCurveSet_prime192v1) != 0)
-        req.AlternateCurveIds[req.AlternateCurveCount++] = kWeaveCurveId_prime192v1;
+        reqCtx.AlternateCurveIds[reqCtx.AlternateCurveCount++] = kWeaveCurveId_prime192v1;
 #endif // WEAVE_CONFIG_SUPPORT_ELLIPTIC_CURVE_SECP192R1
 
 #if WEAVE_CONFIG_SUPPORT_ELLIPTIC_CURVE_SECP160R1
     if ((mAllowedCurves & kWeaveCurveSet_secp160r1) != 0)
-        req.AlternateCurveIds[req.AlternateCurveCount++] = kWeaveCurveId_secp160r1;
+        reqCtx.AlternateCurveIds[reqCtx.AlternateCurveCount++] = kWeaveCurveId_secp160r1;
 #endif // WEAVE_CONFIG_SUPPORT_ELLIPTIC_CURVE_SECP160R1
 }
 
-WEAVE_ERROR WeaveCASEEngine::GenerateBeginSessionRequest(BeginSessionRequestMessage& req, PacketBuffer *msgBuf)
+WEAVE_ERROR WeaveCASEEngine::GenerateBeginSessionRequest(BeginSessionRequestContext & reqCtx, PacketBuffer * msgBuf)
 {
     WEAVE_ERROR err;
 
@@ -129,60 +129,62 @@ WEAVE_ERROR WeaveCASEEngine::GenerateBeginSessionRequest(BeginSessionRequestMess
     WeaveLogDetail(SecurityManager, "CASE:GenerateBeginSessionRequest");
 
     // If a protocol config wasn't specified, choose a default one.
-    if (req.ProtocolConfig == CASE::kCASEConfig_NotSpecified)
-        req.ProtocolConfig = IsConfig2Allowed() ? kCASEConfig_Config2 : kCASEConfig_Config1;
+    if (reqCtx.ProtocolConfig == CASE::kCASEConfig_NotSpecified)
+        reqCtx.ProtocolConfig = IsConfig2Allowed() ? kCASEConfig_Config2 : kCASEConfig_Config1;
 
     // Verify the proposed config is supported.
-    VerifyOrExit(IsAllowedConfig(req.ProtocolConfig), err = WEAVE_ERROR_UNSUPPORTED_CASE_CONFIGURATION);
+    VerifyOrExit(IsAllowedConfig(reqCtx.ProtocolConfig), err = WEAVE_ERROR_UNSUPPORTED_CASE_CONFIGURATION);
 
     // If a ECDH curve wasn't specified, choose a default one.
-    if (req.CurveId == kWeaveCurveId_NotSpecified)
-        req.CurveId = WEAVE_CONFIG_DEFAULT_CASE_CURVE_ID;
+    if (reqCtx.CurveId == kWeaveCurveId_NotSpecified)
+        reqCtx.CurveId = WEAVE_CONFIG_DEFAULT_CASE_CURVE_ID;
 
     // Verify the proposed ECDH curve is supported.
-    VerifyOrExit(IsAllowedCurve(req.CurveId), err = WEAVE_ERROR_UNSUPPORTED_ELLIPTIC_CURVE);
+    VerifyOrExit(IsAllowedCurve(reqCtx.CurveId), err = WEAVE_ERROR_UNSUPPORTED_ELLIPTIC_CURVE);
 
     // Verify the requested key type.
-    VerifyOrExit(WeaveKeyId::IsSessionKey(req.SessionKeyId), err = WEAVE_ERROR_WRONG_KEY_TYPE);
+    VerifyOrExit(WeaveKeyId::IsSessionKey(reqCtx.SessionKeyId), err = WEAVE_ERROR_WRONG_KEY_TYPE);
 
     // Verify the requested encryption type.
-    VerifyOrExit(req.EncryptionType == kWeaveEncryptionType_AES128CTRSHA1,
+    VerifyOrExit(reqCtx.EncryptionType == kWeaveEncryptionType_AES128CTRSHA1,
             err = WEAVE_ERROR_UNSUPPORTED_ENCRYPTION_TYPE);
 
+    // Record that we are acting as the initiator.
     SetIsInitiator(true);
+    reqCtx.SetIsInitiator(true);
 
     // Remember various parameters of the session so that we can use them when the responder responds.
-    SetSelectedConfig(req.ProtocolConfig);
-    mCurveId = req.CurveId;
-    SetPerformingKeyConfirm(req.PerformKeyConfirm);
-    SessionKeyId = req.SessionKeyId;
-    EncryptionType = req.EncryptionType;
+    SetSelectedConfig(reqCtx.ProtocolConfig);
+    mCurveId = reqCtx.CurveId;
+    SetPerformingKeyConfirm(reqCtx.PerformKeyConfirm());
+    SessionKeyId = reqCtx.SessionKeyId;
+    EncryptionType = reqCtx.EncryptionType;
 
     // Since the message contains a number of variable length fields with corresponding length values,
     // we start encoding in the middle of the message, and then go back and fill in the head when we know
     // the final lengths.
-    msgBuf->SetDataLength(req.HeadLength());
+    msgBuf->SetDataLength(reqCtx.HeadLength());
 
     // Generate an ephemeral public/private key. Store the public key directly into the message and store
     // the private key in a state variable.
-    err = AppendNewECDHKey(req, msgBuf);
+    err = AppendNewECDHKey(reqCtx, msgBuf);
     SuccessOrExit(err);
 
     // Append the local node's certificate information.
-    err = AppendCertInfo(req, msgBuf);
+    err = AppendCertInfo(reqCtx, msgBuf);
     SuccessOrExit(err);
 
     // Append the initiator's payload, if specified.
-    err = AppendPayload(req, msgBuf);
+    err = AppendPayload(reqCtx, msgBuf);
     SuccessOrExit(err);
 
     // Now encode the head of the message.
-    err = req.EncodeHead(msgBuf);
+    err = reqCtx.EncodeHead(msgBuf);
     SuccessOrExit(err);
 
     // Sign the message using the supplied private key and append the signature to the buffer.
     // Save the message hash for later use in deriving the session keys.
-    err = AppendSignature(req, msgBuf, mSecureState.BeforeKeyGen.RequestMsgHash);
+    err = AppendSignature(reqCtx, msgBuf, mSecureState.BeforeKeyGen.RequestMsgHash);
     SuccessOrExit(err);
 
     State = kState_BeginRequestGenerated;
@@ -191,7 +193,7 @@ exit:
     return err;
 }
 
-WEAVE_ERROR WeaveCASEEngine::ProcessBeginSessionRequest(PacketBuffer *msgBuf, BeginSessionRequestMessage& req, ReconfigureMessage& reconf)
+WEAVE_ERROR WeaveCASEEngine::ProcessBeginSessionRequest(PacketBuffer * msgBuf, BeginSessionRequestContext & reqCtx, ReconfigureContext & reconfCtx)
 {
     WEAVE_ERROR err;
     bool reconfigRequired = false;
@@ -203,22 +205,23 @@ WEAVE_ERROR WeaveCASEEngine::ProcessBeginSessionRequest(PacketBuffer *msgBuf, Be
 
     // Record that we are acting as the responder.
     SetIsInitiator(false);
+    reqCtx.SetIsInitiator(false);
 
     // Decode the head of the message.
-    err = req.DecodeHead(msgBuf);
+    err = reqCtx.DecodeHead(msgBuf);
     SuccessOrExit(err);
 
     // Verify the protocol parameters proposed by the peer (protocol config and ECDH curve id).  If the proposed
-    // values are not acceptable, but an alternative set are, setup the ReconfigureMessage with the alternatives
+    // values are not acceptable, but an alternative set are, setup the ReconfigureContext with the alternatives
     // and return WEAVE_ERROR_CASE_RECONFIG_REQUIRED.
-    reconf.ProtocolConfig = req.ProtocolConfig;
-    reconf.CurveId = req.CurveId;
-    err = VerifyProposedConfig(req, reconf.ProtocolConfig);
+    reconfCtx.ProtocolConfig = reqCtx.ProtocolConfig;
+    reconfCtx.CurveId = reqCtx.CurveId;
+    err = VerifyProposedConfig(reqCtx, reconfCtx.ProtocolConfig);
     if (err == WEAVE_ERROR_CASE_RECONFIG_REQUIRED)
         reconfigRequired = true;
     else
         SuccessOrExit(err);
-    err = VerifyProposedCurve(req, reconf.CurveId);
+    err = VerifyProposedCurve(reqCtx, reconfCtx.CurveId);
     if (err == WEAVE_ERROR_CASE_RECONFIG_REQUIRED)
         reconfigRequired = true;
     else
@@ -227,21 +230,21 @@ WEAVE_ERROR WeaveCASEEngine::ProcessBeginSessionRequest(PacketBuffer *msgBuf, Be
         ExitNow(err = WEAVE_ERROR_CASE_RECONFIG_REQUIRED);
 
     // Remember various parameters of the session so that we can use them when we respond.
-    SetSelectedConfig(req.ProtocolConfig);
-    mCurveId = req.CurveId;
-    SetPerformingKeyConfirm(req.PerformKeyConfirm);
-    SessionKeyId = req.SessionKeyId;
-    EncryptionType = req.EncryptionType;
+    SetSelectedConfig(reqCtx.ProtocolConfig);
+    mCurveId = reqCtx.CurveId;
+    SetPerformingKeyConfirm(reqCtx.PerformKeyConfirm());
+    SessionKeyId = reqCtx.SessionKeyId;
+    EncryptionType = reqCtx.EncryptionType;
 
     // Verify the message signature.
-    err = VerifySignature(req, msgBuf, mSecureState.BeforeKeyGen.RequestMsgHash);
+    err = VerifySignature(reqCtx, msgBuf, mSecureState.BeforeKeyGen.RequestMsgHash);
     SuccessOrExit(err);
 
     // Verify the requested key type.
-    VerifyOrExit(WeaveKeyId::IsSessionKey(req.SessionKeyId), err = WEAVE_ERROR_WRONG_KEY_TYPE);
+    VerifyOrExit(WeaveKeyId::IsSessionKey(reqCtx.SessionKeyId), err = WEAVE_ERROR_WRONG_KEY_TYPE);
 
     // Verify the requested encryption type.
-    VerifyOrExit(req.EncryptionType == kWeaveEncryptionType_AES128CTRSHA1,
+    VerifyOrExit(reqCtx.EncryptionType == kWeaveEncryptionType_AES128CTRSHA1,
                  err = WEAVE_ERROR_UNSUPPORTED_ENCRYPTION_TYPE);
 
     State = kState_BeginRequestProcessed;
@@ -252,8 +255,8 @@ exit:
     return err;
 }
 
-WEAVE_ERROR WeaveCASEEngine::GenerateBeginSessionResponse(BeginSessionResponseMessage& resp, PacketBuffer *msgBuf,
-                                                          BeginSessionRequestMessage& req)
+WEAVE_ERROR WeaveCASEEngine::GenerateBeginSessionResponse(BeginSessionResponseContext & respCtx, PacketBuffer * msgBuf,
+                                                          BeginSessionRequestContext & reqCtx)
 {
     WEAVE_ERROR err;
     uint8_t respMsgHash[kMaxHashLength];
@@ -263,50 +266,52 @@ WEAVE_ERROR WeaveCASEEngine::GenerateBeginSessionResponse(BeginSessionResponseMe
 
     WeaveLogDetail(SecurityManager, "CASE:GenerateBeginSessionResponse");
 
+    respCtx.SetIsInitiator(false);
+
     // If the initiator requested key confirmation, then we must do it.
-    // If the initiator DIDN'T requested key confirmation, but local policy requires it, the we force the use
+    // If the initiator DIDN'T requested key confirmation, but local policy requires it, then we force the use
     // of key confirmation.
-    if (req.PerformKeyConfirm || resp.PerformKeyConfirm || ResponderRequiresKeyConfirm())
+    if (reqCtx.PerformKeyConfirm() || respCtx.PerformKeyConfirm() || ResponderRequiresKeyConfirm())
         SetPerformingKeyConfirm(true);
 
     // If performing key confirmation, signal so in the response and set the appropriate key confirmation
     // hash length based on the selected config.
     if (PerformingKeyConfirm())
     {
-        resp.PerformKeyConfirm = true;
-        resp.KeyConfirmHashLength = ConfigHashLength();
+        respCtx.SetPerformKeyConfirm(true);
+        respCtx.KeyConfirmHashLength = ConfigHashLength();
     }
 
     // Since the message contains variable length fields with corresponding length values, start encoding the tail
     // of the message, and then go back and fill in the head when we know the final lengths.
-    msgBuf->SetDataLength(resp.HeadLength());
+    msgBuf->SetDataLength(respCtx.HeadLength());
 
     // Generate an ephemeral public/private key. Append the public key to the message and store the private key
     // in a state variable.
-    err = AppendNewECDHKey(resp, msgBuf);
+    err = AppendNewECDHKey(respCtx, msgBuf);
     SuccessOrExit(err);
 
     // Append the local node's certificate information.
-    err = AppendCertInfo(resp, msgBuf);
+    err = AppendCertInfo(respCtx, msgBuf);
     SuccessOrExit(err);
 
     // Append the responder's payload, if specified.
-    err = AppendPayload(resp, msgBuf);
+    err = AppendPayload(respCtx, msgBuf);
     SuccessOrExit(err);
 
     // Now encode the head of the message.
-    err = resp.EncodeHead(msgBuf);
+    err = respCtx.EncodeHead(msgBuf);
     SuccessOrExit(err);
 
     // Sign the message using the supplied private key and append the signature to the buffer.
-    err = AppendSignature(resp, msgBuf, respMsgHash);
+    err = AppendSignature(respCtx, msgBuf, respMsgHash);
     SuccessOrExit(err);
 
     {
         uint8_t responderKeyConfirmHash[kMaxHashLength];
 
         // Derive the session keys from the initiator's public key and our private key.
-        err = DeriveSessionKeys(req.ECDHPublicKey, respMsgHash, responderKeyConfirmHash);
+        err = DeriveSessionKeys(reqCtx.ECDHPublicKey, respMsgHash, responderKeyConfirmHash);
         SuccessOrExit(err);
 
         // If performing key confirmation...
@@ -314,10 +319,10 @@ WEAVE_ERROR WeaveCASEEngine::GenerateBeginSessionResponse(BeginSessionResponseMe
         {
             // Append the responder hash to the BeginSessionResponse message.  The initiator will use this to
             // confirm that we have the correct session keys.
-            VerifyOrExit(msgBuf->AvailableDataLength() >= resp.KeyConfirmHashLength, err = WEAVE_ERROR_BUFFER_TOO_SMALL);
+            VerifyOrExit(msgBuf->AvailableDataLength() >= respCtx.KeyConfirmHashLength, err = WEAVE_ERROR_BUFFER_TOO_SMALL);
             uint16_t msgLen = msgBuf->DataLength();
-            memcpy(msgBuf->Start() + msgLen, responderKeyConfirmHash, resp.KeyConfirmHashLength);
-            msgBuf->SetDataLength(msgLen + resp.KeyConfirmHashLength);
+            memcpy(msgBuf->Start() + msgLen, responderKeyConfirmHash, respCtx.KeyConfirmHashLength);
+            msgBuf->SetDataLength(msgLen + respCtx.KeyConfirmHashLength);
 
             State = kState_BeginResponseGenerated;
         }
@@ -331,7 +336,7 @@ exit:
     return err;
 }
 
-WEAVE_ERROR WeaveCASEEngine::ProcessBeginSessionResponse(PacketBuffer *msgBuf, BeginSessionResponseMessage& resp)
+WEAVE_ERROR WeaveCASEEngine::ProcessBeginSessionResponse(PacketBuffer * msgBuf, BeginSessionResponseContext & respCtx)
 {
     WEAVE_ERROR err;
     uint8_t respMsgHash[kMaxHashLength];
@@ -340,26 +345,28 @@ WEAVE_ERROR WeaveCASEEngine::ProcessBeginSessionResponse(PacketBuffer *msgBuf, B
 
     WeaveLogDetail(SecurityManager, "CASE:ProcessBeginSessionResponse");
 
+    respCtx.SetIsInitiator(true);
+
     // Decode the head of the message.
-    err = resp.DecodeHead(msgBuf);
+    err = respCtx.DecodeHead(msgBuf);
     SuccessOrExit(err);
 
     // Verify the message signature.
-    err = VerifySignature(resp, msgBuf, respMsgHash);
+    err = VerifySignature(respCtx, msgBuf, respMsgHash);
     SuccessOrExit(err);
 
     // If we asked for key confirmation, verify the responder responded appropriately.
-    VerifyOrExit(!PerformingKeyConfirm() || resp.PerformKeyConfirm, err = WEAVE_ERROR_INVALID_CASE_PARAMETER);
+    VerifyOrExit(!PerformingKeyConfirm() || respCtx.PerformKeyConfirm(), err = WEAVE_ERROR_INVALID_CASE_PARAMETER);
 
     // If the responder asked for key confirmation, we have to do it.
-    if (resp.PerformKeyConfirm)
+    if (respCtx.PerformKeyConfirm())
         SetPerformingKeyConfirm(true);
 
     {
         uint8_t responderKeyConfirmHash[kMaxHashLength];
 
         // Derive the session keys from the responder's public key and our private key.
-        err = DeriveSessionKeys(resp.ECDHPublicKey, respMsgHash, responderKeyConfirmHash);
+        err = DeriveSessionKeys(respCtx.ECDHPublicKey, respMsgHash, responderKeyConfirmHash);
         SuccessOrExit(err);
 
         // If performing key confirmation...
@@ -372,8 +379,8 @@ WEAVE_ERROR WeaveCASEEngine::ProcessBeginSessionResponse(PacketBuffer *msgBuf, B
 
             WEAVE_FAULT_INJECT(nl::Weave::FaultInjection::kFault_CASEKeyConfirm, ExitNow(err = WEAVE_ERROR_KEY_CONFIRMATION_FAILED));
 
-            VerifyOrExit(resp.KeyConfirmHashLength == expectedKeyConfirmHashLen &&
-                         ConstantTimeCompare(resp.KeyConfirmHash, responderKeyConfirmHash, expectedKeyConfirmHashLen),
+            VerifyOrExit(respCtx.KeyConfirmHashLength == expectedKeyConfirmHashLen &&
+                         ConstantTimeCompare(respCtx.KeyConfirmHash, responderKeyConfirmHash, expectedKeyConfirmHashLen),
                          err = WEAVE_ERROR_KEY_CONFIRMATION_FAILED);
 
             State = kState_BeginResponseProcessed;
@@ -389,12 +396,14 @@ exit:
     return err;
 }
 
-WEAVE_ERROR WeaveCASEEngine::GenerateInitiatorKeyConfirm(PacketBuffer *msgBuf)
+WEAVE_ERROR WeaveCASEEngine::GenerateInitiatorKeyConfirm(PacketBuffer * msgBuf)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
     uint8_t keyConfirmHashLen = ConfigHashLength();
 
     VerifyOrExit(State == kState_BeginResponseProcessed && PerformingKeyConfirm(), err = WEAVE_ERROR_INCORRECT_STATE);
+
+    WeaveLogDetail(SecurityManager, "CASE:GenerateInitiatorKeyConfirm");
 
     memcpy(msgBuf->Start(), mSecureState.AfterKeyGen.InitiatorKeyConfirmHash, keyConfirmHashLen);
     msgBuf->SetDataLength(keyConfirmHashLen);
@@ -407,14 +416,14 @@ exit:
     return err;
 }
 
-WEAVE_ERROR WeaveCASEEngine::ProcessInitiatorKeyConfirm(PacketBuffer *msgBuf)
+WEAVE_ERROR WeaveCASEEngine::ProcessInitiatorKeyConfirm(PacketBuffer * msgBuf)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
     uint8_t expectedKeyConfirmHashLen = ConfigHashLength();
 
-    WeaveLogDetail(SecurityManager, "CASE:ProcessInitiatorKeyConfirm");
-
     VerifyOrExit(State == kState_BeginResponseGenerated && PerformingKeyConfirm(), err = WEAVE_ERROR_INCORRECT_STATE);
+
+    WeaveLogDetail(SecurityManager, "CASE:ProcessInitiatorKeyConfirm");
 
     WEAVE_FAULT_INJECT(nl::Weave::FaultInjection::kFault_CASEKeyConfirm, ExitNow(err = WEAVE_ERROR_KEY_CONFIRMATION_FAILED));
 
@@ -430,14 +439,14 @@ exit:
     return err;
 }
 
-WEAVE_ERROR WeaveCASEEngine::ProcessReconfigure(PacketBuffer *msgBuf, ReconfigureMessage& reconf)
+WEAVE_ERROR WeaveCASEEngine::ProcessReconfigure(PacketBuffer * msgBuf, ReconfigureContext & reconfCtx)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
 
     WeaveLogDetail(SecurityManager, "CASE:ProcessReconfigure");
 
     // Decode the Reconfigure message.
-    err = ReconfigureMessage::Decode(msgBuf, reconf);
+    err = ReconfigureContext::Decode(msgBuf, reconfCtx);
     SuccessOrExit(err);
 
     // Fail if the peer has sent more than one Reconfigure message.
@@ -445,10 +454,10 @@ WEAVE_ERROR WeaveCASEEngine::ProcessReconfigure(PacketBuffer *msgBuf, Reconfigur
     SetHasReconfigured(true);
 
     // Verify that the peer's proposed config is allowed.
-    VerifyOrExit(IsAllowedConfig(reconf.ProtocolConfig), err = WEAVE_ERROR_UNSUPPORTED_CASE_CONFIGURATION);
+    VerifyOrExit(IsAllowedConfig(reconfCtx.ProtocolConfig), err = WEAVE_ERROR_UNSUPPORTED_CASE_CONFIGURATION);
 
     // Verify that the peer's proposed ECDH curve is allowed.
-    VerifyOrExit(IsAllowedCurve(reconf.CurveId), err = WEAVE_ERROR_UNSUPPORTED_ELLIPTIC_CURVE);
+    VerifyOrExit(IsAllowedCurve(reconfCtx.CurveId), err = WEAVE_ERROR_UNSUPPORTED_ELLIPTIC_CURVE);
 
     // Go back to Idle state so that the engine can be re-used to initiate a new CASE exchange.
     State = kState_Idle;
@@ -469,7 +478,7 @@ exit:
     return err;
 }
 
-WEAVE_ERROR WeaveCASEEngine::VerifyProposedConfig(BeginSessionRequestMessage& req, uint32_t& selectedAltConfig)
+WEAVE_ERROR WeaveCASEEngine::VerifyProposedConfig(BeginSessionRequestContext & reqCtx, uint32_t & selectedAltConfig)
 {
     WEAVE_ERROR err = WEAVE_ERROR_UNSUPPORTED_CASE_CONFIGURATION;
 
@@ -480,9 +489,9 @@ WEAVE_ERROR WeaveCASEEngine::VerifyProposedConfig(BeginSessionRequestMessage& re
     // of alternates, force a reconfig selecting Config2.
     if (IsConfig2Allowed())
     {
-        if (req.ProtocolConfig == kCASEConfig_Config2)
+        if (reqCtx.ProtocolConfig == kCASEConfig_Config2)
             ExitNow(err = WEAVE_NO_ERROR);
-        if (req.IsAltConfig(kCASEConfig_Config2))
+        if (reqCtx.IsAltConfig(kCASEConfig_Config2))
         {
             selectedAltConfig = kCASEConfig_Config2;
             ExitNow(err = WEAVE_ERROR_CASE_RECONFIG_REQUIRED);
@@ -494,11 +503,11 @@ WEAVE_ERROR WeaveCASEEngine::VerifyProposedConfig(BeginSessionRequestMessage& re
     // of alternates, force a reconfig selecting Config1.
     if (IsConfig1Allowed())
     {
-        if (req.ProtocolConfig == kCASEConfig_Config1)
+        if (reqCtx.ProtocolConfig == kCASEConfig_Config1)
             ExitNow(err = WEAVE_NO_ERROR);
 
         // If Config1 is in the peer's list of alternates, force a reconfig selecting Config1.
-        if (req.IsAltConfig(kCASEConfig_Config1))
+        if (reqCtx.IsAltConfig(kCASEConfig_Config1))
         {
             selectedAltConfig = kCASEConfig_Config1;
             ExitNow(err = WEAVE_ERROR_CASE_RECONFIG_REQUIRED);
@@ -509,23 +518,23 @@ exit:
     return err;
 }
 
-WEAVE_ERROR WeaveCASEEngine::VerifyProposedCurve(BeginSessionRequestMessage& req, uint32_t& selectedAltCurve)
+WEAVE_ERROR WeaveCASEEngine::VerifyProposedCurve(BeginSessionRequestContext & reqCtx, uint32_t & selectedAltCurve)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
 
     WeaveLogDetail(SecurityManager, "CASE:VerifyProposedCurve");
 
     // If the requested elliptic curve is not allowed, select an allowed alternate, if available.
-    if (!IsAllowedCurve(req.CurveId))
+    if (!IsAllowedCurve(reqCtx.CurveId))
     {
         uint8_t i = 0;
-        for (; i < req.AlternateCurveCount; i++)
-            if (IsAllowedCurve(req.AlternateCurveIds[i]))
+        for (; i < reqCtx.AlternateCurveCount; i++)
+            if (IsAllowedCurve(reqCtx.AlternateCurveIds[i]))
                 break;
 
-        VerifyOrExit(i < req.AlternateCurveCount, err = WEAVE_ERROR_UNSUPPORTED_ELLIPTIC_CURVE);
+        VerifyOrExit(i < reqCtx.AlternateCurveCount, err = WEAVE_ERROR_UNSUPPORTED_ELLIPTIC_CURVE);
 
-        selectedAltCurve = req.AlternateCurveIds[i];
+        selectedAltCurve = reqCtx.AlternateCurveIds[i];
         ExitNow(err = WEAVE_ERROR_CASE_RECONFIG_REQUIRED);
     }
 
@@ -533,7 +542,7 @@ exit:
     return err;
 }
 
-WEAVE_ERROR WeaveCASEEngine::AppendNewECDHKey(BeginSessionMessageBase& msg, PacketBuffer *msgBuf)
+WEAVE_ERROR WeaveCASEEngine::AppendNewECDHKey(BeginSessionContext & msgCtx, PacketBuffer * msgBuf)
 {
     WEAVE_ERROR err;
     EncodedECPrivateKey privKey;
@@ -543,11 +552,11 @@ WEAVE_ERROR WeaveCASEEngine::AppendNewECDHKey(BeginSessionMessageBase& msg, Pack
 
     // Generate an ephemeral public/private key. Store the public key directly into the message and store
     // the private key in the provided object.
-    msg.ECDHPublicKey.ECPoint = msgBuf->Start() + msgLen;
-    msg.ECDHPublicKey.ECPointLen = msgBuf->AvailableDataLength(); // GenerateECDHKey() will update with final length.
+    msgCtx.ECDHPublicKey.ECPoint = msgBuf->Start() + msgLen;
+    msgCtx.ECDHPublicKey.ECPointLen = msgBuf->AvailableDataLength(); // GenerateECDHKey() will update with final length.
     privKey.PrivKey = mSecureState.BeforeKeyGen.ECDHPrivateKey;
     privKey.PrivKeyLen = sizeof(mSecureState.BeforeKeyGen.ECDHPrivateKey);
-    err = GenerateECDHKey(WeaveCurveIdToOID(msg.CurveId), msg.ECDHPublicKey, privKey);
+    err = GenerateECDHKey(WeaveCurveIdToOID(msgCtx.CurveId), msgCtx.ECDHPublicKey, privKey);
     SuccessOrExit(err);
 
 #if WEAVE_CONFIG_SECURITY_TEST_MODE
@@ -563,8 +572,8 @@ WEAVE_ERROR WeaveCASEEngine::AppendNewECDHKey(BeginSessionMessageBase& msg, Pack
         privKey.PrivKeyLen = 1;
 
         // Public key is generator.
-        msg.ECDHPublicKey.ECPointLen = msgBuf->AvailableDataLength();
-        err = GetCurveG(WeaveCurveIdToOID(msg.CurveId), msg.ECDHPublicKey);
+        msgCtx.ECDHPublicKey.ECPointLen = msgBuf->AvailableDataLength();
+        err = GetCurveG(WeaveCurveIdToOID(msgCtx.CurveId), msgCtx.ECDHPublicKey);
         SuccessOrExit(err);
 
         WeaveLogError(SecurityManager, "WARNING: Using well-known ECDH key in CASE ***** SESSION IS NOT SECURE *****");
@@ -574,105 +583,99 @@ WEAVE_ERROR WeaveCASEEngine::AppendNewECDHKey(BeginSessionMessageBase& msg, Pack
 
     mSecureState.BeforeKeyGen.ECDHPrivateKeyLength = privKey.PrivKeyLen;
 
-    msgBuf->SetDataLength(msgLen + msg.ECDHPublicKey.ECPointLen);
+    msgBuf->SetDataLength(msgLen + msgCtx.ECDHPublicKey.ECPointLen);
 
 exit:
     return err;
 }
 
-WEAVE_ERROR WeaveCASEEngine::AppendCertInfo(BeginSessionMessageBase& msg, PacketBuffer *msgBuf)
+WEAVE_ERROR WeaveCASEEngine::AppendCertInfo(BeginSessionContext & msgCtx, PacketBuffer * msgBuf)
 {
     WEAVE_ERROR err;
-    uint16_t msgLen = msgBuf->DataLength();
 
     WeaveLogDetail(SecurityManager, "CASE:AppendCertInfo");
 
-    // Using the auth delegate, generate the certificate information for the local node and append it to the message.
-    err = AuthDelegate->GetNodeCertInfo(IsInitiator(), msgBuf->Start() + msgLen, msgBuf->AvailableDataLength(), msg.CertInfoLength);
+#if !WEAVE_CONFIG_LEGACY_CASE_AUTH_DELEGATE
+
+    // Initialize a TLV writer to write the CertificationInformation structure.
+    TLVWriter writer;
+    writer.Init(msgBuf);
+    writer.ImplicitProfileId = kWeaveProfile_Security;
+
+    // Call the auth delegate to write the certificate information for the local node.
+    err = AuthDelegate->EncodeNodeCertInfo(msgCtx, writer);
     SuccessOrExit(err);
-    msgBuf->SetDataLength(msgLen + msg.CertInfoLength);
+
+    // Finalize the TLV encoding.  Note that this updates the data length of the supplied PacketBuffer.
+    err = writer.Finalize();
+    SuccessOrExit(err);
+
+    // Capture the encoded length of the CertificateInformation structure, which will be included in
+    // the message header.
+    msgCtx.CertInfoLength = (uint16_t)writer.GetLengthWritten();
+
+#else // !WEAVE_CONFIG_LEGACY_CASE_AUTH_DELEGATE
+
+    // Call the auth delegate to generate the certificate information for the local node and append it
+    // to the message.
+    uint16_t msgLen = msgBuf->DataLength();
+    err = AuthDelegate->GetNodeCertInfo(IsInitiator(), msgBuf->Start() + msgLen, msgBuf->AvailableDataLength(), msgCtx.CertInfoLength);
+    SuccessOrExit(err);
+    msgBuf->SetDataLength(msgLen + msgCtx.CertInfoLength);
+
+#endif // WEAVE_CONFIG_LEGACY_CASE_AUTH_DELEGATE
 
 exit:
     return err;
 }
 
-WEAVE_ERROR WeaveCASEEngine::AppendPayload(BeginSessionMessageBase& msg, PacketBuffer *msgBuf)
+WEAVE_ERROR WeaveCASEEngine::AppendPayload(BeginSessionContext & msgCtx, PacketBuffer * msgBuf)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
     uint16_t msgLen = msgBuf->DataLength();
 
     WeaveLogDetail(SecurityManager, "CASE:AppendPayload");
 
-    err = AuthDelegate->GetNodePayload(IsInitiator(), msgBuf->Start() + msgLen, msgBuf->AvailableDataLength(), msg.PayloadLength);
+    err = AuthDelegate->EncodeNodePayload(msgCtx, msgBuf->Start() + msgLen, msgBuf->AvailableDataLength(), msgCtx.PayloadLength);
     SuccessOrExit(err);
 
-    msgBuf->SetDataLength(msgLen + msg.PayloadLength);
+    msgBuf->SetDataLength(msgLen + msgCtx.PayloadLength);
 
 exit:
     return err;
 }
 
 // Generate a signature for an encoded CASE message (in the supplied buffer) and append it to the message.
-WEAVE_ERROR WeaveCASEEngine::AppendSignature(BeginSessionMessageBase& msg, PacketBuffer *msgBuf, uint8_t *msgHash)
+WEAVE_ERROR WeaveCASEEngine::AppendSignature(BeginSessionContext & msgCtx, PacketBuffer * msgBuf, uint8_t * msgHash)
 {
     WEAVE_ERROR err;
-    uint32_t privKeyCurveId;
-    EncodedECPublicKey pubKey;
-    EncodedECPrivateKey privKey;
-    EncodedECDSASignature ecdsaSig;
-    uint8_t ecdsaRBuf[EncodedECDSASignature::kMaxValueLength];
-    uint8_t ecdsaSBuf[EncodedECDSASignature::kMaxValueLength];
-    uint8_t *msgStart = msgBuf->Start();
-    uint16_t signedDataLen = msgBuf->DataLength();
-    const uint8_t *signingKey;
-    uint16_t signingKeyLen;
+    uint8_t * msgStart = msgBuf->Start();
+    uint16_t tbsDataLen = msgBuf->DataLength();
+    const uint64_t sigTag = ProfileTag(kWeaveProfile_Security, kTag_WeaveCASESignature);
 
     WeaveLogDetail(SecurityManager, "CASE:AppendSignature");
 
-    // Generate a hash of the signed portion of the message.
-    GenerateHash(msgStart, signedDataLen, msgHash);
+    // Generate a hash of the to-be-signed portion of the message.
+    GenerateHash(msgStart, tbsDataLen, msgHash);
 
-    WeaveLogDetail(SecurityManager, "CASE:GetNodePrivateKey");
-
-    // Get the private key to sign the message.
-    err = AuthDelegate->GetNodePrivateKey(IsInitiator(), signingKey, signingKeyLen);
-    SuccessOrExit(err);
-
-    // Decode the supplied private key.
-    err = DecodeWeaveECPrivateKey(signingKey, signingKeyLen, privKeyCurveId, pubKey, privKey);
-    SuccessOrExit(err);
-
-    // Use temporary buffers to hold the generated signature value until we write it to the end of the message.
-    ecdsaSig.R = ecdsaRBuf;
-    ecdsaSig.RLen = sizeof(ecdsaRBuf);
-    ecdsaSig.S = ecdsaSBuf;
-    ecdsaSig.SLen = sizeof(ecdsaSBuf);
-
-    WeaveLogDetail(SecurityManager, "CASE:GenerateECDSASignature");
-
-    // Generate the signature for the message based on its hash.
-    err = GenerateECDSASignature(WeaveCurveIdToOID(privKeyCurveId), msgHash, ConfigHashLength(), privKey, ecdsaSig);
-    SuccessOrExit(err);
-
-    err = AuthDelegate->ReleaseNodePrivateKey(signingKey);
-    SuccessOrExit(err);
-
-    // Append a CASE signature object to the end of the message buffer.
+    // Generate a message signature using the local node's private key and append this to the message.
     {
         TLVWriter writer;
         writer.Init(msgBuf);
         writer.ImplicitProfileId = kWeaveProfile_Security;
 
-        WeaveLogDetail(SecurityManager, "CASE:EncodeWeaveECDSASignature");
+#if !WEAVE_CONFIG_LEGACY_CASE_AUTH_DELEGATE
+        WeaveLogDetail(SecurityManager, "CASE:GenerateSignature");
+#endif
 
-        err = EncodeWeaveECDSASignature(writer, ecdsaSig, ProfileTag(kWeaveProfile_Security, kTag_WeaveCASESignature));
+        err = AuthDelegate->GenerateNodeSignature(msgCtx, msgHash, ConfigHashLength(), writer, sigTag);
         SuccessOrExit(err);
 
         err = writer.Finalize();
         SuccessOrExit(err);
 
-        msg.Signature = msgStart + signedDataLen;
-        msg.SignatureLength = writer.GetLengthWritten();
+        msgCtx.Signature = msgStart + tbsDataLen;
+        msgCtx.SignatureLength = writer.GetLengthWritten();
     }
 
 exit:
@@ -681,69 +684,78 @@ exit:
 
 // Verify a CASE message signature (for the message in the supplied buffer) against a given public key.
 // Returns a hash of the signed portion of the message in the supplied bufer.
-WEAVE_ERROR WeaveCASEEngine::VerifySignature(BeginSessionMessageBase& msg, PacketBuffer *msgBuf, uint8_t *msgHash)
+WEAVE_ERROR WeaveCASEEngine::VerifySignature(BeginSessionContext & msgCtx, PacketBuffer * msgBuf, uint8_t * msgHash)
 {
     WEAVE_ERROR err, validRes;
     WeaveCertificateSet certSet;
-    ValidationContext certValidContext;
+    ValidationContext validCtx;
     WeaveDN peerCertDN;
     CertificateKeyId peerCertSubjectKeyId;
-    WeaveCertificateData *peerCert = NULL;
     EncodedECDSASignature ecdsaSig;
     TLVReader reader;
     uint16_t signedDataLen;
     uint8_t *msgStart = msgBuf->Start();
-    bool callEndCertValidation = false;
+    bool callEndValidation = false;
 
     WeaveLogDetail(SecurityManager, "CASE:VerifySignature");
+
+    // TODO: move validation to separate method
+
+    validCtx.Reset();
 
     // Invoke the auth delegate to prepare the certificate set and the validation context.
     // This will load the trust anchors into the certificate set and establish the
     // desired validation criteria for the peer's entity certificate.
-    err = AuthDelegate->BeginCertValidation(IsInitiator(), certSet, certValidContext);
+    err = AuthDelegate->BeginValidation(msgCtx, validCtx, certSet);
     SuccessOrExit(err);
-    callEndCertValidation = true;
+    callEndValidation = true;
 
     // If the cert type property has been set, set it as the required certificate type in the
     // validation context such that the cert type is enforced during the call to FindValidCert().
-    certValidContext.RequiredCertType = mCertType;
+    validCtx.RequiredCertType = mCertType;
 
     WeaveLogDetail(SecurityManager, "CASE:DecodeCertificateInfo");
 
     // Decode the certificate information supplied by the peer.
-    certValidContext.RequiredKeyUsages |= kKeyUsageFlag_DigitalSignature;
-    validRes = DecodeCertificateInfo(msg, certSet, peerCertDN, peerCertSubjectKeyId);
-
-    // If decoding was successful, search the certificate set for the peer's certificate and
-    // validate that it is trusted and suitable for CASE authentication.
-    if (validRes == WEAVE_NO_ERROR)
+    validCtx.RequiredKeyUsages |= kKeyUsageFlag_DigitalSignature;
+    err = DecodeCertificateInfo(msgCtx, certSet, peerCertDN, peerCertSubjectKeyId);
+    if (err == WEAVE_ERROR_UNSUPPORTED_ELLIPTIC_CURVE || err == WEAVE_ERROR_UNSUPPORTED_SIGNATURE_TYPE)
     {
-        WeaveLogDetail(SecurityManager, "CASE:ValidateCert");
-        validRes = certSet.FindValidCert(peerCertDN, peerCertSubjectKeyId, certValidContext, peerCert);
+        err = WEAVE_ERROR_UNSUPPORTED_CERT_FORMAT;
     }
+    SuccessOrExit(err);
 
-    // If a valid certificate was found for the peer...
+    // Allow the auth delegate to inspect and possibly update the peer's subject information and/or
+    // the set of certificates that will be used for validation.
+    err = AuthDelegate->OnPeerCertsLoaded(msgCtx, peerCertDN, peerCertSubjectKeyId, validCtx, certSet);
+    SuccessOrExit(err);
+
+    // Search the certificate set for the peer's certificate and validate that it is trusted
+    // and suitable for CASE authentication.  This method performs certificate chain construction
+    // and validates that there is a path from the peer's certificate to a trust anchor certificate.
+    WeaveLogDetail(SecurityManager, "CASE:ValidateCert");
+    validRes = certSet.FindValidCert(peerCertDN, peerCertSubjectKeyId, validCtx, validCtx.SigningCert);
+
+    // If a valid certificate was found for the peer capture the type of the peer's certificate.
     if (validRes == WEAVE_NO_ERROR)
     {
         // Update the cert type property with the type of the peer's certificate.
-        mCertType = peerCert->CertType;
+        mCertType = validCtx.SigningCert->CertType;
     }
 
-    // Tell the auth delegate about the results of basic certificate validation and let it weigh in
-    // on the process.  Note that this may alter the validation result (validRes) either from successful
-    // to unsuccessful, or in rare cases, from unsuccessful to successful.
-    err = AuthDelegate->HandleCertValidationResult(IsInitiator(), validRes, peerCert, msg.PeerNodeId, certSet, certValidContext);
+    // Tell the auth delegate about the results of certificate validation and let it weigh in
+    // on the process.  Note that this may alter the validation result (validRes) from successful
+    // to unsuccessful.
+    err = AuthDelegate->HandleValidationResult(msgCtx, validCtx, certSet, validRes);
+    // TODO: verify that validRes not reset to NO_ERROR.
     SuccessOrExit(err);
 
     // Check that validation succeeded.
-    VerifyOrExit((validRes != WEAVE_ERROR_UNSUPPORTED_ELLIPTIC_CURVE &&
-                  validRes != WEAVE_ERROR_UNSUPPORTED_SIGNATURE_TYPE),
-                  err = WEAVE_ERROR_UNSUPPORTED_CERT_FORMAT);
     VerifyOrExit(validRes == WEAVE_NO_ERROR, err = validRes);
-    VerifyOrExit(peerCert != NULL, err = WEAVE_ERROR_INCORRECT_STATE);
+    VerifyOrExit(validCtx.SigningCert != NULL, err = WEAVE_ERROR_INCORRECT_STATE);
 
     // Decode the CASE signature from the end of the message.
-    reader.Init(msg.Signature, msg.SignatureLength);
+    reader.Init(msgCtx.Signature, msgCtx.SignatureLength);
     reader.ImplicitProfileId = kWeaveProfile_Security;
     err = reader.Next(kTLVType_Structure, ProfileTag(kWeaveProfile_Security, kTag_WeaveCASESignature));
     SuccessOrExit(err);
@@ -754,38 +766,36 @@ WEAVE_ERROR WeaveCASEEngine::VerifySignature(BeginSessionMessageBase& msg, Packe
     SuccessOrExit(err);
 
     // Compute the length of the signed portion of the message.
-    signedDataLen = msg.Signature - msgStart;
+    signedDataLen = msgCtx.Signature - msgStart;
 
-    // Generate a hash of the signed portion of the message.
+    // Generate a hash of the to-be-signed portion of the message.
     GenerateHash(msgStart, signedDataLen, msgHash);
 
     // Verify the message signature against the computed message hash and the
     // the public key from the peer's certificate.
     WeaveLogDetail(SecurityManager, "CASE:VerifyECDSASignature");
-    err = VerifyECDSASignature(WeaveCurveIdToOID(peerCert->PubKeyCurveId), msgHash, ConfigHashLength(),
-                               ecdsaSig, peerCert->PublicKey.EC);
+    err = VerifyECDSASignature(WeaveCurveIdToOID(validCtx.SigningCert->PubKeyCurveId), msgHash, ConfigHashLength(),
+                               ecdsaSig, validCtx.SigningCert->PublicKey.EC);
     SuccessOrExit(err);
 
 exit:
-    if (callEndCertValidation)
+    if (callEndValidation)
     {
-        WEAVE_ERROR endErr = AuthDelegate->EndCertValidation(certSet, certValidContext);
-        if (err == WEAVE_NO_ERROR)
-            err = endErr;
+        AuthDelegate->EndValidation(msgCtx, validCtx, certSet);
     }
     certSet.Release();
     return err;
 }
 
-WEAVE_ERROR WeaveCASEEngine::DecodeCertificateInfo(BeginSessionMessageBase& msg, WeaveCertificateSet& certSet,
-                                                   WeaveDN& entityCertDN, CertificateKeyId& entityCertSubjectKeyId)
+WEAVE_ERROR WeaveCASEEngine::DecodeCertificateInfo(BeginSessionContext & msgCtx, WeaveCertificateSet & certSet,
+                                                   WeaveDN & entityCertDN, CertificateKeyId & entityCertSubjectKeyId)
 {
     WEAVE_ERROR err;
     TLVReader reader;
     WeaveCertificateData *entityCert = NULL;
 
     // Begin decoding the certificate information structure.
-    reader.Init(msg.CertInfo, msg.CertInfoLength);
+    reader.Init(msgCtx.CertInfo, msgCtx.CertInfoLength);
     reader.ImplicitProfileId = kWeaveProfile_Security;
     err = reader.Next(kTLVType_Structure, ProfileTag(kWeaveProfile_Security, kTag_WeaveCASECertificateInformation));
     SuccessOrExit(err);
@@ -855,8 +865,8 @@ exit:
     return err;
 }
 
-WEAVE_ERROR WeaveCASEEngine::DeriveSessionKeys(EncodedECPublicKey& pubKey, const uint8_t *respMsgHash,
-                                               uint8_t *responderKeyConfirmHash)
+WEAVE_ERROR WeaveCASEEngine::DeriveSessionKeys(EncodedECPublicKey & pubKey, const uint8_t * respMsgHash,
+                                               uint8_t * responderKeyConfirmHash)
 {
     WEAVE_ERROR err;
     uint8_t hashLen = ConfigHashLength();
@@ -962,7 +972,7 @@ exit:
     return err;
 }
 
-void WeaveCASEEngine::GenerateHash(const uint8_t *inData, uint16_t inDataLen, uint8_t *hash)
+void WeaveCASEEngine::GenerateHash(const uint8_t * inData, uint16_t inDataLen, uint8_t * hash)
 {
     if (IsUsingConfig1())
     {
@@ -980,7 +990,7 @@ void WeaveCASEEngine::GenerateHash(const uint8_t *inData, uint16_t inDataLen, ui
     }
 }
 
-void WeaveCASEEngine::GenerateKeyConfirmHashes(const uint8_t *keyConfirmKey, uint8_t *singleHash, uint8_t *doubleHash)
+void WeaveCASEEngine::GenerateKeyConfirmHashes(const uint8_t * keyConfirmKey, uint8_t * singleHash, uint8_t * doubleHash)
 {
     uint8_t hashLen = ConfigHashLength();
 
@@ -1003,6 +1013,176 @@ bool WeaveCASEEngine::IsAllowedConfig(uint32_t config) const
 {
     return (config == kCASEConfig_Config1 && IsConfig1Allowed()) ||
            (config == kCASEConfig_Config2 && IsConfig2Allowed());
+}
+
+
+#if !WEAVE_CONFIG_LEGACY_CASE_AUTH_DELEGATE
+
+WEAVE_ERROR WeaveCASEAuthDelegate::EncodeNodePayload(const BeginSessionContext & msgCtx,
+            uint8_t * payloadBuf, uint16_t payloadBufSize, uint16_t & payloadLen)
+{
+    payloadLen = 0;
+    return WEAVE_NO_ERROR;
+}
+
+WEAVE_ERROR WeaveCASEAuthDelegate::OnPeerCertsLoaded(const BeginSessionContext & msgCtx,
+            WeaveDN & subjectDN, CertificateKeyId & subjectKeyId, ValidationContext & validCtx,
+            WeaveCertificateSet & certSet)
+{
+    return WEAVE_NO_ERROR;
+}
+
+#else // !WEAVE_CONFIG_LEGACY_CASE_AUTH_DELEGATE
+
+WEAVE_ERROR WeaveCASEAuthDelegate::GenerateNodeSignature(const BeginSessionContext & msgCtx,
+        const uint8_t * msgHash, uint8_t msgHashLen, TLVWriter & writer, uint64_t tag)
+{
+    WEAVE_ERROR err;
+    const uint8_t * signingKey = NULL;
+    uint16_t signingKeyLen;
+
+    WeaveLogDetail(SecurityManager, "CASE:GetNodePrivateKey");
+
+    // Get the local node's private key.
+    err = GetNodePrivateKey(msgCtx.IsInitiator(), signingKey, signingKeyLen);
+    SuccessOrExit(err);
+
+    WeaveLogDetail(SecurityManager, "CASE:GenerateSignature");
+
+    // Generate a Weave ECDSA signature and append it to the message.
+    err = GenerateAndEncodeWeaveECDSASignature(writer, tag, msgHash, msgHashLen, signingKey, signingKeyLen);
+    SuccessOrExit(err);
+
+exit:
+    // Release the node private key.
+    if (signingKey != NULL)
+    {
+        WEAVE_ERROR relErr = ReleaseNodePrivateKey(signingKey);
+        err = (err == WEAVE_NO_ERROR) ? relErr : err;
+    }
+    return err;
+}
+
+#endif // WEAVE_CONFIG_LEGACY_CASE_AUTH_DELEGATE
+
+
+/**
+ * Encodes a WeaveCASECertificateInformation TLV structure
+ *
+ * This method encodes a WeaveCASECertificateInformation structure in Weave TLV form
+ * containing a specified entity certificate and an optional intermediate certificate.
+ * The resultant CASE certificate info structure is written to a supplied buffer.
+ *
+ * @param[in] buf                   The buffer into which the encoded CASE certificate info
+ *                                  structure should be written.
+ * @param[in] bufSize               The size in bytes of the buffer pointed at by buf.
+ * @param[out] certInfoLen          An integer value that will receive the final encoded size
+ *                                  of the CASE certificate info structure.  This value is
+ *                                  only meaningful in the event that the function succeeds.
+ * @param[in] entityCert            A buffer containing the entity certificate to be included
+ *                                  in the CASE certificate info structure.  The entity
+ *                                  certificate is expected to be encoded in Weave TLV form.
+ * @param[in] entityCertLen         The length in bytes of the encoded entity certificate.
+ * @param[in] intermediateCert      Optionally, an buffer containing an intermediate certificate
+ *                                  to be included as a related certificate within the CASE
+ *                                  certificate info structure.  When supplied, the intermediate
+ *                                  certificate is expected to be encoded in Weave TLV form.
+ *                                  If NULL is given, the generated certificate info structure
+ *                                  will not contain any related certificates.
+ * @param[in] intermediateCertLen   The length in bytes of the encoded intermediate certificate.
+ *
+ * @retval #WEAVE_NO_ERROR          If the operation succeeded.
+ * @retval other                    Other Weave error codes related to the decoding of the
+ *                                  input certificates or the encoding of the CASE certificate
+ *                                  info structure.
+ */
+WEAVE_ERROR EncodeCASECertInfo(uint8_t * buf, uint16_t bufSize, uint16_t& certInfoLen,
+        const uint8_t * entityCert, uint16_t entityCertLen,
+        const uint8_t * intermediateCert, uint16_t intermediateCertLen)
+{
+    WEAVE_ERROR err;
+    TLVWriter writer;
+
+    writer.Init(buf, bufSize);
+    writer.ImplicitProfileId = kWeaveProfile_Security;
+
+    err = EncodeCASECertInfo(writer, entityCert, entityCertLen, intermediateCert, intermediateCertLen);
+    SuccessOrExit(err);
+
+    err = writer.Finalize();
+    SuccessOrExit(err);
+
+    certInfoLen = writer.GetLengthWritten();
+
+exit:
+    return err;
+}
+
+/**
+ * Encodes a WeaveCASECertificateInformation TLV structure
+ *
+ * This method encodes a WeaveCASECertificateInformation structure in Weave TLV form
+ * containing a specified entity certificate and an optional intermediate certificate.
+ * The resultant CASE certificate info structure is written to a supplied TLVWriter.
+ *
+ * @param[in] writer                The TLVWriter object to which the encoded CASE certificate
+ *                                  info structure should be written.
+ * @param[in] entityCert            A buffer containing the entity certificate to be included
+ *                                  in the CASE certificate info structure.  The entity
+ *                                  certificate is expected to be encoded in Weave TLV form.
+ * @param[in] entityCertLen         The length in bytes of the encoded entity certificate.
+ * @param[in] intermediateCert      Optionally, an buffer containing an intermediate certificate
+ *                                  to be included as a related certificate within the CASE
+ *                                  certificate info structure.  When supplied, the intermediate
+ *                                  certificate is expected to be encoded in Weave TLV form.
+ *                                  If NULL is given, the generated certificate info structure
+ *                                  will not contain any related certificates.
+ * @param[in] intermediateCertLen   The length in bytes of the encoded intermediate certificate.
+ *
+ * @retval #WEAVE_NO_ERROR          If the operation succeeded.
+ * @retval other                    Other Weave error codes related to the decoding of the
+ *                                  input certificates or the encoding of the CASE certificate
+ *                                  info structure.
+ */
+WEAVE_ERROR EncodeCASECertInfo(TLVWriter & writer,
+        const uint8_t * entityCert, uint16_t entityCertLen,
+        const uint8_t * intermediateCert, uint16_t intermediateCertLen)
+{
+    WEAVE_ERROR err;
+    TLVType container;
+
+    // Start the WeaveCASECertificateInformation structure.
+    err = writer.StartContainer(ProfileTag(kWeaveProfile_Security, kTag_WeaveCASECertificateInformation), kTLVType_Structure, container);
+    SuccessOrExit(err);
+
+    // Copy the supplied entity certificate into CASE certificate info structure using the EntityCertificate tag.
+    err = writer.CopyContainer(ContextTag(kTag_CASECertificateInfo_EntityCertificate), entityCert, entityCertLen);
+    SuccessOrExit(err);
+
+    // If an intermediate certificate has been supplied...
+    if (intermediateCert != NULL)
+    {
+        TLVType container2;
+
+        // Start the list of RelatedCertificates with the CASE certificate info structure.
+        err = writer.StartContainer(ContextTag(kTag_CASECertificateInfo_RelatedCertificates), kTLVType_Path, container2);
+        SuccessOrExit(err);
+
+        // Copy the supplied intermediate certificate into the RelatedCertificates list.
+        err = writer.CopyContainer(ProfileTag(kWeaveProfile_Security, kTag_WeaveCertificate), intermediateCert, intermediateCertLen);
+        SuccessOrExit(err);
+
+        // End the RelatedCertificates list.
+        err = writer.EndContainer(container2);
+        SuccessOrExit(err);
+    }
+
+    // End the CASE certificate info structure.
+    err = writer.EndContainer(container);
+    SuccessOrExit(err);
+
+exit:
+    return err;
 }
 
 

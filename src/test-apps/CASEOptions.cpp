@@ -30,6 +30,7 @@
 #include <Weave/Core/WeaveTLV.h>
 #include <Weave/Profiles/WeaveProfiles.h>
 #include <Weave/Profiles/security/WeaveSecurityDebug.h>
+#include <Weave/Profiles/security/WeaveSig.h>
 #include <Weave/Profiles/service-provisioning/ServiceProvisioning.h>
 #include <Weave/Support/NestCerts.h>
 #include <Weave/Support/ErrorStr.h>
@@ -45,67 +46,6 @@ using namespace nl::Weave::Profiles::Security;
 using namespace nl::Weave::Profiles::Security::CASE;
 
 CASEOptions gCASEOptions;
-
-WEAVE_ERROR AddCertToContainer(TLVWriter& writer, uint64_t tag, const uint8_t *cert, uint16_t certLen)
-{
-    WEAVE_ERROR err;
-    TLVReader reader;
-
-    reader.Init(cert, certLen);
-
-    err = reader.Next();
-    SuccessOrExit(err);
-
-    err = writer.PutPreEncodedContainer(tag, kTLVType_Structure, reader.GetReadPoint(), reader.GetRemainingLength());
-    SuccessOrExit(err);
-
-exit:
-    return err;
-}
-
-WEAVE_ERROR MakeCertInfo(uint8_t *buf, uint16_t bufSize, uint16_t& certInfoLen,
-                         const uint8_t *entityCert, uint16_t entityCertLen,
-                         const uint8_t *intermediateCert, uint16_t intermediateCertLen)
-{
-    WEAVE_ERROR err;
-    TLVWriter writer;
-    TLVType container;
-
-    writer.Init(buf, bufSize);
-    writer.ImplicitProfileId = kWeaveProfile_Security;
-
-    err = writer.StartContainer(ProfileTag(kWeaveProfile_Security, kTag_WeaveCASECertificateInformation), kTLVType_Structure, container);
-    SuccessOrExit(err);
-
-    err = AddCertToContainer(writer, ContextTag(kTag_CASECertificateInfo_EntityCertificate), entityCert, entityCertLen);
-    SuccessOrExit(err);
-
-    if (intermediateCert != NULL)
-    {
-        TLVType container2;
-
-        err = writer.StartContainer(ContextTag(kTag_CASECertificateInfo_RelatedCertificates), kTLVType_Path, container2);
-        SuccessOrExit(err);
-
-        err = AddCertToContainer(writer, ProfileTag(kWeaveProfile_Security, kTag_WeaveCertificate), intermediateCert, intermediateCertLen);
-        SuccessOrExit(err);
-
-        err = writer.EndContainer(container2);
-        SuccessOrExit(err);
-    }
-
-    err = writer.EndContainer(container);
-    SuccessOrExit(err);
-
-    err = writer.Finalize();
-    SuccessOrExit(err);
-
-    certInfoLen = writer.GetLengthWritten();
-
-exit:
-    return err;
-
-}
 
 WEAVE_ERROR LoadCertsFromServiceConfig(const uint8_t *serviceConfig, uint16_t serviceConfigLen, WeaveCertificateSet& certSet)
 {
@@ -390,47 +330,136 @@ bool CASEOptions::ReadPrivateKeyFile(const char *fileName, uint8_t *& keyBuf, ui
     return true;
 }
 
-// Get the CASE Certificate Information structure for the local node.
-WEAVE_ERROR CASEOptions::GetNodeCertInfo(bool isInitiator, uint8_t *buf, uint16_t bufSize, uint16_t& certInfoLen)
+WEAVE_ERROR CASEOptions::GetNodeCert(const uint8_t *& nodeCert, uint16_t & nodeCertLen)
 {
-    const uint8_t *nodeCert = NodeCert;
-    uint16_t nodeCertLen = NodeCertLength;
-    const uint8_t *intCert = NodeIntermediateCert;
-    uint16_t intCertLen = NodeIntermediateCertLength;
+    nodeCert = NodeCert;
+    nodeCertLen = NodeCertLength;
 
     if (nodeCert == NULL || nodeCertLen == 0)
     {
-        GetTestNodeCert(FabricState.LocalNodeId, nodeCert, nodeCertLen);
+        if (!GetTestNodeCert(FabricState.LocalNodeId, nodeCert, nodeCertLen))
+        {
+            printf("ERROR: Node certificate not configured\n");
+            return WEAVE_ERROR_CERT_NOT_FOUND;
+        }
     }
-    if (nodeCert == NULL || nodeCertLen == 0)
-    {
-        printf("ERROR: Node certificate not configured\n");
-        return WEAVE_ERROR_CERT_NOT_FOUND;
-    }
-    if (intCert == NULL || intCertLen == 0)
-    {
-        intCert = nl::NestCerts::Development::DeviceCA::Cert;
-        intCertLen = nl::NestCerts::Development::DeviceCA::CertLength;
-    }
-    return MakeCertInfo(buf, bufSize, certInfoLen, nodeCert, nodeCertLen, intCert, intCertLen);
+    return WEAVE_NO_ERROR;
 }
 
-// Get the local node's private key.
-WEAVE_ERROR CASEOptions::GetNodePrivateKey(bool isInitiator, const uint8_t *& weavePrivKey, uint16_t& weavePrivKeyLen)
+WEAVE_ERROR CASEOptions::GetNodePrivateKey(const uint8_t *& weavePrivKey, uint16_t& weavePrivKeyLen)
 {
     weavePrivKey = NodePrivateKey;
     weavePrivKeyLen = NodePrivateKeyLength;
 
     if (weavePrivKey == NULL || weavePrivKeyLen == 0)
     {
-        GetTestNodePrivateKey(FabricState.LocalNodeId, weavePrivKey, weavePrivKeyLen);
-    }
-    if (weavePrivKey == NULL || weavePrivKeyLen == 0)
-    {
+        if (!GetTestNodePrivateKey(FabricState.LocalNodeId, weavePrivKey, weavePrivKeyLen))
+        {
         printf("ERROR: Node private key not configured\n");
         return WEAVE_ERROR_KEY_NOT_FOUND;
+        }
     }
     return WEAVE_NO_ERROR;
+}
+
+#if !WEAVE_CONFIG_LEGACY_CASE_AUTH_DELEGATE
+
+WEAVE_ERROR CASEOptions::EncodeNodeCertInfo(const BeginSessionContext & msgCtx, TLVWriter & writer)
+{
+    WEAVE_ERROR err;
+    const uint8_t * nodeCert;
+    uint16_t nodeCertLen;
+    const uint8_t * intermediateCert = NodeIntermediateCert;
+    uint16_t intermediateCertLen = NodeIntermediateCertLength;
+
+    if (intermediateCert == NULL || intermediateCertLen == 0)
+    {
+        intermediateCert = nl::NestCerts::Development::DeviceCA::Cert;
+        intermediateCertLen = nl::NestCerts::Development::DeviceCA::CertLength;
+    }
+
+    err = GetNodeCert(nodeCert, nodeCertLen);
+    SuccessOrExit(err);
+
+    err = EncodeCASECertInfo(writer, nodeCert, nodeCertLen, intermediateCert, intermediateCertLen);
+    SuccessOrExit(err);
+
+exit:
+    return err;
+}
+
+WEAVE_ERROR CASEOptions::GenerateNodeSignature(const BeginSessionContext & msgCtx,
+        const uint8_t * msgHash, uint8_t msgHashLen, TLVWriter & writer, uint64_t tag)
+{
+    WEAVE_ERROR err;
+    const uint8_t * nodePrivKey;
+    uint16_t nodePrivKeyLen;
+
+    err = GetNodePrivateKey(nodePrivKey, nodePrivKeyLen);
+    SuccessOrExit(err);
+
+    err = GenerateAndEncodeWeaveECDSASignature(writer, tag, msgHash, msgHashLen, nodePrivKey, nodePrivKeyLen);
+    SuccessOrExit(err);
+
+exit:
+    return err;
+}
+
+WEAVE_ERROR CASEOptions::EncodeNodePayload(const BeginSessionContext & msgCtx,
+        uint8_t * payloadBuf, uint16_t payloadBufSize, uint16_t & payloadLen)
+{
+    return GetNodePayload(msgCtx.IsInitiator(), payloadBuf, payloadBufSize, payloadLen);
+}
+
+WEAVE_ERROR CASEOptions::BeginValidation(const BeginSessionContext & msgCtx, ValidationContext & validCtx,
+        WeaveCertificateSet & certSet)
+{
+    return BeginCertValidation(msgCtx.IsInitiator(), certSet, validCtx);
+}
+
+WEAVE_ERROR CASEOptions::HandleValidationResult(const BeginSessionContext & msgCtx, ValidationContext & validCtx,
+        WeaveCertificateSet & certSet, WEAVE_ERROR & validRes)
+{
+    return HandleCertValidationResult(msgCtx.IsInitiator(), validRes, validCtx.SigningCert, msgCtx.PeerNodeId, certSet, validCtx);
+}
+
+void CASEOptions::EndValidation(const BeginSessionContext & msgCtx, ValidationContext & validCtx,
+        WeaveCertificateSet & certSet)
+{
+    EndCertValidation(certSet, validCtx);
+}
+
+#else // !WEAVE_CONFIG_LEGACY_CASE_AUTH_DELEGATE
+
+// Get the CASE Certificate Information structure for the local node.
+WEAVE_ERROR CASEOptions::GetNodeCertInfo(bool isInitiator, uint8_t *buf, uint16_t bufSize, uint16_t& certInfoLen)
+{
+    WEAVE_ERROR err;
+    const uint8_t *nodeCert;
+    uint16_t nodeCertLen;
+    const uint8_t * intCert = NodeIntermediateCert;
+    uint16_t intCertLen = NodeIntermediateCertLength;
+
+    if (intCert == NULL || intCertLen == 0)
+    {
+        intCert = nl::NestCerts::Development::DeviceCA::Cert;
+        intCertLen = nl::NestCerts::Development::DeviceCA::CertLength;
+    }
+
+    err = GetNodeCert(nodeCert, nodeCertLen);
+    SuccessOrExit(err);
+
+    err = EncodeCASECertInfo(buf, bufSize, certInfoLen, nodeCert, nodeCertLen, intCert, intCertLen);
+    SuccessOrExit(err);
+
+exit:
+    return err;
+}
+
+// Get the local node's private key.
+WEAVE_ERROR CASEOptions::GetNodePrivateKey(bool isInitiator, const uint8_t *& weavePrivKey, uint16_t& weavePrivKeyLen)
+{
+    return GetNodePrivateKey(weavePrivKey, weavePrivKeyLen);
 }
 
 // Called when the CASE engine is done with the buffer returned by GetNodePrivateKey().
@@ -440,7 +469,8 @@ WEAVE_ERROR CASEOptions::ReleaseNodePrivateKey(const uint8_t *weavePrivKey)
     return WEAVE_NO_ERROR;
 }
 
-// Get payload information, if any, to be included in the message to the peer.
+#endif // WEAVE_CONFIG_LEGACY_CASE_AUTH_DELEGATE
+
 WEAVE_ERROR CASEOptions::GetNodePayload(bool isInitiator, uint8_t *buf, uint16_t bufSize, uint16_t& payloadLen)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;

@@ -32,6 +32,7 @@
 #include <Weave/Profiles/security/WeaveSecurity.h>
 #include <Weave/Profiles/security/WeaveCASE.h>
 #include <Weave/Profiles/security/WeavePrivateKey.h>
+#include <Weave/Profiles/security/WeaveSig.h>
 #include <Weave/Support/crypto/EllipticCurve.h>
 #include <Weave/Support/NestCerts.h>
 #include <Weave/Support/RandUtils.h>
@@ -82,43 +83,168 @@ extern WEAVE_ERROR MakeCertInfo(uint8_t *buf, uint16_t bufSize, uint16_t& certIn
                                 const uint8_t *entityCert, uint16_t entityCertLen,
                                 const uint8_t *intermediateCert, uint16_t intermediateCertLen);
 
-class InitiatorAuthDelegate : public WeaveCASEAuthDelegate
+class TestAuthDelegate : public WeaveCASEAuthDelegate
 {
 public:
-    virtual WEAVE_ERROR GetNodeCertInfo(bool isInitiator, uint8_t *buf, uint16_t bufSize, uint16_t& certInfoLen)
+    bool IsInitiator;
+
+    TestAuthDelegate(bool isInitiator)
+    : IsInitiator(isInitiator)
     {
-        return MakeCertInfo(buf, bufSize, certInfoLen, TestDevice1_Cert, TestDevice1_CertLength, NULL, 0);
     }
 
-    virtual WEAVE_ERROR GetNodePrivateKey(bool isInitiator, const uint8_t *& weavePrivKey, uint16_t& weavePrivKeyLen)
+#if !WEAVE_CONFIG_LEGACY_CASE_AUTH_DELEGATE
+
+    // ===== Methods that implement the WeaveCASEAuthDelegate interface.
+
+    WEAVE_ERROR EncodeNodeCertInfo(const BeginSessionContext & msgCtx, TLVWriter & writer) __OVERRIDE
     {
-        weavePrivKey = TestDevice1_PrivateKey;
-        weavePrivKeyLen = TestDevice1_PrivateKeyLength;
-        return WEAVE_NO_ERROR;
+        VerifyOrQuit(msgCtx.IsInitiator() == IsInitiator, "TestAuthDelegate::EncodeNodeCertInfo(): initiator/responder mismatch");
+
+        const uint8_t * nodeCert = (IsInitiator) ? TestDevice1_Cert : TestDevice2_Cert;
+        uint16_t nodeCertLen = (IsInitiator) ? TestDevice1_CertLength : TestDevice2_CertLength;
+
+        const uint8_t * intermediateCert = (!IsInitiator) ? nl::NestCerts::Development::DeviceCA::Cert : NULL;
+        uint16_t intermediateCertLen = (!IsInitiator) ? nl::NestCerts::Development::DeviceCA::CertLength : 0;
+
+        return EncodeCASECertInfo(writer, nodeCert, nodeCertLen, intermediateCert, intermediateCertLen);
     }
 
-    virtual WEAVE_ERROR ReleaseNodePrivateKey(const uint8_t *weavePrivKey)
+    WEAVE_ERROR GenerateNodeSignature(const BeginSessionContext & msgCtx,
+            const uint8_t * msgHash, uint8_t msgHashLen, TLVWriter & writer, uint64_t tag) __OVERRIDE
     {
-        return WEAVE_NO_ERROR;
+        VerifyOrQuit(msgCtx.IsInitiator() == IsInitiator, "TestAuthDelegate::GenerateNodeSignature(): initiator/responder mismatch");
+
+        const uint8_t * privKey = (IsInitiator) ? TestDevice1_PrivateKey : TestDevice2_PrivateKey;
+        uint16_t privKeyLen = (IsInitiator) ? TestDevice1_PrivateKeyLength : TestDevice2_PrivateKeyLength;
+
+        return GenerateAndEncodeWeaveECDSASignature(writer, tag, msgHash, msgHashLen, privKey, privKeyLen);
     }
 
-    virtual WEAVE_ERROR GetNodePayload(bool isInitiator, uint8_t *buf, uint16_t bufSize, uint16_t& payloadLen)
+    WEAVE_ERROR EncodeNodePayload(const BeginSessionContext & msgCtx,
+            uint8_t * payloadBuf, uint16_t payloadBufSize, uint16_t & payloadLen) __OVERRIDE
     {
+        VerifyOrQuit(msgCtx.IsInitiator() == IsInitiator, "TestAuthDelegate::GetLocalPayload(): initiator/responder mismatch");
         payloadLen = 0;
         return WEAVE_NO_ERROR;
     }
 
-    virtual WEAVE_ERROR BeginCertValidation(bool isInitiator, WeaveCertificateSet& certSet, ValidationContext& validContext)
+    WEAVE_ERROR BeginValidation(const BeginSessionContext & msgCtx, ValidationContext & validCtx,
+            WeaveCertificateSet & certSet) __OVERRIDE
     {
         WEAVE_ERROR err;
         ASN1UniversalTime validTime;
         WeaveCertificateData *cert;
+
+        VerifyOrQuit(msgCtx.IsInitiator() == IsInitiator, "TestAuthDelegate::BeginValidation(): initiator/responder mismatch");
 
         certSet.Init(10, 1024);
 
         err = certSet.LoadCert(nl::NestCerts::Development::Root::Cert, nl::NestCerts::Development::Root::CertLength, 0, cert);
         SuccessOrExit(err);
         cert->CertFlags |= kCertFlag_IsTrusted;
+
+        if (!IsInitiator)
+        {
+            err = certSet.LoadCert(nl::NestCerts::Development::DeviceCA::Cert,
+                    nl::NestCerts::Development::DeviceCA::CertLength,
+                    kDecodeFlag_GenerateTBSHash, cert);
+            SuccessOrExit(err);
+        }
+
+        memset(&validCtx, 0, sizeof(validCtx));
+        validTime.Year = 2013;
+        validTime.Month = 11;
+        validTime.Day = 20;
+        validTime.Hour = validTime.Minute = validTime.Second = 0;
+        err = PackCertTime(validTime, validCtx.EffectiveTime);
+        SuccessOrExit(err);
+
+        validCtx.RequiredKeyUsages = kKeyUsageFlag_DigitalSignature;
+        validCtx.RequiredKeyPurposes = (IsInitiator) ? kKeyPurposeFlag_ServerAuth : kKeyPurposeFlag_ClientAuth;
+
+    exit:
+        return err;
+    }
+
+    WEAVE_ERROR OnPeerCertsLoaded(const BeginSessionContext & msgCtx,
+            WeaveDN & subjectDN, CertificateKeyId & subjectKeyId, ValidationContext & validCtx,
+            WeaveCertificateSet & certSet) __OVERRIDE
+    {
+        VerifyOrQuit(msgCtx.IsInitiator() == IsInitiator, "TestAuthDelegate::OnPeerCertsLoaded(): initiator/responder mismatch");
+        return WEAVE_NO_ERROR;
+    }
+
+    WEAVE_ERROR HandleValidationResult(const BeginSessionContext & msgCtx, ValidationContext & validCtx,
+            WeaveCertificateSet & certSet, WEAVE_ERROR & validRes) __OVERRIDE
+    {
+        VerifyOrQuit(msgCtx.IsInitiator() == IsInitiator, "TestAuthDelegate::HandleValidationResult(): initiator/responder mismatch");
+        return WEAVE_NO_ERROR;
+    }
+
+    void EndValidation(const BeginSessionContext & msgCtx, ValidationContext & validCtx,
+            WeaveCertificateSet & certSet) __OVERRIDE
+    {
+        VerifyOrQuit(msgCtx.IsInitiator() == IsInitiator, "TestAuthDelegate::EndValidation(): initiator/responder mismatch");
+    }
+
+#else // !WEAVE_CONFIG_LEGACY_CASE_AUTH_DELEGATE
+
+    WEAVE_ERROR GetNodeCertInfo(bool isInitiator, uint8_t *buf, uint16_t bufSize, uint16_t& certInfoLen) __OVERRIDE
+    {
+        VerifyOrQuit(isInitiator == IsInitiator, "TestAuthDelegate::EncodeNodeCertInfo(): initiator/responder mismatch");
+
+        const uint8_t * nodeCert = (IsInitiator) ? TestDevice1_Cert : TestDevice2_Cert;
+        uint16_t nodeCertLen = (IsInitiator) ? TestDevice1_CertLength : TestDevice2_CertLength;
+
+        const uint8_t * intermediateCert = (!IsInitiator) ? nl::NestCerts::Development::DeviceCA::Cert : NULL;
+        uint16_t intermediateCertLen = (!IsInitiator) ? nl::NestCerts::Development::DeviceCA::CertLength : 0;
+
+        return EncodeCASECertInfo(buf, bufSize, certInfoLen, nodeCert, nodeCertLen, intermediateCert, intermediateCertLen);
+    }
+
+    WEAVE_ERROR GetNodePrivateKey(bool isInitiator, const uint8_t *& weavePrivKey, uint16_t& weavePrivKeyLen) __OVERRIDE
+    {
+        VerifyOrQuit(isInitiator == IsInitiator, "TestAuthDelegate::GetNodePrivateKey(): initiator/responder mismatch");
+
+        weavePrivKey = (IsInitiator) ? TestDevice1_PrivateKey : TestDevice2_PrivateKey;
+        weavePrivKeyLen = (IsInitiator) ? TestDevice1_PrivateKeyLength : TestDevice2_PrivateKeyLength;
+
+        return WEAVE_NO_ERROR;
+    }
+
+    WEAVE_ERROR ReleaseNodePrivateKey(const uint8_t *weavePrivKey) __OVERRIDE
+    {
+        // Nothing to do
+        return WEAVE_NO_ERROR;
+    }
+
+    WEAVE_ERROR GetNodePayload(bool isInitiator, uint8_t *buf, uint16_t bufSize, uint16_t& payloadLen) __OVERRIDE
+    {
+        VerifyOrQuit(isInitiator == IsInitiator, "TestAuthDelegate::GetNodePayload(): initiator/responder mismatch");
+        payloadLen = 0;
+        return WEAVE_NO_ERROR;
+    }
+
+    WEAVE_ERROR BeginCertValidation(bool isInitiator, WeaveCertificateSet& certSet, ValidationContext& validContext) __OVERRIDE
+    {
+        WEAVE_ERROR err;
+        ASN1UniversalTime validTime;
+        WeaveCertificateData *cert;
+
+        VerifyOrQuit(isInitiator == IsInitiator, "TestAuthDelegate::BeginCertValidation(): initiator/responder mismatch");
+
+        certSet.Init(10, 1024);
+
+        err = certSet.LoadCert(nl::NestCerts::Development::Root::Cert, nl::NestCerts::Development::Root::CertLength, 0, cert);
+        SuccessOrExit(err);
+        cert->CertFlags |= kCertFlag_IsTrusted;
+
+        if (!IsInitiator)
+        {
+            err = certSet.LoadCert(nl::NestCerts::Development::DeviceCA::Cert, nl::NestCerts::Development::DeviceCA::CertLength, kDecodeFlag_GenerateTBSHash, cert);
+            SuccessOrExit(err);
+        }
 
         memset(&validContext, 0, sizeof(validContext));
         validTime.Year = 2013;
@@ -129,92 +255,25 @@ public:
         SuccessOrExit(err);
 
         validContext.RequiredKeyUsages = kKeyUsageFlag_DigitalSignature;
-        validContext.RequiredKeyPurposes = kKeyPurposeFlag_ServerAuth;
+        validContext.RequiredKeyPurposes = (IsInitiator) ? kKeyPurposeFlag_ServerAuth : kKeyPurposeFlag_ClientAuth;
 
     exit:
         return err;
     }
 
-    virtual WEAVE_ERROR HandleCertValidationResult(bool isInitiator, WEAVE_ERROR& validRes, WeaveCertificateData *peerCert,
-            uint64_t peerNodeId, WeaveCertificateSet& certSet, ValidationContext& validContext)
+    WEAVE_ERROR HandleCertValidationResult(bool isInitiator, WEAVE_ERROR& validRes, WeaveCertificateData *peerCert,
+            uint64_t peerNodeId, WeaveCertificateSet& certSet, ValidationContext& validContext) __OVERRIDE
+    {
+        VerifyOrQuit(isInitiator == IsInitiator, "TestAuthDelegate::HandleCertValidationResult(): initiator/responder mismatch");
+        return WEAVE_NO_ERROR;
+    }
+
+    WEAVE_ERROR EndCertValidation(WeaveCertificateSet& certSet, ValidationContext& validContext) __OVERRIDE
     {
         return WEAVE_NO_ERROR;
     }
 
-    virtual WEAVE_ERROR EndCertValidation(WeaveCertificateSet& certSet, ValidationContext& validContext)
-    {
-        return WEAVE_NO_ERROR;
-    }
-};
-
-class ResponderAuthDelegate : public WeaveCASEAuthDelegate
-{
-public:
-    virtual WEAVE_ERROR GetNodeCertInfo(bool isInitiator, uint8_t *buf, uint16_t bufSize, uint16_t& certInfoLen)
-    {
-        return MakeCertInfo(buf, bufSize, certInfoLen,
-                TestDevice2_Cert, TestDevice2_CertLength,
-                nl::NestCerts::Development::DeviceCA::Cert, nl::NestCerts::Development::DeviceCA::CertLength);
-    }
-
-    virtual WEAVE_ERROR GetNodePrivateKey(bool isInitiator, const uint8_t *& weavePrivKey, uint16_t& weavePrivKeyLen)
-    {
-        weavePrivKey = TestDevice2_PrivateKey;
-        weavePrivKeyLen = TestDevice2_PrivateKeyLength;
-        return WEAVE_NO_ERROR;
-    }
-
-    virtual WEAVE_ERROR ReleaseNodePrivateKey(const uint8_t *weavePrivKey)
-    {
-        return WEAVE_NO_ERROR;
-    }
-
-    virtual WEAVE_ERROR GetNodePayload(bool isInitiator, uint8_t *buf, uint16_t bufSize, uint16_t& payloadLen)
-    {
-        payloadLen = 0;
-        return WEAVE_NO_ERROR;
-    }
-
-    virtual WEAVE_ERROR BeginCertValidation(bool isInitiator, WeaveCertificateSet& certSet, ValidationContext& validContext)
-    {
-        WEAVE_ERROR err;
-        ASN1UniversalTime validTime;
-        WeaveCertificateData *cert;
-
-        certSet.Init(10, 1024);
-
-        err = certSet.LoadCert(nl::NestCerts::Development::Root::Cert, nl::NestCerts::Development::Root::CertLength, 0, cert);
-        SuccessOrExit(err);
-        cert->CertFlags |= kCertFlag_IsTrusted;
-
-        err = certSet.LoadCert(nl::NestCerts::Development::DeviceCA::Cert, nl::NestCerts::Development::DeviceCA::CertLength, kDecodeFlag_GenerateTBSHash, cert);
-        SuccessOrExit(err);
-
-        memset(&validContext, 0, sizeof(validContext));
-        validTime.Year = 2013;
-        validTime.Month = 11;
-        validTime.Day = 20;
-        validTime.Hour = validTime.Minute = validTime.Second = 0;
-        err = PackCertTime(validTime, validContext.EffectiveTime);
-        SuccessOrExit(err);
-
-        validContext.RequiredKeyUsages = kKeyUsageFlag_DigitalSignature;
-        validContext.RequiredKeyPurposes = kKeyPurposeFlag_ClientAuth;
-
-    exit:
-        return err;
-    }
-
-    virtual WEAVE_ERROR HandleCertValidationResult(bool isInitiator, WEAVE_ERROR& validRes, WeaveCertificateData *peerCert,
-            uint64_t peerNodeId, WeaveCertificateSet& certSet, ValidationContext& validContext)
-    {
-        return WEAVE_NO_ERROR;
-    }
-
-    virtual WEAVE_ERROR EndCertValidation(WeaveCertificateSet& certSet, ValidationContext& validContext)
-    {
-        return WEAVE_NO_ERROR;
-    }
+#endif // WEAVE_CONFIG_LEGACY_CASE_AUTH_DELEGATE
 };
 
 class MessageMutator
@@ -453,8 +512,8 @@ void CASEEngineTest::Run() const
     WeaveCASEEngine responderEng;
     PacketBuffer *msgBuf = NULL;
     PacketBuffer *msgBuf2 = NULL;
-    InitiatorAuthDelegate initiatorDelegate;
-    ResponderAuthDelegate responderDelegate;
+    TestAuthDelegate initiatorDelegate(true);
+    TestAuthDelegate responderDelegate(false);
     const WeaveEncryptionKey *initiatorKey;
     const WeaveEncryptionKey *responderKey;
 
@@ -486,13 +545,13 @@ void CASEEngineTest::Run() const
         // ========== Initiator Forms BeginSessionRequest ==========
 
         {
-            BeginSessionRequestMessage req;
+            BeginSessionRequestContext req;
             req.Reset();
             req.ProtocolConfig = config;
             initiatorEng.SetAlternateConfigs(req);
             req.CurveId = curveId;
             initiatorEng.SetAlternateCurves(req);
-            req.PerformKeyConfirm = InitiatorRequestKeyConfirm();
+            req.SetPerformKeyConfirm(InitiatorRequestKeyConfirm());
             req.SessionKeyId = sTestDefaultSessionKeyId;
             req.EncryptionType = kWeaveEncryptionType_AES128CTRSHA1;
 
@@ -520,8 +579,8 @@ void CASEEngineTest::Run() const
         // ========== Responder Processes BeginSessionRequest ==========
 
         {
-            BeginSessionRequestMessage req;
-            ReconfigureMessage reconf;
+            BeginSessionRequestContext req;
+            ReconfigureContext reconf;
             req.Reset();
             reconf.Reset();
 
@@ -536,8 +595,8 @@ void CASEEngineTest::Run() const
             {
                 VerifyOrQuit(err == WEAVE_ERROR_CASE_RECONFIG_REQUIRED, "WEAVE_ERROR_CASE_RECONFIG_REQUIRED error expected");
 
-                VerifyOrQuit(ExpectedConfig() == kCASEConfig_NotSpecified || reconf.ProtocolConfig == ExpectedConfig(), "Unexpected config proposed in ReconfigureMessage");
-                VerifyOrQuit(ExpectedCurve() == kWeaveCurveId_NotSpecified || reconf.CurveId == ExpectedCurve(), "Unexpected curve proposed in ReconfigureMessage");
+                VerifyOrQuit(ExpectedConfig() == kCASEConfig_NotSpecified || reconf.ProtocolConfig == ExpectedConfig(), "Unexpected config proposed in ReconfigureContext");
+                VerifyOrQuit(ExpectedCurve() == kWeaveCurveId_NotSpecified || reconf.CurveId == ExpectedCurve(), "Unexpected curve proposed in ReconfigureContext");
 
                 PacketBuffer::Free(msgBuf);
                 msgBuf = NULL;
@@ -549,7 +608,7 @@ void CASEEngineTest::Run() const
                 msgBuf = PacketBuffer::New();
                 VerifyOrQuit(msgBuf != NULL, "PacketBuffer::New() failed");
                 err = reconf.Encode(msgBuf);
-                SuccessOrQuit(err, "ReconfigureMessage::Encode() failed");
+                SuccessOrQuit(err, "ReconfigureContext::Encode() failed");
 
                 // ========== Responder Sends Reconfigure to Initiator ==========
 
@@ -595,7 +654,7 @@ void CASEEngineTest::Run() const
 
             // ========== Responder Forms BeginSessionResponse ==========
 
-            BeginSessionResponseMessage resp;
+            BeginSessionResponseContext resp;
             resp.Reset();
             resp.ProtocolConfig = req.ProtocolConfig;
             resp.CurveId = req.CurveId;
@@ -627,7 +686,7 @@ void CASEEngineTest::Run() const
         // ========== Initiator Processes BeginSessionResponse ==========
 
         {
-            BeginSessionResponseMessage resp;
+            BeginSessionResponseContext resp;
             resp.Reset();
 
             printf("Initiator: Calling ProcessBeginSessionResponse\n");

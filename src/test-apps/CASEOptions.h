@@ -66,33 +66,48 @@ public:
 
     CASEOptions();
 
-    // Get the CASE Certificate Information structure for the local node.
-    virtual WEAVE_ERROR GetNodeCertInfo(bool isInitiator, uint8_t *buf, uint16_t bufSize, uint16_t& certInfoLen);
+private:
 
-    // Get the local node's private key.
-    virtual WEAVE_ERROR GetNodePrivateKey(bool isInitiator, const uint8_t *& weavePrivKey, uint16_t& weavePrivKeyLen);
-
-    // Called when the CASE engine is done with the buffer returned by GetNodePrivateKey().
-    virtual WEAVE_ERROR ReleaseNodePrivateKey(const uint8_t *weavePrivKey);
-
-    // Get payload information, if any, to be included in the message to the peer.
-    virtual WEAVE_ERROR GetNodePayload(bool isInitiator, uint8_t *buf, uint16_t bufSize, uint16_t& payloadLen);
-
-    // Prepare the supplied certificate set and validation context for use in validating the certificate of a peer.
-    // This method is responsible for loading the trust anchors into the certificate set.
-    virtual WEAVE_ERROR BeginCertValidation(bool isInitiator, WeaveCertificateSet& certSet, ValidationContext& validContext);
-
-    // Called with the results of validating the peer's certificate.
-    virtual WEAVE_ERROR HandleCertValidationResult(bool isInitiator, WEAVE_ERROR& validRes, WeaveCertificateData *peerCert,
-            uint64_t peerNodeId, WeaveCertificateSet& certSet, ValidationContext& validContext);
-
-    // Called when peer certificate validation is complete.
-    virtual WEAVE_ERROR EndCertValidation(WeaveCertificateSet& certSet, ValidationContext& validContext);
+    WEAVE_ERROR GetNodeCert(const uint8_t *& nodeCert, uint16_t & nodeCertLen);
+    WEAVE_ERROR GetNodePrivateKey(const uint8_t *& weavePrivKey, uint16_t& weavePrivKeyLen);
 
     virtual bool HandleOption(const char *progName, OptionSet *optSet, int id, const char *name, const char *arg);
 
     static bool ReadCertFile(const char *fileName, uint8_t *& certBuf, uint16_t& certLen);
     static bool ReadPrivateKeyFile(const char *fileName, uint8_t *& keyBuf, uint16_t& keyLen);
+
+#if !WEAVE_CONFIG_LEGACY_CASE_AUTH_DELEGATE
+
+    // ===== Methods that implement the WeaveCASEAuthDelegate interface
+
+    WEAVE_ERROR EncodeNodeCertInfo(const BeginSessionContext & msgCtx, TLVWriter & writer) __OVERRIDE;
+    WEAVE_ERROR GenerateNodeSignature(const BeginSessionContext & msgCtx,
+                const uint8_t * msgHash, uint8_t msgHashLen,
+                TLVWriter & writer, uint64_t tag) __OVERRIDE;
+    WEAVE_ERROR EncodeNodePayload(const BeginSessionContext & msgCtx,
+            uint8_t * payloadBuf, uint16_t payloadBufSize, uint16_t & payloadLen);
+    WEAVE_ERROR BeginValidation(const BeginSessionContext & msgCtx, ValidationContext & validCtx,
+            WeaveCertificateSet & certSet);
+    WEAVE_ERROR HandleValidationResult(const BeginSessionContext & msgCtx, ValidationContext & validCtx,
+            WeaveCertificateSet & certSet, WEAVE_ERROR & validRes);
+    void EndValidation(const BeginSessionContext & msgCtx, ValidationContext & validCtx,
+            WeaveCertificateSet & certSet);
+
+#else // !WEAVE_CONFIG_LEGACY_CASE_AUTH_DELEGATE
+
+    // ===== Methods that implement the legacy WeaveCASEAuthDelegate interface
+
+    WEAVE_ERROR GetNodeCertInfo(bool isInitiator, uint8_t *buf, uint16_t bufSize, uint16_t& certInfoLen);
+    WEAVE_ERROR GetNodePrivateKey(bool isInitiator, const uint8_t *& weavePrivKey, uint16_t& weavePrivKeyLen);
+    WEAVE_ERROR ReleaseNodePrivateKey(const uint8_t *weavePrivKey);
+
+#endif // WEAVE_CONFIG_LEGACY_CASE_AUTH_DELEGATE
+
+    WEAVE_ERROR GetNodePayload(bool isInitiator, uint8_t *buf, uint16_t bufSize, uint16_t& payloadLen);
+    WEAVE_ERROR BeginCertValidation(bool isInitiator, WeaveCertificateSet& certSet, ValidationContext& validContext);
+    WEAVE_ERROR HandleCertValidationResult(bool isInitiator, WEAVE_ERROR& validRes, WeaveCertificateData *peerCert,
+            uint64_t peerNodeId, WeaveCertificateSet& certSet, ValidationContext& validContext);
+    WEAVE_ERROR EndCertValidation(WeaveCertificateSet& certSet, ValidationContext& validContext);
 };
 
 extern CASEOptions gCASEOptions;
