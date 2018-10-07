@@ -25,6 +25,7 @@
 #include <Weave/Core/WeaveCore.h>
 #include <Weave/Support/NestCerts.h>
 #include <Weave/Profiles/security/WeaveAccessToken.h>
+#include <Weave/Profiles/security/WeaveSig.h>
 #include "WeaveKeyExportClient.h"
 
 // Key export client classes only available in contexts that support malloc and system time.
@@ -139,8 +140,8 @@ WEAVE_ERROR WeaveStandAloneKeyExportClient::GenerateKeyExportRequest(uint32_t ke
     WEAVE_ERROR err = WEAVE_NO_ERROR;
 
     // Verify there isn't an export already in progress.
-    VerifyOrExit(mKeyExportObj.State == WeaveKeyExport::kState_Reset ||
-                 mKeyExportObj.State == WeaveKeyExport::kState_InitiatorReconfigureProcessed,
+    VerifyOrExit(mKeyExportObj.State() == WeaveKeyExport::kState_Reset ||
+                 mKeyExportObj.State() == WeaveKeyExport::kState_InitiatorReconfigureProcessed,
                  err = WEAVE_ERROR_INCORRECT_STATE);
 
     // Save supplied information for building request.
@@ -192,8 +193,8 @@ WEAVE_ERROR WeaveStandAloneKeyExportClient::GenerateKeyExportRequest(uint32_t ke
     WEAVE_ERROR err = WEAVE_NO_ERROR;
 
     // Verify there isn't an export already in progress.
-    VerifyOrExit(mKeyExportObj.State == WeaveKeyExport::kState_Reset ||
-                 mKeyExportObj.State == WeaveKeyExport::kState_InitiatorReconfigureProcessed,
+    VerifyOrExit(mKeyExportObj.State() == WeaveKeyExport::kState_Reset ||
+                 mKeyExportObj.State() == WeaveKeyExport::kState_InitiatorReconfigureProcessed,
                  err = WEAVE_ERROR_INCORRECT_STATE);
 
     // Save supplied information for building request.
@@ -241,13 +242,13 @@ WEAVE_ERROR WeaveStandAloneKeyExportClient::ProcessKeyExportResponse(const uint8
     WEAVE_ERROR err = WEAVE_NO_ERROR;
 
     // Verify there's a key export already in progress.
-    VerifyOrExit(mKeyExportObj.State == WeaveKeyExport::kState_InitiatorRequestGenerated, err = WEAVE_ERROR_INCORRECT_STATE);
+    VerifyOrExit(mKeyExportObj.State() == WeaveKeyExport::kState_InitiatorRequestGenerated, err = WEAVE_ERROR_INCORRECT_STATE);
 
     // If provided, verify the responding node id matches the expected value.
     VerifyOrExit(mResponderNodeId == kAnyNodeId || responderNodeId == mResponderNodeId, err = WEAVE_ERROR_WRONG_NODE_ID);
 
     // Call the key export object to process the key export response.
-    err = mKeyExportObj.ProcessKeyExportResponse(resp, respLen, NULL, NULL, exportedKeyBuf, exportedKeyBufSize, exportedKeyLen, exportedKeyId);
+    err = mKeyExportObj.ProcessKeyExportResponse(resp, respLen, NULL, exportedKeyBuf, exportedKeyBufSize, exportedKeyLen, exportedKeyId);
     SuccessOrExit(err);
 
 exit:
@@ -270,7 +271,7 @@ WEAVE_ERROR WeaveStandAloneKeyExportClient::ProcessKeyExportReconfigure(const ui
     WEAVE_ERROR err = WEAVE_NO_ERROR;
 
     // Verify there's a key export already in progress.
-    VerifyOrExit(mKeyExportObj.State == WeaveKeyExport::kState_InitiatorRequestGenerated, err = WEAVE_ERROR_INCORRECT_STATE);
+    VerifyOrExit(mKeyExportObj.State() == WeaveKeyExport::kState_InitiatorRequestGenerated, err = WEAVE_ERROR_INCORRECT_STATE);
 
     // Call the key export object to process the reconfigure message.
     err = mKeyExportObj.ProcessKeyExportReconfigure(reconfig, reconfigLen, mProposedConfig);
@@ -279,6 +280,66 @@ WEAVE_ERROR WeaveStandAloneKeyExportClient::ProcessKeyExportReconfigure(const ui
 exit:
     return err;
 }
+
+#if !WEAVE_CONFIG_LEGACY_KEY_EXPORT_DELEGATE
+
+WEAVE_ERROR WeaveStandAloneKeyExportClient::GetNodeCertSet(WeaveKeyExport * keyExport, WeaveCertificateSet & certSet)
+{
+    return GetNodeCertSet(keyExport->IsInitiator(), certSet);
+}
+
+WEAVE_ERROR WeaveStandAloneKeyExportClient::ReleaseNodeCertSet(WeaveKeyExport * keyExport, WeaveCertificateSet & certSet)
+{
+    return ReleaseNodeCertSet(keyExport->IsInitiator(), certSet);
+}
+
+WEAVE_ERROR WeaveStandAloneKeyExportClient::GenerateNodeSignature(WeaveKeyExport * keyExport, const uint8_t * msgHash, uint8_t msgHashLen,
+    TLVWriter & writer)
+{
+    WEAVE_ERROR err;
+    const uint8_t * privKey = NULL;
+    uint16_t privKeyLen;
+
+    err = GetNodePrivateKey(keyExport->IsInitiator(), privKey, privKeyLen);
+    SuccessOrExit(err);
+
+    err = GenerateAndEncodeWeaveECDSASignature(writer, TLV::ContextTag(kTag_WeaveSignature_ECDSASignatureData), msgHash, msgHashLen, privKey, privKeyLen);
+    SuccessOrExit(err);
+
+exit:
+    if (privKey != NULL)
+    {
+        WEAVE_ERROR relErr = ReleaseNodePrivateKey(keyExport->IsInitiator(), privKey);
+        err = (err == WEAVE_NO_ERROR) ? relErr : err;
+    }
+    return err;
+}
+
+WEAVE_ERROR WeaveStandAloneKeyExportClient::BeginCertValidation(WeaveKeyExport * keyExport, ValidationContext & validCtx,
+        WeaveCertificateSet & certSet)
+{
+    return BeginCertValidation(keyExport->IsInitiator(), certSet, validCtx);
+}
+
+WEAVE_ERROR WeaveStandAloneKeyExportClient::HandleCertValidationResult(WeaveKeyExport * keyExport, ValidationContext & validCtx,
+        WeaveCertificateSet & certSet, uint32_t requestedKeyId)
+{
+    return HandleCertValidationResult(keyExport->IsInitiator(), certSet, validCtx, NULL, keyExport->MessageInfo(), requestedKeyId);
+}
+
+WEAVE_ERROR WeaveStandAloneKeyExportClient::EndCertValidation(WeaveKeyExport * keyExport, ValidationContext & validCtx,
+        WeaveCertificateSet & certSet)
+{
+    return EndCertValidation(keyExport->IsInitiator(), certSet, validCtx);
+}
+
+WEAVE_ERROR WeaveStandAloneKeyExportClient::ValidateUnsignedKeyExportMessage(WeaveKeyExport * keyExport, uint32_t requestedKeyId)
+{
+    // Responder is expected to always sign response.
+    return WEAVE_ERROR_UNAUTHORIZED_KEY_EXPORT_RESPONSE;
+}
+
+#endif // !WEAVE_CONFIG_LEGACY_KEY_EXPORT_DELEGATE
 
 WEAVE_ERROR WeaveStandAloneKeyExportClient::GetNodeCertSet(bool isInitiator, WeaveCertificateSet& certSet)
 {

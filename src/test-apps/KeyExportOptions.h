@@ -48,37 +48,35 @@ public:
 
     KeyExportOptions();
 
-    // Get the key export certificate set for the local node.
-    // This method is responsible for initializing certificate set and loading all certificates
-    // that will be included in the signature of the message.
-    virtual WEAVE_ERROR GetNodeCertSet(bool isInitiator, WeaveCertificateSet& certSet);
-
-    // Called when the key export engine is done with the certificate set returned by GetNodeCertSet().
-    virtual WEAVE_ERROR ReleaseNodeCertSet(bool isInitiator, WeaveCertificateSet& certSet);
-
-    // Get the local node's private key.
-    virtual WEAVE_ERROR GetNodePrivateKey(bool isInitiator, const uint8_t *& weavePrivKey, uint16_t& weavePrivKeyLen);
-
-    // Called when the key export engine is done with the buffer returned by GetNodePrivateKey().
-    virtual WEAVE_ERROR ReleaseNodePrivateKey(bool isInitiator, const uint8_t *& weavePrivKey);
-
-    // Prepare the supplied certificate set and validation context for use in validating the certificate of a peer.
-    // This method is responsible for loading the trust anchors into the certificate set.
-    virtual WEAVE_ERROR BeginCertValidation(bool isInitiator, WeaveCertificateSet& certSet, ValidationContext& validContext);
-
-    // Called with the results of validating the peer's certificate.
-    // Responder verifies that requestor is authorized to export the specified key.
-    // Requestor verifies that response came from expected node.
-    virtual WEAVE_ERROR HandleCertValidationResult(bool isInitiator, WeaveCertificateSet& certSet, ValidationContext& validContext,
-                                                   const IPPacketInfo *pktInfo, const WeaveMessageInfo *msgHeader, uint32_t requestedKeyId);
-
-    // Called when peer certificate validation and request verification are complete.
-    virtual WEAVE_ERROR EndCertValidation(bool isInitiator, WeaveCertificateSet& certSet, ValidationContext& validContext);
-
-    // Called by requestor and responder to verify that received message was appropriately secured when the message isn't signed.
-    virtual WEAVE_ERROR ValidateUnsignedKeyExportMessage(bool isInitiator, const IPPacketInfo *pktInfo, const WeaveMessageInfo *msgHeader, uint32_t requestedKeyId);
-
     virtual bool HandleOption(const char *progName, OptionSet *optSet, int id, const char *name, const char *arg);
+
+private:
+
+#if !WEAVE_CONFIG_LEGACY_KEY_EXPORT_DELEGATE
+
+    WEAVE_ERROR GetNodeCertSet(WeaveKeyExport * keyExport, WeaveCertificateSet & certSet) __OVERRIDE;
+    WEAVE_ERROR ReleaseNodeCertSet(WeaveKeyExport * keyExport, WeaveCertificateSet & certSet) __OVERRIDE;
+    WEAVE_ERROR GenerateNodeSignature(WeaveKeyExport * keyExport, const uint8_t * msgHash, uint8_t msgHashLen,
+        TLVWriter & writer) __OVERRIDE;
+    WEAVE_ERROR BeginCertValidation(WeaveKeyExport * keyExport, ValidationContext & validCtx,
+            WeaveCertificateSet & certSet) __OVERRIDE;
+    WEAVE_ERROR HandleCertValidationResult(WeaveKeyExport * keyExport, ValidationContext & validCtx,
+            WeaveCertificateSet & certSet, uint32_t requestedKeyId) __OVERRIDE;
+    WEAVE_ERROR EndCertValidation(WeaveKeyExport * keyExport, ValidationContext & validCtx,
+            WeaveCertificateSet & certSet) __OVERRIDE;
+    WEAVE_ERROR ValidateUnsignedKeyExportMessage(WeaveKeyExport * keyExport, uint32_t requestedKeyId) __OVERRIDE;
+
+#endif // !WEAVE_CONFIG_LEGACY_KEY_EXPORT_DELEGATE
+
+    WEAVE_ERROR GetNodeCertSet(bool isInitiator, WeaveCertificateSet& certSet);
+    WEAVE_ERROR ReleaseNodeCertSet(bool isInitiator, WeaveCertificateSet& certSet);
+    WEAVE_ERROR GetNodePrivateKey(bool isInitiator, const uint8_t *& weavePrivKey, uint16_t& weavePrivKeyLen);
+    WEAVE_ERROR ReleaseNodePrivateKey(bool isInitiator, const uint8_t *& weavePrivKey);
+    WEAVE_ERROR BeginCertValidation(bool isInitiator, WeaveCertificateSet& certSet, ValidationContext& validContext);
+    WEAVE_ERROR HandleCertValidationResult(bool isInitiator, WeaveCertificateSet& certSet, ValidationContext& validContext,
+            const IPPacketInfo *pktInfo, const WeaveMessageInfo *msgHeader, uint32_t requestedKeyId);
+    WEAVE_ERROR EndCertValidation(bool isInitiator, WeaveCertificateSet& certSet, ValidationContext& validContext);
+    WEAVE_ERROR ValidateUnsignedKeyExportMessage(bool isInitiator, const IPPacketInfo *pktInfo, const WeaveMessageInfo *msgHeader, uint32_t requestedKeyId);
 };
 
 extern KeyExportOptions gKeyExportOptions;

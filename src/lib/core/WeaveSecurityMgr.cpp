@@ -2206,7 +2206,7 @@ void WeaveSecurityManager::HandleKeyExportMessageInitiator(ExchangeContext *ec, 
         PacketBuffer::Free(msgBuf);
         msgBuf = NULL;
 
-        err = secMgr->SendKeyExportRequest(newConfig, secMgr->mKeyExport->KeyId, secMgr->mKeyExport->SignMessages);
+        err = secMgr->SendKeyExportRequest(newConfig, secMgr->mKeyExport->KeyId(), secMgr->mKeyExport->SignMessages());
         SuccessOrExit(err);
 
         break;
@@ -2216,7 +2216,7 @@ void WeaveSecurityManager::HandleKeyExportMessageInitiator(ExchangeContext *ec, 
         uint16_t exportedKeyLen;
         uint8_t exportedKey[kWeaveFabricSecretSize];
 
-        err = secMgr->mKeyExport->ProcessKeyExportResponse(msgBuf->Start(), msgBuf->DataLength(), pktInfo, msgInfo,
+        err = secMgr->mKeyExport->ProcessKeyExportResponse(msgBuf->Start(), msgBuf->DataLength(), msgInfo,
                                                            exportedKey, sizeof(exportedKey), exportedKeyLen, exportedKeyId);
         SuccessOrExit(err);
 
@@ -2364,7 +2364,7 @@ void WeaveSecurityManager::HandleKeyExportRequest(ExchangeContext *ec, const IPP
     keyExport.SetAllowedConfigs(ResponderAllowedKeyExportConfigs);
 
     // Process key export request message.
-    err = keyExport.ProcessKeyExportRequest(msgBuf->Start(), msgBuf->DataLength(), pktInfo, msgInfo);
+    err = keyExport.ProcessKeyExportRequest(msgBuf->Start(), msgBuf->DataLength(), msgInfo);
 
     // Free the received message buffer so that it can be reused to send the outgoing message.
     PacketBuffer::Free(msgBuf);
@@ -2373,11 +2373,11 @@ void WeaveSecurityManager::HandleKeyExportRequest(ExchangeContext *ec, const IPP
     // Check if reconfiguration was requested.
     if (err == WEAVE_ERROR_KEY_EXPORT_RECONFIGURE_REQUIRED)
     {
-        err = SendKeyExportResponse(keyExport, kMsgType_KeyExportReconfigure);
+        err = SendKeyExportResponse(keyExport, kMsgType_KeyExportReconfigure, msgInfo);
     }
     else if (err == WEAVE_NO_ERROR)
     {
-        err = SendKeyExportResponse(keyExport, kMsgType_KeyExportResponse);
+        err = SendKeyExportResponse(keyExport, kMsgType_KeyExportResponse, msgInfo);
     }
     SuccessOrExit(err);
 
@@ -2397,7 +2397,7 @@ exit:
 }
 
 __attribute__((noinline))
-WEAVE_ERROR WeaveSecurityManager::SendKeyExportResponse(WeaveKeyExport& keyExport, uint8_t msgType)
+WEAVE_ERROR WeaveSecurityManager::SendKeyExportResponse(WeaveKeyExport& keyExport, uint8_t msgType, const WeaveMessageInfo *msgInfo)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
     PacketBuffer *msgBuf = NULL;
@@ -2412,7 +2412,7 @@ WEAVE_ERROR WeaveSecurityManager::SendKeyExportResponse(WeaveKeyExport& keyExpor
     if (msgType == kMsgType_KeyExportReconfigure)
         err = keyExport.GenerateKeyExportReconfigure(msgBuf->Start(), msgBuf->AvailableDataLength(), dataLen);
     else if (msgType == kMsgType_KeyExportResponse)
-        err = keyExport.GenerateKeyExportResponse(msgBuf->Start(), msgBuf->AvailableDataLength(), dataLen);
+        err = keyExport.GenerateKeyExportResponse(msgBuf->Start(), msgBuf->AvailableDataLength(), dataLen, msgInfo);
     else
         err = WEAVE_ERROR_INVALID_MESSAGE_TYPE;
     SuccessOrExit(err);

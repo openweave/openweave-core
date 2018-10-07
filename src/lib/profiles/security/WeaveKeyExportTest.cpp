@@ -23,9 +23,11 @@
  */
 
 #include <Weave/Core/WeaveCore.h>
+#include <Weave/Core/WeaveTLV.h>
 #include <Weave/Support/NestCerts.h>
 #include <Weave/Profiles/security/WeaveAccessToken.h>
 #include <Weave/Profiles/security/WeaveDummyGroupKeyStore.h>
+#include <Weave/Profiles/security/WeaveSig.h>
 #include "WeaveKeyExportClient.h"
 
 // This code is only available in contexts that support malloc and system time.
@@ -77,7 +79,106 @@ public:
         mRootCertLen = rootCertLen;
     }
 
-    virtual WEAVE_ERROR GetNodeCertSet(bool isInitiator, WeaveCertificateSet& certSet)
+#if !WEAVE_CONFIG_LEGACY_KEY_EXPORT_DELEGATE
+
+    WEAVE_ERROR GetNodeCertSet(WeaveKeyExport * keyExport, WeaveCertificateSet& certSet) __OVERRIDE
+    {
+        WEAVE_ERROR err;
+        WeaveCertificateData *cert;
+
+        VerifyOrExit(!keyExport->IsInitiator(), err = WEAVE_ERROR_INVALID_ARGUMENT);
+
+        err = certSet.Init(10, 4096);
+        SuccessOrExit(err);
+
+        err = certSet.LoadCert(mDeviceCert, mDeviceCertLen, 0, cert);
+        SuccessOrExit(err);
+
+    exit:
+        if (err != WEAVE_NO_ERROR)
+        {
+            certSet.Release();
+        }
+        return err;
+    }
+
+    WEAVE_ERROR ReleaseNodeCertSet(WeaveKeyExport * keyExport, WeaveCertificateSet& certSet) __OVERRIDE
+    {
+        WEAVE_ERROR err = WEAVE_NO_ERROR;
+
+        VerifyOrExit(!keyExport->IsInitiator(), err = WEAVE_ERROR_INVALID_ARGUMENT);
+
+        certSet.Release();
+
+    exit:
+        return err;
+    }
+
+    WEAVE_ERROR GenerateNodeSignature(WeaveKeyExport * keyExport, const uint8_t * msgHash, uint8_t msgHashLen,
+            TLVWriter & writer) __OVERRIDE
+    {
+        return GenerateAndEncodeWeaveECDSASignature(writer, TLV::ContextTag(kTag_WeaveSignature_ECDSASignatureData),
+                msgHash, msgHashLen, mDevicePrivKey, mDevicePrivKeyLen);
+    }
+
+    WEAVE_ERROR BeginCertValidation(WeaveKeyExport * keyExport, ValidationContext & validCtx,
+            WeaveCertificateSet & certSet) __OVERRIDE
+    {
+        WEAVE_ERROR err;
+        WeaveCertificateData *cert;
+
+        VerifyOrExit(!keyExport->IsInitiator(), err = WEAVE_ERROR_INVALID_ARGUMENT);
+
+        err = certSet.Init(10, 4096);
+        SuccessOrExit(err);
+
+        // Initialize the validation context.
+        memset(&validCtx, 0, sizeof(validCtx));
+        validCtx.EffectiveTime = SecondsSinceEpochToPackedCertTime(time(NULL));
+        validCtx.RequiredKeyUsages = kKeyUsageFlag_DigitalSignature;
+        validCtx.ValidateFlags = kValidateFlag_IgnoreNotAfter;
+
+        // Load the Nest Production Device CA certificate so that it is available for chain validation.
+        err = certSet.LoadCert(mRootCert, mRootCertLen, kDecodeFlag_IsTrusted, cert);
+        SuccessOrExit(err);
+
+    exit:
+        return err;
+    }
+
+    WEAVE_ERROR HandleCertValidationResult(WeaveKeyExport * keyExport, ValidationContext & validCtx,
+            WeaveCertificateSet & certSet, uint32_t requestedKeyId) __OVERRIDE
+    {
+        WEAVE_ERROR err = WEAVE_NO_ERROR;
+
+        VerifyOrExit(requestedKeyId == WeaveKeyId::kClientRootKey, err = WEAVE_ERROR_INVALID_KEY_ID);
+
+    exit:
+        return err;
+    }
+
+    WEAVE_ERROR EndCertValidation(WeaveKeyExport * keyExport, ValidationContext & validCtx,
+            WeaveCertificateSet & certSet) __OVERRIDE
+    {
+        WEAVE_ERROR err = WEAVE_NO_ERROR;
+
+        VerifyOrExit(!keyExport->IsInitiator(), err = WEAVE_ERROR_INVALID_ARGUMENT);
+
+        certSet.Release();
+
+    exit:
+        return err;
+    }
+
+    WEAVE_ERROR ValidateUnsignedKeyExportMessage(WeaveKeyExport * keyExport, uint32_t requestedKeyId) __OVERRIDE
+    {
+        // Should never be called.
+        return WEAVE_ERROR_INCORRECT_STATE;
+    }
+
+#else // !WEAVE_CONFIG_LEGACY_KEY_EXPORT_DELEGATE
+
+    WEAVE_ERROR GetNodeCertSet(bool isInitiator, WeaveCertificateSet& certSet) __OVERRIDE
     {
         WEAVE_ERROR err;
         WeaveCertificateData *cert;
@@ -98,7 +199,7 @@ public:
         return err;
     }
 
-    virtual WEAVE_ERROR ReleaseNodeCertSet(bool isInitiator, WeaveCertificateSet& certSet)
+    WEAVE_ERROR ReleaseNodeCertSet(bool isInitiator, WeaveCertificateSet& certSet) __OVERRIDE
     {
         WEAVE_ERROR err = WEAVE_NO_ERROR;
 
@@ -110,19 +211,19 @@ public:
         return err;
     }
 
-    virtual WEAVE_ERROR GetNodePrivateKey(bool isInitiator, const uint8_t *& weavePrivKey, uint16_t& weavePrivKeyLen)
+    WEAVE_ERROR GetNodePrivateKey(bool isInitiator, const uint8_t *& weavePrivKey, uint16_t& weavePrivKeyLen) __OVERRIDE
     {
         weavePrivKey = mDevicePrivKey;
         weavePrivKeyLen = mDevicePrivKeyLen;
         return WEAVE_NO_ERROR;
     }
 
-    virtual WEAVE_ERROR ReleaseNodePrivateKey(bool isInitiator, const uint8_t *& weavePrivKey)
+    WEAVE_ERROR ReleaseNodePrivateKey(bool isInitiator, const uint8_t *& weavePrivKey) __OVERRIDE
     {
         return WEAVE_NO_ERROR;
     }
 
-    virtual WEAVE_ERROR BeginCertValidation(bool isInitiator, WeaveCertificateSet& certSet, ValidationContext& validContext)
+    WEAVE_ERROR BeginCertValidation(bool isInitiator, WeaveCertificateSet& certSet, ValidationContext& validCtx) __OVERRIDE
     {
         WEAVE_ERROR err;
         WeaveCertificateData *cert;
@@ -133,10 +234,10 @@ public:
         SuccessOrExit(err);
 
         // Initialize the validation context.
-        memset(&validContext, 0, sizeof(validContext));
-        validContext.EffectiveTime = SecondsSinceEpochToPackedCertTime(time(NULL));
-        validContext.RequiredKeyUsages = kKeyUsageFlag_DigitalSignature;
-        validContext.ValidateFlags = kValidateFlag_IgnoreNotAfter;
+        memset(&validCtx, 0, sizeof(validCtx));
+        validCtx.EffectiveTime = SecondsSinceEpochToPackedCertTime(time(NULL));
+        validCtx.RequiredKeyUsages = kKeyUsageFlag_DigitalSignature;
+        validCtx.ValidateFlags = kValidateFlag_IgnoreNotAfter;
 
         // Load the Nest Production Device CA certificate so that it is available for chain validation.
         err = certSet.LoadCert(mRootCert, mRootCertLen, kDecodeFlag_IsTrusted, cert);
@@ -146,8 +247,8 @@ public:
         return err;
     }
 
-    virtual WEAVE_ERROR HandleCertValidationResult(bool isInitiator, WeaveCertificateSet& certSet, ValidationContext& validContext,
-                                                   const IPPacketInfo *pktInfo, const WeaveMessageInfo *msgInfo, uint32_t requestedKeyId)
+    WEAVE_ERROR HandleCertValidationResult(bool isInitiator, WeaveCertificateSet& certSet, ValidationContext& validCtx,
+        const IPPacketInfo *pktInfo, const WeaveMessageInfo *msgInfo, uint32_t requestedKeyId) __OVERRIDE
     {
         WEAVE_ERROR err = WEAVE_NO_ERROR;
 
@@ -157,7 +258,7 @@ public:
         return err;
     }
 
-    virtual WEAVE_ERROR EndCertValidation(bool isInitiator, WeaveCertificateSet& certSet, ValidationContext& validContext)
+    WEAVE_ERROR EndCertValidation(bool isInitiator, WeaveCertificateSet& certSet, ValidationContext& validCtx) __OVERRIDE
     {
         WEAVE_ERROR err = WEAVE_NO_ERROR;
 
@@ -169,11 +270,14 @@ public:
         return err;
     }
 
-    virtual WEAVE_ERROR ValidateUnsignedKeyExportMessage(bool isInitiator, const IPPacketInfo *pktInfo, const WeaveMessageInfo *msgInfo, uint32_t requestedKeyId)
+    WEAVE_ERROR ValidateUnsignedKeyExportMessage(bool isInitiator, const IPPacketInfo *pktInfo,
+            const WeaveMessageInfo *msgInfo, uint32_t requestedKeyId) __OVERRIDE
     {
         // Should never be called.
         return WEAVE_ERROR_INCORRECT_STATE;
     }
+
+#endif // WEAVE_CONFIG_LEGACY_KEY_EXPORT_DELEGATE
 
 private:
     const uint8_t *mDeviceCert;
@@ -203,7 +307,7 @@ WEAVE_ERROR SimulateDeviceKeyExport(const uint8_t *deviceCert, uint16_t deviceCe
     respIsReconfig = false;
 
     // Call the key export object to process the key export request.
-    err = keyExportObj.ProcessKeyExportRequest(exportReq, exportReqLen, NULL, NULL);
+    err = keyExportObj.ProcessKeyExportRequest(exportReq, exportReqLen, NULL);
 
     if (err == WEAVE_ERROR_KEY_EXPORT_RECONFIGURE_REQUIRED)
     {
@@ -218,7 +322,7 @@ WEAVE_ERROR SimulateDeviceKeyExport(const uint8_t *deviceCert, uint16_t deviceCe
         SuccessOrExit(err);
 
         // Call the key export object to generate a key export response message.
-        err = keyExportObj.GenerateKeyExportResponse(exportRespBuf, exportRespBufSize, exportRespLen);
+        err = keyExportObj.GenerateKeyExportResponse(exportRespBuf, exportRespBufSize, exportRespLen, NULL);
         SuccessOrExit(err);
     }
 
