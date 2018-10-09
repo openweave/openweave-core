@@ -259,7 +259,11 @@ am__remove_distdir = \
   echo "origin of VERSION is $(origin VERSION)"; \
   echo "origin of distdir is $(origin distdir)"; \
   echo "origin of VERSION_FILE is $(origin VERSION_FILE)"; \
-  echo "VERSION_FILE is $(VERSION_FILE)"
+  echo "VERSION_FILE is $(VERSION_FILE)"; \
+  echo "origin of MAYBE_WEAVE_VERSION is $(origin MAYBE_WEAVE_VERSION)"; \
+  echo "MAYBE_WEAVE_VERSION is $(MAYBE_WEAVE_VERSION)"; \
+  echo "origin of WEAVE_VERSION is $(origin WEAVE_VERSION)"; \
+  echo "WEAVE_VERSION is $(WEAVE_VERSION)"
 am__post_remove_distdir = $(am__remove_distdir)
 am__relativize = \
   dir0=`pwd`; \
@@ -905,6 +909,8 @@ dist-gzip: distdir
 	@echo "origin of distdir is $(origin distdir)"
 	@echo "origin VERSION_FILE is $(origin VERSION_FILE)"
 	@echo "origin PACKAGE_VERSION is $(origin PACKAGE_VERSION)"
+	@echo "origin of MAYBE_WEAVE_VERSION is $(origin MAYBE_WEAVE_VERSION)"
+	@echo "MAYBE_WEAVE_VERSION is $(MAYBE_WEAVE_VERSION)"
 	@echo "origin WEAVE_VERSION is $(origin WEAVE_VERSION)"
 	@echo "VERSION_FILE is $(VERSION_FILE)"
 	@echo "VERSION is $(VERSION)"
@@ -972,6 +978,8 @@ distcheck: dist
 	@echo "origin of distdir is $(origin distdir)"
 	@echo "origin VERSION_FILE is $(origin VERSION_FILE)"
 	@echo "origin PACKAGE_VERSION is $(origin PACKAGE_VERSION)"
+	@echo "origin of MAYBE_WEAVE_VERSION is $(origin MAYBE_WEAVE_VERSION)"
+	@echo "MAYBE_WEAVE_VERSION is $(MAYBE_WEAVE_VERSION)"
 	@echo "origin WEAVE_VERSION is $(origin WEAVE_VERSION)"
 	@echo "VERSION_FILE is $(VERSION_FILE)"
 	@echo "VERSION is $(VERSION)"
@@ -1223,7 +1231,9 @@ include $(abs_top_nlbuild_autotools_dir)/automake/pre.am
 # flapping as VERSION_FILE changes.
 #
 
-WEAVE_VERSION                     ?= $(if $(filter 0,$(MAKELEVEL)),$(shell cat $(VERSION_FILE) 2> /dev/null),$(WEAVE_VERSION))
+export MAYBE_WEAVE_VERSION        := $(if $(filter 0,$(MAKELEVEL)),$(shell cat $(VERSION_FILE) 2> /dev/null),$(MAYBE_WEAVE_VERSION))
+
+WEAVE_VERSION                     ?= $(MAYBE_WEAVE_VERSION)
 
 $(warning origin of MAKECMDGOALS is $(origin MAKECMDGOALS))
 $(warning MAKECMDGOALS is $(MAKECMDGOALS))
@@ -1232,10 +1242,12 @@ $(warning MAKELEVEL is $(MAKELEVEL))
 $(warning origin VERSION_FILE is $(origin VERSION_FILE))
 $(warning origin VERSION is $(origin VERSION))
 $(warning origin PACKAGE_VERSION is $(origin PACKAGE_VERSION))
+$(warning origin MAYBE_WEAVE_VERSION is $(origin MAYBE_WEAVE_VERSION))
 $(warning origin WEAVE_VERSION is $(origin WEAVE_VERSION))
 $(warning VERSION_FILE is $(VERSION_FILE))
 $(warning VERSION is $(VERSION))
 $(warning PACKAGE_VERSION is $(PACKAGE_VERSION))
+$(warning MAYBE_WEAVE_VERSION is $(MAYBE_WEAVE_VERSION))
 $(warning WEAVE_VERSION is $(WEAVE_VERSION))
 $(warning LOCAL_VERSION file is $(if $(wildcard $(builddir)/.local-version),$(builddir)/.local-version))
 $(warning DIST_VERSION file is $(if $(wildcard $(srcdir)/.dist-version),$(srcdir)/.dist-version))

@@ -123,7 +123,9 @@ VERSION_FILE                      := $(if $(wildcard $(builddir)/.local-version)
 # flapping as VERSION_FILE changes.
 #
 
-WEAVE_VERSION                     ?= $(if $(filter 0,$(MAKELEVEL)),$(shell cat $(VERSION_FILE) 2> /dev/null),$(WEAVE_VERSION))
+export MAYBE_WEAVE_VERSION        := $(if $(filter 0,$(MAKELEVEL)),$(shell cat $(VERSION_FILE) 2> /dev/null),$(MAYBE_WEAVE_VERSION))
+
+WEAVE_VERSION                     ?= $(MAYBE_WEAVE_VERSION)
 
 PACKAGE_VERSION                    = $(WEAVE_VERSION)
 VERSION                            = $(PACKAGE_VERSION)
@@ -135,10 +137,12 @@ $(warning MAKELEVEL is $(MAKELEVEL))
 $(warning origin VERSION_FILE is $(origin VERSION_FILE))
 $(warning origin VERSION is $(origin VERSION))
 $(warning origin PACKAGE_VERSION is $(origin PACKAGE_VERSION))
+$(warning origin MAYBE_WEAVE_VERSION is $(origin MAYBE_WEAVE_VERSION))
 $(warning origin WEAVE_VERSION is $(origin WEAVE_VERSION))
 $(warning VERSION_FILE is $(VERSION_FILE))
 $(warning VERSION is $(VERSION))
 $(warning PACKAGE_VERSION is $(PACKAGE_VERSION))
+$(warning MAYBE_WEAVE_VERSION is $(MAYBE_WEAVE_VERSION))
 $(warning WEAVE_VERSION is $(WEAVE_VERSION))
 $(warning LOCAL_VERSION file is $(if $(wildcard $(builddir)/.local-version),$(builddir)/.local-version))
 $(warning DIST_VERSION file is $(if $(wildcard $(srcdir)/.dist-version),$(srcdir)/.dist-version))
