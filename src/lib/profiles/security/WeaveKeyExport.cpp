@@ -628,8 +628,8 @@ WEAVE_ERROR WeaveKeyExport::AppendSignature(uint8_t * msgStart, uint16_t msgBufS
         GenerateSHA256Hash(msgStart, msgLen, msgHash);
 
         // Determine the location at which the signature should be encoded.
-        uint8_t * msgSigStart = msgStart + msgLen;
-        uint16_t maxSigSize = msgBufSize - msgLen;
+        uint8_t * const msgSigStart = msgStart + msgLen;
+        const uint16_t maxSigSize = msgBufSize - msgLen;
         uint16_t msgSigLen;
 
         // Generate a WeaveSignature TLV structure containing a signature of the message hash and append

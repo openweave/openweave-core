@@ -85,10 +85,14 @@ public:
     {
         WEAVE_ERROR err;
         WeaveCertificateData *cert;
+        enum {
+            MaxCerts = 10,
+            DecodeBufSize = 4096
+        };
 
         VerifyOrExit(!keyExport->IsInitiator(), err = WEAVE_ERROR_INVALID_ARGUMENT);
 
-        err = certSet.Init(10, 4096);
+        err = certSet.Init(MaxCerts, DecodeBufSize);
         SuccessOrExit(err);
 
         err = certSet.LoadCert(mDeviceCert, mDeviceCertLen, 0, cert);
@@ -126,10 +130,14 @@ public:
     {
         WEAVE_ERROR err;
         WeaveCertificateData *cert;
+        enum {
+            MaxCerts = 10,
+            DecodeBufSize = 4096
+        };
 
         VerifyOrExit(!keyExport->IsInitiator(), err = WEAVE_ERROR_INVALID_ARGUMENT);
 
-        err = certSet.Init(10, 4096);
+        err = certSet.Init(MaxCerts, DecodeBufSize);
         SuccessOrExit(err);
 
         // Initialize the validation context.
@@ -182,10 +190,14 @@ public:
     {
         WEAVE_ERROR err;
         WeaveCertificateData *cert;
+        enum {
+            MaxCerts = 10,
+            DecodeBufSize = 4096
+        };
 
         VerifyOrExit(!isInitiator, err = WEAVE_ERROR_INVALID_ARGUMENT);
 
-        err = certSet.Init(10, 4096);
+        err = certSet.Init(MaxCerts, DecodeBufSize);
         SuccessOrExit(err);
 
         err = certSet.LoadCert(mDeviceCert, mDeviceCertLen, 0, cert);
@@ -227,10 +239,14 @@ public:
     {
         WEAVE_ERROR err;
         WeaveCertificateData *cert;
+        enum {
+            MaxCerts = 10,
+            DecodeBufSize = 4096
+        };
 
         VerifyOrExit(!isInitiator, err = WEAVE_ERROR_INVALID_ARGUMENT);
 
-        err = certSet.Init(10, 4096);
+        err = certSet.Init(MaxCerts, DecodeBufSize);
         SuccessOrExit(err);
 
         // Initialize the validation context.
