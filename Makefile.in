@@ -904,6 +904,9 @@ dist-gzip: distdir
 	@echo "MAKELEVEL is $(MAKELEVEL)"
 	@echo "origin of VERSION is $(origin VERSION)"
 	@echo "origin of distdir is $(origin distdir)"
+	@echo "origin VERSION_FILE is $(origin VERSION_FILE)"
+	@echo "origin PACKAGE_VERSION is $(origin PACKAGE_VERSION)"
+	@echo "origin WEAVE_VERSION is $(origin WEAVE_VERSION)"
 	@echo "VERSION_FILE is $(VERSION_FILE)"
 	@echo "VERSION is $(VERSION)"
 	@echo "PACKAGE_VERSION is $(PACKAGE_VERSION)"
@@ -968,6 +971,9 @@ distcheck: dist
 	@echo "MAKELEVEL is $(MAKELEVEL)"
 	@echo "origin of VERSION is $(origin VERSION)"
 	@echo "origin of distdir is $(origin distdir)"
+	@echo "origin VERSION_FILE is $(origin VERSION_FILE)"
+	@echo "origin PACKAGE_VERSION is $(origin PACKAGE_VERSION)"
+	@echo "origin WEAVE_VERSION is $(origin WEAVE_VERSION)"
 	@echo "VERSION_FILE is $(VERSION_FILE)"
 	@echo "VERSION is $(VERSION)"
 	@echo "PACKAGE_VERSION is $(PACKAGE_VERSION)"
@@ -1220,6 +1226,10 @@ $(warning origin of MAKECMDGOALS is $(origin MAKECMDGOALS))
 $(warning MAKECMDGOALS is $(MAKECMDGOALS))
 $(warning origin of MAKELEVEL is $(origin MAKELEVEL))
 $(warning MAKELEVEL is $(MAKELEVEL))
+$(warning origin VERSION_FILE is $(origin VERSION_FILE))
+$(warning origin VERSION is $(origin VERSION))
+$(warning origin PACKAGE_VERSION is $(origin PACKAGE_VERSION))
+$(warning origin WEAVE_VERSION is $(origin WEAVE_VERSION))
 $(warning VERSION_FILE is $(VERSION_FILE))
 $(warning VERSION is $(VERSION))
 $(warning PACKAGE_VERSION is $(PACKAGE_VERSION))
