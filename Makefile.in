@@ -889,6 +889,19 @@ distdir: $(DISTFILES)
 	|| chmod -R a+r "$(distdir)"
 dist-gzip: distdir
 	tardir=$(distdir) && $(am__tar) | GZIP=$(GZIP_ENV) gzip -c >$(distdir).tar.gz
+	@echo "target is $(@)"
+	@echo "origin of VERSION is $(origin VERSION)"
+	@echo "origin of distdir is $(origin distdir)"
+	@echo "VERSION_FILE is $(VERSION_FILE)"
+	@echo "VERSION is $(VERSION)"
+	@echo "PACKAGE_VERSION is $(PACKAGE_VERSION)"
+	@echo "WEAVE_VERSION is $(WEAVE_VERSION)"
+	@echo "LOCAL_VERSION file is $(if $(wildcard $(builddir)/.local-version),$(builddir)/.local-version)"
+	@echo "DIST_VERSION file is $(if $(wildcard $(srcdir)/.dist-version),$(srcdir)/.dist-version)"
+	@echo "DEFAULT_VERSION file is $(if $(wildcard $(srcdir)/.default-version),$(srcdir)/.default-version)"
+	@echo "LOCAL_VERSION is $(if $(wildcard $(builddir)/.local-version),$(shell cat $(builddir)/.local-version))"
+	@echo "DIST_VERSION is $(if $(wildcard $(srcdir)/.dist-version),$(shell cat $(srcdir)/.dist-version))"
+	@echo "DEFAULT_VERSION is $(if $(wildcard $(srcdir)/.default-version),$(shell cat $(srcdir)/.default-version))"
 	$(am__post_remove_distdir)
 
 dist-bzip2: distdir
@@ -930,6 +943,19 @@ dist dist-all:
 # it guarantees that the distribution is self-contained by making another
 # tarfile.
 distcheck: dist
+	@echo "target is $(@)"
+	@echo "origin of VERSION is $(origin VERSION)"
+	@echo "origin of distdir is $(origin distdir)"
+	@echo "VERSION_FILE is $(VERSION_FILE)"
+	@echo "VERSION is $(VERSION)"
+	@echo "PACKAGE_VERSION is $(PACKAGE_VERSION)"
+	@echo "WEAVE_VERSION is $(WEAVE_VERSION)"
+	@echo "LOCAL_VERSION file is $(if $(wildcard $(builddir)/.local-version),$(builddir)/.local-version)"
+	@echo "DIST_VERSION file is $(if $(wildcard $(srcdir)/.dist-version),$(srcdir)/.dist-version)"
+	@echo "DEFAULT_VERSION file is $(if $(wildcard $(srcdir)/.default-version),$(srcdir)/.default-version)"
+	@echo "LOCAL_VERSION is $(if $(wildcard $(builddir)/.local-version),$(shell cat $(builddir)/.local-version))"
+	@echo "DIST_VERSION is $(if $(wildcard $(srcdir)/.dist-version),$(shell cat $(srcdir)/.dist-version))"
+	@echo "DEFAULT_VERSION is $(if $(wildcard $(srcdir)/.default-version),$(shell cat $(srcdir)/.default-version))"
 	case '$(DIST_ARCHIVES)' in \
 	*.tar.gz*) \
 	  GZIP=$(GZIP_ENV) gzip -dc $(distdir).tar.gz | $(am__untar) ;;\
