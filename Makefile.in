@@ -902,6 +902,8 @@ dist-gzip: distdir
 	@echo "LOCAL_VERSION is $(if $(wildcard $(builddir)/.local-version),$(shell cat $(builddir)/.local-version))"
 	@echo "DIST_VERSION is $(if $(wildcard $(srcdir)/.dist-version),$(shell cat $(srcdir)/.dist-version))"
 	@echo "DEFAULT_VERSION is $(if $(wildcard $(srcdir)/.default-version),$(shell cat $(srcdir)/.default-version))"
+	@echo "DIST_ARCHIVES origin is $(origin DIST_ARCHIVES)"
+	@echo "DIST_ARCHIVES is $(DIST_ARCHIVES)"
 	@echo "am__remove_distdir origin is $(origin am__remove_distdir)"
 	@echo "am__remove_distdir is $(am__remove_distdir)"
 	@echo "am__post_remove_distdir origin is $(origin am__post_remove_distdir)"
@@ -960,6 +962,8 @@ distcheck: dist
 	@echo "LOCAL_VERSION is $(if $(wildcard $(builddir)/.local-version),$(shell cat $(builddir)/.local-version))"
 	@echo "DIST_VERSION is $(if $(wildcard $(srcdir)/.dist-version),$(shell cat $(srcdir)/.dist-version))"
 	@echo "DEFAULT_VERSION is $(if $(wildcard $(srcdir)/.default-version),$(shell cat $(srcdir)/.default-version))"
+	@echo "DIST_ARCHIVES origin is $(origin DIST_ARCHIVES)"
+	@echo "DIST_ARCHIVES is $(DIST_ARCHIVES)"
 	@echo "am__remove_distdir origin is $(origin am__remove_distdir)"
 	@echo "am__remove_distdir is $(am__remove_distdir)"
 	@echo "am__post_remove_distdir origin is $(origin am__post_remove_distdir)"
@@ -1208,6 +1212,8 @@ $(warning DIST_VERSION is $(if $(wildcard $(srcdir)/.dist-version),$(shell cat $
 $(warning DEFAULT_VERSION is $(if $(wildcard $(srcdir)/.default-version),$(shell cat $(srcdir)/.default-version)))
 $(warning distdir origin is $(origin distdir))
 $(warning distdir is $(distdir))
+$(warning DIST_ARCHIVES origin is $(origin DIST_ARCHIVES))
+$(warning DIST_ARCHIVES is $(DIST_ARCHIVES))
 $(warning am__remove_distdir origin is $(origin am__remove_distdir))
 $(warning am__remove_distdir is $(am__remove_distdir))
 $(warning am__post_remove_distdir origin is $(origin am__post_remove_distdir))
