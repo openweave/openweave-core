@@ -253,7 +253,13 @@ am__remove_distdir = \
     find "$(distdir)" -type d ! -perm -200 -exec chmod u+w {} ';' \
       && rm -rf "$(distdir)" \
       || { sleep 5 && rm -rf "$(distdir)"; }; \
-  else :; fi
+  else :; fi; \
+  echo "MAKELEVEL is $(MAKELEVEL)"; \
+  echo "MAKECMDGOALS is $(MAKECMDGOALS)"; \
+  echo "origin of VERSION is $(origin VERSION)"; \
+  echo "origin of distdir is $(origin distdir)"; \
+  echo "origin of VERSION_FILE is $(origin VERSION_FILE)"; \
+  echo "VERSION_FILE is $(VERSION_FILE)"
 am__post_remove_distdir = $(am__remove_distdir)
 am__relativize = \
   dir0=`pwd`; \
@@ -890,6 +896,10 @@ distdir: $(DISTFILES)
 dist-gzip: distdir
 	tardir=$(distdir) && $(am__tar) | GZIP=$(GZIP_ENV) gzip -c >$(distdir).tar.gz
 	@echo "target is $(@)"
+	@echo "origin of MAKECMDGOALS is $(origin MAKECMDGOALS)"
+	@echo "MAKECMDGOALS is $(MAKECMDGOALS)"
+	@echo "origin of MAKELEVEL is $(origin MAKELEVEL)"
+	@echo "MAKELEVEL is $(MAKELEVEL)"
 	@echo "origin of VERSION is $(origin VERSION)"
 	@echo "origin of distdir is $(origin distdir)"
 	@echo "VERSION_FILE is $(VERSION_FILE)"
@@ -950,6 +960,10 @@ dist dist-all:
 # tarfile.
 distcheck: dist
 	@echo "target is $(@)"
+	@echo "origin of MAKECMDGOALS is $(origin MAKECMDGOALS)"
+	@echo "MAKECMDGOALS is $(MAKECMDGOALS)"
+	@echo "origin of MAKELEVEL is $(origin MAKELEVEL)"
+	@echo "MAKELEVEL is $(MAKELEVEL)"
 	@echo "origin of VERSION is $(origin VERSION)"
 	@echo "origin of distdir is $(origin distdir)"
 	@echo "VERSION_FILE is $(VERSION_FILE)"
@@ -1200,6 +1214,10 @@ include $(abs_top_nlbuild_autotools_dir)/automake/pre.am
 
 WEAVE_VERSION                     ?= $(shell cat $(VERSION_FILE) 2> /dev/null)
 
+$(warning origin of MAKECMDGOALS is $(origin MAKECMDGOALS))
+$(warning MAKECMDGOALS is $(MAKECMDGOALS))
+$(warning origin of MAKELEVEL is $(origin MAKELEVEL))
+$(warning MAKELEVEL is $(MAKELEVEL))
 $(warning VERSION_FILE is $(VERSION_FILE))
 $(warning VERSION is $(VERSION))
 $(warning PACKAGE_VERSION is $(PACKAGE_VERSION))
