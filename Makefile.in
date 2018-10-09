@@ -902,6 +902,10 @@ dist-gzip: distdir
 	@echo "LOCAL_VERSION is $(if $(wildcard $(builddir)/.local-version),$(shell cat $(builddir)/.local-version))"
 	@echo "DIST_VERSION is $(if $(wildcard $(srcdir)/.dist-version),$(shell cat $(srcdir)/.dist-version))"
 	@echo "DEFAULT_VERSION is $(if $(wildcard $(srcdir)/.default-version),$(shell cat $(srcdir)/.default-version))"
+	@echo "am__remove_distdir origin is $(origin am__remove_distdir)"
+	@echo "am__remove_distdir is $(am__remove_distdir)"
+	@echo "am__post_remove_distdir origin is $(origin am__post_remove_distdir)"
+	@echo "am__post_remove_distdir is $(am__post_remove_distdir)"
 	$(am__post_remove_distdir)
 
 dist-bzip2: distdir
@@ -956,6 +960,10 @@ distcheck: dist
 	@echo "LOCAL_VERSION is $(if $(wildcard $(builddir)/.local-version),$(shell cat $(builddir)/.local-version))"
 	@echo "DIST_VERSION is $(if $(wildcard $(srcdir)/.dist-version),$(shell cat $(srcdir)/.dist-version))"
 	@echo "DEFAULT_VERSION is $(if $(wildcard $(srcdir)/.default-version),$(shell cat $(srcdir)/.default-version))"
+	@echo "am__remove_distdir origin is $(origin am__remove_distdir)"
+	@echo "am__remove_distdir is $(am__remove_distdir)"
+	@echo "am__post_remove_distdir origin is $(origin am__post_remove_distdir)"
+	@echo "am__post_remove_distdir is $(am__post_remove_distdir)"
 	case '$(DIST_ARCHIVES)' in \
 	*.tar.gz*) \
 	  GZIP=$(GZIP_ENV) gzip -dc $(distdir).tar.gz | $(am__untar) ;;\
@@ -1198,6 +1206,12 @@ $(warning DEFAULT_VERSION file is $(if $(wildcard $(srcdir)/.default-version),$(
 $(warning LOCAL_VERSION is $(if $(wildcard $(builddir)/.local-version),$(shell cat $(builddir)/.local-version)))
 $(warning DIST_VERSION is $(if $(wildcard $(srcdir)/.dist-version),$(shell cat $(srcdir)/.dist-version)))
 $(warning DEFAULT_VERSION is $(if $(wildcard $(srcdir)/.default-version),$(shell cat $(srcdir)/.default-version)))
+$(warning distdir origin is $(origin distdir))
+$(warning distdir is $(distdir))
+$(warning am__remove_distdir origin is $(origin am__remove_distdir))
+$(warning am__remove_distdir is $(am__remove_distdir))
+$(warning am__post_remove_distdir origin is $(origin am__post_remove_distdir))
+$(warning am__post_remove_distdir is $(am__post_remove_distdir))
 
 #
 # check-file-.local-version
