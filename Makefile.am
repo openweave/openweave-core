@@ -105,23 +105,28 @@ PRETTY_FILES                            := $(NULL)
 # .dist-version second, and the .default-version last.
 #
 
-# VERSION_FILE should be and is intentionally a deferred (=) rather
-# than an immediate (:=) variable to ensure late evaluation AFTER
-# .local-version MAY be created rather than when this file is parsed.
+# VERSION_FILE should be and is intentionally an immediate (:=) rather
+# than a deferred (=) variable to ensure the value binds once and only once
+# for a given MAKELEVEL even as .local-version and .dist-version are created
+# during makefile execution.
 
-VERSION_FILE := $(if $(wildcard $(builddir)/.local-version),$(builddir)/.local-version,$(if $(wildcard $(srcdir)/.dist-version),$(srcdir)/.dist-version,$(srcdir)/.default-version))
+VERSION_FILE                      := $(if $(wildcard $(builddir)/.local-version),$(builddir)/.local-version,$(if $(wildcard $(srcdir)/.dist-version),$(srcdir)/.dist-version,$(srcdir)/.default-version))
 
 #
 # Override autotool's default notion of the package version variables.
-# This ensures that when we create a source distribution that the
-# version is always the current version, not the version when the
-# package was bootstrapped.
+# This ensures that when we create a source distribution the
+# version is always the current version, not the package bootstrap
+# version.
+#
+# The check against MAKELEVEL ensures we bind the version once and
+# only once across potential sub-makes to prevent the version from
+# flapping as VERSION_FILE changes.
 #
 
 ifeq ($(MAKELEVEL),0)
-export WEAVE_VERSION                     ?= $(shell cat $(VERSION_FILE) 2> /dev/null)
+export WEAVE_VERSION              ?= $(shell cat $(VERSION_FILE) 2> /dev/null)
 else
-export WEAVE_VERSION                     := $(WEAVE_VERSION)
+export WEAVE_VERSION              := $(WEAVE_VERSION)
 endif
 
 PACKAGE_VERSION                    = $(WEAVE_VERSION)
@@ -231,6 +236,18 @@ DISTCHECK_CONFIGURE_FLAGS += --without-bluez --without-happy
 dist distcheck distdir install-headers: $(BUILT_SOURCES)
 
 dist-hook: $(distdir)/.dist-version
+
+# If you are synchronizing a package on which yours depends using 'repos.conf',
+# to 'third_party', uncomment and adapt or delete this, as needed. If you choose
+# to use this, please also take a look at Makefile.am and third_party/Makefile.am
+# and uncomment the appropriate sections there.
+
+#
+# Ensure any locally synchronized repositories defined by 'repos.conf'
+# are cleaned up.
+#
+distclean-local:
+	$(MAKE) -C $(srcdir) -f Makefile-bootstrap clean-repos
 
 #
 # Top-level convenience target for making a documentation-only
