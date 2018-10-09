@@ -39,21 +39,3 @@ matrix:
       env: BUILD_TARGET="linux-auto-gcc-distcheck" CC="gcc"
       os: linux
       compiler: gcc
-    - name: "Linux with Defaults against GCC Coding Style Check"
-      env: BUILD_TARGET="linux-auto-gcc-lint" CC="gcc"
-      os: linux
-      compiler: gcc
-    - name: "Linux with Defaults against GCC"
-      env: BUILD_TARGET="linux-auto-gcc" CC="gcc"
-      os: linux
-      compiler: gcc
-    - name: "Linux with Defaults against clang/LLVM"
-      env: BUILD_TARGET="linux-auto-clang" CC="clang"
-      os: linux
-      compiler: clang
-    - name: "OS X with Defaults against clang/LLVM"
-      env: BUILD_TARGET="osx-auto-clang" CC="clang"
-      os: osx
-      compiler: clang
-    - name: "ESP32"
-      env: BUILD_TARGET="esp32"
