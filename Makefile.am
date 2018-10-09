@@ -123,7 +123,7 @@ VERSION_FILE                      := $(if $(wildcard $(builddir)/.local-version)
 # flapping as VERSION_FILE changes.
 #
 
-export WEAVE_VERSION              ?= $(shell cat $(VERSION_FILE) 2> /dev/null)
+WEAVE_VERSION                     ?= $(if $(filter 0,$(MAKELEVEL)),$(shell cat $(VERSION_FILE) 2> /dev/null),$(WEAVE_VERSION))
 
 PACKAGE_VERSION                    = $(WEAVE_VERSION)
 VERSION                            = $(PACKAGE_VERSION)

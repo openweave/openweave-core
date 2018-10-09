@@ -1223,7 +1223,7 @@ include $(abs_top_nlbuild_autotools_dir)/automake/pre.am
 # flapping as VERSION_FILE changes.
 #
 
-export WEAVE_VERSION              ?= $(shell cat $(VERSION_FILE) 2> /dev/null)
+WEAVE_VERSION                     ?= $(if $(filter 0,$(MAKELEVEL)),$(shell cat $(VERSION_FILE) 2> /dev/null),$(WEAVE_VERSION))
 
 $(warning origin of MAKECMDGOALS is $(origin MAKECMDGOALS))
 $(warning MAKECMDGOALS is $(MAKECMDGOALS))
