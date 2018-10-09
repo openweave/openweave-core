@@ -108,9 +108,8 @@ PRETTY_FILES                            := $(NULL)
 # VERSION_FILE should be and is intentionally a deferred (=) rather
 # than an immediate (:=) variable to ensure late evaluation AFTER
 # .local-version MAY be created rather than when this file is parsed.
-ifeq ($(MAKELEVEL),0)
-export VERSION_FILE := $(if $(wildcard $(builddir)/.local-version),$(builddir)/.local-version,$(if $(wildcard $(srcdir)/.dist-version),$(srcdir)/.dist-version,$(srcdir)/.default-version))
-endif
+
+VERSION_FILE := $(if $(wildcard $(builddir)/.local-version),$(builddir)/.local-version,$(if $(wildcard $(srcdir)/.dist-version),$(srcdir)/.dist-version,$(srcdir)/.default-version))
 
 #
 # Override autotool's default notion of the package version variables.
@@ -119,7 +118,11 @@ endif
 # package was bootstrapped.
 #
 
-WEAVE_VERSION                     ?= $(shell cat $(VERSION_FILE) 2> /dev/null)
+ifeq ($(MAKELEVEL),0)
+export WEAVE_VERSION                     ?= $(shell cat $(VERSION_FILE) 2> /dev/null)
+else
+export WEAVE_VERSION                     := $(WEAVE_VERSION)
+endif
 
 PACKAGE_VERSION                    = $(WEAVE_VERSION)
 VERSION                            = $(PACKAGE_VERSION)
