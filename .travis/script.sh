@@ -32,7 +32,7 @@ die()
 case "${BUILD_TARGET}" in
 
     linux-auto-*-distcheck)
-        ./configure && make dist
+        ./configure && make distcheck
         ;;
 
     linux-auto-*-lint)
