@@ -1162,6 +1162,17 @@ include $(abs_top_nlbuild_autotools_dir)/automake/pre.am
 
 WEAVE_VERSION                     ?= $(shell cat $(VERSION_FILE) 2> /dev/null)
 
+$(warning VERSION_FILE is $(VERSION_FILE))
+$(warning VERSION is $(VERSION))
+$(warning PACKAGE_VERSION is $(PACKAGE_VERSION))
+$(warning WEAVE_VERSION is $(WEAVE_VERSION))
+$(warning LOCAL_VERSION file is $(if $(wildcard $(builddir)/.local-version),$(builddir)/.local-version))
+$(warning DIST_VERSION file is $(if $(wildcard $(srcdir)/.dist-version),$(srcdir)/.dist-version))
+$(warning DEFAULT_VERSION file is $(if $(wildcard $(srcdir)/.default-version),$(srcdir)/.default-version))
+$(warning LOCAL_VERSION is $(if $(wildcard $(builddir)/.local-version),$(shell cat $(builddir)/.local-version)))
+$(warning DIST_VERSION is $(if $(wildcard $(srcdir)/.dist-version),$(shell cat $(srcdir)/.dist-version)))
+$(warning DEFAULT_VERSION is $(if $(wildcard $(srcdir)/.default-version),$(shell cat $(srcdir)/.default-version)))
+
 #
 # check-file-.local-version
 #
