@@ -499,7 +499,7 @@ private:
 
     void HandleKeyExportRequest(ExchangeContext *ec, const IPPacketInfo *pktInfo, const WeaveMessageInfo *msgInfo, PacketBuffer *msgBuf);
     WEAVE_ERROR SendKeyExportRequest(uint8_t keyExportConfig, uint32_t keyId, bool signMessage);
-    WEAVE_ERROR SendKeyExportResponse(WeaveKeyExport& keyExport, uint8_t msgType);
+    WEAVE_ERROR SendKeyExportResponse(WeaveKeyExport& keyExport, uint8_t msgType, const WeaveMessageInfo *msgInfo);
     static void HandleKeyExportMessageInitiator(ExchangeContext *ec, const IPPacketInfo *pktInfo, const WeaveMessageInfo *msgInfo,
                                                 uint32_t profileId, uint8_t msgType, PacketBuffer *msgBuf);
     void HandleKeyExportError(WEAVE_ERROR err, PacketBuffer *statusReportMsgBuf);

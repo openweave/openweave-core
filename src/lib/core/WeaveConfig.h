@@ -1523,6 +1523,16 @@
 #endif // WEAVE_CONFIG_ENABLE_KEY_EXPORT_RESPONDER
 
 /**
+ * @def WEAVE_CONFIG_LEGACY_KEY_EXPORT_DELEGATE
+ *
+ * @brief
+ *   Enable use of the legacy WeaveKeyExportDelegate interface.
+ */
+#ifndef WEAVE_CONFIG_LEGACY_KEY_EXPORT_DELEGATE
+#define WEAVE_CONFIG_LEGACY_KEY_EXPORT_DELEGATE 1
+#endif
+
+/**
  *  @def WEAVE_CONFIG_REQUIRE_AUTH
  *
  *  @brief

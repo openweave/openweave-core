@@ -77,7 +77,7 @@ exit:
     return err;
 }
 
-class InitiatorKeyExportDelegate : public WeaveKeyExportDelegate
+class TestKeyExportDelegate : public WeaveKeyExportDelegate
 {
 private:
     enum
@@ -101,15 +101,81 @@ private:
         kCertDecodeBufferSize = 644
     };
 
+    bool mIsInitiator;
+
 public:
+    TestKeyExportDelegate(bool isInitiator)
+    : mIsInitiator(isInitiator)
+    {
+    }
+
+#if !WEAVE_CONFIG_LEGACY_KEY_EXPORT_DELEGATE
+
+    WEAVE_ERROR GetNodeCertSet(WeaveKeyExport * keyExport, WeaveCertificateSet & certSet) __OVERRIDE
+    {
+        return GetNodeCertSet(keyExport->IsInitiator(), certSet);
+    }
+
+    WEAVE_ERROR ReleaseNodeCertSet(WeaveKeyExport * keyExport, WeaveCertificateSet & certSet) __OVERRIDE
+    {
+        return ReleaseNodeCertSet(keyExport->IsInitiator(), certSet);
+    }
+
+    WEAVE_ERROR GenerateNodeSignature(WeaveKeyExport * keyExport, const uint8_t * msgHash, uint8_t msgHashLen,
+        TLVWriter & writer) __OVERRIDE
+    {
+        WEAVE_ERROR err;
+        const uint8_t * privKey = NULL;
+        uint16_t privKeyLen;
+
+        err = GetNodePrivateKey(keyExport->IsInitiator(), privKey, privKeyLen);
+        SuccessOrExit(err);
+
+        err = GenerateAndEncodeWeaveECDSASignature(writer, TLV::ContextTag(kTag_WeaveSignature_ECDSASignatureData), msgHash, msgHashLen, privKey, privKeyLen);
+        SuccessOrExit(err);
+
+    exit:
+        if (privKey != NULL)
+        {
+            WEAVE_ERROR relErr = ReleaseNodePrivateKey(keyExport->IsInitiator(), privKey);
+            err = (err == WEAVE_NO_ERROR) ? relErr : err;
+        }
+        return err;
+    }
+
+    WEAVE_ERROR BeginCertValidation(WeaveKeyExport * keyExport, ValidationContext & validCtx,
+            WeaveCertificateSet & certSet) __OVERRIDE
+    {
+        return BeginCertValidation(keyExport->IsInitiator(), certSet, validCtx);
+    }
+
+    WEAVE_ERROR HandleCertValidationResult(WeaveKeyExport * keyExport, ValidationContext & validCtx,
+            WeaveCertificateSet & certSet, uint32_t requestedKeyId) __OVERRIDE
+    {
+        return HandleCertValidationResult(keyExport->IsInitiator(), certSet, validCtx, NULL, keyExport->MessageInfo(), requestedKeyId);
+    }
+
+    WEAVE_ERROR EndCertValidation(WeaveKeyExport * keyExport, ValidationContext & validCtx,
+            WeaveCertificateSet & certSet) __OVERRIDE
+    {
+        return EndCertValidation(keyExport->IsInitiator(), certSet, validCtx);
+    }
+
+    WEAVE_ERROR ValidateUnsignedKeyExportMessage(WeaveKeyExport * keyExport, uint32_t requestedKeyId) __OVERRIDE
+    {
+        return ValidateUnsignedKeyExportMessage(keyExport->IsInitiator(), NULL, keyExport->MessageInfo(), requestedKeyId);
+    }
+
+#endif // !WEAVE_CONFIG_LEGACY_KEY_EXPORT_DELEGATE
+
     // Get the key export certificate set for the local node.
-    virtual WEAVE_ERROR GetNodeCertSet(bool isInitiator, WeaveCertificateSet& certSet)
+    WEAVE_ERROR GetNodeCertSet(bool isInitiator, WeaveCertificateSet& certSet)
     {
         WEAVE_ERROR err;
         WeaveCertificateData *cert;
         bool certSetInitialized = false;
 
-        VerifyOrExit(isInitiator, err = WEAVE_ERROR_INVALID_ARGUMENT);
+        VerifyOrExit(isInitiator == mIsInitiator, err = WEAVE_ERROR_INVALID_ARGUMENT);
 
         // Initialize certificate set.
         err = certSet.Init(kMaxCerts, kCertDecodeBufferSize, nl::Weave::Platform::Security::MemoryAlloc, nl::Weave::Platform::Security::MemoryFree);
@@ -127,8 +193,16 @@ public:
         SuccessOrExit(err);
 
         // Load the signing cert.
-        err = certSet.LoadCert(TestDevice1_Cert, TestDevice1_CertLength, 0, cert);
-        SuccessOrExit(err);
+        if (isInitiator)
+        {
+            err = certSet.LoadCert(TestDevice1_Cert, TestDevice1_CertLength, 0, cert);
+            SuccessOrExit(err);
+        }
+        else
+        {
+            err = certSet.LoadCert(TestDevice2_Cert, TestDevice2_CertLength, 0, cert);
+            SuccessOrExit(err);
+        }
 
     exit:
         if (err != WEAVE_NO_ERROR && certSetInitialized)
@@ -138,11 +212,11 @@ public:
     }
 
     // Called when the key export engine is done with the certificate set returned by GetNodeCertSet().
-    virtual WEAVE_ERROR ReleaseNodeCertSet(bool isInitiator, WeaveCertificateSet& certSet)
+    WEAVE_ERROR ReleaseNodeCertSet(bool isInitiator, WeaveCertificateSet& certSet)
     {
         WEAVE_ERROR err = WEAVE_NO_ERROR;
 
-        VerifyOrExit(isInitiator, err = WEAVE_ERROR_INVALID_ARGUMENT);
+        VerifyOrExit(isInitiator == mIsInitiator, err = WEAVE_ERROR_INVALID_ARGUMENT);
 
         certSet.Release();
 
@@ -151,28 +225,36 @@ public:
     }
 
     // Get the local node's private key.
-    virtual WEAVE_ERROR GetNodePrivateKey(bool isInitiator, const uint8_t *& weavePrivKey, uint16_t& weavePrivKeyLen)
+    WEAVE_ERROR GetNodePrivateKey(bool isInitiator, const uint8_t *& weavePrivKey, uint16_t& weavePrivKeyLen)
     {
         WEAVE_ERROR err = WEAVE_NO_ERROR;
 
-        VerifyOrExit(isInitiator, err = WEAVE_ERROR_INVALID_ARGUMENT);
+        VerifyOrExit(isInitiator == mIsInitiator, err = WEAVE_ERROR_INVALID_ARGUMENT);
 
         weavePrivKey = (uint8_t *)nl::Weave::Platform::Security::MemoryAlloc(kMaxDevicePrivateKeySize);
         VerifyOrExit(weavePrivKey != NULL, err = WEAVE_ERROR_NO_MEMORY);
 
-        memcpy((uint8_t *)weavePrivKey, TestDevice1_PrivateKey, TestDevice1_PrivateKeyLength);
-        weavePrivKeyLen = TestDevice1_PrivateKeyLength;
+        if (isInitiator)
+        {
+            memcpy((uint8_t *)weavePrivKey, TestDevice1_PrivateKey, TestDevice1_PrivateKeyLength);
+            weavePrivKeyLen = TestDevice1_PrivateKeyLength;
+        }
+        else
+        {
+            memcpy((uint8_t *)weavePrivKey, TestDevice2_PrivateKey, TestDevice2_PrivateKeyLength);
+            weavePrivKeyLen = TestDevice1_PrivateKeyLength;
+        }
 
     exit:
         return err;
     }
 
     // Called when the key export engine is done with the buffer returned by GetNodePrivateKey().
-    virtual WEAVE_ERROR ReleaseNodePrivateKey(bool isInitiator, const uint8_t *& weavePrivKey)
+    WEAVE_ERROR ReleaseNodePrivateKey(bool isInitiator, const uint8_t *& weavePrivKey)
     {
         WEAVE_ERROR err = WEAVE_NO_ERROR;
 
-        VerifyOrExit(isInitiator, err = WEAVE_ERROR_INVALID_ARGUMENT);
+        VerifyOrExit(isInitiator == mIsInitiator, err = WEAVE_ERROR_INVALID_ARGUMENT);
 
         if (weavePrivKey != NULL)
         {
@@ -186,13 +268,13 @@ public:
 
     // Prepare the supplied certificate set and validation context for use in validating the certificate of a peer.
     // This method is responsible for loading the trust anchors into the certificate set.
-    virtual WEAVE_ERROR BeginCertValidation(bool isInitiator, WeaveCertificateSet& certSet, ValidationContext& validContext)
+    WEAVE_ERROR BeginCertValidation(bool isInitiator, WeaveCertificateSet& certSet, ValidationContext& validContext)
     {
         WEAVE_ERROR err;
         WeaveCertificateData *cert;
         bool certSetInitialized = false;
 
-        VerifyOrExit(isInitiator, err = WEAVE_ERROR_INVALID_ARGUMENT);
+        VerifyOrExit(isInitiator == mIsInitiator, err = WEAVE_ERROR_INVALID_ARGUMENT);
 
         // Initialize certificate set.
         err = certSet.Init(kMaxCerts, kCertDecodeBufferSize, nl::Weave::Platform::Security::MemoryAlloc, nl::Weave::Platform::Security::MemoryFree);
@@ -217,30 +299,46 @@ public:
 
     // Called with the results of validating the peer's certificate.
     // Requestor verifies that response came from expected node.
-    virtual WEAVE_ERROR HandleCertValidationResult(bool isInitiator, WeaveCertificateSet& certSet, ValidationContext& validContext,
+    WEAVE_ERROR HandleCertValidationResult(bool isInitiator, WeaveCertificateSet& certSet, ValidationContext& validContext,
                                                    const IPPacketInfo *pktInfo, const WeaveMessageInfo *msgInfo, uint32_t requestedKeyId)
     {
         WEAVE_ERROR err;
 
-        VerifyOrExit(isInitiator, err = WEAVE_ERROR_INVALID_ARGUMENT);
+        VerifyOrExit(isInitiator == mIsInitiator, err = WEAVE_ERROR_INVALID_ARGUMENT);
 
-        // Client root key export response message should be signed by the Weave device certificate.
-        if (requestedKeyId == WeaveKeyId::kClientRootKey &&
-            validContext.SigningCert->SubjectDN.AttrOID == ASN1::kOID_AttributeType_WeaveDeviceId)
-            err = WEAVE_NO_ERROR;
+        if (isInitiator)
+        {
+            // Client root key export response message should be signed by the Weave device certificate.
+            if (requestedKeyId == WeaveKeyId::kClientRootKey &&
+                validContext.SigningCert->SubjectDN.AttrOID == ASN1::kOID_AttributeType_WeaveDeviceId)
+                err = WEAVE_NO_ERROR;
+            else
+                err = WEAVE_ERROR_UNAUTHORIZED_KEY_EXPORT_RESPONSE;
+        }
         else
-            err = WEAVE_ERROR_UNAUTHORIZED_KEY_EXPORT_RESPONSE;
+        {
+            // IN THIS TEST ONLY:
+            //   - Client root key can be exported by any Weave node if the request message was signed
+            //     and the trust anchor is Nest root certificate.
+            // IN THE REAL IMPLEMENTATION:
+            //   - Client root key can be exported only by mobiles, i.e. the trust anchor should be an access
+            //     token certificate.
+            if (requestedKeyId == WeaveKeyId::kClientRootKey && validContext.TrustAnchor == &certSet.Certs[0])
+                err = WEAVE_NO_ERROR;
+            else
+                err = WEAVE_ERROR_UNAUTHORIZED_KEY_EXPORT_REQUEST;
+        }
 
     exit:
         return err;
     }
 
     // Called when peer certificate validation is complete.
-    virtual WEAVE_ERROR EndCertValidation(bool isInitiator, WeaveCertificateSet& certSet, ValidationContext& validContext)
+    WEAVE_ERROR EndCertValidation(bool isInitiator, WeaveCertificateSet& certSet, ValidationContext& validContext)
     {
         WEAVE_ERROR err = WEAVE_NO_ERROR;
 
-        VerifyOrExit(isInitiator, err = WEAVE_ERROR_INVALID_ARGUMENT);
+        VerifyOrExit(isInitiator == mIsInitiator, err = WEAVE_ERROR_INVALID_ARGUMENT);
 
         certSet.Release();
 
@@ -249,11 +347,11 @@ public:
     }
 
     // Called by requestor and responder to verify that received message was appropriately secured when the message isn't signed.
-    virtual WEAVE_ERROR ValidateUnsignedKeyExportMessage(bool isInitiator, const IPPacketInfo *pktInfo, const WeaveMessageInfo *msgInfo, uint32_t requestedKeyId)
+    WEAVE_ERROR ValidateUnsignedKeyExportMessage(bool isInitiator, const IPPacketInfo *pktInfo, const WeaveMessageInfo *msgInfo, uint32_t requestedKeyId)
     {
         WEAVE_ERROR err;
 
-        VerifyOrExit(isInitiator, err = WEAVE_ERROR_INVALID_ARGUMENT);
+        VerifyOrExit(isInitiator == mIsInitiator, err = WEAVE_ERROR_INVALID_ARGUMENT);
 
         // IN THIS TEST ONLY:
         //   - Fabric secret can be exported by any Weave node if the request/response messages are encrypted
@@ -273,212 +371,6 @@ public:
             err = WEAVE_NO_ERROR;
         else
             err = WEAVE_ERROR_UNAUTHORIZED_KEY_EXPORT_RESPONSE;
-
-    exit:
-        return err;
-    }
-};
-
-class ResponderKeyExportDelegate : public WeaveKeyExportDelegate
-{
-private:
-    enum
-    {
-        // Max Device Private Key Size -- Size of the temporary buffer used to hold
-        // a device's TLV encoded private key.
-        kMaxDevicePrivateKeySize = 300,
-
-        // Max Validation Certs -- This controls the maximum number of certificates
-        // that can be involved in the validation of an image signature. It must
-        // include room for the signing cert, the trust anchors and any intermediate
-        // certs included in the signature object.
-        kMaxCerts = 4,
-
-        // Certificate Decode Buffer Size -- Size of the temporary buffer used to decode
-        // certs. The buffer must be big enough to hold the ASN1 DER encoding of the
-        // TBSCertificate portion of the largest cert involved in signature verification.
-        // Note that all certificates included in the signature are decoded using this
-        // buffer, even if they are ultimately not involved in verifying the image
-        // signature.
-        kCertDecodeBufferSize = 644
-    };
-
-public:
-    // Get the key export certificate set for the local node.
-    virtual WEAVE_ERROR GetNodeCertSet(bool isInitiator, WeaveCertificateSet& certSet)
-    {
-        WEAVE_ERROR err;
-        WeaveCertificateData *cert;
-        bool certSetInitialized = false;
-
-        VerifyOrExit(!isInitiator, err = WEAVE_ERROR_INVALID_ARGUMENT);
-
-        // Initialize certificate set.
-        err = certSet.Init(kMaxCerts, kCertDecodeBufferSize, nl::Weave::Platform::Security::MemoryAlloc, nl::Weave::Platform::Security::MemoryFree);
-        SuccessOrExit(err);
-        certSetInitialized = true;
-
-        // Load Nest development root cert and mark it trusted.
-        err = certSet.LoadCert(nl::NestCerts::Development::Root::Cert, nl::NestCerts::Development::Root::CertLength, 0, cert);
-        SuccessOrExit(err);
-
-        cert->CertFlags |= kCertFlag_IsTrusted;
-
-        // Load the intermediate (DeviceCA) cert.
-        err = certSet.LoadCert(nl::NestCerts::Development::DeviceCA::Cert, nl::NestCerts::Development::DeviceCA::CertLength, 0, cert);
-        SuccessOrExit(err);
-
-        // Load the signing cert.
-        err = certSet.LoadCert(TestDevice2_Cert, TestDevice2_CertLength, 0, cert);
-        SuccessOrExit(err);
-
-    exit:
-        if (err != WEAVE_NO_ERROR && certSetInitialized)
-            certSet.Release();
-
-        return err;
-    }
-
-    // Called when the key export engine is done with the certificate set returned by GetNodeCertSet().
-    virtual WEAVE_ERROR ReleaseNodeCertSet(bool isInitiator, WeaveCertificateSet& certSet)
-    {
-        WEAVE_ERROR err = WEAVE_NO_ERROR;
-
-        VerifyOrExit(!isInitiator, err = WEAVE_ERROR_INVALID_ARGUMENT);
-
-        certSet.Release();
-
-    exit:
-        return err;
-    }
-
-    // Get the local node's private key.
-    virtual WEAVE_ERROR GetNodePrivateKey(bool isInitiator, const uint8_t *& weavePrivKey, uint16_t& weavePrivKeyLen)
-    {
-        WEAVE_ERROR err = WEAVE_NO_ERROR;
-
-        VerifyOrExit(!isInitiator, err = WEAVE_ERROR_INVALID_ARGUMENT);
-
-        weavePrivKey = (uint8_t *)nl::Weave::Platform::Security::MemoryAlloc(kMaxDevicePrivateKeySize);
-        VerifyOrExit(weavePrivKey != NULL, err = WEAVE_ERROR_NO_MEMORY);
-
-        memcpy((uint8_t *)weavePrivKey, TestDevice2_PrivateKey, TestDevice2_PrivateKeyLength);
-        weavePrivKeyLen = TestDevice2_PrivateKeyLength;
-
-    exit:
-        return err;
-    }
-
-    // Called when the key export engine is done with the buffer returned by GetNodePrivateKey().
-    virtual WEAVE_ERROR ReleaseNodePrivateKey(bool isInitiator, const uint8_t *& weavePrivKey)
-    {
-        WEAVE_ERROR err = WEAVE_NO_ERROR;
-
-        VerifyOrExit(!isInitiator, err = WEAVE_ERROR_INVALID_ARGUMENT);
-
-        if (weavePrivKey != NULL)
-        {
-            nl::Weave::Platform::Security::MemoryFree((void *)weavePrivKey);
-            weavePrivKey = NULL;
-        }
-
-    exit:
-        return err;
-    }
-
-    // Prepare the supplied certificate set and validation context for use in validating the certificate of a peer.
-    // This method is responsible for loading the trust anchors into the certificate set.
-    virtual WEAVE_ERROR BeginCertValidation(bool isInitiator, WeaveCertificateSet& certSet, ValidationContext& validContext)
-    {
-        WEAVE_ERROR err;
-        WeaveCertificateData *cert;
-        bool certSetInitialized = false;
-
-        VerifyOrExit(!isInitiator, err = WEAVE_ERROR_INVALID_ARGUMENT);
-
-        // Initialize certificate set.
-        err = certSet.Init(kMaxCerts, kCertDecodeBufferSize, nl::Weave::Platform::Security::MemoryAlloc, nl::Weave::Platform::Security::MemoryFree);
-        SuccessOrExit(err);
-        certSetInitialized = true;
-
-        // Load Nest development root cert and mark it trusted.
-        err = certSet.LoadCert(nl::NestCerts::Development::Root::Cert, nl::NestCerts::Development::Root::CertLength, 0, cert);
-        SuccessOrExit(err);
-
-        cert->CertFlags |= kCertFlag_IsTrusted;
-
-        // Initialize the validation context.
-        InitValidationContext(validContext);
-
-    exit:
-        if (err != WEAVE_NO_ERROR && certSetInitialized)
-            certSet.Release();
-
-        return err;
-    }
-
-    // Called with the results of validating the peer's certificate.
-    // Responder verifies that requestor is authorized to export the specified key.
-    virtual WEAVE_ERROR HandleCertValidationResult(bool isInitiator, WeaveCertificateSet& certSet, ValidationContext& validContext,
-                                                   const IPPacketInfo *pktInfo, const WeaveMessageInfo *msgInfo, uint32_t requestedKeyId)
-    {
-        WEAVE_ERROR err;
-
-        VerifyOrExit(!isInitiator, err = WEAVE_ERROR_INVALID_ARGUMENT);
-
-        // IN THIS TEST ONLY:
-        //   - Client root key can be exported by any Weave node if the request message was signed
-        //     and the trust anchor is Nest root certificate.
-        // IN THE REAL IMPLEMENTATION:
-        //   - Client root key can be exported only by mobiles, i.e. the trust anchor should be an access
-        //     token certificate.
-        if (requestedKeyId == WeaveKeyId::kClientRootKey && validContext.TrustAnchor == &certSet.Certs[0])
-            err = WEAVE_NO_ERROR;
-        else
-            err = WEAVE_ERROR_UNAUTHORIZED_KEY_EXPORT_REQUEST;
-
-    exit:
-        return err;
-    }
-
-    // Called when peer certificate validation is complete.
-    virtual WEAVE_ERROR EndCertValidation(bool isInitiator, WeaveCertificateSet& certSet, ValidationContext& validContext)
-    {
-        WEAVE_ERROR err = WEAVE_NO_ERROR;
-
-        VerifyOrExit(!isInitiator, err = WEAVE_ERROR_INVALID_ARGUMENT);
-
-        certSet.Release();
-
-    exit:
-        return err;
-    }
-
-    // Called by requestor and responder to verify that received message was appropriately secured when the message isn't signed.
-    virtual WEAVE_ERROR ValidateUnsignedKeyExportMessage(bool isInitiator, const IPPacketInfo *pktInfo, const WeaveMessageInfo *msgInfo, uint32_t requestedKeyId)
-    {
-        WEAVE_ERROR err;
-
-        VerifyOrExit(!isInitiator, err = WEAVE_ERROR_INVALID_ARGUMENT);
-
-        // IN THIS TEST ONLY:
-        //   - Fabric secret can be exported by any Weave node if the request/response messages are encrypted
-        //     with session key, which was created during PASE handshake.
-        //   - Intermediate application key can be exported by the service end point.
-        // IN THE REAL IMPLEMENTATION:
-        //   - Currently there is no use case where fabric secret or any other key can be exported if the
-        //     request/response messages are unsigned. This function should always return
-        //     WEAVE_ERROR_UNAUTHORIZED_KEY_EXPORT_REQUEST error.
-        if (requestedKeyId == WeaveKeyId::kFabricSecret &&
-            WeaveKeyId::IsSessionKey(msgInfo->KeyId) &&
-            msgInfo->PeerAuthMode == kWeaveAuthMode_PASE_PairingCode)
-            err = WEAVE_NO_ERROR;
-        else if (WeaveKeyId::GetType(requestedKeyId) == WeaveKeyId::kType_AppIntermediateKey &&
-                 WeaveKeyId::IsSessionKey(msgInfo->KeyId) &&
-                 msgInfo->PeerAuthMode == kWeaveAuthMode_CASE_ServiceEndPoint)
-            err = WEAVE_NO_ERROR;
-        else
-            err = WEAVE_ERROR_UNAUTHORIZED_KEY_EXPORT_REQUEST;
 
     exit:
         return err;
@@ -577,8 +469,8 @@ static void KeyExportProtocol_Test(nlTestSuite *inSuite, void *inContext)
     WeaveKeyExport initiatorEng;
     WeaveKeyExport responderEng;
     PacketBuffer *msgBuf = NULL;
-    InitiatorKeyExportDelegate initiatorDelegate;
-    ResponderKeyExportDelegate responderDelegate;
+    TestKeyExportDelegate initiatorDelegate(true);
+    TestKeyExportDelegate responderDelegate(false);
     TestGroupKeyStore keyStore;
     uint32_t exportedKeyId;
     uint16_t exportedKeyLen;
@@ -599,8 +491,10 @@ static void KeyExportProtocol_Test(nlTestSuite *inSuite, void *inContext)
         uint8_t expectedKeyLen = *theContext->expectedKeyLen;
 
         msgInfo.Clear();
+        pktInfo.Clear();
         msgInfo.KeyId = *theContext->msgKeyId;
         msgInfo.PeerAuthMode = theContext->msgKeyAuthMode;
+        msgInfo.InPacketInfo = &pktInfo;
 
         sCurrentUTCTime = sEpochKey2_StartTime + 1;
 
@@ -669,7 +563,7 @@ static void KeyExportProtocol_Test(nlTestSuite *inSuite, void *inContext)
             else
                 responderEng.SetAllowedConfigs(KeyExport::kKeyExportSupportedConfig_All);
 
-            err = responderEng.ProcessKeyExportRequest(msgBuf->Start(), msgBuf->DataLength(), &pktInfo, &msgInfo);
+            err = responderEng.ProcessKeyExportRequest(msgBuf->Start(), msgBuf->DataLength(), &msgInfo);
             if (theContext->responseErrorType == kKeyExportResponseError_Reconfigure)
                 NL_TEST_ASSERT(inSuite, err == WEAVE_ERROR_KEY_EXPORT_RECONFIGURE_REQUIRED);
             else if (theContext->responseErrorType == kKeyExportResponseError_NoCommonConfig)
@@ -722,7 +616,7 @@ static void KeyExportProtocol_Test(nlTestSuite *inSuite, void *inContext)
 
                 responderEng.SetAllowedConfigs(KeyExport::kKeyExportSupportedConfig_All & ~proposedConfig);
 
-                err = responderEng.ProcessKeyExportRequest(msgBuf->Start(), msgBuf->DataLength(), &pktInfo, &msgInfo);
+                err = responderEng.ProcessKeyExportRequest(msgBuf->Start(), msgBuf->DataLength(), &msgInfo);
                 NL_TEST_ASSERT(inSuite, err == WEAVE_NO_ERROR);
 
                 PacketBuffer::Free(msgBuf);
@@ -736,7 +630,7 @@ static void KeyExportProtocol_Test(nlTestSuite *inSuite, void *inContext)
             msgBuf = PacketBuffer::New();
             NL_TEST_ASSERT(inSuite, msgBuf != NULL);
 
-            err = responderEng.GenerateKeyExportResponse(msgBuf->Start(), msgBuf->AvailableDataLength(), dataLen);
+            err = responderEng.GenerateKeyExportResponse(msgBuf->Start(), msgBuf->AvailableDataLength(), dataLen, NULL);
             NL_TEST_ASSERT(inSuite, err == WEAVE_NO_ERROR);
 
             msgBuf->SetDataLength(dataLen);
@@ -748,7 +642,7 @@ static void KeyExportProtocol_Test(nlTestSuite *inSuite, void *inContext)
 #endif
 
         {
-            err = initiatorEng.ProcessKeyExportResponse(msgBuf->Start(), msgBuf->DataLength(), &pktInfo, &msgInfo,
+            err = initiatorEng.ProcessKeyExportResponse(msgBuf->Start(), msgBuf->DataLength(), &msgInfo,
                                                         exportedKey, sizeof(exportedKey), exportedKeyLen, exportedKeyId);
             NL_TEST_ASSERT(inSuite, err == WEAVE_NO_ERROR);
 

@@ -289,11 +289,12 @@ void WeaveSignatureTest_SignTest()
 
     LoadAllCerts(certSet);
 
-    err = GenerateWeaveSignature(sTestMsgHash_SHA1, sizeof(sTestMsgHash_SHA1),
-                                 *certSet.LastCert(), certSet,
-                                 sTestSigningCertKey, sizeof(sTestSigningCertKey),
-                                 sigBuf, sizeof(sigBuf), sigLen);
-    VerifyOrFail(err == WEAVE_NO_ERROR, "GenerateWeaveSignature() failed: %s\n", nl::ErrorStr(err));
+    {
+        WeaveSignatureGenerator sigGen(certSet, sTestSigningCertKey, sizeof(sTestSigningCertKey));
+        sigGen.SigAlgoOID = kOID_SigAlgo_ECDSAWithSHA1;
+        err = sigGen.GenerateSignature(sTestMsgHash_SHA1, sizeof(sTestMsgHash_SHA1), sigBuf, sizeof(sigBuf), sigLen);
+        VerifyOrFail(err == WEAVE_NO_ERROR, "WeaveSignatureGenerator.GenerateSignature() failed: %s\n", nl::ErrorStr(err));
+    }
 
     // DumpMemory(sigBuf, sigLen, "  ", 16);
 
@@ -333,12 +334,13 @@ void WeaveSignatureTest_SignTest_CertRef()
     // Load just the signing certificate.
     LoadSigningCert(certSet);
 
-    err = GenerateWeaveSignature(sTestMsgHash_SHA1, sizeof(sTestMsgHash_SHA1),
-                                 *certSet.LastCert(), certSet,
-                                 sTestSigningCertKey, sizeof(sTestSigningCertKey),
-                                 kOID_SigAlgo_ECDSAWithSHA1, kGenerateWeaveSignatureFlag_IncludeSigningCertKeyId,
-                                 sigBuf, sizeof(sigBuf), sigLen);
-    VerifyOrFail(err == WEAVE_NO_ERROR, "GenerateWeaveSignature() failed: %s\n", nl::ErrorStr(err));
+    {
+        WeaveSignatureGenerator sigGen(certSet, sTestSigningCertKey, sizeof(sTestSigningCertKey));
+        sigGen.SigAlgoOID = kOID_SigAlgo_ECDSAWithSHA1;
+        sigGen.Flags = kGenerateWeaveSignatureFlag_IncludeSigningCertKeyId;
+        err = sigGen.GenerateSignature(sTestMsgHash_SHA1, sizeof(sTestMsgHash_SHA1), sigBuf, sizeof(sigBuf), sigLen);
+        VerifyOrFail(err == WEAVE_NO_ERROR, "WeaveSignatureGenerator.GenerateSignature() failed: %s\n", nl::ErrorStr(err));
+    }
 
     // DumpMemory(sigBuf, sigLen, "  ", 16);
 
@@ -378,12 +380,13 @@ void WeaveSignatureTest_SignTest_ECDSAWithSHA256()
     // Load just the signing certificate.
     LoadSigningCert(certSet);
 
-    err = GenerateWeaveSignature(sTestMsgHash_SHA256, sizeof(sTestMsgHash_SHA256),
-                                 *certSet.LastCert(), certSet,
-                                 sTestSigningCertKey, sizeof(sTestSigningCertKey),
-                                 kOID_SigAlgo_ECDSAWithSHA256, kGenerateWeaveSignatureFlag_IncludeSigningCertKeyId,
-                                 sigBuf, sizeof(sigBuf), sigLen);
-    VerifyOrFail(err == WEAVE_NO_ERROR, "GenerateWeaveSignature() failed: %s\n", nl::ErrorStr(err));
+    {
+        WeaveSignatureGenerator sigGen(certSet, sTestSigningCertKey, sizeof(sTestSigningCertKey));
+        sigGen.SigAlgoOID = kOID_SigAlgo_ECDSAWithSHA256;
+        sigGen.Flags = kGenerateWeaveSignatureFlag_IncludeSigningCertKeyId;
+        err = sigGen.GenerateSignature(sTestMsgHash_SHA256, sizeof(sTestMsgHash_SHA256), sigBuf, sizeof(sigBuf), sigLen);
+        VerifyOrFail(err == WEAVE_NO_ERROR, "WeaveSignatureGenerator.GenerateSignature() failed: %s\n", nl::ErrorStr(err));
+    }
 
     // DumpMemory(sigBuf, sigLen, "  ", 16);
 
@@ -680,13 +683,13 @@ void WeaveSignatureTest_InsertRelatedCertsTest_SingleCert()
     // Load just the signing certificate.
     LoadSigningCert(certSet);
 
-    // Generate a signature without a RelatedCertificates field.
-    err = GenerateWeaveSignature(sTestMsgHash_SHA1, sizeof(sTestMsgHash_SHA1),
-                                 *certSet.LastCert(), certSet,
-                                 sTestSigningCertKey, sizeof(sTestSigningCertKey),
-                                 kOID_SigAlgo_ECDSAWithSHA1, kGenerateWeaveSignatureFlag_IncludeSigningCertKeyId,
-                                 sigBuf, sizeof(sigBuf), sigLen);
-    VerifyOrFail(err == WEAVE_NO_ERROR, "GenerateWeaveSignature() failed: %s\n", nl::ErrorStr(err));
+    {
+        WeaveSignatureGenerator sigGen(certSet, sTestSigningCertKey, sizeof(sTestSigningCertKey));
+        sigGen.SigAlgoOID = kOID_SigAlgo_ECDSAWithSHA1;
+        sigGen.Flags = kGenerateWeaveSignatureFlag_IncludeSigningCertKeyId;
+        err = sigGen.GenerateSignature(sTestMsgHash_SHA1, sizeof(sTestMsgHash_SHA1), sigBuf, sizeof(sigBuf), sigLen);
+        VerifyOrFail(err == WEAVE_NO_ERROR, "WeaveSignatureGenerator.GenerateSignature() failed: %s\n", nl::ErrorStr(err));
+    }
 
     // DumpMemory(sigBuf, sigLen, "  ", 16);
 
@@ -735,13 +738,13 @@ void WeaveSignatureTest_InsertRelatedCertsTest_MultipleCerts()
     // Load just the signing certificate.
     LoadSigningCert(certSet);
 
-    // Generate a signature without a RelatedCertificates field.
-    err = GenerateWeaveSignature(sTestMsgHash_SHA1, sizeof(sTestMsgHash_SHA1),
-                                 *certSet.LastCert(), certSet,
-                                 sTestSigningCertKey, sizeof(sTestSigningCertKey),
-                                 kOID_SigAlgo_ECDSAWithSHA1, kGenerateWeaveSignatureFlag_IncludeSigningCertKeyId,
-                                 sigBuf, sizeof(sigBuf), sigLen);
-    VerifyOrFail(err == WEAVE_NO_ERROR, "GenerateWeaveSignature() failed: %s\n", nl::ErrorStr(err));
+    {
+        WeaveSignatureGenerator sigGen(certSet, sTestSigningCertKey, sizeof(sTestSigningCertKey));
+        sigGen.SigAlgoOID = kOID_SigAlgo_ECDSAWithSHA1;
+        sigGen.Flags = kGenerateWeaveSignatureFlag_IncludeSigningCertKeyId;
+        err = sigGen.GenerateSignature(sTestMsgHash_SHA1, sizeof(sTestMsgHash_SHA1), sigBuf, sizeof(sigBuf), sigLen);
+        VerifyOrFail(err == WEAVE_NO_ERROR, "WeaveSignatureGenerator.GenerateSignature() failed: %s\n", nl::ErrorStr(err));
+    }
 
     // DumpMemory(sigBuf, sigLen, "  ", 16);
 

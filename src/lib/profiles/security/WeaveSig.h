@@ -43,22 +43,80 @@ enum {
     kGenerateWeaveSignatureFlag_IncludeRelatedCertificates                = 0x0004,
 };
 
-extern WEAVE_ERROR GenerateWeaveSignature(const uint8_t *msgHash, uint8_t msgHashLen,
-                                          WeaveCertificateData& signingCert, WeaveCertificateSet& certSet,
-                                          const uint8_t *weavePrivKey, uint16_t weavePrivKeyLen,
-                                          OID sigAlgoOID, uint16_t flags,
-                                          uint8_t *sigBuf, uint16_t sigBufLen, uint16_t& sigLen);
 
-extern WEAVE_ERROR GenerateWeaveSignature(const uint8_t *msgHash, uint8_t msgHashLen,
-                                          WeaveCertificateData& signingCert, WeaveCertificateSet& certSet,
-                                          const uint8_t *weavePrivKey, uint16_t weavePrivKeyLen,
-                                          OID sigAlgoOID, uint16_t flags,
-                                          TLVWriter& writer);
+/**
+ * Provides generic functionality for generating WeaveSignatures.
+ *
+ * This is an abstract base class that can be used encode WeaveSignature TLV structures.
+ * This class provides the common functionality for encoding such signatures but delegates
+ * to the subclass to compute and encode the signature data field.
+ */
+class WeaveSignatureGeneratorBase
+{
+public:
+    enum
+    {
+        kFlag_None                                          = 0,
+        kFlag_IncludeSigningCertSubjectDN                   = 0x0001,
+        kFlag_IncludeSigningCertKeyId                       = 0x0002,
+        kFlag_IncludeRelatedCertificates                    = 0x0004,
+    };
 
-extern WEAVE_ERROR GenerateWeaveSignature(const uint8_t *msgHash, uint8_t msgHashLen,
-                                          WeaveCertificateData& signingCert, WeaveCertificateSet& certSet,
-                                          const uint8_t *weavePrivKey, uint16_t weavePrivKeyLen,
-                                          uint8_t *sigBuf, uint16_t sigBufLen, uint16_t& sigLen);
+    WeaveCertificateSet & CertSet;
+    WeaveCertificateData * SigningCert;
+    OID SigAlgoOID;
+    uint16_t Flags;
+
+    WEAVE_ERROR GenerateSignature(const uint8_t * msgHash, uint8_t msgHashLen, TLVWriter & writer);
+    WEAVE_ERROR GenerateSignature(const uint8_t * msgHash, uint8_t msgHashLen, uint8_t * sigBuf, uint16_t sigBufSize, uint16_t & sigLen);
+    virtual WEAVE_ERROR GenerateSignature(const uint8_t * msgHash, uint8_t msgHashLen, TLVWriter & writer, uint64_t tag);
+
+protected:
+    WeaveSignatureGeneratorBase(WeaveCertificateSet & certSet);
+
+    virtual WEAVE_ERROR GenerateSignatureData(const uint8_t * msgHash, uint8_t msgHashLen, TLVWriter & writer) = 0;
+};
+
+/**
+ * Generates a WeaveSignature using an in-memory private key.
+ *
+ * This is class can be used encode a WeaveSignature TLV structure where the signature data field is computed
+ * using a supplied private key.
+ */
+class WeaveSignatureGenerator : public WeaveSignatureGeneratorBase
+{
+public:
+    const uint8_t * PrivKey;
+    uint16_t PrivKeyLen;
+
+    WeaveSignatureGenerator(WeaveCertificateSet & certSet, const uint8_t * privKey, uint16_t privKeyLen);
+
+    WEAVE_ERROR GenerateSignature(const uint8_t * msgHash, uint8_t msgHashLen, TLVWriter & writer, uint64_t tag) __OVERRIDE;
+
+#if __cplusplus >= 201103L
+    using WeaveSignatureGeneratorBase::GenerateSignature;
+#else
+    WeaveSignatureGeneratorBase::GenerateSignature;
+#endif
+
+private:
+    virtual WEAVE_ERROR GenerateSignatureData(const uint8_t * msgHash, uint8_t msgHashLen, TLVWriter & writer) __OVERRIDE;
+};
+
+
+inline WeaveSignatureGeneratorBase::WeaveSignatureGeneratorBase(WeaveCertificateSet & certSet)
+: CertSet(certSet)
+{
+    SigningCert = certSet.LastCert();
+    SigAlgoOID = nl::Weave::ASN1::kOID_SigAlgo_ECDSAWithSHA256;
+    Flags = kFlag_IncludeRelatedCertificates;
+}
+
+inline WeaveSignatureGenerator::WeaveSignatureGenerator(WeaveCertificateSet & certSet, const uint8_t * privKey, uint16_t privKeyLen)
+: WeaveSignatureGeneratorBase(certSet), PrivKey(privKey), PrivKeyLen(privKeyLen)
+{
+}
+
 
 extern WEAVE_ERROR VerifyWeaveSignature(const uint8_t *msgHash, uint8_t msgHashLen,
                                         const uint8_t *sig, uint16_t sigLen,
