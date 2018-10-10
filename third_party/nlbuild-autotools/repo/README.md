@@ -219,9 +219,12 @@ to pull down, the location of their git server, the branch you want to
 pull, and the location in your project in which you want to place
 them.
 
-The format of 'repos.conf' precisely follows that used by git
-submodules. More information is available in 'Makefile-bootstrap' or
-with `man gitmodules` or `git help gitmodules`.
+The format of 'repos.conf' _almost_ precisely follows that used by git
+submodules with one notable addition, the 'commit' key. The 'commit'
+key allows you to specify not only what branch to checkout but, more
+precisely, what commit or tag to checkout rather than just _HEAD_ of a
+branch. More information is available in 'Makefile-bootstrap' or with
+`man gitmodules` or `git help gitmodules`.
 
 # FAQ {#FAQ}
 
