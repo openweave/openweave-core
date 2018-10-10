@@ -2,7 +2,8 @@
 # Process this file with autoconf to produce a configure script.
 
 #
-#    Copyright (c) 2014-2017 Nest Labs, Inc.
+#    Copyright (c) 2014-2018 Nest Labs, Inc.
+#    Copyright (c) 2018 Google LLC
 #    All rights reserved.
 #
 #    Licensed under the Apache License, Version 2.0 (the "License");
@@ -1289,7 +1290,6 @@ AC_DEFINE_UNQUOTED([WEAVE_DEVICE_LAYER_TARGET_ESP32],[${WEAVE_DEVICE_LAYER_TARGE
 # Only a concern when the BLE layer is enabled.
 
 CONFIG_BLE_PLATFORM_BLUEZ=0
-BLUEZ_BUILD_DIRECTORY=
 enable_woble_bluez="no"
 
 NL_WITH_OPTIONAL_INTERNAL_PACKAGE(
@@ -1328,10 +1328,36 @@ NL_WITH_OPTIONAL_INTERNAL_PACKAGE(
   ]
 )
 
-AC_SUBST(BLUEZ_BUILD_DIRECTORY)
+# Depending on whether bluez has been configured for an internal
+# location, its directory stem within this package needs to be set
+# accordingly. In addition, if the location is internal, then we need
+# to attempt to pull it down using the bootstrap makefile.
+
+if test "${nl_with_bluez}" = "internal" && test "${enable_woble_bluez}" = "yes"; then
+    maybe_bluez_dirstem="bluez/repo"
+    bluez_dirstem="third_party/${maybe_bluez_dirstem}"
+
+    AC_MSG_NOTICE([attempting to create internal ${bluez_dirstem}])
+
+    ${MAKE-make} --no-print-directory -C ${srcdir} -f Makefile-bootstrap ${bluez_dirstem}
+
+    if test $? -ne 0; then
+        AC_MSG_ERROR([failed to create ${bluez_dirstem}. Please check your network connection or the correctness of 'repos.conf'])
+    fi
+
+    echo "  BOOTSTRAP    ${bluez_dirstem}"
+
+    (cd ${srcdir}/${bluez_dirstem} && ./bootstrap)
+
+else
+    maybe_bluez_dirstem=""
+fi
+
+AC_SUBST(BLUEZ_SUBDIRS, [${maybe_bluez_dirstem}])
+AM_CONDITIONAL([WEAVE_WITH_BLUEZ_INTERNAL], [test "${nl_with_bluez}" = "internal"])
+
 AM_CONDITIONAL([CONFIG_BLE_PLATFORM_BLUEZ], [test "${enable_woble_bluez}" = "yes"])
 AC_DEFINE_UNQUOTED([CONFIG_BLE_PLATFORM_BLUEZ],[${CONFIG_BLE_PLATFORM_BLUEZ}],[Define to 1 if you want to enable WoBle over bluez.])
-AM_CONDITIONAL([WEAVE_WITH_BLUEZ_INTERNAL], [test "${nl_with_bluez}" = "internal" && test "${enable_woble_bluez}" = "yes"])
 
 if test "${enable_woble_bluez}" = "yes"; then
     PKG_CHECK_MODULES(GLIB, glib-2.0 >= 2.28, dummy=yes,
@@ -1828,7 +1854,7 @@ AC_LANG_POP([C++])
 #
 #   * curl
 #   * lwip
-#   * nlunittest
+#   * nlunit-test
 #   * openssl
 #   * nlfaultinjection
 #
@@ -2086,6 +2112,27 @@ NL_WITH_PACKAGE(
     ]
 )
 
+# Depending on whether nlio has been configured for an internal
+# location, its directory stem within this package needs to be set
+# accordingly. In addition, if the location is internal, then we need
+# to attempt to pull it down using the bootstrap makefile.
+
+if test "${nl_with_nlio}" = "internal"; then
+    maybe_nlio_dirstem="nlio/repo"
+    nlio_dirstem="third_party/${maybe_nlio_dirstem}"
+
+    AC_MSG_NOTICE([attempting to create internal ${nlio_dirstem}])
+
+    ${MAKE-make} --no-print-directory -C ${srcdir} -f Makefile-bootstrap ${nlio_dirstem}
+
+    if test $? -ne 0; then
+        AC_MSG_ERROR([failed to create ${nlio_dirstem}. Please check your network connection or the correctness of 'repos.conf'])
+    fi
+else
+    maybe_nlio_dirstem=""
+fi
+
+AC_SUBST(NLIO_SUBDIRS, [${maybe_nlio_dirstem}])
 AM_CONDITIONAL([WEAVE_WITH_NLIO_INTERNAL], [test "${nl_with_nlio}" = "internal"])
 
 #
@@ -2118,8 +2165,28 @@ NL_WITH_PACKAGE(
     ]
 )
 
-AM_CONDITIONAL([WEAVE_WITH_NLASSERT_INTERNAL], [test "${nl_with_nlassert}" = "internal"])
+# Depending on whether nlassert has been configured for an internal
+# location, its directory stem within this package needs to be set
+# accordingly. In addition, if the location is internal, then we need
+# to attempt to pull it down using the bootstrap makefile.
 
+if test "${nl_with_nlassert}" = "internal"; then
+    maybe_nlassert_dirstem="nlassert/repo"
+    nlassert_dirstem="third_party/${maybe_nlassert_dirstem}"
+
+    AC_MSG_NOTICE([attempting to create internal ${nlassert_dirstem}])
+
+    ${MAKE-make} --no-print-directory -C ${srcdir} -f Makefile-bootstrap ${nlassert_dirstem}
+
+    if test $? -ne 0; then
+        AC_MSG_ERROR([failed to create ${nlassert_dirstem}. Please check your network connection or the correctness of 'repos.conf'])
+    fi
+else
+    maybe_nlassert_dirstem=""
+fi
+
+AC_SUBST(NLASSERT_SUBDIRS, [${maybe_nlassert_dirstem}])
+AM_CONDITIONAL([WEAVE_WITH_NLASSERT_INTERNAL], [test "${nl_with_nlassert}" = "internal"])
 
 #
 # Nlfaultinjection
@@ -2153,6 +2220,27 @@ NL_WITH_OPTIONAL_INTERNAL_PACKAGE(
     ]
 )
 
+# Depending on whether nlfaultinjection has been configured for an internal
+# location, its directory stem within this package needs to be set
+# accordingly. In addition, if the location is internal, then we need
+# to attempt to pull it down using the bootstrap makefile.
+
+if test "${nl_with_nlfaultinjection}" = "internal"; then
+    maybe_nlfaultinjection_dirstem="nlfaultinjection/repo"
+    nlfaultinjection_dirstem="third_party/${maybe_nlfaultinjection_dirstem}"
+
+    AC_MSG_NOTICE([attempting to create internal ${nlfaultinjection_dirstem}])
+
+    ${MAKE-make} --no-print-directory -C ${srcdir} -f Makefile-bootstrap ${nlfaultinjection_dirstem}
+
+    if test $? -ne 0; then
+        AC_MSG_ERROR([failed to create ${nlfaultinjection_dirstem}. Please check your network connection or the correctness of 'repos.conf'])
+    fi
+else
+    maybe_nlfaultinjection_dirstem=""
+fi
+
+AC_SUBST(NLFAULTINJECTION_SUBDIRS, [${maybe_nlfaultinjection_dirstem}])
 AM_CONDITIONAL([WEAVE_WITH_NLFAULTINJECTION], [test "${nl_with_nlfaultinjection}" != "no"])
 AM_CONDITIONAL([WEAVE_WITH_NLFAULTINJECTION_INTERNAL], [test "${nl_with_nlfaultinjection}" = "internal"])
 
@@ -2170,38 +2258,58 @@ fi
 
 
 #
-# Nlunittest
+# Nlunit-test
 #
 
 if test "${nl_cv_build_tests}" = "yes"; then
     NL_WITH_PACKAGE(
-        [Nlunittest],
-        [NLUNITTEST],
-        [nlunittest],
-        [-lnlunittest],
+        [Nlunit-test],
+        [NLUNIT_TEST],
+        [nlunit_test],
+        [-lnlunit-test],
         [
-	    # At this point, the internal Nlunittest package will be neither
+	    # At this point, the internal Nlunit-test package will be neither
 	    # configured nor built, so the normal checks we undertake for an
 	    # external package cannot be run here. Simply set the appropriate
 	    # variables and trust all will be well.
 
-            NLUNITTEST_CPPFLAGS="-I\${abs_top_srcdir}/third_party/nltest/repo/src"
-            NLUNITTEST_LDFLAGS="-L${ac_pwd}/third_party/nltest/repo/src"
-            NLUNITTEST_LIBS="-lnlunittest"
+            NLUNIT_TEST_CPPFLAGS="-I\${abs_top_srcdir}/third_party/nlunit-test/repo/src"
+            NLUNIT_TEST_LDFLAGS="-L${ac_pwd}/third_party/nlunit-test/repo/src"
+            NLUNIT_TEST_LIBS="-lnlunit-test"
         ],
         [
-            # Check for required Nlunittest headers.
+            # Check for required nlunit-test headers.
 
-            AC_CHECK_HEADERS([nltest.h],
+            AC_CHECK_HEADERS([nlunit-test.h],
             [],
             [
-                AC_MSG_ERROR(The nlunittest header "$ac_header" is required but cannot be found.)
+                AC_MSG_ERROR(The nlunit-test header "$ac_header" is required but cannot be found.)
             ])
-        ]
-    )
+        ])
 fi
 
-AM_CONDITIONAL([WEAVE_WITH_NLUNITTEST_INTERNAL], [test "${nl_with_nlunittest}" = "internal"])
+# Depending on whether nlunit-test has been configured for an internal
+# location, its directory stem within this package needs to be set
+# accordingly. In addition, if the location is internal, then we need
+# to attempt to pull it down using the bootstrap makefile.
+
+if test "${nl_with_nlunit_test}" = "internal"; then
+    maybe_nlunit_test_dirstem="nlunit-test/repo"
+    nlunit_test_dirstem="third_party/${maybe_nlunit_test_dirstem}"
+
+    AC_MSG_NOTICE([attempting to create internal ${nlunit_test_dirstem}])
+
+    ${MAKE-make} --no-print-directory -C ${srcdir} -f Makefile-bootstrap ${nlunit_test_dirstem}
+
+    if test $? -ne 0; then
+        AC_MSG_ERROR([failed to create ${nlunit_test_dirstem}. Please check your network connection or the correctness of 'repos.conf'])
+    fi
+else
+    maybe_nlunit_test_dirstem=""
+fi
+
+AC_SUBST(NLUNIT_TEST_SUBDIRS, [${maybe_nlunit_test_dirstem}])
+AM_CONDITIONAL([WEAVE_WITH_NLUNIT_TEST_INTERNAL], [test "${nl_with_nlunit_test}" = "internal"])
 
 #
 # Sockets
@@ -2401,11 +2509,11 @@ CPPFLAGS="${CPPFLAGS} ${OPENSSL_CPPFLAGS}"
 LDFLAGS="${LDFLAGS} ${OPENSSL_LDFLAGS}"
 LIBS="${LIBS} ${OPENSSL_LIBS}"
 
-# Add any nlunittest CPPFLAGS, LDFLAGS, and LIBS
+# Add any nlunit-test CPPFLAGS, LDFLAGS, and LIBS
 
-CPPFLAGS="${CPPFLAGS} ${NLUNITTEST_CPPFLAGS}"
-LDFLAGS="${LDFLAGS} ${NLUNITTEST_LDFLAGS}"
-LIBS="${LIBS} ${NLUNITTEST_LIBS}"
+CPPFLAGS="${CPPFLAGS} ${NLUNIT_TEST_CPPFLAGS}"
+LDFLAGS="${LDFLAGS} ${NLUNIT_TEST_LDFLAGS}"
+LIBS="${LIBS} ${NLUNIT_TEST_LIBS}"
 
 # Add any nlio CPPFLAGS, LDFLAGS, and LIBS
 
@@ -2452,8 +2560,8 @@ AC_SUBST(PRETTY_CHECK, ["\${PERL} \${abs_top_srcdir}/third_party/cstyle/repo/cst
 AC_SUBST(PRETTY_CHECK_ARGS, ["\$(shell cat \${abs_top_srcdir}/build/cstyle/cstyle.options)"])
 
 # Configure any autotools-based subdirectories
-if test "${nl_with_nlunittest}" = "internal"; then
-AC_CONFIG_SUBDIRS([third_party/nltest/repo])
+if test "${nl_with_nlunit_test}" = "internal"; then
+AC_CONFIG_SUBDIRS([third_party/nlunit-test/repo])
 fi
 
 if test "${nl_with_nlio}" = "internal"; then
@@ -2599,10 +2707,10 @@ AC_MSG_NOTICE([
   OpenSSL compile flags                            : ${OPENSSL_CPPFLAGS:--}
   OpenSSL link flags                               : ${OPENSSL_LDFLAGS:--}
   OpenSSL link libraries                           : ${OPENSSL_LIBS:--}
-  Nlunittest source                                : ${nl_with_nlunittest:--}
-  Nlunittest compile flags                         : ${NLUNITTEST_CPPFLAGS:--}
-  Nlunittest link flags                            : ${NLUNITTEST_LDFLAGS:--}
-  Nlunittest link libraries                        : ${NLUNITTEST_LIBS:--}
+  Nlunit-test source                               : ${nl_with_nlunit_test:--}
+  Nlunit-test compile flags                        : ${NLUNIT_TEST_CPPFLAGS:--}
+  Nlunit-test link flags                           : ${NLUNIT_TEST_LDFLAGS:--}
+  Nlunit-test link libraries                       : ${NLUNIT_TEST_LIBS:--}
   Nlio source                                      : ${nl_with_nlio:--}
   Nlio compile flags                               : ${NLIO_CPPFLAGS:--}
   Nlio link flags                                  : ${NLIO_LDFLAGS:--}

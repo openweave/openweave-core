@@ -39,7 +39,7 @@
 #include <Weave/Core/WeaveError.h>
 #include <Weave/Support/ErrorStr.h>
 
-#include <nltest.h>
+#include <nlunit-test.h>
 
 #include "ToolCommon.h"
 

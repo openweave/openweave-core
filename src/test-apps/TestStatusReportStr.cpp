@@ -31,7 +31,7 @@
 #define __STDC_LIMIT_MACROS
 #endif
 
-#include <nltest.h>
+#include <nlunit-test.h>
 #include <inttypes.h>
 #include <stdio.h>
 

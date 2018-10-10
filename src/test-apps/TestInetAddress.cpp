@@ -39,7 +39,7 @@
 #include <netinet/in.h>
 #endif
 
-#include <nltest.h>
+#include <nlunit-test.h>
 
 #define LLA_PREFIX             0xfe800000
 #define ULA_PREFIX             0xfd000000

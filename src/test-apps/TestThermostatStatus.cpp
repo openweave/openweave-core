@@ -31,7 +31,7 @@
 
 #include <Weave/Profiles/vendor/nestlabs/thermostat/NestThermostatWeaveConstants.h>
 
-#include <nltest.h>
+#include <nlunit-test.h>
 
 #include "ToolCommon.h"
 
