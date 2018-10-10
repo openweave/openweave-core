@@ -156,6 +156,38 @@ static void CheckOverflow(nlTestSuite* inSuite, void* aContext)
     lSys.CancelTimer(HandleTimer10Success, aContext);
 }
 
+static uint32_t sNumTimersHandled = 0;
+static const uint32_t MAX_NUM_TIMERS = 1000;
+
+
+void HandleGreedyTimer(Layer *aLayer, void * aState, Error aError)
+{
+    TestContext& lContext = *static_cast<TestContext*>(aState);
+    NL_TEST_ASSERT(lContext.mTestSuite, sNumTimersHandled < MAX_NUM_TIMERS);
+
+    if (sNumTimersHandled >= MAX_NUM_TIMERS)
+    {
+        return;
+    }
+
+    aLayer->StartTimer(0, HandleGreedyTimer, aState);
+    sNumTimersHandled ++;
+
+}
+
+static void CheckStarvation(nlTestSuite* inSuite, void* aContext)
+{
+    TestContext& lContext = *static_cast<TestContext*>(aContext);
+    Layer& lSys = *lContext.mLayer;
+    struct timeval sleepTime;
+
+    lSys.StartTimer(0, HandleGreedyTimer, aContext);
+
+    sleepTime.tv_sec = 0;
+    sleepTime.tv_usec = 1000; // 1 ms tick
+    ServiceEvents(lSys, sleepTime);
+}
+
 
 // Test Suite
 
@@ -165,6 +197,7 @@ static void CheckOverflow(nlTestSuite* inSuite, void* aContext)
  */
 static const nlTest sTests[] = {
     NL_TEST_DEF("Timer::TestOverflow",             CheckOverflow),
+    NL_TEST_DEF("Timer::TestTimerStarvation",      CheckStarvation),
     NL_TEST_SENTINEL()
 };
 

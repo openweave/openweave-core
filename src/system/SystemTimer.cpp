@@ -296,39 +296,77 @@ exit:
 Error Timer::HandleExpiredTimers(Layer& aLayer)
 {
     // expire each timer in turn until an unexpired timer is reached or the timerlist is emptied.
-    while (aLayer.mTimerList)
+
+    // The platform timer API has MSEC resolution so expire any timer with less than 1 msec remaining.
+    Epoch currentEpoch = Timer::GetCurrentEpoch() + 1;
+
+    VerifyOrExit(aLayer.mTimerList != NULL, );
+
+    // Verify that there are any timers to be processed
+    if (Timer::IsEarlierEpoch(aLayer.mTimerList->mAwakenEpoch, currentEpoch))
     {
-        const Epoch kCurrentEpoch = Timer::GetCurrentEpoch();
+        // Bound the number of timers processed to those that are already on the
+        // expired queue. We copy the expired timers onto the queue pointed to
+        // by headTimer, and then reset the timer queue in the system layer to
+        // point to the first unexpired timer.
+        Timer * headTimer = aLayer.mTimerList;
+        Timer * cursorTimer = aLayer.mTimerList;
 
-        // The platform timer API has MSEC resolution so expire any timer with less than 1 msec remaining.
-        if (Timer::IsEarlierEpoch(aLayer.mTimerList->mAwakenEpoch, kCurrentEpoch + 1))
+        while (cursorTimer->mNextTimer != NULL &&
+               Timer::IsEarlierEpoch(cursorTimer->mNextTimer->mAwakenEpoch, currentEpoch))
         {
-            Timer& lTimer = *aLayer.mTimerList;
-            aLayer.mTimerList = lTimer.mNextTimer;
-            lTimer.mNextTimer = NULL;
+            cursorTimer = cursorTimer->mNextTimer;
+        }
 
-            aLayer.mTimerComplete = true;
-            lTimer.HandleComplete();
-            aLayer.mTimerComplete = false;
+        // unexpired timer list points to the next unexpired timer
+        aLayer.mTimerList = cursorTimer->mNextTimer;
+
+        // list pointed to by the headTimer terminates
+        cursorTimer->mNextTimer = NULL;
+
+        aLayer.mTimerComplete = true;
+
+        while (headTimer != NULL)
+        {
+            cursorTimer = headTimer;
+            headTimer = headTimer->mNextTimer;
+            cursorTimer->mNextTimer = NULL;
+
+            cursorTimer->HandleComplete();
+        }
+        aLayer.mTimerComplete = false;
+    }
+
+    if (aLayer.mTimerList)
+    {
+        // timers still exist so restart the platform timer.
+        uint64_t delayMilliseconds;
+
+        // re-read the timer to account for the time that has elapsed while we
+        // were processing the expired timers
+
+        currentEpoch = Timer::GetCurrentEpoch();
+
+        if (aLayer.mTimerList->mAwakenEpoch < currentEpoch)
+        {
+            delayMilliseconds = 0;
         }
         else
         {
-            // timers still exist so restart the platform timer.
-            const uint64_t kDelayMilliseconds = aLayer.mTimerList->mAwakenEpoch - kCurrentEpoch;
-
-            /*
-             * Original kDelayMilliseconds was a 32 bit value.  The only way in which this could overflow is if time went backwards
-             * (e.g. as a result of a time adjustment from time synchronization).  Verify that the timer can still be executed
-             * (even if it is very late) and exit if that is the case.  Note: if the time sync ever ends up adjusting the clock, we
-             * should implement a method that deals with all the timers in the system.
-             */
-            VerifyOrDie(kDelayMilliseconds <= UINT32_MAX);
-
-            aLayer.StartPlatformTimer(static_cast<uint32_t>(kDelayMilliseconds));
-            break; // all remaining timers are still ticking.
+            delayMilliseconds = aLayer.mTimerList->mAwakenEpoch - currentEpoch;
         }
+        /*
+         * StartPlatformTimer() accepts a 32bit value in milliseconds.  Epochs are 64bit numbers.  The only way in which this could
+         * overflow is if time went backwards (e.g. as a result of a time adjustment from time synchronization).  Verify that the
+         * timer can still be executed (even if it is very late) and exit if that is the case.  Note: if the time sync ever ends up
+         * adjusting the clock, we should implement a method that deals with all the timers in the system.
+         */
+        VerifyOrDie(delayMilliseconds <= UINT32_MAX);
+
+        aLayer.StartPlatformTimer(static_cast<uint32_t>(delayMilliseconds));
     }
 
+exit:
     return WEAVE_SYSTEM_NO_ERROR;
 }
 #endif // WEAVE_SYSTEM_CONFIG_USE_LWIP
