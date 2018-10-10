@@ -105,16 +105,29 @@ PRETTY_FILES                            := $(NULL)
 # .dist-version second, and the .default-version last.
 #
 
+# VERSION_FILE should be and is intentionally an immediate (:=) rather
+# than a deferred (=) variable to ensure the value binds once and only once
+# for a given MAKELEVEL even as .local-version and .dist-version are created
+# during makefile execution.
+
 VERSION_FILE                      := $(if $(wildcard $(builddir)/.local-version),$(builddir)/.local-version,$(if $(wildcard $(srcdir)/.dist-version),$(srcdir)/.dist-version,$(srcdir)/.default-version))
 
 #
 # Override autotool's default notion of the package version variables.
-# This ensures that when we create a source distribution that the
-# version is always the current version, not the version when the
-# package was bootstrapped.
+# This ensures that when we create a source distribution the
+# version is always the current version, not the package bootstrap
+# version.
+#
+# The two-level variables and the check against MAKELEVEL ensures that
+# not only can the package version be overridden from the command line
+# but also when the version is NOT overridden that we bind the version
+# once and only once across potential sub-makes to prevent the version
+# from flapping as VERSION_FILE changes.
 #
 
-WEAVE_VERSION                     ?= $(shell cat $(VERSION_FILE) 2> /dev/null)
+export MAYBE_WEAVE_VERSION        := $(if $(filter 0,$(MAKELEVEL)),$(shell cat $(VERSION_FILE) 2> /dev/null),$(MAYBE_WEAVE_VERSION))
+
+WEAVE_VERSION                     ?= $(MAYBE_WEAVE_VERSION)
 
 PACKAGE_VERSION                    = $(WEAVE_VERSION)
 VERSION                            = $(PACKAGE_VERSION)
