@@ -210,6 +210,18 @@ dist distcheck distdir install-headers: $(BUILT_SOURCES)
 
 dist-hook: $(distdir)/.dist-version
 
+# If you are synchronizing a package on which yours depends using 'repos.conf',
+# to 'third_party', uncomment and adapt or delete this, as needed. If you choose
+# to use this, please also take a look at Makefile.am and third_party/Makefile.am
+# and uncomment the appropriate sections there.
+
+#
+# Ensure any locally synchronized repositories defined by 'repos.conf'
+# are cleaned up.
+#
+distclean-local:
+	$(MAKE) -C $(srcdir) -f Makefile-bootstrap clean-repos
+
 #
 # Top-level convenience target for making a documentation-only
 # distribution whose results appear at the top level of the build tree
