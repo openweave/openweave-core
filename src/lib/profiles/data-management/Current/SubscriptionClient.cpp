@@ -832,6 +832,7 @@ WEAVE_ERROR SubscriptionClient::EndSubscription()
     switch (mCurrentState)
     {
     case kState_Subscribing:
+    case kState_Resubscribe_Holdoff:
         // fall through
     case kState_Subscribing_IdAssigned:
 
