@@ -52,6 +52,7 @@
 #if WEAVE_SYSTEM_CONFIG_USE_SOCKETS
 #include <sys/socket.h>
 #include <sys/select.h>
+#include <net/if.h>
 #include <sys/ioctl.h>
 #include <unistd.h>
 #include <fcntl.h>
@@ -396,7 +397,7 @@ INET_ERROR TCPEndPoint::Connect(IPAddress addr, uint16_t port, InterfaceId intf)
         // Try binding to the interface
 
 #ifdef SO_BINDTODEVICE
-        struct ifreq ifr;
+        struct ::ifreq ifr;
         memset(&ifr, 0, sizeof(ifr));
 
         res = GetInterfaceName(intf, ifr.ifr_name, sizeof(ifr.ifr_name));

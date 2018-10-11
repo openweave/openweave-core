@@ -238,7 +238,6 @@ IPAddress IPAddress::FromSockAddr(const struct sockaddr& sockaddr)
 
 #endif // WEAVE_SYSTEM_CONFIG_USE_SOCKETS
 
-#if INET_CONFIG_ENABLE_IPV4
 // Is address an IPv4 address encoded in IPv6 format?
 bool IPAddress::IsIPv4() const
 {
@@ -250,7 +249,6 @@ bool IPAddress::IsIPv4Broadcast() const
 {
     return Addr[0] == 0 && Addr[1] == 0 && Addr[2] == htonl(0xFFFF) && Addr[3] == 0xFFFFFFFF;
 }
-#endif // INET_CONFIG_ENABLE_IPV4
 
 // Is address an IPv6 multicast address?
 bool IPAddress::IsMulticast() const
