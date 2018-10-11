@@ -395,34 +395,39 @@ INET_ERROR TCPEndPoint::Connect(IPAddress addr, uint16_t port, InterfaceId intf)
     {
         // Try binding to the interface
 
+        // If destination is link-local then there is no need to bind to
+        // interface or address on the interface.
+
+        if (!addr.IsIPv6LinkLocal())
+        {
 #ifdef SO_BINDTODEVICE
-        struct ifreq ifr;
-        memset(&ifr, 0, sizeof(ifr));
+            struct ifreq ifr;
+            memset(&ifr, 0, sizeof(ifr));
 
-        res = GetInterfaceName(intf, ifr.ifr_name, sizeof(ifr.ifr_name));
-        if (res != INET_NO_ERROR)
-            return res;
-
-        // Attempt to bind to the interface using SO_BINDTODEVICE which requires privileged access.
-        // If the permission is denied(EACCES) because Weave is running in a context
-        // that does not have privileged access, choose a source address on the
-        // interface to bind the connetion to.
-        int r = setsockopt(mSocket, SOL_SOCKET, SO_BINDTODEVICE, (void *)&ifr, sizeof(ifr));
-        if (r < 0 && errno != EACCES)
-        {
-            return res = Weave::System::MapErrorPOSIX(errno);
-        }
-
-        if (r < 0)
-#endif // SO_BINDTODEVICE
-        {
-
-            // Attempting to initiate a connection via a specific interface is not allowed.
-            // The only way to do this is to bind the local to an address on the desired
-            // interface.
-            res = BindSrcAddrFromIntf(addrType, intf);
+            res = GetInterfaceName(intf, ifr.ifr_name, sizeof(ifr.ifr_name));
             if (res != INET_NO_ERROR)
                 return res;
+
+            // Attempt to bind to the interface using SO_BINDTODEVICE which requires privileged access.
+            // If the permission is denied(EACCES) because Weave is running in a context
+            // that does not have privileged access, choose a source address on the
+            // interface to bind the connetion to.
+            int r = setsockopt(mSocket, SOL_SOCKET, SO_BINDTODEVICE, (void *)&ifr, sizeof(ifr));
+            if (r < 0 && errno != EACCES)
+            {
+                return res = Weave::System::MapErrorPOSIX(errno);
+            }
+
+            if (r < 0)
+#endif // SO_BINDTODEVICE
+            {
+                // Attempting to initiate a connection via a specific interface is not allowed.
+                // The only way to do this is to bind the local to an address on the desired
+                // interface.
+                res = BindSrcAddrFromIntf(addrType, intf);
+                if (res != INET_NO_ERROR)
+                    return res;
+            }
         }
     }
 
