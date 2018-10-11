@@ -65,11 +65,23 @@ using namespace nl::Weave::Profiles::FabricProvisioning;
 using namespace nl::Weave::Profiles::Security::AppKeys;
 
 #if WEAVE_CONFIG_SECURITY_TEST_MODE
+#pragma message "\n \
+                 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n \
+                 !!!!    WARNING - SECURITY_TEST_MODE IS ENABLED    !!!!\n \
+                 !!!! BASIC WEAVE SECURITY / ENCRYPTION IS CRIPPLED !!!!\n \
+                 !!!!        DEVELOPMENT ONLY -- DO NOT SHIP        !!!!\n \
+                 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n \
+                 "
+#endif
 
-#define EXCLS "\n!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
-#pragma message (EXCLS "\n!!!! WARNING - WEAVE SECURITY TEST MODE ENABLED !!!!" EXCLS)
-#undef EXCLS
-
+#if !WEAVE_CONFIG_REQUIRE_AUTH
+#pragma message "\n \
+                 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n \
+                 !!!!  WARNING - REQUIRE_AUTH IS DISABLED   !!!!\n \
+                 !!!! CLIENT AUTHENTICATION IS NOT REQUIRED !!!!\n \
+                 !!!!    DEVELOPMENT ONLY -- DO NOT SHIP    !!!!\n \
+                 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n \
+                 "
 #endif
 
 #ifndef nlDEFINE_ALIGNED_VAR
