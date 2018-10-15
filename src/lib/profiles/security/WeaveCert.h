@@ -26,6 +26,8 @@
 #ifndef WEAVECERT_H_
 #define WEAVECERT_H_
 
+#include <string.h>
+
 #include <Weave/Support/NLDLLUtil.h>
 #include <Weave/Core/WeaveTLV.h>
 #include <Weave/Support/ASN1.h>
