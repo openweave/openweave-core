@@ -637,16 +637,6 @@ private:
             Security::WeaveCertificateSet & certSet, WEAVE_ERROR & validRes) __OVERRIDE;
     void EndValidation(const Security::CASE::BeginSessionContext & msgCtx, Security::ValidationContext & validCtx,
             Security::WeaveCertificateSet & certSet) __OVERRIDE;
-
-#else // !WEAVE_CONFIG_LEGACY_CASE_AUTH_DELEGATE
-
-    // ===== Methods that implement the legacy WeaveCASEAuthDelegate interface
-
-    WEAVE_ERROR GetNodeCertInfo(bool isInitiator, uint8_t *buf, uint16_t bufSize, uint16_t& certInfoLen) __OVERRIDE;
-    WEAVE_ERROR GetNodePayload(bool isInitiator, uint8_t *buf, uint16_t bufSize, uint16_t& payloadLen) __OVERRIDE;
-
-#endif // WEAVE_CONFIG_LEGACY_CASE_AUTH_DELEGATE
-
     WEAVE_ERROR GetNodePrivateKey(bool isInitiator, const uint8_t *& weavePrivKey, uint16_t& weavePrivKeyLen);
     WEAVE_ERROR ReleaseNodePrivateKey(const uint8_t *weavePrivKey);
     WEAVE_ERROR BeginCertValidation(bool isInitiator, Security::WeaveCertificateSet& certSet,
@@ -654,6 +644,22 @@ private:
     WEAVE_ERROR HandleCertValidationResult(bool isInitiator, WEAVE_ERROR& validRes, Security::WeaveCertificateData *peerCert,
             uint64_t peerNodeId, Security::WeaveCertificateSet& certSet, Security::ValidationContext& validContext);
     WEAVE_ERROR EndCertValidation(Security::WeaveCertificateSet& certSet, Security::ValidationContext& validContext);
+
+#else // !WEAVE_CONFIG_LEGACY_CASE_AUTH_DELEGATE
+
+    // ===== Methods that implement the legacy WeaveCASEAuthDelegate interface
+
+    WEAVE_ERROR GetNodeCertInfo(bool isInitiator, uint8_t *buf, uint16_t bufSize, uint16_t& certInfoLen) __OVERRIDE;
+    WEAVE_ERROR GetNodePayload(bool isInitiator, uint8_t *buf, uint16_t bufSize, uint16_t& payloadLen) __OVERRIDE;
+    WEAVE_ERROR GetNodePrivateKey(bool isInitiator, const uint8_t *& weavePrivKey, uint16_t& weavePrivKeyLen) __OVERRIDE;
+    WEAVE_ERROR ReleaseNodePrivateKey(const uint8_t *weavePrivKey) __OVERRIDE;
+    WEAVE_ERROR BeginCertValidation(bool isInitiator, Security::WeaveCertificateSet& certSet,
+            Security::ValidationContext& validContext) __OVERRIDE;
+    WEAVE_ERROR HandleCertValidationResult(bool isInitiator, WEAVE_ERROR& validRes, Security::WeaveCertificateData *peerCert,
+            uint64_t peerNodeId, Security::WeaveCertificateSet& certSet, Security::ValidationContext& validContext) __OVERRIDE;
+    WEAVE_ERROR EndCertValidation(Security::WeaveCertificateSet& certSet, Security::ValidationContext& validContext) __OVERRIDE;
+
+#endif // WEAVE_CONFIG_LEGACY_CASE_AUTH_DELEGATE
 
     // Locale
     static void WriteLocaleRequest(nl::Weave::TLV::TLVWriter &aWriter, void *ctx);
