@@ -93,11 +93,7 @@ public:
 
     WEAVE_ERROR GenerateSignature(const uint8_t * msgHash, uint8_t msgHashLen, TLVWriter & writer, uint64_t tag) __OVERRIDE;
 
-#if __cplusplus >= 201103L
     using WeaveSignatureGeneratorBase::GenerateSignature;
-#else
-    WeaveSignatureGeneratorBase::GenerateSignature;
-#endif
 
 private:
     virtual WEAVE_ERROR GenerateSignatureData(const uint8_t * msgHash, uint8_t msgHashLen, TLVWriter & writer) __OVERRIDE;
