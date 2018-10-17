@@ -295,6 +295,7 @@ public:
     bool IsEstablishedIdle() { return (mCurrentState == kState_SubscriptionEstablished_Idle); }
     bool IsFree() { return (mCurrentState == kState_Free); }
     bool IsAborting() { return (mCurrentState == kState_Aborting); }
+    bool IsInResubscribeHoldoff() { return (mCurrentState == kState_Resubscribe_Holdoff); }
 
     void IndicateActivity(void);
 
