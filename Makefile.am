@@ -206,7 +206,7 @@ DISTCHECK_CONFIGURE_FLAGS = `chmod u+w .. ../third_party`
 
 DISTCHECK_CONFIGURE_FLAGS += --without-bluez --without-happy
 
-dist distcheck distdir install-headers: $(BUILT_SOURCES)
+all-recursive check-recursive coverage-recursive install-recursive pretty-recursive pretty-check-recursive dist distcheck distdir install-headers: $(BUILT_SOURCES)
 
 dist-hook: $(distdir)/.dist-version
 
