@@ -1,5 +1,6 @@
 /*
  *
+ *    Copyright (c) 2018 Google LLC.
  *    Copyright (c) 2018 Nest Labs, Inc.
  *    All rights reserved.
  *
@@ -44,7 +45,6 @@ static void HandleCharacteristicReceivedOnePacket(nlTestSuite *inSuite, void *in
     PacketBuffer * first_packet;
     SequenceNumber_t rcvd_ack;
     bool did_rcv_ack;
-    bool rc = false;
     WEAVE_ERROR err = WEAVE_NO_ERROR;
     uint8_t * data;
 
@@ -86,7 +86,6 @@ static void HandleCharacteristicReceivedTwoPacket(nlTestSuite *inSuite, void *in
     PacketBuffer * second_packet;
     SequenceNumber_t rcvd_ack;
     bool did_rcv_ack;
-    bool rc = false;
     WEAVE_ERROR err = WEAVE_NO_ERROR;
     uint8_t * data;
 
@@ -142,7 +141,6 @@ static void HandleCharacteristicReceivedThreePacket(nlTestSuite *inSuite, void *
     PacketBuffer * last_packet;
     SequenceNumber_t rcvd_ack;
     bool did_rcv_ack;
-    bool rc = false;
     WEAVE_ERROR err = WEAVE_NO_ERROR;
     uint8_t * data;
 
@@ -210,7 +208,6 @@ static void HandleCharacteristicSendOnePacket(nlTestSuite *inSuite, void *inCont
     PacketBuffer * first_packet;
     bool rc = false;
     uint8_t * data;
-    WEAVE_ERROR err = WEAVE_NO_ERROR;
 
     woble.Init(NULL, false);
 
@@ -247,7 +244,7 @@ static void HandleCharacteristicSendTwoPacket(nlTestSuite *inSuite, void *inCont
     PacketBuffer * first_packet;
     uint8_t * data = NULL;
     bool rc = false;
-    WEAVE_ERROR err = WEAVE_NO_ERROR;
+
     woble.Init(NULL, false);
     WeaveLogDetail(Ble, "Start HandleCharacteristicSendTwoPacket Woble State:");
     woble.LogState();
@@ -293,7 +290,6 @@ static void HandleCharacteristicSendThreePacket(nlTestSuite *inSuite, void *inCo
     PacketBuffer * first_packet;
     bool rc = false;
     uint8_t * data = NULL;
-    WEAVE_ERROR err = WEAVE_NO_ERROR;
 
     woble.Init(NULL, false);
     WeaveLogDetail(Ble, "Start HandleCharacteristicSendThreePacket Woble State:");
