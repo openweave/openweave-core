@@ -216,6 +216,8 @@ public:
 #endif // WEAVE_CONFIG_EVENT_LOGGING_EXTERNAL_EVENT_SUPPORT
     WEAVE_ERROR BlitEvent(EventLoadOutContext * aContext, const EventSchema & inSchema, EventWriterFunct inEventWriter,
                           void * inAppData, const EventOptions * inOptions);
+    void SkipEvent(EventLoadOutContext * aContext);
+
 
 #if WEAVE_CONFIG_EVENT_LOGGING_WDM_OFFLOAD
     bool CheckShouldRunWDM(void);
@@ -231,7 +233,6 @@ private:
 
     static WEAVE_ERROR CopyEventsSince(const nl::Weave::TLV::TLVReader & aReader, size_t aDepth, void * aContext);
     static WEAVE_ERROR EventIterator(const nl::Weave::TLV::TLVReader & aReader, size_t aDepth, void * aContext);
-    static WEAVE_ERROR FindExternalEvents(const nl::Weave::TLV::TLVReader & aReader, size_t aDepth, void * aContext);
     static WEAVE_ERROR FetchEventParameters(const nl::Weave::TLV::TLVReader & aReader, size_t aDepth, void * aContext);
     static WEAVE_ERROR CopyAndAdjustDeltaTime(const nl::Weave::TLV::TLVReader & aReader, size_t aDepth, void * aContext);
     static WEAVE_ERROR EvictEvent(nl::Weave::TLV::WeaveCircularTLVBuffer & inBuffer, void * inAppData,
