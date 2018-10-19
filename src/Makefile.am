@@ -1,5 +1,6 @@
 #
-#    Copyright (c) 2014-2017 Nest Labs, Inc.
+#    Copyright (c) 2014-2018 Nest Labs, Inc.
+#    Copyright (c) 2018 Google LLC
 #    All rights reserved.
 #
 #    Licensed under the Apache License, Version 2.0 (the "License");
@@ -140,8 +141,8 @@ SUBDIRS                           = \
     $(MAYBE_DEVICE_MANAGER_SUBDIRS) \
     wrappers/jni                    \
     ra-daemon                       \
-    test-apps                       \
     tools/weave                     \
+    test-apps                       \
     test-apps/fuzz                  \
     tools/misc                      \
     $(EXAMPLES_SUBDIR)              \
