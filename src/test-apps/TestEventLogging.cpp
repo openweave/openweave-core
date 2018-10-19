@@ -366,8 +366,6 @@ void TestOpenCloseState::EvolveState(void)
     }
 }
 
-const uint32_t gProfileList[] = { OpenCloseProfileID };
-
 WEAVE_ERROR WriteOpenCloseState(nl::Weave::TLV::TLVWriter & writer, uint8_t inDataTag, void * anAppState)
 {
     TestOpenCloseState * state = NULL;
