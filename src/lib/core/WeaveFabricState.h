@@ -281,10 +281,22 @@ public:
     uint8_t IntegrityKey[IntegrityKeySize];
 };
 
+// Encryption key for the AES-128-EAX-* message encryption types
+class WeaveEncryptionKey_AES128EAX
+{
+public:
+    enum
+    {
+        KeySize = 16
+    };
+    uint8_t Key[KeySize];
+};
+
 // Represents a key or key set used to encrypt Weave messages.
 typedef union WeaveEncryptionKey
 {
-    WeaveEncryptionKey_AES128CTRSHA1 AES128CTRSHA1;
+    WeaveEncryptionKey_AES128CTRSHA1  AES128CTRSHA1;
+    WeaveEncryptionKey_AES128EAX      AES128EAX;
 } WeaveEncryptionKey;
 
 // AES128CTRSHA1 encryption and integrity test keys, which should only be used for testing purposes.

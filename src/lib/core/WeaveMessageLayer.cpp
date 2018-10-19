@@ -45,6 +45,7 @@
 #include <Weave/Support/crypto/HMAC.h>
 #include <Weave/Support/crypto/AESBlockCipher.h>
 #include <Weave/Support/crypto/CTRMode.h>
+#include <Weave/Support/crypto/EAX.h>
 #include <Weave/Support/logging/WeaveLogging.h>
 #include <Weave/Support/ErrorStr.h>
 #include <Weave/Support/CodeUtils.h>
@@ -56,6 +57,7 @@ namespace Weave {
 
 using namespace nl::Weave::Crypto;
 using namespace nl::Weave::Encoding;
+using namespace nl::Weave::Platform::Security;
 
 /**
  *  @def WEAVE_BIND_DETAIL_LOGGING
@@ -87,7 +89,9 @@ using namespace nl::Weave::Encoding;
 enum
 {
     kKeyIdLen = 2,
-    kMinPayloadLen = 1
+    kMinPayloadLen = 1,
+    kEAX64TagLen = 8,
+    kEAX128TagLen = 16
 };
 
 /**
@@ -1102,6 +1106,22 @@ WEAVE_ERROR WeaveMessageLayer::ReEncodeMessage(PacketBuffer *msgBuf)
             aes128CTR.EncryptData(p, encryptionLen, p);
         }
         break;
+#if WEAVE_CONFIG_AES128EAX64 || WEAVE_CONFIG_AES128EAX128
+    case kWeaveEncryptionType_AES128EAX64:
+    case kWeaveEncryptionType_AES128EAX128:
+        {
+            /*
+             * We want to reencrypt the data, not recompute the authentication
+             * tag. Thus, we can use an arbitrary header (actually, no header
+             * at all) since that won't impact the ciphertext.
+             */
+            EAX128 eax128;
+            eax128.SetKey(sessionState.MsgEncKey->EncKey.AES128EAX.Key);
+            eax128.StartWeave(msgInfo.SourceNodeId, msgInfo.MessageId);
+            eax128.Encrypt(p, encryptionLen);
+        }
+        break;
+#endif  // WEAVE_CONFIG_AES128EAX64 || WEAVE_CONFIG_AES128EAX128
     default:
         return WEAVE_ERROR_UNSUPPORTED_ENCRYPTION_TYPE;
     }
@@ -1182,6 +1202,22 @@ WEAVE_ERROR WeaveMessageLayer::EncodeMessage(WeaveMessageInfo *msgInfo, PacketBu
         headLen += 2;
         tailLen += HMACSHA1::kDigestLength;
         break;
+#if WEAVE_CONFIG_AES128EAX64
+    case kWeaveEncryptionType_AES128EAX64:
+        if (payloadLen < kMinPayloadLen)
+            return WEAVE_ERROR_INVALID_MESSAGE_LENGTH;
+        headLen += kKeyIdLen;
+        tailLen += kEAX64TagLen;
+        break;
+#endif  // WEAVE_CONFIG_AES128EAX64
+#if WEAVE_CONFIG_AES128EAX128
+    case kWeaveEncryptionType_AES128EAX128:
+        if (payloadLen < kMinPayloadLen)
+            return WEAVE_ERROR_INVALID_MESSAGE_LENGTH;
+        headLen += kKeyIdLen;
+        tailLen += kEAX128TagLen;
+        break;
+#endif  // WEAVE_CONFIG_AES128EAX128
     default:
         return WEAVE_ERROR_UNSUPPORTED_ENCRYPTION_TYPE;
     }
@@ -1289,6 +1325,28 @@ WEAVE_ERROR WeaveMessageLayer::EncodeMessage(WeaveMessageInfo *msgInfo, PacketBu
                               payloadStart, payloadLen + HMACSHA1::kDigestLength, payloadStart);
 
         break;
+
+#if WEAVE_CONFIG_AES128EAX64
+    case kWeaveEncryptionType_AES128EAX64:
+        // Encode the key id.
+        LittleEndian::Write16(p, msgInfo->KeyId);
+        // Perform EAX encryption; this also appends the authentication tag.
+        Encrypt_AES128EAX(msgInfo, sessionState.MsgEncKey->EncKey.AES128EAX.Key,
+                          payloadStart, payloadLen, p, kEAX64TagLen);
+        p += payloadLen + kEAX64TagLen;
+        break;
+#endif  // WEAVE_CONFIG_AES128EAX64
+
+#if WEAVE_CONFIG_AES128EAX128
+    case kWeaveEncryptionType_AES128EAX128:
+        // Encode the key id.
+        LittleEndian::Write16(p, msgInfo->KeyId);
+        // Perform EAX encryption; this also appends the authentication tag.
+        Encrypt_AES128EAX(msgInfo, sessionState.MsgEncKey->EncKey.AES128EAX.Key,
+                          payloadStart, payloadLen, p, kEAX128TagLen);
+        p += payloadLen + kEAX128TagLen;
+        break;
+#endif  // WEAVE_CONFIG_AES128EAX128
     }
 
     msgInfo->Flags |= kWeaveMessageFlag_MessageEncoded;
@@ -1363,6 +1421,54 @@ WEAVE_ERROR WeaveMessageLayer::DecodeMessage(PacketBuffer *msgBuf, uint64_t sour
 
         break;
     }
+
+#if WEAVE_CONFIG_AES128EAX64
+    case kWeaveEncryptionType_AES128EAX64:
+    {
+        // Error if the message is short given the expected fields.
+        if ((p + kMinPayloadLen + kEAX64TagLen) > msgEnd)
+            return WEAVE_ERROR_INVALID_MESSAGE_LENGTH;
+
+        // Return the position and length of the payload within the message.
+        uint16_t payloadLen = msgLen - ((p - msgStart) + kEAX64TagLen);
+        *rPayloadLen = payloadLen;
+        *rPayload = p;
+
+        // Decrypt.
+        if (!Decrypt_AES128EAX(msgInfo, sessionState.MsgEncKey->EncKey.AES128EAX.Key,
+                               p, payloadLen, p, kEAX64TagLen))
+        {
+            return WEAVE_ERROR_INTEGRITY_CHECK_FAILED;
+        }
+        // Skip past the payload and the integrity check value.
+        p += payloadLen + kEAX64TagLen;
+        break;
+    }
+#endif  // WEAVE_CONFIG_AES128EAX64
+
+#if WEAVE_CONFIG_AES128EAX128
+    case kWeaveEncryptionType_AES128EAX128:
+    {
+        // Error if the message is short given the expected fields.
+        if ((p + kMinPayloadLen + kEAX128TagLen) > msgEnd)
+            return WEAVE_ERROR_INVALID_MESSAGE_LENGTH;
+
+        // Return the position and length of the payload within the message.
+        uint16_t payloadLen = msgLen - ((p - msgStart) + kEAX128TagLen);
+        *rPayloadLen = payloadLen;
+        *rPayload = p;
+
+        // Decrypt.
+        if (!Decrypt_AES128EAX(msgInfo, sessionState.MsgEncKey->EncKey.AES128EAX.Key,
+                               p, payloadLen, p, kEAX128TagLen))
+        {
+            return WEAVE_ERROR_INTEGRITY_CHECK_FAILED;
+        }
+        // Skip past the payload and the integrity check value.
+        p += payloadLen + kEAX128TagLen;
+        break;
+    }
+#endif  // WEAVE_CONFIG_AES128EAX128
 
     default:
         return WEAVE_ERROR_UNSUPPORTED_ENCRYPTION_TYPE;
@@ -2164,6 +2270,97 @@ void WeaveMessageLayer::ComputeIntegrityCheck_AES128CTRSHA1(const WeaveMessageIn
     // Generate the MAC.
     hmacSHA1.Finish(outBuf);
 }
+
+#if WEAVE_CONFIG_AES128EAX64 || WEAVE_CONFIG_AES128EAX128
+
+/*
+ * This function injects in the provided EAX instance the header derived
+ * from the provided message information. This should happen after the
+ * EAX processing has started (EAX::Start(), with a fresh nonce), but
+ * before encrypting or decrypting the payload.
+ */
+static void ComputeHeader_AES128EAX(EAX *eax, const WeaveMessageInfo *msgInfo)
+{
+    uint8_t encodedBuf[2 * sizeof(uint64_t) + sizeof(uint16_t) + sizeof(uint32_t)];
+    uint8_t *p = encodedBuf;
+
+    // Encode the source and destination node identifiers in a little-endian format.
+    Encoding::LittleEndian::Write64(p, msgInfo->SourceNodeId);
+    Encoding::LittleEndian::Write64(p, msgInfo->DestNodeId);
+
+    // Hash the message header field and the message Id for the message version V2.
+    if (msgInfo->MessageVersion == kWeaveMessageVersion_V2)
+    {
+        // Encode message header field value.
+        uint16_t headerField = EncodeHeaderField(msgInfo);
+
+        // Mask destination and source node Id flags.
+        headerField &= kMsgHeaderField_MessageHMACMask;
+
+        // Encode the message header field and the message Id in a little-endian format.
+        Encoding::LittleEndian::Write16(p, headerField);
+        Encoding::LittleEndian::Write32(p, msgInfo->MessageId);
+    }
+
+    // Inject the newly assembled header.
+    eax->InjectHeader(encodedBuf, p - encodedBuf);
+}
+
+/*
+ * Perform AES-128-EAX encryption. This function writes inLen+tagLen bytes
+ * into outBuf[] (ciphertext followed by the authentication tag). The
+ * authentication tag must have length between 8 and 16 bytes (inclusive).
+ */
+void WeaveMessageLayer::Encrypt_AES128EAX(const WeaveMessageInfo *msgInfo, const uint8_t *key,
+                                          const uint8_t *inData, uint16_t inLen, uint8_t *outBuf, uint16_t tagLen)
+{
+    EAX128 eax128;
+    eax128.SetKey(key);
+    eax128.StartWeave(msgInfo->SourceNodeId, msgInfo->MessageId);
+    ComputeHeader_AES128EAX(&eax128, msgInfo);
+    eax128.Encrypt(inData, inLen, outBuf);
+    eax128.GetTag(outBuf + inLen, tagLen);
+}
+
+/*
+ * Perform AES-128-EAX decryption. This function reads inLen+tagLen bytes
+ * from inData[] (plaintex followed by authentication tag) and writes inLen
+ * bytes into outBuf[] (plaintext). The authentication tag must have length
+ * between 8 and 16 bytes (inclusive). If the authentication tag matches
+ * the recomputed value, then this function returns true. Otherwise, the
+ * decrypted data is zeroized, and false is returned.
+ */
+bool WeaveMessageLayer::Decrypt_AES128EAX(const WeaveMessageInfo *msgInfo, const uint8_t *key,
+                                          const uint8_t *inData, uint16_t inLen, uint8_t *outBuf, uint16_t tagLen)
+{
+    EAX128 eax128;
+    uint8_t tag[kEAX128TagLen];
+
+    /*
+     * We need to copy the tag first, because the output buffer might
+     * overlap with the input buffer, including the tag area.
+     */
+    if (tagLen > sizeof tag) {
+        return false;
+    }
+    memcpy(tag, inData + inLen, tagLen);
+    eax128.SetKey(key);
+    eax128.StartWeave(msgInfo->SourceNodeId, msgInfo->MessageId);
+    ComputeHeader_AES128EAX(&eax128, msgInfo);
+    eax128.Decrypt(inData, inLen, outBuf);
+    if (eax128.CheckTag(tag, tagLen)) {
+        return true;
+    } else {
+        /*
+         * Since the tag is wrong, the data is invalid. To prevent
+         * misinterpretation, we clear it.
+         */
+        ClearSecretData(outBuf, inLen);
+        return false;
+    }
+}
+
+#endif  // WEAVE_CONFIG_AES128EAX64 || WEAVE_CONFIG_AES128EAX128
 
 /**
  *  Close all open TCP and UDP endpoints. Then abort any

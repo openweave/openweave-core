@@ -756,6 +756,61 @@
 
 
 /**
+ *  @def WEAVE_CONFIG_EAX_NO_PAD_CACHE
+ *
+ *  @brief
+ *    If enabled (1), this option makes the EAX implementation class
+ *    save 16 bytes of RAM at the expense of extra computations; when
+ *    disabled (0), encryption cost is lower but RAM usage is slightly
+ *    greater.
+ *
+ */
+#ifndef WEAVE_CONFIG_EAX_NO_PAD_CACHE
+#define WEAVE_CONFIG_EAX_NO_PAD_CACHE                       0
+#endif // WEAVE_CONFIG_EAX_NO_PAD_CACHE
+
+
+/**
+ *  @def WEAVE_CONFIG_EAX_NO_CHUNK
+ *
+ *  @brief
+ *    If enabled (1), this option makes the EAX implementation class
+ *    save 33 bytes of RAM, but prevents processing of messages by
+ *    chunks.
+ *
+ */
+#ifndef WEAVE_CONFIG_EAX_NO_CHUNK
+#define WEAVE_CONFIG_EAX_NO_CHUNK                           0
+#endif // WEAVE_CONFIG_EAX_NO_PAD_CACHE
+
+
+/**
+ *  @def WEAVE_CONFIG_AES128EAX64
+ *
+ *  @brief
+ *    If enabled (1), messages encrypted with AES-128-EAX (with 64-bit
+ *    authentication tags) will be supported.
+ *
+ */
+#ifndef WEAVE_CONFIG_AES128EAX64
+#define WEAVE_CONFIG_AES128EAX64                            1
+#endif // WEAVE_CONFIG_AES128EAX64
+
+
+/**
+ *  @def WEAVE_CONFIG_AES128EAX128
+ *
+ *  @brief
+ *    If enabled (1), messages encrypted with AES-128-EAX (with 128-bit
+ *    authentication tags) will be supported.
+ *
+ */
+#ifndef WEAVE_CONFIG_AES128EAX128
+#define WEAVE_CONFIG_AES128EAX128                           1
+#endif // WEAVE_CONFIG_AES128EAX128
+
+
+/**
  *  @name Weave SHA1 and SHA256 Hash Algorithms Implementation Configuration.
  *
  *  @brief

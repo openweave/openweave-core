@@ -160,8 +160,12 @@ typedef enum WeaveMessageFlags
 typedef enum WeaveEncryptionType
 {
     kWeaveEncryptionType_None                           = 0, /**< Message not encrypted. */
-    kWeaveEncryptionType_AES128CTRSHA1                  = 1  /**< Message encrypted using AES-128-CTR
+    kWeaveEncryptionType_AES128CTRSHA1                  = 1, /**< Message encrypted using AES-128-CTR
                                                                   encryption with HMAC-SHA-1 message integrity. */
+    kWeaveEncryptionType_AES128EAX64                    = 2, /**< Message encryption using AES-128-EAX
+                                                                  encryption with 64-bit authentication tags. */
+    kWeaveEncryptionType_AES128EAX128                   = 3, /**< Message encryption using AES-128-EAX
+                                                                  encryption with 128-bit authentication tags. */
 } WeaveEncryptionType;
 
 /**
@@ -741,6 +745,12 @@ private:
                                       const uint8_t *inData, uint16_t inLen, uint8_t *outBuf);
     static void ComputeIntegrityCheck_AES128CTRSHA1(const WeaveMessageInfo *msgInfo, const uint8_t *key,
                                                     const uint8_t *inData, uint16_t inLen, uint8_t *outBuf);
+#if WEAVE_CONFIG_AES128EAX64 || WEAVE_CONFIG_AES128EAX128
+    static void Encrypt_AES128EAX(const WeaveMessageInfo *msgInfo, const uint8_t *key,
+                                  const uint8_t *inData, uint16_t inLen, uint8_t *outBuf, uint16_t tagLen);
+    static bool Decrypt_AES128EAX(const WeaveMessageInfo *msgInfo, const uint8_t *key,
+                                  const uint8_t *inData, uint16_t inLen, uint8_t *outBuf, uint16_t tagLen);
+#endif  // WEAVE_CONFIG_AES128EAX64 || WEAVE_CONFIG_AES128EAX128
     static bool IsIgnoredMulticastSendError(WEAVE_ERROR err);
 
     static bool IsSendErrorNonCritical(WEAVE_ERROR err);
