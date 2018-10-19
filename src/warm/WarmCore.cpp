@@ -132,7 +132,9 @@ static const uint8_t kLegacy6LoWPANULAAddressPrefixLength = 64;
 
 static const uint8_t kTunnelAddressPrefixLength           = 128;
 
+#if !WARM_CONFIG_ENABLE_FABRIC_DEFAULT_ROUTING
 static const uint8_t kServiceULAAddressPrefixLength       = 64;
+#endif // !WARM_CONFIG_ENABLE_FABRIC_DEFAULT_ROUTING
 
 #endif // WARM_CONFIG_SUPPORT_WEAVE_TUNNEL
 
