@@ -39,8 +39,12 @@ case "${BUILD_TARGET}" in
         ./configure && make pretty-check
         ;;
 
-    linux-auto-clang|linux-auto-gcc)
+    linux-auto-clang)
         ./configure && make && make check
+        ;;
+
+    linux-auto-gcc)
+        ./configure --enable-coverage && make && make check
         ;;
 
     osx-auto-clang)
