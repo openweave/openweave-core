@@ -375,7 +375,7 @@ static void TestInetEndPoint(nlTestSuite *inSuite, void *inContext)
     err = testTCPEP1->GetPeerInfo(NULL, NULL);
     NL_TEST_ASSERT(inSuite, err == INET_ERROR_INCORRECT_STATE);
     buf = PacketBuffer::New();
-    err = testTCPEP1->Send(buf, NULL);
+    err = testTCPEP1->Send(buf, false);
     NL_TEST_ASSERT(inSuite, err == INET_ERROR_INCORRECT_STATE);
     err = testTCPEP1->EnableKeepAlive(10, 100);
     NL_TEST_ASSERT(inSuite, err == INET_ERROR_INCORRECT_STATE);
