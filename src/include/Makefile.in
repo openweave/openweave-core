@@ -865,6 +865,7 @@ nl_public_WeaveSupport_crypto_header_sources = \
 $(nl_public_WeaveSupport_source_dirstem)/crypto/AESBlockCipher.h \
 $(nl_public_WeaveSupport_source_dirstem)/crypto/CTRMode.h \
 $(nl_public_WeaveSupport_source_dirstem)/crypto/DRBG.h \
+$(nl_public_WeaveSupport_source_dirstem)/crypto/EAX.h \
 $(nl_public_WeaveSupport_source_dirstem)/crypto/EllipticCurve.h \
 $(nl_public_WeaveSupport_source_dirstem)/crypto/HKDF.h \
 $(nl_public_WeaveSupport_source_dirstem)/crypto/HMAC.h \

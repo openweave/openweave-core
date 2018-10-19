@@ -149,8 +149,8 @@ target_triplet = @target@
 @WEAVE_BUILD_TESTS_TRUE@	TestCrypto$(EXEEXT) TestDRBG$(EXEEXT) \
 @WEAVE_BUILD_TESTS_TRUE@	TestDeviceDescriptor$(EXEEXT) \
 @WEAVE_BUILD_TESTS_TRUE@	TestDNSResolution$(EXEEXT) \
-@WEAVE_BUILD_TESTS_TRUE@	TestECDH$(EXEEXT) TestECDSA$(EXEEXT) \
-@WEAVE_BUILD_TESTS_TRUE@	TestECMath$(EXEEXT) \
+@WEAVE_BUILD_TESTS_TRUE@	TestEAX$(EXEEXT) TestECDH$(EXEEXT) \
+@WEAVE_BUILD_TESTS_TRUE@	TestECDSA$(EXEEXT) TestECMath$(EXEEXT) \
 @WEAVE_BUILD_TESTS_TRUE@	TestEventLogging$(EXEEXT) \
 @WEAVE_BUILD_TESTS_TRUE@	TestFabricStateDelegate$(EXEEXT) \
 @WEAVE_BUILD_TESTS_TRUE@	TestInetAddress$(EXEEXT) \
@@ -716,8 +716,8 @@ am__installdirs = "$(DESTDIR)$(libexecdir)"
 @WEAVE_BUILD_TESTS_TRUE@	TestCrypto$(EXEEXT) TestDRBG$(EXEEXT) \
 @WEAVE_BUILD_TESTS_TRUE@	TestDeviceDescriptor$(EXEEXT) \
 @WEAVE_BUILD_TESTS_TRUE@	TestDNSResolution$(EXEEXT) \
-@WEAVE_BUILD_TESTS_TRUE@	TestECDH$(EXEEXT) TestECDSA$(EXEEXT) \
-@WEAVE_BUILD_TESTS_TRUE@	TestECMath$(EXEEXT) \
+@WEAVE_BUILD_TESTS_TRUE@	TestEAX$(EXEEXT) TestECDH$(EXEEXT) \
+@WEAVE_BUILD_TESTS_TRUE@	TestECDSA$(EXEEXT) TestECMath$(EXEEXT) \
 @WEAVE_BUILD_TESTS_TRUE@	TestFabricStateDelegate$(EXEEXT) \
 @WEAVE_BUILD_TESTS_TRUE@	TestInetAddress$(EXEEXT) \
 @WEAVE_BUILD_TESTS_TRUE@	TestInetBuffer$(EXEEXT) \
@@ -903,6 +903,10 @@ am__TestDeviceDescriptor_SOURCES_DIST = TestDeviceDescriptor.cpp
 TestDeviceDescriptor_OBJECTS = $(am_TestDeviceDescriptor_OBJECTS)
 @WEAVE_BUILD_TESTS_TRUE@TestDeviceDescriptor_DEPENDENCIES =  \
 @WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_6)
+am__TestEAX_SOURCES_DIST = TestEAX.cpp
+@WEAVE_BUILD_TESTS_TRUE@am_TestEAX_OBJECTS = TestEAX.$(OBJEXT)
+TestEAX_OBJECTS = $(am_TestEAX_OBJECTS)
+@WEAVE_BUILD_TESTS_TRUE@TestEAX_DEPENDENCIES = $(am__DEPENDENCIES_6)
 am__TestECDH_SOURCES_DIST = TestECDH.cpp
 @WEAVE_BUILD_TESTS_TRUE@am_TestECDH_OBJECTS = TestECDH.$(OBJEXT)
 TestECDH_OBJECTS = $(am_TestECDH_OBJECTS)
@@ -1770,16 +1774,17 @@ SOURCES = $(libMockBleApplicationDelegate_a_SOURCES) \
 	$(TestCodeUtils_SOURCES) $(TestCrypto_SOURCES) \
 	$(TestDNSResolution_SOURCES) $(TestDRBG_SOURCES) \
 	$(TestDataManagement_SOURCES) $(TestDeviceDescriptor_SOURCES) \
-	$(TestECDH_SOURCES) $(TestECDSA_SOURCES) $(TestECMath_SOURCES) \
-	$(TestErrorStr_SOURCES) $(TestEventLogging_SOURCES) \
-	$(TestFabricStateDelegate_SOURCES) $(TestInetAddress_SOURCES) \
-	$(TestInetBuffer_SOURCES) $(TestInetEndPoint_SOURCES) \
-	$(TestInetLayer_SOURCES) $(TestInetTimer_SOURCES) \
-	$(TestKeyExport_SOURCES) $(TestKeyIds_SOURCES) \
-	$(TestMsgEnc_SOURCES) $(TestNetworkInfo_SOURCES) \
-	$(TestPASE_SOURCES) $(TestPacketBuffer_SOURCES) \
-	$(TestPairingCodeUtils_SOURCES) $(TestPasscodeEnc_SOURCES) \
-	$(TestPathStore_SOURCES) $(TestPersistedCounter_SOURCES) \
+	$(TestEAX_SOURCES) $(TestECDH_SOURCES) $(TestECDSA_SOURCES) \
+	$(TestECMath_SOURCES) $(TestErrorStr_SOURCES) \
+	$(TestEventLogging_SOURCES) $(TestFabricStateDelegate_SOURCES) \
+	$(TestInetAddress_SOURCES) $(TestInetBuffer_SOURCES) \
+	$(TestInetEndPoint_SOURCES) $(TestInetLayer_SOURCES) \
+	$(TestInetTimer_SOURCES) $(TestKeyExport_SOURCES) \
+	$(TestKeyIds_SOURCES) $(TestMsgEnc_SOURCES) \
+	$(TestNetworkInfo_SOURCES) $(TestPASE_SOURCES) \
+	$(TestPacketBuffer_SOURCES) $(TestPairingCodeUtils_SOURCES) \
+	$(TestPasscodeEnc_SOURCES) $(TestPathStore_SOURCES) \
+	$(TestPersistedCounter_SOURCES) \
 	$(TestPersistedStorage_SOURCES) \
 	$(TestProfileStringSupport_SOURCES) $(TestProvHash_SOURCES) \
 	$(TestRADaemon_SOURCES) $(TestResourceIdentifier_SOURCES) \
@@ -1824,8 +1829,8 @@ DIST_SOURCES = $(am__libMockBleApplicationDelegate_a_SOURCES_DIST) \
 	$(am__TestDRBG_SOURCES_DIST) \
 	$(am__TestDataManagement_SOURCES_DIST) \
 	$(am__TestDeviceDescriptor_SOURCES_DIST) \
-	$(am__TestECDH_SOURCES_DIST) $(am__TestECDSA_SOURCES_DIST) \
-	$(am__TestECMath_SOURCES_DIST) \
+	$(am__TestEAX_SOURCES_DIST) $(am__TestECDH_SOURCES_DIST) \
+	$(am__TestECDSA_SOURCES_DIST) $(am__TestECMath_SOURCES_DIST) \
 	$(am__TestErrorStr_SOURCES_DIST) \
 	$(am__TestEventLogging_SOURCES_DIST) \
 	$(am__TestFabricStateDelegate_SOURCES_DIST) \
@@ -3008,8 +3013,9 @@ noinst_HEADERS = CASEOptions.h DMTestClient.h DeviceDescOptions.h \
 @WEAVE_BUILD_TESTS_TRUE@	TestASN1 TestAppKeys TestArgParser \
 @WEAVE_BUILD_TESTS_TRUE@	TestCASE TestCodeUtils TestCrypto \
 @WEAVE_BUILD_TESTS_TRUE@	TestDRBG TestDeviceDescriptor \
-@WEAVE_BUILD_TESTS_TRUE@	TestDNSResolution TestECDH TestECDSA \
-@WEAVE_BUILD_TESTS_TRUE@	TestECMath TestFabricStateDelegate \
+@WEAVE_BUILD_TESTS_TRUE@	TestDNSResolution TestEAX TestECDH \
+@WEAVE_BUILD_TESTS_TRUE@	TestECDSA TestECMath \
+@WEAVE_BUILD_TESTS_TRUE@	TestFabricStateDelegate \
 @WEAVE_BUILD_TESTS_TRUE@	TestInetAddress TestInetBuffer \
 @WEAVE_BUILD_TESTS_TRUE@	TestInetEndPoint TestInetTimer \
 @WEAVE_BUILD_TESTS_TRUE@	TestKeyExport TestKeyIds TestMsgEnc \
@@ -3118,6 +3124,8 @@ noinst_HEADERS = CASEOptions.h DMTestClient.h DeviceDescOptions.h \
 @WEAVE_BUILD_TESTS_TRUE@TestDataManagement_LDADD = libWeaveTestCommon.a $(COMMON_LDADD)
 @WEAVE_BUILD_TESTS_TRUE@TestDeviceDescriptor_SOURCES = TestDeviceDescriptor.cpp
 @WEAVE_BUILD_TESTS_TRUE@TestDeviceDescriptor_LDADD = $(COMMON_LDADD)
+@WEAVE_BUILD_TESTS_TRUE@TestEAX_SOURCES = TestEAX.cpp
+@WEAVE_BUILD_TESTS_TRUE@TestEAX_LDADD = $(COMMON_LDADD)
 @WEAVE_BUILD_TESTS_TRUE@TestECDH_SOURCES = TestECDH.cpp
 @WEAVE_BUILD_TESTS_TRUE@TestECDH_LDADD = $(COMMON_LDADD)
 @WEAVE_BUILD_TESTS_TRUE@TestECDSA_SOURCES = TestECDSA.cpp
@@ -3658,6 +3666,10 @@ TestDeviceDescriptor$(EXEEXT): $(TestDeviceDescriptor_OBJECTS) $(TestDeviceDescr
 	@rm -f TestDeviceDescriptor$(EXEEXT)
 	$(AM_V_CXXLD)$(CXXLINK) $(TestDeviceDescriptor_OBJECTS) $(TestDeviceDescriptor_LDADD) $(LIBS)
 
+TestEAX$(EXEEXT): $(TestEAX_OBJECTS) $(TestEAX_DEPENDENCIES) $(EXTRA_TestEAX_DEPENDENCIES) 
+	@rm -f TestEAX$(EXEEXT)
+	$(AM_V_CXXLD)$(CXXLINK) $(TestEAX_OBJECTS) $(TestEAX_LDADD) $(LIBS)
+
 TestECDH$(EXEEXT): $(TestECDH_OBJECTS) $(TestECDH_DEPENDENCIES) $(EXTRA_TestECDH_DEPENDENCIES) 
 	@rm -f TestECDH$(EXEEXT)
 	$(AM_V_CXXLD)$(CXXLINK) $(TestECDH_OBJECTS) $(TestECDH_LDADD) $(LIBS)
@@ -4117,6 +4129,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/TestDRBG.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/TestDataManagement.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/TestDeviceDescriptor.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/TestEAX.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/TestECDH.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/TestECDSA.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/TestECMath.Po@am__quote@
@@ -6153,6 +6166,13 @@ TestDeviceDescriptor.log: TestDeviceDescriptor$(EXEEXT)
 TestDNSResolution.log: TestDNSResolution$(EXEEXT)
 	@p='TestDNSResolution$(EXEEXT)'; \
 	b='TestDNSResolution'; \
+	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
+	--log-file $$b.log --trs-file $$b.trs \
+	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
+	"$$tst" $(AM_TESTS_FD_REDIRECT)
+TestEAX.log: TestEAX$(EXEEXT)
+	@p='TestEAX$(EXEEXT)'; \
+	b='TestEAX'; \
 	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
 	--log-file $$b.log --trs-file $$b.trs \
 	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
@@ -8507,11 +8527,11 @@ distclean-generic:
 maintainer-clean-generic:
 	@echo "This command is intended for maintainers to use"
 	@echo "it deletes files that may require special tools to rebuild."
+@WEAVE_BUILD_TESTS_FALSE@install-exec-local:
+@WEAVE_BUILD_TESTS_FALSE@uninstall-local:
 @WEAVE_BUILD_COVERAGE_FALSE@clean-local:
 @WEAVE_BUILD_COVERAGE_REPORTS_FALSE@clean-local:
 @WEAVE_BUILD_TESTS_FALSE@clean-local:
-@WEAVE_BUILD_TESTS_FALSE@uninstall-local:
-@WEAVE_BUILD_TESTS_FALSE@install-exec-local:
 clean: clean-recursive
 
 clean-am: clean-checkPROGRAMS clean-generic clean-libexecPROGRAMS \

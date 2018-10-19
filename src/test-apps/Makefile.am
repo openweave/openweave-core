@@ -309,6 +309,7 @@ check_PROGRAMS                                 = \
     TestDRBG                                     \
     TestDeviceDescriptor                         \
     TestDNSResolution                            \
+    TestEAX                                      \
     TestECDH                                     \
     TestECDSA                                    \
     TestECMath                                   \
@@ -419,6 +420,7 @@ local_test_programs                            = \
     TestDRBG                                     \
     TestDeviceDescriptor                         \
     TestDNSResolution                            \
+    TestEAX                                      \
     TestECDH                                     \
     TestECDSA                                    \
     TestECMath                                   \
@@ -1167,6 +1169,9 @@ TestDataManagement_LDADD                 = libWeaveTestCommon.a $(COMMON_LDADD)
 
 TestDeviceDescriptor_SOURCES             = TestDeviceDescriptor.cpp
 TestDeviceDescriptor_LDADD               = $(COMMON_LDADD)
+
+TestEAX_SOURCES                          = TestEAX.cpp
+TestEAX_LDADD                            = $(COMMON_LDADD)
 
 TestECDH_SOURCES                         = TestECDH.cpp
 TestECDH_LDADD                           = $(COMMON_LDADD)

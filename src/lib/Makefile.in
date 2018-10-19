@@ -486,6 +486,7 @@ am__libWeave_a_SOURCES_DIST =  \
 	@top_builddir@/src/lib/support/crypto/AESBlockCipher-AESNI.cpp \
 	@top_builddir@/src/lib/support/crypto/CTRMode.cpp \
 	@top_builddir@/src/lib/support/crypto/DRBG.cpp \
+	@top_builddir@/src/lib/support/crypto/EAX.cpp \
 	@top_builddir@/src/lib/support/crypto/EllipticCurve.cpp \
 	@top_builddir@/src/lib/support/crypto/EllipticCurve-OpenSSL.cpp \
 	@top_builddir@/src/lib/support/crypto/EllipticCurve-uECC.cpp \
@@ -686,6 +687,7 @@ am__objects_17 =  \
 	@top_builddir@/src/lib/support/crypto/libWeave_a-AESBlockCipher-AESNI.$(OBJEXT) \
 	@top_builddir@/src/lib/support/crypto/libWeave_a-CTRMode.$(OBJEXT) \
 	@top_builddir@/src/lib/support/crypto/libWeave_a-DRBG.$(OBJEXT) \
+	@top_builddir@/src/lib/support/crypto/libWeave_a-EAX.$(OBJEXT) \
 	@top_builddir@/src/lib/support/crypto/libWeave_a-EllipticCurve.$(OBJEXT) \
 	@top_builddir@/src/lib/support/crypto/libWeave_a-EllipticCurve-OpenSSL.$(OBJEXT) \
 	@top_builddir@/src/lib/support/crypto/libWeave_a-EllipticCurve-uECC.$(OBJEXT) \
@@ -1188,6 +1190,7 @@ nl_WeaveSupport_sources = @top_builddir@/src/lib/support/ASN1OID.cpp \
 	@top_builddir@/src/lib/support/crypto/AESBlockCipher-AESNI.cpp \
 	@top_builddir@/src/lib/support/crypto/CTRMode.cpp \
 	@top_builddir@/src/lib/support/crypto/DRBG.cpp \
+	@top_builddir@/src/lib/support/crypto/EAX.cpp \
 	@top_builddir@/src/lib/support/crypto/EllipticCurve.cpp \
 	@top_builddir@/src/lib/support/crypto/EllipticCurve-OpenSSL.cpp \
 	@top_builddir@/src/lib/support/crypto/EllipticCurve-uECC.cpp \
@@ -1662,6 +1665,9 @@ clean-libLIBRARIES:
 	@top_builddir@/src/lib/support/crypto/$(am__dirstamp) \
 	@top_builddir@/src/lib/support/crypto/$(DEPDIR)/$(am__dirstamp)
 @top_builddir@/src/lib/support/crypto/libWeave_a-DRBG.$(OBJEXT):  \
+	@top_builddir@/src/lib/support/crypto/$(am__dirstamp) \
+	@top_builddir@/src/lib/support/crypto/$(DEPDIR)/$(am__dirstamp)
+@top_builddir@/src/lib/support/crypto/libWeave_a-EAX.$(OBJEXT):  \
 	@top_builddir@/src/lib/support/crypto/$(am__dirstamp) \
 	@top_builddir@/src/lib/support/crypto/$(DEPDIR)/$(am__dirstamp)
 @top_builddir@/src/lib/support/crypto/libWeave_a-EllipticCurve.$(OBJEXT):  \
@@ -2289,6 +2295,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@@top_builddir@/src/lib/support/crypto/$(DEPDIR)/libWeave_a-AESBlockCipher-OpenSSL.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@@top_builddir@/src/lib/support/crypto/$(DEPDIR)/libWeave_a-CTRMode.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@@top_builddir@/src/lib/support/crypto/$(DEPDIR)/libWeave_a-DRBG.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@@top_builddir@/src/lib/support/crypto/$(DEPDIR)/libWeave_a-EAX.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@@top_builddir@/src/lib/support/crypto/$(DEPDIR)/libWeave_a-EllipticCurve-OpenSSL.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@@top_builddir@/src/lib/support/crypto/$(DEPDIR)/libWeave_a-EllipticCurve-uECC.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@@top_builddir@/src/lib/support/crypto/$(DEPDIR)/libWeave_a-EllipticCurve.Po@am__quote@
@@ -3380,6 +3387,20 @@ distclean-compile:
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='@top_builddir@/src/lib/support/crypto/DRBG.cpp' object='@top_builddir@/src/lib/support/crypto/libWeave_a-DRBG.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libWeave_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o @top_builddir@/src/lib/support/crypto/libWeave_a-DRBG.obj `if test -f '@top_builddir@/src/lib/support/crypto/DRBG.cpp'; then $(CYGPATH_W) '@top_builddir@/src/lib/support/crypto/DRBG.cpp'; else $(CYGPATH_W) '$(srcdir)/@top_builddir@/src/lib/support/crypto/DRBG.cpp'; fi`
+
+@top_builddir@/src/lib/support/crypto/libWeave_a-EAX.o: @top_builddir@/src/lib/support/crypto/EAX.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libWeave_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT @top_builddir@/src/lib/support/crypto/libWeave_a-EAX.o -MD -MP -MF @top_builddir@/src/lib/support/crypto/$(DEPDIR)/libWeave_a-EAX.Tpo -c -o @top_builddir@/src/lib/support/crypto/libWeave_a-EAX.o `test -f '@top_builddir@/src/lib/support/crypto/EAX.cpp' || echo '$(srcdir)/'`@top_builddir@/src/lib/support/crypto/EAX.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) @top_builddir@/src/lib/support/crypto/$(DEPDIR)/libWeave_a-EAX.Tpo @top_builddir@/src/lib/support/crypto/$(DEPDIR)/libWeave_a-EAX.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='@top_builddir@/src/lib/support/crypto/EAX.cpp' object='@top_builddir@/src/lib/support/crypto/libWeave_a-EAX.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libWeave_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o @top_builddir@/src/lib/support/crypto/libWeave_a-EAX.o `test -f '@top_builddir@/src/lib/support/crypto/EAX.cpp' || echo '$(srcdir)/'`@top_builddir@/src/lib/support/crypto/EAX.cpp
+
+@top_builddir@/src/lib/support/crypto/libWeave_a-EAX.obj: @top_builddir@/src/lib/support/crypto/EAX.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libWeave_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT @top_builddir@/src/lib/support/crypto/libWeave_a-EAX.obj -MD -MP -MF @top_builddir@/src/lib/support/crypto/$(DEPDIR)/libWeave_a-EAX.Tpo -c -o @top_builddir@/src/lib/support/crypto/libWeave_a-EAX.obj `if test -f '@top_builddir@/src/lib/support/crypto/EAX.cpp'; then $(CYGPATH_W) '@top_builddir@/src/lib/support/crypto/EAX.cpp'; else $(CYGPATH_W) '$(srcdir)/@top_builddir@/src/lib/support/crypto/EAX.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) @top_builddir@/src/lib/support/crypto/$(DEPDIR)/libWeave_a-EAX.Tpo @top_builddir@/src/lib/support/crypto/$(DEPDIR)/libWeave_a-EAX.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='@top_builddir@/src/lib/support/crypto/EAX.cpp' object='@top_builddir@/src/lib/support/crypto/libWeave_a-EAX.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libWeave_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o @top_builddir@/src/lib/support/crypto/libWeave_a-EAX.obj `if test -f '@top_builddir@/src/lib/support/crypto/EAX.cpp'; then $(CYGPATH_W) '@top_builddir@/src/lib/support/crypto/EAX.cpp'; else $(CYGPATH_W) '$(srcdir)/@top_builddir@/src/lib/support/crypto/EAX.cpp'; fi`
 
 @top_builddir@/src/lib/support/crypto/libWeave_a-EllipticCurve.o: @top_builddir@/src/lib/support/crypto/EllipticCurve.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libWeave_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT @top_builddir@/src/lib/support/crypto/libWeave_a-EllipticCurve.o -MD -MP -MF @top_builddir@/src/lib/support/crypto/$(DEPDIR)/libWeave_a-EllipticCurve.Tpo -c -o @top_builddir@/src/lib/support/crypto/libWeave_a-EllipticCurve.o `test -f '@top_builddir@/src/lib/support/crypto/EllipticCurve.cpp' || echo '$(srcdir)/'`@top_builddir@/src/lib/support/crypto/EllipticCurve.cpp

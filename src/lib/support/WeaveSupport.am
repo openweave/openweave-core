@@ -48,6 +48,7 @@ nl_WeaveSupport_sources                                                         
     @top_builddir@/src/lib/support/crypto/AESBlockCipher-AESNI.cpp                          \
     @top_builddir@/src/lib/support/crypto/CTRMode.cpp                                       \
     @top_builddir@/src/lib/support/crypto/DRBG.cpp                                          \
+    @top_builddir@/src/lib/support/crypto/EAX.cpp                                           \
     @top_builddir@/src/lib/support/crypto/EllipticCurve.cpp                                 \
     @top_builddir@/src/lib/support/crypto/EllipticCurve-OpenSSL.cpp                         \
     @top_builddir@/src/lib/support/crypto/EllipticCurve-uECC.cpp                            \
