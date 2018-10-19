@@ -1,5 +1,6 @@
 /*
  *
+ *    Copyright (c) 2018 Google LLC.
  *    Copyright (c) 2018 Nest Labs, Inc.
  *    All rights reserved.
  *
@@ -274,6 +275,13 @@ void WdmUpdateEncoderTest::VerifyDataList(nlTestSuite *inSuite, PacketBuffer *aB
             i < firstItemNotEncoded;
             i = mPathList.GetNextValidItem(i))
     {
+        DataElement::Parser       element;
+        TraitDataSink *           dataSink = NULL;
+        TraitDataHandle           handle;
+        PropertyPathHandle        pathHandle;
+        SchemaVersionRange        versionRange;
+        nl::Weave::TLV::TLVReader pathReader;
+
         count++;
 
         mPathList.GetItemAt(i, tp);
@@ -281,19 +289,12 @@ void WdmUpdateEncoderTest::VerifyDataList(nlTestSuite *inSuite, PacketBuffer *aB
         err = dataListReader.Next();
         NL_TEST_ASSERT(inSuite, err == WEAVE_NO_ERROR);
 
-        DataElement::Parser element;
         err = element.Init(dataListReader);
         NL_TEST_ASSERT(inSuite, err == WEAVE_NO_ERROR);
-
-        nl::Weave::TLV::TLVReader pathReader;
 
         err = element.GetReaderOnPath(&pathReader);
         NL_TEST_ASSERT(inSuite, err == WEAVE_NO_ERROR);
 
-        TraitDataSink * dataSink;
-        TraitDataHandle handle;
-        PropertyPathHandle pathHandle;
-        SchemaVersionRange versionRange;
 
         err = mSinkCatalog.AddressToHandle(pathReader, handle, versionRange);
         NL_TEST_ASSERT(inSuite, err == WEAVE_NO_ERROR);
@@ -302,6 +303,7 @@ void WdmUpdateEncoderTest::VerifyDataList(nlTestSuite *inSuite, PacketBuffer *aB
 
         err = mSinkCatalog.Locate(handle, &dataSink);
         NL_TEST_ASSERT(inSuite, err == WEAVE_NO_ERROR);
+        NL_TEST_ASSERT(inSuite, dataSink != NULL);
 
         err = dataSink->GetSchemaEngine()->MapPathToHandle(pathReader, pathHandle);
         NL_TEST_ASSERT(inSuite, err == WEAVE_NO_ERROR);
