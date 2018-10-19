@@ -1225,7 +1225,7 @@ $(distdir)/.dist-version: $(builddir)/.local-version force
 $(distdir)/.dist-version $(builddir)/.local-version:
 	$(call check-file,$(@F))
 
-dist distcheck distdir install-headers: $(BUILT_SOURCES)
+all-recursive check-recursive coverage-recursive install-recursive pretty-recursive pretty-check-recursive dist distcheck distdir install-headers: $(BUILT_SOURCES)
 
 dist-hook: $(distdir)/.dist-version
 
