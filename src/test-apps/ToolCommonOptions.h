@@ -37,7 +37,7 @@ namespace nl {
 namespace Weave {
 namespace Profiles {
 namespace ServiceDirectory {
-class ServiceConnectBeginArgs;
+struct ServiceConnectBeginArgs;
 }; // ServiceDirectory
 }; // Profiles
 }; // Weave
