@@ -497,7 +497,7 @@ EAX::payload_process(bool encrypt, uint8_t *data, size_t len)
         }
     }
 
-#else
+#else  // WEAVE_CONFIG_EAX_NO_CHUNK
 
     uint8_t tmp[kBlockLength];
 
@@ -850,7 +850,7 @@ EAX::GetTag(uint8_t *tag, size_t tagLen)
     } else {
         VerifyOrDie(state == ST_TAG);
     }
-#endif
+#endif  // WEAVE_CONFIG_EAX_NO_CHUNK
 
     /* At that point, the tag is in acc[] and state is ST_TAG. */
     memcpy(tag, acc, tagLen);
