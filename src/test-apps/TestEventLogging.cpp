@@ -2033,7 +2033,7 @@ static void CheckGapDetection(nlTestSuite *inSuite, void *inContext)
     event_id_t eventId_A = nl::Weave::Profiles::DataManagement::LogEvent(testSchema, nl::SerializedDataToTLVWriterHelper, (void *)&appData);
     event_id_t eventId_B = nl::Weave::Profiles::DataManagement::LogEvent(testSchema, nl::SerializedDataToTLVWriterHelper, (void *)&appData);
 
-    (void)eventId_B;
+    IgnoreUnusedVariable(eventId_B);
 
     // Arrange testReader with all events from the start
     err = FetchEventsHelper(testReader, eventId_A, backingStore, sizeof(backingStore));
@@ -2052,7 +2052,7 @@ static void CheckGapDetection(nlTestSuite *inSuite, void *inContext)
     event_id_t eventId_C = nl::Weave::Profiles::DataManagement::LogEvent(testSchema, nl::SerializedDataToTLVWriterHelper, (void *)&appData);
     event_id_t eventId_D = nl::Weave::Profiles::DataManagement::LogEvent(testSchema, nl::SerializedDataToTLVWriterHelper, (void *)&appData);
 
-    (void)eventId_C;
+    IgnoreUnusedVariable(eventId_C);
 
     // Arrange testReader skipping eventId_C
     err = FetchEventsHelper(testReader, eventId_D, backingStore, sizeof(backingStore));
@@ -2115,8 +2115,8 @@ static void CheckDropOverlap(nlTestSuite *inSuite, void *inContext)
     event_id_t eventId_C = nl::Weave::Profiles::DataManagement::LogEvent(testSchema, nl::SerializedDataToTLVWriterHelper, (void *)&appData);
     event_id_t eventId_D = nl::Weave::Profiles::DataManagement::LogEvent(testSchema, nl::SerializedDataToTLVWriterHelper, (void *)&appData);
 
-    (void)eventId_C;
-    (void)eventId_D;
+    IgnoreUnusedVariable(eventId_C);
+    IgnoreUnusedVariable(eventId_D);
 
     // Arrange testReader overlapping eventId_B
     err = FetchEventsHelper(testReader, eventId_B, backingStore, sizeof(backingStore));
