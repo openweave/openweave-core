@@ -72,7 +72,6 @@ static void HandleTransferTimeout(System::Layer* aSystemLayer, void* aAppState, 
 static WEAVE_ERROR PrepareBinding();
 static void HandleBindingEvent(void *const ctx, const Binding::EventType event, const Binding::InEventParam &inParam, Binding::OutEventParam &outParam);
 
-typedef BdxNode BdxClient;
 BdxClient BDXClient;
 BdxAppState * appState;
 
