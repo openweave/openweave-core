@@ -1,5 +1,6 @@
 /*
  *
+ *    Copyright (c) 2018 Google LLC.
  *    Copyright (c) 2013-2017 Nest Labs, Inc.
  *    All rights reserved.
  *
@@ -489,7 +490,7 @@ static const nlTest sTests[] = {
     NL_TEST_DEF("Test ResourceIdentifier -- string conversions", CheckStringSerDes),
     NL_TEST_DEF("Test ResourceIdentifier -- TLV conversions", CheckTLVSerDes),
     NL_TEST_DEF("Test ResourceIdentifier -- erroneous TLV", CheckTLVDecodingErrors),
-    NULL,
+    NL_TEST_SENTINEL(),
 };
 
 /**
