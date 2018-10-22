@@ -376,7 +376,6 @@ private:
 
     bool IsInitiator() { return mConfig == kConfig_Initiator; }
     bool IsCounterSubscriber() { return mConfig == kConfig_CounterSubscriber; }
-    bool ShouldBind();
     bool ShouldSubscribe() { return mConfig > kConfig_Down; }
 
     ClientConfig mConfig;
@@ -520,7 +519,7 @@ private:
     static void CheckForSinksWithDataLossIteratorCb(void * aDataSink, TraitDataHandle aDataHandle, void * aContext);
 
     // Methods to fail everything and notify the application
-    void ClearPathStore(TraitPathStore &aPathStore, WEAVE_ERROR aErr);
+    void PurgeAndNotifyFailedPaths(WEAVE_ERROR aErr, TraitPathStore &aPathStore, size_t &aCount);
 
     // Methods to manage the pending set and in-progress list
     enum PendingSetState {

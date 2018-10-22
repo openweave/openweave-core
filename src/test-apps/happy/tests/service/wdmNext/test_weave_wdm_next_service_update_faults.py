@@ -239,6 +239,8 @@ class test_weave_wdm_next_service_update_faults(weave_wdm_next_test_service_base
                     # Note that there is only one of these instead of 5 (4 paths in one trait and 1 in the other)
                     # because the application discards the paths at the first error.
                     ("Update: path failed: Weave Error 4099: Message not acknowledged", 1),
+                    # Also, AbortUpdates sees all 5 paths to discard because the one triggering the notification
+                    # would have been retried.
                     ("Discarded 0 pending  and 5 inProgress paths", 1),
                     # The update is not retried
                     ('Update: path result: success', 0),
@@ -259,7 +261,9 @@ class test_weave_wdm_next_service_update_faults(weave_wdm_next_test_service_base
                         # Note that there is one of these instead of 5 (4 paths in one trait and 1 in the other)
                         # because the application discards the paths at the first error.
                         ("Update: path failed: Weave Error 4044: Status Report received from peer, \[ WDM\(0000000B\):37 \]", 1),
-                        ("Discarded 0 pending  and 5 inProgress paths", 1),
+                        # Also, AbortUpdates only sees 4 paths to discard because the one triggering the notification
+                        # has been deleted already (it was not going to be retried).
+                        ("Discarded 0 pending  and 4 inProgress paths", 1),
                         # The update is not retried
                         ('Update: path result: success', 0),
                         # when resubscribing, the notification does not trigger PotentialDataLoss:
@@ -272,7 +276,9 @@ class test_weave_wdm_next_service_update_faults(weave_wdm_next_test_service_base
                 client_log_check = [
                         # Like above, only the first trait is conditional and fails...
                         ("Update: path failed: Weave Error 4044: Status Report received from peer, \[ WDM\(0000000B\):37 \]", 1),
-                        ("Discarded 0 pending  and 5 inProgress paths", 1),
+                        # Also, AbortUpdates only sees 4 paths to discard because the one triggering the notification
+                        # has been deleted already (it was not going to be retried).
+                        ("Discarded 0 pending  and 4 inProgress paths", 1),
                         # ... but the application calls DiscardUpdates, and so it does not get notified of the success either.
                         ('Update: path result: success', 0),
                         # No resubscription from the UpdateResponse handler
@@ -539,10 +545,7 @@ if __name__ == "__main__":
     --conditionality { """ + """, """.join(gConditionalities) + """ } (default: all of them)
     """
 
-    help_str += gFaultopts.help_string
-
     longopts = ["help", "conditionality=", "scenario="]
-    longopts.extend(gFaultopts.getopt_config)
 
     try:
         opts, args = getopt.getopt(sys.argv[1:], "h", longopts)
@@ -551,8 +554,6 @@ if __name__ == "__main__":
         print help_str
         print hred(str(err))
         sys.exit(hred("%s: Failed to parse arguments." % (__file__)))
-
-    opts = gFaultopts.process_opts(opts)
 
     for o, a in opts:
         if o in ("-h", "--help"):

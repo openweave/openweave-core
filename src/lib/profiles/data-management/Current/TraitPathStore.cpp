@@ -227,6 +227,19 @@ bool TraitPathStore::IsTraitPresent(TraitDataHandle aDataHandle) const
 }
 
 /**
+ * Mark all TraitPaths as failed.
+ */
+void TraitPathStore::SetFailed()
+{
+    for (size_t i = GetFirstValidItem();
+            i < mStoreSize;
+            i = GetNextValidItem(i))
+    {
+        SetFailed(i);
+    }
+}
+
+/**
  * Mark all TraitPaths referring to the given TraitDataHandle as failed.
  *
  * @param aDataHandle   The TraitDataHandle to look for.
