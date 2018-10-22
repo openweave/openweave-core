@@ -38,6 +38,7 @@
 #include <Weave/Support/logging/WeaveLogging.h>
 #include <Weave/Support/CodeUtils.h>
 #include <Weave/Support/FlagUtils.hpp>
+#include <Weave/Support/WeaveFaultInjection.h>
 
 #include <BleLayer/BLEEndPoint.h>
 #include <BleLayer/BleLayer.h>
@@ -764,6 +765,17 @@ BLE_ERROR BLEEndPoint::SendNextMessage()
     data = NULL; // Ownership passed to fragmenter's tx buf on PrepareNextFragment success.
 
     // Send first message fragment over the air.
+    WEAVE_FAULT_INJECT(nl::Weave::FaultInjection::kFault_WOBLESend,
+            {
+                if (mRole == kBleRole_Central)
+                {
+                    err = BLE_ERROR_GATT_WRITE_FAILED;
+                } else {
+                    err = BLE_ERROR_GATT_INDICATE_FAILED;
+                }
+                ExitNow();
+            }
+            );
     err = SendCharacteristic(mWoBle.TxPacket());
     SuccessOrExit(err);
 
