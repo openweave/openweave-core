@@ -56,7 +56,7 @@ class WeaveDeviceManagerConsole(object):
     def __del__(self):
         self.close()
 
-    def chat(self, cmd, timeout=chatTimeout, interrupt_on_timeout=False, force=False, expect=None):
+    def chat(self, cmd, timeout=chatTimeout, interrupt_on_timeout=False, force=True, expect=None):
         self.app.send(cmd)
         if not force:
             self.app.expect_exact(cmd, timeout=2)
