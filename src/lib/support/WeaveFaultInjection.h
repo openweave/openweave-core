@@ -92,6 +92,9 @@ typedef enum
     kFault_TunnelQueueFull,                     /**< Trigger a WEAVE_ERROR_TUNNEL_SERVICE_QUEUE_FULL when enqueueing a packet in the Tunnel queue */
     kFault_TunnelPacketDropByPolicy,            /**< Trigger an explicit drop of the packet as if done by an application policy */
 #endif // WEAVE_CONFIG_ENABLE_TUNNELING
+#if CONFIG_NETWORK_LAYER_BLE
+    kFault_WOBLESend,                           /**< Inject a GATT error when sending the first fragment of a Weave message over BLE */
+#endif // CONFIG_NETWORK_LAYER_BLE
     kFault_NumItems,
 } Id;
 
