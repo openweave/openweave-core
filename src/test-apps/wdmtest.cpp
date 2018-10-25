@@ -1,5 +1,6 @@
 /*
  *
+ *    Copyright (c) 2018 Google LLC.
  *    Copyright (c) 2013-2017 Nest Labs, Inc.
  *    All rights reserved.
  *
@@ -274,7 +275,7 @@ ReferencedTLVData DataList;
  * a sub-class of the WDM client and supply the relevant methods as follows.
  */
 
-class WDMTestClient :
+class WDMTestClient __FINAL :
     public DMClient
 {
     WEAVE_ERROR ViewConfirm(const uint64_t &aResponderId, StatusReport &aStatus, uint16_t aTxnId)
@@ -510,9 +511,12 @@ class WDMTestClient :
         return err;
     }
 
-    void IncompleteIndication(const uint64_t &aPeerNodeId, StatusReport &aReport)
+    virtual void IncompleteIndication(const uint64_t &aPeerNodeId, StatusReport &aReport)
     {
+        return;
     }
+
+    using DMClient::IncompleteIndication;
 
 };
 
