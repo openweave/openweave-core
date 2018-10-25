@@ -293,35 +293,29 @@ PROSPECTIVE_CXXFLAGS=""
 PROSPECTIVE_OBJCFLAGS="-fobjc-call-cxx-cdtors -fobjc-arc"
 PROSPECTIVE_OBJCXXFLAGS=""
 
-# Xcode 8.3 introduced a new, default warning -Wnonportable-include-path that warns
-# about include paths that can be problematic on Mac OS X's case-preserving but case-
-# insensitive file systems. This creates false positives for Weave when compiling
-# the Weave Addressing and Routing Module (WARM) in which source directories (e.g. 
-# src/warm/...) and public include directories (e.g. src/include/Warm/...) have identical,
-# and consequently ambiguous, naming on case-insensitive file systems.
+# Suppress clang-specific warnings about -Wnonportable-include-path.
 #
-# When support for -Wnonportable-include-path is detected, disable the warning by
-# asserting -Wno-nonportable-include-path.
+# -Wnonportable-include-path warns about include paths that can be
+# problematic. This creates false positives for Weave when compiling
+# the Weave Addressing and Routing Module (WARM) in which source
+# directories (e.g. src/warm/...) and public include directories
+# (e.g. src/include/Warm/...) have identical, and consequently
+# ambiguous, naming on case-insensitive file systems.
 
-case "${nl_filtered_build}" in
+case "`basename ${CC}`" in
 
-    *-apple-darwin)
-        case "${nl_filtered_target}" in
-        
-            *-apple-darwin)
-                AX_CHECK_COMPILER_OPTIONS([C],   MAYBE_WNONPORTABLE_INCLUDE_PATH_CFLAG,   -Wnonportable-include-path)
-                AX_CHECK_COMPILER_OPTIONS([C++], MAYBE_WNONPORTABLE_INCLUDE_PATH_CXXFLAG, -Wnonportable-include-path)
-                
-                if test ${MAYBE_WNONPORTABLE_INCLUDE_PATH_CFLAG} = "-Wnonportable-include-path"; then
-                    AX_CHECK_COMPILER_OPTIONS([C],   -Wno-nonportable-include-path)
-                fi
-
-                if test ${MAYBE_WNONPORTABLE_INCLUDE_PATH_CXXFLAG} = "-Wnonportable-include-path"; then
-                    AX_CHECK_COMPILER_OPTIONS([C++], -Wno-nonportable-include-path)                    
-                fi
-                ;;
-        esac
+    *clang)
+        AX_CHECK_COMPILER_OPTIONS([C],   -Wno-nonportable-include-path)
         ;;
+
+esac
+
+case "`basename ${CXX}`" in
+
+    *clang++)
+        AX_CHECK_COMPILER_OPTIONS([C++], -Wno-nonportable-include-path)
+        ;;
+
 esac
 
 # For the flags that are desired for the "unix" target style, add
