@@ -1,5 +1,6 @@
 /*
  *
+ *    Copyright (c) 2018 Google LLC.
  *    Copyright (c) 2016-2017 Nest Labs, Inc.
  *    All rights reserved.
  *
@@ -101,23 +102,6 @@ public:
 };
 
 static WdmInitiatorState gInitiatorState;
-
-static void TLVPrettyPrinter(const char *aFormat, ...)
-{
-    va_list args;
-
-    va_start(args, aFormat);
-
-    // There is no proper Weave logging routine for us to use here
-    vprintf(aFormat, args);
-
-    va_end(args);
-}
-
-static WEAVE_ERROR DebugPrettyPrint(nl::Weave::TLV::TLVReader & aReader)
-{
-    return nl::Weave::TLV::Debug::Dump(aReader, TLVPrettyPrinter);
-}
 
 namespace nl {
 namespace Weave {

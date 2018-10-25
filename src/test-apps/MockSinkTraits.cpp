@@ -1,5 +1,6 @@
 /*
  *
+ *    Copyright (c) 2018 Google LLC.
  *    Copyright (c) 2016-2017 Nest Labs, Inc.
  *    All rights reserved.
  *
@@ -520,7 +521,9 @@ TestATraitDataSink::SetData(PropertyPathHandle aHandle, TLVReader &aReader, bool
         }
     }
 
+#if TDM_DISABLE_STRICT_SCHEMA_COMPLIANCE == 0
 exit:
+#endif
     return err;
 }
 
@@ -2121,7 +2124,10 @@ TestATraitUpdatableDataSink::SetData(PropertyPathHandle aHandle, TLVReader &aRea
             aHandle = mSchemaEngine->GetParent(aHandle);
         }
     }
-    exit:
+
+#if TDM_DISABLE_STRICT_SCHEMA_COMPLIANCE == 0
+exit:
+#endif
     return err;
 }
 

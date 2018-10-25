@@ -386,7 +386,7 @@ namespace WeaveMakeManagedNamespaceIdentifier(DataManagement, kWeaveManagedNames
                            const uint64_t &aTag,
                            uint32_t aProfileId,
                            const uint64_t &aInstanceId,
-                           uint16_t aPathLen,
+                           uint32_t aPathLen,
                            ...);
 
     WEAVE_ERROR EncodePath(nl::Weave::TLV::TLVWriter &aWriter,
@@ -394,14 +394,14 @@ namespace WeaveMakeManagedNamespaceIdentifier(DataManagement, kWeaveManagedNames
                            uint32_t aProfileId,
                            const uint32_t aInstanceIdLen,
                            const uint8_t *aInstanceId,
-                           uint16_t aPathLen,
+                           uint32_t aPathLen,
                            ...);
 
     WEAVE_ERROR EncodePath(nl::Weave::TLV::TLVWriter &aWriter,
                            const uint64_t &aTag,
                            uint32_t aProfileId,
                            const char *aInstanceId,
-                           uint16_t aPathLen,
+                           uint32_t aPathLen,
                            ...);
 
     /*
@@ -414,14 +414,14 @@ namespace WeaveMakeManagedNamespaceIdentifier(DataManagement, kWeaveManagedNames
                                      const uint64_t &aTag,
                                      uint32_t aProfileId,
                                      const uint64_t &aInstanceId,
-                                     uint16_t aPathLen,
+                                     uint32_t aPathLen,
                                      ...);
 
     WEAVE_ERROR EncodeDeprecatedPath(nl::Weave::TLV::TLVWriter &aWriter,
                                      const uint64_t &aTag,
                                      uint32_t aProfileId,
                                      const char *aInstanceId,
-                                     uint16_t aPathLen,
+                                     uint32_t aPathLen,
                                      ...);
 
     /**

@@ -1,5 +1,6 @@
 /*
  *
+ *    Copyright (c) 2018 Google LLC.
  *    Copyright (c) 2013-2017 Nest Labs, Inc.
  *    All rights reserved.
  *
@@ -84,8 +85,8 @@ uint16_t DestPort; // only used for UDP
 InterfaceId DestIntf = INET_NULL_INTERFACEID; // only used for UDP
 uint64_t LastEchoTime = 0;
 bool WaitingForEchoResp = false;
-uint64_t EchoCount = 0;
-uint64_t EchoRespCount = 0;
+int64_t EchoCount = 0;
+int64_t EchoRespCount = 0;
 WeaveEchoClient EchoClient;
 WeaveEchoServer EchoServer;
 WeaveConnection *Con = NULL;
@@ -577,7 +578,7 @@ void DriveSending()
         }
     }
 
-    if (MaxEchoCount != -1 && EchoCount >= (uint64_t) MaxEchoCount)
+    if (MaxEchoCount != -1 && EchoCount >= MaxEchoCount)
     {
         if (Con != NULL)
         {
@@ -620,7 +621,7 @@ void DriveSending()
     }
 
     char *p = (char *) payloadBuf->Start();
-    int32_t len = sprintf(p, "Echo Message %" PRIu64 "\n", EchoCount);
+    int32_t len = sprintf(p, "Echo Message %" PRIi64 "\n", EchoCount);
 
     if (EchoLength > payloadBuf->MaxDataLength())
         EchoLength = payloadBuf->MaxDataLength();
@@ -717,7 +718,7 @@ void HandleEchoResponseReceived(uint64_t nodeId, IPAddress nodeAddr, PacketBuffe
     char ipAddrStr[64];
     nodeAddr.ToString(ipAddrStr, sizeof(ipAddrStr));
 
-    printf("Echo Response from node %" PRIX64 " (%s): %" PRIu64 "/%" PRIu64 "(%.2f%%) len=%u time=%.3fms\n", nodeId, ipAddrStr,
+    printf("Echo Response from node %" PRIX64 " (%s): %" PRIi64 "/%" PRIi64 "(%.2f%%) len=%u time=%.3fms\n", nodeId, ipAddrStr,
             EchoRespCount, EchoCount, ((double) EchoRespCount) * 100 / EchoCount, payload->DataLength(),
             ((double) transitTime) / 1000);
 
