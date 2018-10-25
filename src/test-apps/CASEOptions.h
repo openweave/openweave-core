@@ -71,7 +71,7 @@ private:
     WEAVE_ERROR GetNodeCert(const uint8_t *& nodeCert, uint16_t & nodeCertLen);
     WEAVE_ERROR GetNodePrivateKey(const uint8_t *& weavePrivKey, uint16_t& weavePrivKeyLen);
 
-    virtual bool HandleOption(const char *progName, OptionSet *optSet, int id, const char *name, const char *arg);
+    virtual bool HandleOption(const char *progName, OptionSet *optSet, int id, const char *name, const char *arg) __OVERRIDE;
 
     static bool ReadCertFile(const char *fileName, uint8_t *& certBuf, uint16_t& certLen);
     static bool ReadPrivateKeyFile(const char *fileName, uint8_t *& keyBuf, uint16_t& keyLen);
@@ -85,13 +85,13 @@ private:
                 const uint8_t * msgHash, uint8_t msgHashLen,
                 TLVWriter & writer, uint64_t tag) __OVERRIDE;
     WEAVE_ERROR EncodeNodePayload(const BeginSessionContext & msgCtx,
-            uint8_t * payloadBuf, uint16_t payloadBufSize, uint16_t & payloadLen);
+            uint8_t * payloadBuf, uint16_t payloadBufSize, uint16_t & payloadLen) __OVERRIDE;
     WEAVE_ERROR BeginValidation(const BeginSessionContext & msgCtx, ValidationContext & validCtx,
-            WeaveCertificateSet & certSet);
+            WeaveCertificateSet & certSet) __OVERRIDE;
     WEAVE_ERROR HandleValidationResult(const BeginSessionContext & msgCtx, ValidationContext & validCtx,
-            WeaveCertificateSet & certSet, WEAVE_ERROR & validRes);
+            WeaveCertificateSet & certSet, WEAVE_ERROR & validRes) __OVERRIDE;
     void EndValidation(const BeginSessionContext & msgCtx, ValidationContext & validCtx,
-            WeaveCertificateSet & certSet);
+            WeaveCertificateSet & certSet) __OVERRIDE;
 
 #else // !WEAVE_CONFIG_LEGACY_CASE_AUTH_DELEGATE
 
