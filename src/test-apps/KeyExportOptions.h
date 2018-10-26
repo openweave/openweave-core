@@ -48,7 +48,7 @@ public:
 
     KeyExportOptions();
 
-    virtual bool HandleOption(const char *progName, OptionSet *optSet, int id, const char *name, const char *arg);
+    virtual bool HandleOption(const char *progName, OptionSet *optSet, int id, const char *name, const char *arg) __OVERRIDE;
 
 private:
 
