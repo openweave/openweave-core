@@ -266,8 +266,6 @@ public:
         NotifyRequestBuilderState mState;
         PacketBuffer * mBuf;
         SubscriptionHandler * mSub;
-        uint32_t mMaxNotificationSize;
-        uint32_t mMaxBufPayloadSize;
         uint32_t mMaxPayloadSize;
     };
 

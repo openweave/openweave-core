@@ -1,5 +1,6 @@
 /*
  *
+ *    Copyright (c) 2018 Google LLC.
  *    Copyright (c) 2016-2017 Nest Labs, Inc.
  *    All rights reserved.
  *
@@ -127,9 +128,6 @@ public:
 private:
     SubscriptionClient *mpSubClient;
     TraitDataHandle mTraitDataHandle;
-    bool mFilterPendingUpdate;
-    bool mFilterDispatchedUpdate;
-    DataVersion mLatestVersion;
     const TraitSchemaEngine *mSchemaEngine;
 };
 
