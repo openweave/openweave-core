@@ -182,7 +182,7 @@ WEAVE_ERROR GenericPlatformManagerImpl_FreeRTOS<ImplClass>::_StartEventLoopTask(
                 WEAVE_DEVICE_CONFIG_WEAVE_TASK_NAME,
                 WEAVE_DEVICE_CONFIG_WEAVE_TASK_STACK_SIZE,
                 this,
-                ESP_TASK_PRIO_MIN + WEAVE_DEVICE_CONFIG_WEAVE_TASK_PRIORITY,
+                WEAVE_DEVICE_CONFIG_WEAVE_TASK_PRIORITY,
                 NULL);
 
     return (res == pdPASS) ? WEAVE_NO_ERROR : WEAVE_ERROR_NO_MEMORY;

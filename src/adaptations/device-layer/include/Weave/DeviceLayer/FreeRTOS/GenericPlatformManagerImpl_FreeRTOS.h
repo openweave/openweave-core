@@ -28,6 +28,11 @@
 
 #include <Weave/DeviceLayer/internal/GenericPlatformManagerImpl.h>
 
+#include "FreeRTOS.h"
+#include "task.h"
+#include "semphr.h"
+#include "queue.h"
+
 namespace nl {
 namespace Weave {
 namespace DeviceLayer {

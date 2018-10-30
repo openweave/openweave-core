@@ -546,7 +546,6 @@ WEAVE_ERROR GenericConfigurationManagerImpl<ImplClass>::_GetDeviceDescriptorTLV(
         encodedLen = tmp;
     }
 
-
 exit:
     return err;
 }
