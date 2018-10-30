@@ -22,6 +22,8 @@
 #include <Weave/Profiles/weave-tunneling/WeaveTunnelAgent.h>
 #include <new>
 
+#if WEAVE_CONFIG_ENABLE_TUNNELING
+
 using namespace ::nl;
 using namespace ::nl::Weave;
 using namespace ::nl::Weave::Profiles::WeaveTunnel;
@@ -96,15 +98,4 @@ exit:
 } // namespace Weave
 } // namespace nl
 
-
-namespace nl {
-namespace Weave {
-namespace Profiles {
-namespace WeaveTunnel {
-namespace Platform {
-
-} // namespace Platform
-} // namespace WeaveTunnel
-} // namespace Profiles
-} // namespace Weave
-} // namespace nl
+#endif // WEAVE_CONFIG_ENABLE_TUNNELING
