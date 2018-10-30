@@ -15,7 +15,6 @@ def config =
     repository : "platform/weave" ,
     platform : "linux" ,
     buildType : "CI" ,
-    vcsURL : "github.com" ,
     targets :
     [
 
