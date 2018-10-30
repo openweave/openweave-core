@@ -19,15 +19,13 @@
 /**
  *    @file
  *          Provides an implementation of the Weave Group Key Store interface
- *          for the ESP32 platform.
+ *          for nRF5* platforms using the Nordic SDK.
  */
 
 #include <Weave/DeviceLayer/internal/WeaveDeviceLayerInternal.h>
 #include <Weave/Core/WeaveKeyIds.h>
 #include <Weave/Profiles/security/WeaveApplicationKeys.h>
-#include <Weave/DeviceLayer/ESP32/ESP32Config.h>
-
-#include "nvs.h"
+#include <Weave/DeviceLayer/nRF5/NRF5Config.h>
 
 namespace nl {
 namespace Weave {
@@ -35,11 +33,11 @@ namespace DeviceLayer {
 namespace Internal {
 
 /**
- * An implementation of the Weave GroupKeyStoreBase API for the ESP32.
+ * An implementation of the Weave GroupKeyStoreBase API using the Nordic FDS API.
  */
 class GroupKeyStoreImpl final
         : public ::nl::Weave::Profiles::Security::AppKeys::GroupKeyStoreBase,
-          private ESP32Config
+          private NRF5Config
 {
     using WeaveGroupKey = ::nl::Weave::Profiles::Security::AppKeys::WeaveGroupKey;
 
@@ -65,14 +63,6 @@ public:
 
 private:
 
-    uint32_t mKeyIndex[kMaxGroupKeys];
-    uint8_t mNumKeys;
-
-    WEAVE_ERROR AddKeyToIndex(uint32_t keyId, bool & indexUpdated);
-    WEAVE_ERROR WriteKeyIndex(nvs_handle handle);
-    WEAVE_ERROR DeleteKeyOrKeys(uint32_t targetKeyId, uint32_t targetKeyType);
-
-    static WEAVE_ERROR FormKeyName(uint32_t keyId, char * buf, size_t bufSize);
 };
 
 } // namespace Internal

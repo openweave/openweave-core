@@ -16,28 +16,42 @@
  *    limitations under the License.
  */
 
-#ifndef TUNNEL_AGENT_H
-#define TUNNEL_AGENT_H
+/**
+ *    @file
+ *          Defines platform-specific event types and data for the
+ *          Weave Device Layer on nRF5* platforms using the Nordic SDK.
+ */
 
-#include <Weave/DeviceLayer/internal/WeaveDeviceLayerInternal.h>
-#include <Weave/Profiles/weave-tunneling/WeaveTunnelAgent.h>
+#ifndef WEAVE_DEVICE_PLATFORM_EVENT_H
+#define WEAVE_DEVICE_PLATFORM_EVENT_H
 
-#if WEAVE_CONFIG_ENABLE_TUNNELING
+#include <Weave/DeviceLayer/WeaveDeviceEvent.h>
 
 namespace nl {
 namespace Weave {
 namespace DeviceLayer {
-namespace Internal {
 
-extern ::nl::Weave::Profiles::WeaveTunnel::WeaveTunnelAgent ServiceTunnelAgent;
+namespace DeviceEventType {
 
-extern WEAVE_ERROR InitServiceTunnelAgent();
+/**
+ * Enumerates platform-specific event types that are visible to the application.
+ */
+enum
+{
+};
 
-} // namespace Internal
+} // namespace DeviceEventType
+
+/**
+ * Represents platform-specific event information for Nordic nRF5* platforms.
+ */
+struct WeaveDevicePlatformEvent final
+{
+};
+
 } // namespace DeviceLayer
 } // namespace Weave
 } // namespace nl
 
-#endif // WEAVE_CONFIG_ENABLE_TUNNELING
 
-#endif // TUNNEL_AGENT_H
+#endif // WEAVE_DEVICE_PLATFORM_EVENT_H
