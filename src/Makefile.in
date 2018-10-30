@@ -15,7 +15,8 @@
 @SET_MAKE@
 
 #
-#    Copyright (c) 2014-2017 Nest Labs, Inc.
+#    Copyright (c) 2014-2018 Nest Labs, Inc.
+#    Copyright (c) 2018 Google LLC
 #    All rights reserved.
 #
 #    Licensed under the Apache License, Version 2.0 (the "License");
@@ -247,10 +248,13 @@ AUTOCONF = @AUTOCONF@
 AUTOHEADER = @AUTOHEADER@
 AUTOMAKE = @AUTOMAKE@
 AWK = @AWK@
-BLUEZ_BUILD_DIRECTORY = @BLUEZ_BUILD_DIRECTORY@
 BLUEZ_CPPFLAGS = @BLUEZ_CPPFLAGS@
 BLUEZ_LDFLAGS = @BLUEZ_LDFLAGS@
 BLUEZ_LIBS = @BLUEZ_LIBS@
+BLUEZ_SUBDIRS = \
+    platform/ble/bluez              \
+    $(NULL)
+
 CC = @CC@
 CCDEPMODE = @CCDEPMODE@
 CFLAGS = @CFLAGS@
@@ -337,15 +341,19 @@ MKDIR_P = @MKDIR_P@
 NLASSERT_CPPFLAGS = @NLASSERT_CPPFLAGS@
 NLASSERT_LDFLAGS = @NLASSERT_LDFLAGS@
 NLASSERT_LIBS = @NLASSERT_LIBS@
+NLASSERT_SUBDIRS = @NLASSERT_SUBDIRS@
 NLFAULTINJECTION_CPPFLAGS = @NLFAULTINJECTION_CPPFLAGS@
 NLFAULTINJECTION_LDFLAGS = @NLFAULTINJECTION_LDFLAGS@
 NLFAULTINJECTION_LIBS = @NLFAULTINJECTION_LIBS@
+NLFAULTINJECTION_SUBDIRS = @NLFAULTINJECTION_SUBDIRS@
 NLIO_CPPFLAGS = @NLIO_CPPFLAGS@
 NLIO_LDFLAGS = @NLIO_LDFLAGS@
 NLIO_LIBS = @NLIO_LIBS@
-NLUNITTEST_CPPFLAGS = @NLUNITTEST_CPPFLAGS@
-NLUNITTEST_LDFLAGS = @NLUNITTEST_LDFLAGS@
-NLUNITTEST_LIBS = @NLUNITTEST_LIBS@
+NLIO_SUBDIRS = @NLIO_SUBDIRS@
+NLUNIT_TEST_CPPFLAGS = @NLUNIT_TEST_CPPFLAGS@
+NLUNIT_TEST_LDFLAGS = @NLUNIT_TEST_LDFLAGS@
+NLUNIT_TEST_LIBS = @NLUNIT_TEST_LIBS@
+NLUNIT_TEST_SUBDIRS = @NLUNIT_TEST_SUBDIRS@
 NL_PROJECT_CONFIG_INCLUDES = @NL_PROJECT_CONFIG_INCLUDES@
 NM = @NM@
 NMEDIT = @NMEDIT@
@@ -503,10 +511,6 @@ BLE_SUBDIRS = \
     ble                             \
     $(NULL)
 
-BLUEZ_SUBDIRS = \
-    platform/ble/bluez              \
-    $(NULL)
-
 MAYBE_BLE_SUBDIRS = $(NULL) $(am__append_3) $(am__append_4)
 EXAMPLES_SUBDIR = \
     examples                        \
@@ -561,8 +565,8 @@ SUBDIRS = \
     $(MAYBE_DEVICE_MANAGER_SUBDIRS) \
     wrappers/jni                    \
     ra-daemon                       \
-    test-apps                       \
     tools/weave                     \
+    test-apps                       \
     test-apps/fuzz                  \
     tools/misc                      \
     $(EXAMPLES_SUBDIR)              \

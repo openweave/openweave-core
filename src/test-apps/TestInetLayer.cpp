@@ -46,7 +46,6 @@ static void HandleConnectionComplete(TCPEndPoint *ep, INET_ERROR conErr);
 static void HandleConnectionReceived(TCPEndPoint *listeningEP, TCPEndPoint *conEP, const IPAddress &peerAddr,
         uint16_t peerPort);
 static void HandleConnectionClosed(TCPEndPoint *ep, INET_ERROR err);
-static void HandlePeerClose(TCPEndPoint *ep);
 static void HandleDataSent(TCPEndPoint *ep, uint16_t len);
 static void HandleDataReceived(TCPEndPoint *ep, PacketBuffer *data);
 static void HandleAcceptError(TCPEndPoint *endPoint, INET_ERROR err);
@@ -629,12 +628,6 @@ void HandleConnectionClosed(TCPEndPoint *ep, INET_ERROR err)
         TCPEP = NULL;
         DriveSend();
     }
-}
-
-void HandlePeerClose(TCPEndPoint *ep)
-{
-    printf("HandlePeerClose\n");
-    (void)HandlePeerClose;
 }
 
 void HandleDataSent(TCPEndPoint *ep, uint16_t len)

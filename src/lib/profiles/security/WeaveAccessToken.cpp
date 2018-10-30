@@ -212,9 +212,9 @@ exit:
  *   access token certificate, and the RelatedCertificates field (if present) is set to the corresponding
  *   field within the access token.
  *
- * @param[inout] reader  A reference to the TLVReader positioned on the Weave Access Token.
+ * @param[in] reader                        A TLVReader positioned on the Weave Access Token.
  *
- * @param[inout] writer  A reference to the TLVWriter to be used to record the output CASE certificate.
+ * @param[in] writer                        A TLVWriter to be used to record the output CASE certificate info.
  *
  * @retval #WEAVE_NO_ERROR                  If the access CASE certificate info structure was successfully
  *                                          encoded.
@@ -286,11 +286,62 @@ exit:
 
 /**
  * @brief
- *   Reads a Weave Access Token and extracts the private key from the access token certificate.
+ *   Reads a Weave Access Token and extracts the Access Token Certificate.
  *
  * @details
- *   This function decodes a given Weave Access Token and extracts the private key from the
- *   access token certificate.
+ *   This function reads a Weave Access Token from a TLVReader and writes the Access Token
+ *   Certificate to a specified TLVWriter.
+ *
+ * @param[in] reader                        A TLVReader positioned on the Weave Access Token.
+ *
+ * @param[in] writer                        A TLVWriter to which the certificate will be written.
+ *
+ * @param[in] tag                           The TLV tag to be used when writing the certificate.
+ *
+ * @retval #WEAVE_NO_ERROR                  If the access CASE certificate info structure was successfully
+ *                                          encoded.
+ * @retval tlv-errors                       Weave errors related to reading or writing TLV.
+ * @retval cert-errors                      Weave errors related to decoding Weave certificates.
+ * @retval platform-errors                  Other platform-specific errors.
+ */
+WEAVE_ERROR ExtractCertFromAccessToken(TLVReader& reader, TLVWriter& writer, uint64_t tag)
+{
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
+    TLVType tokenContainer;
+
+    reader.ImplicitProfileId = kWeaveProfile_Security;
+
+    // Advance the reader to the start of the access token structure.
+    err = reader.Next(kTLVType_Structure, ProfileTag(kWeaveProfile_Security, kTag_WeaveAccessToken));
+    SuccessOrExit(err);
+
+    // Enter the structure.
+    err = reader.EnterContainer(tokenContainer);
+    SuccessOrExit(err);
+
+    // Advance the reader to the first element, which should be the access token certificate.
+    err = reader.Next(kTLVType_Structure, ContextTag(kTag_AccessToken_Certificate));
+    SuccessOrExit(err);
+
+    // Copy the access token certificate to the writer, using the supplied tag.
+    err = writer.CopyContainer(tag, reader);
+    SuccessOrExit(err);
+
+    // Exit the access token container.
+    err = reader.ExitContainer(tokenContainer);
+    SuccessOrExit(err);
+
+exit:
+    return err;
+}
+
+/**
+ * @brief
+ *   Reads a Weave Access Token and extracts the private key.
+ *
+ * @details
+ *   This function decodes a given Weave Access Token and extracts the private key field
+ *   from the token.
  *
  * @param accessToken                       A pointer to a buffer containing an encoded Weave Access Token.
  * @param accessTokenLen                    The length of the encoded access token.
@@ -330,15 +381,15 @@ exit:
 
 /**
  * @brief
- *   Reads a Weave Access Token and extracts the private key from the access token certificate.
+ *   Reads a Weave Access Token and extracts the private key.
  *
  * @details
- *   This function decodes a given Weave Access Token and extracts the private key from the
- *   access token certificate.
+ *   This function decodes a given Weave Access Token and extracts the private key field
+ *   from the token.
  *
- * @param[inout] reader  A reference to the TLVReader positioned on the Weave Access Token.
+ * @param[in] reader                        A TLVReader positioned on the Weave Access Token.
  *
- * @param[inout] writer  A reference to the TLVWriter to be used to record the private key.
+ * @param[in] writer                        A TLVWriter to which the private key will be written.
  *
  * @retval #WEAVE_NO_ERROR                  If the private key was successfully extracted.
  * @retval tlv-errors                       Weave errors related to reading or writing TLV.

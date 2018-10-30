@@ -1,5 +1,6 @@
 /*
  *
+ *    Copyright (c) 2018 Google LLC.
  *    Copyright (c) 2016-2017 Nest Labs, Inc.
  *    All rights reserved.
  *
@@ -46,6 +47,10 @@
 #include <Weave/Support/WeaveFaultInjection.h>
 
 #include <stdio.h>
+
+using namespace ::nl;
+using namespace ::nl::Weave;
+using namespace ::nl::Weave::TLV;
 
 #ifndef MIN
 #define MIN(x, y) (((x) < (y)) ? (x) : (y))
@@ -2741,13 +2746,19 @@ WEAVE_ERROR StatusList::Parser::CheckSchemaValidity(void) const
 
     while (WEAVE_NO_ERROR == (err = reader.Next()))
     {
+        TLVType type;
+        uint64_t tag;
+
         // TODO: The spec says the StatusList should be an array of arrays, but in
         // the current implementation it's an array of structures. The array of
         // arrays is less intuitive but more space efficient.
-        VerifyOrExit(nl::Weave::TLV::AnonymousTag == reader.GetTag(), err = WEAVE_ERROR_INVALID_TLV_TAG);
 
-        VerifyOrExit((nl::Weave::TLV::kTLVType_Structure == reader.GetType() ||
-                      nl::Weave::TLV::kTLVType_Array), err = WEAVE_ERROR_WRONG_TLV_TYPE);
+        tag = reader.GetTag();
+        VerifyOrExit(nl::Weave::TLV::AnonymousTag == tag, err = WEAVE_ERROR_INVALID_TLV_TAG);
+
+        type = reader.GetType();
+        VerifyOrExit((nl::Weave::TLV::kTLVType_Structure == type ||
+                      nl::Weave::TLV::kTLVType_Array == type), err = WEAVE_ERROR_WRONG_TLV_TYPE);
 
         {
             StatusElement::Parser status;

@@ -132,10 +132,9 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
             }
         }
     }
-    //alternate path
-    return 1;
+
 exit:
-    return 0;
+    return res;
 }
 
 // When NOT building for fuzzing using libFuzzer, supply a main() function to satisfy

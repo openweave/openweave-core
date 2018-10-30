@@ -361,6 +361,10 @@ int main(int argc, char *argv[])
             case MockWdmNodeOptions::kGenerator_TestTrait:
                 gEventGenerator = GetTestTraitGenerator();
                 break;
+            case MockWdmNodeOptions::kGenerator_NumItems:
+            default:
+                gEventGenerator = NULL;
+                break;
         }
 
         if (gEventGenerator != NULL)

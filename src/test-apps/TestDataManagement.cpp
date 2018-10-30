@@ -151,12 +151,12 @@ static OptionSet *gToolOptionSets[] =
     }                                                \
   } while (0)
 
-WEAVE_ERROR ValidatePath(TLVReader &aReader,
-                         const uint64_t &aTag,
-                         uint32_t aProfileId,
-                         const uint64_t &aInstanceId,
-                         uint16_t aPathLen,
-                         ...)
+static WEAVE_ERROR ValidatePath(TLVReader &aReader,
+                                const uint64_t &aTag,
+                                uint32_t aProfileId,
+                                const uint64_t &aInstanceId,
+                                uint32_t aPathLen,
+                                ...)
 {
     WEAVE_ERROR err;
 
@@ -237,7 +237,7 @@ WEAVE_ERROR ValidatePath(TLVReader &aReader,
 
     // now, the residual path elements, if any
 
-    for (int i = 0; i < aPathLen; i++)
+    for (uint32_t i = 0; i < aPathLen; i++)
     {
         err = aReader.Next();
         SuccessOrExit(err);
@@ -274,22 +274,6 @@ exit:
     va_end(pathTags);
 
     return err;
-}
-
-/*
- * one day we might want to include the other form of instance ID
- * in testing. for now just leave this as a placeholder.
- */
-
-WEAVE_ERROR ValidatePath(nl::Weave::TLV::TLVReader &aReader,
-                         const uint64_t &aTag,
-                         uint32_t aProfileId,
-                         uint32_t aInstanceIdLen,
-                         uint8_t *aInstanceId,
-                         uint16_t aPathLen,
-                         ...)
-{
-    return WEAVE_NO_ERROR;
 }
 
 /*

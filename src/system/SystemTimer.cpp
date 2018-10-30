@@ -295,13 +295,20 @@ exit:
  */
 Error Timer::HandleExpiredTimers(Layer& aLayer)
 {
-    // expire each timer in turn until an unexpired timer is reached or the timerlist is emptied.
+    size_t timersHandled = 0;
+
+    // Expire each timer in turn until an unexpired timer is reached or the timerlist is emptied.  We set the current expiration
+    // time outside the loop; that way timers set after the current tick will not be executed within this expiration window
+    // regardless how long the processing of the currently expired timers took
+    Epoch currentEpoch = Timer::GetCurrentEpoch();
+
     while (aLayer.mTimerList)
     {
-        const Epoch kCurrentEpoch = Timer::GetCurrentEpoch();
+        // limit the number of timers handled before the control is returned to the event queue.  The bound is similar to
+        // (though not exactly same) as that on the sockets-based systems.
 
         // The platform timer API has MSEC resolution so expire any timer with less than 1 msec remaining.
-        if (Timer::IsEarlierEpoch(aLayer.mTimerList->mAwakenEpoch, kCurrentEpoch + 1))
+        if ((timersHandled < Timer::sPool.Size()) && Timer::IsEarlierEpoch(aLayer.mTimerList->mAwakenEpoch, currentEpoch + 1))
         {
             Timer& lTimer = *aLayer.mTimerList;
             aLayer.mTimerList = lTimer.mNextTimer;
@@ -310,21 +317,30 @@ Error Timer::HandleExpiredTimers(Layer& aLayer)
             aLayer.mTimerComplete = true;
             lTimer.HandleComplete();
             aLayer.mTimerComplete = false;
+
+            timersHandled++;
         }
         else
         {
             // timers still exist so restart the platform timer.
-            const uint64_t kDelayMilliseconds = aLayer.mTimerList->mAwakenEpoch - kCurrentEpoch;
+            uint64_t delayMilliseconds = 0ULL;
 
+            currentEpoch = Timer::GetCurrentEpoch();
+
+            // the next timer expires in the future, so set the delayMilliseconds to a non-zero value
+            if (currentEpoch < aLayer.mTimerList->mAwakenEpoch)
+            {
+                delayMilliseconds = aLayer.mTimerList->mAwakenEpoch - currentEpoch;
+            }
             /*
-             * Original kDelayMilliseconds was a 32 bit value.  The only way in which this could overflow is if time went backwards
-             * (e.g. as a result of a time adjustment from time synchronization).  Verify that the timer can still be executed
-             * (even if it is very late) and exit if that is the case.  Note: if the time sync ever ends up adjusting the clock, we
-             * should implement a method that deals with all the timers in the system.
+             * StartPlatformTimer() accepts a 32bit value in milliseconds.  Epochs are 64bit numbers.  The only way in which this could
+             * overflow is if time went backwards (e.g. as a result of a time adjustment from time synchronization).  Verify that the
+             * timer can still be executed (even if it is very late) and exit if that is the case.  Note: if the time sync ever ends up
+             * adjusting the clock, we should implement a method that deals with all the timers in the system.
              */
-            VerifyOrDie(kDelayMilliseconds <= UINT32_MAX);
+            VerifyOrDie(delayMilliseconds <= UINT32_MAX);
 
-            aLayer.StartPlatformTimer(static_cast<uint32_t>(kDelayMilliseconds));
+            aLayer.StartPlatformTimer(static_cast<uint32_t>(delayMilliseconds));
             break; // all remaining timers are still ticking.
         }
     }

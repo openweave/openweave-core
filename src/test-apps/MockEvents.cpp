@@ -1,5 +1,6 @@
 /*
  *
+ *    Copyright (c) 2018 Google LLC.
  *    Copyright (c) 2017 Nest Labs, Inc.
  *    All rights reserved.
  *
@@ -58,6 +59,14 @@ using namespace Schema::Maldives_prototype::Trait::Flintstone::NetworkWiFiTeleme
 using namespace Schema::Nest::Test::Trait::TestETrait;
 using namespace Schema::Nest::Test::Trait;
 using namespace Schema::Weave::Common;
+
+#ifdef PHOENIX_RESOURCE_STRINGS
+#define USER_ID_INITIAL NULL
+static uint8_t kTestUserId[1]         = { 1 };
+#else
+#define USER_ID_INITIAL 0
+static const user_id_t kTestUserId    = 0x0123456789ULL;
+#endif /* PHOENIX_RESOURCE_STRINGS */
 
 static const uint64_t kTestNodeId     = 0x18B4300001408362ULL;
 static const uint64_t kTestNodeId1    = 0x18B43000002DCF71ULL;
@@ -299,20 +308,21 @@ const uint64_t kbolt_lock_actor_method                     = nl::Weave::TLV::Con
 const uint64_t kbolt_lock_actor_user_id                     = nl::Weave::TLV::ContextTag(2);
 
 BoltActuatorEventStruct::BoltActuatorEventStruct() :
-    locked_state_last_changed_at(0),
     state(0),
     actuatorState(0),
     lockedState(0),
-    bolt_lock_actor()
+    bolt_lock_actor(),
+    locked_state_last_changed_at(0)
 {
+    return;
 }
 
 BoltLockActorStruct::BoltLockActorStruct() :
-        user_id(USER_ID_INITIAL),
-        method(0)
+    method(0),
+    user_id(USER_ID_INITIAL)
 {
+    return;
 }
-
 
 static WEAVE_ERROR WriteBoltActuatorStateChangeEvent(nl::Weave::TLV::TLVWriter & writer, uint8_t inDataTag, void * anAppState)
 {

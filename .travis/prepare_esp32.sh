@@ -31,6 +31,7 @@ set -x
 
 # Install dependent packages needed by the ESP32 development environment.
 #
+sudo apt-get update
 sudo apt-get -y install libncurses-dev flex bison gperf
 
 # Install ESP32 toolchain for linux

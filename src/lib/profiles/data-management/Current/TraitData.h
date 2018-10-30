@@ -1,5 +1,6 @@
 /*
  *
+ *    Copyright (c) 2018 Google LLC.
  *    Copyright (c) 2016-2017 Nest Labs, Inc.
  *    All rights reserved.
  *
@@ -127,9 +128,6 @@ public:
 private:
     SubscriptionClient *mpSubClient;
     TraitDataHandle mTraitDataHandle;
-    bool mFilterPendingUpdate;
-    bool mFilterDispatchedUpdate;
-    DataVersion mLatestVersion;
     const TraitSchemaEngine *mSchemaEngine;
 };
 
@@ -772,13 +770,13 @@ public:
     WEAVE_ERROR Lock(SubscriptionClient * apSubClient);
     WEAVE_ERROR Unlock(SubscriptionClient * apSubClient);
 
-    virtual bool IsUpdatableDataSink(void) { return true; }
+    virtual bool IsUpdatableDataSink(void) __OVERRIDE { return true; }
 
-    virtual WEAVE_ERROR SetSubscriptionClient(SubscriptionClient * apSubClient) { mpSubClient = apSubClient; return WEAVE_NO_ERROR; }
-    virtual WEAVE_ERROR SetUpdateEncoder(UpdateEncoder * apEncoder) { mpUpdateEncoder = apEncoder; return WEAVE_NO_ERROR; }
+    virtual WEAVE_ERROR SetSubscriptionClient(SubscriptionClient * apSubClient) __OVERRIDE { mpSubClient = apSubClient; return WEAVE_NO_ERROR; }
+    virtual WEAVE_ERROR SetUpdateEncoder(UpdateEncoder * apEncoder) __OVERRIDE { mpUpdateEncoder = apEncoder; return WEAVE_NO_ERROR; }
 
-    virtual SubscriptionClient * GetSubscriptionClient() { return mpSubClient; }
-    virtual UpdateEncoder * GetUpdateEncoder() { return mpUpdateEncoder; }
+    virtual SubscriptionClient * GetSubscriptionClient() __OVERRIDE { return mpSubClient; }
+    virtual UpdateEncoder * GetUpdateEncoder() __OVERRIDE { return mpUpdateEncoder; }
 private:
     friend class SubscriptionClient;
     friend class UpdateEncoder;
@@ -790,7 +788,7 @@ private:
      * a version number that is lower than the current one. Please refer to the WDM
      * specification for more details.
      */
-    bool IsVersionNewer(DataVersion &aVersion) { return false == IsVersionValid() || aVersion > GetVersion() || aVersion  < GetLastNotifyVersion(); }
+    bool IsVersionNewer(DataVersion &aVersion) __OVERRIDE { return false == IsVersionValid() || aVersion > GetVersion() || aVersion  < GetLastNotifyVersion(); }
     uint64_t GetUpdateRequiredVersion(void) const { return mUpdateRequiredVersion; }
     void ClearUpdateRequiredVersion(void) { SetUpdateRequiredVersion(0); }
     void SetUpdateRequiredVersion(const uint64_t &aUpdateRequiredVersion);

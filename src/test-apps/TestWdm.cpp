@@ -1,5 +1,6 @@
 /*
  *
+ *    Copyright (c) 2018 Google LLC.
  *    Copyright (c) 2017 Nest Labs, Inc.
  *    All rights reserved.
  *
@@ -25,7 +26,7 @@
 #include "ToolCommon.h"
 
 #include <nlbyteorder.h>
-#include <nltest.h>
+#include <nlunit-test.h>
 
 #include <Weave/Core/WeaveCore.h>
 #include <Weave/Core/WeaveTLV.h>
@@ -238,6 +239,9 @@ TestWdm::ClientSubscriptionEventCallback (void * const aAppState,
                 _this->mClientSubscriptionPresent = false;
                 break;
             }
+
+        default:
+            break;
     }
 }
 

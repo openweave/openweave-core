@@ -29,7 +29,7 @@
 
 #include <stdint.h>
 
-#include <nltest.h>
+#include <nlunit-test.h>
 
 static void TestWeaveDie(void);
 

@@ -5169,6 +5169,83 @@ exit:
     return err;
 }
 
+
+#if !WEAVE_CONFIG_LEGACY_CASE_AUTH_DELEGATE
+
+WEAVE_ERROR WeaveDeviceManager::EncodeNodeCertInfo(const Security::CASE::BeginSessionContext & msgCtx,
+        TLVWriter & writer)
+{
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
+    TLVReader reader;
+
+    // Initialize a reader to read the access token.
+    reader.Init((const uint8_t *)mAuthKey, mAuthKeyLen);
+    reader.ImplicitProfileId = kWeaveProfile_Security;
+
+    // Generate a CASE CertificateInformation structure from the information in the access token.
+    err = CASECertInfoFromAccessToken(reader, writer);
+    SuccessOrExit(err);
+
+exit:
+    if (err != WEAVE_NO_ERROR)
+        err = WEAVE_ERROR_INVALID_ACCESS_TOKEN;
+    return err;
+}
+
+WEAVE_ERROR WeaveDeviceManager::GenerateNodeSignature(const Security::CASE::BeginSessionContext & msgCtx,
+        const uint8_t * msgHash, uint8_t msgHashLen,
+        TLVWriter & writer, uint64_t tag)
+{
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
+    const uint8_t * privKey = NULL;
+    uint16_t privKeyLen;
+
+    // Get the private key from the access token.
+    err = GetNodePrivateKey(msgCtx.IsInitiator(), privKey, privKeyLen);
+    SuccessOrExit(err);
+
+    // Generate a signature using the access token private key.
+    err = GenerateAndEncodeWeaveECDSASignature(writer, tag, msgHash, msgHashLen, privKey, privKeyLen);
+    SuccessOrExit(err);
+
+exit:
+    if (privKey != NULL)
+    {
+        WEAVE_ERROR relErr = ReleaseNodePrivateKey(privKey);
+        err = (err == WEAVE_NO_ERROR) ? relErr : err;
+    }
+    return err;
+}
+
+WEAVE_ERROR WeaveDeviceManager::EncodeNodePayload(const Security::CASE::BeginSessionContext & msgCtx,
+        uint8_t * payloadBuf, uint16_t payloadBufSize, uint16_t & payloadLen)
+{
+    // No payload
+    payloadLen = 0;
+    return WEAVE_NO_ERROR;
+}
+
+WEAVE_ERROR WeaveDeviceManager::BeginValidation(const Security::CASE::BeginSessionContext & msgCtx,
+        Security::ValidationContext & validCtx, Security::WeaveCertificateSet & certSet)
+{
+    return BeginCertValidation(msgCtx.IsInitiator(), certSet, validCtx);
+}
+
+WEAVE_ERROR WeaveDeviceManager::HandleValidationResult(const Security::CASE::BeginSessionContext & msgCtx,
+        Security::ValidationContext & validCtx,
+        Security::WeaveCertificateSet & certSet, WEAVE_ERROR & validRes)
+{
+    return HandleCertValidationResult(msgCtx.IsInitiator(), validRes, validCtx.SigningCert, msgCtx.PeerNodeId, certSet, validCtx);
+}
+
+void WeaveDeviceManager::EndValidation(const Security::CASE::BeginSessionContext & msgCtx,
+        Security::ValidationContext & validCtx, Security::WeaveCertificateSet & certSet)
+{
+    EndCertValidation(certSet, validCtx);
+}
+
+#else // !WEAVE_CONFIG_LEGACY_CASE_AUTH_DELEGATE
+
 WEAVE_ERROR WeaveDeviceManager::GetNodeCertInfo(bool isInitiator, uint8_t *buf, uint16_t bufSize, uint16_t& certInfoLen)
 {
     WEAVE_ERROR err;
@@ -5183,6 +5260,16 @@ exit:
         err = WEAVE_ERROR_INVALID_ACCESS_TOKEN;
     return err;
 }
+
+// Get payload information, if any, to be included in the message to the peer.
+WEAVE_ERROR WeaveDeviceManager::GetNodePayload(bool isInitiator, uint8_t *buf, uint16_t bufSize, uint16_t& payloadLen)
+{
+    // No payload
+    payloadLen = 0;
+    return WEAVE_NO_ERROR;
+}
+
+#endif // WEAVE_CONFIG_LEGACY_CASE_AUTH_DELEGATE
 
 // Get the local node's private key.
 WEAVE_ERROR WeaveDeviceManager::GetNodePrivateKey(bool isInitiator, const uint8_t *& weavePrivKey, uint16_t& weavePrivKeyLen)
@@ -5215,14 +5302,6 @@ exit:
 WEAVE_ERROR WeaveDeviceManager::ReleaseNodePrivateKey(const uint8_t *weavePrivKey)
 {
     free((void *)weavePrivKey);
-    return WEAVE_NO_ERROR;
-}
-
-// Get payload information, if any, to be included in the message to the peer.
-WEAVE_ERROR WeaveDeviceManager::GetNodePayload(bool isInitiator, uint8_t *buf, uint16_t bufSize, uint16_t& payloadLen)
-{
-    // No payload
-    payloadLen = 0;
     return WEAVE_NO_ERROR;
 }
 

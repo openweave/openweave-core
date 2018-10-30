@@ -318,7 +318,6 @@ public:
      */
     static void ReadAddress(uint8_t *&p, IPAddress &output);
 
-#if INET_CONFIG_ENABLE_IPV4
     /**
      * @brief   Test whether address is IPv4 compatible.
      *
@@ -342,7 +341,6 @@ public:
      * @retval false Otherwise
      */
     bool IsIPv4Broadcast(void) const;
-#endif // INET_CONFIG_ENABLE_IPV4
 
     /**
      * @fn      ToIPv4() const

@@ -1,5 +1,6 @@
 /*
  *
+ *    Copyright (c) 2018 Google LLC.
  *    Copyright (c) 2014-2017 Nest Labs, Inc.
  *    All rights reserved.
  *
@@ -168,7 +169,7 @@ WEAVE_ERROR VirtualRouteTable::FreeRouteEntry (int index)
     memset(&RouteTable[index].prefix, 0, sizeof(IPPrefix));
 
     RouteTable[index].routeState = kRouteEntryState_Invalid;
-    memset(RouteTable[index].BorderGwList, 0, MAX_BORDER_GW);
+    memset(RouteTable[index].BorderGwList, 0, sizeof(RouteTable[index].BorderGwList));
     RouteTable[index].routeLifetime = INVALID_RT_LIFETIME;
 
 exit:
@@ -625,7 +626,6 @@ void WeaveTunnelServer::HandleTunnelControlMsg (ExchangeContext *ec, const IPPac
     uint16_t livenessTimeout;
     bool isRoutingRestricted = false;
     ExchangeContext *exchangeCtx = NULL;
-    WeaveConnection *con = ec->Con;
 
     VerifyOrExit(tunServer, err = WEAVE_ERROR_INVALID_ARGUMENT);
 

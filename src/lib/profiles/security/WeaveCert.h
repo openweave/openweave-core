@@ -26,6 +26,8 @@
 #ifndef WEAVECERT_H_
 #define WEAVECERT_H_
 
+#include <string.h>
+
 #include <Weave/Support/NLDLLUtil.h>
 #include <Weave/Core/WeaveTLV.h>
 #include <Weave/Support/ASN1.h>
@@ -210,6 +212,8 @@ public:
 #endif
     uint8_t RequiredKeyPurposes;
     uint8_t RequiredCertType;
+
+    void Reset();
 };
 
 
@@ -268,7 +272,6 @@ protected:
     WEAVE_ERROR DetermineCertType(WeaveCertificateData& cert);
 };
 
-
 extern WEAVE_ERROR ConvertX509CertToWeaveCert(const uint8_t *x509Cert, uint32_t x509CertLen, uint8_t *weaveCertBuf, uint32_t weaveCertBufSize, uint32_t& weaveCertLen);
 extern WEAVE_ERROR ConvertWeaveCertToX509Cert(const uint8_t *weaveCert, uint32_t weaveCertLen, uint8_t *x509CertBuf, uint32_t x509CertBufSize, uint32_t& x509CertLen);
 
@@ -277,6 +280,11 @@ extern WEAVE_ERROR UnpackCertTime(uint32_t packedTime, nl::Weave::ASN1::ASN1Univ
 extern uint16_t PackedCertTimeToDate(uint32_t packedTime);
 extern uint32_t PackedCertDateToTime(uint16_t packedDate);
 extern uint32_t SecondsSinceEpochToPackedCertTime(uint32_t secondsSinceEpoch);
+
+inline void ValidationContext::Reset()
+{
+    memset((void *)this, 0, sizeof(*this));
+}
 
 // True if the OID represents a Weave-defined X.509 distinguished named attribute.
 inline bool IsWeaveX509Attr(OID oid)

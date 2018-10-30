@@ -359,9 +359,9 @@ endif
 
 check_PROGRAMS +=                                \
     TestTDM                                      \
-	TestPathStore                                \
-	TestWdmUpdateEncoder                         \
-	TestWdmUpdateResponse                        \
+    TestPathStore                                \
+    TestWdmUpdateEncoder                         \
+    TestWdmUpdateResponse                        \
     $(NULL)
 
 if WEAVE_BUILD_WARM
@@ -401,7 +401,6 @@ check_SCRIPTS                                 += \
     run-security-support-test.sh                 \
     $(NULL)
 endif # WEAVE_WITH_JAVA
-
 
 # Test applications that should be built but not installed that
 # require no network or complicated setup and should always be
@@ -1596,7 +1595,7 @@ $(WEAVE_LIBS_COVERAGE_SOURCE):
 $(WEAVE_LIBS_COVERAGE_BUNDLE):
 	$(call create-directory)
 
-$(WEAVE_COVERAGE_INFO): check | $(WEAVE_COVERAGE_BUNDLE)
+$(WEAVE_COVERAGE_INFO): check-local | $(WEAVE_COVERAGE_BUNDLE)
 	$(call generate-coverage-report,${abs_top_builddir})
 
 # collect all the *.gcno & *gcda files of libWeave.a for Weave Library coverage analysis, rename the *h file paths to make it a clean report
@@ -1618,7 +1617,7 @@ $(WEAVE_LIBS_COVERAGE_INFO): $(WEAVE_COVERAGE_INFO) | $(WEAVE_LIBS_COVERAGE_BUND
 	$(NL_V_GENHTML)$(GENHTML) $(NL_V_GENHTML_FLAGS) --config-file="$(abs_top_nlbuild_autotools_dir)/etc/lcov.config" $(WEAVE_LIBS_COVERAGE_INFO).clean --output-directory $(WEAVE_LIBS_COVERAGE_BUNDLE)
 	$(AM_V_at)rm -rf $(WEAVE_LIBS_COVERAGE_SOURCE)
 
-coverage: $(WEAVE_LIBS_COVERAGE_INFO)
+coverage-local: $(WEAVE_LIBS_COVERAGE_INFO)
 
 clean-local: clean-local-coverage
 

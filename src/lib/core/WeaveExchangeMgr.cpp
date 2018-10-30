@@ -1206,6 +1206,16 @@ void WeaveExchangeManager::RetransPendingAppGroupMsgs(uint64_t peerNodeId)
 uint32_t WeaveExchangeManager::GetTickCounterFromTimeDelta (uint64_t newTime,
                                                             uint64_t oldTime)
 {
+    // Note on math: we have a utility function that will compute U64 var / U32
+    // compile-time const => U32.  At the moment, we are leaving
+    // mWRMPTimerInterval as a member variable in WeaveExchangeManager, however,
+    // given its current usage, it could be replaced by a compile time const.
+    // Should we make that change, I would recommend making the timeDelta a u64,
+    // and replacing the plain 32-bit division below with the utility function.
+    // Note that the 32bit timeDelta overflows at around 46 days; pursuing the
+    // above code strategy would extend that overflow by a factor if 200 given
+    // the default mWRMPPTimerInterval.  If and when such change is made, please
+    // update the comment around line 1426.
     uint32_t timeDelta = static_cast<uint32_t>(newTime - oldTime);
 
     return (timeDelta / mWRMPTimerInterval);
@@ -1334,7 +1344,7 @@ void WeaveExchangeManager::WRMPExpireTicks(void)
 {
     uint64_t            now         = 0;
     ExchangeContext*    ec          = NULL;
-    uint16_t            deltaTicks;
+    uint32_t            deltaTicks;
 
     //Process Ack Tables for all ExchangeContexts
     ec = (ExchangeContext *)ContextPool;
@@ -1345,7 +1355,13 @@ void WeaveExchangeManager::WRMPExpireTicks(void)
     // to the previous tick.  If we are between tick boundaries, the extra time since the
     // last virtual tick is not accounted for here (it will be accounted for when resetting
     // the WRMP timer)
+
     deltaTicks = GetTickCounterFromTimeDelta(now, mWRMPTimeStampBase);
+
+    // Note on math involving deltaTicks: in the code below, deltaTicks, a
+    // 32-bit value, is being subtracted from 16-bit expiration times.  In each
+    // case, we compare the expiration time prior to subtraction to guard
+    // against underflow.
 
 #if defined(WRMP_TICKLESS_DEBUG)
     WeaveLogProgress(ExchangeManager, "WRMPExpireTicks at %" PRIu64 ", %" PRIu64 ", %u", now, mWRMPTimeStampBase, deltaTicks);
@@ -1408,11 +1424,15 @@ void WeaveExchangeManager::WRMPExpireTicks(void)
 
     // Re-Adjust the base time stamp to the most recent tick boundary
 
-    // Note on math: because we're really multiplying two 16-bit
-    // unsigned numbers, we know that the result will fit in a 32-bit
-    // unsigned without overflow. Consequently, casting operands to
-    // 32-bit, and performing 32-bit multiplication is correct.
-    mWRMPTimeStampBase += static_cast<uint64_t>( static_cast<uint32_t>(deltaTicks) * static_cast<uint32_t>(mWRMPTimerInterval));
+    // Note on math: we cast deltaTicks to a 64bit value to ensure that that we
+    // produce a full 64 bit product.  At the moment this is a bit of a moot
+    // conversion: right now, the math in GetTickCounterFromTimeDelta ensures
+    // that the deltaTicks * mWRMPTimerTick fits in 32bits.  However, I'm
+    // leaving the math in this form, because I'm leaving the door open to
+    // refactoring the division in GetTickCounterFromTimeDelta to use our
+    // specialized utility function that computes U64 var/ U32 compile-time
+    // const ==> U32
+    mWRMPTimeStampBase += static_cast<uint64_t>(deltaTicks) * mWRMPTimerInterval;
 #if defined(WRMP_TICKLESS_DEBUG)
     WeaveLogProgress(ExchangeManager, "WRMPExpireTicks mWRMPTimeStampBase to %" PRIu64, mWRMPTimeStampBase);
 #endif

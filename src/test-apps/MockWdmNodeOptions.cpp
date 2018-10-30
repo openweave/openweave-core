@@ -1,5 +1,6 @@
 /*
  *
+ *    Copyright (c) 2018 Google LLC.
  *    Copyright (c) 2018 Nest Labs, Inc.
  *    All rights reserved.
  *
@@ -515,7 +516,7 @@ bool MockWdmNodeOptions::HandleOption(const char *progName, OptionSet *optSet, i
     }
     case kToolOpt_WdmUpdateNumberOfTraits:
     {
-        int tmp;
+        uint32_t tmp;
 
         if ((!ParseInt(arg, tmp)) || (tmp < 1) || (tmp > mWdmUpdateMaxNumberOfTraits))
         {

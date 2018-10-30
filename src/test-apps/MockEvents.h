@@ -1,5 +1,6 @@
 /*
  *
+ *    Copyright (c) 2018 Google LLC.
  *    Copyright (c) 2016-2017 Nest Labs, Inc.
  *    All rights reserved.
  *
@@ -45,17 +46,12 @@
 // Several event definitions, hand generated at this time
 
 #define PHOENIX_RESOURCE_STRINGS
+
 #ifdef PHOENIX_RESOURCE_STRINGS
 typedef uint8_t * user_id_t;
-#define USER_ID_INITIAL NULL
-static uint8_t kTestUserId[1]         = { 1 };
 #else
 typedef uint64_t user_id_t;
-#define USER_ID_INITIAL 0
-static const user_id_t kTestUserId    = 0x0123456789ULL;
-
-#endif
-
+#endif /* PHOENIX_RESOURCE_STRINGS */
 
 /************************************************************************/
 
@@ -233,14 +229,16 @@ enum BoltLockedState {
 
 struct BoltLockActorStruct
 {
-    BoltLockActorStruct();
+    BoltLockActorStruct(void);
+
     int16_t method;
     user_id_t user_id;
 };
 
 struct BoltActuatorEventStruct
 {
-    BoltActuatorEventStruct();
+    BoltActuatorEventStruct(void);
+
     int16_t state;
     int16_t actuatorState;
     int16_t lockedState;

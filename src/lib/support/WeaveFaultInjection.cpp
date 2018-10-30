@@ -74,6 +74,9 @@ static const nl::FaultInjection::Name sFaultNames[] = {
     "TunnelQueueFull",
     "TunnelPacketDropByPolicy",
 #endif // WEAVE_CONFIG_ENABLE_TUNNELING
+#if CONFIG_NETWORK_LAYER_BLE
+    "WOBLESend",
+#endif // CONFIG_NETWORK_LAYER_BLE
 };
 
 

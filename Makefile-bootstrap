@@ -36,7 +36,6 @@
 #            path = third_party/nlunit-test/repo
 #            url = git@github.com:nestlabs/nlunit-test.git
 #            branch = master
-#            commit = 561a155bb7257e54198cf5496f74ed5bc41cf85f
 #            update = none
 #
 
@@ -51,7 +50,7 @@ abs_srcdir                       ?= $(realpath $(srcdir))
 top_srcdir                       ?= $(srcdir)
 abs_top_srcdir                   ?= $(realpath $(top_srcdir))
 
-nlbuild_autotools_stem           ?= @NLBUILD_AUTOTOOLS_STEM@
+nlbuild_autotools_stem           ?= third_party/nlbuild-autotools/repo
 abs_top_nlbuild_autotools_dir    ?= $(abs_top_srcdir)/$(nlbuild_autotools_stem)
 
 include $(abs_top_nlbuild_autotools_dir)/make/pre.mak

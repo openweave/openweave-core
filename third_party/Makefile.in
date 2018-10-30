@@ -101,28 +101,6 @@ POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
 target_triplet = @target@
-
-# Only build (e.g. for 'make all') these subdirectories when requested.
-@WEAVE_WITH_NLUNITTEST_INTERNAL_TRUE@am__append_1 = \
-@WEAVE_WITH_NLUNITTEST_INTERNAL_TRUE@    nltest/repo                               \
-@WEAVE_WITH_NLUNITTEST_INTERNAL_TRUE@    $(NULL)
-
-@WEAVE_WITH_NLIO_INTERNAL_TRUE@am__append_2 = \
-@WEAVE_WITH_NLIO_INTERNAL_TRUE@    nlio/repo                                 \
-@WEAVE_WITH_NLIO_INTERNAL_TRUE@    $(NULL)
-
-@WEAVE_WITH_NLASSERT_INTERNAL_TRUE@am__append_3 = \
-@WEAVE_WITH_NLASSERT_INTERNAL_TRUE@    nlassert/repo                             \
-@WEAVE_WITH_NLASSERT_INTERNAL_TRUE@    $(NULL)
-
-@WEAVE_WITH_NLFAULTINJECTION_INTERNAL_TRUE@am__append_4 = \
-@WEAVE_WITH_NLFAULTINJECTION_INTERNAL_TRUE@    nlfaultinjection/repo                     \
-@WEAVE_WITH_NLFAULTINJECTION_INTERNAL_TRUE@    $(NULL)
-
-@WEAVE_WITH_BLUEZ_INTERNAL_TRUE@am__append_5 = \
-@WEAVE_WITH_BLUEZ_INTERNAL_TRUE@    bluez/repo                                \
-@WEAVE_WITH_BLUEZ_INTERNAL_TRUE@    $(NULL)
-
 subdir = third_party
 DIST_COMMON = $(srcdir)/Makefile.in $(srcdir)/Makefile.am \
 	$(top_srcdir)/third_party/nlbuild-autotools/repo/third_party/autoconf/mkinstalldirs
@@ -249,10 +227,10 @@ AUTOCONF = @AUTOCONF@
 AUTOHEADER = @AUTOHEADER@
 AUTOMAKE = @AUTOMAKE@
 AWK = @AWK@
-BLUEZ_BUILD_DIRECTORY = @BLUEZ_BUILD_DIRECTORY@
 BLUEZ_CPPFLAGS = @BLUEZ_CPPFLAGS@
 BLUEZ_LDFLAGS = @BLUEZ_LDFLAGS@
 BLUEZ_LIBS = @BLUEZ_LIBS@
+BLUEZ_SUBDIRS = @BLUEZ_SUBDIRS@
 CC = @CC@
 CCDEPMODE = @CCDEPMODE@
 CFLAGS = @CFLAGS@
@@ -339,15 +317,19 @@ MKDIR_P = @MKDIR_P@
 NLASSERT_CPPFLAGS = @NLASSERT_CPPFLAGS@
 NLASSERT_LDFLAGS = @NLASSERT_LDFLAGS@
 NLASSERT_LIBS = @NLASSERT_LIBS@
+NLASSERT_SUBDIRS = @NLASSERT_SUBDIRS@
 NLFAULTINJECTION_CPPFLAGS = @NLFAULTINJECTION_CPPFLAGS@
 NLFAULTINJECTION_LDFLAGS = @NLFAULTINJECTION_LDFLAGS@
 NLFAULTINJECTION_LIBS = @NLFAULTINJECTION_LIBS@
+NLFAULTINJECTION_SUBDIRS = @NLFAULTINJECTION_SUBDIRS@
 NLIO_CPPFLAGS = @NLIO_CPPFLAGS@
 NLIO_LDFLAGS = @NLIO_LDFLAGS@
 NLIO_LIBS = @NLIO_LIBS@
-NLUNITTEST_CPPFLAGS = @NLUNITTEST_CPPFLAGS@
-NLUNITTEST_LDFLAGS = @NLUNITTEST_LDFLAGS@
-NLUNITTEST_LIBS = @NLUNITTEST_LIBS@
+NLIO_SUBDIRS = @NLIO_SUBDIRS@
+NLUNIT_TEST_CPPFLAGS = @NLUNIT_TEST_CPPFLAGS@
+NLUNIT_TEST_LDFLAGS = @NLUNIT_TEST_LDFLAGS@
+NLUNIT_TEST_LIBS = @NLUNIT_TEST_LIBS@
+NLUNIT_TEST_SUBDIRS = @NLUNIT_TEST_SUBDIRS@
 NL_PROJECT_CONFIG_INCLUDES = @NL_PROJECT_CONFIG_INCLUDES@
 NM = @NM@
 NMEDIT = @NMEDIT@
@@ -487,8 +469,6 @@ top_srcdir = @top_srcdir@
 EXTRA_DIST = \
     android/platform-libcore                   \
     android/platform-system/README.third_party \
-    bluez/bluez.url                            \
-    bluez/bluez.version                        \
     cstyle                                     \
     nlbuild-autotools                          \
     $(NULL)
@@ -498,21 +478,29 @@ EXTRA_DIST = \
 DIST_SUBDIRS = \
     lwip                                       \
     android/platform-system/core-mincrypt      \
-    bluez/repo                                 \
     micro-ecc                                  \
     openssl                                    \
     openssl-jpake                              \
-    nltest/repo                                \
-    nlio/repo                                  \
-    nlassert/repo                              \
-    nlfaultinjection/repo                      \
     $(NULL)
 
 
 # Always build (e.g. for 'make all') these subdirectories.
-SUBDIRS = android/platform-system/core-mincrypt micro-ecc openssl \
-	openssl-jpake $(NULL) $(am__append_1) $(am__append_2) \
-	$(am__append_3) $(am__append_4) $(am__append_5)
+#
+# The values of <any of the third-party packages listed in
+# repos.conf>_SUBDIRS will be populated by configure if --with-<any of
+# the third-party packages listed in repos.conf>=internal
+SUBDIRS = \
+    android/platform-system/core-mincrypt      \
+    $(BLUEZ_SUBDIRS)                           \
+    micro-ecc                                  \
+    $(NLASSERT_SUBDIRS)                        \
+    $(NLFAULTINJECTION_SUBDIRS)                \
+    $(NLIO_SUBDIRS)                            \
+    $(NLUNIT_TEST_SUBDIRS)                     \
+    openssl                                    \
+    openssl-jpake                              \
+    $(NULL)
+
 all: all-recursive
 
 .SUFFIXES:
@@ -825,6 +813,16 @@ uninstall-am:
 
 
 include $(abs_top_nlbuild_autotools_dir)/automake/pre.am
+
+# <any of the third-party packages listed in repos.conf>_SUBDIRS are
+# not a permanent part of DIST_SUBDIRS since we do not ever want to
+# include them in a distribution archive; however, when they've been
+# pulled as a 'repo' module, we do want to remove them on invocation
+# of the 'distclean' target. Consequently, we conditionally include
+# them in DIST_SUBDIRS on invocation of 'distclean-recursive'
+
+distclean-recursive: DIST_SUBDIRS += $(BLUEZ_SUBDIRS) $(NLASSERT_SUBDIRS) $(NLFAULTINJECTION_SUBDIRS) $(NLIO_SUBDIRS) $(NLUNIT_TEST_SUBDIRS)
+
 include $(abs_top_nlbuild_autotools_dir)/automake/post.am
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
