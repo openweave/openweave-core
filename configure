@@ -758,6 +758,9 @@ BLUEZ_SUBDIRS
 BLUEZ_LIBS
 BLUEZ_LDFLAGS
 BLUEZ_CPPFLAGS
+WEAVE_DEVICE_LAYER_TARGET_NRF5_FALSE
+WEAVE_DEVICE_LAYER_TARGET_NRF5_TRUE
+WEAVE_DEVICE_LAYER_TARGET_NRF5
 WEAVE_DEVICE_LAYER_TARGET_ESP32_FALSE
 WEAVE_DEVICE_LAYER_TARGET_ESP32_TRUE
 WEAVE_DEVICE_LAYER_TARGET_ESP32
@@ -1884,7 +1887,8 @@ Optional Packages:
                           inet, or all [default=all].
   --with-device-layer=LAYER
                           Specify the target environment for the Weave Device
-                          Layer. Choose one of: esp32, or none [default=none].
+                          Layer. Choose one of: esp32, nrf5, or none
+                          [default=none].
   --with-bluez=DIR        Specify location of the optional BlueZ headers and
                           libraries [default=internal].
   --with-bluez-includes=DIR
@@ -4253,15 +4257,6 @@ fi
  PACKAGE='weave'
  VERSION='g5b0d970-dirty'
 
-
-cat >>confdefs.h <<_ACEOF
-#define PACKAGE "$PACKAGE"
-_ACEOF
-
-
-cat >>confdefs.h <<_ACEOF
-#define VERSION "$VERSION"
-_ACEOF
 
 # Some tools Automake needs.
 
@@ -23055,6 +23050,9 @@ if test "${with_device_layer+set}" = set; then :
         esp32|none)
             ;;
 
+        nrf5|none)
+            ;;
+
         *)
             as_fn_error $? "Invalid value ${with_device_layer} for --with-device-layer" "$LINENO" 5
             ;;
@@ -23073,12 +23071,21 @@ esp32)
       CONFIG_DEVICE_LAYER=1
       WEAVE_DEVICE_LAYER_TARGET=ESP32
       WEAVE_DEVICE_LAYER_TARGET_ESP32=1
+      WEAVE_DEVICE_LAYER_TARGET_NRF5=0
+      ;;
+
+nrf5)
+      CONFIG_DEVICE_LAYER=1
+      WEAVE_DEVICE_LAYER_TARGET=nRF5
+      WEAVE_DEVICE_LAYER_TARGET_NRF5=1
+      WEAVE_DEVICE_LAYER_TARGET_ESP32=0
       ;;
 
 none)
       CONFIG_DEVICE_LAYER=0
       WEAVE_DEVICE_LAYER_TARGET=NONE
       WEAVE_DEVICE_LAYER_TARGET_ESP32=0
+      WEAVE_DEVICE_LAYER_TARGET_NRF5=0
       ;;
 
 esac
@@ -23117,6 +23124,21 @@ fi
 
 cat >>confdefs.h <<_ACEOF
 #define WEAVE_DEVICE_LAYER_TARGET_ESP32 ${WEAVE_DEVICE_LAYER_TARGET_ESP32}
+_ACEOF
+
+
+
+ if test "${WEAVE_DEVICE_LAYER_TARGET_NRF5}" = 1; then
+  WEAVE_DEVICE_LAYER_TARGET_NRF5_TRUE=
+  WEAVE_DEVICE_LAYER_TARGET_NRF5_FALSE='#'
+else
+  WEAVE_DEVICE_LAYER_TARGET_NRF5_TRUE='#'
+  WEAVE_DEVICE_LAYER_TARGET_NRF5_FALSE=
+fi
+
+
+cat >>confdefs.h <<_ACEOF
+#define WEAVE_DEVICE_LAYER_TARGET_NRF5 ${WEAVE_DEVICE_LAYER_TARGET_NRF5}
 _ACEOF
 
 
@@ -29453,6 +29475,10 @@ Usually this means the macro was only invoked conditionally." "$LINENO" 5
 fi
 if test -z "${WEAVE_DEVICE_LAYER_TARGET_ESP32_TRUE}" && test -z "${WEAVE_DEVICE_LAYER_TARGET_ESP32_FALSE}"; then
   as_fn_error $? "conditional \"WEAVE_DEVICE_LAYER_TARGET_ESP32\" was never defined.
+Usually this means the macro was only invoked conditionally." "$LINENO" 5
+fi
+if test -z "${WEAVE_DEVICE_LAYER_TARGET_NRF5_TRUE}" && test -z "${WEAVE_DEVICE_LAYER_TARGET_NRF5_FALSE}"; then
+  as_fn_error $? "conditional \"WEAVE_DEVICE_LAYER_TARGET_NRF5\" was never defined.
 Usually this means the macro was only invoked conditionally." "$LINENO" 5
 fi
 if test -z "${WEAVE_WITH_BLUEZ_INTERNAL_TRUE}" && test -z "${WEAVE_WITH_BLUEZ_INTERNAL_FALSE}"; then

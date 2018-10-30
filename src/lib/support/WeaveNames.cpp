@@ -294,12 +294,14 @@ const char *GetMessageName(uint32_t profileId, uint8_t msgType)
         case ServiceProvisioning::kMsgType_PairDeviceToAccount              : return "PairDeviceToAccount";
         }
         break;
+#if WEAVE_CONFIG_ENABLE_SERVICE_DIRECTORY
     case kWeaveProfile_ServiceDirectory:
         switch (msgType) {
         case ServiceDirectory::kMsgType_ServiceEndpointQuery                : return "ServiceEndpointQuery";
         case ServiceDirectory::kMsgType_ServiceEndpointResponse             : return "ServiceEndpointResponse";
         }
         break;
+#endif // WEAVE_CONFIG_ENABLE_SERVICE_DIRECTORY
 #if WEAVE_CONFIG_ENABLE_TUNNELING
     case kWeaveProfile_Tunneling:
         switch (msgType) {

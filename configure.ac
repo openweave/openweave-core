@@ -114,7 +114,7 @@ NL_FILTERED_CANONICAL_TARGET
 # Disable silent build rules by either passing --disable-silent-rules to
 # configure or passing V=1 to make
 #
-AM_INIT_AUTOMAKE([1.14 foreign silent-rules subdir-objects tar-pax])
+AM_INIT_AUTOMAKE([1.14 foreign silent-rules subdir-objects tar-pax no-define])
 
 #
 # Silent build rules requires at least automake-1.11. Employ
@@ -1235,11 +1235,14 @@ AC_DEFINE_UNQUOTED([CONFIG_NETWORK_LAYER_INET],[${CONFIG_NETWORK_LAYER_INET}],[D
 AC_MSG_CHECKING([device layer])
 AC_ARG_WITH(device-layer,
     [AS_HELP_STRING([--with-device-layer=LAYER],
-        [Specify the target environment for the Weave Device Layer.  Choose one of: esp32, or none @<:@default=none@:>@.])],
+        [Specify the target environment for the Weave Device Layer.  Choose one of: esp32, nrf5, or none @<:@default=none@:>@.])],
     [
         case "${with_device_layer}" in
 
         esp32|none)
+            ;;
+
+        nrf5|none)
             ;;
 
         *)
@@ -1256,12 +1259,21 @@ esp32)
       CONFIG_DEVICE_LAYER=1
       WEAVE_DEVICE_LAYER_TARGET=ESP32
       WEAVE_DEVICE_LAYER_TARGET_ESP32=1
+      WEAVE_DEVICE_LAYER_TARGET_NRF5=0
+      ;;
+
+nrf5)
+      CONFIG_DEVICE_LAYER=1
+      WEAVE_DEVICE_LAYER_TARGET=nRF5
+      WEAVE_DEVICE_LAYER_TARGET_NRF5=1
+      WEAVE_DEVICE_LAYER_TARGET_ESP32=0
       ;;
 
 none)
       CONFIG_DEVICE_LAYER=0
       WEAVE_DEVICE_LAYER_TARGET=NONE
       WEAVE_DEVICE_LAYER_TARGET_ESP32=0
+      WEAVE_DEVICE_LAYER_TARGET_NRF5=0
       ;;
 
 esac
@@ -1276,6 +1288,10 @@ AC_DEFINE_UNQUOTED([WEAVE_DEVICE_LAYER_TARGET],[${WEAVE_DEVICE_LAYER_TARGET}],[T
 AC_SUBST(WEAVE_DEVICE_LAYER_TARGET_ESP32)
 AM_CONDITIONAL([WEAVE_DEVICE_LAYER_TARGET_ESP32],    [test "${WEAVE_DEVICE_LAYER_TARGET_ESP32}" = 1])
 AC_DEFINE_UNQUOTED([WEAVE_DEVICE_LAYER_TARGET_ESP32],[${WEAVE_DEVICE_LAYER_TARGET_ESP32}],[Define to 1 if you want to build the OpenWeave Device Layer for the Espressif ESP32.])
+
+AC_SUBST(WEAVE_DEVICE_LAYER_TARGET_NRF5)
+AM_CONDITIONAL([WEAVE_DEVICE_LAYER_TARGET_NRF5],    [test "${WEAVE_DEVICE_LAYER_TARGET_NRF5}" = 1])
+AC_DEFINE_UNQUOTED([WEAVE_DEVICE_LAYER_TARGET_NRF5],[${WEAVE_DEVICE_LAYER_TARGET_NRF5}],[Define to 1 if you want to build the OpenWeave Device Layer for Nordic nRF5* platforms.])
 
 #
 # WoBle over Bluez Peripheral support
