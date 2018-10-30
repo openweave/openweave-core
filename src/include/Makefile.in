@@ -552,6 +552,7 @@ VISIBILITY_OBJCFLAGS = @VISIBILITY_OBJCFLAGS@
 VISIBILITY_OBJCXXCFLAGS = @VISIBILITY_OBJCXXCFLAGS@
 WEAVE_DEVICE_LAYER_TARGET = @WEAVE_DEVICE_LAYER_TARGET@
 WEAVE_DEVICE_LAYER_TARGET_ESP32 = @WEAVE_DEVICE_LAYER_TARGET_ESP32@
+WEAVE_DEVICE_LAYER_TARGET_NRF5 = @WEAVE_DEVICE_LAYER_TARGET_NRF5@
 WEAVE_LOGGING_STYLE = @WEAVE_LOGGING_STYLE@
 WEAVE_LOGGING_STYLE_ANDROID = @WEAVE_LOGGING_STYLE_ANDROID@
 WEAVE_LOGGING_STYLE_EXTERNAL = @WEAVE_LOGGING_STYLE_EXTERNAL@
@@ -1299,6 +1300,19 @@ dist_weave_common_HEADERS = $(addprefix ../,$(nl_public_WeaveCommon_header_sourc
 @WEAVE_DEVICE_LAYER_TARGET_ESP32_TRUE@$(nl_public_WeaveDeviceLayer_source_dirstem)/FreeRTOS/GenericPlatformManagerImpl_FreeRTOS.h         \
 @WEAVE_DEVICE_LAYER_TARGET_ESP32_TRUE@$(nl_public_WeaveDeviceLayer_source_dirstem)/FreeRTOS/GenericPlatformManagerImpl_FreeRTOS.ipp       \
 @WEAVE_DEVICE_LAYER_TARGET_ESP32_TRUE@$(NULL)
+
+@WEAVE_DEVICE_LAYER_TARGET_NRF5_TRUE@nl_public_WeaveDeviceLayer_target_header_sources = \
+@WEAVE_DEVICE_LAYER_TARGET_NRF5_TRUE@$(nl_public_WeaveDeviceLayer_source_dirstem)/nRF5/ConfigurationManagerImpl.h                        \
+@WEAVE_DEVICE_LAYER_TARGET_NRF5_TRUE@$(nl_public_WeaveDeviceLayer_source_dirstem)/nRF5/ConnectivityManagerImpl.h                         \
+@WEAVE_DEVICE_LAYER_TARGET_NRF5_TRUE@$(nl_public_WeaveDeviceLayer_source_dirstem)/nRF5/PlatformManagerImpl.h                             \
+@WEAVE_DEVICE_LAYER_TARGET_NRF5_TRUE@$(nl_public_WeaveDeviceLayer_source_dirstem)/nRF5/NRF5Config.h                                      \
+@WEAVE_DEVICE_LAYER_TARGET_NRF5_TRUE@$(nl_public_WeaveDeviceLayer_source_dirstem)/nRF5/GroupKeyStoreImpl.h                               \
+@WEAVE_DEVICE_LAYER_TARGET_NRF5_TRUE@$(nl_public_WeaveDeviceLayer_source_dirstem)/nRF5/NetworkProvisioningServerImpl.h                   \
+@WEAVE_DEVICE_LAYER_TARGET_NRF5_TRUE@$(nl_public_WeaveDeviceLayer_source_dirstem)/nRF5/WeaveDevicePlatformConfig.h                       \
+@WEAVE_DEVICE_LAYER_TARGET_NRF5_TRUE@$(nl_public_WeaveDeviceLayer_source_dirstem)/nRF5/WeaveDevicePlatformEvent.h                        \
+@WEAVE_DEVICE_LAYER_TARGET_NRF5_TRUE@$(nl_public_WeaveDeviceLayer_source_dirstem)/FreeRTOS/GenericPlatformManagerImpl_FreeRTOS.h         \
+@WEAVE_DEVICE_LAYER_TARGET_NRF5_TRUE@$(nl_public_WeaveDeviceLayer_source_dirstem)/FreeRTOS/GenericPlatformManagerImpl_FreeRTOS.ipp       \
+@WEAVE_DEVICE_LAYER_TARGET_NRF5_TRUE@$(NULL)
 
 @CONFIG_DEVICE_LAYER_TRUE@nl_public_WeaveDeviceLayer_source_dirstem = adaptations/device-layer/include/Weave/DeviceLayer
 @CONFIG_DEVICE_LAYER_TRUE@nl_public_WeaveDeviceLayer_destination_dirstem = Weave/DeviceLayer

@@ -16,28 +16,13 @@
  *    limitations under the License.
  */
 
-#ifndef TUNNEL_AGENT_H
-#define TUNNEL_AGENT_H
+/**
+ *    @file
+ *      WARM project configuration for the Nordic nRF5* platform.
+ *
+ */
 
-#include <Weave/DeviceLayer/internal/WeaveDeviceLayerInternal.h>
-#include <Weave/Profiles/weave-tunneling/WeaveTunnelAgent.h>
+// ==================== Platform Adaptations ====================
 
-#if WEAVE_CONFIG_ENABLE_TUNNELING
-
-namespace nl {
-namespace Weave {
-namespace DeviceLayer {
-namespace Internal {
-
-extern ::nl::Weave::Profiles::WeaveTunnel::WeaveTunnelAgent ServiceTunnelAgent;
-
-extern WEAVE_ERROR InitServiceTunnelAgent();
-
-} // namespace Internal
-} // namespace DeviceLayer
-} // namespace Weave
-} // namespace nl
-
-#endif // WEAVE_CONFIG_ENABLE_TUNNELING
-
-#endif // TUNNEL_AGENT_H
+// TODO: Fix this
+#define WARM_CONFIG_SUPPORT_THREAD 0
