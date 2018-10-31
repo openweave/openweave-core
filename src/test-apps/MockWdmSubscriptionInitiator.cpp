@@ -1133,9 +1133,7 @@ void MockWdmSubscriptionInitiatorImpl::ClientEventCallback (void * const aAppSta
             if (initiator->mUpdateDiscardOnError)
             {
                 TraitDataSink *sink = NULL;
-                TraitUpdatableDataSink *updatableSink = NULL;
                 initiator->mSinkCatalog.Locate(aInParam.mUpdateComplete.mTraitDataHandle, &sink);
-                updatableSink = (TraitUpdatableDataSink *)sink;
                 initiator->mSubscriptionClient->DiscardUpdates();
             }
         }
@@ -1337,11 +1335,11 @@ void MockWdmSubscriptionInitiatorImpl::HandlePublisherRelease()
 void MockWdmSubscriptionInitiatorImpl::HandleMutationTimeout(nl::Weave::System::Layer* aSystemLayer, void *aAppState,
     nl::Weave::System::Error aErr)
 {
-    WEAVE_ERROR err = WEAVE_NO_ERROR;
     MockWdmSubscriptionInitiatorImpl * const initiator = reinterpret_cast<MockWdmSubscriptionInitiatorImpl *>(aAppState);
 
     initiator->ApplyWdmUpdateMutations();
 }
+
 WEAVE_ERROR MockWdmSubscriptionInitiatorImpl::ApplyWdmUpdateMutations()
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;

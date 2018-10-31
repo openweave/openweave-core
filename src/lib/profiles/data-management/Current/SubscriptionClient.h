@@ -46,14 +46,14 @@ typedef uint16_t PropertyDictionaryKey;
 typedef uint16_t TraitDataHandle;
 
 /**
- * @class IWeaveClientLock
+ * @class IWeaveWDMMutex
  *
- * @brief Interface that is to be implemented by app to serialize access to key WDM data structures.
- *        This should be backed by a recursive lock implementation.
+ * @brief Interface of a mutex object. Mutexes of this type are implemented by the application
+ * and used in WDM to protect data structures that can be accessed from multiple threads.
+ * Implementations of this interface must behave like a recursive lock.
  */
 
-// TODO: does it really need to return WEAVE_ERROR?
-class IWeaveClientLock
+class IWeaveWDMMutex
 {
 public:
     virtual void Lock(void)   = 0;
@@ -306,8 +306,8 @@ public:
     void IndicateActivity(void);
 
 #if WEAVE_CONFIG_ENABLE_WDM_UPDATE
-    void Lock(void);
-    void Unlock(void);
+    void LockUpdateMutex(void);
+    void UnlockUpdateMutex(void);
 
     WEAVE_ERROR FlushUpdate();
     WEAVE_ERROR SetUpdated(TraitUpdatableDataSink * aDataSink, PropertyPathHandle aPropertyHandle, bool aIsConditional);
@@ -359,9 +359,6 @@ private:
     };
 
     ClientState mCurrentState;
-
-    // Lock
-    IWeaveClientLock * mLock;
 
     /**
      * The runtime configuration; i.e. the desired state of the Client.
@@ -417,7 +414,8 @@ private:
     // null out EC
     WEAVE_ERROR Init(Binding * const apBinding, void * const apAppState, EventCallback const aEventCallback,
                      const TraitCatalogBase<TraitDataSink> * const apCatalog,
-                     const uint32_t aInactivityTimeoutDuringSubscribingMsec, IWeaveClientLock * aLock);
+                     const uint32_t aInactivityTimeoutDuringSubscribingMsec,
+                     IWeaveWDMMutex * aUpdateMutex);
 
     void _InitiateSubscription(void);
     WEAVE_ERROR SendSubscribeRequest(void);
@@ -467,6 +465,8 @@ private:
                                                               uint8_t aMsgType, PacketBuffer * aPayload);
 
 #if WEAVE_CONFIG_ENABLE_WDM_UPDATE
+
+    IWeaveWDMMutex * mUpdateMutex;
 
     struct UpdateRequestContext
     {

@@ -1283,13 +1283,13 @@ TraitUpdatableDataSink::TraitUpdatableDataSink(const TraitSchemaEngine * aEngine
 void TraitUpdatableDataSink::Lock(SubscriptionClient * apSubClient)
 {
     VerifyOrDie(apSubClient!=NULL);
-    apSubClient->Lock();
+    apSubClient->LockUpdateMutex();
 }
 
 void TraitUpdatableDataSink::Unlock(SubscriptionClient * apSubClient)
 {
     VerifyOrDie(apSubClient!=NULL);
-    apSubClient->Unlock();
+    apSubClient->UnlockUpdateMutex();
 }
 
 WEAVE_ERROR TraitUpdatableDataSink::GetData(PropertyPathHandle aHandle, uint64_t aTagToWrite, nl::Weave::TLV::TLVWriter & aWriter,

@@ -232,12 +232,14 @@ WEAVE_ERROR SubscriptionEngine::NewClient(SubscriptionClient ** const appClient,
                                           SubscriptionClient::EventCallback const aEventCallback,
                                           const TraitCatalogBase<TraitDataSink> * const apCatalog,
                                           const uint32_t aInactivityTimeoutDuringSubscribingMsec,
-                                          IWeaveClientLock * aLock)
+                                          IWeaveWDMMutex * aUpdateMutex)
 {
     WEAVE_ERROR err = WEAVE_ERROR_NO_MEMORY;
 
 #if WEAVE_CONFIG_ENABLE_WDM_UPDATE
     uint32_t maxSize        = WDM_MAX_UPDATE_SIZE;
+#else
+    VerifyOrExit(aUpdateMutex == NULL, err = WEAVE_ERROR_INVALID_ARGUMENT);
 #endif // WEAVE_CONFIG_ENABLE_WDM_UPDATE
 
     WEAVE_FAULT_INJECT(FaultInjection::kFault_WDM_SubscriptionClientNew, ExitNow());
@@ -249,7 +251,9 @@ WEAVE_ERROR SubscriptionEngine::NewClient(SubscriptionClient ** const appClient,
         if (SubscriptionClient::kState_Free == mClients[i].mCurrentState)
         {
             *appClient = &mClients[i];
-            err = (*appClient)->Init(apBinding, apAppState, aEventCallback, apCatalog, aInactivityTimeoutDuringSubscribingMsec, aLock);
+            err = (*appClient)->Init(apBinding, apAppState, aEventCallback, apCatalog,
+                                     aInactivityTimeoutDuringSubscribingMsec,
+                                     aUpdateMutex);
 
             if (WEAVE_NO_ERROR != err)
             {

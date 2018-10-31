@@ -82,7 +82,6 @@ void SubscriptionClient::Reset(void)
     mEventCallback                          = NULL;
     mResubscribePolicyCallback              = NULL;
     mDataSinkCatalog                        = NULL;
-    mLock                                   = NULL;
     mInactivityTimeoutDuringSubscribingMsec = kNoTimeOut;
     mLivenessTimeoutMsec                    = kNoTimeOut;
     mSubscriptionId                         = 0;
@@ -90,6 +89,7 @@ void SubscriptionClient::Reset(void)
     mRetryCounter                           = 0;
 
 #if WEAVE_CONFIG_ENABLE_WDM_UPDATE
+    mUpdateMutex                            = NULL;
     mUpdateInFlight                         = false;
     mNumUpdatableTraitInstances             = 0;
     mMaxUpdateSize                          = 0;
@@ -114,7 +114,7 @@ void SubscriptionClient::Reset(void)
 // null out EC
 WEAVE_ERROR SubscriptionClient::Init(Binding * const apBinding, void * const apAppState, EventCallback const aEventCallback,
                                      const TraitCatalogBase<TraitDataSink> * const apCatalog,
-                                     const uint32_t aInactivityTimeoutDuringSubscribingMsec, IWeaveClientLock * aLock)
+                                     const uint32_t aInactivityTimeoutDuringSubscribingMsec, IWeaveWDMMutex * aUpdateMutex)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
     WeaveLogIfFalse(0 == mRefCount);
@@ -138,9 +138,9 @@ WEAVE_ERROR SubscriptionClient::Init(Binding * const apBinding, void * const apA
 
     mInactivityTimeoutDuringSubscribingMsec = aInactivityTimeoutDuringSubscribingMsec;
 
-    mLock                                   = aLock;
 
 #if WEAVE_CONFIG_ENABLE_WDM_UPDATE
+    mUpdateMutex                            = aUpdateMutex;
     mUpdateInFlight                         = false;
     mNumUpdatableTraitInstances             = 0;
     mMaxUpdateSize                          = 0;
@@ -1391,7 +1391,7 @@ WEAVE_ERROR SubscriptionClient::ProcessDataList(nl::Weave::TLV::TLVReader & aRea
 
 #if WEAVE_CONFIG_ENABLE_WDM_UPDATE
     _AddRef();
-    Lock();
+    LockUpdateMutex();
 #endif // WEAVE_CONFIG_ENABLE_WDM_UPDATE
 
     err = SubscriptionEngine::ProcessDataList(aReader, mDataSinkCatalog, mPrevIsPartialChange, mPrevTraitDataHandle, acDelegate);
@@ -1412,7 +1412,7 @@ WEAVE_ERROR SubscriptionClient::ProcessDataList(nl::Weave::TLV::TLVReader & aRea
 
 exit:
 #if WEAVE_CONFIG_ENABLE_WDM_UPDATE
-    Unlock();
+    UnlockUpdateMutex();
     _Release();
 #endif // WEAVE_CONFIG_ENABLE_WDM_UPDATE
 
@@ -1890,7 +1890,7 @@ void SubscriptionClient::OnMessageReceivedFromLocallyInitiatedExchange(nl::Weave
             // since the state could have been changed, we must not assume anything
 
 #if WEAVE_CONFIG_ENABLE_WDM_UPDATE
-            pClient->Lock();
+            pClient->LockUpdateMutex();
             if (false == pClient->IsUpdatePendingOrInProgress())
             {
                 if (pClient->CheckForSinksWithDataLoss())
@@ -1898,7 +1898,7 @@ void SubscriptionClient::OnMessageReceivedFromLocallyInitiatedExchange(nl::Weave
                     ExitNow(err = WEAVE_ERROR_WDM_POTENTIAL_DATA_LOSS);
                 }
             }
-            pClient->Unlock();
+            pClient->UnlockUpdateMutex();
 #endif // WEAVE_CONFIG_ENABLE_WDM_UPDATE
 
             ExitNow();
@@ -2259,19 +2259,19 @@ bool SubscriptionClient::FilterNotifiedPath(TraitDataHandle aTraitDataHandle,
     return retval;
 }
 
-void SubscriptionClient::Lock()
+void SubscriptionClient::LockUpdateMutex()
 {
-    if (mLock)
+    if (mUpdateMutex)
     {
-        mLock->Lock();
+        mUpdateMutex->Lock();
     }
 }
 
-void SubscriptionClient::Unlock()
+void SubscriptionClient::UnlockUpdateMutex()
 {
-    if (mLock)
+    if (mUpdateMutex)
     {
-        mLock->Unlock();
+        mUpdateMutex->Unlock();
     }
 }
 
@@ -2370,7 +2370,7 @@ void SubscriptionClient::OnUpdateResponse(WEAVE_ERROR aReason, nl::Weave::Profil
     // This method invokes callbacks into the upper layer.
     _AddRef();
 
-    Lock();
+    LockUpdateMutex();
 
     additionalInfo = apStatus->mAdditionalInfo;
     ClearUpdateInFlight();
@@ -2636,7 +2636,7 @@ exit:
         HandleSubscriptionTerminated(IsRetryEnabled(), err, NULL);
     }
 
-    Unlock();
+    UnlockUpdateMutex();
 
     WeaveLogFunctError(err);
 
@@ -2654,7 +2654,7 @@ void SubscriptionClient::OnUpdateNoResponse(WEAVE_ERROR aError)
 
     _AddRef();
 
-    Lock();
+    LockUpdateMutex();
 
     ClearUpdateInFlight();
 
@@ -2695,7 +2695,7 @@ void SubscriptionClient::OnUpdateNoResponse(WEAVE_ERROR aError)
         StartUpdateRetryTimer(aError);
     }
 
-    Unlock();
+    UnlockUpdateMutex();
 
     _Release();
 }
@@ -2747,7 +2747,7 @@ WEAVE_ERROR SubscriptionClient::SetUpdated(TraitUpdatableDataSink * aDataSink, P
     bool needToSetUpdateRequiredVersion = false;
     bool isTraitInstanceInUpdate = false;
 
-    Lock();
+    LockUpdateMutex();
 
     if (aIsConditional)
     {
@@ -2797,7 +2797,7 @@ WEAVE_ERROR SubscriptionClient::SetUpdated(TraitUpdatableDataSink * aDataSink, P
 
 exit:
 
-    Unlock();
+    UnlockUpdateMutex();
 
     return err;
 }
@@ -2834,7 +2834,7 @@ void SubscriptionClient::AbortUpdates(WEAVE_ERROR aErr)
     size_t numInProgress = 0;
     bool resubscribe = false;
 
-    Lock();
+    LockUpdateMutex();
 
     SubscriptionEngine::GetInstance()->GetExchangeManager()->MessageLayer->SystemLayer->CancelTimer(OnUpdateTimerCallback, this);
     mUpdateRetryTimerRunning = false;
@@ -2901,7 +2901,7 @@ void SubscriptionClient::AbortUpdates(WEAVE_ERROR aErr)
     WeaveLogDetail(DataManagement, "Discarded %" PRIu32 " pending  and %" PRIu32 " inProgress paths",
             numPending, numInProgress);
 
-    Unlock();
+    UnlockUpdateMutex();
 
     return;
 }
@@ -2917,7 +2917,7 @@ void SubscriptionClient::AbortUpdates(WEAVE_ERROR aErr)
  */
 void SubscriptionClient::HoldoffUpdates()
 {
-    Lock();
+    LockUpdateMutex();
 
     if (false == mHoldoffUpdates)
     {
@@ -2926,7 +2926,7 @@ void SubscriptionClient::HoldoffUpdates()
         mHoldoffUpdates = true;
     }
 
-    Unlock();
+    UnlockUpdateMutex();
 }
 
 /**
@@ -3074,7 +3074,7 @@ void SubscriptionClient::FormAndSendUpdate()
 {
     WEAVE_ERROR err                  = WEAVE_NO_ERROR;
 
-    Lock();
+    LockUpdateMutex();
 
     VerifyOrExit(!IsUpdateInFlight(), WeaveLogDetail(DataManagement, "Update request in flight"));
 
@@ -3108,7 +3108,7 @@ exit:
         OnUpdateNoResponse(err);
     }
 
-    Unlock();
+    UnlockUpdateMutex();
 
     WeaveLogFunctError(err);
 
@@ -3128,7 +3128,7 @@ WEAVE_ERROR SubscriptionClient::FlushUpdate()
 
     WeaveLogDetail(DataManagement, "%s", __func__);
 
-    Lock();
+    LockUpdateMutex();
 
     mHoldoffUpdates = false;
 
@@ -3148,7 +3148,7 @@ WEAVE_ERROR SubscriptionClient::FlushUpdate()
     StartUpdateRetryTimer(WEAVE_NO_ERROR);
 
 exit:
-    Unlock();
+    UnlockUpdateMutex();
 
     return err;
 }

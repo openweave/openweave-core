@@ -1655,7 +1655,6 @@ WEAVE_ERROR LocaleSettingsTraitUpdatableDataSink::Mutate(SubscriptionClient * ap
     WEAVE_ERROR err = WEAVE_NO_ERROR;
     static unsigned int whichLocale = 0;
     static const char * locales[] = { "en-US", "zh-TW", "ja-JP", "pl-PL", "zh-CN" };
-    bool isLocked = false;
     PropertyPathHandle pathHandle = kNullPropertyPathHandle;
 
     Lock(apSubClient);
