@@ -98,8 +98,9 @@ void SubscriptionClient::Reset(void)
     mPendingUpdateSet.Init(mPendingStore, ArraySize(mPendingStore));
     mInProgressUpdateList.Init(mInProgressStore, ArraySize(mInProgressStore));
     mUpdateRetryCounter                     = 0;
-    mUpdateRetryTimerRunning                = false;
-    mHoldoffUpdates                         = false;
+    mUpdateRetryScheduled                   = false;
+    mUpdateFlushScheduled                   = false;
+    mSuspendUpdateRetries                   = false;
 #endif // WEAVE_CONFIG_ENABLE_WDM_UPDATE
 
 #if WDM_ENABLE_PROTOCOL_CHECKS
@@ -1983,7 +1984,7 @@ void SubscriptionClient::StartUpdateRetryTimer(WEAVE_ERROR aReason)
     WEAVE_ERROR err = WEAVE_NO_ERROR;
     uint32_t timeoutMsec = 0;
 
-    VerifyOrExit(false == mUpdateRetryTimerRunning, );
+    VerifyOrExit(false == mUpdateRetryScheduled, );
 
     if (WEAVE_NO_ERROR == aReason)
     {
@@ -2007,7 +2008,7 @@ void SubscriptionClient::StartUpdateRetryTimer(WEAVE_ERROR aReason)
         WeaveDie();
     }
 
-    mUpdateRetryTimerRunning = true;
+    mUpdateRetryScheduled = true;
 
 exit:
     return;
@@ -2017,9 +2018,9 @@ void SubscriptionClient::UpdateTimerEventHandler()
 {
     WeaveLogDetail(DataManagement, "%s", __func__);
 
-    mUpdateRetryTimerRunning = false;
+    mUpdateRetryScheduled = false;
 
-    VerifyOrExit(false == mHoldoffUpdates, WeaveLogDetail(DataManagement, "Holding off updates"));
+    VerifyOrExit(false == mSuspendUpdateRetries, WeaveLogDetail(DataManagement, "Holding off updates"));
 
     FormAndSendUpdate();
 
@@ -2032,6 +2033,27 @@ void SubscriptionClient::OnUpdateTimerCallback(System::Layer * aSystemLayer, voi
     SubscriptionClient * const pClient = reinterpret_cast<SubscriptionClient *>(aAppState);
 
     pClient->UpdateTimerEventHandler();
+}
+
+void SubscriptionClient::OnUpdateScheduleWorkCallback(System::Layer * aSystemLayer, void * aAppState, System::Error)
+{
+    SubscriptionClient * const pClient = reinterpret_cast<SubscriptionClient *>(aAppState);
+
+    pClient->LockUpdateMutex();
+
+    // If the application has called AbortUpdates() or Free(), no need to do anything.
+    VerifyOrExit(pClient->mUpdateFlushScheduled, );
+
+    pClient->mUpdateFlushScheduled = false;
+
+    // Start the timer with a retry count of zero, unless the timer has already been scheduled.
+    // There is some overhead, but this gives the application a chance to add a one-off delay
+    // at the beginning of the sequence.
+    pClient->StartUpdateRetryTimer(WEAVE_NO_ERROR);
+
+exit:
+    pClient->UnlockUpdateMutex();
+    pClient->_Release();
 }
 
 void SubscriptionClient::SetMaxUpdateSize(const uint32_t aMaxSize)
@@ -2837,7 +2859,9 @@ void SubscriptionClient::AbortUpdates(WEAVE_ERROR aErr)
     LockUpdateMutex();
 
     SubscriptionEngine::GetInstance()->GetExchangeManager()->MessageLayer->SystemLayer->CancelTimer(OnUpdateTimerCallback, this);
-    mUpdateRetryTimerRunning = false;
+    mUpdateRetryScheduled = false;
+
+    mUpdateFlushScheduled = false;
 
     ClearUpdateInFlight();
 
@@ -2907,23 +2931,26 @@ void SubscriptionClient::AbortUpdates(WEAVE_ERROR aErr)
 }
 
 /**
- * Tells the SubscriptionClient to stop sending (or retrying) update requests.
+ * Tells the SubscriptionClient to stop retrying update requests.
  * Allows the application to suspend updates for a period of time
  * without discarding all metadata.
- * Updates will be resumed when FlushUpdates is called.
+ * Updates and retries will be resumed when FlushUpdate is called.
  * When called to suspend updates while an update is in-flight, the update
- * is not canceled but in case it fails it will not be retried until FlushUpdates
+ * is not canceled but in case it fails it will not be retried until FlushUpdate
  * is called again.
  */
-void SubscriptionClient::HoldoffUpdates()
+void SubscriptionClient::SuspendUpdateRetries()
 {
     LockUpdateMutex();
 
-    if (false == mHoldoffUpdates)
+    SubscriptionEngine::GetInstance()->GetExchangeManager()->MessageLayer->SystemLayer->CancelTimer(OnUpdateTimerCallback, this);
+    mUpdateRetryScheduled = false;
+
+    if (false == mSuspendUpdateRetries)
     {
         WeaveLogDetail(DataManagement, "%s false -> true", __func__);
 
-        mHoldoffUpdates = true;
+        mSuspendUpdateRetries = true;
     }
 
     UnlockUpdateMutex();
@@ -3119,10 +3146,19 @@ exit:
  * Signals that the application has finished mutating all TraitUpdatableDataSinks.
  * Unless a previous update exchange is in progress, the client will
  * take all data marked as updated and send it to the responder in one update request.
+ * This method can be called from any thread.
+ *
+ * @param[in] aForce    If true, causes the update to be sent immediately even if
+ *                      a retry has been scheduled in the future. This parameter is
+ *                      considered false by default.
  *
  * @return WEAVE_NO_ERROR in case of success; other WEAVE_ERROR codes in case of failure.
  */
 WEAVE_ERROR SubscriptionClient::FlushUpdate()
+{
+    return FlushUpdate(false);
+}
+WEAVE_ERROR SubscriptionClient::FlushUpdate(bool aForce)
 {
     WEAVE_ERROR err                  = WEAVE_NO_ERROR;
 
@@ -3130,7 +3166,7 @@ WEAVE_ERROR SubscriptionClient::FlushUpdate()
 
     LockUpdateMutex();
 
-    mHoldoffUpdates = false;
+    mSuspendUpdateRetries = false;
 
     if (mPendingSetState == kPendingSetOpen)
     {
@@ -3143,9 +3179,23 @@ WEAVE_ERROR SubscriptionClient::FlushUpdate()
     VerifyOrExit(false == IsUpdateInFlight(),
             WeaveLogDetail(DataManagement, "%s: update already in flight", __func__));
 
-    // Reset the timer state so it will be restarted if already running
-    mUpdateRetryTimerRunning = false;
-    StartUpdateRetryTimer(WEAVE_NO_ERROR);
+    if (aForce)
+    {
+        // Mark the timer as not running, so the ScheduleWork handler will reset it and
+        // start an immediate attempt.
+        mUpdateRetryScheduled = false;
+    }
+
+    VerifyOrExit(false == mUpdateRetryScheduled, );
+
+    VerifyOrExit(false == mUpdateFlushScheduled, );
+
+    // Tell the Weave thread to try sending the update immediately
+    err = SubscriptionEngine::GetInstance()->GetExchangeManager()->MessageLayer->SystemLayer->ScheduleWork(OnUpdateScheduleWorkCallback, this);
+    SuccessOrExit(err);
+
+    _AddRef();
+    mUpdateFlushScheduled = true;
 
 exit:
     UnlockUpdateMutex();

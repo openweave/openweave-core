@@ -310,9 +310,10 @@ public:
     void UnlockUpdateMutex(void);
 
     WEAVE_ERROR FlushUpdate();
+    WEAVE_ERROR FlushUpdate(bool aForce);
     WEAVE_ERROR SetUpdated(TraitUpdatableDataSink * aDataSink, PropertyPathHandle aPropertyHandle, bool aIsConditional);
     void DiscardUpdates();
-    void HoldoffUpdates();
+    void SuspendUpdateRetries();
 
     bool IsUpdatePendingOrInProgress() { return (kPendingSetEmpty != mPendingSetState || IsUpdateInProgress()); }
 #endif // WEAVE_CONFIG_ENABLE_WDM_UPDATE
@@ -486,11 +487,13 @@ private:
         bool mIsPartialUpdate;
     };
     uint32_t mUpdateRetryCounter;
-    bool mHoldoffUpdates;
-    bool mUpdateRetryTimerRunning;
+    bool mSuspendUpdateRetries;
+    bool mUpdateRetryScheduled;
+    bool mUpdateFlushScheduled;
 
     void StartUpdateRetryTimer(WEAVE_ERROR aReason);
-    static void OnUpdateTimerCallback(System::Layer * aSystemLayer, void * aAppState, System::Error aErrorCode);
+    static void OnUpdateTimerCallback(System::Layer * aSystemLayer, void * aAppState, System::Error);
+    static void OnUpdateScheduleWorkCallback(System::Layer * aSystemLayer, void * aAppState, System::Error);
     void UpdateTimerEventHandler(void);
 
     uint32_t GetMaxUpdateSize(void) const { return mMaxUpdateSize == 0 ? UINT16_MAX : mMaxUpdateSize; }
