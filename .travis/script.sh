@@ -28,7 +28,9 @@ die()
     exit 1
 }
 
-
+echo "echo in script"
+echo $HOME
+pwd
 case "${BUILD_TARGET}" in
 
     linux-auto-*-distcheck)
@@ -55,8 +57,17 @@ case "${BUILD_TARGET}" in
         .travis/build_esp32.sh
         ;;
 
+    happy_test)
+        # run happy test
+        source ${HOME}/ve/happy/bin/activate
+        sudo make -f Makefile-Standalone DEBUG=1 TIMESTAMP=1 COVERAGE=1 BuildJobs=24 SUITE=echo
+
     *)
         die "Unknown build target \"${BUILD_TARGET}\"."
         ;;
         
 esac
+
+
+
+

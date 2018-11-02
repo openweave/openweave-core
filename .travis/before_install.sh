@@ -28,6 +28,10 @@ die()
     exit 1
 }
 
+echo "echo before install"
+echo $HOME
+pwd
+
 # Package build machine OS-specific configuration and setup
 
 case "${TRAVIS_OS_NAME}" in
@@ -84,8 +88,49 @@ case "${BUILD_TARGET}" in
 
         ;;
 
+    happy_test)
+        # prepare for happy test run 
+        sudo apt-get install python-setuptools
+        sudo apt-get install bridge-utils
+        sudo apt-get install swig
+        sudo apt-get install lcov
+
+        cd $HOME
+        git clone ssh://git@stash.nestlabs.com:7999/platform/happy.git # or wget
+
+        mkdir -p ve
+        cd ve
+        virtualenv happy
+        source happy/bin/activate
+        cd ${HOME}/happy
+        python pip_packages.py
+        python setup.py develop
+
+        # configure happy
+        cat << EOF >~/.happy_conf.json
+        {
+            "weave_path": "./weave/build/x86_64-unknown-linux-gnu/src/test-apps/"
+        }
+EOF
+
+        sudo ln -s ${HOME}/.happy_conf.json /root/.happy_conf.json
+        
+    ;;
     *)
         die "Unknown build target \"${BUILD_TARGET}\"."
         ;;
-	
+    
 esac
+
+
+
+
+
+
+
+
+
+
+
+
+
