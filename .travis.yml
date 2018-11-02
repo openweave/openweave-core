@@ -57,3 +57,6 @@ matrix:
       compiler: clang
     - name: "ESP32"
       env: BUILD_TARGET="esp32"
+    - name: "HAPPY_TEST"
+      env: BUILD_TARGET="happy_test"
+
