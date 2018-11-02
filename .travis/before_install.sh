@@ -30,6 +30,7 @@ die()
 
 echo "echo before install"
 echo $HOME
+echo $TRAVIS_BUILD_DIR
 pwd
 
 # Package build machine OS-specific configuration and setup
@@ -106,10 +107,10 @@ case "${BUILD_TARGET}" in
         python pip_packages.py
         python setup.py develop
 
-        # configure happy
+        # configure happy, $HOME: /home/travis
         cat << EOF >~/.happy_conf.json
         {
-            "weave_path": "./weave/build/x86_64-unknown-linux-gnu/src/test-apps/"
+            "weave_path": "/home/travis/build/jenniexie/openweave-core/build/x86_64-unknown-linux-gnu/src/test-apps/"
         }
 EOF
 
