@@ -915,6 +915,8 @@ exit:
  * @param[in] terminatingNodeId   The node identifier of the session terminating node.
  *                                When this input is different from kNodeIdNotSpecified that
  *                                indicates that shared secure session was requested.
+ * @param[in] encType             The message encryption type that will be used to encrypt
+ *                                messages sent via the new session.
  *
  * @retval #WEAVE_NO_ERROR         On success.
  *
@@ -922,13 +924,13 @@ exit:
 WEAVE_ERROR WeaveSecurityManager::StartCASESession(WeaveConnection *con, uint64_t peerNodeId, const IPAddress &peerAddr,
                                                    uint16_t peerPort, WeaveAuthMode requestedAuthMode, void *reqState,
                                                    SessionEstablishedFunct onComplete, SessionErrorFunct onError,
-                                                   WeaveCASEAuthDelegate *authDelegate, uint64_t terminatingNodeId)
+                                                   WeaveCASEAuthDelegate *authDelegate, uint64_t terminatingNodeId,
+                                                   uint8_t encType)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
     WeaveSessionKey *sessionKey = NULL;
     bool clearStateOnError = false;
     bool isSharedSession = (terminatingNodeId != kNodeIdNotSpecified);
-    const uint8_t encType = kWeaveEncryptionType_AES128CTRSHA1; // Only one encryption type supported for now.
 
     // Verify security manager has been initialized.
     VerifyOrExit(State != kState_NotInitialized, err = WEAVE_ERROR_INCORRECT_STATE);

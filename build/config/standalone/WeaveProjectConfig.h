@@ -43,6 +43,10 @@
 // Enable support functions for parsing command-line arguments
 #define WEAVE_CONFIG_ENABLE_ARG_PARSER 1
 
+// Enable EAX message encryption modes
+#define WEAVE_CONFIG_AES128EAX128 1
+#define WEAVE_CONFIG_AES128EAX64 1
+
 // Enable reading DRBG seed data from /dev/(u)random.
 // This is needed for test applications and the Weave device manager to function
 // properly when WEAVE_CONFIG_RNG_IMPLEMENTATION_NESTDRBG is enabled.

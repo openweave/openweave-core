@@ -279,7 +279,8 @@ public:
     WEAVE_ERROR StartCASESession(WeaveConnection *con, uint64_t peerNodeId, const IPAddress &peerAddr,
                                  uint16_t peerPort, WeaveAuthMode requestedAuthMode, void *reqState,
                                  SessionEstablishedFunct onComplete, SessionErrorFunct onError,
-                                 WeaveCASEAuthDelegate *authDelegate = NULL, uint64_t terminatingNodeId = kNodeIdNotSpecified);
+                                 WeaveCASEAuthDelegate *authDelegate = NULL, uint64_t terminatingNodeId = kNodeIdNotSpecified,
+                                 uint8_t encType = kWeaveEncryptionType_AES128CTRSHA1);
 
     // Initiate a secure TAKE session, optionally providing a TAKE auth delegate.
     // Session establishment is done over connection that was specified.

@@ -2698,5 +2698,26 @@ void WeaveMessageLayer::GetPeerDescription(char * buf, size_t bufSize, const Wea
         msgInfo->InCon);
 }
 
+/**
+ * Returns true if the given message encryption type is supported by the WeaveMessageLayer.
+ */
+bool WeaveMessageLayer::IsSupportedEncryptionType(uint8_t encType)
+{
+    switch (encType)
+    {
+    case kWeaveEncryptionType_AES128CTRSHA1:
+#if WEAVE_CONFIG_AES128EAX64
+    case kWeaveEncryptionType_AES128EAX64:
+#endif // WEAVE_CONFIG_AES128EAX64
+#if WEAVE_CONFIG_AES128EAX128
+    case kWeaveEncryptionType_AES128EAX128:
+#endif // WEAVE_CONFIG_AES128EAX128
+        return true;
+    default:
+        return false;
+    }
+}
+
+
 } // namespace nl
 } // namespace Weave

@@ -749,7 +749,7 @@ void Binding::PrepareSecurity()
             // OnSecureSessionReady function during this call if a shared session is requested and the session is
             // already available.
             err = sm->StartCASESession(mCon, mPeerNodeId, peerAddress, peerPort, mAuthMode, this,
-                    OnSecureSessionReady, OnSecureSessionFailed, NULL, terminatingNodeId);
+                    OnSecureSessionReady, OnSecureSessionFailed, NULL, terminatingNodeId, mEncType);
             SuccessOrExit(err);
         }
         break;

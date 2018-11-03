@@ -1731,6 +1731,11 @@ void WeaveEncryptionKeyToString(uint8_t encType, const WeaveEncryptionKey& key, 
         *buf++ = ',';
         ToHexString(key.AES128CTRSHA1.IntegrityKey, sizeof(key.AES128CTRSHA1.IntegrityKey), buf, bufSize);
     }
+    else if (encType == kWeaveEncryptionType_AES128EAX128 || encType == kWeaveEncryptionType_AES128EAX64)
+    {
+        bufSize -= 1; // Reserve size for null terminator.
+        ToHexString(key.AES128EAX.Key, sizeof(key.AES128EAX.Key), buf, bufSize);
+    }
 
     *buf = 0;
 }

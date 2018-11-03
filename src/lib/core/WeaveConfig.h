@@ -780,7 +780,7 @@
  *
  */
 #ifndef WEAVE_CONFIG_EAX_NO_CHUNK
-#define WEAVE_CONFIG_EAX_NO_CHUNK                           0
+#define WEAVE_CONFIG_EAX_NO_CHUNK                           1
 #endif // WEAVE_CONFIG_EAX_NO_PAD_CACHE
 
 
@@ -793,7 +793,7 @@
  *
  */
 #ifndef WEAVE_CONFIG_AES128EAX64
-#define WEAVE_CONFIG_AES128EAX64                            1
+#define WEAVE_CONFIG_AES128EAX64                            0
 #endif // WEAVE_CONFIG_AES128EAX64
 
 
@@ -806,7 +806,7 @@
  *
  */
 #ifndef WEAVE_CONFIG_AES128EAX128
-#define WEAVE_CONFIG_AES128EAX128                           1
+#define WEAVE_CONFIG_AES128EAX128                           0
 #endif // WEAVE_CONFIG_AES128EAX128
 
 

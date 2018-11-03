@@ -464,6 +464,7 @@ private:
     enum
     {
         kMaxHashLength                          = SHA256::kHashLength,
+        kMaxKeyLength                           = WeaveEncryptionKey::MaxKeySize,
         kMaxECDHPrivateKeySize                  = ((WEAVE_CONFIG_MAX_EC_BITS + 7) / 8) + 1,
         kMaxECDHSharedSecretSize                = kMaxECDHPrivateKeySize
     };

@@ -28,327 +28,357 @@
 #endif
 
 #include <stdio.h>
-#include <nlunit-test.h>
 #include <string.h>
 
+#include <nlunit-test.h>
+
 #include "ToolCommon.h"
-#include <Weave/Core/WeaveConfig.h>
-#include <Weave/Support/crypto/CTRMode.h>
-#include <Weave/Support/crypto/WeaveCrypto.h>
 
 #if WEAVE_SYSTEM_CONFIG_USE_LWIP
 #include "lwip/tcpip.h"
 #endif // WEAVE_SYSTEM_CONFIG_USE_LWIP
 
-using namespace nl::Inet;
-using namespace nl::Weave::Encoding;
-using namespace nl::Weave::Crypto;
-using namespace nl::Weave::Profiles::Security;
-
-#define DEBUG_PRINT_ENABLE 0
-
 namespace nl {
 namespace Weave {
 
-class NL_DLL_EXPORT WeaveMessageLayerTestObject
+class TestMessageEncodingHelper
 {
 public:
-    WeaveMessageLayer *msgLayer;
+    WeaveFabricState FabricState;
+    WeaveMessageLayer MessageLayer;
+
+    WEAVE_ERROR Init()
+    {
+        WEAVE_ERROR err;
+
+        // Initialize the FabricState object.
+        err = FabricState.Init();
+        SuccessOrExit(err);
+        FabricState.LocalNodeId = 1;
+        FabricState.FabricId = 1;
+        FabricState.DefaultSubnet = kWeaveSubnetId_PrimaryWiFi;
+
+        // Partially initialize the MessageLayer object, enough to support message encoding/decoding.
+        MessageLayer.FabricState = &FabricState;
+
+    exit:
+        return err;
+    }
+
+    WEAVE_ERROR EncodeMessage(WeaveMessageInfo *msgInfo, PacketBuffer *msgBuf, WeaveConnection *con, uint16_t maxLen,
+            uint16_t reserve)
+    {
+        return MessageLayer.EncodeMessage(msgInfo, msgBuf, con, maxLen, reserve);
+    }
 
     WEAVE_ERROR DecodeMessage(PacketBuffer *msgBuf, uint64_t sourceNodeId, WeaveConnection *con,
             WeaveMessageInfo *msgInfo, uint8_t **rPayload, uint16_t *rPayloadLen)
     {
-        return msgLayer->DecodeMessage(msgBuf, sourceNodeId, con, msgInfo, rPayload, rPayloadLen);
+        return MessageLayer.DecodeMessage(msgBuf, sourceNodeId, con, msgInfo, rPayload, rPayloadLen);
+    }
+
+    uint32_t GetNextUnencryptedUDPMessageId()
+    {
+        return FabricState.NextUnencUDPMsgId.GetValue();
+    }
+
+    void SetNextUnencryptedUDPMessageId(uint32_t msgId)
+    {
+        FabricState.NextUnencUDPMsgId.Init(msgId);
     }
 };
 
 } // namespace nl
 } // namespace Weave
 
+static ::nl::Weave::TestMessageEncodingHelper sTestHelper;
 
-static const uint8_t sMsgPayload[] =
+#include "MsgEncTestVectors.h"
+
+static void MessageEncodeDecodeTest(nlTestSuite * inSuite, void * inContext)
 {
-    0x05, 0x26, 0xAD, 0xB7, 0xBB, 0xD7, 0x82, 0x52, 0x78, 0x2D, 0x60, 0xD6, 0x40, 0xFD, 0xE6, 0xF9,
-    0x0A, 0x1A, 0x2A, 0x3A, 0x4A, 0x5A, 0x6A, 0x7A, 0x8A, 0x9A, 0xAA, 0xBA, 0xCA, 0xDA, 0xEA, 0xFA,
-    0x09, 0x19, 0x29, 0x39, 0x49, 0x59, 0x69, 0x79, 0x89, 0x99, 0xA9, 0xB9, 0xC9, 0xD9, 0xE9, 0xF9,
-    0x04, 0x14, 0x24, 0x34, 0x44, 0x54, 0x6A
-};
+    WEAVE_ERROR err;
+    WeaveSessionKey * encodeSessionKey = NULL;
+    WeaveSessionKey * decodeSessionKey = NULL;
+    PacketBuffer * msgBuf = NULL;
+    uint8_t *payload;
+    uint16_t payloadLen;
 
-static const uint8_t sMsgEncKey_DataKey[] =
-{
-    0xF7, 0xE7, 0xD7, 0xC7, 0xB7, 0xA7, 0x97, 0x87, 0x07, 0x17, 0x27, 0x37, 0x47, 0x57, 0x67, 0x77
-};
-
-static const uint8_t sMsgEncKey_IntegrityKey[] =
-{
-    0xFD, 0xED, 0xDD, 0xCD, 0xBD, 0xAD, 0x9D, 0x8D, 0x0D, 0x1D, 0x2D, 0x3D, 0x4D, 0x5D, 0x6D, 0x7D,
-    0x82, 0x52, 0x78, 0x2D
-};
-
-static const uint8_t sEncodedMsg_V1[] =
-{
-    0x10, 0x1B, 0x03, 0x00, 0x00, 0x00, 0x02, 0x00, 0x00, 0x00, 0x00, 0x30, 0xB4, 0x18, 0x78, 0x56,
-    0x34, 0x12, 0x00, 0x30, 0xB4, 0x18, 0x2A, 0x20, 0xAC, 0xBD, 0x69, 0x5C, 0x20, 0x44, 0x51, 0x71,
-    0x16, 0x1C, 0x29, 0x48, 0xC6, 0x3D, 0xBD, 0x91, 0x33, 0x77, 0x7B, 0x58, 0xFA, 0x9C, 0x08, 0x6B,
-    0x2B, 0xAF, 0x1D, 0x25, 0x04, 0x01, 0x4E, 0xE2, 0x1E, 0xB7, 0x2F, 0x41, 0x19, 0x2B, 0x81, 0x60,
-    0x6B, 0xE8, 0xB9, 0x00, 0x08, 0xA1, 0x1C, 0x9C, 0x62, 0x3B, 0x23, 0x1D, 0x99, 0xBC, 0xA4, 0x7B,
-    0x54, 0x00, 0xA2, 0x0B, 0x20, 0x3B, 0xA7, 0x80, 0x01, 0xAC, 0xF4, 0xF4, 0xF5, 0x50, 0x24, 0x63,
-    0xF1, 0xBA, 0x50
-};
-
-static const uint8_t sEncodedMsg_V2[] =
-{
-    0x10, 0x2B, 0x03, 0x00, 0x00, 0x00, 0x02, 0x00, 0x00, 0x00, 0x00, 0x30, 0xB4, 0x18, 0x78, 0x56,
-    0x34, 0x12, 0x00, 0x30, 0xB4, 0x18, 0x2A, 0x20, 0xAC, 0xBD, 0x69, 0x5C, 0x20, 0x44, 0x51, 0x71,
-    0x16, 0x1C, 0x29, 0x48, 0xC6, 0x3D, 0xBD, 0x91, 0x33, 0x77, 0x7B, 0x58, 0xFA, 0x9C, 0x08, 0x6B,
-    0x2B, 0xAF, 0x1D, 0x25, 0x04, 0x01, 0x4E, 0xE2, 0x1E, 0xB7, 0x2F, 0x41, 0x19, 0x2B, 0x81, 0x60,
-    0x6B, 0xE8, 0xB9, 0x00, 0x08, 0xA1, 0x1C, 0x9C, 0x62, 0x3B, 0x23, 0x1D, 0x99, 0xBC, 0xA4, 0x96,
-    0xD0, 0xAE, 0x61, 0xFD, 0x55, 0x05, 0x43, 0xEA, 0x6C, 0x49, 0x1D, 0xA5, 0x8D, 0x57, 0x3C, 0xF6,
-    0xD9, 0x27, 0x9D
-};
-
-// Test input vector format.
-struct TestContext {
-    uint8_t        MsgVersion;
-    const uint8_t *MsgPayload;
-    uint16_t       MsgPayloadLen;
-    const uint8_t *EncodedMsg;
-    uint16_t       EncodedMsgLen;
-    WEAVE_ERROR    EncodeError;
-    WEAVE_ERROR    DecodeError;
-};
-
-// Test input data.
-static struct TestContext sContext[] = {
-    { kWeaveMessageVersion_V1, sMsgPayload, sizeof(sMsgPayload), sEncodedMsg_V1, sizeof(sEncodedMsg_V1), WEAVE_NO_ERROR, WEAVE_NO_ERROR },
-    { kWeaveMessageVersion_V2, sMsgPayload, sizeof(sMsgPayload), sEncodedMsg_V2, sizeof(sEncodedMsg_V2), WEAVE_NO_ERROR, WEAVE_NO_ERROR },
-    { kWeaveMessageVersion_V2, sMsgPayload, sizeof(sMsgPayload), sEncodedMsg_V2, sizeof(sEncodedMsg_V2), WEAVE_NO_ERROR, WEAVE_ERROR_WRONG_ENCRYPTION_TYPE },
-    { kWeaveMessageVersion_V2, sMsgPayload, sizeof(sMsgPayload), sEncodedMsg_V2, sizeof(sEncodedMsg_V2), WEAVE_ERROR_WRONG_ENCRYPTION_TYPE, WEAVE_NO_ERROR },
-};
-
-// Number of test context examples.
-static const size_t kTestElements = sizeof(sContext) / sizeof(struct TestContext);
-
-void WeaveMessageEncryption_Test1(nlTestSuite *inSuite, void *inContext)
-{
-    static WeaveFabricState fabricState;
-    static WeaveMessageLayer messageLayer;
     static WeaveMessageInfo msgInfo;
 
-    WEAVE_ERROR err;
-    PacketBuffer *msgBuf;
-    WeaveSessionKey *sessionKey;
-    uint64_t srcNodeId;
-    uint64_t destNodeId = 0x18B4300012345678;
-    uint32_t msgId = 3;
-    uint8_t encType = kWeaveEncryptionType_AES128CTRSHA1;
-    uint16_t sessionKeyId = sTestDefaultSessionKeyId;
-    uint8_t *p;
+    // Allocate buffer.
+    msgBuf = PacketBuffer::New();
+    NL_TEST_ASSERT(inSuite, msgBuf != NULL);
+    VerifyOrExit(msgBuf != NULL, /**/);
 
-    const char localAddrStr[] = "fd00:0:1:1:18B4:3000::2";
-    IPAddress localIPv6Addr;
-    NL_TEST_ASSERT(inSuite, ParseIPAddress(localAddrStr, localIPv6Addr));
-
-    // Initialize the FabricState object.
-    err = fabricState.Init();
-    NL_TEST_ASSERT(inSuite, err == WEAVE_NO_ERROR);
-
-    srcNodeId = localIPv6Addr.InterfaceId();
-    fabricState.LocalNodeId = srcNodeId;
-    fabricState.FabricId = localIPv6Addr.GlobalId();
-    fabricState.DefaultSubnet = localIPv6Addr.Subnet();
-
-    // Initialize message encryption session key.
-    WeaveEncryptionKey msgEncSessionKey;
-    WeaveAuthMode authMode = kWeaveAuthMode_CASE_Device;
-
-    memcpy(msgEncSessionKey.AES128CTRSHA1.DataKey, sMsgEncKey_DataKey, sizeof(sMsgEncKey_DataKey));
-    memcpy(msgEncSessionKey.AES128CTRSHA1.IntegrityKey, sMsgEncKey_IntegrityKey, sizeof(sMsgEncKey_IntegrityKey));
-
-    // Initialize session key with destination node id.
-    err = fabricState.AllocSessionKey(destNodeId, sessionKeyId, NULL, sessionKey);
-    NL_TEST_ASSERT(inSuite, err == WEAVE_NO_ERROR);
-
-    fabricState.SetSessionKey(sessionKey, encType, authMode, &msgEncSessionKey);
-
-    // Initialize the same session key with LocalNodeId as a destination node id.
-    err = fabricState.AllocSessionKey(srcNodeId, sessionKeyId, NULL, sessionKey);
-    NL_TEST_ASSERT(inSuite, err == WEAVE_NO_ERROR);
-
-    fabricState.SetSessionKey(sessionKey, encType, authMode, &msgEncSessionKey);
-
-    // Initialize the MessageLayer object.
-    messageLayer.FabricState = &fabricState;
-
-    struct TestContext *theContext = (struct TestContext *)(inContext);
-
-    for (size_t ith = 0; ith < kTestElements; ith++, theContext++)
+    for (size_t i = 0; i < sNumMessageEncodingTestVectors; i++)
     {
-        uint8_t msgVersion = theContext->MsgVersion;
-        const uint8_t *msgPayload = theContext->MsgPayload;
-        uint16_t msgPayloadLen = theContext->MsgPayloadLen;
-        const uint8_t *encodedMsg = theContext->EncodedMsg;
-        uint16_t encodedMsgLen = theContext->EncodedMsgLen;
-        WEAVE_ERROR encodeError = theContext->EncodeError;
-        WEAVE_ERROR decodeError = theContext->DecodeError;
-        uint8_t localMsgBuf[theContext->EncodedMsgLen];
+        const MessageEncodingTestVector & testVec = *sMessageEncodingTestVectors[i];
 
-        // Allocate buffer.
-        msgBuf = PacketBuffer::New();
-        NL_TEST_ASSERT(inSuite, msgBuf != NULL);
-        if (msgBuf == NULL)
+#if !WEAVE_CONFIG_AES128EAX128
+        if (testVec.MsgInfo.EncryptionType == kWeaveEncryptionType_AES128EAX128)
             continue;
+#endif
+#if !WEAVE_CONFIG_AES128EAX64
+        if (testVec.MsgInfo.EncryptionType == kWeaveEncryptionType_AES128EAX64)
+            continue;
+#endif
 
-        // Copy payload data.
-        memcpy(msgBuf->Start(), msgPayload, msgPayloadLen);
-        msgBuf->SetDataLength(msgPayloadLen);
+        // Configure the fabric state to operate as the source node.
+        sTestHelper.FabricState.LocalNodeId = testVec.MsgInfo.SourceNodeId;
 
-        // Initialize the Message info object.
-        msgInfo.Clear();
-        msgInfo.SourceNodeId = srcNodeId;
-        msgInfo.DestNodeId = destNodeId;
-        msgInfo.MessageId = msgId;
-        if (encodeError == WEAVE_ERROR_WRONG_ENCRYPTION_TYPE)
-            msgInfo.KeyId = WeaveKeyId::kNone;
+        // If the message will not be encrypted, set the global next unencrypted UDP message id counter to
+        // the message id for the test message.
+        if (testVec.MsgInfo.EncryptionType == kWeaveEncryptionType_None)
+        {
+            sTestHelper.SetNextUnencryptedUDPMessageId(testVec.MsgInfo.MessageId);
+        }
+
+        // Otherwise if the message will be encrypted...
         else
-            msgInfo.KeyId = sessionKeyId;
-        msgInfo.Flags = kWeaveMessageFlag_DestNodeId |
-                          kWeaveMessageFlag_SourceNodeId |
-                          kWeaveMessageFlag_MsgCounterSyncReq |
-                          kWeaveMessageFlag_ReuseMessageId;
-        msgInfo.MessageVersion = msgVersion;
-        msgInfo.EncryptionType = encType;
+        {
+            // Create an entry in the session key table associated with the source node id. This will be used
+            // for message decoding, and for encoding messages to the 'any' node id.
+            err = sTestHelper.FabricState.AllocSessionKey(testVec.MsgInfo.SourceNodeId, testVec.MsgInfo.KeyId, NULL, decodeSessionKey);
+            NL_TEST_ASSERT(inSuite, err == WEAVE_NO_ERROR);
+            if (err != WEAVE_NO_ERROR)
+                goto next;
+            sTestHelper.FabricState.SetSessionKey(decodeSessionKey, testVec.MsgInfo.EncryptionType, kWeaveAuthMode_NotSpecified, testVec.EncKey);
+            decodeSessionKey->NextMsgId.Init(testVec.MsgInfo.MessageId);
 
-        // =====================================================================================================
-        // Encode message using EncodeMessage() function.
-        // =====================================================================================================
-        err = messageLayer.EncodeMessage(&msgInfo, msgBuf, NULL, UINT16_MAX, 0);
-        NL_TEST_ASSERT(inSuite, err == encodeError);
+            // If the destination node id is not 'any', initialize an entry in the session key table associated
+            // with destination node id.  This will be used for message encoding when *not* sending to the 'any'
+            // node.
+            if (testVec.MsgInfo.DestNodeId != kAnyNodeId)
+            {
+                err = sTestHelper.FabricState.AllocSessionKey(testVec.MsgInfo.DestNodeId, testVec.MsgInfo.KeyId, NULL, encodeSessionKey);
+                NL_TEST_ASSERT(inSuite, err == WEAVE_NO_ERROR);
+                if (err != WEAVE_NO_ERROR)
+                    goto next;
+                sTestHelper.FabricState.SetSessionKey(encodeSessionKey, testVec.MsgInfo.EncryptionType, kWeaveAuthMode_NotSpecified, testVec.EncKey);
+                encodeSessionKey->NextMsgId.Init(testVec.MsgInfo.MessageId);
+            }
+            else
+            {
+                encodeSessionKey = decodeSessionKey;
+            }
+        }
 
+        // Copy payload data into the buffer.
+        memcpy(msgBuf->Start(), testVec.MsgPayload, testVec.MsgPayloadLen);
+        msgBuf->SetDataLength(testVec.MsgPayloadLen);
+
+        // Invoke the Weave Message Layer encode function.
+        msgInfo = testVec.MsgInfo;
+        err = sTestHelper.EncodeMessage(&msgInfo, msgBuf, NULL, UINT16_MAX, 0);
+        NL_TEST_ASSERT(inSuite, err == WEAVE_NO_ERROR);
         if (err != WEAVE_NO_ERROR)
-        {
-            PacketBuffer::Free(msgBuf);
-            msgBuf = NULL;
+            goto next;
 
-            continue;
+        // Verify the encoded message against the expected value.
+        {
+            bool matchesExpectedEncoding = (msgBuf->DataLength() == testVec.ExpectedEncodedMsgLen &&
+                                            memcmp(msgBuf->Start(), testVec.ExpectedEncodedMsg, testVec.ExpectedEncodedMsgLen) == 0);
+            NL_TEST_ASSERT(inSuite, matchesExpectedEncoding);
+            if (!matchesExpectedEncoding)
+            {
+                printf("Test %" PRIu32 ":\n", (uint32_t)i);
+                printf("  Expected:\n");
+                DumpMemoryCStyle(testVec.ExpectedEncodedMsg, testVec.ExpectedEncodedMsgLen, "    ", 16);
+                printf("  Actual:\n");
+                DumpMemoryCStyle(msgBuf->Start(), msgBuf->DataLength(), "    ", 16);
+            }
         }
 
-#if DEBUG_PRINT_ENABLE
-        printf("Encoded message generated by EncodeMessage():\n");
-        DumpMemoryCStyle(msgBuf->Start(), msgBuf->DataLength(), "    ", 16);
-#endif
-
-        // =====================================================================================================
-        // Manually encode message and compare against the result generated by EncodeMessage() function.
-        // =====================================================================================================
-        p = localMsgBuf;
-
-        // Write the header field.
-        uint16_t headerVal = ((uint16_t) (msgInfo.Flags & 0xF0F) << 0) |
-                             ((uint16_t) (msgInfo.EncryptionType & 0xF) << 4) |
-                             ((uint16_t) (msgInfo.MessageVersion & 0xF) << 12);
-        LittleEndian::Write16(p, headerVal);
-        LittleEndian::Write32(p, msgId);
-        LittleEndian::Write64(p, srcNodeId);
-        LittleEndian::Write64(p, destNodeId);
-        LittleEndian::Write16(p, sessionKeyId);
-
-        // Message data to encrypt.
-        uint8_t aesDataIn[msgPayloadLen + HMACSHA1::kDigestLength];
-        memcpy(aesDataIn, msgPayload, msgPayloadLen);
-
-        // Message data to authenticate.
-        uint16_t sha1DataLen;
-        uint8_t sha1DataIn[2 * sizeof(uint64_t) + sizeof(uint16_t) + sizeof(uint32_t) + msgPayloadLen];
-        uint8_t *p2 = sha1DataIn;
-        Encoding::LittleEndian::Write64(p2, srcNodeId);
-        Encoding::LittleEndian::Write64(p2, destNodeId);
-        sha1DataLen = 2 * sizeof(uint64_t);
-        if (msgVersion == kWeaveMessageVersion_V2)
+        // Verify that the appropriate next message id counter was incremented during message encoding.
+        if (testVec.MsgInfo.EncryptionType == kWeaveEncryptionType_None)
         {
-            // Mask destination and source node Id flags.
-            headerVal &= kMsgHeaderField_MessageHMACMask;
-
-            // Encode the message header field and the message Id in a little-endian format.
-            Encoding::LittleEndian::Write16(p2, headerVal);
-            Encoding::LittleEndian::Write32(p2, msgId);
-
-            sha1DataLen += sizeof(uint16_t) + sizeof(uint32_t);
+            NL_TEST_ASSERT(inSuite, sTestHelper.GetNextUnencryptedUDPMessageId() == testVec.MsgInfo.MessageId + 1);
         }
-        memcpy(p2, msgPayload, msgPayloadLen);
-        sha1DataLen += msgPayloadLen;
-
-        // Compute integrity check.
-        HMACSHA1 sha1;
-        sha1.Begin(sMsgEncKey_IntegrityKey, sizeof(sMsgEncKey_IntegrityKey));
-        sha1.AddData(sha1DataIn, sha1DataLen);
-        sha1.Finish(aesDataIn + msgPayloadLen);
-
-        // Encrypt the message payload and the integrity value.
-        AES128CTRMode aes128CTR;
-        aes128CTR.SetKey(sMsgEncKey_DataKey);
-        aes128CTR.SetWeaveMessageCounter(srcNodeId, msgId);
-        aes128CTR.EncryptData(aesDataIn, sizeof(aesDataIn), p);
-
-#if DEBUG_PRINT_ENABLE
-        printf("Manually generated encoded message:\n");
-        DumpMemoryCStyle(localMsgBuf, sizeof(localMsgBuf), "    ", 16);
-#endif
-
-        // Compare the result.
-        NL_TEST_ASSERT(inSuite, memcmp(msgBuf->Start(), localMsgBuf, sizeof(localMsgBuf)) == 0);
-
-        // Compare the result against the static value saved in this test.
-        NL_TEST_ASSERT(inSuite, msgBuf->DataLength() == encodedMsgLen);
-        NL_TEST_ASSERT(inSuite, memcmp(msgBuf->Start(), encodedMsg, encodedMsgLen) == 0);
-
-        // =====================================================================================================
-        // Verify that DecodeMessage() generates original payload context.
-        // =====================================================================================================
-        WeaveMessageLayerTestObject msgLayerTestObject;
-        uint8_t *payload;
-        uint16_t payloadLen;
-
-        // Inject wrong KeyId.
-        if (decodeError == WEAVE_ERROR_WRONG_ENCRYPTION_TYPE)
+        else
         {
-            uint8_t *injectKeyId = msgBuf->Start() + sizeof(headerVal) + sizeof(msgId) + sizeof(srcNodeId) + sizeof(destNodeId);
-
-            LittleEndian::Write16(injectKeyId, WeaveKeyId::kNone);
+            NL_TEST_ASSERT(inSuite, encodeSessionKey->NextMsgId.GetValue() == testVec.MsgInfo.MessageId + 1);
         }
 
-        msgLayerTestObject.msgLayer = &messageLayer;
-        err = msgLayerTestObject.DecodeMessage(msgBuf, srcNodeId, NULL, &msgInfo, &payload, &payloadLen);
-        NL_TEST_ASSERT(inSuite, err == decodeError);
+        // Switch the fabric state to operate as the destination node.
+        sTestHelper.FabricState.LocalNodeId = testVec.MsgInfo.DestNodeId;
 
-        if (err == WEAVE_NO_ERROR)
+        // Decode the encoded message.
+        memset(&msgInfo, 0, sizeof(msgInfo));
+        err = sTestHelper.DecodeMessage(msgBuf, testVec.MsgInfo.SourceNodeId, NULL, &msgInfo, &payload, &payloadLen);
+        NL_TEST_ASSERT(inSuite, err == WEAVE_NO_ERROR);
+
+        // Verify the decode message payload against the expected value.
+        NL_TEST_ASSERT(inSuite, payloadLen == testVec.MsgPayloadLen);
+        NL_TEST_ASSERT(inSuite, memcmp(payload, testVec.MsgPayload, payloadLen) == 0);
+
+        // Verify the returned message metadata.
+        NL_TEST_ASSERT(inSuite, msgInfo.SourceNodeId == testVec.MsgInfo.SourceNodeId);
+        NL_TEST_ASSERT(inSuite, msgInfo.DestNodeId == testVec.MsgInfo.DestNodeId);
+        NL_TEST_ASSERT(inSuite, msgInfo.MessageId == testVec.MsgInfo.MessageId);
+        NL_TEST_ASSERT(inSuite, msgInfo.MessageVersion == testVec.MsgInfo.MessageVersion);
+        NL_TEST_ASSERT(inSuite, msgInfo.EncryptionType == testVec.MsgInfo.EncryptionType);
+        if (testVec.MsgInfo.EncryptionType != kWeaveEncryptionType_None)
         {
-#if DEBUG_PRINT_ENABLE
-            printf("Decoded Payload generated by DecodeMessage():\n");
-            DumpMemoryCStyle(payload, payloadLen, "    ", 16);
-#endif
-
-            // Compare the result of DecodeMessage() to the original Payload message data.
-            NL_TEST_ASSERT(inSuite, payloadLen == msgPayloadLen);
-            NL_TEST_ASSERT(inSuite, memcmp(payload, msgPayload, msgPayloadLen) == 0);
+            NL_TEST_ASSERT(inSuite, msgInfo.KeyId == testVec.MsgInfo.KeyId);
         }
 
-        // Release buffer.
-        PacketBuffer::Free(msgBuf);
-        msgBuf = NULL;
+    next:
+
+        // Remove the session keys as necessary.
+        if (encodeSessionKey != NULL)
+        {
+            sTestHelper.FabricState.RemoveSessionKey(encodeSessionKey);
+        }
+        if (decodeSessionKey != NULL && decodeSessionKey != encodeSessionKey)
+        {
+            sTestHelper.FabricState.RemoveSessionKey(decodeSessionKey);
+        }
+        encodeSessionKey = NULL;
+        decodeSessionKey = NULL;
     }
+
+exit:
+    if (encodeSessionKey != NULL)
+    {
+        sTestHelper.FabricState.RemoveSessionKey(encodeSessionKey);
+    }
+    if (decodeSessionKey != NULL && decodeSessionKey != encodeSessionKey)
+    {
+        sTestHelper.FabricState.RemoveSessionKey(decodeSessionKey);
+    }
+
+    // Release buffer.
+    PacketBuffer::Free(msgBuf);
 }
 
+static void MessageDecodeFuzzTest(nlTestSuite * inSuite, void * inContext)
+{
+    WEAVE_ERROR err;
+    PacketBuffer * msgBuf = NULL;
+    WeaveSessionKey * decodeSessionKey = NULL;
+    uint8_t *payload;
+    uint16_t payloadLen;
+    uint16_t fuzzIndex;
+    uint8_t fuzzBit;
+
+    static WeaveMessageInfo msgInfo;
+
+    // Allocate buffer.
+    msgBuf = PacketBuffer::New();
+    NL_TEST_ASSERT(inSuite, msgBuf != NULL);
+    VerifyOrExit(msgBuf != NULL, /**/);
+
+    for (size_t i = 0; i < sNumMessageEncodingTestVectors; i++)
+    {
+        const MessageEncodingTestVector & testVec = *sMessageEncodingTestVectors[i];
+
+#if !WEAVE_CONFIG_AES128EAX128
+        if (testVec.MsgInfo.EncryptionType == kWeaveEncryptionType_AES128EAX128)
+            continue;
+#endif
+#if !WEAVE_CONFIG_AES128EAX64
+        if (testVec.MsgInfo.EncryptionType == kWeaveEncryptionType_AES128EAX64)
+            continue;
+#endif
+
+        // Configure the fabric state to operate as the destination node.
+        sTestHelper.FabricState.LocalNodeId = testVec.MsgInfo.DestNodeId;
+
+        // If the message is encrypted...
+        if (testVec.MsgInfo.EncryptionType != kWeaveEncryptionType_None)
+        {
+            // Create an entry in the session key table associated with the source node id.
+            err = sTestHelper.FabricState.AllocSessionKey(testVec.MsgInfo.SourceNodeId, testVec.MsgInfo.KeyId, NULL, decodeSessionKey);
+            NL_TEST_ASSERT(inSuite, err == WEAVE_NO_ERROR);
+            SuccessOrExit(err);
+            sTestHelper.FabricState.SetSessionKey(decodeSessionKey, testVec.MsgInfo.EncryptionType, kWeaveAuthMode_NotSpecified, testVec.EncKey);
+            decodeSessionKey->NextMsgId.Init(testVec.MsgInfo.MessageId);
+        }
+
+        fuzzIndex = 0;
+        fuzzBit = 1;
+        while (fuzzIndex < testVec.ExpectedEncodedMsgLen)
+        {
+            bool failureExpected = true;
+
+            if (testVec.MsgInfo.EncryptionType == kWeaveEncryptionType_None)
+            {
+                if ((fuzzIndex == 1 && (fuzzBit & 0x0F) != 0) || (fuzzIndex > 1))
+                {
+                    failureExpected = false;
+                }
+            }
+            else
+            {
+                if ((testVec.MsgInfo.EncryptionType == kWeaveEncryptionType_AES128CTRSHA1 && fuzzIndex == 0 && fuzzBit == 0x10) ||
+                    (testVec.MsgInfo.EncryptionType == kWeaveEncryptionType_AES128EAX64 && fuzzIndex == 0 && fuzzBit == 0x20) ||
+                     (fuzzIndex == 1 && fuzzBit == 0x08))
+                {
+                    failureExpected = false;
+                }
+            }
+
+            // Copy the encoded message into the buffer.
+            memcpy(msgBuf->Start(), testVec.ExpectedEncodedMsg, testVec.ExpectedEncodedMsgLen);
+            msgBuf->SetDataLength(testVec.ExpectedEncodedMsgLen);
+
+            // Fuzz the message.
+            msgBuf->Start()[fuzzIndex] ^= fuzzBit;
+
+            // Attempt to decode the fuzzed message.
+            memset(&msgInfo, 0, sizeof(msgInfo));
+            err = sTestHelper.DecodeMessage(msgBuf, testVec.MsgInfo.SourceNodeId, NULL, &msgInfo, &payload, &payloadLen);
+
+            // Verify that message decoding fails if expected.
+            if (failureExpected)
+            {
+                NL_TEST_ASSERT(inSuite, err != WEAVE_NO_ERROR);
+                if (err == WEAVE_NO_ERROR)
+                {
+                    printf("Test %" PRIu32 ": index=%" PRIu16 ", bit=0x%" PRIX8 ", error=%" PRIu32,
+                            (uint32_t)i, fuzzIndex, fuzzBit, (uint32_t)err);
+                }
+            }
+
+            fuzzBit <<= 1;
+            if (fuzzBit == 0)
+            {
+                fuzzIndex++;
+                fuzzBit = 1;
+            }
+        }
+
+        // Remove the session key.
+        if (decodeSessionKey != NULL)
+        {
+            sTestHelper.FabricState.RemoveSessionKey(decodeSessionKey);
+            decodeSessionKey = NULL;
+        }
+    }
+
+
+exit:
+
+    if (decodeSessionKey != NULL)
+    {
+        sTestHelper.FabricState.RemoveSessionKey(decodeSessionKey);
+    }
+
+    // Release buffer.
+    PacketBuffer::Free(msgBuf);
+}
 
 int main(int argc, char *argv[])
 {
     static const nlTest tests[] = {
-        NL_TEST_DEF("WeaveMessageEncryption",           WeaveMessageEncryption_Test1),
+        NL_TEST_DEF("MessageEncodeDecodeTest", MessageEncodeDecodeTest),
+        NL_TEST_DEF("MessageDecodeFuzzTest", MessageDecodeFuzzTest),
         NL_TEST_SENTINEL()
     };
 
     static nlTestSuite testSuite = {
-        "provisioning-hash",
+        "message-encoding",
         &tests[0]
     };
 
@@ -356,9 +386,18 @@ int main(int argc, char *argv[])
     tcpip_init(NULL, NULL);
 #endif // WEAVE_SYSTEM_CONFIG_USE_LWIP
 
+    // Dummy references to PersistedStorage Read()/Write() methods to un-confuse linker.
+    {
+        uint32_t v;
+        ::nl::Weave::Platform::PersistedStorage::Read("", v);
+        ::nl::Weave::Platform::PersistedStorage::Write("", v);
+    }
+
+    sTestHelper.Init();
+
     nl_test_set_output_style(OUTPUT_CSV);
 
-    nlTestRunner(&testSuite, &sContext);
+    nlTestRunner(&testSuite, NULL);
 
     return nlTestRunnerStats(&testSuite);
 }

@@ -146,8 +146,8 @@ WEAVE_ERROR WeaveCASEEngine::GenerateBeginSessionRequest(BeginSessionRequestCont
     VerifyOrExit(WeaveKeyId::IsSessionKey(reqCtx.SessionKeyId), err = WEAVE_ERROR_WRONG_KEY_TYPE);
 
     // Verify the requested encryption type.
-    VerifyOrExit(reqCtx.EncryptionType == kWeaveEncryptionType_AES128CTRSHA1,
-            err = WEAVE_ERROR_UNSUPPORTED_ENCRYPTION_TYPE);
+    VerifyOrExit(WeaveMessageLayer::IsSupportedEncryptionType(reqCtx.EncryptionType),
+                 err = WEAVE_ERROR_UNSUPPORTED_ENCRYPTION_TYPE);
 
     // Record that we are acting as the initiator.
     SetIsInitiator(true);
@@ -244,7 +244,7 @@ WEAVE_ERROR WeaveCASEEngine::ProcessBeginSessionRequest(PacketBuffer * msgBuf, B
     VerifyOrExit(WeaveKeyId::IsSessionKey(reqCtx.SessionKeyId), err = WEAVE_ERROR_WRONG_KEY_TYPE);
 
     // Verify the requested encryption type.
-    VerifyOrExit(reqCtx.EncryptionType == kWeaveEncryptionType_AES128CTRSHA1,
+    VerifyOrExit(WeaveMessageLayer::IsSupportedEncryptionType(EncryptionType),
                  err = WEAVE_ERROR_UNSUPPORTED_ENCRYPTION_TYPE);
 
     State = kState_BeginRequestProcessed;
@@ -878,8 +878,9 @@ WEAVE_ERROR WeaveCASEEngine::DeriveSessionKeys(EncodedECPublicKey & pubKey, cons
 
     WeaveLogDetail(SecurityManager, "CASE:DeriveSessionKeys");
 
-    // Only AES128CTRSHA1 keys supported for now.
-    VerifyOrExit(EncryptionType == kWeaveEncryptionType_AES128CTRSHA1, err = WEAVE_ERROR_UNSUPPORTED_ENCRYPTION_TYPE);
+    // Double check the encryption type.
+    VerifyOrExit(WeaveMessageLayer::IsSupportedEncryptionType(EncryptionType),
+                 err = WEAVE_ERROR_UNSUPPORTED_ENCRYPTION_TYPE);
 
     // Prepare a salt value to be used in the generation of the master key. The salt value
     // is composed from the hashes of the signed portions of the CASE request and response
@@ -928,31 +929,51 @@ WEAVE_ERROR WeaveCASEEngine::DeriveSessionKeys(EncodedECPublicKey & pubKey, cons
 
     // Derive the session keys from the master key...
     {
-        uint8_t sessionKeyData[WeaveEncryptionKey_AES128CTRSHA1::KeySize + kMaxHashLength];
-        uint16_t keyLen;
+        uint8_t sessionKeyData[WeaveEncryptionKey::MaxKeySize + kMaxHashLength];
+        uint8_t msgEncKeyLen;
+        uint8_t keyConfirmKeyLen;
 
-        // If performing key confirmation, arrange to generate enough key data for the session
-        // keys (data encryption and integrity) as well as a key to be used in key confirmation.
-        if (PerformingKeyConfirm())
-            keyLen = WeaveEncryptionKey_AES128CTRSHA1::KeySize + hashLen;
+#if WEAVE_CONFIG_AES128EAX64 || WEAVE_CONFIG_AES128EAX128
+        if (EncryptionType == kWeaveEncryptionType_AES128EAX64 ||
+            EncryptionType == kWeaveEncryptionType_AES128EAX128)
+        {
+            msgEncKeyLen = WeaveEncryptionKey_AES128EAX::KeySize;
+        }
         else
-            keyLen = WeaveEncryptionKey_AES128CTRSHA1::KeySize;
+#endif // WEAVE_CONFIG_AES128EAX64 || WEAVE_CONFIG_AES128EAX128
+        {
+            msgEncKeyLen = WeaveEncryptionKey_AES128CTRSHA1::KeySize;
+        }
 
-        // Perform HKDF-based key expansion to produce the desired key data.
-        err = hkdf.ExpandKey(NULL, 0, keyLen, sessionKeyData);
+        keyConfirmKeyLen = PerformingKeyConfirm() ? hashLen : 0;
+
+        // Perform HKDF-based key expansion to produce the desired key material.
+        err = hkdf.ExpandKey(NULL, 0, msgEncKeyLen + keyConfirmKeyLen, sessionKeyData);
         SuccessOrExit(err);
 
 #ifdef CASE_PRINT_CRYPTO_DATA
-        printf("Session Key Data: "); PrintHex(sessionKeyData, keyLen); printf("\n");
+        printf("Session Key Data: "); PrintHex(sessionKeyData, msgEncKeyLen + keyConfirmKeyLen); printf("\n");
 #endif
 
         // Copy the generated key data to the appropriate destinations.
-        memcpy(mSecureState.AfterKeyGen.EncryptionKey.AES128CTRSHA1.DataKey,
-               sessionKeyData,
-               WeaveEncryptionKey_AES128CTRSHA1::DataKeySize);
-        memcpy(mSecureState.AfterKeyGen.EncryptionKey.AES128CTRSHA1.IntegrityKey,
-               sessionKeyData + WeaveEncryptionKey_AES128CTRSHA1::DataKeySize,
-               WeaveEncryptionKey_AES128CTRSHA1::IntegrityKeySize);
+#if WEAVE_CONFIG_AES128EAX64 || WEAVE_CONFIG_AES128EAX128
+        if (EncryptionType == kWeaveEncryptionType_AES128EAX64 ||
+            EncryptionType == kWeaveEncryptionType_AES128EAX128)
+        {
+            memcpy(mSecureState.AfterKeyGen.EncryptionKey.AES128EAX.Key,
+                   sessionKeyData,
+                   WeaveEncryptionKey_AES128EAX::KeySize);
+        }
+        else
+#endif // WEAVE_CONFIG_AES128EAX64 || WEAVE_CONFIG_AES128EAX128
+        {
+            memcpy(mSecureState.AfterKeyGen.EncryptionKey.AES128CTRSHA1.DataKey,
+                   sessionKeyData,
+                   WeaveEncryptionKey_AES128CTRSHA1::DataKeySize);
+            memcpy(mSecureState.AfterKeyGen.EncryptionKey.AES128CTRSHA1.IntegrityKey,
+                   sessionKeyData + WeaveEncryptionKey_AES128CTRSHA1::DataKeySize,
+                   WeaveEncryptionKey_AES128CTRSHA1::IntegrityKeySize);
+        }
 
         // If performing key confirmation...
         if (PerformingKeyConfirm())
@@ -960,7 +981,7 @@ WEAVE_ERROR WeaveCASEEngine::DeriveSessionKeys(EncodedECPublicKey & pubKey, cons
             // Use the key confirmation key to generate key confirmation hashes. Store the initiator hash
             // (the single hash) in state data for later use.  Return the responder hash (the double hash)
             // to the caller.
-            uint8_t *keyConfirmKey = sessionKeyData + WeaveEncryptionKey_AES128CTRSHA1::KeySize;
+            uint8_t * keyConfirmKey = sessionKeyData + msgEncKeyLen;
             GenerateKeyConfirmHashes(keyConfirmKey, mSecureState.AfterKeyGen.InitiatorKeyConfirmHash,
                                      responderKeyConfirmHash);
         }

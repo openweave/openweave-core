@@ -482,10 +482,11 @@ private:
  */
 class NL_DLL_EXPORT WeaveMessageLayer
 {
-    friend class WeaveMessageLayerTestObject;
     friend class WeaveConnection;
     friend class WeaveExchangeManager;
     friend class ExchangeContext;
+    friend class TestMessageEncodingHelper;
+
 public:
     /**
      *  @enum State
@@ -691,6 +692,8 @@ public:
 
     static void GetPeerDescription(char *buf, size_t bufSize, uint64_t nodeId, const IPAddress *addr, uint16_t port, InterfaceId interfaceId, const WeaveConnection *con);
     static void GetPeerDescription(char *buf, size_t bufSize, const WeaveMessageInfo *msgInfo);
+
+    static bool IsSupportedEncryptionType(uint8_t encType);
 
 private:
     enum

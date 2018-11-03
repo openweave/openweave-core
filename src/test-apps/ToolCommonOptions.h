@@ -92,6 +92,7 @@ enum
     kToolCommonOpt_SecurityPASE,
     kToolCommonOpt_SecurityGroupEnc,
     kToolCommonOpt_SecurityTAKE,
+    kToolCommonOpt_MsgEncType,
     kToolCommonOpt_GeneralSecurityIdleSessionTimeout,
     kToolCommonOpt_GeneralSecuritySessionEstablishmentTimeout,
 };
@@ -185,6 +186,7 @@ public:
     };
 
     uint32_t SecurityMode;
+    uint8_t EncType;
 
     WeaveSecurityMode();
 

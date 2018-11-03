@@ -625,6 +625,12 @@ void BindingTestDriver::PrepareBinding()
         break;
     }
 
+    // Configure the message encryption type.
+    if (gWeaveSecurityMode.SecurityMode != WeaveSecurityMode::kNone)
+    {
+        bindingConf.Security_EncryptionType(gWeaveSecurityMode.EncType);
+    }
+
     bindingConf.Exchange_ResponseTimeoutMsec(gEchoResponseTimeout);
 
     // Prepare the binding.

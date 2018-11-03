@@ -295,6 +295,11 @@ public:
 // Represents a key or key set used to encrypt Weave messages.
 typedef union WeaveEncryptionKey
 {
+    enum
+    {
+        MaxKeySize                                      = WeaveEncryptionKey_AES128CTRSHA1::KeySize
+    };
+
     WeaveEncryptionKey_AES128CTRSHA1  AES128CTRSHA1;
     WeaveEncryptionKey_AES128EAX      AES128EAX;
 } WeaveEncryptionKey;
@@ -479,6 +484,8 @@ public:
 
 class NL_DLL_EXPORT WeaveFabricState
 {
+    friend class TestMessageEncodingHelper;
+
 public:
 
 #if WEAVE_CONFIG_MAX_PEER_NODES <= UINT8_MAX

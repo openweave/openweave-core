@@ -152,6 +152,7 @@ noinst_HEADERS                                             = \
     schema/weave/trait/security/BoltLockSettingsTrait.h      \
     schema/weave/trait/telemetry/NetworkWiFiTelemetryTrait.h \
     weave-bdx-common-development.h                           \
+    MsgEncTestVectors.h                                      \
     $(NULL)
 
 if CONFIG_NETWORK_LAYER_BLE

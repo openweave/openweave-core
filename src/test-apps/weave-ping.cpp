@@ -761,7 +761,8 @@ void StartSecureSession()
             break;
         case WeaveSecurityMode::kCASE:
             err = SecurityMgr.StartCASESession(Con, DestNodeId, DestIPAddr, WEAVE_PORT, AuthMode,
-                                               NULL, HandleSecureSessionEstablished, HandleSecureSessionError);
+                                               NULL, HandleSecureSessionEstablished, HandleSecureSessionError,
+                                               NULL, kNodeIdNotSpecified, gWeaveSecurityMode.EncType);
             break;
         case WeaveSecurityMode::kCASEShared:
             coreRouterAddress = IPAddress::MakeULA(WeaveFabricIdToIPv6GlobalId(FabricState.FabricId),
@@ -770,7 +771,7 @@ void StartSecureSession()
 
             err = SecurityMgr.StartCASESession(Con, DestNodeId, coreRouterAddress, WEAVE_PORT, AuthMode,
                                                NULL, HandleSecureSessionEstablished, HandleSecureSessionError,
-                                               NULL, kServiceEndpoint_CoreRouter);
+                                               NULL, kServiceEndpoint_CoreRouter, gWeaveSecurityMode.EncType);
             break;
         default:
             err = WEAVE_ERROR_UNSUPPORTED_AUTH_MODE;

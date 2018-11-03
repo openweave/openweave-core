@@ -292,6 +292,7 @@ WeaveSecurityMode::WeaveSecurityMode()
         { "pase",          kNoArgument,       kToolCommonOpt_SecurityPASE       },
         { "group-enc",     kNoArgument,       kToolCommonOpt_SecurityGroupEnc   },
         { "take",          kNoArgument,       kToolCommonOpt_SecurityTAKE       },
+        { "msg-enc-type",  kArgumentRequired, kToolCommonOpt_MsgEncType         },
         { NULL }
     };
 
@@ -330,11 +331,23 @@ WeaveSecurityMode::WeaveSecurityMode()
             "       root key, epoch key number 4 and app group master key number 54 (0x36).\n"
             "\n"
 #endif // WEAVE_CONFIG_USE_APP_GROUP_KEYS_FOR_MSG_ENC
+            "  --msg-enc-type <type>\n"
+            "       Encrypt messages using the specified Weave message encryption type. Supported\n"
+            "       encryption types are:\n"
+            "          aes-128-ctr-sha1 - AES-128-CTR mode with HMAC-SHA-1 message integrity\n"
+            "                             (the default).\n"
+#if WEAVE_CONFIG_AES128EAX128
+            "          aes-128-eax-128  - AES-128-EAX mode with 128-bit authentication tags.\n"
+#endif
+#if WEAVE_CONFIG_AES128EAX64
+            "          aes-128-eax-64   - AES-128-EAX mode with 64-bit authentication tags.\n"
+#endif
+            "\n"
             ;
 
     // Defaults.
     SecurityMode = kNone;
-
+    EncType = kWeaveEncryptionType_None;
 }
 
 bool WeaveSecurityMode::HandleOption(const char *progName, OptionSet *optSet, int id, const char *name, const char *arg)
@@ -359,9 +372,37 @@ bool WeaveSecurityMode::HandleOption(const char *progName, OptionSet *optSet, in
         case kToolCommonOpt_SecurityTAKE:
             SecurityMode = kTAKE;
             break;
+        case kToolCommonOpt_MsgEncType:
+            if (strcasecmp(arg, "aes-128-ctr-sha1") == 0)
+            {
+                EncType = kWeaveEncryptionType_AES128CTRSHA1;
+            }
+#if WEAVE_CONFIG_AES128EAX128
+            else if (strcasecmp(arg, "aes-128-eax-128") == 0)
+            {
+                EncType = kWeaveEncryptionType_AES128EAX128;
+            }
+#endif // WEAVE_CONFIG_AES128EAX128
+#if WEAVE_CONFIG_AES128EAX64
+            else if (strcasecmp(arg, "aes-128-eax-64") == 0)
+            {
+                EncType = kWeaveEncryptionType_AES128EAX64;
+            }
+#endif // WEAVE_CONFIG_AES128EAX64
+            else
+            {
+                PrintArgError("%s: Invalid value specified for message encryption type: %s\n", progName, arg);
+                return false;
+            }
+            break;
         default:
             PrintArgError("%s: INTERNAL ERROR: Unhandled option: %s\n", progName, name);
             return false;
+    }
+
+    if (SecurityMode != kNone && EncType == kWeaveEncryptionType_None)
+    {
+        EncType = kWeaveEncryptionType_AES128CTRSHA1;
     }
 
     return true;
