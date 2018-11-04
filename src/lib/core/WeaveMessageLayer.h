@@ -53,6 +53,12 @@ class StatusReport;
 }
 }
 
+namespace Platform {
+namespace Security {
+class EAX;
+}
+}
+
 
 enum
 {
@@ -85,9 +91,11 @@ enum
                                                           ~kWeaveHeaderFlag_TunneledData &
                                                           ~kWeaveHeaderFlag_MsgCounterSyncReq,
 
-    kMsgHeaderField_MessageHMACMask                     = ~((kWeaveHeaderFlag_DestNodeId |
+    kMsgHeaderField_IntegrityCheckMask                  = ~((kWeaveHeaderFlag_DestNodeId |
                                                              kWeaveHeaderFlag_SourceNodeId |
                                                              kWeaveHeaderFlag_MsgCounterSyncReq) << kMsgHeaderField_FlagsShift)
+                                                                  /**< Bits within the message header field that are subject to integrity
+                                                                   *   checking in encrypted messages. */
 };
 
 
@@ -697,6 +705,11 @@ private:
         kFlag_ListenBLE           = 0x20,
     };
 
+    enum
+    {
+        kMaxIntegrityCheckPseudoHeaderLength = 2 * sizeof(uint64_t) + sizeof(uint16_t) + sizeof(uint32_t)
+    };
+
     TCPEndPoint *mIPv6TCPListen;
     UDPEndPoint *mIPv6UDP;
     UDPEndPoint *mIPv6UDPLocalAddr[WEAVE_CONFIG_MAX_LOCAL_ADDR_UDP_ENDPOINTS];
@@ -746,11 +759,13 @@ private:
     static void ComputeIntegrityCheck_AES128CTRSHA1(const WeaveMessageInfo *msgInfo, const uint8_t *key,
                                                     const uint8_t *inData, uint16_t inLen, uint8_t *outBuf);
 #if WEAVE_CONFIG_AES128EAX64 || WEAVE_CONFIG_AES128EAX128
+    static void ComputeHeader_AES128EAX(::nl::Weave::Platform::Security::EAX & eax, const WeaveMessageInfo * msgInfo);
     static void Encrypt_AES128EAX(const WeaveMessageInfo *msgInfo, const uint8_t *key,
                                   const uint8_t *inData, uint16_t inLen, uint8_t *outBuf, uint16_t tagLen);
     static bool Decrypt_AES128EAX(const WeaveMessageInfo *msgInfo, const uint8_t *key,
                                   const uint8_t *inData, uint16_t inLen, uint8_t *outBuf, uint16_t tagLen);
 #endif  // WEAVE_CONFIG_AES128EAX64 || WEAVE_CONFIG_AES128EAX128
+    static uint16_t EncodeIntegrityCheckPseudoHeader(const WeaveMessageInfo *msgInfo, uint8_t * buf);
     static bool IsIgnoredMulticastSendError(WEAVE_ERROR err);
 
     static bool IsSendErrorNonCritical(WEAVE_ERROR err);

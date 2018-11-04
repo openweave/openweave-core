@@ -2244,34 +2244,18 @@ void WeaveMessageLayer::ComputeIntegrityCheck_AES128CTRSHA1(const WeaveMessageIn
                                                             const uint8_t *inData, uint16_t inLen, uint8_t *outBuf)
 {
     HMACSHA1 hmacSHA1;
-    uint8_t encodedBuf[2 * sizeof(uint64_t) + sizeof(uint16_t) + sizeof(uint32_t)];
-    uint8_t *p = encodedBuf;
+    uint8_t pseudoHeader[kMaxIntegrityCheckPseudoHeaderLength];
+    uint16_t pseudoHeaderLen;
+
+    pseudoHeaderLen = EncodeIntegrityCheckPseudoHeader(msgInfo, pseudoHeader);
 
     // Initialize HMAC Key.
     hmacSHA1.Begin(key, WeaveEncryptionKey_AES128CTRSHA1::IntegrityKeySize);
 
-    // Encode the source and destination node identifiers in a little-endian format.
-    Encoding::LittleEndian::Write64(p, msgInfo->SourceNodeId);
-    Encoding::LittleEndian::Write64(p, msgInfo->DestNodeId);
+    // Hash the pseudo-header.
+    hmacSHA1.AddData(pseudoHeader, pseudoHeaderLen);
 
-    // Hash the message header field and the message Id for the message version V2.
-    if (msgInfo->MessageVersion == kWeaveMessageVersion_V2)
-    {
-        // Encode message header field value.
-        uint16_t headerField = EncodeHeaderField(msgInfo);
-
-        // Mask destination and source node Id flags.
-        headerField &= kMsgHeaderField_MessageHMACMask;
-
-        // Encode the message header field and the message Id in a little-endian format.
-        Encoding::LittleEndian::Write16(p, headerField);
-        Encoding::LittleEndian::Write32(p, msgInfo->MessageId);
-    }
-
-    // Hash encoded message header fields.
-    hmacSHA1.AddData(encodedBuf, p - encodedBuf);
-
-    // Handle payload data.
+    // Hash the payload data.
     hmacSHA1.AddData(inData, inLen);
 
     // Generate the MAC.
@@ -2286,31 +2270,13 @@ void WeaveMessageLayer::ComputeIntegrityCheck_AES128CTRSHA1(const WeaveMessageIn
  * EAX processing has started (EAX::Start(), with a fresh nonce), but
  * before encrypting or decrypting the payload.
  */
-static void ComputeHeader_AES128EAX(EAX *eax, const WeaveMessageInfo *msgInfo)
+void WeaveMessageLayer::ComputeHeader_AES128EAX(EAX & eax, const WeaveMessageInfo * msgInfo)
 {
-    uint8_t encodedBuf[2 * sizeof(uint64_t) + sizeof(uint16_t) + sizeof(uint32_t)];
-    uint8_t *p = encodedBuf;
+    uint8_t pseudoHeader[kMaxIntegrityCheckPseudoHeaderLength];
+    uint16_t pseudoHeaderLen;
 
-    // Encode the source and destination node identifiers in a little-endian format.
-    Encoding::LittleEndian::Write64(p, msgInfo->SourceNodeId);
-    Encoding::LittleEndian::Write64(p, msgInfo->DestNodeId);
-
-    // Hash the message header field and the message Id for the message version V2.
-    if (msgInfo->MessageVersion == kWeaveMessageVersion_V2)
-    {
-        // Encode message header field value.
-        uint16_t headerField = EncodeHeaderField(msgInfo);
-
-        // Mask destination and source node Id flags.
-        headerField &= kMsgHeaderField_MessageHMACMask;
-
-        // Encode the message header field and the message Id in a little-endian format.
-        Encoding::LittleEndian::Write16(p, headerField);
-        Encoding::LittleEndian::Write32(p, msgInfo->MessageId);
-    }
-
-    // Inject the newly assembled header.
-    eax->InjectHeader(encodedBuf, p - encodedBuf);
+    pseudoHeaderLen = EncodeIntegrityCheckPseudoHeader(msgInfo, pseudoHeader);
+    eax.InjectHeader(pseudoHeader, pseudoHeaderLen);
 }
 
 /*
@@ -2324,7 +2290,7 @@ void WeaveMessageLayer::Encrypt_AES128EAX(const WeaveMessageInfo *msgInfo, const
     EAX128 eax128;
     eax128.SetKey(key);
     eax128.StartWeave(msgInfo->SourceNodeId, msgInfo->MessageId);
-    ComputeHeader_AES128EAX(&eax128, msgInfo);
+    ComputeHeader_AES128EAX(eax128, msgInfo);
     eax128.Encrypt(inData, inLen, outBuf);
     eax128.GetTag(outBuf + inLen, tagLen);
 }
@@ -2347,17 +2313,21 @@ bool WeaveMessageLayer::Decrypt_AES128EAX(const WeaveMessageInfo *msgInfo, const
      * We need to copy the tag first, because the output buffer might
      * overlap with the input buffer, including the tag area.
      */
-    if (tagLen > sizeof tag) {
+    if (tagLen > sizeof tag)
+    {
         return false;
     }
     memcpy(tag, inData + inLen, tagLen);
     eax128.SetKey(key);
     eax128.StartWeave(msgInfo->SourceNodeId, msgInfo->MessageId);
-    ComputeHeader_AES128EAX(&eax128, msgInfo);
+    ComputeHeader_AES128EAX(eax128, msgInfo);
     eax128.Decrypt(inData, inLen, outBuf);
-    if (eax128.CheckTag(tag, tagLen)) {
+    if (eax128.CheckTag(tag, tagLen))
+    {
         return true;
-    } else {
+    }
+    else
+    {
         /*
          * Since the tag is wrong, the data is invalid. To prevent
          * misinterpretation, we clear it.
@@ -2368,6 +2338,48 @@ bool WeaveMessageLayer::Decrypt_AES128EAX(const WeaveMessageInfo *msgInfo, const
 }
 
 #endif  // WEAVE_CONFIG_AES128EAX64 || WEAVE_CONFIG_AES128EAX128
+
+/**
+ * Generate the integrity check pseudo-header for an encrypted Weave message.
+ *
+ * This method produces an encoding of the header information within a Weave message that
+ * is subject to integrity checking in encrypted messages, but is otherwise transmitted
+ * in the clear.  This encoding is considered a "pseudo-header" because the information it
+ * contains does not appear in exactly the same form as what is sent over the wire.
+ */
+uint16_t WeaveMessageLayer::EncodeIntegrityCheckPseudoHeader(const WeaveMessageInfo *msgInfo, uint8_t * buf)
+{
+    uint8_t * p = buf;
+
+    // Encode the source and destination node identifiers in a little-endian format.
+    Encoding::LittleEndian::Write64(p, msgInfo->SourceNodeId);
+    Encoding::LittleEndian::Write64(p, msgInfo->DestNodeId);
+
+    // If the message version is *not* V1, OR if the message is *not* being encrypted with
+    // AES128CTRSHA1...
+    //
+    // (V1 messages using AES128CTRSHA1 encryption predate the inclusion of the message
+    // header and id fields in the message integrity check.  Thus this logic exists to
+    // preserve compatibility with legacy systems).
+    //
+    if (msgInfo->MessageVersion != kWeaveMessageVersion_V1 ||
+        msgInfo->EncryptionType != kWeaveEncryptionType_AES128CTRSHA1)
+    {
+        // Encode message header field value.
+        uint16_t headerField = EncodeHeaderField(msgInfo);
+
+        // Mask out fields within the message header that are NOT subject to
+        // integrity checking.
+        headerField &= kMsgHeaderField_IntegrityCheckMask;
+
+        // Encode the message header field and the message id in little-endian format.
+        Encoding::LittleEndian::Write16(p, headerField);
+        Encoding::LittleEndian::Write32(p, msgInfo->MessageId);
+    }
+
+    // Return the length of the pseudo-header.
+    return p - buf;
+}
 
 /**
  *  Close all open TCP and UDP endpoints. Then abort any
