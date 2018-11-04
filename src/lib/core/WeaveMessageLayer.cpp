@@ -999,7 +999,6 @@ WEAVE_ERROR WeaveMessageLayer::DecodeHeader(PacketBuffer *msgBuf, WeaveMessageIn
 
     // Read and verify the header field.
     headerField = LittleEndian::Read16(p);
-    VerifyOrExit((headerField & kMsgHeaderField_ReservedFlagsMask) == 0, err = WEAVE_ERROR_INVALID_MESSAGE_FLAG);
 
     // Decode the header field.
     DecodeHeaderField(headerField, msgInfo);
@@ -1009,6 +1008,14 @@ WEAVE_ERROR WeaveMessageLayer::DecodeHeader(PacketBuffer *msgBuf, WeaveMessageIn
         msgInfo->MessageVersion != kWeaveMessageVersion_V2)
     {
         ExitNow(err = WEAVE_ERROR_UNSUPPORTED_MESSAGE_VERSION);
+    }
+
+    // Verify that the reserved flags within the header field are all zero.
+    {
+        const uint16_t reservedFlagsMask = (msgInfo->MessageVersion == kWeaveMessageVersion_V1)
+                ? (kMsgHeaderField_ReservedFlagsMask | kWeaveHeaderFlag_TunneledData)
+                : kMsgHeaderField_ReservedFlagsMask;
+        VerifyOrExit((msgInfo->Flags & reservedFlagsMask) == 0, err = WEAVE_ERROR_INVALID_MESSAGE_FLAG);
     }
 
     // Decode the message id.
