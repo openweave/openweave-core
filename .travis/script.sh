@@ -60,7 +60,7 @@ case "${BUILD_TARGET}" in
     happy_test)
         # run happy test
         source ${HOME}/ve/happy/bin/activate
-        sudo make -f Makefile-Standalone DEBUG=1 TIMESTAMP=1 COVERAGE=1 BuildJobs=24 SUITE=echo
+        sudo make -f Makefile-Standalone DEBUG=1 TIMESTAMP=1 COVERAGE=1 BuildJobs=24 check
         ;;
 
     *)

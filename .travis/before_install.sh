@@ -108,9 +108,10 @@ case "${BUILD_TARGET}" in
         python setup.py develop
 
         # configure happy, $HOME: /home/travis
+        # $TRAVIS_BUILD_DIR: /home/travis/build/jenniexie/openweave-core
         cat << EOF >~/.happy_conf.json
         {
-            "weave_path": "/home/travis/build/jenniexie/openweave-core/build/x86_64-unknown-linux-gnu/src/test-apps/"
+            "weave_path": "$TRAVIS_BUILD_DIR/build/x86_64-unknown-linux-gnu/src/test-apps/"
         }
 EOF
 
