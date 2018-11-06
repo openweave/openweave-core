@@ -104,7 +104,8 @@ case "${BUILD_TARGET}" in
         mkdir -p ve
         cd ve
         virtualenv happy
-        source happy/bin/activate
+        ls ./happy/bin/activate
+        . ./happy/bin/activate
         cd ${HOME}/happy
         python pip_packages.py
         python setup.py develop
