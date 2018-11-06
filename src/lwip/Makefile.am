@@ -90,7 +90,28 @@ liblwip_TARGET_SOURCES                                                         =
     standalone/TapInterface.c                                                    \
     $(NULL)
 
+EXTRA_DIST                                                                     = \
+    standalone/arch                                                              \
+    standalone/lwipopts.h                                                        \
+    standalone/TapInterface.h                                                    \
+    $(NULL)
+
 endif # WEAVE_LWIP_TARGET_STANDALONE
+
+if WEAVE_LWIP_TARGET_NRF5
+
+liblwip_TARGET_SOURCES                                                         = \
+    freertos/sys_arch.c                                                          \
+    $(NULL)
+
+EXTRA_DIST                                                                     = \
+    freertos/arch                                                                \
+    nrf5/arch                                                                    \
+    nrf5/lwipopts.h                                                              \
+    nrf5/lwippools.h                                                             \
+    $(NULL)
+
+endif # WEAVE_LWIP_TARGET_NRF5
 
 liblwip_a_SOURCES                                                              = \
     $(liblwip_API_SOURCES)                                                       \
@@ -102,16 +123,6 @@ liblwip_a_SOURCES                                                              =
 liblwip_a_CPPFLAGS                                                             = \
     $(LWIP_CPPFLAGS)                                                             \
     $(NULL)
-
-if WEAVE_LWIP_TARGET_STANDALONE
-
-EXTRA_DIST                                                                     = \
-    standalone/arch                                                              \
-    standalone/lwipopts.h                                                        \
-    standalone/TapInterface.h                                                    \
-    $(NULL)
-
-endif # WEAVE_LWIP_TARGET_STANDALONE
 
 endif # WEAVE_WITH_LWIP_INTERNAL
 
