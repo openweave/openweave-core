@@ -83,14 +83,14 @@ liblwip_NETIF_SOURCES                                                          =
     @top_builddir@/third_party/lwip/repo/lwip/src/netif/ethernet.c               \
     $(NULL)
 
-if LWIP_TARGET_STANDALONE
+if WEAVE_LWIP_TARGET_STANDALONE
 
 liblwip_TARGET_SOURCES                                                         = \
     standalone/sys_arch.c                                                        \
     standalone/TapInterface.c                                                    \
     $(NULL)
 
-endif # LWIP_TARGET_STANDALONE
+endif # WEAVE_LWIP_TARGET_STANDALONE
 
 liblwip_a_SOURCES                                                              = \
     $(liblwip_API_SOURCES)                                                       \
@@ -103,7 +103,7 @@ liblwip_a_CPPFLAGS                                                             =
     $(LWIP_CPPFLAGS)                                                             \
     $(NULL)
 
-if LWIP_TARGET_STANDALONE
+if WEAVE_LWIP_TARGET_STANDALONE
 
 EXTRA_DIST                                                                     = \
     standalone/arch                                                              \
@@ -111,7 +111,7 @@ EXTRA_DIST                                                                     =
     standalone/TapInterface.h                                                    \
     $(NULL)
 
-endif # LWIP_TARGET_STANDALONE
+endif # WEAVE_LWIP_TARGET_STANDALONE
 
 endif # WEAVE_WITH_LWIP_INTERNAL
 

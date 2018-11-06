@@ -2065,16 +2065,8 @@ fi
 #
 # LwIP
 #
-# This should only be checked if explicitly requested.
-#
 
-if test "${WEAVE_SYSTEM_CONFIG_USE_LWIP}" = 1; then
-
-    NL_WITH_LWIP
-
-fi
-
-AM_CONDITIONAL([WEAVE_WITH_LWIP_INTERNAL], [test "${nl_with_lwip}" = "internal"])
+NL_WITH_LWIP(${WEAVE_SYSTEM_CONFIG_USE_LWIP})
 
 #
 # Nlio

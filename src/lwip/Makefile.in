@@ -271,8 +271,8 @@ am__dirstamp = $(am__leading_dot)dirstamp
 @WEAVE_WITH_LWIP_INTERNAL_TRUE@	@top_builddir@/third_party/lwip/repo/lwip/src/core/liblwip_a-ip.$(OBJEXT) \
 @WEAVE_WITH_LWIP_INTERNAL_TRUE@	@top_builddir@/third_party/lwip/repo/lwip/src/core/liblwip_a-timeouts.$(OBJEXT)
 @WEAVE_WITH_LWIP_INTERNAL_TRUE@am__objects_3 = @top_builddir@/third_party/lwip/repo/lwip/src/netif/liblwip_a-ethernet.$(OBJEXT)
-@LWIP_TARGET_STANDALONE_TRUE@@WEAVE_WITH_LWIP_INTERNAL_TRUE@am__objects_4 = standalone/liblwip_a-sys_arch.$(OBJEXT) \
-@LWIP_TARGET_STANDALONE_TRUE@@WEAVE_WITH_LWIP_INTERNAL_TRUE@	standalone/liblwip_a-TapInterface.$(OBJEXT)
+@WEAVE_LWIP_TARGET_STANDALONE_TRUE@@WEAVE_WITH_LWIP_INTERNAL_TRUE@am__objects_4 = standalone/liblwip_a-sys_arch.$(OBJEXT) \
+@WEAVE_LWIP_TARGET_STANDALONE_TRUE@@WEAVE_WITH_LWIP_INTERNAL_TRUE@	standalone/liblwip_a-TapInterface.$(OBJEXT)
 @WEAVE_WITH_LWIP_INTERNAL_TRUE@am_liblwip_a_OBJECTS =  \
 @WEAVE_WITH_LWIP_INTERNAL_TRUE@	$(am__objects_1) \
 @WEAVE_WITH_LWIP_INTERNAL_TRUE@	$(am__objects_2) \
@@ -646,10 +646,10 @@ top_srcdir = @top_srcdir@
 @WEAVE_WITH_LWIP_INTERNAL_TRUE@    @top_builddir@/third_party/lwip/repo/lwip/src/netif/ethernet.c               \
 @WEAVE_WITH_LWIP_INTERNAL_TRUE@    $(NULL)
 
-@LWIP_TARGET_STANDALONE_TRUE@@WEAVE_WITH_LWIP_INTERNAL_TRUE@liblwip_TARGET_SOURCES = \
-@LWIP_TARGET_STANDALONE_TRUE@@WEAVE_WITH_LWIP_INTERNAL_TRUE@    standalone/sys_arch.c                                                        \
-@LWIP_TARGET_STANDALONE_TRUE@@WEAVE_WITH_LWIP_INTERNAL_TRUE@    standalone/TapInterface.c                                                    \
-@LWIP_TARGET_STANDALONE_TRUE@@WEAVE_WITH_LWIP_INTERNAL_TRUE@    $(NULL)
+@WEAVE_LWIP_TARGET_STANDALONE_TRUE@@WEAVE_WITH_LWIP_INTERNAL_TRUE@liblwip_TARGET_SOURCES = \
+@WEAVE_LWIP_TARGET_STANDALONE_TRUE@@WEAVE_WITH_LWIP_INTERNAL_TRUE@    standalone/sys_arch.c                                                        \
+@WEAVE_LWIP_TARGET_STANDALONE_TRUE@@WEAVE_WITH_LWIP_INTERNAL_TRUE@    standalone/TapInterface.c                                                    \
+@WEAVE_LWIP_TARGET_STANDALONE_TRUE@@WEAVE_WITH_LWIP_INTERNAL_TRUE@    $(NULL)
 
 @WEAVE_WITH_LWIP_INTERNAL_TRUE@liblwip_a_SOURCES = \
 @WEAVE_WITH_LWIP_INTERNAL_TRUE@    $(liblwip_API_SOURCES)                                                       \
@@ -662,11 +662,11 @@ top_srcdir = @top_srcdir@
 @WEAVE_WITH_LWIP_INTERNAL_TRUE@    $(LWIP_CPPFLAGS)                                                             \
 @WEAVE_WITH_LWIP_INTERNAL_TRUE@    $(NULL)
 
-@LWIP_TARGET_STANDALONE_TRUE@@WEAVE_WITH_LWIP_INTERNAL_TRUE@EXTRA_DIST = \
-@LWIP_TARGET_STANDALONE_TRUE@@WEAVE_WITH_LWIP_INTERNAL_TRUE@    standalone/arch                                                              \
-@LWIP_TARGET_STANDALONE_TRUE@@WEAVE_WITH_LWIP_INTERNAL_TRUE@    standalone/lwipopts.h                                                        \
-@LWIP_TARGET_STANDALONE_TRUE@@WEAVE_WITH_LWIP_INTERNAL_TRUE@    standalone/TapInterface.h                                                    \
-@LWIP_TARGET_STANDALONE_TRUE@@WEAVE_WITH_LWIP_INTERNAL_TRUE@    $(NULL)
+@WEAVE_LWIP_TARGET_STANDALONE_TRUE@@WEAVE_WITH_LWIP_INTERNAL_TRUE@EXTRA_DIST = \
+@WEAVE_LWIP_TARGET_STANDALONE_TRUE@@WEAVE_WITH_LWIP_INTERNAL_TRUE@    standalone/arch                                                              \
+@WEAVE_LWIP_TARGET_STANDALONE_TRUE@@WEAVE_WITH_LWIP_INTERNAL_TRUE@    standalone/lwipopts.h                                                        \
+@WEAVE_LWIP_TARGET_STANDALONE_TRUE@@WEAVE_WITH_LWIP_INTERNAL_TRUE@    standalone/TapInterface.h                                                    \
+@WEAVE_LWIP_TARGET_STANDALONE_TRUE@@WEAVE_WITH_LWIP_INTERNAL_TRUE@    $(NULL)
 
 PRETTY_FILES := $(NULL)
 all: all-am
