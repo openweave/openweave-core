@@ -61,11 +61,11 @@ AC_DEFUN([NL_WITH_LWIP],
             if test "${withval}" = "no"; then
                 AC_MSG_ERROR([${PACKAGE_NAME} requires the LwIP package])
             fi
-    
+
             if test "x${lwip_dir}" != "x"; then
                 AC_MSG_WARN([overriding --with-lwip=${lwip_dir}])
             fi
-    
+
             if test "${withval}" = "internal"; then
                 lwip_header_dir=${withval}
                 nl_with_lwip=${withval}
@@ -88,11 +88,11 @@ AC_DEFUN([NL_WITH_LWIP],
             if test "${withval}" = "no"; then
                 AC_MSG_ERROR([${PACKAGE_NAME} requires the LwIP package])
             fi
-    
+
             if test "x${lwip_dir}" != "x"; then
                 AC_MSG_WARN([overriding --with-lwip=${lwip_dir}])
             fi
-    
+
             if test "${withval}" = "internal"; then
                 lwip_library_dir=${withval}
                 nl_with_lwip=${withval}
@@ -108,6 +108,26 @@ AC_DEFUN([NL_WITH_LWIP],
             fi
         ])
 
+    AC_ARG_WITH(lwip-target,
+        AS_HELP_STRING([--with-lwip-target=target],
+            [Specify the target environment in which LwIP will be used.  Choose one of: standalone, none @<:@default=standalone@:>@.]),
+        [
+            if test "${nl_with_lwip}" != "internal"; then
+                AC_MSG_ERROR([--with-lwip-target can only be used when --with-lwip=internal is selected])
+            else
+                case "${lwip-target}" in
+                standalone|none)
+                    ;;
+                *)
+                    AC_MSG_ERROR([Invalid value ${lwip-target} for --with-lwip-target])
+                    ;;
+                esac
+            fi
+        ],
+        [
+            nl_with_lwip_target=standalone
+        ])
+
     AC_MSG_CHECKING([source of the LwIP package])
     AC_MSG_RESULT([${nl_with_lwip}])
 
@@ -116,17 +136,13 @@ AC_DEFUN([NL_WITH_LWIP],
     # usual routine.
 
     if test "${nl_with_lwip}" = "internal"; then
-        # LwIP also requires arch/{cc,perf,sys_arch}.h. For an
-        # external LwIP, the user is expected to pass in CPP/CFLAGS
-        # that point to these. However, for the internal LwIP package,
-        # we need to explicitly point at our definition for these.
-    
+
         LWIP_CPPFLAGS="-I${ac_abs_confdir}/third_party/lwip/repo/lwip/src/include -I${ac_abs_confdir}/third_party/lwip/repo/lwip/src/include/ipv4 -I${ac_abs_confdir}/third_party/lwip/repo/lwip/src/include/ipv6 -I${ac_abs_confdir}/src/lwip"
         LWIP_LDFLAGS="-L${ac_pwd}/src/lwip"
-        LWIP_LIBS="-llwip -lpthread"
-    
+        LWIP_LIBS="-llwip"
+
         # On Darwin, "common" symbols are not added to the table of contents
-        # by ranlib and so can cause link time errors. This option 
+        # by ranlib and so can cause link time errors. This option
         # offers a workaround.
         case "${target_os}" in
             *darwin*)
@@ -134,13 +150,39 @@ AC_DEFUN([NL_WITH_LWIP],
                 ;;
         esac
         
+        # The LwIP source code depends on a set of environment-specific headers and source
+        # files to configure it for use on a particular target platform.  When an external
+        # LwIP implementation is chosen, the user is expected to pass the appropriate
+        # CPPFLAGS/LDFLAGS/LIBS values to configure to allow the build to find these files.
+        #
+        # When the "internal" LwIP package is selected, the user can use the --with-lwip-target
+        # option to chose among a set of pre-configured files for specific target platforms.
+        # The platform-specific files are located within subdirectories of src/lwip that are
+        # named after the platform.
+        # 
+        # The default choice for --with-lwip-target is "standalone", which adapts LwIP for
+        # use on a desktop linux system.  This is typically used for testing purposes.
+        #
+        # The target "none" directs the build to not include any environment-specific files.
+        # This allows the user to build with the internal LwIP sources but supplied their
+        # own environment-specific files using CPP/CFLAGS/LDFLAGS values.
+
+        case "${nl_with_lwip_target}" in
+        standalone)
+            LWIP_CPPFLAGS="${LWIP_CPPFLAGS} -I${ac_abs_confdir}/src/lwip/standalone"
+            LWIP_LIBS="${LWIP_LIBS} -lpthread"
+            ;;
+        *)
+            ;;
+        esac
+
     else
-        # We always prefer checking the values of the various '--with-lwip-...' 
+        # We always prefer checking the values of the various '--with-lwip-...'
         # options first to using pkg-config because the former might be used
         # in a cross-compilation environment on a system that also contains
         # pkg-config. In such a case, the user wants what he/she specified
         # rather than what pkg-config indicates.
-    
+
         if test "x${lwip_dir}" != "x" -o "x${lwip_header_dir}" != "x" -o "x${lwip_library_dir}" != "x"; then
             if test "x${lwip_dir}" != "x"; then
                 if test -d "${lwip_dir}"; then
@@ -149,7 +191,7 @@ AC_DEFUN([NL_WITH_LWIP],
                     else
                         LWIP_CPPFLAGS="-I${lwip_dir} -I${lwip_dir}/ipv4 -I${lwip_dir}/ipv6"
                     fi
-        
+
                     if test -d "${lwip_dir}/lib"; then
                         LWIP_LDFLAGS="-L${lwip_dir}/lib"
                     else
@@ -159,7 +201,7 @@ AC_DEFUN([NL_WITH_LWIP],
                     AC_MSG_ERROR([No such directory ${lwip_dir}])
                 fi
             fi
-    
+
             if test "x${lwip_header_dir}" != "x"; then
                 if test -d "${lwip_header_dir}"; then
                     LWIP_CPPFLAGS="-I${lwip_header_dir} -I${lwip_header_dir}/ipv4 -I${lwip_header_dir}/ipv6"
@@ -167,7 +209,7 @@ AC_DEFUN([NL_WITH_LWIP],
                     AC_MSG_ERROR([No such directory ${lwip_header_dir}])
                 fi
             fi
-    
+
             if test "x${lwip_library_dir}" != "x"; then
                 if test -d "${lwip_library_dir}"; then
                     LWIP_LDFLAGS="-L${lwip_library_dir}"
@@ -182,7 +224,7 @@ AC_DEFUN([NL_WITH_LWIP],
             LWIP_CPPFLAGS="`${PKG_CONFIG} --cflags lwip`"
             LWIP_LDFLAGS="`${PKG_CONFIG} --libs-only-L lwip`"
             LWIP_LIBS="`${PKG_CONFIG} --libs-only-l lwip`"
-    
+
         else
             AC_MSG_ERROR([Cannot find the LwIP package.])
         fi
@@ -191,6 +233,8 @@ AC_DEFUN([NL_WITH_LWIP],
     AC_SUBST(LWIP_CPPFLAGS)
     AC_SUBST(LWIP_LDFLAGS)
     AC_SUBST(LWIP_LIBS)
+
+    AM_CONDITIONAL([LWIP_TARGET_STANDALONE],    [test "${nl_with_lwip}" = "internal" -a "${nl_with_lwip_target}" = "standalone" ])
 
     nl_saved_CPPFLAGS="${CPPFLAGS}"
     nl_saved_LDFLAGS="${LDFLAGS}"
