@@ -91,13 +91,15 @@ case "${BUILD_TARGET}" in
 
     happy_test)
         # prepare for happy test run 
+        sudo apt-get update
         sudo apt-get install python-setuptools
         sudo apt-get install bridge-utils
         sudo apt-get install swig
         sudo apt-get install lcov
 
         cd $HOME
-        git clone ssh://git@stash.nestlabs.com:7999/platform/happy.git # or wget
+        #git clone ssh://git@stash.nestlabs.com:7999/platform/happy.git # or wget
+        git clone https://github.com/openweave/happy.git
 
         mkdir -p ve
         cd ve
