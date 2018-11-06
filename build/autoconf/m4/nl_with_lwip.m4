@@ -118,11 +118,12 @@ AC_DEFUN([NL_WITH_LWIP],
                 if test "${nl_with_lwip}" != "internal"; then
                     AC_MSG_ERROR([--with-lwip-target can only be used when --with-lwip=internal is selected])
                 else
-                    case "${lwip-target}" in
+                    case "${withval}" in
                     standalone|none)
+                        nl_with_lwip_target=${withval}
                         ;;
                     *)
-                        AC_MSG_ERROR([Invalid value ${lwip-target} for --with-lwip-target])
+                        AC_MSG_ERROR([Invalid value ${withval} for --with-lwip-target])
                         ;;
                     esac
                 fi
@@ -178,7 +179,10 @@ AC_DEFUN([NL_WITH_LWIP],
             *)
                 ;;
             esac
-    
+
+            AC_MSG_CHECKING([LwIP target environment])
+            AC_MSG_RESULT([${nl_with_lwip_target}])
+
         else
             # We always prefer checking the values of the various '--with-lwip-...'
             # options first to using pkg-config because the former might be used
