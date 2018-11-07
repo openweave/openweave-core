@@ -42,7 +42,7 @@ using namespace ::nl::Weave;
 
 #else // WEAVE_CONFIG_RNG_IMPLEMENTATION_NESTDRBG
 
-#if !NRF_CRYPTO_BACKEND_NRF_HW_RNG_ENABLED
+#if NRF_CRYPTO_BACKEND_NRF_HW_RNG_ENABLED
 #error "Nest DRBG implementation must be enabled when using Nordic HW RNG source"
 #endif
 

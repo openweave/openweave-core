@@ -129,6 +129,8 @@ target_triplet = @target@
 @CONFIG_DEVICE_LAYER_TRUE@@WEAVE_DEVICE_LAYER_TARGET_NRF5_TRUE@    nRF5/GroupKeyStoreImpl.cpp                  \
 @CONFIG_DEVICE_LAYER_TRUE@@WEAVE_DEVICE_LAYER_TARGET_NRF5_TRUE@    nRF5/NRF5Config.cpp                         \
 @CONFIG_DEVICE_LAYER_TRUE@@WEAVE_DEVICE_LAYER_TARGET_NRF5_TRUE@    nRF5/Entropy.cpp                            \
+@CONFIG_DEVICE_LAYER_TRUE@@WEAVE_DEVICE_LAYER_TARGET_NRF5_TRUE@    nRF5/Logging.cpp                            \
+@CONFIG_DEVICE_LAYER_TRUE@@WEAVE_DEVICE_LAYER_TARGET_NRF5_TRUE@    nRF5/SystemTimeSupport.cpp                  \
 @CONFIG_DEVICE_LAYER_TRUE@@WEAVE_DEVICE_LAYER_TARGET_NRF5_TRUE@    $(NULL)
 
 subdir = src/adaptations/device-layer
@@ -229,7 +231,7 @@ am__libDeviceLayer_a_SOURCES_DIST = CASEAuth.cpp \
 	nRF5/ConnectivityManagerImpl.cpp \
 	nRF5/NetworkProvisioningServerImpl.cpp \
 	nRF5/GroupKeyStoreImpl.cpp nRF5/NRF5Config.cpp \
-	nRF5/Entropy.cpp
+	nRF5/Entropy.cpp nRF5/Logging.cpp nRF5/SystemTimeSupport.cpp
 am__dirstamp = $(am__leading_dot)dirstamp
 @CONFIG_DEVICE_LAYER_TRUE@@WEAVE_DEVICE_LAYER_TARGET_ESP32_TRUE@am__objects_1 = ESP32/libDeviceLayer_a-AESBlockCipher.$(OBJEXT) \
 @CONFIG_DEVICE_LAYER_TRUE@@WEAVE_DEVICE_LAYER_TARGET_ESP32_TRUE@	ESP32/libDeviceLayer_a-BLEManagerImpl.$(OBJEXT) \
@@ -252,7 +254,9 @@ am__dirstamp = $(am__leading_dot)dirstamp
 @CONFIG_DEVICE_LAYER_TRUE@@WEAVE_DEVICE_LAYER_TARGET_NRF5_TRUE@	nRF5/libDeviceLayer_a-NetworkProvisioningServerImpl.$(OBJEXT) \
 @CONFIG_DEVICE_LAYER_TRUE@@WEAVE_DEVICE_LAYER_TARGET_NRF5_TRUE@	nRF5/libDeviceLayer_a-GroupKeyStoreImpl.$(OBJEXT) \
 @CONFIG_DEVICE_LAYER_TRUE@@WEAVE_DEVICE_LAYER_TARGET_NRF5_TRUE@	nRF5/libDeviceLayer_a-NRF5Config.$(OBJEXT) \
-@CONFIG_DEVICE_LAYER_TRUE@@WEAVE_DEVICE_LAYER_TARGET_NRF5_TRUE@	nRF5/libDeviceLayer_a-Entropy.$(OBJEXT)
+@CONFIG_DEVICE_LAYER_TRUE@@WEAVE_DEVICE_LAYER_TARGET_NRF5_TRUE@	nRF5/libDeviceLayer_a-Entropy.$(OBJEXT) \
+@CONFIG_DEVICE_LAYER_TRUE@@WEAVE_DEVICE_LAYER_TARGET_NRF5_TRUE@	nRF5/libDeviceLayer_a-Logging.$(OBJEXT) \
+@CONFIG_DEVICE_LAYER_TRUE@@WEAVE_DEVICE_LAYER_TARGET_NRF5_TRUE@	nRF5/libDeviceLayer_a-SystemTimeSupport.$(OBJEXT)
 @CONFIG_DEVICE_LAYER_TRUE@am_libDeviceLayer_a_OBJECTS =  \
 @CONFIG_DEVICE_LAYER_TRUE@	libDeviceLayer_a-CASEAuth.$(OBJEXT) \
 @CONFIG_DEVICE_LAYER_TRUE@	libDeviceLayer_a-DeviceControlServer.$(OBJEXT) \
@@ -811,6 +815,10 @@ nRF5/libDeviceLayer_a-NRF5Config.$(OBJEXT): nRF5/$(am__dirstamp) \
 	nRF5/$(DEPDIR)/$(am__dirstamp)
 nRF5/libDeviceLayer_a-Entropy.$(OBJEXT): nRF5/$(am__dirstamp) \
 	nRF5/$(DEPDIR)/$(am__dirstamp)
+nRF5/libDeviceLayer_a-Logging.$(OBJEXT): nRF5/$(am__dirstamp) \
+	nRF5/$(DEPDIR)/$(am__dirstamp)
+nRF5/libDeviceLayer_a-SystemTimeSupport.$(OBJEXT):  \
+	nRF5/$(am__dirstamp) nRF5/$(DEPDIR)/$(am__dirstamp)
 
 libDeviceLayer.a: $(libDeviceLayer_a_OBJECTS) $(libDeviceLayer_a_DEPENDENCIES) $(EXTRA_libDeviceLayer_a_DEPENDENCIES) 
 	$(AM_V_at)-rm -f libDeviceLayer.a
@@ -864,9 +872,11 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@nRF5/$(DEPDIR)/libDeviceLayer_a-ConnectivityManagerImpl.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@nRF5/$(DEPDIR)/libDeviceLayer_a-Entropy.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@nRF5/$(DEPDIR)/libDeviceLayer_a-GroupKeyStoreImpl.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@nRF5/$(DEPDIR)/libDeviceLayer_a-Logging.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@nRF5/$(DEPDIR)/libDeviceLayer_a-NRF5Config.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@nRF5/$(DEPDIR)/libDeviceLayer_a-NetworkProvisioningServerImpl.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@nRF5/$(DEPDIR)/libDeviceLayer_a-PlatformManagerImpl.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@nRF5/$(DEPDIR)/libDeviceLayer_a-SystemTimeSupport.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@trait-support/weave/trait/description/$(DEPDIR)/libDeviceLayer_a-DeviceIdentityTrait.Po@am__quote@
 
 .cpp.o:
@@ -1466,6 +1476,34 @@ nRF5/libDeviceLayer_a-Entropy.obj: nRF5/Entropy.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='nRF5/Entropy.cpp' object='nRF5/libDeviceLayer_a-Entropy.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libDeviceLayer_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o nRF5/libDeviceLayer_a-Entropy.obj `if test -f 'nRF5/Entropy.cpp'; then $(CYGPATH_W) 'nRF5/Entropy.cpp'; else $(CYGPATH_W) '$(srcdir)/nRF5/Entropy.cpp'; fi`
+
+nRF5/libDeviceLayer_a-Logging.o: nRF5/Logging.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libDeviceLayer_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT nRF5/libDeviceLayer_a-Logging.o -MD -MP -MF nRF5/$(DEPDIR)/libDeviceLayer_a-Logging.Tpo -c -o nRF5/libDeviceLayer_a-Logging.o `test -f 'nRF5/Logging.cpp' || echo '$(srcdir)/'`nRF5/Logging.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) nRF5/$(DEPDIR)/libDeviceLayer_a-Logging.Tpo nRF5/$(DEPDIR)/libDeviceLayer_a-Logging.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='nRF5/Logging.cpp' object='nRF5/libDeviceLayer_a-Logging.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libDeviceLayer_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o nRF5/libDeviceLayer_a-Logging.o `test -f 'nRF5/Logging.cpp' || echo '$(srcdir)/'`nRF5/Logging.cpp
+
+nRF5/libDeviceLayer_a-Logging.obj: nRF5/Logging.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libDeviceLayer_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT nRF5/libDeviceLayer_a-Logging.obj -MD -MP -MF nRF5/$(DEPDIR)/libDeviceLayer_a-Logging.Tpo -c -o nRF5/libDeviceLayer_a-Logging.obj `if test -f 'nRF5/Logging.cpp'; then $(CYGPATH_W) 'nRF5/Logging.cpp'; else $(CYGPATH_W) '$(srcdir)/nRF5/Logging.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) nRF5/$(DEPDIR)/libDeviceLayer_a-Logging.Tpo nRF5/$(DEPDIR)/libDeviceLayer_a-Logging.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='nRF5/Logging.cpp' object='nRF5/libDeviceLayer_a-Logging.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libDeviceLayer_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o nRF5/libDeviceLayer_a-Logging.obj `if test -f 'nRF5/Logging.cpp'; then $(CYGPATH_W) 'nRF5/Logging.cpp'; else $(CYGPATH_W) '$(srcdir)/nRF5/Logging.cpp'; fi`
+
+nRF5/libDeviceLayer_a-SystemTimeSupport.o: nRF5/SystemTimeSupport.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libDeviceLayer_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT nRF5/libDeviceLayer_a-SystemTimeSupport.o -MD -MP -MF nRF5/$(DEPDIR)/libDeviceLayer_a-SystemTimeSupport.Tpo -c -o nRF5/libDeviceLayer_a-SystemTimeSupport.o `test -f 'nRF5/SystemTimeSupport.cpp' || echo '$(srcdir)/'`nRF5/SystemTimeSupport.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) nRF5/$(DEPDIR)/libDeviceLayer_a-SystemTimeSupport.Tpo nRF5/$(DEPDIR)/libDeviceLayer_a-SystemTimeSupport.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='nRF5/SystemTimeSupport.cpp' object='nRF5/libDeviceLayer_a-SystemTimeSupport.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libDeviceLayer_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o nRF5/libDeviceLayer_a-SystemTimeSupport.o `test -f 'nRF5/SystemTimeSupport.cpp' || echo '$(srcdir)/'`nRF5/SystemTimeSupport.cpp
+
+nRF5/libDeviceLayer_a-SystemTimeSupport.obj: nRF5/SystemTimeSupport.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libDeviceLayer_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT nRF5/libDeviceLayer_a-SystemTimeSupport.obj -MD -MP -MF nRF5/$(DEPDIR)/libDeviceLayer_a-SystemTimeSupport.Tpo -c -o nRF5/libDeviceLayer_a-SystemTimeSupport.obj `if test -f 'nRF5/SystemTimeSupport.cpp'; then $(CYGPATH_W) 'nRF5/SystemTimeSupport.cpp'; else $(CYGPATH_W) '$(srcdir)/nRF5/SystemTimeSupport.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) nRF5/$(DEPDIR)/libDeviceLayer_a-SystemTimeSupport.Tpo nRF5/$(DEPDIR)/libDeviceLayer_a-SystemTimeSupport.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='nRF5/SystemTimeSupport.cpp' object='nRF5/libDeviceLayer_a-SystemTimeSupport.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libDeviceLayer_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o nRF5/libDeviceLayer_a-SystemTimeSupport.obj `if test -f 'nRF5/SystemTimeSupport.cpp'; then $(CYGPATH_W) 'nRF5/SystemTimeSupport.cpp'; else $(CYGPATH_W) '$(srcdir)/nRF5/SystemTimeSupport.cpp'; fi`
 
 mostlyclean-libtool:
 	-rm -f *.lo
