@@ -146,6 +146,8 @@ libDeviceLayer_a_SOURCES               +=       \
     nRF5/GroupKeyStoreImpl.cpp                  \
     nRF5/NRF5Config.cpp                         \
     nRF5/Entropy.cpp                            \
+    nRF5/Logging.cpp                            \
+    nRF5/SystemTimeSupport.cpp                  \
     $(NULL)
 
 endif # WEAVE_DEVICE_LAYER_TARGET_NRF5
