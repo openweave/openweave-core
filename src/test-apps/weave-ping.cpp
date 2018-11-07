@@ -680,7 +680,6 @@ void DriveSending()
     if (err == WEAVE_NO_ERROR)
     {
         WaitingForEchoResp = true;
-        WeaveDie();
         EchoCount++;
     }
     else
