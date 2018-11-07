@@ -44,10 +44,6 @@ WEAVE_ERROR PlatformManagerImpl::_InitWeaveStack(void)
 {
     WEAVE_ERROR err;
 
-    // Make sure the LwIP core lock has been initialized
-    err = Internal::InitLwIPCoreLock();
-    SuccessOrExit(err);
-
     // Call _InitWeaveStack() on the generic implementation base class
     // to finish the initialization process.
     err = Internal::GenericPlatformManagerImpl_FreeRTOS<PlatformManagerImpl>::_InitWeaveStack();
