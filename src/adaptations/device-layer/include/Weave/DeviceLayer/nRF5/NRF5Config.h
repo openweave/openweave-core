@@ -31,17 +31,17 @@ namespace Weave {
 namespace DeviceLayer {
 namespace Internal {
 
-constexpr uint32_t MakeKey(uint16_t fileId, uint16_t recordId)
+constexpr inline uint32_t MakeKey(uint16_t fileId, uint16_t recordId)
 {
     return static_cast<uint32_t>(fileId) << 16 | recordId;
 }
 
-uint16_t FileIdFromKey(uint32_t key)
+inline uint16_t FileIdFromKey(uint32_t key)
 {
     return static_cast<uint16_t>(key >> 16);
 }
 
-uint16_t RecordIdFromKey(uint32_t key)
+inline uint16_t RecordIdFromKey(uint32_t key)
 {
     return static_cast<uint16_t>(key);
 }
