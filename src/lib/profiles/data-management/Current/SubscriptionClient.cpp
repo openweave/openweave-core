@@ -3028,8 +3028,6 @@ WEAVE_ERROR SubscriptionClient::SendSingleUpdateRequest(void)
     err = mUpdateClient.mpBinding->AllocateRightSizedBuffer(pBuf, maxUpdateSize, WDM_MIN_UPDATE_SIZE, maxPayloadSize);
     SuccessOrExit(err);
 
-    mUpdateRequestContext.mSubClient = this;
-    mUpdateRequestContext.mNumDataElementsAddedToPayload = 0;
     mUpdateRequestContext.mIsPartialUpdate = false;
 
     context.mBuf = pBuf;
@@ -3297,12 +3295,6 @@ void SubscriptionClient::UpdateRequestContext::Reset()
     mNextDictionaryElementPathHandle = kNullPropertyPathHandle;
     mUpdateRequestIndex = 0;
 
-    mPathToEncode.mPropertyPathHandle = kNullPropertyPathHandle;
-    mPathToEncode.mTraitDataHandle = 0;
-    mForceMerge = false;
-    mSubClient = NULL;
-
-    mNumDataElementsAddedToPayload = 0;
     mIsPartialUpdate = false;
 }
 

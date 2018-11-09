@@ -473,17 +473,9 @@ private:
     {
         void Reset();
 
-        // State:
         size_t mItemInProgress;
         PropertyPathHandle mNextDictionaryElementPathHandle;
         uint32_t mUpdateRequestIndex;
-
-        // Arguments to lower level calls and callbacks
-        TraitPath mPathToEncode;
-        bool mForceMerge;
-        SubscriptionClient *mSubClient;
-
-        uint16_t mNumDataElementsAddedToPayload;
         bool mIsPartialUpdate;
     };
     uint32_t mUpdateRetryCounter;
