@@ -28,7 +28,6 @@ die()
     exit 1
 }
 
-
 case "${BUILD_TARGET}" in
 
     linux-auto-*-distcheck)
@@ -53,6 +52,11 @@ case "${BUILD_TARGET}" in
 
     esp32)
         .travis/build_esp32.sh
+        ;;
+
+    happy_test)
+        # run happy test
+        sudo bash -c "source ${HOME}/ve/happy/bin/activate; make -f Makefile-Standalone DEBUG=1 TIMESTAMP=1 COVERAGE=1 BuildJobs=24 check"
         ;;
 
     *)
