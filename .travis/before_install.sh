@@ -28,11 +28,6 @@ die()
     exit 1
 }
 
-echo "echo before install"
-echo $HOME
-echo $TRAVIS_BUILD_DIR
-pwd
-
 # Package build machine OS-specific configuration and setup
 
 case "${TRAVIS_OS_NAME}" in
@@ -98,7 +93,6 @@ case "${BUILD_TARGET}" in
         sudo apt-get install lcov
 
         cd $HOME
-        #git clone ssh://git@stash.nestlabs.com:7999/platform/happy.git # or wget
         git clone https://github.com/openweave/happy.git
 
         mkdir -p ve
@@ -115,6 +109,7 @@ case "${BUILD_TARGET}" in
         cat << EOF >~/.happy_conf.json
         {
             "weave_path": "$TRAVIS_BUILD_DIR/build/x86_64-unknown-linux-gnu/src/test-apps/"
+            "happy_log_path": "/tmp/happy_test_log/"
         }
 EOF
 

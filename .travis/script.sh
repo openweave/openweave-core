@@ -28,9 +28,6 @@ die()
     exit 1
 }
 
-echo "echo in script"
-echo $HOME
-pwd
 case "${BUILD_TARGET}" in
 
     linux-auto-*-distcheck)
