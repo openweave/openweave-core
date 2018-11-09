@@ -84,8 +84,38 @@ case "${BUILD_TARGET}" in
 
         ;;
 
+    happy_test)
+        # prepare for happy test run
+        sudo apt-get update
+        sudo apt-get install python-setuptools
+        sudo apt-get install bridge-utils
+        sudo apt-get install swig
+        sudo apt-get install lcov
+
+        cd $HOME
+        git clone https://github.com/openweave/happy.git
+
+        mkdir -p ve
+        cd ve
+        virtualenv happy
+        ls ./happy/bin/activate
+        . ./happy/bin/activate
+        cd ${HOME}/happy
+        python pip_packages.py
+        python setup.py develop
+
+        # configure happy, $HOME: /home/travis
+        # $TRAVIS_BUILD_DIR: /home/travis/build/jenniexie/openweave-core
+        cat << EOF >~/.happy_conf.json
+        {
+            "weave_path": "$TRAVIS_BUILD_DIR/build/x86_64-unknown-linux-gnu/src/test-apps/"
+            "happy_log_path": "/tmp/happy_test_log/"
+        }
+EOF
+
+        sudo ln -s ${HOME}/.happy_conf.json /root/.happy_conf.json
+    ;;
     *)
         die "Unknown build target \"${BUILD_TARGET}\"."
         ;;
-	
 esac
