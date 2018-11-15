@@ -61,6 +61,7 @@ const char *GetVendorName(uint16_t vendorId)
     case kWeaveVendor_Common                                                : return "Common";
     case kWeaveVendor_NestLabs                                              : return "Nest";
     case kWeaveVendor_Yale                                                  : return "Yale";
+    case kWeaveVendor_Google                                                : return "Google";
     }
 
     return NULL;
