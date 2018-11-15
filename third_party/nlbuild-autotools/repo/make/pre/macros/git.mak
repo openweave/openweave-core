@@ -1,4 +1,5 @@
 #
+#    Copyright 2018 Google LLC. All Rights Reserved.
 #    Copyright 2017-2018 Nest Labs Inc. All Rights Reserved.
 #
 #    Licensed under the Apache License, Version 2.0 (the "License");
@@ -73,3 +74,10 @@ nlGitGetURLForRepoFromNameFromFile    = $(call nlGitGetValueForRepoFromNameFromF
 # Get the local path for a repo / submodule variable set in specified git config file <file>.
 
 nlGitGetPathForRepoFromNameFromFile   = $(call nlGitGetValueForRepoFromNameFromFile,$(1),$(2),path)
+
+# nlGitGetMethodForPullFromFile <file>
+#
+# Get the pull method set in specified git config file <file>.
+
+nlGitGetMethodForPullFromFile         = $(shell $(call nlGitGetConfigFromFileCommand,$(1)) 'pull.method')
+
