@@ -276,6 +276,74 @@ exit:
     return err;
 }
 
+#ifdef WEAVE_CONFIG_ENABLE_IFJ_SERVICE_FABRIC_JOIN
+WEAVE_ERROR ServiceProvisioningServer::SendIFJServiceFabricJoinRequest(Binding *binding, uint64_t serviceId, uint64_t fabricId,
+                                                                       const uint8_t *deviceInitData, uint16_t deviceInitDataLen)
+{
+    WEAVE_ERROR                 err     = WEAVE_NO_ERROR;
+    IFJServiceFabricJoinMessage msg;
+    PacketBuffer*               msgBuf  = NULL;
+    uint16_t                    msgLen  = sizeof(deviceInitDataLen) + sizeof(serviceId) + sizeof(fabricId) + deviceInitDataLen;
+
+    if (mServerOpState != kServerOpState_Idle)
+        return WEAVE_ERROR_INCORRECT_STATE;
+
+    msg.ServiceId = serviceId;
+    msg.FabricId = fabricId;
+    msg.DeviceInitData = deviceInitData;
+    msg.DeviceInitDataLen = deviceInitDataLen;
+
+    // Allocate a buffer for the message.
+    msgBuf = PacketBuffer::NewWithAvailableSize(msgLen);
+    VerifyOrExit(msgBuf != NULL, err = WEAVE_ERROR_NO_MEMORY);
+
+    // Encode the message.
+    err = msg.Encode(msgBuf);
+    SuccessOrExit(err);
+
+    // Allocate and initialize an exchange context.
+    err = binding->NewExchangeContext(mCurServerOp);
+    SuccessOrExit(err);
+
+    mCurServerOp->AppState = this;
+    mCurServerOp->OnMessageReceived = HandleServerResponse;
+
+    if (mCurServerOp->ResponseTimeout == 0)
+    {
+        mCurServerOp->ResponseTimeout = WEAVE_CONFIG_SERVICE_PROV_RESPONSE_TIMEOUT;
+    }
+    mCurServerOp->OnResponseTimeout = HandleServerResponseTimeout;
+    mCurServerOp->OnKeyError = HandleServerKeyError;
+
+#if WEAVE_CONFIG_ENABLE_RELIABLE_MESSAGING
+    mCurServerOp->OnSendError = HandleServerSendError;
+#endif // #if WEAVE_CONFIG_ENABLE_RELIABLE_MESSAGING
+
+    // Record that a IFJServiceFabricJoin request is outstanding.
+    mServerOpState = kServerOpState_IFJServiceFabricJoin;
+
+    // Send the IFJServiceFabricJoin message to the service.
+    err = mCurServerOp->SendMessage(kWeaveProfile_ServiceProvisioning, kMsgType_IFJServiceFabricJoin, msgBuf,
+                                    nl::Weave::ExchangeContext::kSendFlag_ExpectResponse);
+    msgBuf = NULL;
+
+exit:
+    if (msgBuf != NULL)
+        PacketBuffer::Free(msgBuf);
+    if (err != WEAVE_NO_ERROR)
+    {
+        mServerOpState = kServerOpState_Idle;
+        if (mCurServerOp != NULL)
+        {
+            mCurServerOp->Close();
+            mCurServerOp = NULL;
+        }
+    }
+
+    return err;
+}
+#endif // WEAVE_CONFIG_ENABLE_IFJ_SERVICE_FABRIC_JOIN
+
 void ServiceProvisioningServer::HandleClientRequest(ExchangeContext *ec, const IPPacketInfo *pktInfo, const WeaveMessageInfo *msgInfo,
                                                     uint32_t profileId, uint8_t msgType, PacketBuffer *payload)
 {
@@ -403,14 +471,14 @@ void ServiceProvisioningServer::HandleServerResponse(ExchangeContext *ec, const 
         ? WEAVE_NO_ERROR
         : WEAVE_ERROR_STATUS_REPORT_RECEIVED;
 
-    server->HandlePairDeviceToAccountResult(delegateErr, statusReport.mProfileId, statusReport.mStatusCode);
+    server->HandleServiceProvisioningOpResult(delegateErr, statusReport.mProfileId, statusReport.mStatusCode);
 
 exit:
     // Free the payload first to reduce buffer pressure.
     if (payload != NULL)
         PacketBuffer::Free(payload);
     if (err != WEAVE_NO_ERROR)
-        server->HandlePairDeviceToAccountResult(err, 0, 0);
+        server->HandleServiceProvisioningOpResult(err, 0, 0);
     if (ec != NULL)
         ec->Close();
 }
@@ -425,7 +493,7 @@ void ServiceProvisioningServer::HandleServerResponseTimeout(ExchangeContext *ec)
     VerifyOrExit(ec == server->mCurServerOp, );
     ec = NULL;
 
-    server->HandlePairDeviceToAccountResult(WEAVE_ERROR_TIMEOUT, 0, 0);
+    server->HandleServiceProvisioningOpResult(WEAVE_ERROR_TIMEOUT, 0, 0);
 
 exit:
     if (ec != NULL)
@@ -447,7 +515,7 @@ void ServiceProvisioningServer::HandleServerConnectionClosed(ExchangeContext *ec
     if (conErr == WEAVE_NO_ERROR)
         conErr = WEAVE_ERROR_CONNECTION_CLOSED_UNEXPECTEDLY;
 
-    server->HandlePairDeviceToAccountResult(conErr, 0, 0);
+    server->HandleServiceProvisioningOpResult(conErr, 0, 0);
 
 exit:
     if (ec != NULL)
@@ -464,7 +532,7 @@ void ServiceProvisioningServer::HandleServerKeyError(ExchangeContext *ec, WEAVE_
     VerifyOrExit(ec == server->mCurServerOp, );
     ec = NULL;
 
-    server->HandlePairDeviceToAccountResult(keyErr, 0, 0);
+    server->HandleServiceProvisioningOpResult(keyErr, 0, 0);
 
 exit:
     if (ec != NULL)
@@ -482,7 +550,7 @@ void ServiceProvisioningServer::HandleServerSendError(ExchangeContext *ec, WEAVE
     VerifyOrExit(ec == server->mCurServerOp, );
     ec = NULL;
 
-    server->HandlePairDeviceToAccountResult(err, 0, 0);
+    server->HandleServiceProvisioningOpResult(err, 0, 0);
 
 exit:
     if (ec != NULL)
@@ -490,15 +558,25 @@ exit:
 }
 #endif // #if WEAVE_CONFIG_ENABLE_RELIABLE_MESSAGING
 
-void ServiceProvisioningServer::HandlePairDeviceToAccountResult(WEAVE_ERROR localErr, uint32_t serverStatusProfileId, uint16_t serverStatusCode)
+void ServiceProvisioningServer::HandleServiceProvisioningOpResult(WEAVE_ERROR localErr, uint32_t serverStatusProfileId, uint16_t serverStatusCode)
 {
+    uint8_t prevOpState = mServerOpState;
     mServerOpState = kServerOpState_Idle;
     mCurServerOp->Close();
     mCurServerOp = NULL;
 
     if (mDelegate)
     {
-        mDelegate->HandlePairDeviceToAccountResult(localErr, serverStatusProfileId, serverStatusCode);
+#ifdef WEAVE_CONFIG_ENABLE_IFJ_SERVICE_FABRIC_JOIN
+        if (prevOpState == kServerOpState_IFJServiceFabricJoin)
+        {
+            mDelegate->HandleIFJServiceFabricJoinResult(localErr, serverStatusProfileId, serverStatusCode);
+        }
+        else
+#endif // WEAVE_CONFIG_ENABLE_IFJ_SERVICE_FABRIC_JOIN
+        {
+            mDelegate->HandlePairDeviceToAccountResult(localErr, serverStatusProfileId, serverStatusCode);
+        }
     }
 }
 

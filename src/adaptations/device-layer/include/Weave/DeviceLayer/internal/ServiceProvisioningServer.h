@@ -64,6 +64,9 @@ public:
     WEAVE_ERROR HandleUpdateService(::nl::Weave::Profiles::ServiceProvisioning::UpdateServiceMessage& msg) override;
     WEAVE_ERROR HandleUnregisterService(uint64_t serviceId) override;
     void HandlePairDeviceToAccountResult(WEAVE_ERROR localErr, uint32_t serverStatusProfileId, uint16_t serverStatusCode) override;
+#ifdef WEAVE_CONFIG_ENABLE_IFJ_SERVICE_FABRIC_JOIN
+    void HandleIFJServiceFabricJoinResult(WEAVE_ERROR localErr, uint32_t serverStatusProfileId, uint16_t serverStatusCode) override;
+#endif // WEAVE_CONFIG_ENABLE_IFJ_SERVICE_FABRIC_JOIN
 
     // ===== Members that override virtual methods on ServiceProvisioningServer
 

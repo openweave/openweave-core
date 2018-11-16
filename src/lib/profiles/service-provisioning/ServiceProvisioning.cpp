@@ -181,6 +181,48 @@ exit:
     return err;
 }
 
+#ifdef WEAVE_CONFIG_ENABLE_IFJ_SERVICE_FABRIC_JOIN
+WEAVE_ERROR IFJServiceFabricJoinMessage::Encode(PacketBuffer *msgBuf)
+{
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
+    uint32_t msgLen;
+    uint8_t *p;
+
+    msgLen = 2 + 8 + 8 + DeviceInitDataLen;
+    VerifyOrExit(msgBuf->AvailableDataLength() >= msgLen, err = WEAVE_ERROR_MESSAGE_TOO_LONG);
+
+    p = msgBuf->Start();
+    LittleEndian::Write16(p, DeviceInitDataLen);
+    LittleEndian::Write64(p, ServiceId);
+    LittleEndian::Write64(p, FabricId);
+    memcpy(p, DeviceInitData, DeviceInitDataLen);
+    msgBuf->SetDataLength(msgLen);
+
+exit:
+    return err;
+}
+
+WEAVE_ERROR IFJServiceFabricJoinMessage::Decode(PacketBuffer *msgBuf, IFJServiceFabricJoinMessage& msg)
+{
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
+    uint16_t dataLen = msgBuf->DataLength();
+    const uint8_t *p = msgBuf->Start();
+
+    VerifyOrExit(dataLen >= 2 + 8 + 8, err = WEAVE_ERROR_INVALID_MESSAGE_LENGTH);
+    msg.DeviceInitDataLen = LittleEndian::Read16(p);
+    msg.ServiceId = LittleEndian::Read64(p);
+    msg.FabricId = LittleEndian::Read64(p);
+
+    VerifyOrExit(dataLen == 2 + 8 + 8 + msg.DeviceInitDataLen,
+                 err = WEAVE_ERROR_INVALID_MESSAGE_LENGTH);
+
+    msg.DeviceInitData   = p;
+
+exit:
+    return err;
+}
+#endif // WEAVE_CONFIG_ENABLE_IFJ_SERVICE_FABRIC_JOIN
+
 NL_DLL_EXPORT WEAVE_ERROR EncodeServiceConfig(WeaveCertificateSet& certSet, const char *dirHostName, uint16_t dirPort, uint8_t *outBuf, uint16_t& outLen)
 {
     WEAVE_ERROR err;
