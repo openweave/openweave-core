@@ -46,8 +46,20 @@ case "${BUILD_TARGET}" in
         ./configure --enable-coverage && make && make check
         ;;
 
+    linux-lwip-clang)
+        ./configure --with-target-network=lwip --with-lwip=internal --disable-java && make
+        ;;
+
+    linux-lwip-gcc)
+        ./configure --with-target-network=lwip --with-lwip=internal --disable-java && make
+        ;;
+
     osx-auto-clang)
         ./configure && make
+        ;;
+
+    osx-lwip-clang)
+        ./configure --with-target-network=lwip --with-lwip=internal --disable-java && make
         ;;
 
     esp32)
