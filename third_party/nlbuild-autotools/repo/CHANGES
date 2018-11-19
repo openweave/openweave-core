@@ -1,3 +1,10 @@
+1.6.5 (2018-11-19)
+
+        * Addressed an issue in which the failure to make the 'repos-warning'
+          target order-only caused dependent repo paths to be repeatedly
+          and unnecessarily remade which, in turn, caused git operations
+          and the configuration or build to fail.
+
 1.6.4 (2018-11-14)
 
         * Added support for pulling down remote package dependencies using
