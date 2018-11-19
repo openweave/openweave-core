@@ -47,7 +47,7 @@ esac
 
 case "${BUILD_TARGET}" in
 
-    linux-auto-*)
+    linux-auto-*|linux-lwip-*)
         # By default, the BLE layer is enabled in OpenWeave Core and, by
         # default on Linux, the BLE layer is implemented by BlueZ. On Linux,
         # BlueZ requires:
@@ -74,7 +74,7 @@ case "${BUILD_TARGET}" in
 
         ;;
 
-    osx-auto-clang)
+    osx-auto-clang|osx-lwip-clang)
         # By default, OpenWeave Core uses OpenSSL for cryptography on
         # OS X and the OpenSSL version included in package depends
         # on the perl Text::Template mmodule.
