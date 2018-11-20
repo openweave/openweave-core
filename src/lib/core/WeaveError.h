@@ -1722,6 +1722,14 @@ typedef WEAVE_CONFIG_ERROR_TYPE WEAVE_ERROR;
  */
 #define WEAVE_ERROR_WDM_PATH_STORE_FULL                          _WEAVE_ERROR(181)
 /**
+ * @def WEAVE_EVENT_ID_FOUND
+ *
+ * @brief
+ *   Event ID matching the criteria was found
+ */
+#define WEAVE_EVENT_ID_FOUND                                     _WEAVE_ERROR(182)
+
+/**
  *  @}
  */
 

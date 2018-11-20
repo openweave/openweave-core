@@ -219,7 +219,7 @@ public:
     bool CheckShouldRunWDM(void);
 #endif
 private:
-    WEAVE_ERROR GetExternalEventsFromEventId(ImportanceType inImportance, event_id_t inEventId, ExternalEvents * outExternalEvents);
+    WEAVE_ERROR GetExternalEventsFromEventId(ImportanceType inImportance, event_id_t inEventId, ExternalEvents * outExternalEvents, nl::Weave::TLV::TLVReader & inReader);
     event_id_t LogEventPrivate(const EventSchema & inSchema, EventWriterFunct inEventWriter, void * inAppData,
                                const EventOptions * inOptions);
 
@@ -229,6 +229,8 @@ private:
     WEAVE_ERROR EnsureSpace(size_t inRequiredSpace);
 
     static WEAVE_ERROR CopyEventsSince(const nl::Weave::TLV::TLVReader & aReader, size_t aDepth, void * aContext);
+    static WEAVE_ERROR EventIterator(const nl::Weave::TLV::TLVReader & aReader, size_t aDepth, void * aContext);
+    static WEAVE_ERROR FindExternalEvents(const nl::Weave::TLV::TLVReader & aReader, size_t aDepth, void * aContext);
     static WEAVE_ERROR FetchEventParameters(const nl::Weave::TLV::TLVReader & aReader, size_t aDepth, void * aContext);
     static WEAVE_ERROR CopyAndAdjustDeltaTime(const nl::Weave::TLV::TLVReader & aReader, size_t aDepth, void * aContext);
     static WEAVE_ERROR EvictEvent(nl::Weave::TLV::WeaveCircularTLVBuffer & inBuffer, void * inAppData,
@@ -249,6 +251,7 @@ private:
 
 private:
     CircularEventBuffer * GetImportanceBuffer(ImportanceType inImportance) const;
+    static WEAVE_ERROR BlitExternalEvent(nl::Weave::TLV::TLVWriter &inWriter, ImportanceType inImportance, ExternalEvents &inEvents);
 
     CircularEventBuffer * mEventBuffer;
     WeaveExchangeManager * mExchangeMgr;

@@ -807,7 +807,6 @@ WEAVE_ERROR LoggingManagement::RegisterEventCallbackForImportance(ImportanceType
     ExternalEvents ev;
     CircularEventBuffer * buf = GetImportanceBuffer(inImportance);
     CircularTLVWriter writer;
-    TLVType containerType;
 
     Platform::CriticalSectionEnter();
 
@@ -835,26 +834,9 @@ WEAVE_ERROR LoggingManagement::RegisterEventCallbackForImportance(ImportanceType
 
     writer.Init(&(mEventBuffer->mBuffer));
 
-    // can't quite use the BlitEvent structure, as we are special casing this one
+    // can't quite use the BlitEvent method, use the specially created one
 
-    err = writer.StartContainer(AnonymousTag, kTLVType_Structure, containerType);
-    SuccessOrExit(err);
-
-    // Importance
-    err = writer.Put(ContextTag(kTag_EventImportance), static_cast<uint16_t>(inImportance));
-    SuccessOrExit(err);
-
-    // External event structure, blitted to the buffer as a byte string
-
-    err = writer.PutBytes(ContextTag(kTag_ExternalEventStructure), static_cast<const uint8_t *>(static_cast<void *>(&ev)),
-                          sizeof(ExternalEvents));
-    SuccessOrExit(err);
-
-    err = writer.EndContainer(containerType);
-    SuccessOrExit(err);
-
-    err = writer.Finalize();
-    SuccessOrExit(err);
+    err = BlitExternalEvent(writer, inImportance, ev);
 
     mBytesWritten += writer.GetLengthWritten();
 
@@ -877,6 +859,34 @@ exit:
     return err;
 }
 
+
+WEAVE_ERROR LoggingManagement::BlitExternalEvent(nl::Weave::TLV::TLVWriter &inWriter, ImportanceType inImportance, ExternalEvents &inEvents)
+{
+    WEAVE_ERROR err;
+    TLVType containerType;
+
+    err = inWriter.StartContainer(AnonymousTag, kTLVType_Structure, containerType);
+    SuccessOrExit(err);
+
+    // Importance
+    err = inWriter.Put(ContextTag(kTag_EventImportance), static_cast<uint16_t>(inImportance));
+    SuccessOrExit(err);
+
+    // External event structure, blitted to the buffer as a byte string.  Must match the call in UnregisterEventCallbackForImportance
+
+    err = inWriter.PutBytes(ContextTag(kTag_ExternalEventStructure), static_cast<const uint8_t *>(static_cast<void *>(&inEvents)),
+                          sizeof(ExternalEvents));
+    SuccessOrExit(err);
+
+    err = inWriter.EndContainer(containerType);
+    SuccessOrExit(err);
+
+    err = inWriter.Finalize();
+    SuccessOrExit(err);
+
+exit:
+    return err;
+}
 /**
  * @brief
  *   The public API for unregistering a set of externally stored events.
@@ -900,16 +910,45 @@ void LoggingManagement::UnregisterEventCallbackForImportance(ImportanceType inIm
 {
     ExternalEvents ev;
     WEAVE_ERROR err = WEAVE_NO_ERROR;
+    TLVReader reader;
+    WeaveCircularTLVBuffer *readBuffer;
+
+    TLVType containerType;
+    uint8_t *dataPtr;
 
     Platform::CriticalSectionEnter();
 
-    err = GetExternalEventsFromEventId(inImportance, inEventID, &ev);
+    err = GetExternalEventsFromEventId(inImportance, inEventID, &ev, reader);
     SuccessOrExit(err);
 
+    dataPtr = const_cast<uint8_t *>(reader.GetReadPoint()) - 1;
+    readBuffer = static_cast<WeaveCircularTLVBuffer *>((void*)reader.GetBufHandle());
     if (ev.IsValid())
     {
+        // Reader is positioned on the external event element.
+        WeaveCircularTLVBuffer writeBuffer(readBuffer->GetQueue(), readBuffer->GetQueueSize(), dataPtr);
+        CircularTLVWriter writer;
+
+        VerifyOrExit(reader.GetTag() == AnonymousTag, );
+
+        VerifyOrExit(reader.GetType() == kTLVType_Structure, );
+
+        err = reader.EnterContainer(containerType);
+        SuccessOrExit(err);
+
+        err = reader.Next(kTLVType_UnsignedInteger, ContextTag(kTag_EventImportance));
+        SuccessOrExit(err);
+
+        err = reader.Next(kTLVType_ByteString, ContextTag(kTag_ExternalEventStructure));
+        SuccessOrExit(err);
+
+        // At this point, the reader is positioned correctly, and dataPtr points to the beginning of the string
         ev.mFetchEventsFunct           = NULL;
         ev.mNotifyEventsDeliveredFunct = NULL;
+
+        writer.Init(&writeBuffer);
+
+        err = BlitExternalEvent(writer, inImportance, ev);
     }
 
 exit:
@@ -1221,6 +1260,7 @@ void LoggingManagement::UnthrottleLogger(void)
     }
 }
 
+
 // internal API, used to copy events to external buffers
 WEAVE_ERROR LoggingManagement::CopyEvent(const TLVReader & aReader, TLVWriter & aWriter, EventLoadOutContext * aContext)
 {
@@ -1249,23 +1289,30 @@ exit:
     return err;
 }
 
+WEAVE_ERROR LoggingManagement::FindExternalEvents(const TLVReader & aReader, size_t aDepth, void * aContext)
+{
+    WEAVE_ERROR err;
+    EventLoadOutContext * context = static_cast<EventLoadOutContext *>(aContext);
+
+    err = EventIterator(aReader, aDepth, aContext);
+    if (err == WEAVE_EVENT_ID_FOUND)
+    {
+        err = WEAVE_NO_ERROR;
+    }
+    if ((err == WEAVE_END_OF_TLV) && context->mExternalEvents->IsValid())
+    {
+        err = WEAVE_ERROR_MAX;
+    }
+    return err;
+}
+
 /**
- * @brief
- *   Internal API used to implement #FetchEventsSince
+ * @brief Internal iterator function used to scan and filter though event logs
  *
- * Iterator function to used to copy an event from the log into a
- * TLVWriter. The included aContext contains the context of the copy
- * operation, including the TLVWriter that will hold the copy of an
- * event.  If event cannot be written as a whole, the TLVWriter will
- * be rolled back to event boundary.
- *
- * @retval #WEAVE_END_OF_TLV             Function reached the end of the event
- * @retval #WEAVE_ERROR_NO_MEMORY        Function could not write a portion of
- *                                       the event to the TLVWriter.
- * @retval #WEAVE_ERROR_BUFFER_TOO_SMALL Function could not write a
- *                                       portion of the event to the TLVWriter.
+ * The function is used to scan through the event log to find events matching the spec in the supplied context.
  */
-WEAVE_ERROR LoggingManagement::CopyEventsSince(const TLVReader & aReader, size_t aDepth, void * aContext)
+
+WEAVE_ERROR LoggingManagement::EventIterator(const TLVReader & aReader, size_t aDepth, void * aContext)
 {
     WEAVE_ERROR err    = WEAVE_NO_ERROR;
     const bool recurse = false;
@@ -1273,7 +1320,6 @@ WEAVE_ERROR LoggingManagement::CopyEventsSince(const TLVReader & aReader, size_t
     TLVType tlvType;
     EventEnvelopeContext event;
     EventLoadOutContext * loadOutContext = static_cast<EventLoadOutContext *>(aContext);
-    nl::Weave::TLV::TLVWriter checkpoint;
 
     event.mExternalEvents = loadOutContext->mExternalEvents;
     if (event.mExternalEvents != NULL)
@@ -1314,25 +1360,54 @@ WEAVE_ERROR LoggingManagement::CopyEventsSince(const TLVReader & aReader, size_t
 #if WEAVE_CONFIG_EVENT_LOGGING_UTC_TIMESTAMPS
             loadOutContext->mCurrentUTCTime += event.mDeltaUtc;
 #endif // WEAVE_CONFIG_EVENT_LOGGING_UTC_TIMESTAMPS
-            if (loadOutContext->mCurrentEventID >= loadOutContext->mStartingEventID)
-            {
-                // checkpoint the writer
-                checkpoint = loadOutContext->mWriter;
-
-                err = CopyEvent(aReader, loadOutContext->mWriter, loadOutContext);
-
-                // WEAVE_NO_ERROR and WEAVE_END_OF_TLV signify a
-                // successful copy.  In all other cases, roll back the
-                // writer state back to the checkpoint, i.e., the state
-                // before we began the copy operation.
-                VerifyOrExit((err == WEAVE_NO_ERROR) || (err == WEAVE_END_OF_TLV), loadOutContext->mWriter = checkpoint);
-
-                loadOutContext->mCurrentTime = 0;
-                loadOutContext->mFirst       = false;
-            }
-
+            VerifyOrExit(loadOutContext->mCurrentEventID < loadOutContext->mStartingEventID, err = WEAVE_EVENT_ID_FOUND);
             loadOutContext->mCurrentEventID++;
         }
+    }
+
+exit:
+    return err;
+}
+
+/**
+ * @brief
+ *   Internal API used to implement #FetchEventsSince
+ *
+ * Iterator function to used to copy an event from the log into a
+ * TLVWriter. The included aContext contains the context of the copy
+ * operation, including the TLVWriter that will hold the copy of an
+ * event.  If event cannot be written as a whole, the TLVWriter will
+ * be rolled back to event boundary.
+ *
+ * @retval #WEAVE_END_OF_TLV             Function reached the end of the event
+ * @retval #WEAVE_ERROR_NO_MEMORY        Function could not write a portion of
+ *                                       the event to the TLVWriter.
+ * @retval #WEAVE_ERROR_BUFFER_TOO_SMALL Function could not write a
+ *                                       portion of the event to the TLVWriter.
+ */
+WEAVE_ERROR LoggingManagement::CopyEventsSince(const TLVReader & aReader, size_t aDepth, void * aContext)
+{
+    WEAVE_ERROR err    = WEAVE_NO_ERROR;
+    nl::Weave::TLV::TLVWriter checkpoint;
+    EventLoadOutContext * loadOutContext = static_cast<EventLoadOutContext *>(aContext);
+
+    err = EventIterator(aReader, aDepth, aContext);
+    if (err == WEAVE_EVENT_ID_FOUND)
+    {
+        // checkpoint the writer
+        checkpoint = loadOutContext->mWriter;
+
+        err = CopyEvent(aReader, loadOutContext->mWriter, loadOutContext);
+
+        // WEAVE_NO_ERROR and WEAVE_END_OF_TLV signify a
+        // successful copy.  In all other cases, roll back the
+        // writer state back to the checkpoint, i.e., the state
+        // before we began the copy operation.
+        VerifyOrExit((err == WEAVE_NO_ERROR) || (err == WEAVE_END_OF_TLV), loadOutContext->mWriter = checkpoint);
+
+        loadOutContext->mCurrentTime = 0;
+        loadOutContext->mFirst       = false;
+        loadOutContext->mCurrentEventID++;
     }
 
 exit:
@@ -1799,15 +1874,26 @@ void LoggingManagement::NotifyEventsDelivered(ImportanceType inImportance, event
 {
     ExternalEvents ev;
     WEAVE_ERROR err = WEAVE_NO_ERROR;
+    TLVReader reader;
+    event_id_t currentId;
 
     Platform::CriticalSectionEnter();
-
-    err = GetExternalEventsFromEventId(inImportance, inLastDeliveredEventID, &ev);
-    SuccessOrExit(err);
-
-    if (ev.IsValid() && ev.mNotifyEventsDeliveredFunct != NULL)
+    currentId = GetFirstEventID(inImportance);
+    while (currentId <= inLastDeliveredEventID)
     {
-        ev.mNotifyEventsDeliveredFunct(&ev, inLastDeliveredEventID, inRecipientNodeID);
+        err = GetExternalEventsFromEventId(inImportance, currentId, &ev, reader);
+        SuccessOrExit(err);
+
+        VerifyOrExit(ev.IsValid(), );
+
+        VerifyOrExit(ev.mFirstEventID <= inLastDeliveredEventID, );
+
+        if (ev.mNotifyEventsDeliveredFunct != NULL)
+        {
+            ev.mNotifyEventsDeliveredFunct(&ev, inLastDeliveredEventID, inRecipientNodeID);
+        }
+
+        currentId = ev.mLastEventID + 1;
     }
 
 exit:
@@ -1826,6 +1912,9 @@ exit:
  *                               inEventID tuple corresponds to a valid external ID, the structure will be populated with the
  *                               descriptor holding all relevant information about that particular block of external events.
  *
+ * @param[out] outReader         A reference to a TLVReader. On successful retrieval of ExternalEvent structure, the reader will be
+ *                               positioned to the beginning of the TLV struct containing the external events.
+ *
  * @retval WEAVE_NO_ERROR                On successful retrieval of the ExternalEvents
  *
  * @retval WEAVE_ERROR_INVALID_ARGUMENT  When the arguments passed in do not correspond to an external event, or if the external
@@ -1833,15 +1922,15 @@ exit:
  */
 
 WEAVE_ERROR LoggingManagement::GetExternalEventsFromEventId(ImportanceType inImportance, event_id_t inEventID,
-                                                            ExternalEvents * outExternalEvents)
+                                                            ExternalEvents * outExternalEvents, TLVReader &outReader)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
     uint32_t dummyBuf;
     const bool recurse = false;
-    TLVReader reader;
     TLVWriter writer;
     EventLoadOutContext aContext(writer, inImportance, inEventID, outExternalEvents);
     CircularEventBuffer * buf = mEventBuffer;
+    TLVReader resultReader;
 
     writer.Init(static_cast<uint8_t *>(static_cast<void *>(&dummyBuf)), sizeof(uint32_t));
 
@@ -1856,13 +1945,12 @@ WEAVE_ERROR LoggingManagement::GetExternalEventsFromEventId(ImportanceType inImp
     aContext.mCurrentUTCTime = buf->mFirstEventUTCTimestamp;
 #endif // WEAVE_CONFIG_EVENT_LOGGING_UTC_TIMESTAMPS
     aContext.mCurrentEventID = buf->mFirstEventID;
-    err                      = GetEventReader(reader, inImportance);
+    err                      = GetEventReader(outReader, inImportance);
     SuccessOrExit(err);
 
-    err = nl::Weave::TLV::Utilities::Iterate(reader, CopyEventsSince, &aContext, recurse);
-
-    VerifyOrExit(err == WEAVE_END_OF_TLV && outExternalEvents->IsValid(), err = WEAVE_ERROR_INVALID_ARGUMENT);
-    err = WEAVE_NO_ERROR;
+    err = nl::Weave::TLV::Utilities::Find(outReader, FindExternalEvents, &aContext, resultReader, recurse);
+    if (err == WEAVE_NO_ERROR)
+        outReader.Init(resultReader);
 
 exit:
 
