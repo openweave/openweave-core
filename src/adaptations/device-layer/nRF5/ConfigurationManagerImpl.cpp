@@ -119,7 +119,7 @@ void ConfigurationManagerImpl::_InitiateFactoryReset()
 
 WEAVE_ERROR ConfigurationManagerImpl::_ReadPersistedStorageValue(::nl::Weave::Platform::PersistedStorage::Key key, uint32_t & value)
 {
-    NRF5Config::Key configKey = MakeKey(NRF5Config::kConfigFileId_WeaveCounters, key);
+    NRF5Config::Key configKey = NRF5ConfigKey(NRF5Config::kConfigFileId_WeaveCounters, key);
 
     WEAVE_ERROR err = ReadConfigValue(configKey, value);
     if (err == WEAVE_DEVICE_ERROR_CONFIG_NOT_FOUND)
@@ -132,7 +132,7 @@ WEAVE_ERROR ConfigurationManagerImpl::_ReadPersistedStorageValue(::nl::Weave::Pl
 WEAVE_ERROR ConfigurationManagerImpl::_WritePersistedStorageValue(::nl::Weave::Platform::PersistedStorage::Key key, uint32_t value)
 {
 
-    NRF5Config::Key configKey = MakeKey(NRF5Config::kConfigFileId_WeaveCounters, key);
+    NRF5Config::Key configKey = NRF5ConfigKey(NRF5Config::kConfigFileId_WeaveCounters, key);
     return WriteConfigValue(configKey, value);
 }
 
