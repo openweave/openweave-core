@@ -43,6 +43,16 @@ namespace TLV {
 
 using namespace nl::Weave::Encoding;
 
+/**
+ * @brief
+ *   WeaveCircularTLVBuffer constructor
+ *
+ * @param[in] inBuffer       A pointer to the backing store for the queue
+ *
+ * @param[in] inBufferLength Length, in bytes, of the backing store
+ *
+ * @param[in] inHead         Initial point for the head.  The @a inHead pointer is must fall within the backing store for the circular buffer, i.e. within @a inBuffer and &(@a inBuffer[@a inBufferLength])
+ */
 WeaveCircularTLVBuffer::WeaveCircularTLVBuffer(uint8_t *inBuffer, size_t inBufferLength, uint8_t *inHead)
 {
     mQueue = inBuffer;
@@ -58,13 +68,14 @@ WeaveCircularTLVBuffer::WeaveCircularTLVBuffer(uint8_t *inBuffer, size_t inBuffe
     // profile tags.
     mImplicitProfileId = kCommonProfileId;
 }
+
 /**
  * @brief
  *   WeaveCircularTLVBuffer constructor
  *
  * @param[in] inBuffer       A pointer to the backing store for the queue
  *
- * @param[in] inBufferLength Length of the backing store
+ * @param[in] inBufferLength Length, in bytes, of the backing store
  */
 WeaveCircularTLVBuffer::WeaveCircularTLVBuffer(uint8_t *inBuffer, size_t inBufferLength)
 {
