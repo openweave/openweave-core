@@ -31,19 +31,9 @@ namespace Weave {
 namespace DeviceLayer {
 namespace Internal {
 
-constexpr inline uint32_t MakeKey(uint16_t fileId, uint16_t recordId)
+constexpr inline uint32_t NRF5ConfigKey(uint16_t fileId, uint16_t recordId)
 {
     return static_cast<uint32_t>(fileId) << 16 | recordId;
-}
-
-inline uint16_t FileIdFromKey(uint32_t key)
-{
-    return static_cast<uint16_t>(key >> 16);
-}
-
-inline uint16_t RecordIdFromKey(uint32_t key)
-{
-    return static_cast<uint16_t>(key);
 }
 
 
@@ -57,7 +47,7 @@ class NRF5Config
 {
 public:
 
-    typedef uint32_t Key;
+    using Key = uint32_t;
 
     // Nordic FDS File Ids
     static constexpr uint16_t kConfigFileId_WeaveFactory    = 0x235A;
@@ -65,24 +55,26 @@ public:
     static constexpr uint16_t kConfigFileId_WeaveCounters   = 0x235C;
 
     // Key definitions for well-known keys.
-    static constexpr Key kConfigKey_SerialNum               = MakeKey(kConfigFileId_WeaveFactory, 0x0001);
-    static constexpr Key kConfigKey_DeviceId                = MakeKey(kConfigFileId_WeaveFactory, 0x0001);
-    static constexpr Key kConfigKey_DeviceCert              = MakeKey(kConfigFileId_WeaveFactory, 0x0001);
-    static constexpr Key kConfigKey_DevicePrivateKey        = MakeKey(kConfigFileId_WeaveFactory, 0x0001);
-    static constexpr Key kConfigKey_ManufacturingDate       = MakeKey(kConfigFileId_WeaveFactory, 0x0001);
-    static constexpr Key kConfigKey_PairingCode             = MakeKey(kConfigFileId_WeaveFactory, 0x0001);
-    static constexpr Key kConfigKey_FabricId                = MakeKey(kConfigFileId_WeaveConfig,  0x0001);
-    static constexpr Key kConfigKey_ServiceConfig           = MakeKey(kConfigFileId_WeaveConfig,  0x0001);
-    static constexpr Key kConfigKey_PairedAccountId         = MakeKey(kConfigFileId_WeaveConfig,  0x0001);
-    static constexpr Key kConfigKey_ServiceId               = MakeKey(kConfigFileId_WeaveConfig,  0x0001);
-    static constexpr Key kConfigKey_FabricSecret            = MakeKey(kConfigFileId_WeaveConfig,  0x0001);
-    static constexpr Key kConfigKey_GroupKeyIndex           = MakeKey(kConfigFileId_WeaveConfig,  0x0001);
-    static constexpr Key kConfigKey_LastUsedEpochKeyId      = MakeKey(kConfigFileId_WeaveConfig,  0x0001);
-    static constexpr Key kConfigKey_FailSafeArmed           = MakeKey(kConfigFileId_WeaveConfig,  0x0001);
+    static constexpr uint32_t kConfigKey_SerialNum               = NRF5ConfigKey(kConfigFileId_WeaveFactory, 0x0001);
+    static constexpr uint32_t kConfigKey_DeviceId                = NRF5ConfigKey(kConfigFileId_WeaveFactory, 0x0002);
+    static constexpr uint32_t kConfigKey_DeviceCert              = NRF5ConfigKey(kConfigFileId_WeaveFactory, 0x0003);
+    static constexpr uint32_t kConfigKey_DevicePrivateKey        = NRF5ConfigKey(kConfigFileId_WeaveFactory, 0x0004);
+    static constexpr uint32_t kConfigKey_ManufacturingDate       = NRF5ConfigKey(kConfigFileId_WeaveFactory, 0x0005);
+    static constexpr uint32_t kConfigKey_PairingCode             = NRF5ConfigKey(kConfigFileId_WeaveFactory, 0x0006);
+    static constexpr uint32_t kConfigKey_FabricId                = NRF5ConfigKey(kConfigFileId_WeaveConfig,  0x0007);
+    static constexpr uint32_t kConfigKey_ServiceConfig           = NRF5ConfigKey(kConfigFileId_WeaveConfig,  0x0008);
+    static constexpr uint32_t kConfigKey_PairedAccountId         = NRF5ConfigKey(kConfigFileId_WeaveConfig,  0x0009);
+    static constexpr uint32_t kConfigKey_ServiceId               = NRF5ConfigKey(kConfigFileId_WeaveConfig,  0x000A);
+    static constexpr uint32_t kConfigKey_FabricSecret            = NRF5ConfigKey(kConfigFileId_WeaveConfig,  0x000B);
+    static constexpr uint32_t kConfigKey_GroupKeyIndex           = NRF5ConfigKey(kConfigFileId_WeaveConfig,  0x000C);
+    static constexpr uint32_t kConfigKey_LastUsedEpochKeyId      = NRF5ConfigKey(kConfigFileId_WeaveConfig,  0x000D);
+    static constexpr uint32_t kConfigKey_FailSafeArmed           = NRF5ConfigKey(kConfigFileId_WeaveConfig,  0x000E);
 
     static constexpr uint16_t kGroupKeyRecordIdBase         = 0x8000;
 
-    // Config value accessors.
+    static WEAVE_ERROR Init();
+
+    // General config value accessors.
     static WEAVE_ERROR ReadConfigValue(Key key, bool & val);
     static WEAVE_ERROR ReadConfigValue(Key key, uint32_t & val);
     static WEAVE_ERROR ReadConfigValue(Key key, uint64_t & val);
@@ -96,7 +88,21 @@ public:
     static WEAVE_ERROR WriteConfigValueBin(Key key, const uint8_t * data, size_t dataLen);
     static WEAVE_ERROR ClearConfigValue(Key key);
     static bool ConfigValueExists(Key key);
+
+    // Key utility functions
+    static uint16_t GetFileId(uint32_t key);
+    static uint16_t GetRecordKey(uint32_t key);
 };
+
+inline uint16_t NRF5Config::GetFileId(uint32_t key)
+{
+    return static_cast<uint16_t>(key >> 16);
+}
+
+inline uint16_t NRF5Config::GetRecordKey(uint32_t key)
+{
+    return static_cast<uint16_t>(key);
+}
 
 
 } // namespace Internal
