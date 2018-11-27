@@ -29,17 +29,17 @@
 
 #include <sys/time.h>
 
+#include "app_error.h"
+
 #if __cplusplus
 extern "C" {
 #endif
 
-void PlatformDie(const char *file, int lineNum, const char *msg);
-
 #ifndef LWIP_NOASSERT
 #ifdef DEBUG
-#define LWIP_PLATFORM_ASSERT(MSG) PlatformDie(__FILE__, __LINE__, MSG)
+#define LWIP_PLATFORM_ASSERT(MSG) APP_ERROR_HANDLER(0)
 #else
-#define LWIP_PLATFORM_ASSERT(MSG) PlatformDie(NULL, 0, NULL)
+#define LWIP_PLATFORM_ASSERT(MSG) APP_ERROR_HANDLER(0)
 #endif
 #else
 #define LWIP_PLATFORM_ASSERT(message)
