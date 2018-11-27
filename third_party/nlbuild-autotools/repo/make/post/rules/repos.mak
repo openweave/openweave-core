@@ -89,7 +89,7 @@ $(2)_repo_COMMIT             := $$(call nlGitGetCommitForRepoFromNameFromFile,$(
 $(2)_repo_PATH               := $$(call nlGitGetPathForRepoFromNameFromFile,$(1),$(2))
 $(2)_repo_URL                := $$(call nlGitGetURLForRepoFromNameFromFile,$(1),$(2))
 
-$(2)_repo_GIT                := $$(addsuffix $(__REPOS_GIT_SUBMODULE_STEM),$$($(2)_repo_PATH))
+$(2)_repo_GIT                := $$(addsuffix $(__REPOS_GIT_STEM),$$($(2)_repo_PATH))
 $(2)_repo_CACHE              := $(top_srcdir)$(__REPOS_GIT_MODULE_CACHE_STEM)/$$($(2)_repo_PATH)
 
 REPO_NAMES                   += $$($(2)_repo_NAME)
@@ -101,9 +101,9 @@ REPO_CACHES                  += $$($(2)_repo_CACHE)
 # Allow a repo to be made with a path target (e.g., third_party/foo/repo) or
 # with its actual git target (e.g., third_party/foo/repo/.git).
 
-$$($(2)_repo_PATH): $$($(2)_repo_GIT)
+$$($(2)_repo_PATH): | $$($(2)_repo_GIT)
 
-$$($(2)_repo_GIT): $(REPOS_PACKAGE_GIT_PATH) repos-warning
+$$($(2)_repo_GIT): $(REPOS_PACKAGE_GIT_PATH) | repos-warning
 	$(NL_V_AT)case "$(REPOS_PULL_METHOD)" in \
 	    submodule) echo "  SUBMODULE    $$(subst $(__REPOS_GIT_SUBMODULE_STEM),,$$(@))"; \
 		if ! test -f $(__REPOS_GIT_MODULES_PATH); then \
@@ -175,6 +175,7 @@ clean-repos-local: clean-repos-hook
 		$(RMDIR) -p $(addprefix $(top_srcdir),$(dir $(REPO_PATHS))) 2> /dev/null || true; \
 		$(RM) -r $(REPO_CACHES) 2> /dev/null;; \
 	    clone) $(GIT) -C $(top_srcdir) rm -rf -q --cached $(REPO_PATHS) 2> /dev/null || true; \
+		$(RM) $(REPOS_WARNING_SENTINEL); \
 		$(RM) -r $(addprefix $(top_srcdir)/,$(REPO_PATHS)); \
 		$(RMDIR) -p $(addprefix $(top_srcdir),$(dir $(REPO_PATHS))) 2> /dev/null || true;; \
             *) echo "$(REPOS_CONFIG): Unknown or unsupported pull method '$(REPOS_PULL_METHOD)'.";; \
