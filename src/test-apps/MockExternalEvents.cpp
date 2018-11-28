@@ -40,6 +40,7 @@
 
 #include <MockExternalEvents.h>
 
+#if WEAVE_CONFIG_EVENT_LOGGING_EXTERNAL_EVENT_SUPPORT
 using namespace nl::Weave::TLV;
 using namespace nl::Weave::Profiles::DataManagement;
 
@@ -154,3 +155,5 @@ WEAVE_ERROR FetchWithBlitEvent(EventLoadOutContext *aContext)
     }
     return err;
 }
+
+#endif //WEAVE_CONFIG_EVENT_LOGGING_EXTERNAL_EVENT_SUPPORT

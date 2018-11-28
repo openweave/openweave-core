@@ -206,12 +206,14 @@ public:
 
     void SetBDXUploader(LogBDXUpload * inUploader);
 
+#if WEAVE_CONFIG_EVENT_LOGGING_EXTERNAL_EVENT_SUPPORT
     WEAVE_ERROR RegisterEventCallbackForImportance(ImportanceType inImportance, FetchExternalEventsFunct inFetchCallback,
                                                    NotifyExternalEventsDeliveredFunct inNotifyCallback, size_t inNumEvents,
                                                    event_id_t * outLastEventID);
     WEAVE_ERROR RegisterEventCallbackForImportance(ImportanceType inImportance, FetchExternalEventsFunct inFetchCallback,
                                                    size_t inNumEvents, event_id_t * outLastEventID);
     void UnregisterEventCallbackForImportance(ImportanceType inImportance, event_id_t inEventID);
+#endif
     WEAVE_ERROR BlitEvent(EventLoadOutContext * aContext, const EventSchema & inSchema, EventWriterFunct inEventWriter,
                           void * inAppData, const EventOptions * inOptions);
 
@@ -219,7 +221,6 @@ public:
     bool CheckShouldRunWDM(void);
 #endif
 private:
-    WEAVE_ERROR GetExternalEventsFromEventId(ImportanceType inImportance, event_id_t inEventId, ExternalEvents * outExternalEvents, nl::Weave::TLV::TLVReader & inReader);
     event_id_t LogEventPrivate(const EventSchema & inSchema, EventWriterFunct inEventWriter, void * inAppData,
                                const EventOptions * inOptions);
 
@@ -230,7 +231,6 @@ private:
 
     static WEAVE_ERROR CopyEventsSince(const nl::Weave::TLV::TLVReader & aReader, size_t aDepth, void * aContext);
     static WEAVE_ERROR EventIterator(const nl::Weave::TLV::TLVReader & aReader, size_t aDepth, void * aContext);
-    static WEAVE_ERROR FindExternalEvents(const nl::Weave::TLV::TLVReader & aReader, size_t aDepth, void * aContext);
     static WEAVE_ERROR FetchEventParameters(const nl::Weave::TLV::TLVReader & aReader, size_t aDepth, void * aContext);
     static WEAVE_ERROR CopyAndAdjustDeltaTime(const nl::Weave::TLV::TLVReader & aReader, size_t aDepth, void * aContext);
     static WEAVE_ERROR EvictEvent(nl::Weave::TLV::WeaveCircularTLVBuffer & inBuffer, void * inAppData,
@@ -251,8 +251,12 @@ private:
 
 private:
     CircularEventBuffer * GetImportanceBuffer(ImportanceType inImportance) const;
-    static WEAVE_ERROR BlitExternalEvent(nl::Weave::TLV::TLVWriter &inWriter, ImportanceType inImportance, ExternalEvents &inEvents);
 
+#if WEAVE_CONFIG_EVENT_LOGGING_EXTERNAL_EVENT_SUPPORT
+    static WEAVE_ERROR FindExternalEvents(const nl::Weave::TLV::TLVReader & aReader, size_t aDepth, void * aContext);
+    WEAVE_ERROR GetExternalEventsFromEventId(ImportanceType inImportance, event_id_t inEventId, ExternalEvents * outExternalEvents, nl::Weave::TLV::TLVReader & inReader);
+    static WEAVE_ERROR BlitExternalEvent(nl::Weave::TLV::TLVWriter &inWriter, ImportanceType inImportance, ExternalEvents &inEvents);
+#endif
     CircularEventBuffer * mEventBuffer;
     WeaveExchangeManager * mExchangeMgr;
     LoggingManagementStates mState;

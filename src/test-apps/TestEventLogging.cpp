@@ -1298,6 +1298,7 @@ static void CheckLargeEvents(nlTestSuite * inSuite, void * inContext)
     NL_TEST_ASSERT(inSuite, eid4 == 0);
 }
 
+#if WEAVE_CONFIG_EVENT_LOGGING_EXTERNAL_EVENT_SUPPORT
 static void CheckDropEvents(nlTestSuite * inSuite, void * inContext)
 {
     WEAVE_ERROR err;
@@ -1359,6 +1360,8 @@ static void CheckDropEvents(nlTestSuite * inSuite, void * inContext)
         NL_TEST_ASSERT(inSuite, testEventID >= 10);
     }
 }
+
+#endif // WEAVE_CONFIG_EVENT_LOGGING_EXTERNAL_EVENT_SUPPORT
 
 static void CheckFetchEvents(nlTestSuite * inSuite, void * inContext)
 {
@@ -2972,6 +2975,7 @@ static void CheckSubscriptionHandlerCountersStartAtNonZeroTwoDifferentImportance
     CheckSubscriptionHandlerHelper(inSuite, context, aLogInfoEvents);
 }
 
+#if WEAVE_CONFIG_EVENT_LOGGING_EXTERNAL_EVENT_SUPPORT
 static void CheckExternalEvents(nlTestSuite * inSuite, void * inContext)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
@@ -3405,7 +3409,7 @@ static void CheckExternalEventNotifyDelivered(nlTestSuite * inSuite, void * inCo
 
 }
 
-
+#endif // WEAVE_CONFIG_EVENT_LOGGING_EXTERNAL_EVENT_SUPPORT
 
 static void CheckShutdownLogic(nlTestSuite * inSuite, void * inContext)
 {
@@ -3677,22 +3681,24 @@ static const nlTest sTests[] = {
     NL_TEST_DEF(
         "Subscription Handler accounting, PersistedCounters start at non-zero, two different importances, Info global importance",
         CheckSubscriptionHandlerCountersStartAtNonZeroTwoDifferentImportancesInfo),
+#if WEAVE_CONFIG_EVENT_LOGGING_EXTERNAL_EVENT_SUPPORT
     NL_TEST_DEF("Check External Events Basic", CheckExternalEvents),
     NL_TEST_DEF("Check External Events Multiple Callbacks", CheckExternalEventsMultipleCallbacks),
     NL_TEST_DEF("Check External Events Multiple Fetches", CheckExternalEventsMultipleFetches),
     NL_TEST_DEF("Check Drop Events", CheckDropEvents),
-    NL_TEST_DEF("Check Shutdown Logic", CheckShutdownLogic),
-    NL_TEST_DEF("Check WDM offload trigger", CheckWDMOffloadTrigger),
     NL_TEST_DEF("Regression: watchdog bug", RegressionWatchdogBug),
     NL_TEST_DEF("Regression: external event cleanup", RegressionWatchdogBug_EventRemoval),
     NL_TEST_DEF("Regression: external event, external clear call", RegressionWatchdogBug_ExternalEventState),
+    NL_TEST_DEF("Check External Event delivery notification", CheckExternalEventNotifyDelivered),
+#endif
+    NL_TEST_DEF("Check Shutdown Logic", CheckShutdownLogic),
+    NL_TEST_DEF("Check WDM offload trigger", CheckWDMOffloadTrigger),
     NL_TEST_DEF("Check version 1 data schema compatibility encoding + decoding", CheckVersion1DataCompatibility),
     NL_TEST_DEF("Check forward data compatibility encoding + decoding", CheckForwardDataCompatibility),
     NL_TEST_DEF("Check data incompatible encoding + decoding", CheckDataIncompatibility),
     NL_TEST_DEF("Check Gap detection", CheckGapDetection),
     NL_TEST_DEF("Check Drop Overlapping Event Id Ranges", CheckDropOverlap),
     NL_TEST_DEF("Check Last Observed Event Id", CheckLastObservedEventId),
-    NL_TEST_DEF("Check External Event delivery notification", CheckExternalEventNotifyDelivered),
     NL_TEST_SENTINEL()
 };
 
