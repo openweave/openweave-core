@@ -7,7 +7,7 @@ A simple demo application showing how to build and use OpenWeave for the Nordic 
 Note that the code here is very much incomplete&mdash;to the extent that, at the moment, it does *essentially nothing*. 
 
 Over time this will evolve into a working demo application, similar to that which is available for the Espressif ESP32.  Once
-this happen, the demo application will be moved out of the openweave source tree and into its own repo. 
+this happens, the demo application will be moved out of the openweave source tree and into its own repo. 
 
 In the meantime, this directory, and the openweave branch it exists on (`feature/nrf52840-device-layer`), will be the focal point for efforts to port
 the OpenWeave Device Layer to the Nordic nRF5 SDK.
