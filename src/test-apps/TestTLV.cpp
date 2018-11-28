@@ -1432,6 +1432,38 @@ static WEAVE_ERROR NullIterateHandler(const TLVReader &aReader, size_t aDepth, v
     return WEAVE_NO_ERROR;
 }
 
+static WEAVE_ERROR FindContainerWithElement(const TLVReader &aReader, size_t aDepth, void *aContext)
+{
+    TLVReader reader;
+    TLVReader result;
+    uint64_t * tag = static_cast<uint64_t *>(aContext);
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
+    TLVType containerType;
+
+    reader.Init(aReader);
+
+    if (TLVTypeIsContainer(reader.GetType()))
+    {
+        err = reader.EnterContainer(containerType);
+        SuccessOrExit(err);
+
+        err = nl::Weave::TLV::Utilities::Find(reader, *tag, result, false);
+
+        // Map a successful find (WEAVE_NO_ERROR) onto a signal that the element has been found.
+        if (err == WEAVE_NO_ERROR)
+        {
+            err = WEAVE_ERROR_MAX;
+        }
+        // Map a failed find attempt to NO_ERROR
+        else if (err == WEAVE_ERROR_TLV_TAG_NOT_FOUND)
+        {
+            err = WEAVE_NO_ERROR;
+        }
+    }
+exit:
+    return err;
+}
+
 /**
  *  Test Weave TLV Utilities
  */
@@ -1459,7 +1491,7 @@ void CheckWeaveTLVUtilities(nlTestSuite *inSuite, void *inContext)
     err = reader1.Next();
     NL_TEST_ASSERT(inSuite, err == WEAVE_NO_ERROR);
 
-    // Find
+    // Find a tag
     TLVReader tagReader;
     err = nl::Weave::TLV::Utilities::Find(reader, ProfileTag(TestProfile_2, 65536), tagReader);
     NL_TEST_ASSERT(inSuite, err == WEAVE_NO_ERROR);
@@ -1472,9 +1504,45 @@ void CheckWeaveTLVUtilities(nlTestSuite *inSuite, void *inContext)
     err = nl::Weave::TLV::Utilities::Find(reader, ProfileTag(TestProfile_2, 1024), tagReader);
     NL_TEST_ASSERT(inSuite, err == WEAVE_ERROR_TLV_TAG_NOT_FOUND);
 
+    // Find with a predicate
+    {
+        uint8_t buf1[74];
+
+        writer.Init(buf1, sizeof(buf1));
+        writer.ImplicitProfileId = TestProfile_2;
+
+        WriteEncoding2(inSuite, writer);
+
+        // Initialize a reader
+        reader1.Init(buf1, writer.GetLengthWritten());
+        reader1.ImplicitProfileId = TestProfile_2;
+
+        // position the reader on the first element
+        reader1.Next();
+        uint64_t tag = ProfileTag(TestProfile_1, 1);
+        err = nl::Weave::TLV::Utilities::Find(reader1, FindContainerWithElement, &tag, tagReader, false);
+        NL_TEST_ASSERT(inSuite, err == WEAVE_ERROR_TLV_TAG_NOT_FOUND);
+
+        tag = ProfileTag(TestProfile_2, 2);
+        err = nl::Weave::TLV::Utilities::Find(reader1, FindContainerWithElement, &tag, tagReader, false);
+        NL_TEST_ASSERT(inSuite, err ==  WEAVE_NO_ERROR);
+        NL_TEST_ASSERT(inSuite, tagReader.GetType() == kTLVType_Structure);
+        NL_TEST_ASSERT(inSuite, tagReader.GetTag() == ProfileTag(TestProfile_1, 1));
+
+        // Position the reader on the second element
+        reader1.Next();
+        err = nl::Weave::TLV::Utilities::Find(reader1, FindContainerWithElement, &tag, tagReader, false);
+        NL_TEST_ASSERT(inSuite, err ==  WEAVE_NO_ERROR);
+        NL_TEST_ASSERT(inSuite, tagReader.GetType() == kTLVType_Structure);
+        NL_TEST_ASSERT(inSuite, tagReader.GetTag() == ProfileTag(TestProfile_2, 1));
+    }
+
     // Count
     size_t count;
     const size_t expectedCount = 17;
+    reader1.Init(reader);
+    reader1.Next();
+
     err = nl::Weave::TLV::Utilities::Count(reader, count);
     NL_TEST_ASSERT(inSuite, err == WEAVE_NO_ERROR);
     NL_TEST_ASSERT(inSuite, count == expectedCount);
@@ -1913,6 +1981,56 @@ void CheckCircularTLVBufferSimple(nlTestSuite *inSuite, void *inContext)
     CircularTLVReader reader;
     TestTLVContext *context = static_cast<TestTLVContext *>(inContext);
     WeaveCircularTLVBuffer buffer(backingStore, 30);
+    writer.Init(&buffer);
+    writer.ImplicitProfileId = TestProfile_2;
+
+    context->mEvictionCount = 0;
+    context->mEvictedBytes = 0;
+
+    buffer.mProcessEvictedElement = CountEvictedMembers;
+    buffer.mAppData = inContext;
+
+    writer.PutBoolean(ProfileTag(TestProfile_1, 2), true);
+
+    WriteEncoding3(inSuite, writer);
+
+    WriteEncoding3(inSuite, writer);
+
+    WriteEncoding3(inSuite, writer);
+
+    NL_TEST_ASSERT(inSuite, context->mEvictionCount == 2);
+    NL_TEST_ASSERT(inSuite, context->mEvictedBytes == 18);
+    NL_TEST_ASSERT(inSuite, buffer.DataLength() == 22);
+    NL_TEST_ASSERT(inSuite, (buffer.DataLength() + context->mEvictedBytes) ==  writer.GetLengthWritten());
+
+    // At this point the buffer should contain 2 instances of Encoding3.
+    reader.Init(&buffer);
+    reader.ImplicitProfileId = TestProfile_2;
+
+    TestNext<TLVReader>(inSuite, reader);
+
+    ReadEncoding3(inSuite, reader);
+
+    TestNext<TLVReader>(inSuite, reader);
+
+    ReadEncoding3(inSuite, reader);
+
+    // Check that the reader is out of data
+    TestEnd<TLVReader>(inSuite, reader);
+}
+
+void CheckCircularTLVBufferStartMidway(nlTestSuite *inSuite, void *inContext)
+{
+    // Write 40 bytes as 4 separate events into a 30 byte buffer.  On
+    // completion of the test, the buffer should contain 2 elements
+    // and 2 elements should have been evicted in the last call to
+    // WriteEncoding.
+
+    uint8_t backingStore[30];
+    CircularTLVWriter writer;
+    CircularTLVReader reader;
+    TestTLVContext *context = static_cast<TestTLVContext *>(inContext);
+    WeaveCircularTLVBuffer buffer(backingStore, 30, &(backingStore[15]));
     writer.Init(&buffer);
     writer.ImplicitProfileId = TestProfile_2;
 
@@ -3645,6 +3763,7 @@ static const nlTest sTests[] = {
     NL_TEST_DEF("Weave TLV Updater",                   CheckWeaveUpdater),
     NL_TEST_DEF("Weave TLV Empty Find",                CheckWeaveTLVEmptyFind),
     NL_TEST_DEF("Weave Circular TLV buffer, simple",   CheckCircularTLVBufferSimple),
+    NL_TEST_DEF("Weave Circular TLV buffer, mid-buffer start", CheckCircularTLVBufferStartMidway),
     NL_TEST_DEF("Weave Circular TLV buffer, straddle", CheckCircularTLVBufferEvictStraddlingEvent),
     NL_TEST_DEF("Weave Circular TLV buffer, edge",     CheckCircularTLVBufferEdge),
     NL_TEST_DEF("Weave TLV Printf",                    CheckWeaveTLVPutStringF),
