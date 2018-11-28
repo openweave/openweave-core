@@ -28,10 +28,17 @@
 
 #include <Weave/DeviceLayer/internal/GenericPlatformManagerImpl.h>
 
+#if defined(ESP_PLATFORM)
+#include "freertos/FreeRTOS.h"
+#include "freertos/task.h"
+#include "freertos/semphr.h"
+#include "freertos/queue.h"
+#else
 #include "FreeRTOS.h"
 #include "task.h"
 #include "semphr.h"
 #include "queue.h"
+#endif
 
 namespace nl {
 namespace Weave {
