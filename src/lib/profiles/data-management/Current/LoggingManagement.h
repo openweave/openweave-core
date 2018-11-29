@@ -213,7 +213,7 @@ public:
     WEAVE_ERROR RegisterEventCallbackForImportance(ImportanceType inImportance, FetchExternalEventsFunct inFetchCallback,
                                                    size_t inNumEvents, event_id_t * outLastEventID);
     void UnregisterEventCallbackForImportance(ImportanceType inImportance, event_id_t inEventID);
-#endif
+#endif // WEAVE_CONFIG_EVENT_LOGGING_EXTERNAL_EVENT_SUPPORT
     WEAVE_ERROR BlitEvent(EventLoadOutContext * aContext, const EventSchema & inSchema, EventWriterFunct inEventWriter,
                           void * inAppData, const EventOptions * inOptions);
 
@@ -256,7 +256,7 @@ private:
     static WEAVE_ERROR FindExternalEvents(const nl::Weave::TLV::TLVReader & aReader, size_t aDepth, void * aContext);
     WEAVE_ERROR GetExternalEventsFromEventId(ImportanceType inImportance, event_id_t inEventId, ExternalEvents * outExternalEvents, nl::Weave::TLV::TLVReader & inReader);
     static WEAVE_ERROR BlitExternalEvent(nl::Weave::TLV::TLVWriter &inWriter, ImportanceType inImportance, ExternalEvents &inEvents);
-#endif
+#endif // WEAVE_CONFIG_EVENT_LOGGING_EXTERNAL_EVENT_SUPPORT
     CircularEventBuffer * mEventBuffer;
     WeaveExchangeManager * mExchangeMgr;
     LoggingManagementStates mState;

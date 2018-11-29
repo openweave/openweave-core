@@ -109,7 +109,7 @@ void ClearMockExternalEvents(int numCallback)
 WEAVE_ERROR FetchMockExternalEvents(EventLoadOutContext *aContext)
 {
     int i;
-    for (i = 0; i < 3; i++)
+    for (i = 0; i < NUM_CALLBACKS; i++)
     {
         if ((aContext->mExternalEvents != NULL) &&
             aContext->mExternalEvents->IsValid() &&
@@ -156,4 +156,4 @@ WEAVE_ERROR FetchWithBlitEvent(EventLoadOutContext *aContext)
     return err;
 }
 
-#endif //WEAVE_CONFIG_EVENT_LOGGING_EXTERNAL_EVENT_SUPPORT
+#endif // WEAVE_CONFIG_EVENT_LOGGING_EXTERNAL_EVENT_SUPPORT

@@ -860,7 +860,8 @@ exit:
     return err;
 }
 
-WEAVE_ERROR LoggingManagement::BlitExternalEvent(nl::Weave::TLV::TLVWriter &inWriter, ImportanceType inImportance, ExternalEvents &inEvents)
+WEAVE_ERROR LoggingManagement::BlitExternalEvent(nl::Weave::TLV::TLVWriter & inWriter, ImportanceType inImportance,
+                                                 ExternalEvents & inEvents)
 {
     WEAVE_ERROR err;
     TLVType containerType;
@@ -872,10 +873,11 @@ WEAVE_ERROR LoggingManagement::BlitExternalEvent(nl::Weave::TLV::TLVWriter &inWr
     err = inWriter.Put(ContextTag(kTag_EventImportance), static_cast<uint16_t>(inImportance));
     SuccessOrExit(err);
 
-    // External event structure, blitted to the buffer as a byte string.  Must match the call in UnregisterEventCallbackForImportance
+    // External event structure, blitted to the buffer as a byte string.  Must match the call in
+    // UnregisterEventCallbackForImportance
 
     err = inWriter.PutBytes(ContextTag(kTag_ExternalEventStructure), static_cast<const uint8_t *>(static_cast<void *>(&inEvents)),
-                          sizeof(ExternalEvents));
+                            sizeof(ExternalEvents));
     SuccessOrExit(err);
 
     err = inWriter.EndContainer(containerType);
@@ -911,18 +913,32 @@ void LoggingManagement::UnregisterEventCallbackForImportance(ImportanceType inIm
     ExternalEvents ev;
     WEAVE_ERROR err = WEAVE_NO_ERROR;
     TLVReader reader;
-    WeaveCircularTLVBuffer *readBuffer;
+    WeaveCircularTLVBuffer * readBuffer;
 
     TLVType containerType;
-    uint8_t *dataPtr;
+    uint8_t * dataPtr;
 
     Platform::CriticalSectionEnter();
 
     err = GetExternalEventsFromEventId(inImportance, inEventID, &ev, reader);
     SuccessOrExit(err);
 
-    dataPtr = const_cast<uint8_t *>(reader.GetReadPoint()) - 1;
-    readBuffer = static_cast<WeaveCircularTLVBuffer *>((void*)reader.GetBufHandle());
+    dataPtr    = const_cast<uint8_t *>(reader.GetReadPoint());
+    readBuffer = static_cast<WeaveCircularTLVBuffer *>((void *) reader.GetBufHandle());
+
+    // The data pointer is positioned immediately after the element head.  The
+    // element in question, an anonymous structure, has element head of size 1.
+    // move the pointer back by 1, accounting for the details of the circular
+    // buffer.
+    if (readBuffer->GetQueue() != dataPtr)
+    {
+        dataPtr -= 1;
+    }
+    else
+    {
+        dataPtr = readBuffer->GetQueue() + readBuffer->GetQueueSize() - 1;
+    }
+
     if (ev.IsValid())
     {
         // Reader is positioned on the external event element.
@@ -1262,7 +1278,6 @@ void LoggingManagement::UnthrottleLogger(void)
     }
 }
 
-
 // internal API, used to copy events to external buffers
 WEAVE_ERROR LoggingManagement::CopyEvent(const TLVReader & aReader, TLVWriter & aWriter, EventLoadOutContext * aContext)
 {
@@ -1309,7 +1324,8 @@ WEAVE_ERROR LoggingManagement::FindExternalEvents(const TLVReader & aReader, siz
     }
     return err;
 }
-#endif
+
+#endif // WEAVE_CONFIG_EVENT_LOGGING_EXTERNAL_EVENT_SUPPORT
 
 /**
  * @brief Internal iterator function used to scan and filter though event logs
@@ -1332,7 +1348,7 @@ WEAVE_ERROR LoggingManagement::EventIterator(const TLVReader & aReader, size_t a
     {
         event.mExternalEvents->Invalidate();
     }
-#endif
+#endif // WEAVE_CONFIG_EVENT_LOGGING_EXTERNAL_EVENT_SUPPORT
 
     innerReader.Init(aReader);
     err = innerReader.EnterContainer(tlvType);
@@ -1345,6 +1361,7 @@ WEAVE_ERROR LoggingManagement::EventIterator(const TLVReader & aReader, size_t a
 
     if (event.mImportance == loadOutContext->mImportance)
     {
+
 #if WEAVE_CONFIG_EVENT_LOGGING_EXTERNAL_EVENT_SUPPORT
         if ((event.mExternalEvents != NULL) && (event.mExternalEvents->IsValid()))
         {
@@ -1364,6 +1381,7 @@ WEAVE_ERROR LoggingManagement::EventIterator(const TLVReader & aReader, size_t a
         }
         else
 #endif // WEAVE_CONFIG_EVENT_LOGGING_EXTERNAL_EVENT_SUPPORT
+
         {
             loadOutContext->mCurrentTime += event.mDeltaTime;
 #if WEAVE_CONFIG_EVENT_LOGGING_UTC_TIMESTAMPS
@@ -1396,7 +1414,7 @@ exit:
  */
 WEAVE_ERROR LoggingManagement::CopyEventsSince(const TLVReader & aReader, size_t aDepth, void * aContext)
 {
-    WEAVE_ERROR err    = WEAVE_NO_ERROR;
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
     nl::Weave::TLV::TLVWriter checkpoint;
     EventLoadOutContext * loadOutContext = static_cast<EventLoadOutContext *>(aContext);
 
@@ -1460,12 +1478,14 @@ WEAVE_ERROR LoggingManagement::FetchEventsSince(TLVWriter & ioWriter, Importance
     WEAVE_ERROR err    = WEAVE_NO_ERROR;
     const bool recurse = false;
     TLVReader reader;
+
 #if WEAVE_CONFIG_EVENT_LOGGING_EXTERNAL_EVENT_SUPPORT
     ExternalEvents ev;
     EventLoadOutContext aContext(ioWriter, inImportance, ioEventID, &ev);
 #else
     EventLoadOutContext aContext(ioWriter, inImportance, ioEventID, NULL);
-#endif
+#endif // WEAVE_CONFIG_EVENT_LOGGING_EXTERNAL_EVENT_SUPPORT
+
     CircularEventBuffer * buf = mEventBuffer;
     Platform::CriticalSectionEnter();
 
@@ -1497,7 +1517,7 @@ WEAVE_ERROR LoggingManagement::FetchEventsSince(TLVWriter & ioWriter, Importance
             err                      = WEAVE_END_OF_TLV;
         }
     }
-#endif
+#endif // WEAVE_CONFIG_EVENT_LOGGING_EXTERNAL_EVENT_SUPPORT
 
 exit:
     ioEventID = aContext.mCurrentEventID;
@@ -1601,6 +1621,7 @@ WEAVE_ERROR LoggingManagement::EvictEvent(WeaveCircularTLVBuffer & inBuffer, voi
     const bool recurse = false;
     WEAVE_ERROR err;
     ImportanceType imp = kImportanceType_Invalid;
+
 #if WEAVE_CONFIG_EVENT_LOGGING_EXTERNAL_EVENT_SUPPORT
     ExternalEvents ev;
 
@@ -1608,9 +1629,9 @@ WEAVE_ERROR LoggingManagement::EvictEvent(WeaveCircularTLVBuffer & inBuffer, voi
     context.mExternalEvents = &ev;
 #else
     context.mExternalEvents = NULL;
-#endif
-    // pull out the delta time, pull out the importance
+#endif // WEAVE_CONFIG_EVENT_LOGGING_EXTERNAL_EVENT_SUPPORT
 
+    // pull out the delta time, pull out the importance
     err = inReader.Next();
     SuccessOrExit(err);
 
@@ -1629,12 +1650,14 @@ WEAVE_ERROR LoggingManagement::EvictEvent(WeaveCircularTLVBuffer & inBuffer, voi
     {
         // event is getting dropped.  Increase the eventid and first timestamp.
         size_t numEventsToDrop = 1;
+
 #if WEAVE_CONFIG_EVENT_LOGGING_EXTERNAL_EVENT_SUPPORT
         if (ev.IsValid())
         {
             numEventsToDrop = ev.mLastEventID - ev.mFirstEventID + 1;
         }
-#endif
+#endif // WEAVE_CONFIG_EVENT_LOGGING_EXTERNAL_EVENT_SUPPORT
+
         eventBuffer->RemoveEvent(numEventsToDrop);
         eventBuffer->mFirstEventTimestamp += context.mDeltaTime;
 #if WEAVE_CONFIG_EVENT_LOGGING_UTC_TIMESTAMPS
@@ -1893,6 +1916,7 @@ uint32_t LoggingManagement::GetBytesWritten(void) const
 void LoggingManagement::NotifyEventsDelivered(ImportanceType inImportance, event_id_t inLastDeliveredEventID,
                                               uint64_t inRecipientNodeID)
 {
+
 #if WEAVE_CONFIG_EVENT_LOGGING_EXTERNAL_EVENT_SUPPORT
     ExternalEvents ev;
     WEAVE_ERROR err = WEAVE_NO_ERROR;
@@ -1945,7 +1969,7 @@ exit:
  */
 
 WEAVE_ERROR LoggingManagement::GetExternalEventsFromEventId(ImportanceType inImportance, event_id_t inEventID,
-                                                            ExternalEvents * outExternalEvents, TLVReader &outReader)
+                                                            ExternalEvents * outExternalEvents, TLVReader & outReader)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
     uint32_t dummyBuf;
