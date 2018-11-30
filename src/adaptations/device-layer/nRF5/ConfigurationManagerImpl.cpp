@@ -117,45 +117,52 @@ void ConfigurationManagerImpl::_InitiateFactoryReset()
     // TODO: Implement this
 }
 
-WEAVE_ERROR ConfigurationManagerImpl::_ReadPersistedStorageValue(::nl::Weave::Platform::PersistedStorage::Key key, uint32_t & value)
+WEAVE_ERROR ConfigurationManagerImpl::_ReadPersistedStorageValue(::nl::Weave::Platform::PersistedStorage::Key persistedStorageKey, uint32_t & value)
 {
-    NRF5Config::Key configKey = NRF5ConfigKey(NRF5Config::kConfigFileId_WeaveCounters, key);
+    WEAVE_ERROR err;
+    uint16_t recordKey = persistedStorageKey + kPersistedCounterRecordKeyBase;
 
-    WEAVE_ERROR err = ReadConfigValue(configKey, value);
+    VerifyOrExit(recordKey <= kPersistedCounterRecordKeyMax, err = WEAVE_ERROR_PERSISTED_STORAGE_VALUE_NOT_FOUND);
+
+    err = ReadConfigValue(NRF5ConfigKey(NRF5Config::kFileId_WeaveConfig, recordKey), value);
     if (err == WEAVE_DEVICE_ERROR_CONFIG_NOT_FOUND)
     {
         err = WEAVE_ERROR_PERSISTED_STORAGE_VALUE_NOT_FOUND;
     }
+    SuccessOrExit(err);
+
+exit:
     return err;
 }
 
-WEAVE_ERROR ConfigurationManagerImpl::_WritePersistedStorageValue(::nl::Weave::Platform::PersistedStorage::Key key, uint32_t value)
+WEAVE_ERROR ConfigurationManagerImpl::_WritePersistedStorageValue(::nl::Weave::Platform::PersistedStorage::Key persistedStorageKey, uint32_t value)
 {
+    WEAVE_ERROR err;
+    uint16_t recordKey = persistedStorageKey + kPersistedCounterRecordKeyBase;
 
-    NRF5Config::Key configKey = NRF5ConfigKey(NRF5Config::kConfigFileId_WeaveCounters, key);
-    return WriteConfigValue(configKey, value);
+    VerifyOrExit(recordKey <= kPersistedCounterRecordKeyMax, err = WEAVE_ERROR_INVALID_ARGUMENT);
+
+    err = WriteConfigValue(NRF5ConfigKey(NRF5Config::kFileId_WeaveConfig, recordKey), value);
+    SuccessOrExit(err);
+
+exit:
+    return err;
 }
 
 void ConfigurationManagerImpl::DoFactoryReset(intptr_t arg)
 {
+    WEAVE_ERROR err;
+
     WeaveLogProgress(DeviceLayer, "Performing factory reset");
 
-    // TODO: implement me
-#if 0
-    // Erase all values in the weave-config NVS namespace.
-    err = ClearNamespace(kConfigNamespace_WeaveConfig);
+    err = ClearRuntimeConfig();
     if (err != WEAVE_NO_ERROR)
     {
-        WeaveLogError(DeviceLayer, "ClearNamespace(WeaveConfig) failed: %s", nl::ErrorStr(err));
+        WeaveLogError(DeviceLayer, "ClearRuntimeConfig() failed: %s", nl::ErrorStr(err));
     }
 
-    // Restore WiFi persistent settings to default values.
-    err = esp_wifi_restore();
-    if (err != ESP_OK)
-    {
-        WeaveLogError(DeviceLayer, "esp_wifi_restore() failed: %s", nl::ErrorStr(err));
-    }
-
+    // TODO: finish this
+#if 0
     // Restart the system.
     WeaveLogProgress(DeviceLayer, "System restarting");
     esp_restart();
