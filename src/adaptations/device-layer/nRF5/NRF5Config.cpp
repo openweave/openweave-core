@@ -18,7 +18,8 @@
 
 /**
  *    @file
- *          Utilities for interacting with the Nordic Flash Data Storage (FDS) API.
+ *          Utilities for accessing persisted device configuration on
+ *          platforms based on the Nordic nRF5 SDK.
  */
 
 #include <Weave/DeviceLayer/internal/WeaveDeviceLayerInternal.h>
@@ -36,258 +37,13 @@ namespace Weave {
 namespace DeviceLayer {
 namespace Internal {
 
-namespace {
-
-struct FDSAsyncOp
-{
-    enum
-    {
-        kNone                           = 0,
-        kAddRecord,
-        kAddOrUpdateRecord,
-        kDeleteRecord,
-        kDeleteFile,
-        kGC,
-        kInit,
-        kWaitQueueSpaceAvailable
-    };
-
-    ret_code_t Result;
-    uint16_t FileId;
-    uint16_t RecordKey;
-    uint8_t OpType;
-};
-
-volatile FDSAsyncOp sActiveAsyncOp;
-SemaphoreHandle_t sAsyncOpCompletionSem;
-
-constexpr uint16_t kFDSWordSize = 4;
-
-inline uint16_t FDSWords(size_t s)
-{
-    return (s + (kFDSWordSize - 1)) / kFDSWordSize;
-}
-
-inline WEAVE_ERROR MapFDSError(ret_code_t fdsRes)
-{
-    // TODO: implement this
-    return fdsRes;
-}
-
-WEAVE_ERROR OpenRecord(NRF5Config::Key key, fds_record_desc_t & recDesc, fds_flash_record_t & rec)
-{
-    WEAVE_ERROR err;
-    ret_code_t fdsRes;
-    fds_find_token_t findToken;
-
-    // Search for the requested record.  Return a "Config Not Found" error if it doesn't exist.
-    memset(&findToken, 0, sizeof(findToken));
-    fdsRes = fds_record_find(NRF5Config::GetFileId(key), NRF5Config::GetRecordKey(key), &recDesc, &findToken);
-    err = (fdsRes == FDS_ERR_NOT_FOUND) ? WEAVE_DEVICE_ERROR_CONFIG_NOT_FOUND : MapFDSError(fdsRes);
-    SuccessOrExit(err);
-
-    // Open the record for reading.
-    fdsRes = fds_record_open(&recDesc, &rec);
-    err = MapFDSError(fdsRes);
-    SuccessOrExit(err);
-
-exit:
-    return err;
-}
-
-WEAVE_ERROR DoAsyncFDSOp(uint8_t opType, fds_record_t & rec)
-{
-    WEAVE_ERROR err;
-    ret_code_t fdsRes;
-    fds_record_desc_t recDesc;
-    bool gcPerformed = false;
-    bool updateNeeded = false;
-
-    VerifyOrExit(sActiveAsyncOp.OpType == FDSAsyncOp::kNone, err = WEAVE_ERROR_INCORRECT_STATE);
-
-    while (true)
-    {
-        // If performing an AddOrUpdateRecord or a DeleteRecord, search for an existing record with the same key.
-        if (opType == FDSAsyncOp::kAddOrUpdateRecord || opType == FDSAsyncOp::kDeleteRecord)
-        {
-            fds_find_token_t findToken;
-            memset(&findToken, 0, sizeof(findToken));
-            fdsRes = fds_record_find(rec.file_id, rec.key, &recDesc, &findToken);
-            VerifyOrExit(fdsRes == FDS_SUCCESS || fdsRes == FDS_ERR_NOT_FOUND, err = MapFDSError(fdsRes));
-
-            // If performing a DeleteRecord and no record was found, simply return success.
-            if (opType == FDSAsyncOp::kDeleteRecord && fdsRes == FDS_ERR_NOT_FOUND)
-            {
-                ExitNow(err = WEAVE_NO_ERROR);
-            }
-
-            updateNeeded = (fdsRes != FDS_ERR_NOT_FOUND);
-        }
-
-        // Initiate the requested operation.
-        sActiveAsyncOp.FileId = rec.file_id;
-        sActiveAsyncOp.RecordKey = rec.key;
-        sActiveAsyncOp.Result = FDS_SUCCESS;
-        sActiveAsyncOp.OpType = opType;
-        switch (opType)
-        {
-        case FDSAsyncOp::kAddOrUpdateRecord:
-            if (updateNeeded)
-            {
-                fdsRes = fds_record_update(&recDesc, &rec);
-                break;
-            }
-            // fall through
-        case FDSAsyncOp::kAddRecord:
-            fdsRes = fds_record_write(NULL, &rec);
-            break;
-        case FDSAsyncOp::kDeleteRecord:
-            fdsRes = fds_record_delete(&recDesc);
-            break;
-        case FDSAsyncOp::kDeleteFile:
-            fdsRes = fds_file_delete(rec.file_id);
-            break;
-        case FDSAsyncOp::kGC:
-            fdsRes = fds_gc();
-            break;
-        case FDSAsyncOp::kWaitQueueSpaceAvailable:
-            // In this case, arrange to wait for any operation to complete, which coincides with
-            // space on the operation queue being available.
-            fdsRes = FDS_SUCCESS;
-            break;
-        }
-
-        // If the operation was queued successfully, wait for it to complete and retrieve the result.
-        if (fdsRes == FDS_SUCCESS)
-        {
-            xSemaphoreTake(sAsyncOpCompletionSem, portMAX_DELAY);
-            fdsRes = sActiveAsyncOp.Result;
-        }
-
-        // Clear the active operation in case it wasn't done by the event handler.
-        sActiveAsyncOp.OpType = FDSAsyncOp::kNone;
-
-        // Return immediately if the operation completed successfully.
-        if (fdsRes == FDS_SUCCESS)
-        {
-            ExitNow(err = WEAVE_NO_ERROR);
-        }
-
-        // If the operation failed for lack of flash space...
-        if (fdsRes == FDS_ERR_NO_SPACE_IN_FLASH)
-        {
-            // If we've already performed a garbage collection, fail immediately.
-            if (gcPerformed)
-            {
-                ExitNow(err = MapFDSError(fdsRes));
-            }
-
-            // Request a garbage collection cycle and wait for it to complete.
-            err = DoAsyncFDSOp(FDSAsyncOp::kGC, rec);
-            SuccessOrExit(err);
-
-            // Repeat the requested operation.
-            continue;
-        }
-
-        // If the write/update failed because the operation queue is full, wait for
-        // space to become available and repeat the requested operation.
-        if (fdsRes == FDS_ERR_NO_SPACE_IN_QUEUES)
-        {
-            err = DoAsyncFDSOp(FDSAsyncOp::kWaitQueueSpaceAvailable, rec);
-            SuccessOrExit(err);
-            continue;
-        }
-
-        // If the operation timed out, simply try it again.
-        if (fdsRes == FDS_ERR_OPERATION_TIMEOUT)
-        {
-            continue;
-        }
-
-        // Otherwise fail with an unrecoverable error.
-        ExitNow(err = MapFDSError(fdsRes));
-    }
-
-exit:
-    return err;
-}
-
-WEAVE_ERROR DoAsyncFDSOp(uint8_t opType)
-{
-    fds_record_t rec;
-    memset(&rec, 0, sizeof(rec));
-    return DoAsyncFDSOp(opType, rec);
-}
-
-void HandleFDSEvent(const fds_evt_t * fdsEvent)
-{
-    switch (sActiveAsyncOp.OpType)
-    {
-    case FDSAsyncOp::kNone:
-        // Ignore the event if there's no outstanding async operation.
-        return;
-    case FDSAsyncOp::kAddRecord:
-    case FDSAsyncOp::kAddOrUpdateRecord:
-        // Ignore the event if its not a WRITE or UPDATE, or if its for a different file/record.
-        if ((fdsEvent->id != FDS_EVT_WRITE && fdsEvent->id != FDS_EVT_UPDATE) ||
-            fdsEvent->write.file_id != sActiveAsyncOp.FileId ||
-            fdsEvent->write.record_key != sActiveAsyncOp.RecordKey)
-        {
-            return;
-        }
-        break;
-    case FDSAsyncOp::kDeleteRecord:
-        // Ignore the event if its not a DEL_RECORD, or if its for a different file/record.
-        if (fdsEvent->id != FDS_EVT_DEL_RECORD ||
-            fdsEvent->write.file_id != sActiveAsyncOp.FileId ||
-            fdsEvent->write.record_key != sActiveAsyncOp.RecordKey)
-        {
-            return;
-        }
-        break;
-    case FDSAsyncOp::kDeleteFile:
-        // Ignore the event if its not a DEL_FILE or its for a different file.
-        if (fdsEvent->id != FDS_EVT_DEL_FILE || fdsEvent->write.file_id != sActiveAsyncOp.FileId)
-        {
-            return;
-        }
-        break;
-    case FDSAsyncOp::kGC:
-        // Ignore the event if its not a GC.
-        if (fdsEvent->id != FDS_EVT_GC)
-        {
-            return;
-        }
-        break;
-    case FDSAsyncOp::kWaitQueueSpaceAvailable:
-        break;
-    }
-
-    // Capture the result and mark the operation as complete.
-    sActiveAsyncOp.Result = fdsEvent->result;
-    sActiveAsyncOp.OpType = FDSAsyncOp::kNone;
-
-    // Signal the Weave thread that the operation has completed.
-#if defined(SOFTDEVICE_PRESENT) && SOFTDEVICE_PRESENT
-    {
-        BaseType_t yieldRequired = xSemaphoreGiveFromISR(sAsyncOpCompletionSem, &yieldRequired);
-        if (yieldRequired == pdTRUE)
-        {
-            portYIELD_FROM_ISR(yieldRequired);
-        }
-    }
-#else // defined(SOFTDEVICE_PRESENT) && SOFTDEVICE_PRESENT
-    xSemaphoreGive(sAsyncOpCompletionSem);
-#endif // !defined(SOFTDEVICE_PRESENT) || !SOFTDEVICE_PRESENT
-}
-
-} // unnamed namespace
-
+NRF5Config::FDSAsyncOp * volatile NRF5Config::sActiveAsyncOp;
+SemaphoreHandle_t NRF5Config::sAsyncOpCompletionSem;
 
 WEAVE_ERROR NRF5Config::Init()
 {
     WEAVE_ERROR err;
+    FDSAsyncOp initOp;
     ret_code_t fdsRes;
 
     // Create a semaphore to signal the completion of async FDS operations.
@@ -299,7 +55,8 @@ WEAVE_ERROR NRF5Config::Init()
     SuccessOrExit(err = MapFDSError(fdsRes));
 
     // Initialize the FDS module.
-    err = DoAsyncFDSOp(FDSAsyncOp::kInit);
+    initOp.Init(FDSAsyncOp::kInit);
+    err = DoAsyncFDSOp(initOp);
     SuccessOrExit(err);
 
 exit:
@@ -439,16 +196,15 @@ exit:
 WEAVE_ERROR NRF5Config::WriteConfigValue(Key key, bool val)
 {
     WEAVE_ERROR err;
-    fds_record_t rec;
+    FDSAsyncOp addOrUpdateOp;
     uint32_t storedVal = (val) ? 1 : 0;
 
-    memset(&rec, 0, sizeof(rec));
-    rec.file_id = GetFileId(key);
-    rec.key = GetRecordKey(key);
-    rec.data.p_data = &storedVal;
-    rec.data.length_words = 1;
-
-    err = DoAsyncFDSOp(FDSAsyncOp::kAddOrUpdateRecord, rec);
+    addOrUpdateOp.Init(FDSAsyncOp::kAddOrUpdateRecord);
+    addOrUpdateOp.FileId = GetFileId(key);
+    addOrUpdateOp.RecordKey = GetRecordKey(key);
+    addOrUpdateOp.RecordData = (const uint8_t *)&storedVal;
+    addOrUpdateOp.RecordDataLengthWords = 1;
+    err = DoAsyncFDSOp(addOrUpdateOp);
     SuccessOrExit(err);
 
     WeaveLogProgress(DeviceLayer, "FDS set: %04" PRIX16 "/%04" PRIX16 " = %s", GetFileId(key), GetRecordKey(key), val ? "true" : "false");
@@ -460,15 +216,14 @@ exit:
 WEAVE_ERROR NRF5Config::WriteConfigValue(Key key, uint32_t val)
 {
     WEAVE_ERROR err;
-    fds_record_t rec;
+    FDSAsyncOp addOrUpdateOp;
 
-    memset(&rec, 0, sizeof(rec));
-    rec.file_id = GetFileId(key);
-    rec.key = GetRecordKey(key);
-    rec.data.p_data = &val;
-    rec.data.length_words = 1;
-
-    err = DoAsyncFDSOp(FDSAsyncOp::kAddOrUpdateRecord, rec);
+    addOrUpdateOp.Init(FDSAsyncOp::kAddOrUpdateRecord);
+    addOrUpdateOp.FileId = GetFileId(key);
+    addOrUpdateOp.RecordKey = GetRecordKey(key);
+    addOrUpdateOp.RecordData = (const uint8_t *)&val;
+    addOrUpdateOp.RecordDataLengthWords = 1;
+    err = DoAsyncFDSOp(addOrUpdateOp);
     SuccessOrExit(err);
 
     WeaveLogProgress(DeviceLayer, "FDS set: 0x%04" PRIX16 "/0x%04" PRIX16 " = %" PRIu32 " (0x%" PRIX32 ")", GetFileId(key), GetRecordKey(key), val, val);
@@ -480,15 +235,14 @@ exit:
 WEAVE_ERROR NRF5Config::WriteConfigValue(Key key, uint64_t val)
 {
     WEAVE_ERROR err;
-    fds_record_t rec;
+    FDSAsyncOp addOrUpdateOp;
 
-    memset(&rec, 0, sizeof(rec));
-    rec.file_id = GetFileId(key);
-    rec.key = GetRecordKey(key);
-    rec.data.p_data = &val;
-    rec.data.length_words = 2;
-
-    err = DoAsyncFDSOp(FDSAsyncOp::kAddOrUpdateRecord, rec);
+    addOrUpdateOp.Init(FDSAsyncOp::kAddOrUpdateRecord);
+    addOrUpdateOp.FileId = GetFileId(key);
+    addOrUpdateOp.RecordKey = GetRecordKey(key);
+    addOrUpdateOp.RecordData = (const uint8_t *)&val;
+    addOrUpdateOp.RecordDataLengthWords = 2;
+    err = DoAsyncFDSOp(addOrUpdateOp);
     SuccessOrExit(err);
 
     WeaveLogProgress(DeviceLayer, "FDS set: 0x%04" PRIX16 "/0x%04" PRIX16 " = %" PRIu64 " (0x%" PRIX64 ")", GetFileId(key), GetRecordKey(key), val, val);
@@ -509,7 +263,7 @@ WEAVE_ERROR NRF5Config::WriteConfigValueStr(Key key, const char * str, size_t st
 
     if (str != NULL)
     {
-        fds_record_t rec;
+        FDSAsyncOp addOrUpdateOp;
         uint32_t storedValWords = FDSWords(strLen + 1);
 
         storedVal = (uint8_t *)nrf_malloc(storedValWords * kFDSWordSize);
@@ -518,13 +272,12 @@ WEAVE_ERROR NRF5Config::WriteConfigValueStr(Key key, const char * str, size_t st
         memcpy(storedVal, str, strLen);
         storedVal[strLen] = 0;
 
-        memset(&rec, 0, sizeof(rec));
-        rec.file_id = GetFileId(key);
-        rec.key = GetRecordKey(key);
-        rec.data.p_data = storedVal;
-        rec.data.length_words = storedValWords;
-
-        err = DoAsyncFDSOp(FDSAsyncOp::kAddOrUpdateRecord, rec);
+        addOrUpdateOp.Init(FDSAsyncOp::kAddOrUpdateRecord);
+        addOrUpdateOp.FileId = GetFileId(key);
+        addOrUpdateOp.RecordKey = GetRecordKey(key);
+        addOrUpdateOp.RecordData = storedVal;
+        addOrUpdateOp.RecordDataLengthWords = storedValWords;
+        err = DoAsyncFDSOp(addOrUpdateOp);
         SuccessOrExit(err);
 
         WeaveLogProgress(DeviceLayer, "FDS set: 0x%04" PRIX16 "/0x%04" PRIX16 " = \"%s\"", GetFileId(key), GetRecordKey(key), (const char *)storedVal);
@@ -551,7 +304,7 @@ WEAVE_ERROR NRF5Config::WriteConfigValueBin(Key key, const uint8_t * data, size_
 
     if (data != NULL)
     {
-        fds_record_t rec;
+        FDSAsyncOp addOrUpdateOp;
         uint32_t storedValWords = FDSWords(dataLen + 2);
 
         storedVal = (uint8_t *)nrf_malloc(storedValWords * kFDSWordSize);
@@ -562,13 +315,12 @@ WEAVE_ERROR NRF5Config::WriteConfigValueBin(Key key, const uint8_t * data, size_
 
         memcpy(storedVal + 2, data, dataLen);
 
-        memset(&rec, 0, sizeof(rec));
-        rec.file_id = GetFileId(key);
-        rec.key = GetRecordKey(key);
-        rec.data.p_data = storedVal;
-        rec.data.length_words = storedValWords;
-
-        err = DoAsyncFDSOp(FDSAsyncOp::kAddOrUpdateRecord, rec);
+        addOrUpdateOp.Init(FDSAsyncOp::kAddOrUpdateRecord);
+        addOrUpdateOp.FileId = GetFileId(key);
+        addOrUpdateOp.RecordKey = GetRecordKey(key);
+        addOrUpdateOp.RecordData = storedVal;
+        addOrUpdateOp.RecordDataLengthWords = storedValWords;
+        err = DoAsyncFDSOp(addOrUpdateOp);
         SuccessOrExit(err);
 
         WeaveLogProgress(DeviceLayer, "FDS set: 0x%04" PRIX16 "/0x%04" PRIX16 " = (blob length %" PRId32 ")", GetFileId(key), GetRecordKey(key), dataLen);
@@ -591,13 +343,12 @@ exit:
 WEAVE_ERROR NRF5Config::ClearConfigValue(Key key)
 {
     WEAVE_ERROR err;
-    fds_record_t rec;
+    FDSAsyncOp delOp;
 
-    memset(&rec, 0, sizeof(rec));
-    rec.file_id = GetFileId(key);
-    rec.key = GetRecordKey(key);
-
-    err = DoAsyncFDSOp(FDSAsyncOp::kDeleteRecord, rec);
+    delOp.Init(FDSAsyncOp::kDeleteRecordByKey);
+    delOp.FileId = GetFileId(key);
+    delOp.RecordKey = GetRecordKey(key);
+    err = DoAsyncFDSOp(delOp);
     SuccessOrExit(err);
 
     WeaveLogProgress(DeviceLayer, "FDS delete: 0x%04" PRIX16 "/0x%04" PRIX16, GetFileId(key), GetRecordKey(key));
@@ -619,6 +370,303 @@ bool NRF5Config::ConfigValueExists(Key key)
     // Return true iff the record was found.
     return fdsRes == FDS_SUCCESS;
 }
+
+WEAVE_ERROR NRF5Config::MapFDSError(ret_code_t fdsRes)
+{
+    // TODO: implement this
+    return fdsRes;
+}
+
+WEAVE_ERROR NRF5Config::OpenRecord(NRF5Config::Key key, fds_record_desc_t & recDesc, fds_flash_record_t & rec)
+{
+    WEAVE_ERROR err;
+    ret_code_t fdsRes;
+    fds_find_token_t findToken;
+
+    // Search for the requested record.  Return "CONFIG_NOT_FOUND" if it doesn't exist.
+    memset(&findToken, 0, sizeof(findToken));
+    fdsRes = fds_record_find(NRF5Config::GetFileId(key), NRF5Config::GetRecordKey(key), &recDesc, &findToken);
+    err = (fdsRes == FDS_ERR_NOT_FOUND) ? WEAVE_DEVICE_ERROR_CONFIG_NOT_FOUND : MapFDSError(fdsRes);
+    SuccessOrExit(err);
+
+    // Open the record for reading.
+    fdsRes = fds_record_open(&recDesc, &rec);
+    err = MapFDSError(fdsRes);
+    SuccessOrExit(err);
+
+exit:
+    return err;
+}
+
+WEAVE_ERROR NRF5Config::ForEachRecord(uint16_t fileId, uint16_t recordKey, ForEachRecordFunct funct)
+{
+    WEAVE_ERROR err = WEAVE_NO_ERROR;;
+    ret_code_t fdsRes;
+    fds_find_token_t findToken;
+    fds_record_desc_t recDesc;
+    fds_flash_record_t rec;
+    bool needClose = false;
+
+    memset(&findToken, 0, sizeof(findToken));
+
+    while (true)
+    {
+        // Search for an occurrence of the requested record.  If there are no more records, break the loop.
+        fdsRes = fds_record_find(fileId, recordKey, &recDesc, &findToken);
+        if (fdsRes == FDS_ERR_NOT_FOUND)
+        {
+            break;
+        }
+        err = MapFDSError(fdsRes);
+        SuccessOrExit(err);
+
+        // Open the record for reading.
+        fdsRes = fds_record_open(&recDesc, &rec);
+        err = MapFDSError(fdsRes);
+        SuccessOrExit(err);
+        needClose = true;
+
+        bool deleteRec = false;
+
+        // Invoke the caller's function.
+        err = funct(rec, deleteRec);
+        SuccessOrExit(err);
+
+        // Close the record.
+        needClose = false;
+        fdsRes = fds_record_close(&recDesc);
+        err = MapFDSError(fdsRes);
+        SuccessOrExit(err);
+
+        // Delete the record if requested.
+        if (deleteRec)
+        {
+            FDSAsyncOp delOp;
+            delOp.Init(FDSAsyncOp::kDeleteRecord);
+            delOp.FileId = fileId;
+            delOp.RecordKey = recordKey;
+            delOp.RecordDesc = recDesc;
+            err = DoAsyncFDSOp(delOp);
+            SuccessOrExit(err);
+        }
+    }
+
+exit:
+    if (needClose)
+    {
+        fds_record_close(&recDesc);
+    }
+    return err;
+}
+
+WEAVE_ERROR NRF5Config::DoAsyncFDSOp(FDSAsyncOp & asyncOp)
+{
+    WEAVE_ERROR err;
+    ret_code_t fdsRes;
+    fds_record_t rec;
+    bool gcPerformed = false;
+
+    // Keep trying to perform the requested op until there's a definitive success or failure...
+    while (true)
+    {
+        bool existingRecFound = false;
+
+        // If performing an AddOrUpdateRecord or DeleteRecordByKey, search for an existing record with the given key.
+        if (asyncOp.OpType == FDSAsyncOp::kAddOrUpdateRecord || asyncOp.OpType == FDSAsyncOp::kDeleteRecordByKey)
+        {
+            fds_find_token_t findToken;
+            memset(&findToken, 0, sizeof(findToken));
+            fdsRes = fds_record_find(asyncOp.FileId, asyncOp.RecordKey, &asyncOp.RecordDesc, &findToken);
+            VerifyOrExit(fdsRes == FDS_SUCCESS || fdsRes == FDS_ERR_NOT_FOUND, err = MapFDSError(fdsRes));
+
+            // Remember if we found an existing record.
+            existingRecFound = (fdsRes == FDS_SUCCESS);
+        }
+
+        // If adding or updating a record, prepare the FDS record structure with the record data.
+        if (asyncOp.OpType == FDSAsyncOp::kAddRecord ||
+                asyncOp.OpType == FDSAsyncOp::kUpdateRecord ||
+                asyncOp.OpType == FDSAsyncOp::kAddOrUpdateRecord)
+        {
+            memset(&rec, 0, sizeof(rec));
+            rec.file_id = asyncOp.FileId;
+            rec.key = asyncOp.RecordKey;
+            rec.data.p_data = asyncOp.RecordData;
+            rec.data.length_words = asyncOp.RecordDataLengthWords;
+        }
+
+        // Make the requested op the active op.
+        sActiveAsyncOp = &asyncOp;
+
+        // Initiate the requested FDS operation.
+        switch (asyncOp.OpType)
+        {
+        case FDSAsyncOp::kAddOrUpdateRecord:
+            // Depending on whether an existing record was found, call fds_record_write or fds_record_update.
+            if (!existingRecFound)
+            {
+        case FDSAsyncOp::kAddRecord:
+                fdsRes = fds_record_write(NULL, &rec);
+                break;
+            }
+            else
+            {
+        case FDSAsyncOp::kUpdateRecord:
+                fdsRes = fds_record_update(&asyncOp.RecordDesc, &rec);
+                break;
+            }
+        case FDSAsyncOp::kDeleteRecordByKey:
+            // If performing a kDeleteRecordByKey and no matching record was found, simply return success.
+            if (!existingRecFound)
+            {
+                ExitNow(err = WEAVE_NO_ERROR);
+            }
+            // fall through...
+        case FDSAsyncOp::kDeleteRecord:
+            fdsRes = fds_record_delete(&asyncOp.RecordDesc);
+            break;
+        case FDSAsyncOp::kDeleteFile:
+            fdsRes = fds_file_delete(asyncOp.FileId);
+            break;
+        case FDSAsyncOp::kGC:
+            fdsRes = fds_gc();
+            break;
+        case FDSAsyncOp::kWaitQueueSpaceAvailable:
+            // In this case, arrange to wait for any operation to complete, which coincides with
+            // space on the operation queue being available.
+            fdsRes = FDS_SUCCESS;
+            break;
+        }
+
+        // If the operation was queued successfully, wait for it to complete and retrieve the result.
+        if (fdsRes == FDS_SUCCESS)
+        {
+            xSemaphoreTake(sAsyncOpCompletionSem, portMAX_DELAY);
+            fdsRes = asyncOp.Result;
+        }
+
+        // Clear the active operation in case it wasn't done by the event handler.
+        sActiveAsyncOp = NULL;
+
+        // Return immediately if the operation completed successfully.
+        if (fdsRes == FDS_SUCCESS)
+        {
+            ExitNow(err = WEAVE_NO_ERROR);
+        }
+
+        // If the operation failed for lack of flash space...
+        if (fdsRes == FDS_ERR_NO_SPACE_IN_FLASH)
+        {
+            // If we've already performed a garbage collection, fail immediately.
+            if (gcPerformed)
+            {
+                ExitNow(err = MapFDSError(fdsRes));
+            }
+
+            // Request a garbage collection cycle and wait for it to complete.
+            FDSAsyncOp gcOp;
+            gcOp.Init(FDSAsyncOp::kGC);
+            err = DoAsyncFDSOp(gcOp);
+            SuccessOrExit(err);
+
+            // Repeat the requested operation.
+            continue;
+        }
+
+        // If the write/update failed because the operation queue is full, wait for
+        // space to become available and then repeat the requested operation.
+        if (fdsRes == FDS_ERR_NO_SPACE_IN_QUEUES)
+        {
+            FDSAsyncOp waitOp;
+            waitOp.Init(FDSAsyncOp::kWaitQueueSpaceAvailable);
+            err = DoAsyncFDSOp(waitOp);
+            SuccessOrExit(err);
+            continue;
+        }
+
+        // If the operation timed out, simply try it again.
+        if (fdsRes == FDS_ERR_OPERATION_TIMEOUT)
+        {
+            continue;
+        }
+
+        // Otherwise fail with an unrecoverable error.
+        ExitNow(err = MapFDSError(fdsRes));
+    }
+
+exit:
+    return err;
+}
+
+void NRF5Config::HandleFDSEvent(const fds_evt_t * fdsEvent)
+{
+    // Do nothing if there's no async operation active.
+    if (sActiveAsyncOp == NULL)
+    {
+        return;
+    }
+
+    // Check if the event applies to the active async operation.
+    switch (sActiveAsyncOp->OpType)
+    {
+    case FDSAsyncOp::kAddOrUpdateRecord:
+    case FDSAsyncOp::kAddRecord:
+    case FDSAsyncOp::kUpdateRecord:
+        // Ignore the event if its not a WRITE or UPDATE, or if its for a different file/record.
+        if ((fdsEvent->id != FDS_EVT_WRITE && fdsEvent->id != FDS_EVT_UPDATE) ||
+            fdsEvent->write.file_id != sActiveAsyncOp->FileId ||
+            fdsEvent->write.record_key != sActiveAsyncOp->RecordKey)
+        {
+            return;
+        }
+        break;
+    case FDSAsyncOp::kDeleteRecord:
+    case FDSAsyncOp::kDeleteRecordByKey:
+        // Ignore the event if its not a DEL_RECORD, or if its for a different file/record.
+        if (fdsEvent->id != FDS_EVT_DEL_RECORD ||
+            fdsEvent->del.record_id != sActiveAsyncOp->RecordDesc.record_id)
+        {
+            return;
+        }
+        break;
+    case FDSAsyncOp::kDeleteFile:
+        // Ignore the event if its not a DEL_FILE or its for a different file.
+        if (fdsEvent->id != FDS_EVT_DEL_FILE || fdsEvent->del.file_id != sActiveAsyncOp->FileId)
+        {
+            return;
+        }
+        break;
+    case FDSAsyncOp::kGC:
+        // Ignore the event if its not a GC.
+        if (fdsEvent->id != FDS_EVT_GC)
+        {
+            return;
+        }
+        break;
+    case FDSAsyncOp::kWaitQueueSpaceAvailable:
+        break;
+    }
+
+    // Capture the result.
+    sActiveAsyncOp->Result = fdsEvent->result;
+
+    // Mark the operation as complete.
+    sActiveAsyncOp = NULL;
+
+    // Signal the Weave thread that the operation has completed.
+#if defined(SOFTDEVICE_PRESENT) && SOFTDEVICE_PRESENT
+    {
+        BaseType_t yieldRequired = xSemaphoreGiveFromISR(sAsyncOpCompletionSem, &yieldRequired);
+        if (yieldRequired == pdTRUE)
+        {
+            portYIELD_FROM_ISR(yieldRequired);
+        }
+    }
+#else // defined(SOFTDEVICE_PRESENT) && SOFTDEVICE_PRESENT
+    xSemaphoreGive(sAsyncOpCompletionSem);
+#endif // !defined(SOFTDEVICE_PRESENT) || !SOFTDEVICE_PRESENT
+}
+
 
 } // namespace Internal
 } // namespace DeviceLayer
