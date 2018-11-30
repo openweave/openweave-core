@@ -19,7 +19,7 @@
 /**
  *    @file
  *          Provides an implementation of the Weave Group Key Store interface
- *          for nRF5* platforms using the Nordic SDK.
+ *          for platforms based on the Nordic nRF5 SDK.
  */
 
 #include <Weave/DeviceLayer/internal/WeaveDeviceLayerInternal.h>
@@ -33,7 +33,8 @@ namespace DeviceLayer {
 namespace Internal {
 
 /**
- * An implementation of the Weave GroupKeyStoreBase API using the Nordic FDS API.
+ * An implementation of the Weave GroupKeyStoreBase API for platforms based
+ * on the Nordic nRF5 SDK.
  */
 class GroupKeyStoreImpl final
         : public ::nl::Weave::Profiles::Security::AppKeys::GroupKeyStoreBase,
@@ -42,13 +43,6 @@ class GroupKeyStoreImpl final
     using WeaveGroupKey = ::nl::Weave::Profiles::Security::AppKeys::WeaveGroupKey;
 
 public:
-    enum
-    {
-        kMaxGroupKeys = WEAVE_CONFIG_MAX_APPLICATION_EPOCH_KEYS +       // Maximum number of Epoch keys
-                        WEAVE_CONFIG_MAX_APPLICATION_GROUPS +           // Maximum number of Application Group Master keys
-                        1 +                                             // Maximum number of Root keys (1 for Service root key)
-                        1                                               // Fabric secret
-    };
 
     WEAVE_ERROR Init();
 
@@ -63,6 +57,15 @@ public:
 
 private:
 
+    static constexpr size_t kFixedEncodedKeySize =  4U +    // key id
+                                                    4U +    // start time / global id
+                                                    1U;     // key data length
+
+    static constexpr size_t kMaxEncodedKeySize =    kFixedEncodedKeySize + WeaveGroupKey::MaxKeySize;
+
+    static WEAVE_ERROR EncodeGroupKey(WeaveGroupKey & key, uint8_t * buf, size_t bufSize, size_t & encodedKeyLen);
+    static WEAVE_ERROR DecodeGroupKey(const uint8_t * encodedKey, size_t encodedKeyLen, WeaveGroupKey & key);
+    static WEAVE_ERROR DecodeGroupKeyId(const uint8_t * encodedKey, size_t encodedKeyLen, uint32_t & keyId);
 };
 
 } // namespace Internal
