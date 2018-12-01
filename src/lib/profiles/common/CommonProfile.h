@@ -68,6 +68,7 @@ enum
     kStatus_AccessDenied              = 0x0014,  /**< The request can only be made by a party with sufficient access. */
     kStatus_OutOfMemory               = 0x0017,  /**< The sender is low on memory resources and cannot perform the requested operation at the current time. */
     kStatus_NotAvailable              = 0x0018,  /**< The requested operation cannot be performed given the current state of the sender. */
+    kStatus_LocalSetupRequired        = 0x0019,  /**< The requested operation could not be performed because one or more necessary local configuration steps have not been completed. */
     kStatus_InternalServerProblem     = 0x0020,  /**< Request could not be completeted because of problems on the server. */
     kStatus_Relocated                 = 0x0030,  /**< Request was made to the wrong endpoint. Client should query its
                                                       directory server for an updated endpoint list and try again. */
