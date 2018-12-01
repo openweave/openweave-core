@@ -2042,6 +2042,17 @@
 #endif // WEAVE_CONFIG_SUPPORT_LEGACY_ADD_NETWORK_MESSAGE
 
 /**
+ * @def WEAVE_CONFIG_ENABLE_IFJ_SERVICE_FABRIC_JOIN
+ *
+ * @brief Enable the Service Provisioning profile message
+ * for notification of successful in-field joining of the
+ * Weave fabric.
+ */
+#ifndef WEAVE_CONFIG_ENABLE_IFJ_SERVICE_FABRIC_JOIN
+#define WEAVE_CONFIG_ENABLE_IFJ_SERVICE_FABRIC_JOIN         0
+#endif // WEAVE_CONFIG_ENABLE_IFJ_SERVICE_FABRIC_JOIN
+
+/**
  * @def WEAVE_NON_PRODUCTION_MARKER
  *
  * @brief Defines the name of a mark symbol whose presence signals that the Weave code

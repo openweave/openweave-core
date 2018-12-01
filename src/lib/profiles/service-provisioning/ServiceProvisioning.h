@@ -84,7 +84,8 @@ enum
 
     // Device/Service Messages
     kMsgType_UnpairDeviceFromAccount            = 101,
-    kMsgType_PairDeviceToAccount                = 102
+    kMsgType_PairDeviceToAccount                = 102,
+    kMsgType_IFJServiceFabricJoin               = 103
 };
 
 /**
@@ -161,7 +162,19 @@ public:
     static WEAVE_ERROR Decode(PacketBuffer *msgBuf, PairDeviceToAccountMessage& msg);
 };
 
+#ifdef WEAVE_CONFIG_ENABLE_IFJ_SERVICE_FABRIC_JOIN
+class NL_DLL_EXPORT IFJServiceFabricJoinMessage
+{
+public:
+    uint64_t ServiceId;
+    uint64_t FabricId;
+    const uint8_t *DeviceInitData;
+    uint16_t DeviceInitDataLen;
 
+    WEAVE_ERROR Encode(PacketBuffer *msgBuf);
+    static WEAVE_ERROR Decode(PacketBuffer *msgBuf, IFJServiceFabricJoinMessage& msg);
+};
+#endif // WEAVE_CONFIG_ENABLE_IFJ_SERVICE_FABRIC_JOIN
 
 class ServiceProvisioningDelegate : public WeaveServerDelegateBase
 {
@@ -170,6 +183,9 @@ public:
     virtual WEAVE_ERROR HandleUpdateService(UpdateServiceMessage& msg) = 0;
     virtual WEAVE_ERROR HandleUnregisterService(uint64_t serviceId) = 0;
     virtual void HandlePairDeviceToAccountResult(WEAVE_ERROR localErr, uint32_t serverStatusProfileId, uint16_t serverStatusCode) = 0;
+#ifdef WEAVE_CONFIG_ENABLE_IFJ_SERVICE_FABRIC_JOIN
+    virtual void HandleIFJServiceFabricJoinResult(WEAVE_ERROR localErr, uint32_t serverStatusProfileId, uint16_t serverStatusCode) = 0;
+#endif // WEAVE_CONFIG_ENABLE_IFJ_SERVICE_FABRIC_JOIN
 
     /**
      * Enforce message-level access control for an incoming Service Provisioning request message.
@@ -224,6 +240,11 @@ public:
                                                const uint8_t *pairingToken, uint16_t pairingTokenLen,
                                                const uint8_t *pairingInitData, uint16_t pairingInitDataLen,
                                                const uint8_t *deviceInitData, uint16_t deviceInitDataLen);
+#ifdef WEAVE_CONFIG_ENABLE_IFJ_SERVICE_FABRIC_JOIN
+
+    WEAVE_ERROR SendIFJServiceFabricJoinRequest(Binding *binding, uint64_t serviceId, uint64_t fabricId,
+                                                const uint8_t *deviceInitData, uint16_t deviceInitDataLen);
+#endif // WEAVE_CONFIG_ENABLE_IFJ_SERVICE_FABRIC_JOIN
 
     static bool IsValidServiceConfig(const uint8_t *serviceConfig, uint16_t serviceConfigLen);
 
@@ -231,7 +252,8 @@ protected:
     enum
     {
         kServerOpState_Idle                             = 0,
-        kServerOpState_PairDeviceToAccount              = 1
+        kServerOpState_PairDeviceToAccount              = 1,
+        kServerOpState_IFJServiceFabricJoin             = 2
     };
 
     ServiceProvisioningDelegate *mDelegate;
@@ -258,7 +280,7 @@ private:
     static void HandleServerSendError(ExchangeContext *ec, WEAVE_ERROR err, void *msgCtxt);
 #endif // #if WEAVE_CONFIG_ENABLE_RELIABLE_MESSAGING
 
-    void HandlePairDeviceToAccountResult(WEAVE_ERROR localErr, uint32_t serverStatusProfileId, uint16_t serverStatusCode);
+    void HandleServiceProvisioningOpResult(WEAVE_ERROR localErr, uint32_t serverStatusProfileId, uint16_t serverStatusCode);
 
     ServiceProvisioningServer(const ServiceProvisioningServer&);   // not defined
 };
