@@ -85,10 +85,9 @@ public:
     static constexpr Key kConfigKey_PairedAccountId             = NRF5ConfigKey(kFileId_WeaveConfig,  0x0009);
     static constexpr Key kConfigKey_ServiceId                   = NRF5ConfigKey(kFileId_WeaveConfig,  0x000A);
     static constexpr Key kConfigKey_FabricSecret                = NRF5ConfigKey(kFileId_WeaveConfig,  0x000B);
-    static constexpr Key kConfigKey_GroupKeyIndex               = NRF5ConfigKey(kFileId_WeaveConfig,  0x000C);
-    static constexpr Key kConfigKey_LastUsedEpochKeyId          = NRF5ConfigKey(kFileId_WeaveConfig,  0x000D);
-    static constexpr Key kConfigKey_FailSafeArmed               = NRF5ConfigKey(kFileId_WeaveConfig,  0x000E);
-    static constexpr Key kConfigKey_GroupKey                    = NRF5ConfigKey(kFileId_WeaveConfig,  0x000F);
+    static constexpr Key kConfigKey_LastUsedEpochKeyId          = NRF5ConfigKey(kFileId_WeaveConfig,  0x000C);
+    static constexpr Key kConfigKey_FailSafeArmed               = NRF5ConfigKey(kFileId_WeaveConfig,  0x000D);
+    static constexpr Key kConfigKey_GroupKey                    = NRF5ConfigKey(kFileId_WeaveConfig,  0x000E);
 
     // Range of FDS record keys used to store Weave persisted counter values.
     static constexpr uint16_t kPersistedCounterRecordKeyBase    = 0x0100; /**< Base record key for records containing Weave persisted counter values.
@@ -113,6 +112,8 @@ public:
     static WEAVE_ERROR WriteConfigValueBin(Key key, const uint8_t * data, size_t dataLen);
     static WEAVE_ERROR ClearConfigValue(Key key);
     static bool ConfigValueExists(Key key);
+
+    static void SanityTest();
 
 protected:
 
