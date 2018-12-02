@@ -35,6 +35,9 @@ SRC_FILES := \
     $(NRF5_SDK_ROOT)/components/libraries/fds/fds.c \
     $(NRF5_SDK_ROOT)/components/libraries/fstorage/nrf_fstorage.c \
     $(NRF5_SDK_ROOT)/components/libraries/fstorage/nrf_fstorage_sd.c \
+    $(NRF5_SDK_ROOT)/components/libraries/log/src/nrf_log_backend_serial.c \
+    $(NRF5_SDK_ROOT)/components/libraries/log/src/nrf_log_backend_uart.c \
+    $(NRF5_SDK_ROOT)/components/libraries/log/src/nrf_log_default_backends.c \
     $(NRF5_SDK_ROOT)/components/libraries/log/src/nrf_log_frontend.c \
     $(NRF5_SDK_ROOT)/components/libraries/log/src/nrf_log_str_formatter.c \
     $(NRF5_SDK_ROOT)/components/libraries/mem_manager/mem_manager.c \
@@ -42,11 +45,17 @@ SRC_FILES := \
 	$(NRF5_SDK_ROOT)/components/libraries/queue/nrf_queue.c \
     $(NRF5_SDK_ROOT)/components/libraries/ringbuf/nrf_ringbuf.c \
     $(NRF5_SDK_ROOT)/components/libraries/strerror/nrf_strerror.c \
+    $(NRF5_SDK_ROOT)/components/libraries/uart/app_uart.c \
+    $(NRF5_SDK_ROOT)/components/libraries/uart/app_uart_fifo.c \
+    $(NRF5_SDK_ROOT)/components/libraries/uart/retarget.c \
     $(NRF5_SDK_ROOT)/components/libraries/util/app_error.c \
     $(NRF5_SDK_ROOT)/components/libraries/util/app_error_handler_gcc.c \
     $(NRF5_SDK_ROOT)/components/libraries/util/app_error_weak.c \
     $(NRF5_SDK_ROOT)/components/libraries/util/app_util_platform.c \
     $(NRF5_SDK_ROOT)/components/libraries/util/nrf_assert.c \
+    $(NRF5_SDK_ROOT)/components/softdevice/common/nrf_sdh.c \
+    $(NRF5_SDK_ROOT)/components/softdevice/common/nrf_sdh_ble.c \
+    $(NRF5_SDK_ROOT)/components/softdevice/common/nrf_sdh_soc.c \
     $(NRF5_SDK_ROOT)/external/fprintf/nrf_fprintf.c \
     $(NRF5_SDK_ROOT)/external/fprintf/nrf_fprintf_format.c \
     $(NRF5_SDK_ROOT)/external/freertos/portable/CMSIS/nrf52/port_cmsis.c \
@@ -59,17 +68,22 @@ SRC_FILES := \
     $(NRF5_SDK_ROOT)/external/freertos/source/queue.c \
     $(NRF5_SDK_ROOT)/external/freertos/source/stream_buffer.c \
     $(NRF5_SDK_ROOT)/external/freertos/source/tasks.c \
+    $(NRF5_SDK_ROOT)/external/freertos/source/timers.c \
 	$(NRF5_SDK_ROOT)/integration/nrfx/legacy/nrf_drv_clock.c \
 	$(NRF5_SDK_ROOT)/integration/nrfx/legacy/nrf_drv_rng.c \
+    $(NRF5_SDK_ROOT)/integration/nrfx/legacy/nrf_drv_uart.c \
     $(NRF5_SDK_ROOT)/modules/nrfx/drivers/src/nrfx_clock.c \
     $(NRF5_SDK_ROOT)/modules/nrfx/drivers/src/nrfx_gpiote.c \
     $(NRF5_SDK_ROOT)/modules/nrfx/drivers/src/nrfx_power_clock.c \
-    $(NRF5_SDK_ROOT)/modules/nrfx/drivers/src/prs/nrfx_prs.c \
+    $(NRF5_SDK_ROOT)/modules/nrfx/drivers/src/nrfx_uart.c \
+    $(NRF5_SDK_ROOT)/modules/nrfx/drivers/src/nrfx_uarte.c \
     $(NRF5_SDK_ROOT)/modules/nrfx/drivers/src/nrfx_rng.c \
+    $(NRF5_SDK_ROOT)/modules/nrfx/drivers/src/prs/nrfx_prs.c \
     $(NRF5_SDK_ROOT)/modules/nrfx/mdk/gcc_startup_nrf52840.S \
     $(NRF5_SDK_ROOT)/modules/nrfx/mdk/system_nrf52840.c
       
 INC_FOLDERS = \
+    $(realpath $(PROJ_DIR)) \
     $(NRF5_SDK_ROOT)/components \
     $(NRF5_SDK_ROOT)/components/boards \
     $(NRF5_SDK_ROOT)/components/libraries/atomic \
@@ -116,7 +130,6 @@ INC_FOLDERS = \
     $(NRF5_SDK_ROOT)/modules/nrfx/drivers/include \
     $(NRF5_SDK_ROOT)/modules/nrfx/hal \
     $(NRF5_SDK_ROOT)/modules/nrfx/mdk \
-    $(realpath $(PROJ_DIR)) \
     $(WEAVE_INCLUDES)
 
 LIB_FILES = \
@@ -145,7 +158,8 @@ DEFINES = \
     FLOAT_ABI_HARD \
     USE_APP_CONFIG \
     __HEAP_SIZE=0 \
-    __STACK_SIZE=8192
+    __STACK_SIZE=8192 \
+    SOFTDEVICE_PRESENT
 	
 CFLAGS = \
     -DBOARD_PCA10056 \
@@ -199,10 +213,19 @@ $(call define_target, $(TARGET))
 
 $(OUTPUT_DIRECTORY)/$(TARGET)/main.cpp.o : install-weave
 
-flash: $(OUTPUT_DIRECTORY)/$(TARGET).hex
+# Flash the program
+flash: $(TARGET)
 	@echo Flashing: $(OUTPUT_DIRECTORY)/$(TARGET).hex
 	$(NRF5_TOOLS_ROOT)/nrfjprog/nrfjprog -f nrf52 --program $(OUTPUT_DIRECTORY)/$(TARGET).hex --sectorerase
 	$(NRF5_TOOLS_ROOT)/nrfjprog/nrfjprog -f nrf52 --reset
+
+flash_softdevice:
+	@echo Flashing: s140_nrf52_6.1.0_softdevice.hex
+	$(NRF5_TOOLS_ROOT)/nrfjprog/nrfjprog -f nrf52 --program $(NRF5_SDK_ROOT)/components/softdevice/s140/hex/s140_nrf52_6.1.0_softdevice.hex --sectorerase
+	$(NRF5_TOOLS_ROOT)/nrfjprog/nrfjprog -f nrf52 --reset
+
+erase:
+	$(NRF5_TOOLS_ROOT)/nrfjprog/nrfjprog -f nrf52 --eraseall
 
 erase:
 	$(NRF5_TOOLS_ROOT)/nrfjprog/nrfjprog -f nrf52 --eraseall

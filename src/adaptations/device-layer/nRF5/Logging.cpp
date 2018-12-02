@@ -22,6 +22,11 @@
  *          on Nordic nRF5* platform.
  */
 
+
+#define NRF_LOG_MODULE_NAME weave
+#include "nrf_log.h"
+NRF_LOG_MODULE_REGISTER();
+
 #include <Weave/DeviceLayer/internal/WeaveDeviceLayerInternal.h>
 #include <Weave/Support/logging/WeaveLogging.h>
 
@@ -54,40 +59,43 @@ void Log(uint8_t module, uint8_t category, const char *msg, ...)
 
     va_start(v, msg);
 
+#if NRF_LOG_ENABLED
+
     if (IsCategoryEnabled(category))
     {
-        enum {
-            kMaxTagLen = 7 + nlWeaveLoggingModuleNameLen
-        };
-        char tag[kMaxTagLen + 1];
-        size_t tagLen;
         char formattedMsg[256];
+        size_t formattedMsgLen;
 
-        strcpy(tag, "weave[");
-        tagLen = strlen(tag);
-        ::GetModuleName(tag + tagLen, module);
-        tagLen = strlen(tag);
-        tag[tagLen++] = ']';
-        tag[tagLen] = 0;
+        constexpr size_t maxPrefixLen = nlWeaveLoggingModuleNameLen + 3;
+        static_assert(sizeof(formattedMsg) > maxPrefixLen);
 
-        vsnprintf(formattedMsg, sizeof(formattedMsg), msg, v);
+        // Form the log prefix, e.g. "[DL] "
+        formattedMsg[0] = '[';
+        ::GetModuleName(formattedMsg + 1, module);
+        formattedMsgLen = strlen(formattedMsg);
+        formattedMsg[formattedMsgLen++] = ']';
+        formattedMsg[formattedMsgLen++] = ' ';
 
-#if 0
+        // Append the log message.
+        vsnprintf(formattedMsg + formattedMsgLen, sizeof(formattedMsg) - formattedMsgLen, msg, v);
+
+        // Invoke the NRF logging library to log the message.
         switch (category) {
         case kLogCategory_Error:
-            ESP_LOGE(tag, "%s", formattedMsg);
+            NRF_LOG_ERROR("%s", NRF_LOG_PUSH(formattedMsg));
             break;
         case kLogCategory_Progress:
         case kLogCategory_Retain:
         default:
-            ESP_LOGI(tag, "%s", formattedMsg);
+            NRF_LOG_INFO("%s", NRF_LOG_PUSH(formattedMsg));
             break;
         case kLogCategory_Detail:
-            ESP_LOGV(tag, "%s", formattedMsg);
+            NRF_LOG_DEBUG("%s", NRF_LOG_PUSH(formattedMsg));
             break;
         }
-#endif
     }
+
+#endif // NRF_LOG_ENABLED
 
     va_end(v);
 }
