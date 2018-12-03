@@ -22,9 +22,12 @@
  *          platforms based on the Nordic nRF5 SDK.
  */
 
+#include <atomic>
+
 #include <Weave/DeviceLayer/internal/WeaveDeviceLayerInternal.h>
 #include <Weave/DeviceLayer/nRF5/NRF5Config.h>
 #include <Weave/Core/WeaveEncoding.h>
+#include <Weave/DeviceLayer/internal/ConfigUnitTest.h>
 
 #include "FreeRTOS.h"
 #include "semphr.h"
@@ -43,7 +46,6 @@ SemaphoreHandle_t NRF5Config::sAsyncOpCompletionSem;
 WEAVE_ERROR NRF5Config::Init()
 {
     WEAVE_ERROR err;
-    FDSAsyncOp initOp;
     ret_code_t fdsRes;
 
     // Create a semaphore to signal the completion of async FDS operations.
@@ -55,9 +57,11 @@ WEAVE_ERROR NRF5Config::Init()
     SuccessOrExit(err = MapFDSError(fdsRes));
 
     // Initialize the FDS module.
-    initOp.Init(FDSAsyncOp::kInit);
-    err = DoAsyncFDSOp(initOp);
-    SuccessOrExit(err);
+    {
+        FDSAsyncOp initOp(FDSAsyncOp::kInit);
+        err = DoAsyncFDSOp(initOp);
+        SuccessOrExit(err);
+    }
 
 exit:
     return err;
@@ -196,14 +200,14 @@ exit:
 WEAVE_ERROR NRF5Config::WriteConfigValue(Key key, bool val)
 {
     WEAVE_ERROR err;
-    FDSAsyncOp addOrUpdateOp;
     uint32_t storedVal = (val) ? 1 : 0;
 
-    addOrUpdateOp.Init(FDSAsyncOp::kAddOrUpdateRecord);
+    FDSAsyncOp addOrUpdateOp(FDSAsyncOp::kAddOrUpdateRecord);
     addOrUpdateOp.FileId = GetFileId(key);
     addOrUpdateOp.RecordKey = GetRecordKey(key);
     addOrUpdateOp.RecordData = (const uint8_t *)&storedVal;
     addOrUpdateOp.RecordDataLengthWords = 1;
+
     err = DoAsyncFDSOp(addOrUpdateOp);
     SuccessOrExit(err);
 
@@ -216,13 +220,13 @@ exit:
 WEAVE_ERROR NRF5Config::WriteConfigValue(Key key, uint32_t val)
 {
     WEAVE_ERROR err;
-    FDSAsyncOp addOrUpdateOp;
 
-    addOrUpdateOp.Init(FDSAsyncOp::kAddOrUpdateRecord);
+    FDSAsyncOp addOrUpdateOp(FDSAsyncOp::kAddOrUpdateRecord);
     addOrUpdateOp.FileId = GetFileId(key);
     addOrUpdateOp.RecordKey = GetRecordKey(key);
     addOrUpdateOp.RecordData = (const uint8_t *)&val;
     addOrUpdateOp.RecordDataLengthWords = 1;
+
     err = DoAsyncFDSOp(addOrUpdateOp);
     SuccessOrExit(err);
 
@@ -235,13 +239,13 @@ exit:
 WEAVE_ERROR NRF5Config::WriteConfigValue(Key key, uint64_t val)
 {
     WEAVE_ERROR err;
-    FDSAsyncOp addOrUpdateOp;
 
-    addOrUpdateOp.Init(FDSAsyncOp::kAddOrUpdateRecord);
+    FDSAsyncOp addOrUpdateOp(FDSAsyncOp::kAddOrUpdateRecord);
     addOrUpdateOp.FileId = GetFileId(key);
     addOrUpdateOp.RecordKey = GetRecordKey(key);
     addOrUpdateOp.RecordData = (const uint8_t *)&val;
     addOrUpdateOp.RecordDataLengthWords = 2;
+
     err = DoAsyncFDSOp(addOrUpdateOp);
     SuccessOrExit(err);
 
@@ -263,7 +267,6 @@ WEAVE_ERROR NRF5Config::WriteConfigValueStr(Key key, const char * str, size_t st
 
     if (str != NULL)
     {
-        FDSAsyncOp addOrUpdateOp;
         uint32_t storedValWords = FDSWords(strLen + 1);
 
         storedVal = (uint8_t *)nrf_malloc(storedValWords * kFDSWordSize);
@@ -272,11 +275,12 @@ WEAVE_ERROR NRF5Config::WriteConfigValueStr(Key key, const char * str, size_t st
         memcpy(storedVal, str, strLen);
         storedVal[strLen] = 0;
 
-        addOrUpdateOp.Init(FDSAsyncOp::kAddOrUpdateRecord);
+        FDSAsyncOp addOrUpdateOp(FDSAsyncOp::kAddOrUpdateRecord);
         addOrUpdateOp.FileId = GetFileId(key);
         addOrUpdateOp.RecordKey = GetRecordKey(key);
         addOrUpdateOp.RecordData = storedVal;
         addOrUpdateOp.RecordDataLengthWords = storedValWords;
+
         err = DoAsyncFDSOp(addOrUpdateOp);
         SuccessOrExit(err);
 
@@ -304,7 +308,6 @@ WEAVE_ERROR NRF5Config::WriteConfigValueBin(Key key, const uint8_t * data, size_
 
     if (data != NULL)
     {
-        FDSAsyncOp addOrUpdateOp;
         uint32_t storedValWords = FDSWords(dataLen + 2);
 
         storedVal = (uint8_t *)nrf_malloc(storedValWords * kFDSWordSize);
@@ -315,11 +318,12 @@ WEAVE_ERROR NRF5Config::WriteConfigValueBin(Key key, const uint8_t * data, size_
 
         memcpy(storedVal + 2, data, dataLen);
 
-        addOrUpdateOp.Init(FDSAsyncOp::kAddOrUpdateRecord);
+        FDSAsyncOp addOrUpdateOp(FDSAsyncOp::kAddOrUpdateRecord);
         addOrUpdateOp.FileId = GetFileId(key);
         addOrUpdateOp.RecordKey = GetRecordKey(key);
         addOrUpdateOp.RecordData = storedVal;
         addOrUpdateOp.RecordDataLengthWords = storedValWords;
+
         err = DoAsyncFDSOp(addOrUpdateOp);
         SuccessOrExit(err);
 
@@ -343,11 +347,11 @@ exit:
 WEAVE_ERROR NRF5Config::ClearConfigValue(Key key)
 {
     WEAVE_ERROR err;
-    FDSAsyncOp delOp;
 
-    delOp.Init(FDSAsyncOp::kDeleteRecordByKey);
+    FDSAsyncOp delOp(FDSAsyncOp::kDeleteRecordByKey);
     delOp.FileId = GetFileId(key);
     delOp.RecordKey = GetRecordKey(key);
+
     err = DoAsyncFDSOp(delOp);
     SuccessOrExit(err);
 
@@ -369,6 +373,30 @@ bool NRF5Config::ConfigValueExists(Key key)
 
     // Return true iff the record was found.
     return fdsRes == FDS_SUCCESS;
+}
+
+WEAVE_ERROR NRF5Config::FactoryResetConfig(void)
+{
+    WEAVE_ERROR err;
+
+    // Delete the WeaveConfig file and all records its contains.
+    {
+        FDSAsyncOp delOp(FDSAsyncOp::kDeleteFile);
+        delOp.FileId = kFileId_WeaveConfig;
+        err = DoAsyncFDSOp(delOp);
+        SuccessOrExit(err);
+        WeaveLogProgress(DeviceLayer, "FDS delete file: 0x%04" PRIX16, kFileId_WeaveConfig);
+    }
+
+    // Force a GC
+    {
+        FDSAsyncOp gcOp(FDSAsyncOp::kGC);
+        err = DoAsyncFDSOp(gcOp);
+        SuccessOrExit(err);
+    }
+
+exit:
+    return err;
 }
 
 WEAVE_ERROR NRF5Config::MapFDSError(ret_code_t fdsRes)
@@ -441,8 +469,7 @@ WEAVE_ERROR NRF5Config::ForEachRecord(uint16_t fileId, uint16_t recordKey, ForEa
         // Delete the record if requested.
         if (deleteRec)
         {
-            FDSAsyncOp delOp;
-            delOp.Init(FDSAsyncOp::kDeleteRecord);
+            FDSAsyncOp delOp(FDSAsyncOp::kDeleteRecord);
             delOp.FileId = fileId;
             delOp.RecordKey = recordKey;
             delOp.RecordDesc = recDesc;
@@ -485,8 +512,8 @@ WEAVE_ERROR NRF5Config::DoAsyncFDSOp(FDSAsyncOp & asyncOp)
 
         // If adding or updating a record, prepare the FDS record structure with the record data.
         if (asyncOp.OpType == FDSAsyncOp::kAddRecord ||
-                asyncOp.OpType == FDSAsyncOp::kUpdateRecord ||
-                asyncOp.OpType == FDSAsyncOp::kAddOrUpdateRecord)
+            asyncOp.OpType == FDSAsyncOp::kUpdateRecord ||
+            asyncOp.OpType == FDSAsyncOp::kAddOrUpdateRecord)
         {
             memset(&rec, 0, sizeof(rec));
             rec.file_id = asyncOp.FileId;
@@ -566,9 +593,10 @@ WEAVE_ERROR NRF5Config::DoAsyncFDSOp(FDSAsyncOp & asyncOp)
                 ExitNow(err = MapFDSError(fdsRes));
             }
 
+            WeaveLogProgress(DeviceLayer, "Initiating FDS GC");
+
             // Request a garbage collection cycle and wait for it to complete.
-            FDSAsyncOp gcOp;
-            gcOp.Init(FDSAsyncOp::kGC);
+            FDSAsyncOp gcOp(FDSAsyncOp::kGC);
             err = DoAsyncFDSOp(gcOp);
             SuccessOrExit(err);
 
@@ -580,8 +608,7 @@ WEAVE_ERROR NRF5Config::DoAsyncFDSOp(FDSAsyncOp & asyncOp)
         // space to become available and then repeat the requested operation.
         if (fdsRes == FDS_ERR_NO_SPACE_IN_QUEUES)
         {
-            FDSAsyncOp waitOp;
-            waitOp.Init(FDSAsyncOp::kWaitQueueSpaceAvailable);
+            FDSAsyncOp waitOp(FDSAsyncOp::kWaitQueueSpaceAvailable);
             err = DoAsyncFDSOp(waitOp);
             SuccessOrExit(err);
             continue;
@@ -676,86 +703,14 @@ void NRF5Config::HandleFDSEvent(const fds_evt_t * fdsEvent)
 #endif // !defined(SOFTDEVICE_PRESENT) || !SOFTDEVICE_PRESENT
 }
 
-void NRF5Config::SanityTest()
+void NRF5Config::RunConfigUnitTest()
 {
     WEAVE_ERROR err;
 
-    // Test 1 -- Store and read uint32_t
-    {
-        uint32_t v = 42;
+    // Run common unit test
+    nl::Weave::DeviceLayer::Internal::RunConfigUnitTest<NRF5Config>();
 
-        err = WriteConfigValue(kConfigKey_SerialNum, v);
-        VerifyOrDie(err == WEAVE_NO_ERROR);
-
-        err = ReadConfigValue(kConfigKey_SerialNum, v);
-        VerifyOrDie(err == WEAVE_NO_ERROR);
-
-        VerifyOrDie(v == 42);
-    }
-
-    // Test 2 -- Store and read uint64_t
-    {
-        uint64_t v = 9872349687345;
-
-        err = WriteConfigValue(kConfigKey_SerialNum, v);
-        VerifyOrDie(err == WEAVE_NO_ERROR);
-
-        err = ReadConfigValue(kConfigKey_SerialNum, v);
-        VerifyOrDie(err == WEAVE_NO_ERROR);
-
-        VerifyOrDie(v == 9872349687345);
-    }
-
-    // Test 3 -- Clear value
-    {
-        uint64_t v;
-
-        err = ClearConfigValue(kConfigKey_SerialNum);
-        VerifyOrDie(err == WEAVE_NO_ERROR);
-
-        err = ReadConfigValue(kConfigKey_SerialNum, v);
-        VerifyOrDie(err == WEAVE_DEVICE_ERROR_CONFIG_NOT_FOUND);
-    }
-
-    // Test 4 -- Store and read string
-    {
-        const static char kTestString1[] = "This is a test";
-        const static char kTestString2[] = "";
-        char buf[64];
-        size_t strLen;
-
-        err = WriteConfigValueStr(kConfigKey_PairedAccountId, kTestString1);
-        VerifyOrDie(err == WEAVE_NO_ERROR);
-
-        err = ReadConfigValueStr(kConfigKey_PairedAccountId, buf, sizeof(buf), strLen);
-        VerifyOrDie(err == WEAVE_NO_ERROR);
-
-        VerifyOrDie(strLen == strlen(kTestString1));
-        VerifyOrDie(memcmp(buf, kTestString1, strLen + 1) == 0);
-
-        err = WriteConfigValueStr(kConfigKey_PairedAccountId, kTestString2);
-        VerifyOrDie(err == WEAVE_NO_ERROR);
-
-        err = ReadConfigValueStr(kConfigKey_PairedAccountId, buf, sizeof(buf), strLen);
-        VerifyOrDie(err == WEAVE_NO_ERROR);
-
-        VerifyOrDie(strLen == strlen(kTestString2));
-        VerifyOrDie(memcmp(buf, kTestString2, strLen + 1) == 0);
-    }
-
-    // Test 5 -- Clear string
-    {
-        char buf[64];
-        size_t strLen;
-
-        err = WriteConfigValueStr(kConfigKey_PairedAccountId, NULL);
-        VerifyOrDie(err == WEAVE_NO_ERROR);
-
-        err = ReadConfigValueStr(kConfigKey_PairedAccountId, buf, sizeof(buf), strLen);
-        VerifyOrDie(err == WEAVE_DEVICE_ERROR_CONFIG_NOT_FOUND);
-    }
-
-    // Test 6 -- Store and read binary data
+    // NRF Config Test 1 -- Force GC
     {
         const static uint8_t kTestData[] =
         {
@@ -779,26 +734,22 @@ void NRF5Config::SanityTest()
         uint8_t buf[512];
         size_t dataLen;
 
-        err = WriteConfigValueBin(kConfigKey_DeviceCert, kTestData, sizeof(kTestData));
-        VerifyOrDie(err == WEAVE_NO_ERROR);
+        for (int i = 0; i < 100; i++)
+        {
+            err = ClearConfigValue(kConfigKey_DeviceCert);
+            VerifyOrDie(err == WEAVE_NO_ERROR);
+
+            err = WriteConfigValueBin(kConfigKey_DeviceCert, kTestData, sizeof(kTestData));
+            VerifyOrDie(err == WEAVE_NO_ERROR);
+
+            vTaskDelay(250);
+        }
 
         err = ReadConfigValueBin(kConfigKey_DeviceCert, buf, sizeof(buf), dataLen);
         VerifyOrDie(err == WEAVE_NO_ERROR);
 
         VerifyOrDie(dataLen == sizeof(kTestData));
         VerifyOrDie(memcmp(buf, kTestData, dataLen) == 0);
-    }
-
-    // Test 7 -- Clear binary data
-    {
-        uint8_t buf[512];
-        size_t dataLen;
-
-        err = WriteConfigValueBin(kConfigKey_DeviceCert, NULL, 0);
-        VerifyOrDie(err == WEAVE_NO_ERROR);
-
-        err = ReadConfigValueBin(kConfigKey_DeviceCert, buf, sizeof(buf), dataLen);
-        VerifyOrDie(err == WEAVE_DEVICE_ERROR_CONFIG_NOT_FOUND);
     }
 }
 
