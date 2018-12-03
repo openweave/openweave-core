@@ -18,6 +18,7 @@
 #endif // NRF_LOG_ENABLED
 
 #include <Weave/DeviceLayer/WeaveDeviceLayer.h>
+#include <Weave/DeviceLayer/internal/ConfigUnitTest.h>
 
 using namespace ::nl;
 using namespace ::nl::Inet;
@@ -64,7 +65,7 @@ static void TestTaskMain(void * pvParameter)
     err = Internal::NRF5Config::Init();
     APP_ERROR_CHECK(err);
 
-    Internal::NRF5Config::SanityTest();
+    Internal::NRF5Config::RunConfigUnitTest();
 
     NRF_LOG_INFO("TEST task done");
     bsp_board_led_invert(BSP_BOARD_LED_2);
