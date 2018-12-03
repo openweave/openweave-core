@@ -124,7 +124,7 @@ WEAVE_ERROR ConfigurationManagerImpl::_ReadPersistedStorageValue(::nl::Weave::Pl
 
     VerifyOrExit(recordKey <= kPersistedCounterRecordKeyMax, err = WEAVE_ERROR_PERSISTED_STORAGE_VALUE_NOT_FOUND);
 
-    err = ReadConfigValue(NRF5ConfigKey(NRF5Config::kFileId_WeaveConfig, recordKey), value);
+    err = ReadConfigValue(NRF5ConfigKey(NRF5Config::kFileId_WeaveCounter, recordKey), value);
     if (err == WEAVE_DEVICE_ERROR_CONFIG_NOT_FOUND)
     {
         err = WEAVE_ERROR_PERSISTED_STORAGE_VALUE_NOT_FOUND;
@@ -142,7 +142,7 @@ WEAVE_ERROR ConfigurationManagerImpl::_WritePersistedStorageValue(::nl::Weave::P
 
     VerifyOrExit(recordKey <= kPersistedCounterRecordKeyMax, err = WEAVE_ERROR_INVALID_ARGUMENT);
 
-    err = WriteConfigValue(NRF5ConfigKey(NRF5Config::kFileId_WeaveConfig, recordKey), value);
+    err = WriteConfigValue(NRF5ConfigKey(NRF5Config::kFileId_WeaveCounter, recordKey), value);
     SuccessOrExit(err);
 
 exit:
@@ -155,10 +155,10 @@ void ConfigurationManagerImpl::DoFactoryReset(intptr_t arg)
 
     WeaveLogProgress(DeviceLayer, "Performing factory reset");
 
-    err = ClearRuntimeConfig();
+    err = FactoryResetConfig();
     if (err != WEAVE_NO_ERROR)
     {
-        WeaveLogError(DeviceLayer, "ClearRuntimeConfig() failed: %s", nl::ErrorStr(err));
+        WeaveLogError(DeviceLayer, "FactoryResetConfig() failed: %s", nl::ErrorStr(err));
     }
 
     // TODO: finish this

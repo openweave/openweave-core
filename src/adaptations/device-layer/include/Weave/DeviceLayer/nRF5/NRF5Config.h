@@ -69,6 +69,8 @@ public:
                                                                            *   Retained during factory reset. */
     static constexpr uint16_t kFileId_WeaveConfig               = 0x235B; /**< FDS file containing dynamic config values set at runtime.
                                                                            *   Cleared during factory reset. */
+    static constexpr uint16_t kFileId_WeaveCounter              = 0x235C; /**< FDS file containing dynamic counter values set at runtime.
+                                                                           *   Retained during factory reset. */
 
     // API data type used to represent the combination of a FDS file id and record key.
     using Key = uint32_t;
@@ -90,15 +92,15 @@ public:
     static constexpr Key kConfigKey_GroupKey                    = NRF5ConfigKey(kFileId_WeaveConfig,  0x000E);
 
     // Range of FDS record keys used to store Weave persisted counter values.
-    static constexpr uint16_t kPersistedCounterRecordKeyBase    = 0x0100; /**< Base record key for records containing Weave persisted counter values.
+    static constexpr uint16_t kPersistedCounterRecordKeyBase    = kFDSRecordKeyMin;
+                                                                          /**< Base record key for records containing Weave persisted counter values.
                                                                            *   The Weave counter id is added to this value to form the FDS record key.*/
     static constexpr uint16_t kPersistedCounterRecordKeyMax     = kFDSRecordKeyMax;
                                                                           /**< Max record key for records containing Weave persisted counter values. */
 
-    static WEAVE_ERROR Init();
-    static WEAVE_ERROR ClearRuntimeConfig();
+    static WEAVE_ERROR Init(void);
 
-    // General config value accessors.
+    // Configuration methods used by the GenericConfigurationManagerImpl<> template.
     static WEAVE_ERROR ReadConfigValue(Key key, bool & val);
     static WEAVE_ERROR ReadConfigValue(Key key, uint32_t & val);
     static WEAVE_ERROR ReadConfigValue(Key key, uint64_t & val);
@@ -112,8 +114,9 @@ public:
     static WEAVE_ERROR WriteConfigValueBin(Key key, const uint8_t * data, size_t dataLen);
     static WEAVE_ERROR ClearConfigValue(Key key);
     static bool ConfigValueExists(Key key);
+    static WEAVE_ERROR FactoryResetConfig(void);
 
-    static void SanityTest();
+    static void RunConfigUnitTest(void);
 
 protected:
 
@@ -121,8 +124,7 @@ protected:
     {
         enum
         {
-            kNone                           = 0,
-            kAddRecord,
+            kAddRecord                      = 0,
             kUpdateRecord,
             kAddOrUpdateRecord,
             kDeleteRecord,
@@ -141,7 +143,7 @@ protected:
         uint16_t RecordKey;
         uint8_t OpType;
 
-        inline void Init(uint8_t opType) { memset(this, 0, sizeof(*this)); OpType = opType; }
+        inline FDSAsyncOp(uint8_t opType) : OpType(opType) { }
     };
 
     using ForEachRecordFunct = std::function<WEAVE_ERROR(const fds_flash_record_t & rec, bool & deleteRec)>;
