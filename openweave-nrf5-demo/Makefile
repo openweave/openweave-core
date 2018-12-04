@@ -180,7 +180,10 @@ CFLAGS = \
     $(OPT) \
     $(foreach def,$(DEFINES),-D$(def))
 
-CXXFLAGS :=
+CXXFLAGS = \
+    -fno-rtti \
+    -fno-exceptions \
+    -fno-unwind-tables	
 
 ASMFLAGS := \
     -g3 \
