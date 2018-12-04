@@ -63,7 +63,10 @@ private:
 
     static constexpr size_t kMaxEncodedKeySize =    kFixedEncodedKeySize + WeaveGroupKey::MaxKeySize;
 
-    static WEAVE_ERROR EncodeGroupKey(WeaveGroupKey & key, uint8_t * buf, size_t bufSize, size_t & encodedKeyLen);
+    static constexpr uint16_t kGroupKeyFileId =     GetFileId(kConfigKey_GroupKey);
+    static constexpr uint16_t kGroupKeyRecordKey =  GetRecordKey(kConfigKey_GroupKey);
+
+    static WEAVE_ERROR EncodeGroupKey(const WeaveGroupKey & key, uint8_t * buf, size_t bufSize, size_t & encodedKeyLen);
     static WEAVE_ERROR DecodeGroupKey(const uint8_t * encodedKey, size_t encodedKeyLen, WeaveGroupKey & key);
     static WEAVE_ERROR DecodeGroupKeyId(const uint8_t * encodedKey, size_t encodedKeyLen, uint32_t & keyId);
 };

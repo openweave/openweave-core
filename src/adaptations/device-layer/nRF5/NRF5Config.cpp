@@ -27,7 +27,7 @@
 #include <Weave/DeviceLayer/internal/WeaveDeviceLayerInternal.h>
 #include <Weave/DeviceLayer/nRF5/NRF5Config.h>
 #include <Weave/Core/WeaveEncoding.h>
-#include <Weave/DeviceLayer/internal/ConfigUnitTest.h>
+#include <Weave/DeviceLayer/internal/testing/ConfigUnitTest.h>
 
 #include "FreeRTOS.h"
 #include "semphr.h"
@@ -593,7 +593,7 @@ WEAVE_ERROR NRF5Config::DoAsyncFDSOp(FDSAsyncOp & asyncOp)
                 ExitNow(err = MapFDSError(fdsRes));
             }
 
-            WeaveLogProgress(DeviceLayer, "Initiating FDS GC");
+            WeaveLogProgress(DeviceLayer, "Initiating FDS GC to recover space");
 
             // Request a garbage collection cycle and wait for it to complete.
             FDSAsyncOp gcOp(FDSAsyncOp::kGC);
@@ -708,7 +708,7 @@ void NRF5Config::RunConfigUnitTest()
     WEAVE_ERROR err;
 
     // Run common unit test
-    nl::Weave::DeviceLayer::Internal::RunConfigUnitTest<NRF5Config>();
+    ::nl::Weave::DeviceLayer::Internal::RunConfigUnitTest<NRF5Config>();
 
     // NRF Config Test 1 -- Force GC
     {
@@ -736,13 +736,10 @@ void NRF5Config::RunConfigUnitTest()
 
         for (int i = 0; i < 100; i++)
         {
-            err = ClearConfigValue(kConfigKey_DeviceCert);
-            VerifyOrDie(err == WEAVE_NO_ERROR);
-
             err = WriteConfigValueBin(kConfigKey_DeviceCert, kTestData, sizeof(kTestData));
             VerifyOrDie(err == WEAVE_NO_ERROR);
 
-            vTaskDelay(250);
+            vTaskDelay(pdMS_TO_TICKS(50));
         }
 
         err = ReadConfigValueBin(kConfigKey_DeviceCert, buf, sizeof(buf), dataLen);

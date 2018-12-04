@@ -39,7 +39,7 @@ WEAVE_BUILD_INCLUDES        += $(WEAVE_ROOT)/src/adaptations/device-layer/trait-
 
 # Compiler flags for building Weave
 WEAVE_CPPFLAGS              += $(CFLAGS) $(addprefix -I, $(WEAVE_BUILD_INCLUDES))
-#WEAVE_CXXFLAGS              += $(CXXFLAGS) $(addprefix -I, $(WEAVE_BUILD_INCLUDES))
+WEAVE_CXXFLAGS              += $(CXXFLAGS)
 
 # Misc tools and associated values
 INSTALL                     := /usr/bin/install
@@ -95,6 +95,7 @@ WEAVE_INCLUDES              := $(WEAVE_OUTPUT_DIRECTORY)/include \
 
 # Libraries to be included when building components that use Weave. 
 WEAVE_LIBS                  := -L$(WEAVE_OUTPUT_DIRECTORY)/lib \
+							   -Wl,--start-group \
 					           -lDeviceLayer \
 					           -lWeave \
 					           -lWarm \
@@ -104,7 +105,7 @@ WEAVE_LIBS                  := -L$(WEAVE_OUTPUT_DIRECTORY)/lib \
 					           -lSystemLayer \
 					           -luECC \
 					           -llwip \
-					           -lDeviceLayer \
+					           -Wl,--end-group
 
 
 # ===== Rules =====
