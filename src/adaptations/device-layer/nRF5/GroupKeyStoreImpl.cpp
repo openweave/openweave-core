@@ -25,6 +25,8 @@
 #include <Weave/DeviceLayer/internal/WeaveDeviceLayerInternal.h>
 #include <Weave/DeviceLayer/nRF5/GroupKeyStoreImpl.h>
 
+#include "mem_manager.h"
+
 using namespace ::nl;
 using namespace ::nl::Weave;
 using namespace ::nl::Weave::Profiles::Security::AppKeys;
@@ -39,7 +41,7 @@ WEAVE_ERROR GroupKeyStoreImpl::RetrieveGroupKey(uint32_t keyId, WeaveGroupKey & 
     WEAVE_ERROR err;
 
     // Iterate over all the GroupKey records looking for a matching key...
-    err = ForEachRecord(GetFileId(kConfigKey_GroupKey), GetRecordKey(kConfigKey_GroupKey),
+    err = ForEachRecord(kGroupKeyFileId, kGroupKeyRecordKey,
               [keyId, &key](const fds_flash_record_t & rec, bool & deleteRec) -> WEAVE_ERROR
               {
                   uint32_t curKeyId;
@@ -84,8 +86,68 @@ exit:
 
 WEAVE_ERROR GroupKeyStoreImpl::StoreGroupKey(const WeaveGroupKey & key)
 {
-    // TODO: implement me
-    return WEAVE_NO_ERROR;
+    WEAVE_ERROR err;
+    uint8_t * storedVal = NULL;
+    size_t storedValLen = FDSWords(kMaxEncodedKeySize) * kFDSWordSize;
+
+    // Delete any existing group key with the same id.
+    err = DeleteGroupKey(key.KeyId);
+    SuccessOrExit(err);
+
+    // Allocate a buffer to hold the encoded key.
+    storedVal = (uint8_t *)nrf_malloc(storedValLen);
+    VerifyOrExit(storedVal != NULL, err = WEAVE_ERROR_NO_MEMORY);
+
+    // Encode the key for storage in an FDS record.
+    err = EncodeGroupKey(key, storedVal, storedValLen, storedValLen);
+    SuccessOrExit(err);
+
+    // Add a GroupKey FDS record containing the encoded key.
+    {
+        FDSAsyncOp addOp(FDSAsyncOp::kAddRecord);
+        addOp.FileId = kGroupKeyFileId;
+        addOp.RecordKey = kGroupKeyRecordKey;
+        addOp.RecordData = storedVal;
+        addOp.RecordDataLengthWords = FDSWords(storedValLen);
+        err = DoAsyncFDSOp(addOp);
+        SuccessOrExit(err);
+    }
+
+#if WEAVE_PROGRESS_LOGGING
+
+    {
+        char extraKeyInfo[32];
+        if (WeaveKeyId::IsAppEpochKey(key.KeyId))
+        {
+            snprintf(extraKeyInfo, sizeof(extraKeyInfo), ", start time %" PRId32, key.StartTime);
+        }
+        else if (WeaveKeyId::IsAppGroupMasterKey(key.KeyId))
+        {
+            snprintf(extraKeyInfo, sizeof(extraKeyInfo), ", global id 0x%08" PRIX32, key.GlobalId);
+        }
+        else
+        {
+            extraKeyInfo[0] = 0;
+        }
+
+#if WEAVE_CONFIG_SECURITY_TEST_MODE
+        WeaveLogProgress(SecurityManager, "GroupKeyStore: storing key 0x%08" PRIX32 " (%s), len %" PRId8 ", data 0x%02" PRIX8 "...%s",
+                key.KeyId, WeaveKeyId::DescribeKey(key.KeyId), key.KeyLen, key.Key[0], extraKeyInfo);
+#else
+        WeaveLogProgress(SecurityManager, "GroupKeyStore: storing key 0x%08" PRIX32 " (%s), len %" PRId8 "%s",
+                key.KeyId, WeaveKeyId::DescribeKey(key.KeyId), key.KeyLen, extraKeyInfo);
+#endif
+    }
+
+#endif // WEAVE_PROGRESS_LOGGING
+
+exit:
+    if (storedVal != NULL)
+    {
+        ClearSecretData(storedVal, storedValLen);
+        nrf_free(storedVal);
+    }
+    return err;
 }
 
 WEAVE_ERROR GroupKeyStoreImpl::DeleteGroupKey(uint32_t keyId)
@@ -93,7 +155,7 @@ WEAVE_ERROR GroupKeyStoreImpl::DeleteGroupKey(uint32_t keyId)
     WEAVE_ERROR err;
 
     // Iterate over all the GroupKey records looking for matching keys...
-    err = ForEachRecord(GetFileId(kConfigKey_GroupKey), GetRecordKey(kConfigKey_GroupKey),
+    err = ForEachRecord(kGroupKeyFileId, kGroupKeyRecordKey,
               [keyId](const fds_flash_record_t & rec, bool & deleteRec) -> WEAVE_ERROR
               {
                   uint32_t curKeyId;
@@ -105,6 +167,11 @@ WEAVE_ERROR GroupKeyStoreImpl::DeleteGroupKey(uint32_t keyId)
 
                   // If it matches the key looking for, arrange for the record to be deleted.
                   deleteRec = (curKeyId == keyId);
+
+                  if (deleteRec)
+                  {
+                      WeaveLogProgress(DeviceLayer, "GroupKeyStore: deleting key 0x%08" PRIX32, curKeyId);
+                  }
 
               exit:
                   return err2;
@@ -121,7 +188,7 @@ WEAVE_ERROR GroupKeyStoreImpl::DeleteGroupKeysOfAType(uint32_t keyType)
     WEAVE_ERROR err;
 
     // Iterate over all the GroupKey records looking for matching keys...
-    err = ForEachRecord(GetFileId(kConfigKey_GroupKey), GetRecordKey(kConfigKey_GroupKey),
+    err = ForEachRecord(kGroupKeyFileId, kGroupKeyRecordKey,
               [keyType](const fds_flash_record_t & rec, bool & deleteRec) -> WEAVE_ERROR
               {
                   uint32_t curKeyId;
@@ -134,6 +201,11 @@ WEAVE_ERROR GroupKeyStoreImpl::DeleteGroupKeysOfAType(uint32_t keyType)
                   // If the current key matches the type we're looking for, arrange for the
                   // record to be deleted.
                   deleteRec = (WeaveKeyId::GetType(curKeyId) == keyType);
+
+                  if (deleteRec)
+                  {
+                      WeaveLogProgress(DeviceLayer, "GroupKeyStore: deleting key 0x%08" PRIX32, curKeyId);
+                  }
 
               exit:
                   return err2;
@@ -153,7 +225,7 @@ WEAVE_ERROR GroupKeyStoreImpl::EnumerateGroupKeys(uint32_t keyType, uint32_t * k
     keyCount = 0;
 
     // Iterate over all the GroupKey records looking for keys of the specified type...
-    err = ForEachRecord(GetFileId(kConfigKey_GroupKey), GetRecordKey(kConfigKey_GroupKey),
+    err = ForEachRecord(kGroupKeyFileId, kGroupKeyRecordKey,
               [keyType, keyIds, keyIdsArraySize, &keyCount](const fds_flash_record_t & rec, bool & deleteRec) -> WEAVE_ERROR
               {
                   uint32_t curKeyId;
@@ -164,7 +236,7 @@ WEAVE_ERROR GroupKeyStoreImpl::EnumerateGroupKeys(uint32_t keyType, uint32_t * k
                   SuccessOrExit(err2);
 
                   // If the current key matches the type we're looking for, add it to the keyIds array.
-                  if (WeaveKeyId::GetType(curKeyId) == keyType)
+                  if (keyType == WeaveKeyId::kType_None || WeaveKeyId::GetType(curKeyId) == keyType)
                   {
                       keyIds[keyCount++] = curKeyId;
 
@@ -193,7 +265,7 @@ WEAVE_ERROR GroupKeyStoreImpl::Clear(void)
     WEAVE_ERROR err;
 
     // Iterate over all GroupKey records deleting each one.
-    err = ForEachRecord(GetFileId(kConfigKey_GroupKey), GetRecordKey(kConfigKey_GroupKey),
+    err = ForEachRecord(kGroupKeyFileId, kGroupKeyRecordKey,
               [](const fds_flash_record_t & rec, bool & deleteRec) -> WEAVE_ERROR
               {
                   deleteRec = true;
@@ -201,6 +273,8 @@ WEAVE_ERROR GroupKeyStoreImpl::Clear(void)
               }
           );
     SuccessOrExit(err);
+
+    WeaveLogProgress(DeviceLayer, "GroupKeyStore: cleared");
 
 exit:
     return err;
@@ -230,7 +304,7 @@ WEAVE_ERROR GroupKeyStoreImpl::Init()
     return WEAVE_NO_ERROR;
 }
 
-WEAVE_ERROR GroupKeyStoreImpl::EncodeGroupKey(WeaveGroupKey & key, uint8_t * buf, size_t bufSize, size_t & encodedKeyLen)
+WEAVE_ERROR GroupKeyStoreImpl::EncodeGroupKey(const WeaveGroupKey & key, uint8_t * buf, size_t bufSize, size_t & encodedKeyLen)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
     uint8_t * p = buf;

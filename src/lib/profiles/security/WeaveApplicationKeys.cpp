@@ -110,6 +110,67 @@ exit:
     return err;
 }
 
+WEAVE_ERROR LogGroupKeys(GroupKeyStoreBase * groupKeyStore)
+{
+#if WEAVE_PROGRESS_LOGGING
+
+    WEAVE_ERROR err;
+    Profiles::Security::AppKeys::WeaveGroupKey key;
+    enum { kKeyIdListSize = 32 };
+    uint32_t keyIds[kKeyIdListSize];
+    uint8_t keyCount;
+
+    err = groupKeyStore->EnumerateGroupKeys(WeaveKeyId::kType_None, keyIds, kKeyIdListSize, keyCount);
+    if (err != WEAVE_NO_ERROR)
+    {
+        WeaveLogError(SecurityManager, "EnumerateGroupKeys() failed: 0x%08" PRIX32, err);
+        ExitNow();
+    }
+
+    WeaveLogProgress(SecurityManager, "Contents of GroupKeyStore: %" PRId8 " keys", keyCount);
+
+    for (uint8_t i = 0; i < keyCount; i++)
+    {
+        err = groupKeyStore->RetrieveGroupKey(keyIds[i], key);
+        if (err != WEAVE_NO_ERROR)
+        {
+            WeaveLogError(SecurityManager, "RetrieveGroupKey() failed: 0x%08" PRIX32, err);
+            ExitNow();
+        }
+
+        char extraKeyInfo[32];
+        if (WeaveKeyId::IsAppEpochKey(key.KeyId))
+        {
+            snprintf(extraKeyInfo, sizeof(extraKeyInfo), ", start time %" PRId32, key.StartTime);
+        }
+        else if (WeaveKeyId::IsAppGroupMasterKey(key.KeyId))
+        {
+            snprintf(extraKeyInfo, sizeof(extraKeyInfo), ", global id 0x%08" PRIX32, key.GlobalId);
+        }
+        else
+        {
+            extraKeyInfo[0] = 0;
+        }
+
+#if WEAVE_CONFIG_SECURITY_TEST_MODE
+        WeaveLogProgress(SecurityManager, "  Key %" PRId8 ": id 0x%08" PRIX32 " (%s), len %" PRId8 ", data 0x%02" PRIX8 "...%s",
+                i, key.KeyId, WeaveKeyId::DescribeKey(key.KeyId), key.KeyLen, key.Key[0], extraKeyInfo);
+#else
+        WeaveLogProgress(SecurityManager, "  Key %" PRId8 ": id 0x%08" PRIX32 " (%s), len %" PRId8 "%s",
+                i, key.KeyId, WeaveKeyId::DescribeKey(key.KeyId), key.KeyLen, extraKeyInfo);
+#endif
+    }
+
+exit:
+    return err;
+
+#else // WEAVE_PROGRESS_LOGGING
+
+    return WEAVE_NO_ERROR;
+
+#endif // WEAVE_PROGRESS_LOGGING
+}
+
 /**
  * Initialize local group key store parameters.
  */

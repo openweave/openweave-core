@@ -18,7 +18,9 @@
 #endif // NRF_LOG_ENABLED
 
 #include <Weave/DeviceLayer/WeaveDeviceLayer.h>
-#include <Weave/DeviceLayer/internal/ConfigUnitTest.h>
+#include <Weave/DeviceLayer/nRF5/GroupKeyStoreImpl.h>
+#include <Weave/DeviceLayer/internal/testing/ConfigUnitTest.h>
+#include <Weave/DeviceLayer/internal/testing/GroupKeyStoreUnitTest.h>
 
 using namespace ::nl;
 using namespace ::nl::Inet;
@@ -65,7 +67,16 @@ static void TestTaskMain(void * pvParameter)
     err = Internal::NRF5Config::Init();
     APP_ERROR_CHECK(err);
 
+    // Test the core configuration interface
     Internal::NRF5Config::RunConfigUnitTest();
+
+    // Test the group key store
+    {
+        Internal::GroupKeyStoreImpl groupKeyStore;
+        err = groupKeyStore.Init();
+        APP_ERROR_CHECK(err);
+        Internal::RunGroupKeyStoreUnitTest<Internal::GroupKeyStoreImpl>(&groupKeyStore);
+    }
 
     NRF_LOG_INFO("TEST task done");
     bsp_board_led_invert(BSP_BOARD_LED_2);
