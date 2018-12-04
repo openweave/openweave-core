@@ -16,8 +16,8 @@
  *    limitations under the License.
  */
 
-#ifndef WEAVE_DEVICE_CONFIG_TEST_H
-#define WEAVE_DEVICE_CONFIG_TEST_H
+#ifndef WEAVE_DEVICE_CONFIG_UNIT_TEST_H
+#define WEAVE_DEVICE_CONFIG_UNIT_TEST_H
 
 #include <Weave/Core/WeaveCore.h>
 
@@ -31,7 +31,7 @@ void RunConfigUnitTest(void)
 {
     WEAVE_ERROR err;
 
-    // Test 1 -- Store and read uint32_t
+    // ===== Test 1: Store and read uint32_t
     {
         uint32_t v = 42;
 
@@ -46,7 +46,7 @@ void RunConfigUnitTest(void)
         VerifyOrDie(v == 42);
     }
 
-    // Test 2 -- Store and read uint64_t
+    // ===== Test 2: Store and read uint64_t
     {
         uint64_t v = 9872349687345;
 
@@ -61,7 +61,7 @@ void RunConfigUnitTest(void)
         VerifyOrDie(v == 9872349687345);
     }
 
-    // Test 2 -- Store and read bool value
+    // ===== Test 3: Store and read bool value
     {
         bool v = true;
 
@@ -76,7 +76,7 @@ void RunConfigUnitTest(void)
         VerifyOrDie(v == true);
     }
 
-    // Test 3 -- Clear value
+    // ===== Test 4: Clear value
     {
         uint32_t v;
 
@@ -87,7 +87,7 @@ void RunConfigUnitTest(void)
         VerifyOrDie(err == WEAVE_DEVICE_ERROR_CONFIG_NOT_FOUND);
     }
 
-    // Test 4 -- Store and read string
+    // ===== Test 5: Store and read string
     {
         const static char kTestString1[] = "This is a test";
         const static char kTestString2[] = "";
@@ -113,7 +113,7 @@ void RunConfigUnitTest(void)
         VerifyOrDie(memcmp(buf, kTestString2, strLen + 1) == 0);
     }
 
-    // Test 5 -- Clear string
+    // ===== Test 6: Clear string
     {
         char buf[64];
         size_t strLen;
@@ -125,7 +125,7 @@ void RunConfigUnitTest(void)
         VerifyOrDie(err == WEAVE_DEVICE_ERROR_CONFIG_NOT_FOUND);
     }
 
-    // Test 6 -- Store and read binary data
+    // ===== Test 7: Store and read binary data
     {
         const static uint8_t kTestData[] =
         {
@@ -159,7 +159,7 @@ void RunConfigUnitTest(void)
         VerifyOrDie(memcmp(buf, kTestData, dataLen) == 0);
     }
 
-    // Test 7 -- Clear binary data
+    // ===== Test 8: Clear binary data
     {
         uint8_t buf[512];
         size_t dataLen;
@@ -171,7 +171,7 @@ void RunConfigUnitTest(void)
         VerifyOrDie(err == WEAVE_DEVICE_ERROR_CONFIG_NOT_FOUND);
     }
 
-    // Test 8 -- Config value exists
+    // ===== Test 9: Config value exists
     {
         bool v;
 
@@ -185,7 +185,7 @@ void RunConfigUnitTest(void)
         VerifyOrDie(v == false);
     }
 
-    // Test 8 -- Factory reset config
+    // ===== Test 10: Factory reset config
     {
         bool v;
 
@@ -205,4 +205,4 @@ void RunConfigUnitTest(void)
 } // namespace Weave
 } // namespace nl
 
-#endif // WEAVE_DEVICE_CONFIG_TEST_H
+#endif // WEAVE_DEVICE_CONFIG_UNIT_TEST_H

@@ -169,6 +169,9 @@ private:
 
 extern WEAVE_ERROR GetAppGroupMasterKeyId(uint32_t groupGlobalId, GroupKeyStoreBase *groupKeyStore, uint32_t& groupMasterKeyId);
 
+extern WEAVE_ERROR LogGroupKeys(GroupKeyStoreBase * groupKeyStore);
+
+
 } // namespace AppKeys
 } // namespace Security
 } // namespace Profiles

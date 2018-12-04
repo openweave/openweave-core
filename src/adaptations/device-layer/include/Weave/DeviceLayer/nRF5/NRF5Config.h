@@ -153,12 +153,12 @@ protected:
     static FDSAsyncOp * volatile sActiveAsyncOp;
     static SemaphoreHandle_t sAsyncOpCompletionSem;
 
-    static uint16_t GetFileId(uint32_t key);
-    static uint16_t GetRecordKey(uint32_t key);
+    static constexpr uint16_t GetFileId(uint32_t key);
+    static constexpr uint16_t GetRecordKey(uint32_t key);
     static WEAVE_ERROR OpenRecord(NRF5Config::Key key, fds_record_desc_t & recDesc, fds_flash_record_t & rec);
     static WEAVE_ERROR ForEachRecord(uint16_t fileId, uint16_t recordKey, ForEachRecordFunct funct);
     static WEAVE_ERROR DoAsyncFDSOp(FDSAsyncOp & asyncOp);
-    static uint16_t FDSWords(size_t s);
+    static constexpr uint16_t FDSWords(size_t s);
 
 private:
     static void HandleFDSEvent(const fds_evt_t * fdsEvent);
@@ -168,7 +168,7 @@ private:
 /**
  * Extract an FDS file id from a Key value.
  */
-inline uint16_t NRF5Config::GetFileId(Key key)
+inline constexpr uint16_t NRF5Config::GetFileId(Key key)
 {
     return static_cast<uint16_t>(key >> 16);
 }
@@ -176,7 +176,7 @@ inline uint16_t NRF5Config::GetFileId(Key key)
 /**
  * Extract an FDS record key from a Key value.
  */
-inline uint16_t NRF5Config::GetRecordKey(Key key)
+inline constexpr uint16_t NRF5Config::GetRecordKey(Key key)
 {
     return static_cast<uint16_t>(key);
 }
@@ -184,7 +184,7 @@ inline uint16_t NRF5Config::GetRecordKey(Key key)
 /**
  * Number of FDS words needed to hold a given size object.
  */
-inline uint16_t NRF5Config::FDSWords(size_t s)
+inline constexpr uint16_t NRF5Config::FDSWords(size_t s)
 {
     return (s + (kFDSWordSize - 1)) / kFDSWordSize;
 }

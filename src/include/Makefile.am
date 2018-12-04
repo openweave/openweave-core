@@ -971,7 +971,6 @@ $(NULL)
 
 nl_public_WeaveDeviceLayer_internal_header_sources =                                                \
 $(nl_public_WeaveDeviceLayer_source_dirstem)/internal/BLEManager.h                                  \
-$(nl_public_WeaveDeviceLayer_source_dirstem)/internal/ConfigUnitTest.h                              \
 $(nl_public_WeaveDeviceLayer_source_dirstem)/internal/DeviceControlServer.h                         \
 $(nl_public_WeaveDeviceLayer_source_dirstem)/internal/DeviceDescriptionServer.h                     \
 $(nl_public_WeaveDeviceLayer_source_dirstem)/internal/DeviceIdentityTraitDataSource.h               \
@@ -991,9 +990,15 @@ $(nl_public_WeaveDeviceLayer_source_dirstem)/internal/ServiceTunnelAgent.h      
 $(nl_public_WeaveDeviceLayer_source_dirstem)/internal/WeaveDeviceLayerInternal.h                    \
 $(NULL)
 
+nl_public_WeaveDeviceLayer_internal_testing_header_sources =                          \
+$(nl_public_WeaveDeviceLayer_source_dirstem)/internal/testing/ConfigUnitTest.h        \
+$(nl_public_WeaveDeviceLayer_source_dirstem)/internal/testing/GroupKeyStoreUnitTest.h \
+$(NULL)
+
 nl_public_WeaveDeviceLayer_header_sources = \
 $(nl_public_WeaveDeviceLayer_base_header_sources) \
 $(nl_public_WeaveDeviceLayer_internal_header_sources) \
+$(nl_public_WeaveDeviceLayer_internal_testing_header_sources) \
 $(nl_public_WeaveDeviceLayer_target_header_sources) \
 $(NULL)
 
@@ -1020,6 +1025,9 @@ dist_weave_device_layer_base_HEADERS = $(addprefix ../,$(nl_public_WeaveDeviceLa
 
 weave_device_layer_internaldir = $(includedir)/$(nl_public_WeaveDeviceLayer_destination_dirstem)/internal
 dist_weave_device_layer_internal_HEADERS = $(addprefix ../,$(nl_public_WeaveDeviceLayer_internal_header_sources))
+
+weave_device_layer_internal_testingdir = $(includedir)/$(nl_public_WeaveDeviceLayer_destination_dirstem)/internal/testing
+dist_weave_device_layer_internal_testing_HEADERS = $(addprefix ../,$(nl_public_WeaveDeviceLayer_internal_testing_header_sources))
 
 weave_device_layer_targetdir = $(includedir)/$(nl_public_WeaveDeviceLayer_destination_dirstem)/$(WEAVE_DEVICE_LAYER_TARGET)
 dist_weave_device_layer_target_HEADERS = $(addprefix ../,$(nl_public_WeaveDeviceLayer_target_header_sources))
