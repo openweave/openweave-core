@@ -58,16 +58,18 @@ class NL_DLL_EXPORT WeaveCircularTLVBuffer
 {
 public:
     WeaveCircularTLVBuffer(uint8_t *inBuffer, size_t inBufferLength);
+    WeaveCircularTLVBuffer(uint8_t *inBuffer, size_t inBufferLength, uint8_t *inHead);
 
     WEAVE_ERROR GetNewBuffer(TLVWriter& ioWriter, uint8_t *& outBufStart, uint32_t& outBufLen);
     WEAVE_ERROR FinalizeBuffer(TLVWriter& ioWriter, uint8_t *inBufStart, uint32_t inBufLen);
     WEAVE_ERROR GetNextBuffer(TLVReader& ioReader, const uint8_t *& outBufStart, uint32_t& outBufLen);
 
-    inline uint8_t *QueueHead(void) { return mQueueHead; };
-    inline uint8_t *QueueTail(void) { return mQueue + (((mQueueHead-mQueue) + mQueueLength) % mQueueSize); }
-    inline size_t DataLength(void) { return mQueueLength; }
-    inline size_t AvailableDataLength(void) { return mQueueSize - mQueueLength; }
-    inline size_t GetQueueSize(void) { return mQueueSize; }
+    inline uint8_t *QueueHead(void) const { return mQueueHead; };
+    inline uint8_t *QueueTail(void) const { return mQueue + (((mQueueHead-mQueue) + mQueueLength) % mQueueSize); };
+    inline size_t DataLength(void) const { return mQueueLength; };
+    inline size_t AvailableDataLength(void) const { return mQueueSize - mQueueLength; };
+    inline size_t GetQueueSize(void) const { return mQueueSize; };
+    inline uint8_t *GetQueue(void) const { return mQueue; };
 
     WEAVE_ERROR EvictHead(void);
 

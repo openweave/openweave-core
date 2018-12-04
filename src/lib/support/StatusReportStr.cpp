@@ -123,19 +123,20 @@ NL_DLL_EXPORT const char *StatusReportStr(uint32_t profileId, uint16_t statusCod
     case kWeaveProfile_Common:
         switch (statusCode)
         {
-        case nl::Weave::Profiles::Common::kStatus_Success                                 : fmt = "[ Common(%08" PRIX32 "):%" PRIu16 " ] Success"; break;
-        case nl::Weave::Profiles::Common::kStatus_BadRequest                              : fmt = "[ Common(%08" PRIX32 "):%" PRIu16 " ] Bad/malformed request"; break;
-        case nl::Weave::Profiles::Common::kStatus_UnsupportedMessage                      : fmt = "[ Common(%08" PRIX32 "):%" PRIu16 " ] Unrecognized/unsupported message"; break;
-        case nl::Weave::Profiles::Common::kStatus_UnexpectedMessage                       : fmt = "[ Common(%08" PRIX32 "):%" PRIu16 " ] Unexpected message"; break;
-        case nl::Weave::Profiles::Common::kStatus_AuthenticationRequired                  : fmt = "[ Common(%08" PRIX32 "):%" PRIu16 " ] Authentication required"; break;
-        case nl::Weave::Profiles::Common::kStatus_AccessDenied                            : fmt = "[ Common(%08" PRIX32 "):%" PRIu16 " ] Access denied"; break;
-        case nl::Weave::Profiles::Common::kStatus_OutOfMemory                             : fmt = "[ Common(%08" PRIX32 "):%" PRIu16 " ] Out of memory"; break;
-        case nl::Weave::Profiles::Common::kStatus_NotAvailable                            : fmt = "[ Common(%08" PRIX32 "):%" PRIu16 " ] Not available"; break;
-        case nl::Weave::Profiles::Common::kStatus_Relocated                               : fmt = "[ Common(%08" PRIX32 "):%" PRIu16 " ] Relocated"; break;
-        case nl::Weave::Profiles::Common::kStatus_Busy                                    : fmt = "[ Common(%08" PRIX32 "):%" PRIu16 " ] Sender busy"; break;
-        case nl::Weave::Profiles::Common::kStatus_Timeout                                 : fmt = "[ Common(%08" PRIX32 "):%" PRIu16 " ] Timeout"; break;
-        case nl::Weave::Profiles::Common::kStatus_InternalError                           : fmt = "[ Common(%08" PRIX32 "):%" PRIu16 " ] Internal error"; break;
-        case nl::Weave::Profiles::Common::kStatus_Continue                                : fmt = "[ Common(%08" PRIX32 "):%" PRIu16 " ] Continue"; break;
+        case nl::Weave::Profiles::Common::kStatus_Success                               : fmt = "[ Common(%08" PRIX32 "):%" PRIu16 " ] Success"; break;
+        case nl::Weave::Profiles::Common::kStatus_BadRequest                            : fmt = "[ Common(%08" PRIX32 "):%" PRIu16 " ] Bad/malformed request"; break;
+        case nl::Weave::Profiles::Common::kStatus_UnsupportedMessage                    : fmt = "[ Common(%08" PRIX32 "):%" PRIu16 " ] Unrecognized/unsupported message"; break;
+        case nl::Weave::Profiles::Common::kStatus_UnexpectedMessage                     : fmt = "[ Common(%08" PRIX32 "):%" PRIu16 " ] Unexpected message"; break;
+        case nl::Weave::Profiles::Common::kStatus_AuthenticationRequired                : fmt = "[ Common(%08" PRIX32 "):%" PRIu16 " ] Authentication required"; break;
+        case nl::Weave::Profiles::Common::kStatus_AccessDenied                          : fmt = "[ Common(%08" PRIX32 "):%" PRIu16 " ] Access denied"; break;
+        case nl::Weave::Profiles::Common::kStatus_OutOfMemory                           : fmt = "[ Common(%08" PRIX32 "):%" PRIu16 " ] Out of memory"; break;
+        case nl::Weave::Profiles::Common::kStatus_NotAvailable                          : fmt = "[ Common(%08" PRIX32 "):%" PRIu16 " ] Not available"; break;
+        case nl::Weave::Profiles::Common::kStatus_LocalSetupRequired                    : fmt = "[ Common(%08" PRIX32 "):%" PRIu16 " ] Local setup required"; break;
+        case nl::Weave::Profiles::Common::kStatus_Relocated                             : fmt = "[ Common(%08" PRIX32 "):%" PRIu16 " ] Relocated"; break;
+        case nl::Weave::Profiles::Common::kStatus_Busy                                  : fmt = "[ Common(%08" PRIX32 "):%" PRIu16 " ] Sender busy"; break;
+        case nl::Weave::Profiles::Common::kStatus_Timeout                               : fmt = "[ Common(%08" PRIX32 "):%" PRIu16 " ] Timeout"; break;
+        case nl::Weave::Profiles::Common::kStatus_InternalError                         : fmt = "[ Common(%08" PRIX32 "):%" PRIu16 " ] Internal error"; break;
+        case nl::Weave::Profiles::Common::kStatus_Continue                              : fmt = "[ Common(%08" PRIX32 "):%" PRIu16 " ] Continue"; break;
         default                                                                         : fmt = "[ Common(%08" PRIX32 "):%" PRIu16 " ]"; break;
         }
         break;
@@ -144,14 +145,14 @@ NL_DLL_EXPORT const char *StatusReportStr(uint32_t profileId, uint16_t statusCod
         switch (statusCode)
 	    {
 #if WEAVE_CONFIG_LEGACY_WDM
-        case DataManagement_Legacy::kStatus_CancelSuccess                                : fmt = "[ WDM(%08" PRIX32 "):%" PRIu16 " ] Subscription canceled"; break;
-        case DataManagement_Legacy::kStatus_InvalidPath                                  : fmt = "[ WDM(%08" PRIX32 "):%" PRIu16 " ] Invalid path"; break;
-        case DataManagement_Legacy::kStatus_UnknownTopic                                 : fmt = "[ WDM(%08" PRIX32 "):%" PRIu16 " ] Unknown topic"; break;
-        case DataManagement_Legacy::kStatus_IllegalReadRequest                           : fmt = "[ WDM(%08" PRIX32 "):%" PRIu16 " ] Illegal read request"; break;
-        case DataManagement_Legacy::kStatus_IllegalWriteRequest                          : fmt = "[ WDM(%08" PRIX32 "):%" PRIu16 " ] Illegal write request"; break;
-        case DataManagement_Legacy::kStatus_InvalidVersion                               : fmt = "[ WDM(%08" PRIX32 "):%" PRIu16 " ] Invalid version"; break;
+        case DataManagement_Legacy::kStatus_CancelSuccess                               : fmt = "[ WDM(%08" PRIX32 "):%" PRIu16 " ] Subscription canceled"; break;
+        case DataManagement_Legacy::kStatus_InvalidPath                                 : fmt = "[ WDM(%08" PRIX32 "):%" PRIu16 " ] Invalid path"; break;
+        case DataManagement_Legacy::kStatus_UnknownTopic                                : fmt = "[ WDM(%08" PRIX32 "):%" PRIu16 " ] Unknown topic"; break;
+        case DataManagement_Legacy::kStatus_IllegalReadRequest                          : fmt = "[ WDM(%08" PRIX32 "):%" PRIu16 " ] Illegal read request"; break;
+        case DataManagement_Legacy::kStatus_IllegalWriteRequest                         : fmt = "[ WDM(%08" PRIX32 "):%" PRIu16 " ] Illegal write request"; break;
+        case DataManagement_Legacy::kStatus_InvalidVersion                              : fmt = "[ WDM(%08" PRIX32 "):%" PRIu16 " ] Invalid version"; break;
 #endif
-        default                                                                          : fmt = "[ WDM(%08" PRIX32 "):%" PRIu16 " ]"; break;
+        default                                                                         : fmt = "[ WDM(%08" PRIX32 "):%" PRIu16 " ]"; break;
         }
 	break;
 

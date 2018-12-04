@@ -141,6 +141,7 @@ public:
     uint32_t GetRemainingLength(void) const { return mMaxLen - mLenRead; }
 
     const uint8_t *GetReadPoint(void) const { return mReadPoint; }
+    uintptr_t GetBufHandle(void) const { return mBufHandle; }
 
     WEAVE_ERROR Skip(void);
 

@@ -28,6 +28,8 @@ lib_LIBRARIES                       = libWoBluez.a
 
 libWoBluez_a_CPPFLAGS               = \
     $(BLUEZ_CPPFLAGS)                 \
+    $(LWIP_CPPFLAGS)                  \
+    $(SOCKET_CPPFLAGS)                \
     $(NULL)
 
 libWoBluez_a_SOURCES                = \

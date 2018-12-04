@@ -60,6 +60,9 @@ protected:
     WEAVE_ERROR HandleUpdateService(UpdateServiceMessage& msg);
     WEAVE_ERROR HandleUnregisterService(uint64_t serviceId);
     void HandlePairDeviceToAccountResult(WEAVE_ERROR localErr, uint32_t serverStatusProfileId, uint16_t serverStatusCode);
+#ifdef WEAVE_CONFIG_ENABLE_IFJ_SERVICE_FABRIC_JOIN
+    void HandleIFJServiceFabricJoinResult(WEAVE_ERROR localErr, uint32_t serverStatusProfileId, uint16_t serverStatusCode);
+#endif // WEAVE_CONFIG_ENABLE_IFJ_SERVICE_FABRIC_JOIN
     virtual void EnforceAccessControl(nl::Weave::ExchangeContext *ec, uint32_t msgProfileId, uint8_t msgType,
                 const nl::Weave::WeaveMessageInfo *msgInfo, AccessControlResult& result);
     virtual bool IsPairedToAccount() const;

@@ -229,8 +229,10 @@ static void TestInetInterface(nlTestSuite *inSuite, void *inContext)
         intId = intIterator.GetInterface();
         memset(intName, 0, sizeof(intName));
         GetInterfaceName(intId, intName, sizeof(intName));
-        printf("     interface id: %d, interface name: %s, %s mulicast\n", intId,
-              intName, intIterator.SupportsMulticast() ? "support":"don't support");
+        printf("     interface id: 0x%" PRIxPTR ", interface name: %s, %s mulicast\n",
+               (uintptr_t)(intId),
+               intName,
+               intIterator.SupportsMulticast() ? "support" : "don't support");
 
         Inet.GetLinkLocalAddr(intId, &addr);
         Inet.MatchLocalIPv6Subnet(addr);
