@@ -68,7 +68,7 @@ case "${BUILD_TARGET}" in
 
     happy_test)
         # run happy test
-        sudo bash -c "source ${HOME}/ve/happy/bin/activate; make -f Makefile-Standalone DEBUG=1 TIMESTAMP=1 COVERAGE=1 BuildJobs=24 check"
+        sudo bash -c "source ${HOME}/ve/happy/bin/activate; make -f Makefile-Standalone DEBUG=1 TIMESTAMP=1 COVERAGE=1 BuildJobs=24 BLUEZ=1 check"
         ;;
 
     *)

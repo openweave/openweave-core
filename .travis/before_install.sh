@@ -92,6 +92,12 @@ case "${BUILD_TARGET}" in
         sudo apt-get install swig
         sudo apt-get install lcov
 
+        # add for BLUEZ test
+        sudo apt-get -y install libusb-dev libdbus-1-dev libglib2.0-dev libudev-dev libical-dev libreadline-dev libdbus-glib-1-dev libtool
+        sudo pip install dbus-python==1.2.4
+        curl -L https://cpanmin.us | sudo perl - --sudo App::cpanminus
+        sudo cpanm "Text::Template"
+
         cd $HOME
         git clone https://github.com/openweave/happy.git
 
@@ -103,6 +109,19 @@ case "${BUILD_TARGET}" in
         cd ${HOME}/happy
         python pip_packages.py
         python setup.py develop
+        pip install pexpect
+        sudo apt install python-gobject
+        sudo apt install python-dbus
+
+        # build bluez
+        cd $TRAVIS_BUILD_DIR
+        wget http://www.kernel.org/pub/linux/bluetooth/bluez-5.48.tar.gz
+        tar xfz $TRAVIS_BUILD_DIR/bluez-5.48.tar.gz
+        cd $TRAVIS_BUILD_DIR/bluez-5.48/
+        ./configure  --prefix=/usr --mandir=/usr/share/man --sysconfdir=/etc --localstatedir=/var --enable-tools --enable-testing --enable-experimental --with-systemdsystemunitdir=/lib/systemd/system --with-systemduserunitdir=/usr/lib/systemd --enable-deprecated
+        make
+        sudo make install
+        cd $TRAVIS_BUILD_DIR
 
         # configure happy, $HOME: /home/travis
         # $TRAVIS_BUILD_DIR: /home/travis/build/jenniexie/openweave-core
