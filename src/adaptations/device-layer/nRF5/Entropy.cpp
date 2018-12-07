@@ -113,8 +113,7 @@ WEAVE_ERROR InitEntropy()
 exit:
     if (err != WEAVE_NO_ERROR)
     {
-        // TODO: log error
-        // ESP_LOGE(TAG, "InitEntropy() failed: %s", ErrorStr(err));
+        WeaveLogError(Crypto, "InitEntropy() failed: 0x%08" PRIX32, err);
     }
     return err;
 }

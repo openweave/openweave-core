@@ -19,12 +19,14 @@
 /**
  *    @file
  *          Provides implementations of the Weave System Layer platform
- *          time/clock functions for use on Nordic nRF5* platforms.
+ *          time/clock functions based on the FreeRTOS tick counter.
  */
 
 
 #include <Weave/DeviceLayer/internal/WeaveDeviceLayerInternal.h>
 #include <Weave/Support/TimeUtils.h>
+
+#include "FreeRTOS.h"
 
 namespace nl {
 namespace Weave {
@@ -32,41 +34,68 @@ namespace System {
 namespace Platform {
 namespace Layer {
 
+namespace {
+
+constexpr uint32_t kTicksOverflowShift = (configUSE_16_BIT_TICKS) ? 16 : 32;
+
+uint64_t sBootTimeUS = 0;
+
+uint64_t TicksSinceBoot(void)
+{
+    TimeOut_t timeOut;
+    vTaskSetTimeOutState(&timeOut);
+    return static_cast<uint64_t>(timeOut.xTimeOnEntering) +
+          (static_cast<uint64_t>(timeOut.xOverflowCount) << kTicksOverflowShift);
+}
+
+} // unnamed namespace
+
 uint64_t GetClock_Monotonic(void)
 {
-    // TODO: implement me
-    return 0;
+    return (TicksSinceBoot() * kMicrosecondsPerSecond) / configTICK_RATE_HZ;
 }
 
 uint64_t GetClock_MonotonicMS(void)
 {
-    // TODO: implement me
-    return 0;
+    return (TicksSinceBoot() * kMillisecondPerSecond) / configTICK_RATE_HZ;
 }
 
 uint64_t GetClock_MonotonicHiRes(void)
 {
-    // TODO: implement me
-    return 0;
+    return GetClock_Monotonic();
 }
 
 Error GetClock_RealTime(uint64_t & curTime)
 {
-    // TODO: implement me
-    curTime = 0;
+    if (sBootTimeUS == 0)
+    {
+        return WEAVE_SYSTEM_ERROR_REAL_TIME_NOT_SYNCED;
+    }
+    curTime = sBootTimeUS + GetClock_Monotonic();
     return WEAVE_SYSTEM_NO_ERROR;
 }
 
 Error GetClock_RealTimeMS(uint64_t & curTime)
 {
-    // TODO: implement me
-    curTime = 0;
+    if (sBootTimeUS == 0)
+    {
+        return WEAVE_SYSTEM_ERROR_REAL_TIME_NOT_SYNCED;
+    }
+    curTime = (sBootTimeUS + GetClock_Monotonic()) / 1000;
     return WEAVE_SYSTEM_NO_ERROR;
 }
 
 Error SetClock_RealTime(uint64_t newCurTime)
 {
-    // TODO: implement me
+    uint64_t timeSinceBootUS = GetClock_Monotonic();
+    if (newCurTime > timeSinceBootUS)
+    {
+        sBootTimeUS = newCurTime - timeSinceBootUS;
+    }
+    else
+    {
+        sBootTimeUS = 0;
+    }
     return WEAVE_SYSTEM_NO_ERROR;
 }
 
