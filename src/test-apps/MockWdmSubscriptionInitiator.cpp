@@ -178,8 +178,10 @@ private:
     MockWdmNodeOptions::WdmUpdateConditionality mUpdateConditionality;
     MockWdmNodeOptions::WdmUpdateTiming mUpdateTiming;
     uint32_t mUpdateNumTraits;
+    uint32_t mUpdateMutationCounter;
     uint32_t mUpdateNumMutations;
     uint32_t mUpdateNumRepeatedMutations;
+    bool     mUpdateDiscardOnError;
     uint32_t mUpdateSameMutationCounter;
 #endif // WEAVE_CONFIG_ENABLE_WDM_UPDATE
 
@@ -285,6 +287,7 @@ private:
 
     static void HandleDataFlipTimeout (nl::Weave::System::Layer *aSystemLayer, void *aAppState, nl::Weave::System::Error aErr);
 #if WEAVE_CONFIG_ENABLE_WDM_UPDATE
+    static void HandleMutationTimeout (nl::Weave::System::Layer *aSystemLayer, void *aAppState, nl::Weave::System::Error aErr);
     WEAVE_ERROR ApplyWdmUpdateMutations();
 #endif
 
@@ -398,8 +401,10 @@ WEAVE_ERROR MockWdmSubscriptionInitiatorImpl::Init(
     mUpdateConditionality = aConfig.mWdmUpdateConditionality;
     mUpdateTiming = aConfig.mWdmUpdateTiming;
     mUpdateNumTraits = aConfig.mWdmUpdateNumberOfTraits;
+    mUpdateMutationCounter = 0;
     mUpdateNumMutations = aConfig.mWdmUpdateNumberOfMutations;
     mUpdateNumRepeatedMutations = aConfig.mWdmUpdateNumberOfRepeatedMutations;
+    mUpdateDiscardOnError = aConfig.mWdmUpdateDiscardOnError;
     mUpdateSameMutationCounter = 0;
 #endif // WEAVE_CONFIG_ENABLE_WDM_UPDATE
 
@@ -759,12 +764,14 @@ void MockWdmSubscriptionInitiatorImpl::BindingEventCallback (void * const apAppS
         break;
 
     case nl::Weave::Binding::kEvent_PrepareFailed:
-        err = aInParam.PrepareFailed.Reason;
+        // Don't fail; let the protocol retry.
+        //err = aInParam.PrepareFailed.Reason;
         WeaveLogDetail(DataManagement, "kEvent_PrepareFailed: reason %d", err);
         break;
 
     case nl::Weave::Binding::kEvent_BindingFailed:
-        err = aInParam.BindingFailed.Reason;
+        // Don't fail; let the protocol retry.
+        //err = aInParam.BindingFailed.Reason;
         WeaveLogDetail(DataManagement, "kEvent_BindingFailed: reason %d", err);
         break;
 
@@ -1117,9 +1124,18 @@ void MockWdmSubscriptionInitiatorImpl::ClientEventCallback (void * const aAppSta
         }
         else
         {
-            WeaveLogDetail(DataManagement, "Update: path failed: %s, %s",
+            WeaveLogDetail(DataManagement, "Update: path failed: %s, %s, tdh %" PRIu16", will %sretry",
                            ErrorStr(aInParam.mUpdateComplete.mReason),
-                           nl::StatusReportStr(aInParam.mUpdateComplete.mStatusProfileId, aInParam.mUpdateComplete.mStatusCode));
+                           nl::StatusReportStr(aInParam.mUpdateComplete.mStatusProfileId, aInParam.mUpdateComplete.mStatusCode),
+                           aInParam.mUpdateComplete.mTraitDataHandle,
+                           aInParam.mUpdateComplete.mWillRetry ? "" : "not ");
+
+            if (initiator->mUpdateDiscardOnError)
+            {
+                TraitDataSink *sink = NULL;
+                initiator->mSinkCatalog.Locate(aInParam.mUpdateComplete.mTraitDataHandle, &sink);
+                initiator->mSubscriptionClient->DiscardUpdates();
+            }
         }
         break;
     case SubscriptionClient::kEvent_OnNoMorePendingUpdates:
@@ -1316,6 +1332,14 @@ void MockWdmSubscriptionInitiatorImpl::HandlePublisherRelease()
 }
 
 #if WEAVE_CONFIG_ENABLE_WDM_UPDATE
+void MockWdmSubscriptionInitiatorImpl::HandleMutationTimeout(nl::Weave::System::Layer* aSystemLayer, void *aAppState,
+    nl::Weave::System::Error aErr)
+{
+    MockWdmSubscriptionInitiatorImpl * const initiator = reinterpret_cast<MockWdmSubscriptionInitiatorImpl *>(aAppState);
+
+    initiator->ApplyWdmUpdateMutations();
+}
+
 WEAVE_ERROR MockWdmSubscriptionInitiatorImpl::ApplyWdmUpdateMutations()
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
@@ -1348,40 +1372,45 @@ WEAVE_ERROR MockWdmSubscriptionInitiatorImpl::ApplyWdmUpdateMutations()
             break;
     }
 
-    for (uint32_t i = 0; i < initiator->mUpdateNumMutations; i++)
+    mUpdateMutationCounter++;
+
+    WeaveLogDetail(DataManagement, "Mutation %u of %u; %u trait instances",
+            initiator->mUpdateMutationCounter, initiator->mUpdateNumMutations, initiator->mUpdateNumTraits);
+    switch (initiator->mUpdateNumTraits)
     {
-        WeaveLogDetail(DataManagement, "Mutation %u of %u; %u trait instances",
-                i+1, initiator->mUpdateNumMutations, initiator->mUpdateNumTraits);
-        switch (initiator->mUpdateNumTraits)
-        {
-            case 4:
-                err = initiator->mTestATraitUpdatableDataSink1.Mutate(initiator->mSubscriptionClient, otherTraitsConditional, initiator->mUpdateMutation);
-                SuccessOrExit(err);
-            case 3:
-                err = initiator->mTestBTraitUpdatableDataSink.Mutate(initiator->mSubscriptionClient, otherTraitsConditional, initiator->mUpdateMutation);
-                SuccessOrExit(err);
-            case 2:
-                err = initiator->mLocaleSettingsTraitUpdatableDataSink.Mutate(initiator->mSubscriptionClient, otherTraitsConditional, initiator->mUpdateMutation);
-                SuccessOrExit(err);
-            case 1:
-                err = initiator->mTestATraitUpdatableDataSink0.Mutate(initiator->mSubscriptionClient, testATraitConditional, initiator->mUpdateMutation);
-                SuccessOrExit(err);
-                break;
-            default:
-                WeaveDie();
-                break;
-        }
-        err = initiator->mSubscriptionClient->FlushUpdate();
+        case 4:
+            err = initiator->mTestATraitUpdatableDataSink1.Mutate(initiator->mSubscriptionClient, otherTraitsConditional, initiator->mUpdateMutation);
+            SuccessOrExit(err);
+        case 3:
+            err = initiator->mTestBTraitUpdatableDataSink.Mutate(initiator->mSubscriptionClient, otherTraitsConditional, initiator->mUpdateMutation);
+            SuccessOrExit(err);
+        case 2:
+            err = initiator->mLocaleSettingsTraitUpdatableDataSink.Mutate(initiator->mSubscriptionClient, otherTraitsConditional, initiator->mUpdateMutation);
+            SuccessOrExit(err);
+        case 1:
+            err = initiator->mTestATraitUpdatableDataSink0.Mutate(initiator->mSubscriptionClient, testATraitConditional, initiator->mUpdateMutation);
+            SuccessOrExit(err);
+            break;
+        default:
+            WeaveDie();
+            break;
+    }
+    err = initiator->mSubscriptionClient->FlushUpdate();
 
-        initiator->mUpdateSameMutationCounter++;
-        if (initiator->mUpdateSameMutationCounter == initiator->mUpdateNumRepeatedMutations)
-        {
-            initiator->mUpdateSameMutationCounter = 0;
-            tmp = initiator->mUpdateMutation;
-            tmp = (tmp + 1) % MockWdmNodeOptions::kMutation_NumItems;
-            initiator->mUpdateMutation = static_cast<MockWdmNodeOptions::WdmUpdateMutation>(tmp);
-        }
+    initiator->mUpdateSameMutationCounter++;
+    if (initiator->mUpdateSameMutationCounter == initiator->mUpdateNumRepeatedMutations)
+    {
+        initiator->mUpdateSameMutationCounter = 0;
+        tmp = initiator->mUpdateMutation;
+        tmp = (tmp + 1) % MockWdmNodeOptions::kMutation_NumItems;
+        initiator->mUpdateMutation = static_cast<MockWdmNodeOptions::WdmUpdateMutation>(tmp);
+    }
 
+    SuccessOrExit(err);
+
+    if (mUpdateMutationCounter < initiator->mUpdateNumMutations)
+    {
+        err = initiator->mExchangeMgr->MessageLayer->SystemLayer->StartTimer(5, HandleMutationTimeout, initiator);
         SuccessOrExit(err);
     }
 
@@ -1463,7 +1492,7 @@ void MockWdmSubscriptionInitiatorImpl::HandleDataFlipTimeout(nl::Weave::System::
 #if WEAVE_CONFIG_ENABLE_WDM_UPDATE
         case kTestCase_TestUpdatableTraits:
         {
-            err = initiator->ApplyWdmUpdateMutations();
+            err = aSystemLayer->StartTimer(5, HandleMutationTimeout, initiator);
             SuccessOrExit(err);
             break;
         }
@@ -1526,7 +1555,11 @@ void MockWdmSubscriptionInitiatorImpl::MonitorClientCurrentState (nl::Weave::Sys
     MockWdmSubscriptionInitiatorImpl * const initiator = reinterpret_cast<MockWdmSubscriptionInitiatorImpl *>(aAppState);
     if (NULL != initiator->mSubscriptionClient)
     {
-        if (initiator->mSubscriptionClient->IsEstablishedIdle() && (gIsMutualSubscription == false || gSubscriptionHandler->IsEstablishedIdle()))
+        if (
+#if WEAVE_CONFIG_ENABLE_WDM_UPDATE
+                false == initiator->mSubscriptionClient->IsUpdatePendingOrInProgress() &&
+#endif
+                initiator->mSubscriptionClient->IsEstablishedIdle() && (gIsMutualSubscription == false || gSubscriptionHandler->IsEstablishedIdle()))
         {
             WeaveLogDetail(DataManagement, "state transitions to idle within %d msec", kMonitorCurrentStateInterval * kMonitorCurrentStateCnt);
             gInitiatorState.mClientStateCount = 1;

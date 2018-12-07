@@ -908,7 +908,7 @@ void WdmUpdateEncoderTest::TestStoreTooSmall(nlTestSuite *inSuite, void *inConte
 
     err = mEncoder.EncodeRequest(mContext);
 
-    NL_TEST_ASSERT(inSuite, err == WEAVE_ERROR_NO_MEMORY);
+    NL_TEST_ASSERT(inSuite, err == WEAVE_ERROR_WDM_PATH_STORE_FULL);
     NL_TEST_ASSERT(inSuite, mBuf->TotalLength() == 0);
 }
 

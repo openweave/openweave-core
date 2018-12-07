@@ -49,11 +49,16 @@ class test_weave_wdm_next_mutual_subscribe_faults(weave_wdm_next_test_base):
         counters['client'] = WeaveUtilities.parse_fault_injection_counters(output_logs['client'])
         counters['server'] = WeaveUtilities.parse_fault_injection_counters(output_logs['server'])
 
-        # As of today, all fault points should be executed on the server, but not Weave_WDMSendUpdateBadVersion
-        not_required_server_faults = [ "Weave_WDMSendUpdateBadVersion",
-                                       "Weave_WDMUpdateRequestSendError",
-                                       "Weave_WDMUpdateRequestBadProfile",
-                                       "Weave_WDMDelayUpdateResponse" ]
+        # As of today, all fault points should be executed on the server, but not the WDM Update ones
+        wdm_udpate_faults = [ "Weave_WDMSendUpdateBadVersion",
+                              "Weave_WDMDelayUpdateResponse",
+                              "Weave_WDMUpdateRequestTimeout",
+                              "Weave_WDMUpdateRequestSendErrorInline",
+                              "Weave_WDMUpdateRequestSendErrorAsync",
+                              "Weave_WDMUpdateRequestBadProfile",
+                              "Weave_WDMUpdateResponseBusy",
+                              "Weave_WDMPathStoreFull"]
+        not_required_server_faults = wdm_udpate_faults
 
         required_server_faults = [ key for key in counters["server"].keys() if "Weave_WDM" in key and key not in not_required_server_faults]
 
@@ -62,11 +67,8 @@ class test_weave_wdm_next_mutual_subscribe_faults(weave_wdm_next_test_base):
 
         # As of today, the client does not send commands nor updates
         not_required_client_faults = [ "Weave_WDMSendCommandBadVersion",
-                                       "Weave_WDMSendCommandExpired",
-                                       "Weave_WDMSendUpdateBadVersion",
-                                       "Weave_WDMUpdateRequestSendError",
-                                       "Weave_WDMUpdateRequestBadProfile",
-                                       "Weave_WDMDelayUpdateResponse" ]
+                                       "Weave_WDMSendCommandExpired"]
+        not_required_client_faults += wdm_udpate_faults
 
         required_client_faults = [ key for key in counters["client"].keys() if "Weave_WDM" in key and key not in not_required_client_faults]
 

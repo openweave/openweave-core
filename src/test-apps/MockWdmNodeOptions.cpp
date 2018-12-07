@@ -55,6 +55,7 @@ MockWdmNodeOptions::MockWdmNodeOptions() :
     mWdmUpdateNumberOfMutations(1),
     mWdmUpdateNumberOfRepeatedMutations(1),
     mWdmUpdateTiming(kTiming_AfterSub),
+    mWdmUpdateDiscardOnError(false),
     mWdmUpdateMaxNumberOfTraits(1)
 {
     static OptionDef optionDefs[] =
@@ -88,6 +89,7 @@ MockWdmNodeOptions::MockWdmNodeOptions() :
         { "wdm-update-number-of-traits",                    kArgumentRequired,  kToolOpt_WdmUpdateNumberOfTraits },
         { "wdm-update-conditionality",                      kArgumentRequired,  kToolOpt_WdmUpdateConditionality },
         { "wdm-update-timing",                              kArgumentRequired,  kToolOpt_WdmUpdateTiming },
+        { "wdm-update-discard-on-error",                    kNoArgument,        kToolOpt_WdmUpdateDiscardOnError },
 #endif // WEAVE_CONFIG_ENABLE_RELIABLE_MESSAGING
         { NULL }
     };
@@ -223,6 +225,9 @@ MockWdmNodeOptions::MockWdmNodeOptions() :
         "                     subscription to be established\n"
         "         after-sub:  after the subscription has been established\n"
         "       Default is after-sub\n"
+        "\n"
+        "  --wdm-update-discard-on-error\n"
+        "       Tells the client to discard the paths on which SetUpdated was called in case of error\n"
         "\n";
 
 }
@@ -548,6 +553,11 @@ bool MockWdmNodeOptions::HandleOption(const char *progName, OptionSet *optSet, i
             return false;
         }
         mWdmUpdateTiming = static_cast<WdmUpdateTiming>(i);
+        break;
+    }
+    case kToolOpt_WdmUpdateDiscardOnError:
+    {
+        mWdmUpdateDiscardOnError = true;
         break;
     }
     default:

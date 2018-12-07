@@ -46,18 +46,18 @@ typedef uint16_t PropertyDictionaryKey;
 typedef uint16_t TraitDataHandle;
 
 /**
- * @class IWeaveClientLock
+ * @class IWeaveWDMMutex
  *
- * @brief Interface that is to be implemented by app to serialize access to key WDM data structures.
- *        This should be backed by a recursive lock implementation.
+ * @brief Interface of a mutex object. Mutexes of this type are implemented by the application
+ * and used in WDM to protect data structures that can be accessed from multiple threads.
+ * Implementations of this interface must behave like a recursive lock.
  */
 
-// TODO: does it really need to return WEAVE_ERROR?
-class IWeaveClientLock
+class IWeaveWDMMutex
 {
 public:
-    virtual WEAVE_ERROR Lock(void)   = 0;
-    virtual WEAVE_ERROR Unlock(void) = 0;
+    virtual void Lock(void)   = 0;
+    virtual void Unlock(void) = 0;
 };
 
 class SubscriptionClient
@@ -205,6 +205,7 @@ public:
             TraitDataHandle    mTraitDataHandle;
             PropertyPathHandle mPropertyPathHandle;
             SubscriptionClient * mClient;
+            bool mWillRetry;
         } mUpdateComplete;
 #endif // WEAVE_CONFIG_ENABLE_WDM_UPDATE
     };
@@ -230,8 +231,13 @@ public:
 
     struct ResubscribeParam
     {
+        typedef enum {
+            kSubscription,
+            kUpdate
+        } RequestType;
         WEAVE_ERROR mReason;  //< Error received on most recent failure
-        uint32_t mNumRetries; //< Number of retries, reset on a successful subscription
+        uint32_t mNumRetries; //< Number of retries, reset on a successful attempt
+        RequestType     mRequestType; //< Request being backed off
     };
 
     /**
@@ -300,11 +306,16 @@ public:
     void IndicateActivity(void);
 
 #if WEAVE_CONFIG_ENABLE_WDM_UPDATE
-    WEAVE_ERROR Lock(void);
-    WEAVE_ERROR Unlock(void);
+    void LockUpdateMutex(void);
+    void UnlockUpdateMutex(void);
 
     WEAVE_ERROR FlushUpdate();
+    WEAVE_ERROR FlushUpdate(bool aForce);
     WEAVE_ERROR SetUpdated(TraitUpdatableDataSink * aDataSink, PropertyPathHandle aPropertyHandle, bool aIsConditional);
+    void DiscardUpdates();
+    void SuspendUpdateRetries();
+
+    bool IsUpdatePendingOrInProgress() { return (kPendingSetEmpty != mPendingSetState || IsUpdateInProgress()); }
 #endif // WEAVE_CONFIG_ENABLE_WDM_UPDATE
 
 
@@ -350,9 +361,6 @@ private:
 
     ClientState mCurrentState;
 
-    // Lock
-    IWeaveClientLock * mLock;
-
     /**
      * The runtime configuration; i.e. the desired state of the Client.
      */
@@ -366,7 +374,6 @@ private:
 
     bool IsInitiator() { return mConfig == kConfig_Initiator; }
     bool IsCounterSubscriber() { return mConfig == kConfig_CounterSubscriber; }
-    bool ShouldBind();
     bool ShouldSubscribe() { return mConfig > kConfig_Down; }
 
     ClientConfig mConfig;
@@ -408,7 +415,8 @@ private:
     // null out EC
     WEAVE_ERROR Init(Binding * const apBinding, void * const apAppState, EventCallback const aEventCallback,
                      const TraitCatalogBase<TraitDataSink> * const apCatalog,
-                     const uint32_t aInactivityTimeoutDuringSubscribingMsec, IWeaveClientLock * aLock);
+                     const uint32_t aInactivityTimeoutDuringSubscribingMsec,
+                     IWeaveWDMMutex * aUpdateMutex);
 
     void _InitiateSubscription(void);
     WEAVE_ERROR SendSubscribeRequest(void);
@@ -424,8 +432,6 @@ private:
     void HandleSubscriptionTerminated(bool aWillRetry, WEAVE_ERROR aReason,
                                       nl::Weave::Profiles::StatusReporting::StatusReport * aStatusReportPtr);
     WEAVE_ERROR _PrepareBinding(void);
-    void HandleBindingFailed(bool aWillRetry, WEAVE_ERROR aReason,
-                                      nl::Weave::Profiles::StatusReporting::StatusReport * aStatusReportPtr);
 
     WEAVE_ERROR ReplaceExchangeContext(void);
 
@@ -461,35 +467,40 @@ private:
 
 #if WEAVE_CONFIG_ENABLE_WDM_UPDATE
 
+    IWeaveWDMMutex * mUpdateMutex;
+
     struct UpdateRequestContext
     {
-        // TODO: separate "state" from "arguments"
+        void Reset();
 
-        // State:
         size_t mItemInProgress;
         PropertyPathHandle mNextDictionaryElementPathHandle;
-
-        // Arguments to lower level calls and callbacks
-        TraitPath mPathToEncode;
-        bool mForceMerge;
-        SubscriptionClient *mSubClient;
-
-        uint16_t mNumDataElementsAddedToPayload;
+        uint32_t mUpdateRequestIndex;
         bool mIsPartialUpdate;
     };
+    uint32_t mUpdateRetryCounter;
+    bool mSuspendUpdateRetries;
+    bool mUpdateRetryScheduled;
+    bool mUpdateFlushScheduled;
+
+    void StartUpdateRetryTimer(WEAVE_ERROR aReason);
+    static void OnUpdateTimerCallback(System::Layer * aSystemLayer, void * aAppState, System::Error);
+    static void OnUpdateScheduleWorkCallback(System::Layer * aSystemLayer, void * aAppState, System::Error);
+    void UpdateTimerEventHandler(void);
 
     uint32_t GetMaxUpdateSize(void) const { return mMaxUpdateSize == 0 ? UINT16_MAX : mMaxUpdateSize; }
     void SetMaxUpdateSize(const uint32_t aMaxPayload);
 
     // Methods to encode and send update requests
-    WEAVE_ERROR FormAndSendUpdate(bool aNotifyOnError);
+    void FormAndSendUpdate();
     WEAVE_ERROR SendSingleUpdateRequest(void);
     static WEAVE_ERROR AddElementFunc(UpdateEncoder * aEncoder, void *apCallState, TLV::TLVWriter & aOuterWriter);
     void SetUpdateStartVersions(void);
 
     // Methods to handle update response and exchange failures (OnResponseTimeout, OnSendError)
-    void OnUpdateConfirm(WEAVE_ERROR aReason, nl::Weave::Profiles::StatusReporting::StatusReport * apStatus);
+    void OnUpdateResponse(WEAVE_ERROR aReason, nl::Weave::Profiles::StatusReporting::StatusReport * apStatus);
     void OnUpdateNoResponse(WEAVE_ERROR aReason);
+    static bool WillRetryUpdate(WEAVE_ERROR aErr, uint32_t aStatusProfileId, uint16_t aStatusCode);
 
     // Methods to purge obsolete pending paths
     WEAVE_ERROR PurgePendingUpdate(void);
@@ -503,7 +514,7 @@ private:
     static void CheckForSinksWithDataLossIteratorCb(void * aDataSink, TraitDataHandle aDataHandle, void * aContext);
 
     // Methods to fail everything and notify the application
-    void ClearPathStore(TraitPathStore &aPathStore, WEAVE_ERROR aErr);
+    void PurgeAndNotifyFailedPaths(WEAVE_ERROR aErr, TraitPathStore &aPathStore, size_t &aCount);
 
     // Methods to manage the pending set and in-progress list
     enum PendingSetState {
@@ -521,14 +532,17 @@ private:
     void SetUpdateInFlight() { mUpdateInFlight = true; }
     void ClearUpdateInFlight() { mUpdateInFlight = false; }
 
+    // Knowing if an update is pending or in progress
+    bool IsUpdateInProgress() { return (false == mInProgressUpdateList.IsEmpty()); }
+    bool IsReadyToSendNewUpdate() { return (mPendingSetState == kPendingSetReady && false == IsUpdateInProgress()); }
+
     // Methods to notify the application
-    void UpdateCompleteEventCbHelper(const TraitPath &aTraitPath, uint32_t aStatusProfileId, uint16_t aStatusCode, WEAVE_ERROR aReason);
+    void UpdateCompleteEventCbHelper(const TraitPath &aTraitPath, uint32_t aStatusProfileId, uint16_t aStatusCode, WEAVE_ERROR aReason, bool aWillRetry);
     void NoMorePendingEventCbHelper(void);
 
     // Other methods related to mUpdateClient
     static void UpdateEventCallback(void * const aAppState, UpdateClient::EventType aEvent, const UpdateClient::InEventParam & aInParam, UpdateClient::OutEventParam & aOutParam);
-    void CancelUpdateClient(void);
-    void ShutdownUpdateClient(void);
+    void AbortUpdates(WEAVE_ERROR);
 
 
     // Index of the TraitUpdatableDataSink instances stored in mDataSinkCatalog
@@ -547,6 +561,7 @@ private:
         TraitUpdatableDataSink *mUpdatableDataSink;
     };
     static void InitUpdatableSinkTrait(void *aDataSink, TraitDataHandle aDataHandle, void *aContext);
+    static void CleanupUpdatableSinkTrait(void *aDataSink, TraitDataHandle aDataHandle, void *aContext);
     UpdatableTIContext *GetUpdatableTIContextList(void) { return mClientTraitInfoPool; }
     uint32_t GetNumUpdatableTraitInstances(void) { return mNumUpdatableTraitInstances; }
 

@@ -767,8 +767,8 @@ public:
 
     WEAVE_ERROR SetUpdated(SubscriptionClient * apSubClient, PropertyPathHandle aPropertyHandle, bool aIsConditional=false);
 
-    WEAVE_ERROR Lock(SubscriptionClient * apSubClient);
-    WEAVE_ERROR Unlock(SubscriptionClient * apSubClient);
+    void Lock(SubscriptionClient * apSubClient);
+    void Unlock(SubscriptionClient * apSubClient);
 
     virtual bool IsUpdatableDataSink(void) __OVERRIDE { return true; }
 

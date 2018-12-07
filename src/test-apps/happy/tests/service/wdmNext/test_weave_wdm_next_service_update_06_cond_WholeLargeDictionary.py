@@ -51,8 +51,10 @@ class test_weave_wdm_next_service_update_06_cond_WholeLargeDictionary(weave_wdm_
         wdm_next_args['client_update_num_traits'] = 1
         wdm_next_args['client_update_num_mutations'] = 1
 
+        # note that there are two paths in the update from the point of view of
+        # the application: a leaf and the dictionary.
         wdm_next_args['client_log_check'] = [('Mutual: Good Iteration', 1),
-                                             ('Update: path result: success', 1),
+                                             ('Update: path result: success', 2),
                                              ('Update: no more pending updates', 1),
                                              ('Update: path failed', 0),
                                              ('Need to resubscribe', 0)]

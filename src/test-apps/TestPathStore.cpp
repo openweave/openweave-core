@@ -174,7 +174,7 @@ void TraitPathStoreTest::TestFull(nlTestSuite *inSuite, void *inContext)
     NL_TEST_ASSERT(inSuite, mStore.GetNumItems() == mStore.GetPathStoreSize());
 
     err = mStore.AddItem(mPath);
-    NL_TEST_ASSERT(inSuite, err == WEAVE_ERROR_NO_MEMORY);
+    NL_TEST_ASSERT(inSuite, err == WEAVE_ERROR_WDM_PATH_STORE_FULL);
 
     NL_TEST_ASSERT(inSuite, mStore.GetNumItems() == mStore.GetPathStoreSize());
 
