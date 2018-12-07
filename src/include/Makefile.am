@@ -993,6 +993,7 @@ $(NULL)
 nl_public_WeaveDeviceLayer_internal_testing_header_sources =                          \
 $(nl_public_WeaveDeviceLayer_source_dirstem)/internal/testing/ConfigUnitTest.h        \
 $(nl_public_WeaveDeviceLayer_source_dirstem)/internal/testing/GroupKeyStoreUnitTest.h \
+$(nl_public_WeaveDeviceLayer_source_dirstem)/internal/testing/SystemClockUnitTest.h   \
 $(NULL)
 
 nl_public_WeaveDeviceLayer_header_sources = \

@@ -21,6 +21,7 @@
 #include <Weave/DeviceLayer/nRF5/GroupKeyStoreImpl.h>
 #include <Weave/DeviceLayer/internal/testing/ConfigUnitTest.h>
 #include <Weave/DeviceLayer/internal/testing/GroupKeyStoreUnitTest.h>
+#include <Weave/DeviceLayer/internal/testing/SystemClockUnitTest.h>
 
 using namespace ::nl;
 using namespace ::nl::Inet;
@@ -64,11 +65,17 @@ static void TestTaskMain(void * pvParameter)
     NRF_LOG_INFO("TEST task started");
     bsp_board_led_invert(BSP_BOARD_LED_1);
 
+    Internal::RunSystemClockUnitTest();
+
+    NRF_LOG_INFO("System clock test complete");
+
     err = Internal::NRF5Config::Init();
     APP_ERROR_CHECK(err);
 
     // Test the core configuration interface
     Internal::NRF5Config::RunConfigUnitTest();
+
+    NRF_LOG_INFO("NRF5Config test complete");
 
     // Test the group key store
     {
@@ -77,6 +84,8 @@ static void TestTaskMain(void * pvParameter)
         APP_ERROR_CHECK(err);
         Internal::RunGroupKeyStoreUnitTest<Internal::GroupKeyStoreImpl>(&groupKeyStore);
     }
+
+    NRF_LOG_INFO("GroupKeyStore test complete");
 
     NRF_LOG_INFO("TEST task done");
     bsp_board_led_invert(BSP_BOARD_LED_2);
