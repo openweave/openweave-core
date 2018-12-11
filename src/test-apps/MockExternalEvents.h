@@ -30,8 +30,10 @@
 
 #include <Weave/Core/WeaveCore.h>
 
+#if WEAVE_CONFIG_EVENT_LOGGING_EXTERNAL_EVENT_SUPPORT
 WEAVE_ERROR LogMockExternalEvents(size_t aNumEvents, int numCallback);
 WEAVE_ERROR LogMockDebugExternalEvents(size_t aNumEvents, int numCallback);
 void ClearMockExternalEvents(int numCallback);
+#endif
 
 #endif /* MOCKEXTERNALEVENTS_H */

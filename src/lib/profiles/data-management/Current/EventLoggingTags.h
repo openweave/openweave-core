@@ -148,6 +148,8 @@ enum
 
     kTag_EventData               = 50, //< Optional.  Event data itself.  If empty, it defaults to an empty structure.
 
+    kTag_ExternalEventStructure  = 99, //< Internal tag for external events.  Never transmitted across the wire, should never be used outside of Weave library
+
 };
 
 // Tags for the debug trait
