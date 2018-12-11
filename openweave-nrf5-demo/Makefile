@@ -28,7 +28,7 @@ SRC_FILES := \
     $(NRF5_SDK_ROOT)/components/libraries/crypto/backend/nrf_hw/nrf_hw_backend_rng.c \
     $(NRF5_SDK_ROOT)/components/libraries/crypto/backend/nrf_hw/nrf_hw_backend_rng_mbedtls.c \
     $(NRF5_SDK_ROOT)/components/libraries/crypto/nrf_crypto_aes.c \
-	$(NRF5_SDK_ROOT)/components/libraries/crypto/nrf_crypto_aes_shared.c \
+    $(NRF5_SDK_ROOT)/components/libraries/crypto/nrf_crypto_aes_shared.c \
     $(NRF5_SDK_ROOT)/components/libraries/crypto/nrf_crypto_init.c \
     $(NRF5_SDK_ROOT)/components/libraries/crypto/nrf_crypto_rng.c \
     $(NRF5_SDK_ROOT)/components/libraries/experimental_section_vars/nrf_section_iter.c \
@@ -42,7 +42,7 @@ SRC_FILES := \
     $(NRF5_SDK_ROOT)/components/libraries/log/src/nrf_log_str_formatter.c \
     $(NRF5_SDK_ROOT)/components/libraries/mem_manager/mem_manager.c \
     $(NRF5_SDK_ROOT)/components/libraries/memobj/nrf_memobj.c \
-	$(NRF5_SDK_ROOT)/components/libraries/queue/nrf_queue.c \
+    $(NRF5_SDK_ROOT)/components/libraries/queue/nrf_queue.c \
     $(NRF5_SDK_ROOT)/components/libraries/ringbuf/nrf_ringbuf.c \
     $(NRF5_SDK_ROOT)/components/libraries/strerror/nrf_strerror.c \
     $(NRF5_SDK_ROOT)/components/libraries/uart/app_uart.c \
@@ -69,8 +69,8 @@ SRC_FILES := \
     $(NRF5_SDK_ROOT)/external/freertos/source/stream_buffer.c \
     $(NRF5_SDK_ROOT)/external/freertos/source/tasks.c \
     $(NRF5_SDK_ROOT)/external/freertos/source/timers.c \
-	$(NRF5_SDK_ROOT)/integration/nrfx/legacy/nrf_drv_clock.c \
-	$(NRF5_SDK_ROOT)/integration/nrfx/legacy/nrf_drv_rng.c \
+    $(NRF5_SDK_ROOT)/integration/nrfx/legacy/nrf_drv_clock.c \
+    $(NRF5_SDK_ROOT)/integration/nrfx/legacy/nrf_drv_rng.c \
     $(NRF5_SDK_ROOT)/integration/nrfx/legacy/nrf_drv_uart.c \
     $(NRF5_SDK_ROOT)/modules/nrfx/drivers/src/nrfx_clock.c \
     $(NRF5_SDK_ROOT)/modules/nrfx/drivers/src/nrfx_gpiote.c \
@@ -81,7 +81,7 @@ SRC_FILES := \
     $(NRF5_SDK_ROOT)/modules/nrfx/drivers/src/prs/nrfx_prs.c \
     $(NRF5_SDK_ROOT)/modules/nrfx/mdk/gcc_startup_nrf52840.S \
     $(NRF5_SDK_ROOT)/modules/nrfx/mdk/system_nrf52840.c
-      
+
 INC_FOLDERS = \
     $(realpath $(PROJ_DIR)) \
     $(NRF5_SDK_ROOT)/components \
@@ -160,8 +160,9 @@ DEFINES = \
     __HEAP_SIZE=0 \
     __STACK_SIZE=8192 \
     SOFTDEVICE_PRESENT
-	
+
 CFLAGS = \
+    -std=c++11 \
     -DBOARD_PCA10056 \
     -DBSP_DEFINES_ONLY \
     -DCONFIG_GPIO_AS_PINRESET \
@@ -219,16 +220,39 @@ $(OUTPUT_DIRECTORY)/$(TARGET)/main.cpp.o : install-weave
 # Flash the program
 flash: $(TARGET)
 	@echo Flashing: $(OUTPUT_DIRECTORY)/$(TARGET).hex
-	$(NRF5_TOOLS_ROOT)/nrfjprog/nrfjprog -f nrf52 --program $(OUTPUT_DIRECTORY)/$(TARGET).hex --sectorerase
-	$(NRF5_TOOLS_ROOT)/nrfjprog/nrfjprog -f nrf52 --reset
+	nrfjprog -f nrf52 --program $(OUTPUT_DIRECTORY)/$(TARGET).hex --sectorerase
+	nrfjprog -f nrf52 --reset
 
 flash_softdevice:
 	@echo Flashing: s140_nrf52_6.1.0_softdevice.hex
-	$(NRF5_TOOLS_ROOT)/nrfjprog/nrfjprog -f nrf52 --program $(NRF5_SDK_ROOT)/components/softdevice/s140/hex/s140_nrf52_6.1.0_softdevice.hex --sectorerase
-	$(NRF5_TOOLS_ROOT)/nrfjprog/nrfjprog -f nrf52 --reset
+	nrfjprog -f nrf52 --program $(NRF5_SDK_ROOT)/components/softdevice/s140/hex/s140_nrf52_6.1.0_softdevice.hex --sectorerase
+	nrfjprog -f nrf52 --reset
 
 erase:
-	$(NRF5_TOOLS_ROOT)/nrfjprog/nrfjprog -f nrf52 --eraseall
+	nrfjprog -f nrf52 --eraseall
 
-erase:
-	$(NRF5_TOOLS_ROOT)/nrfjprog/nrfjprog -f nrf52 --eraseall
+
+JLINK_DEV = NRF52
+JLINK_GDB_SERVER = JLinkGDBServer
+EXTRA_JTAG_CMD = -rtos GDBServer/RTOSPlugin_FreeRTOS
+GDB_CMD_FILE = .gdb_cmds
+APP_FILE_NAME = $(OUTPUT_DIRECTORY)/$(TARGET).out
+
+.PHONY: jlink
+jlink: $(TARGET)
+	# Trap CTRL-C from killing JLinkGDBServer in background
+	set -m
+	$(JLINK_GDB_SERVER) $(EXTRA_JTAG_CMD) -device $(JLINK_DEV) -if SWD -singlerun > /dev/null &
+	set +m
+	rm -f $(GDB_CMD_FILE)
+	echo "## arm-none-eabi-gdb -x $(GDB_CMD_FILE) $(APP_FILE_NAME)" >> $(GDB_CMD_FILE)
+	echo "target remote:2331"                >> $(GDB_CMD_FILE)
+	echo "mon reset"                         >> $(GDB_CMD_FILE)
+	echo "mon halt"                          >> $(GDB_CMD_FILE)
+	echo "info reg"                          >> $(GDB_CMD_FILE)
+	echo "load $(APP_FILE_NAME)"             >> $(GDB_CMD_FILE)
+	echo "mon reset halt"                    >> $(GDB_CMD_FILE)
+	echo "mon exec SetMonModeVTableAddr=0x1f000" >> $(GDB_CMD_FILE)
+	echo "set scheduler-locking step"        >> $(GDB_CMD_FILE)
+	echo "bt"                                >> $(GDB_CMD_FILE)
+	arm-none-eabi-gdb -x $(GDB_CMD_FILE) $(APP_FILE_NAME) 2>&1

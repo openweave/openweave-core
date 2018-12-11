@@ -67,7 +67,7 @@ void Log(uint8_t module, uint8_t category, const char *msg, ...)
         size_t formattedMsgLen;
 
         constexpr size_t maxPrefixLen = nlWeaveLoggingModuleNameLen + 3;
-        static_assert(sizeof(formattedMsg) > maxPrefixLen);
+        static_assert(sizeof(formattedMsg) > maxPrefixLen, "Error: log message too exceeds buffer size.");
 
         // Form the log prefix, e.g. "[DL] "
         formattedMsg[0] = '[';
