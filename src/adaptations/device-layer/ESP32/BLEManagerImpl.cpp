@@ -159,7 +159,7 @@ WEAVE_ERROR BLEManagerImpl::_SetAdvertisingEnabled(bool val)
 
     VerifyOrExit(mServiceMode == ConnectivityManager::kWoBLEServiceMode_NotSupported, err = WEAVE_ERROR_UNSUPPORTED_WEAVE_FEATURE);
 
-    if (val != mServiceMode)
+    if (GetFlag(mFlags, kFlag_AdvertisingEnabled) != val)
     {
         SetFlag(mFlags, kFlag_AdvertisingEnabled, val);
         PlatformMgr().ScheduleWork(DriveBLEState, 0);
@@ -175,7 +175,7 @@ WEAVE_ERROR BLEManagerImpl::_SetFastAdvertisingEnabled(bool val)
 
     VerifyOrExit(mServiceMode == ConnectivityManager::kWoBLEServiceMode_NotSupported, err = WEAVE_ERROR_UNSUPPORTED_WEAVE_FEATURE);
 
-    if (val != mServiceMode)
+    if (GetFlag(mFlags, kFlag_FastAdvertisingEnabled) != val)
     {
         SetFlag(mFlags, kFlag_FastAdvertisingEnabled, val);
         PlatformMgr().ScheduleWork(DriveBLEState, 0);
