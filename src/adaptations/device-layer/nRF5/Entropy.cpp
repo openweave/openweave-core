@@ -87,7 +87,7 @@ WEAVE_ERROR InitEntropy()
     // Initialize the nrf_crypto RNG source, if not done automatically.
 #if !NRF_CRYPTO_RNG_AUTO_INIT_ENABLED
     err = nrf_crypto_rng_init(
-#if NRF_CRYPTO_RNG_STATIC_MEMORY_BUFFERS_ENABLED
+#if !NRF_CRYPTO_RNG_STATIC_MEMORY_BUFFERS_ENABLED
             &sRNGContext,
 #else
             NULL,

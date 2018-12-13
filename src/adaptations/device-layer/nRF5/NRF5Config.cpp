@@ -401,8 +401,7 @@ exit:
 
 WEAVE_ERROR NRF5Config::MapFDSError(ret_code_t fdsRes)
 {
-    // TODO: implement this
-    return fdsRes;
+    return (fdsRes == FDS_SUCCESS) ? WEAVE_NO_ERROR : WEAVE_DEVICE_CONFIG_NRF5_FDS_ERROR_MIN + fdsRes;
 }
 
 WEAVE_ERROR NRF5Config::OpenRecord(NRF5Config::Key key, fds_record_desc_t & recDesc, fds_flash_record_t & rec)
@@ -569,9 +568,21 @@ WEAVE_ERROR NRF5Config::DoAsyncFDSOp(FDSAsyncOp & asyncOp)
         }
 
         // If the operation was queued successfully, wait for it to complete and retrieve the result.
+        // If the FreeRTOS scheduler is not running, poll the completion semaphore; otherwise wait
+        // indefinitely.
+        //
         if (fdsRes == FDS_SUCCESS)
         {
-            xSemaphoreTake(sAsyncOpCompletionSem, portMAX_DELAY);
+            if (xTaskGetSchedulerState() == taskSCHEDULER_NOT_STARTED)
+            {
+                while (xSemaphoreTake(sAsyncOpCompletionSem, 0) == pdFALSE)
+                    ;
+            }
+            else
+            {
+                xSemaphoreTake(sAsyncOpCompletionSem, portMAX_DELAY);
+            }
+
             fdsRes = asyncOp.Result;
         }
 
@@ -691,6 +702,7 @@ void NRF5Config::HandleFDSEvent(const fds_evt_t * fdsEvent)
 
     // Signal the Weave thread that the operation has completed.
 #if defined(SOFTDEVICE_PRESENT) && SOFTDEVICE_PRESENT
+    if (xTaskGetSchedulerState() != taskSCHEDULER_NOT_STARTED)
     {
         BaseType_t yieldRequired = xSemaphoreGiveFromISR(sAsyncOpCompletionSem, &yieldRequired);
         if (yieldRequired == pdTRUE)
@@ -698,9 +710,11 @@ void NRF5Config::HandleFDSEvent(const fds_evt_t * fdsEvent)
             portYIELD_FROM_ISR(yieldRequired);
         }
     }
-#else // defined(SOFTDEVICE_PRESENT) && SOFTDEVICE_PRESENT
-    xSemaphoreGive(sAsyncOpCompletionSem);
-#endif // !defined(SOFTDEVICE_PRESENT) || !SOFTDEVICE_PRESENT
+    else
+#endif // defined(SOFTDEVICE_PRESENT) || !SOFTDEVICE_PRESENT
+    {
+        xSemaphoreGive(sAsyncOpCompletionSem);
+    }
 }
 
 void NRF5Config::RunConfigUnitTest()
