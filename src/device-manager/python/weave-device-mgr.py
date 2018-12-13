@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 #
-#    Copyright (c) 2013-2017 Nest Labs, Inc.
+#    Copyright (c) 2013-2018 Nest Labs, Inc.
 #    All rights reserved.
 #
 #    Licensed under the Apache License, Version 2.0 (the "License");
@@ -1228,7 +1228,7 @@ class DeviceMgrCmd(Cmd):
             print "Invalid value specified for thread extended PAN id: " + args[1]
             return
 
-        kvstart = 3 if (len(args[2].split('=', 1)) == 1) else 2
+        kvstart = 3 if (len(args) > 2 and len(args[2].split('=', 1)) == 1) else 2
 
         if (kvstart > 2):
             try:
