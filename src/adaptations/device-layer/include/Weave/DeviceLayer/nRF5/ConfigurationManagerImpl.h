@@ -107,6 +107,11 @@ inline ConfigurationManagerImpl & ConfigurationMgrImpl(void)
     return ConfigurationManagerImpl::sInstance;
 }
 
+inline WEAVE_ERROR ConfigurationManagerImpl::_GetPrimaryWiFiMACAddress(uint8_t * buf)
+{
+    return WEAVE_ERROR_UNSUPPORTED_WEAVE_FEATURE;
+}
+
 } // namespace DeviceLayer
 } // namespace Weave
 } // namespace nl

@@ -26,13 +26,11 @@
 #include <Weave/DeviceLayer/PlatformManager.h>
 #include <Weave/DeviceLayer/FreeRTOS/GenericPlatformManagerImpl_FreeRTOS.ipp>
 
+#include <lwip/tcpip.h>
+
 namespace nl {
 namespace Weave {
 namespace DeviceLayer {
-
-namespace Internal {
-extern WEAVE_ERROR InitLwIPCoreLock(void);
-}
 
 // Fully instantiate the template classes on which the ESP32 PlatformManager depends.
 template class Internal::GenericPlatformManagerImpl<PlatformManagerImpl>;
@@ -44,6 +42,13 @@ WEAVE_ERROR PlatformManagerImpl::_InitWeaveStack(void)
 {
     WEAVE_ERROR err;
 
+    // Initialize the configuration system.
+    err = Internal::NRF5Config::Init();
+    SuccessOrExit(err);
+
+    // Initialize LwIP.
+    tcpip_init(NULL, NULL);
+
     // Call _InitWeaveStack() on the generic implementation base class
     // to finish the initialization process.
     err = Internal::GenericPlatformManagerImpl_FreeRTOS<PlatformManagerImpl>::_InitWeaveStack();
@@ -51,11 +56,6 @@ WEAVE_ERROR PlatformManagerImpl::_InitWeaveStack(void)
 
 exit:
     return err;
-}
-
-WEAVE_ERROR PlatformManagerImpl::InitLwIPCoreLock(void)
-{
-    return Internal::InitLwIPCoreLock();
 }
 
 } // namespace DeviceLayer

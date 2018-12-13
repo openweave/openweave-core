@@ -56,7 +56,7 @@ public:
 
     // ===== Platform-specific members that may be accessed directly by the application.
 
-    WEAVE_ERROR InitLwIPCoreLock(void);
+    /* none so far */
 
 private:
 
