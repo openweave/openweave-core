@@ -649,7 +649,7 @@ void GenericConfigurationManagerImpl<ImplClass>::LogDeviceConfig()
         {
             productId = 0;
         }
-        WeaveLogProgress(DeviceLayer, "  Product Id: %" PRId16 " (0x%" PRIX16 ")", productId, productId);
+        WeaveLogProgress(DeviceLayer, "  Product Id: %" PRIu16 " (0x%" PRIX16 ")", productId, productId);
     }
 
     if (FabricState.FabricId != kFabricIdNotSpecified)

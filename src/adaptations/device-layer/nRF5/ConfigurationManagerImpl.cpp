@@ -61,8 +61,6 @@ WEAVE_ERROR ConfigurationManagerImpl::_Init()
     WEAVE_ERROR err;
     bool failSafeArmed;
 
-    // TODO: Finish this
-
     // Initialize the generic implementation base class.
     err = Internal::GenericConfigurationManagerImpl<ConfigurationManagerImpl>::_Init();
     SuccessOrExit(err);
@@ -81,12 +79,6 @@ WEAVE_ERROR ConfigurationManagerImpl::_Init()
 
 exit:
     return err;
-}
-
-WEAVE_ERROR ConfigurationManagerImpl::_GetPrimaryWiFiMACAddress(uint8_t * buf)
-{
-    // TODO: move to inline
-    return WEAVE_ERROR_UNSUPPORTED_WEAVE_FEATURE;
 }
 
 WEAVE_ERROR ConfigurationManagerImpl::_GetDeviceDescriptor(::nl::Weave::Profiles::DeviceDescription::WeaveDeviceDescriptor & deviceDesc)
@@ -114,7 +106,7 @@ bool ConfigurationManagerImpl::_CanFactoryReset()
 
 void ConfigurationManagerImpl::_InitiateFactoryReset()
 {
-    // TODO: Implement this
+    PlatformMgr().ScheduleWork(DoFactoryReset);
 }
 
 WEAVE_ERROR ConfigurationManagerImpl::_ReadPersistedStorageValue(::nl::Weave::Platform::PersistedStorage::Key persistedStorageKey, uint32_t & value)
@@ -161,12 +153,9 @@ void ConfigurationManagerImpl::DoFactoryReset(intptr_t arg)
         WeaveLogError(DeviceLayer, "FactoryResetConfig() failed: %s", nl::ErrorStr(err));
     }
 
-    // TODO: finish this
-#if 0
     // Restart the system.
     WeaveLogProgress(DeviceLayer, "System restarting");
-    esp_restart();
-#endif
+    NVIC_SystemReset();
 }
 
 } // namespace DeviceLayer
