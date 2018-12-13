@@ -9,6 +9,7 @@
 #include "nrf_sdh_ble.h"
 #endif
 #include "nrf_drv_clock.h"
+#include "nrf_crypto.h"
 #include "mem_manager.h"
 
 #if NRF_LOG_ENABLED
@@ -30,7 +31,7 @@ using namespace ::nl::Weave::DeviceLayer;
 
 #if NRF_LOG_ENABLED
 
-#define LOGGER_STACK_SIZE (200)
+#define LOGGER_STACK_SIZE (800)
 #define LOGGER_PRIORITY 1
 
 static TaskHandle_t sLoggerTaskHandle;
@@ -53,7 +54,7 @@ extern "C" void vApplicationIdleHook( void )
 
 #endif //NRF_LOG_ENABLED
 
-#define TEST_TASK_STACK_SIZE (800)
+#define TEST_TASK_STACK_SIZE (400)
 #define TEST_TASK_PRIORITY 2
 
 static TaskHandle_t sTestTaskHandle;
@@ -68,9 +69,6 @@ static void TestTaskMain(void * pvParameter)
     Internal::RunSystemClockUnitTest();
 
     NRF_LOG_INFO("System clock test complete");
-
-    err = Internal::NRF5Config::Init();
-    APP_ERROR_CHECK(err);
 
     // Test the core configuration interface
     Internal::NRF5Config::RunConfigUnitTest();
@@ -120,7 +118,7 @@ int main(void)
     NRF_LOG_DEFAULT_BACKENDS_INIT();
 
     // Start LOGGER task.
-    if (xTaskCreate(LoggerTaskMain, "LOGGER", LOGGER_STACK_SIZE, NULL, LOGGER_PRIORITY, &sLoggerTaskHandle) != pdPASS)
+    if (xTaskCreate(LoggerTaskMain, "LOGGER", LOGGER_STACK_SIZE / sizeof(StackType_t), NULL, LOGGER_PRIORITY, &sLoggerTaskHandle) != pdPASS)
     {
         APP_ERROR_HANDLER(0);
     }
@@ -160,8 +158,22 @@ int main(void)
         APP_ERROR_HANDLER(ret);
     }
 
+    ret = nrf_crypto_init();
+    if (ret != NRF_SUCCESS)
+    {
+        NRF_LOG_INFO("nrf_crypto_init() failed");
+        APP_ERROR_HANDLER(ret);
+    }
+
+    ret = ::nl::Weave::DeviceLayer::PlatformMgr().InitWeaveStack();
+    if (ret != WEAVE_NO_ERROR)
+    {
+        NRF_LOG_INFO("PlatformMgr().InitWeaveStack() failed");
+        APP_ERROR_HANDLER(ret);
+    }
+
     // Start Test task
-    if (xTaskCreate(TestTaskMain, "TEST", TEST_TASK_STACK_SIZE, NULL, TEST_TASK_PRIORITY, &sTestTaskHandle) != pdPASS)
+    if (xTaskCreate(TestTaskMain, "TEST", TEST_TASK_STACK_SIZE / sizeof(StackType_t), NULL, TEST_TASK_PRIORITY, &sTestTaskHandle) != pdPASS)
     {
         NRF_LOG_INFO("Failed to create test task");
     }
@@ -173,5 +185,6 @@ int main(void)
     vTaskStartScheduler();
 
     // Should never get here
+    NRF_LOG_INFO("vTaskStartScheduler() failed");
     APP_ERROR_HANDLER(0);
 }

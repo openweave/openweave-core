@@ -252,14 +252,15 @@ err_t sys_mbox_trypost(sys_mbox_t *mbox, void *msg)
 sys_thread_t sys_thread_new(const char *name, lwip_thread_fn thread, void *arg, int stacksize, int prio)
 {
     TaskHandle_t taskH;
+    const unsigned short stacksizeWords = (unsigned short)(stacksize / sizeof(StackType_t));
 
     if (strcmp(name, TCPIP_THREAD_NAME) != 0 || stacksize != TCPIP_THREAD_STACKSIZE)
         return NULL;
 
 #if LWIP_FREERTOS_USE_STATIC_TCPIP_TASK
-    taskH = xTaskCreateStatic(thread, name, (uint32_t)stacksize, arg, (UBaseType_t)prio, (StackType_t *)gTCPIPTaskStack, NULL);
+    taskH = xTaskCreateStatic(thread, name, stacksizeWords, arg, (UBaseType_t)prio, (StackType_t *)gTCPIPTaskStack, NULL);
 #else // LWIP_FREERTOS_USE_STATIC_TCPIP_TASK
-    if (xTaskCreate(thread, name, (uint32_t)stacksize, arg, (UBaseType_t)prio, &taskH) != pdPASS)
+    if (xTaskCreate(thread, name, stacksizeWords, arg, (UBaseType_t)prio, &taskH) != pdPASS)
         taskH = NULL;
 #endif // LWIP_FREERTOS_USE_STATIC_TCPIP_TASK
 
