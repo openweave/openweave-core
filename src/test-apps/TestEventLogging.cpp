@@ -44,7 +44,6 @@
 #include <Weave/Profiles/bulk-data-transfer/Development/BDXManagedNamespace.hpp>
 #include <Weave/Profiles/data-management/Current/WdmManagedNamespace.h>
 
-#include "MockExternalEvents.h"
 #include "ToolCommon.h"
 #include "TestEventLoggingSchemaExamples.h"
 #include <InetLayer/Inet.h>
@@ -71,6 +70,7 @@
 #include "schema/nest/test/trait/TestETrait.h"
 #include "schema/nest/test/trait/TestCommon.h"
 
+#include "MockExternalEvents.h"
 #include "MockPlatformClocks.h"
 
 using namespace nl::Weave::TLV;
@@ -3114,6 +3114,86 @@ static void CheckExternalEventsMultipleCallbacks(nlTestSuite * inSuite, void * i
     }
 }
 
+static bool SkipEvenEvents(event_id_t aEventId)
+{
+    return aEventId & 1;
+}
+
+static void CheckSkipExternalEvents(nlTestSuite * inSuite, void * inContext)
+{
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
+    TLVWriter testWriter;
+    TLVReader testReader;
+    event_id_t eid_before, eid_after, eid = 0;
+    int i;
+    TestLoggingContext * context = static_cast<TestLoggingContext *>(inContext);
+
+    InitializeEventLogging(context);
+    SetShouldBlitCallback(SkipEvenEvents);
+
+    for (i = 0; i < 10; i++)
+    {
+        eid_before = nl::Weave::Profiles::DataManagement::LogFreeform(nl::Weave::Profiles::DataManagement::Production,
+                                                                  "Freeform entry %d", i);
+    }
+
+    // register callback
+    err = LogMockExternalEvents(10, 0);
+    NL_TEST_ASSERT(inSuite, err == WEAVE_NO_ERROR);
+
+    for (i = 0; i < 10; i++)
+    {
+        eid_after = nl::Weave::Profiles::DataManagement::LogFreeform(nl::Weave::Profiles::DataManagement::Production,
+                                                                  "Freeform entry %d", i + 10);
+    }
+
+    // Validate event skipping by reading back what was written.
+    {
+        utc_timestamp_t utc_tmp;
+        timestamp_t time_tmp;
+        event_id_t eid_tmp;
+        unsigned count;
+
+        // Fetch gets initial back of free form events and all external events.
+        // Fetching stops after an external events block is complete.
+        eid = 0;
+        testWriter.Init(gLargeMemoryBackingStore, sizeof(gLargeMemoryBackingStore));
+        err = nl::Weave::Profiles::DataManagement::LoggingManagement::GetInstance().FetchEventsSince(
+            testWriter, nl::Weave::Profiles::DataManagement::Production, eid);
+        NL_TEST_ASSERT(inSuite, err == WEAVE_NO_ERROR);
+        NL_TEST_ASSERT(inSuite, eid == eid_before + 11); // Free form events plus external events
+
+        testReader.Init(gLargeMemoryBackingStore, testWriter.GetLengthWritten());
+        count = 0;
+        while (err == WEAVE_NO_ERROR)
+        {
+            err = ReadFirstEventHeader(testReader, time_tmp, utc_tmp, eid_tmp);
+            count++; // Also incremented on error
+        }
+        NL_TEST_ASSERT(inSuite, count == 16); // Initial free form events plus half of external ones
+
+        // Fetch second block of free form events.
+        eid = 20;
+        testWriter.Init(gLargeMemoryBackingStore, sizeof(gLargeMemoryBackingStore));
+        err = nl::Weave::Profiles::DataManagement::LoggingManagement::GetInstance().FetchEventsSince(
+            testWriter, nl::Weave::Profiles::DataManagement::Production, eid);
+        NL_TEST_ASSERT(inSuite, err == WEAVE_END_OF_TLV);
+        NL_TEST_ASSERT(inSuite, eid == eid_after + 1);
+
+        testReader.Init(gLargeMemoryBackingStore, testWriter.GetLengthWritten());
+        err = WEAVE_NO_ERROR;
+        count = 0;
+        while (err == WEAVE_NO_ERROR)
+        {
+            err = ReadFirstEventHeader(testReader, time_tmp, utc_tmp, eid_tmp);
+            count++; // Also incremented on error
+        }
+        NL_TEST_ASSERT(inSuite, count == 11); // Following free form events
+    }
+
+    SetShouldBlitCallback(NULL);
+}
+
 static void RegressionWatchdogBug(nlTestSuite * inSuite, void * inContext)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
@@ -3738,6 +3818,7 @@ static const nlTest sTests[] = {
     NL_TEST_DEF("Check External Events Basic", CheckExternalEvents),
     NL_TEST_DEF("Check External Events Multiple Callbacks", CheckExternalEventsMultipleCallbacks),
     NL_TEST_DEF("Check External Events Multiple Fetches", CheckExternalEventsMultipleFetches),
+    NL_TEST_DEF("Check External Events Skip", CheckSkipExternalEvents),
     NL_TEST_DEF("Check Drop Events", CheckDropEvents),
     NL_TEST_DEF("Regression: watchdog bug", RegressionWatchdogBug),
     NL_TEST_DEF("Regression: external event cleanup", RegressionWatchdogBug_EventRemoval),

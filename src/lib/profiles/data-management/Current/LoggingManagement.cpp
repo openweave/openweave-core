@@ -386,6 +386,20 @@ exit:
 }
 
 /**
+ * @brief Helper function to skip writing an event corresponding to an allocated
+ *   event id.
+ *
+ * @param[inout] aContext   EventLoadOutContext, initialized with stateful
+ *                          information for the buffer. State is updated
+ *                          and preserved by BlitEvent using this context.
+ *
+ */
+void LoggingManagement::SkipEvent(EventLoadOutContext * aContext)
+{
+    aContext->mCurrentEventID++; // Advance the event id without writing anything
+}
+
+/**
  * @brief Create and initialize the logging management buffers. Must
  *   be called prior to the logging being used.
  *

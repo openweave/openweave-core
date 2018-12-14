@@ -220,6 +220,8 @@ public:
 #endif // WEAVE_CONFIG_EVENT_LOGGING_EXTERNAL_EVENT_SUPPORT
     WEAVE_ERROR BlitEvent(EventLoadOutContext * aContext, const EventSchema & inSchema, EventWriterFunct inEventWriter,
                           void * inAppData, const EventOptions * inOptions);
+    void SkipEvent(EventLoadOutContext * aContext);
+
 
 #if WEAVE_CONFIG_EVENT_LOGGING_WDM_OFFLOAD
     bool CheckShouldRunWDM(void);

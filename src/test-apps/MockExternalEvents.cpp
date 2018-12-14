@@ -52,7 +52,7 @@ event_id_t extEvtPtrs[NUM_CALLBACKS];
 size_t numEvents[NUM_CALLBACKS];
 
 event_id_t blitEvtPtr;
-
+static ShouldBlitFunct ShouldBlit = NULL;
 
 WEAVE_ERROR LogMockExternalEvents(size_t aNumEvents, int numCallback)
 {
@@ -106,6 +106,11 @@ void ClearMockExternalEvents(int numCallback)
     logger.UnregisterEventCallbackForImportance(nl::Weave::Profiles::DataManagement::Production, extEvtPtrs[numCallback - 1]);
 }
 
+void SetShouldBlitCallback(ShouldBlitFunct aShouldBlit)
+{
+    ShouldBlit = aShouldBlit;
+}
+
 WEAVE_ERROR FetchMockExternalEvents(EventLoadOutContext *aContext)
 {
     int i;
@@ -151,7 +156,21 @@ WEAVE_ERROR FetchWithBlitEvent(EventLoadOutContext *aContext)
 
     while ((err == WEAVE_NO_ERROR) && (aContext->mCurrentEventID <= blitEvtPtr))
     {
-        err = logger.BlitEvent(aContext, schema, PlainTextWriter, &context, &evOpts);
+        bool blit = true;
+
+        if (ShouldBlit != NULL)
+        {
+            blit = ShouldBlit(aContext->mCurrentEventID);
+        }
+
+        if (blit)
+        {
+            err = logger.BlitEvent(aContext, schema, PlainTextWriter, &context, &evOpts);
+        }
+        else
+        {
+            logger.SkipEvent(aContext);
+        }
     }
     return err;
 }
