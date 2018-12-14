@@ -539,8 +539,13 @@ WEAVE_ERROR GenericConfigurationManagerImpl<ImplClass>::_GetDeviceDescriptorTLV(
     err = Impl()->_GetDeviceDescriptor(deviceDesc);
     SuccessOrExit(err);
 
-    err = ::nl::Weave::Profiles::DeviceDescription::WeaveDeviceDescriptor::EncodeTLV(deviceDesc, buf, (uint32_t)bufSize, encodedLen);
-    SuccessOrExit(err);
+    {
+        uint32_t tmp = 0;
+        err = ::nl::Weave::Profiles::DeviceDescription::WeaveDeviceDescriptor::EncodeTLV(deviceDesc, buf, (uint32_t)bufSize, tmp);
+        SuccessOrExit(err);
+        encodedLen = tmp;
+    }
+
 
 exit:
     return err;
