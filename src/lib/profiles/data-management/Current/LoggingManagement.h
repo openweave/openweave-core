@@ -208,6 +208,10 @@ public:
 
 #if WEAVE_CONFIG_EVENT_LOGGING_EXTERNAL_EVENT_SUPPORT
     WEAVE_ERROR RegisterEventCallbackForImportance(ImportanceType inImportance, FetchExternalEventsFunct inFetchCallback,
+                                                   NotifyExternalEventsDeliveredFunct inNotifyCallback,
+                                                   NotifyExternalEventsEvictedFunct inEvictedCallback,
+                                                   size_t inNumEvents, event_id_t * outLastEventID);
+    WEAVE_ERROR RegisterEventCallbackForImportance(ImportanceType inImportance, FetchExternalEventsFunct inFetchCallback,
                                                    NotifyExternalEventsDeliveredFunct inNotifyCallback, size_t inNumEvents,
                                                    event_id_t * outLastEventID);
     WEAVE_ERROR RegisterEventCallbackForImportance(ImportanceType inImportance, FetchExternalEventsFunct inFetchCallback,

@@ -725,8 +725,8 @@ CircularEventBuffer * LoggingManagement::GetImportanceBuffer(ImportanceType inIm
  * within the range any number of times until it is unregistered.
  *
  * This variant of the function should be used when the external
- * provider does not care to be notified when the external events have
- * been delivered.
+ * provider desires a notifification neither when the external events have
+ * been delivered nor when the external events object is evicted.
  *
  * The pointer to the ExternalEvents struct will be NULL on failure, otherwise
  * will be populated with start and end event IDs assigned to the callback.
@@ -751,7 +751,7 @@ CircularEventBuffer * LoggingManagement::GetImportanceBuffer(ImportanceType inIm
 WEAVE_ERROR LoggingManagement::RegisterEventCallbackForImportance(ImportanceType inImportance, FetchExternalEventsFunct inCallback,
                                                                   size_t inNumEvents, event_id_t * outLastEventID)
 {
-    return RegisterEventCallbackForImportance(inImportance, inCallback, NULL, inNumEvents, outLastEventID);
+    return RegisterEventCallbackForImportance(inImportance, inCallback, NULL, NULL, inNumEvents, outLastEventID);
 }
 
 /**
@@ -770,8 +770,9 @@ WEAVE_ERROR LoggingManagement::RegisterEventCallbackForImportance(ImportanceType
  *
  * This variant of the function should be used when the external
  * provider wants to be notified when the events have been delivered
- * to a subscriber.  When the events are delivered, the external
- * provider is notified that about the node ID of the recipient and
+ * to a subscriber, but not when the external events object is evicted.
+ * When the events are delivered, the external provider is notified
+ * about that along with the node ID of the recipient and the id of the
  * last event delivered to that recipient.  Note that the external
  * provider may be notified several times for the same event ID.
  * There are no specific restrictions on the handler, in particular,
@@ -786,7 +787,7 @@ WEAVE_ERROR LoggingManagement::RegisterEventCallbackForImportance(ImportanceType
  *
  * @param[in] inImportance      Importance level
  *
- * @param[in] inFetchCallback   Callback to register to fetch external events
+ * @param[in] inCallback        Callback to register to fetch external events
  *
  * @param[in] inNotifyCallback  Callback to register for delivery notification
  *
@@ -802,6 +803,68 @@ WEAVE_ERROR LoggingManagement::RegisterEventCallbackForImportance(ImportanceType
 WEAVE_ERROR LoggingManagement::RegisterEventCallbackForImportance(ImportanceType inImportance,
                                                                   FetchExternalEventsFunct inFetchCallback,
                                                                   NotifyExternalEventsDeliveredFunct inNotifyCallback,
+                                                                  size_t inNumEvents, event_id_t * outLastEventID)
+{
+    return RegisterEventCallbackForImportance(inImportance, inFetchCallback, inNotifyCallback, NULL, inNumEvents, outLastEventID);
+}
+
+/**
+ * @brief
+ *   The public API for registering a set of externally stored events.
+ *
+ * Register a callback of form #FetchExternalEventsFunct. This API requires
+ * the platform to know the number of events on registration. The internal
+ * workings also require this number to be constant. Since this API
+ * does not allow the platform to register specific event IDs, this prevents
+ * the platform from persisting storage of events (at least with unique event
+ * IDs).
+ *
+ * The callback will be called whenever a subscriber attempts to fetch event IDs
+ * within the range any number of times until it is unregistered.
+ *
+ * This variant of the function should be used when the external
+ * provider wants to be notified both when the events have been delivered
+ * to a subscriber and if the external events object is evicted.
+ *
+ * When the events are delivered, the external provider is notified
+ * about that along with the node ID of the recipient and the id of the
+ * last event delivered to that recipient.  Note that the external
+ * provider may be notified several times for the same event ID.
+ * There are no specific restrictions on the handler, in particular,
+ * the handler may unregister the external event IDs.
+ *
+ * If the external events object is evicted from the log buffers,
+ * the external provider is notified along with a copy of the external
+ * events object.
+ *
+ * The pointer to the ExternalEvents struct will be NULL on failure, otherwise
+ * will be populated with start and end event IDs assigned to the callback.
+ * This pointer should be used to unregister the set of events.
+ *
+ * See the documentation for #FetchExternalEventsFunct for details on what
+ * the callback must implement.
+ *
+ * @param[in] inImportance      Importance level
+ *
+ * @param[in] inFetchCallback   Callback to register to fetch external events
+ *
+ * @param[in] inNotifyCallback  Callback to register for delivery notification
+ *
+ * @param[in] inEvictedCallback Callback to register for eviction notification
+ *
+ * @param[in] inNumEvents       Number of events in this set
+ *
+ * @param[out] outLastEventID   Pointer to an event_id_t; on successful registration of external events the function will store the
+ *                              event ID corresponding to the last event ID of the external event block. The parameter may be NULL.
+ *
+ * @retval WEAVE_ERROR_NO_MEMORY        If no more callback slots are available.
+ * @retval WEAVE_ERROR_INVALID_ARGUMENT Null function callback or no events to register.
+ * @retval WEAVE_NO_ERROR               On success.
+ */
+WEAVE_ERROR LoggingManagement::RegisterEventCallbackForImportance(ImportanceType inImportance,
+                                                                  FetchExternalEventsFunct inFetchCallback,
+                                                                  NotifyExternalEventsDeliveredFunct inNotifyCallback,
+                                                                  NotifyExternalEventsEvictedFunct inEvictedCallback,
                                                                   size_t inNumEvents, event_id_t * outLastEventID)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
@@ -826,6 +889,7 @@ WEAVE_ERROR LoggingManagement::RegisterEventCallbackForImportance(ImportanceType
 
     ev.mFetchEventsFunct           = inFetchCallback;
     ev.mNotifyEventsDeliveredFunct = inNotifyCallback;
+    ev.mNotifyEventsEvictedFunct   = inEvictedCallback;
 
     // We know the size of the event, ensure we have the space for it.
     err = EnsureSpace(sizeof(ExternalEvents) + EVENT_CONTAINER_OVERHEAD_TLV_SIZE + IMPORTANCE_TLV_SIZE +
@@ -961,6 +1025,7 @@ void LoggingManagement::UnregisterEventCallbackForImportance(ImportanceType inIm
         // At this point, the reader is positioned correctly, and dataPtr points to the beginning of the string
         ev.mFetchEventsFunct           = NULL;
         ev.mNotifyEventsDeliveredFunct = NULL;
+        ev.mNotifyEventsEvictedFunct   = NULL;
 
         writer.Init(&writeBuffer);
 
@@ -1277,6 +1342,7 @@ void LoggingManagement::UnthrottleLogger(void)
         WeaveLogProgress(EventLogging, "LogThrottle off");
     }
 }
+
 
 // internal API, used to copy events to external buffers
 WEAVE_ERROR LoggingManagement::CopyEvent(const TLVReader & aReader, TLVWriter & aWriter, EventLoadOutContext * aContext)
@@ -1655,6 +1721,11 @@ WEAVE_ERROR LoggingManagement::EvictEvent(WeaveCircularTLVBuffer & inBuffer, voi
         if (ev.IsValid())
         {
             numEventsToDrop = ev.mLastEventID - ev.mFirstEventID + 1;
+
+            if (ev.mNotifyEventsEvictedFunct != NULL)
+            {
+                ev.mNotifyEventsEvictedFunct(&ev);
+            }
         }
 #endif // WEAVE_CONFIG_EVENT_LOGGING_EXTERNAL_EVENT_SUPPORT
 

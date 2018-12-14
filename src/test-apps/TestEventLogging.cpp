@@ -458,7 +458,6 @@ PersistedCounter * sCounterStorage[kImportanceType_Last] = {
 
 void InitializeEventLogging(TestLoggingContext * context)
 {
-
     size_t arraySizes[] = { sizeof(gDebugEventBuffer), sizeof(gInfoEventBuffer), sizeof(gProdEventBuffer),
                             sizeof(gCritEventBuffer) };
 
@@ -3317,12 +3316,14 @@ static void CheckExternalEventsMultipleFetches(nlTestSuite * inSuite, void * inC
 static event_id_t sLastExpectedExternalEventID;
 static bool sExternalEventNotificationPassed;
 static bool sExternalEventNotificationCalled;
+static bool sExternalEventEvictionCalled;
 
 static void ResetExternalEventDeliveryState(void)
 {
     sLastExpectedExternalEventID = 0;
     sExternalEventNotificationCalled = false;
     sExternalEventNotificationPassed = false;
+    sExternalEventEvictionCalled = false;
 }
 
 static void MockExternalEventsDelivered(ExternalEvents * inEv, event_id_t inLastDeliveredEventID,
@@ -3335,6 +3336,11 @@ static void MockExternalEventsDelivered(ExternalEvents * inEv, event_id_t inLast
 static WEAVE_ERROR MockExternalEventsFetch(EventLoadOutContext * aContext)
 {
     return WEAVE_NO_ERROR;
+}
+
+static void MockExternalEventsEvicted(ExternalEvents * inEv)
+{
+    sExternalEventEvictionCalled = true;
 }
 
 static void CheckExternalEventNotifyDelivered(nlTestSuite * inSuite, void * inContext)
@@ -3407,6 +3413,53 @@ static void CheckExternalEventNotifyDelivered(nlTestSuite * inSuite, void * inCo
 
     NL_TEST_ASSERT(inSuite, sExternalEventNotificationCalled == false);
 
+}
+
+static void CheckExternalEventNotifyEvicted(nlTestSuite * inSuite, void * inContext)
+{
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
+    event_id_t eid, eid_prev;
+    event_id_t external_eid_production;
+    size_t counter = 0;
+    timestamp_t now;
+    ::nl::Weave::Profiles::DataManagement::TestSubscriptionHandler subHandler;
+    TestLoggingContext * context = static_cast<TestLoggingContext *>(inContext);
+    nl::Weave::Profiles::DataManagement::LoggingManagement & logger =
+        nl::Weave::Profiles::DataManagement::LoggingManagement::GetInstance();
+    nl::Weave::Profiles::DataManagement::ImportanceType importance;
+
+    InitializeEventLogging(context);
+
+    // Prime the event buffers with some internal events
+    now = System::Layer::GetClock_MonotonicMS();
+    eid = FastLogFreeform(nl::Weave::Profiles::DataManagement::Production, now, "Freeform entry %d", counter);
+    now += 10;
+    counter++;
+
+    // Register external events with production importance
+    err = logger.RegisterEventCallbackForImportance(nl::Weave::Profiles::DataManagement::Production, MockExternalEventsFetch, MockExternalEventsDelivered, MockExternalEventsEvicted, 10, &external_eid_production);
+    NL_TEST_ASSERT(inSuite, err == WEAVE_NO_ERROR);
+    NL_TEST_ASSERT(inSuite, external_eid_production == (eid + 10));
+
+    // Force an eviction
+    eid_prev = FastLogFreeform(nl::Weave::Profiles::DataManagement::Production, now, "Freeform entry %d", counter++);
+    now += 10;
+    for (; counter < 103; counter++)
+    {
+        // Sample production events, spaced 10 milliseconds apart
+        eid = FastLogFreeform(nl::Weave::Profiles::DataManagement::Production, now, "Freeform entry %d", counter);
+        now += 10;
+
+        NL_TEST_ASSERT(inSuite, eid > 0);
+        NL_TEST_ASSERT(inSuite, eid == (eid_prev + 1));
+
+        eid_prev = eid;
+    }
+
+    NL_TEST_ASSERT(inSuite, sExternalEventEvictionCalled == true);
+
+    // Clean up
+    logger.UnregisterEventCallbackForImportance(nl::Weave::Profiles::DataManagement::Production, external_eid_production);
 }
 
 #endif // WEAVE_CONFIG_EVENT_LOGGING_EXTERNAL_EVENT_SUPPORT
@@ -3699,6 +3752,7 @@ static const nlTest sTests[] = {
     NL_TEST_DEF("Check Gap detection", CheckGapDetection),
     NL_TEST_DEF("Check Drop Overlapping Event Id Ranges", CheckDropOverlap),
     NL_TEST_DEF("Check Last Observed Event Id", CheckLastObservedEventId),
+    NL_TEST_DEF("Check External Event eviction notification", CheckExternalEventNotifyEvicted),
     NL_TEST_SENTINEL()
 };
 

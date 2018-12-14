@@ -328,6 +328,9 @@ typedef WEAVE_ERROR (*FetchExternalEventsFunct)(EventLoadOutContext * aContext);
  * The callback contains the event of the last ID that was delivered,
  * and the ID of the subscriber that received the event.
  *
+ * @param[in] inEv                       External events object corresponding
+ *                                       to delivered events
+ *
  * @param[in] inLastDeliveredEventID     ID of the last event delivered to
  *                                       the subscriber.
  * @param[in] inRecipientNodeID          Weave node ID of the recipient
@@ -335,6 +338,20 @@ typedef WEAVE_ERROR (*FetchExternalEventsFunct)(EventLoadOutContext * aContext);
  */
 typedef void (*NotifyExternalEventsDeliveredFunct)(ExternalEvents * inEv, event_id_t inLastDeliveredEventID,
                                                    uint64_t inRecipientNodeID);
+
+/**
+ * @brief
+ *
+ *   A function prototype for a callback invoked when external events
+ *   are evicted from the buffers.
+ *
+ * When the external events object is evicted from the outbound message
+ * buffer, the engine will provide a notification to the external event
+ * provider.  The callback contains the external event to be evicted.
+ *
+ * @param[in] inEv                       External events object to be evicted
+ */
+typedef void (*NotifyExternalEventsEvictedFunct)(ExternalEvents * inEv);
 
 /**
  *  @brief
@@ -349,6 +366,7 @@ struct ExternalEvents
 
     FetchExternalEventsFunct mFetchEventsFunct; /**< The callback to use to fetch the above IDs. */
     NotifyExternalEventsDeliveredFunct mNotifyEventsDeliveredFunct;
+    NotifyExternalEventsEvictedFunct mNotifyEventsEvictedFunct;
     bool IsValid(void) const { return mFirstEventID <= mLastEventID; };
     void Invalidate(void) { mFirstEventID = 1; mLastEventID = 0; };
 };
