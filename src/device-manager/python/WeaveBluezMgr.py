@@ -54,6 +54,8 @@ weave_service = uuid.UUID('0000FEAF-0000-1000-8000-00805F9B34FB')
 weave_tx      = uuid.UUID('18EE2EF5-263D-4559-959F-4F9C429F9D11')
 weave_rx      = uuid.UUID('18EE2EF5-263D-4559-959F-4F9C429F9D12')
 weave_service_short = uuid.UUID('0000FEAF-0000-0000-0000-000000000000')
+chromecast_setup_service = uuid.UUID('0000FEA0-0000-1000-8000-00805F9B34FB')
+chromecast_setup_service_short = uuid.UUID('0000FEA0-0000-0000-0000-000000000000')
 
 BLUEZ_NAME = 'org.bluez'
 ADAPTER_INTERFACE           = BLUEZ_NAME + '.Adapter1'
@@ -850,7 +852,7 @@ class BluezManager(WeaveBleBase):
         timeout = kwargs['timeout'] + time.time()
 
         while time.time() < timeout:
-            self.peripheral_list = self.adapter.find_devices([weave_service, weave_service_short])
+            self.peripheral_list = self.adapter.find_devices([weave_service, weave_service_short, chromecast_setup_service, chromecast_setup_service_short])
             for device in self.peripheral_list:
                 try:
                     if not self.scan_quiet:
