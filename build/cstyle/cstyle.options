@@ -1,5 +1,5 @@
 -v
---copyright='^( \*|\/\*|\/\/)    Copyright (\(c\) )*\d{4,}(-\d{4,})* Nest Labs, Inc\.'
+--copyright='^( \*|\/\*|\/\/)    Copyright (\(c\) )*\d{4,}(-\d{4,})* (Nest Labs, Inc\.|Google LLC\.*)'
 --cpp-lines-between-conditionals=20
 --line-length=132
 --tab-size=4
