@@ -153,6 +153,18 @@ public:
      * @retval true  Address is IPv6 multicast
      * @retval false Otherwise
      */
+    bool IsIPv6Multicast(void) const;
+
+    /**
+     * @brief   Test whether address is IPv4 or IPv6 multicast.
+     *
+     * @details
+     *  Use this method to check if the address belongs to the IPv4 or IPv6 address
+     *  family and has the reserved IPv4 or IPv6 multicast address prefix.
+     *
+     * @retval true  Address is IPv4 or IPv6 multicast
+     * @retval false Otherwise
+     */
     bool IsMulticast(void) const;
 
     /**
@@ -329,6 +341,18 @@ public:
      * @retval false  The address is IPv6 or the unspecified address.
      */
     bool IsIPv4(void) const;
+
+    /**
+     * @brief   Test whether address is IPv4 multicast.
+     *
+     * @details
+     *  Use this method to check if the address is an IPv4 multicast
+     *  address.
+     *
+     * @retval true  Address is the IPv4 multicast
+     * @retval false Otherwise
+     */
+    bool IsIPv4Multicast(void) const;
 
     /**
      * @brief   Test whether address is IPv4 broadcast.

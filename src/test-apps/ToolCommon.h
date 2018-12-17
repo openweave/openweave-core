@@ -76,7 +76,7 @@ using namespace nl::Weave::Profiles;
   alignment_type varName[(((bytes)+(sizeof(alignment_type)-1))/sizeof(alignment_type))]
 #endif
 
-#define WEAVE_TOOL_COPYRIGHT "Copyright (c) 2013-2017 Nest Labs, Inc.\nAll rights reserved.\n"
+#define WEAVE_TOOL_COPYRIGHT "Copyright (c) 2018 Google LLC.\nCopyright (c) 2013-2018 Nest Labs, Inc.\nAll rights reserved.\n"
 
 extern System::Layer SystemLayer;
 

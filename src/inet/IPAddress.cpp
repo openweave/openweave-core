@@ -244,14 +244,26 @@ bool IPAddress::IsIPv4() const
     return Addr[0] == 0 && Addr[1] == 0 && Addr[2] == htonl(0xFFFF);
 }
 
-// Is address the IPv4 broadcast address
-bool IPAddress::IsIPv4Broadcast() const
+// Is address a IPv4 multicast address?
+bool IPAddress::IsIPv4Multicast(void) const
 {
-    return Addr[0] == 0 && Addr[1] == 0 && Addr[2] == htonl(0xFFFF) && Addr[3] == 0xFFFFFFFF;
+    return (IsIPv4() && ((ntohl(Addr[3]) & 0xF0000000U) == 0xE0000000U));
+}
+
+// Is address the IPv4 broadcast address?
+bool IPAddress::IsIPv4Broadcast(void) const
+{
+    return (IsIPv4() && (Addr[3] == 0xFFFFFFFFU));
+}
+
+// Is address an IPv4 or IPv6 multicast address?
+bool IPAddress::IsMulticast(void) const
+{
+    return (IsIPv6Multicast() || IsIPv4Multicast());
 }
 
 // Is address an IPv6 multicast address?
-bool IPAddress::IsMulticast() const
+bool IPAddress::IsIPv6Multicast(void) const
 {
     return (ntohl(Addr[0]) & 0xFF000000U) == 0xFF000000U;
 }
