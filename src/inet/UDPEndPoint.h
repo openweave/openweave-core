@@ -1,5 +1,6 @@
 /*
  *
+ *    Copyright (c) 2018 Google LLC
  *    Copyright (c) 2013-2017 Nest Labs, Inc.
  *    All rights reserved.
  *
@@ -28,7 +29,7 @@
 #ifndef UDPENDPOINT_H
 #define UDPENDPOINT_H
 
-#include <InetLayer/EndPointBasis.h>
+#include <InetLayer/IPEndPointBasis.h>
 #include <InetLayer/IPAddress.h>
 
 #include <SystemLayer/SystemPacketBuffer.h>
@@ -47,7 +48,7 @@ class IPPacketInfo;
  *  endpoints (SOCK_DGRAM sockets on Linux and BSD-derived systems) or LwIP
  *  UDP protocol control blocks, as the system is configured accordingly.
  */
-class NL_DLL_EXPORT UDPEndPoint : public EndPointBasis
+ class NL_DLL_EXPORT UDPEndPoint : public IPEndPointBasis
 {
     friend class InetLayer;
 
@@ -74,14 +75,6 @@ public:
     } mState;
 
     /**
-     * @brief   Transmit option flags for the \c SendTo methods.
-     */
-    enum {
-        /** Do not destructively queue the message directly. Queue a copy. */
-        kSendFlag_RetainBuffer = 0x0040
-    };
-
-    /**
      * @brief   Bind the endpoint to an interface IP address.
      *
      * @param[in]   addrType    the protocol version of the IP address
@@ -106,6 +99,10 @@ public:
      *
      * @retval  other                   another system or platform error
      *
+     * @details
+     *  Binds the endpoint to the specified network interface IP address.
+     *
+     *  On LwIP, this method must not be called with the LwIP stack lock
      *  already acquired.
      */
     INET_ERROR Bind(IPAddressType addrType, IPAddress addr, uint16_t port, InterfaceId intfId = INET_NULL_INTERFACEID);
@@ -118,7 +115,7 @@ public:
      *
      * @details
      *  If \c State is already \c kState_Listening, then no operation is
-     *  performed, otherwise the \c State is set to \c kState_Listening and
+     *  performed, otherwise the \c mState is set to \c kState_Listening and
      *  the endpoint is prepared to received UDP messages, according to the
      *  semantics of the platform.
      *
@@ -181,7 +178,8 @@ public:
     /**
      * @brief   Bind the endpoint to a network interface.
      *
-     * @param[in]   addrType    the protocol version of the IP address
+     * @param[in]   addrType    the protocol version of the IP address.
+	 *
      * @param[in]   intf        indicator of the network interface.
      *
      * @retval  INET_NO_ERROR               success: endpoint bound to address
@@ -285,7 +283,6 @@ private:
 
 #if WEAVE_SYSTEM_CONFIG_USE_SOCKETS
     uint16_t mBoundPort;
-    InterfaceId mBoundIntfId;
 
     INET_ERROR GetSocket(IPAddressType addrType);
     SocketEvents PrepareIO(void);
