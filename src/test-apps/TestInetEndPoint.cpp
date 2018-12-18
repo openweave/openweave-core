@@ -1,6 +1,7 @@
 /*
  *
- *    Copyright (c) 2016-2017 Nest Labs, Inc.
+ *    Copyright (c) 2018 Google LLC.
+ *    Copyright (c) 2016-2018 Nest Labs, Inc.
  *    All rights reserved.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
@@ -26,10 +27,12 @@
 #define __STDC_LIMIT_MACROS
 #endif
 
+#include <errno.h>
 #include <stdint.h>
 #include <string.h>
 
 #include <InetLayer/InetLayer.h>
+#include <InetLayer/InetError.h>
 
 #include <SystemLayer/SystemError.h>
 #include <SystemLayer/SystemTimer.h>
@@ -195,7 +198,7 @@ static void TestInetError(nlTestSuite *inSuite, void *inContext)
 {
     INET_ERROR err = INET_NO_ERROR;
 
-    err = MapErrorPOSIX(1);
+    err = MapErrorPOSIX(EPERM);
     NL_TEST_ASSERT(inSuite, DescribeErrorPOSIX(err));
     NL_TEST_ASSERT(inSuite, IsErrorPOSIX(err));
 }
@@ -272,6 +275,8 @@ static void TestInetEndPoint(nlTestSuite *inSuite, void *inContext)
 #endif
     TCPEndPoint *testTCPEP1 = NULL;
     PacketBuffer *buf = PacketBuffer::New();
+    bool didBind = false;
+    bool didListen = false;
 
     // init all the EndPoints
     err = Inet.NewRawEndPoint(kIPVersion_6, kIPProtocol_ICMPv6, &testRaw6EP);
@@ -321,11 +326,33 @@ static void TestInetEndPoint(nlTestSuite *inSuite, void *inContext)
     err = testRaw6EP->BindInterface(INET_NULL_INTERFACEID);
     NL_TEST_ASSERT(inSuite, err != INET_NO_ERROR);
 
+    // A bind should succeed with appropriate permissions but will
+    // othewise fail.
+
     err = testRaw6EP->BindIPv6LinkLocal(intId, addr);
-    testRaw6EP->Listen();
-    testRaw6EP->Listen();
+    NL_TEST_ASSERT(inSuite, (err == INET_NO_ERROR) || (err = System::MapErrorPOSIX(EPERM)));
+
+    didBind = (err == INET_NO_ERROR);
+
+    // Listen after bind should succeed if the prior bind succeeded.
+
+    err = testRaw6EP->Listen();
+    NL_TEST_ASSERT(inSuite, (didBind && (err == INET_NO_ERROR)) || (!didBind && (err == INET_ERROR_INCORRECT_STATE)));
+
+    didListen = (err == INET_NO_ERROR);
+
+    // If the first listen succeeded, then the second listen should be successful.
+
+    err = testRaw6EP->Listen();
+    NL_TEST_ASSERT(inSuite, (didBind && didListen && (err == INET_NO_ERROR)) || (!didBind && (err == INET_ERROR_INCORRECT_STATE)));
+
+    didListen = (err == INET_NO_ERROR);
+
+    // A bind-after-listen should result in an incorrect state error; otherise,
+	// it will fail with a permissions error.
+
     err = testRaw6EP->Bind(kIPAddressType_IPv6, addr);
-    NL_TEST_ASSERT(inSuite, err == INET_ERROR_INCORRECT_STATE);
+    NL_TEST_ASSERT(inSuite, (didListen && (err == INET_ERROR_INCORRECT_STATE)) || (!didListen && (err = System::MapErrorPOSIX(EPERM))));
 
     // error SetICMPFilter case
     err = testRaw6EP->SetICMPFilter(0, ICMP6Types);
