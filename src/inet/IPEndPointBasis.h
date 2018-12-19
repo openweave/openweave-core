@@ -31,6 +31,11 @@
 
 #include <SystemLayer/SystemPacketBuffer.h>
 
+#if WEAVE_SYSTEM_CONFIG_USE_LWIP
+#include <lwip/init.h>
+#include <lwip/netif.h>
+#endif // WEAVE_SYSTEM_CONFIG_USE_LWIP
+
 namespace nl {
 namespace Inet {
 
@@ -50,6 +55,30 @@ class NL_DLL_EXPORT IPEndPointBasis : public EndPointBasis
 
 public:
     /**
+     * @brief   Basic dynamic state of the underlying endpoint.
+     *
+     * @details
+     *  Objects are initialized in the "ready" state, proceed to the "bound"
+     *  state after binding to a local interface address, then proceed to the
+     *  "listening" state when they have continuations registered for handling
+     *  events for reception of ICMP messages.
+     *
+     * @note
+     *  The \c kBasisState_Closed state enumeration is mapped to \c
+     *  kState_Ready for historical binary-compatibility reasons. The
+     *  existing \c kState_Closed exists to identify separately the
+     *  distinction between "not opened yet" and "previously opened
+     *  now closed" that existed previously in the \c kState_Ready and
+     *  \c kState_Closed states.
+     */
+    enum {
+        kState_Ready        = kBasisState_Closed,   /**< Endpoint initialized, but not open. */
+        kState_Bound        = 1,                    /**< Endpoint bound, but not listening. */
+        kState_Listening    = 2,                    /**< Endpoint receiving datagrams. */
+        kState_Closed       = 3                     /**< Endpoint closed, ready for release. */
+    } mState;
+
+    /**
      * @brief   Transmit option flags for the \c SendTo methods.
      */
     enum {
@@ -59,6 +88,26 @@ public:
 
 protected:
     void Init(InetLayer *aInetLayer);
+
+#if WEAVE_SYSTEM_CONFIG_USE_LWIP
+public:
+    static inline struct netif *FindNetifFromInterfaceId(InterfaceId aInterfaceId)
+    {
+            struct netif *lRetval = NULL;
+
+#if LWIP_VERSION_MAJOR >= 2 && LWIP_VERSION_MINOR >= 0 && defined(NETIF_FOREACH)
+            NETIF_FOREACH(lRetval)
+            {
+                if (lRetval == aInterfaceid)
+                    break;
+            }
+#else // LWIP_VERSION_MAJOR < 2 || !defined(NETIF_FOREACH)
+            for (lRetval = netif_list; lRetval != NULL && lRetval != aInterfaceId; lRetval = lRetval->next);
+#endif // LWIP_VERSION_MAJOR >= 2 && LWIP_VERSION_MINOR >= 0 && defined(NETIF_FOREACH)
+
+            return (lRetval);
+    }
+#endif // WEAVE_SYSTEM_CONFIG_USE_LWIP
 
 #if WEAVE_SYSTEM_CONFIG_USE_SOCKETS
 protected:
