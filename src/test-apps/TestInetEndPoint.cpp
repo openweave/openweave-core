@@ -321,9 +321,9 @@ static void TestInetEndPoint(nlTestSuite *inSuite, void *inContext)
 #endif // INET_CONFIG_ENABLE_IPV4
     err = testRaw6EP->BindIPv6LinkLocal((InterfaceId)-1, addr);
     NL_TEST_ASSERT(inSuite, err != INET_NO_ERROR);
-    err = testRaw6EP->BindInterface((InterfaceId)-1);
+    err = testRaw6EP->BindInterface(kIPAddressType_Unknown, (InterfaceId)-1);
     NL_TEST_ASSERT(inSuite, err != INET_NO_ERROR);
-    err = testRaw6EP->BindInterface(INET_NULL_INTERFACEID);
+    err = testRaw6EP->BindInterface(kIPAddressType_Unknown, INET_NULL_INTERFACEID);
     NL_TEST_ASSERT(inSuite, err != INET_NO_ERROR);
 
     // A bind should succeed with appropriate permissions but will
