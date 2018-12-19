@@ -215,6 +215,7 @@ am__libInetLayer_a_SOURCES_DIST =  \
 	@top_builddir@/src/inet/EndPointBasis.cpp \
 	@top_builddir@/src/inet/IPAddress-StringFuncts.cpp \
 	@top_builddir@/src/inet/IPAddress.cpp \
+	@top_builddir@/src/inet/IPEndPointBasis.cpp \
 	@top_builddir@/src/inet/IPPrefix.cpp \
 	@top_builddir@/src/inet/InetInterface.cpp \
 	@top_builddir@/src/inet/InetLayer.cpp \
@@ -239,6 +240,7 @@ am__dirstamp = $(am__leading_dot)dirstamp
 am__objects_8 = @top_builddir@/src/inet/libInetLayer_a-EndPointBasis.$(OBJEXT) \
 	@top_builddir@/src/inet/libInetLayer_a-IPAddress-StringFuncts.$(OBJEXT) \
 	@top_builddir@/src/inet/libInetLayer_a-IPAddress.$(OBJEXT) \
+	@top_builddir@/src/inet/libInetLayer_a-IPEndPointBasis.$(OBJEXT) \
 	@top_builddir@/src/inet/libInetLayer_a-IPPrefix.$(OBJEXT) \
 	@top_builddir@/src/inet/libInetLayer_a-InetInterface.$(OBJEXT) \
 	@top_builddir@/src/inet/libInetLayer_a-InetLayer.$(OBJEXT) \
@@ -566,6 +568,7 @@ top_srcdir = @top_srcdir@
 nl_InetLayer_sources = @top_builddir@/src/inet/EndPointBasis.cpp \
 	@top_builddir@/src/inet/IPAddress-StringFuncts.cpp \
 	@top_builddir@/src/inet/IPAddress.cpp \
+	@top_builddir@/src/inet/IPEndPointBasis.cpp \
 	@top_builddir@/src/inet/IPPrefix.cpp \
 	@top_builddir@/src/inet/InetInterface.cpp \
 	@top_builddir@/src/inet/InetLayer.cpp \
@@ -680,6 +683,9 @@ clean-libLIBRARIES:
 @top_builddir@/src/inet/libInetLayer_a-IPAddress.$(OBJEXT):  \
 	@top_builddir@/src/inet/$(am__dirstamp) \
 	@top_builddir@/src/inet/$(DEPDIR)/$(am__dirstamp)
+@top_builddir@/src/inet/libInetLayer_a-IPEndPointBasis.$(OBJEXT):  \
+	@top_builddir@/src/inet/$(am__dirstamp) \
+	@top_builddir@/src/inet/$(DEPDIR)/$(am__dirstamp)
 @top_builddir@/src/inet/libInetLayer_a-IPPrefix.$(OBJEXT):  \
 	@top_builddir@/src/inet/$(am__dirstamp) \
 	@top_builddir@/src/inet/$(DEPDIR)/$(am__dirstamp)
@@ -737,6 +743,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@@top_builddir@/src/inet/$(DEPDIR)/libInetLayer_a-EndPointBasis.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@@top_builddir@/src/inet/$(DEPDIR)/libInetLayer_a-IPAddress-StringFuncts.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@@top_builddir@/src/inet/$(DEPDIR)/libInetLayer_a-IPAddress.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@@top_builddir@/src/inet/$(DEPDIR)/libInetLayer_a-IPEndPointBasis.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@@top_builddir@/src/inet/$(DEPDIR)/libInetLayer_a-IPPrefix.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@@top_builddir@/src/inet/$(DEPDIR)/libInetLayer_a-InetFaultInjection.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@@top_builddir@/src/inet/$(DEPDIR)/libInetLayer_a-InetInterface.Po@am__quote@
@@ -814,6 +821,20 @@ distclean-compile:
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='@top_builddir@/src/inet/IPAddress.cpp' object='@top_builddir@/src/inet/libInetLayer_a-IPAddress.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libInetLayer_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o @top_builddir@/src/inet/libInetLayer_a-IPAddress.obj `if test -f '@top_builddir@/src/inet/IPAddress.cpp'; then $(CYGPATH_W) '@top_builddir@/src/inet/IPAddress.cpp'; else $(CYGPATH_W) '$(srcdir)/@top_builddir@/src/inet/IPAddress.cpp'; fi`
+
+@top_builddir@/src/inet/libInetLayer_a-IPEndPointBasis.o: @top_builddir@/src/inet/IPEndPointBasis.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libInetLayer_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT @top_builddir@/src/inet/libInetLayer_a-IPEndPointBasis.o -MD -MP -MF @top_builddir@/src/inet/$(DEPDIR)/libInetLayer_a-IPEndPointBasis.Tpo -c -o @top_builddir@/src/inet/libInetLayer_a-IPEndPointBasis.o `test -f '@top_builddir@/src/inet/IPEndPointBasis.cpp' || echo '$(srcdir)/'`@top_builddir@/src/inet/IPEndPointBasis.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) @top_builddir@/src/inet/$(DEPDIR)/libInetLayer_a-IPEndPointBasis.Tpo @top_builddir@/src/inet/$(DEPDIR)/libInetLayer_a-IPEndPointBasis.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='@top_builddir@/src/inet/IPEndPointBasis.cpp' object='@top_builddir@/src/inet/libInetLayer_a-IPEndPointBasis.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libInetLayer_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o @top_builddir@/src/inet/libInetLayer_a-IPEndPointBasis.o `test -f '@top_builddir@/src/inet/IPEndPointBasis.cpp' || echo '$(srcdir)/'`@top_builddir@/src/inet/IPEndPointBasis.cpp
+
+@top_builddir@/src/inet/libInetLayer_a-IPEndPointBasis.obj: @top_builddir@/src/inet/IPEndPointBasis.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libInetLayer_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT @top_builddir@/src/inet/libInetLayer_a-IPEndPointBasis.obj -MD -MP -MF @top_builddir@/src/inet/$(DEPDIR)/libInetLayer_a-IPEndPointBasis.Tpo -c -o @top_builddir@/src/inet/libInetLayer_a-IPEndPointBasis.obj `if test -f '@top_builddir@/src/inet/IPEndPointBasis.cpp'; then $(CYGPATH_W) '@top_builddir@/src/inet/IPEndPointBasis.cpp'; else $(CYGPATH_W) '$(srcdir)/@top_builddir@/src/inet/IPEndPointBasis.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) @top_builddir@/src/inet/$(DEPDIR)/libInetLayer_a-IPEndPointBasis.Tpo @top_builddir@/src/inet/$(DEPDIR)/libInetLayer_a-IPEndPointBasis.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='@top_builddir@/src/inet/IPEndPointBasis.cpp' object='@top_builddir@/src/inet/libInetLayer_a-IPEndPointBasis.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libInetLayer_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o @top_builddir@/src/inet/libInetLayer_a-IPEndPointBasis.obj `if test -f '@top_builddir@/src/inet/IPEndPointBasis.cpp'; then $(CYGPATH_W) '@top_builddir@/src/inet/IPEndPointBasis.cpp'; else $(CYGPATH_W) '$(srcdir)/@top_builddir@/src/inet/IPEndPointBasis.cpp'; fi`
 
 @top_builddir@/src/inet/libInetLayer_a-IPPrefix.o: @top_builddir@/src/inet/IPPrefix.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libInetLayer_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT @top_builddir@/src/inet/libInetLayer_a-IPPrefix.o -MD -MP -MF @top_builddir@/src/inet/$(DEPDIR)/libInetLayer_a-IPPrefix.Tpo -c -o @top_builddir@/src/inet/libInetLayer_a-IPPrefix.o `test -f '@top_builddir@/src/inet/IPPrefix.cpp' || echo '$(srcdir)/'`@top_builddir@/src/inet/IPPrefix.cpp

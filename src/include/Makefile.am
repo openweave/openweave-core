@@ -156,6 +156,7 @@ $(nl_public_InetLayer_source_dirstem)/InetLayerBasis.h \
 $(nl_public_InetLayer_source_dirstem)/InetLayerEvents.h \
 $(nl_public_InetLayer_source_dirstem)/InetTimer.h \
 $(nl_public_InetLayer_source_dirstem)/IPAddress.h \
+$(nl_public_InetLayer_source_dirstem)/IPEndPointBasis.h \
 $(nl_public_InetLayer_source_dirstem)/IPPrefix.h \
 $(nl_public_InetLayer_source_dirstem)/InetFaultInjection.h \
 $(NULL)
