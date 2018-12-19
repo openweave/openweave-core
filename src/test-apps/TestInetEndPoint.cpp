@@ -348,8 +348,8 @@ static void TestInetEndPoint(nlTestSuite *inSuite, void *inContext)
 
     didListen = (err == INET_NO_ERROR);
 
-    // A bind-after-listen should result in an incorrect state error; otherise,
-	// it will fail with a permissions error.
+    // A bind-after-listen should result in an incorrect state error;
+    // otherwise, it will fail with a permissions error.
 
     err = testRaw6EP->Bind(kIPAddressType_IPv6, addr);
     NL_TEST_ASSERT(inSuite, (didListen && (err == INET_ERROR_INCORRECT_STATE)) || (!didListen && (err = System::MapErrorPOSIX(EPERM))));
@@ -359,7 +359,15 @@ static void TestInetEndPoint(nlTestSuite *inSuite, void *inContext)
     NL_TEST_ASSERT(inSuite, err == INET_ERROR_BAD_ARGS);
 
 #if INET_CONFIG_ENABLE_IPV4
-    // error Sendto case
+    // We should never be able to send an IPv4-addressed message on an
+    // IPv6 raw socket.
+    //
+    // Ostensibly the address obtained above from
+    // Inet.GetLinkLocalAddr(INET_NULL_INTERFACEID, &addr) is an IPv6
+    // LLA; however, make sure it actually is.
+
+    NL_TEST_ASSERT(inSuite, addr.Type() == kIPAddressType_IPv6);
+
     err = testRaw4EP->SendTo(addr, buf);
     NL_TEST_ASSERT(inSuite, err == INET_ERROR_WRONG_ADDRESS_TYPE);
     testRaw4EP->Free();
