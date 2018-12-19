@@ -300,6 +300,9 @@ INET_ERROR RawEndPoint::Listen()
     if (mState == kState_Listening)
         return INET_NO_ERROR;
 
+    if (mState != kState_Bound)
+        return INET_ERROR_INCORRECT_STATE;
+
 #if WEAVE_SYSTEM_CONFIG_USE_LWIP
 
     // Lock LwIP stack
