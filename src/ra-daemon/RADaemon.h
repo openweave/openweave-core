@@ -79,10 +79,10 @@ private:
     };
 
     static void MulticastRA(InetLayer* inet, void* appState, INET_ERROR err);
-    static void HandleMessageReceived2(RawEndPoint *RawEPListen, PacketBuffer *msg, IPAddress senderAddr);
-    static void HandleReceiveError2(RawEndPoint *endPoint, INET_ERROR err, IPAddress senderAddr);
-    static void HandleMessageReceived(RawEndPoint *RawEPListen, PacketBuffer *msg, IPAddress senderAddr);
-    static void HandleReceiveError(RawEndPoint *endPoint, INET_ERROR err, IPAddress senderAddr);
+    static void HandleMessageReceived2(RawEndPoint *RawEPListen, PacketBuffer *msg, const IPPacketInfo *pktInfo);
+    static void HandleReceiveError2(RawEndPoint *endPoint, INET_ERROR err, const IPPacketInfo *pktInfo);
+    static void HandleMessageReceived(RawEndPoint *RawEPListen, PacketBuffer *msg, const IPPacketInfo *pktInfo);
+    static void HandleReceiveError(RawEndPoint *endPoint, INET_ERROR err, const IPPacketInfo *pktInfo);
     static void BuildRA(PacketBuffer *RAPacket, LinkInformation *linkInfo, const IPAddress &destAddr);
     static uint16_t CalculateChecksum(uint16_t *startpos, uint16_t checklen);
     static void MulticastPeriodicRA(Weave::System::Layer* aSystemLayer, void* aAppState, Weave::System::Error aError);
