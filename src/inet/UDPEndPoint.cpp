@@ -235,6 +235,7 @@ void UDPEndPoint::Close(void)
         {
             udp_remove(mUDP);
             mUDP = NULL;
+            mLwIPEndPointType = kLwIPEndPointType_Unknown;
         }
 
         // Unlock LwIP stack
@@ -504,6 +505,10 @@ INET_ERROR UDPEndPoint::GetPCB(IPAddressType addrType)
             lRetval = INET_ERROR_NO_MEMORY;
             goto exit;
         }
+        else
+        {
+            mLwIPEndPointType = kLwIPEndPointType_UDP;
+        }
     }
     else
     {
@@ -550,6 +555,10 @@ INET_ERROR UDPEndPoint::GetPCB(IPAddressType addrType)
             WeaveLogError(Inet, "udp_new failed");
             lRetval = INET_ERROR_NO_MEMORY;
             goto exit;
+        }
+        else
+        {
+            mLwIPEndPointType = kLwIPEndPointType_UDP;
         }
     }
     else

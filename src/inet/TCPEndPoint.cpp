@@ -267,6 +267,7 @@ INET_ERROR TCPEndPoint::Listen(uint16_t backlog)
 
     // Start listening for incoming connections.
     mTCP = tcp_listen(mTCP);
+    mLwIPEndPointType = kLwIPEndPointType_TCP;
 
     tcp_arg(mTCP, this);
 
@@ -1499,6 +1500,7 @@ INET_ERROR TCPEndPoint::DoClose(INET_ERROR err, bool suppressCallback)
                 // Discard the reference to the PCB to ensure there is no further interaction with it
                 // after this point.
                 mTCP = NULL;
+                mLwIPEndPointType = kLwIPEndPointType_Unknown;
             }
         }
 
@@ -1510,6 +1512,7 @@ INET_ERROR TCPEndPoint::DoClose(INET_ERROR err, bool suppressCallback)
             // Discard the reference to the PCB to ensure there is no further interaction with it
             // after this point.
             mTCP = NULL;
+            mLwIPEndPointType = kLwIPEndPointType_Unknown;
         }
     }
 
@@ -1773,7 +1776,13 @@ INET_ERROR TCPEndPoint::GetPCB(IPAddressType addrType)
         }
 
         if (mTCP == NULL)
+        {
             return INET_ERROR_NO_MEMORY;
+        }
+        else
+        {
+            mLwIPEndPointType = kLwIPEndPointType_TCP;
+        }
     }
     else
     {
@@ -1807,7 +1816,13 @@ INET_ERROR TCPEndPoint::GetPCB(IPAddressType addrType)
         else
             return INET_ERROR_WRONG_ADDRESS_TYPE;
         if (mTCP == NULL)
+        {
             return INET_ERROR_NO_MEMORY;
+        }
+        else
+        {
+            mLwIPEndPointType = kLwIPEndPointType_TCP;
+        }
     }
     else
     {
@@ -2034,6 +2049,7 @@ err_t TCPEndPoint::LwIPHandleIncomingConnection(void *arg, struct tcp_pcb *tpcb,
             // Put the new end point into the Connected state.
             conEP->State = kState_Connected;
             conEP->mTCP = tpcb;
+            conEP->mLwIPEndPointType = kLwIPEndPointType_TCP;
             conEP->Retain();
 
             // Setup LwIP callback functions for the new PCB.
@@ -2126,6 +2142,7 @@ void TCPEndPoint::LwIPHandleError(void *arg, err_t lwipErr)
         // of this is that the mTCP field is shared state between the two threads and thus must only be
         // accessed with the LwIP lock held.
         ep->mTCP = NULL;
+        ep->mLwIPEndPointType = kLwIPEndPointType_Unknown;
 
         // Post callback to HandleError.
         INET_ERROR err = Weave::System::MapErrorLwIP(lwipErr);
