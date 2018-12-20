@@ -38,7 +38,7 @@ namespace nl {
 namespace Inet {
 
 class InetLayer;
-class SenderInfo;
+class IPPacketInfo;
 
 /**
  * @brief   Objects of this class represent raw IP network endpoints.
@@ -264,39 +264,6 @@ public:
      */
     void Free(void);
 
-    /**
-     * @brief   Type of message text reception event handling function.
-     *
-     * @param[in]   endPoint    The raw endpoint associated with the event.
-     * @param[in]   msg         The message text received.
-     * @param[in]   senderAddr  The IP address of the sender.
-     *
-     * @details
-     *  Provide a function of this type to the \c OnMessageReceived delegate
-     *  member to process message text reception events on \c endPoint where
-     *  \c msg is the message text received from the sender at \c senderAddr.
-     */
-    typedef void (*OnMessageReceivedFunct)(RawEndPoint *endPoint, Weave::System::PacketBuffer *msg, IPAddress senderAddr);
-
-    /** The endpoint's message reception event handling function delegate. */
-    OnMessageReceivedFunct OnMessageReceived;
-
-    /**
-     * @brief   Type of reception error event handling function.
-     *
-     * @param[in]   endPoint    The raw endpoint associated with the event.
-     * @param[in]   err         The reason for the error.
-     *
-     * @details
-     *  Provide a function of this type to the \c OnReceiveError delegate
-     *  member to process reception error events on \c endPoint. The \c err
-     *  argument provides specific detail about the type of the error.
-     */
-    typedef void (*OnReceiveErrorFunct)(RawEndPoint *endPoint, INET_ERROR err, IPAddress senderAddr);
-
-    /** The endpoint's receive error event handling function delegate. */
-    OnReceiveErrorFunct OnReceiveError;
-
 private:
     RawEndPoint(void);                          // not defined
     RawEndPoint(const RawEndPoint&);            // not defined
@@ -312,7 +279,6 @@ private:
 
     void HandleDataReceived(Weave::System::PacketBuffer *msg);
     INET_ERROR GetPCB(IPAddressType addrType);
-    static SenderInfo *GetSenderInfo(Weave::System::PacketBuffer *buf);
 
 #if LWIP_VERSION_MAJOR > 1 || LWIP_VERSION_MINOR >= 5
     static u8_t LwIPReceiveRawMessage(void *arg, struct raw_pcb *pcb, struct pbuf *p, const ip_addr_t *addr);

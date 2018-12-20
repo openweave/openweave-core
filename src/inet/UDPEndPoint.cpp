@@ -337,7 +337,7 @@ INET_ERROR UDPEndPoint::SendTo(IPAddress addr, uint16_t port, InterfaceId intfId
 
     // Make sure we have the appropriate type of PCB based on the destination address.
     res = GetPCB(addr.Type());
-	SuccessOrExit(res);
+    SuccessOrExit(res);
 
     // Send the message to the specified address/port.
     {
@@ -414,7 +414,7 @@ INET_ERROR UDPEndPoint::BindInterface(IPAddressType addrType, InterfaceId intfId
 
     // Make sure we have the appropriate type of PCB.
     err = GetPCB(addrType);
-	SuccessOrExit(err);
+    SuccessOrExit(err);
 
     if (!IsInterfaceIdPresent(intfId))
     { //Stop interface-based filtering.
@@ -437,10 +437,10 @@ INET_ERROR UDPEndPoint::BindInterface(IPAddressType addrType, InterfaceId intfId
 #if WEAVE_SYSTEM_CONFIG_USE_SOCKETS
     // Make sure we have the appropriate type of socket.
     err = GetSocket(addrType);
-	SuccessOrExit(err);
+    SuccessOrExit(err);
 
     err = IPEndPointBasis::BindInterface(addrType, intfId);
-	SuccessOrExit(err);
+    SuccessOrExit(err);
 #endif // WEAVE_SYSTEM_CONFIG_USE_SOCKETS
 
     if (err == INET_NO_ERROR)
@@ -472,24 +472,7 @@ InterfaceId UDPEndPoint::GetBoundInterface (void)
 
 void UDPEndPoint::HandleDataReceived(PacketBuffer *msg)
 {
-    if (mState == kState_Listening && OnMessageReceived != NULL)
-    {
-        IPPacketInfo *pktInfo = GetPacketInfo(msg);
-        if (pktInfo != NULL)
-        {
-            IPPacketInfo pktInfoCopy = *pktInfo; // copy the address info so that the app can free the
-                                                  // PacketBuffer without affecting access to address info.
-            OnMessageReceived(this, msg, &pktInfoCopy);
-        }
-        else
-        {
-            if (OnReceiveError != NULL)
-                OnReceiveError(this, INET_ERROR_INBOUND_MESSAGE_TOO_BIG, NULL);
-            PacketBuffer::Free(msg);
-        }
-    }
-    else
-        PacketBuffer::Free(msg);
+    IPEndPointBasis::HandleDataReceived(msg);
 }
 
 INET_ERROR UDPEndPoint::GetPCB(IPAddressType addrType)
@@ -588,27 +571,6 @@ exit:
     return (lRetval);
 }
 
-IPPacketInfo *UDPEndPoint::GetPacketInfo(PacketBuffer *buf)
-{
-    // When using LwIP information about the packet is 'hidden' in the reserved space before the start of
-    // the data in the packet buffer.  This is necessary because the events in dolomite can only have two
-    // arguments, which in this case are used to convey the pointer to the end point and the pointer to the
-    // buffer.
-    //
-    // In most cases this trick of storing information before the data works because the first buffer in
-    // an LwIP UDP message contains the space that was used for the Ethernet/IP/UDP headers. However, given
-    // the current size of the IPPacketInfo structure (40 bytes), it is possible for there to not be enough
-    // room to store the structure along with the payload in a single pbuf. In practice, this should only
-    // happen for extremely large IPv4 packets that arrive without an Ethernet header.
-    //
-    if (!buf->EnsureReservedSize(sizeof(IPPacketInfo) + 3))
-        return NULL;
-    uintptr_t start = (uintptr_t)buf->Start();
-    uintptr_t pktInfoStart = start - sizeof(IPPacketInfo);
-    pktInfoStart = pktInfoStart & ~3;// align to 4-byte boundary
-    return (IPPacketInfo *)pktInfoStart;
-}
-
 #if LWIP_VERSION_MAJOR > 1 || LWIP_VERSION_MINOR >= 5
 void UDPEndPoint::LwIPReceiveUDPMessage(void *arg, struct udp_pcb *pcb, struct pbuf *p, const ip_addr_t *addr, u16_t port)
 #else // LWIP_VERSION_MAJOR <= 1 && LWIP_VERSION_MINOR < 5
@@ -618,8 +580,9 @@ void UDPEndPoint::LwIPReceiveUDPMessage(void *arg, struct udp_pcb *pcb, struct p
     UDPEndPoint*            ep              = static_cast<UDPEndPoint*>(arg);
     PacketBuffer*           buf             = reinterpret_cast<PacketBuffer*>(static_cast<void*>(p));
     Weave::System::Layer&   lSystemLayer    = ep->SystemLayer();
+    IPPacketInfo*           pktInfo     = NULL;
 
-    IPPacketInfo *pktInfo = GetPacketInfo(buf);
+    pktInfo = GetPacketInfo(buf);
     if (pktInfo != NULL)
     {
 #if LWIP_VERSION_MAJOR > 1 || LWIP_VERSION_MINOR >= 5
@@ -667,36 +630,16 @@ exit:
 
 SocketEvents UDPEndPoint::PrepareIO(void)
 {
-    SocketEvents res;
-
-    if (mState == kState_Listening && OnMessageReceived != NULL)
-        res.SetRead();
-
-    return res;
+    return (IPEndPointBasis::PrepareIO());
 }
 
 void UDPEndPoint::HandlePendingIO(void)
 {
-    INET_ERROR      lStatus = INET_NO_ERROR;
-    PacketBuffer *  lBuffer = NULL;
-    IPPacketInfo    lPacketInfo;
-
     if (mState == kState_Listening && OnMessageReceived != NULL && mPendingIO.IsReadable())
     {
         const uint16_t lPort = mBoundPort;
 
-        lStatus = IPEndPointBasis::HandlePendingIO(lPort, lBuffer, lPacketInfo);
-
-        if (lStatus == INET_NO_ERROR)
-            OnMessageReceived(this, lBuffer, &lPacketInfo);
-        else
-        {
-            PacketBuffer::Free(lBuffer);
-            if (OnReceiveError != NULL
-                && lStatus != Weave::System::MapErrorPOSIX(EAGAIN)
-            )
-                OnReceiveError(this, lStatus, NULL);
-        }
+        IPEndPointBasis::HandlePendingIO(lPort);
     }
 
     mPendingIO.Clear();

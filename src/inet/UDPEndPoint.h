@@ -203,43 +203,6 @@ public:
      */
     void Free(void);
 
-    /**
-     * @brief   Type of message text reception event handling function.
-     *
-     * @param[in]   endPoint    The UDP endpoint associated with the event.
-     * @param[in]   msg         The message text received.
-     * @param[in]   pktInfo     The ancillary packet information.
-     *
-     * @details
-     *  Provide a function of this type to the \c OnMessageReceived delegate
-     *  member to process message text reception events on \c endPoint where
-     *  \c msg is the message text and \c pktInfo is the ancillary packet
-     *  information for it.
-     */
-    typedef void (*OnMessageReceivedFunct)(UDPEndPoint *endPoint, Weave::System::PacketBuffer *msg, const IPPacketInfo *pktInfo);
-
-    /** The endpoint's message reception event handling function delegate. */
-    OnMessageReceivedFunct OnMessageReceived;
-
-    /**
-     * @brief   Type of reception error event handling function.
-     *
-     * @param[in]   endPoint    The raw endpoint associated with the event.
-     * @param[in]   err         The reason for the error.
-     * @param[in]   pktInfo     The ancillary packet information.
-     *
-     * @details
-     *  Provide a function of this type to the \c OnReceiveError delegate
-     *  member to process reception acceptance error events on \c endPoint. The
-     *  \c err argument provides specific detail about the type of the error,
-     *  and \c pktInfo is the ancillary packet information associated with the
-     *  reception event.
-     */
-    typedef void (*OnReceiveErrorFunct)(UDPEndPoint *endPoint, INET_ERROR err, const IPPacketInfo *pktInfo);
-
-    /** The endpoint's receive error event handling function delegate. */
-    OnReceiveErrorFunct OnReceiveError;
-
 private:
     UDPEndPoint(void);                                  // not defined
     UDPEndPoint(const UDPEndPoint&);                    // not defined
@@ -252,7 +215,6 @@ private:
 #if WEAVE_SYSTEM_CONFIG_USE_LWIP
     void HandleDataReceived(Weave::System::PacketBuffer *msg);
     INET_ERROR GetPCB(IPAddressType addrType4);
-    static IPPacketInfo *GetPacketInfo(Weave::System::PacketBuffer *buf);
 #if LWIP_VERSION_MAJOR > 1 || LWIP_VERSION_MINOR >= 5
     static void LwIPReceiveUDPMessage(void *arg, struct udp_pcb *pcb, struct pbuf *p, const ip_addr_t *addr, u16_t port);
 #else // LWIP_VERSION_MAJOR <= 1 && LWIP_VERSION_MINOR < 5
