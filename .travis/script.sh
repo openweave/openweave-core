@@ -30,28 +30,27 @@ die()
 
 case "${BUILD_TARGET}" in
 
-    linux-auto-*-distcheck)
-        ./configure && make distcheck
-        ;;
-
-    linux-auto-*-lint)
-        ./configure && make pretty-check
-        ;;
-
     linux-auto-clang)
         ./configure && make && make check
         ;;
 
-    linux-auto-gcc)
+    linux-auto-gcc-check)
         ./configure --enable-coverage && make && make check
+        ;;
+
+    linux-auto-gcc-check-happy)
+        # run happy test
+        sudo bash -c "source ${HOME}/ve/happy/bin/activate; make -f Makefile-Standalone DEBUG=1 TIMESTAMP=1 COVERAGE=1 BuildJobs=24 BLUEZ=1 check"
         ;;
 
     linux-lwip-clang)
         ./configure --with-target-network=lwip --with-lwip=internal --disable-java && make
         ;;
 
-    linux-lwip-gcc)
-        ./configure --with-target-network=lwip --with-lwip=internal --disable-java && make
+    linux-lwip-gcc-check)
+        # Note, LwIP requires sudo prior to running 'make check' to ensure the appropriate TUN and bridge interfaces
+        # may be created.
+        ./configure --enable-coverage --with-target-network=lwip --with-lwip=internal --disable-java && make && sudo make check
         ;;
 
     osx-auto-clang)
@@ -66,9 +65,12 @@ case "${BUILD_TARGET}" in
         .travis/build_esp32.sh
         ;;
 
-    happy_test)
-        # run happy test
-        sudo bash -c "source ${HOME}/ve/happy/bin/activate; make -f Makefile-Standalone DEBUG=1 TIMESTAMP=1 COVERAGE=1 BuildJobs=24 BLUEZ=1 check"
+    linux-auto-*-distcheck)
+        ./configure && make distcheck
+        ;;
+
+    linux-auto-*-lint)
+        ./configure && make pretty-check
         ;;
 
     *)
