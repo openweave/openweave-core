@@ -33,6 +33,7 @@
 #include <Weave/Profiles/WeaveProfiles.h>
 #include <Weave/Core/WeaveTLV.h>
 #include <Weave/Support/ASN1.h>
+#include <Weave/Support/ASN1Macros.h>
 #include <Weave/Support/crypto/HashAlgos.h>
 #include <Weave/Support/crypto/EllipticCurve.h>
 #include <Weave/Profiles/security/WeaveSecurity.h>
@@ -494,6 +495,35 @@ WEAVE_ERROR EncodeWeaveECDSASignature(TLVWriter& writer, EncodedECDSASignature& 
     SuccessOrExit(err);
 
     err = writer.EndContainer(containerType);
+    SuccessOrExit(err);
+
+exit:
+    return err;
+}
+
+// Takes an ECDSA signature in DER form and converts it to Weave form.
+// ECDSA-Sig-Value ::= SEQUENCE { r INTEGER, s INTEGER }
+WEAVE_ERROR ConvertECDSASignature_DERToWeave(const uint8_t * sigBuf, uint8_t sigLen, TLVWriter& writer, uint64_t tag)
+{
+    WEAVE_ERROR err;
+    EncodedECDSASignature sig;
+    ASN1Reader reader;
+
+    reader.Init(sigBuf, sigLen);
+
+    // ECDSA-Sig-Value ::= SEQUENCE
+    ASN1_PARSE_ENTER_SEQUENCE {
+        // r INTEGER
+        ASN1_PARSE_ELEMENT(kASN1TagClass_Universal, kASN1UniversalTag_Integer);
+        sig.R = const_cast<uint8_t *>(reader.Value);
+        sig.RLen = reader.ValueLen;
+        // s INTEGER
+        ASN1_PARSE_ELEMENT(kASN1TagClass_Universal, kASN1UniversalTag_Integer);
+        sig.S = const_cast<uint8_t *>(reader.Value);
+        sig.SLen = reader.ValueLen;
+    } ASN1_EXIT_SEQUENCE;
+
+    err = EncodeWeaveECDSASignature(writer, sig, tag);
     SuccessOrExit(err);
 
 exit:
