@@ -44,15 +44,15 @@ matrix:
       os: linux
       compiler: gcc
     - name: "Linux with Defaults against GCC Functional and Unit Tests"
-      env: BUILD_TARGET="linux-auto-gcc" CC="gcc"
+      env: BUILD_TARGET="linux-auto-gcc-check" CC="gcc"
       os: linux
       compiler: gcc
     - name: "Linux with Defaults against clang/LLVM"
       env: BUILD_TARGET="linux-auto-clang" CC="clang"
       os: linux
       compiler: clang
-    - name: "Linux with LwIP against GCC"
-      env: BUILD_TARGET="linux-lwip-gcc" CC="gcc"
+    - name: "Linux with LwIP against GCC Functional and Unit Tests"
+      env: BUILD_TARGET="linux-lwip-gcc-check" CC="gcc"
       os: linux
       compiler: gcc
     - name: "Linux with LWIP against clang/LLVM"
@@ -67,7 +67,11 @@ matrix:
       env: BUILD_TARGET="osx-lwip-clang" CC="clang"
       os: osx
       compiler: clang
+    - name: "Linux with Defaults against GCC Network and Service (Happy) Tests"
+      os: linux
+      compiler: gcc
+      env: BUILD_TARGET="linux-auto-gcc-check-happy"
     - name: "ESP32"
       env: BUILD_TARGET="esp32"
-    - name: "HAPPY_TEST"
-      env: BUILD_TARGET="happy_test"
+
+
