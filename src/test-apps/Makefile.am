@@ -487,6 +487,7 @@ network_test_programs                          = \
     TestBinding                                  \
     TestEventLogging                             \
     TestInetLayer                                \
+    TestInetLayerMulticast                       \
     TestPersistedCounter                         \
     TestPersistedStorage                         \
     TestRADaemon                                 \
@@ -1262,6 +1263,10 @@ TestInetTimer_LDADD                      = libWeaveTestCommon.a $(COMMON_LDADD)
 TestInetLayer_SOURCES                    = TestInetLayer.cpp
 TestInetLayer_LDFLAGS                    = $(AM_CPPFLAGS)
 TestInetLayer_LDADD                      = libWeaveTestCommon.a $(COMMON_LDADD)
+
+TestInetLayerMulticast_SOURCES           = TestInetLayerMulticast.cpp
+TestInetLayerMulticast_LDFLAGS           = $(AM_CPPFLAGS)
+TestInetLayerMulticast_LDADD             = libWeaveTestCommon.a $(COMMON_LDADD)
 
 TestInetAddress_SOURCES                  = TestInetAddress.cpp
 TestInetAddress_LDADD                    = libWeaveTestCommon.a $(COMMON_LDADD)
