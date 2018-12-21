@@ -308,7 +308,6 @@ check_PROGRAMS                                 = \
     TestCrypto                                   \
     TestDRBG                                     \
     TestDeviceDescriptor                         \
-    TestDNSResolution                            \
     TestECDH                                     \
     TestECDSA                                    \
     TestECMath                                   \
@@ -346,7 +345,6 @@ check_PROGRAMS                                 = \
     TestErrorStr                                 \
     TestStatusReportStr                          \
     TestThermostatStatus                         \
-    TestWoble                                    \
     TestPairingCodeUtils                         \
     TestResourceIdentifier                       \
     $(NULL)
@@ -373,6 +371,13 @@ endif
 if WEAVE_WITH_OPENSSL
 check_PROGRAMS                                += \
     TestWeaveProvBundle                          \
+    $(NULL)
+endif
+
+if WEAVE_SYSTEM_CONFIG_USE_SOCKETS
+check_PROGRAMS                                += \
+    TestDNSResolution                            \
+    TestWoble                                    \
     $(NULL)
 endif
 
@@ -418,7 +423,6 @@ local_test_programs                            = \
     TestCrypto                                   \
     TestDRBG                                     \
     TestDeviceDescriptor                         \
-    TestDNSResolution                            \
     TestECDH                                     \
     TestECDSA                                    \
     TestECMath                                   \
@@ -453,7 +457,6 @@ local_test_programs                            = \
     TestErrorStr                                 \
     TestStatusReportStr                          \
     TestThermostatStatus                         \
-    TestWoble                                    \
     TestPairingCodeUtils                         \
     TestResourceIdentifier                       \
     $(NULL)
@@ -468,9 +471,9 @@ endif
 if WEAVE_BUILD_WARM
 local_test_programs                           += \
     TestWarm                                     \
-	TestPathStore                                \
-	TestWdmUpdateEncoder                         \
-	TestWdmUpdateResponse                        \
+    TestPathStore                                \
+    TestWdmUpdateEncoder                         \
+    TestWdmUpdateResponse                        \
     $(NULL)
 endif
 
@@ -495,6 +498,7 @@ network_test_programs                          = \
     TestWdmOneWayCommandSender                   \
     TestWdmOneWayCommandReceiver                 \
     TestDNSResolution                            \
+    TestWoble                                    \
     mock-device                                  \
     mock-weave-bg                                \
     weave-bdx-client-development                 \
@@ -510,10 +514,10 @@ network_test_programs                          = \
     $(NULL)
 
 if WEAVE_BUILD_LEGACY_WDM
-network_test_programs += \
+network_test_programs                         += \
     TestDataManagement                           \
     wdmtest                                      \
-	$(NULL)
+    $(NULL)
 endif
 
 

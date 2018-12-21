@@ -40,7 +40,7 @@
 using namespace nl::Inet;
 
 #define TOOL_NAME "TestDNSResolution"
-#define DEFAULT_TEST_DURATION_MILLISECS               (10000)
+#define DEFAULT_TEST_DURATION_MILLISECS               (20000)
 #define DEFAULT_CANCEL_TEST_DURATION_MILLISECS        (2000)
 
 static uint32_t sNumResInProgress = 0;
