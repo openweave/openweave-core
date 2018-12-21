@@ -54,27 +54,6 @@ class IPPacketInfo;
 
 public:
     /**
-     * @brief   Basic dynamic state of the underlying endpoint.
-     *
-     * @details
-     *  Objects are initialized in the "ready" state, proceed to the "bound"
-     *  state after binding to a local interface address, then proceed to the
-     *  "listening" state when they have continuations registered for handling
-     *  events for reception of UDP messages.
-     *
-     * @note
-     *  The \c kBasisState_Closed state enumeration is mapped to \c kState_Ready for historical binary-compatibility reasons. The
-     *  existing \c kState_Closed exists to identify separately the distinction between "not opened yet" and "previously opened now
-     *  closed" that existed previously in the \c kState_Ready and \c kState_Closed states.
-     */
-    enum {
-        kState_Ready        = kBasisState_Closed,   /**< Endpoint initialized, but not open. */
-        kState_Bound        = 1,                    /**< Endpoint bound, but not listening. */
-        kState_Listening    = 2,                    /**< Endpoint receiving datagrams. */
-        kState_Closed       = 3                     /**< Endpoint closed, ready for release. */
-    } mState;
-
-    /**
      * @brief   Bind the endpoint to an interface IP address.
      *
      * @param[in]   addrType    the protocol version of the IP address
@@ -276,9 +255,9 @@ private:
     static IPPacketInfo *GetPacketInfo(Weave::System::PacketBuffer *buf);
 #if LWIP_VERSION_MAJOR > 1 || LWIP_VERSION_MINOR >= 5
     static void LwIPReceiveUDPMessage(void *arg, struct udp_pcb *pcb, struct pbuf *p, const ip_addr_t *addr, u16_t port);
-#else // LWIP_VERSION_MAJOR <= 1 || LWIP_VERSION_MINOR >= 5
+#else // LWIP_VERSION_MAJOR <= 1 && LWIP_VERSION_MINOR < 5
     static void LwIPReceiveUDPMessage(void *arg, struct udp_pcb *pcb, struct pbuf *p, ip_addr_t *addr, u16_t port);
-#endif // LWIP_VERSION_MAJOR <= 1 || LWIP_VERSION_MINOR >= 5
+#endif // LWIP_VERSION_MAJOR > 1 || LWIP_VERSION_MINOR >= 5
 #endif // WEAVE_SYSTEM_CONFIG_USE_LWIP
 
 #if WEAVE_SYSTEM_CONFIG_USE_SOCKETS

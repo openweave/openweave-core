@@ -306,7 +306,7 @@ void StartTest()
             InterfaceId intfId;
             err = InterfaceNameToId(IntfFilterName, intfId);
             FAIL_ERROR(err, "InterfaceNameToId failed");
-            err = Raw6EP->BindInterface(intfId);
+            err = Raw6EP->BindInterface(kIPAddressType_IPv6, intfId);
             FAIL_ERROR(err, "RawEndPoint::BindInterface (IPv6) failed");
         }
         Raw6EP->OnMessageReceived = HandleRawMessageReceived;
@@ -322,7 +322,7 @@ void StartTest()
             InterfaceId intfId;
             err = InterfaceNameToId(IntfFilterName, intfId);
             FAIL_ERROR(err, "InterfaceNameToId failed");
-            err = Raw4EP->BindInterface(intfId);
+            err = Raw4EP->BindInterface(kIPAddressType_IPv4, intfId);
             FAIL_ERROR(err, "RawEndPoint::BindInterface (IPv4) failed");
         }
         Raw4EP->OnMessageReceived = HandleRawMessageReceived;

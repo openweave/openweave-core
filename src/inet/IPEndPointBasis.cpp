@@ -302,11 +302,12 @@ exit:
 
 INET_ERROR IPEndPointBasis::GetSocket(IPAddressType aAddressType, int aType, int aProtocol)
 {
+    INET_ERROR res = INET_NO_ERROR;
+
     if (mSocket == INET_INVALID_SOCKET_FD)
     {
         const int one = 1;
         int family;
-        int res;
 
         switch (aAddressType)
         {
@@ -330,14 +331,14 @@ INET_ERROR IPEndPointBasis::GetSocket(IPAddressType aAddressType, int aType, int
 
         mAddrType = aAddressType;
 
-        //
-        // NOTE WELL: the errors returned by setsockopt() here are not returned as Inet layer
-        // Weave::System::MapErrorPOSIX(errno) codes because they are normally expected to fail on some
-        // platforms where the socket option code is defined in the header files but not [yet]
-        // implemented. Certainly, there is room to improve this by connecting the build
-        // configuration logic up to check for implementations of these options and to provide
-        // appropriate HAVE_xxxxx definitions accordingly.
-        //
+        // NOTE WELL: the errors returned by setsockopt() here are not
+        // returned as Inet layer Weave::System::MapErrorPOSIX(errno)
+        // codes because they are normally expected to fail on some
+        // platforms where the socket option code is defined in the
+        // header files but not [yet] implemented. Certainly, there is
+        // room to improve this by connecting the build configuration
+        // logic up to check for implementations of these options and
+        // to provide appropriate HAVE_xxxxx definitions accordingly.
 
         res = setsockopt(mSocket, SOL_SOCKET, SO_REUSEADDR,  (void*)&one, sizeof (one));
         static_cast<void>(res);
@@ -350,8 +351,10 @@ INET_ERROR IPEndPointBasis::GetSocket(IPAddressType aAddressType, int aType, int
         }
 #endif // defined(SO_REUSEPORT)
 
-        // If creating an IPv6 socket, tell the kernel that it will be IPv6 only.  This makes it
-        // posible to bind two sockets to the same port, one for IPv4 and one for IPv6.
+        // If creating an IPv6 socket, tell the kernel that it will be
+        // IPv6 only.  This makes it posible to bind two sockets to
+        // the same port, one for IPv4 and one for IPv6.
+
 #ifdef IPV6_V6ONLY
 #if INET_CONFIG_ENABLE_IPV4
         if (aAddressType == kIPAddressType_IPv6)
@@ -383,9 +386,10 @@ INET_ERROR IPEndPointBasis::GetSocket(IPAddressType aAddressType, int aType, int
         }
 #endif // defined(IPV6_RECVPKTINFO)
 
-        // On systems that support it, disable the delivery of SIGPIPE signals when writing to a closed
-        // socket.  This is mostly needed on iOS which has the peculiar habit of sending SIGPIPEs on
-        // unconnected UDP sockets.
+        // On systems that support it, disable the delivery of SIGPIPE
+        // signals when writing to a closed socket.  This is mostly
+        // needed on iOS which has the peculiar habit of sending
+        // SIGPIPEs on unconnected UDP sockets.
 #ifdef SO_NOSIGPIPE
         {
             res = setsockopt(mSocket, SOL_SOCKET, SO_NOSIGPIPE, &one, sizeof (one));
