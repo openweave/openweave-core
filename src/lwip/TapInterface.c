@@ -1,5 +1,6 @@
 /*
  *
+ *    Copyright (c) 2018 Google LLC.
  *    Copyright (c) 2014-2017 Nest Labs, Inc.
  *    All rights reserved.
  *
@@ -14,6 +15,72 @@
  *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  *    See the License for the specific language governing permissions and
  *    limitations under the License.
+ */
+
+/**
+ *    @file
+ *      This file implements a TUN/TAP interface shim for LwIP, used
+ *      when running LwIP on non-LWIP-native platforms such as BSD
+ *      sockets, to interface with host OS network interfaces on such
+ *      platforms and the Internet, accessed via those host OS network
+ *      interfaces.
+ *
+ *      The APIs in this module used by the setup and intialization
+ *      code of applications are:
+ *
+ *        1. TapInterface_Init
+ *        2. TapInterface_SetupNetif
+ *        3. TapInterface_Select
+ *
+ *      and are generally used in the order listed.
+ *
+ *                               .------------------------------------------.
+ *                               |                                          |
+ *               .--.------------|               Application                |
+ *      .--------|--|--------.   |      .           .             .         |
+ *      |        V  V        |   '------+-----------+-------------+---------'
+ *      |                    |          |           |             |
+ *      |        LwIP        |   .------|-----------|-------------+---------.
+ *      |                    |   |      V           V             V         |
+ *      | .----------------. |   |  .-------. .------------. .---------.    |
+ *      | |                | |   |  | Init  | | SetupNetif | | Select  |--. |
+ *      | |                | |   |  '-------' '------------' '---------'  | |
+ *      | |     netif      | |   |                                        | |
+ *      | |                | |   |    .-------------.  .-------------.    | |
+ *      | | .------------. | |   |    |  Low Level  |  |  Low Level  |    | |
+ *      | | | linkoutput +-|-+---+----+>   Output   |  |    Input   <+----| |
+ *      | | '------------' | |   |    |      .      |  |      ^      |    | |
+ *      | |                | |   |    '------+------'  '------|------'    | |
+ *      | | .------------. | |   |           |                |           | |
+ *      | | |   input   <+-+-+---+-----------|----------------|-----------' |
+ *      | | '------------' | |   |           |                |             |
+ *      | '----------------' |   |   .-------|----------------+---------.   |
+ *      '--------------------'   |   |       V                '         |   |
+ *                               |   |         File Descriptor          |   |
+ *                               |   |                ^                 |   |
+ *                               |   '----------------|-----------------'   |
+ *                               '--------------------|---------------------'
+ *                                                    |
+ *                                 .------------------|-------------------.
+ *                                 |                  |                   |
+ *                                 |   .--------------|---------------.   |
+ *                                 |   | .------------|-------------. |   |
+ *                                 |   | |            V             | |   |
+ *                                 |   | |  TUN/TAP Shim Interface  | |   |
+ *                                 |   | |                          | |   |
+ *                                 |   | '--------------------------' |   |
+ *                                 |   |                              |   |
+ *                                 |   |        TUN/TAP Driver        |   |
+ *                                 |   |                              |   |
+ *                                 |   '------------------------------'   |
+ *                                 |                                      |
+ *                                 |               Host OS                |
+ *                                 |                                      |
+ *                                 '--------------------------------------'
+ *
+ *      This file was originally adapted from 'contrib/ports/unix/port/
+ *      netif/tapif.c' in the LwIP distribution.
+ *
  */
 
 /*-----------------------------------------------------------------------------------*/
@@ -49,11 +116,15 @@
  *
  */
 
+#include "TapInterface.h"
+
+#include <errno.h>
 #include <fcntl.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <unistd.h>
 #include <string.h>
+#include <netinet/in.h>
 #include <sys/ioctl.h>
 #include <sys/socket.h>
 #include <sys/types.h>
@@ -66,16 +137,13 @@
 #include <linux/if.h>
 #include <linux/if_tun.h>
 #define DEVTAP "/dev/net/tun"
-#define IFCONFIG_ARGS "tap0 inet %d.%d.%d.%d"
 
 #elif defined(openbsd)
 #define DEVTAP "/dev/tun0"
-#define IFCONFIG_ARGS "tun0 inet %d.%d.%d.%d link0"
 
 #else /* freebsd, cygwin? */
 #include <net/if.h>
 #define DEVTAP "/dev/tap0"
-#define IFCONFIG_ARGS "tap0 inet %d.%d.%d.%d"
 #endif
 
 #include <lwip/stats.h>
@@ -84,24 +152,45 @@
 #include <netif/etharp.h>
 #include <lwip/ethip6.h>
 
-#include "TapInterface.h"
+/* Global Variables */
 
-/*-----------------------------------------------------------------------------------*/
-/*
- * low_level_output():
+static const size_t kMacLength = sizeof (((TapInterface *)(0))->macAddr);
+
+
+/**
+ *  This is the LwIP TUN/TAP shim interface low level output method.
  *
- * Should do the actual transmission of the packet. The packet is
- * contained in the pbuf that is passed to the function. This pbuf
- * might be chained.
+ *  When the native LwIP stack has output for its native interface, \c
+ *  netif, associated with the LwIP TUN/TAP shim interface, LwIP
+ *  invokes this method to drive the specified buffer to the shim
+ *  interface.
+ *                        
+ *  @param[in]  netif      A pointer to the LwIP native interface
+ *                         associated with the TUN/TAP shim interface
+ *                         onto which the output should be driven.
+ *
+ *  @param[in]  buf        A pointer to the packet buffer containing the
+ *                         output to drive onto the shim interface.
+ *
+ *  @retval  #ERR_OK       on successfully driving the buffer onto the
+ *                         shim interface.
+ *
+ *  @retval  #ERR_MEM      if an encapsulation buffer cannot be allocated.
+ *
+ *  @retval  #ERR_BUF      if the allocated encapsulation buffer is not big
+ *                         enough to encapsulate the output data.
+ *
+ *  @retval  #ERR_IF       if the output data cannot be driven onto the shim
+ *                         interface.
+ *
+ *  @sa #TapInterface_SetupNetif
  *
  */
-/*-----------------------------------------------------------------------------------*/
-
 static err_t
-low_level_output(struct netif *netif, struct pbuf *buf)
+TapInterface_low_level_output(struct netif *netif, struct pbuf *buf)
 {
+    const TapInterface *tapif = (const TapInterface *)(netif->state);
     err_t retval = ERR_OK;
-    TapInterface *tapif = netif->state;
     struct pbuf *outBuf;
     int written;
 
@@ -109,14 +198,16 @@ low_level_output(struct netif *netif, struct pbuf *buf)
     {
         // Allocate a buffer from the buffer pool. Fail if none available.
         outBuf = pbuf_alloc(PBUF_RAW, buf->tot_len + PBUF_LINK_ENCAPSULATION_HLEN, PBUF_POOL);
-        if (outBuf == NULL) {
+        if (outBuf == NULL)
+        {
             fprintf(stderr, "TapInterface: Failed to allocate buffer\n");
             retval = ERR_MEM;
             goto done;
         }
 
         // Fail if the buffer is not big enough to hold the output data.
-        if (outBuf->tot_len != outBuf->len) {
+        if (outBuf->tot_len != outBuf->len)
+        {
             fprintf(stderr, "TapInterface: Output data bigger than single PBUF\n");
             retval = ERR_BUF;
             goto done;
@@ -136,30 +227,45 @@ low_level_output(struct netif *netif, struct pbuf *buf)
         outBuf = buf;
 
     written = write(tapif->fd, outBuf->payload, outBuf->tot_len);
-    if (written == -1) {
+    if (written == -1)
+    {
         snmp_inc_ifoutdiscards(netif);
         perror("TapInterface: write failed");
+        retval = ERR_IF;
     }
-    else {
+    else
+    {
         snmp_add_ifoutoctets(netif, written);
     }
 
 done:
     if (outBuf != NULL && outBuf != buf)
         pbuf_free(outBuf);
+
     return retval;
 }
-/*-----------------------------------------------------------------------------------*/
-/*
- * low_level_input():
+
+/**
+ *  This is the LwIP TUN/TAP shim interface low level input method.
  *
- * Should allocate a pbuf and transfer the bytes of the incoming
- * packet from the interface into the pbuf.
+ *  When input has been identified as pending on the LwIP TUN/TAP shim
+ *  interface, this API allocates a buffer and reads the packet from
+ *  the underlying host OS into the buffer and returns it.
+ *
+ *  @param[in]  tapif      A pointer to the LwIP TUN/TAP shim interface
+ *                         from which to read pending input.
+ *                        
+ *  @param[in]  netif      A pointer to the LwIP native interface
+ *                         associated with the TUN/TAP shim interface.
+ *
+ *  @returns  A pointer to the buffer containing the read input on
+ *  success; otherwise, NULL on error.
+ *
+ *  @sa #TapInterface_Select
  *
  */
-/*-----------------------------------------------------------------------------------*/
 static struct pbuf *
-low_level_input(TapInterface *tapif, struct netif *netif)
+TapInterface_low_level_input(TapInterface *tapif, struct netif *netif)
 {
     struct pbuf *p, *q;
     u16_t len;
@@ -168,13 +274,8 @@ low_level_input(TapInterface *tapif, struct netif *netif)
 
     /* Obtain the size of the packet and put it into the "len"
      variable. */
-    len = read(tapif->fd, buf, sizeof(buf));
-    snmp_add_ifinoctets(netif,len);
-
-    /*  if (((double)rand()/(double)RAND_MAX) < 0.1) {
-    printf("drop\n");
-    return NULL;
-    }*/
+    len = read(tapif->fd, buf, sizeof (buf));
+    snmp_add_ifinoctets(netif, len);
 
     /* We allocate a pbuf chain of pbufs from the pool. */
     p = pbuf_alloc(PBUF_LINK, len, PBUF_POOL);
@@ -201,40 +302,86 @@ low_level_input(TapInterface *tapif, struct netif *netif)
     return p;
 }
 
-
-/*-----------------------------------------------------------------------------------*/
-/*
- * TapInterface_init():
+/**
+ *  LwIP netif_add setup callback function for LwIP TUN/TAP shim
+ *  interfaces.
  *
- * Should be called at the beginning of the program to set up the
- * network interface. It calls the function low_level_init() to do the
- * actual setup of the hardware.
+ *  The interface mimics / effects an Ethernet-like interface and,
+ *  consequently, reuses and leverages existing LwIP low-level APIs
+ *  for such interfaces.
+ *
+ *  This interface should / will be called by LwIP's netif_add
+ *  function for a LwIP TUN/TAP shim interface. \c #TapInterface_Init
+ *  should have been called prior to invoking netif_add with this
+ *  callback.
+ *
+ *  @param[inout]  netif  A pointer to the LwIP netif associated with the
+ *                        TUN/TAP shim interface.
+ *
+ *  @retval  #ERR_OK  on successfully setting up the TUN/TAP interface.
+ *
+ *  @sa #TapInterface_Init
+ *  @sa #TapInterface_Select
  *
  */
-/*-----------------------------------------------------------------------------------*/
 err_t
 TapInterface_SetupNetif(struct netif *netif)
 {
-    TapInterface *tapif = netif->state;
+    const TapInterface *tapif = (const TapInterface *)(netif->state);
 
-    netif->name[0] = 'e';
-    netif->name[1] = 't';
-    netif->output = etharp_output;
+    /* As far as LwIP is concerned, the network interface is an
+     * Ethernet-like interface, so set it up accordingly, reusing
+     * existing LwIP APIs for such interfaces where possible.
+     */
+
+    netif->name[0]    = 'e';
+    netif->name[1]    = 't';
+    netif->output     = etharp_output;
 #if LWIP_IPV6
     netif->output_ip6 = ethip6_output;
 #endif /* LWIP_IPV6 */
-    netif->linkoutput = low_level_output;
-    netif->mtu = 1500;
-    /* device capabilities */
-    /* don't set NETIF_FLAG_ETHARP if this device is not an ethernet one */
-    netif->flags |= NETIF_FLAG_BROADCAST | NETIF_FLAG_ETHARP;
+    netif->linkoutput = TapInterface_low_level_output;
+    netif->mtu        = 1500;
 
-    netif->hwaddr_len = 6;
-    memcpy(netif->hwaddr, tapif->macAddr, 6);
+    netif->flags      |= (NETIF_FLAG_BROADCAST | NETIF_FLAG_ETHARP);
+
+    netif->hwaddr_len = kMacLength;
+
+    memcpy(netif->hwaddr, tapif->macAddr, kMacLength);
 
     return ERR_OK;
 }
 
+/**
+ *  Establish an LwIP TUN/TAP interface on the underlying host OS with
+ *  the specified name.
+ *
+ *  This interface should be invoked before either \c #TapInterface_SetupNetif
+ *  or \c #TapInterface_Select are invoked.
+ *
+ *  @param[out]  tapif          A pointer to storage for the established
+ *                              TUN/TAP interface details.
+ *
+ *  @param[in]   interfaceName  A pointer to a NULL-terminated C string
+ *                              containing the name of the TUN/TAP interface.
+ *
+ *  @param[in]   macAddr        An optional pointer to the MAC address to be
+ *                              used for the TUN/TAP interface.
+ *
+ *  @retval  #ERR_OK            on successfully establishing the TUN/TAP
+ *                              interface.
+ *
+ *  @retval  #ERR_ARG           if \c tapif is NULL or if \c interfaceName is
+ *                              too long.
+ *
+ *  @retval  #ERR_IF            if the OS-specific TUN/TAP driver cannot be
+ *                              opened or if the requested TUN/TAP device
+ *                              cannot be created.
+ *
+ *  @sa #TapInterface_SetupNetif
+ *  @sa #TapInterface_Select
+ *
+ */
 err_t
 TapInterface_Init(TapInterface *tapif, const char *interfaceName, u8_t *macAddr)
 {
@@ -242,34 +389,66 @@ TapInterface_Init(TapInterface *tapif, const char *interfaceName, u8_t *macAddr)
     struct ifreq ifr;
 #endif
 
-    memset(tapif, 0, sizeof(*tapif));
+    /* The TUN/TAP interface storage pointer is required; error out if
+     * it hasn't been provided.
+     */
+
+    if (tapif == NULL)
+        return ERR_ARG;
+
+    /* Set the TUN/TAP interface storage to initial defaults.
+     */
+
+    memset(tapif, 0, sizeof (*tapif));
     tapif->fd = -1;
+
+    /* Intialize the TUN/TAP interface name and MAC address. If the
+     * optional MAC address was not provided, use the current process
+     * identifier as a MAC address.
+     */
 
     tapif->interfaceName = interfaceName;
 
     if (macAddr != NULL)
-        memcpy(tapif->macAddr, macAddr, 6);
-    else {
-        u32_t pid = htonl((u32_t)getpid());
-        memset(tapif->macAddr, 0, 6);
-        memcpy(tapif->macAddr + 2, &pid, sizeof(pid));
+    {
+        memcpy(tapif->macAddr, macAddr, kMacLength);
+    }
+    else
+    {
+        const u32_t pid = htonl((u32_t)getpid());
+        memset(tapif->macAddr, 0, kMacLength);
+        memcpy(tapif->macAddr + 2, &pid, sizeof (pid));
     }
 
+    /* Attempt to open the OS-specific TUN/TAP driver control interface.
+     */
+
     tapif->fd = open(DEVTAP, O_RDWR);
-    if (tapif->fd == -1) {
+    if (tapif->fd == -1)
+    {
         perror("TapInterface: unable to open " DEVTAP);
         return ERR_IF;
     }
 
 #if defined(linux)
-    memset(&ifr, 0, sizeof(ifr));
-    ifr.ifr_flags = IFF_TAP|IFF_NO_PI;
-    if (strlen(tapif->interfaceName) >= sizeof(ifr.ifr_name)) {
+    /* On Linux, prepare and issue the TUNSETIFF ioctl to establish a
+     * TAP interface (IFF_TAP) with the previously-specified name and
+     * no packet information (IFF_NO_PI).
+     */
+
+    memset(&ifr, 0, sizeof (ifr));
+    ifr.ifr_flags = (IFF_TAP | IFF_NO_PI);
+
+    if (strlen(tapif->interfaceName) >= sizeof (ifr.ifr_name))
+    {
         perror("TapInterface: invalid device name");
-        return ERR_VAL;
+        return ERR_ARG;
     }
+
     strcpy(ifr.ifr_name, tapif->interfaceName);
-    if (ioctl(tapif->fd, TUNSETIFF, (void *) &ifr) < 0) {
+
+    if (ioctl(tapif->fd, TUNSETIFF, (void *)&ifr) < 0)
+    {
         perror("TapInterface: ioctl(TUNSETIFF) failed");
         return ERR_IF;
     }
@@ -280,18 +459,45 @@ TapInterface_Init(TapInterface *tapif, const char *interfaceName, u8_t *macAddr)
     return ERR_OK;
 }
 
+/**
+ *  Check the LwIP TUN/TAP shim interface to see if any input / read
+ *  activity is pending and, if there is, process it.
+ *
+ *  @param[in]  tapif      A pointer to the LwIP TUN/TAP shim interface
+ *                         to check and, if necessary, to process the
+ *                         input for.
+ *                        
+ *  @param[in]  netif      A pointer to the LwIP native interface
+ *                         associated with the TUN/TAP shim interface.
+ *
+ *  @param[in]  sleepTime  The interval that the call should block for
+ *                         waiting for input.
+ *
+ *  @retval  >= 0 on a successful check and/or processing of pending input.
+ *
+ *  @retval  -EINVAL if either \c tapif or \c netif are NULL.
+ *
+ *  @sa #TapInterface_Init
+ *  @sa #TapInterface_SetupNetif
+ *
+ */
 int
 TapInterface_Select(TapInterface *tapif, struct netif *netif, struct timeval sleepTime)
 {
-    fd_set fdset;
+    fd_set readfds;
     int ret;
 
-    FD_ZERO(&fdset);
-    FD_SET(tapif->fd, &fdset);
+    if ((tapif == NULL) || (netif == NULL))
+    {
+        return -EINVAL;
+    }
 
-    ret = select(tapif->fd + 1, &fdset, NULL, NULL, &sleepTime);
+    FD_ZERO(&readfds);
+    FD_SET(tapif->fd, &readfds);
+
+    ret = select(tapif->fd + 1, &readfds, NULL, NULL, &sleepTime);
     if (ret > 0) {
-        struct pbuf *p = low_level_input(tapif, netif);
+        struct pbuf *p = TapInterface_low_level_input(tapif, netif);
         if (p != NULL) {
 #if LINK_STATS
             lwip_stats.link.recv++;
