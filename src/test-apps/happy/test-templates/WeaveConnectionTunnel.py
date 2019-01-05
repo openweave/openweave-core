@@ -177,7 +177,7 @@ class WeaveConnectionTunnel(HappyNode, HappyNetwork, WeaveTest):
         cmd += " --tunnel-source "
 
         if self.tap:
-            cmd += " --interface " + self.tap
+            cmd += " --tap-device " + self.tap
 
         self.start_weave_process(self.source, cmd, self.source_process_tag, sync_on_output = self.ready_to_service_events_str)
 
@@ -195,7 +195,7 @@ class WeaveConnectionTunnel(HappyNode, HappyNetwork, WeaveTest):
         cmd += " --tunnel-destination "
 
         if self.tap:
-            cmd += " --interface " + self.tap
+            cmd += " --tap-device " + self.tap
 
         self.start_weave_process(self.destination, cmd, self.dest_process_tag, sync_on_output = self.ready_to_service_events_str)
 
@@ -214,7 +214,7 @@ class WeaveConnectionTunnel(HappyNode, HappyNetwork, WeaveTest):
         cmd += self.source_weave_id + " " + self.dest_weave_id
 
         if self.tap:
-            cmd += " --interface " + self.tap
+            cmd += " --tap-device " + self.tap
 
         self.start_weave_process(self.agent, cmd, self.agent_process_tag)
 

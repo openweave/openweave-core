@@ -289,7 +289,7 @@ class WeaveTime(HappyNode, HappyNetwork, WeaveTest):
             cmd += " --time-sync-mode-auto" 
 
         if self.tap:
-            cmd += " --interface " + self.tap
+            cmd += " --tap-device " + self.tap
 
         if self.client_faults:
             cmd += " --faults " + self.client_faults
@@ -320,7 +320,7 @@ class WeaveTime(HappyNode, HappyNetwork, WeaveTest):
         cmd += " --time-sync-coordinator"
 
         if self.tap:
-            cmd += " --interface " + self.tap
+            cmd += " --tap-device " + self.tap
 
         if self.coordinator_faults:
             cmd += " --faults " + self.coordinator_faults
@@ -344,7 +344,7 @@ class WeaveTime(HappyNode, HappyNetwork, WeaveTest):
         cmd += " --time-sync-server"
 
         if self.tap:
-            cmd += " --interface " + self.tap
+            cmd += " --tap-device " + self.tap
 
         if self.server_faults:
             cmd += " --faults " + self.server_faults

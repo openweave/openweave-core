@@ -204,7 +204,7 @@ class WeaveInet(HappyNode, HappyNetwork, WeaveTest):
             cmd += " --" + self.type
 
         if self.tap:
-            cmd += " --interface " + self.tap
+            cmd += " --tap-device " + self.tap
 
         self.start_weave_process(self.server_node_id, cmd, self.server_process_tag, sync_on_output=self.ready_to_service_events_str)
 
@@ -223,7 +223,7 @@ class WeaveInet(HappyNode, HappyNetwork, WeaveTest):
         cmd += " --max-send " + str(self.count * self.length)
 
         if self.tap:
-            cmd += " --interface " + self.tap
+            cmd += " --tap-device " + self.tap
 
         self.start_weave_process(self.client_node_id, cmd, self.client_process_tag)
 

@@ -321,7 +321,7 @@ class WeaveSecurityPing(HappyNode, HappyNetwork, WeaveTest):
             cmd += " --group-enc --group-enc-key-id " + self.group_key_id
 
         if self.tap:
-            cmd += " --interface " + self.tap
+            cmd += " --tap-device " + self.tap
 
         if self.server_faults:
             cmd += " --faults " + self.server_faults
@@ -365,7 +365,7 @@ class WeaveSecurityPing(HappyNode, HappyNetwork, WeaveTest):
         cmd += " --count " + str(self.count)
 
         if self.tap:
-            cmd += " --interface " + self.tap
+            cmd += " --tap-device " + self.tap
 
         if self.client_faults:
             cmd += " --faults " + self.client_faults

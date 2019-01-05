@@ -258,7 +258,7 @@ class WeaveKeyExport(HappyNode, HappyNetwork, WeaveTest):
         cmd += " --debug-resource-usage --print-fault-counters"
 
         if self.tap:
-            cmd += " --interface " + self.tap
+            cmd += " --tap-device " + self.tap
 
         if self.server_faults:
             cmd += " --faults " + self.server_faults
@@ -294,7 +294,7 @@ class WeaveKeyExport(HappyNode, HappyNetwork, WeaveTest):
             cmd += " --dont-sign-msgs "
 
         if self.tap:
-            cmd += " --interface " + self.tap
+            cmd += " --tap-device " + self.tap
 
         if self.client_faults:
             cmd += " --faults " + self.client_faults

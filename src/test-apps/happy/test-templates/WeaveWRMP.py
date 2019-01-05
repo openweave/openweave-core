@@ -204,7 +204,7 @@ class WeaveWRMP(HappyNode, HappyNetwork, WeaveTest):
             return
 
         if self.tap:
-            cmd += " --interface " + self.tap
+            cmd += " --tap-device " + self.tap
 
         custom_env = {}
         if self.use_plaid:
@@ -220,7 +220,7 @@ class WeaveWRMP(HappyNode, HappyNetwork, WeaveTest):
             return
 
         if self.tap:
-            cmd += " --interface " + self.tap
+            cmd += " --tap-device " + self.tap
 
         # Start WRMP client with test #
         cmd += " --test %d" % (self.test)

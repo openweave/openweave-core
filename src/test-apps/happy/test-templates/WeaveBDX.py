@@ -323,7 +323,7 @@ class WeaveBDX(HappyNode, HappyNetwork, WeaveTest):
                 cmd += " -R " + self.receive
 
         if self.tap:
-            cmd += " --interface " + self.tap
+            cmd += " --tap-device " + self.tap
 
         if self.server_faults != None:
             cmd += " --faults " + self.server_faults
@@ -390,7 +390,7 @@ class WeaveBDX(HappyNode, HappyNetwork, WeaveTest):
                 cmd += " -l " + self.length
 
         if self.tap:
-            cmd += " --interface " + self.tap
+            cmd += " --tap-device " + self.tap
 
         if self.client_faults != None:
             cmd += " --faults " + self.client_faults

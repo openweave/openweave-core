@@ -250,7 +250,7 @@ class WeavePairing(HappyNode, HappyNetwork, WeaveTest):
 
         cmd += " --node-addr " + self.server_ip
         if self.tap:
-            cmd += " --interface " + self.tap
+            cmd += " --tap-device " + self.tap
 
         self.start_weave_process(self.server_node_id, cmd, self.server_process_tag, sync_on_output = self.ready_to_service_events_str)
 
@@ -279,7 +279,7 @@ class WeavePairing(HappyNode, HappyNetwork, WeaveTest):
                 raise ValueError('register_cmd is empty')
 
         if self.tap:
-            cmd += " --interface " + self.tap
+            cmd += " --tap-device " + self.tap
 
         self.start_weave_process(self.mobile_node_id, cmd, mobile_process_tag, env=os.environ)
 
@@ -303,7 +303,7 @@ class WeavePairing(HappyNode, HappyNetwork, WeaveTest):
                 cmd += " --pairing-endpoint-id " + self.server_weave_id
 
         if self.tap:
-            cmd += " --interface " + self.tap
+            cmd += " --tap-device " + self.tap
 
         self.start_weave_process(device_info['device_node_id'], cmd, device_info['device_process_tag'], sync_on_output = self.ready_to_service_events_str)
 

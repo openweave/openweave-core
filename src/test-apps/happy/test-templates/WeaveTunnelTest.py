@@ -189,7 +189,7 @@ class WeaveTunnelTest(HappyNode, HappyNetwork, WeaveTest):
         cmd += " --fabric-id " + str(self.fabric_id)
 
         if self.tap:
-            cmd += " --interface " + self.tap
+            cmd += " --tap-device " + self.tap
 
         cmd = self.runAsRoot(cmd)
         self.start_weave_process(self.service, cmd, self.service_process_tag, sync_on_output=self.ready_to_service_events_str)
@@ -244,7 +244,7 @@ class WeaveTunnelTest(HappyNode, HappyNetwork, WeaveTest):
         cmd += " --fabric-id " + str(self.fabric_id)
 
         if self.tap:
-            cmd += " --interface " + self.tap
+            cmd += " --tap-device " + self.tap
 
         cmd += " -S " + str(self.server_ula) + " --connect-to " + self.service_public_ip + " " + str(self.service_weave_id)
         cmd = self.runAsRoot(cmd)

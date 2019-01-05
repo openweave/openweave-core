@@ -498,7 +498,7 @@ class WeaveWdmNext(HappyNode, HappyNetwork, WeaveTest):
             cmd += " --inter-event-period " + str(self.server_inter_event_period)
 
         if self.tap:
-            cmd += " --interface " + self.tap
+            cmd += " --tap-device " + self.tap
 
         custom_env = {}
         if self.use_plaid:
@@ -556,7 +556,7 @@ class WeaveWdmNext(HappyNode, HappyNetwork, WeaveTest):
             cmd += " --faults " + self.client_faults
 
         if self.tap:
-            cmd += " --interface " + self.tap
+            cmd += " --tap-device " + self.tap
 
         if self.server == "service":
             node_id = client_info["client_weave_id"]
