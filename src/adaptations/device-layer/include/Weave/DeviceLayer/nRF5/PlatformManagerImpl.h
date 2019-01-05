@@ -68,8 +68,11 @@ private:
 
     friend PlatformManager & PlatformMgr(void);
     friend PlatformManagerImpl & PlatformMgrImpl(void);
+    friend class Internal::BLEManagerImpl;
 
     static PlatformManagerImpl sInstance;
+
+    using Internal::GenericPlatformManagerImpl_FreeRTOS<PlatformManagerImpl>::PostEventFromISR;
 };
 
 /**

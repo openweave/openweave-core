@@ -157,6 +157,11 @@ WEAVE_ERROR ConnectivityManagerImpl::_Init()
     return err;
 }
 
+void ConnectivityManagerImpl::_OnPlatformEvent(const WeaveDeviceEvent * event)
+{
+    // TODO: implement me
+}
+
 // ==================== ConnectivityManager Private Methods ====================
 
 } // namespace DeviceLayer

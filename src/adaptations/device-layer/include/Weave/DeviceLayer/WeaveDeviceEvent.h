@@ -173,7 +173,7 @@ enum PublicEventTypes
 /**
  * Internal Event Types
  *
- * Enumerates event types that are internal the to Weave Device Layer, but common across
+ * Enumerates event types that are internal to the Weave Device Layer, but common across
  * all platforms.
  */
 enum InternalEventTypes
