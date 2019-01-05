@@ -43,6 +43,8 @@
 using namespace nl::Inet;
 using namespace nl::Weave;
 
+// Global Variables
+
 NetworkOptions gNetworkOptions;
 WeaveNodeOptions gWeaveNodeOptions;
 WeaveSecurityMode gWeaveSecurityMode;
@@ -59,8 +61,7 @@ NetworkOptions::NetworkOptions()
         { "local-addr",   kArgumentRequired, 'a' },
         { "node-addr",    kArgumentRequired, kToolCommonOpt_NodeAddr }, /* alias for local-addr */
 #if WEAVE_SYSTEM_CONFIG_USE_LWIP
-        { "tap-device",   kArgumentRequired, 'I' },
-        { "interface",    kArgumentRequired, 'I' }, /* deprecated alias for tap-device */
+        { "tap-device",   kArgumentRequired, kToolCommonOpt_TapDevice },
         { "ipv4-gateway", kArgumentRequired, kToolCommonOpt_IPv4GatewayAddr },
         { "dns-server",   kArgumentRequired, 'X' },
         { "debug-lwip",   kNoArgument,       kToolCommonOpt_DebugLwIP },
@@ -77,9 +78,8 @@ NetworkOptions::NetworkOptions()
         "       Local address for the node.\n"
         "\n"
 #if WEAVE_SYSTEM_CONFIG_USE_LWIP
-        "  -I, --tap-device <tap-dev-name>\n"
-        "       TAP device name for LwIP stack. Defaults to weave-dev-<node-id>.\n"
-        "       (Deprecated alias: --interface)\n"
+        "  --tap-device <tap-dev-name>\n"
+        "       TAP device name for LwIP hosted OS usage. Defaults to weave-dev-<node-id>.\n"
         "\n"
         "  --ipv4-gateway <ip-addr>\n"
         "       Address of default IPv4 gateway.\n"
@@ -144,9 +144,18 @@ bool NetworkOptions::HandleOption(const char *progName, OptionSet *optSet, int i
             return false;
         }
         break;
-    case 'I':
+    case kToolCommonOpt_TapDevice:
         TapDeviceName = arg;
         break;
+
+    case kToolCommonOpt_IPv4GatewayAddr:
+        if (!ParseIPAddress(arg, IPv4GatewayAddr) || !IPv4GatewayAddr.IsIPv4())
+        {
+            PrintArgError("%s: Invalid value specified for IPv4 gateway address: %s\n", progName, arg);
+            return false;
+        }
+        break;
+
     case kToolCommonOpt_DebugLwIP:
 #if defined(LWIP_DEBUG)
         gLwIP_DebugFlags = (LWIP_DBG_ON|LWIP_DBG_TRACE|LWIP_DBG_STATE|LWIP_DBG_FRESH|LWIP_DBG_HALT);

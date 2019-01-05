@@ -75,6 +75,7 @@ enum
     kToolCommonOpt_ServiceDirDNSOptions,
     kToolCommonOpt_ServiceDirTargetDNSOptions,
     kToolCommonOpt_IPv4GatewayAddr,
+    kToolCommonOpt_TapDevice,
     kToolCommonOpt_WRMPACKDelay,
     kToolCommonOpt_WRMPRetransInterval,
     kToolCommonOpt_WRMPRetransCount,
