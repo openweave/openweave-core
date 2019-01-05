@@ -1102,13 +1102,14 @@ check_SCRIPTS                                 +=                \
 endif # WEAVE_RUN_HAPPY_TIME
 
 if WEAVE_RUN_HAPPY_CORE
-check_SCRIPTS                                 +=                \
+check_SCRIPTS                                                           += \
     happy/tests/standalone/wdmv0/test_weave_wdmv0_01.py                    \
     happy/tests/standalone/swu/test_weave_swu_01.py                        \
     happy/tests/standalone/swu/test_weave_swu_02.py                        \
     happy/tests/standalone/messagelayer/test_weave_messagelayer_01.py      \
     happy/tests/standalone/dd/test_weave_dd_01.py                          \
     happy/tests/standalone/inet/test_weave_inet_01.py                      \
+    happy/tests/standalone/inet/test_inet_multicast_01.py                  \
     happy/tests/standalone/heartbeat/test_weave_heartbeat_01.py            \
     happy/tests/standalone/wrmp/test_weave_wrmp_01.py                      \
     $(NULL)
