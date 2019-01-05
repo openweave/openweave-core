@@ -77,6 +77,10 @@ protected:
     WEAVE_ERROR _StartEventLoopTask(void);
     WEAVE_ERROR _StartWeaveTimer(uint32_t durationMS);
 
+    // ===== Methods available to the implementation subclass.
+
+    void PostEventFromISR(const WeaveDeviceEvent * event, BaseType_t & yieldRequired);
+
 private:
 
     // ===== Private members for use by this class only.

@@ -6,6 +6,9 @@ TARGET := openweave-nrf5-demo
 
 SRC_FILES := \
     $(PROJ_DIR)/main.cpp \
+    $(NRF5_SDK_ROOT)/components/ble/common/ble_advdata.c \
+    $(NRF5_SDK_ROOT)/components/ble/common/ble_srv_common.c \
+    $(NRF5_SDK_ROOT)/components/ble/nrf_ble_gatt/nrf_ble_gatt.c \
     $(NRF5_SDK_ROOT)/components/boards/boards.c \
     $(NRF5_SDK_ROOT)/components/libraries/atomic/nrf_atomic.c \
     $(NRF5_SDK_ROOT)/components/libraries/atomic_fifo/nrf_atfifo.c \
@@ -86,6 +89,9 @@ INC_FOLDERS = \
     $(realpath $(PROJ_DIR)) \
     $(NRF5_SDK_ROOT)/components \
     $(NRF5_SDK_ROOT)/components/boards \
+    $(NRF5_SDK_ROOT)/components/ble/ble_advertising \
+    $(NRF5_SDK_ROOT)/components/ble/common \
+    $(NRF5_SDK_ROOT)/components/ble/nrf_ble_gatt \
     $(NRF5_SDK_ROOT)/components/libraries/atomic \
     $(NRF5_SDK_ROOT)/components/libraries/atomic_fifo \
     $(NRF5_SDK_ROOT)/components/libraries/balloc \
