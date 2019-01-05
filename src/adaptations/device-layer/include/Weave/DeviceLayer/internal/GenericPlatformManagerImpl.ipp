@@ -82,16 +82,6 @@ WEAVE_ERROR GenericPlatformManagerImpl<ImplClass>::_InitWeaveStack(void)
     }
     SuccessOrExit(err);
 
-    // Initialize the BLE manager.
-#if WEAVE_DEVICE_CONFIG_ENABLE_WOBLE
-    err = BLEMgr().Init();
-    if (err != WEAVE_NO_ERROR)
-    {
-        WeaveLogError(DeviceLayer, "BLEManager initialization failed: %s", ErrorStr(err));
-    }
-    SuccessOrExit(err);
-#endif
-
     // Initialize the Weave fabric state object.
     new (&FabricState) WeaveFabricState();
     err = FabricState.Init();
@@ -105,6 +95,16 @@ WEAVE_ERROR GenericPlatformManagerImpl<ImplClass>::_InitWeaveStack(void)
 
 #if WEAVE_CONFIG_SECURITY_TEST_MODE
     FabricState.LogKeys = true;
+#endif
+
+    // Initialize the BLE manager.
+#if WEAVE_DEVICE_CONFIG_ENABLE_WOBLE
+    err = BLEMgr().Init();
+    if (err != WEAVE_NO_ERROR)
+    {
+        WeaveLogError(DeviceLayer, "BLEManager initialization failed: %s", ErrorStr(err));
+    }
+    SuccessOrExit(err);
 #endif
 
     {

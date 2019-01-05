@@ -27,6 +27,9 @@
 
 #include <Weave/DeviceLayer/WeaveDeviceEvent.h>
 
+#include "ble.h"
+#include "nrf_ble_gatt.h"
+
 namespace nl {
 namespace Weave {
 namespace DeviceLayer {
@@ -34,10 +37,20 @@ namespace DeviceLayer {
 namespace DeviceEventType {
 
 /**
- * Enumerates platform-specific event types that are visible to the application.
+ * Enumerates nRF5* platform-specific event types that are visible to the application.
  */
-enum
+enum PublicPlatformSpecificEventTypes
 {
+    /* None currently defined */
+};
+
+/**
+ * Enumerates nRF5* platform-specific event types that are internal to the Weave Device Layer.
+ */
+enum InternalPlatformSpecificEventTypes
+{
+    kSoftDeviceBLEEvent                     = kRange_InternalPlatformSpecific,
+    kGATTModuleEvent
 };
 
 } // namespace DeviceEventType
@@ -47,6 +60,11 @@ enum
  */
 struct WeaveDevicePlatformEvent final
 {
+    union
+    {
+        ble_evt_t SoftDeviceBLEEvent;
+        nrf_ble_gatt_evt_t GATTModuleEvent;
+    };
 };
 
 } // namespace DeviceLayer

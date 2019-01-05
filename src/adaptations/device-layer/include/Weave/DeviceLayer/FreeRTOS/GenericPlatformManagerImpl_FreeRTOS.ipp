@@ -180,7 +180,7 @@ WEAVE_ERROR GenericPlatformManagerImpl_FreeRTOS<ImplClass>::_StartEventLoopTask(
 
     res = xTaskCreate(EventLoopTaskMain,
                 WEAVE_DEVICE_CONFIG_WEAVE_TASK_NAME,
-                WEAVE_DEVICE_CONFIG_WEAVE_TASK_STACK_SIZE,
+                WEAVE_DEVICE_CONFIG_WEAVE_TASK_STACK_SIZE / sizeof(StackType_t),
                 this,
                 WEAVE_DEVICE_CONFIG_WEAVE_TASK_PRIORITY,
                 NULL);
@@ -212,6 +212,20 @@ WEAVE_ERROR GenericPlatformManagerImpl_FreeRTOS<ImplClass>::_StartWeaveTimer(uin
     }
 
     return WEAVE_NO_ERROR;
+}
+
+template<class ImplClass>
+void GenericPlatformManagerImpl_FreeRTOS<ImplClass>::PostEventFromISR(const WeaveDeviceEvent * event, BaseType_t & yieldRequired)
+{
+    yieldRequired = pdFALSE;
+
+    if (mWeaveEventQueue != NULL)
+    {
+        if (!xQueueSendFromISR(mWeaveEventQueue, event, &yieldRequired))
+        {
+            WeaveLogError(DeviceLayer, "Failed to post event to Weave Platform event queue");
+        }
+    }
 }
 
 } // namespace Internal

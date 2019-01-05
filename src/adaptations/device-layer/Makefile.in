@@ -122,6 +122,7 @@ target_triplet = @target@
 
 @CONFIG_DEVICE_LAYER_TRUE@@WEAVE_DEVICE_LAYER_TARGET_NRF5_TRUE@am__append_2 = \
 @CONFIG_DEVICE_LAYER_TRUE@@WEAVE_DEVICE_LAYER_TARGET_NRF5_TRUE@    nRF5/AESBlockCipher.cpp                     \
+@CONFIG_DEVICE_LAYER_TRUE@@WEAVE_DEVICE_LAYER_TARGET_NRF5_TRUE@    nRF5/BLEManagerImpl.cpp                     \
 @CONFIG_DEVICE_LAYER_TRUE@@WEAVE_DEVICE_LAYER_TARGET_NRF5_TRUE@    nRF5/ConfigurationManagerImpl.cpp           \
 @CONFIG_DEVICE_LAYER_TRUE@@WEAVE_DEVICE_LAYER_TARGET_NRF5_TRUE@    nRF5/PlatformManagerImpl.cpp                \
 @CONFIG_DEVICE_LAYER_TRUE@@WEAVE_DEVICE_LAYER_TARGET_NRF5_TRUE@    nRF5/ConnectivityManagerImpl.cpp            \
@@ -227,8 +228,8 @@ am__libDeviceLayer_a_SOURCES_DIST = CASEAuth.cpp \
 	ESP32/LwIPCoreLock.cpp ESP32/NetworkProvisioningServerImpl.cpp \
 	ESP32/PlatformManagerImpl.cpp ESP32/SystemTimeSupport.cpp \
 	LwIP/WarmSupport.cpp nRF5/AESBlockCipher.cpp \
-	nRF5/ConfigurationManagerImpl.cpp nRF5/PlatformManagerImpl.cpp \
-	nRF5/ConnectivityManagerImpl.cpp \
+	nRF5/BLEManagerImpl.cpp nRF5/ConfigurationManagerImpl.cpp \
+	nRF5/PlatformManagerImpl.cpp nRF5/ConnectivityManagerImpl.cpp \
 	nRF5/NetworkProvisioningServerImpl.cpp \
 	nRF5/GroupKeyStoreImpl.cpp nRF5/NRF5Config.cpp \
 	nRF5/Entropy.cpp nRF5/Logging.cpp \
@@ -249,6 +250,7 @@ am__dirstamp = $(am__leading_dot)dirstamp
 @CONFIG_DEVICE_LAYER_TRUE@@WEAVE_DEVICE_LAYER_TARGET_ESP32_TRUE@	ESP32/libDeviceLayer_a-SystemTimeSupport.$(OBJEXT) \
 @CONFIG_DEVICE_LAYER_TRUE@@WEAVE_DEVICE_LAYER_TARGET_ESP32_TRUE@	LwIP/libDeviceLayer_a-WarmSupport.$(OBJEXT)
 @CONFIG_DEVICE_LAYER_TRUE@@WEAVE_DEVICE_LAYER_TARGET_NRF5_TRUE@am__objects_2 = nRF5/libDeviceLayer_a-AESBlockCipher.$(OBJEXT) \
+@CONFIG_DEVICE_LAYER_TRUE@@WEAVE_DEVICE_LAYER_TARGET_NRF5_TRUE@	nRF5/libDeviceLayer_a-BLEManagerImpl.$(OBJEXT) \
 @CONFIG_DEVICE_LAYER_TRUE@@WEAVE_DEVICE_LAYER_TARGET_NRF5_TRUE@	nRF5/libDeviceLayer_a-ConfigurationManagerImpl.$(OBJEXT) \
 @CONFIG_DEVICE_LAYER_TRUE@@WEAVE_DEVICE_LAYER_TARGET_NRF5_TRUE@	nRF5/libDeviceLayer_a-PlatformManagerImpl.$(OBJEXT) \
 @CONFIG_DEVICE_LAYER_TRUE@@WEAVE_DEVICE_LAYER_TARGET_NRF5_TRUE@	nRF5/libDeviceLayer_a-ConnectivityManagerImpl.$(OBJEXT) \
@@ -802,6 +804,8 @@ nRF5/$(DEPDIR)/$(am__dirstamp):
 	@: > nRF5/$(DEPDIR)/$(am__dirstamp)
 nRF5/libDeviceLayer_a-AESBlockCipher.$(OBJEXT): nRF5/$(am__dirstamp) \
 	nRF5/$(DEPDIR)/$(am__dirstamp)
+nRF5/libDeviceLayer_a-BLEManagerImpl.$(OBJEXT): nRF5/$(am__dirstamp) \
+	nRF5/$(DEPDIR)/$(am__dirstamp)
 nRF5/libDeviceLayer_a-ConfigurationManagerImpl.$(OBJEXT):  \
 	nRF5/$(am__dirstamp) nRF5/$(DEPDIR)/$(am__dirstamp)
 nRF5/libDeviceLayer_a-PlatformManagerImpl.$(OBJEXT):  \
@@ -877,6 +881,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@FreeRTOS/$(DEPDIR)/libDeviceLayer_a-SystemTimeSupport.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@LwIP/$(DEPDIR)/libDeviceLayer_a-WarmSupport.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@nRF5/$(DEPDIR)/libDeviceLayer_a-AESBlockCipher.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@nRF5/$(DEPDIR)/libDeviceLayer_a-BLEManagerImpl.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@nRF5/$(DEPDIR)/libDeviceLayer_a-ConfigurationManagerImpl.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@nRF5/$(DEPDIR)/libDeviceLayer_a-ConnectivityManagerImpl.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@nRF5/$(DEPDIR)/libDeviceLayer_a-Entropy.Po@am__quote@
@@ -1386,6 +1391,20 @@ nRF5/libDeviceLayer_a-AESBlockCipher.obj: nRF5/AESBlockCipher.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='nRF5/AESBlockCipher.cpp' object='nRF5/libDeviceLayer_a-AESBlockCipher.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libDeviceLayer_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o nRF5/libDeviceLayer_a-AESBlockCipher.obj `if test -f 'nRF5/AESBlockCipher.cpp'; then $(CYGPATH_W) 'nRF5/AESBlockCipher.cpp'; else $(CYGPATH_W) '$(srcdir)/nRF5/AESBlockCipher.cpp'; fi`
+
+nRF5/libDeviceLayer_a-BLEManagerImpl.o: nRF5/BLEManagerImpl.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libDeviceLayer_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT nRF5/libDeviceLayer_a-BLEManagerImpl.o -MD -MP -MF nRF5/$(DEPDIR)/libDeviceLayer_a-BLEManagerImpl.Tpo -c -o nRF5/libDeviceLayer_a-BLEManagerImpl.o `test -f 'nRF5/BLEManagerImpl.cpp' || echo '$(srcdir)/'`nRF5/BLEManagerImpl.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) nRF5/$(DEPDIR)/libDeviceLayer_a-BLEManagerImpl.Tpo nRF5/$(DEPDIR)/libDeviceLayer_a-BLEManagerImpl.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='nRF5/BLEManagerImpl.cpp' object='nRF5/libDeviceLayer_a-BLEManagerImpl.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libDeviceLayer_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o nRF5/libDeviceLayer_a-BLEManagerImpl.o `test -f 'nRF5/BLEManagerImpl.cpp' || echo '$(srcdir)/'`nRF5/BLEManagerImpl.cpp
+
+nRF5/libDeviceLayer_a-BLEManagerImpl.obj: nRF5/BLEManagerImpl.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libDeviceLayer_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT nRF5/libDeviceLayer_a-BLEManagerImpl.obj -MD -MP -MF nRF5/$(DEPDIR)/libDeviceLayer_a-BLEManagerImpl.Tpo -c -o nRF5/libDeviceLayer_a-BLEManagerImpl.obj `if test -f 'nRF5/BLEManagerImpl.cpp'; then $(CYGPATH_W) 'nRF5/BLEManagerImpl.cpp'; else $(CYGPATH_W) '$(srcdir)/nRF5/BLEManagerImpl.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) nRF5/$(DEPDIR)/libDeviceLayer_a-BLEManagerImpl.Tpo nRF5/$(DEPDIR)/libDeviceLayer_a-BLEManagerImpl.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='nRF5/BLEManagerImpl.cpp' object='nRF5/libDeviceLayer_a-BLEManagerImpl.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libDeviceLayer_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o nRF5/libDeviceLayer_a-BLEManagerImpl.obj `if test -f 'nRF5/BLEManagerImpl.cpp'; then $(CYGPATH_W) 'nRF5/BLEManagerImpl.cpp'; else $(CYGPATH_W) '$(srcdir)/nRF5/BLEManagerImpl.cpp'; fi`
 
 nRF5/libDeviceLayer_a-ConfigurationManagerImpl.o: nRF5/ConfigurationManagerImpl.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libDeviceLayer_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT nRF5/libDeviceLayer_a-ConfigurationManagerImpl.o -MD -MP -MF nRF5/$(DEPDIR)/libDeviceLayer_a-ConfigurationManagerImpl.Tpo -c -o nRF5/libDeviceLayer_a-ConfigurationManagerImpl.o `test -f 'nRF5/ConfigurationManagerImpl.cpp' || echo '$(srcdir)/'`nRF5/ConfigurationManagerImpl.cpp
