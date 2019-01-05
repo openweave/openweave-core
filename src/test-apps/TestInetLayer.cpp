@@ -49,8 +49,8 @@ static void HandleConnectionClosed(TCPEndPoint *ep, INET_ERROR err);
 static void HandleDataSent(TCPEndPoint *ep, uint16_t len);
 static void HandleDataReceived(TCPEndPoint *ep, PacketBuffer *data);
 static void HandleAcceptError(TCPEndPoint *endPoint, INET_ERROR err);
-static void HandleRawMessageReceived(RawEndPoint *endPoint, PacketBuffer *msg, IPAddress senderAddr);
-static void HandleRawReceiveError(RawEndPoint *endPoint, INET_ERROR err, IPAddress senderAddr);
+static void HandleRawMessageReceived(RawEndPoint *endPoint, PacketBuffer *msg, const IPPacketInfo *pktInfo);
+static void HandleRawReceiveError(RawEndPoint *endPoint, INET_ERROR err, const IPPacketInfo *pktInfo);
 static void HandleUDPMessageReceived(UDPEndPoint *endPoint, PacketBuffer *msg, const IPPacketInfo *pktInfo);
 static void HandleUDPReceiveError(UDPEndPoint *endPoint, INET_ERROR err, const IPPacketInfo *pktInfo);
 static void HandleSendTimerComplete(System::Layer* aSystemLayer, void* aAppState, System::Error aError);
@@ -687,10 +687,11 @@ void HandleAcceptError(TCPEndPoint *endPoint, INET_ERROR err)
     printf("Accept error: %s\n", ErrorStr(err));
 }
 
-void HandleRawMessageReceived(RawEndPoint *endPoint, PacketBuffer *msg, IPAddress senderAddr)
+void HandleRawMessageReceived(RawEndPoint *endPoint, PacketBuffer *msg, const IPPacketInfo *pktInfo)
 {
     char senderAddrStr[64];
-    senderAddr.ToString(senderAddrStr, sizeof(senderAddrStr));
+
+    pktInfo->SrcAddress.ToString(senderAddrStr, sizeof(senderAddrStr));
 
     printf("Raw message received from %s (%ld bytes)\n", senderAddrStr, (long) msg->DataLength());
     TotalRcvLength += msg->DataLength();
@@ -699,10 +700,11 @@ void HandleRawMessageReceived(RawEndPoint *endPoint, PacketBuffer *msg, IPAddres
     PacketBuffer::Free(msg);
 }
 
-void HandleRawReceiveError(RawEndPoint *endPoint, INET_ERROR err, IPAddress senderAddr)
+void HandleRawReceiveError(RawEndPoint *endPoint, INET_ERROR err, const IPPacketInfo *pktInfo)
 {
     char senderAddrStr[64];
-    senderAddr.ToString(senderAddrStr, sizeof(senderAddrStr));
+
+    pktInfo->SrcAddress.ToString(senderAddrStr, sizeof(senderAddrStr));
 
     printf("Raw receive error (%s): %s\n", senderAddrStr, ErrorStr(err));
 }
@@ -710,6 +712,7 @@ void HandleRawReceiveError(RawEndPoint *endPoint, INET_ERROR err, IPAddress send
 void HandleUDPMessageReceived(UDPEndPoint *endPoint, PacketBuffer *msg, const IPPacketInfo *pktInfo)
 {
     char senderAddrStr[64];
+
     pktInfo->SrcAddress.ToString(senderAddrStr, sizeof(senderAddrStr));
 
     for (PacketBuffer *buf = msg; buf; buf = buf->Next())
