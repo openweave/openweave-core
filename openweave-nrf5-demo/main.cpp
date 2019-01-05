@@ -66,6 +66,7 @@ static void TestTaskMain(void * pvParameter)
     NRF_LOG_INFO("TEST task started");
     bsp_board_led_invert(BSP_BOARD_LED_1);
 
+#if 0
     Internal::RunSystemClockUnitTest();
 
     NRF_LOG_INFO("System clock test complete");
@@ -84,6 +85,7 @@ static void TestTaskMain(void * pvParameter)
     }
 
     NRF_LOG_INFO("GroupKeyStore test complete");
+#endif
 
     NRF_LOG_INFO("TEST task done");
     bsp_board_led_invert(BSP_BOARD_LED_2);
@@ -165,10 +167,34 @@ int main(void)
         APP_ERROR_HANDLER(ret);
     }
 
+#if defined(SOFTDEVICE_PRESENT) && SOFTDEVICE_PRESENT
+
+    {
+        uint32_t appRAMStart = 0;
+
+        // Configure the BLE stack using the default settings.
+        // Fetch the start address of the application RAM.
+        ret = nrf_sdh_ble_default_cfg_set(WEAVE_DEVICE_LAYER_BLE_CONN_CFG_TAG, &appRAMStart);
+        APP_ERROR_CHECK(ret);
+
+        // Enable BLE stack.
+        ret = nrf_sdh_ble_enable(&appRAMStart);
+        APP_ERROR_CHECK(ret);
+    }
+
+#endif // defined(SOFTDEVICE_PRESENT) && SOFTDEVICE_PRESENT
+
     ret = ::nl::Weave::DeviceLayer::PlatformMgr().InitWeaveStack();
     if (ret != WEAVE_NO_ERROR)
     {
         NRF_LOG_INFO("PlatformMgr().InitWeaveStack() failed");
+        APP_ERROR_HANDLER(ret);
+    }
+
+    ret = ::nl::Weave::DeviceLayer::PlatformMgr().StartEventLoopTask();
+    if (ret != WEAVE_NO_ERROR)
+    {
+        NRF_LOG_INFO("PlatformMgr().StartEventLoopTask() failed");
         APP_ERROR_HANDLER(ret);
     }
 

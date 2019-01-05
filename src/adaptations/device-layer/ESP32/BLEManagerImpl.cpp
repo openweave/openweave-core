@@ -606,7 +606,7 @@ WEAVE_ERROR BLEManagerImpl::ConfigureAdvertisingData(void)
     // Construct the Weave Service Data to be sent in the scan response packet.
     memcpy(weaveServiceData.ServiceUUID, ShortUUID_WoBLEService, sizeof(weaveServiceData.ServiceUUID));
     weaveServiceData.DataBlockLen = 16;
-    weaveServiceData.DataBlockType = 1;
+    weaveServiceData.DataBlockType = 0x16;
     weaveServiceData.DataBlockMajorVersion = 0;
     weaveServiceData.DataBlockMinorVersion = 1;
     Encoding::LittleEndian::Put16(weaveServiceData.DeviceVendorId, (uint16_t)WEAVE_DEVICE_CONFIG_DEVICE_VENDOR_ID);
