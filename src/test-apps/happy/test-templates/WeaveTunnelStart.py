@@ -215,7 +215,7 @@ class WeaveTunnelStart(HappyNode, HappyNetwork, WeaveTest):
         cmd += " --fabric-id " + str(self.fabric_id)
 
         if self.tap:
-            cmd += " --interface " + self.tap
+            cmd += " --tap-device " + self.tap
 
         if self.service_faults:
             cmd += " --faults " + self.service_faults
@@ -279,7 +279,7 @@ class WeaveTunnelStart(HappyNode, HappyNetwork, WeaveTest):
         cmd += " --fabric-id " + str(self.fabric_id)
 
         if self.tap:
-            cmd += " --interface " + self.tap
+            cmd += " --tap-device " + self.tap
         if self.primary:
             cmd += " --primary-intf " + self.primary
         if self.backup:

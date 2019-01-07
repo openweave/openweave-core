@@ -154,7 +154,7 @@ class WeaveDeviceDescription(HappyNode, HappyNetwork, WeaveTest):
         cmd += " --dest-addr " + self.server_ip + " "+ self.getWeaveNodeID(self.server)
 
         if self.tap:
-            cmd += " --interface " + self.tap
+            cmd += " --tap-device " + self.tap
 
         self.start_weave_process(self.client_node_id, cmd, self.client_process_tag)
 
@@ -167,7 +167,7 @@ class WeaveDeviceDescription(HappyNode, HappyNetwork, WeaveTest):
         cmd += " --node-addr " + self.server_ip + " --node-id " + self.server_weave_id
 
         if self.tap:
-            cmd += " --interface " + self.tap
+            cmd += " --tap-device " + self.tap
 
         self.start_weave_process(self.server_node_id, cmd, self.server_process_tag, sync_on_output = self.ready_to_service_events_str)
 

@@ -208,7 +208,7 @@ class WeaveServiceDir(HappyNode, HappyNetwork, WeaveTest):
         cmd += " --iterations " + str(self.iterations)
 
         if self.tap:
-            cmd += " --interface " + self.tap
+            cmd += " --tap-device " + self.tap
 
         custom_env = {}
         if self.use_plaid:
@@ -244,7 +244,7 @@ class WeaveServiceDir(HappyNode, HappyNetwork, WeaveTest):
         cmd += " --fabric-id " + str(self.fabric_id)
 
         if self.tap:
-            cmd += " --interface " + self.tap
+            cmd += " --tap-device " + self.tap
 
         if self.service_faults:
             cmd += " --faults " + self.service_faults

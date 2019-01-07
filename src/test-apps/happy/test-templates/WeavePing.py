@@ -250,7 +250,7 @@ class WeavePing(HappyNode, HappyNetwork, WeaveTest):
             cmd += " --wrmp"
 
         if self.tap:
-            cmd += " --interface " + self.tap
+            cmd += " --tap-device " + self.tap
 
         self.start_simple_weave_server(cmd, self.server_ip,
              self.server_node_id, self.server_process_tag, use_persistent_storage = self.use_persistent_storage, env=self.plaid_server_env)
@@ -275,7 +275,7 @@ class WeavePing(HappyNode, HappyNetwork, WeaveTest):
         cmd += " --count " + str(self.count)
 
         if self.tap:
-            cmd += " --interface " + self.tap
+            cmd += " --tap-device " + self.tap
 
         if self.case:
             if self.case_shared:

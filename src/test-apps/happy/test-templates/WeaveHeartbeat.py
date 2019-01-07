@@ -200,7 +200,7 @@ class WeaveHeartbeat(HappyNode, HappyNetwork, WeaveTest):
             return
 
         if self.tap:
-            cmd += " --interface " + self.tap
+            cmd += " --tap-device " + self.tap
 
         self.start_simple_weave_server(cmd, self.server_ip,
              self.server_node_id, self.server_process_tag, use_persistent_storage=self.use_persistent_storage)
@@ -214,7 +214,7 @@ class WeaveHeartbeat(HappyNode, HappyNetwork, WeaveTest):
         cmd += " --count " + str(self.count)
 
         if self.tap:
-            cmd += " --interface " + self.tap
+            cmd += " --tap-device " + self.tap
 
         self.start_simple_weave_client(cmd, self.client_ip,
             self.server_ip, self.server_weave_id,
