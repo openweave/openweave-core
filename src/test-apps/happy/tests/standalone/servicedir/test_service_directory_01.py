@@ -76,6 +76,7 @@ class test_service_directory_01(unittest.TestCase):
     def test_service_directory(self):
         # TODO: Once LwIP bugs are fix, enable this test on LwIP
         if "WEAVE_SYSTEM_CONFIG_USE_LWIP" in os.environ.keys() and os.environ["WEAVE_SYSTEM_CONFIG_USE_LWIP"] == "1":
+            print hred("WARNING: Test skipped due to LwIP-based network cofiguration!")            
             return
 
         num_tests = 0
