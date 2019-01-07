@@ -344,7 +344,7 @@
  * LWIP_IPV6_MLD==1: Enable multicast listener discovery protocol.
  */
 #ifndef LWIP_IPV6_MLD
-#define LWIP_IPV6_MLD                   0
+#define LWIP_IPV6_MLD                   1
 #endif
 
 /**
