@@ -132,7 +132,7 @@ extern WEAVE_ERROR GenerateAndEncodeWeaveECDSASignature(TLVWriter& writer, uint6
 
 extern WEAVE_ERROR EncodeWeaveECDSASignature(TLVWriter& writer, EncodedECDSASignature& sig, uint64_t tag);
 extern WEAVE_ERROR DecodeWeaveECDSASignature(TLVReader& reader, EncodedECDSASignature& sig);
-
+extern WEAVE_ERROR ConvertECDSASignature_DERToWeave(const uint8_t * sigBuf, uint8_t sigLen, TLVWriter& writer, uint64_t tag);
 extern WEAVE_ERROR InsertRelatedCertificatesIntoWeaveSignature(
                                         uint8_t *sigBuf, uint16_t sigLen, uint16_t sigBufLen,
                                         const uint8_t *relatedCerts, uint16_t relatedCertsLen,
