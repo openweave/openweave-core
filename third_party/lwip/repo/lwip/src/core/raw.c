@@ -223,6 +223,7 @@ raw_input(struct pbuf *p, struct netif *inp)
 err_t
 raw_bind(struct raw_pcb *pcb, const ip_addr_t *ipaddr)
 {
+  LWIP_ASSERT_CORE_LOCKED();
   if ((pcb == NULL) || (ipaddr == NULL)) {
     return ERR_VAL;
   }
@@ -247,6 +248,7 @@ raw_bind(struct raw_pcb *pcb, const ip_addr_t *ipaddr)
 err_t
 raw_connect(struct raw_pcb *pcb, const ip_addr_t *ipaddr)
 {
+  LWIP_ASSERT_CORE_LOCKED();
   if ((pcb == NULL) || (ipaddr == NULL)) {
     return ERR_VAL;
   }
@@ -268,6 +270,7 @@ raw_connect(struct raw_pcb *pcb, const ip_addr_t *ipaddr)
 void
 raw_recv(struct raw_pcb *pcb, raw_recv_fn recv, void *recv_arg)
 {
+  LWIP_ASSERT_CORE_LOCKED();
   /* remember recv() callback and user data */
   pcb->recv = recv;
   pcb->recv_arg = recv_arg;
@@ -294,6 +297,8 @@ raw_sendto(struct raw_pcb *pcb, struct pbuf *p, const ip_addr_t *ipaddr)
   const ip_addr_t *src_ip;
   struct pbuf *q; /* q will be sent down the stack */
   s16_t header_size;
+
+  LWIP_ASSERT_CORE_LOCKED();
 
   if ((pcb == NULL) || (ipaddr == NULL) || !IP_ADDR_PCB_VERSION_MATCH(pcb, ipaddr)) {
     return ERR_VAL;
@@ -434,6 +439,7 @@ void
 raw_remove(struct raw_pcb *pcb)
 {
   struct raw_pcb *pcb2;
+  LWIP_ASSERT_CORE_LOCKED();
   /* pcb to be removed is first in list? */
   if (raw_pcbs == pcb) {
     /* make list start at 2nd pcb */
@@ -469,6 +475,7 @@ raw_new(u8_t proto)
   struct raw_pcb *pcb;
 
   LWIP_DEBUGF(RAW_DEBUG | LWIP_DBG_TRACE, ("raw_new\n"));
+  LWIP_ASSERT_CORE_LOCKED();
 
   pcb = (struct raw_pcb *)memp_malloc(MEMP_RAW_PCB);
   /* could allocate RAW PCB? */
@@ -502,6 +509,7 @@ struct raw_pcb *
 raw_new_ip_type(u8_t type, u8_t proto)
 {
   struct raw_pcb *pcb;
+  LWIP_ASSERT_CORE_LOCKED();
   pcb = raw_new(proto);
 #if LWIP_IPV4 && LWIP_IPV6
   if (pcb != NULL) {

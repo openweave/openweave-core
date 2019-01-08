@@ -674,8 +674,6 @@ netif_set_up(struct netif *netif)
 static void
 netif_issue_reports(struct netif* netif, u8_t report_type)
 {
-  LWIP_ASSERT_CORE_LOCKED();
-
 #if LWIP_IPV4
   if ((report_type & NETIF_REPORT_TYPE_IPV4) &&
       !ip4_addr_isany_val(*netif_ip4_addr(netif))) {

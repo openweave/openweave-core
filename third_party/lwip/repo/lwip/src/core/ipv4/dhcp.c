@@ -675,6 +675,7 @@ dhcp_handle_ack(struct netif *netif)
 void
 dhcp_set_struct(struct netif *netif, struct dhcp *dhcp)
 {
+  LWIP_ASSERT_CORE_LOCKED();
   LWIP_ASSERT("netif != NULL", netif != NULL);
   LWIP_ASSERT("dhcp != NULL", dhcp != NULL);
   LWIP_ASSERT("netif already has a struct dhcp set", netif_dhcp_data(netif) == NULL);
@@ -696,6 +697,7 @@ dhcp_set_struct(struct netif *netif, struct dhcp *dhcp)
  */
 void dhcp_cleanup(struct netif *netif)
 {
+  LWIP_ASSERT_CORE_LOCKED();
   LWIP_ASSERT("netif != NULL", netif != NULL);
 
   if (netif_dhcp_data(netif) != NULL) {
@@ -723,6 +725,7 @@ dhcp_start(struct netif *netif)
   struct dhcp *dhcp;
   err_t result;
 
+  LWIP_ASSERT_CORE_LOCKED();
   LWIP_ERROR("netif != NULL", (netif != NULL), return ERR_ARG;);
   LWIP_ERROR("netif is not up, old style port?", netif_is_up(netif), return ERR_ARG;);
   dhcp = netif_dhcp_data(netif);
@@ -804,6 +807,7 @@ dhcp_inform(struct netif *netif)
   struct dhcp dhcp;
   err_t result = ERR_OK;
 
+  LWIP_ASSERT_CORE_LOCKED();
   LWIP_ERROR("netif != NULL", (netif != NULL), return;);
 
   if (dhcp_inc_pcb_refcount() != ERR_OK) { /* ensure DHCP PCB is allocated */
@@ -1130,6 +1134,8 @@ dhcp_renew(struct netif *netif)
   err_t result;
   u16_t msecs;
   u8_t i;
+
+  LWIP_ASSERT_CORE_LOCKED();
   LWIP_DEBUGF(DHCP_DEBUG | LWIP_DBG_TRACE, ("dhcp_renew()\n"));
   dhcp_set_state(dhcp, DHCP_STATE_RENEWING);
 
@@ -1284,6 +1290,7 @@ dhcp_release(struct netif *netif)
   ip_addr_t server_ip_addr;
   u8_t is_dhcp_supplied_address;
 
+  LWIP_ASSERT_CORE_LOCKED();
   LWIP_DEBUGF(DHCP_DEBUG | LWIP_DBG_TRACE, ("dhcp_release()\n"));
   if (dhcp == NULL) {
     return ERR_ARG;
