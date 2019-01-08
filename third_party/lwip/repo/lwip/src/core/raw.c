@@ -356,24 +356,39 @@ raw_sendto(struct raw_pcb *pcb, struct pbuf *p, const ip_addr_t *ipaddr)
 
   LWIP_DEBUGF(RAW_DEBUG | LWIP_DBG_TRACE, ("raw_sendto\n"));
 
-  if (pcb->intf_filter == NULL) {
-    if(IP_IS_ANY_TYPE_VAL(pcb->local_ip)) {
-      /* Don't call ip_route() with IP_ANY_TYPE */
-      netif = ip_route(IP46_ADDR_ANY(IP_GET_TYPE(ipaddr)), ipaddr);
-    } else {
-      netif = ip_route(&pcb->local_ip, ipaddr);
+  if (pcb->intf_filter != NULL) {
+    netif = pcb->intf_filter;
+  } else if (pcb->netif_idx != NETIF_NO_INDEX) {
+    netif = netif_get_by_index(pcb->netif_idx);
+  } else {
+#if LWIP_MULTICAST_TX_OPTIONS
+    netif = NULL;
+    if (ip_addr_ismulticast(ipaddr)) {
+      /* For multicast-destined packets, use the user-provided interface index to
+       * determine the outgoing interface, if an interface index is set and a
+       * matching netif can be found. Otherwise, fall back to regular routing. */
+      netif = netif_get_by_index(pcb->mcast_ifindex);
     }
 
-    if (netif == NULL) {
-      LWIP_DEBUGF(RAW_DEBUG | LWIP_DBG_LEVEL_WARNING, ("raw_sendto: No route to "));
-      ip_addr_debug_print(RAW_DEBUG | LWIP_DBG_LEVEL_WARNING, ipaddr);
-      return ERR_RTE;
+    if (netif == NULL)
+#endif /* LWIP_MULTICAST_TX_OPTIONS */
+    {
+      if (IP_IS_ANY_TYPE_VAL(pcb->local_ip)) {
+        /* Don't call ip_route() with IP_ANY_TYPE */
+        netif = ip_route(IP46_ADDR_ANY(IP_GET_TYPE(ipaddr)), ipaddr);
+      } else {
+        netif = ip_route(&pcb->local_ip, ipaddr);
+      }
     }
-  } else {
-    netif = pcb->intf_filter;
   }
 
-  if (ip_addr_isany(&pcb->local_ip)) {
+  if (netif == NULL) {
+    LWIP_DEBUGF(RAW_DEBUG | LWIP_DBG_LEVEL_WARNING, ("raw_sendto: No route to "));
+    ip_addr_debug_print(RAW_DEBUG | LWIP_DBG_LEVEL_WARNING, ipaddr);
+    return ERR_RTE;
+  }
+
+  if (ip_addr_isany(&pcb->local_ip) || ip_addr_ismulticast(&pcb->local_ip)) {
     /* use outgoing network interface IP address as source address */
     src_ip = ip_netif_get_local_ip(netif, ipaddr);
 #if LWIP_IPV6
@@ -407,6 +422,7 @@ raw_sendto_if_src(struct raw_pcb *pcb, struct pbuf *p, const ip_addr_t *dst_ip,
   err_t err;
   struct pbuf *q; /* q will be sent down the stack */
   s16_t header_size;
+  u8_t ttl;
 
   if ((pcb == NULL) || (dst_ip == NULL) || (netif == NULL) || (src_ip == NULL) ||
       !IP_ADDR_PCB_VERSION_MATCH(pcb, src_ip) || !IP_ADDR_PCB_VERSION_MATCH(pcb, dst_ip)) {
@@ -461,6 +477,13 @@ raw_sendto_if_src(struct raw_pcb *pcb, struct pbuf *p, const ip_addr_t *dst_ip,
   }
 #endif /* IP_SOF_BROADCAST */
 
+  /* Multicast Loop? */
+#if LWIP_MULTICAST_TX_OPTIONS
+  if (((pcb->flags & RAW_FLAGS_MULTICAST_LOOP) != 0) && ip_addr_ismulticast(dst_ip)) {
+    q->flags |= PBUF_FLAG_MCASTLOOP;
+  }
+#endif /* LWIP_MULTICAST_TX_OPTIONS */
+
 #if LWIP_IPV6
   /* If requested, based on the IPV6_CHECKSUM socket option per RFC3542,
      compute the checksum and update the checksum in the payload. */
@@ -471,8 +494,15 @@ raw_sendto_if_src(struct raw_pcb *pcb, struct pbuf *p, const ip_addr_t *dst_ip,
   }
 #endif
 
+  /* Determine TTL to use */
+#if LWIP_MULTICAST_TX_OPTIONS
+  ttl = (ip_addr_ismulticast(dst_ip) ? raw_get_multicast_ttl(pcb) : pcb->ttl);
+#else /* LWIP_MULTICAST_TX_OPTIONS */
+  ttl = pcb->ttl;
+#endif /* LWIP_MULTICAST_TX_OPTIONS */
+
   netif_apply_pcb(netif, (struct ip_pcb *)pcb);
-  err = ip_output_if(q, src_ip, dst_ip, pcb->ttl, pcb->tos, pcb->protocol, netif);
+  err = ip_output_if(q, src_ip, dst_ip, ttl, pcb->tos, pcb->protocol, netif);
   netif_apply_pcb(netif, NULL);
 
   /* did we chain a header earlier? */
@@ -555,6 +585,9 @@ raw_new(u8_t proto)
     memset(pcb, 0, sizeof(struct raw_pcb));
     pcb->protocol = proto;
     pcb->ttl = RAW_TTL;
+#if LWIP_MULTICAST_TX_OPTIONS
+    raw_set_multicast_ttl(pcb, RAW_TTL);
+#endif /* LWIP_MULTICAST_TX_OPTIONS */
     pcb->next = raw_pcbs;
     raw_pcbs = pcb;
   }

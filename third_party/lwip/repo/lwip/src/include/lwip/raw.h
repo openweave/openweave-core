@@ -53,6 +53,7 @@ extern "C" {
 #endif
 
 #define RAW_FLAGS_CONNECTED      0x01U
+#define RAW_FLAGS_MULTICAST_LOOP 0x04U
 
 struct raw_pcb;
 
@@ -79,6 +80,13 @@ struct raw_pcb {
 
   u8_t protocol;
   u8_t flags;
+
+#if LWIP_MULTICAST_TX_OPTIONS
+  /** outgoing network interface for multicast packets, by interface index (if nonzero) */
+  u8_t mcast_ifindex;
+  /** TTL for outgoing multicast packets */
+  u8_t mcast_ttl;
+#endif /* LWIP_MULTICAST_TX_OPTIONS */
 
   /** receive callback function */
   raw_recv_fn recv;
@@ -108,6 +116,7 @@ err_t            raw_send       (struct raw_pcb *pcb, struct pbuf *p);
 void             raw_recv       (struct raw_pcb *pcb, raw_recv_fn recv, void *recv_arg);
 
 #define          raw_flags(pcb) ((pcb)->flags)
+#define          raw_setflags(pcb,f)  ((pcb)->flags = (f))
 
 #define          raw_set_flags(pcb, set_flags)     do { (pcb)->flags = (u8_t)((pcb)->flags |  (set_flags)); } while(0)
 #define          raw_clear_flags(pcb, clr_flags)   do { (pcb)->flags = (u8_t)((pcb)->flags & ~(clr_flags)); } while(0)
@@ -121,6 +130,13 @@ void raw_netif_ip_addr_changed(const ip_addr_t* old_addr, const ip_addr_t* new_a
 
 /* for compatibility with older implementation */
 #define raw_new_ip6(proto) raw_new_ip_type(IPADDR_TYPE_V6, proto)
+
+#if LWIP_MULTICAST_TX_OPTIONS
+#define raw_set_multicast_netif_index(pcb, idx) ((pcb)->mcast_ifindex = (idx))
+#define raw_get_multicast_netif_index(pcb)      ((pcb)->mcast_ifindex)
+#define raw_set_multicast_ttl(pcb, value)       ((pcb)->mcast_ttl = (value))
+#define raw_get_multicast_ttl(pcb)              ((pcb)->mcast_ttl)
+#endif /* LWIP_MULTICAST_TX_OPTIONS */
 
 #ifdef __cplusplus
 }
