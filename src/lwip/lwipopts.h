@@ -348,6 +348,13 @@
 #endif
 
 /**
+ * MEMP_NUM_MLD6_GROUP: Maximum number of IPv6 multicast groups that
+ * can be joined. Allocate one (1) for the solicited node multicast
+ * group plus another four (4) for application groups.
+ */
+#define MEMP_NUM_MLD6_GROUP             (1 + 4)
+
+/**
  * LWIP_IPV6_FORWARD==1: Enable IPv6 forwarding.
  */
 #ifndef LWIP_IPV6_FORWARD
