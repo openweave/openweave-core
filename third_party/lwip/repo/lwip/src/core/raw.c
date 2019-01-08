@@ -68,6 +68,12 @@ static u8_t
 raw_input_local_match(struct raw_pcb *pcb, u8_t broadcast)
 {
   LWIP_UNUSED_ARG(broadcast); /* in IPv6 only case */
+  
+  /* check if PCB is bound to specific netif */
+  if ((pcb->netif_idx != NETIF_NO_INDEX) &&
+      (pcb->netif_idx != netif_get_index(ip_data.current_input_netif))) {
+    return 0;
+  }
 
 #if LWIP_IPV4 && LWIP_IPV6
   /* Dual-stack: PCBs listening to any IP type also listen to any IP address */
@@ -237,6 +243,25 @@ raw_bind(struct raw_pcb *pcb, const ip_addr_t *ipaddr)
 
 /**
  * @ingroup raw_raw
+ * Bind a RAW PCB.
+ *
+ * @param pcb RAW PCB to be bound with netif.
+ * @param netif netif to bind to. Can be NULL.
+ *
+ * @see raw_disconnect()
+ */
+void
+raw_bind_netif(struct raw_pcb *pcb, const struct netif *netif)
+{
+  if (netif != NULL) {
+    pcb->netif_idx = netif_get_index(netif);
+  } else {
+    pcb->netif_idx = NETIF_NO_INDEX;
+  }
+}
+
+/**
+ * @ingroup raw_raw
  * Connect an RAW PCB. This function is required by upper layers
  * of lwip. Using the raw api you could use raw_sendto() instead
  *
@@ -281,6 +306,7 @@ raw_disconnect(struct raw_pcb *pcb)
 #if LWIP_IPV4 && LWIP_IPV6
   }
 #endif
+  pcb->netif_idx = NETIF_NO_INDEX;
   /* mark PCB as unconnected */
   pcb->flags &= ~RAW_FLAGS_CONNECTED;
 }

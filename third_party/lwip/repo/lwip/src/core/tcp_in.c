@@ -288,6 +288,12 @@ tcp_input(struct pbuf *p, struct netif *inp)
       if (inp->using_management_channel && !ip_get_option(lpcb,SOF_MANAGEMENT))
         continue;
 #endif
+      /* check if PCB is bound to specific netif */
+      if ((pcb->netif_idx != NETIF_NO_INDEX) &&
+          (pcb->netif_idx != netif_get_index(ip_data.current_input_netif))) {
+        continue;
+      }
+      
       if (lpcb->local_port == tcphdr->dest) {
         if (IP_IS_ANY_TYPE_VAL(lpcb->local_ip)) {
           /* found an ANY TYPE (IPv4/IPv6) match */
