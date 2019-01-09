@@ -1,3 +1,4 @@
+
 /**
  * @file
  *
@@ -196,12 +197,6 @@ nd6_input(struct pbuf *p, struct netif *inp)
             ip6_addr_cmp(&target_address, netif_ip6_addr(inp, i))) {
           /* We are using a duplicate address. */
           netif_ip6_addr_set_state(inp, i, IP6_ADDR_INVALID);
-
-#if LWIP_IPV6_MLD
-          /* Leave solicited node multicast group. */
-          ip6_addr_set_solicitednode(&multicast_address, netif_ip6_addr(inp, i)->addr[3]);
-          mld6_leavegroup(netif_ip6_addr(inp, i), &multicast_address);
-#endif /* LWIP_IPV6_MLD */
 
 #if LWIP_ND6_LISTEN_RA && LWIP_IPV6_AUTOCONFIG
           /* Check to see if this address was autoconfigured. */
@@ -917,12 +912,6 @@ nd6_tmr(void)
 
             ip6_addr_set_allnodes_linklocal(&allnodes_linklocal);
             netif->mld_mac_filter(netif, &allnodes_linklocal, NETIF_ADD_MAC_FILTER);
-          }
-
-          if ((netif->ip6_addr_state[i] & 0x07) == 0) {
-            /* Join solicited node multicast group. */
-            ip6_addr_set_solicitednode(&multicast_address, netif_ip6_addr(netif, i)->addr[3]);
-            mld6_joingroup(netif_ip6_addr(netif, i), &multicast_address);
           }
 #endif /* LWIP_IPV6_MLD */
           /* Send a NS for this address. */
