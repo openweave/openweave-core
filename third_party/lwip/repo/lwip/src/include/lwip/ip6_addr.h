@@ -137,6 +137,10 @@ typedef struct ip6_addr ip6_addr_t;
                                          (((addr1)->addr[1] & PP_HTONL(0xffff0000UL)) == \
                                           ((addr2)->addr[1] & PP_HTONL(0xffff0000UL))))
 
+/* Exact-host comparison *after* ip6_addr_netcmp() succeeded, for efficiency. */
+#define ip6_addr_nethostcmp(addr1, addr2) (((addr1)->addr[2] == (addr2)->addr[2]) && \
+                                           ((addr1)->addr[3] == (addr2)->addr[3]))
+
 #define ip6_addr_cmp(addr1, addr2) (((addr1)->addr[0] == (addr2)->addr[0]) && \
                                     ((addr1)->addr[1] == (addr2)->addr[1]) && \
                                     ((addr1)->addr[2] == (addr2)->addr[2]) && \
