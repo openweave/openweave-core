@@ -162,7 +162,7 @@ public:
     static WEAVE_ERROR Decode(PacketBuffer *msgBuf, PairDeviceToAccountMessage& msg);
 };
 
-#ifdef WEAVE_CONFIG_ENABLE_IFJ_SERVICE_FABRIC_JOIN
+#if WEAVE_CONFIG_ENABLE_IFJ_SERVICE_FABRIC_JOIN
 class NL_DLL_EXPORT IFJServiceFabricJoinMessage
 {
 public:
@@ -183,7 +183,7 @@ public:
     virtual WEAVE_ERROR HandleUpdateService(UpdateServiceMessage& msg) = 0;
     virtual WEAVE_ERROR HandleUnregisterService(uint64_t serviceId) = 0;
     virtual void HandlePairDeviceToAccountResult(WEAVE_ERROR localErr, uint32_t serverStatusProfileId, uint16_t serverStatusCode) = 0;
-#ifdef WEAVE_CONFIG_ENABLE_IFJ_SERVICE_FABRIC_JOIN
+#if WEAVE_CONFIG_ENABLE_IFJ_SERVICE_FABRIC_JOIN
     virtual void HandleIFJServiceFabricJoinResult(WEAVE_ERROR localErr, uint32_t serverStatusProfileId, uint16_t serverStatusCode) = 0;
 #endif // WEAVE_CONFIG_ENABLE_IFJ_SERVICE_FABRIC_JOIN
 
@@ -240,7 +240,7 @@ public:
                                                const uint8_t *pairingToken, uint16_t pairingTokenLen,
                                                const uint8_t *pairingInitData, uint16_t pairingInitDataLen,
                                                const uint8_t *deviceInitData, uint16_t deviceInitDataLen);
-#ifdef WEAVE_CONFIG_ENABLE_IFJ_SERVICE_FABRIC_JOIN
+#if WEAVE_CONFIG_ENABLE_IFJ_SERVICE_FABRIC_JOIN
 
     WEAVE_ERROR SendIFJServiceFabricJoinRequest(Binding *binding, uint64_t serviceId, uint64_t fabricId,
                                                 const uint8_t *deviceInitData, uint16_t deviceInitDataLen);

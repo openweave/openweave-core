@@ -276,7 +276,7 @@ exit:
     return err;
 }
 
-#ifdef WEAVE_CONFIG_ENABLE_IFJ_SERVICE_FABRIC_JOIN
+#if WEAVE_CONFIG_ENABLE_IFJ_SERVICE_FABRIC_JOIN
 WEAVE_ERROR ServiceProvisioningServer::SendIFJServiceFabricJoinRequest(Binding *binding, uint64_t serviceId, uint64_t fabricId,
                                                                        const uint8_t *deviceInitData, uint16_t deviceInitDataLen)
 {
@@ -560,14 +560,16 @@ exit:
 
 void ServiceProvisioningServer::HandleServiceProvisioningOpResult(WEAVE_ERROR localErr, uint32_t serverStatusProfileId, uint16_t serverStatusCode)
 {
+#if WEAVE_CONFIG_ENABLE_IFJ_SERVICE_FABRIC_JOIN
     uint8_t prevOpState = mServerOpState;
+#endif
     mServerOpState = kServerOpState_Idle;
     mCurServerOp->Close();
     mCurServerOp = NULL;
 
     if (mDelegate)
     {
-#ifdef WEAVE_CONFIG_ENABLE_IFJ_SERVICE_FABRIC_JOIN
+#if WEAVE_CONFIG_ENABLE_IFJ_SERVICE_FABRIC_JOIN
         if (prevOpState == kServerOpState_IFJServiceFabricJoin)
         {
             mDelegate->HandleIFJServiceFabricJoinResult(localErr, serverStatusProfileId, serverStatusCode);

@@ -499,7 +499,7 @@ void MockServiceProvisioningServer::HandlePairDeviceToAccountResult(WEAVE_ERROR 
     }
 }
 
-#ifdef WEAVE_CONFIG_ENABLE_IFJ_SERVICE_FABRIC_JOIN
+#if WEAVE_CONFIG_ENABLE_IFJ_SERVICE_FABRIC_JOIN
 void MockServiceProvisioningServer::HandleIFJServiceFabricJoinResult(WEAVE_ERROR err, uint32_t serverStatusProfileId, uint16_t serverStatusCode)
 {
     if (mPairingServerBinding)

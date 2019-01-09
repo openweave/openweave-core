@@ -181,7 +181,7 @@ exit:
     return err;
 }
 
-#ifdef WEAVE_CONFIG_ENABLE_IFJ_SERVICE_FABRIC_JOIN
+#if WEAVE_CONFIG_ENABLE_IFJ_SERVICE_FABRIC_JOIN
 WEAVE_ERROR IFJServiceFabricJoinMessage::Encode(PacketBuffer *msgBuf)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
