@@ -418,7 +418,7 @@ void ServiceProvisioningServer::HandlePairDeviceToAccountResult(WEAVE_ERROR err,
 
 #endif // !WEAVE_DEVICE_CONFIG_DISABLE_ACCOUNT_PAIRING
 
-#ifdef WEAVE_CONFIG_ENABLE_IFJ_SERVICE_FABRIC_JOIN
+#if WEAVE_CONFIG_ENABLE_IFJ_SERVICE_FABRIC_JOIN
 void ServiceProvisioningServer::HandleIFJServiceFabricJoinResult(WEAVE_ERROR err, uint32_t statusReportProfileId, uint16_t statusReportStatusCode)
 {
 }
@@ -428,4 +428,3 @@ void ServiceProvisioningServer::HandleIFJServiceFabricJoinResult(WEAVE_ERROR err
 } // namespace DeviceLayer
 } // namespace Weave
 } // namespace nl
-
