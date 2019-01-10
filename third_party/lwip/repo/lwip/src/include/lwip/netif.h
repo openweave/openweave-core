@@ -479,6 +479,14 @@ err_t netif_remove_ip6_address_with_route(struct netif *netif, ip6_addr_t *ip6ad
 #define NETIF_SET_HWADDRHINT(netif, hint)
 #endif /* LWIP_NETIF_HWADDRHINT */
 
+u8_t netif_name_to_index(const char *name);
+char * netif_index_to_name(u8_t idx, char *name);
+struct netif* netif_get_by_index(u8_t index);
+
+/* Interface indexes always start at 1 per RFC 3493, section 4, num starts at 0 */
+#define netif_get_index(netif)      ((netif)->num + 1)
+#define NETIF_NO_INDEX              (0)
+
 #ifdef __cplusplus
 }
 #endif

@@ -425,6 +425,8 @@ ip6_input(struct pbuf *p, struct netif *inp)
   int check_ip_src=1;
 #endif /* IP_ACCEPT_LINK_LAYER_ADDRESSING */
 
+  LWIP_ASSERT_CORE_LOCKED();
+
   IP6_STATS_INC(ip6.recv);
 
   /* identify the IP header */
@@ -940,6 +942,11 @@ ip6_output_if_src(struct pbuf *p, const ip6_addr_t *src, const ip6_addr_t *dest,
       }
     }
   }
+#if LWIP_MULTICAST_TX_OPTIONS
+  if ((p->flags & PBUF_FLAG_MCASTLOOP) != 0) {
+    netif_loop_output(netif, p);
+  }
+#endif /* LWIP_MULTICAST_TX_OPTIONS */
 #endif /* ENABLE_LOOPBACK */
 #if LWIP_IPV6_FRAG
   /* don't fragment if interface has mtu set to 0 [loopif] */

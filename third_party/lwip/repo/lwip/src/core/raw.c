@@ -65,9 +65,15 @@
 static struct raw_pcb *raw_pcbs;
 
 static u8_t
-raw_input_match(struct raw_pcb *pcb, u8_t broadcast)
+raw_input_local_match(struct raw_pcb *pcb, u8_t broadcast)
 {
   LWIP_UNUSED_ARG(broadcast); /* in IPv6 only case */
+  
+  /* check if PCB is bound to specific netif */
+  if ((pcb->netif_idx != NETIF_NO_INDEX) &&
+      (pcb->netif_idx != netif_get_index(ip_data.current_input_netif))) {
+    return 0;
+  }
 
 #if LWIP_IPV4 && LWIP_IPV6
   /* Dual-stack: PCBs listening to any IP type also listen to any IP address */
@@ -157,10 +163,14 @@ raw_input(struct pbuf *p, struct netif *inp)
   /* loop through all raw pcbs until the packet is eaten by one */
   /* this allows multiple pcbs to match against the packet by design */
   while ((eaten == 0) && (pcb != NULL)) {
-    if ((pcb->protocol == proto) && raw_input_match(pcb, broadcast) &&
-        (pcb->intf_filter == NULL || pcb->intf_filter == inp) &&
-        (ip_addr_isany(&pcb->local_ip) ||
-         ip_addr_cmp(&(pcb->local_ip), ip_current_dest_addr()))) {
+
+    if ((pcb->protocol == proto) && raw_input_local_match(pcb, broadcast) &&
+        (((pcb->intf_filter == NULL || pcb->intf_filter == inp) &&
+          (ip_addr_isany(&pcb->local_ip) ||
+           ip_addr_cmp(&(pcb->local_ip), ip_current_dest_addr()))) ||
+         (((pcb->flags & RAW_FLAGS_CONNECTED) == 0) ||
+          ip_addr_cmp(&pcb->remote_ip, ip_current_src_addr())))
+        ) {
       /* receive callback function available? */
 #if IP_SOF_BROADCAST_RECV
       /* broadcast filter? */
@@ -223,11 +233,31 @@ raw_input(struct pbuf *p, struct netif *inp)
 err_t
 raw_bind(struct raw_pcb *pcb, const ip_addr_t *ipaddr)
 {
+  LWIP_ASSERT_CORE_LOCKED();
   if ((pcb == NULL) || (ipaddr == NULL)) {
     return ERR_VAL;
   }
   ip_addr_set_ipaddr(&pcb->local_ip, ipaddr);
   return ERR_OK;
+}
+
+/**
+ * @ingroup raw_raw
+ * Bind a RAW PCB.
+ *
+ * @param pcb RAW PCB to be bound with netif.
+ * @param netif netif to bind to. Can be NULL.
+ *
+ * @see raw_disconnect()
+ */
+void
+raw_bind_netif(struct raw_pcb *pcb, const struct netif *netif)
+{
+  if (netif != NULL) {
+    pcb->netif_idx = netif_get_index(netif);
+  } else {
+    pcb->netif_idx = NETIF_NO_INDEX;
+  }
 }
 
 /**
@@ -247,11 +277,38 @@ raw_bind(struct raw_pcb *pcb, const ip_addr_t *ipaddr)
 err_t
 raw_connect(struct raw_pcb *pcb, const ip_addr_t *ipaddr)
 {
+  LWIP_ASSERT_CORE_LOCKED();
   if ((pcb == NULL) || (ipaddr == NULL)) {
     return ERR_VAL;
   }
   ip_addr_set_ipaddr(&pcb->remote_ip, ipaddr);
+  raw_set_flags(pcb, RAW_FLAGS_CONNECTED);
   return ERR_OK;
+}
+
+/**
+ * @ingroup raw_raw
+ * Disconnect a RAW PCB.
+ *
+ * @param pcb the raw pcb to disconnect.
+ */
+void
+raw_disconnect(struct raw_pcb *pcb)
+{
+  LWIP_ASSERT_CORE_LOCKED();
+  /* reset remote address association */
+#if LWIP_IPV4 && LWIP_IPV6
+  if (IP_IS_ANY_TYPE_VAL(pcb->local_ip)) {
+    ip_addr_copy(pcb->remote_ip, *IP_ANY_TYPE);
+  } else {
+#endif
+    ip_addr_set_any(IP_IS_V6_VAL(pcb->remote_ip), &pcb->remote_ip);
+#if LWIP_IPV4 && LWIP_IPV6
+  }
+#endif
+  pcb->netif_idx = NETIF_NO_INDEX;
+  /* mark PCB as unconnected */
+  raw_clear_flags(pcb, RAW_FLAGS_CONNECTED);
 }
 
 /**
@@ -268,6 +325,7 @@ raw_connect(struct raw_pcb *pcb, const ip_addr_t *ipaddr)
 void
 raw_recv(struct raw_pcb *pcb, raw_recv_fn recv, void *recv_arg)
 {
+  LWIP_ASSERT_CORE_LOCKED();
   /* remember recv() callback and user data */
   pcb->recv = recv;
   pcb->recv_arg = recv_arg;
@@ -289,11 +347,8 @@ raw_recv(struct raw_pcb *pcb, raw_recv_fn recv, void *recv_arg)
 err_t
 raw_sendto(struct raw_pcb *pcb, struct pbuf *p, const ip_addr_t *ipaddr)
 {
-  err_t err;
   struct netif *netif;
   const ip_addr_t *src_ip;
-  struct pbuf *q; /* q will be sent down the stack */
-  s16_t header_size;
 
   if ((pcb == NULL) || (ipaddr == NULL) || !IP_ADDR_PCB_VERSION_MATCH(pcb, ipaddr)) {
     return ERR_VAL;
@@ -301,9 +356,77 @@ raw_sendto(struct raw_pcb *pcb, struct pbuf *p, const ip_addr_t *ipaddr)
 
   LWIP_DEBUGF(RAW_DEBUG | LWIP_DBG_TRACE, ("raw_sendto\n"));
 
+  if (pcb->intf_filter != NULL) {
+    netif = pcb->intf_filter;
+  } else if (pcb->netif_idx != NETIF_NO_INDEX) {
+    netif = netif_get_by_index(pcb->netif_idx);
+  } else {
+#if LWIP_MULTICAST_TX_OPTIONS
+    netif = NULL;
+    if (ip_addr_ismulticast(ipaddr)) {
+      /* For multicast-destined packets, use the user-provided interface index to
+       * determine the outgoing interface, if an interface index is set and a
+       * matching netif can be found. Otherwise, fall back to regular routing. */
+      netif = netif_get_by_index(pcb->mcast_ifindex);
+    }
+
+    if (netif == NULL)
+#endif /* LWIP_MULTICAST_TX_OPTIONS */
+    {
+      netif = ip_route(&pcb->local_ip, ipaddr);
+    }
+  }
+
+  if (netif == NULL) {
+    LWIP_DEBUGF(RAW_DEBUG | LWIP_DBG_LEVEL_WARNING, ("raw_sendto: No route to "));
+    ip_addr_debug_print(RAW_DEBUG | LWIP_DBG_LEVEL_WARNING, ipaddr);
+    return ERR_RTE;
+  }
+
+  if (ip_addr_isany(&pcb->local_ip) || ip_addr_ismulticast(&pcb->local_ip)) {
+    /* use outgoing network interface IP address as source address */
+    src_ip = ip_netif_get_local_ip(netif, ipaddr);
+#if LWIP_IPV6
+    if (src_ip == NULL) {
+      return ERR_RTE;
+    }
+#endif /* LWIP_IPV6 */
+  } else {
+    /* use RAW PCB local IP address as source address */
+    src_ip = &pcb->local_ip;
+  }
+
+  return raw_sendto_if_src(pcb, p, ipaddr, netif, src_ip);
+}
+
+/**
+ * @ingroup raw_raw
+ * Send the raw IP packet to the given address, using a particular outgoing
+ * netif and source IP address. An IP header will be prepended to the packet.
+ *
+ * @param pcb RAW PCB used to send the data
+ * @param p chain of pbufs to be sent
+ * @param dst_ip destination IP address
+ * @param netif the netif used for sending
+ * @param src_ip source IP address
+ */
+err_t
+raw_sendto_if_src(struct raw_pcb *pcb, struct pbuf *p, const ip_addr_t *dst_ip,
+    struct netif *netif, const ip_addr_t *src_ip)
+{
+  err_t err;
+  struct pbuf *q; /* q will be sent down the stack */
+  s16_t header_size;
+  u8_t ttl;
+
+  if ((pcb == NULL) || (dst_ip == NULL) || (netif == NULL) || (src_ip == NULL) ||
+      !IP_ADDR_PCB_VERSION_MATCH(pcb, src_ip) || !IP_ADDR_PCB_VERSION_MATCH(pcb, dst_ip)) {
+    return ERR_VAL;
+  }
+
   header_size = (
 #if LWIP_IPV4 && LWIP_IPV6
-    IP_IS_V6(ipaddr) ? IP6_HLEN : IP_HLEN);
+    IP_IS_V6(dst_ip) ? IP6_HLEN : IP_HLEN);
 #elif LWIP_IPV4
     IP_HLEN);
 #else
@@ -328,37 +451,17 @@ raw_sendto(struct raw_pcb *pcb, struct pbuf *p, const ip_addr_t *ipaddr)
   } else {
     /* first pbuf q equals given pbuf */
     q = p;
-    if (pbuf_header(q, -header_size)) {
+    if (pbuf_header(q, (s16_t)-header_size)) {
       LWIP_ASSERT("Can't restore header we just removed!", 0);
       return ERR_MEM;
     }
   }
 
-  if (pcb->intf_filter == NULL) {
-    if(IP_IS_ANY_TYPE_VAL(pcb->local_ip)) {
-      /* Don't call ip_route() with IP_ANY_TYPE */
-      netif = ip_route(IP46_ADDR_ANY(IP_GET_TYPE(ipaddr)), ipaddr);
-    } else {
-      netif = ip_route(&pcb->local_ip, ipaddr);
-    }
-
-    if (netif == NULL) {
-      LWIP_DEBUGF(RAW_DEBUG | LWIP_DBG_LEVEL_WARNING, ("raw_sendto: No route to "));
-      ip_addr_debug_print(RAW_DEBUG | LWIP_DBG_LEVEL_WARNING, ipaddr);
-      /* free any temporary header pbuf allocated by pbuf_header() */
-      if (q != p) {
-        pbuf_free(q);
-      }
-      return ERR_RTE;
-    }
-  } else {
-    netif = pcb->intf_filter;
-  }
 #if IP_SOF_BROADCAST
-  if (IP_IS_V4(ipaddr))
+  if (IP_IS_V4(dst_ip))
   {
     /* broadcast filter? */
-    if (!ip_get_option(pcb, SOF_BROADCAST) && ip_addr_isbroadcast(ipaddr, netif)) {
+    if (!ip_get_option(pcb, SOF_BROADCAST) && ip_addr_isbroadcast(dst_ip, netif)) {
       LWIP_DEBUGF(RAW_DEBUG | LWIP_DBG_LEVEL_WARNING, ("raw_sendto: SOF_BROADCAST not enabled on pcb %p\n", (void *)pcb));
       /* free any temporary header pbuf allocated by pbuf_header() */
       if (q != p) {
@@ -369,34 +472,32 @@ raw_sendto(struct raw_pcb *pcb, struct pbuf *p, const ip_addr_t *ipaddr)
   }
 #endif /* IP_SOF_BROADCAST */
 
-  if (ip_addr_isany(&pcb->local_ip)) {
-    /* use outgoing network interface IP address as source address */
-    src_ip = ip_netif_get_local_ip(netif, ipaddr);
-#if LWIP_IPV6
-    if (src_ip == NULL) {
-      if (q != p) {
-        pbuf_free(q);
-      }
-      return ERR_RTE;
-    }
-#endif /* LWIP_IPV6 */
-  } else {
-    /* use RAW PCB local IP address as source address */
-    src_ip = &pcb->local_ip;
+  /* Multicast Loop? */
+#if LWIP_MULTICAST_TX_OPTIONS
+  if (((pcb->flags & RAW_FLAGS_MULTICAST_LOOP) != 0) && ip_addr_ismulticast(dst_ip)) {
+    q->flags |= PBUF_FLAG_MCASTLOOP;
   }
+#endif /* LWIP_MULTICAST_TX_OPTIONS */
 
 #if LWIP_IPV6
   /* If requested, based on the IPV6_CHECKSUM socket option per RFC3542,
      compute the checksum and update the checksum in the payload. */
-  if (IP_IS_V6(ipaddr) && pcb->chksum_reqd) {
-    u16_t chksum = ip6_chksum_pseudo(q, pcb->protocol, q->tot_len, ip_2_ip6(src_ip), ip_2_ip6(ipaddr));
-    LWIP_ASSERT("Checksum must fit into first pbuf", q->len >= (pcb->chksum_offset + 2));
-    *(u16_t *)(((u8_t *)p->payload) + (q == p ? header_size : 0) + pcb->chksum_offset) = chksum;
+  if (IP_IS_V6(dst_ip) && pcb->chksum_reqd) {
+    u16_t chksum = ip6_chksum_pseudo(p, pcb->protocol, p->tot_len, ip_2_ip6(src_ip), ip_2_ip6(dst_ip));
+    LWIP_ASSERT("Checksum must fit into first pbuf", p->len >= (pcb->chksum_offset + 2));
+    SMEMCPY(((u8_t *)p->payload) + pcb->chksum_offset, &chksum, sizeof(u16_t));
   }
 #endif
 
+  /* Determine TTL to use */
+#if LWIP_MULTICAST_TX_OPTIONS
+  ttl = (ip_addr_ismulticast(dst_ip) ? raw_get_multicast_ttl(pcb) : pcb->ttl);
+#else /* LWIP_MULTICAST_TX_OPTIONS */
+  ttl = pcb->ttl;
+#endif /* LWIP_MULTICAST_TX_OPTIONS */
+
   netif_apply_pcb(netif, (struct ip_pcb *)pcb);
-  err = ip_output_if(q, src_ip, ipaddr, pcb->ttl, pcb->tos, pcb->protocol, netif);
+  err = ip_output_if(q, src_ip, dst_ip, ttl, pcb->tos, pcb->protocol, netif);
   netif_apply_pcb(netif, NULL);
 
   /* did we chain a header earlier? */
@@ -434,6 +535,7 @@ void
 raw_remove(struct raw_pcb *pcb)
 {
   struct raw_pcb *pcb2;
+  LWIP_ASSERT_CORE_LOCKED();
   /* pcb to be removed is first in list? */
   if (raw_pcbs == pcb) {
     /* make list start at 2nd pcb */
@@ -469,6 +571,7 @@ raw_new(u8_t proto)
   struct raw_pcb *pcb;
 
   LWIP_DEBUGF(RAW_DEBUG | LWIP_DBG_TRACE, ("raw_new\n"));
+  LWIP_ASSERT_CORE_LOCKED();
 
   pcb = (struct raw_pcb *)memp_malloc(MEMP_RAW_PCB);
   /* could allocate RAW PCB? */
@@ -477,6 +580,9 @@ raw_new(u8_t proto)
     memset(pcb, 0, sizeof(struct raw_pcb));
     pcb->protocol = proto;
     pcb->ttl = RAW_TTL;
+#if LWIP_MULTICAST_TX_OPTIONS
+    raw_set_multicast_ttl(pcb, RAW_TTL);
+#endif /* LWIP_MULTICAST_TX_OPTIONS */
     pcb->next = raw_pcbs;
     raw_pcbs = pcb;
   }
@@ -502,6 +608,7 @@ struct raw_pcb *
 raw_new_ip_type(u8_t type, u8_t proto)
 {
   struct raw_pcb *pcb;
+  LWIP_ASSERT_CORE_LOCKED();
   pcb = raw_new(proto);
 #if LWIP_IPV4 && LWIP_IPV6
   if (pcb != NULL) {
