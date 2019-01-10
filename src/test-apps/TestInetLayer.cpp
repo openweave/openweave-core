@@ -309,8 +309,8 @@ void StartTest()
             err = Raw6EP->BindInterface(kIPAddressType_IPv6, intfId);
             FAIL_ERROR(err, "RawEndPoint::BindInterface (IPv6) failed");
         }
-        Raw6EP->OnMessageReceived = HandleRawMessageReceived;
-        Raw6EP->OnReceiveError = HandleRawReceiveError;
+        Raw6EP->OnMessageReceived = reinterpret_cast<IPEndPointBasis::OnMessageReceivedFunct>(HandleRawMessageReceived);
+        Raw6EP->OnReceiveError = reinterpret_cast<IPEndPointBasis::OnReceiveErrorFunct>(HandleRawReceiveError);
     }
 #if INET_CONFIG_ENABLE_IPV4
     else if (UseRaw4)
@@ -325,8 +325,8 @@ void StartTest()
             err = Raw4EP->BindInterface(kIPAddressType_IPv4, intfId);
             FAIL_ERROR(err, "RawEndPoint::BindInterface (IPv4) failed");
         }
-        Raw4EP->OnMessageReceived = HandleRawMessageReceived;
-        Raw4EP->OnReceiveError = HandleRawReceiveError;
+        Raw4EP->OnMessageReceived = reinterpret_cast<IPEndPointBasis::OnMessageReceivedFunct>(HandleRawMessageReceived);
+        Raw4EP->OnReceiveError = reinterpret_cast<IPEndPointBasis::OnReceiveErrorFunct>(HandleRawReceiveError);
     }
 #endif // INET_CONFIG_ENABLE_IPV4
     else if (!UseTCP)
@@ -341,8 +341,8 @@ void StartTest()
             err = UDPEP->BindInterface(kIPAddressType_IPv6, intfId);
             FAIL_ERROR(err, "RawEndPoint::BindInterface (IPv4) failed");
         }
-        UDPEP->OnMessageReceived = HandleUDPMessageReceived;
-        UDPEP->OnReceiveError = HandleUDPReceiveError;
+        UDPEP->OnMessageReceived = reinterpret_cast<IPEndPointBasis::OnMessageReceivedFunct>(HandleUDPMessageReceived);
+        UDPEP->OnReceiveError = reinterpret_cast<IPEndPointBasis::OnReceiveErrorFunct>(HandleUDPReceiveError);
     }
 
     if (Listen)

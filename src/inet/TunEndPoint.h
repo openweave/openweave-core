@@ -204,7 +204,6 @@ private:
     INET_ERROR TunDevOpen(void);
     void HandleDataReceived(Weave::System::PacketBuffer *msg);
 
-    static IPPacketInfo *GetPacketInfo(Weave::System::PacketBuffer *buf);
     static err_t LwIPPostToInetEventQ(struct netif *netif, struct pbuf *p);
 #if LWIP_VERSION_MAJOR > 1 || LWIP_VERSION_MINOR >= 5
 #if LWIP_IPV4

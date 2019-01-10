@@ -71,12 +71,6 @@ namespace Inet {
 
 using Weave::System::PacketBuffer;
 
-class SenderInfo
-{
-public:
-    IPAddress Address;
-};
-
 Weave::System::ObjectPool<RawEndPoint, INET_CONFIG_NUM_RAW_ENDPOINTS> RawEndPoint::sPool;
 
 INET_ERROR RawEndPoint::Bind(IPAddressType addrType, IPAddress addr, InterfaceId intfId)
@@ -467,7 +461,7 @@ INET_ERROR RawEndPoint::SendTo(IPAddress addr, InterfaceId intfId, Weave::System
 
     // Make sure we have the appropriate type of PCB based on the destination address.
     res = GetPCB(addr.Type());
-	SuccessOrExit(res);
+    SuccessOrExit(res);
 
     // Send the message to the specified address/port.
     {
@@ -586,7 +580,7 @@ INET_ERROR RawEndPoint::BindInterface(IPAddressType addrType, InterfaceId intfId
 
     // Make sure we have the appropriate type of PCB.
     err = GetPCB(addrType);
-	SuccessOrExit(err);
+    SuccessOrExit(err);
 
     if (!IsInterfaceIdPresent(intfId))
     { //Stop interface-based filtering.
@@ -609,10 +603,10 @@ INET_ERROR RawEndPoint::BindInterface(IPAddressType addrType, InterfaceId intfId
 #if WEAVE_SYSTEM_CONFIG_USE_SOCKETS
     // Make sure we have the appropriate type of socket.
     err = GetSocket(addrType);
-	SuccessOrExit(err);
+    SuccessOrExit(err);
 
     err = IPEndPointBasis::BindInterface(addrType, intfId);
-	SuccessOrExit(err);
+    SuccessOrExit(err);
 #endif // WEAVE_SYSTEM_CONFIG_USE_SOCKETS
 
     if (err == INET_NO_ERROR)
@@ -647,13 +641,7 @@ InterfaceId RawEndPoint::GetBoundInterface (void)
 
 void RawEndPoint::HandleDataReceived(PacketBuffer *msg)
 {
-    if (mState == kState_Listening && OnMessageReceived != NULL)
-    {
-        SenderInfo *senderInfo = GetSenderInfo(msg);
-        OnMessageReceived(this, msg, senderInfo->Address);
-    }
-    else
-        PacketBuffer::Free(msg);
+    IPEndPointBasis::HandleDataReceived(msg);
 }
 
 INET_ERROR RawEndPoint::GetPCB(IPAddressType addrType)
@@ -753,20 +741,6 @@ exit:
     return (lRetval);
 }
 
-SenderInfo *RawEndPoint::GetSenderInfo(Weave::System::PacketBuffer *buf)
-{
-    // When using LwIP information about the sender is 'hidden' in the reserved space before the start of
-    // the data in the packet buffer.  This is necessary because the events in dolomite can only have two
-    // arguments, which in this case are used  to convey the pointer to the end point and the pointer to the
-    // buffer.  This trick of storing information before the data works because the first buffer in an LwIP
-    // Raw message contains the space that was used for the IP headers, which is always bigger than the
-    // SenderInfo structure.
-    uintptr_t p = (uintptr_t)buf->Start();
-    p = p - sizeof(SenderInfo);
-    p = p & ~7;// align to 8-byte boundary
-    return (SenderInfo *)p;
-}
-
 /* This function is executed when a raw_pcb is listening and an IP datagram (v4 or v6) is received.
  * NOTE: currently ICMPv4 filtering is currently not implemented, but it can easily be added later.
  * This fn() may be executed concurrently with SetICMPFilter()
@@ -782,6 +756,7 @@ u8_t RawEndPoint::LwIPReceiveRawMessage(void *arg, struct raw_pcb *pcb, struct p
     RawEndPoint*            ep              = static_cast<RawEndPoint*>(arg);
     PacketBuffer*           buf             = reinterpret_cast<PacketBuffer*>(static_cast<void*>(p));
     Weave::System::Layer&   lSystemLayer    = ep->SystemLayer();
+    IPPacketInfo*           pktInfo     = NULL;
     uint8_t                 enqueue         = 1;
 
     //Filtering based on the saved ICMP6 types (the only protocol currently supported.)
@@ -810,23 +785,32 @@ u8_t RawEndPoint::LwIPReceiveRawMessage(void *arg, struct raw_pcb *pcb, struct p
 
     if (enqueue)
     {
-        buf->SetStart(buf->Start() + ip_current_header_tot_len());
-        SenderInfo *senderInfo = GetSenderInfo(buf);
+        pktInfo = GetPacketInfo(buf);
 
+        if (pktInfo != NULL)
+		{
 #if LWIP_VERSION_MAJOR > 1 || LWIP_VERSION_MINOR >= 5
-        senderInfo->Address = IPAddress::FromLwIPAddr(*addr);
+            pktInfo->SrcAddress = IPAddress::FromLwIPAddr(*addr);
+            pktInfo->DestAddress = IPAddress::FromLwIPAddr(*ip_current_dest_addr());
 #else // LWIP_VERSION_MAJOR <= 1
-        if (PCB_ISIPV6(pcb))
-        {
-            senderInfo->Address = IPAddress::FromIPv6(*(ip6_addr_t *)addr);
-        }
+            if (PCB_ISIPV6(pcb))
+            {
+                pktInfo->SrcAddress = IPAddress::FromIPv6(*(ip6_addr_t *)addr);
+                pktInfo->DestAddress = IPAddress::FromIPv6(*ip6_current_dest_addr());
+            }
 #if INET_CONFIG_ENABLE_IPV4
-        else
-        {
-            senderInfo->Address = IPAddress::FromIPv4(*addr);
-        }
+            else
+            {
+                pktInfo->SrcAddress = IPAddress::FromIPv4(*addr);
+                pktInfo->DestAddress = IPAddress::FromIPv4(*ip_current_dest_addr());
+            }
 #endif // INET_CONFIG_ENABLE_IPV4
 #endif // LWIP_VERSION_MAJOR <= 1
+
+            pktInfo->Interface = ip_current_netif();
+            pktInfo->SrcPort = 0;
+            pktInfo->DestPort = 0;
+        }
 
         if (lSystemLayer.PostEvent(*ep, kInetEvent_RawDataReceived, (uintptr_t)buf) != INET_NO_ERROR)
             PacketBuffer::Free(buf);
@@ -870,72 +854,16 @@ exit:
 
 SocketEvents RawEndPoint::PrepareIO(void)
 {
-    SocketEvents res;
-
-    if (mState == kState_Listening && OnMessageReceived != NULL)
-        res.SetRead();
-
-    return res;
+    return (IPEndPointBasis::PrepareIO());
 }
 
 void RawEndPoint::HandlePendingIO(void)
 {
-    INET_ERROR err = INET_NO_ERROR;
-
     if (mState == kState_Listening && OnMessageReceived != NULL && mPendingIO.IsReadable())
     {
-        IPAddress senderAddr = IPAddress::Any;
+        const uint16_t lPort = 0;
 
-        Weave::System::PacketBuffer *buf = Weave::System::PacketBuffer::New(0);
-
-        if (buf != NULL)
-        {
-            union
-            {
-                sockaddr any;
-                sockaddr_in in;
-                sockaddr_in6 in6;
-            } sa;
-            memset(&sa, 0, sizeof(sa));
-            socklen_t saLen = sizeof(sa);
-
-            ssize_t rcvLen = recvfrom(mSocket, buf->Start(), buf->AvailableDataLength(), 0, &sa.any, &saLen);
-            if (rcvLen < 0)
-                err = Weave::System::MapErrorPOSIX(errno);
-
-            else if (rcvLen > buf->AvailableDataLength())
-                err = INET_ERROR_INBOUND_MESSAGE_TOO_BIG;
-
-            else
-            {
-                buf->SetDataLength((uint16_t) rcvLen);
-
-                if (sa.any.sa_family == AF_INET6)
-                {
-                    senderAddr = IPAddress::FromIPv6(sa.in6.sin6_addr);
-                }
-#if INET_CONFIG_ENABLE_IPV4
-                else if (sa.any.sa_family == AF_INET)
-                {
-                    senderAddr = IPAddress::FromIPv4(sa.in.sin_addr);
-                }
-#endif // INET_CONFIG_ENABLE_IPV4
-                else
-                    err = INET_ERROR_INCORRECT_STATE;
-            }
-        }
-
-        else
-            err = INET_ERROR_NO_MEMORY;
-
-        if (err == INET_NO_ERROR)
-            OnMessageReceived(this, buf, senderAddr); //FIXME
-        else
-        {
-            PacketBuffer::Free(buf);
-            if (OnReceiveError != NULL)
-                OnReceiveError(this, err, senderAddr); //FIXME
-        }
+        IPEndPointBasis::HandlePendingIO(lPort);
     }
 
     mPendingIO.Clear();

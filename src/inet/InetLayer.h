@@ -433,7 +433,7 @@ inline void InetLayer::WakeSelect(void)
  *
  *   @warning
  *     Do not alter the contents of this class without first reading and understanding
- *     the code/comments in UDPEndPoint::GetPacketInfo().
+ *     the code/comments in IPEndPointBasis::GetPacketInfo().
  */
 class IPPacketInfo
 {

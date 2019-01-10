@@ -76,6 +76,79 @@ void IPEndPointBasis::Init(InetLayer *aInetLayer)
 #endif // WEAVE_SYSTEM_CONFIG_USE_SOCKETS
 }
 
+#if WEAVE_SYSTEM_CONFIG_USE_LWIP
+void IPEndPointBasis::HandleDataReceived(PacketBuffer *aBuffer)
+{
+    if ((mState == kState_Listening) && (OnMessageReceived != NULL))
+    {
+        const IPPacketInfo *pktInfo = GetPacketInfo(aBuffer);
+
+        if (pktInfo != NULL)
+        {
+            const IPPacketInfo pktInfoCopy = *pktInfo;  // copy the address info so that the app can free the
+                                                        // PacketBuffer without affecting access to address info.
+            OnMessageReceived(this, aBuffer, &pktInfoCopy);
+        }
+        else
+        {
+            if (OnReceiveError != NULL)
+                OnReceiveError(this, INET_ERROR_INBOUND_MESSAGE_TOO_BIG, NULL);
+            PacketBuffer::Free(aBuffer);
+        }
+    }
+    else
+    {
+        PacketBuffer::Free(aBuffer);
+    }
+}
+
+/**
+ *  @brief Get LwIP IP layer source and destination addressing information.
+ *
+ *  @param[in]   aBuffer       the packet buffer containing the IP message
+ *
+ *  @returns  a pointer to the address information on success; otherwise,
+ *            NULL if there is insufficient space in the packet for
+ *            the address information.
+ *
+ *  @details
+ *     When using LwIP information about the packet is 'hidden' in the
+ *     reserved space before the start of the data in the packet
+ *     buffer. This is necessary because the system layer events only
+ *     have two arguments, which in this case are used to convey the
+ *     pointer to the end point and the pointer to the buffer.
+ *
+ *     In most cases this trick of storing information before the data
+ *     works because the first buffer in an LwIP IP message contains
+ *     the space that was used for the Ethernet/IP/UDP headers. However,
+ *     given the current size of the IPPacketInfo structure (40 bytes),
+ *     it is possible for there to not be enough room to store the
+ *     structure along with the payload in a single packet buffer. In
+ *     practice, this should only happen for extremely large IPv4
+ *     packets that arrive without an Ethernet header.
+ *
+ */
+IPPacketInfo *IPEndPointBasis::GetPacketInfo(PacketBuffer *aBuffer)
+{
+    uintptr_t       lStart;
+    uintptr_t       lPacketInfoStart;
+    IPPacketInfo *  lPacketInfo = NULL;
+
+    if (!aBuffer->EnsureReservedSize(sizeof (IPPacketInfo) + 3))
+        goto done;
+
+    lStart           = (uintptr_t)aBuffer->Start();
+    lPacketInfoStart = lStart - sizeof (IPPacketInfo);
+
+    // Align to a 4-byte boundary
+
+    lPacketInfo      = reinterpret_cast<IPPacketInfo *>(lPacketInfoStart & ~(sizeof (uint32_t) - 1));
+
+ done:
+    return (lPacketInfo);
+}
+#endif // WEAVE_SYSTEM_CONFIG_USE_LWIP
+
 #if WEAVE_SYSTEM_CONFIG_USE_SOCKETS
 INET_ERROR IPEndPointBasis::Bind(IPAddressType aAddressType, IPAddress aAddress, uint16_t aPort, InterfaceId aInterfaceId)
 {
@@ -409,24 +482,36 @@ INET_ERROR IPEndPointBasis::GetSocket(IPAddressType aAddressType, int aType, int
     return INET_NO_ERROR;
 }
 
-INET_ERROR IPEndPointBasis::HandlePendingIO(uint16_t aPort, PacketBuffer *&aBuffer, IPPacketInfo &aPacketInfo)
+SocketEvents IPEndPointBasis::PrepareIO(void)
 {
-    INET_ERROR lRetval = INET_NO_ERROR;
+    SocketEvents res;
 
-    aPacketInfo.Clear();
-    aPacketInfo.DestPort = aPort;
+    if (mState == kState_Listening && OnMessageReceived != NULL)
+        res.SetRead();
 
-    aBuffer = PacketBuffer::New(0);
+    return res;
+}
 
-    if (aBuffer != NULL)
+void IPEndPointBasis::HandlePendingIO(uint16_t aPort)
+{
+    INET_ERROR      lStatus = INET_NO_ERROR;
+    IPPacketInfo    lPacketInfo;
+    PacketBuffer *  lBuffer;
+
+    lPacketInfo.Clear();
+    lPacketInfo.DestPort = aPort;
+
+    lBuffer = PacketBuffer::New(0);
+
+    if (lBuffer != NULL)
     {
         struct iovec msgIOV;
         PeerSockAddr lPeerSockAddr;
         uint8_t controlData[256];
         struct msghdr msgHeader;
 
-        msgIOV.iov_base = aBuffer->Start();
-        msgIOV.iov_len = aBuffer->AvailableDataLength();
+        msgIOV.iov_base = lBuffer->Start();
+        msgIOV.iov_len = lBuffer->AvailableDataLength();
 
         memset(&lPeerSockAddr, 0, sizeof (lPeerSockAddr));
 
@@ -443,35 +528,35 @@ INET_ERROR IPEndPointBasis::HandlePendingIO(uint16_t aPort, PacketBuffer *&aBuff
 
         if (rcvLen < 0)
         {
-            lRetval = Weave::System::MapErrorPOSIX(errno);
+            lStatus = Weave::System::MapErrorPOSIX(errno);
         }
-        else if (rcvLen > aBuffer->AvailableDataLength())
+        else if (rcvLen > lBuffer->AvailableDataLength())
         {
-            lRetval = INET_ERROR_INBOUND_MESSAGE_TOO_BIG;
+            lStatus = INET_ERROR_INBOUND_MESSAGE_TOO_BIG;
         }
         else
         {
-            aBuffer->SetDataLength((uint16_t) rcvLen);
+            lBuffer->SetDataLength((uint16_t) rcvLen);
 
             if (lPeerSockAddr.any.sa_family == AF_INET6)
             {
-                aPacketInfo.SrcAddress = IPAddress::FromIPv6(lPeerSockAddr.in6.sin6_addr);
-                aPacketInfo.SrcPort = ntohs(lPeerSockAddr.in6.sin6_port);
+                lPacketInfo.SrcAddress = IPAddress::FromIPv6(lPeerSockAddr.in6.sin6_addr);
+                lPacketInfo.SrcPort = ntohs(lPeerSockAddr.in6.sin6_port);
             }
 #if INET_CONFIG_ENABLE_IPV4
             else if (lPeerSockAddr.any.sa_family == AF_INET)
             {
-                aPacketInfo.SrcAddress = IPAddress::FromIPv4(lPeerSockAddr.in.sin_addr);
-                aPacketInfo.SrcPort = ntohs(lPeerSockAddr.in.sin_port);
+                lPacketInfo.SrcAddress = IPAddress::FromIPv4(lPeerSockAddr.in.sin_addr);
+                lPacketInfo.SrcPort = ntohs(lPeerSockAddr.in.sin_port);
             }
 #endif // INET_CONFIG_ENABLE_IPV4
             else
             {
-                lRetval = INET_ERROR_INCORRECT_STATE;
+                lStatus = INET_ERROR_INCORRECT_STATE;
             }
         }
 
-        if (lRetval == INET_NO_ERROR)
+        if (lStatus == INET_NO_ERROR)
         {
             for (struct cmsghdr *controlHdr = CMSG_FIRSTHDR(&msgHeader);
                  controlHdr != NULL;
@@ -482,8 +567,8 @@ INET_ERROR IPEndPointBasis::HandlePendingIO(uint16_t aPort, PacketBuffer *&aBuff
                 if (controlHdr->cmsg_level == IPPROTO_IP && controlHdr->cmsg_type == IP_PKTINFO)
                 {
                     struct in_pktinfo *inPktInfo = (struct in_pktinfo *)CMSG_DATA(controlHdr);
-                    aPacketInfo.Interface = inPktInfo->ipi_ifindex;
-                    aPacketInfo.DestAddress = IPAddress::FromIPv4(inPktInfo->ipi_addr);
+                    lPacketInfo.Interface = inPktInfo->ipi_ifindex;
+                    lPacketInfo.DestAddress = IPAddress::FromIPv4(inPktInfo->ipi_addr);
                     continue;
                 }
 #endif // defined(IP_PKTINFO)
@@ -493,8 +578,8 @@ INET_ERROR IPEndPointBasis::HandlePendingIO(uint16_t aPort, PacketBuffer *&aBuff
                 if (controlHdr->cmsg_level == IPPROTO_IPV6 && controlHdr->cmsg_type == IPV6_PKTINFO)
                 {
                     struct in6_pktinfo *in6PktInfo = (struct in6_pktinfo *)CMSG_DATA(controlHdr);
-                    aPacketInfo.Interface = in6PktInfo->ipi6_ifindex;
-                    aPacketInfo.DestAddress = IPAddress::FromIPv6(in6PktInfo->ipi6_addr);
+                    lPacketInfo.Interface = in6PktInfo->ipi6_ifindex;
+                    lPacketInfo.DestAddress = IPAddress::FromIPv6(in6PktInfo->ipi6_addr);
                     continue;
                 }
 #endif // defined(IPV6_PKTINFO)
@@ -503,10 +588,21 @@ INET_ERROR IPEndPointBasis::HandlePendingIO(uint16_t aPort, PacketBuffer *&aBuff
     }
     else
     {
-        lRetval = INET_ERROR_NO_MEMORY;
+        lStatus = INET_ERROR_NO_MEMORY;
     }
 
-    return (lRetval);
+    if (lStatus == INET_NO_ERROR)
+        OnMessageReceived(this, lBuffer, &lPacketInfo);
+    else
+    {
+        PacketBuffer::Free(lBuffer);
+        if (OnReceiveError != NULL
+            && lStatus != Weave::System::MapErrorPOSIX(EAGAIN)
+           )
+            OnReceiveError(this, lStatus, NULL);
+    }
+
+    return;
 }
 #endif // WEAVE_SYSTEM_CONFIG_USE_SOCKETS
 
