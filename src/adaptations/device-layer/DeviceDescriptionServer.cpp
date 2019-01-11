@@ -120,6 +120,7 @@ exit:
 
     if (err != WEAVE_NO_ERROR)
     {
+        WeaveLogProgress(DeviceLayer, "HandleIdentifyRequest failed: %s", ErrorStr(err));
         sendResp = false;
     }
 }

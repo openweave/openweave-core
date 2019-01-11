@@ -32,6 +32,14 @@
 
 namespace nl {
 namespace Weave {
+namespace System {
+class PacketBuffer;
+}
+}
+}
+
+namespace nl {
+namespace Weave {
 namespace DeviceLayer {
 
 namespace DeviceEventType {
@@ -50,7 +58,8 @@ enum PublicPlatformSpecificEventTypes
 enum InternalPlatformSpecificEventTypes
 {
     kSoftDeviceBLEEvent                     = kRange_InternalPlatformSpecific,
-    kGATTModuleEvent
+    kWoBLERXCharWriteEvent,
+    kWoBLEOutOfBuffersEvent,
 };
 
 } // namespace DeviceEventType
@@ -62,8 +71,17 @@ struct WeaveDevicePlatformEvent final
 {
     union
     {
-        ble_evt_t SoftDeviceBLEEvent;
-        nrf_ble_gatt_evt_t GATTModuleEvent;
+        struct
+        {
+            ble_evt_t EventData;
+            uint8_t PayloadPadding[2];
+        } SoftDeviceBLEEvent;
+        struct
+        {
+            uint16_t ConId;
+            ble_gatts_evt_write_t WriteArgs;
+            ::nl::Weave::System::PacketBuffer * Data;
+        } RXCharWriteEvent;
     };
 };
 
