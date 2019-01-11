@@ -119,6 +119,83 @@ public:
     /** The endpoint's receive error event handling function delegate. */
     OnReceiveErrorFunct OnReceiveError;
 
+    /**
+     *  @brief Set whether IP multicast traffic should be looped back.
+     *
+     *  @param[in]   aIPVersion
+     *
+     *  @param[in]   aLoop
+     *
+     *  @retval  INET_NO_ERROR
+     *       success: multicast loopback behavior set
+     *  @retval  other
+     *       another system or platform error
+     *
+     *  @details
+     *     Set whether or not IP multicast traffic should be looped back
+     *     to this endpoint.
+     *
+     */
+    INET_ERROR SetMulticastLoopback(IPVersion aIPVersion, bool aLoopback);
+
+    /**
+     *  @brief Join an IP multicast group.
+     *
+     *  @param[in]   aInterfaceId  the indicator of the network interface to
+     *                             add to the multicast group
+     *
+     *  @param[in]   aAddress      the multicast group to add the
+     *                             interface to
+     *
+     *  @retval  INET_NO_ERROR
+     *       success: multicast group removed
+     *
+     *  @retval  INET_ERROR_UNKNOWN_INTERFACE
+     *       unknown network interface, \c aInterfaceId
+     *
+     *  @retval  INET_ERROR_WRONG_ADDRESS_TYPE
+     *       \c aAddress is not \c kIPAddressType_IPv4 or
+     *       \c kIPAddressType_IPv6 or is not multicast
+     *
+     *  @retval  other
+     *       another system or platform error
+     *
+     *  @details
+     *     Join the endpoint to the supplied multicast group on the
+     *     specified interface.
+     *
+     */
+    INET_ERROR JoinMulticastGroup(InterfaceId aInterfaceId, const IPAddress &aAddress);
+
+    /**
+     *  @brief Leave an IP multicast group.
+     *
+     *  @param[in]   aInterfaceId  the indicator of the network interface to
+     *                             remove from the multicast group
+     *
+     *  @param[in]   aAddress      the multicast group to remove the
+     *                             interface from
+     *
+     *  @retval  INET_NO_ERROR
+     *       success: multicast group removed
+     *
+     *  @retval  INET_ERROR_UNKNOWN_INTERFACE
+     *       unknown network interface, \c aInterfaceId
+     *
+     *  @retval  INET_ERROR_WRONG_ADDRESS_TYPE
+     *       \c aAddress is not \c kIPAddressType_IPv4 or
+     *       \c kIPAddressType_IPv6 or is not multicast
+     *
+     *  @retval  other
+     *       another system or platform error
+     *
+     *  @details
+     *     Remove the endpoint from the supplied multicast group on the
+     *     specified interface.
+     *
+     */
+    INET_ERROR LeaveMulticastGroup(InterfaceId aInterfaceId, const IPAddress &aAddress);
+
 protected:
     void Init(InetLayer *aInetLayer);
 
@@ -131,7 +208,7 @@ public:
 #if LWIP_VERSION_MAJOR >= 2 && LWIP_VERSION_MINOR >= 0 && defined(NETIF_FOREACH)
             NETIF_FOREACH(lRetval)
             {
-                if (lRetval == aInterfaceid)
+                if (lRetval == aInterfaceId)
                     break;
             }
 #else // LWIP_VERSION_MAJOR < 2 || !defined(NETIF_FOREACH)

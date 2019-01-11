@@ -221,6 +221,7 @@ INET_ERROR RawEndPoint::BindIPv6LinkLocal(InterfaceId intf, IPAddress addr)
         {
             raw_remove(mRaw);
             mRaw = NULL;
+            mLwIPEndPointType = kLwIPEndPointType_Unknown;
         }
     }
 
@@ -339,12 +340,13 @@ void RawEndPoint::Close(void)
         // Lock LwIP stack
         LOCK_TCPIP_CORE();
 
-        // Since Raw PCB is released synchronously here, but UDP endpoint itself might have to wait
-        // for destruction asynchronously, there could be more allocated UDP endpoints than UDP PCBs.
+        // Since Raw PCB is released synchronously here, but Raw endpoint itself might have to wait
+        // for destruction asynchronously, there could be more allocated Raw endpoints than Raw PCBs.
         if (mRaw != NULL)
         {
             raw_remove(mRaw);
             mRaw = NULL;
+            mLwIPEndPointType = kLwIPEndPointType_Unknown;
         }
 
         // Unlock LwIP stack
@@ -469,17 +471,20 @@ INET_ERROR RawEndPoint::SendTo(IPAddress addr, InterfaceId intfId, Weave::System
 
 #if LWIP_VERSION_MAJOR > 1 || LWIP_VERSION_MINOR >= 5
         ip_addr_t ipAddr = addr.ToLwIPAddr();
+
         lwipErr = raw_sendto(mRaw, (pbuf *)msg, &ipAddr);
 #else // LWIP_VERSION_MAJOR <= 1 && LWIP_VERSION_MINOR < 5
         if (PCB_ISIPV6(mRaw))
         {
             ip6_addr_t ipv6Addr = addr.ToIPv6();
+
             lwipErr = raw_sendto_ip6(mRaw, (pbuf *)msg, &ipv6Addr);
         }
 #if INET_CONFIG_ENABLE_IPV4
         else
         {
             ip4_addr_t ipv4Addr = addr.ToIPv4();
+
             lwipErr = raw_sendto(mRaw, (pbuf *)msg, &ipv4Addr);
         }
 #endif // INET_CONFIG_ENABLE_IPV4
@@ -673,6 +678,10 @@ INET_ERROR RawEndPoint::GetPCB(IPAddressType addrType)
             lRetval = INET_ERROR_NO_MEMORY;
             goto exit;
         }
+        else
+        {
+            mLwIPEndPointType = kLwIPEndPointType_Raw;
+        }
     }
     else
     {
@@ -720,6 +729,10 @@ INET_ERROR RawEndPoint::GetPCB(IPAddressType addrType)
             WeaveLogError(Inet, "raw_new failed");
             lRetval = INET_ERROR_NO_MEMORY;
             goto exit;
+        }
+        else
+        {
+            mLwIPEndPointType = kLwIPEndPointType_Raw;
         }
     }
     else

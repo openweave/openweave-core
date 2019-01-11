@@ -35,9 +35,14 @@
 #include <Weave/Support/CodeUtils.h>
 
 #if WEAVE_SYSTEM_CONFIG_USE_LWIP
+#if INET_CONFIG_ENABLE_IPV4
+#include <lwip/igmp.h>
+#endif // INET_CONFIG_ENABLE_IPV4
 #include <lwip/init.h>
 #include <lwip/ip.h>
+#include <lwip/mld6.h>
 #include <lwip/netif.h>
+#include <lwip/raw.h>
 #include <lwip/udp.h>
 #endif // WEAVE_SYSTEM_CONFIG_USE_LWIP
 
@@ -51,10 +56,35 @@
 #if HAVE_SYS_SOCKET_H
 #include <sys/socket.h>
 #endif // HAVE_SYS_SOCKET_H
+
+/*
+ * Some systems define both IPV6_{ADD,DROP}_MEMBERSHIP and
+ * IPV6_{JOIN,LEAVE}_GROUP while others only define
+ * IPV6_{JOIN,LEAVE}_GROUP. Prefer the "_MEMBERSHIP" flavor for
+ * parallelism with IPv4 and create the alias to the availabile
+ * definitions.
+ */
+#if !defined(IPV6_ADD_MEMBERSHIP) && defined(IPV6_JOIN_GROUP)
+#define INET_IPV6_ADD_MEMBERSHIP IPV6_JOIN_GROUP
+#elif defined(IPV6_ADD_MEMBERSHIP)
+#define INET_IPV6_ADD_MEMBERSHIP IPV6_ADD_MEMBERSHIP
+#else
+#error "Neither IPV6_ADD_MEMBERSHIP nor IPV6_JOIN_GROUP are defined which are required for generalized IPv6 multicast group support."
+#endif // !defined(IPV6_ADD_MEMBERSHIP) && defined(IPV6_JOIN_GROUP)
+
+#if !defined(IPV6_DROP_MEMBERSHIP) && defined(IPV6_LEAVE_GROUP)
+#define INET_IPV6_DROP_MEMBERSHIP IPV6_LEAVE_GROUP
+#elif defined(IPV6_DROP_MEMBERSHIP)
+#define INET_IPV6_DROP_MEMBERSHIP IPV6_DROP_MEMBERSHIP
+#else
+#error "Neither IPV6_DROP_MEMBERSHIP nor IPV6_LEAVE_GROUP are defined which are required for generalized IPv6 multicast group support."
+#endif // !defined(IPV6_DROP_MEMBERSHIP) && defined(IPV6_LEAVE_GROUP)
 #endif // WEAVE_SYSTEM_CONFIG_USE_SOCKETS
 
 namespace nl {
 namespace Inet {
+
+using Weave::System::PacketBuffer;
 
 #if WEAVE_SYSTEM_CONFIG_USE_SOCKETS
 union PeerSockAddr
@@ -65,7 +95,353 @@ union PeerSockAddr
 };
 #endif // WEAVE_SYSTEM_CONFIG_USE_SOCKETS
 
-using Weave::System::PacketBuffer;
+#if WEAVE_SYSTEM_CONFIG_USE_LWIP
+#if INET_CONFIG_ENABLE_IPV4
+#define LWIP_IPV4_ADDR_T           ip4_addr_t
+#define IPV4_TO_LWIPADDR(aAddress) (aAddress).ToIPv4()
+#endif // INET_CONFIG_ENABLE_IPV4
+#define LWIP_IPV6_ADDR_T           ip6_addr_t
+#define IPV6_TO_LWIPADDR(aAddress) (aAddress).ToIPv6()
+
+#if !defined(RAW_FLAGS_MULTICAST_LOOP) || !defined(UDP_FLAGS_MULTICAST_LOOP) || !defined(raw_clear_flags) || !defined(raw_set_flags) || !defined(udp_clear_flags) || !defined(udp_set_flags)
+#define HAVE_LWIP_MULTICAST_LOOP 0
+#else
+#define HAVE_LWIP_MULTICAST_LOOP 1
+#endif // !defined(RAW_FLAGS_MULTICAST_LOOP) || !defined(UDP_FLAGS_MULTICAST_LOOP) || !defined(raw_clear_flags) || !defined(raw_set_flags) || !defined(udp_clear_flags) || !defined(udp_set_flags)
+#endif // WEAVE_SYSTEM_CONFIG_USE_LWIP
+
+static INET_ERROR CheckMulticastGroupArgs(InterfaceId aInterfaceId, const IPAddress &aAddress)
+{
+    INET_ERROR          lRetval = INET_NO_ERROR;
+    bool                lIsPresent, lIsMulticast;
+
+    lIsPresent = IsInterfaceIdPresent(aInterfaceId);
+    VerifyOrExit(lIsPresent, lRetval = INET_ERROR_UNKNOWN_INTERFACE);
+
+    lIsMulticast = aAddress.IsMulticast();
+    VerifyOrExit(lIsMulticast, lRetval = INET_ERROR_WRONG_ADDRESS_TYPE);
+
+exit:
+    return (lRetval);
+}
+
+#if WEAVE_SYSTEM_CONFIG_USE_LWIP
+#if INET_CONFIG_ENABLE_IPV4
+static INET_ERROR LwIPIPv4JoinLeaveMulticastGroup(InterfaceId aInterfaceId, const IPAddress &aAddress, err_t (*aMethod)(struct netif *, const LWIP_IPV4_ADDR_T *))
+{
+    INET_ERROR        lRetval = INET_NO_ERROR;
+#if LWIP_IPV4 && LWIP_IGMP
+    err_t             lStatus;
+    struct netif *    lNetif;
+    LWIP_IPV4_ADDR_T  lIPv4Address;
+
+    lNetif = IPEndPointBasis::FindNetifFromInterfaceId(aInterfaceId);
+    VerifyOrExit(lNetif != NULL, lRetval = INET_ERROR_UNKNOWN_INTERFACE);
+
+    lIPv4Address = IPV4_TO_LWIPADDR(aAddress);
+
+    lStatus = aMethod(lNetif, &lIPv4Address);
+
+    switch (lStatus)
+    {
+
+    case ERR_MEM:
+        lRetval = INET_ERROR_NO_MEMORY;
+        break;
+
+    default:
+        lRetval = Weave::System::MapErrorLwIP(lStatus);
+        break;
+
+    }
+
+exit:
+#else // LWIP_IPV4 && LWIP_IGMP
+#pragma message "\n \
+Please enable LWIP_IPV4 and LWIP_IGMP for IPv4 JoinMulticastGroup and LeaveMulticastGroup support."
+    lRetval = INET_ERROR_NOT_SUPPORTED;
+#endif // LWIP_IPV4 && LWIP_IGMP
+
+    return (lRetval);
+}
+#endif // INET_CONFIG_ENABLE_IPV4
+
+static INET_ERROR LwIPIPv6JoinLeaveMulticastGroup(InterfaceId aInterfaceId, const IPAddress &aAddress, err_t (*aMethod)(struct netif *, const LWIP_IPV6_ADDR_T *))
+{
+    INET_ERROR        lRetval = INET_NO_ERROR;
+#if LWIP_IPV6_MLD && LWIP_IPV6_ND && LWIP_IPV6
+    err_t             lStatus;
+    struct netif *    lNetif;
+    LWIP_IPV6_ADDR_T  lIPv6Address;
+
+    lNetif = IPEndPointBasis::FindNetifFromInterfaceId(aInterfaceId);
+    VerifyOrExit(lNetif != NULL, lRetval = INET_ERROR_UNKNOWN_INTERFACE);
+
+    lIPv6Address = IPV6_TO_LWIPADDR(aAddress);
+
+    lStatus = aMethod(lNetif, &lIPv6Address);
+
+    switch (lStatus)
+    {
+
+    case ERR_MEM:
+        lRetval = INET_ERROR_NO_MEMORY;
+        break;
+
+    default:
+        lRetval = Weave::System::MapErrorLwIP(lStatus);
+        break;
+
+    }
+
+exit:
+#else // LWIP_IPV6_MLD && LWIP_IPV6_ND && LWIP_IPV6
+#pragma message "\n \
+Please enable LWIP_IPV6_MLD && LWIP_IPV6_ND && LWIP_IPV6 for IPv6 JoinMulticastGroup and LeaveMulticastGroup support."
+    lRetval = INET_ERROR_NOT_SUPPORTED;
+#endif // LWIP_IPV6_MLD && LWIP_IPV6_ND && LWIP_IPV6
+
+    return (lRetval);
+}
+#endif // WEAVE_SYSTEM_CONFIG_USE_LWIP
+
+#if WEAVE_SYSTEM_CONFIG_USE_SOCKETS
+static INET_ERROR SocketsSetMulticastLoopback(int aSocket, bool aLoopback, int aProtocol, int aOption)
+{
+    INET_ERROR    lRetval = INET_NO_ERROR;
+    int           lStatus;
+    unsigned int  lValue = aLoopback;
+
+    lStatus = setsockopt(aSocket, aProtocol, aOption, &lValue, sizeof (lValue));
+    VerifyOrExit(lStatus == 0, lRetval = Weave::System::MapErrorPOSIX(errno));
+
+exit:
+    return (lRetval);
+}
+
+static INET_ERROR SocketsSetMulticastLoopback(int aSocket, IPVersion aIPVersion, bool aLoopback)
+{
+    INET_ERROR  lRetval;
+
+    switch (aIPVersion)
+    {
+
+    case kIPVersion_6:
+        lRetval = SocketsSetMulticastLoopback(aSocket, aLoopback, IPPROTO_IPV6, IPV6_MULTICAST_LOOP);
+        break;
+
+#if INET_CONFIG_ENABLE_IPV4
+    case kIPVersion_4:
+        lRetval = SocketsSetMulticastLoopback(aSocket, aLoopback, IPPROTO_IP, IP_MULTICAST_LOOP);
+        break;
+#endif // INET_CONFIG_ENABLE_IPV4
+
+    default:
+        lRetval = INET_ERROR_WRONG_ADDRESS_TYPE;
+        break;
+
+    }
+
+    return (lRetval);
+}
+
+#if INET_CONFIG_ENABLE_IPV4
+static INET_ERROR SocketsIPv4JoinLeaveMulticastGroup(int aSocket, InterfaceId aInterfaceId, const IPAddress &aAddress, int aCommand)
+{
+    INET_ERROR       lRetval = INET_NO_ERROR;
+    IPAddress        lInterfaceAddress;
+    bool             lInterfaceAddressFound = false;
+    struct ip_mreq   lMulticastRequest;
+
+    for (InterfaceAddressIterator lAddressIterator; lAddressIterator.HasCurrent(); lAddressIterator.Next())
+    {
+        const IPAddress lCurrentAddress = lAddressIterator.GetAddress();
+
+        if (lAddressIterator.GetInterface() == aInterfaceId)
+        {
+            if (lCurrentAddress.IsIPv4())
+            {
+                lInterfaceAddressFound = true;
+                lInterfaceAddress = lCurrentAddress;
+                break;
+            }
+        }
+    }
+
+    VerifyOrExit(lInterfaceAddressFound, lRetval = INET_ERROR_ADDRESS_NOT_FOUND);
+
+    memset(&lMulticastRequest, 0, sizeof (lMulticastRequest));
+    lMulticastRequest.imr_interface = lInterfaceAddress.ToIPv4();
+    lMulticastRequest.imr_multiaddr = aAddress.ToIPv4();
+
+    lRetval = setsockopt(aSocket, IPPROTO_IP, aCommand, &lMulticastRequest, sizeof (lMulticastRequest));
+    VerifyOrExit(lRetval == 0, lRetval = Weave::System::MapErrorPOSIX(errno));
+
+exit:
+    return (lRetval);
+}
+#endif // INET_CONFIG_ENABLE_IPV4
+
+static INET_ERROR SocketsIPv6JoinLeaveMulticastGroup(int aSocket, InterfaceId aInterfaceId, const IPAddress &aAddress, int aCommand)
+{
+    INET_ERROR       lRetval = INET_NO_ERROR;
+    const int        lIfIndex = static_cast<int>(aInterfaceId);
+    struct ipv6_mreq lMulticastRequest;
+
+    memset(&lMulticastRequest, 0, sizeof (lMulticastRequest));
+    lMulticastRequest.ipv6mr_interface = lIfIndex;
+    lMulticastRequest.ipv6mr_multiaddr = aAddress.ToIPv6();
+
+    lRetval = setsockopt(aSocket, IPPROTO_IPV6, aCommand, &lMulticastRequest, sizeof (lMulticastRequest));
+    VerifyOrExit(lRetval == 0, lRetval = Weave::System::MapErrorPOSIX(errno));
+
+exit:
+    return (lRetval);
+}
+#endif // WEAVE_SYSTEM_CONFIG_USE_SOCKETS
+
+INET_ERROR IPEndPointBasis::SetMulticastLoopback(IPVersion aIPVersion, bool aLoopback)
+{
+    INET_ERROR          lRetval = INET_ERROR_NOT_IMPLEMENTED;
+
+#if WEAVE_SYSTEM_CONFIG_USE_LWIP || WEAVE_SYSTEM_CONFIG_USE_SOCKETS
+#if WEAVE_SYSTEM_CONFIG_USE_LWIP
+#if !HAVE_LWIP_MULTICAST_LOOP
+#pragma message "\n \
+The version of LwIP appears older than that required for multicast loopback support.\n \
+Please upgrade your version of LwIP for SetMulticastLoopback support."
+    lRetval = INET_ERROR_NOT_SUPPORTED;
+#else
+    if (aLoopback)
+    {
+        if (mLwIPEndPointType == kLwIPEndPointType_Raw)
+            raw_set_flags(mRaw, RAW_FLAGS_MULTICAST_LOOP);
+        else if (mLwIPEndPointType == kLwIPEndPointType_UDP)
+            udp_set_flags(mUDP, UDP_FLAGS_MULTICAST_LOOP);
+    }
+    else
+    {
+        if (mLwIPEndPointType == kLwIPEndPointType_Raw)
+            raw_clear_flags(mRaw, RAW_FLAGS_MULTICAST_LOOP);
+        else if (mLwIPEndPointType == kLwIPEndPointType_UDP)
+            udp_clear_flags(mUDP, UDP_FLAGS_MULTICAST_LOOP);
+    }
+
+    lRetval = INET_NO_ERROR;
+#endif // !HAVE_LWIP_MULTICAST_LOOP
+#endif // WEAVE_SYSTEM_CONFIG_USE_LWIP
+
+#if WEAVE_SYSTEM_CONFIG_USE_SOCKETS
+    lRetval = SocketsSetMulticastLoopback(mSocket, aIPVersion, aLoopback);
+    SuccessOrExit(lRetval);
+
+exit:
+#endif // WEAVE_SYSTEM_CONFIG_USE_SOCKETS
+#endif // WEAVE_SYSTEM_CONFIG_USE_LWIP || WEAVE_SYSTEM_CONFIG_USE_SOCKETS
+    return (lRetval);
+}
+
+INET_ERROR IPEndPointBasis::JoinMulticastGroup(InterfaceId aInterfaceId, const IPAddress &aAddress)
+{
+    const IPAddressType lAddrType = aAddress.Type();
+    INET_ERROR          lRetval = INET_ERROR_NOT_IMPLEMENTED;
+
+#if WEAVE_SYSTEM_CONFIG_USE_LWIP || WEAVE_SYSTEM_CONFIG_USE_SOCKETS
+    lRetval = CheckMulticastGroupArgs(aInterfaceId, aAddress);
+    SuccessOrExit(lRetval);
+
+    switch (lAddrType)
+    {
+
+#if INET_CONFIG_ENABLE_IPV4
+    case kIPAddressType_IPv4:
+        {
+#if WEAVE_SYSTEM_CONFIG_USE_LWIP
+            lRetval = LwIPIPv4JoinLeaveMulticastGroup(aInterfaceId, aAddress, igmp_joingroup_netif);
+            SuccessOrExit(lRetval);
+#endif // WEAVE_SYSTEM_CONFIG_USE_LWIP
+
+#if WEAVE_SYSTEM_CONFIG_USE_SOCKETS
+            lRetval = SocketsIPv4JoinLeaveMulticastGroup(mSocket, aInterfaceId, aAddress, IP_ADD_MEMBERSHIP);
+            SuccessOrExit(lRetval);
+#endif // WEAVE_SYSTEM_CONFIG_USE_SOCKETS
+        }
+        break;
+#endif // INET_CONFIG_ENABLE_IPV4
+
+    case kIPAddressType_IPv6:
+        {
+#if WEAVE_SYSTEM_CONFIG_USE_LWIP
+            lRetval = LwIPIPv6JoinLeaveMulticastGroup(aInterfaceId, aAddress, mld6_joingroup_netif);
+            SuccessOrExit(lRetval);
+#endif // WEAVE_SYSTEM_CONFIG_USE_LWIP
+
+#if WEAVE_SYSTEM_CONFIG_USE_SOCKETS
+            lRetval = SocketsIPv6JoinLeaveMulticastGroup(mSocket, aInterfaceId, aAddress, INET_IPV6_ADD_MEMBERSHIP);
+            SuccessOrExit(lRetval);
+#endif // WEAVE_SYSTEM_CONFIG_USE_SOCKETS
+        }
+        break;
+
+    default:
+        lRetval = INET_ERROR_WRONG_ADDRESS_TYPE;
+        break;
+    }
+
+exit:
+#endif // WEAVE_SYSTEM_CONFIG_USE_LWIP || WEAVE_SYSTEM_CONFIG_USE_SOCKETS
+    return (lRetval);
+}
+
+INET_ERROR IPEndPointBasis::LeaveMulticastGroup(InterfaceId aInterfaceId, const IPAddress &aAddress)
+{
+    const IPAddressType lAddrType = aAddress.Type();
+    INET_ERROR          lRetval = INET_ERROR_NOT_IMPLEMENTED;
+
+#if WEAVE_SYSTEM_CONFIG_USE_LWIP || WEAVE_SYSTEM_CONFIG_USE_SOCKETS
+    lRetval = CheckMulticastGroupArgs(aInterfaceId, aAddress);
+    SuccessOrExit(lRetval);
+
+    switch (lAddrType)
+    {
+
+    case kIPAddressType_IPv4:
+        {
+#if WEAVE_SYSTEM_CONFIG_USE_LWIP
+            lRetval = LwIPIPv4JoinLeaveMulticastGroup(aInterfaceId, aAddress, igmp_leavegroup_netif);
+            SuccessOrExit(lRetval);
+#endif // WEAVE_SYSTEM_CONFIG_USE_LWIP
+
+#if WEAVE_SYSTEM_CONFIG_USE_SOCKETS
+            lRetval = SocketsIPv4JoinLeaveMulticastGroup(mSocket, aInterfaceId, aAddress, IP_DROP_MEMBERSHIP);
+            SuccessOrExit(lRetval);
+#endif // WEAVE_SYSTEM_CONFIG_USE_SOCKETS
+        }
+        break;
+
+    case kIPAddressType_IPv6:
+        {
+#if WEAVE_SYSTEM_CONFIG_USE_LWIP
+            lRetval = LwIPIPv6JoinLeaveMulticastGroup(aInterfaceId, aAddress, mld6_leavegroup_netif);
+            SuccessOrExit(lRetval);
+#endif // WEAVE_SYSTEM_CONFIG_USE_LWIP
+
+#if WEAVE_SYSTEM_CONFIG_USE_SOCKETS
+            lRetval = SocketsIPv6JoinLeaveMulticastGroup(mSocket, aInterfaceId, aAddress, INET_IPV6_DROP_MEMBERSHIP);
+            SuccessOrExit(lRetval);
+#endif // WEAVE_SYSTEM_CONFIG_USE_SOCKETS
+        }
+        break;
+
+    default:
+        lRetval = INET_ERROR_WRONG_ADDRESS_TYPE;
+        break;
+    }
+
+exit:
+#endif // WEAVE_SYSTEM_CONFIG_USE_LWIP || WEAVE_SYSTEM_CONFIG_USE_SOCKETS
+    return (lRetval);
+}
 
 void IPEndPointBasis::Init(InetLayer *aInetLayer)
 {
@@ -262,7 +638,7 @@ INET_ERROR IPEndPointBasis::BindInterface(IPAddressType aAddressType, InterfaceI
     return (lRetval);
 }
 
-INET_ERROR IPEndPointBasis::SendTo(const IPAddress &aAddress, uint16_t aPort, InterfaceId aInterfaceId, Weave::System::PacketBuffer *aBuffer, uint16_t aSendFlags)
+INET_ERROR IPEndPointBasis::SendTo(const IPAddress &aAddress, uint16_t aPort, InterfaceId aInterfaceId, PacketBuffer *aBuffer, uint16_t aSendFlags)
 {
     INET_ERROR     lRetval = INET_NO_ERROR;
     PeerSockAddr   lPeerSockAddr;

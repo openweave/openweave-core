@@ -344,6 +344,12 @@ TapInterface_SetupNetif(struct netif *netif)
     netif->mtu        = 1500;
 
     netif->flags      |= (NETIF_FLAG_BROADCAST | NETIF_FLAG_ETHARP);
+#if LWIP_IPV4
+    netif->flags      |= (NETIF_FLAG_IGMP);
+#endif
+#if LWIP_IPV6
+    netif->flags      |= (NETIF_FLAG_MLD6);
+#endif
 
     netif->hwaddr_len = kMacLength;
 

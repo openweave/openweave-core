@@ -281,6 +281,12 @@ ip6_select_source_address(struct netif *netif, const ip6_addr_t *dest)
     }
     /* Determine the scope of this candidate address. Same ordering idea. */
     cand_addr = netif_ip6_addr(netif, i);
+
+    if (ip6_addr_isany(cand_addr) || ip6_addr_ismulticast(cand_addr)) {
+        LWIP_DEBUGF(IP6_DEBUG | LWIP_DBG_LEVEL_WARNING, ("unspecified / multicast address assigned as unicast address on %c%c%u\n", netif->name[0], netif->name[1], netif->num));
+        continue;
+    }
+
     if (ip6_addr_isglobal(cand_addr)) {
       cand_scope = IP6_MULTICAST_SCOPE_GLOBAL;
     } else if (ip6_addr_islinklocal(cand_addr)) {

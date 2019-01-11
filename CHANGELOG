@@ -1,3 +1,8 @@
+4.1.0 (2019-01-04)
+
+        * Added multicast group management APIs to the Inet layer for raw IP
+          and UDP endpoints.
+
 4.0.2 (2018-11-19)
 
         * Updated to nlbuild-autotools 1.6.5.
