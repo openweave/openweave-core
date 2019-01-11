@@ -492,35 +492,35 @@ WEAVE_ERROR GenericConfigurationManagerImpl<ImplClass>::_GetDeviceDescriptor(::n
     SuccessOrExit(err);
 
     err = Impl()->_GetPrimaryWiFiMACAddress(deviceDesc.PrimaryWiFiMACAddress);
-    if (err == WEAVE_DEVICE_ERROR_CONFIG_NOT_FOUND)
+    if (err == WEAVE_DEVICE_ERROR_CONFIG_NOT_FOUND || err == WEAVE_ERROR_UNSUPPORTED_WEAVE_FEATURE)
     {
         err = WEAVE_NO_ERROR;
     }
     SuccessOrExit(err);
 
     err = Impl()->_GetPrimary802154MACAddress(deviceDesc.Primary802154MACAddress);
-    if (err == WEAVE_DEVICE_ERROR_CONFIG_NOT_FOUND)
+    if (err == WEAVE_DEVICE_ERROR_CONFIG_NOT_FOUND || err == WEAVE_ERROR_UNSUPPORTED_WEAVE_FEATURE)
     {
         err = WEAVE_NO_ERROR;
     }
     SuccessOrExit(err);
 
     err = Impl()->_GetWiFiAPSSID(deviceDesc.RendezvousWiFiESSID, sizeof(deviceDesc.RendezvousWiFiESSID));
-    if (err == WEAVE_DEVICE_ERROR_CONFIG_NOT_FOUND)
+    if (err == WEAVE_DEVICE_ERROR_CONFIG_NOT_FOUND || err == WEAVE_ERROR_UNSUPPORTED_WEAVE_FEATURE)
     {
         err = WEAVE_NO_ERROR;
     }
     SuccessOrExit(err);
 
     err = Impl()->_GetSerialNumber(deviceDesc.SerialNumber, sizeof(deviceDesc.SerialNumber), outLen);
-    if (err == WEAVE_DEVICE_ERROR_CONFIG_NOT_FOUND)
+    if (err == WEAVE_DEVICE_ERROR_CONFIG_NOT_FOUND || err == WEAVE_ERROR_UNSUPPORTED_WEAVE_FEATURE)
     {
         err = WEAVE_NO_ERROR;
     }
     SuccessOrExit(err);
 
     err = Impl()->_GetFirmwareRevision(deviceDesc.SoftwareVersion, sizeof(deviceDesc.SoftwareVersion), outLen);
-    if (err == WEAVE_DEVICE_ERROR_CONFIG_NOT_FOUND)
+    if (err == WEAVE_DEVICE_ERROR_CONFIG_NOT_FOUND || err == WEAVE_ERROR_UNSUPPORTED_WEAVE_FEATURE)
     {
         err = WEAVE_NO_ERROR;
     }
