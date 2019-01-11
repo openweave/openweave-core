@@ -73,6 +73,50 @@ using Weave::System::PacketBuffer;
 
 Weave::System::ObjectPool<RawEndPoint, INET_CONFIG_NUM_RAW_ENDPOINTS> RawEndPoint::sPool;
 
+#if WEAVE_SYSTEM_CONFIG_USE_LWIP
+/*
+ * Note that for LwIP InterfaceId is already defined to be 'struct
+ * netif'; consequently, some of the checking performed here could
+ * conceivably be optimized out and the HAVE_LWIP_UDP_BIND_NETIF case
+ * could simply be:
+ *
+ *   udp_bind_netif(aUDP, intfId);
+ *
+ */
+static INET_ERROR LwIPBindInterface(struct raw_pcb *aRaw, InterfaceId intfId)
+{
+    INET_ERROR res = INET_NO_ERROR;
+
+#if HAVE_LWIP_RAW_BIND_NETIF
+        if (!IsInterfaceIdPresent(intfId))
+            raw_bind_netif(aRaw, NULL);
+        else
+        {
+            struct netif *netifp = IPEndPointBasis::FindNetifFromInterfaceId(intfId);
+
+            if (netifp == NULL)
+                res = INET_ERROR_UNKNOWN_INTERFACE;
+            else
+                raw_bind_netif(aRaw, netifp);
+        }
+#else
+        if (!IsInterfaceIdPresent(intfId))
+            aRaw->intf_filter = NULL;
+        else
+        {
+            struct netif *netifp = IPEndPointBasis::FindNetifFromInterfaceId(intfId);
+
+            if (netifp == NULL)
+                res = INET_ERROR_UNKNOWN_INTERFACE;
+            else
+                aRaw->intf_filter = netifp;
+        }
+#endif // HAVE_LWIP_RAW_BIND_NETIF
+
+    return res;
+}
+#endif // WEAVE_SYSTEM_CONFIG_USE_LWIP
+
 INET_ERROR RawEndPoint::Bind(IPAddressType addrType, IPAddress addr, InterfaceId intfId)
 {
     INET_ERROR res = INET_NO_ERROR;
@@ -127,21 +171,13 @@ INET_ERROR RawEndPoint::Bind(IPAddressType addrType, IPAddress addr, InterfaceId
 
     if (res == INET_NO_ERROR)
     {
-        if (!IsInterfaceIdPresent(intfId))
-            mRaw->intf_filter = NULL;
-        else
-        {
-            struct netif *netifp = IPEndPointBasis::FindNetifFromInterfaceId(intfId);
-
-            if (netifp == NULL)
-                res = INET_ERROR_UNKNOWN_INTERFACE;
-            else
-                mRaw->intf_filter = netifp;
-        }
+        res = LwIPBindInterface(mRaw, intfId);
     }
 
     // Unlock LwIP stack
     UNLOCK_TCPIP_CORE();
+
+    SuccessOrExit(res);
 
 #endif // WEAVE_SYSTEM_CONFIG_USE_LWIP
 
@@ -587,21 +623,11 @@ INET_ERROR RawEndPoint::BindInterface(IPAddressType addrType, InterfaceId intfId
     err = GetPCB(addrType);
     SuccessOrExit(err);
 
-    if (!IsInterfaceIdPresent(intfId))
-    { //Stop interface-based filtering.
-        mRaw->intf_filter = NULL;
-    }
-    else
-    {
-        struct netif *netifp = IPEndPointBasis::FindNetifFromInterfaceId(intfId);
-
-        if (netifp == NULL)
-            err = INET_ERROR_UNKNOWN_INTERFACE;
-        else
-            mRaw->intf_filter = netifp;
-    }
+    err = LwIPBindInterface(mRaw, intfId);
 
     UNLOCK_TCPIP_CORE();
+
+    SuccessOrExit(err);
 
 #endif // WEAVE_SYSTEM_CONFIG_USE_LWIP
 
@@ -631,10 +657,14 @@ void RawEndPoint::Init(InetLayer *inetLayer, IPVersion ipVer, IPProtocol ipProto
     IPProto = ipProto;
 }
 
-InterfaceId RawEndPoint::GetBoundInterface (void)
+InterfaceId RawEndPoint::GetBoundInterface(void)
 {
 #if WEAVE_SYSTEM_CONFIG_USE_LWIP
+#if HAVE_LWIP_RAW_BIND_NETIF
+    return netif_get_by_index(mRaw->netif_idx);
+#else
     return mRaw->intf_filter;
+#endif
 #endif // WEAVE_SYSTEM_CONFIG_USE_LWIP
 
 #if WEAVE_SYSTEM_CONFIG_USE_SOCKETS
