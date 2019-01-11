@@ -136,6 +136,9 @@
 /* Define to 1 if you have the <lwip/pbuf.h> header file. */
 #undef HAVE_LWIP_PBUF_H
 
+/* Define to 1 if LwIP has the raw_bind_netif() interface */
+#undef HAVE_LWIP_RAW_BIND_NETIF
+
 /* Define to 1 if you have the <lwip/raw.h> header file. */
 #undef HAVE_LWIP_RAW_H
 
@@ -153,6 +156,9 @@
 
 /* Define to 1 if you have the <lwip/tcp.h> header file. */
 #undef HAVE_LWIP_TCP_H
+
+/* Define to 1 if LwIP has the udp_bind_netif() interface */
+#undef HAVE_LWIP_UDP_BIND_NETIF
 
 /* Define to 1 if you have the <lwip/udp.h> header file. */
 #undef HAVE_LWIP_UDP_H
