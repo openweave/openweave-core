@@ -1,6 +1,7 @@
 /*
  *
- *    Copyright (c) 013-2017 Nest Labs, Inc.
+ *    Copyright (c) 2019 Google LLC
+ *    Copyright (c) 2013-2017 Nest Labs, Inc.
  *    All rights reserved.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
@@ -23,10 +24,19 @@ package nl.Weave.DeviceManager;
  */
 public class NetworkInfo
 {
+    /** The distinguished "not specified" network identifier. */
+    public static final long NETWORK_ID_NOTSPECIFIED = -1;
+
+    /** The distinguished "not specified" Thread PAN identifier. */
+    public static final int THREAD_PANID_NOTSPECIFIED = -1;
+
+    /** The distinguished "not specified" Thread channel number. */
+    public static final int THREAD_CHANNEL_NOTSPECIFIED = -1;
+
     public NetworkInfo()
     {
         NetworkType = nl.Weave.DeviceManager.NetworkType.NotSpecified;
-        NetworkId = -1;
+        NetworkId = NETWORK_ID_NOTSPECIFIED;
         WiFiSSID = null;
         WiFiMode = nl.Weave.DeviceManager.WiFiMode.NotSpecified;
         WiFiRole = nl.Weave.DeviceManager.WiFiRole.NotSpecified;
@@ -35,6 +45,8 @@ public class NetworkInfo
         ThreadNetworkName = null;
         ThreadExtendedPANId = null;
         ThreadNetworkKey = null;
+        ThreadPANId = THREAD_PANID_NOTSPECIFIED;
+        ThreadChannel = THREAD_CHANNEL_NOTSPECIFIED;
         WirelessSignalStrength = Short.MIN_VALUE;
     }
 
@@ -79,6 +91,15 @@ public class NetworkInfo
          */
     public byte[] ThreadNetworkKey;
 
+    /** The 16-bit Thread PAN ID, or kThreadPANId_NotSpecified 
+         */
+    public int ThreadPANId;
+
+    /** The current channel (currently [11..26]) on which the Thread
+         * network operates, or kThreadChannel_NotSpecified
+         */
+    public int ThreadChannel;
+
     /** The signal strength of the network, in dBm, or Short.MIN_VALUE if not available/applicable.
          */
     public short WirelessSignalStrength;
@@ -96,20 +117,29 @@ public class NetworkInfo
         return netInfo;
     }
 
-    public static NetworkInfo MakeThread(String threadNetworkName, byte[] threadExtendedPANId, byte[] threadNetworkKey)
+    public static NetworkInfo MakeThread(String threadNetworkName, byte[] threadExtendedPANId, byte[] threadNetworkKey,
+                                         int threadPANId, int threadChannel)
     {
         NetworkInfo netInfo = new NetworkInfo();
         netInfo.NetworkType = nl.Weave.DeviceManager.NetworkType.Thread;
         netInfo.ThreadNetworkName = threadNetworkName;
         netInfo.ThreadExtendedPANId = threadExtendedPANId;
         netInfo.ThreadNetworkKey = threadNetworkKey;
+        netInfo.ThreadPANId = threadPANId;
+        netInfo.ThreadChannel = threadChannel;
         return netInfo;
+    }
+
+    public static NetworkInfo MakeThread(String threadNetworkName, byte[] threadExtendedPANId, byte[] threadNetworkKey)
+    {
+        return MakeThread(threadNetworkName, threadExtendedPANId, threadNetworkKey,
+                          THREAD_PANID_NOTSPECIFIED, THREAD_CHANNEL_NOTSPECIFIED);
     }
 
     public static NetworkInfo Make(int networkType, long networkId,
                                    String wifiSSID, int wifiMode, int wifiRole, int wifiSecurityType, byte[] wifiKey,
                                    String threadNetworkName, byte[] threadExtendedPANId, byte[] threadNetworkKey,
-                                   short wirelessSignalStrength)
+                                   short wirelessSignalStrength, int threadPANId, int threadChannel)
     {
         NetworkInfo netInfo = new NetworkInfo();
         netInfo.NetworkType = nl.Weave.DeviceManager.NetworkType.fromVal(networkType);
@@ -122,7 +152,19 @@ public class NetworkInfo
         netInfo.ThreadNetworkName = threadNetworkName;
         netInfo.ThreadExtendedPANId = threadExtendedPANId;
         netInfo.ThreadNetworkKey = threadNetworkKey;
+        netInfo.ThreadPANId = threadPANId;
+        netInfo.ThreadChannel = threadChannel;
         netInfo.WirelessSignalStrength = wirelessSignalStrength;
         return netInfo;
+    }
+
+    public static NetworkInfo Make(int networkType, long networkId,
+                                   String wifiSSID, int wifiMode, int wifiRole, int wifiSecurityType, byte[] wifiKey,
+                                   String threadNetworkName, byte[] threadExtendedPANId, byte[] threadNetworkKey,
+                                   short wirelessSignalStrength)
+    {
+        return Make(networkType, networkId, wifiSSID, wifiMode, wifiRole, wifiSecurityType, wifiKey, threadNetworkName,
+                    threadExtendedPANId, threadNetworkKey, wirelessSignalStrength, THREAD_PANID_NOTSPECIFIED,
+                    THREAD_CHANNEL_NOTSPECIFIED);
     }
 }

@@ -1,5 +1,6 @@
 /*
  *
+ *    Copyright (c) 2019 Google LLC
  *    Copyright (c) 2013-2017 Nest Labs, Inc.
  *    All rights reserved.
  *
@@ -3013,6 +3014,7 @@ WEAVE_ERROR J2N_NetworkInfo(JNIEnv *env, jobject inNetworkInfo, NetworkInfo& out
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
     jlong longVal;
+    jint intVal;
     jshort shortVal;
     uint32_t len;
     int enumVal;
@@ -3054,6 +3056,14 @@ WEAVE_ERROR J2N_NetworkInfo(JNIEnv *env, jobject inNetworkInfo, NetworkInfo& out
     err = J2N_ByteArrayFieldVal(env, inNetworkInfo, "ThreadNetworkKey", outNetworkInfo.ThreadNetworkKey, outNetworkInfo.ThreadNetworkKeyLen);
     SuccessOrExit(err);
 
+    err = J2N_IntFieldVal(env, inNetworkInfo, "ThreadPANId", intVal);
+    SuccessOrExit(err);
+    outNetworkInfo.ThreadPANId = intVal;
+
+    err = J2N_IntFieldVal(env, inNetworkInfo, "ThreadChannel", intVal);
+    SuccessOrExit(err);
+    outNetworkInfo.ThreadChannel = intVal;
+
     err = J2N_ShortFieldVal(env, inNetworkInfo, "WirelessSignalStrength", shortVal);
     SuccessOrExit(err);
     outNetworkInfo.WirelessSignalStrength = shortVal;
@@ -3069,7 +3079,7 @@ WEAVE_ERROR N2J_NetworkInfo(JNIEnv *env, const NetworkInfo& inNetworkInfo, jobje
     jstring wifiSSID = NULL;
     jbyteArray wifiKey = NULL;
     jstring threadNetName = NULL;
-    jbyteArray threadPANId = NULL;
+    jbyteArray threadExtPANId = NULL;
     jbyteArray threadKey = NULL;
 
     if (inNetworkInfo.WiFiSSID != NULL)
@@ -3092,7 +3102,7 @@ WEAVE_ERROR N2J_NetworkInfo(JNIEnv *env, const NetworkInfo& inNetworkInfo, jobje
 
     if (inNetworkInfo.ThreadExtendedPANId != NULL)
     {
-        err = N2J_ByteArray(env, inNetworkInfo.ThreadExtendedPANId, 8, threadPANId);
+        err = N2J_ByteArray(env, inNetworkInfo.ThreadExtendedPANId, 8, threadExtPANId);
         SuccessOrExit(err);
     }
 
@@ -3115,14 +3125,16 @@ WEAVE_ERROR N2J_NetworkInfo(JNIEnv *env, const NetworkInfo& inNetworkInfo, jobje
                                                  (jint)inNetworkInfo.WiFiSecurityType,
                                                  wifiKey,
                                                  threadNetName,
-                                                 threadPANId,
+                                                 threadExtPANId,
                                                  threadKey,
+                                                 (jint)inNetworkInfo.ThreadPANId,
+                                                 (jbyte)inNetworkInfo.ThreadChannel,
                                                  (jshort)inNetworkInfo.WirelessSignalStrength);
     VerifyOrExit(!env->ExceptionCheck(), err = WDM_JNI_ERROR_EXCEPTION_THROWN);
 
 exit:
     env->DeleteLocalRef(threadKey);
-    env->DeleteLocalRef(threadPANId);
+    env->DeleteLocalRef(threadExtPANId);
     env->DeleteLocalRef(threadNetName);
     env->DeleteLocalRef(wifiKey);
     env->DeleteLocalRef(wifiSSID);
