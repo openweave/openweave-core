@@ -1,4 +1,5 @@
 #
+#    Copyright (c) 2019 Google LLC.
 #    Copyright (c) 2015-2017 Nest Labs, Inc.
 #    All rights reserved.
 #
@@ -217,6 +218,45 @@ AC_DEFUN([NL_WITH_LWIP],
     ],
     [#include <lwip/err.h>
      #include <lwip/ip4_addr.h>])
+
+    if test "${ac_no_link}" != "yes"; then
+        # If we are building against LwIP, check whether or not the
+        # version of LwIP has the new, standard {raw,udp}_bind_netif APIs
+        # that can be used rather than the bespoke Weave-specific LwIP
+        # intf_filter PCB fields.
+        #
+        # Assert -Werror=implicit-function-declaration to ensure we do not
+        # get a false positive due to C's usually optimistic and loose
+        # "we'll figure it out at link time" approach to symbols.
+
+        nl_with_lwip_saved_CPPFLAGS="${CPPFLAGS}"
+
+        CPPFLAGS="${CPPFLAGS} -Werror=implicit-function-declaration"
+
+        AC_MSG_CHECKING([whether LwIP has raw_bind_netif()])
+        AC_TRY_COMPILE([#include <lwip/init.h>
+            #include <lwip/netif.h>
+            #include <lwip/raw.h>
+            ],[struct raw_pcb *pcb = NULL;
+            const struct netif *netif = NULL;
+            raw_bind_netif(pcb, netif);],[
+            AC_MSG_RESULT([yes])
+            AC_DEFINE(HAVE_LWIP_RAW_BIND_NETIF, 1, [Define to 1 if LwIP has the raw_bind_netif() interface])],[
+            AC_MSG_RESULT([no])])
+
+        AC_MSG_CHECKING([whether LwIP has udp_bind_netif()])
+        AC_TRY_COMPILE([#include <lwip/init.h>
+            #include <lwip/netif.h>
+            #include <lwip/udp.h>
+            ],[struct udp_pcb *pcb = NULL;
+            const struct netif *netif = NULL;
+            udp_bind_netif(pcb, netif);],[
+            AC_MSG_RESULT([yes])
+            AC_DEFINE(HAVE_LWIP_UDP_BIND_NETIF, 1, [Define to 1 if LwIP has the udp_bind_netif() interface])],[
+            AC_MSG_RESULT([no])])
+
+        CPPFLAGS="${nl_with_lwip_saved_CPPFLAGS}"
+    fi
 
     CPPFLAGS="${nl_saved_CPPFLAGS}"
     LDFLAGS="${nl_saved_LDFLAGS}"
