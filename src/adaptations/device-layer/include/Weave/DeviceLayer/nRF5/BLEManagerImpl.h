@@ -103,22 +103,12 @@ class BLEManagerImpl final
         kMaxAdvertismentDataSetSize = 31 // TODO: verify this
     };
 
-    struct WoBLEConState
-    {
-        PacketBuffer * PendingIndBuf;
-        uint16_t ConId;
-        uint16_t MTU : 10;
-        uint16_t Allocated : 1;
-        uint16_t Subscribed : 1;
-        uint16_t Unused : 4;
-    };
-
     ble_gatts_char_handles_t mWoBLECharHandle_RX;
     ble_gatts_char_handles_t mWoBLECharHandle_TX;
-    WoBLEConState mCons[kMaxConnections];
     WoBLEServiceMode mServiceMode;
     uint16_t mFlags;
     uint16_t mNumGAPCons;
+    uint16_t mNotifEnabledConIds[kMaxConnections];
     char mDeviceName[kMaxDeviceNameLength + 1];
     uint8_t mAdvHandle;
     uint8_t mAdvDataBuf[kMaxAdvertismentDataSetSize];
@@ -129,14 +119,18 @@ class BLEManagerImpl final
     WEAVE_ERROR EncodeAdvertisingData(ble_gap_adv_data_t & gapAdvData);
     WEAVE_ERROR StartAdvertising(void);
     WEAVE_ERROR StopAdvertising(void);
-    WoBLEConState * GetConnectionState(uint16_t conId, bool allocate = false);
-    bool ReleaseConnectionState(uint16_t conId);
     void HandleSoftDeviceBLEEvent(const WeaveDeviceEvent * event);
-    void HandleGATTModuleEvent(const WeaveDeviceEvent * event);
+    WEAVE_ERROR HandleGAPConnect(const WeaveDeviceEvent * event);
+    WEAVE_ERROR HandleGAPDisconnect(const WeaveDeviceEvent * event);
+    WEAVE_ERROR HandleRXCharWrite(const WeaveDeviceEvent * event);
+    WEAVE_ERROR HandleTXCharCCCDWrite(const WeaveDeviceEvent * event);
+    WEAVE_ERROR HandleTXComplete(const WeaveDeviceEvent * event);
+    WEAVE_ERROR SetNotificationsEnabled(uint16_t conId);
+    bool UnsetNotificationsEnabled(uint16_t conId);
+    bool IsNotificationsEnabled(uint16_t conId);
 
     static void DriveBLEState(intptr_t arg);
     static void SoftDeviceBLEEventCallback(const ble_evt_t * bleEvent, void * context);
-    static void GATTModuleEventCallback(nrf_ble_gatt_t *p_gatt, nrf_ble_gatt_evt_t const *p_evt);
 };
 
 /**
