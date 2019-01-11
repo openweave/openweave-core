@@ -272,6 +272,7 @@ bool BLEManagerImpl::CloseConnection(BLE_CONNECTION_OBJECT conId)
 
     // Signal the ESP BLE layer to close the conntion.
     err = esp_ble_gatts_close(mAppIf, conId);
+    if (err != WEAVE_NO_ERROR)
     {
         WeaveLogError(DeviceLayer, "esp_ble_gatts_close() failed: %s", ErrorStr(err));
     }
