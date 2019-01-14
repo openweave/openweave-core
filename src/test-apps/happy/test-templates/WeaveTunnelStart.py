@@ -30,6 +30,7 @@ import time
 
 from happy.ReturnMsg import ReturnMsg
 from happy.Utils import *
+from happy.utils.IP import IP
 from happy.HappyNetwork import HappyNetwork
 from happy.HappyNode import HappyNode
 
@@ -157,16 +158,16 @@ class WeaveTunnelStart(HappyNode, HappyNetwork, WeaveTest):
 
         if self.service:
             # If service is a domain name, convert it to IP
-            if self.isDomainName(self.service):
-                ip = self.getHostByName(self.service)
+            if IP.isDomainName(self.service):
+                ip = IP.getHostByName(self.service)
                 self.service = ip
 
-            if not self.isIpAddress(self.service) and not self._nodeExists(self.service):
+            if not IP.isIpAddress(self.service) and not self._nodeExists(self.service):
                 emsg = "Service node %s does not exist." % (self.service)
                 self.logger.error("[localhost] WeaveTunnelStart: %s" % (emsg))
                 self.exit()
 
-            if self.isIpAddress(self.service):
+            if IP.isIpAddress(self.service):
                 self.service_ip = self.service
                 self.skip_service_end = True
             else:

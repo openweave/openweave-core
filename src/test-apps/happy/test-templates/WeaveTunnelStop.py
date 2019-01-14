@@ -29,6 +29,7 @@ import sys
 
 from happy.ReturnMsg import ReturnMsg
 from happy.Utils import *
+from happy.utils.IP import IP
 from happy.HappyNetwork import HappyNetwork
 from happy.HappyNode import HappyNode
 
@@ -130,11 +131,11 @@ class WeaveTunnelStop(HappyNode, HappyNetwork, WeaveTest):
 
         if self.service:
             # If service is a domain name, convert it to IP
-            if self.isDomainName(self.service):
-                ip = self.getHostByName(self.service)
+            if IP.isDomainName(self.service):
+                ip = IP.getHostByName(self.service)
                 self.service = ip
 
-            if not self.isIpAddress(self.service):
+            if not IP.isIpAddress(self.service):
                 if self.service:
                     if self.service != self.getTunnelServiceNodeId():
                         emsg = "Incorrect service node id. Entered %s vs %s on the record." % \
@@ -142,12 +143,12 @@ class WeaveTunnelStop(HappyNode, HappyNetwork, WeaveTest):
                         self.logger.error("[localhost] WeaveTunnelStart: %s" % (emsg))
                         self.exit()
 
-            if not self.isIpAddress(self.service) and not self._nodeExists(self.service):
+            if not IP.isIpAddress(self.service) and not self._nodeExists(self.service):
                 emsg = "Service node %s does not exist." % (self.service)
                 self.logger.error("[localhost] WeaveTunnelStart: %s" % (emsg))
                 self.exit()
 
-            if self.isIpAddress(self.service):
+            if IP.isIpAddress(self.service):
                 self.skip_service_end = True
 
         # Check if there is no fabric
