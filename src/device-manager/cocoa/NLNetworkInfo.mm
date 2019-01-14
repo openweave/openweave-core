@@ -1,5 +1,6 @@
 /*
  *
+ *    Copyright (c) 2019 Google LLC
  *    Copyright (c) 2013-2017 Nest Labs, Inc.
  *    All rights reserved.
  *
@@ -70,7 +71,7 @@ using nl::Weave::Profiles::NetworkProvisioning::WiFiSecurityType;
         if (pNetworkInfo->WiFiKey)
         {
             printf("pNetworkInfo->WiFiKey: %s\n", pNetworkInfo->WiFiKey);
-			_WiFiKey = [NSData dataWithBytes:pNetworkInfo->WiFiKey length:pNetworkInfo->WiFiKeyLen];
+            _WiFiKey = [NSData dataWithBytes:pNetworkInfo->WiFiKey length:pNetworkInfo->WiFiKeyLen];
         }
 
         if (pNetworkInfo->ThreadNetworkName)
@@ -83,10 +84,13 @@ using nl::Weave::Profiles::NetworkProvisioning::WiFiSecurityType;
 
         if (pNetworkInfo->ThreadNetworkKey)
         {
-        	NSLog(@"Copying ThreadNetworkKey with length: %d", pNetworkInfo->ThreadNetworkKeyLen);
+            NSLog(@"Copying ThreadNetworkKey with length: %d", pNetworkInfo->ThreadNetworkKeyLen);
             _ThreadNetworkKey = [[NSData alloc] initWithBytes:pNetworkInfo->ThreadNetworkKey length:pNetworkInfo->ThreadNetworkKeyLen];
             NSLog(@"_ThreadNetworkKey: %@", _ThreadNetworkKey);
         }
+        _ThreadPANId = pNetworkInfo->ThreadPANId;
+        _ThreadChannel = pNetworkInfo->ThreadChannel;
+
         _WirelessSignalStrength = pNetworkInfo->WirelessSignalStrength;
     }
     return self;
@@ -110,6 +114,8 @@ using nl::Weave::Profiles::NetworkProvisioning::WiFiSecurityType;
     networkInfo.ThreadNetworkName = [self.ThreadNetworkName copy];
     networkInfo.ThreadExtendedPANId = [self.ThreadExtendedPANId copy];
     networkInfo.ThreadNetworkKey = [self.ThreadNetworkKey copy];
+    networkInfo.ThreadPANId = self.ThreadPANId;
+    networkInfo.ThreadChannel = self.ThreadChannel;
 
     networkInfo.WirelessSignalStrength = self.WirelessSignalStrength;
 
@@ -157,6 +163,10 @@ using nl::Weave::Profiles::NetworkProvisioning::WiFiSecurityType;
         networkInfo.ThreadNetworkKey = (uint8_t *) malloc(networkInfo.ThreadNetworkKeyLen);
         memcpy(networkInfo.ThreadNetworkKey, [_ThreadNetworkKey bytes], networkInfo.ThreadNetworkKeyLen);
     }
+
+    networkInfo.ThreadPANId = _ThreadPANId;
+    networkInfo.ThreadChannel = _ThreadChannel;
+    networkInfo.WirelessSignalStrength = _WirelessSignalStrength;
 
     return networkInfo;
 }
@@ -243,8 +253,10 @@ using nl::Weave::Profiles::NetworkProvisioning::WiFiSecurityType;
                                                          "\tWiFiSecurityType: %d\n"
                                                          "\tWiFiKey: %s\n"
                                                          "\tThreadNetworkName: %s\n"
+                                                         "\tThreadPANId: %04x\n"
                                                          "\tThreadExtendedPANId: %s\n"
                                                          "\tThreadNetworkKeyLen: %d\n"
+                                                         "\tThreadChannel: %d\n"
                                                          "\tWirelessSignalStrength: %d",
                                                  self,
                                                  pNetworkInfo->NetworkType,
@@ -258,8 +270,10 @@ using nl::Weave::Profiles::NetworkProvisioning::WiFiSecurityType;
                                                  pNetworkInfo->WiFiKey ? "*********" : "none",
 #endif
                                                  pNetworkInfo->ThreadNetworkName,
+                                                 pNetworkInfo->ThreadPANId,
                                                  pNetworkInfo->ThreadExtendedPANId,
                                                  pNetworkInfo->ThreadNetworkKeyLen,
+                                                 pNetworkInfo->ThreadChannel,
                                                  pNetworkInfo->WirelessSignalStrength];
 
     return descr;
@@ -274,7 +288,7 @@ using nl::Weave::Profiles::NetworkProvisioning::WiFiSecurityType;
                                                  (long)_NetworkType];
 
     [descr appendString:line];
-    if (_NetworkId != -1)
+    if (_NetworkId != NLNetworkID_NotSpecified)
     {
         line = [NSString stringWithFormat:@"\tNetworkId: %lld\n", _NetworkId];
         [descr appendString:line];
@@ -310,6 +324,12 @@ using nl::Weave::Profiles::NetworkProvisioning::WiFiSecurityType;
         [descr appendString:line];
     }
 
+    if (_ThreadPANId != NLThreadPANId_NotSpecified)
+    {
+        line = [NSString stringWithFormat:@"\tThreadPANId: %04x\n", _ThreadPANId];
+        [descr appendString:line];
+    }
+
     if (_ThreadExtendedPANId)
     {
         line = [NSString stringWithFormat:@"\tThreadExtendedPANId: %@\n", _ThreadExtendedPANId];
@@ -319,6 +339,12 @@ using nl::Weave::Profiles::NetworkProvisioning::WiFiSecurityType;
     if (_ThreadNetworkKey)
     {
         line = [NSString stringWithFormat:@"\tThreadNetworkKey: %@\n", _ThreadNetworkKey];
+        [descr appendString:line];
+    }
+
+    if (_ThreadChannel != NLThreadChannel_NotSpecified)
+    {
+        line = [NSString stringWithFormat:@"\tThreadChannel: %d\n", _ThreadChannel];
         [descr appendString:line];
     }
 
