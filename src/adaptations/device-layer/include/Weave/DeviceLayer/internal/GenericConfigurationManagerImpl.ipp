@@ -295,17 +295,16 @@ WEAVE_ERROR GenericConfigurationManagerImpl<ImplClass>::_GetPairingCode(char * b
     WEAVE_ERROR err;
 
     err = Impl()->ReadConfigValueStr(ImplClass::kConfigKey_PairingCode, buf, bufSize, pairingCodeLen);
-    // TODO: change to WEAVE_DEVICE_CONFIG_USE_TEST_PAIRING_CODE??
-#ifdef CONFIG_USE_TEST_PAIRING_CODE
-    if (CONFIG_USE_TEST_PAIRING_CODE[0] != 0 && err == WEAVE_DEVICE_ERROR_CONFIG_NOT_FOUND)
+#ifdef WEAVE_DEVICE_CONFIG_USE_TEST_PAIRING_CODE
+    if (WEAVE_DEVICE_CONFIG_USE_TEST_PAIRING_CODE[0] != 0 && err == WEAVE_DEVICE_ERROR_CONFIG_NOT_FOUND)
     {
-        VerifyOrExit(sizeof(CONFIG_USE_TEST_PAIRING_CODE) <= bufSize, err = WEAVE_ERROR_BUFFER_TOO_SMALL);
-        memcpy(buf, CONFIG_USE_TEST_PAIRING_CODE, sizeof(CONFIG_USE_TEST_PAIRING_CODE));
-        pairingCodeLen = sizeof(CONFIG_USE_TEST_PAIRING_CODE) - 1;
-        WeaveLogProgress(DeviceLayer, "Pairing code not found; using default: %s", CONFIG_USE_TEST_PAIRING_CODE);
+        VerifyOrExit(sizeof(WEAVE_DEVICE_CONFIG_USE_TEST_PAIRING_CODE) <= bufSize, err = WEAVE_ERROR_BUFFER_TOO_SMALL);
+        memcpy(buf, WEAVE_DEVICE_CONFIG_USE_TEST_PAIRING_CODE, sizeof(WEAVE_DEVICE_CONFIG_USE_TEST_PAIRING_CODE));
+        pairingCodeLen = sizeof(WEAVE_DEVICE_CONFIG_USE_TEST_PAIRING_CODE) - 1;
+        WeaveLogProgress(DeviceLayer, "Pairing code not found; using default: %s", WEAVE_DEVICE_CONFIG_USE_TEST_PAIRING_CODE);
         err = WEAVE_NO_ERROR;
     }
-#endif // CONFIG_USE_TEST_PAIRING_CODE
+#endif // WEAVE_DEVICE_CONFIG_USE_TEST_PAIRING_CODE
     SuccessOrExit(err);
 
 exit:
@@ -654,7 +653,7 @@ void GenericConfigurationManagerImpl<ImplClass>::LogDeviceConfig()
 
     if (FabricState.FabricId != kFabricIdNotSpecified)
     {
-        WeaveLogProgress(DeviceLayer, "  Fabric Id: %" PRIX64, FabricState.FabricId);
+        WeaveLogProgress(DeviceLayer, "  Fabric Id: %016" PRIX64, FabricState.FabricId);
     }
     else
     {

@@ -39,8 +39,6 @@
 #define NRF_LOG_MODULE_NAME weave
 #include "nrf_log.h"
 
-// TODO: Review logging levels to reduce code size on production builds
-
 using namespace ::nl;
 using namespace ::nl::Ble;
 
@@ -170,7 +168,7 @@ WEAVE_ERROR BLEManagerImpl::_Init()
     err = _SetDeviceName(NULL);
     SuccessOrExit(err);
 
-    // TODO: call sd_ble_gap_ppcp_set() to set gap parameters
+    // TODO: call sd_ble_gap_ppcp_set() to set gap parameters???
 
     PlatformMgr().ScheduleWork(DriveBLEState, 0);
 
@@ -348,9 +346,6 @@ bool BLEManagerImpl::SendIndication(BLE_CONNECTION_OBJECT conId, const WeaveBleU
     err = sd_ble_gatts_hvx(conId, &hvxParams);
     SuccessOrExit(err);
 
-    // TODO: remove me
-    memset(data->Start(), 0xAB, dataLen);
-
 exit:
     PacketBuffer::Free(data);
     if (err != WEAVE_NO_ERROR)
@@ -363,19 +358,19 @@ exit:
 
 bool BLEManagerImpl::SendWriteRequest(BLE_CONNECTION_OBJECT conId, const WeaveBleUUID * svcId, const WeaveBleUUID * charId, PacketBuffer * pBuf)
 {
-    WeaveLogError(DeviceLayer, "BLEManagerImpl::SendWriteRequest() not supported");
+    WeaveLogProgress(DeviceLayer, "BLEManagerImpl::SendWriteRequest() not supported");
     return false;
 }
 
 bool BLEManagerImpl::SendReadRequest(BLE_CONNECTION_OBJECT conId, const WeaveBleUUID * svcId, const WeaveBleUUID * charId, PacketBuffer * pBuf)
 {
-    WeaveLogError(DeviceLayer, "BLEManagerImpl::SendReadRequest() not supported");
+    WeaveLogProgress(DeviceLayer, "BLEManagerImpl::SendReadRequest() not supported");
     return false;
 }
 
 bool BLEManagerImpl::SendReadResponse(BLE_CONNECTION_OBJECT conId, BLE_READ_REQUEST_CONTEXT requestContext, const WeaveBleUUID * svcId, const WeaveBleUUID * charId)
 {
-    WeaveLogError(DeviceLayer, "BLEManagerImpl::SendReadResponse() not supported");
+    WeaveLogProgress(DeviceLayer, "BLEManagerImpl::SendReadResponse() not supported");
     return false;
 }
 
@@ -614,7 +609,7 @@ void BLEManagerImpl::HandleSoftDeviceBLEEvent(const WeaveDeviceEvent * event)
 
     case BLE_GAP_EVT_PHY_UPDATE_REQUEST:
     {
-        WeaveLogProgress(DeviceLayer, "BLE GAP PHY update request (con %" PRIu16 ")", bleEvent->evt.gap_evt.conn_handle);
+        WeaveLogDetail(DeviceLayer, "BLE GAP PHY update request (con %" PRIu16 ")", bleEvent->evt.gap_evt.conn_handle);
         const ble_gap_phys_t phys = { BLE_GAP_PHY_AUTO, BLE_GAP_PHY_AUTO };
         err = sd_ble_gap_phy_update(bleEvent->evt.gap_evt.conn_handle, &phys);
         SuccessOrExit(err);
