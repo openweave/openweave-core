@@ -105,7 +105,7 @@ WEAVE_ERROR BLEManagerImpl::_Init()
     mNumGAPCons = 0;
     for (int i = 0; i < kMaxConnections; i++)
     {
-        mNotifEnabledConIds[i] = BLE_CONNECTION_UNINITIALIZED;
+        mSubscribedConIds[i] = BLE_CONNECTION_UNINITIALIZED;
     }
 
     // Initialize the Weave BleLayer.
@@ -148,7 +148,6 @@ WEAVE_ERROR BLEManagerImpl::_Init()
     addCharParams.is_var_len = true;
     addCharParams.char_props.read = 1;
     addCharParams.char_props.write = 1;
-    addCharParams.char_props.notify = 1;
     addCharParams.char_props.indicate = 1;
     addCharParams.read_access = SEC_OPEN;
     addCharParams.write_access = SEC_OPEN;
@@ -335,20 +334,23 @@ bool BLEManagerImpl::SendIndication(BLE_CONNECTION_OBJECT conId, const WeaveBleU
     ble_gatts_hvx_params_t hvxParams;
     uint16_t dataLen = data->DataLength();
 
-    VerifyOrExit(IsNotificationsEnabled(conId), err = WEAVE_ERROR_INVALID_ARGUMENT);
+    VerifyOrExit(IsSubscribed(conId), err = WEAVE_ERROR_INVALID_ARGUMENT);
 
-    WeaveLogDetail(DeviceLayer, "Sending notification for WoBLE TX characteristic (con %u, len %u)", conId, dataLen);
+    WeaveLogDetail(DeviceLayer, "Sending indication for WoBLE TX characteristic (con %u, len %u)", conId, dataLen);
 
-    // Send a notification for the WoBLE TX characteristic to the client containing the supplied data.
+    // Send a indication for the WoBLE TX characteristic to the client containing the supplied data.
     // Note that this call copies the data from the buffer.
     memset(&hvxParams, 0, sizeof(hvxParams));
-    hvxParams.type = BLE_GATT_HVX_NOTIFICATION;
+    hvxParams.type = BLE_GATT_HVX_INDICATION;
     hvxParams.handle = mWoBLECharHandle_TX.value_handle;
     hvxParams.offset = 0;
     hvxParams.p_len = &dataLen;
     hvxParams.p_data = data->Start();
     err = sd_ble_gatts_hvx(conId, &hvxParams);
     SuccessOrExit(err);
+
+    // TODO: remove me
+    memset(data->Start(), 0xAB, dataLen);
 
 exit:
     PacketBuffer::Free(data);
@@ -562,7 +564,7 @@ uint16_t BLEManagerImpl::_NumConnections(void)
     uint16_t numCons = 0;
     for (uint16_t i = 0; i < kMaxConnections; i++)
     {
-        if (mNotifEnabledConIds[i] != BLE_CONNECTION_UNINITIALIZED)
+        if (mSubscribedConIds[i] != BLE_CONNECTION_UNINITIALIZED)
         {
             numCons++;
         }
@@ -634,7 +636,7 @@ void BLEManagerImpl::HandleSoftDeviceBLEEvent(const WeaveDeviceEvent * event)
         }
         break;
 
-    case BLE_GATTS_EVT_HVN_TX_COMPLETE:
+    case BLE_GATTS_EVT_HVC:
         err = HandleTXComplete(event);
         SuccessOrExit(err);
         break;
@@ -755,9 +757,9 @@ WEAVE_ERROR BLEManagerImpl::HandleGAPDisconnect(const WeaveDeviceEvent * event)
         mNumGAPCons--;
     }
 
-    // If notifications were enabled for this connection, record that they are now disabled and
+    // If indications were enabled for this connection, record that they are now disabled and
     // notify the BLE Layer of a disconnect.
-    if (UnsetNotificationsEnabled(gapEvent->conn_handle))
+    if (UnsetSubscribed(gapEvent->conn_handle))
     {
         WEAVE_ERROR disconReason;
         switch (gapEvent->params.disconnected.reason)
@@ -794,7 +796,7 @@ WEAVE_ERROR BLEManagerImpl::HandleRXCharWrite(const WeaveDeviceEvent * event)
                  err = WEAVE_ERROR_INVALID_ARGUMENT);
 
     // NB: The initial write to the RX characteristic happens *before* the client enables
-    // notifications on the TX characteristic.
+    // indications on the TX characteristic.
 
     WeaveLogDetail(DeviceLayer, "Write request/command received for WoBLE RX characteristic (con %" PRIu16 ", len %" PRIu16 ")",
                    event->Platform.RXCharWriteEvent.ConId, buf->DataLength());
@@ -812,7 +814,7 @@ WEAVE_ERROR BLEManagerImpl::HandleTXCharCCCDWrite(const WeaveDeviceEvent * event
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
     const ble_gatts_evt_t * gattsEvent = &event->Platform.SoftDeviceBLEEvent.EventData.evt.gatts_evt;
-    bool notificationsEnabled;
+    bool indicationsEnabled;
     enum
     {
         // Per the BLE GATT spec...
@@ -832,23 +834,22 @@ WEAVE_ERROR BLEManagerImpl::HandleTXCharCCCDWrite(const WeaveDeviceEvent * event
 
     WeaveLogDetail(DeviceLayer, "CCCD value: 0x%04" PRIx16, (((uint16_t)gattsEvent->params.write.data[1]) << 8) | gattsEvent->params.write.data[0]);
 
-    // Determine if the client is enabling or disabling notifications.
-    notificationsEnabled = ((gattsEvent->params.write.data[0] & kCCCDBit_NotificationsEnabled) != 0);
+    // Determine if the client is enabling or disabling indications.
+    indicationsEnabled = ((gattsEvent->params.write.data[0] & kCCCDBit_IndicationsEnabled) != 0);
 
-    // If the client has requested to enabled notifications...
-    if (notificationsEnabled)
+    // If the client has requested to enabled indications...
+    if (indicationsEnabled)
     {
-        // If notifications are not already enabled for the connection...
-        if (!IsNotificationsEnabled(gattsEvent->conn_handle))
+        // If indications are not already enabled for the connection...
+        if (!IsSubscribed(gattsEvent->conn_handle))
         {
-            // Record that notifications have been enabled for this connection.  If this fails because
+            // Record that indications have been enabled for this connection.  If this fails because
             // there are too many WoBLE connections, simply ignore client's attempt to subscribe.
-            err = SetNotificationsEnabled(gattsEvent->conn_handle);
+            err = SetSubscribed(gattsEvent->conn_handle);
             VerifyOrExit(err != WEAVE_ERROR_NO_MEMORY, err = WEAVE_NO_ERROR);
             SuccessOrExit(err);
 
-            // Alert the BLE layer that WoBLE "subscribe" has been received.  This is one step in the WoBLE
-            // connection establishment process.
+            // Alert the BLE layer that WoBLE "subscribe" has been received.
             HandleSubscribeReceived(gattsEvent->conn_handle, &WEAVE_BLE_SVC_ID, &WeaveUUID_WoBLEChar_TX);
 
 #if WEAVE_PROGRESS_LOGGING
@@ -874,9 +875,9 @@ WEAVE_ERROR BLEManagerImpl::HandleTXCharCCCDWrite(const WeaveDeviceEvent * event
 
     else
     {
-        // If notifications had previously been enabled for this connection, record that they are no longer
+        // If indications had previously been enabled for this connection, record that they are no longer
         // enabled and inform the BLE layer that the client has "unsubscribed" the connection.
-        if (UnsetNotificationsEnabled(gattsEvent->conn_handle))
+        if (UnsetSubscribed(gattsEvent->conn_handle))
         {
             HandleUnsubscribeReceived(gattsEvent->conn_handle, &WEAVE_BLE_SVC_ID, &WeaveUUID_WoBLEChar_TX);
         }
@@ -890,25 +891,25 @@ WEAVE_ERROR BLEManagerImpl::HandleTXComplete(const WeaveDeviceEvent * event)
 {
     const ble_gatts_evt_t * gattsEvent = &event->Platform.SoftDeviceBLEEvent.EventData.evt.gatts_evt;
 
-    WeaveLogDetail(DeviceLayer, "Confirm received for WoBLE TX characteristic notification (con %" PRIu16 ")", gattsEvent->conn_handle);
+    WeaveLogDetail(DeviceLayer, "Confirm received for WoBLE TX characteristic indication (con %" PRIu16 ")", gattsEvent->conn_handle);
 
-    // Signal the BLE Layer that the outstanding notification is complete.
+    // Signal the BLE Layer that the outstanding indication is complete.
     HandleIndicationConfirmation(gattsEvent->conn_handle, &WEAVE_BLE_SVC_ID, &WeaveUUID_WoBLEChar_TX);
 
     return WEAVE_NO_ERROR;
 }
 
-WEAVE_ERROR BLEManagerImpl::SetNotificationsEnabled(uint16_t conId)
+WEAVE_ERROR BLEManagerImpl::SetSubscribed(uint16_t conId)
 {
     uint16_t freeIndex = kMaxConnections;
 
     for (uint16_t i = 0; i < kMaxConnections; i++)
     {
-        if (mNotifEnabledConIds[i] == conId)
+        if (mSubscribedConIds[i] == conId)
         {
             return WEAVE_NO_ERROR;
         }
-        else if (mNotifEnabledConIds[i] == BLE_CONNECTION_UNINITIALIZED && i < freeIndex)
+        else if (mSubscribedConIds[i] == BLE_CONNECTION_UNINITIALIZED && i < freeIndex)
         {
             freeIndex = i;
         }
@@ -916,7 +917,7 @@ WEAVE_ERROR BLEManagerImpl::SetNotificationsEnabled(uint16_t conId)
 
     if (freeIndex < kMaxConnections)
     {
-        mNotifEnabledConIds[freeIndex] = conId;
+        mSubscribedConIds[freeIndex] = conId;
         return WEAVE_NO_ERROR;
     }
     else
@@ -925,26 +926,26 @@ WEAVE_ERROR BLEManagerImpl::SetNotificationsEnabled(uint16_t conId)
     }
 }
 
-bool BLEManagerImpl::UnsetNotificationsEnabled(uint16_t conId)
+bool BLEManagerImpl::UnsetSubscribed(uint16_t conId)
 {
     for (uint16_t i = 0; i < kMaxConnections; i++)
     {
-        if (mNotifEnabledConIds[i] == conId)
+        if (mSubscribedConIds[i] == conId)
         {
-            mNotifEnabledConIds[i] = BLE_CONNECTION_UNINITIALIZED;
+            mSubscribedConIds[i] = BLE_CONNECTION_UNINITIALIZED;
             return true;
         }
     }
     return false;
 }
 
-bool BLEManagerImpl::IsNotificationsEnabled(uint16_t conId)
+bool BLEManagerImpl::IsSubscribed(uint16_t conId)
 {
     if (conId != BLE_CONNECTION_UNINITIALIZED)
     {
         for (uint16_t i = 0; i < kMaxConnections; i++)
         {
-            if (mNotifEnabledConIds[i] == conId)
+            if (mSubscribedConIds[i] == conId)
             {
                 return true;
             }
