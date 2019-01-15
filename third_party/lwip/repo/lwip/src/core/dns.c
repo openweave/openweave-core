@@ -973,7 +973,7 @@ static void
 dns_exec_found_callback(const struct dns_req_entry *req, err_t err) {
   if (req->found) {
     const struct dns_table_entry *tbl = &dns_table[req->dns_table_idx];
-    LWIP_ASSERT("invalid table index", req->dns_table_idx >= DNS_TABLE_SIZE);
+    LWIP_ASSERT("invalid table index", req->dns_table_idx < DNS_TABLE_SIZE);
 #if DNS_MAX_ADDRS_PER_NAME > 1
     if (req->is_multi) {
       if (tbl->numipaddrs == 0 || err) {
