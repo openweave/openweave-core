@@ -108,7 +108,7 @@ class BLEManagerImpl final
     WoBLEServiceMode mServiceMode;
     uint16_t mFlags;
     uint16_t mNumGAPCons;
-    uint16_t mNotifEnabledConIds[kMaxConnections];
+    uint16_t mSubscribedConIds[kMaxConnections];
     char mDeviceName[kMaxDeviceNameLength + 1];
     uint8_t mAdvHandle;
     uint8_t mAdvDataBuf[kMaxAdvertismentDataSetSize];
@@ -125,9 +125,9 @@ class BLEManagerImpl final
     WEAVE_ERROR HandleRXCharWrite(const WeaveDeviceEvent * event);
     WEAVE_ERROR HandleTXCharCCCDWrite(const WeaveDeviceEvent * event);
     WEAVE_ERROR HandleTXComplete(const WeaveDeviceEvent * event);
-    WEAVE_ERROR SetNotificationsEnabled(uint16_t conId);
-    bool UnsetNotificationsEnabled(uint16_t conId);
-    bool IsNotificationsEnabled(uint16_t conId);
+    WEAVE_ERROR SetSubscribed(uint16_t conId);
+    bool UnsetSubscribed(uint16_t conId);
+    bool IsSubscribed(uint16_t conId);
 
     static void DriveBLEState(intptr_t arg);
     static void SoftDeviceBLEEventCallback(const ble_evt_t * bleEvent, void * context);
