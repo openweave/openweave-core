@@ -1385,7 +1385,7 @@ exit:
  * @retval      WEAVE_ERROR_INVALID_ARGUMENT if the handle or the SubscriptionClient
  *                  pointer are invalid.
  * @retval      WEAVE_ERROR_WDM_INCONSISTENT_CONDITIONALITY if the trait instance is already being
- *                  udpated with the opposite conditionality.
+ *                  updated with the opposite conditionality.
  * @retval      WEAVE_ERROR_WDM_LOCAL_DATA_INCONSISTENT if aIsConditional is true but the
  *                  trait instance does not have a valid version.
  * @retval      WEAVE_ERROR_WDM_PATH_STORE_FULL if there is no memory to store the path.

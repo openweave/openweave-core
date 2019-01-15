@@ -262,7 +262,7 @@ exit:
 /**
  * Encodes a DataElement.
  * If the DataElement is a dictionary, it resumes encoding from mContext->mNextDictionaryElementPathHandle.
- * If the dictionary overflows the buffer, mContext->mNextDictionaryElementPathHandle is udpated accordingly.
+ * If the dictionary overflows the buffer, mContext->mNextDictionaryElementPathHandle is updated accordingly.
  * This method does all the lookups required and passes everything to
  * EncodeElementPath and EncodeElementData.
  *

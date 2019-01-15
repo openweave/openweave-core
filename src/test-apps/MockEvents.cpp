@@ -724,7 +724,7 @@ void TelemetryEventGenerator::Generate(void)
     // TelemetryEventGenerator generates WiFi telemetry events:
     // StatsEvent, DeauthEvent, InvalidKeyEvent and DHCPFailureEvent in sequence.
     //
-    // The first 5 events are StatsEvents with bcnRecvd/pktUcastRX/sleepTimePercent udpated
+    // The first 5 events are StatsEvents with bcnRecvd/pktUcastRX/sleepTimePercent updated
     // The 6th event is DeauthEvent
     // The 7th event is InvalidKeyEvent
     // The 8th event is DHCPFailureEvent

@@ -1038,7 +1038,7 @@ void WeaveServiceManager::onResponseReceived(uint32_t aProfileId, uint8_t aMsgTy
     if (aProfileId == kWeaveProfile_StatusReport_Deprecated || aProfileId == kWeaveProfile_Common)
     {
         /*
-         * OK. so we got a status report rather than a reponse. at this
+         * OK. so we got a status report rather than a response. at this
          * point our handling for this case is pretty primitive. we need
          * a more sophisticated way of doing errors like this.
          */
