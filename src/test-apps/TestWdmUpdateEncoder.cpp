@@ -304,6 +304,8 @@ void WdmUpdateEncoderTest::VerifyDataList(nlTestSuite *inSuite, PacketBuffer *aB
         err = mSinkCatalog.Locate(handle, &dataSink);
         NL_TEST_ASSERT(inSuite, err == WEAVE_NO_ERROR);
         NL_TEST_ASSERT(inSuite, dataSink != NULL);
+        SuccessOrExit(err);
+        VerifyOrExit(dataSink != NULL, );
 
         err = dataSink->GetSchemaEngine()->MapPathToHandle(pathReader, pathHandle);
         NL_TEST_ASSERT(inSuite, err == WEAVE_NO_ERROR);
@@ -323,6 +325,8 @@ void WdmUpdateEncoderTest::VerifyDataList(nlTestSuite *inSuite, PacketBuffer *aB
     NL_TEST_ASSERT(inSuite, err == WEAVE_END_OF_TLV);
 
     NL_TEST_ASSERT(inSuite, count == mContext.mNumDataElementsAddedToPayload);
+exit:
+    return;
 }
 
 
