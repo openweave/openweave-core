@@ -1,6 +1,7 @@
 /*
 
-    Copyright (c) 013-2017 Nest Labs, Inc.
+    Copyright (c) 2019 Google LLC
+    Copyright (c) 2013-2017 Nest Labs, Inc.
     All rights reserved.
 
     Licensed under the Apache License, Version 2.0 (the "License");
@@ -178,7 +179,9 @@ public class TestMain implements WeaveDeviceManager.CompletionHandler
         System.out.println("    Adding new Thread network...");
         networkInfo = NetworkInfo.MakeThread("Thread-Test",
                                         DatatypeConverter.parseHexBinary("0102030405060708"),
-                                        "akey".getBytes());
+                                        "akey".getBytes(),
+                                        0x1234,
+                                        (byte)21);
         DeviceMgr.beginAddNetwork(networkInfo);
         ExpectSuccess("AddNetwork");
         System.out.println("AddNetwork Test Succeeded");
