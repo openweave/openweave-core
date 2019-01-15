@@ -100,7 +100,6 @@ WEAVE_ERROR BLEManagerImpl::_Init()
 
     mServiceMode = ConnectivityManager::kWoBLEServiceMode_Enabled;
     mFlags = kFlag_AdvertisingEnabled;
-    memset(mDeviceName, 0, sizeof(mDeviceName));
     mAdvHandle = BLE_GAP_ADV_SET_HANDLE_NOT_SET;
     mNumGAPCons = 0;
     for (int i = 0; i < kMaxConnections; i++)
@@ -230,44 +229,44 @@ exit:
 }
 WEAVE_ERROR BLEManagerImpl::_GetDeviceName(char * buf, size_t bufSize)
 {
-    // TODO: use sd_ble_gap_device_name_get to read device name from soft device and
-    // eliminate mDeviceName field?
+    WEAVE_ERROR err;
+    uint16_t len = (uint16_t)(bufSize - 1);
 
-    if (strlen(mDeviceName) >= bufSize)
-    {
-        return WEAVE_ERROR_BUFFER_TOO_SMALL;
-    }
-    strcpy(buf, mDeviceName);
-    return WEAVE_NO_ERROR;
+    err = sd_ble_gap_device_name_get((uint8_t *)buf, &len);
+    SuccessOrExit(err);
+
+    buf[len] = 0;
+
+exit:
+    return err;
 }
 
-WEAVE_ERROR BLEManagerImpl::_SetDeviceName(const char * deviceName)
+WEAVE_ERROR BLEManagerImpl::_SetDeviceName(const char * devName)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
     ble_gap_conn_sec_mode_t secMode;
+    char devNameBuf[kMaxDeviceNameLength + 1];
 
     VerifyOrExit(mServiceMode != ConnectivityManager::kWoBLEServiceMode_NotSupported, err = WEAVE_ERROR_UNSUPPORTED_WEAVE_FEATURE);
 
-    if (deviceName != NULL && deviceName[0] != 0)
+    if (devName != NULL && devName[0] != 0)
     {
-        VerifyOrExit(strlen(deviceName) <= kMaxDeviceNameLength, err = WEAVE_ERROR_INVALID_ARGUMENT);
-        strcpy(mDeviceName, deviceName);
-        SetFlag(mFlags, kFlag_UseCustomDeviceName);
+        VerifyOrExit(strlen(devName) <= kMaxDeviceNameLength, err = WEAVE_ERROR_INVALID_ARGUMENT);
+        strcpy(devNameBuf, devName);
     }
     else
     {
-        snprintf(mDeviceName, sizeof(mDeviceName), "%s%04" PRIX32,
+        snprintf(devNameBuf, sizeof(devNameBuf), "%s%04" PRIX32,
                  WEAVE_DEVICE_CONFIG_BLE_DEVICE_NAME_PREFIX,
                  (uint32_t)FabricState.LocalNodeId);
-        mDeviceName[kMaxDeviceNameLength] = 0;
-        ClearFlag(mFlags, kFlag_UseCustomDeviceName);
+        devNameBuf[kMaxDeviceNameLength] = 0;
     }
 
     // Do not allow device name characteristic to be changed
     BLE_GAP_CONN_SEC_MODE_SET_NO_ACCESS(&secMode);
 
     // Configure the device name within the BLE soft device.
-    err = sd_ble_gap_device_name_set(&secMode, (const uint8_t *)mDeviceName, strlen(mDeviceName));
+    err = sd_ble_gap_device_name_set(&secMode, (const uint8_t *)devNameBuf, strlen(devNameBuf));
     SuccessOrExit(err);
 
 exit:
@@ -467,10 +466,18 @@ WEAVE_ERROR BLEManagerImpl::StartAdvertising(void)
         ? WEAVE_DEVICE_CONFIG_BLE_FAST_ADVERTISING_INTERVAL
         : WEAVE_DEVICE_CONFIG_BLE_SLOW_ADVERTISING_INTERVAL;
 
-    WeaveLogProgress(DeviceLayer, "Configuring BLE advertising (interval %" PRIu32 " ms, %sconnectable, device name %s)",
-             (((uint32_t)gapAdvParams.interval) * 10) / 16,
-             (connectable) ? "" : "non-",
-             mDeviceName);
+#if WEAVE_PROGRESS_LOGGING
+
+    {
+        char devNameBuf[kMaxDeviceNameLength + 1];
+        GetDeviceName(devNameBuf, sizeof(devNameBuf));
+        WeaveLogProgress(DeviceLayer, "Configuring BLE advertising (interval %" PRIu32 " ms, %sconnectable, device name %s)",
+                         (((uint32_t)gapAdvParams.interval) * 10) / 16,
+                         (connectable) ? "" : "non-",
+                         devNameBuf);
+    }
+
+#endif // WEAVE_PROGRESS_LOGGING
 
     // Configure an "advertising set" in the BLE soft device with the data and parameters for Weave advertising.
     // If the advertising set doesn't exist, this call will create it and return its handle.
