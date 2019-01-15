@@ -122,7 +122,7 @@ public:
         // The update of a trait path has succeeded or failed
         kEvent_OnUpdateComplete       = 9,
 
-        // No more paths need to be udpated
+        // No more paths need to be updated
         kEvent_OnNoMorePendingUpdates = 10,
 #endif // WEAVE_CONFIG_ENABLE_WDM_UPDATE
     };
