@@ -30,7 +30,7 @@ if WEAVE_WITH_LWIP_INTERNAL
 
 lib_LIBRARIES                                                                  = liblwip.a
 
-liblwip_API_PATHS                                                              = \
+liblwip_API_SOURCES                                                            = \
     @top_builddir@/third_party/lwip/repo/lwip/src/api/api_lib.c                  \
     @top_builddir@/third_party/lwip/repo/lwip/src/api/api_msg.c                  \
     @top_builddir@/third_party/lwip/repo/lwip/src/api/err.c                      \
@@ -41,7 +41,7 @@ liblwip_API_PATHS                                                              =
     @top_builddir@/third_party/lwip/repo/lwip/src/api/tcpip.c                    \
     $(NULL)
 
-liblwip_CORE_PATHS                                                             = \
+liblwip_CORE_SOURCES                                                           = \
     @top_builddir@/third_party/lwip/repo/lwip/src/core/def.c                     \
     @top_builddir@/third_party/lwip/repo/lwip/src/core/dns.c                     \
     @top_builddir@/third_party/lwip/repo/lwip/src/core/inet_chksum.c             \
@@ -51,6 +51,9 @@ liblwip_CORE_PATHS                                                             =
     @top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/igmp.c               \
     @top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/ip4.c                \
     @top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/ip4_addr.c           \
+    @top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/etharp.c             \
+    @top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/ip4_frag.c           \
+    @top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/dhcp.c               \
     @top_builddir@/third_party/lwip/repo/lwip/src/core/ipv6/ip6_route_table.c    \
     @top_builddir@/third_party/lwip/repo/lwip/src/core/ipv6/dhcp6.c              \
     @top_builddir@/third_party/lwip/repo/lwip/src/core/ipv6/ethip6.c             \
@@ -72,59 +75,45 @@ liblwip_CORE_PATHS                                                             =
     @top_builddir@/third_party/lwip/repo/lwip/src/core/tcp_in.c                  \
     @top_builddir@/third_party/lwip/repo/lwip/src/core/tcp_out.c                 \
     @top_builddir@/third_party/lwip/repo/lwip/src/core/udp.c                     \
-    $(NULL)
-
-liblwip_NETIF_PATHS                                                            = \
-    $(NULL)
-
-liblwip_SYS_PATHS                                                              = \
-    sys_arch.c                                                                   \
-    $(NULL)
-
-liblwip_CONTRIB_PATHS                                                          = \
-    TapInterface.c                                                               \
-    $(NULL)
-
-liblwip_V1ONLY_PATHS                                                           = \
-    @top_builddir@/third_party/lwip/repo/lwip/src/core/dhcp.c                    \
-    @top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/ip_frag.c            \
-    @top_builddir@/third_party/lwip/repo/lwip/src/core/timers.c                  \
-    @top_builddir@/third_party/lwip/repo/lwip/src/netif/etharp.c                 \
-    $(NULL)
-
-liblwip_V2ONLY_PATHS                                                           = \
-    @top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/etharp.c             \
-    @top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/ip4_frag.c           \
-    @top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/dhcp.c               \
     @top_builddir@/third_party/lwip/repo/lwip/src/core/ip.c                      \
     @top_builddir@/third_party/lwip/repo/lwip/src/core/timeouts.c                \
+    $(NULL)
+
+liblwip_NETIF_SOURCES                                                          = \
     @top_builddir@/third_party/lwip/repo/lwip/src/netif/ethernet.c               \
     $(NULL)
 
-liblwip_VERSION_PATHS = $(liblwip_V2ONLY_PATHS)
+if WEAVE_LWIP_TARGET_STANDALONE
+
+liblwip_TARGET_SOURCES                                                         = \
+    standalone/sys_arch.c                                                        \
+    standalone/TapInterface.c                                                    \
+    $(NULL)
+
+endif # WEAVE_LWIP_TARGET_STANDALONE
 
 liblwip_a_SOURCES                                                              = \
-    $(liblwip_API_PATHS)                                                         \
-    $(liblwip_CORE_PATHS)                                                        \
-    $(liblwip_NETIF_PATHS)                                                       \
-    $(liblwip_VERSION_PATHS)                                                     \
-    $(liblwip_SYS_PATHS)                                                         \
-    $(liblwip_CONTRIB_PATHS)                                                     \
+    $(liblwip_API_SOURCES)                                                       \
+    $(liblwip_CORE_SOURCES)                                                      \
+    $(liblwip_NETIF_SOURCES)                                                     \
+    $(liblwip_TARGET_SOURCES)                                                    \
     $(NULL)
 
 liblwip_a_CPPFLAGS                                                             = \
     $(LWIP_CPPFLAGS)                                                             \
     $(NULL)
 
-endif # WEAVE_WITH_LWIP_INTERNAL
+if WEAVE_LWIP_TARGET_STANDALONE
 
 EXTRA_DIST                                                                     = \
-    arch                                                                         \
-    lwipopts.h                                                                   \
-    sys_arch.c                                                                   \
-    TapInterface.c                                                               \
-    TapInterface.h                                                               \
+    standalone/arch                                                              \
+    standalone/lwipopts.h                                                        \
+    standalone/TapInterface.h                                                    \
     $(NULL)
+
+endif # WEAVE_LWIP_TARGET_STANDALONE
+
+endif # WEAVE_WITH_LWIP_INTERNAL
 
 PRETTY_FILES := $(NULL)
 

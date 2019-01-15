@@ -19,8 +19,8 @@
 
 /**
  *    @file
- *      This file describes compile-time constants used for
- *      configuring LwIP.
+ *      This file describes compile-time constants for configuring LwIP
+ *      for use in standalone (desktop) environments.
  *
  */
 
