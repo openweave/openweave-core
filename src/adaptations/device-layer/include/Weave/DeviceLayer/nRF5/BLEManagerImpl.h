@@ -93,7 +93,6 @@ class BLEManagerImpl final
         kFlag_FastAdvertisingEnabled            = 0x0002,
         kFlag_Advertising                       = 0x0004,
         kFlag_AdvertisingConfigChangePending    = 0x0008,
-        kFlag_UseCustomDeviceName               = 0x0010,
     };
 
     enum
@@ -109,7 +108,6 @@ class BLEManagerImpl final
     uint16_t mFlags;
     uint16_t mNumGAPCons;
     uint16_t mSubscribedConIds[kMaxConnections];
-    char mDeviceName[kMaxDeviceNameLength + 1];
     uint8_t mAdvHandle;
     uint8_t mAdvDataBuf[kMaxAdvertismentDataSetSize];
     uint8_t mScanRespDataBuf[kMaxAdvertismentDataSetSize];
