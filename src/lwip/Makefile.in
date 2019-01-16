@@ -198,6 +198,9 @@ am__liblwip_a_SOURCES_DIST =  \
 	@top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/igmp.c \
 	@top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/ip4.c \
 	@top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/ip4_addr.c \
+	@top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/etharp.c \
+	@top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/ip4_frag.c \
+	@top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/dhcp.c \
 	@top_builddir@/third_party/lwip/repo/lwip/src/core/ipv6/ip6_route_table.c \
 	@top_builddir@/third_party/lwip/repo/lwip/src/core/ipv6/dhcp6.c \
 	@top_builddir@/third_party/lwip/repo/lwip/src/core/ipv6/ethip6.c \
@@ -219,13 +222,10 @@ am__liblwip_a_SOURCES_DIST =  \
 	@top_builddir@/third_party/lwip/repo/lwip/src/core/tcp_in.c \
 	@top_builddir@/third_party/lwip/repo/lwip/src/core/tcp_out.c \
 	@top_builddir@/third_party/lwip/repo/lwip/src/core/udp.c \
-	@top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/etharp.c \
-	@top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/ip4_frag.c \
-	@top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/dhcp.c \
 	@top_builddir@/third_party/lwip/repo/lwip/src/core/ip.c \
 	@top_builddir@/third_party/lwip/repo/lwip/src/core/timeouts.c \
 	@top_builddir@/third_party/lwip/repo/lwip/src/netif/ethernet.c \
-	sys_arch.c TapInterface.c
+	standalone/sys_arch.c standalone/TapInterface.c
 am__dirstamp = $(am__leading_dot)dirstamp
 @WEAVE_WITH_LWIP_INTERNAL_TRUE@am__objects_1 = @top_builddir@/third_party/lwip/repo/lwip/src/api/liblwip_a-api_lib.$(OBJEXT) \
 @WEAVE_WITH_LWIP_INTERNAL_TRUE@	@top_builddir@/third_party/lwip/repo/lwip/src/api/liblwip_a-api_msg.$(OBJEXT) \
@@ -244,6 +244,9 @@ am__dirstamp = $(am__leading_dot)dirstamp
 @WEAVE_WITH_LWIP_INTERNAL_TRUE@	@top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/liblwip_a-igmp.$(OBJEXT) \
 @WEAVE_WITH_LWIP_INTERNAL_TRUE@	@top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/liblwip_a-ip4.$(OBJEXT) \
 @WEAVE_WITH_LWIP_INTERNAL_TRUE@	@top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/liblwip_a-ip4_addr.$(OBJEXT) \
+@WEAVE_WITH_LWIP_INTERNAL_TRUE@	@top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/liblwip_a-etharp.$(OBJEXT) \
+@WEAVE_WITH_LWIP_INTERNAL_TRUE@	@top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/liblwip_a-ip4_frag.$(OBJEXT) \
+@WEAVE_WITH_LWIP_INTERNAL_TRUE@	@top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/liblwip_a-dhcp.$(OBJEXT) \
 @WEAVE_WITH_LWIP_INTERNAL_TRUE@	@top_builddir@/third_party/lwip/repo/lwip/src/core/ipv6/liblwip_a-ip6_route_table.$(OBJEXT) \
 @WEAVE_WITH_LWIP_INTERNAL_TRUE@	@top_builddir@/third_party/lwip/repo/lwip/src/core/ipv6/liblwip_a-dhcp6.$(OBJEXT) \
 @WEAVE_WITH_LWIP_INTERNAL_TRUE@	@top_builddir@/third_party/lwip/repo/lwip/src/core/ipv6/liblwip_a-ethip6.$(OBJEXT) \
@@ -264,25 +267,17 @@ am__dirstamp = $(am__leading_dot)dirstamp
 @WEAVE_WITH_LWIP_INTERNAL_TRUE@	@top_builddir@/third_party/lwip/repo/lwip/src/core/liblwip_a-tcp.$(OBJEXT) \
 @WEAVE_WITH_LWIP_INTERNAL_TRUE@	@top_builddir@/third_party/lwip/repo/lwip/src/core/liblwip_a-tcp_in.$(OBJEXT) \
 @WEAVE_WITH_LWIP_INTERNAL_TRUE@	@top_builddir@/third_party/lwip/repo/lwip/src/core/liblwip_a-tcp_out.$(OBJEXT) \
-@WEAVE_WITH_LWIP_INTERNAL_TRUE@	@top_builddir@/third_party/lwip/repo/lwip/src/core/liblwip_a-udp.$(OBJEXT)
-am__objects_3 =
-@WEAVE_WITH_LWIP_INTERNAL_TRUE@am__objects_4 = @top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/liblwip_a-etharp.$(OBJEXT) \
-@WEAVE_WITH_LWIP_INTERNAL_TRUE@	@top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/liblwip_a-ip4_frag.$(OBJEXT) \
-@WEAVE_WITH_LWIP_INTERNAL_TRUE@	@top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/liblwip_a-dhcp.$(OBJEXT) \
+@WEAVE_WITH_LWIP_INTERNAL_TRUE@	@top_builddir@/third_party/lwip/repo/lwip/src/core/liblwip_a-udp.$(OBJEXT) \
 @WEAVE_WITH_LWIP_INTERNAL_TRUE@	@top_builddir@/third_party/lwip/repo/lwip/src/core/liblwip_a-ip.$(OBJEXT) \
-@WEAVE_WITH_LWIP_INTERNAL_TRUE@	@top_builddir@/third_party/lwip/repo/lwip/src/core/liblwip_a-timeouts.$(OBJEXT) \
-@WEAVE_WITH_LWIP_INTERNAL_TRUE@	@top_builddir@/third_party/lwip/repo/lwip/src/netif/liblwip_a-ethernet.$(OBJEXT)
-@WEAVE_WITH_LWIP_INTERNAL_TRUE@am__objects_5 = $(am__objects_4)
-@WEAVE_WITH_LWIP_INTERNAL_TRUE@am__objects_6 =  \
-@WEAVE_WITH_LWIP_INTERNAL_TRUE@	liblwip_a-sys_arch.$(OBJEXT)
-@WEAVE_WITH_LWIP_INTERNAL_TRUE@am__objects_7 = liblwip_a-TapInterface.$(OBJEXT)
+@WEAVE_WITH_LWIP_INTERNAL_TRUE@	@top_builddir@/third_party/lwip/repo/lwip/src/core/liblwip_a-timeouts.$(OBJEXT)
+@WEAVE_WITH_LWIP_INTERNAL_TRUE@am__objects_3 = @top_builddir@/third_party/lwip/repo/lwip/src/netif/liblwip_a-ethernet.$(OBJEXT)
+@WEAVE_LWIP_TARGET_STANDALONE_TRUE@@WEAVE_WITH_LWIP_INTERNAL_TRUE@am__objects_4 = standalone/liblwip_a-sys_arch.$(OBJEXT) \
+@WEAVE_LWIP_TARGET_STANDALONE_TRUE@@WEAVE_WITH_LWIP_INTERNAL_TRUE@	standalone/liblwip_a-TapInterface.$(OBJEXT)
 @WEAVE_WITH_LWIP_INTERNAL_TRUE@am_liblwip_a_OBJECTS =  \
 @WEAVE_WITH_LWIP_INTERNAL_TRUE@	$(am__objects_1) \
 @WEAVE_WITH_LWIP_INTERNAL_TRUE@	$(am__objects_2) \
 @WEAVE_WITH_LWIP_INTERNAL_TRUE@	$(am__objects_3) \
-@WEAVE_WITH_LWIP_INTERNAL_TRUE@	$(am__objects_5) \
-@WEAVE_WITH_LWIP_INTERNAL_TRUE@	$(am__objects_6) \
-@WEAVE_WITH_LWIP_INTERNAL_TRUE@	$(am__objects_7)
+@WEAVE_WITH_LWIP_INTERNAL_TRUE@	$(am__objects_4)
 liblwip_a_OBJECTS = $(am_liblwip_a_OBJECTS)
 AM_V_P = $(am__v_P_@AM_V@)
 am__v_P_ = $(am__v_P_@AM_DEFAULT_V@)
@@ -598,7 +593,7 @@ top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 @WEAVE_WITH_LWIP_INTERNAL_TRUE@lib_LIBRARIES = liblwip.a
-@WEAVE_WITH_LWIP_INTERNAL_TRUE@liblwip_API_PATHS = \
+@WEAVE_WITH_LWIP_INTERNAL_TRUE@liblwip_API_SOURCES = \
 @WEAVE_WITH_LWIP_INTERNAL_TRUE@    @top_builddir@/third_party/lwip/repo/lwip/src/api/api_lib.c                  \
 @WEAVE_WITH_LWIP_INTERNAL_TRUE@    @top_builddir@/third_party/lwip/repo/lwip/src/api/api_msg.c                  \
 @WEAVE_WITH_LWIP_INTERNAL_TRUE@    @top_builddir@/third_party/lwip/repo/lwip/src/api/err.c                      \
@@ -609,7 +604,7 @@ top_srcdir = @top_srcdir@
 @WEAVE_WITH_LWIP_INTERNAL_TRUE@    @top_builddir@/third_party/lwip/repo/lwip/src/api/tcpip.c                    \
 @WEAVE_WITH_LWIP_INTERNAL_TRUE@    $(NULL)
 
-@WEAVE_WITH_LWIP_INTERNAL_TRUE@liblwip_CORE_PATHS = \
+@WEAVE_WITH_LWIP_INTERNAL_TRUE@liblwip_CORE_SOURCES = \
 @WEAVE_WITH_LWIP_INTERNAL_TRUE@    @top_builddir@/third_party/lwip/repo/lwip/src/core/def.c                     \
 @WEAVE_WITH_LWIP_INTERNAL_TRUE@    @top_builddir@/third_party/lwip/repo/lwip/src/core/dns.c                     \
 @WEAVE_WITH_LWIP_INTERNAL_TRUE@    @top_builddir@/third_party/lwip/repo/lwip/src/core/inet_chksum.c             \
@@ -619,6 +614,9 @@ top_srcdir = @top_srcdir@
 @WEAVE_WITH_LWIP_INTERNAL_TRUE@    @top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/igmp.c               \
 @WEAVE_WITH_LWIP_INTERNAL_TRUE@    @top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/ip4.c                \
 @WEAVE_WITH_LWIP_INTERNAL_TRUE@    @top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/ip4_addr.c           \
+@WEAVE_WITH_LWIP_INTERNAL_TRUE@    @top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/etharp.c             \
+@WEAVE_WITH_LWIP_INTERNAL_TRUE@    @top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/ip4_frag.c           \
+@WEAVE_WITH_LWIP_INTERNAL_TRUE@    @top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/dhcp.c               \
 @WEAVE_WITH_LWIP_INTERNAL_TRUE@    @top_builddir@/third_party/lwip/repo/lwip/src/core/ipv6/ip6_route_table.c    \
 @WEAVE_WITH_LWIP_INTERNAL_TRUE@    @top_builddir@/third_party/lwip/repo/lwip/src/core/ipv6/dhcp6.c              \
 @WEAVE_WITH_LWIP_INTERNAL_TRUE@    @top_builddir@/third_party/lwip/repo/lwip/src/core/ipv6/ethip6.c             \
@@ -640,56 +638,35 @@ top_srcdir = @top_srcdir@
 @WEAVE_WITH_LWIP_INTERNAL_TRUE@    @top_builddir@/third_party/lwip/repo/lwip/src/core/tcp_in.c                  \
 @WEAVE_WITH_LWIP_INTERNAL_TRUE@    @top_builddir@/third_party/lwip/repo/lwip/src/core/tcp_out.c                 \
 @WEAVE_WITH_LWIP_INTERNAL_TRUE@    @top_builddir@/third_party/lwip/repo/lwip/src/core/udp.c                     \
-@WEAVE_WITH_LWIP_INTERNAL_TRUE@    $(NULL)
-
-@WEAVE_WITH_LWIP_INTERNAL_TRUE@liblwip_NETIF_PATHS = \
-@WEAVE_WITH_LWIP_INTERNAL_TRUE@    $(NULL)
-
-@WEAVE_WITH_LWIP_INTERNAL_TRUE@liblwip_SYS_PATHS = \
-@WEAVE_WITH_LWIP_INTERNAL_TRUE@    sys_arch.c                                                                   \
-@WEAVE_WITH_LWIP_INTERNAL_TRUE@    $(NULL)
-
-@WEAVE_WITH_LWIP_INTERNAL_TRUE@liblwip_CONTRIB_PATHS = \
-@WEAVE_WITH_LWIP_INTERNAL_TRUE@    TapInterface.c                                                               \
-@WEAVE_WITH_LWIP_INTERNAL_TRUE@    $(NULL)
-
-@WEAVE_WITH_LWIP_INTERNAL_TRUE@liblwip_V1ONLY_PATHS = \
-@WEAVE_WITH_LWIP_INTERNAL_TRUE@    @top_builddir@/third_party/lwip/repo/lwip/src/core/dhcp.c                    \
-@WEAVE_WITH_LWIP_INTERNAL_TRUE@    @top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/ip_frag.c            \
-@WEAVE_WITH_LWIP_INTERNAL_TRUE@    @top_builddir@/third_party/lwip/repo/lwip/src/core/timers.c                  \
-@WEAVE_WITH_LWIP_INTERNAL_TRUE@    @top_builddir@/third_party/lwip/repo/lwip/src/netif/etharp.c                 \
-@WEAVE_WITH_LWIP_INTERNAL_TRUE@    $(NULL)
-
-@WEAVE_WITH_LWIP_INTERNAL_TRUE@liblwip_V2ONLY_PATHS = \
-@WEAVE_WITH_LWIP_INTERNAL_TRUE@    @top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/etharp.c             \
-@WEAVE_WITH_LWIP_INTERNAL_TRUE@    @top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/ip4_frag.c           \
-@WEAVE_WITH_LWIP_INTERNAL_TRUE@    @top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/dhcp.c               \
 @WEAVE_WITH_LWIP_INTERNAL_TRUE@    @top_builddir@/third_party/lwip/repo/lwip/src/core/ip.c                      \
 @WEAVE_WITH_LWIP_INTERNAL_TRUE@    @top_builddir@/third_party/lwip/repo/lwip/src/core/timeouts.c                \
+@WEAVE_WITH_LWIP_INTERNAL_TRUE@    $(NULL)
+
+@WEAVE_WITH_LWIP_INTERNAL_TRUE@liblwip_NETIF_SOURCES = \
 @WEAVE_WITH_LWIP_INTERNAL_TRUE@    @top_builddir@/third_party/lwip/repo/lwip/src/netif/ethernet.c               \
 @WEAVE_WITH_LWIP_INTERNAL_TRUE@    $(NULL)
 
-@WEAVE_WITH_LWIP_INTERNAL_TRUE@liblwip_VERSION_PATHS = $(liblwip_V2ONLY_PATHS)
+@WEAVE_LWIP_TARGET_STANDALONE_TRUE@@WEAVE_WITH_LWIP_INTERNAL_TRUE@liblwip_TARGET_SOURCES = \
+@WEAVE_LWIP_TARGET_STANDALONE_TRUE@@WEAVE_WITH_LWIP_INTERNAL_TRUE@    standalone/sys_arch.c                                                        \
+@WEAVE_LWIP_TARGET_STANDALONE_TRUE@@WEAVE_WITH_LWIP_INTERNAL_TRUE@    standalone/TapInterface.c                                                    \
+@WEAVE_LWIP_TARGET_STANDALONE_TRUE@@WEAVE_WITH_LWIP_INTERNAL_TRUE@    $(NULL)
+
 @WEAVE_WITH_LWIP_INTERNAL_TRUE@liblwip_a_SOURCES = \
-@WEAVE_WITH_LWIP_INTERNAL_TRUE@    $(liblwip_API_PATHS)                                                         \
-@WEAVE_WITH_LWIP_INTERNAL_TRUE@    $(liblwip_CORE_PATHS)                                                        \
-@WEAVE_WITH_LWIP_INTERNAL_TRUE@    $(liblwip_NETIF_PATHS)                                                       \
-@WEAVE_WITH_LWIP_INTERNAL_TRUE@    $(liblwip_VERSION_PATHS)                                                     \
-@WEAVE_WITH_LWIP_INTERNAL_TRUE@    $(liblwip_SYS_PATHS)                                                         \
-@WEAVE_WITH_LWIP_INTERNAL_TRUE@    $(liblwip_CONTRIB_PATHS)                                                     \
+@WEAVE_WITH_LWIP_INTERNAL_TRUE@    $(liblwip_API_SOURCES)                                                       \
+@WEAVE_WITH_LWIP_INTERNAL_TRUE@    $(liblwip_CORE_SOURCES)                                                      \
+@WEAVE_WITH_LWIP_INTERNAL_TRUE@    $(liblwip_NETIF_SOURCES)                                                     \
+@WEAVE_WITH_LWIP_INTERNAL_TRUE@    $(liblwip_TARGET_SOURCES)                                                    \
 @WEAVE_WITH_LWIP_INTERNAL_TRUE@    $(NULL)
 
 @WEAVE_WITH_LWIP_INTERNAL_TRUE@liblwip_a_CPPFLAGS = \
 @WEAVE_WITH_LWIP_INTERNAL_TRUE@    $(LWIP_CPPFLAGS)                                                             \
 @WEAVE_WITH_LWIP_INTERNAL_TRUE@    $(NULL)
 
-EXTRA_DIST = \
-    arch                                                                         \
-    lwipopts.h                                                                   \
-    sys_arch.c                                                                   \
-    TapInterface.c                                                               \
-    TapInterface.h                                                               \
-    $(NULL)
+@WEAVE_LWIP_TARGET_STANDALONE_TRUE@@WEAVE_WITH_LWIP_INTERNAL_TRUE@EXTRA_DIST = \
+@WEAVE_LWIP_TARGET_STANDALONE_TRUE@@WEAVE_WITH_LWIP_INTERNAL_TRUE@    standalone/arch                                                              \
+@WEAVE_LWIP_TARGET_STANDALONE_TRUE@@WEAVE_WITH_LWIP_INTERNAL_TRUE@    standalone/lwipopts.h                                                        \
+@WEAVE_LWIP_TARGET_STANDALONE_TRUE@@WEAVE_WITH_LWIP_INTERNAL_TRUE@    standalone/TapInterface.h                                                    \
+@WEAVE_LWIP_TARGET_STANDALONE_TRUE@@WEAVE_WITH_LWIP_INTERNAL_TRUE@    $(NULL)
 
 PRETTY_FILES := $(NULL)
 all: all-am
@@ -809,6 +786,12 @@ clean-libLIBRARIES:
 	@top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/$(DEPDIR)/$(am__dirstamp)
 @top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/liblwip_a-ip4_addr.$(OBJEXT): @top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/$(am__dirstamp) \
 	@top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/$(DEPDIR)/$(am__dirstamp)
+@top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/liblwip_a-etharp.$(OBJEXT): @top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/$(am__dirstamp) \
+	@top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/$(DEPDIR)/$(am__dirstamp)
+@top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/liblwip_a-ip4_frag.$(OBJEXT): @top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/$(am__dirstamp) \
+	@top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/$(DEPDIR)/$(am__dirstamp)
+@top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/liblwip_a-dhcp.$(OBJEXT): @top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/$(am__dirstamp) \
+	@top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/$(DEPDIR)/$(am__dirstamp)
 @top_builddir@/third_party/lwip/repo/lwip/src/core/ipv6/$(am__dirstamp):
 	@$(MKDIR_P) @top_builddir@/third_party/lwip/repo/lwip/src/core/ipv6
 	@: > @top_builddir@/third_party/lwip/repo/lwip/src/core/ipv6/$(am__dirstamp)
@@ -857,12 +840,6 @@ clean-libLIBRARIES:
 	@top_builddir@/third_party/lwip/repo/lwip/src/core/$(DEPDIR)/$(am__dirstamp)
 @top_builddir@/third_party/lwip/repo/lwip/src/core/liblwip_a-udp.$(OBJEXT): @top_builddir@/third_party/lwip/repo/lwip/src/core/$(am__dirstamp) \
 	@top_builddir@/third_party/lwip/repo/lwip/src/core/$(DEPDIR)/$(am__dirstamp)
-@top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/liblwip_a-etharp.$(OBJEXT): @top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/$(am__dirstamp) \
-	@top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/$(DEPDIR)/$(am__dirstamp)
-@top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/liblwip_a-ip4_frag.$(OBJEXT): @top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/$(am__dirstamp) \
-	@top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/$(DEPDIR)/$(am__dirstamp)
-@top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/liblwip_a-dhcp.$(OBJEXT): @top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/$(am__dirstamp) \
-	@top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/$(DEPDIR)/$(am__dirstamp)
 @top_builddir@/third_party/lwip/repo/lwip/src/core/liblwip_a-ip.$(OBJEXT): @top_builddir@/third_party/lwip/repo/lwip/src/core/$(am__dirstamp) \
 	@top_builddir@/third_party/lwip/repo/lwip/src/core/$(DEPDIR)/$(am__dirstamp)
 @top_builddir@/third_party/lwip/repo/lwip/src/core/liblwip_a-timeouts.$(OBJEXT): @top_builddir@/third_party/lwip/repo/lwip/src/core/$(am__dirstamp) \
@@ -875,6 +852,17 @@ clean-libLIBRARIES:
 	@: > @top_builddir@/third_party/lwip/repo/lwip/src/netif/$(DEPDIR)/$(am__dirstamp)
 @top_builddir@/third_party/lwip/repo/lwip/src/netif/liblwip_a-ethernet.$(OBJEXT): @top_builddir@/third_party/lwip/repo/lwip/src/netif/$(am__dirstamp) \
 	@top_builddir@/third_party/lwip/repo/lwip/src/netif/$(DEPDIR)/$(am__dirstamp)
+standalone/$(am__dirstamp):
+	@$(MKDIR_P) standalone
+	@: > standalone/$(am__dirstamp)
+standalone/$(DEPDIR)/$(am__dirstamp):
+	@$(MKDIR_P) standalone/$(DEPDIR)
+	@: > standalone/$(DEPDIR)/$(am__dirstamp)
+standalone/liblwip_a-sys_arch.$(OBJEXT): standalone/$(am__dirstamp) \
+	standalone/$(DEPDIR)/$(am__dirstamp)
+standalone/liblwip_a-TapInterface.$(OBJEXT):  \
+	standalone/$(am__dirstamp) \
+	standalone/$(DEPDIR)/$(am__dirstamp)
 
 liblwip.a: $(liblwip_a_OBJECTS) $(liblwip_a_DEPENDENCIES) $(EXTRA_liblwip_a_DEPENDENCIES) 
 	$(AM_V_at)-rm -f liblwip.a
@@ -888,12 +876,11 @@ mostlyclean-compile:
 	-rm -f @top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/*.$(OBJEXT)
 	-rm -f @top_builddir@/third_party/lwip/repo/lwip/src/core/ipv6/*.$(OBJEXT)
 	-rm -f @top_builddir@/third_party/lwip/repo/lwip/src/netif/*.$(OBJEXT)
+	-rm -f standalone/*.$(OBJEXT)
 
 distclean-compile:
 	-rm -f *.tab.c
 
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/liblwip_a-TapInterface.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/liblwip_a-sys_arch.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@@top_builddir@/third_party/lwip/repo/lwip/src/api/$(DEPDIR)/liblwip_a-api_lib.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@@top_builddir@/third_party/lwip/repo/lwip/src/api/$(DEPDIR)/liblwip_a-api_msg.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@@top_builddir@/third_party/lwip/repo/lwip/src/api/$(DEPDIR)/liblwip_a-err.Po@am__quote@
@@ -938,6 +925,8 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@@top_builddir@/third_party/lwip/repo/lwip/src/core/ipv6/$(DEPDIR)/liblwip_a-mld6.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@@top_builddir@/third_party/lwip/repo/lwip/src/core/ipv6/$(DEPDIR)/liblwip_a-nd6.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@@top_builddir@/third_party/lwip/repo/lwip/src/netif/$(DEPDIR)/liblwip_a-ethernet.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@standalone/$(DEPDIR)/liblwip_a-TapInterface.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@standalone/$(DEPDIR)/liblwip_a-sys_arch.Po@am__quote@
 
 .c.o:
 @am__fastdepCC_TRUE@	$(AM_V_CC)depbase=`echo $@ | sed 's|[^/]*$$|$(DEPDIR)/&|;s|\.o$$||'`;\
@@ -1200,6 +1189,48 @@ distclean-compile:
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='@top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/ip4_addr.c' object='@top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/liblwip_a-ip4_addr.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(liblwip_a_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o @top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/liblwip_a-ip4_addr.obj `if test -f '@top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/ip4_addr.c'; then $(CYGPATH_W) '@top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/ip4_addr.c'; else $(CYGPATH_W) '$(srcdir)/@top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/ip4_addr.c'; fi`
+
+@top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/liblwip_a-etharp.o: @top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/etharp.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(liblwip_a_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT @top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/liblwip_a-etharp.o -MD -MP -MF @top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/$(DEPDIR)/liblwip_a-etharp.Tpo -c -o @top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/liblwip_a-etharp.o `test -f '@top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/etharp.c' || echo '$(srcdir)/'`@top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/etharp.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) @top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/$(DEPDIR)/liblwip_a-etharp.Tpo @top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/$(DEPDIR)/liblwip_a-etharp.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='@top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/etharp.c' object='@top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/liblwip_a-etharp.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(liblwip_a_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o @top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/liblwip_a-etharp.o `test -f '@top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/etharp.c' || echo '$(srcdir)/'`@top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/etharp.c
+
+@top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/liblwip_a-etharp.obj: @top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/etharp.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(liblwip_a_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT @top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/liblwip_a-etharp.obj -MD -MP -MF @top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/$(DEPDIR)/liblwip_a-etharp.Tpo -c -o @top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/liblwip_a-etharp.obj `if test -f '@top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/etharp.c'; then $(CYGPATH_W) '@top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/etharp.c'; else $(CYGPATH_W) '$(srcdir)/@top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/etharp.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) @top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/$(DEPDIR)/liblwip_a-etharp.Tpo @top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/$(DEPDIR)/liblwip_a-etharp.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='@top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/etharp.c' object='@top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/liblwip_a-etharp.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(liblwip_a_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o @top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/liblwip_a-etharp.obj `if test -f '@top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/etharp.c'; then $(CYGPATH_W) '@top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/etharp.c'; else $(CYGPATH_W) '$(srcdir)/@top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/etharp.c'; fi`
+
+@top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/liblwip_a-ip4_frag.o: @top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/ip4_frag.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(liblwip_a_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT @top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/liblwip_a-ip4_frag.o -MD -MP -MF @top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/$(DEPDIR)/liblwip_a-ip4_frag.Tpo -c -o @top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/liblwip_a-ip4_frag.o `test -f '@top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/ip4_frag.c' || echo '$(srcdir)/'`@top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/ip4_frag.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) @top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/$(DEPDIR)/liblwip_a-ip4_frag.Tpo @top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/$(DEPDIR)/liblwip_a-ip4_frag.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='@top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/ip4_frag.c' object='@top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/liblwip_a-ip4_frag.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(liblwip_a_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o @top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/liblwip_a-ip4_frag.o `test -f '@top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/ip4_frag.c' || echo '$(srcdir)/'`@top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/ip4_frag.c
+
+@top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/liblwip_a-ip4_frag.obj: @top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/ip4_frag.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(liblwip_a_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT @top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/liblwip_a-ip4_frag.obj -MD -MP -MF @top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/$(DEPDIR)/liblwip_a-ip4_frag.Tpo -c -o @top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/liblwip_a-ip4_frag.obj `if test -f '@top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/ip4_frag.c'; then $(CYGPATH_W) '@top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/ip4_frag.c'; else $(CYGPATH_W) '$(srcdir)/@top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/ip4_frag.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) @top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/$(DEPDIR)/liblwip_a-ip4_frag.Tpo @top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/$(DEPDIR)/liblwip_a-ip4_frag.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='@top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/ip4_frag.c' object='@top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/liblwip_a-ip4_frag.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(liblwip_a_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o @top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/liblwip_a-ip4_frag.obj `if test -f '@top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/ip4_frag.c'; then $(CYGPATH_W) '@top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/ip4_frag.c'; else $(CYGPATH_W) '$(srcdir)/@top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/ip4_frag.c'; fi`
+
+@top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/liblwip_a-dhcp.o: @top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/dhcp.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(liblwip_a_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT @top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/liblwip_a-dhcp.o -MD -MP -MF @top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/$(DEPDIR)/liblwip_a-dhcp.Tpo -c -o @top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/liblwip_a-dhcp.o `test -f '@top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/dhcp.c' || echo '$(srcdir)/'`@top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/dhcp.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) @top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/$(DEPDIR)/liblwip_a-dhcp.Tpo @top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/$(DEPDIR)/liblwip_a-dhcp.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='@top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/dhcp.c' object='@top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/liblwip_a-dhcp.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(liblwip_a_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o @top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/liblwip_a-dhcp.o `test -f '@top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/dhcp.c' || echo '$(srcdir)/'`@top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/dhcp.c
+
+@top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/liblwip_a-dhcp.obj: @top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/dhcp.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(liblwip_a_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT @top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/liblwip_a-dhcp.obj -MD -MP -MF @top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/$(DEPDIR)/liblwip_a-dhcp.Tpo -c -o @top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/liblwip_a-dhcp.obj `if test -f '@top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/dhcp.c'; then $(CYGPATH_W) '@top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/dhcp.c'; else $(CYGPATH_W) '$(srcdir)/@top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/dhcp.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) @top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/$(DEPDIR)/liblwip_a-dhcp.Tpo @top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/$(DEPDIR)/liblwip_a-dhcp.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='@top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/dhcp.c' object='@top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/liblwip_a-dhcp.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(liblwip_a_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o @top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/liblwip_a-dhcp.obj `if test -f '@top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/dhcp.c'; then $(CYGPATH_W) '@top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/dhcp.c'; else $(CYGPATH_W) '$(srcdir)/@top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/dhcp.c'; fi`
 
 @top_builddir@/third_party/lwip/repo/lwip/src/core/ipv6/liblwip_a-ip6_route_table.o: @top_builddir@/third_party/lwip/repo/lwip/src/core/ipv6/ip6_route_table.c
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(liblwip_a_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT @top_builddir@/third_party/lwip/repo/lwip/src/core/ipv6/liblwip_a-ip6_route_table.o -MD -MP -MF @top_builddir@/third_party/lwip/repo/lwip/src/core/ipv6/$(DEPDIR)/liblwip_a-ip6_route_table.Tpo -c -o @top_builddir@/third_party/lwip/repo/lwip/src/core/ipv6/liblwip_a-ip6_route_table.o `test -f '@top_builddir@/third_party/lwip/repo/lwip/src/core/ipv6/ip6_route_table.c' || echo '$(srcdir)/'`@top_builddir@/third_party/lwip/repo/lwip/src/core/ipv6/ip6_route_table.c
@@ -1495,48 +1526,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(liblwip_a_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o @top_builddir@/third_party/lwip/repo/lwip/src/core/liblwip_a-udp.obj `if test -f '@top_builddir@/third_party/lwip/repo/lwip/src/core/udp.c'; then $(CYGPATH_W) '@top_builddir@/third_party/lwip/repo/lwip/src/core/udp.c'; else $(CYGPATH_W) '$(srcdir)/@top_builddir@/third_party/lwip/repo/lwip/src/core/udp.c'; fi`
 
-@top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/liblwip_a-etharp.o: @top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/etharp.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(liblwip_a_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT @top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/liblwip_a-etharp.o -MD -MP -MF @top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/$(DEPDIR)/liblwip_a-etharp.Tpo -c -o @top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/liblwip_a-etharp.o `test -f '@top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/etharp.c' || echo '$(srcdir)/'`@top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/etharp.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) @top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/$(DEPDIR)/liblwip_a-etharp.Tpo @top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/$(DEPDIR)/liblwip_a-etharp.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='@top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/etharp.c' object='@top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/liblwip_a-etharp.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(liblwip_a_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o @top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/liblwip_a-etharp.o `test -f '@top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/etharp.c' || echo '$(srcdir)/'`@top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/etharp.c
-
-@top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/liblwip_a-etharp.obj: @top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/etharp.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(liblwip_a_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT @top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/liblwip_a-etharp.obj -MD -MP -MF @top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/$(DEPDIR)/liblwip_a-etharp.Tpo -c -o @top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/liblwip_a-etharp.obj `if test -f '@top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/etharp.c'; then $(CYGPATH_W) '@top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/etharp.c'; else $(CYGPATH_W) '$(srcdir)/@top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/etharp.c'; fi`
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) @top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/$(DEPDIR)/liblwip_a-etharp.Tpo @top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/$(DEPDIR)/liblwip_a-etharp.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='@top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/etharp.c' object='@top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/liblwip_a-etharp.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(liblwip_a_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o @top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/liblwip_a-etharp.obj `if test -f '@top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/etharp.c'; then $(CYGPATH_W) '@top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/etharp.c'; else $(CYGPATH_W) '$(srcdir)/@top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/etharp.c'; fi`
-
-@top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/liblwip_a-ip4_frag.o: @top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/ip4_frag.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(liblwip_a_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT @top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/liblwip_a-ip4_frag.o -MD -MP -MF @top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/$(DEPDIR)/liblwip_a-ip4_frag.Tpo -c -o @top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/liblwip_a-ip4_frag.o `test -f '@top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/ip4_frag.c' || echo '$(srcdir)/'`@top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/ip4_frag.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) @top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/$(DEPDIR)/liblwip_a-ip4_frag.Tpo @top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/$(DEPDIR)/liblwip_a-ip4_frag.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='@top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/ip4_frag.c' object='@top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/liblwip_a-ip4_frag.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(liblwip_a_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o @top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/liblwip_a-ip4_frag.o `test -f '@top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/ip4_frag.c' || echo '$(srcdir)/'`@top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/ip4_frag.c
-
-@top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/liblwip_a-ip4_frag.obj: @top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/ip4_frag.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(liblwip_a_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT @top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/liblwip_a-ip4_frag.obj -MD -MP -MF @top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/$(DEPDIR)/liblwip_a-ip4_frag.Tpo -c -o @top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/liblwip_a-ip4_frag.obj `if test -f '@top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/ip4_frag.c'; then $(CYGPATH_W) '@top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/ip4_frag.c'; else $(CYGPATH_W) '$(srcdir)/@top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/ip4_frag.c'; fi`
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) @top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/$(DEPDIR)/liblwip_a-ip4_frag.Tpo @top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/$(DEPDIR)/liblwip_a-ip4_frag.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='@top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/ip4_frag.c' object='@top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/liblwip_a-ip4_frag.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(liblwip_a_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o @top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/liblwip_a-ip4_frag.obj `if test -f '@top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/ip4_frag.c'; then $(CYGPATH_W) '@top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/ip4_frag.c'; else $(CYGPATH_W) '$(srcdir)/@top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/ip4_frag.c'; fi`
-
-@top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/liblwip_a-dhcp.o: @top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/dhcp.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(liblwip_a_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT @top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/liblwip_a-dhcp.o -MD -MP -MF @top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/$(DEPDIR)/liblwip_a-dhcp.Tpo -c -o @top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/liblwip_a-dhcp.o `test -f '@top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/dhcp.c' || echo '$(srcdir)/'`@top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/dhcp.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) @top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/$(DEPDIR)/liblwip_a-dhcp.Tpo @top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/$(DEPDIR)/liblwip_a-dhcp.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='@top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/dhcp.c' object='@top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/liblwip_a-dhcp.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(liblwip_a_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o @top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/liblwip_a-dhcp.o `test -f '@top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/dhcp.c' || echo '$(srcdir)/'`@top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/dhcp.c
-
-@top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/liblwip_a-dhcp.obj: @top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/dhcp.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(liblwip_a_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT @top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/liblwip_a-dhcp.obj -MD -MP -MF @top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/$(DEPDIR)/liblwip_a-dhcp.Tpo -c -o @top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/liblwip_a-dhcp.obj `if test -f '@top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/dhcp.c'; then $(CYGPATH_W) '@top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/dhcp.c'; else $(CYGPATH_W) '$(srcdir)/@top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/dhcp.c'; fi`
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) @top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/$(DEPDIR)/liblwip_a-dhcp.Tpo @top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/$(DEPDIR)/liblwip_a-dhcp.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='@top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/dhcp.c' object='@top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/liblwip_a-dhcp.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(liblwip_a_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o @top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/liblwip_a-dhcp.obj `if test -f '@top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/dhcp.c'; then $(CYGPATH_W) '@top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/dhcp.c'; else $(CYGPATH_W) '$(srcdir)/@top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/dhcp.c'; fi`
-
 @top_builddir@/third_party/lwip/repo/lwip/src/core/liblwip_a-ip.o: @top_builddir@/third_party/lwip/repo/lwip/src/core/ip.c
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(liblwip_a_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT @top_builddir@/third_party/lwip/repo/lwip/src/core/liblwip_a-ip.o -MD -MP -MF @top_builddir@/third_party/lwip/repo/lwip/src/core/$(DEPDIR)/liblwip_a-ip.Tpo -c -o @top_builddir@/third_party/lwip/repo/lwip/src/core/liblwip_a-ip.o `test -f '@top_builddir@/third_party/lwip/repo/lwip/src/core/ip.c' || echo '$(srcdir)/'`@top_builddir@/third_party/lwip/repo/lwip/src/core/ip.c
 @am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) @top_builddir@/third_party/lwip/repo/lwip/src/core/$(DEPDIR)/liblwip_a-ip.Tpo @top_builddir@/third_party/lwip/repo/lwip/src/core/$(DEPDIR)/liblwip_a-ip.Po
@@ -1579,33 +1568,33 @@ distclean-compile:
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(liblwip_a_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o @top_builddir@/third_party/lwip/repo/lwip/src/netif/liblwip_a-ethernet.obj `if test -f '@top_builddir@/third_party/lwip/repo/lwip/src/netif/ethernet.c'; then $(CYGPATH_W) '@top_builddir@/third_party/lwip/repo/lwip/src/netif/ethernet.c'; else $(CYGPATH_W) '$(srcdir)/@top_builddir@/third_party/lwip/repo/lwip/src/netif/ethernet.c'; fi`
 
-liblwip_a-sys_arch.o: sys_arch.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(liblwip_a_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT liblwip_a-sys_arch.o -MD -MP -MF $(DEPDIR)/liblwip_a-sys_arch.Tpo -c -o liblwip_a-sys_arch.o `test -f 'sys_arch.c' || echo '$(srcdir)/'`sys_arch.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/liblwip_a-sys_arch.Tpo $(DEPDIR)/liblwip_a-sys_arch.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='sys_arch.c' object='liblwip_a-sys_arch.o' libtool=no @AMDEPBACKSLASH@
+standalone/liblwip_a-sys_arch.o: standalone/sys_arch.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(liblwip_a_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT standalone/liblwip_a-sys_arch.o -MD -MP -MF standalone/$(DEPDIR)/liblwip_a-sys_arch.Tpo -c -o standalone/liblwip_a-sys_arch.o `test -f 'standalone/sys_arch.c' || echo '$(srcdir)/'`standalone/sys_arch.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) standalone/$(DEPDIR)/liblwip_a-sys_arch.Tpo standalone/$(DEPDIR)/liblwip_a-sys_arch.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='standalone/sys_arch.c' object='standalone/liblwip_a-sys_arch.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(liblwip_a_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o liblwip_a-sys_arch.o `test -f 'sys_arch.c' || echo '$(srcdir)/'`sys_arch.c
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(liblwip_a_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o standalone/liblwip_a-sys_arch.o `test -f 'standalone/sys_arch.c' || echo '$(srcdir)/'`standalone/sys_arch.c
 
-liblwip_a-sys_arch.obj: sys_arch.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(liblwip_a_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT liblwip_a-sys_arch.obj -MD -MP -MF $(DEPDIR)/liblwip_a-sys_arch.Tpo -c -o liblwip_a-sys_arch.obj `if test -f 'sys_arch.c'; then $(CYGPATH_W) 'sys_arch.c'; else $(CYGPATH_W) '$(srcdir)/sys_arch.c'; fi`
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/liblwip_a-sys_arch.Tpo $(DEPDIR)/liblwip_a-sys_arch.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='sys_arch.c' object='liblwip_a-sys_arch.obj' libtool=no @AMDEPBACKSLASH@
+standalone/liblwip_a-sys_arch.obj: standalone/sys_arch.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(liblwip_a_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT standalone/liblwip_a-sys_arch.obj -MD -MP -MF standalone/$(DEPDIR)/liblwip_a-sys_arch.Tpo -c -o standalone/liblwip_a-sys_arch.obj `if test -f 'standalone/sys_arch.c'; then $(CYGPATH_W) 'standalone/sys_arch.c'; else $(CYGPATH_W) '$(srcdir)/standalone/sys_arch.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) standalone/$(DEPDIR)/liblwip_a-sys_arch.Tpo standalone/$(DEPDIR)/liblwip_a-sys_arch.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='standalone/sys_arch.c' object='standalone/liblwip_a-sys_arch.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(liblwip_a_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o liblwip_a-sys_arch.obj `if test -f 'sys_arch.c'; then $(CYGPATH_W) 'sys_arch.c'; else $(CYGPATH_W) '$(srcdir)/sys_arch.c'; fi`
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(liblwip_a_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o standalone/liblwip_a-sys_arch.obj `if test -f 'standalone/sys_arch.c'; then $(CYGPATH_W) 'standalone/sys_arch.c'; else $(CYGPATH_W) '$(srcdir)/standalone/sys_arch.c'; fi`
 
-liblwip_a-TapInterface.o: TapInterface.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(liblwip_a_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT liblwip_a-TapInterface.o -MD -MP -MF $(DEPDIR)/liblwip_a-TapInterface.Tpo -c -o liblwip_a-TapInterface.o `test -f 'TapInterface.c' || echo '$(srcdir)/'`TapInterface.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/liblwip_a-TapInterface.Tpo $(DEPDIR)/liblwip_a-TapInterface.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='TapInterface.c' object='liblwip_a-TapInterface.o' libtool=no @AMDEPBACKSLASH@
+standalone/liblwip_a-TapInterface.o: standalone/TapInterface.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(liblwip_a_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT standalone/liblwip_a-TapInterface.o -MD -MP -MF standalone/$(DEPDIR)/liblwip_a-TapInterface.Tpo -c -o standalone/liblwip_a-TapInterface.o `test -f 'standalone/TapInterface.c' || echo '$(srcdir)/'`standalone/TapInterface.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) standalone/$(DEPDIR)/liblwip_a-TapInterface.Tpo standalone/$(DEPDIR)/liblwip_a-TapInterface.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='standalone/TapInterface.c' object='standalone/liblwip_a-TapInterface.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(liblwip_a_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o liblwip_a-TapInterface.o `test -f 'TapInterface.c' || echo '$(srcdir)/'`TapInterface.c
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(liblwip_a_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o standalone/liblwip_a-TapInterface.o `test -f 'standalone/TapInterface.c' || echo '$(srcdir)/'`standalone/TapInterface.c
 
-liblwip_a-TapInterface.obj: TapInterface.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(liblwip_a_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT liblwip_a-TapInterface.obj -MD -MP -MF $(DEPDIR)/liblwip_a-TapInterface.Tpo -c -o liblwip_a-TapInterface.obj `if test -f 'TapInterface.c'; then $(CYGPATH_W) 'TapInterface.c'; else $(CYGPATH_W) '$(srcdir)/TapInterface.c'; fi`
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/liblwip_a-TapInterface.Tpo $(DEPDIR)/liblwip_a-TapInterface.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='TapInterface.c' object='liblwip_a-TapInterface.obj' libtool=no @AMDEPBACKSLASH@
+standalone/liblwip_a-TapInterface.obj: standalone/TapInterface.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(liblwip_a_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT standalone/liblwip_a-TapInterface.obj -MD -MP -MF standalone/$(DEPDIR)/liblwip_a-TapInterface.Tpo -c -o standalone/liblwip_a-TapInterface.obj `if test -f 'standalone/TapInterface.c'; then $(CYGPATH_W) 'standalone/TapInterface.c'; else $(CYGPATH_W) '$(srcdir)/standalone/TapInterface.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) standalone/$(DEPDIR)/liblwip_a-TapInterface.Tpo standalone/$(DEPDIR)/liblwip_a-TapInterface.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='standalone/TapInterface.c' object='standalone/liblwip_a-TapInterface.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(liblwip_a_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o liblwip_a-TapInterface.obj `if test -f 'TapInterface.c'; then $(CYGPATH_W) 'TapInterface.c'; else $(CYGPATH_W) '$(srcdir)/TapInterface.c'; fi`
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(liblwip_a_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o standalone/liblwip_a-TapInterface.obj `if test -f 'standalone/TapInterface.c'; then $(CYGPATH_W) 'standalone/TapInterface.c'; else $(CYGPATH_W) '$(srcdir)/standalone/TapInterface.c'; fi`
 
 mostlyclean-libtool:
 	-rm -f *.lo
@@ -1738,6 +1727,8 @@ distclean-generic:
 	-rm -f @top_builddir@/third_party/lwip/repo/lwip/src/core/ipv6/$(am__dirstamp)
 	-rm -f @top_builddir@/third_party/lwip/repo/lwip/src/netif/$(DEPDIR)/$(am__dirstamp)
 	-rm -f @top_builddir@/third_party/lwip/repo/lwip/src/netif/$(am__dirstamp)
+	-rm -f standalone/$(DEPDIR)/$(am__dirstamp)
+	-rm -f standalone/$(am__dirstamp)
 
 maintainer-clean-generic:
 	@echo "This command is intended for maintainers to use"
@@ -1748,7 +1739,7 @@ clean-am: clean-generic clean-libLIBRARIES clean-libtool \
 	mostlyclean-am
 
 distclean: distclean-am
-	-rm -rf ./$(DEPDIR) @top_builddir@/third_party/lwip/repo/lwip/src/api/$(DEPDIR) @top_builddir@/third_party/lwip/repo/lwip/src/core/$(DEPDIR) @top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/$(DEPDIR) @top_builddir@/third_party/lwip/repo/lwip/src/core/ipv6/$(DEPDIR) @top_builddir@/third_party/lwip/repo/lwip/src/netif/$(DEPDIR)
+	-rm -rf @top_builddir@/third_party/lwip/repo/lwip/src/api/$(DEPDIR) @top_builddir@/third_party/lwip/repo/lwip/src/core/$(DEPDIR) @top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/$(DEPDIR) @top_builddir@/third_party/lwip/repo/lwip/src/core/ipv6/$(DEPDIR) @top_builddir@/third_party/lwip/repo/lwip/src/netif/$(DEPDIR) standalone/$(DEPDIR)
 	-rm -f Makefile
 distclean-am: clean-am distclean-compile distclean-generic \
 	distclean-tags
@@ -1794,7 +1785,7 @@ install-ps-am:
 installcheck-am:
 
 maintainer-clean: maintainer-clean-am
-	-rm -rf ./$(DEPDIR) @top_builddir@/third_party/lwip/repo/lwip/src/api/$(DEPDIR) @top_builddir@/third_party/lwip/repo/lwip/src/core/$(DEPDIR) @top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/$(DEPDIR) @top_builddir@/third_party/lwip/repo/lwip/src/core/ipv6/$(DEPDIR) @top_builddir@/third_party/lwip/repo/lwip/src/netif/$(DEPDIR)
+	-rm -rf @top_builddir@/third_party/lwip/repo/lwip/src/api/$(DEPDIR) @top_builddir@/third_party/lwip/repo/lwip/src/core/$(DEPDIR) @top_builddir@/third_party/lwip/repo/lwip/src/core/ipv4/$(DEPDIR) @top_builddir@/third_party/lwip/repo/lwip/src/core/ipv6/$(DEPDIR) @top_builddir@/third_party/lwip/repo/lwip/src/netif/$(DEPDIR) standalone/$(DEPDIR)
 	-rm -f Makefile
 maintainer-clean-am: distclean-am maintainer-clean-generic
 
