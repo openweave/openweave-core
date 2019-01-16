@@ -1,0 +1,159 @@
+{
+    "identifiers": {
+        "000": {
+            "id": "00-WifiNode-Tx"
+        }, 
+        "001": {
+            "id": "01-WifiNode-Rx"
+        }, 
+        "002": {
+            "id": "WifiNetwork"
+        }, 
+        "003": {
+            "id": "wifi0node"
+        }, 
+        "004": {
+            "id": "wifi0net"
+        }, 
+        "005": {
+            "id": "wifi0tap"
+        }, 
+        "006": {
+            "id": "wifi0bridge"
+        }, 
+        "007": {
+            "id": "wifi0"
+        }, 
+        "008": {
+            "id": "wifi1node"
+        }, 
+        "009": {
+            "id": "wifi1net"
+        }, 
+        "010": {
+            "id": "wifi1tap"
+        }, 
+        "011": {
+            "id": "wifi1bridge"
+        }, 
+        "012": {
+            "id": "wifi1"
+        }
+    }, 
+    "link": {
+        "wifi0": {
+            "fix_hw_addr": null, 
+            "network": "WifiNetwork", 
+            "network_end": "happy004", 
+            "node": "00-WifiNode-Tx", 
+            "node_end": "happy003", 
+            "number": 0, 
+            "tap": true, 
+            "type": "wifi"
+        }, 
+        "wifi1": {
+            "fix_hw_addr": null, 
+            "network": "WifiNetwork", 
+            "network_end": "happy009", 
+            "node": "01-WifiNode-Rx", 
+            "node_end": "happy008", 
+            "number": 1, 
+            "tap": true, 
+            "type": "wifi"
+        }
+    }, 
+    "netns": {
+        "00-WifiNode-Tx": "000", 
+        "01-WifiNode-Rx": "001", 
+        "WifiNetwork": "002", 
+        "wifi0": "007", 
+        "wifi0bridge": "006", 
+        "wifi0net": "004", 
+        "wifi0node": "003", 
+        "wifi0tap": "005", 
+        "wifi1": "012", 
+        "wifi1bridge": "011", 
+        "wifi1net": "009", 
+        "wifi1node": "008", 
+        "wifi1tap": "010"
+    }, 
+    "network": {
+        "WifiNetwork": {
+            "gateway": null, 
+            "interface": {
+                "wifi0": {}, 
+                "wifi1": {}
+            }, 
+            "prefix": {
+                "192.168.1": {
+                    "mask": 24
+                }, 
+                "2001:0db8:0001:0002": {
+                    "mask": 64
+                }, 
+                "fd00:0000:fab1:0001": {
+                    "mask": 64
+                }, 
+                "fe80:0000:0000:0000": {
+                    "mask": 64
+                }
+            }, 
+            "state": "UP", 
+            "type": "wifi"
+        }
+    }, 
+    "node": {
+        "00-WifiNode-Tx": {
+            "interface": {
+                "wlan0": {
+                    "ip": {
+                        "192.168.1.2": {
+                            "mask": 24
+                        }, 
+                        "2001:0db8:0001:0002:0e3f:07ff:fe54:550a": {
+                            "mask": 64
+                        }, 
+                        "fd00:0000:fab1:0001:0e3f:07ff:fe54:550a": {
+                            "mask": 64
+                        }, 
+                        "fe80:0000:0000:0000:0c3f:07ff:fe54:550a": {
+                            "mask": 64
+                        }
+                    }, 
+                    "link": "wifi0", 
+                    "type": "wifi"
+                }
+            }, 
+            "process": {}, 
+            "route": {}, 
+            "tmux": {}, 
+            "type": null
+        }, 
+        "01-WifiNode-Rx": {
+            "interface": {
+                "wlan0": {
+                    "ip": {
+                        "192.168.1.3": {
+                            "mask": 24
+                        }, 
+                        "2001:0db8:0001:0002:aa1a:6eff:fe06:e24f": {
+                            "mask": 64
+                        }, 
+                        "fd00:0000:fab1:0001:aa1a:6eff:fe06:e24f": {
+                            "mask": 64
+                        }, 
+                        "fe80:0000:0000:0000:a81a:6eff:fe06:e24f": {
+                            "mask": 64
+                        }
+                    }, 
+                    "link": "wifi1", 
+                    "type": "wifi"
+                }
+            }, 
+            "process": {}, 
+            "route": {}, 
+            "tmux": {}, 
+            "type": null
+        }
+    }
+}
