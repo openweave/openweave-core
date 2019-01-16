@@ -304,17 +304,49 @@ Please upgrade your version of LwIP for SetMulticastLoopback support."
 #else
     if (aLoopback)
     {
-        if (mLwIPEndPointType == kLwIPEndPointType_Raw)
+        switch (mLwIPEndPointType)
+        {
+
+#if INET_CONFIG_ENABLE_RAW_ENDPOINT
+        case kLwIPEndPointType_Raw:
             raw_set_flags(mRaw, RAW_FLAGS_MULTICAST_LOOP);
-        else if (mLwIPEndPointType == kLwIPEndPointType_UDP)
+            break;
+#endif // INET_CONFIG_ENABLE_RAW_ENDPOINT
+
+#if INET_CONFIG_ENABLE_UDP_ENDPOINT
+        case kLwIPEndPointType_UDP:
             udp_set_flags(mUDP, UDP_FLAGS_MULTICAST_LOOP);
+            break;
+#endif // INET_CONFIG_ENABLE_UDP_ENDPOINT
+
+        default:
+            lRetval = INET_ERROR_NOT_SUPPORTED;
+            break;
+
+        }
     }
     else
     {
-        if (mLwIPEndPointType == kLwIPEndPointType_Raw)
+        switch (mLwIPEndPointType)
+        {
+
+#if INET_CONFIG_ENABLE_RAW_ENDPOINT
+        case kLwIPEndPointType_Raw:
             raw_clear_flags(mRaw, RAW_FLAGS_MULTICAST_LOOP);
-        else if (mLwIPEndPointType == kLwIPEndPointType_UDP)
+            break;
+#endif // INET_CONFIG_ENABLE_RAW_ENDPOINT
+
+#if INET_CONFIG_ENABLE_UDP_ENDPOINT
+        case kLwIPEndPointType_UDP:
             udp_clear_flags(mUDP, UDP_FLAGS_MULTICAST_LOOP);
+            break;
+#endif // INET_CONFIG_ENABLE_UDP_ENDPOINT
+
+        default:
+            lRetval = INET_ERROR_NOT_SUPPORTED;
+            break;
+
+        }
     }
 
     lRetval = INET_NO_ERROR;
