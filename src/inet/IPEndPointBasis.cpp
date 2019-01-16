@@ -127,10 +127,10 @@ exit:
 
 #if WEAVE_SYSTEM_CONFIG_USE_LWIP
 #if INET_CONFIG_ENABLE_IPV4
+#if LWIP_IPV4 && LWIP_IGMP
 static INET_ERROR LwIPIPv4JoinLeaveMulticastGroup(InterfaceId aInterfaceId, const IPAddress &aAddress, err_t (*aMethod)(struct netif *, const LWIP_IPV4_ADDR_T *))
 {
     INET_ERROR        lRetval = INET_NO_ERROR;
-#if LWIP_IPV4 && LWIP_IGMP
     err_t             lStatus;
     struct netif *    lNetif;
     LWIP_IPV4_ADDR_T  lIPv4Address;
@@ -156,20 +156,15 @@ static INET_ERROR LwIPIPv4JoinLeaveMulticastGroup(InterfaceId aInterfaceId, cons
     }
 
 exit:
-#else // LWIP_IPV4 && LWIP_IGMP
-#pragma message "\n \
-Please enable LWIP_IPV4 and LWIP_IGMP for IPv4 JoinMulticastGroup and LeaveMulticastGroup support."
-    lRetval = INET_ERROR_NOT_SUPPORTED;
-#endif // LWIP_IPV4 && LWIP_IGMP
-
     return (lRetval);
 }
+#endif // LWIP_IPV4 && LWIP_IGMP
 #endif // INET_CONFIG_ENABLE_IPV4
 
+#if LWIP_IPV6_MLD && LWIP_IPV6_ND && LWIP_IPV6
 static INET_ERROR LwIPIPv6JoinLeaveMulticastGroup(InterfaceId aInterfaceId, const IPAddress &aAddress, err_t (*aMethod)(struct netif *, const LWIP_IPV6_ADDR_T *))
 {
     INET_ERROR        lRetval = INET_NO_ERROR;
-#if LWIP_IPV6_MLD && LWIP_IPV6_ND && LWIP_IPV6
     err_t             lStatus;
     struct netif *    lNetif;
     LWIP_IPV6_ADDR_T  lIPv6Address;
@@ -195,14 +190,9 @@ static INET_ERROR LwIPIPv6JoinLeaveMulticastGroup(InterfaceId aInterfaceId, cons
     }
 
 exit:
-#else // LWIP_IPV6_MLD && LWIP_IPV6_ND && LWIP_IPV6
-#pragma message "\n \
-Please enable LWIP_IPV6_MLD && LWIP_IPV6_ND && LWIP_IPV6 for IPv6 JoinMulticastGroup and LeaveMulticastGroup support."
-    lRetval = INET_ERROR_NOT_SUPPORTED;
-#endif // LWIP_IPV6_MLD && LWIP_IPV6_ND && LWIP_IPV6
-
     return (lRetval);
 }
+#endif // LWIP_IPV6_MLD && LWIP_IPV6_ND && LWIP_IPV6
 #endif // WEAVE_SYSTEM_CONFIG_USE_LWIP
 
 #if WEAVE_SYSTEM_CONFIG_USE_SOCKETS
@@ -357,7 +347,13 @@ INET_ERROR IPEndPointBasis::JoinMulticastGroup(InterfaceId aInterfaceId, const I
     case kIPAddressType_IPv4:
         {
 #if WEAVE_SYSTEM_CONFIG_USE_LWIP
+#if LWIP_IPV4 && LWIP_IGMP
             lRetval = LwIPIPv4JoinLeaveMulticastGroup(aInterfaceId, aAddress, igmp_joingroup_netif);
+#else // LWIP_IPV4 && LWIP_IGMP
+#pragma message "\n \
+Please enable LWIP_IPV4 and LWIP_IGMP for IPv4 JoinMulticastGroup and LeaveMulticastGroup support."
+            lRetval = INET_ERROR_NOT_SUPPORTED;
+#endif // LWIP_IPV4 && LWIP_IGMP
             SuccessOrExit(lRetval);
 #endif // WEAVE_SYSTEM_CONFIG_USE_LWIP
 
@@ -372,7 +368,13 @@ INET_ERROR IPEndPointBasis::JoinMulticastGroup(InterfaceId aInterfaceId, const I
     case kIPAddressType_IPv6:
         {
 #if WEAVE_SYSTEM_CONFIG_USE_LWIP
+#if LWIP_IPV6_MLD && LWIP_IPV6_ND && LWIP_IPV6
             lRetval = LwIPIPv6JoinLeaveMulticastGroup(aInterfaceId, aAddress, mld6_joingroup_netif);
+#else // LWIP_IPV6_MLD && LWIP_IPV6_ND && LWIP_IPV6
+#pragma message "\n \
+Please enable LWIP_IPV6_MLD && LWIP_IPV6_ND && LWIP_IPV6 for IPv6 JoinMulticastGroup and LeaveMulticastGroup support."
+            lRetval = INET_ERROR_NOT_SUPPORTED;
+#endif // LWIP_IPV6_MLD && LWIP_IPV6_ND && LWIP_IPV6
             SuccessOrExit(lRetval);
 #endif // WEAVE_SYSTEM_CONFIG_USE_LWIP
 
@@ -405,10 +407,17 @@ INET_ERROR IPEndPointBasis::LeaveMulticastGroup(InterfaceId aInterfaceId, const 
     switch (lAddrType)
     {
 
+#if INET_CONFIG_ENABLE_IPV4
     case kIPAddressType_IPv4:
         {
 #if WEAVE_SYSTEM_CONFIG_USE_LWIP
+#if LWIP_IPV4 && LWIP_IGMP
             lRetval = LwIPIPv4JoinLeaveMulticastGroup(aInterfaceId, aAddress, igmp_leavegroup_netif);
+#else // LWIP_IPV4 && LWIP_IGMP
+#pragma message "\n \
+Please enable LWIP_IPV4 and LWIP_IGMP for IPv4 JoinMulticastGroup and LeaveMulticastGroup support."
+            lRetval = INET_ERROR_NOT_SUPPORTED;
+#endif // LWIP_IPV4 && LWIP_IGMP
             SuccessOrExit(lRetval);
 #endif // WEAVE_SYSTEM_CONFIG_USE_LWIP
 
@@ -418,11 +427,18 @@ INET_ERROR IPEndPointBasis::LeaveMulticastGroup(InterfaceId aInterfaceId, const 
 #endif // WEAVE_SYSTEM_CONFIG_USE_SOCKETS
         }
         break;
+#endif // INET_CONFIG_ENABLE_IPV4
 
     case kIPAddressType_IPv6:
         {
 #if WEAVE_SYSTEM_CONFIG_USE_LWIP
+#if LWIP_IPV6_MLD && LWIP_IPV6_ND && LWIP_IPV6
             lRetval = LwIPIPv6JoinLeaveMulticastGroup(aInterfaceId, aAddress, mld6_leavegroup_netif);
+#else // LWIP_IPV6_MLD && LWIP_IPV6_ND && LWIP_IPV6
+#pragma message "\n \
+Please enable LWIP_IPV6_MLD && LWIP_IPV6_ND && LWIP_IPV6 for IPv6 JoinMulticastGroup and LeaveMulticastGroup support."
+            lRetval = INET_ERROR_NOT_SUPPORTED;
+#endif // LWIP_IPV6_MLD && LWIP_IPV6_ND && LWIP_IPV6
             SuccessOrExit(lRetval);
 #endif // WEAVE_SYSTEM_CONFIG_USE_LWIP
 
