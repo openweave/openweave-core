@@ -359,7 +359,7 @@ typedef void (*NotifyExternalEventsEvictedFunct)(ExternalEvents * inEv);
  */
 struct ExternalEvents
 {
-    ExternalEvents(void) : mFirstEventID(1), mLastEventID(0), mFetchEventsFunct(NULL), mNotifyEventsDeliveredFunct(NULL) { };
+    ExternalEvents(void) : mFirstEventID(1), mLastEventID(0), mFetchEventsFunct(NULL), mNotifyEventsDeliveredFunct(NULL), mNotifyEventsEvictedFunct(NULL) { };
 
     event_id_t mFirstEventID; /**< The first event ID stored externally. */
     event_id_t mLastEventID;  /**< The last event ID stored externally. */

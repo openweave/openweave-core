@@ -135,7 +135,8 @@ WEAVE_ERROR UpdateClient::SendUpdate(bool aIsPartialUpdate, PacketBuffer *aBuf, 
 
 #if WEAVE_CONFIG_DATA_MANAGEMENT_ENABLE_SCHEMA_CHECK
     reader.Init(aBuf);
-    reader.Next();
+    err = reader.Next();
+    VerifyOrExit(err == WEAVE_NO_ERROR, WeaveLogDetail(DataManagement, "Created malformed update, err: %" PRId32, err));
     parser.Init(reader);
     parser.CheckSchemaValidity();
 #endif //WEAVE_CONFIG_DATA_MANAGEMENT_ENABLE_SCHEMA_CHECK

@@ -909,6 +909,8 @@ WEAVE_ERROR LoggingManagement::RegisterEventCallbackForImportance(ImportanceType
     err = EnsureSpace(sizeof(ExternalEvents) + EVENT_CONTAINER_OVERHEAD_TLV_SIZE + IMPORTANCE_TLV_SIZE +
                       EXTERNAL_EVENT_BYTE_STRING_TLV_SIZE);
 
+    SuccessOrExit(err);
+
     checkpoint = mEventBuffer->mBuffer;
 
     writer.Init(&(mEventBuffer->mBuffer));

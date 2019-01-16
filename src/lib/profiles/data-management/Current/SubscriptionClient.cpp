@@ -1986,6 +1986,8 @@ void SubscriptionClient::StartUpdateRetryTimer(WEAVE_ERROR aReason)
 
     VerifyOrExit(false == mUpdateRetryScheduled, );
 
+    VerifyOrExit(mResubscribePolicyCallback != NULL, WeaveLogDetail(DataManagement, "Update timed out with the retry policy disabled"));
+
     if (WEAVE_NO_ERROR == aReason)
     {
         mUpdateRetryCounter = 0;
