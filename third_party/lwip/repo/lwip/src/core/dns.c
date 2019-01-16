@@ -1378,6 +1378,7 @@ dns_recv(void *arg, struct udp_pcb *pcb, struct pbuf *p, const ip_addr_t *addr, 
                 entry->state = DNS_STATE_ASKING;
               } else {
                 dns_call_found(i, NULL);
+                dns_table[i].state = DNS_STATE_UNUSED;
               }
             }
             goto memerr;
@@ -1396,6 +1397,7 @@ dns_recv(void *arg, struct udp_pcb *pcb, struct pbuf *p, const ip_addr_t *addr, 
                 entry->state = DNS_STATE_ASKING;
               } else {
                 dns_call_found(i, NULL);
+                dns_table[i].state = DNS_STATE_UNUSED;
               }
             }
             goto memerr; /* ignore this packet */
@@ -1518,6 +1520,7 @@ dns_recv(void *arg, struct udp_pcb *pcb, struct pbuf *p, const ip_addr_t *addr, 
             entry->state = DNS_STATE_ASKING;
           } else {
             dns_call_found(i, NULL);
+            dns_table[i].state = DNS_STATE_UNUSED;
           }
         }
         /* invalidate entry if the minimal TTL is zero */
