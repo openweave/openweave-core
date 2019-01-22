@@ -127,7 +127,7 @@ class WeaveNetworkGateway(HappyNetwork, HappyNode, Weave):
             self.logger.error("[%s] WeaveNetworkGateway: %s" % (self.network_id, emsg))
             self.exit()
 
-        if self.isIpAddress(self.gateway):
+        if IP.isIpAddress(self.gateway):
             self.gateway = IP.paddingZeros(self.gateway)
 
         self.to = IP.paddingZeros(self.global_prefix)
