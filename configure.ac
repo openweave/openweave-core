@@ -89,6 +89,15 @@ AC_CONFIG_MACRO_DIRS([build/autoconf/m4 third_party/nlbuild-autotools/repo/third
 AC_CONFIG_HEADERS([src/include/BuildConfig.h])
 
 #
+# Guards against multiple inclusion of the BuildConfig.h
+#
+
+AH_TOP([#ifndef WEAVE_BUILD_CONFIG_H
+#define WEAVE_BUILD_CONFIG_H])
+
+AH_BOTTOM([#endif // WEAVE_BUILD_CONFIG_H])
+
+#
 # Figure out what the canonical build, host and target tuples are.
 #
 AC_CANONICAL_BUILD

@@ -1,5 +1,8 @@
 /* src/include/BuildConfig.h.in.  Generated from configure.ac by autoheader.  */
 
+#ifndef WEAVE_BUILD_CONFIG_H
+#define WEAVE_BUILD_CONFIG_H
+
 /* Define to 1 if you want to enable WoBle over bluez. */
 #undef CONFIG_BLE_PLATFORM_BLUEZ
 
@@ -352,8 +355,7 @@
 /* Define to 1 if you want to use Weave with IPv4. */
 #undef INET_WANT_IPV4
 
-/* Define to the sub-directory in which libtool stores uninstalled libraries.
-   */
+/* Define to the sub-directory where libtool stores uninstalled libraries. */
 #undef LT_OBJDIR
 
 /* Define to 1 if your C compiler doesn't accept -c and -o together. */
@@ -504,3 +506,5 @@
 /* Define to the type of an unsigned integer type of width exactly 8 bits if
    such a type exists and the standard includes do not define it. */
 #undef uint8_t
+
+#endif // WEAVE_BUILD_CONFIG_H
