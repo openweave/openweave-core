@@ -32,6 +32,7 @@
 
 #include <Weave/Support/NLDLLUtil.h>
 #include <Weave/Core/WeaveWRMPConfig.h>
+#include <SystemLayer/SystemTimer.h>
 
  #define EXCHANGE_CONTEXT_ID(x)     ((x)+1)
 
@@ -449,6 +450,7 @@ private:
     uint16_t NextExchangeId;
 #if WEAVE_CONFIG_ENABLE_RELIABLE_MESSAGING
     uint64_t mWRMPTimeStampBase;    //WRMP timer base value to add offsets to evaluate timeouts
+    System::Timer::Epoch mWRMPCurrentTimerExpiry; //Tracks when the WRM timer will next expire
     uint16_t mWRMPTimerInterval;    //WRMP Timer tick period
     /**
      *  @class RetransTableEntry
