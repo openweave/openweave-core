@@ -104,6 +104,8 @@ WEAVE_ERROR WeaveExchangeManager::Init(WeaveMessageLayer *msgLayer)
     memset(RetransTable, 0, sizeof(RetransTable));
 
     mWRMPTimeStampBase = System::Timer::GetCurrentEpoch();
+
+    mWRMPCurrentTimerExpiry = 0;
 #endif
 
     State = kState_Initialized;
@@ -1682,11 +1684,6 @@ void WeaveExchangeManager::WRMPStartTimer()
     bool foundWake                    = false;
     ExchangeContext *ec               = NULL;
 
-    // Stop any active timers, we are about to set a new timer
-    // based on the most up to date contents of the retrans
-    // table
-    WRMPStopTimer();
-
     // When do we need to next wake up to send an ACK?
     ec = (ExchangeContext *)ContextPool;
 
@@ -1728,28 +1725,44 @@ void WeaveExchangeManager::WRMPStartTimer()
 
     if (foundWake) {
         // Set timer for next tick boundary - subtract the elapsed time from the current tick
-        int32_t timerArmValue = nextWakeTime * mWRMPTimerInterval - (System::Timer::GetCurrentEpoch() - mWRMPTimeStampBase);
-#if defined(WRMP_TICKLESS_DEBUG)
-        WeaveLogProgress(ExchangeManager, "Setting WRMP timer for %d ms (%u %" PRIu64 " %" PRIu64 ")",
-                timerArmValue,
-                nextWakeTime, System::Timer::GetCurrentEpoch(), mWRMPTimeStampBase);
-#endif
-        // If the tick boundary has expired in the past (delayed processing of event due to other system activity),
-        // expire the timer immediately
-        if (timerArmValue < 0) {
-            timerArmValue = 0;
-        }
-        res = MessageLayer->SystemLayer->StartTimer((uint32_t)timerArmValue, WRMPTimeout, this);
+        System::Timer::Epoch currentTime = System::Timer::GetCurrentEpoch();
+        int32_t timerArmValue = nextWakeTime * mWRMPTimerInterval - (currentTime - mWRMPTimeStampBase);
+        System::Timer::Epoch timerExpiryEpoch = currentTime + timerArmValue;
 
-        VerifyOrDieWithMsg(res == WEAVE_NO_ERROR, ExchangeManager, "Cannot start WRMPTimeout\n");
 #if defined(WRMP_TICKLESS_DEBUG)
+        WeaveLogProgress(ExchangeManager, "WRMPStartTimer wake in %d ms (%" PRIu64" %u %" PRIu64 " %" PRIu64 ")",
+                timerArmValue,
+                timerExpiryEpoch, nextWakeTime, currentTime, mWRMPTimeStampBase);
+#endif
+        if (timerExpiryEpoch != mWRMPCurrentTimerExpiry)
+        {
+            // If the tick boundary has expired in the past (delayed processing of event due to other system activity),
+            // expire the timer immediately
+            if (timerArmValue < 0) {
+                timerArmValue = 0;
+            }
+
+#if defined(WRMP_TICKLESS_DEBUG)
+            WeaveLogProgress(ExchangeManager, "WRMPStartTimer set timer for %d %" PRIu64, timerArmValue, timerExpiryEpoch);
+#endif
+            WRMPStopTimer();
+            res = MessageLayer->SystemLayer->StartTimer((uint32_t)timerArmValue, WRMPTimeout, this);
+
+            VerifyOrDieWithMsg(res == WEAVE_NO_ERROR, ExchangeManager, "Cannot start WRMPTimeout\n");
+            mWRMPCurrentTimerExpiry = timerExpiryEpoch;
+#if defined(WRMP_TICKLESS_DEBUG)
+        } else {
+            WeaveLogProgress(ExchangeManager, "WRMPStartTimer timer already set for %" PRIu64, timerExpiryEpoch);
+#endif
+        }
     } else {
+#if defined(WRMP_TICKLESS_DEBUG)
         WeaveLogProgress(ExchangeManager, "Not setting WRMP timeout at %" PRIu64, System::Timer::GetCurrentEpoch());
 #endif
+        WRMPStopTimer();
     }
 
     TicklessDebugDumpRetransTable("WRMPStartTimer Dumping RetransTable entries after setting wakeup times");
-
 }
 
 void WeaveExchangeManager::WRMPStopTimer()
