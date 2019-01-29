@@ -18,6 +18,9 @@
 #include "nrf_log_backend_uart.h"
 #endif // NRF_LOG_ENABLED
 
+#include <openthread/instance.h>
+#include <openthread/platform/openthread-system.h>
+
 #include <Weave/DeviceLayer/WeaveDeviceLayer.h>
 #include <Weave/DeviceLayer/nRF5/GroupKeyStoreImpl.h>
 #include <Weave/DeviceLayer/internal/testing/ConfigUnitTest.h>
@@ -183,6 +186,10 @@ int main(void)
     }
 
 #endif // defined(SOFTDEVICE_PRESENT) && SOFTDEVICE_PRESENT
+
+    otSysInit(0, NULL);
+
+    otInstanceInitSingle();
 
     ret = ::nl::Weave::DeviceLayer::PlatformMgr().InitWeaveStack();
     if (ret != WEAVE_NO_ERROR)
