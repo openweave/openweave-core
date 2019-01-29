@@ -46,9 +46,9 @@ INSTALL                     := /usr/bin/install
 INSTALLFLAGS                := --compare -v
 
 # TODO: FIX THIS!!!
-WEAVE_CC = ccache /opt/arm/gcc-arm-none-eabi-7-2018-q2-update/bin/arm-none-eabi-gcc
-WEAVE_CXX = ccache /opt/arm/gcc-arm-none-eabi-7-2018-q2-update/bin/arm-none-eabi-g++
-AR = /opt/arm/gcc-arm-none-eabi-7-2018-q2-update/bin/arm-none-eabi-ar
+WEAVE_CC = ccache $(GNU_INSTALL_ROOT)/arm-none-eabi-gcc
+WEAVE_CXX = ccache $(GNU_INSTALL_ROOT)/arm-none-eabi-g++
+AR = $(GNU_INSTALL_ROOT)/arm-none-eabi-ar
 
 # OpenWeave configuration options
 CONFIGURE_OPTIONS       	:= AR="$(AR)" CC="$(WEAVE_CC)" CXX="$(WEAVE_CXX)" LD="$(LD)" OBJCOPY="$(OBJCOPY)" \
