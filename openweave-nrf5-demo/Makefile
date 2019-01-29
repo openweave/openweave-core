@@ -29,7 +29,6 @@ SRC_FILES := \
     $(NRF5_SDK_ROOT)/components/libraries/crypto/backend/cc310/cc310_backend_shared.c \
     $(NRF5_SDK_ROOT)/components/libraries/crypto/backend/nrf_hw/nrf_hw_backend_init.c \
     $(NRF5_SDK_ROOT)/components/libraries/crypto/backend/nrf_hw/nrf_hw_backend_rng.c \
-    $(NRF5_SDK_ROOT)/components/libraries/crypto/backend/nrf_hw/nrf_hw_backend_rng_mbedtls.c \
     $(NRF5_SDK_ROOT)/components/libraries/crypto/nrf_crypto_aes.c \
 	$(NRF5_SDK_ROOT)/components/libraries/crypto/nrf_crypto_aes_shared.c \
     $(NRF5_SDK_ROOT)/components/libraries/crypto/nrf_crypto_init.c \
@@ -38,8 +37,8 @@ SRC_FILES := \
     $(NRF5_SDK_ROOT)/components/libraries/fds/fds.c \
     $(NRF5_SDK_ROOT)/components/libraries/fstorage/nrf_fstorage.c \
     $(NRF5_SDK_ROOT)/components/libraries/fstorage/nrf_fstorage_sd.c \
+    $(NRF5_SDK_ROOT)/components/libraries/log/src/nrf_log_backend_rtt.c \
     $(NRF5_SDK_ROOT)/components/libraries/log/src/nrf_log_backend_serial.c \
-    $(NRF5_SDK_ROOT)/components/libraries/log/src/nrf_log_backend_uart.c \
     $(NRF5_SDK_ROOT)/components/libraries/log/src/nrf_log_default_backends.c \
     $(NRF5_SDK_ROOT)/components/libraries/log/src/nrf_log_frontend.c \
     $(NRF5_SDK_ROOT)/components/libraries/log/src/nrf_log_str_formatter.c \
@@ -72,9 +71,11 @@ SRC_FILES := \
     $(NRF5_SDK_ROOT)/external/freertos/source/stream_buffer.c \
     $(NRF5_SDK_ROOT)/external/freertos/source/tasks.c \
     $(NRF5_SDK_ROOT)/external/freertos/source/timers.c \
+    $(NRF5_SDK_ROOT)/external/segger_rtt/SEGGER_RTT.c \
+    $(NRF5_SDK_ROOT)/external/segger_rtt/SEGGER_RTT_printf.c \
+    $(NRF5_SDK_ROOT)/external/segger_rtt/SEGGER_RTT_Syscalls_GCC.c \
 	$(NRF5_SDK_ROOT)/integration/nrfx/legacy/nrf_drv_clock.c \
 	$(NRF5_SDK_ROOT)/integration/nrfx/legacy/nrf_drv_rng.c \
-    $(NRF5_SDK_ROOT)/integration/nrfx/legacy/nrf_drv_uart.c \
     $(NRF5_SDK_ROOT)/modules/nrfx/drivers/src/nrfx_clock.c \
     $(NRF5_SDK_ROOT)/modules/nrfx/drivers/src/nrfx_gpiote.c \
     $(NRF5_SDK_ROOT)/modules/nrfx/drivers/src/nrfx_power_clock.c \
@@ -122,6 +123,7 @@ INC_FOLDERS = \
     $(NRF5_SDK_ROOT)/components/libraries/util \
     $(NRF5_SDK_ROOT)/components/softdevice/common \
     $(NRF5_SDK_ROOT)/components/softdevice/s140/headers \
+    $(NRF5_SDK_ROOT)/components/thread/utils \
     $(NRF5_SDK_ROOT)/components/toolchain/cmsis/include \
     $(NRF5_SDK_ROOT)/config/nrf52840/config \
     $(NRF5_SDK_ROOT)/external/fprintf \
@@ -129,7 +131,9 @@ INC_FOLDERS = \
     $(NRF5_SDK_ROOT)/external/freertos/portable/CMSIS/nrf52 \
     $(NRF5_SDK_ROOT)/external/freertos/portable/GCC/nrf52 \
     $(NRF5_SDK_ROOT)/external/freertos/source/include \
+    $(NRF5_SDK_ROOT)/external/openthread/include \
     $(NRF5_SDK_ROOT)/external/nrf_cc310/include \
+    $(NRF5_SDK_ROOT)/external/segger_rtt \
     $(NRF5_SDK_ROOT)/integration/nrfx \
     $(NRF5_SDK_ROOT)/integration/nrfx/legacy \
     $(NRF5_SDK_ROOT)/modules/nrfx \
@@ -139,12 +143,18 @@ INC_FOLDERS = \
     $(WEAVE_INCLUDES)
 
 LIB_FILES = \
-	$(WEAVE_LIBS) \
-	$(NRF5_SDK_ROOT)/external/nrf_cc310/lib/libnrf_cc310_0.9.10.a \
-	-lc \
-	-lstdc++ \
-	-lnosys \
-	-lm
+    $(WEAVE_LIBS) \
+    $(NRF5_SDK_ROOT)/external/openthread/lib/gcc/libmbedcrypto-software.a \
+    $(NRF5_SDK_ROOT)/external/openthread/lib/gcc/libopenthread-mtd.a \
+    $(NRF5_SDK_ROOT)/external/openthread/lib/gcc/libopenthread-nrf52840-softdevice-sdk.a \
+    $(NRF5_SDK_ROOT)/external/openthread/lib/gcc/libopenthread-platform-utils.a \
+    $(NRF5_SDK_ROOT)/external/nrf_cc310/lib/libnrf_cc310_0.9.10.a \
+    -lc \
+    -lstdc++ \
+    -lnosys \
+    -lm
+
+
 
 LINKER_SCRIPT = $(TARGET).ld
 
