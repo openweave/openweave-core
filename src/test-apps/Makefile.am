@@ -1,6 +1,6 @@
 #
+#    Copyright (c) 2018-2019 Google LLC
 #    Copyright (c) 2014-2018 Nest Labs, Inc.
-#    Copyright (c) 2018 Google LLC
 #    All rights reserved.
 #
 #    Licensed under the Apache License, Version 2.0 (the "License");
@@ -1108,12 +1108,17 @@ check_SCRIPTS                                                           += \
     happy/tests/standalone/swu/test_weave_swu_02.py                        \
     happy/tests/standalone/messagelayer/test_weave_messagelayer_01.py      \
     happy/tests/standalone/dd/test_weave_dd_01.py                          \
-    happy/tests/standalone/inet/test_weave_inet_01.py                      \
-    happy/tests/standalone/inet/test_inet_multicast_01.py                  \
     happy/tests/standalone/heartbeat/test_weave_heartbeat_01.py            \
     happy/tests/standalone/wrmp/test_weave_wrmp_01.py                      \
     $(NULL)
 endif # WEAVE_RUN_HAPPY_CORE
+
+if WEAVE_RUN_HAPPY_INET
+check_SCRIPTS                                                           += \
+    happy/tests/standalone/inet/test_inet_01.py                            \
+    happy/tests/standalone/inet/test_inet_multicast_01.py                  \
+    $(NULL)
+endif # WEAVE_RUN_HAPPY_INET
 
 endif # WEAVE_RUN_HAPPY_SERVICE
 endif # WEAVE_RUN_HAPPY
