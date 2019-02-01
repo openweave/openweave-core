@@ -15,8 +15,8 @@
 @SET_MAKE@
 
 #
+#    Copyright (c) 2018-2019 Google LLC
 #    Copyright (c) 2014-2018 Nest Labs, Inc.
-#    Copyright (c) 2018 Google LLC
 #    All rights reserved.
 #
 #    Licensed under the Apache License, Version 2.0 (the "License");
@@ -235,8 +235,8 @@ target_triplet = @target@
 @WEAVE_BUILD_TESTS_TRUE@noinst_PROGRAMS = $(am__EXEEXT_8) \
 @WEAVE_BUILD_TESTS_TRUE@	$(am__EXEEXT_10)
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@TESTS = $(check_PROGRAMS) \
-@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@	$(am__EXEEXT_38)
-@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_TRUE@TESTS = $(am__EXEEXT_38)
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@	$(am__EXEEXT_39)
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_TRUE@TESTS = $(am__EXEEXT_39)
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_TRUE@am__append_16 = \
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_TRUE@    weave_service_address='$(HAPPY_SERVICE)'
 
@@ -586,19 +586,22 @@ target_triplet = @target@
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_CORE_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@    happy/tests/standalone/swu/test_weave_swu_02.py                        \
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_CORE_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@    happy/tests/standalone/messagelayer/test_weave_messagelayer_01.py      \
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_CORE_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@    happy/tests/standalone/dd/test_weave_dd_01.py                          \
-@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_CORE_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@    happy/tests/standalone/inet/test_weave_inet_01.py                      \
-@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_CORE_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@    happy/tests/standalone/inet/test_inet_multicast_01.py                  \
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_CORE_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@    happy/tests/standalone/heartbeat/test_weave_heartbeat_01.py            \
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_CORE_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@    happy/tests/standalone/wrmp/test_weave_wrmp_01.py                      \
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_CORE_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@    $(NULL)
 
-@WEAVE_BUILD_LEGACY_WDM_TRUE@@WEAVE_BUILD_TESTS_TRUE@am__append_43 = \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_INET_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@am__append_43 = \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_INET_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@    happy/tests/standalone/inet/test_inet_01.py                            \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_INET_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@    happy/tests/standalone/inet/test_inet_multicast_01.py                  \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_INET_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@    $(NULL)
+
+@WEAVE_BUILD_LEGACY_WDM_TRUE@@WEAVE_BUILD_TESTS_TRUE@am__append_44 = \
 @WEAVE_BUILD_LEGACY_WDM_TRUE@@WEAVE_BUILD_TESTS_TRUE@                                           MockDMPublisher.cpp                                      \
 @WEAVE_BUILD_LEGACY_WDM_TRUE@@WEAVE_BUILD_TESTS_TRUE@                                           TestProfile.cpp
 
-@CONFIG_BLE_PLATFORM_BLUEZ_TRUE@@WEAVE_BUILD_TESTS_TRUE@am__append_44 = @GLIB_LIBS@ @DBUS_LIBS@ -ldl -lrt
-@WEAVE_BUILD_TESTS_TRUE@@WEAVE_WITH_CURL_TRUE@am__append_45 = $(CURL_LIBS)
+@CONFIG_BLE_PLATFORM_BLUEZ_TRUE@@WEAVE_BUILD_TESTS_TRUE@am__append_45 = @GLIB_LIBS@ @DBUS_LIBS@ -ldl -lrt
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_WITH_CURL_TRUE@am__append_46 = $(CURL_LIBS)
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_WITH_CURL_TRUE@am__append_47 = $(CURL_LIBS)
 subdir = src/test-apps
 DIST_COMMON = $(srcdir)/Makefile.in $(srcdir)/Makefile.am \
 	$(top_srcdir)/third_party/nlbuild-autotools/repo/third_party/autoconf/mkinstalldirs \
@@ -2440,11 +2443,11 @@ RECHECK_LOGS = $(TEST_LOGS)
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_CORE_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@	happy/tests/standalone/swu/test_weave_swu_02.py \
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_CORE_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@	happy/tests/standalone/messagelayer/test_weave_messagelayer_01.py \
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_CORE_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@	happy/tests/standalone/dd/test_weave_dd_01.py \
-@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_CORE_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@	happy/tests/standalone/inet/test_weave_inet_01.py \
-@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_CORE_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@	happy/tests/standalone/inet/test_inet_multicast_01.py \
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_CORE_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@	happy/tests/standalone/heartbeat/test_weave_heartbeat_01.py \
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_CORE_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@	happy/tests/standalone/wrmp/test_weave_wrmp_01.py
-@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@am__EXEEXT_38 = test-weave-device-descriptor-encode.sh \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_INET_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@am__EXEEXT_38 = happy/tests/standalone/inet/test_inet_01.py \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_INET_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@	happy/tests/standalone/inet/test_inet_multicast_01.py
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@am__EXEEXT_39 = test-weave-device-descriptor-encode.sh \
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@	test-Verhoeff.sh \
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@	$(am__EXEEXT_11) \
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@	$(am__EXEEXT_12) \
@@ -2472,8 +2475,9 @@ RECHECK_LOGS = $(TEST_LOGS)
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@	$(am__EXEEXT_34) \
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@	$(am__EXEEXT_35) \
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@	$(am__EXEEXT_36) \
-@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@	$(am__EXEEXT_37)
-@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_TRUE@am__EXEEXT_38 = $(am__EXEEXT_11) \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@	$(am__EXEEXT_37) \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@	$(am__EXEEXT_38)
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_TRUE@am__EXEEXT_39 = $(am__EXEEXT_11) \
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_TRUE@	$(am__EXEEXT_12) \
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_TRUE@	$(am__EXEEXT_13) \
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_TRUE@	$(am__EXEEXT_14) \
@@ -2499,7 +2503,8 @@ RECHECK_LOGS = $(TEST_LOGS)
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_TRUE@	$(am__EXEEXT_34) \
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_TRUE@	$(am__EXEEXT_35) \
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_TRUE@	$(am__EXEEXT_36) \
-@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_TRUE@	$(am__EXEEXT_37)
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_TRUE@	$(am__EXEEXT_37) \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_TRUE@	$(am__EXEEXT_38)
 TEST_SUITE_LOG = test-suite.log
 TEST_EXTENSIONS = @EXEEXT@ .test
 LOG_COMPILE = $(LOG_COMPILER) $(AM_LOG_FLAGS) $(LOG_FLAGS)
@@ -2985,7 +2990,8 @@ noinst_HEADERS = CASEOptions.h DMTestClient.h DeviceDescOptions.h \
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@	$(am__append_39) \
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@	$(am__append_40) \
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@	$(am__append_41) \
-@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@	$(am__append_42)
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@	$(am__append_42) \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@	$(am__append_43)
 
 # Test scripts that should be run when the 'check' target is run.
 #
@@ -3018,7 +3024,8 @@ noinst_HEADERS = CASEOptions.h DMTestClient.h DeviceDescOptions.h \
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_TRUE@	$(am__append_39) \
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_TRUE@	$(am__append_40) \
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_TRUE@	$(am__append_41) \
-@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_TRUE@	$(am__append_42)
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_TRUE@	$(am__append_42) \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_TRUE@	$(am__append_43)
 
 # Test applications that should be built but not installed that
 # require no network or complicated setup and should always be
@@ -3372,7 +3379,7 @@ noinst_HEADERS = CASEOptions.h DMTestClient.h DeviceDescOptions.h \
 @WEAVE_BUILD_TESTS_TRUE@	MockWdmSubscriptionResponder.cpp \
 @WEAVE_BUILD_TESTS_TRUE@	MockWdmNodeOptions.cpp \
 @WEAVE_BUILD_TESTS_TRUE@	MockLoggingManager.cpp MockEvents.cpp \
-@WEAVE_BUILD_TESTS_TRUE@	$(am__append_43)
+@WEAVE_BUILD_TESTS_TRUE@	$(am__append_44)
 @WEAVE_BUILD_TESTS_TRUE@TestErrorStr_SOURCES = TestErrorStr.cpp
 @WEAVE_BUILD_TESTS_TRUE@TestErrorStr_LDADD = $(COMMON_LDADD)
 @WEAVE_BUILD_TESTS_TRUE@TestStatusReportStr_SOURCES = TestStatusReportStr.cpp
@@ -3390,7 +3397,7 @@ noinst_HEADERS = CASEOptions.h DMTestClient.h DeviceDescOptions.h \
 @WEAVE_BUILD_TESTS_TRUE@TestDNSResolution_LDADD = libWeaveTestCommon.a $(COMMON_LDADD)
 @WEAVE_BUILD_TESTS_TRUE@mock_device_CPPFLAGS = $(AM_CPPFLAGS) -I$(top_srcdir)/src/test-apps/schema
 @WEAVE_BUILD_TESTS_TRUE@mock_device_LDADD = libWeaveTestCommon.a \
-@WEAVE_BUILD_TESTS_TRUE@	$(COMMON_LDADD) $(am__append_44)
+@WEAVE_BUILD_TESTS_TRUE@	$(COMMON_LDADD) $(am__append_45)
 @WEAVE_BUILD_TESTS_TRUE@mock_device_LDFLAGS = $(AM_CPPFLAGS)
 @WEAVE_BUILD_TESTS_TRUE@mock_weave_bg_SOURCES = mock-weave-bg.cpp
 @WEAVE_BUILD_TESTS_TRUE@mock_weave_bg_LDFLAGS = $(AM_CPPFLAGS)
@@ -3404,14 +3411,14 @@ noinst_HEADERS = CASEOptions.h DMTestClient.h DeviceDescOptions.h \
 @WEAVE_BUILD_TESTS_TRUE@weave_bdx_client_development_LDFLAGS = $(AM_CPPFLAGS)
 @WEAVE_BUILD_TESTS_TRUE@weave_bdx_client_development_LDADD =  \
 @WEAVE_BUILD_TESTS_TRUE@	libWeaveTestCommon.a $(COMMON_LDADD) \
-@WEAVE_BUILD_TESTS_TRUE@	$(am__append_45)
+@WEAVE_BUILD_TESTS_TRUE@	$(am__append_46)
 @WEAVE_BUILD_TESTS_TRUE@weave_bdx_server_development_SOURCES = weave-bdx-server-development.cpp  \
 @WEAVE_BUILD_TESTS_TRUE@                                           weave-bdx-common-development.cpp
 
 @WEAVE_BUILD_TESTS_TRUE@weave_bdx_server_development_LDFLAGS = $(AM_CPPFLAGS)
 @WEAVE_BUILD_TESTS_TRUE@weave_bdx_server_development_LDADD =  \
 @WEAVE_BUILD_TESTS_TRUE@	libWeaveTestCommon.a $(COMMON_LDADD) \
-@WEAVE_BUILD_TESTS_TRUE@	$(am__append_46)
+@WEAVE_BUILD_TESTS_TRUE@	$(am__append_47)
 @WEAVE_BUILD_TESTS_TRUE@weave_bdx_client_v0_SOURCES = weave-bdx-client-v0.cpp
 @WEAVE_BUILD_TESTS_TRUE@weave_bdx_client_v0_LDFLAGS = ${AM_CPPFLAGS}
 @WEAVE_BUILD_TESTS_TRUE@weave_bdx_client_v0_LDADD = libWeaveTestCommon.a $(COMMON_LDADD)
@@ -8392,20 +8399,6 @@ happy/tests/standalone/dd/test_weave_dd_01.py.log: happy/tests/standalone/dd/tes
 	--log-file $$b.log --trs-file $$b.trs \
 	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
 	"$$tst" $(AM_TESTS_FD_REDIRECT)
-happy/tests/standalone/inet/test_weave_inet_01.py.log: happy/tests/standalone/inet/test_weave_inet_01.py
-	@p='happy/tests/standalone/inet/test_weave_inet_01.py'; \
-	b='happy/tests/standalone/inet/test_weave_inet_01.py'; \
-	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
-	--log-file $$b.log --trs-file $$b.trs \
-	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
-	"$$tst" $(AM_TESTS_FD_REDIRECT)
-happy/tests/standalone/inet/test_inet_multicast_01.py.log: happy/tests/standalone/inet/test_inet_multicast_01.py
-	@p='happy/tests/standalone/inet/test_inet_multicast_01.py'; \
-	b='happy/tests/standalone/inet/test_inet_multicast_01.py'; \
-	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
-	--log-file $$b.log --trs-file $$b.trs \
-	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
-	"$$tst" $(AM_TESTS_FD_REDIRECT)
 happy/tests/standalone/heartbeat/test_weave_heartbeat_01.py.log: happy/tests/standalone/heartbeat/test_weave_heartbeat_01.py
 	@p='happy/tests/standalone/heartbeat/test_weave_heartbeat_01.py'; \
 	b='happy/tests/standalone/heartbeat/test_weave_heartbeat_01.py'; \
@@ -8416,6 +8409,20 @@ happy/tests/standalone/heartbeat/test_weave_heartbeat_01.py.log: happy/tests/sta
 happy/tests/standalone/wrmp/test_weave_wrmp_01.py.log: happy/tests/standalone/wrmp/test_weave_wrmp_01.py
 	@p='happy/tests/standalone/wrmp/test_weave_wrmp_01.py'; \
 	b='happy/tests/standalone/wrmp/test_weave_wrmp_01.py'; \
+	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
+	--log-file $$b.log --trs-file $$b.trs \
+	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
+	"$$tst" $(AM_TESTS_FD_REDIRECT)
+happy/tests/standalone/inet/test_inet_01.py.log: happy/tests/standalone/inet/test_inet_01.py
+	@p='happy/tests/standalone/inet/test_inet_01.py'; \
+	b='happy/tests/standalone/inet/test_inet_01.py'; \
+	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
+	--log-file $$b.log --trs-file $$b.trs \
+	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
+	"$$tst" $(AM_TESTS_FD_REDIRECT)
+happy/tests/standalone/inet/test_inet_multicast_01.py.log: happy/tests/standalone/inet/test_inet_multicast_01.py
+	@p='happy/tests/standalone/inet/test_inet_multicast_01.py'; \
+	b='happy/tests/standalone/inet/test_inet_multicast_01.py'; \
 	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
 	--log-file $$b.log --trs-file $$b.trs \
 	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
@@ -8544,8 +8551,8 @@ distclean-generic:
 maintainer-clean-generic:
 	@echo "This command is intended for maintainers to use"
 	@echo "it deletes files that may require special tools to rebuild."
-@WEAVE_BUILD_TESTS_FALSE@install-exec-local:
 @WEAVE_BUILD_TESTS_FALSE@uninstall-local:
+@WEAVE_BUILD_TESTS_FALSE@install-exec-local:
 @WEAVE_BUILD_COVERAGE_FALSE@clean-local:
 @WEAVE_BUILD_COVERAGE_REPORTS_FALSE@clean-local:
 @WEAVE_BUILD_TESTS_FALSE@clean-local:
