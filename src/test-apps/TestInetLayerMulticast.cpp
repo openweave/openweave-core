@@ -1051,4 +1051,16 @@ static void CleanupTest(void)
             FAIL_ERROR(lStatus, "Could not leave multicast group");
         }
     }
+
+    // Release the resources associated with the allocated end points.
+
+    if (sRawIPEndPoint != NULL)
+    {
+        sRawIPEndPoint->Free();
+    }
+
+    if (sUDPIPEndPoint != NULL)
+    {
+        sUDPIPEndPoint->Free();
+    }
 }
