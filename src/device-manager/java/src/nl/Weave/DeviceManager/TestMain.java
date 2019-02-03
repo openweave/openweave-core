@@ -190,7 +190,7 @@ public class TestMain implements WeaveDeviceManager.CompletionHandler
         System.out.println("GetNetworks Test");
         System.out.println("    Getting configured networks...");
         ExpectedNetworkCount = 2;
-        DeviceMgr.beginGetNetworks(GetNetworkFlags.IncludeCredentials);
+        DeviceMgr.beginGetNetworks(GetNetworkFlags.None);
         ExpectSuccess("GetNetworks");
         System.out.println("GetNetworks Test Succeeded");
 
@@ -205,16 +205,14 @@ public class TestMain implements WeaveDeviceManager.CompletionHandler
         System.out.println("GetNetworks Test");
         System.out.println("    Getting configured networks...");
         ExpectedNetworkCount = 1;
-        DeviceMgr.beginGetNetworks(GetNetworkFlags.IncludeCredentials);
+        DeviceMgr.beginGetNetworks(GetNetworkFlags.None);
         ExpectSuccess("GetNetworks");
         System.out.println("GetNetworks Test Succeeded");
 
         TestResult = null;
         System.out.println("GetCameraAuthData Test");
         System.out.println("    Getting camera auth data...");
-        String ExpectedCameraMACAddress = "112233445566";
-        String ExpectedCameraSignedPayload = "Ceci n'est pas un hash.";
-        DeviceMgr.beginGetCameraAuthData("Ceci n'est pas un nonce.");
+        DeviceMgr.beginGetCameraAuthData("Ceci n'est pas un nonce.012345670123456789ABCDEF0123456789ABCDEF");
         ExpectSuccess("GetCameraAuthData");
         System.out.println("GetCameraAuthData Test Succeeded");
 
