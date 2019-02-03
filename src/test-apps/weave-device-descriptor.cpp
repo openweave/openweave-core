@@ -96,6 +96,7 @@ static OptionDef gEncodeOptionDefs[] =
     { "serial-num",         kArgumentRequired, 's' },
     { "device-id",          kArgumentRequired, 'd' },
     { "ssid",               kArgumentRequired, 'S' },
+    { "ssid-suffix",        kArgumentRequired, 'H' },
     { "pairing-code",       kArgumentRequired, 'P' },
     { "software-version",   kArgumentRequired, 'n' },
     { "tlv",                kNoArgument,       'T' },
@@ -132,7 +133,8 @@ static const char *const gEncodeOptionHelp =
     "       The device's 802.11 MAC address given as a hex string (colons optional).\n"
     "\n"
     "  -S, --ssid <string>\n"
-    "       The SSID for the device's WiFi rendezvous network.\n"
+    "  -H, --ssid-suffix <string>\n"
+    "       The SSID or SSID suffix for the device's WiFi rendezvous network.\n"
     "\n"
     "  -P, --pairing-code <string>\n"
     "       The device's pairing code.\n"
@@ -370,12 +372,21 @@ bool HandleEncodeOption(const char *progName, OptionSet *optSet, int id, const c
         break;
     }
     case 'S':
+    case 'H':
         if (strlen(arg) > WeaveDeviceDescriptor::kMaxRendezvousWiFiESSID)
         {
-            PrintArgError("%s: Invalid value specified for device rendezvous WiFi SSID: %s\n", progName, arg);
+            PrintArgError("%s: Invalid value specified for device rendezvous WiFi SSID or SSID suffix: %s\n", progName, arg);
             return false;
         }
         strcpy(DeviceDesc.RendezvousWiFiESSID, arg);
+        if (id == 'S')
+        {
+            DeviceDesc.Flags &= ~WeaveDeviceDescriptor::kFlag_IsRendezvousWiFiESSIDSuffix;
+        }
+        else
+        {
+            DeviceDesc.Flags |= WeaveDeviceDescriptor::kFlag_IsRendezvousWiFiESSIDSuffix;
+        }
         break;
     case 'P':
         if (strlen(arg) > WeaveDeviceDescriptor::kMaxPairingCodeLength)
@@ -477,7 +488,9 @@ void PrintDeviceDescriptor(const WeaveDeviceDescriptor& deviceDesc, const char *
         printf("\n");
     }
     if (DeviceDesc.RendezvousWiFiESSID[0] != 0)
-        printf("%sRendezvous WiFi SSID: %s\n", prefix, DeviceDesc.RendezvousWiFiESSID);
+        printf("%sRendezvous WiFi SSID%s: %s\n", prefix,
+               ((DeviceDesc.Flags & WeaveDeviceDescriptor::kFlag_IsRendezvousWiFiESSIDSuffix) != 0) ? " Suffix" : "",
+               DeviceDesc.RendezvousWiFiESSID);
     if (DeviceDesc.PairingCode[0] != 0)
         printf("%sPairing Code: %s\n", prefix, DeviceDesc.PairingCode);
     if (DeviceDesc.PairingCompatibilityVersionMajor != 0)

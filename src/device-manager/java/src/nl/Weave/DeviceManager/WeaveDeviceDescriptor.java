@@ -58,9 +58,13 @@ public class WeaveDeviceDescriptor
         */
     public String softwareVersion;
 
-    /** ESSID for pairing WiFi network (null = not present).
+    /** ESSID or ESSID suffix for device's rendezvous WiFi network (null = not present).
         */
     public String rendezvousWiFiESSID;
+    
+    /** True if the rendezvousWiFiESSID field contains a suffix string.
+        */
+    public boolean isRendezvousWiFiESSIDSuffix;
 
     /** Device pairing code (null = not present).
         */
@@ -82,7 +86,8 @@ public class WeaveDeviceDescriptor
                                  int manufacturingYear, int manufacturingMonth, int manufacturingDay,
                                  byte[] primary802154MACAddress, byte[] primaryWiFiMACAddress,
                                  String serialNumber, String rendezvousWiFiESSID, String pairingCode,
-                                 long deviceId, long fabricId, String softwareVersion, int deviceFeatures)
+                                 long deviceId, long fabricId, String softwareVersion, int deviceFeatures,
+                                 int flags)
     {
         this.vendorCode = vendorCode;
         this.productCode = productCode;
@@ -105,7 +110,7 @@ public class WeaveDeviceDescriptor
         this.fabricId = fabricId;
         this.softwareVersion = softwareVersion;
         this.deviceFeatures = DeviceFeatures.fromFlags(deviceFeatures);
-
+        this.isRendezvousWiFiESSIDSuffix = ((flags & FLAG_IS_RENDEZVOUS_WIFI_ESSID_SUFFIX) != 0);
     }
 
     public static native WeaveDeviceDescriptor decode(byte[] encodedDeviceDesc);
@@ -113,4 +118,6 @@ public class WeaveDeviceDescriptor
     static {
         System.loadLibrary("WeaveDeviceManager");
     }
+    
+    static final int FLAG_IS_RENDEZVOUS_WIFI_ESSID_SUFFIX = 0x01;
 }
