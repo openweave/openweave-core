@@ -289,8 +289,8 @@ tcp_input(struct pbuf *p, struct netif *inp)
         continue;
 #endif
       /* check if PCB is bound to specific netif */
-      if ((pcb->netif_idx != NETIF_NO_INDEX) &&
-          (pcb->netif_idx != netif_get_index(ip_data.current_input_netif))) {
+      if ((lpcb->netif_idx != NETIF_NO_INDEX) &&
+          (lpcb->netif_idx != netif_get_index(ip_data.current_input_netif))) {
         continue;
       }
       
