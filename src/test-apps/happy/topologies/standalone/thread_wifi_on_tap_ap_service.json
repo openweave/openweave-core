@@ -308,7 +308,7 @@
                         "10.0.1.3": {
                             "mask": 24
                         }, 
-                        "2001:0db8:0222:0002:d64b:d3ff:fe20:408a": {
+                        "2001:0db8:0222:0002:4632:c5ff:fe4a:b49f": {
                             "mask": 64
                         }
                     }, 
@@ -328,10 +328,10 @@
                         "10.0.1.2": {
                             "mask": 24
                         }, 
-                        "2001:0db8:0222:0002:1a58:c6ff:fe45:1281": {
+                        "2001:0db8:0222:0002:72dd:45ff:fee5:1a4d": {
                             "mask": 64
                         }, 
-                        "fd00:0000:fab1:0001:1ab4:3000:0000:000a": {
+                        "fd00:0000:fab1:0001:1ab4:3000:0000:0005": {
                             "mask": 64
                         }
                     }, 
@@ -340,10 +340,10 @@
                 }, 
                 "wpan0": {
                     "ip": {
-                        "2001:0db8:0111:0001:de0f:abff:fe1d:4db5": {
+                        "2001:0db8:0111:0001:aebc:bcff:fe9e:a95b": {
                             "mask": 64
                         }, 
-                        "fd00:0000:fab1:0006:1ab4:3000:0000:000a": {
+                        "fd00:0000:fab1:0006:1ab4:3000:0000:0005": {
                             "mask": 64
                         }
                     }, 
@@ -366,10 +366,10 @@
             "interface": {
                 "wpan0": {
                     "ip": {
-                        "2001:0db8:0111:0001:7ee7:fbff:fe1b:1fec": {
+                        "2001:0db8:0111:0001:f207:e2ff:fe95:334f": {
                             "mask": 64
                         }, 
-                        "fd00:0000:fab1:0006:1ab4:3000:0000:0004": {
+                        "fd00:0000:fab1:0006:1ab4:3000:0000:000a": {
                             "mask": 64
                         }
                     }, 
@@ -397,20 +397,20 @@
         "network": {}, 
         "node": {
             "BorderRouter": {
+                "eui64": "18-B4-30-00-00-00-00-05", 
+                "iid": "1ab4:3000:0000:0005", 
+                "pairing_code": "AAA123", 
+                "private_key": "${WEAVE_HOME}/certs/development/device/test-dev-18B4300000000005-key.pem", 
+                "weave_certificate": "${WEAVE_HOME}/certs/development/device/test-dev-18B4300000000005-cert.pem", 
+                "weave_node_id": "18B4300000000005"
+            }, 
+            "ThreadNode": {
                 "eui64": "18-B4-30-00-00-00-00-0A", 
                 "iid": "1ab4:3000:0000:000a", 
                 "pairing_code": "AAA123", 
                 "private_key": "${WEAVE_HOME}/certs/development/device/test-dev-18B430000000000A-key.pem", 
                 "weave_certificate": "${WEAVE_HOME}/certs/development/device/test-dev-18B430000000000A-cert.pem", 
                 "weave_node_id": "18B430000000000A"
-            }, 
-            "ThreadNode": {
-                "eui64": "18-B4-30-00-00-00-00-04", 
-                "iid": "1ab4:3000:0000:0004", 
-                "pairing_code": "AAA123", 
-                "private_key": "${WEAVE_HOME}/certs/development/device/test-dev-18B4300000000004-key.pem", 
-                "weave_certificate": "${WEAVE_HOME}/certs/development/device/test-dev-18B4300000000004-cert.pem", 
-                "weave_node_id": "18B4300000000004"
             }
         }
     }
