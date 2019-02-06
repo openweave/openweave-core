@@ -119,6 +119,7 @@ noinst_HEADERS                                             = \
     TestDRBG.h                                               \
     TestEventLoggingSchemaExamples.h                         \
     TestGroupKeyStore.h                                      \
+    TestInetLayerCommon.hpp                                  \
     TestPersistedStorageImplementation.h                     \
     TestProfile.h                                            \
     TestWRMP.h                                               \
@@ -622,7 +623,7 @@ if WEAVE_RUN_HAPPY_PERF
 check_SCRIPTS                                 +=             \
     happy/tests/service/weave_service_perf_run.sh            \
     $(NULL)
-endif # WEAVE_RUN_HAPPY_SERVICE_PERF
+endif # WEAVE_RUN_HAPPY_PERF
 
 if WEAVE_RUN_HAPPY_WDM
 check_SCRIPTS                                 +=             \
@@ -1270,7 +1271,9 @@ TestInetLayer_SOURCES                    = TestInetLayer.cpp
 TestInetLayer_LDFLAGS                    = $(AM_CPPFLAGS)
 TestInetLayer_LDADD                      = libWeaveTestCommon.a $(COMMON_LDADD)
 
-TestInetLayerMulticast_SOURCES           = TestInetLayerMulticast.cpp
+TestInetLayerMulticast_SOURCES           = TestInetLayerMulticast.cpp \
+                                           TestInetLayerCommon.cpp \
+                                           $(NULL)
 TestInetLayerMulticast_LDFLAGS           = $(AM_CPPFLAGS)
 TestInetLayerMulticast_LDADD             = libWeaveTestCommon.a $(COMMON_LDADD)
 

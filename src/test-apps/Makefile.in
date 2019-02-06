@@ -1001,9 +1001,11 @@ TestInetLayer_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
 	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CXXLD) \
 	$(AM_CXXFLAGS) $(CXXFLAGS) $(TestInetLayer_LDFLAGS) $(LDFLAGS) \
 	-o $@
-am__TestInetLayerMulticast_SOURCES_DIST = TestInetLayerMulticast.cpp
+am__TestInetLayerMulticast_SOURCES_DIST = TestInetLayerMulticast.cpp \
+	TestInetLayerCommon.cpp
 @WEAVE_BUILD_TESTS_TRUE@am_TestInetLayerMulticast_OBJECTS =  \
-@WEAVE_BUILD_TESTS_TRUE@	TestInetLayerMulticast.$(OBJEXT)
+@WEAVE_BUILD_TESTS_TRUE@	TestInetLayerMulticast.$(OBJEXT) \
+@WEAVE_BUILD_TESTS_TRUE@	TestInetLayerCommon.$(OBJEXT)
 TestInetLayerMulticast_OBJECTS = $(am_TestInetLayerMulticast_OBJECTS)
 @WEAVE_BUILD_TESTS_TRUE@TestInetLayerMulticast_DEPENDENCIES =  \
 @WEAVE_BUILD_TESTS_TRUE@	libWeaveTestCommon.a \
@@ -1940,11 +1942,11 @@ am__noinst_HEADERS_DIST = CASEOptions.h DMTestClient.h \
 	MockWdmSubscriptionResponder.h MockWdmTestVerifier.h \
 	MockWdmViewClient.h MockWdmViewServer.h PASEEngineTest.h \
 	TAKEOptions.h TestDRBG.h TestEventLoggingSchemaExamples.h \
-	TestGroupKeyStore.h TestPersistedStorageImplementation.h \
-	TestProfile.h TestWRMP.h TestWdmOneWayCommand.h \
-	TestWdmSubscriptionlessNotification.h TestWeaveCertData.h \
-	TestWeaveTunnel.h TestWeaveTunnelServer.h ToolCommon.h \
-	ToolCommonOptions.h WdmNextPerfUtility.h \
+	TestGroupKeyStore.h TestInetLayerCommon.hpp \
+	TestPersistedStorageImplementation.h TestProfile.h TestWRMP.h \
+	TestWdmOneWayCommand.h TestWdmSubscriptionlessNotification.h \
+	TestWeaveCertData.h TestWeaveTunnel.h TestWeaveTunnelServer.h \
+	ToolCommon.h ToolCommonOptions.h WdmNextPerfUtility.h \
 	crypto-tests/WeaveCryptoTests.h nlweavebdxclient-development.h \
 	nlweavebdxclient.h nlweavebdxserver-development.h \
 	nlweaveswuclient.h schema/nest/test/trait/TestATrait.h \
@@ -2869,11 +2871,11 @@ noinst_HEADERS = CASEOptions.h DMTestClient.h DeviceDescOptions.h \
 	MockWdmSubscriptionResponder.h MockWdmTestVerifier.h \
 	MockWdmViewClient.h MockWdmViewServer.h PASEEngineTest.h \
 	TAKEOptions.h TestDRBG.h TestEventLoggingSchemaExamples.h \
-	TestGroupKeyStore.h TestPersistedStorageImplementation.h \
-	TestProfile.h TestWRMP.h TestWdmOneWayCommand.h \
-	TestWdmSubscriptionlessNotification.h TestWeaveCertData.h \
-	TestWeaveTunnel.h TestWeaveTunnelServer.h ToolCommon.h \
-	ToolCommonOptions.h WdmNextPerfUtility.h \
+	TestGroupKeyStore.h TestInetLayerCommon.hpp \
+	TestPersistedStorageImplementation.h TestProfile.h TestWRMP.h \
+	TestWdmOneWayCommand.h TestWdmSubscriptionlessNotification.h \
+	TestWeaveCertData.h TestWeaveTunnel.h TestWeaveTunnelServer.h \
+	ToolCommon.h ToolCommonOptions.h WdmNextPerfUtility.h \
 	crypto-tests/WeaveCryptoTests.h nlweavebdxclient-development.h \
 	nlweavebdxclient.h nlweavebdxserver-development.h \
 	nlweaveswuclient.h schema/nest/test/trait/TestATrait.h \
@@ -3222,7 +3224,10 @@ noinst_HEADERS = CASEOptions.h DMTestClient.h DeviceDescOptions.h \
 @WEAVE_BUILD_TESTS_TRUE@TestInetLayer_SOURCES = TestInetLayer.cpp
 @WEAVE_BUILD_TESTS_TRUE@TestInetLayer_LDFLAGS = $(AM_CPPFLAGS)
 @WEAVE_BUILD_TESTS_TRUE@TestInetLayer_LDADD = libWeaveTestCommon.a $(COMMON_LDADD)
-@WEAVE_BUILD_TESTS_TRUE@TestInetLayerMulticast_SOURCES = TestInetLayerMulticast.cpp
+@WEAVE_BUILD_TESTS_TRUE@TestInetLayerMulticast_SOURCES = TestInetLayerMulticast.cpp \
+@WEAVE_BUILD_TESTS_TRUE@                                           TestInetLayerCommon.cpp \
+@WEAVE_BUILD_TESTS_TRUE@                                           $(NULL)
+
 @WEAVE_BUILD_TESTS_TRUE@TestInetLayerMulticast_LDFLAGS = $(AM_CPPFLAGS)
 @WEAVE_BUILD_TESTS_TRUE@TestInetLayerMulticast_LDADD = libWeaveTestCommon.a $(COMMON_LDADD)
 @WEAVE_BUILD_TESTS_TRUE@TestInetAddress_SOURCES = TestInetAddress.cpp
@@ -4166,6 +4171,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/TestInetBuffer.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/TestInetEndPoint.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/TestInetLayer.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/TestInetLayerCommon.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/TestInetLayerMulticast.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/TestInetTimer.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/TestKeyExport.Po@am__quote@
