@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 #
-#    Copyright (c) 2018 Google LLC.
+#    Copyright (c) 2018-2019 Google LLC.
 #    All rights reserved.
 #
 #    Licensed under the Apache License, Version 2.0 (the "License");
@@ -200,39 +200,27 @@ class test_weave_inet_multicast_01(unittest.TestCase):
             }
         }
 
-        # UDP over IPv6
+        # Topology-independent test parameters:
 
-        transport_network_tuple = [ "udp", "6" ]
+        transports = [ "udp", "raw" ]
+        networks = [ "6", "4" ]
 
-        value, data = self.__run_inet_multicast_test(configuration, transport_network_tuple)
-        self.__process_result(configuration, transport_network_tuple, value, data)
+        for network in networks:
+            for transport in transports:
 
-        # UDP over IPv6
-
-        transport_network_tuple = [ "udp", "4" ]
-
-        value, data = self.__run_inet_multicast_test(configuration, transport_network_tuple)
-        self.__process_result(configuration, transport_network_tuple, value, data)
-
-        # UDP over IPv6
-
-        transport_network_tuple = [ "raw", "6" ]
-
-        value, data = self.__run_inet_multicast_test(configuration, transport_network_tuple)
-        self.__process_result(configuration, transport_network_tuple, value, data)
-
-        # UDP over IPv6
-
-        transport_network_tuple = [ "raw", "4" ]
-
-        value, data = self.__run_inet_multicast_test(configuration, transport_network_tuple)
-        self.__process_result(configuration, transport_network_tuple, value, data)
+                # Run the test.
+				
+                value, data = self.__run_inet_multicast_test(configuration, self.interface, network, transport)
+ 
+                # Process and report the results.
+ 
+                self.__process_result(configuration, self.interface, network, transport, value, data)
 
 
-    def __process_result(self, configuration, transport_network_tuple, value, data):
+    def __process_result(self, configuration, interface, network, transport, value, data):
         nodes = len(configuration['sender']) + len(configuration['receivers'])
 
-        print "Inet multicast test using %sIPv%s (w/%s LwIP) with %u nodes:" % ("UDP/" if transport_network_tuple[0] == "udp" else "", transport_network_tuple[1], "" if self.using_lwip else "o", nodes),
+        print "Inet multicast test using %sIPv%s w/ device interface: %s (w/%s LwIP) with %u nodes:" % ("UDP/" if transport == "udp" else "", network, "<none>" if interface == None else interface, "" if self.using_lwip else "o", nodes),
 
         if value:
             print hgreen("PASSED")
@@ -241,13 +229,19 @@ class test_weave_inet_multicast_01(unittest.TestCase):
             raise ValueError("Weave Inet Multicast Test Failed")
 
 
-    def __run_inet_multicast_test(self, configuration, transport_network_tuple):
+    def __run_inet_multicast_test(self, configuration, interface, network, transport):
+        # The default interval is 1 s (1000 ms). This is a good
+        # default for interactive test operation; however, for
+        # automated continuous integration, we prefer it to run much
+        # faster. Consequently, use 250 ms as the interval.
+        
         options = WeaveInetMulticast.option()
         options["quiet"] = False
         options["configuration"] = configuration
-        options["interface"] = self.interface
-        options["transport"] = transport_network_tuple[0]
-        options["ipversion"] = transport_network_tuple[1]
+        options["interface"] = interface
+        options["ipversion"] = network
+        options["transport"] = transport
+        options["interval"] = str(250)
         options["tap"] = self.tap
 
         weave_inet_multicast = WeaveInetMulticast.WeaveInetMulticast(options)

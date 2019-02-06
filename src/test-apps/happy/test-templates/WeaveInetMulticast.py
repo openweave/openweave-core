@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 #
-#    Copyright (c) 2018 Google LLC.
+#    Copyright (c) 2018-2019 Google LLC.
 #    All rights reserved.
 #
 #    Licensed under the Apache License, Version 2.0 (the "License");
@@ -29,6 +29,7 @@ import time
 
 from happy.ReturnMsg import ReturnMsg
 from happy.Utils import *
+from happy.utils.IP import IP
 from happy.HappyNode import HappyNode
 from happy.HappyNetwork import HappyNetwork
 
@@ -38,8 +39,9 @@ from WeaveTest import WeaveTest
 options = {}
 options["configuration"] = None
 options["interface"] = None
-options["transport"] = None
 options["ipversion"] = None
+options["transport"] = None
+options["interval"] = None
 options["quiet"] = False
 options["tap"] = None
 
@@ -77,14 +79,23 @@ class WeaveInetMulticast(HappyNode, HappyNetwork, WeaveTest):
 
         self.configuration = opts["configuration"]
         self.interface = opts["interface"]
-        self.transport = opts["transport"]
         self.ipversion = opts["ipversion"]
+        self.transport = opts["transport"]
+        self.interval = opts["interval"]
         self.quiet = opts["quiet"]
         self.tap = opts["tap"]
+
 
     def __log_error_and_exit(self, error):
         self.logger.error("[localhost] WeaveInetMulticast: %s" % (error))
         sys.exit(1)
+
+
+    def __checkNodeExists(self, node, description):
+        if not self._nodeExists(node):
+            emsg = "The %s '%s' does not exist in the test topology." % (description, node)
+            self.__log_error_and_exit(emsg)
+
 
     # Sanity check the instantiated options and configuration
     def __pre_check(self):
@@ -117,15 +128,14 @@ class WeaveInetMulticast(HappyNode, HappyNetwork, WeaveTest):
         # loaded Happy configuration.
 
         for node in self.configuration['sender'].keys():
-            if not self._nodeExists(node):
-                emsg = "The sender '%s' does not exist in the test topology." % (node)
-                self.__log_error_and_exit(emsg)
+            self.__checkNodeExists(node, "sender")
 
         for node in self.configuration['receivers'].keys():
-            if not self._nodeExists(node):
-                emsg = "The receiver '%s' does not exist in the test topology." % (node)
-                self.__log_error_and_exit(emsg)
+            self.__checkNodeExists(node, "receiver")
 
+        if not self.interval == None and not self.interval.isdigit():
+            emsg = "Please specify a valid send interval in milliseconds."
+            self.__log_error_and_exit(emsg)
 
     # Gather and return the exit status and output as a tuple for the
     # specified process node and tag.
@@ -199,9 +209,13 @@ class WeaveInetMulticast(HappyNode, HappyNetwork, WeaveTest):
         #
         # For the output, simply key it by sender and receivers.
 
+        # Sender
+
         status = (results['sender']['status'] == 0)
 
         output['sender'] = results['sender']['output']
+
+        # Receivers
 
         for receiver_results in results['receivers']:
             status = (status and (receiver_results['status'] == 0))
@@ -219,6 +233,7 @@ class WeaveInetMulticast(HappyNode, HappyNetwork, WeaveTest):
 
         # Generate and accumulate the multicast group-related command
         # line options.
+
         for group in attributes['groups']:
             cmd += " --group %u" % (group['id'])
             cmd += " --group-expected-tx-packets %u" % (group['send'])
@@ -243,12 +258,13 @@ class WeaveInetMulticast(HappyNode, HappyNetwork, WeaveTest):
             if self.ipversion == "4" and attributes.has_key('tap-ipv4-local-addr'):
                 cmd += " --local-addr " + attributes['tap-ipv4-local-addr']
 
-        # Generate and accumulate the bound network interface command
-        # line option.
+        # Generate and accumulate, if present, the bound network
+        # interface command line option.
 
-        cmd += " --interface " + self.interface
+        if not self.interface == None:
+            cmd += " --interface " + self.interface
 
-        # Accumulate an extra command line options specified.
+        # Accumulate any extra command line options specified.
         
         cmd += extra
 
@@ -263,7 +279,9 @@ class WeaveInetMulticast(HappyNode, HappyNetwork, WeaveTest):
         receiver = {}
         tag = "INET-MCAST-RX-%u" % (identifier)
 
-        self.__start_node(node, attributes, " --listen", tag)
+        extra_cmd = " --listen"
+
+        self.__start_node(node, attributes, extra_cmd, tag)
 
         receiver['node'] = node
         receiver['tag'] = tag
@@ -285,8 +303,15 @@ class WeaveInetMulticast(HappyNode, HappyNetwork, WeaveTest):
         node = self.configuration['sender'].keys()[0]
         attributes = self.configuration['sender'][node]
         tag = "INET-MCAST-TX-0"
+
+        extra_cmd = ""
+
+        if not self.interval == None:
+            extra_cmd += " --interval " + str(self.interval)
+
+        extra_cmd += " --no-loopback"
         
-        self.__start_node(node, attributes, " --no-loopback", tag)
+        self.__start_node(node, attributes, extra_cmd, tag)
 
         self.sender['node'] = node
         self.sender['tag'] = tag
@@ -296,16 +321,17 @@ class WeaveInetMulticast(HappyNode, HappyNetwork, WeaveTest):
     def __wait_for_sender(self):
         node = self.sender['node']
         tag = self.sender['tag']
-        
+
         self.logger.debug("[localhost] WeaveInetMulticast: Will wait for sender on node %s with tag %s..." % (node, tag))
 
         self.wait_for_test_to_end(node, tag)
+
 
     # Stop the specified receiver test process.
     def __stop_receiver(self, receiver):
         node = receiver['node']
         tag = receiver['tag']
-        
+
         self.logger.debug("[localhost] WeaveInetMulticast: Will stop receiver on node %s with tag %s..." % (node, tag))
 
         self.stop_weave_process(node, tag)
@@ -345,7 +371,7 @@ class WeaveInetMulticast(HappyNode, HappyNetwork, WeaveTest):
         # Process the results from the sender and receivers into a
         # singular status value and a results dictionary containing
         # process output.
-        
+
         status, results = self.__process_results(results)
 
         self.logger.debug("[localhost] WeaveInetMulticast: Done.")
