@@ -990,9 +990,11 @@ TestInetEndPoint_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
 	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CXXLD) \
 	$(AM_CXXFLAGS) $(CXXFLAGS) $(TestInetEndPoint_LDFLAGS) \
 	$(LDFLAGS) -o $@
-am__TestInetLayer_SOURCES_DIST = TestInetLayer.cpp
+am__TestInetLayer_SOURCES_DIST = TestInetLayer.cpp \
+	TestInetLayerCommon.cpp
 @WEAVE_BUILD_TESTS_TRUE@am_TestInetLayer_OBJECTS =  \
-@WEAVE_BUILD_TESTS_TRUE@	TestInetLayer.$(OBJEXT)
+@WEAVE_BUILD_TESTS_TRUE@	TestInetLayer.$(OBJEXT) \
+@WEAVE_BUILD_TESTS_TRUE@	TestInetLayerCommon.$(OBJEXT)
 TestInetLayer_OBJECTS = $(am_TestInetLayer_OBJECTS)
 @WEAVE_BUILD_TESTS_TRUE@TestInetLayer_DEPENDENCIES =  \
 @WEAVE_BUILD_TESTS_TRUE@	libWeaveTestCommon.a \
@@ -3221,7 +3223,10 @@ noinst_HEADERS = CASEOptions.h DMTestClient.h DeviceDescOptions.h \
 @WEAVE_BUILD_TESTS_TRUE@TestInetTimer_SOURCES = TestInetTimer.cpp
 @WEAVE_BUILD_TESTS_TRUE@TestInetTimer_LDFLAGS = $(AM_CPPFLAGS)
 @WEAVE_BUILD_TESTS_TRUE@TestInetTimer_LDADD = libWeaveTestCommon.a $(COMMON_LDADD)
-@WEAVE_BUILD_TESTS_TRUE@TestInetLayer_SOURCES = TestInetLayer.cpp
+@WEAVE_BUILD_TESTS_TRUE@TestInetLayer_SOURCES = TestInetLayer.cpp \
+@WEAVE_BUILD_TESTS_TRUE@                                           TestInetLayerCommon.cpp \
+@WEAVE_BUILD_TESTS_TRUE@                                           $(NULL)
+
 @WEAVE_BUILD_TESTS_TRUE@TestInetLayer_LDFLAGS = $(AM_CPPFLAGS)
 @WEAVE_BUILD_TESTS_TRUE@TestInetLayer_LDADD = libWeaveTestCommon.a $(COMMON_LDADD)
 @WEAVE_BUILD_TESTS_TRUE@TestInetLayerMulticast_SOURCES = TestInetLayerMulticast.cpp \
@@ -8558,10 +8563,10 @@ maintainer-clean-generic:
 	@echo "This command is intended for maintainers to use"
 	@echo "it deletes files that may require special tools to rebuild."
 @WEAVE_BUILD_TESTS_FALSE@uninstall-local:
-@WEAVE_BUILD_TESTS_FALSE@install-exec-local:
 @WEAVE_BUILD_COVERAGE_FALSE@clean-local:
 @WEAVE_BUILD_COVERAGE_REPORTS_FALSE@clean-local:
 @WEAVE_BUILD_TESTS_FALSE@clean-local:
+@WEAVE_BUILD_TESTS_FALSE@install-exec-local:
 clean: clean-recursive
 
 clean-am: clean-checkPROGRAMS clean-generic clean-libexecPROGRAMS \
