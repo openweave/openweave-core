@@ -1,7 +1,7 @@
 #!/bin/sh
 
 #
-#    Copyright 2018 Google LLC All Rights Reserved.
+#    Copyright 2018-2019 Google LLC All Rights Reserved.
 #
 #    Licensed under the Apache License, Version 2.0 (the "License");
 #    you may not use this file except in compliance with the License.
@@ -39,8 +39,11 @@ case "${BUILD_TARGET}" in
         ;;
 
     linux-auto-gcc-check-happy)
-        # run happy test
         sudo make -f Makefile-Standalone DEBUG=1 TIMESTAMP=1 COVERAGE=1 BuildJobs=24 check
+        ;;
+
+    linux-lwip-gcc-check-happy)
+        sudo make -f Makefile-Standalone DEBUG=1 TIMESTAMP=1 COVERAGE=1 USE_LWIP=1 BuildJobs=24 check
         ;;
 
     linux-lwip-clang)

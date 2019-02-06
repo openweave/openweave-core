@@ -1,5 +1,5 @@
 #
-#    Copyright 2018 Google LLC. All Rights Reserved.
+#    Copyright 2018-2019 Google LLC. All Rights Reserved.
 #
 #    Licensed under the Apache License, Version 2.0 (the "License");
 #    you may not use this file except in compliance with the License.
@@ -67,10 +67,14 @@ matrix:
       env: BUILD_TARGET="osx-lwip-clang" CC="clang"
       os: osx
       compiler: clang
-    - name: "Linux with Defaults against GCC Network and Service (Happy) Tests"
+    - name: "Linux with Defaults against GCC Network and Service Tests"
       os: linux
       compiler: gcc
       env: BUILD_TARGET="linux-auto-gcc-check-happy"
+    - name: "Linux with LwIP against GCC Network and Service Tests"
+      os: linux
+      compiler: gcc
+      env: BUILD_TARGET="linux-lwip-gcc-check-happy"
     - name: "ESP32"
       env: BUILD_TARGET="esp32"
 
