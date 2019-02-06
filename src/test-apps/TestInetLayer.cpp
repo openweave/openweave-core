@@ -1,5 +1,6 @@
 /*
  *
+ *    Copyright (c) 2019 Google LLC.
  *    Copyright (c) 2013-2017 Nest Labs, Inc.
  *    All rights reserved.
  *
@@ -27,755 +28,1042 @@
 #define __STDC_LIMIT_MACROS
 #endif
 
+#include <signal.h>
 #include <stdint.h>
 #include <string.h>
 #include <unistd.h>
 
-#include "ToolCommon.h"
+#include <Weave/Support/CodeUtils.h>
+
 #include <SystemLayer/SystemTimer.h>
+
+#include "ToolCommon.h"
+#include "TestInetLayerCommon.hpp"
 
 using namespace nl::Inet;
 
-#define TOOL_NAME "TestInetLayer"
 
-static bool HandleOption(const char *progName, OptionSet *optSet, int id, const char *name, const char *arg);
-static bool HandleNonOptionArgs(const char *progName, int argc, char *argv[]);
-static void StartTest();
-static void DriveSend();
-static void HandleConnectionComplete(TCPEndPoint *ep, INET_ERROR conErr);
-static void HandleConnectionReceived(TCPEndPoint *listeningEP, TCPEndPoint *conEP, const IPAddress &peerAddr,
-        uint16_t peerPort);
-static void HandleConnectionClosed(TCPEndPoint *ep, INET_ERROR err);
-static void HandleDataSent(TCPEndPoint *ep, uint16_t len);
-static void HandleDataReceived(TCPEndPoint *ep, PacketBuffer *data);
-static void HandleAcceptError(TCPEndPoint *endPoint, INET_ERROR err);
-static void HandleRawMessageReceived(RawEndPoint *endPoint, PacketBuffer *msg, const IPPacketInfo *pktInfo);
-static void HandleRawReceiveError(RawEndPoint *endPoint, INET_ERROR err, const IPPacketInfo *pktInfo);
-static void HandleUDPMessageReceived(UDPEndPoint *endPoint, PacketBuffer *msg, const IPPacketInfo *pktInfo);
-static void HandleUDPReceiveError(UDPEndPoint *endPoint, INET_ERROR err, const IPPacketInfo *pktInfo);
-static void HandleSendTimerComplete(System::Layer* aSystemLayer, void* aAppState, System::Error aError);
-static PacketBuffer *MakeDataBuffer(int32_t len);
+/* Preprocessor Macros */
 
-bool Listen = false;
-const char *destHostName = NULL;
-IPAddress DestAddr = IPAddress::Any;
-bool IsTimeToSend = true;
-int32_t SendInterval = 1000; // in ms
-int32_t SendLength = 3200;
-int32_t MaxSendLength = -1;
-int32_t MinRcvLength = 0;
-int32_t MaxRcvLength = -1;
-int32_t TotalSendLength = 0;
-int32_t TotalRcvLength = 0;
-const char *IntfFilterName = NULL;
-#if INET_CONFIG_ENABLE_IPV4
-bool UseRaw4 = false;
-#endif // INET_CONFIG_ENABLE_IPV4
-bool UseRaw6 = false;
-bool UseTCP = false;
-TCPEndPoint *TCPEP = NULL;
-TCPEndPoint *ListenEP = NULL;
-UDPEndPoint *UDPEP = NULL;
-RawEndPoint *Raw4EP = NULL;
-RawEndPoint *Raw6EP = NULL;
+#define kToolName                       "TestInetLayer"
 
-static OptionDef gToolOptionDefs[] =
+#define kToolOptTCPIP                   't'
+
+#define kToolOptExpectedRxSize          (kToolOptBase + 0)
+#define kToolOptExpectedTxSize          (kToolOptBase + 1)
+
+
+/* Type Definitions */
+
+enum OptFlags
 {
-    { "intf-filter",        kArgumentRequired,  'F' },
-    { "length",             kArgumentRequired,  'l' },
-    { "max-receive",        kArgumentRequired,  'r' },
-    { "max-send",           kArgumentRequired,  's' },
-    { "interval",           kArgumentRequired,  'i' },
-    { "listen",             kNoArgument,        'L' },
+    kOptFlagExpectedRxSize = 0x00010000,
+    kOptFlagExpectedTxSize = 0x00020000,
+
+    kOptFlagUseTCPIP       = 0x00040000
+};
+
+struct TestState
+{
+    TransferStats                mStats;
+    TestStatus                   mStatus;
+};
+
+
+/* Function Declarations */
+
+static void HandleSignal(int aSignal);
+static bool HandleOption(const char *aProgram, OptionSet *aOptions, int aIdentifier, const char *aName, const char *aValue);
+static bool HandleNonOptionArgs(const char *aProgram, int argc, char *argv[]);
+
+static void StartTest(void);
+static void CleanupTest(void);
+
+
+/* Global Variables */
+
+static const uint32_t    kExpectedRxSizeDefault = 1523;
+static const uint32_t    kExpectedTxSizeDefault = kExpectedRxSizeDefault;
+
+static const uint32_t    kOptFlagsDefault       = (kOptFlagUseIPv6 | kOptFlagUseUDPIP);
+
+static RawEndPoint *     sRawIPEndPoint         = NULL;
+static TCPEndPoint *     sTCPIPEndPoint         = NULL;  // Used for connect/send/receive
+static TCPEndPoint *     sTCPIPListenEndPoint   = NULL;  // Used for accept/listen
+static UDPEndPoint *     sUDPIPEndPoint         = NULL;
+
+static const uint16_t    kTCPPort               = kUDPPort;
+
+static TestState         sTestState             =
+{
+    { { 0, 0 }, { 0, 0 } },
+    { false, false }
+};
+
+static IPAddress         sDestinationAddress   = IPAddress::Any;
+static const char *      sDestinationString    = NULL;
+
+static OptionDef         sToolOptionDefs[] =
+{
+    { "interface",                 kArgumentRequired,  kToolOptInterface              },
+    { "expected-rx-size",          kArgumentRequired,  kToolOptExpectedRxSize         },
+    { "expected-tx-size",          kArgumentRequired,  kToolOptExpectedTxSize         },
+    { "interval",                  kArgumentRequired,  kToolOptInterval               },
 #if INET_CONFIG_ENABLE_IPV4
-    { "raw4",               kNoArgument,        '4' },
+    { "ipv4",                      kNoArgument,        kToolOptIPv4Only               },
 #endif // INET_CONFIG_ENABLE_IPV4
-    { "raw6",               kNoArgument,        '6' },
-    { "tcp",                kNoArgument,        't' },
+    { "ipv6",                      kNoArgument,        kToolOptIPv6Only               },
+    { "listen",                    kNoArgument,        kToolOptListen                 },
+    { "raw",                       kNoArgument,        kToolOptRawIP                  },
+    { "send-size",                 kArgumentRequired,  kToolOptSendSize               },
+    { "tcp",                       kNoArgument,        kToolOptTCPIP                  },
+    { "udp",                       kNoArgument,        kToolOptUDPIP                  },
     { NULL }
 };
 
-static const char *gToolOptionHelp =
-    "  -F, --intf-filter <interface-name>\n"
-    "       Name of the interface to filter traffic from/to.\n"
+static const char *      sToolOptionHelp =
+    "  -I, --interface <interface>\n"
+    "       The network interface to bind to and from which to send and receive all packets.\n"
     "\n"
-    "  -l, --length <num>\n"
-    "       Send specified number of bytes.\n"
+    "  --expected-rx-size <size>\n"
+    "       Expect to receive size bytes of user data (default 1523).\n"
     "\n"
-    "  -r, --max-receive <num>\n"
-    "       Maximum bytes to receive per connection.\n"
+    "  --expected-tx-size <size>\n"
+    "       Expect to send size bytes of user data (default 1523).\n"
     "\n"
-    "  -s, --max-send <num>\n"
-    "       Maximum bytes to send per connection.\n"
+    "  -i, --interval <interval>\n"
+    "       Wait interval milliseconds between sending each packet (default: 1000 ms).\n"
     "\n"
-    "  -i, --interval <ms>\n"
-    "       Send data at the specified interval in milliseconds.\n"
-    "\n"
-    "  -L, --listen\n"
-    "       Listen for incoming data.\n"
+    "  -l, --listen\n"
+    "       Act as a server (i.e., listen) for packets rather than send them.\n"
     "\n"
 #if INET_CONFIG_ENABLE_IPV4
-    "  -4, --raw4\n"
-    "       Use Raw IPv4. Defaults to using UDP.\n"
+    "  -4, --ipv4\n"
+    "       Use IPv4 only.\n"
     "\n"
 #endif // INET_CONFIG_ENABLE_IPV4
-    "  -6, --raw6\n"
-    "       Use Raw IPv6. Defaults to using UDP.\n"
+    "  -6, --ipv6\n"
+    "       Use IPv6 only (default).\n"
+    "\n"
+    "  -s, --send-size <size>\n"
+    "       Send size bytes of user data (default: 59 bytes)\n"
+    "\n"
+    "  -r, --raw\n"
+    "       Use raw IP (default).\n"
     "\n"
     "  -t, --tcp\n"
-    "       Use TCP. Defaults to using UDP.\n"
+    "       Use TCP over IP.\n"
+    "\n"
+    "  -u, --udp\n"
+    "       Use UDP over IP (default).\n"
     "\n";
 
-static OptionSet gToolOptions =
+static OptionSet         sToolOptions =
 {
     HandleOption,
-    gToolOptionDefs,
+    sToolOptionDefs,
     "GENERAL OPTIONS",
-    gToolOptionHelp
+    sToolOptionHelp
 };
 
-static HelpOptions gHelpOptions(
-    TOOL_NAME,
-    "Usage: " TOOL_NAME " <options> <src-node-addr> <dest-node-addr>\n"
-    "       " TOOL_NAME " <options> <src-node-addr> --listen\n",
+static HelpOptions       sHelpOptions(
+    kToolName,
+    "Usage: " kToolName " [ <options> ] <dest-node-addr>\n"
+    "       " kToolName " [ <options> ] --listen\n",
     WEAVE_VERSION_STRING "\n" WEAVE_TOOL_COPYRIGHT
 );
 
-static OptionSet *gToolOptionSets[] =
+static OptionSet *       sToolOptionSets[] =
 {
-    &gToolOptions,
+    &sToolOptions,
     &gNetworkOptions,
     &gFaultInjectionOptions,
-    &gHelpOptions,
+    &sHelpOptions,
     NULL
 };
 
-#if INET_CONFIG_ENABLE_DNS_RESOLVER
-static bool DNSResolutionComplete = false;
-static void HandleDNSResolveComplete(void *appState, INET_ERROR err, uint8_t addrCount, IPAddress *addrArray);
-#endif // INET_CONFIG_ENABLE_DNS_RESOLVER
+static void CheckSucceededOrFailed(TestState &aTestState, bool &aOutSucceeded, bool &aOutFailed)
+{
+    const TransferStats &lStats = aTestState.mStats;
+
+#if DEBUG
+    printf("%u/%u sent, %u/%u received\n",
+           lStats.mTransmit.mActual, lStats.mTransmit.mExpected,
+           lStats.mReceive.mActual, lStats.mReceive.mExpected);
+#endif
+
+    if (((lStats.mTransmit.mExpected > 0) && (lStats.mTransmit.mActual > lStats.mTransmit.mExpected)) ||
+        ((lStats.mReceive.mExpected > 0) && (lStats.mReceive.mActual > lStats.mReceive.mExpected)))
+    {
+        aOutFailed = true;
+    }
+    else if (((lStats.mTransmit.mExpected > 0) && (lStats.mTransmit.mActual < lStats.mTransmit.mExpected)) ||
+             ((lStats.mReceive.mExpected > 0) && (lStats.mReceive.mActual < lStats.mReceive.mExpected)))
+    {
+        aOutSucceeded = false;
+    }
+
+    if (aOutSucceeded || aOutFailed)
+    {
+        if (aOutSucceeded)
+            aTestState.mStatus.mSucceeded = true;
+
+        if (aOutFailed)
+            SetStatusFailed(aTestState.mStatus);
+    }
+}
+
+static void HandleSignal(int aSignal)
+{
+    switch (aSignal)
+    {
+
+    case SIGUSR1:
+        SetStatusFailed(sTestState.mStatus);
+        break;
+
+    }
+}
 
 int main(int argc, char *argv[])
 {
-    SetSignalHandler(DoneOnHandleSIGUSR1);
+    bool          lSuccessful = true;
+    INET_ERROR    lStatus;
+
+    InitToolCommon();
+
+    SetupFaultInjectionContext(argc, argv);
+
+    SetSignalHandler(HandleSignal);
 
     if (argc == 1)
     {
-        gHelpOptions.PrintBriefUsage(stderr);
-        exit(EXIT_FAILURE);
+        sHelpOptions.PrintBriefUsage(stderr);
+        lSuccessful = false;
+        goto exit;
     }
 
-    if (!ParseArgsFromEnvVar(TOOL_NAME, TOOL_OPTIONS_ENV_VAR_NAME, gToolOptionSets, NULL, true) ||
-        !ParseArgs(TOOL_NAME, argc, argv, gToolOptionSets, HandleNonOptionArgs))
+    if (!ParseArgsFromEnvVar(kToolName, TOOL_OPTIONS_ENV_VAR_NAME, sToolOptionSets, NULL, true) ||
+        !ParseArgs(kToolName, argc, argv, sToolOptionSets, HandleNonOptionArgs))
     {
-        exit(EXIT_FAILURE);
+        lSuccessful = false;
+        goto exit;
     }
 
     InitSystemLayer();
+
     InitNetwork();
+
+    // At this point, we should have valid network interfaces,
+    // including LwIP TUN/TAP shim interfaces. Validate the
+    // -I/--interface argument, if present.
+
+    if (gInterfaceName != NULL)
+    {
+        lStatus = InterfaceNameToId(gInterfaceName, gInterfaceId);
+        if (lStatus != INET_NO_ERROR)
+        {
+            PrintArgError("%s: unknown network interface %s\n", kToolName, gInterfaceName);
+            lSuccessful = false;
+            goto shutdown;
+        }
+    }
 
     StartTest();
 
-    while (!Done)
+    while (Common::IsTesting(sTestState.mStatus))
     {
         struct timeval sleepTime;
+        bool lSucceeded = true;
+        bool lFailed = false;
+
         sleepTime.tv_sec = 0;
         sleepTime.tv_usec = 10000;
 
         ServiceNetwork(sleepTime);
+
+        CheckSucceededOrFailed(sTestState, lSucceeded, lFailed);
+
+#if DEBUG
+        printf("%s %s number of expected bytes\n",
+               ((lSucceeded) ? "successfully" :
+                ((lFailed) ? "failed to" :
+                 "has not yet")),
+               ((lSucceeded) ? (Common::IsReceiver() ? "received" : "sent") :
+                ((lFailed) ? (Common::IsReceiver() ? "receive" : "send") :
+                 Common::IsReceiver() ? "received" : "sent"))
+               );
+#endif
     }
 
-    if (TCPEP)
-        TCPEP->Shutdown();
+    CleanupTest();
 
-    if (ListenEP)
-        ListenEP->Shutdown();
+shutdown:
+    ShutdownNetwork();
+    ShutdownSystemLayer();
 
-    Inet.Shutdown();
+    lSuccessful = Common::WasSuccessful(sTestState.mStatus);
 
-    return EXIT_SUCCESS;
+exit:
+    return (lSuccessful ? EXIT_SUCCESS : EXIT_FAILURE);
 }
 
-bool HandleOption(const char *progName, OptionSet *optSet, int id, const char *name, const char *arg)
+static bool HandleOption(const char *aProgram, OptionSet *aOptions, int aIdentifier, const char *aName, const char *aValue)
 {
-    switch (id)
+    bool       retval = true;
+
+    switch (aIdentifier)
     {
+
+    case kToolOptInterval:
+        if (!ParseInt(aValue, gSendIntervalMs) || gSendIntervalMs > UINT32_MAX)
+        {
+            PrintArgError("%s: invalid value specified for send interval: %s\n", aProgram, aValue);
+            retval = false;
+        }
+        break;
+
+    case kToolOptListen:
+        gOptFlags |= kOptFlagListen;
+        break;
+
+    case kToolOptExpectedRxSize:
+        if (!ParseInt(aValue, sTestState.mStats.mReceive.mExpected) || sTestState.mStats.mReceive.mExpected > UINT32_MAX)
+        {
+            PrintArgError("%s: Invalid value specified for max receive: %s\n", aProgram, aValue);
+            retval = false;
+        }
+        gOptFlags |= kOptFlagExpectedRxSize;
+        break;
+
+    case kToolOptExpectedTxSize:
+        if (!ParseInt(aValue, sTestState.mStats.mTransmit.mExpected) || sTestState.mStats.mTransmit.mExpected > UINT32_MAX)
+        {
+            PrintArgError("%s: Invalid value specified for max send: %s\n", aProgram, aValue);
+            retval = false;
+        }
+        gOptFlags |= kOptFlagExpectedTxSize;
+        break;
+
 #if INET_CONFIG_ENABLE_IPV4
-    case '4':
-        UseRaw4 = true;
+    case kToolOptIPv4Only:
+        if (gOptFlags & kOptFlagUseIPv6)
+        {
+            PrintArgError("%s: the use of --ipv4 is exclusive with --ipv6. Please select only one of the two options.\n", aProgram);
+            retval = false;
+        }
+        gOptFlags |= kOptFlagUseIPv4;
         break;
 #endif // INET_CONFIG_ENABLE_IPV4
-    case '6':
-        UseRaw6 = true;
-        break;
-    case 't':
-        UseTCP = true;
-        break;
-    case 'L':
-        Listen = true;
-        break;
-    case 'l':
-        if (!ParseInt(arg, SendLength) || SendLength < 0 || SendLength > UINT16_MAX)
+
+    case kToolOptIPv6Only:
+        if (gOptFlags & kOptFlagUseIPv4)
         {
-            PrintArgError("%s: Invalid value specified for data length: %s\n", progName, arg);
+            PrintArgError("%s: the use of --ipv6 is exclusive with --ipv4. Please select only one of the two options.\n", aProgram);
+            retval = false;
+        }
+        gOptFlags |= kOptFlagUseIPv6;
+        break;
+
+    case kToolOptInterface:
+
+        // NOTE: When using LwIP on a hosted OS, the interface will
+        // not actually be available until AFTER InitNetwork,
+        // consequently, we cannot do any meaningful validation
+        // here. Simply save the value off and we will validate it
+        // later.
+
+        gInterfaceName = aValue;
+        break;
+
+    case kToolOptRawIP:
+        if (gOptFlags & kOptFlagUseUDPIP)
+        {
+            PrintArgError("%s: the use of --raw is exclusive with --udp. Please select only one of the two options.\n", aProgram);
+            retval = false;
+        }
+		else if (gOptFlags & kOptFlagUseTCPIP)
+		{
+            PrintArgError("%s: the use of --raw is exclusive with --tcp. Please select only one of the two options.\n", aProgram);
+            retval = false;
+		}
+        gOptFlags |= kOptFlagUseRawIP;
+        break;
+
+    case kToolOptTCPIP:
+        if (gOptFlags & kOptFlagUseRawIP)
+        {
+            PrintArgError("%s: the use of --tcp is exclusive with --raw. Please select only one of the two options.\n", aProgram);
+            retval = false;
+        }
+		else if (gOptFlags & kOptFlagUseUDPIP)
+		{
+            PrintArgError("%s: the use of --tcp is exclusive with --udp. Please select only one of the two options.\n", aProgram);
+            retval = false;
+        }
+        gOptFlags |= kOptFlagUseTCPIP;
+        break;
+
+    case kToolOptSendSize:
+        if (!ParseInt(aValue, gSendSize))
+        {
+            PrintArgError("%s: invalid value specified for send size: %s\n", aProgram, aValue);
             return false;
         }
         break;
-    case 'r':
-        if (!ParseInt(arg, MaxRcvLength) || MaxRcvLength < 0)
+
+    case kToolOptUDPIP:
+        if (gOptFlags & kOptFlagUseRawIP)
         {
-            PrintArgError("%s: Invalid value specified for max receive: %s\n", progName, arg);
-            return false;
+            PrintArgError("%s: the use of --udp is exclusive with --raw. Please select only one of the two options.\n", aProgram);
+            retval = false;
         }
-        break;
-    case 's':
-        if (!ParseInt(arg, MaxSendLength) || MaxSendLength < 0)
-        {
-            PrintArgError("%s: Invalid value specified for max send: %s\n", progName, arg);
-            return false;
+		else if (gOptFlags & kOptFlagUseTCPIP)
+		{
+            PrintArgError("%s: the use of --udp is exclusive with --tcp. Please select only one of the two options.\n", aProgram);
+            retval = false;
         }
+        gOptFlags |= kOptFlagUseUDPIP;
         break;
-    case 'i':
-        if (!ParseInt(arg, SendInterval) || SendInterval < 0 || SendInterval > INT32_MAX)
-        {
-            PrintArgError("%s: Invalid value specified for send interval: %s\n", progName, arg);
-            return false;
-        }
-        break;
-    case 'F':
-        IntfFilterName = arg;
-        break;
+
     default:
-        PrintArgError("%s: INTERNAL ERROR: Unhandled option: %s\n", progName, name);
-        return false;
+        PrintArgError("%s: INTERNAL ERROR: Unhandled option: %s\n", aProgram, aName);
+        retval = false;
+        break;
+
     }
 
-    return true;
+    return (retval);
 }
 
-bool HandleNonOptionArgs(const char *progName, int argc, char *argv[])
+bool HandleNonOptionArgs(const char *aProgram, int argc, char *argv[])
 {
-    if (!Listen)
+    bool retval = true;
+
+    if (Common::IsSender())
     {
         if (argc == 0)
         {
-            PrintArgError("%s: Please specify a destination name or address\n", progName);
-            return false;
+            PrintArgError("%s: Please specify a destination address.\n", aProgram);
+            retval = false;
+            goto exit;
         }
 
-        destHostName = argv[0];
+        retval = IPAddress::FromString(argv[0], sDestinationAddress);
+        VerifyOrExit(retval == true,
+                     PrintArgError("%s: Please specify a valid destination address: %s\n", aProgram, argv[0]));
+
+        sDestinationString = argv[0];
 
         argc--; argv++;
-    }
-    else
-    {
-        // If listening and a send length wasn't explicitly specified, then don't send anything.
-        // NOTE: this only applies when using TCP.
-        if (MaxSendLength == -1)
-            MaxSendLength = 0;
     }
 
     if (argc > 0)
     {
-        PrintArgError("%s: TestInetLayer: Unexpected argument: %s\n", progName, argv[0]);
-        return false;
+        PrintArgError("%s: unexpected argument: %s\n", aProgram, argv[0]);
+        retval = false;
+        goto exit;
     }
 
-    return true;
+    // If no IP version or transport flags were specified, use the defaults.
+
+    if (!(gOptFlags & (kOptFlagUseIPv4 | kOptFlagUseIPv6 | kOptFlagUseRawIP | kOptFlagUseTCPIP | kOptFlagUseUDPIP)))
+    {
+        gOptFlags |= kOptFlagsDefault;
+    }
+
+    // If no expected send or receive lengths were specified, use the defaults.
+
+    if (!(gOptFlags & kOptFlagExpectedRxSize))
+    {
+        sTestState.mStats.mReceive.mExpected = kExpectedRxSizeDefault;
+    }
+
+    if (!(gOptFlags & kOptFlagExpectedTxSize))
+    {
+        sTestState.mStats.mTransmit.mExpected = kExpectedTxSizeDefault;
+    }
+
+exit:
+    return (retval);
 }
 
-#define   NUM_ICMP6_FILTER_TYPES 2
-uint8_t ICMP6Types[NUM_ICMP6_FILTER_TYPES] =
-{ 128, 129 }; //Echo Request, Echo Reply
-//#define     NUM_ICMP6_FILTER_TYPES 1
-//uint8_t     ICMP6Types[NUM_ICMP6_FILTER_TYPES] = {255}; //Reserved for expansion of ICMPv6 informational messages
-
-void StartTest()
+static void PrintReceivedStats(const TransferStats &aStats)
 {
-    INET_ERROR err;
+    printf("%u/%u received\n",
+           aStats.mReceive.mActual,
+           aStats.mReceive.mExpected);
+}
 
-    IsTimeToSend = (MaxSendLength != 0);
+static bool HandleDataReceived(const PacketBuffer *aBuffer, bool aCheckBuffer, uint8_t aFirstValue)
+{
+    const bool  lStatsByPacket = true;
+    bool        lStatus = true;
 
-    if (UseRaw6)
+    lStatus = Common::HandleDataReceived(aBuffer,
+                                         sTestState.mStats,
+                                         !lStatsByPacket,
+                                         aCheckBuffer,
+                                         aFirstValue);
+    VerifyOrExit(lStatus == true, );
+
+    PrintReceivedStats(sTestState.mStats);
+
+exit:
+    return (lStatus);
+}
+
+static bool HandleDataReceived(const PacketBuffer *aBuffer, bool aCheckBuffer)
+{
+    const uint8_t  lFirstValue = 0;
+    bool           lStatus = true;
+
+    lStatus = HandleDataReceived(aBuffer, aCheckBuffer, lFirstValue);
+    VerifyOrExit(lStatus == true, );
+
+exit:
+    return (lStatus);
+}
+
+// TCP Endpoint Callbacks
+
+void HandleTCPConnectionComplete(TCPEndPoint *aEndPoint, INET_ERROR aError)
+{
+    INET_ERROR lStatus;
+
+    if (aError == WEAVE_NO_ERROR)
     {
-        printf("UseRaw6, if: %s (WEAVE_SYSTEM_CONFIG_USE_LWIP: %d)\n", IntfFilterName, WEAVE_SYSTEM_CONFIG_USE_LWIP);
-        err = Inet.NewRawEndPoint(kIPVersion_6, kIPProtocol_ICMPv6, &Raw6EP);
-        FAIL_ERROR(err, "InetLayer::NewRawEndPoint (IPv6) failed");
-        if (IntfFilterName != NULL)
-        {
-            InterfaceId intfId;
-            err = InterfaceNameToId(IntfFilterName, intfId);
-            FAIL_ERROR(err, "InterfaceNameToId failed");
-            err = Raw6EP->BindInterface(kIPAddressType_IPv6, intfId);
-            FAIL_ERROR(err, "RawEndPoint::BindInterface (IPv6) failed");
-        }
-        Raw6EP->OnMessageReceived = reinterpret_cast<IPEndPointBasis::OnMessageReceivedFunct>(HandleRawMessageReceived);
-        Raw6EP->OnReceiveError = reinterpret_cast<IPEndPointBasis::OnReceiveErrorFunct>(HandleRawReceiveError);
+        IPAddress  lPeerAddress;
+        uint16_t   lPeerPort;
+        char       lPeerAddressBuffer[INET6_ADDRSTRLEN];
+
+        lStatus = aEndPoint->GetPeerInfo(&lPeerAddress, &lPeerPort);
+        FAIL_ERROR(lStatus, "TCPEndPoint::GetPeerInfo failed");
+
+        lPeerAddress.ToString(lPeerAddressBuffer, sizeof (lPeerAddressBuffer));
+
+        printf("TCP connection established to %s:%u\n", lPeerAddressBuffer, lPeerPort);
+
+        if (sTCPIPEndPoint->PendingReceiveLength() == 0)
+            sTCPIPEndPoint->PutBackReceivedData(NULL);
+
+        sTCPIPEndPoint->DisableReceive();
+        sTCPIPEndPoint->EnableKeepAlive(10, 100);
+        sTCPIPEndPoint->DisableKeepAlive();
+        sTCPIPEndPoint->EnableReceive();
+
+        DriveSend();
     }
-#if INET_CONFIG_ENABLE_IPV4
-    else if (UseRaw4)
+    else
     {
-        err = Inet.NewRawEndPoint(kIPVersion_4, kIPProtocol_ICMPv4, &Raw4EP);
-        FAIL_ERROR(err, "InetLayer::NewRawEndPoint (IPv4) failed");
-        if (IntfFilterName != NULL)
+        printf("TCP connection FAILED: %s\n", ErrorStr(aError));
+
+        aEndPoint->Free();
+        aEndPoint = NULL;
+
+        gSendIntervalExpired = false;
+        SystemLayer.CancelTimer(Common::HandleSendTimerComplete, NULL);
+        SystemLayer.StartTimer(gSendIntervalMs, Common::HandleSendTimerComplete, NULL);
+
+        SetStatusFailed(sTestState.mStatus);
+    }
+}
+
+static void HandleTCPConnectionClosed(TCPEndPoint *aEndPoint, INET_ERROR aError)
+{
+    if (aError == WEAVE_NO_ERROR)
+    {
+        printf("TCP connection closed\n");
+    }
+    else
+    {
+        printf("TCP connection closed with error: %s\n", ErrorStr(aError));
+
+        SetStatusFailed(sTestState.mStatus);
+    }
+
+    aEndPoint->Free();
+
+    if (aEndPoint == sTCPIPEndPoint)
+    {
+        sTCPIPEndPoint = NULL;
+    }
+}
+
+static void HandleTCPDataSent(TCPEndPoint *aEndPoint, uint16_t len)
+{
+    return;
+}
+
+static void HandleTCPDataReceived(TCPEndPoint *aEndPoint, PacketBuffer *aBuffer)
+{
+    const uint8_t  lFirstValue = sTestState.mStats.mReceive.mActual;
+    const bool     lCheckBuffer = true;
+    IPAddress      lPeerAddress;
+    uint16_t       lPeerPort;
+    char           lPeerAddressBuffer[INET6_ADDRSTRLEN];
+    bool           lCheckPassed;
+    INET_ERROR     lStatus = INET_NO_ERROR;
+
+    VerifyOrExit(aEndPoint != NULL,   lStatus = INET_ERROR_BAD_ARGS);
+    VerifyOrExit(aBuffer != NULL,     lStatus = INET_ERROR_BAD_ARGS);
+
+    if (aEndPoint->State != TCPEndPoint::kState_Connected)
+    {
+        lStatus = aEndPoint->PutBackReceivedData(aBuffer);
+        aBuffer = NULL;
+        FAIL_ERROR(lStatus, "TCPEndPoint::PutBackReceivedData failed");
+        goto exit;
+    }
+
+    lStatus = aEndPoint->GetPeerInfo(&lPeerAddress, &lPeerPort);
+    FAIL_ERROR(lStatus, "TCPEndPoint::GetPeerInfo failed");
+
+    lPeerAddress.ToString(lPeerAddressBuffer, sizeof (lPeerAddressBuffer));
+
+    printf("TCP message received from %s:%u (%zu bytes)\n",
+           lPeerAddressBuffer,
+           lPeerPort,
+           static_cast<size_t>(aBuffer->DataLength()));
+
+    lCheckPassed = HandleDataReceived(aBuffer, lCheckBuffer, lFirstValue);
+    VerifyOrExit(lCheckPassed == true, lStatus = INET_ERROR_UNEXPECTED_EVENT);
+
+    lStatus = aEndPoint->AckReceive(aBuffer->TotalLength());
+    FAIL_ERROR(lStatus, "TCPEndPoint::AckReceive failed");
+
+exit:
+    if (aBuffer != NULL)
+    {
+        PacketBuffer::Free(aBuffer);
+    }
+
+    if (lStatus != INET_NO_ERROR)
+    {
+        SetStatusFailed(sTestState.mStatus);
+    }
+}
+
+static void HandleTCPAcceptError(TCPEndPoint *aEndPoint, INET_ERROR aError)
+{
+    printf("TCP accept error: %s\n", ErrorStr(aError));
+
+    SetStatusFailed(sTestState.mStatus);
+}
+
+static void HandleTCPConnectionReceived(TCPEndPoint *aListenEndPoint, TCPEndPoint *aConnectEndPoint, const IPAddress &aPeerAddress, uint16_t aPeerPort)
+{
+    char lPeerAddressBuffer[INET6_ADDRSTRLEN];
+
+    aPeerAddress.ToString(lPeerAddressBuffer, sizeof (lPeerAddressBuffer));
+
+    printf("TCP connection accepted from %s:%u\n", lPeerAddressBuffer, aPeerPort);
+
+    aConnectEndPoint->OnConnectComplete  = HandleTCPConnectionComplete;
+    aConnectEndPoint->OnConnectionClosed = HandleTCPConnectionClosed;
+    aConnectEndPoint->OnDataSent         = HandleTCPDataSent;
+    aConnectEndPoint->OnDataReceived     = HandleTCPDataReceived;
+
+    sTCPIPEndPoint = aConnectEndPoint;
+}
+
+// Raw Endpoint Callbacks
+
+static void HandleRawMessageReceived(IPEndPointBasis *aEndPoint, PacketBuffer *aBuffer, const IPPacketInfo *aPacketInfo)
+{
+    const bool     lCheckBuffer = true;
+    const bool     lStatsByPacket = true;
+    IPAddressType  lAddressType;
+    bool           lStatus;
+
+    VerifyOrExit(aEndPoint != NULL,   lStatus = false);
+    VerifyOrExit(aBuffer != NULL,     lStatus = false);
+    VerifyOrExit(aPacketInfo != NULL, lStatus = false);
+
+    Common::HandleRawMessageReceived(aEndPoint, aBuffer, aPacketInfo);
+
+    lAddressType = aPacketInfo->DestAddress.Type();
+
+    if (lAddressType == kIPAddressType_IPv4)
+    {
+        const uint16_t kIPv4HeaderSize = 20;
+
+        aBuffer->ConsumeHead(kIPv4HeaderSize);
+
+        lStatus = Common::HandleICMPv4DataReceived(aBuffer, sTestState.mStats, !lStatsByPacket, lCheckBuffer);
+    }
+    else if (lAddressType == kIPAddressType_IPv6)
+    {
+        lStatus = Common::HandleICMPv6DataReceived(aBuffer, sTestState.mStats, !lStatsByPacket, lCheckBuffer);
+    }
+    else
+    {
+        lStatus = false;
+    }
+
+    if (lStatus)
+    {
+        PrintReceivedStats(sTestState.mStats);
+    }
+
+exit:
+    if (aBuffer != NULL)
+    {
+        PacketBuffer::Free(aBuffer);
+    }
+
+    if (!lStatus)
+    {
+        SetStatusFailed(sTestState.mStatus);
+    }
+}
+
+static void HandleRawReceiveError(IPEndPointBasis *aEndPoint, INET_ERROR aError, const IPPacketInfo *aPacketInfo)
+{
+    Common::HandleRawReceiveError(aEndPoint, aError, aPacketInfo);
+
+    SetStatusFailed(sTestState.mStatus);
+}
+
+// UDP Endpoint Callbacks
+
+static void HandleUDPMessageReceived(IPEndPointBasis *aEndPoint, PacketBuffer *aBuffer, const IPPacketInfo *aPacketInfo)
+{
+    const bool  lCheckBuffer = true;
+    bool        lStatus;
+
+    VerifyOrExit(aEndPoint != NULL,   lStatus = false);
+    VerifyOrExit(aBuffer != NULL,     lStatus = false);
+    VerifyOrExit(aPacketInfo != NULL, lStatus = false);
+
+    Common::HandleUDPMessageReceived(aEndPoint, aBuffer, aPacketInfo);
+
+    lStatus = HandleDataReceived(aBuffer, lCheckBuffer);
+
+exit:
+    if (aBuffer != NULL)
+    {
+        PacketBuffer::Free(aBuffer);
+    }
+
+    if (!lStatus)
+    {
+        SetStatusFailed(sTestState.mStatus);
+    }
+}
+
+static void HandleUDPReceiveError(IPEndPointBasis *aEndPoint, INET_ERROR aError, const IPPacketInfo *aPacketInfo)
+{
+    Common::HandleUDPReceiveError(aEndPoint, aError, aPacketInfo);
+
+    SetStatusFailed(sTestState.mStatus);
+}
+
+static bool IsTransportReadyForSend(void)
+{
+    bool lStatus = false;
+
+    if ((gOptFlags & (kOptFlagUseRawIP)) == (kOptFlagUseRawIP))
+    {
+        lStatus = (sRawIPEndPoint != NULL);
+    }
+    else if ((gOptFlags & kOptFlagUseUDPIP) == kOptFlagUseUDPIP)
+    {
+        lStatus = (sUDPIPEndPoint != NULL);
+    }
+    else if ((gOptFlags & kOptFlagUseTCPIP) == kOptFlagUseTCPIP)
+    {
+        if (sTCPIPEndPoint != NULL)
         {
-            InterfaceId intfId;
-            err = InterfaceNameToId(IntfFilterName, intfId);
-            FAIL_ERROR(err, "InterfaceNameToId failed");
-            err = Raw4EP->BindInterface(kIPAddressType_IPv4, intfId);
-            FAIL_ERROR(err, "RawEndPoint::BindInterface (IPv4) failed");
+            if (sTCPIPEndPoint->PendingSendLength() == 0)
+            {
+                switch (sTCPIPEndPoint->State)
+                {
+                case TCPEndPoint::kState_Connected:
+                case TCPEndPoint::kState_ReceiveShutdown:
+                    lStatus = true;
+                    break;
+
+                default:
+                    break;
+                }
+            }
         }
-        Raw4EP->OnMessageReceived = reinterpret_cast<IPEndPointBasis::OnMessageReceivedFunct>(HandleRawMessageReceived);
-        Raw4EP->OnReceiveError = reinterpret_cast<IPEndPointBasis::OnReceiveErrorFunct>(HandleRawReceiveError);
+    }
+
+    return (lStatus);
+}
+
+static INET_ERROR PrepareTransportForSend(void)
+{
+    INET_ERROR lStatus = INET_NO_ERROR;
+
+    if (gOptFlags & kOptFlagUseTCPIP)
+    {
+        if (sTCPIPEndPoint == NULL)
+        {
+            lStatus = ::Inet.NewTCPEndPoint(&sTCPIPEndPoint);
+            FAIL_ERROR(lStatus, "InetLayer::NewTCPEndPoint failed");
+
+            sTCPIPEndPoint->OnConnectComplete  = HandleTCPConnectionComplete;
+            sTCPIPEndPoint->OnConnectionClosed = HandleTCPConnectionClosed;
+            sTCPIPEndPoint->OnDataSent         = HandleTCPDataSent;
+            sTCPIPEndPoint->OnDataReceived     = HandleTCPDataReceived;
+
+            lStatus = sTCPIPEndPoint->Connect(sDestinationAddress, kTCPPort, gInterfaceId);
+            FAIL_ERROR(lStatus, "TCPEndPoint::Connect failed");
+        }
+    }
+
+    return (lStatus);
+}
+
+static INET_ERROR DriveSendForDestination(const IPAddress &aAddress, uint16_t aSize)
+{
+    PacketBuffer *lBuffer = NULL;
+    INET_ERROR    lStatus = INET_NO_ERROR;
+
+    if ((gOptFlags & (kOptFlagUseRawIP)) == (kOptFlagUseRawIP))
+    {
+        // For ICMP (v4 or v6), we'll send n aSize or smaller
+        // datagrams (with overhead for the ICMP header), each
+        // patterned from zero to aSize - 1, following the ICMP
+        // header.
+
+        if ((gOptFlags & kOptFlagUseIPv6) == (kOptFlagUseIPv6))
+        {
+            lBuffer = Common::MakeICMPv6DataBuffer(aSize);
+            VerifyOrExit(lBuffer != NULL, lStatus = INET_ERROR_NO_MEMORY);
+        }
+#if INET_CONFIG_ENABLE_IPV4
+        else if ((gOptFlags & kOptFlagUseIPv4) == (kOptFlagUseIPv4))
+        {
+            lBuffer = Common::MakeICMPv4DataBuffer(aSize);
+            VerifyOrExit(lBuffer != NULL, lStatus = INET_ERROR_NO_MEMORY);
+        }
+#endif // INET_CONFIG_ENABLE_IPV4
+
+        lStatus = sRawIPEndPoint->SendTo(aAddress, lBuffer);
+        SuccessOrExit(lStatus);
+    }
+    else
+    {
+        if ((gOptFlags & kOptFlagUseUDPIP) == kOptFlagUseUDPIP)
+        {
+            const uint8_t lFirstValue = 0;
+
+            // For UDP, we'll send n aSize or smaller datagrams, each
+            // patterned from zero to aSize - 1.
+
+            lBuffer = Common::MakeDataBuffer(aSize, lFirstValue);
+            VerifyOrExit(lBuffer != NULL, lStatus = INET_ERROR_NO_MEMORY);
+
+            lStatus = sUDPIPEndPoint->SendTo(aAddress, kUDPPort, lBuffer);
+            SuccessOrExit(lStatus);
+        }
+        else if ((gOptFlags & kOptFlagUseTCPIP) == kOptFlagUseTCPIP)
+        {
+            const uint8_t lFirstValue = sTestState.mStats.mTransmit.mActual;
+
+            // For TCP, we'll send one byte stream of
+            // sTestState.mStats.mTransmit.mExpected in n aSize or
+            // smaller transactions, patterned from zero to
+            // sTestState.mStats.mTransmit.mExpected - 1.
+
+            lBuffer = Common::MakeDataBuffer(aSize, lFirstValue);
+            VerifyOrExit(lBuffer != NULL, lStatus = INET_ERROR_NO_MEMORY);
+
+            lStatus = sTCPIPEndPoint->Send(lBuffer);
+            SuccessOrExit(lStatus);
+        }
+    }
+
+exit:
+    return (lStatus);
+}
+
+void DriveSend(void)
+{
+    INET_ERROR lStatus = INET_NO_ERROR;
+
+    if (!Common::IsSender())
+        goto exit;
+
+    if (!gSendIntervalExpired)
+        goto exit;
+
+    if (!IsTransportReadyForSend())
+    {
+        lStatus = PrepareTransportForSend();
+        SuccessOrExit(lStatus);
+    }
+    else
+    {
+        gSendIntervalExpired = false;
+        SystemLayer.StartTimer(gSendIntervalMs, Common::HandleSendTimerComplete, NULL);
+
+        if (sTestState.mStats.mTransmit.mActual < sTestState.mStats.mTransmit.mExpected)
+        {
+            const uint32_t lRemaining = (sTestState.mStats.mTransmit.mExpected -
+                                         sTestState.mStats.mTransmit.mActual);
+            const uint32_t lSendSize  = nl::Weave::min(lRemaining,
+                                                       static_cast<uint32_t>(gSendSize));
+
+            lStatus = DriveSendForDestination(sDestinationAddress, lSendSize);
+            SuccessOrExit(lStatus);
+
+            sTestState.mStats.mTransmit.mActual += lSendSize;
+
+            printf("%u/%u transmitted to %s\n",
+                   sTestState.mStats.mTransmit.mActual,
+                   sTestState.mStats.mTransmit.mExpected,
+                   sDestinationString);
+        }
+    }
+
+exit:
+    if (lStatus != INET_NO_ERROR)
+    {
+        SetStatusFailed(sTestState.mStatus);
+    }
+
+    return;
+}
+
+static void StartTest(void)
+{
+    IPAddressType      lIPAddressType = kIPAddressType_IPv6;
+    IPProtocol         lIPProtocol    = kIPProtocol_ICMPv6;
+    IPVersion          lIPVersion     = kIPVersion_6;
+    IPAddress          lAddress       = gNetworkOptions.LocalIPv6Addr;
+    INET_ERROR         lStatus;
+
+#if INET_CONFIG_ENABLE_IPV4
+    if (gOptFlags & kOptFlagUseIPv4)
+    {
+        lIPAddressType = kIPAddressType_IPv4;
+        lIPProtocol    = kIPProtocol_ICMPv4;
+        lIPVersion     = kIPVersion_4;
+        lAddress       = gNetworkOptions.LocalIPv4Addr;
     }
 #endif // INET_CONFIG_ENABLE_IPV4
-    else if (!UseTCP)
+
+    printf("Using %sIP%s, device interface: %s (w/%c LwIP)\n",
+           ((gOptFlags & kOptFlagUseRawIP) ? "" : ((gOptFlags & kOptFlagUseTCPIP) ? "TCP/" : "UDP/")),
+           ((gOptFlags & kOptFlagUseIPv4) ? "v4" : "v6"),
+           ((gInterfaceName) ? gInterfaceName : "<none>"),
+           (WEAVE_SYSTEM_CONFIG_USE_LWIP ? '\0' : 'o'));
+
+    // Allocate the endpoints for sending or receiving.
+
+    if (gOptFlags & kOptFlagUseRawIP)
     {
-        err = Inet.NewUDPEndPoint(&UDPEP);
-        FAIL_ERROR(err, "InetLayer::NewUDPEndPoint failed");
-        if (IntfFilterName != NULL)
+        lStatus = ::Inet.NewRawEndPoint(lIPVersion, lIPProtocol, &sRawIPEndPoint);
+        FAIL_ERROR(lStatus, "InetLayer::NewRawEndPoint failed");
+
+        sRawIPEndPoint->OnMessageReceived = HandleRawMessageReceived;
+        sRawIPEndPoint->OnReceiveError    = HandleRawReceiveError;
+
+        if (IsInterfaceIdPresent(gInterfaceId))
         {
-            InterfaceId intfId;
-            err = InterfaceNameToId(IntfFilterName, intfId);
-            FAIL_ERROR(err, "InterfaceNameToId failed");
-            err = UDPEP->BindInterface(kIPAddressType_IPv6, intfId);
-            FAIL_ERROR(err, "RawEndPoint::BindInterface (IPv4) failed");
+            lStatus = sRawIPEndPoint->BindInterface(lIPAddressType, gInterfaceId);
+            FAIL_ERROR(lStatus, "RawEndPoint::BindInterface failed");
         }
-        UDPEP->OnMessageReceived = reinterpret_cast<IPEndPointBasis::OnMessageReceivedFunct>(HandleUDPMessageReceived);
-        UDPEP->OnReceiveError = reinterpret_cast<IPEndPointBasis::OnReceiveErrorFunct>(HandleUDPReceiveError);
+    }
+    else if (gOptFlags & kOptFlagUseUDPIP)
+    {
+        lStatus = ::Inet.NewUDPEndPoint(&sUDPIPEndPoint);
+        FAIL_ERROR(lStatus, "InetLayer::NewUDPEndPoint failed");
+
+        sUDPIPEndPoint->OnMessageReceived = HandleUDPMessageReceived;
+        sUDPIPEndPoint->OnReceiveError    = HandleUDPReceiveError;
+
+        if (IsInterfaceIdPresent(gInterfaceId))
+        {
+            lStatus = sUDPIPEndPoint->BindInterface(lIPAddressType, gInterfaceId);
+            FAIL_ERROR(lStatus, "UDPEndPoint::BindInterface failed");
+        }
     }
 
-    if (Listen)
+    if (Common::IsReceiver())
     {
-        if (UseRaw6)
+        if (gOptFlags & kOptFlagUseRawIP)
         {
-            err = Raw6EP->Bind(kIPAddressType_IPv6, gNetworkOptions.LocalIPv6Addr);
-            FAIL_ERROR(err, "RawEndPoint::Bind (IPv6) failed");
+            lStatus = sRawIPEndPoint->Bind(lIPAddressType, lAddress);
+            FAIL_ERROR(lStatus, "RawEndPoint::Bind failed");
 
-            if (NUM_ICMP6_FILTER_TYPES == 1)
-                printf("NumICMP6Types: %d: [0]: %d\n", NUM_ICMP6_FILTER_TYPES, ICMP6Types[0]);
-            if (NUM_ICMP6_FILTER_TYPES == 2)
-                printf("NumICMP6Types: %d: [0]: %d, [1]: %d\n", NUM_ICMP6_FILTER_TYPES, ICMP6Types[0], ICMP6Types[1]);
-            err = Raw6EP->SetICMPFilter(NUM_ICMP6_FILTER_TYPES, ICMP6Types);
-            FAIL_ERROR(err, "RawEndPoint::SetICMPFilter (IPv6) failed");
+            if (gOptFlags & kOptFlagUseIPv6)
+            {
+                lStatus = sRawIPEndPoint->SetICMPFilter(kICMPv6_FilterTypes, gICMPv6Types);
+                FAIL_ERROR(lStatus, "RawEndPoint::SetICMPFilter failed");
+            }
 
-            err = Raw6EP->Listen();
-            FAIL_ERROR(err, "RawEndPoint::Listen (IPv6) failed");
+            lStatus = sRawIPEndPoint->Listen();
+            FAIL_ERROR(lStatus, "RawEndPoint::Listen failed");
         }
-#if INET_CONFIG_ENABLE_IPV4
-        else if (UseRaw4)
+        else if (gOptFlags & kOptFlagUseUDPIP)
         {
-            err = Raw4EP->Bind(kIPAddressType_IPv4, gNetworkOptions.LocalIPv4Addr);
-            FAIL_ERROR(err, "RawEndPoint::Bind (IPv4) failed");
+            lStatus = sUDPIPEndPoint->Bind(lIPAddressType, IPAddress::Any, kUDPPort);
+            FAIL_ERROR(lStatus, "UDPEndPoint::Bind failed");
 
-            err = Raw4EP->Listen();
-            FAIL_ERROR(err, "RawEndPoint::Listen (IPv4) failed");
+            lStatus = sUDPIPEndPoint->Listen();
+            FAIL_ERROR(lStatus, "UDPEndPoint::Listen failed");
         }
-#endif // INET_CONFIG_ENABLE_IPV4
-        else if (UseTCP)
+        else if (gOptFlags & kOptFlagUseTCPIP)
         {
-            err = Inet.NewTCPEndPoint(&ListenEP);
-            FAIL_ERROR(err, "InetLayer::NewTCPEndPoint failed");
+            const uint16_t  lConnectionBacklogMax = 1;
+            const bool      lReuseAddress = true;
 
-            ListenEP->OnConnectionReceived = HandleConnectionReceived;
-            ListenEP->OnAcceptError = HandleAcceptError;
+            lStatus = ::Inet.NewTCPEndPoint(&sTCPIPListenEndPoint);
+            FAIL_ERROR(lStatus, "InetLayer::NewTCPEndPoint failed");
 
-            err = ListenEP->Bind(kIPAddressType_IPv6, IPAddress::Any, 4242, true);
-            FAIL_ERROR(err, "TCPEndPoint::Bind failed");
+            sTCPIPListenEndPoint->OnConnectionReceived = HandleTCPConnectionReceived;
+            sTCPIPListenEndPoint->OnAcceptError        = HandleTCPAcceptError;
 
-            err = ListenEP->Listen(1);
-            FAIL_ERROR(err, "TCPEndPoint::Listen failed");
+            lStatus = sTCPIPListenEndPoint->Bind(lIPAddressType, IPAddress::Any, kTCPPort, lReuseAddress);
+            FAIL_ERROR(lStatus, "TCPEndPoint::Bind failed");
+
+            lStatus = sTCPIPListenEndPoint->Listen(lConnectionBacklogMax);
+            FAIL_ERROR(lStatus, "TCPEndPoint::Listen failed");
         }
-        else
-        {
-            err = UDPEP->Bind(kIPAddressType_IPv6, IPAddress::Any, 4242);
-            FAIL_ERROR(err, "UDPEndPoint::Bind failed");
+    }
 
-            err = UDPEP->Listen();
-            FAIL_ERROR(err, "UDPEndPoint::Listen failed");
-        }
-
+    if (Common::IsReceiver())
         printf("Listening...\n");
-    }
-
-    DriveSend();
-}
-
-void DriveSend()
-{
-    INET_ERROR err;
-
-    if (!IsTimeToSend)
-        return;
-
-    if (TotalSendLength == MaxSendLength) {
-        Inet.Shutdown();
-        Done = true;
-        return;
-    }
-
-#if INET_CONFIG_ENABLE_DNS_RESOLVER
-    if (!DNSResolutionComplete && !Listen)
-    {
-        printf("Resolving destination name...\n");
-
-        err = Inet.ResolveHostAddress(destHostName, 1, &DestAddr, HandleDNSResolveComplete, NULL);
-        FAIL_ERROR(err, "InetLayer::ResolveHostAddress failed");
-
-        return;
-    }
-#endif // INET_CONFIG_ENABLE_DNS_RESOLVER
-
-    if (UseTCP)
-    {
-        if (TCPEP == NULL)
-        {
-            if (Listen)
-                return;
-
-            err = Inet.NewTCPEndPoint(&TCPEP);
-            FAIL_ERROR(err, "InetLayer::NewTCPEndPoint failed");
-
-            TCPEP->OnConnectComplete = HandleConnectionComplete;
-            TCPEP->OnConnectionClosed = HandleConnectionClosed;
-            TCPEP->OnDataSent = HandleDataSent;
-            TCPEP->OnDataReceived = HandleDataReceived;
-
-            err = TCPEP->Connect(DestAddr, 4242);
-            FAIL_ERROR(err, "TCPEndPoint::Connect failed");
-        }
-
-        if (TCPEP->State != TCPEndPoint::kState_Connected && TCPEP->State != TCPEndPoint::kState_ReceiveShutdown)
-            return;
-
-        if (TCPEP->PendingSendLength() > 0)
-            return;
-
-        int32_t sendLen = SendLength;
-        if (MaxSendLength != -1)
-        {
-            int32_t remainingLen = MaxSendLength - TotalSendLength;
-            if (sendLen > remainingLen)
-                sendLen = remainingLen;
-        }
-
-        IsTimeToSend = false;
-        SystemLayer.StartTimer(SendInterval, HandleSendTimerComplete, NULL);
-
-        PacketBuffer *buf = MakeDataBuffer(sendLen);
-        if (buf == NULL)
-        {
-            printf("Failed to allocate PacketBuffer\n");
-            return;
-        }
-        sendLen = buf->DataLength();
-
-        err = TCPEP->Send(buf);
-        if (err != INET_ERROR_CONNECTION_ABORTED)
-            FAIL_ERROR(err, "TCPEndPoint::Send failed");
-
-        TotalSendLength += sendLen;
-
-        if (MaxSendLength != -1 && TotalSendLength == MaxSendLength)
-        {
-            printf("Closing connection\n");
-            err = TCPEP->Close();
-            FAIL_ERROR(err, "TCPEndPoint::Close failed");
-
-            printf("Freeing end point\n");
-            TCPEP->Free();
-            TCPEP = NULL;
-        }
-    }
-
-    else if (!Listen)
-    {
-        int32_t sendLen = SendLength;
-        if (MaxSendLength != -1)
-        {
-            int32_t remainingLen = MaxSendLength - TotalSendLength;
-            if (sendLen > remainingLen)
-                sendLen = remainingLen;
-        }
-
-        IsTimeToSend = false;
-        SystemLayer.StartTimer(SendInterval, HandleSendTimerComplete, NULL);
-
-        PacketBuffer *buf = MakeDataBuffer(sendLen);
-        if (buf == NULL)
-        {
-            printf("Failed to allocate PacketBuffer\n");
-            return;
-        }
-
-        if (UseRaw6)
-        {
-            uint8_t *p = buf->Start();
-            *p = ICMP6Types[0]; // change ICMPv6 type to be consistent with the filter
-            err = Raw6EP->SendTo(DestAddr, buf);
-            FAIL_ERROR(err, "RawEndPoint::SendTo (IPv6) failed");
-        }
-#if INET_CONFIG_ENABLE_IPV4
-        else if (UseRaw4)
-        {
-            err = Raw4EP->SendTo(DestAddr, buf);
-            FAIL_ERROR(err, "RawEndPoint::SendTo (IPv4) failed");
-        }
-#endif // INET_CONFIG_ENABLE_IPV4
-        else if (!UseTCP)
-        {
-            err = UDPEP->SendTo(DestAddr, 4242, buf);
-            FAIL_ERROR(err, "UDPEndPoint::SendTo failed");
-        }
-
-        TotalSendLength += sendLen;
-    }
-}
-
-#if INET_CONFIG_ENABLE_DNS_RESOLVER
-void HandleDNSResolveComplete(void *appState, INET_ERROR err, uint8_t addrCount, IPAddress *addrArray)
-{
-    DNSResolutionComplete = true;
-
-    FAIL_ERROR(err, "DNS name resolution failed");
-
-    if (addrCount > 0)
-    {
-        char destAddrStr[64];
-        DestAddr.ToString(destAddrStr, sizeof(destAddrStr));
-        printf("DNS name resolution complete: %s\n", destAddrStr);
-    }
     else
-        printf("DNS name resolution return no addresses\n");
-
-    DriveSend();
-}
-#endif // INET_CONFIG_ENABLE_DNS_RESOLVER
-
-void HandleConnectionComplete(TCPEndPoint *ep, INET_ERROR conErr)
-{
-    INET_ERROR err;
-    IPAddress peerAddr;
-    uint16_t peerPort;
-
-    if (conErr == WEAVE_NO_ERROR)
-    {
-        err = ep->GetPeerInfo(&peerAddr, &peerPort);
-        FAIL_ERROR(err, "TCPEndPoint::GetPeerInfo failed");
-
-        char peerAddrStr[64];
-        peerAddr.ToString(peerAddrStr, sizeof(peerAddrStr));
-
-        printf("Connection established to %s:%ld\n", peerAddrStr, (long) peerPort);
-
-        TotalSendLength = 0;
-        TotalRcvLength = 0;
-
-        if (TCPEP->PendingReceiveLength() == 0)
-            TCPEP->PutBackReceivedData(NULL);
-        TCPEP->DisableReceive();
-        TCPEP->EnableKeepAlive(10, 100);
-        TCPEP->DisableKeepAlive();
-        TCPEP->EnableReceive();
-
-        DriveSend();
-    }
-    else
-    {
-        printf("Connection FAILED: %s\n", ErrorStr(conErr));
-
-        ep->Free();
-        ep= NULL;
-
-        IsTimeToSend = false;
-        SystemLayer.CancelTimer(HandleSendTimerComplete, NULL);
-        SystemLayer.StartTimer(SendInterval, HandleSendTimerComplete, NULL);
-    }
-}
-
-void HandleConnectionReceived(TCPEndPoint *listeningEP, TCPEndPoint *conEP, const IPAddress &peerAddr, uint16_t peerPort)
-{
-    char peerAddrStr[64];
-    peerAddr.ToString(peerAddrStr, sizeof(peerAddrStr));
-
-    printf("Accepted connection from %s, port %ld\n", peerAddrStr, (long) peerPort);
-
-    conEP->OnConnectComplete = HandleConnectionComplete;
-    conEP->OnConnectionClosed = HandleConnectionClosed;
-    conEP->OnDataSent = HandleDataSent;
-    conEP->OnDataReceived = HandleDataReceived;
-
-    TCPEP = conEP;
-
-    TotalSendLength = 0;
-    TotalRcvLength = 0;
-
-    DriveSend();
-}
-
-void HandleConnectionClosed(TCPEndPoint *ep, INET_ERROR err)
-{
-    if (err == WEAVE_NO_ERROR)
-        printf("Connection closed\n");
-    else
-        printf("Connection closed with error: %s\n", ErrorStr(err));
-
-    printf("Freeing end point\n");
-    ep->Free();
-
-    if (ep == TCPEP)
-    {
-        TCPEP = NULL;
-        DriveSend();
-    }
-}
-
-void HandleDataSent(TCPEndPoint *ep, uint16_t len)
-{
-    printf("Data sent: %ld\n", (long) len);
-
-    if (ep == TCPEP)
         DriveSend();
 }
 
-void HandleDataReceived(TCPEndPoint *ep, PacketBuffer *data)
+static void CleanupTest(void)
 {
-    INET_ERROR err;
+    INET_ERROR         lStatus;
 
-    if (data->TotalLength() < MinRcvLength && ep->State == TCPEndPoint::kState_Connected)
+    gSendIntervalExpired = false;
+    SystemLayer.CancelTimer(Common::HandleSendTimerComplete, NULL);
+
+    // Release the resources associated with the allocated end points.
+
+    if (sRawIPEndPoint != NULL)
     {
-        err = ep->PutBackReceivedData(data);
-        FAIL_ERROR(err, "TCPEndPoint::PutBackReceivedData failed");
-        return;
+        sRawIPEndPoint->Free();
     }
 
-    for (PacketBuffer *buf = data; buf; buf = buf->Next())
+    if (sTCPIPEndPoint != NULL)
     {
-        printf("Data received (%ld bytes)\n", (long) buf->DataLength());
-        uint8_t *p = buf->Start();
-        for (uint16_t i = 0; i < buf->DataLength(); i++, p++, TotalRcvLength++)
-            if (*p != (uint8_t) TotalRcvLength)
-            {
-                printf("Bad data value, offset %d\n", (int) i);
-                exit(-1);
-            }
-        printf("Total received data length: %d bytes\n", TotalRcvLength);
+        lStatus = sTCPIPEndPoint->Close();
+        FAIL_ERROR(lStatus, "TCPEndPoint::Close failed");
+
+        sTCPIPEndPoint->Free();
     }
 
-    err = ep->AckReceive(data->TotalLength());
-    FAIL_ERROR(err, "TCPEndPoint::AckReceive failed");
-
-    PacketBuffer::Free(data);
-
-    if (MaxRcvLength != -1 && TotalRcvLength >= MaxRcvLength)
+    if (sTCPIPListenEndPoint != NULL)
     {
-        printf("Closing connection\n");
-        err = ep->Close();
-        FAIL_ERROR(err, "TCPEndPoint::Close failed");
-
-        printf("Freeing end point\n");
-        ep->Free();
-        if (ep == TCPEP)
-            TCPEP = NULL;
-
-        TotalRcvLength  = 0;
-    }
-}
-
-void HandleAcceptError(TCPEndPoint *endPoint, INET_ERROR err)
-{
-    printf("Accept error: %s\n", ErrorStr(err));
-}
-
-void HandleRawMessageReceived(RawEndPoint *endPoint, PacketBuffer *msg, const IPPacketInfo *pktInfo)
-{
-    char senderAddrStr[64];
-
-    pktInfo->SrcAddress.ToString(senderAddrStr, sizeof(senderAddrStr));
-
-    printf("Raw message received from %s (%ld bytes)\n", senderAddrStr, (long) msg->DataLength());
-    TotalRcvLength += msg->DataLength();
-    printf("Total received data length: %d bytes\n", TotalRcvLength);
-
-    PacketBuffer::Free(msg);
-}
-
-void HandleRawReceiveError(RawEndPoint *endPoint, INET_ERROR err, const IPPacketInfo *pktInfo)
-{
-    char senderAddrStr[64];
-
-    pktInfo->SrcAddress.ToString(senderAddrStr, sizeof(senderAddrStr));
-
-    printf("Raw receive error (%s): %s\n", senderAddrStr, ErrorStr(err));
-}
-
-void HandleUDPMessageReceived(UDPEndPoint *endPoint, PacketBuffer *msg, const IPPacketInfo *pktInfo)
-{
-    char senderAddrStr[64];
-
-    pktInfo->SrcAddress.ToString(senderAddrStr, sizeof(senderAddrStr));
-
-    for (PacketBuffer *buf = msg; buf; buf = buf->Next())
-    {
-        printf("UDP message received from %s, port %ld (%ld bytes)\n", senderAddrStr, (long) pktInfo->SrcPort,
-                (long) msg->DataLength());
-
-        uint8_t *p = buf->Start();
-        for (uint16_t i = 0; i < buf->DataLength(); i++, p++, TotalRcvLength++)
-            if (*p != (uint8_t) TotalRcvLength)
-            {
-                printf("Bad data value, offset %d\n", (int) i);
-                exit(-1);
-            }
-        printf("Total received data length: %d bytes\n", TotalRcvLength);
+        sTCPIPListenEndPoint->Shutdown();
+		sTCPIPListenEndPoint->Free();
     }
 
-    PacketBuffer::Free(msg);
-}
-
-void HandleUDPReceiveError(UDPEndPoint *endPoint, INET_ERROR err, const IPPacketInfo *pktInfo)
-{
-    char senderAddrStr[64];
-    uint16_t senderPort;
-    if (pktInfo != NULL)
+    if (sUDPIPEndPoint != NULL)
     {
-        pktInfo->SrcAddress.ToString(senderAddrStr, sizeof(senderAddrStr));
-        senderPort = pktInfo->SrcPort;
+        sUDPIPEndPoint->Free();
     }
-    else
-    {
-        strcpy(senderAddrStr, "(unknown)");
-        senderPort = 0;
-    }
-
-    printf("UDP receive error (%s, port %ld): %s\n", senderAddrStr, (long) senderPort, ErrorStr(err));
-}
-
-void HandleSendTimerComplete(System::Layer* aSystemLayer, void* aAppState, System::Error aError)
-{
-    FAIL_ERROR(aError, "Send timer completed with error");
-
-    IsTimeToSend = true;
-
-    DriveSend();
-}
-
-PacketBuffer *MakeDataBuffer(int32_t desiredLen)
-{
-    PacketBuffer *buf;
-
-    buf = PacketBuffer::New();
-    if (buf == NULL)
-        return NULL;
-
-    if (desiredLen > buf->MaxDataLength())
-        desiredLen = buf->MaxDataLength();
-
-    char *p = (char *) buf->Start();
-    for (uint16_t i = 0; i < desiredLen; i++, p++)
-        *p = (uint8_t) (TotalSendLength + i);
-
-    buf->SetDataLength(desiredLen);
-
-    return buf;
 }
