@@ -135,6 +135,7 @@ extern System::PacketBuffer *MakeDataBuffer(uint16_t aDesiredLength);
 extern System::PacketBuffer *MakeICMPv4DataBuffer(uint16_t aDesiredUserLength);
 extern System::PacketBuffer *MakeICMPv6DataBuffer(uint16_t aDesiredUserLength);
 
+extern bool HandleDataReceived(const System::PacketBuffer *aBuffer, TransferStats &aStats, bool aStatsByPacket, bool aCheckBuffer, uint8_t aFirstValue);
 extern bool HandleDataReceived(const System::PacketBuffer *aBuffer, TransferStats &aStats, bool aStatsByPacket, bool aCheckBuffer);
 extern bool HandleICMPv4DataReceived(System::PacketBuffer *aBuffer, TransferStats &aStats, bool aStatsByPacket, bool aCheckBuffer);
 extern bool HandleICMPv6DataReceived(System::PacketBuffer *aBuffer, TransferStats &aStats, bool aStatsByPacket, bool aCheckBuffer);
