@@ -1267,7 +1267,9 @@ TestInetTimer_SOURCES                    = TestInetTimer.cpp
 TestInetTimer_LDFLAGS                    = $(AM_CPPFLAGS)
 TestInetTimer_LDADD                      = libWeaveTestCommon.a $(COMMON_LDADD)
 
-TestInetLayer_SOURCES                    = TestInetLayer.cpp
+TestInetLayer_SOURCES                    = TestInetLayer.cpp \
+                                           TestInetLayerCommon.cpp \
+                                           $(NULL)
 TestInetLayer_LDFLAGS                    = $(AM_CPPFLAGS)
 TestInetLayer_LDADD                      = libWeaveTestCommon.a $(COMMON_LDADD)
 

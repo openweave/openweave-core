@@ -259,7 +259,7 @@ PacketBuffer *MakeDataBuffer(uint16_t aDesiredLength)
     return (lBuffer);
 }
 
-static bool HandleDataReceived(const PacketBuffer *aBuffer, TransferStats &aStats, bool aStatsByPacket, bool aCheckBuffer, uint16_t aPatternStartOffset)
+static bool HandleDataReceived(const PacketBuffer *aBuffer, TransferStats &aStats, bool aStatsByPacket, bool aCheckBuffer, uint16_t aPatternStartOffset, uint8_t aFirstValue)
 {
     bool      lStatus = true;
     uint16_t  lTotalDataLength = 0;
@@ -275,11 +275,12 @@ static bool HandleDataReceived(const PacketBuffer *aBuffer, TransferStats &aStat
         {
             const uint8_t *p = lBuffer->Start();
 
-            lStatus = CheckDataBufferPattern(p, lDataLength, aPatternStartOffset, lTotalDataLength);
+            lStatus = CheckDataBufferPattern(p, lDataLength, aPatternStartOffset, aFirstValue);
             VerifyOrExit(lStatus == true, );
         }
 
         lTotalDataLength += lBuffer->DataLength();
+        aFirstValue += lBuffer->DataLength();
     }
 
     // If we are accumulating stats by packet rather than by size,
@@ -324,12 +325,24 @@ bool HandleICMPv6DataReceived(PacketBuffer *aBuffer, TransferStats &aStats, bool
     return (lStatus);
 }
 
-bool HandleDataReceived(const PacketBuffer *aBuffer, TransferStats &aStats, bool aStatsByPacket, bool aCheckBuffer)
+bool HandleDataReceived(const PacketBuffer *aBuffer, TransferStats &aStats, bool aStatsByPacket, bool aCheckBuffer, uint8_t aFirstValue)
 {
     const uint16_t  lPatternStartOffset = 0;
     bool            lStatus;
 
-    lStatus = HandleDataReceived(aBuffer, aStats, aStatsByPacket, aCheckBuffer, lPatternStartOffset);
+    lStatus = HandleDataReceived(aBuffer, aStats, aStatsByPacket, aCheckBuffer, lPatternStartOffset, aFirstValue);
+
+    return (lStatus);
+}
+
+
+bool HandleDataReceived(const PacketBuffer *aBuffer, TransferStats &aStats, bool aStatsByPacket, bool aCheckBuffer)
+{
+    const uint8_t   lFirstValue = 0;
+    const uint16_t  lPatternStartOffset = 0;
+    bool            lStatus;
+
+    lStatus = HandleDataReceived(aBuffer, aStats, aStatsByPacket, aCheckBuffer, lPatternStartOffset, lFirstValue);
 
     return (lStatus);
 }

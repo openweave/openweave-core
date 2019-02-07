@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
-
 #
+#    Copyright (c) 2018-2019 Google LLC.
 #    Copyright (c) 2016-2017 Nest Labs, Inc.
 #    All rights reserved.
 #
@@ -35,24 +35,37 @@ import WeaveStateUnload
 import WeaveInet
 import WeaveUtilities
 
-count = 2
-length = 500
-
 class test_weave_inet_01(unittest.TestCase):
     def setUp(self):
-        self.tap = None
-
         if "WEAVE_SYSTEM_CONFIG_USE_LWIP" in os.environ.keys() and os.environ["WEAVE_SYSTEM_CONFIG_USE_LWIP"] == "1":
-            self.topology_file = os.path.dirname(os.path.realpath(__file__)) + \
-                "/../../../topologies/standalone/thread_wifi_on_tap_ap_service.json"
-            self.tap = "wpan0"
+            self.using_lwip = True
         else:
-            self.topology_file = os.path.dirname(os.path.realpath(__file__)) + \
-                "/../../../topologies/standalone/thread_wifi_ap_service.json"
+            self.using_lwip = False
+
+        self.topology_file = os.path.dirname(os.path.realpath(__file__)) + \
+                "/../../../topologies/standalone/"
+
+        # The difference between LwIP and non-LwIP exection is that
+        # the former will take the LwIP native default interface,
+        # 'et1', whereas the latter will take the topology node
+        # interface, 'wlan0'. In the former case, LwIP will instead use
+        # 'wlan0' as its hosted OS tap network device to proxy itself
+        # into the host's network stack.
+
+        if self.using_lwip:
+            self.topology_file += "two_nodes_on_tap_wifi.json"
+            self.interface = "et1"
+            self.tap = "wlan0"
+        else:
+            self.topology_file += "two_nodes_on_wifi.json"
+            self.interface = "wlan0"
+            self.tap = None
+
+        self.sender = "00-WifiNode-Tx"
+        self.receiver = "01-WifiNode-Rx"
 
         self.show_strace = False
 
-        # setting Mesh for thread test
         options = WeaveStateLoad.option()
         options["quiet"] = True
         options["json_file"] = self.topology_file
@@ -72,45 +85,110 @@ class test_weave_inet_01(unittest.TestCase):
 
 
     def test_weave_inet(self):
-        # TODO: Once LwIP bugs are fix, enable this test on LwIP
-        if "WEAVE_SYSTEM_CONFIG_USE_LWIP" in os.environ.keys() and os.environ["WEAVE_SYSTEM_CONFIG_USE_LWIP"] == "1":
-            print hred("WARNING: Test skipped due to LwIP-based network cofiguration!")
-            return
-
         options = happy.HappyNodeList.option()
         options["quiet"] = True
 
-        value, data = self.__run_inet_test_between("BorderRouter", "ThreadNode", "udp")
-        self.__process_result("BorderRouter", "ThreadNode", value, data, "udp")
+        # This test iterates over several parameters:
+        #
+        #   1) Network
+        #      a) IPv4
+        #      b) IPv6
+        #         i) Link-local Addresses (LLAs)
+        #         ii) Unique-local Addresses (ULAs)
+        #         iii) Globally-unique Addresses (GUAs)
+        #
+        #   2) Transport
+        #      a) Raw (ICMP)
+        #      b) UDP
+        #      c) TCP
+        #
+        #   3) Send Size*
+        #      a) Small, sub-MTU prime value
+        #      b) Large, sub-MTU prime value
+        #
+        #   4) Send / Receive Length
+        #      a) Small, sub-MTU prime value
+        #      b) Large, sub-MTU prime value
+        #      c) Large, super-MTU prime value
+        #
+        # * Note: In the Inet layer, the maximum send size is limited
+        #         by the LwIP implementation of System::PacketBuffer::New
+        #         that caps the user send size at 1,408 bytes.
 
-        value, data = self.__run_inet_test_between("BorderRouter", "ThreadNode", "tcp")
-        self.__process_result("BorderRouter", "ThreadNode", value, data, "tcp")
+        # Topology-independent test parameters:
+        
+        rx_tx_lengths = [ 113, 1499, 1523 ]
+        tx_sizes = [ 113, 1381 ]
+        transports = [ "raw", "udp", "tcp" ]
 
-        value, data = self.__run_inet_test_between("BorderRouter", "ThreadNode", "raw6")
-        self.__process_result("BorderRouter", "ThreadNode", value, data, "raw6")
+        # Topology-dependent test parameters:
 
-        value, data = self.__run_inet_test_between("onhub", "cloud", "raw4")
-        self.__process_result("onhub", "cloud", value, data, "raw4")
+        networks_and_prefixes = {
+                                  "4" : [
+                                             "192.168.1.0/24"
+                                        ],
+                                  "6" : [
+                                             "fe80::/64",
+                                             "fd00:0000:fab1:0001::/64",
+                                             "2001:db8:1:2::/64"
+                                        ]
+                                }
+
+        # Iterate over each of parameters 1-4 above and invoke the
+        # test and process the results for each iteration.
+
+        for network in networks_and_prefixes.keys():
+            for prefix in networks_and_prefixes[network]:
+                for transport in transports:
+                    for tx_size in tx_sizes:
+                        for rx_tx_length in rx_tx_lengths:
+                            if rx_tx_length >= tx_size:
+
+                                # IPv6 link-local endpoints require a
+                                # bound interface for these tests to
+                                # work reliably; filter accordingly.
+
+                                if network == "6" and prefix == "fe80::/64":
+                                    interface = self.interface
+                                else:
+                                    interface = None
+
+                                # Run the test.
+                                
+                                value, data = self.__run_inet_test_between(self.sender, self.receiver, interface, network, transport, prefix, tx_size, rx_tx_length)
+
+                                # Process and report the results.
+                                
+                                self.__process_result(self.sender, self.receiver, interface, network, transport, prefix, tx_size, rx_tx_length, value, data)
 
 
-    def __process_result(self, nodeA, nodeB, value, data, protocol_type):
-        print "inet %s test from " % protocol_type + nodeA + " to " + nodeB + " ",
+    def __process_result(self, sender, receiver, interface, network, transport, prefix, tx_size, rx_tx_length, value, data):
+        print "Inet test using %sIPv%s w/ device interface %s (w/%s LwIP) %s with %u/%u size/length:" % ("UDP/" if transport == "udp" else "TCP/" if transport == "tcp" else "", network, "<none>" if interface == None else interface, "" if self.using_lwip else "o", sender + " to " + receiver + " w/ prefix " + prefix, tx_size, rx_tx_length),
 
         if value:
-            print hgreen("Passed")
+            print hgreen("PASSED")
         else:
-            print hred("Failed")
+            print hred("FAILED")
             raise ValueError("Weave Inet Test Failed")
 
 
-    def __run_inet_test_between(self, nodeA, nodeB, protocol_type):
+    def __run_inet_test_between(self, sender, receiver, interface, network, transport, prefix, tx_size, rx_tx_length):
+        # The default interval is 1 s (1000 ms). This is a good
+        # default for interactive test operation; however, for
+        # automated continuous integration, we prefer it to run much
+        # faster. Consequently, use 250 ms as the interval.
+        
         options = WeaveInet.option()
         options["quiet"] = False
-        options["client"] = nodeA
-        options["server"] = nodeB
-        options["type"] = protocol_type
-        options["count"] = str(count)
-        options["length"] = str(length)
+        options["sender"] = sender
+        options["receiver"] = receiver
+        options["interface"] = interface
+        options["ipversion"] = network
+        options["transport"] = transport
+        options["prefix"] = prefix
+        options["tx_size"] = str(tx_size)
+        options["rx_tx_length"] = str(rx_tx_length)
+        options["interval"] = str(250)
         options["tap"] = self.tap
 
         weave_inet = WeaveInet.WeaveInet(options)
@@ -124,5 +202,3 @@ class test_weave_inet_01(unittest.TestCase):
 
 if __name__ == "__main__":
     WeaveUtilities.run_unittest()
-
-
