@@ -1,0 +1,163 @@
+import com.android.utils.StringHelper
+import com.android.build.gradle.api.LibraryVariant
+import java.nio.file.Paths
+import static com.android.SdkConstants.FN_LOCAL_PROPERTIES
+
+apply plugin: 'com.android.library'
+
+buildscript {
+    repositories {
+        google()
+        jcenter()
+    }
+    dependencies {
+        classpath 'com.android.tools.build:gradle:3.1.3'
+    }
+}
+
+allprojects {
+    repositories {
+        google()
+        jcenter()
+    }
+}
+
+// Utility function for reading properties file.
+static def readProperties(File propsFile) {
+    Properties props = new Properties()
+    if (propsFile.exists()) {
+        DataInputStream propsFileStream = propsFile.newDataInputStream()
+        try {
+            props.load(propsFileStream)
+        }
+        finally {
+            propsFileStream.close()
+        }
+    }
+    return props
+}
+
+// Global copy of the project's local properties.
+project.ext.localProperties = readProperties(project.rootProject.file(FN_LOCAL_PROPERTIES))
+
+// Determine the location of the OpenWeave sources.
+project.ext.weaveSourceRoot = ((project.localProperties.containsKey('WEAVE_SOURCE_ROOT'))
+    ? new File(project.localProperties.get('WEAVE_SOURCE_ROOT'))
+    : new File(project.projectDir, '../../../..'))
+
+android {
+    compileSdkVersion 23
+
+    defaultConfig {
+        setProperty("archivesBaseName", "weave-security-support")
+        targetSdkVersion 23
+        minSdkVersion 16
+        ndk {
+            abiFilters 'armeabi-v7a', 'arm64-v8a', 'x86', 'x86_64'
+            stl 'system'
+        }
+    }
+
+    buildTypes {
+        debug {
+            ext.enableWeaveDebugging = true
+            ext.enableWeaveLogging = true
+        }
+    
+        release {
+            ext.enableWeaveDebugging = false
+            ext.enableWeaveLogging = false
+        }
+    }
+
+    sourceSets {
+    	main {
+    	   manifest.srcFile 'src/main/AndroidManifest.xml'
+    	   
+            java.srcDirs = [
+                'src/main/java', 
+                new File(project.ext.weaveSourceRoot, 'src/wrappers/jni/security-support/src')
+            ]
+        }
+        
+        debug {
+            jniLibs.srcDirs = [ 'build/weave/jniLibs/debug' ]
+        }
+        
+        release {
+            jniLibs.srcDirs = [ 'build/weave/jniLibs/release' ]
+        }
+    }
+}
+
+// BuildWeaveTask -- Builds the native Weave shared libraries needed for a particular variant of
+// the Weave Android library.
+//
+// BuildWeaveTask calls out to a helper makefile (WeaveAndroid.mk) which is responsible for doing
+// most of the work.  
+//
+class BuildWeaveTask extends Exec {
+    public final LibraryVariant variant
+    public final String Abi
+    
+    @javax.inject.Inject
+    BuildWeaveTask(LibraryVariant variant, String abi) {
+        this.description = 'Build the OpenWeave C++ code for use in an Android library'
+        this.variant = variant
+        this.Abi = abi
+        
+        this.executable = '/usr/bin/make'
+        this.args = [ '-f', 'BuildWeave.mk' ]
+        
+        def apiLevel = project.android.compileSdkVersion.replaceAll('.*\\D([0-9]+)$', '$1')
+        def weaveBuildDir = Paths.get(project.buildDir.toString(), 'weave', variant.name, abi)
+        def weaveJniLibsDir = Paths.get(project.buildDir.toString(), 'weave/jniLibs', variant.name, abi)
+        
+        this.environment('JAVA_HOME', org.gradle.internal.jvm.Jvm.current().getJavaHome()) // '/usr/lib/jvm/java-11-openjdk-amd64')
+        this.environment('ANDROID_HOME', project.android.sdkDirectory.getAbsolutePath())
+        this.environment('ANDROID_NDK_HOME', project.android.ndkDirectory.getAbsolutePath())
+        this.environment('ANDROID_API', apiLevel)
+        this.environment('ANDROID_ABI', abi)
+        this.environment('ANDROID_STL', variant.variantData.variantConfiguration.ndkConfig.stl)
+        this.environment('WEAVE_SOURCE_ROOT', project.weaveSourceRoot)
+        this.environment('WEAVE_BUILD_DIR', weaveBuildDir)
+        this.environment('WEAVE_RESULTS_DIR', weaveJniLibsDir)
+        this.environment('ENABLE_WEAVE_DEBUG', (variant.buildType.enableWeaveDebugging) ? '1' : '0')
+        this.environment('ENABLE_WEAVE_LOGGING', (variant.buildType.enableWeaveLogging) ? '1' : '0')
+    }
+}
+
+project.afterEvaluate {
+
+    // For all variants... 
+    android.libraryVariants.all { variant ->
+    
+        // For each ABI targeted by the variant... 
+        variant.variantData.variantConfiguration.supportedAbis.each { abi ->
+        
+            // Create a corresponding 'weaveBuild<variant>-<abi>' task to build the corresponding Weave shared library.
+            def taskName = 'buildWeave' + StringHelper.capitalize(variant.name) + '-' + abi
+            def task = tasks.create(taskName, BuildWeaveTask, variant, abi)
+        
+            // Make the variant's 'mergeAssets' task dependent on the weave build task.
+            variant.mergeAssets.dependsOn task
+        }
+    }
+
+//    android.properties.each { Object key, Object value ->
+//        println("Extension prop: ${key} ${value}")
+//    }
+
+//    tasks.matching { task -> task.name.startsWith('') }.all { task -> println "Task: " + task.name + ": " + task.description }
+//    android.libraryVariants.all { v ->
+//        v.buildType.ext.properties.each { Object key, Object value ->
+//            println 'Variant: ' + key + ' = ' + value
+//        }
+//    }
+}
+
+// Propbably not needed.
+// dependencies {
+//     implementation fileTree(dir: 'libs', include: ['*.jar'])
+// }
+
