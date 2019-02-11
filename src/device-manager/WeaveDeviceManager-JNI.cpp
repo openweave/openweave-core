@@ -3127,9 +3127,9 @@ WEAVE_ERROR N2J_NetworkInfo(JNIEnv *env, const NetworkInfo& inNetworkInfo, jobje
                                                  threadNetName,
                                                  threadExtPANId,
                                                  threadKey,
+                                                 (jshort)inNetworkInfo.WirelessSignalStrength,
                                                  (jint)inNetworkInfo.ThreadPANId,
-                                                 (jbyte)inNetworkInfo.ThreadChannel,
-                                                 (jshort)inNetworkInfo.WirelessSignalStrength);
+                                                 (jbyte)inNetworkInfo.ThreadChannel);
     VerifyOrExit(!env->ExceptionCheck(), err = WDM_JNI_ERROR_EXCEPTION_THROWN);
 
 exit:
