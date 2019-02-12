@@ -84,6 +84,8 @@ WEAVE_ERROR InitEntropy()
 {
     WEAVE_ERROR err;
 
+#error FIX BROKEN ENTROPY CODE
+#if 0
     // Initialize the nrf_crypto RNG source, if not done automatically.
 #if !NRF_CRYPTO_RNG_AUTO_INIT_ENABLED
     err = nrf_crypto_rng_init(
@@ -110,6 +112,8 @@ WEAVE_ERROR InitEntropy()
         srand(seed);
     }
 
+#endif
+    err = WEAVE_NO_ERROR;
 exit:
     if (err != WEAVE_NO_ERROR)
     {
