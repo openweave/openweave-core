@@ -144,17 +144,18 @@ INC_FOLDERS = \
 
 LIB_FILES = \
     $(WEAVE_LIBS) \
-    $(NRF5_SDK_ROOT)/external/openthread/lib/gcc/libmbedcrypto-software.a \
-    $(NRF5_SDK_ROOT)/external/openthread/lib/gcc/libopenthread-mtd.a \
-    $(NRF5_SDK_ROOT)/external/openthread/lib/gcc/libopenthread-nrf52840-softdevice-sdk.a \
+    $(NRF5_SDK_ROOT)/external/openthread/lib/gcc/libopenthread-diag.a \
+    $(NRF5_SDK_ROOT)/external/openthread/lib/gcc/libopenthread-ftd.a \
     $(NRF5_SDK_ROOT)/external/openthread/lib/gcc/libopenthread-platform-utils.a \
+    $(NRF5_SDK_ROOT)/external/openthread/lib/gcc/libmbedcrypto.a \
+    $(NRF5_SDK_ROOT)/external/openthread/lib/gcc/libopenthread-nrf52840-softdevice-sdk.a \
     $(NRF5_SDK_ROOT)/external/nrf_cc310/lib/libnrf_cc310_0.9.10.a \
+    $(NRF5_SDK_ROOT)/external/openthread/lib/gcc/libopenthread-diag.a \
+    $(NRF5_SDK_ROOT)/external/openthread/lib/gcc/libopenthread-nrf52840-softdevice-sdk.a \
     -lc \
     -lstdc++ \
     -lnosys \
     -lm
-
-
 
 LINKER_SCRIPT = $(TARGET).ld
 
