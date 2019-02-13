@@ -1483,6 +1483,7 @@ WEAVE_ERROR WeaveDeviceManager::AddNetwork(const NetworkInfo *netInfo, void* app
 {
     WEAVE_ERROR     err     = WEAVE_NO_ERROR;
     PacketBuffer*   msgBuf  = NULL;
+    uint16_t        msgType = kMsgType_AddNetworkV2;
     TLVWriter       writer;
 
     if (mOpState != kOpState_Idle)
@@ -1507,6 +1508,11 @@ WEAVE_ERROR WeaveDeviceManager::AddNetwork(const NetworkInfo *netInfo, void* app
     mOpState = kOpState_AddNetwork;
 
 #if WEAVE_CONFIG_SUPPORT_LEGACY_ADD_NETWORK_MESSAGE
+
+#if WEAVE_CONFIG_ALWAYS_USE_LEGACY_ADD_NETWORK_MESSAGE
+    // Revert to the deprecated, legacy msg type
+    msgType = kMsgType_AddNetwork;
+#else
     // Create duplicate of a message buffer.
     // If device returns error indicating that the new message type is not supported
     // this retained message will be re-sent to the device as an old AddNetwork() message type.
@@ -1518,9 +1524,11 @@ WEAVE_ERROR WeaveDeviceManager::AddNetwork(const NetworkInfo *netInfo, void* app
 
     // Identify if this request creates new Thread network.
     mCurReqCreateThreadNetwork = (netInfo->NetworkType == kNetworkType_Thread) && (netInfo->ThreadExtendedPANId == NULL);
+#endif // WEAVE_CONFIG_ALWAYS_USE_LEGACY_ADD_NETWORK_MESSAGE
+
 #endif // WEAVE_CONFIG_SUPPORT_LEGACY_ADD_NETWORK_MESSAGE
 
-    err = SendRequest(kWeaveProfile_NetworkProvisioning, kMsgType_AddNetworkV2, msgBuf,
+    err = SendRequest(kWeaveProfile_NetworkProvisioning, msgType, msgBuf,
             HandleNetworkProvisioningResponse);
     msgBuf = NULL;
 
