@@ -30,6 +30,7 @@
 using namespace ::nl;
 using namespace ::nl::Weave;
 
+
 #if WEAVE_CONFIG_RNG_IMPLEMENTATION_NESTDRBG
 
 #if NRF_CRYPTO_BACKEND_CC310_RNG_ENABLED
@@ -43,7 +44,7 @@ using namespace ::nl::Weave;
 #else // WEAVE_CONFIG_RNG_IMPLEMENTATION_NESTDRBG
 
 #if NRF_CRYPTO_BACKEND_NRF_HW_RNG_ENABLED
-#error "Nest DRBG implementation must be enabled when using Nordic HW RNG source"
+#error "Nest DRBG implementation must be enabled when using Nordic HW RNG source WITHOUT mbed TLS CTR-DRBG"
 #endif
 
 #endif // !WEAVE_CONFIG_RNG_IMPLEMENTATION_NESTDRBG
@@ -84,8 +85,6 @@ WEAVE_ERROR InitEntropy()
 {
     WEAVE_ERROR err;
 
-#error FIX BROKEN ENTROPY CODE
-#if 0
     // Initialize the nrf_crypto RNG source, if not done automatically.
 #if !NRF_CRYPTO_RNG_AUTO_INIT_ENABLED
     err = nrf_crypto_rng_init(
@@ -112,7 +111,6 @@ WEAVE_ERROR InitEntropy()
         srand(seed);
     }
 
-#endif
     err = WEAVE_NO_ERROR;
 exit:
     if (err != WEAVE_NO_ERROR)
