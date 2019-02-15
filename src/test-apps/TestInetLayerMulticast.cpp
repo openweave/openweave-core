@@ -513,7 +513,9 @@ static IPAddress MakeIPv4Multicast(uint32_t aGroupIdentifier)
 
 static IPAddress MakeIPv6Multicast(uint32_t aGroupIdentifier)
 {
-    return (IPAddress::MakeIPv6Multicast(kIPv6MulticastScope_Site, aGroupIdentifier));
+    const uint8_t lFlags = kIPv6MulticastFlag_Transient;
+
+    return (IPAddress::MakeIPv6Multicast(lFlags, kIPv6MulticastScope_Site, aGroupIdentifier));
 }
 
 static void SetGroup(GroupAddress &aGroupAddress, uint32_t aGroupIdentifier, uint32_t aExpectedRx, uint32_t aExpectedTx)
