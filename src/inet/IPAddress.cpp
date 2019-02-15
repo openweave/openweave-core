@@ -1,5 +1,6 @@
 /*
  *
+ *    Copyright (c) 2019 Google LLC.
  *    Copyright (c) 2013-2018 Nest Labs, Inc.
  *    All rights reserved.
  *
@@ -334,7 +335,7 @@ void IPAddress::WriteAddress(uint8_t *&p) const
 }
 
 // Decode IPAddress from buffer in network byte order. Must infer IP address type from context.
-void IPAddress::ReadAddress(uint8_t *&p, IPAddress &output)
+void IPAddress::ReadAddress(const uint8_t *&p, IPAddress &output)
 {
     // Since we want to store the address in the output array in network byte order, a simple
     // memcpy of the entire array is used to retrieve from the buffer.
