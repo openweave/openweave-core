@@ -1,6 +1,6 @@
 /*
  *
- *    Copyright (c) 2018 Google LLC.
+ *    Copyright (c) 2018-2019 Google LLC.
  *    Copyright (c) 2015-2018 Nest Labs, Inc.
  *    All rights reserved.
  *
@@ -1107,7 +1107,7 @@ static void CheckDecoding(nlTestSuite *inSuite, void *inContext)
         }
 
         // Call ReadAddress function that we test.
-        IPAddress::ReadAddress(p, test_addr_2);
+        IPAddress::ReadAddress(const_cast<const uint8_t *&>(p), test_addr_2);
 
         NL_TEST_ASSERT(inSuite, test_addr_1.Addr[0] == test_addr_2.Addr[0]);
         NL_TEST_ASSERT(inSuite, test_addr_1.Addr[1] == test_addr_2.Addr[1]);
@@ -1144,7 +1144,7 @@ static void CheckEcodeDecodeSymmetricity(nlTestSuite *inSuite, void *inContext)
         p = buffer;
 
         // Call ReadAddress function that we test.
-        IPAddress::ReadAddress(p, test_addr_2);
+        IPAddress::ReadAddress(const_cast<const uint8_t *&>(p), test_addr_2);
 
         NL_TEST_ASSERT(inSuite, test_addr_1.Addr[0] == test_addr_2.Addr[0]);
         NL_TEST_ASSERT(inSuite, test_addr_1.Addr[1] == test_addr_2.Addr[1]);

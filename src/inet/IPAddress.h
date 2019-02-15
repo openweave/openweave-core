@@ -1,5 +1,6 @@
 /*
  *
+ *    Copyright (c) 2019 Google LLC.
  *    Copyright (c) 2013-2018 Nest Labs, Inc.
  *    All rights reserved.
  *
@@ -328,7 +329,7 @@ public:
      *  Use <tt>ReadAddress(uint8_t *&p, IPAddress &output)</tt> to decode
      *  the IP address at \c p to the object \c output.
      */
-    static void ReadAddress(uint8_t *&p, IPAddress &output);
+    static void ReadAddress(const uint8_t *&p, IPAddress &output);
 
     /**
      * @brief   Test whether address is IPv4 compatible.
