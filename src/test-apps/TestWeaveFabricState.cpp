@@ -61,7 +61,7 @@ static void CheckSelectNodeAddress(nlTestSuite *inSuite, void *inContext)
         IPAddress calculatedULA;
         if (testIDs[i] == kAnyNodeId)
         {
-            calculatedULA = IPAddress::MakeIPv6Multicast(kIPv6MulticastScope_Link, kIPV6MulticastGroup_AllNodes);
+            calculatedULA = IPAddress::MakeIPv6WellKnownMulticast(kIPv6MulticastScope_Link, kIPV6MulticastGroup_AllNodes);
         }
         else
         {

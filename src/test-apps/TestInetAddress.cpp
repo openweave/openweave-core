@@ -84,77 +84,128 @@ enum
     kTestIsNotIPv6LLA       = false
 };
 
-struct TestContext {
-    uint32_t                   addr[4];
-    const IPAddressType        ipAddrType;
-
-    const char                 *ip;
-
-    bool                       isIPv4;
-    bool                       isIPv4Multicast;
-    bool                       isIPv4Broadcast;
-    bool                       isMulticast;
-    bool                       isIPv6Multicast;
-    bool                       isIPv6ULA;
-    bool                       isIPv6LLA;
-
-    uint64_t                   global;
-    uint16_t                   subnet;
-    uint64_t                   interface;
+struct IPAddressContext {
+    uint32_t               mAddrQuartets[4];
+    const IPAddressType    mAddrType;
+    const char *           mAddrString;
 };
+
+typedef const struct IPAddressContext * IPAddressContextIterator;
+
+struct IPAddressContextRange {
+    IPAddressContextIterator mBegin;
+    IPAddressContextIterator mEnd;
+};
+
+struct IPAddressExpandedContext
+{
+    IPAddressContext       mAddr;
+    bool                   isIPv4;
+    bool                   isIPv4Multicast;
+    bool                   isIPv4Broadcast;
+    bool                   isMulticast;
+    bool                   isIPv6Multicast;
+    bool                   isIPv6ULA;
+    bool                   isIPv6LLA;
+
+    uint64_t               global;
+    uint16_t               subnet;
+    uint64_t               interface;
+};
+
+typedef const struct IPAddressExpandedContext * IPAddressExpandedContextIterator;
+
+struct IPAddressExpandedContextRange {
+    IPAddressExpandedContextIterator mBegin;
+    IPAddressExpandedContextIterator mEnd;
+};
+
+struct TestContext
+{
+    const IPAddressContextRange          mIPv6WellKnownMulticastContextRange;
+    const IPAddressContextRange          mIPv6TransientMulticastContextRange;
+    const IPAddressContextRange          mIPv6PrefixMulticastContextRange;
+    const IPAddressExpandedContextRange  mIPAddressExpandedContextRange;
+};
+
 
 // Global Variables
 
+static const IPv6MulticastScope sIPv6MulticastScopes[NUM_MCAST_SCOPES] = {
+    kIPv6MulticastScope_Interface,
+    kIPv6MulticastScope_Link,
+#if INET_CONFIG_ENABLE_IPV4
+    kIPv6MulticastScope_IPv4,
+#else
+    kIPv6MulticastScope_Realm,
+#endif // INET_CONFIG_ENABLE_IPV4
+    kIPv6MulticastScope_Admin,
+    kIPv6MulticastScope_Site,
+    kIPv6MulticastScope_Organization,
+    kIPv6MulticastScope_Global
+};
+
+static const IPV6MulticastGroup sIPv6WellKnownMulticastGroups[NUM_MCAST_GROUPS] = {
+    kIPV6MulticastGroup_AllNodes,
+    kIPV6MulticastGroup_AllRouters
+};
+
 // Test input data.
 
-static const struct TestContext sContext[] = {
+static const struct IPAddressExpandedContext sIPAddressContext[] = {
     {
-        { 0x26200000, 0x10e70400, 0xe83fb28f, 0x9c3a1941 }, kIPAddressType_IPv6,
-        "2620:0:10e7:400:e83f:b28f:9c3a:1941",
+         { { 0x00000000, 0x00000000, 0x00000000, 0x00000000 }, kIPAddressType_Any,
+        "::" },
         kTestIsIPv6, kTestIsNotIPv4Multicast, kTestIsNotIPv4Broadcast, kTestIsNotMulticast, kTestIsNotIPv6Multicast, kTestIsNotIPv6ULA, kTestIsNotIPv6LLA,
         0x0, 0x0, 0x0
     },
     {
-        { 0xfe800000, 0x00000000, 0x8edcd4ff, 0xfe3aebfb }, kIPAddressType_IPv6,
-        "fe80::8edc:d4ff:fe3a:ebfb",
+        { { 0x26200000, 0x10e70400, 0xe83fb28f, 0x9c3a1941 }, kIPAddressType_IPv6,
+                                                                  "2620:0:10e7:400:e83f:b28f:9c3a:1941" } ,
+        kTestIsIPv6, kTestIsNotIPv4Multicast, kTestIsNotIPv4Broadcast, kTestIsNotMulticast, kTestIsNotIPv6Multicast, kTestIsNotIPv6ULA, kTestIsNotIPv6LLA,
+        0x0, 0x0, 0x0
+    },
+    {
+         { { 0xfe800000, 0x00000000, 0x8edcd4ff, 0xfe3aebfb }, kIPAddressType_IPv6,
+        "fe80::8edc:d4ff:fe3a:ebfb" },
         kTestIsIPv6, kTestIsNotIPv4Multicast, kTestIsNotIPv4Broadcast, kTestIsNotMulticast, kTestIsNotIPv6Multicast, kTestIsNotIPv6ULA, kTestIsIPv6LLA,
         0x0, 0x0, 0x0
     },
     {
-        { 0xff010000, 0x00000000, 0x00000000, 0x00000001 }, kIPAddressType_IPv6,
-        "ff01::1",
+         { { 0xff010000, 0x00000000, 0x00000000, 0x00000001 }, kIPAddressType_IPv6,
+        "ff01::1" },
         kTestIsIPv6, kTestIsNotIPv4Multicast, kTestIsNotIPv4Broadcast, kTestIsMulticast, kTestIsIPv6Multicast, kTestIsNotIPv6ULA, kTestIsNotIPv6LLA,
         0x0, 0x0, 0x0
     },
     {
-        { 0xfd000000, 0x00010001, 0x00000000, 0x00000001 }, kIPAddressType_IPv6,
-        "fd00:0:1:1::1",
+         { { 0xfd000000, 0x00010001, 0x00000000, 0x00000001 }, kIPAddressType_IPv6,
+        "fd00:0:1:1::1" },
         kTestIsIPv6, kTestIsNotIPv4Multicast, kTestIsNotIPv4Broadcast, kTestIsNotMulticast, kTestIsNotIPv6Multicast, kTestIsIPv6ULA, kTestIsNotIPv6LLA,
         0x1, 1, 1
     },
     {
-        { 0xfd123456, 0x0001abcd, 0xabcdef00, 0xfedcba09 }, kIPAddressType_IPv6,
-        "fd12:3456:1:abcd:abcd:ef00:fedc:ba09",
+         { { 0xfd123456, 0x0001abcd, 0xabcdef00, 0xfedcba09 }, kIPAddressType_IPv6,
+        "fd12:3456:1:abcd:abcd:ef00:fedc:ba09" },
         kTestIsIPv6, kTestIsNotIPv4Multicast, kTestIsNotIPv4Broadcast, kTestIsNotMulticast, kTestIsNotIPv6Multicast, kTestIsIPv6ULA, kTestIsNotIPv6LLA,
         0x1234560001, 0xabcd, 0xabcdef00fedcba09
     },
     {
-        { 0xfdffffff, 0xffffffff, 0xffffffff, 0xffffffff }, kIPAddressType_IPv6,
-        "fdff:ffff:ffff:ffff:ffff:ffff:ffff:ffff",
+         { { 0xfdffffff, 0xffffffff, 0xffffffff, 0xffffffff }, kIPAddressType_IPv6,
+        "fdff:ffff:ffff:ffff:ffff:ffff:ffff:ffff" },
         kTestIsIPv6, kTestIsNotIPv4Multicast, kTestIsNotIPv4Broadcast, kTestIsNotMulticast, kTestIsNotIPv6Multicast, kTestIsIPv6ULA, kTestIsNotIPv6LLA,
         0xffffffffff, 0xffff, 0xffffffffffffffff
     },
 #if INET_CONFIG_ENABLE_IPV4
     // IPv4-only
     {
-        { 0x00000000, 0x00000000, 0x0000ffff, 0xffffff00 }, kIPAddressType_IPv4,
-        "255.255.255.0",
+         { { 0x00000000, 0x00000000, 0x0000ffff, 0xffffff00 }, kIPAddressType_IPv4,
+        "255.255.255.0" },
         kTestIsIPv4, kTestIsNotIPv4Multicast, kTestIsNotIPv4Broadcast, kTestIsNotMulticast, kTestIsNotIPv6Multicast, kTestIsNotIPv6ULA, kTestIsNotIPv6LLA,
         0x0, 0x0, 0x0
     },
     {
-        { 0x00000000, 0x00000000, 0x0000ffff, 0x7f000001 }, kIPAddressType_IPv4,
-        "127.0.0.1",
+         { { 0x00000000, 0x00000000, 0x0000ffff, 0x7f000001 }, kIPAddressType_IPv4,
+        "127.0.0.1" },
         kTestIsIPv4, kTestIsNotIPv4Multicast, kTestIsNotIPv4Broadcast, kTestIsNotMulticast, kTestIsNotIPv6Multicast, kTestIsNotIPv6ULA, kTestIsNotIPv6LLA,
         0x0, 0x0, 0x0
     },
@@ -162,311 +213,420 @@ static const struct TestContext sContext[] = {
 
     // IPv4 Local subnetwork multicast
     {
-        { 0x00000000, 0x00000000, 0x0000ffff, 0xe0000000 }, kIPAddressType_IPv4,
-        "224.0.0.0",
+         { { 0x00000000, 0x00000000, 0x0000ffff, 0xe0000000 }, kIPAddressType_IPv4,
+        "224.0.0.0" },
         kTestIsIPv4, kTestIsIPv4Multicast, kTestIsNotIPv4Broadcast, kTestIsMulticast, kTestIsNotIPv6Multicast, kTestIsNotIPv6ULA, kTestIsNotIPv6LLA,
         0x0, 0x0, 0x0
     },
     {
-        { 0x00000000, 0x00000000, 0x0000ffff, 0xe0000001 }, kIPAddressType_IPv4,
-        "224.0.0.1",
+         { { 0x00000000, 0x00000000, 0x0000ffff, 0xe0000001 }, kIPAddressType_IPv4,
+        "224.0.0.1" },
         kTestIsIPv4, kTestIsIPv4Multicast, kTestIsNotIPv4Broadcast, kTestIsMulticast, kTestIsNotIPv6Multicast, kTestIsNotIPv6ULA, kTestIsNotIPv6LLA,
         0x0, 0x0, 0x0
     },
     {
-        { 0x00000000, 0x00000000, 0x0000ffff, 0xe0000080 }, kIPAddressType_IPv4,
-        "224.0.0.128",
+         { { 0x00000000, 0x00000000, 0x0000ffff, 0xe0000080 }, kIPAddressType_IPv4,
+        "224.0.0.128" },
         kTestIsIPv4, kTestIsIPv4Multicast, kTestIsNotIPv4Broadcast, kTestIsMulticast, kTestIsNotIPv6Multicast, kTestIsNotIPv6ULA, kTestIsNotIPv6LLA,
         0x0, 0x0, 0x0
     },
     {
-        { 0x00000000, 0x00000000, 0x0000ffff, 0xe00000fe }, kIPAddressType_IPv4,
-        "224.0.0.254",
+         { { 0x00000000, 0x00000000, 0x0000ffff, 0xe00000fe }, kIPAddressType_IPv4,
+        "224.0.0.254" },
         kTestIsIPv4, kTestIsIPv4Multicast, kTestIsNotIPv4Broadcast, kTestIsMulticast, kTestIsNotIPv6Multicast, kTestIsNotIPv6ULA, kTestIsNotIPv6LLA,
         0x0, 0x0, 0x0
     },
     {
-        { 0x00000000, 0x00000000, 0x0000ffff, 0xe00000ff }, kIPAddressType_IPv4,
-        "224.0.0.255",
+         { { 0x00000000, 0x00000000, 0x0000ffff, 0xe00000ff }, kIPAddressType_IPv4,
+        "224.0.0.255" },
         kTestIsIPv4, kTestIsIPv4Multicast, kTestIsNotIPv4Broadcast, kTestIsMulticast, kTestIsNotIPv6Multicast, kTestIsNotIPv6ULA, kTestIsNotIPv6LLA,
         0x0, 0x0, 0x0
     },
     // IPv4 Internetwork control multicast
     {
-        { 0x00000000, 0x00000000, 0x0000ffff, 0xe0000100 }, kIPAddressType_IPv4,
-        "224.0.1.0",
+         { { 0x00000000, 0x00000000, 0x0000ffff, 0xe0000100 }, kIPAddressType_IPv4,
+        "224.0.1.0" },
         kTestIsIPv4, kTestIsIPv4Multicast, kTestIsNotIPv4Broadcast, kTestIsMulticast, kTestIsNotIPv6Multicast, kTestIsNotIPv6ULA, kTestIsNotIPv6LLA,
         0x0, 0x0, 0x0
     },
     {
-        { 0x00000000, 0x00000000, 0x0000ffff, 0xe0000101 }, kIPAddressType_IPv4,
-        "224.0.1.1",
+         { { 0x00000000, 0x00000000, 0x0000ffff, 0xe0000101 }, kIPAddressType_IPv4,
+        "224.0.1.1" },
         kTestIsIPv4, kTestIsIPv4Multicast, kTestIsNotIPv4Broadcast, kTestIsMulticast, kTestIsNotIPv6Multicast, kTestIsNotIPv6ULA, kTestIsNotIPv6LLA,
         0x0, 0x0, 0x0
     },
     {
-        { 0x00000000, 0x00000000, 0x0000ffff, 0xe0000180 }, kIPAddressType_IPv4,
-        "224.0.1.128",
+         { { 0x00000000, 0x00000000, 0x0000ffff, 0xe0000180 }, kIPAddressType_IPv4,
+        "224.0.1.128" },
         kTestIsIPv4, kTestIsIPv4Multicast, kTestIsNotIPv4Broadcast, kTestIsMulticast, kTestIsNotIPv6Multicast, kTestIsNotIPv6ULA, kTestIsNotIPv6LLA,
         0x0, 0x0, 0x0
     },
     {
-        { 0x00000000, 0x00000000, 0x0000ffff, 0xe00001fe }, kIPAddressType_IPv4,
-        "224.0.1.254",
+         { { 0x00000000, 0x00000000, 0x0000ffff, 0xe00001fe }, kIPAddressType_IPv4,
+        "224.0.1.254" },
         kTestIsIPv4, kTestIsIPv4Multicast, kTestIsNotIPv4Broadcast, kTestIsMulticast, kTestIsNotIPv6Multicast, kTestIsNotIPv6ULA, kTestIsNotIPv6LLA,
         0x0, 0x0, 0x0
     },
     {
-        { 0x00000000, 0x00000000, 0x0000ffff, 0xe00001ff }, kIPAddressType_IPv4,
-        "224.0.1.255",
+         { { 0x00000000, 0x00000000, 0x0000ffff, 0xe00001ff }, kIPAddressType_IPv4,
+        "224.0.1.255" },
         kTestIsIPv4, kTestIsIPv4Multicast, kTestIsNotIPv4Broadcast, kTestIsMulticast, kTestIsNotIPv6Multicast, kTestIsNotIPv6ULA, kTestIsNotIPv6LLA,
         0x0, 0x0, 0x0
     },
     // IPv4 AD-HOC block 1 multicast
     {
-        { 0x00000000, 0x00000000, 0x0000ffff, 0xe0000200 }, kIPAddressType_IPv4,
-        "224.0.2.0",
+         { { 0x00000000, 0x00000000, 0x0000ffff, 0xe0000200 }, kIPAddressType_IPv4,
+        "224.0.2.0" },
         kTestIsIPv4, kTestIsIPv4Multicast, kTestIsNotIPv4Broadcast, kTestIsMulticast, kTestIsNotIPv6Multicast, kTestIsNotIPv6ULA, kTestIsNotIPv6LLA,
         0x0, 0x0, 0x0
     },
     {
-        { 0x00000000, 0x00000000, 0x0000ffff, 0xe0000201 }, kIPAddressType_IPv4,
-        "224.0.2.1",
+         { { 0x00000000, 0x00000000, 0x0000ffff, 0xe0000201 }, kIPAddressType_IPv4,
+        "224.0.2.1" },
         kTestIsIPv4, kTestIsIPv4Multicast, kTestIsNotIPv4Broadcast, kTestIsMulticast, kTestIsNotIPv6Multicast, kTestIsNotIPv6ULA, kTestIsNotIPv6LLA,
         0x0, 0x0, 0x0
     },
     {
-        { 0x00000000, 0x00000000, 0x0000ffff, 0xe0008100 }, kIPAddressType_IPv4,
-        "224.0.129.0",
+         { { 0x00000000, 0x00000000, 0x0000ffff, 0xe0008100 }, kIPAddressType_IPv4,
+        "224.0.129.0" },
         kTestIsIPv4, kTestIsIPv4Multicast, kTestIsNotIPv4Broadcast, kTestIsMulticast, kTestIsNotIPv6Multicast, kTestIsNotIPv6ULA, kTestIsNotIPv6LLA,
         0x0, 0x0, 0x0
     },
     {
-        { 0x00000000, 0x00000000, 0x0000ffff, 0xe000fffe }, kIPAddressType_IPv4,
-        "224.0.255.254",
+         { { 0x00000000, 0x00000000, 0x0000ffff, 0xe000fffe }, kIPAddressType_IPv4,
+        "224.0.255.254" },
         kTestIsIPv4, kTestIsIPv4Multicast, kTestIsNotIPv4Broadcast, kTestIsMulticast, kTestIsNotIPv6Multicast, kTestIsNotIPv6ULA, kTestIsNotIPv6LLA,
         0x0, 0x0, 0x0
     },
     {
-        { 0x00000000, 0x00000000, 0x0000ffff, 0xe000ffff }, kIPAddressType_IPv4,
-        "224.0.255.255",
+         { { 0x00000000, 0x00000000, 0x0000ffff, 0xe000ffff }, kIPAddressType_IPv4,
+        "224.0.255.255" },
         kTestIsIPv4, kTestIsIPv4Multicast, kTestIsNotIPv4Broadcast, kTestIsMulticast, kTestIsNotIPv6Multicast, kTestIsNotIPv6ULA, kTestIsNotIPv6LLA,
         0x0, 0x0, 0x0
     },
     // IPv4 AD-HOC block 2 multicast
     {
-        { 0x00000000, 0x00000000, 0x0000ffff, 0xe0030000 }, kIPAddressType_IPv4,
-        "224.3.0.0",
+         { { 0x00000000, 0x00000000, 0x0000ffff, 0xe0030000 }, kIPAddressType_IPv4,
+        "224.3.0.0" },
         kTestIsIPv4, kTestIsIPv4Multicast, kTestIsNotIPv4Broadcast, kTestIsMulticast, kTestIsNotIPv6Multicast, kTestIsNotIPv6ULA, kTestIsNotIPv6LLA,
         0x0, 0x0, 0x0
     },
     {
-        { 0x00000000, 0x00000000, 0x0000ffff, 0xe0030001 }, kIPAddressType_IPv4,
-        "224.3.0.1",
+         { { 0x00000000, 0x00000000, 0x0000ffff, 0xe0030001 }, kIPAddressType_IPv4,
+        "224.3.0.1" },
         kTestIsIPv4, kTestIsIPv4Multicast, kTestIsNotIPv4Broadcast, kTestIsMulticast, kTestIsNotIPv6Multicast, kTestIsNotIPv6ULA, kTestIsNotIPv6LLA,
         0x0, 0x0, 0x0
     },
     {
-        { 0x00000000, 0x00000000, 0x0000ffff, 0xe0040000 }, kIPAddressType_IPv4,
-        "224.4.0.0",
+         { { 0x00000000, 0x00000000, 0x0000ffff, 0xe0040000 }, kIPAddressType_IPv4,
+        "224.4.0.0" },
         kTestIsIPv4, kTestIsIPv4Multicast, kTestIsNotIPv4Broadcast, kTestIsMulticast, kTestIsNotIPv6Multicast, kTestIsNotIPv6ULA, kTestIsNotIPv6LLA,
         0x0, 0x0, 0x0
     },
     {
-        { 0x00000000, 0x00000000, 0x0000ffff, 0xe004fffe }, kIPAddressType_IPv4,
-        "224.4.255.254",
+         { { 0x00000000, 0x00000000, 0x0000ffff, 0xe004fffe }, kIPAddressType_IPv4,
+        "224.4.255.254" },
         kTestIsIPv4, kTestIsIPv4Multicast, kTestIsNotIPv4Broadcast, kTestIsMulticast, kTestIsNotIPv6Multicast, kTestIsNotIPv6ULA, kTestIsNotIPv6LLA,
         0x0, 0x0, 0x0
     },
     {
-        { 0x00000000, 0x00000000, 0x0000ffff, 0xe004ffff }, kIPAddressType_IPv4,
-        "224.4.255.255",
+         { { 0x00000000, 0x00000000, 0x0000ffff, 0xe004ffff }, kIPAddressType_IPv4,
+        "224.4.255.255" },
         kTestIsIPv4, kTestIsIPv4Multicast, kTestIsNotIPv4Broadcast, kTestIsMulticast, kTestIsNotIPv6Multicast, kTestIsNotIPv6ULA, kTestIsNotIPv6LLA,
         0x0, 0x0, 0x0
     },
     // IPv4 source-specific multicast
     {
-        { 0x00000000, 0x00000000, 0x0000ffff, 0xe8000000 }, kIPAddressType_IPv4,
-        "232.0.0.0",
+         { { 0x00000000, 0x00000000, 0x0000ffff, 0xe8000000 }, kIPAddressType_IPv4,
+        "232.0.0.0" },
         kTestIsIPv4, kTestIsIPv4Multicast, kTestIsNotIPv4Broadcast, kTestIsMulticast, kTestIsNotIPv6Multicast, kTestIsNotIPv6ULA, kTestIsNotIPv6LLA,
         0x0, 0x0, 0x0
     },
     {
-        { 0x00000000, 0x00000000, 0x0000ffff, 0xe8000001 }, kIPAddressType_IPv4,
-        "232.0.0.1",
+         { { 0x00000000, 0x00000000, 0x0000ffff, 0xe8000001 }, kIPAddressType_IPv4,
+        "232.0.0.1" },
         kTestIsIPv4, kTestIsIPv4Multicast, kTestIsNotIPv4Broadcast, kTestIsMulticast, kTestIsNotIPv6Multicast, kTestIsNotIPv6ULA, kTestIsNotIPv6LLA,
         0x0, 0x0, 0x0
     },
     {
-        { 0x00000000, 0x00000000, 0x0000ffff, 0xe8800000 }, kIPAddressType_IPv4,
-        "232.128.0.0",
+         { { 0x00000000, 0x00000000, 0x0000ffff, 0xe8800000 }, kIPAddressType_IPv4,
+        "232.128.0.0" },
         kTestIsIPv4, kTestIsIPv4Multicast, kTestIsNotIPv4Broadcast, kTestIsMulticast, kTestIsNotIPv6Multicast, kTestIsNotIPv6ULA, kTestIsNotIPv6LLA,
         0x0, 0x0, 0x0
     },
     {
-        { 0x00000000, 0x00000000, 0x0000ffff, 0xe8fffffe }, kIPAddressType_IPv4,
-        "232.255.255.254",
+         { { 0x00000000, 0x00000000, 0x0000ffff, 0xe8fffffe }, kIPAddressType_IPv4,
+        "232.255.255.254" },
         kTestIsIPv4, kTestIsIPv4Multicast, kTestIsNotIPv4Broadcast, kTestIsMulticast, kTestIsNotIPv6Multicast, kTestIsNotIPv6ULA, kTestIsNotIPv6LLA,
         0x0, 0x0, 0x0
     },
     {
-        { 0x00000000, 0x00000000, 0x0000ffff, 0xe8ffffff }, kIPAddressType_IPv4,
-        "232.255.255.255",
+         { { 0x00000000, 0x00000000, 0x0000ffff, 0xe8ffffff }, kIPAddressType_IPv4,
+        "232.255.255.255" },
         kTestIsIPv4, kTestIsIPv4Multicast, kTestIsNotIPv4Broadcast, kTestIsMulticast, kTestIsNotIPv6Multicast, kTestIsNotIPv6ULA, kTestIsNotIPv6LLA,
         0x0, 0x0, 0x0
     },
     // IPv4 GLOP addressing multicast
     {
-        { 0x00000000, 0x00000000, 0x0000ffff, 0xe9000000 }, kIPAddressType_IPv4,
-        "233.0.0.0",
+         { { 0x00000000, 0x00000000, 0x0000ffff, 0xe9000000 }, kIPAddressType_IPv4,
+        "233.0.0.0" },
         kTestIsIPv4, kTestIsIPv4Multicast, kTestIsNotIPv4Broadcast, kTestIsMulticast, kTestIsNotIPv6Multicast, kTestIsNotIPv6ULA, kTestIsNotIPv6LLA,
         0x0, 0x0, 0x0
     },
     {
-        { 0x00000000, 0x00000000, 0x0000ffff, 0xe9000001 }, kIPAddressType_IPv4,
-        "233.0.0.1",
+         { { 0x00000000, 0x00000000, 0x0000ffff, 0xe9000001 }, kIPAddressType_IPv4,
+        "233.0.0.1" },
         kTestIsIPv4, kTestIsIPv4Multicast, kTestIsNotIPv4Broadcast, kTestIsMulticast, kTestIsNotIPv6Multicast, kTestIsNotIPv6ULA, kTestIsNotIPv6LLA,
         0x0, 0x0, 0x0
     },
     {
-        { 0x00000000, 0x00000000, 0x0000ffff, 0xe97e0000 }, kIPAddressType_IPv4,
-        "233.126.0.0",
+         { { 0x00000000, 0x00000000, 0x0000ffff, 0xe97e0000 }, kIPAddressType_IPv4,
+        "233.126.0.0" },
         kTestIsIPv4, kTestIsIPv4Multicast, kTestIsNotIPv4Broadcast, kTestIsMulticast, kTestIsNotIPv6Multicast, kTestIsNotIPv6ULA, kTestIsNotIPv6LLA,
         0x0, 0x0, 0x0
     },
     {
-        { 0x00000000, 0x00000000, 0x0000ffff, 0xe9fbfffe }, kIPAddressType_IPv4,
-        "233.251.255.254",
+         { { 0x00000000, 0x00000000, 0x0000ffff, 0xe9fbfffe }, kIPAddressType_IPv4,
+        "233.251.255.254" },
         kTestIsIPv4, kTestIsIPv4Multicast, kTestIsNotIPv4Broadcast, kTestIsMulticast, kTestIsNotIPv6Multicast, kTestIsNotIPv6ULA, kTestIsNotIPv6LLA,
         0x0, 0x0, 0x0
     },
     {
-        { 0x00000000, 0x00000000, 0x0000ffff, 0xe9fbffff }, kIPAddressType_IPv4,
-        "233.251.255.255",
+         { { 0x00000000, 0x00000000, 0x0000ffff, 0xe9fbffff }, kIPAddressType_IPv4,
+        "233.251.255.255" },
         kTestIsIPv4, kTestIsIPv4Multicast, kTestIsNotIPv4Broadcast, kTestIsMulticast, kTestIsNotIPv6Multicast, kTestIsNotIPv6ULA, kTestIsNotIPv6LLA,
         0x0, 0x0, 0x0
     },
     // IPv4 AD-HOC block 3 multicast
     {
-        { 0x00000000, 0x00000000, 0x0000ffff, 0xe9fc0000 }, kIPAddressType_IPv4,
-        "233.252.0.0",
+         { { 0x00000000, 0x00000000, 0x0000ffff, 0xe9fc0000 }, kIPAddressType_IPv4,
+        "233.252.0.0" },
         kTestIsIPv4, kTestIsIPv4Multicast, kTestIsNotIPv4Broadcast, kTestIsMulticast, kTestIsNotIPv6Multicast, kTestIsNotIPv6ULA, kTestIsNotIPv6LLA,
         0x0, 0x0, 0x0
     },
     {
-        { 0x00000000, 0x00000000, 0x0000ffff, 0xe9fc0001 }, kIPAddressType_IPv4,
-        "233.252.0.1",
+         { { 0x00000000, 0x00000000, 0x0000ffff, 0xe9fc0001 }, kIPAddressType_IPv4,
+        "233.252.0.1" },
         kTestIsIPv4, kTestIsIPv4Multicast, kTestIsNotIPv4Broadcast, kTestIsMulticast, kTestIsNotIPv6Multicast, kTestIsNotIPv6ULA, kTestIsNotIPv6LLA,
         0x0, 0x0, 0x0
     },
     {
-        { 0x00000000, 0x00000000, 0x0000ffff, 0xe9fe0000 }, kIPAddressType_IPv4,
-        "233.254.0.0",
+         { { 0x00000000, 0x00000000, 0x0000ffff, 0xe9fe0000 }, kIPAddressType_IPv4,
+        "233.254.0.0" },
         kTestIsIPv4, kTestIsIPv4Multicast, kTestIsNotIPv4Broadcast, kTestIsMulticast, kTestIsNotIPv6Multicast, kTestIsNotIPv6ULA, kTestIsNotIPv6LLA,
         0x0, 0x0, 0x0
     },
     {
-        { 0x00000000, 0x00000000, 0x0000ffff, 0xe9fffffe }, kIPAddressType_IPv4,
-        "233.255.255.254",
+         { { 0x00000000, 0x00000000, 0x0000ffff, 0xe9fffffe }, kIPAddressType_IPv4,
+        "233.255.255.254" },
         kTestIsIPv4, kTestIsIPv4Multicast, kTestIsNotIPv4Broadcast, kTestIsMulticast, kTestIsNotIPv6Multicast, kTestIsNotIPv6ULA, kTestIsNotIPv6LLA,
         0x0, 0x0, 0x0
     },
     {
-        { 0x00000000, 0x00000000, 0x0000ffff, 0xe9ffffff }, kIPAddressType_IPv4,
-        "233.255.255.255",
+         { { 0x00000000, 0x00000000, 0x0000ffff, 0xe9ffffff }, kIPAddressType_IPv4,
+        "233.255.255.255" },
         kTestIsIPv4, kTestIsIPv4Multicast, kTestIsNotIPv4Broadcast, kTestIsMulticast, kTestIsNotIPv6Multicast, kTestIsNotIPv6ULA, kTestIsNotIPv6LLA,
         0x0, 0x0, 0x0
     },
     // IPv4 unicast-prefix-based multicast
     {
-        { 0x00000000, 0x00000000, 0x0000ffff, 0xea000000 }, kIPAddressType_IPv4,
-        "234.0.0.0",
+         { { 0x00000000, 0x00000000, 0x0000ffff, 0xea000000 }, kIPAddressType_IPv4,
+        "234.0.0.0" },
         kTestIsIPv4, kTestIsIPv4Multicast, kTestIsNotIPv4Broadcast, kTestIsMulticast, kTestIsNotIPv6Multicast, kTestIsNotIPv6ULA, kTestIsNotIPv6LLA,
         0x0, 0x0, 0x0
     },
     {
-        { 0x00000000, 0x00000000, 0x0000ffff, 0xea000001 }, kIPAddressType_IPv4,
-        "234.0.0.1",
+         { { 0x00000000, 0x00000000, 0x0000ffff, 0xea000001 }, kIPAddressType_IPv4,
+        "234.0.0.1" },
         kTestIsIPv4, kTestIsIPv4Multicast, kTestIsNotIPv4Broadcast, kTestIsMulticast, kTestIsNotIPv6Multicast, kTestIsNotIPv6ULA, kTestIsNotIPv6LLA,
         0x0, 0x0, 0x0
     },
     {
-        { 0x00000000, 0x00000000, 0x0000ffff, 0xea800000 }, kIPAddressType_IPv4,
-        "234.128.0.0",
+         { { 0x00000000, 0x00000000, 0x0000ffff, 0xea800000 }, kIPAddressType_IPv4,
+        "234.128.0.0" },
         kTestIsIPv4, kTestIsIPv4Multicast, kTestIsNotIPv4Broadcast, kTestIsMulticast, kTestIsNotIPv6Multicast, kTestIsNotIPv6ULA, kTestIsNotIPv6LLA,
         0x0, 0x0, 0x0
     },
     {
-        { 0x00000000, 0x00000000, 0x0000ffff, 0xeafffffe }, kIPAddressType_IPv4,
-        "234.255.255.254",
+         { { 0x00000000, 0x00000000, 0x0000ffff, 0xeafffffe }, kIPAddressType_IPv4,
+        "234.255.255.254" },
         kTestIsIPv4, kTestIsIPv4Multicast, kTestIsNotIPv4Broadcast, kTestIsMulticast, kTestIsNotIPv6Multicast, kTestIsNotIPv6ULA, kTestIsNotIPv6LLA,
         0x0, 0x0, 0x0
     },
     {
-        { 0x00000000, 0x00000000, 0x0000ffff, 0xeaffffff }, kIPAddressType_IPv4,
-        "234.255.255.255",
+         { { 0x00000000, 0x00000000, 0x0000ffff, 0xeaffffff }, kIPAddressType_IPv4,
+        "234.255.255.255" },
         kTestIsIPv4, kTestIsIPv4Multicast, kTestIsNotIPv4Broadcast, kTestIsMulticast, kTestIsNotIPv6Multicast, kTestIsNotIPv6ULA, kTestIsNotIPv6LLA,
         0x0, 0x0, 0x0
     },
     // IPv4 administratively scoped multicast
     {
-        { 0x00000000, 0x00000000, 0x0000ffff, 0xef000000 }, kIPAddressType_IPv4,
-        "239.0.0.0",
+         { { 0x00000000, 0x00000000, 0x0000ffff, 0xef000000 }, kIPAddressType_IPv4,
+        "239.0.0.0" },
         kTestIsIPv4, kTestIsIPv4Multicast, kTestIsNotIPv4Broadcast, kTestIsMulticast, kTestIsNotIPv6Multicast, kTestIsNotIPv6ULA, kTestIsNotIPv6LLA,
         0x0, 0x0, 0x0
     },
     {
-        { 0x00000000, 0x00000000, 0x0000ffff, 0xef000001 }, kIPAddressType_IPv4,
-        "239.0.0.1",
+         { { 0x00000000, 0x00000000, 0x0000ffff, 0xef000001 }, kIPAddressType_IPv4,
+        "239.0.0.1" },
         kTestIsIPv4, kTestIsIPv4Multicast, kTestIsNotIPv4Broadcast, kTestIsMulticast, kTestIsNotIPv6Multicast, kTestIsNotIPv6ULA, kTestIsNotIPv6LLA,
         0x0, 0x0, 0x0
     },
     {
-        { 0x00000000, 0x00000000, 0x0000ffff, 0xef800000 }, kIPAddressType_IPv4,
-        "239.128.0.0",
+         { { 0x00000000, 0x00000000, 0x0000ffff, 0xef800000 }, kIPAddressType_IPv4,
+        "239.128.0.0" },
         kTestIsIPv4, kTestIsIPv4Multicast, kTestIsNotIPv4Broadcast, kTestIsMulticast, kTestIsNotIPv6Multicast, kTestIsNotIPv6ULA, kTestIsNotIPv6LLA,
         0x0, 0x0, 0x0
     },
     {
-        { 0x00000000, 0x00000000, 0x0000ffff, 0xeffffffe }, kIPAddressType_IPv4,
-        "239.255.255.254",
+         { { 0x00000000, 0x00000000, 0x0000ffff, 0xeffffffe }, kIPAddressType_IPv4,
+        "239.255.255.254" },
         kTestIsIPv4, kTestIsIPv4Multicast, kTestIsNotIPv4Broadcast, kTestIsMulticast, kTestIsNotIPv6Multicast, kTestIsNotIPv6ULA, kTestIsNotIPv6LLA,
         0x0, 0x0, 0x0
     },
     {
-        { 0x00000000, 0x00000000, 0x0000ffff, 0xefffffff }, kIPAddressType_IPv4,
-        "239.255.255.255",
+         { { 0x00000000, 0x00000000, 0x0000ffff, 0xefffffff }, kIPAddressType_IPv4,
+        "239.255.255.255" },
         kTestIsIPv4, kTestIsIPv4Multicast, kTestIsNotIPv4Broadcast, kTestIsMulticast, kTestIsNotIPv6Multicast, kTestIsNotIPv6ULA, kTestIsNotIPv6LLA,
         0x0, 0x0, 0x0
     },
     // IP4 and IPv4 broadcast
     {
-        { 0x00000000, 0x00000000, 0x0000ffff, 0xffffffff }, kIPAddressType_IPv4,
-        "255.255.255.255",
+         { { 0x00000000, 0x00000000, 0x0000ffff, 0xffffffff }, kIPAddressType_IPv4,
+        "255.255.255.255" },
         kTestIsIPv4, kTestIsNotIPv4Multicast, kTestIsIPv4Broadcast, kTestIsNotMulticast, kTestIsNotIPv6Multicast, kTestIsNotIPv6ULA, kTestIsNotIPv6LLA,
         0x0, 0x0, 0x0
-    },
+    }
 #endif // INET_CONFIG_ENABLE_IPV4
+};
+
+static const IPAddressContext sIPv6WellKnownMulticastContext[] = {
+    // Well-known
+
+    // All-nodes in Various Scopes
+
+    { { 0xff010000, 0x00000000, 0x00000000, 0x00000001 }, kIPAddressType_IPv6, "ff01::1" },
+    { { 0xff020000, 0x00000000, 0x00000000, 0x00000001 }, kIPAddressType_IPv6, "ff02::1" },
+    { { 0xff030000, 0x00000000, 0x00000000, 0x00000001 }, kIPAddressType_IPv6, "ff03::1" },
+    { { 0xff040000, 0x00000000, 0x00000000, 0x00000001 }, kIPAddressType_IPv6, "ff04::1" },
+    { { 0xff050000, 0x00000000, 0x00000000, 0x00000001 }, kIPAddressType_IPv6, "ff05::1" },
+    { { 0xff080000, 0x00000000, 0x00000000, 0x00000001 }, kIPAddressType_IPv6, "ff08::1" },
+    { { 0xff0e0000, 0x00000000, 0x00000000, 0x00000001 }, kIPAddressType_IPv6, "ff0e::1" },
+
+    // All-routers in Various Scopes
+
+    { { 0xff010000, 0x00000000, 0x00000000, 0x00000002 }, kIPAddressType_IPv6, "ff01::2" },
+    { { 0xff020000, 0x00000000, 0x00000000, 0x00000002 }, kIPAddressType_IPv6, "ff02::2" },
+    { { 0xff030000, 0x00000000, 0x00000000, 0x00000002 }, kIPAddressType_IPv6, "ff03::2" },
+    { { 0xff040000, 0x00000000, 0x00000000, 0x00000002 }, kIPAddressType_IPv6, "ff04::2" },
+    { { 0xff050000, 0x00000000, 0x00000000, 0x00000002 }, kIPAddressType_IPv6, "ff05::2" },
+    { { 0xff080000, 0x00000000, 0x00000000, 0x00000002 }, kIPAddressType_IPv6, "ff08::2" },
+    { { 0xff0e0000, 0x00000000, 0x00000000, 0x00000002 }, kIPAddressType_IPv6, "ff0e::2" }
+};
+
+static const IPAddressContext sIPv6TransientMulticastContext[] = {
+    // Transient
+
+    // Short Transient Group in Various Scopes
+
+    { { 0xff110000, 0x00000000, 0x00000000, 0x00000001 }, kIPAddressType_IPv6, "ff11::1" },
+    { { 0xff120000, 0x00000000, 0x00000000, 0x00000001 }, kIPAddressType_IPv6, "ff12::1" },
+    { { 0xff130000, 0x00000000, 0x00000000, 0x00000001 }, kIPAddressType_IPv6, "ff13::1" },
+    { { 0xff140000, 0x00000000, 0x00000000, 0x00000001 }, kIPAddressType_IPv6, "ff14::1" },
+    { { 0xff150000, 0x00000000, 0x00000000, 0x00000001 }, kIPAddressType_IPv6, "ff15::1" },
+    { { 0xff180000, 0x00000000, 0x00000000, 0x00000001 }, kIPAddressType_IPv6, "ff18::1" },
+    { { 0xff1e0000, 0x00000000, 0x00000000, 0x00000001 }, kIPAddressType_IPv6, "ff1e::1" },
+
+    // Long Transient Group in Various Scopes
+
+    { { 0xff11d5d6, 0x2ba27847, 0x6452587a, 0xc9550b5a }, kIPAddressType_IPv6, "ff11:d5d6:2ba2:7847:6452:587a:c955:b5a" },
+    { { 0xff12d5d6, 0x2ba27847, 0x6452587a, 0xc9550b5a }, kIPAddressType_IPv6, "ff12:d5d6:2ba2:7847:6452:587a:c955:b5a" },
+    { { 0xff13d5d6, 0x2ba27847, 0x6452587a, 0xc9550b5a }, kIPAddressType_IPv6, "ff13:d5d6:2ba2:7847:6452:587a:c955:b5a" },
+    { { 0xff14d5d6, 0x2ba27847, 0x6452587a, 0xc9550b5a }, kIPAddressType_IPv6, "ff14:d5d6:2ba2:7847:6452:587a:c955:b5a" },
+    { { 0xff15d5d6, 0x2ba27847, 0x6452587a, 0xc9550b5a }, kIPAddressType_IPv6, "ff15:d5d6:2ba2:7847:6452:587a:c955:b5a" },
+    { { 0xff18d5d6, 0x2ba27847, 0x6452587a, 0xc9550b5a }, kIPAddressType_IPv6, "ff18:d5d6:2ba2:7847:6452:587a:c955:b5a" },
+    { { 0xff1ed5d6, 0x2ba27847, 0x6452587a, 0xc9550b5a }, kIPAddressType_IPv6, "ff1e:d5d6:2ba2:7847:6452:587a:c955:b5a" }
+};
+
+static const IPAddressContext sIPv6PrefixMulticastContext[] = {
+    // Prefix
+
+    // 56-bit Prefix with Short Group in Various Scopes
+
+    { { 0xff310038, 0x373acba4, 0xd2ad8d00, 0x00000001 }, kIPAddressType_IPv6, "ff31:38:373a:cba4:d2ad:8d00:0:1" },
+    { { 0xff320038, 0x373acba4, 0xd2ad8d00, 0x00000001 }, kIPAddressType_IPv6, "ff32:38:373a:cba4:d2ad:8d00:0:1" },
+    { { 0xff330038, 0x373acba4, 0xd2ad8d00, 0x00000001 }, kIPAddressType_IPv6, "ff33:38:373a:cba4:d2ad:8d00:0:1" },
+    { { 0xff340038, 0x373acba4, 0xd2ad8d00, 0x00000001 }, kIPAddressType_IPv6, "ff34:38:373a:cba4:d2ad:8d00:0:1" },
+    { { 0xff350038, 0x373acba4, 0xd2ad8d00, 0x00000001 }, kIPAddressType_IPv6, "ff35:38:373a:cba4:d2ad:8d00:0:1" },
+    { { 0xff380038, 0x373acba4, 0xd2ad8d00, 0x00000001 }, kIPAddressType_IPv6, "ff38:38:373a:cba4:d2ad:8d00:0:1" },
+    { { 0xff3e0038, 0x373acba4, 0xd2ad8d00, 0x00000001 }, kIPAddressType_IPv6, "ff3e:38:373a:cba4:d2ad:8d00:0:1" },
+
+    // 56-bit Prefix with Long Group in Various Scopes
+
+    { { 0xff310038, 0x373acba4, 0xd2ad8d00, 0xafff5258 }, kIPAddressType_IPv6, "ff31:38:373a:cba4:d2ad:8d00:afff:5258" },
+    { { 0xff320038, 0x373acba4, 0xd2ad8d00, 0xafff5258 }, kIPAddressType_IPv6, "ff32:38:373a:cba4:d2ad:8d00:afff:5258" },
+    { { 0xff330038, 0x373acba4, 0xd2ad8d00, 0xafff5258 }, kIPAddressType_IPv6, "ff33:38:373a:cba4:d2ad:8d00:afff:5258" },
+    { { 0xff340038, 0x373acba4, 0xd2ad8d00, 0xafff5258 }, kIPAddressType_IPv6, "ff34:38:373a:cba4:d2ad:8d00:afff:5258" },
+    { { 0xff350038, 0x373acba4, 0xd2ad8d00, 0xafff5258 }, kIPAddressType_IPv6, "ff35:38:373a:cba4:d2ad:8d00:afff:5258" },
+    { { 0xff380038, 0x373acba4, 0xd2ad8d00, 0xafff5258 }, kIPAddressType_IPv6, "ff38:38:373a:cba4:d2ad:8d00:afff:5258" },
+    { { 0xff3e0038, 0x373acba4, 0xd2ad8d00, 0xafff5258 }, kIPAddressType_IPv6, "ff3e:38:373a:cba4:d2ad:8d00:afff:5258" },
+
+    // 64-bit Prefix with Short Group in Various Scopes
+
+    { { 0xff310040, 0x66643dfb, 0xafa4385b, 0x00000001 }, kIPAddressType_IPv6, "ff31:40:6664:3dfb:afa4:385b:0:1" },
+    { { 0xff320040, 0x66643dfb, 0xafa4385b, 0x00000001 }, kIPAddressType_IPv6, "ff32:40:6664:3dfb:afa4:385b:0:1" },
+    { { 0xff330040, 0x66643dfb, 0xafa4385b, 0x00000001 }, kIPAddressType_IPv6, "ff33:40:6664:3dfb:afa4:385b:0:1" },
+    { { 0xff340040, 0x66643dfb, 0xafa4385b, 0x00000001 }, kIPAddressType_IPv6, "ff34:40:6664:3dfb:afa4:385b:0:1" },
+    { { 0xff350040, 0x66643dfb, 0xafa4385b, 0x00000001 }, kIPAddressType_IPv6, "ff35:40:6664:3dfb:afa4:385b:0:1" },
+    { { 0xff380040, 0x66643dfb, 0xafa4385b, 0x00000001 }, kIPAddressType_IPv6, "ff38:40:6664:3dfb:afa4:385b:0:1" },
+    { { 0xff3e0040, 0x66643dfb, 0xafa4385b, 0x00000001 }, kIPAddressType_IPv6, "ff3e:40:6664:3dfb:afa4:385b:0:1" },
+
+    // 64-bit Prefix with Long Group in Various Scopes
+
+    { { 0xff310040, 0x66643dfb, 0xafa4385b, 0xafff5258 }, kIPAddressType_IPv6, "ff31:40:6664:3dfb:afa4:385b:afff:5258" },
+    { { 0xff320040, 0x66643dfb, 0xafa4385b, 0xafff5258 }, kIPAddressType_IPv6, "ff32:40:6664:3dfb:afa4:385b:afff:5258" },
+    { { 0xff330040, 0x66643dfb, 0xafa4385b, 0xafff5258 }, kIPAddressType_IPv6, "ff33:40:6664:3dfb:afa4:385b:afff:5258" },
+    { { 0xff340040, 0x66643dfb, 0xafa4385b, 0xafff5258 }, kIPAddressType_IPv6, "ff34:40:6664:3dfb:afa4:385b:afff:5258" },
+    { { 0xff350040, 0x66643dfb, 0xafa4385b, 0xafff5258 }, kIPAddressType_IPv6, "ff35:40:6664:3dfb:afa4:385b:afff:5258" },
+    { { 0xff380040, 0x66643dfb, 0xafa4385b, 0xafff5258 }, kIPAddressType_IPv6, "ff38:40:6664:3dfb:afa4:385b:afff:5258" },
+    { { 0xff3e0040, 0x66643dfb, 0xafa4385b, 0xafff5258 }, kIPAddressType_IPv6, "ff3e:40:6664:3dfb:afa4:385b:afff:5258" }
+};
+
+static const size_t kIPv6WellKnownMulticastTestElements = sizeof (sIPv6WellKnownMulticastContext) / sizeof (struct IPAddressContext);
+static const size_t kIPv6TransientMulticastTestElements = sizeof (sIPv6TransientMulticastContext) / sizeof (struct IPAddressContext);
+static const size_t kIPv6PrefixMulticastTestElements    = sizeof (sIPv6PrefixMulticastContext) / sizeof (struct IPAddressContext);
+static const size_t kIPAddressTestElements              = sizeof (sIPAddressContext) / sizeof (struct IPAddressExpandedContext);
+
+static const TestContext sTestContext = {
     {
-        { 0x00000000, 0x00000000, 0x00000000, 0x00000000 }, kIPAddressType_Any,
-        "::",
-        kTestIsIPv6, kTestIsNotIPv4Multicast, kTestIsNotIPv4Broadcast, kTestIsNotMulticast, kTestIsNotIPv6Multicast, kTestIsNotIPv6ULA, kTestIsNotIPv6LLA,
-        0x0, 0x0, 0x0
+        &sIPv6WellKnownMulticastContext[0],
+        &sIPv6WellKnownMulticastContext[kIPv6WellKnownMulticastTestElements]
+    },
+    {
+        &sIPv6TransientMulticastContext[0],
+        &sIPv6TransientMulticastContext[kIPv6TransientMulticastTestElements]
+    },
+    {
+        &sIPv6PrefixMulticastContext[0],
+        &sIPv6PrefixMulticastContext[kIPv6PrefixMulticastTestElements]
+    },
+    {
+        &sIPAddressContext[0],
+        &sIPAddressContext[kIPAddressTestElements]
     }
 };
 
-static const size_t kTestElements = sizeof(sContext)/sizeof(struct TestContext);
 
 // Utility functions.
 
 /**
  *   Load input test directly into IPAddress.
  */
-static void SetupIPAddress(IPAddress& addr, const struct TestContext *inContext)
+static void SetupIPAddress(IPAddress& addr, const struct IPAddressExpandedContext *inContext)
 {
     for (size_t i = 0; i < NUM_FIELDS_IN_ADDR; i++)
     {
-        addr.Addr[i] = htonl(inContext->addr[i]);
+        addr.Addr[i] = htonl(inContext->mAddr.mAddrQuartets[i]);
     }
 }
 
@@ -475,9 +635,82 @@ static void SetupIPAddress(IPAddress& addr, const struct TestContext *inContext)
  */
 static void ClearIPAddress(IPAddress& addr)
 {
-    for (size_t i = 0; i < NUM_FIELDS_IN_ADDR; i++)
+    addr = IPAddress::Any;
+}
+
+static void CheckAddressQuartet(nlTestSuite *inSuite, const uint32_t &inFirstAddressQuartet, const uint32_t &inSecondAddressQuartet, const size_t &inWhich)
+{
+    const bool lResult = (inFirstAddressQuartet == inSecondAddressQuartet);
+
+    NL_TEST_ASSERT(inSuite, lResult == true);
+
+    if (lResult != true)
     {
-        addr.Addr[i] = 0;
+        fprintf(stdout, "Address quartet %zu mismatch: actual 0x%08x, expected: 0x%08x\n", inWhich, inFirstAddressQuartet, inSecondAddressQuartet);
+    }
+}
+
+static void CheckAddressQuartet(nlTestSuite *inSuite, const IPAddressContext &inContext, const IPAddress &inAddress, const size_t &inWhich)
+{
+    CheckAddressQuartet(inSuite, inAddress.Addr[inWhich], htonl(inContext.mAddrQuartets[inWhich]), inWhich);
+}
+
+static void CheckAddressQuartets(nlTestSuite *inSuite, const IPAddress &inFirstAddress, const IPAddress &inSecondAddress)
+{
+    for (size_t i = 0; i < 4; i++)
+    {
+        CheckAddressQuartet(inSuite, inFirstAddress.Addr[i], inSecondAddress.Addr[i], i);
+    }
+}
+
+static void CheckAddressQuartets(nlTestSuite *inSuite, const IPAddressContext &inContext, const IPAddress &inAddress)
+{
+    for (size_t i = 0; i < 4; i++)
+    {
+        CheckAddressQuartet(inSuite, inContext, inAddress, i);
+    }
+}
+
+static void CheckAddressString(nlTestSuite *inSuite, const char *inActual, const char *inExpected)
+{
+    const int lResult = strcasecmp(inActual, inExpected);
+
+    NL_TEST_ASSERT(inSuite, lResult == 0);
+
+    if (lResult != 0)
+    {
+        fprintf(stdout, "Address format mismatch: actual %s, expected %s\n",
+                inActual, inExpected);
+    }
+}
+
+static void CheckAddress(nlTestSuite *inSuite, const IPAddressContext &inContext, const IPAddress &inAddress)
+{
+    char       lAddressBuffer[INET6_ADDRSTRLEN];
+    IPAddress  lParsedAddress;
+    int        lResult;
+
+    // Compare the address quartets to their control values.
+
+    CheckAddressQuartets(inSuite, inContext, inAddress);
+
+    // Convert the address to a string and compare it to the control string.
+
+    inAddress.ToString(lAddressBuffer, INET6_ADDRSTRLEN);
+
+    CheckAddressString(inSuite, lAddressBuffer, inContext.mAddrString);
+
+    // Convert the control string to an address and compare the parsed address to the created address.
+
+    lResult = IPAddress::FromString(inContext.mAddrString, lParsedAddress);
+    NL_TEST_ASSERT(inSuite, lResult == true);
+
+    lResult = (inAddress == lParsedAddress);
+
+    if (lResult != true)
+    {
+        fprintf(stdout, "Address parse mismatch for %s\n",
+                inContext.mAddrString);
     }
 }
 
@@ -489,33 +722,52 @@ static void ClearIPAddress(IPAddress& addr)
  */
 static void CheckFromString(nlTestSuite *inSuite, void *inContext)
 {
-    const struct TestContext *theContext = static_cast<const struct TestContext *>(inContext);
+    const struct TestContext *        lContext = static_cast<const struct TestContext *>(inContext);
+    IPAddressExpandedContextIterator  lCurrent = lContext->mIPAddressExpandedContextRange.mBegin;
+    IPAddressExpandedContextIterator  lEnd = lContext->mIPAddressExpandedContextRange.mEnd;
 
-    for (size_t ith = 0; ith < kTestElements; ith++)
+    while (lCurrent != lEnd)
     {
         IPAddress test_addr;
 
-        IPAddress::FromString(theContext->ip, test_addr);
+        IPAddress::FromString(lCurrent->mAddr.mAddrString, test_addr);
 
-        NL_TEST_ASSERT(inSuite, test_addr.Addr[0] == htonl(theContext->addr[0]));
-        NL_TEST_ASSERT(inSuite, test_addr.Addr[1] == htonl(theContext->addr[1]));
-        NL_TEST_ASSERT(inSuite, test_addr.Addr[2] == htonl(theContext->addr[2]));
-        NL_TEST_ASSERT(inSuite, test_addr.Addr[3] == htonl(theContext->addr[3]));
+        CheckAddressQuartets(inSuite, lCurrent->mAddr, test_addr);
 
         char tmpBuf[INET6_ADDRSTRLEN];
-        size_t addrStrLen = strlen(theContext->ip);
+        size_t addrStrLen = strlen(lCurrent->mAddr.mAddrString);
 
         memset(tmpBuf, '1', sizeof(tmpBuf));
-        memcpy(tmpBuf, theContext->ip, addrStrLen);
+        memcpy(tmpBuf, lCurrent->mAddr.mAddrString, addrStrLen);
 
         IPAddress::FromString(tmpBuf, addrStrLen, test_addr);
 
-        NL_TEST_ASSERT(inSuite, test_addr.Addr[0] == htonl(theContext->addr[0]));
-        NL_TEST_ASSERT(inSuite, test_addr.Addr[1] == htonl(theContext->addr[1]));
-        NL_TEST_ASSERT(inSuite, test_addr.Addr[2] == htonl(theContext->addr[2]));
-        NL_TEST_ASSERT(inSuite, test_addr.Addr[3] == htonl(theContext->addr[3]));
+        CheckAddressQuartets(inSuite, lCurrent->mAddr, test_addr);
 
-        theContext++;
+        ++lCurrent;
+    }
+}
+
+/**
+ *  Test IP address conversion to a string.
+ */
+static void CheckToString(nlTestSuite *inSuite, void *inContext)
+{
+    const struct TestContext *        lContext = static_cast<const struct TestContext *>(inContext);
+    IPAddressExpandedContextIterator  lCurrent = lContext->mIPAddressExpandedContextRange.mBegin;
+    IPAddressExpandedContextIterator  lEnd = lContext->mIPAddressExpandedContextRange.mEnd;
+    char                              lAddressBuffer[INET6_ADDRSTRLEN];
+    IPAddress                         lAddress;
+
+    while (lCurrent != lEnd)
+    {
+        SetupIPAddress(lAddress, lCurrent);
+
+        lAddress.ToString(lAddressBuffer, INET6_ADDRSTRLEN);
+
+        CheckAddressString(inSuite, lAddressBuffer, lCurrent->mAddr.mAddrString);
+
+        ++lCurrent;
     }
 }
 
@@ -524,17 +776,19 @@ static void CheckFromString(nlTestSuite *inSuite, void *inContext)
  */
 static void CheckIsIPv6ULA(nlTestSuite *inSuite, void *inContext)
 {
-    const struct TestContext *theContext = static_cast<const struct TestContext *>(inContext);
+    const struct TestContext *        lContext = static_cast<const struct TestContext *>(inContext);
+    IPAddressExpandedContextIterator  lCurrent = lContext->mIPAddressExpandedContextRange.mBegin;
+    IPAddressExpandedContextIterator  lEnd = lContext->mIPAddressExpandedContextRange.mEnd;
 
-    for (size_t ith = 0; ith < kTestElements; ith++)
+    while (lCurrent != lEnd)
     {
         IPAddress test_addr;
 
-        SetupIPAddress(test_addr, theContext);
+        SetupIPAddress(test_addr, lCurrent);
 
-        NL_TEST_ASSERT(inSuite, test_addr.IsIPv6ULA() == theContext->isIPv6ULA);
+        NL_TEST_ASSERT(inSuite, test_addr.IsIPv6ULA() == lCurrent->isIPv6ULA);
 
-        theContext++;
+        ++lCurrent;
     }
 }
 
@@ -543,17 +797,19 @@ static void CheckIsIPv6ULA(nlTestSuite *inSuite, void *inContext)
  */
 static void CheckIsIPv6LLA(nlTestSuite *inSuite, void *inContext)
 {
-    const struct TestContext *theContext = static_cast<const struct TestContext *>(inContext);
+    const struct TestContext *        lContext = static_cast<const struct TestContext *>(inContext);
+    IPAddressExpandedContextIterator  lCurrent = lContext->mIPAddressExpandedContextRange.mBegin;
+    IPAddressExpandedContextIterator  lEnd = lContext->mIPAddressExpandedContextRange.mEnd;
 
-    for (size_t ith = 0; ith < kTestElements; ith++)
+    while (lCurrent != lEnd)
     {
         IPAddress test_addr;
 
-        SetupIPAddress(test_addr, theContext);
+        SetupIPAddress(test_addr, lCurrent);
 
-        NL_TEST_ASSERT(inSuite, test_addr.IsIPv6LinkLocal() == theContext->isIPv6LLA);
+        NL_TEST_ASSERT(inSuite, test_addr.IsIPv6LinkLocal() == lCurrent->isIPv6LLA);
 
-        theContext++;
+        ++lCurrent;
     }
 }
 
@@ -562,17 +818,19 @@ static void CheckIsIPv6LLA(nlTestSuite *inSuite, void *inContext)
  */
 static void CheckIsIPv6Multicast(nlTestSuite *inSuite, void *inContext)
 {
-    const struct TestContext *theContext = static_cast<const struct TestContext *>(inContext);
+    const struct TestContext *        lContext = static_cast<const struct TestContext *>(inContext);
+    IPAddressExpandedContextIterator  lCurrent = lContext->mIPAddressExpandedContextRange.mBegin;
+    IPAddressExpandedContextIterator  lEnd = lContext->mIPAddressExpandedContextRange.mEnd;
 
-    for (size_t ith = 0; ith < kTestElements; ith++)
+    while (lCurrent != lEnd)
     {
         IPAddress test_addr;
 
-        SetupIPAddress(test_addr, theContext);
+        SetupIPAddress(test_addr, lCurrent);
 
-        NL_TEST_ASSERT(inSuite, test_addr.IsIPv6Multicast() == theContext->isIPv6Multicast);
+        NL_TEST_ASSERT(inSuite, test_addr.IsIPv6Multicast() == lCurrent->isIPv6Multicast);
 
-        theContext++;
+        ++lCurrent;
     }
 }
 
@@ -581,17 +839,19 @@ static void CheckIsIPv6Multicast(nlTestSuite *inSuite, void *inContext)
  */
 static void CheckIsMulticast(nlTestSuite *inSuite, void *inContext)
 {
-    const struct TestContext *theContext = static_cast<const struct TestContext *>(inContext);
+    const struct TestContext *        lContext = static_cast<const struct TestContext *>(inContext);
+    IPAddressExpandedContextIterator  lCurrent = lContext->mIPAddressExpandedContextRange.mBegin;
+    IPAddressExpandedContextIterator  lEnd = lContext->mIPAddressExpandedContextRange.mEnd;
 
-    for (size_t ith = 0; ith < kTestElements; ith++)
+    while (lCurrent != lEnd)
     {
         IPAddress test_addr;
 
-        SetupIPAddress(test_addr, theContext);
+        SetupIPAddress(test_addr, lCurrent);
 
-        NL_TEST_ASSERT(inSuite, test_addr.IsMulticast() == theContext->isMulticast);
+        NL_TEST_ASSERT(inSuite, test_addr.IsMulticast() == lCurrent->isMulticast);
 
-        theContext++;
+        ++lCurrent;
     }
 }
 
@@ -600,22 +860,25 @@ static void CheckIsMulticast(nlTestSuite *inSuite, void *inContext)
  */
 static void CheckOperatorEqual(nlTestSuite *inSuite, void *inContext)
 {
-    struct TestContext *theFirstContext = static_cast<struct TestContext *>(inContext);
+    const struct TestContext *        lContext = static_cast<const struct TestContext *>(inContext);
+    IPAddressExpandedContextIterator  lFirstCurrent = lContext->mIPAddressExpandedContextRange.mBegin;
+    IPAddressExpandedContextIterator  lFirstEnd = lContext->mIPAddressExpandedContextRange.mEnd;
 
-    for (size_t ith = 0; ith < kTestElements; ith++)
+    while (lFirstCurrent != lFirstEnd)
     {
-        IPAddress test_addr_1;
-        struct TestContext *theSecondContext = static_cast<struct TestContext *>(inContext);
+        IPAddressExpandedContextIterator  lSecondCurrent = lContext->mIPAddressExpandedContextRange.mBegin;
+        IPAddressExpandedContextIterator  lSecondEnd = lContext->mIPAddressExpandedContextRange.mEnd;
+        IPAddress                         test_addr_1;
 
-        SetupIPAddress(test_addr_1, theFirstContext);
+        SetupIPAddress(test_addr_1, lFirstCurrent);
 
-        for (size_t jth = 0; jth < kTestElements; jth++)
+        while (lSecondCurrent != lSecondEnd)
         {
             IPAddress test_addr_2;
 
-            SetupIPAddress(test_addr_2, theSecondContext);
+            SetupIPAddress(test_addr_2, lSecondCurrent);
 
-            if (theFirstContext == theSecondContext)
+            if (lFirstCurrent == lSecondCurrent)
             {
                 NL_TEST_ASSERT(inSuite, test_addr_1 == test_addr_2);
             }
@@ -623,9 +886,11 @@ static void CheckOperatorEqual(nlTestSuite *inSuite, void *inContext)
             {
                 NL_TEST_ASSERT(inSuite, !(test_addr_1 == test_addr_2));
             }
-            theSecondContext++;
+
+            ++lSecondCurrent;
         }
-        theFirstContext++;
+
+        ++lFirstCurrent;
     }
 }
 
@@ -634,22 +899,25 @@ static void CheckOperatorEqual(nlTestSuite *inSuite, void *inContext)
  */
 static void CheckOperatorNotEqual(nlTestSuite *inSuite, void *inContext)
 {
-    struct TestContext *theFirstContext = static_cast<struct TestContext *>(inContext);
+    const struct TestContext *        lContext = static_cast<const struct TestContext *>(inContext);
+    IPAddressExpandedContextIterator  lFirstCurrent = lContext->mIPAddressExpandedContextRange.mBegin;
+    IPAddressExpandedContextIterator  lFirstEnd = lContext->mIPAddressExpandedContextRange.mEnd;
 
-    for (size_t ith = 0; ith < kTestElements; ith++)
+    while (lFirstCurrent != lFirstEnd)
     {
-        IPAddress test_addr_1;
-        struct TestContext *theSecondContext = static_cast<struct TestContext *>(inContext);
+        IPAddressExpandedContextIterator  lSecondCurrent = lContext->mIPAddressExpandedContextRange.mBegin;
+        IPAddressExpandedContextIterator  lSecondEnd = lContext->mIPAddressExpandedContextRange.mEnd;
+        IPAddress                         test_addr_1;
 
-        SetupIPAddress(test_addr_1, theFirstContext);
+        SetupIPAddress(test_addr_1, lFirstCurrent);
 
-        for (size_t jth = 0; jth < kTestElements; jth++)
+        while (lSecondCurrent != lSecondEnd)
         {
             IPAddress test_addr_2;
 
-            SetupIPAddress(test_addr_2, theSecondContext);
+            SetupIPAddress(test_addr_2, lSecondCurrent);
 
-            if (theFirstContext == theSecondContext)
+            if (lFirstCurrent == lSecondCurrent)
             {
                 NL_TEST_ASSERT(inSuite, !(test_addr_1 != test_addr_2));
             }
@@ -657,9 +925,11 @@ static void CheckOperatorNotEqual(nlTestSuite *inSuite, void *inContext)
             {
                 NL_TEST_ASSERT(inSuite, test_addr_1 != test_addr_2);
             }
-            theSecondContext++;
+
+            ++lSecondCurrent;
         }
-        theFirstContext++;
+
+        ++lFirstCurrent;
     }
 }
 
@@ -668,30 +938,31 @@ static void CheckOperatorNotEqual(nlTestSuite *inSuite, void *inContext)
  */
 static void CheckOperatorAssign(nlTestSuite *inSuite, void *inContext)
 {
-    struct TestContext *theFirstContext = static_cast<struct TestContext *>(inContext);
+    const struct TestContext *        lContext = static_cast<const struct TestContext *>(inContext);
+    IPAddressExpandedContextIterator  lFirstCurrent = lContext->mIPAddressExpandedContextRange.mBegin;
+    IPAddressExpandedContextIterator  lFirstEnd = lContext->mIPAddressExpandedContextRange.mEnd;
 
-    for (size_t ith = 0; ith < kTestElements; ith++)
+    while (lFirstCurrent != lFirstEnd)
     {
-        struct TestContext *theSecondContext = static_cast<struct TestContext *>(inContext);
+        IPAddressExpandedContextIterator  lSecondCurrent = lContext->mIPAddressExpandedContextRange.mBegin;
+        IPAddressExpandedContextIterator  lSecondEnd = lContext->mIPAddressExpandedContextRange.mEnd;
 
-        for (size_t jth = 0; jth < kTestElements; jth++)
+        while (lSecondCurrent != lSecondEnd)
         {
             IPAddress test_addr_1, test_addr_2;
 
             ClearIPAddress(test_addr_1);
-            SetupIPAddress(test_addr_2, theSecondContext);
+            SetupIPAddress(test_addr_2, lSecondCurrent);
 
             // Use operator to assign IPAddress from test_addr_2 to test_addr_1
             test_addr_1 = test_addr_2;
 
-            NL_TEST_ASSERT(inSuite, test_addr_1.Addr[0] == test_addr_2.Addr[0]);
-            NL_TEST_ASSERT(inSuite, test_addr_1.Addr[1] == test_addr_2.Addr[1]);
-            NL_TEST_ASSERT(inSuite, test_addr_1.Addr[2] == test_addr_2.Addr[2]);
-            NL_TEST_ASSERT(inSuite, test_addr_1.Addr[3] == test_addr_2.Addr[3]);
+            CheckAddressQuartets(inSuite, test_addr_1, test_addr_2);
 
-            theSecondContext++;
+            ++lSecondCurrent;
         }
-        theFirstContext++;
+
+        ++lFirstCurrent;
     }
 }
 
@@ -700,19 +971,21 @@ static void CheckOperatorAssign(nlTestSuite *inSuite, void *inContext)
  */
 static void CheckToIPv6(nlTestSuite *inSuite, void *inContext)
 {
-    const struct TestContext *theContext = static_cast<const struct TestContext *>(inContext);
+    const struct TestContext *        lContext = static_cast<const struct TestContext *>(inContext);
+    IPAddressExpandedContextIterator  lCurrent = lContext->mIPAddressExpandedContextRange.mBegin;
+    IPAddressExpandedContextIterator  lEnd = lContext->mIPAddressExpandedContextRange.mEnd;
 
-    for (size_t ith = 0; ith < kTestElements; ith++)
+    while (lCurrent != lEnd)
     {
         IPAddress test_addr;
         uint32_t addr[4];
 
-        addr[0] = htonl(theContext->addr[0]);
-        addr[1] = htonl(theContext->addr[1]);
-        addr[2] = htonl(theContext->addr[2]);
-        addr[3] = htonl(theContext->addr[3]);
+        addr[0] = htonl(lCurrent->mAddr.mAddrQuartets[0]);
+        addr[1] = htonl(lCurrent->mAddr.mAddrQuartets[1]);
+        addr[2] = htonl(lCurrent->mAddr.mAddrQuartets[2]);
+        addr[3] = htonl(lCurrent->mAddr.mAddrQuartets[3]);
 
-        SetupIPAddress(test_addr, theContext);
+        SetupIPAddress(test_addr, lCurrent);
 
 #if WEAVE_SYSTEM_CONFIG_USE_LWIP
         ip6_addr_t ip_addr_1, ip_addr_2;
@@ -725,7 +998,7 @@ static void CheckToIPv6(nlTestSuite *inSuite, void *inContext)
 
         NL_TEST_ASSERT(inSuite, !memcmp(&ip_addr_1, &ip_addr_2, sizeof(ip_addr_1)));
 
-        theContext++;
+        ++lCurrent;
     }
 }
 
@@ -734,19 +1007,21 @@ static void CheckToIPv6(nlTestSuite *inSuite, void *inContext)
  */
 static void CheckFromIPv6(nlTestSuite *inSuite, void *inContext)
 {
-    const struct TestContext *theContext = static_cast<const struct TestContext *>(inContext);
+    const struct TestContext *        lContext = static_cast<const struct TestContext *>(inContext);
+    IPAddressExpandedContextIterator  lCurrent = lContext->mIPAddressExpandedContextRange.mBegin;
+    IPAddressExpandedContextIterator  lEnd = lContext->mIPAddressExpandedContextRange.mEnd;
 
-    for (size_t ith = 0; ith < kTestElements; ith++)
+    while (lCurrent != lEnd)
     {
         IPAddress test_addr_1, test_addr_2;
         uint32_t addr[4];
 
-        addr[0] = htonl(theContext->addr[0]);
-        addr[1] = htonl(theContext->addr[1]);
-        addr[2] = htonl(theContext->addr[2]);
-        addr[3] = htonl(theContext->addr[3]);
+        addr[0] = htonl(lCurrent->mAddr.mAddrQuartets[0]);
+        addr[1] = htonl(lCurrent->mAddr.mAddrQuartets[1]);
+        addr[2] = htonl(lCurrent->mAddr.mAddrQuartets[2]);
+        addr[3] = htonl(lCurrent->mAddr.mAddrQuartets[3]);
 
-        SetupIPAddress(test_addr_1, theContext);
+        SetupIPAddress(test_addr_1, lCurrent);
         ClearIPAddress(test_addr_2);
 
 #if WEAVE_SYSTEM_CONFIG_USE_LWIP
@@ -758,12 +1033,9 @@ static void CheckFromIPv6(nlTestSuite *inSuite, void *inContext)
 #endif
         test_addr_2 = IPAddress::FromIPv6(ip_addr);
 
-        NL_TEST_ASSERT(inSuite, test_addr_1.Addr[0] == test_addr_2.Addr[0]);
-        NL_TEST_ASSERT(inSuite, test_addr_1.Addr[1] == test_addr_2.Addr[1]);
-        NL_TEST_ASSERT(inSuite, test_addr_1.Addr[2] == test_addr_2.Addr[2]);
-        NL_TEST_ASSERT(inSuite, test_addr_1.Addr[3] == test_addr_2.Addr[3]);
+        CheckAddressQuartets(inSuite, test_addr_1, test_addr_2);
 
-        theContext++;
+        ++lCurrent;
     }
 }
 
@@ -773,17 +1045,19 @@ static void CheckFromIPv6(nlTestSuite *inSuite, void *inContext)
  */
 static void CheckIsIPv4(nlTestSuite *inSuite, void *inContext)
 {
-    const struct TestContext *theContext = static_cast<const struct TestContext *>(inContext);
+    const struct TestContext *        lContext = static_cast<const struct TestContext *>(inContext);
+    IPAddressExpandedContextIterator  lCurrent = lContext->mIPAddressExpandedContextRange.mBegin;
+    IPAddressExpandedContextIterator  lEnd = lContext->mIPAddressExpandedContextRange.mEnd;
 
-    for (size_t ith = 0; ith < kTestElements; ith++)
+    while (lCurrent != lEnd)
     {
         IPAddress test_addr;
 
-        SetupIPAddress(test_addr, theContext);
+        SetupIPAddress(test_addr, lCurrent);
 
-        NL_TEST_ASSERT(inSuite, test_addr.IsIPv4() == theContext->isIPv4);
+        NL_TEST_ASSERT(inSuite, test_addr.IsIPv4() == lCurrent->isIPv4);
 
-        theContext++;
+        ++lCurrent;
     }
 }
 
@@ -792,17 +1066,19 @@ static void CheckIsIPv4(nlTestSuite *inSuite, void *inContext)
  */
 static void CheckIsIPv4Multicast(nlTestSuite *inSuite, void *inContext)
 {
-    const struct TestContext *theContext = static_cast<const struct TestContext *>(inContext);
+    const struct TestContext *        lContext = static_cast<const struct TestContext *>(inContext);
+    IPAddressExpandedContextIterator  lCurrent = lContext->mIPAddressExpandedContextRange.mBegin;
+    IPAddressExpandedContextIterator  lEnd = lContext->mIPAddressExpandedContextRange.mEnd;
 
-    for (size_t ith = 0; ith < kTestElements; ith++)
+    while (lCurrent != lEnd)
     {
         IPAddress test_addr;
 
-        SetupIPAddress(test_addr, theContext);
+        SetupIPAddress(test_addr, lCurrent);
 
-        NL_TEST_ASSERT(inSuite, test_addr.IsIPv4Multicast() == theContext->isIPv4Multicast);
+        NL_TEST_ASSERT(inSuite, test_addr.IsIPv4Multicast() == lCurrent->isIPv4Multicast);
 
-        theContext++;
+        ++lCurrent;
     }
 }
 
@@ -811,17 +1087,19 @@ static void CheckIsIPv4Multicast(nlTestSuite *inSuite, void *inContext)
  */
 static void CheckIsIPv4Broadcast(nlTestSuite *inSuite, void *inContext)
 {
-    const struct TestContext *theContext = static_cast<const struct TestContext *>(inContext);
+    const struct TestContext *        lContext = static_cast<const struct TestContext *>(inContext);
+    IPAddressExpandedContextIterator  lCurrent = lContext->mIPAddressExpandedContextRange.mBegin;
+    IPAddressExpandedContextIterator  lEnd = lContext->mIPAddressExpandedContextRange.mEnd;
 
-    for (size_t ith = 0; ith < kTestElements; ith++)
+    while (lCurrent != lEnd)
     {
         IPAddress test_addr;
 
-        SetupIPAddress(test_addr, theContext);
+        SetupIPAddress(test_addr, lCurrent);
 
-        NL_TEST_ASSERT(inSuite, test_addr.IsIPv4Broadcast() == theContext->isIPv4Broadcast);
+        NL_TEST_ASSERT(inSuite, test_addr.IsIPv4Broadcast() == lCurrent->isIPv4Broadcast);
 
-        theContext++;
+        ++lCurrent;
     }
 }
 
@@ -830,28 +1108,30 @@ static void CheckIsIPv4Broadcast(nlTestSuite *inSuite, void *inContext)
  */
 static void CheckToIPv4(nlTestSuite *inSuite, void *inContext)
 {
-    const struct TestContext *theContext = static_cast<const struct TestContext *>(inContext);
+    const struct TestContext *        lContext = static_cast<const struct TestContext *>(inContext);
+    IPAddressExpandedContextIterator  lCurrent = lContext->mIPAddressExpandedContextRange.mBegin;
+    IPAddressExpandedContextIterator  lEnd = lContext->mIPAddressExpandedContextRange.mEnd;
 
-    for (size_t ith = 0; ith < kTestElements; ith++)
+    while (lCurrent != lEnd)
     {
         IPAddress test_addr;
 
-        SetupIPAddress(test_addr, theContext);
+        SetupIPAddress(test_addr, lCurrent);
 
 #if WEAVE_SYSTEM_CONFIG_USE_LWIP
         ip4_addr_t ip_addr_1, ip_addr_2;
 
-        ip_addr_1.addr = htonl(theContext->addr[3]);
+        ip_addr_1.addr = htonl(lCurrent->mAddr.mAddrQuartets[3]);
 #else
         struct in_addr ip_addr_1, ip_addr_2;
 
-        ip_addr_1.s_addr = htonl(theContext->addr[3]);
+        ip_addr_1.s_addr = htonl(lCurrent->mAddr.mAddrQuartets[3]);
 #endif
         ip_addr_2 = test_addr.ToIPv4();
 
         NL_TEST_ASSERT(inSuite, !memcmp(&ip_addr_1, &ip_addr_2, sizeof(ip_addr_1)));
 
-        theContext++;
+        ++lCurrent;
     }
 }
 
@@ -860,13 +1140,15 @@ static void CheckToIPv4(nlTestSuite *inSuite, void *inContext)
  */
 static void CheckFromIPv4(nlTestSuite *inSuite, void *inContext)
 {
-    const struct TestContext *theContext = static_cast<const struct TestContext *>(inContext);
+    const struct TestContext *        lContext = static_cast<const struct TestContext *>(inContext);
+    IPAddressExpandedContextIterator  lCurrent = lContext->mIPAddressExpandedContextRange.mBegin;
+    IPAddressExpandedContextIterator  lEnd = lContext->mIPAddressExpandedContextRange.mEnd;
 
-    for (size_t ith = 0; ith < kTestElements; ith++)
+    while (lCurrent != lEnd)
     {
         IPAddress test_addr_1, test_addr_2;
 
-        SetupIPAddress(test_addr_1, theContext);
+        SetupIPAddress(test_addr_1, lCurrent);
         ClearIPAddress(test_addr_2);
 
         // Convert to IPv4 (test_addr_1);
@@ -875,21 +1157,18 @@ static void CheckFromIPv4(nlTestSuite *inSuite, void *inContext)
 
 #if WEAVE_SYSTEM_CONFIG_USE_LWIP
         ip4_addr_t ip_addr;
-        ip_addr.addr = htonl(theContext->addr[3]);
+        ip_addr.addr = htonl(lCurrent->mAddr.mAddrQuartets[3]);
         test_addr_1.Addr[2] = lwip_htonl(0xffff);
 #else
         struct in_addr ip_addr;
-        ip_addr.s_addr = htonl(theContext->addr[3]);
+        ip_addr.s_addr = htonl(lCurrent->mAddr.mAddrQuartets[3]);
         test_addr_1.Addr[2] = htonl(0xffff);
 #endif
         test_addr_2 = IPAddress::FromIPv4(ip_addr);
 
-        NL_TEST_ASSERT(inSuite, test_addr_1.Addr[0] == test_addr_2.Addr[0]);
-        NL_TEST_ASSERT(inSuite, test_addr_1.Addr[1] == test_addr_2.Addr[1]);
-        NL_TEST_ASSERT(inSuite, test_addr_1.Addr[2] == test_addr_2.Addr[2]);
-        NL_TEST_ASSERT(inSuite, test_addr_1.Addr[3] == test_addr_2.Addr[3]);
+        CheckAddressQuartets(inSuite, test_addr_1, test_addr_2);
 
-        theContext++;
+        ++lCurrent;
     }
 }
 #endif // INET_CONFIG_ENABLE_IPV4
@@ -903,9 +1182,11 @@ static void CheckFromSocket(nlTestSuite *inSuite, void *inContext)
     (void)inSuite;
     // This test is only supported for non LWIP stack.
 #else // INET_LWIP
-    const struct TestContext *theContext = static_cast<const struct TestContext *>(inContext);
+    const struct TestContext *        lContext = static_cast<const struct TestContext *>(inContext);
+    IPAddressExpandedContextIterator  lCurrent = lContext->mIPAddressExpandedContextRange.mBegin;
+    IPAddressExpandedContextIterator  lEnd = lContext->mIPAddressExpandedContextRange.mEnd;
 
-    for (size_t ith = 0; ith < kTestElements; ith++)
+    while (lCurrent != lEnd)
     {
         IPAddress test_addr_1, test_addr_2;
         uint32_t addr[4];
@@ -914,15 +1195,15 @@ static void CheckFromSocket(nlTestSuite *inSuite, void *inContext)
         struct sockaddr_in sock_v4;
 #endif // INET_CONFIG_ENABLE_IPV4
 
-        addr[0] = htonl(theContext->addr[0]);
-        addr[1] = htonl(theContext->addr[1]);
-        addr[2] = htonl(theContext->addr[2]);
-        addr[3] = htonl(theContext->addr[3]);
+        addr[0] = htonl(lCurrent->mAddr.mAddrQuartets[0]);
+        addr[1] = htonl(lCurrent->mAddr.mAddrQuartets[1]);
+        addr[2] = htonl(lCurrent->mAddr.mAddrQuartets[2]);
+        addr[3] = htonl(lCurrent->mAddr.mAddrQuartets[3]);
 
-        SetupIPAddress(test_addr_1, theContext);
+        SetupIPAddress(test_addr_1, lCurrent);
         ClearIPAddress(test_addr_2);
 
-        switch (theContext->ipAddrType)
+        switch (lCurrent->mAddr.mAddrType)
         {
 #if INET_CONFIG_ENABLE_IPV4
         case kIPAddressType_IPv4:
@@ -951,12 +1232,9 @@ static void CheckFromSocket(nlTestSuite *inSuite, void *inContext)
             continue;
         }
 
-        NL_TEST_ASSERT(inSuite, test_addr_1.Addr[0] == test_addr_2.Addr[0]);
-        NL_TEST_ASSERT(inSuite, test_addr_1.Addr[1] == test_addr_2.Addr[1]);
-        NL_TEST_ASSERT(inSuite, test_addr_1.Addr[2] == test_addr_2.Addr[2]);
-        NL_TEST_ASSERT(inSuite, test_addr_1.Addr[3] == test_addr_2.Addr[3]);
+        CheckAddressQuartets(inSuite, test_addr_1, test_addr_2);
 
-        theContext++;
+        ++lCurrent;
     }
 #endif // INET_LWIP
 }
@@ -966,18 +1244,31 @@ static void CheckFromSocket(nlTestSuite *inSuite, void *inContext)
  */
 static void CheckType(nlTestSuite *inSuite, void *inContext)
 {
-    const struct TestContext *theContext = static_cast<const struct TestContext *>(inContext);
+    const struct TestContext *        lContext = static_cast<const struct TestContext *>(inContext);
+    IPAddressExpandedContextIterator  lCurrent = lContext->mIPAddressExpandedContextRange.mBegin;
+    IPAddressExpandedContextIterator  lEnd = lContext->mIPAddressExpandedContextRange.mEnd;
 
-    for (size_t ith = 0; ith < kTestElements; ith++)
+    while (lCurrent != lEnd)
     {
         IPAddress test_addr;
 
-        SetupIPAddress(test_addr, theContext);
+        SetupIPAddress(test_addr, lCurrent);
 
-        NL_TEST_ASSERT(inSuite, test_addr.Type() == theContext->ipAddrType);
+        NL_TEST_ASSERT(inSuite, test_addr.Type() == lCurrent->mAddr.mAddrType);
 
-        theContext++;
+        ++lCurrent;
     }
+}
+
+/**
+ *  Test the Any address global.
+ */
+static void CheckAnyAddress(nlTestSuite *inSuite, void *inContext)
+{
+    const IPAddress test_addr = IPAddress::Any;
+    IPAddressType test_type = test_addr.Type();
+
+    NL_TEST_ASSERT(inSuite, test_type == kIPAddressType_Any);
 }
 
 /**
@@ -985,17 +1276,19 @@ static void CheckType(nlTestSuite *inSuite, void *inContext)
  */
 static void CheckInterface(nlTestSuite *inSuite, void *inContext)
 {
-    const struct TestContext *theContext = static_cast<const struct TestContext *>(inContext);
+    const struct TestContext *        lContext = static_cast<const struct TestContext *>(inContext);
+    IPAddressExpandedContextIterator  lCurrent = lContext->mIPAddressExpandedContextRange.mBegin;
+    IPAddressExpandedContextIterator  lEnd = lContext->mIPAddressExpandedContextRange.mEnd;
 
-    for (size_t ith = 0; ith < kTestElements; ith++)
+    while (lCurrent != lEnd)
     {
         IPAddress test_addr;
 
-        SetupIPAddress(test_addr, theContext);
+        SetupIPAddress(test_addr, lCurrent);
 
-        NL_TEST_ASSERT(inSuite, test_addr.InterfaceId() == theContext->interface);
+        NL_TEST_ASSERT(inSuite, test_addr.InterfaceId() == lCurrent->interface);
 
-        theContext++;
+        ++lCurrent;
     }
 }
 
@@ -1004,17 +1297,19 @@ static void CheckInterface(nlTestSuite *inSuite, void *inContext)
  */
 static void CheckSubnet(nlTestSuite *inSuite, void *inContext)
 {
-    const struct TestContext *theContext = static_cast<const struct TestContext *>(inContext);
+    const struct TestContext *        lContext = static_cast<const struct TestContext *>(inContext);
+    IPAddressExpandedContextIterator  lCurrent = lContext->mIPAddressExpandedContextRange.mBegin;
+    IPAddressExpandedContextIterator  lEnd = lContext->mIPAddressExpandedContextRange.mEnd;
 
-    for (size_t ith = 0; ith < kTestElements; ith++)
+    while (lCurrent != lEnd)
     {
         IPAddress test_addr;
 
-        SetupIPAddress(test_addr, theContext);
+        SetupIPAddress(test_addr, lCurrent);
 
-        NL_TEST_ASSERT(inSuite, test_addr.Subnet() == theContext->subnet);
+        NL_TEST_ASSERT(inSuite, test_addr.Subnet() == lCurrent->subnet);
 
-        theContext++;
+        ++lCurrent;
     }
 }
 
@@ -1023,17 +1318,19 @@ static void CheckSubnet(nlTestSuite *inSuite, void *inContext)
  */
 static void CheckGlobal(nlTestSuite *inSuite, void *inContext)
 {
-    const struct TestContext *theContext = static_cast<const struct TestContext *>(inContext);
+    const struct TestContext *        lContext = static_cast<const struct TestContext *>(inContext);
+    IPAddressExpandedContextIterator  lCurrent = lContext->mIPAddressExpandedContextRange.mBegin;
+    IPAddressExpandedContextIterator  lEnd = lContext->mIPAddressExpandedContextRange.mEnd;
 
-    for (size_t ith = 0; ith < kTestElements; ith++)
+    while (lCurrent != lEnd)
     {
         IPAddress test_addr;
 
-        SetupIPAddress(test_addr, theContext);
+        SetupIPAddress(test_addr, lCurrent);
 
-        NL_TEST_ASSERT(inSuite, test_addr.GlobalId() == theContext->global);
+        NL_TEST_ASSERT(inSuite, test_addr.GlobalId() == lCurrent->global);
 
-        theContext++;
+        ++lCurrent;
     }
 }
 
@@ -1042,15 +1339,17 @@ static void CheckGlobal(nlTestSuite *inSuite, void *inContext)
  */
 static void CheckEncoding(nlTestSuite *inSuite, void *inContext)
 {
-    const struct TestContext *theContext = static_cast<const struct TestContext *>(inContext);
+    const struct TestContext *        lContext = static_cast<const struct TestContext *>(inContext);
+    IPAddressExpandedContextIterator  lCurrent = lContext->mIPAddressExpandedContextRange.mBegin;
+    IPAddressExpandedContextIterator  lEnd = lContext->mIPAddressExpandedContextRange.mEnd;
 
-    for (size_t ith = 0; ith < kTestElements; ith++)
+    while (lCurrent != lEnd)
     {
         IPAddress test_addr;
         uint8_t *p;
         uint8_t buffer[NUM_BYTES_IN_IPV6];
 
-        SetupIPAddress(test_addr, theContext);
+        SetupIPAddress(test_addr, lCurrent);
         memset(&buffer, 0, NUM_BYTES_IN_IPV6);
         p = buffer;
 
@@ -1058,27 +1357,27 @@ static void CheckEncoding(nlTestSuite *inSuite, void *inContext)
         test_addr.WriteAddress(p);
 
         // buffer has address in network byte order
-        NL_TEST_ASSERT(inSuite, buffer[3] == (uint8_t)(theContext->addr[0]));
-        NL_TEST_ASSERT(inSuite, buffer[2] == (uint8_t)(theContext->addr[0] >> 8));
-        NL_TEST_ASSERT(inSuite, buffer[1] == (uint8_t)(theContext->addr[0] >> 16));
-        NL_TEST_ASSERT(inSuite, buffer[0] == (uint8_t)(theContext->addr[0] >> 24));
+        NL_TEST_ASSERT(inSuite, buffer[3] == (uint8_t)(lCurrent->mAddr.mAddrQuartets[0]));
+        NL_TEST_ASSERT(inSuite, buffer[2] == (uint8_t)(lCurrent->mAddr.mAddrQuartets[0] >> 8));
+        NL_TEST_ASSERT(inSuite, buffer[1] == (uint8_t)(lCurrent->mAddr.mAddrQuartets[0] >> 16));
+        NL_TEST_ASSERT(inSuite, buffer[0] == (uint8_t)(lCurrent->mAddr.mAddrQuartets[0] >> 24));
 
-        NL_TEST_ASSERT(inSuite, buffer[7] == (uint8_t)(theContext->addr[1]));
-        NL_TEST_ASSERT(inSuite, buffer[6] == (uint8_t)(theContext->addr[1] >> 8));
-        NL_TEST_ASSERT(inSuite, buffer[5] == (uint8_t)(theContext->addr[1] >> 16));
-        NL_TEST_ASSERT(inSuite, buffer[4] == (uint8_t)(theContext->addr[1] >> 24));
+        NL_TEST_ASSERT(inSuite, buffer[7] == (uint8_t)(lCurrent->mAddr.mAddrQuartets[1]));
+        NL_TEST_ASSERT(inSuite, buffer[6] == (uint8_t)(lCurrent->mAddr.mAddrQuartets[1] >> 8));
+        NL_TEST_ASSERT(inSuite, buffer[5] == (uint8_t)(lCurrent->mAddr.mAddrQuartets[1] >> 16));
+        NL_TEST_ASSERT(inSuite, buffer[4] == (uint8_t)(lCurrent->mAddr.mAddrQuartets[1] >> 24));
 
-        NL_TEST_ASSERT(inSuite, buffer[11] == (uint8_t)(theContext->addr[2]));
-        NL_TEST_ASSERT(inSuite, buffer[10] == (uint8_t)(theContext->addr[2] >> 8));
-        NL_TEST_ASSERT(inSuite, buffer[9] == (uint8_t)(theContext->addr[2] >> 16));
-        NL_TEST_ASSERT(inSuite, buffer[8] == (uint8_t)(theContext->addr[2] >> 24));
+        NL_TEST_ASSERT(inSuite, buffer[11] == (uint8_t)(lCurrent->mAddr.mAddrQuartets[2]));
+        NL_TEST_ASSERT(inSuite, buffer[10] == (uint8_t)(lCurrent->mAddr.mAddrQuartets[2] >> 8));
+        NL_TEST_ASSERT(inSuite, buffer[9] == (uint8_t)(lCurrent->mAddr.mAddrQuartets[2] >> 16));
+        NL_TEST_ASSERT(inSuite, buffer[8] == (uint8_t)(lCurrent->mAddr.mAddrQuartets[2] >> 24));
 
-        NL_TEST_ASSERT(inSuite, buffer[15] == (uint8_t)(theContext->addr[3]));
-        NL_TEST_ASSERT(inSuite, buffer[14] == (uint8_t)(theContext->addr[3] >> 8));
-        NL_TEST_ASSERT(inSuite, buffer[13] == (uint8_t)(theContext->addr[3] >> 16));
-        NL_TEST_ASSERT(inSuite, buffer[12] == (uint8_t)(theContext->addr[3] >> 24));
+        NL_TEST_ASSERT(inSuite, buffer[15] == (uint8_t)(lCurrent->mAddr.mAddrQuartets[3]));
+        NL_TEST_ASSERT(inSuite, buffer[14] == (uint8_t)(lCurrent->mAddr.mAddrQuartets[3] >> 8));
+        NL_TEST_ASSERT(inSuite, buffer[13] == (uint8_t)(lCurrent->mAddr.mAddrQuartets[3] >> 16));
+        NL_TEST_ASSERT(inSuite, buffer[12] == (uint8_t)(lCurrent->mAddr.mAddrQuartets[3] >> 24));
 
-        theContext++;
+        ++lCurrent;
     }
 }
 
@@ -1087,34 +1386,33 @@ static void CheckEncoding(nlTestSuite *inSuite, void *inContext)
  */
 static void CheckDecoding(nlTestSuite *inSuite, void *inContext)
 {
-    const struct TestContext *theContext = static_cast<const struct TestContext *>(inContext);
+    const struct TestContext *        lContext = static_cast<const struct TestContext *>(inContext);
+    IPAddressExpandedContextIterator  lCurrent = lContext->mIPAddressExpandedContextRange.mBegin;
+    IPAddressExpandedContextIterator  lEnd = lContext->mIPAddressExpandedContextRange.mEnd;
 
-    for (size_t ith = 0; ith < kTestElements; ith++)
+    while (lCurrent != lEnd)
     {
         IPAddress test_addr_1, test_addr_2;
         uint8_t buffer[NUM_BYTES_IN_IPV6];
-        uint8_t *p;
+        const uint8_t *p;
         uint8_t b;
 
-        SetupIPAddress(test_addr_1, theContext);
+        SetupIPAddress(test_addr_1, lCurrent);
         ClearIPAddress(test_addr_2);
         memset(&buffer, 0, NUM_BYTES_IN_IPV6);
         p = buffer;
 
         for (b = 0; b < NUM_BYTES_IN_IPV6; b++)
         {
-            buffer[b] = (uint8_t)(theContext->addr[b / 4] >> ((3 - b % 4) * 8));
+            buffer[b] = (uint8_t)(lCurrent->mAddr.mAddrQuartets[b / 4] >> ((3 - b % 4) * 8));
         }
 
         // Call ReadAddress function that we test.
         IPAddress::ReadAddress(const_cast<const uint8_t *&>(p), test_addr_2);
 
-        NL_TEST_ASSERT(inSuite, test_addr_1.Addr[0] == test_addr_2.Addr[0]);
-        NL_TEST_ASSERT(inSuite, test_addr_1.Addr[1] == test_addr_2.Addr[1]);
-        NL_TEST_ASSERT(inSuite, test_addr_1.Addr[2] == test_addr_2.Addr[2]);
-        NL_TEST_ASSERT(inSuite, test_addr_1.Addr[3] == test_addr_2.Addr[3]);
+        CheckAddressQuartets(inSuite, test_addr_1, test_addr_2);
 
-        theContext++;
+        ++lCurrent;
     }
 }
 
@@ -1123,15 +1421,17 @@ static void CheckDecoding(nlTestSuite *inSuite, void *inContext)
  */
 static void CheckEcodeDecodeSymmetricity(nlTestSuite *inSuite, void *inContext)
 {
-    const struct TestContext *theContext = static_cast<const struct TestContext *>(inContext);
+    const struct TestContext *        lContext = static_cast<const struct TestContext *>(inContext);
+    IPAddressExpandedContextIterator  lCurrent = lContext->mIPAddressExpandedContextRange.mBegin;
+    IPAddressExpandedContextIterator  lEnd = lContext->mIPAddressExpandedContextRange.mEnd;
 
-    for (size_t ith = 0; ith < kTestElements; ith++)
+    while (lCurrent != lEnd)
     {
         IPAddress test_addr_1, test_addr_2;
         uint8_t buffer[NUM_BYTES_IN_IPV6];
         uint8_t *p;
 
-        SetupIPAddress(test_addr_1, theContext);
+        SetupIPAddress(test_addr_1, lCurrent);
         ClearIPAddress(test_addr_2);
         memset(&buffer, 0, NUM_BYTES_IN_IPV6);
 
@@ -1146,12 +1446,9 @@ static void CheckEcodeDecodeSymmetricity(nlTestSuite *inSuite, void *inContext)
         // Call ReadAddress function that we test.
         IPAddress::ReadAddress(const_cast<const uint8_t *&>(p), test_addr_2);
 
-        NL_TEST_ASSERT(inSuite, test_addr_1.Addr[0] == test_addr_2.Addr[0]);
-        NL_TEST_ASSERT(inSuite, test_addr_1.Addr[1] == test_addr_2.Addr[1]);
-        NL_TEST_ASSERT(inSuite, test_addr_1.Addr[2] == test_addr_2.Addr[2]);
-        NL_TEST_ASSERT(inSuite, test_addr_1.Addr[3] == test_addr_2.Addr[3]);
+        CheckAddressQuartets(inSuite, test_addr_1, test_addr_2);
 
-        theContext++;
+        ++lCurrent;
     }
 }
 
@@ -1160,24 +1457,26 @@ static void CheckEcodeDecodeSymmetricity(nlTestSuite *inSuite, void *inContext)
  */
 static void CheckMakeULA(nlTestSuite *inSuite, void *inContext)
 {
-    const struct TestContext *theContext = static_cast<const struct TestContext *>(inContext);
+    const struct TestContext *        lContext = static_cast<const struct TestContext *>(inContext);
+    IPAddressExpandedContextIterator  lCurrent = lContext->mIPAddressExpandedContextRange.mBegin;
+    IPAddressExpandedContextIterator  lEnd = lContext->mIPAddressExpandedContextRange.mEnd;
 
-    for (size_t ith = 0; ith < kTestElements; ith++)
+    while (lCurrent != lEnd)
     {
         IPAddress test_addr;
 
         // Call MakeULA function that we test.
-        test_addr = IPAddress::MakeULA(theContext->global, theContext->subnet,
-            theContext->interface);
+        test_addr = IPAddress::MakeULA(lCurrent->global, lCurrent->subnet,
+            lCurrent->interface);
 
         NL_TEST_ASSERT(inSuite, test_addr.Addr[0] ==
-                htonl(ULA_PREFIX | (theContext->global & ULA_UP_24_BIT_MASK) >> 16));
+                htonl(ULA_PREFIX | (lCurrent->global & ULA_UP_24_BIT_MASK) >> 16));
         NL_TEST_ASSERT(inSuite,    test_addr.Addr[1] ==
-                htonl((theContext->global & ULA_LO_16_BIT_MASK) << 16 | theContext->subnet));
-        NL_TEST_ASSERT(inSuite,    test_addr.Addr[2] == htonl(theContext->interface >> 32));
-        NL_TEST_ASSERT(inSuite,    test_addr.Addr[3] == htonl(theContext->interface));
+                htonl((lCurrent->global & ULA_LO_16_BIT_MASK) << 16 | lCurrent->subnet));
+        NL_TEST_ASSERT(inSuite,    test_addr.Addr[2] == htonl(lCurrent->interface >> 32));
+        NL_TEST_ASSERT(inSuite,    test_addr.Addr[3] == htonl(lCurrent->interface));
 
-        theContext++;
+        ++lCurrent;
     }
 }
 
@@ -1186,63 +1485,179 @@ static void CheckMakeULA(nlTestSuite *inSuite, void *inContext)
  */
 static void CheckMakeLLA(nlTestSuite *inSuite, void *inContext)
 {
-    const struct TestContext *theContext = static_cast<const struct TestContext *>(inContext);
+    const struct TestContext *        lContext = static_cast<const struct TestContext *>(inContext);
+    IPAddressExpandedContextIterator  lCurrent = lContext->mIPAddressExpandedContextRange.mBegin;
+    IPAddressExpandedContextIterator  lEnd = lContext->mIPAddressExpandedContextRange.mEnd;
 
-    for (size_t ith = 0; ith < kTestElements; ith++)
+    while (lCurrent != lEnd)
     {
         IPAddress test_addr;
 
         // Call MakeLLA function that we test.
-        test_addr = IPAddress::MakeLLA(theContext->interface);
+        test_addr = IPAddress::MakeLLA(lCurrent->interface);
 
         NL_TEST_ASSERT(inSuite, test_addr.Addr[0] == htonl(LLA_PREFIX));
         NL_TEST_ASSERT(inSuite, test_addr.Addr[1] == 0);
-        NL_TEST_ASSERT(inSuite, test_addr.Addr[2] == htonl(theContext->interface >> 32));
-        NL_TEST_ASSERT(inSuite, test_addr.Addr[3] == htonl(theContext->interface));
+        NL_TEST_ASSERT(inSuite, test_addr.Addr[2] == htonl(lCurrent->interface >> 32));
+        NL_TEST_ASSERT(inSuite, test_addr.Addr[3] == htonl(lCurrent->interface));
 
-        theContext++;
+        ++lCurrent;
     }
 }
 
-/**
- *  Test assembling IPv6 Multicast address.
- */
-static void CheckMakeIPv6Multicast(nlTestSuite *inSuite, void *inContext)
+static void CheckMakeIPv6WellKnownMulticast(nlTestSuite *inSuite, void *inContext)
 {
-    int s, g;
+    const struct TestContext *  lContext = static_cast<const struct TestContext *>(inContext);
+    IPAddressContextIterator    lCurrent = lContext->mIPv6WellKnownMulticastContextRange.mBegin;
+    IPAddressContextIterator    lEnd = lContext->mIPv6WellKnownMulticastContextRange.mEnd;
+    size_t                      lGroupIndex;
+    size_t                      lScopeIndex;
+    IPAddress                   lAddress;
 
-    IPv6MulticastScope scope[NUM_MCAST_SCOPES] =
+    if (lCurrent != lEnd)
     {
-        kIPv6MulticastScope_Interface,
-        kIPv6MulticastScope_Link,
-#if INET_CONFIG_ENABLE_IPV4
-        kIPv6MulticastScope_IPv4,
-#endif // INET_CONFIG_ENABLE_IPV4
-        kIPv6MulticastScope_Admin,
-        kIPv6MulticastScope_Site,
-        kIPv6MulticastScope_Organization,
-        kIPv6MulticastScope_Global
-    };
-
-    IPV6MulticastGroup group[NUM_MCAST_GROUPS] =
-    {
-        kIPV6MulticastGroup_AllNodes,
-        kIPV6MulticastGroup_AllRouters
-    };
-
-    for (s = 0; s < NUM_MCAST_SCOPES; s++)
-    {
-        for (g = 0; g < NUM_MCAST_GROUPS; g++)
+        for (lGroupIndex = 0; lGroupIndex < NUM_MCAST_GROUPS && (lCurrent != lEnd); lGroupIndex++)
         {
-            IPAddress test_addr;
+            for (lScopeIndex = 0; lScopeIndex < NUM_MCAST_SCOPES && (lCurrent != lEnd); lScopeIndex++)
+            {
+                const IPv6MulticastScope  lScope = sIPv6MulticastScopes[lScopeIndex];
+                const IPV6MulticastGroup  lGroup = sIPv6WellKnownMulticastGroups[lGroupIndex];
 
-            // Call MakeIPv6Multicast function that we test.
-            test_addr = IPAddress::MakeIPv6Multicast(scope[s], group[g]);
 
-            NL_TEST_ASSERT(inSuite, test_addr.Addr[0] == htonl(MCAST_PREFIX | (scope[s] << 16)));
-            NL_TEST_ASSERT(inSuite, test_addr.Addr[1] == 0);
-            NL_TEST_ASSERT(inSuite, test_addr.Addr[2] == 0);
-            NL_TEST_ASSERT(inSuite, test_addr.Addr[3] == htonl(group[g]));
+                lAddress = IPAddress::MakeIPv6WellKnownMulticast(lScope, lGroup);
+
+                CheckAddress(inSuite, *lCurrent, lAddress);
+
+                ++lCurrent;
+            }
+        }
+    }
+}
+
+static void CheckMakeIPv6TransientMulticast(nlTestSuite *inSuite, void *inContext)
+{
+    const struct TestContext *  lContext = static_cast<const struct TestContext *>(inContext);
+    IPAddressContextIterator    lCurrent = lContext->mIPv6TransientMulticastContextRange.mBegin;
+    IPAddressContextIterator    lEnd = lContext->mIPv6TransientMulticastContextRange.mEnd;
+    const uint8_t               lFlags = 0;
+    size_t                      lScopeIndex;
+    IPAddress                   lAddress;
+
+    if (lCurrent != lEnd)
+    {
+        // Short Transient Group in Various Scopes
+
+        for (lScopeIndex = 0; lScopeIndex < NUM_MCAST_SCOPES && (lCurrent != lEnd); lScopeIndex++)
+        {
+            const IPv6MulticastScope  lScope = sIPv6MulticastScopes[lScopeIndex];
+            const uint8_t             lGroup[NL_INET_IPV6_MCAST_GROUP_LEN_IN_BYTES] =
+                { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+                  0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01 };
+
+            lAddress = IPAddress::MakeIPv6TransientMulticast(lFlags, lScope, lGroup);
+
+            CheckAddress(inSuite, *lCurrent, lAddress);
+
+            ++lCurrent;
+        }
+
+        // Long Transient Group in Various Scopes
+
+        for (lScopeIndex = 0; lScopeIndex < NUM_MCAST_SCOPES && (lCurrent != lEnd); lScopeIndex++)
+        {
+            const IPv6MulticastScope  lScope = sIPv6MulticastScopes[lScopeIndex];
+            const uint8_t             lGroup[NL_INET_IPV6_MCAST_GROUP_LEN_IN_BYTES] =
+                { 0xd5, 0xd6, 0x2b, 0xa2, 0x78, 0x47, 0x64,
+                  0x52, 0x58, 0x7a, 0xc9, 0x55, 0x0b, 0x5a };
+
+            lAddress = IPAddress::MakeIPv6TransientMulticast(lFlags, lScope, lGroup);
+
+            CheckAddress(inSuite, *lCurrent, lAddress);
+
+            ++lCurrent;
+        }
+    }
+}
+
+static void CheckMakeIPv6PrefixMulticast(nlTestSuite *inSuite, void *inContext)
+{
+    const struct TestContext *  lContext = static_cast<const struct TestContext *>(inContext);
+    IPAddressContextIterator    lCurrent = lContext->mIPv6PrefixMulticastContextRange.mBegin;
+    IPAddressContextIterator    lEnd = lContext->mIPv6PrefixMulticastContextRange.mEnd;
+    uint8_t                     lPrefixLength;
+    uint64_t                    lPrefix;
+    uint32_t                    lGroup;
+    size_t                      lScopeIndex;
+    IPAddress                   lAddress;
+
+    if (lCurrent != lEnd)
+    {
+        // 56-bit Prefix with Short Group in Various Scopes
+
+        lPrefixLength = 56;
+        lPrefix       = 0x373acba4d2ad8d00;
+        lGroup        = 0x1;
+
+        for (lScopeIndex = 0; lScopeIndex < NUM_MCAST_SCOPES && (lCurrent != lEnd); lScopeIndex++)
+        {
+            const IPv6MulticastScope  lScope = sIPv6MulticastScopes[lScopeIndex];
+
+            lAddress = IPAddress::MakeIPv6PrefixMulticast(lScope, lPrefixLength, lPrefix, lGroup);
+
+            CheckAddress(inSuite, *lCurrent, lAddress);
+
+            ++lCurrent;
+        }
+
+        // 56-bit Prefix with Long Group in Various Scopes
+
+        lPrefixLength = 56;
+        lPrefix       = 0x373acba4d2ad8d00;
+        lGroup        = 0xafff5258;
+
+        for (lScopeIndex = 0; lScopeIndex < NUM_MCAST_SCOPES && (lCurrent != lEnd); lScopeIndex++)
+        {
+            const IPv6MulticastScope  lScope = sIPv6MulticastScopes[lScopeIndex];
+
+            lAddress = IPAddress::MakeIPv6PrefixMulticast(lScope, lPrefixLength, lPrefix, lGroup);
+
+            CheckAddress(inSuite, *lCurrent, lAddress);
+
+            ++lCurrent;
+        }
+
+        // 64-bit Prefix with Short Group in Various Scopes
+
+        lPrefixLength = 64;
+        lPrefix       = 0x66643dfbafa4385b;
+        lGroup        = 0x1;
+
+        for (lScopeIndex = 0; lScopeIndex < NUM_MCAST_SCOPES && (lCurrent != lEnd); lScopeIndex++)
+        {
+            const IPv6MulticastScope  lScope = sIPv6MulticastScopes[lScopeIndex];
+
+            lAddress = IPAddress::MakeIPv6PrefixMulticast(lScope, lPrefixLength, lPrefix, lGroup);
+
+            CheckAddress(inSuite, *lCurrent, lAddress);
+
+            ++lCurrent;
+        }
+
+        // 64-bit Prefix with Long Group in Various Scopes
+
+        lPrefixLength = 64;
+        lPrefix       = 0x66643dfbafa4385b;
+        lGroup        = 0xafff5258;
+
+        for (lScopeIndex = 0; lScopeIndex < NUM_MCAST_SCOPES && (lCurrent != lEnd); lScopeIndex++)
+        {
+            const IPv6MulticastScope  lScope = sIPv6MulticastScopes[lScopeIndex];
+
+            lAddress = IPAddress::MakeIPv6PrefixMulticast(lScope, lPrefixLength, lPrefix, lGroup);
+
+            CheckAddress(inSuite, *lCurrent, lAddress);
+
+            ++lCurrent;
         }
     }
 }
@@ -1252,16 +1667,20 @@ static void CheckMakeIPv6Multicast(nlTestSuite *inSuite, void *inContext)
  */
 static void CheckIPPrefix(nlTestSuite *inSuite, void *inContext)
 {
-    struct TestContext *theFirstContext = static_cast<struct TestContext *>(inContext);
+    const struct TestContext *        lContext = static_cast<const struct TestContext *>(inContext);
+    IPAddressExpandedContextIterator  lCurrent = lContext->mIPAddressExpandedContextRange.mBegin;
+    IPAddressExpandedContextIterator  lEnd = lContext->mIPAddressExpandedContextRange.mEnd;
+    size_t                            i = 0;
 
-    for (size_t ith = 0; ith < kTestElements; ith++)
+    while (lCurrent != lEnd)
     {
         IPPrefix ipprefix_1, ipprefix_2;
         IPAddress test_addr_1;
 
-        SetupIPAddress(test_addr_1, theFirstContext);
+        SetupIPAddress(test_addr_1, lCurrent);
+
         ipprefix_1.IPAddr = test_addr_1;
-        ipprefix_1.Length = 128 - ith;
+        ipprefix_1.Length = 128 - (i++ % 128);
         ipprefix_2 = ipprefix_1;
 
         NL_TEST_ASSERT(inSuite, !ipprefix_1.IsZero());
@@ -1271,45 +1690,47 @@ static void CheckIPPrefix(nlTestSuite *inSuite, void *inContext)
 #if !WEAVE_SYSTEM_CONFIG_USE_LWIP
         NL_TEST_ASSERT(inSuite, ipprefix_1.MatchAddress(test_addr_1));
 #endif
-        theFirstContext++;
+        ++lCurrent;
     }
 }
-// Test Suite
-
 
 /**
  *   Test Suite. It lists all the test functions.
  */
 static const nlTest sTests[] = {
-    NL_TEST_DEF("From String Conversion",               CheckFromString),
+    NL_TEST_DEF("Address Type",                                CheckType),
+    NL_TEST_DEF("Any Address Global",                          CheckAnyAddress),
+    NL_TEST_DEF("Address Encoding (Writing)",                  CheckEncoding),
+    NL_TEST_DEF("Address Decoding (Reading)",                  CheckDecoding),
+    NL_TEST_DEF("Address Encode / Decode Symmetricity",        CheckEcodeDecodeSymmetricity),
+    NL_TEST_DEF("From String Conversion",                      CheckFromString),
+    NL_TEST_DEF("To String Conversion",                        CheckToString),
 #if INET_CONFIG_ENABLE_IPV4
-    NL_TEST_DEF("IPv4 Detection",                       CheckIsIPv4),
-    NL_TEST_DEF("IPv4 Multicast Detection",             CheckIsIPv4Multicast),
-    NL_TEST_DEF("IPv4 Broadcast Detection",             CheckIsIPv4Broadcast),
-    NL_TEST_DEF("Convert IPv4 to IPAddress",            CheckFromIPv4),
-    NL_TEST_DEF("Convert IPAddress to IPv4",            CheckToIPv4),
+    NL_TEST_DEF("IPv4 Detection",                              CheckIsIPv4),
+    NL_TEST_DEF("IPv4 Multicast Detection",                    CheckIsIPv4Multicast),
+    NL_TEST_DEF("IPv4 Broadcast Detection",                    CheckIsIPv4Broadcast),
+    NL_TEST_DEF("Convert IPv4 to IPAddress",                   CheckFromIPv4),
+    NL_TEST_DEF("Convert IPAddress to IPv4",                   CheckToIPv4),
 #endif // INET_CONFIG_ENABLE_IPV4
-    NL_TEST_DEF("IPv6 ULA Detection",                   CheckIsIPv6ULA),
-    NL_TEST_DEF("IPv6 Link Local Detection",            CheckIsIPv6LLA),
-    NL_TEST_DEF("IPv6 Multicast Detection",             CheckIsIPv6Multicast),
-    NL_TEST_DEF("Multicast Detection",                  CheckIsMulticast),
-    NL_TEST_DEF("Equivalence Operator",                 CheckOperatorEqual),
-    NL_TEST_DEF("Non-Equivalence Operator",             CheckOperatorNotEqual),
-    NL_TEST_DEF("Assign Operator",                      CheckOperatorAssign),
-    NL_TEST_DEF("Convert IPv6 to IPAddress",            CheckFromIPv6),
-    NL_TEST_DEF("Convert IPAddress to IPv6",            CheckToIPv6),
-    NL_TEST_DEF("Assign address from socket",           CheckFromSocket),
-    NL_TEST_DEF("Address Type",                         CheckType),
-    NL_TEST_DEF("Address Interface ID",                 CheckInterface),
-    NL_TEST_DEF("Address Subnet",                       CheckSubnet),
-    NL_TEST_DEF("Address Global ID",                    CheckGlobal),
-    NL_TEST_DEF("Assemble IPv6 ULA address",            CheckMakeULA),
-    NL_TEST_DEF("Assemble IPv6 LLA address",            CheckMakeLLA),
-    NL_TEST_DEF("Assemble IPv6 Multicast address",      CheckMakeIPv6Multicast),
-    NL_TEST_DEF("Weave Encoding",                       CheckEncoding),
-    NL_TEST_DEF("Weave Decoding",                       CheckDecoding),
-    NL_TEST_DEF("Weave Encode / Decode Symmetricity",   CheckEcodeDecodeSymmetricity),
-    NL_TEST_DEF("IPPrefix test",                        CheckIPPrefix),
+    NL_TEST_DEF("IPv6 ULA Detection",                          CheckIsIPv6ULA),
+    NL_TEST_DEF("IPv6 Link Local Detection",                   CheckIsIPv6LLA),
+    NL_TEST_DEF("IPv6 Multicast Detection",                    CheckIsIPv6Multicast),
+    NL_TEST_DEF("Multicast Detection",                         CheckIsMulticast),
+    NL_TEST_DEF("Equivalence Operator",                        CheckOperatorEqual),
+    NL_TEST_DEF("Non-Equivalence Operator",                    CheckOperatorNotEqual),
+    NL_TEST_DEF("Assign Operator",                             CheckOperatorAssign),
+    NL_TEST_DEF("Convert IPv6 to IPAddress",                   CheckFromIPv6),
+    NL_TEST_DEF("Convert IPAddress to IPv6",                   CheckToIPv6),
+    NL_TEST_DEF("Assign address from socket",                  CheckFromSocket),
+    NL_TEST_DEF("Address Interface ID",                        CheckInterface),
+    NL_TEST_DEF("Address Subnet",                              CheckSubnet),
+    NL_TEST_DEF("Address Global ID",                           CheckGlobal),
+    NL_TEST_DEF("Assemble IPv6 ULA address",                   CheckMakeULA),
+    NL_TEST_DEF("Assemble IPv6 LLA address",                   CheckMakeLLA),
+    NL_TEST_DEF("Assemble IPv6 Well-known Multicast address",  CheckMakeIPv6WellKnownMulticast),
+    NL_TEST_DEF("Assemble IPv6 Transient Multicast address",   CheckMakeIPv6TransientMulticast),
+    NL_TEST_DEF("Assemble IPv6 Prefix Multicast address",      CheckMakeIPv6PrefixMulticast),
+    NL_TEST_DEF("IPPrefix test",                               CheckIPPrefix),
     NL_TEST_SENTINEL()
 };
 
@@ -1342,7 +1763,7 @@ int main(void)
     nl_test_set_output_style(OUTPUT_CSV);
 
     // Run test suit againt one context.
-    nlTestRunner(&theSuite, const_cast<struct TestContext *>(&sContext[0]));
+    nlTestRunner(&theSuite, const_cast<TestContext *>(&sTestContext));
 
     return nlTestRunnerStats(&theSuite);
 }

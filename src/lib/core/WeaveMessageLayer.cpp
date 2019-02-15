@@ -1979,7 +1979,7 @@ WEAVE_ERROR WeaveMessageLayer::RefreshEndpoints()
         // associated with the listening IPv6 address.
         if (listenIPv6 && mIPv6UDPMulticastRcv == NULL)
         {
-            IPAddress ipv6LinkLocalAllNodes = IPAddress::MakeIPv6Multicast(kIPv6MulticastScope_Link, kIPV6MulticastGroup_AllNodes);
+            IPAddress ipv6LinkLocalAllNodes = IPAddress::MakeIPv6WellKnownMulticast(kIPv6MulticastScope_Link, kIPV6MulticastGroup_AllNodes);
 
 #if WEAVE_BIND_DETAIL_LOGGING && WEAVE_DETAIL_LOGGING
             ipv6LinkLocalAllNodes.ToString(ipAddrStr, sizeof(ipAddrStr));

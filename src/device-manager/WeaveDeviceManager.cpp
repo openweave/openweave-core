@@ -150,7 +150,7 @@ WEAVE_ERROR WeaveDeviceManager::Init(WeaveExchangeManager *exchangeMgr, WeaveSec
     mEnumeratedNodesMaxLen = 0;
 
     // By default, rendezvous messages are sent to the IPv6 link-local, all-nodes multicast address.
-    mRendezvousAddr = IPAddress::MakeIPv6Multicast(kIPv6MulticastScope_Link, kIPV6MulticastGroup_AllNodes);
+    mRendezvousAddr = IPAddress::MakeIPv6WellKnownMulticast(kIPv6MulticastScope_Link, kIPV6MulticastGroup_AllNodes);
 
     State = kState_Initialized;
 
@@ -2674,7 +2674,7 @@ bool WeaveDeviceManager::IsValidPairingCode(const char *pairingCode)
 WEAVE_ERROR WeaveDeviceManager::SetRendezvousAddress(IPAddress addr)
 {
     if (addr == IPAddress::Any)
-        addr = IPAddress::MakeIPv6Multicast(kIPv6MulticastScope_Link, kIPV6MulticastGroup_AllNodes);
+        addr = IPAddress::MakeIPv6WellKnownMulticast(kIPv6MulticastScope_Link, kIPV6MulticastGroup_AllNodes);
     mRendezvousAddr = addr;
     return WEAVE_NO_ERROR;
 }
