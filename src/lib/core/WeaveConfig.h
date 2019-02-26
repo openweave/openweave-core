@@ -2042,6 +2042,23 @@
 #endif // WEAVE_CONFIG_SUPPORT_LEGACY_ADD_NETWORK_MESSAGE
 
 /**
+ *  @def WEAVE_CONFIG_ALWAYS_USE_LEGACY_ADD_NETWORK_MESSAGE
+ *
+ *  @brief
+ *    Enable (1) or disable (0) the exclusive use of the depricated
+ *    version of AddNetwork() message in the Network Provisioning
+ *    profile.
+ *    This option should be enabled when exclusively pairing with Nest
+ *    legacy devices that don't have latest SW.
+ *    This option requires that
+ *    WEAVE_CONFIG_SUPPORT_LEGACY_ADD_NETWORK_MESSAGE is enabled.
+ *
+ */
+#ifndef WEAVE_CONFIG_ALWAYS_USE_LEGACY_ADD_NETWORK_MESSAGE
+#define WEAVE_CONFIG_ALWAYS_USE_LEGACY_ADD_NETWORK_MESSAGE     0
+#endif // WEAVE_CONFIG_ALWAYS_USE_LEGACY_ADD_NETWORK_MESSAGE
+
+/**
  * @def WEAVE_CONFIG_ENABLE_IFJ_SERVICE_FABRIC_JOIN
  *
  * @brief Enable the Service Provisioning profile message
