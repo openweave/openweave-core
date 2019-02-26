@@ -429,7 +429,7 @@ WEAVE_ERROR EncodePath(TLVWriter &aWriter,
                        const uint64_t &aTag,
                        uint32_t aProfileId,
                        const uint64_t &aInstanceId,
-                       uint16_t aPathLen,
+                       uint32_t aPathLen,
                        ...)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
@@ -451,7 +451,7 @@ WEAVE_ERROR EncodePath(TLVWriter &aWriter,
 
     va_start(pathTags, aPathLen);
 
-    for (int i = 0; i < aPathLen; i++)
+    for (uint32_t i = 0; i < aPathLen; i++)
     {
         err = aWriter.PutNull(va_arg(pathTags, uint64_t));
 
@@ -517,7 +517,7 @@ WEAVE_ERROR EncodePath(TLVWriter &aWriter,
                        uint32_t aProfileId,
                        const uint32_t aInstanceIdLen,
                        const uint8_t *aInstanceId,
-                       uint16_t aPathLen,
+                       uint32_t aPathLen,
                        ...)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
@@ -539,7 +539,7 @@ WEAVE_ERROR EncodePath(TLVWriter &aWriter,
 
     va_start(pathTags, aPathLen);
 
-    for (int i = 0; i < aPathLen; i++)
+    for (uint32_t i = 0; i < aPathLen; i++)
     {
         err = aWriter.PutNull(va_arg(pathTags, uint64_t));
 
@@ -598,7 +598,7 @@ WEAVE_ERROR EncodePath(TLVWriter &aWriter,
                        const uint64_t &aTag,
                        uint32_t aProfileId,
                        const char *aInstanceId,
-                       uint16_t aPathLen,
+                       uint32_t aPathLen,
                        ...)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
@@ -620,7 +620,7 @@ WEAVE_ERROR EncodePath(TLVWriter &aWriter,
 
     va_start(pathTags, aPathLen);
 
-    for (int i = 0; i < aPathLen; i++)
+    for (uint32_t i = 0; i < aPathLen; i++)
     {
         err = aWriter.PutNull(va_arg(pathTags, uint64_t));
 
@@ -679,7 +679,7 @@ WEAVE_ERROR EncodeDeprecatedPath(TLVWriter &aWriter,
                                  const uint64_t &aTag,
                                  uint32_t aProfileId,
                                  const uint64_t &aInstanceId,
-                                 uint16_t aPathLen,
+                                 uint32_t aPathLen,
                                  ...)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
@@ -709,7 +709,7 @@ WEAVE_ERROR EncodeDeprecatedPath(TLVWriter &aWriter,
 
     va_start(pathTags, aPathLen);
 
-    for (int i = 0; i < aPathLen; i++)
+    for (uint32_t i = 0; i < aPathLen; i++)
     {
         err = aWriter.PutNull(va_arg(pathTags, uint64_t));
 
@@ -768,7 +768,7 @@ WEAVE_ERROR EncodeDeprecatedPath(TLVWriter &aWriter,
                                  const uint64_t &aTag,
                                  uint32_t aProfileId,
                                  const char *aInstanceId,
-                                 uint16_t aPathLen,
+                                 uint32_t aPathLen,
                                  ...)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
@@ -798,7 +798,7 @@ WEAVE_ERROR EncodeDeprecatedPath(TLVWriter &aWriter,
 
     va_start(pathTags, aPathLen);
 
-    for (int i = 0; i < aPathLen; i++)
+    for (uint32_t i = 0; i < aPathLen; i++)
     {
         err = aWriter.PutNull(va_arg(pathTags, uint64_t));
 

@@ -31,190 +31,647 @@
 #include <unistd.h>
 
 #include "ToolCommon.h"
-#include <nltest.h>
+#include <nlunit-test.h>
+#include <SystemLayer/SystemClock.h>
 #include <SystemLayer/SystemTimer.h>
+
+#if INET_CONFIG_ENABLE_DNS_RESOLVER
 
 using namespace nl::Inet;
 
-#define TOOL_NAME "TestAsyncDNS"
-#define DEFAULT_TEST_DURATION_MILLISECS               (10000)
+#define TOOL_NAME "TestDNSResolution"
+#define DEFAULT_TEST_DURATION_MILLISECS               (20000)
 #define DEFAULT_CANCEL_TEST_DURATION_MILLISECS        (2000)
 
+static uint32_t sNumResInProgress = 0;
+constexpr uint8_t kMaxResults = 20;
+
+struct DNSResolutionTestCase
+{
+    const char * hostName;
+    uint8_t dnsOptions;
+    uint8_t maxResults;
+    INET_ERROR expectErr;
+    bool expectIPv4Addrs;
+    bool expectIPv6Addrs;
+};
+
+struct DNSResolutionTestContext
+{
+    nlTestSuite * testSuite;
+    DNSResolutionTestCase testCase;
+    bool callbackCalled;
+    IPAddress resultsBuf[kMaxResults];
+};
+
+static void RunTestCase(nlTestSuite * testSuite, const DNSResolutionTestCase & testCase);
+static void StartTestCase(DNSResolutionTestContext & testContext);
+static void HandleResolutionComplete(void *appState, INET_ERROR err, uint8_t addrCount, IPAddress *addrArray);
+static void ServiceNetworkUntilDone(uint32_t timeoutMS);
 static void HandleSIGUSR1(int sig);
 
-const char *destHostName = NULL;
-uint64_t gTestStartTime = 0;
-int32_t gNumOfResolutionDone = 0;
-int32_t gMaxNumResolve = 4; // Max number of DNS Resolutions being performed.
-uint64_t gMaxTestDurationMillisecs = DEFAULT_TEST_DURATION_MILLISECS;
-bool gTestSucceeded = false;
-IPAddress DestAddr = IPAddress::Any;
-IPAddress DestAddrPool[2] = { IPAddress::Any, IPAddress::Any };
-
-#if INET_CONFIG_ENABLE_DNS_RESOLVER
-static void HandleDNSResolveComplete(void *appState, INET_ERROR err, uint8_t addrCount, IPAddress *addrArray);
-static void HandleDNSCancel(void *appState, INET_ERROR err, uint8_t addrCount, IPAddress *addrArray);
-static void HandleDNSInvalid(void *appState, INET_ERROR err, uint8_t addrCount, IPAddress *addrArray);
-#endif // INET_CONFIG_ENABLE_DNS_RESOLVER
-
-static void TestDNSResolution(nlTestSuite *inSuite, void *inContext)
+/**
+ * Test basic name resolution functionality.
+ */
+static void TestDNSResolution_Basic(nlTestSuite * testSuite, void * testContext)
 {
-    INET_ERROR err = INET_NO_ERROR;
-    Done = false;
-    char testHostName1[20] = "www.nest.com";
-    char testHostName2[20] = "10.0.0.1";
-    char testHostName3[20] = "www.google.com";
-    char testHostName4[20] = "pool.ntp.org";
-    gTestSucceeded = false;
-    gMaxTestDurationMillisecs = DEFAULT_TEST_DURATION_MILLISECS;
-    gTestStartTime = Now();
-
-#if INET_CONFIG_ENABLE_DNS_RESOLVER
-    printf("Resolving hostname %s\n", testHostName1);
-    err = Inet.ResolveHostAddress(testHostName1, 1, &DestAddr, HandleDNSResolveComplete, testHostName1);
-    SuccessOrExit(err);
-
-    printf("Resolving hostname %s\n", testHostName2);
-    err = Inet.ResolveHostAddress(testHostName2, 1, &DestAddr, HandleDNSResolveComplete, testHostName2);
-    SuccessOrExit(err);
-
-    printf("Resolving hostname %s\n", testHostName3);
-    err = Inet.ResolveHostAddress(testHostName3, 1, &DestAddr, HandleDNSResolveComplete, testHostName3);
-    SuccessOrExit(err);
-
-    printf("Resolving hostname %s\n", testHostName4);
-    err = Inet.ResolveHostAddress(testHostName4, 2, DestAddrPool, HandleDNSResolveComplete, testHostName4);
-    SuccessOrExit(err);
-#endif // INET_CONFIG_ENABLE_DNS_RESOLVER
-
-    while (!Done)
-    {
-        struct timeval sleepTime;
-        sleepTime.tv_sec = 0;
-        sleepTime.tv_usec = 10000;
-
-        ServiceNetwork(sleepTime);
-
-        if (Now() < gTestStartTime + gMaxTestDurationMillisecs * System::kTimerFactor_micro_per_milli)
+    // Test resolving a name with only IPv4 addresses.
+    RunTestCase(testSuite,
+        DNSResolutionTestCase
         {
-            if (gTestSucceeded)
+            "ipv4.google.com",
+            kDNSOption_Default,
+            kMaxResults,
+            INET_NO_ERROR,
+            true,
+            false
+        }
+    );
+
+    // Test resolving a name with only IPv6 addresses.
+    RunTestCase(testSuite,
+        DNSResolutionTestCase
+        {
+            "ipv6.google.com",
+            kDNSOption_Default,
+            kMaxResults,
+            INET_NO_ERROR,
+            false,
+            true
+        }
+    );
+
+    // Test resolving a name with IPv4 and IPv6 addresses.
+    RunTestCase(testSuite,
+        DNSResolutionTestCase
+        {
+            "google.com",
+            kDNSOption_Default,
+            kMaxResults,
+            INET_NO_ERROR,
+            true,
+            true
+        }
+    );
+}
+
+/**
+ * Test resolving a name using various address type options.
+ */
+static void TestDNSResolution_AddressTypeOption(nlTestSuite * testSuite, void * testContext)
+{
+    // Test requesting IPv4 addresses only.
+#if INET_CONFIG_ENABLE_IPV4
+    RunTestCase(testSuite,
+        DNSResolutionTestCase
+        {
+            "google.com",
+            kDNSOption_AddrFamily_IPv4Only,
+            kMaxResults,
+            INET_NO_ERROR,
+            true,
+            false
+        }
+    );
+#endif // INET_CONFIG_ENABLE_IPV4
+
+    // Test requesting IPv6 addresses only.
+    RunTestCase(testSuite,
+        DNSResolutionTestCase
+        {
+            "google.com",
+            kDNSOption_AddrFamily_IPv6Only,
+            kMaxResults,
+            INET_NO_ERROR,
+            false,
+            true
+        }
+    );
+
+    // Test requesting IPv4 address preferentially.
+#if INET_CONFIG_ENABLE_IPV4
+    RunTestCase(testSuite,
+        DNSResolutionTestCase
+        {
+            "google.com",
+            kDNSOption_AddrFamily_IPv4Preferred,
+            kMaxResults,
+            INET_NO_ERROR,
+            true,
+            true
+        }
+    );
+#endif // INET_CONFIG_ENABLE_IPV4
+
+    // Test requesting IPv6 address preferentially.
+    RunTestCase(testSuite,
+        DNSResolutionTestCase
+        {
+            "google.com",
+            kDNSOption_AddrFamily_IPv6Preferred,
+            kMaxResults,
+            INET_NO_ERROR,
+            true,
+            true
+        }
+    );
+}
+
+/**
+ * Test resolving a name with a limited number of results.
+ */
+static void TestDNSResolution_RestrictedResults(nlTestSuite * testSuite, void * testContext)
+{
+    // Test requesting 2 IPv4 addresses.  This should result in, at most, 2 IPv4 addresses.
+#if INET_CONFIG_ENABLE_IPV4
+    RunTestCase(testSuite,
+        DNSResolutionTestCase
+        {
+            "google.com",
+            kDNSOption_AddrFamily_IPv4Only,
+            2,
+            INET_NO_ERROR,
+            true,
+            false
+        }
+    );
+#endif // INET_CONFIG_ENABLE_IPV4
+
+    // Test requesting 2 IPv6 addresses.  This should result in, at most, 2 IPv6 addresses.
+    RunTestCase(testSuite,
+        DNSResolutionTestCase
+        {
+            "google.com",
+            kDNSOption_AddrFamily_IPv6Only,
+            2,
+            INET_NO_ERROR,
+            false,
+            true
+        }
+    );
+
+    // Test requesting 2 addresses, preferring IPv4.  This should result in 1 IPv4 address
+    // followed by 1 IPv6 address.
+#if INET_CONFIG_ENABLE_IPV4
+    RunTestCase(testSuite,
+        DNSResolutionTestCase
+        {
+            "google.com",
+            kDNSOption_AddrFamily_IPv4Preferred,
+            2,
+            INET_NO_ERROR,
+            true,
+            true
+        }
+    );
+#endif // INET_CONFIG_ENABLE_IPV4
+
+    // Test requesting 2 addresses, preferring IPv6.  This should result in 1 IPv6 address
+    // followed by 1 IPv4 address.
+    RunTestCase(testSuite,
+        DNSResolutionTestCase
+        {
+            "google.com",
+            kDNSOption_AddrFamily_IPv6Preferred,
+            2,
+            INET_NO_ERROR,
+            true,
+            true
+        }
+    );
+}
+
+/**
+ * Test resolving a non-existant name.
+ */
+static void TestDNSResolution_NoRecord(nlTestSuite * testSuite, void * testContext)
+{
+    RunTestCase(testSuite,
+        DNSResolutionTestCase
+        {
+            "www.google.invalid.",
+            kDNSOption_AddrFamily_Any,
+            1,
+            INET_ERROR_HOST_NOT_FOUND,
+            false,
+            false
+        }
+    );
+}
+
+/**
+ * Test resolving a name where the resultant DNS entry lacks an A or AAAA record.
+ */
+static void TestDNSResolution_NoHostRecord(nlTestSuite * testSuite, void * testContext)
+{
+    // Test resolving a name that has no host records (A or AAAA).
+    RunTestCase(testSuite,
+        DNSResolutionTestCase
+        {
+            "_spf.google.com",
+            kDNSOption_AddrFamily_Any,
+            kMaxResults,
+            INET_ERROR_HOST_NOT_FOUND,
+            false,
+            false
+        }
+    );
+
+    // Test resolving a name that has only AAAA records, while requesting IPv4 addresses only.
+#if INET_CONFIG_ENABLE_IPV4
+    RunTestCase(testSuite,
+        DNSResolutionTestCase
+        {
+            "ipv6.google.com",
+            kDNSOption_AddrFamily_IPv4Only,
+            kMaxResults,
+            INET_ERROR_HOST_NOT_FOUND,
+            true,
+            false
+        }
+    );
+#endif // INET_CONFIG_ENABLE_IPV4
+
+    // Test resolving a name that has only A records, while requesting IPv6 addresses only.
+    RunTestCase(testSuite,
+        DNSResolutionTestCase
+        {
+            "ipv4.google.com",
+            kDNSOption_AddrFamily_IPv6Only,
+            kMaxResults,
+            INET_ERROR_HOST_NOT_FOUND,
+            false,
+            false
+        }
+    );
+}
+
+/**
+ * Test resolving text form IP addresses.
+ */
+static void TestDNSResolution_TextForm(nlTestSuite * testSuite, void * testContext)
+{
+    RunTestCase(testSuite,
+        DNSResolutionTestCase
+        {
+            "216.58.194.174",
+            kDNSOption_AddrFamily_Any,
+            1,
+            INET_NO_ERROR,
+            true,
+            false
+        }
+    );
+
+    RunTestCase(testSuite,
+        DNSResolutionTestCase
+        {
+            "2607:f8b0:4005:804::200e",
+            kDNSOption_AddrFamily_Any,
+            1,
+            INET_NO_ERROR,
+            false,
+            true
+        }
+    );
+
+    // Test resolving text form IPv4 and IPv6 addresses while requesting an
+    // incompatible address type.
+
+    RunTestCase(testSuite,
+        DNSResolutionTestCase
+        {
+            "216.58.194.174",
+            kDNSOption_AddrFamily_IPv6Only,
+            1,
+            INET_ERROR_INCOMPATIBLE_IP_ADDRESS_TYPE,
+            false,
+            false
+        }
+    );
+
+    RunTestCase(testSuite,
+        DNSResolutionTestCase
+        {
+            "2607:f8b0:4005:804::200e",
+            kDNSOption_AddrFamily_IPv4Only,
+            1,
+            INET_ERROR_INCOMPATIBLE_IP_ADDRESS_TYPE,
+            false,
+            false
+        }
+    );
+}
+
+static void TestDNSResolution_Cancel(nlTestSuite *testSuite, void *inContext)
+{
+    DNSResolutionTestContext testContext
+    {
+        testSuite,
+        DNSResolutionTestCase
+        {
+            "www.google.com",
+            kDNSOption_Default,
+            kMaxResults,
+            INET_NO_ERROR,
+            true,
+            false
+        }
+    };
+
+    // Start DNS resolution.
+    StartTestCase(testContext);
+
+    // If address resolution did NOT complete synchronously...
+    // (NOTE: If address resolution completes synchronously then this test is effectively
+    // void, as there's no opportunity to cancel the request).
+    if (!testContext.callbackCalled)
+    {
+        // Cancel the resolution before it completes.
+        Inet.CancelResolveHostAddress(HandleResolutionComplete, (void *)&testContext);
+
+        // Service the network for awhile to see what happens (should timeout).
+        ServiceNetworkUntilDone(DEFAULT_CANCEL_TEST_DURATION_MILLISECS);
+
+        // Verify that the completion function was NOT called.
+        NL_TEST_ASSERT(testSuite, testContext.callbackCalled == false);
+    }
+
+    Done = true;
+    sNumResInProgress = 0;
+}
+
+static void TestDNSResolution_Simultaneous(nlTestSuite *testSuite, void *inContext)
+{
+    DNSResolutionTestContext tests[] =
+    {
+        {
+            testSuite,
+            DNSResolutionTestCase
             {
-                Done = true;
+                "www.nest.com",
+                kDNSOption_Default,
+                kMaxResults,
+                INET_NO_ERROR,
+                true,
+                false
             }
-            else
+        },
+        {
+            testSuite,
+            DNSResolutionTestCase
             {
-                continue;
+                "10.0.0.1",
+                kDNSOption_Default,
+                kMaxResults,
+                INET_NO_ERROR,
+                true,
+                false
+            }
+        },
+        {
+            testSuite,
+            DNSResolutionTestCase
+            {
+                "www.google.com",
+                kDNSOption_Default,
+                kMaxResults,
+                INET_NO_ERROR,
+                true,
+                true
+            }
+        },
+        {
+            testSuite,
+            DNSResolutionTestCase
+            {
+                "pool.ntp.org",
+                kDNSOption_Default,
+                kMaxResults,
+                INET_NO_ERROR,
+                true,
+                false
             }
         }
-        else // Time's up
+    };
+
+    // Start multiple DNS resolutions simultaneously.
+    for (DNSResolutionTestContext & testContext : tests)
+    {
+        StartTestCase(testContext);
+    }
+
+    // Service the network until each completes, or a timeout occurs.
+    ServiceNetworkUntilDone(DEFAULT_TEST_DURATION_MILLISECS);
+
+    // Verify no timeout occurred.
+    NL_TEST_ASSERT(testSuite, Done == true);
+
+    // Sanity check test logic.
+    NL_TEST_ASSERT(testSuite, sNumResInProgress == 0);
+}
+
+static void RunTestCase(nlTestSuite * testSuite, const DNSResolutionTestCase & testCase)
+{
+    DNSResolutionTestContext testContext {
+        testSuite,
+        testCase
+    };
+
+    // Start DNS resolution.
+    StartTestCase(testContext);
+
+    // Service the network until the completion callback is called.
+    ServiceNetworkUntilDone(DEFAULT_TEST_DURATION_MILLISECS);
+
+    // Verify no timeout occurred.
+    NL_TEST_ASSERT(testSuite, Done == true);
+
+    // Sanity check test logic.
+    NL_TEST_ASSERT(testSuite, sNumResInProgress == 0);
+}
+
+static void StartTestCase(DNSResolutionTestContext & testContext)
+{
+    INET_ERROR err = INET_NO_ERROR;
+    DNSResolutionTestCase & testCase = testContext.testCase;
+    nlTestSuite * testSuite = testContext.testSuite;
+
+    Done = false;
+    sNumResInProgress++;
+
+    printf("Resolving hostname %s\n", testCase.hostName);
+    err = Inet.ResolveHostAddress(testCase.hostName, strlen(testCase.hostName), testCase.dnsOptions,
+            testCase.maxResults, testContext.resultsBuf, HandleResolutionComplete, (void *)&testContext);
+
+    if (err != INET_NO_ERROR)
+    {
+        printf("ResolveHostAddress failed for %s: %s\n", testCase.hostName, ::nl::ErrorStr(err));
+
+        // Verify the expected error
+        NL_TEST_ASSERT(testSuite, err == testCase.expectErr);
+
+        // Verify the callback WASN'T called
+        NL_TEST_ASSERT(testSuite, testContext.callbackCalled == false); //
+
+        sNumResInProgress--;
+        if (sNumResInProgress == 0)
         {
-            gTestSucceeded = false;
             Done = true;
         }
     }
-
-
-exit:
-
-    NL_TEST_ASSERT(inSuite, err == INET_NO_ERROR);
-    NL_TEST_ASSERT(inSuite, gTestSucceeded == true);
 }
 
-static void TestDNSCancel(nlTestSuite *inSuite, void *inContext)
+static void HandleResolutionComplete(void *appState, INET_ERROR err, uint8_t addrCount, IPAddress *addrArray)
 {
-    INET_ERROR err = INET_NO_ERROR;
-    Done = false;
-    char testHostName1[20] = "www.nest.com";
-    gTestSucceeded = false;
-    gMaxTestDurationMillisecs = DEFAULT_CANCEL_TEST_DURATION_MILLISECS;
-    gTestStartTime = Now();
+    DNSResolutionTestContext & testContext = *static_cast<DNSResolutionTestContext *>(appState);
+    DNSResolutionTestCase & testCase = testContext.testCase;
+    nlTestSuite * testSuite = testContext.testSuite;
 
-#if INET_CONFIG_ENABLE_DNS_RESOLVER
-    printf("Resolving hostname %s\n", testHostName1);
-    err = Inet.ResolveHostAddress(testHostName1, 1, &DestAddr, HandleDNSCancel, NULL);
-    SuccessOrExit(err);
-
-    // Cancel the DNS request.
-    Inet.CancelResolveHostAddress(HandleDNSCancel, NULL);
-
-    gTestSucceeded = true;
-
-    while (Now() < gTestStartTime + gMaxTestDurationMillisecs * System::kTimerFactor_micro_per_milli)
+    if (err == INET_NO_ERROR)
     {
-        struct timeval sleepTime;
-        sleepTime.tv_sec = 0;
-        sleepTime.tv_usec = 10000;
-
-        ServiceNetwork(sleepTime);
+        printf("DNS resolution complete for %s: %" PRIu8 " result%s returned\n",
+               testCase.hostName, addrCount, (addrCount != 1) ? "s" : "");
+        for (uint8_t i = 0; i < addrCount; i++)
+        {
+            char ipAddrStr[32];
+            printf("    %s\n", addrArray[i].ToString(ipAddrStr, sizeof(ipAddrStr)));
+        }
+    }
+    else
+    {
+        printf("DNS resolution complete for %s: %s\n", testCase.hostName, ::nl::ErrorStr(err));
     }
 
-#endif // INET_CONFIG_ENABLE_DNS_RESOLVER
+    // Verify the expected result.
+    NL_TEST_ASSERT(testSuite, err == testCase.expectErr);
 
-exit:
+    if (err == INET_NO_ERROR)
+    {
+        // Make sure the number of addresses is within the max expected.
+        NL_TEST_ASSERT(testSuite, addrCount <= testCase.maxResults);
 
-    NL_TEST_ASSERT(inSuite, err == INET_NO_ERROR);
-    NL_TEST_ASSERT(inSuite, gTestSucceeded == true);
+        // Determine the types of addresses in the response and their relative ordering.
+        bool respContainsIPv4Addrs = false;
+        bool respContainsIPv6Addrs = false;
+        for (uint8_t i = 0; i < addrCount; i++)
+        {
+            respContainsIPv4Addrs = respContainsIPv4Addrs || (addrArray[i].Type() == kIPAddressType_IPv4);
+            respContainsIPv6Addrs = respContainsIPv6Addrs || (addrArray[i].Type() == kIPAddressType_IPv6);
+        }
+
+        // Verify the expected address types were returned.
+        // The current LwIP DNS implementation returns at most one address.  So if the test expects
+        // both IPv4 and IPv6 addresses, relax this to accept either.
+#if WEAVE_SYSTEM_CONFIG_USE_LWIP
+        if (testCase.expectIPv4Addrs && testCase.expectIPv6Addrs)
+        {
+            NL_TEST_ASSERT(testSuite, respContainsIPv4Addrs || respContainsIPv6Addrs);
+        }
+        else
+#endif // WEAVE_SYSTEM_CONFIG_USE_LWIP
+        {
+            if (testCase.expectIPv4Addrs)
+            {
+                NL_TEST_ASSERT(testSuite, respContainsIPv4Addrs);
+            }
+            if (testCase.expectIPv6Addrs)
+            {
+                NL_TEST_ASSERT(testSuite, respContainsIPv6Addrs);
+            }
+        }
+
+        // Verify that only the requested address types were returned, and that the
+        // addresses were returned in the correct order.
+        switch (testCase.dnsOptions & kDNSOption_AddrFamily_Mask)
+        {
+        case kDNSOption_AddrFamily_Any:
+            break;
+        case kDNSOption_AddrFamily_IPv4Only:
+            NL_TEST_ASSERT(testSuite, !respContainsIPv6Addrs);
+            break;
+        case kDNSOption_AddrFamily_IPv4Preferred:
+            if (respContainsIPv4Addrs)
+            {
+                NL_TEST_ASSERT(testSuite, addrArray[0].Type() == kIPAddressType_IPv4);
+            }
+            break;
+        case kDNSOption_AddrFamily_IPv6Only:
+            NL_TEST_ASSERT(testSuite, !respContainsIPv4Addrs);
+            break;
+        case kDNSOption_AddrFamily_IPv6Preferred:
+            if (respContainsIPv6Addrs)
+            {
+                NL_TEST_ASSERT(testSuite, addrArray[0].Type() == kIPAddressType_IPv6);
+            }
+            break;
+        default:
+            constexpr bool UnexpectedAddressTypeValue = true;
+            NL_TEST_ASSERT(testSuite, !UnexpectedAddressTypeValue);
+        }
+    }
+
+    testContext.callbackCalled = true;
+
+    sNumResInProgress--;
+    if (sNumResInProgress == 0)
+    {
+        Done = true;
+    }
 }
 
-static void TestDNSInvalid(nlTestSuite *inSuite, void *inContext)
+static void ServiceNetworkUntilDone(uint32_t timeoutMS)
 {
-    INET_ERROR err = INET_NO_ERROR;
-    Done = false;
-    char testInvalidHostName[20] = "www.google.invalid.";
-    gTestSucceeded = false;
-    gMaxTestDurationMillisecs = DEFAULT_CANCEL_TEST_DURATION_MILLISECS;
-    gTestStartTime = Now();
-
-#if INET_CONFIG_ENABLE_DNS_RESOLVER
-    printf("Resolving hostname %s\n", testInvalidHostName);
-    err = Inet.ResolveHostAddress(testInvalidHostName, 1, &DestAddr, HandleDNSInvalid, NULL);
-    SuccessOrExit(err);
+    uint64_t timeoutTimeMS = System::Layer::GetClock_MonotonicMS() + timeoutMS;
+    struct timeval sleepTime;
+    sleepTime.tv_sec = 0;
+    sleepTime.tv_usec = 10000;
 
     while (!Done)
     {
-        struct timeval sleepTime;
-        sleepTime.tv_sec = 0;
-        sleepTime.tv_usec = 10000;
-
         ServiceNetwork(sleepTime);
 
-        if (Now() < gTestStartTime + gMaxTestDurationMillisecs * System::kTimerFactor_micro_per_milli)
+        if (System::Layer::GetClock_MonotonicMS() >= timeoutTimeMS)
         {
-            if (gTestSucceeded)
-            {
-                Done = true;
-            }
-            else
-            {
-                continue;
-            }
-        }
-        else // Time's up
-        {
-            gTestSucceeded = false;
-            Done = true;
+            break;
         }
     }
-
-#endif // INET_CONFIG_ENABLE_DNS_RESOLVER
-
-exit:
-
-    NL_TEST_ASSERT(inSuite, err == INET_NO_ERROR);
-    NL_TEST_ASSERT(inSuite, gTestSucceeded == true);
 }
 
-static const nlTest DNSTests[] = {
-    NL_TEST_DEF("TestDNSResolution", TestDNSResolution),
-    NL_TEST_DEF("TestDNSCancel", TestDNSCancel),
-    NL_TEST_DEF("TestDNSInvalid", TestDNSInvalid),
-    NL_TEST_SENTINEL()
+static void HandleSIGUSR1(int sig)
+{
+    Inet.Shutdown();
+    exit(0);
+}
+
+static HelpOptions gHelpOptions(
+    TOOL_NAME,
+    "Usage: " TOOL_NAME " [<options...>]\n",
+    WEAVE_VERSION_STRING "\n" WEAVE_TOOL_COPYRIGHT
+);
+
+static OptionSet *gToolOptionSets[] =
+{
+    &gNetworkOptions,
+    &gWeaveNodeOptions,
+    &gFaultInjectionOptions,
+    &gHelpOptions,
+    NULL
 };
 
 int main(int argc, char *argv[])
 {
-#if WEAVE_SYSTEM_CONFIG_USE_SOCKETS
-    SetSignalHandler(HandleSIGUSR1);
+    const nlTest DNSTests[] = {
+        NL_TEST_DEF("TestDNSResolution:Basic", TestDNSResolution_Basic),
+        NL_TEST_DEF("TestDNSResolution:AddressTypeOption", TestDNSResolution_AddressTypeOption),
+        NL_TEST_DEF("TestDNSResolution:RestrictedResults", TestDNSResolution_RestrictedResults),
+        NL_TEST_DEF("TestDNSResolution:TextForm", TestDNSResolution_TextForm),
+        NL_TEST_DEF("TestDNSResolution:NoRecord", TestDNSResolution_NoRecord),
+        NL_TEST_DEF("TestDNSResolution:NoHostRecord", TestDNSResolution_NoHostRecord),
+        NL_TEST_DEF("TestDNSResolution:Cancel", TestDNSResolution_Cancel),
+        NL_TEST_DEF("TestDNSResolution:Simultaneous", TestDNSResolution_Simultaneous),
+        NL_TEST_SENTINEL()
+    };
 
     nlTestSuite DNSTestSuite = {
         "DNS",
@@ -223,7 +680,20 @@ int main(int argc, char *argv[])
 
     nl_test_set_output_style(OUTPUT_CSV);
 
+    InitToolCommon();
+
+    SetupFaultInjectionContext(argc, argv);
+
+    SetSignalHandler(HandleSIGUSR1);
+
+    if (!ParseArgsFromEnvVar(TOOL_NAME, TOOL_OPTIONS_ENV_VAR_NAME, gToolOptionSets, NULL, true) ||
+        !ParseArgs(TOOL_NAME, argc, argv, gToolOptionSets, NULL))
+    {
+        exit(EXIT_FAILURE);
+    }
+
     InitSystemLayer();
+
     InitNetwork();
 
     // Run all tests in Suite
@@ -234,53 +704,13 @@ int main(int argc, char *argv[])
     ShutdownSystemLayer();
 
     return nlTestRunnerStats(&DNSTestSuite);
-#else // !WEAVE_SYSTEM_CONFIG_USE_SOCKETS
+}
+
+#else // !INET_CONFIG_ENABLE_DNS_RESOLVER
+
+int main(int argc, char *argv[])
+{
     return 0;
-#endif // !WEAVE_SYSTEM_CONFIG_USE_SOCKETS
 }
 
-void HandleSIGUSR1(int sig)
-{
-    Inet.Shutdown();
-    exit(0);
-}
-
-#if INET_CONFIG_ENABLE_DNS_RESOLVER
-static void HandleDNSCancel(void *appState, INET_ERROR err, uint8_t addrCount, IPAddress *addrArray)
-{
-    printf("DNS Cancel failed: Callback should not have been called\n");
-    gTestSucceeded = false;
-}
-
-static void HandleDNSInvalid(void *appState, INET_ERROR err, uint8_t addrCount, IPAddress *addrArray)
-{
-    if (err != INET_NO_ERROR)
-      gTestSucceeded = true;
-}
-
-void HandleDNSResolveComplete(void *appState, INET_ERROR err, uint8_t addrCount, IPAddress *addrArray)
-{
-
-    FAIL_ERROR(err, "DNS name resolution failed");
-    char *hostName = static_cast<char *>(appState);
-
-    gNumOfResolutionDone++;
-
-    if (addrCount > 0)
-    {
-        for (int i = 0; i < addrCount; i++)
-        {
-            char destAddrStr[64];
-            addrArray[i].ToString(destAddrStr, sizeof(destAddrStr));
-            printf("DNS name resolution complete for %s: %s\n", hostName, destAddrStr);
-        }
-    }
-    else
-        printf("DNS name resolution return no addresses\n");
-
-    if (gNumOfResolutionDone == gMaxNumResolve)
-    {
-       gTestSucceeded = true;
-    }
-}
-#endif // INET_CONFIG_ENABLE_DNS_RESOLVER
+#endif // !INET_CONFIG_ENABLE_DNS_RESOLVER

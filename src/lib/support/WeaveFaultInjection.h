@@ -83,8 +83,12 @@ typedef enum
     kFault_WDM_SendUpdateBadVersion,            /**< Alter the version of a WDM update data element being transmitted */
     kFault_WDM_DelayUpdateResponse,             /**< Drop the message received after sending an UpdateRequest, which usually is the StatusReport;
                                                      this causes the NotificationRequest to be processed first */
-    kFault_WDM_UpdateRequestSendError,          /**< Inject a WRM SendError for the UpdateRequest */
+    kFault_WDM_UpdateRequestTimeout,            /**< Inject an exchange timeout for the UpdateRequest */
+    kFault_WDM_UpdateRequestSendErrorInline,    /**< Inject an inline Inet Send error for the UpdateRequest */
+    kFault_WDM_UpdateRequestSendErrorAsync,     /**< Inject a WRM SendError for the UpdateRequest */
     kFault_WDM_UpdateRequestBadProfile,         /**< Inject an invalid Profile ID in the UpdateRequest */
+    kFault_WDM_UpdateResponseBusy,              /**< Inject a status code busy in the StatusList */
+    kFault_WDM_PathStoreFull,                   /**< Inject a WDM_PATH_STORE_FULL error */
     kFault_WDM_TreatNotifyAsCancel,             /**< Process a Notify request as a CancelSubscription request */
     kFault_CASEKeyConfirm,                      /**< Trigger a WEAVE_ERROR_KEY_CONFIRMATION_FAILED error in WeaveCASEEngine */
     kFault_SecMgrBusy,                          /**< Trigger a WEAVE_ERROR_SECURITY_MANAGER_BUSY when starting an authentication session */
@@ -92,6 +96,9 @@ typedef enum
     kFault_TunnelQueueFull,                     /**< Trigger a WEAVE_ERROR_TUNNEL_SERVICE_QUEUE_FULL when enqueueing a packet in the Tunnel queue */
     kFault_TunnelPacketDropByPolicy,            /**< Trigger an explicit drop of the packet as if done by an application policy */
 #endif // WEAVE_CONFIG_ENABLE_TUNNELING
+#if CONFIG_NETWORK_LAYER_BLE
+    kFault_WOBLESend,                           /**< Inject a GATT error when sending the first fragment of a Weave message over BLE */
+#endif // CONFIG_NETWORK_LAYER_BLE
     kFault_NumItems,
 } Id;
 

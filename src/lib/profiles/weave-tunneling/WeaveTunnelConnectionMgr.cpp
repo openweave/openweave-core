@@ -506,6 +506,7 @@ WEAVE_ERROR WeaveTunnelConnectionMgr::StartServiceTunnelConn(uint64_t destNodeId
 
     mServiceCon->OnConnectionComplete = HandleServiceConnectionComplete;
 
+
     // Set app state to WeaveTunnelConnectionMgr
 
     mServiceCon->AppState = this;
@@ -676,6 +677,23 @@ void WeaveTunnelConnectionMgr::ServiceMgrStatusHandler(void* appState, WEAVE_ERR
     tConnMgr->AttemptReconnect(reconnParam);
 }
 
+#if WEAVE_CONFIG_TUNNEL_ENABLE_TCP_IDLE_CALLBACK
+/**
+ * Handler invoked when outstanding sent data on the Service TCP connection is acknowledged.
+ *
+ * @param[in] con                          A pointer to the WeaveConnection object.
+ *
+ */
+void WeaveTunnelConnectionMgr::HandleTCPSendIdleChanged(TCPEndPoint *tcpEndPoint, bool isIdle)
+{
+    WeaveConnection *con = static_cast<WeaveConnection *>(tcpEndPoint->AppState);
+
+    WeaveTunnelConnectionMgr *tConnMgr = static_cast<WeaveTunnelConnectionMgr *>(con->AppState);
+
+    tConnMgr->mTunAgent->WeaveTunnelNotifyTCPSendIdleStateChange(tConnMgr->mTunType, isIdle);
+}
+#endif // WEAVE_CONFIG_TUNNEL_ENABLE_TCP_IDLE_CALLBACK
+
 /**
  * Handler invoked when Service TCP connection is completed. The device proceeds to initiate Tunnel control
  * commands to the Service from this function.
@@ -707,6 +725,10 @@ void WeaveTunnelConnectionMgr::HandleServiceConnectionComplete(WeaveConnection *
 
     tConnMgr->mServiceCon->OnConnectionClosed = HandleServiceConnectionClosed;
     tConnMgr->mServiceCon->OnTunneledMessageReceived = RecvdFromService;
+
+#if WEAVE_CONFIG_TUNNEL_ENABLE_TCP_IDLE_CALLBACK
+    tConnMgr->mServiceCon->GetTCPEndPoint()->OnTCPSendIdleChanged = HandleTCPSendIdleChanged;
+#endif // WEAVE_CONFIG_TUNNEL_ENABLE_TCP_IDLE_CALLBACK
 
     // Set the appropriate route priority based on the tunnel type
 

@@ -50,7 +50,8 @@ weave_service = CBUUID.UUIDWithString_(u'0000FEAF-0000-1000-8000-00805F9B34FB')
 weave_service_short = CBUUID.UUIDWithString_(u'FEAF')
 weave_tx = CBUUID.UUIDWithString_(u'18EE2EF5-263D-4559-959F-4F9C429F9D11')
 weave_rx = CBUUID.UUIDWithString_(u'18EE2EF5-263D-4559-959F-4F9C429F9D12')
-
+chromecast_setup_service = CBUUID.UUIDWithString_(u'0000FEA0-0000-1000-8000-00805F9B34FB')
+chromecast_setup_service_short = CBUUID.UUIDWithString_(u'FEA0')
 
 def _VoidPtrToCBUUID(ptr, len):
     try:
@@ -242,6 +243,7 @@ class CoreBluetoothManager(WeaveBleBase):
         # make this class the delegate for peripheral events.
         self.peripheral.setDelegate_(self)
         # invoke service discovery on the periph.
+        self.logger.info("Discovering services")
         self.peripheral.discoverServices_([weave_service_short, weave_service])
 
     def centralManager_didFailToConnectPeripheral_error_(self, manager, peripheral, error):
@@ -262,18 +264,22 @@ class CoreBluetoothManager(WeaveBleBase):
 
     def peripheral_didDiscoverServices_(self, peripheral, services):
         """Called by CoreBluetooth via runloop when peripheral services are discovered."""
-        # in debugging, we found connect being called twice. This
-        # would trigger discovering the services twice, and
-        # consequently, discovering characteristics twice.  We use the
-        # self.service as a flag to indicate whether the
-        # characteristics need to be invalidated immediately.
-        if (self.service == self.peripheral.services()[0]):
-            self.logger.debug("didDiscoverServices already happened")
+        if len(self.peripheral.services()) == 0:
+            self.logger.error("Weave service not found")
+            self.connect_state = False
         else:
-            self.service = self.peripheral.services()[0]
-            self.characteristics[self.service.UUID()] = []
-        # NOTE: currently limiting discovery to only the pair of Weave characteristics.
-        self.peripheral.discoverCharacteristics_forService_([weave_rx, weave_tx], self.service)
+            # in debugging, we found connect being called twice. This
+            # would trigger discovering the services twice, and
+            # consequently, discovering characteristics twice.  We use the
+            # self.service as a flag to indicate whether the
+            # characteristics need to be invalidated immediately.
+            if (self.service == self.peripheral.services()[0]):
+                self.logger.debug("didDiscoverServices already happened")
+            else:
+                self.service = self.peripheral.services()[0]
+                self.characteristics[self.service.UUID()] = []
+            # NOTE: currently limiting discovery to only the pair of Weave characteristics.
+            self.peripheral.discoverCharacteristics_forService_([weave_rx, weave_tx], self.service)
 
     def peripheral_didDiscoverCharacteristicsForService_error_(self, peripheral, service, error):
         """Called by CoreBluetooth via runloop when a characteristic for a service is discovered."""
@@ -378,7 +384,7 @@ class CoreBluetoothManager(WeaveBleBase):
         del self.peripheral_list[:]
         self.peripheral_list = []
         # Filter on the service UUID Array or None to accept all scan results.
-        self.manager.scanForPeripheralsWithServices_options_([weave_service_short, weave_service], None)
+        self.manager.scanForPeripheralsWithServices_options_([weave_service_short, weave_service, chromecast_setup_service_short, chromecast_setup_service], None)
         #self.manager.scanForPeripheralsWithServices_options_(None, None)
 
         self.runLoopUntil(("scan", time.time(), args[0], args[2]))
@@ -393,7 +399,7 @@ class CoreBluetoothManager(WeaveBleBase):
         del self.peripheral_list[:]
         self.peripheral_list = []
         # Filter on the service UUID Array or None to accept all scan results.
-        self.manager.scanForPeripheralsWithServices_options_([weave_service_short, weave_service], None)
+        self.manager.scanForPeripheralsWithServices_options_([weave_service_short, weave_service, chromecast_setup_service_short, chromecast_setup_service], None)
 
     def bgScanStop(self):
         """ API to stop background BLE scanning."""

@@ -56,7 +56,7 @@ class WeaveDeviceManagerConsole(object):
     def __del__(self):
         self.close()
 
-    def chat(self, cmd, timeout=chatTimeout, interrupt_on_timeout=False, force=False, expect=None):
+    def chat(self, cmd, timeout=chatTimeout, interrupt_on_timeout=False, force=True, expect=None):
         self.app.send(cmd)
         if not force:
             self.app.expect_exact(cmd, timeout=2)
@@ -94,7 +94,7 @@ class WeaveBleCentral(object):
         self.devMgr = WeaveDeviceManagerConsole()
         output = self.devMgr.chat("ble-adapter-print")
 
-    def woble(self):
+    def startBleConnection(self):
         # TODO: In WeaveBluezMgr.py, sometimes bluez would stuck in find_characteristic. Need fix later in bluez.
         attempts = 0
         while attempts < 3:
@@ -107,14 +107,61 @@ class WeaveBleCentral(object):
                 if attempts == 3:
                     raise
 
-        self.devMgr.chat("connect -b -p TEST", expect="Connected to device")
+    def testWoblePase(self):
+        self.startBleConnection()
+        self.devMgr.chat("connect -b -p TEST", expect="Secure session established")
         self.devMgr.chat("arm-fail-safe reset", expect="Arm fail-safe complete")
         self.devMgr.chat("ping", expect="Ping complete")
         self.devMgr.chat("identify", expect="HomeAlarmLinkCapable LinePowered")
         self.devMgr.chat("disarm-fail-safe", expect="Disarm fail-safe complete")
+        self.devMgr.chat("close", expect="Closing endpoints")
+        self.devMgr.chat("ble-disconnect", expect="disconnected")
+        time.sleep(5)
+
+    def testWoblePaseFailure(self):
+        self.startBleConnection()
+        self.devMgr.chat("connect -b -p TEST1", expect="Secure session failed")
+        self.devMgr.chat("close", expect="Closing endpoints")
+        self.devMgr.chat("ble-disconnect", expect="disconnected")
+        time.sleep(5)
+
+    def testWobleNoEncrption(self):
+        self.startBleConnection()
+        self.devMgr.chat("connect -b", expect="Connected to device")
+        self.devMgr.chat("ping", expect="Ping complete")
         self.devMgr.chat("close", expect="BLE connection")
         self.devMgr.chat("ble-disconnect", expect="disconnected")
+        time.sleep(5)
 
+    def testWobleNoEncrptionWithAuthFailure(self):
+        self.startBleConnection()
+        self.devMgr.chat("connect -b", expect="Connected to device")
+        self.devMgr.chat("arm-fail-safe reset", expect="Authentication required")
+        self.devMgr.chat("close", expect="BLE connection")
+        self.devMgr.chat("ble-disconnect", expect="disconnected")
+        time.sleep(5)
+
+    def testWobleConnectionEstablishError(self):
+        self.startBleConnection()
+        self.devMgr.chat("ble-disconnect", expect="disconnected")
+        self.devMgr.chat("connect -b", expect="Ble Error 6007: GATT write characteristic operation failed")
+        self.devMgr.chat("close", expect="Closing endpoints")
+        time.sleep(5)
+
+    def testWobleConnectionError(self):
+        self.startBleConnection()
+        self.devMgr.chat("connect -b", expect="Connected to device")
+        self.devMgr.chat("ble-disconnect", expect="disconnected")
+        self.devMgr.chat("ping", expect="WeaveDie WeaveDie WeaveDie")
+        time.sleep(5)
+
+    def startwobleTest(self):
+        self.testWoblePase()
+        self.testWoblePaseFailure()
+        self.testWobleNoEncrption()
+        self.testWobleNoEncrptionWithAuthFailure()
+        self.testWobleConnectionEstablishError()
+        self.testWobleConnectionError()
 
 if __name__ == "__main__":
     total = len(sys.argv)
@@ -124,6 +171,6 @@ if __name__ == "__main__":
     print ("src argument: %s" % str(sys.argv[1]))
     print ("dst argument: %s" % str(sys.argv[2]))
     bleCentral = WeaveBleCentral(str(sys.argv[1]), str(sys.argv[2]))
-    bleCentral.woble()
+    bleCentral.startwobleTest()
     time.sleep(10)
     print "WoBLE central is good to go"

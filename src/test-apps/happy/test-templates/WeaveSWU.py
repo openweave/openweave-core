@@ -27,6 +27,7 @@ import sys
 
 from happy.ReturnMsg import ReturnMsg
 from happy.Utils import *
+from happy.utils.IP import IP
 from happy.HappyNode import HappyNode
 from happy.HappyNetwork import HappyNetwork
 from WeaveTest import WeaveTest
@@ -114,11 +115,11 @@ class WeaveSWU(HappyNode, HappyNetwork, WeaveTest):
             self.server_node_id = self.server
 
         # Check if client is provided in a form of IP address
-        if self.isIpAddress(self.client):
+        if IP.isIpAddress(self.client):
             self.client_node_id = self.getNodeIdFromAddress(self.client)
 
         # Check if server is provided in a form of IP address
-        if self.isIpAddress(self.server):
+        if IP.isIpAddress(self.server):
             self.server_node_id = self.getNodeIdFromAddress(self.server)
 
         if self.client_node_id == None:
@@ -212,7 +213,7 @@ class WeaveSWU(HappyNode, HappyNetwork, WeaveTest):
             cmd += " --listen"
 
         if self.tap:
-            cmd += " --interface " + self.tap
+            cmd += " --tap-device " + self.tap
 
         self.start_weave_process(self.server_node_id, cmd, self.server_process_tag, sync_on_output = self.ready_to_service_events_str)
 
@@ -230,7 +231,7 @@ class WeaveSWU(HappyNode, HappyNetwork, WeaveTest):
             cmd += " --dest-addr " + self.server_ip + " " + self.server_weave_id
 
         if self.tap:
-            cmd += " --interface " + self.tap
+            cmd += " --tap-device " + self.tap
 
         self.start_weave_process(self.client_node_id, cmd, self.client_process_tag)
 

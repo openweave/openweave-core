@@ -30,6 +30,7 @@ import sys
 
 from happy.ReturnMsg import ReturnMsg
 from happy.Utils import *
+from happy.utils.IP import IP
 from happy.HappyNode import HappyNode
 from happy.HappyNetwork import HappyNetwork
 
@@ -115,7 +116,7 @@ class WeavePairing(HappyNode, HappyNetwork, WeaveTest):
             self.mobile_node_id = self.mobile
 
         # Check if mobile is provided in a form of IP address
-        if self.isIpAddress(self.mobile):
+        if IP.isIpAddress(self.mobile):
             self.mobile_node_id = self.getNodeIdFromAddress(self.mobile)
 
         if self.mobile_node_id == None:
@@ -129,10 +130,10 @@ class WeavePairing(HappyNode, HappyNetwork, WeaveTest):
             self.server_node_id = self.server
             self.server_ip = self.getNodeWeaveIPAddress(self.server_node_id)
             self.server_weave_id = self.getWeaveNodeID(self.server_node_id)
-        elif self.isIpAddress(self.server):
+        elif IP.isIpAddress(self.server):
             self.server_ip = self.server
             self.server_weave_id = self.IPv6toWeaveId(self.server)
-        elif self.isDomainName(self.server) or self.server == "service":
+        elif IP.isDomainName(self.server) or self.server == "service":
             self.server_ip = self.getServiceWeaveIPAddress("ServiceProvisioning")
             self.server_weave_id = self.IPv6toWeaveId(self.server_ip)
 
@@ -145,7 +146,7 @@ class WeavePairing(HappyNode, HappyNetwork, WeaveTest):
             if self._nodeExists(device):
                 device_node_id = device
             # Check if device is provided in a form of IP address
-            if self.isIpAddress(device):
+            if IP.isIpAddress(device):
                 device_node_id = self.getNodeIdFromAddress(device)
 
             if device_node_id == None:
@@ -250,7 +251,7 @@ class WeavePairing(HappyNode, HappyNetwork, WeaveTest):
 
         cmd += " --node-addr " + self.server_ip
         if self.tap:
-            cmd += " --interface " + self.tap
+            cmd += " --tap-device " + self.tap
 
         self.start_weave_process(self.server_node_id, cmd, self.server_process_tag, sync_on_output = self.ready_to_service_events_str)
 
@@ -279,7 +280,7 @@ class WeavePairing(HappyNode, HappyNetwork, WeaveTest):
                 raise ValueError('register_cmd is empty')
 
         if self.tap:
-            cmd += " --interface " + self.tap
+            cmd += " --tap-device " + self.tap
 
         self.start_weave_process(self.mobile_node_id, cmd, mobile_process_tag, env=os.environ)
 
@@ -303,7 +304,7 @@ class WeavePairing(HappyNode, HappyNetwork, WeaveTest):
                 cmd += " --pairing-endpoint-id " + self.server_weave_id
 
         if self.tap:
-            cmd += " --interface " + self.tap
+            cmd += " --tap-device " + self.tap
 
         self.start_weave_process(device_info['device_node_id'], cmd, device_info['device_process_tag'], sync_on_output = self.ready_to_service_events_str)
 

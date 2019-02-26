@@ -1,4 +1,10 @@
-[![OpenWeave][ow-logo]][ow-repo]
+[![OpenWeave][ow-logo]][ow-core-repo]
+<br/>
+<br/>
+[![Build Status][ow-core-travis-svg]][ow-core-travis]
+[![Coverage Status][ow-core-codecov-svg]][ow-core-codecov]
+
+---
 
 # What is OpenWeave?
 
@@ -19,9 +25,13 @@ source release was our implementation of Thread, OpenThread. OpenWeave can run
 on OpenThread, and is another step in the direction of making our core
 technologies more widely available.
 
-[ow-repo]: https://github.com/openweave/openweave-core
+[ow-core-repo]: https://github.com/openweave/openweave-core
 [ow-logo]: doc/images/ow-logo.png
 [ow-logo-weave]: doc/images/ow-logo-weave.png
+[ow-core-travis]: https://travis-ci.org/openweave/openweave-core
+[ow-core-travis-svg]: https://travis-ci.org/openweave/openweave-core.svg?branch=master
+[ow-core-codecov]: https://codecov.io/gh/openweave/openweave-core
+[ow-core-codecov-svg]: https://codecov.io/gh/openweave/openweave-core/branch/master/graph/badge.svg
 
 # OpenWeave Features
 

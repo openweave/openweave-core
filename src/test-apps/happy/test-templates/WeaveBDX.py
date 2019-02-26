@@ -29,6 +29,7 @@ import time
 
 from happy.ReturnMsg import ReturnMsg
 from happy.Utils import *
+from happy.utils.IP import IP
 from happy.HappyNode import HappyNode
 from happy.HappyNetwork import HappyNetwork
 from WeaveTest import WeaveTest
@@ -193,11 +194,11 @@ class WeaveBDX(HappyNode, HappyNetwork, WeaveTest):
             self.server_node_id = self.server
 
         # Check if client is provided in a form of IP address
-        if self.isIpAddress(self.client):
+        if IP.isIpAddress(self.client):
             self.client_node_id = self.getNodeIdFromAddress(self.client)
 
         # Check if server is provided in a form of IP address
-        if self.isIpAddress(self.server):
+        if IP.isIpAddress(self.server):
             self.server_node_id = self.getNodeIdFromAddress(self.server)
         elif self.server == "service":
             if self.download is not None:
@@ -323,7 +324,7 @@ class WeaveBDX(HappyNode, HappyNetwork, WeaveTest):
                 cmd += " -R " + self.receive
 
         if self.tap:
-            cmd += " --interface " + self.tap
+            cmd += " --tap-device " + self.tap
 
         if self.server_faults != None:
             cmd += " --faults " + self.server_faults
@@ -390,7 +391,7 @@ class WeaveBDX(HappyNode, HappyNetwork, WeaveTest):
                 cmd += " -l " + self.length
 
         if self.tap:
-            cmd += " --interface " + self.tap
+            cmd += " --tap-device " + self.tap
 
         if self.client_faults != None:
             cmd += " --faults " + self.client_faults

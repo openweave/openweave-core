@@ -30,6 +30,7 @@ import subprocess
 import sys
 from happy.ReturnMsg import ReturnMsg
 from happy.Utils import *
+from happy.utils.IP import IP
 from happy.HappyNode import HappyNode
 from happy.HappyNetwork import HappyNetwork
 from happy.HappyProcess import HappyProcess
@@ -85,7 +86,7 @@ class WeaveBle(WeaveTest, HappyNode, HappyNetwork, HappyProcess):
                 client_node_id = client
 
             # Check if client is provided in a form of IP address
-            if self.isIpAddress(client):
+            if IP.isIpAddress(client):
                 client_node_id = self.getNodeIdFromAddress(client)
 
             if client_node_id == None:
@@ -125,11 +126,11 @@ class WeaveBle(WeaveTest, HappyNode, HappyNetwork, HappyProcess):
             self.server_node_id = self.server
 
         # Check if server is provided in a form of IP address
-        if self.isIpAddress(self.server):
+        if IP.isIpAddress(self.server):
             self.no_service = True
             self.server_ip = self.server
             self.server_weave_id = self.IPv6toWeaveId(self.server)
-        elif self.isDomainName(self.server) or self.server == "service":
+        elif IP.isDomainName(self.server) or self.server == "service":
             self.no_service = True
             self.server_ip = self.getServiceWeaveIPAddress(self.endpoint)
             self.server_weave_id = self.IPv6toWeaveId(self.server_ip)
@@ -172,6 +173,7 @@ class WeaveBle(WeaveTest, HappyNode, HappyNetwork, HappyProcess):
             return
 
         cmd += " --enable-bluez-peripheral --peripheral-name N0001 --peripheral-address " + self.interfaces[0]["bd_address"]
+        cmd += " --print-fault-counters"
         self.start_weave_process(node_id=self.server_node_id, cmd=cmd, tag=self.server_process_tag, rootMode=True)
 
     def resetBluez(self):

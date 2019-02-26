@@ -1,5 +1,6 @@
 /*
  *
+ *    Copyright (c) 2018 Google LLC.
  *    Copyright (c) 2017-2018 Nest Labs, Inc.
  *    All rights reserved.
  *
@@ -36,14 +37,13 @@
 #include <unistd.h>
 
 #include <nlbyteorder.h>
-#include <nltest.h>
+#include <nlunit-test.h>
 
 // Note that the choice of namespace alias must be made up front for each and every compile unit
 // This is because many include paths could set the default alias to unintended target.
 #include <Weave/Profiles/bulk-data-transfer/Development/BDXManagedNamespace.hpp>
 #include <Weave/Profiles/data-management/Current/WdmManagedNamespace.h>
 
-#include "MockExternalEvents.h"
 #include "ToolCommon.h"
 #include "TestEventLoggingSchemaExamples.h"
 #include <InetLayer/Inet.h>
@@ -70,6 +70,7 @@
 #include "schema/nest/test/trait/TestETrait.h"
 #include "schema/nest/test/trait/TestCommon.h"
 
+#include "MockExternalEvents.h"
 #include "MockPlatformClocks.h"
 
 using namespace nl::Weave::TLV;
@@ -114,18 +115,18 @@ namespace Weave {
 namespace Profiles {
 namespace WeaveMakeManagedNamespaceIdentifier(DataManagement, kWeaveManagedNamespaceDesignation_Current) {
 namespace Platform {
-    // for unit tests, the dummy critical section is sufficient.
-    void CriticalSectionEnter()
-    {
-        return;
-    }
+// for unit tests, the dummy critical section is sufficient.
+void CriticalSectionEnter()
+{
+    return;
+}
 
-    void CriticalSectionExit()
-    {
-        return;
-    }
-} // Platform
-} // WeaveMakeManagedNamespaceIdentifier(DataManagement, kWeaveManagedNamespaceDesignation_Current)
+void CriticalSectionExit()
+{
+    return;
+}
+} // namespace Platform
+} // namespace WeaveMakeManagedNamespaceIdentifier(DataManagement, kWeaveManagedNamespaceDesignation_Current)
 
 namespace WeaveMakeManagedNamespaceIdentifier(DataManagement, kWeaveManagedNamespaceDesignation_Current) {
 
@@ -138,20 +139,21 @@ public:
     // our test cases.
     using SubscriptionHandler::CheckEventUpToDate;
     using SubscriptionHandler::FindNextImportanceForTransfer;
-    using SubscriptionHandler::SetEventLogEndpoint;
     using SubscriptionHandler::ParsePathVersionEventLists;
+    using SubscriptionHandler::SetEventLogEndpoint;
 
     bool VerifyTraversingImportance(void);
-    nl::Weave::Profiles::DataManagement::event_id_t & GetVendedEvent(nl::Weave::Profiles::DataManagement::ImportanceType inImportance);
+    nl::Weave::Profiles::DataManagement::event_id_t &
+    GetVendedEvent(nl::Weave::Profiles::DataManagement::ImportanceType inImportance);
 
     void SetActive(void) { mCurrentState = kState_Subscribing_Evaluating; }
     void SetAborted(void) { mCurrentState = kState_Aborted; }
     void SetEstablishedIdle(void) { mCurrentState = kState_SubscriptionEstablished_Idle; }
-    void SetExchangeContext(nl::Weave::ExchangeContext *aEC) { mEC = aEC; }
+    void SetExchangeContext(nl::Weave::ExchangeContext * aEC) { mEC = aEC; }
+
 private:
     /* important: this class must not add any members or declare virtual functions */
 };
-
 
 TestSubscriptionHandler::TestSubscriptionHandler(void)
 {
@@ -163,7 +165,8 @@ bool TestSubscriptionHandler::VerifyTraversingImportance(void)
     return FindNextImportanceForTransfer() == nl::Weave::Profiles::DataManagement::kImportanceType_Invalid;
 }
 
-nl::Weave::Profiles::DataManagement::event_id_t & TestSubscriptionHandler::GetVendedEvent(nl::Weave::Profiles::DataManagement::ImportanceType inImportance)
+nl::Weave::Profiles::DataManagement::event_id_t &
+TestSubscriptionHandler::GetVendedEvent(nl::Weave::Profiles::DataManagement::ImportanceType inImportance)
 {
     return mSelfVendedEvents[inImportance - nl::Weave::Profiles::DataManagement::kImportanceType_First];
 }
@@ -175,10 +178,10 @@ SubscriptionEngine * SubscriptionEngine::GetInstance()
     return &gWdmSubscriptionEngine;
 }
 
-} // WeaveMakeManagedNamespaceIdentifier(DataManagement, kWeaveManagedNamespaceDesignation_Current)
-} // Profiles
-} // Weave
-} // nl
+} // namespace WeaveMakeManagedNamespaceIdentifier(DataManagement, kWeaveManagedNamespaceDesignation_Current)
+} // namespace Profiles
+} // namespace Weave
+} // namespace nl
 
 #define TOOL_NAME "TestDataLogging"
 
@@ -190,99 +193,83 @@ SubscriptionEngine * SubscriptionEngine::GetInstance()
 
 struct TestLoggingContext;
 
-static void PrepareBinding(TestLoggingContext *context);
-static WEAVE_ERROR InitSubscriptionClient(TestLoggingContext *context);
-static void HandleBindingEvent(void *const appState, const Binding::EventType event, const Binding::InEventParam &inParam, Binding::OutEventParam &outParam);
-static void StartClientConnection(System::Layer *systemLayer, void *appState, System::Error err);
-static void HandleConnectionComplete(WeaveConnection *con, WEAVE_ERROR conErr);
-static void HandleConnectionClosed(WeaveConnection *con, WEAVE_ERROR conErr);
-static WEAVE_ERROR FetchEventsHelper(TLVReader &aReader, event_id_t aEventId, uint8_t *aBackingStore, size_t aLen, ImportanceType aImportance = nl::Weave::Profiles::DataManagement::Production);
+static void PrepareBinding(TestLoggingContext * context);
+static WEAVE_ERROR InitSubscriptionClient(TestLoggingContext * context);
+static void HandleBindingEvent(void * const appState, const Binding::EventType event, const Binding::InEventParam & inParam,
+                               Binding::OutEventParam & outParam);
+static void StartClientConnection(System::Layer * systemLayer, void * appState, System::Error err);
+static void HandleConnectionComplete(WeaveConnection * con, WEAVE_ERROR conErr);
+static void HandleConnectionClosed(WeaveConnection * con, WEAVE_ERROR conErr);
+static WEAVE_ERROR FetchEventsHelper(TLVReader & aReader, event_id_t aEventId, uint8_t * aBackingStore, size_t aLen,
+                                     ImportanceType aImportance = nl::Weave::Profiles::DataManagement::Production);
 
-static bool HandleOption(const char *progName, OptionSet *optSet, int id, const char *name, const char *arg);
+static bool HandleOption(const char * progName, OptionSet * optSet, int id, const char * name, const char * arg);
 
 const uint64_t kTestNodeId = 0x18B43000002DCF71ULL;
 
 // Globals used when the test is used in conjunction with BDX
 
-WeaveConnection *Con = NULL;
-bool WaitingForBDXResp = false;
-bool Listening = false;
-bool Upload = true; // download by default
-bool Debug = false;
-uint32_t ConnectInterval = 200;  //ms
-uint32_t ConnectTry = 0;
-uint32_t ConnectMaxTry = 3;
+WeaveConnection * Con     = NULL;
+bool WaitingForBDXResp    = false;
+bool Listening            = false;
+bool Upload               = true; // download by default
+bool Debug                = false;
+uint32_t ConnectInterval  = 200; // ms
+uint32_t ConnectTry       = 0;
+uint32_t ConnectMaxTry    = 3;
 bool ClientConEstablished = false;
-bool DestHostNameResolved = false;  // only used for UDP
+bool DestHostNameResolved = false; // only used for UDP
 
-static OptionDef gToolOptionDefs[] =
+static OptionDef gToolOptionDefs[] = { { "start-event-id", kArgumentRequired, 's' },
+                                       { "block-size", kArgumentRequired, 'b' },
+                                       { "dest-addr", kArgumentRequired, 'D' },
+                                       { "parent-node-id", kArgumentRequired, 'p' },
+                                       { "debug", kNoArgument, 'd' },
+                                       { "tcp", kNoArgument, 't' },
+                                       { "udp", kNoArgument, 'u' },
+                                       { NULL } };
+
+static const char * const gToolOptionHelp = "  -p <num>, --parent-node-id <num> \n"
+                                            "       Parent node id; the ID of the node that will receive the event\n"
+                                            "       logs\n"
+                                            "\n"
+                                            "  -D <ip-addr>, --dest-addr <ip-addr>\n"
+                                            "       The IP address or hostname of the parent (the node that will\n"
+                                            "       receive thise event log)\n"
+                                            "  -t, --tcp \n"
+                                            "       Use TCP for BDX session\n"
+                                            "\n"
+                                            "  -u, --udp \n"
+                                            "       Use UDP for BDX session\n"
+                                            "\n"
+                                            "  -s <num>, --start-event-id <num>\n"
+                                            "       Begin the offload of each event sequence at <num> event\n"
+                                            "\n"
+                                            "  -b <num>, --block-size <num>\n"
+                                            "       Block size to use for BDX upload.\n"
+                                            "\n"
+                                            "  -d, --debug \n"
+                                            "       Enable debug messages.\n"
+                                            "\n";
+
+static OptionSet gToolOptions = { HandleOption, gToolOptionDefs, "GENERAL OPTIONS", gToolOptionHelp };
+
+static HelpOptions gHelpOptions(TOOL_NAME,
+                                "Usage: " TOOL_NAME " [<options...>] <dest-node-id>[@<dest-host>[:<dest-port>][%<interface>]]\n"
+                                "       " TOOL_NAME " [<options...>] --listen\n",
+                                WEAVE_VERSION_STRING "\n" WEAVE_TOOL_COPYRIGHT,
+                                "Test event logging.  Without any options, the program invokes a\n"
+                                "suite of local log tests.  The options enable testing of a log\n"
+                                "upload over the BDX path.\n");
+
+static OptionSet * gToolOptionSets[] = { &gToolOptions,           &gNetworkOptions, &gWeaveNodeOptions,
+                                         &gFaultInjectionOptions, &gHelpOptions,    NULL };
+
+struct BDXContext
 {
-    { "start-event-id", kArgumentRequired,  's' },
-    { "block-size",     kArgumentRequired,  'b' },
-    { "dest-addr",      kArgumentRequired,  'D' },
-    { "parent-node-id", kArgumentRequired,  'p' },
-    { "debug",          kNoArgument,        'd' },
-    { "tcp",            kNoArgument,        't' },
-    { "udp",            kNoArgument,        'u' },
-    { NULL }
-};
-
-static const char *const gToolOptionHelp =
-    "  -p <num>, --parent-node-id <num> \n"
-    "       Parent node id; the ID of the node that will receive the event\n"
-    "       logs\n"
-    "\n"
-    "  -D <ip-addr>, --dest-addr <ip-addr>\n"
-    "       The IP address or hostname of the parent (the node that will\n"
-    "       receive thise event log)\n"
-    "  -t, --tcp \n"
-    "       Use TCP for BDX session\n"
-    "\n"
-    "  -u, --udp \n"
-    "       Use UDP for BDX session\n"
-    "\n"
-    "  -s <num>, --start-event-id <num>\n"
-    "       Begin the offload of each event sequence at <num> event\n"
-    "\n"
-    "  -b <num>, --block-size <num>\n"
-    "       Block size to use for BDX upload.\n"
-    "\n"
-    "  -d, --debug \n"
-    "       Enable debug messages.\n"
-    "\n";
-
-static OptionSet gToolOptions =
-{
-    HandleOption,
-    gToolOptionDefs,
-    "GENERAL OPTIONS",
-    gToolOptionHelp
-};
-
-static HelpOptions gHelpOptions(
-    TOOL_NAME,
-    "Usage: " TOOL_NAME " [<options...>] <dest-node-id>[@<dest-host>[:<dest-port>][%<interface>]]\n"
-    "       " TOOL_NAME " [<options...>] --listen\n",
-    WEAVE_VERSION_STRING "\n" WEAVE_TOOL_COPYRIGHT,
-    "Test event logging.  Without any options, the program invokes a\n"
-    "suite of local log tests.  The options enable testing of a log\n"
-    "upload over the BDX path.\n"
-);
-
-static OptionSet *gToolOptionSets[] =
-{
-    &gToolOptions,
-    &gNetworkOptions,
-    &gWeaveNodeOptions,
-    &gFaultInjectionOptions,
-    &gHelpOptions,
-    NULL
-};
-
-struct BDXContext {
     uint64_t DestNodeId;
     IPAddress DestIPAddr;
-    const char *DestIPAddrStr;
+    const char * DestIPAddrStr;
     uint32_t mStartingBlock;
     bool mUseTCP;
     bool mDone;
@@ -298,43 +285,38 @@ struct TestLoggingContext
     bool bdx;
     bool bdxDone;
     bool mReinitializeBDXUpload;
-    WeaveExchangeManager *mExchangeMgr;
-    Binding *mBinding;
-    SubscriptionClient *mSubClient;
+    WeaveExchangeManager * mExchangeMgr;
+    Binding * mBinding;
+    SubscriptionClient * mSubClient;
     TestLoggingContext();
 };
 
 TestLoggingContext gTestLoggingContext;
 
 TestLoggingContext::TestLoggingContext() :
-    mVerbose(false),
-    bdx(false),
-    bdxDone(false),
-    mReinitializeBDXUpload(false),
-    mExchangeMgr(NULL),
-    mBinding(NULL),
-    mSubClient(NULL)
-{
-}
+    mVerbose(false), bdx(false), bdxDone(false), mReinitializeBDXUpload(false), mExchangeMgr(NULL), mBinding(NULL), mSubClient(NULL)
+{ }
 
 LogBDXUpload gLogBDXUpload;
 
 // Example profiles for logging:
 #define OpenCloseProfileID 0x235A00AA
 #define kOpenCloseStateTag 0x01
-#define kBypassStateTag    0x02
+#define kBypassStateTag 0x02
 
-enum OpenCloseStateEnum {
-    Unknown = 0,
-    Open = 1,
+enum OpenCloseStateEnum
+{
+    Unknown       = 0,
+    Open          = 1,
     PartiallyOpen = 2,
-    Closed = 3,
+    Closed        = 3,
 };
 
-enum BypassStateEnum {
+enum BypassStateEnum
+{
     BypassInactive = 0,
-    BypassActive = 1,
-    BypassExpired = 2,
+    BypassActive   = 1,
+    BypassExpired  = 2,
 };
 
 struct TestOpenCloseState
@@ -349,7 +331,7 @@ TestOpenCloseState gTestOpenCloseState;
 
 TestOpenCloseState::TestOpenCloseState()
 {
-    mState = Closed;
+    mState  = Closed;
     mBypass = BypassInactive;
 }
 
@@ -365,18 +347,17 @@ void TestOpenCloseState::EvolveState(void)
     }
 }
 
-const uint32_t gProfileList[] = { OpenCloseProfileID };
-
 WEAVE_ERROR WriteOpenCloseState(nl::Weave::TLV::TLVWriter & writer, uint8_t inDataTag, void * anAppState)
 {
     TestOpenCloseState * state = NULL;
-    WEAVE_ERROR err =  WEAVE_NO_ERROR;
+    WEAVE_ERROR err            = WEAVE_NO_ERROR;
     nl::Weave::TLV::TLVType openCloseState;
 
     VerifyOrExit(anAppState != NULL, err = WEAVE_ERROR_INVALID_ARGUMENT);
     state = static_cast<TestOpenCloseState *>(anAppState);
 
-    err = writer.StartContainer(ContextTag(nl::Weave::Profiles::DataManagement::kTag_EventData), nl::Weave::TLV::kTLVType_Structure, openCloseState);
+    err = writer.StartContainer(ContextTag(nl::Weave::Profiles::DataManagement::kTag_EventData), nl::Weave::TLV::kTLVType_Structure,
+                                openCloseState);
     SuccessOrExit(err);
 
     err = writer.Put(nl::Weave::TLV::ContextTag(kOpenCloseStateTag), state->mState);
@@ -396,7 +377,7 @@ exit:
     return err;
 }
 
-void SimpleDumpWriter(const char *aFormat, ...)
+void SimpleDumpWriter(const char * aFormat, ...)
 {
     va_list args;
 
@@ -407,22 +388,20 @@ void SimpleDumpWriter(const char *aFormat, ...)
     va_end(args);
 }
 
-
-WEAVE_ERROR LogBufferConsole(void *inAppState, PacketBuffer* inBuffer)
+WEAVE_ERROR LogBufferConsole(void * inAppState, PacketBuffer * inBuffer)
 {
     printf("Log entries:\nTime\tSchema\tEventData\n");
     nl::Weave::TLV::TLVReader reader;
-    uint8_t * p = inBuffer->Start();
-    uint32_t time = *((uint32_t*) p);
-    uint16_t schema = *((uint16_t*) (p+4));
+    uint8_t * p     = inBuffer->Start();
+    uint32_t time   = *((uint32_t *) p);
+    uint16_t schema = *((uint16_t *) (p + 4));
 
-    inBuffer->SetStart(p+6);
+    inBuffer->SetStart(p + 6);
 
     reader.Init(inBuffer, inBuffer->TotalLength());
     printf("%d\t%d\t", time, schema);
     nl::Weave::TLV::Debug::Dump(reader, SimpleDumpWriter);
     return WEAVE_NO_ERROR;
-
 }
 
 // Maximally sized event envelope
@@ -437,24 +416,26 @@ WEAVE_ERROR LogBufferConsole(void *inAppState, PacketBuffer* inBuffer)
 // Larger event payload.  Doesn't fit in debug buffer.
 #define EVENT_PAYLOAD_SIZE_3 (WEAVE_CONFIG_EVENT_SIZE_RESERVE + EVENT_SIZE_1)
 
-uint64_t gDebugEventBuffer[(sizeof(nl::Weave::Profiles::DataManagement::CircularEventBuffer) + WEAVE_CONFIG_EVENT_SIZE_RESERVE + EVENT_SIZE_1 + 7)/8];
+uint64_t gDebugEventBuffer[(sizeof(nl::Weave::Profiles::DataManagement::CircularEventBuffer) + WEAVE_CONFIG_EVENT_SIZE_RESERVE +
+                            EVENT_SIZE_1 + 7) /
+                           8];
 uint64_t gInfoEventBuffer[256];
 uint64_t gProdEventBuffer[256];
 uint64_t gCritEventBuffer[256];
-uint8_t  gLargeMemoryBackingStore[16384];
+uint8_t gLargeMemoryBackingStore[16384];
 
 static const uint32_t sEventIdCounterEpoch = 0x10000;
 
-static const char *sCritEventIdCounterStorageKey = "CritEIDC";
+static const char * sCritEventIdCounterStorageKey = "CritEIDC";
 static nl::Weave::PersistedCounter sCritEventIdCounter;
-static const char *sProductionEventIdCounterStorageKey = "ProductionEIDC";
+static const char * sProductionEventIdCounterStorageKey = "ProductionEIDC";
 static nl::Weave::PersistedCounter sProductionEventIdCounter;
-static const char *sInfoEventIdCounterStorageKey = "InfoEIDC";
+static const char * sInfoEventIdCounterStorageKey = "InfoEIDC";
 static nl::Weave::PersistedCounter sInfoEventIdCounter;
-static const char *sDebugEventIdCounterStorageKey = "DebugEIDC";
+static const char * sDebugEventIdCounterStorageKey = "DebugEIDC";
 static nl::Weave::PersistedCounter sDebugEventIdCounter;
 
-const char *sCounterKeys[kImportanceType_Last] = {
+const char * sCounterKeys[kImportanceType_Last] = {
     sCritEventIdCounterStorageKey,
     sProductionEventIdCounterStorageKey,
     sInfoEventIdCounterStorageKey,
@@ -468,58 +449,58 @@ const uint32_t sCounterEpochs[kImportanceType_Last] = {
     sEventIdCounterEpoch,
 };
 
-PersistedCounter *sCounterStorage[kImportanceType_Last] = {
+PersistedCounter * sCounterStorage[kImportanceType_Last] = {
     &sCritEventIdCounter,
     &sProductionEventIdCounter,
     &sInfoEventIdCounter,
     &sDebugEventIdCounter,
 };
 
-void InitializeEventLogging(TestLoggingContext *context)
+void InitializeEventLogging(TestLoggingContext * context)
 {
+    size_t arraySizes[] = { sizeof(gDebugEventBuffer), sizeof(gInfoEventBuffer), sizeof(gProdEventBuffer),
+                            sizeof(gCritEventBuffer) };
 
-    size_t arraySizes[] = { sizeof(gDebugEventBuffer), sizeof(gInfoEventBuffer), sizeof(gProdEventBuffer) , sizeof(gCritEventBuffer) };
+    void * arrays[] = { static_cast<void *>(&gDebugEventBuffer[0]), static_cast<void *>(&gInfoEventBuffer[0]),
+                        static_cast<void *>(&gProdEventBuffer[0]), static_cast<void *>(&gCritEventBuffer[0]) };
 
-    void *arrays[] = {
-        static_cast<void *>(&gDebugEventBuffer[0]),
-        static_cast<void *>(&gInfoEventBuffer[0]),
-        static_cast<void *>(&gProdEventBuffer[0]),
-        static_cast<void *>(&gCritEventBuffer[0]) };
-
-    nl::Weave::Profiles::DataManagement::LoggingManagement::CreateLoggingManagement(context->mExchangeMgr, sizeof(arrays)/sizeof(arrays[0]), &arraySizes[0], &arrays[0], NULL, NULL, NULL);
-    nl::Weave::Profiles::DataManagement::LoggingManagement &instance = nl::Weave::Profiles::DataManagement::LoggingManagement::GetInstance();
-    nl::Weave::Profiles::DataManagement::LoggingConfiguration::GetInstance().mGlobalImportance = nl::Weave::Profiles::DataManagement::Debug;
-    new (&gLogBDXUpload)nl::Weave::Profiles::DataManagement::LogBDXUpload();
+    nl::Weave::Profiles::DataManagement::LoggingManagement::CreateLoggingManagement(
+        context->mExchangeMgr, sizeof(arrays) / sizeof(arrays[0]), &arraySizes[0], &arrays[0], NULL, NULL, NULL);
+    nl::Weave::Profiles::DataManagement::LoggingManagement & instance =
+        nl::Weave::Profiles::DataManagement::LoggingManagement::GetInstance();
+    nl::Weave::Profiles::DataManagement::LoggingConfiguration::GetInstance().mGlobalImportance =
+        nl::Weave::Profiles::DataManagement::Debug;
+    new (&gLogBDXUpload) nl::Weave::Profiles::DataManagement::LogBDXUpload();
     gLogBDXUpload.Init(&instance);
 }
 
-void DestroyEventLogging(TestLoggingContext *context)
+void DestroyEventLogging(TestLoggingContext * context)
 {
     nl::Weave::Profiles::DataManagement::LoggingManagement::GetInstance().DestroyLoggingManagement();
-
 }
 
-void InitializeEventLoggingWithPersistedCounters(TestLoggingContext *context, uint32_t startingValue, nl::Weave::Profiles::DataManagement::ImportanceType globalImportance)
+void InitializeEventLoggingWithPersistedCounters(TestLoggingContext * context, uint32_t startingValue,
+                                                 nl::Weave::Profiles::DataManagement::ImportanceType globalImportance)
 {
-    size_t arraySizes[] = { sizeof(gDebugEventBuffer), sizeof(gInfoEventBuffer), sizeof(gProdEventBuffer), sizeof(gCritEventBuffer[0]) };
+    size_t arraySizes[] = { sizeof(gDebugEventBuffer), sizeof(gInfoEventBuffer), sizeof(gProdEventBuffer),
+                            sizeof(gCritEventBuffer[0]) };
 
-    void *arrays[] = {
-        static_cast<void *>(&gDebugEventBuffer[0]),
-        static_cast<void *>(&gInfoEventBuffer[0]),
-        static_cast<void *>(&gProdEventBuffer[0]),
-        static_cast<void *>(&gCritEventBuffer[0]) };
+    void * arrays[] = { static_cast<void *>(&gDebugEventBuffer[0]), static_cast<void *>(&gInfoEventBuffer[0]),
+                        static_cast<void *>(&gProdEventBuffer[0]), static_cast<void *>(&gCritEventBuffer[0]) };
 
     nl::Weave::Platform::PersistedStorage::Write(sCritEventIdCounterStorageKey, startingValue);
     nl::Weave::Platform::PersistedStorage::Write(sProductionEventIdCounterStorageKey, startingValue);
     nl::Weave::Platform::PersistedStorage::Write(sInfoEventIdCounterStorageKey, startingValue);
     nl::Weave::Platform::PersistedStorage::Write(sDebugEventIdCounterStorageKey, startingValue);
 
-    nl::Weave::Profiles::DataManagement::LoggingManagement::CreateLoggingManagement(context->mExchangeMgr, sizeof(arrays)/sizeof(arrays[0]), &arraySizes[0], &arrays[0], sCounterKeys, sCounterEpochs, sCounterStorage);
+    nl::Weave::Profiles::DataManagement::LoggingManagement::CreateLoggingManagement(
+        context->mExchangeMgr, sizeof(arrays) / sizeof(arrays[0]), &arraySizes[0], &arrays[0], sCounterKeys, sCounterEpochs,
+        sCounterStorage);
 
     nl::Weave::Profiles::DataManagement::LoggingConfiguration::GetInstance().mGlobalImportance = globalImportance;
 }
 
-void DumpEventLog(nlTestSuite *inSuite)
+void DumpEventLog(nlTestSuite * inSuite)
 {
     uint8_t backingStore[1024];
     size_t elementCount;
@@ -529,7 +510,8 @@ void DumpEventLog(nlTestSuite *inSuite)
     WEAVE_ERROR err;
     writer.Init(backingStore, 1024);
 
-    err = nl::Weave::Profiles::DataManagement::LoggingManagement::GetInstance().FetchEventsSince(writer, nl::Weave::Profiles::DataManagement::Production, eventId);
+    err = nl::Weave::Profiles::DataManagement::LoggingManagement::GetInstance().FetchEventsSince(
+        writer, nl::Weave::Profiles::DataManagement::Production, eventId);
     if (err == WEAVE_NO_ERROR || err == WEAVE_END_OF_TLV)
     {
         printf("Successfully wrote %u bytes to the log\n", writer.GetLengthWritten());
@@ -544,9 +526,9 @@ void DumpEventLog(nlTestSuite *inSuite)
     nl::Weave::TLV::Debug::Dump(reader, SimpleDumpWriter);
 }
 
-void DoBDXUpload(TestLoggingContext *context)
+void DoBDXUpload(TestLoggingContext * context)
 {
-    if (! context->bdx )
+    if (!context->bdx)
     {
         return;
     }
@@ -563,7 +545,7 @@ void DoBDXUpload(TestLoggingContext *context)
     while (!gBDXContext.mDone)
     {
         struct timeval sleepTime;
-        sleepTime.tv_sec = 0;
+        sleepTime.tv_sec  = 0;
         sleepTime.tv_usec = 100000;
 
         ServiceNetwork(sleepTime);
@@ -572,7 +554,7 @@ void DoBDXUpload(TestLoggingContext *context)
             gBDXContext.mDone = true;
             for (size_t i = 0; i < 1000; i++)
             {
-                sleepTime.tv_sec = 0;
+                sleepTime.tv_sec  = 0;
                 sleepTime.tv_usec = 1000;
 
                 ServiceNetwork(sleepTime);
@@ -581,24 +563,23 @@ void DoBDXUpload(TestLoggingContext *context)
     }
 
     gLogBDXUpload.Shutdown();
-
 }
-
 
 void PrintEventLog()
 {
     TLVReader reader;
     size_t elementCount;
-    nl::Weave::Profiles::DataManagement::LoggingManagement::GetInstance().GetEventReader(reader, nl::Weave::Profiles::DataManagement::Production);
+    nl::Weave::Profiles::DataManagement::LoggingManagement::GetInstance().GetEventReader(
+        reader, nl::Weave::Profiles::DataManagement::Production);
 
     nl::Weave::TLV::Utilities::Count(reader, elementCount);
     printf("Found %lu elements\n", elementCount);
     nl::Weave::TLV::Debug::Dump(reader, SimpleDumpWriter);
 }
 
-static int TestSetup(void *inContext)
+static int TestSetup(void * inContext)
 {
-    TestLoggingContext *ctx = static_cast<TestLoggingContext *>(inContext);
+    TestLoggingContext * ctx = static_cast<TestLoggingContext *>(inContext);
     static WeaveFabricState sFabricState;
     static WeaveExchangeManager sExchangeMgr;
 
@@ -628,9 +609,9 @@ static int TestSetup(void *inContext)
             return FAILURE;
 
         sFabricState.LocalNodeId = kTestNodeId;
-        sExchangeMgr.FabricState = & sFabricState;
-        sExchangeMgr.State = WeaveExchangeManager::kState_Initialized;
-        ctx->mExchangeMgr = &sExchangeMgr;
+        sExchangeMgr.FabricState = &sFabricState;
+        sExchangeMgr.State       = WeaveExchangeManager::kState_Initialized;
+        ctx->mExchangeMgr        = &sExchangeMgr;
     }
 
     SubscriptionEngine::GetInstance()->Init(&ExchangeMgr, NULL, NULL);
@@ -638,9 +619,9 @@ static int TestSetup(void *inContext)
     return SUCCESS;
 }
 
-static int TestTeardown(void *inContext)
+static int TestTeardown(void * inContext)
 {
-    TestLoggingContext *ctx = static_cast<TestLoggingContext *>(inContext);
+    TestLoggingContext * ctx = static_cast<TestLoggingContext *>(inContext);
     if (ctx->bdx)
     {
         ShutdownWeaveStack();
@@ -651,10 +632,8 @@ static int TestTeardown(void *inContext)
     return SUCCESS;
 }
 
-static void CheckLogState(nlTestSuite *inSuite,
-                          TestLoggingContext *inContext,
-                          nl::Weave::Profiles::DataManagement::LoggingManagement &logMgmt,
-                          size_t expectedNumEvents)
+static void CheckLogState(nlTestSuite * inSuite, TestLoggingContext * inContext,
+                          nl::Weave::Profiles::DataManagement::LoggingManagement & logMgmt, size_t expectedNumEvents)
 {
     WEAVE_ERROR err;
     TLVReader reader;
@@ -673,11 +652,9 @@ static void CheckLogState(nlTestSuite *inSuite,
     }
 }
 
-static void CheckLogReadOut(nlTestSuite *inSuite,
-                            TestLoggingContext *inContext,
-                            nl::Weave::Profiles::DataManagement::LoggingManagement &logMgmt,
-                            nl::Weave::Profiles::DataManagement::ImportanceType importance,
-                            event_id_t startingEventId,
+static void CheckLogReadOut(nlTestSuite * inSuite, TestLoggingContext * inContext,
+                            nl::Weave::Profiles::DataManagement::LoggingManagement & logMgmt,
+                            nl::Weave::Profiles::DataManagement::ImportanceType importance, event_id_t startingEventId,
                             size_t expectedNumEvents)
 {
     WEAVE_ERROR err;
@@ -699,49 +676,35 @@ static void CheckLogReadOut(nlTestSuite *inSuite,
     if (inContext->mVerbose)
     {
         reader.Init(backingStore, writer.GetLengthWritten());
-        printf("Starting Event ID: %u, Expected Events: %lu, Num Events: %lu, Num Bytes: %u\n", startingEventId, expectedNumEvents, elementCount, writer.GetLengthWritten());
+        printf("Starting Event ID: %u, Expected Events: %lu, Num Events: %lu, Num Bytes: %u\n", startingEventId, expectedNumEvents,
+               elementCount, writer.GetLengthWritten());
         nl::Weave::TLV::Debug::Dump(reader, SimpleDumpWriter);
     }
 }
 
-static void CheckLogEventBasics(nlTestSuite *inSuite, void *inContext)
+static void CheckLogEventBasics(nlTestSuite * inSuite, void * inContext)
 {
-    TestLoggingContext *context = static_cast<TestLoggingContext *>(inContext);
+    TestLoggingContext * context = static_cast<TestLoggingContext *>(inContext);
     event_id_t eid1, eid2, eid3;
-    EventSchema schema = {
-        OpenCloseProfileID,
-        1, // Event type 1
-        nl::Weave::Profiles::DataManagement::Production,
-        1,
-        1
-    };
+    EventSchema schema = { OpenCloseProfileID,
+                           1, // Event type 1
+                           nl::Weave::Profiles::DataManagement::Production, 1, 1 };
 
     InitializeEventLogging(context);
 
-    nl::Weave::Profiles::DataManagement::LoggingManagement &logMgmt = nl::Weave::Profiles::DataManagement::LoggingManagement::GetInstance();
+    nl::Weave::Profiles::DataManagement::LoggingManagement & logMgmt =
+        nl::Weave::Profiles::DataManagement::LoggingManagement::GetInstance();
 
     // Sample production events, spaced 10 milliseconds apart
-    eid1 = nl::Weave::Profiles::DataManagement::LogEvent(
-        schema,
-        WriteOpenCloseState,
-        static_cast<void*> (&gTestOpenCloseState)
-        );
+    eid1 = nl::Weave::Profiles::DataManagement::LogEvent(schema, WriteOpenCloseState, static_cast<void *>(&gTestOpenCloseState));
     CheckLogState(inSuite, context, logMgmt, 1);
 
     usleep(10000);
-    eid2 = nl::Weave::Profiles::DataManagement::LogEvent(
-        schema,
-        WriteOpenCloseState,
-        static_cast<void*> (&gTestOpenCloseState)
-        );
+    eid2 = nl::Weave::Profiles::DataManagement::LogEvent(schema, WriteOpenCloseState, static_cast<void *>(&gTestOpenCloseState));
     CheckLogState(inSuite, context, logMgmt, 2);
 
     usleep(10000);
-    eid3 = nl::Weave::Profiles::DataManagement::LogEvent(
-        schema,
-        WriteOpenCloseState,
-        static_cast<void*> (&gTestOpenCloseState)
-        );
+    eid3 = nl::Weave::Profiles::DataManagement::LogEvent(schema, WriteOpenCloseState, static_cast<void *>(&gTestOpenCloseState));
     CheckLogState(inSuite, context, logMgmt, 3);
 
     if (context->mVerbose)
@@ -761,33 +724,31 @@ static void CheckLogEventBasics(nlTestSuite *inSuite, void *inContext)
     }
 }
 
-static void CheckLogFreeform(nlTestSuite *inSuite, void *inContext)
+static void CheckLogFreeform(nlTestSuite * inSuite, void * inContext)
 {
-    TestLoggingContext *context = static_cast<TestLoggingContext *>(inContext);
+    TestLoggingContext * context = static_cast<TestLoggingContext *>(inContext);
     event_id_t eid1, eid2, eid3;
     size_t counter = 0;
     InitializeEventLogging(context);
 
-    nl::Weave::Profiles::DataManagement::LoggingManagement &logMgmt = nl::Weave::Profiles::DataManagement::LoggingManagement::GetInstance();
+    nl::Weave::Profiles::DataManagement::LoggingManagement & logMgmt =
+        nl::Weave::Profiles::DataManagement::LoggingManagement::GetInstance();
 
     // Sample production events, spaced 10 milliseconds apart
-    eid1 = nl::Weave::Profiles::DataManagement::LogFreeform(
-        nl::Weave::Profiles::DataManagement::Production,
-        "Freeform entry %d", counter++);
+    eid1 = nl::Weave::Profiles::DataManagement::LogFreeform(nl::Weave::Profiles::DataManagement::Production, "Freeform entry %d",
+                                                            counter++);
 
     CheckLogState(inSuite, context, logMgmt, 1);
 
     usleep(10000);
 
-    eid2 = nl::Weave::Profiles::DataManagement::LogFreeform(
-        nl::Weave::Profiles::DataManagement::Production,
-        "Freeform entry %d", counter++);
+    eid2 = nl::Weave::Profiles::DataManagement::LogFreeform(nl::Weave::Profiles::DataManagement::Production, "Freeform entry %d",
+                                                            counter++);
     CheckLogState(inSuite, context, logMgmt, 2);
 
     usleep(10000);
-    eid3 = nl::Weave::Profiles::DataManagement::LogFreeform(
-        nl::Weave::Profiles::DataManagement::Production,
-        "Freeform entry %d", counter++);
+    eid3 = nl::Weave::Profiles::DataManagement::LogFreeform(nl::Weave::Profiles::DataManagement::Production, "Freeform entry %d",
+                                                            counter++);
     CheckLogState(inSuite, context, logMgmt, 3);
 
     if (context->mVerbose)
@@ -807,18 +768,14 @@ static void CheckLogFreeform(nlTestSuite *inSuite, void *inContext)
     }
 }
 
-static void CheckLogPreformed(nlTestSuite *inSuite, void *inContext)
+static void CheckLogPreformed(nlTestSuite * inSuite, void * inContext)
 {
-    TestLoggingContext *context = static_cast<TestLoggingContext *>(inContext);
+    TestLoggingContext * context = static_cast<TestLoggingContext *>(inContext);
     WEAVE_ERROR err;
     event_id_t eid1, eid2, eid3;
-    EventSchema schema = {
-        OpenCloseProfileID,
-        2, // Event type 2
-        nl::Weave::Profiles::DataManagement::Production,
-        1,
-        1
-    };
+    EventSchema schema = { OpenCloseProfileID,
+                           2, // Event type 2
+                           nl::Weave::Profiles::DataManagement::Production, 1, 1 };
 
     uint8_t backingStore[1024];
     TLVWriter writer;
@@ -827,7 +784,8 @@ static void CheckLogPreformed(nlTestSuite *inSuite, void *inContext)
 
     InitializeEventLogging(context);
 
-    nl::Weave::Profiles::DataManagement::LoggingManagement &logMgmt = nl::Weave::Profiles::DataManagement::LoggingManagement::GetInstance();
+    nl::Weave::Profiles::DataManagement::LoggingManagement & logMgmt =
+        nl::Weave::Profiles::DataManagement::LoggingManagement::GetInstance();
 
     writer.Init(backingStore, 1024);
     err = writer.StartContainer(AnonymousTag, kTLVType_Structure, containerType);
@@ -845,31 +803,21 @@ static void CheckLogPreformed(nlTestSuite *inSuite, void *inContext)
     err = writer.Finalize();
     NL_TEST_ASSERT(inSuite, err == WEAVE_NO_ERROR);
 
-
     reader.Init(backingStore, writer.GetLengthWritten());
 
     // Sample production events, spaced 10 milliseconds apart
-    eid1 = nl::Weave::Profiles::DataManagement::LogEvent(
-        schema,
-        reader
-        );
+    eid1 = nl::Weave::Profiles::DataManagement::LogEvent(schema, reader);
 
     CheckLogState(inSuite, context, logMgmt, 1);
 
     usleep(10000);
     reader.Init(backingStore, writer.GetLengthWritten());
-    eid2 = nl::Weave::Profiles::DataManagement::LogEvent(
-        schema,
-        reader
-        );
+    eid2 = nl::Weave::Profiles::DataManagement::LogEvent(schema, reader);
     CheckLogState(inSuite, context, logMgmt, 2);
 
     usleep(10000);
     reader.Init(backingStore, writer.GetLengthWritten());
-    eid3 =  nl::Weave::Profiles::DataManagement::LogEvent(
-        schema,
-        reader
-        );
+    eid3 = nl::Weave::Profiles::DataManagement::LogEvent(schema, reader);
     CheckLogState(inSuite, context, logMgmt, 3);
 
     if (context->mVerbose)
@@ -901,56 +849,72 @@ static void CheckLogPreformed(nlTestSuite *inSuite, void *inContext)
 
 #define kDataManagementTag_EventData 50
 
-static const uint8_t SampleEventEncoding[] =
-{
-nlWeaveTLV_STRUCTURE(nlWeaveTLV_TAG_FULLY_QUALIFIED_6Bytes(0x0A00, 1)),
+static const uint8_t SampleEventEncoding[] = { nlWeaveTLV_STRUCTURE(nlWeaveTLV_TAG_FULLY_QUALIFIED_6Bytes(0x0A00, 1)),
+                                               nlWeaveTLV_STRUCTURE(nlWeaveTLV_TAG_CONTEXT_SPECIFIC(kDataManagementTag_EventData)),
+                                               nlWeaveTLV_UINT8(nlWeaveTLV_TAG_CONTEXT_SPECIFIC(kSampleEventTag_State), 5),
+                                               nlWeaveTLV_UINT16(nlWeaveTLV_TAG_CONTEXT_SPECIFIC(kSampleEventTag_Timestamp), 328),
+                                               nlWeaveTLV_STRUCTURE(nlWeaveTLV_TAG_CONTEXT_SPECIFIC(kSampleEventTag_Structure)),
+                                               nlWeaveTLV_BOOL(nlWeaveTLV_TAG_CONTEXT_SPECIFIC(kEventStructTag_a), true),
+                                               nlWeaveTLV_STRUCTURE(nlWeaveTLV_TAG_CONTEXT_SPECIFIC(kEventStructTag_b)),
+                                               nlWeaveTLV_UTF8_STRING_1ByteLength(
+                                                   nlWeaveTLV_TAG_CONTEXT_SPECIFIC(kEventStatsTag_str), 10),
+                                               'b',
+                                               'l',
+                                               'o',
+                                               'o',
+                                               'p',
+                                               'b',
+                                               'l',
+                                               'o',
+                                               'o',
+                                               'p',
+                                               nlWeaveTLV_END_OF_CONTAINER,
+                                               nlWeaveTLV_END_OF_CONTAINER,
+                                               nlWeaveTLV_ARRAY(nlWeaveTLV_TAG_CONTEXT_SPECIFIC(kSampleEventTag_Samples)),
+                                               nlWeaveTLV_UINT8(nlWeaveTLV_TAG_ANONYMOUS, 0),
+                                               nlWeaveTLV_UINT8(nlWeaveTLV_TAG_ANONYMOUS, 1),
+                                               nlWeaveTLV_UINT8(nlWeaveTLV_TAG_ANONYMOUS, 2),
+                                               nlWeaveTLV_UINT8(nlWeaveTLV_TAG_ANONYMOUS, 3),
+                                               nlWeaveTLV_UINT8(nlWeaveTLV_TAG_ANONYMOUS, 4),
+                                               nlWeaveTLV_UINT8(nlWeaveTLV_TAG_ANONYMOUS, 5),
+                                               nlWeaveTLV_END_OF_CONTAINER,
+                                               nlWeaveTLV_END_OF_CONTAINER,
+                                               nlWeaveTLV_END_OF_CONTAINER };
+
+static const uint8_t SampleEmptyArrayEventEncoding[] = {
+    nlWeaveTLV_STRUCTURE(nlWeaveTLV_TAG_FULLY_QUALIFIED_6Bytes(0x0A00, 1)),
     nlWeaveTLV_STRUCTURE(nlWeaveTLV_TAG_CONTEXT_SPECIFIC(kDataManagementTag_EventData)),
-        nlWeaveTLV_UINT8(nlWeaveTLV_TAG_CONTEXT_SPECIFIC(kSampleEventTag_State), 5),
-        nlWeaveTLV_UINT16(nlWeaveTLV_TAG_CONTEXT_SPECIFIC(kSampleEventTag_Timestamp), 328),
-        nlWeaveTLV_STRUCTURE(nlWeaveTLV_TAG_CONTEXT_SPECIFIC(kSampleEventTag_Structure)),
-            nlWeaveTLV_BOOL(nlWeaveTLV_TAG_CONTEXT_SPECIFIC(kEventStructTag_a), true),
-            nlWeaveTLV_STRUCTURE(nlWeaveTLV_TAG_CONTEXT_SPECIFIC(kEventStructTag_b)),
-                nlWeaveTLV_UTF8_STRING_1ByteLength(nlWeaveTLV_TAG_CONTEXT_SPECIFIC(kEventStatsTag_str), 10),
-                'b', 'l', 'o', 'o', 'p', 'b', 'l', 'o', 'o', 'p',
-            nlWeaveTLV_END_OF_CONTAINER,
-        nlWeaveTLV_END_OF_CONTAINER,
-        nlWeaveTLV_ARRAY(nlWeaveTLV_TAG_CONTEXT_SPECIFIC(kSampleEventTag_Samples)),
-            nlWeaveTLV_UINT8(nlWeaveTLV_TAG_ANONYMOUS, 0),
-            nlWeaveTLV_UINT8(nlWeaveTLV_TAG_ANONYMOUS, 1),
-            nlWeaveTLV_UINT8(nlWeaveTLV_TAG_ANONYMOUS, 2),
-            nlWeaveTLV_UINT8(nlWeaveTLV_TAG_ANONYMOUS, 3),
-            nlWeaveTLV_UINT8(nlWeaveTLV_TAG_ANONYMOUS, 4),
-            nlWeaveTLV_UINT8(nlWeaveTLV_TAG_ANONYMOUS, 5),
-        nlWeaveTLV_END_OF_CONTAINER,
+    nlWeaveTLV_UINT8(nlWeaveTLV_TAG_CONTEXT_SPECIFIC(kSampleEventTag_State), 5),
+    nlWeaveTLV_UINT16(nlWeaveTLV_TAG_CONTEXT_SPECIFIC(kSampleEventTag_Timestamp), 328),
+    nlWeaveTLV_STRUCTURE(nlWeaveTLV_TAG_CONTEXT_SPECIFIC(kSampleEventTag_Structure)),
+    nlWeaveTLV_BOOL(nlWeaveTLV_TAG_CONTEXT_SPECIFIC(kEventStructTag_a), true),
+    nlWeaveTLV_STRUCTURE(nlWeaveTLV_TAG_CONTEXT_SPECIFIC(kEventStructTag_b)),
+    nlWeaveTLV_UTF8_STRING_1ByteLength(nlWeaveTLV_TAG_CONTEXT_SPECIFIC(kEventStatsTag_str), 10),
+    'b',
+    'l',
+    'o',
+    'o',
+    'p',
+    'b',
+    'l',
+    'o',
+    'o',
+    'p',
     nlWeaveTLV_END_OF_CONTAINER,
-nlWeaveTLV_END_OF_CONTAINER
+    nlWeaveTLV_END_OF_CONTAINER,
+    nlWeaveTLV_ARRAY(nlWeaveTLV_TAG_CONTEXT_SPECIFIC(kSampleEventTag_Samples)),
+    nlWeaveTLV_END_OF_CONTAINER,
+    nlWeaveTLV_END_OF_CONTAINER,
+    nlWeaveTLV_END_OF_CONTAINER
 };
 
-static const uint8_t SampleEmptyArrayEventEncoding[] =
+static void CheckSchemaGeneratedLogging(nlTestSuite * inSuite, void * inContext)
 {
-nlWeaveTLV_STRUCTURE(nlWeaveTLV_TAG_FULLY_QUALIFIED_6Bytes(0x0A00, 1)),
-    nlWeaveTLV_STRUCTURE(nlWeaveTLV_TAG_CONTEXT_SPECIFIC(kDataManagementTag_EventData)),
-        nlWeaveTLV_UINT8(nlWeaveTLV_TAG_CONTEXT_SPECIFIC(kSampleEventTag_State), 5),
-        nlWeaveTLV_UINT16(nlWeaveTLV_TAG_CONTEXT_SPECIFIC(kSampleEventTag_Timestamp), 328),
-        nlWeaveTLV_STRUCTURE(nlWeaveTLV_TAG_CONTEXT_SPECIFIC(kSampleEventTag_Structure)),
-            nlWeaveTLV_BOOL(nlWeaveTLV_TAG_CONTEXT_SPECIFIC(kEventStructTag_a), true),
-            nlWeaveTLV_STRUCTURE(nlWeaveTLV_TAG_CONTEXT_SPECIFIC(kEventStructTag_b)),
-                nlWeaveTLV_UTF8_STRING_1ByteLength(nlWeaveTLV_TAG_CONTEXT_SPECIFIC(kEventStatsTag_str), 10),
-                'b', 'l', 'o', 'o', 'p', 'b', 'l', 'o', 'o', 'p',
-            nlWeaveTLV_END_OF_CONTAINER,
-        nlWeaveTLV_END_OF_CONTAINER,
-        nlWeaveTLV_ARRAY(nlWeaveTLV_TAG_CONTEXT_SPECIFIC(kSampleEventTag_Samples)),
-        nlWeaveTLV_END_OF_CONTAINER,
-    nlWeaveTLV_END_OF_CONTAINER,
-nlWeaveTLV_END_OF_CONTAINER
-};
-
-static void CheckSchemaGeneratedLogging(nlTestSuite *inSuite, void *inContext)
-{
-    TestLoggingContext *context = static_cast<TestLoggingContext *>(inContext);
+    TestLoggingContext * context = static_cast<TestLoggingContext *>(inContext);
     event_id_t eid1, eid2;
     WEAVE_ERROR err;
-    nl::Weave::Profiles::DataManagement::LoggingManagement &logMgmt = nl::Weave::Profiles::DataManagement::LoggingManagement::GetInstance();
+    nl::Weave::Profiles::DataManagement::LoggingManagement & logMgmt =
+        nl::Weave::Profiles::DataManagement::LoggingManagement::GetInstance();
 
     nl::Weave::Profiles::DataManagement::SampleTrait::Event ev;
     nl::Weave::Profiles::DataManagement::OpenCloseTrait::Event ev2;
@@ -960,16 +924,16 @@ static void CheckSchemaGeneratedLogging(nlTestSuite *inSuite, void *inContext)
 
     InitializeEventLogging(context);
 
-    uint32_t samples[6] = { 0, 1, 2, 3, 4, 5 };
-    ev.state = 5;
-    ev.timestamp = 328;
-    ev.structure.a = true;
-    ev.structure.b.str = "bloopbloop\0";
+    uint32_t samples[6]    = { 0, 1, 2, 3, 4, 5 };
+    ev.state               = 5;
+    ev.timestamp           = 328;
+    ev.structure.a         = true;
+    ev.structure.b.str     = "bloopbloop\0";
     ev.samples.num_samples = 6;
     ev.samples.samples_buf = samples;
 
     appData.mStructureData = static_cast<void *>(&ev);
-    appData.mFieldSchema = &sampleEventSchema;
+    appData.mFieldSchema   = &sampleEventSchema;
 
     outer.Init(sBuffer, sizeof(sBuffer));
 
@@ -996,7 +960,7 @@ static void CheckSchemaGeneratedLogging(nlTestSuite *inSuite, void *inContext)
     CheckLogState(inSuite, context, logMgmt, 1);
 
     ev2.state = 1;
-    eid2 = LogOpenCloseEvent(&ev2, nl::Weave::Profiles::DataManagement::Production);
+    eid2      = LogOpenCloseEvent(&ev2, nl::Weave::Profiles::DataManagement::Production);
     CheckLogState(inSuite, context, logMgmt, 2);
 
     CheckLogReadOut(inSuite, context, logMgmt, nl::Weave::Profiles::DataManagement::Production, eid1, 2);
@@ -1008,9 +972,9 @@ static void CheckSchemaGeneratedLogging(nlTestSuite *inSuite, void *inContext)
     }
 }
 
-static void CheckByteStringFieldType(nlTestSuite *inSuite, void *inContext)
+static void CheckByteStringFieldType(nlTestSuite * inSuite, void * inContext)
 {
-    TestLoggingContext *context = static_cast<TestLoggingContext *>(inContext);
+    TestLoggingContext * context = static_cast<TestLoggingContext *>(inContext);
     WEAVE_ERROR err;
     event_id_t eventId;
     ByteStringTestTrait::Event ev, deserializedEv;
@@ -1038,9 +1002,9 @@ static void CheckByteStringFieldType(nlTestSuite *inSuite, void *inContext)
     NL_TEST_ASSERT(inSuite, memcmp(deserializedEv.byte_string.mBuf, ev.byte_string.mBuf, ev.byte_string.mLen) == 0);
 }
 
-static void CheckByteStringArray(nlTestSuite *inSuite, void *inContext)
+static void CheckByteStringArray(nlTestSuite * inSuite, void * inContext)
 {
-    TestLoggingContext *context = static_cast<TestLoggingContext *>(inContext);
+    TestLoggingContext * context = static_cast<TestLoggingContext *>(inContext);
     WEAVE_ERROR err;
     event_id_t eventId;
     ByteStringArrayTestTrait::Event ev, deserializedEv;
@@ -1056,9 +1020,9 @@ static void CheckByteStringArray(nlTestSuite *inSuite, void *inContext)
     // some magic numbers to initialize some varied byte strings
     for (i = 0; i < 5; i++)
     {
-        memset(&buf[i*5], (i+1)*40, (i+1)*5);
-        bytestrings[i].mLen = (i+1)*5;
-        bytestrings[i].mBuf = &buf[i*5];
+        memset(&buf[i * 5], (i + 1) * 40, (i + 1) * 5);
+        bytestrings[i].mLen = (i + 1) * 5;
+        bytestrings[i].mBuf = &buf[i * 5];
     }
     ev.testArray.num = 5;
     ev.testArray.buf = bytestrings;
@@ -1077,14 +1041,15 @@ static void CheckByteStringArray(nlTestSuite *inSuite, void *inContext)
     for (i = 0; i < 5; i++)
     {
         NL_TEST_ASSERT(inSuite, deserializedEv.testArray.buf[i].mLen == ev.testArray.buf[i].mLen);
-        NL_TEST_ASSERT(inSuite, memcmp(deserializedEv.testArray.buf[i].mBuf, ev.testArray.buf[i].mBuf, ev.testArray.buf[i].mLen) == 0);
+        NL_TEST_ASSERT(inSuite,
+                       memcmp(deserializedEv.testArray.buf[i].mBuf, ev.testArray.buf[i].mBuf, ev.testArray.buf[i].mLen) == 0);
     }
 }
 
 struct DebugLogContext
 {
-    const char *mRegion;
-    const char *mFmt;
+    const char * mRegion;
+    const char * mFmt;
     va_list mArgs;
 };
 
@@ -1093,17 +1058,11 @@ static event_id_t FastLogFreeform(ImportanceType inImportance, timestamp_t inTim
     DebugLogContext context;
     nl::Weave::Profiles::DataManagement::EventOptions options;
     event_id_t eid;
-    EventSchema schema = {
-        kWeaveProfile_NestDebug,
-        kNestDebug_StringLogEntryEvent,
-        inImportance,
-        1,
-        1
-    };
+    EventSchema schema = { kWeaveProfile_NestDebug, kNestDebug_StringLogEntryEvent, inImportance, 1, 1 };
 
     va_start(context.mArgs, inFormat);
     context.mRegion = "";
-    context.mFmt = inFormat;
+    context.mFmt    = inFormat;
 
     options = EventOptions(inTimestamp, NULL, 0, nl::Weave::Profiles::DataManagement::kImportanceType_Invalid, false);
 
@@ -1114,30 +1073,25 @@ static event_id_t FastLogFreeform(ImportanceType inImportance, timestamp_t inTim
     return eid;
 }
 
-static void CheckEvict(nlTestSuite *inSuite, void *inContext)
+static void CheckEvict(nlTestSuite * inSuite, void * inContext)
 {
-    TestLoggingContext *context = static_cast<TestLoggingContext *>(inContext);
+    TestLoggingContext * context = static_cast<TestLoggingContext *>(inContext);
     event_id_t eid_prev, eid;
     size_t counter = 0;
     timestamp_t now;
     InitializeEventLogging(context);
 
-    now = System::Layer::GetClock_MonotonicMS();
-    eid_prev = FastLogFreeform(
-        nl::Weave::Profiles::DataManagement::Production,
-        now,
-        "Freeform entry %d", counter);
+    now      = System::Layer::GetClock_MonotonicMS();
+    eid_prev = FastLogFreeform(nl::Weave::Profiles::DataManagement::Production, now, "Freeform entry %d", counter);
     now += 10;
-    for (counter = 0; counter < 100; counter++) {
-    // Sample production events, spaced 10 milliseconds apart
-        eid = FastLogFreeform(
-            nl::Weave::Profiles::DataManagement::Production,
-            now,
-            "Freeform entry %d", counter);
-        now +=10;
+    for (counter = 0; counter < 100; counter++)
+    {
+        // Sample production events, spaced 10 milliseconds apart
+        eid = FastLogFreeform(nl::Weave::Profiles::DataManagement::Production, now, "Freeform entry %d", counter);
+        now += 10;
 
         NL_TEST_ASSERT(inSuite, eid > 0);
-        NL_TEST_ASSERT(inSuite, eid == (eid_prev+1));
+        NL_TEST_ASSERT(inSuite, eid == (eid_prev + 1));
 
         eid_prev = eid;
     }
@@ -1147,7 +1101,8 @@ static void CheckEvict(nlTestSuite *inSuite, void *inContext)
     }
 }
 
-static WEAVE_ERROR ReadFirstEventHeader(TLVReader &aReader, timestamp_t &aTimestamp, utc_timestamp_t &aUtcTimestamp, event_id_t &aEventId)
+static WEAVE_ERROR ReadFirstEventHeader(TLVReader & aReader, timestamp_t & aTimestamp, utc_timestamp_t & aUtcTimestamp,
+                                        event_id_t & aEventId)
 {
     WEAVE_ERROR err;
     TLVType readerType;
@@ -1193,49 +1148,38 @@ exit:
     return err;
 }
 
-static void CheckFetchTimestamps(nlTestSuite *inSuite, void *inContext)
+static void CheckFetchTimestamps(nlTestSuite * inSuite, void * inContext)
 {
     WEAVE_ERROR err;
-    TestLoggingContext *context = static_cast<TestLoggingContext *>(inContext);
+    TestLoggingContext * context = static_cast<TestLoggingContext *>(inContext);
     event_id_t eid_prev, eid, event_id_read;
-    size_t counter = 0;
+    size_t counter         = 0;
     const int k_num_events = 10;
     timestamp_t now;
     utc_timestamp_t test_start;
     InitializeEventLogging(context);
 
     test_start = static_cast<utc_timestamp_t>(System::Layer::GetClock_MonotonicMS());
-    now = static_cast<timestamp_t>(test_start);
+    now        = static_cast<timestamp_t>(test_start);
     System::Layer::SetClock_RealTime(0);
 
-    eid_prev = FastLogFreeform(
-        nl::Weave::Profiles::DataManagement::Production,
-        now,
-        "%u", now);
-    eid_prev = FastLogFreeform(
-        nl::Weave::Profiles::DataManagement::Info,
-        now,
-        "%u", now);
+    eid_prev = FastLogFreeform(nl::Weave::Profiles::DataManagement::Production, now, "%u", now);
+    eid_prev = FastLogFreeform(nl::Weave::Profiles::DataManagement::Info, now, "%u", now);
     now += 10;
-    for (counter = 1; counter < k_num_events; counter++) {
-    // Sample production events, spaced 10 milliseconds apart
-        if (counter == k_num_events/2)
+    for (counter = 1; counter < k_num_events; counter++)
+    {
+        // Sample production events, spaced 10 milliseconds apart
+        if (counter == k_num_events / 2)
         {
-            System::Layer::SetClock_RealTime((test_start)*1000);
+            System::Layer::SetClock_RealTime((test_start) *1000);
         }
 
-        eid = FastLogFreeform(
-            nl::Weave::Profiles::DataManagement::Info,
-            now,
-            "%u", now);
+        eid = FastLogFreeform(nl::Weave::Profiles::DataManagement::Info, now, "%u", now);
         NL_TEST_ASSERT(inSuite, eid > 0);
-        eid = FastLogFreeform(
-            nl::Weave::Profiles::DataManagement::Production,
-            now,
-            "%u", now);
+        eid = FastLogFreeform(nl::Weave::Profiles::DataManagement::Production, now, "%u", now);
 
         NL_TEST_ASSERT(inSuite, eid > 0);
-        NL_TEST_ASSERT(inSuite, eid == (eid_prev+1));
+        NL_TEST_ASSERT(inSuite, eid == (eid_prev + 1));
 
         now += 10;
         eid_prev = eid;
@@ -1248,12 +1192,13 @@ static void CheckFetchTimestamps(nlTestSuite *inSuite, void *inContext)
         TLVReader testReader;
         TLVWriter testWriter;
         utc_timestamp_t testUtcTimestamp = 0;
-        timestamp_t testTimestamp = 0;
-        event_id_t testEventID = 0;
+        timestamp_t testTimestamp        = 0;
+        event_id_t testEventID           = 0;
 
         event_id_read = counter;
         testWriter.Init(gLargeMemoryBackingStore, sizeof(gLargeMemoryBackingStore));
-        err = nl::Weave::Profiles::DataManagement::LoggingManagement::GetInstance().FetchEventsSince(testWriter, nl::Weave::Profiles::DataManagement::Info, event_id_read);
+        err = nl::Weave::Profiles::DataManagement::LoggingManagement::GetInstance().FetchEventsSince(
+            testWriter, nl::Weave::Profiles::DataManagement::Info, event_id_read);
         NL_TEST_ASSERT(inSuite, err == WEAVE_END_OF_TLV);
         NL_TEST_ASSERT(inSuite, event_id_read == eid_prev + 1);
 
@@ -1271,34 +1216,35 @@ static void CheckFetchTimestamps(nlTestSuite *inSuite, void *inContext)
         NL_TEST_ASSERT(inSuite, testEventID == counter);
         NL_TEST_ASSERT(inSuite, err == WEAVE_NO_ERROR);
 #if WEAVE_CONFIG_EVENT_LOGGING_UTC_TIMESTAMPS
-        if (counter >= k_num_events/2)
+        if (counter >= k_num_events / 2)
         {
-            NL_TEST_ASSERT(inSuite, testUtcTimestamp == test_start + (testEventID) * 10);
+            NL_TEST_ASSERT(inSuite, testUtcTimestamp == test_start + (testEventID) *10);
         }
         else
 #endif // WEAVE_CONFIG_EVENT_LOGGING_UTC_TIMESTAMPS
         {
-            NL_TEST_ASSERT(inSuite, testTimestamp == static_cast<timestamp_t>(test_start) + (testEventID) * 10);
+            NL_TEST_ASSERT(inSuite, testTimestamp == static_cast<timestamp_t>(test_start) + (testEventID) *10);
         }
     }
 }
 
 WEAVE_ERROR WriteLargeEvent(nl::Weave::TLV::TLVWriter & writer, uint8_t inDataTag, void * anAppState)
 {
-    WEAVE_ERROR err =  WEAVE_NO_ERROR;
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
     nl::Weave::TLV::TLVType containerType;
-    uint32_t *payloadEventSize;
-    uint8_t *dummyPayload = NULL;
+    uint32_t * payloadEventSize;
+    uint8_t * dummyPayload = NULL;
 
-    VerifyOrExit(anAppState  != NULL, err = WEAVE_ERROR_INVALID_ARGUMENT);
+    VerifyOrExit(anAppState != NULL, err = WEAVE_ERROR_INVALID_ARGUMENT);
     payloadEventSize = static_cast<uint32_t *>(anAppState);
 
-    dummyPayload = reinterpret_cast<uint8_t*>(malloc(*payloadEventSize));
+    dummyPayload = reinterpret_cast<uint8_t *>(malloc(*payloadEventSize));
     VerifyOrExit(dummyPayload != NULL, err = WEAVE_ERROR_NO_MEMORY);
 
     memset(dummyPayload, 0xa5, *payloadEventSize);
 
-    err = writer.StartContainer(ContextTag(nl::Weave::Profiles::DataManagement::kTag_EventData), nl::Weave::TLV::kTLVType_Structure, containerType);
+    err = writer.StartContainer(ContextTag(nl::Weave::Profiles::DataManagement::kTag_EventData), nl::Weave::TLV::kTLVType_Structure,
+                                containerType);
     SuccessOrExit(err);
 
     err = writer.PutBytes(nl::Weave::TLV::ContextTag(1), dummyPayload, *payloadEventSize);
@@ -1317,84 +1263,63 @@ exit:
     return err;
 }
 
-static void CheckLargeEvents(nlTestSuite *inSuite, void *inContext)
+static void CheckLargeEvents(nlTestSuite * inSuite, void * inContext)
 {
-    TestLoggingContext *context = static_cast<TestLoggingContext *>(inContext);
+    TestLoggingContext * context = static_cast<TestLoggingContext *>(inContext);
     uint32_t payloadSize;
     event_id_t eid1, eid2, eid3, eid4;
-    EventSchema schema = {
-        OpenCloseProfileID,
-        1, // Event type 1
-        nl::Weave::Profiles::DataManagement::Production,
-        1,
-        1
-    };
+    EventSchema schema = { OpenCloseProfileID,
+                           1, // Event type 1
+                           nl::Weave::Profiles::DataManagement::Production, 1, 1 };
 
     InitializeEventLogging(context);
 
-    nl::Weave::Profiles::DataManagement::LoggingManagement &logMgmt = nl::Weave::Profiles::DataManagement::LoggingManagement::GetInstance();
+    nl::Weave::Profiles::DataManagement::LoggingManagement & logMgmt =
+        nl::Weave::Profiles::DataManagement::LoggingManagement::GetInstance();
 
     // we expect this payload to succeed
     payloadSize = EVENT_PAYLOAD_SIZE_1;
-    eid1 = nl::Weave::Profiles::DataManagement::LogEvent(
-        schema,
-        WriteLargeEvent,
-        static_cast<void*> (&payloadSize)
-        );
+    eid1        = nl::Weave::Profiles::DataManagement::LogEvent(schema, WriteLargeEvent, static_cast<void *>(&payloadSize));
     NL_TEST_ASSERT(inSuite, eid1 == 0);
 
-    eid2 = nl::Weave::Profiles::DataManagement::LogEvent(
-        schema,
-        WriteLargeEvent,
-        static_cast<void*> (&payloadSize)
-        );
+    eid2 = nl::Weave::Profiles::DataManagement::LogEvent(schema, WriteLargeEvent, static_cast<void *>(&payloadSize));
     NL_TEST_ASSERT(inSuite, eid2 == 1);
     CheckLogState(inSuite, context, logMgmt, 2);
 
     // new test case - events will get retried if they fail
     payloadSize = EVENT_PAYLOAD_SIZE_2;
-    eid3 = nl::Weave::Profiles::DataManagement::LogEvent(
-        schema,
-        WriteLargeEvent,
-        static_cast<void*> (&payloadSize)
-        );
+    eid3        = nl::Weave::Profiles::DataManagement::LogEvent(schema, WriteLargeEvent, static_cast<void *>(&payloadSize));
     NL_TEST_ASSERT(inSuite, eid3 == 2);
 
     // this event is wider than the debug buffer
     payloadSize = EVENT_PAYLOAD_SIZE_3;
-    eid4 = nl::Weave::Profiles::DataManagement::LogEvent(
-        schema,
-        WriteLargeEvent,
-        static_cast<void*> (&payloadSize)
-        );
+    eid4        = nl::Weave::Profiles::DataManagement::LogEvent(schema, WriteLargeEvent, static_cast<void *>(&payloadSize));
     NL_TEST_ASSERT(inSuite, eid4 == 0);
 }
 
-static void CheckDropEvents(nlTestSuite *inSuite, void *inContext)
+#if WEAVE_CONFIG_EVENT_LOGGING_EXTERNAL_EVENT_SUPPORT
+static void CheckDropEvents(nlTestSuite * inSuite, void * inContext)
 {
     WEAVE_ERROR err;
-    int counter = 0;
-    TestLoggingContext *context = static_cast<TestLoggingContext *>(inContext);
-    EventSchema schema = {
-        OpenCloseProfileID,
-        1, // Event type 1
-        nl::Weave::Profiles::DataManagement::Production,
-        1,
-        1
-    };
+    int counter                  = 0;
+    TestLoggingContext * context = static_cast<TestLoggingContext *>(inContext);
+    EventSchema schema           = { OpenCloseProfileID,
+                           1, // Event type 1
+                           nl::Weave::Profiles::DataManagement::Production, 1, 1 };
     event_id_t eid_prev, eid;
-    CircularEventBuffer *prodBuf = reinterpret_cast<CircularEventBuffer *>(&gProdEventBuffer[0]);
-    uint32_t eventSizes[] = {
+    CircularEventBuffer * prodBuf = reinterpret_cast<CircularEventBuffer *>(&gProdEventBuffer[0]);
+    uint32_t eventSizes[]         = {
         EVENT_ENVELOPE_SIZE,
         EVENT_PAYLOAD_SIZE_1,
         EVENT_PAYLOAD_SIZE_2,
     };
-    const uint32_t numSizes = sizeof(eventSizes)/sizeof(uint32_t);
+    const uint32_t numSizes = sizeof(eventSizes) / sizeof(uint32_t);
     TLVWriter testWriter;
 
     InitializeEventLogging(context);
 
-    nl::Weave::Profiles::DataManagement::LoggingManagement &logMgmt = nl::Weave::Profiles::DataManagement::LoggingManagement::GetInstance();
+    nl::Weave::Profiles::DataManagement::LoggingManagement & logMgmt =
+        nl::Weave::Profiles::DataManagement::LoggingManagement::GetInstance();
 
     // register some fake events
     err = LogMockExternalEvents(10, 1);
@@ -1403,11 +1328,8 @@ static void CheckDropEvents(nlTestSuite *inSuite, void *inContext)
 
     while (prodBuf->mFirstEventID <= 10)
     {
-        eid = nl::Weave::Profiles::DataManagement::LogEvent(
-            schema,
-            WriteLargeEvent,
-            static_cast<void*> (&eventSizes[counter++ % numSizes])
-            );
+        eid = nl::Weave::Profiles::DataManagement::LogEvent(schema, WriteLargeEvent,
+                                                            static_cast<void *>(&eventSizes[counter++ % numSizes]));
         NL_TEST_ASSERT(inSuite, eid > eid_prev);
 
         if (eid_prev >= 10)
@@ -1438,25 +1360,24 @@ static void CheckDropEvents(nlTestSuite *inSuite, void *inContext)
     }
 }
 
-static void CheckFetchEvents(nlTestSuite *inSuite, void *inContext)
+#endif // WEAVE_CONFIG_EVENT_LOGGING_EXTERNAL_EVENT_SUPPORT
+
+static void CheckFetchEvents(nlTestSuite * inSuite, void * inContext)
 {
-    TestLoggingContext *context = static_cast<TestLoggingContext *>(inContext);
+    TestLoggingContext * context = static_cast<TestLoggingContext *>(inContext);
     event_id_t eid_prev, eid, eventId;
     size_t counter = 0;
     // small buffer, sized s.t. the events generated below will be
     // larger than a single buffer, but smaller than two buffers.
     uint8_t smallMemoryBackingStore[1280];
-    PacketBuffer *pbuf = PacketBuffer::New();
+    PacketBuffer * pbuf = PacketBuffer::New();
     TLVWriter testWriter;
     WEAVE_ERROR err;
     timestamp_t now;
     InitializeEventLogging(context);
     now = static_cast<timestamp_t>(0);
 
-    eid_prev = FastLogFreeform(
-        nl::Weave::Profiles::DataManagement::Production,
-        now,
-        "Freeform entry %d", counter);
+    eid_prev = FastLogFreeform(nl::Weave::Profiles::DataManagement::Production, now, "Freeform entry %d", counter);
 
     // The magic number "40" below is selected to be large enough to
     // generate more events than can fit in a single PacketBuffer, but
@@ -1465,16 +1386,14 @@ static void CheckFetchEvents(nlTestSuite *inSuite, void *inContext)
     // buffer, and the cases when the writer runs out of space before
     // the end of the log.
     now += 10;
-    for (counter = 0; counter < 40; counter++) {
-    // Sample production events, spaced 10 milliseconds apart
-        eid = FastLogFreeform(
-            nl::Weave::Profiles::DataManagement::Production,
-            now,
-            "Freeform entry %d", counter);
+    for (counter = 0; counter < 40; counter++)
+    {
+        // Sample production events, spaced 10 milliseconds apart
+        eid = FastLogFreeform(nl::Weave::Profiles::DataManagement::Production, now, "Freeform entry %d", counter);
         now += 10;
 
         NL_TEST_ASSERT(inSuite, eid > 0);
-        NL_TEST_ASSERT(inSuite, eid == (eid_prev+1));
+        NL_TEST_ASSERT(inSuite, eid == (eid_prev + 1));
 
         eid_prev = eid;
     }
@@ -1488,17 +1407,19 @@ static void CheckFetchEvents(nlTestSuite *inSuite, void *inContext)
     // returns WEAVE_END_OF_TLV
     eventId = 0;
     testWriter.Init(gLargeMemoryBackingStore, sizeof(gLargeMemoryBackingStore));
-    err = nl::Weave::Profiles::DataManagement::LoggingManagement::GetInstance().FetchEventsSince(testWriter, nl::Weave::Profiles::DataManagement::Production, eventId);
+    err = nl::Weave::Profiles::DataManagement::LoggingManagement::GetInstance().FetchEventsSince(
+        testWriter, nl::Weave::Profiles::DataManagement::Production, eventId);
     NL_TEST_ASSERT(inSuite, err == WEAVE_END_OF_TLV);
 
     // Test that offloading events into a smaller buffer with bounded
     // write length results in WEAVE_ERROR_BUFFER_TOO_SMALL and the
     // correct number of events as indicated by eventId
 
-    eventId = 0;
+    eventId  = 0;
     eid_prev = eventId;
     testWriter.Init(smallMemoryBackingStore, sizeof(smallMemoryBackingStore));
-    err = nl::Weave::Profiles::DataManagement::LoggingManagement::GetInstance().FetchEventsSince(testWriter, nl::Weave::Profiles::DataManagement::Production, eventId);
+    err = nl::Weave::Profiles::DataManagement::LoggingManagement::GetInstance().FetchEventsSince(
+        testWriter, nl::Weave::Profiles::DataManagement::Production, eventId);
     NL_TEST_ASSERT(inSuite, err == WEAVE_ERROR_BUFFER_TOO_SMALL);
     {
         TLVReader reader;
@@ -1513,19 +1434,23 @@ static void CheckFetchEvents(nlTestSuite *inSuite, void *inContext)
     // resume event offload; this one should reach the end of the
     // log (by construction)
     testWriter.Init(smallMemoryBackingStore, sizeof(smallMemoryBackingStore));
-    err = nl::Weave::Profiles::DataManagement::LoggingManagement::GetInstance().FetchEventsSince(testWriter, nl::Weave::Profiles::DataManagement::Production, eventId);
+    err = nl::Weave::Profiles::DataManagement::LoggingManagement::GetInstance().FetchEventsSince(
+        testWriter, nl::Weave::Profiles::DataManagement::Production, eventId);
     NL_TEST_ASSERT(inSuite, err == WEAVE_END_OF_TLV);
 
-    // Test that offloading events into a PacketBuffer-backed writer with the default (unbounded) max write length results in WEAVE_ERROR_NO_MEMORY
+    // Test that offloading events into a PacketBuffer-backed writer with the default (unbounded) max write length results in
+    // WEAVE_ERROR_NO_MEMORY
     eventId = 0;
     testWriter.Init(pbuf);
-    err = nl::Weave::Profiles::DataManagement::LoggingManagement::GetInstance().FetchEventsSince(testWriter, nl::Weave::Profiles::DataManagement::Production, eventId);
+    err = nl::Weave::Profiles::DataManagement::LoggingManagement::GetInstance().FetchEventsSince(
+        testWriter, nl::Weave::Profiles::DataManagement::Production, eventId);
     NL_TEST_ASSERT(inSuite, err == WEAVE_ERROR_NO_MEMORY);
 
     PacketBuffer::Free(pbuf);
     pbuf = PacketBuffer::New();
     testWriter.Init(pbuf);
-    err = nl::Weave::Profiles::DataManagement::LoggingManagement::GetInstance().FetchEventsSince(testWriter, nl::Weave::Profiles::DataManagement::Production, eventId);
+    err = nl::Weave::Profiles::DataManagement::LoggingManagement::GetInstance().FetchEventsSince(
+        testWriter, nl::Weave::Profiles::DataManagement::Production, eventId);
     NL_TEST_ASSERT(inSuite, err == WEAVE_END_OF_TLV);
 
     if (context->bdx)
@@ -1534,9 +1459,9 @@ static void CheckFetchEvents(nlTestSuite *inSuite, void *inContext)
     }
 }
 
-static void CheckBasicEventDeserialization(nlTestSuite *inSuite, void *inContext)
+static void CheckBasicEventDeserialization(nlTestSuite * inSuite, void * inContext)
 {
-    TestLoggingContext *context = static_cast<TestLoggingContext *>(inContext);
+    TestLoggingContext * context = static_cast<TestLoggingContext *>(inContext);
     WEAVE_ERROR err;
 
     nl::Weave::Profiles::DataManagement::SampleTrait::Event ev, ev2;
@@ -1550,16 +1475,16 @@ static void CheckBasicEventDeserialization(nlTestSuite *inSuite, void *inContext
 
     InitializeEventLogging(context);
 
-    uint32_t samples[6] = { 0, 1, 2, 3, 4, 5 };
-    ev.state = 5;
-    ev.timestamp = 328;
-    ev.structure.a = true;
-    ev.structure.b.str = "bloopbloop\0";
+    uint32_t samples[6]    = { 0, 1, 2, 3, 4, 5 };
+    ev.state               = 5;
+    ev.timestamp           = 328;
+    ev.structure.a         = true;
+    ev.structure.b.str     = "bloopbloop\0";
     ev.samples.num_samples = 6;
     ev.samples.samples_buf = samples;
 
     appData.mStructureData = static_cast<void *>(&ev);
-    appData.mFieldSchema = &sampleEventSchema;
+    appData.mFieldSchema   = &sampleEventSchema;
 
     outer.Init(sBuffer, sizeof(sBuffer));
 
@@ -1590,7 +1515,7 @@ static void CheckBasicEventDeserialization(nlTestSuite *inSuite, void *inContext
     NL_TEST_ASSERT(inSuite, err == WEAVE_NO_ERROR);
 
     appData.mStructureData = static_cast<void *>(&ev2);
-    appData.mFieldSchema = &sampleEventSchema;
+    appData.mFieldSchema   = &sampleEventSchema;
 
     err = outerReader.OpenContainer(reader);
     NL_TEST_ASSERT(inSuite, err == WEAVE_NO_ERROR);
@@ -1617,12 +1542,12 @@ static void CheckBasicEventDeserialization(nlTestSuite *inSuite, void *inContext
     nl::DeallocateDeserializedStructure(&ev2, &sampleEventSchema, &serializationContext);
 }
 
-static void CheckComplexEventDeserialization(nlTestSuite *inSuite, void *inContext)
+static void CheckComplexEventDeserialization(nlTestSuite * inSuite, void * inContext)
 {
-    TestLoggingContext *context = static_cast<TestLoggingContext *>(inContext);
+    TestLoggingContext * context = static_cast<TestLoggingContext *>(inContext);
     WEAVE_ERROR err;
 
-    Schema::Nest::Test::Trait::TestETrait::TestEEvent ev = { 0 };
+    Schema::Nest::Test::Trait::TestETrait::TestEEvent ev  = { 0 };
     Schema::Nest::Test::Trait::TestETrait::TestEEvent ev2 = { 0 };
     nl::StructureSchemaPointerPair appData;
     nl::Weave::TLV::TLVWriter outer, writer;
@@ -1649,24 +1574,24 @@ static void CheckComplexEventDeserialization(nlTestSuite *inSuite, void *inConte
     strukchaz[1].seB = false;
     strukchaz[2].seA = 3333333;
     strukchaz[2].seB = true;
-    ev.teA = 444444;
-    ev.teB = -555555;
-    ev.teC = true;
-    ev.teD = -666666;
-    ev.teE.seA = 777777;
-    ev.teE.seB = false;
-    ev.teE.seC = -888888;
-    ev.teF = 999999;
-    ev.teG.seA = 101010;
-    ev.teG.seB = true;
-    ev.teH.num = sizeof(numbaz)/sizeof(numbaz[0]);
-    ev.teH.buf = numbaz;
-    ev.teI.num = sizeof(strukchaz)/sizeof(strukchaz[0]);
-    ev.teI.buf = strukchaz;
-    ev.teJ = 12121;
+    ev.teA           = 444444;
+    ev.teB           = -555555;
+    ev.teC           = true;
+    ev.teD           = -666666;
+    ev.teE.seA       = 777777;
+    ev.teE.seB       = false;
+    ev.teE.seC       = -888888;
+    ev.teF           = 999999;
+    ev.teG.seA       = 101010;
+    ev.teG.seB       = true;
+    ev.teH.num       = sizeof(numbaz) / sizeof(numbaz[0]);
+    ev.teH.buf       = numbaz;
+    ev.teI.num       = sizeof(strukchaz) / sizeof(strukchaz[0]);
+    ev.teI.buf       = strukchaz;
+    ev.teJ           = 12121;
 
     appData.mStructureData = static_cast<void *>(&ev);
-    appData.mFieldSchema = &Schema::Nest::Test::Trait::TestETrait::TestEEvent::FieldSchema;
+    appData.mFieldSchema   = &Schema::Nest::Test::Trait::TestETrait::TestEEvent::FieldSchema;
 
     outer.Init(sBuffer, sizeof(sBuffer));
 
@@ -1693,7 +1618,7 @@ static void CheckComplexEventDeserialization(nlTestSuite *inSuite, void *inConte
     NL_TEST_ASSERT(inSuite, err == WEAVE_NO_ERROR);
 
     appData.mStructureData = static_cast<void *>(&ev2);
-    appData.mFieldSchema = &Schema::Nest::Test::Trait::TestETrait::TestEEvent::FieldSchema;
+    appData.mFieldSchema   = &Schema::Nest::Test::Trait::TestETrait::TestEEvent::FieldSchema;
 
     err = outerReader.OpenContainer(reader);
     NL_TEST_ASSERT(inSuite, err == WEAVE_NO_ERROR);
@@ -1736,9 +1661,9 @@ exit:
     return;
 }
 
-static void CheckEmptyArrayEventDeserialization(nlTestSuite *inSuite, void *inContext)
+static void CheckEmptyArrayEventDeserialization(nlTestSuite * inSuite, void * inContext)
 {
-    TestLoggingContext *context = static_cast<TestLoggingContext *>(inContext);
+    TestLoggingContext * context = static_cast<TestLoggingContext *>(inContext);
     WEAVE_ERROR err;
 
     nl::Weave::Profiles::DataManagement::SampleTrait::Event ev, ev2;
@@ -1752,15 +1677,15 @@ static void CheckEmptyArrayEventDeserialization(nlTestSuite *inSuite, void *inCo
 
     InitializeEventLogging(context);
 
-    ev.state = 5;
-    ev.timestamp = 328;
-    ev.structure.a = true;
-    ev.structure.b.str = "bloopbloop\0";
+    ev.state               = 5;
+    ev.timestamp           = 328;
+    ev.structure.a         = true;
+    ev.structure.b.str     = "bloopbloop\0";
     ev.samples.num_samples = 0;
     ev.samples.samples_buf = NULL;
 
     appData.mStructureData = static_cast<void *>(&ev);
-    appData.mFieldSchema = &sampleEventSchema;
+    appData.mFieldSchema   = &sampleEventSchema;
 
     outer.Init(sBuffer, sizeof(sBuffer));
 
@@ -1792,7 +1717,7 @@ static void CheckEmptyArrayEventDeserialization(nlTestSuite *inSuite, void *inCo
     NL_TEST_ASSERT(inSuite, err == WEAVE_NO_ERROR);
 
     appData.mStructureData = static_cast<void *>(&ev2);
-    appData.mFieldSchema = &sampleEventSchema;
+    appData.mFieldSchema   = &sampleEventSchema;
 
     err = outerReader.OpenContainer(reader);
     NL_TEST_ASSERT(inSuite, err == WEAVE_NO_ERROR);
@@ -1813,10 +1738,11 @@ static void CheckEmptyArrayEventDeserialization(nlTestSuite *inSuite, void *inCo
     NL_TEST_ASSERT(inSuite, ev2.samples.num_samples == ev.samples.num_samples);
     NL_TEST_ASSERT(inSuite, ev2.samples.samples_buf == NULL);
 
-    memMgmt.mem_free((void *)ev2.structure.b.str);
+    memMgmt.mem_free((void *) ev2.structure.b.str);
 }
 
-static WEAVE_ERROR FetchEventsHelper(TLVReader &aReader, event_id_t aEventId, uint8_t *aBackingStore, size_t aLen, ImportanceType aImportance)
+static WEAVE_ERROR FetchEventsHelper(TLVReader & aReader, event_id_t aEventId, uint8_t * aBackingStore, size_t aLen,
+                                     ImportanceType aImportance)
 {
     WEAVE_ERROR err;
     TLVWriter testWriter;
@@ -1843,35 +1769,34 @@ exit:
     return err;
 }
 
-class TestEventProcessor : public EventProcessor {
+class TestEventProcessor : public EventProcessor
+{
 public:
     TestEventProcessor();
-    WEAVE_ERROR ProcessEvent(TLVReader inReader, SubscriptionClient &inClient, const EventHeader &inEventHeader);
-    WEAVE_ERROR GapDetected(const EventHeader &inEventHeader);
+    WEAVE_ERROR ProcessEvent(TLVReader inReader, SubscriptionClient & inClient, const EventHeader & inEventHeader);
+    WEAVE_ERROR GapDetected(const EventHeader & inEventHeader);
 
     SchemaVersionRange mSchemaVersionRange;
 };
 
-TestEventProcessor::TestEventProcessor()
-    : EventProcessor(0)
-{
-}
+TestEventProcessor::TestEventProcessor() : EventProcessor(0) { }
 
-WEAVE_ERROR TestEventProcessor::ProcessEvent(TLVReader inReader, SubscriptionClient &inClient, const EventHeader &inEventHeader)
+WEAVE_ERROR TestEventProcessor::ProcessEvent(TLVReader inReader, SubscriptionClient & inClient, const EventHeader & inEventHeader)
 {
     mSchemaVersionRange = inEventHeader.mDataSchemaVersionRange;
     return WEAVE_NO_ERROR;
 }
 
-WEAVE_ERROR TestEventProcessor::GapDetected(const EventHeader &inEventHeader)
+WEAVE_ERROR TestEventProcessor::GapDetected(const EventHeader & inEventHeader)
 {
     return WEAVE_NO_ERROR;
 }
 
-static WEAVE_ERROR VersionCompatibilityHelper(void *inContext, SchemaVersionRange &encodedSchemaVersionRange, SchemaVersionRange &decodedSchemaVersionRange)
+static WEAVE_ERROR VersionCompatibilityHelper(void * inContext, SchemaVersionRange & encodedSchemaVersionRange,
+                                              SchemaVersionRange & decodedSchemaVersionRange)
 {
     WEAVE_ERROR err;
-    TestLoggingContext *context = static_cast<TestLoggingContext *>(inContext);
+    TestLoggingContext * context = static_cast<TestLoggingContext *>(inContext);
 
     InitializeEventLoggingWithPersistedCounters(context, 1, nl::Weave::Profiles::DataManagement::Production);
 
@@ -1879,7 +1804,7 @@ static WEAVE_ERROR VersionCompatibilityHelper(void *inContext, SchemaVersionRang
     uint8_t backingStore[1024];
     uint32_t bytesWritten;
     Schema::Nest::Test::Trait::TestETrait::TestEEvent evN = { 0 };
-    EventSchema testSchema = Schema::Nest::Test::Trait::TestETrait::TestEEvent::Schema;
+    EventSchema testSchema                                = Schema::Nest::Test::Trait::TestETrait::TestEEvent::Schema;
     TestEventProcessor eventProcessor;
 
     nl::MemoryManagement memMgmt = { malloc, free, realloc };
@@ -1891,12 +1816,13 @@ static WEAVE_ERROR VersionCompatibilityHelper(void *inContext, SchemaVersionRang
     InitSubscriptionClient(context);
 
     testSchema.mMinCompatibleDataSchemaVersion = encodedSchemaVersionRange.mMinVersion;
-    testSchema.mDataSchemaVersion = encodedSchemaVersionRange.mMaxVersion;
+    testSchema.mDataSchemaVersion              = encodedSchemaVersionRange.mMaxVersion;
 
     appData.mStructureData = static_cast<void *>(&evN);
-    appData.mFieldSchema = &Schema::Nest::Test::Trait::TestETrait::TestEEvent::FieldSchema;
+    appData.mFieldSchema   = &Schema::Nest::Test::Trait::TestETrait::TestEEvent::FieldSchema;
 
-    event_id_t eventId = nl::Weave::Profiles::DataManagement::LogEvent(testSchema, nl::SerializedDataToTLVWriterHelper, (void *)&appData);
+    event_id_t eventId =
+        nl::Weave::Profiles::DataManagement::LogEvent(testSchema, nl::SerializedDataToTLVWriterHelper, (void *) &appData);
 
     err = FetchEventsHelper(testReader, eventId, backingStore, sizeof(backingStore));
     SuccessOrExit(err);
@@ -1918,7 +1844,7 @@ exit:
     return err;
 }
 
-static void CheckVersion1DataCompatibility(nlTestSuite *inSuite, void *inContext)
+static void CheckVersion1DataCompatibility(nlTestSuite * inSuite, void * inContext)
 {
     WEAVE_ERROR err;
     SchemaVersionRange encodedSchemaVersionRange, decodedSchemaVersionRange;
@@ -1931,7 +1857,7 @@ static void CheckVersion1DataCompatibility(nlTestSuite *inSuite, void *inContext
     NL_TEST_ASSERT(inSuite, encodedSchemaVersionRange == decodedSchemaVersionRange);
 }
 
-static void CheckForwardDataCompatibility(nlTestSuite *inSuite, void *inContext)
+static void CheckForwardDataCompatibility(nlTestSuite * inSuite, void * inContext)
 {
     WEAVE_ERROR err;
     SchemaVersionRange encodedSchemaVersionRange, decodedSchemaVersionRange;
@@ -1944,7 +1870,7 @@ static void CheckForwardDataCompatibility(nlTestSuite *inSuite, void *inContext)
     NL_TEST_ASSERT(inSuite, encodedSchemaVersionRange == decodedSchemaVersionRange);
 }
 
-static void CheckDataIncompatibility(nlTestSuite *inSuite, void *inContext)
+static void CheckDataIncompatibility(nlTestSuite * inSuite, void * inContext)
 {
     WEAVE_ERROR err;
     SchemaVersionRange encodedSchemaVersionRange, decodedSchemaVersionRange;
@@ -1959,12 +1885,13 @@ static void CheckDataIncompatibility(nlTestSuite *inSuite, void *inContext)
 
 namespace {
 
-class FakeEventProcessor : public EventProcessor {
+class FakeEventProcessor : public EventProcessor
+{
 public:
     FakeEventProcessor();
     void ClearMock();
-    WEAVE_ERROR ProcessEvent(TLVReader inReader, SubscriptionClient &inClient, const EventHeader &inEventHeader);
-    WEAVE_ERROR GapDetected(const EventHeader &inEventHeader);
+    WEAVE_ERROR ProcessEvent(TLVReader inReader, SubscriptionClient & inClient, const EventHeader & inEventHeader);
+    WEAVE_ERROR GapDetected(const EventHeader & inEventHeader);
 
     EventHeader mLastEventHeader;
     bool mGapDetected;
@@ -1972,43 +1899,38 @@ public:
     int mEventsProcessed;
 };
 
-FakeEventProcessor::FakeEventProcessor()
-    : EventProcessor(0)
-    , mLastEventHeader()
-    , mGapDetected(false)
-    , mGapEventHeader()
-    , mEventsProcessed()
-{
-}
+FakeEventProcessor::FakeEventProcessor() :
+    EventProcessor(0), mLastEventHeader(), mGapDetected(false), mGapEventHeader(), mEventsProcessed()
+{ }
 
 void FakeEventProcessor::ClearMock()
 {
     mLastEventHeader = EventHeader();
-    mGapDetected = false;
-    mGapEventHeader = EventHeader();
+    mGapDetected     = false;
+    mGapEventHeader  = EventHeader();
     mEventsProcessed = 0;
 }
 
-WEAVE_ERROR FakeEventProcessor::ProcessEvent(TLVReader inReader, SubscriptionClient &inClient, const EventHeader &inEventHeader)
+WEAVE_ERROR FakeEventProcessor::ProcessEvent(TLVReader inReader, SubscriptionClient & inClient, const EventHeader & inEventHeader)
 {
     mLastEventHeader = inEventHeader;
     mEventsProcessed++;
     return WEAVE_NO_ERROR;
 }
 
-WEAVE_ERROR FakeEventProcessor::GapDetected(const EventHeader &inEventHeader)
+WEAVE_ERROR FakeEventProcessor::GapDetected(const EventHeader & inEventHeader)
 {
-    mGapDetected = true;
+    mGapDetected    = true;
     mGapEventHeader = inEventHeader;
     return WEAVE_NO_ERROR;
 }
 
-}
+} // namespace
 
-static void CheckGapDetection(nlTestSuite *inSuite, void *inContext)
+static void CheckGapDetection(nlTestSuite * inSuite, void * inContext)
 {
     WEAVE_ERROR err;
-    TestLoggingContext *context = static_cast<TestLoggingContext *>(inContext);
+    TestLoggingContext * context = static_cast<TestLoggingContext *>(inContext);
 
     InitializeEventLoggingWithPersistedCounters(context, 1, nl::Weave::Profiles::DataManagement::Production);
 
@@ -2016,7 +1938,7 @@ static void CheckGapDetection(nlTestSuite *inSuite, void *inContext)
     uint8_t backingStore[1024];
     uint32_t bytesWritten;
     Schema::Nest::Test::Trait::TestETrait::TestEEvent evN = { 0 };
-    EventSchema testSchema = Schema::Nest::Test::Trait::TestETrait::TestEEvent::Schema;
+    EventSchema testSchema                                = Schema::Nest::Test::Trait::TestETrait::TestEEvent::Schema;
     FakeEventProcessor eventProcessor;
 
     nl::MemoryManagement memMgmt = { malloc, free, realloc };
@@ -2028,11 +1950,15 @@ static void CheckGapDetection(nlTestSuite *inSuite, void *inContext)
     InitSubscriptionClient(context);
 
     appData.mStructureData = static_cast<void *>(&evN);
-    appData.mFieldSchema = &Schema::Nest::Test::Trait::TestETrait::TestEEvent::FieldSchema;
+    appData.mFieldSchema   = &Schema::Nest::Test::Trait::TestETrait::TestEEvent::FieldSchema;
 
     // Arrange two consecutive events
-    event_id_t eventId_A = nl::Weave::Profiles::DataManagement::LogEvent(testSchema, nl::SerializedDataToTLVWriterHelper, (void *)&appData);
-    event_id_t eventId_B = nl::Weave::Profiles::DataManagement::LogEvent(testSchema, nl::SerializedDataToTLVWriterHelper, (void *)&appData);
+    event_id_t eventId_A =
+        nl::Weave::Profiles::DataManagement::LogEvent(testSchema, nl::SerializedDataToTLVWriterHelper, (void *) &appData);
+    event_id_t eventId_B =
+        nl::Weave::Profiles::DataManagement::LogEvent(testSchema, nl::SerializedDataToTLVWriterHelper, (void *) &appData);
+
+    IgnoreUnusedVariable(eventId_B);
 
     // Arrange testReader with all events from the start
     err = FetchEventsHelper(testReader, eventId_A, backingStore, sizeof(backingStore));
@@ -2048,8 +1974,12 @@ static void CheckGapDetection(nlTestSuite *inSuite, void *inContext)
     eventProcessor.ClearMock();
 
     // Arrange two more consecutive events
-    event_id_t eventId_C = nl::Weave::Profiles::DataManagement::LogEvent(testSchema, nl::SerializedDataToTLVWriterHelper, (void *)&appData);
-    event_id_t eventId_D = nl::Weave::Profiles::DataManagement::LogEvent(testSchema, nl::SerializedDataToTLVWriterHelper, (void *)&appData);
+    event_id_t eventId_C =
+        nl::Weave::Profiles::DataManagement::LogEvent(testSchema, nl::SerializedDataToTLVWriterHelper, (void *) &appData);
+    event_id_t eventId_D =
+        nl::Weave::Profiles::DataManagement::LogEvent(testSchema, nl::SerializedDataToTLVWriterHelper, (void *) &appData);
+
+    IgnoreUnusedVariable(eventId_C);
 
     // Arrange testReader skipping eventId_C
     err = FetchEventsHelper(testReader, eventId_D, backingStore, sizeof(backingStore));
@@ -2065,10 +1995,10 @@ static void CheckGapDetection(nlTestSuite *inSuite, void *inContext)
     eventProcessor.ClearMock();
 }
 
-static void CheckDropOverlap(nlTestSuite *inSuite, void *inContext)
+static void CheckDropOverlap(nlTestSuite * inSuite, void * inContext)
 {
     WEAVE_ERROR err;
-    TestLoggingContext *context = static_cast<TestLoggingContext *>(inContext);
+    TestLoggingContext * context = static_cast<TestLoggingContext *>(inContext);
 
     InitializeEventLoggingWithPersistedCounters(context, 1, nl::Weave::Profiles::DataManagement::Production);
 
@@ -2076,7 +2006,7 @@ static void CheckDropOverlap(nlTestSuite *inSuite, void *inContext)
     uint8_t backingStore[1024];
     uint32_t bytesWritten;
     Schema::Nest::Test::Trait::TestETrait::TestEEvent evN = { 0 };
-    EventSchema testSchema = Schema::Nest::Test::Trait::TestETrait::TestEEvent::Schema;
+    EventSchema testSchema                                = Schema::Nest::Test::Trait::TestETrait::TestEEvent::Schema;
     FakeEventProcessor eventProcessor;
 
     nl::MemoryManagement memMgmt = { malloc, free, realloc };
@@ -2088,11 +2018,13 @@ static void CheckDropOverlap(nlTestSuite *inSuite, void *inContext)
     InitSubscriptionClient(context);
 
     appData.mStructureData = static_cast<void *>(&evN);
-    appData.mFieldSchema = &Schema::Nest::Test::Trait::TestETrait::TestEEvent::FieldSchema;
+    appData.mFieldSchema   = &Schema::Nest::Test::Trait::TestETrait::TestEEvent::FieldSchema;
 
     // Arrange two consecutive events
-    event_id_t eventId_A = nl::Weave::Profiles::DataManagement::LogEvent(testSchema, nl::SerializedDataToTLVWriterHelper, (void *)&appData);
-    event_id_t eventId_B = nl::Weave::Profiles::DataManagement::LogEvent(testSchema, nl::SerializedDataToTLVWriterHelper, (void *)&appData);
+    event_id_t eventId_A =
+        nl::Weave::Profiles::DataManagement::LogEvent(testSchema, nl::SerializedDataToTLVWriterHelper, (void *) &appData);
+    event_id_t eventId_B =
+        nl::Weave::Profiles::DataManagement::LogEvent(testSchema, nl::SerializedDataToTLVWriterHelper, (void *) &appData);
 
     // Arrange testReader with all events from the start
     err = FetchEventsHelper(testReader, eventId_A, backingStore, sizeof(backingStore));
@@ -2109,8 +2041,13 @@ static void CheckDropOverlap(nlTestSuite *inSuite, void *inContext)
     eventProcessor.ClearMock();
 
     // Arrange two more consecutive events
-    event_id_t eventId_C = nl::Weave::Profiles::DataManagement::LogEvent(testSchema, nl::SerializedDataToTLVWriterHelper, (void *)&appData);
-    event_id_t eventId_D = nl::Weave::Profiles::DataManagement::LogEvent(testSchema, nl::SerializedDataToTLVWriterHelper, (void *)&appData);
+    event_id_t eventId_C =
+        nl::Weave::Profiles::DataManagement::LogEvent(testSchema, nl::SerializedDataToTLVWriterHelper, (void *) &appData);
+    event_id_t eventId_D =
+        nl::Weave::Profiles::DataManagement::LogEvent(testSchema, nl::SerializedDataToTLVWriterHelper, (void *) &appData);
+
+    IgnoreUnusedVariable(eventId_C);
+    IgnoreUnusedVariable(eventId_D);
 
     // Arrange testReader overlapping eventId_B
     err = FetchEventsHelper(testReader, eventId_B, backingStore, sizeof(backingStore));
@@ -2141,14 +2078,14 @@ static void CheckDropOverlap(nlTestSuite *inSuite, void *inContext)
     eventProcessor.ClearMock();
 }
 
-static void CheckNullableFieldsSimple(nlTestSuite *inSuite, void *inContext)
+static void CheckNullableFieldsSimple(nlTestSuite * inSuite, void * inContext)
 {
-    TestLoggingContext *context = static_cast<TestLoggingContext *>(inContext);
+    TestLoggingContext * context = static_cast<TestLoggingContext *>(inContext);
     WEAVE_ERROR err;
 
     TLVReader testReader;
     uint8_t backingStore[1024];
-    Schema::Nest::Test::Trait::TestETrait::TestEEvent evN = { 0 };
+    Schema::Nest::Test::Trait::TestETrait::TestEEvent evN             = { 0 };
     Schema::Nest::Test::Trait::TestETrait::TestEEvent deserializedEvN = { 0 };
 
     nl::MemoryManagement memMgmt = { malloc, free, realloc };
@@ -2178,25 +2115,25 @@ static void CheckNullableFieldsSimple(nlTestSuite *inSuite, void *inContext)
     NL_TEST_ASSERT(inSuite, deserializedEvN.IsTeJPresent() == false);
 }
 
-static void CheckNullableFieldsComplex(nlTestSuite *inSuite, void *inContext)
+static void CheckNullableFieldsComplex(nlTestSuite * inSuite, void * inContext)
 {
     // pattern: for each bit in nullified fields, set and check
     // for array of nullable structs, set and check
-    TestLoggingContext *context = static_cast<TestLoggingContext *>(inContext);
+    TestLoggingContext * context = static_cast<TestLoggingContext *>(inContext);
     WEAVE_ERROR err;
 
     uint8_t backingStore[1024];
     Schema::Nest::Test::Trait::TestETrait::TestENullableEvent teN_s = { 0 };
 
-    teN_s.neA = 0xAAAAAAAA;
-    teN_s.neB = -1;
-    teN_s.neC = true;
-    teN_s.neD = "bar\0";
-    teN_s.neE = 5;
-    teN_s.neF = 0x77777777;
-    teN_s.neG = -30;
-    teN_s.neH = false;
-    teN_s.neI = "foo\0";
+    teN_s.neA     = 0xAAAAAAAA;
+    teN_s.neB     = -1;
+    teN_s.neC     = true;
+    teN_s.neD     = "bar\0";
+    teN_s.neE     = 5;
+    teN_s.neF     = 0x77777777;
+    teN_s.neG     = -30;
+    teN_s.neH     = false;
+    teN_s.neI     = "foo\0";
     teN_s.neJ.neA = 88;
     teN_s.neJ.neB = true;
 
@@ -2365,39 +2302,34 @@ static void CheckNullableFieldsComplex(nlTestSuite *inSuite, void *inContext)
     }
 }
 
-static void CheckWDMOffloadTrigger(nlTestSuite *inSuite, void *inContext)
+static void CheckWDMOffloadTrigger(nlTestSuite * inSuite, void * inContext)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
     timestamp_t now;
     size_t counter = 0;
     uint32_t eventSize;
-    ::nl::Weave::Profiles::DataManagement::TestSubscriptionHandler *testSubHandler;
-    ::nl::Weave::Profiles::DataManagement::SubscriptionHandler *subHandler;
-    nl::Weave::Profiles::DataManagement::LoggingManagement &logger =
+    ::nl::Weave::Profiles::DataManagement::TestSubscriptionHandler * testSubHandler;
+    ::nl::Weave::Profiles::DataManagement::SubscriptionHandler * subHandler;
+    nl::Weave::Profiles::DataManagement::LoggingManagement & logger =
         nl::Weave::Profiles::DataManagement::LoggingManagement::GetInstance();
 
     event_id_t eid, eid_prev;
-    TestLoggingContext *context = static_cast<TestLoggingContext *>(inContext);
+    TestLoggingContext * context = static_cast<TestLoggingContext *>(inContext);
 
     InitializeEventLogging(context);
 
     // Each event is about 40 bytes; write 40 of those to ensure we
     // override the default WDM event byte threshold
 
-    now = System::Layer::GetClock_MonotonicMS();
-    eid_prev = FastLogFreeform(
-        nl::Weave::Profiles::DataManagement::Production,
-        now,
-        "Freeform entry %d", counter++);
+    now       = System::Layer::GetClock_MonotonicMS();
+    eid_prev  = FastLogFreeform(nl::Weave::Profiles::DataManagement::Production, now, "Freeform entry %d", counter++);
     eventSize = logger.GetBytesWritten();
 
-    for (size_t expectedBufferSize = 0; expectedBufferSize < WEAVE_CONFIG_EVENT_LOGGING_BYTE_THRESHOLD; expectedBufferSize += eventSize)
+    for (size_t expectedBufferSize = 0; expectedBufferSize < WEAVE_CONFIG_EVENT_LOGGING_BYTE_THRESHOLD;
+         expectedBufferSize += eventSize)
     {
         now += 10;
-        eid = FastLogFreeform(
-            nl::Weave::Profiles::DataManagement::Production,
-            now,
-            "Freeform entry %d", counter++);
+        eid = FastLogFreeform(nl::Weave::Profiles::DataManagement::Production, now, "Freeform entry %d", counter++);
         NL_TEST_ASSERT(inSuite, eid == (eid_prev + 1));
         eid_prev = eid;
     }
@@ -2409,7 +2341,7 @@ static void CheckWDMOffloadTrigger(nlTestSuite *inSuite, void *inContext)
     err = ::nl::Weave::Profiles::DataManagement::SubscriptionEngine::GetInstance()->NewSubscriptionHandler(&subHandler);
     NL_TEST_ASSERT(inSuite, err == WEAVE_NO_ERROR);
     testSubHandler = static_cast<::nl::Weave::Profiles::DataManagement::TestSubscriptionHandler *>(subHandler);
-    new (testSubHandler) ::nl::Weave::Profiles::DataManagement::TestSubscriptionHandler();
+    new (testSubHandler)::nl::Weave::Profiles::DataManagement::TestSubscriptionHandler();
 
     NL_TEST_ASSERT(inSuite, testSubHandler->IsFree());
 
@@ -2422,14 +2354,10 @@ static void CheckWDMOffloadTrigger(nlTestSuite *inSuite, void *inContext)
     NL_TEST_ASSERT(inSuite, logger.CheckShouldRunWDM() == false);
 
     // A single event at this point should not trigger the engine
-    eid = FastLogFreeform(
-        nl::Weave::Profiles::DataManagement::Production,
-        now,
-        "Freeform entry %d", counter++);
+    eid = FastLogFreeform(nl::Weave::Profiles::DataManagement::Production, now, "Freeform entry %d", counter++);
     NL_TEST_ASSERT(inSuite, eid == (eid_prev + 1));
     NL_TEST_ASSERT(inSuite, logger.CheckShouldRunWDM() == false);
 }
-
 
 // Mock'd Events (would be autogen'd by phoenix)
 struct CurrentEvent
@@ -2437,16 +2365,28 @@ struct CurrentEvent
     int32_t enumState;
     bool boolState;
     static const nl::SchemaFieldDescriptor FieldSchema;
-    enum { kProfileId = 0x1U, kEventTypeId = 0x1U };
+    enum
+    {
+        kProfileId   = 0x1U,
+        kEventTypeId = 0x1U
+    };
     static const nl::Weave::Profiles::DataManagement::EventSchema Schema;
 };
-const nl::FieldDescriptor CurrentEventFieldDescriptors[] =
-{
+const nl::FieldDescriptor CurrentEventFieldDescriptors[] = {
     { NULL, offsetof(CurrentEvent, enumState), SET_TYPE_AND_FLAGS(nl::SerializedFieldTypeInt32, 0), 1 },
     { NULL, offsetof(CurrentEvent, boolState), SET_TYPE_AND_FLAGS(nl::SerializedFieldTypeBoolean, 0), 32 },
 };
-const nl::SchemaFieldDescriptor CurrentEvent::FieldSchema = { .mNumFieldDescriptorElements = sizeof(CurrentEventFieldDescriptors)/sizeof(CurrentEventFieldDescriptors[0]), .mFields = CurrentEventFieldDescriptors, .mSize = sizeof(CurrentEvent) };
-const nl::Weave::Profiles::DataManagement::EventSchema CurrentEvent::Schema = { .mProfileId = kProfileId, .mStructureType = 0x1, .mImportance = nl::Weave::Profiles::DataManagement::ProductionCritical, .mDataSchemaVersion = 1, .mMinCompatibleDataSchemaVersion = 1 };
+const nl::SchemaFieldDescriptor CurrentEvent::FieldSchema = { .mNumFieldDescriptorElements = sizeof(CurrentEventFieldDescriptors) /
+                                                                  sizeof(CurrentEventFieldDescriptors[0]),
+                                                              .mFields = CurrentEventFieldDescriptors,
+                                                              .mSize   = sizeof(CurrentEvent) };
+const nl::Weave::Profiles::DataManagement::EventSchema CurrentEvent::Schema = {
+    .mProfileId                      = kProfileId,
+    .mStructureType                  = 0x1,
+    .mImportance                     = nl::Weave::Profiles::DataManagement::ProductionCritical,
+    .mDataSchemaVersion              = 1,
+    .mMinCompatibleDataSchemaVersion = 1
+};
 
 struct FutureEventNewBaseField
 {
@@ -2454,21 +2394,34 @@ struct FutureEventNewBaseField
     int32_t otherEnumState;
     bool boolState;
     static const nl::SchemaFieldDescriptor FieldSchema;
-    enum { kProfileId = 0x1U, kEventTypeId = 0x1U };
+    enum
+    {
+        kProfileId   = 0x1U,
+        kEventTypeId = 0x1U
+    };
     static const nl::Weave::Profiles::DataManagement::EventSchema Schema;
 };
-const nl::FieldDescriptor FutureEventNewBaseFieldFieldDescriptors[] =
-{
+const nl::FieldDescriptor FutureEventNewBaseFieldFieldDescriptors[] = {
     { NULL, offsetof(FutureEventNewBaseField, enumState), SET_TYPE_AND_FLAGS(nl::SerializedFieldTypeInt32, 0), 1 },
     { NULL, offsetof(FutureEventNewBaseField, otherEnumState), SET_TYPE_AND_FLAGS(nl::SerializedFieldTypeInt32, 0), 2 },
     { NULL, offsetof(FutureEventNewBaseField, boolState), SET_TYPE_AND_FLAGS(nl::SerializedFieldTypeBoolean, 0), 32 },
 };
-const nl::SchemaFieldDescriptor FutureEventNewBaseField::FieldSchema = { .mNumFieldDescriptorElements = sizeof(FutureEventNewBaseFieldFieldDescriptors)/sizeof(FutureEventNewBaseFieldFieldDescriptors[0]), .mFields = FutureEventNewBaseFieldFieldDescriptors, .mSize = sizeof(FutureEventNewBaseField) };
-const nl::Weave::Profiles::DataManagement::EventSchema FutureEventNewBaseField::Schema = { .mProfileId = kProfileId, .mStructureType = 0x1, .mImportance = nl::Weave::Profiles::DataManagement::ProductionCritical, .mDataSchemaVersion = 2, .mMinCompatibleDataSchemaVersion = 1 };
+const nl::SchemaFieldDescriptor FutureEventNewBaseField::FieldSchema                   = { .mNumFieldDescriptorElements =
+                                                                             sizeof(FutureEventNewBaseFieldFieldDescriptors) /
+                                                                             sizeof(FutureEventNewBaseFieldFieldDescriptors[0]),
+                                                                         .mFields = FutureEventNewBaseFieldFieldDescriptors,
+                                                                         .mSize   = sizeof(FutureEventNewBaseField) };
+const nl::Weave::Profiles::DataManagement::EventSchema FutureEventNewBaseField::Schema = {
+    .mProfileId                      = kProfileId,
+    .mStructureType                  = 0x1,
+    .mImportance                     = nl::Weave::Profiles::DataManagement::ProductionCritical,
+    .mDataSchemaVersion              = 2,
+    .mMinCompatibleDataSchemaVersion = 1
+};
 
-static void CheckDeserializingNewerVersion(nlTestSuite *inSuite, void *inContext)
+static void CheckDeserializingNewerVersion(nlTestSuite * inSuite, void * inContext)
 {
-    TestLoggingContext *context = static_cast<TestLoggingContext *>(inContext);
+    TestLoggingContext * context = static_cast<TestLoggingContext *>(inContext);
     WEAVE_ERROR err;
     nl::MemoryManagement memMgmt = { malloc, free, realloc };
     nl::SerializationContext serializationContext;
@@ -2477,14 +2430,15 @@ static void CheckDeserializingNewerVersion(nlTestSuite *inSuite, void *inContext
     InitializeEventLogging(context);
 
     FutureEventNewBaseField externalEv = { 0 };
-    externalEv.enumState = 10;
-    externalEv.otherEnumState = 20;
-    externalEv.boolState = true;
+    externalEv.enumState               = 10;
+    externalEv.otherEnumState          = 20;
+    externalEv.boolState               = true;
 
     event_id_t eventId = nl::LogEvent(&externalEv);
 
     TLVReader testReader;
-    err = FetchEventsHelper(testReader, eventId, backingStore, sizeof(backingStore), nl::Weave::Profiles::DataManagement::ProductionCritical);
+    err = FetchEventsHelper(testReader, eventId, backingStore, sizeof(backingStore),
+                            nl::Weave::Profiles::DataManagement::ProductionCritical);
     NL_TEST_ASSERT(inSuite, err == WEAVE_NO_ERROR);
 
     if (context->mVerbose)
@@ -2495,19 +2449,19 @@ static void CheckDeserializingNewerVersion(nlTestSuite *inSuite, void *inContext
     CurrentEvent deserializedEv = { 0 };
     nl::StructureSchemaPointerPair structureSchemaPair;
     structureSchemaPair.mStructureData = &deserializedEv;
-    structureSchemaPair.mFieldSchema = &CurrentEvent::FieldSchema;
+    structureSchemaPair.mFieldSchema   = &CurrentEvent::FieldSchema;
 
     err = nl::TLVReaderToDeserializedDataHelper(testReader, nl::Weave::Profiles::DataManagement::kTag_EventData,
-               (void *)&structureSchemaPair, &serializationContext);
+                                                (void *) &structureSchemaPair, &serializationContext);
     NL_TEST_ASSERT(inSuite, err == WEAVE_NO_ERROR);
 
     NL_TEST_ASSERT(inSuite, deserializedEv.enumState == externalEv.enumState);
     NL_TEST_ASSERT(inSuite, deserializedEv.boolState == externalEv.boolState);
 }
 
-static void CheckDeserializingOlderVersion(nlTestSuite *inSuite, void *inContext)
+static void CheckDeserializingOlderVersion(nlTestSuite * inSuite, void * inContext)
 {
-    TestLoggingContext *context = static_cast<TestLoggingContext *>(inContext);
+    TestLoggingContext * context = static_cast<TestLoggingContext *>(inContext);
     WEAVE_ERROR err;
     nl::MemoryManagement memMgmt = { malloc, free, realloc };
     nl::SerializationContext serializationContext;
@@ -2516,13 +2470,14 @@ static void CheckDeserializingOlderVersion(nlTestSuite *inSuite, void *inContext
     InitializeEventLogging(context);
 
     CurrentEvent externalEv = { 0 };
-    externalEv.enumState = 10;
-    externalEv.boolState = true;
+    externalEv.enumState    = 10;
+    externalEv.boolState    = true;
 
     event_id_t eventId = nl::LogEvent(&externalEv);
 
     TLVReader testReader;
-    err = FetchEventsHelper(testReader, eventId, backingStore, sizeof(backingStore), nl::Weave::Profiles::DataManagement::ProductionCritical);
+    err = FetchEventsHelper(testReader, eventId, backingStore, sizeof(backingStore),
+                            nl::Weave::Profiles::DataManagement::ProductionCritical);
     NL_TEST_ASSERT(inSuite, err == WEAVE_NO_ERROR);
 
     if (context->mVerbose)
@@ -2533,10 +2488,10 @@ static void CheckDeserializingOlderVersion(nlTestSuite *inSuite, void *inContext
     FutureEventNewBaseField deserializedEv = { 0 };
     nl::StructureSchemaPointerPair structureSchemaPair;
     structureSchemaPair.mStructureData = &deserializedEv;
-    structureSchemaPair.mFieldSchema = &FutureEventNewBaseField::FieldSchema;
+    structureSchemaPair.mFieldSchema   = &FutureEventNewBaseField::FieldSchema;
 
     err = nl::TLVReaderToDeserializedDataHelper(testReader, nl::Weave::Profiles::DataManagement::kTag_EventData,
-               (void *)&structureSchemaPair, &serializationContext);
+                                                (void *) &structureSchemaPair, &serializationContext);
     NL_TEST_ASSERT(inSuite, err == WEAVE_NO_ERROR);
 
     NL_TEST_ASSERT(inSuite, deserializedEv.enumState == externalEv.enumState);
@@ -2560,27 +2515,58 @@ struct CurrentNullableEvent
 #if WEAVE_CONFIG_SERIALIZATION_ENABLE_DESERIALIZATION
     bool IsExtendedEnumPresent(void);
 #endif
-    uint8_t __nullified_fields__[2 /8 + 1];
+    uint8_t __nullified_fields__[2 / 8 + 1];
     static const nl::SchemaFieldDescriptor FieldSchema;
-    enum { kProfileId = 0x1U, kEventTypeId = 0x1U };
+    enum
+    {
+        kProfileId   = 0x1U,
+        kEventTypeId = 0x1U
+    };
     static const nl::Weave::Profiles::DataManagement::EventSchema Schema;
 };
-const nl::FieldDescriptor CurrentNullableEventFieldDescriptors[] =
-{
+const nl::FieldDescriptor CurrentNullableEventFieldDescriptors[] = {
     { NULL, offsetof(CurrentNullableEvent, baseEnum), SET_TYPE_AND_FLAGS(nl::SerializedFieldTypeInt32, 1), 1 },
     { NULL, offsetof(CurrentNullableEvent, extendedEnum), SET_TYPE_AND_FLAGS(nl::SerializedFieldTypeInt32, 1), 32 },
 };
-const nl::SchemaFieldDescriptor CurrentNullableEvent::FieldSchema = { .mNumFieldDescriptorElements = sizeof(CurrentNullableEventFieldDescriptors)/sizeof(CurrentNullableEventFieldDescriptors[0]), .mFields = CurrentNullableEventFieldDescriptors, .mSize = sizeof(CurrentNullableEvent) };
-const nl::Weave::Profiles::DataManagement::EventSchema CurrentNullableEvent::Schema = { .mProfileId = kProfileId, .mStructureType = 0x1, .mImportance = nl::Weave::Profiles::DataManagement::ProductionCritical, .mDataSchemaVersion = 2, .mMinCompatibleDataSchemaVersion = 1 };
-inline void CurrentNullableEvent::SetBaseEnumNull(void) { SET_FIELD_NULLIFIED_BIT(__nullified_fields__, 0); }
-inline void CurrentNullableEvent::SetBaseEnumPresent(void) { CLEAR_FIELD_NULLIFIED_BIT(__nullified_fields__, 0); }
+const nl::SchemaFieldDescriptor CurrentNullableEvent::FieldSchema = {
+    .mNumFieldDescriptorElements = sizeof(CurrentNullableEventFieldDescriptors) / sizeof(CurrentNullableEventFieldDescriptors[0]),
+    .mFields                     = CurrentNullableEventFieldDescriptors,
+    .mSize                       = sizeof(CurrentNullableEvent)
+};
+const nl::Weave::Profiles::DataManagement::EventSchema CurrentNullableEvent::Schema = {
+    .mProfileId                      = kProfileId,
+    .mStructureType                  = 0x1,
+    .mImportance                     = nl::Weave::Profiles::DataManagement::ProductionCritical,
+    .mDataSchemaVersion              = 2,
+    .mMinCompatibleDataSchemaVersion = 1
+};
+inline void CurrentNullableEvent::SetBaseEnumNull(void)
+{
+    SET_FIELD_NULLIFIED_BIT(__nullified_fields__, 0);
+}
+inline void CurrentNullableEvent::SetBaseEnumPresent(void)
+{
+    CLEAR_FIELD_NULLIFIED_BIT(__nullified_fields__, 0);
+}
 #if WEAVE_CONFIG_SERIALIZATION_ENABLE_DESERIALIZATION
-inline bool CurrentNullableEvent::IsBaseEnumPresent(void) { return (!GET_FIELD_NULLIFIED_BIT(__nullified_fields__, 0)); }
+inline bool CurrentNullableEvent::IsBaseEnumPresent(void)
+{
+    return (!GET_FIELD_NULLIFIED_BIT(__nullified_fields__, 0));
+}
 #endif
-inline void CurrentNullableEvent::SetExtendedEnumNull(void) { SET_FIELD_NULLIFIED_BIT(__nullified_fields__, 1); }
-inline void CurrentNullableEvent::SetExtendedEnumPresent(void) { CLEAR_FIELD_NULLIFIED_BIT(__nullified_fields__, 1); }
+inline void CurrentNullableEvent::SetExtendedEnumNull(void)
+{
+    SET_FIELD_NULLIFIED_BIT(__nullified_fields__, 1);
+}
+inline void CurrentNullableEvent::SetExtendedEnumPresent(void)
+{
+    CLEAR_FIELD_NULLIFIED_BIT(__nullified_fields__, 1);
+}
 #if WEAVE_CONFIG_SERIALIZATION_ENABLE_DESERIALIZATION
-inline bool CurrentNullableEvent::IsExtendedEnumPresent(void) { return (!GET_FIELD_NULLIFIED_BIT(__nullified_fields__, 1)); }
+inline bool CurrentNullableEvent::IsExtendedEnumPresent(void)
+{
+    return (!GET_FIELD_NULLIFIED_BIT(__nullified_fields__, 1));
+}
 #endif
 
 struct FutureNullableEvent
@@ -2613,44 +2599,93 @@ struct FutureNullableEvent
     bool IsFutureExtendedEnumPresent(void);
 #endif
 
-    uint8_t __nullified_fields__[4 /8 + 1];
+    uint8_t __nullified_fields__[4 / 8 + 1];
     static const nl::SchemaFieldDescriptor FieldSchema;
-    enum { kProfileId = 0x1U, kEventTypeId = 0x1U };
+    enum
+    {
+        kProfileId   = 0x1U,
+        kEventTypeId = 0x1U
+    };
     static const nl::Weave::Profiles::DataManagement::EventSchema Schema;
 };
-const nl::FieldDescriptor FutureNullableEventFieldDescriptors[] =
-{
+const nl::FieldDescriptor FutureNullableEventFieldDescriptors[] = {
     { NULL, offsetof(FutureNullableEvent, baseEnum), SET_TYPE_AND_FLAGS(nl::SerializedFieldTypeInt32, 1), 1 },
     { NULL, offsetof(FutureNullableEvent, futureEnum), SET_TYPE_AND_FLAGS(nl::SerializedFieldTypeInt32, 1), 2 },
     { NULL, offsetof(FutureNullableEvent, extendedEnum), SET_TYPE_AND_FLAGS(nl::SerializedFieldTypeInt32, 1), 32 },
     { NULL, offsetof(FutureNullableEvent, futureExtendedEnum), SET_TYPE_AND_FLAGS(nl::SerializedFieldTypeInt32, 1), 33 },
 };
-const nl::SchemaFieldDescriptor FutureNullableEvent::FieldSchema = { .mNumFieldDescriptorElements = sizeof(FutureNullableEventFieldDescriptors)/sizeof(FutureNullableEventFieldDescriptors[0]), .mFields = FutureNullableEventFieldDescriptors, .mSize = sizeof(FutureNullableEvent) };
-const nl::Weave::Profiles::DataManagement::EventSchema FutureNullableEvent::Schema = { .mProfileId = kProfileId, .mStructureType = 0x1, .mImportance = nl::Weave::Profiles::DataManagement::ProductionCritical, .mDataSchemaVersion = 2, .mMinCompatibleDataSchemaVersion = 1 };
-inline void FutureNullableEvent::SetBaseEnumNull(void) { SET_FIELD_NULLIFIED_BIT(__nullified_fields__, 0); }
-inline void FutureNullableEvent::SetBaseEnumPresent(void) { CLEAR_FIELD_NULLIFIED_BIT(__nullified_fields__, 0); }
+const nl::SchemaFieldDescriptor FutureNullableEvent::FieldSchema = {
+    .mNumFieldDescriptorElements = sizeof(FutureNullableEventFieldDescriptors) / sizeof(FutureNullableEventFieldDescriptors[0]),
+    .mFields                     = FutureNullableEventFieldDescriptors,
+    .mSize                       = sizeof(FutureNullableEvent)
+};
+const nl::Weave::Profiles::DataManagement::EventSchema FutureNullableEvent::Schema = {
+    .mProfileId                      = kProfileId,
+    .mStructureType                  = 0x1,
+    .mImportance                     = nl::Weave::Profiles::DataManagement::ProductionCritical,
+    .mDataSchemaVersion              = 2,
+    .mMinCompatibleDataSchemaVersion = 1
+};
+inline void FutureNullableEvent::SetBaseEnumNull(void)
+{
+    SET_FIELD_NULLIFIED_BIT(__nullified_fields__, 0);
+}
+inline void FutureNullableEvent::SetBaseEnumPresent(void)
+{
+    CLEAR_FIELD_NULLIFIED_BIT(__nullified_fields__, 0);
+}
 #if WEAVE_CONFIG_SERIALIZATION_ENABLE_DESERIALIZATION
-inline bool FutureNullableEvent::IsBaseEnumPresent(void) { return (!GET_FIELD_NULLIFIED_BIT(__nullified_fields__, 0)); }
+inline bool FutureNullableEvent::IsBaseEnumPresent(void)
+{
+    return (!GET_FIELD_NULLIFIED_BIT(__nullified_fields__, 0));
+}
 #endif
-inline void FutureNullableEvent::SetFutureEnumNull(void) { SET_FIELD_NULLIFIED_BIT(__nullified_fields__, 1); }
-inline void FutureNullableEvent::SetFutureEnumPresent(void) { CLEAR_FIELD_NULLIFIED_BIT(__nullified_fields__, 1); }
+inline void FutureNullableEvent::SetFutureEnumNull(void)
+{
+    SET_FIELD_NULLIFIED_BIT(__nullified_fields__, 1);
+}
+inline void FutureNullableEvent::SetFutureEnumPresent(void)
+{
+    CLEAR_FIELD_NULLIFIED_BIT(__nullified_fields__, 1);
+}
 #if WEAVE_CONFIG_SERIALIZATION_ENABLE_DESERIALIZATION
-inline bool FutureNullableEvent::IsFutureEnumPresent(void) { return (!GET_FIELD_NULLIFIED_BIT(__nullified_fields__, 1)); }
+inline bool FutureNullableEvent::IsFutureEnumPresent(void)
+{
+    return (!GET_FIELD_NULLIFIED_BIT(__nullified_fields__, 1));
+}
 #endif
-inline void FutureNullableEvent::SetExtendedEnumNull(void) { SET_FIELD_NULLIFIED_BIT(__nullified_fields__, 2); }
-inline void FutureNullableEvent::SetExtendedEnumPresent(void) { CLEAR_FIELD_NULLIFIED_BIT(__nullified_fields__, 2); }
+inline void FutureNullableEvent::SetExtendedEnumNull(void)
+{
+    SET_FIELD_NULLIFIED_BIT(__nullified_fields__, 2);
+}
+inline void FutureNullableEvent::SetExtendedEnumPresent(void)
+{
+    CLEAR_FIELD_NULLIFIED_BIT(__nullified_fields__, 2);
+}
 #if WEAVE_CONFIG_SERIALIZATION_ENABLE_DESERIALIZATION
-inline bool FutureNullableEvent::IsExtendedEnumPresent(void) { return (!GET_FIELD_NULLIFIED_BIT(__nullified_fields__, 2)); }
+inline bool FutureNullableEvent::IsExtendedEnumPresent(void)
+{
+    return (!GET_FIELD_NULLIFIED_BIT(__nullified_fields__, 2));
+}
 #endif
-inline void FutureNullableEvent::SetFutureExtendedEnumNull(void) { SET_FIELD_NULLIFIED_BIT(__nullified_fields__, 3); }
-inline void FutureNullableEvent::SetFutureExtendedEnumPresent(void) { CLEAR_FIELD_NULLIFIED_BIT(__nullified_fields__, 3); }
+inline void FutureNullableEvent::SetFutureExtendedEnumNull(void)
+{
+    SET_FIELD_NULLIFIED_BIT(__nullified_fields__, 3);
+}
+inline void FutureNullableEvent::SetFutureExtendedEnumPresent(void)
+{
+    CLEAR_FIELD_NULLIFIED_BIT(__nullified_fields__, 3);
+}
 #if WEAVE_CONFIG_SERIALIZATION_ENABLE_DESERIALIZATION
-inline bool FutureNullableEvent::IsFutureExtendedEnumPresent(void) { return (!GET_FIELD_NULLIFIED_BIT(__nullified_fields__, 3)); }
+inline bool FutureNullableEvent::IsFutureExtendedEnumPresent(void)
+{
+    return (!GET_FIELD_NULLIFIED_BIT(__nullified_fields__, 3));
+}
 #endif
 
-static void CheckDeserializingNewerVersionNullable(nlTestSuite *inSuite, void *inContext)
+static void CheckDeserializingNewerVersionNullable(nlTestSuite * inSuite, void * inContext)
 {
-    TestLoggingContext *context = static_cast<TestLoggingContext *>(inContext);
+    TestLoggingContext * context = static_cast<TestLoggingContext *>(inContext);
     WEAVE_ERROR err;
     nl::MemoryManagement memMgmt = { malloc, free, realloc };
     nl::SerializationContext serializationContext;
@@ -2659,7 +2694,7 @@ static void CheckDeserializingNewerVersionNullable(nlTestSuite *inSuite, void *i
     InitializeEventLogging(context);
 
     FutureNullableEvent externalEv = { 0 };
-    externalEv.baseEnum = 50;
+    externalEv.baseEnum            = 50;
     externalEv.SetBaseEnumPresent();
     externalEv.SetFutureEnumNull();
     externalEv.extendedEnum = 70;
@@ -2669,7 +2704,8 @@ static void CheckDeserializingNewerVersionNullable(nlTestSuite *inSuite, void *i
     event_id_t eventId = nl::LogEvent(&externalEv);
 
     TLVReader testReader;
-    err = FetchEventsHelper(testReader, eventId, backingStore, sizeof(backingStore), nl::Weave::Profiles::DataManagement::ProductionCritical);
+    err = FetchEventsHelper(testReader, eventId, backingStore, sizeof(backingStore),
+                            nl::Weave::Profiles::DataManagement::ProductionCritical);
     NL_TEST_ASSERT(inSuite, err == WEAVE_NO_ERROR);
 
     if (context->mVerbose)
@@ -2680,10 +2716,10 @@ static void CheckDeserializingNewerVersionNullable(nlTestSuite *inSuite, void *i
     CurrentNullableEvent deserializedEv = { 0 };
     nl::StructureSchemaPointerPair structureSchemaPair;
     structureSchemaPair.mStructureData = &deserializedEv;
-    structureSchemaPair.mFieldSchema = &CurrentNullableEvent::FieldSchema;
+    structureSchemaPair.mFieldSchema   = &CurrentNullableEvent::FieldSchema;
 
     err = nl::TLVReaderToDeserializedDataHelper(testReader, nl::Weave::Profiles::DataManagement::kTag_EventData,
-               (void *)&structureSchemaPair, &serializationContext);
+                                                (void *) &structureSchemaPair, &serializationContext);
     NL_TEST_ASSERT(inSuite, err == WEAVE_NO_ERROR);
 
     NL_TEST_ASSERT(inSuite, deserializedEv.IsBaseEnumPresent());
@@ -2695,9 +2731,9 @@ static void CheckDeserializingNewerVersionNullable(nlTestSuite *inSuite, void *i
     NL_TEST_ASSERT(inSuite, deserializedEv.extendedEnum == externalEv.extendedEnum);
 }
 
-static void CheckDeserializingOlderVersionNullable(nlTestSuite *inSuite, void *inContext)
+static void CheckDeserializingOlderVersionNullable(nlTestSuite * inSuite, void * inContext)
 {
-    TestLoggingContext *context = static_cast<TestLoggingContext *>(inContext);
+    TestLoggingContext * context = static_cast<TestLoggingContext *>(inContext);
     WEAVE_ERROR err;
     nl::MemoryManagement memMgmt = { malloc, free, realloc };
     nl::SerializationContext serializationContext;
@@ -2706,14 +2742,15 @@ static void CheckDeserializingOlderVersionNullable(nlTestSuite *inSuite, void *i
     InitializeEventLogging(context);
 
     CurrentNullableEvent externalEv = { 0 };
-    externalEv.baseEnum = 50;
+    externalEv.baseEnum             = 50;
     externalEv.SetBaseEnumPresent();
     externalEv.SetExtendedEnumNull();
 
     event_id_t eventId = nl::LogEvent(&externalEv);
 
     TLVReader testReader;
-    err = FetchEventsHelper(testReader, eventId, backingStore, sizeof(backingStore), nl::Weave::Profiles::DataManagement::ProductionCritical);
+    err = FetchEventsHelper(testReader, eventId, backingStore, sizeof(backingStore),
+                            nl::Weave::Profiles::DataManagement::ProductionCritical);
     NL_TEST_ASSERT(inSuite, err == WEAVE_NO_ERROR);
 
     if (context->mVerbose)
@@ -2724,10 +2761,10 @@ static void CheckDeserializingOlderVersionNullable(nlTestSuite *inSuite, void *i
     FutureNullableEvent deserializedEv = { 0 };
     nl::StructureSchemaPointerPair structureSchemaPair;
     structureSchemaPair.mStructureData = &deserializedEv;
-    structureSchemaPair.mFieldSchema = &FutureNullableEvent::FieldSchema;
+    structureSchemaPair.mFieldSchema   = &FutureNullableEvent::FieldSchema;
 
     err = nl::TLVReaderToDeserializedDataHelper(testReader, nl::Weave::Profiles::DataManagement::kTag_EventData,
-               (void *)&structureSchemaPair, &serializationContext);
+                                                (void *) &structureSchemaPair, &serializationContext);
     NL_TEST_ASSERT(inSuite, err == WEAVE_NO_ERROR);
 
     NL_TEST_ASSERT(inSuite, deserializedEv.IsBaseEnumPresent());
@@ -2739,13 +2776,13 @@ static void CheckDeserializingOlderVersionNullable(nlTestSuite *inSuite, void *i
     NL_TEST_ASSERT(inSuite, deserializedEv.IsFutureExtendedEnumPresent() == false);
 }
 
-static void CheckSubscriptionHandlerHelper(nlTestSuite *inSuite, TestLoggingContext *context, bool inLogInfoEvents)
+static void CheckSubscriptionHandlerHelper(nlTestSuite * inSuite, TestLoggingContext * context, bool inLogInfoEvents)
 {
     WEAVE_ERROR err;
     timestamp_t now;
     size_t counter = 0;
     ::nl::Weave::Profiles::DataManagement::TestSubscriptionHandler subHandler;
-    nl::Weave::Profiles::DataManagement::LoggingManagement &logger =
+    nl::Weave::Profiles::DataManagement::LoggingManagement & logger =
         nl::Weave::Profiles::DataManagement::LoggingManagement::GetInstance();
     nl::Weave::Profiles::DataManagement::ImportanceType importance;
     TLVWriter writer;
@@ -2753,36 +2790,25 @@ static void CheckSubscriptionHandlerHelper(nlTestSuite *inSuite, TestLoggingCont
 
     event_id_t eid_init_prod, eid_prev_prod, eid_init_info, eid_prev_info, eid;
 
-    now = System::Layer::GetClock_MonotonicMS();
-    eid_init_prod = FastLogFreeform(
-        nl::Weave::Profiles::DataManagement::Production,
-        now,
-        "Freeform entry %d", counter++);
+    now           = System::Layer::GetClock_MonotonicMS();
+    eid_init_prod = FastLogFreeform(nl::Weave::Profiles::DataManagement::Production, now, "Freeform entry %d", counter++);
     if (inLogInfoEvents)
     {
-        eid_init_info = FastLogFreeform(
-            nl::Weave::Profiles::DataManagement::Info,
-            now+5,
-            "Freeform entry %d", counter++);
+        eid_init_info = FastLogFreeform(nl::Weave::Profiles::DataManagement::Info, now + 5, "Freeform entry %d", counter++);
     }
 
-    eid_prev_prod = FastLogFreeform(
-        nl::Weave::Profiles::DataManagement::Production,
-        now+10,
-        "Freeform entry %d", counter++);
+    eid_prev_prod = FastLogFreeform(nl::Weave::Profiles::DataManagement::Production, now + 10, "Freeform entry %d", counter++);
 
     if (inLogInfoEvents)
     {
-        eid_prev_info = FastLogFreeform(
-            nl::Weave::Profiles::DataManagement::Info,
-            now+15,
-            "Freeform entry %d", counter++);
+        eid_prev_info = FastLogFreeform(nl::Weave::Profiles::DataManagement::Info, now + 15, "Freeform entry %d", counter++);
     }
 
     NL_TEST_ASSERT(inSuite, (eid_init_prod + 1) == eid_prev_prod);
     if (inLogInfoEvents)
     {
-        if (nl::Weave::Profiles::DataManagement::LoggingConfiguration::GetInstance().mGlobalImportance >= nl::Weave::Profiles::DataManagement::Info)
+        if (nl::Weave::Profiles::DataManagement::LoggingConfiguration::GetInstance().mGlobalImportance >=
+            nl::Weave::Profiles::DataManagement::Info)
         {
             NL_TEST_ASSERT(inSuite, (eid_init_info + 1) == eid_prev_info);
         }
@@ -2804,7 +2830,9 @@ static void CheckSubscriptionHandlerHelper(nlTestSuite *inSuite, TestLoggingCont
     NL_TEST_ASSERT(inSuite, err == WEAVE_END_OF_TLV || err == WEAVE_NO_ERROR);
 
     // If we expect to have logged the Info events above, check the Info logs
-    if (inLogInfoEvents && (nl::Weave::Profiles::DataManagement::LoggingConfiguration::GetInstance().mGlobalImportance >= nl::Weave::Profiles::DataManagement::Info))
+    if (inLogInfoEvents &&
+        (nl::Weave::Profiles::DataManagement::LoggingConfiguration::GetInstance().mGlobalImportance >=
+         nl::Weave::Profiles::DataManagement::Info))
     {
         importance = subHandler.FindNextImportanceForTransfer();
         NL_TEST_ASSERT(inSuite, importance == nl::Weave::Profiles::DataManagement::Info);
@@ -2819,7 +2847,7 @@ static void CheckSubscriptionHandlerHelper(nlTestSuite *inSuite, TestLoggingCont
 
     while (importance != nl::Weave::Profiles::DataManagement::kImportanceType_Invalid)
     {
-        err = logger.FetchEventsSince(writer, importance,  subHandler.GetVendedEvent(importance));
+        err = logger.FetchEventsSince(writer, importance, subHandler.GetVendedEvent(importance));
         NL_TEST_ASSERT(inSuite, err == WEAVE_END_OF_TLV || err == WEAVE_NO_ERROR);
         importance = subHandler.FindNextImportanceForTransfer();
     }
@@ -2830,10 +2858,7 @@ static void CheckSubscriptionHandlerHelper(nlTestSuite *inSuite, TestLoggingCont
 
     // Check that a single event will trigger the up to date check
 
-    eid = FastLogFreeform(
-        nl::Weave::Profiles::DataManagement::Production,
-        now + 10,
-        "Freeform entry %d", counter++);
+    eid = FastLogFreeform(nl::Weave::Profiles::DataManagement::Production, now + 10, "Freeform entry %d", counter++);
 
     NL_TEST_ASSERT(inSuite, (eid_prev_prod + 1) == eid);
     NL_TEST_ASSERT(inSuite, subHandler.CheckEventUpToDate(logger) == false);
@@ -2849,122 +2874,122 @@ static void CheckSubscriptionHandlerHelper(nlTestSuite *inSuite, TestLoggingCont
     writer.Init(backingStore, 1024);
     while (importance != nl::Weave::Profiles::DataManagement::kImportanceType_Invalid)
     {
-        err = logger.FetchEventsSince(writer, importance,  subHandler.GetVendedEvent(importance));
+        err = logger.FetchEventsSince(writer, importance, subHandler.GetVendedEvent(importance));
         NL_TEST_ASSERT(inSuite, err == WEAVE_END_OF_TLV || err == WEAVE_NO_ERROR);
         importance = subHandler.FindNextImportanceForTransfer();
     }
 
-    //Verify that the all events are retrieved
+    // Verify that the all events are retrieved
     NL_TEST_ASSERT(inSuite, subHandler.VerifyTraversingImportance());
     NL_TEST_ASSERT(inSuite, subHandler.CheckEventUpToDate(logger));
 }
 
-static void CheckSubscriptionHandler(nlTestSuite *inSuite, void *inContext)
+static void CheckSubscriptionHandler(nlTestSuite * inSuite, void * inContext)
 {
-    TestLoggingContext *context = static_cast<TestLoggingContext *>(inContext);
-    const bool aLogInfoEvents = false;
+    TestLoggingContext * context = static_cast<TestLoggingContext *>(inContext);
+    const bool aLogInfoEvents    = false;
 
     InitializeEventLogging(context);
 
     CheckSubscriptionHandlerHelper(inSuite, context, aLogInfoEvents);
 }
 
-static void CheckSubscriptionHandlerCountersStartAtZeroProd(nlTestSuite *inSuite, void *inContext)
+static void CheckSubscriptionHandlerCountersStartAtZeroProd(nlTestSuite * inSuite, void * inContext)
 {
-    TestLoggingContext *context = static_cast<TestLoggingContext *>(inContext);
-    const bool aLogInfoEvents = false;
+    TestLoggingContext * context = static_cast<TestLoggingContext *>(inContext);
+    const bool aLogInfoEvents    = false;
 
     InitializeEventLoggingWithPersistedCounters(context, 0, nl::Weave::Profiles::DataManagement::Production);
 
     CheckSubscriptionHandlerHelper(inSuite, context, aLogInfoEvents);
 }
 
-static void CheckSubscriptionHandlerCountersStartAtZeroTwoDifferentImportancesProd(nlTestSuite *inSuite, void *inContext)
+static void CheckSubscriptionHandlerCountersStartAtZeroTwoDifferentImportancesProd(nlTestSuite * inSuite, void * inContext)
 {
-    TestLoggingContext *context = static_cast<TestLoggingContext *>(inContext);
-    const bool aLogInfoEvents = true;
+    TestLoggingContext * context = static_cast<TestLoggingContext *>(inContext);
+    const bool aLogInfoEvents    = true;
 
     InitializeEventLoggingWithPersistedCounters(context, 0, nl::Weave::Profiles::DataManagement::Production);
 
     CheckSubscriptionHandlerHelper(inSuite, context, aLogInfoEvents);
 }
 
-static void CheckSubscriptionHandlerCountersStartAtNonZeroProd(nlTestSuite *inSuite, void *inContext)
+static void CheckSubscriptionHandlerCountersStartAtNonZeroProd(nlTestSuite * inSuite, void * inContext)
 {
-    TestLoggingContext *context = static_cast<TestLoggingContext *>(inContext);
-    const bool aLogInfoEvents = false;
+    TestLoggingContext * context = static_cast<TestLoggingContext *>(inContext);
+    const bool aLogInfoEvents    = false;
 
     InitializeEventLoggingWithPersistedCounters(context, sEventIdCounterEpoch, nl::Weave::Profiles::DataManagement::Production);
 
     CheckSubscriptionHandlerHelper(inSuite, context, aLogInfoEvents);
 }
 
-static void CheckSubscriptionHandlerCountersStartAtNonZeroTwoDifferentImportancesProd(nlTestSuite *inSuite, void *inContext)
+static void CheckSubscriptionHandlerCountersStartAtNonZeroTwoDifferentImportancesProd(nlTestSuite * inSuite, void * inContext)
 {
-    TestLoggingContext *context = static_cast<TestLoggingContext *>(inContext);
-    const bool aLogInfoEvents = true;
+    TestLoggingContext * context = static_cast<TestLoggingContext *>(inContext);
+    const bool aLogInfoEvents    = true;
 
     InitializeEventLoggingWithPersistedCounters(context, sEventIdCounterEpoch, nl::Weave::Profiles::DataManagement::Production);
 
     CheckSubscriptionHandlerHelper(inSuite, context, aLogInfoEvents);
 }
 
-static void CheckSubscriptionHandlerCountersStartAtZeroInfo(nlTestSuite *inSuite, void *inContext)
+static void CheckSubscriptionHandlerCountersStartAtZeroInfo(nlTestSuite * inSuite, void * inContext)
 {
-    TestLoggingContext *context = static_cast<TestLoggingContext *>(inContext);
-    const bool aLogInfoEvents = false;
+    TestLoggingContext * context = static_cast<TestLoggingContext *>(inContext);
+    const bool aLogInfoEvents    = false;
 
     InitializeEventLoggingWithPersistedCounters(context, 0, nl::Weave::Profiles::DataManagement::Info);
 
     CheckSubscriptionHandlerHelper(inSuite, context, aLogInfoEvents);
 }
 
-static void CheckSubscriptionHandlerCountersStartAtZeroTwoDifferentImportancesInfo(nlTestSuite *inSuite, void *inContext)
+static void CheckSubscriptionHandlerCountersStartAtZeroTwoDifferentImportancesInfo(nlTestSuite * inSuite, void * inContext)
 {
-    TestLoggingContext *context = static_cast<TestLoggingContext *>(inContext);
-    const bool aLogInfoEvents = true;
+    TestLoggingContext * context = static_cast<TestLoggingContext *>(inContext);
+    const bool aLogInfoEvents    = true;
 
     InitializeEventLoggingWithPersistedCounters(context, 0, nl::Weave::Profiles::DataManagement::Info);
 
     CheckSubscriptionHandlerHelper(inSuite, context, aLogInfoEvents);
 }
 
-static void CheckSubscriptionHandlerCountersStartAtNonZeroInfo(nlTestSuite *inSuite, void *inContext)
+static void CheckSubscriptionHandlerCountersStartAtNonZeroInfo(nlTestSuite * inSuite, void * inContext)
 {
-    TestLoggingContext *context = static_cast<TestLoggingContext *>(inContext);
-    const bool aLogInfoEvents = false;
+    TestLoggingContext * context = static_cast<TestLoggingContext *>(inContext);
+    const bool aLogInfoEvents    = false;
 
     InitializeEventLoggingWithPersistedCounters(context, sEventIdCounterEpoch, nl::Weave::Profiles::DataManagement::Info);
 
     CheckSubscriptionHandlerHelper(inSuite, context, aLogInfoEvents);
 }
 
-static void CheckSubscriptionHandlerCountersStartAtNonZeroTwoDifferentImportancesInfo(nlTestSuite *inSuite, void *inContext)
+static void CheckSubscriptionHandlerCountersStartAtNonZeroTwoDifferentImportancesInfo(nlTestSuite * inSuite, void * inContext)
 {
-    TestLoggingContext *context = static_cast<TestLoggingContext *>(inContext);
-    const bool aLogInfoEvents = true;
+    TestLoggingContext * context = static_cast<TestLoggingContext *>(inContext);
+    const bool aLogInfoEvents    = true;
 
     InitializeEventLoggingWithPersistedCounters(context, sEventIdCounterEpoch, nl::Weave::Profiles::DataManagement::Info);
 
     CheckSubscriptionHandlerHelper(inSuite, context, aLogInfoEvents);
 }
 
-static void CheckExternalEvents(nlTestSuite *inSuite, void *inContext)
+#if WEAVE_CONFIG_EVENT_LOGGING_EXTERNAL_EVENT_SUPPORT
+static void CheckExternalEvents(nlTestSuite * inSuite, void * inContext)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
     TLVWriter testWriter;
     TLVReader testReader;
     event_id_t eid_in, eid = 0;
     int i;
-    TestLoggingContext *context = static_cast<TestLoggingContext *>(inContext);
+    TestLoggingContext * context = static_cast<TestLoggingContext *>(inContext);
 
     InitializeEventLogging(context);
 
     for (i = 0; i < 10; i++)
     {
-        eid_in = nl::Weave::Profiles::DataManagement::LogFreeform(
-            nl::Weave::Profiles::DataManagement::Production,
-            "Freeform entry %d", i);
+        eid_in = nl::Weave::Profiles::DataManagement::LogFreeform(nl::Weave::Profiles::DataManagement::Production,
+                                                                  "Freeform entry %d", i);
     }
 
     // register callback
@@ -2973,18 +2998,24 @@ static void CheckExternalEvents(nlTestSuite *inSuite, void *inContext)
 
     for (i = 0; i < 10; i++)
     {
-        eid_in = nl::Weave::Profiles::DataManagement::LogFreeform(
-            nl::Weave::Profiles::DataManagement::Production,
-            "Freeform entry %d", i+10);
+        eid_in = nl::Weave::Profiles::DataManagement::LogFreeform(nl::Weave::Profiles::DataManagement::Production,
+                                                                  "Freeform entry %d", i + 10);
     }
 
     // positive case where events lie within event range in importance buffer
     // retrieve all events in order
-    for (int j = 0; j < 3; j++)
+
+    // we make two calls to FetchEventsSince. The first one grabs all
+    // the initial batch of 10 internally-stored events, and all the
+    // external events.  The second one grabs the remaining 10
+    // internally stored events.
+
+    for (int j = 1; j < 3; j++)
     {
         testWriter.Init(gLargeMemoryBackingStore, sizeof(gLargeMemoryBackingStore));
-        err = nl::Weave::Profiles::DataManagement::LoggingManagement::GetInstance().FetchEventsSince(testWriter, nl::Weave::Profiles::DataManagement::Production, eid);
-        NL_TEST_ASSERT(inSuite, eid == 10*(static_cast<event_id_t>(j) + 1));
+        err = nl::Weave::Profiles::DataManagement::LoggingManagement::GetInstance().FetchEventsSince(
+            testWriter, nl::Weave::Profiles::DataManagement::Production, eid);
+        NL_TEST_ASSERT(inSuite, eid == 10 * (static_cast<event_id_t>(j) + 1));
         NL_TEST_ASSERT(inSuite, err == WEAVE_END_OF_TLV || err == WEAVE_NO_ERROR);
 
         if (context->mVerbose)
@@ -2999,8 +3030,9 @@ static void CheckExternalEvents(nlTestSuite *inSuite, void *inContext)
     for (int x = 0; x < 2; x++)
     {
         testWriter.Init(gLargeMemoryBackingStore, sizeof(gLargeMemoryBackingStore));
-        err = nl::Weave::Profiles::DataManagement::LoggingManagement::GetInstance().FetchEventsSince(testWriter, nl::Weave::Profiles::DataManagement::Production, eid);
-        NL_TEST_ASSERT(inSuite, eid == 10*(static_cast<event_id_t>(x) + 2));
+        err = nl::Weave::Profiles::DataManagement::LoggingManagement::GetInstance().FetchEventsSince(
+            testWriter, nl::Weave::Profiles::DataManagement::Production, eid);
+        NL_TEST_ASSERT(inSuite, eid == 10 * (static_cast<event_id_t>(x) + 2));
         NL_TEST_ASSERT(inSuite, err == WEAVE_END_OF_TLV || err == WEAVE_NO_ERROR);
 
         if (context->mVerbose)
@@ -3013,9 +3045,8 @@ static void CheckExternalEvents(nlTestSuite *inSuite, void *inContext)
     // log many events so no longer trying to fetch external events
     for (i = 0; i < 100; i++)
     {
-        eid_in = nl::Weave::Profiles::DataManagement::LogFreeform(
-            nl::Weave::Profiles::DataManagement::Production,
-            "Freeform entry %d", i);
+        eid_in = nl::Weave::Profiles::DataManagement::LogFreeform(nl::Weave::Profiles::DataManagement::Production,
+                                                                  "Freeform entry %d", i);
     }
 
     {
@@ -3025,7 +3056,8 @@ static void CheckExternalEvents(nlTestSuite *inSuite, void *inContext)
 
         eid = 0;
         testWriter.Init(gLargeMemoryBackingStore, sizeof(gLargeMemoryBackingStore));
-        err = nl::Weave::Profiles::DataManagement::LoggingManagement::GetInstance().FetchEventsSince(testWriter, nl::Weave::Profiles::DataManagement::Production, eid);
+        err = nl::Weave::Profiles::DataManagement::LoggingManagement::GetInstance().FetchEventsSince(
+            testWriter, nl::Weave::Profiles::DataManagement::Production, eid);
         NL_TEST_ASSERT(inSuite, err == WEAVE_END_OF_TLV);
         NL_TEST_ASSERT(inSuite, eid == eid_in + 1);
 
@@ -3035,14 +3067,14 @@ static void CheckExternalEvents(nlTestSuite *inSuite, void *inContext)
     }
 }
 
-static void CheckExternalEventsMultipleCallbacks(nlTestSuite *inSuite, void *inContext)
+static void CheckExternalEventsMultipleCallbacks(nlTestSuite * inSuite, void * inContext)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
     TLVWriter testWriter;
     TLVReader testReader;
-    event_id_t eid = 0;
-    TestLoggingContext *context = static_cast<TestLoggingContext *>(inContext);
-
+    event_id_t eid               = 0;
+    TestLoggingContext * context = static_cast<TestLoggingContext *>(inContext);
+    event_id_t endingEIDs[]      = { 10, 30, 40 };
     InitializeEventLogging(context);
 
     err = LogMockExternalEvents(10, 1);
@@ -3050,16 +3082,18 @@ static void CheckExternalEventsMultipleCallbacks(nlTestSuite *inSuite, void *inC
 
     for (int i = 0; i < 10; i++)
     {
-        (void)nl::Weave::Profiles::DataManagement::LogFreeform(
-            nl::Weave::Profiles::DataManagement::Production,
-            "Freeform entry %d", i);
+        (void) nl::Weave::Profiles::DataManagement::LogFreeform(nl::Weave::Profiles::DataManagement::Production,
+                                                                "Freeform entry %d", i);
     }
 
     err = LogMockExternalEvents(10, 2);
     NL_TEST_ASSERT(inSuite, err == WEAVE_NO_ERROR);
 
+    // Note: with the current external event logging scheme, the
+    // number of externally stored event segments is only limited by
+    // the available buffering space.
     err = LogMockExternalEvents(10, 3);
-    NL_TEST_ASSERT(inSuite, err == WEAVE_ERROR_NO_MEMORY);
+    NL_TEST_ASSERT(inSuite, err == WEAVE_NO_ERROR);
 
     ClearMockExternalEvents(1);
 
@@ -3067,8 +3101,9 @@ static void CheckExternalEventsMultipleCallbacks(nlTestSuite *inSuite, void *inC
     for (int j = 0; j < 3; j++)
     {
         testWriter.Init(gLargeMemoryBackingStore, sizeof(gLargeMemoryBackingStore));
-        err = nl::Weave::Profiles::DataManagement::LoggingManagement::GetInstance().FetchEventsSince(testWriter, nl::Weave::Profiles::DataManagement::Production, eid);
-        NL_TEST_ASSERT(inSuite, eid == 10*(static_cast<event_id_t>(j) + 1));
+        err = nl::Weave::Profiles::DataManagement::LoggingManagement::GetInstance().FetchEventsSince(
+            testWriter, nl::Weave::Profiles::DataManagement::Production, eid);
+        NL_TEST_ASSERT(inSuite, eid == endingEIDs[j]);
         NL_TEST_ASSERT(inSuite, err == WEAVE_END_OF_TLV || err == WEAVE_NO_ERROR);
 
         if (context->mVerbose)
@@ -3079,15 +3114,95 @@ static void CheckExternalEventsMultipleCallbacks(nlTestSuite *inSuite, void *inC
     }
 }
 
-static void RegressionWatchdogBug(nlTestSuite *inSuite, void *inContext)
+static bool SkipEvenEvents(event_id_t aEventId)
+{
+    return aEventId & 1;
+}
+
+static void CheckSkipExternalEvents(nlTestSuite * inSuite, void * inContext)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
     TLVWriter testWriter;
-    //TLVReader testReader;
+    TLVReader testReader;
+    event_id_t eid_before, eid_after, eid = 0;
+    int i;
+    TestLoggingContext * context = static_cast<TestLoggingContext *>(inContext);
+
+    InitializeEventLogging(context);
+    SetShouldBlitCallback(SkipEvenEvents);
+
+    for (i = 0; i < 10; i++)
+    {
+        eid_before = nl::Weave::Profiles::DataManagement::LogFreeform(nl::Weave::Profiles::DataManagement::Production,
+                                                                  "Freeform entry %d", i);
+    }
+
+    // register callback
+    err = LogMockExternalEvents(10, 0);
+    NL_TEST_ASSERT(inSuite, err == WEAVE_NO_ERROR);
+
+    for (i = 0; i < 10; i++)
+    {
+        eid_after = nl::Weave::Profiles::DataManagement::LogFreeform(nl::Weave::Profiles::DataManagement::Production,
+                                                                  "Freeform entry %d", i + 10);
+    }
+
+    // Validate event skipping by reading back what was written.
+    {
+        utc_timestamp_t utc_tmp;
+        timestamp_t time_tmp;
+        event_id_t eid_tmp;
+        unsigned count;
+
+        // Fetch gets initial back of free form events and all external events.
+        // Fetching stops after an external events block is complete.
+        eid = 0;
+        testWriter.Init(gLargeMemoryBackingStore, sizeof(gLargeMemoryBackingStore));
+        err = nl::Weave::Profiles::DataManagement::LoggingManagement::GetInstance().FetchEventsSince(
+            testWriter, nl::Weave::Profiles::DataManagement::Production, eid);
+        NL_TEST_ASSERT(inSuite, err == WEAVE_NO_ERROR);
+        NL_TEST_ASSERT(inSuite, eid == eid_before + 11); // Free form events plus external events
+
+        testReader.Init(gLargeMemoryBackingStore, testWriter.GetLengthWritten());
+        count = 0;
+        while (err == WEAVE_NO_ERROR)
+        {
+            err = ReadFirstEventHeader(testReader, time_tmp, utc_tmp, eid_tmp);
+            count++; // Also incremented on error
+        }
+        NL_TEST_ASSERT(inSuite, count == 16); // Initial free form events plus half of external ones
+
+        // Fetch second block of free form events.
+        eid = 20;
+        testWriter.Init(gLargeMemoryBackingStore, sizeof(gLargeMemoryBackingStore));
+        err = nl::Weave::Profiles::DataManagement::LoggingManagement::GetInstance().FetchEventsSince(
+            testWriter, nl::Weave::Profiles::DataManagement::Production, eid);
+        NL_TEST_ASSERT(inSuite, err == WEAVE_END_OF_TLV);
+        NL_TEST_ASSERT(inSuite, eid == eid_after + 1);
+
+        testReader.Init(gLargeMemoryBackingStore, testWriter.GetLengthWritten());
+        err = WEAVE_NO_ERROR;
+        count = 0;
+        while (err == WEAVE_NO_ERROR)
+        {
+            err = ReadFirstEventHeader(testReader, time_tmp, utc_tmp, eid_tmp);
+            count++; // Also incremented on error
+        }
+        NL_TEST_ASSERT(inSuite, count == 11); // Following free form events
+    }
+
+    SetShouldBlitCallback(NULL);
+}
+
+static void RegressionWatchdogBug(nlTestSuite * inSuite, void * inContext)
+{
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
+    TLVWriter testWriter;
+    // TLVReader testReader;
     event_id_t eid = 0;
     ::nl::Weave::Profiles::DataManagement::TestSubscriptionHandler subHandler;
-    TestLoggingContext *context = static_cast<TestLoggingContext *>(inContext);
-    nl::Weave::Profiles::DataManagement::LoggingManagement &logger =
+    TestLoggingContext * context = static_cast<TestLoggingContext *>(inContext);
+    nl::Weave::Profiles::DataManagement::LoggingManagement & logger =
         nl::Weave::Profiles::DataManagement::LoggingManagement::GetInstance();
     nl::Weave::Profiles::DataManagement::ImportanceType importance;
 
@@ -3101,9 +3216,7 @@ static void RegressionWatchdogBug(nlTestSuite *inSuite, void *inContext)
 
     ClearMockExternalEvents(1);
     ClearMockExternalEvents(2);
-    eid = nl::Weave::Profiles::DataManagement::LogFreeform(
-        nl::Weave::Profiles::DataManagement::Production,
-        "Freeform entry");
+    eid = nl::Weave::Profiles::DataManagement::LogFreeform(nl::Weave::Profiles::DataManagement::Production, "Freeform entry");
 
     NL_TEST_ASSERT(inSuite, eid == 20);
 
@@ -3115,26 +3228,25 @@ static void RegressionWatchdogBug(nlTestSuite *inSuite, void *inContext)
     NL_TEST_ASSERT(inSuite, importance == nl::Weave::Profiles::DataManagement::Production);
     while (importance != nl::Weave::Profiles::DataManagement::kImportanceType_Invalid)
     {
-        err = logger.FetchEventsSince(testWriter, importance,  subHandler.GetVendedEvent(importance));
+        err = logger.FetchEventsSince(testWriter, importance, subHandler.GetVendedEvent(importance));
         NL_TEST_ASSERT(inSuite, err == WEAVE_END_OF_TLV || err == WEAVE_NO_ERROR);
         importance = subHandler.FindNextImportanceForTransfer();
     }
     // Verify that events are retrieved.
     NL_TEST_ASSERT(inSuite, subHandler.VerifyTraversingImportance());
     NL_TEST_ASSERT(inSuite, subHandler.CheckEventUpToDate(logger));
-
 }
 
-static void RegressionWatchdogBug_EventRemoval(nlTestSuite *inSuite, void *inContext)
+static void RegressionWatchdogBug_EventRemoval(nlTestSuite * inSuite, void * inContext)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
     TLVWriter testWriter;
-    //TLVReader testReader;
+    // TLVReader testReader;
     event_id_t eid = 0;
     timestamp_t now;
     ::nl::Weave::Profiles::DataManagement::TestSubscriptionHandler subHandler;
-    TestLoggingContext *context = static_cast<TestLoggingContext *>(inContext);
-    nl::Weave::Profiles::DataManagement::LoggingManagement &logger =
+    TestLoggingContext * context = static_cast<TestLoggingContext *>(inContext);
+    nl::Weave::Profiles::DataManagement::LoggingManagement & logger =
         nl::Weave::Profiles::DataManagement::LoggingManagement::GetInstance();
     nl::Weave::Profiles::DataManagement::ImportanceType importance;
 
@@ -3146,31 +3258,22 @@ static void RegressionWatchdogBug_EventRemoval(nlTestSuite *inSuite, void *inCon
     err = LogMockDebugExternalEvents(10, 2);
     NL_TEST_ASSERT(inSuite, err == WEAVE_NO_ERROR);
 
-    eid = nl::Weave::Profiles::DataManagement::LogFreeform(
-        nl::Weave::Profiles::DataManagement::Debug,
-        "Freeform entry");
+    eid = nl::Weave::Profiles::DataManagement::LogFreeform(nl::Weave::Profiles::DataManagement::Debug, "Freeform entry");
     NL_TEST_ASSERT(inSuite, eid == 20);
 
-    eid = nl::Weave::Profiles::DataManagement::LogFreeform(
-        nl::Weave::Profiles::DataManagement::Debug,
-        "Freeform entry");
+    eid = nl::Weave::Profiles::DataManagement::LogFreeform(nl::Weave::Profiles::DataManagement::Debug, "Freeform entry");
     NL_TEST_ASSERT(inSuite, eid == 21);
 
-    eid = nl::Weave::Profiles::DataManagement::LogFreeform(
-        nl::Weave::Profiles::DataManagement::Debug,
-        "Freeform entry");
+    eid = nl::Weave::Profiles::DataManagement::LogFreeform(nl::Weave::Profiles::DataManagement::Debug, "Freeform entry");
     NL_TEST_ASSERT(inSuite, eid == 22);
 
     now = System::Layer::GetClock_MonotonicMS();
-    for (size_t counter=0; counter < 100; counter++)
+    for (size_t counter = 0; counter < 100; counter++)
     {
-        eid = FastLogFreeform(
-            nl::Weave::Profiles::DataManagement::Production,
-            now,
-            "Freeform entry %d", counter);
+        eid = FastLogFreeform(nl::Weave::Profiles::DataManagement::Production, now, "Freeform entry %d", counter);
         NL_TEST_ASSERT(inSuite, eid == counter);
 
-        now+=10;
+        now += 10;
     }
 
     testWriter.Init(gLargeMemoryBackingStore, sizeof(gLargeMemoryBackingStore));
@@ -3181,26 +3284,25 @@ static void RegressionWatchdogBug_EventRemoval(nlTestSuite *inSuite, void *inCon
     NL_TEST_ASSERT(inSuite, importance == nl::Weave::Profiles::DataManagement::Production);
     while (importance != nl::Weave::Profiles::DataManagement::kImportanceType_Invalid)
     {
-        err = logger.FetchEventsSince(testWriter, importance,  subHandler.GetVendedEvent(importance));
+        err = logger.FetchEventsSince(testWriter, importance, subHandler.GetVendedEvent(importance));
         NL_TEST_ASSERT(inSuite, err == WEAVE_END_OF_TLV || err == WEAVE_NO_ERROR);
         importance = subHandler.FindNextImportanceForTransfer();
     }
     // Verify that events are retrieved.
     NL_TEST_ASSERT(inSuite, subHandler.VerifyTraversingImportance());
     NL_TEST_ASSERT(inSuite, subHandler.CheckEventUpToDate(logger));
-
 }
 
-static void RegressionWatchdogBug_ExternalEventState(nlTestSuite *inSuite, void *inContext)
+static void RegressionWatchdogBug_ExternalEventState(nlTestSuite * inSuite, void * inContext)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
     TLVWriter testWriter;
-    //TLVReader testReader;
+    // TLVReader testReader;
     event_id_t eid = 0;
     timestamp_t now;
     ::nl::Weave::Profiles::DataManagement::TestSubscriptionHandler subHandler;
-    TestLoggingContext *context = static_cast<TestLoggingContext *>(inContext);
-    nl::Weave::Profiles::DataManagement::LoggingManagement &logger =
+    TestLoggingContext * context = static_cast<TestLoggingContext *>(inContext);
+    nl::Weave::Profiles::DataManagement::LoggingManagement & logger =
         nl::Weave::Profiles::DataManagement::LoggingManagement::GetInstance();
     nl::Weave::Profiles::DataManagement::ImportanceType importance;
 
@@ -3212,9 +3314,7 @@ static void RegressionWatchdogBug_ExternalEventState(nlTestSuite *inSuite, void 
     err = LogMockExternalEvents(10, 2);
     NL_TEST_ASSERT(inSuite, err == WEAVE_NO_ERROR);
 
-    eid = nl::Weave::Profiles::DataManagement::LogFreeform(
-        nl::Weave::Profiles::DataManagement::Production,
-        "F");
+    eid = nl::Weave::Profiles::DataManagement::LogFreeform(nl::Weave::Profiles::DataManagement::Production, "F");
 
     NL_TEST_ASSERT(inSuite, eid == 20);
 
@@ -3223,14 +3323,11 @@ static void RegressionWatchdogBug_ExternalEventState(nlTestSuite *inSuite, void 
     ClearMockExternalEvents(2);
 
     now = System::Layer::GetClock_MonotonicMS();
-    for (size_t counter=0; counter < 100; counter++)
+    for (size_t counter = 0; counter < 100; counter++)
     {
-        eid = FastLogFreeform(
-            nl::Weave::Profiles::DataManagement::Production,
-            now,
-            "Freeform entry %d", counter);
+        eid = FastLogFreeform(nl::Weave::Profiles::DataManagement::Production, now, "Freeform entry %d", counter);
         NL_TEST_ASSERT(inSuite, eid == (counter + 21));
-        now+=10;
+        now += 10;
     }
 
     testWriter.Init(gLargeMemoryBackingStore, sizeof(gLargeMemoryBackingStore));
@@ -3241,24 +3338,23 @@ static void RegressionWatchdogBug_ExternalEventState(nlTestSuite *inSuite, void 
     NL_TEST_ASSERT(inSuite, importance == nl::Weave::Profiles::DataManagement::Production);
     while (importance != nl::Weave::Profiles::DataManagement::kImportanceType_Invalid)
     {
-        err = logger.FetchEventsSince(testWriter, importance,  subHandler.GetVendedEvent(importance));
+        err = logger.FetchEventsSince(testWriter, importance, subHandler.GetVendedEvent(importance));
         NL_TEST_ASSERT(inSuite, err == WEAVE_END_OF_TLV || err == WEAVE_NO_ERROR);
         importance = subHandler.FindNextImportanceForTransfer();
     }
     // Verify that events are retrieved.
     NL_TEST_ASSERT(inSuite, subHandler.VerifyTraversingImportance());
     NL_TEST_ASSERT(inSuite, subHandler.CheckEventUpToDate(logger));
-
 }
 
-static void CheckExternalEventsMultipleFetches(nlTestSuite *inSuite, void *inContext)
+static void CheckExternalEventsMultipleFetches(nlTestSuite * inSuite, void * inContext)
 {
     uint8_t smallMemoryBackingStore[256];
     WEAVE_ERROR err = WEAVE_NO_ERROR;
     TLVWriter testWriter;
     TLVReader testReader;
-    event_id_t fetchId = 0;
-    TestLoggingContext *context = static_cast<TestLoggingContext *>(inContext);
+    event_id_t fetchId           = 0;
+    TestLoggingContext * context = static_cast<TestLoggingContext *>(inContext);
 
     InitializeEventLogging(context);
 
@@ -3269,7 +3365,7 @@ static void CheckExternalEventsMultipleFetches(nlTestSuite *inSuite, void *inCon
     {
         timestamp_t time_tmp;
         utc_timestamp_t utc_tmp = 0;
-        event_id_t eid_tmp = 0;
+        event_id_t eid_tmp      = 0;
 
         testWriter.Init(smallMemoryBackingStore, sizeof(smallMemoryBackingStore));
         err = LoggingManagement::GetInstance().FetchEventsSince(testWriter, Production, fetchId);
@@ -3279,7 +3375,7 @@ static void CheckExternalEventsMultipleFetches(nlTestSuite *inSuite, void *inCon
         }
         else
         {
-        NL_TEST_ASSERT(inSuite, err == WEAVE_NO_ERROR);
+            NL_TEST_ASSERT(inSuite, err == WEAVE_NO_ERROR);
         }
 
         if (err == WEAVE_ERROR_BUFFER_TOO_SMALL)
@@ -3297,30 +3393,178 @@ static void CheckExternalEventsMultipleFetches(nlTestSuite *inSuite, void *inCon
     NL_TEST_ASSERT(inSuite, err == WEAVE_NO_ERROR);
 }
 
-static void CheckShutdownLogic(nlTestSuite *inSuite, void *inContext)
+static event_id_t sLastExpectedExternalEventID;
+static bool sExternalEventNotificationPassed;
+static bool sExternalEventNotificationCalled;
+static bool sExternalEventEvictionCalled;
+
+static void ResetExternalEventDeliveryState(void)
+{
+    sLastExpectedExternalEventID = 0;
+    sExternalEventNotificationCalled = false;
+    sExternalEventNotificationPassed = false;
+    sExternalEventEvictionCalled = false;
+}
+
+static void MockExternalEventsDelivered(ExternalEvents * inEv, event_id_t inLastDeliveredEventID,
+                           uint64_t inRecipientNodeID)
+{
+    sExternalEventNotificationCalled = true;
+    sExternalEventNotificationPassed = (inEv->mLastEventID == sLastExpectedExternalEventID);
+}
+
+static WEAVE_ERROR MockExternalEventsFetch(EventLoadOutContext * aContext)
+{
+    return WEAVE_NO_ERROR;
+}
+
+static void MockExternalEventsEvicted(ExternalEvents * inEv)
+{
+    sExternalEventEvictionCalled = true;
+}
+
+static void CheckExternalEventNotifyDelivered(nlTestSuite * inSuite, void * inContext)
+{
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
+    event_id_t eid_p, eid_d;
+    event_id_t external_eid_production, external_eid_debug;
+    size_t cnt = 1;
+    timestamp_t now;
+    ::nl::Weave::Profiles::DataManagement::TestSubscriptionHandler subHandler;
+    TestLoggingContext * context = static_cast<TestLoggingContext *>(inContext);
+    nl::Weave::Profiles::DataManagement::LoggingManagement & logger =
+        nl::Weave::Profiles::DataManagement::LoggingManagement::GetInstance();
+    nl::Weave::Profiles::DataManagement::ImportanceType importance;
+
+    InitializeEventLogging(context);
+
+    // Prime the event buffers with some internal events
+    now = System::Layer::GetClock_MonotonicMS();
+    eid_p = FastLogFreeform(nl::Weave::Profiles::DataManagement::Production, now, "Freeform entry %d", cnt);
+    eid_d = FastLogFreeform(nl::Weave::Profiles::DataManagement::Debug, now, "Freeform entry %d", cnt);
+
+    // Register external events with production and debug importance
+    err = logger.RegisterEventCallbackForImportance(nl::Weave::Profiles::DataManagement::Production, MockExternalEventsFetch, MockExternalEventsDelivered, 10, &external_eid_production);
+    NL_TEST_ASSERT(inSuite, err == WEAVE_NO_ERROR);
+    NL_TEST_ASSERT(inSuite, external_eid_production == (eid_p + 10));
+
+    err = logger.RegisterEventCallbackForImportance(nl::Weave::Profiles::DataManagement::Debug, MockExternalEventsFetch, MockExternalEventsDelivered, 10, &external_eid_debug);
+    NL_TEST_ASSERT(inSuite, err == WEAVE_NO_ERROR);
+    NL_TEST_ASSERT(inSuite, external_eid_debug == (eid_d + 10));
+
+    // Verify that we do not get a notification for an event that
+    // comes before the external production event
+    ResetExternalEventDeliveryState();
+    sLastExpectedExternalEventID = external_eid_production;
+
+    logger.NotifyEventsDelivered(nl::Weave::Profiles::DataManagement::Production, eid_p, 0ULL);
+
+    NL_TEST_ASSERT(inSuite, sExternalEventNotificationCalled == false);
+
+    // Verify we do get called for the first and last event in the external event range
+    logger.NotifyEventsDelivered(nl::Weave::Profiles::DataManagement::Production, eid_p+1, 0ULL);
+
+    NL_TEST_ASSERT(inSuite, sExternalEventNotificationCalled);
+    NL_TEST_ASSERT(inSuite, sExternalEventNotificationPassed);
+
+    ResetExternalEventDeliveryState();
+    sLastExpectedExternalEventID = external_eid_production;
+
+    logger.NotifyEventsDelivered(nl::Weave::Profiles::DataManagement::Production, external_eid_production, 0ULL);
+
+    NL_TEST_ASSERT(inSuite, sExternalEventNotificationCalled);
+    NL_TEST_ASSERT(inSuite, sExternalEventNotificationPassed);
+
+    // Verify that we get called when the event handler is registered and that we do not get called when event handler is unregistered.  First, reset the checks notification state, and check we get a notification
+    ResetExternalEventDeliveryState();
+    sLastExpectedExternalEventID = external_eid_debug;
+
+    logger.NotifyEventsDelivered(nl::Weave::Profiles::DataManagement::Debug, external_eid_debug, 0ULL);
+
+    NL_TEST_ASSERT(inSuite, sExternalEventNotificationCalled);
+    NL_TEST_ASSERT(inSuite, sExternalEventNotificationPassed);
+
+    // Next, reset the delivery state, unregister the event handler and verify we do not get notified
+    ResetExternalEventDeliveryState();
+
+    logger.UnregisterEventCallbackForImportance(nl::Weave::Profiles::DataManagement::Debug, external_eid_debug);
+
+    logger.NotifyEventsDelivered(nl::Weave::Profiles::DataManagement::Debug, external_eid_debug, 0ULL);
+
+    NL_TEST_ASSERT(inSuite, sExternalEventNotificationCalled == false);
+
+}
+
+static void CheckExternalEventNotifyEvicted(nlTestSuite * inSuite, void * inContext)
+{
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
+    event_id_t eid, eid_prev;
+    event_id_t external_eid_production;
+    size_t counter = 0;
+    timestamp_t now;
+    ::nl::Weave::Profiles::DataManagement::TestSubscriptionHandler subHandler;
+    TestLoggingContext * context = static_cast<TestLoggingContext *>(inContext);
+    nl::Weave::Profiles::DataManagement::LoggingManagement & logger =
+        nl::Weave::Profiles::DataManagement::LoggingManagement::GetInstance();
+    nl::Weave::Profiles::DataManagement::ImportanceType importance;
+
+    InitializeEventLogging(context);
+
+    // Prime the event buffers with some internal events
+    now = System::Layer::GetClock_MonotonicMS();
+    eid = FastLogFreeform(nl::Weave::Profiles::DataManagement::Production, now, "Freeform entry %d", counter);
+    now += 10;
+    counter++;
+
+    // Register external events with production importance
+    err = logger.RegisterEventCallbackForImportance(nl::Weave::Profiles::DataManagement::Production, MockExternalEventsFetch, MockExternalEventsDelivered, MockExternalEventsEvicted, 10, &external_eid_production);
+    NL_TEST_ASSERT(inSuite, err == WEAVE_NO_ERROR);
+    NL_TEST_ASSERT(inSuite, external_eid_production == (eid + 10));
+
+    // Force an eviction
+    eid_prev = FastLogFreeform(nl::Weave::Profiles::DataManagement::Production, now, "Freeform entry %d", counter++);
+    now += 10;
+    for (; counter < 103; counter++)
+    {
+        // Sample production events, spaced 10 milliseconds apart
+        eid = FastLogFreeform(nl::Weave::Profiles::DataManagement::Production, now, "Freeform entry %d", counter);
+        now += 10;
+
+        NL_TEST_ASSERT(inSuite, eid > 0);
+        NL_TEST_ASSERT(inSuite, eid == (eid_prev + 1));
+
+        eid_prev = eid;
+    }
+
+    NL_TEST_ASSERT(inSuite, sExternalEventEvictionCalled == true);
+
+    // Clean up
+    logger.UnregisterEventCallbackForImportance(nl::Weave::Profiles::DataManagement::Production, external_eid_production);
+}
+
+#endif // WEAVE_CONFIG_EVENT_LOGGING_EXTERNAL_EVENT_SUPPORT
+
+static void CheckShutdownLogic(nlTestSuite * inSuite, void * inContext)
 {
     event_id_t eid = 0;
-    int counter = 1;
+    int counter    = 1;
     timestamp_t now;
 
-    TestLoggingContext *context = static_cast<TestLoggingContext *>(inContext);
+    TestLoggingContext * context = static_cast<TestLoggingContext *>(inContext);
 
     InitializeEventLogging(context);
     DestroyEventLogging(context);
 
     now = System::Layer::GetClock_MonotonicMS();
 
-    eid = FastLogFreeform(
-        nl::Weave::Profiles::DataManagement::Production,
-        now,
-        "Freeform entry %d", counter);
+    eid = FastLogFreeform(nl::Weave::Profiles::DataManagement::Production, now, "Freeform entry %d", counter);
 
     NL_TEST_ASSERT(inSuite, eid == 0);
 }
 
-static WEAVE_ERROR BuildSubscribeRequest(
-        nl::Weave::TLV::TLVWriter& writer,
-        const nl::Weave::Profiles::DataManagement::SubscriptionClient::OutEventParam& outSubscribeParam)
+static WEAVE_ERROR
+BuildSubscribeRequest(nl::Weave::TLV::TLVWriter & writer,
+                      const nl::Weave::Profiles::DataManagement::SubscriptionClient::OutEventParam & outSubscribeParam)
 {
     WEAVE_ERROR err;
     SubscribeRequest::Builder request;
@@ -3375,17 +3619,16 @@ exit:
     return err;
 }
 
-static void MockSubscribeRequest(
-        nlTestSuite* inSuite,
-        ::nl::Weave::Profiles::DataManagement::TestSubscriptionHandler& aSubHandler,
-        const nl::Weave::Profiles::DataManagement::SubscriptionClient::OutEventParam& outSubscribeParam)
+static void MockSubscribeRequest(nlTestSuite * inSuite,
+                                 ::nl::Weave::Profiles::DataManagement::TestSubscriptionHandler & aSubHandler,
+                                 const nl::Weave::Profiles::DataManagement::SubscriptionClient::OutEventParam & outSubscribeParam)
 {
     WEAVE_ERROR err;
     uint8_t backingStore[1024];
     TLVWriter writer;
     TLVReader reader;
     SubscribeRequest::Parser request;
-    uint32_t rejectReasonProfileId = 0;
+    uint32_t rejectReasonProfileId  = 0;
     uint16_t rejectReasonStatusCode = 0;
 
     writer.Init(backingStore, sizeof(backingStore));
@@ -3409,14 +3652,14 @@ static void MockSubscribeRequest(
  * This test validates that if a peer specified X as the last observed event
  * ID, the subscription handler publishes X+1 for the next event.
  */
-static void CheckLastObservedEventId(nlTestSuite *inSuite, void *inContext)
+static void CheckLastObservedEventId(nlTestSuite * inSuite, void * inContext)
 {
 #define ARRAY_SIZE(x) (sizeof(x) / sizeof(x[0]))
 
     event_id_t prod_eids[3];
     event_id_t info_eids[3];
 
-    TestLoggingContext *context = static_cast<TestLoggingContext *>(inContext);
+    TestLoggingContext * context = static_cast<TestLoggingContext *>(inContext);
 
     InitializeEventLogging(context);
 
@@ -3424,19 +3667,13 @@ static void CheckLastObservedEventId(nlTestSuite *inSuite, void *inContext)
     timestamp_t now = System::Layer::GetClock_MonotonicMS();
     for (int i = 0; i < 3; i++)
     {
-        prod_eids[i] = FastLogFreeform(
-            nl::Weave::Profiles::DataManagement::Production,
-            now + i*10,
-            "Prod entry %d", i);
+        prod_eids[i] = FastLogFreeform(nl::Weave::Profiles::DataManagement::Production, now + i * 10, "Prod entry %d", i);
 
-        info_eids[i] = FastLogFreeform(
-            nl::Weave::Profiles::DataManagement::Info,
-            now + i*10 + 5,
-            "Info entry %d", i);
+        info_eids[i] = FastLogFreeform(nl::Weave::Profiles::DataManagement::Info, now + i * 10 + 5, "Info entry %d", i);
     }
 
     ::nl::Weave::Profiles::DataManagement::TestSubscriptionHandler subHandler;
-    nl::Weave::Profiles::DataManagement::LoggingManagement &logger =
+    nl::Weave::Profiles::DataManagement::LoggingManagement & logger =
         nl::Weave::Profiles::DataManagement::LoggingManagement::GetInstance();
 
     subHandler.SetEventLogEndpoint(logger);
@@ -3465,17 +3702,17 @@ static void CheckLastObservedEventId(nlTestSuite *inSuite, void *inContext)
         nl::Weave::Profiles::DataManagement::SubscriptionClient::LastObservedEvent lastObservedEventList[2];
 
         // Production event
-        lastObservedEventList[0].mSourceId = kTestNodeId;
+        lastObservedEventList[0].mSourceId   = kTestNodeId;
         lastObservedEventList[0].mImportance = nl::Weave::Profiles::DataManagement::Production;
-        lastObservedEventList[0].mEventId = prod_eids[2];
+        lastObservedEventList[0].mEventId    = prod_eids[2];
 
         // Info event
-        lastObservedEventList[1].mSourceId = kTestNodeId;
+        lastObservedEventList[1].mSourceId   = kTestNodeId;
         lastObservedEventList[1].mImportance = nl::Weave::Profiles::DataManagement::Info;
-        lastObservedEventList[1].mEventId = info_eids[1];
+        lastObservedEventList[1].mEventId    = info_eids[1];
 
-        outParam.mSubscribeRequestPrepareNeeded.mNeedAllEvents = true;
-        outParam.mSubscribeRequestPrepareNeeded.mLastObservedEventList = lastObservedEventList;
+        outParam.mSubscribeRequestPrepareNeeded.mNeedAllEvents             = true;
+        outParam.mSubscribeRequestPrepareNeeded.mLastObservedEventList     = lastObservedEventList;
         outParam.mSubscribeRequestPrepareNeeded.mLastObservedEventListSize = ARRAY_SIZE(lastObservedEventList);
 
         MockSubscribeRequest(inSuite, subHandler, outParam);
@@ -3490,7 +3727,7 @@ static void CheckLastObservedEventId(nlTestSuite *inSuite, void *inContext)
 
     // Make sure vended EIDs are what we expect
     NL_TEST_ASSERT(inSuite, subHandler.GetVendedEvent(nl::Weave::Profiles::DataManagement::Production) == prod_eids[2] + 1);
-    NL_TEST_ASSERT(inSuite, subHandler.GetVendedEvent(nl::Weave::Profiles::DataManagement::Info) == info_eids[1]+ 1);
+    NL_TEST_ASSERT(inSuite, subHandler.GetVendedEvent(nl::Weave::Profiles::DataManagement::Info) == info_eids[1] + 1);
 
     // Now mock another subscribe request where all events are observed
     {
@@ -3498,17 +3735,17 @@ static void CheckLastObservedEventId(nlTestSuite *inSuite, void *inContext)
         nl::Weave::Profiles::DataManagement::SubscriptionClient::LastObservedEvent lastObservedEventList[2];
 
         // Production event
-        lastObservedEventList[0].mSourceId = kTestNodeId;
+        lastObservedEventList[0].mSourceId   = kTestNodeId;
         lastObservedEventList[0].mImportance = nl::Weave::Profiles::DataManagement::Production;
-        lastObservedEventList[0].mEventId = prod_eids[2];
+        lastObservedEventList[0].mEventId    = prod_eids[2];
 
         // Info event
-        lastObservedEventList[1].mSourceId = kTestNodeId;
+        lastObservedEventList[1].mSourceId   = kTestNodeId;
         lastObservedEventList[1].mImportance = nl::Weave::Profiles::DataManagement::Info;
-        lastObservedEventList[1].mEventId = info_eids[2];
+        lastObservedEventList[1].mEventId    = info_eids[2];
 
-        outParam.mSubscribeRequestPrepareNeeded.mNeedAllEvents = true;
-        outParam.mSubscribeRequestPrepareNeeded.mLastObservedEventList = lastObservedEventList;
+        outParam.mSubscribeRequestPrepareNeeded.mNeedAllEvents             = true;
+        outParam.mSubscribeRequestPrepareNeeded.mLastObservedEventList     = lastObservedEventList;
         outParam.mSubscribeRequestPrepareNeeded.mLastObservedEventListSize = ARRAY_SIZE(lastObservedEventList);
 
         MockSubscribeRequest(inSuite, subHandler, outParam);
@@ -3516,13 +3753,11 @@ static void CheckLastObservedEventId(nlTestSuite *inSuite, void *inContext)
 
     // No events to process
     NL_TEST_ASSERT(inSuite, subHandler.CheckEventUpToDate(logger) == true);
-    NL_TEST_ASSERT(inSuite, subHandler.FindNextImportanceForTransfer() == nl::Weave::Profiles::DataManagement::kImportanceType_Invalid);
+    NL_TEST_ASSERT(inSuite,
+                   subHandler.FindNextImportanceForTransfer() == nl::Weave::Profiles::DataManagement::kImportanceType_Invalid);
 
     // Log a new event and confirm that there's more events to process
-    (void)FastLogFreeform(
-        nl::Weave::Profiles::DataManagement::Production,
-        now + 1000,
-        "Last Prod entry");
+    (void) FastLogFreeform(nl::Weave::Profiles::DataManagement::Production, now + 1000, "Last Prod entry");
 
     subHandler.SetEventLogEndpoint(logger);
 
@@ -3532,8 +3767,7 @@ static void CheckLastObservedEventId(nlTestSuite *inSuite, void *inContext)
     DestroyEventLogging(context);
 }
 
-
-//Test Suite
+// Test Suite
 
 /**
  *  Test Suite that lists all the test functions.
@@ -3559,33 +3793,51 @@ static const nlTest sTests[] = {
     NL_TEST_DEF("Check Deserializing an Event from a Newer Version with Nullables", CheckDeserializingNewerVersionNullable),
     NL_TEST_DEF("Check Deserializing an Event from an Older Version with Nullables", CheckDeserializingOlderVersionNullable),
     NL_TEST_DEF("Subscription Handler accounting", CheckSubscriptionHandler),
-    NL_TEST_DEF("Subscription Handler accounting, PersistedCounters start at zero, same importances, Production global importance", CheckSubscriptionHandlerCountersStartAtZeroProd),
-    NL_TEST_DEF("Subscription Handler accounting, PersistedCounters start at zero, two different importances, Production global importance", CheckSubscriptionHandlerCountersStartAtZeroTwoDifferentImportancesProd),
-    NL_TEST_DEF("Subscription Handler accounting, PersistedCounters start at non-zero, same importances, Production global importance", CheckSubscriptionHandlerCountersStartAtNonZeroProd),
-    NL_TEST_DEF("Subscription Handler accounting, PersistedCounters start at non-zero, two different importances, Production global importance", CheckSubscriptionHandlerCountersStartAtNonZeroTwoDifferentImportancesProd),
-    NL_TEST_DEF("Subscription Handler accounting, PersistedCounters start at zero, same importances, Info global importance", CheckSubscriptionHandlerCountersStartAtZeroInfo),
-    NL_TEST_DEF("Subscription Handler accounting, PersistedCounters start at zero, two different importances, Info global importance", CheckSubscriptionHandlerCountersStartAtZeroTwoDifferentImportancesInfo),
-    NL_TEST_DEF("Subscription Handler accounting, PersistedCounters start at non-zero, same importances, Info global importance", CheckSubscriptionHandlerCountersStartAtNonZeroInfo),
-    NL_TEST_DEF("Subscription Handler accounting, PersistedCounters start at non-zero, two different importances, Info global importance", CheckSubscriptionHandlerCountersStartAtNonZeroTwoDifferentImportancesInfo),
+    NL_TEST_DEF("Subscription Handler accounting, PersistedCounters start at zero, same importances, Production global importance",
+                CheckSubscriptionHandlerCountersStartAtZeroProd),
+    NL_TEST_DEF(
+        "Subscription Handler accounting, PersistedCounters start at zero, two different importances, Production global importance",
+        CheckSubscriptionHandlerCountersStartAtZeroTwoDifferentImportancesProd),
+    NL_TEST_DEF(
+        "Subscription Handler accounting, PersistedCounters start at non-zero, same importances, Production global importance",
+        CheckSubscriptionHandlerCountersStartAtNonZeroProd),
+    NL_TEST_DEF("Subscription Handler accounting, PersistedCounters start at non-zero, two different importances, Production "
+                "global importance",
+                CheckSubscriptionHandlerCountersStartAtNonZeroTwoDifferentImportancesProd),
+    NL_TEST_DEF("Subscription Handler accounting, PersistedCounters start at zero, same importances, Info global importance",
+                CheckSubscriptionHandlerCountersStartAtZeroInfo),
+    NL_TEST_DEF(
+        "Subscription Handler accounting, PersistedCounters start at zero, two different importances, Info global importance",
+        CheckSubscriptionHandlerCountersStartAtZeroTwoDifferentImportancesInfo),
+    NL_TEST_DEF("Subscription Handler accounting, PersistedCounters start at non-zero, same importances, Info global importance",
+                CheckSubscriptionHandlerCountersStartAtNonZeroInfo),
+    NL_TEST_DEF(
+        "Subscription Handler accounting, PersistedCounters start at non-zero, two different importances, Info global importance",
+        CheckSubscriptionHandlerCountersStartAtNonZeroTwoDifferentImportancesInfo),
+#if WEAVE_CONFIG_EVENT_LOGGING_EXTERNAL_EVENT_SUPPORT
     NL_TEST_DEF("Check External Events Basic", CheckExternalEvents),
     NL_TEST_DEF("Check External Events Multiple Callbacks", CheckExternalEventsMultipleCallbacks),
     NL_TEST_DEF("Check External Events Multiple Fetches", CheckExternalEventsMultipleFetches),
+    NL_TEST_DEF("Check External Events Skip", CheckSkipExternalEvents),
     NL_TEST_DEF("Check Drop Events", CheckDropEvents),
-    NL_TEST_DEF("Check Shutdown Logic", CheckShutdownLogic),
-    NL_TEST_DEF("Check WDM offload trigger", CheckWDMOffloadTrigger),
     NL_TEST_DEF("Regression: watchdog bug", RegressionWatchdogBug),
     NL_TEST_DEF("Regression: external event cleanup", RegressionWatchdogBug_EventRemoval),
     NL_TEST_DEF("Regression: external event, external clear call", RegressionWatchdogBug_ExternalEventState),
+    NL_TEST_DEF("Check External Event delivery notification", CheckExternalEventNotifyDelivered),
+#endif
+    NL_TEST_DEF("Check Shutdown Logic", CheckShutdownLogic),
+    NL_TEST_DEF("Check WDM offload trigger", CheckWDMOffloadTrigger),
     NL_TEST_DEF("Check version 1 data schema compatibility encoding + decoding", CheckVersion1DataCompatibility),
     NL_TEST_DEF("Check forward data compatibility encoding + decoding", CheckForwardDataCompatibility),
     NL_TEST_DEF("Check data incompatible encoding + decoding", CheckDataIncompatibility),
     NL_TEST_DEF("Check Gap detection", CheckGapDetection),
     NL_TEST_DEF("Check Drop Overlapping Event Id Ranges", CheckDropOverlap),
     NL_TEST_DEF("Check Last Observed Event Id", CheckLastObservedEventId),
+    NL_TEST_DEF("Check External Event eviction notification", CheckExternalEventNotifyEvicted),
     NL_TEST_SENTINEL()
 };
 
-int main(int argc, char *argv[])
+int main(int argc, char * argv[])
 {
     MockPlatform::gMockPlatformClocks.GetClock_RealTime = Private::GetClock_RealTime;
     MockPlatform::gMockPlatformClocks.SetClock_RealTime = Private::SetClock_RealTime;
@@ -3596,12 +3848,7 @@ int main(int argc, char *argv[])
         exit(EXIT_FAILURE);
     }
 
-    nlTestSuite theSuite = {
-        "weave-event-log",
-        &sTests[0],
-        TestSetup,
-        TestTeardown
-    };
+    nlTestSuite theSuite = { "weave-event-log", &sTests[0], TestSetup, TestTeardown };
 
     gTestLoggingContext.mReinitializeBDXUpload = true;
 
@@ -3614,7 +3861,7 @@ int main(int argc, char *argv[])
     return nlTestRunnerStats(&theSuite);
 }
 
-bool HandleOption(const char *progName, OptionSet *optSet, int id, const char *name, const char *arg)
+bool HandleOption(const char * progName, OptionSet * optSet, int id, const char * name, const char * arg)
 {
     switch (id)
     {
@@ -3626,7 +3873,7 @@ bool HandleOption(const char *progName, OptionSet *optSet, int id, const char *n
         break;
     case 'D':
         gBDXContext.DestIPAddrStr = arg;
-        gTestLoggingContext.bdx = true;
+        gTestLoggingContext.bdx   = true;
         break;
     case 'p':
         if (!ParseInt(arg, gBDXContext.DestNodeId))
@@ -3654,12 +3901,13 @@ bool HandleOption(const char *progName, OptionSet *optSet, int id, const char *n
     return true;
 }
 
-static void PrepareBinding(TestLoggingContext *context)
+static void PrepareBinding(TestLoggingContext * context)
 {
-    WEAVE_ERROR err = WEAVE_NO_ERROR;
-    Binding *binding = NULL;
+    WEAVE_ERROR err   = WEAVE_NO_ERROR;
+    Binding * binding = NULL;
 
-    if (!context->mBinding) {
+    if (!context->mBinding)
+    {
         binding = context->mExchangeMgr->NewBinding(HandleBindingEvent, context);
         if (binding == NULL)
         {
@@ -3667,10 +3915,8 @@ static void PrepareBinding(TestLoggingContext *context)
             return;
         }
 
-        Binding::Configuration bindingConfig = binding->BeginConfiguration()
-            .Target_NodeId(gBDXContext.DestNodeId)
-            .Transport_UDP()
-            .Security_None();
+        Binding::Configuration bindingConfig =
+            binding->BeginConfiguration().Target_NodeId(gBDXContext.DestNodeId).Transport_UDP().Security_None();
 
         if (gBDXContext.DestIPAddrStr != NULL && nl::Inet::IPAddress::FromString(gBDXContext.DestIPAddrStr, gBDXContext.DestIPAddr))
         {
@@ -3688,38 +3934,40 @@ static void PrepareBinding(TestLoggingContext *context)
     }
 }
 
-static WEAVE_ERROR InitSubscriptionClient(TestLoggingContext *context)
+static WEAVE_ERROR InitSubscriptionClient(TestLoggingContext * context)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
 
-    if (!context->mSubClient) {
+    if (!context->mSubClient)
+    {
         err = SubscriptionEngine::GetInstance()->NewClient(&context->mSubClient, context->mBinding, NULL, NULL, NULL, 0);
     }
 
     return err;
 }
 
-static void HandleBindingEvent(void *const appState, const Binding::EventType event, const Binding::InEventParam &inParam, Binding::OutEventParam &outParam)
+static void HandleBindingEvent(void * const appState, const Binding::EventType event, const Binding::InEventParam & inParam,
+                               Binding::OutEventParam & outParam)
 {
-    TestLoggingContext *context = static_cast<TestLoggingContext *>(appState);
+    TestLoggingContext * context = static_cast<TestLoggingContext *>(appState);
 
     switch (event)
     {
-        case Binding::kEvent_BindingReady:
-            gLogBDXUpload.StartUpload(context->mBinding);
-            break;
-        case Binding::kEvent_PrepareFailed:
-            printf("Binding Prepare failed\n");
-            break;
-        default:
-            Binding::DefaultEventHandler(appState, event, inParam, outParam);
-            break;
+    case Binding::kEvent_BindingReady:
+        gLogBDXUpload.StartUpload(context->mBinding);
+        break;
+    case Binding::kEvent_PrepareFailed:
+        printf("Binding Prepare failed\n");
+        break;
+    default:
+        Binding::DefaultEventHandler(appState, event, inParam, outParam);
+        break;
     }
 }
 
-static void StartClientConnection(System::Layer *systemLayer, void *appState, System::Error error)
+static void StartClientConnection(System::Layer * systemLayer, void * appState, System::Error error)
 {
-    BDXContext *ctx = static_cast<BDXContext *>(appState);
+    BDXContext * ctx = static_cast<BDXContext *>(appState);
 
     printf("@@@ 0 StartClientConnection entering (Con: %p)\n", Con);
 
@@ -3737,7 +3985,7 @@ static void StartClientConnection(System::Layer *systemLayer, void *appState, Sy
         return;
     }
 
-    //TODO: move this to BDX logic
+    // TODO: move this to BDX logic
     Con = MessageLayer.NewConnection();
     if (Con == NULL)
     {
@@ -3746,7 +3994,7 @@ static void StartClientConnection(System::Layer *systemLayer, void *appState, Sy
     }
     printf("@@@ 3+ (Con: %p)\n", Con);
     Con->OnConnectionComplete = HandleConnectionComplete;
-    Con->OnConnectionClosed = HandleConnectionClosed;
+    Con->OnConnectionClosed   = HandleConnectionClosed;
 
     printf("@@@ 3++ (DestNodeId: %" PRIX64 ", DestIPAddrStr: %s)\n", ctx->DestNodeId, ctx->DestIPAddrStr);
 
@@ -3773,7 +4021,7 @@ static void StartClientConnection(System::Layer *systemLayer, void *appState, Sy
     printf("@@@ 5 StartClientConnection exiting\n");
 }
 
-void HandleConnectionComplete(WeaveConnection *con, WEAVE_ERROR conErr)
+void HandleConnectionComplete(WeaveConnection * con, WEAVE_ERROR conErr)
 {
     printf("@@@ 1 HandleConnectionComplete entering\n");
 
@@ -3811,7 +4059,7 @@ void HandleConnectionComplete(WeaveConnection *con, WEAVE_ERROR conErr)
 
     ClientConEstablished = true;
 
-    //Send the ReceiveInit or SendInit request
+    // Send the ReceiveInit or SendInit request
     if (Con != NULL)
     {
         // Kick LogBDXUpload
@@ -3830,7 +4078,7 @@ void HandleConnectionComplete(WeaveConnection *con, WEAVE_ERROR conErr)
     printf("@@@ 7 HandleConnectionComplete exiting\n");
 }
 
-void HandleConnectionClosed(WeaveConnection *con, WEAVE_ERROR conErr)
+void HandleConnectionClosed(WeaveConnection * con, WEAVE_ERROR conErr)
 {
     char ipAddrStr[64];
     con->PeerAddr.ToString(ipAddrStr, sizeof(ipAddrStr));

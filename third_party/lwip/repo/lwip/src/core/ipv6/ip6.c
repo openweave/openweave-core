@@ -85,7 +85,7 @@ extern int debug_target_match(int is_ipv6, ipX_addr_t *src, ipX_addr_t *dest);
  * #else
  * 3) tries to match the destination subnet to a configured address
  * #endif
- * 4) tries to find a router
+ * 4) tries to find a router-announced route
  * #if !LWIP_IPV6_ROUTE_TABLE_SUPPORT
  * 5) tries to match the source address to the netif
  * #endif
@@ -147,15 +147,21 @@ ip6_route(const ip6_addr_t *src, const ip6_addr_t *dest)
 #endif
 
 #if LWIP_IPV6_ROUTE_TABLE_SUPPORT
-  /* Loop through the netif list to find a matching address */
+  /* See if the destination subnet matches a configured address. In accordance
+   * with RFC 5942, dynamically configured addresses do not have an implied
+   * local subnet, and thus should be considered /128 assignments. However, as
+   * such, the destination address may still match a local address, and so we
+   * still need to check for exact matches here. By (lwIP) policy, statically
+   * configured addresses do always have an implied local /64 subnet. */
   for (netif = netif_list; netif != NULL; netif = netif->next) {
     if (!netif_is_up(netif) || !netif_is_link_up(netif)) {
       continue;
     }
     for (i = 0; i < LWIP_IPV6_NUM_ADDRESSES; i++) {
       if (ip6_addr_isvalid(netif_ip6_addr_state(netif, i)) &&
-          ip6_addr_netcmp(dest, netif_ip6_addr(netif, i))) {
-        /* Configured address on netif matches destination address */
+          ip6_addr_netcmp(dest, netif_ip6_addr(netif, i)) &&
+          (netif_ip6_addr_isstatic(netif, i) ||
+          ip6_addr_nethostcmp(dest, netif_ip6_addr(netif, i)))) {
         return netif;
       }
     }
@@ -169,9 +175,9 @@ ip6_route(const ip6_addr_t *src, const ip6_addr_t *dest)
 #endif /* LWIP_IPV6_ROUTE_TABLE_SUPPORT */
 
 #if LWIP_IPV6_ROUTER_SUPPORT
-  /* Get the netif for a suitable router. */
+  /* Get the netif for a suitable router-announced route. */
   netif = nd6_find_route(dest);
-  if ((netif != NULL) && netif_is_up(netif) && netif_is_link_up(netif)) {
+  if (netif != NULL) {
     return netif;
   }
 #endif /* LWIP_IPV6_ROUTER_SUPPORT */
@@ -219,9 +225,22 @@ ip6_route(const ip6_addr_t *src, const ip6_addr_t *dest)
 
 /**
  * @ingroup ip6
- * Select the best IPv6 source address for a given destination
- * IPv6 address. Loosely follows RFC 3484. "Strong host" behavior
- * is assumed.
+ * Select the best IPv6 source address for a given destination IPv6 address.
+ *
+ * This implementation follows RFC 6724 Sec. 5 to the following extent:
+ * - Rules 1, 2, 3: fully implemented
+ * - Rules 4, 5, 5.5: not applicable
+ * - Rule 6: not implemented
+ * - Rule 7: not applicable
+ * - Rule 8: limited to "prefer /64 subnet match over non-match"
+ *
+ * For Rule 2, we deliberately deviate from RFC 6724 Sec. 3.1 by considering
+ * ULAs to be of smaller scope than global addresses, to avoid that a preferred
+ * ULA is picked over a deprecated global address when given a global address
+ * as destination, as that would likely result in broken two-way communication.
+ *
+ * As long as temporary addresses are not supported (as used in Rule 7), a
+ * proper implementation of Rule 8 would obviate the need to implement Rule 6.
  *
  * @param netif the netif on which to send a packet
  * @param dest the destination we are trying to reach
@@ -231,73 +250,75 @@ ip6_route(const ip6_addr_t *src, const ip6_addr_t *dest)
 const ip_addr_t *
 ip6_select_source_address(struct netif *netif, const ip6_addr_t *dest)
 {
-  const ip_addr_t *src = NULL;
-  u8_t i;
+  const ip_addr_t *best_addr;
+  const ip6_addr_t *cand_addr;
+  s8_t dest_scope, cand_scope, best_scope;
+  u8_t i, cand_pref, best_pref, cand_bits, best_bits;
 
-  /* If dest is link-local, choose a link-local source. */
-  if (ip6_addr_islinklocal(dest) || ip6_addr_ismulticast_linklocal(dest) || ip6_addr_ismulticast_iflocal(dest)) {
-    for (i = 0; i < LWIP_IPV6_NUM_ADDRESSES; i++) {
-      if (ip6_addr_isvalid(netif_ip6_addr_state(netif, i)) &&
-          ip6_addr_islinklocal(netif_ip6_addr(netif, i))) {
-        return netif_ip_addr6(netif, i);
-      }
-    }
+  /* Start by determining the scope of the given destination address. These
+   * tests are hopefully (roughly) in order of likeliness to match. */
+  if (ip6_addr_isglobal(dest)) {
+    dest_scope = IP6_MULTICAST_SCOPE_GLOBAL;
+  } else if (ip6_addr_islinklocal(dest) || ip6_addr_isloopback(dest)) {
+    dest_scope = IP6_MULTICAST_SCOPE_LINK_LOCAL;
+  } else if (ip6_addr_isuniquelocal(dest)) {
+    dest_scope = IP6_MULTICAST_SCOPE_ORGANIZATION_LOCAL;
+  } else if (ip6_addr_ismulticast(dest)) {
+    dest_scope = ip6_addr_multicast_scope(dest);
+  } else if (ip6_addr_issitelocal(dest)) {
+    dest_scope = IP6_MULTICAST_SCOPE_SITE_LOCAL;
+  } else {
+    /* no match, consider scope global */
+    dest_scope = IP6_MULTICAST_SCOPE_GLOBAL;
   }
 
-  /* Choose a site-local with matching prefix. */
-  if (ip6_addr_issitelocal(dest) || ip6_addr_ismulticast_sitelocal(dest)) {
-    for (i = 0; i < LWIP_IPV6_NUM_ADDRESSES; i++) {
-      if (ip6_addr_isvalid(netif_ip6_addr_state(netif, i)) &&
-          ip6_addr_issitelocal(netif_ip6_addr(netif, i)) &&
-          ip6_addr_netcmp(dest, netif_ip6_addr(netif, i))) {
-        return netif_ip_addr6(netif, i);
-      }
-    }
-  }
+  best_addr = NULL;
 
-  /* Choose a unique-local with matching prefix. */
-  if (ip6_addr_isuniquelocal(dest) || ip6_addr_ismulticast_orglocal(dest)) {
-    for (i = 0; i < LWIP_IPV6_NUM_ADDRESSES; i++) {
-      if (ip6_addr_isvalid(netif_ip6_addr_state(netif, i)) &&
-          ip6_addr_isuniquelocal(netif_ip6_addr(netif, i)) &&
-          ip6_addr_net48cmp(dest, netif_ip6_addr(netif, i))) {
-        return netif_ip_addr6(netif, i);
-      }
-    }
-  }
-
-  /* Choose a global with best matching prefix. */
-  if (ip6_addr_isglobal(dest) || ip6_addr_ismulticast_global(dest)) {
-    for (i = 0; i < LWIP_IPV6_NUM_ADDRESSES; i++) {
-      if (ip6_addr_isvalid(netif_ip6_addr_state(netif, i)) &&
-          ip6_addr_isglobal(netif_ip6_addr(netif, i))) {
-        if (src == NULL) {
-          src = netif_ip_addr6(netif, i);
-        }
-        else {
-          /* Replace src only if we find a prefix match. */
-          /* @todo find longest matching prefix. */
-          if ((!(ip6_addr_netcmp(ip_2_ip6(src), dest))) &&
-              ip6_addr_netcmp(netif_ip6_addr(netif, i), dest)) {
-            src = netif_ip_addr6(netif, i);
-          }
-        }
-      }
-    }
-    if (src != NULL) {
-      return src;
-    }
-  }
-
-  /* Last resort: see if arbitrary prefix matches. */
   for (i = 0; i < LWIP_IPV6_NUM_ADDRESSES; i++) {
-    if (ip6_addr_isvalid(netif_ip6_addr_state(netif, i)) &&
-        ip6_addr_netcmp(dest, netif_ip6_addr(netif, i))) {
-      return netif_ip_addr6(netif, i);
+    /* Consider only valid (= preferred and deprecated) addresses. */
+    if (!ip6_addr_isvalid(netif_ip6_addr_state(netif, i))) {
+      continue;
+    }
+    /* Determine the scope of this candidate address. Same ordering idea. */
+    cand_addr = netif_ip6_addr(netif, i);
+
+    if (ip6_addr_isany(cand_addr) || ip6_addr_ismulticast(cand_addr)) {
+        LWIP_DEBUGF(IP6_DEBUG | LWIP_DBG_LEVEL_WARNING, ("unspecified / multicast address assigned as unicast address on %c%c%u\n", netif->name[0], netif->name[1], netif->num));
+        continue;
+    }
+
+    if (ip6_addr_isglobal(cand_addr)) {
+      cand_scope = IP6_MULTICAST_SCOPE_GLOBAL;
+    } else if (ip6_addr_islinklocal(cand_addr)) {
+      cand_scope = IP6_MULTICAST_SCOPE_LINK_LOCAL;
+    } else if (ip6_addr_isuniquelocal(cand_addr)) {
+      cand_scope = IP6_MULTICAST_SCOPE_ORGANIZATION_LOCAL;
+    } else if (ip6_addr_issitelocal(cand_addr)) {
+      cand_scope = IP6_MULTICAST_SCOPE_SITE_LOCAL;
+    } else {
+      /* no match, treat as low-priority global scope */
+      cand_scope = IP6_MULTICAST_SCOPE_RESERVEDF;
+    }
+    cand_pref = ip6_addr_ispreferred(netif_ip6_addr_state(netif, i));
+    /* @todo compute the actual common bits, for longest matching prefix. */
+    cand_bits = ip6_addr_netcmp(cand_addr, dest); /* just 1 or 0 for now */
+    if (cand_bits && ip6_addr_nethostcmp(cand_addr, dest)) {
+      return netif_ip_addr6(netif, i); /* Rule 1 */
+    }
+    if ((best_addr == NULL) || /* no alternative yet */
+        ((cand_scope < best_scope) && (cand_scope >= dest_scope)) ||
+        ((cand_scope > best_scope) && (best_scope < dest_scope)) || /* Rule 2 */
+        ((cand_scope == best_scope) && ((cand_pref > best_pref) || /* Rule 3 */
+        ((cand_pref == best_pref) && (cand_bits > best_bits))))) { /* Rule 8 */
+      /* We found a new "winning" candidate. */
+      best_addr = netif_ip_addr6(netif, i);
+      best_scope = cand_scope;
+      best_pref = cand_pref;
+      best_bits = cand_bits;
     }
   }
 
-  return NULL;
+  return best_addr; /* may be NULL */
 }
 
 #if LWIP_IPV6_FORWARD
@@ -424,6 +445,8 @@ ip6_input(struct pbuf *p, struct netif *inp)
   @todo
   int check_ip_src=1;
 #endif /* IP_ACCEPT_LINK_LAYER_ADDRESSING */
+
+  LWIP_ASSERT_CORE_LOCKED();
 
   IP6_STATS_INC(ip6.recv);
 
@@ -940,6 +963,11 @@ ip6_output_if_src(struct pbuf *p, const ip6_addr_t *src, const ip6_addr_t *dest,
       }
     }
   }
+#if LWIP_MULTICAST_TX_OPTIONS
+  if ((p->flags & PBUF_FLAG_MCASTLOOP) != 0) {
+    netif_loop_output(netif, p);
+  }
+#endif /* LWIP_MULTICAST_TX_OPTIONS */
 #endif /* ENABLE_LOOPBACK */
 #if LWIP_IPV6_FRAG
   /* don't fragment if interface has mtu set to 0 [loopif] */

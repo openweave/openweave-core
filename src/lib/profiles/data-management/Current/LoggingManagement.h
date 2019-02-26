@@ -53,7 +53,7 @@ struct CircularEventBuffer
     bool IsFinalDestinationForImportance(ImportanceType inImportance) const;
 
     event_id_t VendEventID(void);
-    void RemoveEvent(void);
+    void RemoveEvent(size_t aNumEvents);
 
     // for doxygen, see the CPP file
     void AddEvent(timestamp_t inEventTimestamp);
@@ -62,14 +62,6 @@ struct CircularEventBuffer
     // for doxygen, see the CPP file
     void AddEventUTC(utc_timestamp_t inEventTimestamp);
 #endif
-
-    // for doxygen, see the CPP file
-    WEAVE_ERROR RegisterExternalEventsCallback(FetchExternalEventsFunct aFetchCallback,
-                                               NotifyExternalEventsDeliveredFunct aNotifyCallback, size_t aNumEvents,
-                                               ExternalEvents ** aExternalEventsPtr);
-
-    // for doxygen, see the CPP file
-    void UnregisterExternalEventsCallback(ExternalEvents * ioPtr);
 
     nl::Weave::TLV::WeaveCircularTLVBuffer mBuffer; //< The underlying TLV buffer storing the events in a TLV representation
 
@@ -97,14 +89,6 @@ struct CircularEventBuffer
 
     // The backup counter to use if no counter is provided for us.
     nl::Weave::MonotonicallyIncreasingCounter mNonPersistedCounter;
-
-#if WEAVE_CONFIG_EVENT_LOGGING_NUM_EXTERNAL_CALLBACKS
-    ExternalEvents mExternalEventsList[WEAVE_CONFIG_EVENT_LOGGING_NUM_EXTERNAL_CALLBACKS];
-
-    ExternalEvents * GetExternalEventsFromEventID(event_id_t aEventID);
-
-    ExternalEvents * GetNextAvailableExternalEvents(void);
-#endif // WEAVE_CONFIG_EVENT_LOGGING_NUM_EXTERNAL_CALLBACKS
 
     static WEAVE_ERROR GetNextBufferFunct(nl::Weave::TLV::TLVReader & ioReader, uintptr_t & inBufHandle,
                                           const uint8_t *& outBufStart, uint32_t & outBufLen);
@@ -148,6 +132,7 @@ struct EventEnvelopeContext
     int64_t mDeltaUtc;
 #endif
     ImportanceType mImportance;
+    ExternalEvents *mExternalEvents;
 };
 
 enum LoggingManagementStates
@@ -202,7 +187,7 @@ public:
 
     uint32_t GetBytesWritten(void) const;
 
-    void NotifyEventsDelivered(ImportanceType inImportance, event_id_t inLastDeliveredEventID, uint64_t inRecipientNodeID) const;
+    void NotifyEventsDelivered(ImportanceType inImportance, event_id_t inLastDeliveredEventID, uint64_t inRecipientNodeID);
 
     /**
      * @brief
@@ -213,11 +198,6 @@ public:
      */
     bool IsValid(void) { return (mEventBuffer != NULL); };
 
-#if WEAVE_CONFIG_EVENT_LOGGING_NUM_EXTERNAL_CALLBACKS
-    bool IsEventExternal(ImportanceType inImportance, event_id_t inEventID) const;
-    event_id_t GetEndOfExternalEventRange(ImportanceType inImportance, event_id_t inEventID) const;
-#endif // WEAVE_CONFIG_EVENT_LOGGING_NUM_EXTERNAL_CALLBACKS
-
     event_id_t GetLastEventID(ImportanceType inImportance);
     event_id_t GetFirstEventID(ImportanceType inImportance);
 
@@ -226,14 +206,22 @@ public:
 
     void SetBDXUploader(LogBDXUpload * inUploader);
 
+#if WEAVE_CONFIG_EVENT_LOGGING_EXTERNAL_EVENT_SUPPORT
+    WEAVE_ERROR RegisterEventCallbackForImportance(ImportanceType inImportance, FetchExternalEventsFunct inFetchCallback,
+                                                   NotifyExternalEventsDeliveredFunct inNotifyCallback,
+                                                   NotifyExternalEventsEvictedFunct inEvictedCallback,
+                                                   size_t inNumEvents, event_id_t * outLastEventID);
     WEAVE_ERROR RegisterEventCallbackForImportance(ImportanceType inImportance, FetchExternalEventsFunct inFetchCallback,
                                                    NotifyExternalEventsDeliveredFunct inNotifyCallback, size_t inNumEvents,
-                                                   ExternalEvents ** aExternalEventsPtr);
+                                                   event_id_t * outLastEventID);
     WEAVE_ERROR RegisterEventCallbackForImportance(ImportanceType inImportance, FetchExternalEventsFunct inFetchCallback,
-                                                   size_t inNumEvents, ExternalEvents ** aExternalEventsPtr);
-    void UnregisterEventCallbackForImportance(ImportanceType inImportance, ExternalEvents * inPtr);
+                                                   size_t inNumEvents, event_id_t * outLastEventID);
+    void UnregisterEventCallbackForImportance(ImportanceType inImportance, event_id_t inEventID);
+#endif // WEAVE_CONFIG_EVENT_LOGGING_EXTERNAL_EVENT_SUPPORT
     WEAVE_ERROR BlitEvent(EventLoadOutContext * aContext, const EventSchema & inSchema, EventWriterFunct inEventWriter,
                           void * inAppData, const EventOptions * inOptions);
+    void SkipEvent(EventLoadOutContext * aContext);
+
 
 #if WEAVE_CONFIG_EVENT_LOGGING_WDM_OFFLOAD
     bool CheckShouldRunWDM(void);
@@ -248,6 +236,7 @@ private:
     WEAVE_ERROR EnsureSpace(size_t inRequiredSpace);
 
     static WEAVE_ERROR CopyEventsSince(const nl::Weave::TLV::TLVReader & aReader, size_t aDepth, void * aContext);
+    static WEAVE_ERROR EventIterator(const nl::Weave::TLV::TLVReader & aReader, size_t aDepth, void * aContext);
     static WEAVE_ERROR FetchEventParameters(const nl::Weave::TLV::TLVReader & aReader, size_t aDepth, void * aContext);
     static WEAVE_ERROR CopyAndAdjustDeltaTime(const nl::Weave::TLV::TLVReader & aReader, size_t aDepth, void * aContext);
     static WEAVE_ERROR EvictEvent(nl::Weave::TLV::WeaveCircularTLVBuffer & inBuffer, void * inAppData,
@@ -269,6 +258,11 @@ private:
 private:
     CircularEventBuffer * GetImportanceBuffer(ImportanceType inImportance) const;
 
+#if WEAVE_CONFIG_EVENT_LOGGING_EXTERNAL_EVENT_SUPPORT
+    static WEAVE_ERROR FindExternalEvents(const nl::Weave::TLV::TLVReader & aReader, size_t aDepth, void * aContext);
+    WEAVE_ERROR GetExternalEventsFromEventId(ImportanceType inImportance, event_id_t inEventId, ExternalEvents * outExternalEvents, nl::Weave::TLV::TLVReader & inReader);
+    static WEAVE_ERROR BlitExternalEvent(nl::Weave::TLV::TLVWriter &inWriter, ImportanceType inImportance, ExternalEvents &inEvents);
+#endif // WEAVE_CONFIG_EVENT_LOGGING_EXTERNAL_EVENT_SUPPORT
     CircularEventBuffer * mEventBuffer;
     WeaveExchangeManager * mExchangeMgr;
     LoggingManagementStates mState;

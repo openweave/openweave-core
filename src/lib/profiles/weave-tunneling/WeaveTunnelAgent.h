@@ -221,6 +221,7 @@ public:
  *  Configure the TCP user timeout option on the primary tunnel connection.
  */
     WEAVE_ERROR ConfigurePrimaryTunnelTimeout(uint16_t maxTimeoutSecs);
+
 #endif // WEAVE_CONFIG_TUNNEL_TCP_USER_TIMEOUT_SUPPORTED
 
 #if WEAVE_CONFIG_TUNNEL_TCP_KEEPALIVE_SUPPORTED
@@ -317,6 +318,7 @@ public:
  *  Configure the TCP user timeout option on the backup tunnel connection.
  */
     WEAVE_ERROR ConfigureBackupTunnelTimeout(uint16_t maxTimeoutSecs);
+
 #endif // WEAVE_CONFIG_TUNNEL_TCP_USER_TIMEOUT_SUPPORTED
 
 #if WEAVE_CONFIG_TUNNEL_TCP_KEEPALIVE_SUPPORTED
@@ -446,6 +448,25 @@ public:
                                                         void *appCtxt);
 
     OnServiceTunnelReconnectNotifyFunct OnServiceTunReconnectNotify;
+
+#if WEAVE_CONFIG_TUNNEL_ENABLE_TCP_IDLE_CALLBACK
+/**
+ * Function pointer to handler set by a higher layer to act upon a notification related to
+ * the tunnel to the Service being idle or not.
+ *
+ * @param[in] tunType       The tunnel type, Primary or Backup.
+ *
+ * @param[in] isIdle        true if the Tunnel TCP connection is idle, otherwise false.
+ *
+ * @param[in] appCtxt       A pointer to an application context object
+ *
+ */
+    typedef void (*OnServiceTunnelTCPIdleNotifyFunct)(TunnelType tunType,
+                                                      bool isIdle,
+                                                      void *appCtxt);
+
+    OnServiceTunnelTCPIdleNotifyFunct OnServiceTunTCPIdleNotify;
+#endif // WEAVE_CONFIG_TUNNEL_ENABLE_TCP_IDLE_CALLBACK
 
 #if WEAVE_CONFIG_TUNNEL_ENABLE_TRANSIT_CALLBACK
 /**
@@ -668,6 +689,10 @@ private:
 
     void NotifyTunnelLiveness(TunnelType tunType, WEAVE_ERROR err);
 #endif // WEAVE_CONFIG_TUNNEL_LIVENESS_SUPPORTED
+
+#if WEAVE_CONFIG_TUNNEL_ENABLE_TCP_IDLE_CALLBACK
+    void WeaveTunnelNotifyTCPSendIdleStateChange(const TunnelType tunType, const bool isIdle);
+#endif // WEAVE_CONFIG_TUNNEL_ENABLE_TCP_IDLE_CALLBACK
 
 };
 

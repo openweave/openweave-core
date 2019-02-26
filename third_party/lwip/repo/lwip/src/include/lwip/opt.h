@@ -203,6 +203,27 @@
 #if !defined SYS_LIGHTWEIGHT_PROT || defined __DOXYGEN__
 #define SYS_LIGHTWEIGHT_PROT            1
 #endif
+
+/**
+ * LWIP_ASSERT_CORE_LOCKED: Macro to check whether lwIP's threading/locking
+ * requirements are satisfied during current function call.
+ * This macro usually calls a function that is implemented in the OS-dependent
+ * sys layer and performs the following checks:
+ * - Not in ISR
+ * - If LWIP_TCPIP_CORE_LOCKING=1: TCPIP core lock is held
+ * - If LWIP_TCPIP_CORE_LOCKING=0: function is called from TCPIP thread
+ */
+#if !defined LWIP_ASSERT_CORE_LOCKED || defined __DOXYGEN__
+#define LWIP_ASSERT_CORE_LOCKED()
+#endif
+
+/**
+ * Called as first thing in the lwIP TCPIP thread. Can be used in conjunction
+ * with LWIP_ASSERT_CORE_LOCKED to check core locking.
+ */
+#if !defined LWIP_MARK_TCPIP_THREAD || defined __DOXYGEN__
+#define LWIP_MARK_TCPIP_THREAD()
+#endif
 /**
  * @}
  */
@@ -963,7 +984,29 @@
 
 /*
    ----------------------------------
-   ----- Multicast/IGMP options -----
+   -------- Multicast options -------
+   ----------------------------------
+*/
+/**
+ * @defgroup lwip_opts_multicast Multicast
+ * @ingroup lwip_opts_infrastructure
+ * @{
+ */
+/**
+ * LWIP_MULTICAST_TX_OPTIONS==1: Enable multicast TX support like the socket options
+ * IP_MULTICAST_TTL/IP_MULTICAST_IF/IP_MULTICAST_LOOP, as well as (currently only)
+ * core support for the corresponding IPv6 options.
+ */
+#if !defined LWIP_MULTICAST_TX_OPTIONS || defined __DOXYGEN__
+#define LWIP_MULTICAST_TX_OPTIONS       ((LWIP_IGMP || LWIP_IPV6_MLD) && (LWIP_UDP || LWIP_RAW))
+#endif
+/**
+ * @}
+ */
+
+/*
+   ----------------------------------
+   ---------- IGMP options ----------
    ----------------------------------
 */
 /**
@@ -980,14 +1023,6 @@
 #if !LWIP_IPV4
 #undef LWIP_IGMP
 #define LWIP_IGMP                       0
-#endif
-
-/**
- * LWIP_MULTICAST_TX_OPTIONS==1: Enable multicast TX support like the socket options
- * IP_MULTICAST_TTL/IP_MULTICAST_IF/IP_MULTICAST_LOOP
- */
-#if !defined LWIP_MULTICAST_TX_OPTIONS || defined __DOXYGEN__
-#define LWIP_MULTICAST_TX_OPTIONS       (LWIP_IGMP && LWIP_UDP)
 #endif
 /**
  * @}
@@ -2210,6 +2245,17 @@
  */
 #if !defined LWIP_IPV6_SEND_ROUTER_SOLICIT || defined __DOXYGEN__
 #define LWIP_IPV6_SEND_ROUTER_SOLICIT   1
+#endif
+
+/**
+ * LWIP_IPV6_ADDRESS_LIFETIMES==1: Keep valid and preferred lifetimes for each
+ * IPv6 address. Required for LWIP_IPV6_AUTOCONFIG. May still be enabled
+ * otherwise, in which case the application may assign address lifetimes with
+ * the appropriate macros. Addresses with no lifetime are assumed to be static.
+ * If this option is disabled, all addresses are assumed to be static.
+ */
+#if !defined LWIP_IPV6_ADDRESS_LIFETIMES || defined __DOXYGEN__
+#define LWIP_IPV6_ADDRESS_LIFETIMES     (LWIP_IPV6_AUTOCONFIG)
 #endif
 
 /**

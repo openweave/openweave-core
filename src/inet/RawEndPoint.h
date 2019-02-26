@@ -1,5 +1,6 @@
 /*
  *
+ *    Copyright (c) 2018 Google LLC
  *    Copyright (c) 2013-2017 Nest Labs, Inc.
  *    All rights reserved.
  *
@@ -20,32 +21,34 @@
  *    @file
  *      This header file defines the <tt>nl::Inet::RawEndPoint</tt>
  *      class, where the Nest Inet Layer encapsulates methods for
- *      interacting with PF_RAW sockets (on Linux and BSD-derived
- *      systems) or LwIP raw protocol control blocks, as the system
- *      is configured accordingly.
+ *      interacting with IP network endpoints (SOCK_RAW sockets
+ *      on Linux and BSD-derived systems) or LwIP raw protocol
+ *      control blocks, as the system is configured accordingly.
  */
 
 #ifndef RAWENDPOINT_H
 #define RAWENDPOINT_H
 
-#include <InetLayer/EndPointBasis.h>
+#include <InetLayer/IPEndPointBasis.h>
+#include <InetLayer/IPAddress.h>
+
 #include <SystemLayer/SystemPacketBuffer.h>
 
 namespace nl {
 namespace Inet {
 
 class InetLayer;
-class SenderInfo;
+class IPPacketInfo;
 
 /**
- * @brief   Objects of this class represent raw IP protocol endpoints.
+ * @brief   Objects of this class represent raw IP network endpoints.
  *
  * @details
- *  Nest Inet Layer encapsulates methods for interacting with PF_RAW
- *  sockets (on Linux and BSD-derived systems) or LwIP raw protocol control
- *  blocks, as the system is configured accordingly.
+ *  Nest Inet Layer encapsulates methods for interacting with IP network
+ *  endpoints (SOCK_RAW sockets on Linux and BSD-derived systems) or LwIP
+ *  raw protocol control blocks, as the system is configured accordingly.
  */
-class NL_DLL_EXPORT RawEndPoint : public EndPointBasis
+class NL_DLL_EXPORT RawEndPoint : public IPEndPointBasis
 {
     friend class InetLayer;
 
@@ -69,29 +72,19 @@ public:
     IPProtocol IPProto; // This data member is read-only
 
     /**
-     * @brief   Basic dynamic state of the underlying endpoint.
-     *
-     * @details
-     *  Objects are initialized in the "closed" state, proceed to the "bound"
-     *  state after binding to a local interface address, then proceed to the
-     *  "listening" state when they have continuations registered for handling
-     *  events for reception of ICMP messages.
-     */
-    enum {
-        kState_Closed = kBasisState_Closed, /**< Endpoint initialized, but not bound. */
-        kState_Bound,                       /**< Endpoint bound, but not listening. */
-        kState_Listening                    /**< Endpoint receiving ICMP messages. */
-    } mState;
-
-    /**
      * @brief   Bind the endpoint to an interface IP address.
      *
      * @param[in]   addrType    the protocol version of the IP address
      * @param[in]   addr        the IP address (must be an interface address)
+     * @param[in]   intfId      an optional network interface indicator
      *
      * @retval  INET_NO_ERROR               success: endpoint bound to address
      * @retval  INET_ERROR_INCORRECT_STATE  endpoint has been bound previously
      * @retval  INET_NO_MEMORY              insufficient memory for endpoint
+     *
+     * @retval  INET_ERROR_UNKNOWN_INTERFACE
+     *      On some platforms, the optionally specified interface is not
+     *      present.
      *
      * @retval  INET_ERROR_WRONG_PROTOCOL_TYPE
      *      \c addrType does not match \c IPVer.
@@ -108,7 +101,7 @@ public:
      *  On LwIP, this method must not be called with the LwIP stack lock
      *  already acquired.
      */
-    INET_ERROR Bind(IPAddressType addrType, IPAddress addr);
+    INET_ERROR Bind(IPAddressType addrType, IPAddress addr, InterfaceId intfId = INET_NULL_INTERFACEID);
 
     /**
      * @brief   Bind the endpoint to an interface IPv6 link-local address.
@@ -155,32 +148,53 @@ public:
     INET_ERROR Listen(void);
 
     /**
+     *  A synonym for <tt>SendTo(addr, INET_NULL_INTERFACEID, msg,
+     *  sendFlags)</tt>.
+     */
+    INET_ERROR SendTo(IPAddress addr, Weave::System::PacketBuffer *msg, uint16_t sendFlags = 0);
+
+    /**
      * @brief   Send an ICMP message to the specified destination address.
      *
-     * @param[in]   addr    the destination address
-     * @param[in]   msg     the packet buffer containing the ICMP message
+     * @param[in]   addr        the destination IP address
+     * @param[in]   intfId      an optional network interface indicator
+     * @param[in]   msg         the packet buffer containing the UDP message
+     * @param[in]   sendFlags   optional transmit option flags
      *
      * @retval  INET_NO_ERROR       success: \c msg is queued for transmit.
+     * @retval  INET_ERROR_NOT_IMPLEMENTED  system implementation not complete.
      *
      * @retval  INET_ERROR_WRONG_ADDRESS_TYPE
      *      the destination address and the bound interface address do not
      *      have matching protocol versions or address type.
      *
      * @retval  INET_ERROR_MESSAGE_TOO_LONG
-     *      Returned on some platforms, \c msg does not contain the whole ICMP
-     *      message.
+     *      \c msg does not contain the whole ICMP message.
      *
      * @retval  INET_ERROR_OUTBOUND_MESSAGE_TRUNCATED
-     *      Returned on some platforms, only a truncated portion of \c msg was
-     *      queued for transmit.
+     *      On some platforms, only a truncated portion of \c msg was queued
+     *      for transmit.
      *
      * @retval  other                   another system or platform error
      *
      * @details
-     *      Sends the ICMP message if possible. Always calls
-     *      <tt>Weave::System::PacketBuffer::Free</tt> on behalf of the caller.
+     *      If possible, then this method sends the ICMP message \c msg to the
+     *      destination \c addr with the transmit option flags encoded
+     *      in \c sendFlags.
+     *
+     *      Where <tt>(sendFlags & kSendFlag_RetainBuffer) != 0</tt>, calls
+     *      <tt>Weave::System::PacketBuffer::Free</tt> on behalf of the caller, otherwise this
+     *      method deep-copies \c msg into a fresh object, and queues that for
+     *      transmission, leaving the original \c msg available after return.
      */
-    INET_ERROR SendTo(IPAddress addr, Weave::System::PacketBuffer *msg);
+    INET_ERROR SendTo(IPAddress addr, InterfaceId intfId, Weave::System::PacketBuffer *msg, uint16_t sendFlags = 0);
+
+    /**
+     * Get the bound interface on this endpoint.
+     *
+     * @return InterfaceId   The bound interface id.
+     */
+    InterfaceId GetBoundInterface(void);
 
     /**
      * @brief   Set the ICMP6 filter parameters in the network stack.
@@ -204,13 +218,16 @@ public:
     /**
      * @brief   Bind the endpoint to a network interface.
      *
-     * @param[in]   intf    indicator of the network interface.
+     * @param[in]   addrType    the protocol version of the IP address.
+	 *
+     * @param[in]   intf        indicator of the network interface.
      *
      * @retval  INET_NO_ERROR               success: endpoint bound to address
      * @retval  INET_NO_MEMORY              insufficient memory for endpoint
+     * @retval  INET_ERROR_NOT_IMPLEMENTED  system implementation not complete.
      *
      * @retval  INET_ERROR_UNKNOWN_INTERFACE
-     *      On LwIP systems, the interface is not present.
+     *      On some platforms, the interface is not present.
      *
      * @retval  other                   another system or platform error
      *
@@ -220,7 +237,19 @@ public:
      *  On LwIP, this method must not be called with the LwIP stack lock
      *  already acquired.
      */
-    INET_ERROR BindInterface(InterfaceId intf);
+    INET_ERROR BindInterface(IPAddressType addrType, InterfaceId intf);
+
+    /**
+     * @brief   Close the endpoint.
+     *
+     * @details
+     *  If <tt>mState != kState_Closed</tt>, then closes the endpoint, removing
+     *  it from the set of endpoints eligible for communication events.
+     *
+     *  On LwIP systems, this method must not be called with the LwIP stack
+     *  lock already acquired.
+     */
+    void Close(void);
 
     /**
      * @brief   Close the endpoint and recycle its memory.
@@ -230,44 +259,10 @@ public:
      *  <tt>InetLayerBasis::Release</tt> method to return the object to its
      *  memory pool.
      *
-     *  On LwIP systems, an event handler is dispatched to release the object
-     *  within the context of the LwIP thread. This method must not be
-     *  called with the LwIP stack lock already acquired.
+     *  On LwIP systems, this method must not be called with the LwIP stack
+     *  lock already acquired.
      */
     void Free(void);
-
-    /**
-     * @brief   Type of message text reception event handling function.
-     *
-     * @param[in]   endPoint    The raw endpoint associated with the event.
-     * @param[in]   msg         The message text received.
-     * @param[in]   senderAddr  The IP address of the sender.
-     *
-     * @details
-     *  Provide a function of this type to the \c OnMessageReceived delegate
-     *  member to process message text reception events on \c endPoint where
-     *  \c msg is the message text received from the sender at \c senderAddr.
-     */
-    typedef void (*OnMessageReceivedFunct)(RawEndPoint *endPoint, Weave::System::PacketBuffer *msg, IPAddress senderAddr);
-
-    /** The endpoint's message reception event handling function delegate. */
-    OnMessageReceivedFunct OnMessageReceived;
-
-    /**
-     * @brief   Type of reception error event handling function.
-     *
-     * @param[in]   endPoint    The raw endpoint associated with the event.
-     * @param[in]   err         The reason for the error.
-     *
-     * @details
-     *  Provide a function of this type to the \c OnReceiveError delegate
-     *  member to process reception error events on \c endPoint. The \c err
-     *  argument provides specific detail about the type of the error.
-     */
-    typedef void (*OnReceiveErrorFunct)(RawEndPoint *endPoint, INET_ERROR err, IPAddress senderAddr);
-
-    /** The endpoint's receive error event handling function delegate. */
-    OnReceiveErrorFunct OnReceiveError;
 
 private:
     RawEndPoint(void);                          // not defined
@@ -277,28 +272,26 @@ private:
     static Weave::System::ObjectPool<RawEndPoint, INET_CONFIG_NUM_RAW_ENDPOINTS> sPool;
 
     void Init(InetLayer *inetLayer, IPVersion ipVer, IPProtocol ipProto);
-    void Close(void);
-
-#if WEAVE_SYSTEM_CONFIG_USE_SOCKETS
-    INET_ERROR GetSocket(IPAddressType addrType);
-    SocketEvents PrepareIO(void);
-    void HandlePendingIO(void);
-#endif // WEAVE_SYSTEM_CONFIG_USE_SOCKETS
 
 #if WEAVE_SYSTEM_CONFIG_USE_LWIP
     uint8_t NumICMPTypes;
     const uint8_t *ICMPTypes;
 
     void HandleDataReceived(Weave::System::PacketBuffer *msg);
-    INET_ERROR GetPCB(void);
-    static SenderInfo *GetSenderInfo(Weave::System::PacketBuffer *buf);
+    INET_ERROR GetPCB(IPAddressType addrType);
 
-#if LWIP_VERSION_MAJOR > 1
+#if LWIP_VERSION_MAJOR > 1 || LWIP_VERSION_MINOR >= 5
     static u8_t LwIPReceiveRawMessage(void *arg, struct raw_pcb *pcb, struct pbuf *p, const ip_addr_t *addr);
-#else // LWIP_VERSION_MAJOR <= 1
+#else // LWIP_VERSION_MAJOR <= 1 && LWIP_VERSION_MINOR < 5
     static u8_t LwIPReceiveRawMessage(void *arg, struct raw_pcb *pcb, struct pbuf *p, ip_addr_t *addr);
-#endif // LWIP_VERSION_MAJOR <= 1
+#endif // LWIP_VERSION_MAJOR > 1 || LWIP_VERSION_MINOR >= 5
 #endif // WEAVE_SYSTEM_CONFIG_USE_LWIP
+
+#if WEAVE_SYSTEM_CONFIG_USE_SOCKETS
+    INET_ERROR GetSocket(IPAddressType addrType);
+    SocketEvents PrepareIO(void);
+    void HandlePendingIO(void);
+#endif // WEAVE_SYSTEM_CONFIG_USE_SOCKETS
 };
 
 } // namespace Inet

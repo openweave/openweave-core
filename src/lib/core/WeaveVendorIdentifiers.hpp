@@ -40,6 +40,7 @@ enum WeaveVendorId
     kWeaveVendor_Common                         = 0x0000,
     kWeaveVendor_NestLabs                       = 0x235A,
     kWeaveVendor_Yale                           = 0xE727,
+    kWeaveVendor_Google                         = 0xE100,
 
     kWeaveVendor_NotSpecified                   = 0xFFFF
 };

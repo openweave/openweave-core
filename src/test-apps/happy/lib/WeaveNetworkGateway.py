@@ -30,6 +30,7 @@ import sys
 
 from happy.ReturnMsg import ReturnMsg
 from happy.Utils import *
+from happy.utils.IP import IP
 from happy.HappyNetwork import HappyNetwork
 from happy.HappyNode import HappyNode
 import happy.HappyNetworkRoute
@@ -126,10 +127,10 @@ class WeaveNetworkGateway(HappyNetwork, HappyNode, Weave):
             self.logger.error("[%s] WeaveNetworkGateway: %s" % (self.network_id, emsg))
             self.exit()
 
-        if self.isIpAddress(self.gateway):
-            self.gateway = self.paddingZeros(self.gateway)
+        if IP.isIpAddress(self.gateway):
+            self.gateway = IP.paddingZeros(self.gateway)
 
-        self.to = self.paddingZeros(self.global_prefix)
+        self.to = IP.paddingZeros(self.global_prefix)
 
     def __configure_network_route(self):
         options = happy.HappyNetworkRoute.option()

@@ -34,6 +34,10 @@ void EndPointBasis::InitEndPointBasis(InetLayer& aInetLayer, void* aAppState)
 {
     InitInetLayerBasis(aInetLayer, aAppState);
 
+#if WEAVE_SYSTEM_CONFIG_USE_LWIP
+    mLwIPEndPointType = kLwIPEndPointType_Unknown;
+#endif // WEAVE_SYSTEM_CONFIG_USE_LWIP
+
 #if WEAVE_SYSTEM_CONFIG_USE_SOCKETS
     mSocket = INET_INVALID_SOCKET_FD;
     mPendingIO.Clear();

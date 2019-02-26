@@ -499,6 +499,35 @@ void MockServiceProvisioningServer::HandlePairDeviceToAccountResult(WEAVE_ERROR 
     }
 }
 
+#if WEAVE_CONFIG_ENABLE_IFJ_SERVICE_FABRIC_JOIN
+void MockServiceProvisioningServer::HandleIFJServiceFabricJoinResult(WEAVE_ERROR err, uint32_t serverStatusProfileId, uint16_t serverStatusCode)
+{
+    if (mPairingServerBinding)
+    {
+        // The server operation is now complete, so release the binding.
+        mPairingServerBinding->Release();
+        mPairingServerBinding = NULL;
+    }
+
+    // If the IFJServiceFabricJoin request was successful...
+    if (err == WEAVE_NO_ERROR)
+    {
+        printf("Received success response from server\n");
+
+    }
+
+    // Otherwwise, relay the result from the pairing server back to the client.
+    else if (err == WEAVE_ERROR_STATUS_REPORT_RECEIVED)
+    {
+        printf("Received StatusReport from server: %s\n", nl::StatusReportStr(serverStatusProfileId, serverStatusCode));
+    }
+    else
+    {
+        printf("Error talking to server: %s\n", nl::ErrorStr(err));
+    }
+}
+#endif // WEAVE_CONFIG_ENABLE_IFJ_SERVICE_FABRIC_JOIN
+
 void MockServiceProvisioningServer::EnforceAccessControl(nl::Weave::ExchangeContext *ec, uint32_t msgProfileId, uint8_t msgType,
             const nl::Weave::WeaveMessageInfo *msgInfo, AccessControlResult& result)
 {

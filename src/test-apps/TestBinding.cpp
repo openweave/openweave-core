@@ -36,6 +36,11 @@
 #include <Weave/Profiles/common/CommonProfile.h>
 #include <Weave/Profiles/echo/WeaveEcho.h>
 
+// For convenience, define NL_DNS_HOSTNAME_MAX_LEN even if DNS resolver support is disabled.
+#ifndef NL_DNS_HOSTNAME_MAX_LEN
+#define NL_DNS_HOSTNAME_MAX_LEN 254
+#endif
+
 #define VerifyOrQuit(TST) \
 do { \
     if (!(TST)) \
@@ -108,6 +113,9 @@ static uint32_t gEchoResponseTimeout = 5000; // in ms
 static uint32_t gStartDelay = 0; // in ms
 static bool gOnDemandPrepare = false;
 static bool gCloseBindingDuringRequest = false;
+#if WEAVE_CONFIG_ENABLE_DNS_RESOLVER
+static uint8_t gDNSOptions = ::nl::Inet::kDNSOption_Default;
+#endif
 
 static TestMode gSelectedTestMode = kTestMode_Sequential;
 static uint32_t gTestDriversStarted = 0;
@@ -119,6 +127,7 @@ enum
     kToolOpt_EchoResponseTimeout     = 1001,
     kToolOpt_OnDemandPrepare         = 1002,
     kToolOpt_StartDelay              = 1003,
+    kToolOpt_DNSOptions              = 1004,
 };
 
 static OptionDef gToolOptionDefs[] =
@@ -135,6 +144,9 @@ static OptionDef gToolOptionDefs[] =
 #if WEAVE_CONFIG_ENABLE_RELIABLE_MESSAGING
     { "wrmp",                   kNoArgument,       'w'                          },
 #endif // WEAVE_CONFIG_ENABLE_RELIABLE_MESSAGING
+#if WEAVE_CONFIG_ENABLE_DNS_RESOLVER
+    { "dns-options",            kArgumentRequired, kToolOpt_DNSOptions          },
+#endif // WEAVE_CONFIG_ENABLE_DNS_RESOLVER
     { NULL }
 };
 
@@ -165,10 +177,11 @@ static const char *const gToolOptionHelp =
     "       of individual test sequences, which may overlap in execution thereafter.\n"
     "       Defaults to 0 ms.\n"
     "\n"
-    "  -D, --dest-addr <ip-addr>[:<port>][%<interface>]\n"
-    "       Send echo requests to the peer at the specific address, port and interface.\n"
+    "  -D, --dest-addr <host-or-ip-addr>[:<port>][%<interface>]\n"
+    "       Send echo requests to the peer at the specified host name/address, port number and\n"
+    "       interface.\n"
     "\n"
-    "       NOTE: When specifying a port with an IPv6 address, the IPv6 address\n"
+    "       NOTE: When specifying a port number with an IPv6 address, the IPv6 address\n"
     "       must be enclosed in brackets, e.g. [fd00:0:1:1::1]:11095.\n"
     "\n"
     "  -t, --tcp\n"
@@ -182,6 +195,25 @@ static const char *const gToolOptionHelp =
     "       Use UDP with Weave Reliable Messaging to interact with the peer.\n"
     "\n"
 #endif
+#if WEAVE_CONFIG_ENABLE_DNS_RESOLVER
+    "  --dns-options <dns-options>\n"
+    "       Use the specified DNS options when resolving hostnames.  <dns-options> can be one\n"
+    "       of the following keywords:\n"
+    "           Any (the default)\n"
+    "              - Resolve IPv4 and/or IPv6 addresses in the native order\n"
+    "                returned by the name server.\n"
+    "           IPv4Only\n"
+    "              - Resolve IPv4 addresses only.\n"
+    "           IPv6Only\n"
+    "              - Resolve IPv6 addresses only.\n"
+    "           IPv4Preferred\n"
+    "              - Resolve IPv4 and/or IPv6 addresses, with IPv4 addresses\n"
+    "                given preference over IPv6.\n"
+    "           IPv6Preferred\n"
+    "              - Resolve IPv4 and/or IPv6 addresses, with IPv6 addresses\n"
+    "                given preference over IPv4.\n"
+    "\n"
+#endif // WEAVE_CONFIG_ENABLE_DNS_RESOLVER
     ;
 
 static OptionSet gToolOptions =
@@ -225,7 +257,6 @@ static OptionSet *gToolOptionSets[] =
     &gTAKEOptions,
     &gGroupKeyEncOptions,
     &gDeviceDescOptions,
-    &gServiceDirClientOptions,
     &gFaultInjectionOptions,
     &gHelpOptions,
     NULL
@@ -391,6 +422,14 @@ bool HandleOption(const char *progName, OptionSet *optSet, int id, const char *n
             return false;
         }
         break;
+#if WEAVE_CONFIG_ENABLE_DNS_RESOLVER
+    case kToolOpt_DNSOptions:
+        if (!ParseDNSOptions(progName, name, arg, gDNSOptions))
+        {
+            return false;
+        }
+        break;
+#endif // WEAVE_CONFIG_ENABLE_DNS_RESOLVER
     default:
         PrintArgError("%s: INTERNAL ERROR: Unhandled option: %s\n", progName, name);
         return false;
@@ -563,6 +602,10 @@ void BindingTestDriver::PrepareBinding()
         bindingConf.Transport_UDP_WRM();
         bindingConf.Transport_DefaultWRMPConfig(gWRMPOptions.GetWRMPConfig());
     }
+
+#if WEAVE_CONFIG_ENABLE_DNS_RESOLVER
+    bindingConf.DNS_Options(gDNSOptions);
+#endif
 
     // Configure the security mode.
     switch (gWeaveSecurityMode.SecurityMode)

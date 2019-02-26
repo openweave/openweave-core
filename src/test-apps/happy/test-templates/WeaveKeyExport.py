@@ -28,6 +28,7 @@ import time
 
 from happy.ReturnMsg import ReturnMsg
 from happy.Utils import *
+from happy.utils.IP import IP
 from happy.HappyNode import HappyNode
 from happy.HappyNetwork import HappyNetwork
 
@@ -159,11 +160,11 @@ class WeaveKeyExport(HappyNode, HappyNetwork, WeaveTest):
             self.server_node_id = self.server
 
         # Check if client is provided in a form of IP address
-        if self.isIpAddress(self.client):
+        if IP.isIpAddress(self.client):
             self.client_node_id = self.getNodeIdFromAddress(self.client)
 
         # Check if server is provided in a form of IP address
-        if self.isIpAddress(self.server):
+        if IP.isIpAddress(self.server):
             self.no_service = True
             self.server_ip = self.server
             self.server_weave_id = self.IPv6toWeaveId(self.server)
@@ -258,7 +259,7 @@ class WeaveKeyExport(HappyNode, HappyNetwork, WeaveTest):
         cmd += " --debug-resource-usage --print-fault-counters"
 
         if self.tap:
-            cmd += " --interface " + self.tap
+            cmd += " --tap-device " + self.tap
 
         if self.server_faults:
             cmd += " --faults " + self.server_faults
@@ -294,7 +295,7 @@ class WeaveKeyExport(HappyNode, HappyNetwork, WeaveTest):
             cmd += " --dont-sign-msgs "
 
         if self.tap:
-            cmd += " --interface " + self.tap
+            cmd += " --tap-device " + self.tap
 
         if self.client_faults:
             cmd += " --faults " + self.client_faults

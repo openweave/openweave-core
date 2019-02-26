@@ -30,8 +30,13 @@
 
 #include <Weave/Core/WeaveCore.h>
 
+#if WEAVE_CONFIG_EVENT_LOGGING_EXTERNAL_EVENT_SUPPORT
+typedef bool (*ShouldBlitFunct)(nl::Weave::Profiles::DataManagement::event_id_t aEventId);
+
 WEAVE_ERROR LogMockExternalEvents(size_t aNumEvents, int numCallback);
 WEAVE_ERROR LogMockDebugExternalEvents(size_t aNumEvents, int numCallback);
 void ClearMockExternalEvents(int numCallback);
+void SetShouldBlitCallback(ShouldBlitFunct aShouldBlit);
+#endif
 
 #endif /* MOCKEXTERNALEVENTS_H */

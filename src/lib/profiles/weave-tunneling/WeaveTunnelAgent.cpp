@@ -169,10 +169,13 @@ WEAVE_ERROR WeaveTunnelAgent::ConfigureAndInit (InetLayer *inet, WeaveExchangeMa
     mExchangeMgr             = exchMgr;
     mPeerNodeId              = dstNodeId;
     mServiceAddress          = dstIPAddr;
+    mServicePort             = WEAVE_PORT;
     mRole                    = role;
     mAuthMode                = authMode;
     mAppContext              = appContext;
     memset(queuedMsgs, 0, sizeof(queuedMsgs));
+    qFront                   = TUNNEL_PACKET_QUEUE_INVALID_INDEX;
+    qRear                    = TUNNEL_PACKET_QUEUE_INVALID_INDEX;
 #if WEAVE_CONFIG_TUNNEL_ENABLE_STATISTICS
     memset(&mWeaveTunnelStats, 0, sizeof(mWeaveTunnelStats));
 #endif
@@ -239,6 +242,15 @@ WEAVE_ERROR WeaveTunnelAgent::ConfigureAndInit (InetLayer *inet, WeaveExchangeMa
 
     mTunShortcutControl.EnableShortcutTunneling();
 #endif
+
+    // Set callbacks to NULL.
+    OnServiceTunStatusNotify    = NULL;
+
+    OnServiceTunReconnectNotify = NULL;
+
+#if WEAVE_CONFIG_TUNNEL_ENABLE_TRANSIT_CALLBACK
+    OnTunneledPacketTransit     = NULL;
+#endif // WEAVE_CONFIG_TUNNEL_ENABLE_TRANSIT_CALLBACK
 
     // Set the TunnelAgent state.
 
@@ -451,6 +463,7 @@ WEAVE_ERROR WeaveTunnelAgent::ConfigurePrimaryTunnelTimeout(uint16_t maxTimeoutS
 {
     return mPrimaryTunConnMgr.ConfigureConnTimeout(maxTimeoutSecs);
 }
+
 #endif // WEAVE_CONFIG_TUNNEL_TCP_USER_TIMEOUT_SUPPORTED
 
 #if WEAVE_CONFIG_TUNNEL_TCP_KEEPALIVE_SUPPORTED
@@ -662,6 +675,7 @@ WEAVE_ERROR WeaveTunnelAgent::ConfigureBackupTunnelTimeout(uint16_t maxTimeoutSe
 {
     return mBackupTunConnMgr.ConfigureConnTimeout(maxTimeoutSecs);
 }
+
 #endif // WEAVE_CONFIG_TUNNEL_TCP_USER_TIMEOUT_SUPPORTED
 
 #if WEAVE_CONFIG_TUNNEL_TCP_KEEPALIVE_SUPPORTED
@@ -1699,6 +1713,19 @@ void WeaveTunnelAgent::WeaveTunnelConnectionErrorNotify(const WeaveTunnelConnect
 #endif // WEAVE_CONFIG_TUNNEL_FAILOVER_SUPPORTED
     }
 }
+
+#if WEAVE_CONFIG_TUNNEL_ENABLE_TCP_IDLE_CALLBACK
+/**
+ * Tunnel TCP connection send queue state notifier.
+ */
+void WeaveTunnelAgent::WeaveTunnelNotifyTCPSendIdleStateChange(const TunnelType tunType, const bool isIdle)
+{
+    if (OnServiceTunTCPIdleNotify)
+    {
+        OnServiceTunTCPIdleNotify(tunType, isIdle, mAppContext);
+    }
+}
+#endif // WEAVE_CONFIG_TUNNEL_ENABLE_TCP_IDLE_CALLBACK
 
 void WeaveTunnelAgent::WeaveTunnelServiceReconnectRequested(const WeaveTunnelConnectionMgr *connMgr,
                                                             const char *reconnectHost,

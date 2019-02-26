@@ -165,9 +165,9 @@ void TestMfgDateFromSerialNum(void)
 
     for (MfgDateTestCase *testCase = gMfgDateTestCases; testCase->inYear != 0; testCase++)
     {
-        char serialNum[17];
+        char serialNum[18];
 
-        sprintf(serialNum, "02AA01AB%02d%02d001P", testCase->outMfgWeek, testCase->outMfgYear % 100);
+        snprintf(serialNum, sizeof (serialNum), "02AA01AB%02u%02u001P", testCase->outMfgWeek, testCase->outMfgYear % 100);
 
         err = ExtractManufacturingDateFromSerialNumber(serialNum, year, month, day);
         TestAssert(err == WEAVE_NO_ERROR, "Error returned by ExtractManufacturingDateFromSerialNumber()");

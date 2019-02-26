@@ -368,6 +368,30 @@ static DBusMessage * WeaveDestroyAdvertising(DBusConnection * dbusConn, DBusMess
     return dbus_message_new_method_return(dbusMsg);
 }
 
+gboolean SetAlias(void)
+{
+    gboolean success = g_dbus_proxy_set_property_basic(gDefaultAdapter->adapterProxy, "Alias", DBUS_TYPE_STRING, &(gBluezServerEndpoint->adapterName), NULL, NULL, NULL);
+    if (FALSE == success)
+    {
+        WeaveLogError(Ble, "Fail to set controller alias for adapter %p(%s)", gDefaultAdapter->adapterProxy, gBluezServerEndpoint->adapterName);
+    }
+
+    return success;
+}
+
+gboolean EnableDiscoverable(void)
+{
+    gboolean success = FALSE;
+    dbus_bool_t discoverable = TRUE;
+    success = g_dbus_proxy_set_property_basic(gDefaultAdapter->adapterProxy, "Discoverable", DBUS_TYPE_BOOLEAN, &discoverable, NULL, NULL, NULL);
+    if (FALSE == success)
+    {
+        WeaveLogError(Ble, "Fail to set Discoverable property for adapter %p", gDefaultAdapter->adapterProxy);
+    }
+
+    return success;
+}
+
 gboolean AdvertisingRegister(DBusConnection * dbusConn, GDBusProxy * proxy)
 {
     gboolean success = FALSE;
@@ -1416,7 +1440,7 @@ static void WeaveDeviceDisconnect(GDBusProxy * proxy)
             if (g_dbus_proxy_get_property(proxy, "Address", &iter))
             {
                 dbus_message_iter_get_basic(&iter, &devAddr);
-                WeaveLogProgress(Ble, "Issuing disconnect to device:%s", devAddr);
+                WeaveLogRetain(Ble, "Issuing disconnect to device:%s", devAddr);
             }
             g_dbus_proxy_method_call(proxy, "Disconnect", NULL, WeaveDisconnReply, proxy, NULL);
         }
@@ -1440,7 +1464,7 @@ static void WeavePropertyChange(GDBusProxy *proxy, const char *name, DBusMessage
                 if (g_dbus_proxy_get_property(proxy, "Address", &addrIter))
                 {
                     dbus_message_iter_get_basic(&addrIter, &devAddr);
-                    WeaveLogProgress(Ble, "%s device %p(%s)", connected?"Connected to":"Disconnected from", proxy, devAddr);
+                    WeaveLogRetain(Ble, "%s device %p(%s)", connected?"Connected to":"Disconnected with", proxy, devAddr);
                 }
 
                 if (connected)
@@ -1463,6 +1487,7 @@ static void PowerCb(const DBusError * error, void * bluezData)
 {
     WEAVE_ERROR err  = WEAVE_NO_ERROR;
     gboolean success = FALSE;
+
     VerifyOrExit(!dbus_error_is_set(error), err = WEAVE_ERROR_INCORRECT_STATE);
 
     success = RegisterWeaveService(gBluezDbusConn);
@@ -1479,6 +1504,12 @@ static void PowerCb(const DBusError * error, void * bluezData)
     WeaveLogDetail(Ble, "weave C2 uuid: %s, path: %s", gBluezServerEndpoint->weaveC2->uuid, gBluezServerEndpoint->weaveC2->path);
 
     success = SetupWeaveApp(gBluezDbusConn, gDefaultAdapter->profileProxy);
+    VerifyOrExit(success == TRUE, err = WEAVE_ERROR_INCORRECT_STATE);
+
+    success = EnableDiscoverable();
+    VerifyOrExit(success == TRUE, err = WEAVE_ERROR_INCORRECT_STATE);
+
+    success = SetAlias();
     VerifyOrExit(success == TRUE, err = WEAVE_ERROR_INCORRECT_STATE);
 
     success = AdvertisingRegister(gBluezDbusConn, gDefaultAdapter->advertisingProxy);

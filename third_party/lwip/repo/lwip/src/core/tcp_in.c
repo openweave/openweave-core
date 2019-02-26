@@ -113,6 +113,7 @@ tcp_input(struct pbuf *p, struct netif *inp)
   err_t err;
 
   LWIP_UNUSED_ARG(inp);
+  LWIP_ASSERT_CORE_LOCKED();
 
   PERF_START;
 
@@ -287,6 +288,12 @@ tcp_input(struct pbuf *p, struct netif *inp)
       if (inp->using_management_channel && !ip_get_option(lpcb,SOF_MANAGEMENT))
         continue;
 #endif
+      /* check if PCB is bound to specific netif */
+      if ((lpcb->netif_idx != NETIF_NO_INDEX) &&
+          (lpcb->netif_idx != netif_get_index(ip_data.current_input_netif))) {
+        continue;
+      }
+      
       if (lpcb->local_port == tcphdr->dest) {
         if (IP_IS_ANY_TYPE_VAL(lpcb->local_ip)) {
           /* found an ANY TYPE (IPv4/IPv6) match */

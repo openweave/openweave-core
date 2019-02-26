@@ -329,7 +329,7 @@ void MockTimeSyncClient::CloseConnectionToService(void)
     {
         WeaveLogProgress(TimeService, "App closing connection to service");
 
-        mConnectionToService->Close();
+        mConnectionToService->Abort();
         mConnectionToService = NULL;
     }
 }

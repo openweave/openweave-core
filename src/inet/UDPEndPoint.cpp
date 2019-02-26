@@ -1,6 +1,7 @@
 /*
  *
- *    Copyright (c) 2013-2017 Nest Labs, Inc.
+ *    Copyright (c) 2018 Google LLC.
+ *    Copyright (c) 2013-2018 Nest Labs, Inc.
  *    All rights reserved.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
@@ -30,9 +31,6 @@
 
 #include <string.h>
 
-// TODO: remove me
-#include <stdio.h>
-
 #include <InetLayer/UDPEndPoint.h>
 #include <InetLayer/InetLayer.h>
 #include <InetLayer/InetFaultInjection.h>
@@ -55,6 +53,7 @@
 #include <errno.h>
 #include <unistd.h>
 #include <net/if.h>
+#include <netinet/in.h>
 #endif // WEAVE_SYSTEM_CONFIG_USE_SOCKETS
 
 #include "arpa-inet-compatibility.h"
@@ -73,15 +72,65 @@ using Weave::System::PacketBuffer;
 
 Weave::System::ObjectPool<UDPEndPoint, INET_CONFIG_NUM_UDP_ENDPOINTS> UDPEndPoint::sPool;
 
+#if WEAVE_SYSTEM_CONFIG_USE_LWIP
+/*
+ * Note that for LwIP InterfaceId is already defined to be 'struct
+ * netif'; consequently, some of the checking performed here could
+ * conceivably be optimized out and the HAVE_LWIP_UDP_BIND_NETIF case
+ * could simply be:
+ *
+ *   udp_bind_netif(aUDP, intfId);
+ *
+ */
+static INET_ERROR LwIPBindInterface(struct udp_pcb *aUDP, InterfaceId intfId)
+{
+    INET_ERROR res = INET_NO_ERROR;
+
+#if HAVE_LWIP_UDP_BIND_NETIF
+        if (!IsInterfaceIdPresent(intfId))
+            udp_bind_netif(aUDP, NULL);
+        else
+        {
+            struct netif *netifp = IPEndPointBasis::FindNetifFromInterfaceId(intfId);
+
+            if (netifp == NULL)
+                res = INET_ERROR_UNKNOWN_INTERFACE;
+            else
+                udp_bind_netif(aUDP, netifp);
+        }
+#else
+        if (!IsInterfaceIdPresent(intfId))
+            aUDP->intf_filter = NULL;
+        else
+        {
+            struct netif *netifp = IPEndPointBasis::FindNetifFromInterfaceId(intfId);
+
+            if (netifp == NULL)
+                res = INET_ERROR_UNKNOWN_INTERFACE;
+            else
+                aUDP->intf_filter = netifp;
+        }
+#endif // HAVE_LWIP_UDP_BIND_NETIF
+
+    return res;
+}
+#endif // WEAVE_SYSTEM_CONFIG_USE_LWIP
+
 INET_ERROR UDPEndPoint::Bind(IPAddressType addrType, IPAddress addr, uint16_t port, InterfaceId intfId)
 {
     INET_ERROR res = INET_NO_ERROR;
 
     if (mState != kState_Ready && mState != kState_Bound)
-        return INET_ERROR_INCORRECT_STATE;
+	{
+        res = INET_ERROR_INCORRECT_STATE;
+        goto exit;
+    }
 
-    if (addr != IPAddress::Any && addr.Type() != kIPAddressType_Any && addr.Type() != addrType)
-        return INET_ERROR_WRONG_ADDRESS_TYPE;
+    if ((addr != IPAddress::Any) && (addr.Type() != kIPAddressType_Any) && (addr.Type() != addrType))
+    {
+        res = INET_ERROR_WRONG_ADDRESS_TYPE;
+        goto exit;
+    }
 
 #if WEAVE_SYSTEM_CONFIG_USE_LWIP
 
@@ -101,7 +150,7 @@ INET_ERROR UDPEndPoint::Bind(IPAddressType addrType, IPAddress addr, uint16_t po
         IP_SET_TYPE_VAL(ipAddr, lType);
 #endif // INET_CONFIG_ENABLE_IPV4
         res = Weave::System::MapErrorLwIP(udp_bind(mUDP, &ipAddr, port));
-#else // LWIP_VERSION_MAJOR <= 1 || LWIP_VERSION_MINOR >= 5
+#else // LWIP_VERSION_MAJOR <= 1 && LWIP_VERSION_MINOR < 5
         if (addrType == kIPAddressType_IPv6)
         {
             ip6_addr_t ipv6Addr = addr.ToIPv6();
@@ -121,110 +170,38 @@ INET_ERROR UDPEndPoint::Bind(IPAddressType addrType, IPAddress addr, uint16_t po
 
     if (res == INET_NO_ERROR)
     {
-        if (!IsInterfaceIdPresent(intfId))
-            mUDP->intf_filter = NULL;
-        else
-        {
-            struct netif *p;
-            for (p = netif_list; p != NULL && p != intfId; p = p->next);
-            if (p == NULL)
-                res = INET_ERROR_UNKNOWN_INTERFACE;
-            else
-                mUDP->intf_filter = p;
-        }
+        res = LwIPBindInterface(mUDP, intfId);
     }
 
     // Unlock LwIP stack
     UNLOCK_TCPIP_CORE();
 
+    SuccessOrExit(res);
+
 #endif // WEAVE_SYSTEM_CONFIG_USE_LWIP
 
 #if WEAVE_SYSTEM_CONFIG_USE_SOCKETS
-
     // Make sure we have the appropriate type of socket.
     res = GetSocket(addrType);
+    SuccessOrExit(res);
 
-    if (res == INET_NO_ERROR)
-    {
-        if (addrType == kIPAddressType_IPv6)
-        {
-            struct sockaddr_in6 sa;
-            memset(&sa, 0, sizeof(sa));
-            sa.sin6_family = AF_INET6;
-            sa.sin6_port = htons(port);
-            sa.sin6_flowinfo = 0;
-            sa.sin6_addr = addr.ToIPv6();
-            sa.sin6_scope_id = intfId;
+    res = IPEndPointBasis::Bind(addrType, addr, port, intfId);
+    SuccessOrExit(res);
 
-            if (res == INET_NO_ERROR && bind(mSocket, (const sockaddr *) &sa, (unsigned) sizeof(sa)) != 0)
-                res = Weave::System::MapErrorPOSIX(errno);
-
-            // Instruct the kernel that any messages to multicast destinations should be
-            // sent down the interface specified by the caller.
-#ifdef IPV6_MULTICAST_IF
-            if (res == INET_NO_ERROR)
-                setsockopt(mSocket, IPPROTO_IPV6, IPV6_MULTICAST_IF, &intfId, sizeof(intfId));
-#endif // defined(IPV6_MULTICAST_IF)
-
-            // Instruct the kernel that any messages to multicast destinations should be
-            // set with the configured hop limit value.
-#ifdef IPV6_MULTICAST_HOPS
-            int hops = INET_CONFIG_IP_MULTICAST_HOP_LIMIT;
-            setsockopt(mSocket, IPPROTO_IPV6, IPV6_MULTICAST_HOPS, &hops, sizeof(hops));
-#endif // defined(IPV6_MULTICAST_HOPS)
-        }
-#if INET_CONFIG_ENABLE_IPV4
-        else if (addrType == kIPAddressType_IPv4)
-        {
-            struct sockaddr_in sa;
-            int enable = 1;
-
-            memset(&sa, 0, sizeof(sa));
-            sa.sin_family = AF_INET;
-            sa.sin_port = htons(port);
-            sa.sin_addr = addr.ToIPv4();
-
-            if (bind(mSocket, (const sockaddr *) &sa, (unsigned) sizeof(sa)) != 0)
-                res = Weave::System::MapErrorPOSIX(errno);
-
-            // Instruct the kernel that any messages to multicast destinations should be
-            // sent down the interface to which the specified IPv4 address is bound.
-#ifdef IP_MULTICAST_IF
-            if (res == INET_NO_ERROR)
-                setsockopt(mSocket, IPPROTO_IP, IP_MULTICAST_IF, &sa, sizeof(sa));
-#endif // defined(IP_MULTICAST_IF)
-
-            // Instruct the kernel that any messages to multicast destinations should be
-            // set with the configured hop limit value.
-#ifdef IP_MULTICAST_TTL
-            int ttl = INET_CONFIG_IP_MULTICAST_HOP_LIMIT;
-            setsockopt(mSocket, IPPROTO_IP, IP_MULTICAST_TTL, &ttl, sizeof(ttl));
-#endif // defined(IP_MULTICAST_TTL)
-
-            // Allow socket transmitting broadcast packets.
-            if (res == INET_NO_ERROR)
-                setsockopt(mSocket, SOL_SOCKET, SO_BROADCAST, &enable, sizeof(enable));
-        }
-#endif // INET_CONFIG_ENABLE_IPV4
-        else
-            res = INET_ERROR_WRONG_ADDRESS_TYPE;
-
-        if (res == INET_NO_ERROR)
-        {
-            mBoundPort = port;
-            mBoundIntfId = intfId;
-        }
-    }
-
+    mBoundPort = port;
+    mBoundIntfId = intfId;
 #endif // WEAVE_SYSTEM_CONFIG_USE_SOCKETS
 
     if (res == INET_NO_ERROR)
+    {
         mState = kState_Bound;
+    }
 
+exit:
     return res;
 }
 
-INET_ERROR UDPEndPoint::Listen()
+INET_ERROR UDPEndPoint::Listen(void)
 {
     INET_ERROR res = INET_NO_ERROR;
 
@@ -233,10 +210,16 @@ INET_ERROR UDPEndPoint::Listen()
 #endif // WEAVE_SYSTEM_CONFIG_USE_SOCKETS
 
     if (mState == kState_Listening)
-        return INET_NO_ERROR;
+    {
+        res = INET_NO_ERROR;
+        goto exit;
+    }
 
     if (mState != kState_Bound)
-        return INET_ERROR_INCORRECT_STATE;
+    {
+        res = INET_ERROR_INCORRECT_STATE;
+        goto exit;
+    }
 
 #if WEAVE_SYSTEM_CONFIG_USE_LWIP
 
@@ -245,7 +228,7 @@ INET_ERROR UDPEndPoint::Listen()
 
 #if LWIP_VERSION_MAJOR > 1 || LWIP_VERSION_MINOR >= 5
     udp_recv(mUDP, LwIPReceiveUDPMessage, this);
-#else // LWIP_VERSION_MAJOR <= 1 || LWIP_VERSION_MINOR >= 5
+#else // LWIP_VERSION_MAJOR <= 1 && LWIP_VERSION_MINOR < 5
     if (PCB_ISIPV6(mUDP))
         udp_recv_ip6(mUDP, LwIPReceiveUDPMessage, this);
     else
@@ -259,18 +242,21 @@ INET_ERROR UDPEndPoint::Listen()
 
 #if WEAVE_SYSTEM_CONFIG_USE_SOCKETS
 
-    // Wake the thread calling select so that it recognizes the new socket.
+    // Wake the thread calling select so that it starts selecting on the new socket.
     lSystemLayer.WakeSelect();
 
 #endif // WEAVE_SYSTEM_CONFIG_USE_SOCKETS
 
     if (res == INET_NO_ERROR)
+    {
         mState = kState_Listening;
+    }
 
+ exit:
     return res;
 }
 
-void UDPEndPoint::Close()
+void UDPEndPoint::Close(void)
 {
     if (mState != kState_Closed)
     {
@@ -282,15 +268,18 @@ void UDPEndPoint::Close()
         // Since UDP PCB is released synchronously here, but UDP endpoint itself might have to wait
         // for destruction asynchronously, there could be more allocated UDP endpoints than UDP PCBs.
         if (mUDP != NULL)
+        {
             udp_remove(mUDP);
-        mUDP = NULL;
+            mUDP = NULL;
+            mLwIPEndPointType = kLwIPEndPointType_Unknown;
+        }
 
         // Unlock LwIP stack
         UNLOCK_TCPIP_CORE();
 
 #endif // WEAVE_SYSTEM_CONFIG_USE_LWIP
 
-# if WEAVE_SYSTEM_CONFIG_USE_SOCKETS
+#if WEAVE_SYSTEM_CONFIG_USE_SOCKETS
 
         if (mSocket != INET_INVALID_SOCKET_FD)
         {
@@ -312,7 +301,7 @@ void UDPEndPoint::Close()
     }
 }
 
-void UDPEndPoint::Free()
+void UDPEndPoint::Free(void)
 {
     Close();
 
@@ -385,9 +374,9 @@ INET_ERROR UDPEndPoint::SendTo(IPAddress addr, uint16_t port, InterfaceId intfId
 
     // Make sure we have the appropriate type of PCB based on the destination address.
     res = GetPCB(addr.Type());
+    SuccessOrExit(res);
 
     // Send the message to the specified address/port.
-    if (res == INET_NO_ERROR)
     {
         err_t lwipErr = ERR_VAL;
 
@@ -397,7 +386,7 @@ INET_ERROR UDPEndPoint::SendTo(IPAddress addr, uint16_t port, InterfaceId intfId
             lwipErr = udp_sendto_if(mUDP, (pbuf *)msg, &ipAddr, port, intfId);
         else
             lwipErr = udp_sendto(mUDP, (pbuf *)msg, &ipAddr, port);
-#else // LWIP_VERSION_MAJOR <= 1 || LWIP_VERSION_MINOR >= 5
+#else // LWIP_VERSION_MAJOR <= 1 && LWIP_VERSION_MINOR < 5
         if (PCB_ISIPV6(mUDP))
         {
             ip6_addr_t ipv6Addr = addr.ToIPv6();
@@ -426,126 +415,22 @@ INET_ERROR UDPEndPoint::SendTo(IPAddress addr, uint16_t port, InterfaceId intfId
     UNLOCK_TCPIP_CORE();
 
     PacketBuffer::Free(msg);
-
 #endif // WEAVE_SYSTEM_CONFIG_USE_LWIP
 
 #if WEAVE_SYSTEM_CONFIG_USE_SOCKETS
+    // Make sure we have the appropriate type of socket based on the
+    // destination address.
 
-    // Make sure we have the appropriate type of socket based on the destination address.
     res = GetSocket(addr.Type());
+    SuccessOrExit(res);
 
-    // For now the entire message must fit within a single buffer.
-    if (res == INET_NO_ERROR && msg->Next() != NULL)
-        res = INET_ERROR_MESSAGE_TOO_LONG;
-
-    if (res == INET_NO_ERROR)
-    {
-        struct iovec msgIOV;
-        union
-        {
-            sockaddr any;
-            sockaddr_in in;
-            sockaddr_in6 in6;
-        } peerSockAddr;
-        uint8_t controlData[256];
-        struct msghdr msgHeader;
-
-        memset(&msgHeader, 0, sizeof(msgHeader));
-
-        msgIOV.iov_base = msg->Start();
-        msgIOV.iov_len = msg->DataLength();
-        msgHeader.msg_iov = &msgIOV;
-        msgHeader.msg_iovlen = 1;
-
-        memset(&peerSockAddr, 0, sizeof(peerSockAddr));
-        msgHeader.msg_name = &peerSockAddr;
-        if (mAddrType == kIPAddressType_IPv6)
-        {
-            peerSockAddr.in6.sin6_family = AF_INET6;
-            peerSockAddr.in6.sin6_port = htons(port);
-            peerSockAddr.in6.sin6_flowinfo = 0;
-            peerSockAddr.in6.sin6_addr = addr.ToIPv6();
-            peerSockAddr.in6.sin6_scope_id = intfId;
-            msgHeader.msg_namelen = sizeof(sockaddr_in6);
-        }
-#if INET_CONFIG_ENABLE_IPV4
-        else
-        {
-            peerSockAddr.in.sin_family = AF_INET;
-            peerSockAddr.in.sin_port = htons(port);
-            peerSockAddr.in.sin_addr = addr.ToIPv4();
-            msgHeader.msg_namelen = sizeof(sockaddr_in);
-        }
-#endif // INET_CONFIG_ENABLE_IPV4
-
-        // If the endpoint has been bound to a particular interface, and the caller didn't supply
-        // a specific interface to send on, use the bound interface. This appears to be necessary
-        // for messages to multicast addresses, which under linux don't seem to get sent out the
-        // correct inferface, despite the socket being bound.
-        if (intfId == INET_NULL_INTERFACEID)
-            intfId = mBoundIntfId;
-
-        if (intfId != INET_NULL_INTERFACEID && false)
-        {
-#if defined(IP_PKTINFO) || defined(IPV6_PKTINFO)
-            memset(controlData, 0, sizeof(controlData));
-            msgHeader.msg_control = controlData;
-            msgHeader.msg_controllen = sizeof(controlData);
-
-            struct cmsghdr *controlHdr = CMSG_FIRSTHDR(&msgHeader);
-
-#if INET_CONFIG_ENABLE_IPV4
-#if defined(IP_PKTINFO)
-            if (mAddrType == kIPAddressType_IPv4)
-            {
-                controlHdr->cmsg_level = IPPROTO_IP;
-                controlHdr->cmsg_type = IP_PKTINFO;
-                controlHdr->cmsg_len = CMSG_LEN(sizeof(in_pktinfo));
-
-                struct in_pktinfo *pktInfo = (struct in_pktinfo *)CMSG_DATA(controlHdr);
-                pktInfo->ipi_ifindex = intfId;
-
-                msgHeader.msg_controllen = CMSG_SPACE(sizeof(in_pktinfo));
-            }
-#endif // defined(IP_PKTINFO)
-#endif // INET_CONFIG_ENABLE_IPV4
-
-#if defined(IPV6_PKTINFO)
-            if (mAddrType == kIPAddressType_IPv6)
-            {
-                controlHdr->cmsg_level = IPPROTO_IP;
-                controlHdr->cmsg_type = IPV6_PKTINFO;
-                controlHdr->cmsg_len = CMSG_LEN(sizeof(in6_pktinfo));
-
-                struct in6_pktinfo *pktInfo = (struct in6_pktinfo *)CMSG_DATA(controlHdr);
-                pktInfo->ipi6_ifindex = intfId;
-
-                msgHeader.msg_controllen = CMSG_SPACE(sizeof(in6_pktinfo));
-            }
-#endif // defined(IPV6_PKTINFO)
-#else // !(defined(IP_PKTINFO) && defined(IPV6_PKTINFO))
-            res = INET_ERROR_NOT_IMPLEMENTED
-#endif // !(defined(IP_PKTINFO) && defined(IPV6_PKTINFO))
-        }
-
-        if (res == INET_NO_ERROR)
-        {
-            // Send UDP packet.
-//            ssize_t lenSent = sendmsg(mSocket, &msgHeader, 0);
-
-            ssize_t lenSent = sendto(mSocket, msgHeader.msg_iov[0].iov_base, msgHeader.msg_iov[0].iov_len, 0, &peerSockAddr.any, msgHeader.msg_namelen);
-            if (lenSent == -1)
-                res = Weave::System::MapErrorPOSIX(errno);
-            else if (lenSent != msg->DataLength())
-                res = INET_ERROR_OUTBOUND_MESSAGE_TRUNCATED;
-        }
-    }
+    res = IPEndPointBasis::SendTo(addr, port, intfId, msg, sendFlags);
 
     if ((sendFlags & kSendFlag_RetainBuffer) == 0)
         PacketBuffer::Free(msg);
-
 #endif // WEAVE_SYSTEM_CONFIG_USE_SOCKETS
 
+exit:
     WEAVE_SYSTEM_FAULT_INJECT_ASYNC_EVENT();
 
     return res;
@@ -554,7 +439,7 @@ INET_ERROR UDPEndPoint::SendTo(IPAddress addr, uint16_t port, InterfaceId intfId
 //A lock is required because the LwIP thread may be referring to intf_filter,
 //while this code running in the Inet application is potentially modifying it.
 //NOTE: this only supports LwIP interfaces whose number is no bigger than 9.
-INET_ERROR UDPEndPoint::BindInterface(IPAddressType addrType, InterfaceId intf)
+INET_ERROR UDPEndPoint::BindInterface(IPAddressType addrType, InterfaceId intfId)
 {
     INET_ERROR err = INET_NO_ERROR;
 
@@ -566,96 +451,47 @@ INET_ERROR UDPEndPoint::BindInterface(IPAddressType addrType, InterfaceId intf)
 
     // Make sure we have the appropriate type of PCB.
     err = GetPCB(addrType);
-    if (err == INET_NO_ERROR)
-    {
-        if ( !IsInterfaceIdPresent(intf) )
-        { //Stop interface-based filtering.
-            mUDP->intf_filter = NULL;
-        }
-        else
-        {
-            struct netif *netifPtr;
-            for (netifPtr = netif_list; netifPtr != NULL; netifPtr = netifPtr->next)
-            {
-                if (netifPtr == intf)
-                {
-                    break;
-                }
-            }
-            if (netifPtr == NULL)
-            {
-                err = INET_ERROR_UNKNOWN_INTERFACE;
-            }
-            else
-            {
-                mUDP->intf_filter = netifPtr;
-            }
-        }
-    }
+    SuccessOrExit(err);
+
+    err = LwIPBindInterface(mUDP, intfId);
 
     UNLOCK_TCPIP_CORE();
+
+    SuccessOrExit(err);
 
 #endif // WEAVE_SYSTEM_CONFIG_USE_LWIP
 
 #if WEAVE_SYSTEM_CONFIG_USE_SOCKETS
-#if HAVE_SO_BINDTODEVICE
-
     // Make sure we have the appropriate type of socket.
     err = GetSocket(addrType);
+    SuccessOrExit(err);
 
-    if (err == INET_NO_ERROR)
-    {
-        if (intf == INET_NULL_INTERFACEID)
-        {//Stop interface-based filtering.
-            if (setsockopt(mSocket, SOL_SOCKET, SO_BINDTODEVICE, "", 0) == -1)
-            {
-                err = Weave::System::MapErrorPOSIX(errno);
-            }
-        }
-        else
-        {    //Start filtering on the passed interface.
-            char intfName[IF_NAMESIZE];
-            if (if_indextoname(intf, intfName) == NULL)
-            {
-                err = Weave::System::MapErrorPOSIX(errno);
-            }
-
-            if (err == INET_NO_ERROR && setsockopt(mSocket, SOL_SOCKET, SO_BINDTODEVICE, intfName, strlen(intfName)) == -1)
-            {
-                err = Weave::System::MapErrorPOSIX(errno);
-            }
-        }
-    }
-
-    if (err == INET_NO_ERROR)
-        mBoundIntfId = intf;
-
-#else // !HAVE_SO_BINDTODEVICE
-
-    err = INET_ERROR_NOT_IMPLEMENTED;
-
-#endif // HAVE_SO_BINDTODEVICE
+    err = IPEndPointBasis::BindInterface(addrType, intfId);
+    SuccessOrExit(err);
 #endif // WEAVE_SYSTEM_CONFIG_USE_SOCKETS
 
     if (err == INET_NO_ERROR)
+    {
         mState = kState_Bound;
+    }
 
+exit:
     return err;
 }
 
 void UDPEndPoint::Init(InetLayer *inetLayer)
 {
-    InitEndPointBasis(*inetLayer);
-
-#if WEAVE_SYSTEM_CONFIG_USE_SOCKETS
-    mBoundIntfId = INET_NULL_INTERFACEID;
-#endif // WEAVE_SYSTEM_CONFIG_USE_SOCKETS
+    IPEndPointBasis::Init(inetLayer);
 }
 
-InterfaceId UDPEndPoint::GetBoundInterface (void)
+InterfaceId UDPEndPoint::GetBoundInterface(void)
 {
 #if WEAVE_SYSTEM_CONFIG_USE_LWIP
+#if HAVE_LWIP_UDP_BIND_NETIF
+    return netif_get_by_index(mUDP->netif_idx);
+#else
     return mUDP->intf_filter;
+#endif
 #endif // WEAVE_SYSTEM_CONFIG_USE_LWIP
 
 #if WEAVE_SYSTEM_CONFIG_USE_SOCKETS
@@ -667,29 +503,14 @@ InterfaceId UDPEndPoint::GetBoundInterface (void)
 
 void UDPEndPoint::HandleDataReceived(PacketBuffer *msg)
 {
-    if (mState == kState_Listening && OnMessageReceived != NULL)
-    {
-        IPPacketInfo *pktInfo = GetPacketInfo(msg);
-        if (pktInfo != NULL)
-        {
-            IPPacketInfo pktInfoCopy = *pktInfo; // copy the address info so that the app can free the
-                                                  // PacketBuffer without affecting access to address info.
-            OnMessageReceived(this, msg, &pktInfoCopy);
-        }
-        else
-        {
-            if (OnReceiveError != NULL)
-                OnReceiveError(this, INET_ERROR_INBOUND_MESSAGE_TOO_BIG, NULL);
-            PacketBuffer::Free(msg);
-        }
-    }
-    else
-        PacketBuffer::Free(msg);
+    IPEndPointBasis::HandleDataReceived(msg);
 }
 
 INET_ERROR UDPEndPoint::GetPCB(IPAddressType addrType)
 {
-    // IMMPORTANT: This method MUST be called with the LwIP stack LOCKED!
+    INET_ERROR lRetval = INET_NO_ERROR;
+
+    // IMPORTANT: This method MUST be called with the LwIP stack LOCKED!
 
 #if LWIP_VERSION_MAJOR > 1 || LWIP_VERSION_MINOR >= 5
     if (mUDP == NULL)
@@ -704,28 +525,34 @@ INET_ERROR UDPEndPoint::GetPCB(IPAddressType addrType)
             break;
 
         default:
-            return INET_ERROR_WRONG_ADDRESS_TYPE;
+            lRetval = INET_ERROR_WRONG_ADDRESS_TYPE;
+            goto exit;
         }
 
         if (mUDP == NULL)
         {
-            WeaveLogError(Inet, "udp_new failed");
-            return INET_ERROR_NO_MEMORY;
+            WeaveLogError(Inet, "udp_new_ip_type failed");
+            lRetval = INET_ERROR_NO_MEMORY;
+            goto exit;
+        }
+        else
+        {
+            mLwIPEndPointType = kLwIPEndPointType_UDP;
         }
     }
     else
     {
-        switch (IP_GET_TYPE(&mUDP->local_ip))
+        const lwip_ip_addr_type lLwIPAddrType = static_cast<lwip_ip_addr_type>(IP_GET_TYPE(&mUDP->local_ip));
+
+        switch (lLwIPAddrType)
         {
         case IPADDR_TYPE_V6:
-            if (addrType != kIPAddressType_IPv6)
-                return INET_ERROR_WRONG_ADDRESS_TYPE;
+            VerifyOrExit(addrType == kIPAddressType_IPv6, lRetval = INET_ERROR_WRONG_ADDRESS_TYPE);
             break;
 
 #if INET_CONFIG_ENABLE_IPV4
         case IPADDR_TYPE_V4:
-            if (addrType != kIPAddressType_IPv4)
-                return INET_ERROR_WRONG_ADDRESS_TYPE;
+            VerifyOrExit(addrType == kIPAddressType_IPv4, lRetval = INET_ERROR_WRONG_ADDRESS_TYPE);
             break;
 #endif // INET_CONFIG_ENABLE_IPV4
 
@@ -733,7 +560,7 @@ INET_ERROR UDPEndPoint::GetPCB(IPAddressType addrType)
             break;
         }
     }
-#else // LWIP_VERSION_MAJOR <= 1 || LWIP_VERSION_MINOR >= 5
+#else // LWIP_VERSION_MAJOR <= 1 && LWIP_VERSION_MINOR < 5
     if (mUDP == NULL)
     {
         if (addrType == kIPAddressType_IPv6)
@@ -748,11 +575,20 @@ INET_ERROR UDPEndPoint::GetPCB(IPAddressType addrType)
         }
 #endif // INET_CONFIG_ENABLE_IPV4
         else
-            return INET_ERROR_WRONG_ADDRESS_TYPE;
+        {
+            lRetval = INET_ERROR_WRONG_ADDRESS_TYPE;
+            goto exit;
+        }
 
-        if (mUDP == NULL) {
+        if (mUDP == NULL)
+        {
             WeaveLogError(Inet, "udp_new failed");
-            return INET_ERROR_NO_MEMORY;
+            lRetval = INET_ERROR_NO_MEMORY;
+            goto exit;
+        }
+        else
+        {
+            mLwIPEndPointType = kLwIPEndPointType_UDP;
         }
     }
     else
@@ -762,47 +598,30 @@ INET_ERROR UDPEndPoint::GetPCB(IPAddressType addrType)
 #else // !INET_CONFIG_ENABLE_IPV4
         const IPAddressType pcbType = kIPAddressType_IPv6;
 #endif // !INET_CONFIG_ENABLE_IPV4
+
         if (addrType != pcbType) {
-            return INET_ERROR_WRONG_ADDRESS_TYPE;
+            lRetval = INET_ERROR_WRONG_ADDRESS_TYPE;
+            goto exit;
         }
     }
 #endif // LWIP_VERSION_MAJOR <= 1 || LWIP_VERSION_MINOR >= 5
 
-    return INET_NO_ERROR;
-}
-
-IPPacketInfo *UDPEndPoint::GetPacketInfo(PacketBuffer *buf)
-{
-    // When using LwIP information about the packet is 'hidden' in the reserved space before the start of
-    // the data in the packet buffer.  This is necessary because the events in dolomite can only have two
-    // arguments, which in this case are used to convey the pointer to the end point and the pointer to the
-    // buffer.
-    //
-    // In most cases this trick of storing information before the data works because the first buffer in
-    // an LwIP UDP message contains the space that was used for the Ethernet/IP/UDP headers. However, given
-    // the current size of the IPPacketInfo structure (40 bytes), it is possible for there to not be enough
-    // room to store the structure along with the payload in a single pbuf. In practice, this should only
-    // happen for extremely large IPv4 packets that arrive without an Ethernet header.
-    //
-    if (!buf->EnsureReservedSize(sizeof(IPPacketInfo) + 3))
-        return NULL;
-    uintptr_t start = (uintptr_t)buf->Start();
-    uintptr_t pktInfoStart = start - sizeof(IPPacketInfo);
-    pktInfoStart = pktInfoStart & ~3;// align to 4-byte boundary
-    return (IPPacketInfo *)pktInfoStart;
+exit:
+    return (lRetval);
 }
 
 #if LWIP_VERSION_MAJOR > 1 || LWIP_VERSION_MINOR >= 5
 void UDPEndPoint::LwIPReceiveUDPMessage(void *arg, struct udp_pcb *pcb, struct pbuf *p, const ip_addr_t *addr, u16_t port)
-#else // LWIP_VERSION_MAJOR <= 1 || LWIP_VERSION_MINOR >= 5
+#else // LWIP_VERSION_MAJOR <= 1 && LWIP_VERSION_MINOR < 5
 void UDPEndPoint::LwIPReceiveUDPMessage(void *arg, struct udp_pcb *pcb, struct pbuf *p, ip_addr_t *addr, u16_t port)
-#endif // LWIP_VERSION_MAJOR <= 1 || LWIP_VERSION_MINOR >= 5
+#endif // LWIP_VERSION_MAJOR > 1 || LWIP_VERSION_MINOR >= 5
 {
     UDPEndPoint*            ep              = static_cast<UDPEndPoint*>(arg);
     PacketBuffer*           buf             = reinterpret_cast<PacketBuffer*>(static_cast<void*>(p));
     Weave::System::Layer&   lSystemLayer    = ep->SystemLayer();
+    IPPacketInfo*           pktInfo     = NULL;
 
-    IPPacketInfo *pktInfo = GetPacketInfo(buf);
+    pktInfo = GetPacketInfo(buf);
     if (pktInfo != NULL)
     {
 #if LWIP_VERSION_MAJOR > 1 || LWIP_VERSION_MINOR >= 5
@@ -835,222 +654,31 @@ void UDPEndPoint::LwIPReceiveUDPMessage(void *arg, struct udp_pcb *pcb, struct p
 #endif // WEAVE_SYSTEM_CONFIG_USE_LWIP
 
 #if WEAVE_SYSTEM_CONFIG_USE_SOCKETS
-
-INET_ERROR UDPEndPoint::GetSocket(IPAddressType addrType)
+INET_ERROR UDPEndPoint::GetSocket(IPAddressType aAddressType)
 {
-    if (mSocket == INET_INVALID_SOCKET_FD)
-    {
-        int one = 1;
-        int family;
-        int res;
+    INET_ERROR lRetval = INET_NO_ERROR;
+    const int lType = (SOCK_DGRAM | SOCK_FLAGS);
+    const int lProtocol = 0;
 
-        if (addrType == kIPAddressType_IPv6)
-            family = PF_INET6;
-#if INET_CONFIG_ENABLE_IPV4
-        else if (addrType == kIPAddressType_IPv4)
-            family = PF_INET;
-#endif // INET_CONFIG_ENABLE_IPV4
-        else
-            return INET_ERROR_WRONG_ADDRESS_TYPE;
+    lRetval = IPEndPointBasis::GetSocket(aAddressType, lType, lProtocol);
+    SuccessOrExit(lRetval);
 
-        mSocket = ::socket(family, SOCK_DGRAM | SOCK_FLAGS, 0);
-        if (mSocket == -1)
-            return Weave::System::MapErrorPOSIX(errno);
-        mAddrType = addrType;
-
-        //
-        // NOTE WELL: the errors returned by setsockopt() here are not returned as Inet layer
-        // Weave::System::MapErrorPOSIX(errno) codes because they are normally expected to fail on some
-        // platforms where the socket option code is defined in the header files but not [yet]
-        // implemented. Certainly, there is room to improve this by connecting the build
-        // configuration logic up to check for implementations of these options and to provide
-        // appropriate HAVE_xxxxx definitions accordingly.
-        //
-
-        res = setsockopt(mSocket, SOL_SOCKET, SO_REUSEADDR,  (void*)&one, sizeof(one));
-        static_cast<void>(res);
-
-#ifdef SO_REUSEPORT
-        res = setsockopt(mSocket, SOL_SOCKET, SO_REUSEPORT,  (void*)&one, sizeof(one));
-        if (res != 0)
-        {
-            WeaveLogError(Inet, "SO_REUSEPORT: %d", errno);
-        }
-#endif // defined(SO_REUSEPORT)
-
-        // If creating an IPv6 socket, tell the kernel that it will be IPv6 only.  This makes it
-        // posible to bind two sockets to the same port, one for IPv4 and one for IPv6.
-#ifdef IPV6_V6ONLY
-#if INET_CONFIG_ENABLE_IPV4
-        if (addrType == kIPAddressType_IPv6)
-#endif // INET_CONFIG_ENABLE_IPV4
-        {
-            res = setsockopt(mSocket, IPPROTO_IPV6, IPV6_V6ONLY, (void *) &one, sizeof(one));
-            if (res != 0)
-            {
-                WeaveLogError(Inet, "IPV6_V6ONLY: %d", errno);
-            }
-        }
-#endif // defined(IPV6_V6ONLY)
-
-#if INET_CONFIG_ENABLE_IPV4
-#ifdef IP_PKTINFO
-        res = setsockopt(mSocket, IPPROTO_IP, IP_PKTINFO, (void *) &one, sizeof(one));
-        if (res != 0)
-        {
-            WeaveLogError(Inet, "IP_PKTINFO: %d", errno);
-        }
-#endif // defined(IP_PKTINFO)
-#endif // INET_CONFIG_ENABLE_IPV4
-
-#ifdef IPV6_RECVPKTINFO
-        res = setsockopt(mSocket, IPPROTO_IPV6, IPV6_RECVPKTINFO, (void *) &one, sizeof(one));
-        if (res != 0)
-        {
-            WeaveLogError(Inet, "IPV6_PKTINFO: %d", errno);
-        }
-#endif // defined(IPV6_RECVPKTINFO)
-
-        // On systems that support it, disable the delivery of SIGPIPE signals when writing to a closed
-        // socket.  This is mostly needed on iOS which has the peculiar habit of sending SIGPIPEs on
-        // unconnected UDP sockets.
-#ifdef SO_NOSIGPIPE
-        {
-            one = 1;
-            res = setsockopt(mSocket, SOL_SOCKET, SO_NOSIGPIPE, &one, sizeof(one));
-            if (res != 0)
-            {
-                WeaveLogError(Inet, "SO_NOSIGPIPE: %d", errno);
-            }
-        }
-#endif // defined(SO_NOSIGPIPE)
-
-    }
-    else if (mAddrType != addrType)
-        return INET_ERROR_INCORRECT_STATE;
-
-    return INET_NO_ERROR;
+exit:
+    return (lRetval);
 }
 
-SocketEvents UDPEndPoint::PrepareIO()
+SocketEvents UDPEndPoint::PrepareIO(void)
 {
-    SocketEvents res;
-
-    if (mState == kState_Listening && OnMessageReceived != NULL)
-        res.SetRead();
-
-    return res;
+    return (IPEndPointBasis::PrepareIO());
 }
 
-void UDPEndPoint::HandlePendingIO()
+void UDPEndPoint::HandlePendingIO(void)
 {
-    INET_ERROR err = INET_NO_ERROR;
-
     if (mState == kState_Listening && OnMessageReceived != NULL && mPendingIO.IsReadable())
     {
-        IPPacketInfo pktInfo;
-        pktInfo.Clear();
-        pktInfo.DestPort = mBoundPort;
+        const uint16_t lPort = mBoundPort;
 
-        PacketBuffer *buf = PacketBuffer::New(0);
-
-        if (buf != NULL)
-        {
-            struct iovec msgIOV;
-            union
-            {
-                sockaddr any;
-                sockaddr_in in;
-                sockaddr_in6 in6;
-            } peerSockAddr;
-            uint8_t controlData[256];
-            struct msghdr msgHeader;
-
-            msgIOV.iov_base = buf->Start();
-            msgIOV.iov_len = buf->AvailableDataLength();
-
-            memset(&peerSockAddr, 0, sizeof(peerSockAddr));
-
-            memset(&msgHeader, 0, sizeof(msgHeader));
-            msgHeader.msg_name = &peerSockAddr;
-            msgHeader.msg_namelen = sizeof(peerSockAddr);
-            msgHeader.msg_iov = &msgIOV;
-            msgHeader.msg_iovlen = 1;
-            msgHeader.msg_control = controlData;
-            msgHeader.msg_controllen = sizeof(controlData);
-
-            ssize_t rcvLen = recvmsg(mSocket, &msgHeader, MSG_DONTWAIT);
-
-            if (rcvLen < 0)
-                err = Weave::System::MapErrorPOSIX(errno);
-
-            else if (rcvLen > buf->AvailableDataLength())
-                err = INET_ERROR_INBOUND_MESSAGE_TOO_BIG;
-
-            else
-            {
-                buf->SetDataLength((uint16_t) rcvLen);
-
-                if (peerSockAddr.any.sa_family == AF_INET6)
-                {
-                    pktInfo.SrcAddress = IPAddress::FromIPv6(peerSockAddr.in6.sin6_addr);
-                    pktInfo.SrcPort = ntohs(peerSockAddr.in6.sin6_port);
-                }
-#if INET_CONFIG_ENABLE_IPV4
-                else if (peerSockAddr.any.sa_family == AF_INET)
-                {
-                    pktInfo.SrcAddress = IPAddress::FromIPv4(peerSockAddr.in.sin_addr);
-                    pktInfo.SrcPort = ntohs(peerSockAddr.in.sin_port);
-                }
-#endif // INET_CONFIG_ENABLE_IPV4
-                else
-                    err = INET_ERROR_INCORRECT_STATE;
-            }
-
-            if (err == INET_NO_ERROR)
-            {
-                for (struct cmsghdr *controlHdr = CMSG_FIRSTHDR(&msgHeader);
-                     controlHdr != NULL;
-                     controlHdr = CMSG_NXTHDR(&msgHeader, controlHdr))
-                {
-#if INET_CONFIG_ENABLE_IPV4
-#ifdef IP_PKTINFO
-                    if (controlHdr->cmsg_level == IPPROTO_IP && controlHdr->cmsg_type == IP_PKTINFO)
-                    {
-                        struct in_pktinfo *inPktInfo = (struct in_pktinfo *)CMSG_DATA(controlHdr);
-                        pktInfo.Interface = inPktInfo->ipi_ifindex;
-                        pktInfo.DestAddress = IPAddress::FromIPv4(inPktInfo->ipi_addr);
-                        continue;
-                    }
-#endif // defined(IP_PKTINFO)
-#endif // INET_CONFIG_ENABLE_IPV4
-
-#ifdef IPV6_PKTINFO
-                    if (controlHdr->cmsg_level == IPPROTO_IPV6 && controlHdr->cmsg_type == IPV6_PKTINFO)
-                    {
-                        struct in6_pktinfo *in6PktInfo = (struct in6_pktinfo *)CMSG_DATA(controlHdr);
-                        pktInfo.Interface = in6PktInfo->ipi6_ifindex;
-                        pktInfo.DestAddress = IPAddress::FromIPv6(in6PktInfo->ipi6_addr);
-                        continue;
-                    }
-#endif // defined(IPV6_PKTINFO)
-                }
-            }
-        }
-
-        else
-            err = INET_ERROR_NO_MEMORY;
-
-        if (err == INET_NO_ERROR)
-            OnMessageReceived(this, buf, &pktInfo);
-        else
-        {
-            PacketBuffer::Free(buf);
-            if (OnReceiveError != NULL
-                && err != Weave::System::MapErrorPOSIX(EAGAIN)
-            )
-                OnReceiveError(this, err, NULL);
-        }
+        IPEndPointBasis::HandlePendingIO(lPort);
     }
 
     mPendingIO.Clear();

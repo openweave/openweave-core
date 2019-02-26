@@ -1927,8 +1927,8 @@ WEAVE_ERROR WeaveMessageLayer::RefreshEndpoints()
             WeaveBindLog("Listening on general purpose IPv4 UDP endpoint");
 
             mIPv4UDP->AppState = this;
-            mIPv4UDP->OnMessageReceived = HandleUDPMessage;
-            mIPv4UDP->OnReceiveError = HandleUDPReceiveError;
+            mIPv4UDP->OnMessageReceived = reinterpret_cast<IPEndPointBasis::OnMessageReceivedFunct>(HandleUDPMessage);
+            mIPv4UDP->OnReceiveError = reinterpret_cast<IPEndPointBasis::OnReceiveErrorFunct>(HandleUDPReceiveError);
             res = mIPv4UDP->Listen();
             if (res != WEAVE_NO_ERROR)
                 goto exit;
@@ -1961,8 +1961,8 @@ WEAVE_ERROR WeaveMessageLayer::RefreshEndpoints()
             WeaveBindLog("Listening on general purpose IPv6 UDP endpoint");
 
             mIPv6UDP->AppState = this;
-            mIPv6UDP->OnMessageReceived = HandleUDPMessage;
-            mIPv6UDP->OnReceiveError = HandleUDPReceiveError;
+            mIPv6UDP->OnMessageReceived = reinterpret_cast<IPEndPointBasis::OnMessageReceivedFunct>(HandleUDPMessage);
+            mIPv6UDP->OnReceiveError = reinterpret_cast<IPEndPointBasis::OnReceiveErrorFunct>(HandleUDPReceiveError);
             res = mIPv6UDP->Listen();
             if (res != WEAVE_NO_ERROR)
                 goto exit;
@@ -1979,7 +1979,7 @@ WEAVE_ERROR WeaveMessageLayer::RefreshEndpoints()
         // associated with the listening IPv6 address.
         if (listenIPv6 && mIPv6UDPMulticastRcv == NULL)
         {
-            IPAddress ipv6LinkLocalAllNodes = IPAddress::MakeIPv6Multicast(kIPv6MulticastScope_Link, kIPV6MulticastGroup_AllNodes);
+            IPAddress ipv6LinkLocalAllNodes = IPAddress::MakeIPv6WellKnownMulticast(kIPv6MulticastScope_Link, kIPV6MulticastGroup_AllNodes);
 
 #if WEAVE_BIND_DETAIL_LOGGING && WEAVE_DETAIL_LOGGING
             ipv6LinkLocalAllNodes.ToString(ipAddrStr, sizeof(ipAddrStr));
@@ -2000,8 +2000,8 @@ WEAVE_ERROR WeaveMessageLayer::RefreshEndpoints()
 
             // Enable reception of incoming messages.
             mIPv6UDPMulticastRcv->AppState = this;
-            mIPv6UDPMulticastRcv->OnMessageReceived = HandleUDPMessage;
-            mIPv6UDPMulticastRcv->OnReceiveError = HandleUDPReceiveError;
+            mIPv6UDPMulticastRcv->OnMessageReceived = reinterpret_cast<IPEndPointBasis::OnMessageReceivedFunct>(HandleUDPMessage);
+            mIPv6UDPMulticastRcv->OnReceiveError = reinterpret_cast<IPEndPointBasis::OnReceiveErrorFunct>(HandleUDPReceiveError);
             res = mIPv6UDPMulticastRcv->Listen();
             if (res != WEAVE_NO_ERROR)
                 goto exit;
@@ -2081,8 +2081,8 @@ WEAVE_ERROR WeaveMessageLayer::RefreshEndpoints()
                 if (epErr == WEAVE_NO_ERROR)
                 {
                     ep->AppState = this;
-                    ep->OnMessageReceived = HandleUDPMessage;
-                    ep->OnReceiveError = HandleUDPReceiveError;
+                    ep->OnMessageReceived = reinterpret_cast<IPEndPointBasis::OnMessageReceivedFunct>(HandleUDPMessage);
+                    ep->OnReceiveError = reinterpret_cast<IPEndPointBasis::OnReceiveErrorFunct>(HandleUDPReceiveError);
                     epErr = ep->Listen();
                 }
 

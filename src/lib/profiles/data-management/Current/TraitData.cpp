@@ -1280,16 +1280,16 @@ TraitUpdatableDataSink::TraitUpdatableDataSink(const TraitSchemaEngine * aEngine
 {
 };
 
-WEAVE_ERROR TraitUpdatableDataSink::Lock(SubscriptionClient * apSubClient)
+void TraitUpdatableDataSink::Lock(SubscriptionClient * apSubClient)
 {
     VerifyOrDie(apSubClient!=NULL);
-    return apSubClient->Lock();
+    apSubClient->LockUpdateMutex();
 }
 
-WEAVE_ERROR TraitUpdatableDataSink::Unlock(SubscriptionClient * apSubClient)
+void TraitUpdatableDataSink::Unlock(SubscriptionClient * apSubClient)
 {
     VerifyOrDie(apSubClient!=NULL);
-    return apSubClient->Unlock();
+    apSubClient->UnlockUpdateMutex();
 }
 
 WEAVE_ERROR TraitUpdatableDataSink::GetData(PropertyPathHandle aHandle, uint64_t aTagToWrite, nl::Weave::TLV::TLVWriter & aWriter,
@@ -1383,10 +1383,12 @@ exit:
  * @retval      WEAVE_NO_ERROR if the property handle was successfully added to the set of
  *                  properties to be sent to the owner of the trait.
  * @retval      WEAVE_ERROR_INVALID_ARGUMENT if the handle or the SubscriptionClient
- *                  pointer are invalid, or if the trait instance is already being
- *                  udpated with the opposite conditionality.
- * @retval      WEAVE_ERROR_WDM_INCORRECT_STATE if aIsConditional is true but the
+ *                  pointer are invalid.
+ * @retval      WEAVE_ERROR_WDM_INCONSISTENT_CONDITIONALITY if the trait instance is already being
+ *                  updated with the opposite conditionality.
+ * @retval      WEAVE_ERROR_WDM_LOCAL_DATA_INCONSISTENT if aIsConditional is true but the
  *                  trait instance does not have a valid version.
+ * @retval      WEAVE_ERROR_WDM_PATH_STORE_FULL if there is no memory to store the path.
  * @retval      Other WEAVE_ERROR codes depending on the failure.
  */
 WEAVE_ERROR TraitUpdatableDataSink::SetUpdated(SubscriptionClient * apSubClient, PropertyPathHandle aPropertyHandle, bool aIsConditional)

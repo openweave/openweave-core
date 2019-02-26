@@ -136,6 +136,10 @@ typedef uint32_t event_id_t;
  */
 typedef uint64_t utc_timestamp_t;
 
+// forward declaration
+
+struct ExternalEvents;
+
 // Structures used to describe in detail additional options for event encoding
 
 /**
@@ -231,13 +235,14 @@ struct EventOptions
 
 struct EventLoadOutContext
 {
-    EventLoadOutContext(nl::Weave::TLV::TLVWriter & inWriter, ImportanceType inImportance, uint32_t inStartingEventID);
+    EventLoadOutContext(nl::Weave::TLV::TLVWriter & inWriter, ImportanceType inImportance, uint32_t inStartingEventID, ExternalEvents * ioExternalEvent);
 
     nl::Weave::TLV::TLVWriter & mWriter;
     ImportanceType mImportance;
     uint32_t mStartingEventID;
     uint32_t mCurrentTime;
     uint32_t mCurrentEventID;
+    ExternalEvents *mExternalEvents;
 #if WEAVE_CONFIG_EVENT_LOGGING_UTC_TIMESTAMPS
     uint64_t mCurrentUTCTime;
     bool mFirstUtc;
@@ -312,9 +317,6 @@ typedef WEAVE_ERROR (*EventWriterFunct)(nl::Weave::TLV::TLVWriter & ioWriter, ui
  */
 typedef WEAVE_ERROR (*FetchExternalEventsFunct)(EventLoadOutContext * aContext);
 
-// forward declaration
-
-struct ExternalEvents;
 /**
  * @brief
  *
@@ -326,6 +328,9 @@ struct ExternalEvents;
  * The callback contains the event of the last ID that was delivered,
  * and the ID of the subscriber that received the event.
  *
+ * @param[in] inEv                       External events object corresponding
+ *                                       to delivered events
+ *
  * @param[in] inLastDeliveredEventID     ID of the last event delivered to
  *                                       the subscriber.
  * @param[in] inRecipientNodeID          Weave node ID of the recipient
@@ -335,18 +340,35 @@ typedef void (*NotifyExternalEventsDeliveredFunct)(ExternalEvents * inEv, event_
                                                    uint64_t inRecipientNodeID);
 
 /**
+ * @brief
+ *
+ *   A function prototype for a callback invoked when external events
+ *   are evicted from the buffers.
+ *
+ * When the external events object is evicted from the outbound message
+ * buffer, the engine will provide a notification to the external event
+ * provider.  The callback contains the external event to be evicted.
+ *
+ * @param[in] inEv                       External events object to be evicted
+ */
+typedef void (*NotifyExternalEventsEvictedFunct)(ExternalEvents * inEv);
+
+/**
  *  @brief
  *    Structure for tracking platform-stored events.
  */
 struct ExternalEvents
 {
-    ExternalEvents(void) : mFirstEventID(1), mLastEventID(0), mFetchEventsFunct(NULL), mNotifyEventsDeliveredFunct(NULL) { };
+    ExternalEvents(void) : mFirstEventID(1), mLastEventID(0), mFetchEventsFunct(NULL), mNotifyEventsDeliveredFunct(NULL), mNotifyEventsEvictedFunct(NULL) { };
 
     event_id_t mFirstEventID; /**< The first event ID stored externally. */
     event_id_t mLastEventID;  /**< The last event ID stored externally. */
 
     FetchExternalEventsFunct mFetchEventsFunct; /**< The callback to use to fetch the above IDs. */
     NotifyExternalEventsDeliveredFunct mNotifyEventsDeliveredFunct;
+    NotifyExternalEventsEvictedFunct mNotifyEventsEvictedFunct;
+    bool IsValid(void) const { return mFirstEventID <= mLastEventID; };
+    void Invalidate(void) { mFirstEventID = 1; mLastEventID = 0; };
 };
 
 // internal API

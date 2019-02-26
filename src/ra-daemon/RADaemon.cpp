@@ -1,5 +1,6 @@
 /*
  *
+ *    Copyright (c) 2018 Google LLC.
  *    Copyright (c) 2013-2017 Nest Labs, Inc.
  *    All rights reserved.
  *
@@ -321,11 +322,11 @@ void RADaemon::McastAllPrefixes(RADaemon::LinkInformation *linkInfo)
     linkInfo->NumRAsSentSoFar = 0;
 }
 
-void RADaemon::HandleReceiveError2(RawEndPoint *endPoint, INET_ERROR err, IPAddress senderAddr)
+void RADaemon::HandleReceiveError2(RawEndPoint *endPoint, INET_ERROR err, const IPPacketInfo *pktInfo)
 {
 }
 
-void RADaemon::HandleReceiveError(RawEndPoint *endPoint, INET_ERROR err, IPAddress senderAddr)
+void RADaemon::HandleReceiveError(RawEndPoint *endPoint, INET_ERROR err, const IPPacketInfo *pktInfo)
 {
 }
 
@@ -343,11 +344,11 @@ struct RSOpt
     uint8_t     OptLen;
 };
 
-void RADaemon::HandleMessageReceived2(RawEndPoint *RawEPListen, PacketBuffer *msg, IPAddress senderAddr)
+void RADaemon::HandleMessageReceived2(RawEndPoint *RawEPListen, PacketBuffer *msg, const IPPacketInfo *pktInfo)
 {
 }
 
-void RADaemon::HandleMessageReceived(RawEndPoint *RawEPListen, PacketBuffer *msg, IPAddress senderAddr)
+void RADaemon::HandleMessageReceived(RawEndPoint *RawEPListen, PacketBuffer *msg, const IPPacketInfo *pktInfo)
 {
     uint8_t             msgDataLen      = msg->DataLength();
     RSPacketHdr        *RSPacket        = (RSPacketHdr *)msg->Start();
@@ -357,7 +358,7 @@ void RADaemon::HandleMessageReceived(RawEndPoint *RawEPListen, PacketBuffer *msg
 
 //    Debugging
 //    char senderAddrStr[64];
-//    senderAddr.ToString(senderAddrStr, sizeof(senderAddrStr));
+//    pktInfo->SrcAddress.ToString(senderAddrStr, sizeof(senderAddrStr));
 //    printf("Raw message received from %s (%ld bytes)\n", senderAddrStr, msgDataLen);
 //    ::DumpMemory((const uint8_t *)RSPacket, msgDataLen, "  ", 16);
 
@@ -407,7 +408,10 @@ void RADaemon::HandleMessageReceived(RawEndPoint *RawEPListen, PacketBuffer *msg
     if (RAPacket == NULL)
         goto finalize;
 
-    if (senderAddr == IPAddress::Any)
+    if (pktInfo == NULL)
+        goto finalize;
+
+    if (pktInfo->SrcAddress == IPAddress::Any)
     {
         uint32_t lTimeout = RAD_SHORT_UNSOLICITED_PERIOD;
         const uint32_t lFuzz = rand() % (RAD_FUZZY_FACTOR * 2);
@@ -429,8 +433,8 @@ void RADaemon::HandleMessageReceived(RawEndPoint *RawEPListen, PacketBuffer *msg
     }
     else
     {
-        RADaemon::BuildRA(RAPacket, currLinkInfo, senderAddr);
-        currLinkInfo->RawEP->SendTo(senderAddr, RAPacket);
+        RADaemon::BuildRA(RAPacket, currLinkInfo, pktInfo->SrcAddress);
+        currLinkInfo->RawEP->SendTo(pktInfo->SrcAddress, RAPacket);
     }
 
 finalize:
@@ -543,11 +547,11 @@ INET_ERROR  RADaemon::SetPrefixInfo(InterfaceId link, IPAddress llAddr, IPPrefix
     }
 
     freeLinkInfo->RawEP->AppState                   = freeLinkInfo;
-    freeLinkInfo->RawEP->OnMessageReceived          = RADaemon::HandleMessageReceived2;
-    freeLinkInfo->RawEP->OnReceiveError             = RADaemon::HandleReceiveError2;
+    freeLinkInfo->RawEP->OnMessageReceived          = reinterpret_cast<IPEndPointBasis::OnMessageReceivedFunct>(RADaemon::HandleMessageReceived2);
+    freeLinkInfo->RawEP->OnReceiveError             = reinterpret_cast<IPEndPointBasis::OnReceiveErrorFunct>(RADaemon::HandleReceiveError2);
     freeLinkInfo->RawEPListen->AppState             = freeLinkInfo;
-    freeLinkInfo->RawEPListen->OnMessageReceived    = RADaemon::HandleMessageReceived;
-    freeLinkInfo->RawEPListen->OnReceiveError       = RADaemon::HandleReceiveError;
+    freeLinkInfo->RawEPListen->OnMessageReceived    = reinterpret_cast<IPEndPointBasis::OnMessageReceivedFunct>(RADaemon::HandleMessageReceived);
+    freeLinkInfo->RawEPListen->OnReceiveError       = reinterpret_cast<IPEndPointBasis::OnReceiveErrorFunct>(RADaemon::HandleReceiveError);
 
     err = freeLinkInfo->RawEP->BindIPv6LinkLocal(link, llAddr);
     if (err != INET_NO_ERROR)

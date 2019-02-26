@@ -43,6 +43,8 @@
 using namespace nl::Inet;
 using namespace nl::Weave;
 
+// Global Variables
+
 NetworkOptions gNetworkOptions;
 WeaveNodeOptions gWeaveNodeOptions;
 WeaveSecurityMode gWeaveSecurityMode;
@@ -59,8 +61,7 @@ NetworkOptions::NetworkOptions()
         { "local-addr",   kArgumentRequired, 'a' },
         { "node-addr",    kArgumentRequired, kToolCommonOpt_NodeAddr }, /* alias for local-addr */
 #if WEAVE_SYSTEM_CONFIG_USE_LWIP
-        { "tap-device",   kArgumentRequired, 'I' },
-        { "interface",    kArgumentRequired, 'I' }, /* deprecated alias for tap-device */
+        { "tap-device",   kArgumentRequired, kToolCommonOpt_TapDevice },
         { "ipv4-gateway", kArgumentRequired, kToolCommonOpt_IPv4GatewayAddr },
         { "dns-server",   kArgumentRequired, 'X' },
         { "debug-lwip",   kNoArgument,       kToolCommonOpt_DebugLwIP },
@@ -77,9 +78,8 @@ NetworkOptions::NetworkOptions()
         "       Local address for the node.\n"
         "\n"
 #if WEAVE_SYSTEM_CONFIG_USE_LWIP
-        "  -I, --tap-device <tap-dev-name>\n"
-        "       TAP device name for LwIP stack. Defaults to weave-dev-<node-id>.\n"
-        "       (Deprecated alias: --interface)\n"
+        "  --tap-device <tap-dev-name>\n"
+        "       TAP device name for LwIP hosted OS usage. Defaults to weave-dev-<node-id>.\n"
         "\n"
         "  --ipv4-gateway <ip-addr>\n"
         "       Address of default IPv4 gateway.\n"
@@ -144,9 +144,18 @@ bool NetworkOptions::HandleOption(const char *progName, OptionSet *optSet, int i
             return false;
         }
         break;
-    case 'I':
+    case kToolCommonOpt_TapDevice:
         TapDeviceName = arg;
         break;
+
+    case kToolCommonOpt_IPv4GatewayAddr:
+        if (!ParseIPAddress(arg, IPv4GatewayAddr) || !IPv4GatewayAddr.IsIPv4())
+        {
+            PrintArgError("%s: Invalid value specified for IPv4 gateway address: %s\n", progName, arg);
+            return false;
+        }
+        break;
+
     case kToolCommonOpt_DebugLwIP:
 #if defined(LWIP_DEBUG)
         gLwIP_DebugFlags = (LWIP_DBG_ON|LWIP_DBG_TRACE|LWIP_DBG_STATE|LWIP_DBG_FRESH|LWIP_DBG_HALT);
@@ -690,8 +699,12 @@ ServiceDirClientOptions::ServiceDirClientOptions()
     static OptionDef optionDefs[] =
     {
 #if WEAVE_CONFIG_ENABLE_SERVICE_DIRECTORY
-        { "service-dir-server",  kArgumentRequired, kToolCommonOpt_ServiceDirServer },
-        { "service-dir-url",     kArgumentRequired, kToolCommonOpt_ServiceDirServer }, // deprecated alias for service-dir-server
+        { "service-dir-server",             kArgumentRequired, kToolCommonOpt_ServiceDirServer },
+        { "service-dir-url",                kArgumentRequired, kToolCommonOpt_ServiceDirServer }, // deprecated alias for service-dir-server
+#if WEAVE_CONFIG_ENABLE_DNS_RESOLVER
+        { "service-dir-dns-options",        kArgumentRequired, kToolCommonOpt_ServiceDirDNSOptions },
+        { "service-dir-target-dns-options", kArgumentRequired, kToolCommonOpt_ServiceDirTargetDNSOptions },
+#endif // WEAVE_CONFIG_ENABLE_DNS_RESOLVER
 #endif // WEAVE_CONFIG_ENABLE_SERVICE_DIRECTORY
         { NULL }
     };
@@ -705,12 +718,40 @@ ServiceDirClientOptions::ServiceDirClientOptions()
         "       Use the specified server when making service directory requests.\n"
         "       (Deprecated alias: --service-dir-url)\n"
         "\n"
+#if WEAVE_CONFIG_ENABLE_DNS_RESOLVER
+        "  --service-dir-dns-options <dns-options>\n"
+        "  --service-dir-target-dns-options <dns-options>\n"
+        "       Use the specified DNS options when resolving hostnames during a\n"
+        "       service connection attempt.  The first option controls the DNS\n"
+        "       options used when connecting to the ServiceDirectory endpoint\n"
+        "       itself.  The second option controls the DNS option used when\n"
+        "       connecting to the endpoint that is ultimate target of the service\n"
+        "       connection.  <dns-options> can be one of the following keywords:\n"
+        "           Any (the default)\n"
+        "              - Resolve IPv4 and/or IPv6 addresses in the native order\n"
+        "                returned by the name server.\n"
+        "           IPv4Only\n"
+        "              - Resolve IPv4 addresses only.\n"
+        "           IPv6Only\n"
+        "              - Resolve IPv6 addresses only.\n"
+        "           IPv4Preferred\n"
+        "              - Resolve IPv4 and/or IPv6 addresses, with IPv4 addresses\n"
+        "                given preference over IPv6.\n"
+        "           IPv6Preferred\n"
+        "              - Resolve IPv4 and/or IPv6 addresses, with IPv6 addresses\n"
+        "                given preference over IPv4.\n"
+        "\n"
+#endif // WEAVE_CONFIG_ENABLE_DNS_RESOLVER
 #endif // WEAVE_CONFIG_ENABLE_SERVICE_DIRECTORY
         "";
 
     // Defaults.
     ServerHost = "frontdoor.integration.nestlabs.com";
     ServerPort = WEAVE_PORT;
+#if WEAVE_CONFIG_ENABLE_DNS_RESOLVER
+    DNSOptions_ServiceDirEndpoint = kDNSOption_AddrFamily_Any;
+    DNSOptions_TargetEndpoint = kDNSOption_AddrFamily_Any;
+#endif
 }
 
 bool ServiceDirClientOptions::HandleOption(const char *progName, OptionSet *optSet, int id, const char *name, const char *arg)
@@ -733,6 +774,20 @@ bool ServiceDirClientOptions::HandleOption(const char *progName, OptionSet *optS
         if (ServerPort == 0)
             ServerPort = WEAVE_PORT;
         break;
+#if WEAVE_CONFIG_ENABLE_DNS_RESOLVER
+    case kToolCommonOpt_ServiceDirDNSOptions:
+        if (!ParseDNSOptions(progName, name, arg, DNSOptions_ServiceDirEndpoint))
+        {
+            return false;
+        }
+        break;
+    case kToolCommonOpt_ServiceDirTargetDNSOptions:
+        if (!ParseDNSOptions(progName, name, arg, DNSOptions_TargetEndpoint))
+        {
+            return false;
+        }
+        break;
+#endif // WEAVE_CONFIG_ENABLE_DNS_RESOLVER
 #endif // WEAVE_CONFIG_ENABLE_SERVICE_DIRECTORY
     default:
         PrintArgError("%s: INTERNAL ERROR: Unhandled option: %s\n", progName, name);
@@ -761,6 +816,43 @@ WEAVE_ERROR ServiceDirClientOptions::GetRootDirectoryEntry(uint8_t *buf, uint16_
 
 exit:
     return err;
+}
+
+WEAVE_ERROR GetRootServiceDirectoryEntry(uint8_t *buf, uint16_t bufSize)
+{
+    return gServiceDirClientOptions.GetRootDirectoryEntry(buf, bufSize);
+}
+
+void ServiceDirClientOptions::OverrideConnectArguments(ServiceConnectBeginArgs & args)
+{
+#if WEAVE_CONFIG_ENABLE_DNS_RESOLVER
+
+    // If specific DNS options have been set for the connection to the
+    // ServiceDirectory endpoint, override the default DNS options.
+    if (args.ServiceEndpoint == kServiceEndpoint_Directory)
+    {
+        if (DNSOptions_ServiceDirEndpoint != kDNSOption_AddrFamily_Any)
+        {
+            args.DNSOptions = DNSOptions_ServiceDirEndpoint;
+        }
+    }
+
+    // Otherwise, if specific DNS options have been set for all other service connections
+    // override the default DNS options.
+    else
+    {
+        if (DNSOptions_TargetEndpoint != kDNSOption_AddrFamily_Any)
+        {
+            args.DNSOptions = DNSOptions_TargetEndpoint;
+        }
+    }
+
+#endif // WEAVE_CONFIG_ENABLE_DNS_RESOLVER
+}
+
+void OverrideServiceConnectArguments(::nl::Weave::Profiles::ServiceDirectory::ServiceConnectBeginArgs & args)
+{
+    gServiceDirClientOptions.OverrideConnectArguments(args);
 }
 
 FaultInjectionOptions::FaultInjectionOptions()
@@ -866,3 +958,103 @@ bool FaultInjectionOptions::HandleOption(const char *progName, OptionSet *optSet
 
     return true;
 }
+
+
+#if WEAVE_CONFIG_ENABLE_DNS_RESOLVER
+
+static bool GetToken(const char * & inStr, const char * & token, size_t & tokenLen, const char * sepChars)
+{
+    token = inStr;
+
+    // Skip leading whitespace
+    while (*token != 0 && isspace(*token))
+    {
+        token++;
+    }
+
+    // Check no more tokens.
+    if (*token == 0)
+    {
+        return false;
+    }
+
+    // Find end of token and advance inStr beyond end of token.
+    const char * tokenEnd = strpbrk(token, sepChars);
+    if (tokenEnd != NULL)
+    {
+        tokenLen = tokenEnd - inStr;
+        inStr = tokenEnd + 1;
+    }
+    else
+    {
+        tokenLen = strlen(token);
+        inStr += tokenLen;
+    }
+
+    // Trim trailing whitespace.
+    while (tokenLen > 0 && isspace(token[tokenLen - 1]))
+    {
+        tokenLen--;
+    }
+
+    return true;
+}
+
+static bool MatchToken(const char * token, size_t tokenLen, const char * expectedStr)
+{
+    return strlen(expectedStr) == tokenLen && strncasecmp(expectedStr, token, tokenLen) == 0;
+}
+
+/**
+ * Parse a string representation of the nl::Inet::DNSOptions enumeration.
+ */
+bool ParseDNSOptions(const char * progName, const char *argName, const char * arg, uint8_t & dnsOptions)
+{
+    const char * token;
+    size_t tokenLen;
+
+    dnsOptions = kDNSOption_AddrFamily_Any;
+
+    while (GetToken(arg, token, tokenLen, ",|:"))
+    {
+        if (MatchToken(token, tokenLen, "Any"))
+        {
+            dnsOptions = (dnsOptions & ~kDNSOption_AddrFamily_Mask) | kDNSOption_AddrFamily_Any;
+        }
+        else if (MatchToken(token, tokenLen, "IPv4Only"))
+        {
+#if INET_CONFIG_ENABLE_IPV4
+            dnsOptions = (dnsOptions & ~kDNSOption_AddrFamily_Mask) | kDNSOption_AddrFamily_IPv4Only;
+#else
+            PrintArgError("%s: DNSOption IPv4Only not supported\n", progName);
+            return false;
+#endif
+        }
+        else if (MatchToken(token, tokenLen, "IPv4Preferred"))
+        {
+#if INET_CONFIG_ENABLE_IPV4
+            dnsOptions = (dnsOptions & ~kDNSOption_AddrFamily_Mask) | kDNSOption_AddrFamily_IPv4Preferred;
+#else
+            PrintArgError("%s: DNSOption IPv4Preferred not supported\n", progName);
+            return false;
+#endif
+        }
+        else if (MatchToken(token, tokenLen, "IPv6Only"))
+        {
+            dnsOptions = (dnsOptions & ~kDNSOption_AddrFamily_Mask) | kDNSOption_AddrFamily_IPv6Only;
+        }
+        else if (MatchToken(token, tokenLen, "IPv6Preferred"))
+        {
+            dnsOptions = (dnsOptions & ~kDNSOption_AddrFamily_Mask) | kDNSOption_AddrFamily_IPv6Preferred;
+        }
+        else
+        {
+            PrintArgError("%s: Unrecognized value specified for %s: %*s\n", progName, argName, tokenLen, token);
+            return false;
+        }
+    }
+
+    return true;
+}
+
+#endif // WEAVE_CONFIG_ENABLE_DNS_RESOLVER

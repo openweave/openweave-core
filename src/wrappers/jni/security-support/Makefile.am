@@ -23,6 +23,12 @@
 
 include $(abs_top_nlbuild_autotools_dir)/automake/pre.am
 
+EXTRA_DIST                                         = \
+    WeaveSecuritySupport.pom                         \
+    $(srcdir)/src                                    \
+    $(srcdir)/native                                 \
+    $(NULL)
+
 if WEAVE_WITH_JAVA
 
 JARS                                               = \
@@ -50,11 +56,6 @@ WeaveSecuritySupport_jar_JAVA_NATIVE_LIB           = libWeaveSecuritySupport.la
 WeaveSecuritySupport_jar_JAVA_STRIP_NATIVE_LIB     = true
 
 WeaveSecuritySupport_jar_MAVEN_PROJECT_FILE        = WeaveSecuritySupport.pom
-
-EXTRA_DIST                                         = \
-    $(srcdir)/src                                    \
-    $(srcdir)/native                                 \
-    $(NULL)
 
 lib_LTLIBRARIES                                    = libWeaveSecuritySupport.la
 

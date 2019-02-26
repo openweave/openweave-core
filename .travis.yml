@@ -1,0 +1,77 @@
+#
+#    Copyright 2018 Google LLC. All Rights Reserved.
+#
+#    Licensed under the Apache License, Version 2.0 (the "License");
+#    you may not use this file except in compliance with the License.
+#    You may obtain a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+#    Unless required by applicable law or agreed to in writing, software
+#    distributed under the License is distributed on an "AS IS" BASIS,
+#    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#    See the License for the specific language governing permissions and
+#    limitations under the License.
+#
+
+#
+#    Description:
+#      This file is the Travis CI hosted, distributed continuous 
+#      integration configuration file for the OpenWeave Core library.
+#
+
+language: generic
+
+sudo: required
+
+before_install:
+  - .travis/before_install.sh
+
+script:
+  - .travis/script.sh
+
+after_success:
+  - bash <(curl -s https://codecov.io/bash)
+
+matrix:
+  include:
+    - name: "Linux with Defaults against GCC Distribution Sanity Check"
+      env: BUILD_TARGET="linux-auto-gcc-distcheck" CC="gcc"
+      os: linux
+      compiler: gcc
+    - name: "Linux with Defaults against GCC Coding Style Check"
+      env: BUILD_TARGET="linux-auto-gcc-lint" CC="gcc"
+      os: linux
+      compiler: gcc
+    - name: "Linux with Defaults against GCC Functional and Unit Tests"
+      env: BUILD_TARGET="linux-auto-gcc-check" CC="gcc"
+      os: linux
+      compiler: gcc
+    - name: "Linux with Defaults against clang/LLVM"
+      env: BUILD_TARGET="linux-auto-clang" CC="clang"
+      os: linux
+      compiler: clang
+    - name: "Linux with LwIP against GCC Functional and Unit Tests"
+      env: BUILD_TARGET="linux-lwip-gcc-check" CC="gcc"
+      os: linux
+      compiler: gcc
+    - name: "Linux with LWIP against clang/LLVM"
+      env: BUILD_TARGET="linux-lwip-clang" CC="clang"
+      os: linux
+      compiler: clang
+    - name: "OS X with Defaults against clang/LLVM"
+      env: BUILD_TARGET="osx-auto-clang" CC="clang"
+      os: osx
+      compiler: clang
+    - name: "OS X with LwIP against clang/LLVM"
+      env: BUILD_TARGET="osx-lwip-clang" CC="clang"
+      os: osx
+      compiler: clang
+    - name: "Linux with Defaults against GCC Network and Service (Happy) Tests"
+      os: linux
+      compiler: gcc
+      env: BUILD_TARGET="linux-auto-gcc-check-happy"
+    - name: "ESP32"
+      env: BUILD_TARGET="esp32"
+
+

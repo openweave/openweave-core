@@ -73,9 +73,7 @@ public:
 
     void CancelUpdate(void);
 
-    WEAVE_ERROR SendUpdate(bool aIsPartialUpdate, PacketBuffer *aPBuf);
-
-    uint32_t GetUpdateRequestIndex() const { return mUpdateRequestIndex; }
+    WEAVE_ERROR SendUpdate(bool aIsPartialUpdate, PacketBuffer *aPBuf, bool aIsFirstPayload);
 
     void * mpAppState;
 
@@ -86,7 +84,6 @@ private:
     nl::Weave::ExchangeContext * mEC;
     UpdateClientState mState;
     utc_timestamp_t mExpiryTimeMicroSecond;
-    uint32_t mUpdateRequestIndex;
 
     static void OnSendError(ExchangeContext * aEC, WEAVE_ERROR aErrorCode, void * aMsgSpecificContext);
     static void OnResponseTimeout(nl::Weave::ExchangeContext * aEC);
@@ -102,9 +99,6 @@ private:
     const char * GetStateStr(void) const;
 
     void ClearState(void);
-
-    static void BindingEventCallback(void * const apAppState, const Binding::EventType aEvent,
-                                     const Binding::InEventParam & aInParam, Binding::OutEventParam & aOutParam);
 
     void FlushExistingExchangeContext(const bool aAbortNow = false);
 };

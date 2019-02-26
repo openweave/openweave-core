@@ -114,7 +114,7 @@ public:
     const uint8_t *EncAK;
     bool ForceReauth;
 
-    virtual bool HandleOption(const char *progName, OptionSet *optSet, int id, const char *name, const char *arg);
+    virtual bool HandleOption(const char *progName, OptionSet *optSet, int id, const char *name, const char *arg) __OVERRIDE;
 
     WEAVE_ERROR PrepopulateTokenData();
 };

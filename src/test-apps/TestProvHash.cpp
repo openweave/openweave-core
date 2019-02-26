@@ -25,7 +25,7 @@
  */
 
 #include <stdio.h>
-#include <nltest.h>
+#include <nlunit-test.h>
 
 #include <Weave/Profiles/security/WeaveProvHash.h>
 

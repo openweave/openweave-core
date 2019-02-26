@@ -105,6 +105,18 @@ protected:
 #endif // INET_CONFIG_ENABLE_TUN_ENDPOINT
     };
 
+    enum
+    {
+        kLwIPEndPointType_Unknown = 0,
+
+        kLwIPEndPointType_Raw     = 1,
+        kLwIPEndPointType_UDP     = 2,
+        kLwIPEndPointType_UCP     = 3,
+        kLwIPEndPointType_TCP     = 4
+    };
+
+    uint8_t mLwIPEndPointType;
+
     void DeferredFree(Weave::System::Object::ReleaseDeferralErrorTactic aTactic);
 #endif // WEAVE_SYSTEM_CONFIG_USE_LWIP
 

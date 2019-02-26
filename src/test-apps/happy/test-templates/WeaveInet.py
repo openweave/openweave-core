@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
-
 #
+#    Copyright (c) 2019 Google LLC.
 #    Copyright (c) 2016-2017 Nest Labs, Inc.
 #    All rights reserved.
 #
@@ -20,7 +20,8 @@
 
 #
 #    @file
-#       Implements WeaveInet class that tests Weave Inet Layer among Weave Nodes.
+#       Implements WeaveInet class that tests Inet Layer unicast
+#       between a pair of nodes.
 #
 
 import os
@@ -29,6 +30,7 @@ import time
 
 from happy.ReturnMsg import ReturnMsg
 from happy.Utils import *
+from happy.utils.IP import IP
 from happy.HappyNode import HappyNode
 from happy.HappyNetwork import HappyNetwork
 
@@ -36,11 +38,15 @@ from WeaveTest import WeaveTest
 
 
 options = {}
-options["client"] = None
-options["server"] = None
-options["count"] = None
-options["length"] = None
-options["type"] = None
+options["sender"] = None
+options["receiver"] = None
+options["interface"] = None
+options["ipversion"] = None
+options["transport"] = None
+options["prefix"] = None
+options["tx_size"] = None
+options["rx_tx_length"] = None
+options["interval"] = None
 options["quiet"] = False
 options["tap"] = None
 
@@ -51,25 +57,10 @@ def option():
 
 class WeaveInet(HappyNode, HappyNetwork, WeaveTest):
     """
-    weave-inet [-h --help] [-q --quiet] [-o --origin <NAME>] [-s --server <NAME>]
-               [-c --count <NUMBER>] [-l --length <LEN>] [-t --type <PROTOCOL_TYPE>]
-               [-p --tap <TAP_INTERFACE>]
-
-    command to test inet:
-        $ weave-inet -o BorderRouter -s ThreadNode -c 10 -l 50 -t tcp
-            send 10 packets from BorderRouter to ThreadNode via tcp
-
-        $ weave-inet -o BorderRouter -s ThreadNode -c 10 -l 50 -t udp
-            send 10 packets from quzrtz to ThreadNode via udp
-
-        $ weave-inet -o BorderRouter -s ThreadNode -c 10 -l 50 -t raw6
-            send 10 packets from BorderRouter to ThreadNode via raw6
-
-        $ weave-inet -o onhub -s cloud -c 10 -l 50 -t raw4
-            send 10 packets from onhub to cloud via raw4
 
     Note:
-        Support four protocols: tcp, udp, raw6, raw4
+        Supports two networks: IPv4 and IPv6
+        Supports three transports: raw IP, TCP, and UDP
 
     return:
         0   success
@@ -81,203 +72,327 @@ class WeaveInet(HappyNode, HappyNetwork, WeaveTest):
         HappyNetwork.__init__(self)
         WeaveTest.__init__(self)
 
+        # Dictionary that will eventually contain 'node' and 'tag' for
+        # the sender node process.
+        
+        self.sender = {}
+
+        # Dictionary that will eventually contain 'node' and 'tag'
+        # for the receiver node process.
+        
+        self.receiver = {}
+
+        self.sender['ip'] = None
+        self.sender['node'] = opts["sender"]
+        self.receiver['ip'] = None
+        self.receiver['node'] = opts["receiver"]
+        self.interface = opts["interface"]
+        self.ipversion = opts["ipversion"]
+        self.transport = opts["transport"]
+        self.prefix = opts["prefix"]
+        self.tx_size = opts["tx_size"]
+        self.rx_tx_length = opts["rx_tx_length"]
+        self.interval = opts["interval"]
         self.quiet = opts["quiet"]
-        self.type = opts["type"]
-        self.count = opts["count"]
-        self.length = opts["length"]
-        self.client = opts["client"]
-        self.server = opts["server"]
         self.tap = opts["tap"]
 
-        self.no_service = False
 
-        self.server_process_tag = "WEAVE-INET-SERVER"
-        self.client_process_tag = "WEAVE-INET-CLIENT"
-
-        self.client_node_id = None
-        self.server_node_id = None
+    def __log_error_and_exit(self, error):
+        self.logger.error("[localhost] WeaveInet: %s" % (error))
+        sys.exit(1)
 
 
+    def __checkNodeExists(self, node, description):
+        if not self._nodeExists(node):
+            emsg = "The %s '%s' does not exist in the test topology." % (description, node)
+            self.__log_error_and_exit(emsg)
+
+
+    # Sanity check the instantiated options and configuration
     def __pre_check(self):
-        # Check if Weave Inet client node is given.
-        if self.type != "udp" and self.type != "tcp" and self.type != "raw6" and self.type != "raw4":
-            emsg = "Error proto type, support: udp, tcp, raw6, raw4."
-            self.logger.error("[localhost] WeaveInet: %s" % (emsg))
-            sys.exit(1)
+        # Sanity check the transport
+        if self.transport != "udp" and self.transport != "tcp" and self.transport != "raw":
+            emsg = "Transport type must be one of 'raw', 'tcp', or 'udp'."
+            self.__log_error_and_exit(emsg)
 
-        if self.client == None:
-            emsg = "Missing name or address of the Weave Inet client node."
-            self.logger.error("[localhost] WeaveInet: %s" % (emsg))
-            sys.exit(1)
+        # Sanity check the IP version
+        if self.ipversion != "4" and self.ipversion != "6":
+            emsg = "The IP version must be one of '4' or '6'."
+            self.__log_error_and_exit(emsg)
 
-        # Check if Weave Inet server node is given.
-        if self.server == None:
-            emsg = "Missing name or address of the Weave Inet server node."
-            self.logger.error("[localhost] WeaveInet: %s" % (emsg))
-            sys.exit(1)
+        # There must be exactly one sender
+        if self.sender['node'] == None:
+            emsg = "The test must have exactly one sender."
+            self.__log_error_and_exit(emsg)
 
-        # Check if Weave Inet client node exists.
-        if self._nodeExists(self.client):
-            self.client_node_id = self.client
+        # There must be exactly one receiver
+        if self.sender['node'] == None:
+            emsg = "The test must have exactly one receiver."
+            self.__log_error_and_exit(emsg)
 
-        # Check if Weave Inet server node exists.
-        if self._nodeExists(self.server):
-            self.server_node_id = self.server
+        # Each specified sender and receiver node must exist in the
+        # loaded Happy configuration.
 
-        if self.client_node_id == None:
-            emsg = "Unknown identity of the client node."
-            self.logger.error("[localhost] WeaveInet: %s" % (emsg))
-            sys.exit(1)
+        self.__checkNodeExists(self.sender['node'], "sender")
 
-        if not self.no_service and self.server_node_id == None:
-            emsg = "Unknown identity of the server node."
-            self.logger.error("[localhost] WeaveInet: %s" % (emsg))
-            sys.exit(1)
+        self.__checkNodeExists(self.receiver['node'], "receiver")
 
-        if self.type == "raw4":
-            self.client_ip = self.getNodePublicIPv4Address(self.client_node_id)
-            self.server_ip = self.getNodePublicIPv4Address(self.server_node_id)
-        else:
-            self.client_ip = self.getNodeWeaveIPAddress(self.client_node_id)
-            self.server_ip = self.getNodeWeaveIPAddress(self.server_node_id)
-        self.client_weave_id = self.getWeaveNodeID(self.client_node_id)
-        self.server_weave_id = self.getWeaveNodeID(self.server_node_id)
+        # Use the sender and receiver node names, specified prefix,
+        # and IP version and attempt to lookup addresses for the
+        # sender and receiver.
 
+        # First, sanity check the prefix
+
+        if self.prefix == None:
+            emsg = "Please specifiy a valid IPv%s prefix." % (self.ipversion)
+            self.__log_error_and_exit(emsg)
+
+        # Second, sanity check the prefix against the IP version.
+
+        if (self.ipversion == "4" and not IP.isIpv4(self.prefix)) or (self.ipversion == "6" and not IP.isIpv6(self.prefix)):
+            emsg = "The specified prefix %s is the wrong address family for IPv%s" % (self.prefix, self.ipversion)
+            self.__log_error_and_exit(emsg)
+
+        # Finally, find and take the first matching addresses for the
+        # node names and specified prefix.
+
+        rips = self.getNodeAddressesOnPrefix(self.prefix, self.receiver['node'])
+
+        if rips != None and len(rips) > 0:
+            self.receiver['ip'] = rips[0]
+
+        sips = self.getNodeAddressesOnPrefix(self.prefix, self.sender['node'])
+
+        if sips != None and len(sips) > 0:
+            self.sender['ip'] = sips[0]
+                
         # Check if all unknowns were found
 
-        if self.client_ip == None:
-            emsg = "Could not find IP address of the client node."
-            self.logger.error("[localhost] WeaveInet: %s" % (emsg))
-            sys.exit(1)
+        if self.receiver['ip'] == None:
+            emsg = "Could not find IP address of the receiver node, %s" % (self.receiver['node'])
+            self.__log_error_and_exit(emsg)
 
-        if self.server_ip == None:
-            emsg = "Could not find IP address of the server node."
-            self.logger.error("[localhost] WeaveInet: %s" % (emsg))
-            sys.exit(1)
+        if self.sender['ip'] == None:
+            emsg = "Could not find IP address of the sender node, %s" % (self.sender['node'])
+            self.__log_error_and_exit(emsg)
 
-        if self.count != None and self.count.isdigit():
-            self.count = int(float(self.count))
-        else:
-            self.count = 5
+        if self.tx_size == None or not self.tx_size.isdigit():
+            emsg = "Please specify a valid size of data to send per transmission."
+            self.__log_error_and_exit(emsg)
 
-        if self.length != None and self.length.isdigit():
-            self.length = int(float(self.length))
-        else:
-            self.length = 100
+        if self.rx_tx_length == None or not self.rx_tx_length.isdigit():
+            emsg = "Please specify a valid total length of data to send and receive."
+            self.__log_error_and_exit(emsg)
+
+        if not self.interval == None and not self.interval.isdigit():
+            emsg = "Please specify a valid send interval in milliseconds."
+            self.__log_error_and_exit(emsg)
+
+    # Gather and return the exit status and output as a tuple for the
+    # specified process node and tag.
+    def __gather_process_results(self, process, quiet):
+        node = process['node']
+        tag = process['tag']
+        
+        status, output = self.get_test_output(node, tag, quiet)
+
+        return (status, output)
 
 
-    def __process_results(self, output):
+    # Gather and return the exit status and output as a tuple for the
+    # sender process.
+    def __gather_sender_results(self, quiet):
+        status, output = self.__gather_process_results(self.sender, quiet)
 
-        for line in output.split("\n"):
-            if not "Total received data length: " in line:
-                continue
+        return (status, output)
 
-            total_len = line.split("length: ")[1].split(" bytes")[0]
 
-        if self.quiet == False:
-            print "weave-inet from node %s (%s) to node %s (%s) via %s: " % \
-                (self.client_node_id, self.client_ip,
-                 self.server_node_id, self.server_ip, self.type),
+    # Gather and return the exit status and output as a tuple for the
+    # specified receiver process.
+    def __gather_receiver_results(self, quiet):
+        status, output = self.__gather_process_results(self.receiver, quiet)
 
-            if  total_len == str(self.count * self.length) or \
-                self.type == "raw4" and total_len == str(self.count * (self.length + 20)):
-                # extra 20 bytes ip header for each raw4 packet
-                print hgreen("succeed")
-                result = True
-            else:
-                print hred("failed")
-                result = False
-        return (result, output)
-    
+        return (status, output)
 
-    def __start_server_side(self):
-        if self.no_service:
-            return
 
+    # Gather and return the exit status and output as a dictionary for all
+    # sender and receiver processes.
+    def __gather_results(self):
+        quiet = True
+        results = {}
+        sender_results = {}
+        receiver_results = {}
+
+        sender_results['status'], sender_results['output'] = \
+            self.__gather_sender_results(quiet)
+
+        receiver_results['status'], receiver_results['output'] = \
+            self.__gather_receiver_results(quiet)
+
+        results['sender'] = sender_results
+        results['receiver'] = receiver_results
+
+        return (results)
+
+
+    def __process_results(self, results):
+        status = True
+        output = {}
+        output['sender'] = ""
+        output['receiver'] = ""
+
+        # Iterate through the sender and receivers return status. If
+        # all had successful (0) status, then the cumulative return
+        # status is successful (True). If any had unsuccessful status,
+        # then the cumulative return status is unsuccessful (False).
+        #
+        # For the output, simply key it by sender and receivers.
+
+        # Sender
+
+        status = (results['sender']['status'] == 0)
+
+        output['sender'] = results['sender']['output']
+
+        # Receiver
+
+        status = (status and (results['receiver']['status'] == 0))
+
+        output['receiver'] = results['receiver']['output']
+
+        return (status, output)
+
+
+    # Start the test process on the specified node with the provided
+    # tag using the provided local address and extra command line
+    # options.
+    def __start_node(self, node, local_addr, extra, tag):
         cmd = "sudo "
         cmd += self.getWeaveInetLayerPath()
 
-        cmd += " --local-addr " + self.server_ip
-        cmd += " --listen"
-
-        if self.type and self.type != "udp":
-            cmd += " --" + self.type
+        # If present, generate and accumulate the LwIP hosted OS
+        # network tap device interface.
 
         if self.tap:
-            cmd += " --interface " + self.tap
+            cmd += " --tap-device " + self.tap
 
-        self.start_weave_process(self.server_node_id, cmd, self.server_process_tag, sync_on_output=self.ready_to_service_events_str)
+        # Generate and accumulate the transport and IP version command
+        # line arguments.
+        
+        cmd += " --ipv" + self.ipversion
 
+        cmd += " --" + self.transport
 
-    def __start_client_side(self):
-        cmd = "sudo "
-        cmd += self.getWeaveInetLayerPath()
+        cmd += " --local-addr " + local_addr
 
-        cmd += " --local-addr " + self.client_ip
-        cmd += " " + self.server_ip
+        # Generate and accumulate, if present, the bound network
+        # interface command line option.
 
-        if self.type and self.type != "udp":
-            cmd += " --" + self.type
+        if not self.interface == None:
+            cmd += " --interface " + self.interface
 
-        cmd += " --length " + str(self.length)
-        cmd += " --max-send " + str(self.count * self.length)
+        # Accumulate any extra command line options specified.
+        
+        cmd += extra
 
-        if self.tap:
-            cmd += " --interface " + self.tap
+        self.logger.debug("[localhost] WeaveInet: Will start process on node '%s' with tag '%s' and command '%s'" % (node, tag, cmd))
 
-        self.start_weave_process(self.client_node_id, cmd, self.client_process_tag)
-
-
-    def __wait_for_client(self):
-        self.wait_for_test_to_end(self.client_node_id, self.client_process_tag)
+        self.start_weave_process(node, cmd, tag, sync_on_output=self.ready_to_service_events_str)
 
 
-    def __stop_server_side(self):
-        if self.no_service:
-            return
+    # Start the receiver test process.
+    def __start_receiver(self):
+        node = self.receiver['node']
+        tag = "WEAVE-INET-RX"
 
-        self.stop_weave_process(self.server_node_id, self.server_process_tag)
+        extra_cmd = " --listen"
+
+        # Accumulate size/length-related parameters. Receivers never
+        # send anything.
+
+        extra_cmd += " --expected-rx-size " + str(self.rx_tx_length)
+        extra_cmd += " --expected-tx-size 0"
+
+        self.__start_node(node, self.receiver['ip'], extra_cmd, tag)
+
+        self.receiver['tag'] = tag
 
 
+    # Start the sender test process.
+    def __start_sender(self):
+        node = self.sender['node']
+        tag = "WEAVE-INET-TX"
+
+        extra_cmd = ""
+
+        if not self.interval == None:
+            extra_cmd += " --interval " + str(self.interval)
+
+        # Accumulate size/length-related parameters. Senders never
+        # receive anything.
+
+        extra_cmd += " --send-size " + str(self.tx_size)
+        extra_cmd += " --expected-rx-size 0"
+        extra_cmd += " --expected-tx-size " + str(self.rx_tx_length)
+        
+        extra_cmd += " " + self.receiver['ip']
+
+        self.__start_node(node, self.sender['ip'], extra_cmd, tag)
+
+        self.sender['tag'] = tag
+
+
+    # Block and wait for the sender test process.
+    def __wait_for_sender(self):
+        node = self.sender['node']
+        tag = self.sender['tag']
+
+        self.logger.debug("[localhost] WeaveInet: Will wait for sender on node %s with tag %s..." % (node, tag))
+
+        self.wait_for_test_to_end(node, tag)
+
+
+    # Stop the receiver test process.
+    def __stop_receiver(self):
+        node = self.receiver['node']
+        tag = self.receiver['tag']
+
+        self.logger.debug("[localhost] WeaveInet: Will stop receiver on node %s with tag %s..." % (node, tag))
+
+        self.stop_weave_process(node, tag)
+
+
+    # Run the test.
     def run(self):
+        results = {}
+        
         self.logger.debug("[localhost] WeaveInet: Run.")
 
         self.__pre_check()
 
-        self.__start_server_side()
+        self.__start_receiver()
 
-        emsg = "WeaveInet %s should be running." % (self.server_process_tag)
-        self.logger.debug("[%s] WeaveInet: %s" % (self.server_node_id, emsg))
+        self.logger.debug("[%s] WeaveInet: receiver should be running." % ("localhost"))
 
-        self.__start_client_side()
+        emsg = "receiver %s should be running." % (self.receiver['tag'])
+        self.logger.debug("[%s] WeaveInet: %s" % (self.receiver['node'], emsg))
 
-        self.__wait_for_client()
+        self.__start_sender()
 
-        client_output_value, client_output_data = \
-            self.get_test_output(self.client_node_id, self.client_process_tag, True)
-        client_strace_value, client_strace_data = \
-            self.get_test_strace(self.client_node_id, self.client_process_tag, True)
+        self.__wait_for_sender()
 
+        self.__stop_receiver()
 
-        if self.no_service:
-            server_output_data = ""
-            server_strace_data = ""
-        else:
-            self.__stop_server_side()
-            server_output_value, server_output_data = \
-                self.get_test_output(self.server_node_id, self.server_process_tag, True)
-            server_strace_value, server_strace_data = \
-                self.get_test_strace(self.server_node_id, self.server_process_tag, True)
+        # Gather results from the sender and receivers
 
-        avg, results = self.__process_results(server_output_data)
+        results = self.__gather_results()
 
-        data = {}
-        data["client_output"] = client_output_data
-        data["client_strace"] = client_strace_data
-        data["server_output"] = server_output_data
-        data["server_strace"] = server_strace_data
+        # Process the results from the sender and receivers into a
+        # singular status value and a results dictionary containing
+        # process output.
+
+        status, results = self.__process_results(results)
 
         self.logger.debug("[localhost] WeaveInet: Done.")
 
-        return ReturnMsg(avg, data)
-
+        return ReturnMsg(status, results)

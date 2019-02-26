@@ -32,6 +32,7 @@ import uuid
 
 from happy.ReturnMsg import ReturnMsg
 from happy.Utils import *
+from happy.utils.IP import IP
 import happy.HappyNodeAddress as HappyNodeAddress
 
 from Weave import Weave
@@ -203,7 +204,7 @@ class WeaveNodeConfigure():
         params = {}
         params['weave_node_id'] = weave_node_id
         params['eui64'] = self.weave_state.WeaveIdtoEUI64(weave_node_id)
-        params['iid'] = self.weave_state.EUI64toIID(params['eui64'])
+        params['iid'] = IP.EUI64toIID(params['eui64'])
 
         if cert and key:
             # these keys are only written if they are available

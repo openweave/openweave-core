@@ -1,4 +1,5 @@
 #
+#    Copyright (c) 2018-2019 Google LLC
 #    Copyright (c) 2014-2018 Nest Labs, Inc.
 #    All rights reserved.
 #
@@ -22,6 +23,54 @@
 #
 
 include $(abs_top_nlbuild_autotools_dir)/automake/pre.am
+
+#
+# Other files we do want to distribute with the Weave source SDK.
+#
+# XXX - Should these be sanitized out for external distribution? If so,
+#       which?
+#
+EXTRA_DIST                                            = \
+    AndroidTest.cpp					\
+    ComplexMockTrait.proto				\
+    SimpleMockTrait.proto				\
+    TestDNS.cpp						\
+    TestWeaveDeviceMangerJNI				\
+    TestWeaveTool.py                                    \
+    connect-BR-Svc-ns.sh				\
+    happy/bin                                           \
+    happy/lib                                           \
+    happy/test-templates                                \
+    happy/tests/service					\
+    happy/tests/standalone				\
+    happy/topologies     				\
+    nlweavebdxclient-development.cpp			\
+    nlweavebdxclient.cpp				\
+    nlweavebdxserver-development.cpp			\
+    nlweavebdxserver.h					\
+    remove-tunnel-intf.sh				\
+    remove-weave-devs.sh				\
+    run-security-support-test.sh                        \
+    schema/nest/test/trait/TestDTrait.cpp               \
+    schema/nest/test/trait/TestFTrait.cpp               \
+    setup-network-namespaces.sh				\
+    setup-tunnel-intf.sh				\
+    setup-weave-devs.sh					\
+    test-Verhoeff.sh                                    \
+    test-bdx-development.sh				\
+    test-file-development.txt				\
+    test-weave-device-descriptor-encode.sh		\
+    weave-bdx-client.cpp				\
+    weave-parallel-test-engine				\
+    $(NULL)
+
+SUBDIRS                                               = \
+    wrapper-tests/jni                                   \
+    $(NULL)
+
+#
+# Define a package-specific test driver (for 'make check').
+#
 
 LOG_DRIVER=$(abs_srcdir)/weave-parallel-test-engine
 
@@ -47,6 +96,7 @@ noinst_HEADERS                                             = \
     MockNPServer.h                                           \
     MockOpActions.h                                          \
     MockPairingServer.h                                      \
+    MockPlatformClocks.h                                     \
     MockSDServer.h                                           \
     MockSPServer.h                                           \
     MockSWUServer.h                                          \
@@ -58,19 +108,19 @@ noinst_HEADERS                                             = \
     MockTimeSyncServer.h                                     \
     MockTimeSyncUtil.h                                       \
     MockTokenPairingServer.h                                 \
-	MockWdmNodeOptions.h                                     \
+    MockWdmNodeOptions.h                                     \
     MockWdmSubscriptionInitiator.h                           \
     MockWdmSubscriptionResponder.h                           \
     MockWdmTestVerifier.h                                    \
     MockWdmViewClient.h                                      \
     MockWdmViewServer.h                                      \
+    PASEEngineTest.h                                         \
     TAKEOptions.h                                            \
     TestDRBG.h                                               \
     TestEventLoggingSchemaExamples.h                         \
     TestGroupKeyStore.h                                      \
-    PASEEngineTest.h                                         \
+    TestInetLayerCommon.hpp                                  \
     TestPersistedStorageImplementation.h                     \
-    MockPlatformClocks.h                                     \
     TestProfile.h                                            \
     TestWRMP.h                                               \
     TestWdmOneWayCommand.h                                   \
@@ -86,21 +136,22 @@ noinst_HEADERS                                             = \
     nlweavebdxclient.h                                       \
     nlweavebdxserver-development.h                           \
     nlweaveswuclient.h                                       \
+    schema/nest/test/trait/TestATrait.h                      \
+    schema/nest/test/trait/TestBTrait.h                      \
+    schema/nest/test/trait/TestCTrait.h                      \
+    schema/nest/test/trait/TestCommon.h                      \
+    schema/nest/test/trait/TestCommonVersioned.h             \
+    schema/nest/test/trait/TestCommonVersioned.cpp           \
+    schema/nest/test/trait/TestDTrait.h                      \
+    schema/nest/test/trait/TestETrait.h                      \
+    schema/nest/test/trait/TestFTrait.h                      \
+    schema/nest/test/trait/TestHTrait.h                      \
+    schema/nest/test/trait/TestMismatchedCTrait.h            \
+    schema/weave/common/DayOfWeekEnum.h                      \
     schema/weave/trait/locale/LocaleCapabilitiesTrait.h      \
     schema/weave/trait/locale/LocaleSettingsTrait.h          \
-    schema/weave/trait/telemetry/NetworkWiFiTelemetryTrait.h \
     schema/weave/trait/security/BoltLockSettingsTrait.h      \
-    schema/weave/common/DayOfWeekEnum.h                      \
-    schema/nest/test/trait/TestCommon.h                      \
-    schema/nest/test/trait/TestHTrait.h                      \
-    schema/nest/test/trait/TestETrait.h                      \
-    schema/nest/test/trait/TestCTrait.h                      \
-    schema/nest/test/trait/TestATrait.h                      \
-    schema/nest/test/trait/TestFTrait.h                      \
-    schema/nest/test/trait/TestCommonVersioned.h             \
-    schema/nest/test/trait/TestBTrait.h                      \
-    schema/nest/test/trait/TestDTrait.h                      \
-    schema/nest/test/trait/TestMismatchedCTrait.h            \
+    schema/weave/trait/telemetry/NetworkWiFiTelemetryTrait.h \
     weave-bdx-common-development.h                           \
     $(NULL)
 
@@ -112,38 +163,6 @@ noinst_HEADERS                                += \
     $(NULL)
 
 endif # CONFIG_NETWORK_LAYER_BLE
-
-#
-# Other files we do want to distribute with the Weave source SDK.
-#
-# XXX - Should these be sanitized out for external distribution? If so,
-#       which?
-#
-EXTRA_DIST                                            = \
-    AndroidTest.cpp					\
-    ComplexMockTrait.proto				\
-    SimpleMockTrait.proto				\
-    TestDNS.cpp						\
-    TestWeaveDeviceMangerJNI				\
-    connect-BR-Svc-ns.sh				\
-    happy/tests/service					\
-    happy/tests/standalone				\
-    nlweavebdxclient-development.cpp			\
-    nlweavebdxclient.cpp				\
-    nlweavebdxserver-development.cpp			\
-    nlweavebdxserver.h					\
-    remove-tunnel-intf.sh				\
-    remove-weave-devs.sh				\
-    setup-network-namespaces.sh				\
-    setup-tunnel-intf.sh				\
-    setup-weave-devs.sh					\
-    test-Verhoeff.sh                                    \
-    test-bdx-development.sh				\
-    test-file-development.txt				\
-    test-weave-device-descriptor-encode.sh		\
-    weave-bdx-client.cpp				\
-    weave-parallel-test-engine				\
-    $(NULL)
 
 if WEAVE_BUILD_TESTS
 # A non-installed common library that may be used for all test
@@ -290,7 +309,6 @@ check_PROGRAMS                                 = \
     TestCrypto                                   \
     TestDRBG                                     \
     TestDeviceDescriptor                         \
-    TestDNSResolution                            \
     TestECDH                                     \
     TestECDSA                                    \
     TestECMath                                   \
@@ -340,9 +358,9 @@ endif
 
 check_PROGRAMS +=                                \
     TestTDM                                      \
-	TestPathStore                                \
-	TestWdmUpdateEncoder                         \
-	TestWdmUpdateResponse                        \
+    TestPathStore                                \
+    TestWdmUpdateEncoder                         \
+    TestWdmUpdateResponse                        \
     $(NULL)
 
 if WEAVE_BUILD_WARM
@@ -354,6 +372,13 @@ endif
 if WEAVE_WITH_OPENSSL
 check_PROGRAMS                                += \
     TestWeaveProvBundle                          \
+    $(NULL)
+endif
+
+if WEAVE_SYSTEM_CONFIG_USE_SOCKETS
+check_PROGRAMS                                += \
+    TestDNSResolution                            \
+    TestWoble                                    \
     $(NULL)
 endif
 
@@ -383,7 +408,6 @@ check_SCRIPTS                                 += \
     $(NULL)
 endif # WEAVE_WITH_JAVA
 
-
 # Test applications that should be built but not installed that
 # require no network or complicated setup and should always be
 # built to ensure overall "build sanity".
@@ -400,7 +424,6 @@ local_test_programs                            = \
     TestCrypto                                   \
     TestDRBG                                     \
     TestDeviceDescriptor                         \
-    TestDNSResolution                            \
     TestECDH                                     \
     TestECDSA                                    \
     TestECMath                                   \
@@ -449,9 +472,9 @@ endif
 if WEAVE_BUILD_WARM
 local_test_programs                           += \
     TestWarm                                     \
-	TestPathStore                                \
-	TestWdmUpdateEncoder                         \
-	TestWdmUpdateResponse                        \
+    TestPathStore                                \
+    TestWdmUpdateEncoder                         \
+    TestWdmUpdateResponse                        \
     $(NULL)
 endif
 
@@ -465,6 +488,7 @@ network_test_programs                          = \
     TestBinding                                  \
     TestEventLogging                             \
     TestInetLayer                                \
+    TestInetLayerMulticast                       \
     TestPersistedCounter                         \
     TestPersistedStorage                         \
     TestRADaemon                                 \
@@ -476,6 +500,7 @@ network_test_programs                          = \
     TestWdmOneWayCommandSender                   \
     TestWdmOneWayCommandReceiver                 \
     TestDNSResolution                            \
+    TestWoble                                    \
     mock-device                                  \
     mock-weave-bg                                \
     weave-bdx-client-development                 \
@@ -491,10 +516,10 @@ network_test_programs                          = \
     $(NULL)
 
 if WEAVE_BUILD_LEGACY_WDM
-network_test_programs += \
+network_test_programs                         += \
     TestDataManagement                           \
     wdmtest                                      \
-	$(NULL)
+    $(NULL)
 endif
 
 
@@ -598,7 +623,7 @@ if WEAVE_RUN_HAPPY_PERF
 check_SCRIPTS                                 +=             \
     happy/tests/service/weave_service_perf_run.sh            \
     $(NULL)
-endif # WEAVE_RUN_HAPPY_SERVICE_PERF
+endif # WEAVE_RUN_HAPPY_PERF
 
 if WEAVE_RUN_HAPPY_WDM
 check_SCRIPTS                                 +=             \
@@ -1078,17 +1103,23 @@ check_SCRIPTS                                 +=                \
 endif # WEAVE_RUN_HAPPY_TIME
 
 if WEAVE_RUN_HAPPY_CORE
-check_SCRIPTS                                 +=                \
+check_SCRIPTS                                                           += \
     happy/tests/standalone/wdmv0/test_weave_wdmv0_01.py                    \
     happy/tests/standalone/swu/test_weave_swu_01.py                        \
     happy/tests/standalone/swu/test_weave_swu_02.py                        \
     happy/tests/standalone/messagelayer/test_weave_messagelayer_01.py      \
     happy/tests/standalone/dd/test_weave_dd_01.py                          \
-    happy/tests/standalone/inet/test_weave_inet_01.py                      \
     happy/tests/standalone/heartbeat/test_weave_heartbeat_01.py            \
     happy/tests/standalone/wrmp/test_weave_wrmp_01.py                      \
     $(NULL)
 endif # WEAVE_RUN_HAPPY_CORE
+
+if WEAVE_RUN_HAPPY_INET
+check_SCRIPTS                                                           += \
+    happy/tests/standalone/inet/test_inet_01.py                            \
+    happy/tests/standalone/inet/test_inet_multicast_01.py                  \
+    $(NULL)
+endif # WEAVE_RUN_HAPPY_INET
 
 endif # WEAVE_RUN_HAPPY_SERVICE
 endif # WEAVE_RUN_HAPPY
@@ -1236,9 +1267,17 @@ TestInetTimer_SOURCES                    = TestInetTimer.cpp
 TestInetTimer_LDFLAGS                    = $(AM_CPPFLAGS)
 TestInetTimer_LDADD                      = libWeaveTestCommon.a $(COMMON_LDADD)
 
-TestInetLayer_SOURCES                    = TestInetLayer.cpp
+TestInetLayer_SOURCES                    = TestInetLayer.cpp \
+                                           TestInetLayerCommon.cpp \
+                                           $(NULL)
 TestInetLayer_LDFLAGS                    = $(AM_CPPFLAGS)
 TestInetLayer_LDADD                      = libWeaveTestCommon.a $(COMMON_LDADD)
+
+TestInetLayerMulticast_SOURCES           = TestInetLayerMulticast.cpp \
+                                           TestInetLayerCommon.cpp \
+                                           $(NULL)
+TestInetLayerMulticast_LDFLAGS           = $(AM_CPPFLAGS)
+TestInetLayerMulticast_LDADD             = libWeaveTestCommon.a $(COMMON_LDADD)
 
 TestInetAddress_SOURCES                  = TestInetAddress.cpp
 TestInetAddress_LDADD                    = libWeaveTestCommon.a $(COMMON_LDADD)
@@ -1454,6 +1493,9 @@ TestStatusReportStr_LDADD                = $(COMMON_LDADD)
 TestThermostatStatus_SOURCES             = TestThermostatStatus.cpp
 TestThermostatStatus_LDADD               = $(COMMON_LDADD)
 
+TestWoble_SOURCES                        = TestWoble.cpp
+TestWoble_LDADD                          = libWeaveTestCommon.a $(COMMON_LDADD)
+
 TestPairingCodeUtils_SOURCES             = TestPairingCodeUtils.cpp
 TestPairingCodeUtils_LDADD               = $(COMMON_LDADD)
 
@@ -1573,7 +1615,7 @@ $(WEAVE_LIBS_COVERAGE_SOURCE):
 $(WEAVE_LIBS_COVERAGE_BUNDLE):
 	$(call create-directory)
 
-$(WEAVE_COVERAGE_INFO): check | $(WEAVE_COVERAGE_BUNDLE)
+$(WEAVE_COVERAGE_INFO): check-local | $(WEAVE_COVERAGE_BUNDLE)
 	$(call generate-coverage-report,${abs_top_builddir})
 
 # collect all the *.gcno & *gcda files of libWeave.a for Weave Library coverage analysis, rename the *h file paths to make it a clean report
@@ -1595,7 +1637,7 @@ $(WEAVE_LIBS_COVERAGE_INFO): $(WEAVE_COVERAGE_INFO) | $(WEAVE_LIBS_COVERAGE_BUND
 	$(NL_V_GENHTML)$(GENHTML) $(NL_V_GENHTML_FLAGS) --config-file="$(abs_top_nlbuild_autotools_dir)/etc/lcov.config" $(WEAVE_LIBS_COVERAGE_INFO).clean --output-directory $(WEAVE_LIBS_COVERAGE_BUNDLE)
 	$(AM_V_at)rm -rf $(WEAVE_LIBS_COVERAGE_SOURCE)
 
-coverage: $(WEAVE_LIBS_COVERAGE_INFO)
+coverage-local: $(WEAVE_LIBS_COVERAGE_INFO)
 
 clean-local: clean-local-coverage
 

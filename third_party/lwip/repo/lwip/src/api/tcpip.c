@@ -93,6 +93,8 @@ tcpip_thread(void *arg)
   int finish = 0;
   LWIP_UNUSED_ARG(arg);
 
+  LWIP_MARK_TCPIP_THREAD();
+
   if (tcpip_init_done != NULL) {
     tcpip_init_done(tcpip_init_done_arg);
   }

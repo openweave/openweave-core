@@ -35,7 +35,7 @@
 
 #include <Weave/Support/ErrorStr.h>
 
-#include <nltest.h>
+#include <nlunit-test.h>
 
 #if WEAVE_SYSTEM_CONFIG_USE_LWIP
 #include <lwip/tcpip.h>

@@ -1,5 +1,6 @@
 #
-#    Copyright (c) 2015-2017 Nest Labs, Inc.
+#    Copyright (c) 2015-2018 Nest Labs, Inc.
+#    Copyright (c) 2018 Google LLC
 #    All rights reserved.
 #
 #    Licensed under the Apache License, Version 2.0 (the "License");
@@ -26,6 +27,7 @@ include $(abs_top_nlbuild_autotools_dir)/automake/pre.am
 EXTRA_DIST                                   = \
     android/platform-libcore                   \
     android/platform-system/README.third_party \
+    cstyle                                     \
     nlbuild-autotools                          \
     $(NULL)
 
@@ -37,51 +39,33 @@ DIST_SUBDIRS                                 = \
     micro-ecc                                  \
     openssl                                    \
     openssl-jpake                              \
-    nltest/repo                                \
-    nlio/repo                                  \
-    nlassert/repo                              \
-    nlfaultinjection/repo                      \
-    bluez/repo                                 \
     $(NULL)
 
+# <any of the third-party packages listed in repos.conf>_SUBDIRS are
+# not a permanent part of DIST_SUBDIRS since we do not ever want to
+# include them in a distribution archive; however, when they've been
+# pulled as a 'repo' module, we do want to remove them on invocation
+# of the 'distclean' target. Consequently, we conditionally include
+# them in DIST_SUBDIRS on invocation of 'distclean-recursive'
+
+distclean-recursive: DIST_SUBDIRS += $(BLUEZ_SUBDIRS) $(NLASSERT_SUBDIRS) $(NLFAULTINJECTION_SUBDIRS) $(NLIO_SUBDIRS) $(NLUNIT_TEST_SUBDIRS)
+
 # Always build (e.g. for 'make all') these subdirectories.
+#
+# The values of <any of the third-party packages listed in
+# repos.conf>_SUBDIRS will be populated by configure if --with-<any of
+# the third-party packages listed in repos.conf>=internal
 
 SUBDIRS                                      = \
     android/platform-system/core-mincrypt      \
+    $(BLUEZ_SUBDIRS)                           \
     micro-ecc                                  \
+    $(NLASSERT_SUBDIRS)                        \
+    $(NLFAULTINJECTION_SUBDIRS)                \
+    $(NLIO_SUBDIRS)                            \
+    $(NLUNIT_TEST_SUBDIRS)                     \
     openssl                                    \
     openssl-jpake                              \
     $(NULL)
 
-# Only build (e.g. for 'make all') these subdirectories when requested.
-
-if WEAVE_WITH_NLUNITTEST_INTERNAL
-SUBDIRS                                    += \
-    nltest/repo                               \
-    $(NULL)
-endif # WEAVE_WITH_NLUNITTEST_INTERNAL
-
-if WEAVE_WITH_NLIO_INTERNAL
-SUBDIRS                                    += \
-    nlio/repo                                 \
-    $(NULL)
-endif # WEAVE_WITH_NLIO_INTERNAL
-
-if WEAVE_WITH_NLASSERT_INTERNAL
-SUBDIRS                                    += \
-    nlassert/repo                             \
-    $(NULL)
-endif # WEAVE_WITH_NLASSERT_INTERNAL
-
-if WEAVE_WITH_NLFAULTINJECTION_INTERNAL
-SUBDIRS                                    += \
-    nlfaultinjection/repo                     \
-    $(NULL)
-endif # WEAVE_WITH_NLFAULTINJECTION_INTERNAL
-
-if WEAVE_WITH_BLUEZ_INTERNAL
-SUBDIRS                                    += \
-    bluez/repo                                \
-    $(NULL)
-endif # CONFIG_BLE_PLATFORM_BLUEZ
 include $(abs_top_nlbuild_autotools_dir)/automake/post.am

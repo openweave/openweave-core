@@ -33,6 +33,7 @@
 #include <Weave/Profiles/WeaveProfiles.h>
 #include <Weave/Core/WeaveTLV.h>
 #include <Weave/Support/ASN1.h>
+#include <Weave/Support/ASN1Macros.h>
 #include <Weave/Support/crypto/HashAlgos.h>
 #include <Weave/Support/crypto/EllipticCurve.h>
 #include <Weave/Profiles/security/WeaveSecurity.h>
@@ -52,117 +53,76 @@ using namespace nl::Weave::Crypto;
 using nl::Weave::Platform::Security::SHA1;
 using nl::Weave::Platform::Security::SHA256;
 
-NL_DLL_EXPORT WEAVE_ERROR GenerateWeaveSignature(
-    const uint8_t *msgHash, uint8_t msgHashLen,
-    WeaveCertificateData& signingCert,
-    WeaveCertificateSet& certSet,
-    const uint8_t *weavePrivKey, uint16_t weavePrivKeyLen,
-    OID sigAlgoOID, uint16_t flags,
-    uint8_t *sigBuf, uint16_t sigBufLen, uint16_t& sigLen)
+#define kWeaveSigTag ProfileTag(kWeaveProfile_Security, kTag_WeaveSignature)
+
+WEAVE_ERROR WeaveSignatureGeneratorBase::GenerateSignature(const uint8_t * msgHash, uint8_t msgHashLen, TLVWriter & writer)
+{
+    return GenerateSignature(msgHash, msgHashLen, writer, kWeaveSigTag);
+}
+
+WEAVE_ERROR WeaveSignatureGeneratorBase::GenerateSignature(const uint8_t * msgHash, uint8_t msgHashLen,
+        uint8_t * sigBuf, uint16_t sigBufSize, uint16_t & sigLen)
 {
     WEAVE_ERROR err;
     TLVWriter writer;
 
-    writer.Init(sigBuf, sigBufLen);
+    writer.Init(sigBuf, sigBufSize);
 
-    err = GenerateWeaveSignature(msgHash, msgHashLen, signingCert, certSet,
-                                 weavePrivKey, weavePrivKeyLen,
-                                 sigAlgoOID, flags, writer);
+    err = GenerateSignature(msgHash, msgHashLen, writer, kWeaveSigTag);
     SuccessOrExit(err);
 
     err = writer.Finalize();
     SuccessOrExit(err);
 
-    sigLen = (uint16_t)writer.GetLengthWritten();
+    sigLen = writer.GetLengthWritten();
 
 exit:
     return err;
 }
 
-NL_DLL_EXPORT WEAVE_ERROR GenerateWeaveSignature(
-    const uint8_t *msgHash, uint8_t msgHashLen,
-    WeaveCertificateData& signingCert,
-    WeaveCertificateSet& certSet,
-    const uint8_t *weavePrivKey, uint16_t weavePrivKeyLen,
-    OID sigAlgoOID, uint16_t flags,
-    TLVWriter& writer)
+WEAVE_ERROR WeaveSignatureGeneratorBase::GenerateSignature(const uint8_t * msgHash, uint8_t msgHashLen, TLVWriter & writer, uint64_t tag)
 {
     WEAVE_ERROR err;
-    EncodedECPrivateKey privKey;
-    EncodedECPublicKey pubKeyForPrivKey;
-    EncodedECDSASignature ecdsaSig;
-    uint32_t privKeyCurveId;
-    uint8_t ecdsaRBuf[EncodedECDSASignature::kMaxValueLength];
-    uint8_t ecdsaSBuf[EncodedECDSASignature::kMaxValueLength];
     TLVType containerType;
 
-    // Verify the specified signature algorithm.
-    VerifyOrExit(sigAlgoOID != kOID_SigAlgo_SHA1WithRSAEncryption, err = WEAVE_ERROR_UNSUPPORTED_SIGNATURE_TYPE);
-    VerifyOrExit(sigAlgoOID == kOID_SigAlgo_ECDSAWithSHA1 || sigAlgoOID == kOID_SigAlgo_ECDSAWithSHA256, err = WEAVE_ERROR_INVALID_ARGUMENT);
+    VerifyOrExit(SigningCert != NULL, err = WEAVE_ERROR_INCORRECT_STATE);
 
-    // Verify the length of the supplied message hash.
-    VerifyOrExit((sigAlgoOID == kOID_SigAlgo_ECDSAWithSHA1 && msgHashLen == SHA1::kHashLength) ||
-                 (sigAlgoOID == kOID_SigAlgo_ECDSAWithSHA256 && msgHashLen == SHA256::kHashLength), err = WEAVE_ERROR_INVALID_ARGUMENT);
+    // Fail with UNSUPPORTED error if caller requested inclusion of certificate DN.
+    // This feature is not currently supported.
+    VerifyOrExit((Flags & kGenerateWeaveSignatureFlag_IncludeSigningCertSubjectDN) == 0,
+                 err = WEAVE_ERROR_UNSUPPORTED_WEAVE_FEATURE);
 
-    // Fail with UNSUPPORTED error if caller requested inclusion of certificate DN.  This feature is not currently supported.
-    VerifyOrExit((flags & kGenerateWeaveSignatureFlag_IncludeSigningCertSubjectDN) == 0, err = WEAVE_ERROR_UNSUPPORTED_WEAVE_FEATURE);
-
-    // Decode the supplied private key.
-    err = DecodeWeaveECPrivateKey(weavePrivKey, weavePrivKeyLen, privKeyCurveId, pubKeyForPrivKey, privKey);
-    SuccessOrExit(err);
-
-    // Verify the signing cert's public key and the supplied private key are from the same curve.
-    VerifyOrExit(privKeyCurveId == signingCert.PubKeyCurveId, err = WEAVE_ERROR_WRONG_KEY_TYPE);
-
-    // If the private key included a copy of the public key, verify it matches the public key of
-    // the certificate.
-    if (pubKeyForPrivKey.ECPoint != NULL)
-        VerifyOrExit(pubKeyForPrivKey.IsEqual(signingCert.PublicKey.EC), err = WEAVE_ERROR_INVALID_ARGUMENT);
-
-    // Use temporary buffers to hold the generated signature value until we write it into the signature object.
-    ecdsaSig.R = ecdsaRBuf;
-    ecdsaSig.RLen = sizeof(ecdsaRBuf);
-    ecdsaSig.S = ecdsaSBuf;
-    ecdsaSig.SLen = sizeof(ecdsaSBuf);
-
-    // Generate the signature for the given message hash.
-    err = nl::Weave::Crypto::GenerateECDSASignature(WeaveCurveIdToOID(signingCert.PubKeyCurveId),
-                                                    msgHash, msgHashLen,
-                                                    privKey,
-                                                    ecdsaSig);
-    SuccessOrExit(err);
-
-    // Write a TLV encoded WeaveSignature into the given TLVWriter...
-
-    // Start the WeaveSignature structure.
-    err = writer.StartContainer(ProfileTag(kWeaveProfile_Security, kTag_WeaveSignature), kTLVType_Structure, containerType);
+    // Start encoding the WeaveSignature structure.
+    err = writer.StartContainer(tag, kTLVType_Structure, containerType);
     SuccessOrExit(err);
 
     // If the signature algorithm is NOT ECDSAWithSHA1, encode the SignatureAlgorithm field.
-    if (sigAlgoOID != kOID_SigAlgo_ECDSAWithSHA1)
+    if (SigAlgoOID != kOID_SigAlgo_ECDSAWithSHA1)
     {
-        err = writer.Put(ContextTag(kTag_WeaveSignature_SignatureAlgorithm), sigAlgoOID);
+        err = writer.Put(ContextTag(kTag_WeaveSignature_SignatureAlgorithm), SigAlgoOID);
         SuccessOrExit(err);
     }
 
-    // Encode the ECDSASignature structure.
-    err = EncodeWeaveECDSASignature(writer, ecdsaSig, ContextTag(kTag_WeaveSignature_ECDSASignature));
+    // Call the subclass to compute the actual signature data and encode it into the WeaveSignature structure.
+    err = GenerateSignatureData(msgHash, msgHashLen, writer);
     SuccessOrExit(err);
 
     // If requested to include the signing certificate subject key id...
-    if ((flags & kGenerateWeaveSignatureFlag_IncludeSigningCertKeyId) != 0)
+    if ((Flags & kGenerateWeaveSignatureFlag_IncludeSigningCertKeyId) != 0)
     {
         TLVType containerType2;
 
         // Verify that the signing certificate data includes a subject key id.
-        VerifyOrExit(!signingCert.SubjectKeyId.IsEmpty(), err = WEAVE_ERROR_INVALID_ARGUMENT);
+        VerifyOrExit(!SigningCert->SubjectKeyId.IsEmpty(), err = WEAVE_ERROR_INVALID_ARGUMENT);
 
         // Start the SigningCertificateRef structure.
-        err = writer.StartContainer(ContextTag(kTag_WeaveSignature_SigningCertificateRef), kTLVType_Structure, containerType2);
+        err = writer.StartContainer(ContextTag(kTag_WeaveSignature_SigningCertificateRef),
+                                    kTLVType_Structure, containerType2);
         SuccessOrExit(err);
 
         // Write the Public Key Id field containing signing certificate's subject key id.
-        err = writer.PutBytes(ContextTag(kTag_WeaveCertificateRef_PublicKeyId), signingCert.SubjectKeyId.Id, signingCert.SubjectKeyId.Len);
+        err = writer.PutBytes(ContextTag(kTag_WeaveCertificateRef_PublicKeyId),
+                              SigningCert->SubjectKeyId.Id, SigningCert->SubjectKeyId.Len);
         SuccessOrExit(err);
 
         err = writer.EndContainer(containerType2);
@@ -170,7 +130,7 @@ NL_DLL_EXPORT WEAVE_ERROR GenerateWeaveSignature(
     }
 
     // If requested to include related certificates...
-    if ((flags & kGenerateWeaveSignatureFlag_IncludeRelatedCertificates) != 0)
+    if ((Flags & kGenerateWeaveSignatureFlag_IncludeRelatedCertificates) != 0)
     {
         TLVType containerType2;
 
@@ -181,7 +141,7 @@ NL_DLL_EXPORT WEAVE_ERROR GenerateWeaveSignature(
 
         // Write all the non-trusted certificates currently in the certificate set, placing the signing certificate
         // first in the list.
-        err = certSet.SaveCerts(writer, &signingCert, false);
+        err = CertSet.SaveCerts(writer, SigningCert, false);
         SuccessOrExit(err);
 
         err = writer.EndContainer(containerType2);
@@ -195,17 +155,68 @@ exit:
     return err;
 }
 
-NL_DLL_EXPORT WEAVE_ERROR GenerateWeaveSignature(
-    const uint8_t *msgHash, uint8_t msgHashLen,
-    WeaveCertificateData& signingCert,
-    WeaveCertificateSet& certSet,
-    const uint8_t *weavePrivKey, uint16_t weavePrivKeyLen,
-    uint8_t *sigBuf, uint16_t sigBufLen, uint16_t& sigLen)
+WEAVE_ERROR WeaveSignatureGenerator::GenerateSignature(const uint8_t * msgHash, uint8_t msgHashLen, TLVWriter & writer, uint64_t tag)
 {
-    return GenerateWeaveSignature(msgHash, msgHashLen, signingCert, certSet,
-                                  weavePrivKey, weavePrivKeyLen,
-                                  kOID_SigAlgo_ECDSAWithSHA1, kGenerateWeaveSignatureFlag_IncludeRelatedCertificates,
-                                  sigBuf, sigBufLen, sigLen);
+    WEAVE_ERROR err;
+
+    VerifyOrExit(PrivKey != NULL, err = WEAVE_ERROR_INCORRECT_STATE);
+
+    err = WeaveSignatureGeneratorBase::GenerateSignature(msgHash, msgHashLen, writer, tag);
+    SuccessOrExit(err);
+
+exit:
+    return err;
+}
+WEAVE_ERROR WeaveSignatureGenerator::GenerateSignatureData(const uint8_t * msgHash, uint8_t msgHashLen, TLVWriter & writer)
+{
+    WEAVE_ERROR err;
+    EncodedECPrivateKey privKey;
+    EncodedECPublicKey pubKeyForPrivKey;
+    EncodedECDSASignature ecdsaSig;
+    uint32_t privKeyCurveId;
+    uint8_t ecdsaRBuf[EncodedECDSASignature::kMaxValueLength];
+    uint8_t ecdsaSBuf[EncodedECDSASignature::kMaxValueLength];
+
+    // Verify the specified signature algorithm is supported.
+    VerifyOrExit(SigAlgoOID != kOID_SigAlgo_SHA1WithRSAEncryption, err = WEAVE_ERROR_UNSUPPORTED_SIGNATURE_TYPE);
+    VerifyOrExit(SigAlgoOID == kOID_SigAlgo_ECDSAWithSHA1 || SigAlgoOID == kOID_SigAlgo_ECDSAWithSHA256, err = WEAVE_ERROR_INVALID_ARGUMENT);
+
+    // Verify the length of the supplied message hash.
+    VerifyOrExit((SigAlgoOID == kOID_SigAlgo_ECDSAWithSHA1 && msgHashLen == SHA1::kHashLength) ||
+                 (SigAlgoOID == kOID_SigAlgo_ECDSAWithSHA256 && msgHashLen == SHA256::kHashLength), err = WEAVE_ERROR_INVALID_ARGUMENT);
+
+    // Decode the supplied private key.
+    err = DecodeWeaveECPrivateKey(PrivKey, PrivKeyLen, privKeyCurveId, pubKeyForPrivKey, privKey);
+    SuccessOrExit(err);
+
+    // Verify the signing cert's public key and the supplied private key are from the same curve.
+    VerifyOrExit(privKeyCurveId == SigningCert->PubKeyCurveId, err = WEAVE_ERROR_WRONG_KEY_TYPE);
+
+    // If the private key included a copy of the public key, verify it matches the public key of
+    // the certificate.
+    if (pubKeyForPrivKey.ECPoint != NULL)
+        VerifyOrExit(pubKeyForPrivKey.IsEqual(SigningCert->PublicKey.EC), err = WEAVE_ERROR_INVALID_ARGUMENT);
+
+    // Use temporary buffers to hold the generated signature value until we write it.
+    ecdsaSig.R = ecdsaRBuf;
+    ecdsaSig.RLen = sizeof(ecdsaRBuf);
+    ecdsaSig.S = ecdsaSBuf;
+    ecdsaSig.SLen = sizeof(ecdsaSBuf);
+
+    // Generate an ECDSA signature for the given message hash.
+    err = nl::Weave::Crypto::GenerateECDSASignature(WeaveCurveIdToOID(privKeyCurveId),
+                                                    msgHash, msgHashLen,
+                                                    privKey,
+                                                    ecdsaSig);
+    SuccessOrExit(err);
+
+    // Encode the the signature as a Weave ECDSASignature TLV structure, using the
+    // appropriate WeaveSignature context tag to identify the type of signature.
+    err = EncodeWeaveECDSASignature(writer, ecdsaSig, ContextTag(kTag_WeaveSignature_ECDSASignatureData));
+    SuccessOrExit(err);
+
+exit:
+    return err;
 }
 
 NL_DLL_EXPORT WEAVE_ERROR VerifyWeaveSignature(
@@ -263,7 +274,7 @@ NL_DLL_EXPORT WEAVE_ERROR VerifyWeaveSignature(
 
         if (err == WEAVE_NO_ERROR)
         {
-            VerifyOrExit(reader.GetTag() == ContextTag(kTag_WeaveSignature_ECDSASignature), err = WEAVE_ERROR_UNEXPECTED_TLV_ELEMENT);
+            VerifyOrExit(reader.GetTag() == ContextTag(kTag_WeaveSignature_ECDSASignatureData), err = WEAVE_ERROR_UNEXPECTED_TLV_ELEMENT);
             VerifyOrExit(reader.GetType() == kTLVType_Structure, err = WEAVE_ERROR_UNEXPECTED_TLV_ELEMENT);
 
             // Decode the contained ECDSA signature.
@@ -410,6 +421,61 @@ exit:
     return err;
 }
 
+/**
+ * Generate and encode a Weave ECDSA signature
+ *
+ * Computes an ECDSA signature using a given private key and message hash and write the signature
+ * as a Weave ECDSASignature structure to the specified TLV writer with the given tag.
+ *
+ * @param[in] writer            The TLVWriter object to which the encoded signature should
+ *                              be written.
+ * @param[in] tag               TLV tag to be associated with the encoded signature structure.
+ * @param[in] msgHash           A buffer containing the hash of the message to be signed.
+ * @param[in] msgHashLen        The length in bytes of the message hash.
+ * @param[in] signingKey        A buffer containing the private key to be used to generate
+ *                              the signature.  The private key is expected to be encoded as
+ *                              a Weave EllipticCurvePrivateKey TLV structure.
+ * @param[in] signingKeyLen     The length in bytes of the encoded private key.
+ *
+ * @retval #WEAVE_NO_ERROR      If the operation succeeded.
+ * @retval other                Other Weave error codes related to decoding the private key,
+ *                              generating the signature or encoding the signature.
+ *
+ */
+WEAVE_ERROR GenerateAndEncodeWeaveECDSASignature(TLVWriter& writer, uint64_t tag,
+        const uint8_t * msgHash, uint8_t msgHashLen,
+        const uint8_t * signingKey, uint16_t signingKeyLen)
+{
+    WEAVE_ERROR err;
+    uint32_t privKeyCurveId;
+    EncodedECPublicKey pubKey;
+    EncodedECPrivateKey privKey;
+    EncodedECDSASignature ecdsaSig;
+    uint8_t ecdsaRBuf[EncodedECDSASignature::kMaxValueLength];
+    uint8_t ecdsaSBuf[EncodedECDSASignature::kMaxValueLength];
+
+    // Decode the supplied private key.
+    err = DecodeWeaveECPrivateKey(signingKey, signingKeyLen, privKeyCurveId, pubKey, privKey);
+    SuccessOrExit(err);
+
+    // Use temporary buffers to hold the generated signature value until we write it.
+    ecdsaSig.R = ecdsaRBuf;
+    ecdsaSig.RLen = sizeof(ecdsaRBuf);
+    ecdsaSig.S = ecdsaSBuf;
+    ecdsaSig.SLen = sizeof(ecdsaSBuf);
+
+    // Generate the signature for the message based on its hash.
+    err = GenerateECDSASignature(WeaveCurveIdToOID(privKeyCurveId), msgHash, msgHashLen, privKey, ecdsaSig);
+    SuccessOrExit(err);
+
+    // Encode an ECDSASignature structure into the supplied writer.
+    err = EncodeWeaveECDSASignature(writer, ecdsaSig, tag);
+    SuccessOrExit(err);
+
+exit:
+    return err;
+}
+
 // Encode a Weave ECDSASignature structure.
 WEAVE_ERROR EncodeWeaveECDSASignature(TLVWriter& writer, EncodedECDSASignature& sig, uint64_t tag)
 {
@@ -429,6 +495,35 @@ WEAVE_ERROR EncodeWeaveECDSASignature(TLVWriter& writer, EncodedECDSASignature& 
     SuccessOrExit(err);
 
     err = writer.EndContainer(containerType);
+    SuccessOrExit(err);
+
+exit:
+    return err;
+}
+
+// Takes an ECDSA signature in DER form and converts it to Weave form.
+// ECDSA-Sig-Value ::= SEQUENCE { r INTEGER, s INTEGER }
+WEAVE_ERROR ConvertECDSASignature_DERToWeave(const uint8_t * sigBuf, uint8_t sigLen, TLVWriter& writer, uint64_t tag)
+{
+    WEAVE_ERROR err;
+    EncodedECDSASignature sig;
+    ASN1Reader reader;
+
+    reader.Init(sigBuf, sigLen);
+
+    // ECDSA-Sig-Value ::= SEQUENCE
+    ASN1_PARSE_ENTER_SEQUENCE {
+        // r INTEGER
+        ASN1_PARSE_ELEMENT(kASN1TagClass_Universal, kASN1UniversalTag_Integer);
+        sig.R = const_cast<uint8_t *>(reader.Value);
+        sig.RLen = reader.ValueLen;
+        // s INTEGER
+        ASN1_PARSE_ELEMENT(kASN1TagClass_Universal, kASN1UniversalTag_Integer);
+        sig.S = const_cast<uint8_t *>(reader.Value);
+        sig.SLen = reader.ValueLen;
+    } ASN1_EXIT_SEQUENCE;
+
+    err = EncodeWeaveECDSASignature(writer, sig, tag);
     SuccessOrExit(err);
 
 exit:

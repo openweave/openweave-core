@@ -70,6 +70,7 @@ class test_weave_pairing_01(unittest.TestCase):
     def test_weave_pairing(self):
         # TODO: Once LwIP bugs are fix, enable this test on LwIP
         if "WEAVE_SYSTEM_CONFIG_USE_LWIP" in os.environ.keys() and os.environ["WEAVE_SYSTEM_CONFIG_USE_LWIP"] == "1":
+            print hred("WARNING: Test skipped due to LwIP-based network cofiguration!")            
             return
 
         # topology has nodes: node01(mobile), node02(device) and node03

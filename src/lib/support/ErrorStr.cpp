@@ -321,6 +321,7 @@ NL_DLL_EXPORT const char *ErrorStr(int32_t err)
     case INET_ERROR_INTERFACE_INIT_FAILURE                      : return InetFormatError(err, "Failure to initialize interface");
     case INET_ERROR_TCP_USER_TIMEOUT                            : return InetFormatError(err, "TCP User Timeout");
     case INET_ERROR_TCP_CONNECT_TIMEOUT                         : return InetFormatError(err, "TCP Connect Timeout");
+    case INET_ERROR_INCOMPATIBLE_IP_ADDRESS_TYPE                : return InetFormatError(err, "Incompatible IP address type");
 
 #if CONFIG_NETWORK_LAYER_BLE
     // ----- BleLayer Errors -----
@@ -526,13 +527,17 @@ NL_DLL_EXPORT const char *ErrorStr(int32_t err)
     case WEAVE_ERROR_TUNNEL_ROUTING_RESTRICTED                  : return WeaveFormatError(err, "Restricted Routing: Border Routing disabled");
     case WEAVE_ERROR_TUNNEL_RESET_RECONNECT_ALREADY_ARMED       : return WeaveFormatError(err, "The Reset reconnect timer is already armed");
     case WEAVE_ERROR_MISMATCH_UPDATE_REQUIRED_VERSION           : return WeaveFormatError(err, "Update Required Version mismatch");
-    case WEAVE_ERROR_WDM_MALFORMED_STATUS_ELEMENT               : return WeaveFormatError(err, "Status Element in wdm update is malformed");
+    case WEAVE_ERROR_WDM_MALFORMED_STATUS_ELEMENT               : return WeaveFormatError(err, "Status Element in WDM update is malformed");
     case WEAVE_ERROR_WDM_SUBSCRIPTIONLESS_NOTIFY_PARTIAL        : return WeaveFormatError(err, "The WDM Subscriptionless Notify is partial");
     case WEAVE_ERROR_ACCESS_DENIED                              : return WeaveFormatError(err, "The Weave message is not granted access");
     case WEAVE_ERROR_UNKNOWN_RESOURCE_ID                        : return WeaveFormatError(err, "Unknown resource ID");
     case WEAVE_ERROR_WDM_MALFORMED_UPDATE_RESPONSE              : return WeaveFormatError(err, "Malformed WDM Update response");
     case WEAVE_ERROR_WDM_VERSION_MISMATCH                       : return WeaveFormatError(err, "The conditional update of a WDM path failed for a version mismatch");
     case WEAVE_ERROR_WDM_POTENTIAL_DATA_LOSS                    : return WeaveFormatError(err, "A potential data loss was detected in a WDM Trait Instance");
+    case WEAVE_ERROR_UNSUPPORTED_THREAD_NETWORK_CREATE          : return WeaveFormatError(err, "Nest Legacy device doesn't support standalone Thread network creation");
+    case WEAVE_ERROR_WDM_INCONSISTENT_CONDITIONALITY            : return WeaveFormatError(err, "The Trait Instance is already being updated with a different conditionality");
+    case WEAVE_ERROR_WDM_LOCAL_DATA_INCONSISTENT                : return WeaveFormatError(err, "The local data does not match any known version of the Trait Instance");
+    case WEAVE_ERROR_WDM_PATH_STORE_FULL                        : return WeaveFormatError(err, "A WDM TraitPath store is full");
 
     // ----- ASN1 Errors -----
     case ASN1_END                                               : return ASN1FormatError(err, "End of input");

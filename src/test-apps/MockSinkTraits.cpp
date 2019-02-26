@@ -1,5 +1,6 @@
 /*
  *
+ *    Copyright (c) 2018 Google LLC.
  *    Copyright (c) 2016-2017 Nest Labs, Inc.
  *    All rights reserved.
  *
@@ -520,7 +521,9 @@ TestATraitDataSink::SetData(PropertyPathHandle aHandle, TLVReader &aReader, bool
         }
     }
 
+#if TDM_DISABLE_STRICT_SCHEMA_COMPLIANCE == 0
 exit:
+#endif
     return err;
 }
 
@@ -1652,13 +1655,9 @@ WEAVE_ERROR LocaleSettingsTraitUpdatableDataSink::Mutate(SubscriptionClient * ap
     WEAVE_ERROR err = WEAVE_NO_ERROR;
     static unsigned int whichLocale = 0;
     static const char * locales[] = { "en-US", "zh-TW", "ja-JP", "pl-PL", "zh-CN" };
-    bool isLocked = false;
     PropertyPathHandle pathHandle = kNullPropertyPathHandle;
 
-    err = Lock(apSubClient);
-    SuccessOrExit(err);
-
-    isLocked = true;
+    Lock(apSubClient);
 
     MOCK_strlcpy(mLocale, locales[whichLocale], sizeof(mLocale));
     whichLocale = (whichLocale + 1) % (sizeof(locales)/sizeof(locales[0]));
@@ -1686,10 +1685,7 @@ WEAVE_ERROR LocaleSettingsTraitUpdatableDataSink::Mutate(SubscriptionClient * ap
 exit:
     WeaveLogDetail(DataManagement, "LocaleSettingsTrait mutated %s with error %d", MockWdmNodeOptions::GetMutationStrings()[aMutation], err);
 
-    if (isLocked)
-    {
-        Unlock(apSubClient);
-    }
+    Unlock(apSubClient);
 
     return err;
 }
@@ -1704,12 +1700,8 @@ WEAVE_ERROR TestATraitUpdatableDataSink::Mutate(SubscriptionClient * apSubClient
                                                 MockWdmNodeOptions::WdmUpdateMutation aMutation)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
-    bool isLocked = false;
 
-    err = Lock(apSubClient);
-    SuccessOrExit(err);
-
-    isLocked = true;
+    Lock(apSubClient);
 
     WeaveLogDetail(DataManagement,
             "TestATraitUpdatableDataSink: mTraitTestSet: %" PRIu32 ", mTestCounter: %" PRIu32 "",
@@ -1783,6 +1775,15 @@ WEAVE_ERROR TestATraitUpdatableDataSink::Mutate(SubscriptionClient * apSubClient
     case MockWdmNodeOptions::kMutation_WholeLargeDictionary:
     {
         uint32_t seed = 0;
+
+        // Add a leaf as well before the dictionary to prevent a regression; if the whole process
+        // fails while encoding partial dictionaries, a retry will succeed only if the update context
+        // has been reset properly; the reason is that if the dictionary encoder has left
+        // stale state in the update context, the encoding of the leaf fails immediately.
+        err = SetUpdated(apSubClient, TestATrait::kPropertyHandle_TaP, aIsConditional);
+        SuccessOrExit(err);
+
+        tap++;
 
         err = SetUpdated(apSubClient, TestATrait::kPropertyHandle_TaI, aIsConditional);
         SuccessOrExit(err);
@@ -1953,10 +1954,7 @@ exit:
 
     WeaveLogDetail(DataManagement, "TestATrait mutated %s with error %d", MockWdmNodeOptions::GetMutationStrings()[aMutation], err);
 
-    if (isLocked)
-    {
-        Unlock(apSubClient);
-    }
+    Unlock(apSubClient);
 
     return err;
 }
@@ -2121,7 +2119,10 @@ TestATraitUpdatableDataSink::SetData(PropertyPathHandle aHandle, TLVReader &aRea
             aHandle = mSchemaEngine->GetParent(aHandle);
         }
     }
-    exit:
+
+#if TDM_DISABLE_STRICT_SCHEMA_COMPLIANCE == 0
+exit:
+#endif
     return err;
 }
 
@@ -2669,14 +2670,10 @@ WEAVE_ERROR TestBTraitUpdatableDataSink::Mutate(SubscriptionClient * apSubClient
                                                 MockWdmNodeOptions::WdmUpdateMutation aMutation)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
-    bool isLocked = false;
     static int testNum = 0;
     const int numTests = 3;
 
-    err = Lock(apSubClient);
-    SuccessOrExit(err);
-
-    isLocked = true;
+    Lock(apSubClient);
 
     switch (aMutation)
     {
@@ -2732,10 +2729,7 @@ WEAVE_ERROR TestBTraitUpdatableDataSink::Mutate(SubscriptionClient * apSubClient
 exit:
     WeaveLogDetail(DataManagement, "TestBTrait mutated %s with error %d", MockWdmNodeOptions::GetMutationStrings()[aMutation], err);
 
-    if (isLocked)
-    {
-        Unlock(apSubClient);
-    }
+    Unlock(apSubClient);
 
     return err;
 }

@@ -231,36 +231,34 @@ WEAVE_ERROR MockNetworkProvisioningServer::ValidateNetworkConfig(NetworkInfo& ne
 
     else if (netConfig.NetworkType == kNetworkType_Thread)
     {
-        if (netConfig.ThreadNetworkName == NULL)
+        // Verify that other network parameters are valid when Extended PAN Id (EPANID) present.
+        // When EPANID is specified: new Thread network should be added.
+        // When EPANID is not specified: new Thread network should be created.
+        if (netConfig.ThreadExtendedPANId != NULL)
         {
-            printf("Invalid network configuration: Missing Thread network name\n");
-            err = SendStatusReport(kWeaveProfile_NetworkProvisioning, kStatusCode_InvalidNetworkConfiguration);
-            SuccessOrExit(err);
-            ExitNow(err = WEAVE_ERROR_INVALID_ARGUMENT);
-        }
+            if (netConfig.ThreadNetworkName == NULL)
+            {
+                printf("Invalid network configuration: Missing Thread network name\n");
+                err = SendStatusReport(kWeaveProfile_NetworkProvisioning, kStatusCode_InvalidNetworkConfiguration);
+                SuccessOrExit(err);
+                ExitNow(err = WEAVE_ERROR_INVALID_ARGUMENT);
+            }
 
-        if (netConfig.ThreadExtendedPANId == NULL)
-        {
-            printf("Invalid network configuration: Missing Thread extended PAN id\n");
-            err = SendStatusReport(kWeaveProfile_NetworkProvisioning, kStatusCode_InvalidNetworkConfiguration);
-            SuccessOrExit(err);
-            ExitNow(err = WEAVE_ERROR_INVALID_ARGUMENT);
-        }
+            if (netConfig.ThreadNetworkKey == NULL)
+            {
+                printf("Invalid network configuration: Missing Thread network key\n");
+                err = SendStatusReport(kWeaveProfile_NetworkProvisioning, kStatusCode_InvalidNetworkConfiguration);
+                SuccessOrExit(err);
+                ExitNow(err = WEAVE_ERROR_INVALID_ARGUMENT);
+            }
 
-        if (netConfig.ThreadNetworkKey == NULL || netConfig.ThreadNetworkKeyLen == 0)
-        {
-            printf("Invalid network configuration: Missing Thread network key\n");
-            err = SendStatusReport(kWeaveProfile_NetworkProvisioning, kStatusCode_InvalidNetworkConfiguration);
-            SuccessOrExit(err);
-            ExitNow(err = WEAVE_ERROR_INVALID_ARGUMENT);
-        }
-
-        if (netConfig.ThreadNetworkKeyLen == 0)
-        {
-            printf("Invalid network configuration: Zero-length Thread network key\n");
-            err = SendStatusReport(kWeaveProfile_NetworkProvisioning, kStatusCode_InvalidNetworkConfiguration);
-            SuccessOrExit(err);
-            ExitNow(err = WEAVE_ERROR_INVALID_ARGUMENT);
+            if (netConfig.ThreadNetworkKeyLen == 0)
+            {
+                printf("Invalid network configuration: Zero-length Thread network key\n");
+                err = SendStatusReport(kWeaveProfile_NetworkProvisioning, kStatusCode_InvalidNetworkConfiguration);
+                SuccessOrExit(err);
+                ExitNow(err = WEAVE_ERROR_INVALID_ARGUMENT);
+            }
         }
     }
 
@@ -444,7 +442,10 @@ void MockNetworkProvisioningServer::CompleteCurrentOp()
 
     switch (mCurOpType)
     {
+#if WEAVE_CONFIG_SUPPORT_LEGACY_ADD_NETWORK_MESSAGE
     case NetworkProvisioning::kMsgType_AddNetwork:
+#endif
+    case NetworkProvisioning::kMsgType_AddNetworkV2:
         err = CompleteAddNetwork(mOpArgs.networkInfoTLV);
         break;
     case NetworkProvisioning::kMsgType_DisableNetwork:

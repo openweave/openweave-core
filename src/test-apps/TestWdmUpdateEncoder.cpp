@@ -1,5 +1,6 @@
 /*
  *
+ *    Copyright (c) 2018 Google LLC.
  *    Copyright (c) 2018 Nest Labs, Inc.
  *    All rights reserved.
  *
@@ -25,7 +26,7 @@
 #include "ToolCommon.h"
 
 #include <nlbyteorder.h>
-#include <nltest.h>
+#include <nlunit-test.h>
 
 #include <Weave/Core/WeaveCore.h>
 
@@ -274,6 +275,13 @@ void WdmUpdateEncoderTest::VerifyDataList(nlTestSuite *inSuite, PacketBuffer *aB
             i < firstItemNotEncoded;
             i = mPathList.GetNextValidItem(i))
     {
+        DataElement::Parser       element;
+        TraitDataSink *           dataSink = NULL;
+        TraitDataHandle           handle;
+        PropertyPathHandle        pathHandle;
+        SchemaVersionRange        versionRange;
+        nl::Weave::TLV::TLVReader pathReader;
+
         count++;
 
         mPathList.GetItemAt(i, tp);
@@ -281,19 +289,12 @@ void WdmUpdateEncoderTest::VerifyDataList(nlTestSuite *inSuite, PacketBuffer *aB
         err = dataListReader.Next();
         NL_TEST_ASSERT(inSuite, err == WEAVE_NO_ERROR);
 
-        DataElement::Parser element;
         err = element.Init(dataListReader);
         NL_TEST_ASSERT(inSuite, err == WEAVE_NO_ERROR);
-
-        nl::Weave::TLV::TLVReader pathReader;
 
         err = element.GetReaderOnPath(&pathReader);
         NL_TEST_ASSERT(inSuite, err == WEAVE_NO_ERROR);
 
-        TraitDataSink * dataSink;
-        TraitDataHandle handle;
-        PropertyPathHandle pathHandle;
-        SchemaVersionRange versionRange;
 
         err = mSinkCatalog.AddressToHandle(pathReader, handle, versionRange);
         NL_TEST_ASSERT(inSuite, err == WEAVE_NO_ERROR);
@@ -302,6 +303,9 @@ void WdmUpdateEncoderTest::VerifyDataList(nlTestSuite *inSuite, PacketBuffer *aB
 
         err = mSinkCatalog.Locate(handle, &dataSink);
         NL_TEST_ASSERT(inSuite, err == WEAVE_NO_ERROR);
+        NL_TEST_ASSERT(inSuite, dataSink != NULL);
+        SuccessOrExit(err);
+        VerifyOrExit(dataSink != NULL, );
 
         err = dataSink->GetSchemaEngine()->MapPathToHandle(pathReader, pathHandle);
         NL_TEST_ASSERT(inSuite, err == WEAVE_NO_ERROR);
@@ -321,6 +325,8 @@ void WdmUpdateEncoderTest::VerifyDataList(nlTestSuite *inSuite, PacketBuffer *aB
     NL_TEST_ASSERT(inSuite, err == WEAVE_END_OF_TLV);
 
     NL_TEST_ASSERT(inSuite, count == mContext.mNumDataElementsAddedToPayload);
+exit:
+    return;
 }
 
 
@@ -906,7 +912,7 @@ void WdmUpdateEncoderTest::TestStoreTooSmall(nlTestSuite *inSuite, void *inConte
 
     err = mEncoder.EncodeRequest(mContext);
 
-    NL_TEST_ASSERT(inSuite, err == WEAVE_ERROR_NO_MEMORY);
+    NL_TEST_ASSERT(inSuite, err == WEAVE_ERROR_WDM_PATH_STORE_FULL);
     NL_TEST_ASSERT(inSuite, mBuf->TotalLength() == 0);
 }
 

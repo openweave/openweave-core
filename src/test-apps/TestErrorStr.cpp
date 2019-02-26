@@ -39,7 +39,7 @@
 #include <Weave/Core/WeaveError.h>
 #include <Weave/Support/ErrorStr.h>
 
-#include <nltest.h>
+#include <nlunit-test.h>
 
 #include "ToolCommon.h"
 
@@ -287,6 +287,9 @@ static int32_t sContext[] = {
       WEAVE_ERROR_WDM_MALFORMED_UPDATE_RESPONSE,
       WEAVE_ERROR_WDM_VERSION_MISMATCH,
       WEAVE_ERROR_WDM_POTENTIAL_DATA_LOSS,
+      WEAVE_ERROR_WDM_INCONSISTENT_CONDITIONALITY,
+      WEAVE_ERROR_WDM_LOCAL_DATA_INCONSISTENT,
+      WEAVE_ERROR_WDM_PATH_STORE_FULL,
 
       WEAVE_ERROR_TUNNEL_ROUTING_RESTRICTED,
 

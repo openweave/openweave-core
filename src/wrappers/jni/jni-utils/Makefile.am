@@ -25,16 +25,24 @@ include $(abs_top_nlbuild_autotools_dir)/automake/pre.am
 
 if WEAVE_WITH_JAVA
 
-lib_LIBRARIES			             = libJNIUtils.a
+lib_LIBRARIES			     = libJNIUtils.a
 
 libJNIUtils_a_SOURCES	             = \
-	JNIUtils.cpp                       \
-	$(NULL)
+    JNIUtils.cpp                       \
+    $(NULL)
 
 libJNIUtils_a_CPPFLAGS               = \
     -I$(top_srcdir)/src/include        \
-	$(JNI_CPPFLAGS)                    \
-	$(NULL)
+    $(JNI_CPPFLAGS)                    \
+    $(NULL)
+
+#
+# Local headers to build against and distribute but not to install
+# since they are not part of the Weave SDK public API.
+#
+noinst_HEADERS                       = \
+    JNIUtils.h                         \
+    $(NULL)
 
 endif # WEAVE_WITH_JAVA
 

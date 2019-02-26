@@ -29,7 +29,7 @@
 #include <Weave/Core/WeaveServerBase.h>
 #include <Weave/Profiles/WeaveProfiles.h>
 
-#include <nltest.h>
+#include <nlunit-test.h>
 
 #define DEFAULT_TEST_DURATION_MILLISECS               (5000)
 #define RECONNECT_TEST_DURATION_MILLISECS             (2 * DEFAULT_TEST_DURATION_MILLISECS)
@@ -80,6 +80,7 @@ enum
     kTestNum_TestTunnelResetReconnectBackoffImmediately         = 24,
     kTestNum_TestTunnelResetReconnectBackoffRandomized          = 25,
     kTestNum_TestTunnelNoStatusReportResetReconnectBackoff      = 26,
+    kTestNum_TestTunnelTCPIdle                                  = 27,
 };
 
 #endif // WEAVE_CONFIG_ENABLE_TUNNELING

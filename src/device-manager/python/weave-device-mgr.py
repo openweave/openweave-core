@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 #
-#    Copyright (c) 2013-2017 Nest Labs, Inc.
+#    Copyright (c) 2013-2018 Nest Labs, Inc.
 #    All rights reserved.
 #
 #    Licensed under the Apache License, Version 2.0 (the "License");
@@ -242,6 +242,7 @@ class DeviceMgrCmd(Cmd):
         'ping',
         'identify',
         'create-fabric',
+        'create-thread-network',
         'leave-fabric',
         'get-fabric-config',
         'join-existing-fabric',
@@ -1227,7 +1228,7 @@ class DeviceMgrCmd(Cmd):
             print "Invalid value specified for thread extended PAN id: " + args[1]
             return
 
-        kvstart = 3 if (len(args[2].split('=', 1)) == 1) else 2
+        kvstart = 3 if (len(args) > 2 and len(args[2].split('=', 1)) == 1) else 2
 
         if (kvstart > 2):
             try:
@@ -1286,6 +1287,78 @@ class DeviceMgrCmd(Cmd):
         self.lastNetworkId = addResult
 
         print "Add thread network complete (network id = " + str(addResult) + ")"
+
+    def do_createthreadnetwork(self, line):
+        """
+          create-thread-network [ <options> ]
+
+          Send a request to device to create a new Thread network and wait for a reply.
+
+          Options:
+
+            --name <name>
+
+              Thread network name (string).
+
+            --key <key>
+
+              Thread network key (hex string of any length).
+
+            --panid <panid>
+
+              Thread network PAN id (16-bit hex int).
+
+            --channel <channel>
+
+              Thread network channel number (int). Valid supported range is [11 - 26].
+
+          All above parameters are optional and if not specified the value will be created by device.
+        """
+
+        args = shlex.split(line)
+
+        optParser = OptionParser(usage=optparse.SUPPRESS_USAGE, option_class=ExtendedOption)
+        optParser.add_option("-n", "--name", action="store", dest="threadNetworkName", type="string")
+        optParser.add_option("-k", "--key", action="store", dest="threadNetworkKey", type="string")
+        optParser.add_option("-p", "--panid", action="store", dest="threadPANId", type="hexint")
+        optParser.add_option("-c", "--channel", action="store", dest="threadChannel", type="int")
+
+        try:
+            (options, remainingArgs) = optParser.parse_args(args)
+        except SystemExit:
+            return
+
+        if (len(remainingArgs) > 0):
+            print "Unexpected argument: " + remainingArgs[0]
+            return
+
+        networkInfo = WeaveDeviceMgr.NetworkInfo()
+        networkInfo.NetworkType = WeaveDeviceMgr.NetworkType_Thread
+
+        if (options.threadNetworkName):
+            networkInfo.ThreadNetworkName = options.threadNetworkName
+        if (options.threadNetworkKey):
+            networkInfo.ThreadNetworkKey = bytearray(binascii.unhexlify(options.threadNetworkKey))
+        if (options.threadPANId):
+            networkInfo.ThreadPANId = options.threadPANId
+            if (networkInfo.ThreadPANId > 0xffff):
+                print "Thread PAN Id must be 16-bit hex value."
+                return
+        if (options.threadChannel):
+            networkInfo.ThreadChannel = options.threadChannel
+            if (networkInfo.ThreadChannel < 11 or networkInfo.ThreadChannel > 26):
+                print "Thread Channel value must be in a range [11 - 26]."
+                return
+
+        try:
+            addResult = self.devMgr.AddNetwork(networkInfo)
+        except WeaveDeviceMgr.DeviceManagerException, ex:
+            print str(ex)
+            return
+
+        self.lastNetworkId = addResult
+
+        print "Create Thread network complete (network id = " + str(addResult) + ")"
 
     def do_updatenetwork(self, line):
         """

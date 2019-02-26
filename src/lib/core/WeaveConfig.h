@@ -1445,6 +1445,16 @@
 #endif // WEAVE_CONFIG_DEFAULT_CASE_ALLOWED_CURVES
 
 /**
+ * @def WEAVE_CONFIG_LEGACY_CASE_AUTH_DELEGATE
+ *
+ * @brief
+ *   Enable use of the legacy WeaveCASEAuthDelegate interface.
+ */
+#ifndef WEAVE_CONFIG_LEGACY_CASE_AUTH_DELEGATE
+#define WEAVE_CONFIG_LEGACY_CASE_AUTH_DELEGATE 1
+#endif
+
+/**
  *  @def WEAVE_CONFIG_MAX_SHARED_SESSIONS_END_NODES
  *
  *  @brief
@@ -1511,6 +1521,16 @@
 #ifndef WEAVE_CONFIG_ENABLE_KEY_EXPORT_RESPONDER
 #define WEAVE_CONFIG_ENABLE_KEY_EXPORT_RESPONDER            1
 #endif // WEAVE_CONFIG_ENABLE_KEY_EXPORT_RESPONDER
+
+/**
+ * @def WEAVE_CONFIG_LEGACY_KEY_EXPORT_DELEGATE
+ *
+ * @brief
+ *   Enable use of the legacy WeaveKeyExportDelegate interface.
+ */
+#ifndef WEAVE_CONFIG_LEGACY_KEY_EXPORT_DELEGATE
+#define WEAVE_CONFIG_LEGACY_KEY_EXPORT_DELEGATE 1
+#endif
 
 /**
  *  @def WEAVE_CONFIG_REQUIRE_AUTH
@@ -2005,6 +2025,32 @@
 #ifndef WEAVE_CONFIG_SERVICE_PROV_RESPONSE_TIMEOUT
 #define WEAVE_CONFIG_SERVICE_PROV_RESPONSE_TIMEOUT 60000
 #endif
+
+/**
+ *  @def WEAVE_CONFIG_SUPPORT_LEGACY_ADD_NETWORK_MESSAGE
+ *
+ *  @brief
+ *    Enable (1) or disable (0) support for the depricated
+ *    version of AddNetwork() message in the Network Provisioning
+ *    profile.
+ *    This option should be enabled to support pairing with Nest
+ *    legacy devices that don't have latest SW.
+ *
+ */
+#ifndef WEAVE_CONFIG_SUPPORT_LEGACY_ADD_NETWORK_MESSAGE
+#define WEAVE_CONFIG_SUPPORT_LEGACY_ADD_NETWORK_MESSAGE     1
+#endif // WEAVE_CONFIG_SUPPORT_LEGACY_ADD_NETWORK_MESSAGE
+
+/**
+ * @def WEAVE_CONFIG_ENABLE_IFJ_SERVICE_FABRIC_JOIN
+ *
+ * @brief Enable the Service Provisioning profile message
+ * for notification of successful in-field joining of the
+ * Weave fabric.
+ */
+#ifndef WEAVE_CONFIG_ENABLE_IFJ_SERVICE_FABRIC_JOIN
+#define WEAVE_CONFIG_ENABLE_IFJ_SERVICE_FABRIC_JOIN         0
+#endif // WEAVE_CONFIG_ENABLE_IFJ_SERVICE_FABRIC_JOIN
 
 /**
  * @def WEAVE_NON_PRODUCTION_MARKER

@@ -229,8 +229,8 @@ public:
      * @param[in]  apAppState       A pointer to application layer supplied state object
      * @param[in]  aEventCallback   A function pointer for event call back
      * @param[in]  apCatalog        A pointer to data sink catalog object
-     * @param[in]  aTimeoutMsecBeforeSubscribeResponse    Max number of milliseconds before subscribe response must be received
-     * after subscribe request is sent
+     * @param[in]  aTimeoutMsecBeforeSubscribeResponse    Max number of milliseconds before subscribe
+     *                                                    response must be received after subscribe request is sent
      */
     WEAVE_ERROR NewClient(SubscriptionClient ** const appClient, Binding * const apBinding, void * const apAppState,
                           SubscriptionClient::EventCallback const aEventCallback,
@@ -245,14 +245,16 @@ public:
      * @param[in]  apAppState       A pointer to application layer supplied state object
      * @param[in]  aEventCallback   A function pointer for event call back
      * @param[in]  apCatalog        A pointer to data sink catalog object
-     * @param[in]  aTimeoutMsecBeforeSubscribeResponse    Max number of milliseconds before subscribe response must be received
-     * @param[in]  aLock            A lock to protect the data used in wdm update
-     * after subscribe request is sent
+     * @param[in]  aTimeoutMsecBeforeSubscribeResponse    Max number of milliseconds before subscribe
+     *                                                    response must be received after subscribe request is sent
+     * @param[in]  aUpdateMutex     A mutex to protect the internal data structures used in WDM updates; NULL by default,
+     *                              it must be provided if the application will call WDM Update methods from multiple threads.
      */
     WEAVE_ERROR NewClient(SubscriptionClient ** const appClient, Binding * const apBinding, void * const apAppState,
                           SubscriptionClient::EventCallback const aEventCallback,
                           const TraitCatalogBase<TraitDataSink> * const apCatalog,
-                          const uint32_t aInactivityTimeoutDuringSubscribingMsec, IWeaveClientLock * aLock);
+                          const uint32_t aInactivityTimeoutDuringSubscribingMsec,
+                          IWeaveWDMMutex * aUpdateMutex);
 
     WEAVE_ERROR NewSubscriptionHandler(SubscriptionHandler ** const subHandler);
 

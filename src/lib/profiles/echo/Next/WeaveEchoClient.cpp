@@ -746,7 +746,7 @@ bool WeaveEchoClient::IsMultiResponseAddress(const IPAddress & addr)
 /**
  * @fn bool WeaveEchoClient::RequestInProgress() const
  *
- * Returns true if an EchoRequest has been sent and the WeaveEchoClient object is awaiting a reponse.
+ * Returns true if an EchoRequest has been sent and the WeaveEchoClient object is awaiting a response.
  */
 
 /**

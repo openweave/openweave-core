@@ -629,25 +629,44 @@
 #endif // INET_CONFIG_OVERRIDE_SYSTEM_TCP_USER_TIMEOUT
 
 /**
- *  @def INET_CONFIG_DEFAULT_TCP_USER_TIMER_PERIOD_MSEC
+ *  @def INET_CONFIG_ENABLE_TCP_SEND_IDLE_CALLBACKS
  *
  *  @brief
- *    The default TCP_USER_TIMEOUT timer tick interval in
- *    milliseconds.
+ *    When this flag is set, the InetLayer enables
+ *    callbacks to the upper layer notifying it when
+ *    the send channel of the TCP connection changes
+ *    between being idle or not idle.
  *
- *  @details
- *    This interval specifies how often the TCP output
- *    queue would be checked to determine if data is
- *    being transmitted successfully or is sitting there
- *    unacknowledged. When a sufficient number of these
- *    periods(equivalent to the configured TCP_USER_TIMEOUT)
- *    have expired with unacknowledged data sitting in
- *    the queue, the connection would be closed.
+ *  @note
+ *    When enabled, the TCP send queue is actively
+ *    polled to determine if sent data has been
+ *    acknowledged.
  *
  */
-#ifndef INET_CONFIG_DEFAULT_TCP_USER_TIMER_PERIOD_MSEC
-#define INET_CONFIG_DEFAULT_TCP_USER_TIMER_PERIOD_MSEC     5000
-#endif // INET_CONFIG_DEFAULT_TCP_USER_TIMER_PERIOD_MSEC
+#ifndef INET_CONFIG_ENABLE_TCP_SEND_IDLE_CALLBACKS
+#define INET_CONFIG_ENABLE_TCP_SEND_IDLE_CALLBACKS         0
+#endif // INET_CONFIG_ENABLE_TCP_SEND_IDLE_CALLBACKS
+
+/**
+ *  @def INET_CONFIG_TCP_SEND_QUEUE_POLL_INTERVAL_MSEC
+ *
+ *  @brief
+ *    The default polling interval to check the progress
+ *    on the TCP SendQueue to determine if sent data is
+ *    being acknowledged.
+ *
+ *  @details
+ *    If progress is being made, then the TCP UserTimeout
+ *    period would be shifted further ahead by resetting
+ *    the max poll count. If, however, progress is not made,
+ *    then the next timer would still fire at the next poll
+ *    interval without resetting the poll count. The
+ *    connection would be torn down when the poll count
+ *    reaches zero.
+ */
+#ifndef INET_CONFIG_TCP_SEND_QUEUE_POLL_INTERVAL_MSEC
+#define INET_CONFIG_TCP_SEND_QUEUE_POLL_INTERVAL_MSEC      500
+#endif // INET_CONFIG_TCP_SEND_QUEUE_POLL_INTERVAL_MSEC
 
 /**
  *  @def INET_CONFIG_DEFAULT_TCP_USER_TIMEOUT_MSEC

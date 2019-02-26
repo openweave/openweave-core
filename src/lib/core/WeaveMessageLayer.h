@@ -253,7 +253,9 @@ public:
     WEAVE_ERROR Connect(uint64_t peerNodeId, WeaveAuthMode authMode, const IPAddress &peerAddr, uint16_t peerPort = 0, InterfaceId intf = INET_NULL_INTERFACEID);
     WEAVE_ERROR Connect(uint64_t peerNodeId, WeaveAuthMode authMode, const char *peerAddr, uint16_t defaultPort = 0);
     WEAVE_ERROR Connect(uint64_t peerNodeId, WeaveAuthMode authMode, const char *peerAddr, uint16_t peerAddrLen, uint16_t defaultPort = 0);
+    WEAVE_ERROR Connect(uint64_t peerNodeId, WeaveAuthMode authMode, const char *peerAddr, uint16_t peerAddrLen, uint8_t dnsOptions, uint16_t defaultPort);
     WEAVE_ERROR Connect(uint64_t peerNodeId, WeaveAuthMode authMode, HostPortList hostPortList, InterfaceId intf = INET_NULL_INTERFACEID);
+    WEAVE_ERROR Connect(uint64_t peerNodeId, WeaveAuthMode authMode, HostPortList hostPortList, uint8_t dnsOptions, InterfaceId intf);
 
     WEAVE_ERROR GetPeerAddressInfo(IPPacketInfo& addrInfo);
 
@@ -295,6 +297,8 @@ public:
     WEAVE_ERROR SetUserTimeout(uint32_t userTimeoutMillis);
     WEAVE_ERROR ResetUserTimeout(void);
     uint16_t LogId(void) const { return static_cast<uint16_t>(reinterpret_cast<intptr_t>(this)); }
+
+    TCPEndPoint * GetTCPEndPoint(void) const { return mTcpEndPoint; }
 
     /**
      *  This function is the application callback that is invoked when a connection setup is complete.
@@ -373,6 +377,9 @@ private:
     InterfaceId mTargetInterface;
     uint32_t mConnectTimeout;
     uint8_t mRefCount;
+#if WEAVE_CONFIG_ENABLE_DNS_RESOLVER
+    uint8_t mDNSOptions;
+#endif
 
     void Init(WeaveMessageLayer *msgLayer);
     void MakeConnectedTcp(TCPEndPoint *endPoint, const IPAddress &localAddr, const IPAddress &peerAddr);

@@ -82,7 +82,6 @@ void SubscriptionClient::Reset(void)
     mEventCallback                          = NULL;
     mResubscribePolicyCallback              = NULL;
     mDataSinkCatalog                        = NULL;
-    mLock                                   = NULL;
     mInactivityTimeoutDuringSubscribingMsec = kNoTimeOut;
     mLivenessTimeoutMsec                    = kNoTimeOut;
     mSubscriptionId                         = 0;
@@ -90,14 +89,18 @@ void SubscriptionClient::Reset(void)
     mRetryCounter                           = 0;
 
 #if WEAVE_CONFIG_ENABLE_WDM_UPDATE
+    mUpdateMutex                            = NULL;
     mUpdateInFlight                         = false;
     mNumUpdatableTraitInstances             = 0;
     mMaxUpdateSize                          = 0;
-    mUpdateRequestContext.mItemInProgress = 0;
-    mUpdateRequestContext.mNextDictionaryElementPathHandle = kNullPropertyPathHandle;
+    mUpdateRequestContext.Reset();
     mPendingSetState = kPendingSetEmpty;
     mPendingUpdateSet.Init(mPendingStore, ArraySize(mPendingStore));
     mInProgressUpdateList.Init(mInProgressStore, ArraySize(mInProgressStore));
+    mUpdateRetryCounter                     = 0;
+    mUpdateRetryScheduled                   = false;
+    mUpdateFlushScheduled                   = false;
+    mSuspendUpdateRetries                   = false;
 #endif // WEAVE_CONFIG_ENABLE_WDM_UPDATE
 
 #if WDM_ENABLE_PROTOCOL_CHECKS
@@ -112,7 +115,7 @@ void SubscriptionClient::Reset(void)
 // null out EC
 WEAVE_ERROR SubscriptionClient::Init(Binding * const apBinding, void * const apAppState, EventCallback const aEventCallback,
                                      const TraitCatalogBase<TraitDataSink> * const apCatalog,
-                                     const uint32_t aInactivityTimeoutDuringSubscribingMsec, IWeaveClientLock * aLock)
+                                     const uint32_t aInactivityTimeoutDuringSubscribingMsec, IWeaveWDMMutex * aUpdateMutex)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
     WeaveLogIfFalse(0 == mRefCount);
@@ -136,9 +139,9 @@ WEAVE_ERROR SubscriptionClient::Init(Binding * const apBinding, void * const apA
 
     mInactivityTimeoutDuringSubscribingMsec = aInactivityTimeoutDuringSubscribingMsec;
 
-    mLock                                   = aLock;
 
 #if WEAVE_CONFIG_ENABLE_WDM_UPDATE
+    mUpdateMutex                            = aUpdateMutex;
     mUpdateInFlight                         = false;
     mNumUpdatableTraitInstances             = 0;
     mMaxUpdateSize                          = 0;
@@ -358,8 +361,9 @@ void SubscriptionClient::DefaultResubscribePolicyCallback(void * const aAppState
     aOutIntervalMsec = waitTimeInMsec;
 
     WeaveLogDetail(DataManagement,
-                   "Computing resubscribe policy: attempts %" PRIu32 ", max wait time %" PRIu32 " ms, selected wait time %" PRIu32
+                   "Computing %s policy: attempts %" PRIu32 ", max wait time %" PRIu32 " ms, selected wait time %" PRIu32
                    " ms",
+                   aInParam.mRequestType == ResubscribeParam::kSubscription ? "resubscribe" : "update",
                    aInParam.mNumRetries, maxWaitTimeInMsec, waitTimeInMsec);
 
     return;
@@ -653,7 +657,11 @@ WEAVE_ERROR SubscriptionClient::SendSubscribeRequest(void)
     // NOTE: State could be changed in sync error callback by message layer
     WEAVE_FAULT_INJECT(FaultInjection::kFault_WDM_SendUnsupportedReqMsgType, msgType += 50);
 
-#if WEAVE_CONFIG_DATA_MANAGEMENT_ENABLE_SCHEMA_CHECK
+#if 0 // WEAVE_CONFIG_DATA_MANAGEMENT_ENABLE_SCHEMA_CHECK
+    // TODO: SubscribeRequest::CheckSchemaValidity is correct and rejects empty PathLists;
+    // but the loop above can encode an empty PathList, and
+    // the parser in SubscriptionHandler::ParsePathVersionEventLists will accept it.
+    // Need to fix this in a way that's backward compatible.
     {
         nl::Weave::TLV::TLVReader reader;
         SubscribeRequest::Parser request;
@@ -828,6 +836,7 @@ WEAVE_ERROR SubscriptionClient::EndSubscription()
     switch (mCurrentState)
     {
     case kState_Subscribing:
+    case kState_Resubscribe_Holdoff:
         // fall through
     case kState_Subscribing_IdAssigned:
 
@@ -966,11 +975,9 @@ void SubscriptionClient::_Cleanup(void)
     }
 
 #if WEAVE_CONFIG_ENABLE_WDM_UPDATE
-	// TODO: aborting the subscription should not impact the "udpate client"
-	ClearPathStore(mPendingUpdateSet, WEAVE_ERROR_CONNECTION_ABORTED);
-	// TODO: what's the right error code for this?
-	ClearPathStore(mInProgressUpdateList, WEAVE_ERROR_CONNECTION_ABORTED);
-	ShutdownUpdateClient();
+    mUpdateClient.Shutdown();
+
+    mDataSinkCatalog->Iterate(CleanupUpdatableSinkTrait, this);
 #endif // WEAVE_CONFIG_ENABLE_WDM_UPDATE
 
     Reset();
@@ -1037,41 +1044,7 @@ void SubscriptionClient::HandleSubscriptionTerminated(bool aWillRetry, WEAVE_ERR
                        SubscriptionEngine::GetInstance()->GetClientId(this), GetStateStr(), __func__, mRefCount);
     }
 
-    // only set this timer if the configuration is still to at least bind.
-    if (aWillRetry && ShouldBind())
-    {
-        SetRetryTimer(aReason);
-    }
-
-    _Release();
-}
-
-void SubscriptionClient::HandleBindingFailed(bool aWillRetry, WEAVE_ERROR aReason,
-                                                      StatusReporting::StatusReport * aStatusReportPtr)
-{
-    //void * const pAppState     = mAppState;
-    //EventCallback callbackFunc = mEventCallback;
-
-    WeaveLogDetail(DataManagement, "Client[%u] [%5.5s] %s Ref(%d)", SubscriptionEngine::GetInstance()->GetClientId(this),
-                   GetStateStr(), __func__, mRefCount);
-
-    _AddRef();
-
-    if (!aWillRetry)
-    {
-        // Remove the callback from the binding.
-        mBinding->SetProtocolLayerCallback(NULL, NULL);
-        mConfig = kConfig_Down;
-    }
-
-    // TODO: This is executed only if the binding failed and the reason for the binding
-    // is to send an update without subscription. The application needs to be notified
-    // about the failed updates.
-    WeaveLogDetail(DataManagement, "Client[%u] [%5.5s] %s Ref(%d) app layer callback skipped",
-            SubscriptionEngine::GetInstance()->GetClientId(this), GetStateStr(), __func__, mRefCount);
-
-    // only set this timer if the app cb hasn't changed our state.
-    if (aWillRetry && ShouldBind())
+    if (aWillRetry && ShouldSubscribe())
     {
         SetRetryTimer(aReason);
     }
@@ -1098,6 +1071,7 @@ void SubscriptionClient::SetRetryTimer(WEAVE_ERROR aReason)
         ResubscribeParam param;
         param.mNumRetries = mRetryCounter;
         param.mReason     = aReason;
+        param.mRequestType = ResubscribeParam::kSubscription;
 
         mResubscribePolicyCallback(mAppState, param, timeoutMsec);
 
@@ -1113,14 +1087,7 @@ exit:
     // all errors are considered fatal in this function
     if (err != WEAVE_NO_ERROR)
     {
-        if (ShouldSubscribe())
-        {
-            HandleSubscriptionTerminated(false, err, NULL);
-        }
-        else
-        {
-            HandleBindingFailed(false, err, NULL);
-        }
+        HandleSubscriptionTerminated(false, err, NULL);
     }
 
     if (entryCb && (entryState < kState_Resubscribe_Holdoff))
@@ -1143,6 +1110,10 @@ void SubscriptionClient::Free()
         AbortSubscription();
     }
 
+#if WEAVE_CONFIG_ENABLE_WDM_UPDATE
+    AbortUpdates(WEAVE_NO_ERROR);
+#endif
+
     // If mRefCount == 1, _Release would decrement it to 0, call _Cleanup and move us to FREE state
     _Release();
 }
@@ -1152,52 +1123,56 @@ void SubscriptionClient::BindingEventCallback(void * const aAppState, const Bind
 {
     SubscriptionClient * const pClient = reinterpret_cast<SubscriptionClient *>(aAppState);
 
+    bool failed = false;
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
+
     pClient->_AddRef();
 
     switch (aEvent)
     {
     case Binding::kEvent_BindingReady:
 #if WEAVE_CONFIG_ENABLE_WDM_UPDATE
-        if (pClient->mPendingSetState == kPendingSetReady &&
-                pClient->mInProgressUpdateList.IsEmpty())
+        if (pClient->IsUpdatePendingOrInProgress())
         {
-            // TODO: test errors here
-            WEAVE_ERROR err = pClient->MovePendingToInProgress();
-            if (err == WEAVE_NO_ERROR)
+            if (false == pClient->IsUpdateInFlight())
             {
-                err = pClient->FormAndSendUpdate(true);
-            }
-            if (err != WEAVE_NO_ERROR)
-            {
-                pClient->SetRetryTimer(err);
+                pClient->StartUpdateRetryTimer(WEAVE_NO_ERROR);
             }
         }
-        else
 #endif
         // Binding is ready. We can send the subscription req now.
-        if (pClient->ShouldSubscribe())
+        if (pClient->mCurrentState == kState_Initialized && pClient->ShouldSubscribe())
         {
             pClient->_InitiateSubscription();
         }
         break;
 
     case Binding::kEvent_BindingFailed:
-        if (pClient->ShouldBind())
-        {
-            pClient->SetRetryTimer(aInParam.BindingFailed.Reason);
-        }
+        failed = true;
+        err = aInParam.BindingFailed.Reason;
         break;
 
     case Binding::kEvent_PrepareFailed:
-        // need to prepare again.
-        if (pClient->ShouldBind())
-        {
-            pClient->SetRetryTimer(aInParam.PrepareFailed.Reason);
-        }
+        failed = true;
+        err = aInParam.PrepareFailed.Reason;
         break;
 
     default:
         Binding::DefaultEventHandler(aAppState, aEvent, aInParam, aOutParam);
+    }
+
+    if (failed)
+    {
+#if WEAVE_CONFIG_ENABLE_WDM_UPDATE
+        if (pClient->IsUpdatePendingOrInProgress())
+        {
+            pClient->StartUpdateRetryTimer(err);
+        }
+#endif // WEAVE_CONFIG_ENABLE_WDM_UPDATE
+        if (pClient->ShouldSubscribe())
+        {
+            pClient->SetRetryTimer(err);
+        }
     }
 
     pClient->_Release();
@@ -1209,7 +1184,6 @@ void SubscriptionClient::OnTimerCallback(System::Layer * aSystemLayer, void * aA
 
     pClient->TimerEventHandler();
 }
-
 WEAVE_ERROR SubscriptionClient::RefreshTimer(void)
 {
     WEAVE_ERROR err      = WEAVE_NO_ERROR;
@@ -1382,15 +1356,6 @@ void SubscriptionClient::TimerEventHandler(void)
         {
             _InitiateSubscription();
         }
-        else if (ShouldBind())
-        {
-            err = _PrepareBinding();
-            if (err != WEAVE_NO_ERROR)
-            {
-                HandleBindingFailed(IsRetryEnabled(), err, NULL);
-                err = WEAVE_NO_ERROR;
-            }
-        }
         break;
 
     default:
@@ -1426,30 +1391,30 @@ WEAVE_ERROR SubscriptionClient::ProcessDataList(nl::Weave::TLV::TLVReader & aRea
     AlwaysAcceptDataElementAccessControlDelegate acDelegate;
 
 #if WEAVE_CONFIG_ENABLE_WDM_UPDATE
-    bool isLocked = false;
-
-    err = Lock();
-    SuccessOrExit(err);
-
-    isLocked = true;
+    _AddRef();
+    LockUpdateMutex();
 #endif // WEAVE_CONFIG_ENABLE_WDM_UPDATE
 
     err = SubscriptionEngine::ProcessDataList(aReader, mDataSinkCatalog, mPrevIsPartialChange, mPrevTraitDataHandle, acDelegate);
     SuccessOrExit(err);
 
 #if WEAVE_CONFIG_ENABLE_WDM_UPDATE
-    if (false == IsUpdateInFlight())
+    if (false == IsUpdateInProgress())
     {
+        size_t numPendingBefore = mPendingUpdateSet.GetNumItems();
         PurgePendingUpdate();
+
+        if (numPendingBefore && mPendingUpdateSet.IsEmpty())
+        {
+            NoMorePendingEventCbHelper();
+        }
     }
 #endif // WEAVE_CONFIG_ENABLE_WDM_UPDATE
 
 exit:
 #if WEAVE_CONFIG_ENABLE_WDM_UPDATE
-    if (isLocked)
-    {
-        Unlock();
-    }
+    UnlockUpdateMutex();
+    _Release();
 #endif // WEAVE_CONFIG_ENABLE_WDM_UPDATE
 
     return err;
@@ -1469,6 +1434,7 @@ void SubscriptionClient::NotificationRequestHandler(nl::Weave::ExchangeContext *
     bool isEventListPresent = false;
 #endif
     uint8_t statusReportLen = 6;
+    bool incomingEC = (mEC != aEC);
     PacketBuffer * msgBuf   = PacketBuffer::NewWithAvailableSize(statusReportLen);
 
     WeaveLogDetail(DataManagement, "Client[%u] [%5.5s] %s Ref(%d)", SubscriptionEngine::GetInstance()->GetClientId(this),
@@ -1477,7 +1443,7 @@ void SubscriptionClient::NotificationRequestHandler(nl::Weave::ExchangeContext *
     // Make sure we're not freed by accident
     _AddRef();
 
-    if (mEC != aEC)
+    if (incomingEC)
     {
         // only re-configure if this is an incoming EC
         mBinding->AdjustResponseTimeout(aEC);
@@ -1644,7 +1610,7 @@ exit:
     }
 
     // If this is not a locally initiated exchange, always close the exchange
-    if (aEC != mEC)
+    if (incomingEC)
     {
         aEC->Close();
         aEC = NULL;
@@ -1811,14 +1777,6 @@ void SubscriptionClient::OnMessageReceivedFromLocallyInitiatedExchange(nl::Weave
     bool isStatusReportValid   = false;
     nl::Weave::Profiles::StatusReporting::StatusReport status;
 
-#if WEAVE_CONFIG_ENABLE_WDM_UPDATE
-    bool isLocked = false;
-    err = pClient->Lock();
-    SuccessOrExit(err);
-
-    isLocked = true;
-#endif // WEAVE_CONFIG_ENABLE_WDM_UPDATE
-
     WeaveLogDetail(DataManagement, "Client[%u] [%5.5s] %s Ref(%d)", SubscriptionEngine::GetInstance()->GetClientId(pClient),
                    pClient->GetStateStr(), __func__, pClient->mRefCount);
 
@@ -1834,7 +1792,7 @@ void SubscriptionClient::OnMessageReceivedFromLocallyInitiatedExchange(nl::Weave
         err = nl::Weave::Profiles::StatusReporting::StatusReport::parse(aPayload, status);
         SuccessOrExit(err);
         isStatusReportValid = true;
-        WeaveLogDetail(DataManagement, "Received Status Report 0x%" PRIX32 " : 0x%" PRIX16, status.mProfileId, status.mStatusCode);
+        WeaveLogDetail(DataManagement, "Received StatusReport %s", nl::StatusReportStr(status.mProfileId, status.mStatusCode));
     }
 
     switch (pClient->mCurrentState)
@@ -1933,22 +1891,15 @@ void SubscriptionClient::OnMessageReceivedFromLocallyInitiatedExchange(nl::Weave
             // since the state could have been changed, we must not assume anything
 
 #if WEAVE_CONFIG_ENABLE_WDM_UPDATE
-            if (pClient->mPendingSetState == kPendingSetReady &&
-                    pClient->mInProgressUpdateList.IsEmpty())
-            {
-                // TODO: test failing here..
-                err = pClient->MovePendingToInProgress();
-                SuccessOrExit(err);
-                err = pClient->FormAndSendUpdate(true);
-                SuccessOrExit(err);
-            }
-            else
+            pClient->LockUpdateMutex();
+            if (false == pClient->IsUpdatePendingOrInProgress())
             {
                 if (pClient->CheckForSinksWithDataLoss())
                 {
                     ExitNow(err = WEAVE_ERROR_WDM_POTENTIAL_DATA_LOSS);
                 }
             }
+            pClient->UnlockUpdateMutex();
 #endif // WEAVE_CONFIG_ENABLE_WDM_UPDATE
 
             ExitNow();
@@ -2005,13 +1956,6 @@ void SubscriptionClient::OnMessageReceivedFromLocallyInitiatedExchange(nl::Weave
     }
 
 exit:
-
-#if WEAVE_CONFIG_ENABLE_WDM_UPDATE
-    if (isLocked)
-    {
-        pClient->Unlock();
-    }
-#endif // WEAVE_CONFIG_ENABLE_WDM_UPDATE
     WeaveLogFunctError(err);
 
     if (NULL != aPayload)
@@ -2034,26 +1978,86 @@ exit:
     pClient->_Release();
 }
 
-bool SubscriptionClient::ShouldBind()
-{
-    bool retval = false;
-
-    if (mConfig > kConfig_Down)
-    {
-        retval = true;
-    }
-
 #if WEAVE_CONFIG_ENABLE_WDM_UPDATE
-    if (false == mInProgressUpdateList.IsEmpty())
-    {
-        retval = true;
-    }
-#endif
+void SubscriptionClient::StartUpdateRetryTimer(WEAVE_ERROR aReason)
+{
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
+    uint32_t timeoutMsec = 0;
 
-    return retval;
+    VerifyOrExit(false == mUpdateRetryScheduled, );
+
+    VerifyOrExit(mResubscribePolicyCallback != NULL, WeaveLogDetail(DataManagement, "Update timed out with the retry policy disabled"));
+
+    if (WEAVE_NO_ERROR == aReason)
+    {
+        mUpdateRetryCounter = 0;
+    }
+    ResubscribeParam param;
+    param.mNumRetries = mUpdateRetryCounter;
+    mUpdateRetryCounter++;
+    param.mReason     = aReason;
+    param.mRequestType = ResubscribeParam::kUpdate;
+
+    mResubscribePolicyCallback(mAppState, param, timeoutMsec);
+
+    WeaveLogDetail(DataManagement, "Will send update in %" PRIu32 " msec", timeoutMsec);
+
+    err = SubscriptionEngine::GetInstance()->GetExchangeManager()->MessageLayer->SystemLayer->StartTimer(timeoutMsec,
+            OnUpdateTimerCallback, this);
+
+    if (err != WEAVE_NO_ERROR)
+    {
+        WeaveDie();
+    }
+
+    mUpdateRetryScheduled = true;
+
+exit:
+    return;
 }
 
-#if WEAVE_CONFIG_ENABLE_WDM_UPDATE
+void SubscriptionClient::UpdateTimerEventHandler()
+{
+    WeaveLogDetail(DataManagement, "%s", __func__);
+
+    mUpdateRetryScheduled = false;
+
+    VerifyOrExit(false == mSuspendUpdateRetries, WeaveLogDetail(DataManagement, "Holding off updates"));
+
+    FormAndSendUpdate();
+
+exit:
+    return;
+}
+
+void SubscriptionClient::OnUpdateTimerCallback(System::Layer * aSystemLayer, void * aAppState, System::Error)
+{
+    SubscriptionClient * const pClient = reinterpret_cast<SubscriptionClient *>(aAppState);
+
+    pClient->UpdateTimerEventHandler();
+}
+
+void SubscriptionClient::OnUpdateScheduleWorkCallback(System::Layer * aSystemLayer, void * aAppState, System::Error)
+{
+    SubscriptionClient * const pClient = reinterpret_cast<SubscriptionClient *>(aAppState);
+
+    pClient->LockUpdateMutex();
+
+    // If the application has called AbortUpdates() or Free(), no need to do anything.
+    VerifyOrExit(pClient->mUpdateFlushScheduled, );
+
+    pClient->mUpdateFlushScheduled = false;
+
+    // Start the timer with a retry count of zero, unless the timer has already been scheduled.
+    // There is some overhead, but this gives the application a chance to add a one-off delay
+    // at the beginning of the sequence.
+    pClient->StartUpdateRetryTimer(WEAVE_NO_ERROR);
+
+exit:
+    pClient->UnlockUpdateMutex();
+    pClient->_Release();
+}
+
 void SubscriptionClient::SetMaxUpdateSize(const uint32_t aMaxSize)
 {
     if (aMaxSize > UINT16_MAX)
@@ -2069,34 +2073,43 @@ void SubscriptionClient::SetMaxUpdateSize(const uint32_t aMaxSize)
 WEAVE_ERROR SubscriptionClient::MoveInProgressToPending(void)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
-    uint32_t numSourceItems = mInProgressUpdateList.GetNumItems();
+    uint32_t count = 0;
     TraitDataSink *dataSink;
     TraitPath traitPath;
 
-    for (size_t i = 0; i < numSourceItems; i++)
+    for (size_t i = mInProgressUpdateList.GetFirstValidItem();
+            i < mInProgressUpdateList.GetPathStoreSize();
+            i = mInProgressUpdateList.GetNextValidItem(i))
     {
-        if (mInProgressUpdateList.IsItemInUse(i))
-        {
-            mInProgressUpdateList.GetItemAt(i, traitPath);
+        mInProgressUpdateList.GetItemAt(i, traitPath);
 
-            if ( ! mInProgressUpdateList.AreFlagsSet(i, kFlag_Private))
-            {
-                err = mDataSinkCatalog->Locate(traitPath.mTraitDataHandle, &dataSink);
-                SuccessOrExit(err);
-                err = AddItemPendingUpdateSet(traitPath, dataSink->GetSchemaEngine());
-                SuccessOrExit(err);
-            }
+        if ( ! mInProgressUpdateList.AreFlagsSet(i, kFlag_Private))
+        {
+            err = mDataSinkCatalog->Locate(traitPath.mTraitDataHandle, &dataSink);
+            SuccessOrExit(err);
+            err = AddItemPendingUpdateSet(traitPath, dataSink->GetSchemaEngine());
+            SuccessOrExit(err);
+            mInProgressUpdateList.RemoveItemAt(i);
+
+            count++;
         }
     }
 
-    mInProgressUpdateList.Clear();
-
-    if (mPendingSetState == kPendingSetEmpty)
+    // Move the state to Ready only if it was Empty; if the application is adding paths,
+    // let it decide when to call FlushUpdate.
+    if ((mPendingUpdateSet.GetNumItems() > 0) && (mPendingSetState == kPendingSetEmpty))
     {
         SetPendingSetState(kPendingSetReady);
     }
 
+    // Call clear to remove the private ones as well and anything else.
+    mInProgressUpdateList.Clear();
+
+    mUpdateRequestContext.Reset();
+
 exit:
+    WeaveLogDetail(DataManagement, "Moved %" PRIu32 " items from InProgress to Pending; err %" PRId32 "", count, err);
+
     return err;
 }
 
@@ -2147,14 +2160,19 @@ exit:
     return err;
 }
 
+
 /**
- * Clears the list of paths, giving a callback
- * to the application with an internal error for each
- * path still in the list.
+ * Notify the application for each failed pending path and
+ * remove it from the pending set.
+ * Return the number of paths removed.
+ * Note that the application is allowed to call SetUpdated()
+ * from the callback.
  */
-void SubscriptionClient::ClearPathStore(TraitPathStore &aPathStore, WEAVE_ERROR aErr)
+void SubscriptionClient::PurgeAndNotifyFailedPaths(WEAVE_ERROR aErr, TraitPathStore &aPathStore, size_t &aCount)
 {
     TraitPath traitPath;
+    TraitUpdatableDataSink *updatableDataSink = NULL;
+    aCount = 0;
 
     for (size_t j = 0; j < aPathStore.GetPathStoreSize(); j++)
     {
@@ -2162,65 +2180,41 @@ void SubscriptionClient::ClearPathStore(TraitPathStore &aPathStore, WEAVE_ERROR 
         {
             continue;
         }
-        aPathStore.GetItemAt(j, traitPath);
-        if (! aPathStore.AreFlagsSet(j, kFlag_Private))
+        if (aPathStore.IsItemFailed(j))
         {
-            UpdateCompleteEventCbHelper(traitPath,
-                                        nl::Weave::Profiles::kWeaveProfile_Common,
-                                        nl::Weave::Profiles::Common::kStatus_InternalError,
-                                        aErr);
-        }
-    }
+            bool isPrivate = aPathStore.AreFlagsSet(j, kFlag_Private);
 
-    aPathStore.Clear();
-}
-
-/**
- * Notify the application for each failed pending path and
- * remove it from the pending set.
- * Return the number of paths removed.
- */
-WEAVE_ERROR SubscriptionClient::PurgeFailedPendingPaths(WEAVE_ERROR aErr, size_t &aCount)
-{
-    WEAVE_ERROR err = WEAVE_NO_ERROR;
-    TraitPath traitPath;
-    TraitUpdatableDataSink *updatableDataSink = NULL;
-    aCount = 0;
-
-    for (size_t j = 0; j < mPendingUpdateSet.GetPathStoreSize(); j++)
-    {
-        if (! mPendingUpdateSet.IsItemInUse(j))
-        {
-            continue;
-        }
-        if (mPendingUpdateSet.IsItemFailed(j))
-        {
-            mPendingUpdateSet.GetItemAt(j, traitPath);
+            aPathStore.GetItemAt(j, traitPath);
             updatableDataSink = Locate(traitPath.mTraitDataHandle, mDataSinkCatalog);
-            VerifyOrExit(updatableDataSink != NULL, err = WEAVE_ERROR_WDM_SCHEMA_MISMATCH);
+            VerifyOrDie(updatableDataSink != NULL);
             updatableDataSink->ClearVersion();
             updatableDataSink->ClearUpdateRequiredVersion();
             updatableDataSink->SetConditionalUpdate(false);
 
-            if (! mPendingUpdateSet.AreFlagsSet(j, kFlag_Private))
+            aPathStore.RemoveItemAt(j);
+
+            if (false == isPrivate)
             {
                 UpdateCompleteEventCbHelper(traitPath,
                         nl::Weave::Profiles::kWeaveProfile_Common,
                         nl::Weave::Profiles::Common::kStatus_InternalError,
-                        aErr);
+                        aErr,
+                        false);
             }
-            mPendingUpdateSet.RemoveItemAt(j);
             aCount++;
         }
     }
 
-    if (mPendingUpdateSet.IsEmpty())
+    if (&aPathStore == &mPendingUpdateSet && aPathStore.IsEmpty())
     {
         SetPendingSetState(kPendingSetEmpty);
     }
+    if (&aPathStore == &mInProgressUpdateList)
+    {
+        mUpdateRequestContext.Reset();
+    }
 
-exit:
-    return err;
+    return;
 }
 
 WEAVE_ERROR SubscriptionClient::AddItemPendingUpdateSet(const TraitPath &aItem, const TraitSchemaEngine * const aSchemaEngine)
@@ -2246,22 +2240,19 @@ void SubscriptionClient::ClearPotentialDataLoss(TraitDataHandle aTraitDataHandle
 
 void SubscriptionClient::MarkFailedPendingPaths(TraitDataHandle aTraitDataHandle, TraitUpdatableDataSink &aSink, const DataVersion &aLatestVersion)
 {
-    if (! IsUpdateInFlight())
+    if (aSink.IsConditionalUpdate() &&
+            IsVersionNewer(aLatestVersion, aSink.GetUpdateRequiredVersion()))
     {
-        if (aSink.IsConditionalUpdate() &&
-                IsVersionNewer(aLatestVersion, aSink.GetUpdateRequiredVersion()))
-        {
-            WeaveLogDetail(DataManagement, "<MarkFailedPendingPaths> current version 0x%" PRIx64
-                    ", valid: %d"
-                    ", updateRequiredVersion: 0x%" PRIx64
-                    ", latest known version: 0x%" PRIx64 "",
-                    aSink.GetVersion(),
-                    aSink.IsVersionValid(),
-                    aSink.GetUpdateRequiredVersion(),
-                    aLatestVersion);
+        WeaveLogDetail(DataManagement, "<MarkFailedPendingPaths> current version 0x%" PRIx64
+                ", valid: %d"
+                ", updateRequiredVersion: 0x%" PRIx64
+                ", latest known version: 0x%" PRIx64 "",
+                aSink.GetVersion(),
+                aSink.IsVersionValid(),
+                aSink.GetUpdateRequiredVersion(),
+                aLatestVersion);
 
-            mPendingUpdateSet.SetFailedTrait(aTraitDataHandle);
-        }
+        mPendingUpdateSet.SetFailedTrait(aTraitDataHandle);
     }
 
     return;
@@ -2292,34 +2283,47 @@ bool SubscriptionClient::FilterNotifiedPath(TraitDataHandle aTraitDataHandle,
     return retval;
 }
 
-WEAVE_ERROR SubscriptionClient::Lock()
+void SubscriptionClient::LockUpdateMutex()
 {
-    WEAVE_ERROR err = WEAVE_NO_ERROR;
-
-    if (mLock)
+    if (mUpdateMutex)
     {
-        err = mLock->Lock();
+        mUpdateMutex->Lock();
     }
-
-    if (err != WEAVE_NO_ERROR)
-    {
-        WeaveLogDetail(DataManagement, "Lock failed with %d", err);
-    }
-
-    return WEAVE_NO_ERROR;
 }
 
-WEAVE_ERROR SubscriptionClient::Unlock()
+void SubscriptionClient::UnlockUpdateMutex()
 {
-    if (mLock)
+    if (mUpdateMutex)
     {
-        return mLock->Unlock();
+        mUpdateMutex->Unlock();
     }
-
-    return WEAVE_NO_ERROR;
 }
 
-void SubscriptionClient::UpdateCompleteEventCbHelper(const TraitPath &aTraitPath, uint32_t aStatusProfileId, uint16_t aStatusCode, WEAVE_ERROR aReason)
+bool SubscriptionClient::WillRetryUpdate(WEAVE_ERROR aErr, uint32_t aStatusProfileId, uint16_t aStatusCode)
+{
+    bool retval = false;
+
+    if (aErr == WEAVE_ERROR_TIMEOUT)
+    {
+        retval = true;
+    }
+
+    if (aErr == WEAVE_ERROR_STATUS_REPORT_RECEIVED &&
+            aStatusProfileId == nl::Weave::Profiles::kWeaveProfile_Common &&
+              (aStatusCode == nl::Weave::Profiles::Common::kStatus_Busy ||
+               aStatusCode == nl::Weave::Profiles::Common::kStatus_Timeout))
+    {
+        retval = true;
+    }
+
+    return retval;
+}
+
+void SubscriptionClient::UpdateCompleteEventCbHelper(const TraitPath &aTraitPath,
+                                                     uint32_t aStatusProfileId,
+                                                     uint16_t aStatusCode,
+                                                     WEAVE_ERROR aReason,
+                                                     bool aWillRetry)
 {
     InEventParam inParam;
     OutEventParam outParam;
@@ -2339,6 +2343,7 @@ void SubscriptionClient::UpdateCompleteEventCbHelper(const TraitPath &aTraitPath
     inParam.mUpdateComplete.mReason = aReason;
     inParam.mUpdateComplete.mTraitDataHandle = aTraitPath.mTraitDataHandle;
     inParam.mUpdateComplete.mPropertyPathHandle = aTraitPath.mPropertyPathHandle;
+    inParam.mUpdateComplete.mWillRetry = aWillRetry;
 
     mEventCallback(mAppState, kEvent_OnUpdateComplete, inParam, outParam);
 }
@@ -2364,49 +2369,43 @@ void SubscriptionClient::SetPendingSetState(PendingSetState aState)
 }
 
 // TODO: Break this method down into smaller methods.
-void SubscriptionClient::OnUpdateConfirm(WEAVE_ERROR aReason, nl::Weave::Profiles::StatusReporting::StatusReport * apStatus)
+void SubscriptionClient::OnUpdateResponse(WEAVE_ERROR aReason, nl::Weave::Profiles::StatusReporting::StatusReport * apStatus)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
-    bool isLocked = false;
+    WEAVE_ERROR callbackerr;
     TraitPath traitPath;
     TraitUpdatableDataSink * updatableDataSink = NULL;
     UpdateResponse::Parser response;
     ReferencedTLVData additionalInfo;
-    uint32_t numDispatchedHandles;
     StatusList::Parser statusList;
     VersionList::Parser versionList;
     uint64_t versionCreated = 0;
     bool IsVersionListPresent = false;
     bool IsStatusListPresent = false;
-    nl::Weave::TLV::TLVReader reader;
-    uint32_t profileID;
-    uint16_t statusCode;
     bool wholeRequestSucceeded = false;
     bool needToResubscribe = false;
+    uint32_t profileID;
+    uint16_t statusCode;
+    nl::Weave::TLV::TLVReader reader;
+    bool isPathSuccessful;
+    bool isPathPrivate;
+    bool willRetryPath;
 
-    err = Lock();
-    SuccessOrExit(err);
+    // This method invokes callbacks into the upper layer.
+    _AddRef();
 
-    isLocked = true;
+    LockUpdateMutex();
 
-    numDispatchedHandles = mInProgressUpdateList.GetNumItems();
     additionalInfo = apStatus->mAdditionalInfo;
     ClearUpdateInFlight();
 
     if (mUpdateRequestContext.mIsPartialUpdate)
     {
         WeaveLogDetail(DataManagement, "Got StatusReport in the middle of a long update");
-
-        // TODO: implement a simple FSM to handle long updates
-
-        mUpdateRequestContext.mIsPartialUpdate = false;
-        mUpdateRequestContext.mPathToEncode.mPropertyPathHandle = kNullPropertyPathHandle;
-        mUpdateRequestContext.mNextDictionaryElementPathHandle = kNullPropertyPathHandle;
     }
 
-    WeaveLogDetail(DataManagement, "Received Status Report 0x%" PRIX32 " : 0x%" PRIX16,
-                   apStatus->mProfileId, apStatus->mStatusCode);
-    WeaveLogDetail(DataManagement, "Received Status Report additional info %u",
+    WeaveLogDetail(DataManagement, "Received StatusReport %s", nl::StatusReportStr(apStatus->mProfileId, apStatus->mStatusCode));
+    WeaveLogDetail(DataManagement, "Received StatusReport additional info %u",
                    additionalInfo.theLength);
 
     if (apStatus->mProfileId == nl::Weave::Profiles::kWeaveProfile_Common &&
@@ -2415,6 +2414,9 @@ void SubscriptionClient::OnUpdateConfirm(WEAVE_ERROR aReason, nl::Weave::Profile
         // If the whole udpate has succeeded, the status list
         // is allowed to be empty.
         wholeRequestSucceeded = true;
+
+        // Also reset the retry counter.
+        mUpdateRetryCounter = 0;
     }
 
     profileID = apStatus->mProfileId;
@@ -2466,17 +2468,17 @@ void SubscriptionClient::OnUpdateConfirm(WEAVE_ERROR aReason, nl::Weave::Profile
 
     if ((wholeRequestSucceeded) && !(IsStatusListPresent && IsVersionListPresent))
     {
-        WeaveLogDetail(DataManagement, "<OnUpdateConfirm> version/status list missing");
+        WeaveLogDetail(DataManagement, "<OnUpdateResponse> version/status list missing");
         ExitNow(err = WEAVE_ERROR_WDM_MALFORMED_UPDATE_RESPONSE);
     }
 
     // TODO: validate that the version and status lists are either empty or contain
     // the same number of items as the dispatched list
 
-    for (size_t j = 0; j < numDispatchedHandles; j++)
+    for (size_t j = mInProgressUpdateList.GetFirstValidItem();
+            j < mInProgressUpdateList.GetPathStoreSize();
+            j = mInProgressUpdateList.GetNextValidItem(j))
     {
-        VerifyOrDie(mInProgressUpdateList.IsItemValid(j));
-
         if (IsVersionListPresent)
         {
             err = versionList.Next();
@@ -2486,7 +2488,7 @@ void SubscriptionClient::OnUpdateConfirm(WEAVE_ERROR aReason, nl::Weave::Profile
             SuccessOrExit(err);
         }
 
-        if ((! wholeRequestSucceeded) && IsStatusListPresent)
+        if (IsStatusListPresent)
         {
             err = statusList.Next();
 
@@ -2494,28 +2496,37 @@ void SubscriptionClient::OnUpdateConfirm(WEAVE_ERROR aReason, nl::Weave::Profile
             SuccessOrExit(err);
         }
 
+        WEAVE_FAULT_INJECT(FaultInjection::kFault_WDM_UpdateResponseBusy,
+                profileID = nl::Weave::Profiles::kWeaveProfile_Common;
+                statusCode = nl::Weave::Profiles::Common::kStatus_Busy;
+                wholeRequestSucceeded = false;
+                );
+
         err = WEAVE_NO_ERROR;
+
+        isPathSuccessful = (profileID == nl::Weave::Profiles::kWeaveProfile_Common &&
+                            statusCode == nl::Weave::Profiles::Common::kStatus_Success);
+
+        callbackerr = isPathSuccessful ? WEAVE_NO_ERROR : WEAVE_ERROR_STATUS_REPORT_RECEIVED;
+
+        willRetryPath = WillRetryUpdate(callbackerr, profileID, statusCode);
+
+        isPathPrivate = mInProgressUpdateList.AreFlagsSet(j, kFlag_Private);
 
         mInProgressUpdateList.GetItemAt(j, traitPath);
 
         updatableDataSink = Locate(traitPath.mTraitDataHandle, mDataSinkCatalog);
         VerifyOrExit(updatableDataSink != NULL, err = WEAVE_ERROR_WDM_SCHEMA_MISMATCH);
 
-        if (! mInProgressUpdateList.AreFlagsSet(j, kFlag_Private))
-        {
-            UpdateCompleteEventCbHelper(traitPath, profileID, statusCode, aReason);
-        }
-
-        mInProgressUpdateList.RemoveItemAt(j);
-
         WeaveLogDetail(DataManagement, "item: %zu, profile: %" PRIu32 ", statusCode: 0x% " PRIx16 ", version 0x%" PRIx64 "",
                 j, profileID, statusCode, versionCreated);
         WeaveLogDetail(DataManagement, "item: %zu, traitDataHandle: %" PRIu16 ", pathHandle: %" PRIu32 "",
                 j, traitPath.mTraitDataHandle, traitPath.mPropertyPathHandle);
 
-        if (profileID == nl::Weave::Profiles::kWeaveProfile_Common &&
-                statusCode == nl::Weave::Profiles::Common::kStatus_Success)
+        if (isPathSuccessful)
         {
+            mInProgressUpdateList.RemoveItemAt(j);
+
             if (updatableDataSink->IsConditionalUpdate())
             {
                 if (updatableDataSink->IsVersionValid() &&
@@ -2548,6 +2559,8 @@ void SubscriptionClient::OnUpdateConfirm(WEAVE_ERROR aReason, nl::Weave::Profile
             if (profileID == nl::Weave::Profiles::kWeaveProfile_WDM &&
                     statusCode == nl::Weave::Profiles::DataManagement::kStatus_VersionMismatch)
             {
+                mInProgressUpdateList.RemoveItemAt(j);
+
                 // Fail all pending ones as well for VersionMismatch and force resubscribe
                 if (mPendingUpdateSet.IsTraitPresent(traitPath.mTraitDataHandle))
                 {
@@ -2560,50 +2573,73 @@ void SubscriptionClient::OnUpdateConfirm(WEAVE_ERROR aReason, nl::Weave::Profile
             }
             else
             {
-                if (updatableDataSink->IsConditionalUpdate() &&
-                        mPendingUpdateSet.IsTraitPresent(traitPath.mTraitDataHandle))
+                // If the publisher is busy or has an internal timeout, retry later.
+                // Else, throw away all updates in the trait instance.
+                if (false == willRetryPath)
                 {
-                    mPendingUpdateSet.SetFailedTrait(traitPath.mTraitDataHandle);
-                    updatableDataSink->ClearUpdateRequiredVersion();
-                    updatableDataSink->SetConditionalUpdate(false);
-                }
+                    mInProgressUpdateList.RemoveItemAt(j);
 
-                if (updatableDataSink->IsVersionValid())
-                {
-                    WeaveLogDetail(DataManagement, "Clearing version for tdh %d, trait %08x",
-                            traitPath.mTraitDataHandle,
-                            updatableDataSink->GetSchemaEngine()->GetProfileId());
+                    if (updatableDataSink->IsConditionalUpdate() &&
+                            mPendingUpdateSet.IsTraitPresent(traitPath.mTraitDataHandle))
+                    {
+                        mPendingUpdateSet.SetFailedTrait(traitPath.mTraitDataHandle);
+                        updatableDataSink->ClearUpdateRequiredVersion();
+                        updatableDataSink->SetConditionalUpdate(false);
+                    }
 
-                    updatableDataSink->ClearVersion();
-                    needToResubscribe = true;
+                    if (updatableDataSink->IsVersionValid())
+                    {
+                        WeaveLogDetail(DataManagement, "Clearing version for tdh %d, trait %08x",
+                                traitPath.mTraitDataHandle,
+                                updatableDataSink->GetSchemaEngine()->GetProfileId());
+
+                        updatableDataSink->ClearVersion();
+                        needToResubscribe = true;
+                    }
                 }
             }
         } // Not success
-    } // for numDispatchedHandles
+
+        if (false == isPathPrivate)
+        {
+            UpdateCompleteEventCbHelper(traitPath, profileID, statusCode, callbackerr, willRetryPath);
+            // The application can call DiscardUpdates() from the callback. In that case,
+            // the next item in the list will be invalid, and the loop will terminate.
+            // Either this method or DiscardUpdates will trigger a resubscription.
+        }
+    } // for all paths in mInProgressUpdateList
 
 exit:
 
-    // If the loop above exited early for an error, the application
-    // is notified for any remaining path by the following method.
-    ClearPathStore(mInProgressUpdateList, err);
-
-    mUpdateRequestContext.mItemInProgress = 0;
-
-    if (needToResubscribe)
+    if (err != WEAVE_NO_ERROR)
     {
-        WeaveLogDetail(DataManagement, "UpdateResponse: triggering resubscription");
+        size_t count;
+
+        // If the loop above exited early for an error, the application
+        // is notified for any remaining path by the following method.
+        // These paths are not retried.
+        mInProgressUpdateList.SetFailed();
+        PurgeAndNotifyFailedPaths(err, mInProgressUpdateList, count);
+        needToResubscribe = true;
+    }
+    else
+    {
+        // Whatever was not discarded above should be retried
+        err = MoveInProgressToPending();
+        if (err != WEAVE_NO_ERROR)
+        {
+            AbortUpdates(err);
+        }
     }
 
-    // TODO: should the purge happen only if the pending set is ready?
+    mUpdateRequestContext.Reset();
+
     PurgePendingUpdate();
 
-    if (mPendingSetState == kPendingSetReady)
+    if (mPendingSetState == kPendingSetEmpty)
     {
-        // TODO: handle error!
-        FormAndSendUpdate(true);
-    }
-    else if (mPendingSetState == kPendingSetEmpty)
-    {
+        mUpdateRetryCounter = 0;
+
         NoMorePendingEventCbHelper();
 
         if (CheckForSinksWithDataLoss())
@@ -2612,22 +2648,23 @@ exit:
         }
     }
 
-    if (needToResubscribe && IsEstablishedIdle())
+    if (mPendingSetState == kPendingSetReady)
     {
+        StartUpdateRetryTimer(wholeRequestSucceeded ? WEAVE_NO_ERROR : WEAVE_ERROR_STATUS_REPORT_RECEIVED);
+    }
+
+    // If we need to resubscribe, bring it down
+    if (needToResubscribe && IsInProgressOrEstablished())
+    {
+        WeaveLogDetail(DataManagement, "UpdateResponse: triggering resubscription");
         HandleSubscriptionTerminated(IsRetryEnabled(), err, NULL);
     }
-    else if (ShouldSubscribe() && (kState_Initialized == mCurrentState))
-    {
-        SetRetryTimer(WEAVE_NO_ERROR);
-    }
 
-
-    if (isLocked)
-    {
-        Unlock();
-    }
+    UnlockUpdateMutex();
 
     WeaveLogFunctError(err);
+
+    _Release();
 }
 
 /**
@@ -2636,62 +2673,55 @@ exit:
  */
 void SubscriptionClient::OnUpdateNoResponse(WEAVE_ERROR aError)
 {
-    // TODO: no test for this yet
-
     TraitPath traitPath;
     WEAVE_ERROR err = WEAVE_NO_ERROR;
-    bool isLocked = false;
-    uint32_t numDispatchedHandles = mInProgressUpdateList.GetPathStoreSize();
 
-    err = Lock();
-    SuccessOrExit(err);
+    _AddRef();
 
-    isLocked = true;
+    LockUpdateMutex();
 
     ClearUpdateInFlight();
 
     // Notify the app for all dispatched paths.
-    // TODO: this implementation is incomplete...
-    for (size_t j = 0; j < numDispatchedHandles; j++)
+    for (size_t j = mInProgressUpdateList.GetFirstValidItem();
+            j < mInProgressUpdateList.GetPathStoreSize();
+            j = mInProgressUpdateList.GetNextValidItem(j))
     {
-        if (! mInProgressUpdateList.IsItemValid(j))
-        {
-            continue;
-        }
-
         if (! mInProgressUpdateList.AreFlagsSet(j, kFlag_Private))
         {
-            // TODO: does it make sense to put a profile and status when we never received a StatusReport?
-            UpdateCompleteEventCbHelper(traitPath, nl::Weave::Profiles::kWeaveProfile_Common, nl::Weave::Profiles::Common::kStatus_Timeout, aError);
+            mInProgressUpdateList.GetItemAt(j, traitPath);
+
+            UpdateCompleteEventCbHelper(traitPath,
+                                        nl::Weave::Profiles::kWeaveProfile_Common,
+                                        nl::Weave::Profiles::Common::kStatus_Success,
+                                        aError,
+                                        true);
         }
     }
 
     //Move paths from DispatchedUpdates to PendingUpdates for all TIs.
     err = MoveInProgressToPending();
-    mUpdateRequestContext.mItemInProgress = 0;
     if (err != WEAVE_NO_ERROR)
     {
-        // Fail everything; think about dictionaries spread over
-        // more than one DataElement
-        ClearPathStore(mInProgressUpdateList, WEAVE_ERROR_NO_MEMORY);
-        ClearPathStore(mPendingUpdateSet, WEAVE_ERROR_NO_MEMORY);
+        AbortUpdates(err);
     }
     else
     {
         PurgePendingUpdate();
     }
 
-    if ((false == mPendingUpdateSet.IsEmpty()) && IsEstablishedIdle())
+    if (mPendingUpdateSet.IsEmpty())
     {
-        HandleSubscriptionTerminated(IsRetryEnabled(), aError, NULL);
+        NoMorePendingEventCbHelper();
+    }
+    else
+    {
+        StartUpdateRetryTimer(aError);
     }
 
-exit:
+    UnlockUpdateMutex();
 
-    if (isLocked)
-    {
-        Unlock();
-    }
+    _Release();
 }
 
 void SubscriptionClient::UpdateEventCallback (void * const aAppState,
@@ -2711,7 +2741,7 @@ void SubscriptionClient::UpdateEventCallback (void * const aAppState,
 
         if (aInParam.UpdateComplete.Reason == WEAVE_NO_ERROR)
         {
-            pSubClient->OnUpdateConfirm(aInParam.UpdateComplete.Reason, aInParam.UpdateComplete.StatusReportPtr);
+            pSubClient->OnUpdateResponse(aInParam.UpdateComplete.Reason, aInParam.UpdateComplete.StatusReportPtr);
         }
         else
         {
@@ -2722,8 +2752,7 @@ void SubscriptionClient::UpdateEventCallback (void * const aAppState,
     case UpdateClient::kEvent_UpdateContinue:
         WeaveLogDetail(DataManagement, "UpdateContinue event: %d", aEvent);
         pSubClient->ClearUpdateInFlight();
-        // TODO: handle error!
-        pSubClient->FormAndSendUpdate(true);
+        pSubClient->FormAndSendUpdate();
         break;
     default:
         WeaveLogDetail(DataManagement, "Unknown UpdateClient event: %d", aEvent);
@@ -2738,21 +2767,17 @@ WEAVE_ERROR SubscriptionClient::SetUpdated(TraitUpdatableDataSink * aDataSink, P
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
     TraitDataHandle dataHandle;
-    bool isLocked = false;
     const TraitSchemaEngine * schemaEngine;
     bool needToSetUpdateRequiredVersion = false;
     bool isTraitInstanceInUpdate = false;
 
-    err = Lock();
-    SuccessOrExit(err);
-
-    isLocked = true;
+    LockUpdateMutex();
 
     if (aIsConditional)
     {
         if (!aDataSink->IsVersionValid())
         {
-            err = WEAVE_ERROR_INCORRECT_STATE;
+            err = WEAVE_ERROR_WDM_LOCAL_DATA_INCONSISTENT;
             WeaveLogDetail(DataManagement, "Rejected mutation with error %d", err);
             ExitNow();
         }
@@ -2770,7 +2795,7 @@ WEAVE_ERROR SubscriptionClient::SetUpdated(TraitUpdatableDataSink * aDataSink, P
     // in the same trait.
     if (isTraitInstanceInUpdate)
     {
-        VerifyOrExit(aIsConditional == aDataSink->IsConditionalUpdate(), err = WEAVE_ERROR_INCORRECT_STATE);
+        VerifyOrExit(aIsConditional == aDataSink->IsConditionalUpdate(), err = WEAVE_ERROR_WDM_INCONSISTENT_CONDITIONALITY);
     }
     else
     {
@@ -2783,30 +2808,154 @@ WEAVE_ERROR SubscriptionClient::SetUpdated(TraitUpdatableDataSink * aDataSink, P
     err = AddItemPendingUpdateSet(TraitPath(dataHandle, aPropertyHandle), schemaEngine);
     SuccessOrExit(err);
 
-    if (aIsConditional)
-    {
-        if (needToSetUpdateRequiredVersion)
-        {
-            uint64_t requiredDataVersion = aDataSink->GetVersion();
-            aDataSink->SetUpdateRequiredVersion(requiredDataVersion);
-            WeaveLogDetail(DataManagement, "<SetUpdated> Set update required version to 0x%" PRIx64 "", aDataSink->GetUpdateRequiredVersion());
-        }
 
+    if (needToSetUpdateRequiredVersion)
+    {
+        uint64_t requiredDataVersion = aDataSink->GetVersion();
+        aDataSink->SetUpdateRequiredVersion(requiredDataVersion);
+        WeaveLogDetail(DataManagement, "<SetUpdated> Set update required version to 0x%" PRIx64 "", aDataSink->GetUpdateRequiredVersion());
     }
     aDataSink->SetConditionalUpdate(aIsConditional);
 
-exit:
-    if (err == WEAVE_NO_ERROR)
-    {
-        SetPendingSetState(kPendingSetOpen);
-    }
+    SetPendingSetState(kPendingSetOpen);
 
-    if (isLocked)
-    {
-        Unlock();
-    }
+exit:
+
+    UnlockUpdateMutex();
 
     return err;
+}
+
+/**
+ * Tells the SubscriptionClient to empty the set of TraitPaths pending to be updated and abort the
+ * update request that is in progress, if any.
+ * This method can be invoked from any callback.
+ */
+void SubscriptionClient::DiscardUpdates()
+{
+    AbortUpdates(WEAVE_NO_ERROR);
+}
+
+/**
+ * Empties the set of TraitPaths pending to be updated and aborts the
+ * update request that is in progress, if any.
+ * Calls the application callback for every path if the error code passed is not WEAVE_NO_ERROR.
+ *
+ * Note that this method is written to be reentrant. If this is called internally with an
+ * error code, the application can in turn call SetUpdated()/FlushUpdate() or DiscardUpdates()
+ * from any of the paths.
+ * A call to SetUpdated() will add a path to mPendingUpdateSet as usual, and that path won't be
+ * deleted by the AbortUpdates in progress.
+ * If the application calls DiscardUpdates, another AbortUpdates will start executing; this will
+ * mark any new paths as failed and empty the stores without further callbacks. When the original
+ * AbortUpdates resumes, it will find no more paths to notify the application about.
+ *
+ * @param[in]   aErr    The WEAVE_ERROR to notify the application with.
+ */
+void SubscriptionClient::AbortUpdates(WEAVE_ERROR aErr)
+{
+    size_t numPending = 0;
+    size_t numInProgress = 0;
+    bool resubscribe = false;
+
+    LockUpdateMutex();
+
+    SubscriptionEngine::GetInstance()->GetExchangeManager()->MessageLayer->SystemLayer->CancelTimer(OnUpdateTimerCallback, this);
+    mUpdateRetryScheduled = false;
+
+    mUpdateFlushScheduled = false;
+
+    ClearUpdateInFlight();
+
+    mUpdateClient.CancelUpdate();
+
+    for (size_t i = 0; i < mNumUpdatableTraitInstances; i++)
+    {
+        bool refreshTraitInstance = false;
+        UpdatableTIContext * traitInfo = mClientTraitInfoPool + i;
+        TraitUpdatableDataSink * updatableDataSink = traitInfo->mUpdatableDataSink;
+        TraitDataHandle dataHandle = traitInfo->mTraitDataHandle;
+
+        if (mPendingUpdateSet.IsTraitPresent(dataHandle))
+        {
+            refreshTraitInstance = true;
+        }
+
+        if (mInProgressUpdateList.IsTraitPresent(dataHandle))
+        {
+            refreshTraitInstance = true;
+        }
+
+        if (refreshTraitInstance)
+        {
+            updatableDataSink->SetConditionalUpdate(false);
+            updatableDataSink->ClearUpdateRequiredVersion();
+            updatableDataSink->ClearVersion();
+            resubscribe = true;
+        }
+    }
+
+    if (resubscribe && IsInProgressOrEstablished())
+    {
+        HandleSubscriptionTerminated(IsRetryEnabled(), WEAVE_NO_ERROR, NULL);
+    }
+
+    // If there's an error code, notify the application
+    if (aErr == WEAVE_NO_ERROR)
+    {
+        numPending = mPendingUpdateSet.GetNumItems();
+        mPendingUpdateSet.Clear();
+
+        numInProgress = mInProgressUpdateList.GetNumItems();
+        mInProgressUpdateList.Clear();
+    }
+    else
+    {
+        // Note that the application can call DiscardUpdates() or SetUpdated()/FlushUpdate()
+        // from any callback.
+        // SetUpdated() can re-add paths to the pending list.
+        // FlushUpdate() can re-start the retry timer.
+        // A call to DiscardUpdates() does nothing because all paths are already marked as failed,
+        // unless SetUpdated() has been by a callback for an earlier element.
+
+        mPendingUpdateSet.SetFailed();
+        mInProgressUpdateList.SetFailed();
+        PurgeAndNotifyFailedPaths(aErr, mPendingUpdateSet, numPending);
+        PurgeAndNotifyFailedPaths(aErr, mInProgressUpdateList, numInProgress);
+    }
+
+    WeaveLogDetail(DataManagement, "Discarded %" PRIu32 " pending  and %" PRIu32 " inProgress paths",
+            numPending, numInProgress);
+
+    UnlockUpdateMutex();
+
+    return;
+}
+
+/**
+ * Tells the SubscriptionClient to stop retrying update requests.
+ * Allows the application to suspend updates for a period of time
+ * without discarding all metadata.
+ * Updates and retries will be resumed when FlushUpdate is called.
+ * When called to suspend updates while an update is in-flight, the update
+ * is not canceled but in case it fails it will not be retried until FlushUpdate
+ * is called again.
+ */
+void SubscriptionClient::SuspendUpdateRetries()
+{
+    LockUpdateMutex();
+
+    SubscriptionEngine::GetInstance()->GetExchangeManager()->MessageLayer->SystemLayer->CancelTimer(OnUpdateTimerCallback, this);
+    mUpdateRetryScheduled = false;
+
+    if (false == mSuspendUpdateRetries)
+    {
+        WeaveLogDetail(DataManagement, "%s false -> true", __func__);
+
+        mSuspendUpdateRetries = true;
+    }
+
+    UnlockUpdateMutex();
 }
 
 /**
@@ -2818,15 +2967,8 @@ WEAVE_ERROR SubscriptionClient::PurgePendingUpdate()
     WEAVE_ERROR err = WEAVE_NO_ERROR;
     TraitUpdatableDataSink * updatableDataSink;
     UpdatableTIContext * traitInfo;
-    bool isLocked = false;
     size_t numUpdatableTraitInstances = GetNumUpdatableTraitInstances();
     size_t numPendingPathsDeleted = 0;
-
-    // Lock before attempting to modify any of the shared data structures.
-    err = Lock();
-    SuccessOrExit(err);
-
-    isLocked = true;
 
     WeaveLogDetail(DataManagement, "PurgePendingUpdate: numItems before: %d", mPendingUpdateSet.GetNumItems());
 
@@ -2843,45 +2985,19 @@ WEAVE_ERROR SubscriptionClient::PurgePendingUpdate()
         }
     }
 
-    err = PurgeFailedPendingPaths(WEAVE_ERROR_WDM_VERSION_MISMATCH, numPendingPathsDeleted);
+    PurgeAndNotifyFailedPaths(WEAVE_ERROR_WDM_VERSION_MISMATCH, mPendingUpdateSet, numPendingPathsDeleted);
 
-    if ((err != WEAVE_NO_ERROR || (numPendingPathsDeleted > 0)) && IsEstablishedIdle())
+    if ((numPendingPathsDeleted > 0) && IsInProgressOrEstablished())
     {
         HandleSubscriptionTerminated(IsRetryEnabled(), WEAVE_ERROR_WDM_VERSION_MISMATCH, NULL);
     }
 
 exit:
-
     WeaveLogDetail(DataManagement, "PurgePendingUpdate: numItems after: %d", mPendingUpdateSet.GetNumItems());
-
-    if (isLocked)
-    {
-        Unlock();
-    }
 
     return err;
 }
 
-void SubscriptionClient::CancelUpdateClient(void)
-{
-    WeaveLogDetail(DataManagement, "SubscriptionClient::CancelUpdateClient");
-    ClearUpdateInFlight();
-    mUpdateClient.CancelUpdate();
-}
-
-void SubscriptionClient::ShutdownUpdateClient(void)
-{
-    mNumUpdatableTraitInstances        = 0;
-    mUpdateRequestContext.mItemInProgress = 0;
-    mUpdateRequestContext.mNextDictionaryElementPathHandle   = kNullPropertyPathHandle;
-    mPendingUpdateSet.Clear();
-    mInProgressUpdateList.Clear();
-    mMaxUpdateSize                     = 0;
-    mUpdateInFlight                    = false;
-    mPendingSetState                   = kPendingSetEmpty;
-
-    mUpdateClient.Shutdown();
-}
 
 void SubscriptionClient::SetUpdateStartVersions(void)
 {
@@ -2914,13 +3030,11 @@ WEAVE_ERROR SubscriptionClient::SendSingleUpdateRequest(void)
     err = mUpdateClient.mpBinding->AllocateRightSizedBuffer(pBuf, maxUpdateSize, WDM_MIN_UPDATE_SIZE, maxPayloadSize);
     SuccessOrExit(err);
 
-    mUpdateRequestContext.mSubClient = this;
-    mUpdateRequestContext.mNumDataElementsAddedToPayload = 0;
     mUpdateRequestContext.mIsPartialUpdate = false;
 
     context.mBuf = pBuf;
     context.mMaxPayloadSize = maxPayloadSize;
-    context.mUpdateRequestIndex = mUpdateClient.GetUpdateRequestIndex();
+    context.mUpdateRequestIndex = mUpdateRequestContext.mUpdateRequestIndex;
     context.mExpiryTimeMicroSecond = 0;
     context.mItemInProgress = mUpdateRequestContext.mItemInProgress;
     context.mNextDictionaryElementPathHandle = mUpdateRequestContext.mNextDictionaryElementPathHandle;
@@ -2932,9 +3046,15 @@ WEAVE_ERROR SubscriptionClient::SendSingleUpdateRequest(void)
 
     mUpdateRequestContext.mNextDictionaryElementPathHandle = context.mNextDictionaryElementPathHandle;
 
-    mUpdateRequestContext.mIsPartialUpdate = (context.mItemInProgress < mInProgressUpdateList.GetPathStoreSize());
+    if (context.mItemInProgress < mInProgressUpdateList.GetPathStoreSize())
+    {
+        // This is a PartialUpdateRequest; increase the index for the next one
+        mUpdateRequestContext.mIsPartialUpdate = true;
+        mUpdateRequestContext.mUpdateRequestIndex++;
+    }
 
-    if (context.mNumDataElementsAddedToPayload)
+
+    if (context.mNumDataElementsAddedToPayload > 0)
     {
         if (false == mUpdateRequestContext.mIsPartialUpdate)
         {
@@ -2942,27 +3062,19 @@ WEAVE_ERROR SubscriptionClient::SendSingleUpdateRequest(void)
             SetUpdateStartVersions();
         }
 
-        WeaveLogDetail(DataManagement, "Sending update");
+        WeaveLogDetail(DataManagement, "Sending %sUpdateRequest with %" PRIu16 " DEs",
+                mUpdateRequestContext.mIsPartialUpdate ? "Partial" : "",
+                context.mNumDataElementsAddedToPayload);
+
         // TODO: SetUpdateInFlight is here instead of after SendUpdate
         // to be able to inject timeouts; must improve this..
         SetUpdateInFlight();
 
-        WEAVE_FAULT_INJECT(FaultInjection::kFault_WDM_UpdateRequestSendError,
-                           nl::Weave::FaultInjection::GetManager().FailAtFault(
-                               nl::Weave::FaultInjection::kFault_WRMSendError,
-                               0, 1));
-
-        err = mUpdateClient.SendUpdate(mUpdateRequestContext.mIsPartialUpdate, pBuf);
+        err = mUpdateClient.SendUpdate(mUpdateRequestContext.mIsPartialUpdate, pBuf, context.mUpdateRequestIndex == 0);
         pBuf = NULL;
         SuccessOrExit(err);
 
-        WEAVE_FAULT_INJECT(FaultInjection::kFault_WDM_DelayUpdateResponse,
-                           nl::Weave::FaultInjection::GetManager().FailAtFault(
-                               nl::Weave::FaultInjection::kFault_DropIncomingUDPMsg,
-                               0, 1));
-
         mUpdateRequestContext.mItemInProgress = context.mItemInProgress;
-
     }
     else
     {
@@ -2977,46 +3089,21 @@ exit:
         pBuf = NULL;
     }
 
-    if (err != WEAVE_NO_ERROR)
+    if (err == WEAVE_ERROR_BUFFER_TOO_SMALL)
     {
-        ClearUpdateInFlight();
-        mUpdateClient.CancelUpdate();
-
-        context.mNextDictionaryElementPathHandle = kNullPropertyPathHandle;
-
-        // TODO: there is no coverage for this yet
-        WeaveLogDetail(DataManagement, "%s failed: %d", __func__, err);
-
-        if (err == WEAVE_ERROR_BUFFER_TOO_SMALL)
-        {
-            WeaveLogDetail(DataManagement, "illegal oversized trait property is too big to fit in the packet");
-        }
-
-        ClearPathStore(mInProgressUpdateList, err);
-
-        if (IsEstablishedIdle())
-        {
-            HandleSubscriptionTerminated(IsRetryEnabled(), err, NULL);
-        }
+        WeaveLogDetail(DataManagement, "illegal oversized trait property is too big to fit in the packet");
     }
 
     return err;
 }
 
-WEAVE_ERROR SubscriptionClient::FormAndSendUpdate(bool aNotifyOnError)
+void SubscriptionClient::FormAndSendUpdate()
 {
     WEAVE_ERROR err                  = WEAVE_NO_ERROR;
-    bool isLocked                    = false;
-    InEventParam inParam;
-    OutEventParam outParam;
 
-    // Lock before attempting to modify any of the shared data structures.
-    err = Lock();
-    SuccessOrExit(err);
+    LockUpdateMutex();
 
-    isLocked = true;
-
-    VerifyOrExit(!IsUpdateInFlight(), WeaveLogDetail(DataManagement, "updating is ongoing"));
+    VerifyOrExit(!IsUpdateInFlight(), WeaveLogDetail(DataManagement, "Update request in flight"));
 
     WeaveLogDetail(DataManagement, "Eval Subscription: (state = %s, num-updatableTraits = %u)!",
             GetStateStr(), mNumUpdatableTraitInstances);
@@ -3033,7 +3120,7 @@ WEAVE_ERROR SubscriptionClient::FormAndSendUpdate(bool aNotifyOnError)
 
         WeaveLogDetail(DataManagement, "Done update processing!");
     }
-    else
+    else if (false == mBinding->IsPreparing())
     {
         err = _PrepareBinding();
         SuccessOrExit(err);
@@ -3041,57 +3128,77 @@ WEAVE_ERROR SubscriptionClient::FormAndSendUpdate(bool aNotifyOnError)
 
 exit:
 
-    if (isLocked)
+    if (WEAVE_NO_ERROR != err)
     {
-        Unlock();
+        // If anything failed, the UpdateRequest payload was not sent.
+        // Move paths back to pending and retry later.
+        OnUpdateNoResponse(err);
     }
 
-    if (aNotifyOnError && WEAVE_NO_ERROR != err)
-    {
-        inParam.Clear();
-        outParam.Clear();
-        inParam.mUpdateComplete.mClient = this;
-        inParam.mUpdateComplete.mReason = err;
-        mEventCallback(mAppState, kEvent_OnUpdateComplete, inParam, outParam);
-    }
+    UnlockUpdateMutex();
 
     WeaveLogFunctError(err);
-    return err;
+
+    return;
 }
 
 /**
  * Signals that the application has finished mutating all TraitUpdatableDataSinks.
  * Unless a previous update exchange is in progress, the client will
  * take all data marked as updated and send it to the responder in one update request.
+ * This method can be called from any thread.
+ *
+ * @param[in] aForce    If true, causes the update to be sent immediately even if
+ *                      a retry has been scheduled in the future. This parameter is
+ *                      considered false by default.
  *
  * @return WEAVE_NO_ERROR in case of success; other WEAVE_ERROR codes in case of failure.
  */
 WEAVE_ERROR SubscriptionClient::FlushUpdate()
 {
+    return FlushUpdate(false);
+}
+WEAVE_ERROR SubscriptionClient::FlushUpdate(bool aForce)
+{
     WEAVE_ERROR err                  = WEAVE_NO_ERROR;
-    bool isLocked                    = false;
 
-    // Lock before attempting to modify any of the shared data structures.
-    err = Lock();
+    WeaveLogDetail(DataManagement, "%s", __func__);
+
+    LockUpdateMutex();
+
+    mSuspendUpdateRetries = false;
+
+    if (mPendingSetState == kPendingSetOpen)
+    {
+        SetPendingSetState(kPendingSetReady);
+    }
+
+    VerifyOrExit(mPendingSetState == kPendingSetReady,
+            WeaveLogDetail(DataManagement, "%s: PendingSetState: %d; err = %s", __func__, mPendingSetState, nl::ErrorStr(err)));
+
+    VerifyOrExit(false == IsUpdateInFlight(),
+            WeaveLogDetail(DataManagement, "%s: update already in flight", __func__));
+
+    if (aForce)
+    {
+        // Mark the timer as not running, so the ScheduleWork handler will reset it and
+        // start an immediate attempt.
+        mUpdateRetryScheduled = false;
+    }
+
+    VerifyOrExit(false == mUpdateRetryScheduled, );
+
+    VerifyOrExit(false == mUpdateFlushScheduled, );
+
+    // Tell the Weave thread to try sending the update immediately
+    err = SubscriptionEngine::GetInstance()->GetExchangeManager()->MessageLayer->SystemLayer->ScheduleWork(OnUpdateScheduleWorkCallback, this);
     SuccessOrExit(err);
 
-    VerifyOrExit(mPendingSetState == kPendingSetOpen,
-            WeaveLogDetail(DataManagement, "%s: PendingSetState: %d", __func__, mPendingSetState));
-
-    SetPendingSetState(kPendingSetReady);
-
-    VerifyOrExit(mUpdateInFlight == false,
-            WeaveLogDetail(DataManagement, "%s: update in flight", __func__, mPendingSetState));
-
-    err = FormAndSendUpdate(false);
-    SuccessOrExit(err);
+    _AddRef();
+    mUpdateFlushScheduled = true;
 
 exit:
-
-    if (isLocked)
-    {
-        Unlock();
-    }
+    UnlockUpdateMutex();
 
     return err;
 }
@@ -3160,26 +3267,37 @@ exit:
 
     if (WEAVE_NO_ERROR != err)
     {
-        InEventParam inParam;
-        OutEventParam outParam;
-
-        inParam.Clear();
-        outParam.Clear();
-        inParam.mUpdateComplete.mClient = subClient;
-        inParam.mUpdateComplete.mReason = err;
-        subClient->mEventCallback(subClient->mAppState, kEvent_OnUpdateComplete, inParam, outParam);
-
         WeaveLogDetail(DataManagement, "run out of updatable trait instances");
 
-        /* TODO: this iteration is invoked by SubscriptionClient::Init(); the event
-         * given to the application in case of error is not right.
-         * We should store an error in the context, so that Init can return error.
-         * Assert for now.
-         */
         WeaveDie();
     }
 
     return;
+}
+
+void SubscriptionClient::CleanupUpdatableSinkTrait(void * aDataSink, TraitDataHandle aDataHandle, void * aContext)
+{
+    TraitUpdatableDataSink * updatableDataSink = NULL;
+    TraitDataSink * dataSink = static_cast<TraitDataSink *>(aDataSink);
+
+    VerifyOrExit(dataSink->IsUpdatableDataSink() == true, /* no error */);
+
+    updatableDataSink = static_cast<TraitUpdatableDataSink *>(dataSink);
+
+    updatableDataSink->SetSubscriptionClient(NULL);
+    updatableDataSink->SetUpdateEncoder(NULL);
+
+exit:
+    return;
+}
+
+void SubscriptionClient::UpdateRequestContext::Reset()
+{
+    mItemInProgress = 0;
+    mNextDictionaryElementPathHandle = kNullPropertyPathHandle;
+    mUpdateRequestIndex = 0;
+
+    mIsPartialUpdate = false;
 }
 
 #endif // WEAVE_CONFIG_ENABLE_WDM_UPDATE

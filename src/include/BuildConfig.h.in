@@ -1,7 +1,13 @@
 /* src/include/BuildConfig.h.in.  Generated from configure.ac by autoheader.  */
 
+#ifndef WEAVE_BUILD_CONFIG_H
+#define WEAVE_BUILD_CONFIG_H
+
 /* Define to 1 if you want to enable WoBle over bluez. */
 #undef CONFIG_BLE_PLATFORM_BLUEZ
+
+/* Define to 1 if you want to use the OpenWeave Device Layer. */
+#undef CONFIG_DEVICE_LAYER
 
 /* Define to 1 if you want to use Weave with a system that supports
    callback-based vcbprintf */
@@ -133,6 +139,9 @@
 /* Define to 1 if you have the <lwip/pbuf.h> header file. */
 #undef HAVE_LWIP_PBUF_H
 
+/* Define to 1 if LwIP has the raw_bind_netif() interface */
+#undef HAVE_LWIP_RAW_BIND_NETIF
+
 /* Define to 1 if you have the <lwip/raw.h> header file. */
 #undef HAVE_LWIP_RAW_H
 
@@ -150,6 +159,9 @@
 
 /* Define to 1 if you have the <lwip/tcp.h> header file. */
 #undef HAVE_LWIP_TCP_H
+
+/* Define to 1 if LwIP has the udp_bind_netif() interface */
+#undef HAVE_LWIP_UDP_BIND_NETIF
 
 /* Define to 1 if you have the <lwip/udp.h> header file. */
 #undef HAVE_LWIP_UDP_H
@@ -190,8 +202,8 @@
 /* Define to 1 if you have the <nlfaultinjection.hpp> header file. */
 #undef HAVE_NLFAULTINJECTION_HPP
 
-/* Define to 1 if you have the <nltest.h> header file. */
-#undef HAVE_NLTEST_H
+/* Define to 1 if you have the <nlunit-test.h> header file. */
+#undef HAVE_NLUNIT_TEST_H
 
 /* Define to 1 if you have the <openssl/aes.h> header file. */
 #undef HAVE_OPENSSL_AES_H
@@ -389,6 +401,13 @@
 /* Define to 1 for enabling Weave Tunnel failover */
 #undef WEAVE_CONFIG_TUNNEL_FAILOVER_SUPPORTED
 
+/* Target platform name for OpenWeave Device Layer. */
+#undef WEAVE_DEVICE_LAYER_TARGET
+
+/* Define to 1 if you want to build the OpenWeave Device Layer for the
+   Espressif ESP32. */
+#undef WEAVE_DEVICE_LAYER_TARGET_ESP32
+
 /* Define to 1 if you want to enable WoBle Control Path and Throughput Test.
    */
 #undef WEAVE_ENABLE_WOBLE_TEST
@@ -487,3 +506,5 @@
 /* Define to the type of an unsigned integer type of width exactly 8 bits if
    such a type exists and the standard includes do not define it. */
 #undef uint8_t
+
+#endif // WEAVE_BUILD_CONFIG_H

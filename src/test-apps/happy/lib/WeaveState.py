@@ -25,6 +25,7 @@
 
 import json
 from happy.State import State
+from happy.utils.IP import IP
 
 options = {}
 options["quiet"] = False
@@ -162,7 +163,7 @@ class WeaveState(State):
         if node_addresses == []:
             return None
         for addr in node_addresses:
-            if self.prefixMatchAddress(weave_global_prefix, addr):
+            if IP.prefixMatchAddress(weave_global_prefix, addr):
                 return addr
         return None
 
@@ -205,7 +206,7 @@ class WeaveState(State):
         subnet_hex = "%04x" % (subnet)
 
         eui = self.WeaveIdtoEUI64(weave_id)
-        iid = self.EUI64toIID(eui)
+        iid = IP.EUI64toIID(eui)
 
         addr = global_prefix_addr + ":" + subnet_hex + ":" + iid
         return addr
@@ -252,8 +253,8 @@ class WeaveState(State):
         return 0
 
     def IPv6toWeaveId(self, addr):
-        iid = self.getIPv6IID(addr)
-        eui64 = self.IIDtoEUI64(iid)
+        iid = IP.getIPv6IID(addr)
+        eui64 = IP.IIDtoEUI64(iid)
         weave_id = self.EUI64toWeaveId(eui64)
         return weave_id
 

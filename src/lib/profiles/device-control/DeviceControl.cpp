@@ -1,5 +1,6 @@
 /*
  *
+ *    Copyright (c) 2019 Google LLC.
  *    Copyright (c) 2013-2017 Nest Labs, Inc.
  *    All rights reserved.
  *
@@ -886,7 +887,7 @@ WEAVE_ERROR DeviceControlServer::HandleRemotePassiveRendezvous(uint8_t *p, Excha
     mTunnelInactivityTimeout = LittleEndian::Read16(p);
 
     // Decode joiner filter address.
-    IPAddress::ReadAddress(p, mRemotePassiveRendezvousJoinerAddr);
+    IPAddress::ReadAddress(const_cast<const uint8_t *&>(p), mRemotePassiveRendezvousJoinerAddr);
 
     WeaveLogProgress(DeviceControl, "Got rendezvous timeout = %d, inactivity timeout = %d",
              mRemotePassiveRendezvousTimeout, mTunnelInactivityTimeout);

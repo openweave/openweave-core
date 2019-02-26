@@ -32,7 +32,7 @@
 #include <lwip/tcpip.h>
 #endif // WEAVE_SYSTEM_CONFIG_USE_LWIP
 
-#include <nltest.h>
+#include <nlunit-test.h>
 
 using namespace nl::Weave;
 

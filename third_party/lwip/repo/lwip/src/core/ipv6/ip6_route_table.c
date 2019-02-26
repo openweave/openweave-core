@@ -172,7 +172,7 @@ ip6_remove_route_entry(struct ip6_prefix *ip6_prefix)
  * @return the index of the found route entry; -1 if not found.
  */
 s8_t 
-ip6_find_route_entry(ip6_addr_t *ip6_dest_addr)
+ip6_find_route_entry(const ip6_addr_t *ip6_dest_addr)
 {
   int i, index = -1;
 
@@ -197,7 +197,7 @@ ip6_find_route_entry(ip6_addr_t *ip6_dest_addr)
  * @return the netif on which to send to reach dest
  */ 
 struct netif *
-ip6_static_route(ip6_addr_t *src, ip6_addr_t *dest)
+ip6_static_route(const ip6_addr_t *src, const ip6_addr_t *dest)
 {
 
   int i;
@@ -221,7 +221,7 @@ ip6_static_route(ip6_addr_t *src, ip6_addr_t *dest)
  * @return the ip6 address of the gateway to forward packet to
  */ 
 ip6_addr_t *
-ip6_get_gateway(struct netif *netif, ip6_addr_t *dest)
+ip6_get_gateway(struct netif *netif, const ip6_addr_t *dest)
 {
   ip6_addr_t *ret_gw = NULL;
   const int i = ip6_find_route_entry(dest);

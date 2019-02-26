@@ -53,6 +53,13 @@ namespace Weave {
 namespace Profiles {
 namespace WeaveMakeManagedNamespaceIdentifier(DataManagement, kWeaveManagedNamespaceDesignation_Current) {
 
+// Events are embedded in an anonymous structure: 1 for the control byte, 1 for end-of-container
+#define EVENT_CONTAINER_OVERHEAD_TLV_SIZE 2
+// Event importance element consumes 3 bytes: control byte, 1-byte tag, and 1 byte value
+#define IMPORTANCE_TLV_SIZE 3
+// Overhead of embedding something in a (short) byte string: 1 byte control, 1 byte tag, 1 byte length
+#define EXTERNAL_EVENT_BYTE_STRING_TLV_SIZE 3
+
 // Static instance: embedded platforms not always implement a proper
 // C++ runtime; instead, the instance is initialized via placement new
 // in CreateLoggingManangement.
@@ -379,6 +386,20 @@ exit:
 }
 
 /**
+ * @brief Helper function to skip writing an event corresponding to an allocated
+ *   event id.
+ *
+ * @param[inout] aContext   EventLoadOutContext, initialized with stateful
+ *                          information for the buffer. State is updated
+ *                          and preserved by BlitEvent using this context.
+ *
+ */
+void LoggingManagement::SkipEvent(EventLoadOutContext * aContext)
+{
+    aContext->mCurrentEventID++; // Advance the event id without writing anything
+}
+
+/**
  * @brief Create and initialize the logging management buffers. Must
  *   be called prior to the logging being used.
  *
@@ -681,11 +702,11 @@ event_id_t LoggingManagement::GetLastEventID(ImportanceType inImportance)
 
 /**
  * @brief
- *   Fetch the most recently vended ID for a particular importance level
+ *   Fetch the first event ID currently stored for a particular importance level
  *
  * @param inImportance Importance level
  *
- * @return event_id_t most recently vended event ID for that event importance
+ * @return event_id_t First currently stored event ID for that event importance
  */
 event_id_t LoggingManagement::GetFirstEventID(ImportanceType inImportance)
 {
@@ -702,6 +723,7 @@ CircularEventBuffer * LoggingManagement::GetImportanceBuffer(ImportanceType inIm
     return buf;
 }
 
+#if WEAVE_CONFIG_EVENT_LOGGING_EXTERNAL_EVENT_SUPPORT
 /**
  * @brief
  *   The public API for registering a set of externally stored events.
@@ -717,8 +739,8 @@ CircularEventBuffer * LoggingManagement::GetImportanceBuffer(ImportanceType inIm
  * within the range any number of times until it is unregistered.
  *
  * This variant of the function should be used when the external
- * provider does not care to be notified when the external events have
- * been delivered.
+ * provider desires a notifification neither when the external events have
+ * been delivered nor when the external events object is evicted.
  *
  * The pointer to the ExternalEvents struct will be NULL on failure, otherwise
  * will be populated with start and end event IDs assigned to the callback.
@@ -727,22 +749,23 @@ CircularEventBuffer * LoggingManagement::GetImportanceBuffer(ImportanceType inIm
  * See the documentation for #FetchExternalEventsFunct for details on what
  * the callback must implement.
  *
- * @param inImportance          Importance level
+ * @param[in] inImportance      Importance level
  *
- * @param inCallback            Callback to register to fetch external events
+ * @param[in] inCallback        Callback to register to fetch external events
  *
- * @param inNumEvents           Number of events in this set
+ * @param[in] inNumEvents       Number of events in this set
  *
- * @param aExternalEventsPtr    Pointer to ExternalEvents struct.
+ * @param[out] outLastEventID   Pointer to an event_id_t; on successful registration of external events the function will store the
+ *                              event ID corresponding to the last event ID of the external event block. The parameter may be NULL.
  *
  * @retval WEAVE_ERROR_NO_MEMORY        If no more callback slots are available.
  * @retval WEAVE_ERROR_INVALID_ARGUMENT Null function callback or no events to register.
  * @retval WEAVE_NO_ERROR               On success.
  */
 WEAVE_ERROR LoggingManagement::RegisterEventCallbackForImportance(ImportanceType inImportance, FetchExternalEventsFunct inCallback,
-                                                                  size_t inNumEvents, ExternalEvents ** aExternalEventsPtr)
+                                                                  size_t inNumEvents, event_id_t * outLastEventID)
 {
-    return GetImportanceBuffer(inImportance)->RegisterExternalEventsCallback(inCallback, NULL, inNumEvents, aExternalEventsPtr);
+    return RegisterEventCallbackForImportance(inImportance, inCallback, NULL, NULL, inNumEvents, outLastEventID);
 }
 
 /**
@@ -761,8 +784,9 @@ WEAVE_ERROR LoggingManagement::RegisterEventCallbackForImportance(ImportanceType
  *
  * This variant of the function should be used when the external
  * provider wants to be notified when the events have been delivered
- * to a subscriber.  When the events are delivered, the external
- * provider is notified that about the node ID of the recipient and
+ * to a subscriber, but not when the external events object is evicted.
+ * When the events are delivered, the external provider is notified
+ * about that along with the node ID of the recipient and the id of the
  * last event delivered to that recipient.  Note that the external
  * provider may be notified several times for the same event ID.
  * There are no specific restrictions on the handler, in particular,
@@ -775,15 +799,16 @@ WEAVE_ERROR LoggingManagement::RegisterEventCallbackForImportance(ImportanceType
  * See the documentation for #FetchExternalEventsFunct for details on what
  * the callback must implement.
  *
- * @param inImportance          Importance level
+ * @param[in] inImportance      Importance level
  *
- * @param inFetchCallback       Callback to register to fetch external events
+ * @param[in] inCallback        Callback to register to fetch external events
  *
- * @param inNotifyCallback      Callback to register for delivery notification
+ * @param[in] inNotifyCallback  Callback to register for delivery notification
  *
- * @param inNumEvents           Number of events in this set
+ * @param[in] inNumEvents       Number of events in this set
  *
- * @param aExternalEventsPtr    Pointer to ExternalEvents struct.
+ * @param[out] outLastEventID   Pointer to an event_id_t; on successful registration of external events the function will store the
+ *                              event ID corresponding to the last event ID of the external event block. The parameter may be NULL.
  *
  * @retval WEAVE_ERROR_NO_MEMORY        If no more callback slots are available.
  * @retval WEAVE_ERROR_INVALID_ARGUMENT Null function callback or no events to register.
@@ -792,12 +817,158 @@ WEAVE_ERROR LoggingManagement::RegisterEventCallbackForImportance(ImportanceType
 WEAVE_ERROR LoggingManagement::RegisterEventCallbackForImportance(ImportanceType inImportance,
                                                                   FetchExternalEventsFunct inFetchCallback,
                                                                   NotifyExternalEventsDeliveredFunct inNotifyCallback,
-                                                                  size_t inNumEvents, ExternalEvents ** aExternalEventsPtr)
+                                                                  size_t inNumEvents, event_id_t * outLastEventID)
 {
-    return GetImportanceBuffer(inImportance)
-        ->RegisterExternalEventsCallback(inFetchCallback, inNotifyCallback, inNumEvents, aExternalEventsPtr);
+    return RegisterEventCallbackForImportance(inImportance, inFetchCallback, inNotifyCallback, NULL, inNumEvents, outLastEventID);
 }
 
+/**
+ * @brief
+ *   The public API for registering a set of externally stored events.
+ *
+ * Register a callback of form #FetchExternalEventsFunct. This API requires
+ * the platform to know the number of events on registration. The internal
+ * workings also require this number to be constant. Since this API
+ * does not allow the platform to register specific event IDs, this prevents
+ * the platform from persisting storage of events (at least with unique event
+ * IDs).
+ *
+ * The callback will be called whenever a subscriber attempts to fetch event IDs
+ * within the range any number of times until it is unregistered.
+ *
+ * This variant of the function should be used when the external
+ * provider wants to be notified both when the events have been delivered
+ * to a subscriber and if the external events object is evicted.
+ *
+ * When the events are delivered, the external provider is notified
+ * about that along with the node ID of the recipient and the id of the
+ * last event delivered to that recipient.  Note that the external
+ * provider may be notified several times for the same event ID.
+ * There are no specific restrictions on the handler, in particular,
+ * the handler may unregister the external event IDs.
+ *
+ * If the external events object is evicted from the log buffers,
+ * the external provider is notified along with a copy of the external
+ * events object.
+ *
+ * The pointer to the ExternalEvents struct will be NULL on failure, otherwise
+ * will be populated with start and end event IDs assigned to the callback.
+ * This pointer should be used to unregister the set of events.
+ *
+ * See the documentation for #FetchExternalEventsFunct for details on what
+ * the callback must implement.
+ *
+ * @param[in] inImportance      Importance level
+ *
+ * @param[in] inFetchCallback   Callback to register to fetch external events
+ *
+ * @param[in] inNotifyCallback  Callback to register for delivery notification
+ *
+ * @param[in] inEvictedCallback Callback to register for eviction notification
+ *
+ * @param[in] inNumEvents       Number of events in this set
+ *
+ * @param[out] outLastEventID   Pointer to an event_id_t; on successful registration of external events the function will store the
+ *                              event ID corresponding to the last event ID of the external event block. The parameter may be NULL.
+ *
+ * @retval WEAVE_ERROR_NO_MEMORY        If no more callback slots are available.
+ * @retval WEAVE_ERROR_INVALID_ARGUMENT Null function callback or no events to register.
+ * @retval WEAVE_NO_ERROR               On success.
+ */
+WEAVE_ERROR LoggingManagement::RegisterEventCallbackForImportance(ImportanceType inImportance,
+                                                                  FetchExternalEventsFunct inFetchCallback,
+                                                                  NotifyExternalEventsDeliveredFunct inNotifyCallback,
+                                                                  NotifyExternalEventsEvictedFunct inEvictedCallback,
+                                                                  size_t inNumEvents, event_id_t * outLastEventID)
+{
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
+    ExternalEvents ev;
+    CircularEventBuffer * buf = GetImportanceBuffer(inImportance);
+    CircularTLVWriter writer;
+
+    Platform::CriticalSectionEnter();
+
+    WeaveCircularTLVBuffer checkpoint = mEventBuffer->mBuffer;
+
+    VerifyOrExit(inFetchCallback != NULL, err = WEAVE_ERROR_INVALID_ARGUMENT);
+    VerifyOrExit(inNumEvents > 0, err = WEAVE_ERROR_INVALID_ARGUMENT);
+
+    ev.mFirstEventID = buf->VendEventID();
+    ev.mLastEventID  = ev.mFirstEventID;
+    // need to vend event IDs in a batch.
+    for (size_t i = 1; i < inNumEvents; i++)
+    {
+        ev.mLastEventID = buf->VendEventID();
+    }
+
+    ev.mFetchEventsFunct           = inFetchCallback;
+    ev.mNotifyEventsDeliveredFunct = inNotifyCallback;
+    ev.mNotifyEventsEvictedFunct   = inEvictedCallback;
+
+    // We know the size of the event, ensure we have the space for it.
+    err = EnsureSpace(sizeof(ExternalEvents) + EVENT_CONTAINER_OVERHEAD_TLV_SIZE + IMPORTANCE_TLV_SIZE +
+                      EXTERNAL_EVENT_BYTE_STRING_TLV_SIZE);
+
+    SuccessOrExit(err);
+
+    checkpoint = mEventBuffer->mBuffer;
+
+    writer.Init(&(mEventBuffer->mBuffer));
+
+    // can't quite use the BlitEvent method, use the specially created one
+
+    err = BlitExternalEvent(writer, inImportance, ev);
+
+    mBytesWritten += writer.GetLengthWritten();
+
+exit:
+
+    if (err != WEAVE_NO_ERROR)
+    {
+        mEventBuffer->mBuffer = checkpoint;
+    }
+    else
+    {
+        if (outLastEventID != NULL)
+        {
+            *outLastEventID = ev.mLastEventID;
+        }
+    }
+
+    Platform::CriticalSectionExit();
+
+    return err;
+}
+
+WEAVE_ERROR LoggingManagement::BlitExternalEvent(nl::Weave::TLV::TLVWriter & inWriter, ImportanceType inImportance,
+                                                 ExternalEvents & inEvents)
+{
+    WEAVE_ERROR err;
+    TLVType containerType;
+
+    err = inWriter.StartContainer(AnonymousTag, kTLVType_Structure, containerType);
+    SuccessOrExit(err);
+
+    // Importance
+    err = inWriter.Put(ContextTag(kTag_EventImportance), static_cast<uint16_t>(inImportance));
+    SuccessOrExit(err);
+
+    // External event structure, blitted to the buffer as a byte string.  Must match the call in
+    // UnregisterEventCallbackForImportance
+
+    err = inWriter.PutBytes(ContextTag(kTag_ExternalEventStructure), static_cast<const uint8_t *>(static_cast<void *>(&inEvents)),
+                            sizeof(ExternalEvents));
+    SuccessOrExit(err);
+
+    err = inWriter.EndContainer(containerType);
+    SuccessOrExit(err);
+
+    err = inWriter.Finalize();
+    SuccessOrExit(err);
+
+exit:
+    return err;
+}
 /**
  * @brief
  *   The public API for unregistering a set of externally stored events.
@@ -814,13 +985,74 @@ WEAVE_ERROR LoggingManagement::RegisterEventCallbackForImportance(ImportanceType
  * This function succeeds unconditionally. If the callback was never
  * registered or was already unregistered, it's a no-op.
  *
- * @param inImportance          Importance level
- * @param inPtr                 Pointer to ExternalEvents struct to unregister.
+ * @param[in] inImportance          Importance level
+ * @param[in] inEventID             An event ID corresponding to any of the events in the external event block to be unregistered.
  */
-void LoggingManagement::UnregisterEventCallbackForImportance(ImportanceType inImportance, ExternalEvents * inPtr)
+void LoggingManagement::UnregisterEventCallbackForImportance(ImportanceType inImportance, event_id_t inEventID)
 {
-    GetImportanceBuffer(inImportance)->UnregisterExternalEventsCallback(inPtr);
+    ExternalEvents ev;
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
+    TLVReader reader;
+    WeaveCircularTLVBuffer * readBuffer;
+
+    TLVType containerType;
+    uint8_t * dataPtr;
+
+    Platform::CriticalSectionEnter();
+
+    err = GetExternalEventsFromEventId(inImportance, inEventID, &ev, reader);
+    SuccessOrExit(err);
+
+    dataPtr    = const_cast<uint8_t *>(reader.GetReadPoint());
+    readBuffer = static_cast<WeaveCircularTLVBuffer *>((void *) reader.GetBufHandle());
+
+    // The data pointer is positioned immediately after the element head.  The
+    // element in question, an anonymous structure, has element head of size 1.
+    // move the pointer back by 1, accounting for the details of the circular
+    // buffer.
+    if (readBuffer->GetQueue() != dataPtr)
+    {
+        dataPtr -= 1;
+    }
+    else
+    {
+        dataPtr = readBuffer->GetQueue() + readBuffer->GetQueueSize() - 1;
+    }
+
+    if (ev.IsValid())
+    {
+        // Reader is positioned on the external event element.
+        WeaveCircularTLVBuffer writeBuffer(readBuffer->GetQueue(), readBuffer->GetQueueSize(), dataPtr);
+        CircularTLVWriter writer;
+
+        VerifyOrExit(reader.GetTag() == AnonymousTag, );
+
+        VerifyOrExit(reader.GetType() == kTLVType_Structure, );
+
+        err = reader.EnterContainer(containerType);
+        SuccessOrExit(err);
+
+        err = reader.Next(kTLVType_UnsignedInteger, ContextTag(kTag_EventImportance));
+        SuccessOrExit(err);
+
+        err = reader.Next(kTLVType_ByteString, ContextTag(kTag_ExternalEventStructure));
+        SuccessOrExit(err);
+
+        // At this point, the reader is positioned correctly, and dataPtr points to the beginning of the string
+        ev.mFetchEventsFunct           = NULL;
+        ev.mNotifyEventsDeliveredFunct = NULL;
+        ev.mNotifyEventsEvictedFunct   = NULL;
+
+        writer.Init(&writeBuffer);
+
+        err = BlitExternalEvent(writer, inImportance, ev);
+    }
+
+exit:
+    Platform::CriticalSectionExit();
 }
+
+#endif // WEAVE_CONFIG_EVENT_LOGGING_EXTERNAL_EVENT_SUPPORT
 
 // Internal API used in copying an event out of the event buffers
 
@@ -951,7 +1183,7 @@ inline event_id_t LoggingManagement::LogEventPrivate(const EventSchema & inSchem
 #endif // WEAVE_CONFIG_EVENT_LOGGING_UTC_TIMESTAMPS
     WeaveCircularTLVBuffer checkpoint = mEventBuffer->mBuffer;
     EventLoadOutContext ctxt =
-        EventLoadOutContext(writer, inSchema.mImportance, GetImportanceBuffer(inSchema.mImportance)->mLastEventID);
+        EventLoadOutContext(writer, inSchema.mImportance, GetImportanceBuffer(inSchema.mImportance)->mLastEventID, NULL);
     EventOptions opts = EventOptions(static_cast<timestamp_t>(System::Timer::GetCurrentEpoch()));
 
     // check whether the entry is to be logged or discarded silently
@@ -1051,8 +1283,7 @@ inline event_id_t LoggingManagement::LogEventPrivate(const EventSchema & inSchem
         CircularEventBuffer * buffer = mEventBuffer;
         do
         {
-            VerifyOrExit(buffer->mBuffer.GetQueueSize() >= writer.GetLengthWritten(),
-                         err = WEAVE_ERROR_BUFFER_TOO_SMALL);
+            VerifyOrExit(buffer->mBuffer.GetQueueSize() >= writer.GetLengthWritten(), err = WEAVE_ERROR_BUFFER_TOO_SMALL);
             if (buffer->IsFinalDestinationForImportance(inSchema.mImportance))
                 break;
             else
@@ -1128,6 +1359,7 @@ void LoggingManagement::UnthrottleLogger(void)
     }
 }
 
+
 // internal API, used to copy events to external buffers
 WEAVE_ERROR LoggingManagement::CopyEvent(const TLVReader & aReader, TLVWriter & aWriter, EventLoadOutContext * aContext)
 {
@@ -1156,6 +1388,96 @@ exit:
     return err;
 }
 
+#if WEAVE_CONFIG_EVENT_LOGGING_EXTERNAL_EVENT_SUPPORT
+
+WEAVE_ERROR LoggingManagement::FindExternalEvents(const TLVReader & aReader, size_t aDepth, void * aContext)
+{
+    WEAVE_ERROR err;
+    EventLoadOutContext * context = static_cast<EventLoadOutContext *>(aContext);
+
+    err = EventIterator(aReader, aDepth, aContext);
+    if (err == WEAVE_EVENT_ID_FOUND)
+    {
+        err = WEAVE_NO_ERROR;
+    }
+    if ((err == WEAVE_END_OF_TLV) && context->mExternalEvents->IsValid())
+    {
+        err = WEAVE_ERROR_MAX;
+    }
+    return err;
+}
+
+#endif // WEAVE_CONFIG_EVENT_LOGGING_EXTERNAL_EVENT_SUPPORT
+
+/**
+ * @brief Internal iterator function used to scan and filter though event logs
+ *
+ * The function is used to scan through the event log to find events matching the spec in the supplied context.
+ */
+
+WEAVE_ERROR LoggingManagement::EventIterator(const TLVReader & aReader, size_t aDepth, void * aContext)
+{
+    WEAVE_ERROR err    = WEAVE_NO_ERROR;
+    const bool recurse = false;
+    TLVReader innerReader;
+    TLVType tlvType;
+    EventEnvelopeContext event;
+    EventLoadOutContext * loadOutContext = static_cast<EventLoadOutContext *>(aContext);
+
+#if WEAVE_CONFIG_EVENT_LOGGING_EXTERNAL_EVENT_SUPPORT
+    event.mExternalEvents = loadOutContext->mExternalEvents;
+    if (event.mExternalEvents != NULL)
+    {
+        event.mExternalEvents->Invalidate();
+    }
+#endif // WEAVE_CONFIG_EVENT_LOGGING_EXTERNAL_EVENT_SUPPORT
+
+    innerReader.Init(aReader);
+    err = innerReader.EnterContainer(tlvType);
+    SuccessOrExit(err);
+
+    err = nl::Weave::TLV::Utilities::Iterate(innerReader, FetchEventParameters, &event, recurse);
+    VerifyOrExit(event.mNumFieldsToRead == 0, err = WEAVE_NO_ERROR);
+
+    err = WEAVE_NO_ERROR;
+
+    if (event.mImportance == loadOutContext->mImportance)
+    {
+
+#if WEAVE_CONFIG_EVENT_LOGGING_EXTERNAL_EVENT_SUPPORT
+        if ((event.mExternalEvents != NULL) && (event.mExternalEvents->IsValid()))
+        {
+            // external event structure for the thing we want to read
+            // out.  if there is a chance this is to be written out by
+            // the app, kick it up to FetchEventsSince, otherwise skip
+            // over the block of external events.
+
+            // if we're in the process of writing, kick it up to FetchEventsSince
+            VerifyOrExit(loadOutContext->mCurrentEventID < loadOutContext->mStartingEventID, err = WEAVE_END_OF_TLV);
+
+            // if the external events are of interest, kick it up to the caller
+            VerifyOrExit(event.mExternalEvents->mLastEventID < loadOutContext->mStartingEventID, err = WEAVE_END_OF_TLV);
+
+            // otherwise, skip over the block of external events
+            loadOutContext->mCurrentEventID = event.mExternalEvents->mLastEventID + 1;
+        }
+        else
+#endif // WEAVE_CONFIG_EVENT_LOGGING_EXTERNAL_EVENT_SUPPORT
+
+        {
+            loadOutContext->mCurrentTime += event.mDeltaTime;
+#if WEAVE_CONFIG_EVENT_LOGGING_UTC_TIMESTAMPS
+            loadOutContext->mCurrentUTCTime += event.mDeltaUtc;
+#endif // WEAVE_CONFIG_EVENT_LOGGING_UTC_TIMESTAMPS
+            VerifyOrExit(loadOutContext->mCurrentEventID < loadOutContext->mStartingEventID, err = WEAVE_EVENT_ID_FOUND);
+            loadOutContext->mCurrentEventID++;
+        }
+    }
+
+exit:
+    return err;
+}
+
 /**
  * @brief
  *   Internal API used to implement #FetchEventsSince
@@ -1174,100 +1496,32 @@ exit:
  */
 WEAVE_ERROR LoggingManagement::CopyEventsSince(const TLVReader & aReader, size_t aDepth, void * aContext)
 {
-    WEAVE_ERROR err    = WEAVE_NO_ERROR;
-    const bool recurse = false;
-    TLVReader innerReader;
-    TLVType tlvType;
-    EventEnvelopeContext event;
-    EventLoadOutContext * loadOutContext = static_cast<EventLoadOutContext *>(aContext);
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
     nl::Weave::TLV::TLVWriter checkpoint;
+    EventLoadOutContext * loadOutContext = static_cast<EventLoadOutContext *>(aContext);
 
-#if WEAVE_CONFIG_EVENT_LOGGING_NUM_EXTERNAL_CALLBACKS
-    // TODO: CopyEventsSince using the LoggingManagement singleton is less than
-    // ideal. Consider a future refactor of the Iterate call in FetchEventsSince.
-    while (LoggingManagement::GetInstance().IsEventExternal(loadOutContext->mImportance, loadOutContext->mCurrentEventID))
+    err = EventIterator(aReader, aDepth, aContext);
+    if (err == WEAVE_EVENT_ID_FOUND)
     {
-        if (loadOutContext->mCurrentEventID >= loadOutContext->mStartingEventID)
-        {
-            // the next event is externally handled. return to FetchEventsSince.
-            err = WEAVE_END_OF_TLV;
-            break;
-        }
-        else
-        {
-            // skip over
-            loadOutContext->mCurrentEventID = LoggingManagement::GetInstance().GetEndOfExternalEventRange(
-                                                  loadOutContext->mImportance, loadOutContext->mCurrentEventID) +
-                1;
-        }
-    }
-    SuccessOrExit(err);
-#endif // WEAVE_CONFIG_EVENT_LOGGING_NUM_EXTERNAL_CALLBACKS
+        // checkpoint the writer
+        checkpoint = loadOutContext->mWriter;
 
-    innerReader.Init(aReader);
-    err = innerReader.EnterContainer(tlvType);
-    SuccessOrExit(err);
+        err = CopyEvent(aReader, loadOutContext->mWriter, loadOutContext);
 
-    err = nl::Weave::TLV::Utilities::Iterate(innerReader, FetchEventParameters, &event, recurse);
-    VerifyOrExit(event.mNumFieldsToRead == 0, err = WEAVE_NO_ERROR);
+        // WEAVE_NO_ERROR and WEAVE_END_OF_TLV signify a
+        // successful copy.  In all other cases, roll back the
+        // writer state back to the checkpoint, i.e., the state
+        // before we began the copy operation.
+        VerifyOrExit((err == WEAVE_NO_ERROR) || (err == WEAVE_END_OF_TLV), loadOutContext->mWriter = checkpoint);
 
-    err = WEAVE_NO_ERROR;
-
-    if (event.mImportance == loadOutContext->mImportance)
-    {
-        loadOutContext->mCurrentTime += event.mDeltaTime;
-#if WEAVE_CONFIG_EVENT_LOGGING_UTC_TIMESTAMPS
-        loadOutContext->mCurrentUTCTime += event.mDeltaUtc;
-#endif // WEAVE_CONFIG_EVENT_LOGGING_UTC_TIMESTAMPS
-        if (loadOutContext->mCurrentEventID >= loadOutContext->mStartingEventID)
-        {
-            // checkpoint the writer
-            checkpoint = loadOutContext->mWriter;
-
-            err = CopyEvent(aReader, loadOutContext->mWriter, loadOutContext);
-
-            // WEAVE_NO_ERROR and WEAVE_END_OF_TLV signify a
-            // successful copy.  In all other cases, roll back the
-            // writer state back to the checkpoint, i.e., the state
-            // before we began the copy operation.
-            VerifyOrExit((err == WEAVE_NO_ERROR) || (err == WEAVE_END_OF_TLV), loadOutContext->mWriter = checkpoint);
-
-            loadOutContext->mCurrentTime = 0;
-            loadOutContext->mFirst       = false;
-        }
-
+        loadOutContext->mCurrentTime = 0;
+        loadOutContext->mFirst       = false;
         loadOutContext->mCurrentEventID++;
     }
 
 exit:
     return err;
 }
-
-#if WEAVE_CONFIG_EVENT_LOGGING_NUM_EXTERNAL_CALLBACKS
-/**
- * @brief
- *   IsEventExternal checks whether inEventID is stored by the platform.
- *
- * @retval true   The event is stored externally.
- * @retval false  The event is not stored externally.
- */
-inline bool LoggingManagement::IsEventExternal(ImportanceType inImportance, event_id_t inEventID) const
-{
-    return (GetImportanceBuffer(inImportance)->GetExternalEventsFromEventID(inEventID) != NULL);
-}
-
-/**
- * @brief
- *   For an event ID known to be stored externally, return the last event ID in that set.
- *
- * @return The last event ID of a group of event IDs.
- */
-inline event_id_t LoggingManagement::GetEndOfExternalEventRange(ImportanceType inImportance, event_id_t inEventID) const
-{
-    ExternalEvents * ev = GetImportanceBuffer(inImportance)->GetExternalEventsFromEventID(inEventID);
-    return ev->mLastEventID;
-}
-#endif // WEAVE_CONFIG_EVENT_LOGGING_NUM_EXTERNAL_CALLBACKS
 
 /**
  * @brief
@@ -1306,9 +1560,15 @@ WEAVE_ERROR LoggingManagement::FetchEventsSince(TLVWriter & ioWriter, Importance
     WEAVE_ERROR err    = WEAVE_NO_ERROR;
     const bool recurse = false;
     TLVReader reader;
-    EventLoadOutContext aContext(ioWriter, inImportance, ioEventID);
-    CircularEventBuffer * buf = mEventBuffer;
 
+#if WEAVE_CONFIG_EVENT_LOGGING_EXTERNAL_EVENT_SUPPORT
+    ExternalEvents ev;
+    EventLoadOutContext aContext(ioWriter, inImportance, ioEventID, &ev);
+#else
+    EventLoadOutContext aContext(ioWriter, inImportance, ioEventID, NULL);
+#endif // WEAVE_CONFIG_EVENT_LOGGING_EXTERNAL_EVENT_SUPPORT
+
+    CircularEventBuffer * buf = mEventBuffer;
     Platform::CriticalSectionEnter();
 
     while (!buf->IsFinalDestinationForImportance(inImportance))
@@ -1324,27 +1584,22 @@ WEAVE_ERROR LoggingManagement::FetchEventsSince(TLVWriter & ioWriter, Importance
     err                      = GetEventReader(reader, inImportance);
     SuccessOrExit(err);
 
-#if WEAVE_CONFIG_EVENT_LOGGING_NUM_EXTERNAL_CALLBACKS
-    if (IsEventExternal(inImportance, ioEventID))
-    {
-        ExternalEvents * ev      = buf->GetExternalEventsFromEventID(ioEventID);
-        aContext.mCurrentEventID = ev->mFirstEventID;
+    err = nl::Weave::TLV::Utilities::Iterate(reader, CopyEventsSince, &aContext, recurse);
 
-        if (ev->mFetchEventsFunct)
+#if WEAVE_CONFIG_EVENT_LOGGING_EXTERNAL_EVENT_SUPPORT
+    if ((err == WEAVE_END_OF_TLV) && (ev.IsValid()))
+    {
+        if (ev.mFetchEventsFunct != NULL)
         {
-            err = ev->mFetchEventsFunct(&aContext);
+            err = ev.mFetchEventsFunct(&aContext);
         }
         else
         {
-            aContext.mCurrentEventID = ev->mLastEventID + 1;
+            aContext.mCurrentEventID = ev.mLastEventID + 1;
             err                      = WEAVE_END_OF_TLV;
         }
     }
-    else
-#endif // WEAVE_CONFIG_EVENT_LOGGING_NUM_EXTERNAL_CALLBACKS
-    {
-        err = nl::Weave::TLV::Utilities::Iterate(reader, CopyEventsSince, &aContext, recurse);
-    }
+#endif // WEAVE_CONFIG_EVENT_LOGGING_EXTERNAL_EVENT_SUPPORT
 
 exit:
     ioEventID = aContext.mCurrentEventID;
@@ -1399,6 +1654,13 @@ WEAVE_ERROR LoggingManagement::FetchEventParameters(const TLVReader & aReader, s
 
     VerifyOrExit(envelope->mNumFieldsToRead > 0, err = WEAVE_END_OF_TLV);
 
+    if ((reader.GetTag() == nl::Weave::TLV::ContextTag(kTag_ExternalEventStructure)) && (envelope->mExternalEvents != NULL))
+    {
+        err = reader.GetBytes(static_cast<uint8_t *>(static_cast<void *>(envelope->mExternalEvents)), sizeof(ExternalEvents));
+        VerifyOrExit(err == WEAVE_NO_ERROR, memset(envelope->mExternalEvents, 0, sizeof(ExternalEvents)));
+        envelope->mNumFieldsToRead--;
+    }
+
     if (reader.GetTag() == nl::Weave::TLV::ContextTag(kTag_EventImportance))
     {
         err = reader.Get(extImportance);
@@ -1442,8 +1704,16 @@ WEAVE_ERROR LoggingManagement::EvictEvent(WeaveCircularTLVBuffer & inBuffer, voi
     WEAVE_ERROR err;
     ImportanceType imp = kImportanceType_Invalid;
 
-    // pull out the delta time, pull out the importance
+#if WEAVE_CONFIG_EVENT_LOGGING_EXTERNAL_EVENT_SUPPORT
+    ExternalEvents ev;
 
+    ev.Invalidate();
+    context.mExternalEvents = &ev;
+#else
+    context.mExternalEvents = NULL;
+#endif // WEAVE_CONFIG_EVENT_LOGGING_EXTERNAL_EVENT_SUPPORT
+
+    // pull out the delta time, pull out the importance
     err = inReader.Next();
     SuccessOrExit(err);
 
@@ -1461,7 +1731,21 @@ WEAVE_ERROR LoggingManagement::EvictEvent(WeaveCircularTLVBuffer & inBuffer, voi
     if (eventBuffer->IsFinalDestinationForImportance(imp))
     {
         // event is getting dropped.  Increase the eventid and first timestamp.
-        eventBuffer->RemoveEvent();
+        size_t numEventsToDrop = 1;
+
+#if WEAVE_CONFIG_EVENT_LOGGING_EXTERNAL_EVENT_SUPPORT
+        if (ev.IsValid())
+        {
+            numEventsToDrop = ev.mLastEventID - ev.mFirstEventID + 1;
+
+            if (ev.mNotifyEventsEvictedFunct != NULL)
+            {
+                ev.mNotifyEventsEvictedFunct(&ev);
+            }
+        }
+#endif // WEAVE_CONFIG_EVENT_LOGGING_EXTERNAL_EVENT_SUPPORT
+
+        eventBuffer->RemoveEvent(numEventsToDrop);
         eventBuffer->mFirstEventTimestamp += context.mDeltaTime;
 #if WEAVE_CONFIG_EVENT_LOGGING_UTC_TIMESTAMPS
         eventBuffer->mFirstEventUTCTimestamp += context.mDeltaUtc;
@@ -1717,29 +2001,96 @@ uint32_t LoggingManagement::GetBytesWritten(void) const
 }
 
 void LoggingManagement::NotifyEventsDelivered(ImportanceType inImportance, event_id_t inLastDeliveredEventID,
-                                              uint64_t inRecipientNodeID) const
+                                              uint64_t inRecipientNodeID)
 {
-#if WEAVE_CONFIG_EVENT_LOGGING_NUM_EXTERNAL_CALLBACKS
 
-    for (size_t i = 0; i < WEAVE_CONFIG_EVENT_LOGGING_NUM_EXTERNAL_CALLBACKS; i++)
+#if WEAVE_CONFIG_EVENT_LOGGING_EXTERNAL_EVENT_SUPPORT
+    ExternalEvents ev;
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
+    TLVReader reader;
+    event_id_t currentId;
+
+    Platform::CriticalSectionEnter();
+    currentId = GetFirstEventID(inImportance);
+    while (currentId <= inLastDeliveredEventID)
     {
-        ExternalEvents * externalEvents = &(GetImportanceBuffer(inImportance)->mExternalEventsList[i]);
-        if ((externalEvents->mFetchEventsFunct != NULL) && (externalEvents->mNotifyEventsDeliveredFunct != NULL))
-        {
-            if (inLastDeliveredEventID >= externalEvents->mFirstEventID)
-            {
-                event_id_t eventId = inLastDeliveredEventID;
-                if (eventId > externalEvents->mLastEventID)
-                {
-                    eventId = externalEvents->mLastEventID;
-                }
+        err = GetExternalEventsFromEventId(inImportance, currentId, &ev, reader);
+        SuccessOrExit(err);
 
-                externalEvents->mNotifyEventsDeliveredFunct(externalEvents, eventId, inRecipientNodeID);
-            }
+        VerifyOrExit(ev.IsValid(), );
+
+        VerifyOrExit(ev.mFirstEventID <= inLastDeliveredEventID, );
+
+        if (ev.mNotifyEventsDeliveredFunct != NULL)
+        {
+            ev.mNotifyEventsDeliveredFunct(&ev, inLastDeliveredEventID, inRecipientNodeID);
         }
+
+        currentId = ev.mLastEventID + 1;
     }
-#endif
+
+exit:
+    Platform::CriticalSectionExit();
+#endif // WEAVE_CONFIG_EVENT_LOGGING_EXTERNAL_EVENT_SUPPORT
 }
+
+#if WEAVE_CONFIG_EVENT_LOGGING_EXTERNAL_EVENT_SUPPORT
+/**
+ * @brief
+ *   Retrieve ExternalEvent descriptor based on the importance and event ID of the external event.
+ *
+ * @param[in]  inImportance      The importance of the event
+ * @param[in]  inEventID         The ID of the event
+ *
+ * @param[out] outExternalEvents A pointer to the ExternalEvent structure.  If the external event specified via inImportance /
+ *                               inEventID tuple corresponds to a valid external ID, the structure will be populated with the
+ *                               descriptor holding all relevant information about that particular block of external events.
+ *
+ * @param[out] outReader         A reference to a TLVReader. On successful retrieval of ExternalEvent structure, the reader will be
+ *                               positioned to the beginning of the TLV struct containing the external events.
+ *
+ * @retval WEAVE_NO_ERROR                On successful retrieval of the ExternalEvents
+ *
+ * @retval WEAVE_ERROR_INVALID_ARGUMENT  When the arguments passed in do not correspond to an external event, or if the external
+ *                                       event was already either dropped or unregistered.
+ */
+
+WEAVE_ERROR LoggingManagement::GetExternalEventsFromEventId(ImportanceType inImportance, event_id_t inEventID,
+                                                            ExternalEvents * outExternalEvents, TLVReader & outReader)
+{
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
+    uint32_t dummyBuf;
+    const bool recurse = false;
+    TLVWriter writer;
+    EventLoadOutContext aContext(writer, inImportance, inEventID, outExternalEvents);
+    CircularEventBuffer * buf = mEventBuffer;
+    TLVReader resultReader;
+
+    writer.Init(static_cast<uint8_t *>(static_cast<void *>(&dummyBuf)), sizeof(uint32_t));
+
+    while (!buf->IsFinalDestinationForImportance(inImportance))
+    {
+        buf = buf->mNext;
+    }
+
+    aContext.mCurrentTime = buf->mFirstEventTimestamp;
+
+#if WEAVE_CONFIG_EVENT_LOGGING_UTC_TIMESTAMPS
+    aContext.mCurrentUTCTime = buf->mFirstEventUTCTimestamp;
+#endif // WEAVE_CONFIG_EVENT_LOGGING_UTC_TIMESTAMPS
+    aContext.mCurrentEventID = buf->mFirstEventID;
+    err                      = GetEventReader(outReader, inImportance);
+    SuccessOrExit(err);
+
+    err = nl::Weave::TLV::Utilities::Find(outReader, FindExternalEvents, &aContext, resultReader, recurse);
+    if (err == WEAVE_NO_ERROR)
+        outReader.Init(resultReader);
+
+exit:
+
+    return err;
+}
+#endif // WEAVE_CONFIG_EVENT_LOGGING_EXTERNAL_EVENT_SUPPORT
 
 void LoggingManagement::SetBDXUploader(LogBDXUpload * inUploader)
 {
@@ -1780,12 +2131,6 @@ CircularEventBuffer::CircularEventBuffer(uint8_t * inBuffer, size_t inBufferLeng
     mEventIdCounter(NULL)
 {
     // TODO: hook up the platform-specific persistent event ID.
-#if WEAVE_CONFIG_EVENT_LOGGING_NUM_EXTERNAL_CALLBACKS
-    for (int i = 0; i < WEAVE_CONFIG_EVENT_LOGGING_NUM_EXTERNAL_CALLBACKS; i++)
-    {
-        mExternalEventsList[i] = ExternalEvents();
-    }
-#endif // WEAVE_CONFIG_EVENT_LOGGING_NUM_EXTERNAL_CALLBACKS
 }
 
 /**
@@ -1842,154 +2187,10 @@ void CircularEventBuffer::AddEventUTC(utc_timestamp_t inEventTimestamp)
 }
 #endif // WEAVE_CONFIG_EVENT_LOGGING_UTC_TIMESTAMPS
 
-void CircularEventBuffer::RemoveEvent(void)
+void CircularEventBuffer::RemoveEvent(size_t aNumEvents)
 {
-#if WEAVE_CONFIG_EVENT_LOGGING_NUM_EXTERNAL_CALLBACKS
-    ExternalEvents * ev;
-    while ((ev = GetExternalEventsFromEventID(mFirstEventID)) != NULL)
-    {
-        mFirstEventID         = ev->mLastEventID + 1;
-        ev->mFetchEventsFunct = NULL;
-    }
-#endif // WEAVE_CONFIG_EVENT_LOGGING_NUM_EXTERNAL_CALLBACKS
-    mFirstEventID++;
+    mFirstEventID += aNumEvents;
 }
-
-/**
- * @brief
- *   This function registers a set of event IDs and a function
- *   callback for externally stored events.
- *
- * @param[in] aFetchCallback  The function callback for unloading events.
- * @param[in] aNotifyCallback The function callback to notify about offload
- * @param[in] aNumEvents      Number of events to register.
- * @param[out] aExternalEventsPtr When non-NULL, on successful return it will contain the pointer to the ExternalEvents object
- *
- * @return WEAVE_ERROR_INVALID_ARGUMENT  Null function callback or no events to register.
- * @return WEAVE_ERROR_NO_MEMORY         If all callbacks are in use.
- * @return WEAVE_NO_ERROR                Otherwise.
- */
-WEAVE_ERROR CircularEventBuffer::RegisterExternalEventsCallback(FetchExternalEventsFunct aFetchCallback,
-                                                                NotifyExternalEventsDeliveredFunct aNotifyCallback,
-                                                                size_t aNumEvents, ExternalEvents ** aExternalEventsPtr)
-{
-    WEAVE_ERROR err = WEAVE_NO_ERROR;
-#if WEAVE_CONFIG_EVENT_LOGGING_NUM_EXTERNAL_CALLBACKS
-    ExternalEvents * ev;
-
-    Platform::CriticalSectionEnter();
-
-    VerifyOrExit(aFetchCallback != NULL, err = WEAVE_ERROR_INVALID_ARGUMENT);
-    VerifyOrExit(aNumEvents > 0, err = WEAVE_ERROR_INVALID_ARGUMENT);
-
-    ev = GetNextAvailableExternalEvents();
-    VerifyOrExit(ev != NULL, err = WEAVE_ERROR_NO_MEMORY);
-
-    ev->mFirstEventID = VendEventID();
-    // need to vend event IDs in a batch.
-    for (size_t i = 1; i < aNumEvents; i++)
-    {
-        event_id_t tmp_id = VendEventID();
-        IgnoreUnusedVariable(tmp_id);
-    }
-
-    ev->mLastEventID                = mLastEventID;
-    ev->mFetchEventsFunct           = aFetchCallback;
-    ev->mNotifyEventsDeliveredFunct = aNotifyCallback;
-    if (aExternalEventsPtr != NULL)
-    {
-        *aExternalEventsPtr = ev;
-    }
-
-exit:
-    Platform::CriticalSectionExit();
-#else  // WEAVE_CONFIG_EVENT_LOGGING_NUM_EXTERNAL_CALLBACKS
-    err = WEAVE_ERROR_NOT_IMPLEMENTED;
-#endif // WEAVE_CONFIG_EVENT_LOGGING_NUM_EXTERNAL_CALLBACKS
-
-    return err;
-}
-
-/**
- * @brief
- *   This function unregisters a callback.
- *
- * Once the callback is unregistered, if the event IDs are fetched by
- * a subscriber, the event logging framework will return an empty buffer.
- * If the event IDs no longer need to be fetched, the ExternalEvents
- * callback can be reused.
- *
- * @param inPtr   Pointer to ExternalEvents struct to unregister.
- */
-void CircularEventBuffer::UnregisterExternalEventsCallback(ExternalEvents * inPtr)
-{
-#if WEAVE_CONFIG_EVENT_LOGGING_NUM_EXTERNAL_CALLBACKS
-    Platform::CriticalSectionEnter();
-
-    if (inPtr != NULL)
-    {
-        inPtr->mFetchEventsFunct           = NULL;
-        inPtr->mNotifyEventsDeliveredFunct = NULL;
-    }
-
-    Platform::CriticalSectionExit();
-#endif // WEAVE_CONFIG_EVENT_LOGGING_NUM_EXTERNAL_CALLBACKS
-}
-
-#if WEAVE_CONFIG_EVENT_LOGGING_NUM_EXTERNAL_CALLBACKS
-/**
- * @brief
- *   A function to get a pointer to the ExternalEvent storing aEventID.
- *
- * @return NULL if aEventID is not externally stored.
- */
-ExternalEvents * CircularEventBuffer::GetExternalEventsFromEventID(event_id_t aEventID)
-{
-    uint8_t idx;
-    ExternalEvents * ev = NULL;
-
-    for (idx = 0; idx < WEAVE_CONFIG_EVENT_LOGGING_NUM_EXTERNAL_CALLBACKS; idx++)
-    {
-        ev = &mExternalEventsList[idx];
-
-        if ((aEventID >= ev->mFirstEventID) && (aEventID <= ev->mLastEventID) && (mFirstEventID <= ev->mFirstEventID))
-        {
-            break;
-        }
-        ev = NULL;
-    }
-
-    return ev;
-}
-
-/**
- * @brief
- *   A function to get a pointer to the next available ExternalEvent.
- *
- * A NULL pointer assigned to an ExternalEvents.mFetchEventsFunct is an
- * indication that the callback slot is unused.
- *
- * @return NULL if all callbacks are in use.
- */
-ExternalEvents * CircularEventBuffer::GetNextAvailableExternalEvents(void)
-{
-    uint8_t idx;
-    ExternalEvents * ev = NULL;
-
-    for (idx = 0; idx < WEAVE_CONFIG_EVENT_LOGGING_NUM_EXTERNAL_CALLBACKS; idx++)
-    {
-        ev = &mExternalEventsList[idx];
-
-        if ((ev->mFetchEventsFunct == NULL) && (ev->mLastEventID <= mFirstEventID))
-        {
-            break;
-        }
-        ev = NULL;
-    }
-
-    return ev;
-}
-#endif // WEAVE_CONFIG_EVENT_LOGGING_NUM_EXTERNAL_CALLBACKS
 
 /**
  * @brief
@@ -2051,7 +2252,7 @@ EventEnvelopeContext::EventEnvelopeContext(void) :
 #if WEAVE_CONFIG_EVENT_LOGGING_UTC_TIMESTAMPS
     mDeltaUtc(0),
 #endif // WEAVE_CONFIG_EVENT_LOGGING_UTC_TIMESTAMPS
-    mImportance(kImportanceType_First)
+    mImportance(kImportanceType_First), mExternalEvents(NULL)
 { }
 
 } // namespace WeaveMakeManagedNamespaceIdentifier(DataManagement, kWeaveManagedNamespaceDesignation_Current)

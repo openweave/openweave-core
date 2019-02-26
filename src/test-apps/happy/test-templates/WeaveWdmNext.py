@@ -29,6 +29,7 @@ import time
 
 from happy.ReturnMsg import ReturnMsg
 from happy.Utils import *
+from happy.utils.IP import IP
 from happy.HappyNode import HappyNode
 from happy.HappyNetwork import HappyNetwork
 
@@ -83,6 +84,7 @@ options = { "clients": None,
             "client_update_num_mutations": None,
             "client_update_num_repeated_mutations": None,
             "client_update_num_traits": None,
+            "client_update_discard_on_error": False,
           }
 
 
@@ -237,11 +239,11 @@ class WeaveWdmNext(HappyNode, HappyNetwork, WeaveTest):
             self.server_process_tag = self.server_node_id + "_" + self.server_process_tag
 
         # Check if server is provided in a form of IP address
-        if self.isIpAddress(self.server):
+        if IP.isIpAddress(self.server):
             self.no_service = True
             self.server_ip = self.server
             self.server_weave_id = self.IPv6toWeaveId(self.server)
-        elif self.isDomainName(self.server) or self.server == "service":
+        elif IP.isDomainName(self.server) or self.server == "service":
             self.no_service = True
             self.server_ip = self.getServiceWeaveIPAddress("DataManagement")
             self.server_weave_id = self.IPv6toWeaveId(self.server_ip)
@@ -288,7 +290,7 @@ class WeaveWdmNext(HappyNode, HappyNetwork, WeaveTest):
                 client_node_id = client
 
             # Check if client is provided in a form of IP address
-            if self.isIpAddress(client):
+            if IP.isIpAddress(client):
                 client_node_id = self.getNodeIdFromAddress(client)
 
             if client_node_id is None:
@@ -497,7 +499,7 @@ class WeaveWdmNext(HappyNode, HappyNetwork, WeaveTest):
             cmd += " --inter-event-period " + str(self.server_inter_event_period)
 
         if self.tap:
-            cmd += " --interface " + self.tap
+            cmd += " --tap-device " + self.tap
 
         custom_env = {}
         if self.use_plaid:
@@ -555,7 +557,7 @@ class WeaveWdmNext(HappyNode, HappyNetwork, WeaveTest):
             cmd += " --faults " + self.client_faults
 
         if self.tap:
-            cmd += " --interface " + self.tap
+            cmd += " --tap-device " + self.tap
 
         if self.server == "service":
             node_id = client_info["client_weave_id"]
@@ -600,6 +602,9 @@ class WeaveWdmNext(HappyNode, HappyNetwork, WeaveTest):
 
         if self.client_update_num_traits:
             cmd += " --wdm-update-number-of-traits " + str(self.client_update_num_traits)
+
+        if self.client_update_discard_on_error:
+            cmd += " --wdm-update-discard-on-error"
 
         custom_env = {}
 

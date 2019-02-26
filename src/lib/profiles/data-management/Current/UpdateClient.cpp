@@ -33,6 +33,9 @@
 #include <Weave/Support/logging/WeaveLogging.h>
 #include <Weave/Support/RandUtils.h>
 #include <Weave/Support/FibonacciUtils.h>
+#include <Weave/Support/WeaveFaultInjection.h>
+#include <InetLayer/InetFaultInjection.h>
+#include <SystemLayer/SystemFaultInjection.h>
 #include <SystemLayer/SystemStats.h>
 
 #if WEAVE_CONFIG_ENABLE_RELIABLE_MESSAGING && WEAVE_CONFIG_ENABLE_WDM_UPDATE
@@ -91,7 +94,6 @@ WEAVE_ERROR UpdateClient::Init(Binding * const apBinding, void * const apAppStat
     mpAppState           = apAppState;
     mEventCallback       = aEventCallback;
     mEC                  = NULL;
-    mUpdateRequestIndex  = 0;
     MoveToState(kState_Initialized);
 
 exit:
@@ -105,9 +107,10 @@ exit:
  * @retval #WEAVE_NO_ERROR On success.
  * @retval other           Unable to send update
  */
-WEAVE_ERROR UpdateClient::SendUpdate(bool aIsPartialUpdate, PacketBuffer *aBuf)
+WEAVE_ERROR UpdateClient::SendUpdate(bool aIsPartialUpdate, PacketBuffer *aBuf, bool aIsFirstPayload)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
+    uint8_t msgType = kMsgType_UpdateRequest;
 
 #if WEAVE_CONFIG_DATA_MANAGEMENT_ENABLE_SCHEMA_CHECK
     nl::Weave::TLV::TLVReader reader;
@@ -118,7 +121,7 @@ WEAVE_ERROR UpdateClient::SendUpdate(bool aIsPartialUpdate, PacketBuffer *aBuf)
 
     VerifyOrExit(kState_Initialized == mState, err = WEAVE_ERROR_INCORRECT_STATE);
 
-    if (mUpdateRequestIndex == 0)
+    if (aIsFirstPayload)
     {
         FlushExistingExchangeContext();
         err = mpBinding->NewExchangeContext(mEC);
@@ -132,31 +135,41 @@ WEAVE_ERROR UpdateClient::SendUpdate(bool aIsPartialUpdate, PacketBuffer *aBuf)
 
 #if WEAVE_CONFIG_DATA_MANAGEMENT_ENABLE_SCHEMA_CHECK
     reader.Init(aBuf);
-    reader.Next();
+    err = reader.Next();
+    VerifyOrExit(err == WEAVE_NO_ERROR, WeaveLogDetail(DataManagement, "Created malformed update, err: %" PRId32, err));
     parser.Init(reader);
     parser.CheckSchemaValidity();
 #endif //WEAVE_CONFIG_DATA_MANAGEMENT_ENABLE_SCHEMA_CHECK
 
     if (aIsPartialUpdate)
     {
-        WeaveLogDetail(DataManagement, "<UC:Run> Partial update");
-        err = mEC->SendMessage(nl::Weave::Profiles::kWeaveProfile_WDM, kMsgType_PartialUpdateRequest, aBuf,
-                           nl::Weave::ExchangeContext::kSendFlag_ExpectResponse);
-        aBuf = NULL;
-        SuccessOrExit(err);
-
-        mUpdateRequestIndex ++;
-        WeaveLogDetail(DataManagement, "mUpdateRequestIndex: %" PRIu32 "", mUpdateRequestIndex);
+        msgType = kMsgType_PartialUpdateRequest;
     }
-    else
-    {
-        err = mEC->SendMessage(nl::Weave::Profiles::kWeaveProfile_WDM, kMsgType_UpdateRequest, aBuf,
-                               nl::Weave::ExchangeContext::kSendFlag_ExpectResponse);
-        aBuf = NULL;
-        SuccessOrExit(err);
 
-        mUpdateRequestIndex = 0;
-    }
+    // Use Inet's Send fault to fail inline
+    WEAVE_FAULT_INJECT(FaultInjection::kFault_WDM_UpdateRequestSendErrorInline,
+            nl::Inet::FaultInjection::GetManager().FailAtFault(
+                nl::Inet::FaultInjection::kFault_Send,
+                0, 1));
+
+    // Use WRM's SendError fault to fail asynchronously
+    WEAVE_FAULT_INJECT(FaultInjection::kFault_WDM_UpdateRequestSendErrorAsync,
+            nl::Weave::FaultInjection::GetManager().FailAtFault(
+                nl::Weave::FaultInjection::kFault_WRMSendError,
+                0, 1));
+
+    err = mEC->SendMessage(nl::Weave::Profiles::kWeaveProfile_WDM, msgType, aBuf,
+            nl::Weave::ExchangeContext::kSendFlag_ExpectResponse);
+    aBuf = NULL;
+    SuccessOrExit(err);
+
+    WEAVE_FAULT_INJECT(FaultInjection::kFault_WDM_UpdateRequestTimeout,
+            SubscriptionEngine::GetInstance()->GetExchangeManager()->ExpireExchangeTimers());
+
+    WEAVE_FAULT_INJECT(FaultInjection::kFault_WDM_DelayUpdateResponse,
+            nl::Weave::FaultInjection::GetManager().FailAtFault(
+                nl::Weave::FaultInjection::kFault_DropIncomingUDPMsg,
+                0, 1));
 
     MoveToState(kState_AwaitingResponse);
 
@@ -181,11 +194,13 @@ exit:
 
 void UpdateClient::CloseUpdate(bool aAbort)
 {
-    if (kState_Uninitialized != mState && kState_Initialized != mState)
+    if (kState_Uninitialized != mState)
     {
-        mUpdateRequestIndex = 0;
         FlushExistingExchangeContext(aAbort);
-        MoveToState(kState_Initialized);
+        if (kState_Initialized != mState)
+        {
+            MoveToState(kState_Initialized);
+        }
     }
 }
 

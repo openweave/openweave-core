@@ -1,5 +1,6 @@
 #
-#    Copyright (c) 2014-2017 Nest Labs, Inc.
+#    Copyright (c) 2014-2018 Nest Labs, Inc.
+#    Copyright (c) 2018 Google LLC
 #    All rights reserved.
 #
 #    Licensed under the Apache License, Version 2.0 (the "License");
@@ -83,6 +84,19 @@ EXAMPLES_SUBDIR                   = \
     examples                        \
     $(NULL)
 
+ADAPTATION_SUBDIRS                = \
+    adaptations/device-layer        \
+    $(NULL)
+
+MAYBE_ADAPTATION_SUBDIRS          = \
+    $(NULL)
+
+if CONFIG_DEVICE_LAYER
+MAYBE_ADAPTATION_SUBDIRS         += \
+    $(ADAPTATION_SUBDIRS)           \
+    $(NULL)
+endif # CONFIG_DEVICE_LAYER
+
 # Always package (e.g. for 'make dist') these subdirectories.
 
 DIST_SUBDIRS                      = \
@@ -99,15 +113,20 @@ DIST_SUBDIRS                      = \
     wrappers/jni                    \
     ra-daemon                       \
     test-apps                       \
-    test-apps/wrapper-tests/jni     \
+    test-apps/fuzz                  \
     tools/weave                     \
     tools/misc                      \
     wrappers/jni                    \
     $(EXAMPLES_SUBDIR)              \
     $(WARM_SUBDIRS)                 \
+    $(ADAPTATION_SUBDIRS)           \
     $(NULL)
 
 # Always build (e.g. for 'make all') these subdirectories.
+#
+# NOTE: The 'fuzz' testing subdirectory has dependencies on
+# both test-apps/... and tools/weave/... and, consequently,
+# must appear after both.
 
 SUBDIRS                           = \
     lib/support                     \
@@ -121,13 +140,13 @@ SUBDIRS                           = \
     lib/support/verhoeff            \
     $(MAYBE_DEVICE_MANAGER_SUBDIRS) \
     wrappers/jni                    \
-    test-apps/wrapper-tests/jni     \
     ra-daemon                       \
-    test-apps                       \
     tools/weave                     \
-    tools/misc                      \
+    test-apps                       \
     test-apps/fuzz                  \
+    tools/misc                      \
     $(EXAMPLES_SUBDIR)              \
+    $(MAYBE_ADAPTATION_SUBDIRS)     \
     $(NULL)
 
 include $(abs_top_nlbuild_autotools_dir)/automake/post.am

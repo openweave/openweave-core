@@ -442,6 +442,10 @@ void Binding::ResetConfig()
     mAuthMode = kWeaveAuthMode_Unauthenticated;
 
     mFlags = 0;
+
+#if WEAVE_CONFIG_ENABLE_DNS_RESOLVER
+    mDNSOptions = ::nl::Inet::kDNSOption_Default;
+#endif
 }
 
 /**
@@ -602,7 +606,8 @@ void Binding::PrepareAddress()
         mState = kState_PreparingAddress_ResolveHostName;
 
         // Initiate a DNS query for the specified host name.
-        err = mExchangeManager->MessageLayer->Inet->ResolveHostAddress(mHostName, mHostNameLen, 1, &mPeerAddress, OnResolveComplete, this);
+        err = mExchangeManager->MessageLayer
+                ->Inet->ResolveHostAddress(mHostName, mHostNameLen, mDNSOptions, 1, &mPeerAddress, OnResolveComplete, this);
 
         ExitNow();
 
@@ -1530,6 +1535,24 @@ Binding::Configuration& Binding::Configuration::TargetAddress_IP(const char *aHo
     {
         mError = WEAVE_ERROR_INVALID_ARGUMENT;
     }
+    return *this;
+}
+
+/**
+ * When resolving the host name of the peer, use the specified DNS options.
+ *
+ * @param[in]  dnsOptions               An integer value controlling how host name resolution is performed.
+ *                                      Value should be one of values from the #::nl::Inet::DNSOptions enumeration.
+ *
+ * @return                              A reference to the binding object.
+ */
+Binding::Configuration& Binding::Configuration::DNS_Options(uint8_t dnsOptions)
+{
+#if WEAVE_CONFIG_ENABLE_DNS_RESOLVER
+    mBinding.mDNSOptions = dnsOptions;
+#else // WEAVE_CONFIG_ENABLE_DNS_RESOLVER
+    mError = WEAVE_ERROR_NOT_IMPLEMENTED;
+#endif // WEAVE_CONFIG_ENABLE_DNS_RESOLVER
     return *this;
 }
 

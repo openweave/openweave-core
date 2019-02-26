@@ -1,5 +1,6 @@
 #
-#    Copyright (c) 2014-2017 Nest Labs, Inc.
+#    Copyright (c) 2014-2018 Nest Labs, Inc.
+#    Copyright (c) 2018 Google LLC
 #    All rights reserved.
 #
 #    Licensed under the Apache License, Version 2.0 (the "License");
@@ -25,17 +26,26 @@ include $(abs_top_nlbuild_autotools_dir)/automake/pre.am
 
 lib_LIBRARIES                       = libWoBluez.a
 
-nl_WoBluez_sources                  = \
-    @top_builddir@/src/platform/ble/bluez/BluezBleApplicationDelegate.cpp        \
-    @top_builddir@/src/platform/ble/bluez/BluezBlePlatformDelegate.cpp           \
-    @top_builddir@/src/platform/ble/bluez/BluezHelperCode.cpp                    \
-    @top_builddir@/src/platform/ble/bluez/WoBluez.cpp                            \
+libWoBluez_a_CPPFLAGS               = \
+    $(BLUEZ_CPPFLAGS)                 \
+    $(LWIP_CPPFLAGS)                  \
+    $(SOCKET_CPPFLAGS)                \
     $(NULL)
 
-libWoBluez_a_CPPFLAGS              = \
-    $(BLUEZ_CPPFLAGS) \
-    $(NULL)
+libWoBluez_a_SOURCES                = \
+    BluezBleApplicationDelegate.cpp   \
+    BluezBlePlatformDelegate.cpp      \
+    BluezHelperCode.cpp               \
+    WoBluez.cpp                       \
+    $(NULL)$(nl_WoBluez_sources)
 
-libWoBluez_a_SOURCES               = $(nl_WoBluez_sources)
+#
+# Local headers to build against and distribute but not to install
+# since they are not part of the Weave SDK public API.
+#
+noinst_HEADERS                      = \
+    BluezHelperCode.h                 \
+    WoBluez.h                         \
+    $(NULL)
 
 include $(abs_top_nlbuild_autotools_dir)/automake/post.am

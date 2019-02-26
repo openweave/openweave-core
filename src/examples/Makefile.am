@@ -22,6 +22,10 @@
 
 include $(abs_top_nlbuild_autotools_dir)/automake/pre.am
 
+EXTRA_DIST                                     = \
+    weave-echo-app-tutorial.md                   \
+    $(NULL)
+
 #
 # Local headers to build against and distribute but not to install
 # since they are not part of the Weave SDK public API.

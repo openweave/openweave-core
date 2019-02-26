@@ -103,6 +103,7 @@ WEAVE_ERROR WeaveDeviceManager::Init(WeaveExchangeManager *exchangeMgr, WeaveSec
     mOpState = kOpState_Idle;
     mCurReq = NULL;
     mCurReqMsg = NULL;
+    mCurReqMsgRetained = NULL;
     mAppReqState = NULL;
     memset(&mOnComplete, 0, sizeof(mOnComplete));
     mOnError = NULL;
@@ -149,7 +150,7 @@ WEAVE_ERROR WeaveDeviceManager::Init(WeaveExchangeManager *exchangeMgr, WeaveSec
     mEnumeratedNodesMaxLen = 0;
 
     // By default, rendezvous messages are sent to the IPv6 link-local, all-nodes multicast address.
-    mRendezvousAddr = IPAddress::MakeIPv6Multicast(kIPv6MulticastScope_Link, kIPV6MulticastGroup_AllNodes);
+    mRendezvousAddr = IPAddress::MakeIPv6WellKnownMulticast(kIPv6MulticastScope_Link, kIPV6MulticastGroup_AllNodes);
 
     State = kState_Initialized;
 
@@ -178,6 +179,12 @@ WEAVE_ERROR WeaveDeviceManager::Shutdown()
     {
         PacketBuffer::Free(mCurReqMsg);
         mCurReqMsg = NULL;
+    }
+
+    if (mCurReqMsgRetained != NULL)
+    {
+        PacketBuffer::Free(mCurReqMsgRetained);
+        mCurReqMsgRetained = NULL;
     }
 
     if (mDeviceCon != NULL)
@@ -1499,7 +1506,21 @@ WEAVE_ERROR WeaveDeviceManager::AddNetwork(const NetworkInfo *netInfo, void* app
     mOnError = onError;
     mOpState = kOpState_AddNetwork;
 
-    err = SendRequest(kWeaveProfile_NetworkProvisioning, kMsgType_AddNetwork, msgBuf,
+#if WEAVE_CONFIG_SUPPORT_LEGACY_ADD_NETWORK_MESSAGE
+    // Create duplicate of a message buffer.
+    // If device returns error indicating that the new message type is not supported
+    // this retained message will be re-sent to the device as an old AddNetwork() message type.
+    mCurReqMsgRetained = PacketBuffer::NewWithAvailableSize(msgBuf->DataLength());
+    VerifyOrExit(mCurReqMsgRetained != NULL, err = WEAVE_ERROR_NO_MEMORY);
+
+    memcpy(mCurReqMsgRetained->Start(), msgBuf->Start(), msgBuf->DataLength());
+    mCurReqMsgRetained->SetDataLength(msgBuf->DataLength());
+
+    // Identify if this request creates new Thread network.
+    mCurReqCreateThreadNetwork = (netInfo->NetworkType == kNetworkType_Thread) && (netInfo->ThreadExtendedPANId == NULL);
+#endif // WEAVE_CONFIG_SUPPORT_LEGACY_ADD_NETWORK_MESSAGE
+
+    err = SendRequest(kWeaveProfile_NetworkProvisioning, kMsgType_AddNetworkV2, msgBuf,
             HandleNetworkProvisioningResponse);
     msgBuf = NULL;
 
@@ -2653,7 +2674,7 @@ bool WeaveDeviceManager::IsValidPairingCode(const char *pairingCode)
 WEAVE_ERROR WeaveDeviceManager::SetRendezvousAddress(IPAddress addr)
 {
     if (addr == IPAddress::Any)
-        addr = IPAddress::MakeIPv6Multicast(kIPv6MulticastScope_Link, kIPV6MulticastGroup_AllNodes);
+        addr = IPAddress::MakeIPv6WellKnownMulticast(kIPv6MulticastScope_Link, kIPV6MulticastGroup_AllNodes);
     mRendezvousAddr = addr;
     return WEAVE_NO_ERROR;
 }
@@ -2731,7 +2752,14 @@ exit:
     if (msgBuf != NULL)
         PacketBuffer::Free(msgBuf);
     if (err != WEAVE_NO_ERROR)
+    {
+        if (mCurReqMsgRetained != NULL)
+        {
+            PacketBuffer::Free(mCurReqMsgRetained);
+            mCurReqMsgRetained = NULL;
+        }
         ClearRequestState();
+    }
     return err;
 }
 
@@ -2767,6 +2795,7 @@ exit:
     if (mCurReqMsg)
     {
         PacketBuffer::Free(mCurReqMsg);
+        mCurReqMsg = NULL;
     }
 
     if (err != WEAVE_NO_ERROR)
@@ -2921,7 +2950,14 @@ void WeaveDeviceManager::ClearRequestState()
 
 void WeaveDeviceManager::ClearOpState()
 {
+    if (mCurReqMsgRetained != NULL)
+    {
+        PacketBuffer::Free(mCurReqMsgRetained);
+        mCurReqMsgRetained = NULL;
+    }
+
     ClearRequestState();
+
     mOpState = kOpState_Idle;
 }
 
@@ -4138,6 +4174,9 @@ void WeaveDeviceManager::HandleNetworkProvisioningResponse(ExchangeContext *ec, 
     WEAVE_ERROR err = WEAVE_NO_ERROR;
     WeaveDeviceManager *devMgr = (WeaveDeviceManager *) ec->AppState;
     OpState opState = devMgr->mOpState;
+#if WEAVE_CONFIG_SUPPORT_LEGACY_ADD_NETWORK_MESSAGE
+    uint16_t curReqMsgType = devMgr->mCurReqMsgType;
+#endif
 
     // Sanity check that the passed-in exchange context is in fact the one that represents the current
     // outstanding request.
@@ -4147,10 +4186,21 @@ void WeaveDeviceManager::HandleNetworkProvisioningResponse(ExchangeContext *ec, 
         ExitNow();
     }
 
-    // At this point the operation is effectively complete. Therefore we clear the current operation before
-    // continuing. This is important because the user could start another operation during one of the callbacks
-    // that happen below.
-    devMgr->ClearOpState();
+#if WEAVE_CONFIG_SUPPORT_LEGACY_ADD_NETWORK_MESSAGE
+    if (profileId == kWeaveProfile_Common && msgType == nl::Weave::Profiles::Common::kMsgType_StatusReport)
+    {
+        // At this point the current request is effectively complete but the operation might still continue. Specifically,
+        // there is still possibility that older version of the AddNetwork() message should be sent to the device.
+        devMgr->ClearRequestState();
+    }
+    else
+#endif
+    {
+        // At this point the operation is effectively complete. Therefore we clear the current operation before
+        // continuing. This is important because the user could start another operation during one of the callbacks
+        // that happen below.
+        devMgr->ClearOpState();
+    }
 
     // Decode and dispatch the response message.
     if (profileId == kWeaveProfile_NetworkProvisioning && msgType == NetworkProvisioning::kMsgType_NetworkScanComplete)
@@ -4215,10 +4265,36 @@ void WeaveDeviceManager::HandleNetworkProvisioningResponse(ExchangeContext *ec, 
         PacketBuffer::Free(payload);
         payload = NULL;
 
-        if (devStatus.StatusProfileId == kWeaveProfile_Common && devStatus.StatusCode == Common::kStatus_Success)
-            devMgr->mOnComplete.General(devMgr, devMgr->mAppReqState);
+#if WEAVE_CONFIG_SUPPORT_LEGACY_ADD_NETWORK_MESSAGE
+        // If legacy device doesn't support new version of AddNetwork() message.
+        if (curReqMsgType == kMsgType_AddNetworkV2 &&
+            devStatus.StatusProfileId == kWeaveProfile_Common &&
+            (devStatus.StatusCode == Common::kStatus_UnsupportedMessage ||
+             // Additional check is required because in some cases legacy devices return
+             // "bad request" status code in response to unsupported message type.
+             devStatus.StatusCode == Common::kStatus_BadRequest))
+        {
+            // Legacy devices don't support standalone Thread network creation.
+            VerifyOrExit(!devMgr->mCurReqCreateThreadNetwork, err = WEAVE_ERROR_UNSUPPORTED_THREAD_NETWORK_CREATE);
+
+            // Verify that a copy of the message is retained in a separate buffer.
+            VerifyOrExit(devMgr->mCurReqMsgRetained != NULL, err = WEAVE_ERROR_INCORRECT_STATE);
+
+            // Send old version of AddNetwork() message.
+            err = devMgr->SendRequest(kWeaveProfile_NetworkProvisioning, kMsgType_AddNetwork, devMgr->mCurReqMsgRetained,
+                                      devMgr->HandleNetworkProvisioningResponse);
+            devMgr->mCurReqMsgRetained = NULL;
+        }
         else
-            devMgr->mOnError(devMgr, devMgr->mAppReqState, WEAVE_ERROR_STATUS_REPORT_RECEIVED, &devStatus);
+#endif // WEAVE_CONFIG_SUPPORT_LEGACY_ADD_NETWORK_MESSAGE
+        {
+            devMgr->ClearOpState();
+
+            if (devStatus.StatusProfileId == kWeaveProfile_Common && devStatus.StatusCode == Common::kStatus_Success)
+                devMgr->mOnComplete.General(devMgr, devMgr->mAppReqState);
+            else
+                devMgr->mOnError(devMgr, devMgr->mAppReqState, WEAVE_ERROR_STATUS_REPORT_RECEIVED, &devStatus);
+        }
     }
 
     else
@@ -4226,7 +4302,10 @@ void WeaveDeviceManager::HandleNetworkProvisioningResponse(ExchangeContext *ec, 
 
 exit:
     if (err != WEAVE_NO_ERROR)
+    {
+        devMgr->ClearOpState();
         devMgr->mOnError(devMgr, devMgr->mAppReqState, err, NULL);
+    }
     if (payload != NULL)
         PacketBuffer::Free(payload);
 }
@@ -5090,6 +5169,83 @@ exit:
     return err;
 }
 
+
+#if !WEAVE_CONFIG_LEGACY_CASE_AUTH_DELEGATE
+
+WEAVE_ERROR WeaveDeviceManager::EncodeNodeCertInfo(const Security::CASE::BeginSessionContext & msgCtx,
+        TLVWriter & writer)
+{
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
+    TLVReader reader;
+
+    // Initialize a reader to read the access token.
+    reader.Init((const uint8_t *)mAuthKey, mAuthKeyLen);
+    reader.ImplicitProfileId = kWeaveProfile_Security;
+
+    // Generate a CASE CertificateInformation structure from the information in the access token.
+    err = CASECertInfoFromAccessToken(reader, writer);
+    SuccessOrExit(err);
+
+exit:
+    if (err != WEAVE_NO_ERROR)
+        err = WEAVE_ERROR_INVALID_ACCESS_TOKEN;
+    return err;
+}
+
+WEAVE_ERROR WeaveDeviceManager::GenerateNodeSignature(const Security::CASE::BeginSessionContext & msgCtx,
+        const uint8_t * msgHash, uint8_t msgHashLen,
+        TLVWriter & writer, uint64_t tag)
+{
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
+    const uint8_t * privKey = NULL;
+    uint16_t privKeyLen;
+
+    // Get the private key from the access token.
+    err = GetNodePrivateKey(msgCtx.IsInitiator(), privKey, privKeyLen);
+    SuccessOrExit(err);
+
+    // Generate a signature using the access token private key.
+    err = GenerateAndEncodeWeaveECDSASignature(writer, tag, msgHash, msgHashLen, privKey, privKeyLen);
+    SuccessOrExit(err);
+
+exit:
+    if (privKey != NULL)
+    {
+        WEAVE_ERROR relErr = ReleaseNodePrivateKey(privKey);
+        err = (err == WEAVE_NO_ERROR) ? relErr : err;
+    }
+    return err;
+}
+
+WEAVE_ERROR WeaveDeviceManager::EncodeNodePayload(const Security::CASE::BeginSessionContext & msgCtx,
+        uint8_t * payloadBuf, uint16_t payloadBufSize, uint16_t & payloadLen)
+{
+    // No payload
+    payloadLen = 0;
+    return WEAVE_NO_ERROR;
+}
+
+WEAVE_ERROR WeaveDeviceManager::BeginValidation(const Security::CASE::BeginSessionContext & msgCtx,
+        Security::ValidationContext & validCtx, Security::WeaveCertificateSet & certSet)
+{
+    return BeginCertValidation(msgCtx.IsInitiator(), certSet, validCtx);
+}
+
+WEAVE_ERROR WeaveDeviceManager::HandleValidationResult(const Security::CASE::BeginSessionContext & msgCtx,
+        Security::ValidationContext & validCtx,
+        Security::WeaveCertificateSet & certSet, WEAVE_ERROR & validRes)
+{
+    return HandleCertValidationResult(msgCtx.IsInitiator(), validRes, validCtx.SigningCert, msgCtx.PeerNodeId, certSet, validCtx);
+}
+
+void WeaveDeviceManager::EndValidation(const Security::CASE::BeginSessionContext & msgCtx,
+        Security::ValidationContext & validCtx, Security::WeaveCertificateSet & certSet)
+{
+    EndCertValidation(certSet, validCtx);
+}
+
+#else // !WEAVE_CONFIG_LEGACY_CASE_AUTH_DELEGATE
+
 WEAVE_ERROR WeaveDeviceManager::GetNodeCertInfo(bool isInitiator, uint8_t *buf, uint16_t bufSize, uint16_t& certInfoLen)
 {
     WEAVE_ERROR err;
@@ -5104,6 +5260,16 @@ exit:
         err = WEAVE_ERROR_INVALID_ACCESS_TOKEN;
     return err;
 }
+
+// Get payload information, if any, to be included in the message to the peer.
+WEAVE_ERROR WeaveDeviceManager::GetNodePayload(bool isInitiator, uint8_t *buf, uint16_t bufSize, uint16_t& payloadLen)
+{
+    // No payload
+    payloadLen = 0;
+    return WEAVE_NO_ERROR;
+}
+
+#endif // WEAVE_CONFIG_LEGACY_CASE_AUTH_DELEGATE
 
 // Get the local node's private key.
 WEAVE_ERROR WeaveDeviceManager::GetNodePrivateKey(bool isInitiator, const uint8_t *& weavePrivKey, uint16_t& weavePrivKeyLen)
@@ -5136,14 +5302,6 @@ exit:
 WEAVE_ERROR WeaveDeviceManager::ReleaseNodePrivateKey(const uint8_t *weavePrivKey)
 {
     free((void *)weavePrivKey);
-    return WEAVE_NO_ERROR;
-}
-
-// Get payload information, if any, to be included in the message to the peer.
-WEAVE_ERROR WeaveDeviceManager::GetNodePayload(bool isInitiator, uint8_t *buf, uint16_t bufSize, uint16_t& payloadLen)
-{
-    // No payload
-    payloadLen = 0;
     return WEAVE_NO_ERROR;
 }
 

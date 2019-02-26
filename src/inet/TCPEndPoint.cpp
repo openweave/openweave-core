@@ -52,6 +52,7 @@
 #if WEAVE_SYSTEM_CONFIG_USE_SOCKETS
 #include <sys/socket.h>
 #include <sys/select.h>
+#include <net/if.h>
 #include <sys/ioctl.h>
 #include <unistd.h>
 #include <fcntl.h>
@@ -266,6 +267,7 @@ INET_ERROR TCPEndPoint::Listen(uint16_t backlog)
 
     // Start listening for incoming connections.
     mTCP = tcp_listen(mTCP);
+    mLwIPEndPointType = kLwIPEndPointType_TCP;
 
     tcp_arg(mTCP, this);
 
@@ -380,6 +382,10 @@ INET_ERROR TCPEndPoint::Connect(IPAddress addr, uint16_t port, InterfaceId intf)
 
 #if WEAVE_SYSTEM_CONFIG_USE_SOCKETS
 
+    res = GetSocket(addrType);
+    if (res != INET_NO_ERROR)
+        return res;
+
     if (intf == INET_NULL_INTERFACEID)
     {
         // The behavior when connecting to an IPv6 link-local address without specifying an outbound
@@ -387,60 +393,45 @@ INET_ERROR TCPEndPoint::Connect(IPAddress addr, uint16_t port, InterfaceId intf)
         if (addr.IsIPv6LinkLocal())
             return INET_ERROR_WRONG_ADDRESS_TYPE;
     }
-
-#if INET_CONFIG_ENABLE_IPV4
     else
     {
-        // Attempting to initiate an IPv4 connection via a specific interface is not allowed.
-        // The only way to do this is to bind the local to an address on the desired interface,
-        // or bind the socket to the interface itself using SO_BINDTODEVICE.  The latter,
-        // however, requires privileged access.
-        if (addrType == kIPAddressType_IPv4)
+        // Try binding to the interface
+
+        // If destination is link-local then there is no need to bind to
+        // interface or address on the interface.
+
+        if (!addr.IsIPv6LinkLocal())
         {
-            if (State == kState_Bound)
+#ifdef SO_BINDTODEVICE
+            struct ::ifreq ifr;
+            memset(&ifr, 0, sizeof(ifr));
+
+            res = GetInterfaceName(intf, ifr.ifr_name, sizeof(ifr.ifr_name));
+            if (res != INET_NO_ERROR)
+                return res;
+
+            // Attempt to bind to the interface using SO_BINDTODEVICE which requires privileged access.
+            // If the permission is denied(EACCES) because Weave is running in a context
+            // that does not have privileged access, choose a source address on the
+            // interface to bind the connetion to.
+            int r = setsockopt(mSocket, SOL_SOCKET, SO_BINDTODEVICE, (void *)&ifr, sizeof(ifr));
+            if (r < 0 && errno != EACCES)
             {
-                return INET_ERROR_NOT_SUPPORTED;
+                return res = Weave::System::MapErrorPOSIX(errno);
             }
-            else
+
+            if (r < 0)
+#endif // SO_BINDTODEVICE
             {
-            // If we are trying to make a TCP connection over IPv4 and a 'specified target interface',
-            // then we bind the TCPEndPoint to an IPv4 address on that target interface and use that
-            // address as the source address for that connection.
-                IPAddress curAddr = IPAddress::Any;
-                InterfaceId curIntfId = INET_NULL_INTERFACEID;
-                bool ip4AddrFound = false;
-
-                for (InterfaceAddressIterator addrIter; addrIter.HasCurrent(); addrIter.Next())
-                {
-                    curAddr = addrIter.GetAddress();
-                    curIntfId = addrIter.GetInterface();
-
-                    // Search for an IPv4 address on the TargetInterface
-
-                    if (curAddr.IsIPv4() && curIntfId == intf)
-                    {
-                        // Bind to the IPv4 address of the TargetInterface
-                        ip4AddrFound = true;
-                        res = Bind(kIPAddressType_IPv4, curAddr, 0, true);
-                        if (res != INET_NO_ERROR)
-                            return res;
-
-                        break;
-                    }
-                }
-
-                if (!ip4AddrFound)
-                {
-                    return INET_ERROR_NOT_SUPPORTED;
-                }
+                // Attempting to initiate a connection via a specific interface is not allowed.
+                // The only way to do this is to bind the local to an address on the desired
+                // interface.
+                res = BindSrcAddrFromIntf(addrType, intf);
+                if (res != INET_NO_ERROR)
+                    return res;
             }
         }
     }
-#endif // INET_CONFIG_ENABLE_IPV4
-
-    res = GetSocket(addrType);
-    if (res != INET_NO_ERROR)
-        return res;
 
     // Disable generation of SIGPIPE.
 #ifdef SO_NOSIGPIPE
@@ -728,6 +719,7 @@ INET_ERROR TCPEndPoint::Send(PacketBuffer *data, bool push)
     {
         // Timer was not running before this send. So, start
         // the timer.
+
         StartTCPUserTimeoutTimer();
     }
 #endif // INET_CONFIG_OVERRIDE_SYSTEM_TCP_USER_TIMEOUT
@@ -1189,11 +1181,21 @@ void TCPEndPoint::Init(InetLayer *inetLayer)
 
     mUserTimeoutTimerRunning = false;
 
+#if INET_CONFIG_ENABLE_TCP_SEND_IDLE_CALLBACKS
+    mIsTCPSendIdle = true;
+
+    mTCPSendQueuePollPeriodMillis = INET_CONFIG_TCP_SEND_QUEUE_POLL_INTERVAL_MSEC;
+
+    mTCPSendQueueRemainingPollCount = MaxTCPSendQueuePolls();
+
+    OnTCPSendIdleChanged = NULL;
+#endif // INET_CONFIG_ENABLE_TCP_SEND_IDLE_CALLBACKS
+
 #if WEAVE_SYSTEM_CONFIG_USE_SOCKETS
 
     mBytesWrittenSinceLastProbe = 0;
 
-    mLastTCPSendQueueLen = 0;
+    mLastTCPKernelSendQueueLen = 0;
 #endif // WEAVE_SYSTEM_CONFIG_USE_SOCKETS
 
 #endif // INET_CONFIG_OVERRIDE_SYSTEM_TCP_USER_TIMEOUT
@@ -1329,6 +1331,12 @@ INET_ERROR TCPEndPoint::DriveSending()
         if (OnDataSent != NULL)
             OnDataSent(this, (uint16_t) lenSent);
 
+#if INET_CONFIG_ENABLE_TCP_SEND_IDLE_CALLBACKS
+        // TCP Send is not Idle; Set state and notify if needed
+
+        SetTCPSendIdleAndNotifyChange(false);
+#endif // INET_CONFIG_ENABLE_TCP_SEND_IDLE_CALLBACKS
+
 #if INET_CONFIG_OVERRIDE_SYSTEM_TCP_USER_TIMEOUT
         mBytesWrittenSinceLastProbe += lenSent;
 
@@ -1340,17 +1348,19 @@ INET_ERROR TCPEndPoint::DriveSending()
             break;
         }
 
-        if (isProgressing && mUserTimeoutTimerRunning)
-        {
-            // Progress is being made. So, shift the timer
-            // forward if it was started.
-            RestartTCPUserTimeoutTimer();
-        }
-        else if (!mUserTimeoutTimerRunning)
+        if (!mUserTimeoutTimerRunning)
         {
             // Timer was not running before this write. So, start
             // the timer.
+
             StartTCPUserTimeoutTimer();
+        }
+        else if (isProgressing)
+        {
+            // Progress is being made. So, shift the timer
+            // forward if it was started.
+
+            RestartTCPUserTimeoutTimer();
         }
 #endif // INET_CONFIG_OVERRIDE_SYSTEM_TCP_USER_TIMEOUT
 
@@ -1490,6 +1500,7 @@ INET_ERROR TCPEndPoint::DoClose(INET_ERROR err, bool suppressCallback)
                 // Discard the reference to the PCB to ensure there is no further interaction with it
                 // after this point.
                 mTCP = NULL;
+                mLwIPEndPointType = kLwIPEndPointType_Unknown;
             }
         }
 
@@ -1501,6 +1512,7 @@ INET_ERROR TCPEndPoint::DoClose(INET_ERROR err, bool suppressCallback)
             // Discard the reference to the PCB to ensure there is no further interaction with it
             // after this point.
             mTCP = NULL;
+            mLwIPEndPointType = kLwIPEndPointType_Unknown;
         }
     }
 
@@ -1609,25 +1621,61 @@ void TCPEndPoint::TCPUserTimeoutHandler(Weave::System::Layer* aSystemLayer, void
     INET_ERROR err = INET_NO_ERROR;
     bool isProgressing = false;
     err = tcpEndPoint->CheckConnectionProgress(isProgressing);
-    if (err != INET_NO_ERROR)
+    SuccessOrExit(err);
+
+    if (tcpEndPoint->mLastTCPKernelSendQueueLen == 0)
     {
-        tcpEndPoint->DoClose(err, false);
+#if INET_CONFIG_ENABLE_TCP_SEND_IDLE_CALLBACKS
+        // If the kernel TCP send queue as well as the TCPEndPoint
+        // send queue have been flushed then notify application
+        // that all data has been acknowledged.
+
+        if (tcpEndPoint->mSendQueue == NULL)
+        {
+            tcpEndPoint->SetTCPSendIdleAndNotifyChange(true);
+        }
+#endif // INET_CONFIG_ENABLE_TCP_SEND_IDLE_CALLBACKS
     }
     else
+    // There is data in the TCP Send Queue
     {
-        if (!isProgressing)
+        if (isProgressing)
         {
-            // Close Connection as we have timed out and there is still
-            // data not sent out successfully.
+            // Data is flowing, so restart the UserTimeout timer
+            // to shift it forward while also resetting the max
+            // poll count.
 
-            tcpEndPoint->DoClose(INET_ERROR_TCP_USER_TIMEOUT, false);
-        }
-        // If the transfer is progressing and there are residual bytes
-        // left in the TCP output queue, the timer needs to be restarted.
-        else if (tcpEndPoint->mLastTCPSendQueueLen > 0)
-        {
             tcpEndPoint->StartTCPUserTimeoutTimer();
         }
+        else
+        {
+#if INET_CONFIG_ENABLE_TCP_SEND_IDLE_CALLBACKS
+            // Data flow is not progressing.
+            // Decrement the remaining max TCP send queue polls.
+
+            tcpEndPoint->mTCPSendQueueRemainingPollCount--;
+
+            VerifyOrExit(tcpEndPoint->mTCPSendQueueRemainingPollCount != 0,
+                         err = INET_ERROR_TCP_USER_TIMEOUT);
+
+            // Restart timer to poll again
+
+            tcpEndPoint->ScheduleNextTCPUserTimeoutPoll(tcpEndPoint->mTCPSendQueuePollPeriodMillis);
+#else
+            // Close the connection as the TCP UserTimeout has expired
+
+            ExitNow(err = INET_ERROR_TCP_USER_TIMEOUT);
+#endif // !INET_CONFIG_ENABLE_TCP_SEND_IDLE_CALLBACKS
+        }
+    }
+
+exit:
+
+    if (err != INET_NO_ERROR)
+    {
+        // Close the connection as the TCP UserTimeout has expired
+
+        tcpEndPoint->DoClose(err, false);
     }
 #endif // WEAVE_SYSTEM_CONFIG_USE_SOCKETS
 
@@ -1640,11 +1688,46 @@ void TCPEndPoint::TCPUserTimeoutHandler(Weave::System::Layer* aSystemLayer, void
 
 }
 
-void TCPEndPoint::StartTCPUserTimeoutTimer()
+void TCPEndPoint::ScheduleNextTCPUserTimeoutPoll(uint32_t aTimeOut)
 {
     Weave::System::Layer& lSystemLayer = SystemLayer();
 
-    lSystemLayer.StartTimer(mUserTimeoutMillis, TCPUserTimeoutHandler, this);
+    lSystemLayer.StartTimer(aTimeOut, TCPUserTimeoutHandler, this);
+}
+
+#if INET_CONFIG_ENABLE_TCP_SEND_IDLE_CALLBACKS
+void TCPEndPoint::SetTCPSendIdleAndNotifyChange(bool aIsTCPSendIdle)
+{
+    if (mIsTCPSendIdle != aIsTCPSendIdle)
+    {
+        WeaveLogDetail(Inet, "TCP con send channel idle state changed : %s", aIsTCPSendIdle ? "false->true" : "true->false");
+
+        // Set the current Idle state
+        mIsTCPSendIdle = aIsTCPSendIdle;
+
+        if (OnTCPSendIdleChanged)
+        {
+            OnTCPSendIdleChanged(this, mIsTCPSendIdle);
+        }
+    }
+}
+#endif // INET_CONFIG_ENABLE_TCP_SEND_IDLE_CALLBACKS
+
+void TCPEndPoint::StartTCPUserTimeoutTimer()
+{
+    uint32_t timeOut = mUserTimeoutMillis;
+
+#if INET_CONFIG_ENABLE_TCP_SEND_IDLE_CALLBACKS
+    //Set timeout to the poll interval
+
+    timeOut = mTCPSendQueuePollPeriodMillis;
+
+    // Reset the poll count
+
+    mTCPSendQueueRemainingPollCount = MaxTCPSendQueuePolls();
+#endif // INET_CONFIG_ENABLE_TCP_SEND_IDLE_CALLBACKS
+
+    ScheduleNextTCPUserTimeoutPoll(timeOut);
 
     mUserTimeoutTimerRunning = true;
 }
@@ -1664,6 +1747,7 @@ void TCPEndPoint::RestartTCPUserTimeoutTimer()
 
     StartTCPUserTimeoutTimer();
 }
+
 #endif // INET_CONFIG_OVERRIDE_SYSTEM_TCP_USER_TIMEOUT
 
 #if WEAVE_SYSTEM_CONFIG_USE_LWIP
@@ -1692,7 +1776,13 @@ INET_ERROR TCPEndPoint::GetPCB(IPAddressType addrType)
         }
 
         if (mTCP == NULL)
+        {
             return INET_ERROR_NO_MEMORY;
+        }
+        else
+        {
+            mLwIPEndPointType = kLwIPEndPointType_TCP;
+        }
     }
     else
     {
@@ -1726,7 +1816,13 @@ INET_ERROR TCPEndPoint::GetPCB(IPAddressType addrType)
         else
             return INET_ERROR_WRONG_ADDRESS_TYPE;
         if (mTCP == NULL)
+        {
             return INET_ERROR_NO_MEMORY;
+        }
+        else
+        {
+            mLwIPEndPointType = kLwIPEndPointType_TCP;
+        }
     }
     else
     {
@@ -1756,13 +1852,19 @@ void TCPEndPoint::HandleDataSent(uint16_t lenSent)
         // across.
         if (lenSent > 0)
         {
-            if (mSendQueue == NULL && mUserTimeoutTimerRunning)
+            if (mSendQueue == NULL)
             {
                 // If the output queue has been flushed then stop the timer.
 
                 StopTCPUserTimeoutTimer();
+
+#if INET_CONFIG_ENABLE_TCP_SEND_IDLE_CALLBACKS
+                // Notify up if all outstanding data has been acknowledged
+
+                SetTCPSendIdleAndNotifyChange(true);
+#endif // INET_CONFIG_ENABLE_TCP_SEND_IDLE_CALLBACKS
             }
-            else if (mSendQueue != NULL && mUserTimeoutTimerRunning)
+            else
             {
                 // Progress is being made. So, shift the timer
                 // forward if it was started.
@@ -1947,6 +2049,7 @@ err_t TCPEndPoint::LwIPHandleIncomingConnection(void *arg, struct tcp_pcb *tpcb,
             // Put the new end point into the Connected state.
             conEP->State = kState_Connected;
             conEP->mTCP = tpcb;
+            conEP->mLwIPEndPointType = kLwIPEndPointType_TCP;
             conEP->Retain();
 
             // Setup LwIP callback functions for the new PCB.
@@ -2039,6 +2142,7 @@ void TCPEndPoint::LwIPHandleError(void *arg, err_t lwipErr)
         // of this is that the mTCP field is shared state between the two threads and thus must only be
         // accessed with the LwIP lock held.
         ep->mTCP = NULL;
+        ep->mLwIPEndPointType = kLwIPEndPointType_Unknown;
 
         // Post callback to HandleError.
         INET_ERROR err = Weave::System::MapErrorLwIP(lwipErr);
@@ -2049,6 +2153,69 @@ void TCPEndPoint::LwIPHandleError(void *arg, err_t lwipErr)
 #endif // WEAVE_SYSTEM_CONFIG_USE_LWIP
 
 #if WEAVE_SYSTEM_CONFIG_USE_SOCKETS
+
+INET_ERROR TCPEndPoint::BindSrcAddrFromIntf(IPAddressType addrType, InterfaceId intf)
+{
+    INET_ERROR err = INET_NO_ERROR;
+
+    // If we are trying to make a TCP connection over a 'specified target interface',
+    // then we bind the TCPEndPoint to an IP address on that target interface
+    // and use that address as the source address for that connection. This is
+    // done in the event that directly binding the connection to the target
+    // interface is not allowed due to insufficient privileges.
+    IPAddress curAddr = IPAddress::Any;
+    InterfaceId curIntfId = INET_NULL_INTERFACEID;
+    bool ipAddrFound = false;
+
+    VerifyOrExit(State != kState_Bound, err = INET_ERROR_NOT_SUPPORTED);
+
+    for (InterfaceAddressIterator addrIter; addrIter.HasCurrent(); addrIter.Next())
+    {
+        curAddr = addrIter.GetAddress();
+        curIntfId = addrIter.GetInterface();
+
+        if (curIntfId == intf)
+        {
+        // Search for an IPv4 address on the TargetInterface
+
+#if INET_CONFIG_ENABLE_IPV4
+            if (addrType == kIPAddressType_IPv4)
+            {
+                if (curAddr.IsIPv4())
+                {
+                    // Bind to the IPv4 address of the TargetInterface
+                    ipAddrFound = true;
+                    err = Bind(kIPAddressType_IPv4, curAddr, 0, true);
+                    SuccessOrExit(err);
+
+                    break;
+                }
+            }
+#endif // INET_CONFIG_ENABLE_IPV4
+            if (addrType == kIPAddressType_IPv6)
+            {
+                // Select an IPv6 address on the interface that is not
+                // a link local or a multicast address.
+                //TODO: Define a proper IPv6GlobalUnicast address checker.
+                if (!curAddr.IsIPv4() && !curAddr.IsIPv6LinkLocal() &&
+                    !curAddr.IsMulticast())
+                {
+                    // Bind to the IPv6 address of the TargetInterface
+                    ipAddrFound = true;
+                    err = Bind(kIPAddressType_IPv6, curAddr, 0, true);
+                    SuccessOrExit(err);
+
+                    break;
+                }
+            }
+        }
+    }
+
+    VerifyOrExit(ipAddrFound, err = INET_ERROR_NOT_SUPPORTED);
+
+exit:
+    return err;
+}
 
 INET_ERROR TCPEndPoint::GetSocket(IPAddressType addrType)
 {
@@ -2209,11 +2376,20 @@ void TCPEndPoint::ReceiveData()
         return;
     }
 
-    if (mLastTCPSendQueueLen == 0)
+    if (mLastTCPKernelSendQueueLen == 0)
     {
         // If the output queue has been flushed then stop the timer.
 
         StopTCPUserTimeoutTimer();
+
+#if INET_CONFIG_ENABLE_TCP_SEND_IDLE_CALLBACKS
+        // Notify up if all outstanding data has been acknowledged
+
+        if (mSendQueue == NULL)
+        {
+            SetTCPSendIdleAndNotifyChange(true);
+        }
+#endif // INET_CONFIG_ENABLE_TCP_SEND_IDLE_CALLBACKS
     }
     else if (isProgressing && mUserTimeoutTimerRunning)
     {
@@ -2393,7 +2569,7 @@ INET_ERROR TCPEndPoint::CheckConnectionProgress(bool &isProgressing)
    }
 
    if ((currPendingBytes != 0) &&
-       (mBytesWrittenSinceLastProbe + mLastTCPSendQueueLen == static_cast<uint32_t>(currPendingBytes)))
+       (mBytesWrittenSinceLastProbe + mLastTCPKernelSendQueueLen == static_cast<uint32_t>(currPendingBytes)))
    {
        // No progress has been made
 
@@ -2411,7 +2587,7 @@ INET_ERROR TCPEndPoint::CheckConnectionProgress(bool &isProgressing)
 
    mBytesWrittenSinceLastProbe = 0;
 
-   mLastTCPSendQueueLen = currPendingBytes;
+   mLastTCPKernelSendQueueLen = currPendingBytes;
 
 exit:
    return err;

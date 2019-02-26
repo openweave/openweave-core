@@ -1682,6 +1682,54 @@ typedef WEAVE_CONFIG_ERROR_TYPE WEAVE_ERROR;
 #define WEAVE_ERROR_WDM_POTENTIAL_DATA_LOSS                      _WEAVE_ERROR(177)
 
 /**
+ *  @def WEAVE_ERROR_UNSUPPORTED_THREAD_NETWORK_CREATE
+ *
+ *  @brief
+ *    Device doesn't support standalone Thread network creation.
+ *    On some legacy Nest devices new Thread network can only be created
+ *    together with Weave Fabric using CrateFabric() message.
+ *
+ */
+#define WEAVE_ERROR_UNSUPPORTED_THREAD_NETWORK_CREATE            _WEAVE_ERROR(178)
+
+/**
+ *  @def WEAVE_ERROR_WDM_INCONSISTENT_CONDITIONALITY
+ *
+ *  @brief
+ *    A TraitPath was declared updated with a conditionality that
+ *    does not match that of other TraitPaths already updated in the
+ *    same Trait Instance.
+ *
+ */
+#define WEAVE_ERROR_WDM_INCONSISTENT_CONDITIONALITY              _WEAVE_ERROR(179)
+
+/**
+ *  @def WEAVE_ERROR_WDM_LOCAL_DATA_INCONSISTENT
+ *
+ *  @brief
+ *    The local data does not match any known version of the
+ *    Trait Instance and cannot support the operation requested.
+ *
+ */
+#define WEAVE_ERROR_WDM_LOCAL_DATA_INCONSISTENT                  _WEAVE_ERROR(180)
+
+/**
+ *  @def WEAVE_ERROR_WDM_PATH_STORE_FULL
+ *
+ *  @brief
+ *    WDM cannot store a TraitPath for lack of memory.
+ *
+ */
+#define WEAVE_ERROR_WDM_PATH_STORE_FULL                          _WEAVE_ERROR(181)
+/**
+ * @def WEAVE_EVENT_ID_FOUND
+ *
+ * @brief
+ *   Event ID matching the criteria was found
+ */
+#define WEAVE_EVENT_ID_FOUND                                     _WEAVE_ERROR(182)
+
+/**
  *  @}
  */
 

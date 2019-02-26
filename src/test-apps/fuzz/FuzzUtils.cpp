@@ -1,5 +1,6 @@
 /*
  *
+ *    Copyright (c) 2018 Google LLC.
  *    Copyright (c) 2013-2017 Nest Labs, Inc.
  *    All rights reserved.
  *
@@ -45,7 +46,7 @@ void saveCorpus(const uint8_t *inBuf, size_t size, char *fileName)
 
 void printCorpus(const uint8_t *inBuf, size_t size)
 {
-    for (int i = 0; i < size; i++)
+    for (size_t i = 0; i < size; i++)
     {
         if (i % 12 == 0) { printf("\n"); }
         printf("0x%02X, ", inBuf[i]);

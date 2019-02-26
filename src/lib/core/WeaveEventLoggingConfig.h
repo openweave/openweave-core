@@ -167,14 +167,13 @@
 #endif
 
 /**
- * @def WEAVE_CONFIG_EVENT_LOGGING_NUM_EXTERNAL_CALLBACKS
+ * @def WEAVE_CONFIG_EVENT_LOGGING_EXTERNAL_EVENT_SUPPORT
  *
  * @brief
- *   The maximum allowed callbacks for platform owned events.
- *   By default, don't allow any external callbacks.
+ *   Enable or disable support for externally managed event storage
  */
-#ifndef WEAVE_CONFIG_EVENT_LOGGING_NUM_EXTERNAL_CALLBACKS
-#define WEAVE_CONFIG_EVENT_LOGGING_NUM_EXTERNAL_CALLBACKS 0
+#ifndef WEAVE_CONFIG_EVENT_LOGGING_EXTERNAL_EVENT_SUPPORT
+#define WEAVE_CONFIG_EVENT_LOGGING_EXTERNAL_EVENT_SUPPORT 0
 #endif
 
 #endif /* WEAVEEVENTLOGGINGCONFIG_H */

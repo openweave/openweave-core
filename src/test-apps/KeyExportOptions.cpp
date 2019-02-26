@@ -30,6 +30,7 @@
 #include <Weave/Core/WeaveTLV.h>
 #include <Weave/Profiles/WeaveProfiles.h>
 #include <Weave/Profiles/security/WeaveAccessToken.h>
+#include <Weave/Profiles/security/WeaveSig.h>
 #include <Weave/Profiles/security/WeaveSecurityDebug.h>
 #include <Weave/Profiles/service-provisioning/ServiceProvisioning.h>
 #include <Weave/Support/NestCerts.h>
@@ -215,6 +216,68 @@ enum
     // signature.
     kCertDecodeBufferSize = 1024
 };
+
+#if !WEAVE_CONFIG_LEGACY_KEY_EXPORT_DELEGATE
+
+WEAVE_ERROR KeyExportOptions::GetNodeCertSet(WeaveKeyExport * keyExport, WeaveCertificateSet & certSet)
+{
+    return GetNodeCertSet(keyExport->IsInitiator(), certSet);
+}
+
+WEAVE_ERROR KeyExportOptions::ReleaseNodeCertSet(WeaveKeyExport * keyExport, WeaveCertificateSet & certSet)
+{
+    return ReleaseNodeCertSet(keyExport->IsInitiator(), certSet);
+}
+
+WEAVE_ERROR KeyExportOptions::GenerateNodeSignature(WeaveKeyExport * keyExport, const uint8_t * msgHash, uint8_t msgHashLen,
+    TLVWriter & writer)
+{
+    WEAVE_ERROR err;
+    const uint8_t * privKey = NULL;
+    uint16_t privKeyLen;
+
+    err = GetNodePrivateKey(keyExport->IsInitiator(), privKey, privKeyLen);
+    SuccessOrExit(err);
+
+    err = GenerateAndEncodeWeaveECDSASignature(writer, TLV::ContextTag(kTag_WeaveSignature_ECDSASignatureData), msgHash, msgHashLen, privKey, privKeyLen);
+    SuccessOrExit(err);
+
+exit:
+    if (privKey != NULL)
+    {
+        WEAVE_ERROR relErr = ReleaseNodePrivateKey(keyExport->IsInitiator(), privKey);
+        err = (err == WEAVE_NO_ERROR) ? relErr : err;
+    }
+    return err;
+}
+
+WEAVE_ERROR KeyExportOptions::BeginCertValidation(WeaveKeyExport * keyExport, ValidationContext & validCtx,
+        WeaveCertificateSet & certSet)
+{
+    return BeginCertValidation(keyExport->IsInitiator(), certSet, validCtx);
+}
+
+WEAVE_ERROR KeyExportOptions::HandleCertValidationResult(WeaveKeyExport * keyExport, ValidationContext & validCtx,
+        WeaveCertificateSet & certSet, uint32_t requestedKeyId)
+{
+    return HandleCertValidationResult(keyExport->IsInitiator(), certSet, validCtx, NULL, keyExport->MessageInfo(), requestedKeyId);
+}
+
+WEAVE_ERROR KeyExportOptions::EndCertValidation(WeaveKeyExport * keyExport, ValidationContext & validCtx,
+        WeaveCertificateSet & certSet)
+{
+    return EndCertValidation(keyExport->IsInitiator(), certSet, validCtx);
+}
+
+WEAVE_ERROR KeyExportOptions::ValidateUnsignedKeyExportMessage(WeaveKeyExport * keyExport, uint32_t requestedKeyId)
+{
+    // Unsigned key export messages are not supported.
+    return keyExport->IsInitiator()
+            ? WEAVE_ERROR_UNAUTHORIZED_KEY_EXPORT_RESPONSE
+            : WEAVE_ERROR_UNAUTHORIZED_KEY_EXPORT_REQUEST;
+}
+
+#endif // !WEAVE_CONFIG_LEGACY_KEY_EXPORT_DELEGATE
 
 // Get the key export certificate set for the local node.
 // This method is responsible for initializing certificate set and loading all certificates

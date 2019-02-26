@@ -1,5 +1,6 @@
 #
-#    Copyright (c) 2014-2017 Nest Labs, Inc.
+#    Copyright (c) 2014-2018 Nest Labs, Inc.
+#    Copyright (c) 2018 Google LLC
 #    All rights reserved.
 #
 #    Licensed under the Apache License, Version 2.0 (the "License");
@@ -40,13 +41,29 @@ PRETTY_SUBDIRS                           = \
     $(NULL)
 
 EXTRA_DIST                               = \
+    BUILDING-ESP32.md                      \
+    BUILDING.md                            \
+    CONTRIBUTING.md                        \
     Makefile-Android                       \
+    Makefile-bootstrap                     \
     Makefile-iOS                           \
     Makefile-Standalone                    \
+    README.md                              \
     .default-version                       \
+    .travis.yml                            \
+    .travis/before_install.sh              \
+    .travis/build_esp32.sh                 \
+    .travis/prepare_esp32.sh               \
+    .travis/script.sh                      \
     bootstrap                              \
     bootstrap-configure                    \
+    repos.conf                             \
     $(srcdir)/build/autoconf               \
+    $(srcdir)/build/config                 \
+    $(srcdir)/build/cstyle/cstyle.options  \
+    $(srcdir)/build/esp32                  \
+    $(srcdir)/build/jenkins                \
+    $(srcdir)/build/make                   \
     $(srcdir)/build/scripts                \
     $(srcdir)/certs                        \
     $(NULL)
@@ -88,16 +105,29 @@ PRETTY_FILES                            := $(NULL)
 # .dist-version second, and the .default-version last.
 #
 
+# VERSION_FILE should be and is intentionally an immediate (:=) rather
+# than a deferred (=) variable to ensure the value binds once and only once
+# for a given MAKELEVEL even as .local-version and .dist-version are created
+# during makefile execution.
+
 VERSION_FILE                      := $(if $(wildcard $(builddir)/.local-version),$(builddir)/.local-version,$(if $(wildcard $(srcdir)/.dist-version),$(srcdir)/.dist-version,$(srcdir)/.default-version))
 
 #
 # Override autotool's default notion of the package version variables.
-# This ensures that when we create a source distribution that the
-# version is always the current version, not the version when the
-# package was bootstrapped.
+# This ensures that when we create a source distribution the
+# version is always the current version, not the package bootstrap
+# version.
+#
+# The two-level variables and the check against MAKELEVEL ensures that
+# not only can the package version be overridden from the command line
+# but also when the version is NOT overridden that we bind the version
+# once and only once across potential sub-makes to prevent the version
+# from flapping as VERSION_FILE changes.
 #
 
-WEAVE_VERSION                     ?= $(shell cat $(VERSION_FILE) 2> /dev/null)
+export MAYBE_WEAVE_VERSION        := $(if $(filter 0,$(MAKELEVEL)),$(shell cat $(VERSION_FILE) 2> /dev/null),$(MAYBE_WEAVE_VERSION))
+
+WEAVE_VERSION                     ?= $(MAYBE_WEAVE_VERSION)
 
 PACKAGE_VERSION                    = $(WEAVE_VERSION)
 VERSION                            = $(PACKAGE_VERSION)
@@ -156,9 +186,41 @@ $(distdir)/.dist-version: $(builddir)/.local-version force
 $(distdir)/.dist-version $(builddir)/.local-version:
 	$(call check-file,$(@F))
 
-dist distcheck install-headers: $(BUILT_SOURCES)
+#
+# When we run 'distcheck' and --with-<any of the third-party packages
+# listed in repos.conf>, default to 'internal', the nlbuild-autotools
+# infrastructure will attempt to create git paths to manage the
+# package repo. Two directories need to be writable to facilitate
+# this.
+#
+
+DISTCHECK_CONFIGURE_FLAGS = `chmod u+w .. ../third_party`
+
+#
+# BlueZ is not well set-up without patching to handle 'make distcheck';
+# disable it for that target.
+#
+# We also want a more cursory sanity check for 'distcheck'; consequently,
+# skip running the Happy-centric tests.
+#
+
+DISTCHECK_CONFIGURE_FLAGS += --without-bluez --without-happy
+
+all-recursive check-recursive coverage-recursive install-recursive pretty-recursive pretty-check-recursive dist distcheck distdir install-headers: $(BUILT_SOURCES)
 
 dist-hook: $(distdir)/.dist-version
+
+# If you are synchronizing a package on which yours depends using 'repos.conf',
+# to 'third_party', uncomment and adapt or delete this, as needed. If you choose
+# to use this, please also take a look at Makefile.am and third_party/Makefile.am
+# and uncomment the appropriate sections there.
+
+#
+# Ensure any locally synchronized repositories defined by 'repos.conf'
+# are cleaned up.
+#
+distclean-local:
+	$(MAKE) -C $(srcdir) -f Makefile-bootstrap clean-repos
 
 #
 # Top-level convenience target for making a documentation-only

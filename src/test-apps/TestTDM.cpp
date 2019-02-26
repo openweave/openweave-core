@@ -1,5 +1,6 @@
 /*
  *
+ *    Copyright (c) 2018 Google LLC.
  *    Copyright (c) 2013-2017 Nest Labs, Inc.
  *    All rights reserved.
  *
@@ -25,7 +26,7 @@
 #include "ToolCommon.h"
 
 #include <nlbyteorder.h>
-#include <nltest.h>
+#include <nlunit-test.h>
 
 #include <Weave/Core/WeaveCore.h>
 #include <Weave/Core/WeaveTLV.h>
@@ -1250,7 +1251,6 @@ void TestTdm::TestTdmStatic_TestEphemeralStruct(nlTestSuite *inSuite)
 
 void TestTdm::TestTdmStatic_TestIsParent(nlTestSuite *inSuite)
 {
-    WEAVE_ERROR err = WEAVE_NO_ERROR;
     const TraitSchemaEngine *se = mTestBSource.GetSchemaEngine();
     PropertyPathHandle leafInDictionary = CreatePropertyPathHandle(TestBTrait::kPropertyHandle_TaJ_Value_SaA, 3);
 
@@ -2031,9 +2031,7 @@ exit:
 void TestTdm::CheckAllocateRightSizedBufferForNotifications(nlTestSuite *inSuite)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
-    uint32_t maxNotificationSize = 0;
     uint32_t fakeMax = UINT16_MAX;
-    maxNotificationSize = mSubHandler->GetMaxNotificationSize();
 
     err = AllocateBuffer(WDM_MAX_NOTIFICATION_SIZE, WDM_MIN_NOTIFICATION_SIZE);
 

@@ -64,9 +64,8 @@ public:
 
     INET_ERROR Shutdown(void);
 
-    INET_ERROR PrepareDNSResolver(DNSResolver &resolver, const char *hostName,
-                                  uint16_t hostNameLen, uint8_t maxAddrs,
-                                  IPAddress *addrArray,
+    INET_ERROR PrepareDNSResolver(DNSResolver &resolver, const char *hostName, uint16_t hostNameLen,
+                                  uint8_t options, uint8_t maxAddrs, IPAddress *addrArray,
                                   DNSResolver::OnResolveCompleteFunct onComplete, void *appState);
 
 private:

@@ -29,6 +29,7 @@ import time
 
 from happy.ReturnMsg import ReturnMsg
 from happy.Utils import *
+from happy.utils.IP import IP
 from happy.HappyNode import HappyNode
 from happy.HappyNetwork import HappyNetwork
 
@@ -111,11 +112,11 @@ class WeaveHeartbeat(HappyNode, HappyNetwork, WeaveTest):
             self.server_node_id = self.server
 
         # Check if client is provided in a form of IP address
-        if self.isIpAddress(self.client):
+        if IP.isIpAddress(self.client):
             self.client_node_id = self.getNodeIdFromAddress(self.client)
 
         # Check if server is provided in a form of IP address
-        if self.isIpAddress(self.server):
+        if IP.isIpAddress(self.server):
             self.no_service = True
             self.server_ip = self.server
             self.server_weave_id = self.IPv6toWeaveId(self.server)
@@ -200,7 +201,7 @@ class WeaveHeartbeat(HappyNode, HappyNetwork, WeaveTest):
             return
 
         if self.tap:
-            cmd += " --interface " + self.tap
+            cmd += " --tap-device " + self.tap
 
         self.start_simple_weave_server(cmd, self.server_ip,
              self.server_node_id, self.server_process_tag, use_persistent_storage=self.use_persistent_storage)
@@ -214,7 +215,7 @@ class WeaveHeartbeat(HappyNode, HappyNetwork, WeaveTest):
         cmd += " --count " + str(self.count)
 
         if self.tap:
-            cmd += " --interface " + self.tap
+            cmd += " --tap-device " + self.tap
 
         self.start_simple_weave_client(cmd, self.client_ip,
             self.server_ip, self.server_weave_id,
