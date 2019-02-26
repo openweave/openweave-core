@@ -46,6 +46,8 @@ def option():
 
 default_schema_branch = 'develop'
 apigw_fmt = 'apigw01.weave01.iad02.{tier}.nestlabs.com'
+apigw_siac_fmt = '{siac_name}.unstable.nestlabs.com'
+
 phoenix_mirror_url = 'http://device-automation.nestlabs.com/phoenix-schema/python'
 
 python_local = os.path.expanduser('~/.python-local')
@@ -110,7 +112,12 @@ class ServiceClient(object):
 
     def _create_gateway_service_stub(self):
         gateway_api_pb2_grpc = self.gateway_api_pb2_grpc
-        apigw = apigw_fmt.format(tier=self.tier)
+
+        if ".unstable" in self.tier:
+            siac_name = self.tier.split('.')[0]
+            apigw = apigw_siac_fmt.format(siac_name=siac_name)
+        else:
+            apigw = apigw_fmt.format(tier=self.tier)
 
         return \
             gateway_api_pb2_grpc.GatewayServiceStub(
@@ -270,9 +277,13 @@ class WeaveRegisterService(Driver):
 
         self.cmd = ' --account-id %s --pairing-token %s --service-config %s --init-data \'%s\'' % (self.accountid, self.sessionJSON['weave']['pairing_token'], self.sessionJSON['weave']['service_config'], json.dumps(self.initial_data).encode("UTF-8"))
 
+        print "Weave Access Token:"
+
+        print hgreen(self.sessionJSON['weave']['access_token'])
+
         print "weave-register-service generated the service registration command:"
 
-        print hgreen("register-service %s  : " % self.cmd)
+        print hgreen("register-service %s\n" % self.cmd)
 
         self.logger.debug("[localhost] WeaveRegisterService: Done.")
 
