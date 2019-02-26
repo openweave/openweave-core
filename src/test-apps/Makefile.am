@@ -377,7 +377,7 @@ endif
 
 if WEAVE_SYSTEM_CONFIG_USE_SOCKETS
 check_PROGRAMS                                += \
-    TestDNSResolution                            \
+    TestInetLayerDNS                            \
     TestWoble                                    \
     $(NULL)
 endif
@@ -499,7 +499,7 @@ network_test_programs                          = \
     TestWdmNext                                  \
     TestWdmOneWayCommandSender                   \
     TestWdmOneWayCommandReceiver                 \
-    TestDNSResolution                            \
+    TestInetLayerDNS                            \
     TestWoble                                    \
     mock-device                                  \
     mock-weave-bg                                \
@@ -1117,6 +1117,7 @@ endif # WEAVE_RUN_HAPPY_CORE
 if WEAVE_RUN_HAPPY_INET
 check_SCRIPTS                                                           += \
     happy/tests/standalone/inet/test_inet_01.py                            \
+    happy/tests/standalone/inet/test_inet_dns_01.py                        \
     happy/tests/standalone/inet/test_inet_multicast_01.py                  \
     $(NULL)
 endif # WEAVE_RUN_HAPPY_INET
@@ -1502,9 +1503,9 @@ TestPairingCodeUtils_LDADD               = $(COMMON_LDADD)
 TestResourceIdentifier_SOURCES           = TestResourceIdentifier.cpp
 TestResourceIdentifier_LDADD             = $(COMMON_LDADD) $(TEST_PLATFORM_LDADD)
 
-TestDNSResolution_SOURCES                = TestDNSResolution.cpp
-TestDNSResolution_LDFLAGS                = $(AM_CPPFLAGS)
-TestDNSResolution_LDADD                  = libWeaveTestCommon.a $(COMMON_LDADD)
+TestInetLayerDNS_SOURCES                = TestInetLayerDNS.cpp
+TestInetLayerDNS_LDFLAGS                = $(AM_CPPFLAGS)
+TestInetLayerDNS_LDADD                  = libWeaveTestCommon.a $(COMMON_LDADD)
 
 mock_device_CPPFLAGS                     = $(AM_CPPFLAGS) -I$(top_srcdir)/src/test-apps/schema
 mock_device_LDADD                        = libWeaveTestCommon.a $(COMMON_LDADD)

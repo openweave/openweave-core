@@ -203,7 +203,7 @@ target_triplet = @target@
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_WITH_OPENSSL_TRUE@    $(NULL)
 
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_SYSTEM_CONFIG_USE_SOCKETS_TRUE@am__append_10 = \
-@WEAVE_BUILD_TESTS_TRUE@@WEAVE_SYSTEM_CONFIG_USE_SOCKETS_TRUE@    TestDNSResolution                            \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_SYSTEM_CONFIG_USE_SOCKETS_TRUE@    TestInetLayerDNS                            \
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_SYSTEM_CONFIG_USE_SOCKETS_TRUE@    TestWoble                                    \
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_SYSTEM_CONFIG_USE_SOCKETS_TRUE@    $(NULL)
 
@@ -592,6 +592,7 @@ target_triplet = @target@
 
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_INET_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@am__append_43 = \
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_INET_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@    happy/tests/standalone/inet/test_inet_01.py                            \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_INET_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@    happy/tests/standalone/inet/test_inet_dns_01.py                        \
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_INET_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@    happy/tests/standalone/inet/test_inet_multicast_01.py                  \
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_INET_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@    $(NULL)
 
@@ -707,7 +708,7 @@ libWeaveTestGroupKeyStore_a_OBJECTS =  \
 @HAVE_CXX11_TRUE@@WEAVE_BUILD_TESTS_TRUE@	TestTDM$(EXEEXT)
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_BUILD_WARM_TRUE@am__EXEEXT_2 = TestWarm$(EXEEXT)
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_WITH_OPENSSL_TRUE@am__EXEEXT_3 = TestWeaveProvBundle$(EXEEXT)
-@WEAVE_BUILD_TESTS_TRUE@@WEAVE_SYSTEM_CONFIG_USE_SOCKETS_TRUE@am__EXEEXT_4 = TestDNSResolution$(EXEEXT) \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_SYSTEM_CONFIG_USE_SOCKETS_TRUE@am__EXEEXT_4 = TestInetLayerDNS$(EXEEXT) \
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_SYSTEM_CONFIG_USE_SOCKETS_TRUE@	TestWoble$(EXEEXT)
 @WEAVE_BUILD_DEVICE_MANAGER_TRUE@@WEAVE_BUILD_TESTS_TRUE@am__EXEEXT_5 = mock-device$(EXEEXT)
 am__installdirs = "$(DESTDIR)$(libexecdir)"
@@ -776,7 +777,7 @@ am__installdirs = "$(DESTDIR)$(libexecdir)"
 @WEAVE_BUILD_TESTS_TRUE@	TestWdmNext$(EXEEXT) \
 @WEAVE_BUILD_TESTS_TRUE@	TestWdmOneWayCommandSender$(EXEEXT) \
 @WEAVE_BUILD_TESTS_TRUE@	TestWdmOneWayCommandReceiver$(EXEEXT) \
-@WEAVE_BUILD_TESTS_TRUE@	TestDNSResolution$(EXEEXT) \
+@WEAVE_BUILD_TESTS_TRUE@	TestInetLayerDNS$(EXEEXT) \
 @WEAVE_BUILD_TESTS_TRUE@	TestWoble$(EXEEXT) \
 @WEAVE_BUILD_TESTS_TRUE@	mock-device$(EXEEXT) \
 @WEAVE_BUILD_TESTS_TRUE@	mock-weave-bg$(EXEEXT) \
@@ -879,17 +880,6 @@ TestCrypto_OBJECTS = $(am_TestCrypto_OBJECTS)
 @WEAVE_BUILD_TESTS_TRUE@TestCrypto_DEPENDENCIES =  \
 @WEAVE_BUILD_TESTS_TRUE@	libWeaveCryptoTests.a \
 @WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_6)
-am__TestDNSResolution_SOURCES_DIST = TestDNSResolution.cpp
-@WEAVE_BUILD_TESTS_TRUE@am_TestDNSResolution_OBJECTS =  \
-@WEAVE_BUILD_TESTS_TRUE@	TestDNSResolution.$(OBJEXT)
-TestDNSResolution_OBJECTS = $(am_TestDNSResolution_OBJECTS)
-@WEAVE_BUILD_TESTS_TRUE@TestDNSResolution_DEPENDENCIES =  \
-@WEAVE_BUILD_TESTS_TRUE@	libWeaveTestCommon.a \
-@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_6)
-TestDNSResolution_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
-	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CXXLD) \
-	$(AM_CXXFLAGS) $(CXXFLAGS) $(TestDNSResolution_LDFLAGS) \
-	$(LDFLAGS) -o $@
 am__TestDRBG_SOURCES_DIST = TestDRBG.cpp
 @WEAVE_BUILD_TESTS_TRUE@am_TestDRBG_OBJECTS = TestDRBG.$(OBJEXT)
 TestDRBG_OBJECTS = $(am_TestDRBG_OBJECTS)
@@ -1003,6 +993,17 @@ TestInetLayer_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
 	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CXXLD) \
 	$(AM_CXXFLAGS) $(CXXFLAGS) $(TestInetLayer_LDFLAGS) $(LDFLAGS) \
 	-o $@
+am__TestInetLayerDNS_SOURCES_DIST = TestInetLayerDNS.cpp
+@WEAVE_BUILD_TESTS_TRUE@am_TestInetLayerDNS_OBJECTS =  \
+@WEAVE_BUILD_TESTS_TRUE@	TestInetLayerDNS.$(OBJEXT)
+TestInetLayerDNS_OBJECTS = $(am_TestInetLayerDNS_OBJECTS)
+@WEAVE_BUILD_TESTS_TRUE@TestInetLayerDNS_DEPENDENCIES =  \
+@WEAVE_BUILD_TESTS_TRUE@	libWeaveTestCommon.a \
+@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_6)
+TestInetLayerDNS_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
+	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CXXLD) \
+	$(AM_CXXFLAGS) $(CXXFLAGS) $(TestInetLayerDNS_LDFLAGS) \
+	$(LDFLAGS) -o $@
 am__TestInetLayerMulticast_SOURCES_DIST = TestInetLayerMulticast.cpp \
 	TestInetLayerCommon.cpp
 @WEAVE_BUILD_TESTS_TRUE@am_TestInetLayerMulticast_OBJECTS =  \
@@ -1793,19 +1794,19 @@ SOURCES = $(libMockBleApplicationDelegate_a_SOURCES) \
 	$(TestAppKeys_SOURCES) $(TestArgParser_SOURCES) \
 	$(TestBinding_SOURCES) $(TestCASE_SOURCES) \
 	$(TestCodeUtils_SOURCES) $(TestCrypto_SOURCES) \
-	$(TestDNSResolution_SOURCES) $(TestDRBG_SOURCES) \
-	$(TestDataManagement_SOURCES) $(TestDeviceDescriptor_SOURCES) \
-	$(TestECDH_SOURCES) $(TestECDSA_SOURCES) $(TestECMath_SOURCES) \
+	$(TestDRBG_SOURCES) $(TestDataManagement_SOURCES) \
+	$(TestDeviceDescriptor_SOURCES) $(TestECDH_SOURCES) \
+	$(TestECDSA_SOURCES) $(TestECMath_SOURCES) \
 	$(TestErrorStr_SOURCES) $(TestEventLogging_SOURCES) \
 	$(TestFabricStateDelegate_SOURCES) $(TestInetAddress_SOURCES) \
 	$(TestInetBuffer_SOURCES) $(TestInetEndPoint_SOURCES) \
-	$(TestInetLayer_SOURCES) $(TestInetLayerMulticast_SOURCES) \
-	$(TestInetTimer_SOURCES) $(TestKeyExport_SOURCES) \
-	$(TestKeyIds_SOURCES) $(TestMsgEnc_SOURCES) \
-	$(TestNetworkInfo_SOURCES) $(TestPASE_SOURCES) \
-	$(TestPacketBuffer_SOURCES) $(TestPairingCodeUtils_SOURCES) \
-	$(TestPasscodeEnc_SOURCES) $(TestPathStore_SOURCES) \
-	$(TestPersistedCounter_SOURCES) \
+	$(TestInetLayer_SOURCES) $(TestInetLayerDNS_SOURCES) \
+	$(TestInetLayerMulticast_SOURCES) $(TestInetTimer_SOURCES) \
+	$(TestKeyExport_SOURCES) $(TestKeyIds_SOURCES) \
+	$(TestMsgEnc_SOURCES) $(TestNetworkInfo_SOURCES) \
+	$(TestPASE_SOURCES) $(TestPacketBuffer_SOURCES) \
+	$(TestPairingCodeUtils_SOURCES) $(TestPasscodeEnc_SOURCES) \
+	$(TestPathStore_SOURCES) $(TestPersistedCounter_SOURCES) \
 	$(TestPersistedStorage_SOURCES) \
 	$(TestProfileStringSupport_SOURCES) $(TestProvHash_SOURCES) \
 	$(TestRADaemon_SOURCES) $(TestResourceIdentifier_SOURCES) \
@@ -1845,9 +1846,7 @@ DIST_SOURCES = $(am__libMockBleApplicationDelegate_a_SOURCES_DIST) \
 	$(am__TestArgParser_SOURCES_DIST) \
 	$(am__TestBinding_SOURCES_DIST) $(am__TestCASE_SOURCES_DIST) \
 	$(am__TestCodeUtils_SOURCES_DIST) \
-	$(am__TestCrypto_SOURCES_DIST) \
-	$(am__TestDNSResolution_SOURCES_DIST) \
-	$(am__TestDRBG_SOURCES_DIST) \
+	$(am__TestCrypto_SOURCES_DIST) $(am__TestDRBG_SOURCES_DIST) \
 	$(am__TestDataManagement_SOURCES_DIST) \
 	$(am__TestDeviceDescriptor_SOURCES_DIST) \
 	$(am__TestECDH_SOURCES_DIST) $(am__TestECDSA_SOURCES_DIST) \
@@ -1859,6 +1858,7 @@ DIST_SOURCES = $(am__libMockBleApplicationDelegate_a_SOURCES_DIST) \
 	$(am__TestInetBuffer_SOURCES_DIST) \
 	$(am__TestInetEndPoint_SOURCES_DIST) \
 	$(am__TestInetLayer_SOURCES_DIST) \
+	$(am__TestInetLayerDNS_SOURCES_DIST) \
 	$(am__TestInetLayerMulticast_SOURCES_DIST) \
 	$(am__TestInetTimer_SOURCES_DIST) \
 	$(am__TestKeyExport_SOURCES_DIST) \
@@ -2450,6 +2450,7 @@ RECHECK_LOGS = $(TEST_LOGS)
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_CORE_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@	happy/tests/standalone/heartbeat/test_weave_heartbeat_01.py \
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_CORE_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@	happy/tests/standalone/wrmp/test_weave_wrmp_01.py
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_INET_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@am__EXEEXT_38 = happy/tests/standalone/inet/test_inet_01.py \
+@WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_INET_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@	happy/tests/standalone/inet/test_inet_dns_01.py \
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_INET_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@@WEAVE_RUN_HAPPY_TRUE@	happy/tests/standalone/inet/test_inet_multicast_01.py
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@am__EXEEXT_39 = test-weave-device-descriptor-encode.sh \
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_RUN_HAPPY_SERVICE_FALSE@	test-Verhoeff.sh \
@@ -3077,8 +3078,8 @@ noinst_HEADERS = CASEOptions.h DMTestClient.h DeviceDescOptions.h \
 @WEAVE_BUILD_TESTS_TRUE@	TestWeaveTunnelServer TestWdmNext \
 @WEAVE_BUILD_TESTS_TRUE@	TestWdmOneWayCommandSender \
 @WEAVE_BUILD_TESTS_TRUE@	TestWdmOneWayCommandReceiver \
-@WEAVE_BUILD_TESTS_TRUE@	TestDNSResolution TestWoble \
-@WEAVE_BUILD_TESTS_TRUE@	mock-device mock-weave-bg \
+@WEAVE_BUILD_TESTS_TRUE@	TestInetLayerDNS TestWoble mock-device \
+@WEAVE_BUILD_TESTS_TRUE@	mock-weave-bg \
 @WEAVE_BUILD_TESTS_TRUE@	weave-bdx-client-development \
 @WEAVE_BUILD_TESTS_TRUE@	weave-bdx-client-v0 \
 @WEAVE_BUILD_TESTS_TRUE@	weave-bdx-server-development \
@@ -3402,9 +3403,9 @@ noinst_HEADERS = CASEOptions.h DMTestClient.h DeviceDescOptions.h \
 @WEAVE_BUILD_TESTS_TRUE@TestPairingCodeUtils_LDADD = $(COMMON_LDADD)
 @WEAVE_BUILD_TESTS_TRUE@TestResourceIdentifier_SOURCES = TestResourceIdentifier.cpp
 @WEAVE_BUILD_TESTS_TRUE@TestResourceIdentifier_LDADD = $(COMMON_LDADD) $(TEST_PLATFORM_LDADD)
-@WEAVE_BUILD_TESTS_TRUE@TestDNSResolution_SOURCES = TestDNSResolution.cpp
-@WEAVE_BUILD_TESTS_TRUE@TestDNSResolution_LDFLAGS = $(AM_CPPFLAGS)
-@WEAVE_BUILD_TESTS_TRUE@TestDNSResolution_LDADD = libWeaveTestCommon.a $(COMMON_LDADD)
+@WEAVE_BUILD_TESTS_TRUE@TestInetLayerDNS_SOURCES = TestInetLayerDNS.cpp
+@WEAVE_BUILD_TESTS_TRUE@TestInetLayerDNS_LDFLAGS = $(AM_CPPFLAGS)
+@WEAVE_BUILD_TESTS_TRUE@TestInetLayerDNS_LDADD = libWeaveTestCommon.a $(COMMON_LDADD)
 @WEAVE_BUILD_TESTS_TRUE@mock_device_CPPFLAGS = $(AM_CPPFLAGS) -I$(top_srcdir)/src/test-apps/schema
 @WEAVE_BUILD_TESTS_TRUE@mock_device_LDADD = libWeaveTestCommon.a \
 @WEAVE_BUILD_TESTS_TRUE@	$(COMMON_LDADD) $(am__append_45)
@@ -3684,10 +3685,6 @@ TestCrypto$(EXEEXT): $(TestCrypto_OBJECTS) $(TestCrypto_DEPENDENCIES) $(EXTRA_Te
 	@rm -f TestCrypto$(EXEEXT)
 	$(AM_V_CXXLD)$(CXXLINK) $(TestCrypto_OBJECTS) $(TestCrypto_LDADD) $(LIBS)
 
-TestDNSResolution$(EXEEXT): $(TestDNSResolution_OBJECTS) $(TestDNSResolution_DEPENDENCIES) $(EXTRA_TestDNSResolution_DEPENDENCIES) 
-	@rm -f TestDNSResolution$(EXEEXT)
-	$(AM_V_CXXLD)$(TestDNSResolution_LINK) $(TestDNSResolution_OBJECTS) $(TestDNSResolution_LDADD) $(LIBS)
-
 TestDRBG$(EXEEXT): $(TestDRBG_OBJECTS) $(TestDRBG_DEPENDENCIES) $(EXTRA_TestDRBG_DEPENDENCIES) 
 	@rm -f TestDRBG$(EXEEXT)
 	$(AM_V_CXXLD)$(CXXLINK) $(TestDRBG_OBJECTS) $(TestDRBG_LDADD) $(LIBS)
@@ -3745,6 +3742,10 @@ TestInetEndPoint$(EXEEXT): $(TestInetEndPoint_OBJECTS) $(TestInetEndPoint_DEPEND
 TestInetLayer$(EXEEXT): $(TestInetLayer_OBJECTS) $(TestInetLayer_DEPENDENCIES) $(EXTRA_TestInetLayer_DEPENDENCIES) 
 	@rm -f TestInetLayer$(EXEEXT)
 	$(AM_V_CXXLD)$(TestInetLayer_LINK) $(TestInetLayer_OBJECTS) $(TestInetLayer_LDADD) $(LIBS)
+
+TestInetLayerDNS$(EXEEXT): $(TestInetLayerDNS_OBJECTS) $(TestInetLayerDNS_DEPENDENCIES) $(EXTRA_TestInetLayerDNS_DEPENDENCIES) 
+	@rm -f TestInetLayerDNS$(EXEEXT)
+	$(AM_V_CXXLD)$(TestInetLayerDNS_LINK) $(TestInetLayerDNS_OBJECTS) $(TestInetLayerDNS_LDADD) $(LIBS)
 
 TestInetLayerMulticast$(EXEEXT): $(TestInetLayerMulticast_OBJECTS) $(TestInetLayerMulticast_DEPENDENCIES) $(EXTRA_TestInetLayerMulticast_DEPENDENCIES) 
 	@rm -f TestInetLayerMulticast$(EXEEXT)
@@ -4159,7 +4160,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/TestCASE.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/TestCodeUtils.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/TestCrypto-TestCrypto.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/TestDNSResolution.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/TestDRBG.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/TestDataManagement.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/TestDeviceDescriptor.Po@am__quote@
@@ -4177,6 +4177,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/TestInetEndPoint.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/TestInetLayer.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/TestInetLayerCommon.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/TestInetLayerDNS.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/TestInetLayerMulticast.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/TestInetTimer.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/TestKeyExport.Po@am__quote@
@@ -6513,9 +6514,9 @@ TestWeaveProvBundle.log: TestWeaveProvBundle$(EXEEXT)
 	--log-file $$b.log --trs-file $$b.trs \
 	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
 	"$$tst" $(AM_TESTS_FD_REDIRECT)
-TestDNSResolution.log: TestDNSResolution$(EXEEXT)
-	@p='TestDNSResolution$(EXEEXT)'; \
-	b='TestDNSResolution'; \
+TestInetLayerDNS.log: TestInetLayerDNS$(EXEEXT)
+	@p='TestInetLayerDNS$(EXEEXT)'; \
+	b='TestInetLayerDNS'; \
 	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
 	--log-file $$b.log --trs-file $$b.trs \
 	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
@@ -8427,6 +8428,13 @@ happy/tests/standalone/wrmp/test_weave_wrmp_01.py.log: happy/tests/standalone/wr
 happy/tests/standalone/inet/test_inet_01.py.log: happy/tests/standalone/inet/test_inet_01.py
 	@p='happy/tests/standalone/inet/test_inet_01.py'; \
 	b='happy/tests/standalone/inet/test_inet_01.py'; \
+	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
+	--log-file $$b.log --trs-file $$b.trs \
+	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
+	"$$tst" $(AM_TESTS_FD_REDIRECT)
+happy/tests/standalone/inet/test_inet_dns_01.py.log: happy/tests/standalone/inet/test_inet_dns_01.py
+	@p='happy/tests/standalone/inet/test_inet_dns_01.py'; \
+	b='happy/tests/standalone/inet/test_inet_dns_01.py'; \
 	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
 	--log-file $$b.log --trs-file $$b.trs \
 	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
