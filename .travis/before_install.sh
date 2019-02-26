@@ -120,12 +120,23 @@ case "${BUILD_TARGET}" in
 
         cd $HOME
         git clone https://github.com/openweave/happy.git
-
+        echo "=========>copy happy/bin files======>"
+        cd ${HOME}/happy/bin
+        for i in *.py
+        do
+            source=${i}
+            dest=`basename ${i} .py`
+            sudo cp ${source} /usr/local/bin/${dest}
+            sudo chmod +x /usr/local/bin/${dest}
+        done
+        
+        cd $HOME
         mkdir -p ve
         cd ve
         virtualenv happy
         ls ./happy/bin/activate
         . ./happy/bin/activate
+
         cd ${HOME}/happy
         python pip_packages.py
         python setup.py develop
