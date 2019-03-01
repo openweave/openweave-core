@@ -60,58 +60,78 @@ class WeaveInetDNS(HappyNode, HappyNetwork, WeaveTest):
         self.quiet = opts["quiet"]
         self.node_id = opts["node_id"]
         self.tap_if = options["tap_if"]
-        self.node_ip = options["node_ip"]
+        self.prefix = opts["prefix"]
         self.ipv4_gateway =options["ipv4_gateway"]
         self.dns = options["dns"]
         self.use_lwip = options["use_lwip"]
 
         self.node_process_tag = "WEAVE-INET-NODE"
 
+    def __log_error_and_exit(self, error):
+        self.logger.error("[localhost] WeaveInetDNS: %s" % (error))
+        sys.exit(1)
+
+    def __checkNodeExists(self, node, description):
+        if not self._nodeExists(node):
+            emsg = "The %s '%s' does not exist in the test topology." % (description, node)
+            self.__log_error_and_exit(emsg)
+
+
     def __pre_check(self):
        # Check if the name of the new node is given
         if not self.node_id:
             emsg = "Missing name of the virtual node that should start shell."
-            self.logger.error("[%s] HappyShell: %s" % (self.node_id, emsg))
-            self.exit()
+            self.__log_error_and_exit(emsg)
 
         # Check if virtual node exists
         if not self._nodeExists():
             emsg = "virtual node %s does not exist." % (self.node_id)
-            self.logger.error("[%s] HappyShell: %s" % (self.node_id, emsg))
-            self.exit()
+            self.__log_error_and_exit(emsg)
 
+        # check if prefix 
+        if self.prefix == None:
+            emsg = "prefix is None, Please specifiy a valid prefix."
+            self.__log_error_and_exit(emsg)
 
-    def __process_results(self, output):
+    def __gather_results(self):
         """
-        process test output from DNS resolution test
+        gather result from get_test_output()
         """
-        
-        print "test DNS resolution output=====>"
-        print output
+        quiet = True
+        results = {}
 
-        for line in output.split("\n"):
-            if "Fail" in line:
-                result = False
+        results['status'], results['output'] = self.get_test_output(self.node_id, self.node_process_tag, quiet)
 
-        if self.quiet == False:
-            print "weave-inet dns resolution test on node {}".format(self.node_id)
-            if 'result' in locals() and result is False:
-                print hred("failed")
-            else:
-                print hgreen("passed")
-                result = True
-        return (result, output)
-    
+        return (results)
+
+
+    def __process_results(self, results):
+        """
+        process results from gather_results()
+        """
+        status = False
+        output = ""
+
+        status = (results['status'] == 0)
+
+        output = results['output']
+
+        return (status, output)
 
     def __start_node_dnscheck(self):
         """
         lwip and socket use different command for now
-        TODO: fix lwip and socket to use similar command future.
         """
         cmd = "sudo "
         cmd += self.getWeaveInetLayerDNSPath()
+        node_ip = self.getNodeAddressesOnPrefix(self.prefix, self.node_id)[0]
+
+        if node_ip == None:
+            emsg = "Could not find IP address of the node, %s" % (self.node_id)
+            self.__log_error_and_exit(emsg)
+
         if self.use_lwip:
-            cmd += " --tap-device " + self.tap_if + " -a " + self.node_ip + " --ipv4-gateway " + self.ipv4_gateway + \
+            cmd += " --tap-device " + self.tap_if + " -a " + node_ip + " --ipv4-gateway " + self.ipv4_gateway + \
                     " --dns-server " + self.dns
 
         print "dns check command : {}".format(cmd)
@@ -139,7 +159,9 @@ class WeaveInetDNS(HappyNode, HappyNetwork, WeaveTest):
         node_strace_value, node_strace_data = \
             self.get_test_strace(self.node_id, self.node_process_tag, True)
 
-        result, output = self.__process_results(node_output_data)
+        results = self.__gather_results()
+
+        result, output = self.__process_results(results)
 
         data = {}
         data["node_output"] = node_output_data
