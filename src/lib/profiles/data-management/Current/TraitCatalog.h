@@ -188,7 +188,7 @@ private:
     CatalogItem * mCatalogStore;
     ResourceIdentifier mResourceId;
     uint32_t mNumMaxCatalogItems;
-    uint32_t mNumCurCatalogItems;
+    uint32_t mNumOfUsedCatalogItems;
 };
 
 typedef SingleResourceTraitCatalog<TraitDataSink> SingleResourceSinkTraitCatalog;
@@ -199,22 +199,22 @@ SingleResourceTraitCatalog<T>::SingleResourceTraitCatalog(ResourceIdentifier aRe
                                                           uint32_t aNumMaxCatalogItems) :
     mResourceId(aResourceIdentifier)
 {
-    mCatalogStore       = aCatalogStore;
-    mNumMaxCatalogItems = aNumMaxCatalogItems;
-    mNumCurCatalogItems = 0;
+    mCatalogStore          = aCatalogStore;
+    mNumMaxCatalogItems    = aNumMaxCatalogItems;
+    mNumOfUsedCatalogItems = 0;
 }
 
 template <typename T>
 WEAVE_ERROR SingleResourceTraitCatalog<T>::Add(uint64_t aInstanceId, T * aItem, TraitDataHandle & aHandle)
 {
-    if (mNumCurCatalogItems >= mNumMaxCatalogItems)
+    if (mNumOfUsedCatalogItems >= mNumMaxCatalogItems)
     {
         return WEAVE_ERROR_NO_MEMORY;
     }
 
-    mCatalogStore[mNumCurCatalogItems].mInstanceId = aInstanceId;
-    mCatalogStore[mNumCurCatalogItems].mItem       = aItem;
-    aHandle                                        = mNumCurCatalogItems++;
+    mCatalogStore[mNumOfUsedCatalogItems].mInstanceId = aInstanceId;
+    mCatalogStore[mNumOfUsedCatalogItems].mItem       = aItem;
+    aHandle                                           = mNumOfUsedCatalogItems++;
 
     WeaveLogDetail(DataManagement, "Adding trait version (%u, %u)", mCatalogStore[aHandle].mItem->GetSchemaEngine()->GetMinVersion(), mCatalogStore[aHandle].mItem->GetSchemaEngine()->GetMaxVersion());
 
@@ -231,7 +231,7 @@ WEAVE_ERROR SingleResourceTraitCatalog<T>::AddAt(uint64_t aInstanceId, T * aItem
 
     mCatalogStore[aHandle].mInstanceId = aInstanceId;
     mCatalogStore[aHandle].mItem       = aItem;
-    mNumCurCatalogItems++;
+    mNumOfUsedCatalogItems++;
     WeaveLogDetail(DataManagement, "Adding trait version (%u, %u)", mCatalogStore[aHandle].mItem->GetSchemaEngine()->GetMinVersion(), mCatalogStore[aHandle].mItem->GetSchemaEngine()->GetMaxVersion());
 
     return WEAVE_NO_ERROR;
@@ -240,13 +240,12 @@ WEAVE_ERROR SingleResourceTraitCatalog<T>::AddAt(uint64_t aInstanceId, T * aItem
 template <typename T>
 WEAVE_ERROR SingleResourceTraitCatalog<T>::Remove(TraitDataHandle aHandle)
 {
-    if (aHandle >= mNumCurCatalogItems)
+    if (aHandle >= mNumOfUsedCatalogItems)
     {
         return WEAVE_ERROR_INVALID_ARGUMENT;
     }
 
-    memcpy(mCatalogStore + aHandle, mCatalogStore + aHandle + 1, (mNumCurCatalogItems - 1 - aHandle) * sizeof(CatalogItem));
-    mNumCurCatalogItems--;
+    mCatalogStore[aHandle].mItem = NULL;
 
     return WEAVE_NO_ERROR;
 }
@@ -303,13 +302,16 @@ exit:
 template <typename T>
 WEAVE_ERROR SingleResourceTraitCatalog<T>::Locate(uint64_t aProfileId, uint64_t aInstanceId, TraitDataHandle & aHandle) const
 {
-    for (uint32_t i = 0; i < mNumCurCatalogItems; i++)
+    for (uint32_t i = 0; i < mNumOfUsedCatalogItems; i++)
     {
-        if ((mCatalogStore[i].mItem->GetSchemaEngine()->GetProfileId() == aProfileId) &&
-            (mCatalogStore[i].mInstanceId == aInstanceId))
+        if (mCatalogStore[i].mItem != NULL)
         {
-            aHandle = i;
-            return WEAVE_NO_ERROR;
+            if ((mCatalogStore[i].mItem->GetSchemaEngine()->GetProfileId() == aProfileId) &&
+                (mCatalogStore[i].mInstanceId == aInstanceId))
+            {
+                aHandle = i;
+                return WEAVE_NO_ERROR;
+            }
         }
     }
 
@@ -324,7 +326,8 @@ WEAVE_ERROR SingleResourceTraitCatalog<T>::HandleToAddress(TraitDataHandle aHand
     CatalogItem * item;
     TLV::TLVType type;
 
-    VerifyOrExit(aHandle < mNumCurCatalogItems, err = WEAVE_ERROR_INVALID_ARGUMENT);
+    // Make sure the handle exists and mItem is not NULL
+    VerifyOrExit((aHandle < mNumOfUsedCatalogItems && mCatalogStore[aHandle].mItem != NULL), err = WEAVE_ERROR_INVALID_ARGUMENT);
     item = &mCatalogStore[aHandle];
 
     VerifyOrExit(aSchemaVersionRange.IsValid(), err = WEAVE_ERROR_INVALID_ARGUMENT);
@@ -386,7 +389,8 @@ WEAVE_ERROR SingleResourceTraitCatalog<T>::Locate(TraitDataHandle aHandle, T ** 
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
 
-    VerifyOrExit(aHandle < mNumCurCatalogItems, err = WEAVE_ERROR_INVALID_ARGUMENT);
+    // Make sure the handle exists and mItem is not NULL
+    VerifyOrExit((aHandle < mNumOfUsedCatalogItems && mCatalogStore[aHandle].mItem != NULL), err = WEAVE_ERROR_INVALID_ARGUMENT);
     *aTraitInstance = mCatalogStore[aHandle].mItem;
 
 exit:
@@ -396,24 +400,30 @@ exit:
 template <typename T>
 WEAVE_ERROR SingleResourceTraitCatalog<T>::Locate(T * aTraitInstance, TraitDataHandle & aHandle) const
 {
-    for (uint32_t i = 0; i < mNumCurCatalogItems; i++)
+    for (uint32_t i = 0; i < mNumOfUsedCatalogItems; i++)
     {
-        if (mCatalogStore[i].mItem == aTraitInstance)
+        if (mCatalogStore[i].mItem != NULL)
         {
-            aHandle = i;
-            return WEAVE_NO_ERROR;
+            if (mCatalogStore[i].mItem == aTraitInstance)
+            {
+                aHandle = i;
+                return WEAVE_NO_ERROR;
+            }
         }
     }
 
-    return WEAVE_ERROR_KEY_NOT_FOUND;
+    return WEAVE_ERROR_INVALID_ARGUMENT;
 }
 
 template <typename T>
 void SingleResourceTraitCatalog<T>::Iterate(IteratorCallback aCallback, void * aContext)
 {
-    for (uint32_t i = 0; i < mNumCurCatalogItems; i++)
+    for (uint32_t i = 0; i < mNumOfUsedCatalogItems; i++)
     {
-        aCallback(mCatalogStore[i].mItem, i, aContext);
+        if (mCatalogStore[i].mItem != NULL)
+        {
+            aCallback(mCatalogStore[i].mItem, i, aContext);
+        }
     }
 }
 
@@ -422,9 +432,12 @@ WEAVE_ERROR SingleResourceTraitCatalog<T>::DispatchEvent(uint16_t aEvent, void *
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
 
-    for (uint32_t i = 0; i < mNumCurCatalogItems; i++)
+    for (uint32_t i = 0; i < mNumOfUsedCatalogItems; i++)
     {
-        mCatalogStore[i].mItem->OnEvent(aEvent, aContext);
+        if (mCatalogStore[i].mItem != NULL)
+        {
+            mCatalogStore[i].mItem->OnEvent(aEvent, aContext);
+        }
     }
 
     return err;
@@ -433,7 +446,17 @@ WEAVE_ERROR SingleResourceTraitCatalog<T>::DispatchEvent(uint16_t aEvent, void *
 template <typename T>
 uint32_t SingleResourceTraitCatalog<T>::Count() const
 {
-    return mNumCurCatalogItems;
+    uint32_t count = 0;
+
+    for (uint32_t i = 0; i < mNumOfUsedCatalogItems; i++)
+    {
+        if (mCatalogStore[i].mItem != NULL)
+        {
+            count++;
+        }
+    }
+
+    return count;
 }
 
 #if WEAVE_CONFIG_ENABLE_WDM_UPDATE
@@ -441,7 +464,9 @@ template <typename T>
 WEAVE_ERROR SingleResourceTraitCatalog<T>::GetInstanceId(TraitDataHandle aHandle, uint64_t &aInstanceId) const
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
-    VerifyOrExit(aHandle < mNumCurCatalogItems, err = WEAVE_ERROR_INVALID_ARGUMENT);
+
+    // Make sure the handle exists and mItem is not NULL
+    VerifyOrExit((aHandle < mNumOfUsedCatalogItems && mCatalogStore[aHandle].mItem != NULL), err = WEAVE_ERROR_INVALID_ARGUMENT);
     aInstanceId = mCatalogStore[aHandle].mInstanceId;
 
     exit:
