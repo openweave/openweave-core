@@ -314,6 +314,7 @@ public:
     WEAVE_ERROR SetUpdated(TraitUpdatableDataSink * aDataSink, PropertyPathHandle aPropertyHandle, bool aIsConditional);
     void DiscardUpdates();
     void SuspendUpdateRetries();
+    void OnCatalogChanged();
 
     bool IsUpdatePendingOrInProgress() { return (kPendingSetEmpty != mPendingSetState || IsUpdateInProgress()); }
 #endif // WEAVE_CONFIG_ENABLE_WDM_UPDATE
@@ -544,32 +545,15 @@ private:
     static void UpdateEventCallback(void * const aAppState, UpdateClient::EventType aEvent, const UpdateClient::InEventParam & aInParam, UpdateClient::OutEventParam & aOutParam);
     void AbortUpdates(WEAVE_ERROR);
 
+    void ConfigureUpdatableSinks(void);
 
-    // Index of the TraitUpdatableDataSink instances stored in mDataSinkCatalog
-    /**
-     * Updatable trait instance context
-     */
-    struct UpdatableTIContext
-    {
-        void Init(TraitUpdatableDataSink *aUpdatableDataSink, TraitDataHandle aTraitDataHandle)
-        {
-            mUpdatableDataSink = aUpdatableDataSink;
-            mTraitDataHandle = aTraitDataHandle;
-        }
-
-        TraitDataHandle mTraitDataHandle;
-        TraitUpdatableDataSink *mUpdatableDataSink;
-    };
-    static void InitUpdatableSinkTrait(void *aDataSink, TraitDataHandle aDataHandle, void *aContext);
+    static void MovePendingToInProgressUpdatableSinkTrait(void *aDataSink, TraitDataHandle aDataHandle, void *aContext);
+    static void RefreshUpdatableSinkTrait(void *aDataSink, TraitDataHandle aDataHandle, void *aContext);
+    static void PurgePendingUpdatableSinkTrait(void *aDataSink, TraitDataHandle aDataHandle, void *aContext);
+    static void ConfigureUpdatableSinkTrait(void *aDataSink, TraitDataHandle aDataHandle, void *aContext);
     static void CleanupUpdatableSinkTrait(void *aDataSink, TraitDataHandle aDataHandle, void *aContext);
-    UpdatableTIContext *GetUpdatableTIContextList(void) { return mClientTraitInfoPool; }
-    uint32_t GetNumUpdatableTraitInstances(void) { return mNumUpdatableTraitInstances; }
 
-    // Data members for WDM Update
-
-    UpdatableTIContext mClientTraitInfoPool[WDM_CLIENT_MAX_NUM_UPDATABLE_TRAITS];
-    uint16_t mNumUpdatableTraitInstances;
-
+    bool mResubscribeNeeded;
     UpdateRequestContext mUpdateRequestContext;
     uint16_t mMaxUpdateSize;
     bool mUpdateInFlight;

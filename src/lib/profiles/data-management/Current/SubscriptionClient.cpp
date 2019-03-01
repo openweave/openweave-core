@@ -91,7 +91,6 @@ void SubscriptionClient::Reset(void)
 #if WEAVE_CONFIG_ENABLE_WDM_UPDATE
     mUpdateMutex                            = NULL;
     mUpdateInFlight                         = false;
-    mNumUpdatableTraitInstances             = 0;
     mMaxUpdateSize                          = 0;
     mUpdateRequestContext.Reset();
     mPendingSetState = kPendingSetEmpty;
@@ -143,7 +142,6 @@ WEAVE_ERROR SubscriptionClient::Init(Binding * const apBinding, void * const apA
 #if WEAVE_CONFIG_ENABLE_WDM_UPDATE
     mUpdateMutex                            = aUpdateMutex;
     mUpdateInFlight                         = false;
-    mNumUpdatableTraitInstances             = 0;
     mMaxUpdateSize                          = 0;
 
 #endif // WEAVE_CONFIG_ENABLE_WDM_UPDATE
@@ -156,10 +154,7 @@ WEAVE_ERROR SubscriptionClient::Init(Binding * const apBinding, void * const apA
     err = mUpdateClient.Init(mBinding, this, UpdateEventCallback);
     SuccessOrExit(err);
 
-    if (NULL != mDataSinkCatalog)
-    {
-        mDataSinkCatalog->Iterate(InitUpdatableSinkTrait, this);
-    }
+    ConfigureUpdatableSinks();
 
 exit:
 #endif // WEAVE_CONFIG_ENABLE_WDM_UPDATE
@@ -551,8 +546,12 @@ WEAVE_ERROR SubscriptionClient::SendSubscribeRequest(void)
                         outSubscribeParam.mSubscribeRequestPrepareNeeded.mPathList[i].mPropertyPathHandle;
                 }
 
-                err = mDataSinkCatalog->Locate(versionedTraitPath.mTraitDataHandle, &pDataSink);
-                SuccessOrExit(err);
+                if (mDataSinkCatalog->Locate(versionedTraitPath.mTraitDataHandle, &pDataSink) != WEAVE_NO_ERROR)
+                {
+                    // Locate() can return an error if the sink has been removed from the catalog. In that case,
+                    // continue to next entry
+                    continue;
+                }
 
                 // Start the TLV Path
                 err = writer.StartContainer(nl::Weave::TLV::AnonymousTag, nl::Weave::TLV::kTLVType_Path, dummyContainerType);
@@ -561,6 +560,16 @@ WEAVE_ERROR SubscriptionClient::SendSubscribeRequest(void)
                 // Start, fill, and close the TLV Structure that contains ResourceID, ProfileID, and InstanceID
                 err = mDataSinkCatalog->HandleToAddress(versionedTraitPath.mTraitDataHandle, writer,
                                                         versionedTraitPath.mRequestedVersionRange);
+
+                if (err == WEAVE_ERROR_INVALID_ARGUMENT)
+                {
+                    // Ideally, this code will not be reached as HandleToAddress() should find the entry in the catalog.
+                    // Otherwise, the earlier Locate() call would have continued.
+                    // However, keeping this check here for consistency and code safety
+                    err = WEAVE_NO_ERROR;
+                    continue;
+                }
+
                 SuccessOrExit(err);
 
                 // Append zero or more TLV tags based on the Path Handle
@@ -596,8 +605,12 @@ WEAVE_ERROR SubscriptionClient::SendSubscribeRequest(void)
                         outSubscribeParam.mSubscribeRequestPrepareNeeded.mPathList[i].mPropertyPathHandle;
                 }
 
-                err = mDataSinkCatalog->Locate(versionedTraitPath.mTraitDataHandle, &pDataSink);
-                SuccessOrExit(err);
+                if (mDataSinkCatalog->Locate(versionedTraitPath.mTraitDataHandle, &pDataSink) != WEAVE_NO_ERROR)
+                {
+                    // Locate() can return an error if the sink has been removed from the catalog. In that case,
+                    // continue to next entry
+                    continue;
+                }
 
                 if (pDataSink->IsVersionValid())
                 {
@@ -2085,13 +2098,17 @@ WEAVE_ERROR SubscriptionClient::MoveInProgressToPending(void)
 
         if ( ! mInProgressUpdateList.AreFlagsSet(i, kFlag_Private))
         {
-            err = mDataSinkCatalog->Locate(traitPath.mTraitDataHandle, &dataSink);
-            SuccessOrExit(err);
-            err = AddItemPendingUpdateSet(traitPath, dataSink->GetSchemaEngine());
-            SuccessOrExit(err);
-            mInProgressUpdateList.RemoveItemAt(i);
+            // Locate() can return an error if the sink has been removed from the catalog. In that case,
+            // skip this path
+            if (mDataSinkCatalog->Locate(traitPath.mTraitDataHandle, &dataSink) == WEAVE_NO_ERROR)
+            {
+                err = AddItemPendingUpdateSet(traitPath, dataSink->GetSchemaEngine());
+                SuccessOrExit(err);
 
-            count++;
+                count++;
+            }
+
+            mInProgressUpdateList.RemoveItemAt(i);
         }
     }
 
@@ -2117,49 +2134,45 @@ exit:
 // paths by trait instance
 WEAVE_ERROR SubscriptionClient::MovePendingToInProgress(void)
 {
-    WEAVE_ERROR err = WEAVE_NO_ERROR;
-    TraitPath traitPath;
-    UpdatableTIContext * traitInfo;
-    int count = 0;
-
     VerifyOrDie(mInProgressUpdateList.IsEmpty());
 
-    // TODO: if we send too many DataElements in the same UpdateRequest, the response
-    // is never received. Untill the problem is rootcaused and fixed, the loop below
-    // limits the number of items transferred to mInProgressUpdateList.
-    // 94 items triggers the problem; 75 does not. Using a value of 50 to be safe (more
-    // DataElements are generated during the encoding).
-
-    for (size_t traitInstance = 0; traitInstance < mNumUpdatableTraitInstances; traitInstance++)
+    if (mDataSinkCatalog)
     {
-        traitInfo = mClientTraitInfoPool + traitInstance;
-
-        for (size_t i = mPendingUpdateSet.GetFirstValidItem(traitInfo->mTraitDataHandle);
-                i < mPendingUpdateSet.GetPathStoreSize();
-                i = mPendingUpdateSet.GetNextValidItem(i, traitInfo->mTraitDataHandle))
-        {
-            mPendingUpdateSet.GetItemAt(i, traitPath);
-
-            err = mInProgressUpdateList.AddItem(traitPath);
-            SuccessOrExit(err);
-
-            mPendingUpdateSet.RemoveItemAt(i);
-
-            count++;
-        }
+        mDataSinkCatalog->Iterate(MovePendingToInProgressUpdatableSinkTrait, this);
     }
 
-    if (mPendingUpdateSet.IsEmpty())
+    mPendingUpdateSet.Clear();
+    SetPendingSetState(kPendingSetEmpty);
+
+    return WEAVE_NO_ERROR;
+}
+
+void SubscriptionClient::MovePendingToInProgressUpdatableSinkTrait(void * aDataSink, TraitDataHandle aDataHandle, void * aContext)
+{
+    SubscriptionClient * subClient = static_cast<SubscriptionClient *>(aContext);
+    TraitDataSink * dataSink = static_cast<TraitDataSink *>(aDataSink);
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
+    int count = 0;
+
+    VerifyOrExit(dataSink->IsUpdatableDataSink() == true, /* no error */);
+
+    for (size_t i = subClient->mPendingUpdateSet.GetFirstValidItem(aDataHandle);
+            i < subClient->mPendingUpdateSet.GetPathStoreSize();
+            i = subClient->mPendingUpdateSet.GetNextValidItem(i, aDataHandle))
     {
-        SetPendingSetState(kPendingSetEmpty);
+        TraitPath traitPath;
+
+        subClient->mPendingUpdateSet.GetItemAt(i, traitPath);
+
+        err = subClient->mInProgressUpdateList.AddItem(traitPath);
+        SuccessOrExit(err);
+        count++;
     }
 
 exit:
     WeaveLogDetail(DataManagement, "Moved %d items from Pending to InProgress; err %" PRId32 "", count, err);
-
-    return err;
+    return;
 }
-
 
 /**
  * Notify the application for each failed pending path and
@@ -2186,7 +2199,15 @@ void SubscriptionClient::PurgeAndNotifyFailedPaths(WEAVE_ERROR aErr, TraitPathSt
 
             aPathStore.GetItemAt(j, traitPath);
             updatableDataSink = Locate(traitPath.mTraitDataHandle, mDataSinkCatalog);
-            VerifyOrDie(updatableDataSink != NULL);
+
+            if (updatableDataSink == NULL)
+            {
+                // Locate() can return NULL if the datasink has been removed from the catalog.
+                // In that case, remove the stale item in the path store and continue to next entry
+                aPathStore.RemoveItemAt(j);
+                continue;
+            }
+
             updatableDataSink->ClearVersion();
             updatableDataSink->ClearUpdateRequiredVersion();
             updatableDataSink->SetConditionalUpdate(false);
@@ -2516,7 +2537,15 @@ void SubscriptionClient::OnUpdateResponse(WEAVE_ERROR aReason, nl::Weave::Profil
         mInProgressUpdateList.GetItemAt(j, traitPath);
 
         updatableDataSink = Locate(traitPath.mTraitDataHandle, mDataSinkCatalog);
-        VerifyOrExit(updatableDataSink != NULL, err = WEAVE_ERROR_WDM_SCHEMA_MISMATCH);
+
+        if (updatableDataSink == NULL)
+        {
+            // Locate() can return an error if the sink has been removed from the catalog. In that case, ignore this path
+            WeaveLogDetail(DataManagement, "item: %zu, traitDataHandle: % potentially removed from the catalog" PRIu16 ", pathHandle: %" PRIu32 "",
+                    j, traitPath.mTraitDataHandle, traitPath.mPropertyPathHandle);
+            mInProgressUpdateList.RemoveItemAt(j);
+            continue;
+        }
 
         WeaveLogDetail(DataManagement, "item: %zu, profile: %" PRIu32 ", statusCode: 0x% " PRIx16 ", version 0x%" PRIx64 "",
                 j, profileID, statusCode, versionCreated);
@@ -2856,7 +2885,7 @@ void SubscriptionClient::AbortUpdates(WEAVE_ERROR aErr)
 {
     size_t numPending = 0;
     size_t numInProgress = 0;
-    bool resubscribe = false;
+    mResubscribeNeeded = false;
 
     LockUpdateMutex();
 
@@ -2869,33 +2898,12 @@ void SubscriptionClient::AbortUpdates(WEAVE_ERROR aErr)
 
     mUpdateClient.CancelUpdate();
 
-    for (size_t i = 0; i < mNumUpdatableTraitInstances; i++)
+    if (mDataSinkCatalog)
     {
-        bool refreshTraitInstance = false;
-        UpdatableTIContext * traitInfo = mClientTraitInfoPool + i;
-        TraitUpdatableDataSink * updatableDataSink = traitInfo->mUpdatableDataSink;
-        TraitDataHandle dataHandle = traitInfo->mTraitDataHandle;
-
-        if (mPendingUpdateSet.IsTraitPresent(dataHandle))
-        {
-            refreshTraitInstance = true;
-        }
-
-        if (mInProgressUpdateList.IsTraitPresent(dataHandle))
-        {
-            refreshTraitInstance = true;
-        }
-
-        if (refreshTraitInstance)
-        {
-            updatableDataSink->SetConditionalUpdate(false);
-            updatableDataSink->ClearUpdateRequiredVersion();
-            updatableDataSink->ClearVersion();
-            resubscribe = true;
-        }
+        mDataSinkCatalog->Iterate(RefreshUpdatableSinkTrait, this);
     }
 
-    if (resubscribe && IsInProgressOrEstablished())
+    if (mResubscribeNeeded && IsInProgressOrEstablished())
     {
         HandleSubscriptionTerminated(IsRetryEnabled(), WEAVE_NO_ERROR, NULL);
     }
@@ -2932,6 +2940,39 @@ void SubscriptionClient::AbortUpdates(WEAVE_ERROR aErr)
     return;
 }
 
+void SubscriptionClient::RefreshUpdatableSinkTrait(void * aDataSink, TraitDataHandle aDataHandle, void * aContext)
+{
+    SubscriptionClient * subClient = static_cast<SubscriptionClient *>(aContext);
+    TraitDataSink * dataSink = static_cast<TraitDataSink *>(aDataSink);
+    TraitUpdatableDataSink * updatableDataSink = NULL;
+    bool refreshTraitInstance = false;
+
+    VerifyOrExit(dataSink->IsUpdatableDataSink() == true, /* no error */);
+
+    updatableDataSink = static_cast<TraitUpdatableDataSink *>(dataSink);
+
+    if (subClient->mPendingUpdateSet.IsTraitPresent(aDataHandle))
+    {
+        refreshTraitInstance = true;
+    }
+
+    if (subClient->mInProgressUpdateList.IsTraitPresent(aDataHandle))
+    {
+        refreshTraitInstance = true;
+    }
+
+    if (refreshTraitInstance)
+    {
+        updatableDataSink->SetConditionalUpdate(false);
+        updatableDataSink->ClearUpdateRequiredVersion();
+        updatableDataSink->ClearVersion();
+        subClient->mResubscribeNeeded = true;
+    }
+
+exit:
+    return;
+}
+
 /**
  * Tells the SubscriptionClient to stop retrying update requests.
  * Allows the application to suspend updates for a period of time
@@ -2965,24 +3006,15 @@ void SubscriptionClient::SuspendUpdateRetries()
 WEAVE_ERROR SubscriptionClient::PurgePendingUpdate()
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
-    TraitUpdatableDataSink * updatableDataSink;
-    UpdatableTIContext * traitInfo;
-    size_t numUpdatableTraitInstances = GetNumUpdatableTraitInstances();
     size_t numPendingPathsDeleted = 0;
 
     WeaveLogDetail(DataManagement, "PurgePendingUpdate: numItems before: %d", mPendingUpdateSet.GetNumItems());
 
     VerifyOrExit(mPendingUpdateSet.GetNumItems() > 0, );
 
-    for (size_t i = 0; i < numUpdatableTraitInstances; i++)
+    if (mDataSinkCatalog)
     {
-        traitInfo = mClientTraitInfoPool + i;
-        updatableDataSink = traitInfo->mUpdatableDataSink;
-
-        if (updatableDataSink->IsVersionValid())
-        {
-            MarkFailedPendingPaths(traitInfo->mTraitDataHandle, *updatableDataSink, updatableDataSink->GetVersion());
-        }
+        mDataSinkCatalog->Iterate(PurgePendingUpdatableSinkTrait, this);
     }
 
     PurgeAndNotifyFailedPaths(WEAVE_ERROR_WDM_VERSION_MISMATCH, mPendingUpdateSet, numPendingPathsDeleted);
@@ -2998,6 +3030,24 @@ exit:
     return err;
 }
 
+void SubscriptionClient::PurgePendingUpdatableSinkTrait(void * aDataSink, TraitDataHandle aDataHandle, void * aContext)
+{
+    SubscriptionClient * subClient = static_cast<SubscriptionClient *>(aContext);
+    TraitDataSink * dataSink = static_cast<TraitDataSink *>(aDataSink);
+    TraitUpdatableDataSink * updatableDataSink = NULL;
+
+    VerifyOrExit(dataSink->IsUpdatableDataSink() == true, /* no error */);
+
+    updatableDataSink = static_cast<TraitUpdatableDataSink *>(dataSink);
+
+    if (updatableDataSink->IsVersionValid())
+    {
+        subClient->MarkFailedPendingPaths(aDataHandle, *updatableDataSink, updatableDataSink->GetVersion());
+    }
+
+exit:
+    return;
+}
 
 void SubscriptionClient::SetUpdateStartVersions(void)
 {
@@ -3105,8 +3155,7 @@ void SubscriptionClient::FormAndSendUpdate()
 
     VerifyOrExit(!IsUpdateInFlight(), WeaveLogDetail(DataManagement, "Update request in flight"));
 
-    WeaveLogDetail(DataManagement, "Eval Subscription: (state = %s, num-updatableTraits = %u)!",
-            GetStateStr(), mNumUpdatableTraitInstances);
+    WeaveLogDetail(DataManagement, "Eval Subscription: (state = %s)!", GetStateStr());
 
     if (mBinding->IsReady())
     {
@@ -3238,41 +3287,52 @@ exit:
     return;
 }
 
-void SubscriptionClient::InitUpdatableSinkTrait(void * aDataSink, TraitDataHandle aDataHandle, void * aContext)
+/**
+ * This method should be called when the TraitDataSink catalog
+ * has been modified.
+ */
+void SubscriptionClient::OnCatalogChanged()
 {
-    WEAVE_ERROR err = WEAVE_NO_ERROR;
-    TraitUpdatableDataSink * updatableDataSink = NULL;
-    SubscriptionClient * subClient = NULL;
-    UpdatableTIContext * traitInstance = NULL;
+    ConfigureUpdatableSinks();
+}
+
+/**
+ * Iterates over the TraitDataSink catalog to configure updatable sinks
+ */
+void SubscriptionClient::ConfigureUpdatableSinks()
+{
+    LockUpdateMutex();
+
+    if (mDataSinkCatalog)
+    {
+        mDataSinkCatalog->Iterate(ConfigureUpdatableSinkTrait, this);
+    }
+
+    UnlockUpdateMutex();
+}
+
+void SubscriptionClient::ConfigureUpdatableSinkTrait(void * aDataSink, TraitDataHandle aDataHandle, void * aContext)
+{
+    SubscriptionClient * subClient = static_cast<SubscriptionClient *>(aContext);
     TraitDataSink * dataSink = static_cast<TraitDataSink *>(aDataSink);
+    TraitUpdatableDataSink * updatableDataSink = NULL;
 
     VerifyOrExit(dataSink->IsUpdatableDataSink() == true, /* no error */);
 
     updatableDataSink = static_cast<TraitUpdatableDataSink *>(dataSink);
 
-    subClient = static_cast<SubscriptionClient *>(aContext);
-    updatableDataSink->SetSubscriptionClient(subClient);
-    updatableDataSink->SetUpdateEncoder(&subClient->mUpdateEncoder);
-    updatableDataSink->ClearUpdateRequiredVersion();
-    updatableDataSink->SetConditionalUpdate(false);
-
-    VerifyOrExit(subClient->mNumUpdatableTraitInstances < WDM_CLIENT_MAX_NUM_UPDATABLE_TRAITS,
-                 err = WEAVE_ERROR_NO_MEMORY);
-
-    traitInstance = subClient->mClientTraitInfoPool + subClient->mNumUpdatableTraitInstances;
-    ++(subClient->mNumUpdatableTraitInstances);
-    traitInstance->Init(updatableDataSink, aDataHandle);
-
-exit:
-
-    if (WEAVE_NO_ERROR != err)
+    if (updatableDataSink->GetSubscriptionClient() != subClient)
     {
-        WeaveLogDetail(DataManagement, "run out of updatable trait instances");
-
-        WeaveDie();
+        updatableDataSink->SetSubscriptionClient(subClient);
+        updatableDataSink->SetUpdateEncoder(&subClient->mUpdateEncoder);
+        updatableDataSink->ClearUpdateRequiredVersion();
+        updatableDataSink->ClearUpdateStartVersion();
+        updatableDataSink->SetConditionalUpdate(false);
+        updatableDataSink->SetPotentialDataLoss(false);
     }
 
-    return;
+    exit:
+        return;
 }
 
 void SubscriptionClient::CleanupUpdatableSinkTrait(void * aDataSink, TraitDataHandle aDataHandle, void * aContext)
