@@ -27,7 +27,4 @@ happy-node-add --ap onhub
 happy-node-join onhub Home
 happy-node-join --tap node01 Home
 happy-network-route --prefix 10.0.1.0 Home onhub
-# happy-internet --node onhub --interface eno1 --isp eno --seed 249
 happy-internet --node onhub --interface ${IFACE} --isp ${IFACE//[0-9]/} --seed 249
-# happy-shell node01
-#./TestDNSResolution  --tap-device wlan0  -a 10.0.1.3 --ipv4-gateway 10.0.1.2 --dns-server 8.8.8.8
