@@ -70,7 +70,7 @@ enum
     kMsgType_ImageQuery         = 1,
     kMsgType_ImageQueryResponse = 2,
     kMsgType_DownloadNotify     = 3,
-    kMsgType_NotifyRepsponse    = 4, // FIXME: check the spelling!
+    kMsgType_NotifyResponse     = 4,
     kMsgType_UpdateNotify       = 5,
     kMsgType_ImageQueryStatus   = 6, // in case the image query fails
 };
