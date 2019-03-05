@@ -74,4 +74,3 @@ matrix:
     - name: "ESP32"
       env: BUILD_TARGET="esp32"
 
-

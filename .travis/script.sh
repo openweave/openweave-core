@@ -40,7 +40,7 @@ case "${BUILD_TARGET}" in
 
     linux-auto-gcc-check-happy)
         # run happy test
-        sudo bash -c "source ${HOME}/ve/happy/bin/activate; make -f Makefile-Standalone DEBUG=1 TIMESTAMP=1 COVERAGE=1 BuildJobs=24 BLUEZ=1 check"
+        sudo make -f Makefile-Standalone DEBUG=1 TIMESTAMP=1 COVERAGE=1 BuildJobs=24 check
         ;;
 
     linux-lwip-clang)
