@@ -136,6 +136,7 @@ enum
     kIntegrityType_SHA160 = 0, /**< 160-bit Secure Hash, (SHA-1), required. */
     kIntegrityType_SHA256 = 1, /**< 256-bit Secure Hash (SHA-2). */
     kIntegrityType_SHA512 = 2, /**< 512-bit, Secure Hash (SHA-2). */
+    kIntegrityType_Last   = 3, /**< Number of valid elements in the enumeration */
 };
 
 /**
@@ -163,6 +164,7 @@ enum
     kUpdateScheme_HTTPS = 1, /**< HTTPS shall be used as the download protocol. */
     kUpdateScheme_SFTP  = 2, /**< SFTP shall be used as the download protocol. */
     kUpdateScheme_BDX   = 3, /**< Weave Bulk data transfer shall be used as the download protocol. */
+    kUpdateScheme_Last  = 4, /**< Number of valid elements in the enumeration */
 };
 
 /**
@@ -211,7 +213,7 @@ public:
     // comparison
     bool operator ==(const IntegrityTypeList &) const;
     uint8_t theLength;  /**< Length of the supported element list.  Length of 0 indicates an empty list */
-    uint8_t theList[3]; /**< Container holding supported integrity types.  It is sized equal to the number of elements in @ref
+    uint8_t theList[kIntegrityType_Last]; /**< Container holding supported integrity types.  It is sized equal to the number of elements in @ref
                            IntegrityTypes */
 };
 
@@ -236,7 +238,7 @@ public:
     // comparison
     bool operator ==(const UpdateSchemeList &) const;
     uint8_t theLength;  /**< Length of the supported element list.  Length of 0 indicates an empty list */
-    uint8_t theList[4]; /**< Container holding supported update schemes.  It is sized equal to the number of elements in @ref
+    uint8_t theList[kUpdateScheme_Last]; /**< Container holding supported update schemes.  It is sized equal to the number of elements in @ref
                            UpdateSchemes */
 };
 

@@ -41,7 +41,7 @@ namespace SoftwareUpdate {
 IntegrityTypeList::IntegrityTypeList()
 {
     theLength = 0;
-    for (int i = 0; i < 3; i++)
+    for (int i = 0; i < kIntegrityType_Last; i++)
         theList[i] = kIntegrityType_SHA160;
 }
 
@@ -56,11 +56,13 @@ IntegrityTypeList::IntegrityTypeList()
  */
 WEAVE_ERROR IntegrityTypeList::init(uint8_t aLength, uint8_t * aList)
 {
-    if (aLength > 3)
+    if (aLength > kIntegrityType_Last)
         return WEAVE_ERROR_INVALID_LIST_LENGTH;
+
     theLength = aLength;
     for (int i = 0; i < theLength; i++)
         theList[i] = aList[i];
+
     return WEAVE_NO_ERROR;
 }
 
@@ -79,6 +81,7 @@ WEAVE_ERROR IntegrityTypeList::pack(MessageIterator & i)
         i.writeByte(theLength);
         for (int j = 0; j < theLength; j++)
             i.writeByte(theList[j]);
+
         return WEAVE_NO_ERROR;
     }
     else
@@ -101,11 +104,13 @@ WEAVE_ERROR IntegrityTypeList::parse(MessageIterator & i, IntegrityTypeList & aL
     TRY(i.readByte(&aList.theLength));
     if (!i.hasData(aList.theLength))
         return WEAVE_ERROR_BUFFER_TOO_SMALL;
-    if (aList.theLength > 3)
+
+    if (aList.theLength > kIntegrityType_Last)
         return WEAVE_ERROR_INVALID_LIST_LENGTH;
 
     for (int j = 0; j < aList.theLength; j++)
         i.readByte(&aList.theList[j]);
+
     return WEAVE_NO_ERROR;
 }
 
@@ -117,14 +122,16 @@ WEAVE_ERROR IntegrityTypeList::parse(MessageIterator & i, IntegrityTypeList & aL
  */
 bool IntegrityTypeList::operator ==(const IntegrityTypeList & another) const
 {
-    if (theLength != another.theLength)
-        return false;
-    for (int i = 0; i < theLength; i++)
+    bool retval = (theLength == another.theLength);
+    int i = 0;
+
+    while (retval && (i < theLength))
     {
-        if (theList[i] != another.theList[i])
-            return false;
+        retval = (theList[i] == another.theList[i]);
+        i++;
     }
-    return true;
+
+    return retval;
 }
 
 /**
@@ -134,7 +141,7 @@ bool IntegrityTypeList::operator ==(const IntegrityTypeList & another) const
 UpdateSchemeList::UpdateSchemeList()
 {
     theLength = 0;
-    for (int i = 0; i < 4; i++)
+    for (int i = 0; i < kUpdateScheme_Last; i++)
         theList[i] = kUpdateScheme_HTTP;
 }
 
@@ -149,11 +156,13 @@ UpdateSchemeList::UpdateSchemeList()
  */
 WEAVE_ERROR UpdateSchemeList::init(uint8_t aLength, uint8_t * aList)
 {
-    if (aLength > 4)
+    if (aLength > kUpdateScheme_Last)
         return WEAVE_ERROR_INVALID_LIST_LENGTH;
+
     theLength = aLength;
     for (int i = 0; i < theLength; i++)
         theList[i] = aList[i];
+
     return WEAVE_NO_ERROR;
 }
 
@@ -172,6 +181,7 @@ WEAVE_ERROR UpdateSchemeList::pack(MessageIterator & i)
         i.writeByte(theLength);
         for (int j = 0; j < theLength; j++)
             i.writeByte(theList[j]);
+
         return WEAVE_NO_ERROR;
     }
     else
@@ -194,10 +204,13 @@ WEAVE_ERROR UpdateSchemeList::parse(MessageIterator & i, UpdateSchemeList & aLis
     TRY(i.readByte(&aList.theLength));
     if (!i.hasData(aList.theLength))
         return WEAVE_ERROR_BUFFER_TOO_SMALL;
-    if (aList.theLength > 4)
+
+    if (aList.theLength > kUpdateScheme_Last)
         return WEAVE_ERROR_INVALID_LIST_LENGTH;
+
     for (int j = 0; j < aList.theLength; j++)
         i.readByte(&aList.theList[j]);
+
     return WEAVE_NO_ERROR;
 }
 
@@ -209,14 +222,16 @@ WEAVE_ERROR UpdateSchemeList::parse(MessageIterator & i, UpdateSchemeList & aLis
  */
 bool UpdateSchemeList::operator ==(const UpdateSchemeList & another) const
 {
-    if (theLength != another.theLength)
-        return false;
-    for (int i = 0; i < theLength; i++)
+    bool retval = (theLength == another.theLength);
+    int i = 0;
+
+    while (retval && (i < theLength))
     {
-        if (theList[i] != another.theList[i])
-            return false;
+        retval = (theList[i] == another.theList[i]);
+        i++;
     }
-    return true;
+
+    return retval;
 }
 
 /**
@@ -302,6 +317,7 @@ WEAVE_ERROR ImageQuery::init(ProductSpec & aProductSpec, ReferencedString & aVer
     targetNodeId = aTargetNodeId;
     if (aMetaData != NULL)
         theMetaData = *aMetaData;
+
     return WEAVE_NO_ERROR;
 }
 /**
@@ -343,6 +359,7 @@ WEAVE_ERROR ImageQuery::pack(PacketBuffer * aBuffer)
     if (targetNodeId != 0)
         TRY(i.write64(targetNodeId));
     theMetaData.pack(i);
+
     return WEAVE_NO_ERROR;
 }
 /**
@@ -382,6 +399,7 @@ WEAVE_ERROR ImageQuery::parse(PacketBuffer * aBuffer, ImageQuery & aQuery)
         TRY(i.read64(&aQuery.targetNodeId));
     // and maybe the metadata
     ReferencedTLVData::parse(i, aQuery.theMetaData);
+
     return WEAVE_NO_ERROR;
 }
 
@@ -443,9 +461,11 @@ WEAVE_ERROR IntegritySpec::init(uint8_t aType, uint8_t * aValue)
     uint8_t len = integrityLength(aType);
     if (len == 0)
         return WEAVE_ERROR_INVALID_INTEGRITY_TYPE;
+
     type = aType;
     for (int i = 0; i < len; i++)
         value[i] = aValue[i];
+
     return WEAVE_NO_ERROR;
 }
 /**
@@ -460,6 +480,7 @@ WEAVE_ERROR IntegritySpec::pack(MessageIterator & i)
     TRY(i.writeByte(type));
     for (int j = 0; j < integrityLength(type); j++)
         TRY(i.writeByte(value[j]));
+
     return WEAVE_NO_ERROR;
 }
 /**
@@ -477,8 +498,10 @@ WEAVE_ERROR IntegritySpec::parse(MessageIterator & i, IntegritySpec & aSpec)
     TRY(i.readByte(&aSpec.type));
     if (integrityLength(aSpec.type) == 0)
         return WEAVE_ERROR_INVALID_INTEGRITY_TYPE;
+
     for (int j = 0; j < integrityLength(aSpec.type); j++)
         TRY(i.readByte(&aSpec.value[j]));
+
     return WEAVE_NO_ERROR;
 }
 
@@ -490,14 +513,16 @@ WEAVE_ERROR IntegritySpec::parse(MessageIterator & i, IntegritySpec & aSpec)
  */
 bool IntegritySpec::operator ==(const IntegritySpec & another) const
 {
-    if (type != another.type)
-        return false;
-    for (int i = 0; i < integrityLength(type); i++)
+    bool retval = (type == another.type);
+    int i = 0;
+
+    while (retval && (i < integrityLength(type)))
     {
-        if (value[i] != another.value[i])
-            return false;
+        retval = (value[i] != another.value[i]);
+        i++;
     }
-    return true;
+
+    return retval;
 }
 /**
  * Explicitly initialize the ImageQueryResponse object with the provided values.
@@ -523,6 +548,7 @@ WEAVE_ERROR ImageQueryResponse::init(ReferencedString & aUri, ReferencedString &
     updatePriority      = aPriority;
     updateCondition     = aCondition;
     reportStatus        = aReportStatus;
+
     return WEAVE_NO_ERROR;
 }
 /**
@@ -556,6 +582,7 @@ WEAVE_ERROR ImageQueryResponse::pack(PacketBuffer * aBuffer)
     if (reportStatus)
         updateOptions |= kMask_ReportStatus;
     TRY(i.writeByte(updateOptions));
+
     return WEAVE_NO_ERROR;
 }
 /**
@@ -581,6 +608,7 @@ WEAVE_ERROR ImageQueryResponse::parse(PacketBuffer * aBuffer, ImageQueryResponse
     aResponse.updatePriority  = (UpdatePriority)(updateOptions & kMask_UpdatePriority);
     aResponse.updateCondition = (UpdateCondition)((updateOptions & kMask_UpdateCondition) >> kOffset_UpdateCondition);
     aResponse.reportStatus    = (updateOptions & kMask_ReportStatus) == kMask_ReportStatus;
+
     return WEAVE_NO_ERROR;
 }
 /**
