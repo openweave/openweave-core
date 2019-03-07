@@ -562,7 +562,7 @@ WEAVE_ERROR ImageQueryResponse::pack(PacketBuffer * aBuffer)
  * Deserialize the image query response message provided in a PacketBuffer into a provided ImageQueryResponse
  *
  * @param[in] aBuffer A pointer to a packet from which to parse the image query
- * @param[in] aQuery An object in which to put the result
+ * @param[in] aResponse An object in which to put the result
  *
  * @return WEAVE_NO_ERROR On success
  * @return WEAVE_ERROR_BUFFER_TOO_SMALL If the message was too small to contain all the fields of the ImageQuery

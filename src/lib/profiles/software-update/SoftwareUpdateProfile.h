@@ -207,7 +207,6 @@ public:
     WEAVE_ERROR init(uint8_t, uint8_t *);
     // packing and parsing
     WEAVE_ERROR pack(MessageIterator &);
-    uint16_t packedLength();
     static WEAVE_ERROR parse(MessageIterator &, IntegrityTypeList &);
     // comparison
     bool operator ==(const IntegrityTypeList &) const;
@@ -233,7 +232,6 @@ public:
     WEAVE_ERROR init(uint8_t, uint8_t *);
     // packing and parsing
     WEAVE_ERROR pack(MessageIterator &);
-    uint16_t packedLength();
     static WEAVE_ERROR parse(MessageIterator &, UpdateSchemeList &);
     // comparison
     bool operator ==(const UpdateSchemeList &) const;
@@ -305,7 +303,6 @@ public:
                      ReferencedString * aLocale = NULL, uint64_t aTargetNodeId = 0,
                      ReferencedTLVData * aMetaData = NULL); // 2 byte length
     WEAVE_ERROR pack(PacketBuffer *);
-    uint16_t packedLength();
     static WEAVE_ERROR parse(PacketBuffer *, ImageQuery &);
     // comparison
     bool operator ==(const ImageQuery &) const;
@@ -423,7 +420,6 @@ public:
     WEAVE_ERROR init(ReferencedString &, ReferencedString &, IntegritySpec &, uint8_t, UpdatePriority, UpdateCondition, bool);
     // packing and parsing
     WEAVE_ERROR pack(PacketBuffer *);
-    uint16_t packedLength();
     static WEAVE_ERROR parse(PacketBuffer *, ImageQueryResponse &);
     // comparison
     bool operator ==(const ImageQueryResponse &) const;
