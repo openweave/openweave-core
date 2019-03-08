@@ -142,16 +142,17 @@ shadow-local: $(OPENSSL_SHADOW_SENTINEL)
 $(OPENSSL_CONFIG_SENTINEL): $(OPENSSL_SHADOW_SENTINEL)
 	@echo "  CONFIG   $(WEAVE_OPENSSL_TARGET)"
 	$(AM_V_CONFIG)cd $(abs_openssl_builddir) && \
-                INSTALL="$(INSTALL)" \
-		CFLAGS="$(CFLAGS)" \
-		LDFLAGS="$(LDFLAGS)" \
-		./Configure \
-		--prefix=/ \
-		--openssldir=/openssl \
-		$(VISIBILITY_CFLAGS) \
-		$(WEAVE_OPENSSL_OPTIONS) \
-		$(WEAVE_OPENSSL_DEFINES) \
-		$(WEAVE_OPENSSL_TARGET)
+        INSTALL="$(INSTALL)" \
+        CC="$(CC)" AR="$(AR) $(ARFLAGS)" RANLIB=$(RANLIB) \
+        CFLAGS="$(CFLAGS)" \
+        LDFLAGS="$(LDFLAGS)" \
+        ./Configure \
+        --prefix=/ \
+        --openssldir=/openssl \
+        $(VISIBILITY_CFLAGS) \
+        $(WEAVE_OPENSSL_OPTIONS) \
+        $(WEAVE_OPENSSL_DEFINES) \
+        $(WEAVE_OPENSSL_TARGET)
 	$(AM_V_at)echo "sentinel stamp for openssl configuration" > $(@)
 
 .PHONY: configure-local
