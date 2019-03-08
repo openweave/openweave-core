@@ -93,7 +93,7 @@ android {
 // BuildWeaveTask -- Builds the native Weave shared libraries needed for a particular variant of
 // the Weave Android library.
 //
-// BuildWeaveTask calls out to a helper makefile (WeaveAndroid.mk) which is responsible for doing
+// BuildWeaveTask calls out to a helper makefile (BuildWeave.mk) which is responsible for doing
 // most of the work.  
 //
 class BuildWeaveTask extends Exec {
@@ -113,7 +113,7 @@ class BuildWeaveTask extends Exec {
         def weaveBuildDir = Paths.get(project.buildDir.toString(), 'weave', variant.name, abi)
         def weaveJniLibsDir = Paths.get(project.buildDir.toString(), 'weave/jniLibs', variant.name, abi)
         
-        this.environment('JAVA_HOME', org.gradle.internal.jvm.Jvm.current().getJavaHome()) // '/usr/lib/jvm/java-11-openjdk-amd64')
+        this.environment('JAVA_HOME', org.gradle.internal.jvm.Jvm.current().getJavaHome())
         this.environment('ANDROID_HOME', project.android.sdkDirectory.getAbsolutePath())
         this.environment('ANDROID_NDK_HOME', project.android.ndkDirectory.getAbsolutePath())
         this.environment('ANDROID_API', apiLevel)
@@ -155,9 +155,3 @@ project.afterEvaluate {
 //        }
 //    }
 }
-
-// Propbably not needed.
-// dependencies {
-//     implementation fileTree(dir: 'libs', include: ['*.jar'])
-// }
-
