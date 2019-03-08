@@ -81,6 +81,9 @@ DeviceFeature_LinePowered                   = 0x00000002    # Indicates a device
 SystemTest_ProductList                      = { 'thermostat'    : 0x235A000A,
                                                 'topaz'         : 0x235A0003}
 
+DeviceDescriptorFlag_IsRendezvousWiFiESSIDSuffix = 0x01
+
+
 def _VoidPtrToByteArray(ptr, len):
     if ptr:
         v = bytearray(len)
@@ -189,7 +192,7 @@ class DeviceDescriptor:
                  primary802154MACAddress=None, primaryWiFiMACAddress=None,
                  serialNumber=None, softwareVersion=None, rendezvousWiFiESSID=None, pairingCode=None,
                  pairingCompatibilityVersionMajor=None, pairingCompatibilityVersionMinor=None,
-                 deviceFeatures=None):
+                 deviceFeatures=None, flags=None):
         self.DeviceId = deviceId
         self.FabricId = fabricId
         self.VendorId = vendorId
@@ -213,6 +216,7 @@ class DeviceDescriptor:
                 if (deviceFeatures & featureVal) == featureVal:
                     self.DeviceFeatures.append(featureVal)
                 featureVal <<= 1
+        self.Flags = flags if flags != None else 0
 
     def Print(self, prefix=""):
         if self.DeviceId != None:
@@ -239,7 +243,7 @@ class DeviceDescriptor:
         if self.PrimaryWiFiMACAddress != None:
             print "%sPrimary WiFi MAC Address: %s" % (prefix, _ByteArrayToHex(self.PrimaryWiFiMACAddress))
         if self.RendezvousWiFiESSID != None:
-            print "%sRendezvous WiFi ESSID: %s" % (prefix, self.RendezvousWiFiESSID)
+            print "%sRendezvous WiFi ESSID%s: %s" % (prefix, " Suffix" if self.IsRendezvousWiFiESSIDSuffix else "", self.RendezvousWiFiESSID)
         if self.PairingCode != None:
             print "%sPairing Code: %s" % (prefix, self.PairingCode)
         if self.PairingCompatibilityVersionMajor != None:
@@ -248,6 +252,10 @@ class DeviceDescriptor:
             print "%sPairing Compatibility Minor Id: %X" % (prefix, self.PairingCompatibilityVersionMinor)
         if self.DeviceFeatures != None:
             print "%sDevice Features: %s" % (prefix, " ".join([DeviceFeatureToString(val) for val in self.DeviceFeatures]))
+
+    @property
+    def IsRendezvousWiFiESSIDSuffix(self):
+        return (self.Flags & DeviceDescriptorFlag_IsRendezvousWiFiESSIDSuffix) != 0
 
 
 class DeviceManagerException(Exception):
@@ -373,6 +381,7 @@ class _DeviceDescriptorStruct(Structure):
         ('PairingCode', c_char * 17),               # Device pairing code (nul terminated, 0 length = not present)
         ('PairingCompatibilityVersionMajor', c_uint16), # Pairing software compatibility major version
         ('PairingCompatibilityVersionMinor', c_uint16), # Pairing software compatibility minor version
+        ('Flags', c_ubyte),                         # Flags
     ]
 
     def toDeviceDescriptor(self):
@@ -393,7 +402,8 @@ class _DeviceDescriptorStruct(Structure):
             pairingCode = self.PairingCode if len(self.PairingCode) != 0 else None,
             pairingCompatibilityVersionMajor = self.PairingCompatibilityVersionMajor,
             pairingCompatibilityVersionMinor = self.PairingCompatibilityVersionMinor,
-            deviceFeatures = self.DeviceFeatures)
+            deviceFeatures = self.DeviceFeatures,
+            flags = self.Flags)
 
 # Library path name.  Can be overridden my module user.
 currentDirPath = os.path.dirname(os.path.abspath( __file__ ))

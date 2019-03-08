@@ -19,20 +19,28 @@
 
 SCRIPT_DIR=`DIR=\`dirname "$0"\` && (cd $DIR && pwd )`
 
+OPENWEAVE_ROOT=`(cd $SCRIPT_DIR/../.. && pwd )`
+
+BUILD_TARGET_DIR=`${OPENWEAVE_ROOT}/third_party/nlbuild-autotools/repo/third_party/autoconf/config.guess`
+
 JAR_FILE=WeaveDeviceManager.jar
 if [ \! -f ${JAR_FILE} ]; then
-    if [ -f ${SCRIPT_DIR}/../device-manager/${JAR_FILE} ]; then
+    if [ -f ${OPENWEAVE_ROOT}/output/share/java/${JAR_FILE} ]; then
+        JAR_FILE=${OPENWEAVE_ROOT}/output/share/java/${JAR_FILE}
+    elif [ -f ${SCRIPT_DIR}/../device-manager/${JAR_FILE} ]; then
         JAR_FILE=${SCRIPT_DIR}/../device-manager/${JAR_FILE}
     else
         echo "Unable to find ${JAR_FILE}"
-	exit -1
+	    exit -1
     fi
 fi
 
 LIB_DIR=.
 LIB_FILE=libWeaveDeviceManager.so
 if [ \! -f ${LIB_DIR}/${LIB_FILE} ]; then
-    if [ -f ${SCRIPT_DIR}/../device-manager/${LIB_FILE} ]; then
+    if [ -f ${OPENWEAVE_ROOT}/output/${BUILD_TARGET_DIR}/lib/${LIB_FILE} ]; then
+        LIB_DIR=${OPENWEAVE_ROOT}/output/${BUILD_TARGET_DIR}/lib
+    elif [ -f ${SCRIPT_DIR}/../device-manager/${LIB_FILE} ]; then
         LIB_DIR=${SCRIPT_DIR}/../device-manager
     else
         echo "Unable to find ${LIB_FILE}"
@@ -42,5 +50,5 @@ fi
 
 export WEAVE_IPV4_LISTEN_ADDR=127.0.0.2
 
-java -verbose:jni -Xcheck:jni -Djava.library.path=${LIB_DIR} -jar ${JAR_FILE} nl.Weave.DeviceManager.TestMain
+java --add-modules java.xml.bind -verbose:jni -Xcheck:jni -Djava.library.path=${LIB_DIR} -jar ${JAR_FILE} nl.Weave.DeviceManager.TestMain
 
