@@ -37,7 +37,7 @@
     #define REG_WRITE_LO "=r"
 #endif
 
-#if (uECC_PLATFORM == uECC_arm_thumb2)
+#if (uECC_PLATFORM == uECC_arm_thumb2 || defined(__clang__))
     #define RESUME_SYNTAX
 #else
     #define RESUME_SYNTAX ".syntax divided \n\t"
