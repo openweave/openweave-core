@@ -87,6 +87,8 @@ class thread_wifi_ap_internet_configurable_topology(object):
 
 
     def createTopology(self):
+        ISPPrefix = self.getISPPrefix()
+
         self.topology.HappyNetworkAdd(network_id="HomeThread", type="thread", quiet=self.quiet)
         self.topology.HappyNetworkAddress(network_id="HomeThread", address="2001:db8:111:1::", quiet=self.quiet)
         self.topology.HappyNetworkAdd(network_id="HomeWiFi", type="wifi", quiet=self.quiet)
@@ -120,7 +122,7 @@ class thread_wifi_ap_internet_configurable_topology(object):
         self.topology.HappyNetworkRoute(network_id="HomeThread", to="default", via="BorderRouter", quiet=self.quiet)
 
         if self.cellular:
-            self.topology.HappyNetworkRoute(network_id="HomeWiFi", to="default", via="onhub", prefix="10.0.1.0", quiet=self.quiet, isp="eth", seed=249)
+            self.topology.HappyNetworkRoute(network_id="HomeWiFi", to="default", via="onhub", prefix="10.0.1.0", quiet=self.quiet, isp=ISPPrefix + "eth", seed=249)
         else:
             self.topology.HappyNetworkRoute(network_id="HomeWiFi", to="default", via="onhub", prefix="10.0.1.0", quiet=self.quiet)
 
@@ -139,9 +141,9 @@ class thread_wifi_ap_internet_configurable_topology(object):
 
         self.topology.HappyNetworkRoute(network_id="HomeWiFi", to="default", via="onhub", prefix="2001:db8:222:2::", quiet=self.quiet)
 
-        self.topology.HappyInternet(add=True, node_id="onhub", quiet=self.quiet, isp="eth", seed="249")
+        self.topology.HappyInternet(add=True, node_id="onhub", quiet=self.quiet, isp=ISPPrefix + "eth", seed="249")
         if self.cellular:
-            self.topology.HappyInternet(add=True, node_id="BorderRouter", quiet=self.quiet, isp="cell", seed="250")
+            self.topology.HappyInternet(add=True, node_id="BorderRouter", quiet=self.quiet, isp=ISPPrefix + "cell", seed="250")
         self.topology.HappyDNS(add=True, quiet=self.quiet, dns=self.dns)
 
         # set up BorderRouter weave params
@@ -156,13 +158,17 @@ class thread_wifi_ap_internet_configurable_topology(object):
 
     def destroyTopology(self):
         self.topology.HappyDNS(dns=self.dns, delete=True, quiet=self.quiet)
-        if self.cellular:
-            self.topology.HappyInternet(delete=True, quiet=self.quiet, isp="cell", seed="250")
-        self.topology.HappyInternet(delete=True, quiet=self.quiet, isp="eth", seed="249")
         self.weave_topology.WeaveNetworkGateway(network_id="HomeThread", gateway="BorderRouter", delete=True, quiet=self.quiet)
         self.weave_topology.WeaveFabricDelete(fabric_id=self.fabric_id, quiet=self.quiet)
         self.topology.HappyStateDelete(quiet=self.quiet)
 
+    def getISPPrefix(self):
+        if "weave_service_address" in os.environ.keys():
+            prefix = os.environ['weave_service_address'].split(".")[-3][0:3]
+        else:
+            prefix = "test"
+
+        return prefix
 
 if __name__ == "__main__":
     options = {"quiet":False, "tap": False, "cellular": False, "mobile": False, "enable_random_fabric": False}
