@@ -331,6 +331,7 @@ check_PROGRAMS                                 = \
     TestProvHash                                 \
     TestRetainedPacketBuffer                     \
     TestSerialNumUtils                           \
+    TestSoftwareUpdate                           \
     TestSystemObject                             \
     TestSystemTimer                              \
     TestTAKE                                     \
@@ -443,6 +444,7 @@ local_test_programs                            = \
     TestProvHash                                 \
     TestRetainedPacketBuffer                     \
     TestSerialNumUtils                           \
+    TestSoftwareUpdate                           \
     TestSystemObject                             \
     TestSystemTimer                              \
     TestTAKE                                     \
@@ -1329,6 +1331,10 @@ TestRetainedPacketBuffer_LDADD           = libWeaveTestCommon.a $(COMMON_LDADD)
 
 TestSerialNumUtils_SOURCES               = TestSerialNumUtils.cpp
 TestSerialNumUtils_LDADD                 = $(COMMON_LDADD)
+
+TestSoftwareUpdate_SOURCES               = TestSoftwareUpdate.cpp
+TestSoftwareUpdate_LDFLAGS               = $(AM_CPPFLAGS)
+TestSoftwareUpdate_LDADD                 = $(COMMON_LDADD)
 
 TestSystemObject_SOURCES                 = TestSystemObject.cpp
 TestSystemObject_CPPFLAGS                = $(AM_CPPFLAGS) $(PTHREAD_CFLAGS)

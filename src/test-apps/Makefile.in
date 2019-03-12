@@ -169,6 +169,7 @@ target_triplet = @target@
 @WEAVE_BUILD_TESTS_TRUE@	TestProvHash$(EXEEXT) \
 @WEAVE_BUILD_TESTS_TRUE@	TestRetainedPacketBuffer$(EXEEXT) \
 @WEAVE_BUILD_TESTS_TRUE@	TestSerialNumUtils$(EXEEXT) \
+@WEAVE_BUILD_TESTS_TRUE@	TestSoftwareUpdate$(EXEEXT) \
 @WEAVE_BUILD_TESTS_TRUE@	TestSystemObject$(EXEEXT) \
 @WEAVE_BUILD_TESTS_TRUE@	TestSystemTimer$(EXEEXT) \
 @WEAVE_BUILD_TESTS_TRUE@	TestTAKE$(EXEEXT) TestTLV$(EXEEXT) \
@@ -743,6 +744,7 @@ am__installdirs = "$(DESTDIR)$(libexecdir)"
 @WEAVE_BUILD_TESTS_TRUE@	TestProvHash$(EXEEXT) \
 @WEAVE_BUILD_TESTS_TRUE@	TestRetainedPacketBuffer$(EXEEXT) \
 @WEAVE_BUILD_TESTS_TRUE@	TestSerialNumUtils$(EXEEXT) \
+@WEAVE_BUILD_TESTS_TRUE@	TestSoftwareUpdate$(EXEEXT) \
 @WEAVE_BUILD_TESTS_TRUE@	TestSystemObject$(EXEEXT) \
 @WEAVE_BUILD_TESTS_TRUE@	TestSystemTimer$(EXEEXT) \
 @WEAVE_BUILD_TESTS_TRUE@	TestTAKE$(EXEEXT) TestTLV$(EXEEXT) \
@@ -1172,6 +1174,16 @@ am__TestSerialNumUtils_SOURCES_DIST = TestSerialNumUtils.cpp
 TestSerialNumUtils_OBJECTS = $(am_TestSerialNumUtils_OBJECTS)
 @WEAVE_BUILD_TESTS_TRUE@TestSerialNumUtils_DEPENDENCIES =  \
 @WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_6)
+am__TestSoftwareUpdate_SOURCES_DIST = TestSoftwareUpdate.cpp
+@WEAVE_BUILD_TESTS_TRUE@am_TestSoftwareUpdate_OBJECTS =  \
+@WEAVE_BUILD_TESTS_TRUE@	TestSoftwareUpdate.$(OBJEXT)
+TestSoftwareUpdate_OBJECTS = $(am_TestSoftwareUpdate_OBJECTS)
+@WEAVE_BUILD_TESTS_TRUE@TestSoftwareUpdate_DEPENDENCIES =  \
+@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_6)
+TestSoftwareUpdate_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
+	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CXXLD) \
+	$(AM_CXXFLAGS) $(CXXFLAGS) $(TestSoftwareUpdate_LDFLAGS) \
+	$(LDFLAGS) -o $@
 am__TestStatusReportStr_SOURCES_DIST = TestStatusReportStr.cpp
 @WEAVE_BUILD_TESTS_TRUE@am_TestStatusReportStr_OBJECTS =  \
 @WEAVE_BUILD_TESTS_TRUE@	TestStatusReportStr.$(OBJEXT)
@@ -1810,9 +1822,10 @@ SOURCES = $(libMockBleApplicationDelegate_a_SOURCES) \
 	$(TestProfileStringSupport_SOURCES) $(TestProvHash_SOURCES) \
 	$(TestRADaemon_SOURCES) $(TestResourceIdentifier_SOURCES) \
 	$(TestRetainedPacketBuffer_SOURCES) \
-	$(TestSerialNumUtils_SOURCES) $(TestStatusReportStr_SOURCES) \
-	$(TestSystemObject_SOURCES) $(TestSystemTimer_SOURCES) \
-	$(TestTAKE_SOURCES) $(TestTDM_SOURCES) $(TestTLV_SOURCES) \
+	$(TestSerialNumUtils_SOURCES) $(TestSoftwareUpdate_SOURCES) \
+	$(TestStatusReportStr_SOURCES) $(TestSystemObject_SOURCES) \
+	$(TestSystemTimer_SOURCES) $(TestTAKE_SOURCES) \
+	$(TestTDM_SOURCES) $(TestTLV_SOURCES) \
 	$(TestThermostatStatus_SOURCES) $(TestTimeUtils_SOURCES) \
 	$(TestTimeZone_SOURCES) $(TestWDM_SOURCES) $(TestWRMP_SOURCES) \
 	$(TestWarm_SOURCES) $(TestWdmNext_SOURCES) \
@@ -1877,6 +1890,7 @@ DIST_SOURCES = $(am__libMockBleApplicationDelegate_a_SOURCES_DIST) \
 	$(am__TestResourceIdentifier_SOURCES_DIST) \
 	$(am__TestRetainedPacketBuffer_SOURCES_DIST) \
 	$(am__TestSerialNumUtils_SOURCES_DIST) \
+	$(am__TestSoftwareUpdate_SOURCES_DIST) \
 	$(am__TestStatusReportStr_SOURCES_DIST) \
 	$(am__TestSystemObject_SOURCES_DIST) \
 	$(am__TestSystemTimer_SOURCES_DIST) \
@@ -3049,11 +3063,11 @@ noinst_HEADERS = CASEOptions.h DMTestClient.h DeviceDescOptions.h \
 @WEAVE_BUILD_TESTS_TRUE@	TestPacketBuffer TestPasscodeEnc \
 @WEAVE_BUILD_TESTS_TRUE@	TestProfileStringSupport TestProvHash \
 @WEAVE_BUILD_TESTS_TRUE@	TestRetainedPacketBuffer \
-@WEAVE_BUILD_TESTS_TRUE@	TestSerialNumUtils TestSystemObject \
-@WEAVE_BUILD_TESTS_TRUE@	TestSystemTimer TestTAKE TestTLV \
-@WEAVE_BUILD_TESTS_TRUE@	TestTimeUtils TestTimeZone \
-@WEAVE_BUILD_TESTS_TRUE@	TestWeaveCert TestWeaveEncoding \
-@WEAVE_BUILD_TESTS_TRUE@	TestWeaveFabricState \
+@WEAVE_BUILD_TESTS_TRUE@	TestSerialNumUtils TestSoftwareUpdate \
+@WEAVE_BUILD_TESTS_TRUE@	TestSystemObject TestSystemTimer \
+@WEAVE_BUILD_TESTS_TRUE@	TestTAKE TestTLV TestTimeUtils \
+@WEAVE_BUILD_TESTS_TRUE@	TestTimeZone TestWeaveCert \
+@WEAVE_BUILD_TESTS_TRUE@	TestWeaveEncoding TestWeaveFabricState \
 @WEAVE_BUILD_TESTS_TRUE@	TestWeaveProvBundle TestWeaveSignature \
 @WEAVE_BUILD_TESTS_TRUE@	infratest TestErrorStr \
 @WEAVE_BUILD_TESTS_TRUE@	TestStatusReportStr \
@@ -3271,6 +3285,9 @@ noinst_HEADERS = CASEOptions.h DMTestClient.h DeviceDescOptions.h \
 @WEAVE_BUILD_TESTS_TRUE@TestRetainedPacketBuffer_LDADD = libWeaveTestCommon.a $(COMMON_LDADD)
 @WEAVE_BUILD_TESTS_TRUE@TestSerialNumUtils_SOURCES = TestSerialNumUtils.cpp
 @WEAVE_BUILD_TESTS_TRUE@TestSerialNumUtils_LDADD = $(COMMON_LDADD)
+@WEAVE_BUILD_TESTS_TRUE@TestSoftwareUpdate_SOURCES = TestSoftwareUpdate.cpp
+@WEAVE_BUILD_TESTS_TRUE@TestSoftwareUpdate_LDFLAGS = $(AM_CPPFLAGS)
+@WEAVE_BUILD_TESTS_TRUE@TestSoftwareUpdate_LDADD = $(COMMON_LDADD)
 @WEAVE_BUILD_TESTS_TRUE@TestSystemObject_SOURCES = TestSystemObject.cpp
 @WEAVE_BUILD_TESTS_TRUE@TestSystemObject_CPPFLAGS = $(AM_CPPFLAGS) $(PTHREAD_CFLAGS)
 @WEAVE_BUILD_TESTS_TRUE@TestSystemObject_LDFLAGS = $(PTHREAD_CFLAGS)
@@ -3828,6 +3845,10 @@ TestSerialNumUtils$(EXEEXT): $(TestSerialNumUtils_OBJECTS) $(TestSerialNumUtils_
 	@rm -f TestSerialNumUtils$(EXEEXT)
 	$(AM_V_CXXLD)$(CXXLINK) $(TestSerialNumUtils_OBJECTS) $(TestSerialNumUtils_LDADD) $(LIBS)
 
+TestSoftwareUpdate$(EXEEXT): $(TestSoftwareUpdate_OBJECTS) $(TestSoftwareUpdate_DEPENDENCIES) $(EXTRA_TestSoftwareUpdate_DEPENDENCIES) 
+	@rm -f TestSoftwareUpdate$(EXEEXT)
+	$(AM_V_CXXLD)$(TestSoftwareUpdate_LINK) $(TestSoftwareUpdate_OBJECTS) $(TestSoftwareUpdate_LDADD) $(LIBS)
+
 TestStatusReportStr$(EXEEXT): $(TestStatusReportStr_OBJECTS) $(TestStatusReportStr_DEPENDENCIES) $(EXTRA_TestStatusReportStr_DEPENDENCIES) 
 	@rm -f TestStatusReportStr$(EXEEXT)
 	$(AM_V_CXXLD)$(CXXLINK) $(TestStatusReportStr_OBJECTS) $(TestStatusReportStr_LDADD) $(LIBS)
@@ -4199,6 +4220,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/TestResourceIdentifier.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/TestRetainedPacketBuffer.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/TestSerialNumUtils.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/TestSoftwareUpdate.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/TestStatusReportStr.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/TestSystemObject-TestSystemObject.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/TestSystemTimer.Po@am__quote@
@@ -6348,6 +6370,13 @@ TestRetainedPacketBuffer.log: TestRetainedPacketBuffer$(EXEEXT)
 TestSerialNumUtils.log: TestSerialNumUtils$(EXEEXT)
 	@p='TestSerialNumUtils$(EXEEXT)'; \
 	b='TestSerialNumUtils'; \
+	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
+	--log-file $$b.log --trs-file $$b.trs \
+	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
+	"$$tst" $(AM_TESTS_FD_REDIRECT)
+TestSoftwareUpdate.log: TestSoftwareUpdate$(EXEEXT)
+	@p='TestSoftwareUpdate$(EXEEXT)'; \
+	b='TestSoftwareUpdate'; \
 	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
 	--log-file $$b.log --trs-file $$b.trs \
 	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
@@ -8562,10 +8591,10 @@ distclean-generic:
 maintainer-clean-generic:
 	@echo "This command is intended for maintainers to use"
 	@echo "it deletes files that may require special tools to rebuild."
-@WEAVE_BUILD_TESTS_FALSE@uninstall-local:
 @WEAVE_BUILD_COVERAGE_FALSE@clean-local:
 @WEAVE_BUILD_COVERAGE_REPORTS_FALSE@clean-local:
 @WEAVE_BUILD_TESTS_FALSE@clean-local:
+@WEAVE_BUILD_TESTS_FALSE@uninstall-local:
 @WEAVE_BUILD_TESTS_FALSE@install-exec-local:
 clean: clean-recursive
 

@@ -149,6 +149,9 @@ int main()
         MessageIterator j(buffer);
         assert(refCount(buffer)==3);
 
+        MessageIterator x(buffer);
+        assert(refCount(buffer)==4);
+
         uint8_t byte;
         uint16_t shortInt;
         uint32_t longInt;
@@ -166,7 +169,7 @@ int main()
         // write and read a byte
 
         assert(i.writeByte(TEST_BYTE)==WEAVE_NO_ERROR);
-        assert(i.hasData(1)==true);
+        assert(x.hasData(1)==true);
 
         // OK, now the iterators shouldn't be equal
 
@@ -181,21 +184,21 @@ int main()
         // write and read a short
 
         assert(i.write16(SHORT_TEST_NUM)==WEAVE_NO_ERROR);
-        assert(i.hasData(3)==true);
+        assert(x.hasData(3)==true);
         assert(j.read16(&shortInt)==WEAVE_NO_ERROR);
         assert(shortInt==SHORT_TEST_NUM);
 
         // write and read a long
 
         assert(i.write32(LONG_TEST_NUM)==WEAVE_NO_ERROR);
-        assert(i.hasData(7)==true);
+        assert(x.hasData(7)==true);
         assert(j.read32(&longInt)==WEAVE_NO_ERROR);
         assert(longInt==LONG_TEST_NUM);
 
         // write and read a string
 
         assert(i.writeString(8, outStr)==WEAVE_NO_ERROR);
-        assert(i.hasData(15)==true);
+        assert(x.hasData(15)==true);
         assert(j.readString(8, inStr)==WEAVE_NO_ERROR);
         for (int k=0; k<8; k++) assert(inStr[k]==outStr[k]);
 
@@ -208,7 +211,7 @@ int main()
         // and make sure self-assignment doesn't change the
         // reference count.
 
-        assert(refCount(buffer)==3);
+        assert(refCount(buffer)==4);
         assert(i!=j);
         assert(*i!=*j);
         j=j-3;
@@ -221,6 +224,8 @@ int main()
         // one final check on the reference count and then
         // free some stuff
 
+        assert(refCount(buffer)==4);
+        x.Release();
         assert(refCount(buffer)==3);
         i.Release();
         assert(refCount(buffer)==2);

@@ -102,11 +102,15 @@ WEAVE_ERROR IntegrityTypeList::pack(MessageIterator & i)
 WEAVE_ERROR IntegrityTypeList::parse(MessageIterator & i, IntegrityTypeList & aList)
 {
     TRY(i.readByte(&aList.theLength));
-    if (!i.hasData(aList.theLength))
-        return WEAVE_ERROR_BUFFER_TOO_SMALL;
 
     if (aList.theLength > kIntegrityType_Last)
+    {
+        aList.theLength = 0;
         return WEAVE_ERROR_INVALID_LIST_LENGTH;
+    }
+
+    if (!i.hasData(aList.theLength))
+        return WEAVE_ERROR_BUFFER_TOO_SMALL;
 
     for (int j = 0; j < aList.theLength; j++)
         i.readByte(&aList.theList[j]);
@@ -358,7 +362,7 @@ WEAVE_ERROR ImageQuery::pack(PacketBuffer * aBuffer)
         TRY(localeSpec.pack(i));
     if (targetNodeId != 0)
         TRY(i.write64(targetNodeId));
-    theMetaData.pack(i);
+    TRY(theMetaData.pack(i));
 
     return WEAVE_NO_ERROR;
 }
@@ -518,7 +522,7 @@ bool IntegritySpec::operator ==(const IntegritySpec & another) const
 
     while (retval && (i < integrityLength(type)))
     {
-        retval = (value[i] != another.value[i]);
+        retval = (value[i] == another.value[i]);
         i++;
     }
 
