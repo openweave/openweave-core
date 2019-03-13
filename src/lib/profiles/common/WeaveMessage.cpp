@@ -423,7 +423,7 @@ void MessageIterator::append(void)
 
 bool MessageIterator::hasData(uint16_t inc)
 {
-    return inc <= (mBuffer->DataLength());
+    return (thePoint + inc) <= (mBuffer->Start() + mBuffer->DataLength());
 }
 
 /**

@@ -253,7 +253,7 @@ const char *GetMessageName(uint32_t profileId, uint8_t msgType)
         case SoftwareUpdate::kMsgType_ImageQuery                            : return "ImageQuery";
         case SoftwareUpdate::kMsgType_ImageQueryResponse                    : return "ImageQueryResponse";
         case SoftwareUpdate::kMsgType_DownloadNotify                        : return "DownloadNotify";
-        case SoftwareUpdate::kMsgType_NotifyRepsponse                       : return "NotifyRepsponse";
+        case SoftwareUpdate::kMsgType_NotifyResponse                        : return "NotifyResponse";
         case SoftwareUpdate::kMsgType_UpdateNotify                          : return "UpdateNotify";
         case SoftwareUpdate::kMsgType_ImageQueryStatus                      : return "ImageQueryStatus";
         }

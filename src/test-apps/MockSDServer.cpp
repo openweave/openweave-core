@@ -103,9 +103,10 @@ void MockServiceDirServer::HandleServiceDirRequest(ExchangeContext *ec, const IP
     Write8(buf, 0x02);  // suffix table length 1
     Write8(buf, 0x00);  // suffix 0 length
     Write8(buf, 0x00);  // suffix 1 length
-    LittleEndian::Write32(buf, 0x00000001); // time field
+    LittleEndian::Write64(buf, 0x1122334455667788ULL); //query receipt time field
+    LittleEndian::Write32(buf, 0x00000001); // processing time field
 
-    payload->SetDataLength(36 + 2 * hostLen);
+    payload->SetDataLength(44 + 2 * hostLen);
     err = ec->SendMessage(kWeaveProfile_ServiceDirectory, kMsgType_ServiceEndpointResponse, payload, 0);
     payload = NULL;
     SuccessOrExit(err);

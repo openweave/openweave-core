@@ -331,6 +331,7 @@ check_PROGRAMS                                 = \
     TestProvHash                                 \
     TestRetainedPacketBuffer                     \
     TestSerialNumUtils                           \
+    TestSoftwareUpdate                           \
     TestSystemObject                             \
     TestSystemTimer                              \
     TestTAKE                                     \
@@ -342,7 +343,6 @@ check_PROGRAMS                                 = \
     TestWeaveFabricState                         \
     TestWeaveSignature                           \
     infratest                                    \
-    wsuptest                                     \
     TestErrorStr                                 \
     TestStatusReportStr                          \
     TestThermostatStatus                         \
@@ -443,6 +443,7 @@ local_test_programs                            = \
     TestProvHash                                 \
     TestRetainedPacketBuffer                     \
     TestSerialNumUtils                           \
+    TestSoftwareUpdate                           \
     TestSystemObject                             \
     TestSystemTimer                              \
     TestTAKE                                     \
@@ -512,7 +513,6 @@ network_test_programs                          = \
     weave-service-dir                            \
     weave-swu-client                             \
     weave-swu-server                             \
-    wsuptest                                     \
     $(NULL)
 
 if WEAVE_BUILD_LEGACY_WDM
@@ -1331,6 +1331,10 @@ TestRetainedPacketBuffer_LDADD           = libWeaveTestCommon.a $(COMMON_LDADD)
 TestSerialNumUtils_SOURCES               = TestSerialNumUtils.cpp
 TestSerialNumUtils_LDADD                 = $(COMMON_LDADD)
 
+TestSoftwareUpdate_SOURCES               = TestSoftwareUpdate.cpp
+TestSoftwareUpdate_LDFLAGS               = $(AM_CPPFLAGS)
+TestSoftwareUpdate_LDADD                 = $(COMMON_LDADD)
+
 TestSystemObject_SOURCES                 = TestSystemObject.cpp
 TestSystemObject_CPPFLAGS                = $(AM_CPPFLAGS) $(PTHREAD_CFLAGS)
 TestSystemObject_LDFLAGS                 = $(PTHREAD_CFLAGS)
@@ -1588,9 +1592,6 @@ weave_swu_server_SOURCES                 = weave-swu-server.cpp  \
                                            MockSWUServer.cpp
 weave_swu_server_LDFLAGS                 = ${AM_CPPFLAGS}
 weave_swu_server_LDADD                   = libWeaveTestCommon.a $(COMMON_LDADD)
-
-wsuptest_SOURCES                         = wsuptest.cpp
-wsuptest_LDADD                           = $(COMMON_LDADD)
 
 if WEAVE_BUILD_COVERAGE
 CLEANFILES                               = $(wildcard *.gcda *.gcno)
