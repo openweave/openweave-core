@@ -1882,12 +1882,13 @@ void WeaveTunnelAgent::WeaveTunnelUpNotifyAndSetState(AgentState state,
     // Perform address and route additions when the Service tunnel connection
     // is established.
 
-    if (isRoutingRestricted)
+    if (isRoutingRestricted || (mRole == kClientRole_StandaloneDevice))
     {
         // Although tunnel is restricted, it is still open but can only be
-        // usable by the border gateway for itself to access a limited set of
+        // usable by the device for itself to access a limited set of
         // Service endpoints. The device is put in this mode, typically, when
-        // it is removed from the account.
+        // it is removed from the account or configured to run in a
+        // Standalone role.
 
         // Disable border routing at the platform level.
 
