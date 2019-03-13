@@ -486,7 +486,7 @@ memp_malloc_fn(memp_t type, const char* file, const int line)
   if (!memp) {
     LWIP_DEBUGF(MEMP_DEBUG | LWIP_DBG_TRACE, ("mm: out-of-mem in %s\n", memp_pools[type]->desc));
     if (LWIP_PERF && MEMP_IS_PBUF_POOL(type)) {
-      sys_profile_interval_set_pbuf_highwatermark(memp_sizes[type] + 1, MEMP_PBUF_POOL_HIGHWATERMARK(type));
+      sys_profile_interval_set_pbuf_highwatermark((u32_t)(*num_used_pool_ptr), MEMP_PBUF_POOL_HIGHWATERMARK(type));
     }
   }
   else {
