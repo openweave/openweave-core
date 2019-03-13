@@ -1,7 +1,7 @@
 #!/bin/sh
 
 #
-#    Copyright 2018 Google LLC All Rights Reserved.
+#    Copyright 2018-2019 Google LLC All Rights Reserved.
 #
 #    Licensed under the Apache License, Version 2.0 (the "License");
 #    you may not use this file except in compliance with the License.
@@ -103,7 +103,7 @@ case "${BUILD_TARGET}" in
 
         ;;
 
-    linux-auto-gcc-check-happy)
+    linux-auto-gcc-check-happy|linux-lwip-gcc-check-happy)
         # By default, the BLE layer is enabled in OpenWeave Core and,
         # by default on Linux, the BLE layer is implemented by
         # BlueZ. Satisfy its dependencies.
