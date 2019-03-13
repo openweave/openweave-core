@@ -343,7 +343,6 @@ check_PROGRAMS                                 = \
     TestWeaveFabricState                         \
     TestWeaveSignature                           \
     infratest                                    \
-    wsuptest                                     \
     TestErrorStr                                 \
     TestStatusReportStr                          \
     TestThermostatStatus                         \
@@ -514,7 +513,6 @@ network_test_programs                          = \
     weave-service-dir                            \
     weave-swu-client                             \
     weave-swu-server                             \
-    wsuptest                                     \
     $(NULL)
 
 if WEAVE_BUILD_LEGACY_WDM
@@ -1593,9 +1591,6 @@ weave_swu_server_SOURCES                 = weave-swu-server.cpp  \
                                            MockSWUServer.cpp
 weave_swu_server_LDFLAGS                 = ${AM_CPPFLAGS}
 weave_swu_server_LDADD                   = libWeaveTestCommon.a $(COMMON_LDADD)
-
-wsuptest_SOURCES                         = wsuptest.cpp
-wsuptest_LDADD                           = $(COMMON_LDADD)
 
 if WEAVE_BUILD_COVERAGE
 CLEANFILES                               = $(wildcard *.gcda *.gcno)
