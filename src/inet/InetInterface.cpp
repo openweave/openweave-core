@@ -191,7 +191,7 @@ bool InterfaceIterator::SupportsMulticast()
     {
 #if WEAVE_SYSTEM_CONFIG_USE_LWIP
 #if LWIP_VERSION_MAJOR > 1 || LWIP_VERSION_MINOR >= 5
-        return (curIntf->flags & (NETIF_FLAG_IGMP | NETIF_FLAG_MLD6)) == 0;
+        return (curIntf->flags & (NETIF_FLAG_IGMP | NETIF_FLAG_MLD6)) != 0;
 #else
         return (curIntf->flags & NETIF_FLAG_POINTTOPOINT) == 0;
 #endif // LWIP_VERSION_MAJOR > 1 || LWIP_VERSION_MINOR >= 5
@@ -379,7 +379,7 @@ bool InterfaceAddressIterator::SupportsMulticast()
     {
 #if WEAVE_SYSTEM_CONFIG_USE_LWIP
 #if LWIP_VERSION_MAJOR > 1 || LWIP_VERSION_MINOR >= 5
-        return (curIntf->flags & (NETIF_FLAG_IGMP | NETIF_FLAG_MLD6)) == 0;
+        return (curIntf->flags & (NETIF_FLAG_IGMP | NETIF_FLAG_MLD6)) != 0;
 #else
         return (curIntf->flags & NETIF_FLAG_POINTTOPOINT) == 0;
 #endif // LWIP_VERSION_MAJOR > 1
