@@ -1,5 +1,6 @@
 /*
  *
+ *    Copyright (c) 2019 Google LLC.
  *    Copyright (c) 2013-2017 Nest Labs, Inc.
  *    All rights reserved.
  *
@@ -137,20 +138,14 @@ extern INET_ERROR GetInterfaceName(InterfaceId intfId, char *nameBuf, size_t nam
 extern INET_ERROR InterfaceNameToId(const char *intfName, InterfaceId& intfId);
 
 /**
- * @brief   Iterator for the list of system network interfaces.
+ * @brief   Iterator basis for derived iterators for the list of system
+ *          network interfaces or for the list of system network interface
+ *          IP addresses.
  *
- * @details
- *  Use objects of this class to iterate the list of system network interfaces.
- *
- *  On LwIP systems, it is recommended that the LwIP stack lock be acquired and
- *  not released over the entire lifetime of an object of this class.
- *
- *  On some platforms, network interfaces without any IP addresses attached are
- *  not iterated.
  */
-class InterfaceIterator
+class InterfaceIteratorBasis
 {
-public:
+ protected:
     /**
      * @brief   Conventional default constructor.
      *
@@ -161,7 +156,7 @@ public:
      *  On LwIP, this constructor must be called with the LwIP stack lock
      *  acquired.
      */
-    InterfaceIterator(void);
+    InterfaceIteratorBasis(void);
 
     /**
      * @brief   Non-virtual destructor.
@@ -172,22 +167,9 @@ public:
      *  On LwIP, this destructor must be called with the LwIP stack lock
      *  acquired.
      */
-    ~InterfaceIterator(void);
+    ~InterfaceIteratorBasis(void);
 
-    /**
-     * @brief   Advance the cursor to the next network interface.
-     *
-     * @return  \c false if advanced beyond the end, else \c true.
-     *
-     * @details
-     *  Advances the internal cursor either to the next network interface or
-     *  to the distinguished position corresponding to no further interfaces.
-     *
-     *  On LwIP, this method must be called with the LwIP stack lock
-     *  acquired.
-     */
-    bool Next(void);
-
+ public:
     /**
      * @brief   Test whether the cursor is not yet positioned beyond the end.
      *
@@ -235,7 +217,7 @@ public:
      */
     bool SupportsMulticast(void);
 
-private:
+protected:
 #if WEAVE_SYSTEM_CONFIG_USE_LWIP
     struct netif *curIntf;
 #endif // WEAVE_SYSTEM_CONFIG_USE_LWIP
@@ -244,6 +226,60 @@ private:
     struct ifaddrs *addrsList;
     struct ifaddrs *curAddr;
 #endif // WEAVE_SYSTEM_CONFIG_USE_SOCKETS
+};
+
+/**
+ * @brief   Iterator for the list of system network interfaces.
+ *
+ * @details
+ *  Use objects of this class to iterate the list of system network interfaces.
+ *
+ *  On LwIP systems, it is recommended that the LwIP stack lock be acquired and
+ *  not released over the entire lifetime of an object of this class.
+ *
+ *  On some platforms, network interfaces without any IP addresses attached are
+ *  not iterated.
+ */
+class InterfaceIterator :
+    public InterfaceIteratorBasis
+{
+public:
+    /**
+     * @brief   Conventional default constructor.
+     *
+     * @details
+     *  Starts the cursor at the first network interface. On some platforms,
+     *  this constructor may allocate resources recycled by the destructor.
+     *
+     *  On LwIP, this constructor must be called with the LwIP stack lock
+     *  acquired.
+     */
+    InterfaceIterator(void);
+
+    /**
+     * @brief   Non-virtual destructor.
+     *
+     * @details
+     *  Recycles any resources allocated by the constructor.
+     *
+     *  On LwIP, this destructor must be called with the LwIP stack lock
+     *  acquired.
+     */
+    ~InterfaceIterator(void);
+
+    /**
+     * @brief   Advance the cursor to the next network interface.
+     *
+     * @return  \c false if advanced beyond the end, else \c true.
+     *
+     * @details
+     *  Advances the internal cursor either to the next network interface or
+     *  to the distinguished position corresponding to no further interfaces.
+     *
+     *  On LwIP, this method must be called with the LwIP stack lock
+     *  acquired.
+     */
+    bool Next(void);
 };
 
 /**
@@ -256,7 +292,8 @@ private:
  *  On LwIP systems, it is recommended that the LwIP stack lock be acquired and
  *  not released over the entire lifetime of an object of this class.
  */
-class NL_DLL_EXPORT InterfaceAddressIterator
+class NL_DLL_EXPORT InterfaceAddressIterator :
+    public InterfaceIteratorBasis
 {
 public:
     /**
@@ -298,26 +335,6 @@ public:
     bool Next(void);
 
     /**
-     * @brief   Test whether the cursor has not yet advanced beyond the end.
-     *
-     * @return  \c false if advanced beyond the end, else \c true.
-     *
-     * @details
-     *  On LwIP, this method must be called with the LwIP stack lock
-     *  acquired.
-     */
-    bool HasCurrent(void) const
-    {
-#if WEAVE_SYSTEM_CONFIG_USE_LWIP
-        return (curIntf != NULL);
-#endif // WEAVE_SYSTEM_CONFIG_USE_LWIP
-
-#if WEAVE_SYSTEM_CONFIG_USE_SOCKETS
-        return (curAddr != NULL);
-#endif // WEAVE_SYSTEM_CONFIG_USE_SOCKETS
-    }
-
-    /**
      * @brief   Extract the current interface IP address.
      *
      * @return
@@ -349,42 +366,10 @@ public:
      */
     uint8_t GetIPv6PrefixLength(void);
 
-    /**
-     * @brief   Extract the indicator of the network interface for the current
-     *      IP address.
-     *
-     * @retval  INET_NULL_INTERFACEID   if advanced beyond the end of the list.
-     * @retval  id                      the indicator of the current interface.
-     *
-     * @details
-     *  On LwIP, this method must be called with the LwIP stack lock
-     *  acquired.
-     */
-    InterfaceId GetInterface(void);
-
-    /**
-     * @brief   Inspect whether the interface for the current IP address
-     *  supports multicast.
-     *
-     * @return  \c false if the current interface does not support multicast or
-     *      the iterator has advanced beyond the end of the list, else \c true.
-     *
-     * @details
-     *  On LwIP, this method must be called with the LwIP stack lock
-     *  acquired.
-     */
-    bool SupportsMulticast(void);
-
 private:
 #if WEAVE_SYSTEM_CONFIG_USE_LWIP
-    struct netif *curIntf;
     int curAddrIndex;
 #endif // WEAVE_SYSTEM_CONFIG_USE_LWIP
-
-#if WEAVE_SYSTEM_CONFIG_USE_SOCKETS
-    struct ifaddrs *addrsList;
-    struct ifaddrs *curAddr;
-#endif // WEAVE_SYSTEM_CONFIG_USE_SOCKETS
 };
 
 #if WEAVE_SYSTEM_CONFIG_USE_LWIP
