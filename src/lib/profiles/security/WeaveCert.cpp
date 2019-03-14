@@ -48,7 +48,7 @@ using namespace nl::Weave::TLV;
 using namespace nl::Weave::Profiles;
 using namespace nl::Weave::Crypto;
 
-extern WEAVE_ERROR ConvertTBSCertificate(TLVReader& reader, ASN1Writer& writer, WeaveCertificateData& certData);
+extern WEAVE_ERROR DecodeConvertTBSCert(TLVReader& reader, ASN1Writer& writer, WeaveCertificateData& certData);
 
 #if HAVE_MALLOC && HAVE_FREE
 static void *DefaultAlloc(size_t size)
@@ -194,7 +194,7 @@ WEAVE_ERROR WeaveCertificateSet::LoadCert(TLVReader& reader, uint16_t decodeFlag
         // encoding.  At the same time, parse various components within the certificate and set the corresponding
         // fields in the CertificateData object.
         writer.Init(decodeBuf, mDecodeBufSize);
-        err = ConvertTBSCertificate(reader, writer, *cert);
+        err = DecodeConvertTBSCert(reader, writer, *cert);
         SuccessOrExit(err);
 
         // Verify the cert has both the Subject Key Id and Authority Key Id extensions present.
@@ -632,24 +632,27 @@ exit:
     return err;
 }
 
-WEAVE_ERROR WeaveCertificateSet::DetermineCertType(WeaveCertificateData& cert)
+/**
+ * Determine general type of a Weave certificate.
+ *
+ * This function performs a general assessment of a certificate's type based
+ * on the structure of its subject DN and the extensions present.  Applications
+ * are free to override this assessment by setting cert.CertType to another value,
+ * including an application-defined one.
+ *
+ * In general, applications will only trust a peer's certificate if it chains to a trusted
+ * root certificate.  However, the type assigned to a certificate can influence the *nature*
+ * of this trust, e.g. to allow or disallow access to certain features.  Because of this,
+ * changes to this algorithm can have VERY SIGNIFICANT and POTENTIALLY CATASTROPHIC effects
+ * on overall system security, and should not be made without a thorough understanding of
+ * the implications.
+ *
+ * NOTE: Access token certificates cannot be distinguished solely by their structure.
+ * Thus this function never sets cert.CertType = kCertType_AccessToken.
+ */
+WEAVE_ERROR DetermineCertType(WeaveCertificateData& cert)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
-
-    // NOTE: This function performs a general assessment of the certificate's type based
-    // on the structure of its subject DN and the extensions present.  After loading a
-    // certificate, applications are free to override this choice by setting cert.CertType
-    // to another value, including an application-defined one.
-    //
-    // In general, applications will only trust a peer's certificate if it chains to a trusted
-    // root certificate.  However, the type assigned to a certificate can influence the *nature*
-    // of this trust, e.g. to allow or disallow access to certain features.  Because of this,
-    // changes to this algorithm can have VERY SIGNIFICANT and POTENTIALLY CATASTROPHIC effects
-    // on overall system security, and should not be made without a thorough understanding of
-    // the implications.
-
-    // NOTE 2: Access token certificates cannot be distinguished solely by their structure.
-    // Thus this function should never set cert.CertType = kCertType_AccessToken.
 
     // If the BasicConstraints isCA flag is true...
     if ((cert.CertFlags & kCertFlag_IsCA) != 0)

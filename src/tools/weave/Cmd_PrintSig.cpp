@@ -1,6 +1,6 @@
 /*
  *
- *    Copyright (c) 2013-2017 Nest Labs, Inc.
+ *    Copyright (c) 2019 Google LLC.
  *    All rights reserved.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
@@ -19,7 +19,7 @@
 /**
  *    @file
  *      This file implements the command handler for the 'weave' tool
- *      that decodes and prints the contents of a Weave certificate.
+ *      that decodes and prints the contents of a Weave signature.
  *
  */
 
@@ -37,21 +37,21 @@
 using namespace nl::Weave::ASN1;
 using namespace nl::Weave::Profiles::Security;
 
-#define CMD_NAME "weave print-cert"
+#define CMD_NAME "weave print-sig"
 
 static bool HandleNonOptionArgs(const char *progName, int argc, char *argv[]);
 
 static HelpOptions gHelpOptions(
     CMD_NAME,
-    "Usage: " CMD_NAME " [<options...>] <cert-file>\n",
+    "Usage: " CMD_NAME " [<options...>] <sig-file>\n",
     WEAVE_VERSION_STRING "\n" COPYRIGHT_STRING,
-    "Print a Weave certificate.\n"
+    "Print a Weave signature object.\n"
     "\n"
     "ARGUMENTS\n"
     "\n"
     "  <cert-file>\n"
     "\n"
-    "       A file containing a Weave certificate. The certificate must be in\n"
+    "       A file containing a Weave signature object. The signature must be in\n"
     "       base-64 or raw TLV format.\n"
     "\n"
 );
@@ -62,15 +62,14 @@ static OptionSet *gCmdOptionSets[] =
     NULL
 };
 
-static const char *gCertFileName = NULL;
+static const char *gSigFileName = NULL;
 
-bool Cmd_PrintCert(int argc, char *argv[])
+bool Cmd_PrintSig(int argc, char *argv[])
 {
     bool res = true;
     WEAVE_ERROR err;
-    WeaveCertificateData certData;
-    uint8_t * certBuf = NULL;
-    uint32_t certLen;
+    uint8_t * sigBuf = NULL;
+    uint32_t sigLen;
 
     if (argc == 1)
     {
@@ -83,31 +82,32 @@ bool Cmd_PrintCert(int argc, char *argv[])
         ExitNow(res = false);
     }
 
-    if (!ReadWeaveCert(gCertFileName, certBuf, certLen))
+    if (!ReadFileIntoMem(gSigFileName, sigBuf, sigLen))
         ExitNow(res = false);
 
-    err = DecodeWeaveCert(certBuf, certLen, certData);
-    if (err != WEAVE_NO_ERROR)
+    if (IsBase64String((const char *)sigBuf, sigLen))
     {
-        fprintf(stderr, "weave: %s.\n", nl::ErrorStr(err));
-        ExitNow(res = false);
+        if (Base64Decode(sigBuf, sigLen, sigBuf, sigLen, sigLen) == NULL)
+            ExitNow(res = false);
     }
 
-    err = DetermineCertType(certData);
-    if (err != WEAVE_NO_ERROR)
+    printf("Weave Signature:\n");
     {
-        fprintf(stderr, "weave: %s.\n", nl::ErrorStr(err));
-        ExitNow(res = false);
+        TLVReader reader;
+        reader.Init(sigBuf, sigLen);
+        err = PrintWeaveSignature(stdout, reader, 2);
+        if (err != WEAVE_NO_ERROR)
+        {
+            fprintf(stderr, "weave: %s.\n", nl::ErrorStr(err));
+            ExitNow(res = false);
+        }
     }
-
-    printf("Weave Certificate:\n");
-    PrintCert(stdout, certData, NULL, 2, true);
 
     res = (err == WEAVE_NO_ERROR);
 
 exit:
-    if (certBuf != NULL)
-        free(certBuf);
+    if (sigBuf != NULL)
+        free(sigBuf);
     return res;
 }
 
@@ -115,7 +115,7 @@ bool HandleNonOptionArgs(const char *progName, int argc, char *argv[])
 {
     if (argc == 0)
     {
-        PrintArgError("%s: Please specify the name of the certificate to be printed.\n", progName);
+        PrintArgError("%s: Please specify the name of the signature to be printed.\n", progName);
         return false;
     }
 
@@ -125,7 +125,7 @@ bool HandleNonOptionArgs(const char *progName, int argc, char *argv[])
         return false;
     }
 
-    gCertFileName = argv[0];
+    gSigFileName = argv[0];
 
     return true;
 }

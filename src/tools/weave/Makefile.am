@@ -75,6 +75,7 @@ weave_SOURCES				            = \
     Cmd_MakeAccessToken.cpp               \
     Cmd_MakeServiceConfig.cpp             \
     Cmd_PrintCert.cpp                     \
+    Cmd_PrintSig.cpp                      \
     Cmd_PrintTLV.cpp                      \
     Cmd_ValidateCert.cpp                  \
     Cmd_ResignCert.cpp                    \
