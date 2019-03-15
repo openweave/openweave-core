@@ -39,11 +39,19 @@ case "${BUILD_TARGET}" in
         ;;
 
     linux-auto-gcc-check-happy)
+        mkdir -p $TRAVIS_BUILD_DIR/happy-test-logs/${BUILD_TARGET}/from-tmp
         sudo make -f Makefile-Standalone DEBUG=1 TIMESTAMP=1 COVERAGE=1 BuildJobs=24 check
+        cp $TRAVIS_BUILD_DIR/build/x86_64-unknown-linux-gnu/src/test-apps/happy $TRAVIS_BUILD_DIR/happy-test-logs/${BUILD_TARGET} -rf
+        cp /tmp/happy* $TRAVIS_BUILD_DIR/happy-test-logs/${BUILD_TARGET}/from-tmp
+        echo "please check happy-test-log/<build_number> under link: https://storage.cloud.google.com/openweave"
         ;;
 
     linux-lwip-gcc-check-happy)
+        mkdir -p $TRAVIS_BUILD_DIR/happy-test-logs/${BUILD_TARGET}/from-tmp
         sudo make -f Makefile-Standalone DEBUG=1 TIMESTAMP=1 COVERAGE=1 USE_LWIP=1 BuildJobs=24 check
+        cp $TRAVIS_BUILD_DIR/build/x86_64-unknown-linux-gnu-lwip/src/test-apps/happy $TRAVIS_BUILD_DIR/happy-test-logs/${BUILD_TARGET} -rf
+        cp /tmp/happy* $TRAVIS_BUILD_DIR/happy-test-logs/${BUILD_TARGET}/from-tmp
+        echo "please check happy-test-log/<build_number> under link: https://storage.cloud.google.com/openweave"
         ;;
 
     linux-lwip-clang)
