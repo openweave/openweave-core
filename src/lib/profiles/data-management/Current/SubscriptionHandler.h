@@ -100,6 +100,8 @@ public:
             bool mIsSubscriptionIdValid;
             uint64_t mSubscriptionId;
 
+            event_id_t mNextVendedEvents[kImportanceType_Last - kImportanceType_First + 1];
+
             SubscriptionHandler * mHandler;
         } mSubscribeRequestParsed;
 

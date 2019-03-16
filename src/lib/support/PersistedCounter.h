@@ -72,6 +72,15 @@ public:
      */
     WEAVE_ERROR Advance(void);
 
+    /*
+     *  @brief
+     *    Advance the counter to start of the epoch following the provided
+     *    value.
+     *
+     *  @return Any error returned by a write to persistent storage.
+     */
+    WEAVE_ERROR AdvanceEpochRelative(uint32_t aValue);
+
 private:
     /**
      *  @brief

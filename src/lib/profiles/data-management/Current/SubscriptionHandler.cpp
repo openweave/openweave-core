@@ -690,6 +690,8 @@ void SubscriptionHandler::InitWithIncomingRequest(Binding * const aBinding, cons
         inParam.mSubscribeRequestParsed.mNumTraitInstances    = mNumTraitInstances;
         inParam.mSubscribeRequestParsed.mSubscribeToAllEvents = mSubscribeToAllEvents;
 
+        memcpy(inParam.mSubscribeRequestParsed.mNextVendedEvents, mSelfVendedEvents, sizeof(inParam.mSubscribeRequestParsed.mNextVendedEvents));
+
         err = request.GetSubscribeTimeoutMin(&inParam.mSubscribeRequestParsed.mTimeoutSecMin);
         if (WEAVE_END_OF_TLV == err)
         {
