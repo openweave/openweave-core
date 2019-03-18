@@ -59,11 +59,11 @@ class WeaveInetDNS(HappyNode, HappyNetwork, WeaveTest):
 
         self.quiet = opts["quiet"]
         self.node_id = opts["node_id"]
-        self.tap_if = options["tap_if"]
+        self.tap_if = opts["tap_if"]
         self.prefix = opts["prefix"]
-        self.ipv4_gateway =options["ipv4_gateway"]
-        self.dns = options["dns"]
-        self.use_lwip = options["use_lwip"]
+        self.ipv4_gateway =opts["ipv4_gateway"]
+        self.dns = opts["dns"]
+        self.use_lwip = opts["use_lwip"]
 
         self.node_process_tag = "WEAVE-INET-NODE"
 
