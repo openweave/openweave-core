@@ -19,7 +19,7 @@
 /**
  *    @file
  *          Defines platform-specific event types and data for the
- *          Weave Device Layer on nRF5* platforms using the Nordic SDK.
+ *          Weave Device Layer on nRF52 platforms using the Nordic SDK.
  */
 
 #ifndef WEAVE_DEVICE_PLATFORM_EVENT_H
@@ -45,7 +45,7 @@ namespace DeviceLayer {
 namespace DeviceEventType {
 
 /**
- * Enumerates nRF5* platform-specific event types that are visible to the application.
+ * Enumerates nRF52 platform-specific event types that are visible to the application.
  */
 enum PublicPlatformSpecificEventTypes
 {
@@ -53,7 +53,7 @@ enum PublicPlatformSpecificEventTypes
 };
 
 /**
- * Enumerates nRF5* platform-specific event types that are internal to the Weave Device Layer.
+ * Enumerates nRF52 platform-specific event types that are internal to the Weave Device Layer.
  */
 enum InternalPlatformSpecificEventTypes
 {
@@ -65,7 +65,7 @@ enum InternalPlatformSpecificEventTypes
 } // namespace DeviceEventType
 
 /**
- * Represents platform-specific event information for Nordic nRF5* platforms.
+ * Represents platform-specific event information for Nordic nRF52 platforms.
  */
 struct WeaveDevicePlatformEvent final
 {

@@ -144,11 +144,13 @@ libDeviceLayer_a_SOURCES               +=       \
     nRF5/PlatformManagerImpl.cpp                \
     nRF5/ConnectivityManagerImpl.cpp            \
     nRF5/NetworkProvisioningServerImpl.cpp      \
+    nRF5/ThreadStackManagerImpl.cpp             \
     nRF5/GroupKeyStoreImpl.cpp                  \
     nRF5/NRF5Config.cpp                         \
     nRF5/Entropy.cpp                            \
     nRF5/Logging.cpp                            \
     FreeRTOS/SystemTimeSupport.cpp              \
+    OpenThread/OpenThreadUtils.cpp              \
     $(NULL)
 
 endif # WEAVE_DEVICE_LAYER_TARGET_NRF5

@@ -18,7 +18,7 @@
 
 /**
  *    @file
- *      Weave project configuration for the Nordic nRF5* platforms.
+ *      Weave project configuration for the Nordic nRF52 platforms.
  *
  */
 #ifndef WEAVEPROJECTCONFIG_H

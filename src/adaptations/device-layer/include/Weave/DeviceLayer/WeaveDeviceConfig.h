@@ -167,6 +167,16 @@
 #define WEAVE_DEVICE_CONFIG_WIFI_CONNECTIVITY_TIMEOUT 30000
 #endif
 
+/**
+ * WEAVE_DEVICE_CONFIG_LWIP_WIFI_STATION_IF_NAME
+ *
+ * Name of the WiFi station interface on LwIP-based platforms.
+ */
+#ifndef WEAVE_DEVICE_CONFIG_LWIP_WIFI_STATION_IF_NAME
+#define WEAVE_DEVICE_CONFIG_LWIP_WIFI_STATION_IF_NAME "wl"
+#endif
+
+
 // -------------------- WiFi AP Configuration --------------------
 
 /**
@@ -215,6 +225,16 @@
 #ifndef WEAVE_DEVICE_CONFIG_WIFI_AP_IDLE_TIMEOUT
 #define WEAVE_DEVICE_CONFIG_WIFI_AP_IDLE_TIMEOUT 120000
 #endif
+
+/**
+ * WEAVE_DEVICE_CONFIG_LWIP_WIFI_AP_IF_NAME
+ *
+ * Name of the WiFi AP interface on LwIP-based platforms.
+ */
+#ifndef WEAVE_DEVICE_CONFIG_LWIP_WIFI_AP_IF_NAME
+#define WEAVE_DEVICE_CONFIG_LWIP_WIFI_AP_IF_NAME "ap"
+#endif
+
 
 // -------------------- BLE/WoBLE Configuration --------------------
 
@@ -365,6 +385,74 @@
 #define WEAVE_DEVICE_CONFIG_SERVICE_PROVISIONING_REQUEST_TIMEOUT 10000
 #endif
 
+// -------------------- Thread Configuration --------------------
+
+/**
+ * WEAVE_DEVICE_CONFIG_ENABLE_THREAD
+ *
+ * Enable support for Thread in the Weave Device Layer.
+ */
+#ifndef WEAVE_DEVICE_CONFIG_ENABLE_THREAD
+#define WEAVE_DEVICE_CONFIG_ENABLE_THREAD 0
+#endif
+
+/**
+ * WEAVE_DEVICE_CONFIG_THREAD_TASK_NAME
+ *
+ * The name of the Thread task.
+ */
+#ifndef WEAVE_DEVICE_CONFIG_THREAD_TASK_NAME
+#define WEAVE_DEVICE_CONFIG_THREAD_TASK_NAME "ot"
+#endif
+
+/**
+ * WEAVE_DEVICE_CONFIG_THREAD_TASK_STACK_SIZE
+ *
+ * The size (in bytes) of the OpenThread task stack.
+ */
+#ifndef WEAVE_DEVICE_CONFIG_THREAD_TASK_STACK_SIZE
+#define WEAVE_DEVICE_CONFIG_THREAD_TASK_STACK_SIZE 8192
+#endif
+
+/**
+ * WEAVE_DEVICE_CONFIG_THREAD_TASK_PRIORITY
+ *
+ * The priority of the OpenThread task.
+ */
+#ifndef WEAVE_DEVICE_CONFIG_THREAD_TASK_PRIORITY
+#define WEAVE_DEVICE_CONFIG_THREAD_TASK_PRIORITY 1
+#endif
+
+/**
+ * WEAVE_DEVICE_CONFIG_LWIP_THREAD_IF_NAME
+ *
+ * Name of the Thread interface on LwIP-based platforms.
+ */
+#ifndef WEAVE_DEVICE_CONFIG_LWIP_THREAD_IF_NAME
+#define WEAVE_DEVICE_CONFIG_LWIP_THREAD_IF_NAME "th"
+#endif
+
+/**
+ * WEAVE_DEVICE_CONFIG_THREAD_IF_MTU
+ *
+ * Default MTU for Thread interface
+ */
+#ifndef WEAVE_DEVICE_CONFIG_THREAD_IF_MTU
+#define WEAVE_DEVICE_CONFIG_THREAD_IF_MTU 1280
+#endif
+
+
+// -------------------- Tunnel Configuration --------------------
+
+/**
+ * WEAVE_DEVICE_CONFIG_LWIP_SERVICE_TUN_IF_NAME
+ *
+ * Name of the service TUN interface on LwIP-based platforms.
+ */
+#ifndef WEAVE_DEVICE_CONFIG_LWIP_SERVICE_TUN_IF_NAME
+#define WEAVE_DEVICE_CONFIG_LWIP_SERVICE_TUN_IF_NAME "tn"
+#endif
+
 
 // -------------------- Test Configuration --------------------
 
@@ -420,5 +508,6 @@
 #ifndef WEAVE_DEVICE_CONFIG_DISABLE_ACCOUNT_PAIRING
 #define WEAVE_DEVICE_CONFIG_DISABLE_ACCOUNT_PAIRING 0
 #endif
+
 
 #endif // WEAVE_DEVICE_CONFIG_H

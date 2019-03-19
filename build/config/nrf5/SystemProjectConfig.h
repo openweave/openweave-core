@@ -18,7 +18,7 @@
 
 /**
  *    @file
- *      System project configuration for the Nordic nRF5* platform.
+ *      System project configuration for the Nordic nRF52 platform.
  *
  */
 

@@ -18,7 +18,7 @@
 
 /**
  *    @file
- *      WARM project configuration for the Nordic nRF5* platform.
+ *      WARM project configuration for the Nordic nRF52 platform.
  *
  */
 

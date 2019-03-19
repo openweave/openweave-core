@@ -383,6 +383,9 @@ void GenericPlatformManagerImpl<ImplClass>::DispatchEventToDeviceLayer(const Wea
 #if WEAVE_DEVICE_CONFIG_ENABLE_WOBLE
     BLEMgr().OnPlatformEvent(event);
 #endif
+#if WEAVE_DEVICE_CONFIG_ENABLE_THREAD
+    ThreadStackMgr().OnPlatformEvent(event);
+#endif
 }
 
 template<class ImplClass>

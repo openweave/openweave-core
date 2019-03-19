@@ -233,12 +233,23 @@ WEAVE_ERROR GetLwIPNetifForWarmInterfaceType(InterfaceType inInterfaceType, stru
 
     for (netif = netif_list; netif != NULL; netif = netif->next)
     {
-        if (inInterfaceType == kInterfaceTypeWiFi && netif->name[0] == 's' && netif->name[1] == 't')
+        if (inInterfaceType == kInterfaceTypeWiFi &&
+            netif->name[0] == WEAVE_DEVICE_CONFIG_LWIP_WIFI_STATION_IF_NAME[0] &&
+            netif->name[1] == WEAVE_DEVICE_CONFIG_LWIP_WIFI_STATION_IF_NAME[1])
         {
             ExitNow(err = WEAVE_NO_ERROR);
         }
 
-        if (inInterfaceType == kInterfaceTypeTunnel && netif->name[0] == 't' && netif->name[1] == 'n')
+        if (inInterfaceType == kInterfaceTypeTunnel &&
+            netif->name[0] == WEAVE_DEVICE_CONFIG_LWIP_SERVICE_TUN_IF_NAME[0] &&
+            netif->name[1] == WEAVE_DEVICE_CONFIG_LWIP_SERVICE_TUN_IF_NAME[1])
+        {
+            ExitNow(err = WEAVE_NO_ERROR);
+        }
+
+        if (inInterfaceType == kInterfaceTypeThread &&
+            netif->name[0] == WEAVE_DEVICE_CONFIG_LWIP_THREAD_IF_NAME[0] &&
+            netif->name[1] == WEAVE_DEVICE_CONFIG_LWIP_THREAD_IF_NAME[1])
         {
             ExitNow(err = WEAVE_NO_ERROR);
         }

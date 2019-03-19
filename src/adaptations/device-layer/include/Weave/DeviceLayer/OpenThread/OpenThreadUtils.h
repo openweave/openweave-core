@@ -1,6 +1,6 @@
 /*
  *
- *    Copyright (c) 2018 Nest Labs, Inc.
+ *    Copyright (c) 2019 Nest Labs, Inc.
  *    All rights reserved.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,42 +16,27 @@
  *    limitations under the License.
  */
 
-#ifndef WEAVE_DEVICE_INTERNAL_H
-#define WEAVE_DEVICE_INTERNAL_H
+/**
+ *    @file
+ *          Utility functions for working with OpenThread.
+ */
 
-namespace nl {
-namespace Weave {
-namespace Logging {
 
-enum
-{
-    kLogModule_DeviceLayer = 255,
-};
+#ifndef OPENTHREAD_UTILS_H
+#define OPENTHREAD_UTILS_H
 
-} // namespace Logging
-} // namespace Weave
-} // namespace nl
-
-#include <Weave/DeviceLayer/WeaveDeviceLayer.h>
+#include <openthread/error.h>
 
 namespace nl {
 namespace Weave {
 namespace DeviceLayer {
 namespace Internal {
 
-extern const char * const TAG;
-
-#if WEAVE_DEVICE_CONFIG_ENABLE_TEST_DEVICE_IDENTITY
-extern const uint64_t TestDeviceId;
-extern const uint8_t TestDeviceCert[];
-extern const uint8_t TestDevicePrivateKey[];
-extern const uint16_t TestDeviceCertLength;
-extern const uint16_t TestDevicePrivateKeyLength;
-#endif // WEAVE_DEVICE_CONFIG_ENABLE_TEST_DEVICE_IDENTITY
+extern WEAVE_ERROR MapOpenThreadError(otError otErr);
 
 } // namespace Internal
 } // namespace DeviceLayer
 } // namespace Weave
 } // namespace nl
 
-#endif // WEAVE_DEVICE_INTERNAL_H
+#endif // OPENTHREAD_UTILS_H
