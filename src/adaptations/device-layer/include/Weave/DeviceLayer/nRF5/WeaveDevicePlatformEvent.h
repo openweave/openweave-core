@@ -18,8 +18,8 @@
 
 /**
  *    @file
- *          Defines platform-specific event types and data for the
- *          Weave Device Layer on nRF52 platforms using the Nordic SDK.
+ *          Defines platform-specific event types and data for the Weave
+ *          Device Layer on nRF52 platforms using the Nordic nRF5 SDK.
  */
 
 #ifndef WEAVE_DEVICE_PLATFORM_EVENT_H
