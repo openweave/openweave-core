@@ -19,7 +19,7 @@
 /**
  *    @file
  *          Platform-specific configuration overrides for the Weave Device Layer
- *          on nRF52 platforms using the Nordic SDK.
+ *          on nRF52 platforms using the Nordic nRF5 SDK.
  */
 
 
