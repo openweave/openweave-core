@@ -52,10 +52,6 @@ class test_inet_dns(unittest.TestCase):
         subprocess.call(["happy-state-delete"])
 
     def test_inet_dns(self):
-        if "WEAVE_SYSTEM_CONFIG_USE_LWIP" in os.environ.keys() and os.environ["WEAVE_SYSTEM_CONFIG_USE_LWIP"] == "1":
-            print hred("WARNING: Test skipped due to LwIP-based network cofiguration!")
-            return
-
         options = happy.HappyNodeList.option()
         options["quiet"] = True
 
