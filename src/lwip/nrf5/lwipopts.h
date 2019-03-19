@@ -18,8 +18,8 @@
 
 /**
  *    @file
- *      Compile-time configuration for LwIP on nRF5* platforms using the
- *      Nordic SDK.
+ *      Compile-time configuration for LwIP on nRF52 platforms using the
+ *      Nordic nRF5 SDK.
  *
  */
 

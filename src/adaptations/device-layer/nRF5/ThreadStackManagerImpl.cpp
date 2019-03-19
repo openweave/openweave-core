@@ -18,8 +18,8 @@
 
 /**
  *    @file
- *          Provides an implementation of the ThreadStackManager object
- *          for nRF52 platforms using the Nordic SDK and the OpenThread
+ *          Provides an implementation of the ThreadStackManager object for
+ *          nRF52 platforms using the Nordic nRF5 SDK and the OpenThread
  *          stack.
  *
  */

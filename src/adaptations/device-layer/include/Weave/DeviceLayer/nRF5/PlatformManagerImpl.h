@@ -19,7 +19,7 @@
 /**
  *    @file
  *          Provides an implementation of the PlatformManager object
- *          for nRF52 platforms using the Nordic SDK.
+ *          for nRF52 platforms using the Nordic nRF5 SDK.
  */
 
 #ifndef PLATFORM_MANAGER_IMPL_H
