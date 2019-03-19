@@ -19,7 +19,7 @@
 /**
  *    @file
  *          Provides the implementation of the Device Layer ConfigurationManager object
- *          for nRF5* platforms using the Nordic SDK.
+ *          for nRF52 platforms using the Nordic SDK.
  */
 
 #include <Weave/DeviceLayer/internal/WeaveDeviceLayerInternal.h>

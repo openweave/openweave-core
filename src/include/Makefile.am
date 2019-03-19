@@ -928,6 +928,9 @@ $(nl_public_WeaveDeviceLayer_source_dirstem)/ESP32/NetworkProvisioningServerImpl
 $(nl_public_WeaveDeviceLayer_source_dirstem)/ESP32/PlatformManagerImpl.h                            \
 $(nl_public_WeaveDeviceLayer_source_dirstem)/ESP32/WeaveDevicePlatformConfig.h                      \
 $(nl_public_WeaveDeviceLayer_source_dirstem)/ESP32/WeaveDevicePlatformEvent.h                       \
+$(NULL)
+
+nl_public_WeaveDeviceLayer_freertos_header_sources =                                                \
 $(nl_public_WeaveDeviceLayer_source_dirstem)/FreeRTOS/GenericPlatformManagerImpl_FreeRTOS.h         \
 $(nl_public_WeaveDeviceLayer_source_dirstem)/FreeRTOS/GenericPlatformManagerImpl_FreeRTOS.ipp       \
 $(NULL)
@@ -941,13 +944,30 @@ $(nl_public_WeaveDeviceLayer_source_dirstem)/nRF5/BLEManagerImpl.h              
 $(nl_public_WeaveDeviceLayer_source_dirstem)/nRF5/ConfigurationManagerImpl.h                        \
 $(nl_public_WeaveDeviceLayer_source_dirstem)/nRF5/ConnectivityManagerImpl.h                         \
 $(nl_public_WeaveDeviceLayer_source_dirstem)/nRF5/PlatformManagerImpl.h                             \
+$(nl_public_WeaveDeviceLayer_source_dirstem)/nRF5/ThreadStackManagerImpl.h                          \
 $(nl_public_WeaveDeviceLayer_source_dirstem)/nRF5/NRF5Config.h                                      \
 $(nl_public_WeaveDeviceLayer_source_dirstem)/nRF5/GroupKeyStoreImpl.h                               \
 $(nl_public_WeaveDeviceLayer_source_dirstem)/nRF5/NetworkProvisioningServerImpl.h                   \
 $(nl_public_WeaveDeviceLayer_source_dirstem)/nRF5/WeaveDevicePlatformConfig.h                       \
 $(nl_public_WeaveDeviceLayer_source_dirstem)/nRF5/WeaveDevicePlatformEvent.h                        \
+$(NULL)
+
+nl_public_WeaveDeviceLayer_openthread_header_sources =                                              \
+$(nl_public_WeaveDeviceLayer_source_dirstem)/OpenThread/GenericThreadStackManagerImpl_OpenThread.h  \
+$(nl_public_WeaveDeviceLayer_source_dirstem)/OpenThread/GenericThreadStackManagerImpl_OpenThread.ipp \
+$(nl_public_WeaveDeviceLayer_source_dirstem)/OpenThread/OpenThreadUtils.h                           \
+$(NULL)
+
+nl_public_WeaveDeviceLayer_freertos_header_sources =                                                \
+$(nl_public_WeaveDeviceLayer_source_dirstem)/FreeRTOS/GenericThreadStackManagerImpl_FreeRTOS.h      \
+$(nl_public_WeaveDeviceLayer_source_dirstem)/FreeRTOS/GenericThreadStackManagerImpl_FreeRTOS.ipp    \
 $(nl_public_WeaveDeviceLayer_source_dirstem)/FreeRTOS/GenericPlatformManagerImpl_FreeRTOS.h         \
 $(nl_public_WeaveDeviceLayer_source_dirstem)/FreeRTOS/GenericPlatformManagerImpl_FreeRTOS.ipp       \
+$(NULL)
+
+nl_public_WeaveDeviceLayer_lwip_header_sources =                                                    \
+$(nl_public_WeaveDeviceLayer_source_dirstem)/LwIP/GenericThreadStackManagerImpl_LwIP.h              \
+$(nl_public_WeaveDeviceLayer_source_dirstem)/LwIP/GenericThreadStackManagerImpl_LwIP.ipp            \
 $(NULL)
 
 endif # WEAVE_DEVICE_LAYER_TARGET_NRF5
@@ -962,6 +982,7 @@ $(nl_public_WeaveDeviceLayer_source_dirstem)/ConfigurationManager.h             
 $(nl_public_WeaveDeviceLayer_source_dirstem)/ConnectivityManager.h                    \
 $(nl_public_WeaveDeviceLayer_source_dirstem)/GeneralUtils.h                           \
 $(nl_public_WeaveDeviceLayer_source_dirstem)/PlatformManager.h                        \
+$(nl_public_WeaveDeviceLayer_source_dirstem)/ThreadStackManager.h                     \
 $(nl_public_WeaveDeviceLayer_source_dirstem)/TimeSyncManager.h                        \
 $(nl_public_WeaveDeviceLayer_source_dirstem)/TraitManager.h                           \
 $(nl_public_WeaveDeviceLayer_source_dirstem)/WeaveDeviceConfig.h                      \
@@ -1002,6 +1023,9 @@ $(nl_public_WeaveDeviceLayer_base_header_sources) \
 $(nl_public_WeaveDeviceLayer_internal_header_sources) \
 $(nl_public_WeaveDeviceLayer_internal_testing_header_sources) \
 $(nl_public_WeaveDeviceLayer_target_header_sources) \
+$(nl_public_WeaveDeviceLayer_openthread_header_sources) \
+$(nl_public_WeaveDeviceLayer_freertos_header_sources) \
+$(nl_public_WeaveDeviceLayer_lwip_header_sources) \
 $(NULL)
 
 nl_public_WeaveDeviceLayer_header_paths = $(subst $(nl_public_WeaveDeviceLayer_source_dirstem)/,,$(nl_public_WeaveDeviceLayer_header_sources))
@@ -1035,7 +1059,13 @@ weave_device_layer_targetdir = $(includedir)/$(nl_public_WeaveDeviceLayer_destin
 dist_weave_device_layer_target_HEADERS = $(addprefix ../,$(nl_public_WeaveDeviceLayer_target_header_sources))
 
 weave_device_layer_freertosdir = $(includedir)/$(nl_public_WeaveDeviceLayer_destination_dirstem)/FreeRTOS
-dist_weave_device_layer_freertos_HEADERS = $(addprefix ../,$(nl_public_WeaveDeviceLayer_target_header_sources))
+dist_weave_device_layer_freertos_HEADERS = $(addprefix ../,$(nl_public_WeaveDeviceLayer_freertos_header_sources))
+
+weave_device_layer_openthreaddir = $(includedir)/$(nl_public_WeaveDeviceLayer_destination_dirstem)/OpenThread
+dist_weave_device_layer_openthread_HEADERS = $(addprefix ../,$(nl_public_WeaveDeviceLayer_openthread_header_sources))
+
+weave_device_layer_lwipdir = $(includedir)/$(nl_public_WeaveDeviceLayer_destination_dirstem)/LwIP
+dist_weave_device_layer_lwip_HEADERS = $(addprefix ../,$(nl_public_WeaveDeviceLayer_lwip_header_sources))
 
 endif # CONFIG_DEVICE_LAYER
 

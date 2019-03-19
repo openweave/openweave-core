@@ -18,7 +18,7 @@
 
 /**
  *    @file
- *      Inet project configuration for the Nordic nRF5* platform.
+ *      Inet project configuration for the Nordic nRF52 platform.
  *
  */
 #ifndef INETPROJECTCONFIG_H

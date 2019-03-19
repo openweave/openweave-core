@@ -19,7 +19,7 @@
 /**
  *    @file
  *          Provides implementations for the OpenWeave logging functions
- *          on Nordic nRF5* platform.
+ *          on Nordic nRF52 platform.
  */
 
 
@@ -104,3 +104,35 @@ void Log(uint8_t module, uint8_t category, const char *msg, ...)
 } // namespace Weave
 } // namespace nl
 
+#undef NRF_LOG_MODULE_NAME
+#define NRF_LOG_MODULE_NAME lwip
+#include "nrf_log.h"
+NRF_LOG_MODULE_REGISTER();
+
+extern "C"
+void LwIPLog(const char *msg, ...)
+{
+    char formattedMsg[256];
+
+    va_list v;
+
+    va_start(v, msg);
+
+#if NRF_LOG_ENABLED
+
+    // Append the log message.
+    size_t len = vsnprintf(formattedMsg, sizeof(formattedMsg), msg, v);
+
+    while (len > 0 && isspace(formattedMsg[len-1]))
+    {
+        len--;
+        formattedMsg[len] = 0;
+    }
+
+    // Invoke the NRF logging library to log the message.
+    NRF_LOG_DEBUG("%s", NRF_LOG_PUSH(formattedMsg));
+
+#endif // NRF_LOG_ENABLED
+
+    va_end(v);
+}

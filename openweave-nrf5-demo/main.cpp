@@ -33,6 +33,7 @@ extern "C" {
 }
 
 #include <Weave/DeviceLayer/WeaveDeviceLayer.h>
+#include <Weave/DeviceLayer/ThreadStackManager.h>
 #include <Weave/DeviceLayer/nRF5/GroupKeyStoreImpl.h>
 #include <Weave/DeviceLayer/internal/testing/ConfigUnitTest.h>
 #include <Weave/DeviceLayer/internal/testing/GroupKeyStoreUnitTest.h>
@@ -42,6 +43,38 @@ using namespace ::nl;
 using namespace ::nl::Inet;
 using namespace ::nl::Weave;
 using namespace ::nl::Weave::DeviceLayer;
+
+
+// ================================================================================
+// Test App Feature Config
+// ================================================================================
+
+#define TEST_TASK_ENABLED 1
+#define RUN_UNIT_TESTS 0
+#define WOBLE_ENABLED 0
+#define OPENTHREAD_ENABLED 1
+#define OPENTHREAD_TEST_NETWORK_ENABLED 1
+
+
+// ================================================================================
+// OpenThread Test Network Information
+// ================================================================================
+
+#if OPENTHREAD_TEST_NETWORK_ENABLED
+
+#define OPENTHREAD_TEST_NETWORK_NAME "WARP"
+#define OPENTHREAD_TEST_NETWORK_PANID 0x7777
+#define OPENTHREAD_TEST_NETWORK_EXTENDED_PANID { 0x88, 0x77, 0x66, 0x55, 0x44, 0x33, 0x22, 0x11 }
+#define OPENTHREAD_TEST_NETWORK_CHANNEL 26
+#define OPENTHREAD_TEST_NETWORK_MASTER_KEY { 0xB8, 0x98, 0x3A, 0xED, 0x95, 0x40, 0x64, 0xCC, 0x4B, 0xAC, 0xB3, 0xF6, 0xF1, 0x45, 0xD1, 0x98  }
+
+#endif // OPENTHREAD_TEST_NETWORK_ENABLED
+
+
+
+// ================================================================================
+// Logging Support
+// ================================================================================
 
 #if NRF_LOG_ENABLED
 
@@ -68,23 +101,29 @@ extern "C" void vApplicationIdleHook( void )
 
 #endif //NRF_LOG_ENABLED
 
-#define TEST_TASK_ENABLED 0
+
+// ================================================================================
+// Test Task
+// ================================================================================
 
 #if TEST_TASK_ENABLED
 
-#define TEST_TASK_STACK_SIZE (400)
-#define TEST_TASK_PRIORITY 2
+#define TEST_TASK_STACK_SIZE (800)
+#define TEST_TASK_PRIORITY 1
 
 static TaskHandle_t sTestTaskHandle;
 
+static void TestTaskAlive()
+{
+    bsp_board_led_invert(BSP_BOARD_LED_2);
+}
+
 static void TestTaskMain(void * pvParameter)
 {
-    WEAVE_ERROR err;
-
     NRF_LOG_INFO("TEST task started");
     bsp_board_led_invert(BSP_BOARD_LED_1);
 
-#if 0
+#if RUN_UNIT_TESTS
     Internal::RunSystemClockUnitTest();
 
     NRF_LOG_INFO("System clock test complete");
@@ -103,118 +142,25 @@ static void TestTaskMain(void * pvParameter)
     }
 
     NRF_LOG_INFO("GroupKeyStore test complete");
+
+    NRF_LOG_INFO("Unit tests done");
 #endif
 
-    NRF_LOG_INFO("TEST task done");
-    bsp_board_led_invert(BSP_BOARD_LED_2);
 
     while (true)
     {
-        vTaskSuspend(NULL); // Suspend myself
+        const TickType_t delay = pdMS_TO_TICKS(1000);
+        vTaskDelay(delay);
+        TestTaskAlive();
     }
 }
 
 #endif // TEST_TASK_ENABLED
 
-#define OPENTHREAD_TEST_ENABLED 1
 
-#if OPENTHREAD_TEST_ENABLED
-
-#define OPENTHREAD_TASK_STACK_SIZE (8192)
-#define OPENTHREAD_TASK_PRIORITY 1
-
-#define TEST_THREAD_NETWORK_NAME "WARP"
-#define TEST_THREAD_NETWORK_PANID 0x7777
-#define TEST_THREAD_NETWORK_EXTENDED_PANID { 0x88, 0x77, 0x66, 0x55, 0x44, 0x33, 0x22, 0x11 }
-#define TEST_THREAD_NETWORK_CHANNEL 26
-#define TEST_THREAD_NETWORK_MASTER_KEY { 0xB8, 0x98, 0x3A, 0xED, 0x95, 0x40, 0x64, 0xCC, 0x4B, 0xAC, 0xB3, 0xF6, 0xF1, 0x45, 0xD1, 0x98  }
-
-static otInstance * sOpenThreadInstance;
-static TaskHandle_t sOpenThreadTaskHandle;
-
-void otTaskletsSignalPending(otInstance * p_instance)
-{
-    if (sOpenThreadTaskHandle)
-    {
-        xTaskNotifyGive(sOpenThreadTaskHandle);
-    }
-}
-
-void otSysEventSignalPending(void)
-{
-    if (sOpenThreadTaskHandle)
-    {
-        BaseType_t yieldRequired;
-
-        vTaskNotifyGiveFromISR(sOpenThreadTaskHandle, &yieldRequired);
-        if (yieldRequired == pdTRUE)
-        {
-            portYIELD_FROM_ISR(yieldRequired);
-        }
-    }
-}
-
-static void OnOpenThreadStateChange(uint32_t flags, void * p_context)
-{
-    const char * netName;
-    const otNetifAddress * addr;
-
-    netName = otThreadGetNetworkName(sOpenThreadInstance);
-
-    NRF_LOG_INFO("OpenThread State Changed (Flags: 0x%08x)", flags);
-
-
-    NRF_LOG_INFO("   Device Role: %d", otThreadGetDeviceRole(sOpenThreadInstance));
-    NRF_LOG_INFO("   Network Name: %s", otThreadGetNetworkName(sOpenThreadInstance));
-    NRF_LOG_INFO("   PAN Id: 0x%04X", otLinkGetPanId(sOpenThreadInstance));
-    {
-        const otExtendedPanId * exPanId = otThreadGetExtendedPanId(sOpenThreadInstance);
-        char exPanIdStr[32];
-        snprintf(exPanIdStr, sizeof(exPanIdStr), "0x%02X%02X%02X%02X%02X%02X%02X%02X",
-                 exPanId->m8[0], exPanId->m8[1], exPanId->m8[2], exPanId->m8[3],
-                 exPanId->m8[4], exPanId->m8[5], exPanId->m8[6], exPanId->m8[7]);
-        NRF_LOG_INFO("   Extended PAN Id: %s", exPanIdStr);
-    }
-    NRF_LOG_INFO("   Channel: %d", otLinkGetChannel(sOpenThreadInstance));
-
-    NRF_LOG_INFO("   Interface Addresses:");
-
-    for (const otNetifAddress * addr = otIp6GetUnicastAddresses(sOpenThreadInstance); addr != NULL; addr = addr->mNext)
-    {
-        char ipAddrStr[64];
-        nl::Inet::IPAddress ipAddr;
-
-        memcpy(ipAddr.Addr, addr->mAddress.mFields.m32, sizeof(ipAddr.Addr));
-
-        ipAddr.ToString(ipAddrStr, sizeof(ipAddrStr));
-
-        NRF_LOG_INFO("        %s/%d%s%s", ipAddrStr,
-                     addr->mPrefixLength,
-                     addr->mValid ? " valid" : "",
-                     addr->mPreferred ? " preferred" : "");
-    }
-}
-
-static void OnOpenThreadReceive(otMessage *aMessage, void *aContext)
-{
-    NRF_LOG_INFO("OnOpenThreadReceive()");
-    otMessageFree(aMessage);
-}
-
-static void OpenThreadTaskMain(void * arg)
-{
-    while (1)
-    {
-//        NRF_LOG_INFO("OpenThreadTaskMain awake");
-        otTaskletsProcess(sOpenThreadInstance);
-        otSysProcessDrivers(sOpenThreadInstance);
-
-        ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
-    }
-}
-
-#endif // OPENTHREAD_TEST_ENABLED
-
+// ================================================================================
+// SoftDevice Support
+// ================================================================================
 
 #if defined(SOFTDEVICE_PRESENT) && SOFTDEVICE_PRESENT
 
@@ -222,14 +168,20 @@ static void OnSoCEvent(uint32_t sys_evt, void * p_context)
 {
     UNUSED_PARAMETER(p_context);
 
-#if OPENTHREAD_TEST_ENABLED
+#if OPENTHREAD_ENABLED
 
     otSysSoftdeviceSocEvtHandler(sys_evt);
 
-#endif // OPENTHREAD_TEST_ENABLED
+#endif // OPENTHREAD_ENABLED
 }
 
 #endif // defined(SOFTDEVICE_PRESENT) && SOFTDEVICE_PRESENT
+
+
+
+// ================================================================================
+// Main Code
+// ================================================================================
 
 int main(void)
 {
@@ -254,14 +206,15 @@ int main(void)
     NRF_LOG_DEFAULT_BACKENDS_INIT();
 
     // Start LOGGER task.
-    if (xTaskCreate(LoggerTaskMain, "LOGGER", LOGGER_STACK_SIZE / sizeof(StackType_t), NULL, LOGGER_PRIORITY, &sLoggerTaskHandle) != pdPASS)
+    if (xTaskCreate(LoggerTaskMain, "log", LOGGER_STACK_SIZE / sizeof(StackType_t), NULL, LOGGER_PRIORITY, &sLoggerTaskHandle) != pdPASS)
     {
         APP_ERROR_HANDLER(0);
     }
 #endif
 
     NRF_LOG_INFO("==================================================");
-    NRF_LOG_INFO("test-app starting");
+    NRF_LOG_INFO("openweave-nrf5-demo starting");
+    NRF_LOG_INFO("==================================================");
 
     // Configure LED-pins as outputs
     bsp_board_init(BSP_INIT_LEDS);
@@ -321,43 +274,82 @@ int main(void)
 
 #endif // defined(SOFTDEVICE_PRESENT) && SOFTDEVICE_PRESENT
 
-#if OPENTHREAD_TEST_ENABLED
+    NRF_LOG_INFO("Initializing Weave stack");
+
+    ret = PlatformMgr().InitWeaveStack();
+    if (ret != WEAVE_NO_ERROR)
+    {
+        NRF_LOG_INFO("PlatformMgr().InitWeaveStack() failed");
+        APP_ERROR_HANDLER(ret);
+    }
+
+#if WOBLE_ENABLED
+
+    ret = ConnectivityMgr().SetWoBLEServiceMode(ConnectivityManager::kWoBLEServiceMode_Disabled);
+    if (ret != WEAVE_NO_ERROR)
+    {
+        NRF_LOG_INFO("ConnectivityMgr().SetWoBLEServiceMode() failed");
+        APP_ERROR_HANDLER(ret);
+    }
+
+#endif // WOBLE_ENABLED
+
+#if OPENTHREAD_ENABLED
+
+    NRF_LOG_INFO("Initializing OpenThread stack");
+
+    otSysInit(0, NULL);
+
+    ret = ThreadStackMgr().InitThreadStack();
+    if (ret != WEAVE_NO_ERROR)
+    {
+        NRF_LOG_INFO("ThreadStackMgr().InitThreadStack() failed");
+        APP_ERROR_HANDLER(ret);
+    }
+
+#endif // OPENTHREAD_ENABLED
+
+    NRF_LOG_INFO("Starting Weave task");
+
+    ret = PlatformMgr().StartEventLoopTask();
+    if (ret != WEAVE_NO_ERROR)
+    {
+        NRF_LOG_INFO("PlatformMgr().StartEventLoopTask() failed");
+        APP_ERROR_HANDLER(ret);
+    }
+
+#if OPENTHREAD_ENABLED
+
+    NRF_LOG_INFO("Starting OpenThread task");
+
+    // Start OpenThread task
+    ret = ThreadStackMgrImpl().StartThreadTask();
+    if (ret != WEAVE_NO_ERROR)
+    {
+        NRF_LOG_INFO("ThreadStackMgr().StartThreadTask() failed");
+        APP_ERROR_HANDLER(ret);
+    }
+
+#endif // OPENTHREAD_ENABLED
+
+#if OPENTHREAD_TEST_NETWORK_ENABLED
 
     {
         otError otRet;
+        otInstance * otInst = ThreadStackMgrImpl().OTInstance();
 
-        otSysInit(0, NULL);
-
-        sOpenThreadInstance = otInstanceInitSingle();
-        if (sOpenThreadInstance == NULL)
-        {
-            NRF_LOG_INFO("otInstanceInitSingle() failed");
-            APP_ERROR_HANDLER(0);
-        }
-
-        otSetDynamicLogLevel(sOpenThreadInstance, OT_LOG_LEVEL_DEBG);
-
-        otRet = otSetStateChangedCallback(sOpenThreadInstance, OnOpenThreadStateChange, NULL);
-        if (otRet != OT_ERROR_NONE)
-        {
-            NRF_LOG_INFO("otSetStateChangedCallback() failed");
-            APP_ERROR_HANDLER(otRet);
-        }
-
-//        otInstanceErasePersistentInfo(sOpenThreadInstance);
-
-        if (!otDatasetIsCommissioned(sOpenThreadInstance))
+        if (!otDatasetIsCommissioned(otInst))
         {
             NRF_LOG_INFO("Commissioning test Thread network");
 
-            otRet = otThreadSetNetworkName(sOpenThreadInstance, TEST_THREAD_NETWORK_NAME);
+            otRet = otThreadSetNetworkName(otInst, OPENTHREAD_TEST_NETWORK_NAME);
             if (otRet != OT_ERROR_NONE)
             {
                 NRF_LOG_INFO("otThreadSetNetworkName() failed");
                 APP_ERROR_HANDLER(otRet);
             }
 
-            otRet = otLinkSetPanId(sOpenThreadInstance, TEST_THREAD_NETWORK_PANID);
+            otRet = otLinkSetPanId(otInst, OPENTHREAD_TEST_NETWORK_PANID);
             if (otRet != OT_ERROR_NONE)
             {
                 NRF_LOG_INFO("otLinkSetPanId() failed");
@@ -365,8 +357,8 @@ int main(void)
             }
 
             {
-                struct otExtendedPanId exPanId = { TEST_THREAD_NETWORK_EXTENDED_PANID };
-                otRet = otThreadSetExtendedPanId(sOpenThreadInstance, &exPanId);
+                struct otExtendedPanId exPanId = { OPENTHREAD_TEST_NETWORK_EXTENDED_PANID };
+                otRet = otThreadSetExtendedPanId(otInst, &exPanId);
                 if (otRet != OT_ERROR_NONE)
                 {
                     NRF_LOG_INFO("otThreadSetExtendedPanId() failed");
@@ -374,7 +366,7 @@ int main(void)
                 }
             }
 
-            otRet = otLinkSetChannel(sOpenThreadInstance, TEST_THREAD_NETWORK_CHANNEL);
+            otRet = otLinkSetChannel(otInst, OPENTHREAD_TEST_NETWORK_CHANNEL);
             if (otRet != OT_ERROR_NONE)
             {
                 NRF_LOG_INFO("otLinkSetChannel() failed");
@@ -382,13 +374,20 @@ int main(void)
             }
 
             {
-                struct otMasterKey masterKey = { TEST_THREAD_NETWORK_MASTER_KEY };
-                otRet = otThreadSetMasterKey(sOpenThreadInstance, &masterKey);
+                struct otMasterKey masterKey = { OPENTHREAD_TEST_NETWORK_MASTER_KEY };
+                otRet = otThreadSetMasterKey(otInst, &masterKey);
                 if (otRet != OT_ERROR_NONE)
                 {
                     NRF_LOG_INFO("otThreadSetMasterKey() failed");
                     APP_ERROR_HANDLER(otRet);
                 }
+            }
+
+            otRet = otThreadSetEnabled(otInst, true);
+            if (otRet != OT_ERROR_NONE)
+            {
+                NRF_LOG_INFO("otThreadSetEnabled() failed");
+                APP_ERROR_HANDLER(otRet);
             }
         }
         else
@@ -396,80 +395,27 @@ int main(void)
             NRF_LOG_INFO("Thread network already commissioned");
         }
 
-        {
-            otLinkModeConfig linkMode;
-
-            memset(&linkMode, 0, sizeof(linkMode));
-            linkMode.mRxOnWhenIdle       = true;
-            linkMode.mSecureDataRequests = true;
-            linkMode.mDeviceType         = true;
-            linkMode.mNetworkData        = true;
-
-            otRet = otThreadSetLinkMode(sOpenThreadInstance, linkMode);
-            if (otRet != OT_ERROR_NONE)
-            {
-                NRF_LOG_INFO("otThreadSetLinkMode() failed");
-                APP_ERROR_HANDLER(otRet);
-            }
-
-            otRet = otIp6SetEnabled(sOpenThreadInstance, true);
-            if (otRet != OT_ERROR_NONE)
-            {
-                NRF_LOG_INFO("otIp6SetEnabled() failed");
-                APP_ERROR_HANDLER(otRet);
-            }
-        }
-
-        otIp6SetReceiveCallback(sOpenThreadInstance, OnOpenThreadReceive, NULL);
-
-        otRet = otThreadSetEnabled(sOpenThreadInstance, true);
-        if (otRet != OT_ERROR_NONE)
-        {
-            NRF_LOG_INFO("otThreadSetEnabled() failed");
-            APP_ERROR_HANDLER(otRet);
-        }
-
         NRF_LOG_INFO("OpenThread initialization complete");
     }
 
-#endif // OPENTHREAD_TEST_ENABLED
-
-    ret = ::nl::Weave::DeviceLayer::PlatformMgr().InitWeaveStack();
-    if (ret != WEAVE_NO_ERROR)
-    {
-        NRF_LOG_INFO("PlatformMgr().InitWeaveStack() failed");
-        APP_ERROR_HANDLER(ret);
-    }
-
-    ret = ::nl::Weave::DeviceLayer::PlatformMgr().StartEventLoopTask();
-    if (ret != WEAVE_NO_ERROR)
-    {
-        NRF_LOG_INFO("PlatformMgr().StartEventLoopTask() failed");
-        APP_ERROR_HANDLER(ret);
-    }
+#endif // OPENTHREAD_TEST_NETWORK_ENABLED
 
 #if TEST_TASK_ENABLED
 
+    NRF_LOG_INFO("Starting test task");
+
     // Start Test task
-    if (xTaskCreate(TestTaskMain, "TST", TEST_TASK_STACK_SIZE / sizeof(StackType_t), NULL, TEST_TASK_PRIORITY, &sTestTaskHandle) != pdPASS)
+    if (xTaskCreate(TestTaskMain, "test", TEST_TASK_STACK_SIZE / sizeof(StackType_t), NULL, TEST_TASK_PRIORITY, &sTestTaskHandle) != pdPASS)
     {
         NRF_LOG_INFO("Failed to create TEST task");
     }
 
 #endif // TEST_TASK_ENABLED
 
-#if OPENTHREAD_TEST_ENABLED
-
-    // Start OpenThread task
-    if (xTaskCreate(OpenThreadTaskMain, "OT", OPENTHREAD_TASK_STACK_SIZE / sizeof(StackType_t), NULL, OPENTHREAD_TASK_PRIORITY, &sOpenThreadTaskHandle) != pdPASS)
-    {
-        NRF_LOG_INFO("Failed to create OpenThread task");
-    }
-
-#endif // OPENTHREAD_TEST_ENABLED
-
     // Activate deep sleep mode
     SCB->SCR |= SCB_SCR_SLEEPDEEP_Msk;
+
+    NRF_LOG_INFO("Starting FreeRTOS scheduler");
 
     /* Start FreeRTOS scheduler. */
     vTaskStartScheduler();
