@@ -1,8 +1,31 @@
+#
+#
+#   Copyright (c) 2019 Google LLC.
+#   All rights reserved.
+#
+#   Licensed under the Apache License, Version 2.0 (the "License");
+#   you may not use this file except in compliance with the License.
+#   You may obtain a copy of the License at
+#
+#       http://www.apache.org/licenses/LICENSE-2.0
+#
+#   Unless required by applicable law or agreed to in writing, software
+#   distributed under the License is distributed on an "AS IS" BASIS,
+#   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#   See the License for the specific language governing permissions and
+#   limitations under the License.
+#
+
+# 
+#   @file
+#         Makefile for building the nRF52840 OpenWeave bring-up app.
+#
+
 PROJ_DIR := .
 OUTPUT_DIRECTORY := build
 TEMPLATE_PATH := $(NRF5_SDK_ROOT)/components/toolchain/gcc
 
-TARGET := openweave-nrf5-demo
+TARGET := openweave-nrf52840-bringup
 
 SRC_FILES := \
     $(PROJ_DIR)/main.cpp \
@@ -176,8 +199,11 @@ DEFINES = \
     USE_APP_CONFIG \
     __HEAP_SIZE=0 \
     __STACK_SIZE=8192 \
-    SOFTDEVICE_PRESENT \
-    DEBUG
+    SOFTDEVICE_PRESENT
+
+ifeq ($(DEBUG),1)
+DEFINES += DEBUG
+endif
 	
 CFLAGS = \
     -DBOARD_PCA10056 \
@@ -234,19 +260,18 @@ $(call define_target, $(TARGET))
 
 $(OUTPUT_DIRECTORY)/$(TARGET)/main.cpp.o : install-weave
 
-# Flash the program
+# Flash the application
 flash: $(TARGET)
 	@echo Flashing: $(OUTPUT_DIRECTORY)/$(TARGET).hex
 	$(NRF5_TOOLS_ROOT)/nrfjprog/nrfjprog -f nrf52 --program $(OUTPUT_DIRECTORY)/$(TARGET).hex --sectorerase
 	$(NRF5_TOOLS_ROOT)/nrfjprog/nrfjprog -f nrf52 --reset
 
+# Flash the SoftDevice
 flash_softdevice:
 	@echo Flashing: s140_nrf52_6.1.0_softdevice.hex
 	$(NRF5_TOOLS_ROOT)/nrfjprog/nrfjprog -f nrf52 --program $(NRF5_SDK_ROOT)/components/softdevice/s140/hex/s140_nrf52_6.1.0_softdevice.hex --sectorerase
 	$(NRF5_TOOLS_ROOT)/nrfjprog/nrfjprog -f nrf52 --reset
 
-erase:
-	$(NRF5_TOOLS_ROOT)/nrfjprog/nrfjprog -f nrf52 --eraseall
-
+# Wipe all flash
 erase:
 	$(NRF5_TOOLS_ROOT)/nrfjprog/nrfjprog -f nrf52 --eraseall
