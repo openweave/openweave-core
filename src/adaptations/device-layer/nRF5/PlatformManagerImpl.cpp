@@ -19,7 +19,7 @@
 /**
  *    @file
  *          Provides an implementation of the PlatformManager object
- *          for nRF5* platforms using the Nordic SDK.
+ *          for nRF52 platforms using the Nordic SDK.
  */
 
 #include <Weave/DeviceLayer/internal/WeaveDeviceLayerInternal.h>
@@ -32,7 +32,7 @@ namespace nl {
 namespace Weave {
 namespace DeviceLayer {
 
-// Fully instantiate the template classes on which the ESP32 PlatformManager depends.
+// Fully instantiate the template classes on which the nRF52 PlatformManager depends.
 template class Internal::GenericPlatformManagerImpl<PlatformManagerImpl>;
 template class Internal::GenericPlatformManagerImpl_FreeRTOS<PlatformManagerImpl>;
 

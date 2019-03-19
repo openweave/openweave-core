@@ -58,7 +58,8 @@ extern "C" {
 #define PACK_STRUCT_STRUCT __attribute__ ((__packed__))
 #define PACK_STRUCT_FIELD(x) x
 
-#define LWIP_PLATFORM_DIAG(x)   do { printf x; } while (0)
+extern void LwIPLog(const char *fmt, ...);
+#define LWIP_PLATFORM_DIAG(x)   do { LwIPLog x; } while (0)
 
 // Place LwIP pools into their own subsections of .bss to make it easier to see
 // their sizes in the linker map file.

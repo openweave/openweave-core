@@ -27,7 +27,7 @@ namespace Internal {
 
 /**
  * Concrete implementation of the NetworkProvisioningServer singleton object for the
- * nRF5* platforms.
+ * nRF52 platforms.
  */
 class NetworkProvisioningServerImpl final
     : public NetworkProvisioningServer

@@ -19,7 +19,7 @@
 /**
  *    @file
  *          Provides an implementation of the PlatformManager object
- *          for nRF5* platforms using the Nordic SDK.
+ *          for nRF52 platforms using the Nordic SDK.
  */
 
 #ifndef PLATFORM_MANAGER_IMPL_H
@@ -38,7 +38,7 @@ extern template class Internal::GenericPlatformManagerImpl<PlatformManagerImpl>;
 extern template class Internal::GenericPlatformManagerImpl_FreeRTOS<PlatformManagerImpl>;
 
 /**
- * Concrete implementation of the PlatformManager singleton object for the ESP32 platform.
+ * Concrete implementation of the PlatformManager singleton object for the nRF52 platform.
  */
 class PlatformManagerImpl final
     : public PlatformManager,

@@ -19,7 +19,7 @@
 /**
  *    @file
  *          Provides implementations for the Weave entropy sourcing functions
- *          on the Nordic nRF5* platforms.
+ *          on the Nordic nRF52 platforms.
  */
 
 #include <Weave/DeviceLayer/internal/WeaveDeviceLayerInternal.h>
@@ -63,7 +63,7 @@ namespace {
  * Retrieve entropy from the underlying RNG source.
  *
  * This function is called by the Nest DRBG to acquire entropy.  Is is only
- * used when the Nest DRBG is enabled, which on the nRF5* platforms, is only
+ * used when the Nest DRBG is enabled, which on the nRF52 platforms, is only
  * when the Nordic nRF HW RNG source is used *without* the mbed TLS CTR-DRBG.
  */
 int GetEntropy_nRF5(uint8_t * buf, size_t bufSize)
@@ -136,7 +136,7 @@ namespace Security {
 /**
  * Get random data suitable for cryptographic use.
  *
- * This function is only used in cases where the Nest DRBG is *not* enabled.  On the nRF5*
+ * This function is only used in cases where the Nest DRBG is *not* enabled.  On the nRF52
  * platforms, this is when the CC310 RNG source is enabled, or when the nRF HW RNG source
  * is enabled using the mbed TLS CTR-DRBG.
  */

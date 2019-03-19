@@ -19,7 +19,7 @@
 /**
  *    @file
  *          Provides an implementation of the ConfigurationManager object
- *          for nRF5* platforms using the Nordic SDK.
+ *          for nRF52 platforms using the Nordic SDK.
  */
 
 #ifndef CONFIGURATION_MANAGER_IMPL_H
@@ -42,7 +42,7 @@ extern template class Internal::GenericConfigurationManagerImpl<ConfigurationMan
 
 
 /**
- * Concrete implementation of the ConfigurationManager singleton object for the nRF5* platform.
+ * Concrete implementation of the ConfigurationManager singleton object for the nRF52 platform.
  */
 class ConfigurationManagerImpl final
     : public ConfigurationManager,

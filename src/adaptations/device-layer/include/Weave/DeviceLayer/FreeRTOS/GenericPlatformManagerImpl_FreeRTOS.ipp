@@ -108,7 +108,11 @@ void GenericPlatformManagerImpl_FreeRTOS<ImplClass>::_RunEventLoop(void)
 
     VerifyOrDie(mEventLoopTask == NULL);
 
+    // Capture the task handle.
     mEventLoopTask = xTaskGetCurrentTaskHandle();
+
+    // Lock the Weave stack.
+    Impl()->LockWeaveStack();
 
     while (true)
     {
