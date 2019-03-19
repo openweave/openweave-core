@@ -19,7 +19,7 @@
 /**
  *    @file
  *          Provides an implementation of the ConfigurationManager object
- *          for nRF52 platforms using the Nordic SDK.
+ *          for nRF52 platforms using the Nordic nRF5 SDK.
  */
 
 #ifndef CONFIGURATION_MANAGER_IMPL_H

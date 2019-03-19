@@ -19,7 +19,7 @@
 /**
  *    @file
  *          Provides an implementation of the ThreadStackManager object
- *          for nRF52 platforms using the Nordic SDK and the OpenThread
+ *          for nRF52 platforms using the Nordic nRF5 SDK and the OpenThread
  *          stack.
  */
 
@@ -51,7 +51,7 @@ extern template class Internal::GenericThreadStackManagerImpl_LwIP<ThreadStackMa
 
 /**
  * Concrete implementation of the ThreadStackManager singleton object for nRF52 platforms
- * using the Nordic SDK and the OpenThread stack.
+ * using the Nordic nRF5 SDK and the OpenThread stack.
  */
 class ThreadStackManagerImpl final
     : public ThreadStackManager,
