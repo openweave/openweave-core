@@ -168,6 +168,13 @@ enum PublicEventTypes
      * Signals that an external entity has established a new WoBLE connection with the device.
      */
     kWoBLEConnectionEstablished,
+
+    /**
+     * OpenThread State Change
+     *
+     * Signals that a state change has occurred in the OpenThread stack.
+     */
+    kOpenThreadStateChange,
 };
 
 /**
@@ -311,6 +318,10 @@ struct WeaveDeviceEvent final
             BLE_CONNECTION_OBJECT ConId;
             WEAVE_ERROR Reason;
         } WoBLEConnectionError;
+        struct
+        {
+            uint32_t flags;
+        } OpenThreadStateChange;
     };
 
     bool IsPublic() const { return DeviceEventType::IsPublic(Type); }

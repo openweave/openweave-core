@@ -40,6 +40,7 @@ class BLEManagerImpl;
 template<class ImplClass> class GenericConfigurationManagerImpl;
 template<class> class GenericPlatformManagerImpl;
 template<class> class GenericPlatformManagerImpl_FreeRTOS;
+template<class> class GenericThreadStackManagerImpl_OpenThread;
 } // namespace Internal
 
 class PlatformManagerImpl;
@@ -75,6 +76,7 @@ private:
     friend class PlatformManagerImpl;
     template<class> friend class Internal::GenericPlatformManagerImpl;
     template<class> friend class Internal::GenericPlatformManagerImpl_FreeRTOS;
+    template<class> friend class Internal::GenericThreadStackManagerImpl_OpenThread;
     friend class ConnectivityManagerImpl;
     template<class> friend class Internal::GenericConfigurationManagerImpl;
     friend class ConfigurationManagerImpl;

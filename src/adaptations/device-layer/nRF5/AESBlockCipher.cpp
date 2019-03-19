@@ -19,7 +19,7 @@
 /**
  *    @file
  *          Provides implementations for the OpenWeave AES BlockCipher classes
- *          on the Nordic nRF5* platforms.
+ *          on the Nordic nRF52 platforms.
  */
 
 #include <Weave/DeviceLayer/internal/WeaveDeviceLayerInternal.h>
