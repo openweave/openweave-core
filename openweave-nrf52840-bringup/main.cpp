@@ -213,7 +213,7 @@ int main(void)
 #endif
 
     NRF_LOG_INFO("==================================================");
-    NRF_LOG_INFO("openweave-nrf5-demo starting");
+    NRF_LOG_INFO("openweave-nrf52840-bringup starting");
     NRF_LOG_INFO("==================================================");
 
     // Configure LED-pins as outputs
