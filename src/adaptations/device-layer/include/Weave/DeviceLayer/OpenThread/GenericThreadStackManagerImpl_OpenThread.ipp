@@ -82,6 +82,9 @@ WEAVE_ERROR GenericThreadStackManagerImpl_OpenThread<ImplClass>::Init(otInstance
         VerifyOrExit(otErr == OT_ERROR_NONE, err = MapOpenThreadError(otErr));
     }
 
+    // TODO: not supported in old version of OpenThread used by Nordic SDK.
+    // otIp6SetSlaacEnabled(otInst, false);
+
     otErr = otIp6SetEnabled(otInst, true);
     VerifyOrExit(otErr == OT_ERROR_NONE, err = MapOpenThreadError(otErr));
 
