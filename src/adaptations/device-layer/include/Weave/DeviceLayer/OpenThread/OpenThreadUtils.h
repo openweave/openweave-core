@@ -34,6 +34,8 @@ namespace Internal {
 
 extern WEAVE_ERROR MapOpenThreadError(otError otErr);
 
+extern bool IsOpenThreadMeshLocalAddress(otInstance * otInst, const IPAddress & addr);
+
 } // namespace Internal
 } // namespace DeviceLayer
 } // namespace Weave
