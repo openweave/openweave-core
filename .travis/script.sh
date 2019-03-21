@@ -28,6 +28,34 @@ die()
     exit 1
 }
 
+###############################################################
+# Function gcc_check_happy()
+# Build for linux-auto or linux-lwip, and run tests using happy
+# Arguments:
+#     ${BUILD_TARGET}
+# Returns:
+#     None
+###############################################################
+gcc_check_happy()
+{
+    cmd_start="sudo make -f Makefile-Standalone DEBUG=1 TIMESTAMP=1 COVERAGE=1 "
+    cmd_end="BuildJobs=24 check"
+
+    if [ "lwip" in "${BUILD_TARGET}" ];then
+        build_cmd="$cmd_start USE_LWIP=1 $cmd_end"
+        build_folder="x86_64-unknown-linux-gnu-lwip"
+    else
+        build_cmd="$cmd_start $cmd_end"
+        build_folder="x86_64-unknown-linux-gnu"
+    fi
+
+    mkdir -p $TRAVIS_BUILD_DIR/happy-test-logs/$1/from-tmp
+    eval $build_cmd
+    cp $TRAVIS_BUILD_DIR/build/$build_folder/src/test-apps/happy $TRAVIS_BUILD_DIR/happy-test-logs/$1 -rf
+    cp /tmp/happy* $TRAVIS_BUILD_DIR/happy-test-logs/$1/from-tmp
+    echo "please check happy-test-log/<UTC time> under link: https://storage.cloud.google.com/openweave"
+}
+
 case "${BUILD_TARGET}" in
 
     linux-auto-clang)
@@ -39,19 +67,11 @@ case "${BUILD_TARGET}" in
         ;;
 
     linux-auto-gcc-check-happy)
-        mkdir -p $TRAVIS_BUILD_DIR/happy-test-logs/${BUILD_TARGET}/from-tmp
-        sudo make -f Makefile-Standalone DEBUG=1 TIMESTAMP=1 COVERAGE=1 BuildJobs=24 check
-        cp $TRAVIS_BUILD_DIR/build/x86_64-unknown-linux-gnu/src/test-apps/happy $TRAVIS_BUILD_DIR/happy-test-logs/${BUILD_TARGET} -rf
-        cp /tmp/happy* $TRAVIS_BUILD_DIR/happy-test-logs/${BUILD_TARGET}/from-tmp
-        echo "please check happy-test-log/<build_number> under link: https://storage.cloud.google.com/openweave"
+        gcc_check_happy ${BUILD_TARGET}
         ;;
 
     linux-lwip-gcc-check-happy)
-        mkdir -p $TRAVIS_BUILD_DIR/happy-test-logs/${BUILD_TARGET}/from-tmp
-        sudo make -f Makefile-Standalone DEBUG=1 TIMESTAMP=1 COVERAGE=1 USE_LWIP=1 BuildJobs=24 check
-        cp $TRAVIS_BUILD_DIR/build/x86_64-unknown-linux-gnu-lwip/src/test-apps/happy $TRAVIS_BUILD_DIR/happy-test-logs/${BUILD_TARGET} -rf
-        cp /tmp/happy* $TRAVIS_BUILD_DIR/happy-test-logs/${BUILD_TARGET}/from-tmp
-        echo "please check happy-test-log/<build_number> under link: https://storage.cloud.google.com/openweave"
+        gcc_check_happy ${BUILD_TARGET}
         ;;
 
     linux-lwip-clang)
