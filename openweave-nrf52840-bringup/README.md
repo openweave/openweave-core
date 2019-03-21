@@ -13,6 +13,20 @@ this happens, the bring-up application will be removed from the OpenWeave source
 In the meantime, this directory, and the OpenWeave branch it exists on (`feature/nrf52840-device-layer`), will be the focal point for efforts to port
 the OpenWeave Device Layer to the nRF52840.
 
+<hr>
+
+* [Building](#building)
+* [Initializing the nRF52840 DK](#initializing)
+* [Flashing the Application](#flashing)
+* [Viewing Logging Output](#view-logging)
+* [Debugging with GDB](#debugging)
+* [Setting up a Test Thread Network](#setup-test-network)
+* [Testing Weave Communication](#test-weave-comms)
+
+<hr>
+
+<a name="building"></a>
+
 #### Building
 
 * Download and install the [Nordic nRF5 SDK for Thread and Zigbee](https://www.nordicsemi.com/Software-and-Tools/Software/nRF5-SDK-for-Thread-and-Zigbee)
@@ -43,6 +57,9 @@ the OpenWeave Device Layer to the nRF52840.
         $ make clean
         $ make
 
+
+<a name="initializing"></a>
+
 #### Initializing the nRF52840 DK
 The bring-up application is designed to run on the [Nordic nRF52840 DK](https://www.nordicsemi.com/Software-and-Tools/Development-Kits/nRF52840-DK) development kit.  Prior to installing
 the application, the device's flash memory should be erased and the Nordic SoftDevice image installed.
@@ -59,12 +76,18 @@ the application, the device's flash memory should be erased and the Nordic SoftD
 Once the above is complete, it shouldn't need be done again *unless* the SoftDevice image or the configuration storage (fds) area becomes corrupt.  If you are forced to erase the device,
 the application will need to be flashed again.
 
+
+<a name="flashing"></a>
+
 #### Flashing the Application
 
 To flash the bring-up app, run the following commands:
 
         $ cd openweave-nrf52840-bringup
         $ make flash
+
+
+<a name="view-logging"></a>
 
 #### Viewing Logging Output
 
@@ -96,6 +119,9 @@ Logging output will appear in the second termnal.
 
 An alternative, and often preferable way to view log output is to use the J-Link GDB server described in the following section. 
 
+
+<a name="debugging"></a>
+
 #### Debugging with GDB
 
 SEGGER provides a GDB server tool which can be used to debug a running application on the nRF82480 DK board.
@@ -118,6 +144,8 @@ a debugging session.
 The start-gdb.sh will launch gdb and instruct it to connect to the GDB server.  By default, gdb is started with the openweave-nrf52840-bringup
 executable located in the build directory.  Alternatively one can pass the name of a different executable as an argument.
 
+
+<a name="setup-test-network"></a>
 
 #### Setting up a Test Thread Network
 
@@ -204,6 +232,8 @@ Note that the host should be connected to the NCP device via its nRF USB connect
         64 bytes from fd88:7766:5544:0:9f2e:8721:e8a1:d7f3: icmp_seq=3 ttl=255 time=17.0 ms
         64 bytes from fd88:7766:5544:0:9f2e:8721:e8a1:d7f3: icmp_seq=4 ttl=255 time=18.4 ms
 
+
+<a name="test-weave-comms"></a>
         
 #### Testing Weave Communication
 
@@ -216,6 +246,8 @@ address followed by a percent sign (%) and the name of the wpan interface on the
 
         --dest-addr FE80::6491:B6D2:193A:5251%wpan7
 
+
+<a name="weave-echo-unencrypted-udp"></a>
 
 ##### Testing Unencrypted Weave Echo Messages over UDP
 
