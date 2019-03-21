@@ -36,6 +36,14 @@ WEAVE_ERROR MapOpenThreadError(otError otErr)
     return WEAVE_ERROR_NOT_IMPLEMENTED;
 }
 
+bool IsOpenThreadMeshLocalAddress(otInstance * otInst, const IPAddress & addr)
+{
+    const otMeshLocalPrefix * otMeshPrefix = otThreadGetMeshLocalPrefix(otInst);
+
+    return otMeshPrefix != NULL && memcmp(otMeshPrefix->m8, addr.Addr, OT_MESH_LOCAL_PREFIX_SIZE) == 0;
+}
+
+
 } // namespace Internal
 } // namespace DeviceLayer
 } // namespace Weave

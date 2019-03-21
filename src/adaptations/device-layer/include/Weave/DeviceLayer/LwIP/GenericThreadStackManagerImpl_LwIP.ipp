@@ -24,7 +24,11 @@
 
 #include <Weave/DeviceLayer/internal/WeaveDeviceLayerInternal.h>
 #include <Weave/DeviceLayer/LwIP/GenericThreadStackManagerImpl_LwIP.h>
+#include <Weave/Support/logging/DecodedIPPacket.h>
+#include <Weave/Core/WeaveEncoding.h>
+
 #include <openthread/ip6.h>
+#include <openthread/icmp6.h>
 
 #define NRF_LOG_MODULE_NAME weave
 #include "nrf_log.h"
@@ -33,6 +37,89 @@ namespace nl {
 namespace Weave {
 namespace DeviceLayer {
 namespace Internal {
+
+namespace {
+
+void LogPacket(const char * direction, otMessage * pkt)
+{
+    char srcStr[50], destStr[50], typeBuf[20];
+    const char * type = typeBuf;
+    IPAddress addr;
+    uint8_t headerData[44];
+    uint16_t pktLen;
+
+    const uint8_t & IPv6_NextHeader = headerData[6];
+    const uint8_t * const IPv6_SrcAddr = headerData + 8;
+    const uint8_t * const IPv6_DestAddr = headerData + 24;
+    const uint8_t * const IPv6_SrcPort = headerData + 40;
+    const uint8_t * const IPv6_DestPort = headerData + 42;
+    const uint8_t & ICMPv6_Type = headerData[40];
+    const uint8_t & ICMPv6_Code = headerData[41];
+
+    constexpr uint8_t kIPProto_UDP = 17;
+    constexpr uint8_t kIPProto_TCP = 6;
+    constexpr uint8_t kIPProto_ICMPv6 = 58;
+
+    constexpr uint8_t kICMPType_EchoRequest = 128;
+    constexpr uint8_t kICMPType_EchoResponse = 129;
+
+    pktLen = otMessageGetLength(pkt);
+
+    if (pktLen >= sizeof(headerData))
+    {
+        otMessageRead(pkt, 0, headerData, sizeof(headerData));
+
+        memcpy(addr.Addr, IPv6_SrcAddr, 16);
+        addr.ToString(srcStr, sizeof(srcStr));
+
+        memcpy(addr.Addr, IPv6_DestAddr, 16);
+        addr.ToString(destStr, sizeof(destStr));
+
+        if (IPv6_NextHeader == kIPProto_UDP)
+        {
+            type = "UDP";
+        }
+        else if (IPv6_NextHeader == kIPProto_TCP)
+        {
+            type = "TCP";
+        }
+        else if (IPv6_NextHeader == kIPProto_ICMPv6)
+        {
+            if (ICMPv6_Type == kICMPType_EchoRequest)
+            {
+                type = "ICMPv6 Echo Request";
+            }
+            else if (ICMPv6_Type == kICMPType_EchoResponse)
+            {
+                type = "ICMPv6 Echo Response";
+            }
+            else
+            {
+                snprintf(typeBuf, sizeof(typeBuf), "ICMPv6 %" PRIu8 ",%" PRIu8, ICMPv6_Type, ICMPv6_Code);
+            }
+        }
+        else
+        {
+            snprintf(typeBuf, sizeof(typeBuf), "IP proto %" PRIu8, IPv6_NextHeader);
+        }
+
+        if (IPv6_NextHeader == kIPProto_UDP || IPv6_NextHeader == kIPProto_TCP)
+        {
+            snprintf(srcStr + strlen(srcStr), 13, ", port %" PRIu16, Encoding::BigEndian::Get16(IPv6_SrcPort));
+            snprintf(destStr + strlen(destStr), 13, ", port %" PRIu16, Encoding::BigEndian::Get16(IPv6_DestPort));
+        }
+
+        WeaveLogDetail(DeviceLayer, "Thread packet %s: %s, len %" PRIu16, direction, type, pktLen);
+        WeaveLogDetail(DeviceLayer, "    src  %s", srcStr);
+        WeaveLogDetail(DeviceLayer, "    dest %s", destStr);
+    }
+    else
+    {
+        WeaveLogDetail(DeviceLayer, "Thread packet %s: %s, len %" PRIu16, direction, "(decode error)", pktLen);
+    }
+}
+
+}
 
 template<class ImplClass>
 WEAVE_ERROR GenericThreadStackManagerImpl_LwIP<ImplClass>::InitThreadNetIf()
@@ -64,6 +151,12 @@ WEAVE_ERROR GenericThreadStackManagerImpl_LwIP<ImplClass>::InitThreadNetIf()
     // IPv6 packet is received.
     otIp6SetReceiveCallback(Impl()->OTInstance(), ReceivePacket, NULL);
 
+    // Disable automatic echo mode in OpenThread.
+    otIcmp6SetEchoMode(Impl()->OTInstance(), OT_ICMP6_ECHO_HANDLER_DISABLED);
+
+    // Enable the receive filter for Thread control traffic.
+    otIp6SetReceiveFilterEnabled(Impl()->OTInstance(), true);
+
     // Unlock OpenThread
     Impl()->UnlockThreadStack();
 
@@ -82,6 +175,8 @@ WEAVE_ERROR GenericThreadStackManagerImpl_LwIP<ImplClass>::UpdateNetIfAddresses(
 
     memset(addrSet, 0, sizeof(addrSet));
 
+    WeaveLogDetail(DeviceLayer, "Updating Thread interface addresses");
+
     // Lock LwIP stack first, then OpenThread.
     LOCK_TCPIP_CORE();
     Impl()->LockThreadStack();
@@ -92,41 +187,66 @@ WEAVE_ERROR GenericThreadStackManagerImpl_LwIP<ImplClass>::UpdateNetIfAddresses(
     // For each such address that is in the valid state...
     for (const otNetifAddress * otAddr = otAddrs; otAddr != NULL; otAddr = otAddr->mNext)
     {
-        if (otAddr->mValid)
+        if (!otAddr->mValid)
         {
-            const struct ip6_addr * addr = reinterpret_cast<const struct ip6_addr *>(otAddr->mAddress.mFields.m32);
-            s8_t addrIdx;
+            continue;
+        }
 
-            // TODO: filter to ignore anything except link-local, mesh-local and Weave fabric addresses.
+        const IPAddress * addr = reinterpret_cast<const struct IPAddress *>(otAddr->mAddress.mFields.m32);
+        bool isLinkLocal = addr->IsIPv6LinkLocal();
+        s8_t addrIdx;
+        u8_t addrState = (otAddr->mPreferred) ? IP6_ADDR_PREFERRED : IP6_ADDR_VALID;
 
-            // If the address is a link-local, and the primary link-local address fpr the LwIP netif has not been
-            // set already, then set the current link-local address as the primary.  (The primary link-local address
-            // is the address with an index of zero).
-            //
-            // NOTE: This special case is required because netif_add_ip6_address() will never set the primary
-            // link-local address.
-            //
-            if (ip6_addr_islinklocal(addr) && !addrSet[0])
+        // If the address is a link-local, and the primary link-local address for the LwIP netif has not been
+        // set already, then set the current link-local address as the primary.  (The primary link-local address
+        // is the address with an index of zero).
+        //
+        // NOTE: This special case is required because netif_add_ip6_address() will never set the primary
+        // link-local address.
+        //
+        if (isLinkLocal && !addrSet[0])
+        {
+            ip_addr_t lwipAddr = addr->ToLwIPAddr();
+            netif_ip6_addr_set(threadNetIf, 0, ip_2_ip6(&lwipAddr));
+            addrIdx = 0;
+        }
+        else
+        {
+            bool isMeshLocal = IsOpenThreadMeshLocalAddress(Impl()->OTInstance(), *addr);
+
+            // If the address is not a link-local, mesh-local or Weave fabric address, ignore it.
+            if (!isLinkLocal && !isMeshLocal && !FabricState.IsFabricAddress(*addr))
             {
-                netif_ip6_addr_set(threadNetIf, 0, addr);
-                addrIdx = 0;
-            }
-            else
-            {
-                lwipErr = netif_add_ip6_address(threadNetIf, addr, &addrIdx);
-                if (lwipErr == ERR_VAL)
-                {
-                    break;
-                }
-                VerifyOrExit(lwipErr == ERR_OK, err = nl::Weave::System::MapErrorLwIP(lwipErr));
+                continue;
             }
 
-            netif_ip6_addr_set_state(threadNetIf, addrIdx, (otAddr->mPreferred) ? IP6_ADDR_PREFERRED : IP6_ADDR_DEPRECATED);
-            addrSet[addrIdx] = true;
+            if (isMeshLocal && addr->Addr[2] == 0xFF000000 && (addr->Addr[3] & 0x000000FF) == 0x000000FE)
+            {
+                addrState = IP6_ADDR_VALID;
+            }
+
+            // Add the address to the LwIP netif.
+            ip_addr_t lwipAddr = addr->ToLwIPAddr();
+            lwipErr = netif_add_ip6_address(threadNetIf, ip_2_ip6(&lwipAddr), &addrIdx);
+            if (lwipErr == ERR_VAL)
+            {
+                break;
+            }
+            VerifyOrExit(lwipErr == ERR_OK, err = nl::Weave::System::MapErrorLwIP(lwipErr));
+        }
+
+        // Set the address state to PREFERRED or ACTIVE depending on the state in OpenThread.
+        netif_ip6_addr_set_state(threadNetIf, addrIdx, addrState);
+        addrSet[addrIdx] = true;
+
+        {
+            char addrStr[50];
+            addr->ToString(addrStr, sizeof(addrStr));
+            WeaveLogDetail(DeviceLayer, "   %s (%d%s)", addrStr, addrIdx, (addrState == IP6_ADDR_PREFERRED) ? ", preferred" : "");
         }
     }
 
-    // For each address associated with the netif that was *not* set able, remove the address
+    // For each address associated with the netif that was *not* set, remove the address
     // from the netif by setting its state to INVALID.
     for (u8_t addrIdx = 0; addrIdx < LWIP_IPV6_NUM_ADDRESSES; addrIdx++)
     {
@@ -169,54 +289,50 @@ err_t GenericThreadStackManagerImpl_LwIP<ImplClass>::DoInitThreadNetIf(struct ne
  */
 template<class ImplClass>
 #if LWIP_VERSION_MAJOR < 2
-err_t GenericThreadStackManagerImpl_LwIP<ImplClass>::SendPacket(struct netif * netif, struct pbuf * pkt, struct ip6_addr * ipaddr)
+err_t GenericThreadStackManagerImpl_LwIP<ImplClass>::SendPacket(struct netif * netif, struct pbuf * pktPBuf, struct ip6_addr * ipaddr)
 #else
-err_t GenericThreadStackManagerImpl_LwIP<ImplClass>::SendPacket(struct netif * netif, struct pbuf * pkt, const struct ip6_addr * ipaddr)
+err_t GenericThreadStackManagerImpl_LwIP<ImplClass>::SendPacket(struct netif * netif, struct pbuf * pktPBuf, const struct ip6_addr * ipaddr)
 #endif
 {
     err_t lwipErr = ERR_OK;
     otError otErr;
-    otMessage * otMsg = NULL;
+    otMessage * pktMsg = NULL;
     uint16_t remainingLen;
 
     // Lock the OpenThread stack.
     // Note that at this point the LwIP core lock is also held.
     ThreadStackMgrImpl().LockThreadStack();
 
-// TODO: remove me
-//    if (ipaddr->addr[0] == 0xFF020000)
-//        ExitNow();
-
     // Allocate an OpenThread message
-    otMsg = otIp6NewMessage(ThreadStackMgrImpl().OTInstance(), NULL);
-    VerifyOrExit(otMsg != NULL, lwipErr = ERR_MEM);
+    pktMsg = otIp6NewMessage(ThreadStackMgrImpl().OTInstance(), true);
+    VerifyOrExit(pktMsg != NULL, lwipErr = ERR_MEM);
 
     // Copy data from LwIP's packet buffer chain into the OpenThread message.
-    remainingLen = pkt->tot_len;
-    for (struct pbuf * partialPkt = pkt; partialPkt != NULL; partialPkt = partialPkt->next)
+    remainingLen = pktPBuf->tot_len;
+    for (struct pbuf * partialPkt = pktPBuf; partialPkt != NULL; partialPkt = partialPkt->next)
     {
         VerifyOrExit(partialPkt->len <= remainingLen, lwipErr = ERR_VAL);
 
-        otErr = otMessageAppend(otMsg, partialPkt->payload, partialPkt->len);
+        otErr = otMessageAppend(pktMsg, partialPkt->payload, partialPkt->len);
         VerifyOrExit(otErr == OT_ERROR_NONE, lwipErr = ERR_MEM);
 
         remainingLen -= partialPkt->len;
     }
     VerifyOrExit(remainingLen == 0, lwipErr = ERR_VAL);
 
+    LogPacket("SENT", pktMsg);
+
     // Pass the packet to OpenThread to be sent.  Note that OpenThread takes care of releasing
     // the otMessage object regardless of whether otIp6Send() succeeds or fails.
-    otErr = otIp6Send(ThreadStackMgrImpl().OTInstance(), otMsg);
-    otMsg = NULL;
+    otErr = otIp6Send(ThreadStackMgrImpl().OTInstance(), pktMsg);
+    pktMsg = NULL;
     VerifyOrExit(otErr == OT_ERROR_NONE, lwipErr = ERR_IF);
 
 exit:
 
-    NRF_LOG_DEBUG("Thread packet sent (len %u, err %d)", pkt->tot_len, lwipErr);
-
-    if (otMsg != NULL)
+    if (pktMsg != NULL)
     {
-        otMessageFree(otMsg);
+        otMessageFree(pktMsg);
     }
 
     // Unlock the OpenThread stack.
@@ -253,12 +369,12 @@ void GenericThreadStackManagerImpl_LwIP<ImplClass>::ReceivePacket(otMessage * pk
         ExitNow(lwipErr = ERR_IF);
     }
 
+    LogPacket("RCVD", pkt);
+
     // Deliver the packet to the input function associated with the LwIP netif.
     // NOTE: The input function posts the inbound packet to LwIP's TCPIP thread.
     // Thus there's no need to acquire the LwIP TCPIP core lock here.
     lwipErr = threadNetIf->input(pbuf, threadNetIf);
-
-    NRF_LOG_DEBUG("Thread packet received (len %u, err %d)", pktLen, lwipErr);
 
 exit:
 
