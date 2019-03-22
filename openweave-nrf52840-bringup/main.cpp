@@ -79,7 +79,7 @@ using namespace ::nl::Weave::DeviceLayer;
 #if NRF_LOG_ENABLED
 
 #define LOGGER_STACK_SIZE (800)
-#define LOGGER_PRIORITY 1
+#define LOGGER_PRIORITY 3
 
 static TaskHandle_t sLoggerTaskHandle;
 
@@ -87,17 +87,37 @@ static void LoggerTaskMain(void * arg)
 {
     UNUSED_PARAMETER(arg);
 
+    NRF_LOG_INFO("Logging task running");
+
     while (1)
     {
         NRF_LOG_FLUSH();
-        vTaskSuspend(NULL); // Suspend myself
+
+        // Wait for a signal that more logging output might be pending.
+        ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
     }
 }
 
 extern "C" void vApplicationIdleHook( void )
 {
-     vTaskResume(sLoggerTaskHandle);
+    xTaskNotifyGive(sLoggerTaskHandle);
 }
+
+namespace nl {
+namespace Weave {
+namespace DeviceLayer {
+
+/**
+ * Called whenever a Weave or LwIP log message is emitted.
+ */
+void OnLogOutput(void)
+{
+    xTaskNotifyGive(sLoggerTaskHandle);
+}
+
+} // namespace DeviceLayer
+} // namespace Weave
+} // namespace nl
 
 #endif //NRF_LOG_ENABLED
 
@@ -120,7 +140,7 @@ static void TestTaskAlive()
 
 static void TestTaskMain(void * pvParameter)
 {
-    NRF_LOG_INFO("TEST task started");
+    NRF_LOG_INFO("Test task running");
     bsp_board_led_invert(BSP_BOARD_LED_1);
 
 #if RUN_UNIT_TESTS
@@ -210,6 +230,7 @@ int main(void)
     {
         APP_ERROR_HANDLER(0);
     }
+
 #endif
 
     NRF_LOG_INFO("==================================================");
