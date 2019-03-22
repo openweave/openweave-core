@@ -195,6 +195,7 @@ WEAVE_ERROR GenericPlatformManagerImpl_FreeRTOS<ImplClass>::_StartEventLoopTask(
 template<class ImplClass>
 void GenericPlatformManagerImpl_FreeRTOS<ImplClass>::EventLoopTaskMain(void * arg)
 {
+    WeaveLogDetail(DeviceLayer, "Weave task running");
     static_cast<GenericPlatformManagerImpl_FreeRTOS<ImplClass>*>(arg)->Impl()->RunEventLoop();
 }
 

@@ -18,8 +18,8 @@
 
 /**
  *    @file
- *          Provides implementations for the OpenWeave logging functions
- *          on Nordic nRF52 platform.
+ *          Provides implementations for the OpenWeave and LwIP logging functions
+ *          on Nordic nRF52 platforms.
  */
 
 
@@ -31,6 +31,7 @@ NRF_LOG_MODULE_REGISTER();
 #include <Weave/Support/logging/WeaveLogging.h>
 
 using namespace ::nl::Weave;
+using namespace ::nl::Weave::DeviceLayer;
 using namespace ::nl::Weave::DeviceLayer::Internal;
 
 namespace {
@@ -51,8 +52,30 @@ void GetModuleName(char *buf, uint8_t module)
 
 namespace nl {
 namespace Weave {
+namespace DeviceLayer {
+
+/**
+ * Called whenever a log message is emitted by Weave or LwIP.
+ *
+ * This function is intended be overridden by the application to, e.g.,
+ * schedule output of queued log entries.
+ */
+void __attribute__((weak)) OnLogOutput(void)
+{
+}
+
+} // namespace DeviceLayer
+} // namespace Weave
+} // namespace nl
+
+
+namespace nl {
+namespace Weave {
 namespace Logging {
 
+/**
+ * OpenWeave log output function.
+ */
 void Log(uint8_t module, uint8_t category, const char *msg, ...)
 {
     va_list v;
@@ -93,6 +116,9 @@ void Log(uint8_t module, uint8_t category, const char *msg, ...)
             NRF_LOG_DEBUG("%s", NRF_LOG_PUSH(formattedMsg));
             break;
         }
+
+        // Let the application know that a log message has been emitted.
+        DeviceLayer::OnLogOutput();
     }
 
 #endif // NRF_LOG_ENABLED
@@ -104,11 +130,15 @@ void Log(uint8_t module, uint8_t category, const char *msg, ...)
 } // namespace Weave
 } // namespace nl
 
+
 #undef NRF_LOG_MODULE_NAME
 #define NRF_LOG_MODULE_NAME lwip
 #include "nrf_log.h"
 NRF_LOG_MODULE_REGISTER();
 
+/**
+ * LwIP log output function.
+ */
 extern "C"
 void LwIPLog(const char *msg, ...)
 {
@@ -131,6 +161,9 @@ void LwIPLog(const char *msg, ...)
 
     // Invoke the NRF logging library to log the message.
     NRF_LOG_DEBUG("%s", NRF_LOG_PUSH(formattedMsg));
+
+    // Let the application know that a log message has been emitted.
+    DeviceLayer::OnLogOutput();
 
 #endif // NRF_LOG_ENABLED
 
