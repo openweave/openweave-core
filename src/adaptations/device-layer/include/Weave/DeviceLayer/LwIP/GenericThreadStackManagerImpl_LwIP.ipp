@@ -194,6 +194,7 @@ WEAVE_ERROR GenericThreadStackManagerImpl_LwIP<ImplClass>::UpdateNetIfAddresses(
 
         const IPAddress * addr = reinterpret_cast<const struct IPAddress *>(otAddr->mAddress.mFields.m32);
         bool isLinkLocal = addr->IsIPv6LinkLocal();
+        bool isMeshLocal;
         s8_t addrIdx;
         u8_t addrState = (otAddr->mPreferred) ? IP6_ADDR_PREFERRED : IP6_ADDR_VALID;
 
@@ -212,7 +213,7 @@ WEAVE_ERROR GenericThreadStackManagerImpl_LwIP<ImplClass>::UpdateNetIfAddresses(
         }
         else
         {
-            bool isMeshLocal = IsOpenThreadMeshLocalAddress(Impl()->OTInstance(), *addr);
+            isMeshLocal = IsOpenThreadMeshLocalAddress(Impl()->OTInstance(), *addr);
 
             // If the address is not a link-local, mesh-local or Weave fabric address, ignore it.
             if (!isLinkLocal && !isMeshLocal && !FabricState.IsFabricAddress(*addr))
@@ -239,11 +240,23 @@ WEAVE_ERROR GenericThreadStackManagerImpl_LwIP<ImplClass>::UpdateNetIfAddresses(
         netif_ip6_addr_set_state(threadNetIf, addrIdx, addrState);
         addrSet[addrIdx] = true;
 
+#if WEAVE_DETAIL_LOGGING
+
         {
             char addrStr[50];
             addr->ToString(addrStr, sizeof(addrStr));
-            WeaveLogDetail(DeviceLayer, "   %s (%d%s)", addrStr, addrIdx, (addrState == IP6_ADDR_PREFERRED) ? ", preferred" : "");
+            const char * typeStr;
+            if (isLinkLocal)
+                typeStr = "link-local";
+            else if (isMeshLocal)
+                typeStr = "mesh-local";
+            else
+                typeStr = "fabric";
+            WeaveLogDetail(DeviceLayer, "   %s (#%d, %s%s)", addrStr, addrIdx, typeStr,
+                    (addrState == IP6_ADDR_PREFERRED) ? ", preferred" : "");
         }
+
+#endif // WEAVE_DETAIL_LOGGING
     }
 
     // For each address associated with the netif that was *not* set, remove the address
