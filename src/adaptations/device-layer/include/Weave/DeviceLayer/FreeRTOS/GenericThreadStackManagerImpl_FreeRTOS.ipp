@@ -120,6 +120,8 @@ void GenericThreadStackManagerImpl_FreeRTOS<ImplClass>::ThreadTaskMain(void * ar
 
     VerifyOrDie(self->mThreadTask == NULL);
 
+    WeaveLogDetail(DeviceLayer, "Thread task running");
+
     // Capture the Thread task handle.
     self->mThreadTask = xTaskGetCurrentTaskHandle();
 
