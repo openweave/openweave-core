@@ -51,7 +51,7 @@ using namespace ::nl::Weave::DeviceLayer;
 
 #define TEST_TASK_ENABLED 1
 #define RUN_UNIT_TESTS 0
-#define WOBLE_ENABLED 0
+#define WOBLE_ENABLED 1
 #define OPENTHREAD_ENABLED 1
 #define OPENTHREAD_TEST_NETWORK_ENABLED 1
 
@@ -304,7 +304,7 @@ int main(void)
         APP_ERROR_HANDLER(ret);
     }
 
-#if WOBLE_ENABLED
+#if !WOBLE_ENABLED
 
     ret = ConnectivityMgr().SetWoBLEServiceMode(ConnectivityManager::kWoBLEServiceMode_Disabled);
     if (ret != WEAVE_NO_ERROR)
