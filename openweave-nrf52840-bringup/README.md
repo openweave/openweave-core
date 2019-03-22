@@ -21,7 +21,8 @@ the OpenWeave Device Layer to the nRF52840.
 * [Viewing Logging Output](#view-logging)
 * [Debugging with GDB](#debugging)
 * [Setting up a Test Thread Network](#setup-test-network)
-* [Testing Weave Communication](#test-weave-comms)
+* [Testing Weave Communication over Thread](#test-weave-comms-thread)
+* [Managing a Device using the Weave Device Manager Shell](#managing)
 
 <hr>
 
@@ -233,9 +234,9 @@ Note that the host should be connected to the NCP device via its nRF USB connect
         64 bytes from fd88:7766:5544:0:9f2e:8721:e8a1:d7f3: icmp_seq=4 ttl=255 time=18.4 ms
 
 
-<a name="test-weave-comms"></a>
+<a name="test-weave-comm-thread"></a>
         
-#### Testing Weave Communication
+#### Testing Weave Communication over Thread
 
 The following examples show how to use the stand-alone version of the weave-ping tool (built on linux or Mac) to exchange
 Weave Echo Profile messages with a test device.
@@ -423,3 +424,195 @@ the Weave Password Authenticated Session Establishment (PASE) protocol.
         WEAVE:EM: Msg sent 00000001:1 15 18B4300000000003 58A0 71B7 0 MsgId:00000003
         WEAVE:EM: Msg rcvd 00000001:2 15 18B4300000000003 58A0 71B7 0 MsgId:00000003
         Echo Response from node 18B4300000000003 (fd88:7766:5544:0:9f2e:8721:e8a1:d7f3): 4/4(100.00%) len=15 time=32.363ms
+
+
+<a name="managing"></a>
+
+#### Managing a Device using the Weave Device Manager Shell
+
+Using the Weave Device Manager Shell, one can send management commands to a device over either Thread or BLE.
+Device management commands are typically used during the process of pairing a device, wherein a device is configured (provisioned)
+to connect to a user's home network, and associate with a user's account.  They can also be used after a device
+has been paired, to inspect or alter the device's configuration.
+
+Because pairing is typically orchestrated by  a mobile device which lacks a Thread radio, the associated device management
+interactions usually take place over BLE.  However, Weave device management interactions can also happen over Thread, given a suitably
+configured host device.
+
+The examples given in this section use the Weave Device Manager Shell command-line tool (weave-device-manager) to send
+commands to the test device. The Weave Device Manager Shell is produced as part of a stand-alone (desktop) build of OpenWeave.
+
+The examples using BLE require the use of a BLE-capable host machine.  This can be either a Mac laptop, or a linux machine with
+BlueZ-supported BlueTooth radio.
+
+The examples using Thread require the use of wpantund and an NCP device connected via USB to the host machine (see [above](#setup-test-network) 
+for how to set this up).
+
+##### Connecting using Thread
+
+This example shows connecting to a test device over Thread using the `rendezvous` command in the Weave Device Manager Shell.   The rendezvous command
+uses the multicast Weave Device Identify protocol to locate the target device, and then establishes a Weave
+TCP connection over which management commands can be sent.  The rendezvous command accepts various criteria arguments that
+serve to select the correct device out of all devices in multicast range.  In this example, the device's Weave Device id is used.
+
+To determine the test device's Weave Device id, look for the following text in the log output of the test device:
+
+        <info> weave: [DL] Device Configuration:
+        <info> weave: [DL]   Device Id: 18B4300000000003
+        <info> weave: [DL]   Serial Number: (not set)
+        <info> weave: [DL]   Vendor Id: 9050 (0x235A) (Nest)
+        <info> weave: [DL]   Product Id: 65279 (0xFEFF)
+        <info> weave: [DL]   Fabric Id: (none)
+        <info> weave: [DL]   Pairing Code: NESTUS
+
+
+* Start the Weave Device Manager Shell
+
+        $ weave-device-mgr 
+        WEAVE:ML: Binding general purpose IPv4 UDP endpoint to [::]:11095
+        WEAVE:IN: IPV6_PKTINFO: 92
+        WEAVE:ML: Listening on general purpose IPv4 UDP endpoint
+        WEAVE:ML: Binding general purpose IPv6 UDP endpoint to [::]:11095 ()
+        WEAVE:ML: Listening on general purpose IPv6 UDP endpoint
+        WEAVE:ML: Adding ens33 to interface table
+        WEAVE:ML: Adding wpan0 to interface table
+        WEAVE:ML: Binding IPv6 UDP interface endpoint to [fd88:7766:5544:0:c0b5:65ec:454f:e276]:11095 (wpan0)
+        WEAVE:ML: Listening on IPv6 UDP interface endpoint
+        Weave Device Manager Shell
+        
+        weave-device-mgr > 
+
+* Rendezvous with the target device
+
+        weave-device-mgr > rendezvous --target-device 18B4300000000003
+        WEAVE:DM: Initiating connection to device
+        WEAVE:ML: Binding general purpose IPv4 UDP endpoint to [::]:11095
+        WEAVE:IN: IPV6_PKTINFO: 92
+        WEAVE:ML: Listening on general purpose IPv4 UDP endpoint
+        WEAVE:ML: Binding general purpose IPv6 UDP endpoint to [::]:11095 ()
+        WEAVE:ML: Listening on general purpose IPv6 UDP endpoint
+        WEAVE:ML: Adding ens33 to interface table
+        WEAVE:ML: Adding wpan0 to interface table
+        WEAVE:ML: Binding IPv6 UDP interface endpoint to [fd88:7766:5544:0:c0b5:65ec:454f:e276]:11095 (wpan0)
+        WEAVE:ML: Listening on IPv6 UDP interface endpoint
+        WEAVE:EM: ec id: 1, AppState: 0x50d35480
+        WEAVE:DM: Sending IdentifyRequest to locate device
+        WEAVE:EM: Msg sent 0000000E:1 16 18B4300000000003 0000 9869 0 MsgId:23C64567
+        WEAVE:EM: Msg rcvd 0000000E:2 29 18B4300000000003 0000 9869 0 MsgId:A1553D7D
+        WEAVE:DM: Received identify response from device 18B4300000000003 ([fe80::9c25:f8c:7c62:14b3]:11095%wpan0)
+        WEAVE:DM: Initiating weave connection to device 18B4300000000003 (fe80::9c25:f8c:7c62:14b3)
+        WEAVE:ML: Con start BB20 18B4300000000003 0001
+        WEAVE:ML: TCP con start BB20 fe80::9c25:f8c:7c62:14b3 11095
+        WEAVE:ML: TCP con complete BB20 0
+        WEAVE:ML: Con complete BB20
+        WEAVE:DM: Connected to device
+        Connected to device 18B4300000000003 at fe80::9c25:f8c:7c62:14b3
+        weave-device-mgr (18B4300000000003 @ fe80::9c25:f8c:7c62:14b3) > 
+
+Once the connection has been established, it can be used to issue commands to the device, as shown below.
+
+##### Connecting using WoBLE
+
+This example shows connecting to a device using Weave-over-BLE.  To connect to a device using BLE, the device must be advertising in connectable mode.  (Weave
+devices do this automatically unless disabled by the application).   Additionally, one must know the device's BLE device name.  This can be
+found in the log output of the test device when it boots:
+
+         <info> weave: [DL] Configuring BLE advertising (interval 500 ms, connectable, device name NEST-0003)
+
+* Start the Weave Device Manager Shell
+
+        $ weave-device-mgr
+        WEAVE:ML: Binding general purpose IPv4 UDP endpoint to [::]:11095
+        WEAVE:IN: IPV6_PKTINFO: 22
+        WEAVE:ML: Listening on general purpose IPv4 UDP endpoint
+        WEAVE:ML: Binding general purpose IPv6 UDP endpoint to [::]:11095 ()
+        WEAVE:IN: IP_PKTINFO: 22
+        WEAVE:ML: Listening on general purpose IPv6 UDP endpoint
+        WEAVE:ML: Adding lo0 to interface table
+        WEAVE:ML: Adding en0 to interface table
+        WEAVE:ML: Adding awdl0 to interface table
+        WEAVE:ML: Adding utun0 to interface table
+        Weave Device Manager Shell
+        
+        weave-device-mgr > 
+        
+* Scan for the test device and establish a BLE connection
+
+        weave-device-mgr > ble-scan-connect NEST-0003
+        2019-03-22 12:43:05,744 WeaveBLEMgr  INFO     BLE is ready!
+        2019-03-22 12:43:06,101 WeaveBLEMgr  INFO     adding to scan list:
+        2019-03-22 12:43:06,101 WeaveBLEMgr  INFO     
+        2019-03-22 12:43:06,101 WeaveBLEMgr  INFO     Name =    NEST-0003                                                                       
+        2019-03-22 12:43:06,101 WeaveBLEMgr  INFO     ID =      63B7C6D9-DF17-4E0A-89B6-58FDD58DE718                                            
+        2019-03-22 12:43:06,101 WeaveBLEMgr  INFO     RSSI =    -59                                                                             
+        2019-03-22 12:43:06,101 WeaveBLEMgr  INFO     ADV data: {
+            kCBAdvDataIsConnectable = 1;
+            kCBAdvDataLocalName = "NEST-0003";
+            kCBAdvDataServiceUUIDs =     (
+                FEAF
+            );
+        }
+        2019-03-22 12:43:06,101 WeaveBLEMgr  INFO     
+        2019-03-22 12:43:06,102 WeaveBLEMgr  INFO     scanning stopped
+        2019-03-22 12:43:06,102 WeaveBLEMgr  INFO     trying to connect to NEST-0003
+        2019-03-22 12:43:07,204 WeaveBLEMgr  INFO     Discovering services
+        2019-03-22 12:43:07,208 WeaveBLEMgr  INFO     Discovering services
+        2019-03-22 12:43:07,363 WeaveBLEMgr  INFO     connect success
+        weave-device-mgr > 
+
+* Establish a Weave-over-BLE connection with the device: 
+
+        weave-device-mgr > connect --ble
+        WEAVE:BLE: subscribe complete, ep = 0x1080c5d30
+        WEAVE:BLE: peripheral chose BTP version 3; central expected between 2 and 3
+        WEAVE:BLE: using BTP fragment sizes rx 20 / tx 101.
+        WEAVE:BLE: local and remote recv window size = 3
+        WEAVE:ML: WoBle con complete BBD0
+        WEAVE:ML: Con complete BBD0
+        WEAVE:DM: Connected to device
+        WEAVE:DM: Initializing Weave BLE connection
+        WEAVE:EM: ec id: 1, AppState: 0x6b018800
+        WEAVE:DM: Sending IdentifyRequest to device
+        WEAVE:EM: Msg sent 0000000E:1 16 FFFFFFFFFFFFFFFF BBD0 ACD9 0 MsgId:00000000
+        WEAVE:EM: Msg rcvd 0000000E:2 29 18B4300000000003 BBD0 ACD9 0 MsgId:00000000
+        WEAVE:DM: Received identify response from device 18B4300000000003 (ble con BBD0)
+        Connected to device.
+        
+        weave-device-mgr (18B4300000000003 @ ::) >
+
+Once the WoBLE connection has been established, it can be used to issue commands to the device, as shown below.
+
+##### Issue an Identify Request
+
+The `identify` command sends a Weave Device Identify request to the connected device and displays the device's response.
+
+        weave-device-mgr (18B4300000000003 @ fe80::9c25:f8c:7c62:14b3) > identify
+        WEAVE:EM: ec id: 1, AppState: 0x50d35480
+        WEAVE:EM: Msg sent 0000000E:1 16 18B4300000000003 BB20 986B 0 MsgId:00000001
+        WEAVE:EM: Msg rcvd 0000000E:2 29 18B4300000000003 BB20 986B 0 MsgId:00000001
+        Identify device complete
+          Device Id: 18B4300000000003
+          Vendor Id: 235A
+          Product Id: FEFF
+          Product Revision: 1
+          Pairing Compatibility Major Id: 0
+          Pairing Compatibility Minor Id: 0
+          Device Features: 
+        weave-device-mgr (18B4300000000003 @ fe80::9c25:f8c:7c62:14b3) > 
+
+##### Issue an Echo Request
+
+The `ping` command sends a Weave Echo request to the connected device and awaits the device's response.
+
+        weave-device-mgr (18B4300000000003 @ fe80::9c25:f8c:7c62:14b3) > create-fabric
+        WEAVE:EM: ec id: 1, AppState: 0x50d35480
+        WEAVE:EM: Msg sent 00000005:1 0 18B4300000000003 BB20 986C 0 MsgId:00000002
+        WEAVE:EM: Msg rcvd 00000000:1 6 18B4300000000003 BB20 986C 0 MsgId:00000002
+        Create fabric complete
+        weave-device-mgr (18B4300000000003 @ fe80::9c25:f8c:7c62:14b3) > ping
+        WEAVE:DM: DataLength: 0, payload: 0, next: (nil)
+        WEAVE:EM: ec id: 1, AppState: 0x50d35480
+        WEAVE:EM: Msg sent 00000001:1 0 18B4300000000003 BB20 986D 0 MsgId:00000003
+        WEAVE:EM: Msg rcvd 00000001:2 0 18B4300000000003 BB20 986D 0 MsgId:00000003
+        Ping complete
+        weave-device-mgr (18B4300000000003 @ fe80::9c25:f8c:7c62:14b3) > 
