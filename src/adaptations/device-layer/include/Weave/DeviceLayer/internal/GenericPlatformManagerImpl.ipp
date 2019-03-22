@@ -97,16 +97,6 @@ WEAVE_ERROR GenericPlatformManagerImpl<ImplClass>::_InitWeaveStack(void)
     FabricState.LogKeys = true;
 #endif
 
-    // Initialize the BLE manager.
-#if WEAVE_DEVICE_CONFIG_ENABLE_WOBLE
-    err = BLEMgr().Init();
-    if (err != WEAVE_NO_ERROR)
-    {
-        WeaveLogError(DeviceLayer, "BLEManager initialization failed: %s", ErrorStr(err));
-    }
-    SuccessOrExit(err);
-#endif
-
     {
         WeaveMessageLayer::InitContext initContext;
         initContext.systemLayer = &SystemLayer;
@@ -155,19 +145,34 @@ WEAVE_ERROR GenericPlatformManagerImpl<ImplClass>::_InitWeaveStack(void)
     SecurityMgr.CASEUseKnownECDHKey = true;
 #endif
 
-#if WEAVE_CONFIG_ENABLE_SERVICE_DIRECTORY
-    // Initialize the service directory manager.
-    err = InitServiceDirectoryManager();
-    SuccessOrExit(err);
-#endif
-
-    // Perform dynamic configuration of the Weave stack based on stored settings.
+    // Perform dynamic configuration of the core Weave objects based on stored settings.
+    //
+    // NB: In general, initialization of Device Layer objects should happen *after* this call
+    // as their initialization methods may rely on the proper initialization of the core
+    // objects.
+    //
     err = ConfigurationMgr().ConfigureWeaveStack();
     if (err != WEAVE_NO_ERROR)
     {
         WeaveLogError(DeviceLayer, "ConfigureWeaveStack failed: %s", ErrorStr(err));
     }
     SuccessOrExit(err);
+
+#if WEAVE_CONFIG_ENABLE_SERVICE_DIRECTORY
+    // Initialize the service directory manager.
+    err = InitServiceDirectoryManager();
+    SuccessOrExit(err);
+#endif
+
+    // Initialize the BLE manager.
+#if WEAVE_DEVICE_CONFIG_ENABLE_WOBLE
+    err = BLEMgr().Init();
+    if (err != WEAVE_NO_ERROR)
+    {
+        WeaveLogError(DeviceLayer, "BLEManager initialization failed: %s", ErrorStr(err));
+    }
+    SuccessOrExit(err);
+#endif
 
     // Initialize the Connectivity Manager object.
     err = ConnectivityMgr().Init();
@@ -189,7 +194,7 @@ WEAVE_ERROR GenericPlatformManagerImpl<ImplClass>::_InitWeaveStack(void)
     err = DeviceDescriptionSvr().Init();
     if (err != WEAVE_NO_ERROR)
     {
-        WeaveLogError(DeviceLayer, "Weave Device Control server initialization failed: %s", ErrorStr(err));
+        WeaveLogError(DeviceLayer, "Weave Device Description server initialization failed: %s", ErrorStr(err));
     }
     SuccessOrExit(err);
 
