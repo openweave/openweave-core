@@ -221,12 +221,15 @@ WEAVE_ERROR GenericThreadStackManagerImpl_LwIP<ImplClass>::UpdateNetIfAddresses(
                 continue;
             }
 
-            if (isMeshLocal && addr->Addr[2] == 0xFF000000 && (addr->Addr[3] & 0x000000FF) == 0x000000FE)
+            // Ignore the address if it is a mesh-local RLOC address.  These are used internally
+            // by Thread, but are not used by applications.
+            if (otAddr->mRloc)
             {
-                addrState = IP6_ADDR_VALID;
+                continue;
             }
 
-            // Add the address to the LwIP netif.
+            // Add the address to the LwIP netif.  netif_add_ip6_address() returns the index
+            // of the address within the netif address table.
             ip_addr_t lwipAddr = addr->ToLwIPAddr();
             lwipErr = netif_add_ip6_address(threadNetIf, ip_2_ip6(&lwipAddr), &addrIdx);
             if (lwipErr == ERR_VAL)

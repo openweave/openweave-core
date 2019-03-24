@@ -998,6 +998,10 @@ $(nl_public_WeaveDeviceLayer_source_dirstem)/internal/DeviceDescriptionServer.h 
 $(nl_public_WeaveDeviceLayer_source_dirstem)/internal/DeviceIdentityTraitDataSource.h               \
 $(nl_public_WeaveDeviceLayer_source_dirstem)/internal/EchoServer.h                                  \
 $(nl_public_WeaveDeviceLayer_source_dirstem)/internal/FabricProvisioningServer.h                    \
+$(nl_public_WeaveDeviceLayer_source_dirstem)/internal/GenericConnectivityManagerImpl_BLE.h          \
+$(nl_public_WeaveDeviceLayer_source_dirstem)/internal/GenericConnectivityManagerImpl_NoBLE.h        \
+$(nl_public_WeaveDeviceLayer_source_dirstem)/internal/GenericConnectivityManagerImpl_NoTunnel.h     \
+$(nl_public_WeaveDeviceLayer_source_dirstem)/internal/GenericConnectivityManagerImpl_NoWiFi.h       \
 $(nl_public_WeaveDeviceLayer_source_dirstem)/internal/GenericConfigurationManagerImpl.h             \
 $(nl_public_WeaveDeviceLayer_source_dirstem)/internal/GenericConfigurationManagerImpl.ipp           \
 $(nl_public_WeaveDeviceLayer_source_dirstem)/internal/GenericNetworkProvisioningServerImpl.h        \
