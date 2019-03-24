@@ -19,6 +19,13 @@
 #ifndef CONNECTIVITY_MANAGER_IMPL_H
 #define CONNECTIVITY_MANAGER_IMPL_H
 
+#if WEAVE_DEVICE_CONFIG_ENABLE_WOBLE
+#include <Weave/DeviceLayer/internal/GenericConnectivityManagerImpl_BLE.h>
+#else
+#include <Weave/DeviceLayer/internal/GenericConnectivityManagerImpl_NoBLE.h>
+#endif
+#include <Weave/DeviceLayer/internal/GenericConnectivityManagerImpl_NoWiFi.h>
+#include <Weave/DeviceLayer/internal/GenericConnectivityManagerImpl_NoTunnel.h>
 #include <Weave/Profiles/network-provisioning/NetworkProvisioning.h>
 #include <Weave/Support/FlagUtils.hpp>
 
@@ -42,10 +49,17 @@ template<class ImplClass> class GenericNetworkProvisioningServerImpl;
 } // namespace Internal
 
 /**
- * Concrete implementation of the ConnectivityManager singleton object for the ESP32 platform.
+ * Concrete implementation of the ConnectivityManager singleton object for Nordic nRF52 platforms.
  */
 class ConnectivityManagerImpl final
-    : public ConnectivityManager
+    : public ConnectivityManager,
+#if WEAVE_DEVICE_CONFIG_ENABLE_WOBLE
+      public Internal::GenericConnectivityManagerImpl_BLE<ConnectivityManagerImpl>,
+#else
+      public Internal::GenericConnectivityManagerImpl_NoBLE<ConnectivityManagerImpl>,
+#endif
+      public Internal::GenericConnectivityManagerImpl_NoWiFi<ConnectivityManagerImpl>,
+      public Internal::GenericConnectivityManagerImpl_NoTunnel<ConnectivityManagerImpl>
 {
     // Allow the ConnectivityManager interface class to delegate method calls to
     // the implementation methods provided by this class.
@@ -55,49 +69,11 @@ private:
 
     // ===== Members that implement the ConnectivityManager abstract interface.
 
-    WiFiStationMode _GetWiFiStationMode(void);
-    WEAVE_ERROR _SetWiFiStationMode(WiFiStationMode val);
-    bool _IsWiFiStationEnabled(void);
-    bool _IsWiFiStationApplicationControlled(void);
-    bool _IsWiFiStationConnected(void);
-    uint32_t _GetWiFiStationReconnectIntervalMS(void);
-    WEAVE_ERROR _SetWiFiStationReconnectIntervalMS(uint32_t val);
-    bool _IsWiFiStationProvisioned(void);
-    void _ClearWiFiStationProvision(void);
-    WiFiAPMode _GetWiFiAPMode(void);
-    WEAVE_ERROR _SetWiFiAPMode(WiFiAPMode val);
-    bool _IsWiFiAPActive(void);
-    bool _IsWiFiAPApplicationControlled(void);
-    void _DemandStartWiFiAP(void);
-    void _StopOnDemandWiFiAP(void);
-    void _MaintainOnDemandWiFiAP(void);
-    uint32_t _GetWiFiAPIdleTimeoutMS(void);
-    void _SetWiFiAPIdleTimeoutMS(uint32_t val);
     bool _HaveIPv4InternetConnectivity(void);
     bool _HaveIPv6InternetConnectivity(void);
-    ServiceTunnelMode _GetServiceTunnelMode(void);
-    WEAVE_ERROR _SetServiceTunnelMode(ServiceTunnelMode val);
-    bool _IsServiceTunnelConnected(void);
-    bool _IsServiceTunnelRestricted(void);
     bool _HaveServiceConnectivity(void);
-    WoBLEServiceMode _GetWoBLEServiceMode(void);
-    WEAVE_ERROR _SetWoBLEServiceMode(WoBLEServiceMode val);
-    bool _IsBLEAdvertisingEnabled(void);
-    WEAVE_ERROR _SetBLEAdvertisingEnabled(bool val);
-    bool _IsBLEFastAdvertisingEnabled(void);
-    WEAVE_ERROR _SetBLEFastAdvertisingEnabled(bool val);
-    WEAVE_ERROR _GetBLEDeviceName(char * buf, size_t bufSize);
-    WEAVE_ERROR _SetBLEDeviceName(const char * deviceName);
-    uint16_t _NumBLEConnections(void);
     WEAVE_ERROR _Init(void);
     void _OnPlatformEvent(const WeaveDeviceEvent * event);
-    bool _CanStartWiFiScan();
-    void _OnWiFiScanDone();
-    void _OnWiFiStationProvisionChange();
-    static const char * _WiFiStationModeToStr(WiFiStationMode mode);
-    static const char * _WiFiAPModeToStr(WiFiAPMode mode);
-    static const char * _ServiceTunnelModeToStr(ServiceTunnelMode mode);
-    static const char * _WoBLEServiceModeToStr(WoBLEServiceMode mode);
 
     // ===== Members for internal use by the following friends.
 
@@ -117,86 +93,6 @@ private:
     uint16_t mFlags;
 };
 
-inline bool ConnectivityManagerImpl::_IsWiFiStationApplicationControlled(void)
-{
-    return false;
-}
-
-inline WEAVE_ERROR ConnectivityManagerImpl::_SetWiFiStationMode(WiFiStationMode val)
-{
-    return WEAVE_ERROR_UNSUPPORTED_WEAVE_FEATURE;
-}
-
-inline bool ConnectivityManagerImpl::_IsWiFiStationEnabled(void)
-{
-    return false;
-}
-
-inline bool ConnectivityManagerImpl::_IsWiFiStationConnected(void)
-{
-    return false;
-}
-
-inline uint32_t ConnectivityManagerImpl::_GetWiFiStationReconnectIntervalMS(void)
-{
-    return 0;
-}
-
-inline WEAVE_ERROR ConnectivityManagerImpl::_SetWiFiStationReconnectIntervalMS(uint32_t val)
-{
-    return WEAVE_ERROR_UNSUPPORTED_WEAVE_FEATURE;
-}
-
-inline bool ConnectivityManagerImpl::_IsWiFiStationProvisioned(void)
-{
-    return false;
-}
-
-inline void ConnectivityManagerImpl::_ClearWiFiStationProvision(void)
-{
-}
-
-inline ConnectivityManager::WiFiAPMode ConnectivityManagerImpl::_GetWiFiAPMode(void)
-{
-    return kWiFiAPMode_NotSupported;
-}
-
-inline WEAVE_ERROR ConnectivityManagerImpl::_SetWiFiAPMode(WiFiAPMode val)
-{
-    return WEAVE_ERROR_UNSUPPORTED_WEAVE_FEATURE;
-}
-
-inline bool ConnectivityManagerImpl::_IsWiFiAPActive(void)
-{
-    return false;
-}
-
-inline bool ConnectivityManagerImpl::_IsWiFiAPApplicationControlled(void)
-{
-    return false;
-}
-
-inline void ConnectivityManagerImpl::_DemandStartWiFiAP(void)
-{
-}
-
-inline void ConnectivityManagerImpl::_StopOnDemandWiFiAP(void)
-{
-}
-
-inline void ConnectivityManagerImpl::_MaintainOnDemandWiFiAP(void)
-{
-}
-
-inline uint32_t ConnectivityManagerImpl::_GetWiFiAPIdleTimeoutMS(void)
-{
-    return 0;
-}
-
-inline void ConnectivityManagerImpl::_SetWiFiAPIdleTimeoutMS(uint32_t val)
-{
-}
-
 inline bool ConnectivityManagerImpl::_HaveIPv4InternetConnectivity(void)
 {
     return false;
@@ -207,62 +103,10 @@ inline bool ConnectivityManagerImpl::_HaveIPv6InternetConnectivity(void)
     return ::nl::GetFlag(mFlags, kFlag_HaveIPv6InternetConnectivity);
 }
 
-inline ConnectivityManager::ServiceTunnelMode ConnectivityManagerImpl::_GetServiceTunnelMode(void)
-{
-    return kServiceTunnelMode_NotSupported;
-}
-
-inline WEAVE_ERROR ConnectivityManagerImpl::_SetServiceTunnelMode(ServiceTunnelMode val)
-{
-    return WEAVE_ERROR_UNSUPPORTED_WEAVE_FEATURE;
-}
-
-inline bool ConnectivityManagerImpl::_IsServiceTunnelConnected(void)
-{
-    return false;
-}
-
-inline bool ConnectivityManagerImpl::_IsServiceTunnelRestricted(void)
-{
-    return false;
-}
-
 inline bool ConnectivityManagerImpl::_HaveServiceConnectivity(void)
 {
-    return false;
-}
-
-inline bool ConnectivityManagerImpl::_CanStartWiFiScan()
-{
-    return false;
-}
-
-inline void ConnectivityManagerImpl::_OnWiFiScanDone()
-{
-}
-
-inline void ConnectivityManagerImpl::_OnWiFiStationProvisionChange()
-{
-}
-
-inline const char * ConnectivityManagerImpl::_WiFiStationModeToStr(WiFiStationMode mode)
-{
-    return NULL;
-}
-
-inline const char * ConnectivityManagerImpl::_WiFiAPModeToStr(WiFiAPMode mode)
-{
-    return NULL;
-}
-
-inline const char * ConnectivityManagerImpl::_ServiceTunnelModeToStr(ServiceTunnelMode mode)
-{
-    return NULL;
-}
-
-inline const char * ConnectivityManagerImpl::_WoBLEServiceModeToStr(WoBLEServiceMode mode)
-{
-    return NULL;
+    // TODO: implement this
+    return true;
 }
 
 
