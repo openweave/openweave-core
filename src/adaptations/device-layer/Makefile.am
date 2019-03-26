@@ -151,6 +151,7 @@ libDeviceLayer_a_SOURCES               +=       \
     nRF5/Logging.cpp                            \
     FreeRTOS/SystemTimeSupport.cpp              \
     OpenThread/OpenThreadUtils.cpp              \
+    LwIP/WarmSupport.cpp                        \
     $(NULL)
 
 endif # WEAVE_DEVICE_LAYER_TARGET_NRF5

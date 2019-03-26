@@ -70,15 +70,28 @@ WEAVE_ERROR ConnectivityManagerImpl::_Init()
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
 
-    // TODO: implement me
     mFlags = 0;
 
+    // Initialize the Weave Addressing and Routing Module.
+    err = Warm::Init(FabricState);
+    SuccessOrExit(err);
+
+    // TODO: finish me
+
+exit:
     return err;
 }
 
 void ConnectivityManagerImpl::_OnPlatformEvent(const WeaveDeviceEvent * event)
 {
-    // TODO: implement me
+    // If the state of the Thread interface has changed, notify WARM accordingly.
+    if (event->Type == DeviceEventType::kThreadConnectivityChange)
+    {
+        Warm::ThreadInterfaceStateChange(event->ThreadConnectivityChange.Result == kConnectivity_Established
+                                         ? Warm::kInterfaceStateUp : Warm::kInterfaceStateDown);
+    }
+
+    // TODO: finish me
 }
 
 // ==================== ConnectivityManager Private Methods ====================

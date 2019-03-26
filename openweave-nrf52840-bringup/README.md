@@ -476,7 +476,7 @@ uses the multicast Weave Device Identify protocol to locate the target device, a
 TCP connection over which management commands can be sent.  The rendezvous command accepts various criteria arguments that
 serve to select the correct device out of all devices in multicast range.  In this example, the device's Weave Device id is used.
 
-To determine the test device's Weave Device id, look for the following text in the log output of the test device:
+To determine the test device's Weave Device id, look for the following text in the log output of the device:
 
         <info> weave: [DL] Device Configuration:
         <info> weave: [DL]   Device Id: 18B4300000000003
