@@ -134,6 +134,7 @@ target_triplet = @target@
 @CONFIG_DEVICE_LAYER_TRUE@@WEAVE_DEVICE_LAYER_TARGET_NRF5_TRUE@    nRF5/Logging.cpp                            \
 @CONFIG_DEVICE_LAYER_TRUE@@WEAVE_DEVICE_LAYER_TARGET_NRF5_TRUE@    FreeRTOS/SystemTimeSupport.cpp              \
 @CONFIG_DEVICE_LAYER_TRUE@@WEAVE_DEVICE_LAYER_TARGET_NRF5_TRUE@    OpenThread/OpenThreadUtils.cpp              \
+@CONFIG_DEVICE_LAYER_TRUE@@WEAVE_DEVICE_LAYER_TARGET_NRF5_TRUE@    LwIP/WarmSupport.cpp                        \
 @CONFIG_DEVICE_LAYER_TRUE@@WEAVE_DEVICE_LAYER_TARGET_NRF5_TRUE@    $(NULL)
 
 subdir = src/adaptations/device-layer
@@ -263,7 +264,8 @@ am__dirstamp = $(am__leading_dot)dirstamp
 @CONFIG_DEVICE_LAYER_TRUE@@WEAVE_DEVICE_LAYER_TARGET_NRF5_TRUE@	nRF5/libDeviceLayer_a-Entropy.$(OBJEXT) \
 @CONFIG_DEVICE_LAYER_TRUE@@WEAVE_DEVICE_LAYER_TARGET_NRF5_TRUE@	nRF5/libDeviceLayer_a-Logging.$(OBJEXT) \
 @CONFIG_DEVICE_LAYER_TRUE@@WEAVE_DEVICE_LAYER_TARGET_NRF5_TRUE@	FreeRTOS/libDeviceLayer_a-SystemTimeSupport.$(OBJEXT) \
-@CONFIG_DEVICE_LAYER_TRUE@@WEAVE_DEVICE_LAYER_TARGET_NRF5_TRUE@	OpenThread/libDeviceLayer_a-OpenThreadUtils.$(OBJEXT)
+@CONFIG_DEVICE_LAYER_TRUE@@WEAVE_DEVICE_LAYER_TARGET_NRF5_TRUE@	OpenThread/libDeviceLayer_a-OpenThreadUtils.$(OBJEXT) \
+@CONFIG_DEVICE_LAYER_TRUE@@WEAVE_DEVICE_LAYER_TARGET_NRF5_TRUE@	LwIP/libDeviceLayer_a-WarmSupport.$(OBJEXT)
 @CONFIG_DEVICE_LAYER_TRUE@am_libDeviceLayer_a_OBJECTS =  \
 @CONFIG_DEVICE_LAYER_TRUE@	libDeviceLayer_a-CASEAuth.$(OBJEXT) \
 @CONFIG_DEVICE_LAYER_TRUE@	libDeviceLayer_a-DeviceControlServer.$(OBJEXT) \

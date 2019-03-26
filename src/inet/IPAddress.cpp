@@ -269,6 +269,12 @@ bool IPAddress::IsIPv6Multicast(void) const
     return (ntohl(Addr[0]) & 0xFF000000U) == 0xFF000000U;
 }
 
+// Is address an IPv6 Global Unicast Address?
+bool IPAddress::IsIPv6GlobalUnicast(void) const
+{
+    return (ntohl(Addr[0]) & 0xE0000000U) == 0x20000000U;
+}
+
 // Is address an IPv6 Unique Local Address?
 bool IPAddress::IsIPv6ULA() const
 {

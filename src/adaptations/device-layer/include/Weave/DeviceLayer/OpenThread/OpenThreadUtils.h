@@ -25,7 +25,9 @@
 #ifndef OPENTHREAD_UTILS_H
 #define OPENTHREAD_UTILS_H
 
+#include <openthread/thread.h>
 #include <openthread/error.h>
+#include <openthread/ip6.h>
 
 namespace nl {
 namespace Weave {
@@ -35,6 +37,21 @@ namespace Internal {
 extern WEAVE_ERROR MapOpenThreadError(otError otErr);
 
 extern bool IsOpenThreadMeshLocalAddress(otInstance * otInst, const IPAddress & addr);
+extern const char * OpenThreadRoleToStr(otDeviceRole role);
+
+inline otIp6Address ToOpenThreadIP6Address(const IPAddress & addr)
+{
+    otIp6Address otAddr;
+    memcpy(otAddr.mFields.m32, addr.Addr, sizeof(otAddr.mFields.m32));
+    return otAddr;
+}
+
+inline IPAddress ToIPAddress(const otIp6Address & otAddr)
+{
+    IPAddress addr;
+    memcpy(addr.Addr, otAddr.mFields.m32, sizeof(addr.Addr));
+    return addr;
+}
 
 } // namespace Internal
 } // namespace DeviceLayer

@@ -43,6 +43,25 @@ bool IsOpenThreadMeshLocalAddress(otInstance * otInst, const IPAddress & addr)
     return otMeshPrefix != NULL && memcmp(otMeshPrefix->m8, addr.Addr, OT_MESH_LOCAL_PREFIX_SIZE) == 0;
 }
 
+const char * OpenThreadRoleToStr(otDeviceRole role)
+{
+    switch (role)
+    {
+    case OT_DEVICE_ROLE_DISABLED:
+        return "DISABLED";
+    case OT_DEVICE_ROLE_DETACHED:
+        return "DETACHED";
+    case OT_DEVICE_ROLE_CHILD:
+        return "CHILD";
+    case OT_DEVICE_ROLE_ROUTER:
+        return "ROUTER";
+    case OT_DEVICE_ROLE_LEADER:
+        return "LEADER";
+    default:
+        return "(unknown)";
+    }
+}
+
 
 } // namespace Internal
 } // namespace DeviceLayer

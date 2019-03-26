@@ -109,15 +109,9 @@ void GenericThreadStackManagerImpl_OpenThread<ImplClass>::_ProcessThreadActivity
 template<class ImplClass>
 void GenericThreadStackManagerImpl_OpenThread<ImplClass>::OnOpenThreadStateChange(uint32_t flags, void * context)
 {
-#if 1 // TODO: remove me
     WeaveDeviceEvent event;
     event.Type = DeviceEventType::kOpenThreadStateChange;
     event.OpenThreadStateChange.flags = flags;
-#else
-    WeaveDeviceEvent event;
-    event.Type = DeviceEventType::kNoOp;
-#endif
-
     PlatformMgr().PostEvent(&event);
 }
 

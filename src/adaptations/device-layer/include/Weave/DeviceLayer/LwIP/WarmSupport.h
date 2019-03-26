@@ -1,6 +1,6 @@
 /*
  *
- *    Copyright (c) 2018 Nest Labs, Inc.
+ *    Copyright (c) 2019 Nest Labs, Inc.
  *    All rights reserved.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,18 +18,26 @@
 
 /**
  *    @file
- *          General utility functions available on all platforms.
+ *          Utility functions for the Weave Addressing and Routing Module (WARM)
+ *          for use on LwIP-based platforms.
  */
+
+#ifndef WARM_SUPPORT_H
+#define WARM_SUPPORT_H
+
+#include <Warm/Warm.h>
 
 namespace nl {
 namespace Weave {
 namespace DeviceLayer {
+namespace Internal {
 
-extern WEAVE_ERROR ParseCompilerDateStr(const char * dateStr, uint16_t & year, uint8_t & month, uint8_t & dayOfMonth);
-extern WEAVE_ERROR Parse24HourTimeStr(const char * timeStr, uint8_t & hour, uint8_t & minute, uint8_t & second);
-extern const char * CharacterizeIPv6Address(const ::nl::Inet::IPAddress & ipAddr);
-extern const char * CharacterizeIPv6Prefix(const Inet::IPPrefix & inPrefix);
+extern WEAVE_ERROR GetLwIPNetifForWarmInterfaceType(::nl::Weave::Warm::InterfaceType inInterfaceType, struct netif *& netif);
+extern const char * WarmInterfaceTypeToStr(::nl::Weave::Warm::InterfaceType inInterfaceType);
 
+} // namespace Internal
 } // namespace DeviceLayer
 } // namespace Weave
 } // namespace nl
+
+#endif // WARM_SUPPORT_H
