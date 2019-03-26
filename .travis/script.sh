@@ -1,7 +1,7 @@
 #!/bin/sh
 
 #
-#    Copyright 2018 Google LLC All Rights Reserved.
+#    Copyright 2018-2019 Google LLC All Rights Reserved.
 #
 #    Licensed under the Apache License, Version 2.0 (the "License");
 #    you may not use this file except in compliance with the License.
@@ -63,6 +63,10 @@ case "${BUILD_TARGET}" in
 
     esp32)
         .travis/build_esp32.sh
+        ;;
+
+    nrf52840)
+        .travis/build_nrf52840.sh
         ;;
 
     linux-auto-*-distcheck)
