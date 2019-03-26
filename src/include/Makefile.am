@@ -968,6 +968,7 @@ $(NULL)
 nl_public_WeaveDeviceLayer_lwip_header_sources =                                                    \
 $(nl_public_WeaveDeviceLayer_source_dirstem)/LwIP/GenericThreadStackManagerImpl_LwIP.h              \
 $(nl_public_WeaveDeviceLayer_source_dirstem)/LwIP/GenericThreadStackManagerImpl_LwIP.ipp            \
+$(nl_public_WeaveDeviceLayer_source_dirstem)/LwIP/WarmSupport.h                                     \
 $(NULL)
 
 endif # WEAVE_DEVICE_LAYER_TARGET_NRF5

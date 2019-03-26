@@ -57,14 +57,15 @@ protected:
 
     // ===== Members available to the implementation subclass.
 
-    WEAVE_ERROR InitThreadNetIf();
-    WEAVE_ERROR UpdateNetIfAddresses();
+    WEAVE_ERROR InitThreadNetIf(void);
+    WEAVE_ERROR UpdateThreadNetIfState(void);
 
 private:
 
     // ===== Private members for use by this class only.
 
     struct netif * mNetIf;
+    bool mAddrAssigned[LWIP_IPV6_NUM_ADDRESSES];
 
     static err_t DoInitThreadNetIf(struct netif * netif);
 #if LWIP_VERSION_MAJOR < 2

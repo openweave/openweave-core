@@ -100,6 +100,13 @@ enum PublicEventTypes
     kWiFiConnectivityChange             = kRange_Public,
 
     /**
+     * Thread Connectivity Change
+     *
+     * Signals a change in connectivity of the device's Thread interface.
+     */
+    kThreadConnectivityChange,
+
+    /**
      * Internet Connectivity Change
      *
      * Signals a change in the device's ability to communicate via the Internet.
@@ -175,6 +182,13 @@ enum PublicEventTypes
      * Signals that a state change has occurred in the OpenThread stack.
      */
     kOpenThreadStateChange,
+
+    /**
+     * Thread Interface State Change
+     *
+     * Signals that the state of the Thread network interface has changed.
+     */
+    kThreadInterfaceStateChange,
 };
 
 /**
@@ -253,6 +267,10 @@ struct WeaveDeviceEvent final
         {
             ConnectivityChange Result;
         } WiFiConnectivityChange;
+        struct
+        {
+            ConnectivityChange Result;
+        } ThreadConnectivityChange;
         struct
         {
             ConnectivityChange IPv4;
