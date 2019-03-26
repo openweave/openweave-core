@@ -3214,7 +3214,7 @@ WEAVE_ERROR N2J_DeviceDescriptor(JNIEnv *env, const WeaveDeviceDescriptor& inDev
         SuccessOrExit(err);
     }
 
-    constructor = env->GetMethodID(sWeaveDeviceDescriptorCls, "<init>", "(IIIIII[B[BLjava/lang/String;Ljava/lang/String;Ljava/lang/String;JJLjava/lang/String;I)V");
+    constructor = env->GetMethodID(sWeaveDeviceDescriptorCls, "<init>", "(IIIIII[B[BLjava/lang/String;Ljava/lang/String;Ljava/lang/String;JJLjava/lang/String;II)V");
     VerifyOrExit(constructor != NULL, err = WDM_JNI_ERROR_METHOD_NOT_FOUND);
 
     env->ExceptionClear();
@@ -3224,7 +3224,7 @@ WEAVE_ERROR N2J_DeviceDescriptor(JNIEnv *env, const WeaveDeviceDescriptor& inDev
                                                primary802154MACAddress, primaryWiFiMACAddress,
                                                serialNumber, rendezvousWiFiESSID, pairingCode,
                                                (jlong)inDeviceDesc.DeviceId, (jlong)inDeviceDesc.FabricId, softwareVersion,
-                                               (jint)inDeviceDesc.DeviceFeatures);
+                                               (jint)inDeviceDesc.DeviceFeatures, (jint)inDeviceDesc.Flags);
     VerifyOrExit(!env->ExceptionCheck(), err = WDM_JNI_ERROR_EXCEPTION_THROWN);
 
 exit:

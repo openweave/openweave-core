@@ -41,7 +41,7 @@ WeaveImageAnnounceServer::WeaveImageAnnounceServer()
     mDelegate = NULL;
 }
 
-WEAVE_ERROR WeaveImageAnnounceServer::Init(WeaveExchangeManager *exchangeManager, IWeaveImageAnnounceServerDelegate *delegate)
+WEAVE_ERROR WeaveImageAnnounceServer::Init(WeaveExchangeManager * exchangeManager, IWeaveImageAnnounceServerDelegate * delegate)
 {
     mDelegate = delegate;
 
@@ -53,12 +53,12 @@ WEAVE_ERROR WeaveImageAnnounceServer::Init(WeaveExchangeManager *exchangeManager
     return exchangeManager->RegisterUnsolicitedMessageHandler(kWeaveProfile_SWU, kMsgType_ImageAnnounce, HandleImageAnnounce, this);
 }
 
-void WeaveImageAnnounceServer::HandleImageAnnounce(ExchangeContext *ec, const IPPacketInfo *packetInfo,
-    const WeaveMessageInfo *msgInfo, uint32_t profileId, uint8_t msgType,
-    PacketBuffer *imageAnnouncePayload)
+void WeaveImageAnnounceServer::HandleImageAnnounce(ExchangeContext * ec, const IPPacketInfo * packetInfo,
+                                                   const WeaveMessageInfo * msgInfo, uint32_t profileId, uint8_t msgType,
+                                                   PacketBuffer * imageAnnouncePayload)
 {
     PacketBuffer::Free(imageAnnouncePayload);
-    WeaveImageAnnounceServer *server = (WeaveImageAnnounceServer *) ec->AppState;
+    WeaveImageAnnounceServer * server = (WeaveImageAnnounceServer *) ec->AppState;
 
     if (server && server->mDelegate)
     {

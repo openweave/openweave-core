@@ -122,6 +122,11 @@ class Weave(WeaveState):
         cmd_path = self.__get_cmd_path("TestInetLayer")
         return cmd_path
 
+    def getWeaveInetLayerDNSPath(self):
+        self.__check_weave_path()
+        cmd_path = self.__get_cmd_path("TestInetLayerDNS")
+        return cmd_path
+
     def getWeaveInetLayerMulticastPath(self):
         self.__check_weave_path()
         cmd_path = self.__get_cmd_path("TestInetLayerMulticast")

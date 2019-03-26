@@ -106,10 +106,24 @@ WEAVE_ERROR ViewClient::SendRequest(TraitCatalogBase<TraitDataSink> * apCatalog,
 
             // Start, fill, and close the TLV Structure that contains ResourceID, ProfileID, and InstanceID
             err = mDataSinkCatalog->HandleToAddress(aPathList[i].mTraitDataHandle, writer, requestedSchemaVersionRange);
+
+            if (err == WEAVE_ERROR_INVALID_ARGUMENT)
+            {
+                // HandleToAddress() can return an error if the sink has been removed from the catalog. In that case,
+                // continue to next entry
+                err = WEAVE_NO_ERROR;
+                continue;
+            }
+
             SuccessOrExit(err);
 
-            err = mDataSinkCatalog->Locate(aPathList[i].mTraitDataHandle, &pDataSink);
-            SuccessOrExit(err);
+            if (mDataSinkCatalog->Locate(aPathList[i].mTraitDataHandle, &pDataSink) != WEAVE_NO_ERROR)
+            {
+                // Ideally, this code will not be reached as Locate() should find the entry in the catalog.
+                // Otherwise, the earlier HandleToAddress() call would have continued.
+                // However, keeping this check here for consistency and code safety
+                continue;
+            }
 
             // Append zero or more TLV tags based on the Path Handle
             err = pDataSink->GetSchemaEngine()->MapHandleToPath(aPathList[i].mPropertyPathHandle, writer);
@@ -417,10 +431,24 @@ void ViewClient::OnMessageReceived(nl::Weave::ExchangeContext * aEC, const nl::I
                 SchemaVersionRange requestedSchemaVersionRange;
 
                 err = pViewClient->mDataSinkCatalog->AddressToHandle(pathReader, handle, requestedSchemaVersionRange);
+
+                if (err == WEAVE_ERROR_INVALID_PROFILE_ID)
+                {
+                    // AddressToHandle() can return an error if the sink has been removed from the catalog. In that case,
+                    // continue to next entry
+                    err = WEAVE_NO_ERROR;
+                    continue;
+                }
+
                 SuccessOrExit(err);
 
-                err = pViewClient->mDataSinkCatalog->Locate(handle, &DataSink);
-                SuccessOrExit(err);
+                if (pViewClient->mDataSinkCatalog->Locate(handle, &DataSink) != WEAVE_NO_ERROR)
+                {
+                    // Ideally, this code will not be reached as Locate() should find the entry in the catalog.
+                    // Otherwise, the earlier AddressToHandle() call would have continued.
+                    // However, keeping this check here for consistency and code safety
+                    continue;
+                }
 
                 err = DataSink->GetSchemaEngine()->MapPathToHandle(pathReader, pathHandle);
 #if TDM_DISABLE_STRICT_SCHEMA_COMPLIANCE

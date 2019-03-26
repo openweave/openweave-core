@@ -63,7 +63,8 @@ enum
     kTextKey_Primary802154MACAddress            = 'L',  // [ 8 hex digits ] MAC address for device's primary 802.15.4 interface.
     kTextKey_PrimaryWiFiMACAddress              = 'W',  // [ 6 hex digits ] MAC address for device's primary WiFi interface.
     kTextKey_RendezvousWiFiESSID                = 'I',  // [ 1-32 char string ] ESSID for device's WiFi rendezvous network.
-    kTextKey_PairingCode                        = 'C',  // [ 1-16 char string ] The pairing code for the device.
+    kTextKey_RendezvousWiFiESSIDSuffix          = 'H',  // [ 1-32 char string ] ESSID for device's WiFi rendezvous network.
+    kTextKey_PairingCode                        = 'C',  // [ 6-16 char string ] The pairing code for the device.
     kTextKey_PairingCompatibilityVersionMajor   = 'J',  // [ 1-4 hex digits ] Pairing software compatibility major version.
     kTextKey_PairingCompatibilityVersionMinor   = 'N',  // [ 1-4 hex digits ] Pairing software compatibility minor version.
 
@@ -452,7 +453,11 @@ WEAVE_ERROR WeaveDeviceDescriptor::EncodeText(const WeaveDeviceDescriptor& desc,
 
     if (desc.RendezvousWiFiESSID[0] != 0)
     {
-        err = writer.WriteString(kTextKey_RendezvousWiFiESSID, desc.RendezvousWiFiESSID);
+        const char fieldId = ((desc.Flags & kFlag_IsRendezvousWiFiESSIDSuffix) != 0)
+                ? kTextKey_RendezvousWiFiESSIDSuffix
+                : kTextKey_RendezvousWiFiESSID;
+
+        err = writer.WriteString(fieldId, desc.RendezvousWiFiESSID);
         SuccessOrExit(err);
     }
 
@@ -582,7 +587,11 @@ WEAVE_ERROR WeaveDeviceDescriptor::EncodeTLV(const WeaveDeviceDescriptor& desc, 
 
     if (desc.RendezvousWiFiESSID[0] != 0)
     {
-        err = writer.PutString(ContextTag(kTag_RendezvousWiFiESSID), desc.RendezvousWiFiESSID);
+        const uint64_t tag = ((desc.Flags & kFlag_IsRendezvousWiFiESSIDSuffix) != 0)
+                ? ContextTag(kTag_RendezvousWiFiESSIDSuffix)
+                : ContextTag(kTag_RendezvousWiFiESSID);
+
+        err = writer.PutString(tag, desc.RendezvousWiFiESSID);
         SuccessOrExit(err);
     }
 
@@ -746,6 +755,11 @@ WEAVE_ERROR WeaveDeviceDescriptor::DecodeText(const char *data, uint32_t dataLen
             SuccessOrExit(err);
             break;
         case kTextKey_RendezvousWiFiESSID:
+            outDesc.Flags &= ~kFlag_IsRendezvousWiFiESSIDSuffix;
+            goto readRendezvousWiFiESSID;
+        case kTextKey_RendezvousWiFiESSIDSuffix:
+            outDesc.Flags |= kFlag_IsRendezvousWiFiESSIDSuffix;
+        readRendezvousWiFiESSID:
             err = reader.ReadString(outDesc.RendezvousWiFiESSID, sizeof(outDesc.RendezvousWiFiESSID));
             SuccessOrExit(err);
             break;
@@ -899,11 +913,19 @@ WEAVE_ERROR WeaveDeviceDescriptor::DecodeTLV(nl::Weave::TLV::TLVReader& reader, 
             err = reader.GetBytes(outDesc.PrimaryWiFiMACAddress, sizeof(outDesc.PrimaryWiFiMACAddress));
             SuccessOrExit(err);
         }
-        else if (tag == ContextTag(kTag_RendezvousWiFiESSID))
+        else if (tag == ContextTag(kTag_RendezvousWiFiESSID) || tag == ContextTag(kTag_RendezvousWiFiESSIDSuffix))
         {
             err = reader.GetString(outDesc.RendezvousWiFiESSID, sizeof(outDesc.RendezvousWiFiESSID));
             SuccessOrExit(err);
             VerifyOrExit(outDesc.RendezvousWiFiESSID[0] != 0, err = WEAVE_ERROR_INVALID_TLV_ELEMENT);
+            if (tag == ContextTag(kTag_RendezvousWiFiESSID))
+            {
+                outDesc.Flags &= ~kFlag_IsRendezvousWiFiESSIDSuffix;
+            }
+            else
+            {
+                outDesc.Flags |= kFlag_IsRendezvousWiFiESSIDSuffix;
+            }
         }
         else if (tag == ContextTag(kTag_PairingCode))
         {

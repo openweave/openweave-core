@@ -87,8 +87,9 @@ enum
     kTag_SerialNumber                           = 4,    /**< [ UTF-8 string, len 1-32 ] Device serial number. Context-specific Tag */
     kTag_Primary802154MACAddress                = 5,    /**< [ byte string, len = 8 ] MAC address for device's primary 802.15.4 interface. Context-specific Tag */
     kTag_PrimaryWiFiMACAddress                  = 6,    /**< [ byte string, len = 6 ] MAC address for device's primary WiFi interface. Context-specific Tag */
-    kTag_RendezvousWiFiESSID                    = 7,    /**< [ UTF-8 string, len 1-32 ] ESSID for device's WiFi rendezvous network. Context-specific Tag */
-    kTag_PairingCode                            = 8,    /**< [ UTF-8 string, len 1-16 ] The pairing code for the device. Context-specific Tag
+    kTag_RendezvousWiFiESSID                    = 7,    /**< [ UTF-8 string, len 1-32 ] ESSID for device's WiFi rendezvous network. Context-specific Tag.
+                                                                @note: This tag is mutually exclusive with the RendezvousWiFiESSIDSuffix tag. */
+    kTag_PairingCode                            = 8,    /**< [ UTF-8 string, len 6-16 ] The pairing code for the device. Context-specific Tag
                                                                 @note @b IMPORTANT: For security reasons, the PairingCode field should *never*
                                                                 be sent over the network. It is present in a WeaveDeviceDescriptor structure so
                                                                 that is can encoded in a data label (e.g. QR-code) that is physically associated
@@ -98,6 +99,8 @@ enum
     kTag_FabricId                               = 11,   /**< [ uint, 2^64 max ] ID of Weave fabric to which the device belongs. Context-specific Tag */
     kTag_PairingCompatibilityVersionMajor       = 12,   /**< [ uint, range 1-65535 ] Pairing software compatibility major version. Context-specific Tag */
     kTag_PairingCompatibilityVersionMinor       = 13,   /**< [ uint, range 1-65535 ] Pairing software compatibility minor version. Context-specific Tag */
+    kTag_RendezvousWiFiESSIDSuffix              = 14,   /**< [ UTF-8 string, len 1-32 ] ESSID suffix for device's WiFi rendezvous network. Context-specific Tag.
+                                                                @note: This tag is mutually exclusive with the RendezvousWiFiESSID tag. */
 
     // Feature Tags (Context-specific Tags in WeaveDeviceDescriptor that indicate presence of device features)
     // NOTE: The absence of a specific tag indicates that the device does not support the associated feature.
@@ -126,12 +129,21 @@ public:
     };
 
     /**
-     *  Flags indicating specific device capabilities.
+     *  Feature flags indicating specific device capabilities.
      */
     enum
     {
         kFeature_HomeAlarmLinkCapable           = 0x00000001,   /**< Indicates a Nest Protect that supports connection to a home alarm panel. */
         kFeature_LinePowered                    = 0x00000002    /**< Indicates a device that requires line power. */
+    };
+
+    /**
+     * Flags field definitions.
+     */
+    enum
+    {
+        kFlag_IsRendezvousWiFiESSIDSuffix       = 0x01,         /**< Indicates that the RendezvousWiFiESSID value is a suffix string that
+                                                                     appears at the end of the ESSID of the device's WiFi rendezvous network. */
     };
 
      // Device specific characteristics
@@ -150,10 +162,11 @@ public:
     uint8_t PrimaryWiFiMACAddress[6];                           /**< MAC address for primary WiFi interface (big-endian, all zeros = not present) */
     char SerialNumber[kMaxSerialNumberLength+1];                /**< Serial number of device (NUL terminated, 0 length = not present) */
     char SoftwareVersion[kMaxSoftwareVersionLength+1];          /**< Active software version (NUL terminated, 0 length = not present) */
-    char RendezvousWiFiESSID[kMaxRendezvousWiFiESSID+1];        /**< ESSID for pairing WiFi network (NUL terminated, 0 length = not present) */
+    char RendezvousWiFiESSID[kMaxRendezvousWiFiESSID+1];        /**< ESSID for device WiFi rendezvous network (NUL terminated, 0 length = not present) */
     char PairingCode[kMaxPairingCodeLength+1];                  /**< Device pairing code (NUL terminated, 0 length = not present) */
     uint16_t PairingCompatibilityVersionMajor;                  /**< Major device pairing software compatibility version. */
     uint16_t PairingCompatibilityVersionMinor;                  /**< Minor device pairing software compatibility version. */
+    uint8_t Flags;                                              /**< Bit field containing additional information about the device. */
 
     void Clear(void);
 

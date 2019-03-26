@@ -34,14 +34,15 @@ namespace nl {
 namespace Weave {
 namespace Profiles {
 namespace SoftwareUpdate {
-  /// Interface for WeaveImageAnnounceServer delegate
-  /**
-   * Delegates are notified when an image announcement is received.
-   * It is their responsbility to free the exchange context and
-   * initiate an Image Query request.
-   */
-  class IWeaveImageAnnounceServerDelegate {
-    public:
+/// Interface for WeaveImageAnnounceServer delegate
+/**
+ * Delegates are notified when an image announcement is received.
+ * It is their responsbility to free the exchange context and
+ * initiate an Image Query request.
+ */
+class IWeaveImageAnnounceServerDelegate
+{
+public:
     /// Delegate function called on Image Announce
     /**
      * Called by WeaveImageAnnounceServer when image announcement is received.
@@ -50,15 +51,16 @@ namespace SoftwareUpdate {
      *        Probably still open on sender side, but this is not guaranteed.
      *        Must be closed by delegate.
      */
-    virtual void OnImageAnnounce(ExchangeContext* ec) = 0;
-  };
-  /// Server that listens for Weave image announcements
-  /**
-   * WeaveImageAnnounce server captures incoming image announcements and
-   * notifies its delegate when one has been received.
-   */
-  class WeaveImageAnnounceServer {
-  public:
+    virtual void OnImageAnnounce(ExchangeContext * ec) = 0;
+};
+/// Server that listens for Weave image announcements
+/**
+ * WeaveImageAnnounce server captures incoming image announcements and
+ * notifies its delegate when one has been received.
+ */
+class WeaveImageAnnounceServer
+{
+public:
     /// Constructor
     WeaveImageAnnounceServer(void);
     /// Initializer
@@ -70,17 +72,17 @@ namespace SoftwareUpdate {
      * @param delegate delegate, may be null
      * @returns WEAVE_NO_ERROR on success, descriptive WEAVE_ERROR value otherwise
      */
-    WEAVE_ERROR Init(WeaveExchangeManager *exchangeManager, IWeaveImageAnnounceServerDelegate *delegate);
+    WEAVE_ERROR Init(WeaveExchangeManager * exchangeManager, IWeaveImageAnnounceServerDelegate * delegate);
     /// Delegate setter
-    void SetDelegate(IWeaveImageAnnounceServerDelegate *delegate);
-  private:
+    void SetDelegate(IWeaveImageAnnounceServerDelegate * delegate);
+
+private:
     /// Handler for Weave image announcements
-    static void HandleImageAnnounce(ExchangeContext *ec, const IPPacketInfo *packetInfo,
-        const WeaveMessageInfo *msgInfo, uint32_t profileId, uint8_t msgType,
-        PacketBuffer *imageAnnouncePayload);
+    static void HandleImageAnnounce(ExchangeContext * ec, const IPPacketInfo * packetInfo, const WeaveMessageInfo * msgInfo,
+                                    uint32_t profileId, uint8_t msgType, PacketBuffer * imageAnnouncePayload);
     /// Delegate called on image announce
-    IWeaveImageAnnounceServerDelegate *mDelegate;
-  };
+    IWeaveImageAnnounceServerDelegate * mDelegate;
+};
 } // namespace SoftwareUpdate
 } // namespace Profiles
 } // namespace Weave
