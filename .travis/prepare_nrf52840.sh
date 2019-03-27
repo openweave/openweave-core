@@ -21,25 +21,26 @@
 #      Travis CI build preparation script for the nRF52840 target on Linux.
 #
 
+# Set tools download links
+#
+
 NORDIC_SDK_FOR_THREAD_URL=https://www.nordicsemi.com/-/media/Software-and-other-downloads/SDKs/nRF5-SDK-for-Thread/nRF5-SDK-for-Thread-and-Zigbee/nRF5SDKforThreadandZigbee20029775ac.zip
+
 NORDIC_COMMAND_LINE_TOOLS_URL=https://www.nordicsemi.com/-/media/Software-and-other-downloads/Desktop-software/nRF5-command-line-tools/sw/nRF-Command-Line-Tools_9_8_1_Linux-x86_64.tar
-ARM_GCC_TOOLCHAIN_URL=https://armkeil.blob.core.windows.net/developer/Files/downloads/gnu-rm/7-2018q2/gcc-arm-none-eabi-7-2018-q2-update-linux.tar.bz2
+
+ARM_GCC_TOOLCHAIN_URL=https://developer.arm.com/-/media/Files/downloads/gnu-rm/7-2018q2/gcc-arm-none-eabi-7-2018-q2-update-linux.tar.bz2
+
 TMPDIR=${TMPDIR-/tmp}
 
 # --------------------------------------------------------------------------------
 
 set -x
 
-# Install dependent packages needed by the nRF52840 development environment.
-#
-# sudo apt-get update
-# sudo apt-get -y install libncurses-dev flex bison gperf
-
 # Install Nordic nRF52840 SDK for Thread and Zigbee
 #
 
 wget -O ${TMPDIR}/nordic_sdk_for_thread.zip -nv ${NORDIC_SDK_FOR_THREAD_URL} || exit 1
-unzip -d ${TRAVIS_BUILD_DIR}/nRF52840 -q ${TMPDIR}/nordic_sdk_for_thread.zip || exit 1
+unzip -d ${TRAVIS_BUILD_DIR}/nRF5x-SDK-for-Thread-and-Zigbee -q ${TMPDIR}/nordic_sdk_for_thread.zip || exit 1
 rm ${TMPDIR}/nordic_sdk_for_thread.zip
 
 # Install Nordic nRF5x Command Line Tools
@@ -59,7 +60,7 @@ tar -jxf ${TMPDIR}/arm_gcc_toolchain.tar.bz2 --directory ${TRAVIS_BUILD_DIR}/arm
 rm ${TMPDIR}/arm_gcc_toolchain.tar.bz2
 
 # Clone the openweave-nrf52840-demo application.  This code will be used to
-# test the ability to build OpenWeave for the ESP32.
+# test the ability to build OpenWeave for the nRF52840.
 #
 # git -C ${TRAVIS_BUILD_DIR} clone https://github.com/openweave/openweave-nrf52840-demo.git || exit 1
 
@@ -94,12 +95,12 @@ set +x
 # Log relevant build information.
 #
 echo '---------------------------------------------------------------------------'
-echo 'nRf52840 Build Preparation Complete'
+echo 'nRF52840 Build Preparation Complete'
 echo ''
 echo "openweave-core branch: ${TRAVIS_BRANCH}"
 echo "Nordic SDK for Thread and Zigbee: ${NORDIC_SDK_FOR_THREAD_URL}"
-echo "Nordic nRF5x Command Line Tools: ${NORDIC_COMMAND_LINE_TOOL_URL}"
-echo "ARM GCC Toolchain: ${NORARM_GCC_TOOLCHAIN_URL}"
+echo "Nordic nRF5x Command Line Tools: ${NORDIC_COMMAND_LINE_TOOLS_URL}"
+echo "ARM GCC Toolchain: ${ARM_GCC_TOOLCHAIN_URL}"
 echo 'Commit Hashes'
 echo '  openweave-core: '`git -C ${TRAVIS_BUILD_DIR} rev-parse --short HEAD`
 echo '---------------------------------------------------------------------------'
