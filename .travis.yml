@@ -65,6 +65,8 @@ matrix:
       compiler: clang
     - name: "ESP32"
       env: BUILD_TARGET="esp32"
+    - name: "NRF52840"
+      env: BUILD_TARGET="nrf52840"
     - name: "Linux with Defaults against GCC Functional and Unit Tests"
       env: BUILD_TARGET="linux-auto-gcc-check" CC="gcc"
       os: linux
