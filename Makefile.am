@@ -53,7 +53,9 @@ EXTRA_DIST                               = \
     .travis.yml                            \
     .travis/before_install.sh              \
     .travis/build_esp32.sh                 \
+    .travis/build_nrf52840.sh              \
     .travis/prepare_esp32.sh               \
+    .travis/prepare_nrf52840.sh            \
     .travis/script.sh                      \
     bootstrap                              \
     bootstrap-configure                    \
