@@ -35,17 +35,27 @@ the OpenWeave Device Layer to the nRF52840.
 
 
 * Download and install the [Nordic nRF5x Command Line Tools](https://www.nordicsemi.com/Software-and-Tools/Development-Tools/nRF5-Command-Line-Tools)
-([Direct download link](https://www.nordicsemi.com/-/media/Software-and-other-downloads/Desktop-software/nRF5-command-line-tools/sw/nRF-Command-Line-Tools_9_8_1_Linux-x86_64.tar)) 
+(Direct download link: [Linux](https://www.nordicsemi.com/-/media/Software-and-other-downloads/Desktop-software/nRF5-command-line-tools/sw/nRF-Command-Line-Tools_9_8_1_Linux-x86_64.tar) [Mac OS X](https://www.nordicsemi.com/-/media/Software-and-other-downloads/Desktop-software/nRF5-command-line-tools/sw/nRF-Command-Line-Tools_9_8_1_OSX.tar)) 
 
 
 * Download and install a suitable ARM gcc tool chain: [GNU Arm Embedded Toolchain 7-2018-q2-update](https://developer.arm.com/open-source/gnu-toolchain/gnu-rm/downloads/7-2018-q2-update)
-([Direct download link](https://armkeil.blob.core.windows.net/developer/Files/downloads/gnu-rm/7-2018q2/gcc-arm-none-eabi-7-2018-q2-update-linux.tar.bz2)) 
+(Direct download link: [Linux](https://developer.arm.com/-/media/Files/downloads/gnu-rm/7-2018q2/gcc-arm-none-eabi-7-2018-q2-update-linux.tar.bz2) [Mac OS X](https://developer.arm.com/-/media/Files/downloads/gnu-rm/7-2018q2/gcc-arm-none-eabi-7-2018-q2-update-mac.tar.bz2)) 
 
+
+* Install some necessary components:
+
+        # On Linux...
+        sudo apt-get install ccache
+
+        # On Mac OS X...
+        brew install --HEAD ccache
+
+<p style="margin-left: 40px">NOTE: On Mac OS X systems that don't have brew, you will need to download, build and install ccache from ccache.samba.org [<a href="https://ccache.samba.org/download.html">Download link</a>].</p>
 
 * Set the following environment variables based on the locations/versions of the above packages:
 
-        export NRF5_SDK_ROOT=${HOME}/tools/nRF52840/nRF5_SDK_for_Thread_and_Zigbee_2.0.0_29775ac
-        export NRF5_TOOLS_ROOT=${HOME}/tools/nRF5x-Command-Line-Tools
+        export NRF5_SDK_ROOT=${HOME}/tools/nRF5_SDK_for_Thread_and_Zigbee
+        export NRF5_TOOLS_ROOT=${HOME}/tools/nRFe-Command-Line-Tools
         export GNU_INSTALL_ROOT=${HOME}/tools/gcc-arm-none-eabi-7-2018-q2-update/bin/
         export GNU_VERSION=7.3.1
         export PATH=${PATH}:${NRF5_TOOLS_ROOT}/nrfjprog
@@ -97,16 +107,27 @@ It allows bi-directional communication with an embedded application without the 
 
 Using the RTT facility requires downloading and installing the *SEGGER J-Link Software and Documentation Pack* ([web site](https://www.segger.com/downloads/jlink#J-LinkSoftwareAndDocumentationPack)).
 
-* Download the Linux DEB installer by navigating to the following URL and agreeing to the license agreement. 
+* Download the J-Link installer by navigating to the appropriate URL and agreeing to the license agreement. 
 
-<p style="margin-left: 40px"><a href="https://www.segger.com/downloads/jlink/JLink_Linux_x86_64.rpm">JLink_Linux_x86_64.rpm</a></p>
+<p style="margin-left: 40px">Linux: <a href="https://www.segger.com/downloads/jlink/JLink_Linux_x86_64.deb">JLink_Linux_x86_64.deb</a></p>
+<p style="margin-left: 40px">MacOS: <a href="https://www.segger.com/downloads/jlink/JLink\_MacOSX.pkg">JLink_MacOSX.pkg</a></p>
 
 * Install the J-Link software
 
+        # On Linux...
         $ cd ~/Downloads
-        $ dpkg -i JLink_Linux_V*_x86_64.rpm
+        $ sudo dpkg -i JLink_Linux_V*_x86_64.deb
 
-Once the J-Link software is installed, log output can be viewed using the JLinkExe tool in combination with JLinkRTTClient.
+        # On Mac OS X...
+        $ cd ~/Downloads
+        $ sudo installer -pkg JLink_MacOSX_V*.pkg
+
+
+* In Linux, grant the logged in user the ability to talk to the development hardware via the linux tty device (/dev/ttyACMx) by adding them to the dialout group.
+
+        $ sudo usermod -a -G dialout ${USER} 
+
+Once the above is complete, log output can be viewed using the JLinkExe tool in combination with JLinkRTTClient as follows:
 
 * Run the JLinkExe tool with arguments to autoconnect to the nRF82480 DK board:
 
