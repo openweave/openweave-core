@@ -21,8 +21,8 @@
 #      Travis CI build script for nRF52840 integration builds.
 #
 
-# Export NRF5_SDK_ROOT variable pointing to the nRF52840 SDK for Thread and Zigbee.
-export NRF5_SDK_ROOT=${TRAVIS_BUILD_DIR}/nRF52840/nRF5_SDK_for_Thread_and_Zigbee_2.0.0_29775ac
+# Export NRF5_SDK_ROOT variable pointing to the nRF5x SDK for Thread and Zigbee.
+export NRF5_SDK_ROOT=${TRAVIS_BUILD_DIR}/nRF5x-SDK-for-Thread-and-Zigbee
 
 # Export NRF5_TOOLS_ROOT variable pointing to the nRF5x command line tools.
 export NRF5_TOOLS_ROOT=${TRAVIS_BUILD_DIR}/nRF5x-Command-Line-Tools
