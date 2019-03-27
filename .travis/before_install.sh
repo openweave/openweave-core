@@ -94,6 +94,11 @@ case "${BUILD_TARGET}" in
 
         ;;
 
+    nrf52840)
+        .travis/prepare_nrf52840.sh
+
+        ;;
+
     osx-auto-clang|osx-lwip-clang)
         # By default, OpenWeave Core uses OpenSSL for cryptography on
         # OS X and the OpenSSL version included in package depends
