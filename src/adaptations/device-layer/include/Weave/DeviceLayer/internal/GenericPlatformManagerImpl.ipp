@@ -236,6 +236,14 @@ WEAVE_ERROR GenericPlatformManagerImpl<ImplClass>::_InitWeaveStack(void)
     }
     SuccessOrExit(err);
 
+    // Initialize the Event Logging Manager object.
+    err = EventLoggingMgr().Init();
+    if (err != WEAVE_NO_ERROR)
+    {
+        WeaveLogError(DeviceLayer, "Event Logging Manager initialization failed: %s", ErrorStr(err));
+    }
+    SuccessOrExit(err);
+
     // Initialize the Trait Manager object.
 #if WEAVE_DEVICE_CONFIG_ENABLE_TRAIT_MANAGER
     err = TraitMgr().Init();

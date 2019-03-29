@@ -34,6 +34,7 @@ namespace DeviceLayer {
 
 class PlatformManagerImpl;
 class ConfigurationManagerImpl;
+class EventLoggingManager;
 class TraitManager;
 namespace Internal {
 template<class> class GenericPlatformManagerImpl;
@@ -97,6 +98,8 @@ public:
     WEAVE_ERROR GetQRCodeString(char * buf, size_t bufSize);
 
     WEAVE_ERROR GetWiFiAPSSID(char * buf, size_t bufSize);
+
+    void GetEventIdCounterStorageKeys(::nl::Weave::Platform::PersistedStorage::Key * eidcStorageKeys);
 
     bool IsServiceProvisioned();
     bool IsPairedToAccount();
@@ -360,6 +363,11 @@ inline WEAVE_ERROR ConfigurationManager::GetQRCodeString(char * buf, size_t bufS
 inline WEAVE_ERROR ConfigurationManager::GetWiFiAPSSID(char * buf, size_t bufSize)
 {
     return static_cast<ImplClass*>(this)->_GetWiFiAPSSID(buf, bufSize);
+}
+
+inline void ConfigurationManager::GetEventIdCounterStorageKeys(::nl::Weave::Platform::PersistedStorage::Key * eidcStorageKeys)
+{
+    static_cast<ImplClass*>(this)->_GetEventIdCounterStorageKeys(eidcStorageKeys);
 }
 
 inline bool ConfigurationManager::IsServiceProvisioned()

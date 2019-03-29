@@ -51,6 +51,7 @@ noinst_HEADERS                          = \
     include/Weave/DeviceLayer/nRF5/nRF5Config.h \
     include/Weave/DeviceLayer/nRF5/WeaveDevicePlatformConfig.h \
     include/Weave/DeviceLayer/nRF5/WeaveDevicePlatformEvent.h \
+    include/Weave/DeviceLayer/EventLoggingManager.h \
     include/Weave/DeviceLayer/FreeRTOS/GenericPlatformManagerImpl_FreeRTOS.h \
     include/Weave/DeviceLayer/FreeRTOS/GenericPlatformManagerImpl_FreeRTOS.ipp \
     include/Weave/DeviceLayer/GeneralUtils.h \
@@ -104,6 +105,7 @@ libDeviceLayer_a_SOURCES                = \
     DeviceIdentityTraitDataSource.cpp     \
     DeviceNetworkInfo.cpp                 \
     EchoServer.cpp                        \
+    EventLoggingManager.cpp               \
     FabricProvisioningServer.cpp          \
     GeneralUtils.cpp                      \
     Globals.cpp                           \

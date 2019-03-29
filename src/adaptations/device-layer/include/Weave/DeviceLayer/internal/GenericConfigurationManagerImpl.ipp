@@ -616,6 +616,21 @@ exit:
 }
 
 template<class ImplClass>
+void GenericConfigurationManagerImpl<ImplClass>::_GetEventIdCounterStorageKeys(::nl::Weave::Platform::PersistedStorage::Key * eidcStorageKeys)
+{
+    int i = 0;
+
+#if WEAVE_DEVICE_CONFIG_EVENT_LOGGING_DEBUG_EVENTS
+    eidcStorageKeys[i++] = ImplClass::GetRecordKey(ImplClass::kConfigKey_DebugEventIdCounter);
+#endif
+#if WEAVE_DEVICE_CONFIG_EVENT_LOGGING_INFO_EVENTS
+    eidcStorageKeys[i++] = ImplClass::GetRecordKey(ImplClass::kConfigKey_InfoEventIdCounter);
+#endif
+    eidcStorageKeys[i++] = ImplClass::GetRecordKey(ImplClass::kConfigKey_ProdEventIdCounter);
+    eidcStorageKeys[i]   = ImplClass::GetRecordKey(ImplClass::kConfigKey_CritEventIdCounter);
+}
+
+template<class ImplClass>
 bool GenericConfigurationManagerImpl<ImplClass>::_IsServiceProvisioned()
 {
     return ::nl::GetFlag(mFlags, kFlag_IsServiceProvisioned);

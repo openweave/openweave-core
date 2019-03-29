@@ -657,4 +657,96 @@
 #define WEAVE_DEVICE_CONFIG_DEFAULT_TUNNEL_TELEMETRY_INTERVAL_MS 300000
 #endif
 
+// -------------------- Event Logging Configuration --------------------
+
+/**
+ * @def WEAVE_DEVICE_CONFIG_EVENT_LOGGING_DEBUG_BUFFER_SIZE
+ *
+ * @brief
+ *   A size, in bytes, of the individual debug event logging buffer.
+ *   Note: set to 0 to disable debug event buffer.
+ */
+#ifndef WEAVE_DEVICE_CONFIG_EVENT_LOGGING_DEBUG_BUFFER_SIZE
+#define WEAVE_DEVICE_CONFIG_EVENT_LOGGING_DEBUG_BUFFER_SIZE (256)
+#endif
+
+/**
+ * @def WEAVE_DEVICE_CONFIG_EVENT_LOGGING_DEBUG_EVENTS
+ *
+ * @brief
+ *   Bool if the debug buffer for events exists
+ */
+#if WEAVE_DEVICE_CONFIG_EVENT_LOGGING_DEBUG_BUFFER_SIZE
+#define WEAVE_DEVICE_CONFIG_EVENT_LOGGING_DEBUG_EVENTS (1)
+#else
+#define WEAVE_DEVICE_CONFIG_EVENT_LOGGING_DEBUG_EVENTS (0)
+#endif
+
+/**
+ * @def WEAVE_DEVICE_CONFIG_EVENT_LOGGING_INFO_BUFFER_SIZE
+ *
+ * @brief
+ *   A size, in bytes, of the individual info event logging buffer.
+ *   Note: set to 0 to disable info event buffer.
+ */
+#ifndef WEAVE_DEVICE_CONFIG_EVENT_LOGGING_INFO_BUFFER_SIZE
+#define WEAVE_DEVICE_CONFIG_EVENT_LOGGING_INFO_BUFFER_SIZE (512)
+#endif
+
+/**
+ * @def WEAVE_DEVICE_CONFIG_EVENT_LOGGING_INFO_EVENTS
+ *
+ * @brief
+ *   Bool if the info buffer for events exists
+ */
+#if WEAVE_DEVICE_CONFIG_EVENT_LOGGING_INFO_BUFFER_SIZE
+#define WEAVE_DEVICE_CONFIG_EVENT_LOGGING_INFO_EVENTS (1)
+#else
+#define WEAVE_DEVICE_CONFIG_EVENT_LOGGING_INFO_EVENTS (0)
+#endif
+
+/**
+ * @def WEAVE_DEVICE_CONFIG_EVENT_LOGGING_PROD_BUFFER_SIZE
+ *
+ * @brief
+ *   A size, in bytes, of the individual production event logging buffer.
+ *   Note: the production event buffer must exist.
+ */
+#ifndef WEAVE_DEVICE_CONFIG_EVENT_LOGGING_PROD_BUFFER_SIZE
+#define WEAVE_DEVICE_CONFIG_EVENT_LOGGING_PROD_BUFFER_SIZE (512)
+#endif
+
+#if (WEAVE_DEVICE_CONFIG_EVENT_LOGGING_PROD_BUFFER_SIZE <= 0)
+#error "The Prod event buffer must exist (WEAVE_DEVICE_CONFIG_EVENT_LOGGING_PROD_BUFFER_SIZE > 0)"
+#endif
+
+/**
+ * @def WEAVE_DEVICE_CONFIG_EVENT_LOGGING_CRIT_BUFFER_SIZE
+ *
+ * @brief
+ *   A size, in bytes, of the individual critical event logging buffer.
+ *   Note: the critical event buffer must exist.
+ */
+#ifndef WEAVE_DEVICE_CONFIG_EVENT_LOGGING_CRIT_BUFFER_SIZE
+#define WEAVE_DEVICE_CONFIG_EVENT_LOGGING_CRIT_BUFFER_SIZE (1024)
+#endif
+
+#if (WEAVE_DEVICE_CONFIG_EVENT_LOGGING_CRIT_BUFFER_SIZE <= 0)
+#error "The Prod critical event buffer must exist (WEAVE_DEVICE_CONFIG_EVENT_LOGGING_CRIT_BUFFER_SIZE > 0)"
+#endif
+
+#define WEAVE_DEVICE_CONFIG_EVENT_LOGGING_NUM_BUFFERS  (2 +    \
+     WEAVE_DEVICE_CONFIG_EVENT_LOGGING_INFO_EVENTS +           \
+     WEAVE_DEVICE_CONFIG_EVENT_LOGGING_DEBUG_EVENTS)
+
+/**
+ *  @def WEAVE_DEVICE_CONFIG_EVENT_ID_COUNTER_EPOCH
+ *
+ *  @brief
+ *    The event id counter persisted storage epoch.
+ */
+#ifndef WEAVE_DEVICE_CONFIG_EVENT_ID_COUNTER_EPOCH
+#define WEAVE_DEVICE_CONFIG_EVENT_ID_COUNTER_EPOCH   (0x10000)
+#endif
+
 #endif // WEAVE_DEVICE_CONFIG_H

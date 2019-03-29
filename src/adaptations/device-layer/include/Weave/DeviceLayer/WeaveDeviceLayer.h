@@ -31,6 +31,7 @@
 #if WEAVE_DEVICE_CONFIG_ENABLE_TRAIT_MANAGER
 #include <Weave/DeviceLayer/TraitManager.h>
 #endif // WEAVE_DEVICE_CONFIG_ENABLE_TRAIT_MANAGER
+#include <Weave/DeviceLayer/EventLoggingManager.h>
 #include <Weave/DeviceLayer/TimeSyncManager.h>
 #if WEAVE_DEVICE_CONFIG_ENABLE_THREAD
 #include <Weave/DeviceLayer/ThreadStackManager.h>

@@ -41,7 +41,6 @@ constexpr inline uint32_t NRF5ConfigKey(uint16_t fileId, uint16_t recordId)
     return static_cast<uint32_t>(fileId) << 16 | recordId;
 }
 
-
 /**
  * Provides functions and definitions for accessing persisted device configuration
  * on platforms based on the Nordic nRF5 SDK.
@@ -90,6 +89,10 @@ public:
     static constexpr Key kConfigKey_LastUsedEpochKeyId          = NRF5ConfigKey(kFileId_WeaveConfig,  0x000C);
     static constexpr Key kConfigKey_FailSafeArmed               = NRF5ConfigKey(kFileId_WeaveConfig,  0x000D);
     static constexpr Key kConfigKey_GroupKey                    = NRF5ConfigKey(kFileId_WeaveConfig,  0x000E);
+    static constexpr Key kConfigKey_DebugEventIdCounter         = NRF5ConfigKey(kFileId_WeaveCounter, 0x000F);
+    static constexpr Key kConfigKey_InfoEventIdCounter          = NRF5ConfigKey(kFileId_WeaveCounter, 0x0010);
+    static constexpr Key kConfigKey_ProdEventIdCounter          = NRF5ConfigKey(kFileId_WeaveCounter, 0x0011);
+    static constexpr Key kConfigKey_CritEventIdCounter          = NRF5ConfigKey(kFileId_WeaveCounter, 0x0012);
 
     // Range of FDS record keys used to store Weave persisted counter values.
     static constexpr uint16_t kPersistedCounterRecordKeyBase    = kFDSRecordKeyMin;

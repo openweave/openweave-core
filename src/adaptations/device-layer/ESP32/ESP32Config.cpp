@@ -56,6 +56,12 @@ const ESP32Config::Key ESP32Config::kConfigKey_LastUsedEpochKeyId      = { kConf
 const ESP32Config::Key ESP32Config::kConfigKey_FailSafeArmed           = { kConfigNamespace_WeaveConfig,  "fail-safe-armed"    };
 const ESP32Config::Key ESP32Config::kConfigKey_WiFiStationSecType      = { kConfigNamespace_WeaveConfig,  "sta-sec-type"       };
 
+// Keys stored in the weave-counters namespace
+const ESP32Config::Key ESP32Config::kConfigKey_DebugEventIdCounter     = { kConfigNamespace_WeaveCounters, "debug-eidc"        };
+const ESP32Config::Key ESP32Config::kConfigKey_InfoEventIdCounter      = { kConfigNamespace_WeaveCounters, "info-eidc"         };
+const ESP32Config::Key ESP32Config::kConfigKey_ProdEventIdCounter      = { kConfigNamespace_WeaveCounters, "production-eidc"   };
+const ESP32Config::Key ESP32Config::kConfigKey_CritEventIdCounter      = { kConfigNamespace_WeaveCounters, "critical-eidc"     };
+
 // Prefix used for NVS keys that contain Weave group encryption keys.
 const char ESP32Config::kGroupKeyNamePrefix[]                        = "gk-";
 

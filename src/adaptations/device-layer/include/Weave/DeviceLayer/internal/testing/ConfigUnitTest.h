@@ -44,6 +44,18 @@ void RunConfigUnitTest(void)
         VerifyOrDie(err == WEAVE_NO_ERROR);
 
         VerifyOrDie(v == 42);
+
+        v = 0xAA99FF03;
+
+        err = ConfigClass::WriteConfigValue(ConfigClass::kConfigKey_CritEventIdCounter, v);
+        VerifyOrDie(err == WEAVE_NO_ERROR);
+
+        v = 0;
+
+        err = ConfigClass::ReadConfigValue(ConfigClass::kConfigKey_CritEventIdCounter, v);
+        VerifyOrDie(err == WEAVE_NO_ERROR);
+
+        VerifyOrDie(v == 0xAA99FF03);
     }
 
     // ===== Test 2: Store and read uint64_t
@@ -181,6 +193,12 @@ void RunConfigUnitTest(void)
         v = ConfigClass::ConfigValueExists(ConfigClass::kConfigKey_FailSafeArmed);
         VerifyOrDie(v == true);
 
+        v = ConfigClass::ConfigValueExists(ConfigClass::kConfigKey_CritEventIdCounter);
+        VerifyOrDie(v == true);
+
+        v = ConfigClass::ConfigValueExists(ConfigClass::kConfigKey_DebugEventIdCounter);
+        VerifyOrDie(v == false);
+
         v = ConfigClass::ConfigValueExists(ConfigClass::kConfigKey_DeviceCert);
         VerifyOrDie(v == false);
     }
@@ -196,6 +214,12 @@ void RunConfigUnitTest(void)
         VerifyOrDie(v == true);
 
         v = ConfigClass::ConfigValueExists(ConfigClass::kConfigKey_FailSafeArmed);
+        VerifyOrDie(v == false);
+
+        v = ConfigClass::ConfigValueExists(ConfigClass::kConfigKey_CritEventIdCounter);
+        VerifyOrDie(v == true);
+
+        v = ConfigClass::ConfigValueExists(ConfigClass::kConfigKey_DebugEventIdCounter);
         VerifyOrDie(v == false);
     }
 }

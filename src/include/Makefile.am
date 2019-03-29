@@ -968,6 +968,7 @@ nl_public_WeaveDeviceLayer_destination_dirstem = Weave/DeviceLayer
 nl_public_WeaveDeviceLayer_base_header_sources =                                      \
 $(nl_public_WeaveDeviceLayer_source_dirstem)/ConfigurationManager.h                   \
 $(nl_public_WeaveDeviceLayer_source_dirstem)/ConnectivityManager.h                    \
+$(nl_public_WeaveDeviceLayer_source_dirstem)/EventLoggingManager.h                    \
 $(nl_public_WeaveDeviceLayer_source_dirstem)/GeneralUtils.h                           \
 $(nl_public_WeaveDeviceLayer_source_dirstem)/NetworkTelemetryManager.h                \
 $(nl_public_WeaveDeviceLayer_source_dirstem)/PlatformManager.h                        \

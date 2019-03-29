@@ -85,6 +85,7 @@ public:
     WEAVE_ERROR _GetDeviceDescriptorTLV(uint8_t * buf, size_t bufSize, size_t & encodedLen);
     WEAVE_ERROR _GetQRCodeString(char * buf, size_t bufSize);
     WEAVE_ERROR _GetWiFiAPSSID(char * buf, size_t bufSize);
+    void _GetEventIdCounterStorageKeys(::nl::Weave::Platform::PersistedStorage::Key * eidcStorageKeys);
     bool _IsServiceProvisioned();
     bool _IsMemberOfFabric();
     bool _IsPairedToAccount();
@@ -140,4 +141,3 @@ inline WEAVE_ERROR GenericConfigurationManagerImpl<ImplClass>::_GetProductRevisi
 } // namespace nl
 
 #endif // GENERIC_CONFIGURATION_MANAGER_IMPL_H
-
