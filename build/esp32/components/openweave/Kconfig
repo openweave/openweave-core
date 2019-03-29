@@ -751,4 +751,46 @@ menu "OpenWeave Device Layer"
     
     endmenu
 
+    menu "Event Logging Options"
+
+        config EVENT_LOGGING_CRIT_BUFFER_SIZE
+            int "Event Logging Critical Production Buffer Size"
+            range 0 65535
+            default 4096
+            help
+                A size, in bytes, of the individual critical production event logging buffer.
+
+                This critical production event buffer must exist.
+
+        config EVENT_LOGGING_PROD_BUFFER_SIZE
+            int "Event Logging Production Buffer Size"
+            range 0 65535
+            default 2048
+            help
+                A size, in bytes, of the individual production event logging buffer.
+
+                This critical production event buffer must exist.
+
+        config EVENT_LOGGING_INFO_BUFFER_SIZE
+            int "Event Logging Info Buffer Size"
+            range 0 65535
+            default 1024
+            help
+                A size, in bytes, of the individual info event logging buffer.
+
+                When size is set to 0, the info event buffer and all support
+                for the info level events are disabled.
+
+        config EVENT_LOGGING_DEBUG_BUFFER_SIZE
+            int "Event Logging Debug Buffer Size"
+            range 0 65535
+            default 1024
+            help
+                A size, in bytes, of the individual debug event logging buffer.
+
+                When size is set to 0, the debug event buffer and all support
+                for the debug level events are disabled.
+
+    endmenu
+
 endmenu
