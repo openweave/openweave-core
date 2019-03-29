@@ -522,19 +522,20 @@ WEAVE_ERROR TraitSchemaEngine::StoreData(PropertyPathHandle aHandle, TLVReader &
                     curHandle = GetChildHandle(parentHandle, TagNumFromTag(tag));
                 }
 
-                if (IsDictionary(curHandle)) {
-                    // If we're descending onto a node that is a dictionary, we know for certain that it is a replace operation
-                    // since the target path handle for this function was higher in the tree than the node representing the
-                    // dictionary itself.
-                    aDelegate->OnDataSinkEvent(ISetDataDelegate::kDataSinkEvent_DictionaryReplaceBegin, curHandle);
-                } else if (IsDictionary(parentHandle)) {
-                    // Alternatively, if we're descending onto a node whose parent is a dictionary, we know that this node
-                    // represents an element in the dictionary and as such, is an appropriate point in the traversal to notify the
-                    // application of an upcoming dictionary item modification/insertion.
-                    aDelegate->OnDataSinkEvent(ISetDataDelegate::kDataSinkEvent_DictionaryItemModifyBegin,
-                                               curHandle);
+                if (!(apPathFilter != NULL && apPathFilter->FilterPath(curHandle))) {
+                    if (IsDictionary(curHandle)) {
+                        // If we're descending onto a node that is a dictionary, we know for certain that it is a replace operation
+                        // since the target path handle for this function was higher in the tree than the node representing the
+                        // dictionary itself.
+                        aDelegate->OnDataSinkEvent(ISetDataDelegate::kDataSinkEvent_DictionaryReplaceBegin, curHandle);
+                    } else if (IsDictionary(parentHandle)) {
+                        // Alternatively, if we're descending onto a node whose parent is a dictionary, we know that this node
+                        // represents an element in the dictionary and as such, is an appropriate point in the traversal to notify the
+                        // application of an upcoming dictionary item modification/insertion.
+                        aDelegate->OnDataSinkEvent(ISetDataDelegate::kDataSinkEvent_DictionaryItemModifyBegin,
+                                                   curHandle);
+                    }
                 }
-
 #if !TDM_DISABLE_STRICT_SCHEMA_COMPLIANCE
                 if (IsNullPropertyPathHandle(curHandle)) {
                     err = WEAVE_ERROR_TLV_TAG_NOT_FOUND;

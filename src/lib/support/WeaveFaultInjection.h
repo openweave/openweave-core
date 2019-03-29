@@ -53,6 +53,7 @@ typedef enum
 {
     kFault_AllocExchangeContext,                /**< Fail the allocation of an ExchangeContext */
     kFault_DropIncomingUDPMsg,                  /**< Drop an incoming UDP message without any processing */
+    kFault_DropOutgoingUDPMsg,                  /**< Drop an outgoing UDP message at the Weave Message layer */
     kFault_AllocBinding,                        /**< Fail the allocation of a Binding */
     kFault_SendAlarm,                           /**< Fail to send an alarm message */
     kFault_HandleAlarm,                         /**< Fail to handle an alarm message */
@@ -87,6 +88,7 @@ typedef enum
     kFault_WDM_UpdateRequestSendErrorInline,    /**< Inject an inline Inet Send error for the UpdateRequest */
     kFault_WDM_UpdateRequestSendErrorAsync,     /**< Inject a WRM SendError for the UpdateRequest */
     kFault_WDM_UpdateRequestBadProfile,         /**< Inject an invalid Profile ID in the UpdateRequest */
+    kFault_WDM_UpdateRequestDropMessage,        /**< Drop an outgoing WDM UpdateRequest message using the DropOutgoingUDPMsg fault */
     kFault_WDM_UpdateResponseBusy,              /**< Inject a status code busy in the StatusList */
     kFault_WDM_PathStoreFull,                   /**< Inject a WDM_PATH_STORE_FULL error */
     kFault_WDM_TreatNotifyAsCancel,             /**< Process a Notify request as a CancelSubscription request */
