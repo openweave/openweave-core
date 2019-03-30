@@ -930,11 +930,6 @@ $(nl_public_WeaveDeviceLayer_source_dirstem)/ESP32/WeaveDevicePlatformConfig.h  
 $(nl_public_WeaveDeviceLayer_source_dirstem)/ESP32/WeaveDevicePlatformEvent.h                       \
 $(NULL)
 
-nl_public_WeaveDeviceLayer_freertos_header_sources =                                                \
-$(nl_public_WeaveDeviceLayer_source_dirstem)/FreeRTOS/GenericPlatformManagerImpl_FreeRTOS.h         \
-$(nl_public_WeaveDeviceLayer_source_dirstem)/FreeRTOS/GenericPlatformManagerImpl_FreeRTOS.ipp       \
-$(NULL)
-
 endif # WEAVE_DEVICE_LAYER_TARGET_ESP32
 
 if WEAVE_DEVICE_LAYER_TARGET_NRF5
@@ -950,25 +945,6 @@ $(nl_public_WeaveDeviceLayer_source_dirstem)/nRF5/GroupKeyStoreImpl.h           
 $(nl_public_WeaveDeviceLayer_source_dirstem)/nRF5/NetworkProvisioningServerImpl.h                   \
 $(nl_public_WeaveDeviceLayer_source_dirstem)/nRF5/WeaveDevicePlatformConfig.h                       \
 $(nl_public_WeaveDeviceLayer_source_dirstem)/nRF5/WeaveDevicePlatformEvent.h                        \
-$(NULL)
-
-nl_public_WeaveDeviceLayer_openthread_header_sources =                                              \
-$(nl_public_WeaveDeviceLayer_source_dirstem)/OpenThread/GenericThreadStackManagerImpl_OpenThread.h  \
-$(nl_public_WeaveDeviceLayer_source_dirstem)/OpenThread/GenericThreadStackManagerImpl_OpenThread.ipp \
-$(nl_public_WeaveDeviceLayer_source_dirstem)/OpenThread/OpenThreadUtils.h                           \
-$(NULL)
-
-nl_public_WeaveDeviceLayer_freertos_header_sources =                                                \
-$(nl_public_WeaveDeviceLayer_source_dirstem)/FreeRTOS/GenericThreadStackManagerImpl_FreeRTOS.h      \
-$(nl_public_WeaveDeviceLayer_source_dirstem)/FreeRTOS/GenericThreadStackManagerImpl_FreeRTOS.ipp    \
-$(nl_public_WeaveDeviceLayer_source_dirstem)/FreeRTOS/GenericPlatformManagerImpl_FreeRTOS.h         \
-$(nl_public_WeaveDeviceLayer_source_dirstem)/FreeRTOS/GenericPlatformManagerImpl_FreeRTOS.ipp       \
-$(NULL)
-
-nl_public_WeaveDeviceLayer_lwip_header_sources =                                                    \
-$(nl_public_WeaveDeviceLayer_source_dirstem)/LwIP/GenericThreadStackManagerImpl_LwIP.h              \
-$(nl_public_WeaveDeviceLayer_source_dirstem)/LwIP/GenericThreadStackManagerImpl_LwIP.ipp            \
-$(nl_public_WeaveDeviceLayer_source_dirstem)/LwIP/WarmSupport.h                                     \
 $(NULL)
 
 endif # WEAVE_DEVICE_LAYER_TARGET_NRF5
@@ -1021,6 +997,25 @@ nl_public_WeaveDeviceLayer_internal_testing_header_sources =                    
 $(nl_public_WeaveDeviceLayer_source_dirstem)/internal/testing/ConfigUnitTest.h        \
 $(nl_public_WeaveDeviceLayer_source_dirstem)/internal/testing/GroupKeyStoreUnitTest.h \
 $(nl_public_WeaveDeviceLayer_source_dirstem)/internal/testing/SystemClockUnitTest.h   \
+$(NULL)
+
+nl_public_WeaveDeviceLayer_openthread_header_sources =                                              \
+$(nl_public_WeaveDeviceLayer_source_dirstem)/OpenThread/GenericThreadStackManagerImpl_OpenThread.h  \
+$(nl_public_WeaveDeviceLayer_source_dirstem)/OpenThread/GenericThreadStackManagerImpl_OpenThread.ipp \
+$(nl_public_WeaveDeviceLayer_source_dirstem)/OpenThread/OpenThreadUtils.h                           \
+$(NULL)
+
+nl_public_WeaveDeviceLayer_freertos_header_sources =                                                \
+$(nl_public_WeaveDeviceLayer_source_dirstem)/FreeRTOS/GenericThreadStackManagerImpl_FreeRTOS.h      \
+$(nl_public_WeaveDeviceLayer_source_dirstem)/FreeRTOS/GenericThreadStackManagerImpl_FreeRTOS.ipp    \
+$(nl_public_WeaveDeviceLayer_source_dirstem)/FreeRTOS/GenericPlatformManagerImpl_FreeRTOS.h         \
+$(nl_public_WeaveDeviceLayer_source_dirstem)/FreeRTOS/GenericPlatformManagerImpl_FreeRTOS.ipp       \
+$(NULL)
+
+nl_public_WeaveDeviceLayer_lwip_header_sources =                                                    \
+$(nl_public_WeaveDeviceLayer_source_dirstem)/LwIP/GenericThreadStackManagerImpl_LwIP.h              \
+$(nl_public_WeaveDeviceLayer_source_dirstem)/LwIP/GenericThreadStackManagerImpl_LwIP.ipp            \
+$(nl_public_WeaveDeviceLayer_source_dirstem)/LwIP/WarmSupport.h                                     \
 $(NULL)
 
 nl_public_WeaveDeviceLayer_header_sources = \
