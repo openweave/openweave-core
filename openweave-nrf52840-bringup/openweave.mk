@@ -43,15 +43,17 @@ WEAVE_CXXFLAGS              += $(CXXFLAGS)
 
 # Misc tools and associated values
 INSTALL                     := /usr/bin/install
-INSTALLFLAGS                := --compare -v
+INSTALLFLAGS                := -C -v
+RANLIB                      := $(GNU_INSTALL_ROOT)/arm-none-eabi-ranlib
+
 
 # TODO: FIX THIS!!!
-WEAVE_CC = ccache $(GNU_INSTALL_ROOT)/arm-none-eabi-gcc
-WEAVE_CXX = ccache $(GNU_INSTALL_ROOT)/arm-none-eabi-g++
+WEAVE_CC = $(CCACHE) $(GNU_INSTALL_ROOT)/arm-none-eabi-gcc
+WEAVE_CXX = $(CCACHE) $(GNU_INSTALL_ROOT)/arm-none-eabi-g++
 AR = $(GNU_INSTALL_ROOT)/arm-none-eabi-ar
 
 # OpenWeave configuration options
-CONFIGURE_OPTIONS       	:= AR="$(AR)" CC="$(WEAVE_CC)" CXX="$(WEAVE_CXX)" LD="$(LD)" OBJCOPY="$(OBJCOPY)" \
+CONFIGURE_OPTIONS       	:= AR="$(AR)" CC="$(WEAVE_CC)" CXX="$(WEAVE_CXX)" LD="$(LD)" OBJCOPY="$(OBJCOPY)" RANLIB="$(RANLIB)" \
                                INSTALL="$(INSTALL) $(INSTALLFLAGS)" \
                                CPPFLAGS="$(WEAVE_CPPFLAGS)" \
                                CXXFLAGS="$(WEAVE_CXXFLAGS)" \
