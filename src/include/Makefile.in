@@ -1346,6 +1346,7 @@ dist_weave_common_HEADERS = $(addprefix ../,$(nl_public_WeaveCommon_header_sourc
 @CONFIG_DEVICE_LAYER_TRUE@$(nl_public_WeaveDeviceLayer_source_dirstem)/ConfigurationManager.h                   \
 @CONFIG_DEVICE_LAYER_TRUE@$(nl_public_WeaveDeviceLayer_source_dirstem)/ConnectivityManager.h                    \
 @CONFIG_DEVICE_LAYER_TRUE@$(nl_public_WeaveDeviceLayer_source_dirstem)/GeneralUtils.h                           \
+@CONFIG_DEVICE_LAYER_TRUE@$(nl_public_WeaveDeviceLayer_source_dirstem)/NetworkTelemetryManager.h                \
 @CONFIG_DEVICE_LAYER_TRUE@$(nl_public_WeaveDeviceLayer_source_dirstem)/PlatformManager.h                        \
 @CONFIG_DEVICE_LAYER_TRUE@$(nl_public_WeaveDeviceLayer_source_dirstem)/ThreadStackManager.h                     \
 @CONFIG_DEVICE_LAYER_TRUE@$(nl_public_WeaveDeviceLayer_source_dirstem)/TimeSyncManager.h                        \
@@ -1354,6 +1355,10 @@ dist_weave_common_HEADERS = $(addprefix ../,$(nl_public_WeaveCommon_header_sourc
 @CONFIG_DEVICE_LAYER_TRUE@$(nl_public_WeaveDeviceLayer_source_dirstem)/WeaveDeviceError.h                       \
 @CONFIG_DEVICE_LAYER_TRUE@$(nl_public_WeaveDeviceLayer_source_dirstem)/WeaveDeviceEvent.h                       \
 @CONFIG_DEVICE_LAYER_TRUE@$(nl_public_WeaveDeviceLayer_source_dirstem)/WeaveDeviceLayer.h                       \
+@CONFIG_DEVICE_LAYER_TRUE@$(nl_public_WeaveDeviceLayer_source_dirstem)/../../../trait-support/nest/trait/network/TelemetryNetworkTrait.h     \
+@CONFIG_DEVICE_LAYER_TRUE@$(nl_public_WeaveDeviceLayer_source_dirstem)/../../../trait-support/nest/trait/network/TelemetryNetworkWifiTrait.h \
+@CONFIG_DEVICE_LAYER_TRUE@$(nl_public_WeaveDeviceLayer_source_dirstem)/../../../trait-support/nest/trait/network/TelemetryNetworkWpanTrait.h \
+@CONFIG_DEVICE_LAYER_TRUE@$(nl_public_WeaveDeviceLayer_source_dirstem)/../../../trait-support/weave/trait/telemetry/tunnel/TelemetryTunnelTrait.h \
 @CONFIG_DEVICE_LAYER_TRUE@$(NULL)
 
 @CONFIG_DEVICE_LAYER_TRUE@nl_public_WeaveDeviceLayer_internal_header_sources = \

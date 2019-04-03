@@ -54,6 +54,7 @@ noinst_HEADERS                          = \
     include/Weave/DeviceLayer/FreeRTOS/GenericPlatformManagerImpl_FreeRTOS.h \
     include/Weave/DeviceLayer/FreeRTOS/GenericPlatformManagerImpl_FreeRTOS.ipp \
     include/Weave/DeviceLayer/GeneralUtils.h \
+    include/Weave/DeviceLayer/NetworkTelemetryManager.h \
     include/Weave/DeviceLayer/PlatformManager.h \
     include/Weave/DeviceLayer/TimeSyncManager.h \
     include/Weave/DeviceLayer/TraitManager.h \
@@ -79,7 +80,11 @@ noinst_HEADERS                          = \
     include/Weave/DeviceLayer/internal/ServiceProvisioningServer.h \
     include/Weave/DeviceLayer/internal/ServiceTunnelAgent.h \
     include/Weave/DeviceLayer/internal/WeaveDeviceLayerInternal.h \
+    trait-support/nest/trait/network/TelemetryNetworkTrait.h \
+    trait-support/nest/trait/network/TelemetryNetworkWifiTrait.h \
+    trait-support/nest/trait/network/TelemetryNetworkWpanTrait.h \
     trait-support/weave/trait/description/DeviceIdentityTrait.h \
+    trait-support/weave/trait/telemetry/tunnel/TelemetryTunnelTrait.h \
     $(NULL)
 
 if CONFIG_DEVICE_LAYER
@@ -102,6 +107,7 @@ libDeviceLayer_a_SOURCES                = \
     FabricProvisioningServer.cpp          \
     GeneralUtils.cpp                      \
     Globals.cpp                           \
+    NetworkTelemetryManager.cpp           \
     PersistedStorage.cpp                  \
     ServiceDirectoryManager.cpp           \
     ServiceProvisioningServer.cpp         \
@@ -111,7 +117,11 @@ libDeviceLayer_a_SOURCES                = \
     TestDeviceIds.cpp                     \
     TimeSyncManager.cpp                   \
     TraitManager.cpp                      \
+    trait-support/nest/trait/network/TelemetryNetworkTrait.cpp \
+    trait-support/nest/trait/network/TelemetryNetworkWifiTrait.cpp \
+    trait-support/nest/trait/network/TelemetryNetworkWpanTrait.cpp \
     trait-support/weave/trait/description/DeviceIdentityTrait.cpp \
+    trait-support/weave/trait/telemetry/tunnel/TelemetryTunnelTrait.cpp \
     $(NULL)
 
 if WEAVE_DEVICE_LAYER_TARGET_ESP32
