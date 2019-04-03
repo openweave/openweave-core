@@ -217,11 +217,16 @@ am__libDeviceLayer_a_SOURCES_DIST = CASEAuth.cpp \
 	DeviceControlServer.cpp DeviceDescriptionServer.cpp \
 	DeviceIdentityTraitDataSource.cpp DeviceNetworkInfo.cpp \
 	EchoServer.cpp FabricProvisioningServer.cpp GeneralUtils.cpp \
-	Globals.cpp PersistedStorage.cpp ServiceDirectoryManager.cpp \
+	Globals.cpp NetworkTelemetryManager.cpp \
+	PersistedStorage.cpp ServiceDirectoryManager.cpp \
 	ServiceProvisioningServer.cpp ServiceTunnelAgent.cpp \
 	SystemEventSupport.cpp SystemTimerSupport.cpp \
 	TestDeviceIds.cpp TimeSyncManager.cpp TraitManager.cpp \
+	trait-support/nest/trait/network/TelemetryNetworkTrait.cpp \
+	trait-support/nest/trait/network/TelemetryNetworkWifiTrait.cpp \
+	trait-support/nest/trait/network/TelemetryNetworkWpanTrait.cpp \
 	trait-support/weave/trait/description/DeviceIdentityTrait.cpp \
+	trait-support/weave/trait/telemetry/tunnel/TelemetryTunnelTrait.cpp \
 	ESP32/AESBlockCipher.cpp ESP32/BLEManagerImpl.cpp \
 	ESP32/ConfigurationManagerImpl.cpp \
 	ESP32/ConnectivityManagerImpl.cpp ESP32/Entropy.cpp \
@@ -276,6 +281,7 @@ am__dirstamp = $(am__leading_dot)dirstamp
 @CONFIG_DEVICE_LAYER_TRUE@	libDeviceLayer_a-FabricProvisioningServer.$(OBJEXT) \
 @CONFIG_DEVICE_LAYER_TRUE@	libDeviceLayer_a-GeneralUtils.$(OBJEXT) \
 @CONFIG_DEVICE_LAYER_TRUE@	libDeviceLayer_a-Globals.$(OBJEXT) \
+@CONFIG_DEVICE_LAYER_TRUE@	libDeviceLayer_a-NetworkTelemetryManager.$(OBJEXT) \
 @CONFIG_DEVICE_LAYER_TRUE@	libDeviceLayer_a-PersistedStorage.$(OBJEXT) \
 @CONFIG_DEVICE_LAYER_TRUE@	libDeviceLayer_a-ServiceDirectoryManager.$(OBJEXT) \
 @CONFIG_DEVICE_LAYER_TRUE@	libDeviceLayer_a-ServiceProvisioningServer.$(OBJEXT) \
@@ -285,7 +291,11 @@ am__dirstamp = $(am__leading_dot)dirstamp
 @CONFIG_DEVICE_LAYER_TRUE@	libDeviceLayer_a-TestDeviceIds.$(OBJEXT) \
 @CONFIG_DEVICE_LAYER_TRUE@	libDeviceLayer_a-TimeSyncManager.$(OBJEXT) \
 @CONFIG_DEVICE_LAYER_TRUE@	libDeviceLayer_a-TraitManager.$(OBJEXT) \
+@CONFIG_DEVICE_LAYER_TRUE@	trait-support/nest/trait/network/libDeviceLayer_a-TelemetryNetworkTrait.$(OBJEXT) \
+@CONFIG_DEVICE_LAYER_TRUE@	trait-support/nest/trait/network/libDeviceLayer_a-TelemetryNetworkWifiTrait.$(OBJEXT) \
+@CONFIG_DEVICE_LAYER_TRUE@	trait-support/nest/trait/network/libDeviceLayer_a-TelemetryNetworkWpanTrait.$(OBJEXT) \
 @CONFIG_DEVICE_LAYER_TRUE@	trait-support/weave/trait/description/libDeviceLayer_a-DeviceIdentityTrait.$(OBJEXT) \
+@CONFIG_DEVICE_LAYER_TRUE@	trait-support/weave/trait/telemetry/tunnel/libDeviceLayer_a-TelemetryTunnelTrait.$(OBJEXT) \
 @CONFIG_DEVICE_LAYER_TRUE@	$(am__objects_1) $(am__objects_2)
 libDeviceLayer_a_OBJECTS = $(am_libDeviceLayer_a_OBJECTS)
 AM_V_P = $(am__v_P_@AM_V@)
@@ -635,6 +645,7 @@ noinst_HEADERS = \
     include/Weave/DeviceLayer/FreeRTOS/GenericPlatformManagerImpl_FreeRTOS.h \
     include/Weave/DeviceLayer/FreeRTOS/GenericPlatformManagerImpl_FreeRTOS.ipp \
     include/Weave/DeviceLayer/GeneralUtils.h \
+    include/Weave/DeviceLayer/NetworkTelemetryManager.h \
     include/Weave/DeviceLayer/PlatformManager.h \
     include/Weave/DeviceLayer/TimeSyncManager.h \
     include/Weave/DeviceLayer/TraitManager.h \
@@ -660,7 +671,11 @@ noinst_HEADERS = \
     include/Weave/DeviceLayer/internal/ServiceProvisioningServer.h \
     include/Weave/DeviceLayer/internal/ServiceTunnelAgent.h \
     include/Weave/DeviceLayer/internal/WeaveDeviceLayerInternal.h \
+    trait-support/nest/trait/network/TelemetryNetworkTrait.h \
+    trait-support/nest/trait/network/TelemetryNetworkWifiTrait.h \
+    trait-support/nest/trait/network/TelemetryNetworkWpanTrait.h \
     trait-support/weave/trait/description/DeviceIdentityTrait.h \
+    trait-support/weave/trait/telemetry/tunnel/TelemetryTunnelTrait.h \
     $(NULL)
 
 @CONFIG_DEVICE_LAYER_TRUE@lib_LIBRARIES = libDeviceLayer.a
@@ -677,6 +692,7 @@ noinst_HEADERS = \
 @CONFIG_DEVICE_LAYER_TRUE@	DeviceNetworkInfo.cpp EchoServer.cpp \
 @CONFIG_DEVICE_LAYER_TRUE@	FabricProvisioningServer.cpp \
 @CONFIG_DEVICE_LAYER_TRUE@	GeneralUtils.cpp Globals.cpp \
+@CONFIG_DEVICE_LAYER_TRUE@	NetworkTelemetryManager.cpp \
 @CONFIG_DEVICE_LAYER_TRUE@	PersistedStorage.cpp \
 @CONFIG_DEVICE_LAYER_TRUE@	ServiceDirectoryManager.cpp \
 @CONFIG_DEVICE_LAYER_TRUE@	ServiceProvisioningServer.cpp \
@@ -685,7 +701,11 @@ noinst_HEADERS = \
 @CONFIG_DEVICE_LAYER_TRUE@	SystemTimerSupport.cpp \
 @CONFIG_DEVICE_LAYER_TRUE@	TestDeviceIds.cpp \
 @CONFIG_DEVICE_LAYER_TRUE@	TimeSyncManager.cpp TraitManager.cpp \
+@CONFIG_DEVICE_LAYER_TRUE@	trait-support/nest/trait/network/TelemetryNetworkTrait.cpp \
+@CONFIG_DEVICE_LAYER_TRUE@	trait-support/nest/trait/network/TelemetryNetworkWifiTrait.cpp \
+@CONFIG_DEVICE_LAYER_TRUE@	trait-support/nest/trait/network/TelemetryNetworkWpanTrait.cpp \
 @CONFIG_DEVICE_LAYER_TRUE@	trait-support/weave/trait/description/DeviceIdentityTrait.cpp \
+@CONFIG_DEVICE_LAYER_TRUE@	trait-support/weave/trait/telemetry/tunnel/TelemetryTunnelTrait.cpp \
 @CONFIG_DEVICE_LAYER_TRUE@	$(NULL) $(am__append_1) \
 @CONFIG_DEVICE_LAYER_TRUE@	$(am__append_2)
 all: all-am
@@ -753,6 +773,21 @@ uninstall-libLIBRARIES:
 
 clean-libLIBRARIES:
 	-test -z "$(lib_LIBRARIES)" || rm -f $(lib_LIBRARIES)
+trait-support/nest/trait/network/$(am__dirstamp):
+	@$(MKDIR_P) trait-support/nest/trait/network
+	@: > trait-support/nest/trait/network/$(am__dirstamp)
+trait-support/nest/trait/network/$(DEPDIR)/$(am__dirstamp):
+	@$(MKDIR_P) trait-support/nest/trait/network/$(DEPDIR)
+	@: > trait-support/nest/trait/network/$(DEPDIR)/$(am__dirstamp)
+trait-support/nest/trait/network/libDeviceLayer_a-TelemetryNetworkTrait.$(OBJEXT):  \
+	trait-support/nest/trait/network/$(am__dirstamp) \
+	trait-support/nest/trait/network/$(DEPDIR)/$(am__dirstamp)
+trait-support/nest/trait/network/libDeviceLayer_a-TelemetryNetworkWifiTrait.$(OBJEXT):  \
+	trait-support/nest/trait/network/$(am__dirstamp) \
+	trait-support/nest/trait/network/$(DEPDIR)/$(am__dirstamp)
+trait-support/nest/trait/network/libDeviceLayer_a-TelemetryNetworkWpanTrait.$(OBJEXT):  \
+	trait-support/nest/trait/network/$(am__dirstamp) \
+	trait-support/nest/trait/network/$(DEPDIR)/$(am__dirstamp)
 trait-support/weave/trait/description/$(am__dirstamp):
 	@$(MKDIR_P) trait-support/weave/trait/description
 	@: > trait-support/weave/trait/description/$(am__dirstamp)
@@ -762,6 +797,15 @@ trait-support/weave/trait/description/$(DEPDIR)/$(am__dirstamp):
 trait-support/weave/trait/description/libDeviceLayer_a-DeviceIdentityTrait.$(OBJEXT):  \
 	trait-support/weave/trait/description/$(am__dirstamp) \
 	trait-support/weave/trait/description/$(DEPDIR)/$(am__dirstamp)
+trait-support/weave/trait/telemetry/tunnel/$(am__dirstamp):
+	@$(MKDIR_P) trait-support/weave/trait/telemetry/tunnel
+	@: > trait-support/weave/trait/telemetry/tunnel/$(am__dirstamp)
+trait-support/weave/trait/telemetry/tunnel/$(DEPDIR)/$(am__dirstamp):
+	@$(MKDIR_P) trait-support/weave/trait/telemetry/tunnel/$(DEPDIR)
+	@: > trait-support/weave/trait/telemetry/tunnel/$(DEPDIR)/$(am__dirstamp)
+trait-support/weave/trait/telemetry/tunnel/libDeviceLayer_a-TelemetryTunnelTrait.$(OBJEXT):  \
+	trait-support/weave/trait/telemetry/tunnel/$(am__dirstamp) \
+	trait-support/weave/trait/telemetry/tunnel/$(DEPDIR)/$(am__dirstamp)
 ESP32/$(am__dirstamp):
 	@$(MKDIR_P) ESP32
 	@: > ESP32/$(am__dirstamp)
@@ -860,7 +904,9 @@ mostlyclean-compile:
 	-rm -f LwIP/*.$(OBJEXT)
 	-rm -f OpenThread/*.$(OBJEXT)
 	-rm -f nRF5/*.$(OBJEXT)
+	-rm -f trait-support/nest/trait/network/*.$(OBJEXT)
 	-rm -f trait-support/weave/trait/description/*.$(OBJEXT)
+	-rm -f trait-support/weave/trait/telemetry/tunnel/*.$(OBJEXT)
 
 distclean-compile:
 	-rm -f *.tab.c
@@ -874,6 +920,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libDeviceLayer_a-FabricProvisioningServer.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libDeviceLayer_a-GeneralUtils.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libDeviceLayer_a-Globals.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libDeviceLayer_a-NetworkTelemetryManager.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libDeviceLayer_a-PersistedStorage.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libDeviceLayer_a-ServiceDirectoryManager.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libDeviceLayer_a-ServiceProvisioningServer.Po@am__quote@
@@ -910,7 +957,11 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@nRF5/$(DEPDIR)/libDeviceLayer_a-ThreadStackManagerImpl.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@nRF5/$(DEPDIR)/libDeviceLayer_a-nRF5Config.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@nRF5/$(DEPDIR)/libDeviceLayer_a-nRF5Utils.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@trait-support/nest/trait/network/$(DEPDIR)/libDeviceLayer_a-TelemetryNetworkTrait.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@trait-support/nest/trait/network/$(DEPDIR)/libDeviceLayer_a-TelemetryNetworkWifiTrait.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@trait-support/nest/trait/network/$(DEPDIR)/libDeviceLayer_a-TelemetryNetworkWpanTrait.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@trait-support/weave/trait/description/$(DEPDIR)/libDeviceLayer_a-DeviceIdentityTrait.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@trait-support/weave/trait/telemetry/tunnel/$(DEPDIR)/libDeviceLayer_a-TelemetryTunnelTrait.Po@am__quote@
 
 .cpp.o:
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)depbase=`echo $@ | sed 's|[^/]*$$|$(DEPDIR)/&|;s|\.o$$||'`;\
@@ -1062,6 +1113,20 @@ libDeviceLayer_a-Globals.obj: Globals.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libDeviceLayer_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o libDeviceLayer_a-Globals.obj `if test -f 'Globals.cpp'; then $(CYGPATH_W) 'Globals.cpp'; else $(CYGPATH_W) '$(srcdir)/Globals.cpp'; fi`
 
+libDeviceLayer_a-NetworkTelemetryManager.o: NetworkTelemetryManager.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libDeviceLayer_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT libDeviceLayer_a-NetworkTelemetryManager.o -MD -MP -MF $(DEPDIR)/libDeviceLayer_a-NetworkTelemetryManager.Tpo -c -o libDeviceLayer_a-NetworkTelemetryManager.o `test -f 'NetworkTelemetryManager.cpp' || echo '$(srcdir)/'`NetworkTelemetryManager.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libDeviceLayer_a-NetworkTelemetryManager.Tpo $(DEPDIR)/libDeviceLayer_a-NetworkTelemetryManager.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='NetworkTelemetryManager.cpp' object='libDeviceLayer_a-NetworkTelemetryManager.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libDeviceLayer_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o libDeviceLayer_a-NetworkTelemetryManager.o `test -f 'NetworkTelemetryManager.cpp' || echo '$(srcdir)/'`NetworkTelemetryManager.cpp
+
+libDeviceLayer_a-NetworkTelemetryManager.obj: NetworkTelemetryManager.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libDeviceLayer_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT libDeviceLayer_a-NetworkTelemetryManager.obj -MD -MP -MF $(DEPDIR)/libDeviceLayer_a-NetworkTelemetryManager.Tpo -c -o libDeviceLayer_a-NetworkTelemetryManager.obj `if test -f 'NetworkTelemetryManager.cpp'; then $(CYGPATH_W) 'NetworkTelemetryManager.cpp'; else $(CYGPATH_W) '$(srcdir)/NetworkTelemetryManager.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libDeviceLayer_a-NetworkTelemetryManager.Tpo $(DEPDIR)/libDeviceLayer_a-NetworkTelemetryManager.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='NetworkTelemetryManager.cpp' object='libDeviceLayer_a-NetworkTelemetryManager.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libDeviceLayer_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o libDeviceLayer_a-NetworkTelemetryManager.obj `if test -f 'NetworkTelemetryManager.cpp'; then $(CYGPATH_W) 'NetworkTelemetryManager.cpp'; else $(CYGPATH_W) '$(srcdir)/NetworkTelemetryManager.cpp'; fi`
+
 libDeviceLayer_a-PersistedStorage.o: PersistedStorage.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libDeviceLayer_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT libDeviceLayer_a-PersistedStorage.o -MD -MP -MF $(DEPDIR)/libDeviceLayer_a-PersistedStorage.Tpo -c -o libDeviceLayer_a-PersistedStorage.o `test -f 'PersistedStorage.cpp' || echo '$(srcdir)/'`PersistedStorage.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libDeviceLayer_a-PersistedStorage.Tpo $(DEPDIR)/libDeviceLayer_a-PersistedStorage.Po
@@ -1188,6 +1253,48 @@ libDeviceLayer_a-TraitManager.obj: TraitManager.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libDeviceLayer_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o libDeviceLayer_a-TraitManager.obj `if test -f 'TraitManager.cpp'; then $(CYGPATH_W) 'TraitManager.cpp'; else $(CYGPATH_W) '$(srcdir)/TraitManager.cpp'; fi`
 
+trait-support/nest/trait/network/libDeviceLayer_a-TelemetryNetworkTrait.o: trait-support/nest/trait/network/TelemetryNetworkTrait.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libDeviceLayer_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT trait-support/nest/trait/network/libDeviceLayer_a-TelemetryNetworkTrait.o -MD -MP -MF trait-support/nest/trait/network/$(DEPDIR)/libDeviceLayer_a-TelemetryNetworkTrait.Tpo -c -o trait-support/nest/trait/network/libDeviceLayer_a-TelemetryNetworkTrait.o `test -f 'trait-support/nest/trait/network/TelemetryNetworkTrait.cpp' || echo '$(srcdir)/'`trait-support/nest/trait/network/TelemetryNetworkTrait.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) trait-support/nest/trait/network/$(DEPDIR)/libDeviceLayer_a-TelemetryNetworkTrait.Tpo trait-support/nest/trait/network/$(DEPDIR)/libDeviceLayer_a-TelemetryNetworkTrait.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='trait-support/nest/trait/network/TelemetryNetworkTrait.cpp' object='trait-support/nest/trait/network/libDeviceLayer_a-TelemetryNetworkTrait.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libDeviceLayer_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o trait-support/nest/trait/network/libDeviceLayer_a-TelemetryNetworkTrait.o `test -f 'trait-support/nest/trait/network/TelemetryNetworkTrait.cpp' || echo '$(srcdir)/'`trait-support/nest/trait/network/TelemetryNetworkTrait.cpp
+
+trait-support/nest/trait/network/libDeviceLayer_a-TelemetryNetworkTrait.obj: trait-support/nest/trait/network/TelemetryNetworkTrait.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libDeviceLayer_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT trait-support/nest/trait/network/libDeviceLayer_a-TelemetryNetworkTrait.obj -MD -MP -MF trait-support/nest/trait/network/$(DEPDIR)/libDeviceLayer_a-TelemetryNetworkTrait.Tpo -c -o trait-support/nest/trait/network/libDeviceLayer_a-TelemetryNetworkTrait.obj `if test -f 'trait-support/nest/trait/network/TelemetryNetworkTrait.cpp'; then $(CYGPATH_W) 'trait-support/nest/trait/network/TelemetryNetworkTrait.cpp'; else $(CYGPATH_W) '$(srcdir)/trait-support/nest/trait/network/TelemetryNetworkTrait.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) trait-support/nest/trait/network/$(DEPDIR)/libDeviceLayer_a-TelemetryNetworkTrait.Tpo trait-support/nest/trait/network/$(DEPDIR)/libDeviceLayer_a-TelemetryNetworkTrait.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='trait-support/nest/trait/network/TelemetryNetworkTrait.cpp' object='trait-support/nest/trait/network/libDeviceLayer_a-TelemetryNetworkTrait.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libDeviceLayer_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o trait-support/nest/trait/network/libDeviceLayer_a-TelemetryNetworkTrait.obj `if test -f 'trait-support/nest/trait/network/TelemetryNetworkTrait.cpp'; then $(CYGPATH_W) 'trait-support/nest/trait/network/TelemetryNetworkTrait.cpp'; else $(CYGPATH_W) '$(srcdir)/trait-support/nest/trait/network/TelemetryNetworkTrait.cpp'; fi`
+
+trait-support/nest/trait/network/libDeviceLayer_a-TelemetryNetworkWifiTrait.o: trait-support/nest/trait/network/TelemetryNetworkWifiTrait.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libDeviceLayer_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT trait-support/nest/trait/network/libDeviceLayer_a-TelemetryNetworkWifiTrait.o -MD -MP -MF trait-support/nest/trait/network/$(DEPDIR)/libDeviceLayer_a-TelemetryNetworkWifiTrait.Tpo -c -o trait-support/nest/trait/network/libDeviceLayer_a-TelemetryNetworkWifiTrait.o `test -f 'trait-support/nest/trait/network/TelemetryNetworkWifiTrait.cpp' || echo '$(srcdir)/'`trait-support/nest/trait/network/TelemetryNetworkWifiTrait.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) trait-support/nest/trait/network/$(DEPDIR)/libDeviceLayer_a-TelemetryNetworkWifiTrait.Tpo trait-support/nest/trait/network/$(DEPDIR)/libDeviceLayer_a-TelemetryNetworkWifiTrait.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='trait-support/nest/trait/network/TelemetryNetworkWifiTrait.cpp' object='trait-support/nest/trait/network/libDeviceLayer_a-TelemetryNetworkWifiTrait.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libDeviceLayer_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o trait-support/nest/trait/network/libDeviceLayer_a-TelemetryNetworkWifiTrait.o `test -f 'trait-support/nest/trait/network/TelemetryNetworkWifiTrait.cpp' || echo '$(srcdir)/'`trait-support/nest/trait/network/TelemetryNetworkWifiTrait.cpp
+
+trait-support/nest/trait/network/libDeviceLayer_a-TelemetryNetworkWifiTrait.obj: trait-support/nest/trait/network/TelemetryNetworkWifiTrait.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libDeviceLayer_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT trait-support/nest/trait/network/libDeviceLayer_a-TelemetryNetworkWifiTrait.obj -MD -MP -MF trait-support/nest/trait/network/$(DEPDIR)/libDeviceLayer_a-TelemetryNetworkWifiTrait.Tpo -c -o trait-support/nest/trait/network/libDeviceLayer_a-TelemetryNetworkWifiTrait.obj `if test -f 'trait-support/nest/trait/network/TelemetryNetworkWifiTrait.cpp'; then $(CYGPATH_W) 'trait-support/nest/trait/network/TelemetryNetworkWifiTrait.cpp'; else $(CYGPATH_W) '$(srcdir)/trait-support/nest/trait/network/TelemetryNetworkWifiTrait.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) trait-support/nest/trait/network/$(DEPDIR)/libDeviceLayer_a-TelemetryNetworkWifiTrait.Tpo trait-support/nest/trait/network/$(DEPDIR)/libDeviceLayer_a-TelemetryNetworkWifiTrait.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='trait-support/nest/trait/network/TelemetryNetworkWifiTrait.cpp' object='trait-support/nest/trait/network/libDeviceLayer_a-TelemetryNetworkWifiTrait.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libDeviceLayer_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o trait-support/nest/trait/network/libDeviceLayer_a-TelemetryNetworkWifiTrait.obj `if test -f 'trait-support/nest/trait/network/TelemetryNetworkWifiTrait.cpp'; then $(CYGPATH_W) 'trait-support/nest/trait/network/TelemetryNetworkWifiTrait.cpp'; else $(CYGPATH_W) '$(srcdir)/trait-support/nest/trait/network/TelemetryNetworkWifiTrait.cpp'; fi`
+
+trait-support/nest/trait/network/libDeviceLayer_a-TelemetryNetworkWpanTrait.o: trait-support/nest/trait/network/TelemetryNetworkWpanTrait.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libDeviceLayer_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT trait-support/nest/trait/network/libDeviceLayer_a-TelemetryNetworkWpanTrait.o -MD -MP -MF trait-support/nest/trait/network/$(DEPDIR)/libDeviceLayer_a-TelemetryNetworkWpanTrait.Tpo -c -o trait-support/nest/trait/network/libDeviceLayer_a-TelemetryNetworkWpanTrait.o `test -f 'trait-support/nest/trait/network/TelemetryNetworkWpanTrait.cpp' || echo '$(srcdir)/'`trait-support/nest/trait/network/TelemetryNetworkWpanTrait.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) trait-support/nest/trait/network/$(DEPDIR)/libDeviceLayer_a-TelemetryNetworkWpanTrait.Tpo trait-support/nest/trait/network/$(DEPDIR)/libDeviceLayer_a-TelemetryNetworkWpanTrait.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='trait-support/nest/trait/network/TelemetryNetworkWpanTrait.cpp' object='trait-support/nest/trait/network/libDeviceLayer_a-TelemetryNetworkWpanTrait.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libDeviceLayer_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o trait-support/nest/trait/network/libDeviceLayer_a-TelemetryNetworkWpanTrait.o `test -f 'trait-support/nest/trait/network/TelemetryNetworkWpanTrait.cpp' || echo '$(srcdir)/'`trait-support/nest/trait/network/TelemetryNetworkWpanTrait.cpp
+
+trait-support/nest/trait/network/libDeviceLayer_a-TelemetryNetworkWpanTrait.obj: trait-support/nest/trait/network/TelemetryNetworkWpanTrait.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libDeviceLayer_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT trait-support/nest/trait/network/libDeviceLayer_a-TelemetryNetworkWpanTrait.obj -MD -MP -MF trait-support/nest/trait/network/$(DEPDIR)/libDeviceLayer_a-TelemetryNetworkWpanTrait.Tpo -c -o trait-support/nest/trait/network/libDeviceLayer_a-TelemetryNetworkWpanTrait.obj `if test -f 'trait-support/nest/trait/network/TelemetryNetworkWpanTrait.cpp'; then $(CYGPATH_W) 'trait-support/nest/trait/network/TelemetryNetworkWpanTrait.cpp'; else $(CYGPATH_W) '$(srcdir)/trait-support/nest/trait/network/TelemetryNetworkWpanTrait.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) trait-support/nest/trait/network/$(DEPDIR)/libDeviceLayer_a-TelemetryNetworkWpanTrait.Tpo trait-support/nest/trait/network/$(DEPDIR)/libDeviceLayer_a-TelemetryNetworkWpanTrait.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='trait-support/nest/trait/network/TelemetryNetworkWpanTrait.cpp' object='trait-support/nest/trait/network/libDeviceLayer_a-TelemetryNetworkWpanTrait.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libDeviceLayer_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o trait-support/nest/trait/network/libDeviceLayer_a-TelemetryNetworkWpanTrait.obj `if test -f 'trait-support/nest/trait/network/TelemetryNetworkWpanTrait.cpp'; then $(CYGPATH_W) 'trait-support/nest/trait/network/TelemetryNetworkWpanTrait.cpp'; else $(CYGPATH_W) '$(srcdir)/trait-support/nest/trait/network/TelemetryNetworkWpanTrait.cpp'; fi`
+
 trait-support/weave/trait/description/libDeviceLayer_a-DeviceIdentityTrait.o: trait-support/weave/trait/description/DeviceIdentityTrait.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libDeviceLayer_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT trait-support/weave/trait/description/libDeviceLayer_a-DeviceIdentityTrait.o -MD -MP -MF trait-support/weave/trait/description/$(DEPDIR)/libDeviceLayer_a-DeviceIdentityTrait.Tpo -c -o trait-support/weave/trait/description/libDeviceLayer_a-DeviceIdentityTrait.o `test -f 'trait-support/weave/trait/description/DeviceIdentityTrait.cpp' || echo '$(srcdir)/'`trait-support/weave/trait/description/DeviceIdentityTrait.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) trait-support/weave/trait/description/$(DEPDIR)/libDeviceLayer_a-DeviceIdentityTrait.Tpo trait-support/weave/trait/description/$(DEPDIR)/libDeviceLayer_a-DeviceIdentityTrait.Po
@@ -1201,6 +1308,20 @@ trait-support/weave/trait/description/libDeviceLayer_a-DeviceIdentityTrait.obj: 
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='trait-support/weave/trait/description/DeviceIdentityTrait.cpp' object='trait-support/weave/trait/description/libDeviceLayer_a-DeviceIdentityTrait.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libDeviceLayer_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o trait-support/weave/trait/description/libDeviceLayer_a-DeviceIdentityTrait.obj `if test -f 'trait-support/weave/trait/description/DeviceIdentityTrait.cpp'; then $(CYGPATH_W) 'trait-support/weave/trait/description/DeviceIdentityTrait.cpp'; else $(CYGPATH_W) '$(srcdir)/trait-support/weave/trait/description/DeviceIdentityTrait.cpp'; fi`
+
+trait-support/weave/trait/telemetry/tunnel/libDeviceLayer_a-TelemetryTunnelTrait.o: trait-support/weave/trait/telemetry/tunnel/TelemetryTunnelTrait.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libDeviceLayer_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT trait-support/weave/trait/telemetry/tunnel/libDeviceLayer_a-TelemetryTunnelTrait.o -MD -MP -MF trait-support/weave/trait/telemetry/tunnel/$(DEPDIR)/libDeviceLayer_a-TelemetryTunnelTrait.Tpo -c -o trait-support/weave/trait/telemetry/tunnel/libDeviceLayer_a-TelemetryTunnelTrait.o `test -f 'trait-support/weave/trait/telemetry/tunnel/TelemetryTunnelTrait.cpp' || echo '$(srcdir)/'`trait-support/weave/trait/telemetry/tunnel/TelemetryTunnelTrait.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) trait-support/weave/trait/telemetry/tunnel/$(DEPDIR)/libDeviceLayer_a-TelemetryTunnelTrait.Tpo trait-support/weave/trait/telemetry/tunnel/$(DEPDIR)/libDeviceLayer_a-TelemetryTunnelTrait.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='trait-support/weave/trait/telemetry/tunnel/TelemetryTunnelTrait.cpp' object='trait-support/weave/trait/telemetry/tunnel/libDeviceLayer_a-TelemetryTunnelTrait.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libDeviceLayer_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o trait-support/weave/trait/telemetry/tunnel/libDeviceLayer_a-TelemetryTunnelTrait.o `test -f 'trait-support/weave/trait/telemetry/tunnel/TelemetryTunnelTrait.cpp' || echo '$(srcdir)/'`trait-support/weave/trait/telemetry/tunnel/TelemetryTunnelTrait.cpp
+
+trait-support/weave/trait/telemetry/tunnel/libDeviceLayer_a-TelemetryTunnelTrait.obj: trait-support/weave/trait/telemetry/tunnel/TelemetryTunnelTrait.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libDeviceLayer_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT trait-support/weave/trait/telemetry/tunnel/libDeviceLayer_a-TelemetryTunnelTrait.obj -MD -MP -MF trait-support/weave/trait/telemetry/tunnel/$(DEPDIR)/libDeviceLayer_a-TelemetryTunnelTrait.Tpo -c -o trait-support/weave/trait/telemetry/tunnel/libDeviceLayer_a-TelemetryTunnelTrait.obj `if test -f 'trait-support/weave/trait/telemetry/tunnel/TelemetryTunnelTrait.cpp'; then $(CYGPATH_W) 'trait-support/weave/trait/telemetry/tunnel/TelemetryTunnelTrait.cpp'; else $(CYGPATH_W) '$(srcdir)/trait-support/weave/trait/telemetry/tunnel/TelemetryTunnelTrait.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) trait-support/weave/trait/telemetry/tunnel/$(DEPDIR)/libDeviceLayer_a-TelemetryTunnelTrait.Tpo trait-support/weave/trait/telemetry/tunnel/$(DEPDIR)/libDeviceLayer_a-TelemetryTunnelTrait.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='trait-support/weave/trait/telemetry/tunnel/TelemetryTunnelTrait.cpp' object='trait-support/weave/trait/telemetry/tunnel/libDeviceLayer_a-TelemetryTunnelTrait.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libDeviceLayer_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o trait-support/weave/trait/telemetry/tunnel/libDeviceLayer_a-TelemetryTunnelTrait.obj `if test -f 'trait-support/weave/trait/telemetry/tunnel/TelemetryTunnelTrait.cpp'; then $(CYGPATH_W) 'trait-support/weave/trait/telemetry/tunnel/TelemetryTunnelTrait.cpp'; else $(CYGPATH_W) '$(srcdir)/trait-support/weave/trait/telemetry/tunnel/TelemetryTunnelTrait.cpp'; fi`
 
 ESP32/libDeviceLayer_a-AESBlockCipher.o: ESP32/AESBlockCipher.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libDeviceLayer_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT ESP32/libDeviceLayer_a-AESBlockCipher.o -MD -MP -MF ESP32/$(DEPDIR)/libDeviceLayer_a-AESBlockCipher.Tpo -c -o ESP32/libDeviceLayer_a-AESBlockCipher.o `test -f 'ESP32/AESBlockCipher.cpp' || echo '$(srcdir)/'`ESP32/AESBlockCipher.cpp
@@ -1711,8 +1832,12 @@ distclean-generic:
 	-rm -f OpenThread/$(am__dirstamp)
 	-rm -f nRF5/$(DEPDIR)/$(am__dirstamp)
 	-rm -f nRF5/$(am__dirstamp)
+	-rm -f trait-support/nest/trait/network/$(DEPDIR)/$(am__dirstamp)
+	-rm -f trait-support/nest/trait/network/$(am__dirstamp)
 	-rm -f trait-support/weave/trait/description/$(DEPDIR)/$(am__dirstamp)
 	-rm -f trait-support/weave/trait/description/$(am__dirstamp)
+	-rm -f trait-support/weave/trait/telemetry/tunnel/$(DEPDIR)/$(am__dirstamp)
+	-rm -f trait-support/weave/trait/telemetry/tunnel/$(am__dirstamp)
 
 maintainer-clean-generic:
 	@echo "This command is intended for maintainers to use"
@@ -1723,7 +1848,7 @@ clean-am: clean-generic clean-libLIBRARIES clean-libtool \
 	mostlyclean-am
 
 distclean: distclean-am
-	-rm -rf ./$(DEPDIR) ESP32/$(DEPDIR) FreeRTOS/$(DEPDIR) LwIP/$(DEPDIR) OpenThread/$(DEPDIR) nRF5/$(DEPDIR) trait-support/weave/trait/description/$(DEPDIR)
+	-rm -rf ./$(DEPDIR) ESP32/$(DEPDIR) FreeRTOS/$(DEPDIR) LwIP/$(DEPDIR) OpenThread/$(DEPDIR) nRF5/$(DEPDIR) trait-support/nest/trait/network/$(DEPDIR) trait-support/weave/trait/description/$(DEPDIR) trait-support/weave/trait/telemetry/tunnel/$(DEPDIR)
 	-rm -f Makefile
 distclean-am: clean-am distclean-compile distclean-generic \
 	distclean-tags
@@ -1769,7 +1894,7 @@ install-ps-am:
 installcheck-am:
 
 maintainer-clean: maintainer-clean-am
-	-rm -rf ./$(DEPDIR) ESP32/$(DEPDIR) FreeRTOS/$(DEPDIR) LwIP/$(DEPDIR) OpenThread/$(DEPDIR) nRF5/$(DEPDIR) trait-support/weave/trait/description/$(DEPDIR)
+	-rm -rf ./$(DEPDIR) ESP32/$(DEPDIR) FreeRTOS/$(DEPDIR) LwIP/$(DEPDIR) OpenThread/$(DEPDIR) nRF5/$(DEPDIR) trait-support/nest/trait/network/$(DEPDIR) trait-support/weave/trait/description/$(DEPDIR) trait-support/weave/trait/telemetry/tunnel/$(DEPDIR)
 	-rm -f Makefile
 maintainer-clean-am: distclean-am maintainer-clean-generic
 

@@ -110,6 +110,8 @@ public:
     uint32_t GetWiFiAPIdleTimeoutMS(void);
     void SetWiFiAPIdleTimeoutMS(uint32_t val);
 
+    WEAVE_ERROR GetAndLogWifiStatsCounters(void);
+
     // Thread Methods
     ThreadMode GetThreadMode(void);
     WEAVE_ERROR SetThreadMode(ThreadMode val);
@@ -303,6 +305,11 @@ inline uint32_t ConnectivityManager::GetWiFiAPIdleTimeoutMS(void)
 inline void ConnectivityManager::SetWiFiAPIdleTimeoutMS(uint32_t val)
 {
     static_cast<ImplClass*>(this)->_SetWiFiAPIdleTimeoutMS(val);
+}
+
+inline WEAVE_ERROR ConnectivityManager::GetAndLogWifiStatsCounters(void)
+{
+    return static_cast<ImplClass*>(this)->_GetAndLogWifiStatsCounters();
 }
 
 inline bool ConnectivityManager::HaveServiceConnectivityViaTunnel(void)

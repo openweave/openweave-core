@@ -92,6 +92,7 @@ private:
     void _MaintainOnDemandWiFiAP(void);
     uint32_t _GetWiFiAPIdleTimeoutMS(void);
     void _SetWiFiAPIdleTimeoutMS(uint32_t val);
+    WEAVE_ERROR _GetAndLogWifiStatsCounters(void);
     bool _HaveIPv4InternetConnectivity(void);
     bool _HaveIPv6InternetConnectivity(void);
     ServiceTunnelMode _GetServiceTunnelMode(void);

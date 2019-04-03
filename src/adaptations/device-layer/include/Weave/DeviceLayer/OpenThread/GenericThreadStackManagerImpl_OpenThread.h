@@ -28,7 +28,6 @@
 
 #include <openthread/instance.h>
 
-
 namespace nl {
 namespace Weave {
 namespace DeviceLayer {
@@ -75,6 +74,9 @@ protected:
     WEAVE_ERROR _SetThreadProvision(const DeviceNetworkInfo & netInfo);
     void _ClearThreadProvision(void);
     bool _HaveMeshConnectivity(void);
+    WEAVE_ERROR _GetAndLogThreadStatsCounters(void);
+    WEAVE_ERROR _GetAndLogThreadTopologyMinimal(void);
+    WEAVE_ERROR _GetAndLogThreadTopologyFull(void);
 
     // ===== Members available to the implementation subclass.
 

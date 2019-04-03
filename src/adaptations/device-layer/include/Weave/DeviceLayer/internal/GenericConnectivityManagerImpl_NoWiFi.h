@@ -73,6 +73,7 @@ public:
     void _MaintainOnDemandWiFiAP(void);
     uint32_t _GetWiFiAPIdleTimeoutMS(void);
     void _SetWiFiAPIdleTimeoutMS(uint32_t val);
+    WEAVE_ERROR _GetAndLogWifiStatsCounters(void);
     bool _CanStartWiFiScan();
     void _OnWiFiScanDone();
     void _OnWiFiStationProvisionChange();
@@ -179,6 +180,12 @@ inline uint32_t GenericConnectivityManagerImpl_NoWiFi<ImplClass>::_GetWiFiAPIdle
 template<class ImplClass>
 inline void GenericConnectivityManagerImpl_NoWiFi<ImplClass>::_SetWiFiAPIdleTimeoutMS(uint32_t val)
 {
+}
+
+template<class ImplClass>
+inline WEAVE_ERROR GenericConnectivityManagerImpl_NoWiFi<ImplClass>::_GetAndLogWifiStatsCounters(void)
+{
+    return WEAVE_ERROR_UNSUPPORTED_WEAVE_FEATURE;
 }
 
 template<class ImplClass>
