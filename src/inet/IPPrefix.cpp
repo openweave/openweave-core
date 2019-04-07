@@ -27,6 +27,7 @@
  */
 
 #include <InetLayer/IPPrefix.h>
+#include <Weave/Core/WeaveEncoding.h>
 
 namespace nl {
 namespace Inet {
@@ -75,7 +76,7 @@ bool IPPrefix::MatchAddress(const IPAddress& addr) const
     if (l == 0)
         return true;
 
-    uint32_t mask = htonl(0xFFFFFFFF << (32 - l));
+    uint32_t mask = nl::Weave::Encoding::BigEndian::HostSwap32(0xFFFFFFFF << (32 - l));
     return (IPAddr.Addr[i] & mask) == (addr.Addr[i] & mask);
 }
 
