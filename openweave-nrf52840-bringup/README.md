@@ -148,24 +148,83 @@ An alternative, and often preferable way to view log output is to use the J-Link
 
 SEGGER provides a GDB server tool which can be used to debug a running application on the nRF82480 DK board.
 The GDB server also provides a local telnet port which can be used to communicate with the device over RTT.  This can be used
-to view logging output.  (Note that you do not need to actually run gdb to see the logging output from the GDB server).
+to view logging output.  Note that you do not need to actually run gdb to see the logging output from the GDB server.
+This means that the GDB server can be used as a convenient way to monitor the activity of the application in between
+debugging sessions.
 
-The openweave-nrf52840-bringup directory contains a pair of shell scripts that make it easy to start  the GDB server and initiate
-a debugging session. 
+##### Starting the GDB server
 
-* Start the GDB server
+The openweave-nrf52840-bringup directory contains a shell script, `start-jlink-gdb-server.sh`, that makes it easy to start  the GDB server:
 
         $ cd openweave-nrf52840-bringup
         $ ./start-jlink-gdb-server.sh
 
-* Initiate a debugging session
+The `start-jlink-gdb-server.sh` script automatically initiates a telnet session to the RTT output port of the GDB server.  Log output from the application is
+then intermingled with  output from the GDB server.
+
+To shutdown the GDB server, type CTRL-C.
+
+##### Building the Bring-up Application to Support Debugging
+
+Because of the way the Nordic SoftDevice works, actual debugging of a running nRF82480 application requires the use of the
+[SEGGER J-Link monitor mode](https://www.segger.com/products/debug-probes/j-link/technology/monitor-mode-debugging/) debugging feature.  This feature
+works in conjunction with the J-Link GDB server to allow parts of the system to continue running while the target device is ‘stopped’ at a breakpoint. Use
+of monitor mode debugging is essential to avoid the SoftDevice crashing with a fatal error whenever the target is resumed from a breakpoint.
+
+Unfortunately, J-Link monitor mode requires the use of the *ludicrously* expensive [J-Link Plus](https://www.segger.com/products/debug-probes/j-link/models/j-link-plus/) (or better) debug probe.
+__The on-board J-Link debugger included with the nRF52840 DK board cannot be used for GDB debugging.__   Additionally, the J-Link monitor
+mode feature requires the application to be built with special code supplied by SEGGER.  The licensing of this code requires that it be downloaded separately
+from the [SEGGER site](https://www.segger.com/products/debug-probes/j-link/technology/monitor-mode-debugging/).
+
+To build the bring-up application for use with GDB, perform the following steps:
+
+* Download and unpack the J-Link monitor mode sample project:
+
+        $ cd openweave-nrf52840-bringup
+        $ wget https://www.segger.com/fileadmin/images/products/J-Link/Technology/Monitor_Mode_Debugging/Generic_Cortex-M_MonitorModeSystickExample_SES.zip
+        $ unzip Generic_Cortex-M_MonitorModeSystickExample_SES.zip
+
+* Copy or link the debug mode implementation file into the root directory of the bring-up application:
+
+        $ cd openweave-nrf52840-bringup
+        $ ln -s ./Generic_Cortex-M_MonitorModeSystickExample_SES/Src/JLINK_MONITOR_ISR_SES.s .
+
+* Rebuild the bring-up application with monitor mode debugging support (MMD)  enabled:
+
+        $ cd openweave-nrf52840-bringup
+        $ make clean
+        $ make MMD=1
+ 
+##### Initiating a debugging session
+
+Once the application has been built with monitor mode debugging support (MMD)  enabled, a debugging session can be initiated using 
+an appropriate J-Link debug probe:
+
+* Connect the J-Link debug probe to the 10-pin "Debug In" connector located near the center of the nRF52840 DK board.
+
+
+* Slide the "nRF Power Source" switch to the "USB" position.
+
+
+* Power the device by connecting USB power to the board's "nRF USB" connector (the connector on the long edge of the board).
+
+
+* Start the GDB server using the `start-jlink-gdb-server.sh` script:
+
+        $ cd openweave-nrf52840-bringup
+        $ ./start-jlink-gdb-server.sh
+
+
+* Start GDB using the `start-gdb.sh` script:
 
         $ cd openweave-nrf52840-bringup
         $ ./start-gdb.sh
 
-The start-gdb.sh will launch gdb and instruct it to connect to the GDB server.  By default, gdb is started with the openweave-nrf52840-bringup
-executable located in the build directory.  Alternatively one can pass the name of a different executable as an argument.
+The `start-gdb.sh` script will automatically launch gdb and instruct it to connect to the GDB server.  It will also issue the necessary commands to enable
+monitor mode debugging.
 
+By default, gdb is started with the openweave-nrf52840-bringup executable located in the build directory (`./build/openweave-nrf52840-bringup.out`).  Alternatively one can pass
+the name of a different executable as an argument to the `start-gdb.sh` script.
 
 <a name="setup-test-network"></a>
 
