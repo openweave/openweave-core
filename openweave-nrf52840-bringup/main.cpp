@@ -198,6 +198,29 @@ static void OnSoCEvent(uint32_t sys_evt, void * p_context)
 #endif // defined(SOFTDEVICE_PRESENT) && SOFTDEVICE_PRESENT
 
 
+// ================================================================================
+// J-Link Monitor Mode Debugging Support
+// ================================================================================
+
+#if JLINK_MMD
+
+extern "C" void JLINK_MONITOR_OnExit(void)
+{
+
+}
+
+extern "C" void JLINK_MONITOR_OnEnter(void)
+{
+
+}
+
+extern "C" void JLINK_MONITOR_OnPoll(void)
+{
+
+}
+
+#endif // JLINK_MMD
+
 
 // ================================================================================
 // Main Code
@@ -206,6 +229,10 @@ static void OnSoCEvent(uint32_t sys_evt, void * p_context)
 int main(void)
 {
     ret_code_t ret;
+
+#if JLINK_MMD
+    NVIC_SetPriority(DebugMonitor_IRQn, _PRIO_SD_LOW);
+#endif
 
     // Initialize clock driver.
     ret = nrf_drv_clock_init();
