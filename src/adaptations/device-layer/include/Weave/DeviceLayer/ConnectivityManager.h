@@ -102,6 +102,9 @@ public:
     uint32_t GetWiFiAPIdleTimeoutMS(void);
     void SetWiFiAPIdleTimeoutMS(uint32_t val);
 
+    // Thread Methods
+    bool HaveServiceConnectivityViaThread(void);
+
     // Internet connectivity methods
     bool HaveIPv4InternetConnectivity(void);
     bool HaveIPv6InternetConnectivity(void);
@@ -111,6 +114,7 @@ public:
     WEAVE_ERROR SetServiceTunnelMode(ServiceTunnelMode val);
     bool IsServiceTunnelConnected(void);
     bool IsServiceTunnelRestricted(void);
+    bool HaveServiceConnectivityViaTunnel(void);
 
     // Service connectivity methods
     bool HaveServiceConnectivity(void);
@@ -275,6 +279,11 @@ inline void ConnectivityManager::SetWiFiAPIdleTimeoutMS(uint32_t val)
     static_cast<ImplClass*>(this)->_SetWiFiAPIdleTimeoutMS(val);
 }
 
+inline bool ConnectivityManager::HaveServiceConnectivityViaTunnel(void)
+{
+    return static_cast<ImplClass*>(this)->_HaveServiceConnectivityViaTunnel();
+}
+
 inline bool ConnectivityManager::HaveIPv4InternetConnectivity(void)
 {
     return static_cast<ImplClass*>(this)->_HaveIPv4InternetConnectivity();
@@ -308,6 +317,11 @@ inline bool ConnectivityManager::IsServiceTunnelRestricted(void)
 inline bool ConnectivityManager::HaveServiceConnectivity(void)
 {
     return static_cast<ImplClass*>(this)->_HaveServiceConnectivity();
+}
+
+inline bool ConnectivityManager::HaveServiceConnectivityViaThread(void)
+{
+    return static_cast<ImplClass*>(this)->_HaveServiceConnectivityViaThread();
 }
 
 inline ConnectivityManager::WoBLEServiceMode ConnectivityManager::GetWoBLEServiceMode(void)

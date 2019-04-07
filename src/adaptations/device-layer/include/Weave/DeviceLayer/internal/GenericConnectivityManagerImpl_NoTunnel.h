@@ -59,6 +59,7 @@ public:
     WEAVE_ERROR _SetServiceTunnelMode(ConnectivityManager::ServiceTunnelMode val);
     bool _IsServiceTunnelConnected(void);
     bool _IsServiceTunnelRestricted(void);
+    bool _HaveServiceConnectivityViaTunnel(void);
     static const char * _ServiceTunnelModeToStr(ConnectivityManager::ServiceTunnelMode mode);
 
 private:
@@ -86,6 +87,12 @@ inline bool GenericConnectivityManagerImpl_NoTunnel<ImplClass>::_IsServiceTunnel
 
 template<class ImplClass>
 inline bool GenericConnectivityManagerImpl_NoTunnel<ImplClass>::_IsServiceTunnelRestricted(void)
+{
+    return false;
+}
+
+template<class ImplClass>
+inline bool GenericConnectivityManagerImpl_NoTunnel<ImplClass>::_HaveServiceConnectivityViaTunnel(void)
 {
     return false;
 }

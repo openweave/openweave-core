@@ -19,14 +19,19 @@
 #ifndef CONNECTIVITY_MANAGER_IMPL_H
 #define CONNECTIVITY_MANAGER_IMPL_H
 
+#include <Weave/DeviceLayer/ConnectivityManager.h>
 #if WEAVE_DEVICE_CONFIG_ENABLE_WOBLE
 #include <Weave/DeviceLayer/internal/GenericConnectivityManagerImpl_BLE.h>
 #else
 #include <Weave/DeviceLayer/internal/GenericConnectivityManagerImpl_NoBLE.h>
 #endif
+#if WEAVE_DEVICE_CONFIG_ENABLE_THREAD
+#include <Weave/DeviceLayer/internal/GenericConnectivityManagerImpl_Thread.h>
+#else
+#include <Weave/DeviceLayer/internal/GenericConnectivityManagerImpl_NoThread.h>
+#endif
 #include <Weave/DeviceLayer/internal/GenericConnectivityManagerImpl_NoWiFi.h>
 #include <Weave/DeviceLayer/internal/GenericConnectivityManagerImpl_NoTunnel.h>
-#include <Weave/Profiles/network-provisioning/NetworkProvisioning.h>
 #include <Weave/Support/FlagUtils.hpp>
 
 namespace nl {
@@ -39,15 +44,6 @@ namespace nl {
 namespace Weave {
 namespace DeviceLayer {
 
-class PlatformManagerImpl;
-
-namespace Internal {
-
-class NetworkProvisioningServerImpl;
-template<class ImplClass> class GenericNetworkProvisioningServerImpl;
-
-} // namespace Internal
-
 /**
  * Concrete implementation of the ConnectivityManager singleton object for Nordic nRF52 platforms.
  */
@@ -57,6 +53,11 @@ class ConnectivityManagerImpl final
       public Internal::GenericConnectivityManagerImpl_BLE<ConnectivityManagerImpl>,
 #else
       public Internal::GenericConnectivityManagerImpl_NoBLE<ConnectivityManagerImpl>,
+#endif
+#if WEAVE_DEVICE_CONFIG_ENABLE_THREAD
+      public Internal::GenericConnectivityManagerImpl_Thread<ConnectivityManagerImpl>,
+#else
+      public Internal::GenericConnectivityManagerImpl_NoThread<ConnectivityManagerImpl>,
 #endif
       public Internal::GenericConnectivityManagerImpl_NoWiFi<ConnectivityManagerImpl>,
       public Internal::GenericConnectivityManagerImpl_NoTunnel<ConnectivityManagerImpl>
@@ -81,16 +82,6 @@ private:
     friend ConnectivityManagerImpl & ConnectivityMgrImpl(void);
 
     static ConnectivityManagerImpl sInstance;
-
-    // ===== Private members reserved for use by this class only.
-
-    enum Flags
-    {
-        kFlag_HaveIPv6InternetConnectivity      = 0x0002,
-        kFlag_AwaitingConnectivity              = 0x0010,
-    };
-
-    uint16_t mFlags;
 };
 
 inline bool ConnectivityManagerImpl::_HaveIPv4InternetConnectivity(void)
@@ -100,13 +91,12 @@ inline bool ConnectivityManagerImpl::_HaveIPv4InternetConnectivity(void)
 
 inline bool ConnectivityManagerImpl::_HaveIPv6InternetConnectivity(void)
 {
-    return ::nl::GetFlag(mFlags, kFlag_HaveIPv6InternetConnectivity);
+    return false;
 }
 
 inline bool ConnectivityManagerImpl::_HaveServiceConnectivity(void)
 {
-    // TODO: implement this
-    return true;
+    return _HaveServiceConnectivityViaThread();
 }
 
 

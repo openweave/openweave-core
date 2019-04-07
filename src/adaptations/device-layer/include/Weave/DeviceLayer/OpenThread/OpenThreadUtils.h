@@ -36,6 +36,9 @@ namespace Internal {
 
 extern WEAVE_ERROR MapOpenThreadError(otError otErr);
 
+extern void LogOpenThreadStateChange(otInstance * otInst, uint32_t flags);
+extern void LogOpenThreadPacket(const char * titleStr, otMessage * pkt);
+
 extern bool IsOpenThreadMeshLocalAddress(otInstance * otInst, const IPAddress & addr);
 extern const char * OpenThreadRoleToStr(otDeviceRole role);
 
@@ -51,6 +54,14 @@ inline IPAddress ToIPAddress(const otIp6Address & otAddr)
     IPAddress addr;
     memcpy(addr.Addr, otAddr.mFields.m32, sizeof(addr.Addr));
     return addr;
+}
+
+inline IPPrefix ToIPPrefix(const otIp6Prefix & otPrefix)
+{
+    IPPrefix prefix;
+    prefix.IPAddr = ToIPAddress(otPrefix.mPrefix);
+    prefix.Length = otPrefix.mLength;
+    return prefix;
 }
 
 } // namespace Internal
