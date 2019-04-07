@@ -166,10 +166,9 @@ void TimeSyncManager::DriveTimeSync()
     {
 #if WEAVE_DEVICE_CONFIG_ENABLE_WEAVE_TIME_SERVICE_TIME_SYNC
 
-        // Compute the amount of time until the next synchronization event.  If current real time
-        // is NOT known, arrange to do time sync immediately.
+        // Compute the amount of time until the next synchronization event.
         uint64_t timeToNextSyncMS = 0;
-        if (IsTimeSynchronized() && mLastSyncTimeMS != 0)
+        if (mLastSyncTimeMS != 0)
         {
             uint64_t nextSyncTimeMS = mLastSyncTimeMS + (mSyncIntervalSec * 1000);
             uint64_t nowMS = System::Layer::GetClock_MonotonicMS();
