@@ -27,10 +27,12 @@
 
 #include <Weave/DeviceLayer/internal/BLEManager.h>
 
-
 namespace nl {
 namespace Weave {
 namespace DeviceLayer {
+
+class ConnectivityManagerImpl;
+
 namespace Internal {
 
 
@@ -41,7 +43,7 @@ namespace Internal {
  * This class is intended to be inherited (directly or indirectly) by the ConnectivityManagerImpl
  * class, which also appears as the template's ImplClass parameter.
  *
- * The majority of methods on this class simply forware calls to similarly-named methods on
+ * The majority of methods on this class simply forward calls to similarly-named methods on
  * the BLEManager class.  This arrangement, where the ConnectivityManager implementation delegates
  * BLE support to the BLEManager class, is standard on platforms that support BLE, and helps to
  * limit the complexity of the ConnectivityManagerImpl class.
@@ -68,6 +70,9 @@ private:
 
     ImplClass * Impl() { return static_cast<ImplClass *>(this); }
 };
+
+// Instruct the compiler to instantiate the template only when explicitly told to do so.
+extern template class GenericConnectivityManagerImpl_BLE<ConnectivityManagerImpl>;
 
 template<class ImplClass>
 inline ConnectivityManager::WoBLEServiceMode GenericConnectivityManagerImpl_BLE<ImplClass>::_GetWoBLEServiceMode(void)
@@ -121,12 +126,6 @@ template<class ImplClass>
 inline uint16_t GenericConnectivityManagerImpl_BLE<ImplClass>::_NumBLEConnections(void)
 {
     return BLEMgr().NumConnections();
-}
-
-template<class ImplClass>
-inline const char * GenericConnectivityManagerImpl_BLE<ImplClass>::_WoBLEServiceModeToStr(ConnectivityManager::WoBLEServiceMode mode)
-{
-    return NULL;
 }
 
 } // namespace Internal

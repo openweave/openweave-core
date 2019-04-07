@@ -48,6 +48,7 @@ public:
     void LockThreadStack(void);
     bool TryLockThreadStack(void);
     void UnlockThreadStack(void);
+    bool HaveRouteToAddress(const IPAddress & destAddr);
 
 private:
 
@@ -122,6 +123,14 @@ inline bool ThreadStackManager::TryLockThreadStack()
 inline void ThreadStackManager::UnlockThreadStack()
 {
     static_cast<ImplClass*>(this)->_UnlockThreadStack();
+}
+
+/**
+ * Determines whether a route exists via the Thread interface to the specified destination address.
+ */
+inline bool ThreadStackManager::HaveRouteToAddress(const IPAddress & destAddr)
+{
+    return static_cast<ImplClass*>(this)->_HaveRouteToAddress(destAddr);
 }
 
 inline void ThreadStackManager::OnPlatformEvent(const WeaveDeviceEvent * event)

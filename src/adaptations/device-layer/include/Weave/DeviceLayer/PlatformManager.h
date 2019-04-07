@@ -30,21 +30,23 @@ namespace nl {
 namespace Weave {
 namespace DeviceLayer {
 
+class PlatformManagerImpl;
 class ConnectivityManagerImpl;
 class ConfigurationManagerImpl;
 class TraitManager;
+class TimeSyncManager;
 namespace Internal {
 class FabricProvisioningServer;
 class ServiceProvisioningServer;
 class BLEManagerImpl;
-template<class ImplClass> class GenericConfigurationManagerImpl;
+template<class> class GenericConfigurationManagerImpl;
 template<class> class GenericPlatformManagerImpl;
 template<class> class GenericPlatformManagerImpl_FreeRTOS;
+template<class> class GenericConnectivityManagerImpl_Thread;
 template<class> class GenericThreadStackManagerImpl_OpenThread;
-template<class> class GenericThreadStackManagerImpl_LwIP;
+template<class> class GenericThreadStackManagerImpl_OpenThread_LwIP;
 } // namespace Internal
 
-class PlatformManagerImpl;
 
 /**
  * Provides features for initializing and interacting with the Weave network
@@ -75,18 +77,19 @@ private:
     // ===== Members for internal use by the following friends.
 
     friend class PlatformManagerImpl;
-    template<class> friend class Internal::GenericPlatformManagerImpl;
-    template<class> friend class Internal::GenericPlatformManagerImpl_FreeRTOS;
-    template<class> friend class Internal::GenericThreadStackManagerImpl_OpenThread;
-    template<class> friend class Internal::GenericThreadStackManagerImpl_LwIP;
     friend class ConnectivityManagerImpl;
-    template<class> friend class Internal::GenericConfigurationManagerImpl;
     friend class ConfigurationManagerImpl;
     friend class TraitManager;
     friend class TimeSyncManager;
     friend class Internal::FabricProvisioningServer;
     friend class Internal::ServiceProvisioningServer;
     friend class Internal::BLEManagerImpl;
+    template<class> friend class Internal::GenericPlatformManagerImpl;
+    template<class> friend class Internal::GenericPlatformManagerImpl_FreeRTOS;
+    template<class> friend class Internal::GenericConnectivityManagerImpl_Thread;
+    template<class> friend class Internal::GenericThreadStackManagerImpl_OpenThread;
+    template<class> friend class Internal::GenericThreadStackManagerImpl_OpenThread_LwIP;
+    template<class> friend class Internal::GenericConfigurationManagerImpl;
     friend ::nl::Weave::System::Error ::nl::Weave::System::Platform::Layer::PostEvent(::nl::Weave::System::Layer & aLayer, void * aContext, ::nl::Weave::System::Object & aTarget, ::nl::Weave::System::EventType aType, uintptr_t aArgument);
     friend ::nl::Weave::System::Error ::nl::Weave::System::Platform::Layer::DispatchEvents(::nl::Weave::System::Layer & aLayer, void * aContext);
     friend ::nl::Weave::System::Error ::nl::Weave::System::Platform::Layer::DispatchEvent(::nl::Weave::System::Layer & aLayer, void * aContext, ::nl::Weave::System::Event aEvent);

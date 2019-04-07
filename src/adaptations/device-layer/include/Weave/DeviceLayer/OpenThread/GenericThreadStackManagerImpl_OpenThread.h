@@ -33,16 +33,22 @@
 namespace nl {
 namespace Weave {
 namespace DeviceLayer {
+
+class ThreadStackManagerImpl;
+
 namespace Internal {
 
 /**
  * Provides a generic implementation of ThreadStackManager features that works in conjunction
  * with OpenThread.
  *
- * This template contains implementations of select features from the ThreadStackManager abstract
+ * This class contains implementations of select features from the ThreadStackManager abstract
  * interface that are suitable for use on devices that employ OpenThread.  It is intended to
  * be inherited, directly or indirectly, by the ThreadStackManagerImpl class, which also appears
  * as the template's ImplClass parameter.
+ *
+ * The class is designed to be independent of the choice of host OS (e.g. RTOS or posix) and
+ * network stack (e.g. LwIP or other IP stack).
  */
 template<class ImplClass>
 class GenericThreadStackManagerImpl_OpenThread
@@ -57,11 +63,14 @@ protected:
 
     // ===== Methods that implement the ThreadStackManager abstract interface.
 
+    void _OnPlatformEvent(const WeaveDeviceEvent * event);
     void _ProcessThreadActivity(void);
+    bool _HaveRouteToAddress(const IPAddress & destAddr);
 
     // ===== Members available to the implementation subclass.
 
-    WEAVE_ERROR Init(otInstance * otInst);
+    WEAVE_ERROR DoInit(otInstance * otInst);
+    bool IsAttached(void);
 
 private:
 
@@ -72,6 +81,12 @@ private:
     inline ImplClass * Impl() { return static_cast<ImplClass*>(this); }
 };
 
+// Instruct the compiler to instantiate the template only when explicitly told to do so.
+extern template class GenericThreadStackManagerImpl_OpenThread<ThreadStackManagerImpl>;
+
+/**
+ * Returns the underlying OpenThread instance object.
+ */
 template<class ImplClass>
 inline otInstance * GenericThreadStackManagerImpl_OpenThread<ImplClass>::OTInstance() const
 {

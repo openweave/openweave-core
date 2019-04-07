@@ -34,19 +34,16 @@
 #include <openthread/tasklet.h>
 #include <openthread/link.h>
 
-int foo;
-void StopHere()
-{
-    foo = 42;
-}
-
 namespace nl {
 namespace Weave {
 namespace DeviceLayer {
 namespace Internal {
 
+// Fully instantiate the generic implementation class in whatever compilation unit includes this file.
+template class GenericThreadStackManagerImpl_OpenThread<ThreadStackManagerImpl>;
+
 template<class ImplClass>
-WEAVE_ERROR GenericThreadStackManagerImpl_OpenThread<ImplClass>::Init(otInstance * otInst)
+WEAVE_ERROR GenericThreadStackManagerImpl_OpenThread<ImplClass>::DoInit(otInstance * otInst)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
     otError otErr;
@@ -99,13 +96,105 @@ exit:
 }
 
 template<class ImplClass>
+void GenericThreadStackManagerImpl_OpenThread<ImplClass>::_OnPlatformEvent(const WeaveDeviceEvent * event)
+{
+    if (event->Type == DeviceEventType::kOpenThreadStateChange)
+    {
+#if WEAVE_DETAIL_LOGGING
+
+        Impl()->LockThreadStack();
+
+        LogOpenThreadStateChange(mOTInst, event->OpenThreadStateChange.flags);
+
+        Impl()->UnlockThreadStack();
+
+#endif // WEAVE_DETAIL_LOGGING
+    }
+}
+
+template<class ImplClass>
 void GenericThreadStackManagerImpl_OpenThread<ImplClass>::_ProcessThreadActivity(void)
 {
     otTaskletsProcess(mOTInst);
     otSysProcessDrivers(mOTInst);
-    StopHere();
 }
 
+template<class ImplClass>
+bool GenericThreadStackManagerImpl_OpenThread<ImplClass>::_HaveRouteToAddress(const IPAddress & destAddr)
+{
+    bool res = false;
+
+    // Lock OpenThread
+    Impl()->LockThreadStack();
+
+    // No routing of IPv4 over Thread.
+    VerifyOrExit(!destAddr.IsIPv4(), res = false);
+
+    // If the device is attached to a Thread network...
+    if (IsAttached())
+    {
+        // Link-local addresses are always presumed to be routable, provided the device is attached.
+        if (destAddr.IsIPv6LinkLocal())
+        {
+            ExitNow(res = true);
+        }
+
+        // Iterate over the routes known to the OpenThread stack looking for a route that covers the
+        // destination address.  If found, consider the address routable.
+        // Ignore any routes advertised by this device.
+        // If the destination address is a ULA, ignore default routes. Border routers advertising
+        // default routes are not expected to be capable of routing Weave fabric ULAs unless they
+        // advertise those routes specifically.
+        {
+            otError otErr;
+            otNetworkDataIterator routeIter = OT_NETWORK_DATA_ITERATOR_INIT;
+            otExternalRouteConfig routeConfig;
+            const bool destIsULA = destAddr.IsIPv6ULA();
+
+            while ((otErr = otNetDataGetNextRoute(Impl()->OTInstance(), &routeIter, &routeConfig)) == OT_ERROR_NONE)
+            {
+                const IPPrefix prefix = ToIPPrefix(routeConfig.mPrefix);
+                char addrStr[64];
+                prefix.IPAddr.ToString(addrStr, sizeof(addrStr));
+                WeaveLogDetail(DeviceLayer, "Prefix: %s/%d", addrStr, (int)prefix.Length);
+                if (!routeConfig.mNextHopIsThisDevice &&
+                    (!destIsULA || routeConfig.mPrefix.mLength > 0) &&
+                    ToIPPrefix(routeConfig.mPrefix).MatchAddress(destAddr))
+                {
+                    ExitNow(res = true);
+                }
+            }
+        }
+    }
+
+exit:
+
+    // Unlock OpenThread
+    Impl()->UnlockThreadStack();
+
+    return res;
+}
+
+/**
+ * Determine whether the device is attached to a Thread network based on the current OpenThread device role.
+ *
+ * NB: This method *must* be called with the OpenThread lock held.
+ */
+template<class ImplClass>
+bool GenericThreadStackManagerImpl_OpenThread<ImplClass>::IsAttached()
+{
+    otDeviceRole curRole = otThreadGetDeviceRole(mOTInst);
+    return (curRole != OT_DEVICE_ROLE_DISABLED && curRole != OT_DEVICE_ROLE_DETACHED);
+}
+
+/**
+ * Called by OpenThread to alert the ThreadStackManager of a change in the state of the Thread stack.
+ *
+ * By default, applications never need to call this method directly.  However, applications that
+ * wish to receive OpenThread state change call-backs directly from OpenThread (e.g. by calling
+ * otSetStateChangedCallback() with their own callback function) can call this method to pass
+ * state change events to the ThreadStackManager.
+ */
 template<class ImplClass>
 void GenericThreadStackManagerImpl_OpenThread<ImplClass>::OnOpenThreadStateChange(uint32_t flags, void * context)
 {

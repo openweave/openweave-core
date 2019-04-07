@@ -976,7 +976,11 @@ $(nl_public_WeaveDeviceLayer_source_dirstem)/internal/DeviceIdentityTraitDataSou
 $(nl_public_WeaveDeviceLayer_source_dirstem)/internal/EchoServer.h                                  \
 $(nl_public_WeaveDeviceLayer_source_dirstem)/internal/FabricProvisioningServer.h                    \
 $(nl_public_WeaveDeviceLayer_source_dirstem)/internal/GenericConnectivityManagerImpl_BLE.h          \
+$(nl_public_WeaveDeviceLayer_source_dirstem)/internal/GenericConnectivityManagerImpl_BLE.ipp        \
 $(nl_public_WeaveDeviceLayer_source_dirstem)/internal/GenericConnectivityManagerImpl_NoBLE.h        \
+$(nl_public_WeaveDeviceLayer_source_dirstem)/internal/GenericConnectivityManagerImpl_Thread.h       \
+$(nl_public_WeaveDeviceLayer_source_dirstem)/internal/GenericConnectivityManagerImpl_Thread.ipp     \
+$(nl_public_WeaveDeviceLayer_source_dirstem)/internal/GenericConnectivityManagerImpl_NoThread.h     \
 $(nl_public_WeaveDeviceLayer_source_dirstem)/internal/GenericConnectivityManagerImpl_NoTunnel.h     \
 $(nl_public_WeaveDeviceLayer_source_dirstem)/internal/GenericConnectivityManagerImpl_NoWiFi.h       \
 $(nl_public_WeaveDeviceLayer_source_dirstem)/internal/GenericConfigurationManagerImpl.h             \
@@ -999,10 +1003,12 @@ $(nl_public_WeaveDeviceLayer_source_dirstem)/internal/testing/GroupKeyStoreUnitT
 $(nl_public_WeaveDeviceLayer_source_dirstem)/internal/testing/SystemClockUnitTest.h   \
 $(NULL)
 
-nl_public_WeaveDeviceLayer_openthread_header_sources =                                              \
-$(nl_public_WeaveDeviceLayer_source_dirstem)/OpenThread/GenericThreadStackManagerImpl_OpenThread.h  \
-$(nl_public_WeaveDeviceLayer_source_dirstem)/OpenThread/GenericThreadStackManagerImpl_OpenThread.ipp \
-$(nl_public_WeaveDeviceLayer_source_dirstem)/OpenThread/OpenThreadUtils.h                           \
+nl_public_WeaveDeviceLayer_openthread_header_sources =                                                      \
+$(nl_public_WeaveDeviceLayer_source_dirstem)/OpenThread/GenericThreadStackManagerImpl_OpenThread.h          \
+$(nl_public_WeaveDeviceLayer_source_dirstem)/OpenThread/GenericThreadStackManagerImpl_OpenThread.ipp        \
+$(nl_public_WeaveDeviceLayer_source_dirstem)/OpenThread/GenericThreadStackManagerImpl_OpenThread_LwIP.h     \
+$(nl_public_WeaveDeviceLayer_source_dirstem)/OpenThread/GenericThreadStackManagerImpl_OpenThread_LwIP.ipp   \
+$(nl_public_WeaveDeviceLayer_source_dirstem)/OpenThread/OpenThreadUtils.h                                   \
 $(NULL)
 
 nl_public_WeaveDeviceLayer_freertos_header_sources =                                                \
@@ -1013,8 +1019,6 @@ $(nl_public_WeaveDeviceLayer_source_dirstem)/FreeRTOS/GenericPlatformManagerImpl
 $(NULL)
 
 nl_public_WeaveDeviceLayer_lwip_header_sources =                                                    \
-$(nl_public_WeaveDeviceLayer_source_dirstem)/LwIP/GenericThreadStackManagerImpl_LwIP.h              \
-$(nl_public_WeaveDeviceLayer_source_dirstem)/LwIP/GenericThreadStackManagerImpl_LwIP.ipp            \
 $(nl_public_WeaveDeviceLayer_source_dirstem)/LwIP/WarmSupport.h                                     \
 $(NULL)
 
