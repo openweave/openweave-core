@@ -1,6 +1,6 @@
 /*
  *
- *    Copyright (c) 2018 Nest Labs, Inc.
+ *    Copyright (c) 2019 Nest Labs, Inc.
  *    All rights reserved.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
@@ -33,6 +33,16 @@
 
 #include <new>
 
+
+#if WEAVE_DEVICE_CONFIG_ENABLE_WOBLE
+#include <Weave/DeviceLayer/internal/GenericConnectivityManagerImpl_BLE.ipp>
+#endif
+
+#if WEAVE_DEVICE_CONFIG_ENABLE_THREAD
+#include <Weave/DeviceLayer/internal/GenericConnectivityManagerImpl_Thread.ipp>
+#endif
+
+
 using namespace ::nl;
 using namespace ::nl::Weave;
 using namespace ::nl::Weave::TLV;
@@ -47,36 +57,21 @@ namespace nl {
 namespace Weave {
 namespace DeviceLayer {
 
-namespace {
-
-inline ConnectivityChange GetConnectivityChange(bool prevState, bool newState)
-{
-    if (prevState == newState)
-        return kConnectivity_NoChange;
-    else if (newState)
-        return kConnectivity_Established;
-    else
-        return kConnectivity_Lost;
-}
-
-} // unnamed namespace
-
-
 ConnectivityManagerImpl ConnectivityManagerImpl::sInstance;
 
-// ==================== ConnectivityManager Platform Internal Methods ====================
 
 WEAVE_ERROR ConnectivityManagerImpl::_Init()
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
 
-    mFlags = 0;
+    // Initialize the generic base classes that require it.
+#if WEAVE_DEVICE_CONFIG_ENABLE_THREAD
+    GenericConnectivityManagerImpl_Thread<ConnectivityManagerImpl>::_Init();
+#endif
 
     // Initialize the Weave Addressing and Routing Module.
     err = Warm::Init(FabricState);
     SuccessOrExit(err);
-
-    // TODO: finish me
 
 exit:
     return err;
@@ -84,17 +79,11 @@ exit:
 
 void ConnectivityManagerImpl::_OnPlatformEvent(const WeaveDeviceEvent * event)
 {
-    // If the state of the Thread interface has changed, notify WARM accordingly.
-    if (event->Type == DeviceEventType::kThreadConnectivityChange)
-    {
-        Warm::ThreadInterfaceStateChange(event->ThreadConnectivityChange.Result == kConnectivity_Established
-                                         ? Warm::kInterfaceStateUp : Warm::kInterfaceStateDown);
-    }
-
-    // TODO: finish me
+    // Forward the event to the generic base classes as needed.
+#if WEAVE_DEVICE_CONFIG_ENABLE_THREAD
+    GenericConnectivityManagerImpl_Thread<ConnectivityManagerImpl>::_OnPlatformEvent(event);
+#endif
 }
-
-// ==================== ConnectivityManager Private Methods ====================
 
 } // namespace DeviceLayer
 } // namespace Weave

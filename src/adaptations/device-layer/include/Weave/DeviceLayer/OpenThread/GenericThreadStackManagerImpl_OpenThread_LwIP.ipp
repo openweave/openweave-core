@@ -19,17 +19,21 @@
 /**
  *    @file
  *          Contains non-inline method definitions for the
- *          GenericThreadStackManagerImpl_LwIP<> template.
+ *          GenericThreadStackManagerImpl_OpenThread_LwIP<> template.
  */
 
 #include <Weave/DeviceLayer/internal/WeaveDeviceLayerInternal.h>
-#include <Weave/DeviceLayer/LwIP/GenericThreadStackManagerImpl_LwIP.h>
-#include <Weave/Support/logging/DecodedIPPacket.h>
+#include <Weave/DeviceLayer/OpenThread/GenericThreadStackManagerImpl_OpenThread_LwIP.h>
+#include <Weave/DeviceLayer/OpenThread/OpenThreadUtils.h>
 #include <Weave/Core/WeaveEncoding.h>
 
 #include <openthread/thread.h>
+#include <openthread/error.h>
 #include <openthread/ip6.h>
 #include <openthread/icmp6.h>
+#include <openthread/netdata.h>
+
+#include <Weave/DeviceLayer/OpenThread/GenericThreadStackManagerImpl_OpenThread.ipp>
 
 #define NRF_LOG_MODULE_NAME weave
 #include "nrf_log.h"
@@ -39,97 +43,68 @@ namespace Weave {
 namespace DeviceLayer {
 namespace Internal {
 
-namespace {
+// Fully instantiate the generic implementation class in whatever compilation unit includes this file.
+template class GenericThreadStackManagerImpl_OpenThread_LwIP<ThreadStackManagerImpl>;
 
-void LogPacket(const char * direction, otMessage * pkt)
+template<class ImplClass>
+void GenericThreadStackManagerImpl_OpenThread_LwIP<ImplClass>::_OnPlatformEvent(const WeaveDeviceEvent * event)
 {
-    char srcStr[50], destStr[50], typeBuf[20];
-    const char * type = typeBuf;
-    IPAddress addr;
-    uint8_t headerData[44];
-    uint16_t pktLen;
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
 
-    const uint8_t & IPv6_NextHeader = headerData[6];
-    const uint8_t * const IPv6_SrcAddr = headerData + 8;
-    const uint8_t * const IPv6_DestAddr = headerData + 24;
-    const uint8_t * const IPv6_SrcPort = headerData + 40;
-    const uint8_t * const IPv6_DestPort = headerData + 42;
-    const uint8_t & ICMPv6_Type = headerData[40];
-    const uint8_t & ICMPv6_Code = headerData[41];
+    // Pass the event to the base class first.
+    GenericThreadStackManagerImpl_OpenThread<ImplClass>::_OnPlatformEvent(event);
 
-    constexpr uint8_t kIPProto_UDP = 17;
-    constexpr uint8_t kIPProto_TCP = 6;
-    constexpr uint8_t kIPProto_ICMPv6 = 58;
-
-    constexpr uint8_t kICMPType_EchoRequest = 128;
-    constexpr uint8_t kICMPType_EchoResponse = 129;
-
-    pktLen = otMessageGetLength(pkt);
-
-    if (pktLen >= sizeof(headerData))
+    if (event->Type == DeviceEventType::kOpenThreadStateChange)
     {
-        otMessageRead(pkt, 0, headerData, sizeof(headerData));
-
-        memcpy(addr.Addr, IPv6_SrcAddr, 16);
-        addr.ToString(srcStr, sizeof(srcStr));
-
-        memcpy(addr.Addr, IPv6_DestAddr, 16);
-        addr.ToString(destStr, sizeof(destStr));
-
-        if (IPv6_NextHeader == kIPProto_UDP)
+        // If the Thread device role has changed
+        // OR if an IPv6 address has been added or removed
+        // OR if the Thread network data has changed...
+        if ((event->OpenThreadStateChange.flags & (OT_CHANGED_THREAD_ROLE|OT_CHANGED_IP6_ADDRESS_ADDED|OT_CHANGED_IP6_ADDRESS_REMOVED|OT_CHANGED_THREAD_NETDATA)) != 0)
         {
-            type = "UDP";
-        }
-        else if (IPv6_NextHeader == kIPProto_TCP)
-        {
-            type = "TCP";
-        }
-        else if (IPv6_NextHeader == kIPProto_ICMPv6)
-        {
-            if (ICMPv6_Type == kICMPType_EchoRequest)
+            ConnectivityChange connChange = kConnectivity_NoChange;
+
+            // If the Thread device role has changed, or an IPv6 address has been added or removed, update
+            // the state and configuration of the LwIP Thread interface.
+            if ((event->OpenThreadStateChange.flags & (OT_CHANGED_THREAD_ROLE|OT_CHANGED_IP6_ADDRESS_ADDED|OT_CHANGED_IP6_ADDRESS_REMOVED)) != 0)
             {
-                type = "ICMPv6 Echo Request";
+                err = UpdateThreadInterface(connChange);
+                SuccessOrExit(err);
             }
-            else if (ICMPv6_Type == kICMPType_EchoResponse)
+
+            // Post an event signaling the change in Thread connectivity state.
             {
-                type = "ICMPv6 Echo Response";
-            }
-            else
-            {
-                snprintf(typeBuf, sizeof(typeBuf), "ICMPv6 %" PRIu8 ",%" PRIu8, ICMPv6_Type, ICMPv6_Code);
+                WeaveDeviceEvent conChangeEvent;
+                conChangeEvent.Clear();
+                conChangeEvent.Type = DeviceEventType::kThreadConnectivityChange;
+                conChangeEvent.ThreadConnectivityChange.Result = connChange;
+                conChangeEvent.ThreadConnectivityChange.RoleChanged = (event->OpenThreadStateChange.flags & OT_CHANGED_THREAD_ROLE) != 0;
+                conChangeEvent.ThreadConnectivityChange.AddressChanged = (event->OpenThreadStateChange.flags & (OT_CHANGED_IP6_ADDRESS_ADDED|OT_CHANGED_IP6_ADDRESS_REMOVED)) != 0;
+                conChangeEvent.ThreadConnectivityChange.NetDataChanged = (event->OpenThreadStateChange.flags & OT_CHANGED_THREAD_NETDATA) != 0;
+                PlatformMgr().PostEvent(&conChangeEvent);
             }
         }
-        else
-        {
-            snprintf(typeBuf, sizeof(typeBuf), "IP proto %" PRIu8, IPv6_NextHeader);
-        }
-
-        if (IPv6_NextHeader == kIPProto_UDP || IPv6_NextHeader == kIPProto_TCP)
-        {
-            snprintf(srcStr + strlen(srcStr), 13, ", port %" PRIu16, Encoding::BigEndian::Get16(IPv6_SrcPort));
-            snprintf(destStr + strlen(destStr), 13, ", port %" PRIu16, Encoding::BigEndian::Get16(IPv6_DestPort));
-        }
-
-        WeaveLogDetail(DeviceLayer, "Thread packet %s: %s, len %" PRIu16, direction, type, pktLen);
-        WeaveLogDetail(DeviceLayer, "    src  %s", srcStr);
-        WeaveLogDetail(DeviceLayer, "    dest %s", destStr);
     }
-    else
+
+exit:
+    if (err != WEAVE_NO_ERROR)
     {
-        WeaveLogDetail(DeviceLayer, "Thread packet %s: %s, len %" PRIu16, direction, "(decode error)", pktLen);
+        WeaveLogProgress(DeviceLayer, "GenericThreadStackManagerImpl_OpenThread_LwIP<>::_OnPlatformEvent() failed: %s", ErrorStr(err));
     }
-}
-
 }
 
 template<class ImplClass>
-WEAVE_ERROR GenericThreadStackManagerImpl_LwIP<ImplClass>::InitThreadNetIf(void)
+WEAVE_ERROR GenericThreadStackManagerImpl_OpenThread_LwIP<ImplClass>::DoInit(otInstance * otInst)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
 
     static struct netif sThreadNetIf;
 
+    // Initialize member data.
     memset(mAddrAssigned, 0, sizeof(mAddrAssigned));
+
+    // Initialize the base class.
+    err = GenericThreadStackManagerImpl_OpenThread<ImplClass>::DoInit(otInst);
+    SuccessOrExit(err);
 
     // Lock LwIP stack
     LOCK_TCPIP_CORE();
@@ -171,11 +146,10 @@ exit:
 }
 
 template<class ImplClass>
-WEAVE_ERROR GenericThreadStackManagerImpl_LwIP<ImplClass>::UpdateThreadNetIfState(void)
+WEAVE_ERROR GenericThreadStackManagerImpl_OpenThread_LwIP<ImplClass>::UpdateThreadInterface(ConnectivityChange & interfaceConn)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
     err_t lwipErr = ERR_OK;
-    otDeviceRole curRole;
     bool isAttached;
     bool addrAssigned[LWIP_IPV6_NUM_ADDRESSES];
 
@@ -185,11 +159,11 @@ WEAVE_ERROR GenericThreadStackManagerImpl_LwIP<ImplClass>::UpdateThreadNetIfStat
     LOCK_TCPIP_CORE();
     Impl()->LockThreadStack();
 
-    // Determine the current OpenThread device role and whether the device is attached to a Thread network.
-    curRole = otThreadGetDeviceRole(Impl()->OTInstance());
-    isAttached = (curRole != OT_DEVICE_ROLE_DISABLED && curRole != OT_DEVICE_ROLE_DETACHED);
+    // Determine whether the device is attached to a Thread network.
+    isAttached = GenericThreadStackManagerImpl_OpenThread<ImplClass>::IsAttached();
 
     // If needed, adjust the link state of the LwIP netif to reflect the state of the OpenThread stack.
+    // Set ifConnectivity to indicate the change in the link state.
     if (isAttached != (bool)netif_is_link_up(mNetIf))
     {
         WeaveLogDetail(DeviceLayer, "LwIP Thread interface %s", (isAttached) ? "UP" : "DOWN");
@@ -197,19 +171,17 @@ WEAVE_ERROR GenericThreadStackManagerImpl_LwIP<ImplClass>::UpdateThreadNetIfStat
         if (isAttached)
         {
             netif_set_link_up(mNetIf);
+            interfaceConn = kConnectivity_Established;
         }
         else
         {
             netif_set_link_down(mNetIf);
+            interfaceConn = kConnectivity_Lost;
         }
-
-        // Post an event signaling the change in Thread connectivity state.
-        {
-            WeaveDeviceEvent event;
-            event.Type = DeviceEventType::kThreadConnectivityChange;
-            event.ThreadConnectivityChange.Result = (isAttached) ? kConnectivity_Established : kConnectivity_Lost;
-            PlatformMgr().PostEvent(&event);
-        }
+    }
+    else
+    {
+        interfaceConn = kConnectivity_NoChange;
     }
 
     // If attached to a Thread network, adjust the set of addresses on the LwIP netif to match those
@@ -322,7 +294,7 @@ exit:
 }
 
 template<class ImplClass>
-err_t GenericThreadStackManagerImpl_LwIP<ImplClass>::DoInitThreadNetIf(struct netif * netif)
+err_t GenericThreadStackManagerImpl_OpenThread_LwIP<ImplClass>::DoInitThreadNetIf(struct netif * netif)
 {
     netif->name[0] = WEAVE_DEVICE_CONFIG_LWIP_THREAD_IF_NAME[0];
     netif->name[1] = WEAVE_DEVICE_CONFIG_LWIP_THREAD_IF_NAME[1];
@@ -342,13 +314,13 @@ err_t GenericThreadStackManagerImpl_LwIP<ImplClass>::DoInitThreadNetIf(struct ne
  * This method is called by LwIP, via a pointer in the netif structure, whenever
  * an IPv6 packet is to be sent out the Thread interface.
  *
- * NB: This method is called with the LwIP TCPIP core lock held.
+ * NB: This method is called in the LwIP TCPIP thread with the LwIP core lock held.
  */
 template<class ImplClass>
 #if LWIP_VERSION_MAJOR < 2
-err_t GenericThreadStackManagerImpl_LwIP<ImplClass>::SendPacket(struct netif * netif, struct pbuf * pktPBuf, struct ip6_addr * ipaddr)
+err_t GenericThreadStackManagerImpl_OpenThread_LwIP<ImplClass>::SendPacket(struct netif * netif, struct pbuf * pktPBuf, struct ip6_addr * ipaddr)
 #else
-err_t GenericThreadStackManagerImpl_LwIP<ImplClass>::SendPacket(struct netif * netif, struct pbuf * pktPBuf, const struct ip6_addr * ipaddr)
+err_t GenericThreadStackManagerImpl_OpenThread_LwIP<ImplClass>::SendPacket(struct netif * netif, struct pbuf * pktPBuf, const struct ip6_addr * ipaddr)
 #endif
 {
     err_t lwipErr = ERR_OK;
@@ -377,13 +349,22 @@ err_t GenericThreadStackManagerImpl_LwIP<ImplClass>::SendPacket(struct netif * n
     }
     VerifyOrExit(remainingLen == 0, lwipErr = ERR_VAL);
 
-    LogPacket("SENT", pktMsg);
+#if WEAVE_DETAIL_LOGGING
+    LogOpenThreadPacket("Thread packet SENT", pktMsg);
+#endif // WEAVE_DETAIL_LOGGING
 
     // Pass the packet to OpenThread to be sent.  Note that OpenThread takes care of releasing
     // the otMessage object regardless of whether otIp6Send() succeeds or fails.
+    // Propagate the error back up the stack UNLESS it is a transient error.
     otErr = otIp6Send(ThreadStackMgrImpl().OTInstance(), pktMsg);
     pktMsg = NULL;
-    VerifyOrExit(otErr == OT_ERROR_NONE, lwipErr = ERR_IF);
+#if WEAVE_DETAIL_LOGGING
+    if (otErr != OT_ERROR_NONE)
+    {
+        WeaveLogDetail(DeviceLayer, "ThreadStackManagerImpl: otIp6Send() error: %s", otThreadErrorToString(otErr));
+    }
+#endif // WEAVE_DETAIL_LOGGING
+    VerifyOrExit(otErr == OT_ERROR_NONE || otErr == OT_ERROR_DROP || otErr == OT_ERROR_NO_BUFS || otErr == OT_ERROR_NO_ROUTE, lwipErr = ERR_IF);
 
 exit:
 
@@ -409,7 +390,7 @@ exit:
  * OpenWeave stack lock.
  */
 template<class ImplClass>
-void GenericThreadStackManagerImpl_LwIP<ImplClass>::ReceivePacket(otMessage * pkt, void *)
+void GenericThreadStackManagerImpl_OpenThread_LwIP<ImplClass>::ReceivePacket(otMessage * pkt, void *)
 {
     struct pbuf * pbuf = NULL;
     err_t lwipErr = ERR_OK;
@@ -426,7 +407,9 @@ void GenericThreadStackManagerImpl_LwIP<ImplClass>::ReceivePacket(otMessage * pk
         ExitNow(lwipErr = ERR_IF);
     }
 
-    LogPacket("RCVD", pkt);
+#if WEAVE_DETAIL_LOGGING
+    LogOpenThreadPacket("Thread packet RCVD", pkt);
+#endif // WEAVE_DETAIL_LOGGING
 
     // Deliver the packet to the input function associated with the LwIP netif.
     // NOTE: The input function posts the inbound packet to LwIP's TCPIP thread.

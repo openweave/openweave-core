@@ -26,11 +26,10 @@
 
 #include <Weave/DeviceLayer/internal/WeaveDeviceLayerInternal.h>
 #include <Weave/DeviceLayer/ThreadStackManager.h>
-#include <Weave/DeviceLayer/OpenThread/GenericThreadStackManagerImpl_OpenThread.ipp>
-#include <Weave/DeviceLayer/FreeRTOS/GenericThreadStackManagerImpl_FreeRTOS.ipp>
-#include <Weave/DeviceLayer/LwIP/GenericThreadStackManagerImpl_LwIP.ipp>
 #include <Weave/DeviceLayer/OpenThread/OpenThreadUtils.h>
 
+#include <Weave/DeviceLayer/FreeRTOS/GenericThreadStackManagerImpl_FreeRTOS.ipp>
+#include <Weave/DeviceLayer/OpenThread/GenericThreadStackManagerImpl_OpenThread_LwIP.ipp>
 
 #include "boards.h"
 #include "nrf_log.h"
@@ -40,12 +39,6 @@ namespace Weave {
 namespace DeviceLayer {
 
 using namespace ::nl::Weave::DeviceLayer::Internal;
-
-// Fully instantiate the template classes on which the nRF52 PlatformManager depends.
-template class Internal::GenericThreadStackManagerImpl_OpenThread<ThreadStackManagerImpl>;
-template class Internal::GenericThreadStackManagerImpl_FreeRTOS<ThreadStackManagerImpl>;
-template class Internal::GenericThreadStackManagerImpl_LwIP<ThreadStackManagerImpl>;
-
 
 ThreadStackManagerImpl ThreadStackManagerImpl::sInstance;
 
@@ -58,97 +51,14 @@ WEAVE_ERROR ThreadStackManagerImpl::InitThreadStack(otInstance * otInst)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
 
-    err = GenericThreadStackManagerImpl_FreeRTOS<ThreadStackManagerImpl>::Init();
+    // Initialize the generic implementation base classes.
+    err = GenericThreadStackManagerImpl_FreeRTOS<ThreadStackManagerImpl>::DoInit();
     SuccessOrExit(err);
-
-    err = GenericThreadStackManagerImpl_OpenThread<ThreadStackManagerImpl>::Init(otInst);
-    SuccessOrExit(err);
-
-    err = GenericThreadStackManagerImpl_LwIP<ThreadStackManagerImpl>::InitThreadNetIf();
+    err = GenericThreadStackManagerImpl_OpenThread_LwIP<ThreadStackManagerImpl>::DoInit(otInst);
     SuccessOrExit(err);
 
 exit:
     return err;
-}
-
-void ThreadStackManagerImpl::_OnPlatformEvent(const WeaveDeviceEvent * event)
-{
-    WEAVE_ERROR err = WEAVE_NO_ERROR;
-
-    if (event->Type == DeviceEventType::kOpenThreadStateChange)
-    {
-#if WEAVE_DETAIL_LOGGING
-
-        LockThreadStack();
-
-        otInstance * otInst = OTInstance();
-
-        WeaveLogDetail(DeviceLayer, "OpenThread State Changed (Flags: 0x%08x)", event->OpenThreadStateChange.flags);
-        if ((event->OpenThreadStateChange.flags & OT_CHANGED_THREAD_ROLE) != 0)
-        {
-            WeaveLogDetail(DeviceLayer, "   Device Role: %s", OpenThreadRoleToStr(otThreadGetDeviceRole(otInst)));
-        }
-        if ((event->OpenThreadStateChange.flags & OT_CHANGED_THREAD_NETWORK_NAME) != 0)
-        {
-            WeaveLogDetail(DeviceLayer, "   Network Name: %s", otThreadGetNetworkName(otInst));
-        }
-        if ((event->OpenThreadStateChange.flags & OT_CHANGED_THREAD_PANID) != 0)
-        {
-            WeaveLogDetail(DeviceLayer, "   PAN Id: 0x%04X", otLinkGetPanId(otInst));
-        }
-        if ((event->OpenThreadStateChange.flags & OT_CHANGED_THREAD_EXT_PANID) != 0)
-        {
-            const otExtendedPanId * exPanId = otThreadGetExtendedPanId(otInst);
-            static char exPanIdStr[32];
-            snprintf(exPanIdStr, sizeof(exPanIdStr), "0x%02X%02X%02X%02X%02X%02X%02X%02X",
-                     exPanId->m8[0], exPanId->m8[1], exPanId->m8[2], exPanId->m8[3],
-                     exPanId->m8[4], exPanId->m8[5], exPanId->m8[6], exPanId->m8[7]);
-            WeaveLogDetail(DeviceLayer, "   Extended PAN Id: %s", exPanIdStr);
-        }
-        if ((event->OpenThreadStateChange.flags & OT_CHANGED_THREAD_CHANNEL) != 0)
-        {
-            WeaveLogDetail(DeviceLayer, "   Channel: %d", otLinkGetChannel(otInst));
-        }
-        if ((event->OpenThreadStateChange.flags & (OT_CHANGED_IP6_ADDRESS_ADDED|OT_CHANGED_IP6_ADDRESS_REMOVED)) != 0)
-        {
-            WeaveLogDetail(DeviceLayer, "   Interface Addresses:");
-            for (const otNetifAddress * addr = otIp6GetUnicastAddresses(otInst); addr != NULL; addr = addr->mNext)
-            {
-                static char ipAddrStr[64];
-                nl::Inet::IPAddress ipAddr;
-
-                memcpy(ipAddr.Addr, addr->mAddress.mFields.m32, sizeof(ipAddr.Addr));
-
-                ipAddr.ToString(ipAddrStr, sizeof(ipAddrStr));
-
-                WeaveLogDetail(DeviceLayer, "        %s/%d%s%s%s", ipAddrStr,
-                                 addr->mPrefixLength,
-                                 addr->mValid ? " valid" : "",
-                                 addr->mPreferred ? " preferred" : "",
-                                 addr->mRloc ? " rloc" : "");
-            }
-        }
-
-        UnlockThreadStack();
-
-#endif // WEAVE_DETAIL_LOGGING
-
-        // If the Thread device role has changed, or an IPv6 address has been added or removed from
-        // the Thread stack, update the state and configuration of the LwIP netif.
-        if ((event->OpenThreadStateChange.flags & (OT_CHANGED_THREAD_ROLE|OT_CHANGED_IP6_ADDRESS_ADDED|OT_CHANGED_IP6_ADDRESS_REMOVED)) != 0)
-        {
-            err = UpdateThreadNetIfState();
-            SuccessOrExit(err);
-        }
-    }
-
-exit:
-    if (err != WEAVE_NO_ERROR)
-    {
-        WeaveLogProgress(DeviceLayer, "ThreadStackManagerImpl::_OnPlatformEvent() failed: %s", ErrorStr(err));
-    }
-
-    // TODO: handle error.
 }
 
 } // namespace DeviceLayer

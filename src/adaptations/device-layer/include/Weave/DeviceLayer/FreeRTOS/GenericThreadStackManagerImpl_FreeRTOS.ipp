@@ -34,8 +34,11 @@ namespace Weave {
 namespace DeviceLayer {
 namespace Internal {
 
+// Fully instantiate the generic implementation class in whatever compilation unit includes this file.
+template class GenericThreadStackManagerImpl_FreeRTOS<ThreadStackManagerImpl>;
+
 template<class ImplClass>
-WEAVE_ERROR GenericThreadStackManagerImpl_FreeRTOS<ImplClass>::Init(void)
+WEAVE_ERROR GenericThreadStackManagerImpl_FreeRTOS<ImplClass>::DoInit(void)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
 

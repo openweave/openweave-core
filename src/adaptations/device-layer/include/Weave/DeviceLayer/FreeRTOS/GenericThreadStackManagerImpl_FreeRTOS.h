@@ -39,6 +39,9 @@
 namespace nl {
 namespace Weave {
 namespace DeviceLayer {
+
+class ThreadStackManagerImpl;
+
 namespace Internal {
 
 /**
@@ -66,7 +69,7 @@ protected:
     SemaphoreHandle_t mThreadStackLock;
     TaskHandle_t mThreadTask;
 
-    WEAVE_ERROR Init();
+    WEAVE_ERROR DoInit();
     void SignalThreadActivityPending();
     BaseType_t SignalThreadActivityPendingFromISR();
 
@@ -79,6 +82,8 @@ private:
     static void ThreadTaskMain(void * arg);
 };
 
+// Instruct the compiler to instantiate the template only when explicitly told to do so.
+extern template class GenericThreadStackManagerImpl_FreeRTOS<ThreadStackManagerImpl>;
 
 } // namespace Internal
 } // namespace DeviceLayer

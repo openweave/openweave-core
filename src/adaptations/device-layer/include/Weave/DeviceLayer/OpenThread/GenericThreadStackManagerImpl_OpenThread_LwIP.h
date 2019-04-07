@@ -22,8 +22,10 @@
  *          for use on platforms that use OpenThread with LwIP.
  */
 
-#ifndef GENERIC_THREAD_STACK_MANAGER_IMPL_LWIP_H
-#define GENERIC_THREAD_STACK_MANAGER_IMPL_LWIP_H
+#ifndef GENERIC_THREAD_STACK_MANAGER_IMPL_OPENTHREAD_LWIP_H
+#define GENERIC_THREAD_STACK_MANAGER_IMPL_OPENTHREAD_LWIP_H
+
+#include <Weave/DeviceLayer/OpenThread/GenericThreadStackManagerImpl_OpenThread.h>
 
 #include <lwip/tcpip.h>
 #include <lwip/netif.h>
@@ -33,6 +35,9 @@
 namespace nl {
 namespace Weave {
 namespace DeviceLayer {
+
+class ThreadStackManagerImpl;
+
 namespace Internal {
 
 /**
@@ -45,7 +50,8 @@ namespace Internal {
  * also appears as the template's ImplClass parameter.
  */
 template<class ImplClass>
-class GenericThreadStackManagerImpl_LwIP
+class GenericThreadStackManagerImpl_OpenThread_LwIP :
+    public GenericThreadStackManagerImpl_OpenThread<ImplClass>
 {
 public:
 
@@ -55,10 +61,14 @@ public:
 
 protected:
 
+    // ===== Methods that implement the ThreadStackManager abstract interface.
+
+    void _OnPlatformEvent(const WeaveDeviceEvent * event);
+
     // ===== Members available to the implementation subclass.
 
-    WEAVE_ERROR InitThreadNetIf(void);
-    WEAVE_ERROR UpdateThreadNetIfState(void);
+    WEAVE_ERROR DoInit(otInstance * otInst);
+    WEAVE_ERROR UpdateThreadInterface(ConnectivityChange & ifConnectivity);
 
 private:
 
@@ -78,8 +88,11 @@ private:
     inline ImplClass * Impl() { return static_cast<ImplClass*>(this); }
 };
 
+// Instruct the compiler to instantiate the template only when explicitly told to do so.
+extern template class GenericThreadStackManagerImpl_OpenThread_LwIP<ThreadStackManagerImpl>;
+
 template<class ImplClass>
-inline struct netif * GenericThreadStackManagerImpl_LwIP<ImplClass>::ThreadNetIf() const
+inline struct netif * GenericThreadStackManagerImpl_OpenThread_LwIP<ImplClass>::ThreadNetIf() const
 {
     return mNetIf;
 }
@@ -89,4 +102,4 @@ inline struct netif * GenericThreadStackManagerImpl_LwIP<ImplClass>::ThreadNetIf
 } // namespace Weave
 } // namespace nl
 
-#endif // GENERIC_THREAD_STACK_MANAGER_IMPL_LWIP_H
+#endif // GENERIC_THREAD_STACK_MANAGER_IMPL_OPENTHREAD_LWIP_H
