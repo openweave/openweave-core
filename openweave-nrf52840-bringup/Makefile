@@ -27,6 +27,18 @@ TEMPLATE_PATH := $(NRF5_SDK_ROOT)/components/toolchain/gcc
 
 TARGET := openweave-nrf52840-bringup
 
+# Build Flags
+#
+#     DEBUG     - Build application with symbol information
+#
+#     MMD       - Enable J-Link Monitor Mode Debugging
+#
+#                 This required the JLINK_MONITOR_ISR_SES.s source file to be
+#                 located in the project root directory.  This file can be
+#                 downloaded from https://www.segger.com/products/debug-probes/j-link/technology/monitor-mode-debugging/.
+DEBUG ?= 1
+MMD ?= 0
+
 SRC_FILES := \
     $(PROJ_DIR)/main.cpp \
     $(NRF5_SDK_ROOT)/components/ble/common/ble_advdata.c \
@@ -165,6 +177,10 @@ INC_FOLDERS = \
     $(NRF5_SDK_ROOT)/modules/nrfx/mdk \
     $(WEAVE_INCLUDES)
 
+ifeq ($(MMD),1)
+SRC_FILES += $(PROJ_DIR)/JLINK_MONITOR_ISR_SES.s
+endif
+
 LIB_FILES = \
     $(WEAVE_LIBS) \
     $(NRF5_SDK_ROOT)/external/openthread/lib/gcc/libopenthread-diag.a \
@@ -182,10 +198,8 @@ LIB_FILES = \
 
 LINKER_SCRIPT = $(TARGET).ld
 
-DEBUG ?= 1
-
 ifeq ($(DEBUG),1)
-OPT := -g3
+OPT := -g3 -ggdb3
 else
 OPT := -Os -g3
 endif
@@ -203,6 +217,10 @@ DEFINES = \
 
 ifeq ($(DEBUG),1)
 DEFINES += DEBUG
+endif
+	
+ifeq ($(MMD),1)
+DEFINES += JLINK_MMD
 endif
 	
 CFLAGS = \
