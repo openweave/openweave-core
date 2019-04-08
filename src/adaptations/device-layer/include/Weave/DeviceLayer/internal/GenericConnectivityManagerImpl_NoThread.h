@@ -51,19 +51,7 @@ protected:
 };
 
 template<class ImplClass>
-inline void GenericConnectivityManagerImpl_Thread::_Init(void)
-{
-    /* nothing to do */
-}
-
-template<class ImplClass>
-inline void GenericConnectivityManagerImpl_Thread::_OnPlatformEvent(const WeaveDeviceEvent *)
-{
-    /* nothing to do */
-}
-
-template<class ImplClass>
-inline bool _HaveServiceConnectivityViaThread(void)
+inline bool GenericConnectivityManagerImpl_NoThread<ImplClass>::_HaveServiceConnectivityViaThread(void)
 {
     return false;
 }
