@@ -342,7 +342,7 @@ KeyFormat DetectKeyFormat(const uint8_t *key, uint32_t keyLen)
     if (ContainsPEMMarker(pkcs8PEMMarker, key, keyLen))
         return kKeyFormat_PEM_PKCS8;
 
-    if(ContainsPEMMarker(ecPUBPEMMarker, key, keyLen))
+    if (ContainsPEMMarker(ecPUBPEMMarker, key, keyLen))
         return kKeyFormat_PEM;
 
     return kKeyFormat_DER;
