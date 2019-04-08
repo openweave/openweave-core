@@ -38,6 +38,10 @@
 
 #include <new>
 
+#if WEAVE_DEVICE_CONFIG_ENABLE_WOBLE
+#include <Weave/DeviceLayer/internal/GenericConnectivityManagerImpl_BLE.ipp>
+#endif
+
 using namespace ::nl;
 using namespace ::nl::Weave;
 using namespace ::nl::Weave::TLV;
@@ -52,21 +56,6 @@ using Profiles::kWeaveProfile_NetworkProvisioning;
 namespace nl {
 namespace Weave {
 namespace DeviceLayer {
-
-namespace {
-
-inline ConnectivityChange GetConnectivityChange(bool prevState, bool newState)
-{
-    if (prevState == newState)
-        return kConnectivity_NoChange;
-    else if (newState)
-        return kConnectivity_Established;
-    else
-        return kConnectivity_Lost;
-}
-
-} // unnamed namespace
-
 
 ConnectivityManagerImpl ConnectivityManagerImpl::sInstance;
 
@@ -216,91 +205,11 @@ bool ConnectivityManagerImpl::_IsServiceTunnelRestricted(void)
     return ServiceTunnelAgent.IsTunnelRoutingRestricted();
 }
 
-bool ConnectivityManagerImpl::_HaveServiceConnectivity(void)
+bool ConnectivityManagerImpl::_HaveServiceConnectivityViaTunnel(void)
 {
     return IsServiceTunnelConnected() && !IsServiceTunnelRestricted();
 }
 
-ConnectivityManager::WoBLEServiceMode ConnectivityManagerImpl::_GetWoBLEServiceMode(void)
-{
-#if WEAVE_DEVICE_CONFIG_ENABLE_WOBLE
-    return BLEMgr().GetWoBLEServiceMode();
-#else
-    return kWoBLEServiceMode_NotSupported;
-#endif
-}
-
-WEAVE_ERROR ConnectivityManagerImpl::_SetWoBLEServiceMode(WoBLEServiceMode val)
-{
-#if WEAVE_DEVICE_CONFIG_ENABLE_WOBLE
-    return BLEMgr().SetWoBLEServiceMode(val);
-#else
-    return WEAVE_ERROR_UNSUPPORTED_WEAVE_FEATURE;
-#endif
-}
-
-bool ConnectivityManagerImpl::_IsBLEAdvertisingEnabled(void)
-{
-#if WEAVE_DEVICE_CONFIG_ENABLE_WOBLE
-    return BLEMgr().IsAdvertisingEnabled();
-#else
-    return false;
-#endif
-}
-
-WEAVE_ERROR ConnectivityManagerImpl::_SetBLEAdvertisingEnabled(bool val)
-{
-#if WEAVE_DEVICE_CONFIG_ENABLE_WOBLE
-    return BLEMgr().SetAdvertisingEnabled(val);
-#else
-    return WEAVE_ERROR_UNSUPPORTED_WEAVE_FEATURE;
-#endif
-}
-
-bool ConnectivityManagerImpl::_IsBLEFastAdvertisingEnabled(void)
-{
-#if WEAVE_DEVICE_CONFIG_ENABLE_WOBLE
-    return BLEMgr().IsFastAdvertisingEnabled();
-#else
-    return false;
-#endif
-}
-
-WEAVE_ERROR ConnectivityManagerImpl::_SetBLEFastAdvertisingEnabled(bool val)
-{
-#if WEAVE_DEVICE_CONFIG_ENABLE_WOBLE
-    return BLEMgr().SetFastAdvertisingEnabled(val);
-#else
-    return WEAVE_ERROR_UNSUPPORTED_WEAVE_FEATURE;
-#endif
-}
-
-WEAVE_ERROR ConnectivityManagerImpl::_GetBLEDeviceName(char * buf, size_t bufSize)
-{
-#if WEAVE_DEVICE_CONFIG_ENABLE_WOBLE
-    return BLEMgr().GetDeviceName(buf, bufSize);
-#else
-    return WEAVE_ERROR_UNSUPPORTED_WEAVE_FEATURE;
-#endif
-}
-
-WEAVE_ERROR ConnectivityManagerImpl::_SetBLEDeviceName(const char * deviceName)
-{
-#if WEAVE_DEVICE_CONFIG_ENABLE_WOBLE
-    return BLEMgr().SetDeviceName(deviceName);
-#else
-    return WEAVE_ERROR_UNSUPPORTED_WEAVE_FEATURE;
-#endif
-}
-
-uint16_t ConnectivityManagerImpl::_NumBLEConnections(void)
-{
-#if WEAVE_DEVICE_CONFIG_ENABLE_WOBLE
-    return BLEMgr().NumConnections();
-#else
-    return 0;
-#endif
-}
 
 // ==================== ConnectivityManager Platform Internal Methods ====================
 
@@ -1069,21 +978,6 @@ const char * ConnectivityManagerImpl::_ServiceTunnelModeToStr(ServiceTunnelMode 
     }
 }
 
-const char * ConnectivityManagerImpl::_WoBLEServiceModeToStr(WoBLEServiceMode mode)
-{
-    switch (mode)
-    {
-    case kWoBLEServiceMode_NotSupported:
-        return "NotSupported";
-    case kWoBLEServiceMode_Enabled:
-        return "Disabled";
-    case kWoBLEServiceMode_Disabled:
-        return "Enabled";
-    default:
-        return "(unknown)";
-    }
-}
-
 const char * ConnectivityManagerImpl::WiFiStationStateToStr(WiFiStationState state)
 {
     switch (state)
@@ -1163,6 +1057,7 @@ void ConnectivityManagerImpl::HandleServiceTunnelNotification(WeaveTunnelConnect
 
         // Alert other components of the change to the tunnel state.
         WeaveDeviceEvent event;
+        event.Clear();
         event.Type = DeviceEventType::kServiceTunnelStateChange;
         event.ServiceTunnelStateChange.Result = GetConnectivityChange(prevTunnelState, newTunnelState);
         event.ServiceTunnelStateChange.IsRestricted = isRestricted;
@@ -1173,20 +1068,15 @@ void ConnectivityManagerImpl::HandleServiceTunnelNotification(WeaveTunnelConnect
         // (Note that the establishment of a restricted tunnel to the service does not constitute a
         // logical change in service connectivity from the application's standpoint, as such a tunnel
         // cannot be used for general application interactions, only pairing).
-        if (newTunnelState)
+        if (!newTunnelState || !isRestricted)
         {
-            if (!isRestricted)
-            {
-                event.Type = DeviceEventType::kServiceConnectivityChange;
-                event.ServiceConnectivityChange.Result = kConnectivity_Established;
-                PlatformMgr().PostEvent(&event);
-            }
-        }
-
-        else
-        {
+            event.Clear();
             event.Type = DeviceEventType::kServiceConnectivityChange;
-            event.ServiceConnectivityChange.Result = kConnectivity_Lost;
+            event.ServiceConnectivityChange.ViaTunnel.Result = (newTunnelState) ? kConnectivity_Established : kConnectivity_Lost;
+            event.ServiceConnectivityChange.ViaThread.Result = kConnectivity_NoChange;
+            event.ServiceConnectivityChange.Result = sInstance.HaveServiceConnectivityViaThread()
+                    ? kConnectivity_NoChange
+                    : event.ServiceConnectivityChange.ViaTunnel.Result;
             PlatformMgr().PostEvent(&event);
         }
     }
