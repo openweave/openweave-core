@@ -45,10 +45,58 @@ protected:
 
     // ===== Methods that implement the ConnectivityManager abstract interface.
 
+    ConnectivityManager::ThreadMode _GetThreadMode(void);
+    WEAVE_ERROR _SetThreadMode(ConnectivityManager::ThreadMode val);
+    bool _IsThreadEnabled(void);
+    bool _IsThreadApplicationControlled(void);
+    bool _IsThreadAttached(void);
+    bool _IsThreadProvisioned(void);
+    void _ClearThreadProvision(void);
     bool _HaveServiceConnectivityViaThread(void);
 
     ImplClass * Impl() { return static_cast<ImplClass *>(this); }
 };
+
+template<class ImplClass>
+inline ConnectivityManager::ThreadMode GenericConnectivityManagerImpl_NoThread<ImplClass>::_GetThreadMode(void)
+{
+    return ConnectivityManager::kThreadMode_NotSupported;
+}
+
+template<class ImplClass>
+inline WEAVE_ERROR GenericConnectivityManagerImpl_NoThread<ImplClass>::_SetThreadMode(ConnectivityManager::ThreadMode val)
+{
+    return WEAVE_ERROR_UNSUPPORTED_WEAVE_FEATURE;
+}
+
+template<class ImplClass>
+inline bool GenericConnectivityManagerImpl_NoThread<ImplClass>::_IsThreadEnabled(void)
+{
+    return false;
+}
+
+template<class ImplClass>
+inline bool GenericConnectivityManagerImpl_NoThread<ImplClass>::_IsThreadApplicationControlled(void)
+{
+    return false;
+}
+
+template<class ImplClass>
+inline bool GenericConnectivityManagerImpl_NoThread<ImplClass>::_IsThreadAttached(void)
+{
+    return false;
+}
+
+template<class ImplClass>
+inline bool GenericConnectivityManagerImpl_NoThread<ImplClass>::_IsThreadProvisioned(void)
+{
+    return false;
+}
+
+template<class ImplClass>
+inline void GenericConnectivityManagerImpl_NoThread<ImplClass>::_ClearThreadProvision(void)
+{
+}
 
 template<class ImplClass>
 inline bool GenericConnectivityManagerImpl_NoThread<ImplClass>::_HaveServiceConnectivityViaThread(void)

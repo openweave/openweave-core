@@ -45,7 +45,7 @@
  * The name of the Weave task.
  */
 #ifndef WEAVE_DEVICE_CONFIG_WEAVE_TASK_NAME
-#define WEAVE_DEVICE_CONFIG_WEAVE_TASK_NAME "weave"
+#define WEAVE_DEVICE_CONFIG_WEAVE_TASK_NAME "WEAVE"
 #endif
 
 /**
@@ -129,6 +129,15 @@
 // -------------------- WiFi Station Configuration --------------------
 
 /**
+ * WEAVE_DEVICE_CONFIG_ENABLE_WIFI_STATION
+ *
+ * Enable support for a WiFi station interface.
+ */
+#ifndef WEAVE_DEVICE_CONFIG_ENABLE_WIFI_STATION
+#define WEAVE_DEVICE_CONFIG_ENABLE_WIFI_STATION 1
+#endif
+
+/**
  * WEAVE_DEVICE_CONFIG_WIFI_STATION_RECONNECT_INTERVAL
  *
  * The interval at which the Weave platform will attempt to reconnect to the configured WiFi
@@ -178,6 +187,15 @@
 
 
 // -------------------- WiFi AP Configuration --------------------
+
+/**
+ * WEAVE_DEVICE_CONFIG_ENABLE_WIFI_AP
+ *
+ * Enable support for a WiFi AP interface.
+ */
+#ifndef WEAVE_DEVICE_CONFIG_ENABLE_WIFI_AP
+#define WEAVE_DEVICE_CONFIG_ENABLE_WIFI_AP 1
+#endif
 
 /**
  * WEAVE_DEVICE_CONFIG_WIFI_AP_SSID_PREFIX
@@ -402,7 +420,7 @@
  * The name of the Thread task.
  */
 #ifndef WEAVE_DEVICE_CONFIG_THREAD_TASK_NAME
-#define WEAVE_DEVICE_CONFIG_THREAD_TASK_NAME "ot"
+#define WEAVE_DEVICE_CONFIG_THREAD_TASK_NAME "THREAD"
 #endif
 
 /**
@@ -420,7 +438,7 @@
  * The priority of the OpenThread task.
  */
 #ifndef WEAVE_DEVICE_CONFIG_THREAD_TASK_PRIORITY
-#define WEAVE_DEVICE_CONFIG_THREAD_TASK_PRIORITY 1
+#define WEAVE_DEVICE_CONFIG_THREAD_TASK_PRIORITY 2
 #endif
 
 /**
@@ -439,6 +457,25 @@
  */
 #ifndef WEAVE_DEVICE_CONFIG_THREAD_IF_MTU
 #define WEAVE_DEVICE_CONFIG_THREAD_IF_MTU 1280
+#endif
+
+/**
+ * WEAVE_DEVICE_CONFIG_DEFAULT_THREAD_NETWORK_NAME_PREFIX
+ *
+ * A prefix string to be used when forming a default Thread network name.
+ */
+#ifndef WEAVE_DEVICE_CONFIG_DEFAULT_THREAD_NETWORK_NAME_PREFIX
+#define WEAVE_DEVICE_CONFIG_DEFAULT_THREAD_NETWORK_NAME_PREFIX "NEST-PAN-"
+#endif
+
+/**
+ * WEAVE_DEVICE_CONFIG_THREAD_CONNECTIVITY_TIMEOUT
+ *
+ * The amount of time (in milliseconds) to wait for connectivity with a Thread mesh
+ * to be established on during a Network Provisioning TestConnectivity operation.
+ */
+#ifndef WEAVE_DEVICE_CONFIG_THREAD_CONNECTIVITY_TIMEOUT
+#define WEAVE_DEVICE_CONFIG_THREAD_CONNECTIVITY_TIMEOUT 30000
 #endif
 
 

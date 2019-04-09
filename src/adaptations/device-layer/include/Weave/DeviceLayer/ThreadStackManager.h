@@ -28,7 +28,19 @@ namespace nl {
 namespace Weave {
 namespace DeviceLayer {
 
+class PlatformManagerImpl;
 class ThreadStackManagerImpl;
+
+namespace Internal {
+class NetworkInfo;
+template<class> class GenericPlatformManagerImpl;
+template<class> class GenericPlatformManagerImpl_FreeRTOS;
+template<class> class GenericConnectivityManagerImpl_Thread;
+template<class> class GenericThreadStackManagerImpl_OpenThread;
+template<class> class GenericThreadStackManagerImpl_OpenThread_LwIP;
+template<class> class GenericThreadStackManagerImpl_FreeRTOS;
+template<class> class GenericNetworkProvisioningServerImpl;
+} // namespace Internal
 
 /**
  * Provides features for initializing and interacting with the Thread stack on
@@ -36,7 +48,7 @@ class ThreadStackManagerImpl;
  */
 class ThreadStackManager
 {
-    using ImplClass = ::nl::Weave::DeviceLayer::ThreadStackManagerImpl;
+    using ImplClass = ThreadStackManagerImpl;
 
 public:
 
@@ -50,15 +62,34 @@ public:
     void UnlockThreadStack(void);
     bool HaveRouteToAddress(const IPAddress & destAddr);
 
+protected:
+
+    // ===== Members available to the implementation subclass.
+
+    ThreadStackManager() = default;
+
 private:
 
     // ===== Members for internal use by the following friends.
 
-    friend class ::nl::Weave::DeviceLayer::PlatformManagerImpl;
-    template<class> friend class ::nl::Weave::DeviceLayer::Internal::GenericPlatformManagerImpl;
-    template<class> friend class ::nl::Weave::DeviceLayer::Internal::GenericPlatformManagerImpl_FreeRTOS;
+    friend class PlatformManagerImpl;
+    template<class> friend class Internal::GenericPlatformManagerImpl;
+    template<class> friend class Internal::GenericPlatformManagerImpl_FreeRTOS;
+    template<class> friend class Internal::GenericConnectivityManagerImpl_Thread;
+    template<class> friend class Internal::GenericThreadStackManagerImpl_OpenThread;
+    template<class> friend class Internal::GenericThreadStackManagerImpl_OpenThread_LwIP;
+    template<class> friend class Internal::GenericThreadStackManagerImpl_FreeRTOS;
+    template<class> friend class Internal::GenericNetworkProvisioningServerImpl;
 
     void OnPlatformEvent(const WeaveDeviceEvent * event);
+    bool IsThreadEnabled(void);
+    WEAVE_ERROR SetThreadEnabled(bool val);
+    bool IsThreadProvisioned(void);
+    bool IsThreadAttached(void);
+    WEAVE_ERROR GetThreadProvision(Internal::NetworkInfo & netInfo, bool includeCredentials);
+    WEAVE_ERROR SetThreadProvision(const Internal::NetworkInfo & netInfo);
+    void ClearThreadProvision(void);
+    bool HaveMeshConnectivity(void);
 };
 
 /**
@@ -136,6 +167,46 @@ inline bool ThreadStackManager::HaveRouteToAddress(const IPAddress & destAddr)
 inline void ThreadStackManager::OnPlatformEvent(const WeaveDeviceEvent * event)
 {
     static_cast<ImplClass*>(this)->_OnPlatformEvent(event);
+}
+
+inline bool ThreadStackManager::IsThreadEnabled(void)
+{
+    return static_cast<ImplClass*>(this)->_IsThreadEnabled();
+}
+
+inline WEAVE_ERROR ThreadStackManager::SetThreadEnabled(bool val)
+{
+    return static_cast<ImplClass*>(this)->_SetThreadEnabled(val);
+}
+
+inline bool ThreadStackManager::IsThreadProvisioned(void)
+{
+    return static_cast<ImplClass*>(this)->_IsThreadProvisioned();
+}
+
+inline bool ThreadStackManager::IsThreadAttached(void)
+{
+    return static_cast<ImplClass*>(this)->_IsThreadAttached();
+}
+
+inline WEAVE_ERROR ThreadStackManager::GetThreadProvision(Internal::NetworkInfo & netInfo, bool includeCredentials)
+{
+    return static_cast<ImplClass*>(this)->_GetThreadProvision(netInfo, includeCredentials);
+}
+
+inline WEAVE_ERROR ThreadStackManager::SetThreadProvision(const Internal::NetworkInfo & netInfo)
+{
+    return static_cast<ImplClass*>(this)->_SetThreadProvision(netInfo);
+}
+
+inline void ThreadStackManager::ClearThreadProvision(void)
+{
+    static_cast<ImplClass*>(this)->_ClearThreadProvision();
+}
+
+inline bool ThreadStackManager::HaveMeshConnectivity(void)
+{
+    return static_cast<ImplClass*>(this)->_HaveMeshConnectivity();
 }
 
 } // namespace DeviceLayer

@@ -54,6 +54,7 @@ class ThreadStackManagerImpl final
 
     // Allow the generic implementation base classes to call helper methods on
     // this class.
+    friend Internal::GenericThreadStackManagerImpl_OpenThread<ThreadStackManagerImpl>;
     friend Internal::GenericThreadStackManagerImpl_OpenThread_LwIP<ThreadStackManagerImpl>;
     friend Internal::GenericThreadStackManagerImpl_FreeRTOS<ThreadStackManagerImpl>;
 
@@ -84,7 +85,7 @@ private:
 
     // ===== Private members for use by this class only.
 
-    /* None so far */
+    ThreadStackManagerImpl() = default;
 };
 
 /**

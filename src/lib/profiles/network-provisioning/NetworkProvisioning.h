@@ -82,7 +82,8 @@ enum
     kStatusCode_InvalidState                    = 8,            /**< The network provisioning operation could not be performed in the current state. */
     kStatusCode_TestNetworkFailed               = 9,            /**< The connectivity test of the specified network failed. */
                                                                 // XXX Placeholder for more detailed errors to come
-    kStatusCode_NetworkConnectFailed            = 10            /**< An attempt to connect to the specified network failed. */
+    kStatusCode_NetworkConnectFailed            = 10,           /**< An attempt to connect to the specified network failed. */
+    kStatusCode_NoRouterAvailable               = 11,           /**< An appropriate network router was not found. */
 };
 
 /**

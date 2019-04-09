@@ -25,6 +25,8 @@
 #ifndef GENERIC_CONNECTIVITY_MANAGER_IMPL_THREAD_H
 #define GENERIC_CONNECTIVITY_MANAGER_IMPL_THREAD_H
 
+#include <Weave/DeviceLayer/ThreadStackManager.h>
+
 namespace nl {
 namespace Weave {
 namespace DeviceLayer {
@@ -41,8 +43,8 @@ namespace Internal {
  * class, which also appears as the template's ImplClass parameter.
  *
  * The GenericConnectivityManagerImpl_Thread<> class is designed to be independent of the particular
- * Thread stack in use (implying, for example, that the code does not make direct use of any OpenThread
- * APIs).  This is achieved by delegating all stack-specific operations to the ThreadStackManager class.
+ * Thread stack in use, implying, for example, that the code does not make direct use of any OpenThread
+ * APIs.  This is achieved by delegating all stack-specific operations to the ThreadStackManager class.
  *
  */
 template<class ImplClass>
@@ -54,6 +56,13 @@ protected:
 
     void _Init(void);
     void _OnPlatformEvent(const WeaveDeviceEvent * event);
+    ConnectivityManager::ThreadMode _GetThreadMode(void);
+    WEAVE_ERROR _SetThreadMode(ConnectivityManager::ThreadMode val);
+    bool _IsThreadEnabled(void);
+    bool _IsThreadApplicationControlled(void);
+    bool _IsThreadAttached(void);
+    bool _IsThreadProvisioned(void);
+    void _ClearThreadProvision(void);
     bool _HaveServiceConnectivityViaThread(void);
 
     // ===== Members for use by the implementation subclass.
@@ -66,7 +75,8 @@ private:
 
     enum Flags
     {
-        kFlag_HaveServiceConnectivity      = 0x01
+        kFlag_HaveServiceConnectivity      = 0x01,
+        kFlag_IsApplicationControlled      = 0x02
     };
 
     uint8_t mFlags;
@@ -81,6 +91,36 @@ template<class ImplClass>
 inline void GenericConnectivityManagerImpl_Thread<ImplClass>::_Init(void)
 {
     mFlags = 0;
+}
+
+template<class ImplClass>
+inline bool GenericConnectivityManagerImpl_Thread<ImplClass>::_IsThreadEnabled(void)
+{
+    return ThreadStackMgrImpl().IsThreadEnabled();
+}
+
+template<class ImplClass>
+inline bool GenericConnectivityManagerImpl_Thread<ImplClass>::_IsThreadApplicationControlled(void)
+{
+    return GetFlag(mFlags, kFlag_IsApplicationControlled);
+}
+
+template<class ImplClass>
+inline bool GenericConnectivityManagerImpl_Thread<ImplClass>::_IsThreadAttached(void)
+{
+    return ThreadStackMgrImpl().IsThreadAttached();
+}
+
+template<class ImplClass>
+inline bool GenericConnectivityManagerImpl_Thread<ImplClass>::_IsThreadProvisioned(void)
+{
+    return ThreadStackMgrImpl().IsThreadProvisioned();
+}
+
+template<class ImplClass>
+inline void GenericConnectivityManagerImpl_Thread<ImplClass>::_ClearThreadProvision(void)
+{
+    ThreadStackMgrImpl().ClearThreadProvision();
 }
 
 template<class ImplClass>

@@ -33,7 +33,7 @@ namespace Internal {
 WEAVE_ERROR MapOpenThreadError(otError otErr)
 {
     // TODO: implement me
-    return WEAVE_ERROR_NOT_IMPLEMENTED;
+    return (otErr == OT_ERROR_NONE) ? WEAVE_NO_ERROR : WEAVE_ERROR_NOT_IMPLEMENTED;
 }
 
 /**

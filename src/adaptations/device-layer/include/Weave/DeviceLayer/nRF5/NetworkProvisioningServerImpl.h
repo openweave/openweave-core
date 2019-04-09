@@ -19,6 +19,7 @@
 #ifndef NETWORK_PROVISIONING_SERVER_IMPL_H
 #define NETWORK_PROVISIONING_SERVER_IMPL_H
 
+#include <Weave/DeviceLayer/internal/GenericNetworkProvisioningServerImpl.h>
 
 namespace nl {
 namespace Weave {
@@ -30,21 +31,22 @@ namespace Internal {
  * nRF52 platforms.
  */
 class NetworkProvisioningServerImpl final
-    : public NetworkProvisioningServer
+    : public NetworkProvisioningServer,
+      public Internal::GenericNetworkProvisioningServerImpl<NetworkProvisioningServerImpl>
 {
-private:
-
     // Allow the NetworkProvisioningServer interface class to delegate method calls to
     // the implementation methods provided by this class.
-    friend class ::nl::Weave::DeviceLayer::Internal::NetworkProvisioningServer;
+    friend class Internal::NetworkProvisioningServer;
+
+    // Allow the GenericNetworkProvisioningServerImpl base class to access helper methods
+    // and types defined on this class.
+    friend class Internal::GenericNetworkProvisioningServerImpl<NetworkProvisioningServerImpl>;
+
+private:
 
     // ===== Members that implement the NetworkProvisioningServer public interface.
 
     WEAVE_ERROR _Init(void);
-    ::nl::Weave::Profiles::NetworkProvisioning::NetworkProvisioningDelegate * _GetDelegate(void);
-    void _StartPendingScan(void);
-    bool _ScanInProgress(void);
-    void _OnPlatformEvent(const WeaveDeviceEvent * event);
 
     // ===== Members for internal use by the following friends.
 

@@ -66,6 +66,14 @@ public:
         kWiFiAPMode_OnDemand_NoStationProvision     = 4,
     };
 
+    enum ThreadMode
+    {
+        kThreadMode_NotSupported                    = -1,
+        kThreadMode_ApplicationControlled           = 0,
+        kThreadMode_Disabled                        = 1,
+        kThreadMode_Enabled                         = 2,
+    };
+
     enum ServiceTunnelMode
     {
         kServiceTunnelMode_NotSupported             = -1,
@@ -103,6 +111,13 @@ public:
     void SetWiFiAPIdleTimeoutMS(uint32_t val);
 
     // Thread Methods
+    ThreadMode GetThreadMode(void);
+    WEAVE_ERROR SetThreadMode(ThreadMode val);
+    bool IsThreadEnabled(void);
+    bool IsThreadApplicationControlled(void);
+    bool IsThreadAttached(void);
+    bool IsThreadProvisioned(void);
+    void ClearThreadProvision(void);
     bool HaveServiceConnectivityViaThread(void);
 
     // Internet connectivity methods
@@ -140,11 +155,11 @@ private:
 
     // ===== Members for internal use by the following friends.
 
-    friend class ::nl::Weave::DeviceLayer::PlatformManagerImpl;
-    template<class> friend class ::nl::Weave::DeviceLayer::Internal::GenericPlatformManagerImpl;
-    template<class> friend class ::nl::Weave::DeviceLayer::Internal::GenericPlatformManagerImpl_FreeRTOS;
-    friend class ::nl::Weave::DeviceLayer::Internal::NetworkProvisioningServerImpl;
-    template<class> friend class ::nl::Weave::DeviceLayer::Internal::GenericNetworkProvisioningServerImpl;
+    friend class PlatformManagerImpl;
+    template<class> friend class Internal::GenericPlatformManagerImpl;
+    template<class> friend class Internal::GenericPlatformManagerImpl_FreeRTOS;
+    friend class Internal::NetworkProvisioningServerImpl;
+    template<class> friend class Internal::GenericNetworkProvisioningServerImpl;
 
     WEAVE_ERROR Init(void);
     void OnPlatformEvent(const WeaveDeviceEvent * event);
@@ -317,6 +332,41 @@ inline bool ConnectivityManager::IsServiceTunnelRestricted(void)
 inline bool ConnectivityManager::HaveServiceConnectivity(void)
 {
     return static_cast<ImplClass*>(this)->_HaveServiceConnectivity();
+}
+
+inline ConnectivityManager::ThreadMode ConnectivityManager::GetThreadMode(void)
+{
+    return static_cast<ImplClass*>(this)->_GetThreadMode();
+}
+
+inline WEAVE_ERROR ConnectivityManager::SetThreadMode(ThreadMode val)
+{
+    return static_cast<ImplClass*>(this)->_SetThreadMode(val);
+}
+
+inline bool ConnectivityManager::IsThreadEnabled(void)
+{
+    return static_cast<ImplClass*>(this)->_IsThreadEnabled();
+}
+
+inline bool ConnectivityManager::IsThreadApplicationControlled(void)
+{
+    return static_cast<ImplClass*>(this)->_IsThreadApplicationControlled();
+}
+
+inline bool ConnectivityManager::IsThreadAttached(void)
+{
+    return static_cast<ImplClass*>(this)->_IsThreadAttached();
+}
+
+inline bool ConnectivityManager::IsThreadProvisioned(void)
+{
+    return static_cast<ImplClass*>(this)->_IsThreadProvisioned();
+}
+
+inline void ConnectivityManager::ClearThreadProvision(void)
+{
+    static_cast<ImplClass*>(this)->_ClearThreadProvision();
 }
 
 inline bool ConnectivityManager::HaveServiceConnectivityViaThread(void)
