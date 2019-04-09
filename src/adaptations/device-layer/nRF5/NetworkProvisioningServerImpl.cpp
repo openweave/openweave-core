@@ -23,13 +23,7 @@
 #include <Weave/Profiles/WeaveProfiles.h>
 #include <Weave/Profiles/common/CommonProfile.h>
 
-using namespace ::nl;
-using namespace ::nl::Weave;
-using namespace ::nl::Weave::TLV;
-using namespace ::nl::Weave::Profiles::Common;
-using namespace ::nl::Weave::Profiles::NetworkProvisioning;
-
-using Profiles::kWeaveProfile_Common;
+#include <Weave/DeviceLayer/internal/GenericNetworkProvisioningServerImpl.ipp>
 
 namespace nl {
 namespace Weave {
@@ -40,30 +34,7 @@ NetworkProvisioningServerImpl NetworkProvisioningServerImpl::sInstance;
 
 WEAVE_ERROR NetworkProvisioningServerImpl::_Init(void)
 {
-    // TODO: implement this
-    return NULL;
-}
-
-::nl::Weave::Profiles::NetworkProvisioning::NetworkProvisioningDelegate * NetworkProvisioningServerImpl::_GetDelegate(void)
-{
-    // TODO: implement this
-    return NULL;
-}
-
-void NetworkProvisioningServerImpl::_StartPendingScan(void)
-{
-    // TODO: implement this
-}
-
-bool NetworkProvisioningServerImpl::_ScanInProgress(void)
-{
-    // TODO: implement this
-    return false;
-}
-
-void NetworkProvisioningServerImpl::_OnPlatformEvent(const WeaveDeviceEvent * event)
-{
-    // TODO: implement this
+    return GenericNetworkProvisioningServerImpl<NetworkProvisioningServerImpl>::DoInit();
 }
 
 } // namespace Internal

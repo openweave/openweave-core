@@ -28,6 +28,9 @@
 #include <Weave/DeviceLayer/internal/WeaveDeviceLayerInternal.h>
 #include <Weave/DeviceLayer/internal/NetworkProvisioningServer.h>
 #include <Weave/DeviceLayer/internal/GenericNetworkProvisioningServerImpl.h>
+#if WEAVE_DEVICE_CONFIG_ENABLE_THREAD
+#include <Weave/DeviceLayer/ThreadStackManager.h>
+#endif // WEAVE_DEVICE_CONFIG_ENABLE_THREAD
 
 namespace nl {
 namespace Weave {
@@ -41,23 +44,14 @@ using namespace ::nl::Weave::Profiles::NetworkProvisioning;
 using Profiles::kWeaveProfile_Common;
 using Profiles::kWeaveProfile_NetworkProvisioning;
 
-template<class ImplClass>
-WEAVE_ERROR GenericNetworkProvisioningServerImpl<ImplClass>::_Init()
-{
-    WEAVE_ERROR err;
+namespace {
 
-    // Call init on the server base class.
-    err = ServerBaseClass::Init(&::nl::Weave::DeviceLayer::ExchangeMgr);
-    SuccessOrExit(err);
+const char sLogPrefix[] = "NetworkProvisioningServer: ";
 
-    // Set the pointer to the delegate object.
-    SetDelegate(this);
+} // unnamed namespace
 
-    mState = kState_Idle;
-
-exit:
-    return err;
-}
+// Fully instantiate the generic implementation class in whatever compilation unit includes this file.
+template class GenericNetworkProvisioningServerImpl<NetworkProvisioningServerImpl>;
 
 template<class ImplClass>
 void GenericNetworkProvisioningServerImpl<ImplClass>::_StartPendingScan()
@@ -70,20 +64,45 @@ void GenericNetworkProvisioningServerImpl<ImplClass>::_StartPendingScan()
         ExitNow();
     }
 
-    // Defer the scan if the Connection Manager says the system is in a state
-    // where a WiFi scan cannot be started (e.g. if the system is connecting to
-    // an AP and can't scan and connect at the same time). The Connection Manager
-    // is responsible for calling this method again when the system is read to scan.
-    if (!ConnectivityMgr().CanStartWiFiScan())
+    switch (mScanNetworkType)
     {
-        ExitNow();
+#if WEAVE_DEVICE_CONFIG_ENABLE_WIFI_STATION
+
+    case kNetworkType_WiFi:
+
+        // Defer the scan if the Connection Manager says the system is in a state
+        // where a WiFi scan cannot be started (e.g. if the system is connecting to
+        // an AP and can't scan and connect at the same time). The Connection Manager
+        // is responsible for calling this method again when the system is read to scan.
+        if (!ConnectivityMgr().CanStartWiFiScan())
+        {
+            ExitNow();
+        }
+
+        mState = kState_ScanNetworks_InProgress;
+
+        // Delegate to the implementation subclass to initiate the WiFi scan operation.
+        err = Impl()->InitiateWiFiScan();
+        SuccessOrExit(err);
+
+        break;
+
+#endif // WEAVE_DEVICE_CONFIG_ENABLE_WIFI_STATION
+
+#if WEAVE_DEVICE_CONFIG_ENABLE_THREAD
+
+    case kNetworkType_Thread:
+
+        // TODO: implement this
+        ExitNow(err = WEAVE_ERROR_UNSUPPORTED_WEAVE_FEATURE);
+
+        break;
+
+#endif // WEAVE_DEVICE_CONFIG_ENABLE_THREAD
+
+    default:
+        ExitNow(err = WEAVE_ERROR_INCORRECT_STATE);
     }
-
-    mState = kState_ScanNetworks_InProgress;
-
-    // Delegate to the implementation subclass to initiate the WiFi scan operation.
-    err = Impl()->InitiateWiFiScan();
-    SuccessOrExit(err);
 
 exit:
     // If an error occurred, send a Internal Error back to the requestor.
@@ -97,41 +116,94 @@ exit:
 template<class ImplClass>
 void GenericNetworkProvisioningServerImpl<ImplClass>::_OnPlatformEvent(const WeaveDeviceEvent * event)
 {
+#if WEAVE_DEVICE_CONFIG_ENABLE_WIFI_STATION
+
     // Handle a change in Internet connectivity...
     if (event->Type == DeviceEventType::kInternetConnectivityChange)
     {
-        // If the system now has IPv4 Internet connectivity, continue the process of
-        // performing the TestConnectivity request.
-        if (ConnectivityMgr().HaveIPv4InternetConnectivity())
-        {
-            ContinueTestConnectivity();
-        }
+        // If a TestConnectivity operation is in progress for WiFi, re-evaluate the state
+        // connectivity now.
+        ContinueWiFiConnectivityTest();
     }
+
+#endif // WEAVE_DEVICE_CONFIG_ENABLE_WIFI_STATION
+
+#if WEAVE_DEVICE_CONFIG_ENABLE_THREAD
+
+    // If our Thread role changed, or if there was a change to the set of child nodes...
+    if (event->Type == DeviceEventType::kThreadConnectivityChange &&
+        (event->ThreadConnectivityChange.RoleChanged ||
+         event->ThreadConnectivityChange.ChildNodesChanged))
+    {
+        // If a TestConnectivity operation is in progress for Thread, re-evaluate the state
+        // connectivity now.
+        ContinueThreadConnectivityTest();
+    }
+
+#endif // WEAVE_DEVICE_CONFIG_ENABLE_THREAD
 }
 
 template<class ImplClass>
 WEAVE_ERROR GenericNetworkProvisioningServerImpl<ImplClass>::HandleScanNetworks(uint8_t networkType)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
+    bool isAppControlled = false;
 
     VerifyOrExit(mState == kState_Idle, err = WEAVE_ERROR_INCORRECT_STATE);
 
-    // Verify the expected network type.
-    if (networkType != kNetworkType_WiFi)
+    switch (networkType)
     {
+#if WEAVE_DEVICE_CONFIG_ENABLE_WIFI_STATION
+
+    case kNetworkType_WiFi:
+        isAppControlled = ConnectivityMgr().IsWiFiStationApplicationControlled();
+        break;
+
+#endif // WEAVE_DEVICE_CONFIG_ENABLE_WIFI_STATION
+
+#if WEAVE_DEVICE_CONFIG_ENABLE_THREAD
+
+    case kNetworkType_Thread:
+        isAppControlled = ConnectivityMgr().IsThreadApplicationControlled();
+        break;
+
+#endif // WEAVE_DEVICE_CONFIG_ENABLE_THREAD
+
+    default:
         err = SendStatusReport(kWeaveProfile_NetworkProvisioning, kStatusCode_UnsupportedNetworkType);
         ExitNow();
     }
 
-    // Reject the request if the application is currently in control of the WiFi station.
-    if (RejectIfApplicationControlled(true))
+    // Reject the request if the application is currently in control of the requested network.
+    if (isAppControlled)
     {
+        err = SendStatusReport(kWeaveProfile_Common, kStatus_NotAvailable);
         ExitNow();
     }
 
     // Enter the ScanNetworks Pending state and delegate to the implementation class to start the scan.
     mState = kState_ScanNetworks_Pending;
+    mScanNetworkType = networkType;
     Impl()->StartPendingScan();
+
+exit:
+    return err;
+}
+
+template<class ImplClass>
+WEAVE_ERROR GenericNetworkProvisioningServerImpl<ImplClass>::DoInit()
+{
+    WEAVE_ERROR err;
+
+    // Call init on the server base class.
+    err = ServerBaseClass::Init(&::nl::Weave::DeviceLayer::ExchangeMgr);
+    SuccessOrExit(err);
+
+    // Set the pointer to the delegate object.
+    SetDelegate(this);
+
+    mState = kState_Idle;
+    mScanNetworkType = kNetworkType_NotSpecified;
 
 exit:
     return err;
@@ -140,8 +212,21 @@ exit:
 template<class ImplClass>
 WEAVE_ERROR GenericNetworkProvisioningServerImpl<ImplClass>::HandleAddNetwork(PacketBuffer * networkInfoTLV)
 {
+    return HandleAddUpdateNetwork(networkInfoTLV, false);
+}
+
+template<class ImplClass>
+WEAVE_ERROR GenericNetworkProvisioningServerImpl<ImplClass>::HandleUpdateNetwork(PacketBuffer * networkInfoTLV)
+{
+    return HandleAddUpdateNetwork(networkInfoTLV, true);
+}
+
+template<class ImplClass>
+WEAVE_ERROR GenericNetworkProvisioningServerImpl<ImplClass>::HandleAddUpdateNetwork(PacketBuffer * networkInfoTLV, bool isUpdate)
+{
     WEAVE_ERROR err = WEAVE_NO_ERROR;
     NetworkInfo netInfo;
+    uint32_t netId;
 
     VerifyOrExit(mState == kState_Idle, err = WEAVE_ERROR_INCORRECT_STATE);
 
@@ -157,121 +242,130 @@ WEAVE_ERROR GenericNetworkProvisioningServerImpl<ImplClass>::HandleAddNetwork(Pa
     PacketBuffer::Free(networkInfoTLV);
     networkInfoTLV = NULL;
 
-    // Reject the request if the application is currently in control of the WiFi station.
-    if (RejectIfApplicationControlled(true))
+    switch (netInfo.NetworkType)
     {
-        ExitNow();
-    }
+#if WEAVE_DEVICE_CONFIG_ENABLE_WIFI_STATION
 
-    // Check the validity of the new WiFi station provision. If not acceptable, respond to
-    // the requestor with an appropriate StatusReport.
-    {
-        uint32_t statusProfileId;
-        uint16_t statusCode;
-        err = ValidateWiFiStationProvision(netInfo, statusProfileId, statusCode);
-        if (err != WEAVE_NO_ERROR)
+    case kNetworkType_WiFi:
+
+        // If updating the provision, verify that the specified network is provisioned.
+        if (isUpdate && !ConnectivityMgr().IsWiFiStationProvisioned())
         {
-            err = SendStatusReport(statusProfileId, statusCode, err);
+            err = SendStatusReport(kWeaveProfile_NetworkProvisioning, kStatusCode_UnknownNetwork);
             ExitNow();
         }
-    }
 
-    // If the WiFi station is not already configured, disable the WiFi station interface.
-    // This ensures that the device will not automatically connect to the new network until
-    // an EnableNetwork request is received.
-    if (!ConnectivityMgr().IsWiFiStationProvisioned())
-    {
-        err = ConnectivityMgr().SetWiFiStationMode(ConnectivityManager::kWiFiStationMode_Disabled);
+        // Reject the request if the application is currently in control of the WiFi station.
+        if (ConnectivityMgr().IsWiFiStationApplicationControlled())
+        {
+            err = SendStatusReport(kWeaveProfile_Common, kStatus_NotAvailable);
+            ExitNow();
+        }
+
+        // If updating the provision...
+        if (isUpdate)
+        {
+            NetworkInfo existingNetInfo;
+
+            // Delegate to the implementation subclass to get the existing station provision.
+            err = Impl()->GetWiFiStationProvision(existingNetInfo, true);
+            SuccessOrExit(err);
+
+            // Override the existing provision with values specified in the update.
+            err = netInfo.MergeTo(existingNetInfo);
+            SuccessOrExit(err);
+            memcpy(&netInfo, &existingNetInfo, sizeof(existingNetInfo));
+        }
+
+        // Check the validity of the new provision. If not acceptable, respond to the requestor
+        // with an appropriate StatusReport.
+        {
+            uint32_t statusProfileId;
+            uint16_t statusCode;
+            err = Impl()->ValidateWiFiStationProvision(netInfo, statusProfileId, statusCode);
+            if (err != WEAVE_NO_ERROR)
+            {
+                err = SendStatusReport(statusProfileId, statusCode, err);
+                ExitNow();
+            }
+        }
+
+        // If the WiFi station is not already configured, disable the station interface.  This
+        // ensures that the device will not automatically connect to the new network until an
+        // EnableNetwork request is received.
+        if (!ConnectivityMgr().IsWiFiStationProvisioned())
+        {
+            err = ConnectivityMgr().SetWiFiStationMode(ConnectivityManager::kWiFiStationMode_Disabled);
+            SuccessOrExit(err);
+        }
+
+        // Delegate to the implementation subclass to set the WiFi station provision.
+        err = Impl()->SetWiFiStationProvision(netInfo);
         SuccessOrExit(err);
+
+        // Tell the ConnectivityManager there's been a change to the station provision.
+        ConnectivityMgr().OnWiFiStationProvisionChange();
+
+        netId = kWiFiStationNetworkId;
+
+        break;
+
+#endif // WEAVE_DEVICE_CONFIG_ENABLE_WIFI_STATION
+
+#if WEAVE_DEVICE_CONFIG_ENABLE_THREAD
+
+    case kNetworkType_Thread:
+
+        // If updating the provision, verify that the Thread network is provisioned.
+        if (isUpdate && !ThreadStackMgr().IsThreadProvisioned())
+        {
+            err = SendStatusReport(kWeaveProfile_NetworkProvisioning, kStatusCode_UnknownNetwork);
+            ExitNow();
+        }
+
+        // Reject the request if the application is currently in control of the Thread network.
+        if (ConnectivityMgr().IsThreadApplicationControlled())
+        {
+            err = SendStatusReport(kWeaveProfile_Common, kStatus_NotAvailable);
+            ExitNow();
+        }
+
+        // Check the validity of the supplied Thread parameters. If not acceptable, respond to
+        // the requestor with an appropriate StatusReport.
+        {
+            uint32_t statusProfileId;
+            uint16_t statusCode;
+            err = Impl()->ValidateThreadProvision(isUpdate, netInfo, statusProfileId, statusCode);
+            if (err != WEAVE_NO_ERROR)
+            {
+                err = SendStatusReport(statusProfileId, statusCode, err);
+                ExitNow();
+            }
+        }
+
+        // Apply suitable defaults for any parameters not supplied by the client.
+        err = Impl()->SetThreadProvisionDefaults(isUpdate, netInfo);
+        SuccessOrExit(err);
+
+        // Store the Thread provision.
+        err = ThreadStackMgr().SetThreadProvision(netInfo);
+        SuccessOrExit(err);
+
+        netId = kThreadNetworkId;
+
+        break;
+
+#endif // WEAVE_DEVICE_CONFIG_ENABLE_THREAD
+
+    default:
+
+        WeaveLogProgress(DeviceLayer, "%sUnsupported network type: %d", sLogPrefix, netInfo.NetworkType);
+        err = SendStatusReport(kWeaveProfile_NetworkProvisioning, kStatusCode_UnsupportedNetworkType, WEAVE_ERROR_INVALID_ARGUMENT);
+        ExitNow();
     }
-
-    // Delegate to the implementation subclass to set the WiFi station provision.
-    err = Impl()->SetWiFiStationProvision(netInfo);
-    SuccessOrExit(err);
-
-    // Tell the ConnectivityManager there's been a change to the station provision.
-    ConnectivityMgr().OnWiFiStationProvisionChange();
 
     // Send an AddNetworkComplete message back to the requestor.
-    SendAddNetworkComplete(kWiFiStationNetworkId);
-
-exit:
-    PacketBuffer::Free(networkInfoTLV);
-    return err;
-}
-
-template<class ImplClass>
-WEAVE_ERROR GenericNetworkProvisioningServerImpl<ImplClass>::HandleUpdateNetwork(PacketBuffer * networkInfoTLV)
-{
-    WEAVE_ERROR err = WEAVE_NO_ERROR;
-    NetworkInfo netInfo, netInfoUpdates;
-
-    VerifyOrExit(mState == kState_Idle, err = WEAVE_ERROR_INCORRECT_STATE);
-
-    // Parse the supplied network configuration info.
-    {
-        TLV::TLVReader reader;
-        reader.Init(networkInfoTLV);
-        err = netInfoUpdates.Decode(reader);
-        SuccessOrExit(err);
-    }
-
-    // Discard the request buffer.
-    PacketBuffer::Free(networkInfoTLV);
-    networkInfoTLV = NULL;
-
-    // Reject the request if the application is currently in control of the WiFi station.
-    if (RejectIfApplicationControlled(true))
-    {
-        ExitNow();
-    }
-
-    // If the network id field isn't present, immediately reply with an error.
-    if (!netInfoUpdates.NetworkIdPresent)
-    {
-        err = SendStatusReport(kWeaveProfile_NetworkProvisioning, kStatusCode_InvalidNetworkConfiguration);
-        ExitNow();
-    }
-
-    // Verify that the specified network exists.
-    if (!ConnectivityMgr().IsWiFiStationProvisioned() || netInfoUpdates.NetworkId != kWiFiStationNetworkId)
-    {
-        err = SendStatusReport(kWeaveProfile_NetworkProvisioning, kStatusCode_UnknownNetwork);
-        SuccessOrExit(err);
-        ExitNow();
-    }
-
-    // Delegate to the implementation subclass to get the existing station provision.
-    err = Impl()->GetWiFiStationProvision(netInfo, true);
-    SuccessOrExit(err);
-
-    // Merge in the updated information.
-    err = netInfoUpdates.MergeTo(netInfo);
-    SuccessOrExit(err);
-
-    // Check the validity of the updated station provision. If not acceptable, respond to the requestor with an
-    // appropriate StatusReport.
-    {
-        uint32_t statusProfileId;
-        uint16_t statusCode;
-        err = ValidateWiFiStationProvision(netInfo, statusProfileId, statusCode);
-        if (err != WEAVE_NO_ERROR)
-        {
-            err = SendStatusReport(statusProfileId, statusCode, err);
-            ExitNow();
-        }
-    }
-
-    // Delegate to the implementation subclass to set the station provision.
-    err = Impl()->SetWiFiStationProvision(netInfo);
-    SuccessOrExit(err);
-
-    // Tell the ConnectivityManager there's been a change to the station provision.
-    ConnectivityMgr().OnWiFiStationProvisionChange();
-
-    // Tell the requestor we succeeded.
-    err = SendSuccessResponse();
-    SuccessOrExit(err);
+    SendAddNetworkComplete(netId);
 
 exit:
     PacketBuffer::Free(networkInfoTLV);
@@ -285,26 +379,66 @@ WEAVE_ERROR GenericNetworkProvisioningServerImpl<ImplClass>::HandleRemoveNetwork
 
     VerifyOrExit(mState == kState_Idle, err = WEAVE_ERROR_INCORRECT_STATE);
 
-    // Reject the request if the application is currently in control of the WiFi station.
-    if (RejectIfApplicationControlled(true))
+    switch (networkId)
     {
-        ExitNow();
-    }
+#if WEAVE_DEVICE_CONFIG_ENABLE_WIFI_STATION
 
-    // Verify that the specified network exists.
-    if (!ConnectivityMgr().IsWiFiStationProvisioned() || networkId != kWiFiStationNetworkId)
-    {
-        err = SendStatusReport(kWeaveProfile_NetworkProvisioning, kStatusCode_UnknownNetwork);
+    case kWiFiStationNetworkId:
+
+        // Verify that the specified network exists.
+        if (!ConnectivityMgr().IsWiFiStationProvisioned())
+        {
+            goto sendUnknownNetworkResp;
+        }
+
+        // Reject the request if the application is currently in control of the WiFi station.
+        if (ConnectivityMgr().IsWiFiStationApplicationControlled())
+        {
+            err = SendStatusReport(kWeaveProfile_Common, kStatus_NotAvailable);
+            ExitNow();
+        }
+
+        // Delegate to the implementation subclass to clear the WiFi station provision.
+        err = Impl()->ClearWiFiStationProvision();
         SuccessOrExit(err);
+
+        // Tell the ConnectivityManager there's been a change to the station provision.
+        ConnectivityMgr().OnWiFiStationProvisionChange();
+
+        break;
+
+#endif // WEAVE_DEVICE_CONFIG_ENABLE_WIFI_STATION
+
+#if WEAVE_DEVICE_CONFIG_ENABLE_THREAD
+
+    case kThreadNetworkId:
+
+        // Verify that the specified network exists.
+        if (!ThreadStackMgr().IsThreadProvisioned())
+        {
+            goto sendUnknownNetworkResp;
+        }
+
+        // Reject the request if the application is currently in control of the Thread network.
+        if (ConnectivityMgr().IsThreadApplicationControlled())
+        {
+            err = SendStatusReport(kWeaveProfile_Common, kStatus_NotAvailable);
+            ExitNow();
+        }
+
+        // Clear the Thread provision.
+        ThreadStackMgr().ClearThreadProvision();
+
+        break;
+
+#endif // WEAVE_DEVICE_CONFIG_ENABLE_THREAD
+
+    default:
+    sendUnknownNetworkResp:
+
+        err = SendStatusReport(kWeaveProfile_NetworkProvisioning, kStatusCode_UnknownNetwork);
         ExitNow();
     }
-
-    // Delegate to the implementation subclass to clear the WiFi station provision.
-    err = Impl()->ClearWiFiStationProvision();
-    SuccessOrExit(err);
-
-    // Tell the ConnectivityManager there's been a change to the station provision.
-    ConnectivityMgr().OnWiFiStationProvisionChange();
 
     // Respond with a Success response.
     err = SendSuccessResponse();
@@ -318,46 +452,61 @@ template<class ImplClass>
 WEAVE_ERROR GenericNetworkProvisioningServerImpl<ImplClass>::HandleGetNetworks(uint8_t flags)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
-    NetworkInfo netInfo;
+    NetworkInfo netInfo[2];
     PacketBuffer * respBuf = NULL;
-    TLVWriter writer;
-    uint8_t resultCount;
+    uint8_t resultCount = 0;
     const bool includeCredentials = (flags & kGetNetwork_IncludeCredentials) != 0;
 
     VerifyOrExit(mState == kState_Idle, err = WEAVE_ERROR_INCORRECT_STATE);
 
-    // Reject the request if the application is currently in control of the WiFi station.
-    if (RejectIfApplicationControlled(true))
+#if WEAVE_DEVICE_CONFIG_ENABLE_WIFI_STATION
+
+    // Delegate to the implementation subclass to get the WiFi station provision.
+    err = Impl()->GetWiFiStationProvision(netInfo[resultCount], includeCredentials);
+    if (err == WEAVE_NO_ERROR)
+    {
+        resultCount++;
+    }
+    else if (err != WEAVE_ERROR_INCORRECT_STATE)
     {
         ExitNow();
     }
 
+#endif // WEAVE_DEVICE_CONFIG_ENABLE_WIFI_STATION
+
+#if WEAVE_DEVICE_CONFIG_ENABLE_THREAD
+
+    // Delegate to the implementation subclass to get the Thread provision.
+    err = ThreadStackMgr().GetThreadProvision(netInfo[resultCount], includeCredentials);
+    if (err == WEAVE_NO_ERROR)
+    {
+        resultCount++;
+    }
+    else if (err != WEAVE_ERROR_INCORRECT_STATE)
+    {
+        ExitNow();
+    }
+
+#endif // WEAVE_DEVICE_CONFIG_ENABLE_THREAD
+
+    // Allocate a buffer to hold the response.
     respBuf = PacketBuffer::New();
     VerifyOrExit(respBuf != NULL, err = WEAVE_ERROR_NO_MEMORY);
 
-    writer.Init(respBuf);
+    // Encode the GetNetworks response data.
+    {
+        TLVWriter writer;
 
-    // Delegate to the implementation subclass to get the WiFi station provision.
-    err = Impl()->GetWiFiStationProvision(netInfo, includeCredentials);
-    if (err == WEAVE_NO_ERROR)
-    {
-        resultCount = 1;
-    }
-    else if (err == WEAVE_ERROR_INCORRECT_STATE)
-    {
-        resultCount = 0;
-    }
-    else
-    {
-        ExitNow();
+        writer.Init(respBuf);
+
+        err = NetworkInfo::EncodeArray(writer, netInfo, resultCount);
+        SuccessOrExit(err);
+
+        err = writer.Finalize();
+        SuccessOrExit(err);
     }
 
-    err = NetworkInfo::EncodeArray(writer, &netInfo, resultCount);
-    SuccessOrExit(err);
-
-    err = writer.Finalize();
-    SuccessOrExit(err);
-
+    // Send the response.
     err = SendGetNetworksComplete(resultCount, respBuf);
     respBuf = NULL;
     SuccessOrExit(err);
@@ -370,62 +519,84 @@ exit:
 template<class ImplClass>
 WEAVE_ERROR GenericNetworkProvisioningServerImpl<ImplClass>::HandleEnableNetwork(uint32_t networkId)
 {
-    WEAVE_ERROR err = WEAVE_NO_ERROR;
-
-    VerifyOrExit(mState == kState_Idle, err = WEAVE_ERROR_INCORRECT_STATE);
-
-    // Reject the request if the application is currently in control of the WiFi station.
-    if (RejectIfApplicationControlled(true))
-    {
-        ExitNow();
-    }
-
-    // Verify that the specified network exists.
-    if (!ConnectivityMgr().IsWiFiStationProvisioned() || networkId != kWiFiStationNetworkId)
-    {
-        err = SendStatusReport(kWeaveProfile_NetworkProvisioning, kStatusCode_UnknownNetwork);
-        SuccessOrExit(err);
-        ExitNow();
-    }
-
-    // Tell the ConnectivityManager to enable the WiFi station interface.
-    // Note that any effects of enabling the WiFi station interface (e.g. connecting to an AP) happen
-    // asynchronously with this call.
-    err = ConnectivityMgr().SetWiFiStationMode(ConnectivityManager::kWiFiStationMode_Enabled);
-    SuccessOrExit(err);
-
-    // Send a Success response back to the client.
-    SendSuccessResponse();
-
-exit:
-    return err;
+    return HandleEnableDisableNetwork(networkId, true);
 }
 
 template<class ImplClass>
 WEAVE_ERROR GenericNetworkProvisioningServerImpl<ImplClass>::HandleDisableNetwork(uint32_t networkId)
 {
+    return HandleEnableDisableNetwork(networkId, false);
+}
+
+template<class ImplClass>
+WEAVE_ERROR GenericNetworkProvisioningServerImpl<ImplClass>::HandleEnableDisableNetwork(uint32_t networkId, bool enable)
+{
     WEAVE_ERROR err = WEAVE_NO_ERROR;
 
     VerifyOrExit(mState == kState_Idle, err = WEAVE_ERROR_INCORRECT_STATE);
 
-    // Reject the request if the application is currently in control of the WiFi station.
-    if (RejectIfApplicationControlled(true))
+    switch (networkId)
     {
-        ExitNow();
-    }
+#if WEAVE_DEVICE_CONFIG_ENABLE_WIFI_STATION
 
-    // Verify that the specified network exists.
-    if (!ConnectivityMgr().IsWiFiStationProvisioned() || networkId != kWiFiStationNetworkId)
-    {
+    case kWiFiStationNetworkId:
+
+        // Verify that the specified network exists.
+        if (!ConnectivityMgr().IsWiFiStationProvisioned())
+        {
+            goto sendUnknownNetworkResp;
+        }
+
+        // Reject the request if the application is currently in control of the WiFi station.
+        if (ConnectivityMgr().IsWiFiStationApplicationControlled())
+        {
+            err = SendStatusReport(kWeaveProfile_Common, kStatus_NotAvailable);
+            ExitNow();
+        }
+
+        // Tell the ConnectivityManager to enable/disable the WiFi station interface.
+        // Note that any effects of chaning the WiFi station mode happen asynchronously with this call.
+        err = ConnectivityMgr().SetWiFiStationMode((enable)
+                ? ConnectivityManager::kWiFiStationMode_Enabled
+                : ConnectivityManager::kWiFiStationMode_Disabled);
+        SuccessOrExit(err);
+
+        break;
+
+#endif // WEAVE_DEVICE_CONFIG_ENABLE_WIFI_STATION
+
+#if WEAVE_DEVICE_CONFIG_ENABLE_THREAD
+
+    case kThreadNetworkId:
+
+        // Verify that the specified network exists.
+        if (!ThreadStackMgr().IsThreadProvisioned())
+        {
+            goto sendUnknownNetworkResp;
+        }
+
+        // Reject the request if the application is currently in control of the Thread network.
+        if (ConnectivityMgr().IsThreadApplicationControlled())
+        {
+            err = SendStatusReport(kWeaveProfile_Common, kStatus_NotAvailable);
+            ExitNow();
+        }
+
+        // Tell the ConnectivityManager to enable/disable the Thread network interface.
+        // Note that any effects of changing the Thread mode happen asynchronously with this call.
+        err = ThreadStackMgr().SetThreadEnabled(enable);
+        SuccessOrExit(err);
+
+        break;
+
+#endif // WEAVE_DEVICE_CONFIG_ENABLE_THREAD
+
+    default:
+    sendUnknownNetworkResp:
+
         err = SendStatusReport(kWeaveProfile_NetworkProvisioning, kStatusCode_UnknownNetwork);
         ExitNow();
     }
-
-    // Tell the ConnectivityManager to disable the WiFi station interface.
-    // Note that any effects of disabling the WiFi station interface (e.g. disconnecting from an AP) happen
-    // asynchronously with this call.
-    err = ConnectivityMgr().SetWiFiStationMode(ConnectivityManager::kWiFiStationMode_Disabled);
-    SuccessOrExit(err);
 
     // Respond with a Success response.
     err = SendSuccessResponse();
@@ -442,34 +613,87 @@ WEAVE_ERROR GenericNetworkProvisioningServerImpl<ImplClass>::HandleTestConnectiv
 
     VerifyOrExit(mState == kState_Idle, err = WEAVE_ERROR_INCORRECT_STATE);
 
-    // Reject the request if the application is currently in control of the WiFi station.
-    if (RejectIfApplicationControlled(true))
+    switch (networkId)
     {
-        ExitNow();
-    }
+#if WEAVE_DEVICE_CONFIG_ENABLE_WIFI_STATION
 
-    // Verify that the specified network exists.
-    if (!ConnectivityMgr().IsWiFiStationProvisioned() || networkId != kWiFiStationNetworkId)
-    {
-        err = SendStatusReport(kWeaveProfile_NetworkProvisioning, kStatusCode_UnknownNetwork);
+    case kWiFiStationNetworkId:
+
+        // Verify that the specified network exists.
+        if (!ConnectivityMgr().IsWiFiStationProvisioned())
+        {
+            goto sendUnknownNetworkResp;
+        }
+
+        // Reject the request if the application is currently in control of the WiFi station.
+        if (ConnectivityMgr().IsWiFiStationApplicationControlled())
+        {
+            err = SendStatusReport(kWeaveProfile_Common, kStatus_NotAvailable);
+            ExitNow();
+        }
+
+        // Tell the ConnectivityManager to enable the WiFi station interface if it hasn't been done already.
+        // Note that any effects of enabling the WiFi station interface (e.g. connecting to an AP) happen
+        // asynchronously with this call.
+        err = ConnectivityMgr().SetWiFiStationMode(ConnectivityManager::kWiFiStationMode_Enabled);
         SuccessOrExit(err);
+
+        // Record that we're waiting for the WiFi station interface to establish connectivity
+        // with the Internet and arm a timer that will generate an error if connectivity isn't established
+        // within a certain amount of time.
+        mState = kState_TestConnectivity_WaitWiFiConnectivity;
+        SystemLayer.StartTimer(WEAVE_DEVICE_CONFIG_WIFI_CONNECTIVITY_TIMEOUT, HandleConnectivityTestTimeOut, NULL);
+
+        // Go check for connectivity now.
+        Impl()->ContinueWiFiConnectivityTest();
+
+        break;
+
+#endif // WEAVE_DEVICE_CONFIG_ENABLE_WIFI_STATION
+
+#if WEAVE_DEVICE_CONFIG_ENABLE_THREAD
+
+    case kThreadNetworkId:
+
+        // Verify that the specified network exists.
+        if (!ThreadStackMgr().IsThreadProvisioned())
+        {
+            goto sendUnknownNetworkResp;
+        }
+
+        // If the Thread interface is NOT already enabled...
+        if (!ThreadStackMgr().IsThreadEnabled())
+        {
+            // Reject the request if the application is currently in control of the Thread network.
+            if (ConnectivityMgr().IsThreadApplicationControlled())
+            {
+                err = SendStatusReport(kWeaveProfile_Common, kStatus_NotAvailable);
+                ExitNow();
+            }
+
+            // Enable the Thread interface.
+            err = ThreadStackMgr().SetThreadEnabled(true);
+            SuccessOrExit(err);
+        }
+
+        // Record that we're waiting to establish Thread connectivity and arm a timer that will
+        // generate an error if connectivity isn't established within a certain amount of time.
+        mState = kState_TestConnectivity_WaitThreadConnectivity;
+        SystemLayer.StartTimer(WEAVE_DEVICE_CONFIG_THREAD_CONNECTIVITY_TIMEOUT, HandleConnectivityTestTimeOut, NULL);
+
+        // Go check for connectivity now.
+        Impl()->ContinueThreadConnectivityTest();
+
+        break;
+
+#endif // WEAVE_DEVICE_CONFIG_ENABLE_THREAD
+
+    default:
+    sendUnknownNetworkResp:
+
+        err = SendStatusReport(kWeaveProfile_NetworkProvisioning, kStatusCode_UnknownNetwork);
         ExitNow();
     }
-
-    // Tell the ConnectivityManager to enable the WiFi station interface if it hasn't been done already.
-    // Note that any effects of enabling the WiFi station interface (e.g. connecting to an AP) happen
-    // asynchronously with this call.
-    err = ConnectivityMgr().SetWiFiStationMode(ConnectivityManager::kWiFiStationMode_Enabled);
-    SuccessOrExit(err);
-
-    // Record that we're waiting for the WiFi station interface to establish connectivity
-    // with the Internet and arm a timer that will generate an error if connectivity isn't established
-    // within a certain amount of time.
-    mState = kState_TestConnectivity_WaitConnectivity;
-    SystemLayer.StartTimer(WEAVE_DEVICE_CONFIG_WIFI_CONNECTIVITY_TIMEOUT, HandleConnectivityTimeOut, NULL);
-
-    // Go check for connectivity now.
-    ContinueTestConnectivity();
 
 exit:
     return err;
@@ -482,32 +706,34 @@ WEAVE_ERROR GenericNetworkProvisioningServerImpl<ImplClass>::HandleSetRendezvous
 
     VerifyOrExit(mState == kState_Idle, err = WEAVE_ERROR_INCORRECT_STATE);
 
-    // If any modes other than EnableWiFiRendezvousNetwork or EnableThreadRendezvous
-    // were specified, fail with Common:UnsupportedMessage.
-    if ((rendezvousMode & ~(kRendezvousMode_EnableWiFiRendezvousNetwork | kRendezvousMode_EnableThreadRendezvous)) != 0)
+    // Fail with Common:UnsupportedMessage if any unsupported modes were specified.
     {
-        err = SendStatusReport(kWeaveProfile_Common, kStatus_UnsupportedMessage);
-        ExitNow();
+        const uint16_t kSupportedModes = 0
+#if WEAVE_DEVICE_CONFIG_ENABLE_WIFI_AP
+                | kRendezvousMode_EnableWiFiRendezvousNetwork
+#endif
+#if WEAVE_DEVICE_CONFIG_ENABLE_THREAD
+                | kRendezvousMode_EnableThreadRendezvous
+#endif
+                ;
+
+        if ((rendezvousMode & ~kSupportedModes) != 0)
+        {
+            err = SendStatusReport(kWeaveProfile_Common, kStatus_UnsupportedMessage);
+            ExitNow();
+        }
     }
 
-    // If EnableThreadRendezvous was requested, fail with NetworkProvisioning:UnsupportedNetworkType.
-    if ((rendezvousMode & kRendezvousMode_EnableThreadRendezvous) != 0)
-    {
-        err = SendStatusReport(kWeaveProfile_NetworkProvisioning, kStatusCode_UnsupportedNetworkType);
-        ExitNow();
-    }
-
-    // Reject the request if the application is currently in control of the WiFi AP.
-    if (RejectIfApplicationControlled(false))
-    {
-        ExitNow();
-    }
+#if WEAVE_DEVICE_CONFIG_ENABLE_WIFI_AP
 
     // If the request is to start the WiFi "rendezvous network" (a.k.a. the WiFi AP interface)...
-    if (rendezvousMode != 0)
+    if ((rendezvousMode & kRendezvousMode_EnableWiFiRendezvousNetwork) != 0)
     {
-        // If the AP interface has been expressly disabled by the application, fail with Common:NotAvailable.
-        if (ConnectivityMgr().GetWiFiAPMode() == ConnectivityManager::kWiFiAPMode_Disabled)
+        // Reject the request if the application is currently in control of the WiFi AP
+        // OR if the AP interface has been expressly disabled by the application.
+        const ConnectivityManager::WiFiAPMode apMode = ConnectivityMgr().GetWiFiAPMode();
+        if (apMode == ConnectivityManager::kWiFiAPMode_ApplicationControlled ||
+            apMode == ConnectivityManager::kWiFiAPMode_Disabled)
         {
             err = SendStatusReport(kWeaveProfile_Common, kStatus_NotAvailable);
             ExitNow();
@@ -528,6 +754,39 @@ WEAVE_ERROR GenericNetworkProvisioningServerImpl<ImplClass>::HandleSetRendezvous
         ConnectivityMgr().StopOnDemandWiFiAP();
     }
 
+#endif // WEAVE_DEVICE_CONFIG_ENABLE_WIFI_AP
+
+#if WEAVE_DEVICE_CONFIG_ENABLE_THREAD
+
+    // If the request is to enable Thread "rendezvous"--i.e. enable Thread joinable mode...
+    if ((rendezvousMode & kRendezvousMode_EnableWiFiRendezvousNetwork) != 0)
+    {
+        // Reject the request if the application is currently in control of the Thread Network
+        // OR if the Thread interface has been expressly disabled by the application
+        // OR if the Thread network has not been provisioned.
+        const ConnectivityManager::ThreadMode threadMode = ConnectivityMgr().GetThreadMode();
+        if (threadMode == ConnectivityManager::kThreadMode_ApplicationControlled ||
+            threadMode == ConnectivityManager::kThreadMode_Disabled ||
+            !ThreadStackMgr().IsThreadProvisioned())
+        {
+            err = SendStatusReport(kWeaveProfile_Common, kStatus_NotAvailable);
+            ExitNow();
+        }
+
+        // TODO: implement this
+        ExitNow(err = WEAVE_ERROR_UNSUPPORTED_WEAVE_FEATURE);
+    }
+
+    // Otherwise the request is to stop the Thread rendezvous...
+    else
+    {
+
+        // TODO: implement this
+        ExitNow(err = WEAVE_ERROR_UNSUPPORTED_WEAVE_FEATURE);
+    }
+
+#endif // WEAVE_DEVICE_CONFIG_ENABLE_THREAD
+
     // Respond with a Success response.
     err = SendSuccessResponse();
     SuccessOrExit(err);
@@ -542,16 +801,17 @@ bool GenericNetworkProvisioningServerImpl<ImplClass>::IsPairedToAccount() const
     return ConfigurationMgr().IsServiceProvisioned() && ConfigurationMgr().IsPairedToAccount();
 }
 
+#if WEAVE_DEVICE_CONFIG_ENABLE_WIFI_STATION
+
 template<class ImplClass>
 WEAVE_ERROR GenericNetworkProvisioningServerImpl<ImplClass>::ValidateWiFiStationProvision(
         const NetworkInfo & netInfo, uint32_t & statusProfileId, uint16_t & statusCode)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
-    const char * logPrefix = "NetworkProvisioningServer: ";
 
     if (netInfo.NetworkType != kNetworkType_WiFi)
     {
-        WeaveLogError(DeviceLayer, "%sUnsupported WiFi station network type: %d", logPrefix, netInfo.NetworkType);
+        WeaveLogError(DeviceLayer, "%sUnsupported WiFi station network type: %d", sLogPrefix, netInfo.NetworkType);
         statusProfileId = kWeaveProfile_NetworkProvisioning;
         statusCode = kStatusCode_UnsupportedNetworkType;
         ExitNow(err = WEAVE_ERROR_INVALID_ARGUMENT);
@@ -559,7 +819,7 @@ WEAVE_ERROR GenericNetworkProvisioningServerImpl<ImplClass>::ValidateWiFiStation
 
     if (netInfo.WiFiSSID[0] == 0)
     {
-        WeaveLogError(DeviceLayer, "%sMissing WiFi station SSID", logPrefix);
+        WeaveLogError(DeviceLayer, "%sMissing WiFi station SSID", sLogPrefix);
         statusProfileId = kWeaveProfile_NetworkProvisioning;
         statusCode = kStatusCode_InvalidNetworkConfiguration;
         ExitNow(err = WEAVE_ERROR_INVALID_ARGUMENT);
@@ -569,11 +829,11 @@ WEAVE_ERROR GenericNetworkProvisioningServerImpl<ImplClass>::ValidateWiFiStation
     {
         if (netInfo.WiFiMode == kWiFiMode_NotSpecified)
         {
-            WeaveLogError(DeviceLayer, "%sMissing WiFi station mode", logPrefix);
+            WeaveLogError(DeviceLayer, "%sMissing WiFi station mode", sLogPrefix);
         }
         else
         {
-            WeaveLogError(DeviceLayer, "%sUnsupported WiFi station mode: %d", logPrefix, netInfo.WiFiMode);
+            WeaveLogError(DeviceLayer, "%sUnsupported WiFi station mode: %d", sLogPrefix, netInfo.WiFiMode);
         }
         statusProfileId = kWeaveProfile_NetworkProvisioning;
         statusCode = kStatusCode_InvalidNetworkConfiguration;
@@ -584,11 +844,11 @@ WEAVE_ERROR GenericNetworkProvisioningServerImpl<ImplClass>::ValidateWiFiStation
     {
         if (netInfo.WiFiRole == kWiFiRole_NotSpecified)
         {
-            WeaveLogError(DeviceLayer, "%sMissing WiFi station role", logPrefix);
+            WeaveLogError(DeviceLayer, "%sMissing WiFi station role", sLogPrefix);
         }
         else
         {
-            WeaveLogError(DeviceLayer, "%sUnsupported WiFi station role: %d", logPrefix, netInfo.WiFiRole);
+            WeaveLogError(DeviceLayer, "%sUnsupported WiFi station role: %d", sLogPrefix, netInfo.WiFiRole);
         }
         statusProfileId = kWeaveProfile_NetworkProvisioning;
         statusCode = kStatusCode_InvalidNetworkConfiguration;
@@ -601,7 +861,7 @@ WEAVE_ERROR GenericNetworkProvisioningServerImpl<ImplClass>::ValidateWiFiStation
         netInfo.WiFiSecurityType != kWiFiSecurityType_WPA2Personal &&
         netInfo.WiFiSecurityType != kWiFiSecurityType_WPA2Enterprise)
     {
-        WeaveLogError(DeviceLayer, "%sUnsupported WiFi station security type: %d", logPrefix, netInfo.WiFiSecurityType);
+        WeaveLogError(DeviceLayer, "%sUnsupported WiFi station security type: %d", sLogPrefix, netInfo.WiFiSecurityType);
         statusProfileId = kWeaveProfile_NetworkProvisioning;
         statusCode = kStatusCode_UnsupportedWiFiSecurityType;
         ExitNow(err = WEAVE_ERROR_INVALID_ARGUMENT);
@@ -609,7 +869,7 @@ WEAVE_ERROR GenericNetworkProvisioningServerImpl<ImplClass>::ValidateWiFiStation
 
     if (netInfo.WiFiSecurityType != kWiFiSecurityType_None && netInfo.WiFiKeyLen == 0)
     {
-        WeaveLogError(DeviceLayer, "%sMissing WiFi Key", logPrefix);
+        WeaveLogError(DeviceLayer, "%sMissing WiFi Key", sLogPrefix);
         statusProfileId = kWeaveProfile_NetworkProvisioning;
         statusCode = kStatusCode_InvalidNetworkConfiguration;
         ExitNow(err = WEAVE_ERROR_INVALID_ARGUMENT);
@@ -619,61 +879,217 @@ exit:
     return err;
 }
 
-template<class ImplClass>
-bool GenericNetworkProvisioningServerImpl<ImplClass>::RejectIfApplicationControlled(bool station)
-{
-    bool isAppControlled = (station)
-        ? ConnectivityMgr().IsWiFiStationApplicationControlled()
-        : ConnectivityMgr().IsWiFiAPApplicationControlled();
+#endif // WEAVE_DEVICE_CONFIG_ENABLE_WIFI_STATION
 
-    // Reject the request if the application is currently in control of the WiFi station.
-    if (isAppControlled)
+
+#if WEAVE_DEVICE_CONFIG_ENABLE_THREAD
+
+template<class ImplClass>
+WEAVE_ERROR GenericNetworkProvisioningServerImpl<ImplClass>::ValidateThreadProvision(
+        bool isUpdate, const NetworkInfo & netInfo, uint32_t & statusProfileId, uint16_t & statusCode)
+{
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
+
+    // Verify a valid Thread channel was specified.
+    if (netInfo.ThreadChannel != kThreadChannel_NotSpecified)
     {
-        SendStatusReport(kWeaveProfile_Common, kStatus_NotAvailable);
+        if (netInfo.ThreadChannel < 11 && netInfo.ThreadChannel > 26)
+        {
+            statusProfileId = kWeaveProfile_NetworkProvisioning;
+            statusCode = kStatusCode_InvalidNetworkConfiguration;
+            ExitNow(err = WEAVE_ERROR_INVALID_ARGUMENT);
+        }
     }
 
-    return isAppControlled;
+exit:
+    return err;
 }
 
 template<class ImplClass>
-void GenericNetworkProvisioningServerImpl<ImplClass>::ContinueTestConnectivity(void)
+WEAVE_ERROR GenericNetworkProvisioningServerImpl<ImplClass>::SetThreadProvisionDefaults(
+        bool isUpdate, NetworkInfo & netInfo)
 {
-    // If waiting for Internet connectivity to be established, and IPv4 Internet connectivity
-    // now exists...
-    if (mState == kState_TestConnectivity_WaitConnectivity && ConnectivityMgr().HaveIPv4InternetConnectivity())
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
+
+    // Generate unique values for any Thread parameters not supplied by the client.
+
+    if (!netInfo.FieldPresent.ThreadExtendedPANId)
     {
-        // Reset the state.
-        mState = kState_Idle;
-        SystemLayer.CancelTimer(HandleConnectivityTimeOut, NULL);
+        err = Platform::Security::GetSecureRandomData(netInfo.ThreadExtendedPANId, NetworkInfo::kThreadExtendedPANIdLength);
+        SuccessOrExit(err);
+        netInfo.FieldPresent.ThreadExtendedPANId = true;
+    }
 
-        // Verify that the TestConnectivity request is still outstanding; if so...
-        if (GetCurrentOp() == kMsgType_TestConnectivity)
+    if (netInfo.ThreadNetworkName[0] == 0)
+    {
+        uint16_t nameSuffix = (::nl::Weave::DeviceLayer::FabricState.FabricId != kFabricIdNotSpecified)
+                              ? (uint16_t)::nl::Weave::DeviceLayer::FabricState.FabricId
+                              : Encoding::BigEndian::Get16(&netInfo.ThreadExtendedPANId[6]);
+        snprintf(netInfo.ThreadNetworkName, sizeof(netInfo.ThreadNetworkName), "%s%04X",
+                 WEAVE_DEVICE_CONFIG_DEFAULT_THREAD_NETWORK_NAME_PREFIX, nameSuffix);
+    }
+
+    if (!netInfo.FieldPresent.ThreadMeshPrefix)
+    {
+        netInfo.ThreadMeshPrefix[0] = 0xFD; // IPv6 ULA prefix
+        err = Platform::Security::GetSecureRandomData(&netInfo.ThreadMeshPrefix[1], NetworkInfo::kThreadMeshPrefixLength - 1);
+        SuccessOrExit(err);
+        netInfo.FieldPresent.ThreadMeshPrefix = true;
+    }
+
+    if (!netInfo.FieldPresent.ThreadNetworkKey)
+    {
+        err = Platform::Security::GetSecureRandomData(netInfo.ThreadNetworkKey, NetworkInfo::kThreadNetworkKeyLength);
+        SuccessOrExit(err);
+        netInfo.FieldPresent.ThreadNetworkKey = true;
+    }
+
+    if (!netInfo.FieldPresent.ThreadPSKc)
+    {
+        err = Platform::Security::GetSecureRandomData(netInfo.ThreadPSKc, NetworkInfo::kThreadPSKcLength);
+        SuccessOrExit(err);
+        netInfo.FieldPresent.ThreadPSKc = true;
+    }
+
+    if (netInfo.ThreadPANId == kThreadPANId_NotSpecified)
+    {
+        uint16_t randPANId;
+        err = Platform::Security::GetSecureRandomData((uint8_t *)&randPANId, sizeof(randPANId));
+        SuccessOrExit(err);
+        netInfo.ThreadPANId = randPANId;
+    }
+
+    if (netInfo.ThreadChannel == kThreadChannel_NotSpecified)
+    {
+        err = Platform::Security::GetSecureRandomData((uint8_t *)&netInfo.ThreadChannel, sizeof(netInfo.ThreadChannel));
+        SuccessOrExit(err);
+        netInfo.ThreadChannel = (netInfo.ThreadChannel % 0xF) + 11; // Convert value to 11 thru 26
+    }
+
+exit:
+    return err;
+}
+
+#endif // WEAVE_DEVICE_CONFIG_ENABLE_THREAD
+
+#if WEAVE_DEVICE_CONFIG_ENABLE_WIFI_STATION
+
+template<class ImplClass>
+void GenericNetworkProvisioningServerImpl<ImplClass>::ContinueWiFiConnectivityTest(void)
+{
+    // If waiting for Internet connectivity to be established ...
+    if (mState == kState_TestConnectivity_WaitWiFiConnectivity)
+    {
+        // Check for IPv4 Internet connectivity.  If available...
+        if (ConnectivityMgr().HaveIPv4InternetConnectivity())
         {
-            // TODO: perform positive test of connectivity to the Internet.
+            // TODO: perform positive test of connectivity to the Internet by pinging/connecting to
+            // a well-known external server.
 
-            // Send a Success response to the client.
-            SendSuccessResponse();
+            // Send a Success result to the client.
+            HandleConnectivityTestSuccess();
+        }
+
+        // Otherwise, arrange to return an appropriate error when the connectivity test times out.
+        else
+        {
+            // TODO: Elaborate on the nature of the connectivity failure.  Ideally the status
+            // code would distinguish the following types of failures:
+            //     - Inability to connect to the local WiFi AP
+            //     - Lack of a suitable local address (RFC1918 for IPv4; Global address for IPv6)
+            //     - Lack of a default router
+            //     - Lack of a DNS server
+            //     - Inability to contact an external server.
+            mTestConnectivityResult.mStatusProfileId = kWeaveProfile_NetworkProvisioning;
+            mTestConnectivityResult.mStatusCode = kStatusCode_TestNetworkFailed;
         }
     }
 }
 
+#endif // WEAVE_DEVICE_CONFIG_ENABLE_WIFI_STATION
+
+#if WEAVE_DEVICE_CONFIG_ENABLE_THREAD
+
 template<class ImplClass>
-void GenericNetworkProvisioningServerImpl<ImplClass>::HandleConnectivityTimeOut(
-        ::nl::Weave::System::Layer * aLayer, void * aAppState, ::nl::Weave::System::Error aError)
+void GenericNetworkProvisioningServerImpl<ImplClass>::ContinueThreadConnectivityTest(void)
 {
-    WeaveLogError(DeviceLayer, "Time out waiting for Internet connectivity");
-
-    // Reset the state.
-    NetworkProvisioningSvrImpl().mState = kState_Idle;
-    SystemLayer.CancelTimer(HandleConnectivityTimeOut, NULL);
-
-    // Verify that the TestConnectivity request is still outstanding; if so, send a
-    // NetworkProvisioning:NetworkConnectFailed StatusReport to the client.
-    if (NetworkProvisioningSvrImpl().GetCurrentOp() == kMsgType_TestConnectivity)
+    // If waiting for Thread connectivity to be established...
+    if (mState == kState_TestConnectivity_WaitThreadConnectivity)
     {
-        NetworkProvisioningSvrImpl().SendStatusReport(kWeaveProfile_NetworkProvisioning, kStatusCode_NetworkConnectFailed, WEAVE_ERROR_TIMEOUT);
+        // Check for connectivity to the Thread mesh.  In this context, connectivity means
+        // that this node knows of (i.e. has in its Thread neighbor table) another node
+        // which is acting as a Thread router. If connectivity exists, send a Success
+        // result to the client.
+        if (ThreadStackMgr().HaveMeshConnectivity())
+        {
+            // TODO: perform positive test of connectivity to peer router node.
+
+            // Send a Success result to the client.
+            HandleConnectivityTestSuccess();
+        }
+
+        // If connectivity doesn't exist arrange to return an appropriate error when the
+        // connectivity test times out.
+        else
+        {
+            // TODO: Elaborate on the nature of the connectivity failure.  Ideally the status
+            // code would distinguish the following types of failures:
+            //     - Lack of a peer router detected in the Mesh (for end nodes, this means
+            //       lack of a parent router).
+            //     - Inability to contact/ping the peer router.
+            mTestConnectivityResult.mStatusProfileId = kWeaveProfile_NetworkProvisioning;
+            mTestConnectivityResult.mStatusCode = kStatusCode_NoRouterAvailable;
+        }
     }
 }
+
+#endif // WEAVE_DEVICE_CONFIG_ENABLE_THREAD
+
+#if WEAVE_DEVICE_CONFIG_ENABLE_WIFI_STATION || WEAVE_DEVICE_CONFIG_ENABLE_THREAD
+
+template<class ImplClass>
+void GenericNetworkProvisioningServerImpl<ImplClass>::HandleConnectivityTestSuccess(void)
+{
+    // Reset the state.
+    mState = kState_Idle;
+    SystemLayer.CancelTimer(HandleConnectivityTestTimeOut, NULL);
+
+    // Verify that the TestConnectivity request is still outstanding and if so,
+    // send a Success response to the client
+    if (GetCurrentOp() == kMsgType_TestConnectivity)
+    {
+        SendSuccessResponse();
+    }
+}
+
+template<class ImplClass>
+void GenericNetworkProvisioningServerImpl<ImplClass>::HandleConnectivityTestTimeOut(
+        ::nl::Weave::System::Layer * aLayer, void * aAppState, ::nl::Weave::System::Error aError)
+{
+    GenericNetworkProvisioningServerImpl<ImplClass> * self = &NetworkProvisioningSvrImpl();
+
+    if (self->mState == kState_TestConnectivity_WaitWiFiConnectivity ||
+        self->mState == kState_TestConnectivity_WaitThreadConnectivity)
+    {
+        const bool testingWiFi = (self->mState == kState_TestConnectivity_WaitWiFiConnectivity);
+
+        WeaveLogError(DeviceLayer, "Time out waiting for %s connectivity", (testingWiFi) ? "Internet" : "Thread");
+
+        // Reset the state.
+        self->mState = kState_Idle;
+        SystemLayer.CancelTimer(HandleConnectivityTestTimeOut, NULL);
+
+        // Verify that the TestConnectivity request is still outstanding; if so, send a StatusReport
+        // to the client contain an appropriate error.
+        if (self->GetCurrentOp() == kMsgType_TestConnectivity)
+        {
+            self->SendStatusReport(self->mTestConnectivityResult.mStatusProfileId,
+                                   self->mTestConnectivityResult.mStatusCode);
+        }
+    }
+}
+
+#endif // WEAVE_DEVICE_CONFIG_ENABLE_WIFI_STATION || WEAVE_DEVICE_CONFIG_ENABLE_THREAD
 
 } // namespace Internal
 } // namespace DeviceLayer

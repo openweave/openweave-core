@@ -75,6 +75,44 @@ void GenericConnectivityManagerImpl_Thread<ImplClass>::_OnPlatformEvent(const We
 }
 
 template<class ImplClass>
+ConnectivityManager::ThreadMode GenericConnectivityManagerImpl_Thread<ImplClass>::_GetThreadMode(void)
+{
+    if (GetFlag(mFlags, kFlag_IsApplicationControlled))
+    {
+        return ConnectivityManager::kThreadMode_ApplicationControlled;
+    }
+
+    return ThreadStackMgrImpl().IsThreadEnabled()
+              ? ConnectivityManager::kThreadMode_Enabled
+              : ConnectivityManager::kThreadMode_Disabled;
+}
+
+template<class ImplClass>
+WEAVE_ERROR GenericConnectivityManagerImpl_Thread<ImplClass>::_SetThreadMode(ConnectivityManager::ThreadMode val)
+{
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
+
+    VerifyOrExit(val == ConnectivityManager::kThreadMode_Enabled ||
+                 val == ConnectivityManager::kThreadMode_Disabled ||
+                 val == ConnectivityManager::kThreadMode_ApplicationControlled, err = WEAVE_ERROR_INVALID_ARGUMENT);
+
+    if (val == ConnectivityManager::kThreadMode_ApplicationControlled)
+    {
+        SetFlag(mFlags, kFlag_IsApplicationControlled);
+    }
+    else
+    {
+        ClearFlag(mFlags, kFlag_IsApplicationControlled);
+
+        err = ThreadStackMgrImpl().SetThreadEnabled(val == ConnectivityManager::kThreadMode_Enabled);
+        SuccessOrExit(err);
+    }
+
+exit:
+    return err;
+}
+
+template<class ImplClass>
 void GenericConnectivityManagerImpl_Thread<ImplClass>::UpdateServiceConnectivity(void)
 {
     bool haveServiceConnectivity = false;

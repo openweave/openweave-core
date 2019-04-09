@@ -42,6 +42,15 @@
 #include <Weave/DeviceLayer/internal/GenericConnectivityManagerImpl_BLE.ipp>
 #endif
 
+#if !WEAVE_DEVICE_CONFIG_ENABLE_WIFI_STATION
+#error "WiFi Station support must be enabled when building for ESP32"
+#endif
+
+#if !WEAVE_DEVICE_CONFIG_ENABLE_WIFI_AP
+#error "WiFi AP support must be enabled when building for ESP32"
+#endif
+
+
 using namespace ::nl;
 using namespace ::nl::Weave;
 using namespace ::nl::Weave::TLV;
