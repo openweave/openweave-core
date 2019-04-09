@@ -25,6 +25,8 @@
 #ifndef TOOLCOMMONOPTIONS_H_
 #define TOOLCOMMONOPTIONS_H_
 
+#include <vector>
+
 #include <SystemLayer/SystemLayer.h>
 #include <InetLayer/InetLayer.h>
 #include <Weave/Core/WeaveCore.h>
@@ -76,6 +78,7 @@ enum
     kToolCommonOpt_ServiceDirTargetDNSOptions,
     kToolCommonOpt_IPv4GatewayAddr,
     kToolCommonOpt_TapDevice,
+    kToolCommonOpt_TapInterfaceConfig,
     kToolCommonOpt_WRMPACKDelay,
     kToolCommonOpt_WRMPRetransInterval,
     kToolCommonOpt_WRMPRetransCount,
@@ -104,15 +107,16 @@ enum
 class NetworkOptions : public OptionSetBase
 {
 public:
-    nl::Inet::IPAddress LocalIPv4Addr;
-    nl::Inet::IPAddress LocalIPv6Addr;
+    std::vector<nl::Inet::IPAddress> LocalIPv4Addr;
+    std::vector<nl::Inet::IPAddress> LocalIPv6Addr;
 
 #if WEAVE_SYSTEM_CONFIG_USE_LWIP
-    nl::Inet::IPAddress IPv4GatewayAddr;
+    std::vector<nl::Inet::IPAddress> IPv4GatewayAddr;
     nl::Inet::IPAddress DNSServerAddr;
-    const char *TapDeviceName;
+    std::vector<const char *>TapDeviceName;
     uint8_t LwIPDebugFlags;
     uint32_t EventDelay;
+    bool TapUseSystemConfig;
 #endif // WEAVE_SYSTEM_CONFIG_USE_LWIP
 
     NetworkOptions();

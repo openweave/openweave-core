@@ -935,16 +935,20 @@ static void StartTest(void)
     IPAddressType      lIPAddressType = kIPAddressType_IPv6;
     IPProtocol         lIPProtocol    = kIPProtocol_ICMPv6;
     IPVersion          lIPVersion     = kIPVersion_6;
-    IPAddress          lAddress       = gNetworkOptions.LocalIPv6Addr;
+    IPAddress          lAddress       = nl::Inet::IPAddress::Any;
     INET_ERROR         lStatus;
-
+    if (!gNetworkOptions.LocalIPv6Addr.empty())
+        lAddress = gNetworkOptions.LocalIPv6Addr[0];
 #if INET_CONFIG_ENABLE_IPV4
     if (gOptFlags & kOptFlagUseIPv4)
     {
         lIPAddressType = kIPAddressType_IPv4;
         lIPProtocol    = kIPProtocol_ICMPv4;
         lIPVersion     = kIPVersion_4;
-        lAddress       = gNetworkOptions.LocalIPv4Addr;
+        if (!gNetworkOptions.LocalIPv6Addr.empty())
+            lAddress = gNetworkOptions.LocalIPv4Addr[0];
+        else
+            lAddress = nl::Inet::IPAddress::Any;
     }
 #endif // INET_CONFIG_ENABLE_IPV4
 

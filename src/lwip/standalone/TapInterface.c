@@ -86,9 +86,9 @@
 /*-----------------------------------------------------------------------------------*/
 /*
  * Copyright (c) 2001-2003 Swedish Institute of Computer Science.
- * All rights reserved. 
- * 
- * Redistribution and use in source and binary forms, with or without modification, 
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
  *
  * 1. Redistributions of source code must retain the above copyright notice,
@@ -97,21 +97,21 @@
  *    this list of conditions and the following disclaimer in the documentation
  *    and/or other materials provided with the distribution.
  * 3. The name of the author may not be used to endorse or promote products
- *    derived from this software without specific prior written permission. 
+ *    derived from this software without specific prior written permission.
  *
- * THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR IMPLIED 
- * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF 
- * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT 
- * SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
- * EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT 
- * OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS 
- * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN 
- * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING 
- * IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY 
+ * THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR IMPLIED
+ * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+ * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT
+ * SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+ * EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT
+ * OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING
+ * IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY
  * OF SUCH DAMAGE.
  *
  * This file is part of the lwIP TCP/IP stack.
- * 
+ *
  * Author: Adam Dunkels <adam@sics.se>
  *
  */
@@ -164,7 +164,7 @@ static const size_t kMacLength = sizeof (((TapInterface *)(0))->macAddr);
  *  netif, associated with the LwIP TUN/TAP shim interface, LwIP
  *  invokes this method to drive the specified buffer to the shim
  *  interface.
- *                        
+ *
  *  @param[in]  netif      A pointer to the LwIP native interface
  *                         associated with the TUN/TAP shim interface
  *                         onto which the output should be driven.
@@ -254,7 +254,7 @@ done:
  *
  *  @param[in]  tapif      A pointer to the LwIP TUN/TAP shim interface
  *                         from which to read pending input.
- *                        
+ *
  *  @param[in]  netif      A pointer to the LwIP native interface
  *                         associated with the TUN/TAP shim interface.
  *
@@ -334,8 +334,8 @@ TapInterface_SetupNetif(struct netif *netif)
      * existing LwIP APIs for such interfaces where possible.
      */
 
-    netif->name[0]    = 'e';
-    netif->name[1]    = 't';
+    netif->name[0]    = tapif->interfaceName[0];
+    netif->name[1]    = tapif->interfaceName[1];
     netif->output     = etharp_output;
 #if LWIP_IPV6
     netif->output_ip6 = ethip6_output;
@@ -458,6 +458,26 @@ TapInterface_Init(TapInterface *tapif, const char *interfaceName, u8_t *macAddr)
         perror("TapInterface: ioctl(TUNSETIFF) failed");
         return ERR_IF;
     }
+
+#if 0
+    // Handy bit of code if we wanted the LwIP to pick up the same MAC address
+    // that's listed on the interface; while the address pickup seems to work,
+    // the network stack does not seem to function quite right under those
+    // circumstances
+    int fd = socket(AF_INET, SOCK_DGRAM, 0);
+
+    ifr.ifr_addr.sa_family = AF_INET;
+
+    if (0 == ioctl(fd, SIOCGIFHWADDR, &ifr))
+    {
+      memcpy(tapif->macAddr, ifr.ifr_hwaddr.sa_data, kMacLength);
+    }
+    else
+    {
+        printf("Error SIOCGIFHWADDR\n");
+    }
+    close(fd);
+#endif
 #else
 #warning "The LwIP TAP/TUN interface may not be fully-supported on your platform."
 #endif /* defined(linux) */
@@ -469,15 +489,17 @@ TapInterface_Init(TapInterface *tapif, const char *interfaceName, u8_t *macAddr)
  *  Check the LwIP TUN/TAP shim interface to see if any input / read
  *  activity is pending and, if there is, process it.
  *
- *  @param[in]  tapif      A pointer to the LwIP TUN/TAP shim interface
+ *  @param[in]  tapif      An array of  LwIP TUN/TAP shim interfaces
  *                         to check and, if necessary, to process the
  *                         input for.
- *                        
- *  @param[in]  netif      A pointer to the LwIP native interface
+ *
+ *  @param[in]  netif      An array of the LwIP native interfaces
  *                         associated with the TUN/TAP shim interface.
  *
  *  @param[in]  sleepTime  The interval that the call should block for
  *                         waiting for input.
+ *
+ *  @param[in]  numIntfs   The number of elements in the tapif and netif arrays.
  *
  *  @retval  >= 0 on a successful check and/or processing of pending input.
  *
@@ -488,28 +510,39 @@ TapInterface_Init(TapInterface *tapif, const char *interfaceName, u8_t *macAddr)
  *
  */
 int
-TapInterface_Select(TapInterface *tapif, struct netif *netif, struct timeval sleepTime)
+TapInterface_Select(TapInterface *tapif, struct netif *netif, struct timeval sleepTime, size_t numIntfs)
 {
     fd_set readfds;
     int ret;
 
-    if ((tapif == NULL) || (netif == NULL))
+    if ((tapif == NULL) || (netif == NULL) || (numIntfs == 0))
     {
         return -EINVAL;
     }
 
     FD_ZERO(&readfds);
-    FD_SET(tapif->fd, &readfds);
 
-    ret = select(tapif->fd + 1, &readfds, NULL, NULL, &sleepTime);
-    if (ret > 0) {
-        struct pbuf *p = TapInterface_low_level_input(tapif, netif);
-        if (p != NULL) {
+    for (size_t j = 0; j < numIntfs; j++)
+    {
+        FD_SET(tapif[j].fd, &readfds);
+    }
+
+    ret = select(tapif[numIntfs-1].fd + 1, &readfds, NULL, NULL, &sleepTime);
+    if (ret > 0)
+    {
+        for (size_t j = 0; j < numIntfs; j++)
+        {
+            if (! FD_ISSET(tapif[j].fd, &readfds))
+                continue;
+
+            struct pbuf *p = TapInterface_low_level_input(&(tapif[j]), &(netif[j]));
+            if (p != NULL) {
 #if LINK_STATS
-            lwip_stats.link.recv++;
+                lwip_stats.link.recv++;
 #endif /* LINK_STATS */
 
-            netif->input(p, netif);
+                netif[j].input(p, &(netif[j]));
+            }
         }
     }
 
