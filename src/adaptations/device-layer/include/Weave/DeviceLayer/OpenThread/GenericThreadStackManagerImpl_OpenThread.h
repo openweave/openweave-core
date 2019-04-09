@@ -38,6 +38,8 @@ class ThreadStackManagerImpl;
 
 namespace Internal {
 
+class NetworkInfo;
+
 /**
  * Provides a generic implementation of ThreadStackManager features that works in conjunction
  * with OpenThread.
@@ -63,14 +65,22 @@ protected:
 
     // ===== Methods that implement the ThreadStackManager abstract interface.
 
-    void _OnPlatformEvent(const WeaveDeviceEvent * event);
     void _ProcessThreadActivity(void);
     bool _HaveRouteToAddress(const IPAddress & destAddr);
+    void _OnPlatformEvent(const WeaveDeviceEvent * event);
+    bool _IsThreadEnabled(void);
+    WEAVE_ERROR _SetThreadEnabled(bool val);
+    bool _IsThreadProvisioned(void);
+    bool _IsThreadAttached(void);
+    WEAVE_ERROR _GetThreadProvision(NetworkInfo & netInfo, bool includeCredentials);
+    WEAVE_ERROR _SetThreadProvision(const NetworkInfo & netInfo);
+    void _ClearThreadProvision(void);
+    bool _HaveMeshConnectivity(void);
 
     // ===== Members available to the implementation subclass.
 
     WEAVE_ERROR DoInit(otInstance * otInst);
-    bool IsAttached(void);
+    bool IsThreadAttachedNoLock(void);
 
 private:
 

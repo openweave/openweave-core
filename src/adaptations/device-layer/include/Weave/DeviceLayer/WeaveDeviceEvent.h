@@ -289,6 +289,7 @@ struct WeaveDeviceEvent final
             bool RoleChanged;
             bool AddressChanged;
             bool NetDataChanged;
+            bool ChildNodesChanged;
         } ThreadConnectivityChange;
         struct
         {

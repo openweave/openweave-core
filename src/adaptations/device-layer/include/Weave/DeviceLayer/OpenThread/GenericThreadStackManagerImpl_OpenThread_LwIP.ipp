@@ -56,10 +56,18 @@ void GenericThreadStackManagerImpl_OpenThread_LwIP<ImplClass>::_OnPlatformEvent(
 
     if (event->Type == DeviceEventType::kOpenThreadStateChange)
     {
-        // If the Thread device role has changed
-        // OR if an IPv6 address has been added or removed
-        // OR if the Thread network data has changed...
-        if ((event->OpenThreadStateChange.flags & (OT_CHANGED_THREAD_ROLE|OT_CHANGED_IP6_ADDRESS_ADDED|OT_CHANGED_IP6_ADDRESS_REMOVED|OT_CHANGED_THREAD_NETDATA)) != 0)
+        // If one of a set of Thread events has occurred...
+        //    - the Thread device role has changed
+        //    - an IPv6 address has been added or removed
+        //    - the Thread network data has changed
+        //    - a child node has attached or detached
+        constexpr uint32_t kSelectedOTEvents = (OT_CHANGED_THREAD_ROLE |
+                                                OT_CHANGED_IP6_ADDRESS_ADDED |
+                                                OT_CHANGED_IP6_ADDRESS_REMOVED |
+                                                OT_CHANGED_THREAD_NETDATA |
+                                                OT_CHANGED_THREAD_CHILD_ADDED |
+                                                OT_CHANGED_THREAD_CHILD_REMOVED);
+        if ((event->OpenThreadStateChange.flags & kSelectedOTEvents) != 0)
         {
             ConnectivityChange connChange = kConnectivity_NoChange;
 
@@ -72,6 +80,7 @@ void GenericThreadStackManagerImpl_OpenThread_LwIP<ImplClass>::_OnPlatformEvent(
             }
 
             // Post an event signaling the change in Thread connectivity state.
+            // TODO: move this to a helper function on GenericThreadStackManagerImpl_OpenThread<>
             {
                 WeaveDeviceEvent conChangeEvent;
                 conChangeEvent.Clear();
@@ -80,6 +89,7 @@ void GenericThreadStackManagerImpl_OpenThread_LwIP<ImplClass>::_OnPlatformEvent(
                 conChangeEvent.ThreadConnectivityChange.RoleChanged = (event->OpenThreadStateChange.flags & OT_CHANGED_THREAD_ROLE) != 0;
                 conChangeEvent.ThreadConnectivityChange.AddressChanged = (event->OpenThreadStateChange.flags & (OT_CHANGED_IP6_ADDRESS_ADDED|OT_CHANGED_IP6_ADDRESS_REMOVED)) != 0;
                 conChangeEvent.ThreadConnectivityChange.NetDataChanged = (event->OpenThreadStateChange.flags & OT_CHANGED_THREAD_NETDATA) != 0;
+                conChangeEvent.ThreadConnectivityChange.ChildNodesChanged = (event->OpenThreadStateChange.flags & (OT_CHANGED_THREAD_CHILD_ADDED|OT_CHANGED_THREAD_CHILD_REMOVED)) != 0;
                 PlatformMgr().PostEvent(&conChangeEvent);
             }
         }
@@ -160,7 +170,7 @@ WEAVE_ERROR GenericThreadStackManagerImpl_OpenThread_LwIP<ImplClass>::UpdateThre
     Impl()->LockThreadStack();
 
     // Determine whether the device is attached to a Thread network.
-    isAttached = GenericThreadStackManagerImpl_OpenThread<ImplClass>::IsAttached();
+    isAttached = GenericThreadStackManagerImpl_OpenThread<ImplClass>::IsThreadAttachedNoLock();
 
     // If needed, adjust the link state of the LwIP netif to reflect the state of the OpenThread stack.
     // Set ifConnectivity to indicate the change in the link state.

@@ -27,10 +27,6 @@ namespace Weave {
 namespace DeviceLayer {
 namespace Internal {
 
-// Instruct the compiler to instantiate the GenericNetworkProvisioningServerImpl<> template
-// only when explicitly instructed to do so.
-extern template class GenericNetworkProvisioningServerImpl<NetworkProvisioningServerImpl>;
-
 /**
  * Concrete implementation of the NetworkProvisioningServer singleton object for the ESP32 platform.
  */
@@ -52,6 +48,7 @@ private:
 
     // ===== Members that implement the NetworkProvisioningServer public interface.
 
+    WEAVE_ERROR _Init(void);
     void _OnPlatformEvent(const WeaveDeviceEvent * event);
 
     // NOTE: Other public interface methods are implemented by GenericNetworkProvisioningServerImpl<>.

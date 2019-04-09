@@ -91,8 +91,8 @@ extern int GetDRBGSeedDevRandom(uint8_t *buf, size_t bufSize);
 
 #endif // WEAVE_CONFIG_DEV_RANDOM_ENTROPY_SOURCE
 
-} // namespace Platform
 } // namespace Security
+} // namespace Platform
 } // namespace Weave
 } // namespace nl
 
