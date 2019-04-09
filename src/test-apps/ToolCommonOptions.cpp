@@ -245,6 +245,7 @@ bool WeaveNodeOptions::HandleOption(const char *progName, OptionSet *optSet, int
             PrintArgError("%s: Invalid value specified for fabric id: %s\n", progName, arg);
             return false;
         }
+        FabricIdSet = true;
         break;
     case 'n':
         if (!ParseNodeId(arg, LocalNodeId))
@@ -260,6 +261,7 @@ bool WeaveNodeOptions::HandleOption(const char *progName, OptionSet *optSet, int
             PrintArgError("%s: Invalid value specified for local subnet: %s\n", progName, arg);
             return false;
         }
+        SubnetIdSet = true;
         break;
     case kToolCommonOpt_PairingCode:
         PairingCode = arg;
@@ -1054,6 +1056,27 @@ bool ParseDNSOptions(const char * progName, const char *argName, const char * ar
         }
     }
 
+    return true;
+}
+
+bool ResolveWeaveNetworkOptions(const char *progName, WeaveNodeOptions &weaveOptions, NetworkOptions &networkOptions)
+{
+    // TODO (arg clean up): generalize code that infers node ids from local address
+    if (networkOptions.LocalIPv6Addr != IPAddress::Any)
+    {
+        if (!networkOptions.LocalIPv6Addr.IsIPv6ULA())
+        {
+            PrintArgError("%s: Local address must be an IPv6 ULA\n", progName);
+            return false;
+        }
+
+        if (!weaveOptions.FabricIdSet)
+            weaveOptions.FabricId = networkOptions.LocalIPv6Addr.GlobalId();
+        if (!weaveOptions.LocalNodeIdSet)
+            weaveOptions.LocalNodeId = IPv6InterfaceIdToWeaveNodeId(networkOptions.LocalIPv6Addr.InterfaceId());
+        if (!weaveOptions.SubnetIdSet)
+            weaveOptions.SubnetId = networkOptions.LocalIPv6Addr.Subnet();
+    }
     return true;
 }
 

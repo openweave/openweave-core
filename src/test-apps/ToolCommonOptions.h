@@ -286,5 +286,8 @@ extern FaultInjectionOptions gFaultInjectionOptions;
 
 extern bool ParseDNSOptions(const char * progName, const char *argName, const char * arg, uint8_t & dnsOptions);
 
+extern bool ResolveWeaveNetworkOptions(const char * progName, WeaveNodeOptions &weaveOptions, NetworkOptions &networkOptions);
+
+
 
 #endif // TOOLCOMMONOPTIONS_H_
