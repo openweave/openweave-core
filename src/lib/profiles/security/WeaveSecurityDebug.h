@@ -46,10 +46,15 @@ namespace Security {
 
 extern void PrintCert(FILE *out, const WeaveCertificateData& cert, const WeaveCertificateSet  *certSet, uint16_t indent = 0, bool verbose = false);
 extern void PrintCertValidationResults(FILE *out, const WeaveCertificateSet& certSet, const ValidationContext& validContext, uint16_t indent = 0);
+extern WEAVE_ERROR PrintWeaveDN(FILE * out, TLVReader & reader);
 extern void PrintWeaveDN(FILE *out, const WeaveDN& dn);
 extern void PrintPackedTime(FILE *out, uint32_t t);
 extern void PrintPackedDate(FILE *out, uint16_t t);
 extern const char *DescribeWeaveCertId(OID attrOID, uint64_t weaveCertId);
+extern WEAVE_ERROR PrintCertArray(FILE * out, TLVReader & reader, uint16_t indent);
+extern WEAVE_ERROR PrintECDSASignature(FILE * out, TLVReader & reader, uint16_t indent);
+extern WEAVE_ERROR PrintCertReference(FILE * out, TLVReader & reader, uint16_t indent);
+extern WEAVE_ERROR PrintWeaveSignature(FILE * out, TLVReader & reader, uint16_t indent);
 
 #endif // WEAVE_CONFIG_ENABLE_SECURITY_DEBUG_FUNCS
 

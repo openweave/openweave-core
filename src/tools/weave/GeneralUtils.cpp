@@ -197,6 +197,16 @@ exit:
     return res;
 }
 
+bool IsBase64String(const char * str, uint32_t strLen)
+{
+    for (; strLen > 0; strLen--, str++)
+    {
+        if (!isalnum(*str) && *str != '+' && *str != '/' && *str != '=' && !isspace(*str))
+            return false;
+    }
+    return true;
+}
+
 bool ContainsPEMMarker(const char *marker, const uint8_t *data, uint32_t dataLen)
 {
     size_t markerLen = strlen(marker);

@@ -69,14 +69,9 @@ static uint8_t testOctetString[] = { 0x01, 0x03, 0x05, 0x07, 0x10, 0x30, 0x50, 0
 static const char *testPrintableString = "Sudden death in Venice";
 static const char *testUTFString = "Ond bra\xCC\x8A""d do\xCC\x88""d i Venedig";
 
-void EncodeTest()
+ASN1_ERROR DoEncode(ASN1Writer & writer)
 {
     ASN1_ERROR err = ASN1_NO_ERROR;
-    uint8_t buf[2048];
-    ASN1Writer writer;
-    uint16_t encodedLen;
-
-    writer.Init(buf, sizeof(buf));
 
     ASN1_START_SEQUENCE {
         ASN1_ENCODE_BOOLEAN(false);
@@ -121,6 +116,22 @@ void EncodeTest()
             } ASN1_END_SEQUENCE;
         } ASN1_END_ENCAPSULATED;
     } ASN1_END_SEQUENCE;
+
+exit:
+    return err;
+}
+
+void EncodeTest()
+{
+    ASN1_ERROR err = ASN1_NO_ERROR;
+    uint8_t buf[2048];
+    ASN1Writer writer;
+    uint16_t encodedLen;
+
+    writer.Init(buf, sizeof(buf));
+
+    err = DoEncode(writer);
+    SuccessOrExit(err);
 
     writer.Finalize();
 
@@ -241,9 +252,41 @@ exit:
     }
 }
 
+void NullWriterTest()
+{
+    ASN1_ERROR err = ASN1_NO_ERROR;
+    ASN1Writer writer;
+    uint16_t encodedLen;
+
+    writer.InitNullWriter();
+
+    err = DoEncode(writer);
+    SuccessOrExit(err);
+
+    writer.Finalize();
+
+    encodedLen = writer.GetLengthWritten();
+
+    if (encodedLen != 0)
+    {
+        fprintf(stderr, "NullWriterTest FAILED: Unexpected value from GetLengthWritten()\n");
+        exit(-1);
+    }
+
+exit:
+    if (err == ASN1_NO_ERROR)
+        fprintf(stdout, "NullWriterTest PASSED\n");
+    else
+    {
+        fprintf(stderr, "NullWriterTest FAILED: %s\n", ErrorStr(err));
+        exit(-1);
+    }
+}
+
 
 int main(int argc, char *argv[])
 {
     EncodeTest();
     DecodeTest();
+    NullWriterTest();
 }

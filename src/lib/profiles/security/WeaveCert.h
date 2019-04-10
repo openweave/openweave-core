@@ -269,11 +269,17 @@ protected:
     WEAVE_ERROR FindValidCert(const WeaveDN& subjectDN, const CertificateKeyId& subjectKeyId,
             ValidationContext& context, uint16_t validateFlags, uint8_t depth, WeaveCertificateData *& cert);
     WEAVE_ERROR ValidateCert(WeaveCertificateData& cert, ValidationContext& context, uint16_t validateFlags, uint8_t depth);
-    WEAVE_ERROR DetermineCertType(WeaveCertificateData& cert);
 };
+
+extern WEAVE_ERROR DecodeWeaveCert(const uint8_t *weaveCert, uint32_t weaveCertLen, WeaveCertificateData& certData);
+extern WEAVE_ERROR DecodeWeaveCert(TLVReader& reader, WeaveCertificateData& certData);
+
+extern WEAVE_ERROR DecodeWeaveDN(TLVReader& reader, WeaveDN& dn);
 
 extern WEAVE_ERROR ConvertX509CertToWeaveCert(const uint8_t *x509Cert, uint32_t x509CertLen, uint8_t *weaveCertBuf, uint32_t weaveCertBufSize, uint32_t& weaveCertLen);
 extern WEAVE_ERROR ConvertWeaveCertToX509Cert(const uint8_t *weaveCert, uint32_t weaveCertLen, uint8_t *x509CertBuf, uint32_t x509CertBufSize, uint32_t& x509CertLen);
+
+extern WEAVE_ERROR DetermineCertType(WeaveCertificateData& cert);
 
 extern WEAVE_ERROR PackCertTime(const nl::Weave::ASN1::ASN1UniversalTime& time, uint32_t& packedTime);
 extern WEAVE_ERROR UnpackCertTime(uint32_t packedTime, nl::Weave::ASN1::ASN1UniversalTime& time);

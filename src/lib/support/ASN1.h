@@ -158,6 +158,7 @@ class NL_DLL_EXPORT ASN1Writer
 {
 public:
     void Init(uint8_t *buf, uint32_t maxLen);
+    void InitNullWriter(void);
     ASN1_ERROR Finalize(void);
     uint16_t GetLengthWritten(void) const;
 

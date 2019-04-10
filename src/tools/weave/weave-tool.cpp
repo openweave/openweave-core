@@ -63,6 +63,8 @@ static const char *const sHelp =
         "\n"
         "    print-cert -- Print a Weave certificate.\n"
         "\n"
+        "    print-sig -- Print a Weave signature.\n"
+        "\n"
         "    print-tlv -- Print a Weave TLV object.\n"
         "\n"
         "    version -- Print the program version and exit.\n"
@@ -137,6 +139,9 @@ int main(int argc, char *argv[])
 
     else if (strcasecmp(argv[1], "print-cert") == 0 || strcasecmp(argv[1], "printcert") == 0)
         res = Cmd_PrintCert(argc - 1, argv + 1);
+
+    else if (strcasecmp(argv[1], "print-sig") == 0 || strcasecmp(argv[1], "printsig") == 0)
+        res = Cmd_PrintSig(argc - 1, argv + 1);
 
     else if (strcasecmp(argv[1], "print-tlv") == 0 || strcasecmp(argv[1], "printtlv") == 0)
         res = Cmd_PrintTLV(argc - 1, argv + 1);

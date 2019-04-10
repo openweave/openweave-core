@@ -165,6 +165,25 @@ AwEHoUQDQgAEdGxcrBWbjiXHVeie8V7o03YULQQfGtRE+QVQPgchNdm8Im6+6G2z
 
 rootCAKeyId_prime256v1 = binascii.unhexlify('432248EA04AE5BD2')
 
+weaveSig_ecdsaWithSHA1_signingCert = base64.b64decode('''\
+1QAABAAFADUBMAEdAMaLcZBPltcc7efJQrbZUGPj1D73DWaf+scPKd0wAh0AizhyI08p7rmHuodn
+LJtP/0eswUpU5QulTAXl2Rg2BBUwAQgaUkJcquuMVCQCBFcDACcTBAAA7u4wtBgYJgQIrWUaJgWI
+oxgtVwYAJxQBAADuAzC0GBgkBwIkCCUwCjkEyGxXmW/tdZwqQFBDdK6rV0JuWRhMM4W4kEteNaVG
++pYEetbpTVk/xQOGR8GTiHO5zUzGBqORpxk1gykBGDWCKQEkAgEYNYQpATYCBAMYGDWBMAIIRybd
+iJ776L8YNYAwAghMjpcZLrz47Rg1DDABHCPtQBA1kYR/qhLlvZ/88vkCFo/aB6yZS4O6cekwAh0A
+qcjqr71PG/EoC0rjT8jK+tEw07cLJ8/d59szuhgYFTABCGRW+nvGNJkUJAIEVwMAJxMBAADu7jC0
+GBgmBOGIZRomBWEE5VNXBgAnEwQAAO7uMLQYGCQHAiQIJTAKOQQ3boDGKBoAVSfJn1CGq3F6mWzd
+25VCwiQ3fHabganwrjBOEGLnWBxz0o5nrEG15D0ZBlBYhwFVzDWDKQEpAhg1gikBJAJgGDWBMAII
+TI6XGS68+O0YNYAwAghKqnukemFLLRg1DDABHQCrMcDH5OYW1me01XfsZwTG3igFS/XJKlTtetvA
+MAIdAPC4MHMAwN3fk0W17E0aeFrtovEgcsJ8GrfNDAAYGBgY
+''')
+
+weaveSig_ecdsaWithSHA256_certRef = base64.b64decode('''\
+1QAABAAFACUFBQI1ATABHE0Px2EANL9tD9G4K82MeSUHihoqi9nhqJxa0JwwAhwtgeTZTnZpiX/+
+eZ71UhRhnjKfRp/8bH+ipYZMGDUDMAIIRybdiJ776L8YGA==
+''')
+
+
 
 
 # ================================================================================
@@ -993,6 +1012,121 @@ class TEST07_ConvertProvisioningData(WeaveToolTestCase):
                 # Verify the contents of the generated provisioning data file
                 self.verifyProvisioningDataFile(toProvDataFile.name, deviceCount, curve, hash, certFormat, toKeyFormat)
 
+class TEST08_PrintSig(WeaveToolTestCase):
+
+    def findField(self, fieldNamePattern, inStr, searchStart=0, searchEnd=None):
+        if searchEnd == None:
+            searchEnd = len(inStr)
+        fieldHeaderRE = re.compile(r'''^(\s+)''' + fieldNamePattern + r''':\s*''', re.MULTILINE)
+        fieldHeader = fieldHeaderRE.search(inStr, searchStart, searchEnd)
+        if fieldHeader:
+            fieldIndent = str(fieldHeader.group(1))
+            fieldEndRE = re.compile(r'''^''' + fieldIndent + r'''[^\s]''', re.MULTILINE)
+            fieldEnd = fieldEndRE.search(inStr, fieldHeader.end())
+            if fieldEnd:
+                return (fieldHeader.start(), fieldEnd.start())
+            else:
+                return (fieldHeader.start(), searchEnd)
+        else:
+            return (None, None)
+        
+    def extractRelatedCerts(self, output):
+        
+        (relatedCertsStart, relatedCertsEnd) = self.findField('Related Certificates', output)
+        if relatedCertsStart != None:
+            remainingOutput = output[:relatedCertsStart] + output[relatedCertsEnd:]
+            relatedCerts = []
+            nextSearchStart = relatedCertsStart
+            while True:
+                (certStart, certEnd) = self.findField('Certificate \d+', output, nextSearchStart, relatedCertsEnd)
+                if certStart != None:
+                    relatedCerts.append(output[certStart:certEnd])
+                    nextSearchStart = certEnd
+                else:
+                    break
+        else:
+            remainingOutput = output
+            relatedCerts = None
+        
+        return (relatedCerts, remainingOutput)
+        
+    def test_SigningCert(self):
+        '''Test the weave print-sig command on signature object that includes a set of related signing certificates'''
+        
+        inFormats = [ 'tlv', 'base64' ]
+        
+        for inFormat in inFormats:
+            
+            if inFormat == 'base64':
+                inFile = InFileArg('sig.b64', base64.b64encode(weaveSig_ecdsaWithSHA1_signingCert))
+            else:
+                inFile = InFileArg('sig.weave', weaveSig_ecdsaWithSHA1_signingCert)
+        
+            (res, stdout, stderr) = self.runCommand(args.weaveTool, [ 'print-sig', inFile ])
+            
+            self.assertEqual(res, 0, 'Command returned %d' % res)
+            self.assertEqual(stderr, '', 'Text in stderr')
+            
+            (relatedCerts, remainingOutput) = self.extractRelatedCerts(stdout)
+            
+            self.assertRegexpMatches(remainingOutput, r'''(?m)^\s+Signature\s+Algorithm:\s+ECDSAWithSHA1\s+\(implicit\)\s*$''')
+            self.assertRegexpMatches(remainingOutput, r'''(?m)^\s+r:\s+00 C6 8B 71 90 4F 96 D7 1C ED E7 C9 42 B6 D9 50\s+63 E3 D4 3E F7 0D 66 9F FA C7 0F 29 DD\s*$''')
+            self.assertRegexpMatches(remainingOutput, r'''(?m)^\s+s:\s+00 8B 38 72 23 4F 29 EE B9 87 BA 87 67 2C 9B 4F\s+FF 47 AC C1 4A 54 E5 0B A5 4C 05 E5 D9\s*$''')
+
+            self.assertRegexpMatches(relatedCerts[0], r'''(?m)^\s+Subject:\s+WeaveSoftwarePublisherId=18B43003EE000001''')
+            self.assertRegexpMatches(relatedCerts[0], r'''(?m)^\s+Issuer:\s+WeaveCAId=18B430EEEE000004''')
+            self.assertRegexpMatches(relatedCerts[0], r'''(?m)^\s+Subject\s+Key\s+Id:\s+4726DD889EFBE8BF\s*$''')
+            self.assertRegexpMatches(relatedCerts[0], r'''(?m)^\s+Authority\s+Key\s+Id:\s+4C8E97192EBCF8ED\s*$''')
+            self.assertRegexpMatches(relatedCerts[0], r'''(?m)^\s+Not\s+Before:\s+2013/10/11\s*$''')
+            self.assertRegexpMatches(relatedCerts[0], r'''(?m)^\s+Not\s+After:\s+2023/07/15\s*$''')
+            self.assertRegexpMatches(relatedCerts[0], r'''(?m)^\s+Key\s+Usage:\s+DigitalSignature\s*$''')
+            self.assertRegexpMatches(relatedCerts[0], r'''(?m)^\s+Key\s+Purpose:\s+CodeSigning\s*$''')
+            self.assertRegexpMatches(relatedCerts[0], r'''(?m)^\s+Public\s+Key\s+Algorithm:\s+ECPublicKey\s*$''')
+            self.assertRegexpMatches(relatedCerts[0], r'''(?m)^\s+Signature\s+Algorithm:\s+ECDSAWithSHA1\s*$''')
+            self.assertRegexpMatches(relatedCerts[0], r'''(?m)^\s+Curve\s+Id:\s+secp224r1\s*$''')
+            self.assertRegexpMatches(relatedCerts[0], r'''(?m)^\s+Public\s+Key:\s+04 C8 6C 57 99 6F ED 75 9C 2A 40 50 43 74 AE AB\s*57 42 6E 59 18 4C 33 85 B8 90 4B 5E 35 A5 46 FA\s*96 04 7A D6 E9 4D 59 3F C5 03 86 47 C1 93 88 73\s*B9 CD 4C C6 06 A3 91 A7 19\s*$''')
+            self.assertRegexpMatches(relatedCerts[0], r'''(?m)^\s+r:\s+23 ED 40 10 35 91 84 7F AA 12 E5 BD 9F FC F2 F9\s*02 16 8F DA 07 AC 99 4B 83 BA 71 E9\s*$''')
+            self.assertRegexpMatches(relatedCerts[0], r'''(?m)^\s+s:\s+00 A9 C8 EA AF BD 4F 1B F1 28 0B 4A E3 4F C8 CA\s*FA D1 30 D3 B7 0B 27 CF DD E7 DB 33 BA\s*$''')
+
+            self.assertRegexpMatches(relatedCerts[1], r'''(?m)^\s+Subject:\s+WeaveCAId=18B430EEEE000004''')
+            self.assertRegexpMatches(relatedCerts[1], r'''(?m)^\s+Issuer:\s+WeaveCAId=18B430EEEE000001''')
+            self.assertRegexpMatches(relatedCerts[1], r'''(?m)^\s+Subject\s+Key\s+Id:\s+4C8E97192EBCF8ED\s*$''')
+            self.assertRegexpMatches(relatedCerts[1], r'''(?m)^\s+Authority\s+Key\s+Id:\s+4AAA7BA47A614B2D\s*$''')
+            self.assertRegexpMatches(relatedCerts[1], r'''(?m)^\s+Not\s+Before:\s+2013/10/11\s*$''')
+            self.assertRegexpMatches(relatedCerts[1], r'''(?m)^\s+Not\s+After:\s+2043/10/16\s*$''')
+            self.assertRegexpMatches(relatedCerts[1], r'''(?m)^\s+Is\s+CA:\s+true\s*$''')
+            self.assertRegexpMatches(relatedCerts[1], r'''(?m)^\s+Key\s+Usage:\s+KeyCertSign\s+CRLSign\s*$''')
+            self.assertRegexpMatches(relatedCerts[1], r'''(?m)^\s+Public\s+Key\s+Algorithm:\s+ECPublicKey\s*$''')
+            self.assertRegexpMatches(relatedCerts[1], r'''(?m)^\s+Signature\s+Algorithm:\s+ECDSAWithSHA1\s*$''')
+            self.assertRegexpMatches(relatedCerts[1], r'''(?m)^\s+Curve\s+Id:\s+secp224r1\s*$''')
+            self.assertRegexpMatches(relatedCerts[1], r'''(?m)^\s+Public\s+Key:\s+04 37 6E 80 C6 28 1A 00 55 27 C9 9F 50 86 AB 71\s*7A 99 6C DD DB 95 42 C2 24 37 7C 76 9B 81 A9 F0\s*AE 30 4E 10 62 E7 58 1C 73 D2 8E 67 AC 41 B5 E4\s*3D 19 06 50 58 87 01 55 CC\s*$''')
+            self.assertRegexpMatches(relatedCerts[1], r'''(?m)^\s+r:\s+00 AB 31 C0 C7 E4 E6 16 D6 67 B4 D5 77 EC 67 04\s*C6 DE 28 05 4B F5 C9 2A 54 ED 7A DB C0\s*$''')
+            self.assertRegexpMatches(relatedCerts[1], r'''(?m)^\s+s:\s+00 F0 B8 30 73 00 C0 DD DF 93 45 B5 EC 4D 1A 78\s*5A ED A2 F1 20 72 C2 7C 1A B7 CD 0C 00\s*$''')
+
+    def test_CertRef(self):
+        '''Test the weave print-sig command on signature object that includes a certificate reference'''
+        
+        inFormats = [ 'tlv', 'base64' ]
+        
+        for inFormat in inFormats:
+            
+            if inFormat == 'base64':
+                inFile = InFileArg('sig.b64', base64.b64encode(weaveSig_ecdsaWithSHA256_certRef))
+            else:
+                inFile = InFileArg('sig.weave', weaveSig_ecdsaWithSHA256_certRef)
+        
+            (res, stdout, stderr) = self.runCommand(args.weaveTool, [ 'print-sig', inFile ])
+            
+            self.assertEqual(res, 0, 'Command returned %d' % res)
+            self.assertEqual(stderr, '', 'Text in stderr')
+            
+            (relatedCerts, remainingOutput) = self.extractRelatedCerts(stdout)
+            
+            self.assertRegexpMatches(remainingOutput, r'''(?m)^\s+Signature\s+Algorithm:\s+ECDSAWithSHA256\s*$''')
+            self.assertRegexpMatches(remainingOutput, r'''(?m)^\s+r:\s+4D 0F C7 61 00 34 BF 6D 0F D1 B8 2B CD 8C 79 25\s*07 8A 1A 2A 8B D9 E1 A8 9C 5A D0 9C\s*$''')
+            self.assertRegexpMatches(remainingOutput, r'''(?m)^\s+s:\s+2D 81 E4 D9 4E 76 69 89 7F FE 79 9E F5 52 14 61\s*9E 32 9F 46 9F FC 6C 7F A2 A5 86 4C\s*$''')
+
+            
 if __name__ == '__main__':
     
     argParser = argparse.ArgumentParser(description='Script for testing the weave tool')
