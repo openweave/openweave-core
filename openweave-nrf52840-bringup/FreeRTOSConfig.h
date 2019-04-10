@@ -35,36 +35,21 @@
 #endif
 #include "app_util_platform.h"
 
-/*-----------------------------------------------------------
- * Possible configurations for system timer
- */
 #define FREERTOS_USE_RTC      0 /**< Use real time clock for the system */
 #define FREERTOS_USE_SYSTICK  1 /**< Use SysTick timer for system */
 
-/*-----------------------------------------------------------
- * Application specific definitions.
- *
- * These definitions should be adjusted for your particular hardware and
- * application requirements.
- *
- * THESE PARAMETERS ARE DESCRIBED WITHIN THE 'CONFIGURATION' SECTION OF THE
- * FreeRTOS API DOCUMENTATION AVAILABLE ON THE FreeRTOS.org WEB SITE.
- *
- * See http://www.freertos.org/a00110.html.
- *----------------------------------------------------------*/
+#define configTICK_SOURCE                                                         FREERTOS_USE_RTC
 
-#define configTICK_SOURCE FREERTOS_USE_RTC
-
-#define configUSE_PREEMPTION 1
-#define configUSE_PORT_OPTIMISED_TASK_SELECTION 1
-#define configUSE_TICKLESS_IDLE 1
+#define configUSE_PREEMPTION                                                      1
+#define configUSE_PORT_OPTIMISED_TASK_SELECTION                                   1
+#define configUSE_TICKLESS_IDLE                                                   1
 #define configUSE_TICKLESS_IDLE_SIMPLE_DEBUG                                      1 /* See into vPortSuppressTicksAndSleep source code for explanation */
 #define configCPU_CLOCK_HZ                                                        ( SystemCoreClock )
 #define configTICK_RATE_HZ                                                        1024
 #define configMAX_PRIORITIES                                                      ( 3 )
 #define configMINIMAL_STACK_SIZE                                                  ( 60 )
 #define configTOTAL_HEAP_SIZE                                                     ( 32 * 1024 )
-#define configMAX_TASK_NAME_LEN                                                   ( 4 )
+#define configMAX_TASK_NAME_LEN                                                   ( 8 )
 #define configUSE_16_BIT_TICKS                                                    0
 #define configIDLE_SHOULD_YIELD                                                   1
 #define configUSE_MUTEXES                                                         1
@@ -85,7 +70,6 @@
 
 /* Run time and task stats gathering related definitions. */
 #define configGENERATE_RUN_TIME_STATS                                             0
-#define configUSE_TRACE_FACILITY                                                  0
 #define configUSE_STATS_FORMATTING_FUNCTIONS                                      0
 
 /* Co-routine definitions. */
@@ -93,7 +77,7 @@
 #define configMAX_CO_ROUTINE_PRIORITIES                                           ( 2 )
 
 /* Software timer definitions. */
-#define configUSE_TIMERS 1
+#define configUSE_TIMERS 0
 #define configTIMER_TASK_PRIORITY                                                 ( 2 )
 #define configTIMER_QUEUE_LENGTH                                                  32
 #define configTIMER_TASK_STACK_DEPTH                                              ( 256 )
@@ -103,6 +87,10 @@
 
 /* Tickless idle/low power functionality. */
 
+
+/* Debugging support. */
+#define configINCLUDE_FREERTOS_TASK_C_ADDITIONS_H                                 1
+#define configUSE_TRACE_FACILITY                                                  1
 
 /* Define to trap errors during development. */
 #if defined(DEBUG_NRF) || defined(DEBUG_NRF_USER)
@@ -124,29 +112,29 @@
 #define INCLUDE_xTaskGetCurrentTaskHandle                                         1
 #define INCLUDE_uxTaskGetStackHighWaterMark                                       1
 #define INCLUDE_xTaskGetIdleTaskHandle                                            1
-#define INCLUDE_xTimerGetTimerDaemonTaskHandle                                    1
+#define INCLUDE_xTimerGetTimerDaemonTaskHandle                                    0
 #define INCLUDE_pcTaskGetTaskName                                                 1
 #define INCLUDE_eTaskGetState                                                     1
 #define INCLUDE_xEventGroupSetBitFromISR                                          1
-#define INCLUDE_xTimerPendFunctionCall                                            1
+#define INCLUDE_xTimerPendFunctionCall                                            0
 
 /* The lowest interrupt priority that can be used in a call to a "set priority"
 function. */
-#define configLIBRARY_LOWEST_INTERRUPT_PRIORITY         0xf
+#define configLIBRARY_LOWEST_INTERRUPT_PRIORITY                                   0xf
 
 /* The highest interrupt priority that can be used by any interrupt service
 routine that makes calls to interrupt safe FreeRTOS API functions.  DO NOT CALL
 INTERRUPT SAFE FREERTOS API FUNCTIONS FROM ANY INTERRUPT THAT HAS A HIGHER
 PRIORITY THAN THIS! (higher priorities are lower numeric values. */
-#define configLIBRARY_MAX_SYSCALL_INTERRUPT_PRIORITY    _PRIO_APP_HIGH
+#define configLIBRARY_MAX_SYSCALL_INTERRUPT_PRIORITY                              _PRIO_APP_HIGH
 
 
 /* Interrupt priorities used by the kernel port layer itself.  These are generic
 to all Cortex-M ports, and do not rely on any particular library functions. */
-#define configKERNEL_INTERRUPT_PRIORITY                 configLIBRARY_LOWEST_INTERRUPT_PRIORITY
+#define configKERNEL_INTERRUPT_PRIORITY                                           configLIBRARY_LOWEST_INTERRUPT_PRIORITY
 /* !!!! configMAX_SYSCALL_INTERRUPT_PRIORITY must not be set to zero !!!!
 See http://www.FreeRTOS.org/RTOS-Cortex-M3-M4.html. */
-#define configMAX_SYSCALL_INTERRUPT_PRIORITY            configLIBRARY_MAX_SYSCALL_INTERRUPT_PRIORITY
+#define configMAX_SYSCALL_INTERRUPT_PRIORITY                                      configLIBRARY_MAX_SYSCALL_INTERRUPT_PRIORITY
 
 /* Definitions that map the FreeRTOS port interrupt handlers to their CMSIS
 standard names - or at least those used in the unmodified vector table. */

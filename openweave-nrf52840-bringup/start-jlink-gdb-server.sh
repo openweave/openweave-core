@@ -4,7 +4,7 @@ JLINK_GDB_SERVER=JLinkGDBServerCLExe
 DEVICE_TYPE=NRF52840_XXAA
 
 # Launch JLink GDB Server in background; redirect output thru sed to add prefix.
-${JLINK_GDB_SERVER} -device ${DEVICE_TYPE} -if SWD -speed 4000 $* > >(exec sed -e 's/^/JLinkGDBServer: /') 2>&1 &
+${JLINK_GDB_SERVER} -device ${DEVICE_TYPE} -if SWD -speed 4000 -rtos GDBServer/RTOSPlugin_FreeRTOS $* > >(exec sed -e 's/^/JLinkGDBServer: /') 2>&1 &
 GDB_SERVER_PID=$!
 
 # Repeatedly open a telnet connection to the GDB server's RTT port until

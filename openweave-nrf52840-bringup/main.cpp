@@ -222,6 +222,7 @@ extern "C" void JLINK_MONITOR_OnPoll(void)
 #endif // JLINK_MMD
 
 
+
 // ================================================================================
 // Main Code
 // ================================================================================
@@ -231,7 +232,7 @@ int main(void)
     ret_code_t ret;
 
 #if JLINK_MMD
-    NVIC_SetPriority(DebugMonitor_IRQn, _PRIO_SD_LOW);
+    NVIC_SetPriority(DebugMonitor_IRQn, _PRIO_SD_LOWEST);
 #endif
 
     // Initialize clock driver.
@@ -253,7 +254,7 @@ int main(void)
     NRF_LOG_DEFAULT_BACKENDS_INIT();
 
     // Start LOGGER task.
-    if (xTaskCreate(LoggerTaskMain, "log", LOGGER_STACK_SIZE / sizeof(StackType_t), NULL, LOGGER_PRIORITY, &sLoggerTaskHandle) != pdPASS)
+    if (xTaskCreate(LoggerTaskMain, "LOGGER", LOGGER_STACK_SIZE / sizeof(StackType_t), NULL, LOGGER_PRIORITY, &sLoggerTaskHandle) != pdPASS)
     {
         APP_ERROR_HANDLER(0);
     }
@@ -453,7 +454,7 @@ int main(void)
     NRF_LOG_INFO("Starting test task");
 
     // Start Test task
-    if (xTaskCreate(TestTaskMain, "test", TEST_TASK_STACK_SIZE / sizeof(StackType_t), NULL, TEST_TASK_PRIORITY, &sTestTaskHandle) != pdPASS)
+    if (xTaskCreate(TestTaskMain, "TEST", TEST_TASK_STACK_SIZE / sizeof(StackType_t), NULL, TEST_TASK_PRIORITY, &sTestTaskHandle) != pdPASS)
     {
         NRF_LOG_INFO("Failed to create TEST task");
     }

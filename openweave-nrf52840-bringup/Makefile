@@ -105,7 +105,6 @@ SRC_FILES := \
     $(NRF5_SDK_ROOT)/external/freertos/source/queue.c \
     $(NRF5_SDK_ROOT)/external/freertos/source/stream_buffer.c \
     $(NRF5_SDK_ROOT)/external/freertos/source/tasks.c \
-    $(NRF5_SDK_ROOT)/external/freertos/source/timers.c \
     $(NRF5_SDK_ROOT)/external/segger_rtt/SEGGER_RTT.c \
     $(NRF5_SDK_ROOT)/external/segger_rtt/SEGGER_RTT_printf.c \
     $(NRF5_SDK_ROOT)/external/segger_rtt/SEGGER_RTT_Syscalls_GCC.c \
