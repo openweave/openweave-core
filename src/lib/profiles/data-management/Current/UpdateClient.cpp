@@ -152,6 +152,14 @@ WEAVE_ERROR UpdateClient::SendUpdate(bool aIsPartialUpdate, PacketBuffer *aBuf, 
                 nl::Inet::FaultInjection::kFault_Send,
                 0, 1));
 
+    // Use DropOutgoingMsg fault to fail the current outgoing message.
+    // If WRM is being used, the transmission would be retried after a
+    // retransmission timeout delay.
+    WEAVE_FAULT_INJECT(FaultInjection::kFault_WDM_UpdateRequestDropMessage,
+            nl::Inet::FaultInjection::GetManager().FailAtFault(
+                nl::Weave::FaultInjection::kFault_DropOutgoingUDPMsg,
+                0, 1));
+
     // Use WRM's SendError fault to fail asynchronously
     WEAVE_FAULT_INJECT(FaultInjection::kFault_WDM_UpdateRequestSendErrorAsync,
             nl::Weave::FaultInjection::GetManager().FailAtFault(

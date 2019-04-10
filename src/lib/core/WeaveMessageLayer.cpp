@@ -508,6 +508,12 @@ WEAVE_ERROR WeaveMessageLayer::SendMessage(const IPAddress &destAddr, uint16_t d
     //Check if drop flag is set; If so, do not send message; return WEAVE_NO_ERROR;
     VerifyOrExit(!mDropMessage, err = WEAVE_NO_ERROR);
 
+    // Drop the message and return. Free the buffer if it does not need to be
+    // retained(e.g., for WRM retransmissions).
+    WEAVE_FAULT_INJECT(FaultInjection::kFault_DropOutgoingUDPMsg,
+            ExitNow(err = WEAVE_NO_ERROR);
+            );
+
 #if INET_CONFIG_ENABLE_IPV4
     if (destAddr.IsIPv4())
     {
