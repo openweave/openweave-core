@@ -73,6 +73,8 @@ static const char *const gCmdOptionHelp =
     "       File containing the public key for the new certificate.\n"
     "       (File must be in PEM or DER format).\n"
     "\n"
+    "       Please only specify one of --key or --pubkey.\n"
+    "\n"
     "   -C, --ca-cert <file>\n"
     "\n"
     "       File containing CA certificate to be used to sign the new certificate.\n"
@@ -184,8 +186,7 @@ bool Cmd_GenCodeSigningCert(int argc, char *argv[])
 
     if (gNewCertKeyFileName != NULL && gNewCertPubKeyFileName != NULL)
     {
-        fprintf(stderr, "Please use the --key option to specify the public/private key file for the\n"
-                        "new certificate or use the --pubkey option to specify the public key file\n");
+        fprintf(stderr, "Please specify only one of --key or --pubkey\n");
         ExitNow(res = false);
     }
 

@@ -269,7 +269,7 @@ bool DecodePublicKey(const uint8_t *keyData, uint32_t keyDataLen, KeyFormat keyF
         if (d2i_PUBKEY_bio(keyBIO, &key) == NULL)
         {
             fprintf(stderr, "Unable to read %s\n", keySource);
-	    ReportOpenSSLErrorAndExit("d2i_PUBKEY_bio", res = false);
+            ReportOpenSSLErrorAndExit("d2i_PUBKEY_bio", res = false);
 	}
     }
     else
@@ -282,7 +282,7 @@ exit:
     if (tmpKeyBuf != NULL)
         free(tmpKeyBuf);
     if (keyBIO != NULL)
-	BIO_free_all(keyBIO);
+        BIO_free_all(keyBIO);
     return res;
 }
 
