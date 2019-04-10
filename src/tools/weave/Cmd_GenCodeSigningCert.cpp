@@ -47,6 +47,7 @@ static OptionDef gCmdOptionDefs[] =
 {
     { "id",         kArgumentRequired, 'i' },
     { "key",        kArgumentRequired, 'k' },
+    { "pubkey",     kArgumentRequired, 'p' },
     { "ca-cert",    kArgumentRequired, 'C' },
     { "ca-key",     kArgumentRequired, 'K' },
     { "out",        kArgumentRequired, 'o' },
@@ -66,6 +67,13 @@ static const char *const gCmdOptionHelp =
     "\n"
     "       File containing the public and private keys for the new certificate.\n"
     "       (File must be in PEM format).\n"
+    "\n"
+    "   -p, --pubkey <file>\n"
+    "\n"
+    "       File containing the public key for the new certificate.\n"
+    "       (File must be in PEM or DER format).\n"
+    "\n"
+    "       Please only specify one of --key or --pubkey.\n"
     "\n"
     "   -C, --ca-cert <file>\n"
     "\n"
@@ -129,6 +137,7 @@ static const char *gCACertFileName = NULL;
 static const char *gCAKeyFileName = NULL;
 static const char *gNewCertFileName = NULL;
 static const char *gNewCertKeyFileName = NULL;
+static const char *gNewCertPubKeyFileName = NULL;
 static int32_t gValidDays = 0;
 static const EVP_MD *gSigHashAlgo = NULL;
 static struct tm gValidFrom;
@@ -168,10 +177,16 @@ bool Cmd_GenCodeSigningCert(int argc, char *argv[])
         ExitNow(res = false);
     }
 
-    if (gNewCertKeyFileName == NULL)
+    if (gNewCertKeyFileName == NULL && gNewCertPubKeyFileName == NULL)
     {
         fprintf(stderr, "Please use the --key option to specify the public/private key file for the\n"
-                        "new certificate.\n");
+                        "new certificate or use the --pubkey option to specify the public key file\n");
+        ExitNow(res = false);
+    }
+
+    if (gNewCertKeyFileName != NULL && gNewCertPubKeyFileName != NULL)
+    {
+        fprintf(stderr, "Please specify only one of --key or --pubkey\n");
         ExitNow(res = false);
     }
 
@@ -234,8 +249,17 @@ bool Cmd_GenCodeSigningCert(int argc, char *argv[])
     else
         newCertFile = stdout;
 
-    if (!ReadPrivateKey(gNewCertKeyFileName, "Enter password for private key:", newCertKey))
-        ExitNow(res = false);
+
+    if (gNewCertKeyFileName != NULL && gNewCertPubKeyFileName == NULL)
+    {
+        if (!ReadPrivateKey(gNewCertKeyFileName, "Enter password for private key:", newCertKey))
+           ExitNow(res = false);
+    }
+    if (gNewCertKeyFileName == NULL && gNewCertPubKeyFileName != NULL)
+    {
+	if (!ReadPublicKey(gNewCertPubKeyFileName, newCertKey))
+            ExitNow(res = false);
+    }
 
     if (!ReadCertPEM(gCACertFileName, caCert))
         ExitNow(res = false);
@@ -299,6 +323,9 @@ bool HandleOption(const char *progName, OptionSet *optSet, int id, const char *n
     case 'k':
         gNewCertKeyFileName = arg;
         break;
+    case 'p':
+	gNewCertPubKeyFileName = arg;
+	break;
     case 'V':
         if (!ParseDateTime(arg, gValidFrom))
         {

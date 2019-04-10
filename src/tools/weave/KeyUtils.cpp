@@ -59,6 +59,24 @@ exit:
     return res;
 }
 
+bool ReadPublicKey(const char *fileName, EVP_PKEY *& key)
+{
+    bool res = true;
+    uint8_t *keyData = NULL;
+    uint32_t keyDataLen;
+
+    key = NULL;
+    res = ReadFileIntoMem(fileName, keyData, keyDataLen);
+    if (!res)
+        ExitNow();
+    res = DecodePublicKey(keyData, keyDataLen, kKeyFormat_Unknown, fileName, key);
+
+exit:
+  if (keyData != NULL)
+      free(keyData);
+  return res;
+}
+
 bool ReadWeavePrivateKey(const char *fileName, uint8_t *& key, uint32_t &keyLen)
 {
     bool res = true;
@@ -220,6 +238,53 @@ exit:
     return res;
 }
 
+bool DecodePublicKey(const uint8_t *keyData, uint32_t keyDataLen, KeyFormat keyFormat, const char *keySource, EVP_PKEY *& key)
+{
+    bool res = true;
+    uint8_t *tmpKeyBuf = NULL;
+    BIO *keyBIO = NULL;
+    key = NULL;
+
+    if (keyFormat == kKeyFormat_Unknown)
+        keyFormat = DetectKeyFormat(keyData, keyDataLen);
+
+    keyBIO = BIO_new_mem_buf((void *)keyData, keyDataLen);
+    if (keyBIO == NULL)
+    {
+        fprintf(stderr, "Memory allocation error\n");
+        ExitNow(res = false);
+    }
+
+    if (keyFormat == kKeyFormat_PEM)
+    {
+        if (PEM_read_bio_PUBKEY(keyBIO, &key, NULL, NULL) == NULL)
+        {
+            fprintf(stderr, "Unable to read %s\n", keySource);
+            ReportOpenSSLErrorAndExit("PEM_read_bio_PUBKEY", res = false);
+        }
+
+    }
+    else if (keyFormat == kKeyFormat_DER)
+    {
+        if (d2i_PUBKEY_bio(keyBIO, &key) == NULL)
+        {
+            fprintf(stderr, "Unable to read %s\n", keySource);
+            ReportOpenSSLErrorAndExit("d2i_PUBKEY_bio", res = false);
+	}
+    }
+    else
+    {
+        fprintf(stderr, "Key type not supported");
+        ExitNow(res = false);
+    }
+
+exit:
+    if (tmpKeyBuf != NULL)
+        free(tmpKeyBuf);
+    if (keyBIO != NULL)
+        BIO_free_all(keyBIO);
+    return res;
+}
 
 bool DetectKeyFormat(FILE *keyFile, KeyFormat& keyFormat)
 {
@@ -254,6 +319,8 @@ KeyFormat DetectKeyFormat(const uint8_t *key, uint32_t keyLen)
 
     static const char *pkcs8PEMMarker = "-----BEGIN PRIVATE KEY-----";
 
+    static const char *ecPUBPEMMarker = "-----BEGIN PUBLIC KEY-----";
+
     if (keyLen > sizeof(ecWeaveRawPrefix) && memcmp(key, ecWeaveRawPrefix, sizeof(ecWeaveRawPrefix)) == 0)
         return kKeyFormat_Weave_Raw;
 
@@ -274,6 +341,9 @@ KeyFormat DetectKeyFormat(const uint8_t *key, uint32_t keyLen)
 
     if (ContainsPEMMarker(pkcs8PEMMarker, key, keyLen))
         return kKeyFormat_PEM_PKCS8;
+
+    if (ContainsPEMMarker(ecPUBPEMMarker, key, keyLen))
+        return kKeyFormat_PEM;
 
     return kKeyFormat_DER;
 }

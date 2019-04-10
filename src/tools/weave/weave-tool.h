@@ -122,8 +122,10 @@ extern bool X509DERToPEM(uint8_t *cert, uint32_t& certLen, uint32_t bufLen);
 extern CertFormat DetectCertFormat(uint8_t *cert, uint32_t certLen);
 
 extern bool ReadPrivateKey(const char *fileName, const char *prompt, EVP_PKEY *& key);
+extern bool ReadPublicKey(const char *fileName, EVP_PKEY *& key);
 extern bool ReadWeavePrivateKey(const char *fileName, uint8_t *& key, uint32_t &keyLen);
 extern bool DecodePrivateKey(const uint8_t *keyData, uint32_t keyDataLen, KeyFormat keyFormat, const char *keySource, const char *prompt, EVP_PKEY *& key);
+extern bool DecodePublicKey(const uint8_t *keyData, uint32_t keyDataLen, KeyFormat keyFormat, const char *keySource, EVP_PKEY *& key);
 extern bool DetectKeyFormat(FILE *keyFile, KeyFormat& keyFormat);
 extern KeyFormat DetectKeyFormat(const uint8_t *key, uint32_t keyLen);
 extern bool GenerateKeyPair(const char *curveName, EVP_PKEY *& key);
