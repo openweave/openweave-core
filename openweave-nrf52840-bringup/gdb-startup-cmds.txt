@@ -28,7 +28,7 @@ set logging redirect on
 set logging on
 if $numfound != 0
     mon exec SetMonModeDebug=1
-    mon exec SetMonModeVTableAddr=$FLASH_START
+    eval "mon exec SetMonModeVTableAddr=%p", $FLASH_START
 else
     mon exec SetMonModeDebug=0
 end
