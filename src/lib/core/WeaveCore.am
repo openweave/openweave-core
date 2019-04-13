@@ -31,6 +31,7 @@ nl_WeaveCore_sources                                      = \
     @top_builddir@/src/lib/core/WeaveConnection.cpp         \
     @top_builddir@/src/lib/core/WeaveConnectionTunnel.cpp   \
     @top_builddir@/src/lib/core/WeaveExchangeMgr.cpp        \
+    @top_builddir@/src/lib/core/WeaveError.cpp              \
     @top_builddir@/src/lib/core/WeaveFabricState.cpp        \
     @top_builddir@/src/lib/core/WeaveGlobals.cpp            \
     @top_builddir@/src/lib/core/WeaveKeyIds.cpp             \

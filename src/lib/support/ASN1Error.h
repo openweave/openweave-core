@@ -201,17 +201,19 @@ typedef ASN1_CONFIG_ERROR_TYPE ASN1_ERROR;
  */
 #define ASN1_ERROR_UNKNOWN_OBJECT_ID    _ASN1_ERROR(10)
 
+//                        !!!!! IMPORTANT !!!!!
+//
+// If you add new ASN1 errors, please update the translation of error
+// codes to strings in ASN1Error.cpp, and add them to unittest
+// in test-apps/TestErrorStr.cpp
+
 /**
  *  @}
  */
 
-//                        !!!!! IMPORTANT !!!!!
-//
-// If you add new ASN1 errors, please update the translation of error
-// codes to strings in support/ErrorStr.cpp, and add them to unittest
-// in test-apps/TestErrorStr.cpp
-
 // clang-format on
+
+extern bool FormatASN1Error(char * buf, uint16_t bufSize, int32_t err);
 
 } // namespace ASN1
 } // namespace Weave

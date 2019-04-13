@@ -30,6 +30,7 @@ nl_InetLayer_sources                                       = \
     @top_builddir@/src/inet/IPAddress.cpp                    \
     @top_builddir@/src/inet/IPEndPointBasis.cpp              \
     @top_builddir@/src/inet/IPPrefix.cpp                     \
+    @top_builddir@/src/inet/InetError.cpp                    \
     @top_builddir@/src/inet/InetInterface.cpp                \
     @top_builddir@/src/inet/InetLayer.cpp                    \
     @top_builddir@/src/inet/InetLayerBasis.cpp               \
