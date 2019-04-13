@@ -412,14 +412,24 @@ typedef BLE_CONFIG_ERROR_TYPE BLE_ERROR;
  */
 #define BLE_ERROR_RECEIVED_MESSAGE_TOO_BIG                 _BLE_ERROR(32)
 
+// !!!!! IMPORTANT !!!!!  If you add new Ble errors, please update the translation
+// of error codes to strings in BleError.cpp, and add them to unittest
+// in test-apps/TestErrorStr.cpp
+
 /**
  *  @}
  */
 
-// !!!!! IMPORTANT !!!!!  If you add new Ble errors, please update the translation
-// of error codes to strings in support/ErrorStr.cpp, and add them to unittest
-// in test-apps/TestErrorStr.cpp
-
 // clang-format on
+
+namespace nl {
+namespace Ble {
+
+extern void RegisterBleLayerErrorFormatter(void);
+extern bool FormatBleLayerError(char * buf, uint16_t bufSize, int32_t err);
+
+} /* namespace Ble */
+} /* namespace nl */
+
 
 #endif /* BLEERROR_H_ */

@@ -1734,9 +1734,17 @@ typedef WEAVE_CONFIG_ERROR_TYPE WEAVE_ERROR;
  */
 
 // !!!!! IMPORTANT !!!!!  If you add new Weave errors, please update the translation
-// of error codes to strings in support/ErrorStr.cpp, and add them to unittest
+// of error codes to strings in WeaveError.cpp, and add them to unittest
 // in test-apps/TestErrorStr.cpp
 
 // clang-format on
+
+namespace nl {
+namespace Weave {
+
+extern bool FormatWeaveError(char * buf, uint16_t bufSize, int32_t err);
+
+} // namespace Weave
+} // namespace nl
 
 #endif // WEAVE_ERROR_H
