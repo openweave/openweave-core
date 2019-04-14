@@ -25,7 +25,7 @@
 #include <atomic>
 
 #include <Weave/DeviceLayer/internal/WeaveDeviceLayerInternal.h>
-#include <Weave/DeviceLayer/nRF5/NRF5Config.h>
+#include <Weave/DeviceLayer/nRF5/nRF5Config.h>
 #include <Weave/Core/WeaveEncoding.h>
 #include <Weave/DeviceLayer/internal/testing/ConfigUnitTest.h>
 

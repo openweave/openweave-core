@@ -26,7 +26,7 @@
 #define CONFIGURATION_MANAGER_IMPL_H
 
 #include <Weave/DeviceLayer/internal/GenericConfigurationManagerImpl.h>
-#include "NRF5Config.h"
+#include <Weave/DeviceLayer/nRF5/nRF5Config.h>
 
 namespace nl {
 namespace Weave {

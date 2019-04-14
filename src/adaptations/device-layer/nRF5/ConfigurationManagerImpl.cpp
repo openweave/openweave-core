@@ -28,7 +28,7 @@
 #include <Weave/Core/WeaveVendorIdentifiers.hpp>
 #include <Weave/Profiles/security/WeaveApplicationKeys.h>
 #include <Weave/DeviceLayer/nRF5/GroupKeyStoreImpl.h>
-#include <Weave/DeviceLayer/nRF5/NRF5Config.h>
+#include <Weave/DeviceLayer/nRF5/nRF5Config.h>
 #include <Weave/DeviceLayer/internal/GenericConfigurationManagerImpl.ipp>
 
 namespace nl {

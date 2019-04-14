@@ -25,15 +25,64 @@
 #include <Weave/DeviceLayer/internal/WeaveDeviceLayerInternal.h>
 #include <Weave/DeviceLayer/OpenThread/OpenThreadUtils.h>
 
+#include <openthread/error.h>
+
 namespace nl {
 namespace Weave {
 namespace DeviceLayer {
 namespace Internal {
 
+/**
+ * Map an OpenThread error into the OpenWeave error space.
+ */
 WEAVE_ERROR MapOpenThreadError(otError otErr)
 {
-    // TODO: implement me
-    return (otErr == OT_ERROR_NONE) ? WEAVE_NO_ERROR : WEAVE_ERROR_NOT_IMPLEMENTED;
+    return (otErr == OT_ERROR_NONE) ? WEAVE_NO_ERROR : WEAVE_CONFIG_OPEN_THREAD_ERROR_MIN + (WEAVE_ERROR)otErr;
+}
+
+/**
+ * Given an OpenWeave error value that represents an OpenThread error, returns a
+ * human-readable NULL-terminated C string describing the error.
+ *
+ * @param[in] buf                   Buffer into which the error string will be placed.
+ * @param[in] bufSize               Size of the supplied buffer in bytes.
+ * @param[in] err                   The error to be described.
+ *
+ * @return true                     If a description string was written into the supplied buffer.
+ * @return false                    If the supplied error was not an OpenThread error.
+ *
+ */
+bool FormatOpenThreadError(char * buf, uint16_t bufSize, int32_t err)
+{
+    if (err < WEAVE_CONFIG_OPEN_THREAD_ERROR_MIN || err > WEAVE_CONFIG_OPEN_THREAD_ERROR_MAX)
+    {
+        return false;
+    }
+
+#if WEAVE_CONFIG_SHORT_ERROR_STR
+    const char * desc = NULL;
+#else // WEAVE_CONFIG_SHORT_ERROR_STR
+    otError otErr = (otError)(err - WEAVE_CONFIG_OPEN_THREAD_ERROR_MIN);
+    const char * desc = otThreadErrorToString(otErr);
+#endif // WEAVE_CONFIG_SHORT_ERROR_STR
+
+    nl::FormatError(buf, bufSize, "OpenThread", err, desc);
+
+    return true;
+}
+
+/**
+ * Register a text error formatter for OpenThread errors.
+ */
+void RegisterOpenThreadErrorFormatter(void)
+{
+    static ErrorFormatter sOpenThreadErrorFormatter =
+    {
+        FormatOpenThreadError,
+        NULL
+    };
+
+    RegisterErrorFormatter(&sOpenThreadErrorFormatter);
 }
 
 /**
