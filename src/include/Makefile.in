@@ -1333,7 +1333,8 @@ dist_weave_common_HEADERS = $(addprefix ../,$(nl_public_WeaveCommon_header_sourc
 @WEAVE_DEVICE_LAYER_TARGET_NRF5_TRUE@$(nl_public_WeaveDeviceLayer_source_dirstem)/nRF5/ConnectivityManagerImpl.h                         \
 @WEAVE_DEVICE_LAYER_TARGET_NRF5_TRUE@$(nl_public_WeaveDeviceLayer_source_dirstem)/nRF5/PlatformManagerImpl.h                             \
 @WEAVE_DEVICE_LAYER_TARGET_NRF5_TRUE@$(nl_public_WeaveDeviceLayer_source_dirstem)/nRF5/ThreadStackManagerImpl.h                          \
-@WEAVE_DEVICE_LAYER_TARGET_NRF5_TRUE@$(nl_public_WeaveDeviceLayer_source_dirstem)/nRF5/NRF5Config.h                                      \
+@WEAVE_DEVICE_LAYER_TARGET_NRF5_TRUE@$(nl_public_WeaveDeviceLayer_source_dirstem)/nRF5/nRF5Config.h                                      \
+@WEAVE_DEVICE_LAYER_TARGET_NRF5_TRUE@$(nl_public_WeaveDeviceLayer_source_dirstem)/nRF5/nRF5Utils.h                                       \
 @WEAVE_DEVICE_LAYER_TARGET_NRF5_TRUE@$(nl_public_WeaveDeviceLayer_source_dirstem)/nRF5/GroupKeyStoreImpl.h                               \
 @WEAVE_DEVICE_LAYER_TARGET_NRF5_TRUE@$(nl_public_WeaveDeviceLayer_source_dirstem)/nRF5/NetworkProvisioningServerImpl.h                   \
 @WEAVE_DEVICE_LAYER_TARGET_NRF5_TRUE@$(nl_public_WeaveDeviceLayer_source_dirstem)/nRF5/WeaveDevicePlatformConfig.h                       \

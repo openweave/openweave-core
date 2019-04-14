@@ -214,7 +214,6 @@ template<class ImplClass>
 WEAVE_ERROR GenericThreadStackManagerImpl_OpenThread<ImplClass>::_GetThreadProvision(DeviceNetworkInfo & netInfo, bool includeCredentials)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
-    otError otErr;
     otOperationalDataset activeDataset;
 
     netInfo.Reset();
@@ -223,7 +222,7 @@ WEAVE_ERROR GenericThreadStackManagerImpl_OpenThread<ImplClass>::_GetThreadProvi
 
     if (otDatasetIsCommissioned(mOTInst))
     {
-        otErr = otDatasetGetActive(mOTInst, &activeDataset);
+        otError otErr = otDatasetGetActive(mOTInst, &activeDataset);
         err = MapOpenThreadError(otErr);
     }
     else
@@ -398,6 +397,9 @@ WEAVE_ERROR GenericThreadStackManagerImpl_OpenThread<ImplClass>::DoInit(otInstan
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
     otError otErr;
+
+    // Arrange for OpenThread errors to be translated to text.
+    RegisterOpenThreadErrorFormatter();
 
     mOTInst = NULL;
 

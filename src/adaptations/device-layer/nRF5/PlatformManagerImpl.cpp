@@ -25,6 +25,7 @@
 #include <Weave/DeviceLayer/internal/WeaveDeviceLayerInternal.h>
 #include <Weave/DeviceLayer/PlatformManager.h>
 #include <Weave/DeviceLayer/FreeRTOS/GenericPlatformManagerImpl_FreeRTOS.ipp>
+#include <Weave/DeviceLayer/nRF5/nRF5Utils.h>
 
 #include <lwip/tcpip.h>
 
@@ -41,6 +42,9 @@ PlatformManagerImpl PlatformManagerImpl::sInstance;
 WEAVE_ERROR PlatformManagerImpl::_InitWeaveStack(void)
 {
     WEAVE_ERROR err;
+
+    // Arrange for nRF5 SDK errors to be translated to text.
+    Internal::RegisterNRFErrorFormatter();
 
     // Initialize the configuration system.
     err = Internal::NRF5Config::Init();
