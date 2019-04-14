@@ -478,7 +478,6 @@
 #define WEAVE_DEVICE_CONFIG_THREAD_CONNECTIVITY_TIMEOUT 30000
 #endif
 
-
 // -------------------- Tunnel Configuration --------------------
 
 /**

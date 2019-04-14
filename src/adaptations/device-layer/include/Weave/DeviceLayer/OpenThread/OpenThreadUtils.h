@@ -34,11 +34,31 @@ namespace Weave {
 namespace DeviceLayer {
 namespace Internal {
 
-extern WEAVE_ERROR MapOpenThreadError(otError otErr);
+/**
+ *  @def WEAVE_CONFIG_OPEN_THREAD_ERROR_MIN
+ *
+ *  @brief
+ *      The base value for OpenThread errors when mapped into the Weave error space.
+ */
+#ifndef WEAVE_CONFIG_OPEN_THREAD_ERROR_MIN
+#define WEAVE_CONFIG_OPEN_THREAD_ERROR_MIN                  9000000
+#endif // WEAVE_CONFIG_OPEN_THREAD_ERROR_MIN
 
+/**
+ *  @def WEAVE_CONFIG_OPEN_THREAD_ERROR_MAX
+ *
+ *  @brief
+ *      The max value for OpenThread errors when mapped into the Weave error space.
+ */
+#ifndef WEAVE_CONFIG_OPEN_THREAD_ERROR_MAX
+#define WEAVE_CONFIG_OPEN_THREAD_ERROR_MAX                  9000999
+#endif // WEAVE_CONFIG_OPEN_THREAD_ERROR_MAX
+
+
+extern WEAVE_ERROR MapOpenThreadError(otError otErr);
+extern void RegisterOpenThreadErrorFormatter(void);
 extern void LogOpenThreadStateChange(otInstance * otInst, uint32_t flags);
 extern void LogOpenThreadPacket(const char * titleStr, otMessage * pkt);
-
 extern bool IsOpenThreadMeshLocalAddress(otInstance * otInst, const IPAddress & addr);
 extern const char * OpenThreadRoleToStr(otDeviceRole role);
 

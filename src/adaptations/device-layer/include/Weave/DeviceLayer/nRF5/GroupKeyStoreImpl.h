@@ -25,7 +25,7 @@
 #include <Weave/DeviceLayer/internal/WeaveDeviceLayerInternal.h>
 #include <Weave/Core/WeaveKeyIds.h>
 #include <Weave/Profiles/security/WeaveApplicationKeys.h>
-#include <Weave/DeviceLayer/nRF5/NRF5Config.h>
+#include <Weave/DeviceLayer/nRF5/nRF5Config.h>
 
 namespace nl {
 namespace Weave {

@@ -48,7 +48,7 @@ noinst_HEADERS                          = \
     include/Weave/DeviceLayer/ESP32/NetworkProvisioningServerImpl.h \
     include/Weave/DeviceLayer/nRF5/ConfigurationManagerImpl.h \
     include/Weave/DeviceLayer/nRF5/PlatformManagerImpl.h \
-    include/Weave/DeviceLayer/nRF5/NRF5Config.h \
+    include/Weave/DeviceLayer/nRF5/nRF5Config.h \
     include/Weave/DeviceLayer/nRF5/WeaveDevicePlatformConfig.h \
     include/Weave/DeviceLayer/nRF5/WeaveDevicePlatformEvent.h \
     include/Weave/DeviceLayer/FreeRTOS/GenericPlatformManagerImpl_FreeRTOS.h \
@@ -146,7 +146,8 @@ libDeviceLayer_a_SOURCES               +=       \
     nRF5/NetworkProvisioningServerImpl.cpp      \
     nRF5/ThreadStackManagerImpl.cpp             \
     nRF5/GroupKeyStoreImpl.cpp                  \
-    nRF5/NRF5Config.cpp                         \
+    nRF5/nRF5Config.cpp                         \
+    nRF5/nRF5Utils.cpp                          \
     nRF5/Entropy.cpp                            \
     nRF5/Logging.cpp                            \
     FreeRTOS/SystemTimeSupport.cpp              \

@@ -940,7 +940,8 @@ $(nl_public_WeaveDeviceLayer_source_dirstem)/nRF5/ConfigurationManagerImpl.h    
 $(nl_public_WeaveDeviceLayer_source_dirstem)/nRF5/ConnectivityManagerImpl.h                         \
 $(nl_public_WeaveDeviceLayer_source_dirstem)/nRF5/PlatformManagerImpl.h                             \
 $(nl_public_WeaveDeviceLayer_source_dirstem)/nRF5/ThreadStackManagerImpl.h                          \
-$(nl_public_WeaveDeviceLayer_source_dirstem)/nRF5/NRF5Config.h                                      \
+$(nl_public_WeaveDeviceLayer_source_dirstem)/nRF5/nRF5Config.h                                      \
+$(nl_public_WeaveDeviceLayer_source_dirstem)/nRF5/nRF5Utils.h                                       \
 $(nl_public_WeaveDeviceLayer_source_dirstem)/nRF5/GroupKeyStoreImpl.h                               \
 $(nl_public_WeaveDeviceLayer_source_dirstem)/nRF5/NetworkProvisioningServerImpl.h                   \
 $(nl_public_WeaveDeviceLayer_source_dirstem)/nRF5/WeaveDevicePlatformConfig.h                       \
