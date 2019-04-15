@@ -177,11 +177,11 @@ enum PublicEventTypes
     kWoBLEConnectionEstablished,
 
     /**
-     * OpenThread State Change
+     * Thread State Change
      *
-     * Signals that a state change has occurred in the OpenThread stack.
+     * Signals that a state change has occurred in the Thread stack.
      */
-    kOpenThreadStateChange,
+    kThreadStateChange,
 
     /**
      * Thread Interface State Change
@@ -286,10 +286,6 @@ struct WeaveDeviceEvent final
         struct
         {
             ConnectivityChange Result;
-            bool RoleChanged;
-            bool AddressChanged;
-            bool NetDataChanged;
-            bool ChildNodesChanged;
         } ThreadConnectivityChange;
         struct
         {
@@ -366,8 +362,15 @@ struct WeaveDeviceEvent final
         } WoBLEConnectionError;
         struct
         {
-            uint32_t flags;
-        } OpenThreadStateChange;
+            bool RoleChanged : 1;
+            bool AddressChanged : 1;
+            bool NetDataChanged : 1;
+            bool ChildNodesChanged : 1;
+            struct
+            {
+                uint32_t Flags;
+            } OpenThread;
+        } ThreadStateChange;
     };
 
     void Clear() { memset(this, 0, sizeof(*this)); }
