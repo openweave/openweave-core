@@ -18,7 +18,7 @@
 
 #include <Weave/DeviceLayer/internal/WeaveDeviceLayerInternal.h>
 #include <Weave/DeviceLayer/internal/NetworkProvisioningServer.h>
-#include <Weave/DeviceLayer/internal/NetworkInfo.h>
+#include <Weave/DeviceLayer/internal/DeviceNetworkInfo.h>
 #include <Weave/Core/WeaveTLV.h>
 #include <Weave/Profiles/WeaveProfiles.h>
 #include <Weave/Profiles/common/CommonProfile.h>

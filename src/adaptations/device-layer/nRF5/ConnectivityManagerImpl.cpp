@@ -19,7 +19,7 @@
 #include <Weave/DeviceLayer/internal/WeaveDeviceLayerInternal.h>
 #include <Weave/DeviceLayer/ConnectivityManager.h>
 #include <Weave/DeviceLayer/internal/NetworkProvisioningServer.h>
-#include <Weave/DeviceLayer/internal/NetworkInfo.h>
+#include <Weave/DeviceLayer/internal/DeviceNetworkInfo.h>
 #include <Weave/DeviceLayer/internal/ServiceTunnelAgent.h>
 #include <Weave/DeviceLayer/internal/BLEManager.h>
 #include <Weave/Profiles/WeaveProfiles.h>

@@ -223,13 +223,12 @@ libDeviceLayer_a_AR = $(AR) $(ARFLAGS)
 libDeviceLayer_a_LIBADD =
 am__libDeviceLayer_a_SOURCES_DIST = CASEAuth.cpp \
 	DeviceControlServer.cpp DeviceDescriptionServer.cpp \
-	DeviceIdentityTraitDataSource.cpp EchoServer.cpp \
-	FabricProvisioningServer.cpp GeneralUtils.cpp Globals.cpp \
-	NetworkInfo.cpp PersistedStorage.cpp \
-	ServiceDirectoryManager.cpp ServiceProvisioningServer.cpp \
-	ServiceTunnelAgent.cpp SystemEventSupport.cpp \
-	SystemTimerSupport.cpp TestDeviceIds.cpp TimeSyncManager.cpp \
-	TraitManager.cpp \
+	DeviceIdentityTraitDataSource.cpp DeviceNetworkInfo.cpp \
+	EchoServer.cpp FabricProvisioningServer.cpp GeneralUtils.cpp \
+	Globals.cpp PersistedStorage.cpp ServiceDirectoryManager.cpp \
+	ServiceProvisioningServer.cpp ServiceTunnelAgent.cpp \
+	SystemEventSupport.cpp SystemTimerSupport.cpp \
+	TestDeviceIds.cpp TimeSyncManager.cpp TraitManager.cpp \
 	trait-support/weave/trait/description/DeviceIdentityTrait.cpp \
 	ESP32/AESBlockCipher.cpp ESP32/BLEManagerImpl.cpp \
 	ESP32/ConfigurationManagerImpl.cpp \
@@ -279,11 +278,11 @@ am__dirstamp = $(am__leading_dot)dirstamp
 @CONFIG_DEVICE_LAYER_TRUE@	libDeviceLayer_a-DeviceControlServer.$(OBJEXT) \
 @CONFIG_DEVICE_LAYER_TRUE@	libDeviceLayer_a-DeviceDescriptionServer.$(OBJEXT) \
 @CONFIG_DEVICE_LAYER_TRUE@	libDeviceLayer_a-DeviceIdentityTraitDataSource.$(OBJEXT) \
+@CONFIG_DEVICE_LAYER_TRUE@	libDeviceLayer_a-DeviceNetworkInfo.$(OBJEXT) \
 @CONFIG_DEVICE_LAYER_TRUE@	libDeviceLayer_a-EchoServer.$(OBJEXT) \
 @CONFIG_DEVICE_LAYER_TRUE@	libDeviceLayer_a-FabricProvisioningServer.$(OBJEXT) \
 @CONFIG_DEVICE_LAYER_TRUE@	libDeviceLayer_a-GeneralUtils.$(OBJEXT) \
 @CONFIG_DEVICE_LAYER_TRUE@	libDeviceLayer_a-Globals.$(OBJEXT) \
-@CONFIG_DEVICE_LAYER_TRUE@	libDeviceLayer_a-NetworkInfo.$(OBJEXT) \
 @CONFIG_DEVICE_LAYER_TRUE@	libDeviceLayer_a-PersistedStorage.$(OBJEXT) \
 @CONFIG_DEVICE_LAYER_TRUE@	libDeviceLayer_a-ServiceDirectoryManager.$(OBJEXT) \
 @CONFIG_DEVICE_LAYER_TRUE@	libDeviceLayer_a-ServiceProvisioningServer.$(OBJEXT) \
@@ -659,6 +658,7 @@ noinst_HEADERS = \
     include/Weave/DeviceLayer/internal/DeviceControlServer.h \
     include/Weave/DeviceLayer/internal/DeviceDescriptionServer.h \
     include/Weave/DeviceLayer/internal/DeviceIdentityTraitDataSource.h \
+    include/Weave/DeviceLayer/internal/DeviceNetworkInfo.h \
     include/Weave/DeviceLayer/internal/EchoServer.h \
     include/Weave/DeviceLayer/internal/FabricProvisioningServer.h \
     include/Weave/DeviceLayer/internal/GenericConfigurationManagerImpl.h \
@@ -667,7 +667,6 @@ noinst_HEADERS = \
     include/Weave/DeviceLayer/internal/GenericNetworkProvisioningServerImpl.ipp \
     include/Weave/DeviceLayer/internal/GenericPlatformManagerImpl.h \
     include/Weave/DeviceLayer/internal/GenericPlatformManagerImpl.ipp \
-    include/Weave/DeviceLayer/internal/NetworkInfo.h \
     include/Weave/DeviceLayer/internal/NetworkProvisioningServer.h \
     include/Weave/DeviceLayer/internal/ServiceDirectoryManager.h \
     include/Weave/DeviceLayer/internal/ServiceProvisioningServer.h \
@@ -687,10 +686,10 @@ noinst_HEADERS = \
 @CONFIG_DEVICE_LAYER_TRUE@	DeviceControlServer.cpp \
 @CONFIG_DEVICE_LAYER_TRUE@	DeviceDescriptionServer.cpp \
 @CONFIG_DEVICE_LAYER_TRUE@	DeviceIdentityTraitDataSource.cpp \
-@CONFIG_DEVICE_LAYER_TRUE@	EchoServer.cpp \
+@CONFIG_DEVICE_LAYER_TRUE@	DeviceNetworkInfo.cpp EchoServer.cpp \
 @CONFIG_DEVICE_LAYER_TRUE@	FabricProvisioningServer.cpp \
 @CONFIG_DEVICE_LAYER_TRUE@	GeneralUtils.cpp Globals.cpp \
-@CONFIG_DEVICE_LAYER_TRUE@	NetworkInfo.cpp PersistedStorage.cpp \
+@CONFIG_DEVICE_LAYER_TRUE@	PersistedStorage.cpp \
 @CONFIG_DEVICE_LAYER_TRUE@	ServiceDirectoryManager.cpp \
 @CONFIG_DEVICE_LAYER_TRUE@	ServiceProvisioningServer.cpp \
 @CONFIG_DEVICE_LAYER_TRUE@	ServiceTunnelAgent.cpp \
@@ -881,11 +880,11 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libDeviceLayer_a-DeviceControlServer.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libDeviceLayer_a-DeviceDescriptionServer.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libDeviceLayer_a-DeviceIdentityTraitDataSource.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libDeviceLayer_a-DeviceNetworkInfo.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libDeviceLayer_a-EchoServer.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libDeviceLayer_a-FabricProvisioningServer.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libDeviceLayer_a-GeneralUtils.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libDeviceLayer_a-Globals.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libDeviceLayer_a-NetworkInfo.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libDeviceLayer_a-PersistedStorage.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libDeviceLayer_a-ServiceDirectoryManager.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libDeviceLayer_a-ServiceProvisioningServer.Po@am__quote@
@@ -1004,6 +1003,20 @@ libDeviceLayer_a-DeviceIdentityTraitDataSource.obj: DeviceIdentityTraitDataSourc
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libDeviceLayer_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o libDeviceLayer_a-DeviceIdentityTraitDataSource.obj `if test -f 'DeviceIdentityTraitDataSource.cpp'; then $(CYGPATH_W) 'DeviceIdentityTraitDataSource.cpp'; else $(CYGPATH_W) '$(srcdir)/DeviceIdentityTraitDataSource.cpp'; fi`
 
+libDeviceLayer_a-DeviceNetworkInfo.o: DeviceNetworkInfo.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libDeviceLayer_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT libDeviceLayer_a-DeviceNetworkInfo.o -MD -MP -MF $(DEPDIR)/libDeviceLayer_a-DeviceNetworkInfo.Tpo -c -o libDeviceLayer_a-DeviceNetworkInfo.o `test -f 'DeviceNetworkInfo.cpp' || echo '$(srcdir)/'`DeviceNetworkInfo.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libDeviceLayer_a-DeviceNetworkInfo.Tpo $(DEPDIR)/libDeviceLayer_a-DeviceNetworkInfo.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='DeviceNetworkInfo.cpp' object='libDeviceLayer_a-DeviceNetworkInfo.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libDeviceLayer_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o libDeviceLayer_a-DeviceNetworkInfo.o `test -f 'DeviceNetworkInfo.cpp' || echo '$(srcdir)/'`DeviceNetworkInfo.cpp
+
+libDeviceLayer_a-DeviceNetworkInfo.obj: DeviceNetworkInfo.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libDeviceLayer_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT libDeviceLayer_a-DeviceNetworkInfo.obj -MD -MP -MF $(DEPDIR)/libDeviceLayer_a-DeviceNetworkInfo.Tpo -c -o libDeviceLayer_a-DeviceNetworkInfo.obj `if test -f 'DeviceNetworkInfo.cpp'; then $(CYGPATH_W) 'DeviceNetworkInfo.cpp'; else $(CYGPATH_W) '$(srcdir)/DeviceNetworkInfo.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libDeviceLayer_a-DeviceNetworkInfo.Tpo $(DEPDIR)/libDeviceLayer_a-DeviceNetworkInfo.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='DeviceNetworkInfo.cpp' object='libDeviceLayer_a-DeviceNetworkInfo.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libDeviceLayer_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o libDeviceLayer_a-DeviceNetworkInfo.obj `if test -f 'DeviceNetworkInfo.cpp'; then $(CYGPATH_W) 'DeviceNetworkInfo.cpp'; else $(CYGPATH_W) '$(srcdir)/DeviceNetworkInfo.cpp'; fi`
+
 libDeviceLayer_a-EchoServer.o: EchoServer.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libDeviceLayer_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT libDeviceLayer_a-EchoServer.o -MD -MP -MF $(DEPDIR)/libDeviceLayer_a-EchoServer.Tpo -c -o libDeviceLayer_a-EchoServer.o `test -f 'EchoServer.cpp' || echo '$(srcdir)/'`EchoServer.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libDeviceLayer_a-EchoServer.Tpo $(DEPDIR)/libDeviceLayer_a-EchoServer.Po
@@ -1059,20 +1072,6 @@ libDeviceLayer_a-Globals.obj: Globals.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='Globals.cpp' object='libDeviceLayer_a-Globals.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libDeviceLayer_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o libDeviceLayer_a-Globals.obj `if test -f 'Globals.cpp'; then $(CYGPATH_W) 'Globals.cpp'; else $(CYGPATH_W) '$(srcdir)/Globals.cpp'; fi`
-
-libDeviceLayer_a-NetworkInfo.o: NetworkInfo.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libDeviceLayer_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT libDeviceLayer_a-NetworkInfo.o -MD -MP -MF $(DEPDIR)/libDeviceLayer_a-NetworkInfo.Tpo -c -o libDeviceLayer_a-NetworkInfo.o `test -f 'NetworkInfo.cpp' || echo '$(srcdir)/'`NetworkInfo.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libDeviceLayer_a-NetworkInfo.Tpo $(DEPDIR)/libDeviceLayer_a-NetworkInfo.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='NetworkInfo.cpp' object='libDeviceLayer_a-NetworkInfo.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libDeviceLayer_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o libDeviceLayer_a-NetworkInfo.o `test -f 'NetworkInfo.cpp' || echo '$(srcdir)/'`NetworkInfo.cpp
-
-libDeviceLayer_a-NetworkInfo.obj: NetworkInfo.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libDeviceLayer_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT libDeviceLayer_a-NetworkInfo.obj -MD -MP -MF $(DEPDIR)/libDeviceLayer_a-NetworkInfo.Tpo -c -o libDeviceLayer_a-NetworkInfo.obj `if test -f 'NetworkInfo.cpp'; then $(CYGPATH_W) 'NetworkInfo.cpp'; else $(CYGPATH_W) '$(srcdir)/NetworkInfo.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libDeviceLayer_a-NetworkInfo.Tpo $(DEPDIR)/libDeviceLayer_a-NetworkInfo.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='NetworkInfo.cpp' object='libDeviceLayer_a-NetworkInfo.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libDeviceLayer_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o libDeviceLayer_a-NetworkInfo.obj `if test -f 'NetworkInfo.cpp'; then $(CYGPATH_W) 'NetworkInfo.cpp'; else $(CYGPATH_W) '$(srcdir)/NetworkInfo.cpp'; fi`
 
 libDeviceLayer_a-PersistedStorage.o: PersistedStorage.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libDeviceLayer_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT libDeviceLayer_a-PersistedStorage.o -MD -MP -MF $(DEPDIR)/libDeviceLayer_a-PersistedStorage.Tpo -c -o libDeviceLayer_a-PersistedStorage.o `test -f 'PersistedStorage.cpp' || echo '$(srcdir)/'`PersistedStorage.cpp
