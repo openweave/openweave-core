@@ -68,7 +68,7 @@ protected:
     // ===== Members available to the implementation subclass.
 
     WEAVE_ERROR DoInit(otInstance * otInst);
-    WEAVE_ERROR UpdateThreadInterface(ConnectivityChange & ifConnectivity);
+    void UpdateThreadInterface(bool addrChange);
 
 private:
 

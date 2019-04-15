@@ -35,9 +35,6 @@
 
 #include <Weave/DeviceLayer/OpenThread/GenericThreadStackManagerImpl_OpenThread.ipp>
 
-#define NRF_LOG_MODULE_NAME weave
-#include "nrf_log.h"
-
 namespace nl {
 namespace Weave {
 namespace DeviceLayer {
@@ -49,56 +46,17 @@ template class GenericThreadStackManagerImpl_OpenThread_LwIP<ThreadStackManagerI
 template<class ImplClass>
 void GenericThreadStackManagerImpl_OpenThread_LwIP<ImplClass>::_OnPlatformEvent(const WeaveDeviceEvent * event)
 {
-    WEAVE_ERROR err = WEAVE_NO_ERROR;
-
     // Pass the event to the base class first.
     GenericThreadStackManagerImpl_OpenThread<ImplClass>::_OnPlatformEvent(event);
 
-    if (event->Type == DeviceEventType::kOpenThreadStateChange)
+    if (event->Type == DeviceEventType::kThreadStateChange)
     {
-        // If one of a set of Thread events has occurred...
-        //    - the Thread device role has changed
-        //    - an IPv6 address has been added or removed
-        //    - the Thread network data has changed
-        //    - a child node has attached or detached
-        constexpr uint32_t kSelectedOTEvents = (OT_CHANGED_THREAD_ROLE |
-                                                OT_CHANGED_IP6_ADDRESS_ADDED |
-                                                OT_CHANGED_IP6_ADDRESS_REMOVED |
-                                                OT_CHANGED_THREAD_NETDATA |
-                                                OT_CHANGED_THREAD_CHILD_ADDED |
-                                                OT_CHANGED_THREAD_CHILD_REMOVED);
-        if ((event->OpenThreadStateChange.flags & kSelectedOTEvents) != 0)
+        // If the Thread device role has changed, or if an IPv6 address has been added or
+        // removed in the Thread stack, update the state and configuration of the LwIP Thread interface.
+        if (event->ThreadStateChange.RoleChanged || event->ThreadStateChange.AddressChanged)
         {
-            ConnectivityChange connChange = kConnectivity_NoChange;
-
-            // If the Thread device role has changed, or an IPv6 address has been added or removed, update
-            // the state and configuration of the LwIP Thread interface.
-            if ((event->OpenThreadStateChange.flags & (OT_CHANGED_THREAD_ROLE|OT_CHANGED_IP6_ADDRESS_ADDED|OT_CHANGED_IP6_ADDRESS_REMOVED)) != 0)
-            {
-                err = UpdateThreadInterface(connChange);
-                SuccessOrExit(err);
-            }
-
-            // Post an event signaling the change in Thread connectivity state.
-            // TODO: move this to a helper function on GenericThreadStackManagerImpl_OpenThread<>
-            {
-                WeaveDeviceEvent conChangeEvent;
-                conChangeEvent.Clear();
-                conChangeEvent.Type = DeviceEventType::kThreadConnectivityChange;
-                conChangeEvent.ThreadConnectivityChange.Result = connChange;
-                conChangeEvent.ThreadConnectivityChange.RoleChanged = (event->OpenThreadStateChange.flags & OT_CHANGED_THREAD_ROLE) != 0;
-                conChangeEvent.ThreadConnectivityChange.AddressChanged = (event->OpenThreadStateChange.flags & (OT_CHANGED_IP6_ADDRESS_ADDED|OT_CHANGED_IP6_ADDRESS_REMOVED)) != 0;
-                conChangeEvent.ThreadConnectivityChange.NetDataChanged = (event->OpenThreadStateChange.flags & OT_CHANGED_THREAD_NETDATA) != 0;
-                conChangeEvent.ThreadConnectivityChange.ChildNodesChanged = (event->OpenThreadStateChange.flags & (OT_CHANGED_THREAD_CHILD_ADDED|OT_CHANGED_THREAD_CHILD_REMOVED)) != 0;
-                PlatformMgr().PostEvent(&conChangeEvent);
-            }
+            UpdateThreadInterface(event->ThreadStateChange.AddressChanged);
         }
-    }
-
-exit:
-    if (err != WEAVE_NO_ERROR)
-    {
-        WeaveLogProgress(DeviceLayer, "GenericThreadStackManagerImpl_OpenThread_LwIP<>::_OnPlatformEvent() failed: %s", ErrorStr(err));
     }
 }
 
@@ -156,9 +114,8 @@ exit:
 }
 
 template<class ImplClass>
-WEAVE_ERROR GenericThreadStackManagerImpl_OpenThread_LwIP<ImplClass>::UpdateThreadInterface(ConnectivityChange & interfaceConn)
+void GenericThreadStackManagerImpl_OpenThread_LwIP<ImplClass>::UpdateThreadInterface(bool addrChange)
 {
-    WEAVE_ERROR err = WEAVE_NO_ERROR;
     err_t lwipErr = ERR_OK;
     bool isAttached;
     bool addrAssigned[LWIP_IPV6_NUM_ADDRESSES];
@@ -181,126 +138,148 @@ WEAVE_ERROR GenericThreadStackManagerImpl_OpenThread_LwIP<ImplClass>::UpdateThre
         if (isAttached)
         {
             netif_set_link_up(mNetIf);
-            interfaceConn = kConnectivity_Established;
         }
         else
         {
             netif_set_link_down(mNetIf);
-            interfaceConn = kConnectivity_Lost;
         }
-    }
-    else
-    {
-        interfaceConn = kConnectivity_NoChange;
-    }
 
-    // If attached to a Thread network, adjust the set of addresses on the LwIP netif to match those
-    // configured in the Thread stack...
-    if (isAttached)
-    {
-        // Enumerate the list of unicast IPv6 addresses known to OpenThread...
-        const otNetifAddress * otAddrs = otIp6GetUnicastAddresses(Impl()->OTInstance());
-        for (const otNetifAddress * otAddr = otAddrs; otAddr != NULL; otAddr = otAddr->mNext)
+        // Post an event signaling the change in Thread interface connectivity state.
         {
-            IPAddress addr = ToIPAddress(otAddr->mAddress);
+            WeaveDeviceEvent event;
+            event.Clear();
+            event.Type = DeviceEventType::kThreadConnectivityChange;
+            event.ThreadConnectivityChange.Result = (isAttached) ? kConnectivity_Established : kConnectivity_Lost;
+            PlatformMgr().PostEvent(&event);
+        }
 
-            // Assign the following OpenThread addresses to LwIP's address table:
-            //   - link-local addresses.
-            //   - mesh-local addresses that are NOT RLOC addresses.
-            //   - global unicast addresses.
-            //
-            // This logic purposefully leaves out Weave fabric ULAs, as well as other non-fabric ULAs that the
-            // Thread stack assigns due to Thread SLAAC.
-            //
-            // Assignments of Weave fabric ULAs to the netif address table are handled separately by the WARM module.
-            //
-            // Non-fabric ULAs are ignored entirely as they are presumed to not be of interest to Weave-enabled
-            // devices, and would otherwise consume slots in the LwIP address table, potentially leading to
-            // starvation.
-            if (otAddr->mValid &&
-                !otAddr->mRloc &&
-                (!addr.IsIPv6ULA() || IsOpenThreadMeshLocalAddress(Impl()->OTInstance(), addr)))
+        // Presume the interface addresses are also changing.
+        addrChange = true;
+    }
+
+    // If needed, adjust the set of addresses associated with the LwIP netif to reflect those
+    // known to the Thread stack.
+    if (addrChange)
+    {
+        // If attached to a Thread network, add addresses to the LwIP netif to match those
+        // configured in the Thread stack...
+        if (isAttached)
+        {
+            // Enumerate the list of unicast IPv6 addresses known to OpenThread...
+            const otNetifAddress * otAddrs = otIp6GetUnicastAddresses(Impl()->OTInstance());
+            for (const otNetifAddress * otAddr = otAddrs; otAddr != NULL; otAddr = otAddr->mNext)
             {
-                ip_addr_t lwipAddr = addr.ToLwIPAddr();
-                s8_t addrIdx;
+                IPAddress addr = ToIPAddress(otAddr->mAddress);
 
-                // Add the address to the LwIP netif.  If the address is a link-local, and the primary
-                // link-local address* for the LwIP netif has not been set already, then use netif_ip6_addr_set()
-                // to set the primary address.  Otherwise use netif_add_ip6_address().
+                // Assign the following OpenThread addresses to LwIP's address table:
+                //   - link-local addresses.
+                //   - mesh-local addresses that are NOT RLOC addresses.
+                //   - global unicast addresses.
                 //
-                // This special case is required because LwIP's netif_add_ip6_address() will never set
-                // the primary link-local address.
+                // This logic purposefully leaves out Weave fabric ULAs, as well as other non-fabric ULAs that the
+                // Thread stack assigns due to Thread SLAAC.
                 //
-                // * -- The primary link-local address always appears in the first slot in the netif address table.
+                // Assignments of Weave fabric ULAs to the netif address table are handled separately by the WARM module.
                 //
-                if (addr.IsIPv6LinkLocal() && !addrAssigned[0])
+                // Non-fabric ULAs are ignored entirely as they are presumed to not be of interest to Weave-enabled
+                // devices, and would otherwise consume slots in the LwIP address table, potentially leading to
+                // starvation.
+                if (otAddr->mValid &&
+                    !otAddr->mRloc &&
+                    (!addr.IsIPv6ULA() || IsOpenThreadMeshLocalAddress(Impl()->OTInstance(), addr)))
                 {
-                    netif_ip6_addr_set(mNetIf, 0, ip_2_ip6(&lwipAddr));
-                    addrIdx = 0;
-                }
-                else
-                {
-                    lwipErr = netif_add_ip6_address(mNetIf, ip_2_ip6(&lwipAddr), &addrIdx);
-                    if (lwipErr == ERR_VAL)
+                    ip_addr_t lwipAddr = addr.ToLwIPAddr();
+                    s8_t addrIdx;
+
+                    // Add the address to the LwIP netif.  If the address is a link-local, and the primary
+                    // link-local address* for the LwIP netif has not been set already, then use netif_ip6_addr_set()
+                    // to set the primary address.  Otherwise use netif_add_ip6_address(). This special case is
+                    // required because LwIP's netif_add_ip6_address() will never set the primary link-local address.
+                    //
+                    // * -- The primary link-local address always appears in the first slot in the netif address table.
+                    //
+                    if (addr.IsIPv6LinkLocal() && !addrAssigned[0])
                     {
-                        break;
+                        netif_ip6_addr_set(mNetIf, 0, ip_2_ip6(&lwipAddr));
+                        addrIdx = 0;
                     }
-                    VerifyOrExit(lwipErr == ERR_OK, err = nl::Weave::System::MapErrorLwIP(lwipErr));
+                    else
+                    {
+                        // Add the address to the LwIP netif.  If the address table fills (ERR_VAL), simply stop
+                        // adding addresses.  If something else fails, log it and soldier on.
+                        lwipErr = netif_add_ip6_address(mNetIf, ip_2_ip6(&lwipAddr), &addrIdx);
+                        if (lwipErr == ERR_VAL)
+                        {
+                            break;
+                        }
+                        else if (lwipErr != ERR_OK)
+                        {
+                            WeaveLogProgress(DeviceLayer, "netif_add_ip6_address() failed: %s",
+                                    ErrorStr(nl::Weave::System::MapErrorLwIP(lwipErr)));
+                        }
+                    }
+
+                    // Set the address state to PREFERRED or ACTIVE depending on the state in OpenThread.
+                    netif_ip6_addr_set_state(mNetIf, addrIdx, (otAddr->mPreferred) ? IP6_ADDR_PREFERRED : IP6_ADDR_VALID);
+
+                    // Record that the netif address slot was assigned during this loop.
+                    addrAssigned[addrIdx] = true;
                 }
-
-                // Set the address state to PREFERRED or ACTIVE depending on the state in OpenThread.
-                netif_ip6_addr_set_state(mNetIf, addrIdx, (otAddr->mPreferred) ? IP6_ADDR_PREFERRED : IP6_ADDR_VALID);
-
-                // Record that the netif address slot was assigned during this loop.
-                addrAssigned[addrIdx] = true;
             }
         }
-    }
 
-    WeaveLogDetail(DeviceLayer, "LwIP Thread interface addresses %s", (isAttached) ? "updated" : "cleared");
+        WeaveLogDetail(DeviceLayer, "LwIP Thread interface addresses %s", (isAttached) ? "updated" : "cleared");
 
-    // For each address associated with the netif that was *not* assigned above, remove the address
-    // from the netif if the address is one that was previously assigned by this method.
-    // In the case where the device is no longer attached to a Thread network, remove all addresses
-    // from the netif.
-    for (u8_t addrIdx = 0; addrIdx < LWIP_IPV6_NUM_ADDRESSES; addrIdx++)
-    {
-        if (!isAttached || (mAddrAssigned[addrIdx] && !addrAssigned[addrIdx]))
+        // For each address associated with the netif that was *not* assigned above, remove the address
+        // from the netif if the address is one that was previously assigned by this method.
+        // In the case where the device is no longer attached to a Thread network, remove all addresses
+        // from the netif.
+        for (u8_t addrIdx = 0; addrIdx < LWIP_IPV6_NUM_ADDRESSES; addrIdx++)
         {
-            // Remove the address from the netif by setting its state to INVALID
-            netif_ip6_addr_set_state(mNetIf, addrIdx, IP6_ADDR_INVALID);
-        }
+            if (!isAttached || (mAddrAssigned[addrIdx] && !addrAssigned[addrIdx]))
+            {
+                // Remove the address from the netif by setting its state to INVALID
+                netif_ip6_addr_set_state(mNetIf, addrIdx, IP6_ADDR_INVALID);
+            }
 
 #if WEAVE_DETAIL_LOGGING
-        else
-        {
-            uint8_t state = netif_ip6_addr_state(mNetIf, addrIdx);
-            if (state != IP6_ADDR_INVALID)
+            else
             {
-                IPAddress addr = IPAddress::FromLwIPAddr(*netif_ip6_addr(mNetIf, addrIdx));
-                char addrStr[50];
-                addr.ToString(addrStr, sizeof(addrStr));
-                const char * typeStr;
-                if (IsOpenThreadMeshLocalAddress(Impl()->OTInstance(), addr))
-                    typeStr = "Thread mesh-local address";
-                else
-                    typeStr = CharacterizeIPv6Address(addr);
-                WeaveLogDetail(DeviceLayer, "   %s (%s%s)", addrStr, typeStr,
-                        (state == IP6_ADDR_PREFERRED) ? ", preferred" : "");
+                uint8_t state = netif_ip6_addr_state(mNetIf, addrIdx);
+                if (state != IP6_ADDR_INVALID)
+                {
+                    IPAddress addr = IPAddress::FromLwIPAddr(*netif_ip6_addr(mNetIf, addrIdx));
+                    char addrStr[50];
+                    addr.ToString(addrStr, sizeof(addrStr));
+                    const char * typeStr;
+                    if (IsOpenThreadMeshLocalAddress(Impl()->OTInstance(), addr))
+                        typeStr = "Thread mesh-local address";
+                    else
+                        typeStr = CharacterizeIPv6Address(addr);
+                    WeaveLogDetail(DeviceLayer, "   %s (%s%s)", addrStr, typeStr,
+                            (state == IP6_ADDR_PREFERRED) ? ", preferred" : "");
+                }
             }
-        }
 #endif // WEAVE_DETAIL_LOGGING
+        }
+
+        // Remember the set of assigned addresses.
+        memcpy(mAddrAssigned, addrAssigned, sizeof(mAddrAssigned));
     }
-
-    // Remember the set of assigned addresses.
-    memcpy(mAddrAssigned, addrAssigned, sizeof(mAddrAssigned));
-
-exit:
 
     Impl()->UnlockThreadStack();
     UNLOCK_TCPIP_CORE();
 
-    return err;
+    // Update the listening state of the Weave MessageLayer based on the changes to
+    // the Thread interface addresses.
+    if (addrChange)
+    {
+        WEAVE_ERROR err = MessageLayer.RefreshEndpoints();
+        if (err != WEAVE_NO_ERROR)
+        {
+            WeaveLogProgress(DeviceLayer, "MessageLayer.RefreshEndpoints() failed: %s", nl::ErrorStr(err));
+        }
+    }
 }
 
 template<class ImplClass>

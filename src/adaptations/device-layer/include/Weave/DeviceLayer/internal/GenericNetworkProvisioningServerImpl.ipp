@@ -130,10 +130,17 @@ void GenericNetworkProvisioningServerImpl<ImplClass>::_OnPlatformEvent(const Wea
 
 #if WEAVE_DEVICE_CONFIG_ENABLE_THREAD
 
-    // If our Thread role changed, or if there was a change to the set of child nodes...
-    if (event->Type == DeviceEventType::kThreadConnectivityChange &&
-        (event->ThreadConnectivityChange.RoleChanged ||
-         event->ThreadConnectivityChange.ChildNodesChanged))
+    // Define some short-hands for various interesting event conditions.
+    const bool threadConnChanged       = (event->Type == DeviceEventType::kThreadConnectivityChange &&
+                                          event->ThreadConnectivityChange.Result != kConnectivity_NoChange);
+    const bool threadRoleChanged       = (event->Type == DeviceEventType::kThreadStateChange &&
+                                          event->ThreadStateChange.RoleChanged);
+    const bool threadChildrenChanged   = (event->Type == DeviceEventType::kThreadStateChange &&
+                                          event->ThreadStateChange.ChildNodesChanged);
+
+    // If the state of the Thread interface changed, OR if the Thread role changed, OR
+    // if there was a change to the set of child nodes...
+    if (threadConnChanged || threadRoleChanged || threadChildrenChanged)
     {
         // If a TestConnectivity operation is in progress for Thread, re-evaluate the state
         // connectivity now.
@@ -913,6 +920,7 @@ WEAVE_ERROR GenericNetworkProvisioningServerImpl<ImplClass>::SetThreadProvisionD
 
     // Generate unique values for any Thread parameters not supplied by the client.
 
+    // If extended PAN id was not specified, generate a random one.
     if (!netInfo.FieldPresent.ThreadExtendedPANId)
     {
         err = Platform::Security::GetSecureRandomData(netInfo.ThreadExtendedPANId, NetworkInfo::kThreadExtendedPANIdLength);
@@ -920,6 +928,8 @@ WEAVE_ERROR GenericNetworkProvisioningServerImpl<ImplClass>::SetThreadProvisionD
         netInfo.FieldPresent.ThreadExtendedPANId = true;
     }
 
+    // If network name was not specified, generate a default one.  If the device is a member of a
+    // Weave fabric, base part of the name on the fabric id.
     if (netInfo.ThreadNetworkName[0] == 0)
     {
         uint16_t nameSuffix = (::nl::Weave::DeviceLayer::FabricState.FabricId != kFabricIdNotSpecified)
@@ -929,14 +939,16 @@ WEAVE_ERROR GenericNetworkProvisioningServerImpl<ImplClass>::SetThreadProvisionD
                  WEAVE_DEVICE_CONFIG_DEFAULT_THREAD_NETWORK_NAME_PREFIX, nameSuffix);
     }
 
+    // If a mesh prefix was not specified, generate one based on the extended PAN id.
     if (!netInfo.FieldPresent.ThreadMeshPrefix)
     {
+        memset(netInfo.ThreadMeshPrefix, 0, sizeof(netInfo.ThreadMeshPrefix));
         netInfo.ThreadMeshPrefix[0] = 0xFD; // IPv6 ULA prefix
-        err = Platform::Security::GetSecureRandomData(&netInfo.ThreadMeshPrefix[1], NetworkInfo::kThreadMeshPrefixLength - 1);
-        SuccessOrExit(err);
+        memcpy(&netInfo.ThreadMeshPrefix[1], netInfo.ThreadExtendedPANId, 5);
         netInfo.FieldPresent.ThreadMeshPrefix = true;
     }
 
+    // If network key was not specified, generate a random key.
     if (!netInfo.FieldPresent.ThreadNetworkKey)
     {
         err = Platform::Security::GetSecureRandomData(netInfo.ThreadNetworkKey, NetworkInfo::kThreadNetworkKeyLength);
@@ -944,6 +956,7 @@ WEAVE_ERROR GenericNetworkProvisioningServerImpl<ImplClass>::SetThreadProvisionD
         netInfo.FieldPresent.ThreadNetworkKey = true;
     }
 
+    // If a PSKc was not specified, generate a random PSKc.
     if (!netInfo.FieldPresent.ThreadPSKc)
     {
         err = Platform::Security::GetSecureRandomData(netInfo.ThreadPSKc, NetworkInfo::kThreadPSKcLength);
@@ -951,6 +964,7 @@ WEAVE_ERROR GenericNetworkProvisioningServerImpl<ImplClass>::SetThreadProvisionD
         netInfo.FieldPresent.ThreadPSKc = true;
     }
 
+    // If a PAN Id was not specified, generate a random Id.
     if (netInfo.ThreadPANId == kThreadPANId_NotSpecified)
     {
         uint16_t randPANId;
@@ -959,6 +973,7 @@ WEAVE_ERROR GenericNetworkProvisioningServerImpl<ImplClass>::SetThreadProvisionD
         netInfo.ThreadPANId = randPANId;
     }
 
+    // If Thread channel not present, choose a random one.
     if (netInfo.ThreadChannel == kThreadChannel_NotSpecified)
     {
         err = Platform::Security::GetSecureRandomData((uint8_t *)&netInfo.ThreadChannel, sizeof(netInfo.ThreadChannel));

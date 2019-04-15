@@ -40,35 +40,25 @@ template class GenericConnectivityManagerImpl_Thread<ConnectivityManagerImpl>;
 template<class ImplClass>
 void GenericConnectivityManagerImpl_Thread<ImplClass>::_OnPlatformEvent(const WeaveDeviceEvent * event)
 {
-    // If there is a change to the Thread state...
-    if (event->Type == DeviceEventType::kThreadConnectivityChange)
+    // Define some short-hands for various interesting event conditions.
+    const bool threadConnChanged       = (event->Type == DeviceEventType::kThreadConnectivityChange &&
+                                          event->ThreadConnectivityChange.Result != kConnectivity_NoChange);
+    const bool threadAddrChanged       = (event->Type == DeviceEventType::kThreadStateChange &&
+                                          event->ThreadStateChange.AddressChanged);
+    const bool threadNetDataChanged    = (event->Type == DeviceEventType::kThreadStateChange &&
+                                          event->ThreadStateChange.NetDataChanged);
+    const bool fabricMembershipChanged = (event->Type == DeviceEventType::kFabricMembershipChange);
+
+    // If the state of the Thread interface has changed, notify WARM accordingly.
+    if (threadConnChanged)
     {
-        // If the state of the Thread interface has changed, notify WARM accordingly.
-        if (event->ThreadConnectivityChange.Result != kConnectivity_NoChange)
-        {
-            Warm::ThreadInterfaceStateChange(event->ThreadConnectivityChange.Result == kConnectivity_Established
-                    ? Warm::kInterfaceStateUp : Warm::kInterfaceStateDown);
-        }
-
-        // If the local Thread addresses have changed OR if the Thread network data has changed,
-        // determine if there's been a change in service connectivity via Thread.
-        if (event->ThreadConnectivityChange.AddressChanged || event->ThreadConnectivityChange.NetDataChanged)
-        {
-            UpdateServiceConnectivity();
-        }
-
-        if (event->ThreadConnectivityChange.AddressChanged)
-        {
-            WEAVE_ERROR err = MessageLayer.RefreshEndpoints();
-            if (err != WEAVE_NO_ERROR)
-            {
-                WeaveLogDetail(DeviceLayer, "MessageLayer.RefreshEndpoints() failed: %s", nl::ErrorStr(err));
-            }
-        }
+        Warm::ThreadInterfaceStateChange(event->ThreadConnectivityChange.Result == kConnectivity_Established
+                ? Warm::kInterfaceStateUp : Warm::kInterfaceStateDown);
     }
 
-    // If there is a change to the device's membership in a fabric, re-evaluate service connectivity via Thread.
-    else if (event->Type == DeviceEventType::kFabricMembershipChange)
+    // If any of the above events has occurred, assess whether there's been a change in
+    // service connectivity via Thread.
+    if (threadConnChanged || threadAddrChanged || threadNetDataChanged || fabricMembershipChanged)
     {
         UpdateServiceConnectivity();
     }
@@ -132,13 +122,12 @@ void GenericConnectivityManagerImpl_Thread<ImplClass>::UpdateServiceConnectivity
         const uint64_t fabricGlobalId = WeaveFabricIdToIPv6GlobalId(FabricState.FabricId);
         IPAddress serviceAddr = IPAddress::MakeULA(fabricGlobalId, nl::Weave::kWeaveSubnetId_Service, 1);
         haveServiceConnectivity = ThreadStackMgr().HaveRouteToAddress(serviceAddr);
-        WeaveLogDetail(DeviceLayer, "haveServiceConnectivity = %s", haveServiceConnectivity ? "true" : "false");
     }
 
     // If service connectivity via Thread has changed, post an event signaling the change.
     if (GetFlag(mFlags, kFlag_HaveServiceConnectivity) != haveServiceConnectivity)
     {
-        WeaveLogProgress(DeviceLayer, "ConnectivityManager: Service connectivity via Thread %s", (haveServiceConnectivity) ? "established" : "lost");
+        WeaveLogProgress(DeviceLayer, "ConnectivityManager: Service connectivity via Thread %s", (haveServiceConnectivity) ? "ESTABLISHED" : "LOST");
 
         SetFlag(mFlags, kFlag_HaveServiceConnectivity, haveServiceConnectivity);
 
