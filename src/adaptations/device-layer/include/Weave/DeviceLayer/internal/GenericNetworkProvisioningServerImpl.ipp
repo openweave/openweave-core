@@ -232,7 +232,7 @@ template<class ImplClass>
 WEAVE_ERROR GenericNetworkProvisioningServerImpl<ImplClass>::HandleAddUpdateNetwork(PacketBuffer * networkInfoTLV, bool isUpdate)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
-    NetworkInfo netInfo;
+    DeviceNetworkInfo netInfo;
     uint32_t netId;
 
     VerifyOrExit(mState == kState_Idle, err = WEAVE_ERROR_INCORRECT_STATE);
@@ -272,7 +272,7 @@ WEAVE_ERROR GenericNetworkProvisioningServerImpl<ImplClass>::HandleAddUpdateNetw
         // If updating the provision...
         if (isUpdate)
         {
-            NetworkInfo existingNetInfo;
+            DeviceNetworkInfo existingNetInfo;
 
             // Delegate to the implementation subclass to get the existing station provision.
             err = Impl()->GetWiFiStationProvision(existingNetInfo, true);
@@ -459,7 +459,7 @@ template<class ImplClass>
 WEAVE_ERROR GenericNetworkProvisioningServerImpl<ImplClass>::HandleGetNetworks(uint8_t flags)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
-    NetworkInfo netInfo[2];
+    DeviceNetworkInfo netInfo[2];
     PacketBuffer * respBuf = NULL;
     uint8_t resultCount = 0;
     const bool includeCredentials = (flags & kGetNetwork_IncludeCredentials) != 0;
@@ -506,7 +506,7 @@ WEAVE_ERROR GenericNetworkProvisioningServerImpl<ImplClass>::HandleGetNetworks(u
 
         writer.Init(respBuf);
 
-        err = NetworkInfo::EncodeArray(writer, netInfo, resultCount);
+        err = DeviceNetworkInfo::EncodeArray(writer, netInfo, resultCount);
         SuccessOrExit(err);
 
         err = writer.Finalize();
@@ -812,13 +812,13 @@ bool GenericNetworkProvisioningServerImpl<ImplClass>::IsPairedToAccount() const
 
 template<class ImplClass>
 WEAVE_ERROR GenericNetworkProvisioningServerImpl<ImplClass>::ValidateWiFiStationProvision(
-        const NetworkInfo & netInfo, uint32_t & statusProfileId, uint16_t & statusCode)
+        const DeviceNetworkInfo & netInfo, uint32_t & statusProfileId, uint16_t & statusCode)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
 
     if (netInfo.NetworkType != kNetworkType_WiFi)
     {
-        WeaveLogError(DeviceLayer, "%sUnsupported WiFi station network type: %d", sLogPrefix, netInfo.NetworkType);
+        WeaveLogProgress(DeviceLayer, "%sUnsupported WiFi station network type: %d", sLogPrefix, netInfo.NetworkType);
         statusProfileId = kWeaveProfile_NetworkProvisioning;
         statusCode = kStatusCode_UnsupportedNetworkType;
         ExitNow(err = WEAVE_ERROR_INVALID_ARGUMENT);
@@ -826,7 +826,7 @@ WEAVE_ERROR GenericNetworkProvisioningServerImpl<ImplClass>::ValidateWiFiStation
 
     if (netInfo.WiFiSSID[0] == 0)
     {
-        WeaveLogError(DeviceLayer, "%sMissing WiFi station SSID", sLogPrefix);
+        WeaveLogProgress(DeviceLayer, "%sMissing WiFi station SSID", sLogPrefix);
         statusProfileId = kWeaveProfile_NetworkProvisioning;
         statusCode = kStatusCode_InvalidNetworkConfiguration;
         ExitNow(err = WEAVE_ERROR_INVALID_ARGUMENT);
@@ -836,11 +836,11 @@ WEAVE_ERROR GenericNetworkProvisioningServerImpl<ImplClass>::ValidateWiFiStation
     {
         if (netInfo.WiFiMode == kWiFiMode_NotSpecified)
         {
-            WeaveLogError(DeviceLayer, "%sMissing WiFi station mode", sLogPrefix);
+            WeaveLogProgress(DeviceLayer, "%sMissing WiFi station mode", sLogPrefix);
         }
         else
         {
-            WeaveLogError(DeviceLayer, "%sUnsupported WiFi station mode: %d", sLogPrefix, netInfo.WiFiMode);
+            WeaveLogProgress(DeviceLayer, "%sUnsupported WiFi station mode: %d", sLogPrefix, netInfo.WiFiMode);
         }
         statusProfileId = kWeaveProfile_NetworkProvisioning;
         statusCode = kStatusCode_InvalidNetworkConfiguration;
@@ -851,11 +851,11 @@ WEAVE_ERROR GenericNetworkProvisioningServerImpl<ImplClass>::ValidateWiFiStation
     {
         if (netInfo.WiFiRole == kWiFiRole_NotSpecified)
         {
-            WeaveLogError(DeviceLayer, "%sMissing WiFi station role", sLogPrefix);
+            WeaveLogProgress(DeviceLayer, "%sMissing WiFi station role", sLogPrefix);
         }
         else
         {
-            WeaveLogError(DeviceLayer, "%sUnsupported WiFi station role: %d", sLogPrefix, netInfo.WiFiRole);
+            WeaveLogProgress(DeviceLayer, "%sUnsupported WiFi station role: %d", sLogPrefix, netInfo.WiFiRole);
         }
         statusProfileId = kWeaveProfile_NetworkProvisioning;
         statusCode = kStatusCode_InvalidNetworkConfiguration;
@@ -868,7 +868,7 @@ WEAVE_ERROR GenericNetworkProvisioningServerImpl<ImplClass>::ValidateWiFiStation
         netInfo.WiFiSecurityType != kWiFiSecurityType_WPA2Personal &&
         netInfo.WiFiSecurityType != kWiFiSecurityType_WPA2Enterprise)
     {
-        WeaveLogError(DeviceLayer, "%sUnsupported WiFi station security type: %d", sLogPrefix, netInfo.WiFiSecurityType);
+        WeaveLogProgress(DeviceLayer, "%sUnsupported WiFi station security type: %d", sLogPrefix, netInfo.WiFiSecurityType);
         statusProfileId = kWeaveProfile_NetworkProvisioning;
         statusCode = kStatusCode_UnsupportedWiFiSecurityType;
         ExitNow(err = WEAVE_ERROR_INVALID_ARGUMENT);
@@ -876,7 +876,7 @@ WEAVE_ERROR GenericNetworkProvisioningServerImpl<ImplClass>::ValidateWiFiStation
 
     if (netInfo.WiFiSecurityType != kWiFiSecurityType_None && netInfo.WiFiKeyLen == 0)
     {
-        WeaveLogError(DeviceLayer, "%sMissing WiFi Key", sLogPrefix);
+        WeaveLogProgress(DeviceLayer, "%sMissing WiFi Key", sLogPrefix);
         statusProfileId = kWeaveProfile_NetworkProvisioning;
         statusCode = kStatusCode_InvalidNetworkConfiguration;
         ExitNow(err = WEAVE_ERROR_INVALID_ARGUMENT);
@@ -893,7 +893,7 @@ exit:
 
 template<class ImplClass>
 WEAVE_ERROR GenericNetworkProvisioningServerImpl<ImplClass>::ValidateThreadProvision(
-        bool isUpdate, const NetworkInfo & netInfo, uint32_t & statusProfileId, uint16_t & statusCode)
+        bool isUpdate, const DeviceNetworkInfo & netInfo, uint32_t & statusProfileId, uint16_t & statusCode)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
 
@@ -914,7 +914,7 @@ exit:
 
 template<class ImplClass>
 WEAVE_ERROR GenericNetworkProvisioningServerImpl<ImplClass>::SetThreadProvisionDefaults(
-        bool isUpdate, NetworkInfo & netInfo)
+        bool isUpdate, DeviceNetworkInfo & netInfo)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
 
@@ -1088,7 +1088,7 @@ void GenericNetworkProvisioningServerImpl<ImplClass>::HandleConnectivityTestTime
     {
         const bool testingWiFi = (self->mState == kState_TestConnectivity_WaitWiFiConnectivity);
 
-        WeaveLogError(DeviceLayer, "Time out waiting for %s connectivity", (testingWiFi) ? "Internet" : "Thread");
+        WeaveLogProgress(DeviceLayer, "%sTime out waiting for %s connectivity", sLogPrefix, (testingWiFi) ? "Internet" : "Thread");
 
         // Reset the state.
         self->mState = kState_Idle;

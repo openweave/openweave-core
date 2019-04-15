@@ -65,6 +65,7 @@ noinst_HEADERS                          = \
     include/Weave/DeviceLayer/internal/DeviceControlServer.h \
     include/Weave/DeviceLayer/internal/DeviceDescriptionServer.h \
     include/Weave/DeviceLayer/internal/DeviceIdentityTraitDataSource.h \
+    include/Weave/DeviceLayer/internal/DeviceNetworkInfo.h \
     include/Weave/DeviceLayer/internal/EchoServer.h \
     include/Weave/DeviceLayer/internal/FabricProvisioningServer.h \
     include/Weave/DeviceLayer/internal/GenericConfigurationManagerImpl.h \
@@ -73,7 +74,6 @@ noinst_HEADERS                          = \
     include/Weave/DeviceLayer/internal/GenericNetworkProvisioningServerImpl.ipp \
     include/Weave/DeviceLayer/internal/GenericPlatformManagerImpl.h \
     include/Weave/DeviceLayer/internal/GenericPlatformManagerImpl.ipp \
-    include/Weave/DeviceLayer/internal/NetworkInfo.h \
     include/Weave/DeviceLayer/internal/NetworkProvisioningServer.h \
     include/Weave/DeviceLayer/internal/ServiceDirectoryManager.h \
     include/Weave/DeviceLayer/internal/ServiceProvisioningServer.h \
@@ -97,11 +97,11 @@ libDeviceLayer_a_SOURCES                = \
     DeviceControlServer.cpp               \
     DeviceDescriptionServer.cpp           \
     DeviceIdentityTraitDataSource.cpp     \
+    DeviceNetworkInfo.cpp                 \
     EchoServer.cpp                        \
     FabricProvisioningServer.cpp          \
     GeneralUtils.cpp                      \
     Globals.cpp                           \
-    NetworkInfo.cpp                       \
     PersistedStorage.cpp                  \
     ServiceDirectoryManager.cpp           \
     ServiceProvisioningServer.cpp         \

@@ -30,7 +30,7 @@
 #include <Weave/DeviceLayer/OpenThread/GenericThreadStackManagerImpl_OpenThread.h>
 #include <Weave/DeviceLayer/OpenThread/OpenThreadUtils.h>
 #include <Weave/Profiles/network-provisioning/NetworkProvisioning.h>
-#include <Weave/DeviceLayer/internal/NetworkInfo.h>
+#include <Weave/DeviceLayer/internal/DeviceNetworkInfo.h>
 #include <Weave/Support/crypto/WeaveRNG.h>
 
 #include <openthread/thread.h>
@@ -47,11 +47,11 @@ namespace DeviceLayer {
 namespace Internal {
 
 // Assert some presumptions in this code
-static_assert(NetworkInfo::kMaxThreadNetworkNameLength == OT_NETWORK_NAME_MAX_SIZE);
-static_assert(NetworkInfo::kThreadExtendedPANIdLength == OT_EXT_PAN_ID_SIZE);
-static_assert(NetworkInfo::kThreadMeshPrefixLength == OT_MESH_LOCAL_PREFIX_SIZE);
-static_assert(NetworkInfo::kThreadNetworkKeyLength == OT_MASTER_KEY_SIZE);
-static_assert(NetworkInfo::kThreadPSKcLength == OT_PSKC_MAX_SIZE);
+static_assert(DeviceNetworkInfo::kMaxThreadNetworkNameLength == OT_NETWORK_NAME_MAX_SIZE);
+static_assert(DeviceNetworkInfo::kThreadExtendedPANIdLength == OT_EXT_PAN_ID_SIZE);
+static_assert(DeviceNetworkInfo::kThreadMeshPrefixLength == OT_MESH_LOCAL_PREFIX_SIZE);
+static_assert(DeviceNetworkInfo::kThreadNetworkKeyLength == OT_MASTER_KEY_SIZE);
+static_assert(DeviceNetworkInfo::kThreadPSKcLength == OT_PSKC_MAX_SIZE);
 
 // Fully instantiate the generic implementation class in whatever compilation unit includes this file.
 template class GenericThreadStackManagerImpl_OpenThread<ThreadStackManagerImpl>;
@@ -211,7 +211,7 @@ bool GenericThreadStackManagerImpl_OpenThread<ImplClass>::_IsThreadAttached(void
 }
 
 template<class ImplClass>
-WEAVE_ERROR GenericThreadStackManagerImpl_OpenThread<ImplClass>::_GetThreadProvision(NetworkInfo & netInfo, bool includeCredentials)
+WEAVE_ERROR GenericThreadStackManagerImpl_OpenThread<ImplClass>::_GetThreadProvision(DeviceNetworkInfo & netInfo, bool includeCredentials)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
     otError otErr;
@@ -279,7 +279,7 @@ exit:
 }
 
 template<class ImplClass>
-WEAVE_ERROR GenericThreadStackManagerImpl_OpenThread<ImplClass>::_SetThreadProvision(const NetworkInfo & netInfo)
+WEAVE_ERROR GenericThreadStackManagerImpl_OpenThread<ImplClass>::_SetThreadProvision(const DeviceNetworkInfo & netInfo)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
     otError otErr;

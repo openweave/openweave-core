@@ -28,7 +28,7 @@ namespace DeviceLayer {
 namespace Internal {
 
 class NetworkProvisioningServerImpl;
-class NetworkInfo;
+class DeviceNetworkInfo;
 
 template<class ImplClass>
 class GenericNetworkProvisioningServerImpl
@@ -38,7 +38,7 @@ class GenericNetworkProvisioningServerImpl
 protected:
 
     using ServerBaseClass = ::nl::Weave::Profiles::NetworkProvisioning::NetworkProvisioningServer;
-    using NetworkInfo = ::nl::Weave::DeviceLayer::Internal::NetworkInfo;
+    using NetworkInfo = ::nl::Weave::DeviceLayer::Internal::DeviceNetworkInfo;
     using NetworkType_t = ::nl::Weave::Profiles::NetworkProvisioning::NetworkType;
     using PacketBuffer = ::nl::Weave::System::PacketBuffer;
 
@@ -89,9 +89,9 @@ protected:
     int16_t GetCurrentOp(void) const;
     WEAVE_ERROR HandleAddUpdateNetwork(PacketBuffer *networkInfoTLV, bool add);
     WEAVE_ERROR HandleEnableDisableNetwork(uint32_t networkId, bool enable);
-    WEAVE_ERROR ValidateWiFiStationProvision(const NetworkInfo & netInfo, uint32_t & statusProfileId, uint16_t & statusCode);
-    WEAVE_ERROR ValidateThreadProvision(bool isUpdate, const NetworkInfo & netInfo, uint32_t & statusProfileId, uint16_t & statusCode);
-    WEAVE_ERROR SetThreadProvisionDefaults(bool isUpdate, NetworkInfo & netInfo);
+    WEAVE_ERROR ValidateWiFiStationProvision(const DeviceNetworkInfo & netInfo, uint32_t & statusProfileId, uint16_t & statusCode);
+    WEAVE_ERROR ValidateThreadProvision(bool isUpdate, const DeviceNetworkInfo & netInfo, uint32_t & statusProfileId, uint16_t & statusCode);
+    WEAVE_ERROR SetThreadProvisionDefaults(bool isUpdate, DeviceNetworkInfo & netInfo);
     void ContinueWiFiConnectivityTest(void);
     void ContinueThreadConnectivityTest(void);
     void HandleConnectivityTestSuccess(void);

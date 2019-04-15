@@ -989,7 +989,7 @@ $(nl_public_WeaveDeviceLayer_source_dirstem)/internal/GenericNetworkProvisioning
 $(nl_public_WeaveDeviceLayer_source_dirstem)/internal/GenericNetworkProvisioningServerImpl.ipp      \
 $(nl_public_WeaveDeviceLayer_source_dirstem)/internal/GenericPlatformManagerImpl.h                  \
 $(nl_public_WeaveDeviceLayer_source_dirstem)/internal/GenericPlatformManagerImpl.ipp                \
-$(nl_public_WeaveDeviceLayer_source_dirstem)/internal/NetworkInfo.h                                 \
+$(nl_public_WeaveDeviceLayer_source_dirstem)/internal/DeviceNetworkInfo.h                           \
 $(nl_public_WeaveDeviceLayer_source_dirstem)/internal/NetworkProvisioningServer.h                   \
 $(nl_public_WeaveDeviceLayer_source_dirstem)/internal/ServiceDirectoryManager.h                     \
 $(nl_public_WeaveDeviceLayer_source_dirstem)/internal/ServiceProvisioningServer.h                   \

@@ -32,7 +32,7 @@ class PlatformManagerImpl;
 class ThreadStackManagerImpl;
 
 namespace Internal {
-class NetworkInfo;
+class DeviceNetworkInfo;
 template<class> class GenericPlatformManagerImpl;
 template<class> class GenericPlatformManagerImpl_FreeRTOS;
 template<class> class GenericConnectivityManagerImpl_Thread;
@@ -86,8 +86,8 @@ private:
     WEAVE_ERROR SetThreadEnabled(bool val);
     bool IsThreadProvisioned(void);
     bool IsThreadAttached(void);
-    WEAVE_ERROR GetThreadProvision(Internal::NetworkInfo & netInfo, bool includeCredentials);
-    WEAVE_ERROR SetThreadProvision(const Internal::NetworkInfo & netInfo);
+    WEAVE_ERROR GetThreadProvision(Internal::DeviceNetworkInfo & netInfo, bool includeCredentials);
+    WEAVE_ERROR SetThreadProvision(const Internal::DeviceNetworkInfo & netInfo);
     void ClearThreadProvision(void);
     bool HaveMeshConnectivity(void);
 };
@@ -189,12 +189,12 @@ inline bool ThreadStackManager::IsThreadAttached(void)
     return static_cast<ImplClass*>(this)->_IsThreadAttached();
 }
 
-inline WEAVE_ERROR ThreadStackManager::GetThreadProvision(Internal::NetworkInfo & netInfo, bool includeCredentials)
+inline WEAVE_ERROR ThreadStackManager::GetThreadProvision(Internal::DeviceNetworkInfo & netInfo, bool includeCredentials)
 {
     return static_cast<ImplClass*>(this)->_GetThreadProvision(netInfo, includeCredentials);
 }
 
-inline WEAVE_ERROR ThreadStackManager::SetThreadProvision(const Internal::NetworkInfo & netInfo)
+inline WEAVE_ERROR ThreadStackManager::SetThreadProvision(const Internal::DeviceNetworkInfo & netInfo)
 {
     return static_cast<ImplClass*>(this)->_SetThreadProvision(netInfo);
 }
