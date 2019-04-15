@@ -68,8 +68,12 @@ template<class ImplClass>
 void GenericThreadStackManagerImpl_OpenThread<ImplClass>::OnOpenThreadStateChange(uint32_t flags, void * context)
 {
     WeaveDeviceEvent event;
-    event.Type = DeviceEventType::kOpenThreadStateChange;
-    event.OpenThreadStateChange.flags = flags;
+    event.Type = DeviceEventType::kThreadStateChange;
+    event.ThreadStateChange.RoleChanged = (flags & OT_CHANGED_THREAD_ROLE) != 0;
+    event.ThreadStateChange.AddressChanged = (flags & (OT_CHANGED_IP6_ADDRESS_ADDED|OT_CHANGED_IP6_ADDRESS_REMOVED)) != 0;
+    event.ThreadStateChange.NetDataChanged = (flags & OT_CHANGED_THREAD_NETDATA) != 0;
+    event.ThreadStateChange.ChildNodesChanged = (flags & (OT_CHANGED_THREAD_CHILD_ADDED|OT_CHANGED_THREAD_CHILD_REMOVED)) != 0;
+    event.ThreadStateChange.OpenThread.Flags = flags;
     PlatformMgr().PostEvent(&event);
 }
 
@@ -138,13 +142,13 @@ exit:
 template<class ImplClass>
 void GenericThreadStackManagerImpl_OpenThread<ImplClass>::_OnPlatformEvent(const WeaveDeviceEvent * event)
 {
-    if (event->Type == DeviceEventType::kOpenThreadStateChange)
+    if (event->Type == DeviceEventType::kThreadStateChange)
     {
 #if WEAVE_DETAIL_LOGGING
 
         Impl()->LockThreadStack();
 
-        LogOpenThreadStateChange(mOTInst, event->OpenThreadStateChange.flags);
+        LogOpenThreadStateChange(mOTInst, event->ThreadStateChange.OpenThread.Flags);
 
         Impl()->UnlockThreadStack();
 
@@ -281,7 +285,7 @@ WEAVE_ERROR GenericThreadStackManagerImpl_OpenThread<ImplClass>::_SetThreadProvi
     otError otErr;
     otOperationalDataset newDataset;
 
-    // Form an Thread operation dataset from the given Thread network parameters.
+    // Form a Thread operational dataset from the given network parameters.
     memset(&newDataset, 0, sizeof(newDataset));
     newDataset.mComponents.mIsActiveTimestampPresent = true;
     newDataset.mComponents.mIsPendingTimestampPresent = true;

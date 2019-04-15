@@ -377,6 +377,12 @@ template<class ImplClass>
 void GenericPlatformManagerImpl<ImplClass>::DispatchEventToDeviceLayer(const WeaveDeviceEvent * event)
 {
     // Dispatch the event to all the components in the Device Layer.
+#if WEAVE_DEVICE_CONFIG_ENABLE_WOBLE
+    BLEMgr().OnPlatformEvent(event);
+#endif
+#if WEAVE_DEVICE_CONFIG_ENABLE_THREAD
+    ThreadStackMgr().OnPlatformEvent(event);
+#endif
     ConnectivityMgr().OnPlatformEvent(event);
     DeviceControlSvr().OnPlatformEvent(event);
     DeviceDescriptionSvr().OnPlatformEvent(event);
@@ -385,12 +391,6 @@ void GenericPlatformManagerImpl<ImplClass>::DispatchEventToDeviceLayer(const Wea
     ServiceProvisioningSvr().OnPlatformEvent(event);
     TraitMgr().OnPlatformEvent(event);
     TimeSyncMgr().OnPlatformEvent(event);
-#if WEAVE_DEVICE_CONFIG_ENABLE_WOBLE
-    BLEMgr().OnPlatformEvent(event);
-#endif
-#if WEAVE_DEVICE_CONFIG_ENABLE_THREAD
-    ThreadStackMgr().OnPlatformEvent(event);
-#endif
 }
 
 template<class ImplClass>

@@ -45,51 +45,70 @@ void LogOpenThreadStateChange(otInstance * otInst, uint32_t flags)
 {
 #if WEAVE_DETAIL_LOGGING
 
-        WeaveLogDetail(DeviceLayer, "OpenThread State Changed (Flags: 0x%08x)", flags);
-        if ((flags & OT_CHANGED_THREAD_ROLE) != 0)
-        {
-            WeaveLogDetail(DeviceLayer, "   Device Role: %s", OpenThreadRoleToStr(otThreadGetDeviceRole(otInst)));
-        }
-        if ((flags & OT_CHANGED_THREAD_NETWORK_NAME) != 0)
-        {
-            WeaveLogDetail(DeviceLayer, "   Network Name: %s", otThreadGetNetworkName(otInst));
-        }
-        if ((flags & OT_CHANGED_THREAD_PANID) != 0)
-        {
-            WeaveLogDetail(DeviceLayer, "   PAN Id: 0x%04X", otLinkGetPanId(otInst));
-        }
-        if ((flags & OT_CHANGED_THREAD_EXT_PANID) != 0)
+    const uint32_t kParamsChanged = (OT_CHANGED_THREAD_NETWORK_NAME |
+                                     OT_CHANGED_THREAD_PANID |
+                                     OT_CHANGED_THREAD_EXT_PANID |
+                                     OT_CHANGED_THREAD_CHANNEL |
+                                     OT_CHANGED_MASTER_KEY |
+                                     OT_CHANGED_PSKC);
+
+    static char strBuf[64];
+
+    WeaveLogDetail(DeviceLayer, "OpenThread State Changed (Flags: 0x%08x)", flags);
+    if ((flags & OT_CHANGED_THREAD_ROLE) != 0)
+    {
+        WeaveLogDetail(DeviceLayer, "   Device Role: %s", OpenThreadRoleToStr(otThreadGetDeviceRole(otInst)));
+    }
+    if ((flags & kParamsChanged) != 0)
+    {
+        WeaveLogDetail(DeviceLayer, "   Network Name: %s", otThreadGetNetworkName(otInst));
+        WeaveLogDetail(DeviceLayer, "   PAN Id: 0x%04X", otLinkGetPanId(otInst));
         {
             const otExtendedPanId * exPanId = otThreadGetExtendedPanId(otInst);
-            static char exPanIdStr[32];
-            snprintf(exPanIdStr, sizeof(exPanIdStr), "0x%02X%02X%02X%02X%02X%02X%02X%02X",
+            snprintf(strBuf, sizeof(strBuf), "0x%02X%02X%02X%02X%02X%02X%02X%02X",
                      exPanId->m8[0], exPanId->m8[1], exPanId->m8[2], exPanId->m8[3],
                      exPanId->m8[4], exPanId->m8[5], exPanId->m8[6], exPanId->m8[7]);
-            WeaveLogDetail(DeviceLayer, "   Extended PAN Id: %s", exPanIdStr);
+            WeaveLogDetail(DeviceLayer, "   Extended PAN Id: %s", strBuf);
         }
-        if ((flags & OT_CHANGED_THREAD_CHANNEL) != 0)
+        WeaveLogDetail(DeviceLayer, "   Channel: %d", otLinkGetChannel(otInst));
         {
-            WeaveLogDetail(DeviceLayer, "   Channel: %d", otLinkGetChannel(otInst));
+            const otMeshLocalPrefix * otMeshPrefix = otThreadGetMeshLocalPrefix(otInst);
+            nl::Inet::IPAddress meshPrefix;
+            memset(meshPrefix.Addr, 0, sizeof(meshPrefix.Addr));
+            memcpy(meshPrefix.Addr, otMeshPrefix->m8, sizeof(otMeshPrefix->m8));
+            meshPrefix.ToString(strBuf, sizeof(strBuf));
+            WeaveLogDetail(DeviceLayer, "   Mesh Prefix: %s/64", strBuf);
         }
-        if ((flags & (OT_CHANGED_IP6_ADDRESS_ADDED|OT_CHANGED_IP6_ADDRESS_REMOVED)) != 0)
+#if WEAVE_CONFIG_SECURITY_TEST_MODE
         {
-            WeaveLogDetail(DeviceLayer, "   Interface Addresses:");
-            for (const otNetifAddress * addr = otIp6GetUnicastAddresses(otInst); addr != NULL; addr = addr->mNext)
-            {
-                static char ipAddrStr[64];
-                nl::Inet::IPAddress ipAddr;
-
-                memcpy(ipAddr.Addr, addr->mAddress.mFields.m32, sizeof(ipAddr.Addr));
-
-                ipAddr.ToString(ipAddrStr, sizeof(ipAddrStr));
-
-                WeaveLogDetail(DeviceLayer, "        %s/%d%s%s%s", ipAddrStr,
-                                 addr->mPrefixLength,
-                                 addr->mValid ? " valid" : "",
-                                 addr->mPreferred ? " preferred" : "",
-                                 addr->mRloc ? " rloc" : "");
-            }
+            const otMasterKey * otKey = otThreadGetMasterKey(otInst);
+            for (int i = 0; i < OT_MASTER_KEY_SIZE; i++)
+                snprintf(&strBuf[i*2], 3, "%02X", otKey->m8[i]);
+            WeaveLogDetail(DeviceLayer, "   Master Key: %s", strBuf);
         }
+#endif // WEAVE_CONFIG_SECURITY_TEST_MODE
+    }
+    if ((flags & OT_CHANGED_THREAD_PARTITION_ID) != 0)
+    {
+        WeaveLogDetail(DeviceLayer, "   Partition Id: 0x%" PRIX32, otThreadGetPartitionId(otInst));
+    }
+    if ((flags & (OT_CHANGED_IP6_ADDRESS_ADDED|OT_CHANGED_IP6_ADDRESS_REMOVED)) != 0)
+    {
+        WeaveLogDetail(DeviceLayer, "   Thread Unicast Addresses:");
+        for (const otNetifAddress * addr = otIp6GetUnicastAddresses(otInst); addr != NULL; addr = addr->mNext)
+        {
+            nl::Inet::IPAddress ipAddr;
+            memcpy(ipAddr.Addr, addr->mAddress.mFields.m32, sizeof(ipAddr.Addr));
+
+            ipAddr.ToString(strBuf, sizeof(strBuf));
+
+            WeaveLogDetail(DeviceLayer, "        %s/%d%s%s%s", strBuf,
+                             addr->mPrefixLength,
+                             addr->mValid ? " valid" : "",
+                             addr->mPreferred ? " preferred" : "",
+                             addr->mRloc ? " rloc" : "");
+        }
+    }
 
 #endif // WEAVE_DETAIL_LOGGING
 }
