@@ -17,7 +17,7 @@
  */
 
 #include <Weave/DeviceLayer/internal/WeaveDeviceLayerInternal.h>
-#include <Weave/DeviceLayer/internal/NetworkInfo.h>
+#include <Weave/DeviceLayer/internal/DeviceNetworkInfo.h>
 #include <Weave/Core/WeaveTLV.h>
 #include <Weave/Profiles/WeaveProfiles.h>
 
@@ -33,7 +33,7 @@ namespace Weave {
 namespace DeviceLayer {
 namespace Internal {
 
-void NetworkInfo::Reset()
+void DeviceNetworkInfo::Reset()
 {
     memset(this, 0, sizeof(*this));
     NetworkType = kNetworkType_NotSpecified;
@@ -49,7 +49,7 @@ void NetworkInfo::Reset()
     WirelessSignalStrength = INT16_MIN;
 }
 
-WEAVE_ERROR NetworkInfo::Encode(nl::Weave::TLV::TLVWriter & writer) const
+WEAVE_ERROR DeviceNetworkInfo::Encode(nl::Weave::TLV::TLVWriter & writer) const
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
     TLVType outerContainer;
@@ -166,7 +166,7 @@ exit:
     return err;
 }
 
-WEAVE_ERROR NetworkInfo::Decode(nl::Weave::TLV::TLVReader & reader)
+WEAVE_ERROR DeviceNetworkInfo::Decode(nl::Weave::TLV::TLVReader & reader)
 {
     WEAVE_ERROR err;
     TLVType outerContainer;
@@ -328,7 +328,7 @@ exit:
     return err;
 }
 
-WEAVE_ERROR NetworkInfo::MergeTo(NetworkInfo & dest)
+WEAVE_ERROR DeviceNetworkInfo::MergeTo(DeviceNetworkInfo & dest)
 {
     if (NetworkType != kNetworkType_NotSpecified)
     {
@@ -403,7 +403,7 @@ WEAVE_ERROR NetworkInfo::MergeTo(NetworkInfo & dest)
     return WEAVE_NO_ERROR;
 }
 
-WEAVE_ERROR NetworkInfo::EncodeArray(nl::Weave::TLV::TLVWriter & writer, const NetworkInfo * elems, size_t count)
+WEAVE_ERROR DeviceNetworkInfo::EncodeArray(nl::Weave::TLV::TLVWriter & writer, const DeviceNetworkInfo * elems, size_t count)
 {
     WEAVE_ERROR err;
     TLVType outerContainerType;

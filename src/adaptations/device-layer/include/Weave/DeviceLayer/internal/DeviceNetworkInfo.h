@@ -16,8 +16,8 @@
  *    limitations under the License.
  */
 
-#ifndef NETWORK_INFO_H
-#define NETWORK_INFO_H
+#ifndef DEVICE_NETWORK_INFO_H
+#define DEVICE_NETWORK_INFO_H
 
 #include <Weave/DeviceLayer/internal/WeaveDeviceLayerInternal.h>
 #include <Weave/Core/WeaveTLV.h>
@@ -37,7 +37,7 @@ enum
     kWiFiStationNetworkId                           = 2,
 };
 
-class NetworkInfo
+class DeviceNetworkInfo
 {
 public:
     typedef ::nl::Weave::Profiles::NetworkProvisioning::NetworkType NetworkType_t;
@@ -103,8 +103,8 @@ public:
     void Reset();
     WEAVE_ERROR Decode(::nl::Weave::TLV::TLVReader & reader);
     WEAVE_ERROR Encode(::nl::Weave::TLV::TLVWriter & writer) const;
-    WEAVE_ERROR MergeTo(NetworkInfo & dest);
-    static WEAVE_ERROR EncodeArray(nl::Weave::TLV::TLVWriter & writer, const NetworkInfo * elems, size_t count);
+    WEAVE_ERROR MergeTo(DeviceNetworkInfo & dest);
+    static WEAVE_ERROR EncodeArray(nl::Weave::TLV::TLVWriter & writer, const DeviceNetworkInfo * elems, size_t count);
 };
 
 } // namespace Internal
@@ -112,4 +112,4 @@ public:
 } // namespace Weave
 } // namespace nl
 
-#endif // NETWORK_INFO_H
+#endif // DEVICE_NETWORK_INFO_H
