@@ -273,6 +273,7 @@ public:
                         const uint32_t aConnectTimeoutMsecs = 0,
                         const InterfaceId aConnectIntf = INET_NULL_INTERFACEID);
 
+    WEAVE_ERROR lookup(uint64_t aServiceEp, HostPortList *outHostPortList);
     WEAVE_ERROR lookup(uint64_t aServiceEp, uint8_t *aControlByte, uint8_t **aDirectoryEntry);
 
     WEAVE_ERROR replaceOrAddCacheEntry(uint16_t port,
