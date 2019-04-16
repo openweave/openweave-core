@@ -47,8 +47,8 @@
 // Test input data.
 
 
-static int32_t sContext[] = {
-      0,
+static int32_t sContext[] =
+{
       WEAVE_SYSTEM_ERROR_NOT_IMPLEMENTED,
       WEAVE_SYSTEM_ERROR_NOT_SUPPORTED,
       WEAVE_SYSTEM_ERROR_BAD_ARGS,
@@ -84,6 +84,8 @@ static int32_t sContext[] = {
       INET_ERROR_INVALID_IPV6_PKT,
       INET_ERROR_INTERFACE_INIT_FAILURE,
       INET_ERROR_TCP_USER_TIMEOUT,
+      INET_ERROR_TCP_CONNECT_TIMEOUT,
+      INET_ERROR_INCOMPATIBLE_IP_ADDRESS_TYPE,
 
       BLE_ERROR_BAD_ARGS,
       BLE_ERROR_INCORRECT_STATE,
@@ -304,12 +306,6 @@ static int32_t sContext[] = {
       ASN1_ERROR_LENGTH_OVERFLOW,
       ASN1_ERROR_VALUE_OVERFLOW,
       ASN1_ERROR_UNKNOWN_OBJECT_ID,
-
-      // SubsystemFormatError
-      INET_ERROR_MIN + 150,
-      WEAVE_ERROR_MIN + 150,
-      ASN1_ERROR_MIN + 150,
-      BLE_ERROR_MIN + 150
 };
 
 static const size_t kTestElements = sizeof(sContext) / sizeof(sContext[0]);
@@ -317,21 +313,28 @@ static const size_t kTestElements = sizeof(sContext) / sizeof(sContext[0]);
 
 static void CheckErrorStrStart(nlTestSuite *inSuite, void *inContext)
 {
-    char errStr[20];
+    nl::Weave::System::RegisterSystemLayerErrorFormatter();
+    nl::Inet::RegisterInetLayerErrorFormatter();
+    nl::Ble::RegisterBleLayerErrorFormatter();
 
-    // init errStr with FormatError(err), which is for the error that does not have a well defined description string
-    // then compare the actural ErrorStr(err) with errStr to ensure that each err has its description sting
-    for (size_t ith = 0; ith < kTestElements; ith++)
+    // For each defined error...
+    for (size_t i = 0; i < kTestElements; i++)
     {
-#if WEAVE_CONFIG_SHORT_ERROR_STR
-        snprintf(errStr, sizeof(errStr), "Error 0x%" PRIx32, sContext[ith]);
-#else
-        snprintf(errStr, sizeof(errStr), "Error %" PRId32, sContext[ith]);
-#endif
-        NL_TEST_ASSERT(inSuite, (strcmp(ErrorStr(sContext[ith]), errStr) != 0));
+        int32_t err = sContext[i];
+        const char * errStr = ErrorStr(err);
+
+        // Assert that the error string contains the error number in hex.
+        char expectedText[9];
+        snprintf(expectedText, sizeof(expectedText), "%08" PRIX32, err);
+        NL_TEST_ASSERT(inSuite, (strstr(errStr, expectedText) != NULL));
+
+#if !WEAVE_CONFIG_SHORT_ERROR_STR
+        // Assert that the error string contains a description, which is signaled
+        // by a presence of a colon proceeding the description.
+        NL_TEST_ASSERT(inSuite, (strchr(errStr, ':') != NULL));
+#endif // !WEAVE_CONFIG_SHORT_ERROR_STR
     }
 }
-
 
 /**
  *   Test Suite. It lists all the test functions.

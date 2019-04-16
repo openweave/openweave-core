@@ -1777,7 +1777,7 @@
  *
  */
 #ifndef WEAVE_CONFIG_TEST
-#define WEAVE_CONFIG_TEST                                0
+#define WEAVE_CONFIG_TEST                                   0
 #endif // WEAVE_CONFIG_TEST
 
 /**
@@ -1789,8 +1789,67 @@
  *
  */
 #ifndef WEAVE_CONFIG_SHORT_ERROR_STR
-#define WEAVE_CONFIG_SHORT_ERROR_STR                     0
+#define WEAVE_CONFIG_SHORT_ERROR_STR                        0
 #endif // WEAVE_CONFIG_SHORT_ERROR_STR
+
+/**
+ *  @def WEAVE_CONFIG_ERROR_STR_SIZE
+ *
+ *  @brief
+ *    This defines the size of the buffer to store a formatted error string.
+ *    If the formatting of an error string exceeds this size it will be truncated.
+ *
+ *    The default size varies based on the WEAVE_CONFIG_SHORT_ERROR_STR option.
+ *
+ *    When WEAVE_CONFIG_SHORT_ERROR_STR is 0, a large default buffer size is used
+ *    to accommodate descriptive text summarizing the cause of the error. E.g.:
+ *
+ *         "Weave Error 4047 (0x00000FCF): Invalid Argument"
+ *
+ *    When WEAVE_CONFIG_SHORT_ERROR_STR is 1, the buffer size is set to accommodate
+ *    a minimal error string consisting of a 10 character subsystem name followed
+ *    by an 8 character error number, plus boilerplate. E.g.:
+ *
+ *         "Error Weave:0x00000FCF"
+ *
+ */
+#ifndef WEAVE_CONFIG_ERROR_STR_SIZE
+#if WEAVE_CONFIG_SHORT_ERROR_STR
+#define WEAVE_CONFIG_ERROR_STR_SIZE                         (5 + 1 + 10 + 3 + 8 + 1)
+#else // WEAVE_CONFIG_SHORT_ERROR_STR
+#define WEAVE_CONFIG_ERROR_STR_SIZE                         256
+#endif // WEAVE_CONFIG_SHORT_ERROR_STR
+#endif // WEAVE_CONFIG_ERROR_STR_SIZE
+
+/**
+ *  @def WEAVE_CONFIG_CUSTOM_ERROR_FORMATTER
+ *
+ *  @brief
+ *    If asserted (1), suppress definition of the standard error formatting function
+ *    (#nl::FormatError()) allowing an application-specific implementation to be used.
+ *
+ */
+#ifndef WEAVE_CONFIG_CUSTOM_ERROR_FORMATTER
+#define WEAVE_CONFIG_CUSTOM_ERROR_FORMATTER                 0
+#endif // WEAVE_CONFIG_CUSTOM_ERROR_FORMATTER
+
+/**
+ *  @def WEAVE_CONFIG_SHORT_FORM_ERROR_VALUE_FORMAT
+ *
+ *  @brief
+ *    The printf-style format string used to format error values.
+ *
+ *  On some platforms, the structure of error values makes them more convenient to
+ *  read in either hex or decimal format.  This option can be used to override
+ *  the default hex format.
+ *
+ *  Note that this option only affects short-form error strings (i.e. when
+ *  WEAVE_CONFIG_SHORT_ERROR_STR == 1).  Long form error strings always show both hex
+ *  and decimal values
+ */
+#ifndef WEAVE_CONFIG_SHORT_FORM_ERROR_VALUE_FORMAT
+#define WEAVE_CONFIG_SHORT_FORM_ERROR_VALUE_FORMAT          "0x%08" PRIX32
+#endif // WEAVE_CONFIG_SHORT_FORM_ERROR_VALUE_FORMAT
 
 /**
  *  @def WEAVE_CONFIG_BLE_PKT_RESERVED_SIZE
@@ -1802,7 +1861,7 @@
  *
  */
 #ifndef WEAVE_CONFIG_BLE_PKT_RESERVED_SIZE
-#define WEAVE_CONFIG_BLE_PKT_RESERVED_SIZE               0
+#define WEAVE_CONFIG_BLE_PKT_RESERVED_SIZE                  0
 #endif // WEAVE_CONFIG_BLE_PKT_RESERVED_SIZE
 
 /**
@@ -1814,7 +1873,7 @@
  *
  */
 #ifndef WEAVE_CONFIG_ENABLE_SECURITY_DEBUG_FUNCS
-#define WEAVE_CONFIG_ENABLE_SECURITY_DEBUG_FUNCS         1
+#define WEAVE_CONFIG_ENABLE_SECURITY_DEBUG_FUNCS            1
 #endif // WEAVE_CONFIG_ENABLE_SECURITY_DEBUG_FUNCS
 
 /**

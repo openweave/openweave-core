@@ -26,6 +26,7 @@
 
 nl_WeaveSupport_sources                                                                   = \
     @top_builddir@/src/lib/support/ASN1OID.cpp                                              \
+    @top_builddir@/src/lib/support/ASN1Error.cpp                                            \
     @top_builddir@/src/lib/support/ASN1Reader.cpp                                           \
     @top_builddir@/src/lib/support/ASN1Writer.cpp                                           \
     @top_builddir@/src/lib/support/Base64.cpp                                               \

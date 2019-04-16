@@ -39,6 +39,7 @@
 #include <string.h>
 #endif // !WEAVE_SYSTEM_CONFIG_PLATFORM_PROVIDES_POSIX_ERROR_FUNCTIONS
 
+#include <Weave/Support/ErrorStr.h>
 #include <Weave/Support/NLDLLUtil.h>
 
 #if !WEAVE_SYSTEM_CONFIG_PLATFORM_PROVIDES_POSIX_ERROR_FUNCTIONS
@@ -95,6 +96,60 @@ namespace nl {
 namespace Weave {
 namespace System {
 
+/**
+ * Register a text error formatter for System Layer errors.
+ */
+void RegisterSystemLayerErrorFormatter(void)
+{
+    static ErrorFormatter sSystemLayerErrorFormatter =
+    {
+        FormatSystemLayerError,
+        NULL
+    };
+
+    RegisterErrorFormatter(&sSystemLayerErrorFormatter);
+}
+
+/**
+ * Given a System Layer error, returns a human-readable NULL-terminated C string
+ * describing the error.
+ *
+ * @param[in] buf                   Buffer into which the error string will be placed.
+ * @param[in] bufSize               Size of the supplied buffer in bytes.
+ * @param[in] err                   The error to be described.
+ *
+ * @return true                     If a description string was written into the supplied buffer.
+ * @return false                    If the supplied error was not a System Layer error.
+ *
+ */
+bool FormatSystemLayerError(char * buf, uint16_t bufSize, int32_t err)
+{
+    const char * desc = NULL;
+
+    if (err < WEAVE_SYSTEM_ERROR_MIN || err > WEAVE_SYSTEM_ERROR_MAX)
+    {
+        return false;
+    }
+
+#if !WEAVE_CONFIG_SHORT_ERROR_STR
+    switch (err)
+    {
+    case WEAVE_SYSTEM_ERROR_NOT_IMPLEMENTED                     : desc = "Not implemented"; break;
+    case WEAVE_SYSTEM_ERROR_NOT_SUPPORTED                       : desc = "Not supported"; break;
+    case WEAVE_SYSTEM_ERROR_BAD_ARGS                            : desc = "Bad arguments"; break;
+    case WEAVE_SYSTEM_ERROR_UNEXPECTED_STATE                    : desc = "Unexpected state"; break;
+    case WEAVE_SYSTEM_ERROR_UNEXPECTED_EVENT                    : desc = "Unexpected event"; break;
+    case WEAVE_SYSTEM_ERROR_NO_MEMORY                           : desc = "No memory"; break;
+    case WEAVE_SYSTEM_ERROR_REAL_TIME_NOT_SYNCED                : desc = "Real time not synchronized"; break;
+    case WEAVE_SYSTEM_ERROR_ACCESS_DENIED                       : desc = "Access denied"; break;
+    }
+#endif // !WEAVE_CONFIG_SHORT_ERROR_STR
+
+    nl::FormatError(buf, bufSize, "Sys", err, desc);
+
+    return true;
+}
+
 #if !WEAVE_SYSTEM_CONFIG_PLATFORM_PROVIDES_POSIX_ERROR_FUNCTIONS
 /**
  * This implements a mapping function for Weave System Layer errors that allows mapping integers in the number space of the
@@ -136,7 +191,55 @@ NL_DLL_EXPORT bool IsErrorPOSIX(Error aError)
 {
     return (aError >= WEAVE_SYSTEM_POSIX_ERROR_MIN && aError <= WEAVE_SYSTEM_POSIX_ERROR_MAX);
 }
+
 #endif // !WEAVE_SYSTEM_CONFIG_PLATFORM_PROVIDES_POSIX_ERROR_FUNCTIONS
+
+/**
+ * Register a text error formatter for POSIX errors.
+ */
+void RegisterPOSIXErrorFormatter(void)
+{
+    static ErrorFormatter sPOSIXErrorFormatter =
+    {
+        FormatPOSIXError,
+        NULL
+    };
+
+    RegisterErrorFormatter(&sPOSIXErrorFormatter);
+}
+
+/**
+ * Given a POSIX error, returns a human-readable NULL-terminated C string
+ * describing the error.
+ *
+ * @param[in] buf                   Buffer into which the error string will be placed.
+ * @param[in] bufSize               Size of the supplied buffer in bytes.
+ * @param[in] err                   The error to be described.
+ *
+ * @return true                     If a description string was written into the supplied buffer.
+ * @return false                    If the supplied error was not a POSIX error.
+ *
+ */
+bool FormatPOSIXError(char * buf, uint16_t bufSize, int32_t err)
+{
+    const Error sysErr = static_cast<Error>(err);
+
+    if (IsErrorPOSIX(sysErr))
+    {
+        const char * desc =
+#if WEAVE_CONFIG_SHORT_ERROR_STR
+                NULL;
+#else
+                DescribeErrorPOSIX(sysErr);
+#endif
+        FormatError(buf, bufSize, "OS", err, desc);
+        return true;
+    }
+    else
+    {
+        return false;
+    }
+}
 
 #if WEAVE_SYSTEM_CONFIG_USE_LWIP
 #if !WEAVE_SYSTEM_CONFIG_PLATFORM_PROVIDES_LWIP_ERROR_FUNCTIONS
@@ -192,7 +295,56 @@ NL_DLL_EXPORT bool IsErrorLwIP(Error aError)
 }
 
 #endif // !WEAVE_SYSTEM_CONFIG_PLATFORM_PROVIDES_LWIP_ERROR_FUNCTIONS
+
+/**
+ * Register a text error formatter for LwIP errors.
+ */
+void RegisterLwIPErrorFormatter(void)
+{
+    static ErrorFormatter sLwIPErrorFormatter =
+    {
+        FormatLwIPError,
+        NULL
+    };
+
+    RegisterErrorFormatter(&sLwIPErrorFormatter);
+}
+
+/**
+ * Given an LwIP error, returns a human-readable NULL-terminated C string
+ * describing the error.
+ *
+ * @param[in] buf                   Buffer into which the error string will be placed.
+ * @param[in] bufSize               Size of the supplied buffer in bytes.
+ * @param[in] err                   The error to be described.
+ *
+ * @return true                     If a description string was written into the supplied buffer.
+ * @return false                    If the supplied error was not an LwIP error.
+ *
+ */
+bool FormatLwIPError(char * buf, uint16_t bufSize, int32_t err)
+{
+    const Weave::System::Error sysErr = static_cast<Weave::System::Error>(err);
+
+    if (IsErrorLwIP(sysErr))
+    {
+        const char * desc =
+#if WEAVE_CONFIG_SHORT_ERROR_STR
+                NULL;
+#else
+                DescribeErrorLwIP(sysErr);
+#endif
+        nl::FormatError(buf, bufSize, "LwIP", err, desc);
+        return true;
+    }
+    else
+    {
+        return false;
+    }
+}
+
 #endif // WEAVE_SYSTEM_CONFIG_USE_LWIP
+
 
 } // namespace System
 } // namespace Weave

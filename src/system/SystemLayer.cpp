@@ -117,6 +117,14 @@ Error Layer::Init(void* aContext)
     int lOSReturn, lFlags;
 #endif // WEAVE_SYSTEM_CONFIG_USE_SOCKETS
 
+    RegisterSystemLayerErrorFormatter();
+#if WEAVE_SYSTEM_CONFIG_USE_SOCKETS
+    RegisterPOSIXErrorFormatter();
+#endif // WEAVE_SYSTEM_CONFIG_USE_SOCKETS
+#if WEAVE_SYSTEM_CONFIG_USE_LWIP
+    RegisterLwIPErrorFormatter();
+#endif // WEAVE_SYSTEM_CONFIG_USE_LWIP
+
     if (this->mLayerState != kLayerState_NotInitialized)
         return WEAVE_SYSTEM_ERROR_UNEXPECTED_STATE;
 
