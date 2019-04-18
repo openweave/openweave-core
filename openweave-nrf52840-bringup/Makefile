@@ -21,26 +21,15 @@
 #         Makefile for building the nRF52840 OpenWeave bring-up app.
 #
 
-PROJ_DIR := .
-OUTPUT_DIRECTORY := build
-TEMPLATE_PATH := $(NRF5_SDK_ROOT)/components/toolchain/gcc
+include nrf5-app.mk
+include nrf5-openweave.mk
 
-TARGET := openweave-nrf52840-bringup
+PROJECT_ROOT := $(realpath .)
 
-# Build Flags
-#
-#     DEBUG     - Build application with symbol information
-#
-#     MMD       - Enable J-Link Monitor Mode Debugging
-#
-#                 This required the JLINK_MONITOR_ISR_SES.s source file to be
-#                 located in the project root directory.  This file can be
-#                 downloaded from https://www.segger.com/products/debug-probes/j-link/technology/monitor-mode-debugging/.
-DEBUG ?= 1
-MMD ?= 0
+APP := openweave-nrf52840-bringup
 
-SRC_FILES := \
-    $(PROJ_DIR)/main.cpp \
+SRCS = \
+    $(PROJECT_ROOT)/main.cpp \
     $(NRF5_SDK_ROOT)/components/ble/common/ble_advdata.c \
     $(NRF5_SDK_ROOT)/components/ble/common/ble_srv_common.c \
     $(NRF5_SDK_ROOT)/components/ble/nrf_ble_gatt/nrf_ble_gatt.c \
@@ -120,8 +109,8 @@ SRC_FILES := \
     $(NRF5_SDK_ROOT)/modules/nrfx/mdk/gcc_startup_nrf52840.S \
     $(NRF5_SDK_ROOT)/modules/nrfx/mdk/system_nrf52840.c
       
-INC_FOLDERS = \
-    $(realpath $(PROJ_DIR)) \
+INC_DIRS = \
+    $(PROJECT_ROOT) \
     $(NRF5_SDK_ROOT)/components \
     $(NRF5_SDK_ROOT)/components/boards \
     $(NRF5_SDK_ROOT)/components/ble/ble_advertising \
@@ -173,35 +162,19 @@ INC_FOLDERS = \
     $(NRF5_SDK_ROOT)/modules/nrfx \
     $(NRF5_SDK_ROOT)/modules/nrfx/drivers/include \
     $(NRF5_SDK_ROOT)/modules/nrfx/hal \
-    $(NRF5_SDK_ROOT)/modules/nrfx/mdk \
-    $(WEAVE_INCLUDES)
+    $(NRF5_SDK_ROOT)/modules/nrfx/mdk
 
-ifeq ($(MMD),1)
-SRC_FILES += $(PROJ_DIR)/JLINK_MONITOR_ISR_SES.s
-endif
+LDFLAGS = \
+    -L$(NRF5_SDK_ROOT)/external/openthread/lib/gcc \
+    -L$(NRF5_SDK_ROOT)/external/nrf_cc310/lib
 
-LIB_FILES = \
-    $(WEAVE_LIBS) \
-    $(NRF5_SDK_ROOT)/external/openthread/lib/gcc/libopenthread-diag.a \
-    $(NRF5_SDK_ROOT)/external/openthread/lib/gcc/libopenthread-ftd.a \
-    $(NRF5_SDK_ROOT)/external/openthread/lib/gcc/libopenthread-platform-utils.a \
-    $(NRF5_SDK_ROOT)/external/openthread/lib/gcc/libmbedcrypto.a \
-    $(NRF5_SDK_ROOT)/external/openthread/lib/gcc/libopenthread-nrf52840-softdevice-sdk.a \
-    $(NRF5_SDK_ROOT)/external/nrf_cc310/lib/libnrf_cc310_0.9.10.a \
-    $(NRF5_SDK_ROOT)/external/openthread/lib/gcc/libopenthread-diag.a \
-    $(NRF5_SDK_ROOT)/external/openthread/lib/gcc/libopenthread-nrf52840-softdevice-sdk.a \
-    -lc \
-    -lstdc++ \
-    -lnosys \
-    -lm
-
-LINKER_SCRIPT = $(TARGET).ld
-
-ifeq ($(DEBUG),1)
-OPT := -g3 -ggdb3
-else
-OPT := -Os -g3
-endif
+LIBS = \
+    -lopenthread-diag \
+    -lopenthread-ftd \
+    -lopenthread-platform-utils \
+    -lmbedcrypto \
+    -lopenthread-nrf52840-softdevice-sdk \
+    -lnrf_cc310_0.9.10
 
 DEFINES = \
     NRF52840_XXAA \
@@ -214,81 +187,4 @@ DEFINES = \
     __STACK_SIZE=8192 \
     SOFTDEVICE_PRESENT
 
-ifeq ($(DEBUG),1)
-DEFINES += DEBUG
-endif
-	
-ifeq ($(MMD),1)
-DEFINES += JLINK_MMD
-endif
-	
-CFLAGS = \
-    -DBOARD_PCA10056 \
-    -DBSP_DEFINES_ONLY \
-    -DCONFIG_GPIO_AS_PINRESET \
-    -DFLOAT_ABI_HARD \
-    -mcpu=cortex-m4 \
-    -mthumb \
-    -mabi=aapcs \
-    -Wall \
-    -mfloat-abi=hard \
-    -mfpu=fpv4-sp-d16 \
-    -ffunction-sections \
-    -fdata-sections \
-    -fno-strict-aliasing \
-    -fshort-enums \
-    --specs=nosys.specs \
-    $(OPT) \
-    $(foreach def,$(DEFINES),-D$(def))
-
-CXXFLAGS = \
-    -fno-rtti \
-    -fno-exceptions \
-    -fno-unwind-tables	
-
-ASMFLAGS := \
-    -g3 \
-    -mcpu=cortex-m4 \
-    -mthumb \
-    -mabi=aapcs \
-    -mfloat-abi=hard \
-    -mfpu=fpv4-sp-d16 \
-    $(foreach def,$(DEFINES),-D$(def))
-
-LDFLAGS := \
-    -mthumb \
-    -mabi=aapcs \
-    -L$(NRF5_SDK_ROOT)/modules/nrfx/mdk \
-    -mcpu=cortex-m4 \
-    -mfloat-abi=hard \
-    -mfpu=fpv4-sp-d16 \
-    -Wl,--gc-sections \
-    --specs=nosys.specs \
-    -T$(LINKER_SCRIPT) \
-    $(OPT)
-
-all : $(TARGET)
-
-include openweave.mk
-
-include $(TEMPLATE_PATH)/Makefile.common
-
-$(call define_target, $(TARGET))
-
-$(OUTPUT_DIRECTORY)/$(TARGET)/main.cpp.o : install-weave
-
-# Flash the application
-flash: $(TARGET)
-	@echo Flashing: $(OUTPUT_DIRECTORY)/$(TARGET).hex
-	$(NRF5_TOOLS_ROOT)/nrfjprog/nrfjprog -f nrf52 --program $(OUTPUT_DIRECTORY)/$(TARGET).hex --sectorerase
-	$(NRF5_TOOLS_ROOT)/nrfjprog/nrfjprog -f nrf52 --reset
-
-# Flash the SoftDevice
-flash_softdevice:
-	@echo Flashing: s140_nrf52_6.1.0_softdevice.hex
-	$(NRF5_TOOLS_ROOT)/nrfjprog/nrfjprog -f nrf52 --program $(NRF5_SDK_ROOT)/components/softdevice/s140/hex/s140_nrf52_6.1.0_softdevice.hex --sectorerase
-	$(NRF5_TOOLS_ROOT)/nrfjprog/nrfjprog -f nrf52 --reset
-
-# Wipe all flash
-erase:
-	$(NRF5_TOOLS_ROOT)/nrfjprog/nrfjprog -f nrf52 --eraseall
+$(call GenerateBuildRules)
