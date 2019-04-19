@@ -151,7 +151,23 @@ WEAVE_ERROR GenericConfigurationManagerImpl<ImplClass>::_StoreDeviceId(uint64_t 
 template<class ImplClass>
 WEAVE_ERROR GenericConfigurationManagerImpl<ImplClass>::_GetSerialNumber(char * buf, size_t bufSize, size_t & serialNumLen)
 {
-    return Impl()->ReadConfigValueStr(ImplClass::kConfigKey_SerialNum, buf, bufSize, serialNumLen);
+    WEAVE_ERROR err;
+
+    err = Impl()->ReadConfigValueStr(ImplClass::kConfigKey_SerialNum, buf, bufSize, serialNumLen);
+#ifdef WEAVE_DEVICE_CONFIG_USE_TEST_SERIAL_NUMBER
+    if (WEAVE_DEVICE_CONFIG_USE_TEST_SERIAL_NUMBER[0] != 0 && err == WEAVE_DEVICE_ERROR_CONFIG_NOT_FOUND)
+    {
+        VerifyOrExit(sizeof(WEAVE_DEVICE_CONFIG_USE_TEST_SERIAL_NUMBER) <= bufSize, err = WEAVE_ERROR_BUFFER_TOO_SMALL);
+        memcpy(buf, WEAVE_DEVICE_CONFIG_USE_TEST_SERIAL_NUMBER, sizeof(WEAVE_DEVICE_CONFIG_USE_TEST_SERIAL_NUMBER));
+        serialNumLen = sizeof(WEAVE_DEVICE_CONFIG_USE_TEST_SERIAL_NUMBER) - 1;
+        WeaveLogProgress(DeviceLayer, "Serial Number not found; using default: %s", WEAVE_DEVICE_CONFIG_USE_TEST_SERIAL_NUMBER);
+        err = WEAVE_NO_ERROR;
+    }
+#endif // WEAVE_DEVICE_CONFIG_USE_TEST_SERIAL_NUMBER
+    SuccessOrExit(err);
+
+exit:
+    return err;
 }
 
 template<class ImplClass>
