@@ -26,7 +26,6 @@
 #include <openthread/dataset.h>
 #include <openthread/error.h>
 #include <openthread/icmp6.h>
-///#include <openthread/logging.h>
 #include <openthread/platform/openthread-system.h>
 extern "C" {
 #include <openthread/platform/platform-softdevice.h>

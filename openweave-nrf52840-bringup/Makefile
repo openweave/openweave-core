@@ -21,8 +21,12 @@
 #         Makefile for building the nRF52840 OpenWeave bring-up app.
 #
 
+# Disable building OpenThread from source for the time being.
+USE_PREBUILT_OPENTHREAD ?= 1
+
 include nrf5-app.mk
 include nrf5-openweave.mk
+include nrf5-openthread.mk
 
 PROJECT_ROOT := $(realpath .)
 
@@ -154,7 +158,6 @@ INC_DIRS = \
     $(NRF5_SDK_ROOT)/external/freertos/portable/CMSIS/nrf52 \
     $(NRF5_SDK_ROOT)/external/freertos/portable/GCC/nrf52 \
     $(NRF5_SDK_ROOT)/external/freertos/source/include \
-    $(NRF5_SDK_ROOT)/external/openthread/include \
     $(NRF5_SDK_ROOT)/external/nrf_cc310/include \
     $(NRF5_SDK_ROOT)/external/segger_rtt \
     $(NRF5_SDK_ROOT)/integration/nrfx \
@@ -165,16 +168,7 @@ INC_DIRS = \
     $(NRF5_SDK_ROOT)/modules/nrfx/mdk
 
 LDFLAGS = \
-    -L$(NRF5_SDK_ROOT)/external/openthread/lib/gcc \
     -L$(NRF5_SDK_ROOT)/external/nrf_cc310/lib
-
-LIBS = \
-    -lopenthread-diag \
-    -lopenthread-ftd \
-    -lopenthread-platform-utils \
-    -lmbedcrypto \
-    -lopenthread-nrf52840-softdevice-sdk \
-    -lnrf_cc310_0.9.10
 
 DEFINES = \
     BSP_DEFINES_ONLY \
@@ -184,5 +178,11 @@ DEFINES = \
     __HEAP_SIZE=0 \
     __STACK_SIZE=8192 \
     SOFTDEVICE_PRESENT
+
+# Use an appication-specifc OpenThread project config file to
+# override the default OpenThread configuration.  (Note that
+# this only has effect when USE_PREBUILT_OPENTHREAD=0).
+OPENTHREAD_PROJECT_CONFIG_FILE = OpenThreadConfig.h
+
 
 $(call GenerateBuildRules)

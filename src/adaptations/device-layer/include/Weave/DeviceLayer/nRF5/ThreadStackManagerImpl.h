@@ -30,7 +30,8 @@
 #include <Weave/DeviceLayer/FreeRTOS/GenericThreadStackManagerImpl_FreeRTOS.h>
 #include <openthread/thread.h>
 #include <openthread/tasklet.h>
-#include <openthread/platform/openthread-system.h>
+
+extern "C" void otSysEventSignalPending(void);
 
 namespace nl {
 namespace Weave {

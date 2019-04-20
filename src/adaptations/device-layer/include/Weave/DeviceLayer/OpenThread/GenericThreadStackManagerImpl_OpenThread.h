@@ -27,7 +27,6 @@
 #define GENERIC_THREAD_STACK_MANAGER_IMPL_OPENTHREAD_H
 
 #include <openthread/instance.h>
-#include <openthread/platform/openthread-system.h>
 
 
 namespace nl {

@@ -41,6 +41,8 @@
 
 using namespace ::nl::Weave::Profiles::NetworkProvisioning;
 
+extern "C" void otSysProcessDrivers(otInstance *aInstance);
+
 namespace nl {
 namespace Weave {
 namespace DeviceLayer {
