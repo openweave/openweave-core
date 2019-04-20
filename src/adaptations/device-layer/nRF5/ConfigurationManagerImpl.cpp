@@ -1,4 +1,4 @@
-/*
+ /*
  *
  *    Copyright (c) 2018 Nest Labs, Inc.
  *    All rights reserved.
@@ -152,6 +152,13 @@ void ConfigurationManagerImpl::DoFactoryReset(intptr_t arg)
     {
         WeaveLogError(DeviceLayer, "FactoryResetConfig() failed: %s", nl::ErrorStr(err));
     }
+
+#if WEAVE_DEVICE_CONFIG_ENABLE_THREAD
+
+    WeaveLogProgress(DeviceLayer, "Clearing Thread provision");
+    ThreadStackMgr().ClearThreadProvision();
+
+#endif // WEAVE_DEVICE_CONFIG_ENABLE_THREAD
 
     // Restart the system.
     WeaveLogProgress(DeviceLayer, "System restarting");

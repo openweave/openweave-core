@@ -30,9 +30,11 @@ namespace DeviceLayer {
 
 class PlatformManagerImpl;
 class ThreadStackManagerImpl;
+class ConfigurationManagerImpl;
 
 namespace Internal {
 class DeviceNetworkInfo;
+class DeviceControlServer;
 template<class> class GenericPlatformManagerImpl;
 template<class> class GenericPlatformManagerImpl_FreeRTOS;
 template<class> class GenericConnectivityManagerImpl_Thread;
@@ -73,6 +75,8 @@ private:
     // ===== Members for internal use by the following friends.
 
     friend class PlatformManagerImpl;
+    friend class ConfigurationManagerImpl;
+    friend class Internal::DeviceControlServer;
     template<class> friend class Internal::GenericPlatformManagerImpl;
     template<class> friend class Internal::GenericPlatformManagerImpl_FreeRTOS;
     template<class> friend class Internal::GenericConnectivityManagerImpl_Thread;
