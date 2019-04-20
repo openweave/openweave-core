@@ -30,6 +30,10 @@ NRF_LOG_MODULE_REGISTER();
 #include <Weave/DeviceLayer/internal/WeaveDeviceLayerInternal.h>
 #include <Weave/Support/logging/WeaveLogging.h>
 
+#if WEAVE_DEVICE_CONFIG_ENABLE_THREAD
+#include <openthread/platform/logging.h>
+#endif // WEAVE_DEVICE_CONFIG_ENABLE_THREAD
+
 using namespace ::nl::Weave;
 using namespace ::nl::Weave::DeviceLayer;
 using namespace ::nl::Weave::DeviceLayer::Internal;
@@ -80,41 +84,46 @@ void Log(uint8_t module, uint8_t category, const char *msg, ...)
 {
     va_list v;
 
+    (void)module;
+    (void)category;
+
     va_start(v, msg);
 
 #if NRF_LOG_ENABLED
 
     if (IsCategoryEnabled(category))
     {
-        char formattedMsg[256];
-        size_t formattedMsgLen;
+        {
+            char formattedMsg[256];
+            size_t formattedMsgLen;
 
-        constexpr size_t maxPrefixLen = nlWeaveLoggingModuleNameLen + 3;
-        static_assert(sizeof(formattedMsg) > maxPrefixLen);
+            constexpr size_t maxPrefixLen = nlWeaveLoggingModuleNameLen + 3;
+            static_assert(sizeof(formattedMsg) > maxPrefixLen);
 
-        // Form the log prefix, e.g. "[DL] "
-        formattedMsg[0] = '[';
-        ::GetModuleName(formattedMsg + 1, module);
-        formattedMsgLen = strlen(formattedMsg);
-        formattedMsg[formattedMsgLen++] = ']';
-        formattedMsg[formattedMsgLen++] = ' ';
+            // Form the log prefix, e.g. "[DL] "
+            formattedMsg[0] = '[';
+            ::GetModuleName(formattedMsg + 1, module);
+            formattedMsgLen = strlen(formattedMsg);
+            formattedMsg[formattedMsgLen++] = ']';
+            formattedMsg[formattedMsgLen++] = ' ';
 
-        // Append the log message.
-        vsnprintf(formattedMsg + formattedMsgLen, sizeof(formattedMsg) - formattedMsgLen, msg, v);
+            // Append the log message.
+            vsnprintf(formattedMsg + formattedMsgLen, sizeof(formattedMsg) - formattedMsgLen, msg, v);
 
-        // Invoke the NRF logging library to log the message.
-        switch (category) {
-        case kLogCategory_Error:
-            NRF_LOG_ERROR("%s", NRF_LOG_PUSH(formattedMsg));
-            break;
-        case kLogCategory_Progress:
-        case kLogCategory_Retain:
-        default:
-            NRF_LOG_INFO("%s", NRF_LOG_PUSH(formattedMsg));
-            break;
-        case kLogCategory_Detail:
-            NRF_LOG_DEBUG("%s", NRF_LOG_PUSH(formattedMsg));
-            break;
+            // Invoke the NRF logging library to log the message.
+            switch (category) {
+            case kLogCategory_Error:
+                NRF_LOG_ERROR("%s", NRF_LOG_PUSH(formattedMsg));
+                break;
+            case kLogCategory_Progress:
+            case kLogCategory_Retain:
+            default:
+                NRF_LOG_INFO("%s", NRF_LOG_PUSH(formattedMsg));
+                break;
+            case kLogCategory_Detail:
+                NRF_LOG_DEBUG("%s", NRF_LOG_PUSH(formattedMsg));
+                break;
+            }
         }
 
         // Let the application know that a log message has been emitted.
@@ -142,25 +151,26 @@ NRF_LOG_MODULE_REGISTER();
 extern "C"
 void LwIPLog(const char *msg, ...)
 {
-    char formattedMsg[256];
-
     va_list v;
 
     va_start(v, msg);
 
 #if NRF_LOG_ENABLED
-
-    // Append the log message.
-    size_t len = vsnprintf(formattedMsg, sizeof(formattedMsg), msg, v);
-
-    while (len > 0 && isspace(formattedMsg[len-1]))
     {
-        len--;
-        formattedMsg[len] = 0;
-    }
+        char formattedMsg[256];
 
-    // Invoke the NRF logging library to log the message.
-    NRF_LOG_DEBUG("%s", NRF_LOG_PUSH(formattedMsg));
+        // Append the log message.
+        size_t len = vsnprintf(formattedMsg, sizeof(formattedMsg), msg, v);
+
+        while (len > 0 && isspace(formattedMsg[len-1]))
+        {
+            len--;
+            formattedMsg[len] = 0;
+        }
+
+        // Invoke the NRF logging library to log the message.
+        NRF_LOG_DEBUG("%s", NRF_LOG_PUSH(formattedMsg));
+    }
 
     // Let the application know that a log message has been emitted.
     DeviceLayer::OnLogOutput();
@@ -169,3 +179,56 @@ void LwIPLog(const char *msg, ...)
 
     va_end(v);
 }
+
+#if WEAVE_DEVICE_CONFIG_ENABLE_THREAD
+
+#undef NRF_LOG_MODULE_NAME
+#define NRF_LOG_MODULE_NAME OT
+#include "nrf_log.h"
+NRF_LOG_MODULE_REGISTER();
+
+extern "C"
+void otPlatLog(otLogLevel aLogLevel, otLogRegion aLogRegion, const char *aFormat, ...)
+{
+    va_list v;
+
+    (void)aLogLevel;
+    (void)aLogRegion;
+
+    va_start(v, aFormat);
+
+#if NRF_LOG_ENABLED
+    {
+        char formattedMsg[256];
+
+        // Append the log message.
+        vsnprintf(formattedMsg, sizeof(formattedMsg), aFormat, v);
+
+        // Invoke the NRF logging library to log the message.
+        switch (aLogLevel) {
+        case OT_LOG_LEVEL_CRIT:
+            NRF_LOG_ERROR("%s", NRF_LOG_PUSH(formattedMsg));
+            break;
+        case OT_LOG_LEVEL_WARN:
+            NRF_LOG_WARNING("%s", NRF_LOG_PUSH(formattedMsg));
+            break;
+        case OT_LOG_LEVEL_NOTE:
+        case OT_LOG_LEVEL_INFO:
+        default:
+            NRF_LOG_INFO("%s", NRF_LOG_PUSH(formattedMsg));
+            break;
+        case OT_LOG_LEVEL_DEBG:
+            NRF_LOG_DEBUG("%s", NRF_LOG_PUSH(formattedMsg));
+            break;
+        }
+    }
+
+    // Let the application know that a log message has been emitted.
+    DeviceLayer::OnLogOutput();
+
+#endif // NRF_LOG_ENABLED
+
+    va_end(v);
+}
+
+#endif // WEAVE_DEVICE_CONFIG_ENABLE_THREAD
