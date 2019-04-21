@@ -169,26 +169,28 @@ LATE_BOUND_RULES += OpenThreadBuildRules
 # Rules for configuring, building and installing OpenThread from source.
 define OpenThreadBuildRules
 
-.PHONY : config-thread check-config-thread build-thread install-thread clean-thread
+.PHONY : bootstrap-thread config-thread .check-config-thread build-thread install-thread clean-thread
 
-check-config-thread : | $(OPENTHREAD_OUTPUT_DIR)
+bootstrap-thread $(OPENTHREAD_ROOT)/configure : $(OPENTHREAD_ROOT)/configure.ac
+	@echo "$(HDR_PREFIX)BOOTSTRAPPING OPENTHREAD..."
+	$(NO_ECHO)(cd $(OPENTHREAD_ROOT); ./bootstrap)
+
+.check-config-thread : | $(OPENTHREAD_OUTPUT_DIR)
 	@echo $(OPENTHREAD_ROOT)/configure $(OPENTHREAD_CONFIGURE_OPTIONS) > $(OPENTHREAD_OUTPUT_DIR)/config.args.tmp; \
 	(test -r $(OPENTHREAD_OUTPUT_DIR)/config.args && cmp -s $(OPENTHREAD_OUTPUT_DIR)/config.args.tmp $(OPENTHREAD_OUTPUT_DIR)/config.args) || \
 	    mv $(OPENTHREAD_OUTPUT_DIR)/config.args.tmp $(OPENTHREAD_OUTPUT_DIR)/config.args; \
 	rm -f $(OPENTHREAD_OUTPUT_DIR)/config.args.tmp;
 
-$(OPENTHREAD_OUTPUT_DIR)/config.args : check-config-thread
+$(OPENTHREAD_OUTPUT_DIR)/config.args : .check-config-thread
 	@: # Null action required to work around make's crazy timestamp caching behavior.
 
-$(OPENTHREAD_OUTPUT_DIR)/config.status : $(OPENTHREAD_OUTPUT_DIR)/config.args
+$(OPENTHREAD_OUTPUT_DIR)/config.status : $(OPENTHREAD_ROOT)/configure $(OPENTHREAD_OUTPUT_DIR)/config.args
 	@echo "$(HDR_PREFIX)CONFIGURE OPENTHREAD..."
 	$(NO_ECHO)(cd $(OPENTHREAD_OUTPUT_DIR) && $(OPENTHREAD_ROOT)/configure $(OPENTHREAD_CONFIGURE_OPTIONS))
 
-configure-thread : $(OPENTHREAD_OUTPUT_DIR)/config.status
+config-thread : $(OPENTHREAD_OUTPUT_DIR)/config.status
 
-# TODO: bootstrap openthread
-
-build-thread : configure-thread
+build-thread : config-thread
 	@echo "$(HDR_PREFIX)BUILD OPENTHREAD..."
 	MAKEFLAGS= make -C $(OPENTHREAD_OUTPUT_DIR) --no-print-directory all V=$(VERBOSE)
 
@@ -214,11 +216,11 @@ endif
 # OpenThread-specific help definitions
 # ==================================================
 
-ifneq ($(USE_PREBUILT_OPENTHREAD),1)
-
 define TargetHelp +=
 
 
+  bootstrap-thread      Run the OpenThread bootstrap script.
+  
   config-thread         Run the OpenThread configure script.
   
   build-thread          Build the OpenThread libraries.
@@ -230,4 +232,12 @@ define TargetHelp +=
                         build process.
 endef
 
-endif
+define OptionHelp +=
+
+
+  USE_PREBUILT_OPENTHREAD=[1|0]
+                        Use the prebuilt OpenThread libraries included in
+                        the Nordic nRF5 SDK instead of building OpenThread
+                        from source.
+
+endef

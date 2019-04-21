@@ -167,15 +167,15 @@ LATE_BOUND_RULES += OpenWeaveBuildRules
 # Rules for configuring, building and installing OpenWeave.
 define OpenWeaveBuildRules
 
-.PHONY : config-weave check-config-weave build-weave install-weave clean-weave
+.PHONY : config-weave .check-config-weave build-weave install-weave clean-weave
 
-check-config-weave : | $(OPENWEAVE_OUTPUT_DIR)
+.check-config-weave : | $(OPENWEAVE_OUTPUT_DIR)
 	$(NO_ECHO)echo $(OPENWEAVE_ROOT)/configure $(OPENWEAVE_CONFIGURE_OPTIONS) > $(OPENWEAVE_OUTPUT_DIR)/config.args.tmp; \
 	(test -r $(OPENWEAVE_OUTPUT_DIR)/config.args && cmp -s $(OPENWEAVE_OUTPUT_DIR)/config.args.tmp $(OPENWEAVE_OUTPUT_DIR)/config.args) || \
 	    mv $(OPENWEAVE_OUTPUT_DIR)/config.args.tmp $(OPENWEAVE_OUTPUT_DIR)/config.args; \
 	 rm -f $(OPENWEAVE_OUTPUT_DIR)/config.args.tmp;
 
-$(OPENWEAVE_OUTPUT_DIR)/config.args : check-config-weave
+$(OPENWEAVE_OUTPUT_DIR)/config.args : .check-config-weave
 	@: # Null action required to work around make's crazy timestamp caching behavior.
 
 $(OPENWEAVE_OUTPUT_DIR)/config.status : $(OPENWEAVE_OUTPUT_DIR)/config.args
