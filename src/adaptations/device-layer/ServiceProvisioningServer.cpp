@@ -18,6 +18,7 @@
 
 #include <Weave/DeviceLayer/internal/WeaveDeviceLayerInternal.h>
 #include <Weave/DeviceLayer/internal/ServiceProvisioningServer.h>
+#include <Weave/Profiles/common/CommonProfile.h>
 
 using namespace ::nl;
 using namespace ::nl::Weave;

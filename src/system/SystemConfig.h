@@ -51,6 +51,18 @@
 #include SYSTEM_PROJECT_CONFIG_INCLUDE
 #endif // SYSTEM_PROJECT_CONFIG_INCLUDE
 
+/* Include a platform-specific configuration file, if defined.
+ *
+ * A platform configuration file contains overrides to standard System Layer configuration
+ * that are specific to the platform or OS on which Weave is running.  It is typically
+ * provided as apart of an adaptation layer that adapts OpenWeave to the target
+ * environment.  This adaptation layer may be included in the OpenWeave source tree
+ * itself or implemented externally.
+ */
+#ifdef SYSTEM_PLATFORM_CONFIG_INCLUDE
+#include SYSTEM_PLATFORM_CONFIG_INCLUDE
+#endif
+
 /*--- Sanity check on the build configuration logic. ---*/
 
 #if !(WEAVE_SYSTEM_CONFIG_USE_LWIP || WEAVE_SYSTEM_CONFIG_USE_SOCKETS)

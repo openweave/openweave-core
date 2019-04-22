@@ -58,6 +58,18 @@
 
 #endif // !WEAVE_SYSTEM_CONFIG_TRANSFER_INETLAYER_PROJECT_CONFIGURATION
 
+/* Include a platform-specific configuration file, if defined.
+ *
+ * A platform configuration file contains overrides to standard Inet Layer configuration
+ * that are specific to the platform or OS on which Weave is running.  It is typically
+ * provided as apart of an adaptation layer that adapts OpenWeave to the target
+ * environment.  This adaptation layer may be included in the OpenWeave source tree
+ * itself or implemented externally.
+ */
+#ifdef INET_PLATFORM_CONFIG_INCLUDE
+#include INET_PLATFORM_CONFIG_INCLUDE
+#endif
+
 // clang-format off
 
 /**

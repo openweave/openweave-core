@@ -1308,6 +1308,28 @@ AC_SUBST(WEAVE_DEVICE_LAYER_TARGET_NRF5)
 AM_CONDITIONAL([WEAVE_DEVICE_LAYER_TARGET_NRF5],    [test "${WEAVE_DEVICE_LAYER_TARGET_NRF5}" = 1])
 AC_DEFINE_UNQUOTED([WEAVE_DEVICE_LAYER_TARGET_NRF5],[${WEAVE_DEVICE_LAYER_TARGET_NRF5}],[Define to 1 if you want to build the OpenWeave Device Layer for Nordic nRF5* platforms.])
 
+if test "${CONFIG_DEVICE_LAYER}" = 1; then
+    AC_DEFINE_UNQUOTED([BLE_PLATFORM_CONFIG_INCLUDE],
+                       [<Weave/DeviceLayer/${WEAVE_DEVICE_LAYER_TARGET}/BlePlatformConfig.h>],
+                       [Path to BLE platform config header file])
+    AC_DEFINE_UNQUOTED([INET_PLATFORM_CONFIG_INCLUDE],  
+                       [<Weave/DeviceLayer/${WEAVE_DEVICE_LAYER_TARGET}/InetPlatformConfig.h>],
+                       [Path to Inet Layer platform config header file])
+    AC_DEFINE_UNQUOTED([SYSTEM_PLATFORM_CONFIG_INCLUDE],
+                       [<Weave/DeviceLayer/${WEAVE_DEVICE_LAYER_TARGET}/SystemPlatformConfig.h>],
+                       [Path to System Layer platform config header file])
+    AC_DEFINE_UNQUOTED([WARM_PLATFORM_CONFIG_INCLUDE],
+                       [<Weave/DeviceLayer/${WEAVE_DEVICE_LAYER_TARGET}/WarmPlatformConfig.h>],
+                       [Path to WARM platform config header file])
+    AC_DEFINE_UNQUOTED([WEAVE_PLATFORM_CONFIG_INCLUDE],
+                       [<Weave/DeviceLayer/${WEAVE_DEVICE_LAYER_TARGET}/WeavePlatformConfig.h>],
+                       [Path to Weave platform config header file])
+    AC_DEFINE_UNQUOTED([WEAVE_DEVICE_PLATFORM_CONFIG_INCLUDE],
+                       [<Weave/DeviceLayer/${WEAVE_DEVICE_LAYER_TARGET}/WeaveDevicePlatformConfig.h>], 
+                       [Path to Weave Device Layer platform config header file])
+fi
+
+
 #
 # WoBle over Bluez Peripheral support
 #
@@ -1833,8 +1855,8 @@ AM_CONDITIONAL([CONFIG_HAVE_VSNPRINTF_EX], [test "${CONFIG_HAVE_VSNPRINTF_EX}" =
 AC_DEFINE_UNQUOTED([CONFIG_HAVE_VSNPRINTF_EX],[${CONFIG_HAVE_VSNPRINTF_EX}],[Define to 1 if you want to use Weave with a system that supports callback-based vcbprintf])
 
 #
-# The user may specify project-specific configuration for the Weave
-# SystemLayer, BleLayer, InetLayer, and Core sub-components.
+# Options for the user to specify project-specific configuration files
+# for various OpenWeave components.
 #
 
 AC_LANG_PUSH([C++])
@@ -1864,6 +1886,12 @@ fi
 # Core
 
 NL_CHECK_PROJECT_CONFIG_INCLUDES(weave-project-includes, WEAVE_PROJECT_CONFIG_INCLUDE, WeaveProjectConfig.h, Weave Core, ${ac_abs_confdir}/build/config/standalone)
+
+# Device Layer
+
+if test "${CONFIG_DEVICE_LAYER}" = 1; then 
+    NL_CHECK_PROJECT_CONFIG_INCLUDES(weave-device-project-includes, WEAVE_DEVICE_PROJECT_CONFIG_INCLUDE, WeaveDeviceProjectConfig.h, Weave Device Layer,)
+fi
 
 AC_LANG_POP([C++])
 

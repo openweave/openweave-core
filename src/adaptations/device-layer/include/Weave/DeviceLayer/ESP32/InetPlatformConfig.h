@@ -18,21 +18,15 @@
 
 /**
  *    @file
- *      Inet project configuration for the ESP32 platform.
+ *          Platform-specific configuration overrides for the OpenWeave Inet
+ *          Layer on the ESP32 platform.
  *
  */
-#ifndef INETPROJECTCONFIG_H
-#define INETPROJECTCONFIG_H
+
+#ifndef INET_PLATFORM_CONFIG_H
+#define INET_PLATFORM_CONFIG_H
 
 #include "esp_err.h"
-
-// NOTE: The values that are mapped to CONFIG_ #defines are settable via the ESP-IDF Kconfig mechanism.
-
-// ==================== General Configuration ====================
-
-#define INET_CONFIG_NUM_TCP_ENDPOINTS CONFIG_NUM_TCP_ENDPOINTS
-#define INET_CONFIG_NUM_UDP_ENDPOINTS CONFIG_NUM_UDP_ENDPOINTS
-#define INET_CONFIG_NUM_TUN_ENDPOINTS 1
 
 // ==================== Platform Adaptations ====================
 
@@ -41,5 +35,20 @@
 #define INET_CONFIG_ERROR_MIN 1000000
 #define INET_CONFIG_ERROR_MAX 1000999
 
+// ==================== General Configuration Overrides ====================
 
-#endif // INETPROJECTCONFIG_H
+// NOTE: Values that are mapped to CONFIG_ #defines are settable via the ESP-IDF Kconfig mechanism.
+
+#ifndef INET_CONFIG_NUM_TCP_ENDPOINTS
+#define INET_CONFIG_NUM_TCP_ENDPOINTS CONFIG_NUM_TCP_ENDPOINTS
+#endif // INET_CONFIG_NUM_TCP_ENDPOINTS
+
+#ifndef INET_CONFIG_NUM_UDP_ENDPOINTS
+#define INET_CONFIG_NUM_UDP_ENDPOINTS CONFIG_NUM_UDP_ENDPOINTS
+#endif // INET_CONFIG_NUM_UDP_ENDPOINTS
+
+#ifndef INET_CONFIG_NUM_TUN_ENDPOINTS
+#define INET_CONFIG_NUM_TUN_ENDPOINTS 1
+#endif // INET_CONFIG_NUM_TUN_ENDPOINTS
+
+#endif // INET_PLATFORM_CONFIG_H

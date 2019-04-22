@@ -53,8 +53,8 @@ OPENWEAVE_HOST_ARCH := armv7-unknown-linux-gnu
 # Directory into which the OpenWeave build system will place its output. 	
 OPENWEAVE_OUTPUT_DIR = $(OUTPUT_DIR)/openweave
 
-# Directory containing nRF5-specific Weave project configuration files.
-OPENWEAVE_PROJECT_CONFIG_DIR = $(OPENWEAVE_ROOT)/build/config/nrf5
+# An optional file containing application-specific configuration overrides.
+OPENWEAVE_PROJECT_CONFIG = $(wildcard $(PROJECT_ROOT)/WeaveProjectConfig.h)
 
 # Architcture on which OpenWeave is being built.
 OPENWEAVE_BUILD_ARCH = $(shell $(OPENWEAVE_ROOT)/third_party/nlbuild-autotools/repo/third_party/autoconf/config.guess | sed -e 's/[[:digit:].]*$$//g')
@@ -89,11 +89,12 @@ OPENWEAVE_CONFIGURE_OPTIONS = \
     --with-inet-endpoint="tcp udp" \
     --with-openssl=no \
     --with-logging-style=external \
-    --with-weave-project-includes=$(OPENWEAVE_PROJECT_CONFIG_DIR) \
-    --with-weave-system-project-includes=$(OPENWEAVE_PROJECT_CONFIG_DIR) \
-    --with-weave-inet-project-includes=$(OPENWEAVE_PROJECT_CONFIG_DIR) \
-    --with-weave-ble-project-includes=$(OPENWEAVE_PROJECT_CONFIG_DIR) \
-    --with-weave-warm-project-includes=$(OPENWEAVE_PROJECT_CONFIG_DIR) \
+    --with-weave-project-includes=$(OPENWEAVE_PROJECT_CONFIG) \
+    --with-weave-system-project-includes=$(OPENWEAVE_PROJECT_CONFIG) \
+    --with-weave-inet-project-includes=$(OPENWEAVE_PROJECT_CONFIG) \
+    --with-weave-ble-project-includes=$(OPENWEAVE_PROJECT_CONFIG) \
+    --with-weave-warm-project-includes=$(OPENWEAVE_PROJECT_CONFIG) \
+    --with-weave-device-project-includes=$(OPENWEAVE_PROJECT_CONFIG) \
     --disable-ipv4 \
     --disable-tests \
     --disable-tools \
@@ -117,6 +118,7 @@ endif
 # Add OpenWeave-specific paths to the standard include directories.
 STD_INC_DIRS += \
     $(OPENWEAVE_OUTPUT_DIR)/include \
+    $(OPENWEAVE_OUTPUT_DIR)/src/include \
     $(OPENWEAVE_ROOT)/src/adaptations/device-layer/trait-support \
     $(OPENWEAVE_ROOT)/third_party/lwip/repo/lwip/src/include \
     $(OPENWEAVE_ROOT)/src/lwip \

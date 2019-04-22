@@ -38,14 +38,15 @@ BUILD_ARCH                  := $(shell $(WEAVE_ROOT)/third_party/nlbuild-autotoo
 LWIP_COMPONENT_DIR      	?= $(PROJECT_PATH)/components/lwip
 
 # Include directories to be searched when building OpenWeave.
-INCLUDES                    := $(BUILD_DIR_BASE)/include \
+INCLUDES                    := $(OUTPUT_DIR)/src/include \
+                               $(OUTPUT_DIR)/src/include/Weave/DeviceLayer/ESP32 \
                                $(WEAVE_ROOT)/src/adaptations/device-layer/trait-support \
                                $(COMPONENT_INCLUDES)
 
 # Compiler flags for building Weave
-CFLAGS                      += $(addprefix -I, $(INCLUDES))
-CPPFLAGS                    += $(addprefix -I, $(INCLUDES))
-CXXFLAGS                    += $(addprefix -I, $(INCLUDES))
+CFLAGS                      += $(addprefix -I,$(INCLUDES))
+CPPFLAGS                    += $(addprefix -I,$(INCLUDES))
+CXXFLAGS                    += $(addprefix -I,$(INCLUDES))
 
 INSTALL                     := /usr/bin/install
 INSTALLFLAGS                := --compare -v
@@ -67,11 +68,11 @@ CONFIGURE_OPTIONS       	:= AR="$(AR)" CC="$(CC)" CXX="$(CXX)" LD="$(LD)" OBJCOP
                                --with-inet-endpoint="tcp udp tun dns" \
                                --with-openssl=no \
                                --with-logging-style=external \
-                               --with-weave-project-includes=$(PROJECT_CONFIG_DIR) \
-                               --with-weave-system-project-includes=$(PROJECT_CONFIG_DIR) \
-                               --with-weave-inet-project-includes=$(PROJECT_CONFIG_DIR) \
-                               --with-weave-ble-project-includes=$(PROJECT_CONFIG_DIR) \
-                               --with-weave-warm-project-includes=$(PROJECT_CONFIG_DIR) \
+                               --with-weave-project-includes= \
+                               --with-weave-system-project-includes= \
+                               --with-weave-inet-project-includes= \
+                               --with-weave-ble-project-includes= \
+                               --with-weave-warm-project-includes= \
                                --disable-tests \
                                --disable-tools \
                                --disable-docs \

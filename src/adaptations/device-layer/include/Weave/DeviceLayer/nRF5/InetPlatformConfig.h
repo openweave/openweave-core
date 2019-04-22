@@ -1,6 +1,6 @@
 /*
  *
- *    Copyright (c) 2018 Nest Labs, Inc.
+ *    Copyright (c) 2019 Google LLC.
  *    All rights reserved.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,24 +18,15 @@
 
 /**
  *    @file
- *      Inet project configuration for the Nordic nRF52 platform.
+ *          Platform-specific configuration overrides for the OpenWeave Inet
+ *          Layer on nRF52 platforms using the Nordic nRF5 SDK.
  *
  */
-#ifndef INETPROJECTCONFIG_H
-#define INETPROJECTCONFIG_H
+
+#ifndef INET_PLATFORM_CONFIG_H
+#define INET_PLATFORM_CONFIG_H
 
 #include "sdk_errors.h"
-
-// TODO: move this to Kconfig?
-#define CONFIG_NUM_TCP_ENDPOINTS 8
-#define CONFIG_NUM_UDP_ENDPOINTS 8
-
-// ==================== General Configuration ====================
-
-#define INET_CONFIG_ENABLE_IPV4 0
-#define INET_CONFIG_NUM_TCP_ENDPOINTS CONFIG_NUM_TCP_ENDPOINTS
-#define INET_CONFIG_NUM_UDP_ENDPOINTS CONFIG_NUM_UDP_ENDPOINTS
-#define INET_CONFIG_NUM_TUN_ENDPOINTS 1
 
 // ==================== Platform Adaptations ====================
 
@@ -44,4 +35,16 @@
 #define INET_CONFIG_ERROR_MIN 1000000
 #define INET_CONFIG_ERROR_MAX 1000999
 
-#endif // INETPROJECTCONFIG_H
+#define INET_CONFIG_ENABLE_IPV4 0
+
+// ========== Platform-specific Configuration Overrides =========
+
+#ifndef INET_CONFIG_NUM_TCP_ENDPOINTS
+#define INET_CONFIG_NUM_TCP_ENDPOINTS 4
+#endif // INET_CONFIG_NUM_TCP_ENDPOINTS
+
+#ifndef INET_CONFIG_NUM_UDP_ENDPOINTS
+#define INET_CONFIG_NUM_UDP_ENDPOINTS 4
+#endif // INET_CONFIG_NUM_UDP_ENDPOINTS
+
+#endif // INET_PLATFORM_CONFIG_H

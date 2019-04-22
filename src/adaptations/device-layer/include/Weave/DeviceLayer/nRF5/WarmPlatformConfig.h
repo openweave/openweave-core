@@ -1,6 +1,6 @@
 /*
  *
- *    Copyright (c) 2018 Nest Labs, Inc.
+ *    Copyright (c) 2019 Google LLC.
  *    All rights reserved.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,9 +18,14 @@
 
 /**
  *    @file
- *      WARM project configuration for the Nordic nRF52 platform.
+ *          Platform-specific configuration overrides for the Weave
+ *          Addressing and Routing Module (WARM) on nRF52 platforms
+ *          using the Nordic nRF5 SDK.
  *
  */
+
+#ifndef WARM_PLATFORM_CONFIG_H
+#define WARM_PLATFORM_CONFIG_H
 
 // ==================== Platform Adaptations ====================
 
@@ -29,3 +34,9 @@
 #define WARM_CONFIG_SUPPORT_LEGACY6LOWPAN_NETWORK 0
 #define WARM_CONFIG_SUPPORT_WIFI 0
 #define WARM_CONFIG_SUPPORT_CELLULAR 0
+
+// ========== Platform-specific Configuration Overrides =========
+
+/* none so far */
+
+#endif // WARM_PLATFORM_CONFIG_H

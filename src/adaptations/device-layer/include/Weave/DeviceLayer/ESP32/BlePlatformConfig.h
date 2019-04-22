@@ -1,6 +1,6 @@
 /*
  *
- *    Copyright (c) 2018 Nest Labs, Inc.
+ *    Copyright (c) 2019 Google LLC.
  *    All rights reserved.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,12 +18,13 @@
 
 /**
  *    @file
- *      Weave BleLayer project configuration for the ESP32 platform.
+ *          Platform-specific configuration overrides for the OpenWeave BLE
+ *          Layer on the ESP32 platform.
  *
  */
 
-#ifndef BLE_PROJECT_CONFIG_H
-#define BLE_PROJECT_CONFIG_H
+#ifndef BLE_PLATFORM_CONFIG_H
+#define BLE_PLATFORM_CONFIG_H
 
 #include "esp_err.h"
 
@@ -40,4 +41,4 @@
 #define _BLE_CONFIG_ERROR(e) (BLE_CONFIG_ERROR_MIN + (e))
 
 
-#endif // BLE_PROJECT_CONFIG_H
+#endif // BLE_PLATFORM_CONFIG_H

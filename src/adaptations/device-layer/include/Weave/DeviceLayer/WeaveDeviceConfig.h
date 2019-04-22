@@ -26,16 +26,28 @@
 #ifndef WEAVE_DEVICE_CONFIG_H
 #define WEAVE_DEVICE_CONFIG_H
 
-
-// Include a header file containing the platform-specific configuration overrides.
-
-#ifdef EXTERNAL_WEAVEDEVICEPLATFORMCONFIG_HEADER
-#include EXTERNAL_WEAVEDEVICEPLATFORMCONFIG_HEADER
-#else
-#define WEAVEDEVICEPLATFORMCONFIG_HEADER <Weave/DeviceLayer/WEAVE_DEVICE_LAYER_TARGET/WeaveDevicePlatformConfig.h>
-#include WEAVEDEVICEPLATFORMCONFIG_HEADER
+/* Include a project-specific configuration file, if defined.
+ *
+ * An application or module that incorporates the Weave Device Layer can define a project
+ * configuration file to override standard Weave configuration with application-specific
+ * values.  The project config file is typically located outside the OpenWeave source
+ * tree, alongside the source code for the application.
+ */
+#ifdef WEAVE_DEVICE_PROJECT_CONFIG_INCLUDE
+#include WEAVE_DEVICE_PROJECT_CONFIG_INCLUDE
 #endif
 
+/* Include a platform-specific configuration file, if defined.
+ *
+ * A platform configuration file contains overrides to standard Weave Device Layer
+ * configuration that are specific to the platform or OS on which Weave is running.
+ * It is typically provided as apart of an adaptation layer that adapts OpenWeave
+ * to the target environment.  This adaptation layer may be included in the OpenWeave
+ * source tree itself or implemented externally.
+ */
+#ifdef WEAVE_DEVICE_PLATFORM_CONFIG_INCLUDE
+#include WEAVE_DEVICE_PLATFORM_CONFIG_INCLUDE
+#endif
 
 // -------------------- General Configuration --------------------
 

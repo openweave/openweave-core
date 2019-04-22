@@ -1305,29 +1305,39 @@ dist_weave_common_HEADERS = $(addprefix ../,$(nl_public_WeaveCommon_header_sourc
 #
 @WEAVE_DEVICE_LAYER_TARGET_ESP32_TRUE@nl_public_WeaveDeviceLayer_target_header_sources = \
 @WEAVE_DEVICE_LAYER_TARGET_ESP32_TRUE@$(nl_public_WeaveDeviceLayer_source_dirstem)/ESP32/BLEManagerImpl.h                                 \
+@WEAVE_DEVICE_LAYER_TARGET_ESP32_TRUE@$(nl_public_WeaveDeviceLayer_source_dirstem)/ESP32/BlePlatformConfig.h                              \
 @WEAVE_DEVICE_LAYER_TARGET_ESP32_TRUE@$(nl_public_WeaveDeviceLayer_source_dirstem)/ESP32/ConfigurationManagerImpl.h                       \
 @WEAVE_DEVICE_LAYER_TARGET_ESP32_TRUE@$(nl_public_WeaveDeviceLayer_source_dirstem)/ESP32/ConnectivityManagerImpl.h                        \
 @WEAVE_DEVICE_LAYER_TARGET_ESP32_TRUE@$(nl_public_WeaveDeviceLayer_source_dirstem)/ESP32/ESP32Config.h                                    \
 @WEAVE_DEVICE_LAYER_TARGET_ESP32_TRUE@$(nl_public_WeaveDeviceLayer_source_dirstem)/ESP32/ESP32Utils.h                                     \
 @WEAVE_DEVICE_LAYER_TARGET_ESP32_TRUE@$(nl_public_WeaveDeviceLayer_source_dirstem)/ESP32/GroupKeyStoreImpl.h                              \
+@WEAVE_DEVICE_LAYER_TARGET_ESP32_TRUE@$(nl_public_WeaveDeviceLayer_source_dirstem)/ESP32/InetPlatformConfig.h                             \
 @WEAVE_DEVICE_LAYER_TARGET_ESP32_TRUE@$(nl_public_WeaveDeviceLayer_source_dirstem)/ESP32/NetworkProvisioningServerImpl.h                  \
 @WEAVE_DEVICE_LAYER_TARGET_ESP32_TRUE@$(nl_public_WeaveDeviceLayer_source_dirstem)/ESP32/PlatformManagerImpl.h                            \
+@WEAVE_DEVICE_LAYER_TARGET_ESP32_TRUE@$(nl_public_WeaveDeviceLayer_source_dirstem)/ESP32/SystemPlatformConfig.h                           \
+@WEAVE_DEVICE_LAYER_TARGET_ESP32_TRUE@$(nl_public_WeaveDeviceLayer_source_dirstem)/ESP32/WarmPlatformConfig.h                             \
 @WEAVE_DEVICE_LAYER_TARGET_ESP32_TRUE@$(nl_public_WeaveDeviceLayer_source_dirstem)/ESP32/WeaveDevicePlatformConfig.h                      \
 @WEAVE_DEVICE_LAYER_TARGET_ESP32_TRUE@$(nl_public_WeaveDeviceLayer_source_dirstem)/ESP32/WeaveDevicePlatformEvent.h                       \
+@WEAVE_DEVICE_LAYER_TARGET_ESP32_TRUE@$(nl_public_WeaveDeviceLayer_source_dirstem)/ESP32/WeavePlatformConfig.h                            \
 @WEAVE_DEVICE_LAYER_TARGET_ESP32_TRUE@$(NULL)
 
 @WEAVE_DEVICE_LAYER_TARGET_NRF5_TRUE@nl_public_WeaveDeviceLayer_target_header_sources = \
 @WEAVE_DEVICE_LAYER_TARGET_NRF5_TRUE@$(nl_public_WeaveDeviceLayer_source_dirstem)/nRF5/BLEManagerImpl.h                                  \
+@WEAVE_DEVICE_LAYER_TARGET_NRF5_TRUE@$(nl_public_WeaveDeviceLayer_source_dirstem)/nRF5/BlePlatformConfig.h                               \
 @WEAVE_DEVICE_LAYER_TARGET_NRF5_TRUE@$(nl_public_WeaveDeviceLayer_source_dirstem)/nRF5/ConfigurationManagerImpl.h                        \
 @WEAVE_DEVICE_LAYER_TARGET_NRF5_TRUE@$(nl_public_WeaveDeviceLayer_source_dirstem)/nRF5/ConnectivityManagerImpl.h                         \
-@WEAVE_DEVICE_LAYER_TARGET_NRF5_TRUE@$(nl_public_WeaveDeviceLayer_source_dirstem)/nRF5/PlatformManagerImpl.h                             \
-@WEAVE_DEVICE_LAYER_TARGET_NRF5_TRUE@$(nl_public_WeaveDeviceLayer_source_dirstem)/nRF5/ThreadStackManagerImpl.h                          \
+@WEAVE_DEVICE_LAYER_TARGET_NRF5_TRUE@$(nl_public_WeaveDeviceLayer_source_dirstem)/nRF5/GroupKeyStoreImpl.h                               \
+@WEAVE_DEVICE_LAYER_TARGET_NRF5_TRUE@$(nl_public_WeaveDeviceLayer_source_dirstem)/nRF5/InetPlatformConfig.h                              \
+@WEAVE_DEVICE_LAYER_TARGET_NRF5_TRUE@$(nl_public_WeaveDeviceLayer_source_dirstem)/nRF5/NetworkProvisioningServerImpl.h                   \
 @WEAVE_DEVICE_LAYER_TARGET_NRF5_TRUE@$(nl_public_WeaveDeviceLayer_source_dirstem)/nRF5/nRF5Config.h                                      \
 @WEAVE_DEVICE_LAYER_TARGET_NRF5_TRUE@$(nl_public_WeaveDeviceLayer_source_dirstem)/nRF5/nRF5Utils.h                                       \
-@WEAVE_DEVICE_LAYER_TARGET_NRF5_TRUE@$(nl_public_WeaveDeviceLayer_source_dirstem)/nRF5/GroupKeyStoreImpl.h                               \
-@WEAVE_DEVICE_LAYER_TARGET_NRF5_TRUE@$(nl_public_WeaveDeviceLayer_source_dirstem)/nRF5/NetworkProvisioningServerImpl.h                   \
+@WEAVE_DEVICE_LAYER_TARGET_NRF5_TRUE@$(nl_public_WeaveDeviceLayer_source_dirstem)/nRF5/PlatformManagerImpl.h                             \
+@WEAVE_DEVICE_LAYER_TARGET_NRF5_TRUE@$(nl_public_WeaveDeviceLayer_source_dirstem)/nRF5/SystemPlatformConfig.h                            \
+@WEAVE_DEVICE_LAYER_TARGET_NRF5_TRUE@$(nl_public_WeaveDeviceLayer_source_dirstem)/nRF5/ThreadStackManagerImpl.h                          \
+@WEAVE_DEVICE_LAYER_TARGET_NRF5_TRUE@$(nl_public_WeaveDeviceLayer_source_dirstem)/nRF5/WarmPlatformConfig.h                              \
 @WEAVE_DEVICE_LAYER_TARGET_NRF5_TRUE@$(nl_public_WeaveDeviceLayer_source_dirstem)/nRF5/WeaveDevicePlatformConfig.h                       \
 @WEAVE_DEVICE_LAYER_TARGET_NRF5_TRUE@$(nl_public_WeaveDeviceLayer_source_dirstem)/nRF5/WeaveDevicePlatformEvent.h                        \
+@WEAVE_DEVICE_LAYER_TARGET_NRF5_TRUE@$(nl_public_WeaveDeviceLayer_source_dirstem)/nRF5/WeavePlatformConfig.h                             \
 @WEAVE_DEVICE_LAYER_TARGET_NRF5_TRUE@$(NULL)
 
 @CONFIG_DEVICE_LAYER_TRUE@nl_public_WeaveDeviceLayer_source_dirstem = adaptations/device-layer/include/Weave/DeviceLayer
