@@ -64,6 +64,7 @@ enum NestWeaveProductId
     kNestWeaveProduct_SDKSampleLightActuator     = 0xFE06,
     kNestWeaveProduct_SDKSampleButtonSensor      = 0xFE07,
     kNestWeaveProduct_SDKSampleMotionSensor      = 0xFE08,
+    kNestWeaveProduct_SDKSampleLock              = 0xFE0B,
 };
 
 }; // namespace DeviceDescription
