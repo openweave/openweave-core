@@ -59,36 +59,36 @@ mkdir ${TRAVIS_BUILD_DIR}/arm
 tar -jxf ${TMPDIR}/arm_gcc_toolchain.tar.bz2 --directory ${TRAVIS_BUILD_DIR}/arm || exit 1
 rm ${TMPDIR}/arm_gcc_toolchain.tar.bz2
 
-# Clone the openweave-nrf52840-demo application.  This code will be used to
+# Clone the openweave-nrf52840-lock-example application.  This code will be used to
 # test the ability to build OpenWeave for the nRF52840.
 #
-# git -C ${TRAVIS_BUILD_DIR} clone https://github.com/openweave/openweave-nrf52840-demo.git || exit 1
+git -C ${TRAVIS_BUILD_DIR} clone https://github.com/openweave/openweave-nrf52840-lock-example || exit 1
 
 # Test if a parallel branch exists in the demo app repo with the same name
 # as the OpenWeave branch being built.  If so, build using that branch of
 # the demo app.
 #
-# SOURCE_BRANCH=${TRAVIS_PULL_REQUEST_BRANCH}
-# if [ -z "${SOURCE_BRANCH}" ]; then
-#     SOURCE_BRANCH=${TRAVIS_BRANCH}
-# fi
-# if git -C ${TRAVIS_BUILD_DIR}/openweave-nrf52840-demo rev-parse --verify origin/${SOURCE_BRANCH} >/dev/null 2>&1; then
-#     git -C ${TRAVIS_BUILD_DIR}/openweave-nrf52840-demo checkout ${SOURCE_BRANCH}
-# fi
+SOURCE_BRANCH=${TRAVIS_PULL_REQUEST_BRANCH}
+if [ -z "${SOURCE_BRANCH}" ]; then
+    SOURCE_BRANCH=${TRAVIS_BRANCH}
+fi
+if git -C ${TRAVIS_BUILD_DIR}/openweave-nrf52840-lock-example rev-parse --verify origin/${SOURCE_BRANCH} >/dev/null 2>&1; then
+    git -C ${TRAVIS_BUILD_DIR}/openweave-nrf52840-lock-example checkout ${SOURCE_BRANCH}
+fi
 
 # Initialize and update all submodules within the demo app EXCEPT the
 # OpenWeave submodule.
 #
-# git -C ${TRAVIS_BUILD_DIR}/openweave-nrf52840-demo submodule init || exit 1
-# git -C ${TRAVIS_BUILD_DIR}/openweave-nrf52840-demo submodule deinit third_party/openweave || exit 1
-# git -C ${TRAVIS_BUILD_DIR}/openweave-nrf52840-demo submodule update || exit 1
+git -C ${TRAVIS_BUILD_DIR}/openweave-nrf52840-lock-example submodule init || exit 1
+git -C ${TRAVIS_BUILD_DIR}/openweave-nrf52840-lock-example submodule deinit third_party/openweave || exit 1
+git -C ${TRAVIS_BUILD_DIR}/openweave-nrf52840-lock-example submodule update || exit 1
 
 # Create a symbolic link from openweave-nrf52840-demo/third_party/openweave to
 # the OpenWeave source directory.  This will result in the demo app being
 # built using the target OpenWeave commit.
 #
-# rmdir ${TRAVIS_BUILD_DIR}/openweave-nrf52840-demo/third_party/openweave || exit 1
-# ln -s ${TRAVIS_BUILD_DIR} ${TRAVIS_BUILD_DIR}/openweave-nrf52840-demo/third_party/openweave || exit 1
+rmdir ${TRAVIS_BUILD_DIR}/openweave-nrf52840-lock-example/third_party/openweave || exit 1
+ln -s ${TRAVIS_BUILD_DIR} ${TRAVIS_BUILD_DIR}/openweave-nrf52840-lock-example/third_party/openweave || exit 1
 
 set +x
 
@@ -103,4 +103,5 @@ echo "Nordic nRF5x Command Line Tools: ${NORDIC_COMMAND_LINE_TOOLS_URL}"
 echo "ARM GCC Toolchain: ${ARM_GCC_TOOLCHAIN_URL}"
 echo 'Commit Hashes'
 echo '  openweave-core: '`git -C ${TRAVIS_BUILD_DIR} rev-parse --short HEAD`
+echo '  openweave-nrf52840-lock-example: '`git -C ${TRAVIS_BUILD_DIR}/openweave-nrf52840-lock-example rev-parse --short HEAD`
 echo '---------------------------------------------------------------------------'
