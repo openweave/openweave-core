@@ -1,6 +1,6 @@
 /*
  *
- *    Copyright (c) 2018 Nest Labs, Inc.
+ *    Copyright (c) 2019 Google LLC.
  *    All rights reserved.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,12 +18,13 @@
 
 /**
  *    @file
- *      Weave BleLayer project configuration for the nRF5 platforms.
+ *          Platform-specific configuration overrides for the OpenWeave BLE
+ *          Layer on nRF52 platforms using the Nordic nRF5 SDK.
  *
  */
 
-#ifndef BLE_PROJECT_CONFIG_H
-#define BLE_PROJECT_CONFIG_H
+#ifndef BLE_PLATFORM_CONFIG_H
+#define BLE_PLATFORM_CONFIG_H
 
 #include <ble_types.h>
 
@@ -39,5 +40,8 @@
 #define BLE_CONFIG_ERROR_MAX 6000999
 #define _BLE_CONFIG_ERROR(e) (BLE_CONFIG_ERROR_MIN + (e))
 
+// ========== Platform-specific Configuration Overrides =========
 
-#endif // BLE_PROJECT_CONFIG_H
+/* none so far */
+
+#endif // BLE_PLATFORM_CONFIG_H

@@ -3,6 +3,9 @@
 #ifndef WEAVE_BUILD_CONFIG_H
 #define WEAVE_BUILD_CONFIG_H
 
+/* Path to BLE platform config header file */
+#undef BLE_PLATFORM_CONFIG_INCLUDE
+
 /* Path to Weave BLE Layer platform config header file */
 #undef BLE_PROJECT_CONFIG_INCLUDE
 
@@ -325,6 +328,9 @@
 /* Weave target inet network endpoint(s) */
 #undef INET_ENDPOINTS
 
+/* Path to Inet Layer platform config header file */
+#undef INET_PLATFORM_CONFIG_INCLUDE
+
 /* Path to Weave Inet Layer platform config header file */
 #undef INET_PROJECT_CONFIG_INCLUDE
 
@@ -381,8 +387,14 @@
 /* Define to 1 if you have the ANSI C header files. */
 #undef STDC_HEADERS
 
+/* Path to System Layer platform config header file */
+#undef SYSTEM_PLATFORM_CONFIG_INCLUDE
+
 /* Path to Weave System Layer platform config header file */
 #undef SYSTEM_PROJECT_CONFIG_INCLUDE
+
+/* Path to WARM platform config header file */
+#undef WARM_PLATFORM_CONFIG_INCLUDE
 
 /* Path to WARM platform config header file */
 #undef WARM_PROJECT_CONFIG_INCLUDE
@@ -403,6 +415,12 @@
 /* Define to 1 if you want to build the OpenWeave Device Layer for Nordic
    nRF5* platforms. */
 #undef WEAVE_DEVICE_LAYER_TARGET_NRF5
+
+/* Path to Weave Device Layer platform config header file */
+#undef WEAVE_DEVICE_PLATFORM_CONFIG_INCLUDE
+
+/* Path to Weave Device Layer platform config header file */
+#undef WEAVE_DEVICE_PROJECT_CONFIG_INCLUDE
 
 /* Define to 1 if you want to enable WoBle Control Path and Throughput Test.
    */
@@ -433,6 +451,9 @@
 /* Define to 1 if you want to use Weave with a C Standard I/O Library-based
    logging system with timestamped log entries */
 #undef WEAVE_LOGGING_STYLE_STDIO_WITH_TIMESTAMPS
+
+/* Path to Weave platform config header file */
+#undef WEAVE_PLATFORM_CONFIG_INCLUDE
 
 /* Path to Weave Core platform config header file */
 #undef WEAVE_PROJECT_CONFIG_INCLUDE
