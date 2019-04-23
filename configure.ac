@@ -1841,29 +1841,29 @@ AC_LANG_PUSH([C++])
 
 # SystemLayer
 
-NL_CHECK_PROJECT_CONFIG_INCLUDES(weave-system-project-includes, SystemProjectConfig.h, Weave SystemLayer, ${ac_abs_confdir}/build/config/standalone)
+NL_CHECK_PROJECT_CONFIG_INCLUDES(weave-system-project-includes, SYSTEM_PROJECT_CONFIG_INCLUDE, SystemProjectConfig.h, Weave System Layer, ${ac_abs_confdir}/build/config/standalone)
 
 # BleLayer
 
 if test ${CONFIG_NETWORK_LAYER_BLE} = 1; then
-    NL_CHECK_PROJECT_CONFIG_INCLUDES(weave-ble-project-includes, BleProjectConfig.h, Weave BleLayer, ${ac_abs_confdir}/build/config/standalone)
+    NL_CHECK_PROJECT_CONFIG_INCLUDES(weave-ble-project-includes, BLE_PROJECT_CONFIG_INCLUDE, BleProjectConfig.h, Weave BLE Layer, ${ac_abs_confdir}/build/config/standalone)
 fi
 
 # InetLayer
 
 if test ${CONFIG_NETWORK_LAYER_INET} = 1; then
-    NL_CHECK_PROJECT_CONFIG_INCLUDES(weave-inet-project-includes, InetProjectConfig.h, Weave InetLayer, ${ac_abs_confdir}/build/config/standalone)
+    NL_CHECK_PROJECT_CONFIG_INCLUDES(weave-inet-project-includes, INET_PROJECT_CONFIG_INCLUDE, InetProjectConfig.h, Weave Inet Layer, ${ac_abs_confdir}/build/config/standalone)
 fi
 
 # Warm
 
 if test "${build_warm}" = "yes"; then
-    NL_CHECK_PROJECT_CONFIG_INCLUDES(weave-warm-project-includes, WarmProjectConfig.h, Weave Warm, ${ac_abs_confdir}/build/config/standalone)
+    NL_CHECK_PROJECT_CONFIG_INCLUDES(weave-warm-project-includes, WARM_PROJECT_CONFIG_INCLUDE, WarmProjectConfig.h, WARM, ${ac_abs_confdir}/build/config/standalone)
 fi
 
 # Core
 
-NL_CHECK_PROJECT_CONFIG_INCLUDES(weave-project-includes, WeaveProjectConfig.h, Weave Core, ${ac_abs_confdir}/build/config/standalone)
+NL_CHECK_PROJECT_CONFIG_INCLUDES(weave-project-includes, WEAVE_PROJECT_CONFIG_INCLUDE, WeaveProjectConfig.h, Weave Core, ${ac_abs_confdir}/build/config/standalone)
 
 AC_LANG_POP([C++])
 

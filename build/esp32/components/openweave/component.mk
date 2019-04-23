@@ -88,7 +88,7 @@ endif
 # Header directories to be included when building other components that use Weave.
 # Note that these must be relative to the component source directory.
 COMPONENT_ADD_INCLUDEDIRS 	 = project-config \
-                               $(REL_OUTPUT_DIR)/include 
+                               $(REL_OUTPUT_DIR)/include
 
 # Linker flags to be included when building other components that use Weave. 
 COMPONENT_ADD_LDFLAGS        = -L$(OUTPUT_DIR)/lib \
