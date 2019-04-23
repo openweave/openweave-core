@@ -566,7 +566,19 @@ menu "OpenWeave Device Layer"
                 in slow advertising mode.
     
     endmenu
+
+    menu "Weave Trait Manager"
+
+        config ENABLE_TRAIT_MANAGER
+            bool "Enable Trait Manager"
+            default y
+            help
+                Enable support for the Weave Trait Manager.
+                
+                The Trait Manager is an experimental feature of the Weave Device Layer.
     
+    endmenu
+
     menu "Time Sync Options"
     
         config ENABLE_SERVICE_DIRECTORY_TIME_SYNC
