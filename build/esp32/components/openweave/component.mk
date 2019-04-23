@@ -27,7 +27,6 @@ HOST_ARCH                   := xtensa-unknown-linux-gnu
 # Directory into which the Weave build system will place its output. 
 OUTPUT_DIR					:= $(BUILD_DIR_BASE)/openweave
 REL_OUTPUT_DIR              := $(shell perl -e 'use File::Spec; use Cwd; print File::Spec->abs2rel(Cwd::realpath($$ARGV[0]), Cwd::realpath($$ARGV[1])) . "\n"' $(OUTPUT_DIR) $(COMPONENT_PATH))
-$(warning REL_OUTPUT_DIR is $(REL_OUTPUT_DIR))
 
 # Directory containing esp32-specific Weave project configuration files.
 PROJECT_CONFIG_DIR          := $(WEAVE_ROOT)/build/config/esp32
@@ -89,7 +88,7 @@ endif
 # Header directories to be included when building other components that use Weave.
 # Note that these must be relative to the component source directory.
 COMPONENT_ADD_INCLUDEDIRS 	 = project-config \
-                               $(REL_OUTPUT_DIR)/include 
+                               $(REL_OUTPUT_DIR)/include
 
 # Linker flags to be included when building other components that use Weave. 
 COMPONENT_ADD_LDFLAGS        = -L$(OUTPUT_DIR)/lib \

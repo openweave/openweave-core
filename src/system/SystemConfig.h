@@ -40,9 +40,16 @@
 /* Platform include headers */
 #include <BuildConfig.h>
 
-#if HAVE_SYSTEMPROJECTCONFIG_H
-#include <SystemProjectConfig.h>
-#endif
+/* Include a project-specific configuration file, if defined.
+ *
+ * An application or module that incorporates Weave can define a project configuration
+ * file to override standard System Layer configuration with application-specific values.
+ * The project config file is typically located outside the OpenWeave source tree,
+ * alongside the source code for the application.
+ */
+#ifdef SYSTEM_PROJECT_CONFIG_INCLUDE
+#include SYSTEM_PROJECT_CONFIG_INCLUDE
+#endif // SYSTEM_PROJECT_CONFIG_INCLUDE
 
 /*--- Sanity check on the build configuration logic. ---*/
 
@@ -78,7 +85,7 @@
 #endif // WEAVE_SYSTEM_CONFIG_TRANSFER_INETLAYER_PROJECT_CONFIGURATION
 
 #if WEAVE_SYSTEM_CONFIG_TRANSFER_INETLAYER_PROJECT_CONFIGURATION
-#if HAVE_INETPROJECTCONFIG_H
+#ifdef INET_PROJECT_CONFIG_INCLUDE
 #if WEAVE_SYSTEM_CONFIG_PROVIDE_OBSOLESCENT_INTERFACES
 /*
  * NOTE WELL: the `INET_LWIP` and `INET_SOCKETS` configuration parameters used to be generated directly by the `autoconf` system.
@@ -96,8 +103,8 @@
 #endif // !defined(INET_SOCKETS)
 #endif // WEAVE_SYSTEM_CONFIG_PROVIDE_OBSOLESCENT_INTERFACES
 
-#include <InetProjectConfig.h>
-#endif // HAVE_INETPROJECTCONFIG_H
+#include INET_PROJECT_CONFIG_INCLUDE
+#endif // INET_PROJECT_CONFIG_INCLUDE
 
 #if !defined(WEAVE_SYSTEM_CONFIG_POSIX_LOCKING) && defined(INET_CONFIG_POSIX_LOCKING)
 #define WEAVE_SYSTEM_CONFIG_POSIX_LOCKING INET_CONFIG_POSIX_LOCKING
