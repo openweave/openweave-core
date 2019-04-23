@@ -489,6 +489,18 @@
 #define WEAVE_DEVICE_CONFIG_LWIP_SERVICE_TUN_IF_NAME "tn"
 #endif
 
+// -------------------- Trait Manager Configuration --------------------
+
+/**
+ * WEAVE_DEVICE_CONFIG_ENABLE_TRAIT_MANAGER
+ *
+ * Enable or disable the Weave Trait Manager.
+ *
+ * NOTE: The Trait Manager is an experimental feature of the Weave Device Layer.
+ */
+#ifndef WEAVE_DEVICE_CONFIG_ENABLE_TRAIT_MANAGER
+#define WEAVE_DEVICE_CONFIG_ENABLE_TRAIT_MANAGER 0
+#endif
 
 // -------------------- Test Configuration --------------------
 

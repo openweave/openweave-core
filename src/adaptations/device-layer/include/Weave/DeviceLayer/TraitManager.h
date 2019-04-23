@@ -25,6 +25,10 @@
 #ifndef TRAIT_MANAGER_H
 #define TRAIT_MANAGER_H
 
+#include <Weave/DeviceLayer/internal/WeaveDeviceLayerInternal.h>
+
+#if WEAVE_DEVICE_CONFIG_ENABLE_TRAIT_MANAGER
+
 #include <Weave/Profiles/data-management/Current/DataManagement.h>
 
 namespace nl {
@@ -138,5 +142,7 @@ inline TraitManager & TraitMgr(void)
 } // namespace DeviceLayer
 } // namespace Weave
 } // namespace nl
+
+#endif // WEAVE_DEVICE_CONFIG_ENABLE_TRAIT_MANAGER
 
 #endif // TRAIT_MANAGER_H

@@ -231,12 +231,14 @@ WEAVE_ERROR GenericPlatformManagerImpl<ImplClass>::_InitWeaveStack(void)
     SuccessOrExit(err);
 
     // Initialize the Trait Manager object.
+#if WEAVE_DEVICE_CONFIG_ENABLE_TRAIT_MANAGER
     err = TraitMgr().Init();
     if (err != WEAVE_NO_ERROR)
     {
         WeaveLogError(DeviceLayer, "Trait Manager initialization failed: %s", ErrorStr(err));
     }
     SuccessOrExit(err);
+#endif // WEAVE_DEVICE_CONFIG_ENABLE_TRAIT_MANAGER
 
     // Initialize the Time Sync Manager object.
     err = TimeSyncMgr().Init();
@@ -389,7 +391,9 @@ void GenericPlatformManagerImpl<ImplClass>::DispatchEventToDeviceLayer(const Wea
     NetworkProvisioningSvr().OnPlatformEvent(event);
     FabricProvisioningSvr().OnPlatformEvent(event);
     ServiceProvisioningSvr().OnPlatformEvent(event);
+#if WEAVE_DEVICE_CONFIG_ENABLE_TRAIT_MANAGER
     TraitMgr().OnPlatformEvent(event);
+#endif // WEAVE_DEVICE_CONFIG_ENABLE_TRAIT_MANAGER
     TimeSyncMgr().OnPlatformEvent(event);
 }
 
