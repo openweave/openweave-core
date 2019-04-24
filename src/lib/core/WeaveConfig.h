@@ -725,9 +725,8 @@
  *    Enable (1) or disable (0) support for the OpenSSL
  *    implementation of the Weave AES functions.
  *
- *  @note This configuration is mutual exclusive with
- *        #WEAVE_CONFIG_AES_IMPLEMENTATION_PLATFORM and
- *        #WEAVE_CONFIG_AES_IMPLEMENTATION_AESNI
+ *  @note This configuration is mutual exclusive with other
+ *        WEAVE_CONFIG_AES_IMPLEMENTATION options.
  *
  */
 #ifndef WEAVE_CONFIG_AES_IMPLEMENTATION_OPENSSL
@@ -741,9 +740,8 @@
  *    Enable (1) or disable (0) support for an implementation
  *    of the Weave AES functions using Intel AES-NI intrinsics.
  *
- *  @note This configuration is mutual exclusive with
- *        #WEAVE_CONFIG_AES_IMPLEMENTATION_PLATFORM and
- *        #WEAVE_CONFIG_AES_IMPLEMENTATION_OPENSSL
+ *  @note This configuration is mutual exclusive with other
+ *        WEAVE_CONFIG_AES_IMPLEMENTATION options.
  *
  */
 #ifndef WEAVE_CONFIG_AES_IMPLEMENTATION_AESNI
@@ -751,12 +749,30 @@
 #endif // WEAVE_CONFIG_AES_IMPLEMENTATION_AESNI
 
 /**
+ *  @def WEAVE_CONFIG_AES_IMPLEMENTATION_MBEDTLS
+ *
+ *  @brief
+ *    Enable (1) or disable (0) support the mbed TLS
+ *    implementation of the Weave AES functions.
+ *
+ *  @note This configuration is mutual exclusive with other
+ *        WEAVE_CONFIG_AES_IMPLEMENTATION options.
+ *
+ */
+#ifndef WEAVE_CONFIG_AES_IMPLEMENTATION_MBEDTLS
+#define WEAVE_CONFIG_AES_IMPLEMENTATION_MBEDTLS              0
+#endif // WEAVE_CONFIG_AES_IMPLEMENTATION_MBEDTLS
+
+/**
  *  @}
  */
 
-#if ((WEAVE_CONFIG_AES_IMPLEMENTATION_PLATFORM + WEAVE_CONFIG_AES_IMPLEMENTATION_OPENSSL + WEAVE_CONFIG_AES_IMPLEMENTATION_AESNI) != 1)
-#error "Please assert exactly one of WEAVE_CONFIG_AES_IMPLEMENTATION_PLATFORM, WEAVE_CONFIG_AES_IMPLEMENTATION_OPENSSL or WEAVE_CONFIG_AES_IMPLEMENTATION_AESNI."
-#endif // ((WEAVE_CONFIG_AES_IMPLEMENTATION_PLATFORM + WEAVE_CONFIG_AES_IMPLEMENTATION_OPENSSL + WEAVE_CONFIG_AES_IMPLEMENTATION_AESNI) != 1)
+#if ((WEAVE_CONFIG_AES_IMPLEMENTATION_PLATFORM + \
+      WEAVE_CONFIG_AES_IMPLEMENTATION_OPENSSL + \
+      WEAVE_CONFIG_AES_IMPLEMENTATION_AESNI + \
+      WEAVE_CONFIG_AES_IMPLEMENTATION_MBEDTLS) != 1)
+#error "Please assert exactly one WEAVE_CONFIG_AES_IMPLEMENTATION_... option."
+#endif
 
 /**
  *  @def WEAVE_CONFIG_AES_USE_EXPANDED_KEY
@@ -784,6 +800,7 @@
  *      * #WEAVE_CONFIG_HASH_IMPLEMENTATION_PLATFORM
  *      * #WEAVE_CONFIG_HASH_IMPLEMENTATION_MINCRYPT
  *      * #WEAVE_CONFIG_HASH_IMPLEMENTATION_OPENSSL
+ *      * #WEAVE_CONFIG_HASH_IMPLEMENTATION_MBEDTLS
  *
  *    Note that these options are mutually exclusive and only one of
  *    these options should be set.
@@ -798,9 +815,8 @@
  *    Enable (1) or disable (0) support for platform-specific
  *    implementation of the Weave SHA1 and SHA256 hashes.
  *
- *  @note This configuration is mutual exclusive with
- *        #WEAVE_CONFIG_HASH_IMPLEMENTATION_MINCRYPT and
- *        #WEAVE_CONFIG_HASH_IMPLEMENTATION_OPENSSL.
+ *  @note This configuration is mutual exclusive with other
+ *        WEAVE_CONFIG_HASH_IMPLEMENTATION options.
  *
  */
 #ifndef WEAVE_CONFIG_HASH_IMPLEMENTATION_PLATFORM
@@ -816,9 +832,8 @@
  *    This implementation is using sha1 and sha256 engines from
  *    mincrypt library of Android core.
  *
- *  @note This configuration is mutual exclusive with
- *        #WEAVE_CONFIG_HASH_IMPLEMENTATION_PLATFORM and
- *        #WEAVE_CONFIG_HASH_IMPLEMENTATION_OPENSSL.
+ *  @note This configuration is mutual exclusive with other
+ *        WEAVE_CONFIG_HASH_IMPLEMENTATION options.
  *
  */
 #ifndef WEAVE_CONFIG_HASH_IMPLEMENTATION_MINCRYPT
@@ -832,9 +847,8 @@
  *    Enable (1) or disable (0) support for the OpenSSL
  *    implementation of the Weave SHA1 and SHA256 hash functions.
  *
- *  @note This configuration is mutual exclusive with
- *        #WEAVE_CONFIG_HASH_IMPLEMENTATION_PLATFORM and
- *        #WEAVE_CONFIG_HASH_IMPLEMENTATION_MINCRYPT.
+ *  @note This configuration is mutual exclusive with other
+ *        WEAVE_CONFIG_HASH_IMPLEMENTATION options.
  *
  */
 #ifndef WEAVE_CONFIG_HASH_IMPLEMENTATION_OPENSSL
@@ -842,12 +856,30 @@
 #endif // WEAVE_CONFIG_HASH_IMPLEMENTATION_OPENSSL
 
 /**
+ *  @def WEAVE_CONFIG_HASH_IMPLEMENTATION_MBEDTLS
+ *
+ *  @brief
+ *    Enable (1) or disable (0) support for the mbedTLS
+ *    implementation of the Weave SHA1 and SHA256 hash functions.
+ *
+ *  @note This configuration is mutual exclusive with other
+ *        WEAVE_CONFIG_HASH_IMPLEMENTATION options.
+ *
+ */
+#ifndef WEAVE_CONFIG_HASH_IMPLEMENTATION_MBEDTLS
+#define WEAVE_CONFIG_HASH_IMPLEMENTATION_MBEDTLS            0
+#endif // WEAVE_CONFIG_HASH_IMPLEMENTATION_MBEDTLS
+
+/**
  *  @}
  */
 
-#if ((WEAVE_CONFIG_HASH_IMPLEMENTATION_PLATFORM + WEAVE_CONFIG_HASH_IMPLEMENTATION_MINCRYPT + WEAVE_CONFIG_HASH_IMPLEMENTATION_OPENSSL) != 1)
-#error "Please assert exactly one of WEAVE_CONFIG_HASH_IMPLEMENTATION_PLATFORM, WEAVE_CONFIG_HASH_IMPLEMENTATION_MINCRYPT, or WEAVE_CONFIG_HASH_IMPLEMENTATION_OPENSSL."
-#endif // ((WEAVE_CONFIG_HASH_IMPLEMENTATION_PLATFORM + WEAVE_CONFIG_HASH_IMPLEMENTATION_MINCRYPT + WEAVE_CONFIG_HASH_IMPLEMENTATION_OPENSSL) != 1)
+#if ((WEAVE_CONFIG_HASH_IMPLEMENTATION_PLATFORM + \
+      WEAVE_CONFIG_HASH_IMPLEMENTATION_MINCRYPT + \
+      WEAVE_CONFIG_HASH_IMPLEMENTATION_OPENSSL  + \
+      WEAVE_CONFIG_HASH_IMPLEMENTATION_MBEDTLS) != 1)
+#error "Please assert exactly one WEAVE_CONFIG_HASH_IMPLEMENTATION_... option."
+#endif
 
 
 /**
