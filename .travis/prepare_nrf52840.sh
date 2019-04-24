@@ -62,7 +62,7 @@ rm ${TMPDIR}/arm_gcc_toolchain.tar.bz2
 # Clone the openweave-nrf52840-lock-example application.  This code will be used to
 # test the ability to build OpenWeave for the nRF52840.
 #
-git -C ${TRAVIS_BUILD_DIR} clone https://github.com/openweave/openweave-nrf52840-lock-example || exit 1
+git -C ${TRAVIS_BUILD_DIR} clone git@github.com:openweave/openweave-nrf52840-lock-example.git || exit 1
 
 # Test if a parallel branch exists in the demo app repo with the same name
 # as the OpenWeave branch being built.  If so, build using that branch of
