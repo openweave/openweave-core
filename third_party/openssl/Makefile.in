@@ -560,8 +560,8 @@ maintainer-clean-generic:
 	@echo "This command is intended for maintainers to use"
 	@echo "it deletes files that may require special tools to rebuild."
 @WEAVE_WITH_OPENSSL_INTERNAL_FALSE@install-data-local:
-@WEAVE_WITH_OPENSSL_INTERNAL_FALSE@clean-local:
 @WEAVE_WITH_OPENSSL_INTERNAL_FALSE@distclean-local:
+@WEAVE_WITH_OPENSSL_INTERNAL_FALSE@clean-local:
 clean: clean-am
 
 clean-am: clean-generic clean-libtool clean-local mostlyclean-am

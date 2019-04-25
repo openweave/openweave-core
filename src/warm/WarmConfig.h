@@ -33,8 +33,15 @@
 
 #include <BuildConfig.h>
 
-#if HAVE_WARMPROJECTCONFIG_H
-#include "WarmProjectConfig.h"
+/* Include a project-specific configuration file, if defined.
+ *
+ * An application or module that incorporates Weave can define a project configuration
+ * file to override standard WARM configuration with application-specific values.
+ * The project config file is typically located outside the OpenWeave source tree,
+ * along side the source code for the application.
+ */
+#ifdef WARM_PROJECT_CONFIG_INCLUDE
+#include WARM_PROJECT_CONFIG_INCLUDE
 #endif
 
 // clang-format off

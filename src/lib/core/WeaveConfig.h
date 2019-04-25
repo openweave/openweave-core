@@ -44,8 +44,15 @@
 #error "Weave SDK requires INET_TCP_IDLE_CHECK_INTERVAL > 0"
 #endif // INET_CONFIG_ENABLE_TCP_ENDPOINT && INET_TCP_IDLE_CHECK_INTERVAL <= 0
 
-#if HAVE_WEAVEPROJECTCONFIG_H
-#include "WeaveProjectConfig.h"
+/* Include a project-specific configuration file, if defined.
+ *
+ * An application or module that incorporates Weave can define a project configuration
+ * file to override standard Weave configuration with application-specific values.
+ * The WeaveProjectConfig.h file is typically located outside the OpenWeave source tree,
+ * alongside the source code for the application.
+ */
+#ifdef WEAVE_PROJECT_CONFIG_INCLUDE
+#include WEAVE_PROJECT_CONFIG_INCLUDE
 #endif
 
 // clang-format off
