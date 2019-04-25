@@ -21,9 +21,6 @@
 #         Makefile for building the nRF52840 OpenWeave bring-up app.
 #
 
-# Disable building OpenThread from source for the time being.
-USE_PREBUILT_OPENTHREAD ?= 1
-
 include nrf5-app.mk
 include nrf5-openweave.mk
 include nrf5-openthread.mk
@@ -42,25 +39,6 @@ SRCS = \
     $(NRF5_SDK_ROOT)/components/libraries/atomic_fifo/nrf_atfifo.c \
     $(NRF5_SDK_ROOT)/components/libraries/balloc/nrf_balloc.c \
     $(NRF5_SDK_ROOT)/components/libraries/crc16/crc16.c \
-    $(NRF5_SDK_ROOT)/components/libraries/crypto/backend/cc310/cc310_backend_aes.c \
-    $(NRF5_SDK_ROOT)/components/libraries/crypto/backend/cc310/cc310_backend_aes_aead.c \
-    $(NRF5_SDK_ROOT)/components/libraries/crypto/backend/cc310/cc310_backend_chacha_poly_aead.c \
-    $(NRF5_SDK_ROOT)/components/libraries/crypto/backend/cc310/cc310_backend_ecc.c \
-    $(NRF5_SDK_ROOT)/components/libraries/crypto/backend/cc310/cc310_backend_ecdh.c \
-    $(NRF5_SDK_ROOT)/components/libraries/crypto/backend/cc310/cc310_backend_ecdsa.c \
-    $(NRF5_SDK_ROOT)/components/libraries/crypto/backend/cc310/cc310_backend_eddsa.c \
-    $(NRF5_SDK_ROOT)/components/libraries/crypto/backend/cc310/cc310_backend_hash.c \
-    $(NRF5_SDK_ROOT)/components/libraries/crypto/backend/cc310/cc310_backend_hmac.c \
-    $(NRF5_SDK_ROOT)/components/libraries/crypto/backend/cc310/cc310_backend_init.c \
-    $(NRF5_SDK_ROOT)/components/libraries/crypto/backend/cc310/cc310_backend_mutex.c \
-    $(NRF5_SDK_ROOT)/components/libraries/crypto/backend/cc310/cc310_backend_rng.c \
-    $(NRF5_SDK_ROOT)/components/libraries/crypto/backend/cc310/cc310_backend_shared.c \
-    $(NRF5_SDK_ROOT)/components/libraries/crypto/backend/nrf_hw/nrf_hw_backend_init.c \
-    $(NRF5_SDK_ROOT)/components/libraries/crypto/backend/nrf_hw/nrf_hw_backend_rng.c \
-    $(NRF5_SDK_ROOT)/components/libraries/crypto/nrf_crypto_aes.c \
-	$(NRF5_SDK_ROOT)/components/libraries/crypto/nrf_crypto_aes_shared.c \
-    $(NRF5_SDK_ROOT)/components/libraries/crypto/nrf_crypto_init.c \
-    $(NRF5_SDK_ROOT)/components/libraries/crypto/nrf_crypto_rng.c \
     $(NRF5_SDK_ROOT)/components/libraries/experimental_section_vars/nrf_section_iter.c \
     $(NRF5_SDK_ROOT)/components/libraries/fds/fds.c \
     $(NRF5_SDK_ROOT)/components/libraries/fstorage/nrf_fstorage.c \
@@ -72,11 +50,9 @@ SRCS = \
     $(NRF5_SDK_ROOT)/components/libraries/log/src/nrf_log_str_formatter.c \
     $(NRF5_SDK_ROOT)/components/libraries/mem_manager/mem_manager.c \
     $(NRF5_SDK_ROOT)/components/libraries/memobj/nrf_memobj.c \
-	$(NRF5_SDK_ROOT)/components/libraries/queue/nrf_queue.c \
+    $(NRF5_SDK_ROOT)/components/libraries/queue/nrf_queue.c \
     $(NRF5_SDK_ROOT)/components/libraries/ringbuf/nrf_ringbuf.c \
     $(NRF5_SDK_ROOT)/components/libraries/strerror/nrf_strerror.c \
-    $(NRF5_SDK_ROOT)/components/libraries/uart/app_uart.c \
-    $(NRF5_SDK_ROOT)/components/libraries/uart/app_uart_fifo.c \
     $(NRF5_SDK_ROOT)/components/libraries/uart/retarget.c \
     $(NRF5_SDK_ROOT)/components/libraries/util/app_error.c \
     $(NRF5_SDK_ROOT)/components/libraries/util/app_error_handler_gcc.c \
@@ -101,18 +77,17 @@ SRCS = \
     $(NRF5_SDK_ROOT)/external/segger_rtt/SEGGER_RTT.c \
     $(NRF5_SDK_ROOT)/external/segger_rtt/SEGGER_RTT_printf.c \
     $(NRF5_SDK_ROOT)/external/segger_rtt/SEGGER_RTT_Syscalls_GCC.c \
-	$(NRF5_SDK_ROOT)/integration/nrfx/legacy/nrf_drv_clock.c \
-	$(NRF5_SDK_ROOT)/integration/nrfx/legacy/nrf_drv_rng.c \
+    $(NRF5_SDK_ROOT)/integration/nrfx/legacy/nrf_drv_clock.c \
+    $(NRF5_SDK_ROOT)/integration/nrfx/legacy/nrf_drv_rng.c \
     $(NRF5_SDK_ROOT)/modules/nrfx/drivers/src/nrfx_clock.c \
     $(NRF5_SDK_ROOT)/modules/nrfx/drivers/src/nrfx_gpiote.c \
     $(NRF5_SDK_ROOT)/modules/nrfx/drivers/src/nrfx_power_clock.c \
     $(NRF5_SDK_ROOT)/modules/nrfx/drivers/src/nrfx_uart.c \
     $(NRF5_SDK_ROOT)/modules/nrfx/drivers/src/nrfx_uarte.c \
-    $(NRF5_SDK_ROOT)/modules/nrfx/drivers/src/nrfx_rng.c \
     $(NRF5_SDK_ROOT)/modules/nrfx/drivers/src/prs/nrfx_prs.c \
     $(NRF5_SDK_ROOT)/modules/nrfx/mdk/gcc_startup_nrf52840.S \
-    $(NRF5_SDK_ROOT)/modules/nrfx/mdk/system_nrf52840.c
-      
+    $(NRF5_SDK_ROOT)/modules/nrfx/mdk/system_nrf52840.c \
+
 INC_DIRS = \
     $(PROJECT_ROOT) \
     $(NRF5_SDK_ROOT)/components \
@@ -125,15 +100,6 @@ INC_DIRS = \
     $(NRF5_SDK_ROOT)/components/libraries/balloc \
     $(NRF5_SDK_ROOT)/components/libraries/bsp \
     $(NRF5_SDK_ROOT)/components/libraries/crc16 \
-    $(NRF5_SDK_ROOT)/components/libraries/crypto \
-    $(NRF5_SDK_ROOT)/components/libraries/crypto/backend/cc310 \
-    $(NRF5_SDK_ROOT)/components/libraries/crypto/backend/cc310_bl \
-    $(NRF5_SDK_ROOT)/components/libraries/crypto/backend/cifra \
-    $(NRF5_SDK_ROOT)/components/libraries/crypto/backend/mbedtls \
-    $(NRF5_SDK_ROOT)/components/libraries/crypto/backend/micro_ecc \
-    $(NRF5_SDK_ROOT)/components/libraries/crypto/backend/nrf_hw \
-    $(NRF5_SDK_ROOT)/components/libraries/crypto/backend/nrf_sw \
-    $(NRF5_SDK_ROOT)/components/libraries/crypto/backend/oberon \
     $(NRF5_SDK_ROOT)/components/libraries/delay \
     $(NRF5_SDK_ROOT)/components/libraries/experimental_section_vars \
     $(NRF5_SDK_ROOT)/components/libraries/fds \
@@ -158,7 +124,6 @@ INC_DIRS = \
     $(NRF5_SDK_ROOT)/external/freertos/portable/CMSIS/nrf52 \
     $(NRF5_SDK_ROOT)/external/freertos/portable/GCC/nrf52 \
     $(NRF5_SDK_ROOT)/external/freertos/source/include \
-    $(NRF5_SDK_ROOT)/external/nrf_cc310/include \
     $(NRF5_SDK_ROOT)/external/segger_rtt \
     $(NRF5_SDK_ROOT)/integration/nrfx \
     $(NRF5_SDK_ROOT)/integration/nrfx/legacy \
@@ -166,9 +131,6 @@ INC_DIRS = \
     $(NRF5_SDK_ROOT)/modules/nrfx/drivers/include \
     $(NRF5_SDK_ROOT)/modules/nrfx/hal \
     $(NRF5_SDK_ROOT)/modules/nrfx/mdk
-
-LDFLAGS = \
-    -L$(NRF5_SDK_ROOT)/external/nrf_cc310/lib
 
 DEFINES = \
     BSP_DEFINES_ONLY \
