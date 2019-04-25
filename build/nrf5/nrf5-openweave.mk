@@ -22,12 +22,17 @@
 #
 
 #
-#   This makefile is designed to work in conjunction with the nrf5-app.mk
-#   makefile.  nRF5 applications should include this file in their top
-#   level Makefile after including nrf5-app.mk.  E.g.:
+#   This makefile is intended to work in conjunction with the nrf5-app.mk
+#   makefile to build the OpenWeave example applications on Nordic platforms. 
+#   nRF5 applications should include this file in their top level Makefile
+#   after including nrf5-app.mk.  E.g.:
 #
-#       include nrf5-app.mk
-#       include nrf5-openweave.mk
+#       PROJECT_ROOT = $(realpath .)
+#
+#       BUILD_SUPPORT_DIR = $(PROJECT_ROOT)/third_party/openweave-core/build/nrf5
+#       
+#       include $(BUILD_SUPPORT_DIR)/nrf5-app.mk
+#       include $(BUILD_SUPPORT_DIR)/nrf5-openweave.mk
 #
 #       PROJECT_ROOT := $(realpath .)
 #       
@@ -45,7 +50,7 @@
 # ==================================================
 
 # Location of OpenWeave source tree
-OPENWEAVE_ROOT ?= $(realpath ..)
+OPENWEAVE_ROOT ?= $(PROJECT_ROOT)/third_party/openweave-core
 
 # Archtecture for which OpenWeave will be built.
 OPENWEAVE_HOST_ARCH := armv7-unknown-linux-gnu

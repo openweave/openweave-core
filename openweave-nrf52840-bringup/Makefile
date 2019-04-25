@@ -21,11 +21,15 @@
 #         Makefile for building the nRF52840 OpenWeave bring-up app.
 #
 
-include nrf5-app.mk
-include nrf5-openweave.mk
-include nrf5-openthread.mk
+PROJECT_ROOT = $(realpath .)
 
-PROJECT_ROOT := $(realpath .)
+OPENWEAVE_ROOT = $(realpath $(PROJECT_ROOT)/..)
+
+BUILD_SUPPORT_DIR = $(OPENWEAVE_ROOT)/build/nrf5
+
+include $(BUILD_SUPPORT_DIR)/nrf5-app.mk
+include $(BUILD_SUPPORT_DIR)/nrf5-openweave.mk
+include $(BUILD_SUPPORT_DIR)/nrf5-openthread.mk
 
 APP := openweave-nrf52840-bringup
 
