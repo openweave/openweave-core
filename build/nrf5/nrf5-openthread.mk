@@ -14,16 +14,45 @@
 #    See the License for the specific language governing permissions and
 #    limitations under the License.
 #
-#    Description:
-#      Component makefile for building OpenThread for the nRF52840 platform.
+
 #
+#   @file
+#         Component makefile for incorporating OpenThread into an nRF5
+#         application.
+#
+
+#
+#   This makefile is intended to work in conjunction with the nrf5-app.mk
+#   makefile to build the OpenWeave example applications on Nordic platforms. 
+#   nRF5 applications should include this file in their top level Makefile
+#   after including nrf5-app.mk and nrf5-openweave.mk.  E.g.:
+#
+#       PROJECT_ROOT = $(realpath .)
+#
+#       BUILD_SUPPORT_DIR = $(PROJECT_ROOT)/third_party/openweave-core/build/nrf5
+#       
+#       include $(BUILD_SUPPORT_DIR)/nrf5-app.mk
+#       include $(BUILD_SUPPORT_DIR)/nrf5-openweave.mk
+#       include $(BUILD_SUPPORT_DIR)/nrf5-openthread.mk
+#
+#       PROJECT_ROOT := $(realpath .)
+#       
+#       APP := openweave-nrf52840-bringup
+#       
+#       SRCS = \
+#           $(PROJECT_ROOT)/main.cpp \
+#           ...
+#
+#       $(call GenerateBuildRules)
+#       
+
 
 # ==================================================
 # General settings
 # ==================================================
 
 # OpenThread source root directory
-OPENTHREAD_ROOT ?= $(PROJECT_ROOT)/openthread
+OPENTHREAD_ROOT ?= $(PROJECT_ROOT)/third_party/openthread
 
 # Target for which OpenThread will be built.
 OPENTHREAD_TARGET = nrf52840

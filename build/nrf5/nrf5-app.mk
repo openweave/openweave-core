@@ -22,14 +22,21 @@
 #
 
 #
-#   To build an application using this file, include the file in a
-#   project-specific Makefile, define make variables describing the
-#   application and how it should be built, and then call the
-#   GenerateBuildRules function.  E.g.:
+#   This makefile is primarily intended to support building the
+#   OpenWeave example applications on Nordic platforms.  However
+#   external developers should feel free to use it if they find
+#   it useful.
 #
-#       include nrf5-app.mk
+#   To build an application using this makefile, include the file
+#   in a project-specific Makefile, define make variables describing
+#   the application and how it should be built, and then call the
+#   GenerateBuildRules function.  E.g.:
+#   
+#       PROJECT_ROOT = $(realpath .)
+#
+#       BUILD_SUPPORT_DIR = $(PROJECT_ROOT)/third_party/openweave-core/build/nrf5
 #       
-#       PROJECT_ROOT := $(realpath .)
+#       include $(BUILD_SUPPORT_DIR)/nrf5-app.mk
 #       
 #       APP := openweave-nrf52840-bringup
 #       

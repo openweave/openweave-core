@@ -139,9 +139,10 @@ case "${BUILD_TARGET}" in
         
         # Clone OpenThread into the bringup app directory and checkout the commit that corresponds to
         # Nordic's SDK
-        cd $TRAVIS_BUILD_DIR/openweave-nrf52840-bringup
+        mkdir -p $TRAVIS_BUILD_DIR/openweave-nrf52840-bringup/third_party
+        cd $TRAVIS_BUILD_DIR/openweave-nrf52840-bringup/third_party
         git clone https://github.com/openthread/openthread.git
-        cd $TRAVIS_BUILD_DIR/openweave-nrf52840-bringup/openthread
+        cd $TRAVIS_BUILD_DIR/openweave-nrf52840-bringup/third_party/openthread
         git checkout 704511c96e
 
         ;;
