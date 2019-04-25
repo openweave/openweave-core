@@ -60,12 +60,18 @@ OPENTHREAD_PLATFORM_HEADERS = \
 # Build options
 # ==================================================
 
-# By default, use the prebuilt OpenThread libraries included in Nordic nRF5 SDK.
+# Use the prebuilt OpenThread libraries included in the Nordic nRF5 SDK instead of 
+# building OpenThread from source.
+#
+# NOTE: Due to the lack of multi-threading support in Nordic's port of OpenThread
+# (in particular, in the crypto code) it is currently not possible to build a working
+# OpenWeave application that uses the prebuilt OpenThread libraries.
+# 
 USE_PREBUILT_OPENTHREAD ?= 0
 
-
 # ==================================================
-# Compilation flags specific to building OpenThread
+# Compilation flags / settings specific to building
+#   OpenThread itself.
 # ==================================================
 
 OPENTHREAD_CPPFLAGS = $(STD_CFLAGS) $(DEBUG_FLAGS) $(OPT_FLAGS) -Wno-expansion-to-defined $(OPENTHREAD_DEFINE_FLAGS) $(OPENTHREAD_INC_FLAGS)
@@ -73,6 +79,9 @@ OPENTHREAD_CXXFLAGS = $(STD_CXXFLAGS) -Wno-expansion-to-defined
 OPENTHREAD_DEFINE_FLAGS = $(foreach def,$(OPENTHREAD_DEFINES),-D$(def))
 OPENTHREAD_INC_FLAGS = $(foreach dir,$(OPENTHREAD_INC_DIRS),-I$(dir))
 
+# NOTE: Due to the lack of multi-threading support in Nordic's port, OpenThread
+# must be build with CC310 support DISABLED in order to work with OpenWeave.
+# This enables various software implementations that are inherently thread-safe.
 OPENTHREAD_DEFINES = \
     NRF52840_XXAA \
     DISABLE_CC310=1 \
@@ -120,27 +129,34 @@ endif
 
 # ==================================================
 # Adjustments to standard build settings to 
-#   incorporate OpenThread
+#   incorporate OpenThread into the application.
 # ==================================================
 
 # Add the appropriate path to the public OpenThread headers to the application's
 # compile actions.
+STD_INC_DIRS_PREBUILT = \
+    $(NRF5_SDK_ROOT)/external/openthread/include
+STD_INC_DIRS_BUILT = \
+    $(OPENTHREAD_OUTPUT_DIR)/include \
+    $(OPENTHREAD_ROOT)/third_party/mbedtls/repo/include
 STD_INC_DIRS += $(if $(filter-out 0, $(USE_PREBUILT_OPENTHREAD)), \
-    $(NRF5_SDK_ROOT)/external/openthread/include, \
-    $(OPENTHREAD_OUTPUT_DIR)/include)
+    $(STD_INC_DIRS_PREBUILT), \
+    $(STD_INC_DIRS_BUILT))
 
 # Add the location of OpenThread libraries to application link action.
-STD_LDFLAGS += -L$(OPENTHREAD_LIB_DIR)
+# Also add the location of the cc310 library, in case it is needed.
+STD_LDFLAGS += \
+    -L$(OPENTHREAD_LIB_DIR) \
+    -L$(NRF5_SDK_ROOT)/external/nrf_cc310/lib
 
 # Add OpenThread libraries to standard libraries list. 
 STD_LIBS += \
     -lopenthread-diag \
     -lopenthread-ftd \
     -lopenthread-platform-utils \
-    -lmbedcrypto \
     -lopenthread-nrf52840-softdevice-sdk \
+    -lmbedcrypto \
     -lnrf_cc310_0.9.10
-# TODO: eliminate nrf_cc310_0.9.10; appears to only be needed by the .c files included by the app
     
 # Add the appropriate OpenThread target as a prerequisite to all application
 # compilation targets to ensure that OpenThread gets built and its header

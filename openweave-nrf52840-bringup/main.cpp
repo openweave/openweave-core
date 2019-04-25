@@ -10,7 +10,9 @@
 #include "nrf_sdh_soc.h"
 #endif
 #include "nrf_drv_clock.h"
+#if NRF_CRYPTO_ENABLED
 #include "nrf_crypto.h"
+#endif
 #include "mem_manager.h"
 
 #if NRF_LOG_ENABLED
@@ -298,12 +300,14 @@ int main(void)
         APP_ERROR_HANDLER(ret);
     }
 
+#if NRF_CRYPTO_ENABLED
     ret = nrf_crypto_init();
     if (ret != NRF_SUCCESS)
     {
         NRF_LOG_INFO("nrf_crypto_init() failed");
         APP_ERROR_HANDLER(ret);
     }
+#endif
 
 #if defined(SOFTDEVICE_PRESENT) && SOFTDEVICE_PRESENT
 

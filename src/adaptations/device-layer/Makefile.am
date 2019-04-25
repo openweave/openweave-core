@@ -138,7 +138,6 @@ endif # WEAVE_DEVICE_LAYER_TARGET_ESP32
 if WEAVE_DEVICE_LAYER_TARGET_NRF5
 
 libDeviceLayer_a_SOURCES               +=       \
-    nRF5/AESBlockCipher.cpp                     \
     nRF5/BLEManagerImpl.cpp                     \
     nRF5/ConfigurationManagerImpl.cpp           \
     nRF5/PlatformManagerImpl.cpp                \
