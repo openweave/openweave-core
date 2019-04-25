@@ -61,6 +61,12 @@ exit:
     return err;
 }
 
+bool ThreadStackManagerImpl::IsInitialized()
+{
+    return sInstance.mThreadStackLock != NULL;
+}
+
+
 } // namespace DeviceLayer
 } // namespace Weave
 } // namespace nl

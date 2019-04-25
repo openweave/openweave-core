@@ -39,6 +39,9 @@ namespace DeviceLayer {
 
 class ThreadStackManager;
 class ThreadStackManagerImpl;
+namespace Internal {
+extern int GetEntropy_nRF5(uint8_t * buf, size_t bufSize);
+}
 
 /**
  * Concrete implementation of the ThreadStackManager singleton object for nRF52 platforms
@@ -81,8 +84,11 @@ private:
 
     friend ThreadStackManager & ::nl::Weave::DeviceLayer::ThreadStackMgr(void);
     friend ThreadStackManagerImpl & ::nl::Weave::DeviceLayer::ThreadStackMgrImpl(void);
+    friend int Internal::GetEntropy_nRF5(uint8_t * buf, size_t bufSize);
 
     static ThreadStackManagerImpl sInstance;
+
+    static bool IsInitialized();
 
     // ===== Private members for use by this class only.
 
