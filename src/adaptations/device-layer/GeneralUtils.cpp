@@ -190,6 +190,7 @@ bool FormatDeviceLayerError(char * buf, uint16_t bufSize, int32_t err)
     switch (err)
     {
     case WEAVE_DEVICE_ERROR_CONFIG_NOT_FOUND        : desc = "Config not found"; break;
+    case WEAVE_DEVICE_ERROR_NOT_SERVICE_PROVISIONED : desc = "Not service provisioned"; break;
     }
 #endif // !WEAVE_CONFIG_SHORT_ERROR_STR
 

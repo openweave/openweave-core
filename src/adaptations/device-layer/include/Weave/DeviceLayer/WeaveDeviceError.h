@@ -33,5 +33,14 @@
  */
 #define WEAVE_DEVICE_ERROR_CONFIG_NOT_FOUND                   _WEAVE_DEVICE_ERROR(1)
 
+/**
+ *  @def WEAVE_DEVICE_ERROR_NOT_SERVICE_PROVISIONED
+ *
+ *  @brief
+ *    The device has not been service provisioned.
+ *
+ */
+#define WEAVE_DEVICE_ERROR_NOT_SERVICE_PROVISIONED            _WEAVE_DEVICE_ERROR(2)
+
 
 #endif // WEAVE_DEVICE_ERROR_H
