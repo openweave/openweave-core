@@ -47,10 +47,6 @@ GroupKeyStoreImpl gGroupKeyStore;
 } // unnamed namespace
 
 
-// Fully instantiate the template classes on which the ConfigurationManager depends.
-template class Internal::GenericConfigurationManagerImpl<ConfigurationManagerImpl>;
-
-
 /** Singleton instance of the ConfigurationManager implementation object.
  */
 ConfigurationManagerImpl ConfigurationManagerImpl::sInstance;

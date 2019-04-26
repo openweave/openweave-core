@@ -33,10 +33,14 @@
 // from which the GenericPlatformManagerImpl_FreeRTOS<> template inherits.
 #include <Weave/DeviceLayer/internal/GenericPlatformManagerImpl.ipp>
 
+
 namespace nl {
 namespace Weave {
 namespace DeviceLayer {
 namespace Internal {
+
+// Fully instantiate the generic implementation class in whatever compilation unit includes this file.
+template class GenericPlatformManagerImpl_FreeRTOS<PlatformManagerImpl>;
 
 template<class ImplClass>
 WEAVE_ERROR GenericPlatformManagerImpl_FreeRTOS<ImplClass>::_InitWeaveStack(void)

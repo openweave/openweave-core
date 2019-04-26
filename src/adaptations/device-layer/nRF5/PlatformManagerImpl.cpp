@@ -33,10 +33,6 @@ namespace nl {
 namespace Weave {
 namespace DeviceLayer {
 
-// Fully instantiate the template classes on which the nRF52 PlatformManager depends.
-template class Internal::GenericPlatformManagerImpl<PlatformManagerImpl>;
-template class Internal::GenericPlatformManagerImpl_FreeRTOS<PlatformManagerImpl>;
-
 PlatformManagerImpl PlatformManagerImpl::sInstance;
 
 WEAVE_ERROR PlatformManagerImpl::_InitWeaveStack(void)

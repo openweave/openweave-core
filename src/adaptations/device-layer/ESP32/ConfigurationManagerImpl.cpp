@@ -63,10 +63,6 @@ GroupKeyStoreImpl gGroupKeyStore;
 } // unnamed namespace
 
 
-// Fully instantiate the template classes on which the ESP32 ConfigurationManager depends.
-template class Internal::GenericConfigurationManagerImpl<ConfigurationManagerImpl>;
-
-
 /** Singleton instance of the ConfigurationManager implementation object for the ESP32.
  */
 ConfigurationManagerImpl ConfigurationManagerImpl::sInstance;

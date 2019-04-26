@@ -64,12 +64,6 @@ public:
     void UnlockThreadStack(void);
     bool HaveRouteToAddress(const IPAddress & destAddr);
 
-protected:
-
-    // ===== Members available to the implementation subclass.
-
-    ThreadStackManager() = default;
-
 private:
 
     // ===== Members for internal use by the following friends.
@@ -94,6 +88,17 @@ private:
     WEAVE_ERROR SetThreadProvision(const Internal::DeviceNetworkInfo & netInfo);
     void ClearThreadProvision(void);
     bool HaveMeshConnectivity(void);
+
+protected:
+
+    // Construction/destruction limited to subclasses.
+    ThreadStackManager() = default;
+    ~ThreadStackManager() = default;
+
+    // No copy, move or assignment.
+    ThreadStackManager(const ThreadStackManager &) = delete;
+    ThreadStackManager(const ThreadStackManager &&) = delete;
+    ThreadStackManager & operator=(const ThreadStackManager &) = delete;
 };
 
 /**

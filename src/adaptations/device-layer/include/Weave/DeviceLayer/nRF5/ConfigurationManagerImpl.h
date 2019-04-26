@@ -36,11 +36,6 @@ namespace Internal {
 class NetworkProvisioningServerImpl;
 }
 
-// Instruct the compiler to instantiate the GenericConfigurationManagerImpl<> template
-// only when explicitly instructed to do so.
-extern template class Internal::GenericConfigurationManagerImpl<ConfigurationManagerImpl>;
-
-
 /**
  * Concrete implementation of the ConfigurationManager singleton object for the nRF52 platform.
  */

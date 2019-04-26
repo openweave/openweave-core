@@ -107,6 +107,9 @@ private:
     ImplClass * Impl() { return static_cast<ImplClass *>(this); }
 };
 
+// Instruct the compiler to instantiate the template only when explicitly told to do so.
+extern template class Internal::GenericConfigurationManagerImpl<ConfigurationManagerImpl>;
+
 template<class ImplClass>
 inline WEAVE_ERROR GenericConfigurationManagerImpl<ImplClass>::_GetVendorId(uint16_t & vendorId)
 {
