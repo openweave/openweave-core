@@ -63,6 +63,9 @@ public:
     bool TryLockThreadStack(void);
     void UnlockThreadStack(void);
     bool HaveRouteToAddress(const IPAddress & destAddr);
+    WEAVE_ERROR GetAndLogThreadStatsCounters(void);
+    WEAVE_ERROR GetAndLogThreadTopologyMinimal(void);
+    WEAVE_ERROR GetAndLogThreadTopologyFull(void);
 
 private:
 
@@ -216,6 +219,21 @@ inline void ThreadStackManager::ClearThreadProvision(void)
 inline bool ThreadStackManager::HaveMeshConnectivity(void)
 {
     return static_cast<ImplClass*>(this)->_HaveMeshConnectivity();
+}
+
+inline WEAVE_ERROR ThreadStackManager::GetAndLogThreadStatsCounters(void)
+{
+    return static_cast<ImplClass*>(this)->_GetAndLogThreadStatsCounters();
+}
+
+inline WEAVE_ERROR ThreadStackManager::GetAndLogThreadTopologyMinimal(void)
+{
+    return static_cast<ImplClass*>(this)->_GetAndLogThreadTopologyMinimal();
+}
+
+inline WEAVE_ERROR ThreadStackManager::GetAndLogThreadTopologyFull(void)
+{
+    return static_cast<ImplClass*>(this)->_GetAndLogThreadTopologyFull();
 }
 
 } // namespace DeviceLayer

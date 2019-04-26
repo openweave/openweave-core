@@ -569,5 +569,92 @@
 #define WEAVE_DEVICE_CONFIG_DISABLE_ACCOUNT_PAIRING 0
 #endif
 
+// -------------------- Network Telemetry Configuration --------------------
+
+/**
+ * @def WEAVE_DEVICE_CONFIG_ENABLE_WIFI_TELEMETRY
+ *
+ * @brief
+ *   Enable automatically uploading Wi-Fi telemetry via trait on an interval.
+ */
+#ifndef WEAVE_DEVICE_CONFIG_ENABLE_WIFI_TELEMETRY
+#define WEAVE_DEVICE_CONFIG_ENABLE_WIFI_TELEMETRY (0)
+#endif
+
+/**
+ * @def WEAVE_DEVICE_CONFIG_ENABLE_THREAD_TELEMETRY
+ *
+ * @brief
+ *   Enable automatically uploading minimal Thread telemetry and topology via trait on an interval.
+ */
+#ifndef WEAVE_DEVICE_CONFIG_ENABLE_THREAD_TELEMETRY
+#define WEAVE_DEVICE_CONFIG_ENABLE_THREAD_TELEMETRY (0)
+#endif
+
+#if WEAVE_DEVICE_CONFIG_ENABLE_THREAD_TELEMETRY && !WEAVE_DEVICE_CONFIG_ENABLE_THREAD
+#error "If WEAVE_DEVICE_CONFIG_ENABLE_THREAD_TELEMETRY set, then WEAVE_DEVICE_CONFIG_ENABLE_THREAD must also be set."
+#endif
+
+/**
+ * @def WEAVE_DEVICE_CONFIG_ENABLE_THREAD_TELEMETRY_FULL
+ *
+ * @brief
+ *   Enable automatically uploading all Thread telemetry and topology via trait on an interval.
+ *   This is suitable for products that have router capability.
+ *
+ * @note
+ *   If set, WEAVE_DEVICE_CONFIG_ENABLE_THREAD_TELEMETRY must also be set.
+ */
+#ifndef WEAVE_DEVICE_CONFIG_ENABLE_THREAD_TELEMETRY_FULL
+#define WEAVE_DEVICE_CONFIG_ENABLE_THREAD_TELEMETRY_FULL (0)
+#endif
+
+#if WEAVE_DEVICE_CONFIG_ENABLE_THREAD_TELEMETRY_FULL && !WEAVE_DEVICE_CONFIG_ENABLE_THREAD_TELEMETRY
+#error "If WEAVE_DEVICE_CONFIG_ENABLE_THREAD_TELEMETRY_FULL set, then WEAVE_DEVICE_CONFIG_ENABLE_THREAD_TELEMETRY must also be set."
+#endif
+
+/**
+ * @def WEAVE_DEVICE_CONFIG_ENABLE_TUNNEL_TELEMETRY
+ *
+ * @brief
+ *   Enable automatically uploading Weave tunnel telemetry via trait on an interval.
+ */
+#ifndef WEAVE_DEVICE_CONFIG_ENABLE_TUNNEL_TELEMETRY
+#define WEAVE_DEVICE_CONFIG_ENABLE_TUNNEL_TELEMETRY (0)
+#endif
+
+#if WEAVE_DEVICE_CONFIG_ENABLE_TUNNEL_TELEMETRY && !WEAVE_CONFIG_ENABLE_TUNNELING
+#error "If WEAVE_DEVICE_CONFIG_ENABLE_TUNNEL_TELEMETRY set, then WEAVE_CONFIG_ENABLE_TUNNELING must also be set."
+#endif
+
+// Enable Network Telemetry feature if it is enabled for at lease one network.
+#define WEAVE_DEVICE_CONFIG_ENABLE_NETWORK_TELEMETRY  (WEAVE_DEVICE_CONFIG_ENABLE_WIFI_TELEMETRY || \
+                                                       WEAVE_DEVICE_CONFIG_ENABLE_THREAD_TELEMETRY || \
+                                                       WEAVE_DEVICE_CONFIG_ENABLE_TUNNEL_TELEMETRY)
+
+/**
+ *  @def WEAVE_DEVICE_CONFIG_DEFAULT_TELEMETRY_INTERVAL_MS
+ *
+ *  @brief
+ *    This sets the default interval at which network telemetry events
+ *    will be logged to Weave buffers. This can be overwritten at runtime
+ *    with a trait.
+ *
+ */
+#ifndef WEAVE_DEVICE_CONFIG_DEFAULT_TELEMETRY_INTERVAL_MS
+#define WEAVE_DEVICE_CONFIG_DEFAULT_TELEMETRY_INTERVAL_MS 90000
+#endif
+
+/**
+ *  @def WEAVE_DEVICE_CONFIG_DEFAULT_TUNNEL_TELEMETRY_INTERVAL_MS
+ *
+ *  @brief
+ *    This sets the default interval at which Weave tunnel telemetry events
+ *    will be logged to Weave buffers.
+ *
+ */
+#ifndef WEAVE_DEVICE_CONFIG_DEFAULT_TUNNEL_TELEMETRY_INTERVAL_MS
+#define WEAVE_DEVICE_CONFIG_DEFAULT_TUNNEL_TELEMETRY_INTERVAL_MS 300000
+#endif
 
 #endif // WEAVE_DEVICE_CONFIG_H

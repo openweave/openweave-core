@@ -720,4 +720,35 @@ menu "OpenWeave Device Layer"
     
     endmenu
 
+    menu "Network Telemetry Options"
+    
+        config ENABLE_WIFI_TELEMETRY
+            bool "Enable WiFi Telemetry"
+            default y
+            help
+                Enable automatically uploading Wi-Fi telemetry via trait on an interval.
+        
+        config ENABLE_THREAD_TELEMETRY
+            bool "Enable Thread Telemetry"
+            default n
+            help
+                Enable automatically uploading minimal Thread telemetry and topology via trait on an interval.
+
+        config ENABLE_THREAD_TELEMETRY_FULL
+            bool "Enable Full Thread Telemetry"
+            default n
+            help
+                Enable automatically uploading all Thread telemetry and topology via trait on an interval.
+                This is suitable for products that have router capability.
+
+                This option can be enabled only when Thread telemetry is enabled.
+        
+        config ENABLE_TUNNEL_TELEMETRY
+            bool "Enable Weave Tunnel Telemetry"
+            default y
+            help
+                Enable automatically uploading Weave tunnel telemetry via trait on an interval.
+    
+    endmenu
+
 endmenu

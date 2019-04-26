@@ -50,6 +50,11 @@
 #error "WiFi AP support must be enabled when building for ESP32"
 #endif
 
+#if WEAVE_DEVICE_CONFIG_ENABLE_WIFI_TELEMETRY
+#include <Weave/Support/TraitEventUtils.h>
+#include <nest/trait/network/TelemetryNetworkTrait.h>
+#include <nest/trait/network/TelemetryNetworkWifiTrait.h>
+#endif
 
 using namespace ::nl;
 using namespace ::nl::Weave;
@@ -185,6 +190,154 @@ void ConnectivityManagerImpl::_SetWiFiAPIdleTimeoutMS(uint32_t val)
 {
     mWiFiAPIdleTimeoutMS = val;
     SystemLayer.ScheduleWork(DriveAPState, NULL);
+}
+
+#define WIFI_BAND_2_4GHZ 2400
+#define WIFI_BAND_5_0GHZ 5000
+
+static uint16_t Map2400MHz(const uint8_t inChannel)
+{
+    uint16_t frequency = 0;
+
+    if (inChannel >= 1 && inChannel <= 13) {
+        frequency = 2412 + ((inChannel - 1) * 5);
+
+    } else if (inChannel == 14) {
+        frequency = 2484;
+
+    }
+
+    return frequency;
+}
+
+static uint16_t Map5000MHz(const uint8_t inChannel)
+{
+    uint16_t frequency = 0;
+
+    switch (inChannel) {
+
+    case 183: frequency = 4915; break;
+    case 184: frequency = 4920; break;
+    case 185: frequency = 4925; break;
+    case 187: frequency = 4935; break;
+    case 188: frequency = 4940; break;
+    case 189: frequency = 4945; break;
+    case 192: frequency = 4960; break;
+    case 196: frequency = 4980; break;
+    case 7:   frequency = 5035; break;
+    case 8:   frequency = 5040; break;
+    case 9:   frequency = 5045; break;
+    case 11:  frequency = 5055; break;
+    case 12:  frequency = 5060; break;
+    case 16:  frequency = 5080; break;
+    case 34:  frequency = 5170; break;
+    case 36:  frequency = 5180; break;
+    case 38:  frequency = 5190; break;
+    case 40:  frequency = 5200; break;
+    case 42:  frequency = 5210; break;
+    case 44:  frequency = 5220; break;
+    case 46:  frequency = 5230; break;
+    case 48:  frequency = 5240; break;
+    case 52:  frequency = 5260; break;
+    case 56:  frequency = 5280; break;
+    case 60:  frequency = 5300; break;
+    case 64:  frequency = 5320; break;
+    case 100: frequency = 5500; break;
+    case 104: frequency = 5520; break;
+    case 108: frequency = 5540; break;
+    case 112: frequency = 5560; break;
+    case 116: frequency = 5580; break;
+    case 120: frequency = 5600; break;
+    case 124: frequency = 5620; break;
+    case 128: frequency = 5640; break;
+    case 132: frequency = 5660; break;
+    case 136: frequency = 5680; break;
+    case 140: frequency = 5700; break;
+    case 149: frequency = 5745; break;
+    case 153: frequency = 5765; break;
+    case 157: frequency = 5785; break;
+    case 161: frequency = 5805; break;
+    case 165: frequency = 5825; break;
+
+    }
+
+    return frequency;
+}
+
+static uint16_t MapFrequency(const uint16_t inBand, const uint8_t inChannel)
+{
+    uint16_t frequency = 0;
+
+    if (inBand == WIFI_BAND_2_4GHZ) {
+        frequency = Map2400MHz(inChannel);
+
+    } else if (inBand == WIFI_BAND_5_0GHZ) {
+        frequency = Map5000MHz(inChannel);
+
+    }
+
+    return frequency;
+}
+
+WEAVE_ERROR ConnectivityManagerImpl::_GetAndLogWifiStatsCounters(void)
+{
+    WEAVE_ERROR err;
+    nl::Weave::Profiles::DataManagement_Current::event_id_t eventId;
+    Schema::Nest::Trait::Network::TelemetryNetworkWifiTrait::NetworkWiFiStatsEvent statsEvent;
+    wifi_config_t wifiConfig;
+    uint8_t primaryChannel;
+    wifi_second_chan_t secondChannel;
+
+    VerifyOrExit(_IsWiFiStationConnected() && _IsWiFiStationConnected(), err = WEAVE_NO_ERROR);
+
+    err = esp_wifi_get_config(ESP_IF_WIFI_STA, &wifiConfig);
+    if (err != ESP_OK)
+    {
+        WeaveLogError(DeviceLayer, "esp_wifi_get_config() failed: %s", nl::ErrorStr(err));
+    }
+    SuccessOrExit(err);
+
+    err = esp_wifi_get_channel(&primaryChannel, &secondChannel);
+    if (err != ESP_OK)
+    {
+        WeaveLogError(DeviceLayer, "esp_wifi_get_channel() failed: %s", nl::ErrorStr(err));
+    }
+    SuccessOrExit(err);
+
+    statsEvent.bssid            = (wifiConfig.sta.bssid[4] << 8) | wifiConfig.sta.bssid[5];
+    statsEvent.freq             = MapFrequency(WIFI_BAND_2_4GHZ, primaryChannel);
+    statsEvent.rssi             = 0;
+    statsEvent.bcnRecvd         = 0;
+    statsEvent.bcnLost          = 0;
+    statsEvent.pktMcastRx       = 0;
+    statsEvent.pktUcastRx       = 0;
+    statsEvent.currTxRate       = 0;
+    statsEvent.currRxRate       = 0;
+    statsEvent.sleepTimePercent = 0;
+    statsEvent.numOfAp          = 0;
+
+    WeaveLogProgress(DeviceLayer,
+                     "WiFi-Telemtry\n"
+                     "BSSID:         %x\n"
+                     "freq:          %d\n"
+                     "rssi:          %d\n"
+                     "bcn recvd:     %d\n"
+                     "bcn lost:      %d\n"
+                     "mcast:         %d\n"
+                     "ucast:         %d\n"
+                     "rx rate:       %d\n"
+                     "tx rate:       %d\n"
+                     "sleep percent: %d\n"
+                     "Num of AP:     %d\n",
+                     statsEvent.bssid, statsEvent.freq, statsEvent.rssi, statsEvent.bcnRecvd, statsEvent.bcnLost,
+                     statsEvent.pktMcastRx, statsEvent.pktUcastRx, statsEvent.currRxRate, statsEvent.currTxRate,
+                     statsEvent.sleepTimePercent, statsEvent.numOfAp);
+
+    eventId = nl::LogEvent(&statsEvent);
+    WeaveLogProgress(DeviceLayer, "WiFi Telemetry Stats Event Id: %u\n", eventId);
+
+exit:
+    return err;
 }
 
 WEAVE_ERROR ConnectivityManagerImpl::_SetServiceTunnelMode(ServiceTunnelMode val)

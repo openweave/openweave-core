@@ -969,6 +969,7 @@ nl_public_WeaveDeviceLayer_base_header_sources =                                
 $(nl_public_WeaveDeviceLayer_source_dirstem)/ConfigurationManager.h                   \
 $(nl_public_WeaveDeviceLayer_source_dirstem)/ConnectivityManager.h                    \
 $(nl_public_WeaveDeviceLayer_source_dirstem)/GeneralUtils.h                           \
+$(nl_public_WeaveDeviceLayer_source_dirstem)/NetworkTelemetryManager.h                \
 $(nl_public_WeaveDeviceLayer_source_dirstem)/PlatformManager.h                        \
 $(nl_public_WeaveDeviceLayer_source_dirstem)/ThreadStackManager.h                     \
 $(nl_public_WeaveDeviceLayer_source_dirstem)/TimeSyncManager.h                        \
@@ -977,6 +978,10 @@ $(nl_public_WeaveDeviceLayer_source_dirstem)/WeaveDeviceConfig.h                
 $(nl_public_WeaveDeviceLayer_source_dirstem)/WeaveDeviceError.h                       \
 $(nl_public_WeaveDeviceLayer_source_dirstem)/WeaveDeviceEvent.h                       \
 $(nl_public_WeaveDeviceLayer_source_dirstem)/WeaveDeviceLayer.h                       \
+$(nl_public_WeaveDeviceLayer_source_dirstem)/../../../trait-support/nest/trait/network/TelemetryNetworkTrait.h     \
+$(nl_public_WeaveDeviceLayer_source_dirstem)/../../../trait-support/nest/trait/network/TelemetryNetworkWifiTrait.h \
+$(nl_public_WeaveDeviceLayer_source_dirstem)/../../../trait-support/nest/trait/network/TelemetryNetworkWpanTrait.h \
+$(nl_public_WeaveDeviceLayer_source_dirstem)/../../../trait-support/weave/trait/telemetry/tunnel/TelemetryTunnelTrait.h \
 $(NULL)
 
 nl_public_WeaveDeviceLayer_internal_header_sources =                                                \
