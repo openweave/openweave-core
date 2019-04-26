@@ -34,10 +34,6 @@ namespace Internal {
 extern WEAVE_ERROR InitLwIPCoreLock(void);
 }
 
-// Fully instantiate the template classes on which the ESP32 PlatformManager depends.
-template class Internal::GenericPlatformManagerImpl<PlatformManagerImpl>;
-template class Internal::GenericPlatformManagerImpl_FreeRTOS<PlatformManagerImpl>;
-
 PlatformManagerImpl PlatformManagerImpl::sInstance;
 
 WEAVE_ERROR PlatformManagerImpl::_InitWeaveStack(void)

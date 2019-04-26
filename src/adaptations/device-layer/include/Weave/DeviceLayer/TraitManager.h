@@ -61,9 +61,9 @@ public:
 
     enum ServiceSubscriptionMode
     {
-        kServiceSubscriptionMode_NotSupported               = -1,
-        kServiceSubscriptionMode_Disabled                   = 0,
-        kServiceSubscriptionMode_Enabled                    = 1,
+        kServiceSubscriptionMode_NotSupported               = 0,
+        kServiceSubscriptionMode_Disabled                   = 1,
+        kServiceSubscriptionMode_Enabled                    = 2,
     };
 
     ServiceSubscriptionMode GetServiceSubscriptionMode(void);
@@ -119,6 +119,17 @@ private:
             const SubscriptionClient::InEventParam & inParam, SubscriptionClient::OutEventParam & outParam);
     static void HandleInboundSubscriptionEvent(void * aAppState, SubscriptionHandler::EventID eventType,
             const SubscriptionHandler::InEventParam & inParam, SubscriptionHandler::OutEventParam & outParam);
+
+protected:
+
+    // Construction/destruction limited to subclasses.
+    TraitManager() = default;
+    ~TraitManager() = default;
+
+    // No copy, move or assignment.
+    TraitManager(const TraitManager &) = delete;
+    TraitManager(const TraitManager &&) = delete;
+    TraitManager & operator=(const TraitManager &) = delete;
 };
 
 inline TraitManager::ServiceSubscriptionMode TraitManager::GetServiceSubscriptionMode(void)

@@ -29,6 +29,8 @@ extern WEAVE_ERROR ParseCompilerDateStr(const char * dateStr, uint16_t & year, u
 extern WEAVE_ERROR Parse24HourTimeStr(const char * timeStr, uint8_t & hour, uint8_t & minute, uint8_t & second);
 extern const char * CharacterizeIPv6Address(const ::nl::Inet::IPAddress & ipAddr);
 extern const char * CharacterizeIPv6Prefix(const Inet::IPPrefix & inPrefix);
+extern void RegisterDeviceLayerErrorFormatter(void);
+extern bool FormatDeviceLayerError(char * buf, uint16_t bufSize, int32_t err);
 
 } // namespace DeviceLayer
 } // namespace Weave

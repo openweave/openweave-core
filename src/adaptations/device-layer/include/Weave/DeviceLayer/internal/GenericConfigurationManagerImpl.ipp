@@ -34,6 +34,9 @@ namespace Weave {
 namespace DeviceLayer {
 namespace Internal {
 
+// Fully instantiate the generic implementation class in whatever compilation unit includes this file.
+template class GenericConfigurationManagerImpl<ConfigurationManagerImpl>;
+
 template<class ImplClass>
 WEAVE_ERROR GenericConfigurationManagerImpl<ImplClass>::_Init()
 {

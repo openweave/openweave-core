@@ -50,42 +50,42 @@ public:
 
     enum WiFiStationMode
     {
-        kWiFiStationMode_NotSupported               = -1,
-        kWiFiStationMode_ApplicationControlled      = 0,
-        kWiFiStationMode_Disabled                   = 1,
-        kWiFiStationMode_Enabled                    = 2,
+        kWiFiStationMode_NotSupported               = 0,
+        kWiFiStationMode_ApplicationControlled      = 1,
+        kWiFiStationMode_Disabled                   = 2,
+        kWiFiStationMode_Enabled                    = 3,
     };
 
     enum WiFiAPMode
     {
-        kWiFiAPMode_NotSupported                    = -1,
-        kWiFiAPMode_ApplicationControlled           = 0,
-        kWiFiAPMode_Disabled                        = 1,
-        kWiFiAPMode_Enabled                         = 2,
-        kWiFiAPMode_OnDemand                        = 3,
-        kWiFiAPMode_OnDemand_NoStationProvision     = 4,
+        kWiFiAPMode_NotSupported                    = 0,
+        kWiFiAPMode_ApplicationControlled           = 1,
+        kWiFiAPMode_Disabled                        = 2,
+        kWiFiAPMode_Enabled                         = 3,
+        kWiFiAPMode_OnDemand                        = 4,
+        kWiFiAPMode_OnDemand_NoStationProvision     = 5,
     };
 
     enum ThreadMode
     {
-        kThreadMode_NotSupported                    = -1,
-        kThreadMode_ApplicationControlled           = 0,
-        kThreadMode_Disabled                        = 1,
-        kThreadMode_Enabled                         = 2,
+        kThreadMode_NotSupported                    = 0,
+        kThreadMode_ApplicationControlled           = 1,
+        kThreadMode_Disabled                        = 2,
+        kThreadMode_Enabled                         = 3,
     };
 
     enum ServiceTunnelMode
     {
-        kServiceTunnelMode_NotSupported             = -1,
-        kServiceTunnelMode_Disabled                 = 0,
-        kServiceTunnelMode_Enabled                  = 1,
+        kServiceTunnelMode_NotSupported             = 0,
+        kServiceTunnelMode_Disabled                 = 1,
+        kServiceTunnelMode_Enabled                  = 2,
     };
 
     enum WoBLEServiceMode
     {
-        kWoBLEServiceMode_NotSupported              = -1,
-        kWoBLEServiceMode_Enabled                   = 0,
-        kWoBLEServiceMode_Disabled                  = 1,
+        kWoBLEServiceMode_NotSupported              = 0,
+        kWoBLEServiceMode_Enabled                   = 1,
+        kWoBLEServiceMode_Disabled                  = 2,
     };
 
     // WiFi station methods
@@ -166,6 +166,17 @@ private:
     bool CanStartWiFiScan(void);
     void OnWiFiScanDone(void);
     void OnWiFiStationProvisionChange(void);
+
+protected:
+
+    // Construction/destruction limited to subclasses.
+    ConnectivityManager() = default;
+    ~ConnectivityManager() = default;
+
+    // No copy, move or assignment.
+    ConnectivityManager(const ConnectivityManager &) = delete;
+    ConnectivityManager(const ConnectivityManager &&) = delete;
+    ConnectivityManager & operator=(const ConnectivityManager &) = delete;
 };
 
 /**

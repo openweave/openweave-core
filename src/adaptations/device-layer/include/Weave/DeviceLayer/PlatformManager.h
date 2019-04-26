@@ -98,6 +98,17 @@ private:
     void PostEvent(const WeaveDeviceEvent * event);
     void DispatchEvent(const WeaveDeviceEvent * event);
     WEAVE_ERROR StartWeaveTimer(uint32_t durationMS);
+
+protected:
+
+    // Construction/destruction limited to subclasses.
+    PlatformManager() = default;
+    ~PlatformManager() = default;
+
+    // No copy, move or assignment.
+    PlatformManager(const PlatformManager &) = delete;
+    PlatformManager(const PlatformManager &&) = delete;
+    PlatformManager & operator=(const PlatformManager &) = delete;
 };
 
 /**

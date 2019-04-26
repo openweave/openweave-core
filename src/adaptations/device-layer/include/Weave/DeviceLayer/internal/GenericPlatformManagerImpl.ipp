@@ -44,6 +44,9 @@ namespace Weave {
 namespace DeviceLayer {
 namespace Internal {
 
+// Fully instantiate the generic implementation class in whatever compilation unit includes this file.
+template class GenericPlatformManagerImpl<PlatformManagerImpl>;
+
 extern WEAVE_ERROR InitCASEAuthDelegate();
 extern WEAVE_ERROR InitEntropy();
 
@@ -51,6 +54,9 @@ template<class ImplClass>
 WEAVE_ERROR GenericPlatformManagerImpl<ImplClass>::_InitWeaveStack(void)
 {
     WEAVE_ERROR err;
+
+    // Arrange for Device Layer errors to be translated to text.
+    RegisterDeviceLayerErrorFormatter();
 
     // Initialize the source used by Weave to get secure random data.
     err = InitEntropy();

@@ -67,9 +67,14 @@ public:
 
 protected:
 
-    // Access to construction/destruction is limited to subclasses.
+    // Construction/destruction limited to subclasses.
     BLEManager() = default;
     ~BLEManager() = default;
+
+    // No copy, move or assignment.
+    BLEManager(const BLEManager &) = delete;
+    BLEManager(const BLEManager &&) = delete;
+    BLEManager & operator=(const BLEManager &) = delete;
 };
 
 /**

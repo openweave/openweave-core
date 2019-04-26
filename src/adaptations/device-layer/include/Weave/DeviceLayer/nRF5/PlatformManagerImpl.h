@@ -31,12 +31,6 @@ namespace nl {
 namespace Weave {
 namespace DeviceLayer {
 
-// Instruct the compiler to instantiate the following generic implementation templates
-// only when explicitly told to do so.  The corresponding instantiations are expressed
-// in the PlatformManagerImpl.cpp file.
-extern template class Internal::GenericPlatformManagerImpl<PlatformManagerImpl>;
-extern template class Internal::GenericPlatformManagerImpl_FreeRTOS<PlatformManagerImpl>;
-
 /**
  * Concrete implementation of the PlatformManager singleton object for the nRF52 platform.
  */

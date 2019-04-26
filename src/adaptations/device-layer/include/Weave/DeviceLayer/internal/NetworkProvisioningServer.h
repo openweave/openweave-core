@@ -49,9 +49,14 @@ public:
 
 protected:
 
-    // Access to construction/destruction is limited to subclasses.
-    NetworkProvisioningServer(void) = default;
-    ~NetworkProvisioningServer(void) = default;
+    // Construction/destruction limited to subclasses.
+    NetworkProvisioningServer() = default;
+    ~NetworkProvisioningServer() = default;
+
+    // No copy, move or assignment.
+    NetworkProvisioningServer(const NetworkProvisioningServer &) = delete;
+    NetworkProvisioningServer(const NetworkProvisioningServer &&) = delete;
+    NetworkProvisioningServer & operator=(const NetworkProvisioningServer &) = delete;
 };
 
 /**

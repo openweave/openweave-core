@@ -56,13 +56,22 @@ private:
 
     static DeviceDescriptionServer sInstance;
 
-private:
-
     // ===== Private members reserved for use by this class only.
 
     static void HandleIdentifyRequest(void *appState, uint64_t nodeId, const IPAddress& nodeAddr,
             const ::nl::Weave::Profiles::DeviceDescription::IdentifyRequestMessage& reqMsg, bool& sendResp,
             ::nl::Weave::Profiles::DeviceDescription::IdentifyResponseMessage& respMsg);
+
+protected:
+
+    // Construction/destruction limited to subclasses.
+    DeviceDescriptionServer() = default;
+    ~DeviceDescriptionServer() = default;
+
+    // No copy, move or assignment.
+    DeviceDescriptionServer(const DeviceDescriptionServer &) = delete;
+    DeviceDescriptionServer(const DeviceDescriptionServer &&) = delete;
+    DeviceDescriptionServer & operator=(const DeviceDescriptionServer &) = delete;
 };
 
 /**

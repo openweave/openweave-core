@@ -151,6 +151,53 @@ const char * CharacterizeIPv6Prefix(const Inet::IPPrefix & inPrefix)
     return NULL;
 }
 
+/**
+ * Register a text error formatter for Device Layer errors.
+ */
+void RegisterDeviceLayerErrorFormatter(void)
+{
+    static ErrorFormatter sDeviceLayerErrorFormatter =
+    {
+        FormatDeviceLayerError,
+        NULL
+    };
+
+    RegisterErrorFormatter(&sDeviceLayerErrorFormatter);
+}
+
+/**
+ * Given Device Layer error, returns a human-readable NULL-terminated C string
+ * describing the error.
+ *
+ * @param[in] buf                   Buffer into which the error string will be placed.
+ * @param[in] bufSize               Size of the supplied buffer in bytes.
+ * @param[in] err                   The error to be described.
+ *
+ * @return true                     If a descriptions string was written into the supplied buffer.
+ * @return false                    If the supplied error was not a Device Layer error.
+ *
+ */
+bool FormatDeviceLayerError(char * buf, uint16_t bufSize, int32_t err)
+{
+    const char * desc = NULL;
+
+    if (err < WEAVE_DEVICE_ERROR_MIN || err > WEAVE_DEVICE_ERROR_MAX)
+    {
+        return false;
+    }
+
+#if !WEAVE_CONFIG_SHORT_ERROR_STR
+    switch (err)
+    {
+    case WEAVE_DEVICE_ERROR_CONFIG_NOT_FOUND        : desc = "Config not found"; break;
+    }
+#endif // !WEAVE_CONFIG_SHORT_ERROR_STR
+
+    FormatError(buf, bufSize, "Device Layer", err, desc);
+
+    return true;
+}
+
 } // namespace DeviceLayer
 } // namespace Weave
 } // namespace nl
