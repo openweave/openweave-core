@@ -155,9 +155,15 @@ WEAVE_ERROR NRF5Config::ReadConfigValueStr(Key key, char * buf, size_t bufSize, 
 
     outLen = strEnd - (const uint8_t *)rec.p_data;
 
-    VerifyOrExit(bufSize > outLen, err = WEAVE_ERROR_BUFFER_TOO_SMALL);
+    // NOTE: the caller is allowed to pass NULL for buf to query the length of the stored
+    // value.
 
-    memcpy(buf, rec.p_data, outLen + 1);
+    if (buf != NULL)
+    {
+        VerifyOrExit(bufSize > outLen, err = WEAVE_ERROR_BUFFER_TOO_SMALL);
+
+        memcpy(buf, rec.p_data, outLen + 1);
+    }
 
 exit:
     if (needClose)
@@ -185,9 +191,15 @@ WEAVE_ERROR NRF5Config::ReadConfigValueBin(Key key, uint8_t * buf, size_t bufSiz
 
     VerifyOrExit((rec.p_header->length_words * kFDSWordSize) >= (outLen + 2), err = WEAVE_ERROR_INVALID_ARGUMENT);
 
-    VerifyOrExit(bufSize >= outLen, err = WEAVE_ERROR_BUFFER_TOO_SMALL);
+    // NOTE: the caller is allowed to pass NULL for buf to query the length of the stored
+    // value.
 
-    memcpy(buf, ((const uint8_t *)rec.p_data) + 2, outLen);
+    if (buf != NULL)
+    {
+        VerifyOrExit(bufSize >= outLen, err = WEAVE_ERROR_BUFFER_TOO_SMALL);
+
+        memcpy(buf, ((const uint8_t *)rec.p_data) + 2, outLen);
+    }
 
 exit:
     if (needClose)
