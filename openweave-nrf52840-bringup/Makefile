@@ -42,6 +42,7 @@ SRCS = \
     $(NRF5_SDK_ROOT)/components/libraries/atomic/nrf_atomic.c \
     $(NRF5_SDK_ROOT)/components/libraries/atomic_fifo/nrf_atfifo.c \
     $(NRF5_SDK_ROOT)/components/libraries/balloc/nrf_balloc.c \
+    $(NRF5_SDK_ROOT)/components/libraries/button/app_button.c \
     $(NRF5_SDK_ROOT)/components/libraries/crc16/crc16.c \
     $(NRF5_SDK_ROOT)/components/libraries/experimental_section_vars/nrf_section_iter.c \
     $(NRF5_SDK_ROOT)/components/libraries/fds/fds.c \
@@ -57,6 +58,7 @@ SRCS = \
     $(NRF5_SDK_ROOT)/components/libraries/queue/nrf_queue.c \
     $(NRF5_SDK_ROOT)/components/libraries/ringbuf/nrf_ringbuf.c \
     $(NRF5_SDK_ROOT)/components/libraries/strerror/nrf_strerror.c \
+    $(NRF5_SDK_ROOT)/components/libraries/timer/app_timer_freertos.c \
     $(NRF5_SDK_ROOT)/components/libraries/uart/retarget.c \
     $(NRF5_SDK_ROOT)/components/libraries/util/app_error.c \
     $(NRF5_SDK_ROOT)/components/libraries/util/app_error_handler_gcc.c \
@@ -78,6 +80,7 @@ SRCS = \
     $(NRF5_SDK_ROOT)/external/freertos/source/queue.c \
     $(NRF5_SDK_ROOT)/external/freertos/source/stream_buffer.c \
     $(NRF5_SDK_ROOT)/external/freertos/source/tasks.c \
+    $(NRF5_SDK_ROOT)/external/freertos/source/timers.c \
     $(NRF5_SDK_ROOT)/external/segger_rtt/SEGGER_RTT.c \
     $(NRF5_SDK_ROOT)/external/segger_rtt/SEGGER_RTT_printf.c \
     $(NRF5_SDK_ROOT)/external/segger_rtt/SEGGER_RTT_Syscalls_GCC.c \
@@ -103,6 +106,7 @@ INC_DIRS = \
     $(NRF5_SDK_ROOT)/components/libraries/atomic_fifo \
     $(NRF5_SDK_ROOT)/components/libraries/balloc \
     $(NRF5_SDK_ROOT)/components/libraries/bsp \
+    $(NRF5_SDK_ROOT)/components/libraries/button \
     $(NRF5_SDK_ROOT)/components/libraries/crc16 \
     $(NRF5_SDK_ROOT)/components/libraries/delay \
     $(NRF5_SDK_ROOT)/components/libraries/experimental_section_vars \
@@ -117,6 +121,7 @@ INC_DIRS = \
     $(NRF5_SDK_ROOT)/components/libraries/ringbuf \
     $(NRF5_SDK_ROOT)/components/libraries/stack_info \
     $(NRF5_SDK_ROOT)/components/libraries/strerror \
+    $(NRF5_SDK_ROOT)/components/libraries/timer \
     $(NRF5_SDK_ROOT)/components/libraries/util \
     $(NRF5_SDK_ROOT)/components/softdevice/common \
     $(NRF5_SDK_ROOT)/components/softdevice/s140/headers \
