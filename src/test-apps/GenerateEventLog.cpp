@@ -186,21 +186,22 @@ static int TestTeardown(void *inContext)
     return SUCCESS;
 }
 
-
+uint64_t gDebugEventBuffer[LOG_BUFFER_SIZE];
 uint64_t gInfoEventBuffer[LOG_BUFFER_SIZE];
 uint64_t gProdEventBuffer[LOG_BUFFER_SIZE];
+uint64_t gCritEventBuffer[LOG_BUFFER_SIZE];
 FILE * gFileOutput = NULL;
 
 void InitializeEventLogging(LogContext *context)
 {
-    size_t arraySizes[] = { sizeof(gInfoEventBuffer), sizeof(gProdEventBuffer) };
+    LogStorageResources logStorageResources[] = {
+        LogStorageResources(static_cast<void *>(&gCritEventBuffer[0]), sizeof(gCritEventBuffer), NULL, 0, NULL, nl::Weave::Profiles::DataManagement::ImportanceType::ProductionCritical),
+        LogStorageResources(static_cast<void *>(&gProdEventBuffer[0]), sizeof(gProdEventBuffer), NULL, 0, NULL, nl::Weave::Profiles::DataManagement::ImportanceType::Production),
+        LogStorageResources(static_cast<void *>(&gInfoEventBuffer[0]), sizeof(gInfoEventBuffer), NULL, 0, NULL, nl::Weave::Profiles::DataManagement::ImportanceType::Info),
+        LogStorageResources(static_cast<void *>(&gDebugEventBuffer[0]), sizeof(gDebugEventBuffer), NULL, 0, NULL, nl::Weave::Profiles::DataManagement::ImportanceType::Debug) };
 
-    void *arrays[] = {
-        static_cast<void *>(&gInfoEventBuffer[0]),
-        static_cast<void *>(&gProdEventBuffer[0]) };
-
-    nl::Weave::Profiles::DataManagement::LoggingManagement::CreateLoggingManagement(context->mExchangeMgr, 2, &arraySizes[0], &arrays[0], NULL, NULL, NULL);
-
+    nl::Weave::Profiles::DataManagement::LoggingManagement::CreateLoggingManagement(
+        context->mExchangeMgr, sizeof(logStorageResources) / sizeof(logStorageResources[0]), logStorageResources);
     nl::Weave::Profiles::DataManagement::LoggingConfiguration::GetInstance().mGlobalImportance = context->mLogLevel;
 }
 

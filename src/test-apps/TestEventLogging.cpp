@@ -458,14 +458,15 @@ PersistedCounter * sCounterStorage[kImportanceType_Last] = {
 
 void InitializeEventLogging(TestLoggingContext * context)
 {
-    size_t arraySizes[] = { sizeof(gDebugEventBuffer), sizeof(gInfoEventBuffer), sizeof(gProdEventBuffer),
-                            sizeof(gCritEventBuffer) };
+    LogStorageResources logStorageResources[] = {
+        LogStorageResources(static_cast<void *>(&gCritEventBuffer[0]), sizeof(gCritEventBuffer), NULL, 0, NULL, nl::Weave::Profiles::DataManagement::ImportanceType::ProductionCritical),
+        LogStorageResources(static_cast<void *>(&gProdEventBuffer[0]), sizeof(gProdEventBuffer), NULL, 0, NULL, nl::Weave::Profiles::DataManagement::ImportanceType::Production),
+        LogStorageResources(static_cast<void *>(&gInfoEventBuffer[0]), sizeof(gInfoEventBuffer), NULL, 0, NULL, nl::Weave::Profiles::DataManagement::ImportanceType::Info),
+        LogStorageResources(static_cast<void *>(&gDebugEventBuffer[0]), sizeof(gDebugEventBuffer), NULL, 0, NULL, nl::Weave::Profiles::DataManagement::ImportanceType::Debug) };
 
-    void * arrays[] = { static_cast<void *>(&gDebugEventBuffer[0]), static_cast<void *>(&gInfoEventBuffer[0]),
-                        static_cast<void *>(&gProdEventBuffer[0]), static_cast<void *>(&gCritEventBuffer[0]) };
 
     nl::Weave::Profiles::DataManagement::LoggingManagement::CreateLoggingManagement(
-        context->mExchangeMgr, sizeof(arrays) / sizeof(arrays[0]), &arraySizes[0], &arrays[0], NULL, NULL, NULL);
+        context->mExchangeMgr, sizeof(logStorageResources) / sizeof(logStorageResources[0]), logStorageResources);
     nl::Weave::Profiles::DataManagement::LoggingManagement & instance =
         nl::Weave::Profiles::DataManagement::LoggingManagement::GetInstance();
     nl::Weave::Profiles::DataManagement::LoggingConfiguration::GetInstance().mGlobalImportance =
@@ -482,11 +483,11 @@ void DestroyEventLogging(TestLoggingContext * context)
 void InitializeEventLoggingWithPersistedCounters(TestLoggingContext * context, uint32_t startingValue,
                                                  nl::Weave::Profiles::DataManagement::ImportanceType globalImportance)
 {
-    size_t arraySizes[] = { sizeof(gDebugEventBuffer), sizeof(gInfoEventBuffer), sizeof(gProdEventBuffer),
-                            sizeof(gCritEventBuffer[0]) };
-
-    void * arrays[] = { static_cast<void *>(&gDebugEventBuffer[0]), static_cast<void *>(&gInfoEventBuffer[0]),
-                        static_cast<void *>(&gProdEventBuffer[0]), static_cast<void *>(&gCritEventBuffer[0]) };
+    LogStorageResources logStorageResources[] = {
+        LogStorageResources(static_cast<void *>(&gCritEventBuffer[0]), sizeof(gCritEventBuffer), &sCritEventIdCounterStorageKey, sEventIdCounterEpoch, &sCritEventIdCounter, nl::Weave::Profiles::DataManagement::ImportanceType::ProductionCritical),
+        LogStorageResources(static_cast<void *>(&gProdEventBuffer[0]), sizeof(gProdEventBuffer), &sProductionEventIdCounterStorageKey, sEventIdCounterEpoch, &sProductionEventIdCounter, nl::Weave::Profiles::DataManagement::ImportanceType::Production),
+        LogStorageResources(static_cast<void *>(&gInfoEventBuffer[0]), sizeof(gInfoEventBuffer), &sInfoEventIdCounterStorageKey, sEventIdCounterEpoch, &sInfoEventIdCounter, nl::Weave::Profiles::DataManagement::ImportanceType::Info),
+        LogStorageResources(static_cast<void *>(&gDebugEventBuffer[0]), sizeof(gDebugEventBuffer), &sDebugEventIdCounterStorageKey, sEventIdCounterEpoch, &sDebugEventIdCounter, nl::Weave::Profiles::DataManagement::ImportanceType::Debug) };
 
     nl::Weave::Platform::PersistedStorage::Write(sCritEventIdCounterStorageKey, startingValue);
     nl::Weave::Platform::PersistedStorage::Write(sProductionEventIdCounterStorageKey, startingValue);
@@ -494,8 +495,7 @@ void InitializeEventLoggingWithPersistedCounters(TestLoggingContext * context, u
     nl::Weave::Platform::PersistedStorage::Write(sDebugEventIdCounterStorageKey, startingValue);
 
     nl::Weave::Profiles::DataManagement::LoggingManagement::CreateLoggingManagement(
-        context->mExchangeMgr, sizeof(arrays) / sizeof(arrays[0]), &arraySizes[0], &arrays[0], sCounterKeys, sCounterEpochs,
-        sCounterStorage);
+        context->mExchangeMgr, sizeof(logStorageResources) / sizeof(logStorageResources[0]), logStorageResources);
 
     nl::Weave::Profiles::DataManagement::LoggingConfiguration::GetInstance().mGlobalImportance = globalImportance;
 }

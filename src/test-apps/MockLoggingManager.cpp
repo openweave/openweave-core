@@ -95,10 +95,7 @@ namespace Platform {
 uint64_t gDebugEventBuffer[192];
 uint64_t gInfoEventBuffer[64];
 uint64_t gProdEventBuffer[256];
-nl::Weave::MonotonicallyIncreasingCounter gDebugEventCounter;
-nl::Weave::MonotonicallyIncreasingCounter gInfoEventCounter;
-nl::Weave::MonotonicallyIncreasingCounter gProdEventCounter;
-
+uint64_t gCritEventBuffer[256];
 
 bool gMockEventStop = false;
 bool gEventIsStopped = false;
@@ -140,30 +137,13 @@ void EnableMockEventTimestampInitialCounter(void)
 
 void InitializeEventLogging(WeaveExchangeManager *inMgr)
 {
-    size_t arraySizes[] = { sizeof(gDebugEventBuffer), sizeof(gInfoEventBuffer), sizeof(gProdEventBuffer) };
+    LogStorageResources logStorageResources[] = {
+        LogStorageResources(static_cast<void *>(&gCritEventBuffer[0]), sizeof(gCritEventBuffer), NULL, 0, NULL, nl::Weave::Profiles::DataManagement::ImportanceType::ProductionCritical),
+        LogStorageResources(static_cast<void *>(&gProdEventBuffer[0]), sizeof(gProdEventBuffer), NULL, 0, NULL, nl::Weave::Profiles::DataManagement::ImportanceType::Production),
+        LogStorageResources(static_cast<void *>(&gInfoEventBuffer[0]), sizeof(gInfoEventBuffer), NULL, 0, NULL, nl::Weave::Profiles::DataManagement::ImportanceType::Info),
+        LogStorageResources(static_cast<void *>(&gDebugEventBuffer[0]), sizeof(gDebugEventBuffer), NULL, 0, NULL, nl::Weave::Profiles::DataManagement::ImportanceType::Debug) };
 
-    void *arrays[] = {
-        static_cast<void *>(&gDebugEventBuffer[0]),
-        static_cast<void *>(&gInfoEventBuffer[0]),
-        static_cast<void *>(&gProdEventBuffer[0]) };
-
-    if (gEnableMockTimestampInitialCounter)
-    {
-        uint32_t startingCounter = time(NULL);
-        WeaveLogDetail(EventLogging, "Event counter is initialized with timestamp %08" PRIx32 , startingCounter);
-        gDebugEventCounter.Init(startingCounter);
-        gInfoEventCounter.Init(startingCounter);
-        gProdEventCounter.Init(startingCounter);
-
-        nl::Weave::MonotonicallyIncreasingCounter *nWeaveCounter[] = { &gDebugEventCounter, &gInfoEventCounter, &gProdEventCounter };
-
-        nl::Weave::Profiles::DataManagement::LoggingManagement::CreateLoggingManagement(inMgr, 3, &arraySizes[0],
-                                                                                        &arrays[0], nWeaveCounter);
-    }
-    else
-    {
-        nl::Weave::Profiles::DataManagement::LoggingManagement::CreateLoggingManagement(inMgr, 3, &arraySizes[0], &arrays[0], NULL, NULL, NULL);
-    }
+    nl::Weave::Profiles::DataManagement::LoggingManagement::CreateLoggingManagement(inMgr, sizeof(logStorageResources) / sizeof(logStorageResources[0]), logStorageResources);
 }
 
 MockEventGenerator * MockEventGenerator::GetInstance(void)
