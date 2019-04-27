@@ -153,7 +153,7 @@ DEFINES = \
 # Use an appication-specifc OpenThread project config file to
 # override the default OpenThread configuration.  (Note that
 # this only has effect when USE_PREBUILT_OPENTHREAD=0).
-OPENTHREAD_PROJECT_CONFIG_FILE = OpenThreadConfig.h
+OPENTHREAD_PROJECT_CONFIG = OpenThreadConfig.h
 
 
 $(call GenerateBuildRules)
