@@ -72,9 +72,13 @@ OPENTHREAD_LIB_DIR = $(if $(filter-out 0, $(USE_PREBUILT_OPENTHREAD)), \
 # build process.
 OPENTHREAD_PREREQUISITE = $(if $(filter-out 0, $(USE_PREBUILT_OPENTHREAD)),,install-thread)
 
-# Location of OpenThread's platform config file.  This can be overridden by the
-# application to use an application-specific configuration.
-OPENTHREAD_PROJECT_CONFIG_FILE = openthread-core-$(OPENTHREAD_TARGET)-config.h
+# Name of OpenThread's platform config file.  By default, this is set to
+# the nRF5-specific file found in OpenThread's examples directory.  
+# Applications can override this to force inclusion of their own configuration
+# file. However, in most cases, the application-specified file should include
+# the Nordic file to ensure that OpenThread is configured properly for the
+# for nRF5 platforms.
+OPENTHREAD_PROJECT_CONFIG = openthread-core-$(OPENTHREAD_TARGET)-config.h
 
 # Additional header files needed by the Nordic port of OpenThread
 # but not installed automatically by OpenThread's build system.
@@ -114,7 +118,7 @@ OPENTHREAD_INC_FLAGS = $(foreach dir,$(OPENTHREAD_INC_DIRS),-I$(dir))
 OPENTHREAD_DEFINES = \
     NRF52840_XXAA \
     DISABLE_CC310=1 \
-    OPENTHREAD_PROJECT_CORE_CONFIG_FILE='\"$(OPENTHREAD_PROJECT_CONFIG_FILE)\"'
+    OPENTHREAD_PROJECT_CORE_CONFIG_FILE='\"$(OPENTHREAD_PROJECT_CONFIG)\"'
 
 OPENTHREAD_INC_DIRS = \
 	$(PROJECT_ROOT) \
