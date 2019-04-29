@@ -183,7 +183,7 @@ void LwIPLog(const char *msg, ...)
 #if WEAVE_DEVICE_CONFIG_ENABLE_THREAD
 
 #undef NRF_LOG_MODULE_NAME
-#define NRF_LOG_MODULE_NAME OT
+#define NRF_LOG_MODULE_NAME thread
 #include "nrf_log.h"
 NRF_LOG_MODULE_REGISTER();
 
