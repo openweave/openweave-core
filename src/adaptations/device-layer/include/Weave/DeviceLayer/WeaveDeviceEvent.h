@@ -299,7 +299,10 @@ struct WeaveDeviceEvent final
         } ServiceTunnelStateChange;
         struct
         {
-            ConnectivityChange Result;
+            struct
+            {
+                ConnectivityChange Result;
+            } Overall;
             struct
             {
                 ConnectivityChange Result;

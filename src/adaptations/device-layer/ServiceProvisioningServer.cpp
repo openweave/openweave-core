@@ -201,7 +201,7 @@ void ServiceProvisioningServer::OnPlatformEvent(const WeaveDeviceEvent * event)
     if ((event->Type == DeviceEventType::kServiceTunnelStateChange &&
          event->ServiceTunnelStateChange.Result == kConnectivity_Established) ||
         (event->Type == DeviceEventType::kServiceConnectivityChange &&
-         event->ServiceConnectivityChange.Result == kConnectivity_Established))
+         event->ServiceConnectivityChange.Overall.Result == kConnectivity_Established))
     {
         // If a RegisterServicePairAccount request is pending and the system is waiting for
         // the service connectivity to be established, initiate the PairDeviceToAccount request now.
