@@ -118,7 +118,7 @@ void TimeSyncManager::OnPlatformEvent(const WeaveDeviceEvent * event)
 {
     if (event->Type == DeviceEventType::kServiceProvisioningChange ||
         (event->Type == DeviceEventType::kServiceConnectivityChange &&
-         event->ServiceConnectivityChange.Result != kConnectivity_NoChange))
+         event->ServiceConnectivityChange.Overall.Result != kConnectivity_NoChange))
     {
         sInstance.DriveTimeSync();
     }

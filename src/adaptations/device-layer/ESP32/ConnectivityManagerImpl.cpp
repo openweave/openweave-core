@@ -1236,7 +1236,7 @@ void ConnectivityManagerImpl::HandleServiceTunnelNotification(WeaveTunnelConnect
             event.Type = DeviceEventType::kServiceConnectivityChange;
             event.ServiceConnectivityChange.ViaTunnel.Result = (newTunnelState) ? kConnectivity_Established : kConnectivity_Lost;
             event.ServiceConnectivityChange.ViaThread.Result = kConnectivity_NoChange;
-            event.ServiceConnectivityChange.Result = sInstance.HaveServiceConnectivityViaThread()
+            event.ServiceConnectivityChange.Overall.Result = sInstance.HaveServiceConnectivityViaThread()
                     ? kConnectivity_NoChange
                     : event.ServiceConnectivityChange.ViaTunnel.Result;
             PlatformMgr().PostEvent(&event);
