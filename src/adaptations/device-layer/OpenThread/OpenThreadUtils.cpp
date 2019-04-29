@@ -233,7 +233,7 @@ void LogOpenThreadPacket(const char * titleStr, otMessage * pkt)
             snprintf(destStr + strlen(destStr), 13, ", port %" PRIu16, Encoding::BigEndian::Get16(IPv6_DestPort));
         }
 
-        WeaveLogDetail(DeviceLayer, "Thread packet %s: %s, len %" PRIu16, titleStr, type, pktLen);
+        WeaveLogDetail(DeviceLayer, "%s: %s, len %" PRIu16, titleStr, type, pktLen);
         WeaveLogDetail(DeviceLayer, "    src  %s", srcStr);
         WeaveLogDetail(DeviceLayer, "    dest %s", destStr);
     }

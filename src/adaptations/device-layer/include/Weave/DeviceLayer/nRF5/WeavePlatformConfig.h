@@ -53,8 +53,6 @@
 #define WEAVE_CONFIG_TIME_ENABLE_CLIENT 1
 #define WEAVE_CONFIG_TIME_ENABLE_SERVER 0
 
-#define WEAVE_DEVICE_CONFIG_ENABLE_SERVICE_DIRECTORY_TIME_SYNC 0
-
 // ==================== Security Adaptations ====================
 
 #define WEAVE_CONFIG_USE_OPENSSL_ECC 0

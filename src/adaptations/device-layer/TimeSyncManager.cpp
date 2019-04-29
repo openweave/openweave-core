@@ -165,6 +165,9 @@ void TimeSyncManager::DriveTimeSync()
 
 #if WEAVE_DEVICE_CONFIG_ENABLE_WEAVE_TIME_SERVICE_TIME_SYNC
 
+    // Make sure there's no time sync in progress.
+    CancelTimeSync();
+
     // If synchronizing time with the service...
     //    AND the system has been service provisioned...
     //    AND the system has service connectivity...
@@ -187,9 +190,6 @@ void TimeSyncManager::DriveTimeSync()
         // If synchronization should happen now...
         if (timeToNextSyncMS == 0)
         {
-            // Make sure there's no time sync in progress.
-            CancelTimeSync();
-
             WeaveLogProgress(DeviceLayer, "Starting time sync with Weave time server");
 
             // Create and prepare a binding for talking to the time server endpoint.
@@ -211,12 +211,6 @@ void TimeSyncManager::DriveTimeSync()
         {
             SystemLayer.StartTimer((uint32_t)timeToNextSyncMS, DriveTimeSync, NULL);
         }
-    }
-
-    // Otherwise stop any time sync that might be in progress and cancel the interval timer.
-    else
-    {
-        CancelTimeSync();
     }
 
 #endif // WEAVE_DEVICE_CONFIG_ENABLE_WEAVE_TIME_SERVICE_TIME_SYNC
@@ -285,6 +279,9 @@ void TimeSyncManager::TimeSyncFailed(WEAVE_ERROR reason, Profiles::StatusReporti
              (reason == WEAVE_ERROR_STATUS_REPORT_RECEIVED && statusReport != NULL)
              ? StatusReportStr(statusReport->mProfileId, statusReport->mStatusCode)
              : ErrorStr(reason));
+
+    // Clear the current state
+    CancelTimeSync();
 
     // Update the time from which the next sync interval should be counted.
     sInstance.mLastSyncTimeMS = System::Layer::GetClock_MonotonicMS();
