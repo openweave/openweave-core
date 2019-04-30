@@ -57,6 +57,7 @@ class test_weave_wdm_next_mutual_subscribe_faults(weave_wdm_next_test_base):
                               "Weave_WDMUpdateRequestSendErrorAsync",
                               "Weave_WDMUpdateRequestBadProfile",
                               "Weave_WDMUpdateResponseBusy",
+                              "Weave_WDMUpdateRequestDropMessage",
                               "Weave_WDMPathStoreFull"]
         not_required_server_faults = wdm_udpate_faults
 
