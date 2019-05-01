@@ -28,6 +28,7 @@
 #include <Weave/DeviceLayer/PlatformManager.h>
 #include <Weave/DeviceLayer/ConfigurationManager.h>
 #include <Weave/DeviceLayer/ConnectivityManager.h>
+#include <Weave/DeviceLayer/NetworkTelemetryManager.h>
 #if WEAVE_DEVICE_CONFIG_ENABLE_TRAIT_MANAGER
 #include <Weave/DeviceLayer/TraitManager.h>
 #endif // WEAVE_DEVICE_CONFIG_ENABLE_TRAIT_MANAGER

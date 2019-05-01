@@ -39,104 +39,54 @@
 #include <weave/trait/telemetry/tunnel/TelemetryTunnelTrait.h>
 #endif
 
-using namespace nl::Weave::DeviceLayer;
 using namespace nl::Weave::DeviceLayer::Internal;
 
-WeaveTelemetryBase::WeaveTelemetryBase()
-{
-}
+namespace nl {
+namespace Weave {
+namespace DeviceLayer {
 
-void WeaveTelemetryBase::Init(uint32_t aIntervalMsec)
-{
-    SetPollingInterval(aIntervalMsec);
-    Enable();
-}
-
-void WeaveTelemetryBase::Enable(void)
-{
-    mEnabled = true;
-    StartPollingTimer();
-}
-
-void WeaveTelemetryBase::Disable(void)
-{
-    mEnabled = false;
-    StopPollingTimer();
-}
-
-void WeaveTelemetryBase::StartPollingTimer(void)
-{
-    SystemLayer.StartTimer(mInterval, sHandleTimer, this);
-}
-
-void WeaveTelemetryBase::StopPollingTimer(void)
-{
-    SystemLayer.CancelTimer(sHandleTimer, this);
-}
-
-void WeaveTelemetryBase::HandleTimer(void)
-{
-    GetTelemetryStatsAndLogEvent();
-
-    StartPollingTimer();
-}
+NetworkTelemetryManager NetworkTelemetryManager::sInstance;
 
 NetworkTelemetryManager::NetworkTelemetryManager(void)
 {
 }
 
-WEAVE_ERROR NetworkTelemetryManager::Init(void)
+void NetworkTelemetryManager::Init(void)
 {
-    WEAVE_ERROR err = WEAVE_NO_ERROR;
-
-    WeaveLogProgress(DeviceLayer, "Initiating Network Telemetry & Topology\n");
-
-#if WEAVE_DEVICE_CONFIG_ENABLE_WIFI_TELEMETRY
-    mWiFiTelemetry.Init(WEAVE_DEVICE_CONFIG_DEFAULT_TELEMETRY_INTERVAL_MS);
-#endif
-
-#if WEAVE_DEVICE_CONFIG_ENABLE_THREAD_TELEMETRY
-    mThreadTelemetry.Init(WEAVE_DEVICE_CONFIG_DEFAULT_TELEMETRY_INTERVAL_MS);
-    mThreadTopology.Init(WEAVE_DEVICE_CONFIG_DEFAULT_TELEMETRY_INTERVAL_MS);
-#endif
-
-#if WEAVE_DEVICE_CONFIG_ENABLE_TUNNEL_TELEMETRY
-    mTunnelTelemetry.Init(WEAVE_DEVICE_CONFIG_DEFAULT_TUNNEL_TELEMETRY_INTERVAL_MS);
-#endif
-
-    return err;
+    SetPollingInterval(WEAVE_DEVICE_CONFIG_DEFAULT_TELEMETRY_INTERVAL_MS);
+    EnableTimer();
 }
 
+void NetworkTelemetryManager::EnableTimer(void)
+{
+    mTimerEnabled = true;
+    StartPollingTimer();
+}
 
-#if WEAVE_DEVICE_CONFIG_ENABLE_WIFI_TELEMETRY
-void WiFiTelemetry::GetTelemetryStatsAndLogEvent(void)
+void NetworkTelemetryManager::DisableTimer(void)
+{
+    mTimerEnabled = false;
+    StopPollingTimer();
+}
+
+void NetworkTelemetryManager::HandleTimer(void)
+{
+    GetAndLogNetworkTelemetry();
+    StartPollingTimer();
+}
+
+void NetworkTelemetryManager::GetAndLogNetworkTelemetry(void)
 {
     WEAVE_ERROR err;
 
+#if WEAVE_DEVICE_CONFIG_ENABLE_WIFI_TELEMETRY
     err = ConnectivityMgr().GetAndLogWifiStatsCounters();
     SuccessOrExit(err);
-
-exit:
-    return;
-}
-#endif // WEAVE_DEVICE_CONFIG_ENABLE_WIFI_TELEMETRY
-
+#endif
 
 #if WEAVE_DEVICE_CONFIG_ENABLE_THREAD_TELEMETRY
-void ThreadTelemetry::GetTelemetryStatsAndLogEvent(void)
-{
-    WEAVE_ERROR err;
-
     err = ThreadStackMgr().GetAndLogThreadStatsCounters();
     SuccessOrExit(err);
-
-exit:
-    return;
-}
-
-void ThreadTopology::GetTelemetryStatsAndLogEvent(void)
-{
-    WEAVE_ERROR err;
 
 #if WEAVE_DEVICE_CONFIG_ENABLE_THREAD_TELEMETRY_FULL
     err = ThreadStackMgr().GetAndLogThreadTopologyFull();
@@ -145,16 +95,21 @@ void ThreadTopology::GetTelemetryStatsAndLogEvent(void)
     err = ThreadStackMgr().GetAndLogThreadTopologyMinimal();
     SuccessOrExit(err);
 #endif
+#endif // WEAVE_DEVICE_CONFIG_ENABLE_THREAD_TELEMETRY
+
+#if WEAVE_DEVICE_CONFIG_ENABLE_TUNNEL_TELEMETRY
+    err = GetAndLogTunnelTelemetryStats();
+    SuccessOrExit(err);
+#endif
 
 exit:
     return;
 }
-#endif // WEAVE_DEVICE_CONFIG_ENABLE_THREAD_TELEMETRY
-
 
 #if WEAVE_DEVICE_CONFIG_ENABLE_TUNNEL_TELEMETRY
-void TunnelTelemetry::GetTelemetryStatsAndLogEvent(void)
+WEAVE_ERROR NetworkTelemetryManager::GetAndLogTunnelTelemetryStats(void)
 {
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
     nl::Weave::Profiles::DataManagement_Current::event_id_t eventId;
     nl::Weave::Profiles::WeaveTunnel::WeaveTunnelStatistics tunnelStats;
     Schema::Weave::Trait::Telemetry::Tunnel::TelemetryTunnelTrait::TelemetryTunnelStatsEvent statsEvent;
@@ -231,8 +186,12 @@ void TunnelTelemetry::GetTelemetryStatsAndLogEvent(void)
     eventId = nl::LogEvent(&statsEvent);
     WeaveLogProgress(DeviceLayer, "Weave Tunnel Tolopoly Stats Event Id: %u\n", eventId);
 
-    return;
+    return err;
 }
 #endif // WEAVE_DEVICE_CONFIG_ENABLE_TUNNEL_TELEMETRY
+
+} // namespace DeviceLayer
+} // namespace Weave
+} // namespace nl
 
 #endif // WEAVE_DEVICE_CONFIG_ENABLE_NETWORK_TELEMETRY
