@@ -645,16 +645,4 @@
 #define WEAVE_DEVICE_CONFIG_DEFAULT_TELEMETRY_INTERVAL_MS 90000
 #endif
 
-/**
- *  @def WEAVE_DEVICE_CONFIG_DEFAULT_TUNNEL_TELEMETRY_INTERVAL_MS
- *
- *  @brief
- *    This sets the default interval at which Weave tunnel telemetry events
- *    will be logged to Weave buffers.
- *
- */
-#ifndef WEAVE_DEVICE_CONFIG_DEFAULT_TUNNEL_TELEMETRY_INTERVAL_MS
-#define WEAVE_DEVICE_CONFIG_DEFAULT_TUNNEL_TELEMETRY_INTERVAL_MS 300000
-#endif
-
 #endif // WEAVE_DEVICE_CONFIG_H

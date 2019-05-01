@@ -23,6 +23,7 @@
  */
 
 #include <Weave/DeviceLayer/WeaveDeviceConfig.h>
+#include <Weave/DeviceLayer/internal/WeaveDeviceLayerInternal.h>
 
 #if WEAVE_DEVICE_CONFIG_ENABLE_NETWORK_TELEMETRY
 
@@ -32,115 +33,93 @@
 namespace nl {
 namespace Weave {
 namespace DeviceLayer {
-namespace Internal {
 
-#include <SystemLayer/SystemLayer.h>
+extern nl::Weave::System::Layer SystemLayer;
+
+namespace Internal {
+template<class> class GenericPlatformManagerImpl;
+}
 
 /**
- * This is a base class that handles network telemetry functions
- * for different networks.
+ * Manages network telemetry logging for a Weave device.
  */
-class WeaveTelemetryBase
-{
-public:
-    WeaveTelemetryBase();
-
-    void Init(uint32_t aIntervalMsec);
-
-    void Enable(void);
-    void Disable(void);
-    bool IsEnabled(void) const;
-    void SetPollingInterval(uint32_t aIntervalMsec);
-    uint32_t GetPollingInterval(void) const;
-
-private:
-    void StartPollingTimer(void);
-    void StopPollingTimer(void);
-    void HandleTimer(void);
-    static void sHandleTimer(nl::Weave::System::Layer * aLayer, void * aAppState, WEAVE_ERROR aError);
-    virtual void GetTelemetryStatsAndLogEvent(void) = 0;
-
-private:
-    bool mEnabled;
-    uint32_t mInterval;
-};
-
-inline bool WeaveTelemetryBase::IsEnabled(void) const
-{
-    return mEnabled;
-}
-
-inline void WeaveTelemetryBase::SetPollingInterval(uint32_t aIntervalMsec)
-{
-    mInterval = aIntervalMsec;
-}
-
-inline uint32_t WeaveTelemetryBase::GetPollingInterval(void) const
-{
-    return mInterval;
-}
-
-inline void WeaveTelemetryBase::sHandleTimer(nl::Weave::System::Layer * aLayer, void * aAppState, WEAVE_ERROR aError)
-{
-    static_cast<WeaveTelemetryBase *>(aAppState)->HandleTimer();
-}
-
-
-#if WEAVE_DEVICE_CONFIG_ENABLE_WIFI_TELEMETRY
-class WiFiTelemetry : public WeaveTelemetryBase
-{
-protected:
-    virtual void GetTelemetryStatsAndLogEvent(void);
-};
-#endif // WEAVE_DEVICE_CONFIG_ENABLE_WIFI_TELEMETRY
-
-
-#if WEAVE_DEVICE_CONFIG_ENABLE_THREAD_TELEMETRY
-class ThreadTelemetry : public WeaveTelemetryBase
-{
-protected:
-    virtual void GetTelemetryStatsAndLogEvent(void);
-};
-
-class ThreadTopology : public WeaveTelemetryBase
-{
-protected:
-    virtual void GetTelemetryStatsAndLogEvent(void);
-};
-#endif // WEAVE_DEVICE_CONFIG_ENABLE_THREAD_TELEMETRY
-
-
-#if WEAVE_DEVICE_CONFIG_ENABLE_TUNNEL_TELEMETRY
-class TunnelTelemetry : public WeaveTelemetryBase
-{
-protected:
-    virtual void GetTelemetryStatsAndLogEvent(void);
-};
-#endif // WEAVE_DEVICE_CONFIG_ENABLE_TUNNEL_TELEMETRY
-
-
-class NetworkTelemetryManager
+class NetworkTelemetryManager final
 {
 public:
     NetworkTelemetryManager(void);
 
-    WEAVE_ERROR Init(void);
+    void EnableTimer(void);
+    void DisableTimer(void);
+    bool IsTimerEnabled(void) const;
+    void SetPollingInterval(uint32_t aIntervalMsec);
+    uint32_t GetPollingInterval(void) const;
 
-#if WEAVE_DEVICE_CONFIG_ENABLE_WIFI_TELEMETRY
-    WiFiTelemetry mWiFiTelemetry;
-#endif
+    void GetAndLogNetworkTelemetry(void);
 
-#if WEAVE_DEVICE_CONFIG_ENABLE_THREAD_TELEMETRY
-    ThreadTelemetry mThreadTelemetry;
-    ThreadTopology mThreadTopology;
-#endif
+private:
+
+    // ===== Members for internal use by the following friends.
+
+    template<class> friend class Internal::GenericPlatformManagerImpl;
+    friend NetworkTelemetryManager & NetworkTelemetryMgr(void);
+
+    static NetworkTelemetryManager sInstance;
+
+    void Init(void);
+
+    // ===== Private members for use by this class only.
+
+    bool mTimerEnabled;
+    uint32_t mPollingInterval;
+
+    void StartPollingTimer(void);
+    void StopPollingTimer(void);
+    void HandleTimer(void);
+    static void sHandleTimer(nl::Weave::System::Layer * aLayer, void * aAppState, WEAVE_ERROR aError);
 
 #if WEAVE_DEVICE_CONFIG_ENABLE_TUNNEL_TELEMETRY
-    TunnelTelemetry mTunnelTelemetry;
+    WEAVE_ERROR GetAndLogTunnelTelemetryStats(void);
 #endif
 };
 
-} // namespace Internal
+inline bool NetworkTelemetryManager::IsTimerEnabled(void) const
+{
+    return mTimerEnabled;
+}
+
+inline void NetworkTelemetryManager::SetPollingInterval(uint32_t aIntervalMsec)
+{
+    mPollingInterval = aIntervalMsec;
+}
+
+inline uint32_t NetworkTelemetryManager::GetPollingInterval(void) const
+{
+    return mPollingInterval;
+}
+
+inline void NetworkTelemetryManager::StartPollingTimer(void)
+{
+    nl::Weave::DeviceLayer::SystemLayer.StartTimer(mPollingInterval, sHandleTimer, this);
+}
+
+inline void NetworkTelemetryManager::StopPollingTimer(void)
+{
+    nl::Weave::DeviceLayer::SystemLayer.CancelTimer(sHandleTimer, this);
+}
+
+inline void NetworkTelemetryManager::sHandleTimer(nl::Weave::System::Layer * aLayer, void * aAppState, WEAVE_ERROR aError)
+{
+    static_cast<NetworkTelemetryManager *>(aAppState)->HandleTimer();
+}
+
+/**
+ * Returns a reference to the NetworkTelemetryManager singleton object.
+ */
+inline NetworkTelemetryManager & NetworkTelemetryMgr(void)
+{
+    return NetworkTelemetryManager::sInstance;
+}
+
 } // namespace DeviceLayer
 } // namespace Weave
 } // namespace nl
