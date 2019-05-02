@@ -132,21 +132,6 @@ case "${BUILD_TARGET}" in
 
         ;;
 
-    openweave-nrf52840-bringup)
-        installdeps "nrf5-sdk"
-        installdeps "nrf5-tools"
-        installdeps "arm-gcc"
-        
-        # Clone OpenThread into the bringup app directory and checkout the commit that corresponds to
-        # Nordic's SDK
-        mkdir -p $TRAVIS_BUILD_DIR/openweave-nrf52840-bringup/third_party
-        cd $TRAVIS_BUILD_DIR/openweave-nrf52840-bringup/third_party
-        git clone https://github.com/openthread/openthread.git
-        cd $TRAVIS_BUILD_DIR/openweave-nrf52840-bringup/third_party/openthread
-        git checkout 704511c96e
-
-        ;;
-
     osx-auto-clang|osx-lwip-clang)
         # By default, OpenWeave Core uses OpenSSL for cryptography on
         # OS X and the OpenSSL version included in package depends

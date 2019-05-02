@@ -65,8 +65,6 @@ matrix:
       compiler: clang
     - name: "ESP32"
       env: BUILD_TARGET="esp32"
-    - name: "openweave-nrf52840-bringup"
-      env: BUILD_TARGET="openweave-nrf52840-bringup"
     - name: "Linux with Defaults against GCC Functional and Unit Tests"
       env: BUILD_TARGET="linux-auto-gcc-check" CC="gcc"
       os: linux

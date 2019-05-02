@@ -100,10 +100,6 @@ case "${BUILD_TARGET}" in
         .travis/build_nrf52840.sh
         ;;
 
-    openweave-nrf52840-bringup)
-        .travis/build_openweave-nrf52840-bringup.sh
-        ;;
-
     linux-auto-*-distcheck)
         ./configure && make distcheck
         ;;
