@@ -33,6 +33,8 @@ namespace BlueZ {
 
 static void WeaveRegisterSetup(DBusMessageIter * iter, void * bluezData);
 static void WeaveRegisterReply(DBusMessage * message, void * bluezData);
+static void WeaveUnregisterSetup(DBusMessageIter *iter, void *bluezData);
+static void WeaveUnregisterReply(DBusMessage *message, void *bluezData);
 static gboolean WeaveAdvertisingGetType(const GDBusPropertyTable * property, DBusMessageIter * iter, void * bluezData);
 static gboolean GetWeaveUUIDs(const GDBusPropertyTable * property, DBusMessageIter * iter, void * bluezData);
 static gboolean WeaveServiceDataCheck(const GDBusPropertyTable * property, void * bluezData);
@@ -183,6 +185,47 @@ static void WeaveRegisterReply(DBusMessage * message, void * bluezData)
     else
     {
         WeaveLogProgress(Ble, "Weave advertisement object registered");
+    }
+}
+
+static void WeaveUnregisterSetup(DBusMessageIter *iter, void *bluezData)
+{
+    const char *path = ADVERTISING_PATH;
+    gboolean success = FALSE;
+    const char *msg = NULL;
+
+    success = dbus_message_iter_append_basic(iter, DBUS_TYPE_OBJECT_PATH, &path);
+    VerifyOrExit(success == TRUE, msg = "Fail to append basic in WeaveUnregisterSetup");
+
+exit:
+
+    if ((success != TRUE) && (msg != NULL))
+    {
+        WeaveLogError(Ble, msg);
+    }
+}
+
+static void WeaveUnregisterReply(DBusMessage *message, void *bluezData)
+{
+    DBusError error;
+
+    dbus_error_init(&error);
+
+    if (FALSE == dbus_set_error_from_message(&error, message))
+    {
+        WeaveLogProgress(Ble, "Weave advertisement unregistered");
+        if (gBluezDbusConn)
+        {
+            if (FALSE == g_dbus_unregister_interface(gBluezDbusConn, ADVERTISING_PATH, ADVERTISING_INTERFACE))
+            {
+                WeaveLogError(Ble, "Fail to unregister weave advertisement object in WeaveUnregisterReply");
+            }
+        }
+    }
+    else
+    {
+        WeaveLogError(Ble, "Fail to unregister weave advertisement in WeaveUnregisterReply: %s", error.name);
+        dbus_error_free(&error);
     }
 }
 
@@ -1664,6 +1707,26 @@ exit:
     {
         WeaveLogError(Ble, msg);
     }
+
+    if (gDefaultAdapter && gDefaultAdapter->advertisingProxy)
+    {
+        WeaveLogProgress(Ble, "Unregistering weave advertisement");
+
+        if (FALSE == g_dbus_proxy_method_call(gDefaultAdapter->advertisingProxy,
+                                              "UnregisterAdvertisement",
+                                              WeaveUnregisterSetup, WeaveUnregisterReply,
+                                              gBluezDbusConn, NULL))
+        {
+            WeaveLogError(Ble, "Fail to call UnregisterAdvertisement method");
+        }
+
+        if (FALSE == g_dbus_unregister_interface(gBluezDbusConn, ADVERTISING_PATH,
+                                                 ADVERTISING_INTERFACE))
+        {
+            WeaveLogError(Ble, "Fail to unregister weave advertisement object");
+        }
+    }
+
 
     if (NULL != gBluezServerEndpoint)
     {
