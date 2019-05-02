@@ -17,7 +17,7 @@
  */
 
 #include <Weave/DeviceLayer/internal/WeaveDeviceLayerInternal.h>
-#include <Weave/DeviceLayer/internal/NetworkInfo.h>
+#include <Weave/DeviceLayer/internal/DeviceNetworkInfo.h>
 #include <Weave/Core/WeaveTLV.h>
 #include <Weave/Profiles/WeaveProfiles.h>
 
@@ -33,20 +33,23 @@ namespace Weave {
 namespace DeviceLayer {
 namespace Internal {
 
-void NetworkInfo::Reset()
+void DeviceNetworkInfo::Reset()
 {
+    memset(this, 0, sizeof(*this));
     NetworkType = kNetworkType_NotSpecified;
-    NetworkId = 0;
-    NetworkIdPresent = false;
-    WiFiSSID[0] = 0;
+#if WEAVE_DEVICE_CONFIG_ENABLE_WIFI_STATION
     WiFiMode = kWiFiMode_NotSpecified;
     WiFiRole = kWiFiRole_NotSpecified;
     WiFiSecurityType = kWiFiSecurityType_NotSpecified;
-    WiFiKeyLen = 0;
+#endif // WEAVE_DEVICE_CONFIG_ENABLE_WIFI_STATION
+#if WEAVE_DEVICE_CONFIG_ENABLE_THREAD
+    ThreadPANId = kThreadPANId_NotSpecified;
+    ThreadChannel = kThreadChannel_NotSpecified;
+#endif // WEAVE_DEVICE_CONFIG_ENABLE_THREAD
     WirelessSignalStrength = INT16_MIN;
 }
 
-WEAVE_ERROR NetworkInfo::Encode(nl::Weave::TLV::TLVWriter & writer) const
+WEAVE_ERROR DeviceNetworkInfo::Encode(nl::Weave::TLV::TLVWriter & writer) const
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
     TLVType outerContainer;
@@ -58,7 +61,7 @@ WEAVE_ERROR NetworkInfo::Encode(nl::Weave::TLV::TLVWriter & writer) const
     err = writer.StartContainer(tag, kTLVType_Structure, outerContainer);
     SuccessOrExit(err);
 
-    if (NetworkIdPresent)
+    if (FieldPresent.NetworkId)
     {
         err = writer.Put(ProfileTag(kWeaveProfile_NetworkProvisioning, kTag_NetworkId), (uint32_t) NetworkId);
         SuccessOrExit(err);
@@ -69,6 +72,8 @@ WEAVE_ERROR NetworkInfo::Encode(nl::Weave::TLV::TLVWriter & writer) const
         err = writer.Put(ProfileTag(kWeaveProfile_NetworkProvisioning, kTag_NetworkType), (uint32_t) NetworkType);
         SuccessOrExit(err);
     }
+
+#if WEAVE_DEVICE_CONFIG_ENABLE_WIFI_STATION
 
     if (WiFiSSID[0] != 0)
     {
@@ -100,6 +105,54 @@ WEAVE_ERROR NetworkInfo::Encode(nl::Weave::TLV::TLVWriter & writer) const
         SuccessOrExit(err);
     }
 
+#endif // WEAVE_DEVICE_CONFIG_ENABLE_WIFI_STATION
+
+#if WEAVE_DEVICE_CONFIG_ENABLE_THREAD
+
+    if (ThreadNetworkName[0] != 0)
+    {
+        err = writer.PutString(ProfileTag(kWeaveProfile_NetworkProvisioning, kTag_ThreadNetworkName), ThreadNetworkName);
+        SuccessOrExit(err);
+    }
+
+    if (FieldPresent.ThreadExtendedPANId)
+    {
+        err = writer.PutBytes(ProfileTag(kWeaveProfile_NetworkProvisioning, kTag_ThreadExtendedPANId),
+                ThreadExtendedPANId, kThreadExtendedPANIdLength);
+        SuccessOrExit(err);
+    }
+
+    if (FieldPresent.ThreadMeshPrefix)
+    {
+        err = writer.PutBytes(ProfileTag(kWeaveProfile_NetworkProvisioning, kTag_ThreadMeshPrefix),
+                ThreadMeshPrefix, kThreadMeshPrefixLength);
+        SuccessOrExit(err);
+    }
+
+    if (FieldPresent.ThreadNetworkKey)
+    {
+        err = writer.PutBytes(ProfileTag(kWeaveProfile_NetworkProvisioning, kTag_ThreadNetworkKey),
+                ThreadNetworkKey, kThreadNetworkKeyLength);
+        SuccessOrExit(err);
+    }
+
+    // TODO: Add support for ThreadPSKc field.
+
+    if (ThreadPANId != kThreadPANId_NotSpecified)
+    {
+        VerifyOrExit(ThreadPANId <= UINT16_MAX, err = WEAVE_ERROR_INVALID_ARGUMENT);
+        err = writer.Put(ProfileTag(kWeaveProfile_NetworkProvisioning, kTag_ThreadPANId), ThreadPANId);
+        SuccessOrExit(err);
+    }
+
+    if (ThreadChannel != kThreadChannel_NotSpecified)
+    {
+        err = writer.Put(ProfileTag(kWeaveProfile_NetworkProvisioning, kTag_ThreadChannel), ThreadChannel);
+        SuccessOrExit(err);
+    }
+
+#endif // WEAVE_DEVICE_CONFIG_ENABLE_THREAD
+
     if (WirelessSignalStrength != INT16_MIN)
     {
         err = writer.Put(ProfileTag(kWeaveProfile_NetworkProvisioning, kTag_WirelessSignalStrength), WirelessSignalStrength);
@@ -113,7 +166,7 @@ exit:
     return err;
 }
 
-WEAVE_ERROR NetworkInfo::Decode(nl::Weave::TLV::TLVReader & reader)
+WEAVE_ERROR DeviceNetworkInfo::Decode(nl::Weave::TLV::TLVReader & reader)
 {
     WEAVE_ERROR err;
     TLVType outerContainer;
@@ -149,7 +202,7 @@ WEAVE_ERROR NetworkInfo::Decode(nl::Weave::TLV::TLVReader & reader)
             VerifyOrExit(reader.GetType() == kTLVType_UnsignedInteger, err = WEAVE_ERROR_INVALID_TLV_ELEMENT);
             err = reader.Get(NetworkId);
             SuccessOrExit(err);
-            NetworkIdPresent = true;
+            FieldPresent.NetworkId = true;
             break;
         case kTag_NetworkType:
             VerifyOrExit(reader.GetType() == kTLVType_UnsignedInteger, err = WEAVE_ERROR_INVALID_TLV_ELEMENT);
@@ -162,6 +215,7 @@ WEAVE_ERROR NetworkInfo::Decode(nl::Weave::TLV::TLVReader & reader)
             err = reader.Get(WirelessSignalStrength);
             SuccessOrExit(err);
             break;
+#if WEAVE_DEVICE_CONFIG_ENABLE_WIFI_STATION
         case kTag_WiFiSSID:
             VerifyOrExit(reader.GetType() == kTLVType_UTF8String, err = WEAVE_ERROR_INVALID_TLV_ELEMENT);
             err = reader.GetString(WiFiSSID, sizeof(WiFiSSID));
@@ -193,13 +247,71 @@ WEAVE_ERROR NetworkInfo::Decode(nl::Weave::TLV::TLVReader & reader)
             SuccessOrExit(err);
             WiFiSecurityType = (WiFiSecurityType_t) val;
             break;
-        case kTag_ThreadNetworkName:
-        case kTag_ThreadExtendedPANId:
-        case kTag_ThreadPANId:
-        case kTag_ThreadChannel:
-        case kTag_ThreadNetworkKey:
+#else // WEAVE_DEVICE_CONFIG_ENABLE_WIFI_STATION
+        case kTag_WiFiSSID:
+        case kTag_WiFiMode:
+        case kTag_WiFiRole:
+        case kTag_WiFiPreSharedKey:
+        case kTag_WiFiSecurityType:
             ExitNow(err = WEAVE_ERROR_UNSUPPORTED_WEAVE_FEATURE);
             break;
+#endif //WEAVE_DEVICE_CONFIG_ENABLE_WIFI_STATION
+#if WEAVE_DEVICE_CONFIG_ENABLE_THREAD
+        case kTag_ThreadNetworkName:
+            VerifyOrExit(reader.GetType() == kTLVType_UTF8String, err = WEAVE_ERROR_INVALID_TLV_ELEMENT);
+            err = reader.GetString(ThreadNetworkName, sizeof(ThreadNetworkName));
+            SuccessOrExit(err);
+            break;
+        case kTag_ThreadExtendedPANId:
+            VerifyOrExit(reader.GetType() == kTLVType_ByteString, err = WEAVE_ERROR_INVALID_TLV_ELEMENT);
+            val = reader.GetLength();
+            VerifyOrExit(val == kThreadExtendedPANIdLength, err = WEAVE_ERROR_INVALID_TLV_ELEMENT);
+            err = reader.GetBytes(ThreadExtendedPANId, sizeof(ThreadExtendedPANId));
+            SuccessOrExit(err);
+            FieldPresent.ThreadExtendedPANId = true;
+            break;
+        case kTag_ThreadMeshPrefix:
+            VerifyOrExit(reader.GetType() == kTLVType_ByteString, err = WEAVE_ERROR_INVALID_TLV_ELEMENT);
+            val = reader.GetLength();
+            VerifyOrExit(val == kThreadMeshPrefixLength, err = WEAVE_ERROR_INVALID_TLV_ELEMENT);
+            err = reader.GetBytes(ThreadMeshPrefix, sizeof(ThreadMeshPrefix));
+            SuccessOrExit(err);
+            FieldPresent.ThreadMeshPrefix = true;
+            break;
+        case kTag_ThreadNetworkKey:
+            VerifyOrExit(reader.GetType() == kTLVType_ByteString, err = WEAVE_ERROR_INVALID_TLV_ELEMENT);
+            val = reader.GetLength();
+            VerifyOrExit(val == kThreadNetworkKeyLength, err = WEAVE_ERROR_INVALID_TLV_ELEMENT);
+            err = reader.GetBytes(ThreadNetworkKey, sizeof(ThreadNetworkKey));
+            SuccessOrExit(err);
+            FieldPresent.ThreadNetworkKey = true;
+            break;
+        // TODO: Add case for ThreadPSKc field.
+        case kTag_ThreadPANId:
+            VerifyOrExit(reader.GetType() == kTLVType_UnsignedInteger, err = WEAVE_ERROR_INVALID_TLV_ELEMENT);
+            err = reader.Get(val);
+            SuccessOrExit(err);
+            VerifyOrExit(val <= UINT16_MAX, err = WEAVE_ERROR_INVALID_TLV_ELEMENT);
+            ThreadPANId = val;
+            break;
+        case kTag_ThreadChannel:
+            VerifyOrExit(reader.GetType() == kTLVType_UnsignedInteger, err = WEAVE_ERROR_INVALID_TLV_ELEMENT);
+            err = reader.Get(val);
+            SuccessOrExit(err);
+            VerifyOrExit(val <= UINT8_MAX, err = WEAVE_ERROR_INVALID_TLV_ELEMENT);
+            ThreadChannel = val;
+            break;
+#else // WEAVE_DEVICE_CONFIG_ENABLE_THREAD
+        case kTag_ThreadNetworkName:
+        case kTag_ThreadExtendedPANId:
+        case kTag_ThreadMeshPrefix:
+        case kTag_ThreadNetworkKey:
+        // TODO: Add case for ThreadPSKc field.
+        case kTag_ThreadPANId:
+        case kTag_ThreadChannel:
+            ExitNow(err = WEAVE_ERROR_UNSUPPORTED_WEAVE_FEATURE);
+            break;
+#endif // WEAVE_DEVICE_CONFIG_ENABLE_THREAD
         default:
             // Ignore unknown elements for compatibility with future formats.
             break;
@@ -216,17 +328,19 @@ exit:
     return err;
 }
 
-WEAVE_ERROR NetworkInfo::MergeTo(NetworkInfo & dest)
+WEAVE_ERROR DeviceNetworkInfo::MergeTo(DeviceNetworkInfo & dest)
 {
     if (NetworkType != kNetworkType_NotSpecified)
     {
         dest.NetworkType = NetworkType;
     }
-    if (NetworkIdPresent)
+    if (FieldPresent.NetworkId)
     {
         dest.NetworkId = NetworkId;
-        dest.NetworkIdPresent = true;
+        dest.FieldPresent.NetworkId = true;
     }
+
+#if WEAVE_DEVICE_CONFIG_ENABLE_WIFI_STATION
     if (WiFiSSID[0] != 0)
     {
         memcpy(dest.WiFiSSID, WiFiSSID, sizeof(WiFiSSID));
@@ -248,6 +362,39 @@ WEAVE_ERROR NetworkInfo::MergeTo(NetworkInfo & dest)
         memcpy(dest.WiFiKey, WiFiKey, WiFiKeyLen);
         dest.WiFiKeyLen = WiFiKeyLen;
     }
+#endif // WEAVE_DEVICE_CONFIG_ENABLE_WIFI_STATION
+
+#if WEAVE_DEVICE_CONFIG_ENABLE_THREAD
+    if (ThreadNetworkName[0] != 0)
+    {
+        memcpy(dest.ThreadNetworkName, ThreadNetworkName, sizeof(ThreadNetworkName));
+    }
+    if (FieldPresent.ThreadExtendedPANId)
+    {
+        memcpy(dest.ThreadExtendedPANId, ThreadExtendedPANId, sizeof(ThreadExtendedPANId));
+    }
+    if (FieldPresent.ThreadMeshPrefix)
+    {
+        memcpy(dest.ThreadMeshPrefix, ThreadMeshPrefix, sizeof(ThreadMeshPrefix));
+    }
+    if (FieldPresent.ThreadNetworkKey)
+    {
+        memcpy(dest.ThreadNetworkKey, ThreadNetworkKey, sizeof(ThreadNetworkKey));
+    }
+    if (FieldPresent.ThreadPSKc)
+    {
+        memcpy(dest.ThreadPSKc, ThreadPSKc, sizeof(ThreadPSKc));
+    }
+    if (ThreadPANId != kThreadPANId_NotSpecified)
+    {
+        dest.ThreadPANId = ThreadPANId;
+    }
+    if (ThreadChannel != kThreadChannel_NotSpecified)
+    {
+        dest.ThreadChannel = ThreadChannel;
+    }
+#endif // WEAVE_DEVICE_CONFIG_ENABLE_THREAD
+
     if (WirelessSignalStrength != INT16_MIN)
     {
         dest.WirelessSignalStrength = WirelessSignalStrength;
@@ -256,8 +403,7 @@ WEAVE_ERROR NetworkInfo::MergeTo(NetworkInfo & dest)
     return WEAVE_NO_ERROR;
 }
 
-
-WEAVE_ERROR NetworkInfo::EncodeArray(nl::Weave::TLV::TLVWriter & writer, const NetworkInfo * elems, size_t count)
+WEAVE_ERROR DeviceNetworkInfo::EncodeArray(nl::Weave::TLV::TLVWriter & writer, const DeviceNetworkInfo * elems, size_t count)
 {
     WEAVE_ERROR err;
     TLVType outerContainerType;

@@ -83,15 +83,26 @@ private:
     // ===== Members for internal use by this class only.
 
     ::nl::Weave::Binding * mProvServiceBinding;
-    bool mWaitingForServiceTunnel;
+    bool mWaitingForServiceConnectivity;
 
     void StartPairDeviceToAccount(void);
     void SendPairDeviceToAccountRequest(void);
 
     static void AsyncStartPairDeviceToAccount(intptr_t arg);
-    static void HandleServiceTunnelTimeout(::nl::Weave::System::Layer * layer, void * appState, ::nl::Weave::System::Error err);
+    static void HandleServiceConnectivityTimeout(::nl::Weave::System::Layer * layer, void * appState, ::nl::Weave::System::Error err);
     static void HandleProvServiceBindingEvent(void * appState, nl::Weave::Binding::EventType eventType,
             const nl::Weave::Binding::InEventParam & inParam, nl::Weave::Binding::OutEventParam & outParam);
+
+protected:
+
+    // Construction/destruction limited to subclasses.
+    ServiceProvisioningServer() = default;
+    ~ServiceProvisioningServer() = default;
+
+    // No copy, move or assignment.
+    ServiceProvisioningServer(const ServiceProvisioningServer &) = delete;
+    ServiceProvisioningServer(const ServiceProvisioningServer &&) = delete;
+    ServiceProvisioningServer & operator=(const ServiceProvisioningServer &) = delete;
 };
 
 inline ServiceProvisioningServer & ServiceProvisioningSvr()

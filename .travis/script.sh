@@ -96,6 +96,10 @@ case "${BUILD_TARGET}" in
         .travis/build_esp32.sh
         ;;
 
+    nrf52840)
+        .travis/build_nrf52840.sh
+        ;;
+
     linux-auto-*-distcheck)
         ./configure && make distcheck
         ;;

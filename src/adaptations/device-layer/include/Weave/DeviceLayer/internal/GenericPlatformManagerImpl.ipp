@@ -44,6 +44,9 @@ namespace Weave {
 namespace DeviceLayer {
 namespace Internal {
 
+// Fully instantiate the generic implementation class in whatever compilation unit includes this file.
+template class GenericPlatformManagerImpl<PlatformManagerImpl>;
+
 extern WEAVE_ERROR InitCASEAuthDelegate();
 extern WEAVE_ERROR InitEntropy();
 
@@ -51,6 +54,9 @@ template<class ImplClass>
 WEAVE_ERROR GenericPlatformManagerImpl<ImplClass>::_InitWeaveStack(void)
 {
     WEAVE_ERROR err;
+
+    // Arrange for Device Layer errors to be translated to text.
+    RegisterDeviceLayerErrorFormatter();
 
     // Initialize the source used by Weave to get secure random data.
     err = InitEntropy();
@@ -81,16 +87,6 @@ WEAVE_ERROR GenericPlatformManagerImpl<ImplClass>::_InitWeaveStack(void)
         WeaveLogError(DeviceLayer, "InetLayer initialization failed: %s", ErrorStr(err));
     }
     SuccessOrExit(err);
-
-    // Initialize the BLE manager.
-#if WEAVE_DEVICE_CONFIG_ENABLE_WOBLE
-    err = BLEMgr().Init();
-    if (err != WEAVE_NO_ERROR)
-    {
-        WeaveLogError(DeviceLayer, "BLEManager initialization failed: %s", ErrorStr(err));
-    }
-    SuccessOrExit(err);
-#endif
 
     // Initialize the Weave fabric state object.
     new (&FabricState) WeaveFabricState();
@@ -155,19 +151,34 @@ WEAVE_ERROR GenericPlatformManagerImpl<ImplClass>::_InitWeaveStack(void)
     SecurityMgr.CASEUseKnownECDHKey = true;
 #endif
 
-#if WEAVE_CONFIG_ENABLE_SERVICE_DIRECTORY
-    // Initialize the service directory manager.
-    err = InitServiceDirectoryManager();
-    SuccessOrExit(err);
-#endif
-
-    // Perform dynamic configuration of the Weave stack based on stored settings.
+    // Perform dynamic configuration of the core Weave objects based on stored settings.
+    //
+    // NB: In general, initialization of Device Layer objects should happen *after* this call
+    // as their initialization methods may rely on the proper initialization of the core
+    // objects.
+    //
     err = ConfigurationMgr().ConfigureWeaveStack();
     if (err != WEAVE_NO_ERROR)
     {
         WeaveLogError(DeviceLayer, "ConfigureWeaveStack failed: %s", ErrorStr(err));
     }
     SuccessOrExit(err);
+
+#if WEAVE_CONFIG_ENABLE_SERVICE_DIRECTORY
+    // Initialize the service directory manager.
+    err = InitServiceDirectoryManager();
+    SuccessOrExit(err);
+#endif
+
+    // Initialize the BLE manager.
+#if WEAVE_DEVICE_CONFIG_ENABLE_WOBLE
+    err = BLEMgr().Init();
+    if (err != WEAVE_NO_ERROR)
+    {
+        WeaveLogError(DeviceLayer, "BLEManager initialization failed: %s", ErrorStr(err));
+    }
+    SuccessOrExit(err);
+#endif
 
     // Initialize the Connectivity Manager object.
     err = ConnectivityMgr().Init();
@@ -189,7 +200,7 @@ WEAVE_ERROR GenericPlatformManagerImpl<ImplClass>::_InitWeaveStack(void)
     err = DeviceDescriptionSvr().Init();
     if (err != WEAVE_NO_ERROR)
     {
-        WeaveLogError(DeviceLayer, "Weave Device Control server initialization failed: %s", ErrorStr(err));
+        WeaveLogError(DeviceLayer, "Weave Device Description server initialization failed: %s", ErrorStr(err));
     }
     SuccessOrExit(err);
 
@@ -226,12 +237,14 @@ WEAVE_ERROR GenericPlatformManagerImpl<ImplClass>::_InitWeaveStack(void)
     SuccessOrExit(err);
 
     // Initialize the Trait Manager object.
+#if WEAVE_DEVICE_CONFIG_ENABLE_TRAIT_MANAGER
     err = TraitMgr().Init();
     if (err != WEAVE_NO_ERROR)
     {
         WeaveLogError(DeviceLayer, "Trait Manager initialization failed: %s", ErrorStr(err));
     }
     SuccessOrExit(err);
+#endif // WEAVE_DEVICE_CONFIG_ENABLE_TRAIT_MANAGER
 
     // Initialize the Time Sync Manager object.
     err = TimeSyncMgr().Init();
@@ -372,17 +385,22 @@ template<class ImplClass>
 void GenericPlatformManagerImpl<ImplClass>::DispatchEventToDeviceLayer(const WeaveDeviceEvent * event)
 {
     // Dispatch the event to all the components in the Device Layer.
+#if WEAVE_DEVICE_CONFIG_ENABLE_WOBLE
+    BLEMgr().OnPlatformEvent(event);
+#endif
+#if WEAVE_DEVICE_CONFIG_ENABLE_THREAD
+    ThreadStackMgr().OnPlatformEvent(event);
+#endif
     ConnectivityMgr().OnPlatformEvent(event);
     DeviceControlSvr().OnPlatformEvent(event);
     DeviceDescriptionSvr().OnPlatformEvent(event);
     NetworkProvisioningSvr().OnPlatformEvent(event);
     FabricProvisioningSvr().OnPlatformEvent(event);
     ServiceProvisioningSvr().OnPlatformEvent(event);
+#if WEAVE_DEVICE_CONFIG_ENABLE_TRAIT_MANAGER
     TraitMgr().OnPlatformEvent(event);
+#endif // WEAVE_DEVICE_CONFIG_ENABLE_TRAIT_MANAGER
     TimeSyncMgr().OnPlatformEvent(event);
-#if WEAVE_DEVICE_CONFIG_ENABLE_WOBLE
-    BLEMgr().OnPlatformEvent(event);
-#endif
 }
 
 template<class ImplClass>

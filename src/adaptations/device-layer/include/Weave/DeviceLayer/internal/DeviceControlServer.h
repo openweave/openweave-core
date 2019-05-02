@@ -74,6 +74,17 @@ private:
     friend DeviceControlServer & DeviceControlSvr(void);
 
     static DeviceControlServer sInstance;
+
+protected:
+
+    // Construction/destruction limited to subclasses.
+    DeviceControlServer() = default;
+    ~DeviceControlServer() = default;
+
+    // No copy, move or assignment.
+    DeviceControlServer(const DeviceControlServer &) = delete;
+    DeviceControlServer(const DeviceControlServer &&) = delete;
+    DeviceControlServer & operator=(const DeviceControlServer &) = delete;
 };
 
 /**

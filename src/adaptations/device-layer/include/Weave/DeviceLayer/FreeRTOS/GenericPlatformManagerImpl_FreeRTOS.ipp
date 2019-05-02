@@ -33,10 +33,14 @@
 // from which the GenericPlatformManagerImpl_FreeRTOS<> template inherits.
 #include <Weave/DeviceLayer/internal/GenericPlatformManagerImpl.ipp>
 
+
 namespace nl {
 namespace Weave {
 namespace DeviceLayer {
 namespace Internal {
+
+// Fully instantiate the generic implementation class in whatever compilation unit includes this file.
+template class GenericPlatformManagerImpl_FreeRTOS<PlatformManagerImpl>;
 
 template<class ImplClass>
 WEAVE_ERROR GenericPlatformManagerImpl_FreeRTOS<ImplClass>::_InitWeaveStack(void)
@@ -108,7 +112,11 @@ void GenericPlatformManagerImpl_FreeRTOS<ImplClass>::_RunEventLoop(void)
 
     VerifyOrDie(mEventLoopTask == NULL);
 
+    // Capture the task handle.
     mEventLoopTask = xTaskGetCurrentTaskHandle();
+
+    // Lock the Weave stack.
+    Impl()->LockWeaveStack();
 
     while (true)
     {
@@ -180,9 +188,9 @@ WEAVE_ERROR GenericPlatformManagerImpl_FreeRTOS<ImplClass>::_StartEventLoopTask(
 
     res = xTaskCreate(EventLoopTaskMain,
                 WEAVE_DEVICE_CONFIG_WEAVE_TASK_NAME,
-                WEAVE_DEVICE_CONFIG_WEAVE_TASK_STACK_SIZE,
+                WEAVE_DEVICE_CONFIG_WEAVE_TASK_STACK_SIZE / sizeof(StackType_t),
                 this,
-                ESP_TASK_PRIO_MIN + WEAVE_DEVICE_CONFIG_WEAVE_TASK_PRIORITY,
+                WEAVE_DEVICE_CONFIG_WEAVE_TASK_PRIORITY,
                 NULL);
 
     return (res == pdPASS) ? WEAVE_NO_ERROR : WEAVE_ERROR_NO_MEMORY;
@@ -191,6 +199,7 @@ WEAVE_ERROR GenericPlatformManagerImpl_FreeRTOS<ImplClass>::_StartEventLoopTask(
 template<class ImplClass>
 void GenericPlatformManagerImpl_FreeRTOS<ImplClass>::EventLoopTaskMain(void * arg)
 {
+    WeaveLogDetail(DeviceLayer, "Weave task running");
     static_cast<GenericPlatformManagerImpl_FreeRTOS<ImplClass>*>(arg)->Impl()->RunEventLoop();
 }
 
@@ -212,6 +221,20 @@ WEAVE_ERROR GenericPlatformManagerImpl_FreeRTOS<ImplClass>::_StartWeaveTimer(uin
     }
 
     return WEAVE_NO_ERROR;
+}
+
+template<class ImplClass>
+void GenericPlatformManagerImpl_FreeRTOS<ImplClass>::PostEventFromISR(const WeaveDeviceEvent * event, BaseType_t & yieldRequired)
+{
+    yieldRequired = pdFALSE;
+
+    if (mWeaveEventQueue != NULL)
+    {
+        if (!xQueueSendFromISR(mWeaveEventQueue, event, &yieldRequired))
+        {
+            WeaveLogError(DeviceLayer, "Failed to post event to Weave Platform event queue");
+        }
+    }
 }
 
 } // namespace Internal

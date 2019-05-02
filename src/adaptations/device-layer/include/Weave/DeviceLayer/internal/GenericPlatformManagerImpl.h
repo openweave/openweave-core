@@ -72,6 +72,9 @@ private:
     ImplClass * Impl() { return static_cast<ImplClass*>(this); }
 };
 
+// Instruct the compiler to instantiate the template only when explicitly told to do so.
+extern template class GenericPlatformManagerImpl<PlatformManagerImpl>;
+
 } // namespace Internal
 } // namespace DeviceLayer
 } // namespace Weave

@@ -27,6 +27,7 @@
  */
 
 #include <InetLayer/IPPrefix.h>
+#include <Weave/Core/WeaveEncoding.h>
 
 namespace nl {
 namespace Inet {
@@ -65,28 +66,18 @@ IPPrefix & IPPrefix::operator=(const IPPrefix& other)
 
 bool IPPrefix::MatchAddress(const IPAddress& addr) const
 {
-
-#if WEAVE_SYSTEM_CONFIG_USE_LWIP
-    // Only 64 bit prefixes supported for now.
-    return (Length == 64 && addr.Addr[0] == IPAddr.Addr[0] && addr.Addr[1] == IPAddr.Addr[1]);
-#endif // WEAVE_SYSTEM_CONFIG_USE_LWIP
-
-#if WEAVE_SYSTEM_CONFIG_USE_SOCKETS
     uint8_t l = (Length <= 128) ? Length : 128;
-    int i = 0;
+    int i;
 
-    for (; i < 4 && l >= 32; i++, l -= 32)
+    for (i = 0; l >= 32; i++, l -= 32)
         if (IPAddr.Addr[i] != addr.Addr[i])
             return false;
 
-    if ((i == 4) || (l == 0))
+    if (l == 0)
         return true;
 
-    uint32_t mask = htonl(0xFFFFFFFF << (32 - l));
-
+    uint32_t mask = nl::Weave::Encoding::BigEndian::HostSwap32(0xFFFFFFFF << (32 - l));
     return (IPAddr.Addr[i] & mask) == (addr.Addr[i] & mask);
-#endif // WEAVE_SYSTEM_CONFIG_USE_SOCKETS
-
 }
 
 } // namespace Inet

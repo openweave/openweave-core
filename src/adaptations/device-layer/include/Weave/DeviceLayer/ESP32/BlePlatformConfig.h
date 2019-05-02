@@ -1,6 +1,6 @@
 /*
  *
- *    Copyright (c) 2018 Nest Labs, Inc.
+ *    Copyright (c) 2019 Google LLC.
  *    All rights reserved.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,10 +18,27 @@
 
 /**
  *    @file
- *      WARM project configuration for the ESP32 platform.
+ *          Platform-specific configuration overrides for the OpenWeave BLE
+ *          Layer on the ESP32 platform.
  *
  */
 
+#ifndef BLE_PLATFORM_CONFIG_H
+#define BLE_PLATFORM_CONFIG_H
+
+#include "esp_err.h"
+
 // ==================== Platform Adaptations ====================
 
-#define WARM_CONFIG_SUPPORT_THREAD 0
+#define BLE_CONNECTION_OBJECT uint16_t
+#define BLE_CONNECTION_UNINITIALIZED ((uint16_t)0xFFFF)
+#define BLE_MAX_RECEIVE_WINDOW_SIZE 5
+
+#define BLE_CONFIG_ERROR_TYPE esp_err_t
+#define BLE_CONFIG_NO_ERROR ESP_OK
+#define BLE_CONFIG_ERROR_MIN 6000000
+#define BLE_CONFIG_ERROR_MAX 6000999
+#define _BLE_CONFIG_ERROR(e) (BLE_CONFIG_ERROR_MIN + (e))
+
+
+#endif // BLE_PLATFORM_CONFIG_H

@@ -26,16 +26,28 @@
 #ifndef WEAVE_DEVICE_CONFIG_H
 #define WEAVE_DEVICE_CONFIG_H
 
-
-// Include a header file containing the platform-specific configuration overrides.
-
-#ifdef EXTERNAL_WEAVEDEVICEPLATFORMCONFIG_HEADER
-#include EXTERNAL_WEAVEDEVICEPLATFORMCONFIG_HEADER
-#else
-#define WEAVEDEVICEPLATFORMCONFIG_HEADER <Weave/DeviceLayer/WEAVE_DEVICE_LAYER_TARGET/WeaveDevicePlatformConfig.h>
-#include WEAVEDEVICEPLATFORMCONFIG_HEADER
+/* Include a project-specific configuration file, if defined.
+ *
+ * An application or module that incorporates the Weave Device Layer can define a project
+ * configuration file to override standard Weave configuration with application-specific
+ * values.  The project config file is typically located outside the OpenWeave source
+ * tree, alongside the source code for the application.
+ */
+#ifdef WEAVE_DEVICE_PROJECT_CONFIG_INCLUDE
+#include WEAVE_DEVICE_PROJECT_CONFIG_INCLUDE
 #endif
 
+/* Include a platform-specific configuration file, if defined.
+ *
+ * A platform configuration file contains overrides to standard Weave Device Layer
+ * configuration that are specific to the platform or OS on which Weave is running.
+ * It is typically provided as apart of an adaptation layer that adapts OpenWeave
+ * to the target environment.  This adaptation layer may be included in the OpenWeave
+ * source tree itself or implemented externally.
+ */
+#ifdef WEAVE_DEVICE_PLATFORM_CONFIG_INCLUDE
+#include WEAVE_DEVICE_PLATFORM_CONFIG_INCLUDE
+#endif
 
 // -------------------- General Configuration --------------------
 
@@ -45,7 +57,7 @@
  * The name of the Weave task.
  */
 #ifndef WEAVE_DEVICE_CONFIG_WEAVE_TASK_NAME
-#define WEAVE_DEVICE_CONFIG_WEAVE_TASK_NAME "weave"
+#define WEAVE_DEVICE_CONFIG_WEAVE_TASK_NAME "WEAVE"
 #endif
 
 /**
@@ -129,6 +141,15 @@
 // -------------------- WiFi Station Configuration --------------------
 
 /**
+ * WEAVE_DEVICE_CONFIG_ENABLE_WIFI_STATION
+ *
+ * Enable support for a WiFi station interface.
+ */
+#ifndef WEAVE_DEVICE_CONFIG_ENABLE_WIFI_STATION
+#define WEAVE_DEVICE_CONFIG_ENABLE_WIFI_STATION 1
+#endif
+
+/**
  * WEAVE_DEVICE_CONFIG_WIFI_STATION_RECONNECT_INTERVAL
  *
  * The interval at which the Weave platform will attempt to reconnect to the configured WiFi
@@ -167,7 +188,26 @@
 #define WEAVE_DEVICE_CONFIG_WIFI_CONNECTIVITY_TIMEOUT 30000
 #endif
 
+/**
+ * WEAVE_DEVICE_CONFIG_LWIP_WIFI_STATION_IF_NAME
+ *
+ * Name of the WiFi station interface on LwIP-based platforms.
+ */
+#ifndef WEAVE_DEVICE_CONFIG_LWIP_WIFI_STATION_IF_NAME
+#define WEAVE_DEVICE_CONFIG_LWIP_WIFI_STATION_IF_NAME "wl"
+#endif
+
+
 // -------------------- WiFi AP Configuration --------------------
+
+/**
+ * WEAVE_DEVICE_CONFIG_ENABLE_WIFI_AP
+ *
+ * Enable support for a WiFi AP interface.
+ */
+#ifndef WEAVE_DEVICE_CONFIG_ENABLE_WIFI_AP
+#define WEAVE_DEVICE_CONFIG_ENABLE_WIFI_AP 1
+#endif
 
 /**
  * WEAVE_DEVICE_CONFIG_WIFI_AP_SSID_PREFIX
@@ -215,6 +255,16 @@
 #ifndef WEAVE_DEVICE_CONFIG_WIFI_AP_IDLE_TIMEOUT
 #define WEAVE_DEVICE_CONFIG_WIFI_AP_IDLE_TIMEOUT 120000
 #endif
+
+/**
+ * WEAVE_DEVICE_CONFIG_LWIP_WIFI_AP_IF_NAME
+ *
+ * Name of the WiFi AP interface on LwIP-based platforms.
+ */
+#ifndef WEAVE_DEVICE_CONFIG_LWIP_WIFI_AP_IF_NAME
+#define WEAVE_DEVICE_CONFIG_LWIP_WIFI_AP_IF_NAME "ap"
+#endif
+
 
 // -------------------- BLE/WoBLE Configuration --------------------
 
@@ -365,6 +415,104 @@
 #define WEAVE_DEVICE_CONFIG_SERVICE_PROVISIONING_REQUEST_TIMEOUT 10000
 #endif
 
+// -------------------- Thread Configuration --------------------
+
+/**
+ * WEAVE_DEVICE_CONFIG_ENABLE_THREAD
+ *
+ * Enable support for Thread in the Weave Device Layer.
+ */
+#ifndef WEAVE_DEVICE_CONFIG_ENABLE_THREAD
+#define WEAVE_DEVICE_CONFIG_ENABLE_THREAD 0
+#endif
+
+/**
+ * WEAVE_DEVICE_CONFIG_THREAD_TASK_NAME
+ *
+ * The name of the Thread task.
+ */
+#ifndef WEAVE_DEVICE_CONFIG_THREAD_TASK_NAME
+#define WEAVE_DEVICE_CONFIG_THREAD_TASK_NAME "THREAD"
+#endif
+
+/**
+ * WEAVE_DEVICE_CONFIG_THREAD_TASK_STACK_SIZE
+ *
+ * The size (in bytes) of the OpenThread task stack.
+ */
+#ifndef WEAVE_DEVICE_CONFIG_THREAD_TASK_STACK_SIZE
+#define WEAVE_DEVICE_CONFIG_THREAD_TASK_STACK_SIZE 8192
+#endif
+
+/**
+ * WEAVE_DEVICE_CONFIG_THREAD_TASK_PRIORITY
+ *
+ * The priority of the OpenThread task.
+ */
+#ifndef WEAVE_DEVICE_CONFIG_THREAD_TASK_PRIORITY
+#define WEAVE_DEVICE_CONFIG_THREAD_TASK_PRIORITY 2
+#endif
+
+/**
+ * WEAVE_DEVICE_CONFIG_LWIP_THREAD_IF_NAME
+ *
+ * Name of the Thread interface on LwIP-based platforms.
+ */
+#ifndef WEAVE_DEVICE_CONFIG_LWIP_THREAD_IF_NAME
+#define WEAVE_DEVICE_CONFIG_LWIP_THREAD_IF_NAME "th"
+#endif
+
+/**
+ * WEAVE_DEVICE_CONFIG_THREAD_IF_MTU
+ *
+ * Default MTU for Thread interface
+ */
+#ifndef WEAVE_DEVICE_CONFIG_THREAD_IF_MTU
+#define WEAVE_DEVICE_CONFIG_THREAD_IF_MTU 1280
+#endif
+
+/**
+ * WEAVE_DEVICE_CONFIG_DEFAULT_THREAD_NETWORK_NAME_PREFIX
+ *
+ * A prefix string to be used when forming a default Thread network name.
+ */
+#ifndef WEAVE_DEVICE_CONFIG_DEFAULT_THREAD_NETWORK_NAME_PREFIX
+#define WEAVE_DEVICE_CONFIG_DEFAULT_THREAD_NETWORK_NAME_PREFIX "NEST-PAN-"
+#endif
+
+/**
+ * WEAVE_DEVICE_CONFIG_THREAD_CONNECTIVITY_TIMEOUT
+ *
+ * The amount of time (in milliseconds) to wait for connectivity with a Thread mesh
+ * to be established on during a Network Provisioning TestConnectivity operation.
+ */
+#ifndef WEAVE_DEVICE_CONFIG_THREAD_CONNECTIVITY_TIMEOUT
+#define WEAVE_DEVICE_CONFIG_THREAD_CONNECTIVITY_TIMEOUT 30000
+#endif
+
+// -------------------- Tunnel Configuration --------------------
+
+/**
+ * WEAVE_DEVICE_CONFIG_LWIP_SERVICE_TUN_IF_NAME
+ *
+ * Name of the service TUN interface on LwIP-based platforms.
+ */
+#ifndef WEAVE_DEVICE_CONFIG_LWIP_SERVICE_TUN_IF_NAME
+#define WEAVE_DEVICE_CONFIG_LWIP_SERVICE_TUN_IF_NAME "tn"
+#endif
+
+// -------------------- Trait Manager Configuration --------------------
+
+/**
+ * WEAVE_DEVICE_CONFIG_ENABLE_TRAIT_MANAGER
+ *
+ * Enable or disable the Weave Trait Manager.
+ *
+ * NOTE: The Trait Manager is an experimental feature of the Weave Device Layer.
+ */
+#ifndef WEAVE_DEVICE_CONFIG_ENABLE_TRAIT_MANAGER
+#define WEAVE_DEVICE_CONFIG_ENABLE_TRAIT_MANAGER 0
+#endif
 
 // -------------------- Test Configuration --------------------
 
@@ -419,6 +567,94 @@
  */
 #ifndef WEAVE_DEVICE_CONFIG_DISABLE_ACCOUNT_PAIRING
 #define WEAVE_DEVICE_CONFIG_DISABLE_ACCOUNT_PAIRING 0
+#endif
+
+// -------------------- Network Telemetry Configuration --------------------
+
+/**
+ * @def WEAVE_DEVICE_CONFIG_ENABLE_WIFI_TELEMETRY
+ *
+ * @brief
+ *   Enable automatically uploading Wi-Fi telemetry via trait on an interval.
+ */
+#ifndef WEAVE_DEVICE_CONFIG_ENABLE_WIFI_TELEMETRY
+#define WEAVE_DEVICE_CONFIG_ENABLE_WIFI_TELEMETRY (0)
+#endif
+
+/**
+ * @def WEAVE_DEVICE_CONFIG_ENABLE_THREAD_TELEMETRY
+ *
+ * @brief
+ *   Enable automatically uploading minimal Thread telemetry and topology via trait on an interval.
+ */
+#ifndef WEAVE_DEVICE_CONFIG_ENABLE_THREAD_TELEMETRY
+#define WEAVE_DEVICE_CONFIG_ENABLE_THREAD_TELEMETRY (0)
+#endif
+
+#if WEAVE_DEVICE_CONFIG_ENABLE_THREAD_TELEMETRY && !WEAVE_DEVICE_CONFIG_ENABLE_THREAD
+#error "If WEAVE_DEVICE_CONFIG_ENABLE_THREAD_TELEMETRY set, then WEAVE_DEVICE_CONFIG_ENABLE_THREAD must also be set."
+#endif
+
+/**
+ * @def WEAVE_DEVICE_CONFIG_ENABLE_THREAD_TELEMETRY_FULL
+ *
+ * @brief
+ *   Enable automatically uploading all Thread telemetry and topology via trait on an interval.
+ *   This is suitable for products that have router capability.
+ *
+ * @note
+ *   If set, WEAVE_DEVICE_CONFIG_ENABLE_THREAD_TELEMETRY must also be set.
+ */
+#ifndef WEAVE_DEVICE_CONFIG_ENABLE_THREAD_TELEMETRY_FULL
+#define WEAVE_DEVICE_CONFIG_ENABLE_THREAD_TELEMETRY_FULL (0)
+#endif
+
+#if WEAVE_DEVICE_CONFIG_ENABLE_THREAD_TELEMETRY_FULL && !WEAVE_DEVICE_CONFIG_ENABLE_THREAD_TELEMETRY
+#error "If WEAVE_DEVICE_CONFIG_ENABLE_THREAD_TELEMETRY_FULL set, then WEAVE_DEVICE_CONFIG_ENABLE_THREAD_TELEMETRY must also be set."
+#endif
+
+/**
+ * @def WEAVE_DEVICE_CONFIG_ENABLE_TUNNEL_TELEMETRY
+ *
+ * @brief
+ *   Enable automatically uploading Weave tunnel telemetry via trait on an interval.
+ */
+#ifndef WEAVE_DEVICE_CONFIG_ENABLE_TUNNEL_TELEMETRY
+#define WEAVE_DEVICE_CONFIG_ENABLE_TUNNEL_TELEMETRY (0)
+#endif
+
+#if WEAVE_DEVICE_CONFIG_ENABLE_TUNNEL_TELEMETRY && !WEAVE_CONFIG_ENABLE_TUNNELING
+#error "If WEAVE_DEVICE_CONFIG_ENABLE_TUNNEL_TELEMETRY set, then WEAVE_CONFIG_ENABLE_TUNNELING must also be set."
+#endif
+
+// Enable Network Telemetry feature if it is enabled for at lease one network.
+#define WEAVE_DEVICE_CONFIG_ENABLE_NETWORK_TELEMETRY  (WEAVE_DEVICE_CONFIG_ENABLE_WIFI_TELEMETRY || \
+                                                       WEAVE_DEVICE_CONFIG_ENABLE_THREAD_TELEMETRY || \
+                                                       WEAVE_DEVICE_CONFIG_ENABLE_TUNNEL_TELEMETRY)
+
+/**
+ *  @def WEAVE_DEVICE_CONFIG_DEFAULT_TELEMETRY_INTERVAL_MS
+ *
+ *  @brief
+ *    This sets the default interval at which network telemetry events
+ *    will be logged to Weave buffers. This can be overwritten at runtime
+ *    with a trait.
+ *
+ */
+#ifndef WEAVE_DEVICE_CONFIG_DEFAULT_TELEMETRY_INTERVAL_MS
+#define WEAVE_DEVICE_CONFIG_DEFAULT_TELEMETRY_INTERVAL_MS 90000
+#endif
+
+/**
+ *  @def WEAVE_DEVICE_CONFIG_DEFAULT_TUNNEL_TELEMETRY_INTERVAL_MS
+ *
+ *  @brief
+ *    This sets the default interval at which Weave tunnel telemetry events
+ *    will be logged to Weave buffers.
+ *
+ */
+#ifndef WEAVE_DEVICE_CONFIG_DEFAULT_TUNNEL_TELEMETRY_INTERVAL_MS
+#define WEAVE_DEVICE_CONFIG_DEFAULT_TUNNEL_TELEMETRY_INTERVAL_MS 300000
 #endif
 
 #endif // WEAVE_DEVICE_CONFIG_H

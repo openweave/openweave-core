@@ -57,9 +57,9 @@ public:
 
     enum TimeSyncMode
     {
-        kTimeSyncMode_NotSupported          = -1,
-        kTimeSyncMode_Disabled,
-        kTimeSyncMode_Service,
+        kTimeSyncMode_NotSupported          = 0,
+        kTimeSyncMode_Disabled              = 1,
+        kTimeSyncMode_Service               = 2,
 
         kTimeSyncMode_Max,
     };
@@ -115,6 +115,17 @@ private:
 #endif
 
     static void DriveTimeSync(::nl::Weave::System::Layer * layer, void * appState, ::nl::Weave::System::Error err);
+
+protected:
+
+    // Construction/destruction limited to subclasses.
+    TimeSyncManager() = default;
+    ~TimeSyncManager() = default;
+
+    // No copy, move or assignment.
+    TimeSyncManager(const TimeSyncManager &) = delete;
+    TimeSyncManager(const TimeSyncManager &&) = delete;
+    TimeSyncManager & operator=(const TimeSyncManager &) = delete;
 };
 
 inline TimeSyncManager::TimeSyncMode TimeSyncManager::GetMode()

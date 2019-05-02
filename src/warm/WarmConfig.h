@@ -44,6 +44,18 @@
 #include WARM_PROJECT_CONFIG_INCLUDE
 #endif
 
+/* Include a platform-specific configuration file, if defined.
+ *
+ * A platform configuration file contains overrides to standard WARM configuration
+ * that are specific to the platform or OS on which Weave is running.  It is typically
+ * provided as apart of an adaptation layer that adapts OpenWeave to the target
+ * environment.  This adaptation layer may be included in the OpenWeave source tree
+ * itself or implemented externally.
+ */
+#ifdef WARM_PLATFORM_CONFIG_INCLUDE
+#include WARM_PLATFORM_CONFIG_INCLUDE
+#endif
+
 // clang-format off
 
 /**

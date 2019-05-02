@@ -37,7 +37,7 @@ namespace Internal {
 /**
  * An implementation of the Weave GroupKeyStoreBase API for the ESP32.
  */
-class GroupKeyStoreImpl
+class GroupKeyStoreImpl final
         : public ::nl::Weave::Profiles::Security::AppKeys::GroupKeyStoreBase,
           private ESP32Config
 {
@@ -54,14 +54,14 @@ public:
 
     WEAVE_ERROR Init();
 
-    virtual WEAVE_ERROR RetrieveGroupKey(uint32_t keyId, WeaveGroupKey & key);
-    virtual WEAVE_ERROR StoreGroupKey(const WeaveGroupKey & key);
-    virtual WEAVE_ERROR DeleteGroupKey(uint32_t keyId);
-    virtual WEAVE_ERROR DeleteGroupKeysOfAType(uint32_t keyType);
-    virtual WEAVE_ERROR EnumerateGroupKeys(uint32_t keyType, uint32_t * keyIds, uint8_t keyIdsArraySize, uint8_t & keyCount);
-    virtual WEAVE_ERROR Clear(void);
-    virtual WEAVE_ERROR RetrieveLastUsedEpochKeyId(void);
-    virtual WEAVE_ERROR StoreLastUsedEpochKeyId(void);
+    WEAVE_ERROR RetrieveGroupKey(uint32_t keyId, WeaveGroupKey & key) override;
+    WEAVE_ERROR StoreGroupKey(const WeaveGroupKey & key) override;
+    WEAVE_ERROR DeleteGroupKey(uint32_t keyId) override;
+    WEAVE_ERROR DeleteGroupKeysOfAType(uint32_t keyType) override;
+    WEAVE_ERROR EnumerateGroupKeys(uint32_t keyType, uint32_t * keyIds, uint8_t keyIdsArraySize, uint8_t & keyCount) override;
+    WEAVE_ERROR Clear(void) override;
+    WEAVE_ERROR RetrieveLastUsedEpochKeyId(void) override;
+    WEAVE_ERROR StoreLastUsedEpochKeyId(void) override;
 
 private:
 

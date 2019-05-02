@@ -24,14 +24,16 @@
  *
  *      Platforms that wish to provide their own implementation of hash
  *      functions should assert #WEAVE_CONFIG_HASH_IMPLEMENTATION_PLATFORM
- *      and create platform specific WeaveProjectHashAlgos.h header. Platforms
- *      that support hardware acceleration of hash algorithms are likely to
- *      use this option. The package configuration tool should specify
- *      --with-weave-project-includes=DIR where DIR is the directory that
- *      contains the header.
+ *      and create a platform-specific header file containing the necessary
+ *      declarations.  Platforms that support hardware acceleration of hash
+ *      algorithms are likely to use this option.
  *
- *    @note WeaveProjectHashAlgos.h should include declarations of SHA_CTX_PLATFORM
- *          and SHA256_CTX_PLATFORM context structures.
+ *      The default name for the platform-specific hash implementation header
+ *      file is "WeaveProjectHashAlgos.h".  This can be overridden by defining
+ *      #WEAVE_HASH_ALGOS_PLATFORM_INCLUDE.
+ *
+ *      The platform-specific header file should include declarations of the
+ *      SHA_CTX_PLATFORM and SHA256_CTX_PLATFORM context structures.
  *
  */
 
@@ -64,9 +66,17 @@
 #undef SHA256_CTX
 #endif
 
-#if WEAVE_CONFIG_HASH_IMPLEMENTATION_PLATFORM
-#include "WeaveProjectHashAlgos.h"
+#if WEAVE_CONFIG_HASH_IMPLEMENTATION_MBEDTLS
+#include <mbedtls/sha1.h>
+#include <mbedtls/sha256.h>
 #endif
+
+#if WEAVE_CONFIG_HASH_IMPLEMENTATION_PLATFORM
+#ifndef WEAVE_HASH_ALGOS_PLATFORM_INCLUDE
+#define WEAVE_HASH_ALGOS_PLATFORM_INCLUDE "WeaveProjectHashAlgos.h"
+#endif
+#include WEAVE_HASH_ALGOS_PLATFORM_INCLUDE
+#endif // WEAVE_CONFIG_HASH_IMPLEMENTATION_PLATFORM
 
 namespace nl {
 namespace Weave {
@@ -98,6 +108,8 @@ private:
     SHA_CTX mSHACtx;
 #elif WEAVE_CONFIG_HASH_IMPLEMENTATION_MINCRYPT
     MINCRYPT_SHA_CTX mSHACtx;
+#elif WEAVE_CONFIG_HASH_IMPLEMENTATION_MBEDTLS
+    mbedtls_sha1_context mSHACtx;
 #elif WEAVE_CONFIG_HASH_IMPLEMENTATION_PLATFORM
     SHA_CTX_PLATFORM mSHACtx;
 #endif
@@ -128,6 +140,8 @@ private:
     SHA256_CTX mSHACtx;
 #elif WEAVE_CONFIG_HASH_IMPLEMENTATION_MINCRYPT
     MINCRYPT_SHA256_CTX mSHACtx;
+#elif WEAVE_CONFIG_HASH_IMPLEMENTATION_MBEDTLS
+    mbedtls_sha256_context mSHACtx;
 #elif WEAVE_CONFIG_HASH_IMPLEMENTATION_PLATFORM
     SHA256_CTX_PLATFORM mSHACtx;
 #endif

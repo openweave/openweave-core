@@ -140,6 +140,18 @@ public:
     uint32_t Addr[4];
 
     /**
+     * @brief   Test whether address is IPv6 global unicast address.
+     *
+     * @details
+     *  Use this method to check if the address belongs to the IPv6 address
+     *  family and has the global unicast address prefix.
+     *
+     * @retval true  Address is IPv6 global unicast
+     * @retval false Otherwise
+     */
+    bool IsIPv6GlobalUnicast(void) const;
+
+    /**
      * @brief   Test whether address is IPv6 unique-local address (ULA).
      *
      * @details

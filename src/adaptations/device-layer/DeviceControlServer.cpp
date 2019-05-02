@@ -100,7 +100,14 @@ WEAVE_ERROR DeviceControlServer::OnResetConfig(uint16_t resetFlags)
         if ((resetFlags & kResetConfigFlag_NetworkConfig) != 0)
         {
             WeaveLogProgress(DeviceLayer, "Reset network config");
+
+#if WEAVE_DEVICE_CONFIG_ENABLE_WIFI_STATION
             ConnectivityMgr().ClearWiFiStationProvision();
+#endif // WEAVE_DEVICE_CONFIG_ENABLE_WIFI_STATION
+
+#if WEAVE_DEVICE_CONFIG_ENABLE_THREAD
+            ThreadStackMgr().ClearThreadProvision();
+#endif // WEAVE_DEVICE_CONFIG_ENABLE_THREAD
         }
     }
 

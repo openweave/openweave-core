@@ -100,6 +100,13 @@ enum PublicEventTypes
     kWiFiConnectivityChange             = kRange_Public,
 
     /**
+     * Thread Connectivity Change
+     *
+     * Signals a change in connectivity of the device's Thread interface.
+     */
+    kThreadConnectivityChange,
+
+    /**
      * Internet Connectivity Change
      *
      * Signals a change in the device's ability to communicate via the Internet.
@@ -168,17 +175,32 @@ enum PublicEventTypes
      * Signals that an external entity has established a new WoBLE connection with the device.
      */
     kWoBLEConnectionEstablished,
+
+    /**
+     * Thread State Change
+     *
+     * Signals that a state change has occurred in the Thread stack.
+     */
+    kThreadStateChange,
+
+    /**
+     * Thread Interface State Change
+     *
+     * Signals that the state of the Thread network interface has changed.
+     */
+    kThreadInterfaceStateChange,
 };
 
 /**
  * Internal Event Types
  *
- * Enumerates event types that are internal the to Weave Device Layer, but common across
+ * Enumerates event types that are internal to the Weave Device Layer, but common across
  * all platforms.
  */
 enum InternalEventTypes
 {
-    kNoOp                               = kRange_Internal,
+    kEventTypeNotSet                    = kRange_Internal,
+    kNoOp,
     kCallWorkFunct,
     kWeaveSystemLayerEvent,
     kWoBLESubscribe,
@@ -187,6 +209,8 @@ enum InternalEventTypes
     kWoBLEIndicateConfirm,
     kWoBLEConnectionError,
 };
+
+static_assert(kEventTypeNotSet == 0, "kEventTypeNotSet must be defined as 0");
 
 } // namespace DeviceEventType
 
@@ -197,11 +221,24 @@ enum InternalEventTypes
  */
 enum ConnectivityChange
 {
-    kConnectivity_Established = 0,
-    kConnectivity_Lost,
-    kConnectivity_NoChange
+    kConnectivity_NoChange      = 0,
+    kConnectivity_Established   = 1,
+    kConnectivity_Lost          = -1
 };
 
+inline ConnectivityChange GetConnectivityChange(bool prevState, bool newState)
+{
+    if (prevState == newState)
+        return kConnectivity_NoChange;
+    else if (newState)
+        return kConnectivity_Established;
+    else
+        return kConnectivity_Lost;
+}
+
+/**
+ * A pointer to a function that performs work asynchronously.
+ */
 typedef void (*AsyncWorkFunct)(intptr_t arg);
 
 } // namespace DeviceLayer
@@ -248,6 +285,10 @@ struct WeaveDeviceEvent final
         } WiFiConnectivityChange;
         struct
         {
+            ConnectivityChange Result;
+        } ThreadConnectivityChange;
+        struct
+        {
             ConnectivityChange IPv4;
             ConnectivityChange IPv6;
         } InternetConnectivityChange;
@@ -258,7 +299,18 @@ struct WeaveDeviceEvent final
         } ServiceTunnelStateChange;
         struct
         {
-            ConnectivityChange Result;
+            struct
+            {
+                ConnectivityChange Result;
+            } Overall;
+            struct
+            {
+                ConnectivityChange Result;
+            } ViaTunnel;
+            struct
+            {
+                ConnectivityChange Result;
+            } ViaThread;
         } ServiceConnectivityChange;
         struct
         {
@@ -311,8 +363,20 @@ struct WeaveDeviceEvent final
             BLE_CONNECTION_OBJECT ConId;
             WEAVE_ERROR Reason;
         } WoBLEConnectionError;
+        struct
+        {
+            bool RoleChanged : 1;
+            bool AddressChanged : 1;
+            bool NetDataChanged : 1;
+            bool ChildNodesChanged : 1;
+            struct
+            {
+                uint32_t Flags;
+            } OpenThread;
+        } ThreadStateChange;
     };
 
+    void Clear() { memset(this, 0, sizeof(*this)); }
     bool IsPublic() const { return DeviceEventType::IsPublic(Type); }
     bool IsInternal() const { return DeviceEventType::IsInternal(Type); }
     bool IsPlatformSpecific() const { return DeviceEventType::IsPlatformSpecific(Type); }
