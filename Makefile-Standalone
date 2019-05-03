@@ -40,7 +40,7 @@ BLUEZ                          ?= 0
 USE_FUZZING                    ?= 0
 
 HOSTOS                          = $(shell uname -s |tr [:upper:] [:lower:])
-ARCH                            = $(shell uname -i |tr [:upper:] [:lower:])
+ARCH                            = $(shell uname -m |tr [:upper:] [:lower:])
 
 ECHO                           := @echo
 MAKE                           := make
@@ -66,7 +66,9 @@ TargetTuple                     = $(shell ${AbsTopSourceDir}/third_party/nlbuild
 
 ProjectConfigDir               ?= $(AbsTopSourceDir)/build/config/standalone
 
+ifeq ($(ARCH),x86_64)
 configure_OPTIONS               = CPPFLAGS="-maes"
+endif
 
 # NOTE: Mac OS SDKs generated on OS X Sierra (or higher) seem to have trouble
 #       running on El Capitan (or earlier) due to issues with clock_gettime: 
