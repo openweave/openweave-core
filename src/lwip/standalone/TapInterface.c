@@ -514,6 +514,7 @@ TapInterface_Select(TapInterface *tapif, struct netif *netif, struct timeval sle
 {
     fd_set readfds;
     int ret;
+    size_t j;
 
     if ((tapif == NULL) || (netif == NULL) || (numIntfs == 0))
     {
@@ -522,7 +523,7 @@ TapInterface_Select(TapInterface *tapif, struct netif *netif, struct timeval sle
 
     FD_ZERO(&readfds);
 
-    for (size_t j = 0; j < numIntfs; j++)
+    for (j = 0; j < numIntfs; j++)
     {
         FD_SET(tapif[j].fd, &readfds);
     }
@@ -530,7 +531,7 @@ TapInterface_Select(TapInterface *tapif, struct netif *netif, struct timeval sle
     ret = select(tapif[numIntfs-1].fd + 1, &readfds, NULL, NULL, &sleepTime);
     if (ret > 0)
     {
-        for (size_t j = 0; j < numIntfs; j++)
+        for (j = 0; j < numIntfs; j++)
         {
             if (! FD_ISSET(tapif[j].fd, &readfds))
                 continue;
