@@ -105,6 +105,7 @@ exit:
         _SoftwareVersion = [[NSString alloc] initWithUTF8String:deviceDescriptor.SoftwareVersion];
 
         _RendezvousWiFiESSID = [[NSString alloc] initWithUTF8String:deviceDescriptor.RendezvousWiFiESSID];
+        _IsRendezvousWiFiESSIDSuffix = (deviceDescriptor.Flags & WeaveDeviceDescriptor::kFlag_IsRendezvousWiFiESSIDSuffix) == WeaveDeviceDescriptor::kFlag_IsRendezvousWiFiESSIDSuffix;
 
         _PairingCode = [[NSString alloc] initWithUTF8String:deviceDescriptor.PairingCode];
 
@@ -149,6 +150,7 @@ exit:
         _SerialNumber = [decoder decodeObjectForKey:NSStringFromSelector(@selector(SerialNumber))];
         _SoftwareVersion = [decoder decodeObjectForKey:NSStringFromSelector(@selector(SoftwareVersion))];
         _RendezvousWiFiESSID = [decoder decodeObjectForKey:NSStringFromSelector(@selector(RendezvousWiFiESSID))];
+        _IsRendezvousWiFiESSIDSuffix = [decoder decodeIntegerForKey:NSStringFromSelector(@selector(IsRendezvousWiFiESSIDSuffix))];
         _PairingCode = [decoder decodeObjectForKey:NSStringFromSelector(@selector(PairingCode))];
 
         _PairingCompatibilityVersionMajor = [decoder decodeIntegerForKey:NSStringFromSelector(@selector(PairingCompatibilityVersionMajor))];
@@ -177,6 +179,8 @@ exit:
     [coder encodeObject:self.SerialNumber forKey:NSStringFromSelector(@selector(SerialNumber))];
     [coder encodeObject:self.SoftwareVersion forKey:NSStringFromSelector(@selector(SoftwareVersion))];
     [coder encodeObject:self.RendezvousWiFiESSID forKey:NSStringFromSelector(@selector(RendezvousWiFiESSID))];
+    [coder encodeInteger:self.IsRendezvousWiFiESSIDSuffix forKey:NSStringFromSelector(@selector(IsRendezvousWiFiESSIDSuffix))];
+
     [coder encodeObject:self.PairingCode forKey:NSStringFromSelector(@selector(PairingCode))];
 
     [coder encodeInteger:self.PairingCompatibilityVersionMajor forKey:NSStringFromSelector(@selector(PairingCompatibilityVersionMajor))];
@@ -200,6 +204,7 @@ exit:
     copy.SerialNumber = [self.SerialNumber copy];
     copy.SoftwareVersion = [self.SoftwareVersion copy];
     copy.RendezvousWiFiESSID = [self.RendezvousWiFiESSID copy];
+    copy.IsRendezvousWiFiESSIDSuffix = self.IsRendezvousWiFiESSIDSuffix;
     copy.PairingCode = [self.PairingCode copy];
 
     copy.PairingCompatibilityVersionMajor = self.PairingCompatibilityVersionMajor;
@@ -245,6 +250,7 @@ exit:
     BOOL equalSerialNumber = (self.SerialNumber == nil && descriptor.SerialNumber == nil) || [self.SerialNumber isEqualToString:descriptor.SerialNumber];
     BOOL equalSoftwareVersion = (self.SoftwareVersion == nil && descriptor.SoftwareVersion == nil) || [self.SoftwareVersion isEqualToString:descriptor.SoftwareVersion];
     BOOL equalRendezvousWiFiESSID = (self.RendezvousWiFiESSID == nil && descriptor.RendezvousWiFiESSID == nil) || [self.RendezvousWiFiESSID isEqualToString:descriptor.RendezvousWiFiESSID];
+    BOOL equalIsRendezvousWiFiESSIDSuffix = (self.IsRendezvousWiFiESSIDSuffix == descriptor.IsRendezvousWiFiESSIDSuffix);
     BOOL equalPairingCode = (self.PairingCode == nil && descriptor.PairingCode == nil) || [self.PairingCode isEqualToString:descriptor.PairingCode];
 
 
@@ -255,8 +261,8 @@ exit:
     return equalDeviceId && equalFabricId &&
             equalDeviceFeatures && equalVendorId && equalProductId && equalProductRevision &&
             equalManufacturingDate && equalPrimary802154MACAddress && equalPrimaryWiFiMACAddress &&
-            equalSerialNumber && equalSoftwareVersion && equalRendezvousWiFiESSID && equalPairingCode &&
-            equalPairingCompatibilityVersionMajor && equalPairingCompatibilityVersionMinor;
+            equalSerialNumber && equalSoftwareVersion && equalRendezvousWiFiESSID && equalIsRendezvousWiFiESSIDSuffix &&
+            equalPairingCode && equalPairingCompatibilityVersionMajor && equalPairingCompatibilityVersionMinor;
 }
 
 #pragma mark - Protected methods
@@ -288,6 +294,7 @@ exit:
                                                          "\tSerialNumber: %s\n"
                                                          "\tSoftwareVersion: %s\n"
                                                          "\tRendezvousWiFiESSID: %s\n"
+                                                         "\tIsRendezvousWiFiESSIDSuffix: %@\n"
                                                          "\tPairingCode: %s\n"
                                                          "\tPairingCompatibilityVersionMajor: %d\n"
                                                          "\tPairingCompatibilityVersionMinor: %d\n"
@@ -307,6 +314,7 @@ exit:
                                                  pDeviceDescriptor->SerialNumber,
                                                  pDeviceDescriptor->SoftwareVersion,
                                                  pDeviceDescriptor->RendezvousWiFiESSID,
+                                                 pDeviceDescriptor->Flags & WeaveDeviceDescriptor::kFlag_IsRendezvousWiFiESSIDSuffix ? @"YES" : @"NO",
                                                  pDeviceDescriptor->PairingCode,
                                                  pDeviceDescriptor->PairingCompatibilityVersionMajor,
                                                  pDeviceDescriptor->PairingCompatibilityVersionMinor,
@@ -330,6 +338,7 @@ exit:
                                                          "\tSerialNumber: %@\n"
                                                          "\tSoftwareVersion: %@\n"
                                                          "\tRendezvousWiFiESSID: %@\n"
+                                                         "\tIsRendezvousWiFiESSIDSuffix: %@\n"
                                                          "\tPairingCode: %@\n"
                                                          "\tPairingCompatibilityVersionMajor: %ld\n"
                                                          "\tPairingCompatibilityVersionMinor: %ld\n"
@@ -350,6 +359,7 @@ exit:
                                                  _SerialNumber,
                                                  _SoftwareVersion,
                                                  _RendezvousWiFiESSID,
+				                 _IsRendezvousWiFiESSIDSuffix ? @"YES" : @"NO",
                                                  _PairingCode,
                                                  (long)_PairingCompatibilityVersionMajor,
                                                  (long)_PairingCompatibilityVersionMinor,

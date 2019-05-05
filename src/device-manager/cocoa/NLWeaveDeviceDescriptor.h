@@ -46,6 +46,7 @@
 @property (nonatomic, copy) NSString *SerialNumber;               	// Device serial number (nul terminated, 0 length = not present)
 @property (nonatomic, copy) NSString *SoftwareVersion;            	// Active software version (nul terminated, 0 length = not present)
 @property (nonatomic, copy) NSString *RendezvousWiFiESSID;        	// ESSID for pairing WiFi network (nul terminated, 0 length = not present)
+@property (nonatomic) BOOL IsRendezvousWiFiESSIDSuffix;                 // True iff the RendezvousWiFiESSID contains a suffix string
 @property (nonatomic, copy) NSString *PairingCode;                	// Device pairing code (nul terminated, 0 length = not present)
 
 @property (nonatomic) NSUInteger PairingCompatibilityVersionMajor;		// Major device pairing software compatibility version
