@@ -21,6 +21,8 @@
  *      This file contains functions for working with BLE Layer errors.
  */
 
+#include <stddef.h>
+
 #include <BleLayer/BleConfig.h>
 
 #if CONFIG_NETWORK_LAYER_BLE

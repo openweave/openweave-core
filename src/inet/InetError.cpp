@@ -21,6 +21,8 @@
  *      This file contains functions for working with Inet Layer errors.
  */
 
+#include <stddef.h>
+
 #include <InetLayer/Inet.h>
 #include <InetLayer/InetError.h>
 
