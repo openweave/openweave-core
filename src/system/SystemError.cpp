@@ -24,6 +24,8 @@
  *      error strings.
  */
 
+#include <stddef.h>
+
 // Include module header
 #include <SystemLayer/SystemError.h>
 

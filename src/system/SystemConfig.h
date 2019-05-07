@@ -40,7 +40,34 @@
 /* Platform include headers */
 #include <BuildConfig.h>
 
-/* Include a project-specific configuration file, if defined.
+/* Include a Weave project-specific configuration file, if defined.
+ *
+ * An application or module that incorporates Weave can define a project
+ * configuration file to override standard Weave configuration with
+ * application-specific values.  The WeaveProjectConfig.h file is typically
+ * located outside the OpenWeave source tree, alongside the source code for the
+ * application.  The config file is included here to enable certain system-wide
+ * configuration options, primarily related to logging and error reporting.
+ */
+#ifdef WEAVE_PROJECT_CONFIG_INCLUDE
+#include WEAVE_PROJECT_CONFIG_INCLUDE
+#endif
+
+/* Include a Weave platform-specific configuration file, if defined.
+ *
+ * A platform configuration file contains overrides to standard Weave
+ * configuration that are specific to the platform or OS on which Weave is
+ * running.  It is typically provided as apart of an adaptation layer that
+ * adapts OpenWeave to the target environment.  This adaptation layer may be
+ * included in the OpenWeave source tree itself or implemented externally.  The
+ * config file is included here to enable certain system-wide configuration
+ * options, primarily related to logging and error reporting.
+ */
+#ifdef WEAVE_PLATFORM_CONFIG_INCLUDE
+#include WEAVE_PLATFORM_CONFIG_INCLUDE
+#endif
+
+/* Include a SystemLayer project-specific configuration file, if defined.
  *
  * An application or module that incorporates Weave can define a project configuration
  * file to override standard System Layer configuration with application-specific values.
@@ -51,7 +78,7 @@
 #include SYSTEM_PROJECT_CONFIG_INCLUDE
 #endif // SYSTEM_PROJECT_CONFIG_INCLUDE
 
-/* Include a platform-specific configuration file, if defined.
+/* Include a SystemLayer platform-specific configuration file, if defined.
  *
  * A platform configuration file contains overrides to standard System Layer configuration
  * that are specific to the platform or OS on which Weave is running.  It is typically
