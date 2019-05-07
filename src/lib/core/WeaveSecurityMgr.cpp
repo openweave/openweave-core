@@ -98,6 +98,10 @@ WEAVE_ERROR WeaveSecurityManager::Init(WeaveExchangeManager& aExchangeMgr, Syste
 #if WEAVE_CONFIG_ENABLE_PASE_INITIATOR || WEAVE_CONFIG_ENABLE_PASE_RESPONDER
     mPASEEngine = NULL;
 #endif
+#if WEAVE_CONFIG_ENABLE_PASE_RESPONDER
+    mPASERateLimiterTimeout = 0;
+    mPASERateLimiterCount = 0;
+#endif
 #if WEAVE_CONFIG_ENABLE_CASE_INITIATOR || WEAVE_CONFIG_ENABLE_CASE_RESPONDER
     mCASEEngine = NULL;
     mDefaultAuthDelegate = NULL;
@@ -222,6 +226,14 @@ void WeaveSecurityManager::HandleUnsolicitedMessage(ExchangeContext *ec, const I
         // Reject the request if it did not arrive over a connection.
         // PASE is not supported over WRMP.
         VerifyOrExit(ec->Con != NULL, err = WEAVE_ERROR_INVALID_ARGUMENT);
+
+        uint64_t nowTimeMS = System::Layer::GetClock_MonotonicMS();
+
+        // PASE rate limiter.
+        // Reject the request if too many PASE attempts in a given time period.
+        VerifyOrExit(secMgr->mPASERateLimiterCount < WEAVE_CONFIG_PASE_RATE_LIMITER_MAX_ATTEMPTS ||
+                     secMgr->mPASERateLimiterTimeout < nowTimeMS,
+                     err = WEAVE_ERROR_RATE_LIMIT_EXCEEDED);
 
         secMgr->HandlePASESessionStart(ec, pktInfo, msgInfo, msgBuf);
         msgBuf = NULL;
@@ -2853,6 +2865,33 @@ exit:
 
 #endif // WEAVE_CONFIG_USE_APP_GROUP_KEYS_FOR_MSG_ENC
 
+#if WEAVE_CONFIG_ENABLE_PASE_RESPONDER
+void WeaveSecurityManager::UpdatePASERateLimiter(WEAVE_ERROR err)
+{
+    // Update PASE rate limiter parameters in the following cases:
+    //   -- PASE with key confirmation: count only PASE attempts that fail with key confirmation error.
+    //   -- PASE without key confirmation: every PASE attempt counts as failure.
+    if (State == kState_PASEInProgress && mPASEEngine->IsResponder() &&
+        ((mPASEEngine->PerformKeyConfirmation && err == WEAVE_ERROR_KEY_CONFIRMATION_FAILED) ||
+         (!mPASEEngine->PerformKeyConfirmation && err == WEAVE_NO_ERROR)))
+    {
+        uint64_t nowTimeMS = System::Layer::GetClock_MonotonicMS();
+
+        // Reset PASE rate limiter parameters if timeout expired.
+        if (nowTimeMS > mPASERateLimiterTimeout)
+        {
+            mPASERateLimiterTimeout = nowTimeMS + WEAVE_CONFIG_PASE_RATE_LIMITER_TIMEOUT;
+            mPASERateLimiterCount = 1;
+        }
+        // Otherwise, increment PASE rate limiter counter.
+        else
+        {
+            mPASERateLimiterCount++;
+        }
+    }
+}
+#endif // WEAVE_CONFIG_ENABLE_PASE_RESPONDER
+
 WEAVE_ERROR WeaveSecurityManager::HandleSessionEstablished(void)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
@@ -2891,6 +2930,10 @@ WEAVE_ERROR WeaveSecurityManager::HandleSessionEstablished(void)
 
         // Form the key auth mode based on the password source.
         authMode = PASEAuthMode(mPASEEngine->PwSource);
+
+#if WEAVE_CONFIG_ENABLE_PASE_RESPONDER
+        UpdatePASERateLimiter(WEAVE_NO_ERROR);
+#endif
 
         break;
 #endif
@@ -2979,6 +3022,10 @@ void WeaveSecurityManager::HandleSessionError(WEAVE_ERROR err, PacketBuffer* sta
         void *reqState = mStartSecureSession_ReqState;
         StatusReport rcvdStatusReport;
         StatusReport *statusReportPtr = NULL;
+
+#if WEAVE_CONFIG_ENABLE_PASE_RESPONDER
+        UpdatePASERateLimiter(err);
+#endif
 
         // If a status report was received from the peer, parse it and arrange to pass it
         // to the callbacks.

@@ -405,6 +405,11 @@ private:
         void *mStartSecureSession_ReqState;
         void *mStartKeyExport_ReqState;
     };
+#if WEAVE_CONFIG_ENABLE_PASE_RESPONDER
+    uint32_t mPASERateLimiterTimeout;
+    uint8_t mPASERateLimiterCount;
+    void UpdatePASERateLimiter(WEAVE_ERROR err);
+#endif
 #if WEAVE_CONFIG_ENABLE_CASE_INITIATOR || WEAVE_CONFIG_ENABLE_CASE_RESPONDER
     WeaveCASEAuthDelegate *mDefaultAuthDelegate;
 #endif

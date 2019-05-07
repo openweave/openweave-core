@@ -426,6 +426,37 @@
 #endif // WEAVE_CONFIG_USE_MICRO_ECC
 #endif // WEAVE_CONFIG_PASE_MESSAGE_PAYLOAD_ALIGNMENT
 
+/**
+ *  @def WEAVE_CONFIG_PASE_RATE_LIMITER_TIMEOUT
+ *
+ *  @brief
+ *    The amount of time (in milliseconds) in which the Security Manager
+ *    is allowed to have maximum #WEAVE_CONFIG_PASE_RATE_LIMITER_MAX_ATTEMPTS
+ *    counted PASE attempts.
+ *
+ */
+#ifndef WEAVE_CONFIG_PASE_RATE_LIMITER_TIMEOUT
+#define WEAVE_CONFIG_PASE_RATE_LIMITER_TIMEOUT              15000
+#endif // WEAVE_CONFIG_PASE_RATE_LIMITER_TIMEOUT
+
+/**
+ *  @def WEAVE_CONFIG_PASE_RATE_LIMITER_MAX_ATTEMPTS
+ *
+ *  @brief
+ *    The maximum number of PASE attempts after which the
+ *    next PASE session establishment attempt will be allowed
+ *    only after #WEAVE_CONFIG_PASE_RATE_LIMITER_TIMEOUT expires.
+ *     * For PASE negotiations with key confirmation option enabled:
+ *       only attempts that failed with key confirmation error are counted.
+ *       Successful PASE negotiations do not reset the rate limiter.
+ *     * For PASE negotiations with key confirmation option disabled:
+ *       every PASE negotiation, successful or otherwise, is added
+ *       to the rate limiter.
+ *
+ */
+#ifndef WEAVE_CONFIG_PASE_RATE_LIMITER_MAX_ATTEMPTS
+#define WEAVE_CONFIG_PASE_RATE_LIMITER_MAX_ATTEMPTS         3
+#endif // WEAVE_CONFIG_PASE_RATE_LIMITER_MAX_ATTEMPTS
 
 /**
  *  @name Weave Security Manager Memory Management Configuration
