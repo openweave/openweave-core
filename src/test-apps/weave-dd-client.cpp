@@ -110,22 +110,10 @@ int main(int argc, char *argv[])
     }
 
     if (!ParseArgsFromEnvVar(TOOL_NAME, TOOL_OPTIONS_ENV_VAR_NAME, gToolOptionSets, NULL, true) ||
-        !ParseArgs(TOOL_NAME, argc, argv, gToolOptionSets, HandleNonOptionArgs))
+        !ParseArgs(TOOL_NAME, argc, argv, gToolOptionSets, HandleNonOptionArgs) ||
+        !ResolveWeaveNetworkOptions(TOOL_NAME, gWeaveNodeOptions, gNetworkOptions))
     {
         exit(EXIT_FAILURE);
-    }
-
-    if (gNetworkOptions.LocalIPv6Addr != IPAddress::Any)
-    {
-        if (!gNetworkOptions.LocalIPv6Addr.IsIPv6ULA())
-        {
-            printf("ERROR: Local address must be an IPv6 ULA\n");
-            exit(-1);
-        }
-
-        gWeaveNodeOptions.FabricId = gNetworkOptions.LocalIPv6Addr.GlobalId();
-        gWeaveNodeOptions.LocalNodeId = IPv6InterfaceIdToWeaveNodeId(gNetworkOptions.LocalIPv6Addr.InterfaceId());
-        gWeaveNodeOptions.SubnetId = gNetworkOptions.LocalIPv6Addr.Subnet();
     }
 
     InitSystemLayer();

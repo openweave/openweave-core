@@ -116,6 +116,7 @@ noinst_HEADERS                                             = \
     MockWdmViewServer.h                                      \
     PASEEngineTest.h                                         \
     TAKEOptions.h                                            \
+    TapAddrAutoconf.h                                               \
     TestDRBG.h                                               \
     TestEventLoggingSchemaExamples.h                         \
     TestGroupKeyStore.h                                      \
@@ -202,6 +203,7 @@ libWeaveTestCommon_a_SOURCES                   = \
     TestGroupKeyStore.cpp                        \
     ToolCommon.cpp                               \
     ToolCommonOptions.cpp                        \
+    TapAddrAutoconf.cpp                          \
     PASEEngineTest.cpp                           \
     MockPlatformClocks.cpp                       \
     TestPersistedStorageImplementation.cpp       \

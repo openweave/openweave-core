@@ -39,7 +39,7 @@
 #include <sys/types.h>
 #include <unistd.h>
 #include <new>
-
+#include <vector>
 #include "ToolCommon.h"
 #include "TestGroupKeyStore.h"
 #include <Weave/Support/NestCerts.h>
@@ -63,6 +63,7 @@
 #include "MockPlatformClocks.h"
 
 #if WEAVE_SYSTEM_CONFIG_USE_LWIP
+#include "TapAddrAutoconf.h"
 #include <lwip/netif.h>
 #include <netif/etharp.h>
 #include "TapInterface.h"
@@ -119,8 +120,8 @@ System::Layer SystemLayer;
 InetLayer Inet;
 
 #if WEAVE_SYSTEM_CONFIG_USE_LWIP && !WEAVE_SYSTEM_CONFIG_USE_SOCKETS
-TapInterface tapIF;
-struct netif netIF; // interface to filter
+std::vector<TapInterface> tapIFs;
+std::vector<struct netif> netIFs; // interface to filter
 #endif // WEAVE_SYSTEM_CONFIG_USE_LWIP && !WEAVE_SYSTEM_CONFIG_USE_SOCKETS
 
 #if WEAVE_SYSTEM_CONFIG_USE_LWIP
@@ -772,21 +773,29 @@ static void PrintNetworkState()
 {
     char intfName[10];
 
-    GetInterfaceName(&netIF, intfName, sizeof(intfName));
-
-    printf("LwIP interface ready\n");
-    printf("  Interface Name: %s\n", intfName);
-    printf("  Tap Device: %s\n", gNetworkOptions.TapDeviceName);
-    printf("  MAC address: %02x:%02x:%02x:%02x:%02x:%02x\n", tapIF.macAddr[0], tapIF.macAddr[1], tapIF.macAddr[2], tapIF.macAddr[3], tapIF.macAddr[4], tapIF.macAddr[5]);
-#if INET_CONFIG_ENABLE_IPV4
-    printf("  IPv4 Address: %s\n", ipaddr_ntoa(&netIF.ip_addr));
-    printf("  IPv4 Mask: %s\n", ipaddr_ntoa(&netIF.netmask));
-    printf("  IPv4 Gateway: %s\n", ipaddr_ntoa(&netIF.gw));
-#endif // INET_CONFIG_ENABLE_IPV4
-    for (int i = 0; i < LWIP_IPV6_NUM_ADDRESSES; i++)
-    if (!ip6_addr_isany(netif_ip6_addr(&netIF, i)))
+    for (size_t j = 0; j < gNetworkOptions.TapDeviceName.size(); j++)
     {
-      printf("  IPv6 address: %s, 0x%02x\n", ip6addr_ntoa(netif_ip6_addr(&netIF, i)), netif_ip6_addr_state(&netIF, i));
+        struct netif *netIF = &(netIFs[j]);
+        TapInterface *tapIF = &(tapIFs[j]);
+
+        GetInterfaceName(netIF, intfName, sizeof(intfName));
+
+        printf("LwIP interface ready\n");
+        printf("  Interface Name: %s\n", intfName);
+        printf("  Tap Device: %s\n", gNetworkOptions.TapDeviceName[j]);
+        printf("  MAC address: %02x:%02x:%02x:%02x:%02x:%02x\n", tapIF->macAddr[0], tapIF->macAddr[1], tapIF->macAddr[2], tapIF->macAddr[3], tapIF->macAddr[4], tapIF->macAddr[5]);
+#if INET_CONFIG_ENABLE_IPV4
+        printf("  IPv4 Address: %s\n", ipaddr_ntoa(&(netIF->ip_addr)));
+        printf("  IPv4 Mask: %s\n", ipaddr_ntoa(&(netIF->netmask)));
+        printf("  IPv4 Gateway: %s\n", ipaddr_ntoa(&(netIF->gw)));
+#endif // INET_CONFIG_ENABLE_IPV4
+        for (int i = 0; i < LWIP_IPV6_NUM_ADDRESSES; i++)
+        {
+            if (!ip6_addr_isany(netif_ip6_addr(netIF, i)))
+            {
+                printf("  IPv6 address: %s, 0x%02x\n", ip6addr_ntoa(netif_ip6_addr(netIF, i)), netif_ip6_addr_state(netIF, i));
+            }
+        }
     }
 #if INET_CONFIG_ENABLE_DNS_RESOLVER
     char dnsServerAddrStr[DNS_MAX_NAME_LENGTH];
@@ -808,60 +817,129 @@ void InitNetwork()
 
     // If an tap device name hasn't been specified, derive one from the IPv6 interface id.
 
-    if (gNetworkOptions.TapDeviceName == NULL)
+    if (gNetworkOptions.TapDeviceName.empty())
     {
-        uint64_t iid = gNetworkOptions.LocalIPv6Addr.InterfaceId();
-        snprintf(DefaultTapDeviceName, sizeof(DefaultTapDeviceName), "weave-dev-%" PRIx64, iid & 0xFFFF);
-        DefaultTapDeviceName[ sizeof(DefaultTapDeviceName) - 1] = 0;
-        gNetworkOptions.TapDeviceName = DefaultTapDeviceName;
+        for (size_t j = 0; j < gNetworkOptions.LocalIPv6Addr.size(); j++)
+        {
+            uint64_t iid = gNetworkOptions.LocalIPv6Addr[j].InterfaceId();
+            char * tap_name = (char *)malloc(sizeof(DefaultTapDeviceName));
+            snprintf(tap_name, sizeof(DefaultTapDeviceName), "weave-dev-%" PRIx64, iid & 0xFFFF);
+            tap_name[ sizeof(DefaultTapDeviceName) - 1] = 0;
+            gNetworkOptions.TapDeviceName.push_back(tap_name);
+        }
     }
 
-    err_t lwipErr = TapInterface_Init(&tapIF, gNetworkOptions.TapDeviceName, NULL);
-    if (lwipErr != ERR_OK)
+    err_t lwipErr;
+
+    tapIFs.clear();
+    netIFs.clear();
+    for (size_t j = 0; j < gNetworkOptions.TapDeviceName.size(); j++)
     {
-        printf("Failed to initialize tap device %s: %s\n", gNetworkOptions.TapDeviceName, ErrorStr(System::MapErrorLwIP(lwipErr)));
-        exit(EXIT_FAILURE);
+        TapInterface tapIF;
+        struct netif netIF;
+        tapIFs.push_back(tapIF);
+        netIFs.push_back(netIF);
     }
 
+    for (size_t j = 0; j < gNetworkOptions.TapDeviceName.size(); j++)
+    {
+        lwipErr = TapInterface_Init(&(tapIFs[j]), gNetworkOptions.TapDeviceName[j], NULL);
+        if (lwipErr != ERR_OK)
+        {
+            printf("Failed to initialize tap device %s: %s\n", gNetworkOptions.TapDeviceName[j], ErrorStr(System::MapErrorLwIP(lwipErr)));
+            exit(EXIT_FAILURE);
+        }
+    }
     tcpip_init(OnLwIPInitComplete, NULL);
 
     // Lock LwIP stack
     LOCK_TCPIP_CORE();
 
+    for (size_t j = 0; j < gNetworkOptions.TapDeviceName.size(); j++)
+    {
+        std::vector<char *>addrsVec;
+        addrsVec.clear();
+        if (gNetworkOptions.TapUseSystemConfig)
+        {
+            CollectTapAddresses(addrsVec, gNetworkOptions.TapDeviceName[j]);
+        }
 #if INET_CONFIG_ENABLE_IPV4
 #if LWIP_VERSION_MAJOR > 1
-    ip4_addr_t ip4Addr, ip4Netmask, ip4Gateway;
+        ip4_addr_t ip4Addr, ip4Netmask, ip4Gateway;
 #else // LWIP_VERSION_MAJOR <= 1
-    ip_addr_t ip4Addr, ip4Netmask, ip4Gateway;
+        ip_addr_t ip4Addr, ip4Netmask, ip4Gateway;
 #endif // LWIP_VERSION_MAJOR <= 1
+        ip4Addr = nl::Inet::IPAddress::Any.ToIPv4();
+        for (size_t n = 0; n < addrsVec.size(); n++)
+        {
+            IPAddress auto_addr;
+            if (IPAddress::FromString(addrsVec[n], auto_addr) && auto_addr.IsIPv4())
+            {
+                ip4Addr = auto_addr.ToIPv4();
+            }
+        }
 
-    ip4Addr = gNetworkOptions.LocalIPv4Addr.ToIPv4();
-    IP4_ADDR(&ip4Netmask, 255, 255, 255, 0);
-    ip4Gateway = gNetworkOptions.IPv4GatewayAddr.ToIPv4();
+        if ((IPAddress::FromIPv4(ip4Addr) == nl::Inet::IPAddress::Any) &&
+            (j < gNetworkOptions.LocalIPv4Addr.size()))
+        {
+            ip4Addr = gNetworkOptions.LocalIPv4Addr[j].ToIPv4();
+        }
 
-    netif_add(&netIF, &ip4Addr, &ip4Netmask, &ip4Gateway, &tapIF, TapInterface_SetupNetif, tcpip_input);
+        IP4_ADDR(&ip4Netmask, 255, 255, 255, 0);
+
+        if (j < gNetworkOptions.IPv4GatewayAddr.size())
+        {
+            ip4Gateway = gNetworkOptions.IPv4GatewayAddr[j].ToIPv4();
+        }
+        else
+        {
+            ip4Gateway = nl::Inet::IPAddress::Any.ToIPv4();
+        }
+
+        netif_add(&(netIFs[j]), &ip4Addr, &ip4Netmask, &ip4Gateway, &(tapIFs[j]), TapInterface_SetupNetif, tcpip_input);
 #endif // INET_CONFIG_ENABLE_IPV4
 
-    netif_create_ip6_linklocal_address(&netIF, 1);
+        netif_create_ip6_linklocal_address(&(netIFs[j]), 1);
 
-    netif_set_default(&netIF);
-    netif_set_up(&netIF);
-    netif_set_link_up(&netIF);
-
-    if (gNetworkOptions.LocalIPv6Addr != IPAddress::Any)
-    {
-        ip6_addr_t ip6addr = gNetworkOptions.LocalIPv6Addr.ToIPv6();
-        s8_t index;
-        netif_add_ip6_address_with_route(&netIF, &ip6addr, 64, &index);
-        if (index >= 0)
+        if (j < gNetworkOptions.LocalIPv6Addr.size())
         {
-            netif_ip6_addr_set_state(&netIF, index, IP6_ADDR_PREFERRED);
+            ip6_addr_t ip6addr = gNetworkOptions.LocalIPv6Addr[j].ToIPv6();
+            s8_t index;
+            netif_add_ip6_address_with_route(&(netIFs[j]), &ip6addr, 64, &index);
+            if (index >= 0)
+            {
+                netif_ip6_addr_set_state(&(netIFs[j]), index, IP6_ADDR_PREFERRED);
+            }
         }
+        for (size_t n = 0; n < addrsVec.size(); n++)
+        {
+            IPAddress auto_addr;
+            if (IPAddress::FromString(addrsVec[n], auto_addr) && !auto_addr.IsIPv4())
+            {
+                ip6_addr_t ip6addr = auto_addr.ToIPv6();
+                s8_t index;
+                if (auto_addr.IsIPv6LinkLocal())
+                    continue; // skip over the LLA addresses, LwIP is aready adding those
+                if (auto_addr.IsIPv6Multicast())
+                    continue; // skip over the multicast addresses from host for now.
+                netif_add_ip6_address_with_route(&(netIFs[j]), &ip6addr, 64, &index);
+                if (index >= 0)
+                {
+                    netif_ip6_addr_set_state(&(netIFs[j]), index, IP6_ADDR_PREFERRED);
+                }
+            }
+        }
+
+        netif_set_up(&(netIFs[j]));
+        netif_set_link_up(&(netIFs[j]));
+
     }
 
+    netif_set_default(&(netIFs[0]));
     // UnLock LwIP stack
 
     UNLOCK_TCPIP_CORE();
+
 
     while (!NetworkIsReady())
     {
@@ -874,10 +952,15 @@ void InitNetwork()
     //FIXME: this is kinda nasty :(
     // Force new IP address to be ready, bypassing duplicate detection.
 
-    if (gNetworkOptions.LocalIPv6Addr != IPAddress::Any) {
-      netif_ip6_addr_set_state(&netIF, 2, 0x30);
-    } else {
-      netif_ip6_addr_set_state(&netIF, 1, 0x30);
+    for (size_t j = 0; j < gNetworkOptions.TapDeviceName.size(); j++)
+    {
+        if (j < gNetworkOptions.LocalIPv6Addr.size()) {
+            netif_ip6_addr_set_state(&(netIFs[j]), 2, 0x30);
+        }
+        else
+        {
+            netif_ip6_addr_set_state(&(netIFs[j]), 1, 0x30);
+        }
     }
 
 #if INET_CONFIG_ENABLE_DNS_RESOLVER
@@ -983,7 +1066,7 @@ void ServiceEvents(::timeval& aSleepTime)
     }
 
 #if WEAVE_SYSTEM_CONFIG_USE_LWIP && !WEAVE_SYSTEM_CONFIG_USE_SOCKETS
-    TapInterface_Select(&tapIF, &netIF, aSleepTime);
+    TapInterface_Select(&(tapIFs[0]), &(netIFs[0]), aSleepTime, gNetworkOptions.TapDeviceName.size());
 #endif // WEAVE_SYSTEM_CONFIG_USE_LWIP && !WEAVE_SYSTEM_CONFIG_USE_SOCKETS
 
     if (Inet.State == InetLayer::kState_Initialized)
@@ -1025,13 +1108,17 @@ static bool NetworkIsReady()
 {
     bool ready = true;
 
-    for (int i = 0; i < LWIP_IPV6_NUM_ADDRESSES; i++)
-        if (!ip6_addr_isany(netif_ip6_addr(&netIF, i)) && ip6_addr_istentative(netif_ip6_addr_state(&netIF, i)))
+    for (size_t j = 0; j < gNetworkOptions.TapDeviceName.size(); j++)
+    {
+        for (int i = 0; i < LWIP_IPV6_NUM_ADDRESSES; i++)
         {
-            ready = false;
-            break;
+            if (!ip6_addr_isany(netif_ip6_addr(&(netIFs[j]), i)) && ip6_addr_istentative(netif_ip6_addr_state(&(netIFs[j]), i)))
+            {
+                ready = false;
+                break;
+            }
         }
-
+    }
     return ready;
 }
 
@@ -1085,9 +1172,12 @@ void InitWeaveStack(bool listen, bool initExchangeMgr)
 
 #if WEAVE_CONFIG_ENABLE_TARGETED_LISTEN
 #if INET_CONFIG_ENABLE_IPV4
-    FabricState.ListenIPv4Addr = gNetworkOptions.LocalIPv4Addr;
+    if (!gNetworkOptions.LocalIPv4Addr.empty())
+        FabricState.ListenIPv4Addr = gNetworkOptions.LocalIPv4Addr[0];
 #endif // INET_CONFIG_ENABLE_IPV4
-    FabricState.ListenIPv6Addr = gNetworkOptions.LocalIPv6Addr;
+
+    if (!gNetworkOptions.LocalIPv6Addr.empty())
+        FabricState.ListenIPv6Addr = gNetworkOptions.LocalIPv6Addr[0];
 #endif
 
 #if WEAVE_CONFIG_SECURITY_TEST_MODE

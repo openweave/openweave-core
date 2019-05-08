@@ -64,7 +64,7 @@ typedef struct TapInterface {
 
 err_t TapInterface_Init(TapInterface *tapif, const char *interfaceName, u8_t *macAddr);
 err_t TapInterface_SetupNetif(struct netif *netif);
-int TapInterface_Select(TapInterface *tapif, struct netif *netif, struct timeval sleepTime);
+int TapInterface_Select(TapInterface *tapif, struct netif *netif, struct timeval sleepTime, size_t numIntfs);
 
 #ifdef __cplusplus
 }

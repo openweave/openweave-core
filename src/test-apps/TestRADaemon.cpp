@@ -124,21 +124,21 @@ int main(int argc, char *argv[])
     IPAddress::FromString("fd01:0001:0002:0003:0004:0005:0006:0001", ipPrefix.IPAddr);
     ipPrefix.Length = 64;
 //  if ((err = radaemon.SetPrefixInfo("et0", LocalIPv6Addr, ipPrefix, 7200, 7200)) != INET_NO_ERROR)
-  if ((err = radaemon.SetPrefixInfo(et0_intf, gNetworkOptions.LocalIPv6Addr, ipPrefix, 7200, 7200)) != INET_NO_ERROR)
+  if ((err = radaemon.SetPrefixInfo(et0_intf, gNetworkOptions.LocalIPv6Addr[0], ipPrefix, 7200, 7200)) != INET_NO_ERROR)
     { printf("SetPrefixInfo (err: %d)\n", err); } else { printf("SetPrefixInfo (err: SUCCESS)\n"); }
 
     //Set second prefix
     IPAddress::FromString("fd02:0001:0002:0003:0004:0005:0006:0002", ipPrefix.IPAddr);
     ipPrefix.Length = 48;
 //  if ((err = radaemon.SetPrefixInfo("et0", LocalIPv6Addr, ipPrefix, 7200, 7200)) != INET_NO_ERROR)
-  if ((err = radaemon.SetPrefixInfo(et0_intf, gNetworkOptions.LocalIPv6Addr, ipPrefix, 7200, 7200)) != INET_NO_ERROR)
+  if ((err = radaemon.SetPrefixInfo(et0_intf, gNetworkOptions.LocalIPv6Addr[0], ipPrefix, 7200, 7200)) != INET_NO_ERROR)
     { printf("SetPrefixInfo (err: %d)\n", err); } else { printf("SetPrefixInfo (err: SUCCESS)\n"); }
 
     //Set third prefix
     IPAddress::FromString("fd03:1234:ffff:ffff:ffff:ffff:ffff:ffff", ipPrefix.IPAddr);
     ipPrefix.Length = 97;
 //  if ((err = radaemon.SetPrefixInfo("et0", LocalIPv6Addr, ipPrefix, 7200, 7200)) != INET_NO_ERROR)
-  if ((err = radaemon.SetPrefixInfo(et0_intf, gNetworkOptions.LocalIPv6Addr, ipPrefix, 7200, 7200)) != INET_NO_ERROR)
+  if ((err = radaemon.SetPrefixInfo(et0_intf, gNetworkOptions.LocalIPv6Addr[0], ipPrefix, 7200, 7200)) != INET_NO_ERROR)
     { printf("SetPrefixInfo (err: %d)\n", err); } else { printf("SetPrefixInfo (err: SUCCESS)\n"); }
 
     //Dump the current content of the LinkInfo table.
