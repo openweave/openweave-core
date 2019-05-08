@@ -63,25 +63,25 @@ struct CircularEventBuffer
     void AddEventUTC(utc_timestamp_t inEventTimestamp);
 #endif
 
-    nl::Weave::TLV::WeaveCircularTLVBuffer mBuffer; //< The underlying TLV buffer storing the events in a TLV representation
+    nl::Weave::TLV::WeaveCircularTLVBuffer mBuffer; ///< The underlying TLV buffer storing the events in a TLV representation
 
-    CircularEventBuffer * mPrev; //< A pointer #CircularEventBuffer storing events less important events
-    CircularEventBuffer * mNext; //< A pointer #CircularEventBuffer storing events more important events
+    CircularEventBuffer * mPrev; ///< A pointer #CircularEventBuffer storing events less important events
+    CircularEventBuffer * mNext; ///< A pointer #CircularEventBuffer storing events more important events
 
-    ImportanceType mImportance; //< The buffer is the final bucket for events of this importance.  Events of lesser importance are
+    ImportanceType mImportance; ///< The buffer is the final bucket for events of this importance.  Events of lesser importance are
                                 //dropped when they get bumped out of this buffer
 
-    event_id_t mFirstEventID; //< First event ID stored in the logging subsystem for this importance
-    event_id_t mLastEventID;  //< Last event ID vended for this importance
+    event_id_t mFirstEventID; ///< First event ID stored in the logging subsystem for this importance
+    event_id_t mLastEventID;  ///< Last event ID vended for this importance
 
-    timestamp_t mFirstEventTimestamp; //< The timestamp of the first event in this buffer
-    timestamp_t mLastEventTimestamp;  //< The timestamp of the last event in this buffer
+    timestamp_t mFirstEventTimestamp; ///< The timestamp of the first event in this buffer
+    timestamp_t mLastEventTimestamp;  ///< The timestamp of the last event in this buffer
 
 #if WEAVE_CONFIG_EVENT_LOGGING_UTC_TIMESTAMPS
-    utc_timestamp_t mFirstEventUTCTimestamp; //< The UTC timestamp of the first event in this buffer
-    utc_timestamp_t mLastEventUTCTimestamp;  //< The UTC timestamp of the last event in this buffer
+    utc_timestamp_t mFirstEventUTCTimestamp; ///< The UTC timestamp of the first event in this buffer
+    utc_timestamp_t mLastEventUTCTimestamp;  ///< The UTC timestamp of the last event in this buffer
 
-    bool mUTCInitialized; //< Indicates whether UTC timestamps are initialized in this buffer
+    bool mUTCInitialized; ///< Indicates whether UTC timestamps are initialized in this buffer
 #endif
 
     // The counter we're going to actually use.
@@ -137,10 +137,10 @@ struct EventEnvelopeContext
 
 enum LoggingManagementStates
 {
-    kLoggingManagementState_Idle       = 1, //< No log offload in progress, log offload can begin without any constraints
-    kLoggingManagementState_InProgress = 2, //< Log offload in progress
-    kLoggingManagementState_Holdoff    = 3, //< Log offload has completed; we do not restart the log until the holdoff expires
-    kLoggingManagementState_Shutdown   = 4  //< Not capable of performing any logging operation
+    kLoggingManagementState_Idle       = 1, ///< No log offload in progress, log offload can begin without any constraints
+    kLoggingManagementState_InProgress = 2, ///< Log offload in progress
+    kLoggingManagementState_Holdoff    = 3, ///< Log offload has completed; we do not restart the log until the holdoff expires
+    kLoggingManagementState_Shutdown   = 4  ///< Not capable of performing any logging operation
 };
 
 // forward class declaration

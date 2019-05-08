@@ -59,8 +59,8 @@ class WeaveTAKEChallengerAuthDelegate;
  * @class Binding
  *
  * @brief
- *     Captures the intended target of a Weave communication and associated configuration
- *     information.
+ *   Captures the intended target of a Weave communication and associated configuration
+ *   information.
  *
  * A Binding object identifies the intended target of a Weave communication (also known as the
  * "peer"), along with a set of configuration parameters describing how communication with the
@@ -154,15 +154,15 @@ public:
 
     enum EventType
     {
-        kEvent_ConnectionEstablished                = 1,    //< The requested Weave connection has been established.
-        kEvent_BindingReady                         = 2,    //< The prepare action on the binding succeeded and the binding may now be used to communicate with the peer.
-        kEvent_PrepareFailed                        = 3,    //< The prepare action on the binding failed.
-        kEvent_BindingFailed                        = 4,    //< The binding failed and can no longer be used to communicate with the peer.
-        kEvent_PrepareRequested                     = 5,    //< The application is requested to configure and prepare the binding for use by the network stack.
-        kEvent_PASEParametersRequested              = 6,    //< The application is requested to supply parameters to be used during PASE session establishment.
-        kEvent_TAKEParametersRequested              = 7,    //< The application is requested to supply parameters to be used during TAKE session establishment.
+        kEvent_ConnectionEstablished                = 1,    ///< The requested Weave connection has been established.
+        kEvent_BindingReady                         = 2,    ///< The prepare action on the binding succeeded and the binding may now be used to communicate with the peer.
+        kEvent_PrepareFailed                        = 3,    ///< The prepare action on the binding failed.
+        kEvent_BindingFailed                        = 4,    ///< The binding failed and can no longer be used to communicate with the peer.
+        kEvent_PrepareRequested                     = 5,    ///< The application is requested to configure and prepare the binding for use by the network stack.
+        kEvent_PASEParametersRequested              = 6,    ///< The application is requested to supply parameters to be used during PASE session establishment.
+        kEvent_TAKEParametersRequested              = 7,    ///< The application is requested to supply parameters to be used during TAKE session establishment.
 
-        kEvent_DefaultCheck                         = 100,  //< Used to verify correct default event handling in the application.
+        kEvent_DefaultCheck                         = 100,  ///< Used to verify correct default event handling in the application.
     };
 
     typedef void (*EventCallback)(void *apAppState, EventType aEvent, const InEventParam& aInParam, OutEventParam& aOutParam);

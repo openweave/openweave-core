@@ -65,9 +65,9 @@ public:
 private:
     static void HandleNextEvent(nl::Weave::System::Layer* aSystemLayer, void *aAppState, ::nl::Weave::System::Error aErr);
     nl::Weave::WeaveExchangeManager *mExchangeMgr;
-    int mTimeBetweenEvents; //< delay, in miliseconds, between events.
-    bool mEventWraparound; //< does the event generator run indefinitely, or does it stop after iterating through its states
-    EventGenerator *mEventGenerator; //< the event generator to use
+    int mTimeBetweenEvents; ///< delay, in miliseconds, between events.
+    bool mEventWraparound; ///< does the event generator run indefinitely, or does it stop after iterating through its states
+    EventGenerator *mEventGenerator; ///< the event generator to use
     int32_t mEventsLeft;
 };
 

@@ -280,9 +280,9 @@ private:
 
     enum CustomCommandState
     {
-        kCmdState_Idle          = 0,    //< No active command
-        kCmdState_Requesting    = 1,    //< Command has been sent but we haven't heard anything back
-        kCmdState_Operating     = 2,    //< We have received In-Progress message but are still waiting for response
+        kCmdState_Idle          = 0,    ///< No active command
+        kCmdState_Requesting    = 1,    ///< Command has been sent but we haven't heard anything back
+        kCmdState_Operating     = 2,    ///< We have received In-Progress message but are still waiting for response
     };
     CustomCommandState mCmdState;
     nl::Weave::ExchangeContext * mEcCommand;

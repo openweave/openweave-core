@@ -105,9 +105,9 @@ typedef enum ImportanceType
  */
 struct EventSchema
 {
-    uint32_t mProfileId;        //!< ID of profile
-    uint32_t mStructureType;    //!< Type of structure
-    ImportanceType mImportance; //!< Importance
+    uint32_t mProfileId;        ///< ID of profile
+    uint32_t mStructureType;    ///< Type of structure
+    ImportanceType mImportance; ///< Importance
     SchemaVersion mDataSchemaVersion;
     SchemaVersion mMinCompatibleDataSchemaVersion;
 };
@@ -191,8 +191,8 @@ union Timestamp
      */
     Timestamp(timestamp_t aSystem) : systemTimestamp(aSystem) { };
 
-    timestamp_t systemTimestamp;  //< System timestamp.
-    utc_timestamp_t utcTimestamp; //< UTC timestamp.
+    timestamp_t systemTimestamp;  ///< System timestamp.
+    utc_timestamp_t utcTimestamp; ///< UTC timestamp.
 };
 
 /**

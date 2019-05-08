@@ -88,15 +88,15 @@ public:
 
     enum EventType
     {
-        kEvent_EchoRequestReceived                  = 1,    //< An EchoRequest message was received from a peer.
-        kEvent_EchoResponseSent                     = 2,    //< An EchoResponse message was sent, or failed to be sent.
+        kEvent_EchoRequestReceived                  = 1,    ///< An EchoRequest message was received from a peer.
+        kEvent_EchoResponseSent                     = 2,    ///< An EchoResponse message was sent, or failed to be sent.
 
-        kEvent_DefaultCheck                         = 100,  //< Used to verify correct default event handling in the application.
+        kEvent_DefaultCheck                         = 100,  ///< Used to verify correct default event handling in the application.
     };
 
     typedef void (* EventCallback)(void * appState, EventType eventType, const InEventParam & inParam, OutEventParam & outParam);
 
-    void * AppState;                                        //< A pointer to application-specific data.
+    void * AppState;                                        ///< A pointer to application-specific data.
 
     WeaveEchoServer(void);
 
@@ -128,20 +128,20 @@ private:
  */
 struct WeaveEchoServer::InEventParam
 {
-    WeaveEchoServer * Source;                               //< The WeaveEchoServer that is the source of the API event.
+    WeaveEchoServer * Source;                               ///< The WeaveEchoServer that is the source of the API event.
     union
     {
         struct
         {
-            const WeaveMessageInfo *MessageInfo;            //< Information about the received Echo Request message.
-            ExchangeContext *EC;                            //< The exchange context over which the Echo Request message was received.
-            PacketBuffer *Payload;                          //< A buffer containing the payload of the Echo Request message.
+            const WeaveMessageInfo *MessageInfo;            ///< Information about the received Echo Request message.
+            ExchangeContext *EC;                            ///< The exchange context over which the Echo Request message was received.
+            PacketBuffer *Payload;                          ///< A buffer containing the payload of the Echo Request message.
         } EchoRequestReceived;
 
         struct
         {
-            ExchangeContext *EC;                            //< The exchange context over which the Echo Response was sent.
-            WEAVE_ERROR Error;                              //< The error code returned when the Echo Response was sent.
+            ExchangeContext *EC;                            ///< The exchange context over which the Echo Response was sent.
+            WEAVE_ERROR Error;                              ///< The error code returned when the Echo Response was sent.
         } EchoResponseSent;
     };
 
@@ -158,8 +158,8 @@ struct WeaveEchoServer::OutEventParam
     {
         struct
         {
-            uint32_t ResponseDelay;                         //< The amount of time (in milliseconds) to delay sending the response.  Defaults to 0.
-            bool SuppressResponse;                          //< If true, suppress sending a response.  Defaults to false.
+            uint32_t ResponseDelay;                         ///< The amount of time (in milliseconds) to delay sending the response.  Defaults to 0.
+            bool SuppressResponse;                          ///< If true, suppress sending a response.  Defaults to false.
         } EchoRequestReceived;
     };
 

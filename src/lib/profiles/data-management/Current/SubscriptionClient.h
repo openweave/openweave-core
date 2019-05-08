@@ -216,16 +216,16 @@ public:
 
         struct
         {
-            TraitPath * mPathList;                   //< Pointer to a list of trait paths
-            VersionedTraitPath * mVersionedPathList; //< Pointer to a list of versioned trait paths. If both this and mPathList are
-                                                     //non-NULL, the versioned path list is selected
-            size_t mPathListSize;                    //< Number of trait paths in mPathList
-            LastObservedEvent * mLastObservedEventList; //< A list of the last known events received by the subscriber
-            size_t mLastObservedEventListSize;          //< Number of observed events in mLastObservedEventList
-            uint32_t mTimeoutSecMin;                    //< Field specifying lower bound of liveness timeout
-            uint32_t mTimeoutSecMax;                    //< Field specifying upper bound of liveness timeout
-            uint64_t mSubscriptionId;                   //< The subscription ID to use for a mutual subscription
-            bool mNeedAllEvents;                        //< Indicates whether the subscriber is interested in events
+            TraitPath * mPathList;                      ///< Pointer to a list of trait paths
+            VersionedTraitPath * mVersionedPathList;    ///< Pointer to a list of versioned trait paths. If both this and mPathList are
+                                                        ///< non-NULL, the versioned path list is selected
+            size_t mPathListSize;                       ///< Number of trait paths in mPathList
+            LastObservedEvent * mLastObservedEventList; ///< A list of the last known events received by the subscriber
+            size_t mLastObservedEventListSize;          ///< Number of observed events in mLastObservedEventList
+            uint32_t mTimeoutSecMin;                    ///< Field specifying lower bound of liveness timeout
+            uint32_t mTimeoutSecMax;                    ///< Field specifying upper bound of liveness timeout
+            uint64_t mSubscriptionId;                   ///< The subscription ID to use for a mutual subscription
+            bool mNeedAllEvents;                        ///< Indicates whether the subscriber is interested in events
         } mSubscribeRequestPrepareNeeded;
     };
 
@@ -235,9 +235,9 @@ public:
             kSubscription,
             kUpdate
         } RequestType;
-        WEAVE_ERROR mReason;  //< Error received on most recent failure
-        uint32_t mNumRetries; //< Number of retries, reset on a successful attempt
-        RequestType     mRequestType; //< Request being backed off
+        WEAVE_ERROR mReason;  ///< Error received on most recent failure
+        uint32_t mNumRetries; ///< Number of retries, reset on a successful attempt
+        RequestType     mRequestType; ///< Request being backed off
     };
 
     /**

@@ -44,21 +44,21 @@ struct StructureSchemaPointerPair;
  */
 enum SerializedFieldType
 {
-    SerializedFieldTypeBoolean = 0x00,  //!< Boolean type
-    SerializedFieldTypeUInt8,           //!< Unsigned 8-bit type
-    SerializedFieldTypeUInt16,          //!< Unsigned 16-bit type
-    SerializedFieldTypeUInt32,          //!< Unsigned 32-bit type
-    SerializedFieldTypeUInt64,          //!< Unsigned 64-bit type
-    SerializedFieldTypeInt8,            //!< Signed 8-bit type
-    SerializedFieldTypeInt16,           //!< Signed 16-bit type
-    SerializedFieldTypeInt32,           //!< Signed 32-bit type
-    SerializedFieldTypeInt64,           //!< Signed 64-bit type
-    SerializedFieldTypeFloatingPoint32, //!< 32-bit float type
-    SerializedFieldTypeFloatingPoint64, //!< 64-bit float type
-    SerializedFieldTypeUTF8String,      //!< UTF-8 string type
-    SerializedFieldTypeByteString,      //!< Byte string type
-    SerializedFieldTypeStructure,       //!< User-defined structure type
-    SerializedFieldTypeArray,           //!< Array type
+    SerializedFieldTypeBoolean = 0x00,  ///< Boolean type
+    SerializedFieldTypeUInt8,           ///< Unsigned 8-bit type
+    SerializedFieldTypeUInt16,          ///< Unsigned 16-bit type
+    SerializedFieldTypeUInt32,          ///< Unsigned 32-bit type
+    SerializedFieldTypeUInt64,          ///< Unsigned 64-bit type
+    SerializedFieldTypeInt8,            ///< Signed 8-bit type
+    SerializedFieldTypeInt16,           ///< Signed 16-bit type
+    SerializedFieldTypeInt32,           ///< Signed 32-bit type
+    SerializedFieldTypeInt64,           ///< Signed 64-bit type
+    SerializedFieldTypeFloatingPoint32, ///< 32-bit float type
+    SerializedFieldTypeFloatingPoint64, ///< 64-bit float type
+    SerializedFieldTypeUTF8String,      ///< UTF-8 string type
+    SerializedFieldTypeByteString,      ///< Byte string type
+    SerializedFieldTypeStructure,       ///< User-defined structure type
+    SerializedFieldTypeArray,           ///< Array type
 };
 
 /**
@@ -102,10 +102,10 @@ enum SerializedFieldTypeBits
  */
 struct FieldDescriptor
 {
-    const SchemaFieldDescriptor *mNestedFieldDescriptors; //!< Pointer to another group of field descriptors, if we have structs, etc.
-    uint16_t mOffset;                                     //!< Where to look in the c-struct for the data to write into the TLV field.
-    uint8_t mTypeAndFlags;                                //!< Data type of the TLV field.
-    uint8_t mTVDContextTag;                               //!< Context tag of the TLV field.
+    const SchemaFieldDescriptor *mNestedFieldDescriptors; ///< Pointer to another group of field descriptors, if we have structs, etc.
+    uint16_t mOffset;                                     ///< Where to look in the c-struct for the data to write into the TLV field.
+    uint8_t mTypeAndFlags;                                ///< Data type of the TLV field.
+    uint8_t mTVDContextTag;                               ///< Context tag of the TLV field.
 
     bool IsNullable(void) const { return (mTypeAndFlags & kMask_NullableFlag) != 0; }
     SerializedFieldType GetType(void) const { return static_cast<SerializedFieldType>(mTypeAndFlags & kMask_Type); }
@@ -117,15 +117,15 @@ struct FieldDescriptor
  */
 struct SchemaFieldDescriptor
 {
-    uint16_t mNumFieldDescriptorElements;                 //!< Number of elements in our FieldDescriptor array
-    const FieldDescriptor *mFields;                       //!< Pointer to array of FieldDescriptors
-    const uint32_t mSize;                                 //!< Size (in bytes) of the structure
+    uint16_t mNumFieldDescriptorElements;                 ///< Number of elements in our FieldDescriptor array
+    const FieldDescriptor *mFields;                       ///< Pointer to array of FieldDescriptors
+    const uint32_t mSize;                                 ///< Size (in bytes) of the structure
 };
 
 struct SerializedByteString
 {
-    uint32_t mLen;                                        //!< Number of bytes in byte string
-    uint8_t *mBuf;                                        //!< Pointer to byte string
+    uint32_t mLen;                                        ///< Number of bytes in byte string
+    uint8_t *mBuf;                                        ///< Pointer to byte string
 };
 
 struct SerializedFieldTypeBoolean_array
@@ -212,8 +212,8 @@ struct SerializedFieldTypeByteString_array
  */
 struct ArrayLengthAndBuffer
 {
-    uint32_t mNumElements;                                //!< Number of elements in the array
-    void *mElementBuffer;                                 //!< Actual array definition
+    uint32_t mNumElements;                                ///< Number of elements in the array
+    void *mElementBuffer;                                 ///< Actual array definition
 };
 
 /**
@@ -222,8 +222,8 @@ struct ArrayLengthAndBuffer
  */
 struct StructureSchemaPointerPair
 {
-    void *mStructureData;                                     //!< Pointer to a c-struct of data for the structure
-    const SchemaFieldDescriptor *mFieldSchema;                //!< SchemaFieldDescriptor to describe how to process the data into TLV
+    void *mStructureData;                                     ///< Pointer to a c-struct of data for the structure
+    const SchemaFieldDescriptor *mFieldSchema;                ///< SchemaFieldDescriptor to describe how to process the data into TLV
 };
 
 /**
