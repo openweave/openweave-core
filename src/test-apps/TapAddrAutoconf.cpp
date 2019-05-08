@@ -41,14 +41,14 @@ int CollectTapAddresses(std::vector<char *>  &addresses, const char * ifName) {
         {
             if (strcmp(ifName, curAddr->ifa_name) == 0)
             {
-                char buf[128];
+                char buf[INET6_ADDRSTRLEN];
                 const char * rv;
                 char *tmp;
                 rv = inet_ntop(curAddr->ifa_addr->sa_family,
                                curAddr->ifa_addr->sa_family == AF_INET6 ?
                                (const void *)&(((sockaddr_in6 *)curAddr->ifa_addr)->sin6_addr) :
                                (const void *)&(((sockaddr_in *)curAddr->ifa_addr)->sin_addr),
-                               buf, 128);
+                               buf, sizeof(buf));
                 if (rv != NULL)
                 {
                     tmp = (char *)malloc(strlen(buf));

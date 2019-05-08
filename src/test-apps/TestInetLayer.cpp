@@ -937,8 +937,10 @@ static void StartTest(void)
     IPVersion          lIPVersion     = kIPVersion_6;
     IPAddress          lAddress       = nl::Inet::IPAddress::Any;
     INET_ERROR         lStatus;
+
     if (!gNetworkOptions.LocalIPv6Addr.empty())
         lAddress = gNetworkOptions.LocalIPv6Addr[0];
+
 #if INET_CONFIG_ENABLE_IPV4
     if (gOptFlags & kOptFlagUseIPv4)
     {

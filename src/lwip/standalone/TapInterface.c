@@ -459,25 +459,6 @@ TapInterface_Init(TapInterface *tapif, const char *interfaceName, u8_t *macAddr)
         return ERR_IF;
     }
 
-#if 0
-    // Handy bit of code if we wanted the LwIP to pick up the same MAC address
-    // that's listed on the interface; while the address pickup seems to work,
-    // the network stack does not seem to function quite right under those
-    // circumstances
-    int fd = socket(AF_INET, SOCK_DGRAM, 0);
-
-    ifr.ifr_addr.sa_family = AF_INET;
-
-    if (0 == ioctl(fd, SIOCGIFHWADDR, &ifr))
-    {
-      memcpy(tapif->macAddr, ifr.ifr_hwaddr.sa_data, kMacLength);
-    }
-    else
-    {
-        printf("Error SIOCGIFHWADDR\n");
-    }
-    close(fd);
-#endif
 #else
 #warning "The LwIP TAP/TUN interface may not be fully-supported on your platform."
 #endif /* defined(linux) */
