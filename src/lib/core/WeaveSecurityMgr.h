@@ -449,12 +449,10 @@ private:
     WEAVE_ERROR ProcessPASEInitiatorStep2(PacketBuffer *msgBuf);
     WEAVE_ERROR SendPASEResponderKeyConfirm(void);
     WEAVE_ERROR ProcessPASEResponderKeyConfirm(PacketBuffer *msgBuf);
-    WEAVE_ERROR HandlePASESessionEstablished(void);
     static void HandlePASEMessageInitiator(ExchangeContext *ec, const IPPacketInfo *pktInfo, const WeaveMessageInfo *msgInfo,
             uint32_t profileId, uint8_t msgType, PacketBuffer *msgBuf);
     static void HandlePASEMessageResponder(ExchangeContext *ec, const IPPacketInfo *pktInfo, const WeaveMessageInfo *msgInfo,
             uint32_t profileId, uint8_t msgType, PacketBuffer *msgBuf);
-    static void HandlePASEConnectionClosed(ExchangeContext *ec, WeaveConnection *con, WEAVE_ERROR conErr);
 
     void StartCASESession(uint32_t config, uint32_t curveId);
     void HandleCASESessionStart(ExchangeContext *ec, const IPPacketInfo *pktInfo, const WeaveMessageInfo *msgInfo, PacketBuffer *msgBuf);
