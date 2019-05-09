@@ -1410,7 +1410,7 @@ WEAVE_ERROR WeaveMessageLayer::EncodeMessageWithLength(WeaveMessageInfo *msgInfo
 }
 
 WEAVE_ERROR WeaveMessageLayer::DecodeMessageWithLength(PacketBuffer *msgBuf, uint64_t sourceNodeId, WeaveConnection *con,
-        WeaveMessageInfo *msgInfo, uint8_t **rPayload, uint16_t *rPayloadLen, uint16_t *rFrameLen)
+        WeaveMessageInfo *msgInfo, uint8_t **rPayload, uint16_t *rPayloadLen, uint32_t *rFrameLen)
 {
     uint8_t *dataStart = msgBuf->Start();
     uint16_t dataLen = msgBuf->DataLength();
@@ -1426,7 +1426,7 @@ WEAVE_ERROR WeaveMessageLayer::DecodeMessageWithLength(PacketBuffer *msgBuf, uin
     uint16_t msgLen = LittleEndian::Get16(dataStart);
 
     // The frame length is the length of the message plus the length of the length field.
-    *rFrameLen = msgLen + 2;
+    *rFrameLen = static_cast<uint32_t>(msgLen) + 2;
 
     // Error if the message buffer doesn't contain the entire message, or is too
     // long to ever fit in the buffer.

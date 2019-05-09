@@ -1394,7 +1394,7 @@ void WeaveConnection::HandleDataReceived(TCPEndPoint *endPoint, PacketBuffer *da
         uint8_t*            payload;
         uint16_t            payloadLen;
         PacketBuffer*       payloadBuf = NULL;
-        uint16_t            frameLen;
+        uint32_t            frameLen;
 
         packetInfo.Clear();
         con->GetPeerAddressInfo(packetInfo);
@@ -1808,7 +1808,7 @@ void WeaveConnection::HandleBleMessageReceived(BLEEndPoint *endPoint, PacketBuff
     uint8_t *payload;
     uint16_t payloadLen;
     PacketBuffer *payloadBuf;
-    uint16_t frameLen;
+    uint32_t frameLen;
     WEAVE_ERROR err;
 
     // Initialize the message info structure.

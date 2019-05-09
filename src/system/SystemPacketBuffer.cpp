@@ -50,6 +50,7 @@
 #endif // WEAVE_SYSTEM_CONFIG_USE_LWIP
 
 #include <Weave/Support/logging/WeaveLogging.h>
+#include <Weave/Support/crypto/WeaveCrypto.h>
 #include <Weave/Support/CodeUtils.h>
 
 #include <SystemLayer/SystemStats.h>
@@ -583,6 +584,7 @@ void PacketBuffer::Free(PacketBuffer* aPacket)
         if (aPacket->ref == 0)
         {
             SYSTEM_STATS_DECREMENT(nl::Weave::System::Stats::kSystemLayer_NumPacketBufs);
+            aPacket->Clear();
 #if WEAVE_SYSTEM_CONFIG_PACKETBUFFER_MAXALLOC
             aPacket->next = sFreeList;
             sFreeList = aPacket;
@@ -600,6 +602,21 @@ void PacketBuffer::Free(PacketBuffer* aPacket)
     UNLOCK_BUF_POOL();
 
 #endif // !WEAVE_SYSTEM_CONFIG_USE_LWIP
+}
+
+/**
+ * Clear content of the packet buffer.
+ *
+ * This method is called by Free(), before the buffer is released to the free buffer pool.
+ */
+void PacketBuffer::Clear(void)
+{
+    nl::Weave::Crypto::ClearSecretData(reinterpret_cast<uint8_t*>(this) + WEAVE_SYSTEM_PACKETBUFFER_HEADER_SIZE, this->AllocSize());
+    tot_len = 0;
+    len = 0;
+#if WEAVE_SYSTEM_CONFIG_PACKETBUFFER_MAXALLOC == 0
+    alloc_size = 0;
+#endif // WEAVE_SYSTEM_CONFIG_PACKETBUFFER_MAXALLOC == 0
 }
 
 /**

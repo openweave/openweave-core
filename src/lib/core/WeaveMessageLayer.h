@@ -733,7 +733,7 @@ private:
     WEAVE_ERROR EncodeMessageWithLength(WeaveMessageInfo *msgInfo, PacketBuffer *msgBuf, WeaveConnection *con,
             uint16_t maxLen);
     WEAVE_ERROR DecodeMessageWithLength(PacketBuffer *msgBuf, uint64_t sourceNodeId, WeaveConnection *con,
-            WeaveMessageInfo *msgInfo, uint8_t **rPayload, uint16_t *rPayloadLen, uint16_t *rFrameLen);
+            WeaveMessageInfo *msgInfo, uint8_t **rPayload, uint16_t *rPayloadLen, uint32_t *rFrameLen);
 
     static void HandleUDPMessage(UDPEndPoint *endPoint, PacketBuffer *msg, const IPPacketInfo *pktInfo);
     static void HandleUDPReceiveError(UDPEndPoint *endPoint, INET_ERROR err, const IPPacketInfo *pktInfo);

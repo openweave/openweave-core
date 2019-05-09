@@ -139,6 +139,8 @@ private:
 
     static PacketBuffer* BuildFreeList(void);
 #endif // !WEAVE_SYSTEM_CONFIG_USE_LWIP && WEAVE_SYSTEM_CONFIG_PACKETBUFFER_MAXALLOC
+
+    void Clear(void);
 };
 
 } // namespace System
@@ -203,7 +205,8 @@ typedef union
 #endif // !WEAVE_SYSTEM_CONFIG_USE_LWIP && WEAVE_SYSTEM_CONFIG_PACKETBUFFER_MAXALLOC
 
 /**
- * Return the size of the allocation including the PacketBuffer structure and its payload data space.
+ * Return the size of the allocation including the reserved and payload data spaces but not including space
+ * allocated for the PacketBuffer structure.
  *
  *  @note    The allocation size is equal or greater than \c aAllocSize paramater to \c Create method).
  *
