@@ -166,7 +166,7 @@ exit:
  *                      has to keep the store compacted.
  * @param[in]   aFlags  The flags to be set to true for the item being added.
  *
- * @retval WEAVE_ERROR_INVALID_STATE        if the store has gaps.
+ * @retval WEAVE_ERROR_INCORRECT_STATE      if the store has gaps.
  * @retval WEAVE_ERROR_INVALID_ARGUMENT     if adding the TraitPath at aIndex would make
  *                                          the store not compact.
  * @retval WEAVE_ERROR_WDM_PATH_STORE_FULL  if the store is full.

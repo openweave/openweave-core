@@ -79,15 +79,15 @@ public:
     {
 #if WDM_ENABLE_SUBSCRIPTION_PUBLISHER
         kEvent_OnIncomingSubscribeRequest =
-            0, //< Called when an incoming subscribe request has arrived, before any parsing is done.
+            0, ///< Called when an incoming subscribe request has arrived, before any parsing is done.
 #endif         // #if WDM_ENABLE_SUBSCRIPTION_PUBLISHER
 #if WDM_ENABLE_SUBSCRIPTIONLESS_NOTIFICATION
         kEvent_OnIncomingSubscriptionlessNotification =
-            1, //< Called when an incoming subscriptionless notification has arrived before updating the data element.
+            1, ///< Called when an incoming subscriptionless notification has arrived before updating the data element.
         kEvent_DataElementAccessControlCheck =
-            2, //< Called when an incoming subscriptionless notification is being processed for access control of each data element.
+            2, ///< Called when an incoming subscriptionless notification is being processed for access control of each data element.
         kEvent_SubscriptionlessNotificationProcessingComplete =
-            3, //< Called upon completion of processing of all trait data in the subscriptionless notify.
+            3, ///< Called upon completion of processing of all trait data in the subscriptionless notify.
 #endif         // #if WDM_ENABLE_SUBSCRIPTIONLESS_NOTIFICATION
     };
 
@@ -105,28 +105,28 @@ public:
          */
         struct
         {
-            nl::Weave::ExchangeContext * mEC;             //< A pointer to the exchange context object this request comes from
-            PacketBuffer * mPayload;                      //< A pointer to the packet buffer containing the request
-            const nl::Inet::IPPacketInfo * mPktInfo;      //< A pointer to the packet information of the request
-            const nl::Weave::WeaveMessageInfo * mMsgInfo; //< A pointer to the message information for the request
-            Binding * mBinding; //< A pointer to the Binding object created based on the exchange context object
+            nl::Weave::ExchangeContext * mEC;             ///< A pointer to the exchange context object this request comes from
+            PacketBuffer * mPayload;                      ///< A pointer to the packet buffer containing the request
+            const nl::Inet::IPPacketInfo * mPktInfo;      ///< A pointer to the packet information of the request
+            const nl::Weave::WeaveMessageInfo * mMsgInfo; ///< A pointer to the message information for the request
+            Binding * mBinding; ///< A pointer to the Binding object created based on the exchange context object
         } mIncomingSubscribeRequest;
 #endif // #if WDM_ENABLE_SUBSCRIPTION_PUBLISHER
 
 #if WDM_ENABLE_SUBSCRIPTIONLESS_NOTIFICATION
         struct
         {
-            WEAVE_ERROR processingError;                  //< The WEAVE_ERROR encountered in processing the
-                                                          //< subscriptionless notification.
-            const nl::Weave::WeaveMessageInfo * mMsgInfo; //< A pointer to the message information for the request
+            WEAVE_ERROR processingError;                  ///< The WEAVE_ERROR encountered in processing the
+                                                          ///< subscriptionless notification.
+            const nl::Weave::WeaveMessageInfo * mMsgInfo; ///< A pointer to the message information for the request
         } mIncomingSubscriptionlessNotification;
 
         struct
         {
-            const TraitCatalogBase<TraitDataSink> * mCatalog; //< A pointer to the TraitCatalog for the data sinks.
-            const TraitPath *mPath;                           //< A pointer to the TraitPath being accessed by the
-                                                          //< subscriptionless notification.
-            const nl::Weave::WeaveMessageInfo * mMsgInfo; //< A pointer to the message information for the request
+            const TraitCatalogBase<TraitDataSink> * mCatalog; ///< A pointer to the TraitCatalog for the data sinks.
+            const TraitPath *mPath;                           ///< A pointer to the TraitPath being accessed by the
+                                                          ///< subscriptionless notification.
+            const nl::Weave::WeaveMessageInfo * mMsgInfo; ///< A pointer to the message information for the request
         } mDataElementAccessControlForNotification;
 #endif // WDM_ENABLE_SUBSCRIPTIONLESS_NOTIFICATION
     };
@@ -144,27 +144,27 @@ public:
          */
         struct
         {
-            bool mAutoClosePriorSubscription; //< Set to true if subscription engine must close existing subscription with the same
-                                              //peer node id
-            bool mRejectRequest; //< Set to true if subscription engine must reject this request with the reason and status code
-            uint32_t * mpReasonProfileId;  //< A pointer to the profile ID of reason for rejection
-            uint16_t * mpReasonStatusCode; //< A pointer to the status code of reason for rejection
+            bool mAutoClosePriorSubscription; ///< Set to true if subscription engine must close existing subscription with the same
+                                              ///< peer node id
+            bool mRejectRequest; ///< Set to true if subscription engine must reject this request with the reason and status code
+            uint32_t * mpReasonProfileId;  ///< A pointer to the profile ID of reason for rejection
+            uint16_t * mpReasonStatusCode; ///< A pointer to the status code of reason for rejection
 
-            void * mHandlerAppState;                                  //< A pointer to application layer supplied state object
-            SubscriptionHandler::EventCallback mHandlerEventCallback; //< A function pointer for event call back
+            void * mHandlerAppState;                                  ///< A pointer to application layer supplied state object
+            SubscriptionHandler::EventCallback mHandlerEventCallback; ///< A function pointer for event call back
         } mIncomingSubscribeRequest;
 #endif // #if WDM_ENABLE_SUBSCRIPTION_PUBLISHER
 
 #if WDM_ENABLE_SUBSCRIPTIONLESS_NOTIFICATION
         struct
         {
-            bool mShouldContinueProcessing;      //< Set to true if subscriptionless notification is allowed.
+            bool mShouldContinueProcessing;      ///< Set to true if subscriptionless notification is allowed.
         } mIncomingSubscriptionlessNotification;
 
         struct
         {
-            bool mRejectNotification;      //< Set to true if subscriptionless notification is rejected.
-            WEAVE_ERROR mReason;           //< The reason for the rejection, if any.
+            bool mRejectNotification;      ///< Set to true if subscriptionless notification is rejected.
+            WEAVE_ERROR mReason;           ///< The reason for the rejection, if any.
         } mDataElementAccessControlForNotification;
 #endif // WDM_ENABLE_SUBSCRIPTIONLESS_NOTIFICATION
     };
@@ -218,7 +218,7 @@ public:
     enum
     {
         kMaxNumSubscriptionClients =
-            (WDM_MAX_NUM_SUBSCRIPTION_CLIENTS), //< Max number of subscription clients this engine can accommodate
+            (WDM_MAX_NUM_SUBSCRIPTION_CLIENTS), ///< Max number of subscription clients this engine can accommodate
     };
 
     /**
@@ -387,7 +387,7 @@ private:
         kMaxNumSubscriptionHandlers = (WDM_MAX_NUM_SUBSCRIPTION_HANDLERS),
         kMaxNumPathGroups           = (WDM_PUBLISHER_MAX_NUM_PATH_GROUPS),
         kMaxNumPropertyPathHandles  = (WDM_PUBLISHER_MAX_NUM_PROPERTY_PATH_HANDLES),
-        kMaxNumCommandObjs          = (WDM_MAX_NUM_COMMAND_OBJECTS), //< Max number of command objects this engine can accommodate
+        kMaxNumCommandObjs          = (WDM_MAX_NUM_COMMAND_OBJECTS), ///< Max number of command objects this engine can accommodate
     };
 
     Command mCommandObjs[kMaxNumCommandObjs];

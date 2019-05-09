@@ -84,12 +84,12 @@ enum
  */
 enum
 {
-    kTag_SupportedLogTransports     = 1, //< An array of supported log transport mechanisms
-    kTag_SupportsStreaming          = 2, //< A boolean indicating whether the device supports streaming logs
-    kTag_SupportsNonVolatileStorage = 3, //< A boolean indicating whether the device supports nonvolatile log storage
-    kTag_SupportsPerTraitVerbosity  = 4, //< A boolean indicating whether the device supports per-trait verbosity settings
-    kTag_LoggingVolume              = 5, //< A 32-bit unsigned integer describing the expected logging volume in kB/day
-    kTag_LogBufferingCapacity       = 6  //< A 32-bit unsigned integer describing the log buffering capacity in kB
+    kTag_SupportedLogTransports     = 1, ///< An array of supported log transport mechanisms
+    kTag_SupportsStreaming          = 2, ///< A boolean indicating whether the device supports streaming logs
+    kTag_SupportsNonVolatileStorage = 3, ///< A boolean indicating whether the device supports nonvolatile log storage
+    kTag_SupportsPerTraitVerbosity  = 4, ///< A boolean indicating whether the device supports per-trait verbosity settings
+    kTag_LoggingVolume              = 5, ///< A 32-bit unsigned integer describing the expected logging volume in kB/day
+    kTag_LogBufferingCapacity       = 6  ///< A 32-bit unsigned integer describing the log buffering capacity in kB
 };
 
 /**
@@ -102,12 +102,12 @@ enum
 
     // The next three values form the event key
 
-    kTag_EventSource             = 1, //< NodeID of the device that generated the event.
+    kTag_EventSource             = 1, ///< NodeID of the device that generated the event.
 
-    kTag_EventImportance         = 2, //< Importance of the event.
+    kTag_EventImportance         = 2, ///< Importance of the event.
 
-    kTag_EventID                 = 3, //< Sequence number of event, expressed as a 64-bit unsigned quantity.  Must be sequential,
-                                      //  jumps in the sequence indicate event gaps.
+    kTag_EventID                 = 3, ///< Sequence number of event, expressed as a 64-bit unsigned quantity.  Must be sequential,
+                                      ///<  jumps in the sequence indicate event gaps.
 
     // The next two values form a key to the related event, our mechanism for event grouping.
 
@@ -119,36 +119,36 @@ enum
     // relationships are easier when the key and the reference are the
     // same.
 
-    kTag_RelatedEventImportance  = 10, //< Optional.  Importance of the related event. If omitted, the value is equal to the value
-                                       //  of kTag_EventImportance.
+    kTag_RelatedEventImportance  = 10, ///< Optional.  Importance of the related event. If omitted, the value is equal to the value
+                                       ///<  of kTag_EventImportance.
 
-    kTag_RelatedEventID          = 11, //< Optional.  ID of an Event that this event is related to.  If omitted, the value is equal
-                                       //  to the value of kTag_EventID.
+    kTag_RelatedEventID          = 11, ///< Optional.  ID of an Event that this event is related to.  If omitted, the value is equal
+                                       ///<  to the value of kTag_EventID.
 
-    kTag_EventUTCTimestamp       = 12, //< Optional. UTC Timestamp of the event in milliseconds.
+    kTag_EventUTCTimestamp       = 12, ///< Optional. UTC Timestamp of the event in milliseconds.
 
-    kTag_EventSystemTimestamp    = 13, //< Optional. System Timestamp of the event in milliseconds.
+    kTag_EventSystemTimestamp    = 13, ///< Optional. System Timestamp of the event in milliseconds.
 
     // The next three values are analogous to the values within WDM RootSection.
 
-    kTag_EventResourceID         = 14, //< Optional. The value is the ID of the resource that the event pertains to.  When omitted,
-                                       //  the value is the same as the value of the kTag_EventSource
+    kTag_EventResourceID         = 14, ///< Optional. The value is the ID of the resource that the event pertains to.  When omitted,
+                                       ///<  the value is the same as the value of the kTag_EventSource
 
-    kTag_EventTraitProfileID     = 15, //< Mandatory. 32-bit unsigned integer that is equal to the ProfileID of the trait.
+    kTag_EventTraitProfileID     = 15, ///< Mandatory. 32-bit unsigned integer that is equal to the ProfileID of the trait.
 
-    kTag_EventTraitInstanceID    = 16, //< Optional, the instance of the trait that generated the event.
+    kTag_EventTraitInstanceID    = 16, ///< Optional, the instance of the trait that generated the event.
 
-    kTag_EventType               = 17, //< Mandatory.  16-bit unsigned integer that is equal to the wdl.event.id for this type of event.
+    kTag_EventType               = 17, ///< Mandatory.  16-bit unsigned integer that is equal to the wdl.event.id for this type of event.
 
     // Weave Event internal tags. Only relevant to entities that need to
     // parse out the internal Weave event representation
-    kTag_EventDeltaUTCTime       = 30, //< WDM internal tag, time difference from the previous event in the encoding
+    kTag_EventDeltaUTCTime       = 30, ///< WDM internal tag, time difference from the previous event in the encoding
 
-    kTag_EventDeltaSystemTime    = 31, //< WDM internal tag, time difference from the previous event in the encoding
+    kTag_EventDeltaSystemTime    = 31, ///< WDM internal tag, time difference from the previous event in the encoding
 
-    kTag_EventData               = 50, //< Optional.  Event data itself.  If empty, it defaults to an empty structure.
+    kTag_EventData               = 50, ///< Optional.  Event data itself.  If empty, it defaults to an empty structure.
 
-    kTag_ExternalEventStructure  = 99, //< Internal tag for external events.  Never transmitted across the wire, should never be used outside of Weave library
+    kTag_ExternalEventStructure  = 99, ///< Internal tag for external events.  Never transmitted across the wire, should never be used outside of Weave library
 
 };
 
@@ -170,9 +170,9 @@ enum
 
 enum
 {
-    kNestDebug_StringLogEntryEvent       = 1, //< An event for freeform string debug message.
-    kNestDebug_TokenizedLogEntryEvent    = 2, //< An event for tokenized debug message.
-    kNestDebug_TokenizedHeaderEntryEvent = 3  //< An event for conveying the tokenized header information.
+    kNestDebug_StringLogEntryEvent       = 1, ///< An event for freeform string debug message.
+    kNestDebug_TokenizedLogEntryEvent    = 2, ///< An event for tokenized debug message.
+    kNestDebug_TokenizedHeaderEntryEvent = 3  ///< An event for conveying the tokenized header information.
 };
 
 /**
@@ -181,8 +181,8 @@ enum
  */
 enum
 {
-    kTag_Region  = 1, //< An 32-bit unsigned indicating the log region, i.e. the module to which the log message pertains.
-    kTag_Message = 2  //< A string containing the actual debug message.
+    kTag_Region  = 1, ///< An 32-bit unsigned indicating the log region, i.e. the module to which the log message pertains.
+    kTag_Message = 2  ///< A string containing the actual debug message.
 };
 
 /**
@@ -191,8 +191,8 @@ enum
  */
 enum
 {
-    kTag_Token = 1, //< A 32-bit unsigned value corresponding to the token.
-    kTag_Args  = 2  //< An array of arguments to be sent along with the token message.
+    kTag_Token = 1, ///< A 32-bit unsigned value corresponding to the token.
+    kTag_Args  = 2  ///< An array of arguments to be sent along with the token message.
 };
 
 } // namespace WeaveMakeManagedNamespaceIdentifier(DataManagement, kWeaveManagedNamespaceDesignation_Current)

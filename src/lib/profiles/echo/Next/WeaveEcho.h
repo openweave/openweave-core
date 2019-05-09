@@ -45,8 +45,8 @@ namespace Echo_Next {
  */
 enum
 {
-	kEchoMessageType_EchoRequest			        = 1,    //< Weave Echo Request message type
-	kEchoMessageType_EchoResponse			        = 2     //< Weave Echo Response message type
+	kEchoMessageType_EchoRequest			        = 1,    ///< Weave Echo Request message type
+	kEchoMessageType_EchoResponse			        = 2     ///< Weave Echo Response message type
 };
 
 

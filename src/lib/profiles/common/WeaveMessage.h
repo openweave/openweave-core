@@ -138,8 +138,7 @@ namespace Profiles {
       inline System::PacketBuffer *GetBuffer(void) { return (mBuffer); }
 
   protected:
-      System::PacketBuffer *mBuffer; //<! A pointer to the retained packet
-                                     //<! buffer.
+      System::PacketBuffer *mBuffer; ///< A pointer to the retained packet buffer.
   };
 
   /**

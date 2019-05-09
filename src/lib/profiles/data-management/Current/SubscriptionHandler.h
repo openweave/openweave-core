@@ -90,9 +90,9 @@ public:
             bool mSubscribeToAllEvents;
 
             nl::Weave::ExchangeContext * mEC;
-            const nl::Inet::IPPacketInfo * mPktInfo; //< A pointer to the packet information of the request
+            const nl::Inet::IPPacketInfo * mPktInfo; ///< A pointer to the packet information of the request
             const nl::Weave::WeaveMessageInfo *
-                mMsgInfo; //< A pointer to a WeaveMessageInfo structure containing information about the Subscribe Request message.
+                mMsgInfo; ///< A pointer to a WeaveMessageInfo structure containing information about the Subscribe Request message.
 
             uint32_t mTimeoutSecMin;
             uint32_t mTimeoutSecMax;
