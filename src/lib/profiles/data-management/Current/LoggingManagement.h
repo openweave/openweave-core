@@ -159,10 +159,10 @@ class LogBDXUpload;
 
 struct LogStorageResources
 {
-    __CONSTEXPR LogStorageResources(void * inBuffer, size_t inBufferSize, nl::Weave::Platform::PersistedStorage::Key * inCounterKey,
-                                  uint32_t inCounterEpoch, nl::Weave::PersistedCounter * inCounterStorage, ImportanceType inImportance) :
-        mBuffer(inBuffer),
-        mBufferSize(inBufferSize), mCounterKey(inCounterKey), mCounterEpoch(inCounterEpoch), mCounterStorage(inCounterStorage), mImportance(inImportance) { };
+    // __CONSTEXPR LogStorageResources(void * inBuffer, size_t inBufferSize, nl::Weave::Platform::PersistedStorage::Key * inCounterKey,
+    //                               uint32_t inCounterEpoch, nl::Weave::PersistedCounter * inCounterStorage, ImportanceType inImportance) :
+    //     mBuffer(inBuffer),
+    //     mBufferSize(inBufferSize), mCounterKey(inCounterKey), mCounterEpoch(inCounterEpoch), mCounterStorage(inCounterStorage), mImportance(inImportance) { };
     void * mBuffer;     ///< Buffer to be used as a storage at the particular importance level and shared with more important events.
                         ///< Must not be NULL.  Must be large enough to accomodate the largest event emitted by the system.
     size_t mBufferSize; ///< The size, in bytes, of the `mBuffer`.

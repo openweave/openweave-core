@@ -459,10 +459,10 @@ PersistedCounter * sCounterStorage[kImportanceType_Last] = {
 void InitializeEventLogging(TestLoggingContext * context)
 {
     LogStorageResources logStorageResources[] = {
-        LogStorageResources(static_cast<void *>(&gCritEventBuffer[0]), sizeof(gCritEventBuffer), NULL, 0, NULL, nl::Weave::Profiles::DataManagement::ImportanceType::ProductionCritical),
-        LogStorageResources(static_cast<void *>(&gProdEventBuffer[0]), sizeof(gProdEventBuffer), NULL, 0, NULL, nl::Weave::Profiles::DataManagement::ImportanceType::Production),
-        LogStorageResources(static_cast<void *>(&gInfoEventBuffer[0]), sizeof(gInfoEventBuffer), NULL, 0, NULL, nl::Weave::Profiles::DataManagement::ImportanceType::Info),
-        LogStorageResources(static_cast<void *>(&gDebugEventBuffer[0]), sizeof(gDebugEventBuffer), NULL, 0, NULL, nl::Weave::Profiles::DataManagement::ImportanceType::Debug) };
+        {static_cast<void *>(&gCritEventBuffer[0]), sizeof(gCritEventBuffer), NULL, 0, NULL, nl::Weave::Profiles::DataManagement::ImportanceType::ProductionCritical},
+        {static_cast<void *>(&gProdEventBuffer[0]), sizeof(gProdEventBuffer), NULL, 0, NULL, nl::Weave::Profiles::DataManagement::ImportanceType::Production},
+        {static_cast<void *>(&gInfoEventBuffer[0]), sizeof(gInfoEventBuffer), NULL, 0, NULL, nl::Weave::Profiles::DataManagement::ImportanceType::Info},
+        {static_cast<void *>(&gDebugEventBuffer[0]), sizeof(gDebugEventBuffer), NULL, 0, NULL, nl::Weave::Profiles::DataManagement::ImportanceType::Debug}};
 
 
     nl::Weave::Profiles::DataManagement::LoggingManagement::CreateLoggingManagement(
@@ -484,10 +484,10 @@ void InitializeEventLoggingWithPersistedCounters(TestLoggingContext * context, u
                                                  nl::Weave::Profiles::DataManagement::ImportanceType globalImportance)
 {
     LogStorageResources logStorageResources[] = {
-        LogStorageResources(static_cast<void *>(&gCritEventBuffer[0]), sizeof(gCritEventBuffer), &sCritEventIdCounterStorageKey, sEventIdCounterEpoch, &sCritEventIdCounter, nl::Weave::Profiles::DataManagement::ImportanceType::ProductionCritical),
-        LogStorageResources(static_cast<void *>(&gProdEventBuffer[0]), sizeof(gProdEventBuffer), &sProductionEventIdCounterStorageKey, sEventIdCounterEpoch, &sProductionEventIdCounter, nl::Weave::Profiles::DataManagement::ImportanceType::Production),
-        LogStorageResources(static_cast<void *>(&gInfoEventBuffer[0]), sizeof(gInfoEventBuffer), &sInfoEventIdCounterStorageKey, sEventIdCounterEpoch, &sInfoEventIdCounter, nl::Weave::Profiles::DataManagement::ImportanceType::Info),
-        LogStorageResources(static_cast<void *>(&gDebugEventBuffer[0]), sizeof(gDebugEventBuffer), &sDebugEventIdCounterStorageKey, sEventIdCounterEpoch, &sDebugEventIdCounter, nl::Weave::Profiles::DataManagement::ImportanceType::Debug) };
+        {static_cast<void *>(&gCritEventBuffer[0]), sizeof(gCritEventBuffer), &sCritEventIdCounterStorageKey, sEventIdCounterEpoch, &sCritEventIdCounter, nl::Weave::Profiles::DataManagement::ImportanceType::ProductionCritical},
+        {static_cast<void *>(&gProdEventBuffer[0]), sizeof(gProdEventBuffer), &sProductionEventIdCounterStorageKey, sEventIdCounterEpoch, &sProductionEventIdCounter, nl::Weave::Profiles::DataManagement::ImportanceType::Production},
+        {static_cast<void *>(&gInfoEventBuffer[0]), sizeof(gInfoEventBuffer), &sInfoEventIdCounterStorageKey, sEventIdCounterEpoch, &sInfoEventIdCounter, nl::Weave::Profiles::DataManagement::ImportanceType::Info},
+        {static_cast<void *>(&gDebugEventBuffer[0]), sizeof(gDebugEventBuffer), &sDebugEventIdCounterStorageKey, sEventIdCounterEpoch, &sDebugEventIdCounter, nl::Weave::Profiles::DataManagement::ImportanceType::Debug} };
 
     nl::Weave::Platform::PersistedStorage::Write(sCritEventIdCounterStorageKey, startingValue);
     nl::Weave::Platform::PersistedStorage::Write(sProductionEventIdCounterStorageKey, startingValue);

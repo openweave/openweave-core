@@ -195,10 +195,10 @@ FILE * gFileOutput = NULL;
 void InitializeEventLogging(LogContext *context)
 {
     LogStorageResources logStorageResources[] = {
-        LogStorageResources(static_cast<void *>(&gCritEventBuffer[0]), sizeof(gCritEventBuffer), NULL, 0, NULL, nl::Weave::Profiles::DataManagement::ImportanceType::ProductionCritical),
-        LogStorageResources(static_cast<void *>(&gProdEventBuffer[0]), sizeof(gProdEventBuffer), NULL, 0, NULL, nl::Weave::Profiles::DataManagement::ImportanceType::Production),
-        LogStorageResources(static_cast<void *>(&gInfoEventBuffer[0]), sizeof(gInfoEventBuffer), NULL, 0, NULL, nl::Weave::Profiles::DataManagement::ImportanceType::Info),
-        LogStorageResources(static_cast<void *>(&gDebugEventBuffer[0]), sizeof(gDebugEventBuffer), NULL, 0, NULL, nl::Weave::Profiles::DataManagement::ImportanceType::Debug) };
+      {static_cast<void *>(&gCritEventBuffer[0]), sizeof(gCritEventBuffer), NULL, 0, NULL, nl::Weave::Profiles::DataManagement::ImportanceType::ProductionCritical},
+      {static_cast<void *>(&gProdEventBuffer[0]), sizeof(gProdEventBuffer), NULL, 0, NULL, nl::Weave::Profiles::DataManagement::ImportanceType::Production},
+      {static_cast<void *>(&gInfoEventBuffer[0]), sizeof(gInfoEventBuffer), NULL, 0, NULL, nl::Weave::Profiles::DataManagement::ImportanceType::Info},
+      {static_cast<void *>(&gDebugEventBuffer[0]), sizeof(gDebugEventBuffer), NULL, 0, NULL, nl::Weave::Profiles::DataManagement::ImportanceType::Debug} };
 
     nl::Weave::Profiles::DataManagement::LoggingManagement::CreateLoggingManagement(
         context->mExchangeMgr, sizeof(logStorageResources) / sizeof(logStorageResources[0]), logStorageResources);
