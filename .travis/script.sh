@@ -96,7 +96,7 @@ case "${BUILD_TARGET}" in
         .travis/build_esp32.sh
         ;;
 
-    nrf52840)
+    nrf52840-lock-example)
         .travis/build_nrf52840.sh
         ;;
 
