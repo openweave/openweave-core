@@ -70,6 +70,7 @@ static const nl::FaultInjection::Name sFaultNames[] = {
     "WDMUpdateRequestSendErrorAsync",
     "WDMUpdateRequestBadProfile",
     "WDMUpdateResponseBusy",
+    "WDMUpdateRequestBadMsgType",
     "WDMPathStoreFull",
     "WDMTreatNotifyAsCancel",
     "CASEKeyConfirm",

@@ -158,6 +158,11 @@ WEAVE_ERROR UpdateClient::SendUpdate(bool aIsPartialUpdate, PacketBuffer *aBuf, 
                 nl::Weave::FaultInjection::kFault_WRMSendError,
                 0, 1));
 
+    // Fault injection used to force faulty status code response from Phoenix
+    WEAVE_FAULT_INJECT(FaultInjection::kFault_WDM_UpdateRequestBadMsgType,
+            msgType = 0;
+            );
+
     err = mEC->SendMessage(nl::Weave::Profiles::kWeaveProfile_WDM, msgType, aBuf,
             nl::Weave::ExchangeContext::kSendFlag_ExpectResponse);
     aBuf = NULL;

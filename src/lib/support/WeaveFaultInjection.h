@@ -88,6 +88,7 @@ typedef enum
     kFault_WDM_UpdateRequestSendErrorAsync,     /**< Inject a WRM SendError for the UpdateRequest */
     kFault_WDM_UpdateRequestBadProfile,         /**< Inject an invalid Profile ID in the UpdateRequest */
     kFault_WDM_UpdateResponseBusy,              /**< Inject a status code busy in the StatusList */
+    kFault_WDM_UpdateRequestBadMsgType,         /**< Send bad message type in UpdateRequest to obtain faulty status code from Phoenix */
     kFault_WDM_PathStoreFull,                   /**< Inject a WDM_PATH_STORE_FULL error */
     kFault_WDM_TreatNotifyAsCancel,             /**< Process a Notify request as a CancelSubscription request */
     kFault_CASEKeyConfirm,                      /**< Trigger a WEAVE_ERROR_KEY_CONFIRMATION_FAILED error in WeaveCASEEngine */
