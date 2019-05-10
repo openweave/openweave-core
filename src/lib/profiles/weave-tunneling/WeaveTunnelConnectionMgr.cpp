@@ -1041,7 +1041,7 @@ void WeaveTunnelConnectionMgr::HandleOnlineCheckResult(bool isOnline)
         {
             // Reset the tunnel backoff and reconnect after a short randomized wait.
 
-            WeaveLogDetail(WeaveTunnel, "Tunnel Reconnecting on OnlineCheck success for %s tunnel : %s",
+            WeaveLogDetail(WeaveTunnel, "Tunnel Reconnecting on OnlineCheck success for %s tunnel",
                            mTunType == kType_TunnelPrimary ? "primary" : "backup");
             err = ResetReconnectBackoff(!reconnectImmediately);
             if (err != WEAVE_NO_ERROR)
