@@ -458,12 +458,14 @@ PersistedCounter * sCounterStorage[kImportanceType_Last] = {
 
 void InitializeEventLogging(TestLoggingContext * context)
 {
-    LogStorageResources logStorageResources[] = {
-        {static_cast<void *>(&gCritEventBuffer[0]), sizeof(gCritEventBuffer), NULL, 0, NULL, nl::Weave::Profiles::DataManagement::ImportanceType::ProductionCritical},
-        {static_cast<void *>(&gProdEventBuffer[0]), sizeof(gProdEventBuffer), NULL, 0, NULL, nl::Weave::Profiles::DataManagement::ImportanceType::Production},
-        {static_cast<void *>(&gInfoEventBuffer[0]), sizeof(gInfoEventBuffer), NULL, 0, NULL, nl::Weave::Profiles::DataManagement::ImportanceType::Info},
-        {static_cast<void *>(&gDebugEventBuffer[0]), sizeof(gDebugEventBuffer), NULL, 0, NULL, nl::Weave::Profiles::DataManagement::ImportanceType::Debug}};
-
+    LogStorageResources logStorageResources[] = { { static_cast<void *>(&gCritEventBuffer[0]), sizeof(gCritEventBuffer), NULL, 0,
+                                                    NULL, nl::Weave::Profiles::DataManagement::ImportanceType::ProductionCritical },
+                                                  { static_cast<void *>(&gProdEventBuffer[0]), sizeof(gProdEventBuffer), NULL, 0,
+                                                    NULL, nl::Weave::Profiles::DataManagement::ImportanceType::Production },
+                                                  { static_cast<void *>(&gInfoEventBuffer[0]), sizeof(gInfoEventBuffer), NULL, 0,
+                                                    NULL, nl::Weave::Profiles::DataManagement::ImportanceType::Info },
+                                                  { static_cast<void *>(&gDebugEventBuffer[0]), sizeof(gDebugEventBuffer), NULL, 0,
+                                                    NULL, nl::Weave::Profiles::DataManagement::ImportanceType::Debug } };
 
     nl::Weave::Profiles::DataManagement::LoggingManagement::CreateLoggingManagement(
         context->mExchangeMgr, sizeof(logStorageResources) / sizeof(logStorageResources[0]), logStorageResources);
@@ -484,10 +486,15 @@ void InitializeEventLoggingWithPersistedCounters(TestLoggingContext * context, u
                                                  nl::Weave::Profiles::DataManagement::ImportanceType globalImportance)
 {
     LogStorageResources logStorageResources[] = {
-        {static_cast<void *>(&gCritEventBuffer[0]), sizeof(gCritEventBuffer), &sCritEventIdCounterStorageKey, sEventIdCounterEpoch, &sCritEventIdCounter, nl::Weave::Profiles::DataManagement::ImportanceType::ProductionCritical},
-        {static_cast<void *>(&gProdEventBuffer[0]), sizeof(gProdEventBuffer), &sProductionEventIdCounterStorageKey, sEventIdCounterEpoch, &sProductionEventIdCounter, nl::Weave::Profiles::DataManagement::ImportanceType::Production},
-        {static_cast<void *>(&gInfoEventBuffer[0]), sizeof(gInfoEventBuffer), &sInfoEventIdCounterStorageKey, sEventIdCounterEpoch, &sInfoEventIdCounter, nl::Weave::Profiles::DataManagement::ImportanceType::Info},
-        {static_cast<void *>(&gDebugEventBuffer[0]), sizeof(gDebugEventBuffer), &sDebugEventIdCounterStorageKey, sEventIdCounterEpoch, &sDebugEventIdCounter, nl::Weave::Profiles::DataManagement::ImportanceType::Debug} };
+        { static_cast<void *>(&gCritEventBuffer[0]), sizeof(gCritEventBuffer), &sCritEventIdCounterStorageKey, sEventIdCounterEpoch,
+          &sCritEventIdCounter, nl::Weave::Profiles::DataManagement::ImportanceType::ProductionCritical },
+        { static_cast<void *>(&gProdEventBuffer[0]), sizeof(gProdEventBuffer), &sProductionEventIdCounterStorageKey,
+          sEventIdCounterEpoch, &sProductionEventIdCounter, nl::Weave::Profiles::DataManagement::ImportanceType::Production },
+        { static_cast<void *>(&gInfoEventBuffer[0]), sizeof(gInfoEventBuffer), &sInfoEventIdCounterStorageKey, sEventIdCounterEpoch,
+          &sInfoEventIdCounter, nl::Weave::Profiles::DataManagement::ImportanceType::Info },
+        { static_cast<void *>(&gDebugEventBuffer[0]), sizeof(gDebugEventBuffer), &sDebugEventIdCounterStorageKey,
+          sEventIdCounterEpoch, &sDebugEventIdCounter, nl::Weave::Profiles::DataManagement::ImportanceType::Debug }
+    };
 
     nl::Weave::Platform::PersistedStorage::Write(sCritEventIdCounterStorageKey, startingValue);
     nl::Weave::Platform::PersistedStorage::Write(sProductionEventIdCounterStorageKey, startingValue);
@@ -3134,7 +3141,7 @@ static void CheckSkipExternalEvents(nlTestSuite * inSuite, void * inContext)
     for (i = 0; i < 10; i++)
     {
         eid_before = nl::Weave::Profiles::DataManagement::LogFreeform(nl::Weave::Profiles::DataManagement::Production,
-                                                                  "Freeform entry %d", i);
+                                                                      "Freeform entry %d", i);
     }
 
     // register callback
@@ -3144,7 +3151,7 @@ static void CheckSkipExternalEvents(nlTestSuite * inSuite, void * inContext)
     for (i = 0; i < 10; i++)
     {
         eid_after = nl::Weave::Profiles::DataManagement::LogFreeform(nl::Weave::Profiles::DataManagement::Production,
-                                                                  "Freeform entry %d", i + 10);
+                                                                     "Freeform entry %d", i + 10);
     }
 
     // Validate event skipping by reading back what was written.
@@ -3181,7 +3188,7 @@ static void CheckSkipExternalEvents(nlTestSuite * inSuite, void * inContext)
         NL_TEST_ASSERT(inSuite, eid == eid_after + 1);
 
         testReader.Init(gLargeMemoryBackingStore, testWriter.GetLengthWritten());
-        err = WEAVE_NO_ERROR;
+        err   = WEAVE_NO_ERROR;
         count = 0;
         while (err == WEAVE_NO_ERROR)
         {
@@ -3400,14 +3407,13 @@ static bool sExternalEventEvictionCalled;
 
 static void ResetExternalEventDeliveryState(void)
 {
-    sLastExpectedExternalEventID = 0;
+    sLastExpectedExternalEventID     = 0;
     sExternalEventNotificationCalled = false;
     sExternalEventNotificationPassed = false;
-    sExternalEventEvictionCalled = false;
+    sExternalEventEvictionCalled     = false;
 }
 
-static void MockExternalEventsDelivered(ExternalEvents * inEv, event_id_t inLastDeliveredEventID,
-                           uint64_t inRecipientNodeID)
+static void MockExternalEventsDelivered(ExternalEvents * inEv, event_id_t inLastDeliveredEventID, uint64_t inRecipientNodeID)
 {
     sExternalEventNotificationCalled = true;
     sExternalEventNotificationPassed = (inEv->mLastEventID == sLastExpectedExternalEventID);
@@ -3439,16 +3445,18 @@ static void CheckExternalEventNotifyDelivered(nlTestSuite * inSuite, void * inCo
     InitializeEventLogging(context);
 
     // Prime the event buffers with some internal events
-    now = System::Layer::GetClock_MonotonicMS();
+    now   = System::Layer::GetClock_MonotonicMS();
     eid_p = FastLogFreeform(nl::Weave::Profiles::DataManagement::Production, now, "Freeform entry %d", cnt);
     eid_d = FastLogFreeform(nl::Weave::Profiles::DataManagement::Debug, now, "Freeform entry %d", cnt);
 
     // Register external events with production and debug importance
-    err = logger.RegisterEventCallbackForImportance(nl::Weave::Profiles::DataManagement::Production, MockExternalEventsFetch, MockExternalEventsDelivered, 10, &external_eid_production);
+    err = logger.RegisterEventCallbackForImportance(nl::Weave::Profiles::DataManagement::Production, MockExternalEventsFetch,
+                                                    MockExternalEventsDelivered, 10, &external_eid_production);
     NL_TEST_ASSERT(inSuite, err == WEAVE_NO_ERROR);
     NL_TEST_ASSERT(inSuite, external_eid_production == (eid_p + 10));
 
-    err = logger.RegisterEventCallbackForImportance(nl::Weave::Profiles::DataManagement::Debug, MockExternalEventsFetch, MockExternalEventsDelivered, 10, &external_eid_debug);
+    err = logger.RegisterEventCallbackForImportance(nl::Weave::Profiles::DataManagement::Debug, MockExternalEventsFetch,
+                                                    MockExternalEventsDelivered, 10, &external_eid_debug);
     NL_TEST_ASSERT(inSuite, err == WEAVE_NO_ERROR);
     NL_TEST_ASSERT(inSuite, external_eid_debug == (eid_d + 10));
 
@@ -3462,7 +3470,7 @@ static void CheckExternalEventNotifyDelivered(nlTestSuite * inSuite, void * inCo
     NL_TEST_ASSERT(inSuite, sExternalEventNotificationCalled == false);
 
     // Verify we do get called for the first and last event in the external event range
-    logger.NotifyEventsDelivered(nl::Weave::Profiles::DataManagement::Production, eid_p+1, 0ULL);
+    logger.NotifyEventsDelivered(nl::Weave::Profiles::DataManagement::Production, eid_p + 1, 0ULL);
 
     NL_TEST_ASSERT(inSuite, sExternalEventNotificationCalled);
     NL_TEST_ASSERT(inSuite, sExternalEventNotificationPassed);
@@ -3475,7 +3483,8 @@ static void CheckExternalEventNotifyDelivered(nlTestSuite * inSuite, void * inCo
     NL_TEST_ASSERT(inSuite, sExternalEventNotificationCalled);
     NL_TEST_ASSERT(inSuite, sExternalEventNotificationPassed);
 
-    // Verify that we get called when the event handler is registered and that we do not get called when event handler is unregistered.  First, reset the checks notification state, and check we get a notification
+    // Verify that we get called when the event handler is registered and that we do not get called when event handler is
+    // unregistered.  First, reset the checks notification state, and check we get a notification
     ResetExternalEventDeliveryState();
     sLastExpectedExternalEventID = external_eid_debug;
 
@@ -3492,7 +3501,6 @@ static void CheckExternalEventNotifyDelivered(nlTestSuite * inSuite, void * inCo
     logger.NotifyEventsDelivered(nl::Weave::Profiles::DataManagement::Debug, external_eid_debug, 0ULL);
 
     NL_TEST_ASSERT(inSuite, sExternalEventNotificationCalled == false);
-
 }
 
 static void CheckExternalEventNotifyEvicted(nlTestSuite * inSuite, void * inContext)
@@ -3517,7 +3525,9 @@ static void CheckExternalEventNotifyEvicted(nlTestSuite * inSuite, void * inCont
     counter++;
 
     // Register external events with production importance
-    err = logger.RegisterEventCallbackForImportance(nl::Weave::Profiles::DataManagement::Production, MockExternalEventsFetch, MockExternalEventsDelivered, MockExternalEventsEvicted, 10, &external_eid_production);
+    err = logger.RegisterEventCallbackForImportance(nl::Weave::Profiles::DataManagement::Production, MockExternalEventsFetch,
+                                                    MockExternalEventsDelivered, MockExternalEventsEvicted, 10,
+                                                    &external_eid_production);
     NL_TEST_ASSERT(inSuite, err == WEAVE_NO_ERROR);
     NL_TEST_ASSERT(inSuite, external_eid_production == (eid + 10));
 

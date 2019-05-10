@@ -60,29 +60,28 @@
 using namespace nl::Weave::TLV;
 using namespace nl::Weave::Profiles::DataManagement;
 
-static bool HandleOption(const char *progName, OptionSet *optSet, int id, const char *name, const char *arg);
+static bool HandleOption(const char * progName, OptionSet * optSet, int id, const char * name, const char * arg);
 
 namespace nl {
 namespace Weave {
 namespace Profiles {
 namespace WeaveMakeManagedNamespaceIdentifier(DataManagement, kWeaveManagedNamespaceDesignation_Current) {
 namespace Platform {
-    // for unit tests, the dummy critical section is sufficient.
-    void CriticalSectionEnter()
-    {
-        return;
-    }
+// for unit tests, the dummy critical section is sufficient.
+void CriticalSectionEnter()
+{
+    return;
+}
 
-    void CriticalSectionExit()
-    {
-        return;
-    }
-} // Platform
-} // WeaveMakeManagedNamespaceIdentifier(DataManagement, kWeaveManagedNamespaceDesignation_Current)
-} // Profiles
-} // Weave
-} // nl
-
+void CriticalSectionExit()
+{
+    return;
+}
+} // namespace Platform
+} // namespace WeaveMakeManagedNamespaceIdentifier(DataManagement, kWeaveManagedNamespaceDesignation_Current)
+} // namespace Profiles
+} // namespace Weave
+} // namespace nl
 
 nl::Weave::Profiles::DataManagement::SubscriptionEngine * nl::Weave::Profiles::DataManagement::SubscriptionEngine::GetInstance()
 {
@@ -91,12 +90,11 @@ nl::Weave::Profiles::DataManagement::SubscriptionEngine * nl::Weave::Profiles::D
     return &gWdmSubscriptionEngine;
 }
 
-
 #define TOOL_NAME "GenerateEventLog"
 
 #define LOG_BUFFER_SIZE 512
 
-static const uint64_t kTestNodeId     = 0x18B4300001408362ULL;
+static const uint64_t kTestNodeId = 0x18B4300001408362ULL;
 
 const uint64_t kSubscriptionId = 0xB6C4B7BE2C4B859AULL;
 
@@ -109,14 +107,12 @@ enum WDMTags
     kCsTag_EventList           = 23
 };
 
-
-
 /************************************************************************/
 struct LogContext
 {
     LogContext();
-    WeaveExchangeManager *mExchangeMgr;
-    const char *mOutputFilename;
+    WeaveExchangeManager * mExchangeMgr;
+    const char * mOutputFilename;
     size_t mTestNum;
     nl::Weave::Profiles::DataManagement::ImportanceType mLogLevel;
     bool mRaw;
@@ -128,20 +124,13 @@ struct LogContext
 LogContext gLogContext;
 
 LogContext::LogContext() :
-    mExchangeMgr(NULL),
-    mOutputFilename(NULL),
-    mTestNum(0),
-    mLogLevel(nl::Weave::Profiles::DataManagement::Production),
-    mRaw(false),
-    mVerbose(false),
-    mBDX(false),
-    mWDMOutput(false)
-{
-}
+    mExchangeMgr(NULL), mOutputFilename(NULL), mTestNum(0), mLogLevel(nl::Weave::Profiles::DataManagement::Production), mRaw(false),
+    mVerbose(false), mBDX(false), mWDMOutput(false)
+{ }
 
-static int TestSetup(void *inContext)
+static int TestSetup(void * inContext)
 {
-    LogContext *ctx = static_cast<LogContext *>(inContext);
+    LogContext * ctx = static_cast<LogContext *>(inContext);
     static WeaveFabricState sFabricState;
     static WeaveExchangeManager sExchangeMgr;
 
@@ -167,16 +156,16 @@ static int TestSetup(void *inContext)
             return FAILURE;
 
         sFabricState.LocalNodeId = kTestNodeId;
-        sExchangeMgr.FabricState = & sFabricState;
-        sExchangeMgr.State = WeaveExchangeManager::kState_Initialized;
-        ctx->mExchangeMgr = &sExchangeMgr;
+        sExchangeMgr.FabricState = &sFabricState;
+        sExchangeMgr.State       = WeaveExchangeManager::kState_Initialized;
+        ctx->mExchangeMgr        = &sExchangeMgr;
     }
     return SUCCESS;
 }
 
-static int TestTeardown(void *inContext)
+static int TestTeardown(void * inContext)
 {
-    LogContext *ctx = static_cast<LogContext *>(inContext);
+    LogContext * ctx = static_cast<LogContext *>(inContext);
     if (ctx->mBDX)
     {
         ShutdownWeaveStack();
@@ -192,20 +181,23 @@ uint64_t gProdEventBuffer[LOG_BUFFER_SIZE];
 uint64_t gCritEventBuffer[LOG_BUFFER_SIZE];
 FILE * gFileOutput = NULL;
 
-void InitializeEventLogging(LogContext *context)
+void InitializeEventLogging(LogContext * context)
 {
-    LogStorageResources logStorageResources[] = {
-      {static_cast<void *>(&gCritEventBuffer[0]), sizeof(gCritEventBuffer), NULL, 0, NULL, nl::Weave::Profiles::DataManagement::ImportanceType::ProductionCritical},
-      {static_cast<void *>(&gProdEventBuffer[0]), sizeof(gProdEventBuffer), NULL, 0, NULL, nl::Weave::Profiles::DataManagement::ImportanceType::Production},
-      {static_cast<void *>(&gInfoEventBuffer[0]), sizeof(gInfoEventBuffer), NULL, 0, NULL, nl::Weave::Profiles::DataManagement::ImportanceType::Info},
-      {static_cast<void *>(&gDebugEventBuffer[0]), sizeof(gDebugEventBuffer), NULL, 0, NULL, nl::Weave::Profiles::DataManagement::ImportanceType::Debug} };
+    LogStorageResources logStorageResources[] = { { static_cast<void *>(&gCritEventBuffer[0]), sizeof(gCritEventBuffer), NULL, 0,
+                                                    NULL, nl::Weave::Profiles::DataManagement::ImportanceType::ProductionCritical },
+                                                  { static_cast<void *>(&gProdEventBuffer[0]), sizeof(gProdEventBuffer), NULL, 0,
+                                                    NULL, nl::Weave::Profiles::DataManagement::ImportanceType::Production },
+                                                  { static_cast<void *>(&gInfoEventBuffer[0]), sizeof(gInfoEventBuffer), NULL, 0,
+                                                    NULL, nl::Weave::Profiles::DataManagement::ImportanceType::Info },
+                                                  { static_cast<void *>(&gDebugEventBuffer[0]), sizeof(gDebugEventBuffer), NULL, 0,
+                                                    NULL, nl::Weave::Profiles::DataManagement::ImportanceType::Debug } };
 
     nl::Weave::Profiles::DataManagement::LoggingManagement::CreateLoggingManagement(
         context->mExchangeMgr, sizeof(logStorageResources) / sizeof(logStorageResources[0]), logStorageResources);
     nl::Weave::Profiles::DataManagement::LoggingConfiguration::GetInstance().mGlobalImportance = context->mLogLevel;
 }
 
-void SimpleDumpWriter(const char *aFormat, ...)
+void SimpleDumpWriter(const char * aFormat, ...)
 {
     va_list args;
 
@@ -218,15 +210,15 @@ void SimpleDumpWriter(const char *aFormat, ...)
     va_end(args);
 }
 
-void DumpEventLog(LogContext *inContext)
+void DumpEventLog(LogContext * inContext)
 {
-    uint8_t backingStore[LOG_BUFFER_SIZE*8];
+    uint8_t backingStore[LOG_BUFFER_SIZE * 8];
     size_t elementCount;
     event_id_t eventId = 0;
     TLVWriter writer;
     TLVReader reader;
     WEAVE_ERROR err = WEAVE_NO_ERROR;
-    FILE *out = stdout;
+    FILE * out      = stdout;
     TLVType dummyType;
     TLVType dummyType1;
 
@@ -239,7 +231,7 @@ void DumpEventLog(LogContext *inContext)
         out = gFileOutput;
     }
 
-    writer.Init(backingStore, LOG_BUFFER_SIZE*8);
+    writer.Init(backingStore, LOG_BUFFER_SIZE * 8);
 
     if (inContext->mWDMOutput)
     {
@@ -253,28 +245,31 @@ void DumpEventLog(LogContext *inContext)
         SuccessOrExit(err);
     }
 
-    err = nl::Weave::Profiles::DataManagement::LoggingManagement::GetInstance().FetchEventsSince(writer, nl::Weave::Profiles::DataManagement::Production, eventId);
+    err = nl::Weave::Profiles::DataManagement::LoggingManagement::GetInstance().FetchEventsSince(
+        writer, nl::Weave::Profiles::DataManagement::Production, eventId);
     if ((err == WEAVE_END_OF_TLV) || (err == WEAVE_ERROR_TLV_UNDERRUN))
     {
         err = WEAVE_NO_ERROR;
     }
     SuccessOrExit(err);
     eventId = 0;
-    err = nl::Weave::Profiles::DataManagement::LoggingManagement::GetInstance().FetchEventsSince(writer, nl::Weave::Profiles::DataManagement::Info, eventId);
+    err     = nl::Weave::Profiles::DataManagement::LoggingManagement::GetInstance().FetchEventsSince(
+        writer, nl::Weave::Profiles::DataManagement::Info, eventId);
     if ((err == WEAVE_END_OF_TLV) || (err == WEAVE_ERROR_TLV_UNDERRUN))
     {
         err = WEAVE_NO_ERROR;
     }
     SuccessOrExit(err);
     eventId = 0;
-    err = nl::Weave::Profiles::DataManagement::LoggingManagement::GetInstance().FetchEventsSince(writer, nl::Weave::Profiles::DataManagement::Debug, eventId);
+    err     = nl::Weave::Profiles::DataManagement::LoggingManagement::GetInstance().FetchEventsSince(
+        writer, nl::Weave::Profiles::DataManagement::Debug, eventId);
     if ((err == WEAVE_END_OF_TLV) || (err == WEAVE_ERROR_TLV_UNDERRUN))
     {
         err = WEAVE_NO_ERROR;
     }
     SuccessOrExit(err);
     eventId = 0;
-    err = writer.Finalize();
+    err     = writer.Finalize();
     SuccessOrExit(err);
 
     if (inContext->mWDMOutput)
@@ -306,8 +301,7 @@ exit:
     return;
 }
 
-
-void SimpleDebugLog(void *inContext)
+void SimpleDebugLog(void * inContext)
 {
     DebugEventGenerator generator;
     for (size_t i = 0; i < generator.GetNumStates(); i++)
@@ -318,7 +312,7 @@ void SimpleDebugLog(void *inContext)
     return;
 }
 
-void SimpleHeartbeatLog(void *inContext)
+void SimpleHeartbeatLog(void * inContext)
 {
     LivenessEventGenerator generator;
     for (size_t i = 0; i < generator.GetNumStates(); i++)
@@ -329,25 +323,11 @@ void SimpleHeartbeatLog(void *inContext)
     return;
 }
 
-void SimpleSecurityLog(void *inContext)
+void SimpleSecurityLog(void * inContext)
 {
 
-    useconds_t delays[] = { 10000,
-                            10000,
-                            10000,
-                            5000,
-                            5000,
-                            10000,
-                            100000,
-                            10000,
-                            10000,
-                            10000,
-                            10000,
-                            5000,
-                            1000,
-                            1000,
-                            1000,
-                            1000
+    useconds_t delays[] = {
+        10000, 10000, 10000, 5000, 5000, 10000, 100000, 10000, 10000, 10000, 10000, 5000, 1000, 1000, 1000, 1000
     };
     SecurityEventGenerator generator;
 
@@ -360,65 +340,39 @@ void SimpleSecurityLog(void *inContext)
 }
 
 typedef void (*LogGenerator)(void *);
-const LogGenerator gTests [] =
-{
-    SimpleDebugLog,
-    SimpleHeartbeatLog,
-    SimpleSecurityLog
-};
+const LogGenerator gTests[] = { SimpleDebugLog, SimpleHeartbeatLog, SimpleSecurityLog };
 
-const size_t gNumTests = sizeof(gTests)/sizeof(void(*)(void *));
+const size_t gNumTests = sizeof(gTests) / sizeof(void (*)(void *));
 
-static OptionDef gToolOptionDefs[] =
-{
-    { "loglevel",   kArgumentRequired,  'l' },
-    { "output",     kArgumentRequired,  'o' },
-    { "raw",        kNoArgument,        'r' },
-    { "test",       kArgumentRequired,  't' },
-    { "verbose",    kNoArgument,        'V' },
-    { "wdm",        kNoArgument,        'w' },
-    { NULL }
-};
+static OptionDef gToolOptionDefs[] = { { "loglevel", kArgumentRequired, 'l' },
+                                       { "output", kArgumentRequired, 'o' },
+                                       { "raw", kNoArgument, 'r' },
+                                       { "test", kArgumentRequired, 't' },
+                                       { "verbose", kNoArgument, 'V' },
+                                       { "wdm", kNoArgument, 'w' },
+                                       { NULL } };
 
-static const char *gToolOptionHelp =
-    "  -l, --loglevel <logLevel>\n"
-    "       Configured default log level, 1 - PRODUCTION, 2 - INFO, 3 - DEBUG\n"
-    "  -o, --output <filename>\n"
-    "       Save the output in the file\n"
-    "  -r, --raw\n"
-    "       Emit raw bytes\n"
-    "  -t, --test <num>\n"
-    "       The test log to use, valid range: 1 to %d\n"
-    "  -V, --verbose\n"
-    "       Verbose output\n"
-    "  -w, --wdm\n"
-    "       Enclose the output in the WDM Notification envelope\n"
-    ;
+static const char * gToolOptionHelp = "  -l, --loglevel <logLevel>\n"
+                                      "       Configured default log level, 1 - PRODUCTION, 2 - INFO, 3 - DEBUG\n"
+                                      "  -o, --output <filename>\n"
+                                      "       Save the output in the file\n"
+                                      "  -r, --raw\n"
+                                      "       Emit raw bytes\n"
+                                      "  -t, --test <num>\n"
+                                      "       The test log to use, valid range: 1 to %d\n"
+                                      "  -V, --verbose\n"
+                                      "       Verbose output\n"
+                                      "  -w, --wdm\n"
+                                      "       Enclose the output in the WDM Notification envelope\n";
 
-static OptionSet gToolOptions =
-{
-    HandleOption,
-    gToolOptionDefs,
-    "GENERAL OPTIONS",
-    gToolOptionHelp
-};
+static OptionSet gToolOptions = { HandleOption, gToolOptionDefs, "GENERAL OPTIONS", gToolOptionHelp };
 
-static HelpOptions gHelpOptions(
-    TOOL_NAME,
-    "Usage: " TOOL_NAME " [<options...>]\n",
-    WEAVE_VERSION_STRING "\n" WEAVE_TOOL_COPYRIGHT,
-    "Generate a sample event log showing various features of the event encoding.\n"
-);
+static HelpOptions gHelpOptions(TOOL_NAME, "Usage: " TOOL_NAME " [<options...>]\n", WEAVE_VERSION_STRING "\n" WEAVE_TOOL_COPYRIGHT,
+                                "Generate a sample event log showing various features of the event encoding.\n");
 
-static OptionSet *gToolOptionSets[] =
-{
-    &gToolOptions,
-    &gFaultInjectionOptions,
-    &gHelpOptions,
-    NULL
-};
+static OptionSet * gToolOptionSets[] = { &gToolOptions, &gFaultInjectionOptions, &gHelpOptions, NULL };
 
-bool HandleOption(const char *progName, OptionSet *optSet, int id, const char *name, const char *arg)
+bool HandleOption(const char * progName, OptionSet * optSet, int id, const char * name, const char * arg)
 {
     uint32_t level, testNum;
 
@@ -466,11 +420,11 @@ bool HandleOption(const char *progName, OptionSet *optSet, int id, const char *n
     return true;
 }
 
-int main(int argc, char *argv[])
+int main(int argc, char * argv[])
 {
     int status = 0;
 
-    status = asprintf((char **)&gToolOptions.OptionHelp, gToolOptionHelp, gNumTests);
+    status = asprintf((char **) &gToolOptions.OptionHelp, gToolOptionHelp, gNumTests);
     VerifyOrExit(status >= 0, /* no-op */);
 
     if (!ParseArgsFromEnvVar(TOOL_NAME, TOOL_OPTIONS_ENV_VAR_NAME, gToolOptionSets, NULL, true) ||
@@ -489,6 +443,6 @@ int main(int argc, char *argv[])
 
     TestTeardown(&gLogContext);
 
- exit:
+exit:
     return ((status >= 0) ? EXIT_SUCCESS : EXIT_FAILURE);
 }

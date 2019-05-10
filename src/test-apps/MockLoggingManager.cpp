@@ -54,20 +54,21 @@
 using namespace nl::Weave::TLV;
 using namespace nl::Weave::Profiles::DataManagement;
 
-class MockEventGeneratorImpl: public MockEventGenerator
+class MockEventGeneratorImpl : public MockEventGenerator
 {
 public:
     MockEventGeneratorImpl(void);
-    WEAVE_ERROR Init(nl::Weave::WeaveExchangeManager *aExchangeMgr, EventGenerator *aEventGenerator, int aDelayBetweenEvents, bool aWraparound);
+    WEAVE_ERROR Init(nl::Weave::WeaveExchangeManager * aExchangeMgr, EventGenerator * aEventGenerator, int aDelayBetweenEvents,
+                     bool aWraparound);
     void SetEventGeneratorStop();
     bool IsEventGeneratorStopped();
 
 private:
-    static void HandleNextEvent(nl::Weave::System::Layer* aSystemLayer, void *aAppState, ::nl::Weave::System::Error aErr);
-    nl::Weave::WeaveExchangeManager *mExchangeMgr;
+    static void HandleNextEvent(nl::Weave::System::Layer * aSystemLayer, void * aAppState, ::nl::Weave::System::Error aErr);
+    nl::Weave::WeaveExchangeManager * mExchangeMgr;
     int mTimeBetweenEvents; ///< delay, in miliseconds, between events.
-    bool mEventWraparound; ///< does the event generator run indefinitely, or does it stop after iterating through its states
-    EventGenerator *mEventGenerator; ///< the event generator to use
+    bool mEventWraparound;  ///< does the event generator run indefinitely, or does it stop after iterating through its states
+    EventGenerator * mEventGenerator; ///< the event generator to use
     int32_t mEventsLeft;
 };
 
@@ -76,29 +77,29 @@ namespace Weave {
 namespace Profiles {
 namespace WeaveMakeManagedNamespaceIdentifier(DataManagement, kWeaveManagedNamespaceDesignation_Current) {
 namespace Platform {
-    // for unit tests, the dummy critical section is sufficient.
-    void CriticalSectionEnter()
-    {
-        return;
-    }
+// for unit tests, the dummy critical section is sufficient.
+void CriticalSectionEnter()
+{
+    return;
+}
 
-    void CriticalSectionExit()
-    {
-        return;
-    }
-} // Platform
-} // WeaveMakeManagedNamespaceIdentifier(DataManagement, kWeaveManagedNamespaceDesignation_Current)
-} // Profiles
-} // Weave
-} // nl
+void CriticalSectionExit()
+{
+    return;
+}
+} // namespace Platform
+} // namespace WeaveMakeManagedNamespaceIdentifier(DataManagement, kWeaveManagedNamespaceDesignation_Current)
+} // namespace Profiles
+} // namespace Weave
+} // namespace nl
 
 uint64_t gDebugEventBuffer[192];
 uint64_t gInfoEventBuffer[64];
 uint64_t gProdEventBuffer[256];
 uint64_t gCritEventBuffer[256];
 
-bool gMockEventStop = false;
-bool gEventIsStopped = false;
+bool gMockEventStop                     = false;
+bool gEventIsStopped                    = false;
 bool gEnableMockTimestampInitialCounter = false;
 
 EventGenerator * GetTestDebugGenerator(void)
@@ -135,15 +136,19 @@ void EnableMockEventTimestampInitialCounter(void)
     gEnableMockTimestampInitialCounter = true;
 }
 
-void InitializeEventLogging(WeaveExchangeManager *inMgr)
+void InitializeEventLogging(WeaveExchangeManager * inMgr)
 {
-    LogStorageResources logStorageResources[] = {
-      {static_cast<void *>(&gCritEventBuffer[0]), sizeof(gCritEventBuffer), NULL, 0, NULL, nl::Weave::Profiles::DataManagement::ImportanceType::ProductionCritical},
-      {static_cast<void *>(&gProdEventBuffer[0]), sizeof(gProdEventBuffer), NULL, 0, NULL, nl::Weave::Profiles::DataManagement::ImportanceType::Production},
-      {static_cast<void *>(&gInfoEventBuffer[0]), sizeof(gInfoEventBuffer), NULL, 0, NULL, nl::Weave::Profiles::DataManagement::ImportanceType::Info},
-      {static_cast<void *>(&gDebugEventBuffer[0]), sizeof(gDebugEventBuffer), NULL, 0, NULL, nl::Weave::Profiles::DataManagement::ImportanceType::Debug} };
+    LogStorageResources logStorageResources[] = { { static_cast<void *>(&gCritEventBuffer[0]), sizeof(gCritEventBuffer), NULL, 0,
+                                                    NULL, nl::Weave::Profiles::DataManagement::ImportanceType::ProductionCritical },
+                                                  { static_cast<void *>(&gProdEventBuffer[0]), sizeof(gProdEventBuffer), NULL, 0,
+                                                    NULL, nl::Weave::Profiles::DataManagement::ImportanceType::Production },
+                                                  { static_cast<void *>(&gInfoEventBuffer[0]), sizeof(gInfoEventBuffer), NULL, 0,
+                                                    NULL, nl::Weave::Profiles::DataManagement::ImportanceType::Info },
+                                                  { static_cast<void *>(&gDebugEventBuffer[0]), sizeof(gDebugEventBuffer), NULL, 0,
+                                                    NULL, nl::Weave::Profiles::DataManagement::ImportanceType::Debug } };
 
-    nl::Weave::Profiles::DataManagement::LoggingManagement::CreateLoggingManagement(inMgr, sizeof(logStorageResources) / sizeof(logStorageResources[0]), logStorageResources);
+    nl::Weave::Profiles::DataManagement::LoggingManagement::CreateLoggingManagement(
+        inMgr, sizeof(logStorageResources) / sizeof(logStorageResources[0]), logStorageResources);
 }
 
 MockEventGenerator * MockEventGenerator::GetInstance(void)
@@ -153,21 +158,17 @@ MockEventGenerator * MockEventGenerator::GetInstance(void)
 }
 
 MockEventGeneratorImpl::MockEventGeneratorImpl(void) :
-    mExchangeMgr(NULL),
-    mTimeBetweenEvents(0),
-    mEventWraparound(false),
-    mEventGenerator(NULL),
-    mEventsLeft(0)
-{
-}
+    mExchangeMgr(NULL), mTimeBetweenEvents(0), mEventWraparound(false), mEventGenerator(NULL), mEventsLeft(0)
+{ }
 
-WEAVE_ERROR MockEventGeneratorImpl::Init(nl::Weave::WeaveExchangeManager *aExchangeMgr, EventGenerator *aEventGenerator, int aDelayBetweenEvents, bool aWraparound)
+WEAVE_ERROR MockEventGeneratorImpl::Init(nl::Weave::WeaveExchangeManager * aExchangeMgr, EventGenerator * aEventGenerator,
+                                         int aDelayBetweenEvents, bool aWraparound)
 {
-    WEAVE_ERROR err = WEAVE_NO_ERROR;
-    mExchangeMgr = aExchangeMgr;
-    mEventGenerator = aEventGenerator;
+    WEAVE_ERROR err    = WEAVE_NO_ERROR;
+    mExchangeMgr       = aExchangeMgr;
+    mEventGenerator    = aEventGenerator;
     mTimeBetweenEvents = aDelayBetweenEvents;
-    mEventWraparound = aWraparound;
+    mEventWraparound   = aWraparound;
 
     if (mEventWraparound)
         mEventsLeft = INT32_MAX;
@@ -180,7 +181,8 @@ WEAVE_ERROR MockEventGeneratorImpl::Init(nl::Weave::WeaveExchangeManager *aExcha
     return err;
 }
 
-void MockEventGeneratorImpl::HandleNextEvent(nl::Weave::System::Layer* aSystemLayer, void *aAppState, ::nl::Weave::System::Error aErr)
+void MockEventGeneratorImpl::HandleNextEvent(nl::Weave::System::Layer * aSystemLayer, void * aAppState,
+                                             ::nl::Weave::System::Error aErr)
 {
     MockEventGeneratorImpl * generator = static_cast<MockEventGeneratorImpl *>(aAppState);
     if (gMockEventStop)
@@ -214,7 +216,7 @@ bool MockEventGeneratorImpl::IsEventGeneratorStopped()
 {
     if (gEventIsStopped)
     {
-        gMockEventStop = false;
+        gMockEventStop  = false;
         gEventIsStopped = false;
         return true;
     }
