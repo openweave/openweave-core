@@ -127,7 +127,7 @@ case "${BUILD_TARGET}" in
 
         ;;
 
-    nrf52840)
+    nrf52840-lock-example)
         .travis/prepare_nrf52840.sh
 
         ;;
