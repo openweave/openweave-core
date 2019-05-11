@@ -138,6 +138,18 @@
 #define WEAVE_DEVICE_CONFIG_DEVICE_FIRMWARE_REVISION "prerelease"
 #endif
 
+/**
+ * WEAVE_DEVICE_CONFIG_USER_SELECTED_MODE_TIMEOUT_SEC
+ *
+ * The default amount of time (in whole seconds) that the device will remain in "user selected"
+ * mode.  User selected mode is typically initiated by a button press, or other direct interaction
+ * by a user.  While in user selected mode, the device will respond to Device Identify Requests
+ * that have the UserSelectedMode flag set.
+ */
+#ifndef WEAVE_DEVICE_CONFIG_USER_SELECTED_MODE_TIMEOUT_SEC
+#define WEAVE_DEVICE_CONFIG_USER_SELECTED_MODE_TIMEOUT_SEC 30
+#endif // WEAVE_DEVICE_CONFIG_USER_SELECTED_MODE_TIMEOUT_SEC
+
 // -------------------- WiFi Station Configuration --------------------
 
 /**

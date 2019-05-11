@@ -626,6 +626,18 @@ localedir = @localedir@
 localstatedir = @localstatedir@
 mandir = @mandir@
 mkdir_p = @mkdir_p@
+nl_filtered_build = @nl_filtered_build@
+nl_filtered_build_cpu = @nl_filtered_build_cpu@
+nl_filtered_build_os = @nl_filtered_build_os@
+nl_filtered_build_vendor = @nl_filtered_build_vendor@
+nl_filtered_host = @nl_filtered_host@
+nl_filtered_host_cpu = @nl_filtered_host_cpu@
+nl_filtered_host_os = @nl_filtered_host_os@
+nl_filtered_host_vendor = @nl_filtered_host_vendor@
+nl_filtered_target = @nl_filtered_target@
+nl_filtered_target_cpu = @nl_filtered_target_cpu@
+nl_filtered_target_os = @nl_filtered_target_os@
+nl_filtered_target_vendor = @nl_filtered_target_vendor@
 nlbuild_autotools_stem = @nlbuild_autotools_stem@
 oldincludedir = @oldincludedir@
 openssl_buildstem = @openssl_buildstem@
@@ -1368,6 +1380,7 @@ dist_weave_common_HEADERS = $(addprefix ../,$(nl_public_WeaveCommon_header_sourc
 @CONFIG_DEVICE_LAYER_TRUE@$(nl_public_WeaveDeviceLayer_source_dirstem)/internal/DeviceIdentityTraitDataSource.h               \
 @CONFIG_DEVICE_LAYER_TRUE@$(nl_public_WeaveDeviceLayer_source_dirstem)/internal/EchoServer.h                                  \
 @CONFIG_DEVICE_LAYER_TRUE@$(nl_public_WeaveDeviceLayer_source_dirstem)/internal/FabricProvisioningServer.h                    \
+@CONFIG_DEVICE_LAYER_TRUE@$(nl_public_WeaveDeviceLayer_source_dirstem)/internal/GenericConnectivityManagerImpl.h              \
 @CONFIG_DEVICE_LAYER_TRUE@$(nl_public_WeaveDeviceLayer_source_dirstem)/internal/GenericConnectivityManagerImpl_BLE.h          \
 @CONFIG_DEVICE_LAYER_TRUE@$(nl_public_WeaveDeviceLayer_source_dirstem)/internal/GenericConnectivityManagerImpl_BLE.ipp        \
 @CONFIG_DEVICE_LAYER_TRUE@$(nl_public_WeaveDeviceLayer_source_dirstem)/internal/GenericConnectivityManagerImpl_NoBLE.h        \

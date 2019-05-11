@@ -20,6 +20,7 @@
 #define CONNECTIVITY_MANAGER_IMPL_H
 
 #include <Weave/DeviceLayer/ConnectivityManager.h>
+#include <Weave/DeviceLayer/internal/GenericConnectivityManagerImpl.h>
 #if WEAVE_DEVICE_CONFIG_ENABLE_WOBLE
 #include <Weave/DeviceLayer/internal/GenericConnectivityManagerImpl_BLE.h>
 #else
@@ -49,6 +50,7 @@ namespace DeviceLayer {
  */
 class ConnectivityManagerImpl final
     : public ConnectivityManager,
+      public Internal::GenericConnectivityManagerImpl<ConnectivityManagerImpl>,
 #if WEAVE_DEVICE_CONFIG_ENABLE_WOBLE
       public Internal::GenericConnectivityManagerImpl_BLE<ConnectivityManagerImpl>,
 #else
