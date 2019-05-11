@@ -265,13 +265,13 @@ class WeavePairing(HappyNode, HappyNetwork, WeaveTest):
 
         if self.server is not None and not self.server_node_id:
             if not self.register_cmd:
-                import WeaveRegisterService
-                options = WeaveRegisterService.option()
+                import ServiceAccountManager
+                options = ServiceAccountManager.option()
                 options["tier"] = self.tier
                 options["username"] = self.username
                 options["password"] = self.password
 
-                registration = WeaveRegisterService.WeaveRegisterService(options)
+                registration = ServiceAccountManager.ServiceAccountManager(options)
                 self.register_cmd = registration.run()
 
             if self.register_cmd:

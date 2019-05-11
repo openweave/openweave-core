@@ -160,7 +160,7 @@ class ServiceClient(object):
         finally:
             return ids
 
-class WeaveRegisterService(Driver):
+class ServiceAccountManager(Driver):
     """
     weave-register-service [-h --help] [-q --quiet] [-t --tier <NAME>] [-u --username <NAME>] [-p --password <password>]
 
@@ -183,7 +183,7 @@ class WeaveRegisterService(Driver):
     def __pre_check(self):
         if not self.tier:
             self.tier = "integration"
-            emsg = "WeaveRegisterService: Using default weave_service_tier %s." % (self.tier)
+            emsg = "ServiceAccountManager: Using default weave_service_tier %s." % (self.tier)
             self.logger.debug(emsg)
 
         self.host = 'home.%s.nestlabs.com' % self.tier
@@ -194,13 +194,13 @@ class WeaveRegisterService(Driver):
 
         if not self.username:
             self.username = "test-it+pairing1@nestlabs.com"
-            emsg = "WeaveRegisterService: using default weave_service_username %s." % (self.username)
+            emsg = "ServiceAccountManager: using default weave_service_username %s." % (self.username)
             self.logger.debug(emsg)
 
         if not self.password:
             # Check if service password is set
             self.password = "nest-egg"
-            emsg = "WeaveRegisterService: using default weave_service_password %s." % (self.password)
+            emsg = "ServiceAccountManager: using default weave_service_password %s." % (self.password)
             self.logger.debug(emsg)
 
         self.params = json.dumps({'email': self.username, 'username': self.username, 'password':self.password})
@@ -236,15 +236,15 @@ class WeaveRegisterService(Driver):
         auth_response = conn.getresponse()
         auth_response_data = json.load(auth_response)
         if auth_response.status == 200:
-            self.logger.info("WeaveRegisterService: Authentication successful")
+            self.logger.info("ServiceAccountManager: Authentication successful")
         elif auth_response.status== 400:
-            emsg = "WeaveRegisterService: Unauthorized request for user authentication: status=%s error=%s" % (
+            emsg = "ServiceAccountManager: Unauthorized request for user authentication: status=%s error=%s" % (
                 auth_response.status, auth_response.reason)
             self.logger.info(emsg)
             raise ValueError(emsg)
         else:
             # Not a 200 or 4xx auth error, server error.
-            emsg = "WeaveRegisterService: Service Error on user authentication: HTTPS %s: %s. " % (
+            emsg = "ServiceAccountManager: Service Error on user authentication: HTTPS %s: %s. " % (
             auth_response.status, auth_response.reason)
             self.logger.info(emsg)
             raise ValueError(emsg)
@@ -259,7 +259,7 @@ class WeaveRegisterService(Driver):
         response = conn.getresponse()
         data = response.read()
         if response.status != 200 and response.status != 201:
-            emsg = 'WeaveRegisterService: Failed with status %d: %s.  Password and login correct?' % (response.status, response.reason)
+            emsg = 'ServiceAccountManager: Failed with status %d: %s.  Password and login correct?' % (response.status, response.reason)
             self.logger.info(emsg)
             raise ValueError(emsg)
         return json.loads(data)
@@ -271,7 +271,7 @@ class WeaveRegisterService(Driver):
         return initialDataJSON
 
     def run(self):
-        self.logger.debug("[localhost] WeaveRegisterService: Run.")
+        self.logger.debug("[localhost] ServiceAccountManager: Run.")
 
         self.__pre_check()
 
@@ -285,6 +285,6 @@ class WeaveRegisterService(Driver):
 
         print hgreen("register-service %s\n" % self.cmd)
 
-        self.logger.debug("[localhost] WeaveRegisterService: Done.")
+        self.logger.debug("[localhost] ServiceAccountManager: Done.")
 
         return self.cmd
