@@ -22,7 +22,7 @@
 #    @file
 #       A Happy command line utility that generates the service registration cmd.
 #
-#       The command is executed by instantiating and running WeaveRegisterService class.
+#       The command is executed by instantiating and running ServiceAccountManager class.
 #
 
 import getopt
@@ -30,22 +30,22 @@ import sys
 import set_test_path
 
 from happy.Utils import *
-import WeaveRegisterService
+import ServiceAccountManager
 
 if __name__ == "__main__":
-    options = WeaveRegisterService.option()
+    options = ServiceAccountManager.option()
 
     try:
         opts, args = getopt.getopt(sys.argv[1:], "h:t:u:p:",
             ["help", "tier=", "username=", "password=" "quiet"])
     except getopt.GetoptError as err:
-        print WeaveRegisterService.WeaveRegisterService.__doc__
+        print ServiceAccountManager.ServiceAccountManager.__doc__
         print hred(str(err))
         sys.exit(hred("%s: Failed server parse arguments." % (__file__)))
 
     for o, a in opts:
         if o in ("-h", "--help"):
-            print WeaveRegisterService.WeaveRegisterService.__doc__
+            print ServiceAccountManager.ServiceAccountManager.__doc__
             sys.exit(0)
 
         elif o in ("-q", "--quiet"):
@@ -60,6 +60,6 @@ if __name__ == "__main__":
         elif o in ("-p", "--password"):
             options["password"] = a
 
-    cmd = WeaveRegisterService.WeaveRegisterService(options)
+    cmd = ServiceAccountManager.ServiceAccountManager(options)
     cmd.start()
 
