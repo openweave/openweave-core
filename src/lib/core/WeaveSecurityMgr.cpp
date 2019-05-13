@@ -2567,6 +2567,7 @@ void WeaveSecurityManager::HandleKeyErrorMsg(ExchangeContext *ec, PacketBuffer* 
     WeaveSessionKey *sessionKey;
     uint8_t *p = msgBuf->Start();
     uint64_t srcNodeId = ec->PeerNodeId;
+    WeaveConnection *msgCon = ec->Con;
     uint16_t keyId;
     uint8_t encType;
     uint16_t keyErrCode;
@@ -2623,6 +2624,16 @@ void WeaveSecurityManager::HandleKeyErrorMsg(ExchangeContext *ec, PacketBuffer* 
         err = FabricState->FindSessionKey(keyId, srcNodeId, false, sessionKey);
         if (err == WEAVE_NO_ERROR)
         {
+            // Ignore KeyError if it wasn't received over the same transport mechanism
+            // as was used to establish the security session.
+            if (msgCon != sessionKey->BoundCon)
+                ExitNow();
+
+            // Ignore KeyError if the message Id value presented in the Key Error message
+            // doesn't correspond to the last used message id.
+            if (messageId != sessionKey->NextMsgId.GetValue() - 1)
+                ExitNow();
+
             // If the key refers to a shared session, add the shared session end nodes to the list
             // of peer nodes associated with the key.
             if (sessionKey->IsSharedSession())

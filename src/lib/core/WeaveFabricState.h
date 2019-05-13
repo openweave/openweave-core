@@ -509,7 +509,7 @@ public:
 
     WEAVE_ERROR AllocSessionKey(uint64_t peerNodeId, uint16_t keyId, WeaveConnection *boundCon, WeaveSessionKey *& sessionKey);
     WEAVE_ERROR SetSessionKey(uint16_t keyId, uint64_t peerNodeId, uint8_t encType, WeaveAuthMode authMode, const WeaveEncryptionKey *encKey);
-    void SetSessionKey(WeaveSessionKey *sessionKey, uint8_t encType, WeaveAuthMode authMode, const WeaveEncryptionKey *encKey);
+    WEAVE_ERROR SetSessionKey(WeaveSessionKey *sessionKey, uint8_t encType, WeaveAuthMode authMode, const WeaveEncryptionKey *encKey);
     WEAVE_ERROR GetSessionKey(uint16_t keyId, uint64_t peerNodeId, WeaveSessionKey *& outSessionKey);
     WEAVE_ERROR FindSessionKey(uint16_t keyId, uint64_t peerNodeId, bool create, WeaveSessionKey *& retRec);
     WEAVE_ERROR RemoveSessionKey(uint16_t keyId, uint64_t peerNodeId);

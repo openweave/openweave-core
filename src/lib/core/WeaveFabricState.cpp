@@ -332,17 +332,27 @@ WEAVE_ERROR WeaveFabricState::SetSessionKey(uint16_t keyId, uint64_t peerNodeId,
     err = FindSessionKey(keyId, peerNodeId, false, sessionKey);
     SuccessOrExit(err);
 
-    SetSessionKey(sessionKey, encType, authMode, encKey);
+    err = SetSessionKey(sessionKey, encType, authMode, encKey);
+    SuccessOrExit(err);
 
 exit:
     return err;
 }
 
-void WeaveFabricState::SetSessionKey(WeaveSessionKey *sessionKey, uint8_t encType, WeaveAuthMode authMode, const WeaveEncryptionKey *encKey)
+WEAVE_ERROR WeaveFabricState::SetSessionKey(WeaveSessionKey *sessionKey, uint8_t encType, WeaveAuthMode authMode, const WeaveEncryptionKey *encKey)
 {
+    WEAVE_ERROR err;
+    uint32_t msgId;
+
+    // Randomize the initial 32-bit message counter on session establishment.
+    // This value should be secure random to prevent man-in-the-middle adversary
+    // guessing this number.
+    err = nl::Weave::Platform::Security::GetSecureRandomData(reinterpret_cast<uint8_t *>(&msgId), sizeof(msgId));
+    SuccessOrExit(err);
+
     sessionKey->MsgEncKey.EncType = encType;
     sessionKey->MsgEncKey.EncKey = *encKey;
-    sessionKey->NextMsgId.Init(0);
+    sessionKey->NextMsgId.Init(msgId);
     sessionKey->MaxRcvdMsgId = 0;
     sessionKey->RcvFlags = 0;
     sessionKey->AuthMode = authMode;
@@ -356,6 +366,9 @@ void WeaveFabricState::SetSessionKey(WeaveSessionKey *sessionKey, uint8_t encTyp
                 sessionKey->MsgEncKey.KeyId, sessionKey->NodeId, encType, keyString);
     }
 #endif // WEAVE_CONFIG_SECURITY_TEST_MODE
+
+exit:
+    return err;
 }
 
 WEAVE_ERROR WeaveFabricState::RemoveSessionKey(uint16_t keyId, uint64_t peerNodeId)
