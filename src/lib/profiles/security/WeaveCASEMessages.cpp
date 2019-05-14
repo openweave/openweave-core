@@ -109,7 +109,7 @@ WEAVE_ERROR BeginSessionRequestContext::DecodeHead(PacketBuffer *msgBuf)
     WEAVE_ERROR err = WEAVE_NO_ERROR;
     uint8_t *p = msgBuf->Start();
     uint16_t msgLen = msgBuf->DataLength();
-    uint16_t msgLenWithoutSig;
+    uint32_t msgLenWithoutSig;
     uint8_t controlHeader;
 
     // Verify we can read the fixed length portion of the message without running into the end of the buffer.
@@ -144,7 +144,8 @@ WEAVE_ERROR BeginSessionRequestContext::DecodeHead(PacketBuffer *msgBuf)
     SessionKeyId = LittleEndian::Read16(p);
 
     // Verify the overall message length is consistent with the claimed field sizes.
-    msgLenWithoutSig = HeadLength() + ECDHPublicKey.ECPointLen + CertInfoLength + PayloadLength;
+    // Promote the first rightside component to uint32_t. The rest should be promoted automatically.
+    msgLenWithoutSig = static_cast<uint32_t>(HeadLength()) + ECDHPublicKey.ECPointLen + CertInfoLength + PayloadLength;
     VerifyOrExit(msgLen > msgLenWithoutSig, err = WEAVE_ERROR_MESSAGE_INCOMPLETE);
 
     // Parse the alternate configs list.
