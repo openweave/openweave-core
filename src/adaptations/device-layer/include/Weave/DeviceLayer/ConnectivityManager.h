@@ -147,6 +147,12 @@ public:
     WEAVE_ERROR SetBLEDeviceName(const char * deviceName);
     uint16_t NumBLEConnections(void);
 
+    // User selected mode methods
+    bool IsUserSelectedModeActive(void);
+    void SetUserSelectedMode(bool val);
+    uint16_t GetUserSelectedModeTimeout(void);
+    void SetUserSelectedModeTimeout(uint16_t val);
+
     // Support methods
     static const char * WiFiStationModeToStr(WiFiStationMode mode);
     static const char * WiFiAPModeToStr(WiFiAPMode mode);
@@ -435,6 +441,26 @@ inline WEAVE_ERROR ConnectivityManager::SetBLEDeviceName(const char * deviceName
 inline uint16_t ConnectivityManager::NumBLEConnections(void)
 {
     return static_cast<ImplClass*>(this)->_NumBLEConnections();
+}
+
+inline bool ConnectivityManager::IsUserSelectedModeActive(void)
+{
+    return static_cast<ImplClass*>(this)->_IsUserSelectedModeActive();
+}
+
+inline void ConnectivityManager::SetUserSelectedMode(bool val)
+{
+    static_cast<ImplClass*>(this)->_SetUserSelectedMode(val);
+}
+
+inline uint16_t ConnectivityManager::GetUserSelectedModeTimeout(void)
+{
+    return static_cast<ImplClass*>(this)->_GetUserSelectedModeTimeout();
+}
+
+inline void ConnectivityManager::SetUserSelectedModeTimeout(uint16_t val)
+{
+    static_cast<ImplClass*>(this)->_SetUserSelectedModeTimeout(val);
 }
 
 inline const char * ConnectivityManager::WiFiStationModeToStr(WiFiStationMode mode)

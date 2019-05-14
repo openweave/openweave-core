@@ -991,6 +991,7 @@ $(nl_public_WeaveDeviceLayer_source_dirstem)/internal/DeviceDescriptionServer.h 
 $(nl_public_WeaveDeviceLayer_source_dirstem)/internal/DeviceIdentityTraitDataSource.h               \
 $(nl_public_WeaveDeviceLayer_source_dirstem)/internal/EchoServer.h                                  \
 $(nl_public_WeaveDeviceLayer_source_dirstem)/internal/FabricProvisioningServer.h                    \
+$(nl_public_WeaveDeviceLayer_source_dirstem)/internal/GenericConnectivityManagerImpl.h              \
 $(nl_public_WeaveDeviceLayer_source_dirstem)/internal/GenericConnectivityManagerImpl_BLE.h          \
 $(nl_public_WeaveDeviceLayer_source_dirstem)/internal/GenericConnectivityManagerImpl_BLE.ipp        \
 $(nl_public_WeaveDeviceLayer_source_dirstem)/internal/GenericConnectivityManagerImpl_NoBLE.h        \

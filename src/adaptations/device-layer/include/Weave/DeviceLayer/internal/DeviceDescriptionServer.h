@@ -46,6 +46,11 @@ public:
 
     WEAVE_ERROR Init();
 
+    bool IsUserSelectedModeActive(void);
+    void SetUserSelectedMode(bool val);
+    uint16_t GetUserSelectedModeTimeout(void);
+    void SetUserSelectedModeTimeout(uint16_t val);
+
     void OnPlatformEvent(const WeaveDeviceEvent * event);
 
 private:
@@ -57,6 +62,14 @@ private:
     static DeviceDescriptionServer sInstance;
 
     // ===== Private members reserved for use by this class only.
+
+    enum
+    {
+        kUserSelectedModeTimeShift = 10
+    };
+
+    uint32_t mUserSelectedModeEndTime; // Monotonic system time scaled to units of 1024ms.
+    uint16_t mUserSelectedModeTimeoutSec;
 
     static void HandleIdentifyRequest(void *appState, uint64_t nodeId, const IPAddress& nodeAddr,
             const ::nl::Weave::Profiles::DeviceDescription::IdentifyRequestMessage& reqMsg, bool& sendResp,
