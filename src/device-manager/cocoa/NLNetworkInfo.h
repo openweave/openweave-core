@@ -29,9 +29,9 @@
 
 typedef int64_t NLNetworkID;
 
-const int64_t NLNetworkID_NotSpecified = -1LL;
-const int NLThreadPANId_NotSpecified = -1;
-const int NLThreadChannel_NotSpecified = -1;
+extern const int64_t NLNetworkID_NotSpecified;
+extern const int NLThreadPANId_NotSpecified;
+extern const int NLThreadChannel_NotSpecified;
 
 @interface NLNetworkInfo : NSObject
 
