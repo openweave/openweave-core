@@ -374,6 +374,7 @@ WEAVE_ERROR DropcamLegacyPairingServer::HandleCameraAuthDataRequest(ExchangeCont
     uint8_t macAddress[EUI48_LEN];
     uint8_t secret[CAMERA_SECRET_LEN];
     const uint8_t *noncePtr;
+    uint32_t nonceLen;
     TLVReader reader;
     TLVWriter writer;
 
@@ -390,6 +391,12 @@ WEAVE_ERROR DropcamLegacyPairingServer::HandleCameraAuthDataRequest(ExchangeCont
     VerifyOrExit(reader.GetType() == kTLVType_UTF8String, err = WEAVE_ERROR_UNEXPECTED_TLV_ELEMENT);
     err = reader.GetDataPtr(noncePtr);
     SuccessOrExit(err);
+
+    nonceLen = reader.GetLength();
+    VerifyOrExit(nonceLen == CAMERA_NONCE_LEN, err = WEAVE_ERROR_INVALID_ARGUMENT);
+
+    err = reader.Next();
+    VerifyOrExit(err == WEAVE_END_OF_TLV, err = WEAVE_ERROR_UNEXPECTED_TLV_ELEMENT);
 
     // Get camera MAC address
     err = mDelegate->GetCameraMACAddress(macAddress);
