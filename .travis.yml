@@ -25,10 +25,6 @@ language: generic
 sudo: required
 
 before_install:
-  - openssl aes-256-cbc -K $encrypted_ff117dc70af1_key -iv $encrypted_ff117dc70af1_iv -in .travis/github_deploy_key.enc -out .travis/github_deploy_key -d
-  - chmod 600 .travis/github_deploy_key
-  - eval $(ssh-agent -s)
-  - ssh-add .travis/github_deploy_key
   - .travis/before_install.sh
 
 script:
