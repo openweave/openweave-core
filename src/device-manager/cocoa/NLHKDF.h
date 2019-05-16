@@ -27,10 +27,10 @@
 
 NS_ASSUME_NONNULL_BEGIN
 
-extern NSString *const NLHKDFErrorDomain;
+extern NSString * const NLHKDFErrorDomain;
 
 // Error codes for NLKeyStoreErrorDomain
-typedef NS_ENUM (NSInteger, NLHKDFErrorDomainCode){
+typedef NS_ENUM(NSInteger, NLHKDFErrorDomainCode) {
     NLHKDFErrorDomainAlgNotSupported = 2,
     NLHKDFErrorDomainKeyBuffSizeInsufficient = 3,
     NLHKDFErrorDomainKeyInvalidRequestedKeySize = 4,
@@ -43,13 +43,13 @@ typedef NS_ENUM (NSInteger, NLHKDFErrorDomainCode){
  */
 @interface NLHKDF : NSObject
 
-+ (nullable NSData *) deriveKey: (NSString *) alg
-                  salt: (nullable NSData *) salt
-          keyMaterial1: (NSData *) keyMaterial1
-          keyMaterial2: (NSData *) keyMaterial2
-                  info: (NSData *) info
-       requestedKeyLen: (NSUInteger) requestedKeyLen
-                 error: (NSError **) errOut;
++ (nullable NSData *)deriveKey:(NSString *)alg
+                          salt:(nullable NSData *)salt
+                  keyMaterial1:(NSData *)keyMaterial1
+                  keyMaterial2:(NSData *)keyMaterial2
+                          info:(NSData *)info
+               requestedKeyLen:(NSUInteger)requestedKeyLen
+                         error:(NSError **)errOut;
 
 @end
 NS_ASSUME_NONNULL_END

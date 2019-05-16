@@ -29,17 +29,19 @@
 
 @implementation NLIdentifyDeviceCriteria
 
-+ (NLIdentifyDeviceCriteria *)create {
++ (NLIdentifyDeviceCriteria *)create
+{
     return [[NLIdentifyDeviceCriteria alloc] init];
 }
 
-- (id)init {
+- (id)init
+{
     if (self = [super init]) {
         _TargetFabricId = NLTargetFabricId_Any;
         _TargetModes = NLTargetDeviceModeAny;
-        _TargetVendorId = kNLWeaveVendor_Any;   // any vendor id
-        _TargetProductId = kNestWeaveProduct_NotSpecified;  // any product
-        _TargetDeviceId = NLTargetDeviceId_AnyNodeId; //0xFFFF;   // any device
+        _TargetVendorId = kNLWeaveVendor_Any; // any vendor id
+        _TargetProductId = kNestWeaveProduct_NotSpecified; // any product
+        _TargetDeviceId = NLTargetDeviceId_AnyNodeId; // 0xFFFF;   // any device
     }
     return self;
 }
@@ -48,14 +50,15 @@
 
 #pragma mark - Protected methods
 
-- (IdentifyDeviceCriteria)toIdentifyDeviceCriteria {
+- (IdentifyDeviceCriteria)toIdentifyDeviceCriteria
+{
 
-	IdentifyDeviceCriteria identifyDeviceCriteria;
+    IdentifyDeviceCriteria identifyDeviceCriteria;
     //
     identifyDeviceCriteria.TargetFabricId = _TargetFabricId;
     identifyDeviceCriteria.TargetModes = _TargetModes;
-    identifyDeviceCriteria.TargetVendorId = (uint16_t)_TargetVendorId;
-    identifyDeviceCriteria.TargetProductId = (uint16_t)_TargetProductId;
+    identifyDeviceCriteria.TargetVendorId = (uint16_t) _TargetVendorId;
+    identifyDeviceCriteria.TargetProductId = (uint16_t) _TargetProductId;
     identifyDeviceCriteria.TargetDeviceId = _TargetDeviceId;
 
     return identifyDeviceCriteria;
@@ -63,36 +66,32 @@
 
 #pragma mark - Private methods
 
-- (NSString *)debugDescriptionWithIdentifyDeviceCriteria:(nl::Weave::Profiles::DeviceDescription::IdentifyDeviceCriteria *)pDeviceCriteria {
-    NSString *descr = [NSString stringWithFormat:@"(%p), \n"
-                                                         "\tTargetFabricId: %llu\n"
-                                                         "\tTargetModes: %d\n"
-                                                         "\tTargetVendorId: %d\n"
-                                                         "\tTargetProductId: %d\n"
-                                                         "\tTargetDeviceId: %llu\n",
-                                             	self,
-                                                pDeviceCriteria->TargetFabricId,
-                                                pDeviceCriteria->TargetModes,
-                                                pDeviceCriteria->TargetVendorId,
-                                                pDeviceCriteria->TargetProductId,
-                                                pDeviceCriteria->TargetDeviceId];
+- (NSString *)debugDescriptionWithIdentifyDeviceCriteria:
+    (nl::Weave::Profiles::DeviceDescription::IdentifyDeviceCriteria *)pDeviceCriteria
+{
+    NSString * descr =
+        [NSString stringWithFormat:@"(%p), \n"
+                                    "\tTargetFabricId: %llu\n"
+                                    "\tTargetModes: %d\n"
+                                    "\tTargetVendorId: %d\n"
+                                    "\tTargetProductId: %d\n"
+                                    "\tTargetDeviceId: %llu\n",
+                  self, pDeviceCriteria->TargetFabricId, pDeviceCriteria->TargetModes, pDeviceCriteria->TargetVendorId,
+                  pDeviceCriteria->TargetProductId, pDeviceCriteria->TargetDeviceId];
 
     return descr;
 }
 
-- (NSString *)debugDescription {
-    NSString *descr = [NSString stringWithFormat:@"(%p), \n"
-                                                         "\tTargetFabricId: %llu\n"
-                                                         "\tTargetModes: %ld\n"
-                                                         "\tTargetVendorId: %ld\n"
-                                                         "\tTargetProductId: %ld\n"
-                                                         "\tTargetDeviceId: %llu\n",
-                                                 self,
-                                                 _TargetFabricId,
-                                                 (long)_TargetModes,
-                                                 (long)_TargetVendorId,
-                                                 (long)_TargetProductId,
-                                                 _TargetDeviceId];
+- (NSString *)debugDescription
+{
+    NSString * descr =
+        [NSString stringWithFormat:@"(%p), \n"
+                                    "\tTargetFabricId: %llu\n"
+                                    "\tTargetModes: %ld\n"
+                                    "\tTargetVendorId: %ld\n"
+                                    "\tTargetProductId: %ld\n"
+                                    "\tTargetDeviceId: %llu\n",
+                  self, _TargetFabricId, (long) _TargetModes, (long) _TargetVendorId, (long) _TargetProductId, _TargetDeviceId];
 
     return descr;
 }

@@ -18,7 +18,7 @@
 
 /**
  *    @file
- *      This file defines a Wrapper for C++ utility functions for testing key export 
+ *      This file defines a Wrapper for C++ utility functions for testing key export
  *      functionality (needed for keyStore in mobileiOS tree).
  *
  */
@@ -32,73 +32,64 @@
 
 using namespace nl::Weave::Profiles::Security::KeyExport;
 
-NSString *const NLWeaveKeyExportSupportErrorDomain = @"NLWeaveKeyExportSupprtErrorDomain";
+NSString * const NLWeaveKeyExportSupportErrorDomain = @"NLWeaveKeyExportSupprtErrorDomain";
 
 @implementation NLWeaveKeyExportSupport
 
 static UInt32 const kMaxPubKeySize = (((WEAVE_CONFIG_MAX_EC_BITS + 7) / 8) + 1) * 2;
 static UInt32 const kMaxECDSASigSize = kMaxPubKeySize;
 
-+ (nullable NSData *) simulateDeviceKeyExport: (NSData *) keyExportReq
-                                   deviceCert: (NSData *) deviceCert
-                                devicePrivKey: (NSData *) devicePrivKey
-                                trustRootCert: (NSData *) trustRootCert
-                                   isReconfig: (BOOL *) isReconfigOut
-                                        error: (NSError **) errOut {
-    
++ (nullable NSData *)simulateDeviceKeyExport:(NSData *)keyExportReq
+                                  deviceCert:(NSData *)deviceCert
+                               devicePrivKey:(NSData *)devicePrivKey
+                               trustRootCert:(NSData *)trustRootCert
+                                  isReconfig:(BOOL *)isReconfigOut
+                                       error:(NSError **)errOut
+{
+
     WEAVE_ERROR err = WEAVE_NO_ERROR;
     uint16_t exportRespLen = 0;
     bool isReconfig = false;
-    
-    if (keyExportReq == nil || deviceCert == nil || devicePrivKey == nil ||
-        trustRootCert == nil || isReconfigOut == nil) {
+
+    if (keyExportReq == nil || deviceCert == nil || devicePrivKey == nil || trustRootCert == nil || isReconfigOut == nil) {
         if (errOut) {
-            *errOut = [NSError errorWithDomain: NLWeaveKeyExportSupportErrorDomain
-                       code: NLWeaveKeyExportSupportErrorDomainInvalidArgument
-                       userInfo: nil];
+            *errOut = [NSError errorWithDomain:NLWeaveKeyExportSupportErrorDomain
+                                          code:NLWeaveKeyExportSupportErrorDomainInvalidArgument
+                                      userInfo:nil];
         }
-        
+
         return nil;
     }
-    
-    size_t exportRespBufSize =
-    7                       // Key export response header size // TODO: adjust this
-    + kMaxPubKeySize          // Ephemeral public key size
-    + kMaxECDSASigSize        // Size of bare signature field
-    + [deviceCert length]           // Size equal to at least the total size of the device certificate
-    + 1024;                   // Space for additional signature fields plus encoding overhead
-    
-    
+
+    size_t exportRespBufSize = 7 // Key export response header size // TODO: adjust this
+        + kMaxPubKeySize // Ephemeral public key size
+        + kMaxECDSASigSize // Size of bare signature field
+        + [deviceCert length] // Size equal to at least the total size of the device certificate
+        + 1024; // Space for additional signature fields plus encoding overhead
+
     NSMutableData * exportRespBuff = [[NSMutableData alloc] initWithLength:exportRespBufSize];
-    
-    err = SimulateDeviceKeyExport((unsigned char *) [deviceCert bytes],
-                                  [deviceCert length],
-                                  (unsigned char *) [devicePrivKey bytes],
-                                  [devicePrivKey length],
-                                  (unsigned char *) [trustRootCert bytes],
-                                  [trustRootCert length],
-                                  (unsigned char *) [keyExportReq bytes],
-                                  [keyExportReq length],
-                                  (unsigned char *) [exportRespBuff mutableBytes],
-                                  [exportRespBuff length],
-                                  exportRespLen,
-                                  isReconfig);
-    
+
+    err = SimulateDeviceKeyExport((unsigned char *) [deviceCert bytes], [deviceCert length],
+        (unsigned char *) [devicePrivKey bytes], [devicePrivKey length], (unsigned char *) [trustRootCert bytes],
+        [trustRootCert length], (unsigned char *) [keyExportReq bytes], [keyExportReq length],
+        (unsigned char *) [exportRespBuff mutableBytes], [exportRespBuff length], exportRespLen, isReconfig);
+
     if (err != WEAVE_NO_ERROR) {
         if (errOut) {
-            NSString *failureReason = [NSString stringWithFormat:NSLocalizedString(
-                                                        @"SimulateDeviceKeyExport error: %d", @""), err];
-            NSDictionary *userInfo = @{ NSLocalizedFailureReasonErrorKey: failureReason };
+            NSString * failureReason =
+                [NSString stringWithFormat:NSLocalizedString(@"SimulateDeviceKeyExport error: %d", @""), err];
+            NSDictionary * userInfo = @{ NSLocalizedFailureReasonErrorKey : failureReason };
             *errOut = [NSError errorWithDomain:NLWeaveKeyExportSupportErrorDomain
-                                          code:NLWeaveKeyExportSupportErrorDomainSimulateKeyExportFailure userInfo: userInfo];
+                                          code:NLWeaveKeyExportSupportErrorDomainSimulateKeyExportFailure
+                                      userInfo:userInfo];
         }
-        
+
         return nil;
     }
-    
-    *isReconfigOut = isReconfig? true: false;
-    
-    [exportRespBuff setLength: exportRespLen];
+
+    *isReconfigOut = isReconfig ? true : false;
+
+    [exportRespBuff setLength:exportRespLen];
     return exportRespBuff;
 }
 

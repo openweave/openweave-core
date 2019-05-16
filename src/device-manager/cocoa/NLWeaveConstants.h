@@ -17,11 +17,11 @@
  */
 
 /**
-* This file acts as an intermediary for accessing
-* any constants used from outside WeaveDeviceManager header files.
-* This avoids including unnecessary header files which keeps growing
-* every time Weave adds changes.
-*/
+ * This file acts as an intermediary for accessing
+ * any constants used from outside WeaveDeviceManager header files.
+ * This avoids including unnecessary header files which keeps growing
+ * every time Weave adds changes.
+ */
 
 #import <Foundation/Foundation.h>
 

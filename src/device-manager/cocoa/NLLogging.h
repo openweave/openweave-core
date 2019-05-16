@@ -26,11 +26,11 @@
 #define WDM_LOG_DEBUG NSLog
 #define WDM_LOG_ERROR NSLog
 
-#define WDM_LOG_METHOD_SIG()        ({ NSLog(@"[<%@: %p> %@]", NSStringFromClass([self class]), self, NSStringFromSelector(_cmd)); })
+#define WDM_LOG_METHOD_SIG() ({ NSLog(@"[<%@: %p> %@]", NSStringFromClass([self class]), self, NSStringFromSelector(_cmd)); })
 #else
 // do nothing
 #define WDM_LOG_DEBUG(...)
 #define WDM_LOG_ERROR(...)
-#define WDM_LOG_METHOD_SIG()        ({})
+#define WDM_LOG_METHOD_SIG() ({})
 
 #endif

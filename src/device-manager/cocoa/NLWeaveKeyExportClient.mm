@@ -31,10 +31,9 @@
 
 using namespace nl::Weave::Profiles::Security::KeyExport;
 
-NSString *const NLWeaveKeyExportClientErrorDomain = @"NLWeaveKeyExportClientErrorDomain";
+NSString * const NLWeaveKeyExportClientErrorDomain = @"NLWeaveKeyExportClientErrorDomain";
 
-@interface NLWeaveKeyExportClient ()
-{
+@interface NLWeaveKeyExportClient () {
     WeaveStandAloneKeyExportClient * _mKeyExportClientCpp;
 }
 @end
@@ -44,174 +43,161 @@ NSString *const NLWeaveKeyExportClientErrorDomain = @"NLWeaveKeyExportClientErro
 static UInt32 const kMaxPubKeySize = (((WEAVE_CONFIG_MAX_EC_BITS + 7) / 8) + 1) * 2;
 static UInt32 const kMaxECDSASigSize = kMaxPubKeySize;
 
-- (nullable NSData *) generateKeyExportRequest: (UInt32) keyId
-                               responderNodeId: (UInt64) responderNodeId
-                                   accessToken: (NSData *) accessToken
-                                         error: (NSError **) errOut {
+- (nullable NSData *)generateKeyExportRequest:(UInt32)keyId
+                              responderNodeId:(UInt64)responderNodeId
+                                  accessToken:(NSData *)accessToken
+                                        error:(NSError **)errOut
+{
     WEAVE_ERROR err = WEAVE_NO_ERROR;
     uint16_t exportReqLen = 0;
-    
+
     if (accessToken == nil) {
         if (errOut) {
-            *errOut = [NSError errorWithDomain: NLWeaveKeyExportClientErrorDomain
-                                          code: NLWeaveKeyExportClientErrorDomainInvalidArgument
-                                      userInfo: nil];
+            *errOut = [NSError errorWithDomain:NLWeaveKeyExportClientErrorDomain
+                                          code:NLWeaveKeyExportClientErrorDomainInvalidArgument
+                                      userInfo:nil];
         }
         return nil;
     }
-    
-    size_t exportReqBufSize =
-    7                       // Key export request header size
-    + kMaxPubKeySize          // Ephemeral public key size
-    + kMaxECDSASigSize        // Size of bare signature field
-    +  [accessToken length]   // Size equal to at least the total size of the client certificates
-    + 1024;                   // Space for additional signature fields plus encoding overhead
-    
+
+    size_t exportReqBufSize = 7 // Key export request header size
+        + kMaxPubKeySize // Ephemeral public key size
+        + kMaxECDSASigSize // Size of bare signature field
+        + [accessToken length] // Size equal to at least the total size of the client certificates
+        + 1024; // Space for additional signature fields plus encoding overhead
+
     if (exportReqBufSize > UINT16_MAX) {
         if (errOut) {
-            *errOut = [NSError errorWithDomain: NLWeaveKeyExportClientErrorDomain
+            *errOut = [NSError errorWithDomain:NLWeaveKeyExportClientErrorDomain
                                           code:NLWeaveKeyExportClientErrorDomainInvalidExportBufferSize
                                       userInfo:nil];
         }
         return nil;
     }
-    
+
     NSMutableData * exportReqBuf = [[NSMutableData alloc] initWithLength:exportReqBufSize];
-    
-    err = _mKeyExportClientCpp->GenerateKeyExportRequest((uint32_t) keyId,
-                                                         (uint64_t) responderNodeId,
-                                                         (unsigned char *) [accessToken bytes],
-                                                         [accessToken length],
-                                                         (unsigned char *) [exportReqBuf mutableBytes],
-                                                         exportReqBufSize,
-                                                         exportReqLen);
-    
+
+    err = _mKeyExportClientCpp->GenerateKeyExportRequest((uint32_t) keyId, (uint64_t) responderNodeId,
+        (unsigned char *) [accessToken bytes], [accessToken length], (unsigned char *) [exportReqBuf mutableBytes],
+        exportReqBufSize, exportReqLen);
+
     if (err != WEAVE_NO_ERROR) {
         if (errOut) {
-            NSString *failureReason = [NSString stringWithFormat:NSLocalizedString(
-                                            @"GenerateKeyExportRequest error: %d", @""), err];
-            NSDictionary *userInfo = @{ NSLocalizedFailureReasonErrorKey: failureReason };
+            NSString * failureReason =
+                [NSString stringWithFormat:NSLocalizedString(@"GenerateKeyExportRequest error: %d", @""), err];
+            NSDictionary * userInfo = @{ NSLocalizedFailureReasonErrorKey : failureReason };
             *errOut = [NSError errorWithDomain:NLWeaveKeyExportClientErrorDomain
-                                          code:NLWeaveKeyExportClientErrorDomainKeyExportRequestFailure userInfo: userInfo];
+                                          code:NLWeaveKeyExportClientErrorDomainKeyExportRequestFailure
+                                      userInfo:userInfo];
         }
-        
+
         return nil;
     }
-    
-    [exportReqBuf setLength: exportReqLen];
-    
+
+    [exportReqBuf setLength:exportReqLen];
+
     return exportReqBuf;
 }
 
-- (nullable NSData *) generateKeyExportRequest: (UInt32) keyId
-                               responderNodeId: (UInt64) responderNodeId
-                                    clientCert: (NSData *) clientCert
-                                     clientKey: (NSData *) clientKey
-                                         error: (NSError **) errOut {
+- (nullable NSData *)generateKeyExportRequest:(UInt32)keyId
+                              responderNodeId:(UInt64)responderNodeId
+                                   clientCert:(NSData *)clientCert
+                                    clientKey:(NSData *)clientKey
+                                        error:(NSError **)errOut
+{
     WEAVE_ERROR err = WEAVE_NO_ERROR;
     uint16_t exportReqLen = 0;
-    
-    if (clientKey == nil || clientCert){
+
+    if (clientKey == nil || clientCert) {
         if (errOut) {
             *errOut = [NSError errorWithDomain:NLWeaveKeyExportClientErrorDomain
-                       code:NLWeaveKeyExportClientErrorDomainInvalidArgument
-                       userInfo:nil];
+                                          code:NLWeaveKeyExportClientErrorDomainInvalidArgument
+                                      userInfo:nil];
         }
         return nil;
     }
-    
-    size_t exportReqBufSize =
-    7                       // Key export request header size
-    + kMaxPubKeySize          // Ephemeral public key size
-    + kMaxECDSASigSize        // Size of bare signature field
-    +  [clientCert length]   // Size equal to at least the total size of the client certificates
-    + 1024;                   // Space for additional signature fields plus encoding overhead
-    
+
+    size_t exportReqBufSize = 7 // Key export request header size
+        + kMaxPubKeySize // Ephemeral public key size
+        + kMaxECDSASigSize // Size of bare signature field
+        + [clientCert length] // Size equal to at least the total size of the client certificates
+        + 1024; // Space for additional signature fields plus encoding overhead
+
     if (exportReqBufSize > UINT16_MAX) {
         if (errOut) {
             *errOut = [NSError errorWithDomain:NLWeaveKeyExportClientErrorDomain
-                       code:NLWeaveKeyExportClientErrorDomainInvalidExportBufferSize
-                       userInfo:nil];
+                                          code:NLWeaveKeyExportClientErrorDomainInvalidExportBufferSize
+                                      userInfo:nil];
         }
         return nil;
     }
-    
+
     NSMutableData * exportReqBuf = [[NSMutableData alloc] initWithLength:exportReqBufSize];
-    
-    err = _mKeyExportClientCpp->GenerateKeyExportRequest((uint32_t) keyId,
-                                     (uint64_t) responderNodeId,
-                                     (unsigned char *) [clientCert bytes],
-                                     [clientCert length],
-                                     (unsigned char *) [clientKey bytes],
-                                     [clientKey length],
-                                      (unsigned char *) [exportReqBuf mutableBytes],
-                                     exportReqBufSize,
-                                     exportReqLen);
-    
+
+    err = _mKeyExportClientCpp->GenerateKeyExportRequest((uint32_t) keyId, (uint64_t) responderNodeId,
+        (unsigned char *) [clientCert bytes], [clientCert length], (unsigned char *) [clientKey bytes], [clientKey length],
+        (unsigned char *) [exportReqBuf mutableBytes], exportReqBufSize, exportReqLen);
+
     if (err != WEAVE_NO_ERROR) {
         if (errOut) {
-            NSString *failureReason = [NSString stringWithFormat:NSLocalizedString(
-                                                                                   @"GenerateKeyExportRequest error: %d", @""), err];
-            NSDictionary *userInfo = @{ NSLocalizedFailureReasonErrorKey: failureReason };
+            NSString * failureReason =
+                [NSString stringWithFormat:NSLocalizedString(@"GenerateKeyExportRequest error: %d", @""), err];
+            NSDictionary * userInfo = @{ NSLocalizedFailureReasonErrorKey : failureReason };
             *errOut = [NSError errorWithDomain:NLWeaveKeyExportClientErrorDomain
-                                          code:NLWeaveKeyExportClientErrorDomainKeyExportRequestFailure userInfo: userInfo];
+                                          code:NLWeaveKeyExportClientErrorDomainKeyExportRequestFailure
+                                      userInfo:userInfo];
         }
-        
+
         return nil;
     }
-    
-    [exportReqBuf setLength: exportReqLen];
+
+    [exportReqBuf setLength:exportReqLen];
     return exportReqBuf;
 }
 
-- (nullable NSData *) processKeyExportResponse: (UInt64) responderNodeId
-                                    exportResp: (NSData *) exportResp
-                                         error: (NSError **) errOut {
+- (nullable NSData *)processKeyExportResponse:(UInt64)responderNodeId exportResp:(NSData *)exportResp error:(NSError **)errOut
+{
     WEAVE_ERROR err = WEAVE_NO_ERROR;
-    
+
     if (exportResp == nil) {
         if (errOut) {
-            *errOut = [NSError  errorWithDomain: NLWeaveKeyExportClientErrorDomain
-                                           code: NLWeaveKeyExportClientErrorDomainInvalidArgument
-                                       userInfo: nil];
-            }
+            *errOut = [NSError errorWithDomain:NLWeaveKeyExportClientErrorDomain
+                                          code:NLWeaveKeyExportClientErrorDomainInvalidArgument
+                                      userInfo:nil];
+        }
         return nil;
     }
-  
-    
+
     // Since the exported key is contained within the export response, a buffer of the same size
     // is guaranteed to be sufficient.
     size_t exportedKeyBufLen = [exportResp length];
     NSMutableData * exportedKeyBuf = [[NSMutableData alloc] initWithLength:exportedKeyBufLen];
-    
+
     uint16_t exportedKeyLen;
     uint32_t exportedKeyId;
-    err = _mKeyExportClientCpp->ProcessKeyExportResponse(
-                                                         (unsigned char *) [exportResp bytes],
-                                                         [exportResp length],
-                                                         (uint64_t) responderNodeId,
-                                                         (unsigned char *) [exportedKeyBuf mutableBytes],
-                                                         exportedKeyBufLen,
-                                                         exportedKeyLen,
-                                                         exportedKeyId);
-    
+    err = _mKeyExportClientCpp->ProcessKeyExportResponse((unsigned char *) [exportResp bytes], [exportResp length],
+        (uint64_t) responderNodeId, (unsigned char *) [exportedKeyBuf mutableBytes], exportedKeyBufLen, exportedKeyLen,
+        exportedKeyId);
+
     if (err != WEAVE_NO_ERROR) {
         if (errOut) {
-            NSString *failureReason = [NSString stringWithFormat:NSLocalizedString(
-                                                                                   @"ProcessKeyExportResponse error:: %d", @""), err];
-            NSDictionary *userInfo = @{ NSLocalizedFailureReasonErrorKey: failureReason };
+            NSString * failureReason =
+                [NSString stringWithFormat:NSLocalizedString(@"ProcessKeyExportResponse error:: %d", @""), err];
+            NSDictionary * userInfo = @{ NSLocalizedFailureReasonErrorKey : failureReason };
             *errOut = [NSError errorWithDomain:NLWeaveKeyExportClientErrorDomain
-                                          code:NLWeaveKeyExportClientErrorDomainKeyExportResponseFailure userInfo: userInfo];
+                                          code:NLWeaveKeyExportClientErrorDomainKeyExportResponseFailure
+                                      userInfo:userInfo];
         }
-        
+
         return nil;
     }
-    
-    [exportedKeyBuf setLength: exportedKeyLen];
+
+    [exportedKeyBuf setLength:exportedKeyLen];
     return exportedKeyBuf;
 }
 
-- (void) reset {
+- (void)reset
+{
     _mKeyExportClientCpp->Reset();
 }
 
@@ -225,56 +211,62 @@ static UInt32 const kMaxECDSASigSize = kMaxPubKeySize;
     delete _mKeyExportClientCpp;
 }
 
-- (BOOL) processKeyExportReconfigure: (NSData *) reconfig
-                            error: (NSError **) errOut {
-    
+- (BOOL)processKeyExportReconfigure:(NSData *)reconfig error:(NSError **)errOut
+{
+
     WEAVE_ERROR err = WEAVE_NO_ERROR;
-    
+
     if (reconfig == nil) {
         if (errOut) {
-            *errOut = [NSError errorWithDomain: NLWeaveKeyExportClientErrorDomain
-                                          code: NLWeaveKeyExportClientErrorDomainInvalidArgument
-                                      userInfo: nil];
+            *errOut = [NSError errorWithDomain:NLWeaveKeyExportClientErrorDomain
+                                          code:NLWeaveKeyExportClientErrorDomainInvalidArgument
+                                      userInfo:nil];
         }
         return false;
     }
-    
+
     err = _mKeyExportClientCpp->ProcessKeyExportReconfigure((unsigned char *) [reconfig bytes], [reconfig length]);
-    
+
     if (err != WEAVE_NO_ERROR) {
         if (errOut) {
-            NSString *failureReason = [NSString stringWithFormat:NSLocalizedString(
-                                                                                   @"ProcessKeyExportResponse error: %d", @""), err];
-            NSDictionary *userInfo = @{ NSLocalizedFailureReasonErrorKey: failureReason };
+            NSString * failureReason =
+                [NSString stringWithFormat:NSLocalizedString(@"ProcessKeyExportResponse error: %d", @""), err];
+            NSDictionary * userInfo = @{ NSLocalizedFailureReasonErrorKey : failureReason };
             *errOut = [NSError errorWithDomain:NLWeaveKeyExportClientErrorDomain
-                                          code:NLWeaveKeyExportClientErrorDomainProcessReconfiugreFailure userInfo: userInfo];
+                                          code:NLWeaveKeyExportClientErrorDomainProcessReconfiugreFailure
+                                      userInfo:userInfo];
         }
         return false;
     }
-    
+
     return true;
 }
 
-- (BOOL) allowNestDevelopmentDevices {
-    
+- (BOOL)allowNestDevelopmentDevices
+{
+
     return _mKeyExportClientCpp->AllowNestDevelopmentDevices();
 }
 
-- (void) setAllowNestDevelopmentDevices: (BOOL) nestDev {
+- (void)setAllowNestDevelopmentDevices:(BOOL)nestDev
+{
     _mKeyExportClientCpp->AllowNestDevelopmentDevices(nestDev);
 }
 
-- (BOOL) allowSHA1DeviceCertificates {
+- (BOOL)allowSHA1DeviceCertificates
+{
     return _mKeyExportClientCpp->AllowSHA1DeviceCerts();
 }
 
-- (void) setAllowSHA1DeviceCertificates: (BOOL) nestDev {
+- (void)setAllowSHA1DeviceCertificates:(BOOL)nestDev
+{
     _mKeyExportClientCpp->AllowSHA1DeviceCerts(nestDev);
 }
 
-- (instancetype) init {
+- (instancetype)init
+{
     self = [super init];
-    
+
     if (self) {
         _mKeyExportClientCpp = new WeaveStandAloneKeyExportClient();
         _mKeyExportClientCpp->Init();

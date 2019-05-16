@@ -21,7 +21,7 @@
  *      This file provides a means to decode Nevis pairing codes to get the device ID.
  *
  */
- 
+
 #import <string.h>
 
 #import "NLNevisPairingCodeDecoding.h"
@@ -31,17 +31,19 @@
 
 @implementation NLNevisPairingCodeDecoding
 
-+ (uint64_t)extractDeviceIDFromNevisPairingCode:(NSString *)pairingCode {
-	const char *pairingCodeCS = [pairingCode UTF8String];
-	uint64_t deviceId;
-	WEAVE_ERROR err = nl::PairingCode::NevisPairingCodeToDeviceId(pairingCodeCS, deviceId);
-	return (err == WEAVE_NO_ERROR) ? deviceId : 0;
++ (uint64_t)extractDeviceIDFromNevisPairingCode:(NSString *)pairingCode
+{
+    const char * pairingCodeCS = [pairingCode UTF8String];
+    uint64_t deviceId;
+    WEAVE_ERROR err = nl::PairingCode::NevisPairingCodeToDeviceId(pairingCodeCS, deviceId);
+    return (err == WEAVE_NO_ERROR) ? deviceId : 0;
 }
 
-+ (NSString *)extractNevisPairingCodeFromDeviceID:(uint64_t)deviceId {
-	char pairingCodeBuf[nl::PairingCode::kStandardPairingCodeLength + 1];
-	WEAVE_ERROR err = nl::PairingCode::NevisDeviceIdToPairingCode(deviceId, pairingCodeBuf, sizeof(pairingCodeBuf));
-	if (err == WEAVE_NO_ERROR) {
++ (NSString *)extractNevisPairingCodeFromDeviceID:(uint64_t)deviceId
+{
+    char pairingCodeBuf[nl::PairingCode::kStandardPairingCodeLength + 1];
+    WEAVE_ERROR err = nl::PairingCode::NevisDeviceIdToPairingCode(deviceId, pairingCodeBuf, sizeof(pairingCodeBuf));
+    if (err == WEAVE_NO_ERROR) {
         return [NSString stringWithUTF8String:pairingCodeBuf];
     } else {
         return nil;

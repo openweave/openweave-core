@@ -34,24 +34,23 @@
 #import "NLWeaveDeviceManager.h"
 #import "NLWeaveDeviceManager_Protected.h"
 
-@interface NLWeaveStack ()
-{
-    dispatch_queue_t                _mWorkQueue;
-    dispatch_queue_t                _mSelectQueue;
-    nl::Weave::System::Layer        _mSystemLayer;
-    nl::Inet::InetLayer             _mInetLayer;
-    nl::Weave::WeaveFabricState     _mFabricState;
-    nl::Weave::WeaveMessageLayer    _mMessageLayer;
+@interface NLWeaveStack () {
+    dispatch_queue_t _mWorkQueue;
+    dispatch_queue_t _mSelectQueue;
+    nl::Weave::System::Layer _mSystemLayer;
+    nl::Inet::InetLayer _mInetLayer;
+    nl::Weave::WeaveFabricState _mFabricState;
+    nl::Weave::WeaveMessageLayer _mMessageLayer;
     nl::Weave::WeaveExchangeManager _mExchangeMgr;
     nl::Weave::WeaveSecurityManager _mSecurityMgr;
 
     // for shutdown
-    bool                            _mIsWaitingOnSelect;
-    ShutdownCompletionBlock         _mShutdownCompletionBlock;
+    bool _mIsWaitingOnSelect;
+    ShutdownCompletionBlock _mShutdownCompletionBlock;
 
 #if CONFIG_NETWORK_LAYER_BLE
-    nl::Ble::BleLayer               _mBleLayer;
-    NLWeaveBleDelegate *            _mBleDelegate;
+    nl::Ble::BleLayer _mBleLayer;
+    NLWeaveBleDelegate * _mBleDelegate;
 #endif // #if CONFIG_NETWORK_LAYER_BLE
     /*
     int selectRes;
@@ -61,10 +60,10 @@
      */
 }
 
--(WEAVE_ERROR)InitStack_internal:(NSString *) listenAddr bleDelegate:(NLWeaveBleDelegate *)bleDelegate;
--(void)ShutdownStack_Stage1;
--(void)ShutdownStack_Stage2;
--(void)TryProcessNetworkEvents;
+- (WEAVE_ERROR)InitStack_internal:(NSString *)listenAddr bleDelegate:(NLWeaveBleDelegate *)bleDelegate;
+- (void)ShutdownStack_Stage1;
+- (void)ShutdownStack_Stage2;
+- (void)TryProcessNetworkEvents;
 
 - (instancetype)init NS_DESIGNATED_INITIALIZER;
 
@@ -97,7 +96,7 @@
  */
 + (instancetype)sharedStack
 {
-    static NLWeaveStack *mStack = nil;
+    static NLWeaveStack * mStack = nil;
     static dispatch_once_t onceToken;
 
     dispatch_once(&onceToken, ^{
@@ -130,27 +129,21 @@
     _mSelectQueue = dispatch_queue_create("com.nestlabs.queue.weave.select", DISPATCH_QUEUE_SERIAL);
     VerifyOrExit((_mSelectQueue), err = WEAVE_ERROR_NO_MEMORY);
 
-    _mIsWaitingOnSelect  = false;
+    _mIsWaitingOnSelect = false;
 
     _currentState = kWeaveStack_QueueInitialized;
 
 exit:
     id result = nil;
-    if (WEAVE_NO_ERROR == err)
-    {
+    if (WEAVE_NO_ERROR == err) {
         result = self;
-    }
-    else
-    {
-        if (self)
-        {
-            if (_mWorkQueue)
-            {
+    } else {
+        if (self) {
+            if (_mWorkQueue) {
                 _mWorkQueue = nil;
             }
 
-            if (_mSelectQueue)
-            {
+            if (_mSelectQueue) {
                 _mSelectQueue = nil;
             }
         }
@@ -166,7 +159,7 @@ exit:
     @note
       This function can only be called indirectly via InitStack, within the Weave workqueue.
  */
--(WEAVE_ERROR)InitStack_internal:(NSString *) listenAddr bleDelegate:(NLWeaveBleDelegate *)bleDelegate
+- (WEAVE_ERROR)InitStack_internal:(NSString *)listenAddr bleDelegate:(NLWeaveBleDelegate *)bleDelegate
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
     nl::Weave::WeaveMessageLayer::InitContext initContext;
@@ -175,7 +168,7 @@ exit:
 
     self.currentState = kWeaveStack_Initializing;
 
-    _mIsWaitingOnSelect  = false;
+    _mIsWaitingOnSelect = false;
 
     // Initialize the System::Layer object
     err = _mSystemLayer.Init(NULL);
@@ -194,14 +187,12 @@ exit:
 
     // Configure the weave listening address, if one was provided
     {
-        if (listenAddr != NULL)
-        {
+        if (listenAddr != NULL) {
 #if WEAVE_CONFIG_ENABLE_TARGETED_LISTEN
-            const char *listenAddrStr = ([listenAddr length] != 0) ? [listenAddr UTF8String] : NULL;
+            const char * listenAddrStr = ([listenAddr length] != 0) ? [listenAddr UTF8String] : NULL;
 
             nl::Inet::IPAddress addr;
-            if (nl::Inet::IPAddress::FromString(listenAddrStr, addr))
-            {
+            if (nl::Inet::IPAddress::FromString(listenAddrStr, addr)) {
                 _mFabricState.ListenIPv4Addr = addr;
             }
 #else
@@ -212,14 +203,11 @@ exit:
     }
 
 #if CONFIG_NETWORK_LAYER_BLE
-    if (nil != bleDelegate)
-    {
+    if (nil != bleDelegate) {
         // retain the BLE Delegate provided by the application layer
         _mBleDelegate = bleDelegate;
         initContext.listenBLE = true;
-    }
-    else
-    {
+    } else {
         _mBleDelegate = [[NLWeaveBleDelegate alloc] initDummyDelegate];
         initContext.listenBLE = false;
     }
@@ -255,8 +243,7 @@ exit:
     [self TryProcessNetworkEvents];
 
 exit:
-    if (WEAVE_NO_ERROR != err)
-    {
+    if (WEAVE_NO_ERROR != err) {
         WDM_LOG_ERROR(@"Error in InitStack_internal : (%d) %@\n", err, [NSString stringWithUTF8String:nl::ErrorStr(err)]);
     }
 
@@ -267,20 +254,18 @@ exit:
     @note
       This function can be called from any thread/queue at any time
  */
--(WEAVE_ERROR)InitStack:(NSString *) listenAddr bleDelegate:(NLWeaveBleDelegate *)bleDelegate
+- (WEAVE_ERROR)InitStack:(NSString *)listenAddr bleDelegate:(NLWeaveBleDelegate *)bleDelegate
 {
     // initialize the stack
     WDM_LOG_METHOD_SIG();
 
     __block WEAVE_ERROR result = WEAVE_NO_ERROR;
 
-    dispatch_sync(_mWorkQueue, ^(void)
-    {
+    dispatch_sync(_mWorkQueue, ^(void) {
         result = [self InitStack_internal:listenAddr bleDelegate:bleDelegate];
     });
 
-    if (WEAVE_NO_ERROR != result)
-    {
+    if (WEAVE_NO_ERROR != result) {
         // ErrorStr uses more than one global resources which cannot be safely accessed
         // from other threads without locking, so we just log the number here
         WDM_LOG_ERROR(@"Error in InitStack : %d\n", result);
@@ -293,7 +278,7 @@ exit:
     @note
       This function can only be called indirectly via TryProcessNetworkEvents, within the Weave workqueue.
  */
--(void)ShutdownStack_Stage2
+- (void)ShutdownStack_Stage2
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
     ShutdownCompletionBlock block = _mShutdownCompletionBlock;
@@ -329,14 +314,12 @@ exit:
 
     self.currentState = kWeaveStack_QueueInitialized;
 
-    if (WEAVE_NO_ERROR != err)
-    {
+    if (WEAVE_NO_ERROR != err) {
         WDM_LOG_ERROR(@"Error in ShutdownStack_Stage2 : (%d) %@\n", err, [NSString stringWithUTF8String:nl::ErrorStr(err)]);
     }
 
     // inform application layer about the completion, if so desired
-    if (block)
-    {
+    if (block) {
         block(err);
     }
 }
@@ -345,42 +328,37 @@ exit:
     @note
       This function can only be called indirectly via ShutdownStack, within the Weave workqueue.
  */
--(void)ShutdownStack_Stage1
+- (void)ShutdownStack_Stage1
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
 
     WDM_LOG_METHOD_SIG();
 
-    switch (self.currentState)
-    {
-        case kWeaveStack_Initializing:
-        case kWeaveStack_FullyInitialized:
-            // continue shutting down
-            break;
-        case kWeaveStack_QueueInitialized:
-            // do nothing and just return without error
-            ExitNow();
-        default:
-            // abort shutting down
-            ExitNow(err = WEAVE_ERROR_INCORRECT_STATE);
+    switch (self.currentState) {
+    case kWeaveStack_Initializing:
+    case kWeaveStack_FullyInitialized:
+        // continue shutting down
+        break;
+    case kWeaveStack_QueueInitialized:
+        // do nothing and just return without error
+        ExitNow();
+    default:
+        // abort shutting down
+        ExitNow(err = WEAVE_ERROR_INCORRECT_STATE);
     }
 
     self.currentState = kWeaveStack_ShuttingDown;
 
-    if (_mIsWaitingOnSelect)
-    {
+    if (_mIsWaitingOnSelect) {
         // Inform the select queue that it's time to leave
         _mSystemLayer.WakeSelect();
-    }
-    else
-    {
+    } else {
         // invoke stage 2 directly, as the select queue is not active (probably the initialization failed)
         [self ShutdownStack_Stage2];
     }
 
 exit:
-    if (WEAVE_NO_ERROR != err)
-    {
+    if (WEAVE_NO_ERROR != err) {
         WDM_LOG_ERROR(@"Error in ShutdownStack_Stage1 : (%d) %@\n", err, [NSString stringWithUTF8String:nl::ErrorStr(err)]);
 
         _mShutdownCompletionBlock(err);
@@ -400,14 +378,12 @@ exit:
 
     // We're dispatching using sync on a serial queue, so it's safe to assume
     // everything dispatched earlier has been finished
-    dispatch_sync(_mWorkQueue, ^(void)
-    {
+    dispatch_sync(_mWorkQueue, ^(void) {
         _mShutdownCompletionBlock = block;
         [self ShutdownStack_Stage1];
     });
 
-    if (WEAVE_NO_ERROR != result)
-    {
+    if (WEAVE_NO_ERROR != result) {
         // ErrorStr uses more than one global resources which cannot be safely accessed
         // from other threads without locking, so we just log the number here
         WDM_LOG_ERROR(@"Error in ShutdownStack : %d\n", result);
@@ -418,14 +394,14 @@ exit:
     @note
       This function can only be called indirectly via initStack, within the Weave workqueue.
  */
--(void)TryProcessNetworkEvents
+- (void)TryProcessNetworkEvents
 {
     __block struct timeval sleepTime;
     __block fd_set readFDs, writeFDs, exceptFDs;
     int MaxNumberedFdPlusOne = 0;
     WEAVE_ERROR err = WEAVE_NO_ERROR;
 
-    //WDM_LOG_METHOD_SIG();
+    // WDM_LOG_METHOD_SIG();
 
     VerifyOrExit(kWeaveStack_FullyInitialized == self.currentState, err = WEAVE_ERROR_INCORRECT_STATE);
 
@@ -440,67 +416,61 @@ exit:
     _mSystemLayer.PrepareSelect(MaxNumberedFdPlusOne, &readFDs, &writeFDs, &exceptFDs, sleepTime);
     _mInetLayer.PrepareSelect(MaxNumberedFdPlusOne, &readFDs, &writeFDs, &exceptFDs, sleepTime);
 
-    //WDM_LOG_DEBUG(@"Sleeping for %f sec.\n", sleepTime.tv_sec + (sleepTime.tv_usec / 1000000.0));
+    // WDM_LOG_DEBUG(@"Sleeping for %f sec.\n", sleepTime.tv_sec + (sleepTime.tv_usec / 1000000.0));
 
     _mIsWaitingOnSelect = true;
 
     // need this bracket to use the VerifyOrExit macro
     {
-    dispatch_async(_mSelectQueue, ^(void)
-    {
-        // Wait for for I/O or for the next timer to expire.
-        // Note that this is not a good practice to use with GCD, but it's
-        int selectRes = select(MaxNumberedFdPlusOne, &readFDs, &writeFDs, &exceptFDs, &sleepTime);
+        dispatch_async(_mSelectQueue, ^(void) {
+            // Wait for for I/O or for the next timer to expire.
+            // Note that this is not a good practice to use with GCD, but it's
+            int selectRes = select(MaxNumberedFdPlusOne, &readFDs, &writeFDs, &exceptFDs, &sleepTime);
 
-        dispatch_async(_mWorkQueue, ^(void)
-        {
-            _mIsWaitingOnSelect = false;
+            dispatch_async(_mWorkQueue, ^(void) {
+                _mIsWaitingOnSelect = false;
 
-            if (kWeaveStack_ShuttingDown == self.currentState)
-            {
-                WDM_LOG_DEBUG(@"Select queue woke up but we're shutting down\n");
+                if (kWeaveStack_ShuttingDown == self.currentState) {
+                    WDM_LOG_DEBUG(@"Select queue woke up but we're shutting down\n");
 
-                // continue on the 2nd stage of shutting down
-                [self ShutdownStack_Stage2];
-            }
-            else if (kWeaveStack_FullyInitialized == self.currentState)
-            {
-                // Perform I/O and/or dispatch timers.
-                _mSystemLayer.HandleSelectResult(selectRes, &readFDs, &writeFDs, &exceptFDs);
-                _mInetLayer.HandleSelectResult(selectRes, &readFDs, &writeFDs, &exceptFDs);
+                    // continue on the 2nd stage of shutting down
+                    [self ShutdownStack_Stage2];
+                } else if (kWeaveStack_FullyInitialized == self.currentState) {
+                    // Perform I/O and/or dispatch timers.
+                    _mSystemLayer.HandleSelectResult(selectRes, &readFDs, &writeFDs, &exceptFDs);
+                    _mInetLayer.HandleSelectResult(selectRes, &readFDs, &writeFDs, &exceptFDs);
 
-                // It's wierd that with iOS 9 SDK, we have to use disaptch_after here,
-                // instead of directly calling TryProcessNetworkEvents nor dispatch_async.
-                // If not, the memory usage skyrockets like there is memory leak
-                dispatch_after(dispatch_time(DISPATCH_TIME_NOW, 1 * NSEC_PER_MSEC), _mWorkQueue, ^(void)
-                               {
-                                   [self TryProcessNetworkEvents];
-                               });
-            }
-            else
-            {
-                WDM_LOG_ERROR(@"Select queue woke up in unexpected state\n");
-            }
+                    // It's wierd that with iOS 9 SDK, we have to use disaptch_after here,
+                    // instead of directly calling TryProcessNetworkEvents nor dispatch_async.
+                    // If not, the memory usage skyrockets like there is memory leak
+                    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, 1 * NSEC_PER_MSEC), _mWorkQueue, ^(void) {
+                        [self TryProcessNetworkEvents];
+                    });
+                } else {
+                    WDM_LOG_ERROR(@"Select queue woke up in unexpected state\n");
+                }
+            });
         });
-    });
     }
 
 exit:
-    if (WEAVE_NO_ERROR != err)
-    {
+    if (WEAVE_NO_ERROR != err) {
         // ErrorStr uses more than one global resources which cannot be safely accessed
         // from other threads without locking, so we just log the number here
         WDM_LOG_ERROR(@"Error in TryProcessNetworkEvents : %d\n", err);
     }
 }
 
--(NLWeaveDeviceManager *)createDeviceManager:(NSString *)name appCallbackQueue:(dispatch_queue_t)appCallbackQueue
+- (NLWeaveDeviceManager *)createDeviceManager:(NSString *)name appCallbackQueue:(dispatch_queue_t)appCallbackQueue
 {
     WDM_LOG_METHOD_SIG();
 
-    NLWeaveDeviceManager *wdm = [[NLWeaveDeviceManager alloc] init:name weaveWorkQueue:_mWorkQueue appCallbackQueue:appCallbackQueue exchangeMgr:&_mExchangeMgr securityMgr:&_mSecurityMgr];
-    if (nil == wdm)
-    {
+    NLWeaveDeviceManager * wdm = [[NLWeaveDeviceManager alloc] init:name
+                                                     weaveWorkQueue:_mWorkQueue
+                                                   appCallbackQueue:appCallbackQueue
+                                                        exchangeMgr:&_mExchangeMgr
+                                                        securityMgr:&_mSecurityMgr];
+    if (nil == wdm) {
         WDM_LOG_ERROR(@"Cannot create new NLWeaveDeviceManager\n");
     }
     return wdm;

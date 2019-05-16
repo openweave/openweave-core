@@ -31,10 +31,9 @@ typedef int32_t WEAVE_ERROR;
 
 #define NLWEAVE_NO_ERROR 0
 
-
 // Macro for defining Weave errors
 #define NLWEAVE_ERROR_BASE 4000
-#define NLWEAVE_ERROR_MAX  4999
+#define NLWEAVE_ERROR_MAX 4999
 
 #define _NLWEAVE_ERROR(e) (NLWEAVE_ERROR_BASE + (e))
 

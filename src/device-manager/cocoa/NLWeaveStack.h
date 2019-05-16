@@ -29,8 +29,7 @@
 @class NLWeaveBleDelegate;
 @class NLWeaveDeviceManager;
 
-typedef NS_ENUM(NSInteger, EWeaveStackState)
-{
+typedef NS_ENUM(NSInteger, EWeaveStackState) {
     kWeaveStack_NotInitialized = 0,
     kWeaveStack_QueueInitialized,
     kWeaveStack_Initializing,
@@ -42,11 +41,11 @@ typedef void (^ShutdownCompletionBlock)(WEAVE_ERROR result);
 
 @interface NLWeaveStack : NSObject
 
-@property(atomic) EWeaveStackState currentState;
+@property (atomic) EWeaveStackState currentState;
 
-@property(atomic, readonly) dispatch_queue_t  WorkQueue;
+@property (atomic, readonly) dispatch_queue_t WorkQueue;
 
-@property(atomic, strong, readonly)NLWeaveBleDelegate * BleDelegate;
+@property (atomic, strong, readonly) NLWeaveBleDelegate * BleDelegate;
 
 /**
  @note This is a singleton. There is no way to have more than one instances at any time.
@@ -59,6 +58,6 @@ typedef void (^ShutdownCompletionBlock)(WEAVE_ERROR result);
 
 - (void)ShutdownStack:(ShutdownCompletionBlock)block;
 
--(NLWeaveDeviceManager *)createDeviceManager:(NSString *)name appCallbackQueue:(dispatch_queue_t)appCallbackQueue;
+- (NLWeaveDeviceManager *)createDeviceManager:(NSString *)name appCallbackQueue:(dispatch_queue_t)appCallbackQueue;
 
 @end

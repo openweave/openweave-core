@@ -25,7 +25,6 @@
 
 #import <Foundation/Foundation.h>
 
-
 NS_ASSUME_NONNULL_BEGIN
 
 extern NSUInteger const NLWeaveKeyIds_KeyTypeNone;
@@ -56,7 +55,7 @@ extern NSUInteger const NLWeaveKeyIds_ServiceRootKey;
  *  @return                type of the key ID.
  *
  */
-+ (UInt32) getType: (UInt32) keyId;
++ (UInt32)getType:(UInt32)keyId;
 
 /**
  *  Determine whether the specified key ID is of a general type.
@@ -65,7 +64,7 @@ extern NSUInteger const NLWeaveKeyIds_ServiceRootKey;
  *  @return      true      if the keyId has General type.
  *
  */
-+ (BOOL) isGeneralKey: (UInt32) keyId;
++ (BOOL)isGeneralKey:(UInt32)keyId;
 
 /**
  *  Determine whether the specified key ID is of a session type.
@@ -74,7 +73,7 @@ extern NSUInteger const NLWeaveKeyIds_ServiceRootKey;
  *  @return      true      if the keyId of a session type.
  *
  */
-+ (BOOL) isSessionKey: (UInt32) keyId;
++ (BOOL)isSessionKey:(UInt32)keyId;
 
 /**
  *  Determine whether the specified key ID is of an application static type.
@@ -83,7 +82,7 @@ extern NSUInteger const NLWeaveKeyIds_ServiceRootKey;
  *  @return      true      if the keyId of an application static type.
  *
  */
-+ (BOOL) isAppStaticKey: (UInt32) keyId;
++ (BOOL)isAppStaticKey:(UInt32)keyId;
 
 /**
  *  Determine whether the specified key ID is of an application rotating type.
@@ -92,7 +91,7 @@ extern NSUInteger const NLWeaveKeyIds_ServiceRootKey;
  *  @return      true      if the keyId of an application rotating type.
  *
  */
-+ (BOOL) isAppRotatingKey: (UInt32) keyId;
++ (BOOL)isAppRotatingKey:(UInt32)keyId;
 
 /**
  *  Determine whether the specified key ID is of an application root key type.
@@ -101,7 +100,7 @@ extern NSUInteger const NLWeaveKeyIds_ServiceRootKey;
  *  @return      true      if the keyId of an application root key type.
  *
  */
-+ (BOOL) isAppRootKey: (UInt32) keyId;
++ (BOOL)isAppRootKey:(UInt32)keyId;
 
 /**
  *  Determine whether the specified key ID is of an application epoch key type.
@@ -110,7 +109,7 @@ extern NSUInteger const NLWeaveKeyIds_ServiceRootKey;
  *  @return      true      if the keyId of an application epoch key type.
  *
  */
-+ (BOOL) isAppEpochKey: (UInt32) keyId;
++ (BOOL)isAppEpochKey:(UInt32)keyId;
 
 /**
  *  Determine whether the specified key ID is of an application group master key type.
@@ -119,7 +118,7 @@ extern NSUInteger const NLWeaveKeyIds_ServiceRootKey;
  *  @return  true      if the keyId of an application group master key type.
  *
  */
-+ (BOOL) isAppGroupMasterKey: (UInt32) keyId;
++ (BOOL)isAppGroupMasterKey:(UInt32)keyId;
 
 /**
  *  Construct session key ID given session key number.
@@ -128,7 +127,7 @@ extern NSUInteger const NLWeaveKeyIds_ServiceRootKey;
  *  @return      session key ID.
  *
  */
-+ (UInt16) makeSessionKeyId: (UInt16) sessionKeyNumber;
++ (UInt16)makeSessionKeyId:(UInt16)sessionKeyNumber;
 
 /**
  *  Construct general key ID given general key number.
@@ -137,7 +136,7 @@ extern NSUInteger const NLWeaveKeyIds_ServiceRootKey;
  *  @return      general key ID.
  *
  */
-+ (UInt16) makeGeneralKeyId: (UInt16) generalKeyNumber;
++ (UInt16)makeGeneralKeyId:(UInt16)generalKeyNumber;
 
 /**
  *  Get application group root key ID that was used to derive specified application key.
@@ -146,7 +145,7 @@ extern NSUInteger const NLWeaveKeyIds_ServiceRootKey;
  *  @return      root key ID.
  *
  */
-+ (UInt32) getRootKeyId: (UInt32) keyId;
++ (UInt32)getRootKeyId:(UInt32)keyId;
 
 /**
  *  Get application group epoch key ID that was used to derive specified application key.
@@ -155,7 +154,7 @@ extern NSUInteger const NLWeaveKeyIds_ServiceRootKey;
  *  @return      epoch key ID.
  *
  */
-+ (UInt32) getEpochKeyId: (UInt32) keyId;
++ (UInt32)getEpochKeyId:(UInt32)keyId;
 
 /**
  *  Get application group master key ID that was used to derive specified application key.
@@ -164,7 +163,7 @@ extern NSUInteger const NLWeaveKeyIds_ServiceRootKey;
  *  @return      application group master key ID.
  *
  */
-+ (UInt32) getAppGroupMasterKeyId: (UInt32) keyId;
++ (UInt32)getAppGroupMasterKeyId:(UInt32)keyId;
 
 /**
  *  Get application group root key number that was used to derive specified application key.
@@ -173,7 +172,7 @@ extern NSUInteger const NLWeaveKeyIds_ServiceRootKey;
  *  @return      root key number.
  *
  */
-+ (UInt8) getRootKeyNumber: (UInt32) keyId;
++ (UInt8)getRootKeyNumber:(UInt32)keyId;
 
 /**
  *  Get application group epoch key number that was used to derive specified application key.
@@ -182,7 +181,7 @@ extern NSUInteger const NLWeaveKeyIds_ServiceRootKey;
  *  @return      epoch key number.
  *
  */
-+ (UInt8) getEpochKeyNumber: (UInt32) keyId;
++ (UInt8)getEpochKeyNumber:(UInt32)keyId;
 
 /**
  *  Get application group local number that was used to derive specified application key.
@@ -191,7 +190,7 @@ extern NSUInteger const NLWeaveKeyIds_ServiceRootKey;
  *  @return      application group local number.
  *
  */
-+ (UInt8) getAppGroupLocalNumber: (UInt32) keyId;
++ (UInt8)getAppGroupLocalNumber:(UInt32)keyId;
 
 /**
  *  Construct application group root key ID given root key number.
@@ -200,7 +199,7 @@ extern NSUInteger const NLWeaveKeyIds_ServiceRootKey;
  *  @return      root key ID.
  *
  */
-+ (UInt32) makeRootKeyId: (UInt8) epochKeyNumber;
++ (UInt32)makeRootKeyId:(UInt8)epochKeyNumber;
 
 /**
  *  Construct application group root key ID given epoch key number.
@@ -209,7 +208,7 @@ extern NSUInteger const NLWeaveKeyIds_ServiceRootKey;
  *  @return      epoch key ID.
  *
  */
-+ (UInt32) makeEpochKeyId: (UInt8) epochKeyNumber;
++ (UInt32)makeEpochKeyId:(UInt8)epochKeyNumber;
 
 /**
  *  Construct application group master key ID given application group local number.
@@ -218,7 +217,7 @@ extern NSUInteger const NLWeaveKeyIds_ServiceRootKey;
  *  @return      application group master key ID.
  *
  */
-+ (UInt32) makeAppGroupMasterKeyId: (UInt32) appGroupMasterKeyLocalId;
++ (UInt32)makeAppGroupMasterKeyId:(UInt32)appGroupMasterKeyLocalId;
 
 /**
  *  Convert application group key ID to application current key ID.
@@ -227,7 +226,7 @@ extern NSUInteger const NLWeaveKeyIds_ServiceRootKey;
  *  @return      application current key ID.
  *
  */
-+ (UInt32) convertToCurrentAppKeyId: (UInt32) keyId;
++ (UInt32)convertToCurrentAppKeyId:(UInt32)keyId;
 
 /**
  *  Determine whether the specified application group key ID incorporates epoch key.
@@ -236,40 +235,36 @@ extern NSUInteger const NLWeaveKeyIds_ServiceRootKey;
  *  @return      true      if the keyId incorporates epoch key.
  *
  */
-+ (BOOL) incorporatesEpochKey: (UInt32) keyId;
++ (BOOL)incorporatesEpochKey:(UInt32)keyId;
 
-+ (BOOL) usesCurrentEpochKey: (UInt32) keyId;
++ (BOOL)usesCurrentEpochKey:(UInt32)keyId;
 
-+ (BOOL) incorporatesRootKey: (UInt32) keyId;
++ (BOOL)incorporatesRootKey:(UInt32)keyId;
 
-+ (BOOL) incorporatesAppGroupMasterKey: (UInt32) keyId;
++ (BOOL)incorporatesAppGroupMasterKey:(UInt32)keyId;
 
-+ (UInt32) makeAppKeyId: (UInt32) keyType
-              rootKeyId: (UInt32) rootKeyId
-             epochKeyId: (UInt32) epochKeyId
-    appGroupMasterKeyId: (UInt32) appGroupMasterKeyId
-     useCurrentEpochKey: (BOOL) useCurrentEpochKey;
++ (UInt32)makeAppKeyId:(UInt32)keyType
+              rootKeyId:(UInt32)rootKeyId
+             epochKeyId:(UInt32)epochKeyId
+    appGroupMasterKeyId:(UInt32)appGroupMasterKeyId
+     useCurrentEpochKey:(BOOL)useCurrentEpochKey;
 
-+ (UInt32) makeAppIntermediateKeyId: (UInt32) rootKeyId
-                         epochKeyId: (UInt32) epochKeyId
-                 useCurrentEpochKey: (BOOL) useCurrentEpochKey;
++ (UInt32)makeAppIntermediateKeyId:(UInt32)rootKeyId epochKeyId:(UInt32)epochKeyId useCurrentEpochKey:(BOOL)useCurrentEpochKey;
 
-+ (UInt32) makeAppRotatingKeyId: (UInt32) rootKeyId
-                     epochKeyId: (UInt32) epochKeyId
-            appGroupMasterKeyId: (UInt32) appGroupMasterKeyId
-             useCurrentEpochKey: (BOOL) useCurrentEpochKey;
++ (UInt32)makeAppRotatingKeyId:(UInt32)rootKeyId
+                    epochKeyId:(UInt32)epochKeyId
+           appGroupMasterKeyId:(UInt32)appGroupMasterKeyId
+            useCurrentEpochKey:(BOOL)useCurrentEpochKey;
 
-+ (UInt32) makeAppStaticKeyId: (UInt32) rootKeyId
-          appGroupMasterKeyId: (UInt32) appGroupMasterKeyId;
++ (UInt32)makeAppStaticKeyId:(UInt32)rootKeyId appGroupMasterKeyId:(UInt32)appGroupMasterKeyId;
 
-+ (UInt32) convertToStaticAppKeyId: (UInt32) keyId;
++ (UInt32)convertToStaticAppKeyId:(UInt32)keyId;
 
-+ (UInt32) updateEpochKeyId: (UInt32) keyId
-                 epochKeyId: (UInt32) epochKeyId;
++ (UInt32)updateEpochKeyId:(UInt32)keyId epochKeyId:(UInt32)epochKeyId;
 
-+ (BOOL) isValidKeyId: (UInt32) keyId;
++ (BOOL)isValidKeyId:(UInt32)keyId;
 
-+ (NSString *) describeKey: (UInt32) keyId;
++ (NSString *)describeKey:(UInt32)keyId;
 
 @end
 NS_ASSUME_NONNULL_END
