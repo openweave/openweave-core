@@ -63,6 +63,8 @@ bool ReadCert(const char *fileName, X509 *& cert, CertFormat& origCertFmt)
     if (!ReadFileIntoMem(fileName, certBuf, certLen))
         ExitNow(res = false);
 
+    VerifyOrExit(certLen <= MAX_CERT_SIZE, res = false);
+
     curCertFmt = origCertFmt = DetectCertFormat(certBuf, certLen);
 
     if (curCertFmt == kCertFormat_X509_PEM)
@@ -149,6 +151,8 @@ bool ReadWeaveCert(const char *fileName, uint8_t *& certBuf, uint32_t& certLen)
 
     if (!ReadFileIntoMem(fileName, certBuf, certLen))
         ExitNow(res = false);
+
+    VerifyOrExit(certLen <= MAX_CERT_SIZE, res = false);
 
     certFmt = DetectCertFormat(certBuf, certLen);
     if (certFmt != kCertFormat_Weave_Raw && certFmt != kCertFormat_Weave_Base64)

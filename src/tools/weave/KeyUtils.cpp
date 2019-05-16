@@ -51,6 +51,8 @@ bool ReadPrivateKey(const char *fileName, const char *prompt, EVP_PKEY *& key)
     if (!res)
         ExitNow();
 
+    VerifyOrExit(keyDataLen <= MAX_KEY_SIZE, res = false);
+
     res = DecodePrivateKey(keyData, keyDataLen, kKeyFormat_Unknown, fileName, prompt, key);
 
 exit:
@@ -69,6 +71,9 @@ bool ReadPublicKey(const char *fileName, EVP_PKEY *& key)
     res = ReadFileIntoMem(fileName, keyData, keyDataLen);
     if (!res)
         ExitNow();
+
+    VerifyOrExit(keyDataLen <= MAX_KEY_SIZE, res = false);
+
     res = DecodePublicKey(keyData, keyDataLen, kKeyFormat_Unknown, fileName, key);
 
 exit:

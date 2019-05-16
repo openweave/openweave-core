@@ -427,13 +427,16 @@ ASN1_ERROR ASN1Writer::EncodeHead(uint8_t cls, uint32_t tag, bool isConstructed,
 {
     ASN1_ERROR err = ASN1_NO_ERROR;
     uint8_t lenOfLen;
-    uint16_t totalLen;
+    uint32_t totalLen;
 
     // Do nothing for a null writer.
     VerifyOrExit(mBuf != NULL, err = ASN1_NO_ERROR);
 
     // Only tags <= 31 supported. The implication of this is that encoded tags are exactly 1 byte long.
     VerifyOrExit(tag <= 0x1F, err = ASN1_ERROR_UNSUPPORTED_ENCODING);
+
+    // Only positive and kUnkownLength values are supported for len input.
+    VerifyOrExit(len >= 0 || len == kUnkownLength, err = ASN1_ERROR_UNSUPPORTED_ENCODING);
 
     // Compute the number of bytes required to encode the length.
     lenOfLen = GetLengthOfLength(len);
