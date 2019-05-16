@@ -41,11 +41,8 @@
 #endif
 #include <Weave/Profiles/service-directory/ServiceDirectory.h>
 
-#if WEAVE_CONFIG_LEGACY_WDM
-// Specify Legacy to enable definition in legacy code
-#define WEAVE_CONFIG_DATA_MANAGEMENT_NAMESPACE kWeaveManagedNamespace_Legacy
-#include <Weave/Profiles/data-management/Legacy/DMConstants.h>
-#endif
+#define WEAVE_CONFIG_DATA_MANAGEMENT_NAMESPACE kWeaveManagedNamespace_Current
+#include <Weave/Profiles/data-management/Current/MessageDef.h>
 
 #include <Weave/Profiles/device-control/DeviceControl.h>
 #include <Weave/Profiles/fabric-provisioning/FabricProvisioning.h>
@@ -53,6 +50,7 @@
 #include <Weave/Profiles/security/WeaveSecurity.h>
 #include <Weave/Profiles/software-update/SoftwareUpdateProfile.h>
 #include <Weave/Profiles/service-provisioning/ServiceProvisioning.h>
+#include <Weave/Profiles/weave-tunneling/WeaveTunnelControl.h>
 #include <Weave/Support/ProfileStringSupport.hpp>
 
 namespace nl {
@@ -109,6 +107,7 @@ NL_DLL_EXPORT const char *StatusReportStr(uint32_t profileId, uint16_t statusCod
     case kWeaveProfile_BDX:
         switch (statusCode)
         {
+#if WEAVE_CONFIG_BDX_NAMESPACE == kWeaveManagedNamespace_Development
         case BulkDataTransfer::kStatus_Overflow                                         : fmt = "[ BDX(%08" PRIX32 "):%" PRIu16 " ] Overflow"; break;
         case BulkDataTransfer::kStatus_LengthTooShort                                   : fmt = "[ BDX(%08" PRIX32 "):%" PRIu16 " ] Length too short"; break;
         case BulkDataTransfer::kStatus_XferFailedUnknownErr                             : fmt = "[ BDX(%08" PRIX32 "):%" PRIu16 " ] Transfer failed for unknown reason"; break;
@@ -116,6 +115,23 @@ NL_DLL_EXPORT const char *StatusReportStr(uint32_t profileId, uint16_t statusCod
         case BulkDataTransfer::kStatus_UnknownFile                                      : fmt = "[ BDX(%08" PRIX32 "):%" PRIu16 " ] Unknown file"; break;
         case BulkDataTransfer::kStatus_StartOffsetNotSupported                          : fmt = "[ BDX(%08" PRIX32 "):%" PRIu16 " ] Start offset not support"; break;
         case BulkDataTransfer::kStatus_Unknown                                          : fmt = "[ BDX(%08" PRIX32 "):%" PRIu16 " ] Unknown error"; break;
+#else
+        case BulkDataTransfer::kStatus_Overflow                                         : fmt = "[ BDX(%08" PRIX32 "):%" PRIu16 " ] Overflow"; break;
+        case BulkDataTransfer::kStatus_LengthTooLarge                                   : fmt = "[ BDX(%08" PRIX32 "):%" PRIu16 " ] Length too long"; break;
+        case BulkDataTransfer::kStatus_LengthTooShort                                   : fmt = "[ BDX(%08" PRIX32 "):%" PRIu16 " ] Length too short"; break;
+        case BulkDataTransfer::kStatus_LengthMismatch                                   : fmt = "[ BDX(%08" PRIX32 "):%" PRIu16 " ] Length mismatch"; break;
+        case BulkDataTransfer::kStatus_LengthRequired                                   : fmt = "[ BDX(%08" PRIX32 "):%" PRIu16 " ] Length required"; break;
+        case BulkDataTransfer::kStatus_BadMessageContents                               : fmt = "[ BDX(%08" PRIX32 "):%" PRIu16 " ] Bad message contents"; break;
+        case BulkDataTransfer::kStatus_BadBlockCounter                                  : fmt = "[ BDX(%08" PRIX32 "):%" PRIu16 " ] Bad block counter"; break;
+        case BulkDataTransfer::kStatus_XferFailedUnknownErr                             : fmt = "[ BDX(%08" PRIX32 "):%" PRIu16 " ] Transfer failed for unknown reason"; break;
+        case BulkDataTransfer::kStatus_ServerBadState                                   : fmt = "[ BDX(%08" PRIX32 "):%" PRIu16 " ] Server is in incorrect state"; break;
+        case BulkDataTransfer::kStatus_FailureToSend                                    : fmt = "[ BDX(%08" PRIX32 "):%" PRIu16 " ] Failure to send"; break;
+        case BulkDataTransfer::kStatus_XferMethodNotSupported                           : fmt = "[ BDX(%08" PRIX32 "):%" PRIu16 " ] Transfer method not supported"; break;
+        case BulkDataTransfer::kStatus_UnknownFile                                      : fmt = "[ BDX(%08" PRIX32 "):%" PRIu16 " ] Unknown file"; break;
+        case BulkDataTransfer::kStatus_StartOffsetNotSupported                          : fmt = "[ BDX(%08" PRIX32 "):%" PRIu16 " ] Start offset not support"; break;
+        case BulkDataTransfer::kStatus_VersionNotSupported                              : fmt = "[ BDX(%08" PRIX32 "):%" PRIu16 " ] Protocol version not supported"; break;
+        case BulkDataTransfer::kStatus_Unknown                                          : fmt = "[ BDX(%08" PRIX32 "):%" PRIu16 " ] Unknown error"; break;
+#endif // WEAVE_CONFIG_BDX_NAMESPACE == kWeaveManagedNamespace_Development
         default                                                                         : fmt = "[ BDX(%08" PRIX32 "):%" PRIu16 " ]"; break;
         }
         break;
@@ -143,18 +159,32 @@ NL_DLL_EXPORT const char *StatusReportStr(uint32_t profileId, uint16_t statusCod
 
     case kWeaveProfile_WDM:
         switch (statusCode)
-	    {
-#if WEAVE_CONFIG_LEGACY_WDM
+            {
         case DataManagement_Legacy::kStatus_CancelSuccess                               : fmt = "[ WDM(%08" PRIX32 "):%" PRIu16 " ] Subscription canceled"; break;
         case DataManagement_Legacy::kStatus_InvalidPath                                 : fmt = "[ WDM(%08" PRIX32 "):%" PRIu16 " ] Invalid path"; break;
         case DataManagement_Legacy::kStatus_UnknownTopic                                : fmt = "[ WDM(%08" PRIX32 "):%" PRIu16 " ] Unknown topic"; break;
         case DataManagement_Legacy::kStatus_IllegalReadRequest                          : fmt = "[ WDM(%08" PRIX32 "):%" PRIu16 " ] Illegal read request"; break;
         case DataManagement_Legacy::kStatus_IllegalWriteRequest                         : fmt = "[ WDM(%08" PRIX32 "):%" PRIu16 " ] Illegal write request"; break;
         case DataManagement_Legacy::kStatus_InvalidVersion                              : fmt = "[ WDM(%08" PRIX32 "):%" PRIu16 " ] Invalid version"; break;
-#endif
+        case DataManagement_Legacy::kStatus_UnsupportedSubscriptionMode                 : fmt = "[ WDM(%08" PRIX32 "):%" PRIu16 " ] Unsupported subscription mode"; break;
+
+        case DataManagement_Current::kStatus_InvalidValueInNotification                 : fmt = "[ WDM(%08" PRIX32 "):%" PRIu16 " ] Invalid value in notification"; break;
+        case DataManagement_Current::kStatus_InvalidPath                                : fmt = "[ WDM(%08" PRIX32 "):%" PRIu16 " ] Invalid path"; break;
+        case DataManagement_Current::kStatus_ExpiryTimeNotSupported                     : fmt = "[ WDM(%08" PRIX32 "):%" PRIu16 " ] Expiry time not supported"; break;
+        case DataManagement_Current::kStatus_NotTimeSyncedYet                           : fmt = "[ WDM(%08" PRIX32 "):%" PRIu16 " ] Not time-synced yet"; break;
+        case DataManagement_Current::kStatus_RequestExpiredInTime                       : fmt = "[ WDM(%08" PRIX32 "):%" PRIu16 " ] Request expired in time"; break;
+        case DataManagement_Current::kStatus_VersionMismatch                            : fmt = "[ WDM(%08" PRIX32 "):%" PRIu16 " ] Version mismatch"; break;
+        case DataManagement_Current::kStatus_GeneralProtocolError                       : fmt = "[ WDM(%08" PRIX32 "):%" PRIu16 " ] General protocol error"; break;
+        case DataManagement_Current::kStatus_SecurityError                              : fmt = "[ WDM(%08" PRIX32 "):%" PRIu16 " ] Security error"; break;
+        case DataManagement_Current::kStatus_InvalidSubscriptionID                      : fmt = "[ WDM(%08" PRIX32 "):%" PRIu16 " ] Invalid subscription ID"; break;
+        case DataManagement_Current::kStatus_GeneralSchemaViolation                     : fmt = "[ WDM(%08" PRIX32 "):%" PRIu16 " ] General schema violation"; break;
+        case DataManagement_Current::kStatus_UnpairedDeviceRejected                     : fmt = "[ WDM(%08" PRIX32 "):%" PRIu16 " ] Unpaired device rejected"; break;
+        case DataManagement_Current::kStatus_IncompatibleDataSchemaVersion              : fmt = "[ WDM(%08" PRIX32 "):%" PRIu16 " ] Incompatible data schema violation"; break;
+        case DataManagement_Current::kStatus_MultipleFailures                           : fmt = "[ WDM(%08" PRIX32 "):%" PRIu16 " ] Multiple failures"; break;
+        case DataManagement_Current::kStatus_UpdateOutOfSequence                        : fmt = "[ WDM(%08" PRIX32 "):%" PRIu16 " ] Update out of sequence"; break;
         default                                                                         : fmt = "[ WDM(%08" PRIX32 "):%" PRIu16 " ]"; break;
         }
-	break;
+        break;
 
     case kWeaveProfile_DeviceControl:
         switch (statusCode)
@@ -163,6 +193,11 @@ NL_DLL_EXPORT const char *StatusReportStr(uint32_t profileId, uint16_t statusCod
         case DeviceControl::kStatusCode_NoFailSafeActive                                : fmt = "[ DeviceControl(%08" PRIX32 "):%" PRIu16 " ] No fail-safe active"; break;
         case DeviceControl::kStatusCode_NoMatchingFailSafeActive                        : fmt = "[ DeviceControl(%08" PRIX32 "):%" PRIu16 " ] No matching fail-safe active"; break;
         case DeviceControl::kStatusCode_UnsupportedFailSafeMode                         : fmt = "[ DeviceControl(%08" PRIX32 "):%" PRIu16 " ] Unsupported fail-safe mode"; break;
+        case DeviceControl::kStatusCode_RemotePassiveRendezvousTimedOut                 : fmt = "[ DeviceControl(%08" PRIX32 "):%" PRIu16 " ] Remote Passive Rendezvous timed out"; break;
+        case DeviceControl::kStatusCode_UnsecuredListenPreempted                        : fmt = "[ DeviceControl(%08" PRIX32 "):%" PRIu16 " ] Unsecured Listen pre-empted"; break;
+        case DeviceControl::kStatusCode_ResetSuccessCloseCon                            : fmt = "[ DeviceControl(%08" PRIX32 "):%" PRIu16 " ] ResetConfig will succeed after connection close"; break;
+        case DeviceControl::kStatusCode_ResetNotAllowed                                 : fmt = "[ DeviceControl(%08" PRIX32 "):%" PRIu16 " ] Reset not allowed"; break;
+        case DeviceControl::kStatusCode_NoSystemTestDelegate                            : fmt = "[ DeviceControl(%08" PRIX32 "):%" PRIu16 " ] System test cannot run without a delegate"; break;
         default                                                                         : fmt = "[ DeviceControl(%08" PRIX32 "):%" PRIu16 " ]"; break;
         }
         break;
@@ -203,6 +238,8 @@ NL_DLL_EXPORT const char *StatusReportStr(uint32_t profileId, uint16_t statusCod
         case NetworkProvisioning::kStatusCode_UnsupportedWiFiSecurityType               : fmt = "[ NetworkProvisioning(%08" PRIX32 "):%" PRIu16 " ] Unsupported WiFi security type"; break;
         case NetworkProvisioning::kStatusCode_InvalidState                              : fmt = "[ NetworkProvisioning(%08" PRIX32 "):%" PRIu16 " ] Invalid state"; break;
         case NetworkProvisioning::kStatusCode_TestNetworkFailed                         : fmt = "[ NetworkProvisioning(%08" PRIX32 "):%" PRIu16 " ] Test network failed"; break;
+        case NetworkProvisioning::kStatusCode_NetworkConnectFailed                      : fmt = "[ NetworkProvisioning(%08" PRIX32 "):%" PRIu16 " ] Network connect failed"; break;
+        case NetworkProvisioning::kStatusCode_NoRouterAvailable                         : fmt = "[ NetworkProvisioning(%08" PRIX32 "):%" PRIu16 " ] No router available"; break;
         default                                                                         : fmt = "[ NetworkProvisioning(%08" PRIX32 "):%" PRIu16 " ]"; break;
         }
         break;
@@ -252,6 +289,8 @@ NL_DLL_EXPORT const char *StatusReportStr(uint32_t profileId, uint16_t statusCod
         case ServiceProvisioning::kStatusCode_PairingTokenOld                           : fmt = "[ ServiceProvisioning(%08" PRIX32 "):%" PRIu16 " ] Pairing token no longer valid"; break;
         case ServiceProvisioning::kStatusCode_ServiceCommuncationError                  : fmt = "[ ServiceProvisioning(%08" PRIX32 "):%" PRIu16 " ] Service communication error"; break;
         case ServiceProvisioning::kStatusCode_ServiceConfigTooLarge                     : fmt = "[ ServiceProvisioning(%08" PRIX32 "):%" PRIu16 " ] Service configuration too large"; break;
+        case ServiceProvisioning::kStatusCode_WrongFabric                               : fmt = "[ ServiceProvisioning(%08" PRIX32 "):%" PRIu16 " ] Wrong fabric"; break;
+        case ServiceProvisioning::kStatusCode_TooManyFabrics                            : fmt = "[ ServiceProvisioning(%08" PRIX32 "):%" PRIu16 " ] Too many fabrics"; break;
         default                                                                         : fmt = "[ ServiceProvisioning(%08" PRIX32 "):%" PRIu16 " ]"; break;
         }
         break;
@@ -268,6 +307,18 @@ NL_DLL_EXPORT const char *StatusReportStr(uint32_t profileId, uint16_t statusCod
         case SoftwareUpdate::kStatus_Retry                                              : fmt = "[ SWU(%08" PRIX32 "):%" PRIu16 " ] Retry software image query"; break;
         default                                                                         : fmt = "[ SWU(%08" PRIX32 "):%" PRIu16 " ]"; break;
         }
+        break;
+    case kWeaveProfile_Tunneling:
+        switch (statusCode)
+	{
+#if WEAVE_CONFIG_ENABLE_TUNNELING
+	case WeaveTunnel::kStatusCode_TunnelOpenFail                                    : fmt = "[ WeaveTunnel(%08" PRIX32 "):%" PRIu16 " ] Tunnel open failed"; break;
+	case WeaveTunnel::kStatusCode_TunnelCloseFail                                   : fmt = "[ WeaveTunnel(%08" PRIX32 "):%" PRIu16 " ] Tunnel close failed"; break;
+	case WeaveTunnel::kStatusCode_TunnelRouteUpdateFail                             : fmt = "[ WeaveTunnel(%08" PRIX32 "):%" PRIu16 " ] Tunnel route update failed"; break;
+	case WeaveTunnel::kStatusCode_TunnelReconnectFail                               : fmt = "[ WeaveTunnel(%08" PRIX32 "):%" PRIu16 " ] Tunnel reconnect failed"; break;
+#endif
+	default                                                                         : fmt = "[ WeaveTunnel(%08" PRIX32 "):%" PRIu16 " ]"; break;
+	}
         break;
 
     case kWeaveProfile_StatusReport_Deprecated:
