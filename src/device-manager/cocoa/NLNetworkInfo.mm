@@ -31,6 +31,10 @@ using nl::Weave::Profiles::NetworkProvisioning::WiFiMode;
 using nl::Weave::Profiles::NetworkProvisioning::WiFiRole;
 using nl::Weave::Profiles::NetworkProvisioning::WiFiSecurityType;
 
+const int64_t NLNetworkID_NotSpecified = -1LL;
+const int NLThreadPANId_NotSpecified = -1;
+const int NLThreadChannel_NotSpecified = -1;
+
 @implementation NLNetworkInfo
 
 + (NLNetworkInfo *)createUsing:(NetworkInfo *)pNetworkInfo {
