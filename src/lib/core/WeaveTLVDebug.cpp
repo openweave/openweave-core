@@ -50,14 +50,14 @@ namespace Debug {
  *  @a aWriter.
  *
  *  @param[in]     aWriter   The writer to log the TLV data.
- *  @param[in]     aTabs     The indentation for logging the current depth into
+ *  @param[in]     aIndent   The indentation for logging the current depth into
  *                           the TLV data.
  *  @param[in]     aReader   A read-only reference to the TLV reader containing
  *                           the TLV data to log.
  *  @param[in]     aDepth    The current depth into the TLV data.
  *
  */
-static void DumpHandler(DumpWriter aWriter, const char *aTabs, const TLVReader &aReader, size_t aDepth)
+static void DumpHandler(DumpWriter aWriter, const char *aIndent, const TLVReader &aReader, size_t aDepth)
 {
     const TLVType       type        = aReader.GetType();
     const uint64_t      tag         = aReader.GetTag();
@@ -70,7 +70,10 @@ static void DumpHandler(DumpWriter aWriter, const char *aTabs, const TLVReader &
     temp.Init(aReader);
     tagControl = static_cast<TLVTagControl>(temp.GetControlByte() & kTLVTagControlMask);
 
-    aWriter("%zd %s", aDepth, aTabs);
+    aWriter("%zd ", aDepth);
+
+    for (size_t i = 0; i < aDepth; i++)
+        aWriter("%s", aIndent);
 
     aWriter("%p, ", temp.GetReadPoint());
 
@@ -333,8 +336,7 @@ WEAVE_ERROR DumpIterator(DumpWriter aWriter, const TLVReader &aReader)
  */
 WEAVE_ERROR DumpHandler(const TLVReader &aReader, size_t aDepth, void *aContext)
 {
-    static const char   tabs[] = "																				";
-    char                tabbuf[48];
+    static const char   indent[] = "    ";
     WEAVE_ERROR         retval = WEAVE_NO_ERROR;
     DumpContext *       context;
 
@@ -344,12 +346,8 @@ WEAVE_ERROR DumpHandler(const TLVReader &aReader, size_t aDepth, void *aContext)
 
     VerifyOrExit(context->mWriter != NULL, retval = WEAVE_ERROR_INVALID_ARGUMENT);
 
-    strncpy(tabbuf, tabs, aDepth);
-
-    tabbuf[aDepth] = 0;
-
     DumpHandler(context->mWriter,
-                tabbuf,
+                indent,
                 aReader,
                 aDepth);
 
