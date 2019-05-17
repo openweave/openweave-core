@@ -187,7 +187,9 @@ endif
 
 NRFJPROG = $(NRF5_TOOLS_ROOT)/nrfjprog/nrfjprog
 
-SOFTDEVICE_IMAGE = $(NRF5_SDK_ROOT)/components/softdevice/s140/hex/s140_nrf52_6.1.0_softdevice.hex
+SOFTDEVICE_IMAGE_DIR = $(NRF5_SDK_ROOT)/components/softdevice/s140/hex
+
+SOFTDEVICE_IMAGE = $(wildcard $(SOFTDEVICE_IMAGE_DIR)/s140_nrf52_*_softdevice.hex)
 
 
 # ==================================================
@@ -258,6 +260,7 @@ endef
 
 # Flash the SoftDevice
 flash-softdevice flash_softdevice :
+	@if test -z "$(SOFTDEVICE_IMAGE)"; then echo "SoftDevice image not found in $(SOFTDEVICE_IMAGE_DIR)"; false; fi
 	@echo "FLASH $(SOFTDEVICE_IMAGE)"
 	$(NO_ECHO)$(NRFJPROG) -f nrf52 --program $(SOFTDEVICE_IMAGE) --sectorerase
 	@echo "RESET DEVICE"
