@@ -27,17 +27,16 @@
 
 NS_ASSUME_NONNULL_BEGIN
 
-extern NSString *const NLWeaveKeyExportClientErrorDomain;
+extern NSString * const NLWeaveKeyExportClientErrorDomain;
 
 // Error codes for NLWeaveKeyExportClientErrorDomain
-typedef NS_ENUM (NSInteger, NLWeaveKeyExportClientErrorDomainCode){
+typedef NS_ENUM(NSInteger, NLWeaveKeyExportClientErrorDomainCode) {
     NLWeaveKeyExportClientErrorDomainInvalidExportBufferSize = 2,
     NLWeaveKeyExportClientErrorDomainKeyExportRequestFailure = 3,
     NLWeaveKeyExportClientErrorDomainKeyExportResponseFailure = 4,
     NLWeaveKeyExportClientErrorDomainProcessReconfiugreFailure = 5,
     NLWeaveKeyExportClientErrorDomainInvalidArgument = 6
 };
-
 
 /**
  * @class NLWeaveKeyExportClient
@@ -56,10 +55,10 @@ typedef NS_ENUM (NSInteger, NLWeaveKeyExportClientErrorDomainCode){
  * @param[out] errOut           Output error parameter, set in the event an error occurs and errOut is not null.
  * @return                      Binary buffer containing the generated key export request. Set to nil if error occurs.
  */
-- (nullable NSData *) generateKeyExportRequest: (UInt32) keyId
-                               responderNodeId: (UInt64) responderNodeId
-                                   accessToken: (NSData *) accessToken
-                                         error: (NSError **) errOut;
+- (nullable NSData *)generateKeyExportRequest:(UInt32)keyId
+                              responderNodeId:(UInt64)responderNodeId
+                                  accessToken:(NSData *)accessToken
+                                        error:(NSError **)errOut;
 
 /**
  * Generate a key export request given a client certificate and private key.
@@ -74,11 +73,11 @@ typedef NS_ENUM (NSInteger, NLWeaveKeyExportClientErrorDomainCode){
  * @param[out] errOut           Output error parameter, set in the event an error occurs and errOut is not null.
  * @return                      Binary buffer containing the generated key export request. Set to nil if error occurs.
  */
-- (nullable NSData *) generateKeyExportRequest: (UInt32) keyId
-                               responderNodeId: (UInt64) responderNodeId
-                                    clientCert: (NSData *) clientCert
-                                     clientKey: (NSData *) clientKey
-                                         error: (NSError **) errOut;
+- (nullable NSData *)generateKeyExportRequest:(UInt32)keyId
+                              responderNodeId:(UInt64)responderNodeId
+                                   clientCert:(NSData *)clientCert
+                                    clientKey:(NSData *)clientKey
+                                        error:(NSError **)errOut;
 
 /**
  * Process the response to a previously-generated key export request.
@@ -89,9 +88,7 @@ typedef NS_ENUM (NSInteger, NLWeaveKeyExportClientErrorDomainCode){
  * @param[out] errOut           Output error parameter, set in the event an error occurs and errOut is not null.
  * @return                      Binary buffer containing exported key.  Set to nil if error occurs.
  */
-- (nullable NSData *) processKeyExportResponse: (UInt64) responderNodeId
-                                    exportResp: (NSData *) exportResp
-                                         error: (NSError **) errOut;
+- (nullable NSData *)processKeyExportResponse:(UInt64)responderNodeId exportResp:(NSData *)exportResp error:(NSError **)errOut;
 
 /**
  * Process a reconfigure message received in response to a previously-generated key export request.
@@ -101,40 +98,38 @@ typedef NS_ENUM (NSInteger, NLWeaveKeyExportClientErrorDomainCode){
  * @param[out] errOut           Output error parameter, set in the event an error occurs and errOut is not null.
  * @return                      True on success, False on failure.
  */
-- (BOOL) processKeyExportReconfigure: (NSData *) reconfig
-                               error: (NSError **) errOut;
+- (BOOL)processKeyExportReconfigure:(NSData *)reconfig error:(NSError **)errOut;
 
 /**
  * Reset the key export client object, discarding any state associated with a pending key export request.
  */
-- (void) reset;
+- (void)reset;
 
 /**
  * True if key export responses from Nest development devices will be allowed.
  */
-- (BOOL) allowNestDevelopmentDevices;
+- (BOOL)allowNestDevelopmentDevices;
 
 /**
  * Allow or disallow key export responses from Nest development devices.
  */
-- (void) setAllowNestDevelopmentDevices: (BOOL) nestDev;
+- (void)setAllowNestDevelopmentDevices:(BOOL)nestDev;
 
 /**
  * True if key export responses from devices with SHA1 certificates will be allowed.
  */
-- (BOOL) allowSHA1DeviceCertificates;
+- (BOOL)allowSHA1DeviceCertificates;
 
 /**
  * Allow or disallow key export responses from devices with SHA1 certificates.
  */
-- (void) setAllowSHA1DeviceCertificates: (BOOL) nestDev;
+- (void)setAllowSHA1DeviceCertificates:(BOOL)nestDev;
 
 /**
  *  Initializes NLWeaveKeyExportClient object.  Creates instance and initializes instace of
  *  internal C++ object for performing key export functionality.
  */
-- (instancetype) init;
-
+- (instancetype)init;
 
 @end
 NS_ASSUME_NONNULL_END

@@ -29,7 +29,7 @@
 
 using nl::Weave::DeviceManager::NetworkInfo;
 
-@interface NLNetworkInfo()
+@interface NLNetworkInfo ()
 
 + (NLNetworkInfo *)createUsing:(NetworkInfo *)pNetworkInfo;
 

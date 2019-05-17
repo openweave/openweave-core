@@ -26,9 +26,9 @@
 #import "NLWeaveErrorCodes.h"
 
 @class NLWeaveDeviceManager;
-typedef void (^PreparationCompleteHandler)(NLWeaveDeviceManager* dm, WEAVE_ERROR err);
+typedef void (^PreparationCompleteHandler)(NLWeaveDeviceManager * dm, WEAVE_ERROR err);
 
-@interface NLWeaveBleDelegate : NSObject<CBPeripheralDelegate>
+@interface NLWeaveBleDelegate : NSObject <CBPeripheralDelegate>
 
 /*
  * \defgroup BlePlatformDelegate
@@ -58,22 +58,25 @@ typedef void (^PreparationCompleteHandler)(NLWeaveDeviceManager* dm, WEAVE_ERROR
 /*
  *  @brief Command from BleLayer to send indication
  */
-- (bool)SendIndication:(id)connObj serivce:(const CBUUID *)svcId characteristic:(const CBUUID *)charId data:(const NSData*)buf;
+- (bool)SendIndication:(id)connObj serivce:(const CBUUID *)svcId characteristic:(const CBUUID *)charId data:(const NSData *)buf;
 
 /*
  *  @brief Command from BleLayer to send write request
  */
-- (bool)SendWriteRequest:(id)connObj serivce:(const CBUUID *)svcId characteristic:(const CBUUID *)charId data:(const NSData*)buf;
+- (bool)SendWriteRequest:(id)connObj serivce:(const CBUUID *)svcId characteristic:(const CBUUID *)charId data:(const NSData *)buf;
 
 /*
  *  @brief Command from BleLayer to send read request
  */
-- (bool)SendReadRequest:(id)connObj serivce:(const CBUUID *)svcId characteristic:(const CBUUID *)charId data:(const NSData*)buf;
+- (bool)SendReadRequest:(id)connObj serivce:(const CBUUID *)svcId characteristic:(const CBUUID *)charId data:(const NSData *)buf;
 
 /*
  *  @brief Command from BleLayer to send read response
  */
-- (bool)SendReadResponse:(id)connObj requestContext:(id)readContext serivce:(const CBUUID *)svcId characteristic:(const CBUUID *)charId;
+- (bool)SendReadResponse:(id)connObj
+          requestContext:(id)readContext
+                 serivce:(const CBUUID *)svcId
+          characteristic:(const CBUUID *)charId;
 
 /*
  * @}
@@ -105,21 +108,21 @@ typedef void (^PreparationCompleteHandler)(NLWeaveDeviceManager* dm, WEAVE_ERROR
 /*
  *  @brief Returns true if the CBPeripheral passed in is under management
  */
-- (bool) isPeripheralValid:(CBPeripheral*)peripheral;
+- (bool)isPeripheralValid:(CBPeripheral *)peripheral;
 
 /*
  *  @brief Command from NLWeaveDeviceManager to prepare the CBPeripheral contained in the NLWeaveDeviceManager for WoBLE
  */
-- (void)prepareNewBleConnection:(NLWeaveDeviceManager*)dm;
+- (void)prepareNewBleConnection:(NLWeaveDeviceManager *)dm;
 
 /*
  *  @brief Send async notification to BleLayer when the underlying BLE connection is broken
  */
-- (void)notifyBleDisconnected:(CBPeripheral*)peripheral;
+- (void)notifyBleDisconnected:(CBPeripheral *)peripheral;
 
 /*
  *  @brief Command from NLWeaveDeviceManager to BleLayer so this connection is no longer managed
  */
-- (void)forceBleDisconnect_Sync:(CBPeripheral*)peripheral;
+- (void)forceBleDisconnect_Sync:(CBPeripheral *)peripheral;
 
 @end

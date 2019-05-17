@@ -27,12 +27,12 @@
 
 NS_ASSUME_NONNULL_BEGIN
 
-extern NSString *const NLWeaveKeyExportSupportErrorDomain;
+extern NSString * const NLWeaveKeyExportSupportErrorDomain;
 
 // Error codes for NLWeaveKeyExportClientErrorDomain
-typedef NS_ENUM (NSInteger, NLWeaveKeyExportSupportErrorDomainCode) {
-     NLWeaveKeyExportSupportErrorDomainSimulateKeyExportFailure = 2,
-     NLWeaveKeyExportSupportErrorDomainInvalidArgument = 3
+typedef NS_ENUM(NSInteger, NLWeaveKeyExportSupportErrorDomainCode) {
+    NLWeaveKeyExportSupportErrorDomainSimulateKeyExportFailure = 2,
+    NLWeaveKeyExportSupportErrorDomainInvalidArgument = 3
 };
 
 /**
@@ -40,13 +40,12 @@ typedef NS_ENUM (NSInteger, NLWeaveKeyExportSupportErrorDomainCode) {
  */
 @interface NLWeaveKeyExportSupport : NSObject
 
-+ (nullable NSData *) simulateDeviceKeyExport: (NSData *) keyExportReq
-                                   deviceCert: (NSData *) responderNodeId
-                                devicePrivKey: (NSData *) accessToken
-                                trustRootCert: (NSData *) trustRootCert
-                                   isReconfig: (BOOL *) isReconfig
-                                        error: (NSError **) errOut;
-
++ (nullable NSData *)simulateDeviceKeyExport:(NSData *)keyExportReq
+                                  deviceCert:(NSData *)responderNodeId
+                               devicePrivKey:(NSData *)accessToken
+                               trustRootCert:(NSData *)trustRootCert
+                                  isReconfig:(BOOL *)isReconfig
+                                       error:(NSError **)errOut;
 
 @end
 NS_ASSUME_NONNULL_END

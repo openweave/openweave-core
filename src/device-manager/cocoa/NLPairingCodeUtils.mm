@@ -21,7 +21,7 @@
  *      Utility functions for working with Nest pairing codes.
  *
  */
- 
+
 #import <string.h>
 
 #import "NLPairingCodeUtils.h"
@@ -31,51 +31,57 @@
 
 @implementation NLPairingCodeUtils
 
-+ (BOOL)isValidPairingCode:(NSString *)pairingCode {
-	const char *pairingCodeCS = [pairingCode UTF8String];
-	return (nl::PairingCode::VerifyPairingCode(pairingCodeCS, strlen(pairingCodeCS)) == WEAVE_NO_ERROR) ? YES : NO;
++ (BOOL)isValidPairingCode:(NSString *)pairingCode
+{
+    const char * pairingCodeCS = [pairingCode UTF8String];
+    return (nl::PairingCode::VerifyPairingCode(pairingCodeCS, strlen(pairingCodeCS)) == WEAVE_NO_ERROR) ? YES : NO;
 }
 
-+ (NSString *)normalizePairingCode:(NSString *)pairingCode {
-	NSString *normalizedPairingCode = nil;
-	char *pairingCodeCS = strdup([pairingCode UTF8String]);
-	if (pairingCodeCS != NULL) {
-		size_t pairingCodeLen = strlen(pairingCodeCS);
-		nl::PairingCode::NormalizePairingCode(pairingCodeCS, pairingCodeLen);
-		normalizedPairingCode = [NSString stringWithUTF8String:pairingCodeCS];
-		free(pairingCodeCS);
-	}
-	return normalizedPairingCode;
++ (NSString *)normalizePairingCode:(NSString *)pairingCode
+{
+    NSString * normalizedPairingCode = nil;
+    char * pairingCodeCS = strdup([pairingCode UTF8String]);
+    if (pairingCodeCS != NULL) {
+        size_t pairingCodeLen = strlen(pairingCodeCS);
+        nl::PairingCode::NormalizePairingCode(pairingCodeCS, pairingCodeLen);
+        normalizedPairingCode = [NSString stringWithUTF8String:pairingCodeCS];
+        free(pairingCodeCS);
+    }
+    return normalizedPairingCode;
 }
 
-+ (uint64_t)nevisPairingCodeToDeviceId:(NSString *)pairingCode {
-	const char *pairingCodeCS = [pairingCode UTF8String];
-	uint64_t deviceId;
-	WEAVE_ERROR err = nl::PairingCode::NevisPairingCodeToDeviceId(pairingCodeCS, deviceId);
-	return (err == WEAVE_NO_ERROR) ? deviceId : 0;
++ (uint64_t)nevisPairingCodeToDeviceId:(NSString *)pairingCode
+{
+    const char * pairingCodeCS = [pairingCode UTF8String];
+    uint64_t deviceId;
+    WEAVE_ERROR err = nl::PairingCode::NevisPairingCodeToDeviceId(pairingCodeCS, deviceId);
+    return (err == WEAVE_NO_ERROR) ? deviceId : 0;
 }
 
-+ (NSString *)nevisDeviceIdToPairingCode:(uint64_t)deviceId {
-	char pairingCodeBuf[nl::PairingCode::kStandardPairingCodeLength + 1];
-	WEAVE_ERROR err = nl::PairingCode::NevisDeviceIdToPairingCode(deviceId, pairingCodeBuf, sizeof(pairingCodeBuf));
-	if (err == WEAVE_NO_ERROR) {
++ (NSString *)nevisDeviceIdToPairingCode:(uint64_t)deviceId
+{
+    char pairingCodeBuf[nl::PairingCode::kStandardPairingCodeLength + 1];
+    WEAVE_ERROR err = nl::PairingCode::NevisDeviceIdToPairingCode(deviceId, pairingCodeBuf, sizeof(pairingCodeBuf));
+    if (err == WEAVE_NO_ERROR) {
         return [NSString stringWithUTF8String:pairingCodeBuf];
     } else {
         return nil;
     }
 }
 
-+ (uint64_t)kryptonitePairingCodeToDeviceId:(NSString *)pairingCode {
-	const char *pairingCodeCS = [pairingCode UTF8String];
-	uint64_t deviceId;
-	WEAVE_ERROR err = nl::PairingCode::KryptonitePairingCodeToDeviceId(pairingCodeCS, deviceId);
-	return (err == WEAVE_NO_ERROR) ? deviceId : 0;
++ (uint64_t)kryptonitePairingCodeToDeviceId:(NSString *)pairingCode
+{
+    const char * pairingCodeCS = [pairingCode UTF8String];
+    uint64_t deviceId;
+    WEAVE_ERROR err = nl::PairingCode::KryptonitePairingCodeToDeviceId(pairingCodeCS, deviceId);
+    return (err == WEAVE_NO_ERROR) ? deviceId : 0;
 }
 
-+ (NSString *)kryptoniteDeviceIdToPairingCode:(uint64_t)deviceId {
-	char pairingCodeBuf[nl::PairingCode::kKryptonitePairingCodeLength + 1];
-	WEAVE_ERROR err = nl::PairingCode::KryptoniteDeviceIdToPairingCode(deviceId, pairingCodeBuf, sizeof(pairingCodeBuf));
-	if (err == WEAVE_NO_ERROR) {
++ (NSString *)kryptoniteDeviceIdToPairingCode:(uint64_t)deviceId
+{
+    char pairingCodeBuf[nl::PairingCode::kKryptonitePairingCodeLength + 1];
+    WEAVE_ERROR err = nl::PairingCode::KryptoniteDeviceIdToPairingCode(deviceId, pairingCodeBuf, sizeof(pairingCodeBuf));
+    if (err == WEAVE_NO_ERROR) {
         return [NSString stringWithUTF8String:pairingCodeBuf];
     } else {
         return nil;

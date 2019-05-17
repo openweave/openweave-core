@@ -27,11 +27,10 @@
 
 #include <Weave/Core/WeaveError.h>
 
-@interface NLWeaveError()
-{
+@interface NLWeaveError () {
     NSString * _errorReport;
 }
 
-- (id)initWithWeaveError:(WEAVE_ERROR)weaveError report:(NSString*)report;
+- (id)initWithWeaveError:(WEAVE_ERROR)weaveError report:(NSString *)report;
 
 @end

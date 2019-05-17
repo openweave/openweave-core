@@ -31,8 +31,8 @@ typedef int INET_ERROR;
 
 #define NLINET_NO_ERROR 0
 
-#define NLINET_ERROR_BASE         1000
-#define NLINET_ERROR_MAX          1999
+#define NLINET_ERROR_BASE 1000
+#define NLINET_ERROR_MAX 1999
 
 // Macro for defining InetLayer errors
 #define _NLINET_ERROR(e) (NLINET_ERROR_BASE + (e))

@@ -24,20 +24,18 @@
 
 #import "NLWeaveBleDelegate.h"
 
-namespace nl
-{
-    namespace Ble
-    {
-        class BleLayer;
-        class BlePlatformDelegate;
-        class BleApplicationDelegate;
-    }
+namespace nl {
+namespace Ble {
+    class BleLayer;
+    class BlePlatformDelegate;
+    class BleApplicationDelegate;
+}
 }
 
 @interface NLWeaveBleDelegate ()
 
 - (nl::Ble::BlePlatformDelegate *)GetPlatformDelegate;
 - (nl::Ble::BleApplicationDelegate *)GetApplicationDelegate;
-- (void) SetBleLayer:(nl::Ble::BleLayer *)BleLayer;
+- (void)SetBleLayer:(nl::Ble::BleLayer *)BleLayer;
 
 @end

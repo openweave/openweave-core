@@ -35,25 +35,28 @@ extern const int NLThreadChannel_NotSpecified;
 
 @interface NLNetworkInfo : NSObject
 
-@property (nonatomic) NLNetworkType NetworkType;                    // The type of network (WiFi, etc.)
-@property (nonatomic) NLNetworkID NetworkId;                        // The network id assigned to the network by the device, -1 if not specified.
+@property (nonatomic) NLNetworkType NetworkType; // The type of network (WiFi, etc.)
+@property (nonatomic) NLNetworkID NetworkId; // The network id assigned to the network by the device, -1 if not specified.
 
-@property (nonatomic, strong) NSString *WiFiSSID;                   // The WiFi SSID, or NULL if not a WiFi network.
-@property (nonatomic) NLWiFiMode WiFiMode;                          // The operating mode of the WiFi network.
-@property (nonatomic) NLWiFiRole WiFiRole;                          // The role played by the device on the WiFi network.
+@property (nonatomic, strong) NSString * WiFiSSID; // The WiFi SSID, or NULL if not a WiFi network.
+@property (nonatomic) NLWiFiMode WiFiMode; // The operating mode of the WiFi network.
+@property (nonatomic) NLWiFiRole WiFiRole; // The role played by the device on the WiFi network.
 
-@property (nonatomic) NLWiFiSecurityType WiFiSecurityType;          // The WiFi security type.
+@property (nonatomic) NLWiFiSecurityType WiFiSecurityType; // The WiFi security type.
 
-@property (nonatomic, strong) NSData *WiFiKey;                      // The WiFi key, or NULL if not specified.
+@property (nonatomic, strong) NSData * WiFiKey; // The WiFi key, or NULL if not specified.
 
-@property (nonatomic, strong) NSString *ThreadNetworkName;          // The Thread network name, or NULL if not a Thread network.
-@property (nonatomic, strong) NSData *ThreadExtendedPANId;          // The Thread extended PAN id, or NULL if not specified. Must be exactly 8 bytes in length.
-@property (nonatomic, strong) NSData *ThreadNetworkKey;             // The Thread network key, or NULL if not specified.
+@property (nonatomic, strong) NSString * ThreadNetworkName; // The Thread network name, or NULL if not a Thread network.
+@property (nonatomic, strong)
+    NSData * ThreadExtendedPANId; // The Thread extended PAN id, or NULL if not specified. Must be exactly 8 bytes in length.
+@property (nonatomic, strong) NSData * ThreadNetworkKey; // The Thread network key, or NULL if not specified.
 
-@property (nonatomic) short WirelessSignalStrength;                 // The signal strength of the network, in dBm, or Short.MIN_VALUE if not available/applicable.
+@property (nonatomic)
+    short WirelessSignalStrength; // The signal strength of the network, in dBm, or Short.MIN_VALUE if not available/applicable.
 
-@property (nonatomic) int ThreadPANId;                              // The Thread PAN identifier (short) or NLThreadPANId_NotSpecified if not available/applicable.
-@property (nonatomic) int ThreadChannel;                            // The Thread channel or NLThreadChannel_NotSpecified if not available/applicable.
+@property (nonatomic)
+    int ThreadPANId; // The Thread PAN identifier (short) or NLThreadPANId_NotSpecified if not available/applicable.
+@property (nonatomic) int ThreadChannel; // The Thread channel or NLThreadChannel_NotSpecified if not available/applicable.
 
 - (id)initWithWiFiSSID:(NSString *)ssid wifiKey:(NSData *)wifiKey securityType:(NLWiFiSecurityType)securityType;
 - (NSString *)WiFiSecurityTypeAsString;

@@ -31,34 +31,34 @@ typedef uint64_t NLWeaveIdentifierType;
 @interface NLIdentifyDeviceCriteria : NSObject
 
 /** Specifies that only devices that are members of the specified Weave fabric should respond.
-     * A value of 0 specifies that only devices that are not a member of a fabric should respond.
-     * A value of -1 specifies that all  devices should respond regardless of fabric membership.
-     */
+ * A value of 0 specifies that only devices that are not a member of a fabric should respond.
+ * A value of -1 specifies that all  devices should respond regardless of fabric membership.
+ */
 @property (nonatomic) NLWeaveIdentifierType TargetFabricId;
 
 /** Specifies that only devices that are currently in the specified modes should respond.
-     * Values are taken from the TargetDeviceModes enum.
-     */
+ * Values are taken from the TargetDeviceModes enum.
+ */
 @property (nonatomic) NLTargetDeviceModes TargetModes;
 
 /** Specifies that only devices manufactured by the given vendor should respond.
-     * A value of -1 specifies any vendor.
-     */
+ * A value of -1 specifies any vendor.
+ */
 @property (nonatomic) NSInteger TargetVendorId;
 
 /** Specifies that only devices with the given product code should respond.
-     * A value of -1 specifies any product.
-     * If the TargetProductId field is specified, then the TargetVendorId must also be specified.
-     */
+ * A value of -1 specifies any product.
+ * If the TargetProductId field is specified, then the TargetVendorId must also be specified.
+ */
 @property (nonatomic) NSInteger TargetProductId;
 
 /** Specifies that only the device with the specified Weave Node ID should respond.
-     * A value of -1 specifies all devices should respond.
-     *
-     * NOTE: the value of the TargetDeviceId field is carried a Weave IdentifyRequest
-     * in the Destination Node ID field of the Weave message header, and thus
-     * does NOT appear in the payload of the message.
-     */
+ * A value of -1 specifies all devices should respond.
+ *
+ * NOTE: the value of the TargetDeviceId field is carried a Weave IdentifyRequest
+ * in the Destination Node ID field of the Weave message header, and thus
+ * does NOT appear in the payload of the message.
+ */
 @property (nonatomic) NLWeaveIdentifierType TargetDeviceId;
 
 @end

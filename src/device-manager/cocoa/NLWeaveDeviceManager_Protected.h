@@ -30,13 +30,12 @@
 
 @property (strong) PreparationCompleteHandler BleConnectionPreparationCompleteHandler;
 
-- (instancetype)init:(NSString*)name
+- (instancetype)init:(NSString *)name
       weaveWorkQueue:(dispatch_queue_t)weaveWorkQueue
     appCallbackQueue:(dispatch_queue_t)appCallbackQueue
-         exchangeMgr:(nl::Weave::WeaveExchangeManager*)exchangeMgr
-         securityMgr:(nl::Weave::WeaveSecurityManager *)securityMgr
-         NS_DESIGNATED_INITIALIZER;
+         exchangeMgr:(nl::Weave::WeaveExchangeManager *)exchangeMgr
+         securityMgr:(nl::Weave::WeaveSecurityManager *)securityMgr NS_DESIGNATED_INITIALIZER;
 
--(NSString *)statusReportToString:(NSUInteger)profileId statusCode:(NSInteger)statusCode;
+- (NSString *)statusReportToString:(NSUInteger)profileId statusCode:(NSInteger)statusCode;
 
 @end
