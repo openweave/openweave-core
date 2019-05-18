@@ -147,9 +147,9 @@ STD_DEFINES = \
     NRF52840_XXAA \
     BOARD_PCA10056
 
-STD_COMPILE_PREREQUISITES =
+STD_COMPILE_PREREQUISITES = nrf5-sdk-check
 
-STD_LINK_PREREQUISITES =
+STD_LINK_PREREQUISITES = nrf5-sdk-check
 
 DEFINE_FLAGS = $(foreach def,$(STD_DEFINES) $(DEFINES),-D$(def))
 
@@ -158,6 +158,14 @@ INC_FLAGS = $(foreach dir,$(INC_DIRS) $(STD_INC_DIRS),-I$(dir))
 LINKER_SCRIPT = $(realpath $(PROJECT_ROOT))/$(APP).ld
 
 LINKER_SCRIPT_INC_DIRS = $(NRF5_SDK_ROOT)/modules/nrfx/mdk
+
+NRF5_SDK_VERSION_FILE = $(NRF5_SDK_ROOT)/documentation/release_notes.txt
+
+NRF5_SDK_TITLE = nRF5 SDK for Thread and Zigbee
+
+NRF5_SDK_VERSION_SED_EXP = /^${NRF5_SDK_TITLE} v[0-9.]+.*$$/ { s/.*v([0-9.]+).*/\1/; s/[.]/ /g; p; q }
+
+NRF5_SDK_MIN_VERSION = 3.0.0
 
 
 # ==================================================
@@ -252,7 +260,7 @@ endef
 # General build rules
 # ==================================================
 
-.PHONY : $(APP) flash flash-app flash_app flash-softdevice flash_softdevice erase clean help
+.PHONY : $(APP) flash flash-app flash_app flash-softdevice flash_softdevice erase clean help nrf5-sdk-check
 
 # Convert executable to Intel hex format
 %.hex : %.out
@@ -280,6 +288,28 @@ clean :
 export HelpText
 help :
 	@echo "$${HelpText}"
+
+# Verify the nRF5 SDK is found and meets the required minimum version
+nrf5-sdk-check :
+	@test -d $(NRF5_SDK_ROOT) || { \
+	    echo "ENVIRONMENT ERROR: ${NRF5_SDK_TITLE} not found at $(NRF5_SDK_ROOT)"; \
+	    exit 1; \
+	}; \
+	test -f $(NRF5_SDK_VERSION_FILE) || { \
+	    echo "ENVIRONMENT ERROR: Version file for $(NRF5_SDK_TITLE) not found at $(NRF5_SDK_VERSION_FILE)"; \
+	    exit 1; \
+	}; \
+	SDK_VERSION=`sed -nE '$(NRF5_SDK_VERSION_SED_EXP)' $(NRF5_SDK_VERSION_FILE)`; \
+	test "$${SDK_VERSION}x" != "x" || { \
+	    echo "ENVIRONMENT ERROR: Unable to determine version of $(NRF5_SDK_TITLE) from $(NRF5_SDK_VERSION_FILE)"; \
+	    exit 1; \
+	}; \
+	MIN_VERSION=`echo $(NRF5_SDK_MIN_VERSION) | sed -E 's/\./ /g'`; \
+	HIGHEST_VERSION=`(echo $${SDK_VERSION}; echo $${MIN_VERSION}) | sort -r -n -k1 -k2 -k3 | head -1`; \
+	test "$${HIGHEST_VERSION}" = "$${SDK_VERSION}" || { \
+	    echo "ENVIRONMENT ERROR: Unsupported version of $(NRF5_SDK_TITLE); Please use $(NRF5_SDK_MIN_VERSION) or greater"; \
+	    exit 1; \
+	}	
 
 
 # ==================================================
