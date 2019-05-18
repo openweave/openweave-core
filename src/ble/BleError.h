@@ -191,14 +191,9 @@ typedef BLE_CONFIG_ERROR_TYPE BLE_ERROR;
  */
 #define BLE_ERROR_NOT_IMPLEMENTED                          _BLE_ERROR(9)
 
-/**
- *  @def BLE_ERROR_INVALID_ROLE
- *
- *  @brief
- *    An invalid BLE device role was specified.
- *
+/*
+ * Unused                                                  _BLE_ERROR(10)
  */
-#define BLE_ERROR_INVALID_ROLE                             _BLE_ERROR(10)
 
 /**
  *  @def BLE_ERROR_WOBLE_PROTOCOL_ABORT
