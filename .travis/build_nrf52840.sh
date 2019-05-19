@@ -36,5 +36,9 @@ export GNU_VERSION=7.3.1
 # Add Nordic nRF jprog tool to the path.
 export PATH=${PATH}:${NRF5_TOOLS_ROOT}/nrfjprog
 
-# Build the demo application.
-make -C ${TRAVIS_BUILD_DIR}/openweave-nrf52840-bringup || exit 1
+# Set OPENWEAVE_ROOT to the Travis build directory. This will result in the example app being
+# built using the target OpenWeave commit.
+export OPENWEAVE_ROOT=${TRAVIS_BUILD_DIR}
+
+# Build the example application.
+make -C ${TRAVIS_BUILD_DIR}/openweave-nrf52840-lock-example || exit 1
