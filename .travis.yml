@@ -59,8 +59,10 @@ matrix:
       env: BUILD_TARGET="osx-lwip-clang" CC="clang"
       os: osx
       compiler: clang
-    - name: "ESP32"
+    - name: "ESP32 (openweave-esp32-demo)"
       env: BUILD_TARGET="esp32"
+    - name: "nRF52840 (openweave-nrf52840-lock-example)"
+      env: BUILD_TARGET="nrf52840"
     - name: "Linux with Defaults against GCC Functional and Unit Tests"
       env: BUILD_TARGET="linux-auto-gcc-check" CC="gcc"
       os: linux

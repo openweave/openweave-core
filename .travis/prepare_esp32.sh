@@ -21,9 +21,12 @@
 #      Travis CI build preparation script for the ESP32 target on Linux.
 #
 
+TMPDIR=${TMPDIR-/tmp}
+
+# Set tools download links
+#
 XTENSA_TOOL_CHAIN_URL=https://dl.espressif.com/dl/xtensa-esp32-elf-linux64-1.22.0-80-g6c4433a-5.2.0.tar.gz
 ESP_IDF_VERSION=v3.0.4
-TMPDIR=${TMPDIR-/tmp}
 
 # --------------------------------------------------------------------------------
 
@@ -62,6 +65,7 @@ fi
 if git -C ${TRAVIS_BUILD_DIR}/openweave-esp32-demo rev-parse --verify origin/${SOURCE_BRANCH} >/dev/null 2>&1; then
     git -C ${TRAVIS_BUILD_DIR}/openweave-esp32-demo checkout ${SOURCE_BRANCH}
 fi
+DEMO_APP_BRANCH=`git -C ${TRAVIS_BUILD_DIR}/openweave-esp32-demo rev-parse --abbrev-ref HEAD`
 
 # Initialize and update all submodules within the demo app EXCEPT the
 # OpenWeave submodule.
@@ -85,7 +89,7 @@ echo '--------------------------------------------------------------------------
 echo 'ESP32 Build Preparation Complete'
 echo ''
 echo "openweave-core branch: ${TRAVIS_BRANCH}"
-echo 'openweave-esp32-demo branch: '`git -C ${TRAVIS_BUILD_DIR}/openweave-esp32-demo rev-parse --abbrev-ref HEAD`
+echo "openweave-esp32-demo branch: ${DEMO_APP_BRANCH}"
 echo "ESP-IDF version: ${ESP_IDF_VERSION}"
 echo "Xtensa Tool Chain: ${XTENSA_TOOL_CHAIN_URL}"
 echo 'Commit Hashes'
