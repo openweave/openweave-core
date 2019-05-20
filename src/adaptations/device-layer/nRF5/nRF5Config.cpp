@@ -577,6 +577,8 @@ WEAVE_ERROR NRF5Config::DoAsyncFDSOp(FDSAsyncOp & asyncOp)
             // space on the operation queue being available.
             fdsRes = FDS_SUCCESS;
             break;
+        default:
+            WeaveDie();
         }
 
         // If the operation was queued successfully, wait for it to complete and retrieve the result.

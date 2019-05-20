@@ -17,6 +17,9 @@
  */
 #include <Weave/Core/WeaveCore.h>
 
+#ifdef STRINGIFY
+#undef STRINGIFY
+#endif
 #define STRINGIFY(X) #X
 
 #ifdef WEAVE_NON_PRODUCTION_MARKER
