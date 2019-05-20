@@ -427,7 +427,15 @@ if not os.path.exists(dmLibName):
         if os.path.exists(dmLibName):
             break
 
-if not os.path.isfile(dmLibName):
+# when running weave-device-mgr from build folder, here dmLibName is
+# _WeaveDeviceMgr.so, os.path.exists return true, but CDLL needs the abs path
+# os.path.exists return this below right path,
+# build/x86_64-pc-linux-gnu/src/device-manager/python/_WeaveDeviceMgr.so,
+# therefore, assign the abs path to dmLibName
+
+if os.path.exists(dmLibName):
+    dmLibName = os.path.abspath(dmLibName)
+else:
     print "%s not exist" % dmLibName
 
 _dmLib = None
@@ -506,6 +514,8 @@ class WeaveDeviceManager:
     def __del__(self):
         if (self.devMgr != None):
             _dmLib.nl_Weave_DeviceManager_DeleteDeviceManager(self.devMgr)
+
+        self.StopNetworkThread()
 
     def DriveBleIO(self):
         # perform asynchronous write to pipe in IO thread's select() to wake for BLE input

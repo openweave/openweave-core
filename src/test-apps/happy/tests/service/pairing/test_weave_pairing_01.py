@@ -43,7 +43,7 @@ from topologies.dynamic.thread_wifi_ap_internet_configurable_topology import thr
 TEST_OPTION_QUIET = True
 TESTRAIL_SECTION_NAME = "Weave pairing between Mock-Client and Real-Service"
 TESTRAIL_SUFFIX = "_TESTRAIL.json"
-DEFAULT_FABRIC_SEED = "00000"
+DEFAULT_FABRIC_SEED = "00001"
 
 
 class test_weave_pairing_01(unittest.TestCase):
@@ -59,7 +59,9 @@ class test_weave_pairing_01(unittest.TestCase):
                 self.tier = found.group(1)
                 self.customized_tunnel_port = None
             else:
-                self.customized_tunnel_port = 9204
+                found = re.search('(\w+.unstable).nestlabs.com', os.environ["weave_service_address"])
+                self.tier = found.group(1)
+                self.customized_tunnel_port = 20895
 
         self.topology_setup_required = int(os.environ.get("TOPOLOGY", "1")) == 1
 
@@ -82,7 +84,7 @@ class test_weave_pairing_01(unittest.TestCase):
 
         self.password = os.environ.get("WEAVE_PASSWORD", "nest-egg")
 
-        self.initial_device_index = int(os.environ.get("INITIAL_DEVICE_INDEX", "8"))
+        self.initial_device_index = int(os.environ.get("INITIAL_DEVICE_INDEX", "1"))
 
         # TODO: Once LwIP bugs for tunnel are fix, enable this test on LwIP
         if "WEAVE_SYSTEM_CONFIG_USE_LWIP" in os.environ.keys() and os.environ["WEAVE_SYSTEM_CONFIG_USE_LWIP"] == "1":
@@ -189,7 +191,7 @@ class test_weave_pairing_01(unittest.TestCase):
     def __process_result(self, nodeA, nodeB, value, data):
         success = True
         for result, device_output, device_strace, device_info in zip(value, data['devices_output'], data['devices_strace'], data['devices_info']):
-            print "Service provision from " + nodeA + " to real NestService using " + nodeB + " ",
+            print "Service provision from " + device_info['resource']['id']+ " to real NestService using " + nodeB + " ",
 
             if result is True:
                 print hgreen("Passed")
@@ -219,7 +221,8 @@ class test_weave_pairing_01(unittest.TestCase):
                 'testStatus': 'success' if result else 'failure',
                 'testDescription': "Do weave pairing between Mock-Client %s and Real-Service" % device_info['device_weave_id'],
                 'success_iterations_count': 1 if result else 0,
-                'total_iterations_count': 1
+                'total_iterations_count': 1,
+                'device_id': device_info['resource']['id']
             })
 
             # output the test result to a json file
@@ -228,7 +231,7 @@ class test_weave_pairing_01(unittest.TestCase):
                 'testResults': test_results
             }
 
-            output_file_name = self.weave_pairing.process_log_prefix + device_info['device'] +  self.__class__.__name__ + TESTRAIL_SUFFIX
+            output_file_name = self.weave_pairing.process_log_prefix + device_info['device'] +  self.__class__.__name__ + device_info['resource']['id'] + TESTRAIL_SUFFIX
 
             self.__output_test_result(output_file_name, output_data)
 

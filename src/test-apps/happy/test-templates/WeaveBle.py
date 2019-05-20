@@ -38,7 +38,6 @@ import happy.HappyProcessStart
 from WeaveTest import WeaveTest
 
 
-
 options = {"quiet": False,
            "no_service": False,
            "tap": None,
@@ -240,8 +239,11 @@ class WeaveBle(WeaveTest, HappyNode, HappyNetwork, HappyProcess):
         self.parseBtvirtInfo()
 
     def __start_client_side(self, client_info):
-        dir_path = os.path.dirname(os.path.realpath(__file__))
-        cmd = "python " + dir_path + "/WeaveBleCentral.py " + self.interfaces[1]["bd_address"] + " " + self.interfaces[0]["bd_address"]
+        cmd = "/usr/bin/env python " + os.path.dirname(os.path.realpath(__file__)) + "/../lib/WeaveDeviceManager.py"
+
+        cmd += " --ble --ble-src-addr " + self.interfaces[1]["bd_address"] + " --ble-dst-addr " + self.interfaces[0]["bd_address"]
+        cmd += " --pairing-code TEST"
+
         self.start_weave_process(node_id=client_info['client_node_id'], cmd=cmd, tag=client_info['client_process_tag'], rootMode=True)
 
     def __wait_for_client(self, client_info):
@@ -305,7 +307,6 @@ class WeaveBle(WeaveTest, HappyNode, HappyNetwork, HappyProcess):
                 data["client_strace"] = client_strace_data
                 data["server_strace"] = server_strace_data
             all_data.append(data)
-
 
         self.resetBluez()
         self.logger.debug("[localhost] WeaveBle: Done.")
