@@ -38,13 +38,15 @@
 #include <Weave/Core/WeaveCore.h>
 #include <Weave/Profiles/WeaveProfiles.h>
 #include <Weave/Profiles/common/CommonProfile.h>
+#if WEAVE_CONFIG_BDX_NAMESPACE == kWeaveManagedNamespace_Development
+#include <Weave/Profiles/bulk-data-transfer/Development/BulkDataTransfer.h>
+#else
 #include <Weave/Profiles/bulk-data-transfer/BulkDataTransfer.h>
+#endif
 #include <Weave/Profiles/service-directory/ServiceDirectory.h>
 
-#if WEAVE_CONFIG_LEGACY_WDM
-// Specify Legacy to enable definition in legacy code
-#include <Weave/Profiles/data-management/Legacy/DMConstants.h>
-#endif // WEAVE_CONFIG_LEGACY_WDM
+#define WEAVE_CONFIG_DATA_MANAGEMENT_NAMESPACE kWeaveManagedNamespace_Current
+#include <Weave/Profiles/data-management/Current/MessageDef.h>
 
 #include <Weave/Profiles/device-control/DeviceControl.h>
 #include <Weave/Profiles/fabric-provisioning/FabricProvisioning.h>
@@ -52,6 +54,7 @@
 #include <Weave/Profiles/security/WeaveSecurity.h>
 #include <Weave/Profiles/software-update/SoftwareUpdateProfile.h>
 #include <Weave/Profiles/service-provisioning/ServiceProvisioning.h>
+#include <Weave/Profiles/weave-tunneling/WeaveTunnelControl.h>
 
 #include "ToolCommon.h"
 
@@ -65,13 +68,14 @@ struct Profile_Status {
     WeaveProfileId id;
     const char *fmt;
     uint8_t statusCount;
-    uint16_t statusCodes[20];
+    uint16_t statusCodes[21];
 };
 
 static struct Profile_Status sContext[] = {
     {
         kWeaveProfile_BDX,
         "[ BDX(%08" PRIX32 "):%" PRIu16 " ]",
+#if WEAVE_CONFIG_BDX_NAMESPACE == kWeaveManagedNamespace_Development
         7,
         {
             BulkDataTransfer::kStatus_Overflow,
@@ -82,18 +86,41 @@ static struct Profile_Status sContext[] = {
             BulkDataTransfer::kStatus_StartOffsetNotSupported,
             BulkDataTransfer::kStatus_Unknown,
         }
+#else
+        15,
+        {
+            BulkDataTransfer::kStatus_Overflow,
+            BulkDataTransfer::kStatus_LengthTooLarge,
+            BulkDataTransfer::kStatus_LengthTooShort,
+            BulkDataTransfer::kStatus_LengthMismatch,
+            BulkDataTransfer::kStatus_LengthRequired,
+            BulkDataTransfer::kStatus_BadMessageContents,
+            BulkDataTransfer::kStatus_BadBlockCounter,
+            BulkDataTransfer::kStatus_XferFailedUnknownErr,
+            BulkDataTransfer::kStatus_ServerBadState,
+            BulkDataTransfer::kStatus_FailureToSend,
+            BulkDataTransfer::kStatus_XferMethodNotSupported,
+            BulkDataTransfer::kStatus_UnknownFile,
+            BulkDataTransfer::kStatus_StartOffsetNotSupported,
+            BulkDataTransfer::kStatus_VersionNotSupported,
+            BulkDataTransfer::kStatus_Unknown,
+        }
+#endif // WEAVE_CONFIG_BDX_NAMESPACE == kWeaveManagedNamespace_Development
     },
     {
         kWeaveProfile_Common,
         "[ Common(%08" PRIX32 "):%" PRIu16 " ]",
-        11,
+        14,
         {
             Common::kStatus_Success,
             Common::kStatus_BadRequest,
             Common::kStatus_UnsupportedMessage,
             Common::kStatus_UnexpectedMessage,
             Common::kStatus_AuthenticationRequired,
+            Common::kStatus_AccessDenied,
             Common::kStatus_OutOfMemory,
+            Common::kStatus_NotAvailable,
+            Common::kStatus_LocalSetupRequired,
             Common::kStatus_Relocated,
             Common::kStatus_Busy,
             Common::kStatus_Timeout,
@@ -101,11 +128,10 @@ static struct Profile_Status sContext[] = {
             Common::kStatus_Continue,
         }
     },
-#if WEAVE_CONFIG_LEGACY_WDM
     {
         kWeaveProfile_WDM,
         "[ WDM(%08" PRIX32 "):%" PRIu16 " ]",
-        6,
+        21,
         {
             DataManagement_Legacy::kStatus_CancelSuccess,
             DataManagement_Legacy::kStatus_InvalidPath,
@@ -113,18 +139,37 @@ static struct Profile_Status sContext[] = {
             DataManagement_Legacy::kStatus_IllegalReadRequest,
             DataManagement_Legacy::kStatus_IllegalWriteRequest,
             DataManagement_Legacy::kStatus_InvalidVersion,
+            DataManagement_Legacy::kStatus_UnsupportedSubscriptionMode,
+            DataManagement_Current::kStatus_InvalidValueInNotification,
+            DataManagement_Current::kStatus_InvalidPath,
+            DataManagement_Current::kStatus_ExpiryTimeNotSupported,
+            DataManagement_Current::kStatus_NotTimeSyncedYet,
+            DataManagement_Current::kStatus_RequestExpiredInTime,
+            DataManagement_Current::kStatus_VersionMismatch,
+            DataManagement_Current::kStatus_GeneralProtocolError,
+            DataManagement_Current::kStatus_SecurityError,
+            DataManagement_Current::kStatus_InvalidSubscriptionID,
+            DataManagement_Current::kStatus_GeneralSchemaViolation,
+            DataManagement_Current::kStatus_UnpairedDeviceRejected,
+            DataManagement_Current::kStatus_IncompatibleDataSchemaVersion,
+            DataManagement_Current::kStatus_MultipleFailures,
+            DataManagement_Current::kStatus_UpdateOutOfSequence,
         }
     },
-#endif
     {
         kWeaveProfile_DeviceControl,
         "[ DeviceControl(%08" PRIX32 "):%" PRIu16 " ]",
-        4,
+        9,
         {
             DeviceControl::kStatusCode_FailSafeAlreadyActive,
             DeviceControl::kStatusCode_NoFailSafeActive,
             DeviceControl::kStatusCode_NoMatchingFailSafeActive,
             DeviceControl::kStatusCode_UnsupportedFailSafeMode,
+            DeviceControl::kStatusCode_RemotePassiveRendezvousTimedOut,
+            DeviceControl::kStatusCode_UnsecuredListenPreempted,
+            DeviceControl::kStatusCode_ResetSuccessCloseCon,
+            DeviceControl::kStatusCode_ResetNotAllowed,
+            DeviceControl::kStatusCode_NoSystemTestDelegate,
         }
     },
     {
@@ -140,7 +185,7 @@ static struct Profile_Status sContext[] = {
     {
         kWeaveProfile_NetworkProvisioning,
         "[ NetworkProvisioning(%08" PRIX32 "):%" PRIu16 " ]",
-        9,
+        11,
         {
             NetworkProvisioning::kStatusCode_UnknownNetwork,
             NetworkProvisioning::kStatusCode_TooManyNetworks,
@@ -151,12 +196,14 @@ static struct Profile_Status sContext[] = {
             NetworkProvisioning::kStatusCode_UnsupportedWiFiSecurityType,
             NetworkProvisioning::kStatusCode_InvalidState,
             NetworkProvisioning::kStatusCode_TestNetworkFailed,
+            NetworkProvisioning::kStatusCode_NetworkConnectFailed,
+            NetworkProvisioning::kStatusCode_NoRouterAvailable,
         }
     },
     {
         kWeaveProfile_Security,
         "[ Security(%08" PRIX32 "):%" PRIu16 " ]",
-        11,
+        19,
         {
             Security::kStatusCode_SessionAborted,
             Security::kStatusCode_PASESupportsOnlyConfig1,
@@ -169,6 +216,14 @@ static struct Profile_Status sContext[] = {
             Security::kStatusCode_AuthenticationFailed,
             Security::kStatusCode_UnsupportedCASEConfiguration,
             Security::kStatusCode_UnsupportedCertificate,
+            Security::kStatusCode_NoCommonPASEConfigurations,
+            Security::kStatusCode_KeyNotFound,
+            Security::kStatusCode_WrongEncryptionType,
+            Security::kStatusCode_UnknownKeyType,
+            Security::kStatusCode_InvalidUseOfSessionKey,
+            Security::kStatusCode_InternalKeyError,
+            Security::kStatusCode_NoCommonKeyExportConfiguration,
+            Security::kStatusCode_UnathorizedKeyExportRequest,
          }
     },
     {
@@ -182,7 +237,7 @@ static struct Profile_Status sContext[] = {
     {
         kWeaveProfile_ServiceProvisioning,
         "[ ServiceProvisioning(%08" PRIX32 "):%" PRIu16 " ]",
-        9,
+        11,
         {
             ServiceProvisioning::kStatusCode_TooManyServices,
             ServiceProvisioning::kStatusCode_ServiceAlreadyRegistered,
@@ -193,6 +248,8 @@ static struct Profile_Status sContext[] = {
             ServiceProvisioning::kStatusCode_PairingTokenOld,
             ServiceProvisioning::kStatusCode_ServiceCommuncationError,
             ServiceProvisioning::kStatusCode_ServiceConfigTooLarge,
+            ServiceProvisioning::kStatusCode_WrongFabric,
+            ServiceProvisioning::kStatusCode_TooManyFabrics,
         }
     },
     {
@@ -209,6 +266,19 @@ static struct Profile_Status sContext[] = {
             SoftwareUpdate::kStatus_Retry,
         }
     },
+#if WEAVE_CONFIG_ENABLE_TUNNELING
+    {
+        kWeaveProfile_Tunneling,
+        "[ WeaveTunnel(%08" PRIX32 "):%" PRIu16 " ]",
+        4,
+        {
+            WeaveTunnel::kStatusCode_TunnelOpenFail,
+            WeaveTunnel::kStatusCode_TunnelCloseFail,
+            WeaveTunnel::kStatusCode_TunnelRouteUpdateFail,
+            WeaveTunnel::kStatusCode_TunnelReconnectFail,
+        }
+    },
+#endif
 };
 
 static const size_t kTestElements = sizeof(sContext) / sizeof(sContext[0]);

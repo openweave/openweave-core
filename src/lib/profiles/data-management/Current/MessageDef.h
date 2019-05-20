@@ -33,6 +33,56 @@
 namespace nl {
 namespace Weave {
 namespace Profiles {
+namespace DataManagement_Legacy {
+enum
+{
+        /**
+         *  This legacy status code means a subscription was successfully canceled.
+         */
+        kStatus_CancelSuccess                         = 0x0001,
+
+        /**
+         *  This legacy status code means a path from the path list of a view or
+         *  update request frame did not match the node-resident schema
+         *  of the responder.
+         */
+        kStatus_InvalidPath                           = 0x0013,
+
+        /**
+         *  This legacy status code means the topic identifier given in a cancel
+         *  request or notification did not match any subscription extant
+         *  on the receiving node.
+         */
+        kStatus_UnknownTopic                          = 0x0014,
+
+        /**
+         *  This legacy status code means the node making a request to read
+         *  a particular data item does not have permission to do so.
+         */
+        kStatus_IllegalReadRequest                    = 0x0015,
+
+        /**
+         *  This legacy status code means the node making a request to
+         *  write a particular data item does not have permission to do so.
+         */
+        kStatus_IllegalWriteRequest                   = 0x0016,
+
+        /**
+         *  This legacy status code means the version for data included in an
+         *  update request did not match with the most recent version on the
+         *  publisher and so the update could not be applied.
+         */
+        kStatus_InvalidVersion                        = 0x0017,
+
+        /**
+         *  This legacy status code means the requested mode of
+         *  subscription is not supported by the receiving device.
+         */
+        kStatus_UnsupportedSubscriptionMode           = 0x0018,
+
+};
+}
+
 namespace WeaveMakeManagedNamespaceIdentifier(DataManagement, kWeaveManagedNamespaceDesignation_Current) {
 
 /**
@@ -66,8 +116,7 @@ enum
  *    WDM-specific status codes.
  *
  */
-enum
-{
+ enum {
     kStatus_InvalidValueInNotification    = 0x20,
     kStatus_InvalidPath                   = 0x21,
     kStatus_ExpiryTimeNotSupported        = 0x22,
