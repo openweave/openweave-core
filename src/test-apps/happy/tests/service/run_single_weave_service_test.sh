@@ -28,25 +28,23 @@
 
 export CASE=1
 export USE_SERVICE_DIR=1
-#export weave_service_address='frontdoor.loadtest3.nestlabs.com'
-export weave_service_address='frontdoor.integration.nestlabs.com'
-#export weave_service_address='tunnel01.weave01.iad02.integration.nestlabs.com'
-#export weave_service_address='tunnel02.weave01.iad02.integration.nestlabs.com'
+export weave_service_address='frontdoor.lt3.nestlabs.com'
 export happy_dns='8.8.8.8 172.16.255.1 172.16.255.153 172.16.255.53'
-
+# export RESOURCE_IDS='gsrbr1'
 # exit if something fails
 set -e
 
 # By default, run a mutual subscription test. If tests have been
 # listed as arguments, run those instead
 
+# pairing/test_weave_pairing_01.py
 # echo/test_weave_echo_02.py
 # wdmNext/test_weave_wdm_next_service_mutual_subscribe_01.py
 # wdmNext/test_weave_wdm_next_service_update_*
 
 if [[ $# -eq 0 ]]
 then
-    wdmNext/test_weave_wdm_next_service_mutual_subscribe_01.py
+    #wdmNext/test_weave_wdm_next_service_mutual_subscribe_01.py
 else
     for test_to_run in $* ; do python $test_to_run ;  done
 fi

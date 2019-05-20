@@ -27,11 +27,11 @@ if [ -z "$happy_dns" ]; then
 fi
 
 if [ -z "$weave_service_address" ]; then
-    export weave_service_address="tunnel01.weave01.iad02.integration.nestlabs.com"
+    export weave_service_address="frontdoor.qa.nestlabs.com"
 fi
 
 if [ -z "$FABRIC_SEED" ]; then
-    export FABRIC_SEED="0x00000"
+    export FABRIC_SEED="0x00001"
 fi
 
 if [ -z "$NUM_TUNNELS" ]; then
@@ -39,7 +39,7 @@ if [ -z "$NUM_TUNNELS" ]; then
 fi
 
 if [ -z "$NUM_DEVICES" ]; then
-    export NUM_DEVICES=3
+    export NUM_DEVICES=2
 fi
 
 if [ -z "$ENABLE_RANDOM_FABRIC" ]; then
@@ -48,10 +48,19 @@ else
     export randomFabric="randomFabric"
 fi
 
+# currently RESOURCE_IDS is for weave pairing only
+if [ -z "$RESOURCE_IDS" ]; then
+    export RESOURCE_IDS='gsrbr1 gsrbr1'
+fi
+
+export CASE=1
+export USE_SERVICE_DIR=1
+
 VAR_TEST=true
 
 if [ -z "$TESTCASES" ]; then
-    TESTCASES=(echo/test_weave_echo_02.py
+    TESTCASES=(pairing/test_weave_pairing_01.py
+               echo/test_weave_echo_02.py
                tunnel/test_weave_tunnel_02.py
                time/test_weave_time_01.py
                wdmNext/test_weave_wdm_next_service_mutual_subscribe_05.py
