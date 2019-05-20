@@ -823,7 +823,7 @@ WEAVE_ERROR ServiceDirClientOptions::GetRootDirectoryEntry(uint8_t *buf, uint16_
 
     Write8(buf, 0x41);                                       // Entry Type = Host/Port List, Host/Port List = 1
     LittleEndian::Write64(buf, kServiceEndpoint_Directory);  // Service Endpoint Id = Directory Service
-    Write8(buf, 0x08);                                       // Host ID Type = Fully Qualified, Suffix Index Present = false, Port Id Present = true
+    Write8(buf, 0x80);                                       // Host ID Type = Fully Qualified, Suffix Index Present = false, Port Id Present = true
     Write8(buf, serverHostLen);
     memcpy(buf, ServerHost, serverHostLen); buf += serverHostLen;
     LittleEndian::Write16(buf, ServerPort);

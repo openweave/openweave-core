@@ -32,20 +32,7 @@ import shlex
 import base64
 import json
 import set_test_path
-
-try:
-    import WeaveDeviceMgr
-except Exception:
-    weaveDeviceMgrPath = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "..", "..", "src", "device-manager", "python"))
-    dmLibPath = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "..", "..", "build", "x86_64-unknown-linux-gnu", "src", "device-manager", "python"))
-    pkgpythondirs = [ weaveDeviceMgrPath,
-                      dmLibPath ]
-
-    for pkgpythondir in pkgpythondirs:
-        if os.path.exists(pkgpythondir):
-            sys.path.append(pkgpythondir)
-
-    import WeaveDeviceMgr
+import WeaveDeviceMgr
 
 # Dummy Access Token
 #
@@ -133,8 +120,6 @@ if __name__ == '__main__':
     optParser.add_option("", "--service-config", action="store", dest="service_config")
     optParser.add_option("", "--pairing-token", action="store", dest="pairing_token")
     optParser.add_option("", "--init-data", action="store", dest="init_data")
-    optParser.add_option("", "--ble-src-addr", action="store", dest="bleSrcAddr")
-    optParser.add_option("", "--ble-dst-addr", action="store", dest="bleDstAddr")
     try:
         (options, remainingArgs) = optParser.parse_args(args)
     except SystemExit:
@@ -162,38 +147,9 @@ if __name__ == '__main__':
 
     try:
         if options.useBle:
-            from WeaveBluezMgr import BluezManager as BleManager
-            from WeaveBleUtility import FAKE_CONN_OBJ_VALUE
-            bleManager = BleManager(devMgr)
-
-            try:
-                bleManager.ble_adapter_select(identifier=options.bleSrcAddr)
-            except WeaveDeviceMgr.DeviceManagerException, ex:
-                print ex
-                exit()
-
-            try:
-                line = ' -t 120 ' + str(options.bleDstAddr)
-                bleManager.scan_connect(line)
-            except WeaveDeviceMgr.DeviceManagerException, ex:
-                print ex
-                exit()
-
             devMgr.ConnectBle(bleConnection=FAKE_CONN_OBJ_VALUE,
-                                       pairingCode=options.pairingCode,
-                                       accessToken=options.accessToken)
-            try:
-                devMgr.Close()
-                devMgr.CloseEndpoints()
-                bleManager.disconnect()
-            except WeaveDeviceMgr.DeviceManagerException, ex:
-                print str(ex)
-                exit()
-
-            print "WoBLE central is good to go"
-            print "Shutdown complete"
-            exit()
-
+                                   pairingCode=options.pairingCode,
+                                   accessToken=options.accessToken)
         else:
             devMgr.ConnectDevice(deviceId=nodeId, deviceAddr=addr,
                                       pairingCode=options.pairingCode,

@@ -1,3 +1,6 @@
+#!/usr/bin/env python
+
+
 #
 #    Copyright (c) 2013-2017 Nest Labs, Inc.
 #    All rights reserved.
@@ -33,6 +36,7 @@ import datetime
 import time
 from threading import Thread, Lock, Event
 from ctypes import *
+from Weave import Weave
 
 __all__ = [ 'WeaveDeviceManager', 'NetworkInfo', 'DeviceManagerException', 'DeviceError', 'DeviceManagerError' ]
 
@@ -81,9 +85,6 @@ DeviceFeature_LinePowered                   = 0x00000002    # Indicates a device
 SystemTest_ProductList                      = { 'thermostat'    : 0x235A000A,
                                                 'topaz'         : 0x235A0003}
 
-DeviceDescriptorFlag_IsRendezvousWiFiESSIDSuffix = 0x01
-
-
 def _VoidPtrToByteArray(ptr, len):
     if ptr:
         v = bytearray(len)
@@ -94,8 +95,6 @@ def _VoidPtrToByteArray(ptr, len):
 
 def _ByteArrayToVoidPtr(array):
     if array != None:
-        if not (isinstance(array, str) or isinstance(array, bytearray)):
-            raise TypeError("Array must be an str or a bytearray")
         return cast( (c_byte * len(array)) .from_buffer_copy(array), c_void_p)
     else:
         return c_void_p(0)
@@ -192,7 +191,7 @@ class DeviceDescriptor:
                  primary802154MACAddress=None, primaryWiFiMACAddress=None,
                  serialNumber=None, softwareVersion=None, rendezvousWiFiESSID=None, pairingCode=None,
                  pairingCompatibilityVersionMajor=None, pairingCompatibilityVersionMinor=None,
-                 deviceFeatures=None, flags=None):
+                 deviceFeatures=None):
         self.DeviceId = deviceId
         self.FabricId = fabricId
         self.VendorId = vendorId
@@ -216,7 +215,6 @@ class DeviceDescriptor:
                 if (deviceFeatures & featureVal) == featureVal:
                     self.DeviceFeatures.append(featureVal)
                 featureVal <<= 1
-        self.Flags = flags if flags != None else 0
 
     def Print(self, prefix=""):
         if self.DeviceId != None:
@@ -243,7 +241,7 @@ class DeviceDescriptor:
         if self.PrimaryWiFiMACAddress != None:
             print "%sPrimary WiFi MAC Address: %s" % (prefix, _ByteArrayToHex(self.PrimaryWiFiMACAddress))
         if self.RendezvousWiFiESSID != None:
-            print "%sRendezvous WiFi ESSID%s: %s" % (prefix, " Suffix" if self.IsRendezvousWiFiESSIDSuffix else "", self.RendezvousWiFiESSID)
+            print "%sRendezvous WiFi ESSID: %s" % (prefix, self.RendezvousWiFiESSID)
         if self.PairingCode != None:
             print "%sPairing Code: %s" % (prefix, self.PairingCode)
         if self.PairingCompatibilityVersionMajor != None:
@@ -252,10 +250,6 @@ class DeviceDescriptor:
             print "%sPairing Compatibility Minor Id: %X" % (prefix, self.PairingCompatibilityVersionMinor)
         if self.DeviceFeatures != None:
             print "%sDevice Features: %s" % (prefix, " ".join([DeviceFeatureToString(val) for val in self.DeviceFeatures]))
-
-    @property
-    def IsRendezvousWiFiESSIDSuffix(self):
-        return (self.Flags & DeviceDescriptorFlag_IsRendezvousWiFiESSIDSuffix) != 0
 
 
 class DeviceManagerException(Exception):
@@ -381,7 +375,6 @@ class _DeviceDescriptorStruct(Structure):
         ('PairingCode', c_char * 17),               # Device pairing code (nul terminated, 0 length = not present)
         ('PairingCompatibilityVersionMajor', c_uint16), # Pairing software compatibility major version
         ('PairingCompatibilityVersionMinor', c_uint16), # Pairing software compatibility minor version
-        ('Flags', c_ubyte),                         # Flags
     ]
 
     def toDeviceDescriptor(self):
@@ -402,13 +395,22 @@ class _DeviceDescriptorStruct(Structure):
             pairingCode = self.PairingCode if len(self.PairingCode) != 0 else None,
             pairingCompatibilityVersionMajor = self.PairingCompatibilityVersionMajor,
             pairingCompatibilityVersionMinor = self.PairingCompatibilityVersionMinor,
-            deviceFeatures = self.DeviceFeatures,
-            flags = self.Flags)
+            deviceFeatures = self.DeviceFeatures)
 
-# Library path name.  Can be overridden my module user.
-currentDirPath = os.path.dirname(os.path.abspath( __file__ ))
+# Library path name.  Can be overriden my module user.
 
-dmLibName = os.path.join(currentDirPath, '_WeaveDeviceMgr.so')
+class WeaveDeviceMgrPath(Weave):
+    def __init__(self):
+        Weave.__init__(self)
+        self.quiet = False
+        self.LibPath = Weave.getWeaveWeaveDeviceMgrLibPath(self);
+
+    def getLibPath(self):
+        return self.LibPath
+
+pyweavepath = WeaveDeviceMgrPath()
+
+dmLibName = os.path.join(pyweavepath.getLibPath())
 
 # If the script binding library does not exist at the same level as
 # this module, then search for it one level up. Otherwise, rely on the
@@ -421,14 +423,6 @@ if not os.path.exists(dmLibName):
     if not os.path.exists(dmLibName):
         dmLibName = dmLibFile
 
-if not os.path.exists(dmLibName):
-    for path in sys.path:
-        dmLibName = os.path.join(path, '_WeaveDeviceMgr.so')
-        if os.path.exists(dmLibName):
-            break
-
-if not os.path.isfile(dmLibName):
-    print "%s not exist" % dmLibName
 
 _dmLib = None
 _CompleteFunct                              = CFUNCTYPE(None, c_void_p, c_void_p)
@@ -571,8 +565,6 @@ class WeaveDeviceManager:
         )
 
     def SetRendezvousAddress(self, addr):
-        if addr is not None and "\x00" in addr:
-            raise ValueError("Unexpected NUL character in addr");
         res = self._CallDevMgr(
             lambda: _dmLib.nl_Weave_DeviceManager_SetRendezvousAddress(self.devMgr, addr)
         )
@@ -580,9 +572,6 @@ class WeaveDeviceManager:
             raise self._ErrorToException(res)
 
     def SetConnectTimeout(self, timeoutMS):
-        if timeoutMS < 0 or timeoutMS > pow(2,32):
-            raise ValueError("timeoutMS must be an unsigned 32-bit integer")
-
         res = self._CallDevMgr(
             lambda: _dmLib.nl_Weave_DeviceManager_SetConnectTimeout(self.devMgr, timeoutMS)
         )
@@ -627,11 +616,6 @@ class WeaveDeviceManager:
 
     def ConnectDevice(self, deviceId, deviceAddr=None,
                       pairingCode=None, accessToken=None):
-        if deviceAddr is not None and '\x00' in deviceAddr:
-            raise ValueError("Unexpected NUL character in deviceAddr")
-
-        if pairingCode is not None and '\x00' in pairingCode:
-            raise ValueError("Unexpected NUL character in pairingCode")
 
         if (pairingCode != None and accessToken != None):
             raise ValueError('Must specify only one of pairingCode or accessToken when calling WeaveDeviceManager.ConnectDevice')
@@ -645,8 +629,9 @@ class WeaveDeviceManager:
                 lambda: _dmLib.nl_Weave_DeviceManager_ConnectDevice_PairingCode(self.devMgr, deviceId, deviceAddr, pairingCode, self.cbHandleComplete, self.cbHandleError)
             )
         else:
+            accessTokenBuf = cast( (c_byte * len(accessToken)) .from_buffer_copy(accessToken), c_void_p)
             self._CallDevMgrAsync(
-                lambda: _dmLib.nl_Weave_DeviceManager_ConnectDevice_AccessToken(self.devMgr, deviceId, deviceAddr, _ByteArrayToVoidPtr(accessToken), len(accessToken), self.cbHandleComplete, self.cbHandleError)
+                lambda: _dmLib.nl_Weave_DeviceManager_ConnectDevice_AccessToken(self.devMgr, deviceId, deviceAddr, accessTokenBuf, len(accessToken), self.cbHandleComplete, self.cbHandleError)
             )
 
     def RendezvousDevice(self, pairingCode=None, accessToken=None,
@@ -655,9 +640,6 @@ class WeaveDeviceManager:
                          targetVendorId=TargetVendorId_Any,
                          targetProductId=TargetProductId_Any,
                          targetDeviceId=TargetDeviceId_Any):
-
-        if pairingCode is not None and '\x00' in pairingCode:
-            raise ValueError("Unexpected NUL character in pairingCode")
 
         if (pairingCode != None and accessToken != None):
             raise ValueError('Must specify only one of pairingCode or accessToken when calling WeaveDeviceManager.RendezvousDevice')
@@ -678,11 +660,11 @@ class WeaveDeviceManager:
                 lambda: _dmLib.nl_Weave_DeviceManager_RendezvousDevice_PairingCode(self.devMgr, pairingCode, deviceCriteria, self.cbHandleComplete, self.cbHandleError)
             )
         else:
+            accessTokenBuf = cast( (c_byte * len(accessToken)) .from_buffer_copy(accessToken), c_void_p)
             self._CallDevMgrAsync(
-                lambda: _dmLib.nl_Weave_DeviceManager_RendezvousDevice_AccessToken(self.devMgr, _ByteArrayToVoidPtr(accessToken), len(accessToken), deviceCriteria, self.cbHandleComplete, self.cbHandleError)
+                lambda: _dmLib.nl_Weave_DeviceManager_RendezvousDevice_AccessToken(self.devMgr, accessTokenBuf, len(accessToken), deviceCriteria, self.cbHandleComplete, self.cbHandleError)
             )
 
-    # methods for testing BLE performance are not a part of the Weave Device Manager API, but rather are considered internal.
     def TestBle(self, connObj, count, duration, delay, ack, size, rx):
         res = self._CallDevMgr(
             lambda: _dmLib.nl_Weave_DeviceManager_TestBle(self.devMgr, connObj, self.cbHandleComplete, self.cbHandleError, count, duration, delay, ack, size, rx)
@@ -711,12 +693,7 @@ class WeaveDeviceManager:
         if (res != 0):
             raise self._ErrorToException(res)
 
-    # end of BLE testing methods
-
     def ConnectBle(self, bleConnection, pairingCode=None, accessToken=None):
-        if pairingCode is not None and '\x00' in pairingCode:
-            raise ValueError("Unexpected NUL character in pairingCode")
-
         if (pairingCode != None and accessToken != None):
             raise ValueError('Must specify only one of pairingCode or accessToken when calling WeaveDeviceManager.ConnectBle')
 
@@ -729,14 +706,12 @@ class WeaveDeviceManager:
                 lambda: _dmLib.nl_Weave_DeviceManager_ConnectBle_PairingCode(self.devMgr, bleConnection, pairingCode, self.cbHandleComplete, self.cbHandleError)
             )
         else:
+            accessTokenBuf = cast( (c_byte * len(accessToken)) .from_buffer_copy(accessToken), c_void_p)
             self._CallDevMgrAsync(
-                lambda: _dmLib.nl_Weave_DeviceManager_ConnectBle_AccessToken(self.devMgr, bleConnection, _ByteArrayToVoidPtr(accessToken), len(accessToken), self.cbHandleComplete, self.cbHandleError)
+                lambda: _dmLib.nl_Weave_DeviceManager_ConnectBle_AccessToken(self.devMgr, bleConnection, accessTokenBuf, len(accessToken), self.cbHandleComplete, self.cbHandleError)
             )
 
     def PassiveRendezvousDevice(self, pairingCode=None, accessToken=None):
-        if pairingCode is not None and '\x00' in pairingCode:
-            raise ValueError("Unexpected NUL character in pairingCode")
-
         if (pairingCode != None and accessToken != None):
             raise ValueError('Must specify only one of pairingCode or accessToken when calling WeaveDeviceManager.PassiveRendezvousDevice')
 
@@ -749,19 +724,14 @@ class WeaveDeviceManager:
                 lambda: _dmLib.nl_Weave_DeviceManager_PassiveRendezvousDevice_PairingCode(self.devMgr, pairingCode, self.cbHandleComplete, self.cbHandleError)
             )
         else:
+            accessTokenBuf = cast( (c_byte * len(accessToken)) .from_buffer_copy(accessToken), c_void_p)
             self._CallDevMgrAsync(
-                lambda: _dmLib.nl_Weave_DeviceManager_PassiveRendezvousDevice_AccessToken(self.devMgr, _ByteArrayToVoidPtr(accessToken), len(accessToken), self.cbHandleComplete, self.cbHandleError)
+                lambda: _dmLib.nl_Weave_DeviceManager_PassiveRendezvousDevice_AccessToken(self.devMgr, accessTokenBuf, len(accessToken), self.cbHandleComplete, self.cbHandleError)
             )
 
     def RemotePassiveRendezvous(self, rendezvousDeviceAddr=None, pairingCode=None, accessToken=None, rendezvousTimeout=None, inactivityTimeout=None):
         if rendezvousDeviceAddr == None:
             rendezvousDeviceAddr = "::"
-
-        if '\x00' in rendezvousDeviceAddr:
-            raise ValueError("Unexpected NUL character in rendezvousDeviceAddr")
-
-        if pairingCode is not None and '\x00' in pairingCode:
-            raise ValueError("Unexpected NUL character in pairingCode")
 
         if (pairingCode == None and accessToken == None):
             self._CallDevMgrAsync(
@@ -772,8 +742,9 @@ class WeaveDeviceManager:
                 lambda: _dmLib.nl_Weave_DeviceManager_RemotePassiveRendezvous_PASEAuth(self.devMgr, rendezvousDeviceAddr, pairingCode, rendezvousTimeout, inactivityTimeout, self.cbHandleComplete, self.cbHandleError)
             )
         else:
+            accessTokenBuf = cast( (c_byte * len(accessToken)) .from_buffer_copy(accessToken), c_void_p)
             self._CallDevMgrAsync(
-                lambda: _dmLib.nl_Weave_DeviceManager_RemotePassiveRendezvous_CASEAuth(self.devMgr, rendezvousDeviceAddr, _ByteArrayToVoidPtr(accessToken), len(accessToken), rendezvousTimeout, inactivityTimeout, self.cbHandleComplete, self.cbHandleError)
+                lambda: _dmLib.nl_Weave_DeviceManager_RemotePassiveRendezvous_CASEAuth(self.devMgr, rendezvousDeviceAddr, accessTokenBuf, len(accessToken), rendezvousTimeout, inactivityTimeout, self.cbHandleComplete, self.cbHandleError)
             )
 
     def ReconnectDevice(self):
@@ -787,12 +758,6 @@ class WeaveDeviceManager:
         )
 
     def EnableConnectionMonitor(self, interval, timeout):
-        if interval < 0 or interval > pow(2,16):
-            raise ValueError("interval must be an unsigned 16-bit unsigned value")
-
-        if timeout < 0 or timeout > pow(2,16):
-            raise ValueError("timeout must be an unsigned 16-bit unsigned value")
-
         self._CallDevMgrAsync(
             lambda: _dmLib.nl_Weave_DeviceManager_EnableConnectionMonitor(self.devMgr, interval, timeout, self.cbHandleComplete, self.cbHandleError)
         )
@@ -820,8 +785,10 @@ class WeaveDeviceManager:
 
         cbHandlePairTokenComplete = _PairTokenCompleteFunct(HandlePairTokenComplete)
 
+        pairingTokenBuf = cast( (c_byte * len(pairingToken)) .from_buffer_copy(pairingToken), c_void_p)
+
         return self._CallDevMgrAsync(
-            lambda: _dmLib.nl_Weave_DeviceManager_PairToken(self.devMgr, _ByteArrayToVoidPtr(pairingToken), len(pairingToken), cbHandlePairTokenComplete, self.cbHandleError)
+            lambda: _dmLib.nl_Weave_DeviceManager_PairToken(self.devMgr, pairingTokenBuf, len(pairingToken), cbHandlePairTokenComplete, self.cbHandleError)
         )
 
     def UnpairToken(self):
@@ -858,9 +825,6 @@ class WeaveDeviceManager:
         )
 
     def GetCameraAuthData(self, nonce):
-        if nonce is not None and '\x00' in nonce:
-            raise ValueError("Unexpected NUL character in nonce")
-
         def HandleGetCameraAuthDataComplete(devMgr, reqState, macAddress, signedCameraPayload):
             self.callbackRes = [ macAddress, signedCameraPayload ]
             self.completeEvent.set()
@@ -892,34 +856,21 @@ class WeaveDeviceManager:
         )
 
     def RemoveNetwork(self, networkId):
-        if networkId < 0 or networkId > pow(2,32):
-            raise ValueError("networkId must be an unsigned 32-bit integer")
-
         self._CallDevMgrAsync(
             lambda: _dmLib.nl_Weave_DeviceManager_RemoveNetwork(self.devMgr, networkId, self.cbHandleComplete, self.cbHandleError)
         )
 
     def EnableNetwork(self, networkId):
-
-        if networkId < 0 or networkId > pow(2,32):
-            raise ValueError("networkId must be an unsigned 32-bit integer")
-
         self._CallDevMgrAsync(
             lambda: _dmLib.nl_Weave_DeviceManager_EnableNetwork(self.devMgr, networkId, self.cbHandleComplete, self.cbHandleError)
         )
 
     def DisableNetwork(self, networkId):
-        if networkId < 0 or networkId > pow(2,32):
-            raise ValueError("networkId must be an unsigned 32-bit integer")
-
         self._CallDevMgrAsync(
             lambda: _dmLib.nl_Weave_DeviceManager_DisableNetwork(self.devMgr, networkId, self.cbHandleComplete, self.cbHandleError)
         )
 
     def TestNetworkConnectivity(self, networkId):
-        if networkId < 0 or networkId > pow(2,32):
-            raise ValueError("networkId must be an unsigned 32-bit integer")
-
         self._CallDevMgrAsync(
             lambda: _dmLib.nl_Weave_DeviceManager_TestNetworkConnectivity(self.devMgr, networkId, self.cbHandleComplete, self.cbHandleError)
         )
@@ -936,9 +887,6 @@ class WeaveDeviceManager:
         )
 
     def SetRendezvousMode(self, modeFlags):
-        if modeFlags < 0 or modeFlags > pow(2,16):
-            raise ValueError("modeFlags must be an unsigned 16-bit integer")
-
         self._CallDevMgrAsync(
             lambda: _dmLib.nl_Weave_DeviceManager_SetRendezvousMode(self.devMgr, modeFlags, self.cbHandleComplete, self.cbHandleError)
         )
@@ -981,21 +929,24 @@ class WeaveDeviceManager:
         )
 
     def RegisterServicePairAccount(self, serviceId, accountId, serviceConfig, pairingToken, pairingInitData):
-        if accountId is not None and '\x00' in accountId:
-            raise ValueError("Unexpected NUL character in accountId")
+        serviceConfigBuf = cast( (c_byte * len(serviceConfig)) .from_buffer_copy(serviceConfig), c_void_p)
+        pairingTokenBuf = cast( (c_byte * len(pairingToken)) .from_buffer_copy(pairingToken), c_void_p)
+        pairingInitDataBuf = cast( (c_byte * len(pairingInitData)) .from_buffer_copy(pairingInitData), c_void_p)
 
         self._CallDevMgrAsync(
             lambda: _dmLib.nl_Weave_DeviceManager_RegisterServicePairAccount(self.devMgr, serviceId, accountId,
-                                                      _ByteArrayToVoidPtr(serviceConfig), len(serviceConfig),
-                                                      _ByteArrayToVoidPtr(pairingToken), len(pairingToken),
-                                                      _ByteArrayToVoidPtr(pairingInitData), len(pairingInitData),
+                                                      serviceConfigBuf, len(serviceConfig),
+                                                      pairingTokenBuf, len(pairingToken),
+                                                      pairingInitDataBuf, len(pairingInitData),
                                                       self.cbHandleComplete, self.cbHandleError)
         )
 
     def UpdateService(self, serviceId, serviceConfig):
+        serviceConfigBuf = cast( (c_byte * len(serviceConfig)) .from_buffer_copy(serviceConfig), c_void_p)
+
         self._CallDevMgrAsync(
-            lambda: _dmLib.nl_Weave_DeviceManager_UpdateService(self.devMgr, serviceId, _ByteArrayToVoidPtr(serviceConfig),
-                                         len(serviceConfig), self.cbHandleComplete, self.cbHandleError)
+            lambda: _dmLib.nl_Weave_DeviceManager_UpdateService(self.devMgr, serviceId, serviceConfigBuf, len(serviceConfig),
+                                         self.cbHandleComplete, self.cbHandleError)
         )
 
     def UnregisterService(self, serviceId):
@@ -1004,12 +955,6 @@ class WeaveDeviceManager:
         )
 
     def ArmFailSafe(self, armMode, failSafeToken):
-        if armMode < 0 or armMode > pow(2, 8):
-            raise ValueError("armMode must be an unsigned 8-bit integer")
-
-        if failSafeToken < 0 or failSafeToken > pow(2, 32):
-            raise ValueError("failSafeToken must be an unsigned 32-bit integer")
-
         self._CallDevMgrAsync(
             lambda: _dmLib.nl_Weave_DeviceManager_ArmFailSafe(self.devMgr, armMode, failSafeToken, self.cbHandleComplete, self.cbHandleError)
         )
@@ -1020,9 +965,6 @@ class WeaveDeviceManager:
         )
 
     def ResetConfig(self, resetFlags):
-        if resetFlags < 0 or resetFlags > pow(2, 16):
-            raise ValueError("resetFlags must be an unsigned 16-bit integer")
-
         self._CallDevMgrAsync(
             lambda: _dmLib.nl_Weave_DeviceManager_ResetConfig(self.devMgr, resetFlags, self.cbHandleComplete, self.cbHandleError)
         )
@@ -1037,9 +979,6 @@ class WeaveDeviceManager:
         )
 
     def SetLogFilter(self, category):
-        if category < 0 or category > pow(2, 8):
-            raise ValueError("category must be an unsigned 8-bit integer")
-
         self._CallDevMgr(
             lambda: _dmLib.nl_Weave_DeviceManager_SetLogFilter(category)
         )
@@ -1064,9 +1003,6 @@ class WeaveDeviceManager:
         )
 
     def SetActiveLocale(self, locale):
-        if locale is not None and '\x00' in locale:
-            raise ValueError('Unexpected NUL character in locale')
-
         self._CallDevMgrAsync(
             lambda: _dmLib.nl_Weave_DeviceManager_SetActiveLocale(self.devMgr, locale, self.cbHandleComplete, self.cbHandleError)
         )
@@ -1083,12 +1019,6 @@ class WeaveDeviceManager:
         )
 
     def StartSystemTest(self, profileId, testId):
-        if profileId < 0 or profileId > pow(2, 32):
-            raise ValueError("profileId must be an unsigned 32-bit integer")
-
-        if testId < 0 or testId > pow(2, 32):
-            raise ValueError("testId must be an unsigned 32-bit integer")
-
         self._CallDevMgrAsync(
             lambda: _dmLib.nl_Weave_DeviceManager_StartSystemTest(self.devMgr, profileId, testId, self.cbHandleComplete, self.cbHandleError)
         )

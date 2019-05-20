@@ -84,9 +84,8 @@ class WeavePairing(HappyNode, HappyNetwork, WeaveTest):
 
     def __pre_check(self):
         # Set the produce resource that mock-device is paired to
-        resourceDictionaries = self.getResourceIds()
-        resourceIndexList = os.environ.get("RESOURCE_IDS", "thd1").split(" ")
-        self.resources = [resourceDictionaries[resourceIndex] for resourceIndex in resourceIndexList]
+        resourceids = self.getResourceIds()
+        self.resource = resourceids[os.environ.get("RESOURCE_ID", "thd1")]
         device_node_id = None
         # Check if Weave Pairing device node is given.
         if self.devices == None:
@@ -142,7 +141,7 @@ class WeavePairing(HappyNode, HappyNetwork, WeaveTest):
 
         self.mobile_weave_id = self.getWeaveNodeID(self.mobile_node_id)
 
-        for device, resource in zip(self.devices, self.resources):
+        for device in self.devices:
             # Check if Weave Pairing device node exists.
             if self._nodeExists(device):
                 device_node_id = device
@@ -168,8 +167,7 @@ class WeavePairing(HappyNode, HappyNetwork, WeaveTest):
                 self.logger.error("[localhost] WeavePairing: %s" % (emsg))
                 sys.exit(1)
             self.devices_info.append({'device': device, 'device_node_id': device_node_id, 'device_ip': device_ip,
-                          'device_weave_id': device_weave_id, 'device_process_tag': device + "_" + self.device_process_tag, 'resource': resource})
-
+                          'device_weave_id': device_weave_id, 'device_process_tag': device + "_" + self.device_process_tag})
 
         if self.mobile_ip == None:
             emsg = "Could not find IP address of the mobile node."
@@ -193,79 +191,56 @@ class WeavePairing(HappyNode, HappyNetwork, WeaveTest):
 
     def getResourceIds(self):
         resource_ids = {}
+        resource_ids['t2'] = {}
+        resource_ids['t2']['vendor_id'] = '9050'
+        resource_ids['t2']['software_id'] = '1.0'
+        resource_ids['t2']['product_id'] = '0'
 
-        resource_ids['np1'] = {}
-        resource_ids['np1']['vendor_id'] = '9050'
-        resource_ids['np1']['software_id'] = '1.0'
-        resource_ids['np1']['product_id'] = '8'
-        resource_ids['np1']['id'] = 'np1'
+        resource_ids['f1'] = {}
+        resource_ids['f1']['vendor_id'] = '9050'
+        resource_ids['f1']['software_id'] = '1.0'
+        resource_ids['f1']['product_id'] = '0'
 
-        resource_ids['nf1'] = {}
-        resource_ids['nf1']['vendor_id'] = '9050'
-        resource_ids['nf1']['software_id'] = '1.0'
-        resource_ids['nf1']['product_id'] = '12'
-        resource_ids['nf1']['id'] = 'nf1'
+        resource_ids['p1'] = {}
+        resource_ids['p1']['vendor_id'] = '9050'
+        resource_ids['p1']['software_id'] = '1.0'
+        resource_ids['p1']['product_id'] = '12'
 
-        resource_ids['nan1'] = {}
-        resource_ids['nan1']['vendor_id'] = '9050'
-        resource_ids['nan1']['software_id'] = '1.0'
-        resource_ids['nan1']['product_id'] = '22'
-        resource_ids['nan1']['id'] = 'nan1'
+        resource_ids['k1'] = {}
+        resource_ids['k1']['vendor_id'] = '9050'
+        resource_ids['k1']['software_id'] = '1.0'
+        resource_ids['k1']['product_id'] = '8'
 
-        resource_ids['ntl2'] = {}
-        resource_ids['ntl2']['vendor_id'] = '9050'
-        resource_ids['ntl2']['software_id'] = '1.0'
-        resource_ids['ntl2']['product_id'] = '32'
-        resource_ids['ntl2']['id'] = 'ntl2'
+        resource_ids['n1'] = {}
+        resource_ids['n1']['vendor_id'] = '9050'
+        resource_ids['n1']['software_id'] = '1.0'
+        resource_ids['n1']['product_id'] = '19'
 
-        resource_ids['ntb2'] = {}
-        resource_ids['ntb2']['vendor_id'] = '9050'
-        resource_ids['ntb2']['software_id'] = '1.0'
-        resource_ids['ntb2']['product_id'] = '33'
-        resource_ids['ntb2']['id'] = 'ntb2'
+        resource_ids['q1'] = {}
+        resource_ids['q1']['vendor_id'] = '9050'
+        resource_ids['q1']['software_id'] = '1.0'
+        resource_ids['q1']['product_id'] = '13'
 
-        resource_ids['gn1'] = {}
-        resource_ids['gn1']['vendor_id'] = '57600'
-        resource_ids['gn1']['software_id'] = '1.0'
-        resource_ids['gn1']['product_id'] = '1'
-        resource_ids['gn1']['id'] = 'gn1'
+        resource_ids['an1'] = {}
+        resource_ids['an1']['vendor_id'] = '9050'
+        resource_ids['an1']['software_id'] = '1.0'
+        resource_ids['an1']['product_id'] = '22'
 
-        resource_ids['gv1'] = {}
-        resource_ids['gv1']['vendor_id'] = '57600'
-        resource_ids['gv1']['software_id'] = '1.0'
-        resource_ids['gv1']['product_id'] = '3'
-        resource_ids['gv1']['id'] = 'gv1'
+        resource_ids['th1'] = {}
+        resource_ids['th1']['vendor_id'] = '59175'
+        resource_ids['th1']['software_id'] = '1.0'
+        resource_ids['th1']['product_id'] = '1'
 
-        resource_ids['gm1'] = {}
-        resource_ids['gm1']['vendor_id'] = '57600'
-        resource_ids['gm1']['software_id'] = '1.0'
-        resource_ids['gm1']['product_id'] = '4'
-        resource_ids['gm1']['id'] = 'gm1'
-
-        resource_ids['gsl1'] = {}
-        resource_ids['gsl1']['vendor_id'] = '57600'
-        resource_ids['gsl1']['software_id'] = '1.0'
-        resource_ids['gsl1']['product_id'] = '65024'
-        resource_ids['gsl1']['id'] = 'gsl1'
-
-        resource_ids['gsrbr1'] = {}
-        resource_ids['gsrbr1']['vendor_id'] = '57600'
-        resource_ids['gsrbr1']['software_id'] = '1.0'
-        resource_ids['gsrbr1']['product_id'] = '65025'
-        resource_ids['gsrbr1']['id'] = 'gsrbr1'
-
+        # Test Resources
         resource_ids['thd1'] = {}
         resource_ids['thd1']['vendor_id'] = '9050'
         resource_ids['thd1']['software_id'] = '1.0'
         resource_ids['thd1']['product_id'] = '65534'
-        resource_ids['thd1']['id'] = 'thd1'
 
         resource_ids['tst1'] = {}
         resource_ids['tst1']['vendor_id'] = '9050'
         resource_ids['tst1']['software_id'] = '1.0'
         resource_ids['tst1']['product_id'] = '65024'
-        resource_ids['tst1']['id'] = 'tst1'
-
         return resource_ids
 
 
@@ -319,9 +294,9 @@ class WeavePairing(HappyNode, HappyNetwork, WeaveTest):
         if self.server is not None:
             cmd += " --pairing-server " + self.server_ip \
                 + " --wrm-pairing" \
-                + " --vendor-id " + device_info['resource']['vendor_id'] \
-                + " --software-version " + '"'+ device_info['resource']['software_id'] + '"' \
-                + " --product-id " + device_info['resource']['product_id'] \
+                + " --vendor-id " + self.resource['vendor_id'] \
+                + " --software-version " + '"'+ self.resource['software_id'] + '"' \
+                + " --product-id " + self.resource['product_id'] \
                 + " --suppress-ac" # Suppress access controls to work around WEAV-2024
 
             if self.server_node_id is not None:
