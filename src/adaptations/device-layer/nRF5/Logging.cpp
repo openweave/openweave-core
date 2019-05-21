@@ -22,10 +22,9 @@
  *          on Nordic nRF52 platforms.
  */
 
-
 #define NRF_LOG_MODULE_NAME weave
+
 #include "nrf_log.h"
-NRF_LOG_MODULE_REGISTER();
 
 #include <Weave/DeviceLayer/internal/WeaveDeviceLayerInternal.h>
 #include <Weave/Support/logging/WeaveLogging.h>
@@ -33,6 +32,12 @@ NRF_LOG_MODULE_REGISTER();
 #if WEAVE_DEVICE_CONFIG_ENABLE_THREAD
 #include <openthread/platform/logging.h>
 #endif // WEAVE_DEVICE_CONFIG_ENABLE_THREAD
+
+// If deferred logging is NOT enabled, do bother calling the nRF5 SDK nrf_log_push() function.
+#if !NRF_LOG_DEFERRED
+#undef NRF_LOG_PUSH
+#define NRF_LOG_PUSH(x) (x)
+#endif
 
 using namespace ::nl::Weave;
 using namespace ::nl::Weave::DeviceLayer;
@@ -73,6 +78,8 @@ void __attribute__((weak)) OnLogOutput(void)
 } // namespace nl
 
 
+NRF_LOG_MODULE_REGISTER();
+
 namespace nl {
 namespace Weave {
 namespace Logging {
@@ -94,8 +101,8 @@ void Log(uint8_t module, uint8_t category, const char *msg, ...)
     if (IsCategoryEnabled(category))
     {
         {
-            char formattedMsg[256];
-            size_t formattedMsgLen;
+            char formattedMsg[WEAVE_DEVICE_CONFIG_LOG_MESSAGE_MAX_SIZE];
+            size_t prefixLen;
 
             constexpr size_t maxPrefixLen = nlWeaveLoggingModuleNameLen + 3;
             static_assert(sizeof(formattedMsg) > maxPrefixLen);
@@ -103,12 +110,12 @@ void Log(uint8_t module, uint8_t category, const char *msg, ...)
             // Form the log prefix, e.g. "[DL] "
             formattedMsg[0] = '[';
             ::GetModuleName(formattedMsg + 1, module);
-            formattedMsgLen = strlen(formattedMsg);
-            formattedMsg[formattedMsgLen++] = ']';
-            formattedMsg[formattedMsgLen++] = ' ';
+            prefixLen = strlen(formattedMsg);
+            formattedMsg[prefixLen++] = ']';
+            formattedMsg[prefixLen++] = ' ';
 
             // Append the log message.
-            vsnprintf(formattedMsg + formattedMsgLen, sizeof(formattedMsg) - formattedMsgLen, msg, v);
+            vsnprintf(formattedMsg + prefixLen, sizeof(formattedMsg) - prefixLen, msg, v);
 
             // Invoke the NRF logging library to log the message.
             switch (category) {
@@ -142,7 +149,6 @@ void Log(uint8_t module, uint8_t category, const char *msg, ...)
 
 #undef NRF_LOG_MODULE_NAME
 #define NRF_LOG_MODULE_NAME lwip
-#include "nrf_log.h"
 NRF_LOG_MODULE_REGISTER();
 
 /**
@@ -157,7 +163,7 @@ void LwIPLog(const char *msg, ...)
 
 #if NRF_LOG_ENABLED
     {
-        char formattedMsg[256];
+        char formattedMsg[WEAVE_DEVICE_CONFIG_LOG_MESSAGE_MAX_SIZE];
 
         // Append the log message.
         size_t len = vsnprintf(formattedMsg, sizeof(formattedMsg), msg, v);
@@ -184,7 +190,6 @@ void LwIPLog(const char *msg, ...)
 
 #undef NRF_LOG_MODULE_NAME
 #define NRF_LOG_MODULE_NAME thread
-#include "nrf_log.h"
 NRF_LOG_MODULE_REGISTER();
 
 extern "C"
@@ -199,7 +204,7 @@ void otPlatLog(otLogLevel aLogLevel, otLogRegion aLogRegion, const char *aFormat
 
 #if NRF_LOG_ENABLED
     {
-        char formattedMsg[256];
+        char formattedMsg[WEAVE_DEVICE_CONFIG_LOG_MESSAGE_MAX_SIZE];
 
         // Append the log message.
         vsnprintf(formattedMsg, sizeof(formattedMsg), aFormat, v);
