@@ -188,8 +188,8 @@ STD_LIBS += \
     -lopenthread-ftd \
     -lopenthread-platform-utils \
     -lopenthread-nrf52840-softdevice-sdk \
-    -lmbedcrypto \
-    -lnrf_cc310_0.9.10
+    -lnordicsemi-nrf52840-radio-driver-softdevice \
+    -lmbedcrypto
     
 # Add the appropriate OpenThread target as a prerequisite to all application
 # compilation targets to ensure that OpenThread gets built and its header
@@ -202,7 +202,8 @@ STD_LINK_PREREQUISITES += \
     $(OPENTHREAD_LIB_DIR)/libopenthread-ftd.a \
     $(OPENTHREAD_LIB_DIR)/libopenthread-platform-utils.a \
     $(OPENTHREAD_LIB_DIR)/libmbedcrypto.a \
-    $(OPENTHREAD_LIB_DIR)/libopenthread-nrf52840-softdevice-sdk.a
+    $(OPENTHREAD_LIB_DIR)/libopenthread-nrf52840-softdevice-sdk.a \
+    $(OPENTHREAD_LIB_DIR)/libnordicsemi-nrf52840-radio-driver-softdevice.a
 
 
 # ==================================================

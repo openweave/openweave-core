@@ -315,6 +315,7 @@ err_t GenericThreadStackManagerImpl_OpenThread_LwIP<ImplClass>::SendPacket(struc
     err_t lwipErr = ERR_OK;
     otError otErr;
     otMessage * pktMsg = NULL;
+    const otMessageSettings msgSettings = { true, OT_MESSAGE_PRIORITY_NORMAL };
     uint16_t remainingLen;
 
     // Lock the OpenThread stack.
@@ -322,7 +323,7 @@ err_t GenericThreadStackManagerImpl_OpenThread_LwIP<ImplClass>::SendPacket(struc
     ThreadStackMgrImpl().LockThreadStack();
 
     // Allocate an OpenThread message
-    pktMsg = otIp6NewMessage(ThreadStackMgrImpl().OTInstance(), true);
+    pktMsg = otIp6NewMessage(ThreadStackMgrImpl().OTInstance(), &msgSettings);
     VerifyOrExit(pktMsg != NULL, lwipErr = ERR_MEM);
 
     // Copy data from LwIP's packet buffer chain into the OpenThread message.
