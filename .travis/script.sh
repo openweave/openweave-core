@@ -85,11 +85,11 @@ case "${BUILD_TARGET}" in
         ;;
 
     osx-auto-clang)
-        ./configure && make
+        make -f Makefile-Standalone DEBUG=1 HAPPY=0 USE_LWIP=0 stage
         ;;
 
     osx-lwip-clang)
-        ./configure --with-target-network=lwip --with-lwip=internal --disable-java && make
+        make -f Makefile-Standalone DEBUG=1 HAPPY=0 USE_LWIP=1 stage
         ;;
 
     esp32)
