@@ -364,6 +364,9 @@ public:
     typedef void (*ReceiveErrorFunct)(WeaveConnection *con, WEAVE_ERROR err);
     ReceiveErrorFunct OnReceiveError;
 
+    bool IsIncoming(void) const { return GetFlag(mFlags, kFlag_IsIncoming); }
+    void SetIncoming(bool val)  { SetFlag(mFlags, kFlag_IsIncoming, val); }
+
 private:
     enum
     {
@@ -380,6 +383,13 @@ private:
 #if WEAVE_CONFIG_ENABLE_DNS_RESOLVER
     uint8_t mDNSOptions;
 #endif
+
+    enum FlagsEnum
+    {
+        kFlag_IsIncoming              = 0x01,           /**< The connection was initiated by external node. */
+    };
+
+    uint8_t mFlags;                                     /**< Various flags associated with the connection. */
 
     void Init(WeaveMessageLayer *msgLayer);
     void MakeConnectedTcp(TCPEndPoint *endPoint, const IPAddress &localAddr, const IPAddress &peerAddr);
@@ -734,6 +744,7 @@ private:
             uint16_t maxLen);
     WEAVE_ERROR DecodeMessageWithLength(PacketBuffer *msgBuf, uint64_t sourceNodeId, WeaveConnection *con,
             WeaveMessageInfo *msgInfo, uint8_t **rPayload, uint16_t *rPayloadLen, uint32_t *rFrameLen);
+    void GetIncomingTCPConCount(const IPAddress &peerAddr, uint16_t &count, uint16_t &countFromIP);
 
     static void HandleUDPMessage(UDPEndPoint *endPoint, PacketBuffer *msg, const IPPacketInfo *pktInfo);
     static void HandleUDPReceiveError(UDPEndPoint *endPoint, INET_ERROR err, const IPPacketInfo *pktInfo);

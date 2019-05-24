@@ -1013,6 +1013,37 @@
 #endif // WEAVE_CONFIG_MAX_CONNECTIONS
 
 /**
+ *  @def WEAVE_CONFIG_MAX_INCOMING_TCP_CONNECTIONS
+ *
+ *  @brief
+ *    Maximum number of simultaneously active inbound TCP connections.
+ *
+ *    Regardless of what #WEAVE_CONFIG_MAX_INCOMING_TCP_CONNECTIONS
+ *    is set to, the total number of inbound connections cannot exceed
+ *    #WEAVE_CONFIG_MAX_CONNECTIONS, which is the overall limit for
+ *    inbound and outbound connections.
+ */
+#ifndef WEAVE_CONFIG_MAX_INCOMING_TCP_CONNECTIONS
+#define WEAVE_CONFIG_MAX_INCOMING_TCP_CONNECTIONS           (WEAVE_CONFIG_MAX_CONNECTIONS * 4 / 5)
+#endif // WEAVE_CONFIG_MAX_INCOMING_TCP_CONNECTIONS
+
+/**
+ *  @def WEAVE_CONFIG_MAX_INCOMING_TCP_CON_FROM_SINGLE_IP
+ *
+ *  @brief
+ *    Maximum number of simultaneously active inbound TCP connections
+ *    from the single IP address.
+ *
+ *    Regardless of what #WEAVE_CONFIG_MAX_INCOMING_TCP_CON_FROM_SINGLE_IP
+ *    is set to, the total number of inbound connections from a single IP
+ *    address cannot exceed #WEAVE_CONFIG_MAX_CONNECTIONS or
+ *    #WEAVE_CONFIG_MAX_INCOMING_TCP_CONNECTIONS.
+ */
+#ifndef WEAVE_CONFIG_MAX_INCOMING_TCP_CON_FROM_SINGLE_IP
+#define WEAVE_CONFIG_MAX_INCOMING_TCP_CON_FROM_SINGLE_IP    2
+#endif // WEAVE_CONFIG_MAX_INCOMING_TCP_CON_FROM_SINGLE_IP
+
+/**
  *  @def WEAVE_CONFIG_MAX_TUNNELS
  *
  *  @brief
@@ -1835,6 +1866,18 @@
 #ifndef WEAVE_CONFIG_SERVICE_DIR_CONNECT_TIMEOUT_MSECS
 #define WEAVE_CONFIG_SERVICE_DIR_CONNECT_TIMEOUT_MSECS      (10000)
 #endif // WEAVE_CONFIG_SERVICE_DIR_CONNECT_TIMEOUT_MSECS
+
+/**
+ *  @def WEAVE_CONFIG_DEFAULT_INCOMING_CONNECTION_IDLE_TIMEOUT
+ *
+ *  @brief
+ *    The default minimum amount of time, in milliseconds, that an inbound idle
+ *    connection will be allowed to exist before being destroyed.
+ *
+ */
+#ifndef WEAVE_CONFIG_DEFAULT_INCOMING_CONNECTION_IDLE_TIMEOUT
+#define WEAVE_CONFIG_DEFAULT_INCOMING_CONNECTION_IDLE_TIMEOUT        15000
+#endif // WEAVE_CONFIG_DEFAULT_INCOMING_CONNECTION_IDLE_TIMEOUT
 
 /**
  *  @def WEAVE_CONFIG_MSG_COUNTER_SYNC_RESP_TIMEOUT

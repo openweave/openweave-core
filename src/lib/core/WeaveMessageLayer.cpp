@@ -152,7 +152,7 @@ WEAVE_ERROR WeaveMessageLayer::Init(InitContext *context)
     ExchangeMgr = NULL;
     SecurityMgr = NULL;
     IsListening = context->listenTCP || context->listenUDP;
-    IncomingConIdleTimeout = 0;
+    IncomingConIdleTimeout = WEAVE_CONFIG_DEFAULT_INCOMING_CONNECTION_IDLE_TIMEOUT;
 
     //Internal and for Debug Only; When set, Message Layer drops message and returns.
     mDropMessage = false;
@@ -771,6 +771,27 @@ WeaveConnection *WeaveMessageLayer::NewConnection()
 
     WeaveLogError(ExchangeManager, "New con FAILED");
     return NULL;
+}
+
+void WeaveMessageLayer::GetIncomingTCPConCount(const IPAddress &peerAddr, uint16_t &count, uint16_t &countFromIP)
+{
+    count = 0;
+    countFromIP = 0;
+
+    WeaveConnection *con = (WeaveConnection *) mConPool;
+    for (int i = 0; i < WEAVE_CONFIG_MAX_CONNECTIONS; i++, con++)
+    {
+        if (con->mRefCount > 0 &&
+            con->NetworkType == WeaveConnection::kNetworkType_IP &&
+            con->IsIncoming())
+        {
+            count++;
+            if (con->PeerAddr == peerAddr)
+            {
+                countFromIP++;
+            }
+        }
+    }
 }
 
 /**
@@ -1631,6 +1652,9 @@ void WeaveMessageLayer::HandleIncomingBleConnection(BLEEndPoint *bleEP)
     // Set the default idle timeout.
     con->SetIdleTimeout(msgLayer->IncomingConIdleTimeout);
 
+    // Set incoming connection flag.
+    con->SetIncoming(true);
+
     // If the exchange manager has been initialized, call its callback.
     if (msgLayer->ExchangeMgr != NULL)
         msgLayer->ExchangeMgr->HandleConnectionReceived(con);
@@ -1646,6 +1670,8 @@ void WeaveMessageLayer::HandleIncomingTcpConnection(TCPEndPoint *listeningEP, TC
     INET_ERROR err;
     IPAddress localAddr;
     uint16_t localPort;
+    uint16_t incomingTCPConCount;
+    uint16_t incomingTCPConCountFromIP;
     WeaveMessageLayer *msgLayer = (WeaveMessageLayer *) listeningEP->AppState;
 
     // Immediately close the connection if there's no callback registered.
@@ -1654,6 +1680,17 @@ void WeaveMessageLayer::HandleIncomingTcpConnection(TCPEndPoint *listeningEP, TC
         conEP->Free();
         if (msgLayer->OnAcceptError != NULL)
             msgLayer->OnAcceptError(msgLayer, WEAVE_ERROR_NO_CONNECTION_HANDLER);
+        return;
+    }
+
+    // Fail if too many incoming TCP connections.
+    msgLayer->GetIncomingTCPConCount(peerAddr, incomingTCPConCount, incomingTCPConCountFromIP);
+    if (incomingTCPConCount == WEAVE_CONFIG_MAX_INCOMING_TCP_CONNECTIONS ||
+        incomingTCPConCountFromIP == WEAVE_CONFIG_MAX_INCOMING_TCP_CON_FROM_SINGLE_IP)
+    {
+        conEP->Free();
+        if (msgLayer->OnAcceptError != NULL)
+            msgLayer->OnAcceptError(msgLayer, WEAVE_ERROR_TOO_MANY_CONNECTIONS);
         return;
     }
 
@@ -1690,6 +1727,9 @@ void WeaveMessageLayer::HandleIncomingTcpConnection(TCPEndPoint *listeningEP, TC
 
     // Set the default idle timeout.
     con->SetIdleTimeout(msgLayer->IncomingConIdleTimeout);
+
+    // Set incoming connection flag.
+    con->SetIncoming(true);
 
     // If the exchange manager has been initialized, call its callback.
     if (msgLayer->ExchangeMgr != NULL)

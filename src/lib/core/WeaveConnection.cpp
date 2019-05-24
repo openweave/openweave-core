@@ -1635,6 +1635,7 @@ void WeaveConnection::Init(WeaveMessageLayer *msgLayer)
 #if WEAVE_CONFIG_ENABLE_DNS_RESOLVER
     mDNSOptions = 0;
 #endif
+    mFlags = 0;
 }
 
 // Default OnConnectionClosed handler.
