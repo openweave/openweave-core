@@ -1,3 +1,13 @@
+1.6.11 (2019-05-23)
+
+        * Changed the bootstrap shebang from sh to bash to address a
+          bashism that arrived at 1.6.10.
+
+1.6.10 (2019-05-02)
+
+        * Added additional up-front checks to the bootstrap script to
+          ensure required executables are available.
+
 1.6.9 (2019-04-30)
 
         * Now that both automake and pure make headers and footers are
