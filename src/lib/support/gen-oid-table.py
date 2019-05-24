@@ -221,6 +221,7 @@ def encodeOID(oid):
 
 print "/*"
 print " *"
+print " *    Copyright (c) 2019 Google LLC."
 print " *    Copyright (c) 2013-2017 Nest Labs, Inc."
 print " *    All rights reserved."
 print " *"

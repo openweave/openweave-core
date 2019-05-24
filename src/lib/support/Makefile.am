@@ -1,4 +1,5 @@
 #
+#    Copyright (c) 2019 Google LLC.
 #    Copyright (c) 2014-2017 Nest Labs, Inc.
 #    All rights reserved.
 #
@@ -32,18 +33,15 @@ EXTRA_DIST                    = \
     ula/make-ula-global-id.py   \
     $(NULL)
 
-# Don't mark the header for install here. It will get picked up for
-# installation elsewhere in the build along with all other public API
-# headers.
-
-noinst_HEADERS       = \
-    ASN1OID.h          \
+BUILT_SOURCES                 = \
+    ASN1OID.h                   \
     $(NULL)
 
-if WEAVE_WITH_PYTHON
-$(srcdir)/ASN1OID.h: $(srcdir)/gen-oid-table.py
+ASN1OID.h: $(srcdir)/gen-oid-table.py
 	$(AM_V_at)$(RM) $(@)
 	$(AM_V_GEN)$(srcdir)/gen-oid-table.py > $(@)
-endif # WEAVE_WITH_PYTHON
+
+clean-local:
+	-@$(AM_V_at)$(RM) ASN1OID.h
 
 include $(abs_top_nlbuild_autotools_dir)/automake/post.am

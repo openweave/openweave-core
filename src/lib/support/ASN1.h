@@ -50,7 +50,7 @@ namespace nl {
 namespace Weave {
 namespace ASN1 {
 
-#include "ASN1OID.h"
+#include <Weave/Support/ASN1OID.h>
 
 enum ASN1TagClasses
 {
