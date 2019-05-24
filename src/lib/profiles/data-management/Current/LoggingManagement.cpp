@@ -62,7 +62,7 @@ namespace WeaveMakeManagedNamespaceIdentifier(DataManagement, kWeaveManagedNames
 
 // Static instance: embedded platforms not always implement a proper
 // C++ runtime; instead, the instance is initialized via placement new
-// in CreateLoggingManangement.
+// in CreateLoggingManagement.
 
 static LoggingManagement sInstance;
 
@@ -400,52 +400,29 @@ void LoggingManagement::SkipEvent(EventLoadOutContext * aContext)
 }
 
 /**
- * @brief Create and initialize the logging management buffers. Must
- *   be called prior to the logging being used.
+ * @brief Create LoggingManagement object and initialize the logging management
+ *   subsystem with provided resources.
+ *
+ * Initialize the LoggingManagement with an array of LogStorageResources.  The
+ * array must provide a resource for each valid importance level, the elements
+ * of the array must be in increasing numerical value of importance (and in
+ * decreasing importance); the first element in the array corresponds to the
+ * resources allocated for the most critical events, and the last element
+ * corresponds to the least important events.
  *
  * @param[in] inMgr         WeaveExchangeManager to be used with this logging subsystem
  *
- * @param[in] inNumBuffers  Number of buffers to use for event storage
+ * @param[in] inNumBuffers  Number of elements in inLogStorageResources array
  *
- * @param[in] inBufferLengths Description of inBufferLengths
+ * @param[in] inLogStorageResources  An array of LogStorageResources for each importance level.
  *
- * @param[in] inBuffers     The buffers to use for actual event logging.
- * @param[in] inCounterKeys Keys naming persisted counters
- *
- * @param[in] inCounterEpochs An array of epochs for each of the persisted counters
- *
- * @param[in] inCounterStorage Application-provided storage for the persistent counters
+ * @note This function must be called prior to the logging being used.
  */
-void LoggingManagement::CreateLoggingManagement(nl::Weave::WeaveExchangeManager * inMgr, size_t inNumBuffers,
-                                                size_t * inBufferLengths, void ** inBuffers,
-                                                nl::Weave::Platform::PersistedStorage::Key * inCounterKeys,
-                                                const uint32_t * inCounterEpochs, nl::Weave::PersistedCounter ** inCounterStorage)
+void LoggingManagement::CreateLoggingManagement(nl::Weave::WeaveExchangeManager * inMgr,
+                                                size_t inNumBuffers,
+                                                const LogStorageResources * const inLogStorageResources)
 {
-    new (&sInstance)
-        LoggingManagement(inMgr, inNumBuffers, inBufferLengths, inBuffers, inCounterKeys, inCounterEpochs, inCounterStorage);
-}
-
-/**
- * @brief Create and initialize the logging management buffers. Must
- *   be called prior to the logging being used.
- *
- * @param[in] inMgr         WeaveExchangeManager to be used with this logging subsystem.
- *
- * @param[in] inNumBuffers  Number of buffers to use for event storage.
- *
- * @param[in] inBufferLengths Description of inBufferLengths.
- *
- * @param[in] inBuffers     The buffers to use for actual event logging.
- *
- * @param[in] nWeaveCounter The array of counter pointers must contain the initialized counters, and has to contain inNumBuffers of
- * counters.
- *
- */
-void LoggingManagement::CreateLoggingManagement(nl::Weave::WeaveExchangeManager * inMgr, size_t inNumBuffers,
-                                                size_t * inBufferLengths, void ** inBuffers,
-                                                nl::Weave::MonotonicallyIncreasingCounter ** nWeaveCounter)
-{
-    new (&sInstance) LoggingManagement(inMgr, inNumBuffers, inBufferLengths, inBuffers, nWeaveCounter);
+    new (&sInstance) LoggingManagement(inMgr, inNumBuffers, inLogStorageResources);
 }
 
 /**
@@ -475,59 +452,64 @@ WEAVE_ERROR LoggingManagement::SetExchangeManager(nl::Weave::WeaveExchangeManage
  * @brief
  *   LoggingManagement constructor
  *
- * For prioritization to work correctly, inBuffers must be incrementally
- * increasing in priority.
+ * Initialize the LoggingManagement with an array of LogStorageResources.  The
+ * array must provide a resource for each valid importance level, the elements
+ * of the array must be in increasing numerical value of importance (and in
+ * decreasing importance); the first element in the array corresponds to the
+ * resources allocated for the most critical events, and the last element
+ * corresponds to the least important events.
  *
  * @param[in] inMgr         WeaveExchangeManager to be used with this logging subsystem
  *
- * @param[in] inNumBuffers  Number of buffers to use for event storage
+ * @param[in] inNumBuffers  Number of elements in inLogStorageResources array
  *
- * @param[in] inBufferLengths Description of inBufferLengths
+ * @param[in] inLogStorageResources  An array of LogStorageResources for each importance level.
  *
- * @param[in] inBuffers     The buffers to use for actual event logging.
- *
- * @param[in] inCounterKeys Keys naming persisted counters
- *
- * @param[in] inCounterEpochs An array of epochs for each of the persisted counters
- *
- * @param[in] inCounterStorage Application-provided storage for the persistent counters
- *
- * @return LoggingManagement
  */
-LoggingManagement::LoggingManagement(WeaveExchangeManager * inMgr, size_t inNumBuffers, size_t * inBufferLengths, void ** inBuffers,
-                                     nl::Weave::Platform::PersistedStorage::Key * inCounterKeys, const uint32_t * inCounterEpochs,
-                                     nl::Weave::PersistedCounter ** inCounterStorage)
+
+LoggingManagement::LoggingManagement(nl::Weave::WeaveExchangeManager * inMgr,
+                                     size_t inNumBuffers,
+                                     const LogStorageResources * const inLogStorageResources)
 {
     CircularEventBuffer * current = NULL;
     CircularEventBuffer * prev    = NULL;
     CircularEventBuffer * next    = NULL;
-    size_t i;
+    size_t i, j;
+
+    VerifyOrDie(inNumBuffers > 0);
 
     mThrottled   = 0;
     mExchangeMgr = inMgr;
 
-    for (i = 0; i < inNumBuffers; i++)
+    for (j = 0; j < inNumBuffers; j++)
     {
-        next = ((i + 1) < inNumBuffers) ? static_cast<CircularEventBuffer *>(inBuffers[i + 1]) : NULL;
+        i = inNumBuffers - 1 - j;
 
-        new (inBuffers[i]) CircularEventBuffer(static_cast<uint8_t *>(inBuffers[i]) + sizeof(CircularEventBuffer),
-                                               inBufferLengths[i] - sizeof(CircularEventBuffer), prev, next);
+        next = (i > 0) ? static_cast<CircularEventBuffer *>(inLogStorageResources[i - 1].mBuffer) : NULL;
 
-        current = prev                          = static_cast<CircularEventBuffer *>(inBuffers[i]);
+        VerifyOrDie(inLogStorageResources[i].mBufferSize > sizeof(CircularEventBuffer));
+
+        new (inLogStorageResources[i].mBuffer)
+            CircularEventBuffer(static_cast<uint8_t *>(inLogStorageResources[i].mBuffer) + sizeof(CircularEventBuffer),
+                                inLogStorageResources[i].mBufferSize - sizeof(CircularEventBuffer), prev, next);
+
+        current = prev                          = static_cast<CircularEventBuffer *>(inLogStorageResources[i].mBuffer);
         current->mBuffer.mProcessEvictedElement = AlwaysFail;
         current->mBuffer.mAppData               = NULL;
-        current->mImportance                    = static_cast<ImportanceType>(inNumBuffers - i);
-
-        if ((inCounterStorage != NULL) && (inCounterStorage[i] != NULL))
+        current->mImportance                    = inLogStorageResources[i].mImportance;
+        if ((inLogStorageResources[i].mCounterStorage != NULL) && (inLogStorageResources[i].mCounterKey != NULL) &&
+            (inLogStorageResources[i].mCounterEpoch != 0))
         {
+
             // We have been provided storage for a counter for this importance level.
-            new (inCounterStorage[i]) PersistedCounter();
-            WEAVE_ERROR err = inCounterStorage[i]->Init(inCounterKeys[i], inCounterEpochs[i]);
+            new (inLogStorageResources[i].mCounterStorage) PersistedCounter();
+            WEAVE_ERROR err = inLogStorageResources[i].mCounterStorage->Init(*(inLogStorageResources[i].mCounterKey),
+                                                                             inLogStorageResources[i].mCounterEpoch);
             if (err != WEAVE_NO_ERROR)
             {
-                WeaveLogError(EventLogging, "%s inCounterStorage[%d]->Init() failed with %d", __FUNCTION__, i, err);
+                WeaveLogError(EventLogging, "%s PersistedCounter[%d]->Init() failed with %d", __FUNCTION__, j, err);
             }
-            current->mEventIdCounter = inCounterStorage[i];
+            current->mEventIdCounter = inLogStorageResources[i].mCounterStorage;
         }
         else
         {
@@ -538,68 +520,15 @@ LoggingManagement::LoggingManagement(WeaveExchangeManager * inMgr, size_t inNumB
 
         current->mFirstEventID = current->mEventIdCounter->GetValue();
     }
-    mEventBuffer = static_cast<CircularEventBuffer *>(inBuffers[0]);
+    mEventBuffer = static_cast<CircularEventBuffer *>(inLogStorageResources[kImportanceType_Last - kImportanceType_First].mBuffer);
 
     mState               = kLoggingManagementState_Idle;
     mBDXUploader         = NULL;
     mBytesWritten        = 0;
     mUploadRequested     = false;
-    mMaxImportanceBuffer = static_cast<ImportanceType>(inNumBuffers);
+    mMaxImportanceBuffer = kImportanceType_Last;
 }
 
-/**
- * @brief
- *   LoggingManagement constructor
- *
- * For prioritization to work correctly, inBuffers must be incrementally
- * increasing in priority.
- *
- * @param[in] inMgr         WeaveExchangeManager to be used with this logging subsystem.
- *
- * @param[in] inNumBuffers  Number of buffers to use for event storage.
- *
- * @param[in] inBufferLengths Description of inBufferLengths.
- *
- * @param[in] inBuffers     The buffers to use for actual event logging.
- *
- * @param[in] nWeaveCounter The array of counter pointers must contain the initialized counters, and has to contain inNumBuffers of
- * counters.
- * @return LoggingManagement
- */
-LoggingManagement::LoggingManagement(WeaveExchangeManager * inMgr, size_t inNumBuffers, size_t * inBufferLengths, void ** inBuffers,
-                                     nl::Weave::MonotonicallyIncreasingCounter ** nWeaveCounter)
-{
-    CircularEventBuffer * current = NULL;
-    CircularEventBuffer * prev    = NULL;
-    CircularEventBuffer * next    = NULL;
-    size_t i;
-
-    mThrottled   = 0;
-    mExchangeMgr = inMgr;
-
-    for (i = 0; i < inNumBuffers; i++)
-    {
-        next = ((i + 1) < inNumBuffers) ? static_cast<CircularEventBuffer *>(inBuffers[i + 1]) : NULL;
-
-        new (inBuffers[i]) CircularEventBuffer(static_cast<uint8_t *>(inBuffers[i]) + sizeof(CircularEventBuffer),
-                                               inBufferLengths[i] - sizeof(CircularEventBuffer), prev, next);
-
-        current = prev                          = static_cast<CircularEventBuffer *>(inBuffers[i]);
-        current->mBuffer.mProcessEvictedElement = AlwaysFail;
-        current->mBuffer.mAppData               = NULL;
-        current->mImportance                    = static_cast<ImportanceType>(inNumBuffers - i);
-        current->mEventIdCounter                = nWeaveCounter[i];
-        current->mFirstEventID                  = current->mEventIdCounter->GetValue();
-    }
-
-    mEventBuffer = static_cast<CircularEventBuffer *>(inBuffers[0]);
-
-    mState               = kLoggingManagementState_Idle;
-    mBDXUploader         = NULL;
-    mBytesWritten        = 0;
-    mUploadRequested     = false;
-    mMaxImportanceBuffer = static_cast<ImportanceType>(inNumBuffers);
-}
 /**
  * @brief
  *   LoggingManagement default constructor. Provided primarily to make the compiler happy.
@@ -1359,7 +1288,6 @@ void LoggingManagement::UnthrottleLogger(void)
     }
 }
 
-
 // internal API, used to copy events to external buffers
 WEAVE_ERROR LoggingManagement::CopyEvent(const TLVReader & aReader, TLVWriter & aWriter, EventLoadOutContext * aContext)
 {
@@ -1783,8 +1711,8 @@ void LoggingManagement::FlushHandler(System::Layer * inSystemLayer, INET_ERROR i
 
     switch (mState)
     {
-    case kLoggingManagementState_Idle:
-    {
+
+    case kLoggingManagementState_Idle: {
 #if WEAVE_CONFIG_EVENT_LOGGING_BDX_OFFLOAD
         // Nothing prevents a flush.  If the configuration supports
         // it, transition into "in progress" state, and kick off the
@@ -1817,8 +1745,8 @@ void LoggingManagement::FlushHandler(System::Layer * inSystemLayer, INET_ERROR i
 
         break;
     }
-    case kLoggingManagementState_Holdoff:
-    {
+
+    case kLoggingManagementState_Holdoff: {
 #if WEAVE_CONFIG_EVENT_LOGGING_BDX_OFFLOAD
         mState           = kLoggingManagementState_Idle;
         mUploadRequested = false;
@@ -1835,8 +1763,7 @@ void LoggingManagement::FlushHandler(System::Layer * inSystemLayer, INET_ERROR i
     }
 
     case kLoggingManagementState_InProgress:
-    case kLoggingManagementState_Shutdown:
-    {
+    case kLoggingManagementState_Shutdown: {
         // should never end in these states in this function
         break;
     }
