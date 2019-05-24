@@ -96,6 +96,15 @@
 #define WEAVE_DEVICE_CONFIG_SERVICE_DIRECTORY_CACHE_SIZE 512
 #endif
 
+/**
+ * WEAVE_DEVICE_CONFIG_LOG_MESSAGE_MAX_SIZE
+ *
+ * The maximum size (in bytes) of a debug logging message.
+ */
+#ifndef WEAVE_DEVICE_CONFIG_LOG_MESSAGE_MAX_SIZE
+#define WEAVE_DEVICE_CONFIG_LOG_MESSAGE_MAX_SIZE 256
+#endif
+
 // -------------------- Device Identification Configuration --------------------
 
 /**
@@ -209,7 +218,6 @@
 #define WEAVE_DEVICE_CONFIG_LWIP_WIFI_STATION_IF_NAME "wl"
 #endif
 
-
 // -------------------- WiFi AP Configuration --------------------
 
 /**
@@ -277,7 +285,6 @@
 #define WEAVE_DEVICE_CONFIG_LWIP_WIFI_AP_IF_NAME "ap"
 #endif
 
-
 // -------------------- BLE/WoBLE Configuration --------------------
 
 /**
@@ -326,8 +333,6 @@
 #ifndef WEAVE_DEVICE_CONFIG_BLE_SLOW_ADVERTISING_INTERVAL
 #define WEAVE_DEVICE_CONFIG_BLE_SLOW_ADVERTISING_INTERVAL 3200
 #endif
-
-
 
 // -------------------- Time Sync Configuration --------------------
 
@@ -390,7 +395,6 @@
 #ifndef WEAVE_DEVICE_CONFIG_TIME_SYNC_TIMEOUT
 #define WEAVE_DEVICE_CONFIG_TIME_SYNC_TIMEOUT 10000
 #endif
-
 
 // -------------------- Service Provisioning Configuration --------------------
 

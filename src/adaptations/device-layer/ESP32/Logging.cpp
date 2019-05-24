@@ -63,7 +63,7 @@ void Log(uint8_t module, uint8_t category, const char *msg, ...)
         };
         char tag[kMaxTagLen + 1];
         size_t tagLen;
-        char formattedMsg[256];
+        char formattedMsg[WEAVE_DEVICE_CONFIG_LOG_MESSAGE_MAX_SIZE];
 
         strcpy(tag, "weave[");
         tagLen = strlen(tag);
