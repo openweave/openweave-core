@@ -65,8 +65,7 @@ class test_weave_wdm_next_mutual_subscribe_03(weave_wdm_next_test_base):
                                              ('Client->kEvent_OnNotificationProcessed', wdm_next_args['test_client_iterations']),
                                              ('Handler\[0\] Moving to \[ FREE\] Ref\(0\)', wdm_next_args['test_client_iterations'])]
         wdm_next_args['test_tag'] = self.__class__.__name__[19:].upper()
-        wdm_next_args['test_case_name'] = ['E03: Mutual Subscribe: Root path. Null Version. Client in initiator aborts',
-                                           'M03: Stress Mutual Subscribe: Root path. Null Version. Client in initiator aborts']
+        wdm_next_args['test_case_name'] = ['M03: Stress Mutual Subscribe: Root path. Null Version. Client in initiator aborts']
         print 'test file: ' + self.__class__.__name__
         print "weave-wdm-next test E03 and M03"
         super(test_weave_wdm_next_mutual_subscribe_03, self).weave_wdm_next_test_base(wdm_next_args)

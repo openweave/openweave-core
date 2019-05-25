@@ -65,8 +65,7 @@ class test_weave_wdm_next_application_key_02(weave_wdm_next_test_base):
                                              ('Client\[0\] moving to \[ FREE\] Ref\(0\)', wdm_next_args['test_client_iterations']),
                                              ('Handler\[0\] Moving to \[ FREE\] Ref\(0\)', wdm_next_args['test_client_iterations'])]
         wdm_next_args['test_tag'] = self.__class__.__name__[35:].upper()
-        wdm_next_args['test_case_name'] = ['A02: Mutual Subscribe: Application key: Group key',
-                                           'B02: Stress Mutual Subscribe: Application key: Group key']
+        wdm_next_args['test_case_name'] = ['B02: Stress Mutual Subscribe: Application key: Group key']
         print 'test file: ' + self.__class__.__name__
         print "test_weave_wdm_next_application_key test A02 and B02"
         if "WEAVE_SYSTEM_CONFIG_USE_LWIP" in os.environ.keys() and os.environ["WEAVE_SYSTEM_CONFIG_USE_LWIP"] == "1":

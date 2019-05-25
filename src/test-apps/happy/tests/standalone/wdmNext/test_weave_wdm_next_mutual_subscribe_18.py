@@ -64,8 +64,7 @@ class test_weave_wdm_next_mutual_subscribe_18(weave_wdm_next_test_base):
                                              ('Client\[0\] moving to \[ FREE\] Ref\(0\)', wdm_next_args['test_client_iterations']),
                                              ('Handler\[0\] Moving to \[ FREE\] Ref\(0\)', wdm_next_args['test_client_iterations'])]
         wdm_next_args['test_tag'] = self.__class__.__name__[19:].upper()
-        wdm_next_args['test_case_name'] = ['F14: Mutual Subscribe: Root path. Null Version. Mutate data in initiator and responder. Publisher in initiator cancels',
-                                           'M18: Stress Mutual Subscribe: Root path. Null Version. Mutate data in initiator and responder. Publisher in initiator cancels']
+        wdm_next_args['test_case_name'] = ['M18: Stress Mutual Subscribe: Root path. Null Version. Mutate data in initiator and responder. Publisher in initiator cancels']
         print 'test file: ' + self.__class__.__name__
         print "weave-wdm-next test F14 and M18"
         super(test_weave_wdm_next_mutual_subscribe_18, self).weave_wdm_next_test_base(wdm_next_args)
