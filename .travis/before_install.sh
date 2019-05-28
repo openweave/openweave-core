@@ -99,6 +99,14 @@ installdeps()
             rm ${TMPDIR}/arm_gcc_toolchain.tar.bz2
 
             ;;
+
+        osx-autotools)
+            HOMEBREW_NO_AUTO_UPDATE=1 brew install automake libtool
+            ;;
+            
+        osx-openssl)
+            HOMEBREW_NO_AUTO_UPDATE=1 brew install openssl
+            ;;
         
     esac
 }
@@ -132,13 +140,9 @@ case "${BUILD_TARGET}" in
 
         ;;
 
-    osx-auto-clang|osx-lwip-clang)
-        # By default, OpenWeave Core uses OpenSSL for cryptography on
-        # OS X and the OpenSSL version included in package depends
-        # on the perl Text::Template mmodule.
-        
-        installdeps "openssl-deps"
-
+    osx-*)
+        installdeps "osx-autotools"
+        installdeps "osx-openssl"
         ;;
 
     linux-auto-gcc-check-happy|linux-lwip-gcc-check-happy)
