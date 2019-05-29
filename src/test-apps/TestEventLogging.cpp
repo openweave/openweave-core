@@ -435,27 +435,6 @@ static nl::Weave::PersistedCounter sInfoEventIdCounter;
 static const char * sDebugEventIdCounterStorageKey = "DebugEIDC";
 static nl::Weave::PersistedCounter sDebugEventIdCounter;
 
-const char * sCounterKeys[kImportanceType_Last] = {
-    sCritEventIdCounterStorageKey,
-    sProductionEventIdCounterStorageKey,
-    sInfoEventIdCounterStorageKey,
-    sDebugEventIdCounterStorageKey,
-};
-
-const uint32_t sCounterEpochs[kImportanceType_Last] = {
-    sEventIdCounterEpoch,
-    sEventIdCounterEpoch,
-    sEventIdCounterEpoch,
-    sEventIdCounterEpoch,
-};
-
-PersistedCounter * sCounterStorage[kImportanceType_Last] = {
-    &sCritEventIdCounter,
-    &sProductionEventIdCounter,
-    &sInfoEventIdCounter,
-    &sDebugEventIdCounter,
-};
-
 void InitializeEventLogging(TestLoggingContext * context)
 {
     LogStorageResources logStorageResources[] = { { static_cast<void *>(&gCritEventBuffer[0]), sizeof(gCritEventBuffer), NULL, 0,
@@ -3440,7 +3419,6 @@ static void CheckExternalEventNotifyDelivered(nlTestSuite * inSuite, void * inCo
     TestLoggingContext * context = static_cast<TestLoggingContext *>(inContext);
     nl::Weave::Profiles::DataManagement::LoggingManagement & logger =
         nl::Weave::Profiles::DataManagement::LoggingManagement::GetInstance();
-    nl::Weave::Profiles::DataManagement::ImportanceType importance;
 
     InitializeEventLogging(context);
 
@@ -3514,7 +3492,6 @@ static void CheckExternalEventNotifyEvicted(nlTestSuite * inSuite, void * inCont
     TestLoggingContext * context = static_cast<TestLoggingContext *>(inContext);
     nl::Weave::Profiles::DataManagement::LoggingManagement & logger =
         nl::Weave::Profiles::DataManagement::LoggingManagement::GetInstance();
-    nl::Weave::Profiles::DataManagement::ImportanceType importance;
 
     InitializeEventLogging(context);
 
