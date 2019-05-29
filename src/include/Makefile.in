@@ -15,6 +15,7 @@
 @SET_MAKE@
 
 #
+#    Copyright (c) 2019 Google LLC.
 #    Copyright (c) 2014-2017 Nest Labs, Inc.
 #    All rights reserved.
 #
@@ -279,6 +280,7 @@ am__installdirs = "$(DESTDIR)$(ble_bledir)" \
 	"$(DESTDIR)$(weave_support_platformdir)" \
 	"$(DESTDIR)$(weave_support_verhoeffdir)" \
 	"$(DESTDIR)$(includedir)" \
+	"$(DESTDIR)$(weave_support_ASN1OID_basedir)" \
 	"$(DESTDIR)$(weave_profiles_basedir)" \
 	"$(DESTDIR)$(weave_profiles_bulk_data_transferdir)" \
 	"$(DESTDIR)$(weave_profiles_bulk_data_transfer_currentdir)" \
@@ -347,6 +349,7 @@ HEADERS = $(dist_ble_ble_HEADERS) $(dist_ble_device_manager_HEADERS) \
 	$(dist_weave_support_pairing_code_HEADERS) \
 	$(dist_weave_support_platform_HEADERS) \
 	$(dist_weave_support_verhoeff_HEADERS) $(include_HEADERS) \
+	$(nodist_weave_support_ASN1OID_base_HEADERS) \
 	$(weave_profiles_base_HEADERS) \
 	$(weave_profiles_bulk_data_transfer_HEADERS) \
 	$(weave_profiles_bulk_data_transfer_current_HEADERS) \
@@ -846,7 +849,7 @@ dist_warm_HEADERS = $(addprefix ../,$(nl_public_Warm_header_sources))
 
 # Weave - Top-level
 #
-# Right now, this exists exclusive to serve the auto-generated
+# Right now, this exists exclusively to serve the auto-generated
 # Weave/WeaveVersion.h header.
 nl_public_Weave_source_dirstem = Weave
 nl_public_Weave_destination_dirstem = Weave
@@ -861,6 +864,9 @@ weavedir = $(includedir)/$(nl_public_Weave_destination_dirstem)
 dist_weave_HEADERS = $(addprefix ./,$(nl_public_Weave_header_sources))
 
 # Weave - Support
+#
+# All of these are non-auto-generated source headers, except
+# ASN1OID.h. That auto-generated header is treated independently.
 nl_public_WeaveSupport_source_dirstem = lib/support
 nl_public_WeaveSupport_destination_dirstem = Weave/Support
 nl_public_WeaveSupport_base_header_sources = \
@@ -868,7 +874,6 @@ $(nl_public_WeaveSupport_source_dirstem)/ASN1.h \
 $(nl_public_WeaveSupport_source_dirstem)/ASN1Config.h \
 $(nl_public_WeaveSupport_source_dirstem)/ASN1Error.h \
 $(nl_public_WeaveSupport_source_dirstem)/ASN1Macros.h \
-$(nl_public_WeaveSupport_source_dirstem)/ASN1OID.h \
 $(nl_public_WeaveSupport_source_dirstem)/Base64.h \
 $(nl_public_WeaveSupport_source_dirstem)/CodeUtils.h \
 $(nl_public_WeaveSupport_source_dirstem)/ErrorStr.h \
@@ -889,6 +894,10 @@ $(nl_public_WeaveSupport_source_dirstem)/WeaveCounter.h \
 $(nl_public_WeaveSupport_source_dirstem)/WeaveFaultInjection.h \
 $(nl_public_WeaveSupport_source_dirstem)/WeaveNames.h \
 $(nl_public_WeaveSupport_source_dirstem)/nlargparser.hpp \
+$(NULL)
+
+nl_public_WeaveSupport_ASN1OID_base_header_sources = \
+$(nl_public_WeaveSupport_source_dirstem)/ASN1OID.h \
 $(NULL)
 
 nl_public_WeaveSupport_crypto_header_sources = \
@@ -929,11 +938,26 @@ $(nl_public_WeaveSupport_pairing_code_header_sources) \
 $(nl_public_WeaveSupport_platform_header_sources) \
 $(NULL)
 
+nl_public_WeaveSupport_ASN1OID_header_sources = \
+$(nl_public_WeaveSupport_ASN1OID_base_header_sources) \
+$(NULL)
+
 nl_public_WeaveSupport_header_paths = $(subst $(nl_public_WeaveSupport_source_dirstem)/,,$(nl_public_WeaveSupport_header_sources))
+nl_public_WeaveSupport_ASN1OID_header_paths = $(subst $(nl_public_WeaveSupport_source_dirstem)/,,$(nl_public_WeaveSupport_ASN1OID_header_sources))
 nl_public_WeaveSupport_header_destinations = $(addprefix $(nl_public_WeaveSupport_destination_dirstem)/,$(nl_public_WeaveSupport_header_paths))
+nl_public_WeaveSupport_ASN1OID_header_destinations = $(addprefix $(nl_public_WeaveSupport_destination_dirstem)/,$(nl_public_WeaveSupport_ASN1OID_header_paths))
 nl_public_WeaveSupport_header_dirs = $(call Deslashify,$(sort $(dir $(nl_public_WeaveSupport_header_destinations))))
+nl_public_WeaveSupport_ASN1OID_header_dirs = $(call Deslashify,$(sort $(dir $(nl_public_WeaveSupport_ASN1OID_header_destinations))))
 weave_support_basedir = $(includedir)/$(nl_public_WeaveSupport_destination_dirstem)
 dist_weave_support_base_HEADERS = $(addprefix ../,$(nl_public_WeaveSupport_base_header_sources))
+
+# Note: we explicitly prefix 'weave_support_ASN1OID_base_HEADERS' with
+# 'nodist_' rather than 'dist_' or just dropping 'dist_' because while
+# 'ASN1OID.h' is installed with 'make install' it should not be
+# included in a distribution with 'make dist' because it is
+# auto-generated.
+weave_support_ASN1OID_basedir = $(includedir)/$(nl_public_WeaveSupport_destination_dirstem)
+nodist_weave_support_ASN1OID_base_HEADERS = $(addprefix ../,$(nl_public_WeaveSupport_ASN1OID_base_header_sources))
 weave_support_cryptodir = $(includedir)/$(nl_public_WeaveSupport_destination_dirstem)/crypto
 dist_weave_support_crypto_HEADERS = $(addprefix ../,$(nl_public_WeaveSupport_crypto_header_sources))
 weave_support_loggingdir = $(includedir)/$(nl_public_WeaveSupport_destination_dirstem)/logging
@@ -1505,6 +1529,7 @@ nl_public_headers = \
     $(nl_public_Warm_header_destinations)                     \
     $(nl_public_Weave_header_destinations)                    \
     $(nl_public_WeaveSupport_header_destinations)             \
+    $(nl_public_WeaveSupport_ASN1OID_header_destinations)     \
     $(nl_public_WeaveCore_header_destinations)                \
     $(nl_public_WeaveCommon_header_destinations)              \
     $(nl_public_WeaveProfiles_header_destinations)            \
@@ -2161,6 +2186,27 @@ uninstall-includeHEADERS:
 	@list='$(include_HEADERS)'; test -n "$(includedir)" || list=; \
 	files=`for p in $$list; do echo $$p; done | sed -e 's|^.*/||'`; \
 	dir='$(DESTDIR)$(includedir)'; $(am__uninstall_files_from_dir)
+install-nodist_weave_support_ASN1OID_baseHEADERS: $(nodist_weave_support_ASN1OID_base_HEADERS)
+	@$(NORMAL_INSTALL)
+	@list='$(nodist_weave_support_ASN1OID_base_HEADERS)'; test -n "$(weave_support_ASN1OID_basedir)" || list=; \
+	if test -n "$$list"; then \
+	  echo " $(MKDIR_P) '$(DESTDIR)$(weave_support_ASN1OID_basedir)'"; \
+	  $(MKDIR_P) "$(DESTDIR)$(weave_support_ASN1OID_basedir)" || exit 1; \
+	fi; \
+	for p in $$list; do \
+	  if test -f "$$p"; then d=; else d="$(srcdir)/"; fi; \
+	  echo "$$d$$p"; \
+	done | $(am__base_list) | \
+	while read files; do \
+	  echo " $(INSTALL_HEADER) $$files '$(DESTDIR)$(weave_support_ASN1OID_basedir)'"; \
+	  $(INSTALL_HEADER) $$files "$(DESTDIR)$(weave_support_ASN1OID_basedir)" || exit $$?; \
+	done
+
+uninstall-nodist_weave_support_ASN1OID_baseHEADERS:
+	@$(NORMAL_UNINSTALL)
+	@list='$(nodist_weave_support_ASN1OID_base_HEADERS)'; test -n "$(weave_support_ASN1OID_basedir)" || list=; \
+	files=`for p in $$list; do echo $$p; done | sed -e 's|^.*/||'`; \
+	dir='$(DESTDIR)$(weave_support_ASN1OID_basedir)'; $(am__uninstall_files_from_dir)
 install-weave_profiles_baseHEADERS: $(weave_profiles_base_HEADERS)
 	@$(NORMAL_INSTALL)
 	@list='$(weave_profiles_base_HEADERS)'; test -n "$(weave_profiles_basedir)" || list=; \
@@ -2966,7 +3012,7 @@ check: $(BUILT_SOURCES)
 	$(MAKE) $(AM_MAKEFLAGS) check-am
 all-am: Makefile $(HEADERS) BuildConfig.h
 installdirs:
-	for dir in "$(DESTDIR)$(ble_bledir)" "$(DESTDIR)$(ble_device_managerdir)" "$(DESTDIR)$(inetdir)" "$(DESTDIR)$(micro_eccdir)" "$(DESTDIR)$(mincryptdir)" "$(DESTDIR)$(platform_ble_bluezdir)" "$(DESTDIR)$(systemdir)" "$(DESTDIR)$(warmdir)" "$(DESTDIR)$(weavedir)" "$(DESTDIR)$(weave_commondir)" "$(DESTDIR)$(weave_coredir)" "$(DESTDIR)$(weave_device_layer_basedir)" "$(DESTDIR)$(weave_device_layer_freertosdir)" "$(DESTDIR)$(weave_device_layer_internaldir)" "$(DESTDIR)$(weave_device_layer_internal_testingdir)" "$(DESTDIR)$(weave_device_layer_lwipdir)" "$(DESTDIR)$(weave_device_layer_openthreaddir)" "$(DESTDIR)$(weave_device_layer_targetdir)" "$(DESTDIR)$(weave_support_basedir)" "$(DESTDIR)$(weave_support_cryptodir)" "$(DESTDIR)$(weave_support_loggingdir)" "$(DESTDIR)$(weave_support_pairing_codedir)" "$(DESTDIR)$(weave_support_platformdir)" "$(DESTDIR)$(weave_support_verhoeffdir)" "$(DESTDIR)$(includedir)" "$(DESTDIR)$(weave_profiles_basedir)" "$(DESTDIR)$(weave_profiles_bulk_data_transferdir)" "$(DESTDIR)$(weave_profiles_bulk_data_transfer_currentdir)" "$(DESTDIR)$(weave_profiles_bulk_data_transfer_developmentdir)" "$(DESTDIR)$(weave_profiles_commondir)" "$(DESTDIR)$(weave_profiles_data_managementdir)" "$(DESTDIR)$(weave_profiles_data_management_currentdir)" "$(DESTDIR)$(weave_profiles_data_management_legacydir)" "$(DESTDIR)$(weave_profiles_device_controldir)" "$(DESTDIR)$(weave_profiles_device_descriptiondir)" "$(DESTDIR)$(weave_profiles_echodir)" "$(DESTDIR)$(weave_profiles_echo_currentdir)" "$(DESTDIR)$(weave_profiles_echo_nextdir)" "$(DESTDIR)$(weave_profiles_fabric_provisioningdir)" "$(DESTDIR)$(weave_profiles_heartbeatdir)" "$(DESTDIR)$(weave_profiles_localedir)" "$(DESTDIR)$(weave_profiles_nestlabs_boilerdir)" "$(DESTDIR)$(weave_profiles_nestlabs_device_descriptiondir)" "$(DESTDIR)$(weave_profiles_nestlabs_domestic_hot_waterdir)" "$(DESTDIR)$(weave_profiles_nestlabs_dropcam_legacy_pairingdir)" "$(DESTDIR)$(weave_profiles_nestlabs_heat_linkdir)" "$(DESTDIR)$(weave_profiles_nestlabs_hvac_equipment_controldir)" "$(DESTDIR)$(weave_profiles_nestlabs_protectdir)" "$(DESTDIR)$(weave_profiles_nestlabs_thermostatdir)" "$(DESTDIR)$(weave_profiles_nestlabs_time_variant_datadir)" "$(DESTDIR)$(weave_profiles_network_provisioningdir)" "$(DESTDIR)$(weave_profiles_securitydir)" "$(DESTDIR)$(weave_profiles_service_directorydir)" "$(DESTDIR)$(weave_profiles_service_provisioningdir)" "$(DESTDIR)$(weave_profiles_software_updatedir)" "$(DESTDIR)$(weave_profiles_status_reportdir)" "$(DESTDIR)$(weave_profiles_timedir)" "$(DESTDIR)$(weave_profiles_token_pairingdir)" "$(DESTDIR)$(weave_profiles_weave_tunnelingdir)"; do \
+	for dir in "$(DESTDIR)$(ble_bledir)" "$(DESTDIR)$(ble_device_managerdir)" "$(DESTDIR)$(inetdir)" "$(DESTDIR)$(micro_eccdir)" "$(DESTDIR)$(mincryptdir)" "$(DESTDIR)$(platform_ble_bluezdir)" "$(DESTDIR)$(systemdir)" "$(DESTDIR)$(warmdir)" "$(DESTDIR)$(weavedir)" "$(DESTDIR)$(weave_commondir)" "$(DESTDIR)$(weave_coredir)" "$(DESTDIR)$(weave_device_layer_basedir)" "$(DESTDIR)$(weave_device_layer_freertosdir)" "$(DESTDIR)$(weave_device_layer_internaldir)" "$(DESTDIR)$(weave_device_layer_internal_testingdir)" "$(DESTDIR)$(weave_device_layer_lwipdir)" "$(DESTDIR)$(weave_device_layer_openthreaddir)" "$(DESTDIR)$(weave_device_layer_targetdir)" "$(DESTDIR)$(weave_support_basedir)" "$(DESTDIR)$(weave_support_cryptodir)" "$(DESTDIR)$(weave_support_loggingdir)" "$(DESTDIR)$(weave_support_pairing_codedir)" "$(DESTDIR)$(weave_support_platformdir)" "$(DESTDIR)$(weave_support_verhoeffdir)" "$(DESTDIR)$(includedir)" "$(DESTDIR)$(weave_support_ASN1OID_basedir)" "$(DESTDIR)$(weave_profiles_basedir)" "$(DESTDIR)$(weave_profiles_bulk_data_transferdir)" "$(DESTDIR)$(weave_profiles_bulk_data_transfer_currentdir)" "$(DESTDIR)$(weave_profiles_bulk_data_transfer_developmentdir)" "$(DESTDIR)$(weave_profiles_commondir)" "$(DESTDIR)$(weave_profiles_data_managementdir)" "$(DESTDIR)$(weave_profiles_data_management_currentdir)" "$(DESTDIR)$(weave_profiles_data_management_legacydir)" "$(DESTDIR)$(weave_profiles_device_controldir)" "$(DESTDIR)$(weave_profiles_device_descriptiondir)" "$(DESTDIR)$(weave_profiles_echodir)" "$(DESTDIR)$(weave_profiles_echo_currentdir)" "$(DESTDIR)$(weave_profiles_echo_nextdir)" "$(DESTDIR)$(weave_profiles_fabric_provisioningdir)" "$(DESTDIR)$(weave_profiles_heartbeatdir)" "$(DESTDIR)$(weave_profiles_localedir)" "$(DESTDIR)$(weave_profiles_nestlabs_boilerdir)" "$(DESTDIR)$(weave_profiles_nestlabs_device_descriptiondir)" "$(DESTDIR)$(weave_profiles_nestlabs_domestic_hot_waterdir)" "$(DESTDIR)$(weave_profiles_nestlabs_dropcam_legacy_pairingdir)" "$(DESTDIR)$(weave_profiles_nestlabs_heat_linkdir)" "$(DESTDIR)$(weave_profiles_nestlabs_hvac_equipment_controldir)" "$(DESTDIR)$(weave_profiles_nestlabs_protectdir)" "$(DESTDIR)$(weave_profiles_nestlabs_thermostatdir)" "$(DESTDIR)$(weave_profiles_nestlabs_time_variant_datadir)" "$(DESTDIR)$(weave_profiles_network_provisioningdir)" "$(DESTDIR)$(weave_profiles_securitydir)" "$(DESTDIR)$(weave_profiles_service_directorydir)" "$(DESTDIR)$(weave_profiles_service_provisioningdir)" "$(DESTDIR)$(weave_profiles_software_updatedir)" "$(DESTDIR)$(weave_profiles_status_reportdir)" "$(DESTDIR)$(weave_profiles_timedir)" "$(DESTDIR)$(weave_profiles_token_pairingdir)" "$(DESTDIR)$(weave_profiles_weave_tunnelingdir)"; do \
 	  test -z "$$dir" || $(MKDIR_P) "$$dir"; \
 	done
 install: $(BUILT_SOURCES)
@@ -3043,7 +3089,9 @@ install-data-am: install-dist_ble_bleHEADERS \
 	install-dist_weave_support_pairing_codeHEADERS \
 	install-dist_weave_support_platformHEADERS \
 	install-dist_weave_support_verhoeffHEADERS \
-	install-includeHEADERS install-weave_profiles_baseHEADERS \
+	install-includeHEADERS \
+	install-nodist_weave_support_ASN1OID_baseHEADERS \
+	install-weave_profiles_baseHEADERS \
 	install-weave_profiles_bulk_data_transferHEADERS \
 	install-weave_profiles_bulk_data_transfer_currentHEADERS \
 	install-weave_profiles_bulk_data_transfer_developmentHEADERS \
@@ -3141,7 +3189,9 @@ uninstall-am: uninstall-dist_ble_bleHEADERS \
 	uninstall-dist_weave_support_pairing_codeHEADERS \
 	uninstall-dist_weave_support_platformHEADERS \
 	uninstall-dist_weave_support_verhoeffHEADERS \
-	uninstall-includeHEADERS uninstall-weave_profiles_baseHEADERS \
+	uninstall-includeHEADERS \
+	uninstall-nodist_weave_support_ASN1OID_baseHEADERS \
+	uninstall-weave_profiles_baseHEADERS \
 	uninstall-weave_profiles_bulk_data_transferHEADERS \
 	uninstall-weave_profiles_bulk_data_transfer_currentHEADERS \
 	uninstall-weave_profiles_bulk_data_transfer_developmentHEADERS \
@@ -3206,8 +3256,9 @@ uninstall-am: uninstall-dist_ble_bleHEADERS \
 	install-dist_weave_support_verhoeffHEADERS install-dvi \
 	install-dvi-am install-exec install-exec-am install-html \
 	install-html-am install-includeHEADERS install-info \
-	install-info-am install-man install-pdf install-pdf-am \
-	install-ps install-ps-am install-strip \
+	install-info-am install-man \
+	install-nodist_weave_support_ASN1OID_baseHEADERS install-pdf \
+	install-pdf-am install-ps install-ps-am install-strip \
 	install-weave_profiles_baseHEADERS \
 	install-weave_profiles_bulk_data_transferHEADERS \
 	install-weave_profiles_bulk_data_transfer_currentHEADERS \
@@ -3266,7 +3317,9 @@ uninstall-am: uninstall-dist_ble_bleHEADERS \
 	uninstall-dist_weave_support_pairing_codeHEADERS \
 	uninstall-dist_weave_support_platformHEADERS \
 	uninstall-dist_weave_support_verhoeffHEADERS \
-	uninstall-includeHEADERS uninstall-weave_profiles_baseHEADERS \
+	uninstall-includeHEADERS \
+	uninstall-nodist_weave_support_ASN1OID_baseHEADERS \
+	uninstall-weave_profiles_baseHEADERS \
 	uninstall-weave_profiles_bulk_data_transferHEADERS \
 	uninstall-weave_profiles_bulk_data_transfer_currentHEADERS \
 	uninstall-weave_profiles_bulk_data_transfer_developmentHEADERS \
@@ -3356,13 +3409,25 @@ endef # check-file-WeaveVersion.h
 $(nl_public_Weave_destination_dirstem)/WeaveVersion.h: $(top_builddir)/.local-version | $(nl_public_Weave_destination_dirstem)
 	$(call check-file,WeaveVersion.h)
 
-$(nl_public_WeaveSupport_header_dirs):
+# Filter nl_public_WeaveSupport_ASN1OID_header_dirs should it be the
+# same as nl_public_WeaveSupport_header_dirs to avoid make squawking
+# about "target 'nl_public_WeaveSupport_ASN1OID_header_dirs' given
+# more than once in the same rule".
+
+$(nl_public_WeaveSupport_header_dirs) $(filter-out $(nl_public_WeaveSupport_header_dirs),$(nl_public_WeaveSupport_ASN1OID_header_dirs)):
 	$(call create-directory)
 
 $(filter %.h,$(nl_public_WeaveSupport_header_destinations)): $(nl_public_WeaveSupport_destination_dirstem)/%.h: $(abs_srcdir)/../$(nl_public_WeaveSupport_source_dirstem)/%.h | $(nl_public_WeaveSupport_header_dirs)
 	$(call create-link)
 
 $(filter %.hpp,$(nl_public_WeaveSupport_header_destinations)): $(nl_public_WeaveSupport_destination_dirstem)/%.hpp: $(abs_srcdir)/../$(nl_public_WeaveSupport_source_dirstem)/%.hpp | $(nl_public_WeaveSupport_header_dirs)
+	$(call create-link)
+
+# Handle the auto-generated ASN1OID.h independently, since it comes
+# from the build directory which may not be the same as the source
+# directory in a non-colocated build.
+
+$(nl_public_WeaveSupport_destination_dirstem)/ASN1OID.h: $(abs_builddir)/../$(nl_public_WeaveSupport_source_dirstem)/ASN1OID.h | $(nl_public_WeaveSupport_ASN1OID_header_dirs)
 	$(call create-link)
 
 $(nl_public_WeaveCore_header_dirs):

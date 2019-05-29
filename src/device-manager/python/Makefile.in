@@ -15,6 +15,7 @@
 @SET_MAKE@
 
 #
+#    Copyright (c) 2019 Google LLC.
 #    Copyright (c) 2014-2017 Nest Labs, Inc.
 #    All rights reserved.
 #
@@ -111,22 +112,22 @@ POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
 target_triplet = @target@
-@CONFIG_NETWORK_LAYER_BLE_TRUE@@WEAVE_WITH_PYTHON_TRUE@am__append_1 = \
-@CONFIG_NETWORK_LAYER_BLE_TRUE@@WEAVE_WITH_PYTHON_TRUE@    WeaveDeviceManager-BleApplicationDelegate.h     \
-@CONFIG_NETWORK_LAYER_BLE_TRUE@@WEAVE_WITH_PYTHON_TRUE@    WeaveDeviceManager-BlePlatformDelegate.h        \
-@CONFIG_NETWORK_LAYER_BLE_TRUE@@WEAVE_WITH_PYTHON_TRUE@    $(NULL)
+@CONFIG_NETWORK_LAYER_BLE_TRUE@am__append_1 = \
+@CONFIG_NETWORK_LAYER_BLE_TRUE@    WeaveDeviceManager-BleApplicationDelegate.h     \
+@CONFIG_NETWORK_LAYER_BLE_TRUE@    WeaveDeviceManager-BlePlatformDelegate.h        \
+@CONFIG_NETWORK_LAYER_BLE_TRUE@    $(NULL)
 
-@CONFIG_NETWORK_LAYER_BLE_TRUE@@WEAVE_WITH_PYTHON_TRUE@am__append_2 = \
-@CONFIG_NETWORK_LAYER_BLE_TRUE@@WEAVE_WITH_PYTHON_TRUE@    WeaveDeviceManager-BlePlatformDelegate.cpp      \
-@CONFIG_NETWORK_LAYER_BLE_TRUE@@WEAVE_WITH_PYTHON_TRUE@    WeaveDeviceManager-BleApplicationDelegate.cpp   \
-@CONFIG_NETWORK_LAYER_BLE_TRUE@@WEAVE_WITH_PYTHON_TRUE@    $(NULL)
+@CONFIG_NETWORK_LAYER_BLE_TRUE@am__append_2 = \
+@CONFIG_NETWORK_LAYER_BLE_TRUE@    WeaveDeviceManager-BlePlatformDelegate.cpp      \
+@CONFIG_NETWORK_LAYER_BLE_TRUE@    WeaveDeviceManager-BleApplicationDelegate.cpp   \
+@CONFIG_NETWORK_LAYER_BLE_TRUE@    $(NULL)
 
-@CONFIG_NETWORK_LAYER_BLE_TRUE@@WEAVE_WITH_PYTHON_TRUE@am__append_3 = \
-@CONFIG_NETWORK_LAYER_BLE_TRUE@@WEAVE_WITH_PYTHON_TRUE@    WeaveBleBase.py                                    \
-@CONFIG_NETWORK_LAYER_BLE_TRUE@@WEAVE_WITH_PYTHON_TRUE@    WeaveCoreBluetoothMgr.py                        \
-@CONFIG_NETWORK_LAYER_BLE_TRUE@@WEAVE_WITH_PYTHON_TRUE@    WeaveBluezMgr.py                                \
-@CONFIG_NETWORK_LAYER_BLE_TRUE@@WEAVE_WITH_PYTHON_TRUE@    WeaveBleUtility.py                              \
-@CONFIG_NETWORK_LAYER_BLE_TRUE@@WEAVE_WITH_PYTHON_TRUE@    $(NULL)
+@CONFIG_NETWORK_LAYER_BLE_TRUE@am__append_3 = \
+@CONFIG_NETWORK_LAYER_BLE_TRUE@    WeaveBleBase.py                                    \
+@CONFIG_NETWORK_LAYER_BLE_TRUE@    WeaveCoreBluetoothMgr.py                        \
+@CONFIG_NETWORK_LAYER_BLE_TRUE@    WeaveBluezMgr.py                                \
+@CONFIG_NETWORK_LAYER_BLE_TRUE@    WeaveBleUtility.py                              \
+@CONFIG_NETWORK_LAYER_BLE_TRUE@    $(NULL)
 
 subdir = src/device-manager/python
 DIST_COMMON = $(srcdir)/Makefile.in $(srcdir)/Makefile.am \
@@ -204,10 +205,11 @@ am___WeaveDeviceMgr_la_SOURCES_DIST =  \
 	WeaveDeviceManager-ScriptBinding.cpp \
 	WeaveDeviceManager-BlePlatformDelegate.cpp \
 	WeaveDeviceManager-BleApplicationDelegate.cpp
-@CONFIG_NETWORK_LAYER_BLE_TRUE@@WEAVE_WITH_PYTHON_TRUE@am__objects_1 = _WeaveDeviceMgr_la-WeaveDeviceManager-BlePlatformDelegate.lo \
-@CONFIG_NETWORK_LAYER_BLE_TRUE@@WEAVE_WITH_PYTHON_TRUE@	_WeaveDeviceMgr_la-WeaveDeviceManager-BleApplicationDelegate.lo
-@WEAVE_WITH_PYTHON_TRUE@am__WeaveDeviceMgr_la_OBJECTS = _WeaveDeviceMgr_la-WeaveDeviceManager-ScriptBinding.lo \
-@WEAVE_WITH_PYTHON_TRUE@	$(am__objects_1)
+@CONFIG_NETWORK_LAYER_BLE_TRUE@am__objects_1 = _WeaveDeviceMgr_la-WeaveDeviceManager-BlePlatformDelegate.lo \
+@CONFIG_NETWORK_LAYER_BLE_TRUE@	_WeaveDeviceMgr_la-WeaveDeviceManager-BleApplicationDelegate.lo
+am__WeaveDeviceMgr_la_OBJECTS =  \
+	_WeaveDeviceMgr_la-WeaveDeviceManager-ScriptBinding.lo \
+	$(am__objects_1)
 _WeaveDeviceMgr_la_OBJECTS = $(am__WeaveDeviceMgr_la_OBJECTS)
 AM_V_lt = $(am__v_lt_@AM_V@)
 am__v_lt_ = $(am__v_lt_@AM_DEFAULT_V@)
@@ -217,8 +219,6 @@ _WeaveDeviceMgr_la_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
 	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CXXLD) \
 	$(AM_CXXFLAGS) $(CXXFLAGS) $(_WeaveDeviceMgr_la_LDFLAGS) \
 	$(LDFLAGS) -o $@
-@WEAVE_WITH_PYTHON_TRUE@am__WeaveDeviceMgr_la_rpath = -rpath \
-@WEAVE_WITH_PYTHON_TRUE@	$(pyexecdir)
 SCRIPTS = $(libexec_SCRIPTS) $(weave_SCRIPTS)
 AM_V_P = $(am__v_P_@AM_V@)
 am__v_P_ = $(am__v_P_@AM_DEFAULT_V@)
@@ -515,6 +515,18 @@ localedir = @localedir@
 localstatedir = @localstatedir@
 mandir = @mandir@
 mkdir_p = @mkdir_p@
+nl_filtered_build = @nl_filtered_build@
+nl_filtered_build_cpu = @nl_filtered_build_cpu@
+nl_filtered_build_os = @nl_filtered_build_os@
+nl_filtered_build_vendor = @nl_filtered_build_vendor@
+nl_filtered_host = @nl_filtered_host@
+nl_filtered_host_cpu = @nl_filtered_host_cpu@
+nl_filtered_host_os = @nl_filtered_host_os@
+nl_filtered_host_vendor = @nl_filtered_host_vendor@
+nl_filtered_target = @nl_filtered_target@
+nl_filtered_target_cpu = @nl_filtered_target_cpu@
+nl_filtered_target_os = @nl_filtered_target_os@
+nl_filtered_target_vendor = @nl_filtered_target_vendor@
 nlbuild_autotools_stem = @nlbuild_autotools_stem@
 oldincludedir = @oldincludedir@
 openssl_buildstem = @openssl_buildstem@
@@ -543,45 +555,43 @@ EXTRA_DIST = \
     weave-device-mgr.py                             \
     $(NULL)
 
-@WEAVE_WITH_PYTHON_TRUE@pyexec_LTLIBRARIES = _WeaveDeviceMgr.la
-@WEAVE_WITH_PYTHON_TRUE@noinst_HEADERS = $(NULL) $(am__append_1)
-@WEAVE_WITH_PYTHON_TRUE@_WeaveDeviceMgr_la_SOURCES =  \
-@WEAVE_WITH_PYTHON_TRUE@	WeaveDeviceManager-ScriptBinding.cpp \
-@WEAVE_WITH_PYTHON_TRUE@	$(NULL) $(am__append_2)
-@WEAVE_WITH_PYTHON_TRUE@_WeaveDeviceMgr_la_CPPFLAGS = \
-@WEAVE_WITH_PYTHON_TRUE@    -I$(srcdir)/..                                  \
-@WEAVE_WITH_PYTHON_TRUE@    $(LWIP_CPPFLAGS)                                \
-@WEAVE_WITH_PYTHON_TRUE@    $(SOCKETS_CPPFLAGS)                             \
-@WEAVE_WITH_PYTHON_TRUE@    $(NULL)
+pyexec_LTLIBRARIES = _WeaveDeviceMgr.la
+noinst_HEADERS = $(NULL) $(am__append_1)
+_WeaveDeviceMgr_la_SOURCES = WeaveDeviceManager-ScriptBinding.cpp \
+	$(NULL) $(am__append_2)
+_WeaveDeviceMgr_la_CPPFLAGS = \
+    -I$(srcdir)/..                                  \
+    $(LWIP_CPPFLAGS)                                \
+    $(SOCKETS_CPPFLAGS)                             \
+    $(NULL)
 
-@WEAVE_WITH_PYTHON_TRUE@_WeaveDeviceMgr_la_LIBADD = \
-@WEAVE_WITH_PYTHON_TRUE@    ../libWeaveDeviceManager.la                     \
-@WEAVE_WITH_PYTHON_TRUE@    -L$(top_builddir)/src/lib -lWeave               \
-@WEAVE_WITH_PYTHON_TRUE@    $(NULL)
+_WeaveDeviceMgr_la_LIBADD = \
+    ../libWeaveDeviceManager.la                     \
+    -L$(top_builddir)/src/lib -lWeave               \
+    $(NULL)
 
-@WEAVE_WITH_PYTHON_TRUE@_WeaveDeviceMgr_la_DEPENDENCIES = \
-@WEAVE_WITH_PYTHON_TRUE@    $(top_builddir)/src/lib/libWeave.a              \
-@WEAVE_WITH_PYTHON_TRUE@    $(NULL)
+_WeaveDeviceMgr_la_DEPENDENCIES = \
+    $(top_builddir)/src/lib/libWeave.a              \
+    $(NULL)
 
-@WEAVE_WITH_PYTHON_TRUE@_WeaveDeviceMgr_la_LDFLAGS = \
-@WEAVE_WITH_PYTHON_TRUE@    -avoid-version                                  \
-@WEAVE_WITH_PYTHON_TRUE@    -module                                         \
-@WEAVE_WITH_PYTHON_TRUE@    -no-undefined                                   \
-@WEAVE_WITH_PYTHON_TRUE@    $(NULL)
+_WeaveDeviceMgr_la_LDFLAGS = \
+    -avoid-version                                  \
+    -module                                         \
+    -no-undefined                                   \
+    $(NULL)
 
-@WEAVE_WITH_PYTHON_TRUE@weavedir = $(pyexecdir)/weave
-@WEAVE_WITH_PYTHON_TRUE@modules = WeaveDeviceMgr.py $(NULL) \
-@WEAVE_WITH_PYTHON_TRUE@	$(am__append_3)
-@WEAVE_WITH_PYTHON_TRUE@srcmodules = $(addprefix $(srcdir)/,$(modules))
-@WEAVE_WITH_PYTHON_TRUE@buildmodules = $(addprefix $(builddir)/,$(modules))
-@WEAVE_WITH_PYTHON_TRUE@cleanmodules = $(if $(call IsRealPath,$(buildmodules)),,$(buildmodules))
-@WEAVE_WITH_PYTHON_TRUE@weave_SCRIPTS = \
-@WEAVE_WITH_PYTHON_TRUE@    $(modules)                                      \
-@WEAVE_WITH_PYTHON_TRUE@    $(NULL)
+weavedir = $(pyexecdir)/weave
+modules = WeaveDeviceMgr.py $(NULL) $(am__append_3)
+srcmodules = $(addprefix $(srcdir)/,$(modules))
+buildmodules = $(addprefix $(builddir)/,$(modules))
+cleanmodules = $(if $(call IsRealPath,$(buildmodules)),,$(buildmodules))
+weave_SCRIPTS = \
+    $(modules)                                      \
+    $(NULL)
 
-@WEAVE_WITH_PYTHON_TRUE@weave_PYTHON = \
-@WEAVE_WITH_PYTHON_TRUE@    $(weave_SCRIPTS)                                \
-@WEAVE_WITH_PYTHON_TRUE@    $(NULL)
+weave_PYTHON = \
+    $(weave_SCRIPTS)                                \
+    $(NULL)
 
 
 # Tool scripts that should be installed when the 'install' target is run.
@@ -592,24 +602,24 @@ EXTRA_DIST = \
 # through the 'weave-run' script due to runtime dependencies on
 # DLLs/DSOs that the runtime linker / loader will need to resolve when
 # they invoked.
-@WEAVE_WITH_PYTHON_TRUE@libexec_SCRIPTS = \
-@WEAVE_WITH_PYTHON_TRUE@    weave-device-mgr                                \
-@WEAVE_WITH_PYTHON_TRUE@    $(NULL)
+libexec_SCRIPTS = \
+    weave-device-mgr                                \
+    $(NULL)
 
 
 # The bin_LINKS variable enumerates programs that need to be
 # "trampolined" through the 'weave-run' script due to runtime
 # dependencies on DLLs/DSOs that the runtime linker / loader will need
 # to resolve when they invoked.
-@WEAVE_WITH_PYTHON_TRUE@bin_LINKS = \
-@WEAVE_WITH_PYTHON_TRUE@    $(libexec_SCRIPTS)                              \
-@WEAVE_WITH_PYTHON_TRUE@    $(NULL)
+bin_LINKS = \
+    $(libexec_SCRIPTS)                              \
+    $(NULL)
 
-@WEAVE_WITH_PYTHON_TRUE@CLEANFILES = \
-@WEAVE_WITH_PYTHON_TRUE@    $(libexec_SCRIPTS)                              \
-@WEAVE_WITH_PYTHON_TRUE@    _WeaveDeviceMgr.so                              \
-@WEAVE_WITH_PYTHON_TRUE@    $(cleanmodule)                                  \
-@WEAVE_WITH_PYTHON_TRUE@    $(NULL)
+CLEANFILES = \
+    $(libexec_SCRIPTS)                              \
+    _WeaveDeviceMgr.so                              \
+    $(cleanmodule)                                  \
+    $(NULL)
 
 all: all-am
 
@@ -682,7 +692,7 @@ clean-pyexecLTLIBRARIES:
 	}
 
 _WeaveDeviceMgr.la: $(_WeaveDeviceMgr_la_OBJECTS) $(_WeaveDeviceMgr_la_DEPENDENCIES) $(EXTRA__WeaveDeviceMgr_la_DEPENDENCIES) 
-	$(AM_V_CXXLD)$(_WeaveDeviceMgr_la_LINK) $(am__WeaveDeviceMgr_la_rpath) $(_WeaveDeviceMgr_la_OBJECTS) $(_WeaveDeviceMgr_la_LIBADD) $(LIBS)
+	$(AM_V_CXXLD)$(_WeaveDeviceMgr_la_LINK) -rpath $(pyexecdir) $(_WeaveDeviceMgr_la_OBJECTS) $(_WeaveDeviceMgr_la_LIBADD) $(LIBS)
 install-libexecSCRIPTS: $(libexec_SCRIPTS)
 	@$(NORMAL_INSTALL)
 	@list='$(libexec_SCRIPTS)'; test -n "$(libexecdir)" || list=; \
@@ -947,7 +957,6 @@ distdir: $(DISTFILES)
 	done
 check-am: all-am
 check: check-am
-@WEAVE_WITH_PYTHON_FALSE@all-local:
 all-am: Makefile $(LTLIBRARIES) $(SCRIPTS) $(HEADERS) all-local
 installdirs:
 	for dir in "$(DESTDIR)$(pyexecdir)" "$(DESTDIR)$(libexecdir)" "$(DESTDIR)$(weavedir)" "$(DESTDIR)$(weavedir)"; do \
@@ -984,9 +993,6 @@ distclean-generic:
 maintainer-clean-generic:
 	@echo "This command is intended for maintainers to use"
 	@echo "it deletes files that may require special tools to rebuild."
-@WEAVE_WITH_PYTHON_FALSE@install-exec-local:
-@WEAVE_WITH_PYTHON_FALSE@uninstall-local:
-@WEAVE_WITH_PYTHON_FALSE@install-exec-hook:
 clean: clean-am
 
 clean-am: clean-generic clean-libtool clean-pyexecLTLIBRARIES \
@@ -1096,8 +1102,8 @@ endef # change-library-paths
 # name by which the script will be installed for non-co-located build
 # and source directories.
 
-@WEAVE_WITH_PYTHON_TRUE@%: %.py
-@WEAVE_WITH_PYTHON_TRUE@	$(AM_V_LN_S)$(LN_S) $(<) $(@)
+%: %.py
+	$(AM_V_LN_S)$(LN_S) $(<) $(@)
 
 # Create convenience links so that those that are doing Weave Device
 # Manager development can run the script right from this directory,
@@ -1107,42 +1113,42 @@ endef # change-library-paths
 # Because of automake's VPATH getting in our way, we need to play a
 # "trick" to get the "buildmodule" DLL/DSO link to work.
 
-@WEAVE_WITH_PYTHON_TRUE@all-local: _WeaveDeviceMgr.so $(buildmodule)
+all-local: _WeaveDeviceMgr.so $(buildmodule)
 
-@WEAVE_WITH_PYTHON_TRUE@_WeaveDeviceMgr.so: _WeaveDeviceMgr.la
-@WEAVE_WITH_PYTHON_TRUE@	$(AM_V_LN_S)$(LN_S) -f .libs/$(@) $(@)
-@WEAVE_WITH_PYTHON_TRUE@	$(AM_V_at)if test "${srcmodule}" != "${buildmodule}" && \
-@WEAVE_WITH_PYTHON_TRUE@           ! test -L "${buildmodule}"; then \
-@WEAVE_WITH_PYTHON_TRUE@	    echo "  LN       ${buildmodule}"; \
-@WEAVE_WITH_PYTHON_TRUE@	    $(LN_S) "${srcmodule}" "${buildmodule}"; \
-@WEAVE_WITH_PYTHON_TRUE@        fi
-@WEAVE_WITH_PYTHON_TRUE@	$(call set-relocation-path,$(@),libWeaveDeviceManager.$(LIBWEAVE_VERSION_CURRENT).dylib,@loader_path/../.libs/)
+_WeaveDeviceMgr.so: _WeaveDeviceMgr.la
+	$(AM_V_LN_S)$(LN_S) -f .libs/$(@) $(@)
+	$(AM_V_at)if test "${srcmodule}" != "${buildmodule}" && \
+           ! test -L "${buildmodule}"; then \
+	    echo "  LN       ${buildmodule}"; \
+	    $(LN_S) "${srcmodule}" "${buildmodule}"; \
+        fi
+	$(call set-relocation-path,$(@),libWeaveDeviceManager.$(LIBWEAVE_VERSION_CURRENT).dylib,@loader_path/../.libs/)
 
-@WEAVE_WITH_PYTHON_TRUE@install-exec-local: install-exec-binLINKS
+install-exec-local: install-exec-binLINKS
 
-@WEAVE_WITH_PYTHON_TRUE@uninstall-local: uninstall-exec-binLINKS
+uninstall-local: uninstall-exec-binLINKS
 
-@WEAVE_WITH_PYTHON_TRUE@install-exec-binLINKS: $(bin_LINKS)
-@WEAVE_WITH_PYTHON_TRUE@	@$(NORMAL_INSTALL)
-@WEAVE_WITH_PYTHON_TRUE@	@list='$(bin_LINKS)'; test -n "$(bindir)" || list=; \
-@WEAVE_WITH_PYTHON_TRUE@	if test -n "$$list"; then \
-@WEAVE_WITH_PYTHON_TRUE@          echo "  MKDIR    $(DESTDIR)$(bindir)"; \
-@WEAVE_WITH_PYTHON_TRUE@	  $(MKDIR_P) "$(DESTDIR)$(bindir)" || exit 1; \
-@WEAVE_WITH_PYTHON_TRUE@	fi; \
-@WEAVE_WITH_PYTHON_TRUE@	for link in $${list}; do \
-@WEAVE_WITH_PYTHON_TRUE@            echo "  LN       $${link}"; \
-@WEAVE_WITH_PYTHON_TRUE@	    $(LN_S) -f "../`echo ${libexecdir} | sed -e 's,${exec_prefix}/,,g'`/weave-run" "$(DESTDIR)$(bindir)/$${link}"; \
-@WEAVE_WITH_PYTHON_TRUE@        done
+install-exec-binLINKS: $(bin_LINKS)
+	@$(NORMAL_INSTALL)
+	@list='$(bin_LINKS)'; test -n "$(bindir)" || list=; \
+	if test -n "$$list"; then \
+          echo "  MKDIR    $(DESTDIR)$(bindir)"; \
+	  $(MKDIR_P) "$(DESTDIR)$(bindir)" || exit 1; \
+	fi; \
+	for link in $${list}; do \
+            echo "  LN       $${link}"; \
+	    $(LN_S) -f "../`echo ${libexecdir} | sed -e 's,${exec_prefix}/,,g'`/weave-run" "$(DESTDIR)$(bindir)/$${link}"; \
+        done
 
-@WEAVE_WITH_PYTHON_TRUE@uninstall-exec-binLINKS: $(bin_LINKS)
-@WEAVE_WITH_PYTHON_TRUE@	@$(NORMAL_UNINSTALL)
-@WEAVE_WITH_PYTHON_TRUE@	@list='$(bin_LINKS)'; test -n "$(bindir)" || exit 0; \
-@WEAVE_WITH_PYTHON_TRUE@	files=`for p in $$list; do echo "$$p"; done | \
-@WEAVE_WITH_PYTHON_TRUE@	       sed -e 's,.*/,,;$(transform)'`; \
-@WEAVE_WITH_PYTHON_TRUE@	dir='$(DESTDIR)$(bindir)'; $(am__uninstall_files_from_dir)
+uninstall-exec-binLINKS: $(bin_LINKS)
+	@$(NORMAL_UNINSTALL)
+	@list='$(bin_LINKS)'; test -n "$(bindir)" || exit 0; \
+	files=`for p in $$list; do echo "$$p"; done | \
+	       sed -e 's,.*/,,;$(transform)'`; \
+	dir='$(DESTDIR)$(bindir)'; $(am__uninstall_files_from_dir)
 
-@WEAVE_WITH_PYTHON_TRUE@install-exec-hook:
-@WEAVE_WITH_PYTHON_TRUE@	$(call set-relocation-path,$(DESTDIR)$(pyexecdir)/_WeaveDeviceMgr.so,libWeaveDeviceManager.$(LIBWEAVE_VERSION_CURRENT).dylib,@loader_path/../)
+install-exec-hook:
+	$(call set-relocation-path,$(DESTDIR)$(pyexecdir)/_WeaveDeviceMgr.so,libWeaveDeviceManager.$(LIBWEAVE_VERSION_CURRENT).dylib,@loader_path/../)
 
 include $(abs_top_nlbuild_autotools_dir)/automake/post.am
 

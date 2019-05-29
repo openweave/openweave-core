@@ -1,4 +1,5 @@
 #
+#    Copyright (c) 2019 Google LLC.
 #    Copyright (c) 2014-2017 Nest Labs, Inc.
 #    All rights reserved.
 #
@@ -41,7 +42,6 @@ EXTRA_DIST                                        = \
     weave-device-mgr.py                             \
     $(NULL)
 
-if WEAVE_WITH_PYTHON
 pyexec_LTLIBRARIES                                = _WeaveDeviceMgr.la
 
 noinst_HEADERS                                    = \
@@ -190,7 +190,5 @@ uninstall-exec-binLINKS: $(bin_LINKS)
 
 install-exec-hook:
 	$(call set-relocation-path,$(DESTDIR)$(pyexecdir)/_WeaveDeviceMgr.so,libWeaveDeviceManager.$(LIBWEAVE_VERSION_CURRENT).dylib,@loader_path/../)
-
-endif # WEAVE_WITH_PYTHON
 
 include $(abs_top_nlbuild_autotools_dir)/automake/post.am

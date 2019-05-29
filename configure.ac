@@ -282,6 +282,49 @@ AC_PATH_PROG(CMP, cmp)
 AC_PATH_PROG(PERL, perl)
 
 #
+# Python
+#
+# At minimum, a Python interpreter is absolutely required to
+# auto-generate a number of header files (e.g., ASN1OID.h).
+# Additionally, Python support is used for one binding of the
+# Device Manager as well as to run and orchestrate several
+# unit and functional tests.
+#
+
+# In a normal "build-and-install on 'this' machine" context,
+# placing Python packages in the normal pythondir and pyexecdir
+# (typically
+# lib/pythonPYTHON_VERSION/{dist,site}-packages/PACKAGE) makes
+# sense.
+#
+# However, in our case, we're building and 'installing' for
+# standalone distrubution to any number of machines for which we
+# don't know the Python version. In those cases, override
+# pythondir and pyexec dir.
+
+case "${prefix}" in
+
+    /opt|/usr|/usr/local|NONE)
+        ;;
+
+    *)
+        am_cv_python_pythondir="\${prefix}/lib/python"
+        am_cv_python_pyexecdir="\${exec_prefix}/lib/python"
+        ;;
+
+esac
+
+# Check for Python
+
+AM_PATH_PYTHON
+
+# If a Python interpreter of any color cannot be found, error out.
+
+if test "${PYTHON}" = ""; then
+    AC_MSG_ERROR([could not find python: python is required to build this package.])
+fi
+
+#
 # Checks for specific compiler characteristics
 #
 
@@ -645,60 +688,6 @@ fi
 AM_CONDITIONAL([WEAVE_WITH_JAVA], [test "${enable_java}" = "yes"])
 
 #
-# Python support
-#
-AC_MSG_CHECKING([whether to build Python support])
-AC_ARG_ENABLE(python,
-    [AS_HELP_STRING([--disable-python],[Disable Python support @<:@default=no@:>@.])],
-    [
-        case "${enableval}" in
-
-        no|yes)
-            enable_python=${enableval}
-            ;;
-
-        *)
-            AC_MSG_ERROR([Invalid value ${enableval} for --enable-python])
-            ;;
-
-        esac
-    ],
-    [enable_python=yes])
-AC_MSG_RESULT(${enable_python})
-
-AM_CONDITIONAL([WEAVE_WITH_PYTHON], [test "${enable_python}" = "yes"])
-
-if test "${enable_python}" = "yes" ; then
-
-    # In a normal "build-and-install on 'this' machine" context,
-    # placing Python packages in the normal pythondir and pyexecdir
-    # (typically
-    # lib/pythonPYTHON_VERSION/{dist,site}-packages/PACKAGE) makes
-    # sense.
-    #
-    # However, in our case, we're building and 'installing' for
-    # standalone distrubution to any number of machines for which we
-    # don't know the Python version. In those cases, override
-    # pythondir and pyexec dir.
-
-    case "${prefix}" in
-
-        /opt|/usr|/usr/local|NONE)
-            ;;
-
-        *)
-            am_cv_python_pythondir="\${prefix}/lib/python"
-            am_cv_python_pyexecdir="\${exec_prefix}/lib/python"
-            ;;
-
-    esac
-
-    # Check for Python
-
-    AM_PATH_PYTHON
-fi
-
-#
 # Debug and profile instances
 #
 AC_MSG_NOTICE([checking whether to build debug and profile instances])
@@ -847,7 +836,7 @@ if test "${with_happy}" != "no"; then
 fi
 if test "${with_happy}" = "yes"; then
     HAPPY_MINIMUM_VERSION="1.1.36"
-    happy_version=`PYTHONPATH=${happy_path}:${PYTHONPATH} python -c 'import happy; print happy.__version__ if "__version__" in dir(happy) else "0.0.0"'`
+    happy_version=`PYTHONPATH=${happy_path}:${PYTHONPATH} ${PYTHON} -c 'import happy; print happy.__version__ if "__version__" in dir(happy) else "0.0.0"'`
     AX_COMPARE_VERSION([${HAPPY_MINIMUM_VERSION}],[gt],[${happy_version}],[AC_MSG_ERROR(["The Nest Labs network functional test framework (Happy) is installed with version ${happy_version}; however, Weave test apps require at least version ${HAPPY_MINIMUM_VERSION}."])],[])
 fi
 AC_MSG_RESULT(${with_happy})
@@ -1060,7 +1049,7 @@ AC_MSG_RESULT(${build_device_manager})
 AM_CONDITIONAL([WEAVE_BUILD_DEVICE_MANAGER], [test "${build_device_manager}" = "yes"])
 
 # Build device manager with dummy implementations of persisted storate Read/Write APIs.
-AM_CONDITIONAL([WEAVE_BUILD_DEVICE_MANAGER_WITH_DUMMY_PERSISTED_STORE], [test "${enable_java}" = "yes" || test "${enable_python}" = "yes" || test "${enable_cocoa}" = "yes"])
+AM_CONDITIONAL([WEAVE_BUILD_DEVICE_MANAGER_WITH_DUMMY_PERSISTED_STORE], [test "${enable_java}" = "yes" || test "${enable_cocoa}" = "yes"])
 
 #
 # WoBle Control Path and Throughput Test  (Woble Test)
@@ -2725,7 +2714,8 @@ AC_MSG_NOTICE([
   Java Compiler                                    : ${JAVAC:--}
   Java Native Interface (JNI) compile flags        : ${JNI_CPPFLAGS:--}
   Java Archiver                                    : ${JAR:--}
-  Python support                                   : ${enable_python}
+  Python executable                                : ${PYTHON:--}
+  Python version                                   : ${PYTHON_VERSION:--}
   Python script directory                          : ${pythondir:--}
   Python extension directory                       : ${pyexecdir:--}
   Verhoeff support                                 : ${enable_verhoeff}

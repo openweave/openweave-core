@@ -1,6 +1,7 @@
 #!/usr/bin/perl
 
 #
+#    Copyright (c) 2019 Google LLC.
 #    Copyright (c) 2014-2017 Nest Labs, Inc.
 #    All rights reserved.
 #
@@ -225,7 +226,7 @@ sub ParseVersion {
     # Establish the copyright year and script base name scalar variables
     # for substitution in the here document output.
 
-    my($first_year)     = 2014;
+    my($first_year)     = 2018;
     my($current_year)   = Time::Piece->new()->year;
     my($copyright_year) = "${first_year}";
 
@@ -259,7 +260,8 @@ sub ParseVersion {
 "
 /*
  *
- *    Copyright (c) ${copyright_year} Nest Labs, Inc.
+ *    Copyright (c) ${copyright_year} Google LLC.
+ *    Copyright (c) 2014-2018 Nest Labs, Inc.
  *    All rights reserved.
  *
  *    Licensed under the Apache License, Version 2.0 (the \"License\");

@@ -1,4 +1,5 @@
 #
+#    Copyright (c) 2019 Google LLC.
 #    Copyright (c) 2014-2017 Nest Labs, Inc.
 #    All rights reserved.
 #
@@ -322,7 +323,7 @@ dist_warm_HEADERS = $(addprefix ../,$(nl_public_Warm_header_sources))
 
 # Weave - Top-level
 #
-# Right now, this exists exclusive to serve the auto-generated
+# Right now, this exists exclusively to serve the auto-generated
 # Weave/WeaveVersion.h header.
 
 nl_public_Weave_source_dirstem = Weave
@@ -358,6 +359,9 @@ $(nl_public_Weave_destination_dirstem)/WeaveVersion.h: $(top_builddir)/.local-ve
 	$(call check-file,WeaveVersion.h)
 
 # Weave - Support
+#
+# All of these are non-auto-generated source headers, except
+# ASN1OID.h. That auto-generated header is treated independently.
 
 nl_public_WeaveSupport_source_dirstem = lib/support
 nl_public_WeaveSupport_destination_dirstem = Weave/Support
@@ -367,7 +371,6 @@ $(nl_public_WeaveSupport_source_dirstem)/ASN1.h \
 $(nl_public_WeaveSupport_source_dirstem)/ASN1Config.h \
 $(nl_public_WeaveSupport_source_dirstem)/ASN1Error.h \
 $(nl_public_WeaveSupport_source_dirstem)/ASN1Macros.h \
-$(nl_public_WeaveSupport_source_dirstem)/ASN1OID.h \
 $(nl_public_WeaveSupport_source_dirstem)/Base64.h \
 $(nl_public_WeaveSupport_source_dirstem)/CodeUtils.h \
 $(nl_public_WeaveSupport_source_dirstem)/ErrorStr.h \
@@ -388,6 +391,10 @@ $(nl_public_WeaveSupport_source_dirstem)/WeaveCounter.h \
 $(nl_public_WeaveSupport_source_dirstem)/WeaveFaultInjection.h \
 $(nl_public_WeaveSupport_source_dirstem)/WeaveNames.h \
 $(nl_public_WeaveSupport_source_dirstem)/nlargparser.hpp \
+$(NULL)
+
+nl_public_WeaveSupport_ASN1OID_base_header_sources = \
+$(nl_public_WeaveSupport_source_dirstem)/ASN1OID.h \
 $(NULL)
 
 nl_public_WeaveSupport_crypto_header_sources = \
@@ -428,13 +435,28 @@ $(nl_public_WeaveSupport_pairing_code_header_sources) \
 $(nl_public_WeaveSupport_platform_header_sources) \
 $(NULL)
 
+nl_public_WeaveSupport_ASN1OID_header_sources = \
+$(nl_public_WeaveSupport_ASN1OID_base_header_sources) \
+$(NULL)
+
 nl_public_WeaveSupport_header_paths = $(subst $(nl_public_WeaveSupport_source_dirstem)/,,$(nl_public_WeaveSupport_header_sources))
+
+nl_public_WeaveSupport_ASN1OID_header_paths = $(subst $(nl_public_WeaveSupport_source_dirstem)/,,$(nl_public_WeaveSupport_ASN1OID_header_sources))
 
 nl_public_WeaveSupport_header_destinations = $(addprefix $(nl_public_WeaveSupport_destination_dirstem)/,$(nl_public_WeaveSupport_header_paths))
 
+nl_public_WeaveSupport_ASN1OID_header_destinations = $(addprefix $(nl_public_WeaveSupport_destination_dirstem)/,$(nl_public_WeaveSupport_ASN1OID_header_paths))
+
 nl_public_WeaveSupport_header_dirs = $(call Deslashify,$(sort $(dir $(nl_public_WeaveSupport_header_destinations))))
 
-$(nl_public_WeaveSupport_header_dirs):
+nl_public_WeaveSupport_ASN1OID_header_dirs = $(call Deslashify,$(sort $(dir $(nl_public_WeaveSupport_ASN1OID_header_destinations))))
+
+# Filter nl_public_WeaveSupport_ASN1OID_header_dirs should it be the
+# same as nl_public_WeaveSupport_header_dirs to avoid make squawking
+# about "target 'nl_public_WeaveSupport_ASN1OID_header_dirs' given
+# more than once in the same rule".
+
+$(nl_public_WeaveSupport_header_dirs) $(filter-out $(nl_public_WeaveSupport_header_dirs),$(nl_public_WeaveSupport_ASN1OID_header_dirs)):
 	$(call create-directory)
 
 $(filter %.h,$(nl_public_WeaveSupport_header_destinations)): $(nl_public_WeaveSupport_destination_dirstem)/%.h: $(abs_srcdir)/../$(nl_public_WeaveSupport_source_dirstem)/%.h | $(nl_public_WeaveSupport_header_dirs)
@@ -443,8 +465,24 @@ $(filter %.h,$(nl_public_WeaveSupport_header_destinations)): $(nl_public_WeaveSu
 $(filter %.hpp,$(nl_public_WeaveSupport_header_destinations)): $(nl_public_WeaveSupport_destination_dirstem)/%.hpp: $(abs_srcdir)/../$(nl_public_WeaveSupport_source_dirstem)/%.hpp | $(nl_public_WeaveSupport_header_dirs)
 	$(call create-link)
 
+# Handle the auto-generated ASN1OID.h independently, since it comes
+# from the build directory which may not be the same as the source
+# directory in a non-colocated build.
+
+$(nl_public_WeaveSupport_destination_dirstem)/ASN1OID.h: $(abs_builddir)/../$(nl_public_WeaveSupport_source_dirstem)/ASN1OID.h | $(nl_public_WeaveSupport_ASN1OID_header_dirs)
+	$(call create-link)
+
 weave_support_basedir = $(includedir)/$(nl_public_WeaveSupport_destination_dirstem)
 dist_weave_support_base_HEADERS = $(addprefix ../,$(nl_public_WeaveSupport_base_header_sources))
+
+# Note: we explicitly prefix 'weave_support_ASN1OID_base_HEADERS' with
+# 'nodist_' rather than 'dist_' or just dropping 'dist_' because while
+# 'ASN1OID.h' is installed with 'make install' it should not be
+# included in a distribution with 'make dist' because it is
+# auto-generated.
+
+weave_support_ASN1OID_basedir = $(includedir)/$(nl_public_WeaveSupport_destination_dirstem)
+nodist_weave_support_ASN1OID_base_HEADERS = $(addprefix ../,$(nl_public_WeaveSupport_ASN1OID_base_header_sources))
 
 weave_support_cryptodir = $(includedir)/$(nl_public_WeaveSupport_destination_dirstem)/crypto
 dist_weave_support_crypto_HEADERS = $(addprefix ../,$(nl_public_WeaveSupport_crypto_header_sources))
@@ -1163,6 +1201,7 @@ nl_public_headers                                           = \
     $(nl_public_Warm_header_destinations)                     \
     $(nl_public_Weave_header_destinations)                    \
     $(nl_public_WeaveSupport_header_destinations)             \
+    $(nl_public_WeaveSupport_ASN1OID_header_destinations)     \
     $(nl_public_WeaveCore_header_destinations)                \
     $(nl_public_WeaveCommon_header_destinations)              \
     $(nl_public_WeaveProfiles_header_destinations)            \
