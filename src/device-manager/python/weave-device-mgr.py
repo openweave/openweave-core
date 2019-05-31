@@ -267,11 +267,6 @@ class DeviceMgrCmd(Cmd):
         'ble-connect',
         'ble-disconnect',
         'ble-read',
-        'get-active-locale',
-        'set-active-locale',
-        'get-available-locales',
-        'thermostat-get-entry-key',
-        'thermostat-system-test-status',
         'start-system-test',
         'stop-system-test',
         'ble-scan-connect',
@@ -2336,72 +2331,6 @@ class DeviceMgrCmd(Cmd):
 
         self.bleMgr.send(line)
 
-    def do_getactivelocale(self, line):
-        """
-          get-active-locale
-
-          Get the device's active locale
-        """
-
-        args = shlex.split(line)
-
-        if (len(args) != 0):
-            print "Usage:"
-            self.do_help('get-active-locale')
-            return
-
-        try:
-            getResult = self.devMgr.GetActiveLocale()
-        except WeaveDeviceMgr.DeviceManagerException, ex:
-            print str(ex)
-            return
-
-        print "Get active locale complete: %s" % getResult
-
-    def do_getavailablelocales(self, line):
-        """
-          get-available-locales
-
-          Get the device's available locales.
-        """
-
-        args = shlex.split(line)
-
-        if (len(args) != 0):
-            print "Usage:"
-            self.do_help('get-available-locales')
-            return
-
-        try:
-            getResult = self.devMgr.GetAvailableLocales()
-        except WeaveDeviceMgr.DeviceManagerException, ex:
-            print str(ex)
-            return
-
-        print "Get active locales complete: %s" % getResult
-
-    def do_setactivelocale(self, line):
-        """
-          set-active-locale <locale>
-
-          Set the device's active locale.
-        """
-
-        args = shlex.split(line)
-
-        if (len(args) != 1):
-            print "Usage:"
-            self.do_help('set-active-locale')
-            return
-
-        try:
-            self.devMgr.SetActiveLocale(args[0])
-        except WeaveDeviceMgr.DeviceManagerException, ex:
-            print str(ex)
-            return
-
-        print "Set active locale complete"
-
     def do_startsystemtest(self, line):
         """
           start-system-test <product-name> <test-id>
@@ -2457,50 +2386,6 @@ class DeviceMgrCmd(Cmd):
             return
 
         print "Stop system test complete"
-
-    def do_thermostatgetentrykey(self, line):
-        """
-          thermostat-get-entry-key
-
-          Get the thermostat's 6-character entry key.
-        """
-
-        args = shlex.split(line)
-
-        if (len(args) != 0):
-            print "Usage:"
-            self.do_help('thermostat-get-entry-key')
-            return
-
-        try:
-            getResult = self.devMgr.ThermostatGetEntryKey()
-        except WeaveDeviceMgr.DeviceManagerException, ex:
-            print str(ex)
-            return
-
-        print "Thermostat get entry key complete: %s" % getResult
-
-    def do_thermostatsystemteststatus(self, line):
-        """
-          thermostat-system-test-status
-
-          Get the thermostat system test status.
-        """
-
-        args = shlex.split(line)
-
-        if (len(args) != 0):
-            print "Usage:"
-            self.do_help('thermostat-system-test-status')
-            return
-
-        try:
-            getResult = self.devMgr.ThermostatSystemTestStatus()
-        except WeaveDeviceMgr.DeviceManagerException, ex:
-            print str(ex)
-            return
-
-        print "Thermostat system test status complete: %s" % getResult
 
     def do_history(self, line):
         """

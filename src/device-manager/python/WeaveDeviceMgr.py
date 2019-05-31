@@ -446,10 +446,6 @@ _GetBleEventFunct                           = CFUNCTYPE(c_void_p)
 _WriteBleCharacteristicFunct                = CFUNCTYPE(c_bool, c_void_p, c_void_p, c_void_p, c_void_p, c_uint16)
 _SubscribeBleCharacteristicFunct            = CFUNCTYPE(c_bool, c_void_p, c_void_p, c_void_p, c_bool)
 _CloseBleFunct                              = CFUNCTYPE(c_bool, c_void_p)
-_GetActiveLocaleCompleteFunct               = CFUNCTYPE(None, c_void_p, c_void_p, c_char_p)
-_GetAvailableLocalesCompleteFunct           = CFUNCTYPE(None, c_void_p, c_void_p, c_uint16, POINTER(c_char_p))
-_ThermostatGetEntryKeyCompleteFunct         = CFUNCTYPE(None, c_void_p, c_void_p, c_char_p)
-_ThermostatSystemTestStatusCompleteFunct    = CFUNCTYPE(None, c_void_p, c_void_p, c_uint64)
 _DeviceEnumerationResponseFunct             = CFUNCTYPE(None, c_void_p, POINTER(_DeviceDescriptorStruct), c_char_p)
 
 # This is a fix for WEAV-429. Jay Logue recommends revisiting this at a later
@@ -1052,36 +1048,6 @@ class WeaveDeviceManager:
     def SetBlockingCB(self, blockingCB):
         self.blockingCB = blockingCB
 
-    def GetActiveLocale(self):
-        def HandleGetActiveLocaleComplete(devMgr, reqState, activeLocale):
-            self.callbackRes = activeLocale
-            self.completeEvent.set()
-
-        cbHandleGetActiveLocaleComplete = _GetActiveLocaleCompleteFunct(HandleGetActiveLocaleComplete)
-
-        return self._CallDevMgrAsync(
-            lambda: _dmLib.nl_Weave_DeviceManager_GetActiveLocale(self.devMgr, cbHandleGetActiveLocaleComplete, self.cbHandleError)
-        )
-
-    def SetActiveLocale(self, locale):
-        if locale is not None and '\x00' in locale:
-            raise ValueError('Unexpected NUL character in locale')
-
-        self._CallDevMgrAsync(
-            lambda: _dmLib.nl_Weave_DeviceManager_SetActiveLocale(self.devMgr, locale, self.cbHandleComplete, self.cbHandleError)
-        )
-
-    def GetAvailableLocales(self):
-        def HandleGetAvailableLocalesComplete(devMgr, reqState, localeCount, localeList):
-            self.callbackRes = [ localeList[i] for i in range(localeCount) ]
-            self.completeEvent.set()
-
-        cbHandleGetAvailableLocalesComplete = _GetAvailableLocalesCompleteFunct(HandleGetAvailableLocalesComplete)
-
-        return self._CallDevMgrAsync(
-            lambda: _dmLib.nl_Weave_DeviceManager_GetAvailableLocales(self.devMgr, cbHandleGetAvailableLocalesComplete, self.cbHandleError)
-        )
-
     def StartSystemTest(self, profileId, testId):
         if profileId < 0 or profileId > pow(2, 32):
             raise ValueError("profileId must be an unsigned 32-bit integer")
@@ -1096,28 +1062,6 @@ class WeaveDeviceManager:
     def StopSystemTest(self):
         self._CallDevMgrAsync(
             lambda: _dmLib.nl_Weave_DeviceManager_StopSystemTest(self.devMgr, self.cbHandleComplete, self.cbHandleError)
-        )
-
-    def ThermostatGetEntryKey(self):
-        def HandleThermostatGetEntryKeyComplete(devMgr, reqState, entryKey):
-            self.callbackRes = entryKey
-            self.completeEvent.set()
-
-        cbHandleThermostatGetEntryKeyComplete = _ThermostatGetEntryKeyCompleteFunct(HandleThermostatGetEntryKeyComplete)
-
-        return self._CallDevMgrAsync(
-            lambda: _dmLib.nl_Weave_DeviceManager_ThermostatGetEntryKey(self.devMgr, cbHandleThermostatGetEntryKeyComplete, self.cbHandleError)
-        )
-
-    def ThermostatSystemTestStatus(self):
-        def HandleThermostatSystemTestStatusComplete(devMgr, reqState, systemTestStatus):
-            self.callbackRes = systemTestStatus
-            self.completeEvent.set()
-
-        cbHandleThermostatSystemTestStatusComplete = _ThermostatSystemTestStatusCompleteFunct(HandleThermostatSystemTestStatusComplete)
-
-        return self._CallDevMgrAsync(
-            lambda: _dmLib.nl_Weave_DeviceManager_ThermostatSystemTestStatus(self.devMgr, cbHandleThermostatSystemTestStatusComplete, self.cbHandleError)
         )
 
     # ----- Private Members -----
@@ -1340,21 +1284,6 @@ class WeaveDeviceManager:
 
             _dmLib.nl_Weave_DeviceManager_CloseEndpoints.argtypes = [ ]
             _dmLib.nl_Weave_DeviceManager_CloseEndpoints.restype = c_uint32
-
-            _dmLib.nl_Weave_DeviceManager_GetActiveLocale.argtypes = [ c_void_p, _GetActiveLocaleCompleteFunct, _ErrorFunct ]
-            _dmLib.nl_Weave_DeviceManager_GetActiveLocale.restype = c_uint32
-
-            _dmLib.nl_Weave_DeviceManager_GetAvailableLocales.argtypes = [ c_void_p, _GetAvailableLocalesCompleteFunct, _ErrorFunct ]
-            _dmLib.nl_Weave_DeviceManager_GetAvailableLocales.restype = c_uint32
-
-            _dmLib.nl_Weave_DeviceManager_SetActiveLocale.argtypes = [ c_void_p, c_char_p, _CompleteFunct, _ErrorFunct ]
-            _dmLib.nl_Weave_DeviceManager_SetActiveLocale.restype = c_uint32
-
-            _dmLib.nl_Weave_DeviceManager_ThermostatGetEntryKey.argtypes = [ c_void_p, _ThermostatGetEntryKeyCompleteFunct, _ErrorFunct ]
-            _dmLib.nl_Weave_DeviceManager_ThermostatGetEntryKey.restype = c_uint32
-
-            _dmLib.nl_Weave_DeviceManager_ThermostatSystemTestStatus.argtypes = [ c_void_p, _ThermostatSystemTestStatusCompleteFunct, _ErrorFunct ]
-            _dmLib.nl_Weave_DeviceManager_ThermostatSystemTestStatus.restype = c_uint32
 
             _dmLib.nl_Weave_DeviceManager_StartSystemTest.argtypes = [ c_void_p, c_uint32, c_uint32, _CompleteFunct, _ErrorFunct ]
             _dmLib.nl_Weave_DeviceManager_StartSystemTest.restype = c_uint32

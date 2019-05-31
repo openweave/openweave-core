@@ -59,7 +59,6 @@ using namespace nl::Inet;
 using namespace nl::Weave;
 using namespace nl::Weave::DeviceManager;
 using namespace nl::Weave::Profiles::NetworkProvisioning;
-using namespace nl::Weave::Profiles::DataManagement;
 
 using DeviceDescription::IdentifyDeviceCriteria;
 
@@ -238,11 +237,6 @@ extern "C" {
     NL_DLL_EXPORT WEAVE_ERROR nl_Weave_DeviceManager_ArmFailSafe(WeaveDeviceManager *devMgr, uint8_t armMode, uint32_t failSafeToken, CompleteFunct onComplete, ErrorFunct onError);
     NL_DLL_EXPORT WEAVE_ERROR nl_Weave_DeviceManager_DisarmFailSafe(WeaveDeviceManager *devMgr, CompleteFunct onComplete, ErrorFunct onError);
     NL_DLL_EXPORT WEAVE_ERROR nl_Weave_DeviceManager_ResetConfig(WeaveDeviceManager *devMgr, uint16_t resetFlags, CompleteFunct onComplete, ErrorFunct onError);
-    NL_DLL_EXPORT WEAVE_ERROR nl_Weave_DeviceManager_GetActiveLocale(WeaveDeviceManager *devMgr, GetActiveLocaleCompleteFunct onComplete, ErrorFunct onError);
-    NL_DLL_EXPORT WEAVE_ERROR nl_Weave_DeviceManager_SetActiveLocale(WeaveDeviceManager *devMgr, const char *aLocale, CompleteFunct onComplete, ErrorFunct onError);
-    NL_DLL_EXPORT WEAVE_ERROR nl_Weave_DeviceManager_GetAvailableLocales(WeaveDeviceManager *devMgr, GetAvailableLocalesCompleteFunct onComplete, ErrorFunct onError);
-    NL_DLL_EXPORT WEAVE_ERROR nl_Weave_DeviceManager_ThermostatGetEntryKey(WeaveDeviceManager *devMgr, ThermostatGetEntryKeyCompleteFunct onComplete, ErrorFunct onError);
-    NL_DLL_EXPORT WEAVE_ERROR nl_Weave_DeviceManager_ThermostatSystemTestStatus(WeaveDeviceManager *devMgr, ThermostatSystemTestStatusCompleteFunct onComplete, ErrorFunct onError);
     NL_DLL_EXPORT WEAVE_ERROR nl_Weave_DeviceManager_PairToken(WeaveDeviceManager *devMgr, const uint8_t *pairingToken, uint32_t pairingTokenLen, PairTokenCompleteFunct onComplete, ErrorFunct onError);
     NL_DLL_EXPORT WEAVE_ERROR nl_Weave_DeviceManager_UnpairToken(WeaveDeviceManager *devMgr, UnpairTokenCompleteFunct onComplete, ErrorFunct onError);
     NL_DLL_EXPORT WEAVE_ERROR nl_Weave_DeviceManager_StartSystemTest(WeaveDeviceManager *devMgr, uint32_t profileId, uint32_t testId, CompleteFunct onComplete, ErrorFunct onError);
@@ -1099,31 +1093,6 @@ WEAVE_ERROR nl_Weave_DeviceManager_DisarmFailSafe(WeaveDeviceManager *devMgr, Co
 WEAVE_ERROR nl_Weave_DeviceManager_ResetConfig(WeaveDeviceManager *devMgr, uint16_t resetFlags, CompleteFunct onComplete, ErrorFunct onError)
 {
     return devMgr->ResetConfig(resetFlags, NULL, onComplete, onError);
-}
-
-WEAVE_ERROR nl_Weave_DeviceManager_GetActiveLocale(WeaveDeviceManager *devMgr, GetActiveLocaleCompleteFunct onComplete, ErrorFunct onError)
-{
-    return devMgr->GetActiveLocale(NULL, onComplete, onError);
-}
-
-WEAVE_ERROR nl_Weave_DeviceManager_GetAvailableLocales(WeaveDeviceManager *devMgr, GetAvailableLocalesCompleteFunct onComplete, ErrorFunct onError)
-{
-    return devMgr->GetAvailableLocales(NULL, onComplete, onError);
-}
-
-WEAVE_ERROR nl_Weave_DeviceManager_SetActiveLocale(WeaveDeviceManager *devMgr, const char *aLocale, CompleteFunct onComplete, ErrorFunct onError)
-{
-    return devMgr->SetActiveLocale(NULL, aLocale, onComplete, onError);
-}
-
-WEAVE_ERROR nl_Weave_DeviceManager_ThermostatGetEntryKey(WeaveDeviceManager *devMgr, ThermostatGetEntryKeyCompleteFunct onComplete, ErrorFunct onError)
-{
-    return devMgr->ThermostatGetEntryKey(NULL, onComplete, onError);
-}
-
-WEAVE_ERROR nl_Weave_DeviceManager_ThermostatSystemTestStatus(WeaveDeviceManager *devMgr, ThermostatSystemTestStatusCompleteFunct onComplete, ErrorFunct onError)
-{
-    return devMgr->ThermostatSystemTestStatus(NULL, onComplete, onError);
 }
 
 WEAVE_ERROR nl_Weave_DeviceManager_StartSystemTest(WeaveDeviceManager *devMgr, uint32_t profileId, uint32_t testId, CompleteFunct onComplete, ErrorFunct onError)
