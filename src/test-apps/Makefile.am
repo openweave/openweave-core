@@ -23,6 +23,8 @@
 #
 
 include $(abs_top_nlbuild_autotools_dir)/automake/pre.am
+SHELL := /bin/bash
+AM_LOG_DRIVER_FLAGS := --build-num $(shell echo $$PPID|tail -c5)
 
 #
 # Other files we do want to distribute with the Weave source SDK.
