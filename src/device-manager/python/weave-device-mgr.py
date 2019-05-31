@@ -82,8 +82,8 @@ except Exception:
 
     try:
         import WeaveDeviceMgr
-    except Exception:
-        print "Could not find the WeaveDeviceMgr module!"
+    except Exception as ex:
+        print ("Could not import the WeaveDeviceMgr module: %s" % (str(ex)))
 
         sys.exit(1)
 
