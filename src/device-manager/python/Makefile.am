@@ -198,7 +198,13 @@ uninstall-exec-binLINKS: $(bin_LINKS)
 	       sed -e 's,.*/,,;$(transform)'`; \
 	dir='$(DESTDIR)$(bindir)'; $(am__uninstall_files_from_dir)
 
+# Fix up, post-install, the dynamic loader path for _WeaveDeviceMgr.so
+# such that it can find the libWeaveDeviceManager.<version>.dylib
+# regardless of whether the install is in a final, configured location
+# (e.g., /usr/local/...) or in a temporary installed location (e.g.,
+# tmp-install/usr/local/...).
+
 install-exec-hook:
-	$(call set-relocation-path,$(DESTDIR)$(pyexecdir)/_WeaveDeviceMgr.so,libWeaveDeviceManager.$(LIBWEAVE_VERSION_CURRENT).dylib,@loader_path/../)
+	$(call set-relocation-path,$(DESTDIR)$(pyexecdir)/_WeaveDeviceMgr.so,libWeaveDeviceManager.$(LIBWEAVE_VERSION_CURRENT).dylib,@loader_path/../../)
 
 include $(abs_top_nlbuild_autotools_dir)/automake/post.am
