@@ -232,8 +232,10 @@ void WeaveEchoClient::HandleResponse(ExchangeContext *ec, const IPPacketInfo *pk
 #endif // WEAVE_CONFIG_ENABLE_RELIABLE_MESSAGING
     {
         // Remove the EC from the app state now. OnEchoResponseReceived can call
-        // SendEchoRequest and install a new one.
-        echoApp->ExchangeCtx->Close();
+        // SendEchoRequest and install a new one. We abort rather than close
+        // because we no longer care whether the echo request message has been
+        // acknowledged at the transport layer.
+        echoApp->ExchangeCtx->Abort();
         echoApp->ExchangeCtx = NULL;
     }
 
