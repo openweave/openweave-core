@@ -39,9 +39,12 @@ include $(abs_top_nlbuild_autotools_dir)/automake/pre.am
 # target.
 #
 define set-relocation-path
-	$(AM_V_at)if [[ "$(target_os)" == darwin* ]]; then \
-	    install_name_tool -change `otool -L $(1) | grep -Eo '.*$(2)'` $(call Slashify,$(3))$(2) $(1) ; \
-	fi
+$(NL_V_AT)if [[ "$(target_os)" == darwin* ]]; then \
+    target_to_change="$(1)"; \
+    old_name="`otool -L $(1) | sed -n -e 's,^[[:space:]]*\(.*$(2)\).*$$,\1,gp'`"; \
+    new_name="$(call Slashify,$(3))$(2)"; \
+    install_name_tool -change "$${old_name}" "$${new_name}" "$${target_to_change}"; \
+fi
 endef # set-relocation-path
 
 
