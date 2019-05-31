@@ -428,7 +428,7 @@ if not os.path.exists(dmLibName):
             break
 
 if not os.path.isfile(dmLibName):
-    print "%s not exist" % dmLibName
+    print "%s does not exist" % dmLibName
 
 _dmLib = None
 _CompleteFunct                              = CFUNCTYPE(None, c_void_p, c_void_p)
