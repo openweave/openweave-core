@@ -31,11 +31,21 @@
 
 include $(abs_top_nlbuild_autotools_dir)/automake/pre.am
 
+#
+# set-relocation-path <target to change> <existing loader path> <new loader path>
+#
+# For Darwin-based systems, change the dependent shared library loader
+# path name from the existing name to the new name in the specified
+# target.
+#
 define set-relocation-path
-	$(AM_V_at)if [[ "$(target_os)" == darwin* ]]; then \
-	    install_name_tool -change `otool -L $(1) | grep -Eo '.*$(2)'` $(call Slashify,$(3))$(2) $(1) ; \
-	fi
-endef # change-library-paths
+$(NL_V_AT)if [[ "$(target_os)" == darwin* ]]; then \
+    target_to_change="$(1)"; \
+    old_name="`otool -L $(1) | sed -n -e 's,^[[:space:]]*\(.*$(2)\).*$$,\1,gp'`"; \
+    new_name="$(call Slashify,$(3))$(2)"; \
+    install_name_tool -change "$${old_name}" "$${new_name}" "$${target_to_change}"; \
+fi
+endef # set-relocation-path
 
 
 EXTRA_DIST                                        = \
@@ -188,7 +198,13 @@ uninstall-exec-binLINKS: $(bin_LINKS)
 	       sed -e 's,.*/,,;$(transform)'`; \
 	dir='$(DESTDIR)$(bindir)'; $(am__uninstall_files_from_dir)
 
+# Fix up, post-install, the dynamic loader path for _WeaveDeviceMgr.so
+# such that it can find the libWeaveDeviceManager.<version>.dylib
+# regardless of whether the install is in a final, configured location
+# (e.g., /usr/local/...) or in a temporary installed location (e.g.,
+# tmp-install/usr/local/...).
+
 install-exec-hook:
-	$(call set-relocation-path,$(DESTDIR)$(pyexecdir)/_WeaveDeviceMgr.so,libWeaveDeviceManager.$(LIBWEAVE_VERSION_CURRENT).dylib,@loader_path/../)
+	$(call set-relocation-path,$(DESTDIR)$(pyexecdir)/_WeaveDeviceMgr.so,libWeaveDeviceManager.$(LIBWEAVE_VERSION_CURRENT).dylib,@loader_path/../../)
 
 include $(abs_top_nlbuild_autotools_dir)/automake/post.am
