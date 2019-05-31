@@ -31,11 +31,18 @@
 
 include $(abs_top_nlbuild_autotools_dir)/automake/pre.am
 
+#
+# set-relocation-path <target to change> <existing loader path> <new loader path>
+#
+# For Darwin-based systems, change the dependent shared library loader
+# path name from the existing name to the new name in the specified
+# target.
+#
 define set-relocation-path
 	$(AM_V_at)if [[ "$(target_os)" == darwin* ]]; then \
 	    install_name_tool -change `otool -L $(1) | grep -Eo '.*$(2)'` $(call Slashify,$(3))$(2) $(1) ; \
 	fi
-endef # change-library-paths
+endef # set-relocation-path
 
 
 EXTRA_DIST                                        = \
