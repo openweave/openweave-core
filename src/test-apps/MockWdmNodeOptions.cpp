@@ -1,6 +1,6 @@
 /*
  *
- *    Copyright (c) 2018 Google LLC.
+ *    Copyright (c) 2019 Google LLC.
  *    Copyright (c) 2018 Nest Labs, Inc.
  *    All rights reserved.
  *
@@ -90,6 +90,8 @@ MockWdmNodeOptions::MockWdmNodeOptions() :
         { "wdm-update-conditionality",                      kArgumentRequired,  kToolOpt_WdmUpdateConditionality },
         { "wdm-update-timing",                              kArgumentRequired,  kToolOpt_WdmUpdateTiming },
         { "wdm-update-discard-on-error",                    kNoArgument,        kToolOpt_WdmUpdateDiscardOnError },
+        { "wdm-simple-update-client",                       kNoArgument,        kToolOpt_WdmSimpleUpdateClient },
+        { "wdm-simple-update-server",                       kNoArgument,        kToolOpt_WdmSimpleUpdateServer },
 #endif // WEAVE_CONFIG_ENABLE_RELIABLE_MESSAGING
         { NULL }
     };
@@ -226,6 +228,12 @@ MockWdmNodeOptions::MockWdmNodeOptions() :
         "         after-sub:  after the subscription has been established\n"
         "       Default is after-sub\n"
         "\n"
+        "  --wdm-simple-update-client\n"
+        "       Initiate a simple WDM Next update client\n"
+        "\n"
+        "  --wdm-simple-update-server\n"
+        "       Initiate a simple WDM Next update server\n"
+        "\n"
         "  --wdm-update-discard-on-error\n"
         "       Tells the client to discard the paths on which SetUpdated was called in case of error\n"
         "\n";
@@ -345,6 +353,22 @@ bool MockWdmNodeOptions::HandleOption(const char *progName, OptionSet *optSet, i
 
 #endif
 
+    case kToolOpt_WdmSimpleUpdateClient:
+        if (0 != mWdmRoleInTest)
+        {
+            PrintArgError("%s: Mock device can only play one role in WDM tests (%s)\n", progName, arg);
+            return false;
+        }
+        mWdmRoleInTest = kToolOpt_WdmSimpleUpdateClient;
+        break;
+    case kToolOpt_WdmSimpleUpdateServer:
+        if (0 != mWdmRoleInTest)
+        {
+            PrintArgError("%s: Mock device can only play one role in WDM tests (%s)\n", progName, arg);
+            return false;
+        }
+        mWdmRoleInTest = kToolOpt_WdmSimpleUpdateServer;
+        break;
 #if WDM_ENABLE_SUBSCRIPTIONLESS_NOTIFICATION
     case kToolOpt_WdmSimpleSublessNotifyClient:
         if (0 != mWdmRoleInTest)

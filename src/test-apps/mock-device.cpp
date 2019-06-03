@@ -63,6 +63,8 @@
 #include "MockDCServer.h"
 #include "MockOpActions.h"
 #include "MockTokenPairingServer.h"
+#include "MockWdmUpdateClient.h"
+#include "MockWdmUpdateServer.h"
 #include "MockWdmViewClient.h"
 #include "MockWdmViewServer.h"
 
@@ -221,7 +223,6 @@ enum
     kToolOpt_TimeSyncModeServiceOverTunnel      = 1042, // specify that the Time Client Sync mode is Service (time sync with Service over a tunnel)
     kToolOpt_UseServiceDir,
     kToolOpt_SuppressAccessControl,
-
 // only for weave over bluez peripheral
 #if CONFIG_BLE_PLATFORM_BLUEZ
     kToolOpt_EnableWeaveBluezPeripheral,
@@ -391,6 +392,12 @@ static const char *const gToolOptionHelp =
     "\n"
     "  --wdm-simple-view-server\n"
     "       Initiate a simple WDM Next view server\n"
+    "\n"
+    "  --wdm-simple-update-client\n"
+    "       Initiate a simple WDM Next update client\n"
+    "\n"
+    "  --wdm-simple-update-server\n"
+    "       Initiate a simple WDM Next update server\n"
     "\n"
     "  --wdm-one-way-sub-client\n"
     "       Initiate a subscription to some WDM Next publisher\n"

@@ -1,6 +1,7 @@
 /*
  *
- *    Copyright (c) 2016-2017 Nest Labs, Inc.
+ *    Copyright (c) 2016-2018 Nest Labs, Inc.
+ *    Copyright (c) 2019 Google LLC.
  *    All rights reserved.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
@@ -51,6 +52,8 @@
 
 #include "MockWdmSubscriptionInitiator.h"
 #include "MockWdmSubscriptionResponder.h"
+#include "MockWdmUpdateClient.h"
+#include "MockWdmUpdateServer.h"
 #include "MockWdmViewClient.h"
 #include "MockWdmViewServer.h"
 #include "WdmNextPerfUtility.h"
@@ -189,8 +192,28 @@ int main(int argc, char *argv[])
                 err = MockWdmViewServer::GetInstance()->Init(&ExchangeMgr, gMockWdmNodeOptions.mTestCaseId);
                 FAIL_ERROR(err, "MockWdmViewServer.Init failed");
                 break;
-
 #endif // ENABLE_VIEW_TEST
+
+        case kToolOpt_WdmSimpleUpdateClient:
+            if (gMockWdmNodeOptions.mWdmPublisherNodeId != kAnyNodeId)
+            {
+                err = MockWdmUpdateClient::GetInstance()->Init(&ExchangeMgr, 0, gWeaveSecurityMode.SecurityMode, gGroupKeyEncOptions.GetEncKeyId());
+                FAIL_ERROR(err, "MockWdmUpdateClient.Init failed");
+                err = MockWdmUpdateClient::GetInstance()->StartTesting(gMockWdmNodeOptions.mWdmPublisherNodeId, gMockWdmNodeOptions.mWdmUseSubnetId);
+                FAIL_ERROR(err, "MockWdmUpdateClient.StartTesting failed");
+
+                MockWdmUpdateClient::GetInstance()-> onCompleteTest = HandleWdmCompleteTest;
+            }
+            else
+            {
+                err = WEAVE_ERROR_INVALID_ARGUMENT;
+                FAIL_ERROR(err, "Simple Update Client requires node ID to some publisher");
+            }
+            break;
+        case kToolOpt_WdmSimpleUpdateServer:
+            err = MockWdmUpdateServer::GetInstance()->Init(&ExchangeMgr, 0);
+            FAIL_ERROR(err, "MockWdmUpdateServer.Init failed");
+            break;
 
 #if WDM_ENABLE_SUBSCRIPTIONLESS_NOTIFICATION
         case kToolOpt_WdmSimpleSublessNotifyClient:

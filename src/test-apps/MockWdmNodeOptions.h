@@ -67,6 +67,8 @@ enum
     kToolOpt_WdmUpdateConditionality,
     kToolOpt_WdmUpdateTiming,
     kToolOpt_WdmUpdateDiscardOnError,
+    kToolOpt_WdmSimpleUpdateClient,
+    kToolOpt_WdmSimpleUpdateServer,
 };
 
 class MockWdmNodeOptions : public OptionSetBase

@@ -377,6 +377,11 @@ class WeaveWdmNext(HappyNode, HappyNetwork, WeaveTest):
                 smoke_check = True
             else:
                 smoke_check = False
+        elif self.wdm_option == "update":
+            if any("kEvent_UpdateComplete" in s for s in kevents):
+                smoke_check = True
+            else:
+                smoke_check = False
 
         result["smoke_check"] = smoke_check
 

@@ -116,6 +116,8 @@ noinst_HEADERS                                             = \
     MockWdmTestVerifier.h                                    \
     MockWdmViewClient.h                                      \
     MockWdmViewServer.h                                      \
+	MockWdmUpdateServer.h                        		     \
+    MockWdmUpdateClient.h                                    \
     PASEEngineTest.h                                         \
     TAKEOptions.h                                            \
     TapAddrAutoconf.h                                               \
@@ -1033,6 +1035,7 @@ check_SCRIPTS                                 +=                \
     happy/tests/standalone/wdmNext/test_weave_wdm_next_oneway_resub.py            \
     happy/tests/standalone/wdmNext/test_weave_wdm_next_mutual_resub.py            \
     happy/tests/standalone/wdmNext/test_weave_wdm_next_subless_notify_01.py       \
+    happy/tests/standalone/wdmNext/test_weave_wdm_next_standalone_update_01.py    \
     $(NULL)
 
 endif # WEAVE_RUN_HAPPY_WDM
@@ -1418,6 +1421,8 @@ TestWdmNext_SOURCES                      = TestWdmNext.cpp						\
 										   MockWdmNodeOptions.cpp                   \
                                            MockWdmViewServer.cpp					\
                                            MockWdmViewClient.cpp					\
+                                           MockWdmUpdateServer.cpp					\
+                                           MockWdmUpdateClient.cpp					\
                                            MockWdmSubscriptionInitiator.cpp				\
                                            MockWdmTestVerifier.cpp	        			\
                                            MockWdmSubscriptionResponder.cpp				\
@@ -1480,8 +1485,10 @@ mock_device_SOURCES                      = mock-device.cpp                      
                                            schema/weave/trait/telemetry/NetworkWiFiTelemetryTrait.cpp \
                                            MockWdmViewServer.cpp                                    \
                                            MockWdmViewClient.cpp                                    \
+										   MockWdmUpdateServer.cpp									\
+                                           MockWdmUpdateClient.cpp									\
                                            MockWdmSubscriptionInitiator.cpp                         \
-                                           MockWdmTestVerifier.cpp	                            \
+                                           MockWdmTestVerifier.cpp	                            	\
                                            MockWdmSubscriptionResponder.cpp                         \
 										   MockWdmNodeOptions.cpp                                   \
                                            MockLoggingManager.cpp                                   \

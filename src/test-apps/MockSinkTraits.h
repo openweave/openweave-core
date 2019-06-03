@@ -68,7 +68,7 @@ public:
     WEAVE_ERROR Mutate(SubscriptionClient * apSubClient,
                        bool aIsConditional,
                        MockWdmNodeOptions::WdmUpdateMutation aMutation);
-
+    WEAVE_ERROR Mutate(void);
 private:
     WEAVE_ERROR SetLeafData(nl::Weave::Profiles::DataManagement::PropertyPathHandle aLeafHandle, nl::Weave::TLV::TLVReader &aReader) __OVERRIDE;
     WEAVE_ERROR GetLeafData(nl::Weave::Profiles::DataManagement::PropertyPathHandle aLeafHandle, uint64_t aTagToWrite, nl::Weave::TLV::TLVWriter &aWriter) __OVERRIDE;

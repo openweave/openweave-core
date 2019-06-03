@@ -1690,6 +1690,41 @@ exit:
     return err;
 }
 
+WEAVE_ERROR LocaleSettingsTraitUpdatableDataSink::Mutate(void)
+{
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
+    static unsigned int whichLocale = 0;
+    int aMutation;
+    static const char * locales[] = { "en-US", "zh-TW", "ja-JP", "pl-PL", "zh-CN" };
+    PropertyPathHandle pathHandle = kNullPropertyPathHandle;
+
+    MOCK_strlcpy(mLocale, locales[whichLocale], sizeof(mLocale));
+    whichLocale = (whichLocale + 1) % (sizeof(locales)/sizeof(locales[0]));
+
+    aMutation = MockWdmNodeOptions::kMutation_OneLeaf;
+    // This trait instance only supports the OneLeaf and Root mutations.
+
+    switch (aMutation)
+    {
+    case MockWdmNodeOptions::kMutation_Root:
+        pathHandle = LocaleSettingsTrait::kPropertyHandle_Root;
+        break;
+
+    case MockWdmNodeOptions::kMutation_OneLeaf:
+    default:
+        aMutation = MockWdmNodeOptions::kMutation_OneLeaf;
+        pathHandle = LocaleSettingsTrait::kPropertyHandle_active_locale;
+        break;
+    }
+
+    WeaveLogDetail(DataManagement, "<set updated> in 0x%08x", pathHandle);
+
+exit:
+    WeaveLogDetail(DataManagement, "LocaleSettingsTrait mutated %s with error %d", MockWdmNodeOptions::GetMutationStrings()[aMutation], err);
+
+    return err;
+}
+
 WEAVE_ERROR LocaleSettingsTraitUpdatableDataSink::GetNextDictionaryItemKey(PropertyPathHandle aDictionaryHandle, uintptr_t &aContext, PropertyDictionaryKey &aKey)
 {
     return WEAVE_END_OF_INPUT;
