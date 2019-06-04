@@ -32,6 +32,7 @@ import shlex
 import base64
 import random
 import textwrap
+import traceback
 import string
 from copy import copy
 from cmd import Cmd
@@ -84,6 +85,7 @@ except Exception:
         import WeaveDeviceMgr
     except Exception as ex:
         print ("Could not import the WeaveDeviceMgr module: %s" % (str(ex)))
+        print(traceback.format_exc())
 
         sys.exit(1)
 
