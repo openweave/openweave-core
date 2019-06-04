@@ -536,7 +536,7 @@ public:
  *         It takes in a pointer to a schema that it then uses to help decipher incoming TLV data from a publisher and invoke the
  *         relevant data setter calls to pass the data up to subclasses.
  */
-class TraitDataSink : private TraitSchemaEngine::ISetDataDelegate
+class TraitDataSink : private TraitSchemaEngine::ISetDataDelegate, public TraitSchemaEngine::IGetDataDelegate
 {
 public:
 
@@ -546,6 +546,24 @@ public:
 
     typedef WEAVE_ERROR (*OnChangeRejection)(uint16_t aRejectionStatusCode, uint64_t aVersion, void * aContext);
 
+    WEAVE_ERROR ReadData(TraitDataHandle aTraitDataHandle, PropertyPathHandle aHandle, uint64_t aTagToWrite, TLV::TLVWriter & aWriter, PropertyPathHandle & aPropertyPathHandleOfDictItemToStartFrom);
+
+    virtual WEAVE_ERROR GetLeafData(PropertyPathHandle aLeafHandle, uint64_t aTagToWrite,
+                                    nl::Weave::TLV::TLVWriter & aWriter) __OVERRIDE
+    {
+        return WEAVE_ERROR_INVALID_ARGUMENT;
+    }
+
+    virtual WEAVE_ERROR GetData(PropertyPathHandle aHandle, uint64_t aTagToWrite, nl::Weave::TLV::TLVWriter & aWriter,
+                                bool & aIsNull, bool & aIsPresent) __OVERRIDE;
+
+#if TDM_ENABLE_PUBLISHER_DICTIONARY_SUPPORT
+    virtual WEAVE_ERROR GetNextDictionaryItemKey(PropertyPathHandle aDictionaryHandle, uintptr_t & aContext,
+                                                 PropertyDictionaryKey & aKey) __OVERRIDE
+    {
+        return WEAVE_ERROR_INVALID_ARGUMENT;
+    }
+#endif
     enum ChangeFlags
     {
         kFirstElementInChange = (1 << 0),
@@ -755,15 +773,10 @@ private:
  * and generate local sink changes to publisher.
  *
  */
-class TraitUpdatableDataSink : public TraitDataSink, protected TraitSchemaEngine::IGetDataDelegate
+class TraitUpdatableDataSink : public TraitDataSink
 {
 public:
     TraitUpdatableDataSink(const TraitSchemaEngine * aEngine);
-
-    WEAVE_ERROR ReadData(TraitDataHandle aTraitDataHandle, PropertyPathHandle aHandle, uint64_t aTagToWrite, TLV::TLVWriter & aWriter, PropertyPathHandle & aPropertyPathHandleOfDictItemToStartFrom);
-
-    virtual WEAVE_ERROR GetData(PropertyPathHandle aHandle, uint64_t aTagToWrite, nl::Weave::TLV::TLVWriter & aWriter,
-                                bool & aIsNull, bool & aIsPresent) __OVERRIDE;
 
     WEAVE_ERROR SetUpdated(SubscriptionClient * apSubClient, PropertyPathHandle aPropertyHandle, bool aIsConditional=false);
 

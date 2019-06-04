@@ -32,6 +32,8 @@
 #include <errno.h>
 #include <time.h>
 
+#include <Weave/Profiles/data-management/Current/WdmManagedNamespace.h>
+
 #include <Weave/Core/WeaveCore.h>
 #include <Weave/Support/Base64.h>
 #include <Weave/Support/CodeUtils.h>
@@ -42,6 +44,7 @@
 #include <Weave/Profiles/network-provisioning/NetworkProvisioning.h>
 #include <Weave/Profiles/service-provisioning/ServiceProvisioning.h>
 #include <Weave/Profiles/fabric-provisioning/FabricProvisioning.h>
+#include <Weave/Profiles/data-management/DataManagement.h>
 #include <Weave/Profiles/device-description/DeviceDescription.h>
 #include <Weave/Profiles/device-control/DeviceControl.h>
 #include <Weave/Profiles/vendor/nestlabs/device-description/NestProductIdentifiers.hpp>
@@ -58,12 +61,44 @@
 #include <Weave/Profiles/vendor/nestlabs/dropcam-legacy-pairing/DropcamLegacyPairing.h>
 
 namespace nl {
+    namespace Weave {
+        namespace Profiles {
+            namespace WeaveMakeManagedNamespaceIdentifier(DataManagement, kWeaveManagedNamespaceDesignation_Current) {
+
+            SubscriptionEngine * SubscriptionEngine::GetInstance()
+            {
+                static nl::Weave::Profiles::DataManagement::SubscriptionEngine gWdmSubscriptionEngine;
+                return &gWdmSubscriptionEngine;
+            }
+
+            namespace Platform {
+                // For unit tests, a dummy critical section is sufficient.
+                void CriticalSectionEnter()
+                {
+                    return;
+                }
+
+                void CriticalSectionExit()
+                {
+                    return;
+                }
+
+            } // Platform
+
+        } // WeaveMakeManagedNamespaceIdentifier(DataManagement, kWeaveManagedNamespaceDesignation_Current)
+    } // Profiles
+} // Weave
+} // nl
+
+namespace nl {
 namespace Weave {
 namespace DeviceManager {
 
 using namespace nl::Weave::Encoding;
 using namespace nl::Weave::Profiles;
+using namespace nl::Weave::Profiles::DataManagement;
 using namespace nl::Weave::Profiles::DeviceDescription;
+using namespace nl::Weave::Profiles::Locale;
 using namespace nl::Weave::Profiles::NetworkProvisioning;
 using namespace nl::Weave::Profiles::Security;
 using namespace nl::Weave::Profiles::ServiceProvisioning;
@@ -73,9 +108,12 @@ using namespace nl::Weave::Profiles::Vendor::Nestlabs::DropcamLegacyPairing;
 using namespace nl::Weave::Profiles::Vendor::Nestlabs::Thermostat;
 using namespace nl::Weave::TLV;
 
+const nl::Weave::ExchangeContext::Timeout kResponseTimeoutMsec = 15000;
+
 static bool IsProductWildcard(uint16_t productId);
 
 static const uint32_t ENUMERATED_NODES_LIST_INITIAL_SIZE = 256;
+
 
 WeaveDeviceManager *WeaveDeviceManager::sListeningDeviceMgr = NULL;
 
@@ -142,7 +180,6 @@ WEAVE_ERROR WeaveDeviceManager::Init(WeaveExchangeManager *exchangeMgr, WeaveSec
     mEnumeratedNodes = NULL;
     mEnumeratedNodesLen = 0;
     mEnumeratedNodesMaxLen = 0;
-
     // By default, rendezvous messages are sent to the IPv6 link-local, all-nodes multicast address.
     mRendezvousAddr = IPAddress::MakeIPv6WellKnownMulticast(kIPv6MulticastScope_Link, kIPV6MulticastGroup_AllNodes);
 
@@ -5053,6 +5090,746 @@ WEAVE_ERROR WeaveDeviceManager::HandleCertValidationResult(bool isInitiator, WEA
 WEAVE_ERROR WeaveDeviceManager::EndCertValidation(WeaveCertificateSet& certSet, ValidationContext& validContext)
 {
     // Nothing to do
+    return WEAVE_NO_ERROR;
+}
+
+WeaveDeviceManager::WDMDMClient::WDMDMClient() :
+        mpGenericTraitDataSink(NULL),
+        mpDeviceMgr(NULL),
+        mpBinding(NULL),
+        mSinkCatalog(ResourceIdentifier(ResourceIdentifier::SELF_NODE_ID),
+                     mSinkCatalogStore, sizeof(mSinkCatalogStore) / sizeof(mSinkCatalogStore[0]))
+{
+    mPathList.Init(mStorage, ArraySize(mStorage));
+}
+
+WeaveDeviceManager::WDMDMClient::~WDMDMClient(void)
+{
+    mpDeviceMgr = NULL;
+    mpBinding = NULL;
+    mDeviceId = kNodeIdNotSpecified ;
+}
+
+void WeaveDeviceManager::WDMDMClient::EngineEventCallback (void * const aAppState,
+                                                            SubscriptionEngine::EventID aEvent,
+                                                            const SubscriptionEngine::InEventParam & aInParam, SubscriptionEngine::OutEventParam & aOutParam)
+{
+    switch (aEvent)
+    {
+        default:
+            SubscriptionEngine::DefaultEventHandler(aEvent, aInParam, aOutParam);
+            break;
+    }
+}
+
+WEAVE_ERROR WeaveDeviceManager::WDMDMClient::Setup(WeaveDeviceManager *apDeviceMgr, WeaveExchangeManager *apExchangeMgr, uint64_t aDeviceId, uint64_t aProfileId, uint64_t aInstanceId, PropertyPathHandle aPropertyPathHandle)
+{
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
+    mpDeviceMgr = apDeviceMgr;
+    mDeviceId = aDeviceId;
+    mSubscriptionClient = NULL;
+    mpExchangeMgr = apExchangeMgr;
+    mpEcCommand = NULL;
+    mCmdState = kCmdState_Idle;
+
+    VerifyOrExit(mpGenericTraitDataSink == NULL, err = WEAVE_ERROR_INCORRECT_STATE);
+    mpGenericTraitDataSink = new GenericTraitDataSink(&LocaleSettingsTrait::TraitSchema);
+    VerifyOrExit(mpGenericTraitDataSink != NULL, err = WEAVE_ERROR_NO_MEMORY);
+
+    mSinkCatalog.Add(0, mpGenericTraitDataSink, mTraitHandleSet[0]);
+
+    mSinkCatalog.Locate(aProfileId, aInstanceId, mTraitPaths[0].mTraitDataHandle);
+
+    mTraitPaths[0].mPropertyPathHandle = aPropertyPathHandle;
+
+    err = SubscriptionEngine::GetInstance()->Init(mpExchangeMgr, this, EngineEventCallback);
+    SuccessOrExit(err);
+
+    if (NULL == mpBinding)
+    {
+        mpBinding = mpExchangeMgr->NewBinding(BindingEventCallback, this);
+        VerifyOrExit(NULL != mpBinding, err = WEAVE_ERROR_NO_MEMORY);
+        if (mpBinding->CanBePrepared())
+        {
+            err = mpBinding->RequestPrepare();
+            SuccessOrExit(err);
+        }
+    }
+
+exit:
+    return err;
+}
+
+void WeaveDeviceManager::WDMDMClient::TearDown()
+{
+    mpDeviceMgr = NULL;
+    mDeviceId = NULL;
+
+    if (NULL == mpBinding)
+    {
+        mpBinding->Release();
+        mpBinding = NULL;
+    }
+
+    if (mpGenericTraitDataSink != NULL)
+    {
+        delete mpGenericTraitDataSink;
+        mpGenericTraitDataSink = NULL;
+    }
+}
+
+void WeaveDeviceManager::WDMDMClient::BindingEventCallback (void * const apAppState, const nl::Weave::Binding::EventType aEvent,
+                                                            const nl::Weave::Binding::InEventParam & aInParam, nl::Weave::Binding::OutEventParam & aOutParam)
+{
+
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
+
+    WeaveLogDetail(DeviceManager, "%s: Event(%d)", __func__, aEvent);
+
+    WDMDMClient * const pWDMDMClient = reinterpret_cast<WDMDMClient *>(apAppState);
+
+    switch (aEvent)
+    {
+        case nl::Weave::Binding::kEvent_PrepareRequested:
+            WeaveLogDetail(DeviceManager, "kEvent_PrepareRequested");
+            err = pWDMDMClient->PrepareBinding(pWDMDMClient->mpDeviceMgr->mDeviceCon);
+            SuccessOrExit(err);
+            break;
+
+        case nl::Weave::Binding::kEvent_PrepareFailed:
+            err = aInParam.PrepareFailed.Reason;
+            WeaveLogDetail(DeviceManager, "kEvent_PrepareFailed: reason");
+            break;
+
+        case nl::Weave::Binding::kEvent_BindingFailed:
+            err = aInParam.BindingFailed.Reason;
+            WeaveLogDetail(DeviceManager, "kEvent_BindingFailed: reason");
+            break;
+
+        case nl::Weave::Binding::kEvent_BindingReady:
+            WeaveLogDetail(DeviceManager, "kEvent_BindingReady");
+
+            WeaveLogProgress(DeviceManager, "%s", __PRETTY_FUNCTION__);
+
+            break;
+
+        case nl::Weave::Binding::kEvent_DefaultCheck:
+            WeaveLogDetail(DeviceManager, "kEvent_DefaultCheck");
+
+        default:
+            nl::Weave::Binding::DefaultEventHandler(apAppState, aEvent, aInParam, aOutParam);
+    }
+
+exit:
+    if (err != WEAVE_NO_ERROR)
+    {
+        WeaveLogDetail(DeviceManager, "error in BindingEventCallback");
+        if (NULL != pWDMDMClient->mpBinding)
+        {
+            pWDMDMClient->mpBinding->Release();
+            pWDMDMClient->mpBinding = NULL;
+        }
+    }
+}
+
+WEAVE_ERROR WeaveDeviceManager::WDMDMClient::PrepareBinding(WeaveConnection *apDeviceCon)
+{
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
+
+    if (apDeviceCon != NULL)
+    {
+        Binding::Configuration bindingConfig = mpBinding->BeginConfiguration()
+                .Target_NodeId(mDeviceId)
+                .Security_None()
+                .Transport_ExistingConnection(apDeviceCon)
+                .Exchange_ResponseTimeoutMsec(kResponseTimeoutMsec);
+        err = bindingConfig.PrepareBinding();
+    }
+    else
+    {
+        WeaveLogDetail(DeviceManager, "apDeviceCon is NULL");
+        err = WEAVE_ERROR_INCORRECT_STATE;
+    }
+
+    return err;
+}
+
+void WeaveDeviceManager::WDMDMClient::ClientEventCallback (void * const aAppState, SubscriptionClient::EventID aEvent,
+                                                        const SubscriptionClient::InEventParam & aInParam, SubscriptionClient::OutEventParam & aOutParam)
+{
+    WDMDMClient * const pWDMDMClient = reinterpret_cast<WDMDMClient *>(aAppState);
+
+    switch (aEvent)
+    {
+    case SubscriptionClient::kEvent_OnExchangeStart:
+        WeaveLogDetail(DeviceManager, "Client->kEvent_OnExchangeStart");
+        break;
+    case SubscriptionClient::kEvent_OnSubscribeRequestPrepareNeeded:
+        WeaveLogDetail(DeviceManager, "Client->kEvent_OnSubscribeRequestPrepareNeeded");
+
+        aOutParam.mSubscribeRequestPrepareNeeded.mPathList = pWDMDMClient->mTraitPaths;
+        aOutParam.mSubscribeRequestPrepareNeeded.mPathListSize = 1;
+        aOutParam.mSubscribeRequestPrepareNeeded.mNeedAllEvents = false;
+        aOutParam.mSubscribeRequestPrepareNeeded.mLastObservedEventList = NULL;
+        aOutParam.mSubscribeRequestPrepareNeeded.mLastObservedEventListSize = 0;
+        aOutParam.mSubscribeRequestPrepareNeeded.mTimeoutSecMin = 30;
+        aOutParam.mSubscribeRequestPrepareNeeded.mTimeoutSecMax = 3600;
+        break;
+
+    case SubscriptionClient::kEvent_OnSubscriptionEstablished:
+        WeaveLogDetail(DeviceManager, "Client->kEvent_OnSubscriptionEstablished");
+
+        if (pWDMDMClient)
+        {
+            pWDMDMClient->mSubscriptionClient->AbortSubscription();
+
+            WeaveLogProgress(DeviceManager, "%s", __PRETTY_FUNCTION__);
+
+            pWDMDMClient->RetrieveSinkTraitData();
+            //pWDMDMClient->TearDown();
+        }
+        break;
+    case SubscriptionClient::kEvent_OnNotificationRequest:
+        WeaveLogDetail(DeviceManager, "Client->kEvent_OnNotificationRequest");
+        break;
+    case SubscriptionClient::kEvent_OnNotificationProcessed:
+        WeaveLogDetail(DeviceManager, "Client->kEvent_OnNotificationProcessed");
+        break;
+    case SubscriptionClient::kEvent_OnSubscriptionTerminated:
+        WeaveLogDetail(DeviceManager, "Client->kEvent_OnSubscriptionTerminated. Reason: %u, peer = 0x%" PRIX64 "\n",
+            aInParam.mSubscriptionTerminated.mReason,
+            aInParam.mSubscriptionTerminated.mClient->GetPeerNodeId());
+        if (pWDMDMClient)
+        {
+            pWDMDMClient->mSubscriptionClient->AbortSubscription();
+            pWDMDMClient->mpDeviceMgr->ClearOpState();
+            pWDMDMClient->mpDeviceMgr->mOnComplete.General(pWDMDMClient->mpDeviceMgr, pWDMDMClient->mpDeviceMgr->mAppReqState);
+            //pWDMDMClient->TearDown();
+        }
+        break;
+    case SubscriptionClient::kEvent_OnUpdateComplete:
+        if ((aInParam.mUpdateComplete.mReason == WEAVE_NO_ERROR) && (nl::Weave::Profiles::Common::kStatus_Success == aInParam.mUpdateComplete.mStatusCode))
+        {
+            WeaveLogDetail(DeviceManager, "Update: path result: success");
+        }
+        else
+        {
+            WeaveLogDetail(DataManagement, "Update: path failed: %s, %s, tdh %" PRIu16", will %sretry",
+                       ErrorStr(aInParam.mUpdateComplete.mReason),
+                       nl::StatusReportStr(aInParam.mUpdateComplete.mStatusProfileId, aInParam.mUpdateComplete.mStatusCode),
+                       aInParam.mUpdateComplete.mTraitDataHandle,
+                       aInParam.mUpdateComplete.mWillRetry ? "" : "not ");
+        }
+        if (pWDMDMClient)
+        {
+            pWDMDMClient->mpDeviceMgr->ClearOpState();
+            pWDMDMClient->mpDeviceMgr->mOnComplete.General(pWDMDMClient->mpDeviceMgr, pWDMDMClient->mpDeviceMgr->mAppReqState);
+            //pWDMDMClient->TearDown();
+        }
+        break;
+    case SubscriptionClient::kEvent_OnNoMorePendingUpdates:
+        WeaveLogDetail(DeviceManager, "Update: no more pending updates");
+        break;
+
+    default:
+        SubscriptionClient::DefaultEventHandler(aEvent, aInParam, aOutParam);
+        break;
+    }
+}
+
+WEAVE_ERROR WeaveDeviceManager::WDMDMClient::InitDMClient(WeaveDeviceManager *apDeviceMgr, WeaveExchangeManager *apExchangeMgr, uint64_t aDeviceId, uint64_t aProfileId, uint64_t aInstanceId, PropertyPathHandle aPropertyPathHandle)
+{
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
+
+    Setup(apDeviceMgr, apExchangeMgr, aDeviceId, aProfileId, aInstanceId, aPropertyPathHandle);
+    //WeaveLogProgress(DeviceManager, "%s", __PRETTY_FUNCTION__);
+
+    if (mSubscriptionClient == NULL)
+    {
+        err =  SubscriptionEngine::GetInstance()->NewClient(&mSubscriptionClient,
+                                                            mpBinding,
+                                                            this,
+                                                            ClientEventCallback,
+                                                            &mSinkCatalog,
+                                                            kResponseTimeoutMsec * 2); // max num of msec between subscribe request and subscribe response
+        SuccessOrExit(err);
+    }
+
+    mSubscriptionClient->EnableResubscribe(NULL);
+
+    mPathList.Clear();
+exit:
+    return WEAVE_NO_ERROR;
+}
+
+WEAVE_ERROR WeaveDeviceManager::WDMDMClient::TriggerCustomCommand(const char *apName, const char *apCustomCommand)
+{
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
+    PacketBuffer *msgBuf = PacketBuffer::New();
+    static uint32_t commandType = 1;
+    static uint32_t signatureType = 0; // static dummy signature.  Values: 0 == None, 1 -- Weave Signature, 2 -- Group Key Signature
+
+    VerifyOrExit((NULL != mpBinding) && (kCmdState_Idle == mCmdState) && (NULL == mpEcCommand), err = WEAVE_ERROR_INCORRECT_STATE);
+    VerifyOrExit(NULL != msgBuf, err = WEAVE_ERROR_NO_MEMORY);
+
+    err = mpBinding->NewExchangeContext(mpEcCommand);
+    SuccessOrExit(err);
+
+    mpEcCommand->AppState = this;
+    mpEcCommand->OnMessageReceived = OnMessageReceivedForCustomCommand;
+    mpEcCommand->OnResponseTimeout = NULL;
+    mpEcCommand->OnSendError = NULL;
+    mpEcCommand->OnAckRcvd = NULL;
+
+    {
+        nl::Weave::TLV::TLVWriter writer;
+        CustomCommand::Builder request;
+        uint64_t nowMicroSecs, deadline;
+
+        writer.Init(msgBuf);
+        err = request.Init(&writer);
+        SuccessOrExit(err);
+
+        Path::Builder & path = request.CreatePathBuilder();
+
+        path.ProfileID(LocaleSettingsTrait::kWeaveProfileId).InstanceID(0).EndOfPath();
+
+        SuccessOrExit(path.GetError());
+
+        // Command Type
+        request.CommandType(commandType);
+
+        // It's safe to bail out after a series of operation, for
+        // SubscriptionRequest::Builder would internally turn to NOP after error is logged
+        SuccessOrExit(err = request.GetError());
+
+        /*
+        err = System::Layer::GetClock_RealTime(nowMicroSecs);
+        SuccessOrExit(err);
+        WeaveLogDetail(DataManagement, "TriggerCustomCommand6");
+        deadline = nowMicroSecs + 6000;
+        request.ExpiryTimeMicroSecond((int64_t)deadline);
+        SuccessOrExit(err = request.GetError());
+        */
+        // Add arguments here
+        {
+            nl::Weave::TLV::TLVType dummyType = nl::Weave::TLV::kTLVType_NotSpecified;
+            err = writer.StartContainer(nl::Weave::TLV::ContextTag(CustomCommand::kCsTag_Argument),
+                                        nl::Weave::TLV::kTLVType_Structure, dummyType);
+            SuccessOrExit(err);
+
+            err = writer.PutString(nl::Weave::TLV::ContextTag(1), apName);
+            SuccessOrExit(err);
+
+            err = writer.PutString(nl::Weave::TLV::ContextTag(2), apCustomCommand);
+            SuccessOrExit(err);
+
+            err = writer.EndContainer(dummyType);
+            SuccessOrExit(err);
+        }
+
+        request.EndOfCustomCommand();
+        SuccessOrExit(err = request.GetError());
+
+        err = writer.Finalize();
+        SuccessOrExit(err);
+
+        err = mpEcCommand->SendMessage(nl::Weave::Profiles::kWeaveProfile_WDM, kMsgType_CustomCommandRequest,
+                                      msgBuf, nl::Weave::ExchangeContext::kSendFlag_ExpectResponse);
+        msgBuf = NULL;
+        SuccessOrExit(err);
+    }
+
+    err = mpExchangeMgr->MessageLayer->SystemLayer->StartTimer(5000, HandleCustomCommandTimeout, this);
+    SuccessOrExit(err);
+    mCmdState = kCmdState_Requesting;
+
+exit:
+    WeaveLogFunctError(err);
+    if (NULL != msgBuf)
+    {
+        PacketBuffer::Free(msgBuf);
+        msgBuf = NULL;
+    }
+
+    if (WEAVE_NO_ERROR != err)
+    {
+        Command_End(true);
+    }
+    return WEAVE_NO_ERROR;
+}
+
+void WeaveDeviceManager::WDMDMClient::OnMessageReceivedForCustomCommand (nl::Weave::ExchangeContext *aEC, const nl::Inet::IPPacketInfo *aPktInfo,
+                                                                          const nl::Weave::WeaveMessageInfo *aMsgInfo, uint32_t aProfileId,
+                                                                          uint8_t aMsgType, PacketBuffer *aPayload)
+{
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
+    WDMDMClient * const pWDMDMClient = reinterpret_cast<WDMDMClient *>(aEC->AppState);
+    nl::Weave::Profiles::StatusReporting::StatusReport status;
+    enum
+    {
+        kMsgIdentified_Unknown        = 0,
+        kMsgIdentified_StatusReport   = 1,
+        kMsgIdentified_Response       = 2,
+        kMsgIdentified_InProgress     = 3,
+    } messageType = kMsgIdentified_Unknown;
+
+    WeaveLogDetail(DataManagement, "Responder %s: state: %d", __func__, pWDMDMClient->mCmdState);
+
+    VerifyOrExit(aEC == pWDMDMClient->mpEcCommand, err = WEAVE_ERROR_INCORRECT_STATE);
+    VerifyOrExit(kCmdState_Idle != pWDMDMClient->mCmdState, err = WEAVE_ERROR_INCORRECT_STATE);
+
+    if ((nl::Weave::Profiles::kWeaveProfile_Common == aProfileId) && (nl::Weave::Profiles::Common::kMsgType_StatusReport == aMsgType))
+    {
+        // Note that payload is not freed in this call to parse
+        err = nl::Weave::Profiles::StatusReporting::StatusReport::parse(aPayload, status);
+        SuccessOrExit(err);
+        messageType = kMsgIdentified_StatusReport;
+        WeaveLogError(DataManagement, "Received Status Report 0x%" PRIX32 " : 0x%" PRIX16, status.mProfileId, status.mStatusCode);
+    }
+    else if ((nl::Weave::Profiles::kWeaveProfile_WDM == aProfileId) && (kMsgType_CustomCommandResponse == aMsgType))
+    {
+        // command response, implies the request succeeded to some degree
+        messageType = kMsgIdentified_Response;
+    }
+    else if ((nl::Weave::Profiles::kWeaveProfile_WDM == aProfileId) && (kMsgType_InProgress == aMsgType))
+    {
+        messageType = kMsgIdentified_InProgress;
+    }
+    else
+    {
+        messageType = kMsgIdentified_Unknown;
+    }
+
+    switch (pWDMDMClient->mCmdState)
+    {
+        case kCmdState_Requesting:
+            if (kMsgIdentified_InProgress == messageType)
+            {
+                // in progress, indicates the other side has received the request and is working on it
+                // note we could have different time out settings after receiving this in progress message.
+                // it's up to each individual trait.
+                WeaveLogDetail(DataManagement, "Received In Progress message. Waiting for a response");
+                // there is no payload in "in progress" message, so there is nothing to parse
+                pWDMDMClient->mCmdState = kCmdState_Operating;
+                // do not close this EC when we leave this function
+                aEC = NULL;
+                break;
+            }
+            // fall through intentional
+        case kCmdState_Operating:
+            if (kMsgIdentified_Response == messageType)
+            {
+                // command response, implies the request succeeded to some degree
+                WeaveLogDetail(DataManagement, "Response message, end");
+
+                nl::Weave::TLV::TLVReader reader;
+                reader.Init(aPayload);
+
+                err = reader.Next();
+                SuccessOrExit(err);
+
+                CustomCommandResponse::Parser response;
+                err = response.Init(reader);
+                SuccessOrExit(err);
+
+#if WEAVE_CONFIG_DATA_MANAGEMENT_ENABLE_SCHEMA_CHECK
+                // this function only print out all recognized properties in the response
+    // check the parser class to see what else is available
+    err = response.CheckSchemaValidity();
+    SuccessOrExit(err);
+#endif // WEAVE_CONFIG_DATA_MANAGEMENT_ENABLE_SCHEMA_CHECK
+            }
+            else
+            {
+                if (kMsgIdentified_StatusReport == messageType)
+                {
+                    // status report, implies the request failed
+                    WeaveLogDetail(DataManagement, "Status Report, end");
+                }
+                else
+                {
+                    // unexpected message
+                    WeaveLogDetail(DataManagement, "Unexpected message, end");
+                }
+            }
+            // reset state and close the exchange
+            pWDMDMClient->Command_End();
+            // aEC has been closed/aborted as part of Command_End
+            aEC = NULL;
+            break;
+        default:
+            // this is probably dead code
+            ExitNow(err = WEAVE_ERROR_INCORRECT_STATE);
+    }
+
+exit:
+    WeaveLogFunctError(err);
+
+    if (WEAVE_NO_ERROR != err)
+    {
+        pWDMDMClient->Command_End(true);
+        // aEC has been closed/aborted as part of Command_End
+        aEC = NULL;
+    }
+
+    if (NULL != aEC)
+    {
+        aEC->Abort();
+        aEC = NULL;
+    }
+
+    if (NULL != aPayload)
+    {
+        PacketBuffer::Free(aPayload);
+        aPayload = NULL;
+    }
+}
+
+void WeaveDeviceManager::WDMDMClient::HandleCustomCommandTimeout(nl::Weave::System::Layer* aSystemLayer, void *aAppState, ::nl::Weave::System::Error aErr)
+{
+    WDMDMClient * const pWDMDMClient = reinterpret_cast<WDMDMClient *>(aAppState);
+    pWDMDMClient->Command_End(true);
+}
+
+void WeaveDeviceManager::WDMDMClient::Command_End(const bool aAbort)
+{
+    (void)mpExchangeMgr->MessageLayer->SystemLayer->CancelTimer(HandleCustomCommandTimeout, this);
+
+    mCmdState = kCmdState_Idle;
+    if (NULL != mpEcCommand)
+    {
+        // this might be needed, for the test infrastructure re-init this object multiple times
+        // ExchangeContext::Close would gracefully close this exchange, while ExchangeContext::Abort
+        // would forcefully reclaim all resources
+        if (aAbort)
+        {
+            mpEcCommand->Abort();
+        }
+        else
+        {
+            mpEcCommand->Close();
+        }
+        mpEcCommand = NULL;
+    }
+
+    if (mpDeviceMgr)
+    {
+        mpDeviceMgr->ClearOpState();
+        mpDeviceMgr->mOnComplete.General(mpDeviceMgr, mpDeviceMgr->mAppReqState);
+    }
+}
+
+void WeaveDeviceManager::WDMDMClient::ClearDataSinkIterator(void *aTraitInstance, TraitDataHandle aHandle, void *aContext)
+{
+    GenericTraitDataSink *traitInstance = static_cast<GenericTraitDataSink *>(aTraitInstance);
+    traitInstance->ResetDataSink();
+}
+
+WEAVE_ERROR WeaveDeviceManager::WDMDMClient::RetrieveSinkTraitData()
+{
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
+    TraitSchemaEngine::IGetDataDelegate *getDataDelegate;
+    TLVType dummyContainerType;
+    nl::Weave::TLV::TLVWriter writer;
+    uint32_t encodedLen = 0;
+    TraitDataSink *pSink = NULL;
+
+    OpState savedOpState = mpDeviceMgr->mOpState;
+
+    PacketBuffer * msgBuf = PacketBuffer::New();
+    VerifyOrExit(msgBuf != NULL, err = WEAVE_ERROR_NO_MEMORY);
+
+    writer.Init(msgBuf);
+    err = writer.StartContainer(AnonymousTag, kTLVType_Structure, dummyContainerType);
+    SuccessOrExit(err);
+
+    mSinkCatalog.Locate(mTraitPaths[0].mTraitDataHandle, &pSink);
+    getDataDelegate = static_cast<TraitSchemaEngine::IGetDataDelegate *>(pSink);
+    err = pSink->GetSchemaEngine()->RetrieveData(kRootPropertyPathHandle, ContextTag(DataElement::kCsTag_Data), writer, getDataDelegate);
+    SuccessOrExit(err);
+
+    err = writer.EndContainer(dummyContainerType);
+    SuccessOrExit(err);
+
+    err = writer.Finalize();
+    SuccessOrExit(err);
+
+    encodedLen = writer.GetLengthWritten();
+
+#if WEAVE_CONFIG_DATA_MANAGEMENT_ENABLE_SCHEMA_CHECK
+    {
+        nl::Weave::TLV::TLVReader reader;
+        //DataElement::Parser parser;
+        reader.Init(msgBuf);
+        err = reader.Next();
+        VerifyOrExit(err == WEAVE_NO_ERROR, WeaveLogDetail(DataManagement, "Created malformed update, err: %" PRId32, err));
+        //parser.Init(reader);
+        //parser.CheckSchemaValidity();
+        DebugPrettyPrint(reader);
+    }
+#endif //WEAVE_CONFIG_DATA_MANAGEMENT_ENABLE_SCHEMA_CHECK
+
+    mpDeviceMgr->ClearOpState();
+    WeaveLogDetail(DataManagement, "current op is, %d", savedOpState);
+    //VerifyOrExit(savedOpState == kOpState_ViewTrait, err = WEAVE_ERROR_INCORRECT_STATE);
+    //pWDMDMClient->mpDeviceMgr->mOnComplete.General(pWDMDMClient->mpDeviceMgr, pWDMDMClient->mpDeviceMgr->mAppReqState);
+    mpDeviceMgr->mOnComplete.ViewTrait(mpDeviceMgr, mpDeviceMgr->mAppReqState, msgBuf->Start(), msgBuf->DataLength());
+
+exit:
+    WeaveLogFunctError(err);
+    if (err != WEAVE_NO_ERROR)
+        mpDeviceMgr->mOnError(mpDeviceMgr, mpDeviceMgr->mAppReqState, err, NULL);
+    if (msgBuf != NULL)
+        PacketBuffer::Free(msgBuf);
+    return err;
+}
+
+void WeaveDeviceManager::WDMDMClient::TLVPrettyPrinter(const char *aFormat, ...)
+{
+    va_list args;
+
+    va_start(args, aFormat);
+
+    // There is no proper Weave logging routine for us to use here
+    vprintf(aFormat, args);
+
+    va_end(args);
+}
+
+WEAVE_ERROR WeaveDeviceManager::WDMDMClient::DebugPrettyPrint(nl::Weave::TLV::TLVReader & aReader)
+{
+    return nl::Weave::TLV::Debug::Dump(aReader, TLVPrettyPrinter);
+}
+
+WEAVE_ERROR WeaveDeviceManager::WDMDMClient::StoreTLVData(const uint8_t * encodedTlvVal, uint16_t encodedTlvalLen)
+{
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
+
+    TraitDataSink *pSink = NULL;
+    PropertyPathHandle pathHandle = kNullPropertyPathHandle;
+
+    TLVReader reader;
+
+    pathHandle = mTraitPaths[0].mPropertyPathHandle;
+    mSinkCatalog.Locate(mTraitPaths[0].mTraitDataHandle, &pSink);
+/*
+    static const uint8_t Encoding[] =
+            {
+                    nlWeaveTLV_STRUCTURE(nlWeaveTLV_TAG_ANONYMOUS),
+                    nlWeaveTLV_UINT64(nlWeaveTLV_TAG_CONTEXT_SPECIFIC(ContextTag(DataElement::kCsTag_Version)), 1),
+                    nlWeaveTLV_STRUCTURE(nlWeaveTLV_TAG_CONTEXT_SPECIFIC(ContextTag(DataElement::kCsTag_Data))),
+                    nlWeaveTLV_UTF8_STRING_1ByteLength(nlWeaveTLV_TAG_CONTEXT_SPECIFIC(ContextTag(1)), 5),
+                    'e',
+                    'n',
+                    '-',
+                    'U',
+                    'S',
+                    nlWeaveTLV_END_OF_CONTAINER,
+                    nlWeaveTLV_END_OF_CONTAINER,
+            };
+*/
+    reader.Init(encodedTlvVal, encodedTlvalLen);
+    //reader.Init(Encoding, sizeof(Encoding));
+    err = reader.Next();
+    SuccessOrExit(err);
+    DebugPrettyPrint(reader);
+
+    //err = pSink->StoreDataElement(pathHandle, reader, 0, NULL, NULL);
+    err = mpGenericTraitDataSink->SetLeaf(pathHandle, "en-US");
+    SuccessOrExit(err);
+
+    WeaveLogDetail(DataManagement, "<set updated> in 0x%08x", pathHandle);
+    if (pSink->IsUpdatableDataSink())
+    {
+        WeaveLogDetail(DataManagement, "updating");
+        TraitUpdatableDataSink *updatableSink = static_cast<TraitUpdatableDataSink *>(pSink);
+        err = updatableSink->SetUpdated(mSubscriptionClient, pathHandle, false);
+        SuccessOrExit(err);
+    }
+exit:
+    return err;
+}
+
+WEAVE_ERROR WeaveDeviceManager::WDMDMClient::TriggerUpdate(const uint8_t * encodedTlvVal, uint16_t encodedTlvalLen)
+{
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
+
+    err = StoreTLVData(encodedTlvVal, encodedTlvalLen);
+    SuccessOrExit(err);
+
+    err = mSubscriptionClient->FlushUpdate();
+    SuccessOrExit(err);
+
+exit:
+    return err;
+}
+
+WEAVE_ERROR WeaveDeviceManager::WDMDMClient::RunShortLivedSubscription()
+{
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
+
+    mSinkCatalog.Iterate(WeaveDeviceManager::WDMDMClient::ClearDataSinkIterator, NULL);
+
+    mSubscriptionClient->InitiateSubscription();
+
+    return err;
+}
+
+WEAVE_ERROR WeaveDeviceManager::UpdateTrait(void* appReqState, uint64_t aProfileId, uint64_t aInstanceId, PropertyPathHandle aPropertyPathHandle, const uint8_t * encodedTlvVal, uint16_t encodedTlvalLen, CompleteFunct onComplete, ErrorFunct onError)
+{
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
+    uint64_t deviceId = kNodeIdNotSpecified;
+
+    mAppReqState = appReqState;
+    mOnComplete.General = onComplete;
+    mOnError = onError;
+    mOpState = kOpState_UpdateTrait;
+
+    GetDeviceId(deviceId);
+
+    err = mWDMDMClient.InitDMClient(this, mExchangeMgr, deviceId, aProfileId, aInstanceId, aPropertyPathHandle);
+    SuccessOrExit(err);
+
+    err = mWDMDMClient.TriggerUpdate(encodedTlvVal, encodedTlvalLen);
+    SuccessOrExit(err);
+
+exit:
+    return err;
+}
+
+WEAVE_ERROR WeaveDeviceManager::ViewTrait(void* appReqState, uint64_t aProfileId, uint64_t aInstanceId, PropertyPathHandle aPropertyPathHandle, ViewTraitCompleteFunct onComplete, ErrorFunct onError)
+{
+    uint64_t deviceId = kNodeIdNotSpecified;
+    GetDeviceId(deviceId);
+
+    mAppReqState = appReqState;
+    mOnComplete.ViewTrait = onComplete;
+    mOnError = onError;
+    mOpState = kOpState_ViewTrait;
+
+    mWDMDMClient.InitDMClient(this, mExchangeMgr, deviceId, aProfileId, aInstanceId, aPropertyPathHandle);
+    mWDMDMClient.RunShortLivedSubscription();
+    return WEAVE_NO_ERROR;
+}
+
+WEAVE_ERROR WeaveDeviceManager::SendCustomCommand(void* appReqState, const char *apName, const char *apCustomCommand, CompleteFunct onComplete, ErrorFunct onError)
+{
+    WEAVE_ERROR err = WEAVE_NO_ERROR;
+    PacketBuffer *msgBuf = PacketBuffer::New();
+    static uint32_t commandType = 1;
+    static uint32_t signatureType = 0; // static dummy signature.  Values: 0 == None, 1 -- Weave Signature, 2 -- Group Key Signature
+    uint64_t deviceId = kNodeIdNotSpecified;
+
+    mAppReqState = appReqState;
+    mOnComplete.General = onComplete;
+    mOnError = onError;
+    mOpState = kOpState_SendCustomCommand;
+
+    GetDeviceId(deviceId);
+
+    mWDMDMClient.InitDMClient(this, mExchangeMgr, deviceId, 0x00000014, 0, kRootPropertyPathHandle);
+    mWDMDMClient.TriggerCustomCommand(apName, apCustomCommand);
     return WEAVE_NO_ERROR;
 }
 

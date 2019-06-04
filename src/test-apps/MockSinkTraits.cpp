@@ -81,22 +81,6 @@ MockTraitUpdatableDataSink::MockTraitUpdatableDataSink(const TraitSchemaEngine *
 }
 #endif // WEAVE_CONFIG_ENABLE_WDM_UPDATE
 
-WEAVE_ERROR
-MockTraitDataSourceDelegate::GetData(PropertyPathHandle aHandle,
-                                     uint64_t aTagToWrite,
-                                     nl::Weave::TLV::TLVWriter &aWriter,
-                                     bool &aIsNull,
-                                     bool &aIsPresent)
-{
-    WEAVE_ERROR err = WEAVE_NO_ERROR;
-
-    aIsNull = false;
-    aIsPresent = true;
-    err = GetLeafData(aHandle, aTagToWrite, aWriter);
-
-    return err;
-}
-
 LocaleSettingsTraitDataSink::LocaleSettingsTraitDataSink()
     : MockTraitDataSink(&LocaleSettingsTrait::TraitSchema)
 {

@@ -1293,7 +1293,7 @@ void TraitUpdatableDataSink::Unlock(SubscriptionClient * apSubClient)
     apSubClient->UnlockUpdateMutex();
 }
 
-WEAVE_ERROR TraitUpdatableDataSink::GetData(PropertyPathHandle aHandle, uint64_t aTagToWrite, nl::Weave::TLV::TLVWriter & aWriter,
+WEAVE_ERROR TraitDataSink::GetData(PropertyPathHandle aHandle, uint64_t aTagToWrite, nl::Weave::TLV::TLVWriter & aWriter,
                                             bool & aIsNull, bool & aIsPresent)
 {
     WEAVE_ERROR err = WEAVE_NO_ERROR;
@@ -1336,7 +1336,7 @@ void TraitUpdatableDataSink::SetUpdateStartVersion(void)
     }
 }
 
-WEAVE_ERROR TraitUpdatableDataSink::ReadData(TraitDataHandle aTraitDataHandle,
+WEAVE_ERROR TraitDataSink::ReadData(TraitDataHandle aTraitDataHandle,
                                              PropertyPathHandle aHandle,
                                              uint64_t aTagToWrite,
                                              TLVWriter & aWriter,

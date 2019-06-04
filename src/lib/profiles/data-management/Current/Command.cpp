@@ -393,7 +393,7 @@ WEAVE_ERROR Command::SendResponse(uint32_t traitInstanceVersion, nl::Weave::Syst
 
     // Call exchange context to send response
     err = mEC->SendMessage(nl::Weave::Profiles::kWeaveProfile_WDM, kMsgType_CustomCommandResponse, respBuf,
-                           nl::Weave::ExchangeContext::kSendFlag_RequestAck);
+                           nl::Weave::ExchangeContext::kSendFlag_NoAutoRequestAck);
 
     // Don't free the buffer on exit.
     respBuf = NULL;

@@ -275,6 +275,9 @@ class DeviceMgrCmd(Cmd):
         'ble-read',
         'start-system-test',
         'stop-system-test',
+        'update-trait',
+        'view-trait',
+        'send-custom-command',
         'ble-scan-connect',
         'pair-token',
         'unpair-token',
@@ -2420,6 +2423,70 @@ class DeviceMgrCmd(Cmd):
             return
 
         print "Stop system test complete"
+
+    def do_updatetrait(self, line):
+        """
+          update-trait <locale>
+          Set the device's active locale.
+        """
+
+        args = shlex.split(line)
+
+        if (len(args) != 4):
+            print "Usage:"
+            self.do_help('update-trait')
+            return
+
+        try:
+            self.devMgr.UpdateTrait(int(args[0]), int(args[1]), int(args[2]), args[3])
+        except WeaveDeviceMgr.DeviceManagerException, ex:
+            print str(ex)
+            return
+
+        print "Update trait complete"
+
+    def do_viewtrait(self, line):
+        """
+          view-trait <locale>
+          Set the device's active locale.
+        """
+
+        args = shlex.split(line)
+
+        if (len(args) != 3):
+            print "Usage:"
+            self.do_help('view-traits profile-id instance-id propertypathhandle')
+            return
+
+        try:
+            traitTlvData = self.devMgr.ViewTrait(int(args[0]), int(args[1]), int(args[2]))
+        except WeaveDeviceMgr.DeviceManagerException, ex:
+            print str(ex)
+            return
+
+        print "View Traits complete"
+        print "trait tlv data: " + base64.b64encode(buffer(traitTlvData))
+
+    def do_sendcustomcommand(self, line):
+        """
+          sendcustomcommand <locale>
+          Set the device's active locale.
+        """
+
+        args = shlex.split(line)
+
+        if (len(args) != 2):
+            print "Usage:"
+            self.do_help('send-custom-command')
+            return
+
+        try:
+            self.devMgr.SendCustomCommand(args[0], args[1])
+        except WeaveDeviceMgr.DeviceManagerException, ex:
+            print str(ex)
+            return
+
+        print "Send Custom Command"
 
     def do_history(self, line):
         """

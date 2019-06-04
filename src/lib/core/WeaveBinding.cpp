@@ -1908,13 +1908,6 @@ Binding::Configuration& Binding::Configuration::ConfigureFromMessage(
 {
     mBinding.mPeerNodeId = apMsgHeader->SourceNodeId;
 
-    // Configure the outgoing interface only if the received message is from a
-    // link-local address because we need to specify the interface when we are
-    // sending to a link local address. Otherwise, defer to the routing logic
-    // to choose the outgoing interface.
-    TargetAddress_IP(apPktInfo->SrcAddress, apPktInfo->SrcPort,
-                     apPktInfo->SrcAddress.IsIPv6LinkLocal() ? apPktInfo->Interface : INET_NULL_INTERFACEID);
-
     if (apConnection != NULL)
     {
         Transport_ExistingConnection(apConnection);
@@ -1932,15 +1925,7 @@ Binding::Configuration& Binding::Configuration::ConfigureFromMessage(
         Transport_UDP();
     }
 
-    if (apMsgHeader->KeyId == WeaveKeyId::kNone)
-    {
-        Security_None();
-    }
-    else
-    {
-        Security_Key(apMsgHeader->KeyId);
-        Security_EncryptionType(apMsgHeader->EncryptionType);
-    }
+    Security_None();
 
     return *this;
 }

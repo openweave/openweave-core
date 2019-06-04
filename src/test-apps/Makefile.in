@@ -8626,11 +8626,11 @@ distclean-generic:
 maintainer-clean-generic:
 	@echo "This command is intended for maintainers to use"
 	@echo "it deletes files that may require special tools to rebuild."
-@WEAVE_BUILD_TESTS_FALSE@uninstall-local:
 @WEAVE_BUILD_TESTS_FALSE@install-exec-local:
 @WEAVE_BUILD_COVERAGE_FALSE@clean-local:
 @WEAVE_BUILD_COVERAGE_REPORTS_FALSE@clean-local:
 @WEAVE_BUILD_TESTS_FALSE@clean-local:
+@WEAVE_BUILD_TESTS_FALSE@uninstall-local:
 clean: clean-recursive
 
 clean-am: clean-checkPROGRAMS clean-generic clean-libexecPROGRAMS \

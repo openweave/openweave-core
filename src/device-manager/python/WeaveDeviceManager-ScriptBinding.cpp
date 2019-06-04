@@ -58,7 +58,7 @@ using namespace nl::Inet;
 using namespace nl::Weave;
 using namespace nl::Weave::DeviceManager;
 using namespace nl::Weave::Profiles::NetworkProvisioning;
-
+using namespace nl::Weave::Profiles::DataManagement;
 using DeviceDescription::IdentifyDeviceCriteria;
 
 extern "C" {
@@ -236,6 +236,9 @@ extern "C" {
     NL_DLL_EXPORT WEAVE_ERROR nl_Weave_DeviceManager_ArmFailSafe(WeaveDeviceManager *devMgr, uint8_t armMode, uint32_t failSafeToken, CompleteFunct onComplete, ErrorFunct onError);
     NL_DLL_EXPORT WEAVE_ERROR nl_Weave_DeviceManager_DisarmFailSafe(WeaveDeviceManager *devMgr, CompleteFunct onComplete, ErrorFunct onError);
     NL_DLL_EXPORT WEAVE_ERROR nl_Weave_DeviceManager_ResetConfig(WeaveDeviceManager *devMgr, uint16_t resetFlags, CompleteFunct onComplete, ErrorFunct onError);
+    NL_DLL_EXPORT WEAVE_ERROR nl_Weave_DeviceManager_UpdateTrait(WeaveDeviceManager *devMgr, uint64_t aProfileId, uint64_t aInstanceId, PropertyPathHandle aPropertyPathHandle, const uint8_t *encodedTlvVal, uint16_t encodedTlvalLen, CompleteFunct onComplete, ErrorFunct onError);
+    NL_DLL_EXPORT WEAVE_ERROR nl_Weave_DeviceManager_ViewTrait(WeaveDeviceManager *devMgr, uint64_t aProfileId, uint64_t aInstanceId, PropertyPathHandle aPropertyPathHandle, ViewTraitCompleteFunct onComplete, ErrorFunct onError);
+    NL_DLL_EXPORT WEAVE_ERROR nl_Weave_DeviceManager_SendCustomCommand(WeaveDeviceManager *devMgr, const char *apName, const char *apCustomCommand, CompleteFunct onComplete, ErrorFunct onError);
     NL_DLL_EXPORT WEAVE_ERROR nl_Weave_DeviceManager_PairToken(WeaveDeviceManager *devMgr, const uint8_t *pairingToken, uint32_t pairingTokenLen, PairTokenCompleteFunct onComplete, ErrorFunct onError);
     NL_DLL_EXPORT WEAVE_ERROR nl_Weave_DeviceManager_UnpairToken(WeaveDeviceManager *devMgr, UnpairTokenCompleteFunct onComplete, ErrorFunct onError);
     NL_DLL_EXPORT WEAVE_ERROR nl_Weave_DeviceManager_StartSystemTest(WeaveDeviceManager *devMgr, uint32_t profileId, uint32_t testId, CompleteFunct onComplete, ErrorFunct onError);
@@ -1092,6 +1095,21 @@ WEAVE_ERROR nl_Weave_DeviceManager_DisarmFailSafe(WeaveDeviceManager *devMgr, Co
 WEAVE_ERROR nl_Weave_DeviceManager_ResetConfig(WeaveDeviceManager *devMgr, uint16_t resetFlags, CompleteFunct onComplete, ErrorFunct onError)
 {
     return devMgr->ResetConfig(resetFlags, NULL, onComplete, onError);
+}
+
+WEAVE_ERROR nl_Weave_DeviceManager_UpdateTrait(WeaveDeviceManager *devMgr, uint64_t aProfileId, uint64_t aInstanceId, PropertyPathHandle aPropertyPathHandle, const uint8_t *encodedTlvVal, uint16_t encodedTlvalLen, CompleteFunct onComplete, ErrorFunct onError)
+{
+    return devMgr->UpdateTrait(NULL, aProfileId, aInstanceId, aPropertyPathHandle, encodedTlvVal, encodedTlvalLen, onComplete, onError);
+}
+
+WEAVE_ERROR nl_Weave_DeviceManager_ViewTrait(WeaveDeviceManager *devMgr, uint64_t aProfileId, uint64_t aInstanceId, PropertyPathHandle aPropertyPathHandle, ViewTraitCompleteFunct onComplete, ErrorFunct onError)
+{
+    return devMgr->ViewTrait(NULL, aProfileId, aInstanceId, aPropertyPathHandle, onComplete, onError);
+}
+
+WEAVE_ERROR nl_Weave_DeviceManager_SendCustomCommand(WeaveDeviceManager *devMgr, const char *apName, const char *apCustomCommand, CompleteFunct onComplete, ErrorFunct onError)
+{
+    return devMgr->SendCustomCommand(NULL, apName, apCustomCommand, onComplete, onError);
 }
 
 WEAVE_ERROR nl_Weave_DeviceManager_StartSystemTest(WeaveDeviceManager *devMgr, uint32_t profileId, uint32_t testId, CompleteFunct onComplete, ErrorFunct onError)

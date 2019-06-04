@@ -693,7 +693,6 @@ $(NULL)
 nl_public_WeaveProfiles_locale_header_sources = \
 $(nl_public_WeaveProfiles_source_dirstem)/locale/LocaleProfile.hpp \
 $(nl_public_WeaveProfiles_source_dirstem)/locale/LocaleStatus.hpp \
-$(nl_public_WeaveProfiles_source_dirstem)/locale/LocaleTags.hpp \
 $(NULL)
 
 nl_public_WeaveProfiles_network_provisioning_header_sources = \
@@ -959,6 +958,8 @@ nl_public_WeaveDeviceManager_destination_dirstem = Weave/DeviceManager
 
 nl_public_WeaveDeviceManager_header_sources = \
 $(nl_public_WeaveDeviceManager_source_dirstem)/WeaveDeviceManager.h \
+$(nl_public_WeaveDeviceManager_source_dirstem)/GenericTraitDataSink.h \
+$(nl_public_WeaveDeviceManager_source_dirstem)/LocaleSettingsTrait.h \
 $(NULL)
 
 nl_public_WeaveDeviceManager_header_paths = $(subst $(nl_public_WeaveDeviceManager_source_dirstem)/,,$(nl_public_WeaveDeviceManager_header_sources))

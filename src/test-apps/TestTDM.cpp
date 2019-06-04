@@ -286,7 +286,6 @@ public:
 
     WEAVE_ERROR SetLeafData(PropertyPathHandle aLeafHandle, TLVReader &aReader) { mSetLeafDataCalled = true; return WEAVE_ERROR_INVALID_ARGUMENT; }
     WEAVE_ERROR OnEvent(uint16_t aType, void *aInEventParam);
-
     bool mSetLeafDataCalled;
     bool mEventDataElementBeginSignalled;
     bool mEventDataElementEndSignalled;
@@ -582,7 +581,6 @@ public:
 private:
     WEAVE_ERROR OnEvent(uint16_t aType, void *aInParam);
     WEAVE_ERROR SetLeafData(PropertyPathHandle aLeafHandle, nl::Weave::TLV::TLVReader &aReader);
-    WEAVE_ERROR GetLeafData(PropertyPathHandle aLeafHandle, uint64_t aTagToWrite, TLVWriter &aWriter);
     std::map <PropertyPathHandle, uint32_t> mModifiedHandles;
     std::set <PropertyPathHandle> mDeletedHandles;
     std::set <PropertyPathHandle> mReplacedDictionaries;

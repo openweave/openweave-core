@@ -199,18 +199,7 @@ private:
 
 #endif // WEAVE_CONFIG_ENABLE_WDM_UPDATE
 
-// This class is used to fetch data from sinks using existing data source APIs
-class MockTraitDataSourceDelegate : public nl::Weave::Profiles::DataManagement::TraitSchemaEngine::IGetDataDelegate
-{
-public:
-    WEAVE_ERROR GetData(nl::Weave::Profiles::DataManagement::PropertyPathHandle aHandle,
-                        uint64_t aTagToWrite,
-                        nl::Weave::TLV::TLVWriter &aWriter,
-                        bool &aIsNull,
-                        bool &aIsPresent) __OVERRIDE;
-};
-
-class LocaleSettingsTraitDataSink : public MockTraitDataSink,  public MockTraitDataSourceDelegate
+class LocaleSettingsTraitDataSink : public MockTraitDataSink
 {
 public:
     LocaleSettingsTraitDataSink();
@@ -227,7 +216,7 @@ private:
     char mLocale[kMaxNumOfCharsPerLocale];
 };
 
-class LocaleCapabilitiesTraitDataSink : public MockTraitDataSink,  public MockTraitDataSourceDelegate
+class LocaleCapabilitiesTraitDataSink : public MockTraitDataSink
 {
 public:
     LocaleCapabilitiesTraitDataSink();
@@ -249,7 +238,7 @@ private:
     char mLocales[kMaxNumOfLocals][kMaxNumOfCharsPerLocale];
 };
 
-class BoltLockSettingTraitDataSink : public MockTraitDataSink, public MockTraitDataSourceDelegate
+class BoltLockSettingTraitDataSink : public MockTraitDataSink
 {
 public:
     BoltLockSettingTraitDataSink();
@@ -263,7 +252,7 @@ private:
     uint32_t mAutoRelockDuration;
 };
 
-class TestATraitDataSink : public MockTraitDataSink, public MockTraitDataSourceDelegate
+class TestATraitDataSink : public MockTraitDataSink
 {
 public:
     TestATraitDataSink();
@@ -325,7 +314,7 @@ private:
     bool nullified_path[Schema::Nest::Test::Trait::TestATrait::kPropertyHandle_TaJ_Value_SaB];
 };
 
-class TestBTraitDataSink : public MockTraitDataSink, public MockTraitDataSourceDelegate
+class TestBTraitDataSink : public MockTraitDataSink
 {
 public:
     TestBTraitDataSink();
@@ -357,7 +346,7 @@ private:
     bool nullified_path[Schema::Nest::Test::Trait::TestBTrait::kPropertyHandle_TaJ_Value_SaB];
 };
 
-class TestApplicationKeysTraitDataSink : public Schema::Weave::Trait::Auth::ApplicationKeysTrait::ApplicationKeysTraitDataSink, public MockTraitDataSourceDelegate
+class TestApplicationKeysTraitDataSink : public Schema::Weave::Trait::Auth::ApplicationKeysTrait::ApplicationKeysTraitDataSink
 {
 public:
     TestApplicationKeysTraitDataSink(void);

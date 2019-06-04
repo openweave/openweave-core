@@ -44,6 +44,29 @@ public:
     LocaleSettingsTraitDataSource();
     void Mutate();
 
+    virtual void OnCustomCommand(nl::Weave::Profiles::DataManagement::Command * aCommand,
+                                 const nl::Weave::WeaveMessageInfo * aMsgInfo,
+                                 nl::Weave::PacketBuffer * aPayload,
+                                 const uint64_t & aCommandType,
+                                 const bool aIsExpiryTimeValid,
+                                 const int64_t & aExpiryTimeMicroSecond,
+                                 const bool aIsMustBeVersionValid,
+                                 const uint64_t & aMustBeVersion,
+                                 nl::Weave::TLV::TLVReader & aArgumentReader) __OVERRIDE;
+
+    static void HandleCommandOperationTimeout(nl::Weave::System::Layer* aSystemLayer, void *aAppState, nl::Weave::System::Error aErr);
+
+    enum
+    {
+        kCmdType_1      = 1,
+        kCmdParam_1     = 1,
+        kCmdParam_2     = 2,
+    };
+
+    char mCommandParam_1[10];
+    char mCommandParam_2[100];
+    nl::Weave::Profiles::DataManagement::Command * mActiveCommand;
+
 private:
     WEAVE_ERROR GetLeafData(nl::Weave::Profiles::DataManagement::PropertyPathHandle aLeafHandle, uint64_t aTagToWrite, nl::Weave::TLV::TLVWriter &aWriter) __OVERRIDE;
 

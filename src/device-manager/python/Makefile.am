@@ -35,6 +35,7 @@ openweave_PYTHON                                  = \
     openweave/WeaveCoreBluetoothMgr.py              \
     openweave/WeaveBluezMgr.py                      \
     openweave/WeaveBleUtility.py                    \
+    openweave/WeaveTLV.py                    \
     $(NULL)
 
 # Location into which the "openweave" python package will be installed.

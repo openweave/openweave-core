@@ -238,6 +238,8 @@ private:
         kTestCase_IncompatibleVersionedCommandRequest = 9,
 
         kTestCase_TestUpdatableTrait = 10,
+
+        kTestCase_TestUpdatableTraitOverBLE = 11,
     };
 
     enum
@@ -444,6 +446,10 @@ WEAVE_ERROR MockWdmSubscriptionResponderImpl::Init (nl::Weave::WeaveExchangeMana
         WeaveLogDetail(DataManagement, "kTestCase_TestUpdatableTrait");
         break;
 
+    case kTestCase_TestUpdatableTraitOverBLE:
+        WeaveLogDetail(DataManagement, "kTestCase_TestUpdatableTraitOverBLE");
+        break;
+
     default:
         WeaveLogDetail(DataManagement, "kTestCase_TestTrait");
         break;
@@ -542,6 +548,7 @@ void MockWdmSubscriptionResponderImpl::DumpClientTraits(void)
             DumpClientTraitChecksum(kTestADataSink1Index);
             break;
         case kTestCase_TestUpdatableTrait:
+        case kTestCase_TestUpdatableTraitOverBLE:
             break;
     }
 }
@@ -574,6 +581,7 @@ void MockWdmSubscriptionResponderImpl::DumpPublisherTraits(void)
             DumpPublisherTraitChecksum(kTestATraitSource1Index);
             break;
         case kTestCase_TestUpdatableTrait:
+        case kTestCase_TestUpdatableTraitOverBLE:
             break;
     }
 }
@@ -682,6 +690,7 @@ void MockWdmSubscriptionResponderImpl::PublisherEventCallback (void * const aApp
                 {
                 case kTestCase_TestTrait:
                 case kTestCase_TestUpdatableTrait:
+                case kTestCase_TestUpdatableTraitOverBLE:
                     responder->mNumPaths = 3;
                     responder->mTraitPaths[0].mTraitDataHandle = responder->mTraitHandleSet[kTestADataSink0Index];
                     responder->mTraitPaths[0].mPropertyPathHandle = kRootPropertyPathHandle;
@@ -1149,14 +1158,20 @@ void MockWdmSubscriptionResponderImpl::IncomingUpdateRequest(nl::Weave::Exchange
 
     updateResponseBuilder.EndOfResponse();
     SuccessOrExit(updateResponseBuilder.GetError());
-
     referenceTLVData.init(sizeof(updateResponseBuf), sizeof(updateResponseBuf), updateResponseBuf);
 
     statusReport.init(nl::Weave::Profiles::kWeaveProfile_Common, nl::Weave::Profiles::Common::kStatus_Success, &referenceTLVData);
     err = statusReport.pack(mBuf);
     SuccessOrExit(err);
 
-    err = ec->SendMessage(nl::Weave::Profiles::kWeaveProfile_Common, nl::Weave::Profiles::Common::kMsgType_StatusReport, mBuf, nl::Weave::ExchangeContext::kSendFlag_RequestAck);
+    if (pResponder->mTestCaseId == kTestCase_TestUpdatableTraitOverBLE)
+    {
+        err = ec->SendMessage(nl::Weave::Profiles::kWeaveProfile_Common, nl::Weave::Profiles::Common::kMsgType_StatusReport, mBuf, nl::Weave::ExchangeContext::kSendFlag_NoAutoRequestAck);
+    }
+    else
+    {
+        err = ec->SendMessage(nl::Weave::Profiles::kWeaveProfile_Common, nl::Weave::Profiles::Common::kMsgType_StatusReport, mBuf, nl::Weave::ExchangeContext::kSendFlag_RequestAck);
+    }
     mBuf = NULL;
     SuccessOrExit(err);
 
@@ -1546,6 +1561,7 @@ void MockWdmSubscriptionResponderImpl::HandleDataFlipTimeout(nl::Weave::System::
             SubscriptionEngine::GetInstance()->GetNotificationEngine()->Run();
             break;
         case kTestCase_TestUpdatableTrait:
+        case kTestCase_TestUpdatableTraitOverBLE:
             break;
         case kTestCase_IncompatibleVersionedCommandRequest:
             responder->Command_Send();

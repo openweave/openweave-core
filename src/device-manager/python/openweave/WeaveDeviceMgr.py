@@ -33,8 +33,10 @@ import datetime
 import time
 import glob
 import platform
+import ast
 from threading import Thread, Lock, Event
 from ctypes import *
+from WeaveTLV import TLVWriter
 
 __all__ = [ 'WeaveDeviceManager', 'NetworkInfo', 'DeviceManagerException', 'DeviceError', 'DeviceManagerError' ]
 
@@ -465,6 +467,7 @@ _WriteBleCharacteristicFunct                = CFUNCTYPE(c_bool, c_void_p, c_void
 _SubscribeBleCharacteristicFunct            = CFUNCTYPE(c_bool, c_void_p, c_void_p, c_void_p, c_bool)
 _CloseBleFunct                              = CFUNCTYPE(c_bool, c_void_p)
 _DeviceEnumerationResponseFunct             = CFUNCTYPE(None, c_void_p, POINTER(_DeviceDescriptorStruct), c_char_p)
+_ViewTraitCompleteFunct                     = CFUNCTYPE(None, c_void_p, c_void_p, c_void_p, c_uint32)
 
 # This is a fix for WEAV-429. Jay Logue recommends revisiting this at a later
 # date to allow for truely multiple instances so this is temporary.
@@ -1084,6 +1087,35 @@ class WeaveDeviceManager:
             lambda: _dmLib.nl_Weave_DeviceManager_StopSystemTest(self.devMgr, self.cbHandleComplete, self.cbHandleError)
         )
 
+    def UpdateTrait(self, profileId, instanceId, propertyPathHandle, tlvString):
+        val = ast.literal_eval(tlvString)
+        print val
+        writer = TLVWriter()
+        encodedVal = writer.put(None, val)
+
+        self._CallDevMgrAsync(
+            lambda: _dmLib.nl_Weave_DeviceManager_UpdateTrait(self.devMgr, profileId, instanceId, propertyPathHandle, _ByteArrayToVoidPtr(writer.encoding), len(writer.encoding), self.cbHandleComplete, self.cbHandleError)
+        )
+
+    def ViewTrait(self, profileId, instanceId, propertyPathHandle):
+        def HandleViewTraitComplete(devMgr, reqState, traitTlvDataPtr, traitTlvDataLen):
+            self.callbackRes = _VoidPtrToByteArray(traitTlvDataPtr, traitTlvDataLen)
+            self.completeEvent.set()
+
+        cbHandleViewTraitComplete = _ViewTraitCompleteFunct(HandleViewTraitComplete)
+
+        return self._CallDevMgrAsync(
+            lambda: _dmLib.nl_Weave_DeviceManager_ViewTrait(self.devMgr, profileId, instanceId, propertyPathHandle, cbHandleViewTraitComplete, self.cbHandleError)
+        )
+
+    def SendCustomCommand(self, name, customCommand):
+        if name is None or customCommand is None:
+            raise ValueError('Unexpected NUL character in locale')
+
+        self._CallDevMgrAsync(
+            lambda: _dmLib.nl_Weave_DeviceManager_SendCustomCommand(self.devMgr, name, customCommand, self.cbHandleComplete, self.cbHandleError)
+        )
+
     # ----- Private Members -----
     def _InitLib(self):
         global _dmLib
@@ -1310,6 +1342,15 @@ class WeaveDeviceManager:
 
             _dmLib.nl_Weave_DeviceManager_StopSystemTest.argtypes = [ c_void_p, _CompleteFunct, _ErrorFunct ]
             _dmLib.nl_Weave_DeviceManager_StopSystemTest.restype = c_uint32
+
+            _dmLib.nl_Weave_DeviceManager_UpdateTrait.argtypes = [ c_void_p, c_uint64, c_uint64, c_uint64, c_void_p, c_uint32, _CompleteFunct, _ErrorFunct ]
+            _dmLib.nl_Weave_DeviceManager_UpdateTrait.restype = c_uint32
+
+            _dmLib.nl_Weave_DeviceManager_ViewTrait.argtypes = [ c_void_p, c_uint64, c_uint64, c_uint64, _ViewTraitCompleteFunct, _ErrorFunct ]
+            _dmLib.nl_Weave_DeviceManager_ViewTrait.restype = c_uint32
+
+            _dmLib.nl_Weave_DeviceManager_SendCustomCommand.argtypes = [ c_void_p, c_char_p, c_char_p, _CompleteFunct, _ErrorFunct ]
+            _dmLib.nl_Weave_DeviceManager_SendCustomCommand.restype = c_uint32
 
         res = _dmLib.nl_Weave_DeviceManager_Init()
         if (res != 0):

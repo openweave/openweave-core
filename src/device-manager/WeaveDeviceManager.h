@@ -27,11 +27,15 @@
 #ifndef __WEAVEDEVICEMANAGER_H
 #define __WEAVEDEVICEMANAGER_H
 
+#include <Weave/Profiles/data-management/Current/WdmManagedNamespace.h>
+
 #include <Weave/Support/NLDLLUtil.h>
 #include <Weave/Core/WeaveCore.h>
 #include <Weave/Core/WeaveTLV.h>
 #include <Weave/Profiles/common/WeaveMessage.h>
+#include <Weave/Profiles/data-management/DataManagement.h>
 #include <Weave/Profiles/device-description/DeviceDescription.h>
+#include <Weave/Profiles/locale/LocaleProfile.hpp>
 #include <Weave/Profiles/network-provisioning/NetworkProvisioning.h>
 #include <Weave/Profiles/network-provisioning/NetworkInfo.h>
 #include <Weave/Profiles/security/WeaveSecurity.h>
@@ -43,11 +47,15 @@
 #include <Weave/Profiles/vendor/nestlabs/dropcam-legacy-pairing/DropcamLegacyPairing.h>
 #include <Weave/Profiles/vendor/nestlabs/thermostat/NestThermostatWeaveConstants.h>
 
+#include <Weave/DeviceManager/GenericTraitDataSink.h>
+#include <Weave/DeviceManager/LocaleSettingsTrait.h>
+
 namespace nl {
 namespace Weave {
 namespace DeviceManager {
 
 using namespace nl::Weave::Profiles;
+using namespace nl::Weave::Profiles::DataManagement;
 using namespace nl::Weave::Profiles::DeviceDescription;
 using namespace nl::Weave::Profiles::Vendor::Nestlabs::DropcamLegacyPairing;
 using namespace nl::Weave::Profiles::NetworkProvisioning;
@@ -88,6 +96,7 @@ typedef void (*ConnectionClosedFunc)(WeaveDeviceManager *deviceMgr, void *appReq
 typedef void (*PairTokenCompleteFunct)(WeaveDeviceManager *deviceMgr, void *appReqState, const uint8_t *tokenPairingBundle, uint32_t tokenPairingBunldeLen);
 typedef void (*UnpairTokenCompleteFunct)(WeaveDeviceManager *deviceMgr, void *appReqState);
 typedef void (*GetCameraAuthDataCompleteFunct)(WeaveDeviceManager *deviceMgr, void *appReqState, const char *macAddress, const char *authData);
+typedef void (*ViewTraitCompleteFunct)(WeaveDeviceManager *deviceMgr, void *appReqState, const uint8_t *traitTlvData, uint32_t traitTlvDataLen);
 };
 
 class NL_DLL_EXPORT WeaveDeviceManager : private Security::CASE::WeaveCASEAuthDelegate
@@ -100,7 +109,6 @@ public:
     } State;                        // [READ-ONLY] Current state
 
     WeaveDeviceManager();
-
     void *AppState;
 
     WEAVE_ERROR Init(WeaveExchangeManager *exchangeMsg, WeaveSecurityManager *securityMgr);
@@ -234,6 +242,11 @@ public:
     WEAVE_ERROR StartSystemTest(void* appReqState, uint32_t profileId, uint32_t testId, CompleteFunct onComplete, ErrorFunct onError);
     WEAVE_ERROR StopSystemTest(void* appReqState, CompleteFunct onComplete, ErrorFunct onError);
 
+    // ----- Data Management -----
+    WEAVE_ERROR UpdateTrait(void* appReqState, uint64_t aProfileId, uint64_t aInstanceId, PropertyPathHandle aPropertyPathHandle, const uint8_t *encodedTlvVal, uint16_t encodedTlvalLen, CompleteFunct onComplete, ErrorFunct onError);
+    WEAVE_ERROR ViewTrait(void* appReqState, uint64_t aProfileId, uint64_t aInstanceId, PropertyPathHandle aPropertyPathHandle, ViewTraitCompleteFunct onComplete, ErrorFunct onError);
+    WEAVE_ERROR SendCustomCommand(void* appReqState, const char *apName, const char *apCustomCommand, CompleteFunct onComplete, ErrorFunct onError);
+
     // ---- Token Pairing ----
     WEAVE_ERROR PairToken(const uint8_t *pairingToken, uint32_t pairingTokenLen, void* appReqState, PairTokenCompleteFunct onComplete, ErrorFunct onError);
     WEAVE_ERROR UnpairToken(void* appReqState, UnpairTokenCompleteFunct onComplete, ErrorFunct onError);
@@ -297,7 +310,10 @@ private:
         kOpState_UnpairToken                            = 41,
         kOpState_GetCameraAuthData                      = 42,
         kOpState_EnumerateDevices                       = 43,
-        kOpState_RemotePassiveRendezvousTimedOut        = 44
+        kOpState_RemotePassiveRendezvousTimedOut        = 44,
+        kOpState_UpdateTrait                            = 45,
+        kOpState_ViewTrait                              = 46,
+        kOpState_SendCustomCommand                      = 47,
     };
 
     enum ConnectionState
@@ -346,6 +362,80 @@ private:
         kCertDecodeBufferSize = 1024
     };
 
+    class WDMDMClient
+    {
+    public:
+        WDMDMClient(void);
+
+        ~WDMDMClient(void);
+
+        WEAVE_ERROR InitDMClient(WeaveDeviceManager *apDeviceMgr, WeaveExchangeManager *apExchangeMgr, uint64_t aDeviceId, uint64_t aProfileId, uint64_t aInstanceId, PropertyPathHandle aPropertyPathHandle);
+
+        WEAVE_ERROR TriggerUpdate(const uint8_t * encodedTlvVal, uint16_t encodedTlvalLen);
+
+        WEAVE_ERROR RunShortLivedSubscription();
+
+        WEAVE_ERROR TriggerCustomCommand (const char *apName, const char *apCustomCommand);
+
+    private:
+        enum CustomCommandState
+        {
+            kCmdState_Idle          = 0,    ///< No active command
+            kCmdState_Requesting    = 1,    ///< Command has been sent but we haven't heard anything back
+            kCmdState_Operating     = 2,    ///< We have received In-Progress message but are still waiting for response
+        };
+
+        static void EngineEventCallback (void * const aAppState,
+                                         SubscriptionEngine::EventID aEvent,
+                                         const SubscriptionEngine::InEventParam & aInParam, SubscriptionEngine::OutEventParam & aOutParam);
+        WEAVE_ERROR Setup(WeaveDeviceManager *apDeviceMgr, WeaveExchangeManager *apExchangeMgr, uint64_t aDeviceId, uint64_t aProfileId, uint64_t aInstanceId, PropertyPathHandle aPropertyPathHandle);
+
+        void TearDown();
+
+        WEAVE_ERROR PrepareBinding(WeaveConnection *apDeviceCon);
+
+        static void BindingEventCallback(void * const apAppState, const nl::Weave::Binding::EventType aEvent,
+                                         const nl::Weave::Binding::InEventParam & aInParam,
+                                         nl::Weave::Binding::OutEventParam & aOutParam);
+
+        static void ClientEventCallback (void * const aAppState, SubscriptionClient::EventID aEvent,
+                                         const SubscriptionClient::InEventParam & aInParam, SubscriptionClient::OutEventParam & aOutParam);
+
+        WEAVE_ERROR RetrieveSinkTraitData();
+
+        WEAVE_ERROR StoreTLVData(const uint8_t * encodedTlvVal, uint16_t encodedTlvalLen);
+
+        void Command_End (const bool aAbort = false);
+
+        static void OnMessageReceivedForCustomCommand (nl::Weave::ExchangeContext *aEC, const nl::Inet::IPPacketInfo *aPktInfo,
+                                                       const nl::Weave::WeaveMessageInfo *aMsgInfo, uint32_t aProfileId,
+                                                       uint8_t aMsgType, PacketBuffer *aPayload);
+
+        static void HandleCustomCommandTimeout(nl::Weave::System::Layer* aSystemLayer, void *aAppState, ::nl::Weave::System::Error aErr);
+
+        static void ClearDataSinkIterator(void *aTraitInstance, TraitDataHandle aHandle, void *aContext);
+
+        static void TLVPrettyPrinter(const char *aFormat, ...);
+
+        static WEAVE_ERROR DebugPrettyPrint(nl::Weave::TLV::TLVReader & aReader);
+
+        GenericTraitDataSink *mpGenericTraitDataSink;
+        TraitPath mTraitPaths[1];
+        TraitDataHandle mTraitHandleSet[1];
+        TraitPathStore mPathList;
+        TraitPathStore::Record mStorage[1];
+        SingleResourceSinkTraitCatalog mSinkCatalog;
+        SingleResourceSinkTraitCatalog::CatalogItem mSinkCatalogStore[1];
+
+        WeaveDeviceManager *mpDeviceMgr;
+        uint64_t mDeviceId;
+        SubscriptionClient * mSubscriptionClient;
+        CustomCommandState mCmdState;
+        Binding * mpBinding;
+        nl::Weave::ExchangeContext * mpEcCommand;
+        WeaveExchangeManager * mpExchangeMgr;
+    };
+
     System::Layer* mSystemLayer;
     WeaveMessageLayer *mMessageLayer;
     WeaveExchangeManager *mExchangeMgr;
@@ -367,6 +457,7 @@ private:
         UnpairTokenCompleteFunct UnpairToken;
         GetCameraAuthDataCompleteFunct GetCameraAuthData;
         DeviceEnumerationResponseFunct DeviceEnumeration;
+        ViewTraitCompleteFunct ViewTrait;
     } mOnComplete;
     CompleteFunct mOnRemotePassiveRendezvousComplete;
     ErrorFunct mOnError;
@@ -422,6 +513,7 @@ private:
     uint64_t *mEnumeratedNodes;
     uint32_t mEnumeratedNodesLen;
     uint32_t mEnumeratedNodesMaxLen;
+    WDMDMClient mWDMDMClient;
 
     // Use by static HandleConnectionReceived callback.
     static WeaveDeviceManager *sListeningDeviceMgr;

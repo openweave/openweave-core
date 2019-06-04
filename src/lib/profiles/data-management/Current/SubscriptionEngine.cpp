@@ -1091,7 +1091,7 @@ void SubscriptionEngine::OnSubscribeRequest(nl::Weave::ExchangeContext * aEC, co
         ExitNow(err = WEAVE_ERROR_NO_MEMORY);
     }
 
-    err = binding->BeginConfiguration().ConfigureFromMessage(aMsgInfo, aPktInfo).PrepareBinding();
+    err = binding->BeginConfiguration().ConfigureFromMessage(aMsgInfo, aPktInfo, aEC->Con).PrepareBinding();
     SuccessOrExit(err);
 
     // If the peer requested an ACK, we need to ensure that the exchange context will automatically
@@ -1307,7 +1307,7 @@ void SubscriptionEngine::OnCustomCommand(nl::Weave::ExchangeContext * aEC, const
     Command * command                  = NULL;
     uint32_t statusReportProfile       = nl::Weave::Profiles::kWeaveProfile_WDM;
     uint16_t statusReportCode          = nl::Weave::Profiles::DataManagement::kStatus_InvalidPath;
-
+    WeaveLogDetail(DataManagement, "receive command0");
     for (size_t i = 0; i < kMaxNumCommandObjs; ++i)
     {
         if (pEngine->mCommandObjs[i].IsFree())
@@ -1320,7 +1320,7 @@ void SubscriptionEngine::OnCustomCommand(nl::Weave::ExchangeContext * aEC, const
         }
     }
     VerifyOrExit(NULL != command, err = WEAVE_ERROR_NO_MEMORY);
-
+    WeaveLogDetail(DataManagement, "receive command1");
     if (!pEngine->mIsPublisherEnabled)
     {
         // Has to be a publisher to be processing a command
@@ -1330,7 +1330,7 @@ void SubscriptionEngine::OnCustomCommand(nl::Weave::ExchangeContext * aEC, const
     }
 
     // Set the flag indicating whether this is a OneWay Command or not.
-
+    WeaveLogDetail(DataManagement, "receive command2");
     if (aMsgType == kMsgType_OneWayCommand)
     {
         command->SetIsOneWay(true);
@@ -1346,7 +1346,7 @@ void SubscriptionEngine::OnCustomCommand(nl::Weave::ExchangeContext * aEC, const
 
         err = reader.Next();
         SuccessOrExit(err);
-
+        WeaveLogDetail(DataManagement, "receive command3");
         {
             CustomCommand::Parser cmdParser;
             TraitDataHandle traitDataHandle;
@@ -1355,7 +1355,7 @@ void SubscriptionEngine::OnCustomCommand(nl::Weave::ExchangeContext * aEC, const
 
             err = cmdParser.Init(reader);
             SuccessOrExit(err);
-
+            WeaveLogDetail(DataManagement, "receive command4");
 #if WEAVE_CONFIG_DATA_MANAGEMENT_ENABLE_SCHEMA_CHECK
             err = cmdParser.CheckSchemaValidity();
             SuccessOrExit(err);
@@ -1366,7 +1366,7 @@ void SubscriptionEngine::OnCustomCommand(nl::Weave::ExchangeContext * aEC, const
 
             err = pEngine->mPublisherCatalog->AddressToHandle(pathReader, traitDataHandle, requestedSchemaVersion);
             SuccessOrExit(err);
-
+            WeaveLogDetail(DataManagement, "receive command5");
             err = SubscriptionEngine::GetInstance()->mPublisherCatalog->Locate(traitDataHandle, &dataSource);
             SuccessOrExit(err);
 
@@ -1379,7 +1379,7 @@ void SubscriptionEngine::OnCustomCommand(nl::Weave::ExchangeContext * aEC, const
                 statusReportCode    = kStatus_IncompatibleDataSchemaVersion;
                 ExitNow(err = WEAVE_ERROR_INCOMPATIBLE_SCHEMA_VERSION);
             }
-
+            WeaveLogDetail(DataManagement, "receive command6");
             err = cmdParser.GetCommandType(&command->commandType);
             SuccessOrExit(err);
 
@@ -1396,7 +1396,7 @@ void SubscriptionEngine::OnCustomCommand(nl::Weave::ExchangeContext * aEC, const
             {
                 ExitNow();
             }
-
+            WeaveLogDetail(DataManagement, "receive command7");
             err = cmdParser.GetActionTimeMicroSecond(&command->actionTimeMicroSecond);
             if (WEAVE_NO_ERROR == err)
             {
@@ -1410,7 +1410,7 @@ void SubscriptionEngine::OnCustomCommand(nl::Weave::ExchangeContext * aEC, const
             {
                 ExitNow();
             }
-
+            WeaveLogDetail(DataManagement, "receive command8");
             err = cmdParser.GetExpiryTimeMicroSecond(&command->expiryTimeMicroSecond);
             if (WEAVE_NO_ERROR == err)
             {
@@ -1424,7 +1424,7 @@ void SubscriptionEngine::OnCustomCommand(nl::Weave::ExchangeContext * aEC, const
             {
                 ExitNow();
             }
-
+            WeaveLogDetail(DataManagement, "receive command9");
             err = cmdParser.GetMustBeVersion(&command->mustBeVersion);
             if (WEAVE_NO_ERROR == err)
             {
@@ -1438,9 +1438,10 @@ void SubscriptionEngine::OnCustomCommand(nl::Weave::ExchangeContext * aEC, const
             {
                 ExitNow();
             }
-
+            WeaveLogDetail(DataManagement, "receive command10");
             err = cmdParser.GetReaderOnArgument(&reader);
             SuccessOrExit(err);
+            WeaveLogDetail(DataManagement, "receive command11");
         }
 
 #if WDM_ENFORCE_EXPIRY_TIME
@@ -1466,6 +1467,7 @@ void SubscriptionEngine::OnCustomCommand(nl::Weave::ExchangeContext * aEC, const
             WeaveLogDetail(DataManagement, "Command ExpiryTime 0x%" PRIX64 ", now: 0x% " PRIX64 " ", command->expiryTimeMicroSecond,
                            now_usec);
         }
+        WeaveLogDetail(DataManagement, "receive command12");
 #endif // WDM_ENFORCE_EXPIRY_TIME
 
         if (command->IsMustBeVersionValid())
@@ -1480,7 +1482,7 @@ void SubscriptionEngine::OnCustomCommand(nl::Weave::ExchangeContext * aEC, const
                 ExitNow();
             }
         }
-
+        WeaveLogDetail(DataManagement, "receive command13");
         // Note we cannot just use pathReader at here because the TDM related functions
         // generally assume they can move the reader at their will.
         // Note that callee is supposed to cache whatever is useful in the TLV stream into its own memory
@@ -1493,6 +1495,7 @@ void SubscriptionEngine::OnCustomCommand(nl::Weave::ExchangeContext * aEC, const
 
         command  = NULL;
         aPayload = NULL;
+        WeaveLogDetail(DataManagement, "receive command14");
     }
 
 exit:
