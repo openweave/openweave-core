@@ -45,7 +45,7 @@ gcc_check_happy()
         build_cmd="$cmd_start USE_LWIP=1 $cmd_end"
         build_folder="x86_64-unknown-linux-gnu-lwip"
     else
-        build_cmd="$cmd_start $cmd_end"
+        build_cmd="$cmd_start BLUEZ=1 $cmd_end"
         build_folder="x86_64-unknown-linux-gnu"
     fi
 
