@@ -102,6 +102,8 @@ nl_WeaveProfiles_sources                                                        
     @top_builddir@/src/lib/profiles/weave-tunneling/WeaveTunnelCommon.cpp               \
     @top_builddir@/src/lib/profiles/weave-tunneling/WeaveTunnelConnectionMgr.cpp        \
     @top_builddir@/src/lib/profiles/weave-tunneling/WeaveTunnelControl.cpp              \
+    @top_builddir@/src/lib/profiles/locale/LocaleSettingsTrait.cpp                      \
+    @top_builddir@/src/lib/profiles/locale/MockSinkTrait.cpp                            \
     $(NULL)
 
 if WEAVE_BUILD_LEGACY_WDM

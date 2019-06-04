@@ -26,8 +26,8 @@
 #define WEAVE_PROFILES_LOCALE_HPP
 
 #include "LocaleStatus.hpp"
-#include "LocaleTags.hpp"
-
+#include "LocaleSettingsTrait.h"
+#include "MockSinkTrait.h"
 /**
  *   @namespace nl::Weave::Profiles::Locale
  *

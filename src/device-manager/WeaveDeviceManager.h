@@ -27,11 +27,16 @@
 #ifndef __WEAVEDEVICEMANAGER_H
 #define __WEAVEDEVICEMANAGER_H
 
+#include <Weave/Profiles/data-management/Current/WdmManagedNamespace.h>
+
 #include <Weave/Support/NLDLLUtil.h>
 #include <Weave/Core/WeaveCore.h>
 #include <Weave/Core/WeaveTLV.h>
 #include <Weave/Profiles/common/WeaveMessage.h>
+#include <Weave/Profiles/data-management/DataManagement.h>
 #include <Weave/Profiles/device-description/DeviceDescription.h>
+#include <Weave/Profiles/locale/LocaleProfile.hpp>
+#include <Weave/Profiles/locale/MockSinkTrait.h>
 #include <Weave/Profiles/network-provisioning/NetworkProvisioning.h>
 #include <Weave/Profiles/network-provisioning/NetworkInfo.h>
 #include <Weave/Profiles/security/WeaveSecurity.h>
@@ -48,6 +53,7 @@ namespace Weave {
 namespace DeviceManager {
 
 using namespace nl::Weave::Profiles;
+using namespace nl::Weave::Profiles::DataManagement;
 using namespace nl::Weave::Profiles::DeviceDescription;
 using namespace nl::Weave::Profiles::Vendor::Nestlabs::DropcamLegacyPairing;
 using namespace nl::Weave::Profiles::NetworkProvisioning;
@@ -100,7 +106,7 @@ public:
     } State;                        // [READ-ONLY] Current state
 
     WeaveDeviceManager();
-
+    WeaveConnection *mDeviceCon;
     void *AppState;
 
     WEAVE_ERROR Init(WeaveExchangeManager *exchangeMsg, WeaveSecurityManager *securityMgr);
@@ -234,6 +240,13 @@ public:
     WEAVE_ERROR StartSystemTest(void* appReqState, uint32_t profileId, uint32_t testId, CompleteFunct onComplete, ErrorFunct onError);
     WEAVE_ERROR StopSystemTest(void* appReqState, CompleteFunct onComplete, ErrorFunct onError);
 
+    // ----- Data Management -----
+    WEAVE_ERROR SetupDMSession(void* appReqState, CompleteFunct onComplete, ErrorFunct onError);
+    WEAVE_ERROR TearDownDMSession(void* appReqState, CompleteFunct onComplete, ErrorFunct onError);
+
+    // ----- Locale -----
+    WEAVE_ERROR SetActiveLocale(void* appReqState, const char *aLocale, CompleteFunct onComplete, ErrorFunct onError);
+
     // ---- Token Pairing ----
     WEAVE_ERROR PairToken(const uint8_t *pairingToken, uint32_t pairingTokenLen, void* appReqState, PairTokenCompleteFunct onComplete, ErrorFunct onError);
     WEAVE_ERROR UnpairToken(void* appReqState, UnpairTokenCompleteFunct onComplete, ErrorFunct onError);
@@ -297,7 +310,10 @@ private:
         kOpState_UnpairToken                            = 41,
         kOpState_GetCameraAuthData                      = 42,
         kOpState_EnumerateDevices                       = 43,
-        kOpState_RemotePassiveRendezvousTimedOut        = 44
+        kOpState_RemotePassiveRendezvousTimedOut        = 44,
+        kOpState_SetupDMSession                         = 45,
+        kOpState_TearDownDMSession                      = 46,
+        kOpState_SetActiveLocale                        = 47,
     };
 
     enum ConnectionState
@@ -346,12 +362,77 @@ private:
         kCertDecodeBufferSize = 1024
     };
 
+    class WDMDMClient
+    {
+    public:
+        WDMDMClient(void);
+
+        ~WDMDMClient(void);
+
+        WEAVE_ERROR Setup(WeaveDeviceManager *apDeviceMgr, WeaveExchangeManager *aExchangeMgr, uint64_t aDeviceId);
+
+        void TearDown();
+
+        WEAVE_ERROR InitUpdateClient(void);
+
+        WEAVE_ERROR UpdateAndSendLeaf(void);
+
+        WEAVE_ERROR UpdateAndSendRoot(void);
+
+        // The Trait instances
+        LocaleSettingsTraitUpdatableDataSink mLocaleSettingsTraitUpdatableDataSink;
+
+    private:
+        Binding * mpBinding;
+        UpdateClient mUpdateClient;
+        // The encoder
+        UpdateEncoder mEncoder;
+        UpdateEncoder::Context mContext;
+
+        // These are here for convenience
+        PacketBuffer *mBuf;
+        TraitPath mTP;
+
+        //
+        // The state usually held by the SubscriptionClient
+        //
+
+        // The list of path to encode
+        TraitPathStore mPathList;
+        TraitPathStore::Record mStorage[10];
+
+        // The catalog
+        SingleResourceSinkTraitCatalog mSinkCatalog;
+        SingleResourceSinkTraitCatalog::CatalogItem mSinkCatalogStore[9];
+
+        // The set of TraitDataHandles assigned by the catalog
+        // to the Trait instances
+        enum {
+            kLocaleSettingsSinkIndex,
+            kMaxNumTraitHandles,
+        };
+        TraitDataHandle mTraitHandleSet[kMaxNumTraitHandles];
+
+        void InitEncoderContext(void);
+
+        WEAVE_ERROR PrepareBinding(WeaveConnection *apDeviceCon);
+        static void BindingEventCallback(void * const apAppState, const nl::Weave::Binding::EventType aEvent,
+                                  const nl::Weave::Binding::InEventParam & aInParam,
+                                  nl::Weave::Binding::OutEventParam & aOutParam);
+
+        static void UpdateEventCallback (void * const aAppState, UpdateClient::EventType aEvent,
+                const UpdateClient::InEventParam & aInParam, UpdateClient::OutEventParam & aOutParam);
+    private:
+        WeaveDeviceManager *mDeviceMgr;
+        uint64_t mDeviceId;
+    };
+
     System::Layer* mSystemLayer;
     WeaveMessageLayer *mMessageLayer;
     WeaveExchangeManager *mExchangeMgr;
     WeaveSecurityManager *mSecurityMgr;
     ConnectionState mConState;
-    WeaveConnection *mDeviceCon;
+
     OpState mOpState;
     void *mAppReqState;
     union
@@ -422,6 +503,7 @@ private:
     uint64_t *mEnumeratedNodes;
     uint32_t mEnumeratedNodesLen;
     uint32_t mEnumeratedNodesMaxLen;
+    WDMDMClient mWDMDMClient;
 
     // Use by static HandleConnectionReceived callback.
     static WeaveDeviceManager *sListeningDeviceMgr;

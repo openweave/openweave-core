@@ -117,19 +117,20 @@ void MockWdmUpdateServerImpl::IncomingUpdateRequest(nl::Weave::ExchangeContext *
     uint8_t * p;
     reader.Init(payload);
     DebugPrettyPrint(reader);
-
+    WeaveLogDetail(DataManagement, "Incoming Update Request1");
     PacketBuffer * msgBuf   = PacketBuffer::NewWithAvailableSize(statusReportLen);
     VerifyOrExit(NULL != msgBuf, err = WEAVE_ERROR_NO_MEMORY);
-
+    WeaveLogDetail(DataManagement, "Incoming Update Request2");
     p = msgBuf->Start();
     nl::Weave::Encoding::LittleEndian::Write32(p, nl::Weave::Profiles::kWeaveProfile_Common);
     nl::Weave::Encoding::LittleEndian::Write16(p, nl::Weave::Profiles::Common::kStatus_Success);
     msgBuf->SetDataLength(statusReportLen);
-
-    err = ec->SendMessage(nl::Weave::Profiles::kWeaveProfile_Common, nl::Weave::Profiles::Common::kMsgType_StatusReport, msgBuf, nl::Weave::ExchangeContext::kSendFlag_RequestAck);
+    WeaveLogDetail(DataManagement, "Incoming Update Request3");
+    err = ec->SendMessage(nl::Weave::Profiles::kWeaveProfile_Common, nl::Weave::Profiles::Common::kMsgType_StatusReport, msgBuf, nl::Weave::ExchangeContext::kSendFlag_NoAutoRequestAck);
     msgBuf = NULL;
+    WeaveLogError(DataManagement, "%s at %s:%d", nl::ErrorStr(err), __FILE__, __LINE__);
     SuccessOrExit(err);
-
+    WeaveLogDetail(DataManagement, "Incoming Update Request4");
 exit:
     WeaveLogFunctError(err);
 

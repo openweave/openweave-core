@@ -269,6 +269,9 @@ class DeviceMgrCmd(Cmd):
         'ble-read',
         'start-system-test',
         'stop-system-test',
+        'setup-dm-session',
+        'teardown-dm-session',
+        'set-active-locale',
         'ble-scan-connect',
         'pair-token',
         'unpair-token',
@@ -2386,6 +2389,71 @@ class DeviceMgrCmd(Cmd):
             return
 
         print "Stop system test complete"
+
+    def do_setupdmsession(self, line):
+        """
+          setup-dm-session
+
+          Setup Binding for weave data management
+        """
+
+        args = shlex.split(line)
+
+        if (len(args) != 0):
+            print "Usage:"
+            self.do_help('stop-system-test')
+            return
+
+        try:
+            self.devMgr.SetupDMSession()
+        except WeaveDeviceMgr.DeviceManagerException, ex:
+            print str(ex)
+            return
+
+        print "Setup weave data management binding complete"
+
+    def do_teardowndmsession(self, line):
+        """
+          teardown-dm-session
+
+          Teardown Binding for weave data management
+        """
+
+        args = shlex.split(line)
+
+        if (len(args) != 0):
+            print "Usage:"
+            self.do_help('stop-system-test')
+            return
+
+        try:
+            self.devMgr.TearDownDMSession()
+        except WeaveDeviceMgr.DeviceManagerException, ex:
+            print str(ex)
+            return
+
+        print "Teardown weave data management binding complete"
+
+    def do_setactivelocale(self, line):
+        """
+          set-active-locale <locale>
+          Set the device's active locale.
+        """
+
+        args = shlex.split(line)
+
+        if (len(args) != 1):
+            print "Usage:"
+            self.do_help('set-active-locale')
+            return
+
+        try:
+            self.devMgr.SetActiveLocale(args[0])
+        except WeaveDeviceMgr.DeviceManagerException, ex:
+            print str(ex)
+            return
+
+        print "Set active locale complete"
 
     def do_history(self, line):
         """

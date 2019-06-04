@@ -1073,6 +1073,24 @@ class WeaveDeviceManager:
             lambda: _dmLib.nl_Weave_DeviceManager_StopSystemTest(self.devMgr, self.cbHandleComplete, self.cbHandleError)
         )
 
+    def SetupDMSession(self):
+        self._CallDevMgrAsync(
+            lambda: _dmLib.nl_Weave_DeviceManager_SetupDMSession(self.devMgr, self.cbHandleComplete, self.cbHandleError)
+        )
+
+    def TearDownDMSession(self):
+        self._CallDevMgrAsync(
+            lambda: _dmLib.nl_Weave_DeviceManager_TearDownDMSession(self.devMgr, self.cbHandleComplete, self.cbHandleError)
+        )
+
+    def SetActiveLocale(self, locale):
+        if locale is not None and '\x00' in locale:
+            raise ValueError('Unexpected NUL character in locale')
+
+        self._CallDevMgrAsync(
+            lambda: _dmLib.nl_Weave_DeviceManager_SetActiveLocale(self.devMgr, locale, self.cbHandleComplete, self.cbHandleError)
+        )
+
     # ----- Private Members -----
     def _InitLib(self):
         global _dmLib
@@ -1299,6 +1317,15 @@ class WeaveDeviceManager:
 
             _dmLib.nl_Weave_DeviceManager_StopSystemTest.argtypes = [ c_void_p, _CompleteFunct, _ErrorFunct ]
             _dmLib.nl_Weave_DeviceManager_StopSystemTest.restype = c_uint32
+
+            _dmLib.nl_Weave_DeviceManager_SetupDMSession.argtypes = [ c_void_p, _CompleteFunct, _ErrorFunct ]
+            _dmLib.nl_Weave_DeviceManager_SetupDMSession.restype = c_uint32
+
+            _dmLib.nl_Weave_DeviceManager_TearDownDMSession.argtypes = [ c_void_p, _CompleteFunct, _ErrorFunct ]
+            _dmLib.nl_Weave_DeviceManager_TearDownDMSession.restype = c_uint32
+
+            _dmLib.nl_Weave_DeviceManager_SetActiveLocale.argtypes = [ c_void_p, c_char_p, _CompleteFunct, _ErrorFunct ]
+            _dmLib.nl_Weave_DeviceManager_SetActiveLocale.restype = c_uint32
 
         res = _dmLib.nl_Weave_DeviceManager_Init()
         if (res != 0):

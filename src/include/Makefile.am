@@ -692,7 +692,8 @@ $(NULL)
 nl_public_WeaveProfiles_locale_header_sources = \
 $(nl_public_WeaveProfiles_source_dirstem)/locale/LocaleProfile.hpp \
 $(nl_public_WeaveProfiles_source_dirstem)/locale/LocaleStatus.hpp \
-$(nl_public_WeaveProfiles_source_dirstem)/locale/LocaleTags.hpp \
+$(nl_public_WeaveProfiles_source_dirstem)/locale/LocaleSettingsTrait.h \
+$(nl_public_WeaveProfiles_source_dirstem)/locale/MockSinkTrait.h \
 $(NULL)
 
 nl_public_WeaveProfiles_network_provisioning_header_sources = \
