@@ -98,7 +98,6 @@ class test_weave_pairing_01(unittest.TestCase):
 
 
     def __run_weave_pairing_between(self, nodeA, nodeB, nodeC):
-
         options = WeavePairing.option()
         options["quiet"] = False
         options["mobile"] = nodeA

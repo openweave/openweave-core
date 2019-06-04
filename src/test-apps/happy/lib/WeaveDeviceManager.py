@@ -32,7 +32,20 @@ import shlex
 import base64
 import json
 import set_test_path
-import WeaveDeviceMgr
+
+
+weaveDeviceMgrPath = os.environ['WEAVE_DEVICE_MGR_PATH']
+weaveDeviceMgrLibPath = os.environ['WEAVE_DEVICE_MGR_LIB_PATH']
+
+if os.path.exists(weaveDeviceMgrPath):
+    sys.path.append(weaveDeviceMgrPath)
+if os.path.exists(weaveDeviceMgrLibPath):
+    sys.path.append(weaveDeviceMgrLibPath)
+
+try:
+    import WeaveDeviceMgr
+except Exception as ex:
+    print ("Could not import the WeaveDeviceMgr module: %s" % (str(ex)))
 
 # Dummy Access Token
 #
@@ -120,6 +133,8 @@ if __name__ == '__main__':
     optParser.add_option("", "--service-config", action="store", dest="service_config")
     optParser.add_option("", "--pairing-token", action="store", dest="pairing_token")
     optParser.add_option("", "--init-data", action="store", dest="init_data")
+    optParser.add_option("", "--ble-src-addr", action="store", dest="bleSrcAddr")
+    optParser.add_option("", "--ble-dst-addr", action="store", dest="bleDstAddr")
     try:
         (options, remainingArgs) = optParser.parse_args(args)
     except SystemExit:
@@ -147,9 +162,38 @@ if __name__ == '__main__':
 
     try:
         if options.useBle:
+            from WeaveBluezMgr import BluezManager as BleManager
+            from WeaveBleUtility import FAKE_CONN_OBJ_VALUE
+            bleManager = BleManager(devMgr)
+
+            try:
+                bleManager.ble_adapter_select(identifier=options.bleSrcAddr)
+            except WeaveDeviceMgr.DeviceManagerException, ex:
+                print ex
+                exit()
+
+            try:
+                line = ' ' + str(options.bleDstAddr)
+                bleManager.scan_connect(line)
+            except WeaveDeviceMgr.DeviceManagerException, ex:
+                print ex
+                exit()
+
             devMgr.ConnectBle(bleConnection=FAKE_CONN_OBJ_VALUE,
                                    pairingCode=options.pairingCode,
                                    accessToken=options.accessToken)
+            try:
+                devMgr.Close()
+                devMgr.CloseEndpoints()
+                bleManager.disconnect()
+            except WeaveDeviceMgr.DeviceManagerException, ex:
+                print str(ex)
+                exit()
+
+            print "WoBLE central is good to go"
+            print "Shutdown complete"
+            exit()
+
         else:
             devMgr.ConnectDevice(deviceId=nodeId, deviceAddr=addr,
                                       pairingCode=options.pairingCode,

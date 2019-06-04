@@ -818,12 +818,13 @@ WEAVE_ERROR ServiceDirClientOptions::GetRootDirectoryEntry(uint8_t *buf, uint16_
 
     WEAVE_ERROR err = WEAVE_NO_ERROR;
     uint8_t serverHostLen = (uint8_t)strlen(ServerHost);
+    uint8_t hostPortListLength = 1;
 
     VerifyOrExit(bufSize >= (1 + 8 + 1 + 1 + serverHostLen + 2), err = WEAVE_ERROR_BUFFER_TOO_SMALL);
 
-    Write8(buf, 0x41);                                       // Entry Type = Host/Port List, Host/Port List = 1
+    Write8(buf,  kDirectoryEntryType_HostPortList | (hostPortListLength & kMask_HostPortListLen));
     LittleEndian::Write64(buf, kServiceEndpoint_Directory);  // Service Endpoint Id = Directory Service
-    Write8(buf, 0x80);                                       // Host ID Type = Fully Qualified, Suffix Index Present = false, Port Id Present = true
+    Write8(buf, kHostIdType_FullyQualified |  kMask_PortIdPresent);
     Write8(buf, serverHostLen);
     memcpy(buf, ServerHost, serverHostLen); buf += serverHostLen;
     LittleEndian::Write16(buf, ServerPort);
