@@ -48,13 +48,8 @@ libWeaveDeviceManager_la_LDFLAGS          = \
 
 libWeaveDeviceManager_la_SOURCES          = \
     WeaveDeviceManager.cpp                  \
-    $(NULL)
-
-if WEAVE_BUILD_DEVICE_MANAGER_WITH_DUMMY_PERSISTED_STORE
-libWeaveDeviceManager_la_SOURCES         += \
     WeavePlatformPersistedStorage.cpp       \
     $(NULL)
-endif # WEAVE_BUILD_DEVICE_MANAGER_WITH_DUMMY_PERSISTED_STORE
 
 if CONFIG_NETWORK_LAYER_BLE
 if WEAVE_ENABLE_WOBLE_TEST
