@@ -102,15 +102,11 @@ POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
 target_triplet = @target@
-@WEAVE_BUILD_DEVICE_MANAGER_WITH_DUMMY_PERSISTED_STORE_TRUE@am__append_1 = \
-@WEAVE_BUILD_DEVICE_MANAGER_WITH_DUMMY_PERSISTED_STORE_TRUE@    WeavePlatformPersistedStorage.cpp       \
-@WEAVE_BUILD_DEVICE_MANAGER_WITH_DUMMY_PERSISTED_STORE_TRUE@    $(NULL)
-
-@CONFIG_NETWORK_LAYER_BLE_TRUE@@WEAVE_ENABLE_WOBLE_TEST_TRUE@am__append_2 = \
+@CONFIG_NETWORK_LAYER_BLE_TRUE@@WEAVE_ENABLE_WOBLE_TEST_TRUE@am__append_1 = \
 @CONFIG_NETWORK_LAYER_BLE_TRUE@@WEAVE_ENABLE_WOBLE_TEST_TRUE@    -I$(top_srcdir)/src/ble                 \
 @CONFIG_NETWORK_LAYER_BLE_TRUE@@WEAVE_ENABLE_WOBLE_TEST_TRUE@    $(NULL)
 
-@CONFIG_NETWORK_LAYER_BLE_TRUE@@WEAVE_ENABLE_WOBLE_TEST_TRUE@am__append_3 = \
+@CONFIG_NETWORK_LAYER_BLE_TRUE@@WEAVE_ENABLE_WOBLE_TEST_TRUE@am__append_2 = \
 @CONFIG_NETWORK_LAYER_BLE_TRUE@@WEAVE_ENABLE_WOBLE_TEST_TRUE@    WoBleTest.cpp                           \
 @CONFIG_NETWORK_LAYER_BLE_TRUE@@WEAVE_ENABLE_WOBLE_TEST_TRUE@    $(NULL)
 
@@ -120,29 +116,29 @@ target_triplet = @target@
 # (platform-defined) logging. If we're building with Android, include
 # the Android NDK logging library in the Weave Device Manager library.
 #
-@WEAVE_LOGGING_STYLE_ANDROID_TRUE@@WEAVE_WITH_ANDROID_TRUE@am__append_4 = \
+@WEAVE_LOGGING_STYLE_ANDROID_TRUE@@WEAVE_WITH_ANDROID_TRUE@am__append_3 = \
 @WEAVE_LOGGING_STYLE_ANDROID_TRUE@@WEAVE_WITH_ANDROID_TRUE@    -llog                                   \
 @WEAVE_LOGGING_STYLE_ANDROID_TRUE@@WEAVE_WITH_ANDROID_TRUE@    $(NULL)
 
 
 # For some unknown reason, including JNI_CPPFLAGS breaks Android.
-@WEAVE_WITH_ANDROID_FALSE@@WEAVE_WITH_JAVA_TRUE@am__append_5 = \
+@WEAVE_WITH_ANDROID_FALSE@@WEAVE_WITH_JAVA_TRUE@am__append_4 = \
 @WEAVE_WITH_ANDROID_FALSE@@WEAVE_WITH_JAVA_TRUE@	$(JNI_CPPFLAGS)                     \
 @WEAVE_WITH_ANDROID_FALSE@@WEAVE_WITH_JAVA_TRUE@	$(NULL)
 
-@WEAVE_WITH_JAVA_TRUE@am__append_6 = \
+@WEAVE_WITH_JAVA_TRUE@am__append_5 = \
 @WEAVE_WITH_JAVA_TRUE@    WeaveDeviceManager-JNI.cpp              \
 @WEAVE_WITH_JAVA_TRUE@    PairingCodeUtils-JNI.cpp                \
 @WEAVE_WITH_JAVA_TRUE@    $(NULL)
 
-@CONFIG_NETWORK_LAYER_BLE_TRUE@@WEAVE_WITH_JAVA_TRUE@am__append_7 = \
+@CONFIG_NETWORK_LAYER_BLE_TRUE@@WEAVE_WITH_JAVA_TRUE@am__append_6 = \
 @CONFIG_NETWORK_LAYER_BLE_TRUE@@WEAVE_WITH_JAVA_TRUE@    AndroidBleApplicationDelegate.cpp       \
 @CONFIG_NETWORK_LAYER_BLE_TRUE@@WEAVE_WITH_JAVA_TRUE@    AndroidBlePlatformDelegate.cpp          \
 @CONFIG_NETWORK_LAYER_BLE_TRUE@@WEAVE_WITH_JAVA_TRUE@    $(NULL)
 
 
 # TODO: is this needed???
-@WEAVE_WITH_JAVA_TRUE@am__append_8 = \
+@WEAVE_WITH_JAVA_TRUE@am__append_7 = \
 @WEAVE_WITH_JAVA_TRUE@    -u _Init                                \
 @WEAVE_WITH_JAVA_TRUE@    -u _Java_nl_Weave_DeviceManager_WeaveDeviceManager_newDeviceManager \
 @WEAVE_WITH_JAVA_TRUE@    -no-undefined                           \
@@ -222,16 +218,15 @@ am__libWeaveDeviceManager_la_SOURCES_DIST = WeaveDeviceManager.cpp \
 	WeaveDeviceManager-JNI.cpp PairingCodeUtils-JNI.cpp \
 	AndroidBleApplicationDelegate.cpp \
 	AndroidBlePlatformDelegate.cpp
-@WEAVE_BUILD_DEVICE_MANAGER_WITH_DUMMY_PERSISTED_STORE_TRUE@am__objects_1 = libWeaveDeviceManager_la-WeavePlatformPersistedStorage.lo
-@CONFIG_NETWORK_LAYER_BLE_TRUE@@WEAVE_ENABLE_WOBLE_TEST_TRUE@am__objects_2 = libWeaveDeviceManager_la-WoBleTest.lo
-@WEAVE_WITH_JAVA_TRUE@am__objects_3 = libWeaveDeviceManager_la-WeaveDeviceManager-JNI.lo \
+@CONFIG_NETWORK_LAYER_BLE_TRUE@@WEAVE_ENABLE_WOBLE_TEST_TRUE@am__objects_1 = libWeaveDeviceManager_la-WoBleTest.lo
+@WEAVE_WITH_JAVA_TRUE@am__objects_2 = libWeaveDeviceManager_la-WeaveDeviceManager-JNI.lo \
 @WEAVE_WITH_JAVA_TRUE@	libWeaveDeviceManager_la-PairingCodeUtils-JNI.lo
-@CONFIG_NETWORK_LAYER_BLE_TRUE@@WEAVE_WITH_JAVA_TRUE@am__objects_4 = libWeaveDeviceManager_la-AndroidBleApplicationDelegate.lo \
+@CONFIG_NETWORK_LAYER_BLE_TRUE@@WEAVE_WITH_JAVA_TRUE@am__objects_3 = libWeaveDeviceManager_la-AndroidBleApplicationDelegate.lo \
 @CONFIG_NETWORK_LAYER_BLE_TRUE@@WEAVE_WITH_JAVA_TRUE@	libWeaveDeviceManager_la-AndroidBlePlatformDelegate.lo
 am_libWeaveDeviceManager_la_OBJECTS =  \
 	libWeaveDeviceManager_la-WeaveDeviceManager.lo \
-	$(am__objects_1) $(am__objects_2) $(am__objects_3) \
-	$(am__objects_4)
+	libWeaveDeviceManager_la-WeavePlatformPersistedStorage.lo \
+	$(am__objects_1) $(am__objects_2) $(am__objects_3)
 libWeaveDeviceManager_la_OBJECTS =  \
 	$(am_libWeaveDeviceManager_la_OBJECTS)
 AM_V_lt = $(am__v_lt_@AM_V@)
@@ -572,20 +567,20 @@ EXTRA_DIST = \
 
 lib_LTLIBRARIES = libWeaveDeviceManager.la
 libWeaveDeviceManager_la_CPPFLAGS = -I$(top_srcdir)/src/include \
-	$(LWIP_CPPFLAGS) $(SOCKETS_CPPFLAGS) $(NULL) $(am__append_2) \
-	$(am__append_5)
+	$(LWIP_CPPFLAGS) $(SOCKETS_CPPFLAGS) $(NULL) $(am__append_1) \
+	$(am__append_4)
 libWeaveDeviceManager_la_CXXFLAGS = \
     $(PTHREAD_CFLAGS)                       \
     $(NULL)
 
 libWeaveDeviceManager_la_LDFLAGS = $(AM_LDFLAGS) -version-info \
-	$(LIBWEAVE_VERSION_INFO) $(NULL) $(am__append_8)
-libWeaveDeviceManager_la_SOURCES = WeaveDeviceManager.cpp $(NULL) \
-	$(am__append_1) $(am__append_3) $(am__append_6) \
-	$(am__append_7)
+	$(LIBWEAVE_VERSION_INFO) $(NULL) $(am__append_7)
+libWeaveDeviceManager_la_SOURCES = WeaveDeviceManager.cpp \
+	WeavePlatformPersistedStorage.cpp $(NULL) $(am__append_2) \
+	$(am__append_5) $(am__append_6)
 libWeaveDeviceManager_la_LIBADD = -L$(top_builddir)/src/lib -lWeave \
 	$(LWIP_LDFLAGS) $(LWIP_LIBS) $(SOCKETS_LDFLAGS) \
-	$(SOCKETS_LIBS) $(PTHREAD_LIBS) $(NULL) $(am__append_4)
+	$(SOCKETS_LIBS) $(PTHREAD_LIBS) $(NULL) $(am__append_3)
 libWeaveDeviceManager_la_DEPENDENCIES = \
     $(top_builddir)/src/lib/libWeave.a      \
     $(NULL)

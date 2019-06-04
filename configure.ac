@@ -1048,9 +1048,6 @@ AC_ARG_ENABLE(device_manager,
 AC_MSG_RESULT(${build_device_manager})
 AM_CONDITIONAL([WEAVE_BUILD_DEVICE_MANAGER], [test "${build_device_manager}" = "yes"])
 
-# Build device manager with dummy implementations of persisted storate Read/Write APIs.
-AM_CONDITIONAL([WEAVE_BUILD_DEVICE_MANAGER_WITH_DUMMY_PERSISTED_STORE], [test "${enable_java}" = "yes" || test "${enable_cocoa}" = "yes"])
-
 #
 # WoBle Control Path and Throughput Test  (Woble Test)
 #
