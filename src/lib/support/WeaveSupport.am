@@ -58,6 +58,7 @@ nl_WeaveSupport_sources                                                         
     @top_builddir@/src/lib/support/crypto/HashAlgos-OpenSSL.cpp                             \
     @top_builddir@/src/lib/support/crypto/HashAlgos-MinCrypt.cpp                            \
     @top_builddir@/src/lib/support/crypto/HashAlgos-mbedTLS.cpp                             \
+    @top_builddir@/src/lib/support/crypto/RSA.cpp                                           \
     @top_builddir@/src/lib/support/crypto/WeaveCrypto.cpp                                   \
     @top_builddir@/src/lib/support/crypto/WeaveCrypto-OpenSSL.cpp                           \
     @top_builddir@/src/lib/support/crypto/WeaveRNG-OpenSSL.cpp                              \

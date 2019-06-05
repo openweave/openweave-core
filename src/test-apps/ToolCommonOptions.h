@@ -1,5 +1,6 @@
 /*
  *
+ *    Copyright (c) 2019-2020 Google LLC.
  *    Copyright (c) 2013-2017 Nest Labs, Inc.
  *    All rights reserved.
  *
@@ -54,6 +55,18 @@ enum
     kToolCommonOpt_NodeKey,
     kToolCommonOpt_CACert,
     kToolCommonOpt_NoCACert,
+    kToolCommonOpt_GetCertReqType,
+    kToolCommonOpt_OpCert,
+    kToolCommonOpt_OpKey,
+    kToolCommonOpt_OpICACerts,
+    kToolCommonOpt_SendOpICACerts,
+    kToolCommonOpt_MfrAttestType,
+    kToolCommonOpt_MfrAttestNodeId,
+    kToolCommonOpt_MfrAttestCert,
+    kToolCommonOpt_MfrAttestKey,
+    kToolCommonOpt_MfrAttestICACert1,
+    kToolCommonOpt_MfrAttestICACert2,
+    kToolCommonOpt_SendMfrAttestICACerts,
     kToolCommonOpt_EventDelay,
     kToolCommonOpt_FaultInjection,
     kToolCommonOpt_FaultTestIterations,
@@ -67,6 +80,9 @@ enum
     kToolCommonOpt_KeyExportConfig,
     kToolCommonOpt_AllowedKeyExportConfigs,
     kToolCommonOpt_AccessToken,
+    kToolCommonOpt_SendAuthorizeInfo,
+    kToolCommonOpt_PairingToken,
+    kToolCommonOpt_PairingInitData,
     kToolCommonOpt_DebugLwIP,
     kToolCommonOpt_DeviceSerialNum,
     kToolCommonOpt_DeviceVendorId,
@@ -296,6 +312,9 @@ extern bool ParseDNSOptions(const char * progName, const char *argName, const ch
 
 extern bool ResolveWeaveNetworkOptions(const char * progName, WeaveNodeOptions &weaveOptions, NetworkOptions &networkOptions);
 
+extern bool ReadCertFile(const char *fileName, uint8_t *& certBuf, uint16_t& certLen);
+
+extern bool ReadPrivateKeyFile(const char *fileName, uint8_t *& keyBuf, uint16_t& keyLen);
 
 
 #endif // TOOLCOMMONOPTIONS_H_
