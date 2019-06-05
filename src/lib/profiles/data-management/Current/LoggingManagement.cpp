@@ -515,6 +515,7 @@ LoggingManagement::LoggingManagement(nl::Weave::WeaveExchangeManager * inMgr,
         {
             // No counter has been provided, so we'll use our
             // "built-in" non-persisted counter.
+            current->mNonPersistedCounter.Init(1);
             current->mEventIdCounter = &(current->mNonPersistedCounter);
         }
 

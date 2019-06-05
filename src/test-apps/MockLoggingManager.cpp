@@ -100,7 +100,6 @@ uint64_t gCritEventBuffer[256];
 
 bool gMockEventStop                     = false;
 bool gEventIsStopped                    = false;
-bool gEnableMockTimestampInitialCounter = false;
 
 EventGenerator * GetTestDebugGenerator(void)
 {
@@ -129,11 +128,6 @@ EventGenerator * GetTestTraitGenerator(void)
 {
     static TestTraitEventGenerator gTestTraitGenerator;
     return &gTestTraitGenerator;
-}
-
-void EnableMockEventTimestampInitialCounter(void)
-{
-    gEnableMockTimestampInitialCounter = true;
 }
 
 void InitializeEventLogging(WeaveExchangeManager * inMgr)

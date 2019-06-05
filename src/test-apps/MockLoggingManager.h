@@ -39,8 +39,6 @@ protected:
     size_t mState;
 };
 
-void EnableMockEventTimestampInitialCounter(void);
-
 void InitializeEventLogging(WeaveExchangeManager *inMgr);
 
 class MockEventGenerator
