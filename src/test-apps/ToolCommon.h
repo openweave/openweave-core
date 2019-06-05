@@ -1,5 +1,6 @@
 /*
  *
+ *    Copyright (c) 2019 Google LLC.
  *    Copyright (c) 2013-2017 Nest Labs, Inc.
  *    All rights reserved.
  *
@@ -122,6 +123,12 @@ extern uint8_t TestDevice2_Cert[];
 extern uint16_t TestDevice2_CertLength;
 extern uint8_t TestDevice2_PrivateKey[];
 extern uint16_t TestDevice2_PrivateKeyLength;
+
+extern uint64_t TestDevice1_OperationalNodeId;
+extern uint8_t TestDevice1_OperationalCert[];
+extern uint16_t TestDevice1_OperationalCertLength;
+extern uint8_t TestDevice1_OperationalPrivateKey[];
+extern uint16_t TestDevice1_OperationalPrivateKeyLength;
 
 extern bool sSuppressAccessControls;
 

@@ -145,6 +145,7 @@ target_triplet = @target@
 @WEAVE_BUILD_TESTS_TRUE@	TestAppKeys$(EXEEXT) \
 @WEAVE_BUILD_TESTS_TRUE@	TestArgParser$(EXEEXT) \
 @WEAVE_BUILD_TESTS_TRUE@	TestCASE$(EXEEXT) \
+@WEAVE_BUILD_TESTS_TRUE@	TestCertProv$(EXEEXT) \
 @WEAVE_BUILD_TESTS_TRUE@	TestCodeUtils$(EXEEXT) \
 @WEAVE_BUILD_TESTS_TRUE@	TestCrypto$(EXEEXT) TestDRBG$(EXEEXT) \
 @WEAVE_BUILD_TESTS_TRUE@	TestDeviceDescriptor$(EXEEXT) \
@@ -727,6 +728,7 @@ am__installdirs = "$(DESTDIR)$(libexecdir)"
 @WEAVE_BUILD_TESTS_TRUE@	TestASN1$(EXEEXT) TestAppKeys$(EXEEXT) \
 @WEAVE_BUILD_TESTS_TRUE@	TestArgParser$(EXEEXT) \
 @WEAVE_BUILD_TESTS_TRUE@	TestCASE$(EXEEXT) \
+@WEAVE_BUILD_TESTS_TRUE@	TestCertProv$(EXEEXT) \
 @WEAVE_BUILD_TESTS_TRUE@	TestCodeUtils$(EXEEXT) \
 @WEAVE_BUILD_TESTS_TRUE@	TestCrypto$(EXEEXT) TestDRBG$(EXEEXT) \
 @WEAVE_BUILD_TESTS_TRUE@	TestDeviceDescriptor$(EXEEXT) \
@@ -873,6 +875,16 @@ TestCASE_OBJECTS = $(am_TestCASE_OBJECTS)
 TestCASE_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) \
 	$(LIBTOOLFLAGS) --mode=link $(CXXLD) $(AM_CXXFLAGS) \
 	$(CXXFLAGS) $(TestCASE_LDFLAGS) $(LDFLAGS) -o $@
+am__TestCertProv_SOURCES_DIST = TestCertProv.cpp MockCAService.cpp TestWeaveCertData.cpp
+@WEAVE_BUILD_TESTS_TRUE@am_TestCertProv_OBJECTS = TestCertProv.$(OBJEXT) \
+@WEAVE_BUILD_TESTS_TRUE@	MockCAService.$(OBJEXT) \
+@WEAVE_BUILD_TESTS_TRUE@	TestWeaveCertData.$(OBJEXT)
+TestCertProv_OBJECTS = $(am_TestCertProv_OBJECTS)
+@WEAVE_BUILD_TESTS_TRUE@TestCertProv_DEPENDENCIES = libWeaveTestCommon.a \
+@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_6)
+TestCertProv_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) \
+	$(LIBTOOLFLAGS) --mode=link $(CXXLD) $(AM_CXXFLAGS) \
+	$(CXXFLAGS) $(TestCertProv_LDFLAGS) $(LDFLAGS) -o $@
 am__TestCodeUtils_SOURCES_DIST = TestCodeUtils.cpp
 @WEAVE_BUILD_TESTS_TRUE@am_TestCodeUtils_OBJECTS =  \
 @WEAVE_BUILD_TESTS_TRUE@	TestCodeUtils.$(OBJEXT)
@@ -1517,7 +1529,7 @@ am__infratest_SOURCES_DIST = infratest.cpp
 infratest_OBJECTS = $(am_infratest_OBJECTS)
 @WEAVE_BUILD_TESTS_TRUE@infratest_DEPENDENCIES =  \
 @WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_6)
-am__mock_device_SOURCES_DIST = mock-device.cpp MockDCLPServer.cpp \
+am__mock_device_SOURCES_DIST = mock-device.cpp MockCAService.cpp MockDCLPServer.cpp \
 	MockDCServer.cpp MockDDServer.cpp MockFPServer.cpp \
 	MockNPServer.cpp MockOpActions.cpp MockPairingServer.cpp \
 	MockSPServer.cpp MockTimeSyncServer.cpp MockTimeSyncClient.cpp \
@@ -1534,12 +1546,13 @@ am__mock_device_SOURCES_DIST = mock-device.cpp MockDCLPServer.cpp \
 	MockWdmViewServer.cpp MockWdmViewClient.cpp \
 	MockWdmSubscriptionInitiator.cpp MockWdmTestVerifier.cpp \
 	MockWdmSubscriptionResponder.cpp MockWdmNodeOptions.cpp \
-	MockLoggingManager.cpp MockEvents.cpp MockDMPublisher.cpp \
+	MockLoggingManager.cpp MockEvents.cpp TestWeaveCertData.cpp MockDMPublisher.cpp \
 	TestProfile.cpp
 @WEAVE_BUILD_LEGACY_WDM_TRUE@@WEAVE_BUILD_TESTS_TRUE@am__objects_1 = mock_device-MockDMPublisher.$(OBJEXT) \
 @WEAVE_BUILD_LEGACY_WDM_TRUE@@WEAVE_BUILD_TESTS_TRUE@	mock_device-TestProfile.$(OBJEXT)
 @WEAVE_BUILD_TESTS_TRUE@am_mock_device_OBJECTS =  \
 @WEAVE_BUILD_TESTS_TRUE@	mock_device-mock-device.$(OBJEXT) \
+@WEAVE_BUILD_TESTS_TRUE@	mock_device-MockCAService.$(OBJEXT) \
 @WEAVE_BUILD_TESTS_TRUE@	mock_device-MockDCLPServer.$(OBJEXT) \
 @WEAVE_BUILD_TESTS_TRUE@	mock_device-MockDCServer.$(OBJEXT) \
 @WEAVE_BUILD_TESTS_TRUE@	mock_device-MockDDServer.$(OBJEXT) \
@@ -1571,6 +1584,7 @@ am__mock_device_SOURCES_DIST = mock-device.cpp MockDCLPServer.cpp \
 @WEAVE_BUILD_TESTS_TRUE@	mock_device-MockWdmNodeOptions.$(OBJEXT) \
 @WEAVE_BUILD_TESTS_TRUE@	mock_device-MockLoggingManager.$(OBJEXT) \
 @WEAVE_BUILD_TESTS_TRUE@	mock_device-MockEvents.$(OBJEXT) \
+@WEAVE_BUILD_TESTS_TRUE@	mock_device-TestWeaveCertData.$(OBJEXT) \
 @WEAVE_BUILD_TESTS_TRUE@	$(am__objects_1)
 mock_device_OBJECTS = $(am_mock_device_OBJECTS)
 @WEAVE_BUILD_TESTS_TRUE@mock_device_DEPENDENCIES =  \
@@ -1804,7 +1818,7 @@ SOURCES = $(libMockBleApplicationDelegate_a_SOURCES) \
 	$(libWeaveTestGroupKeyStore_a_SOURCES) \
 	$(GenerateEventLog_SOURCES) $(TestASN1_SOURCES) \
 	$(TestAppKeys_SOURCES) $(TestArgParser_SOURCES) \
-	$(TestBinding_SOURCES) $(TestCASE_SOURCES) \
+	$(TestBinding_SOURCES) $(TestCASE_SOURCES) $(TestCertProv_SOURCES) \
 	$(TestCodeUtils_SOURCES) $(TestCrypto_SOURCES) \
 	$(TestDRBG_SOURCES) $(TestDataManagement_SOURCES) \
 	$(TestDeviceDescriptor_SOURCES) $(TestECDH_SOURCES) \
@@ -1858,7 +1872,7 @@ DIST_SOURCES = $(am__libMockBleApplicationDelegate_a_SOURCES_DIST) \
 	$(am__TestASN1_SOURCES_DIST) $(am__TestAppKeys_SOURCES_DIST) \
 	$(am__TestArgParser_SOURCES_DIST) \
 	$(am__TestBinding_SOURCES_DIST) $(am__TestCASE_SOURCES_DIST) \
-	$(am__TestCodeUtils_SOURCES_DIST) \
+	$(am__TestCertProv_SOURCES_DIST) $(am__TestCodeUtils_SOURCES_DIST) \
 	$(am__TestCrypto_SOURCES_DIST) $(am__TestDRBG_SOURCES_DIST) \
 	$(am__TestDataManagement_SOURCES_DIST) \
 	$(am__TestDeviceDescriptor_SOURCES_DIST) \
@@ -1942,7 +1956,7 @@ am__can_run_installinfo = \
     n|no|NO) false;; \
     *) (install-info --version) >/dev/null 2>&1;; \
   esac
-am__noinst_HEADERS_DIST = CASEOptions.h DMTestClient.h \
+am__noinst_HEADERS_DIST = CASEOptions.h MockCAService.h DMTestClient.h \
 	DeviceDescOptions.h KeyExportOptions.h MockDCLPServer.h \
 	MockDCServer.h MockDDServer.h MockDMPublisher.h MockEvents.h \
 	MockExternalEvents.h MockFPServer.h MockIAServer.h \
@@ -2890,7 +2904,7 @@ LOG_DRIVER = $(abs_srcdir)/weave-parallel-test-engine
 # Local headers to build against and distribute but not to install
 # since they are not part of the Weave SDK public API.
 #
-noinst_HEADERS = CASEOptions.h DMTestClient.h DeviceDescOptions.h \
+noinst_HEADERS = CASEOptions.h MockCAService.h DMTestClient.h DeviceDescOptions.h \
 	KeyExportOptions.h MockDCLPServer.h MockDCServer.h \
 	MockDDServer.h MockDMPublisher.h MockEvents.h \
 	MockExternalEvents.h MockFPServer.h MockIAServer.h \
@@ -2935,7 +2949,8 @@ noinst_HEADERS = CASEOptions.h DMTestClient.h DeviceDescOptions.h \
 # applications in this directory.
 #
 # This will NOT be part of the externally-consumable binary SDK.
-@WEAVE_BUILD_TESTS_TRUE@noinst_LIBRARIES = libWeaveCryptoTests.a \
+@WEAVE_BUILD_TESTS_TRUE@noinst_LIBRARIES = \
+@WEAVE_BUILD_TESTS_TRUE@        libWeaveCryptoTests.a \
 @WEAVE_BUILD_TESTS_TRUE@	libWeaveTestCommon.a \
 @WEAVE_BUILD_TESTS_TRUE@	libWeaveTestGroupKeyStore.a $(NULL) \
 @WEAVE_BUILD_TESTS_TRUE@	$(am__append_5)
@@ -2946,6 +2961,7 @@ noinst_HEADERS = CASEOptions.h DMTestClient.h DeviceDescOptions.h \
 @WEAVE_BUILD_TESTS_TRUE@	$(LWIP_CPPFLAGS) $(SOCKETS_CPPFLAGS) \
 @WEAVE_BUILD_TESTS_TRUE@	$(PTHREAD_CFLAGS) $(NULL) \
 @WEAVE_BUILD_TESTS_TRUE@	$(am__append_2)
+
 @WEAVE_BUILD_TESTS_TRUE@libWeaveCryptoTests_a_SOURCES = \
 @WEAVE_BUILD_TESTS_TRUE@    crypto-tests/WeaveCryptoAESTests.cpp         \
 @WEAVE_BUILD_TESTS_TRUE@    crypto-tests/WeaveCryptoHKDFTests.cpp        \
@@ -2964,8 +2980,10 @@ noinst_HEADERS = CASEOptions.h DMTestClient.h DeviceDescOptions.h \
 @WEAVE_BUILD_TESTS_TRUE@    ToolCommonOptions.cpp                        \
 @WEAVE_BUILD_TESTS_TRUE@    TapAddrAutoconf.cpp                          \
 @WEAVE_BUILD_TESTS_TRUE@    PASEEngineTest.cpp                           \
+@WEAVE_BUILD_TESTS_TRUE@    MockCAService.cpp                            \
 @WEAVE_BUILD_TESTS_TRUE@    MockPlatformClocks.cpp                       \
 @WEAVE_BUILD_TESTS_TRUE@    TestPersistedStorageImplementation.cpp       \
+@WEAVE_BUILD_TESTS_TRUE@    TestWeaveCertData.cpp                        \
 @WEAVE_BUILD_TESTS_TRUE@    $(NULL)
 
 @WEAVE_BUILD_TESTS_TRUE@libWeaveTestGroupKeyStore_a_SOURCES = \
@@ -3072,7 +3090,7 @@ noinst_HEADERS = CASEOptions.h DMTestClient.h DeviceDescOptions.h \
 # These will NOT be part of the externally-consumable binary SDK.
 @WEAVE_BUILD_TESTS_TRUE@local_test_programs = GenerateEventLog \
 @WEAVE_BUILD_TESTS_TRUE@	TestASN1 TestAppKeys TestArgParser \
-@WEAVE_BUILD_TESTS_TRUE@	TestCASE TestCodeUtils TestCrypto \
+@WEAVE_BUILD_TESTS_TRUE@	TestCASE TestCertProv TestCodeUtils TestCrypto \
 @WEAVE_BUILD_TESTS_TRUE@	TestDRBG TestDeviceDescriptor TestECDH \
 @WEAVE_BUILD_TESTS_TRUE@	TestECDSA TestECMath \
 @WEAVE_BUILD_TESTS_TRUE@	TestFabricStateDelegate \
@@ -3171,6 +3189,9 @@ noinst_HEADERS = CASEOptions.h DMTestClient.h DeviceDescOptions.h \
 @WEAVE_BUILD_TESTS_TRUE@TestCASE_SOURCES = TestCASE.cpp
 @WEAVE_BUILD_TESTS_TRUE@TestCASE_LDFLAGS = $(AM_CPPFLAGS)
 @WEAVE_BUILD_TESTS_TRUE@TestCASE_LDADD = libWeaveTestCommon.a $(COMMON_LDADD)
+@WEAVE_BUILD_TESTS_TRUE@TestCertProv_SOURCES = TestCertProv.cpp MockCAService.cpp TestWeaveCertData.cpp
+@WEAVE_BUILD_TESTS_TRUE@TestCertProv_LDFLAGS = $(AM_CPPFLAGS)
+@WEAVE_BUILD_TESTS_TRUE@TestCertProv_LDADD = libWeaveTestCommon.a $(COMMON_LDADD)
 @WEAVE_BUILD_TESTS_TRUE@TestCodeUtils_SOURCES = TestCodeUtils.cpp
 @WEAVE_BUILD_TESTS_TRUE@TestCodeUtils_LDADD = 
 @WEAVE_BUILD_TESTS_TRUE@TestCrypto_SOURCES = TestCrypto.cpp
@@ -3400,6 +3421,7 @@ noinst_HEADERS = CASEOptions.h DMTestClient.h DeviceDescOptions.h \
 @WEAVE_BUILD_TESTS_TRUE@infratest_SOURCES = infratest.cpp
 @WEAVE_BUILD_TESTS_TRUE@infratest_LDADD = $(COMMON_LDADD)
 @WEAVE_BUILD_TESTS_TRUE@mock_device_SOURCES = mock-device.cpp \
+@WEAVE_BUILD_TESTS_TRUE@	MockCAService.cpp \
 @WEAVE_BUILD_TESTS_TRUE@	MockDCLPServer.cpp MockDCServer.cpp \
 @WEAVE_BUILD_TESTS_TRUE@	MockDDServer.cpp MockFPServer.cpp \
 @WEAVE_BUILD_TESTS_TRUE@	MockNPServer.cpp MockOpActions.cpp \
@@ -3426,6 +3448,7 @@ noinst_HEADERS = CASEOptions.h DMTestClient.h DeviceDescOptions.h \
 @WEAVE_BUILD_TESTS_TRUE@	MockWdmSubscriptionResponder.cpp \
 @WEAVE_BUILD_TESTS_TRUE@	MockWdmNodeOptions.cpp \
 @WEAVE_BUILD_TESTS_TRUE@	MockLoggingManager.cpp MockEvents.cpp \
+@WEAVE_BUILD_TESTS_TRUE@	TestWeaveCertData.cpp \
 @WEAVE_BUILD_TESTS_TRUE@	$(am__append_44)
 @WEAVE_BUILD_TESTS_TRUE@TestErrorStr_SOURCES = TestErrorStr.cpp
 @WEAVE_BUILD_TESTS_TRUE@TestErrorStr_LDADD = $(COMMON_LDADD)
@@ -3584,6 +3607,11 @@ crypto-tests/WeaveCryptoSHATests.$(OBJEXT):  \
 	crypto-tests/$(am__dirstamp) \
 	crypto-tests/$(DEPDIR)/$(am__dirstamp)
 
+libMockCAService.a: $(libMockCAService_a_OBJECTS) $(libMockCAService_a_DEPENDENCIES) $(EXTRA_libMockCAService_a_DEPENDENCIES) 
+	$(AM_V_at)-rm -f libMockCAService.a
+	$(AM_V_AR)$(libMockCAService_a_AR) libMockCAService.a $(libMockCAService_a_OBJECTS) $(libMockCAService_a_LIBADD)
+	$(AM_V_at)$(RANLIB) libMockCAService.a
+
 libWeaveCryptoTests.a: $(libWeaveCryptoTests_a_OBJECTS) $(libWeaveCryptoTests_a_DEPENDENCIES) $(EXTRA_libWeaveCryptoTests_a_DEPENDENCIES) 
 	$(AM_V_at)-rm -f libWeaveCryptoTests.a
 	$(AM_V_AR)$(libWeaveCryptoTests_a_AR) libWeaveCryptoTests.a $(libWeaveCryptoTests_a_OBJECTS) $(libWeaveCryptoTests_a_LIBADD)
@@ -3710,6 +3738,10 @@ TestBinding$(EXEEXT): $(TestBinding_OBJECTS) $(TestBinding_DEPENDENCIES) $(EXTRA
 TestCASE$(EXEEXT): $(TestCASE_OBJECTS) $(TestCASE_DEPENDENCIES) $(EXTRA_TestCASE_DEPENDENCIES) 
 	@rm -f TestCASE$(EXEEXT)
 	$(AM_V_CXXLD)$(TestCASE_LINK) $(TestCASE_OBJECTS) $(TestCASE_LDADD) $(LIBS)
+
+TestCertProv$(EXEEXT): $(TestCertProv_OBJECTS) $(TestCertProv_DEPENDENCIES) $(EXTRA_TestCertProv_DEPENDENCIES) 
+	@rm -f TestCertProv$(EXEEXT)
+	$(AM_V_CXXLD)$(TestCertProv_LINK) $(TestCertProv_OBJECTS) $(TestCertProv_LDADD) $(LIBS)
 
 TestCodeUtils$(EXEEXT): $(TestCodeUtils_OBJECTS) $(TestCodeUtils_DEPENDENCIES) $(EXTRA_TestCodeUtils_DEPENDENCIES) 
 	@rm -f TestCodeUtils$(EXEEXT)
@@ -4193,6 +4225,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/TestArgParser.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/TestBinding.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/TestCASE.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/TestCertProv.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/TestCodeUtils.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/TestCrypto-TestCrypto.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/TestDRBG.Po@am__quote@
@@ -4290,6 +4323,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ToolCommonOptions.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/infratest.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mock-weave-bg.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mock_device-MockCAService.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mock_device-MockDCLPServer.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mock_device-MockDCServer.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mock_device-MockDDServer.Po@am__quote@
@@ -4314,6 +4348,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mock_device-MockWdmTestVerifier.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mock_device-MockWdmViewClient.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mock_device-MockWdmViewServer.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mock_device-TestWeaveCertData.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mock_device-TestProfile.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mock_device-mock-device.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/nlweavebdxserver.Po@am__quote@
@@ -5470,6 +5505,20 @@ mock_device-mock-device.obj: mock-device.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mock_device_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o mock_device-mock-device.obj `if test -f 'mock-device.cpp'; then $(CYGPATH_W) 'mock-device.cpp'; else $(CYGPATH_W) '$(srcdir)/mock-device.cpp'; fi`
 
+mock_device-MockCAService.o: MockCAService.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mock_device_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT mock_device-MockCAService.o -MD -MP -MF $(DEPDIR)/mock_device-MockCAService.Tpo -c -o mock_device-MockCAService.o `test -f 'MockCAService.cpp' || echo '$(srcdir)/'`MockCAService.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/mock_device-MockCAService.Tpo $(DEPDIR)/mock_device-MockCAService.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='MockCAService.cpp' object='mock_device-MockCAService.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mock_device_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o mock_device-MockCAService.o `test -f 'MockCAService.cpp' || echo '$(srcdir)/'`MockCAService.cpp
+
+mock_device-MockCAService.obj: MockCAService.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mock_device_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT mock_device-MockCAService.obj -MD -MP -MF $(DEPDIR)/mock_device-MockCAService.Tpo -c -o mock_device-MockCAService.obj `if test -f 'MockCAService.cpp'; then $(CYGPATH_W) 'MockCAService.cpp'; else $(CYGPATH_W) '$(srcdir)/MockCAService.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/mock_device-MockCAService.Tpo $(DEPDIR)/mock_device-MockCAService.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='MockCAService.cpp' object='mock_device-MockCAService.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mock_device_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o mock_device-MockCAService.obj `if test -f 'MockCAService.cpp'; then $(CYGPATH_W) 'MockCAService.cpp'; else $(CYGPATH_W) '$(srcdir)/MockCAService.cpp'; fi`
+
 mock_device-MockDCLPServer.o: MockDCLPServer.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mock_device_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT mock_device-MockDCLPServer.o -MD -MP -MF $(DEPDIR)/mock_device-MockDCLPServer.Tpo -c -o mock_device-MockDCLPServer.o `test -f 'MockDCLPServer.cpp' || echo '$(srcdir)/'`MockDCLPServer.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/mock_device-MockDCLPServer.Tpo $(DEPDIR)/mock_device-MockDCLPServer.Po
@@ -5904,6 +5953,20 @@ mock_device-MockEvents.obj: MockEvents.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mock_device_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o mock_device-MockEvents.obj `if test -f 'MockEvents.cpp'; then $(CYGPATH_W) 'MockEvents.cpp'; else $(CYGPATH_W) '$(srcdir)/MockEvents.cpp'; fi`
 
+mock_device-TestWeaveCertData.o: TestWeaveCertData.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mock_device_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT mock_device-TestWeaveCertData.o -MD -MP -MF $(DEPDIR)/mock_device-TestWeaveCertData.Tpo -c -o mock_device-TestWeaveCertData.o `test -f 'TestWeaveCertData.cpp' || echo '$(srcdir)/'`TestWeaveCertData.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/mock_device-TestWeaveCertData.Tpo $(DEPDIR)/mock_device-TestWeaveCertData.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='TestWeaveCertData.cpp' object='mock_device-TestWeaveCertData.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mock_device_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o mock_device-TestWeaveCertData.o `test -f 'TestWeaveCertData.cpp' || echo '$(srcdir)/'`TestWeaveCertData.cpp
+
+mock_device-TestWeaveCertData.obj: TestWeaveCertData.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mock_device_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT mock_device-TestWeaveCertData.obj -MD -MP -MF $(DEPDIR)/mock_device-TestWeaveCertData.Tpo -c -o mock_device-TestWeaveCertData.obj `if test -f 'TestWeaveCertData.cpp'; then $(CYGPATH_W) 'TestWeaveCertData.cpp'; else $(CYGPATH_W) '$(srcdir)/TestWeaveCertData.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/mock_device-TestWeaveCertData.Tpo $(DEPDIR)/mock_device-TestWeaveCertData.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='TestWeaveCertData.cpp' object='mock_device-TestWeaveCertData.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mock_device_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o mock_device-TestWeaveCertData.obj `if test -f 'TestWeaveCertData.cpp'; then $(CYGPATH_W) 'TestWeaveCertData.cpp'; else $(CYGPATH_W) '$(srcdir)/TestWeaveCertData.cpp'; fi`
+
 mock_device-MockDMPublisher.o: MockDMPublisher.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(mock_device_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT mock_device-MockDMPublisher.o -MD -MP -MF $(DEPDIR)/mock_device-MockDMPublisher.Tpo -c -o mock_device-MockDMPublisher.o `test -f 'MockDMPublisher.cpp' || echo '$(srcdir)/'`MockDMPublisher.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/mock_device-MockDMPublisher.Tpo $(DEPDIR)/mock_device-MockDMPublisher.Po
@@ -6202,6 +6265,13 @@ TestArgParser.log: TestArgParser$(EXEEXT)
 TestCASE.log: TestCASE$(EXEEXT)
 	@p='TestCASE$(EXEEXT)'; \
 	b='TestCASE'; \
+	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
+	--log-file $$b.log --trs-file $$b.trs \
+	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
+	"$$tst" $(AM_TESTS_FD_REDIRECT)
+TestCertProv.log: TestCertProv$(EXEEXT)
+	@p='TestCertProv$(EXEEXT)'; \
+	b='TestCertProv'; \
 	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
 	--log-file $$b.log --trs-file $$b.trs \
 	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \

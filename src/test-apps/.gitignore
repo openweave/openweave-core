@@ -15,6 +15,7 @@ TestArgParser
 TestASN1
 TestBinding
 TestCASE
+TestCertProv
 TestCodeUtils
 TestCrypto
 TestDataManagement

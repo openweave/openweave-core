@@ -55,6 +55,7 @@
 #include <Weave/Profiles/heartbeat/WeaveHeartbeat.h>
 #include <Weave/Support/crypto/WeaveCrypto.h>
 #include "MockDCLPServer.h"
+#include "MockCAService.h"
 #include "MockNPServer.h"
 #include "MockSPServer.h"
 #include "MockFPServer.h"
@@ -70,6 +71,7 @@
 #include "MockWdmSubscriptionResponder.h"
 #include "MockLoggingManager.h"
 #include "MockWdmNodeOptions.h"
+#include "TestWeaveCertData.h"
 
 #if WEAVE_CONFIG_TIME
 #include "MockTimeSyncUtil.h"
@@ -162,6 +164,7 @@ const char *ConnectToAddr = NULL;
 uint32_t ConnectIntervalMS = 2000;
 WeaveEchoServer EchoServer;
 WeaveHeartbeatReceiver HeartbeatReceiver;
+MockCAService MockCAServer;
 MockNetworkProvisioningServer MockNPServer;
 MockDropcamLegacyPairingServer MockDCLPServer;
 MockServiceProvisioningServer MockSPServer;
@@ -596,6 +599,10 @@ int main(int argc, char *argv[])
     // Arrange to get a callback whenever a Heartbeat is received.
     HeartbeatReceiver.OnHeartbeatReceived = HandleHeartbeatReceived;
 
+    // Initialize the mock Certification Authority (CA) server.
+    err = MockCAServer.Init(&ExchangeMgr);
+    FAIL_ERROR(err, "MockCAService.Init failed");
+
     // Initialize the mock network provisioning server
     err = MockNPServer.Init(&ExchangeMgr);
     FAIL_ERROR(err, "MockNetworkProvisioningServer.Init failed");
@@ -794,6 +801,7 @@ int main(int argc, char *argv[])
 #endif
 
     SystemLayer.CancelTimer(InitiateConnection, NULL);
+    MockCAServer.Shutdown();
     MockNPServer.Shutdown();
     MockDCLPServer.Shutdown();
     EchoServer.Shutdown();

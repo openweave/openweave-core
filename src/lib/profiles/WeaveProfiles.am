@@ -69,6 +69,7 @@ nl_WeaveProfiles_sources                                                        
     @top_builddir@/src/lib/profiles/security/WeaveCASEEngine.cpp                        \
     @top_builddir@/src/lib/profiles/security/WeaveCASEMessages.cpp                      \
     @top_builddir@/src/lib/profiles/security/WeaveCert.cpp                              \
+    @top_builddir@/src/lib/profiles/security/WeaveCertProvisioning.cpp                  \
     @top_builddir@/src/lib/profiles/security/WeaveDummyGroupKeyStore.cpp                \
     @top_builddir@/src/lib/profiles/security/WeaveKeyExport.cpp                         \
     @top_builddir@/src/lib/profiles/security/WeaveKeyExportClient.cpp                   \

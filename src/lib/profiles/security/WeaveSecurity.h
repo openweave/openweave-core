@@ -75,6 +75,10 @@ enum
     kMsgType_KeyExportResponse                  = 31,
     kMsgType_KeyExportReconfigure               = 32,
 
+    // ---- Certificate Provisioning Protocol ----
+    kMsgType_GetCertificateRequest              = 40,
+    kMsgType_GetCertificateResponse             = 41,
+
     // ---- General Messages ----
     kMsgType_EndSession                         = 100,
     kMsgType_KeyError                           = 101,
@@ -136,6 +140,9 @@ enum
                                                         //    Presently this has the same internal structure as an ECDSASignature.
     kTag_WeaveAccessToken                       = 9,    // [ structure ] A Weave Access Token object
     kTag_GroupKeySignature                      = 10,   // [ structure ] A Weave group Key signature object
+    kTag_GetCertAuthorizeInfo                   = 11,   // [ structure ] Weave device GetCertificate authorization information.
+    kTag_ManufAttestInfo_Weave                  = 12,   // [ structure ] Device manufacturer attestation information in a form of Weave certificate.
+    kTag_ManufAttestInfo_X509                   = 13,   // [ structure ] Device manufacturer attestation information in a form of X509 certificate.
 
     // ---- Context-specific Tags for WeaveCertificate Structure ----
     kTag_SerialNumber                           = 1,    // [ byte string ] Certificate serial number, in BER integer encoding.
@@ -148,7 +155,7 @@ enum
     kTag_EllipticCurveIdentifier                = 8,    // [ unsigned int ] For EC certs, identifies the elliptic curve used.
     kTag_RSAPublicKey                           = 9,    // [ structure ] The RSA public key.
     kTag_EllipticCurvePublicKey                 = 10,   // [ byte string ] The elliptic curve public key, in X9.62 encoded format.
-    kTag_RSASignature                           = 11,   // [ byte string ] The RSA signature for the certificate.
+    kTag_RSASignature                           = 11,   // [ byte string ] The RSA signature for the certificate, in ASN.1 integer encoding.
     kTag_ECDSASignature                         = 12,   // [ structure ] The ECDSA signature for the certificate.
     // Tags identifying certificate extensions (tag numbers 128 - 255)
     kCertificateExtensionTagsStart              = 128,
@@ -243,6 +250,39 @@ enum
     kTag_GroupKeySignature_KeyId                = 2,    //  [ unsigned int ] Weave KeyId to be used to generate and verify the signature
     kTag_GroupKeySignature_Signature            = 3,    //  [ byte string ] Signature bytes themselves.
 
+    // ---- Context-specific Tags for GetCertificateRequest Message Structure ----
+    kTag_GetCertReqMsg_ReqType                  = 1,    // [ unsigned int ] Identifies the certificate request type.
+    kTag_GetCertReqMsg_OpDeviceCert             = 2,    // [ structure ] Weave operational device certificate.
+                                                        //               This has the same internal structure as an kTag_WeaveCertificate.
+    kTag_GetCertReqMsg_OpDeviceSig_ECDSA        = 3,    // [ structure ] Operational device EC signature.
+                                                        //               This has the same internal structure as an kTag_ECDSASignature.
+    kTag_GetCertReqMsg_ManufAttestSig_ECDSA     = 4,    // [ structure ] Manufacturer attestation device EC signature.
+                                                        //               This has the same internal structure as an kTag_ECDSASignature.
+    kTag_GetCertReqMsg_ManufAttestSig_RSA       = 5,    // [ byte string ] Manufacturer attestation device RSA signature.
+
+    // ---- Context-specific Tags for GetCertificateResponse Message Structure ----
+    kTag_GetCertRespMsg_OpDeviceCert            = 1,    // [ structure ] Service assigned Weave operational device certificate.
+                                                        //               This has the same internal structure as an kTag_WeaveCertificate.
+    kTag_GetCertRespMsg_RelatedCerts            = 2,    // [ array, optional ] An optional array of Weave certificates related to the
+                                                        //                     operational device certificate, which are needed to validate certificate.
+
+    // ---- Context-specific Tags for WeaveGetCertificateAuthorizationInfo Structure ----
+    kTag_GetCertAuthorizeInfo_PairingToken      = 1,    // [ byte string ] Pairing token from the service, in BER integer encoding.
+    kTag_GetCertAuthorizeInfo_PairingInitData   = 2,    // [ byte string ] Pairing initialization data from the service, in BER integer encoding.
+
+    // ---- Context-specific Tags for ManufAttestInfo_Weave Structure ----
+    kTag_ManufAttestInfo_Weave_DeviceCert       = 1,    // [ structure ] Weave device certificate provisioned at the factory at manufacturing time.
+                                                        //               This has the same internal structure as an kTag_WeaveCertificate.
+    kTag_ManufAttestInfo_Weave_RelatedCerts     = 2,    // [ array, optional ] An optional array of intermediate Weave certificates, which are needed to
+                                                        //                     validate included Weave device certificate. May be omitted if validators
+                                                        //                     are expected to have the necessary certificates for validation.
+
+    // ---- Context-specific Tags for ManufAttestInfo_X509 Structure ----
+    kTag_ManufAttestInfo_X509_DeviceCert        = 1,    // [ byte string ] X509 device certificate provisioned at the factory at manufacturing time.
+                                                        //                 This is an ASN1 encoded ECDSA or RSA certificate TLV-encoded as data blob.
+    kTag_ManufAttestInfo_X509_RelatedCerts      = 2,    // [ array, optional ] An optional array of intermediate X509 certificates, which are needed to
+                                                        //                     validate included X509 device certificate. May be omitted if validators
+                                                        //                     are expected to have the necessary certificates for validation.
 
     // ---- Context-specific Tags for Weave representation of X.509 Distinguished Name Attributes ----
     //

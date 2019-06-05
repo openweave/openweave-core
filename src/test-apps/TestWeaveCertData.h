@@ -95,6 +95,15 @@ extern const size_t sTestCertLength_CA_Weave;
 extern const uint8_t sTestCert_CA_DER[];
 extern const size_t sTestCertLength_CA_DER;
 
+extern const uint8_t sTestCert_CA_PublicKey[];
+extern const size_t sTestCertLength_CA_PublicKey;
+extern const uint8_t sTestCert_CA_PrivateKey[];
+extern const size_t sTestCertLength_CA_PrivateKey;
+extern const uint8_t sTestCert_CA_SubjectKeyId[];
+extern const size_t sTestCertLength_CA_SubjectKeyId;
+extern const uint32_t sTestCert_CA_CurveId;
+extern const uint64_t sTestCert_CA_Id;
+
 extern const uint8_t sTestCert_CA_SHA256_Weave[];
 extern const size_t sTestCertLength_CA_SHA256_Weave;
 extern const uint8_t sTestCert_CA_SHA256_DER[];

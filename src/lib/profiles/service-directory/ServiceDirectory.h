@@ -142,6 +142,7 @@ enum
 #define kServiceEndpoint_CoreRouter             (0x18B4300200000012ull)     ///< Core router endpoint
 #define kServiceEndpoint_FileDownload           (0x18B4300200000013ull)     ///< File download profile endpoint
 #define kServiceEndpoint_Bastion                (0x18B4300200000014ull)     ///< Nest Bastion service endpoint
+#define kServiceEndpoint_DeviceOperationalCA    (0x18B4300200000016ull)     ///< Nest device operational certification authority service endpoint
 
 /**
  * @class WeaveServiceManager

@@ -1165,6 +1165,7 @@ $(nl_public_WeaveProfiles_source_dirstem)/security/WeaveAppGroupGlobalIds.h \
 $(nl_public_WeaveProfiles_source_dirstem)/security/WeaveApplicationKeys.h \
 $(nl_public_WeaveProfiles_source_dirstem)/security/WeaveCASE.h \
 $(nl_public_WeaveProfiles_source_dirstem)/security/WeaveCert.h \
+$(nl_public_WeaveProfiles_source_dirstem)/security/WeaveCertProvisioning.h \
 $(nl_public_WeaveProfiles_source_dirstem)/security/WeaveDummyGroupKeyStore.h \
 $(nl_public_WeaveProfiles_source_dirstem)/security/WeavePASE.h \
 $(nl_public_WeaveProfiles_source_dirstem)/security/WeaveTAKE.h \

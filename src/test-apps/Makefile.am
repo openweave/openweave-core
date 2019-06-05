@@ -85,6 +85,7 @@ noinst_HEADERS                                             = \
     DMTestClient.h                                           \
     DeviceDescOptions.h                                      \
     KeyExportOptions.h                                       \
+    MockCAService.h                                          \
     MockDCLPServer.h                                         \
     MockDCServer.h                                           \
     MockDDServer.h                                           \
@@ -118,7 +119,7 @@ noinst_HEADERS                                             = \
     MockWdmViewServer.h                                      \
     PASEEngineTest.h                                         \
     TAKEOptions.h                                            \
-    TapAddrAutoconf.h                                               \
+    TapAddrAutoconf.h                                        \
     TestDRBG.h                                               \
     TestEventLoggingSchemaExamples.h                         \
     TestGroupKeyStore.h                                      \
@@ -207,8 +208,10 @@ libWeaveTestCommon_a_SOURCES                   = \
     ToolCommonOptions.cpp                        \
     TapAddrAutoconf.cpp                          \
     PASEEngineTest.cpp                           \
+    MockCAService.cpp                            \
     MockPlatformClocks.cpp                       \
     TestPersistedStorageImplementation.cpp       \
+    TestWeaveCertData.cpp                        \
     $(NULL)
 
 libWeaveTestGroupKeyStore_a_SOURCES            = \
@@ -309,6 +312,7 @@ check_PROGRAMS                                 = \
     TestAppKeys                                  \
     TestArgParser                                \
     TestCASE                                     \
+    TestCertProv                                 \
     TestCodeUtils                                \
     TestCrypto                                   \
     TestDRBG                                     \
@@ -424,6 +428,7 @@ local_test_programs                            = \
     TestAppKeys                                  \
     TestArgParser                                \
     TestCASE                                     \
+    TestCertProv                                 \
     TestCodeUtils                                \
     TestCrypto                                   \
     TestDRBG                                     \
@@ -1169,6 +1174,10 @@ TestCASE_SOURCES                         = TestCASE.cpp
 TestCASE_LDFLAGS                         = $(AM_CPPFLAGS)
 TestCASE_LDADD                           = libWeaveTestCommon.a $(COMMON_LDADD)
 
+TestCertProv_SOURCES                     = TestCertProv.cpp MockCAService.cpp TestWeaveCertData.cpp
+TestCertProv_LDFLAGS                     = $(AM_CPPFLAGS)
+TestCertProv_LDADD                       = libWeaveTestCommon.a $(COMMON_LDADD)
+
 TestCodeUtils_SOURCES                    = TestCodeUtils.cpp
 TestCodeUtils_LDADD                      =
 
@@ -1417,7 +1426,7 @@ TestWdmNext_SOURCES                      = TestWdmNext.cpp						\
                                            schema/weave/trait/locale/LocaleCapabilitiesTrait.cpp	\
                                            schema/weave/trait/security/BoltLockSettingsTrait.cpp	\
                                            schema/weave/trait/telemetry/NetworkWiFiTelemetryTrait.cpp	\
-										   MockWdmNodeOptions.cpp                   \
+                                           MockWdmNodeOptions.cpp                                       \
                                            MockWdmViewServer.cpp					\
                                            MockWdmViewClient.cpp					\
                                            MockWdmSubscriptionInitiator.cpp				\
@@ -1457,6 +1466,7 @@ infratest_SOURCES                        = infratest.cpp
 infratest_LDADD                          = $(COMMON_LDADD)
 
 mock_device_SOURCES                      = mock-device.cpp                                          \
+                                           MockCAService.cpp                                        \
                                            MockDCLPServer.cpp                                       \
                                            MockDCServer.cpp                                         \
                                            MockDDServer.cpp                                         \
@@ -1485,9 +1495,10 @@ mock_device_SOURCES                      = mock-device.cpp                      
                                            MockWdmSubscriptionInitiator.cpp                         \
                                            MockWdmTestVerifier.cpp	                            \
                                            MockWdmSubscriptionResponder.cpp                         \
-										   MockWdmNodeOptions.cpp                                   \
+                                           MockWdmNodeOptions.cpp                                   \
                                            MockLoggingManager.cpp                                   \
-                                           MockEvents.cpp
+                                           MockEvents.cpp                                           \
+                                           TestWeaveCertData.cpp
 
 if WEAVE_BUILD_LEGACY_WDM
 mock_device_SOURCES                      += \

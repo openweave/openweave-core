@@ -598,6 +598,7 @@ am__libWeave_a_SOURCES_DIST =  \
 	@top_builddir@/src/lib/profiles/security/WeaveCASEEngine.cpp \
 	@top_builddir@/src/lib/profiles/security/WeaveCASEMessages.cpp \
 	@top_builddir@/src/lib/profiles/security/WeaveCert.cpp \
+	@top_builddir@/src/lib/profiles/security/WeaveCertProvisioning.cpp \
 	@top_builddir@/src/lib/profiles/security/WeaveDummyGroupKeyStore.cpp \
 	@top_builddir@/src/lib/profiles/security/WeaveKeyExport.cpp \
 	@top_builddir@/src/lib/profiles/security/WeaveKeyExportClient.cpp \
@@ -807,6 +808,7 @@ am__objects_23 = @top_builddir@/src/lib/profiles/bulk-data-transfer/libWeave_a-B
 	@top_builddir@/src/lib/profiles/security/libWeave_a-WeaveCASEEngine.$(OBJEXT) \
 	@top_builddir@/src/lib/profiles/security/libWeave_a-WeaveCASEMessages.$(OBJEXT) \
 	@top_builddir@/src/lib/profiles/security/libWeave_a-WeaveCert.$(OBJEXT) \
+	@top_builddir@/src/lib/profiles/security/libWeave_a-WeaveCertProvisioning.$(OBJEXT) \
 	@top_builddir@/src/lib/profiles/security/libWeave_a-WeaveDummyGroupKeyStore.$(OBJEXT) \
 	@top_builddir@/src/lib/profiles/security/libWeave_a-WeaveKeyExport.$(OBJEXT) \
 	@top_builddir@/src/lib/profiles/security/libWeave_a-WeaveKeyExportClient.$(OBJEXT) \
@@ -1322,6 +1324,7 @@ nl_WeaveProfiles_sources = @top_builddir@/src/lib/profiles/bulk-data-transfer/Bu
 	@top_builddir@/src/lib/profiles/security/WeaveCASEEngine.cpp \
 	@top_builddir@/src/lib/profiles/security/WeaveCASEMessages.cpp \
 	@top_builddir@/src/lib/profiles/security/WeaveCert.cpp \
+	@top_builddir@/src/lib/profiles/security/WeaveCertProvisioning.cpp \
 	@top_builddir@/src/lib/profiles/security/WeaveDummyGroupKeyStore.cpp \
 	@top_builddir@/src/lib/profiles/security/WeaveKeyExport.cpp \
 	@top_builddir@/src/lib/profiles/security/WeaveKeyExportClient.cpp \
@@ -2024,6 +2027,9 @@ clean-libLIBRARIES:
 @top_builddir@/src/lib/profiles/security/libWeave_a-WeaveCert.$(OBJEXT):  \
 	@top_builddir@/src/lib/profiles/security/$(am__dirstamp) \
 	@top_builddir@/src/lib/profiles/security/$(DEPDIR)/$(am__dirstamp)
+@top_builddir@/src/lib/profiles/security/libWeave_a-WeaveCertProvisioning.$(OBJEXT):  \
+	@top_builddir@/src/lib/profiles/security/$(am__dirstamp) \
+	@top_builddir@/src/lib/profiles/security/$(DEPDIR)/$(am__dirstamp)
 @top_builddir@/src/lib/profiles/security/libWeave_a-WeaveDummyGroupKeyStore.$(OBJEXT):  \
 	@top_builddir@/src/lib/profiles/security/$(am__dirstamp) \
 	@top_builddir@/src/lib/profiles/security/$(DEPDIR)/$(am__dirstamp)
@@ -2338,6 +2344,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@@top_builddir@/src/lib/profiles/security/$(DEPDIR)/libWeave_a-WeaveCASEEngine.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@@top_builddir@/src/lib/profiles/security/$(DEPDIR)/libWeave_a-WeaveCASEMessages.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@@top_builddir@/src/lib/profiles/security/$(DEPDIR)/libWeave_a-WeaveCert.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@@top_builddir@/src/lib/profiles/security/$(DEPDIR)/libWeave_a-WeaveCertProvisioning.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@@top_builddir@/src/lib/profiles/security/$(DEPDIR)/libWeave_a-WeaveDummyGroupKeyStore.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@@top_builddir@/src/lib/profiles/security/$(DEPDIR)/libWeave_a-WeaveKeyExport.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@@top_builddir@/src/lib/profiles/security/$(DEPDIR)/libWeave_a-WeaveKeyExportClient.Po@am__quote@
@@ -4525,6 +4532,20 @@ distclean-compile:
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='@top_builddir@/src/lib/profiles/security/WeaveCert.cpp' object='@top_builddir@/src/lib/profiles/security/libWeave_a-WeaveCert.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libWeave_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o @top_builddir@/src/lib/profiles/security/libWeave_a-WeaveCert.obj `if test -f '@top_builddir@/src/lib/profiles/security/WeaveCert.cpp'; then $(CYGPATH_W) '@top_builddir@/src/lib/profiles/security/WeaveCert.cpp'; else $(CYGPATH_W) '$(srcdir)/@top_builddir@/src/lib/profiles/security/WeaveCert.cpp'; fi`
+
+@top_builddir@/src/lib/profiles/security/libWeave_a-WeaveCertProvisioning.o: @top_builddir@/src/lib/profiles/security/WeaveCertProvisioning.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libWeave_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT @top_builddir@/src/lib/profiles/security/libWeave_a-WeaveCertProvisioning.o -MD -MP -MF @top_builddir@/src/lib/profiles/security/$(DEPDIR)/libWeave_a-WeaveCertProvisioning.Tpo -c -o @top_builddir@/src/lib/profiles/security/libWeave_a-WeaveCertProvisioning.o `test -f '@top_builddir@/src/lib/profiles/security/WeaveCertProvisioning.cpp' || echo '$(srcdir)/'`@top_builddir@/src/lib/profiles/security/WeaveCertProvisioning.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) @top_builddir@/src/lib/profiles/security/$(DEPDIR)/libWeave_a-WeaveCertProvisioning.Tpo @top_builddir@/src/lib/profiles/security/$(DEPDIR)/libWeave_a-WeaveCertProvisioning.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='@top_builddir@/src/lib/profiles/security/WeaveCertProvisioning.cpp' object='@top_builddir@/src/lib/profiles/security/libWeave_a-WeaveCertProvisioning.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libWeave_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o @top_builddir@/src/lib/profiles/security/libWeave_a-WeaveCertProvisioning.o `test -f '@top_builddir@/src/lib/profiles/security/WeaveCertProvisioning.cpp' || echo '$(srcdir)/'`@top_builddir@/src/lib/profiles/security/WeaveCertProvisioning.cpp
+
+@top_builddir@/src/lib/profiles/security/libWeave_a-WeaveCertProvisioning.obj: @top_builddir@/src/lib/profiles/security/WeaveCertProvisioning.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libWeave_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT @top_builddir@/src/lib/profiles/security/libWeave_a-WeaveCertProvisioning.obj -MD -MP -MF @top_builddir@/src/lib/profiles/security/$(DEPDIR)/libWeave_a-WeaveCertProvisioning.Tpo -c -o @top_builddir@/src/lib/profiles/security/libWeave_a-WeaveCertProvisioning.obj `if test -f '@top_builddir@/src/lib/profiles/security/WeaveCertProvisioning.cpp'; then $(CYGPATH_W) '@top_builddir@/src/lib/profiles/security/WeaveCertProvisioning.cpp'; else $(CYGPATH_W) '$(srcdir)/@top_builddir@/src/lib/profiles/security/WeaveCertProvisioning.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) @top_builddir@/src/lib/profiles/security/$(DEPDIR)/libWeave_a-WeaveCertProvisioning.Tpo @top_builddir@/src/lib/profiles/security/$(DEPDIR)/libWeave_a-WeaveCertProvisioning.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='@top_builddir@/src/lib/profiles/security/WeaveCertProvisioning.cpp' object='@top_builddir@/src/lib/profiles/security/libWeave_a-WeaveCertProvisioning.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libWeave_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o @top_builddir@/src/lib/profiles/security/libWeave_a-WeaveCertProvisioning.obj `if test -f '@top_builddir@/src/lib/profiles/security/WeaveCertProvisioning.cpp'; then $(CYGPATH_W) '@top_builddir@/src/lib/profiles/security/WeaveCertProvisioning.cpp'; else $(CYGPATH_W) '$(srcdir)/@top_builddir@/src/lib/profiles/security/WeaveCertProvisioning.cpp'; fi`
 
 @top_builddir@/src/lib/profiles/security/libWeave_a-WeaveDummyGroupKeyStore.o: @top_builddir@/src/lib/profiles/security/WeaveDummyGroupKeyStore.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libWeave_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT @top_builddir@/src/lib/profiles/security/libWeave_a-WeaveDummyGroupKeyStore.o -MD -MP -MF @top_builddir@/src/lib/profiles/security/$(DEPDIR)/libWeave_a-WeaveDummyGroupKeyStore.Tpo -c -o @top_builddir@/src/lib/profiles/security/libWeave_a-WeaveDummyGroupKeyStore.o `test -f '@top_builddir@/src/lib/profiles/security/WeaveDummyGroupKeyStore.cpp' || echo '$(srcdir)/'`@top_builddir@/src/lib/profiles/security/WeaveDummyGroupKeyStore.cpp
