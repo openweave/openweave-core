@@ -20,7 +20,7 @@
  *    @file
  *      The bulk data transfer protocol has a number applications
  *      including sensor data upload, in-band firmware download and
- *      log upload. As such, it needs to be flexible and accomodate a
+ *      log upload. As such, it needs to be flexible and accommodate a
  *      wide variety of use cases. The protocol defines a number of
  *      roles or role pairs:
  *

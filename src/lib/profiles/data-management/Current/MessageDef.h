@@ -1551,7 +1551,7 @@ public:
     WEAVE_ERROR GetDataList (DataList::Parser * const apDataList) const;
 
     /**
-     *  @brief Get the UdpateRequestIndex of this request.
+     *  @brief Get the UpdateRequestIndex of this request.
      *
      *  @param [out] apUpdateRequestIndex       A pointer to some variable to receive
      *                                          the index of the payload.
