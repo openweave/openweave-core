@@ -2432,7 +2432,7 @@ void SubscriptionClient::OnUpdateResponse(WEAVE_ERROR aReason, nl::Weave::Profil
     if (apStatus->mProfileId == nl::Weave::Profiles::kWeaveProfile_Common &&
             apStatus->mStatusCode == nl::Weave::Profiles::Common::kStatus_Success)
     {
-        // If the whole udpate has succeeded, the status list
+        // If the whole update has succeeded, the status list
         // is allowed to be empty.
         wholeRequestSucceeded = true;
 

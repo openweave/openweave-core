@@ -47,7 +47,7 @@ namespace WeaveMakeManagedNamespaceIdentifier(DataManagement, kWeaveManagedNames
  * make no further provisions to expunge it from the log.
  * The importance level serves to prioritize event storage. If an
  * event of high importance is added to a full buffer, events are
- * dropped in order of importance (and age) to accomodate it. As such,
+ * dropped in order of importance (and age) to accommodate it. As such,
  * importance levels only have relative value. If a system is
  * using only one importance level, events are dropped only in order
  * of age, like a ring buffer.
