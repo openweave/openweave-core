@@ -99,7 +99,9 @@ oids = [
     ( "SigAlgo",        "ECDSAWithSHA1",           4,       [ iso(1), member_body(2), us(840), ansi_X9_62(10045), signatures(4), 1 ]                        ),
     ( "SigAlgo",        "ECDSAWithSHA256",         5,       [ iso(1), member_body(2), us(840), ansi_X9_62(10045), signatures(4), 3, 2 ]                     ),
     # RFC 4231
-    ( "SigAlgo",        "HMACWithSHA256",          6,       [ iso(1), member_body(2), us(840), rsadsi(113549), digest_algorithm(2), 9 ]                      ),
+    ( "SigAlgo",        "HMACWithSHA256",          6,       [ iso(1), member_body(2), us(840), rsadsi(113549), digest_algorithm(2), 9 ]                     ),
+    # RFC 4055
+    ( "SigAlgo",        "SHA256WithRSAEncryption", 7,       [ iso(1), member_body(2), us(840), rsadsi(113549), pkcs(1), pkcs1(1), 11 ]                      ),
 
     # X.509 Distinguished Name Attribute Types
     #   WARNING -- Assign no values higher than 127.

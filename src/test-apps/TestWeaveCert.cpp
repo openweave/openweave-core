@@ -32,6 +32,7 @@
 #include <Weave/Profiles/security/WeavePrivateKey.h>
 
 #include "TestWeaveCertData.h"
+#include "MockCAService.h"
 
 using namespace nl::Weave::TLV;
 using namespace nl::Weave::Profiles::Security;
@@ -808,13 +809,18 @@ void WeaveCertTest_GenerateAndPrintTestOperationalDeviceCert()
 {
     WEAVE_ERROR err;
     uint64_t deviceId;
-    uint8_t certBuf[kTestCertBufSize];
-    uint16_t certLen;
-    uint8_t keyBuf[kTestCertBufSize];
+    uint8_t selfSignedCert[kTestCertBufSize];
+    uint16_t selfSignedCertLen;
+    uint8_t serviceAssignedCert[kTestCertBufSize];
+    uint16_t serviceAssignedCertLen;
+    uint8_t key[kTestCertBufSize];
     uint32_t keyLen;
     uint8_t devicePrivKeyBuf[EncodedECPrivateKey::kMaxValueLength];
     uint8_t devicePubKeyBuf[EncodedECPublicKey::kMaxValueLength];
     EncodedECPublicKey devicePubKey;
+    MockCAService caService;
+    WeaveCertificateSet certSet;;
+    WeaveCertificateData * cert;
 
     enum
     {
@@ -836,28 +842,44 @@ void WeaveCertTest_GenerateAndPrintTestOperationalDeviceCert()
         err = GenerateECDHKey(WeaveCurveIdToOID(WEAVE_CONFIG_OPERATIONAL_DEVICE_CERT_CURVE_ID), devicePubKey, sDevicePrivKey);
         SuccessOrFail(err, "GenerateECDHKey() returned error");
 
-        err = EncodeWeaveECPrivateKey(WEAVE_CONFIG_OPERATIONAL_DEVICE_CERT_CURVE_ID, &devicePubKey, sDevicePrivKey,
-                                      keyBuf, sizeof(keyBuf), keyLen);
+        err = EncodeWeaveECPrivateKey(WEAVE_CONFIG_OPERATIONAL_DEVICE_CERT_CURVE_ID, &devicePubKey, sDevicePrivKey, key, sizeof(key), keyLen);
         SuccessOrFail(err, "EncodeWeaveECPrivateKey() returned error");
 
-        err = GenerateOperationalDeviceCert(deviceId, devicePubKey, certBuf, sizeof(certBuf), certLen, sGenerateCertSignature);
+        err = GenerateOperationalDeviceCert(deviceId, devicePubKey, selfSignedCert, sizeof(selfSignedCert), selfSignedCertLen, sGenerateCertSignature);
         SuccessOrFail(err, "GenerateOperationalDeviceCert() returned error");
 
-        printf("// Operational node Id, self-signed certificate and private key for Test Device %d\n//\n\n", i);
+        printf("// Operational credentials: node Id, self-signed certificate, service-assigned certificate and private key for Test Device %d\n//\n\n", i);
 
         printf("uint64_t TestDevice%d_OperationalNodeId = 0x%" PRIX64 "ULL;\n\n", i, deviceId);
 
-        printf("uint8_t TestDevice%d_OperationalCert[] = \n{\n", i);
-        DumpMemoryCStyle(certBuf, certLen, "    ", 16);
+        printf("uint8_t TestDevice%d_OperationalSelfSignedCert[] = \n{\n", i);
+        DumpMemoryCStyle(selfSignedCert, selfSignedCertLen, "    ", 16);
         printf("};\n\n");
 
-        printf("uint16_t TestDevice%d_OperationalCertLength = sizeof(TestDevice%d_OperationalCert);\n\n", i, i);
+        printf("uint16_t TestDevice%d_OperationalSelfSignedCertLength = sizeof(TestDevice%d_OperationalSelfSignedCert);\n\n", i, i);
+
+        err = certSet.Init(1, nl::TestCerts::kTestCertBufSize);
+        SuccessOrFail(err, "certSet.Init() returned error");
+
+        err = certSet.LoadCert(selfSignedCert, selfSignedCertLen, kDecodeFlag_GenerateTBSHash, cert);
+        SuccessOrFail(err, "certSet.LoadCert() returned error");
+
+        err = caService.GenerateServiceAssignedDeviceCert(*cert, serviceAssignedCert, sizeof(serviceAssignedCert), serviceAssignedCertLen);
+        SuccessOrFail(err, "GenerateServiceAssignedDeviceCert() returned error");
+
+        printf("uint8_t TestDevice%d_OperationalServiceAssignedCert[] = \n{\n", i);
+        DumpMemoryCStyle(serviceAssignedCert, serviceAssignedCertLen, "    ", 16);
+        printf("};\n\n");
+
+        printf("uint16_t TestDevice%d_OperationalServiceAssignedCertLength = sizeof(TestDevice%d_OperationalServiceAssignedCert);\n\n", i, i);
 
         printf("uint8_t TestDevice%d_OperationalPrivateKey[] = \n{\n", i);
-        DumpMemoryCStyle(keyBuf, keyLen, "    ", 16);
+        DumpMemoryCStyle(key, keyLen, "    ", 16);
         printf("};\n\n");
 
         printf("uint16_t TestDevice%d_OperationalPrivateKeyLength = sizeof(TestDevice%d_OperationalPrivateKey);\n\n\n", i, i);
+
+        certSet.Release();
     }
 
     printf("%s passed\n", __FUNCTION__);

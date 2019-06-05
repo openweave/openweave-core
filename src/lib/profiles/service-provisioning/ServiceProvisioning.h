@@ -62,7 +62,7 @@ enum
     kStatusCode_PairingServerError              = 5,    /**< The device could not complete service pairing because it failed to talk to the pairing server. */
     kStatusCode_InvalidPairingToken             = 6,    /**< The device could not complete service pairing because it passed an invalid pairing token. */
     kStatusCode_PairingTokenOld                 = 7,    /**< The device could not complete service pairing because the pairing token it passed has expired. */
-    kStatusCode_ServiceCommuncationError        = 8,    /**< The device could not complete service pairing because it encountered an error when communicating with the service. */
+    kStatusCode_ServiceCommunicationError       = 8,    /**< The device could not complete service pairing because it encountered an error when communicating with the service. */
     kStatusCode_ServiceConfigTooLarge           = 9,    /**< The specified service configuration is too large. */
     kStatusCode_WrongFabric                     = 10,   /**< Device paired with a different fabric. */
     kStatusCode_TooManyFabrics                  = 11    /**< Too many fabrics in the structure. */

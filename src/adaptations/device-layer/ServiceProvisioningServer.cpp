@@ -358,7 +358,7 @@ exit:
             if (err == WEAVE_ERROR_TIMEOUT)
             {
                 statusReportProfileId = kWeaveProfile_ServiceProvisioning;
-                statusReportStatusCode = Profiles::ServiceProvisioning::kStatusCode_ServiceCommuncationError;
+                statusReportStatusCode = Profiles::ServiceProvisioning::kStatusCode_ServiceCommunicationError;
             }
             else
             {
@@ -404,7 +404,7 @@ void ServiceProvisioningServer::HandleProvServiceBindingEvent(void * appState, B
         else
         {
             statusReportProfileId = kWeaveProfile_ServiceProvisioning;
-            statusReportStatusCode = Profiles::ServiceProvisioning::kStatusCode_ServiceCommuncationError;
+            statusReportStatusCode = Profiles::ServiceProvisioning::kStatusCode_ServiceCommunicationError;
         }
         sInstance.HandlePairDeviceToAccountResult(inParam.PrepareFailed.Reason,
                 statusReportProfileId, statusReportStatusCode);

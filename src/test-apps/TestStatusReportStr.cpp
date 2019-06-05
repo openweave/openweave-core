@@ -246,7 +246,7 @@ static struct Profile_Status sContext[] = {
             ServiceProvisioning::kStatusCode_PairingServerError,
             ServiceProvisioning::kStatusCode_InvalidPairingToken,
             ServiceProvisioning::kStatusCode_PairingTokenOld,
-            ServiceProvisioning::kStatusCode_ServiceCommuncationError,
+            ServiceProvisioning::kStatusCode_ServiceCommunicationError,
             ServiceProvisioning::kStatusCode_ServiceConfigTooLarge,
             ServiceProvisioning::kStatusCode_WrongFabric,
             ServiceProvisioning::kStatusCode_TooManyFabrics,

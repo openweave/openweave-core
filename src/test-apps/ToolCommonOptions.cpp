@@ -1,5 +1,6 @@
 /*
  *
+ *    Copyright (c) 2019 Google LLC.
  *    Copyright (c) 2013-2017 Nest Labs, Inc.
  *    All rights reserved.
  *
@@ -32,6 +33,7 @@
 #include <stdint.h>
 #include <stdio.h>
 
+#include "ToolCommon.h"
 #include "ToolCommonOptions.h"
 #include "TestPersistedStorageImplementation.h"
 #include <Weave/WeaveVersion.h>
@@ -39,6 +41,7 @@
 #include <SystemLayer/SystemFaultInjection.h>
 #include <Weave/Support/WeaveFaultInjection.h>
 #include <InetLayer/InetFaultInjection.h>
+#include <Weave/Support/Base64.h>
 
 using namespace nl::Inet;
 using namespace nl::Weave;
@@ -1117,6 +1120,66 @@ bool ResolveWeaveNetworkOptions(const char *progName, WeaveNodeOptions &weaveOpt
         if (!weaveOptions.SubnetIdSet)
             weaveOptions.SubnetId = networkOptions.LocalIPv6Addr[0].Subnet();
     }
+    return true;
+}
+
+bool ReadCertFile(const char *fileName, uint8_t *& certBuf, uint16_t& certLen)
+{
+    uint32_t len;
+
+    static const char *certB64Prefix = "1QAABAAB";
+    static const size_t certB64PrefixLen = sizeof(certB64Prefix) - 1;
+
+    // Read the specified file into a malloced buffer.
+    certBuf = ReadFileArg(fileName, len, UINT16_MAX);
+    if (certBuf == NULL)
+        return false;
+
+    // If the certificate is in base-64 format, convert it to raw TLV.
+    if (len > certB64PrefixLen && memcmp(certBuf, certB64Prefix, certB64PrefixLen) == 0)
+    {
+        len = nl::Base64Decode((const char *)certBuf, len, (uint8_t *)certBuf);
+        if (len == UINT16_MAX)
+        {
+            printf("Invalid certificate format: %s\n", fileName);
+            free(certBuf);
+            certBuf = NULL;
+            return false;
+        }
+    }
+
+    certLen = (uint16_t)len;
+
+    return true;
+}
+
+bool ReadPrivateKeyFile(const char *fileName, uint8_t *& keyBuf, uint16_t& keyLen)
+{
+    uint32_t len;
+
+    static const char *keyB64Prefix = "1QAABAAC";
+    static const size_t keyB64PrefixLen = sizeof(keyB64Prefix) - 1;
+
+    // Read the specified file into a malloced buffer.
+    keyBuf = ReadFileArg(fileName, len, UINT16_MAX);
+    if (keyBuf == NULL)
+        return false;
+
+    // If the private key is in base-64 format, convert it to raw TLV.
+    if (len > keyB64PrefixLen && memcmp(keyBuf, keyB64Prefix, keyB64PrefixLen) == 0)
+    {
+        len = nl::Base64Decode((const char *)keyBuf, len, (uint8_t *)keyBuf);
+        if (len == UINT16_MAX)
+        {
+            printf("Invalid private key format: %s\n", fileName);
+            free(keyBuf);
+            keyBuf = NULL;
+            return false;
+        }
+    }
+
+    keyLen = (uint16_t)len;
+
     return true;
 }
 

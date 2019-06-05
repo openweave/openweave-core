@@ -133,6 +133,8 @@ target_triplet = @target@
 @CONFIG_NETWORK_LAYER_BLE_TRUE@@WEAVE_BUILD_TESTS_TRUE@    $(NULL)
 
 @WEAVE_BUILD_TESTS_TRUE@libexec_PROGRAMS = $(am__EXEEXT_5) \
+@WEAVE_BUILD_TESTS_TRUE@	weave-cert-prov-client$(EXEEXT) \
+@WEAVE_BUILD_TESTS_TRUE@	weave-cert-prov-server$(EXEEXT) \
 @WEAVE_BUILD_TESTS_TRUE@	weave-device-descriptor$(EXEEXT) \
 @WEAVE_BUILD_TESTS_TRUE@	weave-key-export$(EXEEXT) \
 @WEAVE_BUILD_TESTS_TRUE@	weave-ping$(EXEEXT) \
@@ -145,6 +147,7 @@ target_triplet = @target@
 @WEAVE_BUILD_TESTS_TRUE@	TestAppKeys$(EXEEXT) \
 @WEAVE_BUILD_TESTS_TRUE@	TestArgParser$(EXEEXT) \
 @WEAVE_BUILD_TESTS_TRUE@	TestCASE$(EXEEXT) \
+@WEAVE_BUILD_TESTS_TRUE@	TestCertProv$(EXEEXT) \
 @WEAVE_BUILD_TESTS_TRUE@	TestCodeUtils$(EXEEXT) \
 @WEAVE_BUILD_TESTS_TRUE@	TestCrypto$(EXEEXT) TestDRBG$(EXEEXT) \
 @WEAVE_BUILD_TESTS_TRUE@	TestDeviceDescriptor$(EXEEXT) \
@@ -683,18 +686,20 @@ am__dirstamp = $(am__leading_dot)dirstamp
 libWeaveCryptoTests_a_OBJECTS = $(am_libWeaveCryptoTests_a_OBJECTS)
 libWeaveTestCommon_a_AR = $(AR) $(ARFLAGS)
 libWeaveTestCommon_a_LIBADD =
-am__libWeaveTestCommon_a_SOURCES_DIST = CASEOptions.cpp \
+am__libWeaveTestCommon_a_SOURCES_DIST = CASEOptions.cpp CertProvOptions.cpp \
 	KeyExportOptions.cpp TAKEOptions.cpp DeviceDescOptions.cpp \
-	Certs.cpp TestGroupKeyStore.cpp ToolCommon.cpp \
+	Certs.cpp TestGroupKeyStore.cpp TestWeaveCertData.cpp ToolCommon.cpp \
 	ToolCommonOptions.cpp TapAddrAutoconf.cpp PASEEngineTest.cpp \
 	MockPlatformClocks.cpp TestPersistedStorageImplementation.cpp
 @WEAVE_BUILD_TESTS_TRUE@am_libWeaveTestCommon_a_OBJECTS =  \
 @WEAVE_BUILD_TESTS_TRUE@	CASEOptions.$(OBJEXT) \
+@WEAVE_BUILD_TESTS_TRUE@	CertProvOptions.$(OBJEXT) \
 @WEAVE_BUILD_TESTS_TRUE@	KeyExportOptions.$(OBJEXT) \
 @WEAVE_BUILD_TESTS_TRUE@	TAKEOptions.$(OBJEXT) \
 @WEAVE_BUILD_TESTS_TRUE@	DeviceDescOptions.$(OBJEXT) \
 @WEAVE_BUILD_TESTS_TRUE@	Certs.$(OBJEXT) \
 @WEAVE_BUILD_TESTS_TRUE@	TestGroupKeyStore.$(OBJEXT) \
+@WEAVE_BUILD_TESTS_TRUE@	TestWeaveCertData.$(OBJEXT) \
 @WEAVE_BUILD_TESTS_TRUE@	ToolCommon.$(OBJEXT) \
 @WEAVE_BUILD_TESTS_TRUE@	ToolCommonOptions.$(OBJEXT) \
 @WEAVE_BUILD_TESTS_TRUE@	TapAddrAutoconf.$(OBJEXT) \
@@ -728,6 +733,7 @@ am__installdirs = "$(DESTDIR)$(libexecdir)"
 @WEAVE_BUILD_TESTS_TRUE@	TestASN1$(EXEEXT) TestAppKeys$(EXEEXT) \
 @WEAVE_BUILD_TESTS_TRUE@	TestArgParser$(EXEEXT) \
 @WEAVE_BUILD_TESTS_TRUE@	TestCASE$(EXEEXT) \
+@WEAVE_BUILD_TESTS_TRUE@	TestCertProv$(EXEEXT) \
 @WEAVE_BUILD_TESTS_TRUE@	TestCodeUtils$(EXEEXT) \
 @WEAVE_BUILD_TESTS_TRUE@	TestCrypto$(EXEEXT) TestDRBG$(EXEEXT) \
 @WEAVE_BUILD_TESTS_TRUE@	TestDeviceDescriptor$(EXEEXT) \
@@ -874,6 +880,15 @@ TestCASE_OBJECTS = $(am_TestCASE_OBJECTS)
 TestCASE_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) \
 	$(LIBTOOLFLAGS) --mode=link $(CXXLD) $(AM_CXXFLAGS) \
 	$(CXXFLAGS) $(TestCASE_LDFLAGS) $(LDFLAGS) -o $@
+am__TestCertProv_SOURCES_DIST = TestCertProv.cpp MockCAService.cpp
+@WEAVE_BUILD_TESTS_TRUE@am_TestCertProv_OBJECTS = TestCertProv.$(OBJEXT) \
+@WEAVE_BUILD_TESTS_TRUE@	MockCAService.$(OBJEXT)
+TestCertProv_OBJECTS = $(am_TestCertProv_OBJECTS)
+@WEAVE_BUILD_TESTS_TRUE@TestCertProv_DEPENDENCIES = libWeaveTestCommon.a \
+@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_6)
+TestCertProv_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) \
+	$(LIBTOOLFLAGS) --mode=link $(CXXLD) $(AM_CXXFLAGS) \
+	$(CXXFLAGS) $(TestCertProv_LDFLAGS) $(LDFLAGS) -o $@
 am__TestCodeUtils_SOURCES_DIST = TestCodeUtils.cpp
 @WEAVE_BUILD_TESTS_TRUE@am_TestCodeUtils_OBJECTS =  \
 @WEAVE_BUILD_TESTS_TRUE@	TestCodeUtils.$(OBJEXT)
@@ -1428,11 +1443,13 @@ TestWdmUpdateResponse_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
 	$(AM_CXXFLAGS) $(CXXFLAGS) $(TestWdmUpdateResponse_LDFLAGS) \
 	$(LDFLAGS) -o $@
 am__TestWeaveCert_SOURCES_DIST = TestWeaveCert.cpp \
-	TestWeaveCertData.cpp TestPersistedStorageImplementation.cpp
+	TestWeaveCertData.cpp TestPersistedStorageImplementation.cpp \
+	MockCAService.cpp
 @WEAVE_BUILD_TESTS_TRUE@am_TestWeaveCert_OBJECTS =  \
 @WEAVE_BUILD_TESTS_TRUE@	TestWeaveCert.$(OBJEXT) \
 @WEAVE_BUILD_TESTS_TRUE@	TestWeaveCertData.$(OBJEXT) \
-@WEAVE_BUILD_TESTS_TRUE@	TestPersistedStorageImplementation.$(OBJEXT)
+@WEAVE_BUILD_TESTS_TRUE@	TestPersistedStorageImplementation.$(OBJEXT) \
+@WEAVE_BUILD_TESTS_TRUE@	MockCAService.$(OBJEXT)
 TestWeaveCert_OBJECTS = $(am_TestWeaveCert_OBJECTS)
 @WEAVE_BUILD_TESTS_TRUE@TestWeaveCert_DEPENDENCIES =  \
 @WEAVE_BUILD_TESTS_TRUE@	libWeaveTestCommon.a \
@@ -1679,6 +1696,28 @@ weave_dd_client_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
 	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CXXLD) \
 	$(AM_CXXFLAGS) $(CXXFLAGS) $(weave_dd_client_LDFLAGS) \
 	$(LDFLAGS) -o $@
+am__weave_cert_prov_client_SOURCES_DIST = weave-cert-prov-client.cpp
+@WEAVE_BUILD_TESTS_TRUE@am_weave_cert_prov_client_OBJECTS =  \
+@WEAVE_BUILD_TESTS_TRUE@	weave-cert-prov-client.$(OBJEXT)
+weave_cert_prov_client_OBJECTS = $(am_weave_cert_prov_client_OBJECTS)
+@WEAVE_BUILD_TESTS_TRUE@weave_cert_prov_client_DEPENDENCIES =  \
+@WEAVE_BUILD_TESTS_TRUE@	libWeaveTestCommon.a \
+@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_6)
+weave_cert_prov_client_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
+	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CXXLD) \
+	$(AM_CXXFLAGS) $(CXXFLAGS) $(weave_cert_prov_client_LDFLAGS) \
+	$(LDFLAGS) -o $@
+am__weave_cert_prov_server_SOURCES_DIST = weave-cert-prov-server.cpp MockCAService.cpp
+@WEAVE_BUILD_TESTS_TRUE@am_weave_cert_prov_server_OBJECTS = weave-cert-prov-server.$(OBJEXT) \
+@WEAVE_BUILD_TESTS_TRUE@	MockCAService.$(OBJEXT)
+weave_cert_prov_server_OBJECTS = $(am_weave_cert_prov_server_OBJECTS)
+@WEAVE_BUILD_TESTS_TRUE@weave_cert_prov_server_DEPENDENCIES =  \
+@WEAVE_BUILD_TESTS_TRUE@	libWeaveTestCommon.a \
+@WEAVE_BUILD_TESTS_TRUE@	$(am__DEPENDENCIES_6)
+weave_cert_prov_server_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
+	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CXXLD) \
+	$(AM_CXXFLAGS) $(CXXFLAGS) $(weave_cert_prov_server_LDFLAGS) \
+	$(LDFLAGS) -o $@
 am__weave_device_descriptor_SOURCES_DIST =  \
 	weave-device-descriptor.cpp
 @WEAVE_BUILD_TESTS_TRUE@am_weave_device_descriptor_OBJECTS =  \
@@ -1805,7 +1844,7 @@ SOURCES = $(libMockBleApplicationDelegate_a_SOURCES) \
 	$(libWeaveTestGroupKeyStore_a_SOURCES) \
 	$(GenerateEventLog_SOURCES) $(TestASN1_SOURCES) \
 	$(TestAppKeys_SOURCES) $(TestArgParser_SOURCES) \
-	$(TestBinding_SOURCES) $(TestCASE_SOURCES) \
+	$(TestBinding_SOURCES) $(TestCASE_SOURCES) $(TestCertProv_SOURCES) \
 	$(TestCodeUtils_SOURCES) $(TestCrypto_SOURCES) \
 	$(TestDRBG_SOURCES) $(TestDataManagement_SOURCES) \
 	$(TestDeviceDescriptor_SOURCES) $(TestECDH_SOURCES) \
@@ -1846,6 +1885,7 @@ SOURCES = $(libMockBleApplicationDelegate_a_SOURCES) \
 	$(weave_bdx_server_development_SOURCES) \
 	$(weave_bdx_server_v0_SOURCES) \
 	$(weave_connection_tunnel_SOURCES) $(weave_dd_client_SOURCES) \
+	$(weave_cert_prov_client_SOURCES) $(weave_cert_prov_server_SOURCES) \
 	$(weave_device_descriptor_SOURCES) $(weave_heartbeat_SOURCES) \
 	$(weave_key_export_SOURCES) $(weave_ping_SOURCES) \
 	$(weave_service_dir_SOURCES) $(weave_swu_client_SOURCES) \
@@ -1859,7 +1899,7 @@ DIST_SOURCES = $(am__libMockBleApplicationDelegate_a_SOURCES_DIST) \
 	$(am__TestASN1_SOURCES_DIST) $(am__TestAppKeys_SOURCES_DIST) \
 	$(am__TestArgParser_SOURCES_DIST) \
 	$(am__TestBinding_SOURCES_DIST) $(am__TestCASE_SOURCES_DIST) \
-	$(am__TestCodeUtils_SOURCES_DIST) \
+	$(am__TestCertProv_SOURCES_DIST) $(am__TestCodeUtils_SOURCES_DIST) \
 	$(am__TestCrypto_SOURCES_DIST) $(am__TestDRBG_SOURCES_DIST) \
 	$(am__TestDataManagement_SOURCES_DIST) \
 	$(am__TestDeviceDescriptor_SOURCES_DIST) \
@@ -1923,6 +1963,8 @@ DIST_SOURCES = $(am__libMockBleApplicationDelegate_a_SOURCES_DIST) \
 	$(am__weave_bdx_server_v0_SOURCES_DIST) \
 	$(am__weave_connection_tunnel_SOURCES_DIST) \
 	$(am__weave_dd_client_SOURCES_DIST) \
+	$(am__weave_cert_prov_client_SOURCES_DIST) \
+	$(am__weave_cert_prov_server_SOURCES_DIST) \
 	$(am__weave_device_descriptor_SOURCES_DIST) \
 	$(am__weave_heartbeat_SOURCES_DIST) \
 	$(am__weave_key_export_SOURCES_DIST) \
@@ -1943,8 +1985,8 @@ am__can_run_installinfo = \
     n|no|NO) false;; \
     *) (install-info --version) >/dev/null 2>&1;; \
   esac
-am__noinst_HEADERS_DIST = CASEOptions.h DMTestClient.h \
-	DeviceDescOptions.h KeyExportOptions.h MockDCLPServer.h \
+am__noinst_HEADERS_DIST = CASEOptions.h MockCAService.h DMTestClient.h \
+	CertProvOptions.h DeviceDescOptions.h KeyExportOptions.h MockDCLPServer.h \
 	MockDCServer.h MockDDServer.h MockDMPublisher.h MockEvents.h \
 	MockExternalEvents.h MockFPServer.h MockIAServer.h \
 	MockLoggingManager.h MockMismatchedSchemaSinkAndSource.h \
@@ -2892,7 +2934,8 @@ LOG_DRIVER = $(abs_srcdir)/weave-parallel-test-engine
 # Local headers to build against and distribute but not to install
 # since they are not part of the Weave SDK public API.
 #
-noinst_HEADERS = CASEOptions.h DMTestClient.h DeviceDescOptions.h \
+noinst_HEADERS = CASEOptions.h CertProvOptions.h MockCAService.h \
+	DMTestClient.h DeviceDescOptions.h \
 	KeyExportOptions.h MockDCLPServer.h MockDCServer.h \
 	MockDDServer.h MockDMPublisher.h MockEvents.h \
 	MockExternalEvents.h MockFPServer.h MockIAServer.h \
@@ -2948,6 +2991,7 @@ noinst_HEADERS = CASEOptions.h DMTestClient.h DeviceDescOptions.h \
 @WEAVE_BUILD_TESTS_TRUE@	$(LWIP_CPPFLAGS) $(SOCKETS_CPPFLAGS) \
 @WEAVE_BUILD_TESTS_TRUE@	$(PTHREAD_CFLAGS) $(NULL) \
 @WEAVE_BUILD_TESTS_TRUE@	$(am__append_2)
+
 @WEAVE_BUILD_TESTS_TRUE@libWeaveCryptoTests_a_SOURCES = \
 @WEAVE_BUILD_TESTS_TRUE@    crypto-tests/WeaveCryptoAESTests.cpp         \
 @WEAVE_BUILD_TESTS_TRUE@    crypto-tests/WeaveCryptoHKDFTests.cpp        \
@@ -2957,11 +3001,13 @@ noinst_HEADERS = CASEOptions.h DMTestClient.h DeviceDescOptions.h \
 
 @WEAVE_BUILD_TESTS_TRUE@libWeaveTestCommon_a_SOURCES = \
 @WEAVE_BUILD_TESTS_TRUE@    CASEOptions.cpp                              \
+@WEAVE_BUILD_TESTS_TRUE@    CertProvOptions.cpp                          \
 @WEAVE_BUILD_TESTS_TRUE@    KeyExportOptions.cpp                         \
 @WEAVE_BUILD_TESTS_TRUE@    TAKEOptions.cpp                              \
 @WEAVE_BUILD_TESTS_TRUE@    DeviceDescOptions.cpp                        \
 @WEAVE_BUILD_TESTS_TRUE@    Certs.cpp                                    \
 @WEAVE_BUILD_TESTS_TRUE@    TestGroupKeyStore.cpp                        \
+@WEAVE_BUILD_TESTS_TRUE@    TestWeaveCertData.cpp                        \
 @WEAVE_BUILD_TESTS_TRUE@    ToolCommon.cpp                               \
 @WEAVE_BUILD_TESTS_TRUE@    ToolCommonOptions.cpp                        \
 @WEAVE_BUILD_TESTS_TRUE@    TapAddrAutoconf.cpp                          \
@@ -3074,7 +3120,7 @@ noinst_HEADERS = CASEOptions.h DMTestClient.h DeviceDescOptions.h \
 # These will NOT be part of the externally-consumable binary SDK.
 @WEAVE_BUILD_TESTS_TRUE@local_test_programs = GenerateEventLog \
 @WEAVE_BUILD_TESTS_TRUE@	TestASN1 TestAppKeys TestArgParser \
-@WEAVE_BUILD_TESTS_TRUE@	TestCASE TestCodeUtils TestCrypto \
+@WEAVE_BUILD_TESTS_TRUE@	TestCASE TestCertProv TestCodeUtils TestCrypto \
 @WEAVE_BUILD_TESTS_TRUE@	TestDRBG TestDeviceDescriptor TestECDH \
 @WEAVE_BUILD_TESTS_TRUE@	TestECDSA TestECMath \
 @WEAVE_BUILD_TESTS_TRUE@	TestFabricStateDelegate \
@@ -3173,6 +3219,9 @@ noinst_HEADERS = CASEOptions.h DMTestClient.h DeviceDescOptions.h \
 @WEAVE_BUILD_TESTS_TRUE@TestCASE_SOURCES = TestCASE.cpp
 @WEAVE_BUILD_TESTS_TRUE@TestCASE_LDFLAGS = $(AM_CPPFLAGS)
 @WEAVE_BUILD_TESTS_TRUE@TestCASE_LDADD = libWeaveTestCommon.a $(COMMON_LDADD)
+@WEAVE_BUILD_TESTS_TRUE@TestCertProv_SOURCES = TestCertProv.cpp MockCAService.cpp
+@WEAVE_BUILD_TESTS_TRUE@TestCertProv_LDFLAGS = $(AM_CPPFLAGS)
+@WEAVE_BUILD_TESTS_TRUE@TestCertProv_LDADD = libWeaveTestCommon.a $(COMMON_LDADD)
 @WEAVE_BUILD_TESTS_TRUE@TestCodeUtils_SOURCES = TestCodeUtils.cpp
 @WEAVE_BUILD_TESTS_TRUE@TestCodeUtils_LDADD = 
 @WEAVE_BUILD_TESTS_TRUE@TestCrypto_SOURCES = TestCrypto.cpp
@@ -3331,7 +3380,7 @@ noinst_HEADERS = CASEOptions.h DMTestClient.h DeviceDescOptions.h \
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_BUILD_WARM_TRUE@TestWarm_SOURCES = TestWarm.cpp TestPersistedStorageImplementation.cpp
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_BUILD_WARM_TRUE@TestWarm_LDFLAGS = $(AM_CPPFLAGS)
 @WEAVE_BUILD_TESTS_TRUE@@WEAVE_BUILD_WARM_TRUE@TestWarm_LDADD = libWeaveTestGroupKeyStore.a $(COMMON_LDADD)
-@WEAVE_BUILD_TESTS_TRUE@TestWeaveCert_SOURCES = TestWeaveCert.cpp TestWeaveCertData.cpp TestPersistedStorageImplementation.cpp
+@WEAVE_BUILD_TESTS_TRUE@TestWeaveCert_SOURCES = TestWeaveCert.cpp TestWeaveCertData.cpp TestPersistedStorageImplementation.cpp MockCAService.cpp
 @WEAVE_BUILD_TESTS_TRUE@TestWeaveCert_LDADD = libWeaveTestCommon.a $(COMMON_LDADD)
 @WEAVE_BUILD_TESTS_TRUE@TestWeaveEncoding_SOURCES = TestWeaveEncoding.cpp
 @WEAVE_BUILD_TESTS_TRUE@TestWeaveEncoding_LDADD = 
@@ -3402,6 +3451,7 @@ noinst_HEADERS = CASEOptions.h DMTestClient.h DeviceDescOptions.h \
 @WEAVE_BUILD_TESTS_TRUE@infratest_SOURCES = infratest.cpp
 @WEAVE_BUILD_TESTS_TRUE@infratest_LDADD = $(COMMON_LDADD)
 @WEAVE_BUILD_TESTS_TRUE@mock_device_SOURCES = mock-device.cpp \
+@WEAVE_BUILD_TESTS_TRUE@	MockCAService.cpp \
 @WEAVE_BUILD_TESTS_TRUE@	MockDCLPServer.cpp MockDCServer.cpp \
 @WEAVE_BUILD_TESTS_TRUE@	MockDDServer.cpp MockFPServer.cpp \
 @WEAVE_BUILD_TESTS_TRUE@	MockNPServer.cpp MockOpActions.cpp \
@@ -3428,6 +3478,7 @@ noinst_HEADERS = CASEOptions.h DMTestClient.h DeviceDescOptions.h \
 @WEAVE_BUILD_TESTS_TRUE@	MockWdmSubscriptionResponder.cpp \
 @WEAVE_BUILD_TESTS_TRUE@	MockWdmNodeOptions.cpp \
 @WEAVE_BUILD_TESTS_TRUE@	MockLoggingManager.cpp MockEvents.cpp \
+@WEAVE_BUILD_TESTS_TRUE@	TestWeaveCertData.cpp \
 @WEAVE_BUILD_TESTS_TRUE@	$(am__append_44)
 @WEAVE_BUILD_TESTS_TRUE@TestErrorStr_SOURCES = TestErrorStr.cpp
 @WEAVE_BUILD_TESTS_TRUE@TestErrorStr_LDADD = $(COMMON_LDADD)
@@ -3482,6 +3533,12 @@ noinst_HEADERS = CASEOptions.h DMTestClient.h DeviceDescOptions.h \
 @WEAVE_BUILD_TESTS_TRUE@weave_dd_client_SOURCES = weave-dd-client.cpp
 @WEAVE_BUILD_TESTS_TRUE@weave_dd_client_LDFLAGS = ${AM_CPPFLAGS}
 @WEAVE_BUILD_TESTS_TRUE@weave_dd_client_LDADD = libWeaveTestCommon.a $(COMMON_LDADD)
+@WEAVE_BUILD_TESTS_TRUE@weave_cert_prov_client_SOURCES = weave-cert-prov-client.cpp
+@WEAVE_BUILD_TESTS_TRUE@weave_cert_prov_client_LDFLAGS = ${AM_CPPFLAGS}
+@WEAVE_BUILD_TESTS_TRUE@weave_cert_prov_client_LDADD = libWeaveTestCommon.a $(COMMON_LDADD)
+@WEAVE_BUILD_TESTS_TRUE@weave_cert_prov_server_SOURCES = weave-cert-prov-server.cpp MockCAService.cpp
+@WEAVE_BUILD_TESTS_TRUE@weave_cert_prov_server_LDFLAGS = ${AM_CPPFLAGS}
+@WEAVE_BUILD_TESTS_TRUE@weave_cert_prov_server_LDADD = libWeaveTestCommon.a $(COMMON_LDADD)
 @WEAVE_BUILD_TESTS_TRUE@weave_device_descriptor_SOURCES = weave-device-descriptor.cpp
 @WEAVE_BUILD_TESTS_TRUE@weave_device_descriptor_LDFLAGS = ${AM_CPPFLAGS}
 @WEAVE_BUILD_TESTS_TRUE@weave_device_descriptor_LDADD = libWeaveTestCommon.a $(COMMON_LDADD)
@@ -3712,6 +3769,10 @@ TestBinding$(EXEEXT): $(TestBinding_OBJECTS) $(TestBinding_DEPENDENCIES) $(EXTRA
 TestCASE$(EXEEXT): $(TestCASE_OBJECTS) $(TestCASE_DEPENDENCIES) $(EXTRA_TestCASE_DEPENDENCIES) 
 	@rm -f TestCASE$(EXEEXT)
 	$(AM_V_CXXLD)$(TestCASE_LINK) $(TestCASE_OBJECTS) $(TestCASE_LDADD) $(LIBS)
+
+TestCertProv$(EXEEXT): $(TestCertProv_OBJECTS) $(TestCertProv_DEPENDENCIES) $(EXTRA_TestCertProv_DEPENDENCIES) 
+	@rm -f TestCertProv$(EXEEXT)
+	$(AM_V_CXXLD)$(TestCertProv_LINK) $(TestCertProv_OBJECTS) $(TestCertProv_LDADD) $(LIBS)
 
 TestCodeUtils$(EXEEXT): $(TestCodeUtils_OBJECTS) $(TestCodeUtils_DEPENDENCIES) $(EXTRA_TestCodeUtils_DEPENDENCIES) 
 	@rm -f TestCodeUtils$(EXEEXT)
@@ -4136,6 +4197,14 @@ weave-dd-client$(EXEEXT): $(weave_dd_client_OBJECTS) $(weave_dd_client_DEPENDENC
 	@rm -f weave-dd-client$(EXEEXT)
 	$(AM_V_CXXLD)$(weave_dd_client_LINK) $(weave_dd_client_OBJECTS) $(weave_dd_client_LDADD) $(LIBS)
 
+weave-cert-prov-client$(EXEEXT): $(weave_cert_prov_client_OBJECTS) $(weave_cert_prov_client_DEPENDENCIES) $(EXTRA_weave_cert_prov_client_DEPENDENCIES) 
+	@rm -f weave-cert-prov-client$(EXEEXT)
+	$(AM_V_CXXLD)$(weave_cert_prov_client_LINK) $(weave_cert_prov_client_OBJECTS) $(weave_cert_prov_client_LDADD) $(LIBS)
+
+weave-cert-prov-server$(EXEEXT): $(weave_cert_prov_server_OBJECTS) $(weave_cert_prov_server_DEPENDENCIES) $(EXTRA_weave_cert_prov_server_DEPENDENCIES) 
+	@rm -f weave-cert-prov-server$(EXEEXT)
+	$(AM_V_CXXLD)$(weave_cert_prov_server_LINK) $(weave_cert_prov_server_OBJECTS) $(weave_cert_prov_server_LDADD) $(LIBS)
+
 weave-device-descriptor$(EXEEXT): $(weave_device_descriptor_OBJECTS) $(weave_device_descriptor_DEPENDENCIES) $(EXTRA_weave_device_descriptor_DEPENDENCIES) 
 	@rm -f weave-device-descriptor$(EXEEXT)
 	$(AM_V_CXXLD)$(weave_device_descriptor_LINK) $(weave_device_descriptor_OBJECTS) $(weave_device_descriptor_LDADD) $(LIBS)
@@ -4177,6 +4246,7 @@ distclean-compile:
 
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/CASEOptions.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Certs.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/CertProvOptions.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/DeviceDescOptions.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/GenerateEventLog-GenerateEventLog.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/GenerateEventLog-MockEvents.Po@am__quote@
@@ -4195,6 +4265,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/TestArgParser.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/TestBinding.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/TestCASE.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/TestCertProv.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/TestCodeUtils.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/TestCrypto-TestCrypto.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/TestDRBG.Po@am__quote@
@@ -4328,6 +4399,8 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/weave-bdx-server-v0.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/weave-connection-tunnel.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/weave-dd-client.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/weave-cert-prov-client.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/weave-cert-prov-server.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/weave-device-descriptor.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/weave-heartbeat.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/weave-key-export.Po@am__quote@
@@ -6204,6 +6277,13 @@ TestArgParser.log: TestArgParser$(EXEEXT)
 TestCASE.log: TestCASE$(EXEEXT)
 	@p='TestCASE$(EXEEXT)'; \
 	b='TestCASE'; \
+	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
+	--log-file $$b.log --trs-file $$b.trs \
+	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
+	"$$tst" $(AM_TESTS_FD_REDIRECT)
+TestCertProv.log: TestCertProv$(EXEEXT)
+	@p='TestCertProv$(EXEEXT)'; \
+	b='TestCertProv'; \
 	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
 	--log-file $$b.log --trs-file $$b.trs \
 	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \

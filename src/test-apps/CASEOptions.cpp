@@ -270,66 +270,6 @@ bool CASEOptions::HandleOption(const char *progName, OptionSet *optSet, int id, 
     return true;
 }
 
-bool CASEOptions::ReadCertFile(const char *fileName, uint8_t *& certBuf, uint16_t& certLen)
-{
-    uint32_t len;
-
-    static const char *certB64Prefix = "1QAABAAB";
-    static const size_t certB64PrefixLen = sizeof(certB64Prefix) - 1;
-
-    // Read the specified file into a malloced buffer.
-    certBuf = ReadFileArg(fileName, len, UINT16_MAX);
-    if (certBuf == NULL)
-        return false;
-
-    // If the certificate is in base-64 format, convert it to raw TLV.
-    if (len > certB64PrefixLen && memcmp(certBuf, certB64Prefix, certB64PrefixLen) == 0)
-    {
-        len = nl::Base64Decode((const char *)certBuf, len, (uint8_t *)certBuf);
-        if (len == UINT16_MAX)
-        {
-            printf("Invalid certificate format: %s\n", fileName);
-            free(certBuf);
-            certBuf = NULL;
-            return false;
-        }
-    }
-
-    certLen = (uint16_t)len;
-
-    return true;
-}
-
-bool CASEOptions::ReadPrivateKeyFile(const char *fileName, uint8_t *& keyBuf, uint16_t& keyLen)
-{
-    uint32_t len;
-
-    static const char *keyB64Prefix = "1QAABAAC";
-    static const size_t keyB64PrefixLen = sizeof(keyB64Prefix) - 1;
-
-    // Read the specified file into a malloced buffer.
-    keyBuf = ReadFileArg(fileName, len, UINT16_MAX);
-    if (keyBuf == NULL)
-        return false;
-
-    // If the private key is in base-64 format, convert it to raw TLV.
-    if (len > keyB64PrefixLen && memcmp(keyBuf, keyB64Prefix, keyB64PrefixLen) == 0)
-    {
-        len = nl::Base64Decode((const char *)keyBuf, len, (uint8_t *)keyBuf);
-        if (len == UINT16_MAX)
-        {
-            printf("Invalid private key format: %s\n", fileName);
-            free(keyBuf);
-            keyBuf = NULL;
-            return false;
-        }
-    }
-
-    keyLen = (uint16_t)len;
-
-    return true;
-}
-
 WEAVE_ERROR CASEOptions::GetNodeCert(const uint8_t *& nodeCert, uint16_t & nodeCertLen)
 {
     nodeCert = NodeCert;
@@ -355,8 +295,8 @@ WEAVE_ERROR CASEOptions::GetNodePrivateKey(const uint8_t *& weavePrivKey, uint16
     {
         if (!GetTestNodePrivateKey(FabricState.LocalNodeId, weavePrivKey, weavePrivKeyLen))
         {
-        printf("ERROR: Node private key not configured\n");
-        return WEAVE_ERROR_KEY_NOT_FOUND;
+            printf("ERROR: Node private key not configured\n");
+            return WEAVE_ERROR_KEY_NOT_FOUND;
         }
     }
     return WEAVE_NO_ERROR;
