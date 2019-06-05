@@ -157,11 +157,6 @@ int main(int argc, char *argv[])
 
     InitWeaveStack(true, true);
 
-    if (gTestWdmNextOptions.mEnableMockTimestampInitialCounter)
-    {
-        EnableMockEventTimestampInitialCounter();
-    }
-
     InitializeEventLogging(&ExchangeMgr);
 
     switch (gMockWdmNodeOptions.mWdmRoleInTest)
