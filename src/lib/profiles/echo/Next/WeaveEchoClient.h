@@ -108,7 +108,7 @@ using namespace ::nl::Weave;
  * An EchoResponse message was received from the peer.  Arguments to the event contain the response
  * payload and meta-information about the response message.
  *
- * ### CommuncationError
+ * ### CommunicationError
  *
  * An error occurred while forming or sending an EchoRequest, or while waiting for a response.
  * Examples of errors that can occur while waiting for a response are key errors or unexpected close
@@ -153,7 +153,7 @@ public:
         kEvent_PreparePayload                       = 1,    /**< The application is requested to prepare the payload for the Echo request. */
         kEvent_RequestSent                          = 2,    /**< An EchoRequest message was sent to the peer. */
         kEvent_ResponseReceived                     = 3,    /**< An EchoResponse message was received from the peer. */
-        kEvent_CommuncationError                    = 4,    /**< A communication error occurred while sending an EchoRequest or waiting for a response. */
+        kEvent_CommunicationError                   = 4,    /**< A communication error occurred while sending an EchoRequest or waiting for a response. */
         kEvent_ResponseTimeout                      = 5,    /**< An EchoResponse was not received in the alloted time. */
         kEvent_RequestAborted                       = 6,    /**< An in-progress Echo exchange was aborted because a request was made to start another exchange. */
 
@@ -246,7 +246,7 @@ struct WeaveEchoClient::InEventParam
         struct
         {
             WEAVE_ERROR Reason;                             /**< The error code associated with the communication failure. */
-        } CommuncationError;
+        } CommunicationError;
 
         struct
         {

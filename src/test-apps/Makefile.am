@@ -82,9 +82,11 @@ LOG_DRIVER=$(abs_srcdir)/weave-parallel-test-engine
 #
 noinst_HEADERS                                             = \
     CASEOptions.h                                            \
+    CertProvOptions.h                                        \
     DMTestClient.h                                           \
     DeviceDescOptions.h                                      \
     KeyExportOptions.h                                       \
+    MockCAService.h                                          \
     MockDCLPServer.h                                         \
     MockDCServer.h                                           \
     MockDDServer.h                                           \
@@ -118,7 +120,7 @@ noinst_HEADERS                                             = \
     MockWdmViewServer.h                                      \
     PASEEngineTest.h                                         \
     TAKEOptions.h                                            \
-    TapAddrAutoconf.h                                               \
+    TapAddrAutoconf.h                                        \
     TestDRBG.h                                               \
     TestEventLoggingSchemaExamples.h                         \
     TestGroupKeyStore.h                                      \
@@ -198,11 +200,13 @@ libWeaveCryptoTests_a_SOURCES                  = \
 
 libWeaveTestCommon_a_SOURCES                   = \
     CASEOptions.cpp                              \
+    CertProvOptions.cpp                          \
     KeyExportOptions.cpp                         \
     TAKEOptions.cpp                              \
     DeviceDescOptions.cpp                        \
     Certs.cpp                                    \
     TestGroupKeyStore.cpp                        \
+    TestWeaveCertData.cpp                        \
     ToolCommon.cpp                               \
     ToolCommonOptions.cpp                        \
     TapAddrAutoconf.cpp                          \
@@ -294,6 +298,8 @@ libexec_PROGRAMS                              += \
 endif
 
 libexec_PROGRAMS                              += \
+    weave-cert-prov-client                       \
+    weave-cert-prov-server                       \
     weave-device-descriptor                      \
     weave-key-export                             \
     weave-ping                                   \
@@ -309,6 +315,7 @@ check_PROGRAMS                                 = \
     TestAppKeys                                  \
     TestArgParser                                \
     TestCASE                                     \
+    TestCertProv                                 \
     TestCodeUtils                                \
     TestCrypto                                   \
     TestDRBG                                     \
@@ -424,6 +431,7 @@ local_test_programs                            = \
     TestAppKeys                                  \
     TestArgParser                                \
     TestCASE                                     \
+    TestCertProv                                 \
     TestCodeUtils                                \
     TestCrypto                                   \
     TestDRBG                                     \
@@ -1170,6 +1178,10 @@ TestCASE_SOURCES                         = TestCASE.cpp
 TestCASE_LDFLAGS                         = $(AM_CPPFLAGS)
 TestCASE_LDADD                           = libWeaveTestCommon.a $(COMMON_LDADD)
 
+TestCertProv_SOURCES                     = TestCertProv.cpp MockCAService.cpp
+TestCertProv_LDFLAGS                     = $(AM_CPPFLAGS)
+TestCertProv_LDADD                       = libWeaveTestCommon.a $(COMMON_LDADD)
+
 TestCodeUtils_SOURCES                    = TestCodeUtils.cpp
 TestCodeUtils_LDADD                      =
 
@@ -1373,7 +1385,8 @@ TestWarm_LDFLAGS                         = $(AM_CPPFLAGS)
 TestWarm_LDADD                           = libWeaveTestGroupKeyStore.a $(COMMON_LDADD)
 endif
 
-TestWeaveCert_SOURCES                    = TestWeaveCert.cpp TestWeaveCertData.cpp TestPersistedStorageImplementation.cpp
+TestWeaveCert_SOURCES                    = TestWeaveCert.cpp TestWeaveCertData.cpp \
+                                           TestPersistedStorageImplementation.cpp MockCAService.cpp
 TestWeaveCert_LDADD                      = libWeaveTestCommon.a $(COMMON_LDADD)
 
 TestWeaveEncoding_SOURCES                = TestWeaveEncoding.cpp
@@ -1418,7 +1431,7 @@ TestWdmNext_SOURCES                      = TestWdmNext.cpp						\
                                            schema/weave/trait/locale/LocaleCapabilitiesTrait.cpp	\
                                            schema/weave/trait/security/BoltLockSettingsTrait.cpp	\
                                            schema/weave/trait/telemetry/NetworkWiFiTelemetryTrait.cpp	\
-										   MockWdmNodeOptions.cpp                   \
+                                           MockWdmNodeOptions.cpp                                       \
                                            MockWdmViewServer.cpp					\
                                            MockWdmViewClient.cpp					\
                                            MockWdmSubscriptionInitiator.cpp				\
@@ -1486,7 +1499,7 @@ mock_device_SOURCES                      = mock-device.cpp                      
                                            MockWdmSubscriptionInitiator.cpp                         \
                                            MockWdmTestVerifier.cpp	                            \
                                            MockWdmSubscriptionResponder.cpp                         \
-										   MockWdmNodeOptions.cpp                                   \
+                                           MockWdmNodeOptions.cpp                                   \
                                            MockLoggingManager.cpp                                   \
                                            MockEvents.cpp
 
@@ -1567,6 +1580,15 @@ weave_connection_tunnel_LDADD            = libWeaveTestCommon.a $(COMMON_LDADD)
 weave_dd_client_SOURCES                  = weave-dd-client.cpp
 weave_dd_client_LDFLAGS                  = ${AM_CPPFLAGS}
 weave_dd_client_LDADD                    = libWeaveTestCommon.a $(COMMON_LDADD)
+
+weave_cert_prov_client_SOURCES           = weave-cert-prov-client.cpp
+weave_cert_prov_client_LDFLAGS           = ${AM_CPPFLAGS}
+weave_cert_prov_client_LDADD             = libWeaveTestCommon.a $(COMMON_LDADD)
+
+weave_cert_prov_server_SOURCES           = weave-cert-prov-server.cpp          \
+                                           MockCAService.cpp
+weave_cert_prov_server_LDFLAGS           = ${AM_CPPFLAGS}
+weave_cert_prov_server_LDADD             = libWeaveTestCommon.a $(COMMON_LDADD)
 
 weave_device_descriptor_SOURCES          = weave-device-descriptor.cpp
 weave_device_descriptor_LDFLAGS          = ${AM_CPPFLAGS}

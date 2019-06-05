@@ -1,5 +1,6 @@
 /*
  *
+ *    Copyright (c) 2019 Google LLC.
  *    Copyright (c) 2013-2017 Nest Labs, Inc.
  *    All rights reserved.
  *
@@ -51,6 +52,7 @@
 #include "TAKEOptions.h"
 #include "KeyExportOptions.h"
 #include "DeviceDescOptions.h"
+#include "TestWeaveCertData.h"
 
 #include <Weave/WeaveVersion.h>
 #include <SystemLayer/SystemLayer.h>
@@ -58,6 +60,7 @@
 #include <Weave/Core/WeaveCore.h>
 #include <Weave/Support/CodeUtils.h>
 #include <Weave/Support/ErrorStr.h>
+#include <Weave/Support/crypto/RSA.h>
 #include <Weave/Core/WeaveStats.h>
 
 #if CONFIG_BLE_PLATFORM_BLUEZ
@@ -65,7 +68,6 @@
 #include <PlatformLayer/Ble/Bluez/BluezBlePlatformDelegate.h>
 #include <PlatformLayer/Ble/Bluez/WoBluezLayer.h>
 #endif // CONFIG_BLE_PLATFORM_BLUEZ
-
 
 using namespace nl::Inet;
 using namespace nl::Weave;
@@ -101,6 +103,19 @@ struct TestNodeCert
 
 extern TestNodeCert TestNodeCerts[];
 
+struct TestNodeOperationalCred
+{
+    uint64_t NodeId;
+    const uint8_t *SelfSignedCert;
+    uint16_t SelfSignedCertLength;
+    const uint8_t *ServiceAssignedCert;
+    uint16_t ServiceAssignedCertLength;
+    const uint8_t *PrivateKey;
+    uint16_t PrivateKeyLength;
+};
+
+extern TestNodeOperationalCred TestNodeOperationalCredentials[];
+
 struct TestCACert
 {
     uint64_t CAId;
@@ -122,6 +137,37 @@ extern uint8_t TestDevice2_Cert[];
 extern uint16_t TestDevice2_CertLength;
 extern uint8_t TestDevice2_PrivateKey[];
 extern uint16_t TestDevice2_PrivateKeyLength;
+
+extern uint64_t TestDevice1_OperationalNodeId;
+extern uint8_t TestDevice1_OperationalSelfSignedCert[];
+extern uint16_t TestDevice1_OperationalSelfSignedCertLength;
+extern uint8_t TestDevice1_OperationalServiceAssignedCert[];
+extern uint16_t TestDevice1_OperationalServiceAssignedCertLength;
+extern uint8_t TestDevice1_OperationalPrivateKey[];
+extern uint16_t TestDevice1_OperationalPrivateKeyLength;
+
+extern const uint8_t TestDevice1_X509_RSA_PrivateKey[];
+extern const uint16_t TestDevice1_X509_RSA_PrivateKeyLength;
+extern const uint8_t TestDevice1_X509_RSA_Cert[];
+extern const uint16_t TestDevice1_X509_RSA_CertLength;
+extern const uint8_t TestDevice1_X509_RSA_ICACert1[];
+extern const uint16_t TestDevice1_X509_RSA_ICACert1Length;
+extern const uint8_t TestDevice1_X509_RSA_ICACert2[];
+extern const uint16_t TestDevice1_X509_RSA_ICACert2Length;
+
+extern const uint8_t TestDevice_X509_RSA_RootCert[];
+extern const uint16_t TestDevice_X509_RSA_RootCertLength;
+
+extern const uint8_t TestDevice1_PairingToken[];
+extern const uint16_t TestDevice1_PairingTokenLength;
+extern const uint8_t TestDevice1_PairingInitData[];
+extern const uint16_t TestDevice1_PairingInitDataLength;
+
+extern const uint32_t TestDevice1_ManufAttest_HMACKeyId;
+extern const uint8_t TestDevice1_ManufAttest_HMACMetaData[];
+extern const uint16_t TestDevice1_ManufAttest_HMACMetaDataLength;
+extern const uint8_t TestDevice1_ManufAttest_HMACKey[];
+extern const uint16_t TestDevice1_ManufAttest_HMACKeyLength;
 
 extern bool sSuppressAccessControls;
 
@@ -153,6 +199,13 @@ extern bool GetTestNodeCert(uint64_t nodeId, const uint8_t *& cert, uint16_t& ce
 extern bool GetTestNodePrivateKey(uint64_t nodeId, const uint8_t *& key, uint16_t& keyLen);
 extern bool GetTestCACert(uint64_t caId, const uint8_t *& cert, uint16_t& certLen);
 extern bool GetTestCAPrivateKey(uint64_t caId, const uint8_t *& key, uint16_t& keyLen);
+extern bool GetTestOperationalSelfSignedNodeCert(uint64_t nodeId, const uint8_t *& cert, uint16_t& certLen);
+extern bool GetTestOperationalServiceAssignedNodeCert(uint64_t nodeId, const uint8_t *& cert, uint16_t& certLen);
+extern bool GetTestOperationalNodePrivateKey(uint64_t nodeId, const uint8_t *& key, uint16_t& keyLen);
+extern bool GetTestNodeManufAttestCert(uint64_t nodeId, const uint8_t *& cert, uint16_t& certLen);
+extern bool GetTestNodeManufAttestPrivateKey(uint64_t nodeId, const uint8_t *& key, uint16_t& keyLen);
+
+extern WEAVE_ERROR ValidateWeaveDeviceCert(WeaveCertificateSet & certSet);
 
 #if CONFIG_BLE_PLATFORM_BLUEZ
 void *WeaveBleIOLoop(void *arg);

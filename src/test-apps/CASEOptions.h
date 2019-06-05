@@ -73,9 +73,6 @@ private:
 
     virtual bool HandleOption(const char *progName, OptionSet *optSet, int id, const char *name, const char *arg) __OVERRIDE;
 
-    static bool ReadCertFile(const char *fileName, uint8_t *& certBuf, uint16_t& certLen);
-    static bool ReadPrivateKeyFile(const char *fileName, uint8_t *& keyBuf, uint16_t& keyLen);
-
 #if !WEAVE_CONFIG_LEGACY_CASE_AUTH_DELEGATE
 
     // ===== Methods that implement the WeaveCASEAuthDelegate interface
