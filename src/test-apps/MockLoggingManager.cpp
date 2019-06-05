@@ -149,6 +149,10 @@ void InitializeEventLogging(WeaveExchangeManager * inMgr)
 
     nl::Weave::Profiles::DataManagement::LoggingManagement::CreateLoggingManagement(
         inMgr, sizeof(logStorageResources) / sizeof(logStorageResources[0]), logStorageResources);
+    if (gEnableMockTimestampInitialCounter)
+    {
+        LoggingManagement::GetInstance().ReinitializeMonotonicEventCounters();
+    }
 }
 
 MockEventGenerator * MockEventGenerator::GetInstance(void)

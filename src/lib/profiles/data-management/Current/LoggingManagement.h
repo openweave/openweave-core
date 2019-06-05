@@ -245,6 +245,7 @@ public:
 #if WEAVE_CONFIG_EVENT_LOGGING_WDM_OFFLOAD
     bool CheckShouldRunWDM(void);
 #endif
+    void ReinitializeMonotonicEventCounters(void);
 private:
     event_id_t LogEventPrivate(const EventSchema & inSchema, EventWriterFunct inEventWriter, void * inAppData,
                                const EventOptions * inOptions);

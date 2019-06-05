@@ -531,6 +531,34 @@ LoggingManagement::LoggingManagement(nl::Weave::WeaveExchangeManager * inMgr,
 
 /**
  * @brief
+ *  Reinitialize the non-persistent counters to values other than 0
+ *
+ * This function, much like the non-persistent counters themselves, should only
+ * be used in test code.
+ *
+ * The function will reinitialize the event ID counters to the current system
+ * time for all importance levels that use the non-persistent counters.  The
+ * counters will get reinitialized only if there were no events logged at that
+ * importance level.
+ */
+void LoggingManagement::ReinitializeMonotonicEventCounters(void)
+{
+    CircularEventBuffer *current = mEventBuffer;
+    while (current != NULL)
+    {
+        if ((current->mEventIdCounter == &(current->mNonPersistedCounter)) &&
+            (current->mFirstEventID == 0) &&
+            (current->mLastEventID == 0))
+        {
+            current->mNonPersistedCounter.Init(System::Timer::GetCurrentEpoch() + 1);
+            current->mFirstEventID = current->mEventIdCounter->GetValue();
+        }
+        current = current->mNext;
+    }
+}
+
+/**
+ * @brief
  *   LoggingManagement default constructor. Provided primarily to make the compiler happy.
  *
 
