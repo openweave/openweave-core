@@ -405,6 +405,7 @@ $(nl_public_WeaveSupport_source_dirstem)/crypto/DRBG.h \
 $(nl_public_WeaveSupport_source_dirstem)/crypto/EllipticCurve.h \
 $(nl_public_WeaveSupport_source_dirstem)/crypto/HKDF.h \
 $(nl_public_WeaveSupport_source_dirstem)/crypto/HMAC.h \
+$(nl_public_WeaveSupport_source_dirstem)/crypto/RSA.h \
 $(nl_public_WeaveSupport_source_dirstem)/crypto/HashAlgos.h \
 $(nl_public_WeaveSupport_source_dirstem)/crypto/WeaveRNG.h \
 $(nl_public_WeaveSupport_source_dirstem)/crypto/WeaveCrypto.h \
