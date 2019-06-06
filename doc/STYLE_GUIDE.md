@@ -93,7 +93,7 @@ If you want your headers to render with nice-looking step numbers on openweave.i
 
 See the **OpenWeave + Happy Cross Network Multicast Inet Layer HOWTO** for an example of this:
 
-*   [GitHub version](/guides/cross-network-inet-multicast-howto.md)
+*   [GitHub version](./guides/cross-network-inet-multicast-howto.md)
 *   [openweave.io version](https://openweave.io/guides/cross-network-inet-multicast-howto)
 
 ### Callouts
