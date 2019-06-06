@@ -135,20 +135,61 @@ class weave_wdm_next_test_base(unittest.TestCase):
             self.__process_result("node01", "node02", value, data)
             self.result_data = data
 
+    def __validate_log_line(self, data, node_type, wdm_stress_check, stress_failures):
+        """
+        check expected log lines showed up in node logs with expected count
+        """
+        if node_type == "client":
+            node_log = data["client_output"]
+            log_check_list = self.client_log_check
+        else:
+            node_log = data["server_output"]
+            log_check_list = self.server_log_check
+        for expect_line_count in log_check_list:
+            item_output_cnt = len(re.findall(expect_line_count[0], node_log))
+            if item_output_cnt != expect_line_count[1]:
+                wdm_stress_check = False
+                error = "missing '%s' in %s_output, need %d, actual %d" % (expect_line_count[0], node_type, expect_line_count[1], item_output_cnt)
+                stress_failures.append(error)
+        return (wdm_stress_check, stress_failures)
+
+    def __validate_node_events(self, wdm_stress_check, stress_failures, data, client_gen):
+        """
+        validate events from client and publisher, event count should be equal from client and publisher
+        client: send events
+        publisher: publish events
+        """
+        if client_gen: # client send events, server publish events
+            client_output = data["client_output"]
+            publisher_output = data["server_output"]
+            node_role = {"client":"client",
+                         "publisher":"server"
+                        }
+        else: # server send events, client publish events
+            client_output = data["server_output"]
+            publisher_output = data["client_output"]
+            node_role = {"client":"server",
+                         "publisher":"client"
+                        }
+        client_event_dic = self.weave_wdm.wdm_next_client_event_sequence_process(client_output)
+        publisher_event_dic = self.weave_wdm.wdm_next_publisher_event_sequence_process(publisher_output)
+        if not ((client_event_dic['success']) is True and (publisher_event_dic['success'] is True) and (client_event_dic['client_event_list'] == publisher_event_dic['publisher_event_list'])):
+            wdm_stress_check = False
+            error = "The events sent from the client to the server don't match"
+            stress_failures.append(error)
+            stress_failures.append("\tevents sent by the " + node_role["client"] + ": " + str(client_event_dic))
+            stress_failures.append("\tevents received by the "+ node_role["publisher"]+": " + str(publisher_event_dic))
+        return (wdm_stress_check, stress_failures)
 
     def __process_result(self, nodeA, nodeB, value, data):
         print "weave-wdm-next %s from " % self.wdm_option + nodeA + " to " + nodeB + " "
         data = data[0]
         test_results = []
-        wdm_sanity_check = True
         wdm_stress_check = value
-        wdm_sanity_diag_list = []
         wdm_stress_diag_list = []
         tag_and_paramenters = 'test_file: %s\nparameters: %s\n' % (self.test_tag, str(self.options))
 
         # collect all problems in a list of strings to pass to the assert at the end of the test
-        sanity_failures = ["There is a failure within the first iteration; log file tag: " + self.test_tag]
-        wdm_sanity_diag_list.append(tag_and_paramenters)
         wdm_stress_diag_list.append(tag_and_paramenters)
         wdm_stress_diag_list.append(str(data['success_dic']))
 
@@ -156,85 +197,6 @@ class weave_wdm_next_test_base(unittest.TestCase):
         if not value:
             # This means something failed and it was caught in the WeaveWdmNext plugin
             stress_failures.append(str(data['success_dic']))
-            
-        if len(self.test_case_name) == 2:
-            client_delimiter = 'Current completed test iteration is'
-            client_completed_iter_list = [i + client_delimiter for i in data["client_output"].split(client_delimiter)]
-            server_delimiter = 'Allocated clients: 0. Allocated handlers: 0.'
-            server_completed_iter_list = [i + server_delimiter for i in data["server_output"].split(server_delimiter)]
-
-            for i in self.client_log_check:
-                item_output_cnt = len(re.findall(i[0], client_completed_iter_list[0]))
-                if item_output_cnt == 0:
-                    wdm_sanity_check = False
-                    error = "missing '%s' in client_output" % i[0]
-                    sanity_failures.append(error)
-                    wdm_sanity_diag_list.append(error)
-
-            first_expected_good_iteration = 0
-            if self.client_faults or self.server_faults:
-                # If this is a fault-injection test, check the last iteration,
-                # not the first one
-                first_expected_good_iteration = (self.test_client_iterations - 1)
-
-            if len(re.findall("Good Iteration", client_completed_iter_list[first_expected_good_iteration])) != 1:
-                wdm_sanity_check = False
-                error = "missing good iteration"
-                sanity_failures.append(error)
-                wdm_sanity_diag_list.append(error)
-
-            for i in self.server_log_check:
-                item_output_cnt = len(re.findall(i[0], server_completed_iter_list[0]))
-                if item_output_cnt == 0:
-                    wdm_sanity_check = False
-                    error = "missing '%s' in server_output" % i[0]
-                    sanity_failures.append(error)
-                    wdm_sanity_diag_list.append(error)
-
-            if self.client_event_generator is not None and not (self.client_faults or self.server_faults):
-                client_event_dic = self.weave_wdm.wdm_next_client_event_sequence_process(client_completed_iter_list[0])
-                publisher_event_dic = self.weave_wdm.wdm_next_publisher_event_sequence_process(server_completed_iter_list[0])
-                if not ((client_event_dic['success'] is True) and (publisher_event_dic['success'] is True) and (client_event_dic['client_event_list'] == publisher_event_dic['publisher_event_list'])):
-                    wdm_sanity_check = False
-                    error = "initiator missing events:"
-                    wdm_sanity_diag_list.append(error)
-                    sanity_failures.append(error)
-                    sanity_failures.append("\tclient events: " + str(client_event_dic))
-                    sanity_failures.append("\tpublisher events: " + str(publisher_event_dic))
-                else:
-                    wdm_sanity_diag_list.append("initiator good events:")
-                wdm_sanity_diag_list.append(str(client_event_dic))
-                wdm_sanity_diag_list.append(str(publisher_event_dic))
-
-            if self.server_event_generator is not None and not (self.client_faults or self.server_faults):
-                client_event_dic = self.weave_wdm.wdm_next_client_event_sequence_process(server_completed_iter_list[0])
-                publisher_event_dic = self.weave_wdm.wdm_next_publisher_event_sequence_process(client_completed_iter_list[0])
-                if not ((client_event_dic['success']) is True and (publisher_event_dic['success'] is True) and (client_event_dic['client_event_list'] == publisher_event_dic['publisher_event_list'])):
-                    wdm_sanity_check = False
-                    error = "responder missing events:"
-                    wdm_sanity_diag_list.append(error)
-                    sanity_failures.append(error)
-                    sanity_failures.append("\tclient events: " + str(client_event_dic))
-                    sanity_failures.append("\tpublisher events: " + str(publisher_event_dic))
-                else:
-                    wdm_sanity_diag_list.append("responder good events:")
-                wdm_sanity_diag_list.append(str(client_event_dic))
-                wdm_sanity_diag_list.append(str(publisher_event_dic))
-            if self.server_event_generator is None and self.client_event_generator is None and not (self.client_faults or self.server_faults):
-                client_sanity_checksum_list = self.weave_wdm.wdm_next_checksum_check_process(client_completed_iter_list[0])
-                server_sanity_checksum_list = self.weave_wdm.wdm_next_checksum_check_process(server_completed_iter_list[0])
-                if client_sanity_checksum_list == server_sanity_checksum_list:
-                    wdm_sanity_diag_list.append("sanity matched trait checksum:")
-                else:
-                    wdm_sanity_check = False
-                    error = "sanity mismatched trait checksum:"
-                    sanity_failures.append(error)
-                    wdm_sanity_diag_list.append(error)
-                    sanity_failures.append("\tinitiator: " + str(client_sanity_checksum_list))
-                    sanity_failures.append("\tresponder: " + str(server_sanity_checksum_list))
-
-                wdm_sanity_diag_list.append('initiator:' + str(client_sanity_checksum_list))
-                wdm_sanity_diag_list.append('responder:' + str(server_sanity_checksum_list))
 
         success_iterations_count = len(re.findall("Good Iteration", data["client_output"]))
         success_iterations_rate_string = "success rate(success iterations/total iterations)" \
@@ -246,78 +208,34 @@ class weave_wdm_next_test_base(unittest.TestCase):
         if success_iterations_count != self.test_client_iterations and not (self.client_faults or self.server_faults):
             stress_failures.append(success_iterations_rate_string)
 
-        for i in self.client_log_check:
-            item_output_cnt = len(re.findall(i[0], data["client_output"]))
-            if item_output_cnt != i[1]:
-                wdm_stress_check = False
-                error = "missing '%s' in client_output, need %d, actual %d" % (i[0], i[1], item_output_cnt)
-                wdm_stress_diag_list.append(error)
-                stress_failures.append(error)
+        # check both client and server log for expected log filters with expected counts
+        wdm_stress_check, stress_failures = self.__validate_log_line(data, "client", wdm_stress_check, stress_failures)
+        wdm_stress_check, stress_failures = self.__validate_log_line(data, "server", wdm_stress_check, stress_failures)
 
-        for i in self.server_log_check:
-            item_output_cnt = len(re.findall(i[0], data["server_output"]))
-            if item_output_cnt != i[1]:
-                wdm_stress_check = False
-                error = "missing '%s' in server_output, need %d, actual %d" % (i[0], i[1], item_output_cnt)
-                wdm_stress_diag_list.append(error)
-                stress_failures.append(error)
+        if not (self.client_faults or self.server_faults):
+            if self.client_event_generator is not None:
+                wdm_stress_check, stress_failures = self.__validate_node_events(wdm_stress_check, stress_failures, data, True)
 
-        if self.client_event_generator is not None and not (self.client_faults or self.server_faults):
-            client_event_dic = self.weave_wdm.wdm_next_client_event_sequence_process(data["client_output"])
-            publisher_event_dic = self.weave_wdm.wdm_next_publisher_event_sequence_process(data["server_output"])
-            if not ((client_event_dic['success']) is True and (publisher_event_dic['success'] is True) and (client_event_dic['client_event_list'] == publisher_event_dic['publisher_event_list'])):
-                wdm_stress_check = False
-                error = "The events sent from the client to the server don't match"
-                stress_failures.append(error)
-                stress_failures.append("\tevents sent by the client: " + str(client_event_dic))
-                stress_failures.append("\tevents received by the server: " + str(publisher_event_dic))
-                wdm_stress_diag_list.append("initiator missing events:")
-            else:
-                wdm_stress_diag_list.append("initiator good events:")
-                wdm_stress_diag_list.append(str(client_event_dic))
-                wdm_stress_diag_list.append(str(publisher_event_dic))
+            if self.server_event_generator is not None:
+                wdm_stress_check, stress_failures = self.__validate_node_events(wdm_stress_check, stress_failures, data, False)
 
-        if self.server_event_generator is not None and not (self.client_faults or self.server_faults):
-            client_event_dic = self.weave_wdm.wdm_next_client_event_sequence_process(data["server_output"])
-            publisher_event_dic = self.weave_wdm.wdm_next_publisher_event_sequence_process(data["client_output"])
-            if not ((client_event_dic['success']) is True and (publisher_event_dic['success'] is True) and (client_event_dic['client_event_list'] == publisher_event_dic['publisher_event_list'])):
-                wdm_stress_check = False
-                wdm_stress_diag_list.append("responder missing events:")
-                error = "The events sent from the server to the client don't match"
-                stress_failures.append(error)
-                stress_failures.append("\tevents sent by the server: " + str(client_event_dic))
-                stress_failures.append("\tevents received by the client: " + str(publisher_event_dic))
-            else:
-                wdm_stress_diag_list.append("responder good events:")
-                wdm_stress_diag_list.append(str(client_event_dic))
-                wdm_stress_diag_list.append(str(publisher_event_dic))
+            if self.server_event_generator is None and self.client_event_generator is None:
+                client_checksum_list = self.weave_wdm.wdm_next_checksum_check_process(data["client_output"])
 
-        if self.server_event_generator is None and self.client_event_generator is None and not (self.client_faults or self.server_faults):
-            client_checksum_list = self.weave_wdm.wdm_next_checksum_check_process(data["client_output"])
+                server_checksum_list = self.weave_wdm.wdm_next_checksum_check_process(data["server_output"])
 
-            server_checksum_list = self.weave_wdm.wdm_next_checksum_check_process(data["server_output"])
+                if client_checksum_list != server_checksum_list:
+                    wdm_stress_check = False
+                    wdm_stress_diag_list.append("mismatched trait checksum:")
+                    error = "Mismatch in the trait data checksums:"
+                    stress_failures.append(error)
+                    stress_failures.append("\tchecksums on the client: " + str(client_checksum_list))
+                    stress_failures.append("\tchecksums on the server: " + str(server_checksum_list))
+                wdm_stress_diag_list.append('initiator:' + str(client_checksum_list))
+                wdm_stress_diag_list.append('responder:' + str(server_checksum_list))
 
-            if client_checksum_list == server_checksum_list:
-                wdm_stress_diag_list.append("matched trait checksum:")
-            else:
-                wdm_stress_check = False
-                wdm_stress_diag_list.append("mismatched trait checksum:")
-                error = "Mismatch in the trait data checksums:"
-                stress_failures.append(error)
-                stress_failures.append("\tchecksums on the client: " + str(client_checksum_list))
-                stress_failures.append("\tchecksums on the server: " + str(server_checksum_list))
-            wdm_stress_diag_list.append('initiator:' + str(client_checksum_list))
-            wdm_stress_diag_list.append('responder:' + str(server_checksum_list))
-
-        if len(self.test_case_name) == 2:
-            test_results.append({
-                'testName': self.test_case_name[0],
-                'testStatus': 'success' if wdm_sanity_check else 'failure',
-                'testDescription': ('Sanity test passed!' if wdm_sanity_check else 'Sanity test failed!')
-                                   + "\n" + ''.join(wdm_sanity_diag_list)
-            })
         test_results.append({
-            'testName': self.test_case_name[1] if len(self.test_case_name) == 2 else self.test_case_name[0],
+            'testName': self.test_case_name[0],
             'testStatus': 'success' if wdm_stress_check else 'failure',
             'testDescription': ('Stress test passed!' if wdm_stress_check else 'Stress test failed!')
                                + "\n" + ''.join(wdm_stress_diag_list)
@@ -332,7 +250,6 @@ class weave_wdm_next_test_base(unittest.TestCase):
         output_file_name = self.weave_wdm.process_log_prefix + self.test_tag[1:] + TESTRAIL_SUFFIX
         self.__output_test_result(output_file_name, output_data)
 
-        self.assertTrue(wdm_sanity_check, "\nwdm_sanity_check is False\n\n" + "\n\t".join(sanity_failures))
         self.assertTrue(wdm_stress_check, "\nwdm_stress_check is False\n\n" + "\n\t".join(stress_failures))
         print hgreen("Passed")
 

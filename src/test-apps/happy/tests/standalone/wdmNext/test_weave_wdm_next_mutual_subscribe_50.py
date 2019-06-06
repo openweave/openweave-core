@@ -63,8 +63,7 @@ class test_weave_wdm_next_mutual_subscribe_50(weave_wdm_next_test_base):
                                              ('Handler\[0\] Moving to \[ FREE\] Ref\(0\)', wdm_next_args['test_client_iterations'])]
 
         wdm_next_args['test_tag'] = self.__class__.__name__[19:].upper()
-        wdm_next_args['test_case_name'] = ['I07: Mutual Subscribe: Responder Continuous Events. Mutate data in responder. Client in initiator aborts',
-                                           'M31: Stress Mutual Subscribe: Responder Continuous Events. Mutate data in responder. Client in initiator aborts']
+        wdm_next_args['test_case_name'] = ['M31: Stress Mutual Subscribe: Responder Continuous Events. Mutate data in responder. Client in initiator aborts']
         print 'test file: ' + self.__class__.__name__
         print "weave-wdm-next test I07 and M31"
         super(test_weave_wdm_next_mutual_subscribe_50, self).weave_wdm_next_test_base(wdm_next_args)
