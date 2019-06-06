@@ -673,4 +673,111 @@
 #define WEAVE_DEVICE_CONFIG_DEFAULT_TUNNEL_TELEMETRY_INTERVAL_MS 300000
 #endif
 
+// -------------------- Event Logging Configuration --------------------
+
+/**
+ * @def WEAVE_DEVICE_CONFIG_EVENT_LOGGING_CRIT_BUFFER_SIZE
+ *
+ * @brief
+ *   A size, in bytes, of the individual critical event logging buffer.
+ *   Note: the critical event buffer must exist.
+ */
+#ifndef WEAVE_DEVICE_CONFIG_EVENT_LOGGING_CRIT_BUFFER_SIZE
+#define WEAVE_DEVICE_CONFIG_EVENT_LOGGING_CRIT_BUFFER_SIZE (1024)
+#endif
+
+#if (WEAVE_DEVICE_CONFIG_EVENT_LOGGING_CRIT_BUFFER_SIZE <= 0)
+#error "The Prod critical event buffer must exist (WEAVE_DEVICE_CONFIG_EVENT_LOGGING_CRIT_BUFFER_SIZE > 0)"
+#endif
+
+/**
+ * @def WEAVE_DEVICE_CONFIG_EVENT_LOGGING_PROD_BUFFER_SIZE
+ *
+ * @brief
+ *   A size, in bytes, of the individual production event logging buffer.
+ *   Note: the production event buffer must exist.
+ */
+#ifndef WEAVE_DEVICE_CONFIG_EVENT_LOGGING_PROD_BUFFER_SIZE
+#define WEAVE_DEVICE_CONFIG_EVENT_LOGGING_PROD_BUFFER_SIZE (512)
+#endif
+
+#if (WEAVE_DEVICE_CONFIG_EVENT_LOGGING_PROD_BUFFER_SIZE <= 0)
+#error "The Prod event buffer must exist (WEAVE_DEVICE_CONFIG_EVENT_LOGGING_PROD_BUFFER_SIZE > 0)"
+#endif
+
+/**
+ * @def WEAVE_DEVICE_CONFIG_EVENT_LOGGING_INFO_BUFFER_SIZE
+ *
+ * @brief
+ *   A size, in bytes, of the individual info event logging buffer.
+ *   Note: set to 0 to disable info event buffer and all support
+ *   for the info level events.
+ */
+#ifndef WEAVE_DEVICE_CONFIG_EVENT_LOGGING_INFO_BUFFER_SIZE
+#define WEAVE_DEVICE_CONFIG_EVENT_LOGGING_INFO_BUFFER_SIZE (512)
+#endif
+
+/**
+ * @def WEAVE_DEVICE_CONFIG_EVENT_LOGGING_DEBUG_BUFFER_SIZE
+ *
+ * @brief
+ *   A size, in bytes, of the individual debug event logging buffer.
+ *   Note: set to 0 to disable debug event buffer and all support
+ *   for the debug level events.
+ */
+#ifndef WEAVE_DEVICE_CONFIG_EVENT_LOGGING_DEBUG_BUFFER_SIZE
+#define WEAVE_DEVICE_CONFIG_EVENT_LOGGING_DEBUG_BUFFER_SIZE (256)
+#endif
+
+/**
+ *  @def WEAVE_DEVICE_CONFIG_EVENT_ID_COUNTER_EPOCH
+ *
+ *  @brief
+ *    The event id counter persisted storage epoch.
+ */
+#ifndef WEAVE_DEVICE_CONFIG_EVENT_ID_COUNTER_EPOCH
+#define WEAVE_DEVICE_CONFIG_EVENT_ID_COUNTER_EPOCH   (0x10000)
+#endif
+
+/**
+ *  @def WEAVE_DEVICE_CONFIG_PERSISTED_STORAGE_CRIT_EIDC_KEY
+ *
+ *  @brief
+ *    The critical event id counter (eidc) persisted storage key.
+ */
+#ifndef WEAVE_DEVICE_CONFIG_PERSISTED_STORAGE_CRIT_EIDC_KEY
+#define WEAVE_DEVICE_CONFIG_PERSISTED_STORAGE_CRIT_EIDC_KEY  "crit-eidc"
+#endif
+
+/**
+ *  @def WEAVE_DEVICE_CONFIG_PERSISTED_STORAGE_PROD_EIDC_KEY
+ *
+ *  @brief
+ *    The production event id counter (eidc) persisted storage key.
+ */
+#ifndef WEAVE_DEVICE_CONFIG_PERSISTED_STORAGE_PROD_EIDC_KEY
+#define WEAVE_DEVICE_CONFIG_PERSISTED_STORAGE_PROD_EIDC_KEY  "prod-eidc"
+#endif
+
+/**
+ *  @def WEAVE_DEVICE_CONFIG_PERSISTED_STORAGE_INFO_EIDC_KEY
+ *
+ *  @brief
+ *    The info event id counter (eidc) persisted storage key.
+ */
+#ifndef WEAVE_DEVICE_CONFIG_PERSISTED_STORAGE_INFO_EIDC_KEY
+#define WEAVE_DEVICE_CONFIG_PERSISTED_STORAGE_INFO_EIDC_KEY  "info-eidc"
+#endif
+
+/**
+ *  @def WEAVE_DEVICE_CONFIG_PERSISTED_STORAGE_DEBUG_EIDC_KEY
+ *
+ *  @brief
+ *    The debug event id counter (eidc) persisted storage key.
+ */
+#ifndef WEAVE_DEVICE_CONFIG_PERSISTED_STORAGE_DEBUG_EIDC_KEY
+#define WEAVE_DEVICE_CONFIG_PERSISTED_STORAGE_DEBUG_EIDC_KEY  "debug-eidc"
+#endif
+
+
 #endif // WEAVE_DEVICE_CONFIG_H

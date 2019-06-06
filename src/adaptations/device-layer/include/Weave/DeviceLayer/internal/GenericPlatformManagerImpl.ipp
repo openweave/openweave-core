@@ -36,6 +36,7 @@
 #include <Weave/DeviceLayer/internal/ServiceProvisioningServer.h>
 #include <Weave/DeviceLayer/internal/ServiceDirectoryManager.h>
 #include <Weave/DeviceLayer/internal/EchoServer.h>
+#include <Weave/DeviceLayer/internal/EventLogging.h>
 #include <Weave/DeviceLayer/internal/BLEManager.h>
 #include <new>
 
@@ -233,6 +234,14 @@ WEAVE_ERROR GenericPlatformManagerImpl<ImplClass>::_InitWeaveStack(void)
     if (err != WEAVE_NO_ERROR)
     {
         WeaveLogError(DeviceLayer, "Weave Echo server initialization failed: %s", ErrorStr(err));
+    }
+    SuccessOrExit(err);
+
+    // Initialize Weave Event Logging.
+    err = InitWeaveEventLogging();
+    if (err != WEAVE_NO_ERROR)
+    {
+        WeaveLogError(DeviceLayer, "Event Logging initialization failed: %s", ErrorStr(err));
     }
     SuccessOrExit(err);
 

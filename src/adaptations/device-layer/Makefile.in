@@ -216,12 +216,12 @@ libDeviceLayer_a_LIBADD =
 am__libDeviceLayer_a_SOURCES_DIST = CASEAuth.cpp \
 	DeviceControlServer.cpp DeviceDescriptionServer.cpp \
 	DeviceIdentityTraitDataSource.cpp DeviceNetworkInfo.cpp \
-	EchoServer.cpp FabricProvisioningServer.cpp GeneralUtils.cpp \
-	Globals.cpp NetworkTelemetryManager.cpp PersistedStorage.cpp \
-	ServiceDirectoryManager.cpp ServiceProvisioningServer.cpp \
-	ServiceTunnelAgent.cpp SystemEventSupport.cpp \
-	SystemTimerSupport.cpp TestDeviceIds.cpp TimeSyncManager.cpp \
-	TraitManager.cpp \
+	EchoServer.cpp EventLogging.cpp FabricProvisioningServer.cpp \
+	GeneralUtils.cpp Globals.cpp NetworkTelemetryManager.cpp \
+	PersistedStorage.cpp ServiceDirectoryManager.cpp \
+	ServiceProvisioningServer.cpp ServiceTunnelAgent.cpp \
+	SystemEventSupport.cpp SystemTimerSupport.cpp \
+	TestDeviceIds.cpp TimeSyncManager.cpp TraitManager.cpp \
 	trait-support/nest/trait/network/TelemetryNetworkTrait.cpp \
 	trait-support/nest/trait/network/TelemetryNetworkWifiTrait.cpp \
 	trait-support/nest/trait/network/TelemetryNetworkWpanTrait.cpp \
@@ -278,6 +278,7 @@ am__dirstamp = $(am__leading_dot)dirstamp
 @CONFIG_DEVICE_LAYER_TRUE@	libDeviceLayer_a-DeviceIdentityTraitDataSource.$(OBJEXT) \
 @CONFIG_DEVICE_LAYER_TRUE@	libDeviceLayer_a-DeviceNetworkInfo.$(OBJEXT) \
 @CONFIG_DEVICE_LAYER_TRUE@	libDeviceLayer_a-EchoServer.$(OBJEXT) \
+@CONFIG_DEVICE_LAYER_TRUE@	libDeviceLayer_a-EventLogging.$(OBJEXT) \
 @CONFIG_DEVICE_LAYER_TRUE@	libDeviceLayer_a-FabricProvisioningServer.$(OBJEXT) \
 @CONFIG_DEVICE_LAYER_TRUE@	libDeviceLayer_a-GeneralUtils.$(OBJEXT) \
 @CONFIG_DEVICE_LAYER_TRUE@	libDeviceLayer_a-Globals.$(OBJEXT) \
@@ -671,6 +672,7 @@ noinst_HEADERS = \
     include/Weave/DeviceLayer/internal/DeviceIdentityTraitDataSource.h \
     include/Weave/DeviceLayer/internal/DeviceNetworkInfo.h \
     include/Weave/DeviceLayer/internal/EchoServer.h \
+    include/Weave/DeviceLayer/internal/EventLogging.h \
     include/Weave/DeviceLayer/internal/FabricProvisioningServer.h \
     include/Weave/DeviceLayer/internal/GenericConfigurationManagerImpl.h \
     include/Weave/DeviceLayer/internal/GenericConfigurationManagerImpl.ipp \
@@ -702,6 +704,7 @@ noinst_HEADERS = \
 @CONFIG_DEVICE_LAYER_TRUE@	DeviceDescriptionServer.cpp \
 @CONFIG_DEVICE_LAYER_TRUE@	DeviceIdentityTraitDataSource.cpp \
 @CONFIG_DEVICE_LAYER_TRUE@	DeviceNetworkInfo.cpp EchoServer.cpp \
+@CONFIG_DEVICE_LAYER_TRUE@	EventLogging.cpp \
 @CONFIG_DEVICE_LAYER_TRUE@	FabricProvisioningServer.cpp \
 @CONFIG_DEVICE_LAYER_TRUE@	GeneralUtils.cpp Globals.cpp \
 @CONFIG_DEVICE_LAYER_TRUE@	NetworkTelemetryManager.cpp \
@@ -929,6 +932,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libDeviceLayer_a-DeviceIdentityTraitDataSource.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libDeviceLayer_a-DeviceNetworkInfo.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libDeviceLayer_a-EchoServer.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libDeviceLayer_a-EventLogging.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libDeviceLayer_a-FabricProvisioningServer.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libDeviceLayer_a-GeneralUtils.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libDeviceLayer_a-Globals.Po@am__quote@
@@ -1082,6 +1086,20 @@ libDeviceLayer_a-EchoServer.obj: EchoServer.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='EchoServer.cpp' object='libDeviceLayer_a-EchoServer.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libDeviceLayer_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o libDeviceLayer_a-EchoServer.obj `if test -f 'EchoServer.cpp'; then $(CYGPATH_W) 'EchoServer.cpp'; else $(CYGPATH_W) '$(srcdir)/EchoServer.cpp'; fi`
+
+libDeviceLayer_a-EventLogging.o: EventLogging.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libDeviceLayer_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT libDeviceLayer_a-EventLogging.o -MD -MP -MF $(DEPDIR)/libDeviceLayer_a-EventLogging.Tpo -c -o libDeviceLayer_a-EventLogging.o `test -f 'EventLogging.cpp' || echo '$(srcdir)/'`EventLogging.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libDeviceLayer_a-EventLogging.Tpo $(DEPDIR)/libDeviceLayer_a-EventLogging.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='EventLogging.cpp' object='libDeviceLayer_a-EventLogging.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libDeviceLayer_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o libDeviceLayer_a-EventLogging.o `test -f 'EventLogging.cpp' || echo '$(srcdir)/'`EventLogging.cpp
+
+libDeviceLayer_a-EventLogging.obj: EventLogging.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libDeviceLayer_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT libDeviceLayer_a-EventLogging.obj -MD -MP -MF $(DEPDIR)/libDeviceLayer_a-EventLogging.Tpo -c -o libDeviceLayer_a-EventLogging.obj `if test -f 'EventLogging.cpp'; then $(CYGPATH_W) 'EventLogging.cpp'; else $(CYGPATH_W) '$(srcdir)/EventLogging.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libDeviceLayer_a-EventLogging.Tpo $(DEPDIR)/libDeviceLayer_a-EventLogging.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='EventLogging.cpp' object='libDeviceLayer_a-EventLogging.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libDeviceLayer_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o libDeviceLayer_a-EventLogging.obj `if test -f 'EventLogging.cpp'; then $(CYGPATH_W) 'EventLogging.cpp'; else $(CYGPATH_W) '$(srcdir)/EventLogging.cpp'; fi`
 
 libDeviceLayer_a-FabricProvisioningServer.o: FabricProvisioningServer.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libDeviceLayer_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT libDeviceLayer_a-FabricProvisioningServer.o -MD -MP -MF $(DEPDIR)/libDeviceLayer_a-FabricProvisioningServer.Tpo -c -o libDeviceLayer_a-FabricProvisioningServer.o `test -f 'FabricProvisioningServer.cpp' || echo '$(srcdir)/'`FabricProvisioningServer.cpp
