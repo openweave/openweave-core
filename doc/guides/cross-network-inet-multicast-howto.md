@@ -34,7 +34,7 @@ While it is not particularly important where you clone and build the `mcproxy` d
 % make
 ```
 
-## Step 4: Establish the happy topology
+## Step 4: Establish the Happy topology
 
 This creates a topology very similar to the [Happy Codelab](https://codelabs.developers.google.com/codelabs/happy-weave-getting-started/#0).
 
