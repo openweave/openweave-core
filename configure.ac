@@ -1025,30 +1025,6 @@ AM_CONDITIONAL([WEAVE_RUN_HAPPY_SECMGR], [test "${HAPPY_TEST_USE_SECMGR}" = 1])
 AM_CONDITIONAL([WEAVE_RUN_HAPPY_SERVICEDIR], [test "${HAPPY_TEST_USE_SERVICEDIR}" = 1])
 
 #
-# Device Manager
-#
-
-AC_MSG_CHECKING([whether to build Device Manager])
-AC_ARG_ENABLE(device_manager,
-    [AS_HELP_STRING([--disable-device-manager],[Disable building of Device Manager @<:@default=no@:>@.])],
-    [
-        case "${enableval}" in 
-
-        no|yes)
-            build_device_manager=${enableval}
-            ;;
-
-        *)
-            AC_MSG_ERROR([Invalid value ${enableval} for --enable-device-manager])
-            ;;
-
-        esac
-    ],
-    [build_device_manager=yes])
-AC_MSG_RESULT(${build_device_manager})
-AM_CONDITIONAL([WEAVE_BUILD_DEVICE_MANAGER], [test "${build_device_manager}" = "yes"])
-
-#
 # WoBle Control Path and Throughput Test  (Woble Test)
 #
 
@@ -1682,6 +1658,49 @@ else
     AC_DEFINE(INET_CONFIG_ENABLE_ASYNC_DNS_SOCKETS, 0, [Define to 0 for disabling ASYNC DNS])
 fi
 
+
+#
+# Device Manager
+#
+
+AC_MSG_CHECKING([whether to build Device Manager wrapper libraries])
+AC_ARG_ENABLE(device_manager,
+    [AS_HELP_STRING([--enable-device-manager],[Enable building of Device Manager wrapper libraries @<:@default=yes@:>@.])],
+    [
+        case "${enableval}" in 
+
+        no|yes)
+            build_device_manager=${enableval}
+            ;;
+
+        *)
+            AC_MSG_ERROR([Invalid value ${enableval} for --enable-device-manager])
+            ;;
+
+        esac
+    ],
+    [
+        # Enable building Device Manager wrapper libraries by default UNLESS the "sockets" network
+        # stack is not enabled. 
+        if test ${WEAVE_SYSTEM_CONFIG_USE_SOCKETS} -eq 1; then
+            build_device_manager=yes
+        else
+            build_device_manager=no
+        fi
+    ])
+
+# Fail if Device Manager wrapper libraries are enabled but the "sockets" network stack is not.  This combination is
+# not supported. 
+if test "${build_device_manager}" = "yes"; then
+    if test "${WEAVE_SYSTEM_CONFIG_USE_SOCKETS}" eq 0; then
+        AC_MSG_ERROR([Building Device Manager wrapper libraries requires selecting sockets as a target network stack])
+    fi
+fi    
+
+AC_MSG_RESULT(${build_device_manager})
+AM_CONDITIONAL([WEAVE_BUILD_DEVICE_MANAGER], [test "${build_device_manager}" = "yes"])
+
+
 #
 # Verhoeff support
 #
@@ -1707,6 +1726,12 @@ AC_ARG_ENABLE(verhoeff,
 AC_MSG_RESULT(${enable_verhoeff})
 
 AM_CONDITIONAL([WEAVE_WITH_VERHOEFF], [test "${enable_verhoeff}" = "yes"])
+
+
+#
+# Fuzzing support
+#
+AC_MSG_CHECKING([whether to enable fuzzing])
 
 AC_ARG_ENABLE(fuzzing,
     [AS_HELP_STRING([--enable-fuzzing],[Enable Fuzzing - Requires clang 6.0 or greater @<:@default=no@:>@.])],
@@ -2635,7 +2660,6 @@ src/lib/support/verhoeff/Makefile
 src/wrappers/jni/Makefile
 src/wrappers/jni/jni-utils/Makefile
 src/wrappers/jni/security-support/Makefile
-src/device-manager/Makefile
 src/device-manager/cocoa/Makefile
 src/device-manager/java/Makefile
 src/device-manager/python/Makefile

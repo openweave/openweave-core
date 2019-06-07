@@ -32,6 +32,7 @@ include core/WeaveCore.am
 include support/WeaveSupport.am
 include profiles/WeaveProfiles.am
 include ../warm/Warm.am
+include ../device-manager/DeviceManager.am
 
 lib_LIBRARIES                        = libWeave.a
 
@@ -52,6 +53,7 @@ endif # WEAVE_ENABLE_WOBLE_TEST
 
 libWeave_a_SOURCES                   = $(nl_SystemLayer_sources)
 libWeave_a_SOURCES                  += $(nl_InetLayer_sources)
+libWeave_a_SOURCES                  += $(nl_DeviceManager_sources)
 
 if CONFIG_NETWORK_LAYER_BLE
 libWeave_a_SOURCES                  += $(nl_BleLayer_sources)

@@ -23,12 +23,67 @@
 
 include $(abs_top_nlbuild_autotools_dir)/automake/pre.am
 
+if WEAVE_WITH_JAVA
+
 EXTRA_DIST                                         = \
+    AndroidBleApplicationDelegate.h                  \
+    AndroidBlePlatformDelegate.h                     \
     $(srcdir)/src                                    \
     $(srcdir)/stub_src                               \
     $(NULL)
 
-if WEAVE_WITH_JAVA
+lib_LTLIBRARIES                                    = libWeaveDeviceManager.la
+
+libWeaveDeviceManager_la_CPPFLAGS              = \
+    -I$(top_srcdir)/src/device-manager               \
+    -I$(top_srcdir)/src/include                      \
+	$(JNI_CPPFLAGS)                                  \
+	$(LWIP_CPPFLAGS)                                 \
+	$(SOCKETS_CPPFLAGS)                              \
+	$(NULL)
+
+libWeaveDeviceManager_la_CXXFLAGS              = \
+    $(PTHREAD_CFLAGS)                                \
+    $(NULL)
+
+libWeaveDeviceManager_la_LDFLAGS               = \
+    $(AM_LDFLAGS)                                    \
+    -avoid-version                                   \
+    -module                                          \
+    -export-dynamic                                  \
+    $(NULL)
+
+libWeaveDeviceManager_la_SOURCES               = \
+    WeaveDeviceManager-JNI.cpp                       \
+    PairingCodeUtils-JNI.cpp                         \
+    $(NULL)
+
+if CONFIG_NETWORK_LAYER_BLE
+
+libWeaveDeviceManager_la_SOURCES              += \
+    AndroidBleApplicationDelegate.cpp                \
+    AndroidBlePlatformDelegate.cpp                   \
+    $(NULL)
+
+endif # CONFIG_NETWORK_LAYER_BLE
+
+libWeaveDeviceManager_la_LIBADD                = \
+    -L$(top_builddir)/src/lib -lWeave                \
+    $(LWIP_LDFLAGS) $(LWIP_LIBS)                     \
+    $(SOCKETS_LDFLAGS) $(SOCKETS_LIBS)               \
+    $(PTHREAD_LIBS)                                  \
+    $(NULL)
+
+if WEAVE_WITH_ANDROID
+libWeaveDeviceManager_la_LIBADD                   += \
+    -llog                                            \
+    $(NULL)
+endif # WEAVE_WITH_ANDROID
+
+libWeaveDeviceManager_la_DEPENDENCIES              = \
+    $(top_builddir)/src/lib/libWeave.a               \
+    $(NULL)
+
 
 JARS                                               = \
     WeaveDeviceManager.jar                           \

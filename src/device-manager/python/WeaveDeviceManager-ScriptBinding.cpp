@@ -23,8 +23,6 @@
  *
  */
 
-#include "WeaveDeviceManager.h"
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <errno.h>
@@ -43,6 +41,7 @@
 #include <Weave/Profiles/network-provisioning/NetworkProvisioning.h>
 #include <Weave/Support/ErrorStr.h>
 #include <Weave/Support/NLDLLUtil.h>
+#include <Weave/DeviceManager/WeaveDeviceManager.h>
 
 #include <inttypes.h>
 #include <net/if.h>
@@ -1158,3 +1157,30 @@ void nl_Weave_DeviceManager_SetLogFilter(uint8_t category)
 {
     nl::Weave::Logging::SetLogFilter(category);
 }
+
+
+namespace nl {
+namespace Weave {
+namespace Platform {
+namespace PersistedStorage {
+
+/*
+ * Dummy implementations of PersistedStorage platform methods. These aren't
+ * used in the context of the Python DeviceManager, but are required to satisfy
+ * the linker.
+ */
+
+WEAVE_ERROR Read(const char *aKey, uint32_t &aValue)
+{
+    return WEAVE_NO_ERROR;
+}
+
+WEAVE_ERROR Write(const char *aKey, uint32_t aValue)
+{
+    return WEAVE_NO_ERROR;
+}
+
+} // PersistentStorage
+} // Platform
+} // Weave
+} // nl

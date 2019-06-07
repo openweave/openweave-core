@@ -20,10 +20,8 @@
 
 #include <BleLayer/BleLayer.h>
 #include <BleLayer/BlePlatformDelegate.h>
-#include "WeaveDeviceManager.h"
 
 using namespace nl::Ble;
-using namespace nl::Weave::DeviceManager;
 
 typedef bool (*SendWriteRequestCallback)(BLE_CONNECTION_OBJECT connObj, const uint8_t *svcId, const uint8_t *charId, const uint8_t *data, uint32_t dataLen);
 typedef bool (*SubscribeCharacteristicCallback)(BLE_CONNECTION_OBJECT connObj, const uint8_t *svcId, const uint8_t *charId);

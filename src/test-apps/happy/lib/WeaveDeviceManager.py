@@ -35,17 +35,15 @@ import set_test_path
 
 
 weaveDeviceMgrPath = os.environ['WEAVE_DEVICE_MGR_PATH']
-weaveDeviceMgrLibPath = os.environ['WEAVE_DEVICE_MGR_LIB_PATH']
+print 'weaveDeviceMgrPath is %s' % weaveDeviceMgrPath
 
 if os.path.exists(weaveDeviceMgrPath):
     sys.path.append(weaveDeviceMgrPath)
-if os.path.exists(weaveDeviceMgrLibPath):
-    sys.path.append(weaveDeviceMgrLibPath)
 
 try:
-    import WeaveDeviceMgr
+    from openweave import WeaveDeviceMgr
 except Exception as ex:
-    print ("Could not import the WeaveDeviceMgr module: %s" % (str(ex)))
+    print ("Failed to import WeaveDeviceMgr: %s" % (str(ex)))
 
 # Dummy Access Token
 #
@@ -162,8 +160,8 @@ if __name__ == '__main__':
 
     try:
         if options.useBle:
-            from WeaveBluezMgr import BluezManager as BleManager
-            from WeaveBleUtility import FAKE_CONN_OBJ_VALUE
+            from openweave.WeaveBluezMgr import BluezManager as BleManager
+            from openweave.WeaveBleUtility import FAKE_CONN_OBJ_VALUE
             bleManager = BleManager(devMgr)
 
             try:
