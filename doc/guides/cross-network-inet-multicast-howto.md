@@ -2,11 +2,11 @@
 
 You have decided that you would like to experiment with cross-network multicast using OpenWeave. This how-to guide illustrates using the Happy network simulation tool to set up a virtual topology that demonstrates using OpenWeave's Inet layer across two distinct networks with a multicast proxy.
 
-## Step 1: Download and Build mcproxy
+## Step 1: Download and build mcproxy
 
-The IPv6 multicast proxy daemon, _mcproxy_, serves to proxy / forward / route IPv6 multicast traffic across two disjoint IPv6 network links.
+The IPv6 multicast proxy daemon, `mcproxy`, serves to proxy / forward / route IPv6 multicast traffic across two disjoint IPv6 network links.
 
-While it is not particularly important where you clone and build the _mcproxy_ daemon executable, please take note of the location where you create it as a relative or absolute path to it will be necessary in Step 6 below.
+While it is not particularly important where you clone and build the `mcproxy` daemon executable, please take note of the location where you create it as a relative or absolute path to it is necessary in Step 6 below.
 
 ```
 % git clone https://github.com/mcproxy/mcproxy.git mcproxy
@@ -16,7 +16,7 @@ While it is not particularly important where you clone and build the _mcproxy_ d
 % make
 ```
 
-## Step 2: Download, Build, and Install happy
+## Step 2: Download, build, and install happy
 
 ```
 % git clone https://github.com/openweave/happy.git happy
@@ -25,7 +25,7 @@ While it is not particularly important where you clone and build the _mcproxy_ d
 % sudo make install
 ```
 
-## Step 3: Download and Build openweave-core
+## Step 3: Download and build openweave-core
 
 ```
 % git clone https://github.com/openweave/openweave-core.git openweave-core
@@ -34,7 +34,7 @@ While it is not particularly important where you clone and build the _mcproxy_ d
 % make
 ```
 
-## Step 4: Establish the Happy Topology
+## Step 4: Establish the Happy topology
 
 This creates a topology very similar to the [Happy Codelab](https://codelabs.developers.google.com/codelabs/happy-weave-getting-started/#0).
 
@@ -56,11 +56,11 @@ This creates a topology very similar to the [Happy Codelab](https://codelabs.dev
 % happy-network-route --prefix 192.168.1.0 WiFiNetwork BorderRouter
 ```
 
-## Step 5: Create the mcproxy Configuration for the Happy Topology
+## Step 5: Create the mcproxy configuration for the Happy topology
 
 This creates an IPv6 multicast proxy configuration between the simulated "Thread" network interface on "wpan0" and the simulated "WiFi" network interface on "wlan0" in the Happy topology we created above in Step 4.
 
-While it is not particularly important where you create the _mcproxy.conf_ file, please take note of the location where you create it as a relative or absolute path to it will be necessary in Step 6 below.
+While it is not particularly important where you create the `mcproxy.conf` file, please take note of the location where you create it as a relative or absolute path to it is necessary in Step 6.
 
 ```
 % cat > mcproxy.conf << EOF
@@ -69,41 +69,43 @@ pinstance myProxy: wpan0 ==> wlan0;
 EOF
 ```
 
-## Step 6: Run the Demonstration
+## Step 6: Run the demonstration
 
-This will run the IPv6 multicast proxy, _mcproxy_, on the "BorderRouter" node and then will launch the Inet layer multicast functional test sender and receiver on the simulated "Thread" and "WiFi" nodes, respectively.
+This runs the IPv6 multicast proxy, `mcproxy`, on the "BorderRouter" node and then launches the Inet layer multicast functional test sender and receiver on the simulated "Thread" and "WiFi" nodes, respectively.
 
 If you'd like, you can transpose the sender and the receiver nodes and the example will work equally as well.
 
 Each of the following sets of commands should be run from parallel, independent shells.
 
-### Border Router
+### Border router
 
 ```
 % happy-shell BorderRouter
-$ <absolute or relative path to mcproxy daemon executable from Step 1>/mcproxy -f <absolute or relative path to mcproxy configuration file from Step 5>/mcproxy.conf
+root@BorderRouter:# {path-to-mcproxy-from-step1}/mcproxy -f {path-to-mcproxy-config-from-step5}/mcproxy.conf
 ```
 
 ### Receiver
 
 ```
 % happy-shell WiFiNode
-$ openweave-core/src/test-apps/TestInetLayerMulticast -6 --udp -I wlan0 -g 5 --group-expected-rx-packets 5 --group-expected-tx-packets 0 -l
+root@WiFiNode:# openweave-core/src/test-apps/TestInetLayerMulticast -6 --udp -I wlan0 -g 5 --group-expected-rx-packets 5 --group-expected-tx-packets 0 -l
 ```
 
 ### Sender
 
 ```
 % happy-shell ThreadNode
-$ openweave-core/src/test-apps/TestInetLayerMulticast -6 --udp -I wpan0 -g 5 --group-expected-rx-packets 0 --group-expected-tx-packets 5 -L
+root@ThreadNode:# openweave-core/src/test-apps/TestInetLayerMulticast -6 --udp -I wpan0 -g 5 --group-expected-rx-packets 0 --group-expected-tx-packets 5 -L
 ```
 
-### Output[^1]
+### Output
+
+> Note: Your output may vary slightly around the process IDs and source addresses displayed by the receiver.
 
 #### Sender
 
 ```
-$ openweave-core/src/test-apps/TestInetLayerMulticast -6 --udp -I wlan0 -g 5 ... -L
+% openweave-core/src/test-apps/TestInetLayerMulticast -6 --udp -I wlan0 -g 5 ... -L
 Weave Node ready to service events; PID: 50845; PPID: 46482
 Using UDP/IPv6, device interface: wpan0 (w/o LwIP)
 Will join multicast group ff15::5
@@ -122,7 +124,7 @@ WEAVE:IN: Async DNS worker thread exiting.
 #### Receiver
 
 ```
-$ openweave-core/src/test-apps/TestInetLayerMulticast -6 --udp -I wlan0 -g 5 ... -l
+% openweave-core/src/test-apps/TestInetLayerMulticast -6 --udp -I wlan0 -g 5 ... -l
 Weave Node ready to service events; PID: 50826; PPID: 46499
 Using UDP/IPv6, device interface: wlan0 (w/o LwIP)
 Will join multicast group ff15::5
@@ -143,5 +145,3 @@ WEAVE:IN: Async DNS worker thread exiting.
 WEAVE:IN: Async DNS worker thread woke up.
 WEAVE:IN: Async DNS worker thread exiting.
 ```
-
-[^1]: Your output may vary slightly around the process IDs and source addresses displayed by the receiver.

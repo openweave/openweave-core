@@ -1,4 +1,4 @@
-Contributing to openweave
+Contributing to OpenWeave
 ========================
 
 Want to contribute? Great! First, read this page (including the small
@@ -28,6 +28,13 @@ avoid frustration later on.
 All submissions, including submissions by project members, require
 review. We use Github pull requests for this purpose.
 
+### Documentation ###
+
+Documentation undergoes the same review process as code and
+contributions may be mirrored on our [openweave.io][ow-io] website.
+See the [Documentation Style Guide][doc-style] for more information on
+how to author and format documentation for contribution.
+
 ### The small print ###
 
 Contributions made by corporations are covered by a different
@@ -35,3 +42,5 @@ agreement than the one above, the [Software Grant and Corporate
 Contributor License Agreement][CLA-CORP].
 
 [CLA-CORP]: https://cla.developers.google.com/about/google-corporate
+[doc-style]: /doc/STYLE_GUIDE.md
+[ow-io]: https://openweave.io
