@@ -3428,6 +3428,12 @@ $(filter %.hpp,$(nl_public_WeaveSupport_header_destinations)): $(nl_public_Weave
 # from the build directory which may not be the same as the source
 # directory in a non-colocated build.
 
+$(abs_builddir)/../$(nl_public_WeaveSupport_source_dirstem)/ASN1OID.h:
+	(cd $(abs_builddir)/../$(nl_public_WeaveSupport_source_dirstem) && $(MAKE) $(AM_MAKEFLAGS) ASN1OID.h)
+
+$(addprefix ../,$(nl_public_WeaveSupport_ASN1OID_base_header_sources)):
+	(cd $(abs_builddir)/../$(nl_public_WeaveSupport_source_dirstem) && $(MAKE) $(AM_MAKEFLAGS) ASN1OID.h)
+
 $(nl_public_WeaveSupport_destination_dirstem)/ASN1OID.h: $(abs_builddir)/../$(nl_public_WeaveSupport_source_dirstem)/ASN1OID.h | $(nl_public_WeaveSupport_ASN1OID_header_dirs)
 	$(call create-link)
 
