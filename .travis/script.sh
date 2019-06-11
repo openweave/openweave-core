@@ -51,9 +51,11 @@ gcc_check_happy()
 
     mkdir -p $TRAVIS_BUILD_DIR/happy-test-logs/$1/from-tmp
     eval $build_cmd
+    make_status=${?}
     cp $TRAVIS_BUILD_DIR/build/$build_folder/src/test-apps/happy $TRAVIS_BUILD_DIR/happy-test-logs/$1 -rf
     cp /tmp/happy* $TRAVIS_BUILD_DIR/happy-test-logs/$1/from-tmp
     echo "please check happy-test-log/<UTC time> under link: https://storage.cloud.google.com/openweave"
+    return ${make_status}
 }
 
 case "${BUILD_TARGET}" in
@@ -113,3 +115,4 @@ case "${BUILD_TARGET}" in
         ;;
         
 esac
+
