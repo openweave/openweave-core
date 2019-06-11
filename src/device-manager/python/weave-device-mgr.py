@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2
 
 #
 #    Copyright (c) 2013-2018 Nest Labs, Inc.
@@ -19,7 +19,7 @@
 
 #
 #    @file
-#      This file implements Python-based Weave Device Manager Shell.
+#      This file implements the Python-based Weave Device Manager Shell.
 #
 
 import sys
@@ -38,14 +38,14 @@ from copy import copy
 from cmd import Cmd
 from string import lower
 
-# Extend sys.path with one or more directories in which the openweave package could
-# be found relative to the location of the running script.  This makes it possible
-# to run the device manager shell from a non-standard install location, as well
-# as directly from its location the OpenWeave source tree.
+# Extend sys.path with one or more directories, relative to the location of the
+# running script, in which the openweave package might be found .  This makes it
+# possible to run the device manager shell from a non-standard install location,
+# as well as directly from its location the OpenWeave source tree.
 #
-# Note that relative package locations are prepended to sys.path so as to give a
-# local version of the package higher priority over any version installed in a
-# standard location. 
+# Note that relative package locations are prepended to sys.path so as to give
+# the local version of the package higher priority over any version installed in
+# a standard location. 
 # 
 scriptDir = os.path.dirname(os.path.abspath(__file__))
 relWeavePackageInstallDirs = [

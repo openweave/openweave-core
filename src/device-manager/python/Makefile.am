@@ -40,6 +40,7 @@ openweave_PYTHON                                  = \
 # Location into which the "openweave" python package will be installed.
 openweavedir                                      = $(pyexecdir)/openweave
 
+
 # ------------------------------------------------------------
 # DLL wrapper for Weave Device Manager 
 # ------------------------------------------------------------
@@ -95,14 +96,49 @@ install-exec-hook:
 	rm -f $(DESTDIR)$(openweavedir)/_WeaveDeviceMgr.la
 	rm -f $(DESTDIR)$(openweavedir)/_WeaveDeviceMgr.a
 
+
 # ------------------------------------------------------------
 # Weave Device Manager Shell Script 
 # ------------------------------------------------------------
 
-dist_bin_SCRIPTS = weave-device-mgr
+EXTRA_DIST =										\
+    $(srcdir)/weave-device-mgr.py					\
+    $(NULL)
+
+bin_SCRIPTS = weave-device-mgr
 
 weave-device-mgr: $(srcdir)/weave-device-mgr.py
 	cp $(srcdir)/weave-device-mgr.py weave-device-mgr
 
+CLEANFILES = weave-device-mgr
+
+
+# ------------------------------------------------------------
+# "openweave" Python Wheel
+# ------------------------------------------------------------
+
+if WEAVE_BUILD_INSTALLABLE_PYTHON_PACKAGE
+
+EXTRA_DIST +=										\
+    $(srcdir)/build-openweave-wheel.py				\
+    $(NULL)
+
+.openweave-wheel: $(srcdir)/build-openweave-wheel.py weave-device-mgr _WeaveDeviceMgr.la $(shell find $(srcdir) -type f -name '*.py')
+	rm -f openweave-*.whl
+	$(PYTHON) $(srcdir)/build-openweave-wheel.py
+	touch .openweave-wheel
+
+install-exec-local: .openweave-wheel
+	mkdir -p $(DESTDIR)$(pyexecdir)
+	rm -f $(DESTDIR)$(pyexecdir)/openweave-*.whl
+	cp openweave-*.whl $(DESTDIR)$(pyexecdir)
+
+uninstall-local:
+	rm -f $(DESTDIR)$(pyexecdir)/openweave-*.whl
+
+clean-local:
+	rm -f .openweave-wheel openweave-*.whl
+
+endif # WEAVE_BUILD_INSTALLABLE_PYTHON_PACKAGE
 
 include $(abs_top_nlbuild_autotools_dir)/automake/post.am
