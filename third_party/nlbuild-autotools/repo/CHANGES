@@ -1,3 +1,8 @@
+1.6.12 (2019-06-11)
+
+        * install-headers target now depends on BUILT_SOURCES to
+          enable installation of generated headers
+
 1.6.11 (2019-05-23)
 
         * Changed the bootstrap shebang from sh to bash to address a
