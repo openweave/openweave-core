@@ -708,6 +708,8 @@ WEAVE_ERROR WeaveDeviceDescriptor::DecodeText(const char *data, uint32_t dataLen
     bool mfgDateIncluded = false;
     bool serialNumIncluded = false;
 
+    outDesc.Clear();
+
     if (reader.Version != kEncodingVersion)
         return WEAVE_ERROR_UNSUPPORTED_DEVICE_DESCRIPTOR_VERSION;
 
@@ -822,6 +824,8 @@ WEAVE_ERROR WeaveDeviceDescriptor::DecodeTLV(const uint8_t *data, uint32_t dataL
 {
     WEAVE_ERROR err;
     TLVReader reader;
+
+    outDesc.Clear();
 
     reader.Init(data, dataLen);
 
