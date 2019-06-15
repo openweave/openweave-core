@@ -105,6 +105,18 @@
 #define WEAVE_DEVICE_CONFIG_LOG_MESSAGE_MAX_SIZE 256
 #endif
 
+/**
+ * WEAVE_DEVICE_CONFIG_ENABLE_FACTORY_PROVISIONING
+ *
+ * Enable the device factory provisioning feature.
+ *
+ * The factory provisioning feature allows factory or developer-supplied provisioning information
+ * to be injected into a device at boot time and automatically stored in persistent storage.
+ */
+#ifndef WEAVE_DEVICE_CONFIG_ENABLE_FACTORY_PROVISIONING
+#define WEAVE_DEVICE_CONFIG_ENABLE_FACTORY_PROVISIONING 1
+#endif
+
 // -------------------- Device Identification Configuration --------------------
 
 /**

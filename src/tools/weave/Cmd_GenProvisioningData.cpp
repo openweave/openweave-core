@@ -93,7 +93,7 @@ static const char *const gCmdOptionHelp =
     "\n"
     "   -c, --count <num>\n"
     "\n"
-    "       The number of devices which the provisioning data should be generated.\n"
+    "       The number of devices for which provisioning data should be generated.\n"
     "\n"
     "   -C, --ca-cert <file>\n"
     "\n"

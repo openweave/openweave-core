@@ -28,6 +28,9 @@
 namespace nl {
 namespace Weave {
 namespace DeviceLayer {
+
+class ProvisioningDataSet;
+
 namespace Internal {
 
 /**
@@ -57,19 +60,19 @@ public:
     WEAVE_ERROR _GetDeviceId(uint64_t & deviceId);
     WEAVE_ERROR _StoreDeviceId(uint64_t deviceId);
     WEAVE_ERROR _GetSerialNumber(char * buf, size_t bufSize, size_t & serialNumLen);
-    WEAVE_ERROR _StoreSerialNumber(const char * serialNum);
+    WEAVE_ERROR _StoreSerialNumber(const char * serialNum, size_t serialNumLen);
     WEAVE_ERROR _GetPrimaryWiFiMACAddress(uint8_t * buf);
     WEAVE_ERROR _StorePrimaryWiFiMACAddress(const uint8_t * buf);
     WEAVE_ERROR _GetPrimary802154MACAddress(uint8_t * buf);
     WEAVE_ERROR _StorePrimary802154MACAddress(const uint8_t * buf);
     WEAVE_ERROR _GetManufacturingDate(uint16_t & year, uint8_t & month, uint8_t & dayOfMonth);
-    WEAVE_ERROR _StoreManufacturingDate(const char * mfgDate);
+    WEAVE_ERROR _StoreManufacturingDate(const char * mfgDate, size_t mfgDateLen);
     WEAVE_ERROR _GetDeviceCertificate(uint8_t * buf, size_t bufSize, size_t & certLen);
     WEAVE_ERROR _StoreDeviceCertificate(const uint8_t * cert, size_t certLen);
     WEAVE_ERROR _GetDevicePrivateKey(uint8_t * buf, size_t bufSize, size_t & keyLen);
     WEAVE_ERROR _StoreDevicePrivateKey(const uint8_t * key, size_t keyLen);
     WEAVE_ERROR _GetPairingCode(char * buf, size_t bufSize, size_t & pairingCodeLen);
-    WEAVE_ERROR _StorePairingCode(const char * pairingCode);
+    WEAVE_ERROR _StorePairingCode(const char * pairingCode, size_t pairingCodeLen);
     WEAVE_ERROR _GetFabricId(uint64_t & fabricId);
     WEAVE_ERROR _StoreFabricId(uint64_t fabricId);
     WEAVE_ERROR _GetServiceId(uint64_t & serviceId);
@@ -103,6 +106,7 @@ protected:
     uint8_t mFlags;
 
     void LogDeviceConfig();
+    WEAVE_ERROR PersistProvisioningData(ProvisioningDataSet & provData);
 
 private:
 
