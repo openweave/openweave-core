@@ -48,7 +48,7 @@
 #include <Weave/Profiles/security/WeaveSecurity.h>
 #include <Weave/Profiles/security/WeaveAccessToken.h>
 #include <Weave/Profiles/token-pairing/TokenPairing.h>
-#include "WeaveDeviceManager.h"
+#include <Weave/DeviceManager/WeaveDeviceManager.h>
 #include <Weave/Support/verhoeff/Verhoeff.h>
 #include <Weave/Support/crypto/WeaveCrypto.h>
 #include <Weave/Support/logging/WeaveLogging.h>
@@ -1622,7 +1622,8 @@ WEAVE_ERROR WeaveDeviceManager::GetCameraAuthData(const char* nonce, void* appRe
     VerifyOrExit(mCameraNonce == NULL, err = WEAVE_ERROR_INCORRECT_STATE);
 
     // Save copy of nonce for HandleGetCameraAuthResponse callback
-    VerifyOrExit(asprintf(&mCameraNonce, "%s", nonce) > 0, err = WEAVE_ERROR_NO_MEMORY);
+    mCameraNonce = strdup(nonce);
+    VerifyOrExit(mCameraNonce != NULL, err = WEAVE_ERROR_NO_MEMORY);
 
     err = EncodeCameraAuthDataRequest(msgBuf, nonce);
     SuccessOrExit(err);

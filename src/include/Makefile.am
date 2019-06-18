@@ -950,6 +950,35 @@ weave_commondir = $(includedir)/$(nl_public_WeaveCommon_destination_dirstem)
 dist_weave_common_HEADERS = $(addprefix ../,$(nl_public_WeaveCommon_header_sources))
 
 #
+# Weave Device Manager
+#
+
+nl_public_WeaveDeviceManager_source_dirstem = device-manager
+nl_public_WeaveDeviceManager_destination_dirstem = Weave/DeviceManager
+
+nl_public_WeaveDeviceManager_header_sources = \
+$(nl_public_WeaveDeviceManager_source_dirstem)/WeaveDeviceManager.h \
+$(NULL)
+
+nl_public_WeaveDeviceManager_header_paths = $(subst $(nl_public_WeaveDeviceManager_source_dirstem)/,,$(nl_public_WeaveDeviceManager_header_sources))
+
+nl_public_WeaveDeviceManager_header_destinations = $(addprefix $(nl_public_WeaveDeviceManager_destination_dirstem)/,$(nl_public_WeaveDeviceManager_header_paths))
+
+nl_public_WeaveDeviceManager_header_dirs = $(call Deslashify,$(sort $(dir $(nl_public_WeaveDeviceManager_header_destinations))))
+
+$(nl_public_WeaveDeviceManager_header_dirs):
+	$(call create-directory)
+
+$(filter %.h,$(nl_public_WeaveDeviceManager_header_destinations)): $(nl_public_WeaveDeviceManager_destination_dirstem)/%.h: $(abs_srcdir)/../$(nl_public_WeaveDeviceManager_source_dirstem)/%.h | $(nl_public_WeaveDeviceManager_header_dirs)
+	$(call create-link)
+
+$(filter %.hpp,$(nl_public_WeaveDeviceManager_header_destinations)): $(nl_public_WeaveDeviceManager_destination_dirstem)/%.hpp: $(abs_srcdir)/../$(nl_public_WeaveDeviceManager_source_dirstem)/%.hpp | $(nl_public_WeaveDeviceManager_header_dirs)
+	$(call create-link)
+
+device_managerdir = $(includedir)/$(nl_public_WeaveDeviceManager_destination_dirstem)
+dist_device_manager_HEADERS = $(addprefix ../,$(nl_public_WeaveDeviceManager_header_sources))
+
+#
 # Weave Device Layer Headers
 #
 
@@ -1206,6 +1235,7 @@ nl_public_headers                                           = \
     $(nl_public_WeaveCore_header_destinations)                \
     $(nl_public_WeaveCommon_header_destinations)              \
     $(nl_public_WeaveProfiles_header_destinations)            \
+    $(nl_public_WeaveDeviceManager_header_destinations)       \
     $(nl_public_WeaveDeviceLayer_header_destinations)         \
     $(NULL)
 

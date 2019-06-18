@@ -31,6 +31,8 @@ import copy
 import binascii
 import datetime
 import time
+import glob
+import platform
 from threading import Thread, Lock, Event
 from ctypes import *
 
@@ -108,6 +110,40 @@ def _IsByteArrayAllZeros(array):
 
 def _ByteArrayToHex(array):
     return binascii.hexlify(bytes(array))
+WeaveDeviceMgrDLLBaseName = '_WeaveDeviceMgr.so'
+
+def _AllDirsToRoot(dir):
+    dir = os.path.abspath(dir)
+    while True:
+        yield dir
+        parent = os.path.dirname(dir)
+        if parent == '' or parent == dir:
+            break
+        dir = parent
+    
+def _LocateWeaveDLL():
+    scriptDir = os.path.dirname(os.path.abspath(__file__))
+    
+    # When properly installed in the weave package, the Weave Device Manager DLL will
+    # be located in the package root directory, along side the package's
+    # modules.
+    dmDLLPath = os.path.join(scriptDir, WeaveDeviceMgrDLLBaseName)
+    if os.path.exists(dmDLLPath):
+        return dmDLLPath
+
+    # For the convenience of developers, search the list of parent paths relative to the
+    # running script looking for an OpenWeave build directory containing the Weave Device
+    # Manager DLL. This makes it possible to import and use the WeaveDeviceMgr module
+    # directly from a built copy of the OpenWeave source tree.        
+    buildMachineGlob = '%s-*-%s*' % (platform.machine(), platform.system().lower())
+    relDMDLLPathGlob = os.path.join('build', buildMachineGlob, 'src/device-manager/python/.libs', WeaveDeviceMgrDLLBaseName)
+    for dir in _AllDirsToRoot(scriptDir):
+        dmDLLPathGlob = os.path.join(dir, relDMDLLPathGlob)
+        for dmDLLPath in glob.glob(dmDLLPathGlob):
+            if os.path.exists(dmDLLPath):
+                return dmDLLPath
+
+    raise Exception("Unable to locate Weave Device Manager DLL (%s); expected location: %s" % (WeaveDeviceMgrDLLBaseName, scriptDir))
 
 class NetworkInfo:
     def __init__(self, networkType=None, networkId=None, wifiSSID=None, wifiMode=None, wifiRole=None,
@@ -405,37 +441,6 @@ class _DeviceDescriptorStruct(Structure):
             deviceFeatures = self.DeviceFeatures,
             flags = self.Flags)
 
-# Library path name.  Can be overridden my module user.
-currentDirPath = os.path.dirname(os.path.abspath( __file__ ))
-
-dmLibName = os.path.join(currentDirPath, '_WeaveDeviceMgr.so')
-
-# If the script binding library does not exist at the same level as
-# this module, then search for it one level up. Otherwise, rely on the
-# system dynamic loader to find it for us (via LD_LIBRARY_PATH or
-# DYLD_LIBRARY_PATH.
-
-if not os.path.exists(dmLibName):
-    (dmLibDir, dmLibFile) = os.path.split(dmLibName)
-    dmLibName = os.path.normpath(os.path.join(dmLibDir, "..", dmLibFile))
-    if not os.path.exists(dmLibName):
-        dmLibName = dmLibFile
-
-if not os.path.exists(dmLibName):
-    for path in sys.path:
-        dmLibName = os.path.join(path, '_WeaveDeviceMgr.so')
-        if os.path.exists(dmLibName):
-            break
-
-# when running weave-device-mgr from build folder, here dmLibName is
-# _WeaveDeviceMgr.so, os.path.exists return true, but CDLL needs the abs path
-# os.path.exists return this below right path,
-# build/x86_64-pc-linux-gnu/src/device-manager/python/_WeaveDeviceMgr.so,
-# therefore, assign the abs path to dmLibName
-if not os.path.exists(dmLibName):
-    print "%s does not exist" % dmLibName
-else:
-    dmLibName = os.path.abspath(dmLibName)
 
 _dmLib = None
 _CompleteFunct                              = CFUNCTYPE(None, c_void_p, c_void_p)
@@ -1077,7 +1082,7 @@ class WeaveDeviceManager:
     def _InitLib(self):
         global _dmLib
         if (_dmLib == None):
-            _dmLib = CDLL(dmLibName)
+            _dmLib = CDLL(_LocateWeaveDLL())
             _dmLib.nl_Weave_DeviceManager_Init.argtypes = [ ]
             _dmLib.nl_Weave_DeviceManager_Init.restype = c_uint32
 

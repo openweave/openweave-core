@@ -216,6 +216,35 @@
 #      must be anchored relative to the top build directory.
 #
 
+#
+#    Copyright (c) 2014-2017 Nest Labs, Inc.
+#    All rights reserved.
+#
+#    Licensed under the Apache License, Version 2.0 (the "License");
+#    you may not use this file except in compliance with the License.
+#    You may obtain a copy of the License at
+#
+#        http://www.apache.org/licenses/LICENSE-2.0
+#
+#    Unless required by applicable law or agreed to in writing, software
+#    distributed under the License is distributed on an "AS IS" BASIS,
+#    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#    See the License for the specific language governing permissions and
+#    limitations under the License.
+#
+
+#
+#    Description:
+#      This file is the GNU automake header for the OpenWeave DeviceManager
+#      library sources.
+#
+
+# The WeaveDeviceManager is designed for use in client applications (e.g.
+# mobiles) or within resource rich devices (typically linux based).  As
+# such it depends on the presense of a generalized heap (malloc el al).
+# In contexts where this isn't available, simply skip building the Device
+# Manager code altogether.
+
 VPATH = @srcdir@
 am__is_gnu_make = test -n '$(MAKEFILE_LIST)' && test -n '$(MAKELEVEL)'
 am__make_running_with_option = \
@@ -285,6 +314,7 @@ DIST_COMMON = $(srcdir)/../system/SystemLayer.am \
 	$(srcdir)/../inet/InetLayer.am $(srcdir)/../ble/BleLayer.am \
 	$(srcdir)/core/WeaveCore.am $(srcdir)/support/WeaveSupport.am \
 	$(srcdir)/profiles/WeaveProfiles.am $(srcdir)/../warm/Warm.am \
+	$(srcdir)/../device-manager/DeviceManager.am \
 	$(srcdir)/Makefile.in $(srcdir)/Makefile.am \
 	$(top_srcdir)/third_party/nlbuild-autotools/repo/third_party/autoconf/mkinstalldirs \
 	$(top_srcdir)/third_party/nlbuild-autotools/repo/third_party/autoconf/depcomp
@@ -325,12 +355,20 @@ DIST_COMMON = $(srcdir)/../system/SystemLayer.am \
 @CONFIG_HAVE_HEAP_TRUE@    @top_builddir@/src/lib/profiles/network-provisioning/NetworkInfo.cpp                \
 @CONFIG_HAVE_HEAP_TRUE@    $(NULL)
 
-@WEAVE_ENABLE_WOBLE_TEST_TRUE@am__append_14 = \
+@CONFIG_HAVE_HEAP_TRUE@am__append_14 = \
+@CONFIG_HAVE_HEAP_TRUE@    @top_builddir@/src/device-manager/WeaveDeviceManager.cpp     \
+@CONFIG_HAVE_HEAP_TRUE@    $(NULL)
+
+@CONFIG_HAVE_HEAP_TRUE@@CONFIG_NETWORK_LAYER_BLE_TRUE@@WEAVE_ENABLE_WOBLE_TEST_TRUE@am__append_15 = \
+@CONFIG_HAVE_HEAP_TRUE@@CONFIG_NETWORK_LAYER_BLE_TRUE@@WEAVE_ENABLE_WOBLE_TEST_TRUE@    @top_builddir@/src/device-manager/WoBleTest.cpp              \
+@CONFIG_HAVE_HEAP_TRUE@@CONFIG_NETWORK_LAYER_BLE_TRUE@@WEAVE_ENABLE_WOBLE_TEST_TRUE@    $(NULL)
+
+@WEAVE_ENABLE_WOBLE_TEST_TRUE@am__append_16 = \
 @WEAVE_ENABLE_WOBLE_TEST_TRUE@    -I$(top_srcdir)/src/device-manager \
 @WEAVE_ENABLE_WOBLE_TEST_TRUE@    $(NULL)
 
-@CONFIG_NETWORK_LAYER_BLE_TRUE@am__append_15 = $(nl_BleLayer_sources)
-@WEAVE_BUILD_WARM_TRUE@am__append_16 = $(nl_Warm_sources)
+@CONFIG_NETWORK_LAYER_BLE_TRUE@am__append_17 = $(nl_BleLayer_sources)
+@WEAVE_BUILD_WARM_TRUE@am__append_18 = $(nl_Warm_sources)
 subdir = src/lib
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/third_party/nlbuild-autotools/repo/autoconf/m4/ax_check_compiler.m4 \
@@ -439,12 +477,13 @@ am__libWeave_a_SOURCES_DIST =  \
 	@top_builddir@/src/inet/TunEndPoint.cpp \
 	@top_builddir@/src/inet/AsyncDNSResolverSockets.cpp \
 	@top_builddir@/src/inet/InetFaultInjection.cpp \
+	@top_builddir@/src/device-manager/WeaveDeviceManager.cpp \
+	@top_builddir@/src/device-manager/WoBleTest.cpp \
 	@top_builddir@/src/ble/BleLayer.cpp \
 	@top_builddir@/src/ble/BLEEndPoint.cpp \
 	@top_builddir@/src/ble/WoBle.cpp \
 	@top_builddir@/src/ble/BleUUID.cpp \
 	@top_builddir@/src/ble/BleError.cpp \
-	@top_builddir@/src/device-manager/WoBleTest.cpp \
 	@top_builddir@/src/lib/core/ExchangeContext.cpp \
 	@top_builddir@/src/lib/core/HostPortList.cpp \
 	@top_builddir@/src/lib/core/WeaveBinding.cpp \
@@ -634,15 +673,18 @@ am__objects_10 =  \
 	$(am__objects_3) $(am__objects_4) $(am__objects_5) \
 	$(am__objects_6) $(am__objects_7) $(am__objects_8) \
 	$(am__objects_9)
-@WEAVE_ENABLE_WOBLE_TEST_TRUE@am__objects_11 = @top_builddir@/src/device-manager/libWeave_a-WoBleTest.$(OBJEXT)
-am__objects_12 = @top_builddir@/src/ble/libWeave_a-BleLayer.$(OBJEXT) \
+@CONFIG_HAVE_HEAP_TRUE@am__objects_11 = @top_builddir@/src/device-manager/libWeave_a-WeaveDeviceManager.$(OBJEXT)
+@CONFIG_HAVE_HEAP_TRUE@@CONFIG_NETWORK_LAYER_BLE_TRUE@@WEAVE_ENABLE_WOBLE_TEST_TRUE@am__objects_12 = @top_builddir@/src/device-manager/libWeave_a-WoBleTest.$(OBJEXT)
+am__objects_13 = $(am__objects_11) $(am__objects_12)
+@WEAVE_ENABLE_WOBLE_TEST_TRUE@am__objects_14 = @top_builddir@/src/device-manager/libWeave_a-WoBleTest.$(OBJEXT)
+am__objects_15 = @top_builddir@/src/ble/libWeave_a-BleLayer.$(OBJEXT) \
 	@top_builddir@/src/ble/libWeave_a-BLEEndPoint.$(OBJEXT) \
 	@top_builddir@/src/ble/libWeave_a-WoBle.$(OBJEXT) \
 	@top_builddir@/src/ble/libWeave_a-BleUUID.$(OBJEXT) \
 	@top_builddir@/src/ble/libWeave_a-BleError.$(OBJEXT) \
-	$(am__objects_11)
-@CONFIG_NETWORK_LAYER_BLE_TRUE@am__objects_13 = $(am__objects_12)
-am__objects_14 = @top_builddir@/src/lib/core/libWeave_a-ExchangeContext.$(OBJEXT) \
+	$(am__objects_14)
+@CONFIG_NETWORK_LAYER_BLE_TRUE@am__objects_16 = $(am__objects_15)
+am__objects_17 = @top_builddir@/src/lib/core/libWeave_a-ExchangeContext.$(OBJEXT) \
 	@top_builddir@/src/lib/core/libWeave_a-HostPortList.$(OBJEXT) \
 	@top_builddir@/src/lib/core/libWeave_a-WeaveBinding.$(OBJEXT) \
 	@top_builddir@/src/lib/core/libWeave_a-WeaveConnection.$(OBJEXT) \
@@ -664,7 +706,7 @@ am__objects_14 = @top_builddir@/src/lib/core/libWeave_a-ExchangeContext.$(OBJEXT
 	@top_builddir@/src/lib/core/libWeave_a-WeaveTLVUpdater.$(OBJEXT) \
 	@top_builddir@/src/lib/core/libWeave_a-WeaveCircularTLVBuffer.$(OBJEXT) \
 	@top_builddir@/src/lib/core/libWeave_a-WeaveStats.$(OBJEXT)
-@WEAVE_WITH_VERHOEFF_TRUE@am__objects_15 = @top_builddir@/src/lib/support/verhoeff/libWeave_a-Verhoeff.$(OBJEXT) \
+@WEAVE_WITH_VERHOEFF_TRUE@am__objects_18 = @top_builddir@/src/lib/support/verhoeff/libWeave_a-Verhoeff.$(OBJEXT) \
 @WEAVE_WITH_VERHOEFF_TRUE@	@top_builddir@/src/lib/support/verhoeff/libWeave_a-Verhoeff10.$(OBJEXT) \
 @WEAVE_WITH_VERHOEFF_TRUE@	@top_builddir@/src/lib/support/verhoeff/libWeave_a-Verhoeff16.$(OBJEXT) \
 @WEAVE_WITH_VERHOEFF_TRUE@	@top_builddir@/src/lib/support/verhoeff/libWeave_a-Verhoeff32.$(OBJEXT) \
@@ -672,8 +714,8 @@ am__objects_14 = @top_builddir@/src/lib/core/libWeave_a-ExchangeContext.$(OBJEXT
 @WEAVE_WITH_VERHOEFF_TRUE@	@top_builddir@/src/lib/support/pairing-code/libWeave_a-PairingCodeUtils.$(OBJEXT) \
 @WEAVE_WITH_VERHOEFF_TRUE@	@top_builddir@/src/lib/support/pairing-code/libWeave_a-NevisPairingCodeUtils.$(OBJEXT) \
 @WEAVE_WITH_VERHOEFF_TRUE@	@top_builddir@/src/lib/support/pairing-code/libWeave_a-KryptonitePairingCodeUtils.$(OBJEXT)
-@WEAVE_WITH_NLFAULTINJECTION_TRUE@am__objects_16 = @top_builddir@/src/lib/support/libWeave_a-WeaveFaultInjection.$(OBJEXT)
-am__objects_17 =  \
+@WEAVE_WITH_NLFAULTINJECTION_TRUE@am__objects_19 = @top_builddir@/src/lib/support/libWeave_a-WeaveFaultInjection.$(OBJEXT)
+am__objects_20 =  \
 	@top_builddir@/src/lib/support/libWeave_a-ASN1OID.$(OBJEXT) \
 	@top_builddir@/src/lib/support/libWeave_a-ASN1Error.$(OBJEXT) \
 	@top_builddir@/src/lib/support/libWeave_a-ASN1Reader.$(OBJEXT) \
@@ -713,15 +755,15 @@ am__objects_17 =  \
 	@top_builddir@/src/lib/support/crypto/libWeave_a-WeaveRNG-NestDRBG.$(OBJEXT) \
 	@top_builddir@/src/lib/support/logging/libWeave_a-WeaveLogging.$(OBJEXT) \
 	@top_builddir@/src/lib/support/logging/libWeave_a-DecodedIPPacket.$(OBJEXT) \
-	$(am__objects_15) $(am__objects_16)
-@WEAVE_BUILD_LEGACY_WDM_TRUE@am__objects_18 = @top_builddir@/src/lib/profiles/data-management/Legacy/libWeave_a-Binding.$(OBJEXT) \
+	$(am__objects_18) $(am__objects_19)
+@WEAVE_BUILD_LEGACY_WDM_TRUE@am__objects_21 = @top_builddir@/src/lib/profiles/data-management/Legacy/libWeave_a-Binding.$(OBJEXT) \
 @WEAVE_BUILD_LEGACY_WDM_TRUE@	@top_builddir@/src/lib/profiles/data-management/Legacy/libWeave_a-ClientNotifier.$(OBJEXT) \
 @WEAVE_BUILD_LEGACY_WDM_TRUE@	@top_builddir@/src/lib/profiles/data-management/Legacy/libWeave_a-DMClient.$(OBJEXT) \
 @WEAVE_BUILD_LEGACY_WDM_TRUE@	@top_builddir@/src/lib/profiles/data-management/Legacy/libWeave_a-DMPublisher.$(OBJEXT) \
 @WEAVE_BUILD_LEGACY_WDM_TRUE@	@top_builddir@/src/lib/profiles/data-management/Legacy/libWeave_a-ProfileDatabase.$(OBJEXT) \
 @WEAVE_BUILD_LEGACY_WDM_TRUE@	@top_builddir@/src/lib/profiles/data-management/Legacy/libWeave_a-ProtocolEngine.$(OBJEXT)
-@CONFIG_HAVE_HEAP_TRUE@am__objects_19 = @top_builddir@/src/lib/profiles/network-provisioning/libWeave_a-NetworkInfo.$(OBJEXT)
-am__objects_20 = @top_builddir@/src/lib/profiles/bulk-data-transfer/libWeave_a-BulkDataTransfer.$(OBJEXT) \
+@CONFIG_HAVE_HEAP_TRUE@am__objects_22 = @top_builddir@/src/lib/profiles/network-provisioning/libWeave_a-NetworkInfo.$(OBJEXT)
+am__objects_23 = @top_builddir@/src/lib/profiles/bulk-data-transfer/libWeave_a-BulkDataTransfer.$(OBJEXT) \
 	@top_builddir@/src/lib/profiles/bulk-data-transfer/Development/libWeave_a-BDXMessages.$(OBJEXT) \
 	@top_builddir@/src/lib/profiles/bulk-data-transfer/Development/libWeave_a-BDXNode.$(OBJEXT) \
 	@top_builddir@/src/lib/profiles/bulk-data-transfer/Development/libWeave_a-BDXProtocol.$(OBJEXT) \
@@ -798,13 +840,13 @@ am__objects_20 = @top_builddir@/src/lib/profiles/bulk-data-transfer/libWeave_a-B
 	@top_builddir@/src/lib/profiles/weave-tunneling/libWeave_a-WeaveTunnelCommon.$(OBJEXT) \
 	@top_builddir@/src/lib/profiles/weave-tunneling/libWeave_a-WeaveTunnelConnectionMgr.$(OBJEXT) \
 	@top_builddir@/src/lib/profiles/weave-tunneling/libWeave_a-WeaveTunnelControl.$(OBJEXT) \
-	$(am__objects_18) $(am__objects_19)
-am__objects_21 =  \
+	$(am__objects_21) $(am__objects_22)
+am__objects_24 =  \
 	@top_builddir@/src/warm/libWeave_a-WarmCore.$(OBJEXT)
-@WEAVE_BUILD_WARM_TRUE@am__objects_22 = $(am__objects_21)
+@WEAVE_BUILD_WARM_TRUE@am__objects_25 = $(am__objects_24)
 am_libWeave_a_OBJECTS = $(am__objects_2) $(am__objects_10) \
-	$(am__objects_13) $(am__objects_14) $(am__objects_17) \
-	$(am__objects_20) $(am__objects_22)
+	$(am__objects_13) $(am__objects_16) $(am__objects_17) \
+	$(am__objects_20) $(am__objects_23) $(am__objects_25)
 libWeave_a_OBJECTS = $(am_libWeave_a_OBJECTS)
 AM_V_P = $(am__v_P_@AM_V@)
 am__v_P_ = $(am__v_P_@AM_DEFAULT_V@)
@@ -1318,17 +1360,18 @@ nl_Warm_sources = \
     @top_builddir@/src/warm/WarmCore.cpp                     \
     $(NULL)
 
+nl_DeviceManager_sources = $(NULL) $(am__append_14) $(am__append_15)
 
 # Pull in the sources that comprise the Weave library.
 lib_LIBRARIES = libWeave.a
 libWeave_a_CPPFLAGS = -I$(top_srcdir)/src/include \
 	-I$(top_srcdir)/third_party/openssl-jpake/openssl/include \
 	$(nl_SystemLayer_CPPFLAGS) $(nl_InetLayer_CPPFLAGS) \
-	$(LWIP_CPPFLAGS) $(SOCKETS_CPPFLAGS) $(NULL) $(am__append_14)
+	$(LWIP_CPPFLAGS) $(SOCKETS_CPPFLAGS) $(NULL) $(am__append_16)
 libWeave_a_SOURCES = $(nl_SystemLayer_sources) $(nl_InetLayer_sources) \
-	$(am__append_15) $(nl_WeaveCore_sources) \
-	$(nl_WeaveSupport_sources) $(nl_WeaveProfiles_sources) \
-	$(am__append_16)
+	$(nl_DeviceManager_sources) $(am__append_17) \
+	$(nl_WeaveCore_sources) $(nl_WeaveSupport_sources) \
+	$(nl_WeaveProfiles_sources) $(am__append_18)
 
 # If and ONLY if Weave has been configured to use the interal OpenSSL, then 
 # include the OpenSSL objects in with libWeave.a.  Effectively, the internal
@@ -1372,7 +1415,7 @@ all: all-am
 
 .SUFFIXES:
 .SUFFIXES: .cpp .lo .o .obj
-$(srcdir)/Makefile.in: @MAINTAINER_MODE_TRUE@ $(srcdir)/Makefile.am $(srcdir)/../system/SystemLayer.am $(srcdir)/../inet/InetLayer.am $(srcdir)/../ble/BleLayer.am $(srcdir)/core/WeaveCore.am $(srcdir)/support/WeaveSupport.am $(srcdir)/profiles/WeaveProfiles.am $(srcdir)/../warm/Warm.am $(am__configure_deps)
+$(srcdir)/Makefile.in: @MAINTAINER_MODE_TRUE@ $(srcdir)/Makefile.am $(srcdir)/../system/SystemLayer.am $(srcdir)/../inet/InetLayer.am $(srcdir)/../ble/BleLayer.am $(srcdir)/core/WeaveCore.am $(srcdir)/support/WeaveSupport.am $(srcdir)/profiles/WeaveProfiles.am $(srcdir)/../warm/Warm.am $(srcdir)/../device-manager/DeviceManager.am $(am__configure_deps)
 	@for dep in $?; do \
 	  case '$(am__configure_deps)' in \
 	    *$$dep*) \
@@ -1393,7 +1436,7 @@ Makefile: $(srcdir)/Makefile.in $(top_builddir)/config.status
 	    echo ' cd $(top_builddir) && $(SHELL) ./config.status $(subdir)/$@ $(am__depfiles_maybe)'; \
 	    cd $(top_builddir) && $(SHELL) ./config.status $(subdir)/$@ $(am__depfiles_maybe);; \
 	esac;
-$(srcdir)/../system/SystemLayer.am $(srcdir)/../inet/InetLayer.am $(srcdir)/../ble/BleLayer.am $(srcdir)/core/WeaveCore.am $(srcdir)/support/WeaveSupport.am $(srcdir)/profiles/WeaveProfiles.am $(srcdir)/../warm/Warm.am:
+$(srcdir)/../system/SystemLayer.am $(srcdir)/../inet/InetLayer.am $(srcdir)/../ble/BleLayer.am $(srcdir)/core/WeaveCore.am $(srcdir)/support/WeaveSupport.am $(srcdir)/profiles/WeaveProfiles.am $(srcdir)/../warm/Warm.am $(srcdir)/../device-manager/DeviceManager.am:
 
 $(top_builddir)/config.status: $(top_srcdir)/configure $(CONFIG_STATUS_DEPENDENCIES)
 	cd $(top_builddir) && $(MAKE) $(AM_MAKEFLAGS) am--refresh
@@ -1527,6 +1570,18 @@ clean-libLIBRARIES:
 @top_builddir@/src/inet/libWeave_a-InetFaultInjection.$(OBJEXT):  \
 	@top_builddir@/src/inet/$(am__dirstamp) \
 	@top_builddir@/src/inet/$(DEPDIR)/$(am__dirstamp)
+@top_builddir@/src/device-manager/$(am__dirstamp):
+	@$(MKDIR_P) @top_builddir@/src/device-manager
+	@: > @top_builddir@/src/device-manager/$(am__dirstamp)
+@top_builddir@/src/device-manager/$(DEPDIR)/$(am__dirstamp):
+	@$(MKDIR_P) @top_builddir@/src/device-manager/$(DEPDIR)
+	@: > @top_builddir@/src/device-manager/$(DEPDIR)/$(am__dirstamp)
+@top_builddir@/src/device-manager/libWeave_a-WeaveDeviceManager.$(OBJEXT):  \
+	@top_builddir@/src/device-manager/$(am__dirstamp) \
+	@top_builddir@/src/device-manager/$(DEPDIR)/$(am__dirstamp)
+@top_builddir@/src/device-manager/libWeave_a-WoBleTest.$(OBJEXT):  \
+	@top_builddir@/src/device-manager/$(am__dirstamp) \
+	@top_builddir@/src/device-manager/$(DEPDIR)/$(am__dirstamp)
 @top_builddir@/src/ble/$(am__dirstamp):
 	@$(MKDIR_P) @top_builddir@/src/ble
 	@: > @top_builddir@/src/ble/$(am__dirstamp)
@@ -1548,15 +1603,6 @@ clean-libLIBRARIES:
 @top_builddir@/src/ble/libWeave_a-BleError.$(OBJEXT):  \
 	@top_builddir@/src/ble/$(am__dirstamp) \
 	@top_builddir@/src/ble/$(DEPDIR)/$(am__dirstamp)
-@top_builddir@/src/device-manager/$(am__dirstamp):
-	@$(MKDIR_P) @top_builddir@/src/device-manager
-	@: > @top_builddir@/src/device-manager/$(am__dirstamp)
-@top_builddir@/src/device-manager/$(DEPDIR)/$(am__dirstamp):
-	@$(MKDIR_P) @top_builddir@/src/device-manager/$(DEPDIR)
-	@: > @top_builddir@/src/device-manager/$(DEPDIR)/$(am__dirstamp)
-@top_builddir@/src/device-manager/libWeave_a-WoBleTest.$(OBJEXT):  \
-	@top_builddir@/src/device-manager/$(am__dirstamp) \
-	@top_builddir@/src/device-manager/$(DEPDIR)/$(am__dirstamp)
 @top_builddir@/src/lib/core/$(am__dirstamp):
 	@$(MKDIR_P) @top_builddir@/src/lib/core
 	@: > @top_builddir@/src/lib/core/$(am__dirstamp)
@@ -2199,6 +2245,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@@top_builddir@/src/ble/$(DEPDIR)/libWeave_a-BleLayer.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@@top_builddir@/src/ble/$(DEPDIR)/libWeave_a-BleUUID.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@@top_builddir@/src/ble/$(DEPDIR)/libWeave_a-WoBle.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@@top_builddir@/src/device-manager/$(DEPDIR)/libWeave_a-WeaveDeviceManager.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@@top_builddir@/src/device-manager/$(DEPDIR)/libWeave_a-WoBleTest.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@@top_builddir@/src/inet/$(DEPDIR)/libWeave_a-AsyncDNSResolverSockets.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@@top_builddir@/src/inet/$(DEPDIR)/libWeave_a-DNSResolver.Po@am__quote@
@@ -2785,6 +2832,34 @@ distclean-compile:
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libWeave_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o @top_builddir@/src/inet/libWeave_a-InetFaultInjection.obj `if test -f '@top_builddir@/src/inet/InetFaultInjection.cpp'; then $(CYGPATH_W) '@top_builddir@/src/inet/InetFaultInjection.cpp'; else $(CYGPATH_W) '$(srcdir)/@top_builddir@/src/inet/InetFaultInjection.cpp'; fi`
 
+@top_builddir@/src/device-manager/libWeave_a-WeaveDeviceManager.o: @top_builddir@/src/device-manager/WeaveDeviceManager.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libWeave_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT @top_builddir@/src/device-manager/libWeave_a-WeaveDeviceManager.o -MD -MP -MF @top_builddir@/src/device-manager/$(DEPDIR)/libWeave_a-WeaveDeviceManager.Tpo -c -o @top_builddir@/src/device-manager/libWeave_a-WeaveDeviceManager.o `test -f '@top_builddir@/src/device-manager/WeaveDeviceManager.cpp' || echo '$(srcdir)/'`@top_builddir@/src/device-manager/WeaveDeviceManager.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) @top_builddir@/src/device-manager/$(DEPDIR)/libWeave_a-WeaveDeviceManager.Tpo @top_builddir@/src/device-manager/$(DEPDIR)/libWeave_a-WeaveDeviceManager.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='@top_builddir@/src/device-manager/WeaveDeviceManager.cpp' object='@top_builddir@/src/device-manager/libWeave_a-WeaveDeviceManager.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libWeave_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o @top_builddir@/src/device-manager/libWeave_a-WeaveDeviceManager.o `test -f '@top_builddir@/src/device-manager/WeaveDeviceManager.cpp' || echo '$(srcdir)/'`@top_builddir@/src/device-manager/WeaveDeviceManager.cpp
+
+@top_builddir@/src/device-manager/libWeave_a-WeaveDeviceManager.obj: @top_builddir@/src/device-manager/WeaveDeviceManager.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libWeave_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT @top_builddir@/src/device-manager/libWeave_a-WeaveDeviceManager.obj -MD -MP -MF @top_builddir@/src/device-manager/$(DEPDIR)/libWeave_a-WeaveDeviceManager.Tpo -c -o @top_builddir@/src/device-manager/libWeave_a-WeaveDeviceManager.obj `if test -f '@top_builddir@/src/device-manager/WeaveDeviceManager.cpp'; then $(CYGPATH_W) '@top_builddir@/src/device-manager/WeaveDeviceManager.cpp'; else $(CYGPATH_W) '$(srcdir)/@top_builddir@/src/device-manager/WeaveDeviceManager.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) @top_builddir@/src/device-manager/$(DEPDIR)/libWeave_a-WeaveDeviceManager.Tpo @top_builddir@/src/device-manager/$(DEPDIR)/libWeave_a-WeaveDeviceManager.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='@top_builddir@/src/device-manager/WeaveDeviceManager.cpp' object='@top_builddir@/src/device-manager/libWeave_a-WeaveDeviceManager.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libWeave_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o @top_builddir@/src/device-manager/libWeave_a-WeaveDeviceManager.obj `if test -f '@top_builddir@/src/device-manager/WeaveDeviceManager.cpp'; then $(CYGPATH_W) '@top_builddir@/src/device-manager/WeaveDeviceManager.cpp'; else $(CYGPATH_W) '$(srcdir)/@top_builddir@/src/device-manager/WeaveDeviceManager.cpp'; fi`
+
+@top_builddir@/src/device-manager/libWeave_a-WoBleTest.o: @top_builddir@/src/device-manager/WoBleTest.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libWeave_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT @top_builddir@/src/device-manager/libWeave_a-WoBleTest.o -MD -MP -MF @top_builddir@/src/device-manager/$(DEPDIR)/libWeave_a-WoBleTest.Tpo -c -o @top_builddir@/src/device-manager/libWeave_a-WoBleTest.o `test -f '@top_builddir@/src/device-manager/WoBleTest.cpp' || echo '$(srcdir)/'`@top_builddir@/src/device-manager/WoBleTest.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) @top_builddir@/src/device-manager/$(DEPDIR)/libWeave_a-WoBleTest.Tpo @top_builddir@/src/device-manager/$(DEPDIR)/libWeave_a-WoBleTest.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='@top_builddir@/src/device-manager/WoBleTest.cpp' object='@top_builddir@/src/device-manager/libWeave_a-WoBleTest.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libWeave_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o @top_builddir@/src/device-manager/libWeave_a-WoBleTest.o `test -f '@top_builddir@/src/device-manager/WoBleTest.cpp' || echo '$(srcdir)/'`@top_builddir@/src/device-manager/WoBleTest.cpp
+
+@top_builddir@/src/device-manager/libWeave_a-WoBleTest.obj: @top_builddir@/src/device-manager/WoBleTest.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libWeave_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT @top_builddir@/src/device-manager/libWeave_a-WoBleTest.obj -MD -MP -MF @top_builddir@/src/device-manager/$(DEPDIR)/libWeave_a-WoBleTest.Tpo -c -o @top_builddir@/src/device-manager/libWeave_a-WoBleTest.obj `if test -f '@top_builddir@/src/device-manager/WoBleTest.cpp'; then $(CYGPATH_W) '@top_builddir@/src/device-manager/WoBleTest.cpp'; else $(CYGPATH_W) '$(srcdir)/@top_builddir@/src/device-manager/WoBleTest.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) @top_builddir@/src/device-manager/$(DEPDIR)/libWeave_a-WoBleTest.Tpo @top_builddir@/src/device-manager/$(DEPDIR)/libWeave_a-WoBleTest.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='@top_builddir@/src/device-manager/WoBleTest.cpp' object='@top_builddir@/src/device-manager/libWeave_a-WoBleTest.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libWeave_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o @top_builddir@/src/device-manager/libWeave_a-WoBleTest.obj `if test -f '@top_builddir@/src/device-manager/WoBleTest.cpp'; then $(CYGPATH_W) '@top_builddir@/src/device-manager/WoBleTest.cpp'; else $(CYGPATH_W) '$(srcdir)/@top_builddir@/src/device-manager/WoBleTest.cpp'; fi`
+
 @top_builddir@/src/ble/libWeave_a-BleLayer.o: @top_builddir@/src/ble/BleLayer.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libWeave_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT @top_builddir@/src/ble/libWeave_a-BleLayer.o -MD -MP -MF @top_builddir@/src/ble/$(DEPDIR)/libWeave_a-BleLayer.Tpo -c -o @top_builddir@/src/ble/libWeave_a-BleLayer.o `test -f '@top_builddir@/src/ble/BleLayer.cpp' || echo '$(srcdir)/'`@top_builddir@/src/ble/BleLayer.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) @top_builddir@/src/ble/$(DEPDIR)/libWeave_a-BleLayer.Tpo @top_builddir@/src/ble/$(DEPDIR)/libWeave_a-BleLayer.Po
@@ -2854,20 +2929,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='@top_builddir@/src/ble/BleError.cpp' object='@top_builddir@/src/ble/libWeave_a-BleError.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libWeave_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o @top_builddir@/src/ble/libWeave_a-BleError.obj `if test -f '@top_builddir@/src/ble/BleError.cpp'; then $(CYGPATH_W) '@top_builddir@/src/ble/BleError.cpp'; else $(CYGPATH_W) '$(srcdir)/@top_builddir@/src/ble/BleError.cpp'; fi`
-
-@top_builddir@/src/device-manager/libWeave_a-WoBleTest.o: @top_builddir@/src/device-manager/WoBleTest.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libWeave_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT @top_builddir@/src/device-manager/libWeave_a-WoBleTest.o -MD -MP -MF @top_builddir@/src/device-manager/$(DEPDIR)/libWeave_a-WoBleTest.Tpo -c -o @top_builddir@/src/device-manager/libWeave_a-WoBleTest.o `test -f '@top_builddir@/src/device-manager/WoBleTest.cpp' || echo '$(srcdir)/'`@top_builddir@/src/device-manager/WoBleTest.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) @top_builddir@/src/device-manager/$(DEPDIR)/libWeave_a-WoBleTest.Tpo @top_builddir@/src/device-manager/$(DEPDIR)/libWeave_a-WoBleTest.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='@top_builddir@/src/device-manager/WoBleTest.cpp' object='@top_builddir@/src/device-manager/libWeave_a-WoBleTest.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libWeave_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o @top_builddir@/src/device-manager/libWeave_a-WoBleTest.o `test -f '@top_builddir@/src/device-manager/WoBleTest.cpp' || echo '$(srcdir)/'`@top_builddir@/src/device-manager/WoBleTest.cpp
-
-@top_builddir@/src/device-manager/libWeave_a-WoBleTest.obj: @top_builddir@/src/device-manager/WoBleTest.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libWeave_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT @top_builddir@/src/device-manager/libWeave_a-WoBleTest.obj -MD -MP -MF @top_builddir@/src/device-manager/$(DEPDIR)/libWeave_a-WoBleTest.Tpo -c -o @top_builddir@/src/device-manager/libWeave_a-WoBleTest.obj `if test -f '@top_builddir@/src/device-manager/WoBleTest.cpp'; then $(CYGPATH_W) '@top_builddir@/src/device-manager/WoBleTest.cpp'; else $(CYGPATH_W) '$(srcdir)/@top_builddir@/src/device-manager/WoBleTest.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) @top_builddir@/src/device-manager/$(DEPDIR)/libWeave_a-WoBleTest.Tpo @top_builddir@/src/device-manager/$(DEPDIR)/libWeave_a-WoBleTest.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='@top_builddir@/src/device-manager/WoBleTest.cpp' object='@top_builddir@/src/device-manager/libWeave_a-WoBleTest.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libWeave_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o @top_builddir@/src/device-manager/libWeave_a-WoBleTest.obj `if test -f '@top_builddir@/src/device-manager/WoBleTest.cpp'; then $(CYGPATH_W) '@top_builddir@/src/device-manager/WoBleTest.cpp'; else $(CYGPATH_W) '$(srcdir)/@top_builddir@/src/device-manager/WoBleTest.cpp'; fi`
 
 @top_builddir@/src/lib/core/libWeave_a-ExchangeContext.o: @top_builddir@/src/lib/core/ExchangeContext.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libWeave_a_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT @top_builddir@/src/lib/core/libWeave_a-ExchangeContext.o -MD -MP -MF @top_builddir@/src/lib/core/$(DEPDIR)/libWeave_a-ExchangeContext.Tpo -c -o @top_builddir@/src/lib/core/libWeave_a-ExchangeContext.o `test -f '@top_builddir@/src/lib/core/ExchangeContext.cpp' || echo '$(srcdir)/'`@top_builddir@/src/lib/core/ExchangeContext.cpp

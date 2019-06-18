@@ -29,7 +29,6 @@ EXTRA_DIST                        = \
     $(NULL)
 
 DEVICE_MANAGER_SUBDIRS            = \
-    device-manager                  \
     device-manager/python           \
     device-manager/cocoa            \
     device-manager/java             \

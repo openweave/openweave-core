@@ -39,10 +39,11 @@
 #include <Weave/Profiles/common/CommonProfile.h>
 #include <Weave/Profiles/network-provisioning/NetworkProvisioning.h>
 #include <Weave/Profiles/device-description/DeviceDescription.h>
-#include "WeaveDeviceManager.h"
 #include <Weave/Support/logging/WeaveLogging.h>
 #include <Weave/Support/ErrorStr.h>
 #include <Weave/Support/NLDLLUtil.h>
+#include <Weave/Support/platform/PersistedStorage.h>
+#include <Weave/DeviceManager/WeaveDeviceManager.h>
 #include "AndroidBleApplicationDelegate.h"
 #include "AndroidBlePlatformDelegate.h"
 
@@ -3304,3 +3305,29 @@ exit:
     env->DeleteLocalRef(cls);
     return err;
 }
+
+namespace nl {
+namespace Weave {
+namespace Platform {
+namespace PersistedStorage {
+
+/*
+ * Dummy implementations of PersistedStorage platform methods. These aren't
+ * used in the context of the Java DeviceManager, but are required to satisfy
+ * the linker.
+ */
+
+WEAVE_ERROR Read(const char *aKey, uint32_t &aValue)
+{
+    return WEAVE_NO_ERROR;
+}
+
+WEAVE_ERROR Write(const char *aKey, uint32_t aValue)
+{
+    return WEAVE_NO_ERROR;
+}
+
+} // PersistentStorage
+} // Platform
+} // Weave
+} // nl
