@@ -4,28 +4,28 @@ All notable changes to OpenWeave Core are documented in this file.
 
 ## [Unreleased]
 
-*	Weave Device Manager clean up and enhancements.
+*   Weave Device Manager clean up and enhancements.
 *   Added documentation style guide and updated contribution guidelines.
 *   Cleaned up build support for OS X.
 
 ## [4.1.2] - 2019-05-24
 
-* 	Updated to nlbuild-autotools 1.6.11.
+*   Updated to nlbuild-autotools 1.6.11.
 *   Added Device Layer support for the nRF52840 platform.
 
 ## [4.1.1] - 2019-04-30
 
-* 	Updated to nlbuild-autotools 1.6.9.
-* 	Added multicast group management APIs to the Inet layer for raw IP
+*   Updated to nlbuild-autotools 1.6.9.
+*   Added multicast group management APIs to the Inet layer for raw IP
     and UDP endpoints.
 
 ## [4.0.2] - 2018-11-19
 
-* 	Updated to nlbuild-autotools 1.6.5.
+*   Updated to nlbuild-autotools 1.6.5.
 
 ## [4.0.1] - 2018-11-15
 
-* 	Updated to nlbuild-autotools 1.6.4.
+*   Updated to nlbuild-autotools 1.6.4.
 
 ## [1.0] - 2017-07-06
 
