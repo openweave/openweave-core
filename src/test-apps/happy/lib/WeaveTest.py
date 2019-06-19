@@ -95,7 +95,7 @@ class WeaveTest(Weave):
         if listen:
             cmd += " --listen"
 
-        persistent_storage_file = self.main_conf['log_directory'] + "/" + self.getStateId() + "_persistent_state." + tag
+        persistent_storage_file = self.getHappyLogDir() + "/" + self.getStateId() + "_persistent_state." + tag
 
         if use_persistent_storage:
             cmd += " --persistent-cntr-file " + persistent_storage_file
@@ -128,7 +128,8 @@ class WeaveTest(Weave):
         else:
             self.logger.debug("Expect that jitter_distribution_curve is integer and not less than 0 %d" % jitter_distribution_curve)
 
-    def start_simple_weave_client(self, cmd_path, client_addr, server_addr, server_id, node_id, tag, quiet = None, strace = True, env = {}, use_persistent_storage=True, reset_persistent_storage=True):
+    def start_simple_weave_client(self, cmd_path, client_addr, server_addr, server_id, node_id, tag,
+                                  quiet=None, strace=True, env={}, use_persistent_storage=True, reset_persistent_storage=True):
         cmd = cmd_path
 
         if client_addr != None:
@@ -137,7 +138,7 @@ class WeaveTest(Weave):
         if server_addr != None:
             cmd += " --dest-addr " + str(server_addr)
 
-        persistent_storage_file = self.main_conf['log_directory'] + "/" + self.getStateId() + "_persistent_state." + tag
+        persistent_storage_file = self.getHappyLogDir() + "/" + self.getStateId() + "_persistent_state." + tag
 
         if use_persistent_storage:
             cmd += " --persistent-cntr-file " + persistent_storage_file

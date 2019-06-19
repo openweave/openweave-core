@@ -161,7 +161,8 @@ fi
 
 # Temporary fix for flaky tests: give them up to 3 chances to succeed
 for ((i=0; i < ${NUM_GRACE_RUNS}; i++)); do
-    HAPPY_STATE_ID=h${TIER}${FABRIC_OFFSET} FABRIC_OFFSET=$FABRIC_OFFSET "$@" >$log_file 2>&1
+    abslogfile=`readlink -f $log_file`
+    HAPPY_STATE_ID=h${TIER}${FABRIC_OFFSET} FABRIC_OFFSET=$FABRIC_OFFSET HAPPY_LOG_DIR=`dirname $abslogfile` "$@" >$log_file 2>&1
     estatus=$?
     if test $enable_hard_errors = no && test $estatus -eq 99; then
         estatus=1
