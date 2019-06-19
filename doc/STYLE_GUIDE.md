@@ -17,6 +17,14 @@ Place all documentation contributions in the appropriate location in the [`/doc`
 
 OpenWeave follows the [Google Developers Style Guide](https://developers.google.com/style/). See the [Highlights](https://developers.google.com/style/highlights) page for a quick overview.
 
+## Links
+
+For consistency, all document links should point to the content on GitHub, unless it refers to content only on [openweave.io](https://openweave.io).
+
+The text of a link should be descriptive, so it's clear what the link is for:
+
+> For more information, see the [OpenWeave Style Guide](./STYLE_GUIDE.md).
+
 ## Markdown guidelines
 
 Use standard Markdown when authoring OpenWeave documentation. While HTML may be used for more complex content such as tables, use Markdown as much as possible. To ease mirroring and to keep formatting consistent with openweave.io, we ask that you follow the specific guidelines listed here.
@@ -44,6 +52,18 @@ root@c0f3912a74ff:/#
 Or in a Happy node, you might have:
 ```
 root@BorderRouter:#
+```
+
+### Other prompts
+
+The Device Manager prompt should also be used if necessary. It should start with `weave-device-mgr` and end with `>` to ensure it's properly imported into openweave.io:
+```
+weave-device-mgr > help
+```
+
+This includes verbose Device Manager prompts, such as when connected to another node:
+```
+weave-device-mgr (18B4300000000004 @ fd00:0:fab1:6:1ab4:3000:0:4) > ping
 ```
 
 ### Commands and output
@@ -111,3 +131,23 @@ For example:
 Or:
 
 > Caution: The user should be careful running the next command.
+
+### Material icons
+
+Some OpenWeave pages use Material icons inline with text or in diagrams to denote Weave concepts like fabric or schema, or individual Weave profiles. These icons are used to aid in your understanding of Weave by highlighting common elements and are not official Weave-branded icons.
+
+These are not required for OpenWeave documentation contributions, but aid in consistency across the site, so you may be asked to add them depending on the type of document.
+
+To use these, link to the web font at the top of the Markdown page:
+
+```
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+```
+
+Then reference them with a `<span>` HTML tag, using the name from [material.io](https://material.io/tools/icons/?style=baseline):
+
+```
+<span class="material-icons">favorite</span>
+```
+
+See [OpenWeave Tools](./guides/tools/index.md) for examples of this in use.

@@ -1,0 +1,250 @@
+# Weave Device Manager
+
+The `weave-device-mgr` (Weave Device Manager) tool serves as an assisting device
+in the Weave ecosystem. It manages device pairing, including network and fabric
+provisioning. The functionality it provides is analogous to the role the Nest
+app plays in provisioning, pairing, and registering a Nest device to the
+Service.
+
+Weave Device Manager is included in the [`weave-tools`
+build](https://openweave.io/guides/tools#build_weave-tools). In a [Standalone application
+build](https://openweave.io/guides/build#standalone_application), it is located at
+`/src/device-manager/python`.
+
+## Run
+
+The help menu is available during tool operation. To start Weave Device Manager
+and view the help menu:
+
+```
+$ ./weave-device-mgr
+weave-device-mgr > help
+```
+
+## Connect to a mock device
+
+Since Weave Device Manager serves an assisting function, you must first connect
+it to a device. To test this functionality, use a Happy simulated topology where
+one node runs a mock Weave device and another runs Device Manager.
+
+### 1. Create a Happy topology
+
+In this topology, `node01` will run the mock device while `node02` will run
+Device Manager. Before beginning, [install Happy](https://openweave.io/happy/setup#install) and
+[configure it for Weave support](https://openweave.io/happy/setup#weave_support).
+
+Once installed, create a simple Happy topology:
+
+```
+$ weave-state-load {path-to-openweave-core}/src/test-apps/happy/topologies/standalone/three_nodes_on_thread_weave.json
+```
+
+Check the Happy and Weave states to confirm the topology:
+
+    $ happy-state
+    <code>State Name:  happy</code>
+    <code></code>
+    <code>NETWORKS   Name         Type   State                                     Prefixes</code>
+    <code>           Home       thread      UP                       2001:0db8:0001:0002/64</code>
+    <code></code>
+    <code></code>
+    <code>NODES      Name    Interface    Type                                          IPs</code>
+    <code>         node01        wpan0  thread   fd00:0000:fab1:0006:1ab4:3000:0000:0004/64</code>
+    <code>                                       2001:0db8:0001:0002:0200:00ff:fe00:0001/64</code>
+    <code></code>
+    <code>         node02        wpan0  thread   fd00:0000:fab1:0006:1ab4:3000:0000:0005/64</code>
+    <code>                                       2001:0db8:0001:0002:0200:00ff:fe00:0002/64</code>
+    <code></code>
+    <code>         node03        wpan0  thread   2001:0db8:0001:0002:0200:00ff:fe00:0003/64</code>
+    <code>                                       fd00:0000:fab1:0006:1ab4:3000:0000:000a/64</code>
+    <code></code>
+    <code class="devsite-terminal">weave-state</code>
+    <code>State Name: weave</code>
+    <code></code>
+    <code>NODES                Name       Weave Node Id    Pairing Code</code>
+    <code>                   node01    18B4300000000004          AAA123</code>
+    <code>                   node02    18B4300000000005          AAA123</code>
+    <code>                   node03    18B430000000000A          AAA123</code>
+    <code></code>
+    <code>FABRIC          Fabric Id           Global Prefix</code>
+    <code>                     fab1     fd00:0000:fab1::/48</code>
+
+### 2. Start the mock device
+
+Log in to `node01`:
+
+```
+$ happy-shell node01
+```
+
+In `node01`, bring up a mock device using that node's Weave IPv6 address and a
+valid Weave pairing code. A pairing code is required to establish a secure
+[PASE](https://openthread.io/guides/glossary#pase) session between the mock device and Device
+Manager:
+
+```
+root@node01:# ./mock-device --node-addr fd00:0:fab1:6:1ab4:3000:0:4 --pairing-code AB713H
+WEAVE:ML: Binding IPv6 TCP listen endpoint to [fd00:0:fab1:6:1ab4:3000:0:4]:11095
+WEAVE:ML: Listening on IPv6 TCP endpoint
+WEAVE:ML: Binding general purpose IPv4 UDP endpoint to [::]:11095
+WEAVE:IN: IPV6_PKTINFO: 92
+WEAVE:ML: Binding general purpose IPv6 UDP endpoint to [fd00:0:fab1:6:1ab4:3000:0:4]:11095 (wpan0)
+WEAVE:ML: Listening on general purpose IPv6 UDP endpoint
+WEAVE:ML: Binding IPv6 multicast receive endpoint to [ff02::1]:11095 (wpan0)
+WEAVE:ML: Listening on IPv6 multicast receive endpoint
+WEAVE:EM: Cannot listen for BLE connections, null BleLayer
+Weave Node Configuration:
+  Fabric Id: FAB1
+  Subnet Number: 6
+  Node Id: 18B4300000000004
+WEAVE:SD: init()
+Weave Node Configuration:
+  Fabric Id: FAB1
+  Subnet Number: 6
+  Node Id: 18B4300000000004
+  Listening Addresses:
+      fd00:0:fab1:6:1ab4:3000:0:4 (ipv6)
+  Pairing Server: fd00:0:fab1:6:1ab4:3000:0:4
+Mock Time Sync is disabled and not initialized
+Mock System Time Offset initialized to: -4.802583 sec
+Listening for requests...
+Weave Node ready to service events; PID: 41116; PPID: 40703
+```
+
+> Note: The Weave pairing code is a device-specific string of all uppercase alphanumeric characters (0-9 and A-Y, excluding I, O, Q and Z) with a length of 6 characters, where the first 5 characters are random and the 6th character is a check character generated by an adaptation of the Verhoeff algorithm. See the [Verhoeff module](https://github.com/openweave/openweave-core/tree/master/src/lib/support/verhoeff) for more information.
+
+### 3. Start Device Manager
+
+Open a new terminal window and log in to `node02`
+
+```
+$ happy-shell node02
+```
+
+In `node02`, start Device Manager:
+
+```
+root@node02:# ./weave-device-mgr
+WEAVE:ML: Binding general purpose IPv4 UDP endpoint to [::]:11095
+WEAVE:IN: IPV6_PKTINFO: 92
+WEAVE:ML: Listening on general purpose IPv4 UDP endpoint
+WEAVE:ML: Binding general purpose IPv6 UDP endpoint to [::]:11095 ()
+WEAVE:ML: Listening on general purpose IPv6 UDP endpoint
+WEAVE:ML: Adding wpan0 to interface table
+WEAVE:ML: Binding IPv6 UDP interface endpoint to [fd00:0:fab1:6:1ab4:3000:0:5]:11095 (wpan0)
+WEAVE:ML: Listening on IPv6 UDP interface endpoint
+Weave Device Manager Shell
+<code></code>
+weave-device-mgr >
+```
+
+### 4. Connect to the mock device
+
+In Device Manager (`node02`), establish a secure PASE session with the mock
+device. Use the mock device's Weave IPv6 address and Node ID from the output of
+the `happy-state` and `weave-state` commands, along with its pairing code:
+
+```
+weave-device-mgr > connect fd00:0:fab1:6:1ab4:3000:0:4 18B4300000000004 --pairing-code AB713H
+WEAVE:DM: Initiating connection to device
+WEAVE:ML: Binding general purpose IPv4 UDP endpoint to [::]:11095
+WEAVE:IN: IPV6_PKTINFO: 92
+WEAVE:ML: Listening on general purpose IPv4 UDP endpoint
+WEAVE:ML: Binding general purpose IPv6 UDP endpoint to [::]:11095 ()
+WEAVE:ML: Listening on general purpose IPv6 UDP endpoint
+WEAVE:ML: Adding wpan0 to interface table
+WEAVE:ML: Binding IPv6 UDP interface endpoint to [fd00:0:fab1:6:1ab4:3000:0:5]:11095 (wpan0)
+WEAVE:ML: Listening on IPv6 UDP interface endpoint
+WEAVE:EM: ec id: 1, AppState: 0x8d3777e0
+WEAVE:DM: Sending IdentifyRequest to locate device
+WEAVE:EM: Msg sent 0000000E:1 16 18B4300000000004 0000 986B 0 MsgId:23C64568
+WEAVE:EM: Msg rcvd 0000000E:2 104 18B4300000000004 0000 986B 0 MsgId:8F1FC90B
+WEAVE:DM: Received identify response from device 18B4300000000004 ([fd00:0:fab1:6:1ab4:3000:0:4]:11095%wpan0)
+WEAVE:DM: Initiating weave connection to device 18B4300000000004 (fd00:0:fab1:6:1ab4:3000:0:4)
+WEAVE:ML: Con start AFC0 18B4300000000004 0001
+WEAVE:ML: TCP con start AFC0 fd00:0:fab1:6:1ab4:3000:0:4 11095
+WEAVE:ML: TCP con complete AFC0 0
+WEAVE:ML: Con complete AFC0
+WEAVE:DM: Connected to device
+WEAVE:DM: Initiating PASE session
+WEAVE:EM: ec id: 1, AppState: 0x21da95c0
+WEAVE:EM: Msg sent 00000004:1 296 18B4300000000004 AFC0 986C 0 MsgId:00000002
+WEAVE:SM: StartSessionTimer
+WEAVE:EM: Msg rcvd 00000004:2 284 18B4300000000004 AFC0 986C 0 MsgId:00000000
+WEAVE:EM: Msg rcvd 00000004:3 144 18B4300000000004 AFC0 986C 0 MsgId:00000001
+WEAVE:EM: Msg sent 00000004:4 176 18B4300000000004 AFC0 986C 0 MsgId:00000003
+WEAVE:EM: Msg rcvd 00000004:5 32 18B4300000000004 AFC0 986C 0 MsgId:00000002
+WEAVE:SM: CancelSessionTimer
+WEAVE:DM: Secure session established
+Connected to device.
+weave-device-mgr (18B4300000000004 @ fd00:0:fab1:6:1ab4:3000:0:4) >
+```
+
+The output on the mock device (`node01`), confirms a successful connection:
+
+```
+### node01 - mock device
+
+WEAVE:EM: Msg rcvd 0000000E:1 16 0000000000000001 0000 986B 0 MsgId:23C64568
+WEAVE:EM: ec id: 1, AppState: 0x3aadf480
+IdentifyRequest received from node 1 (fd00:0:fab1:6:1ab4:3000:0:5)
+  Target Fabric Id: FFFFFFFFFFFFFFFF
+  Target Modes: 00000000
+  Target Vendor Id: FFFF
+  Target Product Id: FFFF
+Sending IdentifyResponse
+WEAVE:EM: Msg sent 0000000E:2 104 0000000000000001 0000 986B 0 MsgId:8F1FC90B
+WEAVE:ML: Con rcvd 3960 fd00:0:fab1:6:1ab4:3000:0:5 38798
+Connection received from node 18B4300000000005 (fd00:0:fab1:6:1ab4:3000:0:5)
+WEAVE:EM: Msg rcvd 00000004:1 296 0000000000000001 3960 986C 0 MsgId:00000002
+WEAVE:EM: ec id: 1, AppState: 0x3aaf1f60
+WEAVE:SM: StartSessionTimer
+WEAVE:EM: Msg sent 00000004:2 284 0000000000000001 3960 986C 0 MsgId:00000000
+WEAVE:EM: Msg sent 00000004:3 144 0000000000000001 3960 986C 0 MsgId:00000001
+WEAVE:EM: Msg rcvd 00000004:4 176 0000000000000001 3960 986C 0 MsgId:00000003
+WEAVE:EM: Msg sent 00000004:5 32 0000000000000001 3960 986C 0 MsgId:00000002
+WEAVE:ML: Message Encryption Key: Id=2C51 Type=SessionKey Peer=0000000000000001 EncType=01 Key=BB00C9BE96F188D7672255A2DC6AC14F,B0615B2BD5F97FC1B7AEC8C6FD59207D3B7CBFE6
+WEAVE:SM: CancelSessionTimer
+Secure session established with node 1 (fd00:0:fab1:6:1ab4:3000:0:5)
+WEAVE:SM: Release session key: Id=2C51 Peer=0000000000000001 Reserve=0
+```
+
+### 5. Test the connection
+
+Send a Weave Echo request from Device Manager (`node02`) to the mock device to
+test the connection:
+
+```
+weave-device-mgr (18B4300000000004 @ fd00:0:fab1:6:1ab4:3000:0:4) > ping
+WEAVE:DM: DataLength: 0, payload: 0, next: (nil)
+WEAVE:EM: ec id: 1, AppState: 0x8d3777e0
+WEAVE:EM: Msg sent 00000001:1 0 18B4300000000004 AFC0 986F 0 MsgId:00000000
+WEAVE:EM: Msg rcvd 00000001:2 0 18B4300000000004 AFC0 986F 0 MsgId:00000000
+Ping complete
+```
+
+Output on the mock device (`node01`) confirms the successful Echo:
+
+```
+### node01 - mock device
+
+WEAVE:EM: Msg rcvd 00000001:1 0 0000000000000001 3960 986F 0 MsgId:00000000
+WEAVE:EM: ec id: 1, AppState: 0x3aadfbb0
+WEAVE:SM: Reserve session key: Id=2CFF Peer=0000000000000001 Reserve=1
+Echo Request from node 1 (fd00:0:fab1:6:1ab4:3000:0:5): len=0 ... sending response.
+WEAVE:EM: Msg sent 00000001:2 0 0000000000000001 3960 986F 0 MsgId:00000000
+WEAVE:SM: Release session key: Id=2CFF Peer=0000000000000001 Reserve=0
+```
+
+### 6. Disconnect from the mock device
+
+Use Device Manager to disconnect from the mock device:
+
+```
+weave-device-mgr (18B4300000000004 @ fd00:0:fab1:6:1ab4:3000:0:4) > close
+WEAVE:DM: Closing connection to device
+WEAVE:ML: Con closed 8FC0 4002
+WEAVE:ML: Removing session key: Id=2873 Peer=18B4300000000004
+WEAVE:ML: Closing endpoints
+weave-device-mgr >
+```
