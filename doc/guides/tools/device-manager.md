@@ -41,33 +41,37 @@ $ weave-state-load {path-to-openweave-core}/src/test-apps/happy/topologies/stand
 
 Check the Happy and Weave states to confirm the topology:
 
-    $ happy-state
-    <code>State Name:  happy</code>
-    <code></code>
-    <code>NETWORKS   Name         Type   State                                     Prefixes</code>
-    <code>           Home       thread      UP                       2001:0db8:0001:0002/64</code>
-    <code></code>
-    <code></code>
-    <code>NODES      Name    Interface    Type                                          IPs</code>
-    <code>         node01        wpan0  thread   fd00:0000:fab1:0006:1ab4:3000:0000:0004/64</code>
-    <code>                                       2001:0db8:0001:0002:0200:00ff:fe00:0001/64</code>
-    <code></code>
-    <code>         node02        wpan0  thread   fd00:0000:fab1:0006:1ab4:3000:0000:0005/64</code>
-    <code>                                       2001:0db8:0001:0002:0200:00ff:fe00:0002/64</code>
-    <code></code>
-    <code>         node03        wpan0  thread   2001:0db8:0001:0002:0200:00ff:fe00:0003/64</code>
-    <code>                                       fd00:0000:fab1:0006:1ab4:3000:0000:000a/64</code>
-    <code></code>
-    <code class="devsite-terminal">weave-state</code>
-    <code>State Name: weave</code>
-    <code></code>
-    <code>NODES                Name       Weave Node Id    Pairing Code</code>
-    <code>                   node01    18B4300000000004          AAA123</code>
-    <code>                   node02    18B4300000000005          AAA123</code>
-    <code>                   node03    18B430000000000A          AAA123</code>
-    <code></code>
-    <code>FABRIC          Fabric Id           Global Prefix</code>
-    <code>                     fab1     fd00:0000:fab1::/48</code>
+```
+$ happy-state
+State Name:  happy
+
+NETWORKS   Name         Type   State                                     Prefixes
+           Home       thread      UP                       2001:0db8:0001:0002/64
+
+
+NODES      Name    Interface    Type                                          IPs
+         node01        wpan0  thread   fd00:0000:fab1:0006:1ab4:3000:0000:0004/64
+                                       2001:0db8:0001:0002:0200:00ff:fe00:0001/64
+
+         node02        wpan0  thread   fd00:0000:fab1:0006:1ab4:3000:0000:0005/64
+                                       2001:0db8:0001:0002:0200:00ff:fe00:0002/64
+
+         node03        wpan0  thread   2001:0db8:0001:0002:0200:00ff:fe00:0003/64
+                                       fd00:0000:fab1:0006:1ab4:3000:0000:000a/64
+```
+
+```
+$ weave-state
+State Name: weave
+
+NODES                Name       Weave Node Id    Pairing Code
+                   node01    18B4300000000004          AAA123
+                   node02    18B4300000000005          AAA123
+                   node03    18B430000000000A          AAA123
+
+FABRIC          Fabric Id           Global Prefix
+                     fab1     fd00:0000:fab1::/48
+```
 
 ### 2. Start the mock device
 
@@ -79,7 +83,7 @@ $ happy-shell node01
 
 In `node01`, bring up a mock device using that node's Weave IPv6 address and a
 valid Weave pairing code. A pairing code is required to establish a secure
-[PASE](https://openthread.io/guides/glossary#pase) session between the mock device and Device
+[PASE](../glossary.md#pase) session between the mock device and Device
 Manager:
 
 ```
@@ -134,7 +138,7 @@ WEAVE:ML: Adding wpan0 to interface table
 WEAVE:ML: Binding IPv6 UDP interface endpoint to [fd00:0:fab1:6:1ab4:3000:0:5]:11095 (wpan0)
 WEAVE:ML: Listening on IPv6 UDP interface endpoint
 Weave Device Manager Shell
-<code></code>
+
 weave-device-mgr >
 ```
 

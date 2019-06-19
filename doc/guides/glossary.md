@@ -20,13 +20,13 @@ network and provide a communication interface and end-user services.
 #### application level security
 Weave devices may be included in one or more security domains, which are secured
 with domain keys. The keys include a rolling epoch key and are managed by an
-authorization service. See [authorization service](#authorization_service).
+authorization service. See [authorization service](#authorization-service).
 
 #### authorization service
 Service that authenticates devices and clients of the Weave system, and provides
 to devices and clients authorized application keys and rolling epoch keys used
 to implement application level security. See [application level
-security](#application_level_security).
+security](#application-level-security).
 
 ## B
 
@@ -44,7 +44,7 @@ Service.
 The Certificate-assisted Session Establishment (CASE) protocol is the primary
 Weave secure session establishment protocol using Weave certificates. This can
 be a hardware certificate or an application level security certificate provided
-by the authorization service. See [Weave certificate](#weave_certificate).
+by the authorization service. See [Weave certificate](#weave-certificate).
 
 #### controller
 Controllers are services that implement advanced functionality. Examples include
@@ -60,7 +60,7 @@ An application-specific request that cannot be accomplished by standard
 #### device ID
 Type of node ID. Each device has a 64-bit globally unique ID assigned at
 manufacturing time. It is tied to the device certificate for authenticating the
-device's identity. Used as a node ID for devices. See [node ID](#node_id).
+device's identity. Used as a node ID for devices. See [node ID](#node-id).
 
 ## E
 
@@ -162,7 +162,7 @@ network access credentials, such as the Wi-Fi pre-shared key.
 #### node
 A Weave device or service host that is capable of participating in a Weave
 fabric. Every node in the fabric has a unique IPv6 address. See [service
-host](#service_host) and [Weave fabric](#weave_fabric).
+host](#service-host) and [Weave fabric](#weave-fabric).
 
 #### node-acquired address
 IPv4 or IPv6 address assigned to a device by the end user's network
@@ -188,7 +188,7 @@ Service user account.
 #### pairing code
 Character code used to pair the device with the Weave fabric. This is encoded in
 the Weave Device Descriptor and printed alongside the QR code to enable pairing.
-See [Weave Device Descriptor](#weave_device_descriptor).
+See [Weave Device Descriptor](#weave-device-descriptor).
 
 #### PASE
 Password-authenticated session establishment, a protocol for mutual
@@ -209,7 +209,7 @@ commands that manage a session.
 A protocol role used in Weave Data Management. A publisher produces and serves
 versioned instances of one or more schemas to one or more subscribers, and sends
 notifications on a change to the schema. See [Weave Data
-Management](#weave_data_management).
+Management](#weave-data-management).
 
 ## R
 
@@ -297,7 +297,7 @@ resource or trait.
 A protocol role used in Weave Data Management. A subscriber views and consumes
 versioned instances of one or more externally-published schemas. It can change
 the versioned instance of a published schema, or issue an application-specific
-command. See [Weave Data Management](#weave_data_management).
+command. See [Weave Data Management](#weave-data-management).
 
 ## T
 
@@ -356,14 +356,14 @@ interface, trait, and service definitions.
 
 #### Weave Data Management
 An application protocol used for [real-time trait
-management](#real-time_trait_management). Weave Data Management provides compact
+management](#real-time-trait-management). Weave Data Management provides compact
 operations for all request message types, providing asynchronous notifications
 of property state changes.
 
 #### Weave Device Descriptor
 Data encoded into a QR code printed on a device providing information required
 to pair the device to the network. Includes the pairing code and the product
-type and version. See [pairing code](#pairing_code).
+type and version. See [pairing code](#pairing-code).
 
 #### Weave fabric
 A network consisting of all connected home devices, the Nest Service, and mobile

@@ -131,23 +131,3 @@ For example:
 Or:
 
 > Caution: The user should be careful running the next command.
-
-### Material icons
-
-Some OpenWeave pages use Material icons inline with text or in diagrams to denote Weave concepts like fabric or schema, or individual Weave profiles. These icons are used to aid in your understanding of Weave by highlighting common elements and are not official Weave-branded icons.
-
-These are not required for OpenWeave documentation contributions, but aid in consistency across the site, so you may be asked to add them depending on the type of document.
-
-To use these, link to the web font at the top of the Markdown page:
-
-```
-<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-```
-
-Then reference them with a `<span>` HTML tag, using the name from [material.io](https://material.io/tools/icons/?style=baseline):
-
-```
-<span class="material-icons">favorite</span>
-```
-
-See [OpenWeave Tools](./guides/tools/index.md) for examples of this in use.
