@@ -386,12 +386,11 @@ void WeaveSecurityManager::StartPASESession(void)
 {
     WEAVE_ERROR err;
 
-    err = SendPASEInitiatorStep1(kPASEConfig_ConfigDefault);
-    SuccessOrExit(err);
-
     mEC->OnMessageReceived = HandlePASEMessageInitiator;
     mEC->OnConnectionClosed = HandleConnectionClosed;
 
+    err = SendPASEInitiatorStep1(kPASEConfig_ConfigDefault);
+    SuccessOrExit(err);
     // Time limit overall PASE duration.
     StartSessionTimer();
 
