@@ -17,6 +17,14 @@ Place all documentation contributions in the appropriate location in the [`/doc`
 
 OpenWeave follows the [Google Developers Style Guide](https://developers.google.com/style/). See the [Highlights](https://developers.google.com/style/highlights) page for a quick overview.
 
+## Links
+
+For consistency, all document links should point to the content on GitHub, unless it refers to content only on [openweave.io](https://openweave.io).
+
+The text of a link should be descriptive, so it's clear what the link is for:
+
+> For more information, see the [OpenWeave Style Guide](./STYLE_GUIDE.md).
+
 ## Markdown guidelines
 
 Use standard Markdown when authoring OpenWeave documentation. While HTML may be used for more complex content such as tables, use Markdown as much as possible. To ease mirroring and to keep formatting consistent with openweave.io, we ask that you follow the specific guidelines listed here.
@@ -44,6 +52,18 @@ root@c0f3912a74ff:/#
 Or in a Happy node, you might have:
 ```
 root@BorderRouter:#
+```
+
+### Other prompts
+
+The Device Manager prompt should also be used if necessary. It should start with `weave-device-mgr` and end with `>` to ensure it's properly imported into openweave.io:
+```
+weave-device-mgr > help
+```
+
+This includes verbose Device Manager prompts, such as when connected to another node:
+```
+weave-device-mgr (18B4300000000004 @ fd00:0:fab1:6:1ab4:3000:0:4) > ping
 ```
 
 ### Commands and output
