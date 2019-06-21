@@ -3394,15 +3394,7 @@ void WeaveDeviceManager::HandleSessionError(WeaveSecurityManager *sm, WeaveConne
     DeviceStatus devStatus;
     DeviceStatus *devStatusArg = NULL;
 
-    // Bail immediately if not in the correct state. May occur if the connection closes abruptly and the
-    // SecurityManager's HandleConnectionClosed callback fires _after_ the DeviceManager's own callback.
-    // In this case, con is already closed and mOnError has already been called, so we should just exit.
-    if (devMgr->mConState != kConnectionState_StartSession)
-    {
-        return;
-    }
-
-    // Report the result.
+    // Log the error.
     if (localErr == WEAVE_ERROR_STATUS_REPORT_RECEIVED && statusReport != NULL)
     {
         WeaveLogProgress(DeviceManager, "Secure session failed: %s", StatusReportStr(statusReport->mProfileId, statusReport->mStatusCode));
@@ -3414,6 +3406,24 @@ void WeaveDeviceManager::HandleSessionError(WeaveSecurityManager *sm, WeaveConne
             localErr = WEAVE_ERROR_DEVICE_AUTH_TIMEOUT;
         }
         WeaveLogProgress(DeviceManager, "Secure session failed: %s", ErrorStr(localErr));
+    }
+
+    // Sanity check that the connection state is expected.
+    //
+    // HandleSessionError() is called by the WeaveSecurityManager when there is a
+    // failure to establish a security session.  This can occur in two cases relative
+    // to the Device Manager's connection state value (mConState):
+    //   1) if the session failed because the underlying connection was closed unexpectedly
+    //      AND the ordering of events in the network caused HandleConnectionClosed() to be
+    //      called before HandleSessionError(), then the connection state will be NotConnected
+    //   2) if the session failed for any other reason, then the connection state will be
+    //      StartSession.
+    // Any other connection state value is unexpected and likely signals a logic bug.
+    if (devMgr->mConState != kConnectionState_StartSession &&
+        devMgr->mConState != kConnectionState_NotConnected)
+    {
+        WeaveLogError(DeviceManager, "Wrong connection state in HandleSessionError()");
+        return;
     }
 
     // If the device returned a Common:Busy response, it likely means it's in a state where it can't perform
@@ -3499,8 +3509,7 @@ void WeaveDeviceManager::RestartRemotePassiveRendezvousListen()
         // Nobody else is allowed to try anything while we're reconnecting to the assisting device.
         mOpState = kOpState_RestartRemotePassiveRendezvous;
 
-        // Reconnect to assisting device and attempt to reuse existing secure session. Establish new secure session from
-        // scratch if necessary.
+        // Reconnect to assisting device.
         err = StartReconnectToAssistingDevice();
     }
 
