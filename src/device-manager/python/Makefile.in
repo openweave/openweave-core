@@ -110,10 +110,17 @@ target_triplet = @target@
 @CONFIG_NETWORK_LAYER_BLE_TRUE@    WeaveDeviceManager-BleApplicationDelegate.cpp   \
 @CONFIG_NETWORK_LAYER_BLE_TRUE@    $(NULL)
 
+
+# ------------------------------------------------------------
+# "openweave" Python Wheel
+# ------------------------------------------------------------
+@WEAVE_BUILD_INSTALLABLE_PYTHON_PACKAGE_TRUE@am__append_2 = \
+@WEAVE_BUILD_INSTALLABLE_PYTHON_PACKAGE_TRUE@    $(srcdir)/build-openweave-wheel.py				\
+@WEAVE_BUILD_INSTALLABLE_PYTHON_PACKAGE_TRUE@    $(NULL)
+
 subdir = src/device-manager/python
 DIST_COMMON = $(srcdir)/Makefile.in $(srcdir)/Makefile.am \
 	$(top_srcdir)/third_party/nlbuild-autotools/repo/third_party/autoconf/mkinstalldirs \
-	$(dist_bin_SCRIPTS) \
 	$(top_srcdir)/third_party/nlbuild-autotools/repo/third_party/autoconf/depcomp \
 	$(openweave_PYTHON) \
 	$(top_srcdir)/third_party/nlbuild-autotools/repo/third_party/autoconf/py-compile \
@@ -202,7 +209,7 @@ _WeaveDeviceMgr_la_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
 	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CXXLD) \
 	$(_WeaveDeviceMgr_la_CXXFLAGS) $(CXXFLAGS) \
 	$(_WeaveDeviceMgr_la_LDFLAGS) $(LDFLAGS) -o $@
-SCRIPTS = $(dist_bin_SCRIPTS)
+SCRIPTS = $(bin_SCRIPTS)
 AM_V_P = $(am__v_P_@AM_V@)
 am__v_P_ = $(am__v_P_@AM_DEFAULT_V@)
 am__v_P_0 = false
@@ -587,7 +594,9 @@ noinst_HEADERS = \
 # ------------------------------------------------------------
 # Weave Device Manager Shell Script 
 # ------------------------------------------------------------
-dist_bin_SCRIPTS = weave-device-mgr
+EXTRA_DIST = $(srcdir)/weave-device-mgr.py $(NULL) $(am__append_2)
+bin_SCRIPTS = weave-device-mgr
+CLEANFILES = weave-device-mgr
 all: all-am
 
 .SUFFIXES:
@@ -660,9 +669,9 @@ clean-openweaveLTLIBRARIES:
 
 _WeaveDeviceMgr.la: $(_WeaveDeviceMgr_la_OBJECTS) $(_WeaveDeviceMgr_la_DEPENDENCIES) $(EXTRA__WeaveDeviceMgr_la_DEPENDENCIES) 
 	$(AM_V_CXXLD)$(_WeaveDeviceMgr_la_LINK) -rpath $(openweavedir) $(_WeaveDeviceMgr_la_OBJECTS) $(_WeaveDeviceMgr_la_LIBADD) $(LIBS)
-install-dist_binSCRIPTS: $(dist_bin_SCRIPTS)
+install-binSCRIPTS: $(bin_SCRIPTS)
 	@$(NORMAL_INSTALL)
-	@list='$(dist_bin_SCRIPTS)'; test -n "$(bindir)" || list=; \
+	@list='$(bin_SCRIPTS)'; test -n "$(bindir)" || list=; \
 	if test -n "$$list"; then \
 	  echo " $(MKDIR_P) '$(DESTDIR)$(bindir)'"; \
 	  $(MKDIR_P) "$(DESTDIR)$(bindir)" || exit 1; \
@@ -689,9 +698,9 @@ install-dist_binSCRIPTS: $(dist_bin_SCRIPTS)
 	     } \
 	; done
 
-uninstall-dist_binSCRIPTS:
+uninstall-binSCRIPTS:
 	@$(NORMAL_UNINSTALL)
-	@list='$(dist_bin_SCRIPTS)'; test -n "$(bindir)" || exit 0; \
+	@list='$(bin_SCRIPTS)'; test -n "$(bindir)" || exit 0; \
 	files=`for p in $$list; do echo "$$p"; done | \
 	       sed -e 's,.*/,,;$(transform)'`; \
 	dir='$(DESTDIR)$(bindir)'; $(am__uninstall_files_from_dir)
@@ -916,6 +925,7 @@ install-strip:
 mostlyclean-generic:
 
 clean-generic:
+	-test -z "$(CLEANFILES)" || rm -f $(CLEANFILES)
 
 distclean-generic:
 	-test -z "$(CONFIG_CLEAN_FILES)" || rm -f $(CONFIG_CLEAN_FILES)
@@ -924,10 +934,13 @@ distclean-generic:
 maintainer-clean-generic:
 	@echo "This command is intended for maintainers to use"
 	@echo "it deletes files that may require special tools to rebuild."
+@WEAVE_BUILD_INSTALLABLE_PYTHON_PACKAGE_FALSE@install-exec-local:
+@WEAVE_BUILD_INSTALLABLE_PYTHON_PACKAGE_FALSE@uninstall-local:
+@WEAVE_BUILD_INSTALLABLE_PYTHON_PACKAGE_FALSE@clean-local:
 clean: clean-am
 
-clean-am: clean-generic clean-libtool clean-openweaveLTLIBRARIES \
-	mostlyclean-am
+clean-am: clean-generic clean-libtool clean-local \
+	clean-openweaveLTLIBRARIES mostlyclean-am
 
 distclean: distclean-am
 	-rm -rf ./$(DEPDIR)
@@ -953,7 +966,7 @@ install-dvi: install-dvi-am
 
 install-dvi-am:
 
-install-exec-am: install-dist_binSCRIPTS
+install-exec-am: install-binSCRIPTS install-exec-local
 	@$(NORMAL_INSTALL)
 	$(MAKE) $(AM_MAKEFLAGS) install-exec-hook
 install-html: install-html-am
@@ -994,26 +1007,26 @@ ps: ps-am
 
 ps-am:
 
-uninstall-am: uninstall-dist_binSCRIPTS uninstall-openweaveLTLIBRARIES \
-	uninstall-openweavePYTHON
+uninstall-am: uninstall-binSCRIPTS uninstall-local \
+	uninstall-openweaveLTLIBRARIES uninstall-openweavePYTHON
 
 .MAKE: install-am install-exec-am install-strip
 
 .PHONY: CTAGS GTAGS TAGS all all-am check check-am clean clean-generic \
-	clean-libtool clean-openweaveLTLIBRARIES cscopelist-am ctags \
-	ctags-am distclean distclean-compile distclean-generic \
-	distclean-libtool distclean-tags distdir dvi dvi-am html \
-	html-am info info-am install install-am install-data \
-	install-data-am install-dist_binSCRIPTS install-dvi \
+	clean-libtool clean-local clean-openweaveLTLIBRARIES \
+	cscopelist-am ctags ctags-am distclean distclean-compile \
+	distclean-generic distclean-libtool distclean-tags distdir dvi \
+	dvi-am html html-am info info-am install install-am \
+	install-binSCRIPTS install-data install-data-am install-dvi \
 	install-dvi-am install-exec install-exec-am install-exec-hook \
-	install-html install-html-am install-info install-info-am \
-	install-man install-openweaveLTLIBRARIES \
+	install-exec-local install-html install-html-am install-info \
+	install-info-am install-man install-openweaveLTLIBRARIES \
 	install-openweavePYTHON install-pdf install-pdf-am install-ps \
 	install-ps-am install-strip installcheck installcheck-am \
 	installdirs maintainer-clean maintainer-clean-generic \
 	mostlyclean mostlyclean-compile mostlyclean-generic \
 	mostlyclean-libtool pdf pdf-am ps ps-am tags tags-am uninstall \
-	uninstall-am uninstall-dist_binSCRIPTS \
+	uninstall-am uninstall-binSCRIPTS uninstall-local \
 	uninstall-openweaveLTLIBRARIES uninstall-openweavePYTHON
 
 
@@ -1027,6 +1040,22 @@ install-exec-hook:
 
 weave-device-mgr: $(srcdir)/weave-device-mgr.py
 	cp $(srcdir)/weave-device-mgr.py weave-device-mgr
+
+@WEAVE_BUILD_INSTALLABLE_PYTHON_PACKAGE_TRUE@.openweave-wheel: $(srcdir)/build-openweave-wheel.py weave-device-mgr _WeaveDeviceMgr.la $(shell find $(srcdir) -type f -name '*.py')
+@WEAVE_BUILD_INSTALLABLE_PYTHON_PACKAGE_TRUE@	rm -f openweave-*.whl
+@WEAVE_BUILD_INSTALLABLE_PYTHON_PACKAGE_TRUE@	$(PYTHON) $(srcdir)/build-openweave-wheel.py
+@WEAVE_BUILD_INSTALLABLE_PYTHON_PACKAGE_TRUE@	touch .openweave-wheel
+
+@WEAVE_BUILD_INSTALLABLE_PYTHON_PACKAGE_TRUE@install-exec-local: .openweave-wheel
+@WEAVE_BUILD_INSTALLABLE_PYTHON_PACKAGE_TRUE@	mkdir -p $(DESTDIR)$(pyexecdir)
+@WEAVE_BUILD_INSTALLABLE_PYTHON_PACKAGE_TRUE@	rm -f $(DESTDIR)$(pyexecdir)/openweave-*.whl
+@WEAVE_BUILD_INSTALLABLE_PYTHON_PACKAGE_TRUE@	cp openweave-*.whl $(DESTDIR)$(pyexecdir)
+
+@WEAVE_BUILD_INSTALLABLE_PYTHON_PACKAGE_TRUE@uninstall-local:
+@WEAVE_BUILD_INSTALLABLE_PYTHON_PACKAGE_TRUE@	rm -f $(DESTDIR)$(pyexecdir)/openweave-*.whl
+
+@WEAVE_BUILD_INSTALLABLE_PYTHON_PACKAGE_TRUE@clean-local:
+@WEAVE_BUILD_INSTALLABLE_PYTHON_PACKAGE_TRUE@	rm -f .openweave-wheel openweave-*.whl
 
 include $(abs_top_nlbuild_autotools_dir)/automake/post.am
 

@@ -324,6 +324,25 @@ if test "${PYTHON}" = ""; then
     AC_MSG_ERROR([could not find python: python is required to build this package.])
 fi
 
+# Check for specific Python packages
+
+AC_MSG_CHECKING([for Python setuptools package])
+if ${PYTHON} -c 'import setuptools' >/dev/null 2>&1; then
+    have_python_package_setuptools=yes
+else
+    have_python_package_setuptools=no
+fi
+AC_MSG_RESULT(${have_python_package_setuptools})
+
+AC_MSG_CHECKING([for Python wheel package])
+if ${PYTHON} -c 'import wheel' >/dev/null 2>&1; then
+    have_python_package_wheel=yes
+else
+    have_python_package_wheel=no
+fi
+AC_MSG_RESULT(${have_python_package_wheel})
+
+
 #
 # Checks for specific compiler characteristics
 #
@@ -1692,13 +1711,58 @@ AC_ARG_ENABLE(device_manager,
 # Fail if Device Manager wrapper libraries are enabled but the "sockets" network stack is not.  This combination is
 # not supported. 
 if test "${build_device_manager}" = "yes"; then
-    if test "${WEAVE_SYSTEM_CONFIG_USE_SOCKETS}" eq 0; then
+    if test ${WEAVE_SYSTEM_CONFIG_USE_SOCKETS} -eq 0; then
         AC_MSG_ERROR([Building Device Manager wrapper libraries requires selecting sockets as a target network stack])
     fi
 fi    
 
 AC_MSG_RESULT(${build_device_manager})
 AM_CONDITIONAL([WEAVE_BUILD_DEVICE_MANAGER], [test "${build_device_manager}" = "yes"])
+
+
+#
+# OpenWeave Python installable package (wheel)
+# 
+
+AC_MSG_CHECKING([whether to build installable Python package for OpenWeave])
+AC_ARG_ENABLE(installable_python_package,
+    [AS_HELP_STRING([--enable-installable-python-package],[Enable building of an installable Python package (wheel) for OpenWeave @<:@default=yes@:>@.])],
+    [
+        case "${enableval}" in 
+
+        no|yes)
+            build_installable_python_package=${enableval}
+            ;;
+
+        *)
+            AC_MSG_ERROR([Invalid value ${enableval} for --enable-installable-python-package])
+            ;;
+
+        esac
+    ],
+    [
+        # By default, enable building an installable Python package iff the setuptools and wheel packages
+        # are available.
+        if test "${have_python_package_setuptools}" == "yes" -a "${have_python_package_wheel}" == "yes"; then
+            build_installable_python_package=yes
+        else
+            build_installable_python_package=no
+        fi
+    ])
+
+# Fail if requested to build an installable Python package but the setuptools and wheel packages
+# are not available
+if test "${build_installable_python_package}" = "yes"; then
+    if test "${have_python_package_setuptools}" != "yes"; then
+        AC_MSG_ERROR([The Python setuptools package must be installed in order to build an installable package for OpenWeave])
+    fi
+    if test "${have_python_package_wheel}" != "yes"; then
+        AC_MSG_ERROR([The Python wheel package must be installed in order to build an installable package for OpenWeave])
+    fi
+fi
+
+AC_MSG_RESULT(${build_installable_python_package})
+AM_CONDITIONAL([WEAVE_BUILD_INSTALLABLE_PYTHON_PACKAGE], [test "${build_installable_python_package}" = "yes"])
 
 
 #
