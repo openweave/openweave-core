@@ -53,7 +53,7 @@ PACKAGE_VERSION                                 = $(shell cat $(top_builddir)/.l
 VERSION                                         = $(PACKAGE_VERSION)
 
 EXTRA_DOCS                                      = \
-    $(top_srcdir)/CHANGELOG                       \
+    $(top_srcdir)/CHANGELOG.md                    \
     $(top_srcdir)/LICENSE                         \
     $(NULL)
 

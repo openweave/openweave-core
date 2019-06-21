@@ -75,7 +75,7 @@ BUILT_SOURCES                            = \
     $(NULL)
 
 dist_doc_DATA                            = \
-    CHANGELOG                              \
+    CHANGELOG.md                           \
     LICENSE                                \
     $(NULL)
 

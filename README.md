@@ -113,7 +113,7 @@ The OpenWeave repository is structured as follows:
 | `build/` | OpenWeave-specific build system support content.|
 | `BUILDING.md` | More detailed information on configuring and building OpenWeave for different targets. |
 | `certs/` | OpenWeave-related security certificate material.|
-| `CHANGELOG` | Description of changes to OpenWeave from release-to-release.|
+| `CHANGELOG.md` | List of major feature changes and updates to OpenWeave. |
 | `configure` | GNU autotools configuration script for OpenWeave. |
 | `configure.ac` | GNU autotools configuration script source file for OpenWeave. |
 | `CONTRIBUTING.md` | Guidelines for contributing to OpenWeave |

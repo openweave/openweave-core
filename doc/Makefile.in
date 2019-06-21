@@ -447,7 +447,7 @@ EXTRA_DIST = \
     $(NULL)
 
 EXTRA_DOCS = \
-    $(top_srcdir)/CHANGELOG                       \
+    $(top_srcdir)/CHANGELOG.md                    \
     $(top_srcdir)/LICENSE                         \
     $(NULL)
 

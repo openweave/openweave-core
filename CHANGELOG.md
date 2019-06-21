@@ -1,40 +1,53 @@
 # Changelog
 
-All notable changes to OpenWeave Core are documented in this file.
+All major feature changes and updates to OpenWeave Core are listed in this
+file.
 
-## [Unreleased]
+> Note: OpenWeave Core does not adhere to semantic versioning and release
+tags in the repository do not correspond to actual software versions. The
+`master` branch is always stable and suitable for general use.
 
-*   Weave Device Manager clean up and enhancements.
-*   Added documentation style guide and updated contribution guidelines.
-*   Cleaned up build support for OS X.
+## 2019-06-19 Documentation and Changelog updates
 
-## [4.1.2] - 2019-05-24
+### New documentation process
 
-*   Updated to nlbuild-autotools 1.6.11.
-*   Added Device Layer support for the nRF52840 platform.
+There is a new documentation contribution process in place for OpenWeave
+Core. All contributions going forward should take place in the
+appropriate GitHub repository, and content will be mirrored on
+openweave.io as necessary.
 
-## [4.1.1] - 2019-04-30
+Initial guides have been placed in `/doc/guides`.
 
-*   Updated to nlbuild-autotools 1.6.9.
-*   Added multicast group management APIs to the Inet layer for raw IP
-    and UDP endpoints.
+See the new [Style Guide](./doc/STYLE_GUIDE.md) for information on how to
+format documentation contributions.
 
-## [4.0.2] - 2018-11-19
+### New Changelog format
 
-*   Updated to nlbuild-autotools 1.6.5.
+A new changelog format has been implemented. All major feature changes and
+updates to OpenWeave Core will be documented in this file going forward.
 
-## [4.0.1] - 2018-11-15
+## 2019-05-24
 
-*   Updated to nlbuild-autotools 1.6.4.
+Updated to nlbuild-autotools 1.6.11 and tagged to 4.1.2.
 
-## [1.0] - 2017-07-06
+## 2019-04-30
 
-Initial open source release of OpenWeave Core.
+Updated to nlbuild-autotools 1.6.9 and tagged to 4.1.1.
 
+## 2019-01-04
 
-[Unreleased]: https://github.com/openweave/openweave-core/compare/4.1.2...master
-[4.1.2]: https://github.com/openweave/openweave-core/compare/4.1.1...4.1.2
-[4.1.1]: https://github.com/openweave/openweave-core/compare/4.0.2...4.1.1
-[4.0.2]: https://github.com/openweave/openweave-core/compare/4.0.1...4.0.2
-[4.0.1]: https://github.com/openweave/openweave-core/compare/1.0...4.0.1
-[1.0]: https://github.com/openweave/openweave-core/releases/tag/1.0
+Added multicast group management APIs to the Inet layer for raw IP
+and UDP endpoints.
+
+## 2018-11-19
+
+Updated to nlbuild-autotools 1.6.5 and tagged to 4.0.2.
+
+## 2018-11-15
+
+Updated to nlbuild-autotools 1.6.4 and tagged to 4.0.1.
+
+## 2017-09-18 Nest Weave open sourced as OpenWeave
+
+This initial open-source release of OpenWeave makes available some of
+Weave's core components.
