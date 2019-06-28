@@ -779,5 +779,120 @@
 #define WEAVE_DEVICE_CONFIG_PERSISTED_STORAGE_DEBUG_EIDC_KEY  "debug-eidc"
 #endif
 
+// -------------------- Software Update Manager Configuration --------------------
+
+/**
+ * WEAVE_DEVICE_CONFIG_ENABLE_SOFTWARE_UPDATE_MANAGER
+ *
+ * Enable or disable the Weave Software Update Manager.
+ *
+ */
+#ifndef WEAVE_DEVICE_CONFIG_ENABLE_SOFTWARE_UPDATE_MANAGER
+#define WEAVE_DEVICE_CONFIG_ENABLE_SOFTWARE_UPDATE_MANAGER 1
+#endif
+
+/**
+ * WEAVE_DEVICE_CONFIG_SOFTWARE_UPDATE_URI_LEN
+ *
+ * Specifies the size in bytes of the buffer that stores the
+ * URI
+ *
+ */
+#ifndef WEAVE_DEVICE_CONFIG_SOFTWARE_UPDATE_URI_LEN
+#define WEAVE_DEVICE_CONFIG_SOFTWARE_UPDATE_URI_LEN 128
+#endif
+
+/**
+ * WEAVE_DEVICE_CONFIG_SOFTWARE_UPDATE_ENDPOINT_ID
+ *
+ * Specifies the service endpoint id of the Weave Software Update service.  When a device
+ * attemps software update, this is the endpoint to which it will send its Software Update
+ * Query request.
+ */
+#ifndef WEAVE_DEVICE_CONFIG_SOFTWARE_UPDATE_ENDPOINT_ID
+#define WEAVE_DEVICE_CONFIG_SOFTWARE_UPDATE_ENDPOINT_ID 0x18B4300200000002ULL
+#endif
+
+/**
+ * WEAVE_DEVICE_CONFIG_FILE_DOWNLOAD_ENDPOINT_ID
+ *
+ * Specifies the service endpoint id of the Weave File Download service.  When a device
+ * attemps file download over BDX, this is the endpoint to which it will send its BDX request.
+ */
+#ifndef WEAVE_DEVICE_CONFIG_FILE_DOWNLOAD_ENDPOINT_ID
+#define WEAVE_DEVICE_CONFIG_FILE_DOWNLOAD_ENDPOINT_ID 0x18B4300200000013ULL
+#endif
+
+/**
+ * WEAVE_DEVICE_CONFIG_SOFTWARE_UPDATE_RESPOSNE_TIMEOUT
+ *
+ * Specifies the maximum amount of time (in milliseconds) to wait for a response from a
+ * Weave Software Update service.
+ *
+ */
+#ifndef WEAVE_DEVICE_CONFIG_SOFTWARE_UPDATE_RESPOSNE_TIMEOUT
+#define WEAVE_DEVICE_CONFIG_SOFTWARE_UPDATE_RESPOSNE_TIMEOUT 10000
+#endif
+
+/**
+ * WEAVE_DEVICE_CONFIG_FILE_DOWNLOAD_RESPOSNE_TIMEOUT
+ *
+ * Specifies the maximum amount of time (in milliseconds) to wait for a response from a
+ * Weave File Download service.
+ *
+ */
+#ifndef WEAVE_DEVICE_CONFIG_FILE_DOWNLOAD_RESPOSNE_TIMEOUT
+#define WEAVE_DEVICE_CONFIG_FILE_DOWNLOAD_RESPOSNE_TIMEOUT 10000
+#endif
+
+/**
+ * WEAVE_DEVICE_CONFIG_SWU_RETRY_WAIT_TIME_MULTIPLIER_MS
+ *
+ * If scheduled software update check is enabled & default retry policy is used,
+ * specify the multiplier that multiplies the result of a fibonacci computation
+ * based on a specific index to provide a max wait time for a step.
+ *
+ */
+#ifndef WEAVE_DEVICE_CONFIG_SWU_RETRY_WAIT_TIME_MULTIPLIER_MS
+#define WEAVE_DEVICE_CONFIG_SWU_RETRY_WAIT_TIME_MULTIPLIER_MS 10000
+#endif
+
+/**
+ * WEAVE_DEVICE_CONFIG_SWU_RETRY_MAX_FIBONACCI_STEP_INDEX
+ *
+ * If scheduled software update check is enabled & default retry policy is used,
+ * specify the max fibonacci step index.
+ * This index must satisfy below conditions:
+ * 1 . Fibonacci(MAX_FIBONACCI_STEP_INDEX + 1) * MAX_WAIT_INTERVAL_MS > MAX_WAIT_INTERVAL_MS
+ * 2 . Fibonacci(MAX_FIBONACCI_STEP_INDEX) * WAIT_TIME_MULTIPLIER_MS < MAX_WAIT_INTERVAL_MS
+ *
+ */
+#ifndef WEAVE_DEVICE_CONFIG_SWU_RETRY_MAX_FIBONACCI_STEP_INDEX
+#define WEAVE_DEVICE_CONFIG_SWU_RETRY_MAX_FIBONACCI_STEP_INDEX 14
+#endif
+
+/**
+ * WEAVE_DEVICE_CONFIG_SWU_RETRY_MAX_WAIT_INTERVAL_MS
+ *
+ * If scheduled software update check is enabled & default retry policy is used,
+ * specify the max wait time.
+ * This value was chosen so that the average wait time is 3600000
+ * ((100 - MIN_WAIT_TIME_INTERVAL_PERCENT_PER_STEP) % of MAX_WAIT_INTERVAL_MS) / 2 +
+ * (MIN_WAIT_TIME_INTERVAL_PERCENT_PER_STEP % of MAX_RETRY_WAIT_INTERVAL_MS) = average wait is 3600000
+ */
+#ifndef WEAVE_DEVICE_CONFIG_SWU_RETRY_MAX_WAIT_INTERVAL_MS
+#define WEAVE_DEVICE_CONFIG_SWU_RETRY_MAX_WAIT_INTERVAL_MS 5538000
+#endif
+
+/**
+ * WEAVE_DEVICE_CONFIG_SWU_RETRY_MIN_WAIT_TIME_INTERVAL_PERCENT_PER_STEP
+ *
+ * If scheduled software update check is enabled & default retry policy is used,
+ * specify the minimum wait time as a percentage of the max wait interval for that step.
+ *
+ */
+#ifndef WEAVE_DEVICE_CONFIG_SWU_RETRY_MIN_WAIT_TIME_INTERVAL_PERCENT_PER_STEP
+#define WEAVE_DEVICE_CONFIG_SWU_RETRY_MIN_WAIT_TIME_INTERVAL_PERCENT_PER_STEP 30
+#endif
 
 #endif // WEAVE_DEVICE_CONFIG_H

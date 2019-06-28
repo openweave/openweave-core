@@ -42,5 +42,13 @@
  */
 #define WEAVE_DEVICE_ERROR_NOT_SERVICE_PROVISIONED            _WEAVE_DEVICE_ERROR(2)
 
+/**
+ *  @def WEAVE_DEVICE_ERROR_SOFTWARE_UPDATE_CANCELLED
+ *
+ *  @brief
+ *    The software update was cancelled by application
+ *
+ */
+#define WEAVE_DEVICE_ERROR_SOFTWARE_UPDATE_CANCELLED            _WEAVE_DEVICE_ERROR(3)
 
 #endif // WEAVE_DEVICE_ERROR_H

@@ -263,6 +263,16 @@ WEAVE_ERROR GenericPlatformManagerImpl<ImplClass>::_InitWeaveStack(void)
     }
     SuccessOrExit(err);
 
+    // Initialize the Software Update Manager object.
+#if WEAVE_DEVICE_CONFIG_ENABLE_SOFTWARE_UPDATE_MANAGER
+    err = SoftwareUpdateMgr().Init();
+    if (err != WEAVE_NO_ERROR)
+    {
+        WeaveLogError(DeviceLayer, "Software Update Manager initialization failed: %s", ErrorStr(err));
+    }
+    SuccessOrExit(err);
+#endif // WEAVE_DEVICE_CONFIG_ENABLE_SOFTWARE_UPDATE_MANAGER
+
 exit:
     return err;
 }
@@ -406,6 +416,9 @@ void GenericPlatformManagerImpl<ImplClass>::DispatchEventToDeviceLayer(const Wea
     NetworkProvisioningSvr().OnPlatformEvent(event);
     FabricProvisioningSvr().OnPlatformEvent(event);
     ServiceProvisioningSvr().OnPlatformEvent(event);
+#if WEAVE_DEVICE_CONFIG_ENABLE_SOFTWARE_UPDATE_MANAGER
+    SoftwareUpdateMgr().OnPlatformEvent(event);
+#endif
 #if WEAVE_DEVICE_CONFIG_ENABLE_TRAIT_MANAGER
     TraitMgr().OnPlatformEvent(event);
 #endif // WEAVE_DEVICE_CONFIG_ENABLE_TRAIT_MANAGER
