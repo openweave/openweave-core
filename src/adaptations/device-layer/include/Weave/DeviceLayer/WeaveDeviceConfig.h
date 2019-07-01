@@ -127,15 +127,20 @@
 #endif
 
 /**
- * WEAVE_DEVICE_CONFIG_DEVICE_PRODUCT_REVISION
+ * WEAVE_DEVICE_CONFIG_DEFAULT_DEVICE_PRODUCT_REVISION
  *
- * The product revision number assigned to device or product by the device vendor.  This
- * number is scoped to the device product id, and typically corresponds to a revision of the
- * physical device, a change to its packaging, and/or a change to its marketing presentation.
- * This value is generally *not* incremented for device software revisions.
+ * The default product revision number assigned to the device or product by the device vendor.
+ *
+ * Product revisions are specific to a particular device vendor and product id, and typically
+ * correspond to a revision of the physical device, a change to its packaging, and/or a change
+ * to its marketing presentation. This value is generally *not* incremented for device software
+ * revisions.
+ *
+ * This is a default value which is used when a product revision has not been stored in device
+ * persistent storage (e.g. by a factory provisioning process).
  */
-#ifndef WEAVE_DEVICE_CONFIG_DEVICE_PRODUCT_REVISION
-#define WEAVE_DEVICE_CONFIG_DEVICE_PRODUCT_REVISION 1
+#ifndef WEAVE_DEVICE_CONFIG_DEFAULT_DEVICE_PRODUCT_REVISION
+#define WEAVE_DEVICE_CONFIG_DEFAULT_DEVICE_PRODUCT_REVISION 1
 #endif
 
 /**

@@ -212,6 +212,32 @@ WEAVE_ERROR GenericConfigurationManagerImpl<ImplClass>::_StorePrimary802154MACAd
 }
 
 template<class ImplClass>
+inline WEAVE_ERROR GenericConfigurationManagerImpl<ImplClass>::_GetProductRevision(uint16_t & productRev)
+{
+    WEAVE_ERROR err;
+    uint32_t val;
+
+    err = Impl()->ReadConfigValue(ImplClass::kConfigKey_ProductRevision, val);
+    if (err == WEAVE_DEVICE_ERROR_CONFIG_NOT_FOUND)
+    {
+        productRev = (uint16_t)WEAVE_DEVICE_CONFIG_DEFAULT_DEVICE_PRODUCT_REVISION;
+        err = WEAVE_NO_ERROR;
+    }
+    else
+    {
+        productRev = (uint16_t)val;
+    }
+
+    return err;
+}
+
+template<class ImplClass>
+inline WEAVE_ERROR GenericConfigurationManagerImpl<ImplClass>::_StoreProductRevision(uint16_t productRev)
+{
+    return Impl()->WriteConfigValue(ImplClass::kConfigKey_ProductRevision, (uint32_t)productRev);
+}
+
+template<class ImplClass>
 WEAVE_ERROR GenericConfigurationManagerImpl<ImplClass>::_GetManufacturingDate(uint16_t& year, uint8_t& month, uint8_t& dayOfMonth)
 {
     WEAVE_ERROR err;
@@ -679,7 +705,7 @@ void GenericConfigurationManagerImpl<ImplClass>::LogDeviceConfig()
     WeaveLogProgress(DeviceLayer, "  Device Id: %016" PRIX64, FabricState.LocalNodeId);
 
     {
-        char serialNum[ConfigurationManager::kMaxSerialNumberLength];
+        char serialNum[ConfigurationManager::kMaxSerialNumberLength + 1];
         size_t serialNumLen;
         err = Impl()->_GetSerialNumber(serialNum, sizeof(serialNum), serialNumLen);
         WeaveLogProgress(DeviceLayer, "  Serial Number: %s", (err == WEAVE_NO_ERROR) ? serialNum : "(not set)");
@@ -702,6 +728,29 @@ void GenericConfigurationManagerImpl<ImplClass>::LogDeviceConfig()
             productId = 0;
         }
         WeaveLogProgress(DeviceLayer, "  Product Id: %" PRIu16 " (0x%" PRIX16 ")", productId, productId);
+    }
+
+    {
+        uint16_t productRev;
+        if (Impl()->_GetProductRevision(productRev) != WEAVE_NO_ERROR)
+        {
+            productRev = 0;
+        }
+        WeaveLogProgress(DeviceLayer, "  Product Revision: %" PRIu16, productRev);
+    }
+
+    {
+        uint16_t year;
+        uint8_t month, dayOfMonth;
+        err = Impl()->_GetManufacturingDate(year, month, dayOfMonth);
+        if (err == WEAVE_NO_ERROR)
+        {
+            WeaveLogProgress(DeviceLayer, "  Manufacturing Date: %04" PRIu16 "/%02" PRIu8 "/%02" PRIu8, year, month, dayOfMonth);
+        }
+        else
+        {
+            WeaveLogProgress(DeviceLayer, "  Manufacturing Date: (not set)");
+        }
     }
 
     if (FabricState.FabricId != kFabricIdNotSpecified)

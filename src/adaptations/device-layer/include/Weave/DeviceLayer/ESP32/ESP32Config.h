@@ -56,6 +56,7 @@ public:
     static const Key kConfigKey_DeviceId;
     static const Key kConfigKey_DeviceCert;
     static const Key kConfigKey_DevicePrivateKey;
+    static const Key kConfigKey_ProductRevision;
     static const Key kConfigKey_ManufacturingDate;
     static const Key kConfigKey_PairingCode;
     static const Key kConfigKey_FabricId;

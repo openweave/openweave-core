@@ -89,6 +89,7 @@ public:
     WEAVE_ERROR StorePrimaryWiFiMACAddress(const uint8_t * buf);
     WEAVE_ERROR StorePrimary802154MACAddress(const uint8_t * buf);
     WEAVE_ERROR StoreManufacturingDate(const char * mfgDate);
+    WEAVE_ERROR StoreProductRevision(uint16_t productRev);
     WEAVE_ERROR StoreFabricId(uint64_t fabricId);
     WEAVE_ERROR StoreDeviceCertificate(const uint8_t * cert, size_t certLen);
     WEAVE_ERROR StoreDevicePrivateKey(const uint8_t * key, size_t keyLen);
@@ -298,6 +299,11 @@ inline WEAVE_ERROR ConfigurationManager::StorePrimary802154MACAddress(const uint
 inline WEAVE_ERROR ConfigurationManager::StoreManufacturingDate(const char * mfgDate)
 {
     return static_cast<ImplClass*>(this)->_StoreManufacturingDate(mfgDate);
+}
+
+inline WEAVE_ERROR ConfigurationManager::StoreProductRevision(uint16_t productRev)
+{
+    return static_cast<ImplClass*>(this)->_StoreProductRevision(productRev);
 }
 
 inline WEAVE_ERROR ConfigurationManager::StoreFabricId(uint64_t fabricId)

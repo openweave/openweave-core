@@ -32,6 +32,8 @@ namespace Weave {
 namespace DeviceLayer {
 namespace Internal {
 
+// *** CAUTION ***: Changing the names or namespaces of these values will *break* existing devices.
+
 // NVS namespaces used to store device configuration information.
 const char ESP32Config::kConfigNamespace_WeaveFactory[]                    = "weave-factory";
 const char ESP32Config::kConfigNamespace_WeaveConfig[]                     = "weave-config";
@@ -42,6 +44,7 @@ const ESP32Config::Key ESP32Config::kConfigKey_SerialNum               = { kConf
 const ESP32Config::Key ESP32Config::kConfigKey_DeviceId                = { kConfigNamespace_WeaveFactory, "device-id"          };
 const ESP32Config::Key ESP32Config::kConfigKey_DeviceCert              = { kConfigNamespace_WeaveFactory, "device-cert"        };
 const ESP32Config::Key ESP32Config::kConfigKey_DevicePrivateKey        = { kConfigNamespace_WeaveFactory, "device-key"         };
+const ESP32Config::Key ESP32Config::kConfigKey_ProductRevision         = { kConfigNamespace_WeaveFactory, "product-rev"        };
 const ESP32Config::Key ESP32Config::kConfigKey_ManufacturingDate       = { kConfigNamespace_WeaveFactory, "mfg-date"           };
 const ESP32Config::Key ESP32Config::kConfigKey_PairingCode             = { kConfigNamespace_WeaveFactory, "pairing-code"       };
 

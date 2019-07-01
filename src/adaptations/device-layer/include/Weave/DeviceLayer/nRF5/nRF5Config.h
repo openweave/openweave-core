@@ -58,6 +58,8 @@ class NRF5Config
 {
 public:
 
+    // *** CAUTION ***: Changing the FDS file or record ids of these values will *break* existing devices.
+
     // Limits/definitions imposed by the Nordic SDK
     static constexpr uint16_t kFDSFileIdMin                     = 0x0000; /**< Minimum value that can be used for a FDS file id (per Nordic SDK) */
     static constexpr uint16_t kFDSFileIdMax                     = 0xBFFF; /**< Maximum value that can be used for a FDS file id (per Nordic SDK) */
@@ -90,6 +92,7 @@ public:
     static constexpr Key kConfigKey_LastUsedEpochKeyId          = NRF5ConfigKey(kFileId_WeaveConfig,  0x000C);
     static constexpr Key kConfigKey_FailSafeArmed               = NRF5ConfigKey(kFileId_WeaveConfig,  0x000D);
     static constexpr Key kConfigKey_GroupKey                    = NRF5ConfigKey(kFileId_WeaveConfig,  0x000E);
+    static constexpr Key kConfigKey_ProductRevision             = NRF5ConfigKey(kFileId_WeaveFactory, 0x000F);
 
     // Range of FDS record keys used to store Weave persisted counter values.
     static constexpr uint16_t kPersistedCounterRecordKeyBase    = kFDSRecordKeyMin;
